@@ -1038,9 +1038,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
         JSString *strval; /* strings */
         char *strp;
 	/* char *strtouched; */
-	int fromalready;	 /* we have already got the from value string */
+	int fromalready=FALSE;	 /* we have already got the from value string */
 
-	fromalready=FALSE; 
 	int touched_flag;
 
 	UNUSED(ignore);
