@@ -5,9 +5,9 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	NAME => 'VRML::OpenGL',
     
-    LIBS      => $VRML_CONFIG{OPENGL_LIBS},
+    LIBS      => $VRML_CONFIG{FREEWRL_LIBS},
 
-    DEFINE => $VRML_CONFIG{OPENGL_DEFINE},
-    INC => $VRML_CONFIG{OPENGL_INC},
+    DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
+    INC => $VRML_CONFIG{FREEWRL_INC},
 );
 
