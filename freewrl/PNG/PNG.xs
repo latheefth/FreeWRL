@@ -150,7 +150,7 @@ for(;;) {
    /* return values */
    hei = height;
    wi = width;
-   dep = 4; /* JAS - this is 4 coloUr components, not bit depth...  */
+   dep = png_get_channels( png_ptr, info_ptr ); 
 
    if ((height > 256) || (width > 256))
 	printf ("PNG::WARNING: image is big - may not be displayed");
