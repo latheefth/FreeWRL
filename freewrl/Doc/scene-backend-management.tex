@@ -20,7 +20,7 @@
 
     \section{VRML statements}
 
-	\subsection{PROTO}
+	%%\subsection{PROTO}
 
     %% better explain the browser class and the event loop!
 
@@ -30,9 +30,22 @@
 
 	The scene graph is a tree constructed by parsing a VRML input file and
 	building a tree of VRML nodes starting from the parent (root) node.
-	If the parent node is a PROTO\ldots
+	%%If the parent node is a PROTO\ldots
 	An example of a scene graph corresponding to the following VRML code
 	is represented as a tree is shown in Figure~\ref{fig:sg-tree}.
+
+	New node types are defined using either the PROTO or EXTERNPROTO
+	(new node type defined in external file) keywords.
+	These nodes are handled differently than the node types defined in the
+	VRML standard.
+	A new PROTO definition must be broken down into a \uline{name},
+	\uline{field types}, \uline{field kinds} (ie. EventIn, EventOut,
+	ExposedField), default field values and a \uline{parent} node.
+	See the VRML97 standard for a full description of node types and PROTO
+	definitions~\cite{web3D:vrml97}.
+	Inline nodes are treated as PROTOs for the purposes of building the
+	backend to the OpenGL module.
+
 
 	\begin{verbatim}
 	    [pick a VRML example from the FreeWRL tests]
@@ -49,10 +62,19 @@
 	appropriate node representation.
 	The browser (\texttt{VRML::Browser}) is responsible for calling the
 	methods to construct the scene graph.
+
 	%% lame - needs way more explaination!
 	This is done either when a string containing the text of a VRML input
 	file is loaded (\texttt{VRML::Browser::load\_string}) or when a world is
 	replaced (\texttt{VRML::Browser::replaceWorld}).
+
+	%% DEF nodes
+	%% USE nodes
+	%% IS statements
+
+	The scene object prepares the newly construted scene graph and it's
+	constituent nodes for rendering by calling
+	\texttt{VRML::Scene::make_executable}.
 
 	\subsection{Backend}
 
