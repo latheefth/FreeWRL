@@ -61,21 +61,7 @@ PROTO dirigible [ ] {
                 orientation 0 1 0 3.0
                 description "Pilot View"
               }
-              Shape {
-                appearance Appearance {
-		material Material {}
-                  texture ImageTexture {
-                    url "canlabel.jpg"
-                    repeatS FALSE
-                    repeatT FALSE
-                  }
-                }
-                geometry Cylinder {
-			top TRUE
-			bottom TRUE
-			height 5.0
-			}
-              }
+	      Inline { url [ "can.wrl" ] }
             ]
           }
         ]
