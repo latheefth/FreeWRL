@@ -20,7 +20,7 @@
 #		: called when eventIn received in that event.
 #  ClockTick($node,$fields,$time): called at each clocktick if exists 
 #	(only timesensor-type nodes)
-#  
+#
 # default field/eventname: $t->set_field(...,...), if event received,
 #  field is not set so that it can be ignored (e.g. TimeSensor)
 #  set_field returns the eventout to send also...!!
@@ -141,7 +141,7 @@ sub perl_script_output {
       $VRML::script_out_open = 1;
       print "Opened script output file '$VRML::script_out_file'\n" if $v;
     }
-    
+
     if ($on) {					# select script output filehandle
       if (!$VRML::script_out_selected){
 		$VRML::LAST_HANDLE = select VRML_SCRIPT_OUT;
@@ -197,7 +197,7 @@ sub TIESCALAR {
   ### my $class = shift;
   ## my $self = shift;
   ## bless $self;
-  ### bless shift ; 
+  ### bless shift ;
   bless $_[1];
 }
 
@@ -231,7 +231,7 @@ sub ClockTick_TimeDepNodes {
 		return();
 	}
 
-	my $oldstatus = $f->{isActive}; 
+	my $oldstatus = $f->{isActive};
 	my @e;
 
 	my $time;
@@ -415,10 +415,10 @@ sub ClockTick_TimeDepNodes {
 			$f->{__ctflag} = $frac;
 	
 			# time  and fraction_changed events
-			push @e, [$t, "time", $tick]; 
+			push @e, [$t, "time", $tick];
 			push @e, [$t, fraction_changed, $frac];
 		}
-	} 
+	}
 	return @e;
 }
 
@@ -685,21 +685,15 @@ my $protono;
 			# $this->{Fields}{$_} = "VRML::Field::$fields->{$_}[0]";
 			$t = $fields->{$_}[2];
 
-			if (!defined $t or $t eq "" or $t eq "field" or $t eq "exposedField") {
-				if (!defined $t or $t eq "exposedField") {
-					$this->{EventOuts}{$_} = $_;
-					$this->{EventOuts}{$_."_changed"} = $_;
-					$this->{EventIns}{$_} = $_;
-					$this->{EventIns}{"set_".$_} = $_;
-				}
-			} else {
-				my $io;
-				if ($t =~ /[oO]ut$/) {
-					$io = Out;
-				} else {
-					$io = In;
-				}
-				$this->{Event.$io."s"}{$_} = $_;
+			if ($t =~ /in$/i) {
+				$this->{EventIns}{$_} = $_;
+			} elsif ($t =~ /out$/i) {
+				$this->{EventOuts}{$_} = $_;
+			} elsif ($t =~ /^exposed/ or !defined $t or $t eq "") {
+				$this->{EventOuts}{$_} = $_; ## ???
+				$this->{EventOuts}{$_."_changed"} = $_;
+				$this->{EventIns}{$_} = $_; ## ???
+				$this->{EventIns}{"set_".$_} = $_;
 			}
 
 			if (!defined $t) {
@@ -707,6 +701,7 @@ my $protono;
 			} else {
 				$t = ($MAP{$t} or $t);
 			}
+
 			$this->{FieldKinds}{$_} = $t;
 		}
 		return $this;
@@ -745,910 +740,1041 @@ my $protono;
  Collision	children
 );
 
-%VRML::Nodes::siblingsensitive = map {($_,1)} qw/
+%VRML::Nodes::siblingsensitive = map {($_, 1)} qw/
  TouchSensor
  PlaneSensor
  CylinderSensor
  SphereSensor
 /;
 
-%VRML::Nodes::sensitive = map {($_,1)} qw/
+%VRML::Nodes::sensitive = map {($_, 1)} qw/
  ProximitySensor
 /;
 
 %VRML::Nodes = (
- # Internal structures, to store def and use in the right way
- DEF => new VRML::NodeType("DEF",{node => [SFNode, NULL]}, id => [SFString,""]),
- USE => new VRML::NodeType("USE",{node => [SFNode, NULL]}, id => [SFString,""]),
+	# Internal structures, to store def and use in the right way
+	DEF =>
+	new VRML::NodeType("DEF",
+					   { node => [SFNode, NULL] },
+					   id => [SFString, ""]
+					  ),
 
- Shape => new VRML::NodeType ("Shape",
- {
-    appearance => [SFNode, NULL],
-    geometry => [SFNode, NULL]
- }
- ),
+	USE =>
+	new VRML::NodeType("USE",
+					   { node => [SFNode, NULL] },
+					   id => [SFString, ""]
+					  ),
 
- # Complete
- Appearance => new VRML::NodeType ("Appearance",
- {
-    material => [SFNode,NULL],
-    texture => [SFNode,NULL],
-    textureTransform => [SFNode,NULL]
- }
- ),
+	Shape =>
+	new VRML::NodeType ("Shape",
+						{
+						 appearance => [SFNode, NULL, exposedField],
+						 geometry => [SFNode, NULL, exposedField]
+						}
+					   ),
 
- # Complete 
- Material => new VRML::NodeType ("Material",
- {
-    diffuseColor => [SFColor, [0.8, 0.8, 0.8]],
-    ambientIntensity => [SFFloat, 0.2],
-    specularColor => [SFColor, [0,0,0]],
-    emissiveColor => [SFColor, [0,0,0]],
-    shininess => [SFFloat, 0.2],
-    transparency => [SFFloat, 0]
-}
- ),
+	# Complete
+	Appearance =>
+	new VRML::NodeType ("Appearance",
+						{
+						 material => [SFNode, NULL, exposedField],
+						 texture => [SFNode, NULL, exposedField],
+						 textureTransform => [SFNode, NULL, exposedField]
+						}
+					   ),
 
- ImageTexture => new VRML::NodeType("ImageTexture",
- {
-    url => [MFString, []],			# original URL from VRML file
-    repeatS => [SFBool, 1, "field"],		# VRML repeatS field
-    repeatT => [SFBool, 1, "field"],		# VRML repeatT field
-    __locfile => [SFString, "", "field"],		# where on the local file system texture resides
-    __texture => [SFInt32,0,"field"],		# OpenGL texture number
-    __istemporary =>[SFInt32,0,"field"],	# if we have to remove this after processing
- },{
-    Initialize => sub {
-	my ($t,$f,$time,$scene) = @_;
-	init_image("","url",$t,$f,$scene,1);
-	return ();
-    }
- }
- ),
+	# Complete
+	Material =>
+	new VRML::NodeType ("Material",
+						{
+						 ambientIntensity => [SFFloat, 0.2, exposedField],
+						 diffuseColor => [SFColor, [0.8, 0.8, 0.8], exposedField],
+						 emissiveColor => [SFColor, [0, 0, 0], exposedField],
+						 shininess => [SFFloat, 0.2, exposedField],
+						 specularColor => [SFColor, [0, 0, 0], exposedField],
+						 transparency => [SFFloat, 0, exposedField]
+						}
+					   ),
+
+	ImageTexture =>
+	new VRML::NodeType("ImageTexture",
+					   {
+						# original URL from VRML file
+						url => [MFString, [], exposedField],
+						# VRML repeatS field
+						repeatS => [SFBool, 1, field],
+						# VRML repeatT field
+						repeatT => [SFBool, 1, field],
+						# where on the local file system texture resides
+						__locfile => [SFString, "", "field"],
+						# OpenGL texture number
+						__texture => [SFInt32, 0,"field"],
+						# if we have to remove this after processing
+						__istemporary =>[SFInt32, 0, "field"]
+					   },
+					   {
+						Initialize => sub {
+							my ($t,$f,$time,$scene) = @_;
+							init_image("","url",$t,$f,$scene,1);
+							return ();
+						}
+					   }
+					  ),
 
 
 # From Remi Cohen-Scali
 
-PixelTexture => new VRML::NodeType("PixelTexture",
-       {
-	image => [SFImage, []],			# pixeltexture value, uncompiled.
-        repeatS => [SFBool, 1, "field"],	# VRML repeatS field
-        repeatT => [SFBool, 1, "field"],	# VRML repeatT field
-        __texture => [SFInt32,0,"field"], 	# OpenGL texture number
-        __depth => [SFInt32, 1, "field"],	# depth, from PixelTexture
-        __istemporary =>[SFInt32,0,"field"],	# if we have to remove the data file after processing
-        __x => [SFInt32,0, "field"],		# x size, from PixelTexture
-        __y => [SFInt32,0, "field"],		# y size, from PixelTexture
-        __locfile => [SFString, "", "field"],	# the name that the PixelTexture data (ascii) is
+	PixelTexture =>
+	new VRML::NodeType("PixelTexture",
+					   {
+						# pixeltexture value, uncompiled.
+						image => [SFImage, [0, 0, 0], exposedField],
+						repeatS => [SFBool, 1, field],
+						repeatT => [SFBool, 1, field],
+						# OpenGL texture number
+						__texture => [SFInt32, 0, "field"],
+						# depth, from PixelTexture
+						__depth => [SFInt32, 1, "field"],
+						# if we have to remove the data file after processing
+						__istemporary =>[SFInt32, 0, "field"],
+						# x size, from PixelTexture
+						__x => [SFInt32, 0, "field"],
+						# y size, from PixelTexture
+						__y => [SFInt32, 0, "field"],
+						# the name that the PixelTexture data (ascii) is
+						__locfile => [SFString, "", "field"]
 						# stored in to allow C functions to parse it.
-       },{
-       Initialize => sub { 
-               my($t,$f,$time,$scene) = @_;
-               init_pixel_image("image",$t,$f,$scene);
-               return ();
-       }
-       }
-),
+					   },
+					   {
+						Initialize => sub {
+							my($t,$f,$time,$scene) = @_;
+							init_pixel_image("image",$t,$f,$scene);
+							return ();
+						}
+					   }
+					  ),
 
 
-MovieTexture => new VRML::NodeType ("MovieTexture",
-{	loop	=> [SFBool, 0],
-	speed	=> [SFFloat, 1],
-	startTime => [SFTime, 0],
-	stopTime  => [SFTime, 0],
-	url	=> [MFString, [""]],
-	repeatS	=> [SFBool, 1, ""],	# not exposedfield
-	repeatT	=> [SFBool, 1, ""], 	# not exposedfield
-	duration_changed	=> [SFTime,undef,eventOut],
-	isActive	=> [SFBool, undef, out],
-        __locfile => [MFString, [], "field"],
-        __texture0_ => [SFInt32,0, "field"], # initial texture number 
-        __texture1_ => [SFInt32,0, "field"], # last texture number
-	__ctex => [SFInt32, 0, "field"],	# which texture number is used
-	__inittime => [SFInt32,0,"field"],	# time that we were initialized at
+	MovieTexture =>
+	new VRML::NodeType ("MovieTexture",
+						{
+						 loop => [SFBool, 0, exposedField],
+						 speed => [SFFloat, 1.0, exposedField],
+						 startTime => [SFTime, 0, exposedField],
+						 stopTime => [SFTime, 0, exposedField],
+						 url => [MFString, [""], exposedField],
+						 repeatS => [SFBool, 1, field],
+						 repeatT => [SFBool, 1, field],
+						 duration_changed => [SFTime, -1, eventOut],
+						 isActive => [SFBool, 0, eventOut],
+						 __locfile => [MFString, [], "field"],
+						 # initial texture number
+						 __texture0_ => [SFInt32, 0, "field"],
+						 # last texture number
+						 __texture1_ => [SFInt32, 0, "field"],
+						 # which texture number is used
+						 __ctex => [SFInt32, 0, "field"],
+						 # time that we were initialized at
+						 __inittime => [SFInt32, 0, "field"],
+						 # internal sequence number
+						 __sourceNumber => [SFInt32, 0, "field"],
+						 # local name, as received on system
+						 __localFileName => [SFString, ""], ##field???
+						 # 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
+						 __type => [SFInt32, 0]
+						},
+						@x = {
+							  Initialize => sub {
+								  my ($t,$f,$time,$scene) = @_;
 
-        __sourceNumber => [SFInt32,0,"field"], # internal sequence number
-	__localFileName => [SFString, ""],	# local name, as received on system
-	__type => [SFInt32,0],			# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
- },
+								  if ($SoundMaterial eq "Sound") {
+									  # Assign a source number to this source
+									  $f->{__sourceNumber} = $globalAudioSource++;
+									  $f->{__type} = 4;  
 
-@x= {
-    Initialize => sub {
-	my ($t,$f,$time,$scene) = @_;
+									  # get the file
+									  init_sound("","url",$t,$f,$scene,1);
+								  } else {
+									  init_movie_image("","url",$t,$f,$scene);
 
-	if ($SoundMaterial eq "Sound") {
-		# Assign a source number to this source
-		$f->{__sourceNumber} = $globalAudioSource++;
-		$f->{__type} = 4;  
-
-		# get the file
-		init_sound("","url",$t,$f,$scene,1);
-	} else {
-
-		init_movie_image("","url",$t,$f,$scene);
-
-		# which frame to start with?
-		if ($f->{speed} >= 0) {
-			$f->{__ctex} = $f->{__texture0_};
-		} else {
-			$f->{__ctex} = $f->{__texture1_};
-		}
-		$f->{isActive} = 0;  # inactive
-		$f->{__inittime} = $time;
-
-		#print "mt init time is $time\n";
-	}
-	$SoundMaterial = "unknown";	# this will only be reset the next time a Sound node gets hit
-	return ();
-    },
-	 startTime => sub {
-	 	my($t,$f,$val) = @_;
-		#print "MT StartTime $val\n";
-		$f->{startTime} = $val;
-	 },
-	 # Ignore if less than startTime
-	 stopTime => sub {
-	  	my($t,$f,$val) = @_;
-	 	#print "MT StopTime $val\n";
-		$f->{stopTime} = $val;
-	  },
-
-	 ClockTick => sub {
-		return ClockTick_TimeDepNodes (@_);
-	 },
-}
-),
-
-
-
-
- Box => new VRML::NodeType("Box",
- { size => [SFVec3f, [2,2,2]] }
- ),
-
- # Complete
- Cylinder => new VRML::NodeType ("Cylinder",
- {
-    radius => [SFFloat,1],
-    height => [SFFloat,2],
-    side => [SFBool,1],
-    top => [SFBool,1],
-    bottom => [SFBool,1]
- },
- ),
-
-# Complete
- Cone => new VRML::NodeType ("Cone",
- {
-    bottomRadius => [SFFloat,1],
-    height => [SFFloat,2],
-    side => [SFBool,1],
-    bottom => [SFBool,1]
- },
- ),
-
-# Complete
- Coordinate => new VRML::NodeType("Coordinate",
- { point => [MFVec3f, []] }
- ),
-
- Color => new VRML::NodeType("Color",
- { color => [MFColor, []] }
- ),
-
- Normal => new VRML::NodeType("Normal",
- { vector => [MFVec3f, []] }
- ),
-
- TextureCoordinate => new VRML::NodeType("TextureCoordinate",
- { point => [MFVec2f, []] }
- ),
-
-
- ElevationGrid => new VRML::NodeType("ElevationGrid",
- {
-	color => [SFNode, NULL],
-	normal => [SFNode, NULL],
-	texCoord => [SFNode, NULL],
-	height => [MFFloat, []],
-	ccw => [SFBool, 1],
-	colorPerVertex => [SFBool, 1],
-	creaseAngle => [SFFloat, 0],
-	normalPerVertex => [SFBool, 1],
-	solid => [SFBool, 1],
-	xDimension => [SFInt32, 0],
-	xSpacing => [SFFloat, 1.0],
-	zDimension => [SFInt32, 0],
-	zSpacing => [SFFloat, 1.0],
- }
- ),
-
- Extrusion => new VRML::NodeType("Extrusion",
- {
-    beginCap => [SFBool, 1],
-    ccw => [SFBool, 1],
-    convex => [SFBool, 1],
-    creaseAngle => [SFFloat, 0],
-    crossSection => [MFVec2f, [[1,1],[1,-1],[-1,-1],[-1,1],[1,1]]],
-    endCap => [SFBool, 1],
-    orientation => [MFRotation, [[0,0,1,0]]],
-    scale => [MFVec2f, [[1,1]]],
-    solid => [SFBool, 1],
-    spine => [MFVec3f, [[0,0,0],[0,1,0]]]
- }
-),
-
- # Complete
- Sphere => new VRML::NodeType("Sphere",
- { radius => [SFFloat, 1] }
- ),
-
- # normalPerVertex does not work.
-
-IndexedFaceSet => new VRML::NodeType("IndexedFaceSet",
-	{coord => [SFNode, NULL],
-	 coordIndex => [MFInt32, []],
-	 colorIndex => [MFInt32, []],
-	 normal => [SFNode, NULL],
-	 normalIndex => [MFInt32, []],
-	 solid => [SFBool, 1],
-	 creaseAngle => [SFFloat, 0],
-	 texCoord => [SFNode, NULL],
-	 texCoordIndex => [MFInt32, []],
-	 convex => [SFBool, 1],
-	 color => [SFNode, NULL],
-	 colorPerVertex => [SFBool, 1],
-	 normalPerVertex => [SFBool, 1],
-	 ccw => [SFBool, 1],
-	}
-),
-
-# Complete
-
-IndexedLineSet => new VRML::NodeType("IndexedLineSet",
-	{coord => [SFNode, NULL],
-	 color => [SFNode, NULL],
-	 colorIndex => [MFInt32, []],
-	 coordIndex => [MFInt32, []],
-	 colorPerVertex => [SFBool, 1],
-	}
-),
-
-
-PointSet => new VRML::NodeType("PointSet",
-	{color => [SFNode, NULL],
-	 coord => [SFNode, NULL]
-	}
-),
-
-Text => new VRML::NodeType ("Text",
-	{string => [MFString, []],
-	 fontStyle => [SFNode, NULL],
-	 length => [MFFloat, []],
-	 maxExtent => [SFFloat, 0.0],
-	 __rendersub => [SFInt32, 0],   # Function ptr hack
-	}
-),
-
-FontStyle => new VRML::NodeType("FontStyle",
-	{family => [MFString, ["SERIF"]],
-	 horizontal => [SFBool, 1],
-	 justify => [MFString, ["BEGIN"]],
-	 language => [SFString, ""],
-	 leftToRight => [SFBool, 1],
-	 size => [SFFloat, 1.0],
-	 spacing => [SFFloat, 1.0],
-	 style => [SFString, "PLAIN"],
-	 topToBottom => [SFBool, 1],
-	}
-),
-
-AudioClip => new VRML::NodeType("AudioClip",
- {
-	description => [SFString, ""],
-	loop =>	[SFBool, 0],
-	pitch => [SFFloat, 1.0],
-	startTime => [SFTime, 0],
-	stopTime => [SFTime, 0],
-	url => [MFString,[""]],
-	duration_changed => [SFTime,undef,eventOut],
-	isActive => [SFBool,undef,out],
-
-        __sourceNumber => [SFInt32,0, "field"], # internal sequence number
-	__localFileName => [SFString, ""],	# local name, as received on system
-	__inittime => [SFInt32,0,"field"],	# time that we were initialized at
-	__type => [SFInt32,1],			# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
-	__duration =>[SFString,"-1"],		# duration assuming pitch=1 - note, its a string 
-						# that contains a floating point value.
- },
-@x= {
-	Initialize => sub {
-		my ($t,$f,$time,$scene) = @_;
-
-		# Assign a source number to this source
-		$f->{__sourceNumber} = $globalAudioSource++;
-
-		# get the file
-		init_sound("","url",$t,$f,$scene,1);
-		$SoundMaterial = "unknown"; # we are done with this Sound...
-
-		return ();
-	 },
-
-	 startTime => sub {
-	 	my($t,$f,$val) = @_;
-		#print "MT StartTime $val\n";
-		$f->{startTime} = $val;
-	 },
-	 # Ignore if less than startTime
-	 stopTime => sub {
-	  	my($t,$f,$val) = @_;
-	 	#print "MT StopTime $val\n";
-		$f->{stopTime} = $val;
-	  },
-
-	 ClockTick => sub {
-		return ClockTick_TimeDepNodes (@_);
-	 },
- },
-),
-
-
-Sound => new VRML::NodeType("Sound",
-{
-	direction => [SFVec3f, [0, 0, 1]],
-	intensity => [SFFloat, 1.0],
-	location => [SFVec3f, [0,0,0]],
-	maxBack => [SFFloat, 10],
-	maxFront => [SFFloat, 10],
-	minBack => [SFFloat, 1],
-	minFront => [SFFloat, 1],
-	priority => [SFFloat, 0],
-	source => [SFNode, NULL],
-	spatialize => [SFBool,1, ""]	# not exposedfield
-},
-
-	{Initialize => sub {
-		$SoundMaterial = "Sound";
-		return ();
-	}
-	}
-),
-
- Switch => new VRML::NodeType("Switch",
- {
-    choice => [MFNode, []],
-    whichChoice => [SFInt32, -1]
- }
- ),
-
- LOD => new VRML::NodeType("LOD",
- {
-    level => [MFNode, []],
-    center => [SFVec3f, [0,0,0],  field],
-    range => [MFFloat, []]
- }
- ),
-
-	Transform => new VRML::NodeType ("Transform",
-									 {
-									  addChildren => [MFNode, [], eventIn],
-									  removeChildren => [MFNode, [], eventIn],
-									  center => [SFVec3f, [0,0,0]],
-									  children => [MFNode, []],
-									  rotation => [SFRotation, [0,0,1,0]],
-									  scale => [SFVec3f, [1,1,1]],
-									  scaleOrientation => [SFRotation, [0,0,1,0]],
-									  translation => [SFVec3f, [0,0,0]],
-									  bboxCenter => [SFVec3f, [0,0,0]],
-									  bboxSize => [SFVec3f, [-1,-1,-1]],
-									 },
-									 {
-									  addChildren => sub {
-										  return addChildren_GroupingNodes(@_);
-									  },
-
-									  removeChildren => sub {
-										  return removeChildren_GroupingNodes(@_);
-									  },
-
-									  EventsProcessed => sub {
-										  #my($node,$fields,$time) = @_;
-										  ##my $ac = $fields->{addChildren};
-										  #print("Transform:EventsProcessed $node $fields\n");
-										  ##$node->{BackEnd}->update_scene($time);
-										  ##add_MFNode($t,"children",$ac->[0], 1);
-										  ##$node->receive_event("addChildren", $ac, $time);
-										  return ();
+									  # which frame to start with?
+									  if ($f->{speed} >= 0) {
+										  $f->{__ctex} = $f->{__texture0_};
+									  } else {
+										  $f->{__ctex} = $f->{__texture1_};
 									  }
-									 },
-									),
+									  $f->{isActive} = 0; # inactive
+									  $f->{__inittime} = $time;
 
-TextureTransform => new VRML::NodeType ("TextureTransform",
-	{center => [SFVec2f, [0,0]],
-	 rotation => [SFFloat, 0],
-	 scale => [SFVec2f, [1,1]],
-	 translation => [SFVec2f, [0,0]],
-	}
-),
-
-# Complete
-	Group => new VRML::NodeType("Group",
-								{
-								 addChildren => [MFNode, [], eventIn],
-								 removeChildren => [MFNode, [], eventIn],
-								 children => [MFNode, []],
-								 bboxCenter => [SFVec3f, [0,0,0]],
-								 bboxSize => [SFVec3f, [-1,-1,-1]],
-								},
-								{
-								 addChildren => sub {
-									 return addChildren_GroupingNodes(@_);
-								 },
-
-								 removeChildren => sub {
-									 return removeChildren_GroupingNodes(@_);
-								 },
-
-								 EventsProcessed => sub {
-									 # my($node,$fields,$time) = @_;
-									 # print ("Group, EP, $node $fields\n");
-									 return();
-								 }
-								}
-							   ),
-
-	Anchor => new VRML::NodeType("Anchor",
-								 {
-								  addChildren => [MFNode, [], eventIn],
-								  removeChildren => [MFNode, [], eventIn],
-								  children => [MFNode, []],
-								  description => [SFString, ""],
-								  parameter => [MFString, []],
-								  url => [MFString, []],
-								  bboxCenter => [SFVec3f, [0,0,0]],
-								  bboxSize => [SFVec3f, [-1,-1,-1]],
-								 },
-								 {
-								  addChildren => sub {
-									  return addChildren_GroupingNodes(@_);
-								  },
-
-								  removeChildren => sub {
-									  return removeChildren_GroupingNodes(@_);
+									  #print "mt init time is $time\n";
 								  }
-								 }
-								),
+								  # this will only be reset the next time a Sound node gets hit
+								  $SoundMaterial = "unknown";
+								  return ();
+							  },
+							  startTime => sub {
+								  my($t,$f,$val) = @_;
+								  #print "MT StartTime $val\n";
+								  $f->{startTime} = $val;
+							  },
+							  # Ignore if less than startTime
+							  stopTime => sub {
+								  my($t,$f,$val) = @_;
+								  #print "MT StopTime $val\n";
+								  $f->{stopTime} = $val;
+							  },
 
-	Billboard => new VRML::NodeType("Billboard",
-									{
-									 addChildren => [MFNode, [], eventIn],
-									 removeChildren => [MFNode, [], eventIn],
-									 axisOfRotation => [SFVec3f, [0,1,0]],
-									 children => [MFNode, []],
-									 bboxCenter => [SFVec3f, [0,0,0]],
-									 bboxSize => [SFVec3f, [-1,-1,-1]],
-									},
-									{
-									 addChildren => sub {
-										 return addChildren_GroupingNodes(@_);
-									 },
+							  ClockTick => sub {
+								  return ClockTick_TimeDepNodes (@_);
+							  },
+							 }
+					   ),
 
-									 removeChildren => sub {
-										 return removeChildren_GroupingNodes(@_);
-									 }
+
+	Box =>
+	new VRML::NodeType("Box",
+					   { size => [SFVec3f, [2, 2, 2], field] }
+					  ),
+
+	# Complete
+	Cylinder =>
+	new VRML::NodeType ("Cylinder",
+						{
+						 bottom => [SFBool, 1, field],
+						 height => [SFFloat, 2.0, field],
+						 radius => [SFFloat, 1.0, field],
+						 side => [SFBool, 1, field],
+						 top => [SFBool, 1, field]
+						},
+					   ),
+
+	# Complete
+	Cone =>
+	new VRML::NodeType ("Cone",
+						{
+						 bottomRadius => [SFFloat, 1.0, field],
+						 height => [SFFloat, 2.0, field],
+						 side => [SFBool, 1, field],
+						 bottom => [SFBool, 1, field]
+						},
+					   ),
+
+	# Complete
+	Coordinate =>
+	new VRML::NodeType("Coordinate",
+					   { point => [MFVec3f, [], exposedField] }
+					  ),
+
+	Color =>
+	new VRML::NodeType("Color",
+					   { color => [MFColor, [], exposedField] }
+					  ),
+
+	Normal =>
+	new VRML::NodeType("Normal",
+					   { vector => [MFVec3f, [], exposedField] }
+					  ),
+
+	TextureCoordinate =>
+	new VRML::NodeType("TextureCoordinate",
+					   { point => [MFVec2f, [], exposedField] }
+					  ),
+
+
+	ElevationGrid =>
+	new VRML::NodeType("ElevationGrid",
+					   {
+						set_height => [MFFloat, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						height => [MFFloat, [], field],
+						ccw => [SFBool, 1, field],
+						colorPerVertex => [SFBool, 1, field],
+						creaseAngle => [SFFloat, 0, field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
+					   }
+					  ),
+
+	Extrusion =>
+	new VRML::NodeType("Extrusion",
+					   {
+						set_crossSection => [MFVec2f, undef, eventIn],
+						set_orientation => [MFRotation, undef, eventIn],
+						set_scale => [MFVec2f, undef, eventIn],
+						set_spine => [MFVec3f, undef, eventIn],
+						beginCap => [SFBool, 1, field],
+						ccw => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						creaseAngle => [SFFloat, 0, field],
+						crossSection => [MFVec2f, [[1, 1],[1, -1],[-1, -1],
+												   [-1, 1],[1, 1]], field],
+						endCap => [SFBool, 1, field],
+						orientation => [MFRotation, [[0, 0, 1, 0]], field],
+						scale => [MFVec2f, [[1, 1]], field],
+						solid => [SFBool, 1, field],
+						spine => [MFVec3f, [[0, 0, 0],[0, 1, 0]], field]
+					   }
+					  ),
+
+	# Complete
+	Sphere =>
+	new VRML::NodeType("Sphere",
+					   { radius => [SFFloat, 1.0, field] }
+					  ),
+
+	 # normalPerVertex does not work.
+	IndexedFaceSet =>
+	new VRML::NodeType("IndexedFaceSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field]
+					   }
+					  ),
+
+	# Complete
+	IndexedLineSet =>
+	new VRML::NodeType("IndexedLineSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field]
+					   }
+					  ),
+
+
+	PointSet =>
+	new VRML::NodeType("PointSet",
+					   {
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField]
+					   }
+					  ),
+
+	Text =>
+	new VRML::NodeType ("Text",
+						{
+						 string => [MFString, [], exposedField],
+						 fontStyle => [SFNode, NULL, exposedField],
+						 length => [MFFloat, [], exposedField],
+						 maxExtent => [SFFloat, 0, exposedField],
+						 __rendersub => [SFInt32, 0] # Function ptr hack
+						}
+					   ),
+
+	FontStyle =>
+	new VRML::NodeType("FontStyle",
+					   {
+						family => [MFString, ["SERIF"], field],
+						horizontal => [SFBool, 1, field],
+						justify => [MFString, ["BEGIN"], field],
+						language => [SFString, "", field],
+						leftToRight => [SFBool, 1, field],
+						size => [SFFloat, 1.0, field],
+						spacing => [SFFloat, 1.0, field],
+						style => [SFString, "PLAIN", field],
+						topToBottom => [SFBool, 1, field]
+					   }
+					  ),
+
+	AudioClip =>
+	new VRML::NodeType("AudioClip",
+					   {
+						description => [SFString, "", exposedField],
+						loop =>	[SFBool, 0, exposedField],
+						pitch => [SFFloat, 1.0, exposedField],
+						startTime => [SFTime, 0, exposedField],
+						stopTime => [SFTime, 0, exposedField],
+						url => [MFString, [], exposedField],
+						duration_changed => [SFTime, -1, eventOut],
+						isActive => [SFBool, 0, eventOut],
+
+						# internal sequence number
+						__sourceNumber => [SFInt32, 0, "field"],
+						# local name, as received on system
+						__localFileName => [SFString, ""], ##field???
+						# time that we were initialized at
+						__inittime => [SFInt32, 0, "field"],
+						# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
+						__type => [SFInt32, 1],
+						# duration assuming pitch=1 - note, its a string
+						# that contains a floating point value.
+						__duration =>[SFString, "-1"]
+					   },
+					   @x = {
+							Initialize => sub {
+								my ($t,$f,$time,$scene) = @_;
+								# Assign a source number to this source
+								$f->{__sourceNumber} = $globalAudioSource++;
+								# get the file
+								init_sound("","url",$t,$f,$scene,1);
+								# we are done with this Sound...
+								$SoundMaterial = "unknown";
+								return ();
+							},
+
+							startTime => sub {
+								my($t,$f,$val) = @_;
+								#print "MT StartTime $val\n";
+								$f->{startTime} = $val;
+							},
+							# Ignore if less than startTime
+							stopTime => sub {
+								my($t,$f,$val) = @_;
+								#print "MT StopTime $val\n";
+								$f->{stopTime} = $val;
+							},
+
+							ClockTick => sub {
+								return ClockTick_TimeDepNodes (@_);
+							},
+						   },
+					  ),
+
+
+	Sound =>
+	new VRML::NodeType("Sound",
+					   {
+						direction => [SFVec3f, [0, 0, 1], exposedField],
+						intensity => [SFFloat, 1.0, exposedField],
+						location => [SFVec3f, [0, 0, 0], exposedField],
+						maxBack => [SFFloat, 10.0, exposedField],
+						maxFront => [SFFloat, 10.0, exposedField],
+						minBack => [SFFloat, 1.0, exposedField],
+						minFront => [SFFloat, 1.0, exposedField],
+						priority => [SFFloat, 0, exposedField],
+						source => [SFNode, NULL, exposedField],
+						spatialize => [SFBool,1, field]
+					   },
+					   {
+						Initialize => sub {
+							$SoundMaterial = "Sound";
+							return ();
+						}
+					   }
+					  ),
+
+	Switch =>
+	new VRML::NodeType("Switch",
+					   {
+						choice => [MFNode, [], exposedField],
+						whichChoice => [SFInt32, -1, exposedField]
+					   }
+					  ),
+
+	LOD =>
+	new VRML::NodeType("LOD",
+					   {
+						level => [MFNode, [], exposedField],
+						center => [SFVec3f, [0, 0, 0],  field],
+						range => [MFFloat, [], field]
+					   }
+					  ),
+
+	Transform =>
+	new VRML::NodeType ("Transform",
+						{
+						 addChildren => [MFNode, undef, eventIn],
+						 removeChildren => [MFNode, undef, eventIn],
+						 center => [SFVec3f, [0, 0, 0], exposedField],
+						 children => [MFNode, [], exposedField],
+						 rotation => [SFRotation, [0, 0, 1, 0], exposedField],
+						 scale => [SFVec3f, [1, 1, 1], exposedField],
+						 scaleOrientation => [SFRotation, [0, 0, 1, 0], exposedField],
+						 translation => [SFVec3f, [0, 0, 0], exposedField],
+						 bboxCenter => [SFVec3f, [0, 0, 0], field],
+						 bboxSize => [SFVec3f, [-1, -1, -1], field]
+						},
+						{
+						 addChildren => sub {
+							 return addChildren_GroupingNodes(@_);
+						 },
+
+						 removeChildren => sub {
+							 return removeChildren_GroupingNodes(@_);
+						 },
+
+						 EventsProcessed => sub {
+							 #my($node,$fields,$time) = @_;
+							 ##my $ac = $fields->{addChildren};
+							 #print("Transform:EventsProcessed $node $fields\n");
+							 ##$node->{BackEnd}->update_scene($time);
+							 ##add_MFNode($t,"children",$ac->[0], 1);
+							 ##$node->receive_event("addChildren", $ac, $time);
+							 return ();
+						 }
+						},
+					   ),
+
+	TextureTransform =>
+	new VRML::NodeType ("TextureTransform",
+						{
+						 center => [SFVec2f, [0, 0], exposedField],
+						 rotation => [SFFloat, 0, exposedField],
+						 scale => [SFVec2f, [1, 1], exposedField],
+						 translation => [SFVec2f, [0, 0], exposedField]
+						}
+					   ),
+
+	# Complete
+	Group =>
+	new VRML::NodeType("Group",
+					   {
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field]
+					   },
+					   {
+						addChildren => sub {
+							return addChildren_GroupingNodes(@_);
+						},
+
+						removeChildren => sub {
+							return removeChildren_GroupingNodes(@_);
+						},
+
+						EventsProcessed => sub {
+							# my($node,$fields,$time) = @_;
+							# print ("Group, EP, $node $fields\n");
+							return();
+						}
+					   }
+					  ),
+
+	Anchor =>
+	new VRML::NodeType("Anchor",
+					   {
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						description => [SFString, "", exposedField],
+						parameter => [MFString, [], exposedField],
+						url => [MFString, [], exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field]
+					   },
+					   {
+						addChildren => sub {
+							return addChildren_GroupingNodes(@_);
+						},
+
+						removeChildren => sub {
+							return removeChildren_GroupingNodes(@_);
+						}
+					   }
+					  ),
+
+	Billboard =>
+	new VRML::NodeType("Billboard",
+					   {
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						axisOfRotation => [SFVec3f, [0, 1, 0], exposedField],
+						children => [MFNode, [], exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field]
+					   },
+					   {
+						addChildren => sub {
+							return addChildren_GroupingNodes(@_);
+						},
+
+						removeChildren => sub {
+							return removeChildren_GroupingNodes(@_);
+						}
+					   }
+					  ),
+
+	# Complete
+	WorldInfo =>
+	new VRML::NodeType("WorldInfo",
+					   {
+						info => [MFString, [], field],
+						title => [SFString, "", field]
+					   }
+					  ),
+
+	# Complete
+	# XXX "getting value if no events should give keyValue[0]!!!"
+	ScalarInterpolator =>
+	new VRML::NodeType("ScalarInterpolator",
+					   {
+						set_fraction => [SFFloat, undef, eventIn],
+						key => [MFFloat, [], exposedField],
+						keyValue => [MFFloat, [], exposedField],
+						value_changed => [SFFloat, 0.0, eventOut]
+					   },
+					   {
+						Initialize => sub {
+							my($t,$f) = @_;
+							$t->{Fields}->{value_changed} =
+								(defined $f->{keyValue}[0] ?
+								 $f->{keyValue}[0] :
+								 0);
+							return [$t, value_changed, $f->{keyValue}[0]];
+						},
+
+						EventsProcessed => sub {
+							my($t, $f) = @_;
+							my $k = $f->{key};
+							my $kv = $f->{keyValue};
+							my $fr = $f->{set_fraction};
+							my $v;
+							if ($f->{set_fraction} <= $k->[0]) {
+								$v = $kv->[0]
+							} elsif ($f->{set_fraction} >= $k->[-1]) {
+								$v = $kv->[-1]
+							} else {
+								my $i;
+								for ($i=1; $i<=$#$k; $i++) {
+									if ($f->{set_fraction} < $k->[$i]) {
+										print "SCALARX: $i\n"
+											if $VRML::verbose;
+										$v = ($f->{set_fraction} - $k->[$i-1]) /
+											($k->[$i] - $k->[$i-1]) *
+												($kv->[$i] - $kv->[$i-1]) +
+													$kv->[$i-1];
+										last;
 									}
-								   ),
+								}
+							}
+							print "SCALAR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
+								if $VRML::verbose;
+							return [$t, value_changed, $v];
+						}
+					   }
+					  ),
 
-# Complete
-WorldInfo => new VRML::NodeType("WorldInfo",
-	{title => [SFString, ""],
-	 info => [MFString, []]
-	}
-),
+	OrientationInterpolator =>
+	new VRML::NodeType("OrientationInterpolator",
+					   {
+						set_fraction => [SFFloat, undef, eventIn],
+						key => [MFFloat, [], exposedField],
+						keyValue => [MFRotation, [], exposedField],
+						value_changed => [SFRotation, [0, 0, 1, 0], eventOut]
+					   },
+					   {
+						Initialize => sub {
+							my($t,$f) = @_;
+							$t->{Fields}{value_changed} =
+								($f->{keyValue}[0] or [0, 0, 1, 0]);
+							return ();
+						},
 
-# Complete
-# XXX "getting value if no events should give keyValue[0]!!!"
-ScalarInterpolator => new VRML::NodeType("ScalarInterpolator",
-	{key => [MFFloat, []],
-	 keyValue => [MFFloat, []],
-	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [SFFloat, undef, out],
-	},
-	{Initialize => sub {
-		my($t,$f) = @_;
-		$t->{Fields}->{value_changed} = 
-		 (defined $f->{keyValue}[0] ?
-		 	$f->{keyValue}[0] : 0);
-		return [$t, value_changed, $f->{keyValue}[0]];
-	 },
-	 EventsProcessed => sub {
-		my($t, $f) = @_;
-		my $k = $f->{key};
-		my $kv = $f->{keyValue};
-		my $fr = $f->{set_fraction};
-		my $v;
-		if($f->{set_fraction} <= $k->[0]) {
-			$v = $kv->[0]
-		} elsif($f->{set_fraction} >= $k->[-1]) {
-			$v = $kv->[-1]
-		} else {
-			my $i;
-			for($i=1; $i<=$#$k; $i++) {
-				if($f->{set_fraction} < $k->[$i]) {
-					print "SCALARX: $i\n"
-						if $VRML::verbose;
-					$v = ($f->{set_fraction} - $k->[$i-1]) /
-					     ($k->[$i] - $k->[$i-1]) *
-					     ($kv->[$i] - $kv->[$i-1]) +
-					     $kv->[$i-1];
-					last
-				}
-			}
-		}
-		print "SCALAR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-			if $VRML::verbose;
-		return [$t, value_changed, $v];
-	}
-	}
-),
+						EventsProcessed => sub {
+							my($t, $f) = @_;
+							my $k = $f->{key};
+							my $kv = $f->{keyValue};
+							my $fr = $f->{set_fraction};
+							my $v;
 
-OrientationInterpolator => new VRML::NodeType("OrientationInterpolator",
-	{key => [MFFloat, []],
-	 keyValue => [MFRotation, []],
-	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [SFRotation, undef, out],
-	},
-	{Initialize => sub {
-		my($t,$f) = @_;
-		$t->{Fields}{value_changed} = ($f->{keyValue}[0] or [0,0,1,0]);
-		return ();
-	 },
-	 EventsProcessed => sub {
-        my($t, $f) = @_;
-        my $k = $f->{key};
-        my $kv = $f->{keyValue};
-        my $fr = $f->{set_fraction};
-        my $v;
+							if ($f->{set_fraction} <= $k->[0]) {
+								$v = $kv->[0]
+							} elsif ($f->{set_fraction} >= $k->[-1]) {
+								$v = $kv->[-1]
+							} else {
+								my $i;
+								for ($i=1; $i<=$#$k; $i++) {
+									if ($f->{set_fraction} < $k->[$i]) {
+										print "ORIENTX: $i ($#$k) $k->[$i] $k->[$i-1] @{$kv->[$i]} | @{$kv->[$i-1]}\n"
+											if $VRML::verbose::oint;
 
-        if($f->{set_fraction} <= $k->[0]) {
-            $v = $kv->[0]
-        } elsif($f->{set_fraction} >= $k->[-1]) {
-            $v = $kv->[-1]
-        } else {
-            my $i;
-            for($i=1; $i<=$#$k; $i++) {
-                if($f->{set_fraction} < $k->[$i]) {
-                    print "ORIENTX: $i ($#$k) $k->[$i] $k->[$i-1] @{$kv->[$i]} | @{$kv->[$i-1]}\n"
-                        if $VRML::verbose::oint;
+										# get the rotation fraction, starting and ending rotations
+										my $f = ($f->{set_fraction} -
+												 $k->[$i-1]) /
+													 ($k->[$i] - $k->[$i-1]);
+										my $sr = [@{$kv->[$i-1]}];
+										my $er = [@{$kv->[$i]}];
 
-                    # get the rotation fraction, starting and ending rotations
-                    my $f = ($f->{set_fraction} - $k->[$i-1]) /
-                         ($k->[$i] - $k->[$i-1]) ;
-                    my $sr = [@{$kv->[$i-1]}];
-                    my $er = [@{$kv->[$i]}];
-                    
 
-		    # THE FOLLOWING LINES COULD BE OPTIMIZED.
-                    # are the rotations changed? Jeff Sonsteins blimp
-                    # does this...
-		    # eg, [0 1 0 0.5, 0 -1 0 0.0]
-		    # and, we don't care if a starting/ending rotation has
-		    # an angle of 0, because then the axis does not matter.
-		    # Nancy in Jump mode has this "problem". Comment out the
-		    # following if/elsif and run nancy to see what is up.
-		    if (abs($sr->[3]) < 0.0001) {
-			$sr->[0] = $er->[0]; 
-			$sr->[1] = $er->[1];
-			$sr->[2] = $er->[2];
-		    } elsif (abs($er->[3]) < 0.0001) {
-			$er->[0] = $sr->[0];
-			$er->[1] = $sr->[1];
-			$er->[2] = $sr->[2];
-		    }
+										# THE FOLLOWING LINES COULD BE OPTIMIZED.
+										# are the rotations changed? Jeff Sonsteins blimp
+										# does this...
+										# eg, [0 1 0 0.5, 0 -1 0 0.0]
+										# and, we don't care if a starting/ending rotation has
+										# an angle of 0, because then the axis does not matter.
+										# Nancy in Jump mode has this "problem". Comment out the
+										# following if/elsif and run nancy to see what is up.
+										if (abs($sr->[3]) < 0.0001) {
+											$sr->[0] = $er->[0];
+											$sr->[1] = $er->[1];
+											$sr->[2] = $er->[2];
+										} elsif (abs($er->[3]) < 0.0001) {
+											$er->[0] = $sr->[0];
+											$er->[1] = $sr->[1];
+											$er->[2] = $sr->[2];
+										}
 
-                    if (($sr->[0]*$er->[0] + $sr->[1]*$er->[1] +
-                        $sr->[2]*$er->[2]) >= 0) {    
-                        $v->[0] = $sr->[0] + ($f * ($er->[0] - $sr->[0])); 
-                        $v->[1] = $sr->[1] + ($f * ($er->[1] - $sr->[1])); 
-                        $v->[2] = $sr->[2] + ($f * ($er->[2] - $sr->[2])); 
-                    } else {
-                        $v->[0] = $sr->[0] + ($f * (-$er->[0] - $sr->[0])); 
-                        $v->[1] = $sr->[1] + ($f * (-$er->[1] - $sr->[1])); 
-                        $v->[2] = $sr->[2] + ($f * (-$er->[2] - $sr->[2])); 
-                        $er->[3] = -$er->[3];
-                    }
+										if (($sr->[0]*$er->[0] + $sr->[1]*$er->[1] +
+											 $sr->[2]*$er->[2]) >= 0) {
+											$v->[0] = $sr->[0] +
+												($f * ($er->[0] - $sr->[0]));
+											$v->[1] = $sr->[1] +
+												($f * ($er->[1] - $sr->[1]));
+											$v->[2] = $sr->[2] +
+												($f * ($er->[2] - $sr->[2]));
+										} else {
+											$v->[0] = $sr->[0] +
+												($f * (-$er->[0] - $sr->[0]));
+											$v->[1] = $sr->[1] +
+												($f * (-$er->[1] - $sr->[1]));
+											$v->[2] = $sr->[2] +
+												($f * (-$er->[2] - $sr->[2]));
+											$er->[3] = -$er->[3];
+										}
 
-                    # now, the spec, section 6.32 says:
-                    # If two consecutive keyValue values exist such that the 
-                    # arc length between them is greater than PI, the 
-                    # interpolation will take place on the arc complement. 
+										# now, the spec, section 6.32 says:
+										# If two consecutive keyValue values exist such that the
+										# arc length between them is greater than PI, the
+										# interpolation will take place on the arc complement.
 
-                    if (abs($er->[3] - $sr->[3]) > 3.1415926) {
-                        if ($sr->[3] >= $er->[3]) { $er->[3] += 6.283;
-                        } else { $sr->[3] += 6.283; }
-                    }
+										if (abs($er->[3] - $sr->[3]) > 3.1415926) {
+											if ($sr->[3] >= $er->[3]) {
+												$er->[3] += 6.283;
+											} else {
+												$sr->[3] += 6.283;
+											}
+										}
 
-                    # now calculate the angle
-                    $v->[3] = $sr->[3] + ($f * ($er->[3] - $sr->[3]));
+										# now calculate the angle
+										$v->[3] = $sr->[3] +
+											($f * ($er->[3] - $sr->[3]));
 
-                    # Bounds check; angle between 0 and 2PI
-		    if ($v->[3] < 0.0) { $v->[3] += 6.283}
-		    else {if ($v->[3] > 6.283) {$v->[3] -=6.283}}
+										# Bounds check; angle between 0 and 2PI
+										if ($v->[3] < 0.0) {
+											$v->[3] += 6.283;
+										} else {
+											if ($v->[3] > 6.283) {
+												$v->[3] -=6.283;
+											}
+										}
 
-                    print "V: ",(join ',  ',@$v),"\n" if $VRML::verbose::oint;
-
-                    last
-                }
-            }
-        }
-        print "OR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-            if $VRML::verbose::oint;
-        return [$t, value_changed, $v];
-	}
-	}
-),
+										print "V: ", (join ',  ',@$v), "\n"
+											if $VRML::verbose::oint;
+										last;
+									}
+								}
+							}
+							print "OR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
+								if $VRML::verbose::oint;
+							return [$t, value_changed, $v];
+						}
+					   }
+					  ),
 
 # Complete
 # XXX "getting value if no events should give keyValue[0]!!!"
-ColorInterpolator => new VRML::NodeType("ColorInterpolator",
-	{key => [MFFloat, []],
-	 keyValue => [MFColor, []],
-	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [SFColor, undef, out],
-	},
-    @x = 
-	{Initialize => sub {
-		my($t,$f) = @_;
-		$t->{Fields}->{value_changed} = ($f->{keyValue}[0] or [0,0,0]);
-		return ();
-	 },
-	 EventsProcessed => sub {
-		my($t, $f) = @_;
-		my $k = $f->{key};
-		my $kv = $f->{keyValue};
-		# print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
-		# 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
-		my $fr = $f->{set_fraction};
-		my $v;
-		if($f->{set_fraction} <= $k->[0]) {
-			$v = $kv->[0]
-		} elsif($f->{set_fraction} >= $k->[-1]) {
-			$v = $kv->[-1]
-		} else {
-			my $i;
-			for($i=1; $i<=$#$k; $i++) {
-				if($f->{set_fraction} < $k->[$i]) {
-					print "COLORX: $i\n"
-						if $VRML::verbose or
-						   $VRML::sverbose =~ /\binterp\b/;
-					for(0..2) {
-						$v->[$_] = ($f->{set_fraction} - $k->[$i-1]) /
-						     ($k->[$i] - $k->[$i-1]) *
-						     ($kv->[$i][$_] - $kv->[$i-1][$_]) +
-						     $kv->[$i-1][$_];
-					}
-					last
-				}
-			}
-		}
-		print "SCALAR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-			if $VRML::verbose or
-			   $VRML::sverbose =~ /\binterp\b/;
-		return [$t, value_changed, $v];
-	}
-	}
-),
+	ColorInterpolator =>
+	new VRML::NodeType("ColorInterpolator",
+					   {
+						set_fraction => [SFFloat, undef, eventIn],
+						key => [MFFloat, [], exposedField],
+						keyValue => [MFColor, [], exposedField],
+						value_changed => [SFColor, [0, 0, 0], eventOut]
+					   },
+					   @x = {
+						Initialize => sub {
+							my($t,$f) = @_;
+							$t->{Fields}->{value_changed} = ($f->{keyValue}[0] or [0, 0, 0]);
+							return ();
+						},
+						EventsProcessed => sub {
+							my($t, $f) = @_;
+							my $k = $f->{key};
+							my $kv = $f->{keyValue};
+							# print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
+							# 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
+							my $fr = $f->{set_fraction};
+							my $v;
+							if ($f->{set_fraction} <= $k->[0]) {
+								$v = $kv->[0]
+							} elsif ($f->{set_fraction} >= $k->[-1]) {
+								$v = $kv->[-1]
+							} else {
+								my $i;
+								for ($i = 1; $i <= $#{$k}; $i++) {
+									if ($f->{set_fraction} < $k->[$i]) {
+										print "COLORX: $i\n"
+											if $VRML::verbose or
+												$VRML::sverbose =~ /\binterp\b/;
+										for (0..2) {
+											$v->[$_] =
+												($f->{set_fraction} - $k->[$i-1]) /
+												($k->[$i] - $k->[$i-1]) *
+													($kv->[$i][$_] - $kv->[$i-1][$_]) +
+														$kv->[$i-1][$_];
+										}
+										last;
+									}
+								}
+							}
+							print "SCALAR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
+								if $VRML::verbose or
+									$VRML::sverbose =~ /\binterp\b/;
+							return [$t, value_changed, $v];
+						}
+					   }
+					  ),
 
-PositionInterpolator => new VRML::NodeType("PositionInterpolator",
-	{key => [MFFloat, []],
-	 keyValue => [MFVec3f, []],
-	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [SFVec3f, undef, out],
-	},
-	@x
-),
+	PositionInterpolator =>
+	new VRML::NodeType("PositionInterpolator",
+					   {
+						set_fraction => [SFFloat, undef, eventIn],
+						key => [MFFloat, [], exposedField],
+						keyValue => [MFVec3f, [], exposedField],
+						value_changed => [SFVec3f, [0, 0, 0], eventOut]
+					   },
+					   @x
+					  ),
 	
-# Complete
-# XXX "getting value if no events should give keyValue[0]!!!"
-CoordinateInterpolator => new VRML::NodeType("ColorInterpolator",
-	{key => [MFFloat, []],
-	 keyValue => [MFVec3f, []],
-	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [MFVec3f, undef, out],
-	},
-    @x = 
-	{Initialize => sub {
-		my($t,$f) = @_;
-		# Can't do $f->{} = .. because that sends an event.
-		my $nkv = scalar(@{$f->{keyValue}}) / 
-				scalar(@{$f->{key}});
-		$t->{Fields}->{value_changed} = 
-		   ([@{$f->{keyValue}}[0..$nkv-1]] or []);
-		return ();
-		# XXX DON'T DO THIS!
-		# return [$t, value_changed, $f->{keyValue}[0]];
-	 },
-	 EventsProcessed => sub {
-		my($t, $f) = @_;
-		my $k = $f->{key};
-		my $kv = $f->{keyValue};
-		my $n = scalar(@{$f->{keyValue}});
-		my $nkv = scalar(@{$f->{keyValue}}) / 
-				scalar(@{$f->{key}});
-		# print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
-		# 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
-		my $fr = $f->{set_fraction};
-		my $v;
-		if($f->{set_fraction} <= $k->[0]) {
-			$v = [@{$kv}[0..$nkv-1]];
-		} elsif($f->{set_fraction} >= $k->[-1]) {
-			$v = [@{$kv}[$n-$nkv .. $n-1]];
-		} else {
-			my $i;
-			for($i=1; $i<=$#$k; $i++) {
-				if($f->{set_fraction} < $k->[$i]) {
-					print "COLORX: $f->{set_fraction} $i $k->[$i] - $k->[$i-1]\n"
-						if $VRML::verbose::interp;
-					$v = [];
-					my $o = $i * $nkv;
-					for my $kn (0..$nkv-1) {
-						for(0..2) {
-							$v->[$kn][$_] 
-							 = ($f->{set_fraction} - $k->[$i-1]) /
-							     ($k->[$i] - $k->[$i-1]) *
-							     ($kv->[$o+$kn][$_] - $kv->[$o+$kn-$nkv][$_]) +
-							     $kv->[$o+$kn-$nkv][$_];
-						}
-					}
-					last
-				}
-			}
-		}
-		print "CoordinateI: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-			if $VRML::verbose::interp;
-		return [$t, value_changed, $v];
-	}
-	}
-),
+	# Complete
+	# XXX "getting value if no events should give keyValue[0]!!!"
+	CoordinateInterpolator =>
+	new VRML::NodeType("CoordinateInterpolator",
+					   {
+						set_fraction => [SFFloat, undef, eventIn],
+						key => [MFFloat, [], exposedField],
+						keyValue => [MFVec3f, [], exposedField],
+						value_changed => [MFVec3f, [], eventOut]
+					   },
+					   @x = {
+							 Initialize => sub {
+								 my($t,$f) = @_;
+								 # Can't do $f->{} = .. because that sends an event.
+								 my $nkv =
+									 scalar(@{$f->{keyValue}}) /
+									 scalar(@{$f->{key}});
+								 $t->{Fields}->{value_changed} =
+									 ([@{$f->{keyValue}}[0..$nkv-1]] or []);
+								 return ();
+								 # XXX DON'T DO THIS!
+								 # return [$t, value_changed, $f->{keyValue}[0]];
+							 },
+
+							 EventsProcessed => sub {
+								 my($t, $f) = @_;
+								 my $k = $f->{key};
+								 my $kv = $f->{keyValue};
+								 my $n = scalar(@{$f->{keyValue}});
+								 my $nkv = scalar(@{$f->{keyValue}}) /
+									 scalar(@{$f->{key}});
+								 # print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
+								 # 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
+								 my $fr = $f->{set_fraction};
+								 my $v;
+								 if ($f->{set_fraction} <= $k->[0]) {
+									 $v = [@{$kv}[0..$nkv-1]];
+								 } elsif ($f->{set_fraction} >= $k->[-1]) {
+									 $v = [@{$kv}[$n-$nkv .. $n-1]];
+								 } else {
+									 my $i;
+									 for ($i = 1; $i <= $#{$k}; $i++) {
+										 if ($f->{set_fraction} < $k->[$i]) {
+											 print "CoordinateInterpolator: $f->{set_fraction} $i $k->[$i] - $k->[$i-1]\n"
+												 if $VRML::verbose::interp;
+											 $v = [];
+											 my $o = $i * $nkv;
+											 for my $kn (0..$nkv-1) {
+												 for (0..2) {
+													 $v->[$kn][$_] =
+														 ($f->{set_fraction} - $k->[$i-1]) /
+															 ($k->[$i] - $k->[$i-1]) *
+																 ($kv->[$o+$kn][$_] -
+																  $kv->[$o+$kn-$nkv][$_]) +
+																	  $kv->[$o+$kn-$nkv][$_];
+												 }
+											 }
+											 last;
+										 }
+									 }
+								 }
+								 print "CoordinateInterpolator: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
+									 if $VRML::verbose::interp;
+								 return [$t, value_changed, $v];
+							 }
+							}
+					  ),
 
 
 
-NormalInterpolator => new VRML::NodeType("ColorInterpolator",
-	{key => [MFFloat, []],
-	 keyValue => [MFVec3f, []],
-	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [MFVec3f, undef, out],
-	},
-    @x = 
-	{Initialize => sub {
-		my($t,$f) = @_;
-		# Can't do $f->{} = .. because that sends an event.
-		my $nkv = scalar(@{$f->{keyValue}}) / 
-				scalar(@{$f->{key}});
-		$t->{Fields}->{value_changed} = 
-		   ([@{$f->{keyValue}}[0..$nkv-1]] or []);
-		return ();
-		# XXX DON'T DO THIS!
-		# return [$t, value_changed, $f->{keyValue}[0]];
-	 },
-	 EventsProcessed => sub {
-		my($t, $f) = @_;
-		my $k = $f->{key};
-		my $kv = $f->{keyValue};
-		my $n = scalar(@{$f->{keyValue}});
-		my $nkv = scalar(@{$f->{keyValue}}) / 
-				scalar(@{$f->{key}});
-		# print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
-		# 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
-		my $fr = $f->{set_fraction};
-		my $v;
-		if($f->{set_fraction} <= $k->[0]) {
-			$v = [@{$kv}[0..$nkv-1]];
-		} elsif($f->{set_fraction} >= $k->[-1]) {
-			$v = [@{$kv}[$n-$nkv .. $n-1]];
-		} else {
-			my $i;
-			for($i=1; $i<=$#$k; $i++) {
-				if($f->{set_fraction} < $k->[$i]) {
-					print "COLORX: $f->{set_fraction} $i $k->[$i] - $k->[$i-1]\n"
-						if $VRML::verbose::interp;
-					$v = [];
-					my $o = $i * $nkv;
-					for my $kn (0..$nkv-1) {
-						for(0..2) {
-							$v->[$kn][$_] 
-							 = ($f->{set_fraction} - $k->[$i-1]) /
-							     ($k->[$i] - $k->[$i-1]) *
-							     ($kv->[$o+$kn][$_] - $kv->[$o+$kn-$nkv][$_]) +
-							     $kv->[$o+$kn-$nkv][$_];
-						}
-					}
-					last
-				}
-			}
-		}
-		print "NormalI: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-			if $VRML::verbose::interp;
-		return [$t, value_changed, $v];
-	}
-	}
-),
+	NormalInterpolator =>
+	new VRML::NodeType("NormalInterpolator",
+					   {
+						set_fraction => [SFFloat, undef, eventIn],
+						key => [MFFloat, [], exposedField],
+						keyValue => [MFVec3f, [], exposedField],
+						value_changed => [MFVec3f, [], eventOut]
+					   },
+					   @x = {
+							 Initialize => sub {
+								 my($t,$f) = @_;
+								 # Can't do $f->{} = .. because that sends an event.
+								 my $nkv =
+									 scalar(@{$f->{keyValue}}) /
+									 scalar(@{$f->{key}});
+								 $t->{Fields}->{value_changed} =
+									 ([@{$f->{keyValue}}[0..$nkv-1]] or []);
+								 return ();
+								 # XXX DON'T DO THIS!
+								 # return [$t, value_changed, $f->{keyValue}[0]];
+							 },
+							 EventsProcessed => sub {
+								 my($t, $f) = @_;
+								 my $k = $f->{key};
+								 my $kv = $f->{keyValue};
+								 my $n = scalar(@{$f->{keyValue}});
+								 my $nkv =
+									 scalar(@{$f->{keyValue}}) /
+									 scalar(@{$f->{key}});
+								 # print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
+								 # 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
+								 my $fr = $f->{set_fraction};
+								 my $v;
+								 if ($f->{set_fraction} <= $k->[0]) {
+									 $v = [@{$kv}[0..$nkv-1]];
+								 } elsif ($f->{set_fraction} >= $k->[-1]) {
+									 $v = [@{$kv}[$n-$nkv .. $n-1]];
+								 } else {
+									 my $i;
+									 for ($i=1; $i<=$#$k; $i++) {
+										 if ($f->{set_fraction} < $k->[$i]) {
+											 print "COLORX: $f->{set_fraction} $i $k->[$i] - $k->[$i-1]\n"
+												 if $VRML::verbose::interp;
+											 $v = [];
+											 my $o = $i * $nkv;
+											 for my $kn (0..$nkv-1) {
+												 for (0..2) {
+													 $v->[$kn][$_] =
+														 ($f->{set_fraction} -
+														  $k->[$i-1]) /
+														 ($k->[$i] - $k->[$i-1]) *
+															 ($kv->[$o+$kn][$_] -
+															  $kv->[$o+$kn-$nkv][$_]) +
+																 $kv->[$o+$kn-$nkv][$_];
+												 }
+											 }
+											 last;
+										 }
+									 }
+								 }
+								 print "NormalI: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
+									 if $VRML::verbose::interp;
+								 return [$t, value_changed, $v];
+							 }
+							}
+					  ),
 
 
-TimeSensor => new VRML::NodeType("TimeSensor",
-	{cycleInterval => [SFTime, 1],
-	 enabled => [SFBool, 1],
-	 loop => [SFBool, 0],
-	 startTime => [SFTime, 0],
-	 stopTime => [SFTime, 0],
-	 isActive => [SFBool, undef, out],
-	 cycleTime => [SFTime, undef, out],
-	 fraction_changed => [SFFloat, undef, out],
-	 time => [SFTime, undef, out],
-	 __type => [SFInt32,2],			# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
-	 __ctflag =>[SFTime,0],			# cycleTimer flag.
-	}, 
-	{
-	 Initialize => sub {
-	 	my($t,$f) = @_;
+	TimeSensor =>
+	new VRML::NodeType("TimeSensor",
+					   {
+						cycleInterval => [SFTime, 1, exposedField],
+						enabled => [SFBool, 1, exposedField],
+						loop => [SFBool, 0, exposedField],
+						startTime => [SFTime, 0, exposedField],
+						stopTime => [SFTime, 0, exposedField],
+						cycleTime => [SFTime, -1, eventOut],
+						fraction_changed => [SFFloat, 0.0, eventOut],
+						isActive => [SFBool, 0, eventOut],
+						time => [SFTime, -1, eventOut],
+						# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
+						__type => [SFInt32, 2],
+						# cycleTimer flag.
+						__ctflag =>[SFTime, 0]
+					   },
+					   {
+						Initialize => sub {
+							my($t,$f) = @_;
 
-		$f->{__ctflag} = 10.0;  # force an event at startup
-		# print "TS init\n";
-	 	return ();
-	 },
-	 EventsProcessed => sub {
-		# print "TS EV\n";
-	 	return ();
-	 },
-	 # 
-	 #  Ignore startTime and cycleInterval when active..
-	 #
-	 startTime => sub {
-	 	my($t,$f,$val) = @_;
-		# print "TS ST\n";
-		if($t->{Priv}{active}) {
-		} else {
-			# $f->{startTime} = $val;
-		}
-	 },
-	 cycleInterval => sub {
-	 	my($t,$f,$val) = @_;
-		# print "TS CI\n";
-		if($t->{Priv}{active}) {
-		} else {
-			# $f->{cycleInterval} = $val;
-		}
-	 },
-	 # Ignore if less than startTime
-	 stopTime => sub {
-	 	my($t,$f,$val) = @_;
-		# print "TS ST\n";
-		if($t->{Priv}{active} and $val < $f->{startTime}) {
-		} else {
-			# return $t->set_field(stopTime,$val);
-		}
-	 },
+							# force an event at startup
+							$f->{__ctflag} = 10.0;
+							# print "TS init\n";
+							return ();
+						},
 
-	 ClockTick => sub {
-		my($t,$f,$tick) = @_;
-		my @e;
-		my $act = 0; 
-		#print "TS CT\n";
+						EventsProcessed => sub {
+							# print "TS EV\n";
+							return ();
+						},
 
-		# are we enabled? If not, make sure we are not marked active. 
-		if(!$f->{enabled}) {
-			if($f->{isActive}) {
-				push @e, [$t, "isActive", 0];
-			}
-			return @e;
-		}
+						#
+						#  Ignore startTime and cycleInterval when active..
+						#
+						startTime => sub {
+							my($t,$f,$val) = @_;
+							# print "TS ST\n";
+							if ($t->{Priv}{active}) {
+							} else {
+								# $f->{startTime} = $val;
+							}
+						},
 
-		# ok, we ARE enabled. Process 
-		return ClockTick_TimeDepNodes (@_);
-	 },
-	}
-),
+						cycleInterval => sub {
+							my($t,$f,$val) = @_;
+							# print "TS CI\n";
+							if ($t->{Priv}{active}) {
+							} else {
+								# $f->{cycleInterval} = $val;
+							}
+						},
+
+						# Ignore if less than startTime
+						stopTime => sub {
+							my($t,$f,$val) = @_;
+							# print "TS ST\n";
+							if ($t->{Priv}{active} and $val < $f->{startTime}) {
+							} else {
+								# return $t->set_field(stopTime,$val);
+							}
+						},
+
+						ClockTick => sub {
+							my($t,$f,$tick) = @_;
+							my @e;
+							my $act = 0; 
+							#print "TS CT\n";
+
+							# are we enabled? If not, make sure we are not marked active.
+							if (!$f->{enabled}) {
+								if ($f->{isActive}) {
+									push @e, [$t, "isActive", 0];
+								}
+								return @e;
+							}
+
+							# ok, we ARE enabled. Process
+							return ClockTick_TimeDepNodes (@_);
+						},
+					   }
+					  ),
+
 
 # new touchsensor rules; the old ones were broken. JAS.
 # if we are on a touchsensor, and the button is "PRESS",
@@ -1659,740 +1785,808 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 #
 # JAS.
 
-TouchSensor => new VRML::NodeType("TouchSensor",
-	{enabled => [SFBool, 1],
-	 isOver => [SFBool, undef, out],
-	 isActive => [SFBool, undef, out],
-	 hitPoint_changed => [SFVec3f, undef, out],
-	 hitNormal_changed => [SFVec3f, undef, out],
-	 hitTexCoord_changed => [SFVec2f, undef, out],
-	 touchTime => [SFTime, undef, out],
-	},
-	{
-	__mouse__ => sub {
-		my($t,$f,$time,$moved,$button,$over,$pos,$norm,$texc) = @_; 
-		print "MOUSE: over $over but $button moved $moved\n"
-			if $VRML::verbose::timesens;
-		if($button ne "PRESS") {return}
+	TouchSensor =>
+	new VRML::NodeType("TouchSensor",
+					   {
+						enabled => [SFBool, 1, exposedField],
+						hitNormal_changed => [SFVec3f, [0, 0, 0], eventOut],
+						hitPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
+						hitTexCoord_changed => [SFVec2f, [0, 0], eventOut],
+						isActive => [SFBool, 0, eventOut],
+						isOver => [SFBool, 0, eventOut],
+						touchTime => [SFTime, -1, eventOut]
+					   },
+					   {
+						__mouse__ => sub {
+							my($t, $f, $time, $moved, $button, $over, $pos,
+							   $norm, $texc) = @_;
+							print "MOUSE: over $over but $button moved $moved\n"
+								if $VRML::verbose::timesens;
+							if ($button ne "PRESS") {
+								return;
+							}
 
-		#ok, we are here, and we have a button press.
-		# Don't know how many of these thingies we need, nor
-		# what they all do, but, this seems to work, at least
-		# for simple data... JAS.
+							#ok, we are here, and we have a button press.
+							# Don't know how many of these thingies we need, nor
+							# what they all do, but, this seems to work, at least
+							# for simple data... JAS.
 
-		$f->{isOver} = $over;
-		$f->{hitPoint_changed} = $pos;
-		$f->{hitNormal_changed} = $norm;
-		$f->{isActive} = 1;
-		$f->{touchTime} = $time;
-		}
-	}
-),
+							$f->{isOver} = $over;
+							$f->{hitPoint_changed} = $pos;
+							$f->{hitNormal_changed} = $norm;
+							$f->{isActive} = 1;
+							$f->{touchTime} = $time;
+						}
+					   }
+					  ),
 
 
-PlaneSensor => new VRML::NodeType("PlaneSensor",
-	{
-	 enabled => [SFBool, 1],
-	 maxPosition => [SFVec2f, [-1,-1]],
-	 minPosition => [SFVec2f, [0,0]],
-	 offset => [SFVec3f, [0,0,0]],
-	 autoOffset => [SFBool, 1],
-	 isActive => [SFBool, undef, out],
-	 trackPoint_changed => [SFVec3f, undef, eventOut],
-	 translation_changed => [SFVec3f, undef, eventOut],
-	},
-	{
-	__mouse__ => sub {
-		my($t,$f,$time,$moved,$button,$over,$pos,$norm,$texc) = @_;
-		# print "PS_MOUSE: $moved $button $over @$pos @$norm\n";
-		if($button eq "PRESS") {
-			$t->{OrigPoint} = $pos;
-			$f->{isActive} = 1;
-		} elsif($button eq "RELEASE") {
-			# print "PLREL!\n";
-			undef $t->{OrigPoint};
-			$t->{isActive} = 0;
-			if($f->{autoOffset}) {
-				$f->{offset} = $f->{translation_changed};
-			}
-		} elsif($button eq "DRAG") {
-			# 1. get the point on the plane
-			my $op = $t->{OrigPoint};
-			my $of = $f->{offset};
-			my $mult = 
-			   ($op->[2] - $pos->[2]) / 
-				($norm->[2] - $pos->[2]);
-			my $nx = $pos->[0] + $mult * ($norm->[0] - $pos->[0]);
-			my $ny = $pos->[1] + $mult * ($norm->[1] - $pos->[1]);
-			# print "Now: ($mult $op->[2]) $nx $ny $op->[0] $op->[1] $of->[0] $of->[1]\n";
-			$f->{trackPoint_changed} = [$nx,$ny,$op->[2]];
-			my $tr = [
-				$nx - $op->[0] + $of->[0], $ny - $op->[1] + $of->[1], 0 + $of->[2]];
-			# print "TR: @$tr\n";
-			for(0..1) {
-				# Clamp
-				if($f->{maxPosition}[$_] >=
-				   $f->{minPosition}[$_]) {
-					if($tr->[$_] < $f->{minPosition}[$_]) {
-						$tr->[$_] =
-						 $f->{minPosition}[$_];
-					} elsif($tr->[$_] > $f->{maxPosition}[$_]) {
-						$tr->[$_] =
-						 $f->{maxPosition}[$_];
-					}
-				}
-			}
-			# print "TRC: (@$tr) (@$pos)\n";
-			$f->{translation_changed} = $tr;
-		}
-	}
-	}
-),
+	PlaneSensor =>
+	new VRML::NodeType("PlaneSensor",
+					   {
+						autoOffset => [SFBool, 1, exposedField],
+						enabled => [SFBool, 1, exposedField],
+						maxPosition => [SFVec2f, [-1, -1], exposedField],
+						minPosition => [SFVec2f, [0, 0], exposedField],
+						offset => [SFVec3f, [0, 0, 0], exposedField],
+						isActive => [SFBool, 0, eventOut],
+						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
+						translation_changed => [SFVec3f, [0, 0, 0], eventOut]
+					   },
+					   {
+						__mouse__ => sub {
+							my($t, $f, $time, $moved, $button, $over, $pos,
+							   $norm, $texc) = @_;
+							# print "PS_MOUSE: $moved $button $over @$pos @$norm\n";
+							if ($button eq "PRESS") {
+								$t->{OrigPoint} = $pos;
+								$f->{isActive} = 1;
+							} elsif ($button eq "RELEASE") {
+								# print "PLREL!\n";
+								undef $t->{OrigPoint};
+								$t->{isActive} = 0;
+								if ($f->{autoOffset}) {
+									$f->{offset} =
+										$f->{translation_changed};
+								}
+							} elsif ($button eq "DRAG") {
+								# 1. get the point on the plane
+								my $op = $t->{OrigPoint};
+								my $of = $f->{offset};
+								my $mult =
+									($op->[2] - $pos->[2]) /
+									($norm->[2] - $pos->[2]);
+								my $nx = $pos->[0] + $mult *
+									($norm->[0] - $pos->[0]);
+								my $ny = $pos->[1] + $mult *
+									($norm->[1] - $pos->[1]);
+								# print "Now: ($mult $op->[2]) $nx $ny $op->[0] $op->[1] $of->[0] $of->[1]\n";
+								$f->{trackPoint_changed} =
+									[$nx,$ny,$op->[2]];
+								my $tr = [$nx - $op->[0] + $of->[0],
+										  $ny - $op->[1] + $of->[1],
+										  0 + $of->[2]];
+								# print "TR: @$tr\n";
+								for (0..1) {
+									# Clamp
+									if ($f->{maxPosition}[$_] >=
+										$f->{minPosition}[$_]) {
+										if ($tr->[$_] < $f->{minPosition}[$_]) {
+											$tr->[$_] = $f->{minPosition}[$_];
+										} elsif ($tr->[$_] > $f->{maxPosition}[$_]) {
+											$tr->[$_] = $f->{maxPosition}[$_];
+										}
+									}
+								}
+								# print "TRC: (@$tr) (@$pos)\n";
+								$f->{translation_changed} = $tr;
+							}
+						}
+					   }
+					  ),
 
-SphereSensor => new VRML::NodeType("SphereSensor",
-	{
-	 enabled => [SFBool, 1],
-	 offset => [SFRotation, [0,1,0,0]],
-	 autoOffset => [SFBool, 1],
-	 isActive => [SFBool, undef, out],
-	 trackPoint_changed => [SFVec3f, undef, eventOut],
-	 rotation_changed => [SFRotation, undef, eventOut],
-	}, 
-	{
-	__mouse__ => sub {
-		my($t,$f,$time,$moved,$button,$over,$pos,$norm,$texc) = @_;
-		# print "PS_MOUSE: $moved $button $over @$pos @$norm\n";
-		if($button eq "PRESS") {
-			$t->{OrigPoint} = $pos;
-			$t->{Radius} = $pos->[0] ** 2 +
-				$pos->[1] ** 2 + $pos->[2] ** 2;
-			$f->{isActive} = 1;
-		} elsif($button eq "RELEASE") {
-			undef $t->{OrigPoint};
-			$t->{isActive} = 0;
-			if($f->{autoOffset}) {
-				$f->{offset} = $f->{rotation_changed};
-			}
-		} elsif($button eq "DRAG") {
-			# 1. get the point on the plane
-			my $op = $t->{OrigPoint};
-			my $r = $t->{Radius};
-			my $of = $f->{offset};
+	SphereSensor =>
+	new VRML::NodeType("SphereSensor",
+					   {
+						autoOffset => [SFBool, 1, exposedField],
+						enabled => [SFBool, 1, exposedField],
+						offset => [SFRotation, [0, 1, 0, 0], exposedField],
+						isActive => [SFBool, 0, eventOut],
+						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
+						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut]
+					   },
+					   {
+						__mouse__ => sub {
+							my($t, $f, $time, $moved, $button, $over, $pos,
+							   $norm, $texc) = @_;
+							# print "PS_MOUSE: $moved $button $over @$pos @$norm\n";
+							if ($button eq "PRESS") {
+								$t->{OrigPoint} = $pos;
+								$t->{Radius} = $pos->[0] ** 2 +
+									$pos->[1] ** 2 + $pos->[2] ** 2;
+								$f->{isActive} = 1;
+							} elsif ($button eq "RELEASE") {
+								undef $t->{OrigPoint};
+								$t->{isActive} = 0;
+								if ($f->{autoOffset}) {
+									$f->{offset} = $f->{rotation_changed};
+								}
+							} elsif ($button eq "DRAG") {
+								# 1. get the point on the plane
+								my $op = $t->{OrigPoint};
+								my $r = $t->{Radius};
+								my $of = $f->{offset};
 
-			my $tr1sq = $pos->[0]**2 + $pos->[1]**2 + $pos->[2]**2;
-			my $tr2sq = $norm->[0]**2 + $norm->[1]**2 + $norm->[2]**2;
-			my $tr1tr2 = $pos->[0]*$norm->[0] +$pos->[1]*$norm->[1] +$pos->[2]*$norm->[2];
-			my @d = map {$norm->[$_]-$pos->[$_]} 0..2;
-			my $dlen = $d[0]**2 + $d[1]**2 + $d[2]**2;
+								my $tr1sq =
+									$pos->[0]**2 +
+									$pos->[1]**2 +
+									$pos->[2]**2;
+								my $tr2sq =
+									$norm->[0]**2 +
+									$norm->[1]**2 +
+									$norm->[2]**2;
+								my $tr1tr2 =
+									$pos->[0]*$norm->[0] +
+									$pos->[1]*$norm->[1] +
+									$pos->[2]*$norm->[2];
+								my @d = map {
+									$norm->[$_] - $pos->[$_]
+								} 0..2;
+								my $dlen =
+									$d[0]**2 +
+									$d[1]**2 +
+									$d[2]**2;
 
-			my $a = $dlen;
-			my $b = 2*($d[0]*$pos->[0] + $d[1]*$pos->[1] + $d[2]*$pos->[2]);
-			my $c = $tr1sq - $r*$r;
+								my $a = $dlen;
+								my $b = 2*($d[0]*$pos->[0] +
+										   $d[1]*$pos->[1] +
+										   $d[2]*$pos->[2]);
+								my $c = $tr1sq - $r*$r;
+								$b /= $a;
+								$c /= $a;
 
-			$b /= $a; $c /= $a;
-
-			my $und = $b*$b - 4*$c;
-			if($und >= 0) {
-				my $sol;
-				if($b >= 0) {
-					$sol = (-$b + sqrt($und))/2;
-				} else {
-					$sol = (-$b - sqrt($und))/2;
-				}
-				my @r = map {
-					$pos->[$_] + $sol * ($norm->[$_] - $pos->[$_])
-				} 0..2;
-				# Ok, now we have the two vectors op
-				# and r, find out the rotation to take 
-				# one to the other.
-				my @cp = (
-					$r[1] * $op->[2] - $op->[1] * $r[2],
-					$r[2] * $op->[0] - $op->[2] * $r[0],
-					$r[0] * $op->[1] - $op->[0] * $r[1],
-				) ;
-				my @dot = (
-					$r[0] * $op->[0],
-					$r[1] * $op->[1],
-					$r[2] * $op->[2]
-				);
-				my $an = atan2((my $cl
-					 = $cp[0]**2+$cp[1]**2+$cp[2]**2),
-				      $dot[0]**2+$dot[1]**2+$dot[2]**2);
-				for(@cp) {$_ /= $cl}
-				$f->{trackPoint_changed} = [@r];
+								my $und = $b*$b - 4*$c;
+								if ($und >= 0) {
+									my $sol;
+									if ($b >= 0) {
+										$sol = (-$b + sqrt($und)) / 2;
+									} else {
+										$sol = (-$b - sqrt($und)) / 2;
+									}
+									my @r = map {
+										$pos->[$_] + $sol * ($norm->[$_] - $pos->[$_])
+									} 0..2;
+									# Ok, now we have the two vectors op
+									# and r, find out the rotation to take 
+									# one to the other.
+									my @cp = (
+											  $r[1] * $op->[2] - $op->[1] * $r[2],
+											  $r[2] * $op->[0] - $op->[2] * $r[0],
+											  $r[0] * $op->[1] - $op->[0] * $r[1],
+											 );
+									my @dot = (
+											   $r[0] * $op->[0],
+											   $r[1] * $op->[1],
+											   $r[2] * $op->[2]
+											  );
+									my $an = atan2((my $cl =
+													$cp[0]**2 +
+													$cp[1]**2 +
+													$cp[2]**2),
+												   $dot[0]**2 +
+												   $dot[1]**2 +
+												   $dot[2]**2);
+									for (@cp) {
+										$_ /= $cl;
+									}
+									$f->{trackPoint_changed} = [@r];
 				
-				# print "QNEW: @cp, $an (R: $r)\n";
-				my $q = VRML::Quaternion->new_vrmlrot(
-					@cp, -$an
-				);
-				# print "QNEW2: @$of\n";
-				my $q2 = VRML::Quaternion->new_vrmlrot(
-					@$of
-				);
+									# print "QNEW: @cp, $an (R: $r)\n";
+									my $q =
+										VRML::Quaternion->new_vrmlrot(@cp, -$an);
+									# print "QNEW2: @$of\n";
+									my $q2 =
+										VRML::Quaternion->new_vrmlrot(@$of);
 
-				$f->{rotation_changed} = 
-					$q->multiply($q2)->to_vrmlrot();
-			}
+									$f->{rotation_changed} =
+										$q->multiply($q2)->to_vrmlrot();
+								}
+							}
+						}
+					   }
+					  ),
+
+	CylinderSensor =>
+	new VRML::NodeType("CylinderSensor",
+					   {
+						autoOffset => [SFBool, 1, exposedField],
+						diskAngle => [SFFloat, 0.262, exposedField],
+						enabled => [SFBool, 1, exposedField],
+						maxAngle => [SFFloat, -1.0, exposedField],
+						minAngle => [SFFloat, 0, exposedField],
+						offset => [SFFloat, 0, exposedField],
+						isActive => [SFBool, 0, eventOut],
+						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],	
+						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut]
+					   },
+					   {
+						__mouse__ => sub {
+							## until there's code, need empty method to prevent
+							## the browser from crashing
+						}
+					   }
+					  ),
+
+
+	# This just about the minimal visibilitysensor allowed by the spec.
+	VisibilitySensor =>
+	new VRML::NodeType("VisibilitySensor",
+					   {
+						center => [SFVec3f, [0, 0, 0], exposedField],
+						enabled => [SFBool, 1, exposedField],
+						size => [SFVec3f, [0, 0, 0], exposedField],
+						enterTime => [SFTime, -1, eventOut],
+						exitTime => [SFTime, -1, eventOut],
+						isActive => [SFBool, 0, eventOut]
+					   },
+					   {
+						Initialize => sub {
+							my($t,$f,$time,$scene) = @_;
+							if ($f->{enabled}) {
+								return ([$t, enterTime, $time],
+										[$t, isActive, 1]);
+							}
+							return ();
+						}
+					   }
+					  ),
+
+	ProximitySensor =>
+	new VRML::NodeType("ProximitySensor",
+					   {
+						center => [SFVec3f, [0, 0, 0], exposedField],
+						size => [SFVec3f, [0, 0, 0], exposedField],
+						enabled => [SFBool, 1, exposedField],
+						isActive => [SFBool, 0, eventOut],
+						position_changed => [SFVec3f, [0, 0, 0], eventOut],
+						orientation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
+						enterTime => [SFTime, -1, eventOut],
+						exitTime => [SFTime, -1, eventOut],
+						# These fields are used for the info.
+						__hit => [SFInt32, 0],
+						__t1 => [SFVec3f, [10000000, 0, 0]],
+						__t2 => [SFRotation, [0, 1, 0, 0]]
+					   },
+					   {
+						ClockTick => sub {
+							my($t,$f,$tick) = @_;
+							return if !$f->{enabled};
+							return if !$t->{BackEnd};
+							my($hit, $x1, $y1, $z1, $x2, $y2, $z2, $q2);
+
+							VRML::VRMLFunc::get_proximitysensor_vecs($t->{BackNode}->{CNode},
+																	 $hit,
+																	 $x1,
+																	 $y1,
+																	 $z1,
+																	 $x2,
+																	 $y2,
+																	 $z2,
+																	 $q2);
+
+							if ($VRML::verbose::prox) {
+								print "PROX: $r->[0] ($r->[1][0] $r->[1][1] $r->[1][2]) ($r->[2][0] $r->[2][1] $r->[2][2] $r->[2][3])\n";
+							}
+							if ($hit) {
+								if (!$f->{isActive}) {
+									#print "PROX - initial defaults\n";
+									$f->{isActive} = 1;
+									$f->{enterTime} = $tick;
+									$f->{position_changed} = [$x1,$y1,$z1];
+									$f->{orientation_changed} = [$x2,$y2,$z2,$q2];
+								}
 			
-		}
-	}
-	}
-),
-
-CylinderSensor => new VRML::NodeType("CylinderSensor",
-	{
-	autoOffset => [SFBool,1],
-	diskAngle => [SFFloat, 0.262],
-	enabled => [SFBool, 1],
-	maxAngle => [SFFloat, -1],
-	minAngle => [SFFloat, 0],
-	offset => [SFFloat, 0],
-	isActive => [SFBool, undef, out],
-	rotation_changed => [SFRotation, undef ,out],	
-	trackPoint_changed => [SFVec3f, undef, out],
-	}
-),
-
-
-# This just about the minimal visibilitysensor allowed by the spec.
-VisibilitySensor => new VRML::NodeType("VisibilitySensor",
-	{center => [SFVec3f, [0,0,0]],
-	 enabled => [SFBool, 1],
-	 size => [SFVec3f, [0,0,0]],
-	 enterTime => [SFTime, undef, out],
-	 exitTime => [SFTime, undef, out],
-	 isActive => [SFBool, undef, out],
-	},
-	{
-	Initialize => sub {
-		my($t,$f,$time,$scene) = @_;
-		if($f->{enabled}) {
-			return ([$t, enterTime, $time],
-				[$t, isActive, 1]);
-		}
-		return ();
-	}
-	}
-),
-
-ProximitySensor => new VRML::NodeType("ProximitySensor",
-	{center => [SFVec3f, [0,0,0]],
-	 size => [SFVec3f, [0,0,0]],
-	 enabled => [SFBool, 1],
-	 enterTime => [SFTime, undef, out],
-	 exitTime => [SFTime, undef, out],
-	 isActive => [SFBool, undef, out],
-	 position_changed => [SFVec3f, undef, out],
-	 orientation_changed => [SFRotation, undef, out],
-    # These fields are used for the info.
-         __hit => [SFInt32, 0],
-	 __t1 => [SFVec3f, [10000000,0,0]],
-	 __t2 => [SFRotation, [0,1,0,0]],
-	},
-	{
-	 ClockTick => sub {
-	 	my($t,$f,$tick) = @_;
-		return if !$f->{enabled};
-		return if !$t->{BackEnd};
-		my($hit, $x1, $y1, $z1, $x2, $y2, $z2, $q2);
-
-		VRML::VRMLFunc::get_proximitysensor_vecs($t->{BackNode}->{CNode},$hit,$x1,$y1,$z1,$x2,$y2,$z2,$q2);
-
-		if($VRML::verbose::prox) {
-			print "PROX: $r->[0] ($r->[1][0] $r->[1][1] $r->[1][2]) ($r->[2][0] $r->[2][1] $r->[2][2] $r->[2][3])\n";
-		}
-		if($hit) {
-			if(!$f->{isActive})  {
-				#print "PROX - initial defaults\n";
-				$f->{isActive} = 1;
-				$f->{enterTime} = $tick;
-				$f->{position_changed} = [$x1,$y1,$z1];
-				$f->{orientation_changed} = [$x2,$y2,$z2,$q2];
-			}
-			
-			# now, has anything changed?
-			my $ch = 0;
-			if (($x1 != $f->{position_changed}[0]) ||
-			     ($y1 != $f->{position_changed}[1]) ||
-                             ($z1 != $f->{position_changed}[2])) {
-				#print "PROX - position changed!!! \n";
-				$f->{position_changed} = [$x1,$y1,$z1];
-				$ch = 1;
-			}
-			if (($x2 != $f->{orientation_changed}[0]) ||
-			     ($y2 != $f->{orientation_changed}[1]) ||
-			     ($z2 != $f->{orientation_changed}[2]) ||
-                             ($q2 != $f->{orientation_changed}[3])) {
-				#print "PROX - orientation changed!!! ";
-				#print $r->[2][0]," ", $r->[2][1], " ",$r->[2][2]," ",$r->[2][3],"\n";
+								# now, has anything changed?
+								my $ch = 0;
+								if (($x1 != $f->{position_changed}[0]) ||
+									($y1 != $f->{position_changed}[1]) ||
+									($z1 != $f->{position_changed}[2])) {
+									#print "PROX - position changed!!! \n";
+									$f->{position_changed} = [$x1,$y1,$z1];
+									$ch = 1;
+								}
+								if (($x2 != $f->{orientation_changed}[0]) ||
+									($y2 != $f->{orientation_changed}[1]) ||
+									($z2 != $f->{orientation_changed}[2]) ||
+									($q2 != $f->{orientation_changed}[3])) {
+									#print "PROX - orientation changed!!! ";
+									#print $r->[2][0]," ", $r->[2][1], " ",$r->[2][2]," ",$r->[2][3],"\n";
 				
-				$f->{orientation_changed} = [$x2,$y2,$z2,$q2];
-				$ch = 1;
-			}
-#			return if !$ch;
-			return 1 if !$ch; #ncoder: added 1. seemed Scene.pm needed a return value. mustcheck.
-		} else {
-			if($f->{isActive}) {
-				$f->{isActive} = 0;
-				$f->{exitTime} = $tick;
-			}
-		}
-	 }
-	}
-),
+									$f->{orientation_changed} = [$x2,$y2,$z2,$q2];
+									$ch = 1;
+								}
+								# return if !$ch;
+								return 1 if !$ch; #ncoder: added 1. seemed Scene.pm needed a return value. mustcheck.
+							} else {
+								if ($f->{isActive}) {
+									$f->{isActive} = 0;
+									$f->{exitTime} = $tick;
+								}
+							}
+						}
+					   }
+					  ),
 
 
-DirectionalLight => new VRML::NodeType("DirectionalLight",
-	{ambientIntensity => [SFFloat, 0.0],
-	 color => [SFColor, [1.0,1.0,1.0]],
-	 direction => [SFVec3f, [0.0,0.0,-1.0]],
-	 intensity => [SFFloat, 1.0],
-	 on => [SFBool, 1.0]
-	}
-),
+	DirectionalLight =>
+	new VRML::NodeType("DirectionalLight",
+					   {
+						ambientIntensity => [SFFloat, 0, exposedField],
+						color => [SFColor, [1, 1, 1], exposedField],
+						direction => [SFVec3f, [0, 0, -1], exposedField],
+						intensity => [SFFloat, 1.0, exposedField],
+						on => [SFBool, 1, exposedField]
+					   }
+					  ),
 
-PointLight => new VRML::NodeType("DirectionalLight",
-	{ambientIntensity => [SFFloat, 0.0],
-	 color => [SFColor, [1.0,1.0,1.0]],
-	 direction => [SFVec3f, [0.0,0.0,-1.0]],
-	 intensity => [SFFloat, 1.0],
-	 on => [SFBool, 1.0],
+	PointLight =>
+	new VRML::NodeType("PointLight",
+					   {
+						ambientIntensity => [SFFloat, 0, exposedField],
+						attenuation => [SFVec3f, [1, 0, 0], exposedField],
+						color => [SFColor, [1, 1, 1], exposedField],
+						intensity => [SFFloat, 1.0, exposedField],
+						location => [SFVec3f, [0, 0, 0], exposedField],
+						on => [SFBool, 1, exposedField],
+						radius => [SFFloat, 100.0, exposedField],
+						##not in the spec
+						direction => [SFVec3f, [0, 0, -1.0]]
+					   }
+					  ),
 
-	 attenuation => [SFVec3f, [1.0,0.0,0.0]],
-	 location => [SFVec3f, [0.0,0.0,0.0]],
-	 radius => [SFFloat, 100.0],
-	}
-),
+	SpotLight =>
+	new VRML::NodeType("SpotLight",
+					   {
+						ambientIntensity => [SFFloat, 0, exposedField],
+						attenuation => [SFVec3f, [1, 0, 0], exposedField],
+						beamWidth => [SFFloat, 1.570796, exposedField],
+						color => [SFColor, [1, 1, 1], exposedField],
+						cutOffAngle => [SFFloat, 0.785398, exposedField],
+						direction => [SFVec3f, [0, 0, -1], exposedField],
+						intensity => [SFFloat, 1.0, exposedField],
+						location => [SFVec3f, [0, 0, 0], exposedField],
+						on => [SFBool, 1, exposedField],
+						radius => [SFFloat, 100.0, exposedField]
+					   }
+					  ),
 
-SpotLight => new VRML::NodeType("DirectionalLight",
-	{ambientIntensity => [SFFloat, 0.0],
-	 color => [SFColor, [1.0,1.0,1.0]],
-	 direction => [SFVec3f, [0,0,-1.0]],
-	 intensity => [SFFloat, 1.0],
-	 on => [SFBool, 1.0],
+	Fog =>
+	new VRML::NodeType("Fog",
+					   {
+						set_bind => [SFBool, undef, eventIn],
+						color => [SFColor, [1, 1, 1], exposedField],
+						fogType => [SFString, "LINEAR", exposedField],
+						visibilityRange => [SFFloat, 0, exposedField],
+						isBound => [SFBool, 0, eventOut]
+						# AK - not in spec #bindTime => [SFTime, undef, eventOut]
+					   }
+					  ),
 
-	 attenuation => [SFVec3f, [1,0,0.0]],
-	 beamWidth => [SFFloat, 1.570796],
-	 cutOffAngle => [SFFloat, 0.785398],
-	 location => [SFVec3f, [0.0,0.0,0.0]],
-	 radius => [SFFloat, 100.0],
-	}
-),
+	Background =>
+	new VRML::NodeType("Background",
+					   {
+						set_bind => [SFBool, undef, eventIn],
+						groundAngle => [MFFloat, [], exposedField],
+						groundColor => [MFColor, [], exposedField],
+						skyAngle => [MFFloat, [], exposedField],
+						skyColor => [MFColor, [[0, 0, 0]], exposedField],
+						isBound => [SFBool, 0, eventOut],
+						(map {(
+							   $_.Url => [MFString, [], exposedField],
+							   # local or temp file name
+							   __locfile.$_ => [SFString, ""], ##field???
+							   # OpenGL texture number
+							   __texture.$_ => [SFInt32, 0],
+							   # is this a temp file?
+							   __istemporary.$_ => [SFInt32, 0]
+							  )} qw/back front top bottom left right/),
+						# AK - not in spec #bindTime => [SFTime, undef, eventOut]
+					   },
+					   {
+						Initialize => sub {
+							my($t,$f,$time,$scene) = @_;
+							for (qw/back front top bottom left right/) {
+								init_image("$_","${_}Url",$t,$f,$scene,0);
+							}
+							return ();
+						}
+					   }
+					  ),
 
-	Fog => new VRML::NodeType("Fog",
-							  {
-							   color => [SFColor, [1.0,1.0,1.0]],
-							   fogType => [SFString, "LINEAR"],
-							   visibilityRange => [SFFloat, 0.0],
-							   set_bind => [SFBool, undef, eventIn],
-							   isBound => [SFBool, undef, eventOut],
-							   #bindTime => [SFTime, undef, eventOut], - not in spec
-							  }
-							 ),
+	Viewpoint =>
+	new VRML::NodeType("Viewpoint",
+					   {
+						set_bind => [SFBool, undef, eventIn],
+						fieldOfView => [SFFloat, 0.785398, exposedField],
+						jump => [SFBool, 1, exposedField],
+						orientation => [SFRotation, [0, 0, 1, 0], exposedField],
+						position => [SFVec3f,[0, 0, 10], exposedField],
+						description => [SFString, "", field],
+						bindTime => [SFTime, -1, eventOut],
+						isBound => [SFBool, 0, eventOut]
+					   },
+					   {
 
-Background => new VRML::NodeType("Background",
-	{
-	 set_bind => [SFBool, undef, eventIn],
-	 groundAngle => [MFFloat, []],
-	 groundColor => [MFColor, []],
-	 skyAngle => [MFFloat, []],
-	 skyColor => [MFColor, [[0.0,0.0,0.0]]],
-	 isBound => [SFBool, undef, eventOut],
-	 bindTime => [SFTime, undef, eventOut],
-	 (map {(
-		 $_.Url => [MFString, []],
-		 __locfile.$_ => [SFString, ""], 		# local or temp file name
-		 __texture.$_ => [SFInt32,0],		# OpenGL texture number
-		 __istemporary.$_ => [SFInt32,0],	# is this a temp file?
-	 )} qw/back front top bottom left right/),
-	},
-	{
-	Initialize => sub {
-		my($t,$f,$time,$scene) = @_;
-		for(qw/back front top bottom left right/) {
-			init_image("$_","${_}Url",$t,$f,$scene,0);
-		}
-		return ();
-	}
-	}
-),
+						Initialize => sub {
+							my($t,$f) = @_;
+							# print "Initialize - viewpoint\n";
+							return ();
+						},
 
-Viewpoint => new VRML::NodeType("Viewpoint",
-	{position => [SFVec3f,[0.0,0.0,10.0]],
-	 orientation => [SFRotation, [0.0,0.0,1.0,0.0]],
-	 fieldOfView => [SFFloat, 0.785398],
-	 description => [SFString, ""],
-	 jump => [SFBool, 1.0],
-	 set_bind => [SFBool, undef, in],
-	 bindTime => [SFTime, undef, out],
-	 isBound => [SFBool, undef, out],
-	},
-	{
-	Initialize => sub {
-		my($t,$f) = @_;
-		# print "Initialize - viewpoint\n";
-		return ();
-	},
-	WhenBound => sub {
-		my($t,$scene,$revealed) = @_;
-		# print "\nstart of WhenBound\n";
-		#  print "VP_BOUND t $t scene $scene revealed $revealed\n";
-		#  print "VP_BOUND!\n" if $VRML::verbose::bind;
-		#  print "ref t ", ref $t,"\n";
-		#  print "ref t backend ", ref $t->{BackEnd},"\n";
-		#  print "t backend ", $t->{BackEnd},"\n";
-		#  print "ref t backnode ", ref $t->{BackNode},"\n";
-		#  print "t backNode ", $t->{BackNode},"\n";
-		#  print "ref t protoexp ", ref $t->{ProtoExp},"\n";
-		#  print "t protoexp ", $t->{ProtoExp},"\n";
-		# print "END of WhenBound\n";
+						WhenBound => sub {
+							my($t,$scene,$revealed) = @_;
+							# print "\nstart of WhenBound\n";
+							#  print "VP_BOUND t $t scene $scene revealed $revealed\n";
+							#  print "VP_BOUND!\n" if $VRML::verbose::bind;
+							#  print "ref t ", ref $t,"\n";
+							#  print "ref t backend ", ref $t->{BackEnd},"\n";
+							#  print "t backend ", $t->{BackEnd},"\n";
+							#  print "ref t backnode ", ref $t->{BackNode},"\n";
+							#  print "t backNode ", $t->{BackNode},"\n";
+							#  print "ref t protoexp ", ref $t->{ProtoExp},"\n";
+							#  print "t protoexp ", $t->{ProtoExp},"\n";
+							# print "END of WhenBound\n";
+
+							$t->{BackEnd}->bind_viewpoint($t,
+														  ($revealed ?
+														   $t->{VP_Info} :
+														   undef));
+							VRML::VRMLFunc::reset_upvector();
+						},
+
+						WhenUnBound => sub {
+							my($t,$scene) = @_;
+							print "VP_UNBOUND!\n" if $VRML::verbose::bind;
+							$t->{VP_Info} =
+								$t->{BackEnd}->unbind_viewpoint($t);
+						}
+					   }
+					  ),
 
 
-		$t->{BackEnd}->bind_viewpoint($t,
-			($revealed?$t->{VP_Info}:undef));
-		VRML::VRMLFunc::reset_upvector();
-	},
-	WhenUnBound => sub {
-		my($t,$scene) = @_;
-		print "VP_UNBOUND!\n" if $VRML::verbose::bind;
-		$t->{VP_Info} = $t->{BackEnd}->unbind_viewpoint($t);
-	}
-	}
-),
+	NavigationInfo =>
+	new VRML::NodeType("NavigationInfo",
+					   {
+						set_bind => [SFBool, undef, eventIn],
+						avatarSize => [MFFloat, [0.25, 1.6, 0.75], exposedField],
+						headlight => [SFBool, 1, exposedField],
+						speed => [SFFloat, 1.0, exposedField],
+						type => [MFString, ["WALK", "ANY"], exposedField],
+						visibilityLimit => [SFFloat, 0, exposedField],
+						isBound => [SFBool, 0, eventOut]
+						# AK - not in spec #bindTime => [SFTime, undef, eventOut]
+					   },
+					   {
+						Initialize => sub { return (); },
 
-NavigationInfo => new VRML::NodeType("NavigationInfo",
-	{type => [MFString, ""],
-	 headlight => [SFBool, 1],
-	 avatarSize => [MFFloat, [0.25, 1.6, 0.75]],
-	 visibilityLimit => [SFFloat, 0.0],
-	 set_bind => [SFBool, undef, eventIn],
-         bindTime => [SFTime, undef, out],
-	 isBound => [SFBool, undef, eventOut],
-	 speed => [SFFloat, 1.0],
-	},
-	{
-		Initialize => sub {
-			return ();
-		},
-	 	WhenBound => sub {
-			my($t) = @_;
-			$t->{BackEnd}->bind_navi_info($t);
+						WhenBound => sub {
+							my ($t) = @_;
+							$t->{BackEnd}->bind_navi_info($t);
+							VRML::VRMLFunc::set_naviinfo($t->{Fields}{avatarSize}[0],
+														 $t->{Fields}{avatarSize}[1],
+														 $t->{Fields}{avatarSize}[2]);
+						},
+					   },
+					  ),
 
-			VRML::VRMLFunc::set_naviinfo($t->{Fields}{avatarSize}[0],$t->{Fields}{avatarSize}[1],$t->{Fields}{avatarSize}[2]);
-		},
-	},
-),
-
-# Complete
-#  - fields, eventins and outs parsed in Parse.pm by special switch :(
-# JAS took out perl script, because it is not standard.
-
+	# Complete
+	# fields, eventins and outs parsed in Parse.pm by special switch :(
+	# JAS took out perl script, because it is not standard.
 	Script =>
 	new VRML::NodeType("Script",
-		   {
-			url => [MFString, []],
-			directOutput => [SFBool, 0, ""], # not exposedfields
-			mustEvaluate => [SFBool, 0, ""]
-		   },
-		   {
-			Initialize =>
-			sub {
+					   {
+						url => [MFString, [], exposedField],
+						directOutput => [SFBool, 0, field],
+						mustEvaluate => [SFBool, 0, field]
+					   },
+					   {
+						Initialize => sub {
+							#JAS $VRML::verbose::script = 1;
 
-				#JAS $VRML::verbose::script = 1;
+							my($t,$f,$time,$scene) = @_;
+							print "ScriptInit t ",
+								VRML::NodeIntern::dump_name($t),
+										" f $f time $time scene ",
+											VRML::NodeIntern::dump_name($scene), "\n"
+													if $VRML::verbose::script;
 
-				my($t,$f,$time,$scene) = @_;
-				print "ScriptInit t ",
-						VRML::NodeIntern::dump_name($t)," f $f time $time scene ",
-						VRML::NodeIntern::dump_name($scene),"\n" if $VRML::verbose::script;
+							my $h;
+							my $Browser = $scene->get_browser();
+							for (@{$f->{url}}) {
+								# is this already made???
+								print "Working on $_\n" if $VRML::verbose::script;
+								if (defined  $t->{J}) {
+									print "...{J} already defined, skipping\n"
+										if $VRML::verbose::script;
+									last;
+								}
 
-				my $h;
-				my $Browser = $scene->get_browser();
-				for (@{$f->{url}}) {
-					# is this already made???
-					print "Working on $_\n" if $VRML::verbose::script;
-					if (defined  $t->{J}) {
-						print "...{J} already defined, skipping\n"
-							if $VRML::verbose::script;
-						last;
-					}
-
-					my $str = $_;
-					print "TRY $str\n" if $VRML::verbose::script;
-					if (s/^perl(_tjl_xxx1)?://) {
-						{  
-							print "XXX1 script\n" if $VRML::verbose::script;
-							check_perl_script();
-
-							# See about RFields in file ARCHITECTURE and in 
-							# Scene.pm's VRML::FieldHash package
-							my $u = $t->{Fields};
-
-							my $t = $t->{RFields};
-
-							# This string ties scalars
-							my $tie = 
-								join "",
-									map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
-							## print "tie = $tie\n";
-							## $h = eval "$tie ({$_})";
-							$h = eval "({$_})";
-							# Wrap up each sub in the script node
-							foreach (keys %$h) {
-								my $tmp = $h->{$_};
-								my $src = join ("\n",
-									"sub {",
-									"  $tie",
-									"  \&\$tmp (\@_)",
-									"}");
-								## print "---- src ----$src\n--------------",
-								$h->{$_} = eval $src ;
-							}
-
-							## $h = eval "({$_})";
-		
-
-							if ($VRML::verbose::script) {
-								print "Evaled: $h\n",
-									"-- h = $h --\n",
-										(map {"$_ => $h->{$_}\n"} keys %$h),
-											"-- u = $u --\n",
-												(map {"$_ => $u->{$_}\n"} keys %$u),
-													"-- t = $t --\n",
-														(map {"$_ => $t->{$_}\n"} keys %$t);
-							}
-							if ($@) {
-								die "Invalid script '$@'"
-							}
-						}
-						last;
-					} elsif (/\.class$/) {
-						#	$VRML::verbose::js = 1;	#RCS
-						#EG				if(/\.class$/) {
-						my $wurl = $scene->get_world_url;
-						$t->{PURL} = $scene->get_url;
-						if (!defined $VRML::J) {
-							eval('require "VRML/VRMLJava.pm"');
-							if ($@) {
-								die $@;
-							}
-							$VRML::J =
-								VRML::JavaCom->new($scene->get_browser);
-						}
-						if (defined $wurl) {
-							$VRML::J->newscript($wurl,$_,$t);
-						} else {
-							$VRML::J->newscript($t->{PURL},$_,$t);
-						}
-
-						$t->{J} = $VRML::J;
-						last;
-					} elsif (/\.js/) {
-						#RCS die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
-						# New js url handling
-						my $purl = $t->{PURL} = $scene->get_url;
-						my $wurl = $scene->get_world_url;
-						my $file;
-
-						if (defined $wurl) {
-							$file =
-								VRML::URL::get_relative($wurl, $_, 1);
-						} else {
-							$file =
-								VRML::URL::get_relative($purl, $_, 1);
-						}
-
-						print "JS url: file = $file\n"
-							if $VRML::verbose::script;
-						open (SCRIPT_CODE, "< $file") ||
-							die("Couldn't retrieve javascript url $_ !");
-						my $code ="";
-						while (<SCRIPT_CODE>) {
-							$code.=$_;
-						}
-						;
-						close(SCRIPT_CODE);
-						print "JS url: code = $code\n"
-							if $VRML::verbose::script;
-						eval('require VRML::JS;');
-						if ($@) {
-							die $@;
-						}
-						$t->{J} = VRML::JS->new($code,$t,$Browser);
-						last;
-					} elsif (s/^(java|vrml)script://) {
-						eval('require VRML::JS;');
-						if ($@) {
-							die $@;
-						}
-						$t->{J} = VRML::JS->new($_,$t,$Browser);
-						last;
-					} else {
-						warn("unknown script: $_");
-					}
-				}
-
-				if (!defined $h and !defined $t->{J}) {
-					die "Didn't find a valid perl(_tjl_xxx)? or java script";
-				}
-				print "Script got: ",(join ',',keys %$h),"\n"
-					if $VRML::verbose::script;
-				$t->{ScriptScript} = $h;
-				my $s;
-				if (($s = $t->{ScriptScript}{"initialize"})) {
-					print "CALL $s\n if $VRML::verbose::script"
-						if $VRML::verbose::script;
-					perl_script_output (1);
-					my @res = &{$s}();
-					perl_script_output (0);
-					return @res ;
-
-				} elsif ($t->{J}) {
-
-					#EG			if($t->{J}) {
-					return $t->{J}->initialize($scene, $t);
-				}
-				return ();
-			},
-			url => sub {
-				print "ScriptURL $_[0] $_[1]!!\n" if $VRML::verbose::script;
-				die "URL setting not enabled";
-			},
-			__any__ => sub {
-				my($t,$f,$v,$time,$ev) = @_;
-				print "ScriptANY ",VRML::NodeIntern::dump_name($t),
-					" $_[1] $_[2] $_[3] $_[4]\n"
-
-					if $VRML::verbose::script;
-				my $s;
-
-
-				if (($s = $t->{ScriptScript}{$ev})) {
-					print "CALL $s\n"
-						if $VRML::verbose::script;
-					##EG show_stack (5);
-					##EG return &{$s}();
-					perl_script_output (1);
-					my @res = &{$s}();
-					perl_script_output (0);
-					return @res ;
-				} elsif ($t->{J}) {
-
-					#EG			if($t->{J}) {
-					return $t->{J}->sendevent($t, $ev, $v, $time);
-				}
-				return ();
-			},
-			EventsProcessed => sub {
-				my($t,$f) = @_;
-				print "ScriptEP $_[0] $_[1]!!\n"
-					if $VRML::verbose::script;
-				if ($t->{J}) {
-					return $t->{J}->sendeventsproc($t);
-				}
-				return ();
-			},
-		   }
-		  ),
-
-	Collision => new VRML::NodeType("Collision",
+								my $str = $_;
+								print "TRY $str\n" if $VRML::verbose::script;
+								if (s/^perl(_tjl_xxx1)?://) {
 									{
-									 addChildren => [MFNode, [], eventIn],
-									 removeChildren => [MFNode, [], eventIn],
-									 children => [MFNode, []],
-									 collide => [SFBool, 1],
-									 bboxCenter => [SFVec3f, [0,0,0]],
-									 bboxSize => [SFVec3f, [-1,-1,-1]],
-									 proxy => [SFNode, NULL],
-									 collideTime => [SFTime,undef,eventOut],
-									 #return info for collisions
-									 __hit => [SFInt32, 0], #bit 0 : collision or not, bit 1: changed from previous of not.
-									},
-									{
-									 addChildren => sub {
-										return addChildren_GroupingNodes(@_);
-									 },
+										print "XXX1 script\n" if $VRML::verbose::script;
+										check_perl_script();
 
-									 removeChildren => sub {
-										return removeChildren_GroupingNodes(@_);
-									 },
+										# See about RFields in file ARCHITECTURE and in
+										# Scene.pm's VRML::FieldHash package
+										my $u = $t->{Fields};
 
-									 ClockTick => sub {
-										 my($t,$f,$tick) = @_;
-										 return if !$t->{BackEnd};
-										 my $hit;
+										my $t = $t->{RFields};
 
-										 VRML::VRMLFunc::get_collision_info($t->{BackNode}->{CNode},$hit);
+										# This string ties scalars
+										my $tie = join("", map {
+											"tie \$$_, 'MTS',  \\\$t->{$_};"
+										} script_variables($u));
+										## print "tie = $tie\n";
+										## $h = eval "$tie ({$_})";
+										$h = eval "({$_})";
+										# Wrap up each sub in the script node
+										foreach (keys %$h) {
+											my $tmp = $h->{$_};
+											my $src = join ("\n",
+															"sub {",
+															"  $tie",
+															"  \&\$tmp (\@_)",
+															"}");
+											## print "---- src ----$src\n--------------",
+											$h->{$_} = eval $src ;
+										}
 
-										 if ($hit == 3 ) { #collision occured and state changed
-											 if ($VRML::verbose::collision) {
-												 print "COLLISION: $t, time=$tick\n";
-											 }
-											 $f->{collideTime} = $tick;
-										 }
-									 }
+										## $h = eval "({$_})";
+
+										print "Evaled: $h\n",
+											"-- h = $h --\n",
+												(map {"$_ => $h->{$_}\n"}
+												 keys %$h),
+													"-- u = $u --\n",
+														(map {
+															"$_ => $u->{$_}\n"
+														} keys %$u),
+															"-- t = $t --\n",
+																(map {
+																	"$_ => $t->{$_}\n"
+																} keys %$t)
+																	if $VRML::verbose::script;
+										if ($@) {
+											die "Invalid script '$@'"
+										}
 									}
-								   ),
+									last;
+								} elsif (/\.class$/) {
+									my $wurl = $scene->get_world_url;
+									$t->{PURL} = $scene->get_url;
+									if (!defined $VRML::J) {
+										eval('require "VRML/VRMLJava.pm"');
+										if ($@) {
+											die $@;
+										}
+										$VRML::J =
+											VRML::JavaCom->new($scene->get_browser);
+									}
+									if (defined $wurl) {
+										$VRML::J->newscript($wurl,$_,$t);
+									} else {
+										$VRML::J->newscript($t->{PURL},$_,$t);
+									}
 
-	Inline => new VRML::NodeType("Inline",
-								 {
-								  bboxSize => [SFVec3f, [-1,-1,-1]],
-								  bboxCenter => [SFVec3f, [0,0,0]],
-								  url => [MFString, []]
-								 },
-								 {
-								  Initialize =>
-								  sub {
-									  my($t, $f, $time, $scene) = @_;
-									  # XXXXXX!!
-									  #print "VRMLNode::Inline\n\tt $t\n\tf $f\n\ttime $time\n\tscene $scene\n";
+									$t->{J} = $VRML::J;
+									last;
+								} elsif (/\.js/) {
+									# New js url handling
+									my $purl = $t->{PURL} = $scene->get_url;
+									my $wurl = $scene->get_world_url;
+									my $file;
 
-									  my ($text, $url);
-									  my $purl = $scene->get_url();
-									  my $wurl = $scene->get_world_url;
-									  my $urls = $f->{url};
-									  $p = $scene->new_proto("__proto".$protono++);
+									if (defined $wurl) {
+										$file =
+											VRML::URL::get_relative($wurl, $_, 1);
+									} else {
+										$file =
+											VRML::URL::get_relative($purl, $_, 1);
+									}
 
-									  my $valid = 0;
+									print "JS url: file = $file\n"
+										if $VRML::verbose::script;
+									open (SCRIPT_CODE, "< $file") ||
+										die ("Couldn't retrieve javascript url $_ !");
+									my $code = "";
+									while (<SCRIPT_CODE>) {
+										$code .= $_;
+									}
+									close(SCRIPT_CODE);
+									print "JS url: code = $code\n"
+										if $VRML::verbose::script;
+									eval('require VRML::JS;');
+									if ($@) {
+										die $@;
+									}
+									$t->{J} = VRML::JS->new($code, $t, $Browser);
+									last;
+								} elsif (s/^(java|vrml)script://) {
+									eval('require VRML::JS;');
+									if ($@) {
+										die $@;
+									}
+									$t->{J} = VRML::JS->new($_, $t, $Browser);
+									last;
+								} else {
+									warn("unknown script: $_");
+								}
+							}
 
-								  URL:
-									  for $u (@$urls) {
-										  if (defined $wurl) {
-											  ($text, $url) = VRML::URL::get_relative($wurl, $u);
-										  } else {
-											  ($text, $url) = VRML::URL::get_relative($purl, $u);
-										  }
+							if (!defined $h and !defined $t->{J}) {
+								die "Didn't find a valid perl(_tjl_xxx)? or java script";
+							}
+							print "Script got: ", (join ',',keys %$h), "\n"
+								if $VRML::verbose::script;
+							$t->{ScriptScript} = $h;
+							my $s;
+							if (($s = $t->{ScriptScript}{"initialize"})) {
+								print "CALL $s\n if $VRML::verbose::script"
+									if $VRML::verbose::script;
+								perl_script_output(1);
+								my @res = &{$s}();
+								perl_script_output(0);
+								return @res;
+							} elsif ($t->{J}) {
+								return $t->{J}->initialize($scene, $t);
+							}
+							return ();
+						},
+						url => sub {
+							print "ScriptURL $_[0] $_[1]!!\n"
+								if $VRML::verbose::script;
+							die "URL setting not enabled";
+						},
+						__any__ => sub {
+							my($t,$f,$v,$time,$ev) = @_;
+							print "ScriptANY ",VRML::NodeIntern::dump_name($t),
+								" $_[1] $_[2] $_[3] $_[4]\n"
 
-										  if (!$text) {
-											  warn "Warning: could not retrieve $u";
-											  next URL;
-										  }
+									if $VRML::verbose::script;
+							my $s;
 
-										  $p->set_url($url);
-										  VRML::Parser::parse($p, $text);
-										  if (!defined $p) {
-											  die("Inline not found");
-										  }
 
-										  $t->{ProtoExp} = $p;
-										  $t->{ProtoExp}->set_parentnode($t);
-										  $t->{ProtoExp}->make_executable();
-										  $t->{ProtoExp}{IsInline} = 1;
-										  $t->{IsProto} = 1;
+							if (($s = $t->{ScriptScript}{$ev})) {
+								print "CALL $s\n"
+									if $VRML::verbose::script;
+								##EG show_stack (5);
+								##EG return &{$s}();
+								perl_script_output (1);
+								my @res = &{$s}();
+								perl_script_output (0);
+								return @res ;
+							} elsif ($t->{J}) {
 
-										  $valid = 1;
+								#EG			if($t->{J}) {
+								return $t->{J}->sendevent($t, $ev, $v, $time);
+							}
+							return ();
+						},
+						EventsProcessed => sub {
+							my($t,$f) = @_;
+							print "ScriptEP $_[0] $_[1]!!\n"
+								if $VRML::verbose::script;
+							if ($t->{J}) {
+								return $t->{J}->sendeventsproc($t);
+							}
+							return ();
+						},
+					   }
+					  ),
 
-									  }	# for $u (@$urls)
+	Collision =>
+	new VRML::NodeType("Collision",
+					   {
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						collide => [SFBool, 1, exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+						proxy => [SFNode, NULL, field],
+						collideTime => [SFTime, -1, eventOut],
+						# return info for collisions
+						# bit 0 : collision or not
+						# bit 1: changed from previous of not
+						__hit => [SFInt32, 0]
+					   },
+					   {
+						addChildren => sub {
+							return addChildren_GroupingNodes(@_);
+						},
 
-									  if (!$valid) {
-										  die "Unable to loacte a valid url";
-									  }
-									  return ();
-								  }
-								 }
-								),
+						removeChildren => sub {
+							return removeChildren_GroupingNodes(@_);
+						},
 
-);
+						ClockTick => sub {
+							my($t,$f,$tick) = @_;
+							return if !$t->{BackEnd};
+							my $hit;
 
+							VRML::VRMLFunc::get_collision_info($t->{BackNode}->{CNode},
+															   $hit);
+
+							if ($hit == 3) { #collision occured and state changed
+								if ($VRML::verbose::collision) {
+									print "COLLISION: $t, time=$tick\n";
+								}
+								$f->{collideTime} = $tick;
+							}
+						}
+					   }
+					  ),
+
+	Inline =>
+	new VRML::NodeType("Inline",
+					   {
+						url => [MFString, [], exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field]
+					   },
+					   {
+						Initialize => sub {
+							my($t, $f, $time, $scene) = @_;
+							# XXXXXX!!
+							#print "VRMLNode::Inline\n\tt $t\n\tf $f\n\ttime $time\n\tscene $scene\n";
+
+							my ($text, $url);
+							my $purl = $scene->get_url();
+							my $wurl = $scene->get_world_url;
+							my $urls = $f->{url};
+							$p = $scene->new_proto("__proto".$protono++);
+
+							my $valid = 0;
+
+						URL:
+							for $u (@$urls) {
+								if (defined $wurl) {
+									($text, $url) = VRML::URL::get_relative($wurl, $u);
+								} else {
+									($text, $url) = VRML::URL::get_relative($purl, $u);
+								}
+
+								if (!$text) {
+									warn "Warning: could not retrieve $u";
+									next URL;
+								}
+
+								$p->set_url($url);
+								VRML::Parser::parse($p, $text);
+								if (!defined $p) {
+									die("Inline not found");
+								}
+
+								$t->{ProtoExp} = $p;
+								$t->{ProtoExp}->set_parentnode($t);
+								$t->{ProtoExp}->make_executable();
+								$t->{ProtoExp}{IsInline} = 1;
+								$t->{IsProto} = 1;
+
+								$valid = 1;
+							} # for $u (@$urls)
+
+							if (!$valid) {
+								die "Unable to loacte a valid url";
+							}
+							return ();
+						}
+					   }
+					  ),
+
+); ##%VRML::Nodes
 
 
 1;
