@@ -84,6 +84,8 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 static JSBool
 doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp);
 
+static JSBool
+getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow);
 
 /* class functions */
 

@@ -32,10 +32,14 @@ VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 						  NULL,
 						  JSPROP_ENUMERATE | JSPROP_PERMANENT);
 	if (!JS_DefineFunctions(context, obj, BrowserFunctions)) {
+		fprintf(stderr,
+				"JS_DefineFunctions failed in VrmlBrowserInit.\n");
 		return JS_FALSE;
 	}
 
 	if (!JS_SetPrivate(context, obj, brow)) {
+		fprintf(stderr,
+				"JS_SetPrivate failed in VrmlBrowserInit.\n");
 		return JS_FALSE;
 	}
 	return JS_TRUE;
@@ -63,7 +67,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
-		doPerlCallMethodVA(brow->sv_js, "browserCreateVrmlFromString", "s", _c);
+		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromString", "s", _c);
 	} else {
 		fprintf(stderr,
 				"\nIncorrect argument format for createVrmlFromString(%s).\n",
@@ -74,6 +78,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
 		fprintf(stderr,
 				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromString.\n");
+		return JS_FALSE;
 	}
 	*rval = v;
 	return JS_TRUE;
@@ -143,7 +148,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 		_str[1] = JS_ValueToString(context, _v[1]);
 		_costr[1] = JS_GetStringBytes(_str[1]);
 		doPerlCallMethodVA(brow->sv_js,
-						   "browserCreateVrmlFromUrl", "sss",
+						   "jspBrowserCreateVrmlFromUrl", "sss",
 						   _costr[0], _costr[1], _c);
 	} else {
 		fprintf(stderr,
@@ -155,6 +160,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
 		fprintf(stderr,
 				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromUrl.\n");
+		return JS_FALSE;
 	}
 	*rval = _rval;
 	return JS_TRUE;
@@ -181,11 +187,12 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
-		doPerlCallMethodVA(brow->sv_js, "browserSetDescription", "s", _c);
+		doPerlCallMethodVA(brow->sv_js, "jspBrowserSetDescription", "s", _c);
 
 		if (!JS_GetProperty(context, obj, "__bret",  &_v)) {
 			fprintf(stderr,
 					"JS_GetProperty failed in VrmlBrowserSetDescription.\n");
+			return JS_FALSE;
 		}
 		*rval = _v;
 	} else {
@@ -217,10 +224,11 @@ VrmlBrowserGetName(JSContext *context, JSObject *obj, uintN argc, jsval *argv, j
 		return JS_FALSE;
 	}
 
-	doPerlCallMethod(brow->sv_js, "browserGetName");
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetName");
 
 	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetName.\n");
+		return JS_FALSE;
 	}
 	
 	*rval = _rval;
@@ -431,10 +439,11 @@ VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv
 		JS_SetProperty(context, obj, buffer, argv+i);
 	}
 
-	doPerlCallMethod(brow->sv_js, "browserGetVersion");
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetVersion");
 
 	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetVersion.\n");
+		return JS_FALSE;
 	}
 	*rval = v;
 	return JS_TRUE;
@@ -539,12 +548,13 @@ VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, 
 {
 	jsval _v;
 	if (!doVRMLRoute(context, obj, argc, argv,
-					 "VrmlBrowserAddRoute", "browserAddRoute", "addRoute")) {
+					 "VrmlBrowserAddRoute", "jspBrowserAddRoute", "addRoute")) {
 		fprintf(stderr, "doVRMLRoute failed in VrmlBrowserAddRoute.\n");
 		return JS_FALSE;
 	}
 	if (!JS_GetProperty(context, obj, "__bret",  &_v)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserAddRoute.\n");
+		return JS_FALSE;
 	}
 	*rval = _v;
 	return JS_TRUE;
@@ -555,7 +565,7 @@ VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 {
 	jsval _v;
 	if (!doVRMLRoute(context, obj, argc, argv,
-					 "VrmlBrowserDeleteRoute", "browserDeleteRoute", "deleteRoute")) {
+					 "VrmlBrowserDeleteRoute", "jspBrowserDeleteRoute", "deleteRoute")) {
 		fprintf(stderr, "doVRMLRoute failed in VrmlBrowserDeleteRoute.\n");
 		return JS_FALSE;
 	}
@@ -596,10 +606,11 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, js
 		JS_SetProperty(context, obj, buffer, argv+i);
 	}
 
-	doPerlCallMethod(brow->sv_js, "browserGetCurrentFrameRate");
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetCurrentFrameRate");
 
 	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetCurrentFrameRate.\n");
+		return JS_FALSE;
 	}
 	*rval = v;
 	return JS_TRUE;
@@ -635,10 +646,11 @@ VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj, uintN argc, jsval *arg
 		JS_SetProperty(context, obj, buffer, argv+i);
 	}
 
-	doPerlCallMethod(brow->sv_js, "browserGetWorldURL");
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetWorldURL");
 
 	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetWorldURL.\n");
+		return JS_FALSE;
 	}
 
 	*rval = v;
