@@ -59,13 +59,15 @@ sub register_vp {
 sub set_next_vp {
 	$vpno++;
 	if ($vpno > $#vpn) {$vpno = 0;}
-	print "set_next_vp, next vp to get is number $vpno\n";
+	# print "set_next_vp, next vp to get is number $vpno\n";
 }
 
-sub get_vp_node { print "get_vp_node, returning vp $vpno " , $vpn[$vpno],"\n";
+sub get_vp_node { 
+	#print "get_vp_node, returning vp $vpno " , $vpn[$vpno],"\n";
 return $vpn[$vpno];}
 
-sub get_vp_scene {print "get_vp_scene, returning ", $vps[$vpno],"\n";
+sub get_vp_scene {
+	#print "get_vp_scene, returning ", $vps[$vpno],"\n";
 return $vps[$vpno];}
 
 
