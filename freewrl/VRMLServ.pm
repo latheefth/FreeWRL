@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.9  2000/11/29 18:46:46  crc_canada
+# add replaceWorld call
+#
 # Revision 1.8  2000/11/24 19:02:45  crc_canada
 # Works with find_transform now!
 #
@@ -486,8 +489,8 @@ sub handle_input {
 		} elsif($str =~ /^GWU$/) { # Get WorldURL
 		        $hand->print("RE\n$reqid\n0\n", $this->{B}->getWorldURL(), "\n");
 
-		} elsif($str =~ /^RW$/) { # replaceWorld
-		        $hand->print("RE\n$reqid\n0\n", $this->{B}->replaceWorld(), "\n");
+		} elsif($str =~ /^RW (.*)$/) { # replaceWorld
+		        $hand->print("RE\n$reqid\n0\n", $this->{B}->replaceWorld($1), "\n");
 
 		} elsif($str =~ /^LU$/) { # LoadURL
 		        $hand->print("RE\n$reqid\n0\n", $this->{B}->loadURL(), "\n");
