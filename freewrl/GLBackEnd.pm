@@ -42,6 +42,7 @@ sub set_best {
 }
 sub set_fast {
 	glShadeModel(&GL_FLAT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	VRML::VRMLFunc::set_divs(8,8);
 }
 
