@@ -337,7 +337,7 @@ sub init_image {
 	
 	    my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
 	    my $status = system ($cmd);
-	    die "$image conversion problem: '$cmd' returns $?"
+	    warn "$image conversion problem: '$cmd' returns $?"
 		unless $status == 0;
 	
 	    eval 'require VRML::PNG';
