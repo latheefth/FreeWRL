@@ -20,8 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.132  2004/07/12 13:30:37  crc_canada
-# more steps to getting frustum culling working.
+# Revision 1.133  2004/07/13 19:46:20  crc_canada
+# solid flag for simple shapes.
 #
 # Revision 1.131  2004/06/21 15:15:20  crc_canada
 # 1.07 pre changes.
@@ -139,6 +139,12 @@ Box => '
 		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
 	}
 
+											
+	if(!$f(solid)) {
+		glPushAttrib(GL_ENABLE_BIT);
+		glDisable(GL_CULL_FACE);
+	}
+	
 	// Draw it; assume VERTEX and NORMALS already defined. 
 	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
@@ -150,6 +156,8 @@ Box => '
 	glDrawArrays (GL_QUADS, 0, 24);
 
 	if (HAVETODOTEXTURES) glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+
+	if(!$f(solid)) { glPopAttrib(); }
 ',
 
 
@@ -204,6 +212,12 @@ Cylinder => '
 		pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
 		pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
 	}
+											
+	if(!$f(solid)) {
+		glPushAttrib(GL_ENABLE_BIT);
+		glDisable(GL_CULL_FACE);
+	}
+	
 
 	// Display the shape
 	if (HAVETODOTEXTURES) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -233,6 +247,8 @@ Cylinder => '
 	/* set things back to normal - Textures and ColoUrs disabled. */
 	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
+
+	if(!$f(solid)) { glPopAttrib(); }
 ',
 
 
@@ -315,6 +331,12 @@ Cone => '
 		}
 	}
 
+											
+	if(!$f(solid)) {
+		glPushAttrib(GL_ENABLE_BIT);
+		glDisable(GL_CULL_FACE);
+	}
+	
 
 	// OK - we have vertex data, so lets just render it.
 	// Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.
@@ -341,6 +363,8 @@ Cone => '
 	// set things back to normal - Textures and ColoUrs disabled.
 	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	
+
+	if(!$f(solid)) { glPopAttrib(); }
 ',
 
 Sphere => '
@@ -417,6 +441,12 @@ Sphere => '
 			}
 		}
 	}
+											
+	if(!$f(solid)) {
+		glPushAttrib(GL_ENABLE_BIT);
+		glDisable(GL_CULL_FACE);
+	}
+	
 
 	// Display the shape
 	if (HAVETODOTEXTURES) {
@@ -433,6 +463,8 @@ Sphere => '
 
 	if (HAVETODOTEXTURES) glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 
+
+	if(!$f(solid)) { glPopAttrib(); }
 ',
 IndexedFaceSet => '
 		struct SFColor *points; int npoints;

@@ -330,6 +330,7 @@ my $protono;
 	Box =>
 	new VRML::NodeType("Box",
 					   { 	size => [SFVec3f, [2, 2, 2], field],
+						solid => [SFBool, 1, field],
 						__points  =>[SFInt32,0,field],
 					   }
 					  ),
@@ -341,6 +342,7 @@ my $protono;
 						 radius => [SFFloat, 1.0, field],
 						 side => [SFBool, 1, field],
 						 top => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
 						 __points =>[SFInt32,0,field],
 						 __normals =>[SFInt32,0,field],
 						},
@@ -352,6 +354,7 @@ my $protono;
 						 height => [SFFloat, 2.0, field],
 						 side => [SFBool, 1, field],
 						 bottom => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
 						 __sidepoints =>[SFInt32,0,field],
 						 __botpoints =>[SFInt32,0,field],
 						 __normals =>[SFInt32,0,field],
@@ -416,6 +419,7 @@ my $protono;
 	Sphere =>
 	new VRML::NodeType("Sphere",
 					   { 	radius => [SFFloat, 1.0, field],
+						solid => [SFBool, 1, field],
 						 __points =>[SFInt32,0,field],
  					   }
 					  ),

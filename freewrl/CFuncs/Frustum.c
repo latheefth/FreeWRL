@@ -6,6 +6,11 @@
 *********************************************************************/
 
 /*********************************************************************
+ * Frustum calculations. Definitive work (at least IMHO) is thanks to
+ * Steven Baker - look at http://sjbaker.org/steve/omniv/frustcull.html
+ *
+ * Thanks Steve!
+ * 
  */
 
 #include "EXTERN.h"
@@ -27,6 +32,7 @@
 #include "Structs.h"
 #include "headers.h"
 
+static double frustumConeAngle = 0.0;
   
 /* take the measurements of a geometry (eg, box), and save it. Note 
  * that what is given is a Shape, the values get pushed up to the
@@ -139,7 +145,34 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs) {
 #endif
 }
 	
+/* set the "static" frustum variables. Changes only when window params change.
+ *
+ * A Frustum is a truncated pyramid. It is used to test as to whether another
+ * cube intersects with it; if so, the other cube is "visible"; if not, the
+ * other cube does not need to be rendered.
+ *
+ * With fast GPU's, a few extra triangles is not a worry, but matimatical 
+ * calculations on the main cpu are, so we use a Cone for Frustum testing, not
+ * a 6 sided truncated pyramid.
+ *
+ * check out the paper by Dave Eberly, Magic-Sofware.com for this technique.
+ *
+ * Used for speeding up large worlds. */
+
 void calculateFrustum () {
 
+#ifdef BOUNDINGBOX
+	printf ("calculateFrustum\n");
+	printf ("nearPlane    %f\n",nearPlane);
+	printf ("farPlane     %f\n",farPlane);
+	printf ("screenRatio  %f\n",screenRatio);
+	printf ("fieldofview  %f\n",fieldofview);
+	printf ("screenWidth  %d\n",screenWidth);
+	printf ("screenHeight %d\n",screenHeight);
 
+	frustumConeAngle = fieldofview;
+#endif
+}
+
+int pointIntersectsCone(struct pt S, struct pt P) {
 }

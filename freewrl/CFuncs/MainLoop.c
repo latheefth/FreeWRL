@@ -780,7 +780,7 @@ void Next_ViewPoint() {
 
 /* set internal variables for screen sizes, and calculate frustum */
 void setScreenDim(int wi, int he) {
-	printf ("setScreenDim called - %d x %d\n",wi,he);
+	//printf ("setScreenDim called - %d x %d\n",wi,he);
         screenWidth = wi;
         screenHeight = he;
         if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
