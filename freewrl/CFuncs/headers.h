@@ -229,3 +229,8 @@ extern GLdouble fieldofview;
 extern int found_vp;
 extern struct pt ViewerUpvector;
 extern struct sNaviInfo naviinfo;
+
+
+/* Sending events back to Browser (eg, Anchor) */
+extern int BrowserAction;
+extern char * BrowserActionString;

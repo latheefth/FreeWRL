@@ -353,7 +353,7 @@ sub put_events {
 
 sub handle_touched {
 	my($this, $node, $but, $move, $over) = @_;
-	print "HTOUCH: node $node, but $but, move $move, over $over \n";
+	#print "HTOUCH: node $node, but $but, move $move, over $over \n";
 	push @{$this->{MouseSensitive}}, [ $node, $but, $move, $over];
 }
 

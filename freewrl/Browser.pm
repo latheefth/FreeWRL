@@ -251,6 +251,7 @@ sub load_file_intro {
 
 	# save this for getworldurl calls...
 	$this->{URL} = $url;
+
 	$this->clear_scene();
 	$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
 
@@ -402,6 +403,27 @@ sub eventloop {
 	## my $seqcnt = 0;
 	while (!$this->{BE}->quitpressed) {
 		# print "eventloop\n";
+
+		# Events from within C; do we have a replaceWorld or goto Viewpoint action?
+
+		if (VRML::VRMLFunc::BrowserAction()) {
+			my $action;
+			my $try;
+			my @stgs;
+			my $string;
+
+			VRML::VRMLFunc::getAnchorBrowserAction($action); 
+
+			# split the string up, if there are more items than one. 
+			@stgs = split (" ",$action);
+			foreach $try (@stgs) {
+				$string = VRML::URL::get_absolute($try); 		
+				if (defined $string) {
+					$this->load_file_intro($try);
+				}
+			}
+		}
+
 		$this->tick();
 		# Skip 1st image, which may not be good
 		if ( $main::seq && $main::saving && ++$main::seqcnt ) {

@@ -36,6 +36,9 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 int SEVerbose = 0;
 
+#define ASLEN 500
+char AnchorString[ASLEN];
+
 /* returns the audio duration, unscaled by pitch */
 float return_Duration (int indx) {
 	float retval;
@@ -787,6 +790,43 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, double tick, int o
 }
 
 
+void do_Anchor (struct VRML_Anchor *node, char *ev, double tick, int over) {
+	int len;
+	int urllen;
+	unsigned char *urlptr;
+	int counter;
+	
+	len = strlen(ev);
+	if (len == strlen("PRESS")) {
+		/* no parameters in url field? */
+		if (node->url.n < 1) return;
+
+		/* return string initialize */
+		AnchorString[0] = 0;
+		BrowserActionString = AnchorString;
+
+		/* go through the URL field, sanitize them, and return the string
+		   to let Browser.pm parse/load/etc the files */
+		for (counter = 0; counter <node->url.n; counter++) {
+			urlptr = SvPV((node->url.p[counter]),urllen);
+			
+			/* not a blank entry? */
+			if (urllen > 0) {
+				/* remove whitespace of front */
+				while (*urlptr <= ' ') urlptr++;
+			
+				/* can we put this on the return string? */
+				if ((strlen(urlptr)+strlen(AnchorString)) < ASLEN-2) {
+					strcat (AnchorString,urlptr);
+					strcat (AnchorString," ");
+				}
+	
+				BrowserAction = TRUE;
+			}
+		}
+	}
+}
+
 void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, double tick, int over) {
 /* not implemented */
 }
@@ -797,15 +837,6 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, double tick, int
 	float tr1sq, tr2sq, tr1tr2;
 	struct SFColor dee, arr, cp, dot;
 	float deelen, aay, bee, cee, und, sol, cl, an;
-/*
-autoOffset => [SFBool, 1, exposedField],
-enabled => [SFBool, 1, exposedField],
-offset => [SFRotation, [0, 1, 0, 0], exposedField],
-isActive => [SFBool, 0, eventOut],
-rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
-trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut]
-*/
-
 
 	len = strlen(ev);
 

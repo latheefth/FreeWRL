@@ -583,6 +583,7 @@ my $protono;
 
 %VRML::Nodes::sensitive = map {($_, 1)} qw/
  ProximitySensor
+ Anchor
 /;
 
 %VRML::Nodes = (
@@ -1096,12 +1097,6 @@ my $protono;
 						removeChildren => sub {
 							return removeChildren_GroupingNodes(@_);
 						},
-
-						#JAS EventsProcessed => sub {
-						#JAS 	# my($node,$fields,$time) = @_;
-						#JAS 	# print ("Group, EP, $node $fields\n");
-						#JAS 	return();
-						#JAS }
 					   }
 					  ),
 
@@ -1170,28 +1165,6 @@ my $protono;
 			keyValue => [MFFloat, [], exposedField],
 			value_changed => [SFFloat, 0.0, eventOut]
 		   },
-		   {
-			Initialize => sub {
-				my($t,$f) = @_;
-
-				$t->{Fields}->{value_changed} =
-					(defined $f->{keyValue}[0] ?
-					 $f->{keyValue}[0] :
-					 0);
-				return [$t, value_changed, $f->{keyValue}[0]];
-			},
-
-			EventsProcessed => sub {
-				my($t, $f) = @_;
-				my $xx;
-	
-				# Get the values from the C code; look in  VRMLC.pm
-				# and CFuncs/SensInterps.c 
- 				VRML::VRMLFunc::get_1_value_changed (
-					$t->{BackNode}->{CNode},$xx);
-				return [$t, value_changed,$xx];
-			}
-		   }
 		  ),
 
 	OrientationInterpolator =>
@@ -1202,25 +1175,6 @@ my $protono;
 			keyValue => [MFRotation, [], exposedField],
 			value_changed => [SFRotation, [0, 0, 1, 0], eventOut]
 		   },
-		   {
-			Initialize => sub {
-				my($t,$f) = @_;
-				$t->{Fields}{value_changed} =
-					($f->{keyValue}[0] or [0, 0, 1, 0]);
-				return ();
-			},
-
-			EventsProcessed => sub {
-				my($t, $f) = @_;
-				my $xx, $yy, $zz, $oo;
-
-				# Get the values from the C code; look in  VRMLC.pm
-				# and CFuncs/SensInterps.c 
- 				VRML::VRMLFunc::get_4_value_changed (
-					$t->{BackNode}->{CNode},$xx,$yy,$zz,$oo);
-				return [$t, value_changed,[$xx,$yy,$zz,$oo]];
-			}
-		   }
 		  ),
 
 	###################################################################################
@@ -1235,24 +1189,6 @@ my $protono;
 			keyValue => [MFColor, [], exposedField],
 			value_changed => [SFColor, [0, 0, 0], eventOut],
 		   },
-		   @x = {
-			Initialize => sub {
-				my($t,$f) = @_;
-				# Can't do $f->{} = .. because that sends an event.
-				$t->{Fields}->{value_changed} = ($f->{keyValue}[0] or [0, 0, 0]);
-				return ();
-			},
-			EventsProcessed => sub {
-				my($t, $f) = @_;
-				my $xx, $yy, $zz;
-
-				# Get the values from the C code; look in  VRMLC.pm
-				# and CFuncs/SensInterps.c 
- 				VRML::VRMLFunc::get_3_value_changed (
-					$t->{BackNode}->{CNode},$xx,$yy,$zz);
-				return [$t, value_changed,[$xx,$yy,$zz]];
-			}
-		   }
 		  ),
 
 	PositionInterpolator =>
@@ -1263,7 +1199,6 @@ my $protono;
 			keyValue => [MFVec3f, [], exposedField],
 			value_changed => [SFVec3f, [0, 0, 0], eventOut],
 		   },
-		   @x  # use the init and ep of ColorInterpolator
 		  ),
 
 	############################################################################33
@@ -1279,37 +1214,6 @@ my $protono;
 			value_changed => [MFVec3f, [], eventOut],
 			_type => [SFInt32, 0, exposedField], #1 means dont normalize
 		},
-		@x = {	
-			Initialize => sub {
-				 my($t,$f) = @_;
-
-				 # Can't do $f->{} = .. because that sends an event.
-				 my $nkv =
-					 scalar(@{$f->{keyValue}}) /
-					 scalar(@{$f->{key}});
-				 $t->{Fields}->{value_changed} =
-					 ([@{$f->{keyValue}}[0..$nkv-1]] or []);
-				 return ();
-				},
-
-			 EventsProcessed => sub {
-				my($t, $f) = @_;
-				my $nkv = scalar(@{$f->{keyValue}}) / scalar(@{$f->{key}});
-				my $v=[];
-				my $i;
-				my $xx, $yy, $zz;
-
-				# get the number of key frames required by this
-				for ($i=0; $i<$nkv; $i++) {
- 					VRML::VRMLFunc::get_Coord_value_changed (
-						$t->{BackNode}->{CNode},$xx,$yy,$zz,$i);
-						$v->[$i][0]=$xx;
-						$v->[$i][1]=$yy;
-						$v->[$i][2]=$zz;
-				}
-				return [$t, value_changed,$v];
-			}
-		}
 	  ),
 
 
@@ -1323,7 +1227,6 @@ my $protono;
 			value_changed => [MFVec3f, [], eventOut],
 			_type => [SFInt32, 1, exposedField], #1 means normalize
 		},
-		   @x  # use the init and ep of CoordInterpolator
 	  ),
 
 	###################################################################################
@@ -1347,46 +1250,6 @@ my $protono;
 						__ctflag =>[SFTime, 10, exposedField]
 					   },
 					   {
-						Initialize => sub {
-							my($t,$f) = @_;
-
-							# force an event at startup
-							#$f->{__ctflag} = 10.0;
-							# print "TS init\n";
-							return ();
-						},
-
-						#
-						#  Ignore startTime and cycleInterval when active..
-						#
-						startTime => sub {
-							my($t,$f,$val) = @_;
-							# print "TS ST\n";
-							if ($t->{Priv}{active}) {
-							} else {
-								# $f->{startTime} = $val;
-							}
-						},
-
-						cycleInterval => sub {
-							my($t,$f,$val) = @_;
-							# print "TS CI\n";
-							if ($t->{Priv}{active}) {
-							} else {
-								# $f->{cycleInterval} = $val;
-							}
-						},
-
-						# Ignore if less than startTime
-						stopTime => sub {
-							my($t,$f,$val) = @_;
-							# print "TS ST\n";
-							if ($t->{Priv}{active} and $val < $f->{startTime}) {
-							} else {
-								# return $t->set_field(stopTime,$val);
-							}
-						},
-
 						ClockTick => sub {
 							my($t,$f,$tick) = @_;
 

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.85  2003/05/14 15:42:43  crc_canada
+# Anchor code first pass
+#
 # Revision 1.84  2003/05/12 19:02:38  crc_canada
 # Bindables in C, part II
 #
@@ -1175,7 +1178,6 @@ struct sNaviInfo {
 
 D_OPENGL;
 
-
 /* Rearrange to take advantage of headlight when off */
 int curlight = 0;
 int nlightcodes = 7;
@@ -1276,6 +1278,10 @@ GLdouble fieldofview = 45;
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
+/* Any action for the Browser (perl code) to do? */
+int BrowserAction = FALSE;
+char * BrowserActionString = 0;
+
 struct currayhit {
 void *node; /* What node hit at that distance? */
 GLdouble modelMatrix[16]; /* What the matrices were at that node */
@@ -1299,7 +1305,6 @@ float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
-
 
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz, 
@@ -1978,69 +1983,29 @@ CODE:
 OUTPUT:
 	RETVAL
 
-#********************************************************************************
-#* Interpolators in C code. Color,Position Interpolators are 3 values 		*
-#* called only during the "events_processed" side of the Event loop		*
-void
-get_3_value_changed(node,x,y,z)
-	void *node
-	double x
-	double y
-	double z
+#*****************************************************************************
+#
+# signal to the Perl browser that Perl action is required. 
+#
+int 
+BrowserAction()
 CODE:
-	struct VRML_PositionInterpolator *px = node;
-	do_Oint3(px);
-	x = px->value_changed.c[0];
-	y = px->value_changed.c[1];
-	z = px->value_changed.c[2];
+	RETVAL = BrowserAction;
+OUTPUT:
+	RETVAL
+
+#*****************************************************************************
+#
+# return the action to the Browser
+#
+void
+getAnchorBrowserAction(x)
+	char * x
+CODE:
+	BrowserAction = FALSE;
+	x = BrowserActionString;
 OUTPUT:
 	x
-	y
-	z
-
-#********************************************************************************
-#* Interpolators in C code. CoordinateInterpolators and NormalInterpolators	*
-#* called only during the "events_processed" side of the Event loop		*
-#* Normalize if it is a normalinterp.						*
-void
-get_Coord_value_changed(node,x,y,z,indx)
-	void *node
-	double x
-	double y
-	double z
-	int indx
-CODE:
-	struct VRML_CoordinateInterpolator *px = node;
-	do_OintCoord(px);
-	x = 0.0; y = 0.0; z = 0.0; /* this is for non-c routes ;_0 */
-OUTPUT:
-	x
-	y
-	z
-
-#********************************************************************************
-#* Interpolators in C code. OrientationInterpolators are 4 values 		*
-#* called only during the "events_processed" side of the Event loop		*
-void
-get_4_value_changed(node,x,y,z,o)
-	void *node
-	double x
-	double y
-	double z
-	double o
-CODE:
-	struct VRML_PositionInterpolator *px = node;
-	do_Oint4(px);
-	x = px->value_changed.c[0];
-	y = px->value_changed.c[1];
-	z = px->value_changed.c[2];
-	o = px->value_changed.c[3];
-OUTPUT:
-	x
-	y
-	z
-	o
-
 
 
 #*****************************************************************************
@@ -2177,25 +2142,14 @@ CODE:
 	} else if (strncmp("SphereSensor",x,strlen("SphereSensor"))==0) {
 		do_SphereSensor (pt,typ,tick,over);
 
+	} else if (strncmp("Anchor",x,strlen("Anchor"))==0) {
+		do_Anchor (pt,typ,tick,over);
+
 	} else { printf ("do_handle_events, unknown %s\n",x);}
 	
 	
 
 
-
-#********************************************************************************
-#* Interpolators in C code. ScalarInterpolator returns 1 value	 		*
-#* called only during the "events_processed" side of the Event loop		*
-void
-get_1_value_changed(node,x)
-	void *node
-	double x
-CODE:
-	struct VRML_ScalarInterpolator *px = node;
-	do_OintScalar(px);
-	x = px->value_changed;
-OUTPUT:
-	x
 
 #********************************************************************************
 void
