@@ -261,6 +261,11 @@ for how to toggle this status bar display when running.
 Sends the sequence of characters following to FreeWRL for processing once the
 	original URL is loaded.
 
+=item C<--linewidth> I<width>
+
+Sets the line width for IndexedLineSets. 
+
+
 =item C<--plugin> I<PIDstring>
 
 Tells FreeWRL that it is running within a web browser, and thus to get all URLs

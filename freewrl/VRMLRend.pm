@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.135  2004/08/23 17:46:26  crc_canada
+# Bulk commit: IndexedLineWidth width setting, and more Frustum culling work.
+#
 # Revision 1.134  2004/08/06 18:36:55  crc_canada
 # textureTransform nodes now reset the parameters in Appearance after a
 # transform, instead of always before a texture is drawn. This fixes a
@@ -1060,8 +1063,9 @@ Transform => '
 	GLfloat my_rotation;
 	GLfloat my_scaleO;
 	int	recalculate_dist;
-	GLdouble modelMatrix[16];
-	      
+
+	int ppv;
+
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
 
@@ -1129,16 +1133,9 @@ Transform => '
 
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
-			glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-			this_->bboxCenter.c[0] = modelMatrix[12];
-			this_->bboxCenter.c[1] = modelMatrix[13];
-			this_->bboxCenter.c[2] = modelMatrix[14];
-			//printf ("Transform - center is at %f %f %f\n",
-			//modelMatrix[12],modelMatrix[13],modelMatrix[14]);
-			
-			this_->_dist = modelMatrix[14];
-			//printf ("getDist - recalculating distance, it is %f for %d\n", 
-			//	this_->_dist,this_);
+			this_->PIV = PointInView(this_);
+			//printf ("ppv %d\n",this_->PIV);
+
 	       }
         } 
 ',

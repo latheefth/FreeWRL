@@ -465,10 +465,12 @@ extern char *myPerlInstallDir;
 extern void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
-void BoundingBox(struct SFColor bbc,struct SFColor bbs);
+void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV);
 void setExtent (float x, float y, float z, struct VRML_Box *this_);
 void propagateExtent (float x, float y, float z, struct VRML_Box *this_);
-void calculateFrustumCone(void);
+//void calculateFrustumCone(void);
+extern int PointInView(struct VRML_Transform *nod);
+
 extern double nearPlane, farPlane, screenRatio;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */

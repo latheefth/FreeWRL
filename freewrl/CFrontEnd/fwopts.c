@@ -12,6 +12,9 @@
 extern int screenWidth, screenHeight;
 int fullscreen;
 
+/* Petr Mikulik - IndexedLineSet line width */
+float global_linewidth = 1.0;
+
 #ifndef AQUA
 
 #include <GL/gl.h>
@@ -45,7 +48,6 @@ XVisualInfo *vi;
 extern int _fw_pipe, _fw_FD;
 extern unsigned _fw_instance;
 
-char renderer[256];	/* what device are we using? */
 int screen;
 int modeNum;
 int bestMode;
@@ -320,6 +322,11 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	// For Vertex arrays - we always assume these are enabled.
 	glEnableClientState (GL_VERTEX_ARRAY);
 	glEnableClientState (GL_NORMAL_ARRAY);
+
+	// Set Line Width from the command line parameter
+	// for GL_LINES and GL_LINE_STRIP and switch their anti-aliasing
+	glLineWidth (global_linewidth);
+	glEnable(GL_LINE_SMOOTH);
 
 	// return Display and window
 	Disp = dpy;

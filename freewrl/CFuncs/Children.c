@@ -137,7 +137,7 @@ void groupingChild (struct VRML_Group *this_) {
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,this_);
-		BoundingBox(this_->bboxCenter,this_->bboxSize);
+		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
 	/* did we have that directionalLight? */
@@ -172,7 +172,7 @@ void billboardChild (struct VRML_Billboard *this_) {
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
-		BoundingBox(this_->bboxCenter,this_->bboxSize);
+		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
 	/* did we have that directionalLight? */
@@ -213,7 +213,7 @@ void transformChild (struct VRML_Transform *this_) {
 				this_->bboxCenter.c[1],
 				this_->bboxCenter.c[2],
 				this_);
-		BoundingBox(this_->bboxCenter,this_->bboxSize);
+		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
 	/* did we have that directionalLight? */
@@ -245,7 +245,7 @@ void anchorChild (struct VRML_Anchor *this_) {
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
-		BoundingBox(this_->bboxCenter,this_->bboxSize);
+		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
 	/* did we have that directionalLight? */
@@ -314,7 +314,7 @@ void inlineChild (struct VRML_Inline *this_) {
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
-		BoundingBox(this_->bboxCenter,this_->bboxSize);
+		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
 	/* did we have that directionalLight? */
@@ -370,7 +370,7 @@ void inlinelodChild (struct VRML_InlineLoadControl *this_) {
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
-		BoundingBox(this_->bboxCenter,this_->bboxSize);
+		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
 	/* did we have that directionalLight? */
@@ -468,7 +468,7 @@ void collisionChild(struct VRML_Collision *this_) {
 			this_->bboxSize.c[0] = this_->_extent[0];
 			this_->bboxSize.c[1] = this_->_extent[1];
 			this_->bboxSize.c[2] = this_->_extent[2];
-			BoundingBox(this_->bboxCenter,this_->bboxSize);
+			BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 		}
 
 		/* did we have that directionalLight? */

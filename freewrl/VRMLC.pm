@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.150  2004/08/23 17:46:26  crc_canada
+# Bulk commit: IndexedLineWidth width setting, and more Frustum culling work.
+#
 # Revision 1.149  2004/08/06 15:46:23  crc_canada
 # if a fontStyle is a PROTO, expand the proto in NodeIntern.pm (used to
 # segfault!)
@@ -588,6 +591,7 @@ sub gen_struct {
 	       "       int _ichange; \n"		.
 	       "       float _dist; /*sorting for blending */ \n".
 	       "	float _extent[3]; /* used for boundingboxes */ \n" .
+	       "	int PIV; /* points in view */ \n" .
                " /*d*/ void *_intern; \n"              	.
                " /***/\n";
 	
@@ -1406,6 +1410,7 @@ CODE:
 	p->_extent[0] = 0.0;
 	p->_extent[1] = 0.0;
 	p->_extent[2] = 0.0;
+	p->PIV = 0;
 
 	RETVAL=ptr;
 OUTPUT:

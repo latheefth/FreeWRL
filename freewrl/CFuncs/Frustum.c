@@ -85,14 +85,15 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 #endif
 }
 
-void BoundingBox(struct SFColor bbc,struct SFColor bbs) {
+void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV) {
 #ifdef BOUNDINGBOX
 	float x,y,z;
 	x = bbs.c[0];
 	y = bbs.c[1];
 	z = bbs.c[2];
-	//printf ("BoundingBox, size %f %f %f\n",x,y,z);
+	//printf ("BoundingBox, size %f %f %f %d\n",x,y,z, PIV);
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
+	if (PIV == 0) return;
 
 	/* calculate distance to this box from the Frustum */
 
@@ -102,7 +103,13 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs) {
 	glEnable(GL_COLOR_MATERIAL); 
 	glDisable(GL_CULL_FACE);
 
-	glColor3f(1.0, 1.0, 0.0);
+	if (PIV >= 8) {
+
+		glColor3f(1.0, 1.0, 0.0);
+	} else if (PIV >= 4) {
+		glColor3f(0.0, 1.0, 0.0);
+	}
+	else glColor3f(0, 0.0, 1.0);
 
 	/* top of box */
 	glBegin(GL_LINE_STRIP);
@@ -160,8 +167,14 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs) {
  * Used for speeding up large worlds. */
 
 void calculateFrustumCone () {
-
+	GLdouble mod[16];
+	GLdouble proj[16];
+	
 #ifdef BOUNDINGBOX
+
+	glGetDoublev (GL_PROJECTION_MATRIX, proj);
+	glGetDoublev (GL_MODELVIEW_MATRIX, mod);
+
 	printf ("calculateFrustum\n");
 	printf ("nearPlane    %f\n",nearPlane);
 	printf ("farPlane     %f\n",farPlane);
@@ -178,5 +191,123 @@ void calculateFrustumCone () {
 #endif
 }
 
-int pointIntersectsCone(struct pt S, struct pt P) {
+/************************************************************
+ * inCheck - check if a point is "within" expected values
+ *
+ * What we do is check a point in X and in Y, using the viewport
+ * angle.
+ *
+ * The equation is simple trig - angle A is 1/2 of viewport, we
+ * know the distance, etc:
+ *
+ *     C       a      B
+ *     ----------------
+ *     |              /
+ *     |             /
+ *     |            / 
+ *     |           /
+ *     |          /
+ *     |         /
+ *    b|        / c
+ *     |       /
+ *     |      /
+ *     |     /
+ *     |    /		A = 1/2 "viewport" diagonal angle
+ *     |   /		b = Z distance
+ *     |  /		a = maximum distance for a point
+ *     | /		Tan(A) = a/b; Tan(A)*b = a
+ *     |/
+ *     A
+ *
+ *     if a point, B is greater than a away from the centre, then
+ *     we assume that it is outside of the viewing area.
+ *
+ *     We check x and y seperately.
+ *
+ *************************************************************/
+
+int inCheck(GLdouble Distance,GLdouble bb,GLdouble cc) {
+	GLdouble xx;	
+	int xcount;
+	int pointok;
+	
+	xx = tan(0.3)*Distance;
+	xcount=0;
+	pointok = FALSE;
+
+	printf ("        comparing %f with %f, %f ",xx, bb,cc);
+
+	// Point is behind viewer
+	if (Distance<0.0) {
+		printf (" Xcount %d\n",0);
+		return 0;
+	}
+
+	// are both points positive?
+	if ((bb>0.0) && (xx > bb)) xcount++;
+	if ((cc>0.0) && (xx > cc)) xcount++;
+	
+	if ((bb>0.0) && (cc>0.0)) pointok = TRUE;
+
+	printf (" Xcount %d pok %d\n",xcount,pointok);
+	// if BOTH points are either in, or BOTH are out, return ok
+	if (pointok) {
+		if (xcount==0) xcount = 2; // possibly 
+		if (xcount==1) xcount = 0;
+		printf ("	pok ok, xc %d, returning 1\n",xcount);
+		if (xcount==2) return 1;
+	}
+	return 0;
 }
+
+
+int PointInView(struct VRML_Transform *nod) {
+	GLdouble xx,yy,Distance,bb,cc,dd,ee,ff,ex_X,ex_Y,ex_Z;
+	GLdouble modelMatrix[16];
+	int retval;
+
+	retval = 0;
+
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	nod->bboxCenter.c[0] = modelMatrix[12];
+	nod->bboxCenter.c[1] = modelMatrix[13];
+	nod->bboxCenter.c[2] = modelMatrix[14];
+
+#ifdef BOUNDINGBOX
+
+	// get the x,y values from the modelMatrix
+	bb = modelMatrix[12]; // x ish
+	cc = modelMatrix[13]; // y ish
+	//printf ("\nbb %f cc %f\n",bb,cc);
+
+	// get the extent from the VRML Struct passed in
+	ex_X=nod->_extent[0]; 
+	ex_Y=nod->_extent[1];
+	ex_Z=nod->_extent[2];
+
+	// check the 4 points closer to us
+	Distance = -modelMatrix[14]+ex_Z; // distance
+	retval += inCheck(Distance, bb+ex_X, cc+ex_Y);
+	retval += inCheck(Distance, -(bb-ex_X), cc+ex_Y);
+	retval += inCheck(Distance, bb+ex_X, -(cc-ex_Y));
+	retval += inCheck(Distance, -(bb-ex_X), -(cc-ex_Y));
+
+	/* check the 4 points farther from us */
+	Distance = -modelMatrix[14]-ex_Z; // distance
+	retval += inCheck(Distance, bb+ex_X, cc+ex_Y);
+	retval += inCheck(Distance, -(bb-ex_X), cc+ex_Y);
+	retval += inCheck(Distance, bb+ex_X, -(cc-ex_Y));
+	retval += inCheck(Distance, -(bb-ex_X), -(cc-ex_Y));
+
+	//retval += inCheck(Distance, bb+ex_X, cc+ex_Y);
+	//retval += inCheck(Distance, bb-ex_X, cc+ex_Y);
+	//retval += inCheck(Distance, bb+ex_X, cc-ex_Y);
+	//retval += inCheck(Distance, bb-ex_X, cc-ex_Y);
+#endif
+	nod->_dist = modelMatrix[14];
+	//printf ("getDist - recalculating distance, it is %f for %d\n", 
+	//	nod->_dist,nod);
+	
+	return retval;
+}
+

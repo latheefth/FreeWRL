@@ -42,6 +42,7 @@ GLXContext globalContext;
 int wantEAI=FALSE;		/* enable EAI? */
 #endif
 extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
+extern float global_linewidth;	/* in CFrontEnd/fwopts.c - ILS line width */
 
 /* threading variables for event loop */
 static pthread_t *loopthread;
@@ -125,7 +126,7 @@ int main (int argc, char **argv) {
 			{"fullscreen", 0, 0, 'c'},
 			{"stereoparameter", 1, 0, 't'},
 			{"screendist", 1, 0, 'r'},
-
+			{"linewidth", 1, 0, 'W'},  /* Petr Mikulik */
 
 			{"parent", 1, 0, 'x'},
 			{"server", 1, 0, 'x'},
@@ -190,6 +191,8 @@ int main (int argc, char **argv) {
 			case 'j': sscanf (optarg,"%d",&_fw_FD); break;
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
 			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
+			/* Petr Mikiluk - ILS line width */
+			case 'W': sscanf (optarg,"%g",&global_linewidth);
 
 
 			/* Snapshot stuff */
