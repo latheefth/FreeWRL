@@ -76,6 +76,9 @@ GLuint latest_texture_number;
 /* current texture number */
 GLuint texture_count;
 
+/* repeat flags passed in, but because they are used "further in",
+ * we make them global, to save ... */
+int mt_repeatS, mt_repeatT;
 
 /* Decoding table for macroblock_address_increment */
 mb_addr_inc_entry     mb_addr_inc[2048];
@@ -1297,7 +1300,7 @@ ExecuteTexture(vid_stream)
   	glBindTexture(GL_TEXTURE_2D,latest_texture_number);
   }
 
-  do_texture(3,vid_stream->h_size,vid_stream->v_size,Image, 0,0,GL_LINEAR);
+  do_texture(3,vid_stream->h_size,vid_stream->v_size,Image, mt_repeatS,mt_repeatT,GL_LINEAR);
   texture_count++;
 }
 /* Bit masks used by bit i/o operations. */
@@ -7420,9 +7423,11 @@ FILE *mpegfile;
  */
 
 
-int mpg_main(init_tex, fname)
+int mpg_main(init_tex, fname, repeatS, repeatT)
 	GLuint init_tex;
 	char * fname;
+	int repeatS;
+	int repeatT;
 {
 
   mpeg_VidStream *theStream;
@@ -7430,6 +7435,9 @@ int mpg_main(init_tex, fname)
 
   texture_count = 0;
   theStream = NULL;
+  if (repeatS) { mt_repeatS = GL_REPEAT; } else { mt_repeatS = GL_CLAMP; }
+  if (repeatT) { mt_repeatT = GL_REPEAT; } else { mt_repeatT = GL_CLAMP; }
+
 
   /* save the texture numbers; we'll sanity check these later */
   latest_texture_number = 0;
