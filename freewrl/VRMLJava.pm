@@ -219,8 +219,9 @@ sub receive {
 			my $value = $i->getline; chomp $value;
 			my $node = fromJava("SFNode", $nid);
 			$value = fromJava($node->{Type}{FieldTypes}{$field}, $value);
-			print "$node.$field := $value\n"
-			    if $VRML::verbose::java;
+			print "$node.$field := ".
+				(ref $value eq "ARRAY" ? join ",",@{$value} : "$value")."\n"
+				if $VRML::verbose::java;
 			push @a, [$node, $field, $value];
 		} elsif($cmd eq "GETBROWSER") {
 			my $nid = $i->getline; chomp $nid;
@@ -238,8 +239,9 @@ sub receive {
 			my $browser = VRML::Handles::get($bid);
 			my $input = $i->getline; chomp $input;
 			my $rs = fromJava("SFString", $input);
-			print "createVRML($rs)" if $VRML::verbose::java;
+			print "createVRML($rs)\n" if $VRML::verbose::java;
 			my $scene = $browser->createVrmlFromString($rs);
+			print "Result: $scene\n" if $VRML::verbose::java;
 			my @nodes = split " ", $scene;
 			$this->{O}->print(scalar(@nodes)."\n");
 			for (@nodes) {
