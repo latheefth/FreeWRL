@@ -30,9 +30,15 @@
 
 
 #include <math.h>
+#ifdef AQUA
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glx.h>
+#endif
 
 #include "Structs.h"
 #include "headers.h"
