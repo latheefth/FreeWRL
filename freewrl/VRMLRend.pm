@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.38  2001/07/31 16:20:33  crc_canada
+# more Background node work
+#
 # Revision 1.37  2001/07/05 16:04:33  crc_canada
 # Initial IFS texture default code re-write
 #
@@ -840,6 +843,7 @@ Background => '
 	double vatemp;		
 	GLuint mask;
 	GLfloat bk_emis[4];		/* background emissive colour	*/
+	float	sc;
 
 	/* only do background lighting, etc, once for textures */
 	/*
@@ -978,30 +982,30 @@ Background => '
 	glEnable(GL_LIGHT0);
 
 
-	glScalef(1000,1000,1000);	
-
+	sc = 2000.0; /* where to put the sky quads */
+	glBegin(GL_QUADS);
 	if(((this_->skyColor).n) == 1) {
 		c1 = &(((this_->skyColor).p[0]));
-		va2 = PI; /* so we dont fill in to ground angles */
+		va1 = 0;
+		va2 = PI/2; 
 		bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
 		glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+		glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 
-		/* Actually, one should do it... ? */
-		glBegin(GL_TRIANGLES);
-		for(h=0; h<hdiv; h++) {
-			ha1 = h * PI*2 / hdiv;
-			ha2 = (h+1) * PI*2 / hdiv;
-			/* glNormal3f(sin(van) * cos(han), sin(van) * sin(han), cos(van)); */
-			glVertex3f(0, 1, 0);
-			glVertex3f(cos(ha1), 0, sin(ha1));
-			glVertex3f(cos(ha2), 0, sin(ha2));
-			glVertex3f(0, -1, 0);
-			glVertex3f(cos(ha2), 0, sin(ha2));
-			glVertex3f(cos(ha1), 0, sin(ha1));
+		for(v=0; v<2; v++) {
+			for(h=0; h<hdiv; h++) {
+				ha1 = h * PI*2 / hdiv;
+				ha2 = (h+1) * PI*2 / hdiv;
+
+				glVertex3f(sin(va2)*sc * cos(ha1), cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				glVertex3f(sin(va2)*sc * cos(ha2), cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				glVertex3f(sin(va1)*sc * cos(ha2), cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+				glVertex3f(sin(va1)*sc * cos(ha1), cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+			}
+			va1 = va2;
+			va2 = PI;
 		}
-		glEnd();
 	} else {
-		glBegin(GL_QUADS);
 		va1 = 0;
 		for(v=0; v<((this_->skyColor).n)-1; v++) {
 			c1 = &(((this_->skyColor).p[v]));
@@ -1015,72 +1019,84 @@ Background => '
 				bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
 				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
-				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
-				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
+				glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
 				bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
 				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 				glColor3f(c1->c[0], c1->c[1], c1->c[2]);
-				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
-				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
+				glVertex3f(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+				glVertex3f(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
 			}
 			va1 = va2;
 		}
-	}
 
-	/* now, the spec states: "If the last skyAngle is less than pi, then the
-	  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
-
-	/* do we have any ground angles? */
-	va1 = va2; /* start va1 where we left off... */
-	if ((this_->groundColor).n==0) { vatemp = PI;}
-	else {vatemp = PI - ((this_->groundAngle).p[((this_->groundColor).n)-2]);}
-
-	if (abs(va1-vatemp)> 0.01) {
-		/* have to fill in to bottom, or at least, until ground starts */
-		va2 = vatemp;
-		for(h=0; h<hdiv; h++) {
-			ha1 = h * PI*2 / hdiv;
-			ha2 = (h+1) * PI*2 / hdiv;
+		/* now, the spec states: "If the last skyAngle is less than pi, then the
+		  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
+		if (va2 < (PI-0.01)) {
 			bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
 			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 			glColor3f(c2->c[0], c2->c[1], c2->c[2]);
-			glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
-			glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
-			glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
-			glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
-		}
-	}
-
-	/* Do the ground, if there is anything  to do. */
-	if ((this_->groundColor).n>0) {
-		/* we have ground colours... Do it! */
-		for(v=((this_->groundColor).n)-1; v > 0; v--) {
-			va1 = va2; /* continue from the sky */	
-			c1 = &(((this_->groundColor).p[v]));
-			c2 = &(((this_->groundColor).p[v-1]));
-			if (v==1) {
-				va2=PI; /* we go to the pole */
-			} else {
-				va2 = PI - ((this_->groundAngle).p[v-2]);
-			}
-
 			for(h=0; h<hdiv; h++) {
-				ha1 = (h * 6.29 / hdiv);
-				ha2 = ((h+1) * 6.29 / hdiv);
-				bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
-				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
-				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
-				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
-				bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
-				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-				glColor3d(c1->c[0], c1->c[1], c1->c[2]);
-				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
-				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
+				ha1 = h * PI*2 / hdiv;
+				ha2 = (h+1) * PI*2 / hdiv;
+	
+				glVertex3f(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
+				glVertex3f(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
+				glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
 			}
 		}
 	}
 	glEnd();
+
+
+	/* Do the ground, if there is anything  to do. */
+	if ((this_->groundColor).n>0) {
+		sc = 1250.0; /* where to put the ground quads */
+		glBegin(GL_QUADS);
+		if(((this_->groundColor).n) == 1) {
+			c1 = &(((this_->groundColor).p[0]));
+			bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+			glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+			for(h=0; h<hdiv; h++) {
+				ha1 = h * PI*2 / hdiv;
+				ha2 = (h+1) * PI*2 / hdiv;
+
+				glVertex3f(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
+				glVertex3f(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
+				glVertex3f(sin(PI/2) * cos(ha2)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha2)*sc);
+				glVertex3f(sin(PI/2) * cos(ha1)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha1)*sc);
+			}
+		} else {
+			va1 = PI;
+			for(v=0; v<((this_->groundColor).n)-1; v++) {
+				c1 = &(((this_->groundColor).p[v]));
+				c2 = &(((this_->groundColor).p[v+1]));
+				va2 = PI - ((this_->groundAngle).p[v]);
+		
+				for(h=0; h<hdiv; h++) {
+					ha1 = h * PI*2 / hdiv;
+					ha2 = (h+1) * PI*2 / hdiv;
+
+					bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+					glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+					glVertex3f(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+					glVertex3f(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+
+					bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
+					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+					glColor3f(c2->c[0], c2->c[1], c2->c[2]);
+					glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+					glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				}
+				va1 = va2;
+			}
+		}
+		glEnd();
+	}
+
 
 
 
@@ -1095,6 +1111,8 @@ Background => '
         	glEnable(GL_TEXTURE_2D);
         	glColor3f(1,1,1);
 
+		sc = 500.0; /* where to put the tex vertexes */
+
         	glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
         	glLightfv (GL_LIGHT0, GL_AMBIENT, col_amb);
         	glLightfv (GL_LIGHT0, GL_DIFFUSE, col_dif);
@@ -1105,10 +1123,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,1); 
-			glTexCoord2f(1, 1); glVertex3f(-0.43, -0.43, 0.43);
-			glTexCoord2f(1, 0); glVertex3f(-0.43, 0.43, 0.43);
-			glTexCoord2f(0, 0); glVertex3f(0.43, 0.43, 0.43);
-			glTexCoord2f(0, 1); glVertex3f(0.43, -0.43, 0.43);
+			glTexCoord2f(1, 1); glVertex3f(-sc, -sc, sc);
+			glTexCoord2f(1, 0); glVertex3f(-sc, sc, sc);
+			glTexCoord2f(0, 0); glVertex3f(sc, sc, sc);
+			glTexCoord2f(0, 1); glVertex3f(sc, -sc, sc);
 			glEnd();
 		};
 
@@ -1116,10 +1134,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,-1);
-			glTexCoord2f(1,0); glVertex3f(0.43,0.43,-0.43);
-			glTexCoord2f(0,0); glVertex3f(-0.43,0.43,-0.43);
-			glTexCoord2f(0,1); glVertex3f(-0.43,-0.43,-0.43);
-			glTexCoord2f(1,1); glVertex3f(0.43,-0.43,-0.43); 
+			glTexCoord2f(1,0); glVertex3f(sc,sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,sc,-sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,-sc,-sc);
+			glTexCoord2f(1,1); glVertex3f(sc,-sc,-sc); 
 			glEnd();
 		};
 
@@ -1127,10 +1145,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,1,0);
-			glTexCoord2f(1,0); glVertex3f(0.43,0.43,0.43);
-			glTexCoord2f(0,0); glVertex3f(-0.43,0.43,0.43);
-			glTexCoord2f(0,1); glVertex3f(-0.43,0.43,-0.43);
-			glTexCoord2f(1,1); glVertex3f(0.43,0.43,-0.43);
+			glTexCoord2f(1,0); glVertex3f(sc,sc,sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,sc,sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,sc,-sc);
+			glTexCoord2f(1,1); glVertex3f(sc,sc,-sc);
 			glEnd();
 		};
 
@@ -1138,10 +1156,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,-(1),0);
-			glTexCoord2f(1,0); glVertex3f(0.43,-0.43,-0.43);
-			glTexCoord2f(0,0); glVertex3f(-0.43,-0.43,-0.43);
-			glTexCoord2f(0,1); glVertex3f(-0.43,-0.43,0.43);
-			glTexCoord2f(1,1); glVertex3f(0.43,-0.43,0.43);
+			glTexCoord2f(1,0); glVertex3f(sc,-sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,-sc,-sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,-sc,sc);
+			glTexCoord2f(1,1); glVertex3f(sc,-sc,sc);
 			glEnd();
 		};
 
@@ -1149,10 +1167,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(1,0,0);
-			glTexCoord2f(1,0); glVertex3f(0.43,0.43,0.43);
-			glTexCoord2f(0,0); glVertex3f(0.43,0.43,-0.43);
-			glTexCoord2f(0,1); glVertex3f(0.43,-0.43,-0.43);
-			glTexCoord2f(1,1); glVertex3f(0.43,-0.43,0.43);
+			glTexCoord2f(1,0); glVertex3f(sc,sc,sc);
+			glTexCoord2f(0,0); glVertex3f(sc,sc,-sc);
+			glTexCoord2f(0,1); glVertex3f(sc,-sc,-sc);
+			glTexCoord2f(1,1); glVertex3f(sc,-sc,sc);
 			glEnd();
 		};
 
@@ -1160,10 +1178,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(-1,0,0);
-			glTexCoord2f(1,0); glVertex3f(-0.43,0.43, -0.43);
-			glTexCoord2f(0,0); glVertex3f(-0.43,0.43,  0.43); 
-			glTexCoord2f(0,1); glVertex3f(-0.43,-0.43, 0.43);
-			glTexCoord2f(1,1); glVertex3f(-0.43,-0.43,-0.43);
+			glTexCoord2f(1,0); glVertex3f(-sc,sc, -sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,sc,  sc); 
+			glTexCoord2f(0,1); glVertex3f(-sc,-sc, sc);
+			glTexCoord2f(1,1); glVertex3f(-sc,-sc,-sc);
 			glEnd();
 		 };
 	}
