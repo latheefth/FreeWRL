@@ -680,8 +680,8 @@ for(spi = 0; spi<nspi; spi++) {
 			beginVals[sec*2+1] = ptz;
 	   	} else if (spi == (nspi-1)) {  /* end cap vertices */
 			//printf ("end cap vertecies index %d %d size %d\n", sec*2+0, sec*2+1, 2 * (nsec+1));
-			(float)endVals[(int) (sec*2)+0]=(float)ptx;
-			(float)endVals[(int ) (sec*2)+1]=(float)ptz;
+			endVals[(sec*2)+0]=ptx;
+			endVals[(sec*2)+1]=ptz;
 	   	} 
 
 	   }

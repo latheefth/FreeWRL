@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.78  2002/09/24 18:19:29  crc_canada
+# Fixed compile problem on Irix.
+#
 # Revision 1.77  2002/08/16 20:02:03  ncoder
 # new and improved Indexfaceset and Extrusion collision detection!
 #
@@ -2411,16 +2414,28 @@ Box => q~
 
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       struct pt iv = {$f(size,0),0,0};
-	       struct pt jv = {0,$f(size,1),0};
-	       struct pt kv = {0,0,$f(size,2)};
-	       struct pt ov = {-$f(size,0)/2,-$f(size,1)/2,-$f(size,2)/2};
+	       //JAS struct pt iv = {$f(size,0),0,0};
+	       //JAS struct pt jv = {0,$f(size,1),0};
+	       //JAS struct pt kv = {0,0,$f(size,2)};
+	       //JAS struct pt ov = {-$f(size,0)/2,-$f(size,1)/2,-$f(size,2)/2};
+	       struct pt iv = {0,0,0};
+	       struct pt jv = {0,0,0};
+	       struct pt kv = {0,0,0};
+	       struct pt ov = {0,0,0};
+
 	       struct pt t_orig = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 
 	       struct pt delta;
 	       struct pt tupv = {0,1,0};
 	       
+		//JAS - fill in structs from above.
+		iv.x = $f(size,0);
+		jv.y = $f(size,1);
+		kv.z = $f(size,2);
+		ov.x = -$f(size,0)/2; ov.y = -$f(size,1)/2; ov.z = -$f(size,2)/2;
+
+
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	       
@@ -2480,14 +2495,19 @@ Cone => q~
 
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       struct pt iv = {0,h,0};
-	       struct pt jv = {0,-h,0};
+	       //JAS struct pt iv = {0,h,0};
+	       //JAS struct pt jv = {0,-h,0};
+	       struct pt iv = {0,0,0};
+	       struct pt jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 
 	       struct pt delta;
 	       struct pt tupv = {0,1,0};
-	       
+	      
+	       // JAS - see above commented out struct def.
+	       iv.y = h; jv.y = -h;
+ 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
@@ -2544,14 +2564,21 @@ Cylinder => q~
 
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       struct pt iv = {0,h,0};
-	       struct pt jv = {0,-h,0};
+	       //JAS struct pt iv = {0,h,0};
+	       //JAS struct pt jv = {0,-h,0};
+	       struct pt iv = {0,0,0};
+	       struct pt jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 
 	       struct pt tupv = {0,1,0};
 	       struct pt delta;
 	       
+
+		// JAS - fill up structures as commented out above
+		iv.y = h;
+		jv.y = -h;
+
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
