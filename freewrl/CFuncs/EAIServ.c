@@ -553,7 +553,6 @@ void EAI_parse_commands (char *bufptr) {
 				CRoutes_Register  (ra,rb, 1, EAIListenerArea, rc, &handle_Listener, 0, 
 					(count<<8)+ctmp[0]); // encode id and type here
 	
-	
 				sprintf (buf,"RE\n%d\n0",count);
 				break;
 				}

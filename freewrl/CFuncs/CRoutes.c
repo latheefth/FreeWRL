@@ -184,8 +184,6 @@ typedef struct _CRnodeStruct {
 struct CRStruct {
 	unsigned int	fromnode;
 	unsigned int	fnptr;
-/* 	unsigned int	tonode; */
-/* 	unsigned int	tnptr; */
 	unsigned int tonode_count;
 	CRnodeStruct *tonodes;
 	int	act;
@@ -873,8 +871,8 @@ void setMultiElementtype (int num) {
 
 /* internal variable to copy a C structure's Multi* field */
 void Multimemcpy (void *tn, void *fn, int multitype) {
-	int structlen;
-	int fromcount, tocount;
+	unsigned int structlen;
+	unsigned int fromcount, tocount;
 	void *fromptr, *toptr;
 
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;
@@ -926,8 +924,8 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 	}
 
 
-	/* free the toptr */
-	if (toptr != NULL) free (toptr);
+	/* free the old data, if there is old data... */
+	if ((mv3ftn->p) != NULL) free (mv3ftn->p);
 
 	/* malloc the toptr */
 	mv3ftn->p = malloc (structlen*fromcount);
@@ -1556,7 +1554,6 @@ void propagate_events() {
 
 				if (CRoutes[counter].act == TRUE) {
 					if (CRVerbose)
-						/* printf("event %#x %#x sent something\n", CRoutes[counter].fromnode, CRoutes[counter].fnptr); */
 						printf("event %u %u sent something\n", CRoutes[counter].fromnode, CRoutes[counter].fnptr);
 
 					/* we have this event found */
@@ -1592,16 +1589,11 @@ void propagate_events() {
 									   counter);
 							/* copy over this "extra" data, EAI "advise" calls need this */
 							CRoutesExtra = CRoutes[counter].extra;
-printf ("calling interpptr %d\n",CRoutes[counter].interpptr);
 							CRoutes[counter].interpptr(to_ptr->node);
-printf ("done the call\n");
 						} else {	
 							/* just an eventIn node. signal to the reciever to update */
-/* 							update_node(CRoutes[counter].tonode); */
-							/* try */
 							mark_event(to_ptr->node, to_ptr->foffset);
 							update_node(to_ptr->node);
-/* printf("propagate_events: update_node %u\n", to_ptr->node); */
 						}
 					}
 				}
