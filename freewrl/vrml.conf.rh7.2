@@ -1,0 +1,62 @@
+# Default VRML Configuration.
+# You will probably need to edit at least these variables
+# to inform the compiler where the libraries are on your system.
+
+%VRML_CONFIG = (
+
+# OpenGL (or Mesa) libraries, defines and includes (e.g. -I/usr/OpenGL...). 
+    # for IRIX, the following 2 lines should be used.
+    # OPENGL_LIBS => '-L/usr/lib32 -lGL -lGLU -lXext -lX11',
+    # OPENGL_DEFINE => '',
+
+    # for Linux, try the following: (see the INSTALL.html for more info)
+    OPENGL_DEFINE => '-DXF86V4',
+    OPENGL_LIBS => '-L/usr/lib -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lXxf86vm',
+    OPENGL_INC => '-I/usr/X11R6/include/',
+
+# JPEG libraries & includes
+    JPEG_LIBS => '-ljpeg',
+    JPEG_INC => '',
+    JPEG_DEFINE => '',
+
+# PNG libraries & includes
+    PNG_LIBS => '-lpng -lz',
+    PNG_INC => '',
+    PNG_DEFINE => '',
+
+# Freetype things
+    # for IRIX, the following 3 lines should be used:
+    # FREETYPE_LIBS => '-L/usr/freetype/lib32 -lttf',
+    # FREETYPE_INC => '-I/usr/freeware/include',
+    # FREETYPE_DEFINE => '',
+
+    # for Linux, the following should be used:
+    FREETYPE_LIBS => '-lfreetype',
+    FREETYPE_INC => '-I/usr/include/freetype2/include -I/usr/include -I/usr/include/freetype2/freetype/config -I/usr/include/freetype2',
+    FREETYPE_DEFINE => '',
+    FREETYPE_FONT_PATH => '/usr/share/fonts/userfonts',
+
+# Javascript lib & include (relative to the JS/ directory)
+    JS_LIBS => '-Ljs/Linux_All_DBG.OBJ -ljs',
+    JS_INC => '-Ijs/Linux_All_DBG.OBJ -Ijs/',
+
+# Saxon location - required for x3d running.
+    SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
+
+# Netscape installation
+# 
+# If Netscape is not installed, leave NETSCAPE_INST empty e.g.
+# NETSCAPE_INST => ''
+#
+# NETSCAPE_PLUGINS is used to determine where the plugin will
+# be installed if this is your browser.
+    NETSCAPE_INST => '/usr/lib/netscape',
+    NETSCAPE_PLUGINS => '/usr/lib/netscape/plugins',
+
+# Java installation (Sun's Java 2 SDK Standard Edition 1.3.1)
+# If Java is not installed, leave JAVA_INST empty e.g.
+# JAVA_INST => ''
+    JAVA_INST => '/usr/java/jdk1.3.1',
+    JAVA_INC => '-I/usr/java/jdk1.3.1/include -I/usr/java/jdk1.3.1/include/linux'
+
+);
