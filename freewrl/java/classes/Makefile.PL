@@ -15,267 +15,69 @@ use File::Find;
 use Cwd;
 use English;
 
-if ($PERL_VERSION lt v5.6.0) {
-    my $dir = getcwd();
-    warn "Warning: $dir/$PROGRAM_NAME was created under Perl v5.6.0.\n";
-}
-
 WriteMakefile(
-    NAME => 'Java/classes'
+    NAME => 'VRML::Java',
+    # Is there a better way to install data files?
+    PM => { 'java.policy' => '$(INST_LIBDIR)/java.policy',
+	    'vrml.jar' => '$(INST_LIBDIR)/vrml.jar'}
 );
 
-## The Netscape jar file containing the package netscape.security is
-## required to compile vrml/external/Browser.java.
-
-sub MY::post_initialize {
-    my $post_init = "";
-    if ($VRML_CONFIG{JAVA_INST} && $VRML_CONFIG{NETSCAPE_INST}) {
-	my $class_re = qr/^.*\.java\z/;
-	my $jar_re = qr/^.*\.jar\z/;
-	my $source = findFiles("vrml", $class_re,"\\\n"); 
-	my $netscape_classpath =
-	    findFiles($VRML_CONFIG{NETSCAPE_INST}, $jar_re, ":");
-
-	my $dir_re = qr/^classes\z/;
-	my $netscape_class_dir =
-	    findFiles($VRML_CONFIG{NETSCAPE_INST}, $dir_re, "");
-
-	
-	$post_init = join("\n",
-	    qq{\n},
-q{JAR_FILE=vrml.jar
-SOURCE=\\},
-	    $source,
-	    qq{\n},
-q{CLASSES=$(SOURCE:.java=.class)
-},
-	    qq{NETSCAPE_CLASSPATH=$netscape_classpath},
-	    qq{NETSCAPE_CLASS_DIR=$netscape_class_dir},
-q{
-JFLAGS=-classpath .:$(NETSCAPE_CLASSPATH)});
-    }
-    return($post_init);
-}
-
-## NB.  Since this script is not making a Perl module, a great many of
-## the overridable functions belonging to ExtUtils::MM_Unix have been
-## overridden.
-## A relatively sparse Makefile to handle compiling the java code and
-## updating the jar file is written by ExtUtils::MakeMaker.
-##
-## If Java is not installed, nothing will happen.
-
-## Override ExtUtils::MM_Unix::install, since we don't need to install any
-## Perl modules here.
-sub MY::install {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::installbin, since we don't need to install any 
-## Perl modules here.
-sub MY::installbin {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::force, since we don't need to install any 
-## Perl modules here.
-sub MY::force {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::c_o, since we don't need to install any 
-## Perl modules here.
-sub MY::c_o {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::pasthru, since we don't need to install any
-## Perl modules here.
-sub MY::pasthru {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::clean, since we don't need to install any 
-## Perl modules here.
-sub MY::clean {
-    my $clean =
-q{
-clean ::
-	-mv Makefile Makefile.old $(DEV_NULL)};
-    return($clean);
-}
-
-## Override ExtUtils::MM_Unix::realclean, since we don't need to install any 
-## Perl modules here.
-sub MY::realclean {
-    my $realclean =
-q{
-realclean purge :: clean
-	rm -rf Makefile Makefile.old};
-    return($realclean);
-}
-
 ## Override and customize ExtUtils::MM_Unix::constants.
-sub MY::constants {
-    my($self) = @_;
-    my(@m,$tmp);
-
-    push(@m,
-qq{
+sub MY::post_constants {
+    my $constants ="";
+    if ($VRML_CONFIG{JAVA_INST}) {
+	my $class_re = qr/^.*\.java\z/;
+	my $source = findFiles("vrml", $class_re,"\\\n"); 
+	$constants .= qq{
 JAVAC=javac
 JAR=jar
-});
-    for $tmp (qw/
-              NAME DISTNAME VERSION
-	      PERL FULLPERL PERL_LIB
-              PREFIX PERL_ARCHLIB PERL_INC
-              / ) {
-        next unless defined $self->{$tmp};
-        push(@m, "$tmp = $self->{$tmp}\n");
-    }
+SOURCE=\\
+$source
 
-    push(@m,
-qq{
-VERSION_MACRO = VERSION
-DEFINE_VERSION = -D\$(VERSION_MACRO)=\\\"\$(VERSION)\\\"
-PERL_MALLOC_DEF = -DPERL_EXTMALLOC_DEF -Dmalloc=Perl_malloc -Dfree=Perl_mfree -Drealloc=Perl_realloc -Dcalloc=Perl_calloc
-});
+CLASSES=\$(SOURCE:.java=.class)
 
-    push(@m,
-qq{
-MAKEMAKER = $INC{'ExtUtils/MakeMaker.pm'}
-MM_VERSION = $ExtUtils::MakeMaker::VERSION
-});
-
-    for $tmp (qw/
-              INST_HTMLPRIVLIBDIR INSTALLHTMLPRIVLIBDIR
-              INST_HTMLSITELIBDIR INSTALLHTMLSITELIBDIR
-              INST_HTMLSCRIPTDIR  INSTALLHTMLSCRIPTDIR
-              INST_HTMLLIBDIR     HTMLEXT
-              INST_MAN1DIR        INSTALLMAN1DIR         MAN1EXT
-              INST_MAN3DIR        INSTALLMAN3DIR         MAN3EXT
-              /) {
-        next unless defined $self->{$tmp};
-        push @m, "$tmp = $self->{$tmp}\n";
-    }
-
-    for $tmp (qw(
-                PERM_RW PERM_RWX
-                )
-             ) {
-        my $method = lc($tmp);
-        # warn "self[$self] method[$method]";
-        push @m, "$tmp = ", $self->$method(), "\n";
-    }
-
-    push @m, q{
-.NO_CONFIG_REC: Makefile
-} if $ENV{CLEARCASE_ROOT};
-
-    # why not q{} ? -- emacs
-    push @m, qq{
-# work around a famous dec-osf make(1) feature(?):
-makemakerdflt: all
-
-.SUFFIXES: .java .class .jar
-
-# Nick wanted to get rid of .PRECIOUS. I don't remember why. I seem to recall, that
-# some make implementations will delete the Makefile when we rebuild it. Because
-# we call false(1) when we rebuild it. So make(1) is not completely wrong when it
-# does so. Our milage may vary.
-# .PRECIOUS: Makefile    # seems to be not necessary anymore
-
-.PHONY: all config static dynamic test linkext manifest
-
-# Where is the Config information that we are using/depend on
-CONFIGDEP = \$(PERL_ARCHLIB)/Config.pm \$(PERL_INC)/config.h
+JFLAGS=-classpath .:\$(NETSCAPE_CLASSPATH)
 };
+	if ($VRML_CONFIG{NETSCAPE_INST}) {
+	    my $class_re = qr/^.*\.java\z/;
+	    my $jar_re = qr/^.*\.jar\z/;
+	    my $source = findFiles("vrml", $class_re,"\\\n"); 
+	    my $netscape_classpath =
+		findFiles($VRML_CONFIG{NETSCAPE_INST}, $jar_re, ":");
+	    
+	    my $dir_re = qr/^classes\z/;
+	    my $netscape_class_dir =
+		findFiles($VRML_CONFIG{NETSCAPE_INST}, $dir_re, "");
+	    
+	    $constants .= qq{
+CLASSES=\$(SOURCE:.java=.class)
+NETSCAPE_CLASSPATH=$netscape_classpath
+NETSCAPE_CLASS_DIR=$netscape_class_dir
 
-    $tmp = $self->export_list;
-    push( @m,
-qq{
-EXPORT_LIST = $tmp
-});
-
-    return(join('',@m));
+JFLAGS=-classpath .:\$(NETSCAPE_CLASSPATH)
+};
+	} else {
+	    $constants .= qq{
+JFLAGS=-classpath .
+};
+	}
+    }
+    return "$constants";
 }
 
-
-## Override ExtUtils::MM_Unix::xs_c, since we don't need to install any 
-## Perl modules here.
-sub MY::xs_c {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::xs_o, since we don't need to install any 
-## Perl modules here.
-sub MY::xs_o {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::dynamic, since we don't need to install any 
-## Perl modules here.
-sub MY::dynamic {
-    return("");
-}
-
-
-## Override ExtUtils::MM_Unix::dynamic_bs, since we don't need to install any 
-## Perl modules here.
-sub MY::dynamic_bs {
-    return("");
-}
-
-## Override ExtUtils::MM_Unix::dynamic_lib, since we don't need to install any 
-## Perl modules here.
-sub MY::dynamic_lib {
-    return("");
-}
-
-## Override and customize ExtUtils::MM_Unix::top_targets:
-sub MY::top_targets {
-    my $top_targets = "";
-    if ($VRML_CONFIG{JAVA_INST} && $VRML_CONFIG{NETSCAPE_INST}) {
-        $top_targets =
-q{
-vpath %.java vrml/*
-
-all: pure_all
-
-pure_all: $(JAR_FILE)
-
+## The non perl specific make rules
+sub MY::postamble {
+    q{
 %.class: %.java
 	$(JAVAC) $(JFLAGS) $<
 
-$(JAR_FILE): $(CLASSES)
-	$(JAR) cf $(JAR_FILE) `find vrml -name \*.class`
+vrml.jar: $(CLASSES)
+	$(JAR) cf $@ `find vrml -name \*.class`
 
-install: install_jar
-
-install_jar: $(JAR_FILE)
+install ::
 	cp $(JAR_FILE) $(NETSCAPE_CLASS_DIR)
+};
 }
-    }
-    return($top_targets);
-}
-
-## Override and customize ExtUtils::MM_Unix::test - we have no tests, so
-## don't bother looking for them.
-sub MY::test {
-# --- Test and Installation Sections ---
-
-    my($self, %attribs) = @_;
-    my(@m);
-    push(@m,
-	qq{test ::},
-	qq{\t$self->{NOECHO}echo 'No tests defined for \$(NAME) extension.'\n}
-    );
-
-    return(join("\n", @m));
-}
-
-## The ExtUtils::MM_Unix dist methods have not been touched.
-## Would it be useful to customize them???
 
 ## Helper subs:
 sub findFiles {

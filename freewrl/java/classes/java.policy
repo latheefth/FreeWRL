@@ -1,6 +1,6 @@
 // Grant all permissions to jar file containing our EAI classes:
-grant codeBase "file:vrml.jar" {
-	permission java.security.RuntimePermission "createClassLoader";
+grant codeBase "file:${freewrl.lib.dir}/vrml.jar" {
+	permission java.security.AllPermission;
 };
 
 
