@@ -60,6 +60,7 @@ unsigned  _fw_instance=0;
 void displayThread();
 void catch_SIGQUIT();
 void catch_SIGSEGV();
+void catch_SIGALRM(int);
 
 int main (int argc, char **argv) {
 	int retval;
@@ -88,6 +89,7 @@ int main (int argc, char **argv) {
 	/* install the signal handler for SIGQUIT */
 	signal (SIGQUIT, catch_SIGQUIT);
 	signal (SIGSEGV, catch_SIGSEGV);
+	signal (SIGALRM,catch_SIGALRM);
 
 	/* parse command line arguments */
 	/* JAS - for last parameter of long_options entries, choose
@@ -329,11 +331,23 @@ void displayThread() {
 
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */
 void catch_SIGQUIT() {
-	doQuit();
+    doQuit();
 }
 
 void catch_SIGSEGV() {
-	        fflush(NULL);
+    fflush(NULL);
+}
+
+void catch_SIGALRM(int sig)
+{
+    signal(SIGALRM, SIG_IGN);
+    
+    /* stuffs to do on alarm */
+    fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n");
+    /* end of alarm actions */
+    
+    alarm(0);
+    signal(SIGALRM, catch_SIGALRM);
 }
 
 /* funnel all print statements through here - this allows us to
