@@ -11,8 +11,8 @@
 
 '
 	struct VRML_PolyRep *rep_ = this_->_intern;
-        float spacing = 1.0;
-        float size = 1.0;
+        double spacing = 1.0;
+        double size = 1.0;
 	unsigned int fsparams = 0;
 
 	/* for shape display list redrawing */
@@ -130,7 +130,7 @@
 	//printf ("Text, calling FW_rendertext\n");
 
 	/* call render text - NULL means get the text from the string */
-	FW_rendertext ($f_n(string),$f(string),NULL, $f_n(length),$f(length),
+	FW_rendertext ($f_n(string),$f(string),NULL, $f_n(length),(double *) $f(length),
 			$f(maxExtent),spacing,size,fsparams,rep_);
 
 	//printf ("Text, tris = %d\n",rep_->ntri);
