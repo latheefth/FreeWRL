@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.17  2000/11/16 18:45:05  crc_canada
+# Bug in do_textures; was not setting GL_CLAMP correctly, boolean test added
+#
 # Revision 1.16  2000/11/15 18:25:28  crc_canada
 # Changed texture quality to give us good quality when gluScaleTexture is called.
 #
@@ -681,13 +684,13 @@ IndexedFaceSet => '
 						rep_->norindex[triind*3+2] = triind;
 					}
                                         if(tcin && ntexCoords) {
-printf("tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords);
+/* printf("tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords); */
                                                 /* TODO: This mode is still a little obscur to me ... ? */
                                                 tcindex[triind*3+0] = inittcind;
                                                 tcindex[triind*3+1] = lasttcind;
                                                 tcindex[triind*3+2] = $f(texCoordIndex,i);
                                         } else if (!tcin && ntexCoords) {
-printf("! tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords);
+/* printf("! tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords); */
                                                 /* Use coord index */
                                                 tcindex[triind*3+0] = cindex[triind*3+0];
                                                 tcindex[triind*3+1] = cindex[triind*3+1];
@@ -972,9 +975,10 @@ static struct VRML_Virt virt_${n} = { ".
 
 				printf ("repeatS = %s   repeatT = %s\\n", \$f(repeatS$1) ? 
 				"GL_REPEAT" : "GL_CLAMP", \$f(repeatT$1) ? "GL_REPEAT" : "GL_CLAMP" );
-printf ("binding to texture %d\n",this_->_texture);
                         	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr, \$f(repeatS$1));
+				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
+					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
+					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP);
 
 				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
 				this_->_dlchange = this_->_change;
@@ -1001,7 +1005,9 @@ printf ("binding to texture %d\n",this_->_texture);
 				"GL_REPEAT" : "GL_CLAMP", \$f(repeatT$1) ? "GL_REPEAT" : "GL_CLAMP" );
 	
         	                glBindTexture (GL_TEXTURE_2D, this_->_texture);
-				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr, \$f(repeatS$1));
+				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
+					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
+					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP);
 				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
 				this_->_dlchange = this_->_change;
 			} else {
@@ -1977,26 +1983,21 @@ void remove_parent(void *node_, void *parent_) {
  * General Texture objects
  */
 
-void do_texture(depth,x,y,ptr,gl_rep_or_clamp)
+void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp)
 	int x,y,depth;
-	GLint gl_rep_or_clamp;
+	GLint Sgl_rep_or_clamp;
+	GLint Tgl_rep_or_clamp;
 	unsigned char *ptr;
 {
 
 	int rx,ry,sx,sy;
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-	/* if we have to scale, scale well.
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	*/
-
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_rep_or_clamp);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_rep_or_clamp);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Sgl_rep_or_clamp);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Tgl_rep_or_clamp);
 
 	if((depth) && (x) && (y)) {
 		unsigned char *dest = ptr;
@@ -2008,7 +2009,7 @@ void do_texture(depth,x,y,ptr,gl_rep_or_clamp)
 		if(ry/2 == (y)) {ry /= 2;}
 		if(rx != (x) || ry != (y)) {
 			/* We have to scale */
-printf ("scaling from rx %d ry %d to x %d y %d\n",rx,ry,x,y);
+			/* printf ("scaling from rx %d ry %d to x %d y %d\n",x,y,rx,ry); */
 			dest = malloc((depth) * rx * ry);
 			gluScaleImage(
 			     ((depth)==1 ? GL_LUMINANCE : 
