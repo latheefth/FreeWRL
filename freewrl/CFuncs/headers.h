@@ -555,5 +555,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 int ConsoleMessage(char *fmt, ...);
 void outOfMemory(char *message);
+void initializeScript(int num,int evIn);
+
 
 #endif /* __HEADERS_H__ */
