@@ -6,11 +6,6 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
-# Default is exposedfield - third argument says what it is if otherwise:
-# 0 = non-exposed field,
-# in = eventIn
-# out = eventOut
-#
 # The event subs:
 #  Initialize($node,$fields,$time,$scene): called when node created in world
 #  EventsProcessed($node,$fields,$time): called when events have been received
@@ -657,16 +652,10 @@ NO_TEXTURE:
 my $protono;
 
 {
-    my %MAP = (
-			   "" => "field",
-			   "in" => "eventIn",
-			   "out" => "eventOut"
-			  );
-
     # XXX When this changes, change Scene.pm: VRML::Scene::newp too --
     # the members must correspond.
     sub new {
-		my($type,$name,$fields,$eventsubs) = @_;
+		my($type, $name, $fields, $eventsubs) = @_;
 		my $this = bless {
 						  Name => $name,
 						  Actions => $eventsubs,
@@ -682,26 +671,21 @@ my $protono;
 		for (keys %$fields) {
 			$this->{Defaults}{$_} = $fields->{$_}[1];
 			$this->{FieldTypes}{$_} = $fields->{$_}[0];
-			# $this->{Fields}{$_} = "VRML::Field::$fields->{$_}[0]";
 			$t = $fields->{$_}[2];
+			if (!defined $t) {
+				die("Missing field or event type for $_ in $name");
+			}
 
 			if ($t =~ /in$/i) {
 				$this->{EventIns}{$_} = $_;
 			} elsif ($t =~ /out$/i) {
 				$this->{EventOuts}{$_} = $_;
-			} elsif ($t =~ /^exposed/ or !defined $t or $t eq "") {
+			} elsif ($t =~ /^exposed/) {
 				$this->{EventOuts}{$_} = $_; ## ???
 				$this->{EventOuts}{$_."_changed"} = $_;
 				$this->{EventIns}{$_} = $_; ## ???
 				$this->{EventIns}{"set_".$_} = $_;
 			}
-
-			if (!defined $t) {
-				$t = exposedField;
-			} else {
-				$t = ($MAP{$t} or $t);
-			}
-
 			$this->{FieldKinds}{$_} = $t;
 		}
 		return $this;
@@ -755,13 +739,13 @@ my $protono;
 	# Internal structures, to store def and use in the right way
 	DEF =>
 	new VRML::NodeType("DEF",
-					   { node => [SFNode, NULL] },
+					   { node => [SFNode, NULL, exposedField] },
 					   id => [SFString, ""]
 					  ),
 
 	USE =>
 	new VRML::NodeType("USE",
-					   { node => [SFNode, NULL] },
+					   { node => [SFNode, NULL, exposedField] },
 					   id => [SFString, ""]
 					  ),
 
@@ -806,11 +790,11 @@ my $protono;
 						# VRML repeatT field
 						repeatT => [SFBool, 1, field],
 						# where on the local file system texture resides
-						__locfile => [SFString, "", "field"],
+						__locfile => [SFString, "", field],
 						# OpenGL texture number
-						__texture => [SFInt32, 0,"field"],
+						__texture => [SFInt32, 0, field],
 						# if we have to remove this after processing
-						__istemporary =>[SFInt32, 0, "field"]
+						__istemporary =>[SFInt32, 0, field]
 					   },
 					   {
 						Initialize => sub {
@@ -832,17 +816,17 @@ my $protono;
 						repeatS => [SFBool, 1, field],
 						repeatT => [SFBool, 1, field],
 						# OpenGL texture number
-						__texture => [SFInt32, 0, "field"],
+						__texture => [SFInt32, 0, field],
 						# depth, from PixelTexture
-						__depth => [SFInt32, 1, "field"],
+						__depth => [SFInt32, 1, field],
 						# if we have to remove the data file after processing
-						__istemporary =>[SFInt32, 0, "field"],
+						__istemporary =>[SFInt32, 0, field],
 						# x size, from PixelTexture
-						__x => [SFInt32, 0, "field"],
+						__x => [SFInt32, 0, field],
 						# y size, from PixelTexture
-						__y => [SFInt32, 0, "field"],
+						__y => [SFInt32, 0, field],
 						# the name that the PixelTexture data (ascii) is
-						__locfile => [SFString, "", "field"]
+						__locfile => [SFString, "", field]
 						# stored in to allow C functions to parse it.
 					   },
 					   {
@@ -867,21 +851,21 @@ my $protono;
 						 repeatT => [SFBool, 1, field],
 						 duration_changed => [SFTime, -1, eventOut],
 						 isActive => [SFBool, 0, eventOut],
-						 __locfile => [MFString, [], "field"],
+						 __locfile => [MFString, [], field],
 						 # initial texture number
-						 __texture0_ => [SFInt32, 0, "field"],
+						 __texture0_ => [SFInt32, 0, field],
 						 # last texture number
-						 __texture1_ => [SFInt32, 0, "field"],
+						 __texture1_ => [SFInt32, 0, field],
 						 # which texture number is used
-						 __ctex => [SFInt32, 0, "field"],
+						 __ctex => [SFInt32, 0, field],
 						 # time that we were initialized at
-						 __inittime => [SFInt32, 0, "field"],
+						 __inittime => [SFInt32, 0, field],
 						 # internal sequence number
-						 __sourceNumber => [SFInt32, 0, "field"],
+						 __sourceNumber => [SFInt32, 0, field],
 						 # local name, as received on system
-						 __localFileName => [SFString, ""], ##field???
+						 __localFileName => [SFString, "", exposedField],
 						 # 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
-						 __type => [SFInt32, 0]
+						 __type => [SFInt32, 0, exposedField]
 						},
 						@x = {
 							  Initialize => sub {
@@ -1083,7 +1067,7 @@ my $protono;
 						 fontStyle => [SFNode, NULL, exposedField],
 						 length => [MFFloat, [], exposedField],
 						 maxExtent => [SFFloat, 0, exposedField],
-						 __rendersub => [SFInt32, 0] # Function ptr hack
+						 __rendersub => [SFInt32, 0, exposedField] # Function ptr hack
 						}
 					   ),
 
@@ -1115,16 +1099,16 @@ my $protono;
 						isActive => [SFBool, 0, eventOut],
 
 						# internal sequence number
-						__sourceNumber => [SFInt32, 0, "field"],
+						__sourceNumber => [SFInt32, 0, field],
 						# local name, as received on system
-						__localFileName => [SFString, ""], ##field???
+						__localFileName => [SFString, "", exposedField],
 						# time that we were initialized at
-						__inittime => [SFInt32, 0, "field"],
+						__inittime => [SFInt32, 0, field],
 						# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
-						__type => [SFInt32, 1],
+						__type => [SFInt32, 1, exposedField],
 						# duration assuming pitch=1 - note, its a string
 						# that contains a floating point value.
-						__duration =>[SFString, "-1"]
+						__duration =>[SFString, "-1", exposedField]
 					   },
 					   @x = {
 							Initialize => sub {
@@ -1705,9 +1689,9 @@ my $protono;
 						isActive => [SFBool, 0, eventOut],
 						time => [SFTime, -1, eventOut],
 						# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
-						__type => [SFInt32, 2],
+						__type => [SFInt32, 2, exposedField],
 						# cycleTimer flag.
-						__ctflag =>[SFTime, 0]
+						__ctflag =>[SFTime, 0, exposedField]
 					   },
 					   {
 						Initialize => sub {
@@ -2053,9 +2037,9 @@ my $protono;
 						enterTime => [SFTime, -1, eventOut],
 						exitTime => [SFTime, -1, eventOut],
 						# These fields are used for the info.
-						__hit => [SFInt32, 0],
-						__t1 => [SFVec3f, [10000000, 0, 0]],
-						__t2 => [SFRotation, [0, 1, 0, 0]]
+						__hit => [SFInt32, 0, exposedField],
+						__t1 => [SFVec3f, [10000000, 0, 0], exposedField],
+						__t2 => [SFRotation, [0, 1, 0, 0], exposedField]
 					   },
 					   {
 						ClockTick => sub {
@@ -2140,7 +2124,7 @@ my $protono;
 						on => [SFBool, 1, exposedField],
 						radius => [SFFloat, 100.0, exposedField],
 						##not in the spec
-						direction => [SFVec3f, [0, 0, -1.0]]
+						direction => [SFVec3f, [0, 0, -1.0], exposedField]
 					   }
 					  ),
 
@@ -2184,11 +2168,11 @@ my $protono;
 						(map {(
 							   $_.Url => [MFString, [], exposedField],
 							   # local or temp file name
-							   __locfile.$_ => [SFString, ""], ##field???
+							   __locfile.$_ => [SFString, "", exposedField],
 							   # OpenGL texture number
-							   __texture.$_ => [SFInt32, 0],
+							   __texture.$_ => [SFInt32, 0, exposedField],
 							   # is this a temp file?
-							   __istemporary.$_ => [SFInt32, 0]
+							   __istemporary.$_ => [SFInt32, 0, exposedField]
 							  )} qw/back front top bottom left right/),
 						# AK - not in spec #bindTime => [SFTime, undef, eventOut]
 					   },
@@ -2500,7 +2484,7 @@ my $protono;
 						# return info for collisions
 						# bit 0 : collision or not
 						# bit 1: changed from previous of not
-						__hit => [SFInt32, 0]
+						__hit => [SFInt32, 0, exposedField]
 					   },
 					   {
 						addChildren => sub {
