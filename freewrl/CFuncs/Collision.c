@@ -46,6 +46,34 @@ double closest_point_of_segment_to_y_axis(struct pt p1, struct pt p2) {
 }
 
 
+double closest_point_of_segment_to_origin(struct pt p1, struct pt p2) {
+    /*the equation (guessed from above)*/
+    double x12 = (p1.x - p2.x);
+    double y12 = (p1.y - p2.y);
+    double z12 = (p1.z - p2.z);
+    double q = ( x12*x12 + y12*y12 + z12*z12 );
+    double i = ((q == 0.) ? 0.5 : (p1.x * x12 + p1.y * y12 + p1.z * z12) / q);
+    struct pt result;
+
+     /*clamp result to constraints */
+    if(i < 0) i = 0.;
+    if(i > 1) i = 1.;
+     
+    return i;
+     
+}
+
+/*n must be normal */
+struct pt closest_point_of_plane_to_origin(struct pt b, struct pt n) {
+    /*the equation*/
+    double k = b.x*n.x + b.y*n.y + b.z*n.z;
+
+    vecscale(&n,&n,k);
+
+    return n;
+}
+
+
 /* [p1,p2[ is segment,  q1,q2 defines line */
 /* ignores y coord. eg intersection is done on projection of segment and line on the y plane */
 /* nowtice point p2 is NOT included, (for simplification elsewhere) */
@@ -87,7 +115,7 @@ int getk_intersect_line_with_ycylinder(double* k1, double* k2, double r, struct 
     double b,a,sqrdelta,delta;
     int res = 0;
 
-    /*solves (pp1+ k n) . (pp1 + k n) = r^2 */
+    /*solves (pp1+ k n) . (pp1 + k n) = r^2 , ignoring y values.*/
     a = 2*(n.x*n.x + n.z*n.z);
     b = -2*(pp1.x*n.x + pp1.z*n.z);
     delta = (4*((pp1.x*n.x + pp1.z*n.z)*(pp1.x*n.x + pp1.z*n.z)) - 
@@ -111,6 +139,46 @@ int project_on_cylindersurface(struct pt* res, struct pt p, struct pt n,double r
     double k1,k2;
     vecscale(&n,&n,-1);
     switch(getk_intersect_line_with_ycylinder(&k1,&k2,r,p,n)) {
+    case 0:
+	return 0;
+    case 1:
+    case 2:
+	vecscale(res,&n,k1);
+	VECADD(*res,p);
+	return 1;
+    }
+    return 0;
+}
+
+/*finds the intersection of the line pp1 + k n with a sphere.
+  returns the 0,1 or 2 values.
+ */
+int getk_intersect_line_with_sphere(double* k1, double* k2, double r, struct pt pp1, struct pt n) {
+    double b,a,sqrdelta,delta;
+    int res = 0;
+
+    /*solves (pp1+ k n) . (pp1 + k n) = r^2 */
+    a = 2*(n.x*n.x + n.y*n.y + n.z*n.z);
+    b = -2*(pp1.x*n.x + pp1.y*n.y + pp1.z*n.z);
+    delta = (4*((pp1.x*n.x + pp1.y*n.y + pp1.z*n.z)*(pp1.x*n.x + pp1.y*n.y + pp1.z*n.z)) - 
+	     4*((n.x*n.x + n.y*n.y + n.z*n.z))*((pp1.x*pp1.x + pp1.y*pp1.y + pp1.z*pp1.z - r*r)));
+    if(delta < 0.) return 0;
+    sqrdelta = sqrt(delta);
+
+    *k1 = (b+sqrdelta)/a;
+    if(sqrdelta == 0.) return 1;
+
+    *k2 = (b-sqrdelta)/a;
+    return 2;
+}
+
+/*projects a point on the surface of the sphere, in the inverse direction of n. 
+  returns TRUE if exists.
+   */
+int project_on_spheresurface(struct pt* res, struct pt p, struct pt n,double r) {
+    double k1,k2;
+    vecscale(&n,&n,-1);
+    switch(getk_intersect_line_with_sphere(&k1,&k2,r,p,n)) {
     case 0:
 	return 0;
     case 1:
@@ -148,6 +216,59 @@ struct pt project_on_cylindersurface_plane(struct pt p, struct pt n,double r) {
 
     return ret;
 }
+
+/*makes half-plane starting at point, perpendicular to plane (eg: passing through origin)
+  if this plane cuts through polygon edges an odd number of time, we are inside polygon*/
+/* works for line passing through origin, polygon plane must not pass through origin. */
+int perpendicular_line_passing_inside_poly(struct pt a,struct pt* p, int num) {
+    struct pt n;  /*half-plane will be defined as: */
+    struct pt i;  /* p(x,y) = xn + yi, with i >= 0 */
+    struct pt j;  /*  j is half-plane normal */
+    int f,sectcount = 0;
+    struct pt epsilon; /* computationnal trick to handle points directly on plane. displace them. */
+    if(vecnormal(&n,&a) == 0) {
+	//happens when polygon plane passes through origin
+	return 0;
+    }
+    make_orthogonal_vector_space(&i,&j,n);
+
+    vecscale(&epsilon,&j,FLOAT_TOLERANCE); /*make our epsilon*/
+
+//    printf("n(%f,%f,%f), i(%f,%f,%f), j(%f,%f,%f)\n",n,i,j);
+//    printf("a(%f,%f,%f)\n",a);
+//    printf("p[(%f,%f,%f),(%f,%f,%f),(%f,%f,%f)]\n",p[0],p[1],p[2]);
+
+    for(f = 0; f < num; f++) {
+	/*segment points relative to point a */
+	struct pt p1,p2;
+	double p1j,p2j;
+	VECDIFF(p[f],a,p1);
+	VECDIFF(p[(f+1)%num],a,p2);
+	while((p1j = vecdot(&p1,&j)) == 0.) VECADD(p1,epsilon);
+	while((p2j = vecdot(&p2,&j)) == 0.) VECADD(p2,epsilon);
+
+	/*see if segment crosses plane*/
+	if(p1j * p2j <= 0 /*if signs differ*/) {
+	    double k;
+	    struct pt p0;
+//	    printf("segment corsses plane : (p1j,p2j) = (%f,%f)\n",p1j,p2j);
+	    /* solves (k p1 + (1 - k)p2).j  = 0 */
+	    k = (p1j-p2j != 0) ? (p1j/ (p1j - p2j)) : 0.;
+	    
+	    /*see if point on segment that is on the plane (p0), is also on the half-plane */
+	    p0 = weighted_sum(p1, p2, k);
+	    if(vecdot(&p0,&i) >= 0) 
+		sectcount++;
+//	    printf("vecdot(&p0,&i) = %f\n",vecdot(&p0,&i));
+	}
+//	printf("p1j = %f, p2j = %f\n",p1j,p2j);
+    }
+
+//    printf("sectcount = %d\n",sectcount);
+    return sectcount % 2;
+    
+}
+
 
 /*finds the intersection of the segment(pp1,pp2) with a cylinder on the y axis.
   returns the 0,1 or 2 values in the range [0..1]
@@ -478,6 +599,151 @@ struct pt get_poly_disp(double y1, double y2, double ystep, double r, struct pt*
 	return get_poly_normal_disp(y1,y2,r,p,num,n);
 }
 
+/*feed a poly, and radius of a sphere, it returns the displacement in the direction of the
+  normal of the poly that is needed for them not to intersect any more.*/
+struct pt get_poly_normal_disp_with_sphere(double r, struct pt* p, int num, struct pt n) {
+    int i;
+    double polydisp;
+    struct pt result;
+
+    double get_poly_mindisp;
+    struct pt* clippedpoly;
+    int clippedpolynum = 0;
+    static const struct pt zero = {0,0,0};
+
+    get_poly_mindisp = 1E90;
+    
+    /*allocate data */
+    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num + 1));
+
+    /*if normal not specified, calculate it */
+    if(n.x == 0 && n.y == 0 && n.z == 0) {
+	polynormal(&n,&p[0],&p[1],&p[2]);
+    }
+
+    for(i = 0; i < num; i++) {
+	if( project_on_spheresurface(&clippedpoly[clippedpolynum],weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num])),n,r) )
+	{
+	    DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedpolynum);
+	    clippedpolynum++;
+	}
+    }
+
+    /*find closest point of polygon plane*/
+    clippedpoly[clippedpolynum] = closest_point_of_plane_to_origin(p[0],n);
+
+    /*keep if inside*/
+    if(perpendicular_line_passing_inside_poly(clippedpoly[clippedpolynum],p, num)) {
+	/*good, project it on surface*/
+	
+	vecscale(&clippedpoly[clippedpolynum],&clippedpoly[clippedpolynum],r/veclength(clippedpoly[clippedpolynum]));
+	
+	DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedpolynum);
+	clippedpolynum++;
+    }
+
+
+#ifdef DEBUGPTS
+    for(i=0; i < clippedpolynum; i++) {
+	debugpts.push_back(clippedpoly[i]);
+    }
+#endif
+
+    /*here we find mimimum displacement possible */
+    polydisp = vecdot(&p[0],&n);
+
+    /*calculate farthest point from the "n" plane passing through the origin */
+    for(i = 0; i < clippedpolynum; i++) {
+	double disp = vecdot(&clippedpoly[i],&n) - polydisp;
+	if(disp < get_poly_mindisp) {
+	    get_poly_mindisp = disp;
+	}	
+    }
+    if(get_poly_mindisp <= 0.) {
+	vecscale(&result,&n,get_poly_mindisp);
+    } else
+	result = zero;
+
+    /*free alloc'd data */
+    free(clippedpoly);
+
+    return result;
+}
+
+/*feed a poly, and radius of a sphere, it returns the minimum displacement and 
+  the direction  that is needed for them not to intersect any more.*/
+struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct pt n) {
+    int i;
+    double polydisp;
+    struct pt result;
+
+    double get_poly_mindisp;
+    struct pt* clippedpoly;
+    int clippedpolynum = 0;
+    static const struct pt zero = {0,0,0};
+
+    get_poly_mindisp = 1E90;
+    
+#ifdef DEBUGFACEMASK
+    if(facemask != debugsurface++) 
+	return zero;
+#endif
+    /*allocate data */
+    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num + 1));
+
+    /*if normal not specified, calculate it */
+    if(n.x == 0 && n.y == 0 && n.z == 0) {
+	polynormal(&n,&p[0],&p[1],&p[2]);
+    }
+
+    for(i = 0; i < num; i++) {
+	DEBUGPTSPRINT("intersect_closestpolypoints_on_surface[%d]= %d\n",i,clippedpolynum);
+	clippedpoly[clippedpolynum++] = weighted_sum(p[i],p[(i+1)%num],closest_point_of_segment_to_origin(p[i],p[(i+1)%num]));
+    }
+
+    /*find closest point of polygon plane*/
+    clippedpoly[clippedpolynum] = closest_point_of_plane_to_origin(p[0],n);
+
+    /*keep if inside*/
+    if(perpendicular_line_passing_inside_poly(clippedpoly[clippedpolynum],p, num)) {
+	DEBUGPTSPRINT("perpendicular_line_passing_inside_poly[%d]= %d\n",0,clippedpolynum);
+	clippedpolynum++;
+	}
+
+
+#ifdef DEBUGPTS
+    for(i=0; i < clippedpolynum; i++) {
+	debugpts.push_back(clippedpoly[i]);
+    }
+#endif
+
+    /*here we find mimimum displacement possible */
+
+    /*calculate the closest point to origin */
+    for(i = 0; i < clippedpolynum; i++) {
+	double disp = vecdot(&clippedpoly[i],&clippedpoly[i]);
+	if(disp < get_poly_mindisp) {
+	    get_poly_mindisp = disp;
+	    result = clippedpoly[i];
+	}	
+    }
+    if(get_poly_mindisp <= r*r) {
+	// scale result to length of missing distance.
+	double rl;
+	rl = veclength(result);
+	if(rl != 0.)
+	    vecscale(&result,&result,(r-sqrt(get_poly_mindisp)) / rl);	
+	else
+	    result = zero;
+    }
+    else
+	result = zero;
+
+    /*free alloc'd data */
+    free(clippedpoly);
+
+    return result;
+}
 
 
 
@@ -997,8 +1263,11 @@ struct pt cylinder_disp(double y1, double y2, double ystep, double r, struct pt 
 
 struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct VRML_PolyRep* pr, struct pt* n, /*struct pt inv,*/ struct pt dispsum, prflags flags) {
     struct pt p[3];
-    double mindisp = 1E99;
-    struct pt mindispv = {0,0,0};
+    double maxdisp = 0;
+    double minangle = 2 * M_PI;
+    double angle;	
+    struct pt meanpt;
+    struct pt maxdispv = {0,0,0};
     double disp;
     struct pt dispv;
     static int recursion_count = 0;
@@ -1026,6 +1295,9 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 	    || ( (flags & PR_DOUBLESIDED)  && !(flags & (PR_FRONTFACING | PR_BACKFACING) )  )
 	    || (frontfacing && (flags & PR_FRONTFACING))
 	    || (!frontfacing && (flags & PR_BACKFACING))  ) {
+
+	    struct pt nused;
+
 	    p[1].x = pr->coord[pr->cindex[i*3+1]*3]    +dispsum.x;
 	    p[1].y = pr->coord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
 	    p[1].z = pr->coord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
@@ -1035,18 +1307,31 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 	    
 //	    printf("frontfacing : %d\n",frontfacing);
 	    if(frontfacing) {
-		dispv = get_poly_disp(y1,y2,ystep,r, p, 3, n[i]);
+		nused = n[i];
 	    } else { /*can only be true in DoubleSided mode*/
-		struct pt ninv;
 		/*reverse polygon orientation, and do calculations*/
-		vecscale(&ninv,&n[i],-1);
-		dispv = get_poly_disp(y1,y2,ystep,r, p, 3, ninv);
+		vecscale(&nused,&n[i],-1);
 	    }
-	    disp = -get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
+	    dispv = get_poly_min_disp_with_sphere(r, p, 3, nused);
+	    disp = vecdot(&dispv,&dispv);
+	    if(dispv.x == 0. && dispv.y == 0. && dispv.z == 0. && !(flags & PR_NOSTEPING)) { /*stepping allowed*/
+		dispv = get_poly_step_disp(y1,ystep,r,p,3,nused);
+		disp = -get_poly_mindisp;
+	    } else {
+		if(!(flags & PR_NOSTEPING)) {
+		    /*first mention of collision with main sphere. ignore previous stepping (if any), 
+		      and start sphere displacements only */
+		    maxdisp = 0;
+		    flags = flags | PR_NOSTEPING;
+		    maxdispv = dispv;
+		}
+	    }
 
 #ifdef DEBUGPTS
-	    printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
+	    if(dispv.x != 0 || dispv.y != 0 || dispv.z != 0) 
+		printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
 #endif
+    
     
 	    /*keep result only if:
 	      displacement is positive
@@ -1058,9 +1343,9 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 		needs refinement. will give headaches.----
 
 		vecadd(&tmpsum,&dispsum,&dispv);*/
-	    if((disp > FLOAT_TOLERANCE) && (disp < mindisp)/* && (vecdot(vecdiff(&tmpv,&inv,&tmpsum),&tmpsum) >= 0)*/) {
-		mindisp = disp;
-		mindispv = dispv;
+	    if((disp > FLOAT_TOLERANCE) && (disp > maxdisp)/* && (vecdot(vecdiff(&tmpv,&inv,&tmpsum),&tmpsum) >= 0)*/) {
+		maxdisp = disp;
+		maxdispv = dispv;
 		nextrec = 1;
 		minisfrontfacing = frontfacing;
 	    }
@@ -1068,25 +1353,18 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 	
     }
 #ifdef DEBUGPTS
-    printf("adding correction: (%f,%f,%f) |%f|\n",mindispv.x,mindispv.y,mindispv.z,mindisp);
+//    printf("adding correction: (%f,%f,%f) |%f|\n",mindispv.x,mindispv.y,mindispv.z,mindisp);
 #endif
-    VECADD(dispsum,mindispv);
-    if(nextrec && mindisp > FLOAT_TOLERANCE && recursion_count++ < MAX_POLYREP_DISP_RECURSION_COUNT) {
+    VECADD(dispsum,maxdispv);
+    if(nextrec && maxdisp > FLOAT_TOLERANCE && recursion_count++ < MAX_POLYREP_DISP_RECURSION_COUNT) {
 	/*jugement has been rendered on the first pass, wether we should be on the 
 	  front side of the surface, or the back side of the surface.
 	  setting the PR_xFACING flag enforces the decision, for following passes */
 	if(recursion_count ==1) {
 	    if(minisfrontfacing /*!(flags & (PR_FRONTFACING | PR_BACKFACING))*/) 
-	    {
 		flags = flags | PR_FRONTFACING;
-//		printf("FRONTFACING %d\n",recursion_count);
-		
-	    }
 	    else 
-	    {
 		flags = flags | PR_BACKFACING;
-//		printf("BACKFACING %d\n",recursion_count);
-	    }
 	}
 
 	return polyrep_disp_rec(y1, y2, ystep, r, pr, n, dispsum, flags);
@@ -1102,21 +1380,27 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 }
 
 
-#ifndef DEBUGPTS
-void printpolyrep(struct VRML_PolyRep pr, int npoints) {
+//#ifdef DEBUGPTS
+void printpolyrep(struct VRML_PolyRep pr) {
     int i;
+    int npoints = 0;
     printf("VRML_PolyRep makepolyrep() {\n");
-    printf("static int cindex[%d];\nstatic float coord[%d];\n",pr.ntri*3,npoints*3);
     printf(" int cindext[%d] = {",pr.ntri*3);
-    for(i=0; i < pr.ntri*3-1; i++)
+    for(i=0; i < pr.ntri*3-1; i++) {
 	printf("%d,",pr.cindex[i]);
+	if(pr.cindex[i] > npoints)
+	    npoints = pr.cindex[i];
+    }
     printf("%d};\n",pr.cindex[i]);
+    if(pr.cindex[i] > npoints)
+	npoints = pr.cindex[i];
 
     printf(" float coordt[%d] = {",npoints*3);
     for(i=0; i < npoints*3-1; i++)
 	printf("%f,",pr.coord[i]);
     printf("%f};\n",pr.coord[i]);
     
+    printf("static int cindex[%d];\nstatic float coord[%d];\n",pr.ntri*3,npoints*3);
     printf("VRML_PolyRep pr = {0,%d,%d,cindex,coord,NULL,NULL,NULL,NULL,NULL,NULL};\n",pr.ntri,pr.alloc_tri);
     printf("memcpy(cindex,cindext,sizeof(cindex));\n");
     printf("memcpy(coord,coordt,sizeof(coord));\n");
@@ -1133,7 +1417,7 @@ void printmatrix(GLdouble* mat) {
     printf("}\n");
 
 }
-#endif
+//#endif
 
 
 
@@ -1157,10 +1441,9 @@ struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML
 	polynormalf(&normals[i],&pr.coord[pr.cindex[i*3]*3],&pr.coord[pr.cindex[i*3+1]*3],&pr.coord[pr.cindex[i*3+2]*3]);
     }
     
-    
     res = polyrep_disp_rec(y1,y2,ystep,r,&pr,normals,res,flags);
 
-    
+
     /*free! */
     free(newc);
     free(normals);

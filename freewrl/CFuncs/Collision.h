@@ -17,6 +17,7 @@ typedef int prflags;
 #define PR_DOUBLESIDED 0x01
 #define PR_FRONTFACING 0x02 //overrides effect of doublesided.
 #define PR_BACKFACING 0x04 //overrides effect of doublesided, all normals are reversed.
+#define PR_NOSTEPING 0x08 //ignores stepping. used internally
 
 
 /*accumulator function, for displacements. */
@@ -68,6 +69,13 @@ struct pt get_poly_step_disp(double y1, double y2, double r, struct pt* p, int n
 /*feed a poly, and stats of a cylinder, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more, or vertically if contact point below ystep*/
 struct pt get_poly_disp(double y1, double y2, double ystep, double r, struct pt* p, int num, struct pt n);
+
+/*feed a poly, and radius of a sphere, it returns the displacement in the direction of the
+  normal of the poly that is needed for them not to intersect any more.*/
+struct pt get_poly_normal_disp_with_sphere(double r, struct pt* p, int num, struct pt n);
+/*feed a poly, and radius of a sphere, it returns the minimum displacement and 
+  the direction  that is needed for them not to intersect any more.*/
+struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct pt n);
 
 /*feed a box (a corner, and the three vertice sides) and the stats of a cylinder, it returns the
   displacement of the box that is needed for them not to intersect any more. */

@@ -5,6 +5,11 @@
 # for conditions of use and redistribution.
 
 # IndexedFaceSet test
+NavigationInfo {
+   headlight TRUE
+   type ["WALK", "ANY"]
+   avatarSize [ 0.25,1.6,1.]
+}
 
 
 Transform {

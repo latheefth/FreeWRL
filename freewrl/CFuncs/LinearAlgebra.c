@@ -197,7 +197,7 @@ void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
     // in certain distinct cases. (gives zero vectors when two axes are 0)
     // selecting the calculations according to smallest axis avoids this problem.
     // (the two remaining axis are thus far from zero, if n is normal)
-    if(n.x < n.y && n.x < n.z) { //x smallest
+    if(fabs(n.x) <= fabs(n.y) && fabs(n.x) <= fabs(n.z)) { //x smallest
 	i->x = 0;
 	i->y = n.z;
 	i->z = -n.y;
@@ -205,7 +205,7 @@ void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
 	j->x = n.y*n.y + n.z*n.z;
 	j->y = (-n.x)*n.y;
 	j->z = (-n.x)*n.z;
-    } else if(n.y < n.x && n.y < n.z) { //y smallest
+    } else if(fabs(n.y) <= fabs(n.x) && fabs(n.y) <= fabs(n.z)) { //y smallest
 	i->x = -n.z;
 	i->y = 0;
 	i->z = n.x;
