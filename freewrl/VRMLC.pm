@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.66  2002/10/16 15:35:49  crc_canada
+# More sound work...
+#
 # Revision 1.65  2002/08/14 17:43:34  ncoder
 # Stepping code
 #
@@ -1134,6 +1137,10 @@ struct VRML_Shape *last_visited_shape = 0;
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
 int last_texture_depth = 0;
+
+/* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
+   structures on these */
+int sound_from_audioclip = 0;
 
 /* and, we allow a maximum of so many pixels per texture */
 GLint global_texSize = 64;
