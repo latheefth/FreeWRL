@@ -603,7 +603,7 @@ sub set_backend_fields {
 	my $v = $this->{RFields}{$_};
 	print "SBEF: ",VRML::NodeIntern::dump_name($this)," $_ '",
 	    ("ARRAY" eq ref $v ? (join ', ', @$v) : $v), "' \n"
-		if $VRML::verbose::be && $_ ne "__data";
+		if $VRML::verbose::be;
 	
 	if ($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
 	    print "SBEF: SFNODE\n" if $VRML::verbose::be;
