@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.20  2000/12/20 17:27:52  crc_canada
+# more IndexedFaceSet work - normals this time.
+#
 # Revision 1.19  2000/12/18 21:19:59  crc_canada
 # IndexedFaceSet colorPerVertex and colorIndex now working correctly
 #
@@ -387,10 +390,6 @@ IndexedFaceSet =>  ( join '',
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
-		/*
-		colin = $f_n(colorIndex);
-		colorIndex = $f(colorIndex);
-		*/
 
 		$mk_polyrep();
 		if(!$f(solid)) {
