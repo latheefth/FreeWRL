@@ -1449,7 +1449,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		}
 
 		printf ("SFNodeGetProperty, getting the property for %s\n",ptr->handle);
-		/* doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle); */
+		doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle);
 
 		if (!JS_GetProperty(cx, globalObj, _buff, &_rval)) {
 			fprintf(stderr,
@@ -1502,7 +1502,6 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	}
 
 	if (JSVAL_IS_INT(id)) {
-		printf ("JS_IS_INT true\n");
 		ptr->touched++;
 		val_len = strlen(_val_c) + 1;
 
@@ -1551,7 +1550,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 					_buff);
 			return JS_FALSE;
 		}
-
+		doPerlCallMethodVA(brow->sv_js, "jspSFNodeSetProperty", "ss", _id_c, ptr->handle);
 		free(_buff);
 	}
 
@@ -4193,6 +4192,7 @@ MFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	if (JSVerbose && JSVAL_IS_INT(id)) {
 		_index = JSVAL_TO_INT(id);
+		printf ("MFNodeSetProperty, setting %d for obj %d\n",_index,obj);
 		if (JSVAL_IS_OBJECT(*vp)) {
 			if (!JS_ValueToObject(cx, *vp, &_obj)) {
 				fprintf(stderr,
