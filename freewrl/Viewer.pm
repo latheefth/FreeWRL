@@ -114,24 +114,12 @@ sub bind_navi_info {
 
 sub togl {
 	my($this) = @_;
-        my($x) = 0;        
-        my($angle) = 0;
-# correction for fieldofview 
-# 18.0: builtin fieldOfView of human eye 
-# 45.0: default fieldOfView of VRML97 viewpoint 
-        my($correction) = 18.0/45.0;        
-        if ($this->{buffer}==&VRML::OpenGL::GL_BACK_LEFT)
-	  {
-            $x=$this->{eyehalf};
-            $angle=$this->{eyehalfangle}*$correction;
-          }
-        elsif ($this->{buffer}==&VRML::OpenGL::GL_BACK_RIGHT) 
-          {
-            $x=-$this->{eyehalf};
-            $angle=-$this->{eyehalfangle}*$correction;
-          }                        
-	VRML::OpenGL::glTranslatef($x,0,0);
-	VRML::OpenGL::glRotatef($angle, 0,1,0);
+
+	if ($this->{buffer}!=&VRML::OpenGL::GL_BACK) {
+		VRML::VRMLFunc::set_stereo_offset ($this->{buffer},
+			$this->{eyehalf},$this->{eyehalfangle});
+	}
+
 	$this->{Quat}->togl();
 	VRML::OpenGL::glTranslatef(map {-$_} @{$this->{Pos}});
 	VRML::OpenGL::glTranslatef(@{$this->{AntiPos}});
