@@ -201,10 +201,23 @@ void normalize_vector(struct pt *vec);
 void fwnorprint (float *norm);
 
 
+void Elev_Tri (
+        int vertex_ind,
+        int this_face,
+        int A,
+        int D,
+        int E,
+        int NONORMALS,
+        struct VRML_PolyRep *this_Elev,
+        struct pt *facenormals,
+        int *pointfaces);
+
+
 /* Triangulator extern defs - look in CFuncs/Tess.c */
 extern struct VRML_PolyRep *global_tess_polyrep;
 extern GLUtriangulatorObj *global_tessobj;
 extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
 
-
+/* do we have to do textures?? */
+#define HAVETODOTEXTURES  (glIsEnabled(GL_TEXTURE_2D))
