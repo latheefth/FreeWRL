@@ -39,7 +39,7 @@
  * BASIS, AND BROWN UNIVERSITY HAS NO OBLIGATION TO PROVIDE MAINTENANCE,
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
-
+#ifndef AQUA 
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -47,10 +47,16 @@
 #include "mpeg.h"
 
 
+
+#ifdef AQUA 
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glx.h>
-
+#endif
 
 #ifndef MIPS
 #include <sys/time.h>
@@ -7508,3 +7514,4 @@ int mpg_main(init_tex, fname, repeatS, repeatT)
       fclose(mpegfile);
   return latest_texture_number;
 }
+#endif

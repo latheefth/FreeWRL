@@ -11,8 +11,11 @@
 
 
 #include <math.h>
+#ifdef AQUA 
+#include <gl.h>
+#else
 #include <GL/gl.h>
-
+#endif
 #include "Structs.h"
 
 /*Fast macros */
