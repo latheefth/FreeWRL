@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.21  2001/02/16 18:34:27  crc_canada
+# 1) Colour backgrounds now work with Nvidia cards.
+# 2) params to do_texture now correct
+#
 # Revision 1.20  2000/12/20 17:27:52  crc_canada
 # more IndexedFaceSet work - normals this time.
 #
@@ -637,9 +641,7 @@ ImageTexture => ('
 
 PixelTexture => ('
 	$start_list();
-	/* JAS - the same as tex2d $ptex2d(); */
-	$tex2d();
-
+	$ptex2d();
 	$end_list();
 '),
      
@@ -667,6 +669,7 @@ Background => '
 	int h,v;
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
 	double vatemp;		
+	GLuint mask;
 
 	/* only do background lighting, etc, once for textures */
 	extern void do_texture();
@@ -688,8 +691,14 @@ Background => '
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 
-	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
-	glShadeModel(GL_SMOOTH);
+	/* Sarah Dumoulin - problems with GEforce cards */
+        mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+        glClear(mask);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_LIGHTING);
+	/* SD. glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT); */
+	/* SD. glShadeModel(GL_SMOOTH); */
+
 	glPushMatrix();
 	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	glGetDoublev(GL_PROJECTION_MATRIX, proj);
@@ -744,35 +753,35 @@ Background => '
 			ptr = SvPV((this_->__data_front),PL_na);
 			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
                 	do_texture(this_->__depth_front, this_->__x_front,
-                       		 this_->__y_front,ptr,GL_REPEAT);
+                       		 this_->__y_front,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
 		}
 
  		if (bckptr && bcklen) {
 			ptr = SvPV((this_->__data_back),PL_na);
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
                 	do_texture(this_->__depth_back, this_->__x_back,
-                       		 this_->__y_back,ptr,GL_REPEAT);
+                       		 this_->__y_back,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
 		}
 
  		if (rtptr && rtlen) {
 			ptr = SvPV((this_->__data_right),PL_na);
 			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
                 	do_texture(this_->__depth_right, this_->__x_right,
-                       		 this_->__y_right,ptr,GL_REPEAT);
+                       		 this_->__y_right,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
 		}
 
  		if (topptr && toplen) {
 			ptr = SvPV((this_->__data_top),PL_na);
 			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
                 	do_texture(this_->__depth_top, this_->__x_top,
-                       		 this_->__y_top,ptr,GL_REPEAT);
+                       		 this_->__y_top,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
 		}
 
  		if (botptr && botlen) {
 			ptr = SvPV((this_->__data_bottom),PL_na);
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
                 	do_texture(this_->__depth_bottom, this_->__x_bottom,
-                       		 this_->__y_bottom,ptr,GL_REPEAT);
+                       		 this_->__y_bottom,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
 		}
 
 
@@ -780,7 +789,7 @@ Background => '
 			ptr = SvPV((this_->__data_left),PL_na);
 			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
                 	do_texture(this_->__depth_left, this_->__x_left,
-                       		 this_->__y_left,ptr,GL_REPEAT);
+                       		 this_->__y_left,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
 		}
 
 	}
@@ -807,6 +816,7 @@ Background => '
 			GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                		glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 		}
+                glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 
 		/* Actually, one should do it... ? */
 		glBegin(GL_TRIANGLES);
@@ -838,12 +848,14 @@ Background => '
 					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
                				glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+                                glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 				{            
 					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                 			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+                                glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}
@@ -866,6 +878,7 @@ Background => '
 				GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
                			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 			}
+                        glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 			glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 			glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 			glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
@@ -894,12 +907,14 @@ Background => '
 					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
 	                		glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 				{            
 					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                 			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+                                glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}
@@ -1083,22 +1098,13 @@ GLdouble projMatrix[16];
 		nor2.y -= 1.0;
 		/* Now, the intersection of the planes, obviously cp */
 		VECCP(nor1,nor2,ins);
+/* don't know why this is here JAS
+
 		if(APPROX(VECSQ(ins),0)) {
 			printf ("Should die here: Proximitysensor problem!\n");
-/*
-# JAS			die("Proximitysensor problem!"
-# JAS		  "dp: %f v: (%f %f %f) (%f %f %f)\n"
-# JAS		  "Nor,I (%f %f %f) (%f %f %f) (%f %f %f)\n"
-# JAS		, 
-# JAS			VECPT(dr1r2, dr2r3),
-# JAS		  	dr1r2.x,dr1r2.y,dr1r2.z,
-# JAS		  	dr2r3.x,dr2r3.y,dr2r3.z,
-# JAS		  	nor1.x,nor1.y,nor1.z,
-# JAS		  	nor2.x,nor2.y,nor2.z,
-# JAS		  	ins.x,ins.y,ins.z
-# JAS			);
-*/
 		}
+*/
+
 		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len);
 		$f(__t2,0) = ins.x;
 		$f(__t2,1) = ins.y;
