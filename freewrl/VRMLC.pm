@@ -1,4 +1,4 @@
-#
+
 # $Id$
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.29  2001/06/15 19:43:29  crc_canada
+# Alains Smooth Shading for Extrusions added.
+#
 # Revision 1.28  2001/05/16 16:00:47  crc_canada
 # check for degenerate triangles in render_ray_polyrep, and skip it if one is found.
 #
@@ -1284,6 +1287,41 @@ int nextlight() {
 	return lightcode[curlight++];
 }
 
+
+
+struct pt {GLdouble x,y,z;};
+
+struct VRML_Extrusion_Adj {
+	int next_layer_pt;
+	int prev_layer_pt;
+	int next_cross_pt;
+	int prev_cross_pt;
+
+	int north_east_pt;
+	int south_east_pt;
+	int south_west_pt;
+	int north_west_pt;
+
+	struct pt next_layer_vec;
+	struct pt prev_layer_vec;
+	struct pt next_cross_vec;
+	struct pt prev_cross_vec;
+	
+	struct pt first_quad_diag_vec;
+	struct pt second_quad_diag_vec;
+	struct pt third_quad_diag_vec;
+	struct pt fourth_quad_diag_vec;
+
+	struct pt north_edge_vec;
+	struct pt east_edge_vec;
+	struct pt south_edge_vec;
+	struct pt west_edge_vec;
+
+	struct pt cumul_normal_vec;
+};
+
+
+
 struct VRML_Virt {
 	void (*prep)(void *);
 	void (*rend)(void *); 
@@ -1339,11 +1377,13 @@ struct VRML_Shape *last_visited_shape = 0;
 int horiz_div; int vert_div;
 int vp_dist = 200000;
 
+/* flag which specifies smooth or rough shading for extrusions */
+int smooth_normals = 0; 
+
 int cur_hits=0;
 
 /* These two points define a ray in window coordinates */
 
-struct pt {GLdouble x,y,z;};
 
 struct pt r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
 struct pt t_r1,t_r2,t_r3; /* transformed ray */
@@ -1563,6 +1603,15 @@ void render_polyrep(void *node,
 	int ntexcoords, struct SFVec2f *texcoords);
 void regen_polyrep(void *node) ;
 void calc_poly_normals_flat(struct VRML_PolyRep *rep);
+
+void calc_poly_normals_extrusion(struct VRML_PolyRep *rep, 
+			struct VRML_Extrusion_Adj *adj,
+			int nspi, int nsec, int ntri, int nctri);
+void calc_vector_product(struct pt a, struct pt b, struct pt *c );
+float calc_vector_length(struct pt p);
+float calc_vector_scalar_product(struct pt a, struct pt b);
+float calc_angle_between_two_vectors(struct pt a, struct pt b);
+
 void render_ray_polyrep(void *node,
 	int npoints, struct SFColor *points);
 	
@@ -2067,6 +2116,333 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep)
 	}
 }
 
+
+
+
+void calc_vector_product(struct pt a, struct pt b, struct pt *c )
+{
+	c->x = a.y * b.z - a.z * b.y;
+	c->y = a.z * b.x - a.x * b.z;
+	c->z = a.x * b.y - a.y * b.x;
+}
+
+
+
+float calc_vector_length( struct pt p )
+{
+	return sqrt(p.x*p.x + p.y*p.y + p.z*p.z); 
+}
+
+
+
+float calc_vector_scalar_product(struct pt a, struct pt b)
+{
+	return a.x*b.x + a.y*b.y + a.z*b.z;
+}
+
+
+
+float calc_angle_between_two_vectors(struct pt a, struct pt b)
+{
+	float length_a, length_b, scalar;
+	scalar = calc_vector_scalar_product(a,b);
+	length_a = calc_vector_length(a);
+	length_b = calc_vector_length(b);
+	if ( (length_a <= 0)  || (length_b <= 0)){
+		printf("Divide by 0 in calc_angle_between_two_vectors():  No can do! \n");
+		return 0;
+	}
+	return acos( scalar /(length_a * length_b) );
+}
+
+
+
+void calc_poly_normals_extrusion(struct VRML_PolyRep *rep, 
+			struct VRML_Extrusion_Adj *adj,
+			int nspi, int nsec, int ntri, int nctri) 
+{
+
+/* Each point in the coord array now has a corresponding entry in */
+/* the adj array which specifies which points are adjacent to a   */
+/* given point.  Values of -1 in the adj indicate that the point  */
+/* being considered is on an edge of the extrusion.(i.e. there is */
+/* no adjacent point)  In this case, only the points present are  */
+/* considered */
+
+	int   i,j, p[3]; 
+	float vector_length;
+	struct pt base0, vec0, cap_vec1, cap_vec2, cap_normal;
+
+        for(i=0; i < (nsec * nspi) ; i++) {
+
+                if ( adj[i].next_layer_pt != -1 ){
+			adj[i].next_layer_vec.x = 
+				rep->coord[ adj[i].next_layer_pt *3+0] - rep->coord[i*3+0];
+                        adj[i].next_layer_vec.y = 
+				rep->coord[ adj[i].next_layer_pt *3+1] - rep->coord[i*3+1];
+                        adj[i].next_layer_vec.z = 
+				rep->coord[ adj[i].next_layer_pt *3+2] - rep->coord[i*3+2];
+                }
+                else {
+                        adj[i].next_layer_vec.x = 0;
+			adj[i].next_layer_vec.y = 0;
+			adj[i].next_layer_vec.z = 0;
+                }
+/*
+		printf("%i  next_layer vector: %f %f %f   \n",i, adj[i].next_layer_vec.x, 
+			adj[i].next_layer_vec.y, adj[i].next_layer_vec.z );
+*/
+
+
+                if ( adj[i].prev_layer_pt != -1 ){
+                        adj[i].prev_layer_vec.x =
+                                rep->coord[ adj[i].prev_layer_pt *3+0] - rep->coord[i*3+0];
+                        adj[i].prev_layer_vec.y =
+                                rep->coord[ adj[i].prev_layer_pt *3+1] - rep->coord[i*3+1];
+                        adj[i].prev_layer_vec.z =
+                                rep->coord[ adj[i].prev_layer_pt *3+2] - rep->coord[i*3+2];
+                }
+                else {
+                        adj[i].prev_layer_vec.x = 0;
+			adj[i].prev_layer_vec.y = 0;
+			adj[i].prev_layer_vec.z = 0;
+                }
+/*
+                printf("%i  prev_layer vector: %f %f %f   \n",i, adj[i].prev_layer_vec.x,
+                        adj[i].prev_layer_vec.y, adj[i].prev_layer_vec.z );
+*/
+
+
+                if ( adj[i].next_cross_pt != -1 ){
+                        adj[i].next_cross_vec.x =
+                                rep->coord[ adj[i].next_cross_pt *3+0] - rep->coord[i*3+0];
+                        adj[i].next_cross_vec.y =
+                                rep->coord[ adj[i].next_cross_pt *3+1] - rep->coord[i*3+1];
+                        adj[i].next_cross_vec.z =
+                                rep->coord[ adj[i].next_cross_pt *3+2] - rep->coord[i*3+2];
+                }
+                else {
+                        adj[i].next_cross_vec.x = 0;
+			adj[i].next_cross_vec.y = 0;
+			adj[i].next_cross_vec.z = 0;
+                }
+/*
+                printf("%i  next_cross vector: %f %f %f   \n",i, adj[i].next_cross_vec.x,
+                        adj[i].next_cross_vec.y, adj[i].next_cross_vec.z );
+*/
+
+
+                if ( adj[i].prev_cross_pt != -1 ){
+                        adj[i].prev_cross_vec.x =
+                                rep->coord[ adj[i].prev_cross_pt *3+0] - rep->coord[i*3+0];
+                        adj[i].prev_cross_vec.y =
+                                rep->coord[ adj[i].prev_cross_pt *3+1] - rep->coord[i*3+1];
+                        adj[i].prev_cross_vec.z =
+                                rep->coord[ adj[i].prev_cross_pt *3+2] - rep->coord[i*3+2];
+                }
+                else {
+                        adj[i].prev_cross_vec.x = 0;
+			adj[i].prev_cross_vec.y = 0;
+			adj[i].prev_cross_vec.z = 0;
+                }
+/*
+                printf("%i  prev_cross vector: %f %f %f   \n",i, adj[i].prev_cross_vec.x,
+                        adj[i].prev_cross_vec.y, adj[i].prev_cross_vec.z );
+*/
+	}/*for*/
+
+
+	/*Calculate the diag-normals*/
+        for(i=0; i < (nsec * nspi) ; i++) {
+		if((adj[i].next_layer_pt != -1) && (adj[i].next_cross_pt != -1)){
+
+			calc_vector_product(adj[i].next_layer_vec, adj[i].next_cross_vec, 
+							&adj[i].first_quad_diag_vec);
+
+			vector_length = calc_vector_length( adj[i].first_quad_diag_vec);
+
+			adj[i].first_quad_diag_vec.x = adj[i].first_quad_diag_vec.x / vector_length;
+			adj[i].first_quad_diag_vec.y = adj[i].first_quad_diag_vec.y / vector_length;
+			adj[i].first_quad_diag_vec.z = adj[i].first_quad_diag_vec.z / vector_length;
+
+		}				
+		else{
+			adj[i].first_quad_diag_vec.x = 0;
+			adj[i].first_quad_diag_vec.y = 0;
+			adj[i].first_quad_diag_vec.z = 0;
+		}
+
+/*		printf("%i   first_quad_diag_vec:  %f  %f  %f  \n",i, adj[i].first_quad_diag_vec.x, 
+			adj[i].first_quad_diag_vec.y, adj[i].first_quad_diag_vec.z);
+*/
+		if((adj[i].next_cross_pt != -1) && (adj[i].prev_layer_pt != -1)){
+
+			calc_vector_product(adj[i].next_cross_vec, adj[i].prev_layer_vec,
+							&adj[i].second_quad_diag_vec);
+
+			vector_length = calc_vector_length( adj[i].second_quad_diag_vec);
+
+			adj[i].second_quad_diag_vec.x = adj[i].second_quad_diag_vec.x / vector_length;
+			adj[i].second_quad_diag_vec.y = adj[i].second_quad_diag_vec.y / vector_length;
+			adj[i].second_quad_diag_vec.z = adj[i].second_quad_diag_vec.z / vector_length;
+		}				
+		else{
+			adj[i].second_quad_diag_vec.x = 0;
+			adj[i].second_quad_diag_vec.y = 0;
+			adj[i].second_quad_diag_vec.z = 0;
+		}
+
+/*		printf("%i   second_quad_diag_vec:  %f  %f  %f  \n",i, adj[i].second_quad_diag_vec.x, 
+			adj[i].second_quad_diag_vec.y, adj[i].second_quad_diag_vec.z);
+*/
+		if((adj[i].prev_layer_pt != -1) && (adj[i].prev_cross_pt != -1)){
+
+			calc_vector_product(adj[i].prev_layer_vec, adj[i].prev_cross_vec, 
+									&adj[i].third_quad_diag_vec);
+
+			vector_length = calc_vector_length( adj[i].third_quad_diag_vec);
+
+			adj[i].third_quad_diag_vec.x = adj[i].third_quad_diag_vec.x / vector_length;
+			adj[i].third_quad_diag_vec.y = adj[i].third_quad_diag_vec.y / vector_length;
+			adj[i].third_quad_diag_vec.z = adj[i].third_quad_diag_vec.z / vector_length;
+		}				
+		else{
+			adj[i].third_quad_diag_vec.x = 0;
+			adj[i].third_quad_diag_vec.y = 0;
+			adj[i].third_quad_diag_vec.z = 0;
+		}
+
+/*		printf("%i   third_quad_diag_vec:  %f  %f  %f  \n",i, adj[i].third_quad_diag_vec.x, 
+			adj[i].third_quad_diag_vec.y, adj[i].third_quad_diag_vec.z);
+*/
+		if((adj[i].prev_cross_pt != -1) && (adj[i].next_layer_pt != -1)){
+
+			calc_vector_product(adj[i].prev_cross_vec, adj[i].next_layer_vec,
+									&adj[i].fourth_quad_diag_vec);
+
+			vector_length = calc_vector_length( adj[i].fourth_quad_diag_vec);
+
+			adj[i].fourth_quad_diag_vec.x = adj[i].fourth_quad_diag_vec.x / vector_length;
+			adj[i].fourth_quad_diag_vec.y = adj[i].fourth_quad_diag_vec.y / vector_length;
+			adj[i].fourth_quad_diag_vec.z = adj[i].fourth_quad_diag_vec.z / vector_length;
+		}				
+		else{
+			adj[i].fourth_quad_diag_vec.x = 0;
+			adj[i].fourth_quad_diag_vec.y = 0;
+			adj[i].fourth_quad_diag_vec.z = 0;
+		}
+
+/*		printf("%i   fourth_quad_diag_vec:  %f  %f  %f  \n",i, adj[i].fourth_quad_diag_vec.x, 
+			adj[i].fourth_quad_diag_vec.y, adj[i].fourth_quad_diag_vec.z);
+*/
+	}/*for*/
+
+
+	for (i=0; i<(nsec*nspi); i++ ){
+		adj[i].cumul_normal_vec.x = 	(adj[i].first_quad_diag_vec.x
+						+ adj[i].second_quad_diag_vec.x
+						+ adj[i].third_quad_diag_vec.x
+						+ adj[i].fourth_quad_diag_vec.x) * (-1) ;
+
+		adj[i].cumul_normal_vec.y = 	(adj[i].first_quad_diag_vec.y
+						+ adj[i].second_quad_diag_vec.y
+						+ adj[i].third_quad_diag_vec.y
+						+ adj[i].fourth_quad_diag_vec.y) * (-1);
+ 
+		adj[i].cumul_normal_vec.z = 	(adj[i].first_quad_diag_vec.z
+						+ adj[i].second_quad_diag_vec.z
+						+ adj[i].third_quad_diag_vec.z
+						+ adj[i].fourth_quad_diag_vec.z) * (-1);
+
+		adj[i].north_edge_vec.x = adj[i].fourth_quad_diag_vec.x + adj[i].first_quad_diag_vec.x;	
+		adj[i].north_edge_vec.y = adj[i].fourth_quad_diag_vec.y + adj[i].first_quad_diag_vec.y;	
+		adj[i].north_edge_vec.z = adj[i].fourth_quad_diag_vec.z + adj[i].first_quad_diag_vec.z;	
+
+		adj[i].east_edge_vec.x = adj[i].first_quad_diag_vec.x + adj[i].second_quad_diag_vec.x;	
+		adj[i].east_edge_vec.y = adj[i].first_quad_diag_vec.y + adj[i].second_quad_diag_vec.y;	
+		adj[i].east_edge_vec.z = adj[i].first_quad_diag_vec.z + adj[i].second_quad_diag_vec.z;	
+
+		adj[i].south_edge_vec.x = adj[i].second_quad_diag_vec.x + adj[i].third_quad_diag_vec.x;	
+		adj[i].south_edge_vec.y = adj[i].second_quad_diag_vec.y + adj[i].third_quad_diag_vec.y;	
+		adj[i].south_edge_vec.z = adj[i].second_quad_diag_vec.z + adj[i].third_quad_diag_vec.z;	
+
+		adj[i].west_edge_vec.x = adj[i].third_quad_diag_vec.x + adj[i].fourth_quad_diag_vec.x;	
+		adj[i].west_edge_vec.y = adj[i].third_quad_diag_vec.y + adj[i].fourth_quad_diag_vec.y;	
+		adj[i].west_edge_vec.z = adj[i].third_quad_diag_vec.z + adj[i].fourth_quad_diag_vec.z;	
+
+/*		printf("%i  %f  %f  %f   \n ",i ,adj[i].cumul_normal_vec.x, 
+				adj[i].cumul_normal_vec.y, adj[i].cumul_normal_vec.z );*/
+	}/*for*/
+
+
+	for (i=0; i<ntri; i++){
+		/* Get indexes to the three points */	
+		p[0] = rep->cindex[i*3+0];
+		p[1] = rep->cindex[i*3+1];
+		p[2] = rep->cindex[i*3+2];
+		
+		/* specify the normal indexes */
+		rep->norindex[i*3+0] = i*3+0;  
+		rep->norindex[i*3+1] = i*3+1;  
+		rep->norindex[i*3+2] = i*3+2;
+
+		/* specify the normals */
+		rep->normal[i*9+0] = adj[ p[0] ].cumul_normal_vec.x;
+		rep->normal[i*9+1] = adj[ p[0] ].cumul_normal_vec.y;
+		rep->normal[i*9+2] = adj[ p[0] ].cumul_normal_vec.z;
+		  
+		rep->normal[i*9+3] = adj[ p[1] ].cumul_normal_vec.x;
+		rep->normal[i*9+4] = adj[ p[1] ].cumul_normal_vec.y;
+		rep->normal[i*9+5] = adj[ p[1] ].cumul_normal_vec.z;
+		
+		rep->normal[i*9+6] = adj[ p[2] ].cumul_normal_vec.x;
+		rep->normal[i*9+7] = adj[ p[2] ].cumul_normal_vec.y;
+		rep->normal[i*9+8] = adj[ p[2] ].cumul_normal_vec.z;
+	}/*for*/
+
+
+	/*calculate the normals for the endcaps*/
+	for (i=ntri; i < (nctri+ntri) ; i++){
+		p[0] = rep->cindex[i*3+0];
+		p[1] = rep->cindex[i*3+1];
+		p[2] = rep->cindex[i*3+2];
+
+		cap_vec1.x = rep->coord[p[1]*3+0] - rep->coord[p[0]*3+0];
+		cap_vec1.y = rep->coord[p[1]*3+1] - rep->coord[p[0]*3+1];
+		cap_vec1.z = rep->coord[p[1]*3+2] - rep->coord[p[0]*3+2];
+
+		cap_vec2.x = rep->coord[p[2]*3+0] - rep->coord[p[0]*3+0];
+		cap_vec2.y = rep->coord[p[2]*3+1] - rep->coord[p[0]*3+1];
+		cap_vec2.z = rep->coord[p[2]*3+2] - rep->coord[p[0]*3+2];
+
+		calc_vector_product(cap_vec1, cap_vec2, &cap_normal);
+
+		/* specify the normal indexes */
+		rep->norindex[i*3+0] = i*3+0;  
+		rep->norindex[i*3+1] = i*3+1;  
+		rep->norindex[i*3+2] = i*3+2;
+
+		/* specify the normals */
+		rep->normal[i*9+0] = cap_normal.x;
+		rep->normal[i*9+1] = cap_normal.y;
+		rep->normal[i*9+2] = cap_normal.z;
+		  
+		rep->normal[i*9+3] = cap_normal.x;
+		rep->normal[i*9+4] = cap_normal.y;
+		rep->normal[i*9+5] = cap_normal.z;
+		
+		rep->normal[i*9+6] = cap_normal.x;
+		rep->normal[i*9+7] = cap_normal.y;
+		rep->normal[i*9+8] = cap_normal.z;
+	}/*for*/
+
+
+}/*calc_poly_normals_extrusion*/
+
+
+
+
+
 /*********************************************************************
  *********************************************************************
  *
@@ -2521,6 +2897,12 @@ int vert
 CODE:
 	horiz_div = horiz;
 	vert_div = vert;
+
+void
+set_smooth_normals(flag)
+int flag
+CODE:
+	smooth_normals = flag;
 
 void
 set_vpdist(dist)
