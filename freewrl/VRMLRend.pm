@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.16  2000/11/16 18:46:02  crc_canada
+# Nothing much - just comments and verbose code.
+#
 # Revision 1.15  2000/11/15 16:37:01  crc_canada
 # Removed some extra opengl calls from box.
 #
@@ -401,8 +404,6 @@ IndexedLineSet => '
 		int c;
 
 
-#define verbose 1  /* JAS */
-
 		struct SFColor *points; int npoints;
 		struct SFColor *colors; int ncolors=0;
 
@@ -461,18 +462,14 @@ IndexedLineSet => '
 		glEnd();
 		glEnable(GL_LIGHTING);
 		$end_list();
-#undef verbose  /* JAS */
 ',
 
-
-# XXX - this does not work with hardware accelleration. Colours not spec'd? 
 
 PointSet => '
 	int i; 
 	struct SFColor *points; int npoints=0;
 	struct SFColor *colors; int ncolors=0;
 
-#define verbose 1  /* JAS */
 	$start_list();
 	$fv(coord, points, get3, &npoints);
 	$fv_null(color, colors, get3, &ncolors);
@@ -501,7 +498,6 @@ PointSet => '
 	glEnd();
 	glEnable(GL_LIGHTING);
 	$end_list();
-#undef verbose  /* JAS */
 ',
 
 ElevationGrid => ( '
