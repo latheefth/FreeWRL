@@ -11,13 +11,7 @@
 
 extern int screenWidth, screenHeight;
 
-#ifdef AQUA
-
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-
-#else
+#ifndef AQUA
 
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -140,11 +134,14 @@ int  default_attributes3[] =
 
 
 // Function prototypes
+#ifndef AQUA
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
+#endif
 void setGeometry (char *gstring);
 
 static int xPos = 0;
 static int yPos = 0;
+#ifndef AQUA
 void openMainWindow (unsigned *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
@@ -159,7 +156,6 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	char	*wintitle =  "FreeWRL VRML/X3D Browser";
 
 
-#ifndef AQUA 
 	XColor  black; 
 	Cursor  cursor;
 	Pixmap  cursor_pixmap; 
@@ -327,9 +323,10 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	*Win =  win;
 	*Cont = cx;
 }
+#endif
 
 
-
+#ifndef AQUA
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 {
    XVisualInfo *vi=NULL;
@@ -393,6 +390,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    free(attrib_mem);
    return(NULL);
 }
+#endif
 
 
 void setGeometry (char *gstring) {
