@@ -42,6 +42,7 @@ int newClassConnection (int scriptno);
 void makeJavaInvocation (char *commandline, int scriptno);
 void send_int (int node, int fd);
 void send_type (int node, int offset, int len, int fd);
+void send_double (double dval, int scriptno);
 void receive_command(int scriptno);
 
 int JavaClassVerbose = 0;
