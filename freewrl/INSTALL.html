@@ -1,0 +1,295 @@
+<TITLE>FreeWRL - Install</TITLE>
+
+<P>&#35;Copyright (C) 1998 Tuomas J. Lukka, 2001 John Stewart, CRC Canada.  
+
+<BR>&#35;DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+
+<BR>&#35;See the GNU Library General Public License (file COPYING in the distribution)
+
+<BR>&#35;for conditions of use and redistribution, EXCEPT on the files  
+
+<BR>&#35;which belong under the mozilla public license. 
+
+<H2>
+Install Introduction
+</H2>
+The complexity of the install depends on what packages you have installed
+with your system, and what packages may have been installed later.
+Most installs are very simple.
+<P>
+I have tested the FreeWRL build on brand new installs of:
+<P>
+<LIST>
+<LI>
+        <B>SuSe 7.1</B> FTP'd on March 30-31 2001
+<LI>
+        <B>TurboLinux</B> Workstation 4.0.5.SMC Tues Oct 19, 1999
+<LI>
+        <B>Mandrake 7.2</B> from ISO CD images
+</LIST>
+<P>
+<B>
+NOTE:
+</B> when build options were presented, I chose 
+the "Development Workstation" options - you may <B>not</B> have to do one
+or two of the steps outlined below if you install everything.
+Comments/help/Additional build notes more than welcome.
+
+<P>This install is divided up into the following sections:<P> 
+<LIST>
+<LI>Building FreeWRL to run &quot;standalone&quot;, without Netscape.
+<LI>Installing Java support.
+<LI>Getting it all to work with Netscape.
+<LI>Getting it to work with the Polhemus Fastrak 3d, or a Joystick.
+</LIST>
+
+
+<P>(updated 19 June 2000 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
+<BR>(updated 31 August 2000 - <A HREF="mailto:remi@cohen-scali.com">remi@cohen-scali.com</A>)
+<BR>(updated 08 April 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)</P>
+
+<H3>
+Building FreeWRL as a standalone executable
+</H3>
+
+<P><B>Notes:</B> All files are available here:</P>
+
+<LIST>
+<P>- <A HREF="/en/html/FreeWRL/downloads/downloads">http://www.crc.ca/en/html/FreeWRL/downloads/downloads</A>
+
+<BR>- <A HREF="http://sourceforge.net/projects/freewrl/">http://sourceforge.net/projects/freewrl/</A>
+</LIST>
+<P>
+You can also access the cvs repository. The way to do it is explained at:
+
+<BR>- <A HREF="http://sourceforge.net/cvs/?group_id=9120">http://sourceforge.net/cvs/?group_id=9120</A>
+
+<H4>
+1. OpenGL (usually Mesa)
+</H4>
+<P>
+<LIST>
+<LI><B> TurboLinux:</B> nothing needed
+<LI><B> Suse 7.1:</B> rpm -Uvh mesadev.rpm from disk x3d2.
+<LI><B> Mandrake 7.2:</B> Had to install mesa from 
+<A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>
+to get all include files.
+<LI><B> General:</B> Usually, Mesa is included in newer distributions. If not
+installed it is on the distribution disks, or available from
+<A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>
+</LIST>
+<H4>
+2. Hardware accelleration
+</H4>
+
+<P>
+If you have a Linux compatible 3D accel. card, then
+simply install it, and follow the directions from the
+manufacturer.
+<P>
+<H4>
+3. FreeWRL Build and Installation
+</H4>
+<LIST>
+<LI><B>TurboLinux:</B>    
+<OL>
+<LI>Perform step 1 in the "General" section below.
+<LI>Step 2: change the references in vrml.conf from: "-lGL -lGLU" To:
+"-lMesaGL -lMesaGLU"
+<LI>Perform steps 6, 7 and 9.
+</OL>
+<P>
+<LI><B>Suse 7.1:</B>      
+<P>Perform steps 1, 4, 5, 6, 7 and 9 in the "General" section below.
+<P>
+<LI><B>Mandrake 7.2:</B>
+<P>
+This install was quite complex. 
+<OL> 
+<LI>get the latest stable perl release from
+<A HREF="http://www.perl.com">http://www.perl.com</A>
+and build it.
+<P>
+<LI> install, from the "inst" CD:
+<BR>make-3.79.1-5mdk.i586.rpm
+<BR>binutils-2.10.0.24-4mdk.i586.rpm
+<BR>kernel-headers-2.2.17-21mdk.i586.rpm
+<BR>glibc-devel-2.1.3-16mdk.i586.rpm
+<BR>gcc-2.95.2-12mdk.i586.rpm
+<BR>libjpeg-devel-6b-15mdk.i586.rpm
+<BR>XFree86-devel-4.0.1-28mdk.i586.rpm
+<BR>libpng-devel-1.0.8-2mdk.i586.rpm
+<BR>zlib-devel-1.1.3-11mdk.i586.rpm
+<P>
+<LI> do steps do all the steps, except 8, below.
+
+
+</OL>
+
+<LI><B>General:</B>
+</LIST>
+<OL>
+
+<LI>Grab the latest FreeWRL tar file, and untar it.
+<P>
+<LI>Verify that the vrml.conf 
+file has good paths for the libraries and includes.
+<P>
+<LI>Install FreeType from the distribution CDs, or from
+<A HREF="http://freetype.sourceforge.net">http://freetype.sourceforge.net</A>
+<P>
+<LI>Install Perl Modules:<BR>    
+
+<P>Digest-MD5-2.09
+<BR>HTML-Parser-2.25        
+<BR>MIME-Base64-2.11
+<BR>URI-1.04
+<BR>libnet-1.0607
+<BR>libwww-perl-5.47
+<BR>Image-Base-1.07</P>
+
+<P>Installing these modules is a no-brainer; just untar     
+each module, then go into the directory, and 
+<BR>perl Makefile.PL
+<BR>make
+<BR>make install</P>
+
+Note that libwww-perl will most likely ask you if you want to reconfigure - I always just select the default.
+<P>
+<LI>ImageMagick is required for some conversions of graphics
+files. The "convert" utility is used; this <B>should</B> now be
+installed with any graphical Linux distribution. If you
+can't find it, you can always download it from
+<A HREF="http://www.imagemagick.org">http://www.imagemagick.org</A>
+<P>
+<LI>Make the Make file
+
+<P>perl Makefile.PL</P>
+
+<P>In the main FreeWRL directory. There <B>will be</B> an error for the Javascript library. If there are any other errors, correct them first.</P>
+
+<P>to compile the Mozilla javascript code:
+<BR>cd JS/js
+<BR>make
+<BR>cd ../..
+
+<P> Then, re-run the build for the main make file:
+<P>perl Makefile.PL</P>
+
+<LI>Build/install FreeWRL
+ <P>make install</P>
+<P>
+<LI>Experimental SAI interface
+
+You only need to do this if you wish to debug the SAI code.
+<P> - mknod.javapipej p
+<BR> - mknod.javapipep p</P>
+
+<LI>Run the numbered tests.
+
+<P>
+There are quite a few tests in the "tests" directory.
+<P>Run all of the numbered files (And any others that you want!) in the tests directory. Note that some use javascript, so you will be testing javascript, too.</P>
+
+
+</OL>
+<h4>
+Installing Java support
+</H4>
+
+<P><B>3.1)</B> Javascript:</P>
+
+<P>In the basic install, you should have installed the java support to allow some of the test programs in the tests directory to work. (eg, 7.wrl, 8.wrl, and 10.wrl)</P>
+
+<P>If these programs don't run, then go back and make FreeWRL it so that it does work.</P>
+
+<P><B>3.2)</B> EAIcode:</P>
+
+<P>Make sure that the CLASSPATH environment variable is set correctly (see above).</P>
+
+<P>On my system, (RH6.2) it is:</P>
+
+<P>[luigi@meson ~] $ setenv | grep CLASSPATH
+
+<BR>CLASSPATH=/usr/local/src/VRML/FreeWRL/java/classes:/usr/lib/netscape:</P>
+
+<P>Any java code that uses the &quot;importvrml.external...&quot; command, will get there qusite classes from this directory.</P>
+
+<P><B>3.3)</B> Testing the EAI code.</P>
+ 
+
+<P>cd into the tests/Add Remove directory in the build tree.</P>
+
+<P>run the script &quot;standalone&quot; in there.</P>
+
+<P><B>NOTE:</B> The applet viewer should be set to allow network access. I have my applet viewer set so that network access is only on the Applet Host. Class access is set to Restricted.</P>
+
+<P><B>NOTE:</B> RH6.2 does not seem to have the applet viewer installed by default - have a look at the file via netscape (seebelow).</P>
+
+
+<P><B>4) Getting it all to work with Netscape.</B></P>
+
+<P><B>4.1)</B> get XSwallow, Build it according to the directions.</P>
+
+<P><A HREF="http://www.csn.ul.ie/~caolan/docs/Xswallow.html">http://www.csn.ul.ie/~caolan/docs/Xswallow.html</A></P>
+
+<P><B>4.2)</B> I had to remove the .netscape/plugins and the .netscape/plugins.BAK files in the non - root accounts that I wished to use. Then, within netscape, the&quot;Edit&quot; &quot;Preferences&quot; &quot;Navigator&quot; Applications&quot; showed me using Embedded Vrml Plugin XSwallow Ver1.</P>
+
+<P><B>4.3)</B>point netscape to one of the test files on the local machine; eg, test/1.wrl in the distribution directory is fine.</P>
+
+<P><B>4.4)</B> to test EAI with netscape, open the html file in the tests/AddRemove directory.</P>
+
+<P><B>4.5)</B> Configuration files of importance:</P>
+
+
+<P>To get it to really swallow the file once it was working, I changed the line shown below in my ~/.netscape/xswallow.conf:</P>
+
+ <P>x-world/x-vrml; vr, wrl; /usr/local/bin/dispatch-vrml-c<BR>
+              %s %u %w %h; &quot;FreeWRL&quot;; Embedded Vrml</P>
+
+<P>(all on one line)</P>
+
+<P>And, because some web pages serve up VRML files as MIME type world/vrml, I added the line:</P>
+
+<P>model/vrml; wrl; /usr/local/bin/dispatch-vrml-c  %s %u %w %h; &quot;FreeWRL&quot;; Embedded Vrml Model</P>
+
+<P>(again, all on one line)</P>
+
+<P>And, in /usr/local/bin/dispatch-vrml-c, I changed the stock XSwallow distribution to invoke FreeWRL as a vrml 2.0 format:</P>
+
+<P>exec /usr/local/src/VRML/freewrl-eailocalhost:2000 <BR>  &quot;$2&quot; 2&gt;/tmp/free.2 &gt;/tmp/free.1-best<BR><BR>(again, all on one line)</P>
+
+<P><B>5.0)</B> Getting it to work with external sensors.</P>
+
+<P><B>5.1)</B> Joystick-It works!!! I have &quot;tied&quot; it to ground use only, though.</P>
+
+<P><A HREF="/html/FreeWRL/downloads/joystick/Joystick-1.0.tar.gz">http://www.crc.ca/FreeWRL/download/joystick/Joystick-1.0.tar.gz</A>.</P>
+
+<P><B>5.2)</B> Polhemus/Virtual Research goggles with position sensor.</P>
+
+<P><B>5.2.1)</B> Polhemus Position Sensor.</P>  
+
+<P> - Untar and compile the code in the Polhemus 1.0. tarfile. 
+<BR>- run minicom (with modem in it strings set to null) and see if you can get any input.  
+<BR> - align the Fastrak. I use the A0 command, as found in      the manual, to do the allignment. (&quot;Enhanced Allignment Procedure, pg 48a of my manual-Sept 1998)</P>        
+
+<P>eg:
+<BR>(in minicom)
+<BR>A0
+<BR>P
+<BR>(now, move the sensor 24&quot; in positive X axis)
+<BR>P
+<BR>(now, move the sensor 24&quot; in positive Y axis)
+<BR>P
+<BR>Exit minicom</P>
+
+
+<P> - run the program Polhemus/termite to get the polhemus interface   code working. Note - headset should be pointed at where you want &quot;front&quot; to be.</P>
+
+
+<P><B>5.2.2)</B> Virtual Research goggles
+
+<BR> - I use a Monster 3d fx card, with Mesa. I send the mesa output   directly to the 3d fx card, so there is no VRML display on my X display. Simply connect the goggles to the output of the 3d fx card.
+
+<BR> - I start up FreeWRL with the options &quot;-best&quot; and i&quot;-geom 640x480&quot;        I should check to see if the geometry matches the Virtual Research goggle display - but it appears to work ok.</P>
+
