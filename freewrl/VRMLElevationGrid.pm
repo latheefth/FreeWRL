@@ -148,6 +148,7 @@ if (nnormals == 0) {
 }
 
 /* Prepare the coordinates */
+/*   NOTE: if this is changed, collision detection might not work. check Collision.c:elevationgrid_disp() */
 for(z=0; z<nz; z++) {
 	for(x=0; x<nx; x++) {
 		float h = f[x+z*nx];
@@ -163,6 +164,7 @@ for(z=0; z<nz; z++) {
 }
 
 /* set the indices to the coordinates		*/
+/*   NOTE: if this is changed, collision detection might not work. check Collision.c:elevationgrid_disp() */
 vertex_ind = 0;
 for(z=0; z<nz-1; z++) {
 	for(x=0; x<nx-1; x++) {

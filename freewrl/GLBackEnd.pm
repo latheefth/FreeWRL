@@ -663,7 +663,7 @@ sub render_collisions {
     my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
     $node = $node->{CNode};
 
-    VRML::VRMLFunc::set_collisionoffset(0,0,0);
+    VRML::VRMLFunc::reset_collisionoffset();
 
     VRML::VRMLFunc::render_hier($node,  # Node
 				&VF_Collision, 

@@ -83,6 +83,21 @@ struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b)
     }
     return r;
 }
+
+float* transformf(float* r, const float* a, const GLdouble* b)
+{
+    if(r != a) { /*protect from self-assignments */
+	r[0] = b[0]*a[0] +b[4]*a[1] +b[8]*a[2] +b[12];
+	r[1] = b[1]*a[0] +b[5]*a[1] +b[9]*a[2] +b[13];
+	r[2] = b[2]*a[0] +b[6]*a[1] +b[10]*a[2] +b[14];
+    } else {
+	float tmp[3] = {a[0],a[1],a[2]};
+	r[0] = b[0]*tmp[0] +b[4]*tmp[1] +b[8]*tmp[2] +b[12];
+	r[1] = b[1]*tmp[0] +b[5]*tmp[1] +b[9]*tmp[2] +b[13];
+	r[2] = b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2] +b[14];
+    }
+    return r;
+}
 /*transform point, but ignores translation.*/
 struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b)
 {
@@ -210,7 +225,7 @@ void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
 }
 
 
-GLdouble* Inverse(GLdouble* res, GLdouble* m)
+GLdouble* matinverse(GLdouble* res, GLdouble* m)
 {
     double Deta;
 
@@ -247,6 +262,21 @@ struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3)
     veccross(r,v1,v2);
     vecnormal(r,r);
     return r;
+}
+
+/*simple wrapper for now. optimize later */
+struct pt* polynormalf(struct pt* r, float* p1, float* p2, float* p3) {
+    struct pt pp[3];
+    pp[0].x = p1[0];
+    pp[0].y = p1[1];
+    pp[0].z = p1[2];
+    pp[1].x = p2[0];
+    pp[1].y = p2[1];
+    pp[1].z = p2[2];
+    pp[2].x = p3[0];
+    pp[2].y = p3[1];
+    pp[2].z = p3[2];
+    return polynormal(r,pp+0,pp+1,pp+2);
 }
 
 

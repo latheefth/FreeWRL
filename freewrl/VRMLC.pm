@@ -26,6 +26,12 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.64  2002/08/08 17:03:05  ncoder
+# Added Text collision
+# Added ElevationGrid collision
+# Improved multiple collision handling.
+# Corrected polydisp that used to use a reversed normal.
+#
 # Revision 1.63  2002/08/02 15:08:53  ncoder
 # Corrected proximitysensor changes.
 # Added more fine-grained glError checking
@@ -1153,7 +1159,7 @@ int smooth_normals = -1; /* -1 means, uninitialized */
 int cur_hits=0;
 
 /* Collision detection results */
-struct pt CollisionOffset = {0,0,0};
+struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
 
 /* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
 struct pt ViewerDelta = {0,0,0}; 
@@ -1650,23 +1656,33 @@ get_collisionoffset(x,y,z)
 	double y
 	double z
 CODE:
-	x = CollisionOffset.x;
-	y = CollisionOffset.y;
-	z = CollisionOffset.z;
+	    /*uses mean direction, with maximum distance */
+	if(CollisionInfo.Count == 0) {
+	    x = y = z = 0;
+	} else {
+	    struct pt res = CollisionInfo.Offset;
+	    if(vecnormal(&res,&res) == 0.) {
+		x = y = z = 0;
+	    } else {
+		vecscale(&res,&res,sqrt(CollisionInfo.Maximum2));
+		x = res.x;
+		y = res.y;
+		z = res.z;
+	    }
+	}
 OUTPUT:
 	x
 	y
 	z
 
 void
-set_collisionoffset(x,y,z)
-	double x
-	double y
-	double z
+reset_collisionoffset()
 CODE:
-	CollisionOffset.x = x;
-	CollisionOffset.y = y;
-	CollisionOffset.z = z;
+	CollisionInfo.Offset.x = 0;
+	CollisionInfo.Offset.y = 0;
+	CollisionInfo.Offset.z = 0;
+	CollisionInfo.Count = 0;
+	CollisionInfo.Maximum2 = 0.;
 
 void
 set_viewer_delta(x,y,z)

@@ -6,10 +6,21 @@
 
 #include "Structs.h"
 
+/* Collision detection results structure*/
+struct sCollisionInfo {
+    struct pt Offset;
+    int Count;
+    double Maximum2; /*squared. so we only need to root once */
+};
+
 typedef int prflags;
 #define PR_DOUBLESIDED 0x01
 #define PR_FRONTFACING 0x02 //overrides effect of doublesided.
 #define PR_BACKFACING 0x04 //overrides effect of doublesided, all normals are reversed.
+
+
+/*accumulator function, for displacements. */
+void accumulate_disp(struct sCollisionInfo* ci, struct pt add);
 
 double closest_point_of_segment_to_y_axis(struct pt p1, struct pt p2);
 
@@ -57,6 +68,10 @@ struct pt box_disp(double y1, double y2, double r,struct pt p0, struct pt i, str
 /*fast test to see if a box intersects a y-cylinder.
  * gives false positives */
 int fast_ycylinder_box_intersect(double y1, double y2, double r,struct pt pcenter, double xs, double ys, double zs);
+/* fast test to see if a sphere intersects a y-cylinder. 
+   specify sphere center, and a point on it's surface 
+  gives false positives. */
+int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct pt pcenter, struct pt psurface);
 
 void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n);
 
@@ -75,6 +90,11 @@ struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt to
 struct pt cylinder_disp(double y1, double y2, double r, struct pt base, struct pt top, double baseradius);
 
 struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags);
+
+struct pt planar_polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags, struct pt n);
+
+struct pt elevationgrid_disp( double y1, double y2, double r, struct VRML_PolyRep pr, 
+			      int xdim, int zdim, double xs, double zs, GLdouble* mat, prflags flags);
 
 #ifdef DEBUGPTS
 void printpolyrep(struct VRML_PolyRep pr, int npoints);

@@ -146,6 +146,7 @@ void veccross(struct pt *c , struct pt a, struct pt b);
 GLdouble det3x3(GLdouble* data);
 
 struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b);
+float* transformf(float* r, const float* a, const GLdouble* b);
 struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b);
 
 struct pt* vecscale(struct pt* r, struct pt* v, GLdouble s);
@@ -162,9 +163,11 @@ struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2);
 
 void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n);
 
-GLdouble* Inverse(GLdouble* res, GLdouble* m);
+GLdouble* matinverse(GLdouble* res, GLdouble* m);
 
 struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3);
+/*simple wrapper for now. optimize later */
+struct pt* polynormalf(struct pt* r, float* p1, float* p2, float* p3);
 
 GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z);
 
