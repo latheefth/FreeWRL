@@ -108,6 +108,15 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$BUILD_OPT = 1;
 }
 
+my $browser = "mozilla";
+if (defined $VRML_CONFIG{BROWSER}) {
+	print "Browser in vrml.conf is ",$VRML_CONFIG{BROWSER},"\n";
+	$browser = $VRML_CONFIG{BROWSER};
+}
+push @ccflags, " -DBROWSER=\\\"$browser\\\" ";
+
+print "ccflags is now ",@ccflags,"\n\n";
+
 if ($VRML_CONFIG{WARNINGS} eq "low") {
 	push @ccflags, $warnings_low;
 }

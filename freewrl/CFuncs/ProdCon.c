@@ -279,6 +279,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 /* filename is malloc'd, combine pspath and thisurl to make an
    absolute file name */
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
+	//printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl);
 
 	/* lets try this - if we are running under a browser, let the
 	   browser do the pathing stuff */
@@ -293,7 +294,10 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 		//printf ("copying psppath over for %s\n",thisurl);
 		strcpy (filename,pspath);
 		/* do we actually have anything here? */
-		if (strlen(pspath) > 0) strcat (filename,"/");
+		if (strlen(pspath) > 0) {
+			if (pspath[strlen(pspath)-1] != '/')
+				strcat (filename,"/");
+		}
 
 	} else {
 		filename[0]=0;
