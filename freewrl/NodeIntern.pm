@@ -286,7 +286,8 @@ sub startScript {
 			last;
 		} elsif (/\.js/) {
 			# New js url handling
-			my $code = VRML::Browser::getTextFromFile($_);
+			# might have to put parent url in 2nd parameter
+			my $code = VRML::Browser::getTextFromFile($_,"parent");
 
 			print "JS url: code = $code\n"
 				if $VRML::verbose::script;

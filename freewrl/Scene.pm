@@ -140,7 +140,6 @@ sub new {
 					  NodeParent => undef,
 					  Parent => undef,
 					  Protos => undef,
-					  Stack => undef,
 					  DEF => undef
 					 }, $type;
 	print "VRML::Scene::new: ", VRML::Debug::toString(\@_), "\n"
@@ -218,9 +217,10 @@ sub newp {
 
 
 sub newextp {
-    my ($type, $pars, $parent, $name, $url) = @_;
+    my ($type, $pars, $parent, $name, $url, $parentURL) = @_;
     # XXX marijn: code copied from newp()
 
+    #print "newextp, calling new for $name,",@{$url},$this->{URL},$this->{WorldURL},"\n ";
     my $this = $type->new();
     $this->{Pars} = $pars;
     $this->{Name} = $name;
@@ -254,7 +254,7 @@ sub newextp {
 
 	for (@{$url}) {
 		($protourl, $protoname) = split(/#/, $_, 2);
-		$string = VRML::Browser::getTextFromFile($protourl);
+		$string = VRML::Browser::getTextFromFile($protourl,$parentURL);
 
 		next if (!$string);
 
@@ -431,7 +431,10 @@ sub new_externproto {
 	print "VRML::Scene::new_externproto: ", VRML::Debug::toString(\@_), "\n"
 		if $VRML::verbose::scene;
 
-	my $p = $this->{Protos}{$name} = (ref $this)->newextp($pars, $this, $name, $url);
+	#print "new_externproto, ",$this->{URL},",",$this->{WorldURL},"\n";
+	# pass in url to allow finding of files relative to url.
+	my $p = $this->{Protos}{$name} = (ref $this)->newextp($pars, $this, $name, 
+			$url,$this->{URL});
 	return $p;
 }
 

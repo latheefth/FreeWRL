@@ -143,16 +143,23 @@ sub ungzip_file {
 	close URLFOO;
 }
 
+
 sub getTextFromFile {
-	my ($file) = @_;
+	my ($file,$parentURL) = @_;
 	
 	# read in data from a file; the file name has been verified
 	# to exist before here by "C" functions (or, it is the name
 	# of a file in the Browser cache). Read it in, and return
 
+	#print "getTextFromFile, file $file, parent $parentURL\n";
+	if (!(-e $file)) {
+		# try appending file to parenturl
+		my $ri = rindex ($parentURL,"/");
+		my $ps = substr ($parentURL,0,$ri+1);
+		$file = "$ps$file";
+	}
+	
 	my $nfile = ungzip_file($file);
-
-	# print "Browser:getTextFromFile, file $nfile\n";
 
 	open (INPUT, "<$nfile");
 	my @lines = (<INPUT>);
