@@ -9,31 +9,11 @@
 
 =head1 NAME
 
-VRML::Browser -- perl module to implement a VRML97 browser
+VRML::Browser -- perl module to implement a VRML97 and X3D browser
 
 =head1 SYNOPSIS
 
-Use the command-line interface (L<freewrl>), or
-inside Perl:
-
-	use VRML::Browser;
-
-	$b = VRML::Browser->new();
-
-	$b->load_file($url);
-	$b->load_file($url,$base_url);
-	$b->load_string("Shape { geometry ....", $base_url);
-
-	$b->eventloop();
-
-	# VRML Browser API
-	$name = 	$b->getName();
-	$version = 	$b->getVersion();
-	$speed =	$b->getCurrentSpeed();
-	...
-
-	# The rest of the API may still change and is not documented
-	# here. If you need to know, check the file Browser.pm
+Use the command-line interface (L<freewrl>), or from within a browser.
 
 =head1 DESCRIPTION
 
@@ -62,6 +42,9 @@ use File::Basename;
 use strict vars;
 use POSIX;
 
+# threaded model requires config.
+use Config;
+
 ###############################################
 #
 # Public functions
@@ -70,67 +53,166 @@ sub new {
 	my($type, $pars) = @_;
 
 	my $this = bless {
-					  Verbose => delete $pars->{Verbose},
-					  BE => new VRML::GLBackEnd($pars->{FullScreen},
-												$pars->{Shutter},
-												$pars->{EyeDist},
-												$pars->{Parent},
-												$pars->{ScreenDist},
-												@{$pars->{BackEnd} or []}),
-					  Description => "",
-					  EV => new VRML::EventMachine(),
-					  Scene => undef,
-					  URL => undef,
-					  JSCleanup => undef
-					 }, $type;
+		Verbose => delete $pars->{Verbose},
+		BE => new VRML::GLBackEnd($pars->{FullScreen},
+			$pars->{Shutter},
+			$pars->{EyeDist},
+			$pars->{Parent},
+			$pars->{ScreenDist},
+			@{$pars->{BackEnd} or []}),
+		Description => "",
+		EV => new VRML::EventMachine(),
+		Scene => undef,
+		URL => undef,
+		JSCleanup => undef,
+		#IsThreaded => $Config{useithreads},
+		IsThreaded => undef,
+		ParseThread => undef,
+		ImageThread => undef,
+		toParseQueue =>undef,
+		fromParseQueue => undef,
+	 }, $type;
+
+
+	# create threads, if we are indeed threaded
+	if (defined $this->{IsThreaded}) {
+		use threads;
+		use Thread::Queue;
+
+		# main to parser thread queues
+		$this->{toParseQueue} = Thread::Queue->new;
+		$this->{fromParseQueue} = Thread::Queue->new;
+
+		#the parser thread
+		$this->{ParseThread} = threads->new(\&parse_threaded, $this);
+	}
+
 	return $this;
 }
 
-sub clear_scene {
-	my($this) = @_;
-	delete $this->{Scene};
-}
 
+########################################################################
+# 
+# load the initial file at startup
+#
 # Discards previous scene
-sub load_file {
-	my($this,$file,$url) = @_;
-	$url = ($url || $file);
+#
+#########################################################################
+sub load_file_intro {
+	my($this,$url) = @_;
 
 	# save this for getworldurl calls...
 	$this->{URL} = $url;
-
-	print "File: $file URL: $url\n" if $VRML::verbose::scene;
-
-	my $t = VRML::URL::get_absolute($file);
-
-	# Required due to changes in VRML::URL::get_absolute in URL.pm:
-	if (!$t) { print "Exiting -- File $file was not found.\n"; exit(1);}
-
-	if ($t =~ /^#VRML V2.0/s) {
-		$this->load_string($t,$url,2);
-	} elsif($t =~ /^#VRML V1.0/s) {
-			print "VRML V1.0, I only know V2.0";
-			exit (1);
-	} elsif ($t =~/^<\?xml version/s) {
-		$this->load_string($t,$url,3);
-	} else {
-
-		warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");
-		$this->load_string($t,$url,2);
-	}
-}
-
-sub load_string {
-	my($this,$string,$file,$type) = @_;
-
-	# type is 2 for VRML v2, 3 for xml
-
-	my $wurl = getWorldURL($this);
 	$this->clear_scene();
-	$this->{Scene} = VRML::Scene->new($this->{EV}, $file, $wurl);
+	$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
 
 	$this->{Scene}->set_browser($this);
-	if ($type == 3)  {
+
+	#print "isThreaded is ",$this->{IsThreaded},"\n";
+	if (!defined $this->{IsThreaded}) {
+		$this->load_file_nothreads($url,undef);
+        	prepare ($this);
+		# and, take care of keeping the viewpoints active...
+		# JAS $this->{Scene}->register_vps($this);
+		# debugging scene graph call: 
+		$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
+	} else {
+		$this->load_string("#VRML V2.0\n Group{}\n","initial null scene");
+		prepare($this);
+
+		print "going to enqueue data to queue ",$this->{toParseQueue}," fpq is ",
+			$this->{fromParseQueue},"\n";
+		
+		$this->{toParseQueue}->enqueue("loadFile");
+		$this->{toParseQueue}->enqueue($url)
+	}
+
+}
+
+# parse a file or string in threaded mode
+sub parse_threaded {
+	my($this) = @_;
+
+	my $command;
+	my $data;
+	my $url;
+
+print "parse_threaded, this is $this\n";
+
+	# lets wait 
+	threads->yield;
+
+
+	# Loop, get the command from the main thread.
+	while ($command = $this->{toParseQueue}->dequeue) {
+		$url= $this->{toParseQueue}->dequeue;
+		print "parse_threaded: command $command url $url\n" ;#JAS if $VRML::verbose::scene;
+
+		# if command is "loadFile"
+		$data = VRML::URL::get_absolute($url);
+
+		print "parse_threaded, string is $data\n";
+
+		# Required due to changes in VRML::URL::get_absolute in URL.pm:
+		if (!$data) { 
+			print "\nFreeWRL Exiting -- File $url was not found.\n"; 
+			print "stopping threads...\n";
+		}
+
+		$this->load_string($data, $url);
+
+# DO THIS WHEN LOADED AS CHILD OF ROOT
+	#prepare($this);
+		# and, take care of keeping the viewpoints active...
+		# JAS $this->{Scene}->register_vps($this);
+		# debugging scene graph call: 
+		#$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
+
+		# push results back to browser
+	}
+	print "parse thread exiting\n";
+}
+
+
+sub load_file_nothreads {
+	my($this,$url,$string) = @_;
+	print "load_file_nothreads: URL: $url\n" if $VRML::verbose::scene;
+
+	if (defined $url) {
+		$string = VRML::URL::get_absolute($url);
+	}
+
+	# Required due to changes in VRML::URL::get_absolute in URL.pm:
+	if (!$string) { print "\nFreeWRL Exiting -- File $url was not found.\n"; exit(1);}
+
+	$this->load_string($string, $url);
+
+}
+
+########################################################################
+
+# actually load the file and parse it.
+sub load_string {
+	my($this,$string,$file) = @_;
+
+	my $type = 0; 
+
+
+	#print "load_string, string is $string\nload_string file is $file\n";
+	# type is 0 for VRML v2, 1 for xml
+
+	if ($string =~ /^#VRML V2.0/s) {
+		$type=0;
+	} elsif($string =~ /^#VRML V1.0/s) {
+			print "VRML V1.0, I only know V2.0";
+			return;
+	} elsif ($string =~/^<\?xml version/s) {
+		$type=1;
+	} else {
+		#warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
+		$type=0;
+	}
+	if ($type == 1)  {
 		# x3d - convert this to VRML.
 
   		eval 'require XML::LibXSLT';
@@ -149,11 +231,15 @@ sub load_string {
    		$string = $stylesheet->output_string($results);
 	}
 	VRML::Parser::parse($this->{Scene},$string);
-        prepare ($this);
-	# and, take care of keeping the viewpoints active...
-	# JAS $this->{Scene}->register_vps($this);
-	# debugging scene graph call: 
-	$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
+}
+
+
+
+
+########################################################################
+sub clear_scene {
+	my($this) = @_;
+	delete $this->{Scene};
 }
 
 sub get_scene {
@@ -165,6 +251,8 @@ sub get_eventmodel { return $_[0]->{EV} }
 
 sub get_backend { return $_[0]{BE} }
 
+
+########################################################################
 sub eventloop {
 	my($this) = @_;
 	## my $seqcnt = 0;
@@ -326,11 +414,6 @@ sub getWorldURL {
 	return $this->{URL};
 }
 
-# Warning: due to the lack of soft references, all unreferenced nodes
-# leak horribly. Perl 5.005 (to be out soon) will probably
-# provide soft references. If not, we are going to make a temporary
-# solution. For now, we leak.
-
 sub replaceWorld {
 	# make a new scene, this is very similar to load_string, found
 	# in this file.
@@ -339,7 +422,7 @@ sub replaceWorld {
 	my @newnodes = ();
 	my $n;
 
-	# print "replaceWorld, string is $string\n";
+	print "replaceWorld, string is $string\n";
 
 	# lets go and create the new node array from the nodes as sent in.
 	for $n (split(' ',$string)) {
@@ -649,7 +732,7 @@ END {
 				if ($ticks != $start) { 
 					$FPS = 25/($ticks-$start);
 				}
-				# print "Fps: ",$FPS,"\n";
+				#print "Fps: ",$FPS,"\n";
 				pmeasures();
 				$start = $ticks;
 			}
