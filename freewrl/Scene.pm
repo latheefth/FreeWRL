@@ -456,9 +456,12 @@ sub events_processed {
 			$this->{RFields},
 			$timestamp);
 	}
-	if($this->{BackNode}) {
-		$this->set_backend_fields();
-	}
+
+	# JAS - this seemed to be a spurrious call - this simply resets ALL
+	# fields.
+	# if($this->{BackNode}) {
+	# 	$this->set_backend_fields();
+	# }
 }
 
 # Copy a deeper struct
