@@ -49,7 +49,7 @@ char * readInputString(char *fn, char *parent) {
 	makeAbsoluteFileName(mynewname,parent,fn);
 
 	/* check to see if this file exists */
-	if (!fileExists(mynewname,firstbytes)) {
+	if (!fileExists(mynewname,firstbytes,TRUE)) {
 		printf ("problem reading file step1 %s\n",fn);
 		strcpy (buffer,"\n");
 		return buffer;

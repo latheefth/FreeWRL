@@ -947,8 +947,7 @@ void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
 	if (ev==ButtonPress) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
-
-		Anchor_url = node->url;
+		AnchorsAnchor = node;
 		BrowserAction = TRUE;
 	}
 }
@@ -1272,7 +1271,7 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 		/* put the path and the file name together */	
 		makeAbsoluteFileName(filename,mypath,thisurl);
 
-		if (fileExists(filename,firstBytes)) { break; }
+		if (fileExists(filename,firstBytes,TRUE)) { break; }
 		count ++;
 	}
 	if (count == (node->url).n) {
