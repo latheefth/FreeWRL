@@ -154,8 +154,10 @@ void EventLoop() {
 	}
 
 	/* BrowserAction required? eg, anchors, etc */
-	if (BrowserAction) {puts ("BrowserAction required, command:");
-			puts (BrowserActionString);}
+	if (BrowserAction) {
+		doBrowserAction ();
+		BrowserAction = FALSE;	/* action complete */
+	}
 
 	/* Handle X events */
 	handle_Xevents();

@@ -414,6 +414,8 @@ extern void aqDisplayThread();
 
 extern char *getLibVersion();
 extern void doQuit(void);
+extern void doBrowserAction ();
+
 
 extern char *myPerlInstallDir;
 
