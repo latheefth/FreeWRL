@@ -145,7 +145,7 @@ install_plugin ::
 });
     }
 
-    if ($VRML_CONFIG{NETSCAPE_INST}) {
+    if ($VRML_CONFIG{JAVA_INST} && $VRML_CONFIG{NETSCAPE_INST}) {
 	push(@postamble,
 q{
 # --- Java Archive

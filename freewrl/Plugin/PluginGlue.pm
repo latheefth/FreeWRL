@@ -4,6 +4,14 @@
 # for conditions of use and redistribution.
 
 # $Log$
+# Revision 1.4  2001/08/18 02:16:56  ayla
+#
+# Committing merge of Plugin files from NetscapeIntegration to trunk.
+#
+# Revision 1.1.2.3  2001/08/01 16:46:12  ayla
+#
+# A backward compatabitity problem with Perl 5.0x was fixed in the main branch.
+#
 # Revision 1.3  2001/07/20 21:12:28  ayla
 #
 #
@@ -38,9 +46,9 @@ $VERSION = '0.10';
 
 BEGIN {
     if ($^V lt v5.6.0) {
-	# Perl voodoo to stop interpreters < v5.6.0 from complaining about
-	# using our:
-	sub our { return; }
+        # Perl voodoo to stop interpreters < v5.6.0 from complaining about
+        # using our:
+        sub our { return; }
     }
 }
 
@@ -60,3 +68,5 @@ bootstrap VRML::PluginGlue $VERSION;
 
 1;
 __END__
+
+## Module POD documentation goes here.

@@ -9,14 +9,12 @@
 #define _NPUPP_H_
 
 #ifndef GENERATINGCFM
-#define GENERATINGCFM 0
+#   define GENERATINGCFM 0
 #endif
 
 #ifndef _NPAPI_H_
-#include "npapi.h"
+#   include "npapi.h"
 #endif
-
-#include "jri.h"
 
 /******************************************************************************************
    plug-in function table macros
@@ -812,60 +810,65 @@ typedef void (*NPN_ReloadPluginsUPP)(NPBool reloadPages);
 
 #endif
 
+#if FALSE
 
 /* NPN_GetJavaEnv */
-
-#if GENERATINGCFM
-
-typedef UniversalProcPtr NPN_GetJavaEnvUPP;
-enum {
-	uppNPN_GetJavaEnvProcInfo = kThinkCStackBased
-		| RESULT_SIZE(SIZE_CODE(sizeof(JRIEnv*)))
-};
-
-#define NewNPN_GetJavaEnvProc(FUNC)		\
-		(NPN_GetJavaEnvUPP) NewRoutineDescriptor((ProcPtr)(FUNC), uppNPN_GetJavaEnvProcInfo, GetCurrentArchitecture())
-#define CallNPN_GetJavaEnvProc(FUNC)		\
-		(JRIEnv*)CallUniversalProc((UniversalProcPtr)(FUNC), uppNPN_GetJavaEnvProcInfo)	
-
-#else
-
-typedef JRIEnv* (*NPN_GetJavaEnvUPP)(void);
-#define NewNPN_GetJavaEnvProc(FUNC)		\
-		((NPN_GetJavaEnvUPP) (FUNC))
-#define CallNPN_GetJavaEnvProc(FUNC)		\
-		(*(FUNC))()	
-
-#endif
-
+/*
+ * DO NOT USE NETSCAPE'S JRI!!!
+ *
+ * #if GENERATINGCFM
+ *
+ * typedef UniversalProcPtr NPN_GetJavaEnvUPP;
+ * enum {
+ *	uppNPN_GetJavaEnvProcInfo = kThinkCStackBased
+ *		| RESULT_SIZE(SIZE_CODE(sizeof(JRIEnv*)))
+ * };
+ *
+ * #define NewNPN_GetJavaEnvProc(FUNC)		\
+ *		(NPN_GetJavaEnvUPP) NewRoutineDescriptor((ProcPtr)(FUNC),uppNPN_GetJavaEnvProcInfo, GetCurrentArchitecture())
+ * #define CallNPN_GetJavaEnvProc(FUNC)		\
+ *		(JRIEnv*)CallUniversalProc((UniversalProcPtr)(FUNC), uppNPN_GetJavaEnvProcInfo)	
+ *
+ * #else
+ *
+ * typedef JRIEnv* (*NPN_GetJavaEnvUPP)(void);
+ * #define NewNPN_GetJavaEnvProc(FUNC)		\
+ *		((NPN_GetJavaEnvUPP) (FUNC))
+ * #define CallNPN_GetJavaEnvProc(FUNC)		\
+ *		(*(FUNC))()	
+ *
+ * #endif
+ */
 
 /* NPN_GetJavaPeer */
-
-#if GENERATINGCFM
-
-typedef UniversalProcPtr NPN_GetJavaPeerUPP;
-enum {
-	uppNPN_GetJavaPeerProcInfo = kThinkCStackBased
-		| STACK_ROUTINE_PARAMETER(1, SIZE_CODE(sizeof(NPP)))
-		| RESULT_SIZE(SIZE_CODE(sizeof(jref)))
-};
-
-#define NewNPN_GetJavaPeerProc(FUNC)		\
-		(NPN_GetJavaPeerUPP) NewRoutineDescriptor((ProcPtr)(FUNC), uppNPN_GetJavaPeerProcInfo, GetCurrentArchitecture())
-#define CallNPN_GetJavaPeerProc(FUNC, ARG1)		\
-		(jref)CallUniversalProc((UniversalProcPtr)(FUNC), uppNPN_GetJavaPeerProcInfo, (ARG1))	
-
-#else
-
-typedef jref (*NPN_GetJavaPeerUPP)(NPP instance);
-#define NewNPN_GetJavaPeerProc(FUNC)		\
-		((NPN_GetJavaPeerUPP) (FUNC))
-#define CallNPN_GetJavaPeerProc(FUNC, ARG1)		\
-		(*(FUNC))((ARG1))	
-
-#endif
-
-
+/* 
+ * DO NOT USE NETSCAPE'S JRI!!!
+ *
+ * #if GENERATINGCFM
+ *
+ * typedef UniversalProcPtr NPN_GetJavaPeerUPP;
+ * enum {
+ *	uppNPN_GetJavaPeerProcInfo = kThinkCStackBased
+ *		| STACK_ROUTINE_PARAMETER(1, SIZE_CODE(sizeof(NPP)))
+ *	| RESULT_SIZE(SIZE_CODE(sizeof(jref)))
+ * };
+ *
+ * #define NewNPN_GetJavaPeerProc(FUNC)		\
+ *	(NPN_GetJavaPeerUPP) NewRoutineDescriptor((ProcPtr)(FUNC), uppNPN_GetJavaPeerProcInfo, GetCurrentArchitecture())
+ * #define CallNPN_GetJavaPeerProc(FUNC, ARG1)		\
+ *	(jref)CallUniversalProc((UniversalProcPtr)(FUNC), uppNPN_GetJavaPeerProcInfo, (ARG1))	
+ *
+ * #else
+ *
+ * typedef jref (*NPN_GetJavaPeerUPP)(NPP instance);
+ * #define NewNPN_GetJavaPeerProc(FUNC)		\
+ *	((NPN_GetJavaPeerUPP) (FUNC))
+ * #define CallNPN_GetJavaPeerProc(FUNC, ARG1)		\
+ *	(*(FUNC))((ARG1))	
+ *
+ * #endif
+ */
+#endif /* FALSE */
 
 
 /******************************************************************************************
@@ -886,7 +889,12 @@ typedef struct _NPPluginFuncs {
     NPP_PrintUPP print;
     NPP_HandleEventUPP event;
     NPP_URLNotifyUPP urlnotify;
-    JRIGlobalRef javaClass;
+#if FALSE
+    /*
+     * DO NOT USE NETSCAPE'S JRI!!!
+     * JRIGlobalRef javaClass;
+     */
+#endif
 } NPPluginFuncs;
 
 typedef struct _NPNetscapeFuncs {
@@ -904,8 +912,13 @@ typedef struct _NPNetscapeFuncs {
     NPN_MemFreeUPP memfree;
     NPN_MemFlushUPP memflush;
     NPN_ReloadPluginsUPP reloadplugins;
-    NPN_GetJavaEnvUPP getJavaEnv;
-    NPN_GetJavaPeerUPP getJavaPeer;
+#if FALSE
+    /*
+     * DO NOT USE NETSCAPE'S JRI!!!
+     * NPN_GetJavaEnvUPP getJavaEnv;
+     * NPN_GetJavaPeerUPP getJavaPeer;
+     */
+#endif
     NPN_GetURLNotifyUPP geturlnotify;
     NPN_PostURLNotifyUPP posturlnotify;
 #ifdef XP_UNIX

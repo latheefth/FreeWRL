@@ -1,4 +1,7 @@
 #!make
+#
+# Netscape 4.x plugin makefile, based on:
+#
 ################################################################################
 # Copyright (c) 1996 Netscape Communications. All rights reserved.
 ################################################################################
@@ -28,32 +31,32 @@
 #
 # 
 
-## Change as required for your installation:
-PLUGIN_DIR=/usr/lib/netscape/plugins
-JAVA_DIR=/usr/java/jdk1.3.1
+## Change as required for your installation or override either on the
+## command line or through the Perl module Makefile.PL scripts.
+INSTALLNP:=/usr/lib/netscape/plugins
+LIBS:=
 
 CC=gcc
 OPTIMIZER:=-O2
 PLUGIN_DEFINES:=-DXP_UNIX
 
-LIB_JAVA:=-L${JAVA_DIR}/jre/lib/i386 -ljava
-
+## Override on the command line:
+##
+## e.g. $ make DEBUG=1
+##
+## Can also override through the Perl module Makefile.PL scripts.
 DEBUG:=0
 ifeq (${DEBUG},1)
-    PLUGIN_DEFINES+=-D_DEBUG -ggdb
+    PLUGIN_DEFINES+=-D_DEBUG
 ##PLUGIN_DEFINES+=-DPLUGIN_TRACE 
 endif
 
 INC:=\
     -I/usr/include\
-    -I${JAVA_DIR}/include\
-    -I${JAVA_DIR}/include/linux\
     -I.\
     -I./include
 
-##CFLAGS=${OPTIMIZER} -fPIC -Wall ${PLUGIN_DEFINES} ${INC}
-CFLAGS=${OPTIMIZER} -Wall ${PLUGIN_DEFINES} ${INC}
-LIBS=${LIB_JAVA}
+CFLAGS=${OPTIMIZER} -fPIC -Wall ${PLUGIN_DEFINES} ${INC}
 
 SRC:=\
     npfreewrl.c\
@@ -67,12 +70,12 @@ vpath %.c ./source ./source/common
 
 SHAREDTARGET=npfreewrl.so
 
+all :: ${SHAREDTARGET}
+
 .PHONY: all clean realclean
 
-default all: ${SHAREDTARGET}
-
-install: ${SHAREDTARGET}
-	cp -f ${SHAREDTARGET} ${PLUGIN_DIR}
+install :: ${SHAREDTARGET}
+	@cp -f ${SHAREDTARGET} ${INSTALLNP}
 
 ${SHAREDTARGET}: ${OBJ}
 	${CC} -shared ${LIBS} ${OBJ} ${LDFLAGS} -o ${SHAREDTARGET}
@@ -80,8 +83,8 @@ ${SHAREDTARGET}: ${OBJ}
 %.o: %.c
 	${CC} ${CFLAGS} -c $< -o $@
 
-clean:
+clean ::
 	${RM} ${OBJ} ${SHAREDTARGET}
 
-realclean: clean
-	${RM} ${PLUGIN_DIR}/${SHAREDTARGET}
+realclean :: clean
+	${RM} ${INSTALLNP}/${SHAREDTARGET}

@@ -14,13 +14,15 @@
 
 
 #include <sys/types.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <stdlib.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 
 #include "npapi.h"
 #include "nputils.h"
@@ -96,11 +98,7 @@ static int init_socket(int, Boolean);
 
 /* These are diagnostic tools. */
 static void printXEvent(XEvent *);
-
-#if _DEBUG
-    static void printXError(const char *, unsigned int);
-    static void printMsg(const char *, Boolean);
-#endif
+static void printXError(const char *, unsigned int);
 
 Sigfunc signal(int, Sigfunc func);
 
@@ -113,11 +111,11 @@ void resizeCB (Widget w, PluginInstance * data, XEvent * event, Boolean * cont) 
 
     printXEvent(event);
 
-  /* This will be "netscapeEmbed", go to "drawingArea" */
-  temp = data->netscapeWidget;
-  while(strcmp(XtName(temp),"drawingArea")) {
-    temp = XtParent(temp);
-  }
+    /* This will be "netscapeEmbed", go to "drawingArea" */
+    temp = data->netscapeWidget;
+    while(strcmp(XtName(temp),"drawingArea")) {
+	temp = XtParent(temp);
+    }
 
   if (data->fullsize == FALSE) {
 #if _DEBUG
@@ -220,7 +218,8 @@ void swallow_check (PluginInstance * This)
             if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
               /* Found it!!! */
 #if _DEBUG
-		fprintf(log, "\tFound FreeWRL among the children of the root window.\n");
+		fprintf(log,
+		   "\tFound FreeWRL among the children of the root window.\n");
 #endif
               FoundIt = TRUE;
               This->victim = children[i];
@@ -250,7 +249,8 @@ void swallow_check (PluginInstance * This)
                 if (0 != XFetchName (This->display, subchildren[k], &windowname)) {
                   if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
 #if _DEBUG
-		    fprintf(log, "\tFound FreeWRL among the subchildren of the root window.\n");
+		    fprintf(log,
+		       "\tFound FreeWRL among the subchildren of the root window.\n");
 #endif
                     FoundIt = TRUE;
                     This->victim = subchildren[k];
@@ -277,7 +277,8 @@ void swallow_check (PluginInstance * This)
                     if (0 != XFetchName (This->display, subsubchildren[l], &windowname)) {
                       if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
 #if _DEBUG
-			fprintf(log, "\tFound FreeWRL among the subsubchildren of the root window.\n");
+			fprintf(log,
+			  "\tFound FreeWRL among the subsubchildren of the root window.\n");
 #endif
                         FoundIt = TRUE;
                         This->victim = subsubchildren[l];
@@ -526,6 +527,7 @@ int run_child (NPP instance, const char *filename, int width, int height, int fd
     char fName[256];
     char childname[30];
     char childFd[256];
+    char eaiAddress[20];
     char instanceStr[256];
     char *paramline[15]; /* parameter line */
 
@@ -574,14 +576,27 @@ int run_child (NPP instance, const char *filename, int width, int height, int fd
 	    paramline[5] = "-best";
 	    paramline[6] = "-netscape";
 	    paramline[7] = childname;
-	    paramline[8] = "-fd";
-	    paramline[9] = childFd;
-	    paramline[10] = "-instance";
-	    paramline[11] = instanceStr;
-	    paramline[12] = NULL;
+
+	    /*
+	     * Hard-code request for EAI connection
+	     * until a better way to determine if EAI is
+	     * needed can be found.
+	     */
+	    paramline[8] = "-eai";
+	    paramline[9] = eaiAddress;
+
+	    paramline[10] = "-fd";
+	    paramline[11] = childFd;
+	    paramline[12] = "-instance";
+	    paramline[13] = instanceStr;
+	    paramline[14] = NULL;
 
 	    sprintf(fName,"%s",filename);
 	    sprintf(geom,"%dx%d",width, height);
+
+	    /* EAI runs locally and port 2000 is reserved. */
+	    sprintf(eaiAddress, "localhost:2000");
+
 	    sprintf(childname,"fw%d",mine);
 	    sprintf(childFd, "%d", fd[FWRL]);
 	    sprintf(instanceStr, "%u", (uint) instance);
@@ -666,8 +681,8 @@ NPP_New(NPMIMEType pluginType,
 	char* argv[],
 	NPSavedData* saved)
 {
-    NPError err = NPERR_NO_ERROR;
     PluginInstance* This;
+    NPError err = NPERR_NO_ERROR;
 
     if (instance == NULL)
 	return NPERR_INVALID_INSTANCE_ERROR;
@@ -695,13 +710,14 @@ NPP_New(NPMIMEType pluginType,
     /* For debugging puposes: */
 #if _DEBUG
     log = fopen("np_log", "w+");
-    fprintf(log, "Function NPP_New:\n\tStarting plugin log for instance %u in process %d!\n",
-								  (uint) instance, getpid());
+    fprintf(log,
+      "Function NPP_New:\n\tStarting plugin log for instance %u in process %d!\n",
+	(uint) instance, getpid());
 #endif
 
     /*
      * Assume plugin and FreeWRL child process run on the same machine.
-     * For this reason, datagram (UDP) sockets are probably safe.
+     * For this reason, datagram (UDP) sockets are reasonably safe.
      */
     if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, This->fd) < 0)
     {
@@ -737,7 +753,7 @@ NPP_New(NPMIMEType pluginType,
 
 NPError
 NPP_Destroy (NPP instance, NPSavedData ** save) {
-  PluginInstance *This;
+    PluginInstance *This;
 
   if (instance == NULL)
     return(NPERR_INVALID_INSTANCE_ERROR);
@@ -759,7 +775,7 @@ NPP_Destroy (NPP instance, NPSavedData ** save) {
 
     /*kill child*/
     if (This->childPID != -1) {
-      kill(This->childPID*-1,SIGQUIT);
+      kill(This->childPID*-1, SIGQUIT);
     }
 
     if (This->fName != NULL) {
@@ -921,8 +937,7 @@ NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 {
 	PluginInstance* This;
 
-	if (instance == NULL)
-		return NPERR_INVALID_INSTANCE_ERROR;
+	if (instance == NULL) return NPERR_INVALID_INSTANCE_ERROR;
 	This = (PluginInstance*) instance->pdata;
 
 #if _DEBUG
@@ -1230,7 +1245,8 @@ int freewrlReceive(int fd)
 #endif
     else {
 #if _DEBUG
-	fprintf(log, "Received message on socket %d from FreeWRL: %s\n", fd, request.url);
+	fprintf(log,
+	  "Received message on socket %d from FreeWRL: %s\n", fd, request.url);
 #endif
 
 	if ( (result = NPN_GetURL(request.instance, request.url, NULL)) != NPERR_NO_ERROR) {
@@ -1355,20 +1371,6 @@ void printXError(const char *func, unsigned int err)
 	    break;
     }
     fprintf(stream, "\t%s returned with %s (%u).\n", func, result, err);
-#else
-    return;
-#endif
-}
-
-void printMsg(const char *msg, Boolean indent)
-{
-#if _DEBUG
-    FILE* stream;
-    if (log) { stream = log; }
-    else { stream = stderr; }
-
-    if (indent) { fprintf(stream, "\t%s\n", msg); }
-    else { fprintf(stream, "%s\n", msg); }
 #else
     return;
 #endif
