@@ -106,8 +106,8 @@ WriteMakefile(
 		COMPRESS => 'gzip -9', SUFFIX => 'gz',
 	},
     VERSION => $VERSION,
-    DEFINE => $VRML_CONFIG{OPENGL_DEFINE},
-    INC => $VRML_CONFIG{OPENGL_INC},
+    DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
+    INC => $VRML_CONFIG{FREEWRL_INC},
     EXE_FILES => ['freewrl'],
     MAN1PODS => { 'freewrl' => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
     PL_FILES => {'freewrl.PL' => 'freewrl'},
@@ -117,7 +117,7 @@ WriteMakefile(
 		   'URI'          => "1.04",
 		   'LWP'          => "5.47",
 		 },
-   LIBS => $VRML_CONFIG{OPENGL_LIBS},
+   LIBS => $VRML_CONFIG{FREEWRL_LIBS},
    OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o CFuncs/LinearAlgebra.o CFuncs/MPEG_Utils.o CFuncs/Text.o CFuncs/readpng.o',
 );
 
