@@ -677,15 +677,9 @@ sub render {
 	  {
 	    print "Render: root $node\n";
 	  }
-	glDisable(&GL_LIGHT0); # /* Put them all off first */
-	glDisable(&GL_LIGHT1);
-	glDisable(&GL_LIGHT2);
-	glDisable(&GL_LIGHT3);
-	glDisable(&GL_LIGHT4);
-	glDisable(&GL_LIGHT5);
-	glDisable(&GL_LIGHT6);
-	glDisable(&GL_LIGHT7);
-	glClear(&GL_COLOR_BUFFER_BIT | &GL_DEPTH_BUFFER_BIT);
+
+	# turn lights off, and clear buffer bits
+	VRML::OpenGL::BackEndRender1();
 
 	my $pick;
 	# 1. Set up projection
@@ -694,13 +688,7 @@ sub render {
 	# 2. Headlight
 	if($this->{Viewer}{Navi}{RFields}{headlight}) 
 	  {
-	    glEnable(&GL_LIGHT0);
-	    my $pos = pack ("f*",0,0,1,0);
-	    glLightfv(&GL_LIGHT0,&GL_POSITION, $pos);
-	    my $s = pack ("f*", 1,1,1,1);
-	    glLightfv(&GL_LIGHT0,&GL_AMBIENT, $s);
-	    glLightfv(&GL_LIGHT0,&GL_DIFFUSE, $s);
-	    glLightfv(&GL_LIGHT0,&GL_SPECULAR, $s);
+	    VRML::OpenGL::BackEndHeadlightOn();
 	  }
 					
 	# 3. Viewpoint
