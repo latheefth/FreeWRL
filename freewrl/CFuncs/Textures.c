@@ -489,18 +489,10 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
-	
-		/* does this name start off with a ftp, http, or a "/"? */
-		if ((strncmp(thisurl,"ftp://", strlen("ftp://"))) &&
-		   (strncmp(thisurl,"FTP://", strlen("FTP://"))) &&
-		   (strncmp(thisurl,"http://", strlen("http://"))) &&
-		   (strncmp(thisurl,"HTTP://", strlen("HTTP://"))) &&
-		   (strncmp(thisurl,"/",strlen("/")))) {
-			strcpy (filename,mypath);
-		} else {
-			filename[0]=0;
-		}
-		strcat(filename,thisurl);
+
+		/* put the path and the file name together */	
+		makeAbsoluteFileName(filename,mypath,thisurl);
+
 		if (fileExists(filename,firstBytes)) { break; }
 		count ++;
 	}

@@ -50,6 +50,8 @@ int main (int argc, char **argv) {
 	int c;
 	int digit_optind = 0;
 	int tmp;
+	char *filename;
+	char *pwd;
 
 	/* parse command line arguments */
 	while (1) {
@@ -134,17 +136,25 @@ int main (int argc, char **argv) {
 
 	/* create the Perl parser thread */
 	initializePerlThread();
-	while (!isPerlinitialized()) {usleep(200);}
+	while (!isPerlinitialized()) {usleep(50);}
 
 	/* create the Texture parser thread */
 	initializeTextureThread();
-	while (!isTextureinitialized()) {usleep(200);}
+	while (!isTextureinitialized()) {usleep(50);}
 
 	/* create the initial scene, from the file passed in
 	and place it as a child of the rootNode. */
 
-	perlParse(FROMURL, argv[optind],TRUE,FALSE,
+	filename = malloc(1000 * sizeof (char));
+	pwd = malloc(1000 * sizeof (char));
+	getcwd(pwd,1000);
+
+	makeAbsoluteFileName(filename, pwd, argv[optind]);
+
+	perlParse(FROMURL, filename,TRUE,FALSE,
 		rootNode, offsetof (struct VRML_Group, children),&tmp);
+
+	free(filename); free(pwd);
 
 	/* now wait around until something kills this thread. */
 	pthread_join(thread1, NULL);

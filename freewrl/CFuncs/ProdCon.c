@@ -111,7 +111,12 @@ int fileExists(char *fname, char *firstBytes) {
 
 	/* are we running under netscape? if so, ask the browser */
 
-	/* we are not netscaped */
+
+
+	/* if not, do we need to invoke lwp to get the file, or 
+	   is it just local? */
+
+	/* we are not netscaped AND is local */
 	fp= fopen (fname,"r");
 	ok = (fp != NULL);
 
@@ -122,6 +127,31 @@ int fileExists(char *fname, char *firstBytes) {
 	} 
 	return (ok);
 }
+
+
+/* filename is malloc'd, combine pspath and thisurl to make an
+   absolute file name */
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
+
+	/* does this name start off with a ftp, http, or a "/"? */
+	if ((strncmp(thisurl,"ftp://", strlen("ftp://"))) &&
+	   (strncmp(thisurl,"FTP://", strlen("FTP://"))) &&
+	   (strncmp(thisurl,"http://", strlen("http://"))) &&
+	   (strncmp(thisurl,"HTTP://", strlen("HTTP://"))) &&
+	   (strncmp(thisurl,"/",strlen("/")))) {
+		strcpy (filename,pspath);
+		strcat (filename,"/");
+
+	} else {
+		filename[0]=0;
+	}
+	strcat(filename,thisurl);
+
+	/* and, return in the ptr filename, the filename created... */
+}
+
+
+
 
 /* Inlines... Multi_URLs, load only when available, etc, etc */
 void loadInline(struct VRML_Inline *node) {
@@ -143,6 +173,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	if (returnifbusy) {
 		if (PerlParsing) return (FALSE);
 	}
+
 	DATA_LOCK
 	/* copy the data over; malloc and copy input string */
 	psp.comp = complete;
@@ -241,17 +272,8 @@ void _perlThread() {
 				/* check to make sure we don't overflow */
 				if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
 
-				/* does this name start off with a ftp, http, or a "/"? */
-				if ((strncmp(thisurl,"ftp://", strlen("ftp://"))) &&
-				   (strncmp(thisurl,"FTP://", strlen("FTP://"))) &&
-				   (strncmp(thisurl,"http://", strlen("http://"))) &&
-				   (strncmp(thisurl,"HTTP://", strlen("HTTP://"))) &&
-				   (strncmp(thisurl,"/",strlen("/")))) {
-					strcpy (filename,psp.path);
-				} else {
-					filename[0]=0;
-				}
-				strcat(filename,thisurl);
+				/* we work in absolute filenames... */
+				makeAbsoluteFileName(filename,psp.path,thisurl);
 
 				if (fileExists(filename,firstBytes)) {
 					break;

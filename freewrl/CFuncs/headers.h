@@ -325,7 +325,7 @@ extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,char *ptr);
-
+void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 
 
 

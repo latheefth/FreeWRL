@@ -441,6 +441,7 @@ sub createVrmlFromString {
 	my ($this, $string) = @_;
 
 	my $wurl = $this->{Scene}->get_world_url();
+
 	return $this->create_common ("FROM A STRING",$wurl,$string);
 }
 
@@ -455,18 +456,6 @@ sub createVrmlFromURL {
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
 	my $t = VRML::NodeType::getTextFromURLs($this->{Scene}, $url);
-
-	# Required due to changes in VRML::URL::get_absolute in URL.pm:
-	if (!$t) {
-		warn("File $file was not found");
-		return "";
-	}
-
-	unless($t =~ /^#VRML V2.0/s) {
-		die("Sorry, this file is according to VRML V1.0. I only know V2.0")
-		   if ($t =~ /^#VRML V1.0/s);
-		warn("File $file doesn't start with the '#VRML V2.0' header line");
-	}
 
 	# Stage 2 - load the string in....
 	return $this->create_common($url,$wurl,$t);
@@ -793,6 +782,7 @@ sub printhere { print "here from Browser.pm\n";}
 sub EAI_CreateVrmlFromString {
 	my ($string) = @_;
 
+print "here, string $string\n";
 	my $rv = createVrmlFromString ($globalBrowser,$string);
 
 	my @rvarr = split (" ", $rv);
