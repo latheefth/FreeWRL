@@ -24,7 +24,6 @@
 #include "Structs.h"
 #include "headers.h"
 
-//#include "jinclude.h"
 #include "jpeglib.h"
 
 void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
