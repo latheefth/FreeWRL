@@ -456,7 +456,6 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	int oldlen, newlen;
 	/* char *cptr; */
 	/* void *newmal; */
-	JSString *strval;
 
 	jsval _v;
 	JSObject *obj;
@@ -464,6 +463,8 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	char *valStr, *OldvalStr;
 	SV **svptr;
 	int myv;
+
+	JSString *strval; /* strings */
 
 
 
@@ -474,9 +475,9 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	svptr = to->p;
 	newlen=0;
 
-	if (!JS_ValueToObject(cx,*from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
+	if (!JS_ValueToObject(cx,from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
 
-	//printf ("getMFStringtype, object is %d\n",obj);
+	// printf ("getMFStringtype, object is %d\n",obj);
 	if (!JS_GetProperty(cx, obj, "length", &_v)) {
 		/* printf ("JS_GetProperty failed for \"length\" in getMFStringtype for %s.\n"); */
 		printf ("JS_GetProperty failed for \"length\" in getMFStringtype.\n");
@@ -487,14 +488,14 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	// printf ("new len %d old len %d\n",newlen,oldlen);
 
 	if (newlen > oldlen) {
-		printf ("MFString assignment, new string has more elements than old, cant do this yet\n");
+		// printf ("MFString assignment, new string has more elements than old, cant do this yet\n");
 		newlen = oldlen;
 	}
 
 	for (i = 0; i < newlen; i++) {
 		// get the old string pointer
 		OldvalStr = SvPV(svptr[i],PL_na);
-		// printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr));
+		//printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr));
 
 		// get the new string pointer
 		if (!JS_GetElement(cx, obj, i, &_v)) {
@@ -505,7 +506,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		strval = JS_ValueToString(cx, _v);
 		valStr = JS_GetStringBytes(strval);
 
-		//printf ("new string %d is %s\n",i,valStr);
+		// printf ("new string %d is %s\n",i,valStr);
 
 		// if the strings are different...
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
@@ -519,7 +520,6 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		fprintf(stderr,
 			"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
 	}
-
 }
 
 
@@ -1157,6 +1157,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
+			if (CRVerbose) printf ("Not found yet, getting touched flag\n");
 			touched_flag = get_touched_flag(fptr,actualscript);
 
 			if (touched_flag) {
@@ -1244,7 +1245,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,2); break;}
 				case MFNODE: {getMFNodetype (strp,tn+tptr,CRoutes[route].extra); break;}
 				case MFSTRING: {
-						getMFStringtype (JSglobs[actualscript].cx,
+						getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
 									global_return_val,tn+tptr); 
 						break;
 					}
