@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.118  2003/10/01 16:56:54  crc_canada
+# More GeoVRML changes.
+#
 # Revision 1.117  2003/09/30 15:28:36  crc_canada
 # More CVS changes - EAI to script sendevents now work.
 #
@@ -788,25 +791,24 @@ Cone => '
 	}
 ',
 
+GeoElevationGrid => ( '
+		$mk_polyrep();
+		render_ray_polyrep(this_, 0, NULL);
+'),
+
 ElevationGrid => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 
-			0, NULL
-		);
+		render_ray_polyrep(this_, 0, NULL);
 '),
 
 Text => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 
-			0, NULL
-		);
+		render_ray_polyrep(this_, 0, NULL);
 '),
 
 Extrusion => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 
-			0, NULL
-		);
+		render_ray_polyrep(this_, 0, NULL);
 '),
 
 IndexedFaceSet => '
@@ -835,6 +837,7 @@ IndexedFaceSet => '
 	Extrusion => (do "VRMLExtrusion.pm"),
 	IndexedFaceSet => (do "VRMLIndexedFaceSet.pm"),
 	Text => (do "VRMLText.pm"),
+	GeoElevationGrid => (do "VRMLGeoElevationGrid.pm"),
 );
 
 ######################################################################
@@ -2360,6 +2363,9 @@ CODE:
 	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
 		pt = do_OintCoord;
 		RETVAL = (unsigned int) pt;
+	} else if (strncmp("GeoPositionInterpolator",x,strlen("GeoPositionInterpolator"))==0) {
+		pt = do_GeoOint;
+		RETVAL = (unsigned int) pt;
 	} else {
 		RETVAL = 0;
 	}
@@ -2579,6 +2585,9 @@ CODE:
 
 	} else if (strncmp("Anchor",x,strlen("Anchor"))==0) {
 		do_Anchor (pt,typ,over);
+
+	} else if (strncmp("GeoTouchSensor",x,strlen("GeoTouchSensor"))==0) {
+		do_GeoTouchSensor (pt,typ,over);
 
 	} else { printf ("do_handle_events, unknown %s\n",x);}
 	

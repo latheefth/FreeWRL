@@ -474,6 +474,14 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 	}
 }
 
+/* GeoPositionInterpolator				 		*/
+/* Called during the "events_processed" section of the event loop,	*/
+/* so this is called ONLY when there is something required to do, thus	*/
+/* there is no need to look at whether it is active or not		*/
+
+void do_GeoOint (void *node) {
+	struct VRML_GeoPositionInterpolator *px;
+}
 
 /* Audio AudioClip sensor code */
 void do_AudioTick(struct VRML_AudioClip *node) {
@@ -697,6 +705,10 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 		}
 	}
 }
+
+void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, char *ev, int over) {
+};
+
 
 void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, int over) {
 	int len;

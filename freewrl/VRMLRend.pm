@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.117  2003/10/01 16:56:55  crc_canada
+# More GeoVRML changes.
+#
 # Revision 1.116  2003/09/25 18:58:49  crc_canada
 # GeoVRML additions
 #
@@ -957,6 +960,34 @@ PointSet => '
 	glEnd();
 	glEnable(GL_LIGHTING);
 ',
+GeoElevationGrid => '
+		struct SFColor *colors; int ncolors=0;
+                struct SFVec2f *texcoords; int ntexcoords=0;
+		struct SFColor *normals; int nnormals=0;
+
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
+
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+		}
+		render_polyrep(this_, 
+			0, NULL,
+			ncolors, colors,
+			nnormals, normals,
+			/*JAS - ntexcoords, texcoords */
+			0, NULL
+		);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
 
 ElevationGrid =>  '
 		struct SFColor *colors; int ncolors=0;
@@ -1459,6 +1490,7 @@ DirectionalLight => '
 # this creates the Struct values required to allow backend to fill the C values out
 ColorInterpolator => '',
 PositionInterpolator => '',  
+GeoPositionInterpolator => '',  
 ScalarInterpolator => '',
 OrientationInterpolator => '',
 NormalInterpolator => '',
@@ -1466,6 +1498,7 @@ CoordinateInterpolator => '',
 TimeSensor => '',
 SphereSensor => '',
 CylinderSensor =>'',
+GeoTouchSensor => '',
 TouchSensor => '',
 PlaneSensor => '',
 VisibilitySensor => '',
@@ -1483,14 +1516,16 @@ GeoViewpoint => '
 	render_GeoViewpoint ((struct VRML_GeoViewpoint*) this_);',
 
 GeoLocation => '
-	printf ("GeoLocation PushMatrix\n");
-	glPushMatrix();
-	render_GeoLocation ((struct VRML_GeoLocation*) this_);',
+	if (!render_vp) {
+		glPushMatrix();
+		render_GeoLocation ((struct VRML_GeoLocation*) this_);
+	}',
 
 Transform => '
 
 	GLfloat my_rotation;
 	GLfloat my_scaleO;
+	GLdouble modelMatrix[16];
 
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
@@ -1507,6 +1542,8 @@ Transform => '
 			this_->__do_scaleO = verify_rotate ((GLfloat *)this_->scaleOrientation.r);
 			this_->_dlchange = this_->_change;
 		}
+
+
 
 		/* TRANSLATION */
 		if (this_->__do_trans) 
@@ -1629,8 +1666,7 @@ Billboard => '
 # Finish rendering
 %FinC = (
 GeoLocation => (join '','
-	printf ("GeoLocation pop matrix\n");
-	glPopMatrix();
+	if (!render_vp) glPopMatrix();
 	'),
 
 Transform => (join '','
@@ -1718,6 +1754,10 @@ Billboard => (join '','
 			render_node(p);
 		}
 	',
+
+	GeoLOD => '
+	',
+
 	LOD => '
 		GLdouble mod[16];
 		GLdouble proj[16];
@@ -2815,6 +2855,75 @@ Text => q~
 	       }
 	       
 ~,
+
+GeoElevationGrid => q~
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
+	       int i;
+
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+	       struct pt tupv = {0,1,0};
+	       struct pt delta = {0,0,0};
+
+	       struct VRML_PolyRep pr;
+	       prflags flags = 0;
+	       int change;
+
+		float xSpacing = 0.0;	/* GeoElevationGrid uses strings here */
+		float zSpacing = 0.0;	/* GeoElevationGrid uses strings here */
+		sscanf (SvPV (this_->xSpacing,PL_na),"%f",&xSpacing);
+		sscanf (SvPV(this_->zSpacing,PL_na),"%f",&zSpacing);
+
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
+	       $mk_polyrep();
+ 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
+	       if(!$f(solid)) {
+		   flags = flags | PR_DOUBLESIDED;
+	       }
+	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+/*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
+	            
+
+	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,$f(xDimension),$f(zDimension),xSpacing,zSpacing,
+				modelMatrix,flags);
+	       
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+	       
+	       accumulate_disp(&CollisionInfo,delta);
+
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		   fprintf(stderr,"COLLISION_ELG: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+		   
+	       }
+~,
+
 ElevationGrid => q~
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/

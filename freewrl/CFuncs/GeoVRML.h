@@ -1,8 +1,24 @@
+extern int GeoSys;      		// which GeoSystem is parsed from the last GeoOrigin
+extern double GeoOrig[3];               // last GeoOrigin parsed in lat/long/elvation format
+
+
+/* geoSystem field is encoded as:
+ *
+ * mask : 0xf00000	reference frame, eg, GD, GC, UTM
+ * mask : 0x0ff000	UTM zone number  
+ * mask : 0x000f00	UTM "S" field
+ * mask : 0x0000ff	ellipsoid.
+ */
+
 
 /* from table 4.9 in the spec - supported spacial reference frames */
-#define GEO_GD		256
-#define GEO_GC		257
-#define GEO_UTM		258
+#define GEO_GD		0x100000
+#define GEO_GC		0x200000
+#define GEO_UTM		0x300000
+
+/* UTM fields */
+#define GEO_UTM_ZONE_BASE	0x01000
+#define GEO_UTM_S_FLAG		0x00100
 
 /* from table 4.10 in the spec - supported earth ellipsoids */
 #define	GEO_AA		1

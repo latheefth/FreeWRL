@@ -743,21 +743,6 @@ sub set_backend_fields {
 
 
 {
-
-	# removed from here as we now require backends made for C code datastructures		
-	#		PositionInterpolator
-	#		ColorInterpolator
-	#		ScalarInterpolator
-	#		OrientationInterpolator
-	#		CoordinateInterpolator
-	#		NormalInterpolator
-	#		TimeSensor
-	#		TouchSensor
-	#		PlaneSensor
-	#		SphereSensor
-	#		CylinderSensor
-	#		VisibilitySensor
-
 	#############################################################
 	#
 	# VRML::NodeIntern::make_backend
@@ -792,6 +777,11 @@ sub set_backend_fields {
 			}
 
 			if ($this->{TypeName} eq "WorldInfo") {
+				print "VRML::NodeIntern::make_backend NOT - ", $this->{TypeName},"\n"
+					if $VRML::verbose::be;
+				return ();
+			}
+			if ($this->{TypeName} eq "GeoMetadata") {
 				print "VRML::NodeIntern::make_backend NOT - ", $this->{TypeName},"\n"
 					if $VRML::verbose::be;
 				return ();

@@ -531,6 +531,7 @@ my $protono;
 %VRML::Nodes::initevents = map {($_,1)} qw/
  TimeSensor
  TouchSensor
+ GeoTouchSensor
  PlaneSensor
  CylinderSensor
  SphereSensor
@@ -552,10 +553,12 @@ my $protono;
  Anchor		children
  Collision	children
  GeoLocation	children
+
 );
 
 %VRML::Nodes::siblingsensitive = map {($_, 1)} qw/
  TouchSensor
+ GeoTouchSensor
  PlaneSensor
  CylinderSensor
  SphereSensor
@@ -1517,6 +1520,97 @@ my $protono;
 					   }
 					  ),
 	# GeoVRML Nodes
+#XXX
+	GeoCoordinate =>
+	new VRML::NodeType("GeoCoordinate",
+					{
+						geoOrigin => [SFNode, NULL, field],
+						geoSystem => [MFString,["GD","WE"],field],
+						point => [MFString,[],field],
+					}
+				),
+#XXX
+	GeoElevationGrid =>
+	new VRML::NodeType("GeoElevationGrid",
+					{
+						set_height => [MFFloat, undef, eventIn],
+						set_YScale => [MFFloat, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool,1,field],
+						colorPerVertex => [SFBool, 1, field],
+						creaseAngle => [SFFloat, 0, field],
+						geoOrigin => [SFNode, NULL, field],
+						geoSystem => [MFString,["GD","WE"],field],
+						geoGridOrigin => [SFString,"0 0 0",field],
+						height => [MFFloat, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFString, "1.0", field],
+						yScale => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFString, "1.0", field]
+					}
+				),
+#XXX
+	GeoLOD =>
+	new VRML::NodeType("GeoLOD",
+					{
+						center => [SFString,"",field],
+						child1Url =>[MFString,[],field],
+						child2Url =>[MFString,[],field],
+						child3Url =>[MFString,[],field],
+						child4Url =>[MFString,[],field],
+						geoOrigin => [SFNode, NULL, field],
+						geoSystem => [MFString,["GD","WE"],field],
+						range => [SFFloat,10.0,field],
+						rootUrl => [MFString,[],field],
+						rootNode => [MFNode,[],field],
+						children => [MFNode,[],eventOut],
+					}
+				),
+
+#XXX
+	GeoMetadata=>
+	new VRML::NodeType("GeoMetadata",
+					{
+						data => [MFNode,[],exposedField],
+						summary => [MFString,[],exposedField],
+						url => [MFString,[],exposedField],
+					}
+				),
+#XXX
+	GeoPositionInterpolator=>
+	new VRML::NodeType("GeoPositionInterpolator",
+					{
+						set_fraction => [SFFloat,undef,eventIn],
+						geoOrigin => [SFNode, NULL, field],
+						geoSystem => [MFString,["GD","WE"],field],
+						key => [MFFloat,[],field],
+						keyValue => [MFString,[],field],
+						geovalue_changed => [SFString,"",eventOut],
+						value_changed => [SFVec3f,undef,eventOut],
+					}
+				),
+
+#XXX
+	GeoTouchSensor=>
+	new VRML::NodeType("GeoTouchSensor",
+					{
+						enabled => [SFBool,1,exposedField],
+						geoOrigin => [SFNode, NULL, field],
+						geoSystem => [MFString,["GD","WE"],field],
+						hitNormal_changed => [SFVec3f, [0, 0, 0], eventOut],
+						hitPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
+						hitTexCoord_changed => [SFVec2f, [0, 0], eventOut],
+						hitGeoCoord_changed => [SFString,"",eventOut],
+						isActive => [SFBool, 0, eventOut],
+						isOver => [SFBool, 0, eventOut],
+						touchTime => [SFTime, -1, eventOut]
+					}
+				),
 
 	GeoViewpoint =>
 	new VRML::NodeType("GeoViewpoint",
@@ -1549,9 +1643,10 @@ my $protono;
 						geoCoords => [SFString,"",exposedField],
 						rotateYUp => [SFBool,0,field],
 
+						# these are now static in CFuncs/GeoVRML.c
 						# "compiled" versions of strings above
-						__geoCoords => [SFVec3f,[0, 0, 0], field],
-						__geoSystem => [SFInt32,0,field],
+						#__geoCoords => [SFVec3f,[0, 0, 0], field],
+						#__geoSystem => [SFInt32,0,field],
 					}
 					),
 

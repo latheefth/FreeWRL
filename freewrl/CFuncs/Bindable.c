@@ -391,7 +391,14 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	/* perform GeoViewpoint translations */
 	glRotatef(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
 		node->orientation.r[2]);
-	glTranslatef(-node->__position.c[0],-node->__position.c[1],-node->__position.c[2]);
+        glTranslated (GeoOrig[0] - node->__position.c[0],
+                        GeoOrig[1] - node->__position.c[1],
+                        GeoOrig[2] - node->__position.c[2]);
+
+        //printf ("GeoViewing at %f %f %f\n", 
+        //		GeoOrig[0] - node->__position.c[0],
+         //               GeoOrig[1] - node->__position.c[1],
+          //              GeoOrig[2] - node->__position.c[2]);
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, vp);

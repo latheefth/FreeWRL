@@ -268,6 +268,7 @@ sub resolve_node_cnode {
 	# these things have set_xxx and xxx... if we have one of these...
 	if (($node->{TypeName} eq "Extrusion") ||
 	    ($node->{TypeName} eq "ElevationGrid") ||
+	    ($node->{TypeName} eq "GeoElevationGrid") ||
 	    ($node->{TypeName} eq "IndexedFaceSet") ||
 	    ($node->{TypeName} eq "IndexedLineSet")) {
 		if ($field =~ /^set_($VRML::Error::Word+)/) {

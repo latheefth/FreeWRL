@@ -38,7 +38,6 @@ VRMLFields.pm
 VRMLJava.pm
 VRMLNodes.pm
 VRMLRend.pm
-VRMLServ.pm
 fonts/README
 freewrl.PL
 java/classes/vrml/external/Node.class

@@ -765,7 +765,7 @@ sub set_parentnode {
 # as the scene graph grows/shrinks.
 
 {
-	my %sends = map {($_ => 1)} qw/ Anchor TouchSensor TimeSensor /;
+	my %sends = map {($_ => 1)} qw/ Anchor TouchSensor TimeSensor GeoTouchSensor /;
 
 	sub make_executable {
 		my ($this) = @_;
@@ -868,6 +868,7 @@ my %VISIBLE = map {($_=>1)} qw/
 	Sphere
 	IndexedFaceSet
 	ElevationGrid
+	GeoElevationGrid
 	Extrusion
 	IndexedLineSet
 	Background

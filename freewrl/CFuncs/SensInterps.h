@@ -51,6 +51,9 @@ void
 do_OintScalar(void *node);
 
 void
+do_GeoOint(void *node);
+
+void
 do_OintCoord(void *node);
 
 void
@@ -80,6 +83,9 @@ void
 do_TouchSensor(struct VRML_TouchSensor *px,
 			   char *typ,
 			   int over);
+
+void
+do_GeoTouchSensor(struct VRML_GeoTouchSensor *px, char *typ, int over);
 
 void
 do_PlaneSensor(struct VRML_PlaneSensor *px,
