@@ -601,6 +601,7 @@ if ($ok == 0) {
 # open the browser
 
 $b = new VRML::Browser({
+						CocoaContext => undef,
 						FullScreen => $fullscreen,
 						Shutter => $shutter,
 						EyeDist => $eyedist,

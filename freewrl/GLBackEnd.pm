@@ -75,6 +75,16 @@ sub snapshot {
 	return [$w,$h,$str];
 }
 
+sub setShutter {
+	my ($this, $shutter) = @_;
+
+	if ($shutter) {
+		@{$this->{bufferarray}} = (&GL_BACK_LEFT, &GL_BACK_RIGHT);
+	} else {
+		@{$this->{bufferarray}} = (&GL_BACK);
+	}
+}
+
 ###############################################################
 #
 # Private functions, used by other browser modules below
@@ -87,6 +97,7 @@ if (0) {
 sub new {
 	my(
 	   $type,
+	   $cocoaContext, # SD reference to Aqua GL context
 	   $fullscreen,
 	   $shutter,
 	   $eyedist,
@@ -96,7 +107,7 @@ sub new {
 	  ) = @_;
 	my $this = bless {}, $type;
 
-	my($w,$h) = (450, 300);
+	my($w,$h) = (300, 300);
 	my $x = 0;
 	my $y = 0;
 	my $wintitle;
@@ -109,12 +120,27 @@ sub new {
 	    # print "GEOMETRY: $w $h $x $y\n";
 	}
 
+	if (defined $cocoaContext)
+	{
+		eval 'use Foundation';
+		eval 'use Foundation::Functions';
+		eval 'use AppKit';
+		eval 'use AppKit::Functions';
+	}
+
 	$this->{W} = $w;
 	$this->{H} = $h;
+	$this->{CONTEXT} = $cocoaContext;
+	$this->{CROSSCURSOR} = undef;
+	$this->{ARROWCURSOR} = undef;
+	
+	if (!(defined $cocoaContext))
+	{
 	if ($shutter) {
 		@{$this->{bufferarray}} = (&GL_BACK_LEFT, &GL_BACK_RIGHT);
 	} else {
 		@{$this->{bufferarray}} = (&GL_BACK);
+	}
 	}
 
 	my @db = &GLX_DOUBLEBUFFER;
@@ -132,6 +158,8 @@ sub new {
 	}
 
 	print "Starting OpenGL\n" if $VRML::verbose;
+	if (!(defined $cocoaContext))
+	{
 	glpOpenWindow(
 				  attributes=>[],
 				  mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
@@ -148,8 +176,17 @@ sub new {
 				  wintitle => $wintitle,
 				 );
 
+	} else {
+		$cocoaContext->makeCurrentContext;
+	}
+
 	# Initialize OpenGL functions/variables for our use.
 	glpOpenGLInitialize();
+
+	if (defined $cocoaContext)
+	{
+		$cocoaContext->flushBuffer;
+	}
 
 	print "STARTED OPENGL\n" if $VRML::verbose;
 
@@ -163,6 +200,13 @@ sub new {
 		360.0/(2.0*$pi);
 
 	return $this;
+}
+
+sub setEyeDist {
+	my ($this, $eyedist, $screendist) = @_;
+	my $pi = atan2(1,1) * 4;
+	$this->{Viewer}->{eyehalf} = $eyedist/2.0;
+	$this->{Viewer}->{eyehalfangle} = atan2($eyedist/2.0,$screendist)*360.0/(2.0*$pi);
 }
 
 # SD - adding call to shut down Open GL screen
@@ -183,6 +227,8 @@ sub quitpressed {
 sub handle_events {
 	my($this, $time) = @_;
 	
+	if (!(defined $this->{CONTEXT}))
+	{
 	while (XPending()) {
 	    # print "UPDS: Xpend:",XPending(),"\n";
 	    my @e = &glpXNextEvent();
@@ -195,9 +241,17 @@ sub handle_events {
 	}
 
 	$this->finish_event();
-
+	}
 	#	$this->{Viewer}->handle_tick($time);
 	
+}
+
+sub updateCoords {
+	my ($this, $xcoor, $ycoor) = @_;
+
+	$this->{W} = $xcoor;
+	$this->{H} = $ycoor;
+	$this->{CONTEXT}->update;
 }
 
 sub set_root { $_[0]{Root} = $_[1] }
@@ -289,12 +343,23 @@ sub event {
 
 	my $but;
 	# print "MOT!\n";
+	if (!(defined $this->{CONTEXT}))
+	{
 	if($args[0] & (&Button1Mask)) {
 	    $but = 1;
 	} elsif ($args[0] & (&Button2Mask)) {
 	    $but = 2;
 	} elsif ($args[0] & (&Button3Mask)) {
 	    $but = 3;
+	}
+	} else {
+		if ($args[0] == (&Button1)) {
+			$but = 1;
+		} elsif ($args[0] == (&Button2)) {
+			$but = 2;
+		} elsif ($args[0] == (&Button3)) {
+			$but = 3;
+		}
 	}
 	# print "BUT: $but\n";
  	$this->{MX} = $args[1]; $this->{MY} = $args[2];
@@ -581,9 +646,12 @@ sub render_pre {
     my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
     $node = $node->{CNode};
 
+    if (!(defined $this->{CONTEXT}))
+    {
     if( VRML::OpenGL::get_render_frame() == 0) {
         VRML::OpenGL::BackEndSleep();
         return;
+    }
     }
 
     # 1. Set up projection
@@ -642,12 +710,15 @@ sub render {
     $node = $node->{CNode};
     $viewpoint = $viewpoint->{CNode};
 	
+    if (!(defined $this->{CONTEXT}))
+    {
     if( VRML::OpenGL::get_render_frame() == 0) {
         VRML::OpenGL::BackEndSleep();
         return;
     }
 
     VRML::OpenGL::dec_render_frame();
+    }
 
     print "Render: root $node\n" if ($VRML::verbose::be);
 	
@@ -682,7 +753,12 @@ sub render {
 	glPrintError("GLBackEnd::render, VRML::VRMLFUNC::render_hier(VF_Geom)");
     }
 
+    if (defined $this->{CONTEXT})
+    {
+	$this->{CONTEXT}->flushBuffer;
+    } else {
     glXSwapBuffers();
+    }
 
     # Do selection
     if (@{$this->{Sens}}) {
@@ -815,9 +891,17 @@ sub render {
     if ($cursortype != $curcursor) {
 	$curcursor = $cursortype;
 	if ($cursortype == 0) {
+	    if (!(defined $this->{CONTEXT})) {
 	    VRML::OpenGL::arrow_cursor();
+	    } else {
+		$this->{ARROWCURSOR}->set();
+	    }
 	} else {
+	    if (!(defined $this->{CONTEXT})) {
 	    VRML::OpenGL::sensor_cursor();
+	    } else {
+		$this->{CROSSCURSOR}->set();
+	    }
 	}
     }
     glPrintError("GLBackEnd::render");

@@ -449,6 +449,8 @@ sub handle {
 	
 }
 
+sub handle_key { }
+
 sub change_viewpoint {
 	my($this, $jump, $push, $ovp, $nvp) = @_;
 	if($push == 1) { # Pushing the ovp under - must store stuff...

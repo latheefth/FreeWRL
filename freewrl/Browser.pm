@@ -54,7 +54,8 @@ sub new {
 
 	my $this = bless {
 		Verbose => delete $pars->{Verbose},
-		BE => new VRML::GLBackEnd($pars->{FullScreen},
+		BE => new VRML::GLBackEnd($pars->{CocoaContext},
+			$pars->{FullScreen},
 			$pars->{Shutter},
 			$pars->{EyeDist},
 			$pars->{Parent},
@@ -65,6 +66,7 @@ sub new {
 		Scene => undef,
 		URL => undef,
 		JSCleanup => undef,
+		CONTEXT => $pars->{CocoaContext},
 		#IsThreaded => $Config{useithreads},
 		IsThreaded => undef,
 		ParseThread => undef,
@@ -73,6 +75,14 @@ sub new {
 		fromParseQueue => undef,
 	 }, $type;
 
+	if (defined $pars->{CocoaContext})
+	{
+		eval 'use CustomClass';
+		eval 'use Foundation';
+		eval 'use Foundation::Functions';
+		eval 'use AppKit';
+		eval 'use AppKit::Functions';
+	}
 
 	# create threads, if we are indeed threaded
 	if (defined $this->{IsThreaded}) {
@@ -89,6 +99,137 @@ sub new {
 
 	return $this;
 }
+
+# SD Functions used to set values from Aqua interface, and functions used to pass events from Aqua interface to perl backend
+sub setLogFile
+{
+	my($this, $logfile) = @_;
+	open STDOUT, ">$logfile" || die("Can't redirect stdout to $logfile: $!");
+	open STDERR, ">&STDOUT" || die("Can't redirect stderr to stdout: $!");
+}
+
+sub doScripts 
+{
+	#\$VRML::DO_PERL = 1;
+}
+
+sub setSaveDir
+{
+	my($this, $savedir) = @_;
+	#\$VRML::ENV{FREEWRL_SAVE} = $savedir;
+}
+	
+sub setZbuff
+{
+	my ($this, $zbuff) = @_;
+	VRML::VRMLFunc::set_vpdist($zbuff);
+}
+
+sub setSeq
+{
+	$main::seq = 1;
+}
+
+sub setSeqFile
+{
+	my ($this, $file) = @_;
+	$main::seqname = $file;
+}
+
+sub setTempSeqFile
+{
+	my ($this, $file) = @_;
+	$main::seqtmp = $file;
+}
+
+sub setSnapFile
+{
+	my ($this, $file) = @_;
+	$main::snapname = $file;
+}
+
+sub setMaxImg
+{
+	my ($this, $maxNum) = @_;
+	$main::maximg = $maxNum;
+}
+
+sub setShutter
+{
+	my ($this, $shutter) = @_;
+	$this->{BE}->setShutter($shutter);
+}
+
+sub keyUpWithKey
+{
+	my ($this, $key) = @_;
+	$this->{BE}->event(0.0, 3, $key);
+	#print "Got key up event with key $key\n";
+}
+
+sub keyDownWithKey
+{
+	my ($this, $key) = @_;
+	$this->{BE}->event(0.0, 2, $key);
+	#print "Got key up event with key $key\n";
+}
+
+sub setArrowCursor
+{
+	my($this, $cursor) = @_;
+	$this->{BE}->{ARROWCURSOR} = $cursor;
+}
+
+sub setCrossCursor
+{
+	my ($this, $cursor) = @_;
+	$this->{BE}->{CROSSCURSOR} = $cursor;
+}
+
+sub setEyeDist
+{
+	my ($this, $eyes) = @_;
+	my @args = split(/ /, $eyes);
+	$this->{BE}->setEyeDist($args[0], $args[1]);
+}
+
+sub mouseDownAt
+{
+	my ($this, $xvalue) = @_;
+        my @args = split(/ /, $xvalue);
+	#print "Got mouse down for button $args[2] at $args[0] $args[1]\n";
+	$this->{BE}->event(0.0, 4, $args[2], $args[0], $args[1]);
+	$this->{BE}->finish_event;
+}
+
+sub mouseUpAt
+{
+	my ($this, $xvalue) = @_;
+        my @args = split(/ /, $xvalue);
+	#print "Got mouse up for button $args[2] at $args[0] $args[1]\n";
+	$this->{BE}->event(0.0, 5, $args[2], $args[0], $args[1]); 
+	$this->{BE}->finish_event;
+}
+
+sub mouseMovedAt
+{
+	my ($this, $xvalue) = @_;
+        my @args = split(/ /, $xvalue);
+	#print "Got mouse moved for button $args[2] at $args[0] $args[1]\n";
+	$this->{BE}->event(0.0, 6, $args[2], $args[0], $args[1]);
+	$this->{BE}->finish_event;
+}
+sub rectChanged
+{
+	my ($this) = @_;
+	my $customClass = CustomClass->alloc->init;
+	$customClass->setView($this->{CONTEXT}->view);
+	my $xcoor = $customClass->getWidth;
+	my $ycoor = $customClass->getHeight;
+	$this->{BE}->updateCoords($xcoor, $ycoor);
+	$this->{BE}->finish_event;
+}
+# End of Aqua interface functions
 
 
 ########################################################################
@@ -195,7 +336,8 @@ sub load_file_nothreads {
 	}
 
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
-	if (!$string) { print "\nFreeWRL Exiting -- File $url was not found.\n"; exit(1);}
+	if (!$string) { print "\nFreeWRL Exiting -- File $url was not found.\n"; 
+exit(1);}
 
 	$this->load_string($string, $url);
 }
@@ -667,7 +809,7 @@ sub convert_raw_sequence   {
 	#	$cmd = join ";\n",
 	#		map {"$VRML::Browser::CONVERT -depth 8 ".
 	#		"-size $_->[1]x$_->[2] rgb:$_->[0] ".
-	#		"-flip $main::seqtmp/$main::seqname.".sprintf("%04d",$_->[3]).".ppm"
+	#		"-flip $main::seqtmp/$main::seqname.".sprintf("%04d",$_- >[3]).".ppm"
 	#		} @main::saved ;
 	#}
 	#JAS print "$$ : cmd is : \n-------\n$cmd\n------\n";
@@ -890,3 +1032,4 @@ sub check {
 }
 
 1;
+
