@@ -14,6 +14,8 @@ DVI = ${DOCS:.tex=.dvi}
 PS  = ${DOCS:.tex=.ps}
 PDF = ${DOCS:.tex=.pdf}
 
+BIB = freewrl-cites.bib
+
 dvi: ${DVI}
 
 %.dvi: %.tex force

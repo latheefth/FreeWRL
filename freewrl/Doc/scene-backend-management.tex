@@ -13,10 +13,14 @@
     The OpenGL libraries do the actual rendering work in the FreeWRL
     browser.
     Setting up the backend is done through FreeWRL's scene model
-    \texttt{Scene.pm}.
+    \texttt{VRML::Scene}.
     The result of the initialization steps described in the next section
     is the scene graph for the VRML input files and the associated backend
     to OpenGL.
+
+    \section{VRML statements}
+
+	\subsection{PROTO}
 
     %% better explain the browser class and the event loop!
 
@@ -24,8 +28,9 @@
 
 	\subsection{Scene Graph}
 
-	The scene graph is a tree constructed by parsing a VRML input file
-	starting from the topmost node (how are PROTOs handled?).
+	The scene graph is a tree constructed by parsing a VRML input file and
+	building a tree of VRML nodes starting from the parent (root) node.
+	If the parent node is a PROTO\ldots
 	An example of a scene graph corresponding to the following VRML code
 	is represented as a tree is shown in Figure~\ref{fig:sg-tree}.
 
@@ -39,8 +44,11 @@
 	    \caption{}\label{fig:sg-tree}
 	\end{figure}
 
-	The browser is responsible for calling the methods to construct the
-	scene graph.
+	The parser (\texttt{VRML::Parser}) is responsible for parsing the text
+	of a VRML input file and calling on the scene object to build the
+	appropriate node representation.
+	The browser (\texttt{VRML::Browser}) is responsible for calling the
+	methods to construct the scene graph.
 	%% lame - needs way more explaination!
 	This is done either when a string containing the text of a VRML input
 	file is loaded (\texttt{VRML::Browser::load\_string}) or when a world is
@@ -60,5 +68,8 @@
 
 	The browser contains the backend structure, which is used in the event
 	loop to update the scene displayed by FreeWRL.
+
+	\bibliographystyle{plain}
+	\bibliography{freewrl-cites}
 
 \end{document}
