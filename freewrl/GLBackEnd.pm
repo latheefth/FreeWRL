@@ -758,15 +758,6 @@ sub render {
 				    0,		# render blend         
 				    0);		# what view point      
 
-	# 4. Render blended nodes (in reverse depth order)
-	VRML::VRMLFunc::render_hier($node,	# Node                 
-				    0,		# reverse_trans        
-				    0,		# render view point    
-				    1,		# render geoms         
-				    0,		# render lights        
-				    0,		# render sensitive     
-				    0,		# render blend         
-				    0);		# what view point      
 	# glFlush();
 	glXSwapBuffers();
 
