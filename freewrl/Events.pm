@@ -301,21 +301,50 @@ sub propagate_events {
 
 sub put_event {
 	my ($this, $node, $field, $value) = @_;
+	print "put_event\n";
 	push @{$this->{Queue}}, [ $node, $field, $value ];
 	return;
 }
 
-# This sends an event TO node
+# This sends an event TO node - should be removed for CRoutes.
 sub send_event_to {
 	my ($this, $node, $field, $value) = @_;
-	# print "Events.pm:send_event_to, pushing $node, $field $value\n";
-	push @{$this->{ToQueue}}, [ $node, $field, $value ];
+	my $outptr;
+	my $datalen;
+
+	print "send_event_to (node $node, field $field...) depreciated\n";
+}
+
+# This sends a bind/unbind event TO node
+sub send_set_bind_to {
+	my ($this, $node, $bindValue) = @_;
+	my $outptr;
+	my $outoffset;
+
+	# are there a backend made for from node?
+	if (!defined $node->{BackNode}) {
+		print "set_bind - no backend node\n";
+		return;
+	}
+
+	# are there backend CNodes made for both from and to nodes?
+	if (!defined ($outptr=$node->{BackNode}{CNode})) {
+		print "set_bind - no backend CNode node\n";
+		return;
+	}
+
+	# are there offsets for these binds?
+	if(!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{set_bind})) {
+		print "set_bind offset not defined\n";
+		return;
+	}
+
+	VRML::VRMLFunc::do_bind_to ($node->{TypeName}, $outptr, $bindValue);
 }
 
 sub put_events {
 	my ($this, $events) = @_;
-	print "Put_events\n"
-		if $VRML::verbose::events;
+	print "Put_events\n";
 	for (@$events) {
 		die("Invalid put_events event $_\n") if (ref $_ ne "ARRAY");
 	}
@@ -324,7 +353,7 @@ sub put_events {
 
 sub handle_touched {
 	my($this, $node, $but, $move, $over) = @_;
-	#print "HTOUCH: node $node, but $but, move $move, over $over \n";
+	print "HTOUCH: node $node, but $but, move $move, over $over \n";
 	push @{$this->{MouseSensitive}}, [ $node, $but, $move, $over];
 }
 

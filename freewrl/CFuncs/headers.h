@@ -225,3 +225,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *px, char *typ, double time, int ov
 
 /* bindable nodes */
 extern GLint viewport[];
+extern GLdouble fieldofview;
+extern int found_vp;
+extern struct pt ViewerUpvector;
+extern struct sNaviInfo naviinfo;

@@ -878,12 +878,19 @@ sub make_backend {
 
  		$be->set_vp_sub(
  			sub {
+				print "set_vp_sub start\n";
  				my $b = $this->get_browser();
  				my $vn = $b->get_vp_node();
  				my $vs = $b->get_vp_scene();
  				return if (!defined $vn);
+				print "set_vp_sub, vs $vs\n";
+				# send an unbind of current viewpoint
+ 				$vs->{EventModel}->send_set_bind_to($vn, 0);
  				$b->set_next_vp();
- 				$vs->{EventModel}->send_event_to($vn, set_bind, 1);
+ 				my $vn = $b->get_vp_node();
+				# and send a bind of the next viewpoint
+ 				$vs->{EventModel}->send_set_bind_to($vn, 1);
+				print "set_vp_sub end\n";
  			}
  		);	
 	}
@@ -1090,7 +1097,7 @@ sub init_events {
 	if ($bind) {
 		for (keys %{$this->{Bindable}}) {
 			print "\tINIT Bindable '$_'\n" if $VRML::verbose::scene;
-			$eventmodel->send_event_to($this->{Bindable}{$_}, set_bind, 1);
+			$eventmodel->send_set_bind_to($this->{Bindable}{$_}, 1);
 		}
 	}
 	$eventmodel->put_events(\@e);
@@ -1107,75 +1114,5 @@ sub update_routing {
 }
 
 
-sub set_bind {
-    my ($this, $node, $value, $time) = @_;
-    my $t = $node->{TypeName};
-    my $s = ($this->{Stack}{$t} or $this->{Stack}{$t} = []);
-    print "\nVRML::Scene::set_bind $this\n\t($node $t $value),\n\tSTACK #: $#$s\n"
-		if $VRML::verbose::bind;
-    if ($value) {
-		print "\tScene: BINDING IT!\n"
-			if $VRML::verbose::bind;
-		if ($#$s != -1) {  # Do we have a stack?
-
-			if ($node == $s->[-1]) {
-				print("Scene: Bind node is top of stack...\n")
-					if $VRML::verbose::bind;
-				return; ## JAS - according to the book, do nothing.
-			}
-
-			my $i;
-			for (0..$#$s) {
-				if ($s->[$_] == $node) {$i = $_}
-			}
-
-			print "\tScene: WAS AS '$i'\n" if $VRML::verbose::bind;
-
-			$s->[-1]->{RFields}{isBound} = 0;
-			if ($s->[-1]->{Type}{Actions}{WhenUnBound}) {
-				&{$s->[-1]->{Type}{Actions}{WhenUnBound}}($s->[-1], $this);
-			}
-
-			splice(@$s, $i, 1) if (defined $i);
-		}
-
-		$node->{RFields}{bindTime} = $time if ($t eq "Viewpoint");
-		$node->{RFields}{isBound} = 1;
-		if ($node->{Type}{Actions}{WhenBound}) {
-			&{$node->{Type}{Actions}{WhenBound}}($node, $this,0);
-		}
-
-		print "\tScene: PUSHING $node on @{$s}\n" if $VRML::verbose::bind;
-		push @$s, $node;
-		print "\tScene: ..... is @{$s}\n" if $VRML::verbose::bind;
-    } else {
-		# We're unbinding a node.
-		print "\tScene: UNBINDING IT!\n" if $VRML::verbose::bind;
-		if ($node == $s->[-1]) {
-			print "\tScene: WAS ON TOP!\n" if $VRML::verbose::bind;
-			$node->{RFields}{isBound} = 0;
-			if ($node->{Type}{Actions}{WhenUnBound}) {
-				&{$node->{Type}{Actions}{WhenUnBound}}($node, $this);
-			}
-
-			pop @$s;
-			if (@$s) {
-				$s->[-1]->{RFields}{isBound} = 1;
-				$s->[-1]->{RFields}{bindTime} = $time if ($t eq "Viewpoint");
-				if ($s->[-1]->{Type}{Actions}{WhenBound}) {
-					&{$s->[-1]->{Type}{Actions}{WhenBound}}($s->[-1], $this,1);
-				}
-			}
-		} else {
-			my $i;
-			for (0..$#$s) {
-				if ($s->[$_] == $node) {$i = $_}
-			}
-			print "\tScene: WAS AS '$i'\n" if $VRML::verbose::bind;
-			splice(@$s, $i, 1) if (defined $i);
-		}
-		print "\n" if $VRML::verbose::bind;
-    }
-}
 
 1;

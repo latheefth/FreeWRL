@@ -31,7 +31,7 @@ package VRML::NodeType; # Same for internal and external!
 
 my @vps;	# viewpoint Scenes.
 my @vpn;	# viewpoint Nodes.
-my $vpno = 1;
+my $vpno = 0;
 my $globalAudioSource = 0;  # count of audio sources
 my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
 
@@ -59,13 +59,13 @@ sub register_vp {
 sub set_next_vp {
 	$vpno++;
 	if ($vpno > $#vpn) {$vpno = 0;}
-	# print "set_next_vp, next vp to get is number $vpno\n";
+	print "set_next_vp, next vp to get is number $vpno\n";
 }
 
-sub get_vp_node { # print "get_vp_node, returning ", $vpn[$vpno],"\n";
+sub get_vp_node { print "get_vp_node, returning vp $vpno " , $vpn[$vpno],"\n";
 return $vpn[$vpno];}
 
-sub get_vp_scene {# print "get_vp_scene, returning ", $vps[$vpno],"\n";
+sub get_vp_scene {print "get_vp_scene, returning ", $vps[$vpno],"\n";
 return $vps[$vpno];}
 
 
@@ -1631,15 +1631,6 @@ my $protono;
 							   __istemporary.$_ => [SFInt32, 0, exposedField]
 							  )} qw/back front top bottom left right/),
 					   },
-					   {
-						Initialize => sub {
-							my($t,$f,$time,$scene) = @_;
-							for (qw/back front top bottom left right/) {
-								init_image("$_","${_}Url",$t,$f,$scene,0);
-							}
-							return ();
-						}
-					   }
 					  ),
 
 	Viewpoint =>
@@ -1654,42 +1645,6 @@ my $protono;
 						bindTime => [SFTime, -1, eventOut],
 						isBound => [SFBool, 0, eventOut]
 					   },
-					   {
-
-						Initialize => sub {
-							my($t,$f) = @_;
-							# print "Initialize - viewpoint\n";
-							return ();
-						},
-
-						WhenBound => sub {
-							my($t,$scene,$revealed) = @_;
-							# print "\nstart of WhenBound\n";
-							#  print "VP_BOUND t $t scene $scene revealed $revealed\n";
-							#  print "VP_BOUND!\n" if $VRML::verbose::bind;
-							#  print "ref t ", ref $t,"\n";
-							#  print "ref t backend ", ref $t->{BackEnd},"\n";
-							#  print "t backend ", $t->{BackEnd},"\n";
-							#  print "ref t backnode ", ref $t->{BackNode},"\n";
-							#  print "t backNode ", $t->{BackNode},"\n";
-							#  print "ref t protoexp ", ref $t->{ProtoExp},"\n";
-							#  print "t protoexp ", $t->{ProtoExp},"\n";
-							# print "END of WhenBound\n";
-
-							$t->{BackEnd}->bind_viewpoint($t,
-														  ($revealed ?
-														   $t->{VP_Info} :
-														   undef));
-							VRML::VRMLFunc::reset_upvector();
-						},
-
-						WhenUnBound => sub {
-							my($t,$scene) = @_;
-							print "VP_UNBOUND!\n" if $VRML::verbose::bind;
-							$t->{VP_Info} =
-								$t->{BackEnd}->unbind_viewpoint($t);
-						}
-					   }
 					  ),
 
 
@@ -1703,18 +1658,6 @@ my $protono;
 						type => [MFString, ["WALK", "ANY"], exposedField],
 						visibilityLimit => [SFFloat, 0, exposedField],
 						isBound => [SFBool, 0, eventOut]
-						# AK - not in spec #bindTime => [SFTime, undef, eventOut]
-					   },
-					   {
-						Initialize => sub { return (); },
-
-						WhenBound => sub {
-							my ($t) = @_;
-							$t->{BackEnd}->bind_navi_info($t);
-							VRML::VRMLFunc::set_naviinfo($t->{Fields}{avatarSize}[0],
-														 $t->{Fields}{avatarSize}[1],
-														 $t->{Fields}{avatarSize}[2]);
-						},
 					   },
 					  ),
 

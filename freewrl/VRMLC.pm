@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.84  2003/05/12 19:02:38  crc_canada
+# Bindables in C, part II
+#
 # Revision 1.83  2003/05/08 17:30:02  crc_canada
 # Missed declaration of saved hitpoint
 #
@@ -1868,25 +1871,6 @@ CODE:
         glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
         glMatrixMode(GL_MODELVIEW);
 
-
-
-void
-set_naviinfo(width,height,step)
-	double width
-	double height
-	double step
-CODE:
-	naviinfo.width = width;
-	naviinfo.height = height;
-	naviinfo.step = step;
-
-void
-reset_upvector()
-CODE:
-    ViewerUpvector.x = 0;
-    ViewerUpvector.y = 0;
-    ViewerUpvector.z = 0;
-
 int
 get_hits(ptr)
 	void *ptr
@@ -2145,6 +2129,17 @@ do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr)
 CODE:
 	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr);
 
+
+#********************************************************************************
+# Send a bind/unbind to this node
+
+void
+do_bind_to (x,outptr,bindValue)
+	char *x
+	void *outptr
+	int bindValue
+CODE:
+	send_bind_to (x,outptr,bindValue);
 
 #********************************************************************************
 # do the events, and events, and events, until no more events triggered

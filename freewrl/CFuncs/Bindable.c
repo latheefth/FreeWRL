@@ -33,15 +33,90 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 #include "LinearAlgebra.h"
 
 /* Bind stack */
-#define MAX_STACK 40
+#define MAX_STACK 20
 int background_tos = -1;
 int fog_tos = -1;
-int navigationinfo_tos = -1;
+int navi_tos = -1;
 int viewpoint_tos = -1;
 unsigned int background_stack[MAX_STACK];
+unsigned int fog_stack[MAX_STACK];
+unsigned int viewpoint_stack[MAX_STACK];
+unsigned int navi_stack[MAX_STACK];
+
+void bind_node (void *node, unsigned int setBindofst,
+			int isboundofst, int *tos, int *stack);
 
 
-/* Do binding for node and stack */
+/* this is called after a Viewpoint bind */
+void reset_upvector() {
+    ViewerUpvector.x = 0;
+    ViewerUpvector.y = 0;
+    ViewerUpvector.z = 0;
+}
+
+/* called when binding NavigationInfo nodes */
+void set_naviinfo(struct VRML_NavigationInfo *node) {
+
+	if (node->avatarSize.n<2) {
+		printf ("set_naviinfo, avatarSize smaller than expected\n");	
+	} else {
+        	naviinfo.width = node->avatarSize.p[0];
+        	naviinfo.height = node->avatarSize.p[1];
+        	naviinfo.step = node->avatarSize.p[2];
+	}
+}
+
+
+
+
+/* send a set_bind event from Perl to this Bindable node */
+void send_bind_to (char *nodetype, void *node, int value) {
+	struct VRML_Background *bg;
+	struct VRML_Fog *fg;
+	struct VRML_NavigationInfo *nv;
+	struct VRML_Viewpoint *vp;
+
+	if (strncmp("Background",nodetype,strlen("Background"))==0) {
+		bg = (struct VRML_Background *) node;
+		bg->set_bind = value;
+		bind_node (node,offsetof (struct VRML_Background,set_bind),
+			offsetof (struct VRML_Background,isBound),
+			&background_tos,&background_stack[0]);
+
+	} else if (strncmp("Viewpoint",nodetype,strlen("Viewpoint"))==0) {
+		vp = (struct VRML_Viewpoint *) node;
+		vp->set_bind = value;
+		bind_node (node,offsetof (struct VRML_Viewpoint,set_bind),
+			offsetof (struct VRML_Viewpoint,isBound),
+			&viewpoint_tos,&viewpoint_stack[0]);
+
+		/* up_vector is reset after a bind */
+		if (value==1) reset_upvector;
+
+	} else if (strncmp("Fog",nodetype,strlen("Fog"))==0) {
+		fg = (struct VRML_Fog *) node;
+		fg->set_bind = value;
+		bind_node (node,offsetof (struct VRML_Fog,set_bind),
+			offsetof (struct VRML_Fog,isBound),
+			&fog_tos,&fog_stack[0]);
+
+	} else if (strncmp("NavigationInfo",nodetype,strlen("NavigationInfo"))==0) {
+		nv = (struct VRML_NavigationInfo *) node;
+		nv->set_bind = value;
+		bind_node (node,offsetof (struct VRML_NavigationInfo,set_bind),
+			offsetof (struct VRML_NavigationInfo,isBound),
+			&navi_tos,&navi_stack[0]);
+
+		if (value==1) set_naviinfo(nv);
+
+	} else {
+		printf ("send_bind_to, cant send a set_bind to %s !!\n",nodetype);
+	}
+}
+
+
+
+/* Do binding for node and stack - works for all bindable nodes */
 
 void bind_node (void *node, unsigned int setBindofst,
 			int isboundofst, int *tos, int *stack) {
@@ -52,6 +127,7 @@ void bind_node (void *node, unsigned int setBindofst,
 	unsigned int *isBoundptr;	/* this nodes isBound */
 	unsigned int *oldboundptr;	/* previous nodes isBound */
 
+	/* setup some variables */
 	setBindptr = node + setBindofst;
 	isBoundptr = node + isboundofst;
 	oldstacktop = stack + *tos;  
@@ -80,18 +156,17 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		/* was there another node at the top of the stack? */
 		if (*tos>0) {
-			/* yep... unbind it */
+			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = *oldstacktop + isboundofst;
 			*oldboundptr = 0;
 	
-			mark_event ((unsigned int) *oldstacktop, isboundofst);
-
 			/* tell the possible parents of this change */
 			update_node(*oldstacktop);
 		}
 	} else {
 		/* POP FROM TOP OF STACK */
 		if (*tos >= 1) {
+			/* stack is not empty */
 			*tos = *tos - 1;
 			newstacktop = stack + *tos;
 		
@@ -99,134 +174,134 @@ void bind_node (void *node, unsigned int setBindofst,
 			isBoundptr = *newstacktop + isboundofst;
 			*isBoundptr = 1;
 
-			mark_event ((unsigned int) *newstacktop, isboundofst);
-
 			/* tell the possible parents of this change */
 			update_node(*newstacktop);
 		}
 	}
-	/* unset the set_bind flag */
+	/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
 	*setBindptr = 100;
 }
 
 void render_Fog (struct VRML_Fog *node) {
+	GLdouble mod[16];
+	GLdouble proj[16];
+	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	GLdouble x,y,z;
+	GLdouble x1,y1,z1;
+	GLdouble sx, sy, sz;
+	int frtlen;
+	GLfloat fog_colour [4];
+	int foglen;
+	char *fogptr;
 
 
-//	/* Fog node... */
-//
-//	GLdouble mod[16];
-//	GLdouble proj[16];
-//	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-//	GLdouble x,y,z;
-//	GLdouble x1,y1,z1;
-//	GLdouble sx, sy, sz;
-//	int frtlen;
-//	GLfloat fog_colour [4];
-//
-//	if(!((this_->isBound))) {return;}
-//	if ($f(visibilityRange) <= 0.00001) return;
-//
-//	fog_colour[0] = $f(color,0);
-//	fog_colour[1] = $f(color,1);
-//	fog_colour[2] = $f(color,2);
-//	fog_colour[3] = 1.0;
-//
-//	glPushMatrix();
-//	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-//	glGetDoublev(GL_PROJECTION_MATRIX, proj);
-//	/* Get origin */
-//	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
-//	glTranslatef(x,y,z);
-//
-//	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
-//	/* Get scale */
-//	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
-//	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-//	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
-//	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-//	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
-//	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-//	/* Undo the translation and scale effects */
-//	glScalef(sx,sy,sz);
-//
-//
-//	/* now do the foggy stuff */
-//	glFogfv(GL_FOG_COLOR,fog_colour);
-//	glFogf(GL_FOG_END,$f(visibilityRange));
-//	if (strcmp("LINEAR",SvPV((this_->fogType),frtlen))) {
-//		glFogi(GL_FOG_MODE, GL_EXP);
-//	} else {
-//		glFogi(GL_FOG_MODE, GL_LINEAR);
-//	}
-//	glEnable (GL_FOG);
-//
-//	glPopMatrix();
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	if (node->set_bind < 100) {
+		bind_node (node,offsetof (struct VRML_Fog,set_bind),
+			offsetof (struct VRML_Fog,isBound),
+			&fog_tos,&fog_stack[0]);
+	}
+
+	if(!node->isBound) return;
+	if (node->visibilityRange <= 0.00001) return;
+
+	fog_colour[0] = node->color.c[0];
+	fog_colour[1] = node->color.c[1];
+	fog_colour[2] = node->color.c[2];
+	fog_colour[3] = 1.0;
+
+	fogptr = SvPV((node->fogType),foglen); 
+	glPushMatrix();
+	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	/* Get origin */
+	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
+	glTranslatef(x,y,z);
+
+	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
+	/* Get scale */
+	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	/* Undo the translation and scale effects */
+	glScalef(sx,sy,sz);
+
+
+	/* now do the foggy stuff */
+	glFogfv(GL_FOG_COLOR,fog_colour);
+	glFogf(GL_FOG_END,node->visibilityRange);
+	if (strncmp("LINEAR",fogptr,foglen)) {
+		glFogi(GL_FOG_MODE, GL_EXP);
+	} else {
+		glFogi(GL_FOG_MODE, GL_LINEAR);
+	}
+	glEnable (GL_FOG);
+
+	glPopMatrix();
 }
 
 void render_NavigationInfo (struct VRML_NavigationInfo *node) {
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	if (node->set_bind < 100) {
+		if (node->set_bind == 1) set_naviinfo(node);
 
-//        if(verbose) printf("NavigationInfo: %d IB: %d..\n",
-//                this_,$f(isBound));
-//        if(!$f(isBound)) {return;}
+		bind_node (node,offsetof (struct VRML_NavigationInfo,set_bind),
+			offsetof (struct VRML_NavigationInfo,isBound),
+			&navi_tos,&navi_stack[0]);
+	}
+
+	if(!node->isBound) return;
 }
 
 void render_Viewpoint (struct VRML_Viewpoint *node) {
+	GLint vp[10];
+	double a1;
+	double angle;
+	float rot[0];
 
-//
-//(join '','
-//	if(render_vp) {
-//		GLint vp[10];
-//		double a1;
-//		double angle;
-//		if(verbose) printf("Viewpoint: %d IB: %d..\n", 
-//			this_,$f(isBound));
-//		if(!$f(isBound)) {return;}
-//
-//		/* stop rendering when we hit A viewpoint or THE viewpoint???
-//		   shouldnt we check for what_vp???? 
-//                   maybe only one viewpoint is in the tree at a time? -  ncoder*/
-//
-//		found_vp = 1; /* We found the viewpoint */
-//
-//		/* These have to be in this order because the viewpoint
-//		 * rotates in its place */
-//		glRotatef(-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
-//			(join ',',map {getf(Viewpoint,orientation,$_)} 0..2),'
-//		);
-//		glTranslatef(',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
-//			0..2),'
-//		);
-//
-//		if (verbose) { 
-//		printf ("Rotation %f %f %f %f\n",
-//		-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
-//			(join ',',map {getf(Viewpoint,orientation,$_)} 0..2),'
-//		);
-//
-//		printf ("Translation %f %f %f\n",
-//		',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
-//			0..2),'
-//		);
-//		}
-//
-//
-//		/* now, lets work on the Viewpoint fieldOfView */
-//		glGetIntegerv(GL_VIEWPORT, vp);
-//		if(vp[2] > vp[3]) {
-//			a1=0;
-//			fieldofview = $f(fieldOfView)/3.1415926536*180;
-//		} else {
-//			a1 = $f(fieldOfView);
-//			a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
-//			fieldofview = a1/3.1415926536*180;
-//		}
-//		/*printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3], a1, fieldofview);*/
-//	}
-//'),
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	if (node->set_bind < 100) {
+		/* up_vector is reset after a bind */
+		if (node->set_bind==1) reset_upvector;
 
+		bind_node (node,offsetof (struct VRML_Viewpoint,set_bind),
+			offsetof (struct VRML_Viewpoint,isBound),
+			&viewpoint_tos,&viewpoint_stack[0]);
+	}
+
+	if(!node->isBound) return;
+
+	/* stop rendering when we hit A viewpoint or THE viewpoint???
+	   shouldnt we check for what_vp???? 
+           maybe only one viewpoint is in the tree at a time? -  ncoder*/
+
+	found_vp = 1; /* We found the viewpoint */
+
+	/* These have to be in this order because the viewpoint
+	 * rotates in its place */
+	rot[0] = node->orientation.r[3]/3.1415926526*180;
+	rot[1] = node->orientation.r[0];
+	rot[2] = node->orientation.r[1];
+	rot[3] = node->orientation.r[2];
+
+	glRotatef(rot[0],rot[1],rot[2],rot[3]);	
+	glTranslatef(node->position.c[0],node->position.c[1],
+			node->position.c[2]); 
+
+	/* now, lets work on the Viewpoint fieldOfView */
+	glGetIntegerv(GL_VIEWPORT, vp);
+	if(vp[2] > vp[3]) {
+		a1=0;
+		fieldofview = node->fieldOfView/3.1415926536*180;
+	} else {
+		a1 = node->fieldOfView;
+		a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
+		fieldofview = a1/3.1415926536*180;
+	}
 }
-
-
 
 void render_Background (struct VRML_Background *node) {
 	GLdouble mod[16];
@@ -261,7 +336,6 @@ void render_Background (struct VRML_Background *node) {
 		bind_node (node,offsetof (struct VRML_Background,set_bind),
 			offsetof (struct VRML_Background,isBound),
 			&background_tos,&background_stack[0]);
-	//	node->set_bind = 100;
 	}
 
 	/* don't even bother going further if this node is not bound on the top */
@@ -334,8 +408,8 @@ void render_Background (struct VRML_Background *node) {
 
 	sc = 20000.0; /* where to put the sky quads */
 	glBegin(GL_QUADS);
-	if(((node->skyColor).n) == 1) {
-		c1 = &(((node->skyColor).p[0]));
+	if(node->skyColor.n == 1) {
+		c1 = &node->skyColor.p[0];
 		va1 = 0;
 		va2 = PI/2; 
 		bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
@@ -357,10 +431,10 @@ void render_Background (struct VRML_Background *node) {
 		}
 	} else {
 		va1 = 0;
-		for(v=0; v<((node->skyColor).n)-1; v++) {
-			c1 = &(((node->skyColor).p[v]));
-			c2 = &(((node->skyColor).p[v+1]));
-			va2 = ((node->skyAngle).p[v]);
+		for(v=0; v<(node->skyColor.n-1); v++) {
+			c1 = &node->skyColor.p[v];
+			c2 = &node->skyColor.p[v+1];
+			va2 = node->skyAngle.p[v];
 			
 			for(h=0; h<hdiv; h++) {
 				ha1 = h * PI*2 / hdiv;
@@ -401,12 +475,12 @@ void render_Background (struct VRML_Background *node) {
 
 
 	/* Do the ground, if there is anything  to do. */
-	if ((node->groundColor).n>0) {
+	if (node->groundColor.n>0) {
 		// JAS sc = 1250.0; /* where to put the ground quads */
 		sc = 12500.0; /* where to put the ground quads */
 		glBegin(GL_QUADS);
-		if(((node->groundColor).n) == 1) {
-			c1 = &(((node->groundColor).p[0]));
+		if(node->groundColor.n == 1) {
+			c1 = &node->groundColor.p[0];
 			bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
 			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 			glColor3f(c1->c[0], c1->c[1], c1->c[2]);
@@ -421,10 +495,10 @@ void render_Background (struct VRML_Background *node) {
 			}
 		} else {
 			va1 = PI;
-			for(v=0; v<((node->groundColor).n)-1; v++) {
-				c1 = &(((node->groundColor).p[v]));
-				c2 = &(((node->groundColor).p[v+1]));
-				va2 = PI - ((node->groundAngle).p[v]);
+			for(v=0; v<node->groundColor.n-1; v++) {
+				c1 = &node->groundColor.p[v];
+				c2 = &node->groundColor.p[v+1];
+				va2 = PI - node->groundAngle.p[v];
 		
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
