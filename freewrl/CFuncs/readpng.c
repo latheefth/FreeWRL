@@ -52,16 +52,6 @@ png_uint_32  width, height;
 int  bit_depth, color_type;
 uch  *image_data = NULL;
 
-//JAS - not required.
-//JAS void readpng_version_info(void)
-//JAS {
-//JAS     fprintf(stderr, "   Compiled with libpng %s; using libpng %s.\n",
-//JAS       PNG_LIBPNG_VER_STRING, png_libpng_ver);
-//JAS     fprintf(stderr, "   Compiled with zlib %s; using zlib %s.\n",
-//JAS       ZLIB_VERSION, zlib_version);
-//JAS }
-
-
 /* return value = 0 for success, 1 for bad sig, 2 for bad IHDR, 4 for no mem */
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight)
@@ -124,61 +114,6 @@ int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight)
 
     return 0;
 }
-
-
-//JAS  -- not required for FreeWRL
-//JAS 
-//JAS /* returns 0 if succeeds, 1 if fails due to no bKGD chunk, 2 if libpng error;
-//JAS  * scales values to 8-bit if necessary */
-//JAS 
-//JAS int readpng_get_bgcolor(uch *red, uch *green, uch *blue)
-//JAS {
-//JAS     png_color_16p pBackground;
-//JAS 
-//JAS 
-//JAS     /* setjmp() must be called in every function that calls a PNG-reading
-//JAS      * libpng function */
-//JAS 
-//JAS     if (setjmp(png_jmpbuf(png_ptr))) {
-//JAS         png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-//JAS         return 2;
-//JAS     }
-//JAS 
-//JAS 
-//JAS     if (!png_get_valid(png_ptr, info_ptr, PNG_INFO_bKGD))
-//JAS         return 1;
-//JAS 
-//JAS     /* it is not obvious from the libpng documentation, but this function
-//JAS      * takes a pointer to a pointer, and it always returns valid red, green
-//JAS      * and blue values, regardless of color_type: */
-//JAS 
-//JAS     png_get_bKGD(png_ptr, info_ptr, &pBackground);
-//JAS 
-//JAS 
-//JAS     /* however, it always returns the raw bKGD data, regardless of any
-//JAS      * bit-depth transformations, so check depth and adjust if necessary */
-//JAS 
-//JAS     if (bit_depth == 16) {
-//JAS         *red   = pBackground->red   >> 8;
-//JAS         *green = pBackground->green >> 8;
-//JAS         *blue  = pBackground->blue  >> 8;
-//JAS     } else if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {
-//JAS         if (bit_depth == 1)
-//JAS             *red = *green = *blue = pBackground->gray? 255 : 0;
-//JAS         else if (bit_depth == 2)
-//JAS             *red = *green = *blue = (255/3) * pBackground->gray;
-//JAS         else /* bit_depth == 4 */
-//JAS             *red = *green = *blue = (255/15) * pBackground->gray;
-//JAS     } else {
-//JAS         *red   = (uch)pBackground->red;
-//JAS         *green = (uch)pBackground->green;
-//JAS         *blue  = (uch)pBackground->blue;
-//JAS     }
-//JAS 
-//JAS     return 0;
-//JAS }
-//JAS 
-//JAS 
 
 
 /* display_exponent == LUT_exponent * CRT_exponent */
@@ -264,8 +199,6 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
 
     free(row_pointers);
     row_pointers = NULL;
-
-    //JAS png_read_end(png_ptr, NULL);
 
     return image_data;
 }
