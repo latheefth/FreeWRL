@@ -49,7 +49,7 @@ sub open_browser {
 			$testpath =  "$_/VRML/fonts";
 			if (-e "$testpath/Baubodi.ttf") {
 				VRML::VRMLFunc::save_font_path($testpath);
-				print "found font path at $testpath\n";
+				# print "found font path at $testpath\n";
 				return;
 			}
 		}
