@@ -31,16 +31,18 @@ sub copy {
 
 sub make_executable {
 	my ($this, $obj) = @_;
+
 	$this->{Node}->make_executable($obj);
 }
 
 sub make_backend {
 	my ($this, $be, $parentbe) = @_;
-	
-	print "VRML::DEF::make_backend: ",
-		VRML::Debug::toString($this),
-				", $this->{Node}{TypeName}\n"
-					if $VRML::verbose::be;
+
+	if ($VRML::verbose::be) {
+		my ($package, $filename, $line) = caller;
+		print "VRML::DEF::make_backend: ", VRML::Debug::toString(\@_),
+			" from $package, $line\n";
+	}
 
 	# use the node's make_backend
 	return $this->{Node}->make_backend($be, $parentbe);
@@ -79,10 +81,7 @@ sub as_string {
 sub gather_defs {
 	my ($this, $parentnode) = @_;
 
-	#JAS - this is not the DEF we want $parentnode->{DEF}{$this->{Name}} = $this->get_ref();
-
-	my $real = $this->{Node};
-	$real->gather_defs($parentnode);
+	$this->{Node}->gather_defs($parentnode);
 }
 	
 sub dump {

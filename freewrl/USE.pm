@@ -31,15 +31,20 @@ sub make_executable {}
 
 sub set_used {
     my ($this, $name, $node) = @_;
+	print "VRML::USE::set_used: ", VRML::Debug::toString(\@_), "\n"
+		if $VRML::verbose::scene;
     $this->{DEFName} = $name;
     $this->{DEFNode} = $node;
 }
 
 sub make_backend {
     my ($this, $be, $parentbe) = @_;
-    print "VRML::USE::make_backend $this $this->{DEFName} ",
-		VRML::NodeIntern::dump_name($this->{DEFNode}{Node}), ":\n" 
-				if $VRML::verbose::be;
+
+	if ($VRML::verbose::be) {
+		my ($package, $filename, $line) = caller;
+		print "VRML::USE::make_backend: ", VRML::Debug::toString(\@_),
+			" from $package, $line\n";
+	}
 
     if ($this->{DEFNode}{Node}{BackNode}) {
 		print "\tusing $this->{DEFName}{Node}'s BackNode.\n"
@@ -74,7 +79,7 @@ sub real_node {
     return $this->{DEFNode}->real_node();
 }
 
-sub initialize {()}
+sub initialize { return (); }
 
 sub as_string {
 	my ($this) = @_;
