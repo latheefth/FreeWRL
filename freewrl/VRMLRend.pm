@@ -20,11 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.54  2002/05/02 15:05:39  crc_canada
-# Changed PointSet color/points algorithm to only warn if less colors
-# exist than are needed, and to then ignore colors. Previous behaviour
-# was to die if colors existed, and not the same number of color coords
-# as points existed.
+# Revision 1.55  2002/05/06 16:44:20  crc_canada
+# initial MovieTexture work
 #
 # Revision 1.53  2002/05/01 15:13:11  crc_canada
 # Fog support
@@ -1034,6 +1031,38 @@ PixelTexture => ('
 		GL_NEAREST);
 '),
 
+
+MovieTexture => '
+	unsigned char *ptr;
+
+	int temp;
+
+	/* for shape display list redrawing */
+
+	if (this_->_myshape ==0) {
+		/* create the textures first time through. We dont want
+		   to do this for every frame. This might be a bug, as maybe
+		   the user will want to select different movies. */
+	
+		for (temp = 0; temp < (this_->__texture).n; temp++) {
+	 		ptr = SvPV(((this_->__data).p[temp]),PL_na);
+			glBindTexture (GL_TEXTURE_2D, (this_->__texture).p[temp]);
+			do_texture ((this_->__depth), (this_->__x), (this_->__y), 
+				ptr,
+				((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
+				((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
+				GL_LINEAR);
+		}
+	} else {
+		last_bound_texture = (this_->__texture).p[this_->__ctex];
+		
+	}
+
+	this_->_myshape = last_visited_shape; 
+
+',
+
+
 # Fog node ... Nothing here
 Fog => '
 	/* Fog node... */
@@ -1086,9 +1115,7 @@ Fog => '
 
 	glPopMatrix();
  ',
-     
-# MovieTexture ... Nothing here
-MovieTexture => ' ',
+
 
 # Sound ... Nothing here
 Sound => ' ',
@@ -2010,6 +2037,7 @@ Billboard => (join '','
 		/* Now, do the geometry */
 		render_node((this_->geometry));
 
+		
 		if ((render_geom) && (!render_sensitive)) {
 			if (this_->_dlchange == this_->_change) {
 				/* premature ending of dlists */
