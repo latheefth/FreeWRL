@@ -57,7 +57,10 @@ sub print {
 # XXX Softref
 sub add_first {
 	my($this,$node) = @_;
+	print "Events.pm add_first ", VRML::Node::dump_name($node),"\n"
+		if $VRML::verbose::events;
 	$this->{First}{$node} = $node;
+
 }
 
 sub remove_first {
@@ -142,7 +145,8 @@ sub propagate_events {
 	my @ne;
 	my %sent; # to prevent sending twice, always set bit here
 	for(values %{$this->{First}}) {
-		# print "GETFIRST $_\n" if $VRML::verbose::events;
+		print "GETFIRST $_\n" 
+			if $VRML::verbose::events;
 		push @e, $_->get_firstevent($timestamp);
 	}
 	for(@{$this->{Mouse}}) {
