@@ -13,6 +13,10 @@
 '
 /*****begin of Member Extrusion	*/
 /* This code originates from the file VRMLExtrusion.pm */
+
+int tcoordsize;
+int tcindexsize;
+
 int nspi = $f_n(spine);			/* number of spine points	*/
 int nsec = $f_n(crossSection);		/* no. of points in the 2D curve
 					   but note that this is verified
@@ -112,10 +116,10 @@ float *beginVals;
 float *endVals;
 struct SFVec2f *crossSection;
 
-//verbose = 1;
+int Extru_Verbose = 0;
 
 
-if (verbose) printf ("VRMLExtrusion.pm start\n");
+if (Extru_Verbose) printf ("VRMLExtrusion.pm start\n");
 
 /***********************************************************************
  *
@@ -123,6 +127,7 @@ if (verbose) printf ("VRMLExtrusion.pm start\n");
  * one of the NIST tests has this - the pie-shaped convex one
  *
  ************************************************************************/
+
 crossSection     = malloc(sizeof(crossSection)*nsec*2);
 if (!(crossSection)) die ("can not malloc memory for Extrusion crossSection");
 
@@ -131,6 +136,7 @@ if (nsec < 1) {
 } else {
 	int tmp1, temp_indx;
 	int increment, currentlocn;
+
 
 	currentlocn = 0;
 	for (tmp1=0; tmp1<nsec; tmp1++) {
@@ -146,9 +152,11 @@ if (nsec < 1) {
 			    (APPROX(crossSection[currentlocn].c[1],crossSection[temp_indx].c[1]))) {
 				/* maybe we have a closed curve, so points SHOULD be the same */
 				if ((temp_indx != 0) && (tmp1 != (nsec-1))) {
+					//printf ("... breaking; increment = 0\n");
 					increment = 0;
 					break;
 				} else { 
+					//printf ("... we are tubular\n");
 					tubular = 1;
 				}
 			}
@@ -157,14 +165,17 @@ if (nsec < 1) {
 		currentlocn += increment;
 	}
 	
-	if (verbose) printf ("we had nsec %d coords, but now we have %d\n",nsec,currentlocn+1);
-	nsec = currentlocn+1;
+	if (Extru_Verbose) 
+		printf ("we had nsec %d coords, but now we have %d\n",nsec,currentlocn);
+	nsec = currentlocn;
 }
 
 
 /* now that we have removed possible coincident vertices, we can calc ntris */
 ntri = 2 * (nspi-1) * (nsec-1);
 
+
+if (Extru_Verbose) printf ("so, we have ntri %d nspi %d nsec %d\n",ntri,nspi,nsec);
 
 /* check if the spline is closed					*/
 
@@ -173,7 +184,7 @@ if(spine[0].c[0] == spine[nspi-1].c[0] &&
    spine[0].c[2] == spine[nspi-1].c[2]) 
 	circular = 1;
 
-if (verbose) printf ("tubular %d circular %d\n",tubular, circular); 
+if (Extru_Verbose) printf ("tubular %d circular %d\n",tubular, circular); 
  
 
 /************************************************************************
@@ -185,7 +196,7 @@ if($f(beginCap)||$f(endCap)) {
 		die("Only two real vertices in crossSection. Caps not possible!");
 	}
 
-	if(verbose && circular && tubular) {
+	if(Extru_Verbose && circular && tubular) {
 		printf("Spine and crossSection-curve are closed - how strange! ;-)\n");
 		/* maybe we want to fly in this tunnel? Or it is semi 
 		   transparent somehow? It is possible to create
@@ -195,13 +206,14 @@ if($f(beginCap)||$f(endCap)) {
 	if(tubular)	nctri=nsec-2;
 	else		nctri=nsec-1;	
 
-	if (verbose) printf ("nsec = %d, ntri = %d nctri = %d\n",nsec, ntri,nctri);
+	if (Extru_Verbose) printf ("nsec = %d, ntri = %d nctri = %d\n",nsec, ntri,nctri);
 
 		/* check if there are colinear points at the beginning of the curve*/
 	sec=0;
 	while(sec+2<=nsec-1 && 
 		/* to find out if two vectors a and b are colinear, 
 		   try a.x*b.y=a.y*b.x					*/
+
 		APPROX(0,    (crossSection[sec+1].c[0]-crossSection[0].c[0])
 			    *(crossSection[sec+2].c[1]-crossSection[0].c[1])
 			  -  (crossSection[sec+1].c[1]-crossSection[0].c[1])
@@ -255,6 +267,8 @@ norindex= rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri));
 
 /* face normals - one face per quad (ie, 2 triangles) 			*/
 /* have to make sure that if nctri is odd, that we increment by one	*/
+
+
 facenormals = malloc(sizeof(*facenormals)*(rep_->ntri+1)/2);
 
 /* for each triangle vertex, tell me which face(s) it is in		*/
@@ -272,16 +286,23 @@ SCP     = malloc(sizeof(struct SCP)*nspi);
 	die("Not enough memory for Extrusion node triangles... ;(");
 } 
 
-if (HAVETODOTEXTURES) {
+if (HAVETODOTEXTURES) { /* texture mapping "stuff" */
 	int tc = 0;
 
-	if($f(beginCap)) tc += nsec;
-	if($f(endCap)) tc += nsec;
+	if($f(beginCap)) tc += nsec*6; // each tri = 3 vertexes, approx one tri per 2 vertex
+	if($f(endCap)) tc += nsec*6;
 	
 	/* so, we now have to worry about textures. */
 	/* XXX note - this over-estimates; realloc to be exact */
-	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*(rep_->ntri+tc)*3);
-	tcindex  = rep_->tcindex   = malloc(sizeof(*(rep_->cindex))*3*rep_->ntri);
+
+	tcoordsize = ((nsec+(nspi-1)*nsec)+tc)*3; /* size required for sides */
+
+	if (Extru_Verbose) printf ("tcoordsize is %d\n",tcoordsize);
+	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*tcoordsize);
+
+	tcindexsize = rep_->ntri*3;
+	if (Extru_Verbose) printf ("tcindexsize %d\n",tcindexsize);
+	tcindex  = rep_->tcindex   = malloc(sizeof(*(rep_->tcindex))*tcindexsize);
 
 	/* keep around cross section info for tex coord mapping */
 	beginVals = malloc(sizeof(float) * 2 * nsec);
@@ -327,7 +348,7 @@ for(spi=0; spi<nspi;spi++){
 	}
 	if(next_spi<nspi) SCP[next_spi].prev=next_spi-1;
 
-	if(verbose) printf("spi=%d next_spi=%d\n",spi,next_spi); /**/
+	if(Extru_Verbose) printf("spi=%d next_spi=%d\n",spi,next_spi); /**/
 	prev_spi=spi-1;
 	SCP[spi].next=next_spi;
 	SCP[spi].prev=prev_spi;
@@ -344,7 +365,7 @@ for(spi=0; spi<nspi;spi++){
 
 /* calculate the SCPs now...						*/
 
-if (verbose) printf (" SCP[0].next = %d, nspi = %d\n",SCP[0].next,nspi);
+if (Extru_Verbose) printf (" SCP[0].next = %d, nspi = %d\n",SCP[0].next,nspi);
 
 
 if(SCP[0].next==nspi) {
@@ -360,7 +381,7 @@ if(SCP[0].next==nspi) {
 		SCP[spi].z=SCP[0].z;
 	}
 }else{
-	if(verbose) {
+	if(Extru_Verbose) {
 		for(spi=0;spi<nspi;spi++) {
 			printf("SCP[%d].next=%d, SCP[%d].prev=%d\n",
 				spi,SCP[spi].next,spi,SCP[spi].prev);
@@ -375,7 +396,7 @@ if(SCP[0].next==nspi) {
 	t=nspi-1; 
 	while(SCP[t].next==nspi) t--;
 
-	if (verbose)
+	if (Extru_Verbose)
 		printf ("now, spi = %d, t = %d\n",spi,t);
 
 	/* for all but the first + last really different spine vertix	*/
@@ -389,7 +410,7 @@ if(SCP[0].next==nspi) {
 		VEC_FROM_CDIFF(spine[1],spine[0],spp1);
 		VEC_FROM_CDIFF(spine[1],spine[0],spm1);
  		VECCP(spp1,spm1,SCP[1].z);
-		if (verbose) {
+		if (Extru_Verbose) {
 		printf ("just calculated z for spi 0\n");
 		printf("SCP[0].y=[%lf,%lf,%lf], SCP[1].z=[%lf,%lf,%lf]\n",
 			SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
@@ -405,12 +426,12 @@ if(SCP[0].next==nspi) {
 			VEC_FROM_CDIFF(spine[SCP[spi].next],spine[spi],spp1);
 			VEC_FROM_CDIFF(spine[SCP[spi].prev],spine[spi],spm1);
  			VECCP(spp1,spm1,SCP[spi].z);
-			if (verbose) printf ("just calculated z for spi %d\n",spi);
+			if (Extru_Verbose) printf ("just calculated z for spi %d\n",spi);
  		}
 	}
  
  	if(circular) {
-		if (verbose) printf ("we are circular\n");
+		if (Extru_Verbose) printf ("we are circular\n");
  		/* calc y for first SCP				*/
 		VEC_FROM_CDIFF(spine[SCP[0].next],spine[SCP[nspi-1].prev],SCP[0].y); 
  		/* the last is the same as the first */	
@@ -424,7 +445,7 @@ if(SCP[0].next==nspi) {
 		SCP[nspi-1].z=SCP[0].z;	
 		
  	} else {
-		if (verbose) printf ("we are not circular\n");
+		if (Extru_Verbose) printf ("we are not circular\n");
 
  		/* calc y for first SCP				*/
 		VEC_FROM_CDIFF(spine[SCP[0].next],spine[0],SCP[0].y);
@@ -438,7 +459,7 @@ if(SCP[0].next==nspi) {
  		/* z for the last SCP is the same as for the one before the last*/
 		SCP[nspi-1].z=SCP[SCP[nspi-1].prev].z; 
 	
-		if (verbose) {	
+		if (Extru_Verbose) {	
 		printf("SCP[0].y=[%lf,%lf,%lf], SCP[0].z=[%lf,%lf,%lf]\n",
 			SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
 			SCP[0].z.x,SCP[0].z.y,SCP[0].z.z);
@@ -477,14 +498,14 @@ for(spi=0;spi<nspi;spi++) {
 	} else 
 		if(!APPROX(VECSQ(SCP[spi].z),0)) {
 			/* we got the first, fill the previous		*/
-			if(verbose) printf("Found z-Value!\n");
+			if(Extru_Verbose) printf("Found z-Value!\n");
 			for(t=spi-1; t>-1; t--)
 				SCP[t].z=SCP[spi].z;
  			pos_of_last_zvalue=spi;	
 		}
 }
  
-if(verbose) printf("pos_of_last_zvalue=%d\n",pos_of_last_zvalue);
+if(Extru_Verbose) printf("pos_of_last_zvalue=%d\n",pos_of_last_zvalue);
  
  
 /* z axis flipping, if VECPT(SCP[i].z,SCP[i-1].z)<0 			*/
@@ -492,14 +513,14 @@ if(verbose) printf("pos_of_last_zvalue=%d\n",pos_of_last_zvalue);
 for(spi=(circular?2:1);spi<nspi;spi++) {
 	if(VECPT(SCP[spi].z,SCP[spi-1].z)<0) {
 		VECSCALE(SCP[spi].z,-1);
-		if(verbose) 
+		if(Extru_Verbose) 
 		    printf("Extrusion.GenPloyRep: Flipped axis spi=%d\n",spi);
 	}
 } /* for */
 
 /* One case is missing: whole spine is colinear				*/
 if(pos_of_last_zvalue==-1) {
-	if (verbose) printf("Extrusion.GenPloyRep:Whole spine is colinear!\n");
+	if (Extru_Verbose) printf("Extrusion.GenPloyRep:Whole spine is colinear!\n");
 
 	/* this is the default, if we don`t need to rotate		*/
 	spy.x=0; spy.y=1; spy.z=0;	
@@ -521,7 +542,7 @@ if(pos_of_last_zvalue==-1) {
  			
 		/* normalize the non trivial vector */	
 		spylen=1/sqrt(VECSQ(spp1)); VECSCALE(spp1,spylen);
-		if(verbose)
+		if(Extru_Verbose)
 			printf("Reference vector along spine=[%lf,%lf,%lf]\n",
 				spp1.x,spp1.y,spp1.z);
 
@@ -541,7 +562,7 @@ if(pos_of_last_zvalue==-1) {
 					gamma=-gamma;
 			}
 
- 			if(verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
+ 			if(Extru_Verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
 
 			spy.y=-(cos(alpha)*(-sin(gamma)));
 			spy.z=cos(alpha)*cos(gamma);
@@ -565,7 +586,7 @@ if(pos_of_last_zvalue==-1) {
 					gamma=-gamma;
 			}
 
- 			if(verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
+ 			if(Extru_Verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
 			spy.y=-(cos(alpha)*(-sin(gamma)));
 			spy.x=cos(alpha)*cos(gamma);
 			spy.z=sin(alpha);
@@ -585,7 +606,7 @@ if(pos_of_last_zvalue==-1) {
  
 } /* if all colinear */
  
-if(verbose) {
+if(Extru_Verbose) {
 	for(spi=0;spi<nspi;spi++) {
 		printf("SCP[%d].y=[%lf,%lf,%lf], SCP[%d].z=[%lf,%lf,%lf]\n",
 			spi,SCP[spi].y.x,SCP[spi].y.y,SCP[spi].y.z,
@@ -649,16 +670,14 @@ for(spi = 0; spi<nspi; spi++) {
 		point.z = ptz;
 
 
-	   /* texture mapping for caps - keep vals around */
-	   if (HAVETODOTEXTURES) {
-	   	if (spi == 0) { /* begin cap vertices */
-			beginVals[sec*2+0] = ptx;
-			beginVals[sec*2+1] = ptz;
-		   } else if (spi == (nspi-1)) {  /* end cap vertices */
-			endVals[sec*2+0]=ptx;
-			endVals[sec*2+1]=ptz;
-		   } 
-	   }
+	  /* texture mapping for caps - keep vals around */
+	  if (spi == 0) { /* begin cap vertices */
+		beginVals[sec*2+0] = ptx;
+		beginVals[sec*2+1] = ptz;
+	   } else if (spi == (nspi-1)) {  /* end cap vertices */
+		endVals[sec*2+0]=ptx;
+		endVals[sec*2+1]=ptz;
+	   } 
 
 	   coord[(sec+spi*nsec)*3+0] = 
 	    spx.x * point.x + spy.x * point.y + spz.x * point.z
@@ -704,13 +723,13 @@ double u,r,		/* help variables for testing intersection */
 	denominator,	/* ... */
 	numerator;	/* ... */
 
-if(verbose) {
+if(Extru_Verbose) {
 	printf("Coords: \n");
 
 	for(x=0; x<nsec; x++) {
 	 for(z=0; z<nspi; z++) {
 	 	int xxx = 3*(x+z*nsec);
-	 	printf("[%f %f %f] ",
+	 	printf("coord: %d [%f %f %f] ",(x+z*nsec),
 			coord[xxx], coord[xxx+1], coord[xxx+2]);
 	 	
 	 }
@@ -719,6 +738,9 @@ if(verbose) {
 	printf("\n");
 }
 	
+
+/* Now, lay out the spines/sections, and generate triangles */
+
 for(x=0; x<nsec-1; x++) {
   for(z=0; z<nspi-1; z++) {
   A=x+z*nsec;
@@ -736,6 +758,7 @@ for(x=0; x<nsec-1; x++) {
   // printf ("x %d z %d nsec %d nspi %d\n",x,z,nsec,nspi);
 
   if (tubular) {
+	//printf ("tubular, x %d nsec %d this_face %d\n",x,nsec,this_face);
 	if (x==(nsec-2)) {
 		B -=(x+1);
 		C -=(x+1);
@@ -766,7 +789,7 @@ for(x=0; x<nsec-1; x++) {
     	VEC_FROM_COORDDIFF(coord,B,coord,A,ab);
   	VEC_FROM_COORDDIFF(coord,D,coord,C,cd);
 	/* ca=-ac */
-	if(verbose) {
+	if(Extru_Verbose) {
 		printf("ab=[%lf,%lf,%lf],cd=[%lf,%lf,%lf]\n",
 			ab.x,ab.y,ab.z,cd.x,cd.y,cd.z);
 		printf("Orig: %d %d  [%f %f %f] [%f %f %f] (%d, %d, %d) \n",
@@ -795,13 +818,13 @@ for(x=0; x<nsec-1; x++) {
 			} 
 		}
 	} /* else */
-	if(verbose) printf("u=%lf, r=%lf\n",u,r);
+	if(Extru_Verbose) printf("u=%lf, r=%lf\n",u,r);
 	if(u>=0 && u<=1 && r>=0 && r<=1 
 		&& (-ac.x)+u*ab.x==r*cd.x
 		&& (-ac.y)+u*ab.y==r*cd.y
 		&& (-ac.z)+u*ab.z==r*cd.z ) {
 		
-		if(verbose) printf("Intersection found at P=[%lf,%lf,%lf]!\n",
+		if(Extru_Verbose) printf("Intersection found at P=[%lf,%lf,%lf]!\n",
 			coord[A*3]+u*ab.x,
 			coord[A*3+1]+u*ab.y,
 			coord[A*3+2]+u*ab.y
@@ -821,11 +844,9 @@ for(x=0; x<nsec-1; x++) {
   /* first triangle  calculate pointfaces, etc, for this face */
   Elev_Tri(triind*3, this_face, D,A,E, TRUE , rep_, facenormals, pointfaces,ccw);
 
-  if (HAVETODOTEXTURES) {
-		tcindex[triind*3] = Dtex;
-		tcindex[triind*3+2] = Etex;
-		tcindex[triind*3+1] = Atex;
-  }
+  tcindex[triind*3] = Dtex;
+  tcindex[triind*3+2] = Etex;
+  tcindex[triind*3+1] = Atex;
 
   defaultface[triind] = this_face;
   triind++;
@@ -834,12 +855,11 @@ for(x=0; x<nsec-1; x++) {
   /* second triangle - pointfaces, etc,for this face  */
   Elev_Tri(triind*3, this_face, B, C, F, TRUE, rep_, facenormals, pointfaces,ccw);
 
-  if (HAVETODOTEXTURES) {
-		tcindex[triind*3] = Btex;
-		tcindex[triind*3+1] = Ctex;
-		tcindex[triind*3+2] = Ftex;
-  }
+  tcindex[triind*3] = Btex;
+  tcindex[triind*3+1] = Ctex;
+  tcindex[triind*3+2] = Ftex;
 
+  if ((triind*3+2) >= tcindexsize) printf ("Extrusion  - tcindex size too small!\n");
   defaultface[triind] = this_face;
   triind ++; 
   this_face ++;
@@ -886,16 +906,13 @@ if($f(convex)) {
 		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
   			Elev_Tri(triind*3, this_face, 0, x+2, x+1, TRUE , rep_, facenormals, pointfaces,ccw);
   			defaultface[triind] = this_face;
-			if (HAVETODOTEXTURES)
-				Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw);
+			Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw);
 			triind ++;
 		}
 
-		if (HAVETODOTEXTURES) {
-			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
-				beginVals,nsec,rep_);
-			tci_ct+=endpoint-(0+ncolinear_at_begin);
-		}
+		Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+				beginVals,nsec,rep_,tcoordsize);
+		tci_ct+=endpoint-(0+ncolinear_at_begin);
 		triind_start+=endpoint-(0+ncolinear_at_begin);
 		this_face++;
 	} /* if beginCap */
@@ -908,17 +925,16 @@ if($f(convex)) {
 				x+1+(nspi-1)*nsec,x+2+(nspi-1)*nsec,
 				TRUE , rep_, facenormals, pointfaces,ccw);
   			defaultface[triind] = this_face;
-			if (HAVETODOTEXTURES)
-				Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec, 
+			Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec, 
 					x+1+(nspi-1)*nsec, 
 					x+2+(nspi-1)*nsec, rep_,ccw);
 			triind ++;
 		}
 		this_face++;
-		if (HAVETODOTEXTURES)
-			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
-				endVals, nsec, rep_);
+		Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+				endVals, nsec, rep_,tcoordsize);
 	} /* if endCap */
+ 	//for (tmp=0;tmp<tcindexsize; tmp++) printf ("index1D %d tcindex %d\n",tmp,tcindex[tmp]);
 	
 } else 
     if($f(beginCap)||$f(endCap)) { 
@@ -999,7 +1015,7 @@ if($f(convex)) {
 /* if we have tesselated, we MAY have fewer triangles than estimated, so... */
 rep_->ntri=triind;
 
-
+//for (tmp=0;tmp<tcindexsize; tmp++) printf ("index2 %d tcindex %d\n",tmp,tcindex[tmp]);
 /* do normal calculations for the caps here note - no smoothing */
 for (tmp=end_of_sides; tmp<(triind*3); tmp++) {
 	rep_->normal[tmp*3+0] = facenormals[defaultface[tmp/3]].x;
@@ -1009,19 +1025,17 @@ for (tmp=end_of_sides; tmp<(triind*3); tmp++) {
 }
 
 /* do texture mapping calculations for sides */
-if (HAVETODOTEXTURES) {
-	for(sec=0; sec<nsec; sec++) {
-		for(spi=0; spi<nspi; spi++) {
-			//printf ("side texts sec %d spi %d placement %d\n",sec,spi,&tcoord[(sec+spi*nsec)*3]);
-			tcoord[(sec+spi*nsec)*3+0] = (float) sec/(nsec-1);
-			tcoord[(sec+spi*nsec)*3+1] = 0;
-			tcoord[(sec+spi*nsec)*3+2] = (float) spi/(nspi-1);
-		}
-	}	
-}
+for(sec=0; sec<nsec; sec++) {
+	for(spi=0; spi<nspi; spi++) {
+		//printf ("tcoord idx %d tcoordsize %d\n",(sec+spi*nsec)*3+2,tcoordsize);
+		//printf ("side texts sec %d spi %d placement %d\n",sec,spi,&tcoord[(sec+spi*nsec)*3]);
+		tcoord[(sec+spi*nsec)*3+0] = (float) sec/(nsec-1);
+		tcoord[(sec+spi*nsec)*3+1] = 0;
+		tcoord[(sec+spi*nsec)*3+2] = (float) spi/(nspi-1);
+	}
+}	
 
-
-if (verbose) printf ("done, lets free\n");
+if (Extru_Verbose) printf ("done, lets free\n");
 
 /* we no longer need to keep normal-generating memory around */
 free (defaultface);
@@ -1029,19 +1043,16 @@ free (pointfaces);
 free (facenormals);
 free (crossSection);
 
-if (HAVETODOTEXTURES) {
-	free (beginVals); 
-	free (endVals);
-}
+free (beginVals); 
+free (endVals);
 
 
-if(verbose)
+if(Extru_Verbose)
 	printf("Extrusion.GenPloyRep: triind=%d  ntri=%d nctri=%d "
 	"ncolinear_at_begin=%d ncolinear_at_end=%d\n",
 	triind,ntri,nctri,ncolinear_at_begin,ncolinear_at_end);
  
-if(verbose) printf ("end VRMLExtrusion.pm\n");
-//verbose = 0;
+if(Extru_Verbose) printf ("end VRMLExtrusion.pm\n");
 
 /*****end of Member Extrusion	*/
 ';
