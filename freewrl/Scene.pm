@@ -869,8 +869,8 @@ sub newextp {
 	if (!$string) { die "File $protourl was not found"; }
 
         if ($string =~/^<\?xml version/s) {
-                use XML::LibXSLT;
-                use XML::LibXML;
+                eval 'require XML::LibXSLT';
+                eval 'require XML::LibXML';
 
                 my $parser = XML::LibXML->new();
                 my $xslt = XML::LibXSLT->new();
