@@ -12,6 +12,10 @@
  */
 
 #include "OpenGL_Utils.h"
+#ifdef AQUA
+#include <OpenGL.h>
+extern CGLContextObj aqglobalContext;
+#endif
 
 static int now_mapped = 1;		/* are we on screen, or minimized? */
 
@@ -34,6 +38,14 @@ void
 glpOpenGLInitialize()
 {
 	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f, ref = 0.1f;
+        #ifdef AQUA
+        CGLSetCurrentContext(aqglobalContext);
+        aqglobalContext = CGLGetCurrentContext();
+        //printf("OpenGL globalContext %p\n", aqglobalContext);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        #endif
+
 
 	/* Configure OpenGL for our uses. */
 
