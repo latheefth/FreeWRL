@@ -1,7 +1,0 @@
-Cone => new VRML::NodeType ("Cone",
-        {bottomRadius => [SFFloat,1],
-         height => [SFFloat,2],
-         side => [SFBool,1],
-         bottom => [SFBool,1]},
-),
-
