@@ -348,7 +348,7 @@ my @EAIinfo;
 sub EAI_GetNode {
 	my ($nodetoget) = @_;
 
-	# print "\n\nEAI_GetNode, getting $nodetoget\n";
+	#print "\n\nEAI_GetNode, getting $nodetoget\n";
 	# now we change the node into a DEF name.	
 	my $node = VRML::Handles::return_def_name($nodetoget);
 
@@ -547,7 +547,7 @@ sub EAI_LocateNode {
 			if ($fieldname eq $rf) {
 				$realele = $rn;
 				$fieldname = $in;
-				print "realele now is $realele, field $fieldname\n";
+				#print "realele now is $realele, field $fieldname\n";
 				goto FOUNDIT;
 			}
 		}
@@ -587,7 +587,7 @@ sub EAI_GetType {
 	($realele, $fieldname, $direction) = 
 		EAI_LocateNode($nn, $fn, $direct);
 
-	#print "EAI_GetType, locateNode returns $realele, $fieldname, $direction\n";
+		#print "EAI_GetType, locateNode returns $realele, $fieldname, $direction\n";
 
 	# get info from FreeWRL internals.
 	if ($direction =~/eventIn/i) {
@@ -633,6 +633,11 @@ sub EAI_GetType {
 		
 	#print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
 	my $scalaroutptr = $outptr;
+
+	if ($scalaroutptr == 0) {
+		print "FreeWRL:EAI: could not find field '$fn' of ";
+		print "internal node 'NODE$nn'\n";
+	}
 	return ($scalaroutptr, $outoffset, $datalen, $retft, $type); 
 }
 
@@ -763,7 +768,7 @@ package VRML::Handles;
 {
 my %S = ();
 my %DEFNAMES = ();
-my %EAINAMES = ();
+ my %EAINAMES = ();
 
 
 # keep a list of DEFined names and their real names around. Because

@@ -874,8 +874,13 @@ void AddRemoveChildren (
 
 	int counter, c2;
 
+	//printf ("AddRemove Children parent %d tn %d, len %d\n",parent,tn,len);
 	/* if no elements, just return */
 	if (len <=0) return;
+	if ((parent==0) || (tn == 0)) {
+		printf ("Freewrl: AddRemoveChildren, parent and/or field NULL\n");
+		return;
+	}
 
 	oldlen = tn->n;
 	//printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);

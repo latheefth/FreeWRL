@@ -363,10 +363,14 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 			if (retval <= 0) {
 				if (EAIVerbose) 
 					printf ("read_EAI_socket, client is gone! errno %d\n",errno);
-				perror("READ_EAISOCKET");
+				//perror("READ_EAISOCKET");
 				// client disappeared
 				close ((*listenfd));
 				(*listenfd) = -1;
+
+				// And, lets just exit FreeWRL
+				printf ("FreeWRL:EAI socket closed, exiting...\n");
+				doQuit();
 			}
 
 			if (EAIVerbose)
@@ -400,6 +404,9 @@ void handle_EAI () {
 		EAIfailed = !(conEAIorCLASS(0,&sockfd,&listenfd));
 		return;
 	}
+
+	/* have we closed connection? */
+	if (listenfd < 0) return; 
 
 	bufcount2 = 0;
 
