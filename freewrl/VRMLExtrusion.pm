@@ -129,14 +129,16 @@ if (Extru_Verbose)
  *
  ************************************************************************/
 
-crossSection     = malloc(sizeof(crossSection)*nsec*2);
-if (!(crossSection)) die ("can not malloc memory for Extrusion crossSection");
-
+/* is there anything to this Extrusion??? */
 if (nsec < 1) { 
-	printf ("INTERNAL ERROR: Extrusion, crossSection too small\n");
+	rep_->ntri=0;
+	return;
 } else {
 	int tmp1, temp_indx;
 	int increment, currentlocn;
+
+	crossSection     = malloc(sizeof(crossSection)*nsec*2);
+	if (!(crossSection)) die ("can not malloc memory for Extrusion crossSection");
 
 
 	currentlocn = 0;
