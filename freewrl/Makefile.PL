@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "V1.07-pre2";
+$VERSION = "V1.07-pre3";
 
 BEGIN {
  eval "use 5.004";
@@ -170,11 +170,11 @@ for (keys %VRML_CONFIG) {
 
 print OUT ");\n\n";
 chomp ($myconv = `which convert`);
-chomp ($myxsltproc = `which xsltproc`);
+#JAS chomp ($myxsltproc = `which xsltproc`);
 chomp ($pwd = getcwd());
 chomp ($java = `which java`);
 print OUT qq(\$VRML::Browser::CONVERT = "$myconv";\n);
-print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
+#JAS print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_BUILDDIR} = "$pwd";\n\n);
 print OUT "1;\n";
 close OUT;

@@ -43,6 +43,7 @@ public final class FWJavaScript {
 	    EAIout.println(nodeid);
 	    EAIout.println(f);
 	    val.__toPerl(EAIout);
+	    EAIout.println();
 	}
 	touched.clear();
 	EAIout.println("FINISHED "+reqid);
@@ -237,12 +238,11 @@ public final class FWJavaScript {
 	    Node[] nodes = new Node[number];
 
 	    // remember, nodes have a frontend:backend; one is known in Perl, the  
-	    System.out.println ("Java: Create, reading in " + 
-			    number + " nodes");
+	    //System.out.println ("Java: Create, reading in " + number + " nodes");
 	    // other is the C pointer to memory. 
 	    for (int i = 0; i < number; i++)
 		nodes[i] = new Node(""+EAIin.readLine()+":"+EAIin.readLine());
-	    System.out.println ("returning from Java Create");
+	    //System.out.println ("returning from Java Create");
 	    return nodes;
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);

@@ -111,9 +111,12 @@ public class MFFloat extends MField {
     public void __toPerl(PrintWriter out)  throws IOException {
         StringBuffer sb = new StringBuffer("");
         int size = __vect.size();
-	out.print(size);
-        for (int i = 0; i < size; i++)
+	//out.print(size);
+        for (int i = 0; i < size; i++) {
             ((ConstSFFloat) __vect.elementAt(i)).__toPerl(out);
+	    if (i != (size-1)) out.print (", ");
+	}
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

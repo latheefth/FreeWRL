@@ -41,17 +41,17 @@ my %toString = (
 
 
 my %toPerl = (
-	"Bool"   => 'out.println (value);',
-	"Color"  => 'out.println(red+ " "+green+" "+blue);',
-	"Float"  => 'out.println(f);',
-	"Image"  => 'out.println(width+" "+height+" "+components+" "+pixels);',
-	"Int32"  => 'out.println(value);',
-	"Node"   => 'out.println(node._get_nodeid());',
-	"Rotation"  => 'out.println(axisX+" "+axisY+" "+axisZ+" "+angle);',
-	"String" => 'out.println(s);',
-	"Time"   => 'out.println(value);',
-	"Vec2f"  => 'out.println(x + " " + y);',
-	"Vec3f"  => 'out.println(x + " " + y + " " + z);'
+	"Bool"   => 'out.print (value);',
+	"Color"  => 'out.print(red+ " "+green+" "+blue);',
+	"Float"  => 'out.print(f);',
+	"Image"  => 'out.print(width+" "+height+" "+components+" "+pixels);',
+	"Int32"  => 'out.print(value);',
+	"Node"   => 'out.print(node._get_nodeid());',
+	"Rotation"  => 'out.print(axisX+" "+axisY+" "+axisZ+" "+angle);',
+	"String" => 'out.print(s);',
+	"Time"   => 'out.print(value);',
+	"Vec2f"  => 'out.print(x + " " + y);',
+	"Vec3f"  => 'out.print(x + " " + y + " " + z);'
 	    );
 
 my %fromPerl = (
@@ -275,6 +275,7 @@ sub sf_stringfuncs
 
     public void __toPerl(PrintWriter out)  throws IOException {
         $toPerl{$ft}
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2
@@ -484,9 +485,12 @@ sub mf_stringfuncs
     public void __toPerl(PrintWriter out)  throws IOException {
         StringBuffer sb = new StringBuffer("");
         int size = __vect.size();
-	out.print(size);
-        for (int i = 0; i < size; i++)
+	//out.print(size);
+        for (int i = 0; i < size; i++) {
             ((ConstSF$ft) __vect.elementAt(i)).__toPerl(out);
+	    if (i != (size-1)) out.print (", ");
+	}
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

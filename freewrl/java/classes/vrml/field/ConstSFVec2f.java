@@ -47,7 +47,8 @@ public class ConstSFVec2f extends ConstField {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.println(x + " " + y);
+        out.print(x + " " + y);
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

@@ -402,7 +402,10 @@ void do_Oint4 (void *node) {
 	kvin = ((px->keyValue).n);
 	kVs = ((px->keyValue).p);
 
-	if (SEVerbose) printf ("starting do_Oint4\n");
+	if (SEVerbose) 
+		printf ("starting do_Oint4; keyValue count %d and key count %d\n",
+				kvin, kin);
+
 
 	mark_event ((unsigned int) px, offsetof (struct VRML_OrientationInterpolator, value_changed));
 

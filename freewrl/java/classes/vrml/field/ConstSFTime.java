@@ -33,7 +33,8 @@ public class ConstSFTime extends ConstField {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.println(value);
+        out.print(value);
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

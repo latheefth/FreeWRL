@@ -107,7 +107,7 @@ void EAI_send_string(char *str, int lfd){
 	strcat (str,"\n");
 
 	if (EAIVerbose) 
-		printf ("EAI Command returns\n%s(end of command)\n",str);
+		printf ("EAI/CLASS Command returns\n%s(end of command)\n",str);
 
 	//printf ("EAI_send_string, sending :%s:\n",str);
 	n = write (lfd, str, (unsigned int) strlen(str));
@@ -625,19 +625,20 @@ void EAI_parse_commands (char *bufptr) {
 	}
 }
 
-unsigned int EAI_SendEvent (char *ptr) {
+/* an incoming EAI/CLASS event has come in, convert the ASCII characters
+ * to an internal representation, and act upon it */
 
-/*     EAIVerbose = 1; */
-    
+unsigned int EAI_SendEvent (char *ptr) {
 	unsigned char nodetype;
 	unsigned int nodeptr;
 	unsigned int offset;
 	unsigned int scripttype;
 
-	int ival;
-	float fl[10];
-	double tval;
 	unsigned int memptr;
+
+	int len;
+	int MultiElement;
+	char myBuffer[2000];
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
 		friggin do it! ;-) */
@@ -672,70 +673,30 @@ unsigned int EAI_SendEvent (char *ptr) {
 	   code (check out CFuncs/CRoutes.c), except that explicit Javascript calls
 	   are impossible here (this is not javascript!) */
 
+
+	/* convert the ascii string into an internal representation */
+	/* this will return '0' on failure */
+	len = ScanValtoBuffer(1, nodetype - EAI_SFUNKNOWN, 
+			ptr , myBuffer, sizeof(myBuffer));
+
+	if (len == 0) {
+		printf ("EAI_SeneEvent, conversion failure\n");
+		return;
+	}
+
+	MultiElement=FALSE;
 	switch (nodetype) {
-		case EAI_SFBOOL:	{	/* EAI_SFBool */
-			/* printf ("we have a boolean, copy value over string is %s\n",strp); */
-			/* yes, it is <space>TRUE... */
-			if (strncmp(ptr," TRUE",5)== (unsigned int) 0) { ival = 1;
-			} else { ival = 0; }
-
-			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFBOOL,&ival,sizeof(int));
-			else memcpy ((void *)memptr, (void *)&ival,sizeof(int));
-			break;
-		}
-
-		case EAI_SFTIME: {
-			sscanf (ptr,"%lf",&tval);
-			//printf ("EAI_SFTime conversion numbers %f from string %s\n",tval,ptr);
-			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFTIME,&tval,sizeof(double));
-			else memcpy ((void *)memptr, (void *)&tval,sizeof(double));
-			break;
-		}
+		case EAI_SFBOOL:	
+		case EAI_SFTIME: 
 		case EAI_SFNODE:
-		case EAI_SFINT32: {
-			sscanf (ptr,"%d",&ival);
-			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFINT32,&ival,sizeof(int));
-			else memcpy ((void *)memptr, (void *)&ival,sizeof(int));
-			break;
-		}
-		case EAI_SFFLOAT: {
-			sscanf (ptr,"%f",fl);
-			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFFLOAT,&fl,sizeof(float));
-			else memcpy ((void *)memptr, (void *)fl,sizeof(float));
-			break;
-		}
+		case EAI_SFINT32: 
+		case EAI_SFFLOAT: { break; } /* these are all ok, just continue on */
 
-		case EAI_SFVEC2F: {	/* EAI_SFVec2f */
-			sscanf (ptr,"%f %f",&fl[0],&fl[1]);
-			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, fl, sizeof(float)*2);
-			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*2);
-			break;
-		}
-	  case EAI_SFVEC3F:
-	  case EAI_SFCOLOR:
-	    {	/* EAI_SFColor */
-		sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-		if (scripttype)
-		{
-		    if (EAIVerbose)
-		    {
-			printf("Calling Set_one_MultiElementtype: nd %d, off %d, val: %s\n",
-			       (int)nodeptr,(int)offset,ptr);
-		    }
-		    Set_one_MultiElementtype ((int)nodeptr, (int)offset, fl, sizeof(float)*3);
-		}
-		else
-		{
-		    if (EAIVerbose) printf("Copying mem values of fl in memptr: %d\n",memptr);
-		    memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
-		}
-		break;
-	    }
-
-		case EAI_SFROTATION: {
-			sscanf (ptr,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, fl, sizeof(float)*4);
-			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*4);
+	  	case EAI_SFVEC3F:
+	  	case EAI_SFCOLOR:
+		case EAI_SFROTATION: 
+		case EAI_SFVEC2F: {
+			MultiElement=TRUE;
 			break;
 		}
 
@@ -746,10 +707,12 @@ unsigned int EAI_SendEvent (char *ptr) {
 			}
 //xxx			getEAI_MFStringtype ((JSContext *) ScriptControl[actualscript].cx,
 //xxx							 global_return_val,memptr); 
+			len=0;
 			break;
 		}
 
 		case EAI_SFSTRING: {
+			len = 0;
 
 			// this can be handled exactly like a set_one_ECMAtype if it is a script
 		}
@@ -757,12 +720,12 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 		/* a series of Floats... */
 //xxx		case EAI_MFVEC3F:
-//xxx		case EAI_MFCOLOR: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,3); break;}
+//xxx		case EAI_MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,3); break;}
 	  case EAI_MFFLOAT:
 	    {
 		/* Setting of MFFloat when is declared an MFFloat in script*/
 		int elem;
-		float *fl2 =  readMFFloatString(ptr,&elem);
+		float *fl2 =  readMFFloatString(ptr,&elem, MFFLOAT);
 		 
 		if (scripttype)
 		{
@@ -784,15 +747,15 @@ unsigned int EAI_SendEvent (char *ptr) {
 		
 		break;
 	    }
-//xxx		case EAI_MFROTATION: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,4); break;}
-//xxx		case EAI_MFVEC2F: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,2); break;}
+//xxx		case EAI_MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,4); break;}
+//xxx		case EAI_MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,2); break;}
 //xxx		case EAI_MFNODE: {getEAI_MFNodetype (ptr,memptr,CRoutes[route].extra); break;}
 //xxx		case EAI_MFSTRING: {
 //xxx			break;
 //xxx		}
 //xxx
-//xxx		case EAI_MFINT32: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,0); break;}
-//xxx		case EAI_MFTIME: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,5); break;}
+//xxx		case EAI_MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,0); break;}
+//xxx		case EAI_MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,5); break;}
 
 		default: {
                         printf ("unhandled Event :%c: - get code in here\n",nodetype);
@@ -801,9 +764,23 @@ unsigned int EAI_SendEvent (char *ptr) {
 		}
 	}
 
+	/* if we had an error on conversion */
+	if (len == 0) return FALSE;
+
 	if (scripttype) {
+		/* this is a Javascript route, so... */
+		if (MultiElement) {
+			Set_one_MultiElementtype ((int)nodeptr, (int)offset, 
+				myBuffer,len);
+		}else {
+			set_one_ECMAtype((int)nodeptr,(int)offset,
+				nodetype-EAI_SFUNKNOWN, myBuffer,len);
+		}
 		mark_script((int)nodeptr);
 	} else {
+		/* now, do the memory copy */
+		memcpy ((void *)memptr, (void *)myBuffer,len);
+
 		/* if this is a geometry, make it re-render. Some nodes (PROTO interface params w/o IS's) 
 	   	   will have an offset of zero, and are thus not "real" nodes, only memory locations */
 
@@ -812,8 +789,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 		/* if anything uses this for routing, tell it that it has changed */
 		mark_event (nodeptr,offset);
 	}
-
-/* 	EAIVerbose = 0; */
 	return TRUE;
 }
 
@@ -1159,33 +1134,44 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 /* take an ASCII string from the EAI or CLASS, and convert it into
    a memory block */
 
-int ScanValtoString(int len, int type, char *buf, void *memptr) {
-	int xx;
-	
+int ScanValtoBuffer(int len, int type, char *buf, void *memptr, int bufsz) {
+	float *floatptr;
+	int quant;
+
+	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
+	if (bufsz<10) {
+		printf ("cant perform conversion with small buffer\n");
+		return (0);
+	}
+
 	switch (type) {
 	    case SFBOOL:	{	/* SFBool */
 	    	if (strncmp(buf,"true",4)==0) {
 	    		(int *)memptr = 1;
-	    	} else {
-	    		/* printf ("ASSUMED TO BE FALSE\n"); */
-	    		(int *)memptr = 0;
+	    	} else { if (strncmp(buf,"TRUE",4)==0) {
+	    			(int *)memptr = 1;
+			} else {
+	    			(int *)memptr = 0;
+			}
 	    	}	
-		printf("SFBool found!\n");
+		len = sizeof(int);
 	    	break;
 	    }
 
 	    case SFINT32: {
 	    	sscanf (buf,"%d",(int *)memptr);
+		len = sizeof (int);
 	    	break;
 	    }
 	    case SFFLOAT: {
 	    	sscanf (buf,"%f",(float *)memptr);
+		len = sizeof (float);
 	    	break;
 	    }
 
 	    case SFVEC2F: {	/* SFVec2f */
-	    	sscanf (buf,"%f %f",(float*)memptr, 
-				(float*)(memptr+sizeof(float)));
+	    	sscanf (buf,"%f %f",(float*)memptr, (float*)(memptr+sizeof(float)));
+		len = sizeof(float) * 2;
 	    	break;
 	    }
 
@@ -1194,6 +1180,7 @@ int ScanValtoString(int len, int type, char *buf, void *memptr) {
 	    	sscanf (buf,"%f %f %f",(float *)memptr,
 		(float*)(memptr+sizeof(float)),
 		(float*)(memptr+(sizeof(float)*2)));
+		len = sizeof(float) * 3;
 	    	break;
 	    }
 
@@ -1202,20 +1189,57 @@ int ScanValtoString(int len, int type, char *buf, void *memptr) {
 		(float*)(memptr+sizeof(float)),
 		(float*)(memptr+(sizeof(float)*2)),
 		(float*)(memptr+(sizeof(float)*3)));
+		len = sizeof(float) * 4;
 	    	break;
 	    }
 
-	    case SFTIME: 
-	    case SFNODE:
-	    case MFCOLOR: 
-	    case MFFLOAT: 
-	    case MFROTATION: 
-	    case MFVEC2F: 
+	    case SFTIME: {
+		sscanf (buf, "%lf", (double *)memptr);
+		len = sizeof(double);
+		break;
+	    }
+
 	    case MFNODE: 
-	    case MFSTRING: 
 	    case MFINT32:
 	    case MFTIME: 
+	    case SFNODE:
+	    case MFCOLOR:
+	    case MFVEC3F:
+	    case MFFLOAT: 
+	    case MFROTATION: 
+	    case MFVEC2F: {
+		  /* use Alberto Dubuc's MFFloat scanning algorithm */
+		  floatptr = readMFFloatString(buf,&quant,type);
+
+		  /* get how many bytes in the type */
+		  switch (type) {
+	    		case MFTIME: quant = quant * sizeof(double); break;
+	    		case SFNODE:
+	    		case MFNODE: 
+	    		case MFINT32:quant = quant * sizeof(int); break;
+		  	default: quant = quant * sizeof(float); /* turn into byte count */
+		  }
+
+		  len = quant;
+		  //printf ("bufsz is %d, len = %d quant = %d\n",bufsz, len, quant);
+		  if (len > bufsz) {
+			  printf ("Warning, MultiFloat too large, truncating to %d \n",bufsz);
+			  len = bufsz;
+		  } 
+
+		  /* now, copy over the data to the memory pointer passed in */
+		  memcpy (memptr,floatptr,len);
+
+		  /* free the memory malloc'd in Alberto's code */
+		  free (floatptr);
+
+		  break;
+	    }
+
+	    case MFSTRING: 
 	    default: {	printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
+			printf ("complain to the FreeWRL team.\n");
+			printf ("(string is :%s:)\n",buf);
 			     return (0);
 	    }
 	}

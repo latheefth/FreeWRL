@@ -96,7 +96,8 @@ public class SFImage extends Field {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.println(width+" "+height+" "+components+" "+pixels);
+        out.print(width+" "+height+" "+components+" "+pixels);
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

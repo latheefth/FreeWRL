@@ -81,7 +81,8 @@ public class SFRotation extends Field {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.println(axisX+" "+axisY+" "+axisZ+" "+angle);
+        out.print(axisX+" "+axisY+" "+axisZ+" "+angle);
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

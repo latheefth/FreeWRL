@@ -40,7 +40,8 @@
 #endif
 
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
-void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
+void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
+void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar);
 
 /*****************************************
 C Routing Methodology:
@@ -191,6 +192,33 @@ struct FirstStruct {
 struct FirstStruct *ClockEvents = 0;
 int num_ClockEvents = 0;
 
+
+
+/* a Script (JavaScript or CLASS) has given us an event, tell the system of this */
+/* tell this node now needs to redraw  - but only if it is not a script to
+   script route - see CRoutes_Register here, and check for the malloc in that code.
+   You should see that the offset is zero, while in real nodes, the offset of user
+   accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of 
+   the node types, eg, VRML_IndexedFaceSet  the first offset is for VRML_Virt :=)
+*/
+void markScriptResults(int tn, int tptr, int route, int tonode) {
+	if (tptr != 0) {
+		//printf ("can update this node %d %d\n",tn,tptr);
+		update_node((void *)tn);
+	} else {
+		//printf ("skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag);
+	}
+
+	mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
+
+	/* run an interpolator, if one is attached. */
+	if (CRoutes[route].interpptr != 0) {
+		/* this is an interpolator, call it */
+		CRoutesExtra = CRoutes[route].extra; // in case the interp requires it...
+		if (CRVerbose) printf ("script propagate_events. index %d is an interpolator\n",route);
+		CRoutes[route].interpptr((void *)(tonode));
+	}
+}
 
 /****************************************************************************/
 /*									    */
@@ -673,32 +701,23 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /* children field							*/
 /************************************************************************/
 
-void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
+void getMFNodetype (char *strp, struct Multi_Node *tn, int ar) {
 	unsigned int newptr;
-	int oldlen, newlen;
+	int newlen;
 	char *cptr;
 	void *newmal;
 	unsigned int *tmpptr;
 
-	unsigned int *remptr;
-	unsigned int remchild;
-	int num_removed;
-	int counter;
-
 	if (CRVerbose) {
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
-		printf ("getMFNodetype, parent %d has %d nodes currently\n",(int)par,par->n); 
+		printf ("getMFNodetype, parent %d has %d nodes currently\n",(int)tn,tn->n); 
 	}
 
-	/* oldlen = what was there in the first place */
-	oldlen = par->n;
 	newlen=0;
 
 	/* this string will be in the form "[ CNode addr CNode addr....]" */
 	/* count the numbers to add  or remove */
-	if (*strp == '[') {
-		strp++;
-	}
+	if (*strp == '[') { strp++; }
 	while (*strp == ' ') strp++; /* skip spaces */
 	cptr = strp;
 
@@ -710,10 +729,61 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 	}
 	cptr = strp; /* reset this pointer to the first number */
 
+	/* create the list to send to the AddRemoveChildren function */
+	newmal = malloc (newlen*sizeof(unsigned int));
+	tmpptr = newmal;
+	
+	if (newmal == 0) {
+		printf ("cant malloc memory for addChildren");
+		return;
+	}
+	
+	
+	/* scan through the string again, and get the node numbers. */
+	while (sscanf (cptr,"%d", (int *)tmpptr) == 1) {
+		/* skip past this number */
+		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
+		while (*cptr == ' ') cptr++; /* skip spaces */
+		tmpptr = (void *) ((int)tmpptr + sizeof (unsigned int));
+	}
+
+	/* now, perform the add/remove */
+	AddRemoveChildren (tn, newmal, newlen, ar);
+}
+
+/****************************************************************/
+/* Add or Remove a series of children				*/
+/*								*/
+/* pass in a pointer to a node, (see Structs.h for defn)	*/
+/*	a list of node pointers, in memory,			*/
+/*	the length of this list, (ptr size, not bytes)		*/
+/*	and a flag for add or remove 				*/
+/*								*/
+/****************************************************************/
+
+void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) {
+	int oldlen;
+	void *newmal;
+	int num_removed;
+	int *remchild;
+	int *remptr;
+	int *tmpptr;
+
+	int counter, c2;
+
+	/* if no elements, just return */
+	if (len <=0) return;
+
+	oldlen = tn->n;
+	//printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);
+	
 	if (ar != 0) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
+	
+		/* first, set children to 0, in case render thread comes through here */
+		tn->n = 0;
 
-		newmal = malloc ((oldlen+newlen)*sizeof(unsigned int));
+		newmal = malloc ((oldlen+len)*sizeof(unsigned int));
 	
 		if (newmal == 0) {
 			printf ("cant malloc memory for addChildren");
@@ -721,21 +791,18 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 		}
 	
 		/* copy the old stuff over */
-		if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(unsigned int));
+		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(unsigned int));
 	
 		/* set up the C structures for this new MFNode addition */
-		free (par->p);
-		par->p = newmal;
-		par->n = oldlen+newlen;
+		free (tn->p);
+		tn->p = newmal;
 	
+		/* copy the new stuff over */
 		newmal = (void *) ((int) newmal + sizeof (unsigned int) * oldlen);
-	
-		while (sscanf (cptr,"%d", (int *)newmal) == 1) {
-			/* skip past this number */
-			while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
-			while (*cptr == ' ') cptr++; /* skip spaces */
-			newmal = (void *) ((int)newmal + sizeof (unsigned int));
-		}
+		memcpy(newmal,nodelist,sizeof(unsigned int) * len);
+
+		/* and, set the new length */
+		tn->n = len+oldlen;
 
 	} else {
 		/* this is a removeChildren */
@@ -744,32 +811,32 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 		   the parameters */
 
 		num_removed = 0;
-		while (sscanf (cptr,"%d", &remchild) == 1) {
-			/* skip past this number */
-			while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
-			while (*cptr == ' ') cptr++; /* skip spaces */
-
-			remptr = (int *)par->p;
-			for (counter = 0; counter < par->n; counter ++) {
-				if (*remptr == remchild) {
+		remchild = nodelist;
+		for (c2 = 0; c2 < len; c2++) {
+			remptr = (int *)tn->p;
+			for (counter = 0; counter < tn->n; counter ++) {
+				if (*remptr == *remchild) {
 					*remptr = 0;  /* "0" can not be a valid memory address */
 					num_removed ++;
 				}
 				remptr ++;
 			}
+			remchild ++;
 		}
+
+		//printf ("end of finding, num_removed is %d\n",num_removed);
 
 		if (num_removed > 0) {
 			newmal = malloc ((oldlen-num_removed)*sizeof(unsigned int));
 			tmpptr = newmal;
-			remptr = (int *)par->p;
+			remptr = (int *)tn->p;
 			if (newmal == 0) {
 				printf ("cant malloc memory for removeChildren");
 				return;
 			}
 
 			/* go through and copy over anything that is not zero */
-			for (counter = 0; counter < par->n; counter ++) {
+			for (counter = 0; counter < tn->n; counter ++) {
 				if (*remptr != 0) {
 					*tmpptr = *remptr;
 					tmpptr ++;
@@ -777,17 +844,95 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 				remptr ++;
 			}
 
-			free (par->p);
-			par->p = newmal;
-			par->n = oldlen - num_removed;
+			/* now, do the move of data */
+			tn->n = 0;
+			free (tn->p);
+			tn->p = newmal;
+			tn->n = oldlen - num_removed;
 		}
 	}
 }
+	
+		
+/****************************************************************/
+/* a CLASS is returning a Multi-number type; copy this from 	*/
+/* the CLASS to the data structure within the freewrl C side	*/
+/* of things.							*/
+/*								*/
+/* note - this cheats in that the code assumes that it is 	*/
+/* a series of Multi_Vec3f's while in reality the structure	*/
+/* of the multi structures is the same - so we "fudge" things	*/
+/* to make this multi-purpose.					*/
+/* eletype switches depending on:				*/
+/* what the sub clen does in VRMLFields.pm;			*/
+/*  "String" {return -13;} 					*/      
+/*  "Float" {return -14;}        				*/
+/*  "Rotation" {return -15;}     				*/
+/*  "Int32" {return -16;}        				*/
+/*  "Color" {return -17;}        				*/
+/*  "Vec2f" {return -18;}        				*/
+/*  "Vec3f" {return -1;}         				*/
+/*  "Node" {return -10;}         				*/
+/****************************************************************/
 
+void getCLASSMultNumType (char *buf, char bufSize, 
+		struct Multi_Vec3f *tn, int eletype, int addChild) {
+	float f2, f3, f4;
+	int len;
+	int i;
+	char *strp;
+	int elesize;
+
+	/* get size of each element, used for mallocing memory */
+	switch (eletype) {
+		case -13: elesize = sizeof (char); break;	// string
+		case -14: elesize = sizeof (float); break;	// Float
+		case -15: elesize = sizeof(float)*4; break;	// Rotation
+		case -16: elesize = sizeof(int); break;		// Integer
+		case -1:
+		case -17: elesize = sizeof(float)*3; break;	// SFColor, SFVec3f
+		case -18: elesize = sizeof(float)*2; break;	// SFVec2f
+		case -10: elesize = sizeof(int); break;
+		default: {printf ("getCLASSMulNumType - unknown type %d\n",eletype); return;}
+	}
+
+	len = bufSize / elesize;				// convert Bytes into whatever
+
+	//printf ("getmuiltie len %d old len is %d buffSize %d eletype %d\n",len,tn->n,bufSize,eletype);
+	
+	/* now, we either replace the whole data, or we add or remove it if
+	 * this is a Node type. (eg, add/remove child) */
+
+	if (eletype != -10) {
+			
+	
+		/* do we have to realloc memory? */
+		if (len != tn->n) {
+			/* yep... */
+				// printf ("old pointer %d\n",tn->p);
+			tn->n = 0;	/* gets around possible mem problem */
+			if (tn->p != NULL) free (tn->p);
+			tn->p = malloc ((unsigned)(elesize*len));
+			if (tn->p == NULL) {
+				printf ("can not malloc memory in getMultNumType\n");
+				return;
+			}
+		}
+	
+		/* copy memory over */
+		memcpy (tn->p, buf, bufSize);
+	
+		/* and, tell the scene graph how many elements there are in here */
+		tn->n = len;
+	} else {
+		/* this is a Node type, so we need to add/remove children */
+		AddRemoveChildren (tn, buf, len, addChild);
+	}
+}
 
 /****************************************************************/
-/* a script is returning a Multi-number type; copy this from 	*/
-/* the script return string to the data structure within the	*/
+/* a Jscript is returning a Multi-number type; copy this from 	*/
+/* the Jscript return string to the data structure within the	*/
 /* freewrl C side of things.					*/
 /*								*/
 /* note - this cheats in that the code assumes that it is 	*/
@@ -803,16 +948,15 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 /*	5: MFTIME						*/
 /****************************************************************/
 
-void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
+void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	float *fl;
 	int *il;
 	double *dl;
 
 	float f2, f3, f4;
-/* 	int shouldfind; */
-	jsval mainElement/* , subElement */;
-	int len/* , len2 */;
-	int i/* , j */;
+	jsval mainElement;
+	int len;
+	int i;
 	JSString *_tmpStr;
 	char *strp;
 	int elesize;
@@ -824,14 +968,14 @@ void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* rough check of return value */
 	if (!JSVAL_IS_OBJECT(global_return_val)) {
-		if (JSVerbose) printf ("getMultNumType - did not get an object\n");
+		if (JSVerbose) printf ("getJSMultiNumType - did not get an object\n");
 		return;
 	}
 
 	//printf ("getmultielementtypestart, tn %d %#x dest has  %d size %d\n",tn,tn,eletype, elesize);
 
 	if (!JS_GetProperty(cx, (JSObject *)global_return_val, "length", &mainElement)) {
-		printf ("JS_GetProperty failed for \"length\" in getMultNumType\n");
+		printf ("JS_GetProperty failed for \"length\" in getJSMultiNumType\n");
 		return;
 	}
 	len = JSVAL_TO_INT(mainElement);
@@ -839,15 +983,15 @@ void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* do we have to realloc memory? */
 	if (len != tn->n) {
+		tn->n = 0;
 		/* yep... */
 			// printf ("old pointer %d\n",tn->p);
 		if (tn->p != NULL) free (tn->p);
 		tn->p = malloc ((unsigned)(elesize*len));
 		if (tn->p == NULL) {
-			printf ("can not malloc memory in getMultNumType\n");
+			printf ("can not malloc memory in getJSMultiNumType\n");
 			return;
 		}
-		tn->n = len;
 	}
 
 	/* set these three up, but we only use one of them */
@@ -858,7 +1002,7 @@ void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	/* go through each element of the main array. */
 	for (i = 0; i < len; i++) {
 		if (!JS_GetElement(cx, (JSObject *)global_return_val, i, &mainElement)) {
-			printf ("JS_GetElement failed for %d in getMultNumType\n",i);
+			printf ("JS_GetElement failed for %d in getJSMultiNumType\n",i);
 			return;
 		}
 
@@ -877,13 +1021,14 @@ void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			fl++; *fl=f2; fl++; *fl=f3; fl++; *fl=f4; fl++; break;}
 		case 5: {sscanf (strp,"%lf",dl); dl++; break;}
 
-		default : {printf ("getMultNumType unhandled eletype: %d\n",
+		default : {printf ("getJSMultiNumType unhandled eletype: %d\n",
 				eletype);
 			   return;
 			}
 		}
 		
 	}
+	tn->n = len;
 }
 
 
@@ -1166,17 +1311,19 @@ struct fchain;
 
 struct fchain
 {
-    float content;
+    float fcontent;
+    int icontent;
+    double dcontent;
     struct fchain *next;
 };
 
 /*--------------------------------------------------------------------------*/
 /*
- readMFFloatString
+ readMFFloatIntString
 
- Function to read a string with numbers and returning an array of floats.
+ Function to read a string with numbers and returning an array of floats or ints.
  Every string is delimited and cutted when inside is found an alfabetical
- character, or any "control" caracter.
+ character, or any "control" caracter, except for the comma.
 
  Example 1: given the following string: " 1.004 1.005 \n 1.02"
  will be returned: retVal[0] = 1.004, retVal[1] = 1.005
@@ -1184,23 +1331,50 @@ struct fchain
  Example 2: given the following string: " 1.007 1.003 A 1.02"
  will be returned: retVal[0] = 1.007, retVal[1] = 1.003
 
+ Example 3: given the following string: " 1.004, 1.003, \n 1.02"
+ will be returned: retVal[0] = 1.004, retVal[1] = 1.003
+
  */
 
 /*--------------------------------------------------------------------------*/
 
-float  *readMFFloatString(char *input, int *eQty)
+float  *readMFFloatString(char *input, int *eQty, int type)
 {
 
     /*     CRVerbose = 1;  */
     
     float *retVal = NULL;
+    char *retValPtr;
     char  *tptr;
     char  *theSpc = " ";
     char  *token;
     int   count,i = 0;
 
+    int dataSize;
+    int dataType;
+
     struct fchain *theChainHd, *actual;
     theChainHd = actual = NULL;
+
+    /* find the element size and data type */
+    switch (type) {
+	case MFNODE:
+	case SFNODE:	
+		dataSize = sizeof (int);
+		dataType = 1; // see later
+		break; 
+	case MFINT32:
+		dataSize = sizeof(int);
+		dataType = 2; // see later
+		break;
+	case MFTIME:
+		dataSize = sizeof (double);
+		dataType = 3; // see later
+		break;
+	default:
+		dataSize = sizeof (float);
+		dataType = 0;
+    }
 
     token = input;
     while((!iscntrl(*token))&&(!isalpha(*token))) token++;
@@ -1223,8 +1397,15 @@ float  *readMFFloatString(char *input, int *eQty)
 	    
 	    while(NULL != token)
 	    {
-		actual->content = atof(token);
-		if (CRVerbose) printf("Token is: #%s#-, val: %f\n",token,actual->content);
+		switch (dataType) {
+		        case 1:
+				while ((*token != ':') && (*token != ' ')) token++;
+				if (*token==':') *token++;
+			case 2:	actual->icontent = atoi(token); break;
+			case 3:	actual->dcontent = atof(token); break;
+			default:	actual->fcontent = atof(token);
+		}
+		if (CRVerbose) printf("Token is: #%s#-, val: %f\n",token,actual->fcontent);
 		
 		token = strtok(NULL,theSpc);
 		if(NULL != token)
@@ -1240,24 +1421,39 @@ float  *readMFFloatString(char *input, int *eQty)
 		}
 	    }
 	    
+	    /* did we actually find any values? */
 	    if(count > 0)
 	    {
-		retVal = malloc(sizeof(float)*count);
+		/* malloc the return data location */
+		retVal = malloc(dataSize*count);
+		retValPtr = (void *)retVal;
 		
 		actual = theChainHd;
-		retVal[i] = actual->content;
+		/* copy each "element" over to the final location */
+		switch (dataType) {
+		        case 1:
+			case 2:	memcpy((void *)retValPtr,(void *)(&actual->icontent), dataSize); break;
+			case 3:	memcpy((void *)retValPtr,(void *)(&actual->dcontent), dataSize); break;
+			default:memcpy ((void *)retValPtr,(void *)(&actual->fcontent), dataSize);
+		}
+		retValPtr += dataSize;
+
 		if (CRVerbose) printf("Token val: %f, i: %d, count %d\n",retVal[i],i,count);
 		actual = actual->next;
 		free(theChainHd);
-		i++;		
 		while(NULL != actual)
 		{
 		    struct fchain *tmpPtr = actual;
-		    retVal[i] = actual->content;
+		    switch (dataType) {
+		       	case 1:
+			case 2:	memcpy((void *)retValPtr,(void *)(&actual->icontent), dataSize); break;
+			case 3:	memcpy((void *)retValPtr,(void *)(&actual->dcontent), dataSize); break;
+			default:memcpy ((void *)retValPtr,(void *)(&actual->fcontent), dataSize);
+		    }
+		    retValPtr += dataSize;
 		    if (CRVerbose) printf("Token val: %f, i: %d, ptr:%x\n",retVal[i],i,actual);		    		    
 		    actual = actual->next;
 		    free(tmpPtr);
-		    i++;
 		}
 	    }
 	}
@@ -1269,7 +1465,6 @@ float  *readMFFloatString(char *input, int *eQty)
 	count = 0;
     }
 
-    /*     CRVerbose = 0;  */
     *eQty = count;
     return retVal;
 } 
@@ -1727,7 +1922,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		scripts_active = TRUE;
 	}
 
-//JAS	if (CRVerbose) 
+	if (CRVerbose) 
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
 				from, fromoffset, to_count, tonode_str, length, (unsigned)intptr);
 
@@ -2085,10 +2280,10 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 					/* a series of Floats... */
-				case MFCOLOR: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),3); break;}
-				case MFFLOAT: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),1); break;}
-				case MFROTATION: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),4); break;}
-				case MFVEC2F: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),2); break;}
+				case MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),3); break;}
+				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),1); break;}
+				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),4); break;}
+				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),2); break;}
 				case MFNODE: {getMFNodetype (strp,(void *)(tn+tptr),CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
@@ -2096,37 +2291,16 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 					break;
 				}
 
-				case MFINT32: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),0); break;}
-				case MFTIME: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),5); break;}
+				case MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),0); break;}
+				case MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),5); break;}
 
 				default: {	printf("WARNING: unhandled from type %s\n", FIELD_TYPE_STRING(JSparamnames[fptr].type));
 				printf (" -- string from javascript is %s\n",strp);
 				}
 				}
 
-				/* tell this node now needs to redraw  - but only if it is not a script to
-				   script route - see CRoutes_Register here, and check for the malloc in that code.
-				   You should see that the offset is zero, while in real nodes, the offset of user
-				   accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of 
-				   the node types, eg, VRML_IndexedFaceSet  the first offset is for VRML_Virt :=)
-				*/
-				if (tptr != 0) {
-					//printf ("can update this node %d %d\n",tn,tptr);
-					update_node((void *)tn);
-				} else {
-					//printf ("skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag);
-				}
-
-
-				mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
-
-				/* run an interpolator, if one is attached. */
-				if (CRoutes[route].interpptr != 0) {
-					/* this is an interpolator, call it */
-					CRoutesExtra = CRoutes[route].extra; // in case the interp requires it...
-					if (CRVerbose) printf ("script propagate_events. index %d is an interpolator\n",route);
-					CRoutes[route].interpptr((void *)(to_ptr->node));
-				}
+				/* tell this node now needs to redraw */
+				markScriptResults(tn, tptr, route, to_ptr->node);
 			}
 		}
 		route++;
@@ -2146,17 +2320,10 @@ void gatherClassEventOuts (int script) {
 	}
 
 	/* routing table is ordered, so we can walk up to this script */
-	//printf ("debugging: routes for %s\n",
-	//		ScriptControl[script].NodeID);
-
 	startEntry=1;
 	while (CRoutes[startEntry].fromnode<(unsigned)script) startEntry++;
 	endEntry = startEntry;
 	while (CRoutes[endEntry].fromnode == (unsigned)script) endEntry++;
-
-	/* mark that this has given us some stuff... */
-	//mark_event (CRoutes[startEntry].fromnode,CRoutes[startEntry].fnptr);
-
 	//printf ("routing table entries to scan between: %d and %d\n",
 	//		startEntry, endEntry);
 	
@@ -2174,7 +2341,7 @@ char *processThisClassEvent (unsigned int fn,
 		int startEntry, int endEntry, char *buf) {
 	int ctr;
 	char fieldName[MAXJSVARIABLELENGTH];
-	char membuffer[MAXJSVARIABLELENGTH];
+	char membuffer[2000];
 	int thislen; 
 	int thatlen;
 	int entry;
@@ -2186,7 +2353,7 @@ char *processThisClassEvent (unsigned int fn,
 	int fieldType, fieldOffs, fieldLen;
 	 unsigned int memptr;
 
-	//if (CRVerbose) 
+	if (CRVerbose) 
 		printf ("processThisClassEvent, starting at %d ending at %d\nstring %s\n",
 				startEntry, endEntry, buf);
 
@@ -2200,7 +2367,6 @@ char *processThisClassEvent (unsigned int fn,
 	/* copy over the fieldOffset */
 	sscanf (buf, "%d %d %d",&fieldType, &fieldOffs, &fieldLen);
 	while (*buf >= ' ') buf++; if (*buf>'\0') *buf++;
-	//printf ("in  processThisClassEvent, have fieldType %d fieldName %s, fieldOffset %d fieldLen %d\n", fieldType, fieldName, fieldOffs, fieldLen);
 
 	/* find the JSparam name index. */
 	/* note that this does not match types, so if 2 scripts 
@@ -2218,20 +2384,15 @@ char *processThisClassEvent (unsigned int fn,
 	}
 
 	/* scan the ASCII string into memory */
-	len = ScanValtoString(fieldLen, fieldType, buf, membuffer);
-	if ((len > 0) && (fieldOffs>0) && (fn > 0)) {
-		printf ("doing direct copy here for tn, %d toffs,%d len %d\n",
-				fn,fieldOffs,len);
-	         memptr = fn+fieldOffs;
-		memcpy ((void*)memptr, membuffer,len);
-	}
+	len = ScanValtoBuffer(fieldLen, fieldType, buf, membuffer,
+			sizeof(membuffer));
 
-	/* do the copy of the value, if pointer and offset are non-zero */
-	
-	/* now, do any routing for this value */
-	if (entry == -1) {
-		printf ("routing: can not find %s in parameter table\n",
-				fieldName);
+	/* can we do a direct copy here? (ie, is this a USE?) */
+	if ((len > 0) && (fieldOffs>0) && (fn > 0)) {
+	        memptr = fn+fieldOffs;
+		memcpy ((void*)memptr, membuffer,len);
+	} else if (entry == -1) {
+		printf ("routing: can not find %s in parameter table and it is not a USE field\n", fieldName);
 		return (buf);
 	}
 
@@ -2240,26 +2401,39 @@ char *processThisClassEvent (unsigned int fn,
 		return (buf);
 	}
 
-	//printf ("found it in JSparamnames indx %d, type %d\n",entry,
-	//		JSparamnames[entry].type);
-
 	/* go through all routing table entries with this from script/node */
 	for (ctr = startEntry; ctr < endEntry; ctr++) {
-		//printf ("routing table entry, for index %d\n", ctr);
-		
+		//printf ("routing table entry, for index %d start %d end %d paramname %d\n", ctr,
+		//		startEntry, endEntry, entry);
 
 		/* now, for each entry, go through each destination */
-		for (to_counter = 0; to_counter < CRoutes[ctr].tonode_count; to_counter++) {
-			to_ptr = &(CRoutes[ctr].tonodes[to_counter]);
-			tn = (int) to_ptr->node;
-			tptr = (int) to_ptr->foffset;
-
-			//printf ("route, going to copy to %d:%d, len %d\n",
-			//		tn, tptr, len);
-			//
-			memptr = tn+tptr;
+		if (CRoutes[ctr].fnptr == entry) {
+			for (to_counter = 0; to_counter < CRoutes[ctr].tonode_count; to_counter++) {
+				to_ptr = &(CRoutes[ctr].tonodes[to_counter]);
+				tn = (int) to_ptr->node;
+				tptr = (int) to_ptr->foffset;
 	
-			memcpy ((void *)memptr, membuffer,len);
+				//printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
+				//		tn, tptr, len, CRoutes[ctr].len);
+				
+				memptr = tn+tptr;
+		
+				if (CRoutes[ctr].len < 0) {
+					/* this is a MF*node type - the extra field should be 1 for add */
+					getCLASSMultNumType (
+						membuffer, len, (struct Multi_Vec3f *) memptr,
+						CRoutes[ctr].len, CRoutes[ctr].extra);
+				} else {
+					/* simple copy */
+					memcpy ((void *)memptr, membuffer,len);
+				}
+	
+				/* tell the routing table that this CLASS script did something */
+				markScriptResults(tn, tptr, ctr,to_ptr->node);
+			}
+		} else {
+			//printf ("same script %d diff offset %d %d\n",
+			//			CRoutes[ctr].fromnode, CRoutes[ctr].fnptr, entry);
 		}
 	}
 	return buf;
@@ -2296,7 +2470,7 @@ this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
 void sendJScriptEventIn (int num, int fromoffset) {
-printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset);
+	//printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset);
 
 	/* set the parameter */
 	/* see comments in gatherScriptEventOuts to see exact formats */

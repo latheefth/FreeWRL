@@ -52,7 +52,8 @@ public class SFNode extends Field {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.println(node._get_nodeid());
+        out.print(node._get_nodeid());
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

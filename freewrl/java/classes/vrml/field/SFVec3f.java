@@ -88,7 +88,8 @@ public class SFVec3f extends Field {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.println(x + " " + y + " " + z);
+        out.print(x + " " + y + " " + z);
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2

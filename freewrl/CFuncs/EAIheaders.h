@@ -32,6 +32,8 @@
 /* Subtypes - types of data to get from EAI  - we don't use the ones defined in
    headers.h, because we want ASCII characters */
 
+/* KEEP THESE IN STEP WITH THE EQUIVS IN headers.h */
+
 #define	EAI_SFUNKNOWN		'a'
 #define	EAI_SFBOOL		'b'
 #define	EAI_SFCOLOR		'c'

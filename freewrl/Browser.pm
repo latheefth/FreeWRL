@@ -36,6 +36,8 @@ require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
 require 'VRML/Events.pm';
 require 'VRML/Config.pm';
+require 'VRML/X3DParser.pm';
+
 
 if ($VRML::ENV{AS_PLUGIN}) { require 'VRML/PluginGlue.pm'; }
 
@@ -268,28 +270,6 @@ sub setDescription {
 	print "Set description: $desc\n"; ## may do more later
 } # Read the spec: 4.12.10.8 ;)
 
-#JASsub replaceWorld {
-#JAS	# make a new scene, this is very similar to load_string, found
-#JAS	# in this file.
-#JAS
-#JAS	my ($this, $string) = @_;
-#JAS	my @newnodes = ();
-#JAS	my $n;
-#JAS
-#JAS	print "replaceWorld, string is $string\n";
-#JAS
-#JAS	# lets go and create the new node array from the nodes as sent in.
-#JAS	for $n (split(' ',$string)) {
-#JAS		print "looking at element $n " , VRML::Handles::get($n), "\n";
-#JAS		@newnodes = (@newnodes,VRML::Handles::get($n));
-#JAS	}
-#JAS
-#JAS	$this->{Scene}->topnodes(\@newnodes);
-#JAS}
-
-sub loadURL { print "Can't do loadURL yet\n"; }
-
-
 #createVrml common stuff
 sub create_common {
 	my ($this,$f1,$f2,$string) = @_;
@@ -313,18 +293,21 @@ sub create_common {
                 #warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
                 $type = 0;
         }
+
+
+	# call Clayton's X3D parser, if this is an X3D file.
+	# if not, then just call the VRML parser
         if ($type == 1)  {
-               $string = convertX3D($string);
-        }
+		X3D::Parser::parse($scene, $string);
+        } else {
+		VRML::Parser::parse($scene, $string);
+	}
 
-	# end of X3D conversion.
-
-	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
 	$scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
-	$scene->dump(0) ;#JAS if $VRML::verbose::scenegraph;
+	$scene->dump(0) if $VRML::verbose::scenegraph;
 
 	return $ret;
 }
@@ -369,42 +352,6 @@ sub EAI_Route {
 
 	$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
 			$ar , $fn, $ff, $tn, $tf);
-}
-
-#######################################################################
-#
-# X3D Conversion routines.
-#
-#######################################################################
-sub convertX3D {
-	my ($string) = @_;
-
-	# x3d - convert this to VRML.
-        my $lgname = $ENV{LOGNAME};
-        my $tempfile_name = "/tmp/freewrl_xmlConversionFile__";
-        my $tempfile1 = join '', $tempfile_name,$lgname, ,".in";
-        my $tempfile2 = join '', $tempfile_name,$lgname, ,".out";
-
-	# write string to a file for conversion (inefficient, but...)
-	open(fileOUT, ">$tempfile1") or warn("Can't open xml conversion file for writing: $!");
-	print fileOUT "$string\n";
-	close(fileOUT);
-
-	# do the conversion
-	my $cmd = "$VRML::Browser::XSLTPROC -o $tempfile2 $XSLTpath $tempfile1";
-
-        my $status = system ($cmd);
-        warn "X3D conversion problem: $?"
-                        unless $status == 0;
-
-	# read the VRML in.
-	$string = `cat $tempfile2`;  
-
-	# remove the two temporary files
-	unlink ($tempfile1);
-	unlink ($tempfile2);
-
-	return $string;
 }
 
 ################
@@ -472,38 +419,42 @@ sub EAI_GetValue {
 		$fval = $realele->{Scene}{NodeParent}{Fields}{$fieldname};
 	} else {
 		#print "direct type\n";
-		my $nod = $realele->{Type}{FieldTypes}{$fieldname};
-		#print "working on node $realele, type $nod\n";
-		#print "field is ",$realele->{RFields}{$fieldname},"\n";
-		#print "it is: ", $realele->{Type}{FieldTypes}{$fieldname},"\n";
-
-
-		$fval = $realele->{RFields}{$fieldname};
+		#print "value is ",$realele->{Fields}{$fieldname},"\n";
+		if ("VRML::USE" eq ref $realele->{Fields}{$fieldname}) {
+			#print "THIS IS A USE!!\n";
+			$fval = $realele->{Fields}{$fieldname}->real_node();
+		} else {
+			$fval = $realele->{RFields}{$fieldname};
+		}
 		$typename = $realele->{Type}{FieldTypes}{$fieldname};
+		#print "direct, fval $fval, typename $typename\n";
 	}
 
-#	print "after step 1, typename $typename fval $fval",
-#			@{$fval},"\n";
+	#print "after step 1, typename $typename fval $fval",
+	#		@{$fval},"\n";
 
 	# determine whether it is a MF or not. MF's have to return a count as first line.
 	my $mf = substr ($typename, 0, 2);
 	my $nod = substr ($typename, 2, 10);
 	my $retval;
-print"typename $typename\n";
 
 	if ("MF" eq $mf) {
 		my $count = @{$fval};
 		$retval = "".$count."\n"; # add the number of elements here....
+		#print "it is an MF, retval is $retval\n";
 	}
+
+	#print "here in GetValue, fval is $fval\n";
 	if ("ARRAY" eq ref $fval) {
 		# this can be an array - eg, an SFvec3f is an array.
-		#print "GetValue, this is an ARRAY\n";
 		my $val;
 		my $id;
 		my $bn;
 		foreach $val (@{$fval}) {
-			if ("Node" eq $nod) {
-				#print "have to convert $val into a NODE\n";
+			if ("VRML::USE" eq ref $val) {$val = $val->real_node();}
+			if ("VRML::NodeIntern" eq ref $val) {
+				#print "GetValue; have to convert $val into a NODE\n";
+				#my $key; foreach $key (keys(%{$val})) {print "val key $key\n";}
 				$id = VRML::Handles::reserve($val);
 				if (exists $val->{BackNode}{CNode}) {
 					$bn = $val->{BackNode}{CNode};
@@ -521,19 +472,20 @@ print"typename $typename\n";
 		#JAS - remove the last cr
 		chop $retval;
 	} else {
-		if ("Node" eq $nod) {
-				my $bn;
-				#print "have to convert $fval into a NODE\n";
-				my $id = VRML::Handles::reserve($fval);
-				if (exists $fval->{BackNode}{CNode}) {
-					$bn = $fval->{BackNode}{CNode};
-				} else { 
-					$bn = 0;
-				}
+		if ("VRML::USE" eq ref $fval) {$fval = $fval->real_node();}
+		if ("VRML::NodeIntern" eq ref $fval) {
+			my $bn;
+			#print "have to convert $fval into a NODE\n";
+			my $id = VRML::Handles::reserve($fval);
+			if (exists $fval->{BackNode}{CNode}) {
+				$bn = $fval->{BackNode}{CNode};
+			} else { 
+				$bn = 0;
+			}
 
-				#print "handle is $id\n";
-				$id =~ s/^NODE//;
-				$retval = "".$id.":".$bn;
+			#print "handle is $id\n";
+			$id =~ s/^NODE//;
+			$retval = "".$id.":".$bn;
 		} else {
 			$retval = "".$fval;
 		}
@@ -580,9 +532,12 @@ sub EAI_GetType {
 	# is this an IS'd field?
 	my $realele = VRML::Handles::get("NODE$nodenum");
 
-	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{Type} , "\n";
+	#if (exists $realele->{ProtoExp}) {$realele = $realele->{ProtoExp}};
+
 	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{TypeName} , "\n";
 	#my $key; foreach $key (keys(%{$realele})) {print "realele key $key\n";}
+	#my $key; foreach $key (keys(%{$realele->{Fields}})) {print "realele Fields key $key val";
+	#			print $realele->{Fields}{$key},"\n";}
 
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
@@ -596,15 +551,13 @@ sub EAI_GetType {
 		#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
 	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
 	#print "\n\n\n";
+	# print "BROWSER::EAI_GetType now $fieldname\n";
 
-
-	print "BROWSER::EAI_GetType now $fieldname\n";
-
-	if (exists $realele->{Fields}{$fieldname}) {
+	if ((exists $realele->{Fields}{$fieldname}) && ($realele->{Fields}{$fieldname} ne "")) {
 		#print "BROWSER:EAI - field $fieldname exists in node, it is ",
 		#	$realele->{Fields}{$fieldname},"\n";
 	} else {
-		 print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
+		# print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
 		my $ms = $realele->{Scene};		
 		my ($xele, $sc, $in, $rn, $rf);
 
@@ -616,7 +569,7 @@ sub EAI_GetType {
 				if ($fieldname eq $rf) {
 					$realele = $rn;
 					$fieldname = $in;
-					 print "realele now is $realele, field $fieldname\n";
+					#print "realele now is $realele, field $fieldname\n";
 					goto FOUNDIT;
 				}
 			}
@@ -680,7 +633,7 @@ sub EAI_GetType {
 	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
 	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
 		
-	print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
+	#print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
 	my $scalaroutptr = $outptr;
 	return ($scalaroutptr, $outoffset, $datalen, $retft, $type); 
 }
@@ -750,14 +703,6 @@ sub EAI_CreateVrmlFromURL {
 	}
 	return %retval;
 }
-
-#JAS sub EAI_replaceWorld {
-#JAS 	my ($string) = @_;
-#JAS 
-#JAS 	print "BROWSER: replace world with $string\n";
-#JAS 	replaceWorld ($globalBrowser,$string);
-#JAS }
-
 
 #######################################################
 #

@@ -128,8 +128,8 @@ sub resolve_node_cnode {
 	my $fieldtype = "";
 	my $clen = 0;		# length of the data  - check out "sub clength"
 
-	print "\nVRML::EventMachine::resolve_node_cnode: ",
-		VRML::Debug::toString(\@_), "\n" ;
+	#print "\nVRML::EventMachine::resolve_node_cnode: ",
+	#	VRML::Debug::toString(\@_), "\n" ;
 
 	$tmp = VRML::Handles::get($node);
 	if (ref $tmp eq "VRML::NodeIntern") {
@@ -141,10 +141,12 @@ sub resolve_node_cnode {
 			return (0,0,0,0,0);
 		}
 	}
-	#print "handle got $node ",
-	#	($node->{IsProto} ?
-	#	 "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : " is not Proto "),
-	#		 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n";
+	#print "resolve node cnode, node $node, field $field, value ",
+	#$node->{Fields}{$field},"\n";
+		#print "handle got $node ",
+		#($node->{IsProto} ?
+		# "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : " is not Proto "),
+		#	 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n";
 
 	my $f;
 	my @is;
@@ -250,6 +252,8 @@ sub resolve_node_cnode {
 	# ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
 	# eventIns (see VRML97 node reference)
 	# these things have set_xxx and xxx... if we have one of these...
+	#print "node TypeName is ",$node->{TypeName},"\n";
+	
 	if (($node->{TypeName} eq "Extrusion") ||
 	    ($node->{TypeName} eq "ElevationGrid") ||
 	    ($node->{TypeName} eq "GeoElevationGrid") ||
@@ -275,8 +279,11 @@ sub resolve_node_cnode {
 			#print "outptr:outoffset->",$outptr,":",$outoffset,"\n";
 		}
 	} elsif ($proto_node->{TypeName} =~ /script/i) {
+		#print "this is a script node. proto_field is $proto_field\n";
 		$outoffset = VRML::VRMLFunc::paramIndex($proto_field, $proto_node->{Type}{FieldTypes}{$proto_field});
 		$outptr = $proto_node->{scriptInvocationNumber};
+
+		#print "now, this is a script, outptr is $outptr outoffset = $outoffset\n";
 
 		if ($direction eq "eventOut") {
 			$scrpt = 1;
@@ -287,6 +294,7 @@ sub resolve_node_cnode {
 			}
 			# print "PROTO got a script: outptr $outptr, offset $outoffset, scenenum $scenenum\n";
 	} else {
+		#print "here, nothing fancy. node is $node\n";
 		if (!defined $node->{BackNode}) {
 			# check if this node resides within a Javascript invocation...
 			# if so, we have to ensure the equivalence of nodes between 

@@ -56,7 +56,8 @@ public class ConstSFColor extends ConstField {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.println(red+ " "+green+" "+blue);
+        out.print(red+ " "+green+" "+blue);
+	//out.println();
     }
     //public void setOffset(String offs) { this.offset = offs; } //JAS2
     //public String getOffset() { return this.offset; } //JAS2
