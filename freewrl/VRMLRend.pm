@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.82  2002/10/17 23:53:43  crc_canada
+# make it quiet. for sound nodes
+#
 # Revision 1.81  2002/10/17 18:31:09  crc_canada
 # Sound node - have code in here to put a shape in for the max back/front to
 # allow me to glscalef it for ellipses, but the code is commented out, because
@@ -1273,9 +1276,9 @@ Sound => '
 		if (((vec.x >= -this_->maxBack)  && (vec.x <= this_->maxFront)) &&
 		    ((vec.y >= -this_->maxBack)  && (vec.y <= this_->maxFront)) &&
 		    ((vec.z >= -this_->maxBack)  && (vec.z <= this_->maxFront))) {
-			printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
-			-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
-			elipse.x, elipse.y, elipse.z); 
+			//printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
+			//-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
+			//elipse.x, elipse.y, elipse.z); 
 	
 			// note: using vecs, length is always positive - need to work in direction
 			// vector
@@ -1315,14 +1318,14 @@ AudioClip => '
 	sound_from_audioclip = TRUE;
 
 	if (!init) { 
-		printf ("initializing SoundEngine\n");
+		//printf ("initializing SoundEngine\n");
 		init = TRUE;
 		SoundEngineInit();
 	}
 	if (!SoundSourceRegistered(this_->__sourceNumber)) {
-		printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
-			this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
-			filename);
+		//printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
+		//	this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
+		//	filename);
 
 		pitch = this_->pitch;
 		stime = this_->startTime;
