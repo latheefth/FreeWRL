@@ -1515,7 +1515,7 @@ sub mkbe_and_array {
 		}
 	  # } else {
 	# 	print "BackNode already defined\n";
-	 #  }
+	  }
 
 	my $id = VRML::Handles::reserve($c);
 
