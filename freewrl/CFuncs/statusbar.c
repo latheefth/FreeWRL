@@ -25,7 +25,7 @@
 #include "Viewer.h"
 
 extern VRML_Viewer Viewer; //in VRMLC.pm
-void statusbar_position ();
+void statusbar_position (void);
 
 
 int new_status = TRUE; 		// do we need to re-calculate status bar
@@ -46,7 +46,7 @@ void viewpoint_name_status (char *str) {
 	vplen = strlen(str);
 	if (vplen > 20) vplen = 20;
 	else vplen = strlen(str);
-	strncpy (vpname,str,vplen);
+	strncpy (vpname,str,(size_t) vplen);
 	vpname[vplen] = 0; // make sure terminated
 	new_status = TRUE;
 	get_angle = TRUE;
@@ -109,7 +109,7 @@ void render_status () {
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glEnable(GL_LIGHT0);
-        glColor3f(1.0,1.0,1.0);
+        glColor3d(1.0,1.0,1.0);
 
 
 	rep_.ntri = 0;
@@ -139,7 +139,6 @@ void render_status () {
 		0.0,			// max extent
 		1.0,			// spacing
 		0.2,			// size
-		//0x2427,			// Font, etc
 		0x8827,			// Font, etc
 		&rep_);			// pointer to polyrep structure
 
@@ -158,7 +157,6 @@ void statusbar_position () {
 	double len;
 	struct pt dr1r2;
 	struct pt dr2r3;
-	struct pt vec;
 	struct pt nor1,nor2;
 	struct pt ins;
 	static const struct pt yvec = {0,0.05,0};
@@ -169,10 +167,10 @@ void statusbar_position () {
 	GLdouble modelMatrix[16]; 
 	GLdouble projMatrix[16];
 	GLdouble rotx, roty, rotz, rota;
+	GLdouble scaler;
 
-	/* transforms viewers coordinate space into sensors coordinate space. 
-	 * this gives the orientation of the viewer relative to the sensor.   
-	 */
+	scaler = fieldofview/45.0;
+
 	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
@@ -188,7 +186,10 @@ void statusbar_position () {
 	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len);
 	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
 
+
 	//printf("PROX_INT pos : (%f %f %f)\n", t_orig.x, t_orig.y, t_orig.z);
+	//glTranslated (t_orig.x/scaler, t_orig.y/scaler, t_orig.z/scaler);
+	//glTranslated (t_orig.x*scaler, t_orig.y*scaler, t_orig.z*scaler);
 	glTranslated (t_orig.x, t_orig.y, t_orig.z);
 	
 	if(APPROX(dr1r2.z,1.0)) {
@@ -233,4 +234,8 @@ void statusbar_position () {
 	rota =  rota* 3.1415926536*180 / 10.0;
 	//printf("rot: (%f %f %f %f)\n", rota,rotx,roty,rotz);
 	glRotated (rota,rotx,roty,rotz);
+
+	// now, size to fit  squish the characters a bit, place them down from centre a bit...
+	glScaled (scaler*0.75, scaler*1.0, 1.0);
+
 }
