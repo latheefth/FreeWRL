@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.20  2002/07/11 16:21:42  crc_canada
+# ImageTexture fields changed to read in textures by C rather than Perl
+#
 # Revision 1.19  2002/06/21 19:51:54  crc_canada
 # Comma handling in number strings is much better now; previous code would
 # not handle commas when preceeded by a space.
@@ -1034,8 +1037,8 @@ struct SFImage {
   int __x;
   int __y;
   int __depth;
-  unsigned char *__data;
-  int __texture;
+  unsigned char *__data; 	// file name where image resides
+  int __texture; 		// OpenGL texture number
 };
 EOF
 }
