@@ -50,6 +50,7 @@ require 'VRML/Quaternion.pm';
 sub new {
 
 	my($type,$old) = @_;
+
 	my $this = bless {
 	# For our viewpoint
 		Pos => [0,0,10],
@@ -62,6 +63,7 @@ sub new {
 		AntiQuat => new VRML::Quaternion(1,0,0,0),
 		Navi => undef,
 	}, $type;
+
 	if($old) {
 		$this->{Pos} = $old->{Pos};
 		$this->{Quat} = $old->{Quat};
@@ -73,6 +75,7 @@ sub new {
                 $this->{Navi} = VRML::Scene->new_node("NavigationInfo",
                                 VRML::Nodes->{NavigationInfo}{Defaults});
         }
+
 	$this->resolve_pos();
 	return $this;
 }
@@ -321,16 +324,13 @@ sub handle_tick {
 	my($this, $time) = @_;
 
 
-# my $chk_file_date = stat($in_file)->mtime;
-# following uncommented as time on file only change
-# once per second - should change this... 
-
-#JAS if ($in_file_date != $chk_file_date) {
-	# $in_file_date = $chk_file_date;
-	# print "file $in_file updated at $in_file_date\n";
+	# my $chk_file_date = stat($in_file)->mtime;
+	# following uncommented as time on file only change
+	# once per second - should change this... 
 
 	sysopen ($inf, $in_file, O_RDONLY) or 
-		die "Error reading external sensor input file $in_file\n";
+		return;
+
 	$inc = sysread ($inf, $string, 100);
 	close $inf;
 	# printf "String2 length is $inc is $string\n";
@@ -342,11 +342,6 @@ sub handle_tick {
 			substr ($string,35,9), substr ($string,44,9),
 			substr ($string,53,9));
 
-#			my $tr = join ', ',@{$this->{Pos}};
-#			my $rot = join ', ',@{$this->{Quat}->to_vrmlrot()};
-#			print "Fly Viewpoint: [$tr], [$rot]\n";
-#print "this's quat is ",$this->{Quat}->as_str,"\n";
-#JAS}
                 VRML::OpenGL::set_render_frame();
 
 	}
@@ -377,9 +372,15 @@ sub handle {
 		$this->{SQuat} = $this->xy2qua($mx,$my);
 		$this->{OQuat} = $this->{Quat};
 	} elsif($mev eq "DRAG" and $but == 1) {
-		my $q = $this->xy2qua($mx,$my);
-		my $arc = $q->multiply($this->{SQuat}->invert());
-		$this->{Quat} = $arc->multiply($this->{OQuat});
+		if (!defined $this->{SQuat}) { 
+			# we have missed the press
+			$this->{SQuat} = $this->xy2qua($mx,$my);
+			$this->{OQuat} = $this->{Quat};
+		} else {
+			my $q = $this->xy2qua($mx,$my);
+			my $arc = $q->multiply($this->{SQuat}->invert());
+			$this->{Quat} = $arc->multiply($this->{OQuat});
+		}
 	} elsif($mev eq "PRESS" and $but == 3) {
 		$this->{SY} = $my;
 		$this->{ODist} = $this->{Dist};
