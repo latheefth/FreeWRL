@@ -9,7 +9,12 @@ typedef struct OpenGLVTab
 #undef VVAR
 } OpenGLVTab; 
 extern OpenGLVTab *OpenGLVPtr;
+#if defined (__APPLE__)
 #define D_OPENGL extern OpenGLVTab *OpenGLVPtr
+#endif
+#ifndef __APPLE__
+#define D_OPENGL OpenGLVTab *OpenGLVPtr
+#endif
 #define I_OPENGL OpenGLVPtr = (OpenGLVTab *) SvIV(perl_get_sv("VRML::OpenGLVPtr",5));  
 #endif 
 #ifndef OPENGL_NOVIRT
