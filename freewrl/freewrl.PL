@@ -121,8 +121,8 @@ go to this viewpoint) with these values.
 
 Save a snapshot or (with the "-seq" option) start/stop saving a
 sequence of images. By default, snapshots are saved to
-F<freewrl.snap.NNNN.ppm> and sequences to F<freewrl.seq.gif>; see
-options "-ppm", "-seqb" and "-snapb". While saving images, freewrl is
+F<freewrl.snap.NNNN.ppm> and sequences to F<freewrl.seq.mpg>; see
+options "-gif", "-seqb" and "-snapb". While saving images, freewrl is
 slower.
 
 =item h
@@ -336,10 +336,10 @@ Distance between the eyes of the viewer in shutter mode, default 0.06
 Distance between screen and the eyes of the viewer in shutter mode, 
 default 0.8
 
-=item C<-ppm>
+=item C<-gif>
 
-In conjunction of "-seq" only, the sequence will be saved as lots of
-ppm files.
+In conjunction of "-seq" only, the sequence will be saved as an animated gif,
+rather than a mpg file.
 
 =item C<-maximg>
 
@@ -430,9 +430,9 @@ BEGIN {
         $main::snapcnt = 0;	        # Number of snapshots
         @main::saved = ();		# List of [im name, ncols, nrows, im number]
 
-	           			# Options : seq, nogif, maximg
+	           			# Options : seq, convtompg, maximg
         $main::seq =    0  ;
-        $main::nogif =  0  ;
+        $main::convtompg =  0  ;
         $main::maximg = 100;
         $main::seqtmp = "$ENV{HOME}/freewrl_tmp" ;
         $main::seqname = "freewrl.seq" ;
@@ -457,7 +457,7 @@ BEGIN {
 		"eyedist=f"=>\$eyedist_opt,
 		"screendist=f"=>\$screendist_opt,
 		"snapb=s"=>\$snapname_opt,
-		"ppm"=>\$nogif,
+		"gif"=>\$convtompg,
 		"ps"=>\$VRML::DO_PERL,
 		"psout=s"=>\$VRML::script_out_file,
 		"maximg=i"=>\$maximg,
