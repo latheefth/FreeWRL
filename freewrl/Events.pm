@@ -119,6 +119,12 @@ sub propagate_events {
 	push @te, @{$this->{ToQueue}};
 	$this->{Mouse} = [];
 	print "GOT ",scalar(@e)," FIRSTEVENTS ($n n/q)\n" if $VRML::verbose::events;
+
+	# if we have an event, render the back end.
+	if (scalar(@e) > 0) {
+		VRML::OpenGL::set_render_frame();
+	}
+
 	while(1) {
 		my %ep; # All nodes for which ep must be called
 		# Propagate our events as long as they last

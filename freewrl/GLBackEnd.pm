@@ -227,7 +227,12 @@ sub update_scene {
 
 	$this->{Viewer}->handle_tick($time);
 
-	$this->render();
+	if (VRML::OpenGL::get_render_frame() > 0) {
+		$this->render();
+	} else {
+		VRML::OpenGL::BackEndSleep();
+	}
+
 }
 
 sub set_root { $_[0]{Root} = $_[1] }

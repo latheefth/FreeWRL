@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.10  2001/07/31 16:24:13  crc_canada
+# added hooks to only update scene when an event happens (reduces cpu usage)
+#
 # Revision 1.9  2000/11/29 18:46:46  crc_canada
 # add replaceWorld call
 #
@@ -265,6 +268,9 @@ sub handle_input {
 
 
 			$this->{B}->prepare2();
+			# make sure it gets rendered
+			VRML::OpenGL::set_render_frame();
+
 		        $hand->print("RE\n$reqid\n0\n0\n");
 
 		} elsif($str =~ /^SC ([^ ]+) ([^ ]+)$/) { # send SFNode eventIn to node
@@ -352,6 +358,9 @@ sub handle_input {
 		  			$this->{B}->api__sendEvent($node, $field,\@av);
 				}
 			}
+			# make sure it gets rendered
+			VRML::OpenGL::set_render_frame();
+
 		        $hand->print("RE\n$reqid\n0\n0\n");
 		} elsif($str =~ /^SE ([^ ]+) ([^ ]+)$/) { # send eventIn to node
 			my($id, $field) = ($1,$2);
@@ -364,27 +373,8 @@ sub handle_input {
 			my $ft = $node->{Type}{FieldTypes}{$field};
 			my ($x,$FieldType) = $this->{B}->api__getFieldInfo($node,$field);
 
-#JAS	print "VRMLServ.pm, this is $this\n";
-#JAS
-#JAS        my @fields = keys %{$node->{Fields}};
-#JAS        my %f;
-#JAS        for(@fields) {
-#JAS                print "VRMLServ.pm:SE  - iterating field $_\n";
-#JAS                #my $v = $this->{RFields}{$_};
-#JAS                # First, get ISes values
-#JAS		if ("ARRAY" eq ref $node->{Fields}{$_}) {
-#JAS			print @{$node->{Fields}{$_}};
-#JAS 			#print (@{$f{$f}});
-#JAS		} else {
-#JAS			print $node->{Fields}{$_}
-#JAS		};
-#JAS		print",";
-#JAS		print	$node->{FieldTypes}{$_};
-#JAS		print",";
-#JAS		print	$node->{FieldKinds}{$_};
-#JAS		print"\n";
-#JAS	}
-#JAS
+			# make sure it gets rendered
+			VRML::OpenGL::set_render_frame();
 
 			# so, by experiment we have the following:
 			# non-proto, just skip by, use the node as passed in.
@@ -405,22 +395,6 @@ sub handle_input {
 				}		
 			}
 
-        # my @fields = keys %{$node->{Fields}};
-        # my %f;
-        # for(@fields) {
-        #         print "VRMLServ.pm:SE  now, once again... - iterating field $_\n";
-# 		if ("ARRAY" eq ref $node->{Fields}{$_}) {
-# 			print @{$node->{Fields}{$_}};
-#  			#print (@{$f{$f}});
-# 		} else {
-# 			print $node->{Fields}{$_}
-# 		};
-# 		print",";
-# 		print	$node->{FieldTypes}{$_};
-# 		print",";
-# 		print	$node->{FieldKinds}{$_};
-# 		print"\n";
-# 	}
 			if ($ft eq "SFNode"){
 				#print "VRMLServ.pm - doing a SFNode\n";
 				my $child = VRML::Handles::get($v);
