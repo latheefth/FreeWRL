@@ -106,7 +106,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	char * nameptr;
 	int len;
 
-	//printf ("\nsend_bind_to, nodetype %s node %d value %d\n",nodetype,node,value);
+	// printf ("\nsend_bind_to, nodetype %s node %d value %d\n",nodetype,node,value);
 
 	if (strncmp("Background",nodetype,strlen("Background"))==0) {
 		bg = (struct VRML_Background *) node;
@@ -187,7 +187,7 @@ void bind_node (void *node, unsigned int setBindofst,
 	isBoundptr = (unsigned int) node + isboundofst;
 	oldstacktop = stack + *tos;  
 
-	//printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
+	// printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
 	   is not a new push or pop */
@@ -217,12 +217,16 @@ void bind_node (void *node, unsigned int setBindofst,
 		*newstacktop = (unsigned int) node;
 		update_node(*newstacktop);
 
-		/* was there another node at the top of the stack? */
-		if (*tos >= 1) {
+		/* was there another DIFFERENT node at the top of the stack? 
+		   have to check for a different one, as if we are binding to the current 
+		   Viewpoint, then we do NOT want to unbind it, if we do then the current
+		   top of stack Viewpoint is unbound! */
+
+		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = *oldstacktop + isboundofst;
 			*oldboundptr = 0;
-			 //printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
+			 // printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
 	
 			/* tell the possible parents of this change */
 			update_node(*oldstacktop);
@@ -420,7 +424,7 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 	double a1;
        /* GLdouble modelMatrix[16]; */
 
-	//printf ("rvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	// printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		/* up_vector is reset after a bind */
