@@ -493,7 +493,14 @@ void render() {
 		// 5. Blended Nodes 
 
 		if (have_transparency > 0) {
+			// turn off writing to the depth buffer
+			glDepthMask(FALSE);
+
+			// render the blended nodes
 			render_hier((void *)rootNode, VF_Geom | VF_Blend);
+
+			// and turn writing to the depth buffer back on
+			glDepthMask(TRUE);
 			glPrintError("XEvents::render, render_hier(VF_Geom)");
 		}
 	}
