@@ -27,6 +27,11 @@ public class VSFInt32 extends VField
 	value = in.readInt();
     }
 
+    public VSFInt32(int v) 
+    {
+	value = v;
+    }
+
     public void write(DataOutputStream out) throws IOException
     {
 	out.writeInt(value);
