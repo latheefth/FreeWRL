@@ -674,14 +674,12 @@ for(spi = 0; spi<nspi; spi++) {
 	  /* texture mapping for caps - keep vals around */
 	  if (HAVETODOTEXTURES) {
 	  	if (spi == 0) { /* begin cap vertices */
-			//printf ("begin cap vertecies index %d %d \n",
-			sec*2+0, sec*2+1);
+			//printf ("begin cap vertecies index %d %d \n", sec*2+0, sec*2+1);
 
 			beginVals[sec*2+0] = ptx;
 			beginVals[sec*2+1] = ptz;
 	   	} else if (spi == (nspi-1)) {  /* end cap vertices */
-			//printf ("end cap vertecies index %d %d size %d\n",
-			sec*2+0, sec*2+1, 2 * (nsec+1));
+			//printf ("end cap vertecies index %d %d size %d\n", sec*2+0, sec*2+1, 2 * (nsec+1));
 			(float)endVals[(int) (sec*2)+0]=(float)ptx;
 			(float)endVals[(int ) (sec*2)+1]=(float)ptz;
 	   	} 
