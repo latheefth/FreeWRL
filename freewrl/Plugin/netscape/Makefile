@@ -56,7 +56,7 @@ OSNAME:=linux
 ## e.g. $ make DEBUG=1
 ##
 ## Can also override through the Perl module Makefile.PL scripts.
-DEBUG:=1
+DEBUG:=0
 ifeq (${DEBUG},1)
     PLUGIN_DEFINES+=-D_DEBUG
 ##PLUGIN_DEFINES+=-DPLUGIN_TRACE 
