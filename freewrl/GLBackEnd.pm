@@ -107,7 +107,7 @@ sub new {
 	  ) = @_;
 	my $this = bless {}, $type;
 
-	my($w,$h) = (300, 300);
+	my($w,$h) = (450, 300);
 	my $x = 0;
 	my $y = 0;
 	my $wintitle;
@@ -614,12 +614,9 @@ sub setup_projection {
 	      if $VRML::verbose::glsens;
 	    glupPickMatrix($x, $vp[3]-$y, 3, 3, @vp);
 	  }
-	
-	gluPerspective($fieldofview, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 21000.0);
-	glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
-	glMatrixMode(&GL_MODELVIEW);
-        glPrintError("GLBackEnd::setup_projection");
 
+	VRML::VRMLFunc::setup_projection ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W});
+        glPrintError("GLBackEnd::setup_projection");
 }
 
 sub setup_viewpoint {
