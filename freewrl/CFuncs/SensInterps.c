@@ -795,103 +795,133 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, double tick,
 
 
 void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, double tick, int over) {
+	int len, tmp;
+	float tr1sq, tr2sq, tr1tr2;
+	struct SFColor dee, arr, cp, dot;
+	float deelen, aay, bee, cee, und, sol, cl, an;
+/*
+autoOffset => [SFBool, 1, exposedField],
+enabled => [SFBool, 1, exposedField],
+offset => [SFRotation, [0, 1, 0, 0], exposedField],
+isActive => [SFBool, 0, eventOut],
+rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
+trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut]
+*/
 
-/*__mouse__ => sub {
-	my($t, $f, $time, $moved, $button, $over, $pos,
-	   $norm, $texc) = @_;
-	# print "PS_MOUSE: $moved $button $over @$pos @$norm\n";
-	if ($button eq "PRESS") {
-		$t->{OrigPoint} = $pos;
-		$t->{Radius} = $pos->[0] ** 2 +
-			$pos->[1] ** 2 + $pos->[2] ** 2;
-		$f->{isActive} = 1;
-	} elsif ($button eq "RELEASE") {
-		undef $t->{OrigPoint};
-		$t->{isActive} = 0;
-		if ($f->{autoOffset}) {
-			$f->{offset} = $f->{rotation_changed};
+
+	len = strlen(ev);
+
+	if (len == strlen("PRESS")) {
+		/* record the current position from the saved position */
+		memcpy ((void *) &node->_origPoint,
+			(void *) &ray_save_posn,sizeof(struct SFColor));
+
+		/* record the current Radius */
+		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] + 
+			ray_save_posn.c[1] * ray_save_posn.c[1] +
+			ray_save_posn.c[2] * ray_save_posn.c[2];
+	
+		/* set isActive true */
+		node->isActive=1;
+		mark_event ((unsigned int) node, 
+			offsetof (struct VRML_PlaneSensor, isActive));
+
+	} else if (len == strlen("RELEASE")) {
+		/* set isActive false */
+		node->isActive=0;
+		mark_event ((unsigned int) node, 
+			offsetof (struct VRML_PlaneSensor, isActive));
+
+		if (node->autoOffset) {
+			memcpy ((void *) &node->offset,
+				(void *) &node->rotation_changed,
+				sizeof (struct SFRotation));
 		}
-	} elsif ($button eq "DRAG") {
-		# 1. get the point on the plane
-		my $op = $t->{OrigPoint};
-		my $r = $t->{Radius};
-		my $of = $f->{offset};
+	} else if (len == strlen("DRAG")) {
+		/* 1. get the point on the plane */
 
-		my $tr1sq =
-			$pos->[0]**2 +
-			$pos->[1]**2 +
-			$pos->[2]**2;
-		my $tr2sq =
-			$norm->[0]**2 +
-			$norm->[1]**2 +
-			$norm->[2]**2;
-		my $tr1tr2 =
-			$pos->[0]*$norm->[0] +
-			$pos->[1]*$norm->[1] +
-			$pos->[2]*$norm->[2];
-		my @d = map {
-			$norm->[$_] - $pos->[$_]
-		} 0..2;
-		my $dlen =
-			$d[0]**2 +
-			$d[1]**2 +
-			$d[2]**2;
+		tr1sq = hyp_save_posn.c[0] * hyp_save_posn.c[0] + 
+			hyp_save_posn.c[1] * hyp_save_posn.c[1] +
+                        hyp_save_posn.c[2] * hyp_save_posn.c[2];
+		
+		tr2sq = hyp_save_norm.c[0] * hyp_save_norm.c[0] + 
+			hyp_save_norm.c[1] * hyp_save_norm.c[1] +
+                        hyp_save_norm.c[2] * hyp_save_norm.c[2];
 
-		my $a = $dlen;
-		my $b = 2*($d[0]*$pos->[0] +
-				   $d[1]*$pos->[1] +
-				   $d[2]*$pos->[2]);
-		my $c = $tr1sq - $r*$r;
-		$b /= $a;
-		$c /= $a;
+		tr1tr2 = hyp_save_posn.c[0] * hyp_save_norm.c[0] +
+			 hyp_save_posn.c[1] * hyp_save_norm.c[1] +
+			 hyp_save_posn.c[2] * hyp_save_norm.c[2];
 
-		my $und = $b*$b - 4*$c;
-		if ($und >= 0) {
-			my $sol;
-			if ($b >= 0) {
-				$sol = (-$b + sqrt($und)) / 2;
+		for (tmp=0; tmp<3; tmp++) {
+			dee.c[tmp] = hyp_save_norm.c[tmp] - hyp_save_posn.c[tmp];
+		}
+
+		deelen = dee.c[0]*dee.c[0] + dee.c[1]*dee.c[1] + dee.c[2]*dee.c[2];
+
+		aay = deelen;
+		bee = 2*(dee.c[0]*hyp_save_posn.c[0] +
+			 dee.c[1]*hyp_save_posn.c[1] +
+			 dee.c[2]*hyp_save_posn.c[2]);
+		cee = tr1sq - node->_radius * node->_radius;
+		bee = bee/aay;
+		cee = cee/aay;
+
+		und = bee*bee - 4.0*cee;
+
+		if (und >= 0.0) {
+			if (bee >= 0.0)  {
+				sol = (-bee + sqrt(und)) / 2.0;
 			} else {
-				$sol = (-$b - sqrt($und)) / 2;
+				sol = (-bee - sqrt(und)) / 2.0;
 			}
-			my @r = map {
-				$pos->[$_] + $sol * ($norm->[$_] - $pos->[$_])
-			} 0..2;
-			# Ok, now we have the two vectors op
-			# and r, find out the rotation to take 
-			# one to the other.
-			my @cp = (
-					  $r[1] * $op->[2] - $op->[1] * $r[2],
-					  $r[2] * $op->[0] - $op->[2] * $r[0],
-					  $r[0] * $op->[1] - $op->[0] * $r[1],
-					 );
-			my @dot = (
-					   $r[0] * $op->[0],
-					   $r[1] * $op->[1],
-					   $r[2] * $op->[2]
-					  );
-			my $an = atan2((my $cl =
-							$cp[0]**2 +
-							$cp[1]**2 +
-							$cp[2]**2),
-						   $dot[0]**2 +
-						   $dot[1]**2 +
-						   $dot[2]**2);
-			for (@cp) {
-				$_ /= $cl;
-			}
-			$f->{trackPoint_changed} = [@r];
-				
-			# print "QNEW: @cp, $an (R: $r)\n";
-			my $q =
-				VRML::Quaternion->new_vrmlrot(@cp, -$an);
-			# print "QNEW2: @$of\n";
-			my $q2 =
-				VRML::Quaternion->new_vrmlrot(@$of);
 
-			$f->{rotation_changed} =
-				$q->multiply($q2)->to_vrmlrot();
+			for (tmp = 0; tmp < 3; tmp++) {
+				arr.c[tmp] = hyp_save_posn.c[tmp] + 
+					sol * (hyp_save_norm.c[tmp] - hyp_save_posn.c[tmp]);
+			}
+
+			/* Ok, now we have the two vectors _origPoint
+			and arr, find out the rotation to take 
+			one to the other. */
+
+			cp.c[0] = arr.c[1] * node->_origPoint.c[2] - 
+				node->_origPoint.c[1] * arr.c[2];
+			cp.c[1] = arr.c[2] * node->_origPoint.c[0] - 
+				node->_origPoint.c[2] * arr.c[0];
+			cp.c[2] = arr.c[0] * node->_origPoint.c[1] - 
+				node->_origPoint.c[0] * arr.c[1];
+
+			dot.c[0] = arr.c[0] * node->_origPoint.c[0];
+			dot.c[1] = arr.c[1] * node->_origPoint.c[1];
+			dot.c[2] = arr.c[2] * node->_origPoint.c[2];
+
+			cl = cp.c[0]*cp.c[0] + cp.c[1]*cp.c[1] + cp.c[2]*cp.c[2];
+			an = atan2(cl,  dot.c[0]*dot.c[0] + dot.c[1]*dot.c[1] + 
+						dot.c[2]*dot.c[2]);
+
+			for (tmp=0; tmp<3;tmp++) {
+				cp.c[tmp] = cp.c[tmp]/cl;
+			}
+
+			memcpy ((void *)&node->trackPoint_changed, 
+				(void *)&arr, sizeof (struct SFColor));
+			mark_event ((unsigned int) node, 
+				offsetof (struct VRML_SphereSensor, trackPoint_changed));
+
+		printf ("Need C Quaternion rotation to finish this\n");
+
+//			# print "QNEW: @cp, $an (R: $r)\n";
+//			my $q =
+//				VRML::Quaternion->new_vrmlrot(@cp, -$an);
+//			# print "QNEW2: @$of\n";
+//			my $q2 =
+//				VRML::Quaternion->new_vrmlrot(@$of);
+//
+//			$f->{rotation_changed} =
+//				$q->multiply($q2)->to_vrmlrot();
+
+			mark_event ((unsigned int) node, 
+				offsetof (struct VRML_SphereSensor, rotation_changed));
 		}
 	}
-}
-}*/
 }
