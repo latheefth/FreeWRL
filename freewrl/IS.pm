@@ -31,8 +31,13 @@ sub new {
 
 sub copy {
 	my ($this) = @_;
-	my $a = $this->{Name};
-	bless { Name => $a }, ref $this;
+
+	my $new = bless {}, ref $this;
+	$new->{Name} = $this->{Name};
+	$new->{ISField} = $this->{ISField};
+	$new->{Ref} = $this->{Ref}; ## correct???
+
+	return $new;
 }
 
 sub make_executable {
@@ -51,7 +56,6 @@ sub name {
 
 sub set_ref {
 	my ($this, $ref) = @_;
-
 	$this->{Ref} = $ref;
 }
 
