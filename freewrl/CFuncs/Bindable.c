@@ -548,8 +548,7 @@ void render_Background (struct VRML_Background *node) {
 		node->__points = (int)malloc (sizeof (GLfloat) * estq * 3 * 4);
 		node->__colours = (int)malloc (sizeof (GLfloat) * estq * 3 * 4);
 		if ((node->__points == 0) || (node->__colours == 0)) {
-			printf ("malloc failure in background\n");
-			exit(1);
+			outOfMemory("malloc failure in background\n");
 		}
 	
 		if(node->skyColor.n == 1) {

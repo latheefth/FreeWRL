@@ -144,8 +144,7 @@ void doBrowserAction () {
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
 	
 	if ((!filename) || (!mypath)) {
-		printf ("Anchor can not malloc for filename\n");
-		exit(1);
+		outOfMemory("Anchor can not malloc for filename\n");
 	}
 	
 	/* copy the parent path over */

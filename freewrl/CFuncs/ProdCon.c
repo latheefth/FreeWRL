@@ -595,7 +595,7 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	psp.retarrsize = retarrsize;
 	/* copy over the command */
 	psp.inp = (char *)malloc (strlen(inputstring)+2);
-	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+	if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n");}
 	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
 	DATA_LOCK_SIGNAL
 	DATA_UNLOCK
@@ -620,7 +620,7 @@ void EAI_readNewWorld(char *inputstring) {
     psp.bind = TRUE; /* should we issue a set_bind? */
     /* copy over the command */
     psp.inp  = (char *)malloc (strlen(inputstring)+2);
-    if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+    if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n"); }
     memcpy (psp.inp,inputstring,strlen(inputstring)+1);
     DATA_LOCK_SIGNAL
     DATA_UNLOCK
@@ -653,7 +653,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 	psp.inp = (char *)malloc (strlen(inp)+2);
 
-	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+	if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n");}
 	memcpy (psp.inp,inp,strlen(inp)+1);
 	
 	DATA_LOCK_SIGNAL
@@ -692,8 +692,8 @@ void _perlThread(void *perlpath) {
 				/* printf ("opened %s\n",commandline[1]);  */
 				fclose(tempfp);
 			} else {
-				printf ("can not locate the fw2init.pl file, tried:\n");
-				printf ("    %s\n    and\n    %s\nexiting...\n",
+				ConsoleMessage ("can not locate the fw2init.pl file, tried: " \
+				"    %s\n    and\n    %s\nexiting...\n",
 				FW2INITPL,builddir);
 				exit(1);
 			}
@@ -703,7 +703,7 @@ void _perlThread(void *perlpath) {
 		my_perl = perl_alloc();
 		perl_construct (my_perl);
 		if (perl_parse(my_perl, (XSINIT_t)xs_init, 2, commandline, NULL)) {
-			printf ("freewrl can not parse initialization script %s, exiting...\n",
+			ConsoleMessage("freewrl can not parse initialization script %s, exiting...\n",
 				commandline[1]);
 			exit(1);
 		}
@@ -1058,8 +1058,7 @@ void __pt_doInline() {
 	psp.path = (char *)malloc ((unsigned)(count+1));
 
 	if ((!filename) || (!psp.path)) {
-		printf ("perl thread can not malloc for filename\n");
-		exit(1);
+		outOfMemory ("perl thread can not malloc for filename\n");
 	}
 	
 	/* copy the parent path over */

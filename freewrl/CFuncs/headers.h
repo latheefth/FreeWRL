@@ -553,4 +553,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
                         int zeroBind);
 
 
+int ConsoleMessage(char *fmt, ...);
+void outOfMemory(char *message);
+
 #endif /* __HEADERS_H__ */

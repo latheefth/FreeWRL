@@ -136,7 +136,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 	FW_rep_->coord[FW_pointctr*3+2] = 0.0;
 
 	/* the following should NEVER happen.... */
-	if (FW_RIA_indx >500) { printf ("Text, relative index too small\n");exit(1);}
+	if (FW_RIA_indx >500) { ConsoleMessage ("Text, relative index too small\n");exit(1);}
 
 	FW_RIA[FW_RIA_indx]=FW_pointctr;
 	v2[0]=FW_rep_->coord[FW_pointctr*3+0];
@@ -160,8 +160,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 		FW_rep_->coord = (float *)realloc(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
 
 		if (!(FW_rep_->coord)) { 
-			printf ("realloc failed - out of memory \n");
-			exit(1);
+			outOfMemory ("realloc failed - out of memory \n");
 		}
 	}
 
@@ -499,8 +498,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	FW_rep_->cindex=(int*)malloc(sizeof(*(FW_rep_->cindex))*est_tri);
 	FW_rep_->coord = (float*)malloc(sizeof(*(FW_rep_->coord))*est_tri*3);
 	if (!(FW_rep_->coord && FW_rep_->cindex)) {
-		printf ("can not malloc memory for text triangles\n");
-		exit(1);
+		outOfMemory ("can not malloc memory for text triangles\n");
 	}
 
 
@@ -603,8 +601,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 				cindexmaxsize +=TESS_MAX_COORDS;
 				FW_rep_->cindex=(int *)realloc(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
 				if (!(FW_rep_->cindex)) {
-					printf ("out of memory at realloc for cindex\n");
-					exit(1);
+					outOfMemory("out of memory at realloc for cindex\n");
 				}
 			}
 		}

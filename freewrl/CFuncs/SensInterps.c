@@ -1287,8 +1287,7 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
 	
 	if ((!filename) || (!mypath)) {
-		printf ("locateAudioSource:can not malloc for filename\n");
-		exit(1);
+		outOfMemory ("locateAudioSource:can not malloc for filename\n");
 	}
 	
 	/* copy the parent path over */

@@ -1272,6 +1272,15 @@ void setSeqTemp(char* file) {
 }
 #endif
 
+/* if we had an exit(1) anywhere in this C code - it means
+   a memory error. So... print out a standard message to the
+   console. */
+void outOfMemory(char *msg) {
+	ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
+			"and is exiting.\n -- %s--",msg);
+	exit(1);
+}
+
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
 #ifndef AQUA

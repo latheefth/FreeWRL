@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.162  2005/01/18 20:52:33  crc_canada
+# Make a ConsoleMessage that displays xmessage for running in a plugin.
+#
 # Revision 1.161  2005/01/16 20:55:08  crc_canada
 # Various compile warnings removed; some code from Matt Ward for Alldev;
 # some perl changes for generated code to get rid of warnings.
@@ -677,10 +680,10 @@ sub get_offsf {
 	my ($cf) = ("VRML::Field::$_")->cfree("(*ptr_)");
 
 
-	print "get_offsf; for $f, have ca $ca and cf $cf\n";
-	print "and ctp $ctp\n";
-	print "and ct $ct\n";
-	print "c $c\n\n";
+	#print "get_offsf; for $f, have ca $ca and cf $cf\n";
+	#print "and ctp $ctp\n";
+	#print "and ct $ct\n";
+	#print "c $c\n\n";
 	
 	# ifwe dont have to do anything, then we dont bother with the ctype field.
 	# this gets rid of some compiler warnings.
@@ -1895,6 +1898,15 @@ malloc_this (size)
 	RETVAL = malloc(size);
 OUTPUT:
 RETVAL
+
+# print a string to the console, - this will be an xmessage
+# window if we are running as a plugin.
+void
+ConsoleMessage (str)
+	char *str;
+	CODE:
+	ConsoleMessage(str);
+
 
 # remove comments, etc, from a string.
 SV *

@@ -143,7 +143,7 @@ int main (int argc, char **argv) {
 #ifndef AQUA
 	/* first, get the FreeWRL shared lib, and verify the version. */
 	if(strcmp(FWVER,getLibVersion())){
-  	  printf ("FreeWRL expected library version %s, got %s...\n",FWVER,getLibVersion());
+  	  ConsoleMessage ("FreeWRL expected library version %s, got %s...\n",FWVER,getLibVersion());
 	}
 #endif
 #endif
@@ -338,7 +338,7 @@ int main (int argc, char **argv) {
 		BrowserURL = (char *)malloc (count+1);
 		strcpy (BrowserURL,argv[optind]);
 	} else {
-		printf ("freewrl:missing VRML/X3D file name\n");
+		ConsoleMessage ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
 	}
 #endif
@@ -614,9 +614,7 @@ void catch_SIGQUIT() {
 }
 
 void catch_SIGSEGV() {
-	fprintf (stderr,"FreeWRL got a SIGSEGV - can you please mail the file(s) to\n");
-	fprintf (stderr,"freewrl-04@rogers.com with a valid subject line. Thanks.\n");
-    fflush(NULL);
+	ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-04@rogers.com with a valid subject line. Thanks.\n");
     exit(1);
 }
 
@@ -639,9 +637,7 @@ void catch_SIGALRM(int sig)
 #ifndef AQUA
 /* stop all of FreeWRL, terrible error! */
 void freewrlDie (const char *format) {
-	printf ("\nFreeWRL: Catastrophic error:\n");
-	printf (format);
-	printf ("\n");
+	ConsoleMessage ("Catastrophic error: %s\n",format);
 	doQuit();
 }
 #endif

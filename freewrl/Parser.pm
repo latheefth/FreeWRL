@@ -66,7 +66,7 @@ sub parsefail {
 	my $textb = substr($_[0],$p-$n,$n);
 	my $texta = substr($_[0],$p,50);
 
-	print ("PARSE ERROR: '$textb' XXX '$texta', $_[1] $_[2]\n");
+	VRML::VRMLFunc::ConsoleMessage ("PARSE ERROR: '$textb' XXX '$texta', $_[1] $_[2]\n");
 	exit (1);
 }
 
@@ -375,7 +375,7 @@ sub parse {
 		# is is already DEF'd???
 		my $dn = VRML::Handles::return_def_name($vrmlname);
         	if(!defined $dn) {
-			print "USE name $vrmlname not DEFined yet\n";
+			VRML::VRMLFunc::ConsoleMessage( "USE name $vrmlname not DEFined yet\n");
 			exit(1);
 		}
 
@@ -441,13 +441,14 @@ sub parse {
 		print "FT: $ft\n"
 			if $VRML::verbose::parse;
 		if(!defined $ft) {
-			print "Invalid field '$f' for node '$nt'\n";
-			print "Possible fields are: ";
+			my $em = "Invalid field '$f' for node '$nt'\n";
+			$em = $em. "Possible fields are: ";
 			foreach (keys % {$no->{FieldTypes}}) {
-				if (index($_,"_") !=0) {print "$_ ";}
+				if (index($_,"_") !=0) {$em= $em. "$_ ";}
 			}
-			print "\n";
+			$em = $em. "\n";
 
+			VRML::VRMLFunc::ConsoleMessage ($em);
 			exit(1);
 		}
 

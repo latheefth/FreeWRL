@@ -1071,8 +1071,7 @@ InitColorDither(int thirty2)
 	r_2_pix_alloc == NULL ||
 	g_2_pix_alloc == NULL ||
 	b_2_pix_alloc == NULL) {
-      fprintf(stderr, "Could not get enough memory in InitColorDither\n");
-      exit(1);
+      outOfMemory("Could not get enough memory in InitColorDither\n");
     }
 
     for (i=0; i<256; i++) {
@@ -3133,7 +3132,6 @@ ParsePicture(
   while (vid_stream->ring[i]->locked != 0) {
     if (++i >= RING_BUF_SIZE) {
       perror("Fatal error. Ring buffer full.");
-      exit(1);
     }
   }
 
@@ -3308,8 +3306,8 @@ ParseMacroBlock(
 		  vid_stream->mblock.mb_intra);
     break;
   case D_TYPE:
-    printf("ERROR:  MPEG-1 Streams with D-frames are not supported\n");
-    exit(1);
+    ConsoleMessage("ERROR:  MPEG-1 Streams with D-frames are not supported\n");
+	exit(1);
   }
 
   /* If quantization flag set, parse off new quantization scale. */

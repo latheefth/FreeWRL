@@ -74,8 +74,8 @@ sub name {
 sub node {
 	my ($this) = @_;
 	if (!defined  ($this->{DEFNode})) {
-	    print "USE name: ", $this->{DEFName}, " not DEF'd\n";
-	    print "Unrecoverable error; FreeWRL has to exit. \n";
+	    VRML::VRMLFunc::ConsoleMessage( "USE name: ", $this->{DEFName}, " not DEF'd\n".
+	    "Unrecoverable error; FreeWRL has to exit. \n");
 	    exit(1);
 	}
 

@@ -574,8 +574,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
 	
 	if ((!filename) || (!mypath)) {
-		printf ("texture thread can not malloc for filename\n");
-		exit(1);
+		outOfMemory ("texture thread can not malloc for filename\n");
 	}
 	
 	/* copy the parent path over */
