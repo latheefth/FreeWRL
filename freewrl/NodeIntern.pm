@@ -73,18 +73,38 @@ sub gather_defs {
 
     if (defined $this->{IsProto}) {
 	# possibly this is a Scene PROTO Expansion
+	# print "gather_defs, isProto defined for ",VRML::NodeIntern::dump_name($this),"\n";
+
 	foreach (@{$this->{ProtoExp}{Nodes}}) {
-	    # print "VRML::NodeIntern in ",dump_name($this)," we are going to look at ",
+	    # print "VRML::NodeIntern::gather_defs ProtoExp ",dump_name($this)," we are going to look at ",
 	    # dump_name($_),"\n";
 	    $_->gather_defs($parentnode);
+	    # print "VRML::NodeIntern::gather_defs, done proto expansion for ",dump_name($_),"\n";
 	}
+
+	if (defined $this->{ProtoExp}{DEF}) {
+		# print "VRML::NodeIntern::gather_defs, PROTO EXP DEF FOUND!!! parent ",dump_name($parentnode), "\n";
+		my $df;
+
+		# print "before adding, keys %d\n";
+		# for (keys %{$parentnode->{DEF}}) {print "key $_ ";}
+		# print "\n";
+
+		for $df (keys %{$this->{ProtoExp}{DEF}}) {
+			# print "and it has a key of $df\n";
+			# copy it to the parentnode
+			$parentnode->{DEF}{$df} = $this->{ProtoExp}{DEF}{$df};
+		}
+	}
+
     } elsif (defined $this->{Fields}) {
-	# print "VRML::NodeIntern gather_defs (children of ",dump_name($this),")\n";
+	# print "VRML::NodeIntern gather_defs Fields (children of ",dump_name($this),")\n";
 
 	my $fld;
 	for $fld (keys %{$this->{Fields}}) {
 	    if (ref $this->{Fields}{$fld} eq "ARRAY") {
 		# first level of an array...
+		# print "VRML::NodeIntern gather_defs, ",dump_name($this),"->{Fields}{$fld} is an array\n";
 
 		foreach (@{$this->{Fields}{$fld}}) { 
 		    if (ref $_ ne "") { 
@@ -93,6 +113,7 @@ sub gather_defs {
 
 			    my $ae;
 			    foreach $ae (@{$_}) {
+				# print "VRML::NodeIntern gather_defs, ",dump_name($this), "element $ae\n";
 				if (ref $ae ne "") {
 				    $ae->gather_defs($parentnode);
 				}
@@ -153,12 +174,28 @@ sub dump {
 
     if (defined $this->{SceneRoutes}) {
 	print "\n$padded(SceneRoutes of ",dump_name($this),")\n";
+print "debugging\n";
+	    print "(array) ";
+	    foreach (@{$this->{SceneRoutes}}) {
+		#print "	$_[0]  $_[1] $_[2] $_[3]\n";
+		# print @{$_},"\n";
+		my ($fnam, $ff, $tnam, $tf) = @$_;
+		print "Route from $fnam field $ff to $tnam field $tf\n";
+		my $fld;
+		for $fld (keys %{$fnam}) {
+			print "		from name key $_\n"; 
+		}
+	    }
+
+
 	my $sk;
 	foreach $sk (@{{$this}->{SceneRoutes}}) {
 	    print "SceneRoutes of ",dump_name($this),") ";
 	    print "$sk\n";
 	    $sk->dump($level+1);
 	}
+
+print "end of debugging\n";
     }
 
     if (defined $this->{ProtoExp}) {
@@ -188,21 +225,21 @@ sub dump {
 				if (ref $ae ne "") {
 				    $ae->dump(level+1);
 				} else {
-				    print "$padded(DATA) $ae\n";
+				    # print "$padded(DATA) $ae\n";
 				}
 			    }
 			} else {
 			    $_->dump($level+1);
 			}
 		    } else {
-			print "$padded(DATA) $_\n";
+			# print "$padded(DATA) $_\n";
 		    }
 		}
 	    } else {
 		if (ref $this->{Fields}{$fld} ne "") {
 		    $this->{Fields}{$fld}->dump($level+1);
 		} else {
-		    print "$padded(DATA) $_\n";
+		    # print "$padded(DATA) $_\n";
 		}
 	    }
 	}
@@ -279,9 +316,19 @@ sub do_defaults {
 
 sub as_string {
     my ($this) = @_;
+
+    # print "as_string, typename ",$this->{TypeName},"\n";
     my $s = " ($this) $this->{TypeName} { \n";
+
+    # is this a script being sent back via EAI?
+    if ("__script" eq substr($this->{TypeName},0,8)) {
+    	$s .= "SCRIPT NOT PRINTED }\n";
+    	return $s;
+    }
+
     for (keys %{$this->{Fields}}) {
 	$s .= "\n $_ ";
+	# print "as_string, field $_ \n";
 	if ("VRML::IS" eq ref $this->{Fields}{$_}) {
 	    $s .= $this->{Fields}{$_}->as_string();
 	} else {
@@ -299,10 +346,10 @@ sub real_node {
     my ($this, $proto) = @_;
 
     if (!$proto and defined $this->{IsProto}) {
-	# print "Scene.pm - PROTO real node returning the proto expansion...\n";
-	# print "\t{protoExp}{Nodes}[0] is ", $this->{ProtoExp}{Nodes}[0],"\n";
-	# print "\t{protoExp}{Nodes}[1] is ", $this->{ProtoExp}{Nodes}[1],"\n";
-	# print "\t{protoExp}{Nodes}[2] is ", $this->{ProtoExp}{Nodes}[2],"\n";
+	 #print "Scene.pm - PROTO real node returning the proto expansion...\n";
+	 #print "\t{protoExp}{Nodes}[0] is ", dump_name($this->{ProtoExp}{Nodes}[0]),"\n";
+	 #print "\t{protoExp}{Nodes}[1] is ", dump_name($this->{ProtoExp}{Nodes}[1]),"\n";
+	 #print "\t{protoExp}{Nodes}[2] is ", dump_name($this->{ProtoExp}{Nodes}[2]),"\n";
 	
 	VRML::Handles::front_end_child_reserve(
 	    $this->{ProtoExp}{Nodes}[0]->real_node(),
@@ -529,7 +576,7 @@ sub initialize {
     my ($this, $scene) = @_;
     # Inline is initialized at make_backend
 
-    # print "initializing ", $this, " typename ", $this->{TypeName},"\n";
+    # print "initializing ", dump_name($this), " typename ", $this->{TypeName},"\n";
     if ($this->{Type}{Actions}{Initialize}
 	     && $this->{TypeName} ne "Inline") {
 	return &{$this->{Type}{Actions}{Initialize}}($this, $this->{RFields},
