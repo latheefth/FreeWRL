@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.143  2005/01/05 21:40:57  crc_canada
+# Spheres of negative radius not displayed.
+#
 # Revision 1.142  2004/11/18 18:19:19  crc_canada
 # SoundEngine work.
 #
@@ -419,6 +422,10 @@ Sphere => '
 	extern float spheretex[];		// in CFuncs/statics.c
 	int count;
 	float rad = $f(radius);
+
+	if (rad<=0.0) {
+		//printf ("invalid sphere rad %f\n",rad);
+		return;}
 
 	/* for BoundingBox calculations */
 	setExtent(rad,rad,rad,(struct VRML_Box *)this_);
