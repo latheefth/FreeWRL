@@ -123,6 +123,7 @@
 		glpXNextEvent
 		gluPerspective
 		glupPickMatrix
+		get_triangulator
 	);
 	bootstrap VRML::OpenGL;
 

@@ -55,6 +55,10 @@ Cursor sensorc;
 int	render_frame = 0;	/* do we render, or do we sleep? */
 int	now_mapped = 1;		/* are we on screen, or minimized? */
 
+/* Tesselator Object - have one here for use by all */
+GLUtriangulatorObj	*triang;
+
+
 #define OPENGL_NOVIRT
 #include "OpenGL.m"
 
@@ -109,6 +113,15 @@ int  default_attributes3[] =
    GLX_RGBA,               GL_TRUE,
    0
    };
+
+
+
+
+
+
+
+
+/***************************************************************************/
 
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len) {
    XVisualInfo *vi=NULL;
@@ -170,10 +183,59 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len) {
    return(NULL);
 }
 
+/***************************************************************************/
 static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
     return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
 }
 
+/***************************************************************************/
+/* routines for the tesselation callbacks */
+static void FW_beg(GLenum e) {
+	glBegin(e);
+}
+
+static void FW_end() {
+	glEnd();
+}
+
+static void FW_ver(void *p) {
+	GLdouble *dp = p;
+	glVertex3f(dp[0],dp[1],dp[2]);
+}
+
+static void FW_err(GLenum e) {
+	printf("FreeWRL Text error %d: '%s'\n",e,gluErrorString(e));
+}
+
+void FW_GLU_TESS_COMBINE (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
+	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
+	printf("FW_GLU_TESS_COMBINE\n");
+	nv[0] = c[0];
+	nv[1] = c[1];
+	nv[2] = c[2];
+	*out = nv; 
+}
+
+
+/* These are not used in FreeWRL - yet. 
+static void FW_GLU_TESS_BEGIN() { printf("FW_GLU_TESS_BEGIN\n");}
+static void FW_GLU_TESS_BEGIN_DATA() { printf("FW_GLU_TESS_BEGIN_DATA\n");}
+static void FW_GLU_TESS_EDGE_FLAG() { printf("FW_GLU_TESS_EDGE_FLAG\n");}
+static void FW_GLU_TESS_EDGE_FLAG_DATA() { printf("FW_GLU_TESS_EDGE_FLAG_DATA\n");}
+static void FW_GLU_TESS_VERTEX() { printf("FW_GLU_TESS_VERTEX\n");}
+static void FW_GLU_TESS_VERTEX_DATA() { printf("FW_GLU_TESS_VERTEX_DATA\n");}
+static void FW_GLU_TESS_END() { printf("FW_GLU_TESS_END\n");}
+static void FW_GLU_TESS_END_DATA() { printf("FW_GLU_TESS_END_DATA\n");}
+static void FW_GLU_TESS_COMBINE_DATA() { printf("FW_GLU_TESS_COMBINE_DATA\n");}
+static void FW_GLU_TESS_ERROR() { printf("FW_TESS_ERROR\n");}
+static void FW_GLU_TESS_ERROR_DATA() { printf("FW_GLU_TESS_ERROR_DATA\n");}
+*/
+
+
+
+
+
+/***************************************************************************/
 MODULE = VRML::OpenGL		PACKAGE = VRML::OpenGL
 PROTOTYPES: DISABLE
 
@@ -213,6 +275,20 @@ get_render_frame()
 	}
 	OUTPUT:
 	RETVAL
+
+
+
+# Give the Triangulator object back to FreeWRL so that others can use it 
+void *
+get_triangulator()
+	CODE:
+	{
+		RETVAL = (void *)triang;
+	}
+OUTPUT:
+	RETVAL
+
+
 
 
 # cursor stuff JAS
@@ -413,6 +489,32 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	    /* what is the hardware 3d accel? */
 	    strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
 	    /* printf ("%s\n",renderer); */
+
+
+	    /* now, get a tesselator up and ready for action */
+	    /* register tesselation callbacks for OpenGL calls */
+	    triang = gluNewTess();
+
+	    /* Unused right now.
+	    gluTessCallback(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
+	    gluTessCallback(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
+	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
+	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
+	    gluTessCallback(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
+	    gluTessCallback(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
+	    gluTessCallback(triang, GLU_TESS_END,FW_GLU_TESS_END);
+	    gluTessCallback(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
+	    gluTessCallback(triang, GLU_TESS_COMBINE_DATA,FW_GLU_TESS_COMBINE_DATA);
+	    gluTessCallback(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
+	    gluTessCallback(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
+	    */
+
+	    gluTessCallback(triang, GLU_TESS_COMBINE,FW_GLU_TESS_COMBINE);
+	    gluTessCallback(triang, GLU_BEGIN, FW_beg);
+	    gluTessCallback(triang, GLU_VERTEX, FW_ver);
+	    gluTessCallback(triang, GLU_END, FW_end);
+	    gluTessCallback(triang, GLU_ERROR, FW_err);
+
 
 
 	    /* and make it so that we render 1 frame, at least */
@@ -789,170 +891,6 @@ gluPerspective(fovy,aspect,zNear,zFar)
 	GLdouble	zNear
 	GLdouble	zFar
 
-#GLint
-#gluProject(objx,objy,objz,modelMatrix,projMatrix,viewport,winx,winy,winz)
-#	GLdouble	objx
-#	GLdouble	objy
-#	GLdouble	objz
-#	char *	modelMatrix
-#	char *	projMatrix
-#	char *	viewport
-#	char *	winx
-#	char *	winy
-#	char *	winz
-#	CODE:
-#	{
-#	   gluProject(objx,objy,objz,(GLdouble *)modelMatrix,(GLdouble *)projMatrix,(GLint *)viewport,(GLdouble *)winx,(GLdouble *)winy,(GLdouble *)winz);
-#	}
-#
-#GLint
-#gluUnProject(winx,winy,winz,modelMatrix,projMatrix,viewport,objx,objy,objz)
-#	GLdouble	winx
-#	GLdouble	winy
-#	GLdouble	winz
-#	char *	modelMatrix
-#	char *	projMatrix
-#	char *	viewport
-#	char *	objx
-#	char *	objy
-#	char *	objz
-#	CODE:
-#	{
-#	   gluUnProject(winx,winy,winz,(GLdouble *)modelMatrix,(GLdouble *)projMatrix,(GLint *)viewport,(GLdouble *)objx,(GLdouble *)objy,(GLdouble *)objz);
-#	}
-#
-#const GLubyte*
-#gluErrorString(errorCode)
-#	GLenum	errorCode
-#
-#GLint
-#gluScaleImage(format,widthin,heightin,typein,datain,widthout,heightout,typeout,dataout)
-#	GLenum	format
-#	GLint	widthin
-#	GLint	heightin
-#	GLenum	typein
-#	char *	datain
-#	GLint	widthout
-#	GLint	heightout
-#	GLenum	typeout
-#	char *	dataout
-#	CODE:
-#	{
-#	   gluScaleImage(format,widthin,heightin,typein,(void *)datain,widthout,heightout,typeout,(void *)dataout);
-#	}
-#
-#GLint
-#gluBuild1DMipmaps(target,components,width,format,type,data)
-#	GLenum	target
-#	GLint	components
-#	GLint	width
-#	GLenum	format
-#	GLenum	type
-#	char *	data
-#	CODE:
-#	{
-#	   gluBuild1DMipmaps(target,components,width,format,type,(void *)data);
-#	}
-#
-#GLint
-#gluBuild2DMipmaps(target,components,width,height,format,type,data)
-#	GLenum	target
-#	GLint	components
-#	GLint	width
-#	GLint	height
-#	GLenum	format
-#	GLenum	type
-#	char *	data
-#	CODE:
-#	{
-#	   gluBuild2DMipmaps(target,components,width,height,format,type,(void *)data);
-#	}
-#
-#GLUquadricObj*
-#gluNewQuadric()
-#
-#void
-#gluQuadricCallback(qobj,which,fn)
-#	char *	qobj
-#	GLenum	which
-#	char *	fn
-#	CODE:
-#	{
-#	   gluQuadricCallback((GLUquadricObj *)qobj,which,(CALLBACK *)fn);
-#	}
-#
-#GLUnurbsObj*
-#gluNewNurbsRenderer()
-#
-#GLUtriangulatorObj*
-#gluNewTess()
-#
-#void
-#gluTessCallback(tobj,which,fn)
-#	char *	tobj
-#	GLenum	which
-#	char *	fn
-#	CODE:
-#	{
-#	   gluTessCallback((GLUtriangulatorObj *)tobj,which,(CALLBACK *)fn);
-#	}
-#
-#void
-#gluDeleteTess(tobj)
-#	char *	tobj
-#	CODE:
-#	{
-#	   gluDeleteTess((GLUtriangulatorObj *)tobj);
-#	}
-#
-#void
-#gluBeginPolygon(tobj)
-#	char *	tobj
-#	CODE:
-#	{
-#	   gluBeginPolygon((GLUtriangulatorObj *)tobj);
-#	}
-#
-#void
-#gluEndPolygon(tobj)
-#	char *	tobj
-#	CODE:
-#	{
-#	   gluEndPolygon((GLUtriangulatorObj *)tobj);
-#	}
-#
-#void
-#gluNextContour(tobj,type)
-#	char *	tobj
-#	GLenum	type
-#	CODE:
-#	{
-#	   gluNextContour((GLUtriangulatorObj *)tobj,type);
-#	}
-#
-#void
-#gluTessVertex(tobj,v,data)
-#	char *	tobj
-#	char *	v
-#	char *	data
-#	CODE:
-#	{
-#	   gluTessVertex((GLUtriangulatorObj *)tobj,(GLdouble *)v,(void *)data);
-#	}
-#
-#const GLubyte*
-#gluGetString(name)
-#	GLenum	name
-#
-#XVisualInfo*
-#glXChooseVisual(dpy,screen,attribList)
-#	char *	dpy
-#	int	screen
-#	char *	attribList
-#	CODE:
-#	{
-#	   glXChooseVisual((Display *)dpy,screen,(int *)attribList);
-#	}
 
 void
 glXDestroyContext()
@@ -971,93 +909,10 @@ glXDestroyContext()
 	  }
 	}
 
-#Bool
-#glXMakeCurrent(dpy,drawable,ctx)
-#	char *	dpy
-#	GLXDrawable	drawable
-#	GLXContext	ctx
-#	CODE:
-#	{
-#	   glXMakeCurrent((Display *)dpy,drawable,ctx);
-#	}
-#
-#GLXPixmap
-#glXCreateGLXPixmap(dpy,visual,pixmap)
-#	char *	dpy
-#	char *	visual
-#	Pixmap	pixmap
-#	CODE:
-#	{
-#	   glXCreateGLXPixmap((Display *)dpy,(XVisualInfo *)visual,pixmap);
-#	}
-#
-#void
-#glXDestroyGLXPixmap(dpy,pixmap)
-#	char *	dpy
-#	GLXPixmap	pixmap
-#	CODE:
-#	{
-#	   glXDestroyGLXPixmap((Display *)dpy,pixmap);
-#	}
-#
-#Bool
-#glXQueryExtension(dpy,errorb,event)
-#	char *	dpy
-#	char *	errorb
-#	char *	event
-#	CODE:
-#	{
-#	   glXQueryExtension((Display *)dpy,(int *)errorb,(int *)event);
-#	}
-#
-#Bool
-#glXQueryVersion(dpy,maj,min)
-#	char *	dpy
-#	char *	maj
-#	char *	min
-#	CODE:
-#	{
-#	   glXQueryVersion((Display *)dpy,(int *)maj,(int *)min);
-#	}
-#
-#Bool
-#glXIsDirect(dpy,ctx)
-#	char *	dpy
-#	GLXContext	ctx
-#	CODE:
-#	{
-#	   glXIsDirect((Display *)dpy,ctx);
-#	}
-#
-#int
-#glXGetConfig(dpy,visual,attrib,value)
-#	char *	dpy
-#	char *	visual
-#	int	attrib
-#	char *	value
-#	CODE:
-#	{
-#	   glXGetConfig((Display *)dpy,(XVisualInfo *)visual,attrib,(int *)value);
-#	}
-#
-#GLXContext
-#glXGetCurrentContext()
-#
-#GLXDrawable
-#glXGetCurrentDrawable()
-#
-#void
-#glXWaitGL()
-#
-#void
-#glXWaitX()
-#
-#void
-#glXUseXFont(font,first,count,list)
-#	Font	font
-#	int	first
-#	int	count
-#	int	list
+
+
+
+
 
 BOOT:
  {
