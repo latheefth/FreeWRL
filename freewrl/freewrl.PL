@@ -83,6 +83,10 @@ which work in all the modes:
 
 Display this man page in a window
 
+=item .
+
+Switch status bar display on or off
+
 =item d
 
 Switch to the Fly (Keyboard input) navigation mode
