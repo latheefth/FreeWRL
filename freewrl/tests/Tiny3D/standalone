@@ -1,3 +1,5 @@
-#nice freewrl -eai localhost:2000 root.wrl -best eai &
+# make sure both freewrl and the appletviewer are in
+# your path...
+
 nice freewrl -eai localhost:2000 root.wrl -best &
-appletviewer tiny3d.html
+appletviewer tiny3D.html
