@@ -131,13 +131,13 @@ INST_DYNAMIC_DEP =
 							  qq{\n\# --- FreeWRL web browser plugin:},
 							  qq{all :: plugin\n},
 							  qq{plugin ::},
-							  qq{\@cd \$(PLUGIN) && \$(MAKE) all $defines\n},
+							  qq{\tcd \$(PLUGIN) && \$(MAKE) all $defines\n},
 							  qq{install ::},
-							  qq{\@cd \$(PLUGIN) && \$(MAKE) install $defines\n},
+							  qq{\tcd \$(PLUGIN) && \$(MAKE) install $defines\n},
 							  qq{clean ::},
-							  qq{\@cd \$(PLUGIN) && \$(MAKE) clean LIB_DIR=\$(LIB_DIR)\n},
+							  qq{\tcd \$(PLUGIN) && \$(MAKE) clean LIB_DIR=\$(LIB_DIR)\n},
 							  qq{realclean ::},
-							  qq{\@cd \$(PLUGIN) && \$(MAKE) clean PLUGIN_DIR=\$(PLUGIN_DIR)\n},
+							  qq{\tcd \$(PLUGIN) && \$(MAKE) clean PLUGIN_DIR=\$(PLUGIN_DIR)\n},
 							  qq{distclean :: realclean\n}
 							 );
 

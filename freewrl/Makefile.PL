@@ -176,7 +176,6 @@ if (-e "JS/$jsobjdir/libjs.a" && -e "JS/$jsobjdir/libjs.so" && -e "JS/$jsobjdir/
 
 
 use ExtUtils::MakeMaker;
-#use VRML::Config qw(%vrml_config);
 require './Config.pm';
 
 WriteMakefile(

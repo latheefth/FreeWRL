@@ -27,7 +27,7 @@ WriteMakefile(
 		return join("\n",
 					qq{\# --- Java Archive\n},
 					qq{install ::},
-					qq{\t\@cd classes && \$(MAKE) install\n}
+					qq{\tcd classes && \$(MAKE) install\n}
 				   );
 	}
 
