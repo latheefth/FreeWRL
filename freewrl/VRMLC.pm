@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.70  2003/03/17 16:16:13  crc_canada
+# Code for locating DirectionalLights was broken - code removed, as all is
+# now handled from VRMLRend.pm
+#
 # Revision 1.69  2003/02/06 20:27:54  crc_canada
 # remove unused endlist macro
 #
@@ -929,10 +933,6 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern || 
 			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
 				regen_polyrep(this_);/g;
-
-		$c =~ s/\$ntyptest\(([^),]*),([^),]*)\)/
-				(((struct VRML_Box *)$1)->v == 	
-					& virt_$2)/g;
 		if($_ eq "Get3") {
 			$f .= "\n\nstruct SFColor *${n}_$_(void *nod_,int *n)";
 		} elsif($_ eq "Get2") {
