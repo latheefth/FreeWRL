@@ -124,7 +124,7 @@
 		gluPerspective
 		glupPickMatrix
 		get_triangulator
-		glGenTextures
+		glGenTexture
 	);
 	bootstrap VRML::OpenGL;
 
