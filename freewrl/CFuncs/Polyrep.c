@@ -947,8 +947,8 @@ void stream_polyrep(void *node,
 		/* get the normals, if there are any	*/
 		if(nnormals) {
 			if(nori >= nnormals) {
-				/* this should be caught before here JAS */
-				warn("Too large normal index %d nnormals %d-- help??",nori, nnormals);
+				/* bounds check normals here... */
+				nori=0;
 			}
 			if (stream_poly_verbose) {
 				printf ("nnormals at %d , nori %d ",(int) &normals[nori].c,nori);
