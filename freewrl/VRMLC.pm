@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.38  2001/07/24 13:22:06  crc_canada
+# 1) reduce memory usage for textures.
+# 2) more parameter checking on indexedfacesets
+#
 # Revision 1.37  2001/07/18 14:09:29  crc_canada
 # IFS tecCoordIndex with selected coordinates from within a large Coordinate node
 # verified to work.
@@ -736,6 +740,9 @@ IndexedFaceSet => '
 	int nnormals=0;
 	int ntexCoords = 0;
 
+	/* flags for errors */
+	int ntexerrors = 0;
+
 	float a[3]; float b[3];
 	struct SFColor *c1,*c2,*c3;
 	struct SFColor *points; 
@@ -749,15 +756,17 @@ IndexedFaceSet => '
 	int *norindex;
 
         /* texture coords */
-        $fv_null(texCoord, texCoords, get2, &ntexCoords);
 
+        $fv_null(texCoord, texCoords, get2, &ntexCoords);
+	
 	/*
         printf("\n\ntexCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
 	for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
 		texCoords[i].c[0], texCoords[i].c[1] ); 
-        printf("NtexCoordIndex = %d\n", tcin);
+        printf("texCoordIndex count = %d\n", tcin);
 	*/
+
 
 	/* IndexedFaceSet coords and normals */
 	$fv(coord, points, get3, &npoints);
@@ -779,9 +788,50 @@ IndexedFaceSet => '
 	*/
 
 
-        if(tcin == 0 && ntexCoords != 0 && ntexCoords != npoints) {
-           die("Invalid number of texture coordinates");
-        }
+
+	/* If the texCoord field is not NULL, it shall contain a TextureCoordinate node. 
+	   The texture coordinates in that node are applied to the vertices of the 
+	   IndexedFaceSet as follows:
+
+    		f.If the texCoordIndex field is not empty, then it is used to choose texture 
+		coordinates for each vertex of the IndexedFaceSet in exactly the same
+      		manner that the coordIndex field is used to choose coordinates for each vertex 
+		from the Coordinate node. 
+
+			1. The texCoordIndex field shall contain at
+      			   least as many indices as the coordIndex field, 
+
+			2. and shall contain end-of-face 
+			   markers (-1) in exactly the same places as the coordIndex field. 
+
+			3. If the
+      			   greatest index in the texCoordIndex field is N, then there shall be 
+			   N+1 texture coordinates in the TextureCoordinate node. 
+
+		g.If the texCoordIndex field is empty, then the coordIndex array is used to 
+		choose texture coordinates from the TextureCoordinate node. If the
+      		greatest index in the coordIndex field is N, then there shall be N+1 texture 
+		coordinates in the TextureCoordinate node. 
+	*/
+        /* printf ("IFS, tcin = %d, ntexCoords %d, cin %d\n",tcin, ntexCoords, cin); */
+	if (ntexCoords != 0) { /* texCoord field not NULL */
+		if (tcin > 0 && tcin < cin) {
+			/* Rule F part 1 */
+			printf ("IndexedFaceSet, Rule F part 1: texCoordIndex less than coordIndex (%d %d)\n",
+				tcin, cin);
+			exit(1);
+			ntexerrors = 1;
+		}
+
+		if (tcin == 0 && ntexCoords != npoints) { 
+			/* rule G */
+			printf ("IndexedFaceSet, Rule G: points %d texCoords %d and no texCoordIndex\n",
+				npoints,ntexCoords);
+			ntexerrors = 1;
+			exit(1);
+	   	}
+	}
+
 
 	/* wander through to see how much memory needs allocating */
 	for(i=0; i<cin; i++) {
@@ -789,12 +839,22 @@ IndexedFaceSet => '
 			if(nvert < 3) {
 				die("Too few vertices in indexedfaceset poly");
 			} 
-                        if(tcin > 0 && $f(texCoordIndex,i) != -1) {
-                                die("Mismatch texCoordIndex: coordIndex[%d] = -1 => expect texCoordIndex[%d] = -1 (but is %d)\\n", i, i, $f(texCoordIndex,i));
+                        if(tcin > 0  && $f(texCoordIndex,i) != -1) {
+				/* Rule F part 2 see above */
+                                printf ("IndexedFaceSet, Rule F, part 2: coordIndex[%d] = -1 => expect texCoordIndex[%d] = -1 (but is %d)\\n", i, i, $f(texCoordIndex,i));
+				ntexerrors = 1;
+				exit(1);
                         }
 			ntri += nvert-2;
 			nvert = 0;
 		} else {
+			if (tcin > 0 && $f(texCoordIndex,i) >= ntexCoords) {
+				/* Rule F, part 3 see above */
+				printf ("IndexedFaceSet, Rule F, part 3: TexCoordIndex[%d] %d is greater than num texCoord (%d)\n",i, $f(texCoordIndex,i),
+					ntexCoords);
+				ntexerrors = 1;
+				exit(1);
+			}
 			nvert ++;
 		}
 	}
@@ -804,10 +864,17 @@ IndexedFaceSet => '
 
 	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 	colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
-	tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
 	norindex = rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
 	rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
 	rep_->ntri = ntri;
+
+	if (ntexerrors == 0)
+		tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+	else {
+		ntexCoords = 0; tcin = 0; 
+		printf ("killing textures %x\n",this_->texCoord);
+		exit(1);
+	}
 
 	/* in C always check if you got the mem you wanted...  >;->		*/
   	if(!(cindex && colindex && tcindex && norindex && rep_->normal )) {
@@ -2191,7 +2258,7 @@ void regen_polyrep(void *node)
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0; r->tcoord = 0;
-		r->tcindex = 0; 
+		r->tcindex = 0;  
 	}
 	r = p->_intern;
 	r->_change = p->_change;
@@ -3324,6 +3391,7 @@ do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 			     ((depth)==3 ? GL_RGB : 
 			     GL_RGBA))),
 			     GL_UNSIGNED_BYTE, dest);
+		printf ("do_texture idest %x ptr %x sz %d\n",dest, ptr, depth *rx *ry);
 		if(ptr != dest) free(dest);
 	}
 }
