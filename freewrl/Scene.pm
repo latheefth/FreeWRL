@@ -335,27 +335,102 @@ my $cnt;
 sub new_node {
 	my ($this, $type, $fields) = @_;
 
+	# VRML scripting.
 	if ($type eq "Script") {
-		# print "new script node, cnt $cnt ";
+		print "Scene.pm - new script node, cnt $cnt\n ";
 		# Special handling for Script which has an interface.
 		my $t = "__script__".$cnt++;
-		# print " name is $t ";
+		 #print " name is $t ";
 		my %f = (
 				 url => [MFString, [], exposedField],
 				 directOutput => [SFBool, 0, field],
 				 mustEvaluate => [SFBool, 0, field]
 				);
 		for (keys %$fields) {
+			#print "Scene.pm - working on field $_\n";
+			#print "Scene.pm - the fields are ",$fields->{$_}[0],", ",
+			#		$fields->{$_}[1],", ",$fields->{$_}[2],"\n";
 			$f{$_} = [
-				$fields->{$_}[1],
-				$fields->{$_}[2],
-				$fields->{$_}[0],
+				$fields->{$_}[1], #eg, SFFloat
+				$fields->{$_}[2], #eg, value
+				$fields->{$_}[0], #eg, eventOut
 			];
 		}
-		my $type = VRML::NodeType->new($t, \%f, $VRML::Nodes{Script}{Actions});
+		#JAS my $type = VRML::NodeType->new($t, \%f, $VRML::Nodes{Script}{Actions});
+		my $type = VRML::NodeType->new($t, \%f);
 		my $node = VRML::NodeIntern->new($this, $type, {}, $this->{EventModel});
 		VRML::Handles::reserve($node);
-		# print "handle is $node, ",VRML::NodeIntern::dump_name($node),"\n";
+		#print "handle is $node, ",VRML::NodeIntern::dump_name($node),"\n";
+		return $node;
+	}
+
+	# X3D scripting.
+	if ($type eq "X3DScript") {
+		#print "Scene.pm - new X3Dscript node, cnt $cnt\n ";
+		# Special handling for X3DScript which has an interface.
+		my $internalScriptName = "__script__".$cnt++;
+		# print " name is $internalScriptName \n";
+
+		# create fields for this script. They should be like (from NodeType->new()):
+		#VRML::NodeType  - new of type VRML::NodeType, name Script
+		#        field url, ref fields[1] - ARRAY
+		#                0:MFString, 1:ARRAY(0x194eaac), 2:exposedField
+		#        field url has t of exposedField, 0 MFString, 1 ARRAY(0x194eaac), 2 exposedField
+		#        field mustEvaluate, ref fields[1] -
+		#                0:SFBool, 1:0, 2:field
+		#        field mustEvaluate has t of field, 0 SFBool, 1 0, 2 field
+		#        field directOutput, ref fields[1] -
+		#                0:SFBool, 1:0, 2:field
+		#        field directOutput has t of field, 0 SFBool, 1 0, 2 field
+
+		my %f = ();
+
+		# work on the URL.
+		my @arr;
+		push @arr, "[\"".$fields->{ScriptBody}."\"]";
+		$f{url} = ["MFString", "VRML::Field::MFString"->parse($this,@arr), "exposedField"];
+
+		# work on everything else BUT the url .-|
+		for my $fk (keys %{$fields->{ScriptInterface}}) {
+			#print "X3DScript in Scene, key $fk\n";
+			if (($fk eq "directOutput") || ($fk eq "mustEvaluate")) {
+				#print "found $fk\n";
+				my $iv = 0;
+				if ($fields->{ScriptInterface}{$fk} eq "true") {$iv = 1;}
+				$f{$fk} = ["SFBool",$iv,"field"];
+			} elsif ($fk eq "field") {
+				#print "found a field\n";
+				for my $sfk (keys %{$fields->{ScriptInterface}{$fk}}) {
+					#print "subfield $sfk\n";
+					my $sfkptr = $fields->{ScriptInterface}{$fk}{$sfk};
+					my $akt = $fields->{ScriptInterface}{$fk}{$sfk}{accessType};
+					my $val = $fields->{ScriptInterface}{$fk}{$sfk}{value};
+					my $type = $fields->{ScriptInterface}{$fk}{$sfk}{type};
+
+					if ($akt eq "initializeOnly") {$akt = "field";}
+					elsif ($akt eq "inputOnly") {$akt = "eventIn";}
+					elsif ($akt eq "outputOnly") {$akt = "eventOut";}
+					elsif ($akt eq "inputOutput") {
+						$akt = "eventOut";
+						print "Warning, field $sfk assumed to be eventOut, not inputOutput\n";
+					} else {
+						print "Huh? field $sfk has a field of $akt - what is this?\n";
+						$akt = "eventOut";
+					}
+					#print "field $sfk type $type val $val atk $akt\n";
+					$f{$sfk} = [$type,$val,$akt];
+				}
+			} elsif ($fk ne "url") {
+				print "Scene:new_node, unknown field $fk for X3DScript\n";
+			}
+		}
+
+
+		# create new type for this script node.
+		my $type = VRML::NodeType->new($internalScriptName, \%f);
+		my $node = VRML::NodeIntern->new($this, $type, {}, $this->{EventModel});
+		VRML::Handles::reserve($node);
+		#print "handle is $node, ",VRML::NodeIntern::dump_name($node),"\n";
 		return $node;
 	}
 

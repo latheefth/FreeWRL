@@ -124,10 +124,9 @@ my $protono;
     # XXX When this changes, change Scene.pm: VRML::Scene::newp too --
     # the members must correspond.
     sub new {
-		my($type, $name, $fields, $eventsubs) = @_;
+		my($type, $name, $fields) = @_;
 		my $this = bless {
 						  Name => $name,
-						  Actions => $eventsubs,
 						  Defaults => {},
 						  EventOuts => {},
 						  EventIns => {},

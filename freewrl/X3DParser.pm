@@ -76,7 +76,7 @@ sub printX3DPRotoDeclares {
 			printX3DPRotoDeclares($hk,"$space    ");
 		} else {
 			if (ref $hk eq "ARRAY") {
-				print "$space $key:\n";
+				print "$space $key: (array)\n";
 			} else {
 				print "$space $key is $hk \n";
 			}
@@ -85,7 +85,8 @@ sub printX3DPRotoDeclares {
 }
 
 
-#find the correct ProtoDefine in an ExternProto file.
+#find the correct ProtoDefine in an ExternProto file. This is called from getX3DExternProtoBody - 
+# ie, we want to get the correct ProtoBody for the correct proto!
 sub findProtoDefine {
 	my ($proto, $name) = @_;
 	my $retval = "";
@@ -159,7 +160,13 @@ sub findProtoDefine {
 }
 
 
+# An ExternProto is in a different file (obviously). We need to get this file, then
+# get the {ProtoBody} from it.
 #
+# Note that the URL is an array.  We try going through each element of the array, and try
+# to get that file.
+#
+
 sub getX3DExternProtoBody {
 	my ($rawurl) =@_;
 
@@ -612,6 +619,219 @@ sub parseX3DProtoInstance {
 }
 #PROTOTYPES - PROTOTYPES - PROTOTYPES - PROTOTYPES - PROTOTYPES
 
+#SCRIPTS - SCRIPTS - SCRIPTS - SCRIPTS
+
+# We have a script node here....
+
+sub parseX3DScript {
+	my ($proto) = @_;
+	my $arele = 0; #the first element will be the name of this proto
+	my $nele = $#$proto;
+	my $bnub;
+	my $url = "";
+	my $directOutput = "false";
+	my $mustEvaluate = "false";
+	my %fieldValueHash = ();
+	my $fvref = \%fieldValueHash;
+	my $retval;
+	my $LocalDEF = "";
+
+
+	#print "parseX3DScript call\n"; print Dumper ($proto), "\n\n";
+	# go through the tree structure for the ScriptInstance. 
+	while ($arele <= $nele ){
+		$bnub = $proto->[$arele];
+		#print "Instance: $bnub, ref ",ref $bnub," element $arele\n";
+		# did we find the hash? If so, these are the fields of the ScriptInstance node.
+		if (ref $bnub eq "HASH") {
+			my $key;
+			foreach $key (keys(%{$bnub})) {
+				#print "key $key is ",$bnub->{$key},"\n";
+				if ($key eq "mustEvaluate") {
+					$mustEvaluate = $bnub->{$key};
+				} elsif ($key eq "directOutput") {
+					$directOutput = $bnub->{$key};
+				} elsif ($key eq "url") {
+					$url = $bnub->{$key};
+				} elsif ($key eq "DEF") {
+					$LocalDEF = $bnub->{$key};
+				} else {
+					VRML::VRMLFunc::ConsoleMessage ("ScriptInstance - field $key is invalid\n");
+				}
+
+			}
+			# save the field information for invocation
+			# we must do this explicitly after the foreach, because we need the $LocalDEF value.
+			$X3DProtos{$LocalDEF}{ScriptInterface}{mustEvaluate} = $mustEvaluate;
+			$X3DProtos{$LocalDEF}{ScriptInterface}{directOutput} = $directOutput;
+			$X3DProtos{$LocalDEF}{ScriptInterface}{url} = $url;
+
+
+		# lets look for fields if we find it, parse it.
+		} elsif ($bnub eq "field") {
+			# the next element must be the fields
+			$arele++;
+
+			# make a hash of the fields ;-)
+			# get the fieldValue array.
+			my $fieldValueArr = $proto->[$arele];
+
+			if (ref $fieldValueArr ne "ARRAY") {
+				VRML::VRMLFunc::ConsoleMessage ("ScriptInstance, expected an array for Field params, got ".ref $fieldValueArr);
+			} else {
+				
+
+				# ok, the first value should be our name/value hash.
+				my $hash = $fieldValueArr->[0];
+				if (ref $hash ne "HASH") {
+					VRML::VRMLFunc::ConsoleMessage ("ScriptInstance, expected a field hash here, got ".ref $hash);
+				} else {
+					# yup, go through each, and get the name/val.
+					my $name = "";
+					my $type = "";
+					my $value = "";
+					my $accessType = "";
+        				foreach my $key (keys %{$hash}) {
+                				my $hk = $hash->{$key};
+                        			#print "$key is $hk \n";
+						if ($key eq "name") {
+							$name = $hk;
+						} elsif ($key eq "type") {
+							$type = $hk;
+						} elsif ($key eq "value") {
+							$value = $hk;
+						} elsif ($key eq "accessType") {
+							$accessType = $hk;
+						} else {
+							VRML::VRMLFunc::ConsoleMessage ("ScriptInstance, expected  name, type or accessType. got $key");
+							
+						}
+        				}
+					# save this value
+					$X3DProtos{$LocalDEF}{ScriptInterface}{field}{$name}{type} = $type;
+					$X3DProtos{$LocalDEF}{ScriptInterface}{field}{$name}{value} = $value;
+					$X3DProtos{$LocalDEF}{ScriptInterface}{field}{$name}{accessType} = $accessType;
+				}
+			}
+
+
+		## Is this the node-node matching?.
+		} elsif ($bnub eq "IS") {
+			print "Found the IS...\n";
+			$arele +=1;	
+			my $isstuff = $proto->[$arele];
+			print "parseX3DScript call\n"; print Dumper ($isstuff), "\n\n";
+
+		# lets just make sure we did not get any non-garbage stuff here.
+		} else {
+			# strip off any starting whitespace.
+			$bnub =~ s/^\s+//g;
+			
+			# is this the script itself?
+			my $first = substr ($bnub,0,11);
+			if (($first eq "ecmascript:") ||
+			    ($first eq "javascript:") ||
+			    ($first eq "vrmlscript:")) {
+				$X3DProtos{$LocalDEF}{ScriptBody} = $bnub;
+				#print "found ecmascript for $LocalDEF\n";
+			} else {
+
+				$bnub =~ s/\s+//g;
+				
+				# skip past "empty" elements in tree. 
+				if ($bnub ne "0") {
+					if ($bnub ne "") {
+						print "ScriptInstance: skip this :$bnub: \n";
+
+					}
+				}
+			}
+		}
+		$arele += 1;
+	}
+
+#JAS	# Is this proto declared yet? If so, protoRef should be a HASH.
+#JAS	my $protoRef = $protoTableRef->{$protoName};
+#JAS
+#JAS	if (ref $protoRef ne "HASH") {
+#JAS		VRML::VRMLFunc::ConsoleMessage ("Script $protoName not defined for ScriptInstance");
+#JAS
+#JAS		my $doc = "";
+#JAS		$retval = parse_X3DStatement("Group",$doc,$protoFields);
+#JAS	} else {
+#JAS		# copy each of the fields over, for the parse. If the field 
+#JAS		# exists in the ScriptInstance, use it; if not, use the field/value
+#JAS		# in the ScriptDeclare.
+#JAS		my $oldkeyptr = $protoRef->{ScriptInterface}->{field};
+#JAS		foreach my $oldkey (keys %{$oldkeyptr}) {
+#JAS			my $kkk = $oldkeyptr->{$oldkey};
+#JAS			foreach my $oldkeyname (keys %{$kkk}) {
+#JAS				if (!exists $fvref->{$oldkey}->{$oldkeyname}) {
+#JAS					#print "new ildkeyname $oldkeyname\n";
+#JAS					$fieldValueHash{$oldkey}{$oldkeyname} = $kkk->{$oldkeyname};
+#JAS				} 
+#JAS				#else {print "$oldkey $oldkeyname in ScriptInstance\n";}
+#JAS			}
+#JAS
+#JAS		}
+#JAS
+#JAS		# verify that all name/values are copied over for this Script.
+#JAS       		foreach my $key (keys %{$fvref}) {
+#JAS       			my $hk = $fvref->{$key};
+#JAS			#print "NOW ScriptInstance key $key\n";
+#JAS			foreach my $sk (keys %{$hk}) {
+#JAS				#print "	$sk = ",$hk->{$sk},"\n";
+#JAS			}
+#JAS		}
+#JAS
+	# now parse the proto with new values from the ScriptInstance
+	# Note that the "old" VRML Script parsing node wants a hash where
+	# each hash element is an array - containing:
+	#	element 0 - type (eg, initializeOnly)
+	#	element 1 - type (eg, event SFBool)
+	#	element 2 - value (eg, "this is a string")
+	# look in Scene.pm,  sub new_node
+
+	my %xf = ();
+	my @arr;
+	# print "ScriptBody ",$X3DProtos{$LocalDEF}{ScriptBody},"\n";
+	push @arr, "[\"".$X3DProtos{$LocalDEF}{ScriptBody}."\"]";
+	#$xf{url}->[1] = "url"; 
+	#$xf{url}->[0] = "MFString"; 
+	#$xf{url}->[2] = "VRML::Field::MFString"->parse($X3DScene,@arr);
+	#foreach my $fieldName (keys (%{$X3DProtos{$LocalDEF}{ScriptInterface}{field}})) {
+	#	my $localHash = $X3DProtos{$LocalDEF}{ScriptInterface}{field}{$fieldName};
+	#	#print "foreach key HERE is $fieldName value ", $X3DProtos{$LocalDEF}{ScriptInterface}{field}{$fieldName},"\n";
+	#	foreach my $fieldVal (keys (%{$localHash})) {
+	#		#print " subfield $fieldVal\n";
+	#		$xf{$fieldName}->[0]=$localHash->{accessType};
+	#		$xf{$fieldName}->[2]=$localHash->{type};
+	#		$xf{$fieldName}->[1]=$localHash->{value};
+	#		print "so, for here, we have 0 ",$xf{$fieldName}->[0],", 1 ",$xf{$fieldName}->[1],", 2 ",$xf{$fieldName}->[2],"\n";
+	#	}
+#
+#	}	
+
+	# new_node knows that "Script" is different. see parse_interfacedecl for VRML.
+	$retval = $X3DScene->new_node("X3DScript",$protoTableRef->{$LocalDEF});
+#JAS	}
+#JAS
+	# did we have a local DEF in here?
+	if ($LocalDEF ne "") {
+                # store this as a sequence number, because multiple DEFS of the same name
+                # must be unique. (see the spec)
+                VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
+                $LASTDEF++;
+                my $defname = VRML::Handles::return_def_name($LocalDEF);
+                print "X3DParser.pm: DEF $LocalDEF as $defname\n"
+                        if $X3D::verbose;
+
+                $retval = $X3DScene->new_def($defname, $retval, $LocalDEF);
+	}
+	return $retval; 
+}
+#SCRIPTS - SCRIPTS - SCRIPTS - SCRIPTS
+
 
 # Doc tree format.
 # Each level has:
@@ -661,9 +881,9 @@ sub parse {
 	PARSE_EXIT:
 
 	$X3DScene->topnodes(\@RetArr);
-	if ($X3D::parse::verbose)  {
+	#JASif ($X3D::parse::verbose)  {
 		printX3DPRotoDeclares ($protoTableRef,"");
-	}
+	#JAS}
 }
 
 
@@ -760,13 +980,13 @@ sub parseIS {
 			$arele++;
 			# presumably, only one connect pair is possible here.
 			my $ar = $IS->[$arele]->[0];
-			#print "connect is $ar\n";
+			print "connect is $ar\n";
 
 			# find the nodeField and protoField keys
 			my $nF = ""; 
 			my $pF = "";
 			foreach my $iskey (keys (%{$ar})) {
-				#print "key $iskey is ",$ar->{$iskey},"\n";
+				print "key $iskey is ",$ar->{$iskey},"\n";
 				if ($iskey eq "nodeField") {
 					$nF = $ar->{$iskey};
 				} elsif ($iskey eq "protoField") {
@@ -782,16 +1002,19 @@ sub parseIS {
 			my $isVar = $protoFields->{$pF};
 			my $isVarVal = $isVar->{value};
 			my $isVarType = $isVar->{type};
-			#print "isVar is $isVar, type $isVarType, val $isVarVal\n";
+			print "isVar is $isVar, type $isVarType, val $isVarVal\n";
 
 			# lets find out what we expected here
         		my $no = $VRML::Nodes{$parentNode};
 			my $ft = $no->{FieldTypes}{$nF};
-			#print "field type of node $parentNode is $ft\n";
+			print "field type of node $parentNode is $ft\n";
 
 			# do field types match?
 			if ($ft ne $isVarType) {
 				print "IS, node mismatch; $nF is $ft, $pF is $isVarType\n";
+#JAS - add this here.yy
+	printX3DPRotoDeclares ($protoTableRef,"");
+#JAS - add this here.yy
 				return;
 			} 
 			$fieldref->{$nF} = parseSimpleField ($parentNode,$nF,$isVarVal);
@@ -961,6 +1184,8 @@ sub parse_X3DStatement {
 				parseX3DProtoDeclare($bnub);
 			} elsif ($nextNodeName eq "ExternProtoDeclare") {
 				parseX3DExternProtoDeclare($bnub);
+			} elsif ($nextNodeName eq "Script") {
+				return parseX3DScript($bnub);
 			} elsif (verifyX3DNodeExists($nextNodeName)) { 
 				parseX3DNodeField($parentNode,$nextNodeName,\%field,$bnub,$protoFields);
 			}	
