@@ -11,6 +11,11 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.10  2001/05/30 19:07:44  ayla
+#
+# Ref. bug id #426972: sfvec3f values don't take commas, submitted by J. Stewart (crc_canada).
+# Altered the code used to read in SFColor, SFVec2f and SFRotation floating point numbers.
+#
 # Revision 1.9  2001/05/25 21:34:00  ayla
 #
 #
@@ -215,14 +220,10 @@ VRML::Error->import;
 sub parse {
 	my($type,$p) = @_;
 
-	# first, look for 3 floats, NO COMMAS.
-	my $count = ($_[2] =~ /\G\s*($Float)\s+($Float)\s+($Float)/ogsc);
+	$_[2] =~ /\G\s*($Float)\s+($Float)\s+($Float)/ogsc
+	    or $_[2] =~ /\G\s*($Float),\s+($Float),\s+($Float)/ogsc 
+	    or parsefail($_[2],"Didn't match SFColor");
 
-	# XXX - Verify second, did not parse, maybe the user put commas in?
-	if (!$count) {
-		$_[2] =~ /\G\s*($Float),\s+($Float),\s+($Float)/ogsc 
-			or parsefail($_[2],"Didn't match SFColor");
-	}
 	return [$1,$2,$3];
 }
 
@@ -371,14 +372,9 @@ VRML::Error->import();
 sub parse {
 	my($type,$p) = @_;
 
-	# first, look for 2 floats, NO COMMAS.
-	my $count=($_[2] =~ /\G\s*($Float)\s+($Float)/gsc);
-
-	# XXX - Verify second, did not parse, maybe the user put commas in?
-	if (!$count) {
-	$_[2] =~ /\G\s*($Float)\s+($Float)/gsc 
-		or parsefail($_[2],"didn't match SFVec2f");
-	}
+	$_[2] =~ /\G\s*($Float)\s+($Float)/ogsc
+	    or $_[2] =~ /\G\s*($Float),\s+($Float)/ogsc
+	    or parsefail($_[2],"didn't match SFVec2f");
 	return [$1,$2];
 }
 
@@ -462,7 +458,7 @@ sub parse {
 
 	# XXX - Verify second, did not parse, maybe the user put commas in?
 	if (!$count) {
-	    $_[2] =~ /\G\s*($Float)\s+($Float)\s+($Float)\s+($Float)/ogsc 
+	    $_[2] =~ /\G\s*($Float),\s+($Float),\s+($Float),\s+($Float)/ogsc 
 		or VRML::Error::parsefail($_[2],"not proper rotation");
 	}
 	return [$1,$2,$3,$4];
