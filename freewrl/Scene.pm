@@ -712,13 +712,34 @@ sub new {
 	
 }
 
+# is this node a new "replaceWorld'd" node, and does it need to be put on the stack?
+sub replaceWorld_Bindable {
+	my ($this, $node) = @_;
+
+        # Check if it is bindable and first -> bind to it later..
+
+	# print "Scene.pm:replaceWorld_Bindable, looking at node $node, type ",
+	#	$node->{TypeName}," type node ", $node->{Type},"\n";
+
+        if($VRML::Nodes::bindable{$node->{TypeName}}) {
+		# this should never happen...
+                if(!defined $this->{Bindable}{$node->{TypeName}}) {
+                        $this->{Bindable}{$node->{TypeName}} = $node;
+                }
+		# print "Scene.pm:replaceWorld_Bindable, found one! $node\n";
+                push @{$this->{Bindables}{$node->{TypeName}}}, $node;
+        }
+}
+
+
+	
 sub register_vps {
 	my ($this, $browser) = @_;
 
         my $np = $this->{Bindables}{Viewpoint};
 	my $c = 0;
 	while ($c <= $#$np) {
-        	# JAS print $np->[$c]," viewpoint $c is ",$np->[$c]{Fields}{description},"\n";
+        	# print $np->[$c]," viewpoint $c is ",$np->[$c]{Fields}{description},"\n";
 		$browser->register_vp($this,$np->[$c]);
 		$c++;
 	}
@@ -1023,14 +1044,12 @@ sub mkbe_and_array {
 
     my $c = $_[0]{Nodes}[$curindex];
 
-    # print "Scene.pm - first $c ref ",ref($c),"\n";
     if("ARRAY" eq ref $c) {
 	$c = @{$c};
     } elsif ("VRML::DEF" eq ref ($c)) {
-	print "Scene.pm - dereferencing def \n";
-	$c = $c->real_node();
-
+      $c = $c->real_node();
     }
+
     # lets make backend here, while we are having fun...
     if (!defined $c->{BackNode}) {
 	my $rn = c;
