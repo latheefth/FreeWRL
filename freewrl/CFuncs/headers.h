@@ -1,10 +1,9 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
-
+ 	 
 #include "Structs.h"
-
+ 	 
 #include <GL/glu.h>
-
 
 /* number of tesselated coordinates allowed */
 #define TESS_MAX_COORDS  500
@@ -14,7 +13,7 @@
 #ifndef FALSE
 #define FALSE 0
 #endif
-
+ 	 
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -215,6 +214,8 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
    display lists, so we just use an already created variable. */
 extern GLuint last_bound_texture;
 
+/* current time */
+extern double TickTime;
 
 
 /* Transform node optimizations */
@@ -223,6 +224,10 @@ int verify_translate(GLfloat *params);
 
 /* C routes */
 #define MAXROUTES 1000
+#define MAXSCRIPTS 40
+#define MAXPARAMS 100
+#define MAXJSVARIABLELENGTH 20	/* variable name length can be this long... */
+
 void mark_event (unsigned int from, unsigned int fromoffset);
 void do_OintScalar (void *px);
 void do_OintCoord(void *px);
@@ -232,10 +237,10 @@ void do_Oint4 (void *px);
 /* saved rayhit and hyperhit */
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 
-void do_TouchSensor (struct VRML_TouchSensor *px, char *typ, double time, int over);
-void do_SphereSensor (struct VRML_SphereSensor *px, char *typ, double time, int over);
-void do_CylinderSensor (struct VRML_CylinderSensor *px, char *typ, double time, int over);
-void do_PlaneSensor (struct VRML_PlaneSensor *px, char *typ, double time, int over);
+void do_TouchSensor (struct VRML_TouchSensor *px, char *typ, int over);
+void do_SphereSensor (struct VRML_SphereSensor *px, char *typ, int over);
+void do_CylinderSensor (struct VRML_CylinderSensor *px, char *typ, int over);
+void do_PlaneSensor (struct VRML_PlaneSensor *px, char *typ, int over);
 
 
 /* bindable nodes */
@@ -249,6 +254,21 @@ extern struct sNaviInfo naviinfo;
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
 extern char * BrowserActionString;
+
+/* Scripting Routing interfaces */
+void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int brow);
+void gatherScriptEventOuts(int script, int ignore);
+
+extern int CRVerbose, JSVerbose;
+
+int JSparamIndex (char *name, char *type);
+
+struct CRjsStruct {
+	unsigned int	cx;	/* JSContext		*/
+	unsigned int	glob;	/* JSGlobals		*/
+	unsigned int	brow;	/* BrowserIntern	*/
+};
+extern struct CRjsStruct JSglobs[];
 
 
 #endif /* __HEADERS_H__ */
