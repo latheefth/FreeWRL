@@ -7,7 +7,7 @@
 # IndexedFaceSet test
 NavigationInfo {
    headlight TRUE
-   type ["WALK", "ANY"]
+   type ["EXAMINE", "WALK", "ANY"]
    avatarSize [ 0.25,1.6,1.]
 }
 
