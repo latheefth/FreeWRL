@@ -37,17 +37,18 @@
 #include "Structs.h"
 #include "headers.h"
 
+#define MAX_COORDS 500
   
 GLUtriangulatorObj *global_tessobj;	
 struct VRML_PolyRep *global_tess_polyrep=NULL;
-int global_IFS_Coords[500];
+int global_IFS_Coords[MAX_COORDS];
 int global_IFS_Coord_count=0;
 
 /* and now all the callback functions, which will be called
 	by OpenGL automatically, if the Polygon is specified	*/
 
 void FW_tess_begin(GLenum e) {
-               /* printf(" FW_tess_begin   e = %s\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN"));  */
+               //printf(" FW_tess_begin   e = %s\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN")); 
 		/* we only should get GL_TRIANGLES as type, because
 		we defined  the edge_flag callback		*/
 		/* check, if the structure is there		*/
@@ -56,12 +57,12 @@ void FW_tess_begin(GLenum e) {
 }
 
 void FW_tess_end(void) {
-	/* printf("FW_tess_end: Tesselation done.\n"); */
+	//printf("FW_tess_end: Tesselation done.\n"); 
 	/* nothing to do	*/
 }
 
 void FW_tess_edgeflag(GLenum flag) {
-	/* printf("FW_tess_edgeflag: An edge was done (flag = %d).\n", flag); */
+	//printf("FW_tess_edgeflag: An edge was done (flag = %d).\n", flag);
 	/* nothing to do, this function has to be registered
 	so that only GL_TRIANGLES are used	*/
 }
@@ -69,13 +70,17 @@ void FW_tess_edgeflag(GLenum flag) {
 void FW_IFS_tess_vertex(void *p) {
 	int *dp=p;
 
-	global_IFS_Coords[global_IFS_Coord_count++] = *dp;
-	/* printf ("tess vertex, %d count now is %d\n",*dp,global_IFS_Coord_count); */
+	if (global_IFS_Coord_count == MAX_COORDS) {
+		printf ("FW_IFS_tess_vertex, too many coordinates in this face, change MAX_COORDS\n");
+		global_IFS_Coord_count++;
+	} else {
+		global_IFS_Coords[global_IFS_Coord_count++] = *dp;
+	}
 
 }
 
 void FW_tess_error(GLenum e) {
-	/* printf("ERROR %d: >%s<\n",e,gluErrorString(e));*/
+	printf("FW_tess_error %d: >%s<\n",e,gluErrorString(e));
 }
 
 
