@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.26  2001/04/27 16:50:03  crc_canada
+# Working display lists for Shape nodes
+#
 # Revision 1.25  2001/04/24 19:54:16  crc_canada
 # Display list work
 #
@@ -116,6 +119,10 @@ Box => (join '',
 	 float x = $f(size,0)/2;
 	 float y = $f(size,1)/2;
 	 float z = $f(size,2)/2;
+
+	/* for shape display list redrawing */
+	this_->_myshape = last_visited_shape; 
+
 	 glPushAttrib(GL_LIGHTING);
 	 glShadeModel(GL_FLAT);
 	 glBegin(GL_QUADS);
@@ -191,6 +198,7 @@ Box => (join '',
 	',
 ),
 
+
 Cylinder => '
 		int div = horiz_div;
 		float df = div;
@@ -200,6 +208,9 @@ Cylinder => '
 		DECL_TRIG1
 		int i = 0;
 		INIT_TRIG1(div)
+        
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape;
 
 		if($f(top)) {
 			            /*	printf ("Cylinder : top\n"); */
@@ -279,6 +290,10 @@ Cone => '
 		int i;
 		DECL_TRIG1
 
+
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape;
+
 		if(h <= 0 && r <= 0) {return;}
 		INIT_TRIG1(div)
 
@@ -339,6 +354,10 @@ Sphere => 'int vdiv = vert_div;
 		float va1,va2,van,ha1,ha2,han;
 		DECL_TRIG1
 		DECL_TRIG2
+
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
+
 		INIT_TRIG1(vdiv) 
 		INIT_TRIG2(hdiv)
 		glPushMatrix();
@@ -393,6 +412,9 @@ IndexedFaceSet =>  ( join '',
 		struct SFColor *normals; int nnormals=0;
 		struct SFVec2f *texcoords; int ntexcoords=0;
 
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
+
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
@@ -429,10 +451,12 @@ IndexedLineSet => '
 		int ind1,ind2;
 		int ind;
 		int c;
-
-
 		struct SFColor *points; int npoints;
 		struct SFColor *colors; int ncolors=0;
+
+
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
 
 		if(verbose) printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		$fv(coord, points, get3, &npoints);
@@ -502,6 +526,9 @@ PointSet => '
 	struct SFColor *points; int npoints=0;
 	struct SFColor *colors; int ncolors=0;
 
+		/* for shape display list redrawing */
+	this_->_myshape = last_visited_shape; 
+
 	$fv(coord, points, get3, &npoints);
 	$fv_null(color, colors, get3, &ncolors);
 	if(ncolors && ncolors != npoints) {
@@ -533,6 +560,11 @@ PointSet => '
 ElevationGrid => ( '
 		struct SFColor *colors; int ncolors=0;
 		struct SFColor *normals; int nnormals=0;
+
+
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
+
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$mk_polyrep();
@@ -552,6 +584,10 @@ ElevationGrid => ( '
 '),
 
 Extrusion => ( '
+
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
+
 		$mk_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -574,6 +610,10 @@ Text => '
 	void (*f)(int n, SV **p,int nl, float *l, float maxext, double spacing,double size);
 	double spacing = 1.0;
 	double size = 1.0; 
+
+		/* for shape display list redrawing */
+	this_->_myshape = last_visited_shape; 
+
 	/* We need both sides */
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable(GL_CULL_FACE);
@@ -593,6 +633,10 @@ Text => '
 Material => ( join '',
 	"	float m[4]; int i; 
 		",assgn_m(diffuseColor,1),";
+
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
+
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, m);
 		for(i=0; i<3; i++) {
 			m[i] *= ", getf(Material, ambientIntensity),";
@@ -617,6 +661,11 @@ Material => ( join '',
 '),
 
 TextureTransform => '
+
+
+		/* for shape display list redrawing */
+	this_->_myshape = last_visited_shape; 
+
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glTranslatef($f(translation,0), $f(translation,1), 0);
@@ -629,6 +678,9 @@ TextureTransform => '
 
 ImageTexture => ('
 	unsigned char *ptr = SvPV((this_->__data),PL_na);
+
+		/* for shape display list redrawing */
+	this_->_myshape = last_visited_shape; 
 
 	if(!this_->_texture) {
 		glGenTextures(1,&this_->_texture);
@@ -647,6 +699,9 @@ ImageTexture => ('
 PixelTexture => ('
 
 	unsigned char *ptr = SvPV((this_->__data),PL_na);
+
+		/* for shape display list redrawing */
+	this_->_myshape = last_visited_shape; 
 
 	if(!this_->_texture) {
 		glGenTextures(1,&this_->_texture);
@@ -1136,6 +1191,7 @@ GLdouble projMatrix[16];
 	);
 ~,
 
+
 DirectionalLight => '
 	/* NOTE: This is called by the Group Children code
 	 * at the correct point (in the beginning of the rendering
@@ -1445,6 +1501,9 @@ Billboard => (join '','
 
 	',
 	Appearance => '
+		/* for shape display list redrawing */
+		this_->_myshape = last_visited_shape; 
+
 		/* do we want to do textures ? */
 		if (render_textures == 1) {
 		    if($f(texture))
@@ -1465,10 +1524,16 @@ Billboard => (join '','
 	Shape => '
 		if(!(this_->geometry)) { return; }
 
-		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
+		/* Display lists used here. The name of the game is to use the
+		display list for everything, except for sensitive nodes. */
+	
 
+		/* Appearance, Material, Shape, will make a new list, via this pointer */
+		last_visited_shape = this_;
+
+		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
 		/* if we are rendering the geometry, see if we have a disp. list */
-		if (render_geom) {
+		if ((render_geom) && (!render_sensitive)) { 
 			if(this_->_dlist) {
 				if(this_->_dlchange == this_->_change) {
 					glCallList(this_->_dlist); 
@@ -1480,39 +1545,40 @@ Billboard => (join '','
 			}
 			this_->_dlist = glGenLists(1);
 			this_->_dlchange = this_->_change;
-		}
-		/* nope, no display list... */
 
-		/* a texture flag... */
-		last_bound_texture = 0;
+			/* a texture flag... */
+			last_bound_texture = 0;
+	
+			/* is there an associated appearance node? */	
+		
+        	        if($f(appearance)) {
+				render_textures = 1;
+	                        render_node($f(appearance));
+				render_textures = 0;
+				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+	                        render_node($f(appearance));
+        	        } else {
+				if (render_geom) {
+				    /* no appearance, so start the list and set colour */
+				    glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+        	                    glColor3f(1.0,1.0,1.0);
+				}
+	                }
 
-		/* is there an associated appearance node? */	
-                if($f(appearance)) {
-			render_textures = 1;
-                        render_node($f(appearance));
-			render_textures = 0;
-			glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
-                        render_node($f(appearance));
-                } else {
-			if (render_geom) {
-			    /* no appearance, so start the list and set colour */
-			    glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
-                            glColor3f(1.0,1.0,1.0);
+			if (last_bound_texture != 0) {
+				/* we had a texture */
+				glEnable (GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D,last_bound_texture);
 			}
-                }
-
-		if (last_bound_texture != 0) {
-			/* we had a texture */
-			glEnable (GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D,last_bound_texture);
 		}
 
 		/* Now, do the geometry */
 		render_node((this_->geometry));
 
-		if (render_geom) 
+		if ((render_geom) && (!render_sensitive))
 			glEndList();
 
+		last_visited_shape = 0;
 		glPopAttrib();
 	',
 );

@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.27  2001/04/27 16:49:43  crc_canada
+# Working display lists for Shape nodes
+#
 # Revision 1.26  2001/04/24 19:55:00  crc_canada
 # Display list work
 #
@@ -881,14 +884,20 @@ gluEndPolygon( global_tessobj );
 
 %Get3C = (
 Coordinate => '
+	/* ptr for invalidating the shape display list */
+	this_->_myshape = last_visited_shape; 
 	*n = $f_n(point); 
 	return $f(point);
 ',
 Color => '
+	/* ptr for invalidating the shape display list */
+	this_->_myshape = last_visited_shape;
 	*n = $f_n(color); 
 	return $f(color);
 ',
 Normal => '
+	/* ptr for invalidating the shape display list */
+	this_->_myshape = last_visited_shape; 
 	*n = $f_n(vector);
 	return $f(vector);
 '
@@ -896,6 +905,8 @@ Normal => '
 
 %Get2C = (
 TextureCoordinate => '
+	/* ptr for invalidating the shape display list */
+	this_->_myshape = last_visited_shape; 
 	*n = $f_n(point);
 	return $f(point);
 ',
@@ -1014,6 +1025,7 @@ sub gen_struct {
 	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
 	       "       GLuint _texture; \n"		.
+	       " /*disp list JAS*/ struct VRML_Shape *_myshape; \n"		.
                " /*d*/ void *_intern; \n"              	.
                " /***/\n";
 	
@@ -1071,6 +1083,12 @@ CODE:
 	{struct VRML_Box *p;
 	 p = ptr;
 	 p->_change ++;
+
+	/* force a rebuild of the display list for this shape */
+	if (p->_myshape != 0) {
+        	p->_myshape->_change++;
+	}
+
 	}
 	$c
 
@@ -1301,6 +1319,7 @@ int render_blend;
 /* in Shape/Appearance, we want two kicks at the can */
 int render_textures;
 GLuint last_bound_texture;
+struct VRML_Shape *last_visited_shape = 0;
 
 int horiz_div; int vert_div;
 int vp_dist = 200000;
@@ -1992,6 +2011,7 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep)
  * render_node : call the correct virtual functions to render the node
  * depending on what we are doing right now.
  */
+
 void render_node(void *node) {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
@@ -2018,11 +2038,12 @@ void render_node(void *node) {
 		   render_geom, 
 		   render_light, 
 		   render_sensitive);
+	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
 	  }
 
 	if(p->_change != p->_ichange && v->changed) 
 	  {
-	    if (verbose) printf ("rs 1\n");
+	    if (verbose) printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
 	    v->changed(node);
 	    p->_ichange = p->_change;
 	  }
@@ -2228,6 +2249,7 @@ CODE:
         p->_nparalloc = 0;
 	p->_ichange = 0;
 	p->_texture = 0;
+	p->_myshape = last_visited_shape; /* This is for display list regeneration */
 	RETVAL=ptr;
 OUTPUT:
 	RETVAL
@@ -2356,9 +2378,11 @@ CODE:
 	}
 	if(verbose)
   		printf("Render_hier rev_trans=%d vp=%d geom=%d light=%d sens=%d blend=%d what_vp=%d\n", p, revt, rvp, rgeom, rlight, rblend, wvp);
+
 	if(render_sensitive) 
 		upd_ray();
 	render_node(p);
+
 	/* Get raycasting results */
 	if(render_sensitive) {
 		if(hpdist >= 0) {
