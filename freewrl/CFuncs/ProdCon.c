@@ -156,8 +156,13 @@ PerlInterpreter *my_perl;
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
 
+char *myPerlInstallDir;
+
 void initializePerlThread(char *perlpath) {
 	int iret;
+
+	myPerlInstallDir = malloc (strlen (perlpath) + 2);
+	strcpy (myPerlInstallDir, perlpath);
 
 	/* create consumer thread and set the "read only" flag indicating this */
 	iret = pthread_create (&PCthread, NULL, (void *)&_perlThread, (void *) perlpath);

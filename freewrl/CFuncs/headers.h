@@ -351,7 +351,7 @@ extern void setPluginFD(char *optarg);
 extern void setPluginInstance(char *optarg);
 
 extern int isPerlinitialized(void);
-extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserPATH; // defined in VRMLC.pm
+extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
 extern int display_status;		// toggle status bar - defined in VRMLC.pm
 extern int be_collision;		// toggle collision detection - defined in VRMLC.pm
 extern double hpdist;			// in VRMLC.pm
@@ -385,4 +385,9 @@ extern int screenWidth, screenHeight;
 
 extern char *getLibVersion();
 
+extern char *myPerlInstallDir;
+
+
+/* Java CLASS invocation */
+int newJavaClass(int scriptInvocationNumber,char * nodestr,int *node);
 #endif /* __HEADERS_H__ */

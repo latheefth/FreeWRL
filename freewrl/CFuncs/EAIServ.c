@@ -53,61 +53,7 @@
 #include <sys/socket.h>
 #endif
 
-
-
-#define MAXEAIHOSTNAME	255		// length of hostname on command line
-#define EAIREADSIZE	2048		// maximum we are allowed to read in from socket
-#define EAIBASESOCKET   9877		// socket number to start at
-
-
-/* these are commands accepted from the EAI client */
-#define GETNODE		'A'
-#define UPDATEROUTING 	'B'
-#define SENDCHILD 	'C'
-#define SENDEVENT	'D'
-#define GETVALUE	'E'
-#define GETTYPE		'F'
-#define	REGLISTENER	'G'
-#define	ADDROUTE	'H'
-#define	DELETEROUTE	'J'
-#define GETNAME		'K'
-#define	GETVERSION	'L'
-#define GETCURSPEED	'M'
-#define GETFRAMERATE	'N'
-#define	GETURL		'O'
-#define	REPLACEWORLD	'P'
-#define	LOADURL		'Q'
-#define	SETDESCRIPT	'R'
-#define CREATEVS	'S'
-#define	CREATEVU	'T'
-#define	STOPFREEWRL	'U'
-
-/* Subtypes - types of data to get from EAI  - we don't use the ones defined in
-   headers.h, because we want ASCII characters */
-
-#define	EAI_SFUNKNOWN	'a'
-#define	EAI_SFBOOL		'b'
-#define	EAI_SFCOLOR		'c'
-#define	EAI_SFFLOAT		'd'
-#define	EAI_SFTIME		'e'
-#define	EAI_SFINT32		'f'
-#define	EAI_SFSTRING	'g'
-#define	EAI_SFNODE		'h'
-#define	EAI_SFROTATION	'i'
-#define	EAI_SFVEC2F		'j'
-#define	EAI_SFIMAGE		'k'
-#define	EAI_MFCOLOR		'l'
-#define	EAI_MFFLOAT		'm'
-#define	EAI_MFTIME		'n'
-#define	EAI_MFINT32		'o'
-#define	EAI_MFSTRING	'p'
-#define	EAI_MFNODE		'q'
-#define	EAI_MFROTATION	'r'
-#define	EAI_MFVEC2F		's'
-#define EAI_MFVEC3F		't'
-#define EAI_SFVEC3F		'u'
-
-
+#include "EAIheaders.h"
 
 int EAIwanted = FALSE;			// do we want EAI?
 char EAIhost[MAXEAIHOSTNAME];		// host we are connecting to
@@ -142,121 +88,107 @@ char EAIListenerArea[40];		// put the address of the EAIListenerData here.
 // prototypes
 void EAI_parse_commands (char *stptr);
 unsigned int EAI_SendEvent(char *bufptr);
-void EAI_send_string (char *str);
-void connect_EAI(void);
-void read_EAI_socket(void);
 void handle_Listener (void);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 
-void EAI_send_string(char *str){
+void EAI_send_string(char *str, int lfd){
 	unsigned int n;
 
 	/* add a trailing newline */
 	strcat (str,"\n");
 
-	if (EAIVerbose) printf ("EAI Command returns\n%s(end of command)\n",str);
+	if (EAIVerbose) 
+		printf ("EAI Command returns\n%s(end of command)\n",str);
 
-	n = write (listenfd, str, (unsigned int) strlen(str));
+	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
 		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
 	}
-
 }
 
 /* open the socket connection -  we open as a TCP server, and will find a free socket */
-void connect_EAI() {
-	int socketincrement;
+/* EAI will have a socket increment of 0; Java Class invocations will have 1 +	      */
+int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	int len;
 	const int on=1;
 	int flags;
 
         struct sockaddr_in      servaddr;
 
-	if (EAIfailed) return;
+	if ((EAIfailed) &&(socketincrement==0)) return;
 
-	if (sockfd < 0) {
+	if ((*sockfd) < 0) {
 		// step 1  - create socket
-	        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	        if (((*sockfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 			printf ("EAIServer: socket error\n");
-			EAIfailed=TRUE;
-			return;
+			return FALSE;
 		}
 	
-	
-		setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-	
-		if ((flags=fcntl(sockfd,F_GETFL,0)) < 0) {
+		setsockopt ((*sockfd), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
+		if ((flags=fcntl((*sockfd),F_GETFL,0)) < 0) {
 			printf ("EAIServer: trouble gettingsocket flags\n");
-			EAIfailed=TRUE;
-			return;
+			return FALSE;
 		} else {
 			flags |= O_NONBLOCK;
-	
-			if (fcntl(sockfd, F_SETFL, flags) < 0) {
+		
+			if (fcntl((*sockfd), F_SETFL, flags) < 0) {
 				printf ("EAIServer: trouble setting non-blocking socket\n");
-				EAIfailed=TRUE;
-				return;
+				return FALSE;
 			}
 		}
 	
-		if (EAIVerbose) printf ("connect_EAI - socket made\n");
+		if (EAIVerbose) printf ("conEAIorCLASS - socket made\n");
 	
 		// step 2 - bind to socket
-		socketincrement = 0;
 	        bzero(&servaddr, sizeof(servaddr));
 	        servaddr.sin_family      = AF_INET;
 	        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	        servaddr.sin_port        = htons(EAIBASESOCKET+socketincrement);
-	
-	        while (bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
-			//socketincrement++;
-			//printf ("error binding to %d, trying %d\n",EAIBASESOCKET+socketincrement-1,
-			//	EAIBASESOCKET+socketincrement);
-			//servaddr.sin_port        = htons(EAIBASESOCKET+socketincrement);
 
-			// do we really want to ramp up and find a "free" socket? Not in
-			// this version, anyway.
-			EAIfailed=TRUE;
-			return;
+	        while (bind((*sockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+			return FALSE;
 		}
 	
 		if (EAIVerbose) printf ("EAISERVER: bound to socket %d\n",EAIBASESOCKET+socketincrement);
 	
 		// step 3 - listen
 	
-	        if (listen(sockfd, 1024) < 0) {
+	        if (listen((*sockfd), 1024) < 0) {
 	                printf ("EAIServer: listen error\n");
-			EAIfailed=TRUE;
-			return;
+			return FALSE; 
 		}
 	}
 
-	if ((sockfd >=0) && (listenfd<0)) {
+	if (((*sockfd) >=0) && ((*listenfd)<0)) {
 		// step 4 - accept
 		len = sizeof(cliaddr);
-	        if ( (listenfd = accept(sockfd, (struct sockaddr *) &cliaddr, &len)) < 0) {
+	        if ( ((*listenfd) = accept((*sockfd), (struct sockaddr *) &cliaddr, &len)) < 0) {
 			//printf ("EAIServer: no client yet\n");
 		}
 	}
 
 
-	if (listenfd >=0) {
+	/* are we ok, and are we using this with EAI? */
+	if (((*listenfd) >=0) && (socketincrement==0)) {
 		/* allocate memory for input buffer */
 		bufcount = 0;
 		bufsize = 2 * EAIREADSIZE; // initial size
 		buffer = malloc(bufsize * sizeof (char));
 		if (buffer == 0) {
 			printf ("can not malloc memory for input buffer in create_EAI\n");
-			EAIfailed = TRUE;
-			return;
+			return FALSE;
 		}
 	
+
 		/* zero out the EAIListenerData here, and after every use */	
 		bzero(&EAIListenerData, sizeof(EAIListenerData));
 
 		/* seems like we are up and running now, and waiting for a command */
 		EAIinitialized = TRUE;	
 	}
+	if (EAIVerbose) printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
+	return TRUE;
 }
 
 /* the user has pressed the "q" key */
@@ -265,7 +197,7 @@ void shutdown_EAI() {
 	if (EAIVerbose) printf ("shutting down EAI\n");
 	strcpy (EAIListenerData,"QUIT\n\n\n");
 	if (EAIinitialized) {
-		EAI_send_string(EAIListenerData);
+		EAI_send_string(EAIListenerData,listenfd);
 	}
 
 }
@@ -280,12 +212,16 @@ void create_EAI() {
 
 	/* have we already started? */
 	if (!EAIinitialized) {
-		connect_EAI();
+		EAIfailed = !(conEAIorCLASS(0,&sockfd,&listenfd));
 	}
 }
 
-/* read in from the socket.  */
-void read_EAI_socket() {
+/* read in from the socket.   pass in - 
+	pointer to buffer,
+	pointer to buffer index
+	pointer to max size,
+	pointer to socket to listen to */
+void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 	int retval;
 
 	retval = FALSE;
@@ -293,28 +229,29 @@ void read_EAI_socket() {
 		tv.tv_sec = 0;
 		tv.tv_usec = 0;
 		FD_ZERO(&rfds);
-		FD_SET(listenfd, &rfds);
+		FD_SET((*listenfd), &rfds);
 	
-		retval = select(listenfd+1, &rfds, NULL, NULL, &tv);
+		retval = select((*listenfd)+1, &rfds, NULL, NULL, &tv);
+printf ("readEAIsocket, retval %d\n",retval);
 	
 		if (retval) {
-			retval = read (listenfd, &buffer[bufcount],EAIREADSIZE);
+			retval = read ((*listenfd), &buffer[(*bfct)],EAIREADSIZE);
 
 			if (retval == 0) {
 				// client disappeared
-				close (listenfd);
-				listenfd = -1;
-				EAIinitialized=FALSE;
+				close ((*listenfd));
+				(*listenfd) = -1;
 			}
 
-			if (EAIVerbose) printf ("read in from socket %d , max %d",retval,EAIREADSIZE);
+			//if (EAIVerbose) 
+				printf ("read in from socket %d , max %d",retval,EAIREADSIZE);
 
-			bufcount += retval;
+			(*bfct) += retval;
 
-			if ((bufsize - bufcount) < 10) {
+			if (((*bfsz) - (*bfct)) < 10) {
 				//printf ("HAVE TO REALLOC INPUT MEMORY\n");
-				bufsize += EAIREADSIZE;
-				buffer = realloc (buffer, (unsigned int) bufsize);
+				(*bfsz) += EAIREADSIZE;
+				bf = realloc (bf, (unsigned int) (*bfsz));
 			}
 		}
 	} while (retval);
@@ -326,12 +263,13 @@ void handle_EAI () {
 	/* do nothing unless we are wanted */
 	if (!EAIwanted) return;
 	if (!EAIinitialized) {
-		connect_EAI();
+		EAIfailed = !(conEAIorCLASS(0,&sockfd,&listenfd));
 		return;
 	}
 
 	bufcount = 0;
-	read_EAI_socket();
+
+	read_EAI_socket(buffer,&bufcount, &bufsize, &listenfd);
 
 	/* make this into a C string */
 	buffer[bufcount] = 0;
@@ -457,7 +395,7 @@ void EAI_parse_commands (char *bufptr) {
 					EOT = strstr(buffer,"\nEOT\n");
 					// if we do not have a string yet, we have to do this...
 					while (EOT == NULL) {
-						read_EAI_socket();
+						read_EAI_socket(buffer,&bufcount, &bufsize, &listenfd);
 						EOT = strstr(buffer,"\nEOT\n");
 					}
 	
@@ -566,7 +504,7 @@ void EAI_parse_commands (char *bufptr) {
 
 
 		/* send the response - events don't send a reply */
-		if (command != SENDEVENT) EAI_send_string (buf);
+		if (command != SENDEVENT) EAI_send_string (buf,listenfd);
 	
 		/* skip to the next command */
 		while (*bufptr >= ' ') bufptr++;
@@ -781,7 +719,7 @@ void handle_Listener () {
 	strcat (buf,"\nEV_EOT");
 
 	/* send the EV reply */
-	EAI_send_string(buf);
+	EAI_send_string(buf,listenfd);
 }
 
 

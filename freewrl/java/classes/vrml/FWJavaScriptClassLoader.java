@@ -16,6 +16,7 @@ public final class FWJavaScriptClassLoader extends SecureClassLoader {
      * @param url base url for loading classes.
      */
     public FWJavaScriptClassLoader(String url) {
+	System.out.println ("new FWJavaScriptClassLoader - url is " + url);
 	try {
 	    baseURL = new URL(url);
 	    myCodeSource = new CodeSource(baseURL, null);
@@ -70,7 +71,7 @@ public final class FWJavaScriptClassLoader extends SecureClassLoader {
 	}
 	for (int i = 0; i < props.length; i++)
 	    perms.add(new PropertyPermission(props[i], "read"));
-	System.err.println("Script permission are "+perms);
+	//System.err.println("Script permission are "+perms);
 	return perms;
     }
 
