@@ -163,19 +163,31 @@ java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.class</SPAN>
 <P><SPAN STYLE="font-family: Helvetica">cd JS/js</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+<p><SPAN STYLE="font-family: Helvetica">NOTE:  You may get an error message similar to the following when building the javascript library: "Makefile:43: config/Darwin*.*.mk: No such file or directory", where *.* is the version of Darwin you are currently running.  Currently, FreeWRL ships with a single MacOSX config file for javascript: Darwin5.3.mk.  This file will work for other versions of Darwin, it must simply be renamed to match the file that your system is searching for.  From the freewrl directory issue the following command: </span>
+
+<p><SPAN STYLE="font-family: Helvetica">
+cp JS/js/config/Darwin5.3.mk JS/js/config/Darwin*.*.mk </span> 
+
+<p><SPAN STYLE="font-family: Helvetica">
+Where *.* is the number that the error message indicates that the makefile is searching for.</span>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 13.  Make the Makefile</SPAN></P>
+<p><SPAN STYLE="font-family: Helvetica">Step 13. Modify the sv.h perl header file</span>
+
+<p><SPAN STYLE="font-family: Helvetica">There is a problem with one of the perl header files which stops the FreeWRL installation process.  In order to fix this problem you must comment out one of the lines in /System/Library/Perl/darwin/CORE/sv.h.  Line 356:  DIR * xio_dirp; /* for opendir, readdir, etc */ must be commented out.  You can do this by inserting two forward slash characters (//) at the start of this line.  Once you have done this the line 356 will read:</span> 
+<p><SPAN STYLE="font-family: Helvetica">// DIR * xio_dirp; /* for opendir, readdir, etc */
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 14.  Make the Makefile</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">perl Makefile.PL</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 14. run ranlib on /usr/local/lib/libpng.a</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 15. run ranlib on /usr/local/lib/libpng.a</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">ranlib /usr/local/lib/libpng.a</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 15. Build and install FreeWRL</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 16. Build and install FreeWRL</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
 
