@@ -44,8 +44,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
-#include "mpeg.h"
-
 
 
 #ifdef AQUA 
@@ -57,6 +55,8 @@
 #include <GL/glu.h>
 #include <GL/glx.h>
 #endif
+
+#include "mpeg.h"
 
 #ifndef MIPS
 #include <sys/time.h>
