@@ -810,7 +810,10 @@ void render_polyrep(void *node,
 				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]); 
 			    }
 		  	    glTexCoord2fv(texcoords[tci].c);
-			} else {printf ("caught ntexcoord problem: index %d gt %d\n",tci,ntexcoords);}
+			} else {
+				 if (polyrep_verbose)
+					 printf ("caught ntexcoord problem: index %d gt %d\n",tci,ntexcoords);
+			}
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
 				if (polyrep_verbose) 
