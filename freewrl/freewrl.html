@@ -26,6 +26,7 @@
 
 	<LI><A HREF="#options">OPTIONS</A></LI>
 	<LI><A HREF="#using freewrl with netscape">USING FREEWRL WITH NETSCAPE</A></LI>
+	<LI><A HREF="#using freewrl with mozilla">USING FREEWRL WITH MOZILLA</A></LI>
 	<LI><A HREF="#author">AUTHOR</A></LI>
 </UL>
 <!-- INDEX END -->
@@ -316,10 +317,24 @@ in the distribution for the codes.
 <HR>
 <H1><A NAME="using freewrl with netscape">USING FREEWRL WITH NETSCAPE</A></H1>
 <P>If Netscape is installed, and the entries in vrml.conf are correct, the
-FreeWRL plug-in will be installed in Netscape's system plugins folder.
+FreeWRL plug-in will be installed in Netscape's system plug-ins folder.
 If you go to Netscape's Help menu and select the About Plug-ins, 
-there should be an entry for FreeWRL with Mime Type x-world/x-vrml.</P>
+there should be entries for FreeWRL with Mime Type x-world/x-vrml and model/vrml.</P>
 <P>
+<HR>
+<H1><A NAME="using freewrl with mozilla">USING FREEWRL WITH MOZILLA</A></H1>
+<P>A plug-in for the Mozilla 1.0 browser has been added that is partially working:</P>
+<LIST>
+<LI> resizing the Mozilla window does not resize the world rendered by FreeWRL
+<LI> I/O between FreeWRL and the plug-in is not functional
+</LIST>
+<P>To make and install, go to the Plugin/mozilla directory:</P>
+<DT><STRONG><CODE>make</CODE></STRONG>: compile the plug-in shared library</DT>
+<DT><STRONG><CODE>make install</CODE></STRONG>: compile and copy the plug-in shared
+library to the directory specified either in <CODE>vrml.conf</CODE> or by default to
+<CODE>/usr/lib/mozilla-1.0.0/plugins</CODE></DT>
+<DD>
+<P>Eventually installation will be incorporated into FreeWRL's installation scripts.</P>
 <HR>
 <H1><A NAME="author">AUTHOR</A></H1>
 <P>Project started by Tuomas J. Lukka, continued by John Stewart.</P>
