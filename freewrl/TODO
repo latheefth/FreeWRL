@@ -10,10 +10,18 @@ DONE:	EAI CreateTest working (needs replaceworld EAI call)
 
 DONE:	DEF and USE's for textures.
 
-Rectangular pictures are not mapped correctly.
+DONE:	Rectangular pictures are not mapped correctly.
+
+DONE:	Extrusion endCaps are facing the wrong way! (begincaps are ok)
+
+do_textures smooths textures, but make it NOT smooth pixeltextures. (need another
+parameter) - see t4*wrl in luigi's home directory
+
+
+Extrusion Textures not working.
 
 IndexedFaceSets are not using all points correctly. (check out the lightning bolt
-example)
+example) (Kiwano.wrl, and ast.wrl)
 
 DEF and USE in createVrmlFromString examples (eg, Etiennes perl tests)
 
