@@ -1,7 +1,7 @@
 #ifndef nspr_cpucfg___
 #define nspr_cpucfg___
 
-#ifdef XP_MAC
+#if defined(XP_MAC) || defined(XP_OSX)
 #undef  IS_LITTLE_ENDIAN
 #define IS_BIG_ENDIAN 1
 
@@ -139,7 +139,7 @@
 #define PR_WORDS_PER_DWORD_LOG2  1L
 #endif /* defined(_WINDOWS) && !defined(_WIN32) */
 
-#ifdef XP_UNIX
+#if defined(XP_UNIX) && !defined(XP_OSX)
 
 #if defined(AIXV3)
 #undef  IS_LITTLE_ENDIAN

@@ -364,7 +364,7 @@ PR_DSTOffset(int64 time)
     int32 diff;
     int64  maxtimet;
     struct tm tm;
-#if defined( XP_PC ) || defined( FREEBSD ) || defined ( HPUX9 )
+#if defined( XP_OSX ) || defined( XP_PC ) || defined( FREEBSD ) || defined ( HPUX9 )
     struct tm *ptm;
 #endif
     PRTime prtm;
@@ -383,7 +383,7 @@ PR_DSTOffset(int64 time)
     }
     LL_L2UI(local,time);
     PR_basetime(time,&prtm);
-#if defined( XP_PC ) || defined( FREEBSD ) || defined ( HPUX9 )
+#if defined ( XP_OSX) || defined( XP_PC ) || defined( FREEBSD ) || defined ( HPUX9 )
     ptm = localtime(&local);
     if (!ptm)
 	return LL_ZERO;
@@ -579,3 +579,4 @@ PR_basetime(int64 tsecs, PRTime *prtm)
     prtm->tm_year  = (int16)year;
     prtm->tm_yday  = (int16)yday;
 }
+
