@@ -580,8 +580,17 @@ else
 
 
 # Save font path, text nodes will require this
-VRML::VRMLFunc::save_font_paths($VRML::ENV{FREETYPE_FONT_PATH},($VRML::ENV{FREEWRL_FONTS}||"fonts"));
+my $ok = 0;
 
+$ok = VRML::VRMLFunc::save_font_path(($VRML::ENV{FREEWRL_FONTS}||"fonts"));
+if ($ok == 0) {
+	foreach (@INC) {
+		$ok = VRML::VRMLFunc::save_font_path("$_/fonts");
+	}
+}
+
+
+# open the browser
 
 $b = new VRML::Browser({ FullScreen => $fullscreen, Shutter => $shutter,
                          EyeDist => $eyedist, ScreenDist => $screendist,
