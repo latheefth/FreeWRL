@@ -72,7 +72,7 @@ You can also access the cvs repository. The way to do it is explained at:
 <BR>- <A HREF="http://sourceforge.net/cvs/?group_id=9120">http://sourceforge.net/cvs/?group_id=9120</A>
 
 <H4>
-1. OpenGL
+1.0  OpenGL
 </H4>
 <P>
 OpenGL is a "standard" on all distributions.
@@ -89,22 +89,50 @@ or even core dumps (older GeForce drivers), if your OpenGL drivers do not use th
 If you fall into this category, there are various options available to you, the simplest is
 to either ignore the errors (and/or remove the Text nodes), or install Mesa as indicated above.
 <P>
+<P>
 <H4>
-2. FreeWRL Build and Installation
+1 and a half. Java Install.
+</H4>
+<P>
+The java compiler, javac must be in your path. the command "which javac" will tell you
+if you have this installed.
+<P>
+<B>RedHat 7.2</B> needed the kaffe package installed. Mount the 2nd Install CD, go into
+the RedHat/RPMS directory, and execute the command "rpm -Uvh kaffe-1.0.6-6.i386.rpm".
+<P>
+Java can also be found at
+<A HREF="http://www.blackdown.org">http://www.blackdown.org</A>.
+<p>
+<P>
+<H4>
+2.0 FreeWRL Build and Installation
 </H4>
 <OL>
 
 <LI>Grab the latest FreeWRL tar file, and untar it.
 <P>
-<LI>Verify that the vrml.conf 
+<LI>Verify that the <B>vrml.conf</B> 
 file has good paths for the libraries and includes. 
 <P>
 I have included various configuration files to show examples of what
 can be done. Of particular interest are <B>vrml.conf.rh7.2</B> and
 <B>vrml.conf.localmesa</B>. You may wish to replace vrml.conf with one of these files.
 <P>
-<LI>for Irix users, Install FreeType distribution from 
-<A HREF="http://freeware.sgi.com">http://freeware.sgi.com/</A>
+FreeType version 2 has been in distributions for well over a year; FreeWRL now uses
+it. Check that you have the library installed; the command "ldconfig -p | grep freetype"
+will print the path, if it is installed. 
+<P>
+If you have an older distribution, you can get a new version of FreeType from
+<A HREF="http://www.freetype.org">http://www.freetype.org</A>.
+<P>
+I have, for now, put the fonts that freewrl uses in a file called freewrl-fonts, available on
+<A HREF="/en/html/FreeWRL/downloads/downloads">http://www.crc.ca/en/html/FreeWRL/downloads/downloads</A>.
+Untar this file, and point the FREETYPE_FONT_PATH to this directory.
+
+<P>
+<B>NOTE:</B> some systems seem to have placed the include files properly, others have
+the include files spread all over the place. for <B>RedHat 7.2</B>, make sure you
+have a look at the FreeType section of vrml.conf.rh7.2.
 <P>
 <LI>Install Perl Modules; Irix will need all of these, Red Hat will
 only need the ones indicated:<BR>    
@@ -115,7 +143,7 @@ only need the ones indicated:<BR>
 <BR>URI-1.04
 <BR>libnet-1.0607
 <BR>libwww-perl-5.47
-<BR>Image-Base-1.07
+<BR>Image-Base-1.07	<B> Needed for RedHat 7.2</B>
 
 </P>
 
@@ -148,8 +176,8 @@ can't find it, you can always download it from
 </P>
 <P>
 <LI>Experimental SAI interface
-
-You only need to do this if you wish to debug the SAI code.
+<P>
+<B>NOTE:</B> You only need to do this if you wish to debug the SAI code.
 <P> - mknod.javapipej p
 <BR> - mknod.javapipep p</P>
 
