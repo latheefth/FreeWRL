@@ -718,8 +718,7 @@ void _textureThread(void) {
 
 			/* is this a temporary file? */
 			if (remove == 1) {
-printf ("SHOULD REMOVE, COMMENTED OUT\n");
-				//unlink (loadparams[currentlyWorkingOn].filename);
+				unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
 			if (TexVerbose) printf ("duplicate file, currentlyWorkingOn %d texnum %s\n",
