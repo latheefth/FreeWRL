@@ -1230,7 +1230,10 @@ my $protono;
 						offset => [SFFloat, 0, exposedField],
 						isActive => [SFBool, 0, eventOut],
 						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],	
-						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut]
+						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
+						# where we are at a press...
+						_origPoint => [SFVec3f, [0, 0, 0], field],
+						_radius => [SFFloat, 0, field],
 					   },
 					  ),
 
