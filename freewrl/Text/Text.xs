@@ -259,7 +259,7 @@ FW_make_fontname (int num) {
 			default: printf ("dont know how to handle font id %x\n",num);
 		}
 	}
-	printf("made %s\n",thisfontname);
+	// printf("made %s\n",thisfontname);
 }
 
 
