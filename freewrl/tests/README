@@ -113,6 +113,9 @@ Notes:
 46.wrl:	javascript addchild test.
 
 47.wrl: javascript bouncing ball test.
+
+48.wrl: PlaneSensor problem.
+
 Synth:
 	A 3D representation of a music synthesizer. Uses other programs
 	to help drive an external synthesizer.
