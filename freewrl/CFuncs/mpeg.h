@@ -40,11 +40,7 @@
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef MPEG_LIB_VIDEO_HEADER
-#define MPEG_LIB_VIDEO_HEADER
 #include <stdio.h>
-
-
 #define TRUE 1
 #define FALSE 0
 
@@ -116,12 +112,6 @@ typedef struct pict_image {
   unsigned char *display;                /* Display plane.     */
   int locked;                            /* Lock flag.         */
   TimeStamp show_time;                   /* Presentation time. */
-
-#ifdef SH_MEM
-  XShmSegmentInfo shminfo;               /* Segment info.  */
-  XImage *ximage;                        /* Ximage struct. */
-#endif
-
 } PictImage;
 
 /* Group of pictures structure. */
@@ -264,44 +254,10 @@ typedef struct vid_stream {
   int ppm_width, ppm_height, ppm_modulus;
 } mpeg_VidStream;   
 
-typedef struct {
-  XImage   *ximage;
-  Colormap cmap;
-  Window   window;
-  GC       gc;
-  Display  *display;
-  int      owncmFlag;
-  XSizeHints hints;
-  Visual   *visual;
-  int      depth;
-  char     *name;
-  int      ditherType;
-  Window   ExistingWindow;
-} XInfo;
 
 /* Declaration of global display pointer. */
 
-#if SH_MEM
-/* Shared memory flag. */
-extern int shmemFlag;
-#endif
 
-/* Quiet mode flag. */
-extern int quietFlag;
-
-/* Flag controlling the "Press return" prompt */
-extern int requireKeypressFlag;
-
-/* Flag controlling speed vs. quality */
-extern int qualityFlag;
-
-/* Gamma correction stuff */
-extern int gammaCorrectFlag;
-extern double gammaCorrect;
-
-/* Chroma correction stuff */
-extern int chromaCorrectFlag;
-extern double chromaCorrect;
 
 /* Definition of Contant integer scale factor. */
 
@@ -311,93 +267,10 @@ extern double chromaCorrect;
 #define DCTSIZE		8	/* The basic DCT block is 8x8 samples */
 #define DCTSIZE2	64	/* DCTSIZE squared; # of elements in a block */
 
-#define GLOBAL			/* a function referenced thru EXTERNs */
   
 typedef short DCTELEM;
 typedef DCTELEM DCTBLOCK[DCTSIZE2];
  
-
-#ifdef SH_MEM
-extern int gXErrorFlag;
-#endif
-
-extern int loopFlag;
-extern int noDisplayFlag;
-extern int partialFlag, startFrame, endFrame;
-
-#ifdef ANALYSIS
-extern unsigned int bitCount;
-extern int showEachFlag;
-extern unsigned int cacheHit[8][8];
-extern unsigned int cacheMiss[8][8];
-#endif
-
-#if !defined(__MIPSEL__) && (defined(MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__) || defined(__mipsel) || defined(__mipsel__))
-#define __MIPSEL__ 1
-#endif
-
-#if !defined(__MIPSEB__) && (defined(MIPSEB) || defined(__MIPSEB) || defined(__MIPSEB__) || defined(__mipseb) || defined(__mipseb__))
-#define __MIPSEB__ 1
-#endif
-
-#if !defined(__SPARC__) && (defined(SPARC) || defined(__SPARC) || defined(__SPARC__) || defined(__sparc) || defined(__sparc__))
-#define __SPARC__ 1
-#endif
-
-#if !defined(__alpha__) && (defined(ALPHA) || defined(__ALPHA) || defined(__ALPHA__) || defined(__alpha))
-#define __alpha__ 1
-#endif
-
-#if !defined(__680x0__) && (defined(__680x0) || defined(__680x0__))
-#define __680x0__ 1
-#endif
-
-#if !defined(__AIX__) && (defined(AIX) || defined(_AIX) || defined(__AIX) || defined(__AIX__))
-#define __AIX__ 1
-#endif
-
-#if !defined(__RS6000__) && (defined(__AIX__) || defined(RS6000) || defined(_RS6000) || defined(__RS6000) || defined(__RS6000__))
-#define __RS6000__ 1
-#endif
-
-#if !defined(__HPUX__) && (defined(HPUX) || defined(_HPUX) || defined(__HPUX) || defined(__HPUX__))
-#define __HPUX__ 1
-#endif
-#if !defined(__HPUX__) && (defined(hpux) || defined(_hpux) || defined(__hpux) || defined(__hpux__))
-#define __HPUX__ 1
-#endif
-
-#if !defined(__VAX__) && (defined(VAX) || defined (__VAX))
-#define __VAX__ 1
-#endif
-
-#if !defined(__SCO__) && (defined(SCO) || defined(__SCO) || defined(sco) || defined(__sco__))
-#define __SCO__ 1
-#endif
-
-#if defined(__i386__) || defined(__VAX__) || defined(__MIPSEL__) || defined(__alpha__) || defined(__SCO__)
-#undef  BIG_ENDIAN_ARCHITECTURE
-#define LITTLE_ENDIAN_ARCHITECTURE 1
-#endif
-
-#if defined(__RS6000__) || defined(__SPARC__) || defined(__680x0__) || defined(__HPUX__) || defined(__MIPSEB__) || defined(convex) || defined(__convex__)
-#undef  LITTLE_ENDIAN_ARCHITECTURE
-#define BIG_ENDIAN_ARCHITECTURE 1
-#endif
-
-#if defined(__APPLE__)
-#undef LITTLE_ENDIAN_ARCHITECTURE
-#define BIG_ENDIAN_ARCHITECTURE 1
-#endif
-
-
-#if !defined(LITTLE_ENDIAN_ARCHITECTURE) && !defined(BIG_ENDIAN_ARCHITECTURE)
-Error: Unknown endianism of architecture
-//#undef LITTLE_ENDIAN_ARCHITECTURE
-//#define BIG_ENDIAN_ARCHITECTURE 1
-#endif
-
-
 #ifdef __STDC__
 # define	P(s) s
 #include <stdlib.h>	/* used by almost all modules */
@@ -444,11 +317,7 @@ void decodeDCTDCSizeChrom P((unsigned int *value ));
 void decodeDCTCoeffFirst P((unsigned int *run , int *level ));
 void decodeDCTCoeffNext P((unsigned int *run , int *level ));
 
-/* from main.c or equivalent */
-void DoDitherImage P(( mpeg_VidStream *vid_stream ));
-
 /* readfile.c */
-void SeekStream P((mpeg_VidStream *vid_stream ));
 void clear_data_stream P(( mpeg_VidStream *vid_stream));
 int get_more_data P(( mpeg_VidStream *vid_stream ));
 int pure_get_more_data P((unsigned int *buf_start , int max_length , int *length_ptr , unsigned int **buf_ptr, mpeg_VidStream *vid_stream ));
