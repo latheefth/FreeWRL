@@ -99,7 +99,7 @@ sub new {
 #
 #########################################################################
 sub load_file_intro {
-	my($this,$url) = @_;
+	my($this, $url) = @_;
 
 	# save this for getworldurl calls...
 	$this->{URL} = $url;
@@ -198,7 +198,6 @@ sub load_file_nothreads {
 	if (!$string) { print "\nFreeWRL Exiting -- File $url was not found.\n"; exit(1);}
 
 	$this->load_string($string, $url);
-
 }
 
 ########################################################################
@@ -207,22 +206,21 @@ sub load_file_nothreads {
 sub load_string {
 	my($this,$string,$file) = @_;
 
-	my $type = 0; 
-
+	my $type = 0;
 
 	#print "load_string, string is $string\nload_string file is $file\n";
 	# type is 0 for VRML v2, 1 for xml
 
 	if ($string =~ /^#VRML V2.0/s) {
-		$type=0;
+		$type = 0;
 	} elsif($string =~ /^#VRML V1.0/s) {
 			print "VRML V1.0, I only know V2.0";
 			return;
 	} elsif ($string =~/^<\?xml version/s) {
-		$type=1;
+		$type = 1;
 	} else {
 		#warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
-		$type=0;
+		$type = 0;
 	}
 	if ($type == 1)  {
                $string = convertX3D($string);
@@ -462,14 +460,8 @@ sub createVrmlFromURL {
 	$url = ($url || $file);
 	my $wurl = getWorldURL($this);
 
-	# stage 1b - is this relative to the world URL base???
-	if ($url !~ m/\//) {
-		my $wdir = dirname($wurl);
-		$url = "$wdir\/$url";
-	}
-
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
-	my $t = VRML::URL::get_absolute($url);
+	my $t = VRML::NodeType::getTextFromURLs($this->{Scene}, $url);
 
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
 	if (!$t) {
