@@ -120,7 +120,7 @@ sub resolve_node_cnode {
 	my $scrpt = 0;
 	my $il = 0;
 	my $ok = 0;
-	my $cs;
+	#JAS my $cs;
 	my $proto_node;
 	my $proto_field;
 	my $is_proto;
@@ -143,10 +143,10 @@ sub resolve_node_cnode {
 	}
 	#print "resolve node cnode, node $node, field $field, value ",
 	#$node->{Fields}{$field},"\n";
-		#print "handle got $node ",
-		#($node->{IsProto} ?
-		# "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : " is not Proto "),
-		#	 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n";
+	#	print "handle got $node ",
+	#	($node->{IsProto} ?
+	#	 "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : " is not Proto "),
+	#		 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n";
 
 	my $f;
 	my @is;
@@ -230,23 +230,32 @@ sub resolve_node_cnode {
 	}
 
 
+	#addChildren really is Children
+	if (($field eq "addChildren") || ($field eq "removeChildren")) {
+		$field = "children";
+	}
+
 	# Protos, when expanded, still have the same script number. We need to make
 	# sure that a script within a proto is uniquely identified by the scene
 	# proto expansion; otherwise routing will cross-pollinate .
 
-	$cs = $scene;
 	if (defined $node->{ProtoExp}) {
 		#print "this is a protoexp, I am ",VRML::NodeIntern::dump_name($scene), 
 		#		" ProtoExp ",VRML::NodeIntern::dump_name($node->{ProtoExp}),"\n";
-		$cs = $node->{ProtoExp};
-
 		$node = $node->real_node();
 		#print "ProtoExp node now is $node->{TypeName} ", VRML::NodeIntern::dump_name($node), "\n";
-	}
 
-	#addChildren really is Children
-	if (($field eq "addChildren") || ($field eq "removeChildren")) {
-		$field = "children";
+		my $testnode = $node->{Fields}{children}[0];
+		if (ref $testnode eq "VRML::DEF") {$testnode = $testnode->node();}
+
+		#print "my testnode is ", VRML::NodeIntern::dump_name($testnode),"\n";
+		#print "FN $fieldname\n";
+		#foreach (keys%{$testnode->{Fields}}) {print "	node key $_\n";}
+
+		if (defined {$testnode->{Fields}{$fieldname}}) {
+			#print "field exists1! making testnode realnode\n";
+			$node = $testnode;
+		}
 	}
 
 	# ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
@@ -315,38 +324,36 @@ sub resolve_node_cnode {
 			$node->make_backend($brow->{BE},$brow->{BE});
 		}
 
-		if (!$is_proto) {
-			if (!defined ($outptr=$node->{BackNode}{CNode})) {
-				# are there backend CNodes made for both from and to nodes?
-				print "add_route, from $field - no backend CNode node\n";
+		if (!defined ($outptr=$node->{BackNode}{CNode})) {
+			# are there backend CNodes made for both from and to nodes?
+			print "add_route, from $field - no backend CNode node\n";
+			return (0,0,0,0,0);
+		}
+
+		# are there offsets for these eventins and eventouts?
+		if (!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
+
+			# this node is a proto interface node, but is not IS'd anywhere. Lets
+			# get the browser to give us some memory for it.
+			#print "Calling ExtraMemory\n";
+			($outptr,$fieldtype,$clen) = ExtraMemory($node,$field);
+			#print "Called....\n";
+			$outoffset = 0;
+
+			if ($outptr eq 0) {  # browser call failed to alloc more memory. - maybe
+					     # the field did not exist? Whatever, return.
+
+				#print "resolve_node_cnode: CNodes entry ",
+				#VRML::Debug::toString($VRML::CNodes{$node->{TypeName}}),
+				#		", $node->{TypeName} ",
+				#			VRML::NodeIntern::dump_name($node),
+				#					", event $field offset not defined\n";
 				return (0,0,0,0,0);
 			}
-
-			# are there offsets for these eventins and eventouts?
-			if (!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
-
-				# this node is a proto interface node, but is not IS'd anywhere. Lets
-				# get the browser to give us some memory for it.
-				#print "Calling ExtraMemory\n";
-				($outptr,$fieldtype,$clen) = ExtraMemory($node,$field);
-				#print "Called....\n";
-				$outoffset = 0;
-
-				if ($outptr eq 0) {  # browser call failed to alloc more memory. - maybe
-						     # the field did not exist? Whatever, return.
-
-					#print "resolve_node_cnode: CNodes entry ",
-					#VRML::Debug::toString($VRML::CNodes{$node->{TypeName}}),
-					#		", $node->{TypeName} ",
-					#			VRML::NodeIntern::dump_name($node),
-					#					", event $field offset not defined\n";
-					return (0,0,0,0,0);
-				}
-			}
-			if ($direction =~ /eventIn/i) {
-				$to_count = 1;
-				$tonode_str = "$outptr:$outoffset";
-			}
+		}
+		if ($direction =~ /eventIn/i) {
+			$to_count = 1;
+			$tonode_str = "$outptr:$outoffset";
 		}
 	}
 
@@ -445,7 +452,7 @@ sub add_route {
 
 	$scrpt = $fc + $tc;
 
-	# print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
+	#print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
 
 	VRML::VRMLFunc::do_CRoutes_Register($add_rem, $outptr, $outoffset,
 		$to_count, $tonode_str,

@@ -613,7 +613,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		loadparams[*texnum].filename="file not found";
 		return FALSE;
 	}
-
+#ifdef USETEXTUREDUPS
 	/* ok, have we seen this one before? */
 	flen = strlen(filename);
 	for (count=1; count < max_texture; count++) {
@@ -651,6 +651,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		    }
 		}	
 	}
+#endif
 
 	/* is this a texture type that is *not* handled internally? */
 	if ((strncmp(firstBytes,firstPNG,4) != 0) && 

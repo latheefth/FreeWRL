@@ -20,10 +20,6 @@ LIBCHECK_INST => "",
     FREEWRL_INC => '-I/usr/include -I/usr/include/sys -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/GLUT.framework/Headers -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config -I/usr/local/include/freetype',
 
 ############################################################################
-# Saxon location - required for x3d running.
-    SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
-
-############################################################################
 # Netscape installation
 # If Netscape is not installed, leave NETSCAPE_INST empty e.g.
     NETSCAPE_INST => '',

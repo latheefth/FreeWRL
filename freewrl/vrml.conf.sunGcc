@@ -74,10 +74,6 @@ LIB_DIR => "$PPREFIX/lib",
 #   JAVA_INC => '-I$HOME/VRML/toolkits/js/src/SunOS5.8_DBG.OBJ',
 
 ############################################################################
-# Saxon location - required for x3d running.
-    SAXON_LOC => '',
-
-############################################################################
 # Netscape/Mozilla  installation
 # 
 # If Netscape is not installed, leave NETSCAPE_INST empty e.g.

@@ -14,10 +14,6 @@
     FREEWRL_INC => '-I/usr/include/sys/ -I/usr/X11R6/include -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config',
 
 ############################################################################
-# Saxon location - required for x3d running.
-    SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
-
-############################################################################
 # Netscape installation
 # If Netscape is not installed, leave NETSCAPE_INST empty e.g.
     NETSCAPE_INST => '',

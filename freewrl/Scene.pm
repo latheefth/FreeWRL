@@ -979,7 +979,7 @@ sub setup_routing {
 			# is this a proto expansion SFNode field? 
 			# if so, the backnode->{CNode} will need to be created
 			if (!defined $_[0]->{BackNode}) {
-				print "backnode not defined\n";
+				#print "backnode not defined\n";
 				
 				$_[0]->{BackNode} = 
 					VRML::NodeIntern::make_backend($_[0], $be);
