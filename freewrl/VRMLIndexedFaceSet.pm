@@ -183,6 +183,9 @@ if(nvert>2) {ntri += nvert-2;}
 /* Tesselation MAY use more triangles; lets estimate how many more */
 if(!$f(convex)) { ntri =ntri*2; }
 
+/* fudge factor - leave space for 1 more triangle just in case we have errors on input */
+ntri++;
+
 cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
 norindex = rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
@@ -299,7 +302,7 @@ for (this_face=0; this_face<faces; this_face++) {
 	
 		/* now store this information for the whole of the polyrep */
 		for (i=0; i<global_IFS_Coord_count; i++) {
-	
+
 			/* Triangle Coordinate */
 			cindex [vert_ind] = $f(coordIndex,this_coord+global_IFS_Coords[i]);
 	
@@ -381,8 +384,8 @@ for (this_face=0; this_face<faces; this_face++) {
 					//printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]);
 				}
 			}
-	
-			vert_ind++;
+			// increment index, but check for baaad errors.	
+			if (vert_ind < (ntri*3-1)) vert_ind++;
 		}
 
 		/* for the next face, we work from a new base */
