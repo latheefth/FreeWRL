@@ -101,16 +101,12 @@ if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 
 push @inc, $VRML_CONFIG{FREEWRL_INC},
 	"-I../JS/$jsobjdir", "-IJS/$jsobjdir", "-IJS/$jsdir", "-I../JS/$jsdir -ICFuncs";
-push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-LJS/$jsobjdir", "-ljs";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-ljs";
 push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
-push @jsinc, "-I$jsobjdir", "-I$jsdir";
-push @jslibs, "-L$jsobjdir", "-ljs";
 
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 $VRML_CONFIG{LDFLAGS} = join(' ', @ldflags);
-$VRML_CONFIG{JS_INC} = join(' ', @jsinc);
-$VRML_CONFIG{JS_LIBS} = join(' ', @jslibs);
 
 
 print STDERR "Writing Config.pm\n";
