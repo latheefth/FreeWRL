@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.74  2003/04/03 20:04:37  crc_canada
+# cleanup and bounds check fieldOfView
+#
 # Revision 1.73  2003/04/03 17:29:01  crc_canada
 # setup_projection function to take advantage of animated Viewpoints
 #
@@ -1782,11 +1785,24 @@ CODE:
 	ViewerDelta.z = z;
 
 
+# allow Perl code to set the fieldOfView
+void
+set_fieldofview(angle)
+	double angle
+CODE:
+	fieldofview = angle;
+
+
+
 # setup_projection
 void
 setup_projection(ratio)
 	double ratio
 CODE:
+
+	/* bounds check */
+	if ((fieldofview < 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
+
         gluPerspective(fieldofview, ratio, 0.1, 21000.0);
         glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
         glMatrixMode(GL_MODELVIEW);
