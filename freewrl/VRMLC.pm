@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.123  2003/10/30 14:20:44  crc_canada
+# change rate limit to about 65fps from 120fps.
+#
 # Revision 1.122  2003/10/16 17:24:59  crc_canada
 # remove unused code
 #
@@ -2638,9 +2641,8 @@ CODE:
 		BrowserStartTime = TickTime;
 		lastTime = TickTime;
 	} else {
-		// rate limit ourselves to 120fps. 
-		waittime.tv_usec = (TickTime - lastTime - 0.0084)*1000000.0; 
-		//JAS - 1fps testing waittime.tv_usec = (TickTime - lastTime - 10.0)*1000000.0; 
+		// rate limit ourselves to about 65fps. 
+		waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0; 
 		lastTime = TickTime;
 		if (waittime.tv_usec < 0.0) {
 			waittime.tv_usec = -waittime.tv_usec;
