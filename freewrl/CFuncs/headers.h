@@ -129,12 +129,9 @@ void normalize_ifs_face (float *point_normal,
                         float creaseAngle);
 
 
-void FW_rendertext(int n,SV **p,int nl, float *length, 
-       float maxext, float spacing, float mysize, 
-       unsigned int fsparam, struct VRML_PolyRep *rep_);
-	
-
-
+void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *length,
+                float maxext, float spacing, float mysize, unsigned int fsparam,
+                struct VRML_PolyRep *rp);
 
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
@@ -182,8 +179,6 @@ int verify_rotate(GLfloat *params);
 int verify_translate(GLfloat *params);
 
 /* C routes */
-#define MAXPARAMS 100
-#define MAXSCRIPTS 100
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 
 void mark_event (unsigned int from, unsigned int fromoffset);
@@ -225,6 +220,17 @@ void JSMaxAlloc();
 extern struct CRjsStruct *JSglobs; /* Javascript invocation parameters */
 extern int *scr_act;    /* script active array - defined in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
+void render_status(); /* status bar */
+void update_status(); 	/* update status bar */
+void viewer_type_status(int x);		/* tell status bar what kind of viewer */
+//void viewpoint_name_status(char *str); /* tell status bar name of current vp 	*/
+extern double BrowserFPS;
+void render_polyrep(void *node,
+        int npoints, struct SFColor *points,
+        int ncolors, struct SFColor *colors,
+        int nnormals, struct SFColor *normals,
+        int ntexcoords, struct SFVec2f *texcoords);
+
 
 
 
