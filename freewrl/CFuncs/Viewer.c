@@ -37,16 +37,23 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 	if (!viewer_initialized) {	
 		viewer_initialized = TRUE;
 
-/* 		Pos => [0,0,10]; */
 		(viewer->Pos).x = 0;
 		(viewer->Pos).y = 0;
 		(viewer->Pos).z = 10;
 
-/* 		Quat => new VRML::Quaternion(1,0,0,0), */
+		(viewer->AntiPos).x = 0;
+		(viewer->AntiPos).y = 0;
+		(viewer->AntiPos).z = 10;
+
 		(viewer->Quat).w = 1;
 		(viewer->Quat).x = 0;
 		(viewer->Quat).y = 0;
 		(viewer->Quat).z = 0;
+
+		(viewer->AntiQuat).w = 1;
+		(viewer->AntiQuat).x = 0;
+		(viewer->AntiQuat).y = 0;
+		(viewer->AntiQuat).z = 0;
 
 /* 		Navi => undef, */
 /* 		$this->{Navi} = VRML::Scene->new_node("NavigationInfo", */
@@ -63,8 +70,9 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 		viewer->walk = &viewer_walk;
 		viewer->examine = &viewer_examine;
 		viewer->fly = &viewer_fly;
+	} else {
 	}
-/* 	$this->resolve_pos(); */
+
 	resolve_pos(viewer);
 }
 
@@ -116,6 +124,9 @@ set_eyehalf(VRML_Viewer *viewer, const double eyehalf, const double eyehalfangle
 void
 set_viewer_type(const int type)
 {
+
+	viewer_init(&Viewer,type);
+
 	switch(type) {
 	case NONE:
 	case EXAMINE:
@@ -155,7 +166,6 @@ resolve_pos(VRML_Viewer *viewer)
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
 		inverse(&q_inv, &(viewer->Quat));
 		rotation(&rot, &q_inv, &z_axis);
-		//rotation(&rot, &viewer->Quat, &z_axis);
 
 		/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
 		dist = VECPT(viewer->Pos, rot);
@@ -175,13 +185,25 @@ resolve_pos(VRML_Viewer *viewer)
 		(examine->Origin).x = (viewer->Pos).x - viewer->Dist * rot.x;
 		(examine->Origin).y = (viewer->Pos).y - viewer->Dist * rot.y;
 		(examine->Origin).z = (viewer->Pos).z - viewer->Dist * rot.z;
+
+		// printf ("examine origin = %f %f %f\n",examine->Origin.x,examine->Origin.y,examine->Origin.z);
 	}
 }
 
 void
 viewer_togl(VRML_Viewer *viewer, double fieldofview)
 {
-/* 	my($this) = @_; */
+
+	/* GLdouble modelMatrix[16]; 
+
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	printf ("Viewer_togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
+                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
+                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
+                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
+                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
+	*/
+
 
 /* 	if ($this->{buffer}!=&VRML::OpenGL::GL_BACK) */
 	if (viewer->buffer != GL_BACK) {
@@ -189,12 +211,19 @@ viewer_togl(VRML_Viewer *viewer, double fieldofview)
 /* 		VRML::VRMLFunc::set_stereo_offset ($this->{buffer}, $this->{eyehalf},$this->{eyehalfangle}); */
 	}
 
-/* 	$this->{Quat}->togl(); */
 	togl(&(viewer->Quat));
-/* 	VRML::OpenGL::glTranslatef(map {-$_} @{$this->{Pos}}); */
-	glTranslated(-(viewer->Pos).x,
-				 -(viewer->Pos).y,
-				 -(viewer->Pos).z);
+	glTranslated(-(viewer->Pos).x, -(viewer->Pos).y, -(viewer->Pos).z);
+	glTranslated((viewer->AntiPos).x, (viewer->AntiPos).y, (viewer->AntiPos).z);
+	togl(&(viewer->AntiQuat));
+
+        /* glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+       printf ("Viewer end _togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
+                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
+                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
+                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
+                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
+	*/
+
 }
 
 
@@ -203,7 +232,7 @@ handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 {
 	VRML_Viewer_Walk *walk = viewer->walk;
 
-	/* printf("Viewer handle_walk: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); */
+	printf("Viewer handle_walk: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); 
 
 	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
 		walk->SY = y;
@@ -229,16 +258,13 @@ handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 
 
 void
-handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, const double x, const double y)
+handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, double x, double y)
 {
 /* 	my($this, $mev, $but, $mx, $my) = @_; */
 	Quaternion q, q_i, arc;
 	struct pt p = { 0, 0, viewer->Dist };
 	VRML_Viewer_Examine *examine = viewer->examine;
 	double squat_norm;
-
-	//printf("Viewer handle_examine: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); 
-
 
 	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
 		if (button == 1) {
@@ -250,7 +276,6 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 		}
 	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
 		if (button == 1) {
-			/* 		if (!defined $this->{SQuat}) {  */
 			squat_norm = norm(&(examine->SQuat));
 			/* we have missed the press */
 			if (APPROX(squat_norm, 0)) {
@@ -260,26 +285,27 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 				/* 			$this->{OQuat} = $this->{Quat}; */
 				set(&(examine->OQuat), &(viewer->Quat));
 			} else {
-				/* 			my $q = $this->xy2qua($mx,$my); */
+				/* my $q = $this->xy2qua($mx,$my); */
 				xy2qua(&q, x, y);
-				/* 			my $arc = $q->multiply($this->{SQuat}->invert()); */
+				/* my $arc = $q->multiply($this->{SQuat}->invert()); */
 				inverse(&q_i, &(examine->SQuat));
 				multiply(&arc, &q, &q_i);
-				/* 			$this->{Quat} = $arc->multiply($this->{OQuat}); */
+
+		
+				/* $this->{Quat} = $arc->multiply($this->{OQuat}); */
 				multiply(&(viewer->Quat), &arc, &(examine->OQuat));
 			}
-			/* 	} elsif($mev eq "DRAG" and $but == 3) { */
 		} else if (button == 3) {
-			/* 		$this->{Dist} = $this->{ODist} * exp($this->{SY} - $my); */
 			viewer->Dist = examine->ODist * exp(examine->SY - y);
+
 		}
  	}
 	inverse(&q_i, &(viewer->Quat));
 	rotation(&(viewer->Pos), &q_i, &p);
 
-	(viewer->Pos).x += (examine->Origin).x;
-	(viewer->Pos).y += (examine->Origin).y;
-	(viewer->Pos).z += (examine->Origin).z;
+	viewer->Pos.x += (examine->Origin).x;
+	viewer->Pos.y += (examine->Origin).y;
+	viewer->Pos.z += (examine->Origin).z;
 }
 
 
@@ -300,7 +326,7 @@ void handle(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 		handle_examine(viewer, mev, button, x, y);
 		break;
 	case WALK:
-		handle_walk(viewer, mev, button, -x, y);
+		handle_walk(viewer, mev, button, x, y);
 		break;
 	case EXFLY:
 		break;
@@ -554,10 +580,10 @@ set_action(char *key)
 		rotate[X_AXIS] -= 1;
 		break;
 	case 'u':
-		rotate[Y_AXIS] += 1;
+		rotate[Y_AXIS] -= 1;
 		break;
 	case 'o':
-		rotate[Y_AXIS] -= 1;
+		rotate[Y_AXIS] += 1;
 		break;
 	case '7':
 		rotate[Z_AXIS] -= 1;
@@ -755,7 +781,7 @@ increment_pos(VRML_Viewer *viewer, struct pt *vec)
 	inverse(&q_i, &(viewer->Quat));
 	rotation(&nv, &q_i, vec);
 
-	(viewer->Pos).x -= nv.x;
+	(viewer->Pos).x += nv.x;
 	(viewer->Pos).y += nv.y;
 	(viewer->Pos).z += nv.z;
 }
@@ -764,6 +790,7 @@ increment_pos(VRML_Viewer *viewer, struct pt *vec)
 
 void
 bind_viewpoint (struct VRML_Viewpoint *vp) {
+	Quaternion q_i;
 
 	/* set Viewer position and orientation */
 
@@ -776,9 +803,16 @@ bind_viewpoint (struct VRML_Viewpoint *vp) {
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
 	Viewer.Pos.z = vp->position.c[2];
+	Viewer.AntiPos.x = vp->position.c[0];
+	Viewer.AntiPos.y = vp->position.c[1];
+	Viewer.AntiPos.z = vp->position.c[2];
 
 	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
 		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+
+	vrmlrot_to_quaternion (&q_i,vp->orientation.r[0],
+		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+	inverse(&(Viewer.AntiQuat),&q_i);
 
 	resolve_pos(&Viewer);
 }
