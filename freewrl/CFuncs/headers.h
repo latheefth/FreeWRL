@@ -63,9 +63,6 @@
 
 
 
-#define HIT rayhit
-
-
 /* POLYREP stuff */
 #define POINT_FACES	16 /* give me a point, and it is in up to xx faces */
 
@@ -141,6 +138,13 @@ void render_ray_polyrep(void *node,
         int npoints, struct SFColor *points);
 
 
+void FW_rendertext(int n,SV **p,int nl, float *length, 
+       float maxext, float spacing, float mysize, 
+       unsigned int fsparam, struct VRML_PolyRep *rep_);
+	
+
+
+
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
 extern struct VRML_PolyRep *global_tess_polyrep;
@@ -153,3 +157,10 @@ extern int global_IFS_Coord_count;
 
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
+
+
+/* Text node system fonts. On startup, freewrl checks to see where the fonts
+ * are stored
+ */
+#define fp_name_len 256
+extern char sys_fp[fp_name_len];
