@@ -21,15 +21,19 @@ to do our conversions.
 X3D Compatibility is built in. However, it does need the following:
 <OL>
 <LI> perl module 
-XML-LibXML-0.99 or later.
+XML-LibXML-1.31 or later.
 <LI> perl module 
-XML-LibXSLT-1.09 or later.
+XML-LibXSLT-1.31 or later.
+<LI> perl module 
+XML-SAX-Base-1.02 or later.
 <LI>
-Gnome Lib 
-libxml2-2.3.10 or later.
+libxml2-2.4.13-1.i386.rpm  or later.
+<LI>
+libxml2-devel-2.4.13-1.i386.rpm  or later.
 <LI> 
-Gnome Lib
-libxslt-0.11.0 or later.
+libxslt-1.0.10-1.i386.rpm or later.
+<LI> 
+libxslt-devel-1.0.10-1.i386.rpm or later.
 </OL>
 <P> All of these modules/libraries are on the freewrl download site, 
  <A HREF="http://www.crc.ca/en/html/FreeWRL/downloads/downloads">here</A>.
@@ -37,21 +41,19 @@ libxslt-0.11.0 or later.
 <H3>Installing the software:</H3>
 
 <OL>
-<LI> Uncompress and untar the library files, and cd into each directory in turn.
-The following steps will need to be acomplished, as root:
-<UL>
-<LI>./configure
-<LI>make
-<LI>make install
-</UL>
-<LI> run the ldconfig command, without parameters. eg, "ldconfig".
-
-<LI> Uncompress and untar the Perl XML* files. cd into each directory, and do
+<LI><B> For the RPMS: </B> run the "rpm -Uvh" command, on each of the
+rpm files. eg, "rpm -Uvh libxslt-1.0.10-1.i386.rpm".
+<P>
+<LI> <B> For the Perl libs: </B>
+Uncompress and untar the Perl XML* files. cd into each directory, and do
 the following to make and install these modules:
 <UL>
 <LI>perl Makefile.PL
 <LI>make install
 </UL>
+<P>
+<LI> run the ldconfig command, without parameters. eg, "ldconfig".
+
 </OL>
 <H3>Testing the software:</H3>
 <OL>
