@@ -822,8 +822,7 @@ UNUSED(over);
 
 
 void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
-
-	/* TouchSensor - handle only a PRESS or RELEASE - should handle hitPoint,hitNormal */
+	struct pt normalval;	/* different structures for normalization calls */
 
 	/* if not enabled, do nothing */
 	if (!node) return;
@@ -838,6 +837,8 @@ void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
 
 	/* active */
 	if (over) {
+
+		/* button presses */
 		if (ev == ButtonPress) {
 			node->isActive=1;
 			mark_event ((unsigned int) node, 
@@ -852,6 +853,21 @@ void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_TouchSensor, isActive));
 		}
+
+		/* hitPoint and hitNormal */
+		memcpy ((void *) &node->hitPoint_changed,
+				(void *) &ray_save_posn,sizeof(struct SFColor));
+		mark_event((unsigned int) node, offsetof (struct VRML_TouchSensor, hitPoint_changed));
+
+		/* have to normalize normal; change it from SFColor to struct pt. */
+		normalval.x = hyp_save_norm.c[0];
+		normalval.y = hyp_save_norm.c[1];
+		normalval.z = hyp_save_norm.c[2];
+		normalize_vector(&normalval);
+		node->hitNormal_changed.c[0] = normalval.x;
+		node->hitNormal_changed.c[1] = normalval.y;
+		node->hitNormal_changed.c[2] = normalval.z;
+		mark_event((unsigned int) node, offsetof (struct VRML_TouchSensor, hitNormal_changed));
 	}
 }
 
@@ -874,7 +890,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {
 		mark_event ((unsigned int) node, 
 			offsetof (struct VRML_PlaneSensor, isActive));
 
-	} else if (ev==MotionNotify) {
+	} else if ((ev==MotionNotify) && (node->isActive==1)) {
 		/* hyperhit saved in render_hypersensitive phase */
 		mult = (node->_origPoint.c[2] - hyp_save_posn.c[2]) /
 			(hyp_save_norm.c[2]-hyp_save_posn.c[2]);

@@ -115,7 +115,6 @@ void setup_projection(int pick, int x, int y);
 void glPrintError(char *str);
 void handle_Xevents(void);
 void XEventStereo(void);
-void handle_Xevents(void);
 void EventLoop(void);
 int  rayHit(void);
 void get_hyperhit(void);
@@ -267,10 +266,9 @@ void EventLoop() {
 
 	/* handle_mouse events if clicked on a sensitive node */
 	if (!NavigationMode && HaveSensitive) {
-	//if (!NavigationMode) {
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint(FALSE);
-		render_hier((void *)rootNode,VF_Sensitive);
+		render_hier((void *)rootNode,VF_Sensitive | VF_Geom);
 		CursorOverSensitive = rayHit();
 
 		/* did we have a click of button 1? */
@@ -289,9 +287,18 @@ void EventLoop() {
 			lastPressedOver = 0;
 		}
 
+		// clicked on node, and have moved it - eg, PlaneSensor click and drag.
 		if ((lastMouseEvent == MotionNotify) && ButDown[1]) {
-			// printf ("Not Navigation and motion\n");
+			//printf ("Not Navigation and motion, lpo %d cos %d\n",
+			//	lastPressedOver, CursorOverSensitive);
 			sendSensorEvents(lastPressedOver,MotionNotify, TRUE);
+		}
+
+		// general mouse movements over a sensitive node.
+		if (lastMouseEvent == MotionNotify) {
+			//printf ("motion, lpo %d cos %d\n",
+			//	lastPressedOver, CursorOverSensitive);
+			sendSensorEvents(CursorOverSensitive,MotionNotify, TRUE);
 		}
 
 
@@ -764,6 +771,7 @@ int rayHit() {
 
                 /* and save this globally */
                 ray_save_posn.c[0] = x; ray_save_posn.c[1] = y; ray_save_posn.c[2] = z;
+		//printf ("rayHit, ray_save_posn  %lf %lf %lf\n",x,y,z);
 
                 return ((int)rh.node);
         } else {
@@ -796,10 +804,6 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	p = ptr;
 	p->_sens = TRUE;
 
-//	/* and tell the rendering pass that there is a sensitive node down
-//	 * this branch */
-//	update_renderFlag(p,VF_Sensitive);
-
 	/* tell mainloop that we have to do a sensitive pass now */
 	HaveSensitive = TRUE;
 
@@ -828,7 +832,8 @@ void setSensitive(void *ptr,int datanode,char *type) {
 void sendSensorEvents(int COS,int ev, int status) {
 	int count;
 
-	/* printf ("sio, COS %d ev %d status %d\n",COS,ev,status); */
+	//printf ("sio, COS %d ev %d status %d\n",COS,ev,status);
+	//printf ("\tbp %d br %d mn %d\n",ButtonPress, ButtonRelease, MotionNotify);
 	if (!COS) return;
 
 	for (count = 0; count < num_SensorEvents; count++) {
@@ -841,7 +846,7 @@ void sendSensorEvents(int COS,int ev, int status) {
 			} else if (ev==ButtonRelease) {
 				hypersensitive = 0;
 				hyperhit = 0;
-			} else if (ev==MotionNotify) {	
+			} else if ((ev==MotionNotify) || (ev==MapNotify)) {	
 				get_hyperhit();
 			}
 
@@ -868,7 +873,7 @@ void get_hyperhit() {
 	gluUnProject(hp.x, hp.y, hp.z, rh.modelMatrix,
 		projMatrix,viewport, &x3, &y3, &z3);
 		
-	//printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
+	//printf ("get_hyperhit  pos: %f %f %f, norm:  %f %f %f, ray: %f %f %f\n",
 	//	x1,y1,z1,x2,y2,z2,x3,y3,z3);
 	
 	/* and save this globally */

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.160  2005/01/12 15:43:55  crc_canada
+# TouchSensor hitPoint_changed and hitNormal_changed
+#
 # Revision 1.159  2004/12/01 21:19:07  crc_canada
 # Anchor work.
 #
@@ -1060,7 +1063,7 @@ float tx,float ty, char *descr)  {
 	GLdouble wx, wy, wz;
 	/* Real rat-testing */
 	if(verbose) 
-		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\nR: (%f %f %f) (%f %f %f)\n",
+		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
 		descr, rat,cx,cy,cz,nx,ny,nz,
 		t_r1.x, t_r1.y, t_r1.z,
 		t_r2.x, t_r2.y, t_r2.z
@@ -1075,6 +1078,7 @@ float tx,float ty, char *descr)  {
 	hpdist = rat;
 	rh=rph;
 	rhhyper=rph;
+	if (verbose) printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
 }
 
 /* Call this when modelview and projection modified */
