@@ -25,6 +25,15 @@ extern struct pt t_r1;
 extern struct pt t_r2;
 extern struct pt t_r3;
 
+
+/* texture S,T mapping calcs */
+GLfloat minVals[3];
+GLfloat maxVals[3];
+GLfloat Xsize, Zsize;
+GLfloat Ssize, Tsize;
+int Sindex, Tindex;
+
+
 void add_to_face ( int point, int face, int *pointfaces);
 
 
@@ -102,7 +111,6 @@ void IFS_face_normals (
 	float AC, BC;
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
-	int zz1, zz2;
 
 	tmp_a = 0;
 	for(i=0; i<faces; i++) {
@@ -379,6 +387,16 @@ void Elev_Tri (
 	this_Elev->cindex[vertex_ind+1] = D;
 	this_Elev->cindex[vertex_ind+2] = E;
 
+	//printf ("Elev_Tri, vertices for vertex_ind %d are:",vertex_ind);
+         //       c1 = (struct SFColor *) &this_Elev->coord[3*A];
+          //      c2 = (struct SFColor *) &this_Elev->coord[3*D];
+         //       c3 = (struct SFColor *) &this_Elev->coord[3*E];
+
+	//	printf ("\n%f %f %f\n%f %f %f\n%f %f %f\n\n",
+	//	c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
+	//	c3->c[0],c3->c[1],c3->c[2]);
+	
+
 	if (NONORMALS) {
 		/* calculate normal for this triangle */
                 c1 = (struct SFColor *) &this_Elev->coord[3*A];
@@ -409,6 +427,156 @@ void Elev_Tri (
 		add_to_face (E*POINT_FACES,this_face,pointfaces);
 	}
 }
+
+
+
+/***********************************************************************8
+ *
+ * Extrusion Texture Mapping 	
+ *
+ ***********************************************************************/
+
+void Extru_tex(
+	int vertex_ind,
+	int tci_ct,
+	int A,
+	int B,
+	int C,
+	struct VRML_PolyRep *this_Elev,
+	int ccw) {
+
+	struct SFColor *c1,*c2,*c3;
+	int j;
+
+	/* generate textures in a clockwise manner, reverse the triangle */
+	if (!(ccw)) { j = B; B = C; C = j; }
+
+	/* ok, we have to do textures; lets do the tcindexes and record min/max */
+	this_Elev->tcindex[vertex_ind] = tci_ct+A;
+	this_Elev->tcindex[vertex_ind+1] =tci_ct+B;
+	this_Elev->tcindex[vertex_ind+2] =tci_ct+C;
+
+	c1 = (struct SFColor *) &this_Elev->coord[3*A];
+	c2 = (struct SFColor *) &this_Elev->coord[3*C];
+	c3 = (struct SFColor *) &this_Elev->coord[3*B];
+
+	//printf ("Extru_tex, vertices are %f %f %f\n%f %f %f\n%f %f %f\n\n",
+	//	c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
+	//	c3->c[0],c3->c[1],c3->c[2]);
+	//printf ("for points %d %d %d\n",A,C,B);
+}
+
+
+/*********************************************************************
+ *
+ * S,T mappings for Extrusions on begin and end caps.
+ *
+ **********************************************************************/
+
+void Extru_ST_map(
+	int triind_start,
+	int start,
+	int end,
+	float *Vals,
+	int nsec,
+	struct VRML_PolyRep *this_Extru) {
+
+	int x;
+	GLfloat minS = 9999.9; 
+	GLfloat maxS = -9999.9;
+	GLfloat minT = 9999.9;
+	GLfloat maxT = -9999.9;
+
+	GLfloat Srange = 0.0;
+	GLfloat Trange = 0.0;
+
+	int Point_Zero;	/* the point that all cap tris start at. see comment below */
+
+	/* find the base and range of S, T */
+	for (x=0; x<nsec; x++) {
+		// printf ("for textures, coord vals %f %f for sec %d\n",
+		// Vals[x*2+0], Vals[x*2+1],x);
+		if (Vals[x*2+0] < minS) minS = Vals[x*2+0];
+		if (Vals[x*2+0] > maxS) maxS = Vals[x*2+0];
+		if (Vals[x*2+1] < minT) minT = Vals[x*2+1];
+		if (Vals[x*2+1] > maxT) maxT = Vals[x*2+1];
+	}
+	Srange = maxS -minS;
+	Trange = maxT - minT;
+
+	/* I hate divide by zeroes. :-) */
+	if (Srange == 0.0) Srange = 0.001;
+	if (Trange == 0.0) Trange = 0.001;
+
+	// printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange);
+
+	/* Ok, we know the min vals of S and T; and the ranges. The way that end cap
+	 * triangles are drawn is that we have one common point, the first point in
+	 * each triangle. Use this as a base into the Vals index, to generate a S,T
+	 * tex coord mapping for the [0,1] range
+	 */
+
+	for(x=start; x<end; x++) {
+		int tci, ci;
+		//printf ("triangle has tex vertices:%d %d %d ",
+		//	this_Extru->tcindex[triind_start*3],
+		//	this_Extru->tcindex[triind_start*3+1] ,
+		//	this_Extru->tcindex[triind_start*3+2]);
+		//printf ("coord vertices:%d %d %d\n",
+		//	this_Extru->cindex[triind_start*3],
+		//	this_Extru->cindex[triind_start*3+1] ,
+		//	this_Extru->cindex[triind_start*3+2]);
+
+		/* for first vertex */
+		tci = this_Extru->tcindex[triind_start*3];
+		ci = this_Extru->cindex[triind_start*3];
+		Point_Zero = tci;
+
+
+		/* S value */
+		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+
+		/* not used by render_polyrep */
+		this_Extru->tcoord[tci*3+1] = 0;
+
+		/* T value */
+		this_Extru->tcoord[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+
+
+
+		/* for second vertex */
+		tci = this_Extru->tcindex[triind_start*3+1];
+		ci = this_Extru->cindex[triind_start*3+1];
+
+		/* S value */
+		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+
+		/* not used by render_polyrep */
+		this_Extru->tcoord[tci*3+1] = 0;
+
+		/* T value */
+		this_Extru->tcoord[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+
+
+		/* for third vertex */
+		tci = this_Extru->tcindex[triind_start*3+2];
+		ci = this_Extru->cindex[triind_start*3+2];
+
+		/* S value */
+		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+
+		/* not used by render_polyrep */
+		this_Extru->tcoord[tci*3+1] = 0;
+
+		/* T value */
+		this_Extru->tcoord[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+
+		triind_start++;
+	}
+
+
+
+}
 
 
 /*********************************************************************
@@ -432,6 +600,8 @@ void render_polyrep(void *node,
 	int i;
 	int hasc;
 
+	/* reset colors to defaults, if we have to */
+	GLfloat diffuseColor[] = {0.8, 0.8, 0.8};
 
 	/* temporary place for X,Y,Z */
 	GLfloat XYZ[] = {0.0, 0.0, 0.0};
@@ -441,9 +611,13 @@ void render_polyrep(void *node,
 	int j;
 	GLfloat minVals[] = {99999.9, 99999.9, 99999.9};
 	GLfloat maxVals[] = {-99999.9, -999999.9, -99999.0};
-	GLfloat Ssize, Tsize = 0.0;
-	GLfloat Xsize, Ysize, Zsize = 0.0;
-	int Sindex, Tindex = 0;
+	GLfloat Ssize = 0.0;
+	GLfloat Tsize = 0.0;
+	GLfloat Xsize = 0.0;
+	GLfloat Ysize = 0.0;
+	GLfloat Zsize = 0.0;
+	int Sindex = 0;
+	int Tindex = 0;
 
 
 	v = *(struct VRML_Virt **)node;
@@ -517,10 +691,11 @@ void render_polyrep(void *node,
 	}
 
 
-	/* Do we have any colours? Are textures NOT enabled? */
-	hasc = ((ncolors || r->color) && (!glIsEnabled(GL_TEXTURE_2D)));
+	/* Do we have any colours? Are textures, if present, not RGB? */
+	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
 	if(hasc) {
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 		glEnable(GL_COLOR_MATERIAL);
 	}
 
@@ -543,8 +718,9 @@ void render_polyrep(void *node,
 		else coli = ind;
 
 		/* get texture coordinates, if any	*/
-		if (glIsEnabled(GL_TEXTURE_2D)) {
-		if((r->tcindex) && (ntexcoords)) {tci = r->tcindex[i]; }
+		if (HAVETODOTEXTURES && r->tcindex) {
+			tci = r->tcindex[i]; 
+			//printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
 
 		/* get the normals, if there are any	*/
@@ -587,14 +763,20 @@ void render_polyrep(void *node,
 			//printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
 		}
 
+
 		/* Textures	*/
-		if (glIsEnabled(GL_TEXTURE_2D)) {
+		if (HAVETODOTEXTURES) {
 		    if(texcoords && ntexcoords) {
 			//printf ("tc1 %f %f\n",texcoords[tci].c[0],texcoords[tci].c[1]); 
 		  	glTexCoord2fv(texcoords[tci].c);
 		    } else if (r->tcoord) {
-			//printf ("tc2 %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
-		  	glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
+			if (r->tcindex) {
+				//printf ("tc2a %f %f %d\n", r->tcoord[3*tci+0], r->tcoord[3*tci+2],&r->tcoord[3*tci]);
+		  		glTexCoord2f( r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
+			} else {
+				//printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
+		  		glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
+			}
 		    } else {
 			/* default textures */
 			/* we want the S values to range from 0..1, and the 
