@@ -14,6 +14,9 @@
 package VRML::EventMachine;
 
 
+# to save processing power, we only render when we need to.
+my $havevent = 0;
+
 
 sub new {
 	my($type) = @_;
@@ -154,15 +157,11 @@ sub propagate_events {
 	$this->{Mouse} = [];
 	print "GOT ",scalar(@e)," FIRSTEVENTS ($n n/q)\n" if $VRML::verbose::events;
 
-	# if we have an event, render the back end.
-	if (scalar(@e) > 0) {
-		VRML::OpenGL::set_render_frame();
-	}
-
 	while(1) {
 		my %ep; # All nodes for which ep must be called
 		# Propagate our events as long as they last
 		while(@e || @{$this->{ToQueue}}) {
+			$havevent = 1;
 			$this->{Queue} = [];
 			@ne = ();
 			for my $e (@e) {
@@ -243,6 +242,11 @@ sub propagate_events {
 		if(!@ne) {last}
 		@e = (@ne,@{$this->{Queue}}); # Here we go again ;)
 		$this->{Queue} = [];
+	}
+	# if we had an event, render the back end.
+	if ($havevent > 0) {
+		VRML::OpenGL::set_render_frame();
+		$havevent -= 1;
 	}
 }
 
