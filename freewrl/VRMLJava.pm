@@ -31,51 +31,49 @@ use Fcntl;
 use MIME::Base64;
 
 my $eid;
-my %nodehash;
 
 sub toJava {
-    my ($type, $value) = @_;
-    if ($type =~ /MF(.*)/) {
-	my $subtype = "SF$1";
-	my @result = ();
-	for (@{$value}) {
-	    # XXX deref value for MFNode?
-	    push @result, toJava($subtype, $_);
+	my ($type, $value) = @_;
+	if ($type =~ /MF(.*)/) {
+		my $subtype = "SF$1";
+		my @result = ();
+		for (@{$value}) {
+			push @result, toJava($subtype, $_);
+		}
+		return join ",", @result;
+	} elsif ($type =~ /SFNode/) {
+		return VRML::Handles::reserve($value->real_node(1));
+	} elsif ($type =~ /SFString/) {
+		return encode_base64($value);
+	} elsif ($type =~ /SFImage/) {
+		die "SFImage to java not implemented";
+	} elsif ($type =~ /SF(Color|Rotation|Vec2f|Vec3f)/) {
+		return join " ", @{$value};
+	} else {
+		return "".(0+$value);
 	}
-	return join ",", @result;
-    } elsif ($type =~ /SFNode/) {
-	return "".($nodehash{$_[1]} = $_[1]);
-    } elsif ($type =~ /SFString/) {
-	return encode_base64($value);
-    } elsif ($type =~ /SFImage/) {
-	die "SFImage to java not implemented";
-    } elsif ($type =~ /SF(Color|Rotation|Vec2f|Vec3f)/) {
-	return join " ", @{$value};
-    } else {
-	return "".(0+$value);
-    }
 }
 
 sub fromJava {
-    my ($type, $str) = @_;
-    if ($type =~ /MF(.*)/) {
-	my $subtype = "SF$1";
-	my @result = ();
-	for (split ",", $str) {
-	    push @result, fromJava($subtype, $_);
+	my ($type, $str) = @_;
+	if ($type =~ /MF(.*)/) {
+		my $subtype = "SF$1";
+		my @result = ();
+		for (split ",", $str) {
+			push @result, fromJava($subtype, $_);
+		}
+		return \@result;
+	} elsif ($type =~ /SFNode/) {
+		return VRML::Handles::get($_[1]);
+	} elsif ($type =~ /SFString/) {
+		return decode_base64($str);
+	} elsif ($type =~ /SFImage/) {
+		die "SFImage from java not implemented";
+	} elsif ($type =~ /SF(Color|Rotation|Vec2f|Vec3f)/) {
+		return [ split " ", $str ];
+	} else {
+		return $str;
 	}
-	return \@result;
-    } elsif ($type =~ /SFNode/) {
-	return $nodehash{$_[1]};
-    } elsif ($type =~ /SFString/) {
-	return decode_base64($str);
-    } elsif ($type =~ /SFImage/) {
-	die "SFImage from java not implemented";
-    } elsif ($type =~ /SF(Color|Rotation|Vec2f|Vec3f)/) {
-	return [ split " ", $str ];
-    } else {
-	return $str;
-    }
 }
 
 
@@ -113,16 +111,23 @@ sub connect {
 	# $pid = open3("<, $this->{O}, 'java_g -v FWJavaScript ');
 	$this->{O} = VRML::JavaCom::OHandle->new($this->{O});
 	$this->{I} = VRML::JavaCom::IHandle->new($this->{I});
-	$this->{O}->print( "TJL XXX PERL-JAVA 0.01\n" );
+	$this->{O}->print( "TJL XXX PERL-JAVA 0.02\n" );
 	$this->{O}->flush();
 	$str = $this->{I}->getline; chomp $str;
-	if("TJL XXX JAVA-PERL 0.01" ne $str) {
+	if("TJL XXX JAVA-PERL 0.02" ne $str) {
 		die("Invalid response from java scripter: '$str'");
 	}
 	$this->{O}->print("\n"); # Directory - currently ""
 }
 
-sub initialize {return ()}
+sub initialize {
+	my($this,$scene,$node) = @_;
+	$eid++;
+	print "INITIALIZE $node\n" if $VRML::verbose::java;
+	$this->{O}->print("INITIALIZE\n$node\n$eid\n");
+	$this->{O}->flush();
+	$this->receive($eid);
+    }
 
 sub newscript {
 	my($this, $purl, $url, $node) = @_;
@@ -137,15 +142,6 @@ sub newscript {
 	$this->{O}->print("NEWSCRIPT\n"
 			  .toJava("SFNode", $node)."\n$url\n");
 	$this->{O}->flush();
-}
-
-sub sendinit {
-	my($this,$node) = @_;
-	$eid++;
-	print "INITIALIZE $node\n" if $VRML::verbose::java;
-	$this->{O}->print("INITIALIZE\n$node\n$eid\n");
-	$this->{O}->flush();
-	$this->receive($eid);
 }
 
 sub sendevent {
@@ -171,7 +167,7 @@ sub sendeventsproc {
 
 sub receive {
 	my($this,$id) = @_;
-	#my @a;
+	my @a;
 	$i = $this->{I};
 	while(1) {
 		print "WAITING FOR JAVA EVENT...\n" if $VRML::verbose::java;
@@ -185,8 +181,8 @@ sub receive {
 			if($ri ne $id) {
 				die("Invalid request id from java scripter: '$ri' should be '$id'\n");
 			}
-			return;
-			#return @a;
+			#return;
+			return @a;
 		} elsif($cmd eq "GETFIELD") {
 			my $nid = $i->getline; chomp $nid;
 			my $node = fromJava("SFNode", $nid);
@@ -211,10 +207,10 @@ sub receive {
 			my $t = $node->{Type};
 			my $ft = $t->{FieldTypes}{$field};
 
-			print "$node->dump_name().$field is $node->{RFields}{$field}\n"
+			print "$node->dump_name().$field is $node->{Fields}{$field}\n"
 			    if $VRML::verbose::java;
 			
-			$this->{O}->print(toJava($ft, $node->{RFields}{$field})
+			$this->{O}->print(toJava($ft, $node->{Fields}{$field})
 					  ."\n");
 			$this->{O}->flush();
 		} elsif($cmd eq "SENDEVENT") {
@@ -222,12 +218,33 @@ sub receive {
 			my $field = $i->getline; chomp $field;
 			my $value = $i->getline; chomp $value;
 			my $node = fromJava("SFNode", $nid);
-			$value = fromJava($node->{Type}{FieldTypes}{$field},
-					  $value);
+			$value = fromJava($node->{Type}{FieldTypes}{$field}, $value);
 			print "$node.$field := $value\n"
 			    if $VRML::verbose::java;
-			$node->{RFields}{$field} = $value;
-			##push @a, [$node, $field, $value];
+			push @a, [$node, $field, $value];
+		} elsif($cmd eq "GETBROWSER") {
+			my $nid = $i->getline; chomp $nid;
+			my $node = fromJava("SFNode", $nid);
+			my $browser = VRML::Handles::reserve($node->{Scene}->get_browser());
+
+			print "$node->Browser is $browser\n"
+			    if $VRML::verbose::java;
+			
+			$this->{O}->print("$browser\n");
+			$this->{O}->flush();
+		} elsif($cmd eq "CREATEVRML") {
+			my($this) = @_; 
+			my $bid = $i->getline; chomp $bid;
+			my $browser = VRML::Handles::get($bid);
+			my $input = $i->getline; chomp $input;
+			my $rs = fromJava("SFString", $input);
+			print "createVRML($rs)" if $VRML::verbose::java;
+			my $scene = $browser->createVrmlFromString($rs);
+			my @nodes = split " ", $scene;
+			$this->{O}->print(scalar(@nodes)."\n");
+			for (@nodes) {
+				$this->{O}->print("$_\n");
+			}
 		} else {
 			die("Invalid Java event '$cmd'");
 		}
