@@ -401,7 +401,7 @@ sub init_movie_image {
 		}
 
 		print "VRML::Nodes::init_movie_image got: $file\n"
-;#JAS			if $VRML::verbose;
+			if $VRML::verbose;
 
 		my $init_tex = VRML::OpenGL::glGenTexture();
 		$f->{__texture_}[0] = $init_tex;
@@ -605,9 +605,9 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
         __x => [SFInt32,0, "field"],
         __y => [SFInt32,0, "field"],
         __data => [MFString, [], "field"],
-        __texture_ => [MFInt32,[], "field"],
-	__ctex => [SFInt32, 0, "field"],
-	__tick0 => [SFInt32, 0, "field"],
+        __texture_ => [MFInt32,[], "field"], # a list of texture numbers 
+	__ctex => [SFInt32, 0, "field"],	# which texture number is used
+	__status => [SFInt32, 0, "field"],	# active = TRUE
  },
 
 @x= {
@@ -615,91 +615,127 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	my ($t,$f,$time,$scene) = @_;
 	init_movie_image("","url",$t,$f,$scene,1);
 	$f->{__ctex} = $f->{__texture_}[0];
-	$f->{__tick0} = $time;
+	$f->{cycleCount} = 0;
+	$f->{__status} = FALSE;
 	return ();
     },
 	 startTime => sub {
 	 	my($t,$f,$val) = @_;
-		print "MT ST\n";
-		if($t->{Priv}{active}) {
-		} else {
-			# $f->{startTime} = $val;
-		}
+		print "MT StartTime $val\n";
+		$f->{startTime} = $val;
 	 },
 	 # Ignore if less than startTime
 	 stopTime => sub {
 	  	my($t,$f,$val) = @_;
-	 	print "MT ST\n";
-	 	if($t->{Priv}{active} and $val < $f->{startTime}) {
-	 	} else {
-	 		# return $t->set_field(stopTime,$val);
-	 	}
+	 	print "MT StopTime $val\n";
+		$f->{stopTime} = $val;
 	  },
 
 	 ClockTick => sub {
 		my($t,$f,$tick) = @_;
+
+		# can we possibly have started yet?
+		if($tick < $f->{startTime}) {
+			return();
+		}
+
 		my $act = 0; 
 		my @e;
 
-		$tick -= $f->{__tick0}; # relative to initialize time
-
-		# print "MT CT ticks ",$tick, " st ", $f->{startTime},"\n";
-		# Are we active?
-
-		if($tick > $f->{startTime}) {
-			if($f->{startTime} >= $f->{stopTime}) {
-				if($f->{loop}) {
-					$act = 1;
-				} else {
-						print "st ", $f->{startTime}, " ci ",
-							 $f->{cycleInterval}, " tick ",
-							 $tick, "\n";
-						if($f->{startTime} >= $tick) {
-						$act = 1;
-					}
-				}
-			} else {
-				if($tick < $f->{stopTime}) {
-					if($f->{loop}) {
-						$act = 1;
-					} else {
-						if($f->{startTime} >= $tick) {
-							$act = 1;
-						}
-					}
-				}
-			}
-		}
 		my $frac = 0;
 		my $time;
 		my $lowest = $f->{__texture_}[0];
 		my $highest = $f->{__texture_}[1];
 
-		# sanity check
-
+		# sanity check - avoids divide by zero problems below
 		if ($lowest >= $highest) {
 			$lowest = $highest-1;
 		}	
-			
-		$time = ($tick - $f->{startTime}) * $f->{speed} / (($highest-$lowest)/30);
-		print "MovieTexture: $time '$act'\n" if $VRML::verbose::timesens;
-		if($act) {
-			if($f->{loop}) {
-				$frac = $time - int $time;
-			} else {
-				$frac = ($time > 1 ? 1 : $time);
-			}
-		} else {$frac = 1}
 
-		# frac will tell us what texture frame we should apply...
-		$frac = int ($frac*($highest+1)) + $lowest;
+		my $duration = ($highest - $lowest)/30;
+ 		$time = ($tick - $f->{startTime}) * $f->{speed} / $duration;
 		
+		if($f->{loop}) {
+			$frac = $time - int $time;
+		} else {
+			$frac = ($time > 1 ? 1 : $time);
+		}
+
+print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
+		$f->{__status},"\n"
+			if $VRML::verbose::tsens;
+
+		# Now, is startTime ge stopTime?
+		if($f->{startTime} >= $f->{stopTime}) {
+
+			# if looping set, then just loop
+			if($f->{loop}) {
+				$act = 1;
+			} elsif ($f->{stopTime} > $tick) {
+				# we are running until stopTime is reached
+				$act = 1;
+			} elsif(($time - $frac -$duration) < 0) {
+				print "time $time frac $frac duration $duration ONELOOP\n";
+				#cycle once, as per the specs
+				$act = 1;
+			}
+		} else {
+			if($tick < $f->{stopTime}) {
+				if($f->{loop}) {
+					$act = 1;
+				} else {
+					if($f->{startTime} >= $tick) {
+						$act = 1;
+					}
+				}
+			}
+		}
+
+
+		if($act) {
+			# is this the first burst of activity? 
+			if ($f->{__status} == FALSE) {
+				print "first burst of activity\n";
+				$f->{startTime} = $time;
+				$f->{__status} = TRUE;
+			}	
+
+			# negative speed?
+			if ($f->{speed} < 0) {
+				$frac = 1+$frac; # frac will be *negative*
+			}
+
+			elsif ($f->{speed} == 0) {
+				$frac = 0;
+				print "speed is 0 frac is $frac\n";
+			}
+
+			# frac will tell us what texture frame we should apply...
+			$frac = int ($frac*($highest+1)) + $lowest;
+		} else {
+			# inactive; were we running?
+			if ($f->{__status} == TRUE) {
+				if ($f->{stopTime} <= 0) {
+					if ($f->{speed} >=0) {
+						$frac = $f->{__texture_}[0];
+					} else {
+						$frac = $f->{__texture_}[1];
+					}
+				} else {
+					$frac = $f->{__ctex}; # just leave it where it was
+				}
+				$f->{__status} == FALSE;
+				$f->{stopTime} = $time;
+			}
+		}
+
 		# verify parameters
 		if ($frac < $lowest){ print "frac $frac lowest $lowest\n"; $frac = $lowest}
 		if ($frac > $highest){ print "frac $frac highest $highest\n";$frac = $highest}
 
 		if ($f->{__ctex} != $frac) {
 			$f->{__ctex} = $frac;
+			print "pushing image $frac of $lowest $highest\n";
 			push @e, [$t, "mytexfrac", $f->{__ctex}];
 			return @e;
 		}
