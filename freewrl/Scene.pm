@@ -216,7 +216,7 @@ sub newp {
     return $this;
 }
 
-## Note: url handling needs to be fixed
+
 sub newextp {
     my ($type, $pars, $parent, $name, $url) = @_;
     # XXX marijn: code copied from newp()
@@ -286,7 +286,7 @@ sub newextp {
 		(pos $string) = $po;
 
 		# marijn: end of copying, now locate right PROTO
-		while ($string =~ /[\s,^](PROTO\s+)($VRML::Parser::Word)/gsc ) {
+		while ($string =~ /[\s,^](PROTO\s+)($VRML::Error::Word)/gsc ) {
 			if (!$protoname) {
 				$protoname = $2;
 			}
@@ -309,6 +309,7 @@ sub newextp {
     my $n = $this->new_node($protoname, \%fields);
     my @node = ($n);
 
+
     # XXX marijn: code copied from Parser::parse_proto
     $this->topnodes(\@node);
 
@@ -317,7 +318,6 @@ sub newextp {
 						 map {$_ => $this->{Protos}{$protoname}->{Defaults}{$_}}
 						 keys %{$this->{Protos}{$protoname}->{Defaults}}
 						};
-
 	return $this;
 }
 
@@ -641,16 +641,25 @@ sub get_copy {
 		$new->{WorldURL} = $this->{WorldURL};
 	}
 
+	$new->{Name} = $this->{Name};
 	$new->{Pars} = $this->{Pars};
 	$new->{FieldTypes} = $this->{FieldTypes};
 
 	$new->{Nodes} = [map { $_->copy($new) } @{$this->{Nodes}}];
 	$new->{EventModel} = $this->{EventModel};
 
+	my $key;
+	foreach $key (keys(%{$this->{Protos}})) {
+		print "$key, $this->{Protos}{$key}\n";
+		# try shallow copy first
+		$new->{Protos}{$key} = $this->{Protos}{$key};
+	}
+
 	my ($route, $arrayRef);
 	while (($route, $arrayRef) = each %{$this->{Routes}}) {
 		$new->{Routes}{$route} = [$arrayRef->[0], $arrayRef->[1], $arrayRef->[2], $arrayRef->[3], 0];
 	}
+
 	return $new;
 }
 
@@ -742,6 +751,9 @@ sub set_parentnode {
 
 	$this->{NodeParent} = $nodeparent;
 	$this->{Parent} = $parent;
+
+	# keep Parent's's Proto hash up-to-date
+	$parent->{Protos}{$this->{Name}} = $this;
 }
 
 
@@ -867,7 +879,7 @@ sub make_backend {
 	my ($this, $be, $parentbe) = @_;
 	my $vrml97_msg = "VRML97 4.8.3: 'A prototype definition consists of one or more nodes, nested PROTO statements, and ROUTE statements.'";
 
-	print "VRML::SCENE::make_backend ",VRML::NodeIntern::dump_name($this),
+	print "VRML::Scene::make_backend ",VRML::NodeIntern::dump_name($this),
 		" $be $parentbe \n"
 			if $VRML::verbose::be;
 
@@ -917,7 +929,6 @@ sub make_backend {
 			}			
 			$nc++;
 		}
-		
 	} else {
 		print "\tScene: I'm not PROTO ", VRML::NodeIntern::dump_name($this),
 			" $be $parentbe ($this->{IsInline})\n" if $VRML::verbose::be;
