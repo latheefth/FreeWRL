@@ -730,7 +730,8 @@ my $protono;
 						 height => [SFFloat, 2.0, field],
 						 side => [SFBool, 1, field],
 						 bottom => [SFBool, 1, field],
-						 __points =>[SFInt32,0,field]
+						 __points =>[SFInt32,0,field],
+						 __normals =>[SFInt32,0,field],
 						},
 					   ),
 

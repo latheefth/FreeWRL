@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.120  2003/10/17 19:54:33  crc_canada
+# trying to make vertex array speed improvements; first one for Cone.
+#
 # Revision 1.119  2003/10/16 17:24:59  crc_canada
 # remove unused code
 #
@@ -624,123 +627,106 @@ Cylinder => '
 
 
 Cone => '
-	/*==================================================================
-	May 10th 2001, Alain Gagnon.
-	This block of code was fixed from the original because of normals.  
-	 y axis
-	 ^
-	 |                                           
-	 |       /|\             /|                     
-	 |      / | \          /  |                   
-	 |     /  |  \ml     /hyp |                  
-	 |    / hreal \    /      |htwo
-	 |   /    |   T\ /G        |
-	 |   -----+----- ---------+    
-	 |
-	 |  |__r__|         rtwo
-	 +--------------------------->x axis
-	 |
-	To understand these variables is to understand this code.
-		r     : the radius of the cone bottom 
-		hreal : the actual height of the cone
-		h     : hreal/2
-	        ml    : the hypothenuse on the cone side
-	 
-		hyp   : a unit vector (length = 1) which is perpendicular to
-			ml.  Is is a normal for a given triangle making up 
-			the cone side.
-		htwo  : the height of the hyp vector
-		rtwo  : a radius tha yields the start point of each normal
-			vector.
-		div   : the number of triangles that make up the cone surface
-		d_div : div * 2
-
-		theta : the angle located at T. 
-		gamma : the angle located at G. 
-	===================================================================*/
-
 		int div = horiz_div;
-		int d_div = div * 2;
-		float df = div;
 		float h = $f(height)/2;
 		float r = $f(bottomRadius); 
-		float a,a1;
+		float angle;
 		int i;
-		DECL_TRIG1
+		struct SFColor *pt;
+		struct SFColor *norm;
+		GLfloat *nptr;
 
+		//printf ("Cone, points %d change %d ichange %d div %d\n",this_->__points, this_->_change, this_->_ichange,div);
 
 		if(h <= 0 && r <= 0) {return;}
 
-		/* The angular distance of each step in the rotations that create  */
-		/* the bottom and the sides of the cone is halved.                 */
-		/* This permits the correct direction of the normals at the top of */
-		/* the cone.  Otherwise, the normals would be slighlty off.        */
-		INIT_TRIG1(d_div)
+		if (this_->_ichange != this_->_change) {
+			// have to regen the shape
+
+			this_->_ichange = this_->_change;
+
+			// malloc memory (if possible) 
+			if (!this_->__points) this_->__points = (int) malloc (sizeof(struct SFColor)*(div+2));
+			if (!this_->__points) {printf ("failure mallocing more memory\n"); return; }
+			pt = (struct SFColor *)this_->__points;
+			if (!this_->__normals) this_->__normals = (int) malloc (sizeof(struct SFColor)*2*(div+1));
+			if (!this_->__normals) {printf ("failure mallocing more memory\n"); return; }
+			norm = (struct SFColor *)this_->__normals;
+
+			// generate the vertexes for the triangles; top point first.
+			pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
+			for (i=1; i<=div; i++) {
+				pt[i].c[0] = r*sin(PI*2*i/(float)div);
+				pt[i].c[1] = (float) -h;
+				pt[i].c[2] = r*cos(PI*2*i/(float)div);
+			}
+			// and throw another point that is centre of bottom
+			pt[div+1].c[0] = 0.0; pt[div+1].c[1] = (float) -h; pt[div+1].c[2] = 0.0;
+
+			// Normals - note, normals for faces doubled - see malloc above
+			// this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...
+			for (i=0; i<=div*2; i++) {
+				angle = PI * 2 * (0.5+i) / (float) (div*2);
+
+				norm[i].c[0] = sin(angle);
+				norm[i].c[1] = (float)h/r;
+				norm[i].c[2] = cos(angle);
+			}
+		}
+
+
+		// OK - we have vertex data, so lets just render it.
+		pt = (struct SFColor *)this_->__points;
+		nptr = (GLfloat *)this_->__normals;
+
+		glEnableClientState (GL_VERTEX_ARRAY);
+		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 
 		if($f(bottom)) {
-            		/* printf ("Cone : bottom\n"); */
-			glBegin(GL_POLYGON);
-			glNormal3f(0,-1,0);
-			START_TRIG1
-			for(i=0; i<d_div; i++) {
-				if (!(i % 2))
-				{
-					glTexCoord2f(0.5+0.5*SIN1,0.5+0.5*COS1);
-					glVertex3f(r*SIN1,(float)-h,r*COS1);
+			glBegin(GL_TRIANGLE_FAN);
+			glNormal3f(0.0,-1.0,0.0);
+			if (HAVETODOTEXTURES) glTexCoord2f(0.5,0.5);
+			glArrayElement(div+1); /* center at bottom point */
+
+			for(i=div; i>0; i--) {
+				if (HAVETODOTEXTURES) {
+					angle = PI * 2 * (0.5+i*2) / (float) (div*2);
+					glTexCoord2f(0.5+0.5*sin(angle), 0.5+0.5*cos(angle));
 				}
-				UP_TRIG1
+				glArrayElement(i);
 			}
+			/* close the circle */
+			if (HAVETODOTEXTURES) glTexCoord2f(0.5,1.0);
+			glArrayElement(div);
 			glEnd();
-		} else {
-			/* printf ("Cone : NO bottom\n"); */
-		} 
+		}
 
 		if($f(side)) {
-			double hreal = $f(height);
-			double ml = sqrt(hreal*hreal + r * r);
-			double mlh = h / ml;
-			double mlr = r / ml;
-			
-			/*This code is a bug fix for the normals*/
-
-			/* use atan(hreal/r) to get the angle for the bottom corner */
-			double theta = atan(hreal / r);    
-
-			/* calculate the vertical angle for the normal vector*/
-                        double gamma = ( PI/2 ) - theta;  
-
-			/* find the dimensions */
-			double htwo  =  sin(gamma);
-			double rtwo  =  cos(gamma);
-                        
 			glBegin(GL_TRIANGLES);
-			START_TRIG1
+			for(i=div; i>=1; i--) {
+				// right point - do we loop around?
+				if (i==div) {
+					glNormal3fv(nptr);
+					if (HAVETODOTEXTURES) glTexCoord2f(1.0,0.0);
+					glArrayElement(1);
+				} else {
+					// normal already sent - last of prev loop
+					if (HAVETODOTEXTURES) glTexCoord2f((float)(i)/div,0.0);
+					glArrayElement(i+1);
+				}
 
-			for(i=0; i<div; i++) {
-				float lsin = SIN1;
-				float lcos = COS1;
+				// top point, use normal calculated for this face
+				glNormal3fv(&nptr[(i*2-1)*3]);
+				if (HAVETODOTEXTURES) glTexCoord2f((float)(i-0.5)/div,1.0);
+				glArrayElement(0);
 
-				/* perform an angular displacement */	
-				UP_TRIG1;  
+				// left point, use normal calculated for preceeding tri
+				glNormal3fv(&nptr[(i*2-2)*3]);
+				if (HAVETODOTEXTURES) glTexCoord2f((float)(i-1)/div,0.0);
 
-				/* place the top point and normal */
-				glNormal3f(rtwo*SIN1, htwo, rtwo*COS1);
-				glTexCoord2f(1.0-((i+0.5)/df), 1.0);
-				glVertex3f(0.0, (float)h, 0.0);
-
-				/* perform another angular displacement */
-				UP_TRIG1;
-
-				/* place the bottom points and normals */
-				glNormal3f(rtwo*SIN1, htwo, rtwo*COS1);
-				glTexCoord2f(1.0-((i+1.0)/df), 0.0);
-				glVertex3f(r*SIN1, (float)-h, r*COS1);
-
-				glNormal3f(rtwo*lsin, htwo, rtwo*lcos);
-				glTexCoord2f(1.0-((float)i/df), 0.0);
-				glVertex3f(r*lsin, (float)-h, r*lcos);
-
+				glArrayElement(i);
 			}
+			if (HAVETODOTEXTURES) glTexCoord2f(0.0,0.0);
 			glEnd();
 		}
 ',
