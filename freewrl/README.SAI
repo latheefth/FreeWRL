@@ -1,0 +1,49 @@
+First thoughts at the SAI interface.
+
+November 15, 2000 John Stewart
+
+This was originally started by Tuomas Lukka, but was not worked on since
+he handed the project over.
+
+I have made the example work (as of 0.27) and have added an example
+(and made it work) from Jeff Dubrule <igor@pobox.com>
+
+
+Quick overview:
+
+freewrl tests/SAIClick/testscript.wrl -best
+
+-----------------------------------------------------------------------
+
+Now, the way it works is this:
+
+1) when a java class is seen in the .wrl file, VRMLJava.pm forks
+
+        unless ($pid = fork()) {
+                exec 'java vrml.FWJavaScript';
+        }
+
+NOTE: java must be in your path, and the CLASSPATH must point
+to the directory which has the vrml directories in it. eg:
+
+	<parent>/freewrl/java/classes
+
+Just running "java vrml.FWJavaScript" on the command line should
+NOT give you any errors (maybe the pipes have to be there, though, 
+see below)
+
+
+2) VRMLJava.pm then opens input and output pipes with commands
+like:
+
+	($this->{I} = FileHandle->new)->open("<.javapipej");
+
+NOTE: The pipes  LOCAL to the current directory, and MUST exist.
+(this should maybe migrate over to /tmp, and the pipe automatically
+made, etc)
+
+
+3) There are more notes in the <parent>/freewrl/java/classes/vrml/
+README.SCRIPTING file.
+
+
