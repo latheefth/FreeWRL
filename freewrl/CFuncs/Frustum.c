@@ -235,21 +235,21 @@ void inCheck(GLdouble Distance,GLdouble bb,GLdouble cc, int *xcount, int *pointo
 	
 	xx = tan(0.7)*Distance;
 
-	printf ("        comparing %f with %f, %f ",xx, bb,cc);
+	//printf ("        comparing %f with %f, %f ",xx, bb,cc);
 
 	// Point is behind viewer
 	if (Distance<0.0) {
-		printf (" Xcount %d\n",0);
+		//printf (" Xcount %d\n",0);
 		return;
 	}
 
 	// are both points positive?
-	if ((bb>0.0) && (xx > bb) && 
-		(cc>0.0) && (xx > cc)) (*xcount)++;
+	if ((bb>0.0) && (xx < bb) && 
+		(cc>0.0) && (xx < cc)) (*xcount)++;
 	
 	if ((bb>0.0) && (cc>0.0)) (*pointok)++;
 
-	printf (" Xcount %d pok %d\n",*xcount,*pointok);
+	//printf (" Xcount %d pok %d\n",*xcount,*pointok);
 }
 
 
@@ -273,15 +273,19 @@ int PointInView(struct VRML_Transform *nod) {
 	// get the x,y values from the modelMatrix
 	bb = modelMatrix[12]; // x ish
 	cc = modelMatrix[13]; // y ish
-	printf ("\nbb %f cc %f dist approx %f\n",bb,cc,modelMatrix[14]);
+	//printf ("\nbb %f cc %f dist approx %f\n",bb,cc,modelMatrix[14]);
 
 	// get the extent from the VRML Struct passed in
-	ex_X=nod->_extent[0]; 
-	ex_Y=nod->_extent[1];
+	//ex_X=nod->_extent[0]; 
+	//ex_Y=nod->_extent[1];
 	ex_Z=nod->_extent[2];
+	//printf ("extent %f %f %f\n",nod->_extent[0], nod->_extent[1],nod->_extent[2]);
 
 	// check the 4 points closer to us
 	Distance = -modelMatrix[14]+ex_Z; // distance
+	ex_X = (nod->_extent[0])*Distance;
+	ex_Y = (nod->_extent[1])*Distance;
+
 	inCheck(Distance, bb+ex_X, cc+ex_Y,&xcount,&pointok);
 	inCheck(Distance, -(bb-ex_X), cc+ex_Y,&xcount,&pointok);
 	inCheck(Distance, bb+ex_X, -(cc-ex_Y),&xcount,&pointok);
@@ -289,6 +293,8 @@ int PointInView(struct VRML_Transform *nod) {
 
 	/* check the 4 points farther from us */
 	Distance = -modelMatrix[14]-ex_Z; // distance
+	ex_X = (nod->_extent[0])*Distance;
+	ex_Y = (nod->_extent[1])*Distance;
 	inCheck(Distance, bb+ex_X, cc+ex_Y,&xcount,&pointok);
 	inCheck(Distance, -(bb-ex_X), cc+ex_Y,&xcount,&pointok);
 	inCheck(Distance, bb+ex_X, -(cc-ex_Y),&xcount,&pointok);
