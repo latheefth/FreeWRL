@@ -259,7 +259,11 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 		/* string length checking */
 		if ((strlen(WGET)+strlen(fname)+strlen(tempname)) < (1000-10)) {
+#ifdef AQUA
+		    sprintf (sysline,"%s %s -o %s",WGET,fname,tempname);
+#else
 		    sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
+#endif
 		    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 		    freewrlSystem (sysline);
 		    strcpy (fname,tempname);
