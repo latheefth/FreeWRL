@@ -161,7 +161,8 @@ void EventLoop() {
 		#endif
 	} else {
 		// rate limit ourselves to about 65fps. 
-		waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0; 
+		//waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0; 
+		waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0; 
 		lastTime = TickTime;
 		if (waittime.tv_usec < 0.0) {
 			waittime.tv_usec = -waittime.tv_usec;
