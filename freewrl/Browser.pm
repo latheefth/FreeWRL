@@ -152,7 +152,7 @@ sub load_string {
 	# and, take care of keeping the viewpoints active...
 	# JAS $this->{Scene}->register_vps($this);
 	# debugging scene graph call: 
-	# $this->{Scene}->dump(0);
+	$this->{Scene}->dump(0) if $VRML::verbose::scenedump;
 }
 
 sub get_scene {
@@ -241,7 +241,11 @@ sub prepare {
 sub prepare2 {
 	my($this) = @_;
 
+	# print "Browser.pm - beginning prepare2, calling setup_routing\n";
+
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
+	# print "Browser.pm - prepare2, calling init_routing\n";
+
 	$this->{Scene}->init_routing($this->{EV},$this->{BE});
 	$this->{EV}->print;
 }
@@ -347,12 +351,14 @@ sub createVrmlFromString {
 
 	my ($this,$string) = @_;
 
-	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING, DUH");
+	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING");
 	VRML::Parser::parse($scene, $string);
         $scene->make_executable();
 	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
+	# print "CVS - ret is $ret\n";
 	# debugging scene graph call: 
-	# $scene->dump(0);
+	#print "dump createVrmlFromString commented out\n";
+	$scene->dump(0)if $VRML::verbose::scenedump;
 
 	return $ret;
 }
@@ -392,8 +398,9 @@ sub createVrmlFromURL {
 	$scene->make_executable();
 
 	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
+	print "CVU - ret is $ret\n";
 	# debugging scene graph call
-	# $scene->dump(0);
+	$scene->dump(0) if $VRML::verbose::scenedump;
 	
 	return $ret
 }
@@ -482,14 +489,12 @@ sub removeChild {
 sub save_snapshot {
 				# Get snapshot
   my ($this) = @_ ;
-
-				# $s2 = ($h, $w, $rgbdata)
   my $s2 = $this->snapshot();
 				# Save it
   $main::snapcnt++ ;
   return if $main::snapcnt > $main::maximg ;
   my $outname = sprintf("$main::snapname.%04d.ppm",$main::snapcnt);
-  my $cmd = "$VRML::Browser::CONVERT -depth 8 -flip -size  $s2->[0]x$s2->[1] rgb:- $outname";
+  my $cmd = "$VRML::Browser::CONVERT -flip -size  $s2->[0]x$s2->[1] rgb:- $outname";
   print "Saving snapshot : Command is '$cmd'\n";
 
   if (open CONV, "|$cmd") {
@@ -652,12 +657,12 @@ sub def_reserve {
 }
 sub return_def_name {
 	my ($name) = @_;
-	#print "return_def_name, looking for $name , it is ";
+	# print "return_def_name, looking for $name , it is ";
 	if (!exists $DEFNAMES{$name}) {
-		# print "return_def_name - Name $name does not exist!\n";
+		#print "return_def_name - Name $name does not exist!\n";
 		return $name;
 	}
-	#print $DEFNAMES{$name},"\n";
+	# print $DEFNAMES{$name},"\n";
 	return $DEFNAMES{$name};
 	}
 
@@ -709,8 +714,8 @@ sub front_end_child_get {
 
 sub reserve {
 	my($object) = @_;
-	my $str = "$object";
-	# print "Handle::reserve, reserving $str type ", ref($object), "\n";
+	my $str = VRML::NodeIntern::dump_name($object);
+	#print "Handle::reserve, reserving $str for object $object type ", ref($object), "\n";
 
 	if(!defined $S{$str}) {
 		$S{$str} = [$object, 0];
@@ -729,11 +734,9 @@ sub release {
 sub get {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
-	# print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
-	##print "       type ",$S{$handle}[0]{Type},"\n";
-	##print "       typeName ",$S{$handle}[0]{TypeName},"\n";
+	#print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
 	if(!exists $S{$handle}) {
-		print "Nonexistent VRML Node Handle!\n";
+		# print "Nonexistent VRML Node Handle!\n";
 		return $handle;
 	}
 	return $S{$handle}[0];
@@ -742,10 +745,10 @@ sub check {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
 	if(!exists $S{$handle}) {
-		# print ("Handle::check $handle - Not a Node Handle!\n");
+		print ("Handle::check $handle - Not a Node Handle!\n");
 		return 0;
 	}
-	# print "Handle::check ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
+	#print "Handle::check ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
 	return 1;
 }
 }
