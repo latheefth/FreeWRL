@@ -108,7 +108,7 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	/* PixelTexture variables */
 	int hei,wid,depth;
 	int ok;
-	ulong inval;
+	unsigned long inval;
 	unsigned char *texture;
 	int tctr;
 	
