@@ -316,6 +316,7 @@ sub new {
 	ProximitySensor
 	##JAS Collision
 	VisibilitySensor
+  	PixelTexture
 /;
 
 # What are the transformation-hierarchy child nodes?
@@ -382,24 +383,32 @@ ImageTexture => new VRML::NodeType("ImageTexture",
 		init_image("","url",$t,$f,$scene);
 		return ();
 	}
-	}
+      }
 ),
 
 
 # From Remi Cohen-Scali
 
 PixelTexture => new VRML::NodeType("PixelTexture",
-       {image => [SFImage, [0,0,0,undef,""]],
-        repeatS => [SFBool, 1],
-        repeatT => [SFBool, 1],
-        __depth => [SFInt32, 1],
-        __x => [SFInt32,0],
-        __y => [SFInt32,0],
-        __data => [SFString, ""],
+       {image => [SFImage, [0,0,0,""], ""],
+        repeatS => [SFBool, 1, 0],
+        repeatT => [SFBool, 1, 0],
+        __depth => [SFInt32, 1, 0],
+        __x => [SFInt32,0, 0],
+        __y => [SFInt32,0, 0],
+        __data => [SFString, "", 0],
        },{
        Initialize => sub { 
                my($t,$f,$time,$scene) = @_;
                init_pixel_image("image",$t,$f,$scene);
+               return ();
+       },
+       EventsProcessed => sub {
+	       print "PixelTexture::EventsProcessed";
+	       return ();
+       },
+       image => sub { 
+	       print "PixelTexture::image";
                return ();
        }
        }
@@ -1259,39 +1268,39 @@ ProximitySensor => new VRML::NodeType("ProximitySensor",
 
 
 DirectionalLight => new VRML::NodeType("DirectionalLight",
-	{ambientIntensity => [SFFloat, 0],
-	 color => [SFColor, [1,1,1]],
-	 direction => [SFVec3f, [0,0,-1]],
-	 intensity => [SFFloat, 1],
-	 on => [SFBool, 1]
+	{ambientIntensity => [SFFloat, 0.0],
+	 color => [SFColor, [1.0,1.0,1.0]],
+	 direction => [SFVec3f, [0.0,0.0,-1.0]],
+	 intensity => [SFFloat, 1.0],
+	 on => [SFBool, 1.0]
 	}
 ),
 
 PointLight => new VRML::NodeType("DirectionalLight",
-	{ambientIntensity => [SFFloat, 0],
-	 color => [SFColor, [1,1,1]],
-	 direction => [SFVec3f, [0,0,-1]],
-	 intensity => [SFFloat, 1],
-	 on => [SFBool, 1],
+	{ambientIntensity => [SFFloat, 0.0],
+	 color => [SFColor, [1.0,1.0,1.0]],
+	 direction => [SFVec3f, [0.0,0.0,-1.0]],
+	 intensity => [SFFloat, 1.0],
+	 on => [SFBool, 1.0],
 
-	 attenuation => [SFVec3f, [1,0,0]],
-	 location => [SFVec3f, [0,0,0]],
-	 radius => [SFFloat, 100],
+	 attenuation => [SFVec3f, [1.0,0.0,0.0]],
+	 location => [SFVec3f, [0.0,0.0,0.0]],
+	 radius => [SFFloat, 100.0],
 	}
 ),
 
 SpotLight => new VRML::NodeType("DirectionalLight",
-	{ambientIntensity => [SFFloat, 0],
-	 color => [SFColor, [1,1,1]],
-	 direction => [SFVec3f, [0,0,-1]],
-	 intensity => [SFFloat, 1],
-	 on => [SFBool, 1],
+	{ambientIntensity => [SFFloat, 0.0],
+	 color => [SFColor, [1.0,1.0,1.0]],
+	 direction => [SFVec3f, [0,0,-1.0]],
+	 intensity => [SFFloat, 1.0],
+	 on => [SFBool, 1.0],
 
-	 attenuation => [SFVec3f, [1,0,0]],
+	 attenuation => [SFVec3f, [1,0,0.0]],
 	 beamWidth => [SFFloat, 1.570796],
 	 cutOffAngle => [SFFloat, 0.785398],
-	 location => [SFVec3f, [0,0,0]],
-	 radius => [SFFloat, 100],
+	 location => [SFVec3f, [0.0,0.0,0.0]],
+	 radius => [SFFloat, 100.0],
 	}
 ),
 
@@ -1300,7 +1309,7 @@ Background => new VRML::NodeType("Background",
 	{
 	 set_bind => [SFBool, undef, eventIn],
 	 skyAngle => [MFFloat, []],
-	 skyColor => [MFColor, [[0,0,0]]],
+	 skyColor => [MFColor, [[0.0,0.0,0.0]]],
 	 groundAngle => [MFFloat, []],
 	 groundColor => [MFColor, []],
 	 isBound => [SFBool, undef, eventOut],
@@ -1325,11 +1334,11 @@ Background => new VRML::NodeType("Background",
 ),
 
 Viewpoint => new VRML::NodeType("Viewpoint",
-	{position => [SFVec3f,[0,0,10]],
-	 orientation => [SFRotation, [0,0,1,0]],
+	{position => [SFVec3f,[0.0,0.0,10.0]],
+	 orientation => [SFRotation, [0.0,0.0,1.0,0.0]],
 	 fieldOfView => [SFFloat, 0.785398],
 	 description => [SFString, ""],
-	 jump => [SFBool, 1],
+	 jump => [SFBool, 1.0],
 	 set_bind => [SFBool, undef, in],
 	 bindTime => [SFTime, undef, out],
 	 isBound => [SFBool, undef, out],
@@ -1434,6 +1443,7 @@ Script => new VRML::NodeType("Script",
 #JAS					}
 #JAS					last;
 #JAS				} elsif(/\.class$/) {
+#	$VRML::verbose::js = 1;	#RCS
 				if(/\.class$/) {
 					$t->{PURL} = $scene->get_url;
 					if(!defined $VRML::J) {
@@ -1447,7 +1457,21 @@ Script => new VRML::NodeType("Script",
 					$t->{J}->sendinit($t);
 					last;
 				} elsif(/\.js/) {
-					die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
+#RCS					die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
+				  # New js url handling
+					my $purl = $t->{PURL} = $scene->get_url;
+					print "JS url: purl = $purl\n";
+				  	my $file = VRML::URL::get_relative($purl, $_, 1);
+					print "JS url: file = $file\n";
+					open (SCRIPT_CODE, "< $file") || die("Couldn't retrieve javascript url $_ !");
+					my $code ="";
+					while (<SCRIPT_CODE>) { $code.=$_; };
+					close(SCRIPT_CODE);
+					print "JS url: code = $code\n";
+					eval('require VRML::JS;');
+					if($@) {die $@}
+					$t->{J} = VRML::JS->new($code,$t,$Browser);
+					last;
 				} elsif(s/^(java|vrml)script://) {
 					eval('require VRML::JS;');
 					if($@) {die $@}
