@@ -161,6 +161,9 @@ extern int global_IFS_Coord_count;
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
 
+/* what is the max texture size as set by FreeWRL? */
+extern GLint global_texSize;
+
 
 /* Text node system fonts. On startup, freewrl checks to see where the fonts
  * are stored
