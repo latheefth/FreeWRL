@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.93  2003/04/01 20:07:22  crc_canada
+# Background is put 10 times further "away" so that large models don't disappear
+#
 # Revision 1.92  2003/03/19 19:38:13  crc_canada
 # Text collision vector calcs fixed - normal now fixed, not calculated.
 #
@@ -1471,7 +1474,8 @@ Background => '
 	glEnable(GL_LIGHT0);
 
 
-	sc = 2000.0; /* where to put the sky quads */
+	sc = 20000.0; /* where to put the sky quads */
+	// JAS sc = 2000.0; /* where to put the sky quads */
 	glBegin(GL_QUADS);
 	if(((this_->skyColor).n) == 1) {
 		c1 = &(((this_->skyColor).p[0]));
@@ -1541,7 +1545,8 @@ Background => '
 
 	/* Do the ground, if there is anything  to do. */
 	if ((this_->groundColor).n>0) {
-		sc = 1250.0; /* where to put the ground quads */
+		// JAS sc = 1250.0; /* where to put the ground quads */
+		sc = 12500.0; /* where to put the ground quads */
 		glBegin(GL_QUADS);
 		if(((this_->groundColor).n) == 1) {
 			c1 = &(((this_->groundColor).p[0]));
@@ -1605,7 +1610,8 @@ Background => '
         	glEnable(GL_TEXTURE_2D);
         	glColor3f(1,1,1);
 
-		sc = 500.0; /* where to put the tex vertexes */
+		// JAS sc = 500.0; /* where to put the tex vertexes */
+		sc = 5000.0; /* where to put the tex vertexes */
 
         	glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
         	glLightfv (GL_LIGHT0, GL_AMBIENT, col_amb);
