@@ -313,6 +313,11 @@ sub init_image {
 
 	$f->{__istemporary.$name} = 0;
 
+	if ($file eq "") {
+		# print "empty file\n";
+		return;
+	}
+
         if(exists $image_same_url{$file}) {
 		# we have already seen this image
 		$f->{__texture.$name} = $image_same_url{$file};
