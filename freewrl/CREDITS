@@ -11,6 +11,12 @@ What code in the distribution is not Tuomas's  (if I have left something
 out, contact me as soon as possible at john.stewart@crc.ca - I really
 want no-one to be left out accidentally) 
 
+ - Many, many, node additions/fixing - Remi Cohen-Scali.
+
+ - Perl scripting - Etienne Grossman.
+
+ - non-convex polygon tesselation code - Bob Kozdemba.
+
  - Polhemus help - Dan Ratta of Polhemus. (Dan.Ratta@polhemus.com)
 
  - Serial Interface code snarfed from a terminal emulator prog
