@@ -11,7 +11,7 @@ Installs for the impatient
 </H3>
 
 Either grab a pre-packaged version of FreeWRL (in rpm format), or grab
-the source for FreeWRL and the SoundEngine, and try:
+the source for FreeWRL and try:
 <P><LIST>
 <LI>gunzip FreeWRL-version-tar.gz
 <LI>untar FreeWRL-version.tar
@@ -20,10 +20,6 @@ the source for FreeWRL and the SoundEngine, and try:
 <LI>make install
 </LIST>
 <p>
-For the sound engine, gunzip it, untar it, cd into the directory, and
-"make install".
-<p>
-
 <h3>
 Installs for everybody else
 </h3>
@@ -102,17 +98,9 @@ If you have an older distribution, you can get a new version of FreeType from
 <A HREF="http://www.freetype.org">http://www.freetype.org</A>.
 <P>
 <LI>You might need to Install Perl Modules; if you get errors when building 
-FreeWRL, make sure you have Perl modules like:
+FreeWRL, make sure you have the modules requested. (FreeWRL is slowly becoming
+module independent, but...)
 <P>
-
-<P>Digest-MD5-2.09
-<BR>HTML-Parser-2.25        
-<BR>MIME-Base64-2.11
-<BR>URI-1.04
-<BR>libnet-1.0607
-<BR>libwww-perl-5.47
-</P>
-
 <P>Installing these modules is a no-brainer; just untar     
 each module as root, then go into the directory, and 
 <BR>perl Makefile.PL
