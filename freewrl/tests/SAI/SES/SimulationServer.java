@@ -2,9 +2,11 @@ import java.io.*;
 import java.net.*;
 
 class SimulationServer {
-    private static final int sleepTime = 100;
+    private static final int sleepTime = 5;
 
     private static final int animPort = 4445;
+    private static final int DIFF_TIME = 20;
+    private static final int BOUNCE_TIME = 200;
 
     private long startTime;
 
@@ -27,6 +29,8 @@ class SimulationServer {
 
     boolean[][][] sensors = new boolean[2][3][2];
     boolean[][] sensState = new boolean[2][3];
+    int[][] startDiff = new int[2][3];
+    int[][] lastSwitch = new int[2][3];
 
     int state = IDLE;
     int[][] counters = new int[2][2];
@@ -49,21 +53,17 @@ class SimulationServer {
 	}
 	System.out.println ("Client OK! ...reading from connections...");
 
+	initSensors();
+	sendMessage("time 0");
 	startTime = System.currentTimeMillis();
 	int lastSignals = 0;
-	sendMessage("time 0");
-	    try {
-	Thread.sleep(1000);
-	    } catch (InterruptedException ex) {
-	    }
-
 	while (true) {
 	    try {
 		Thread.sleep(sleepTime);
 	    } catch (InterruptedException ex) {
 	    }
 	    handleMessages();
-	    long time = (System.currentTimeMillis() - startTime) / 10;
+	    int time = ((int) (System.currentTimeMillis() - startTime)) / 10;
 	    updateCounters(time);
 
 	    int signals = calcSignals();
@@ -131,21 +131,45 @@ class SimulationServer {
 		| (state == GO2 ? 8 : counters[1][0] != 0 ? 4 : 0));
     }
 
-    public void updateCounters(long time) {
+    public void updateCounters(int time) {
 	for (int dir = 0; dir < 2; dir++) {
 	    for (int pos = 0; pos < 3; pos++) {
-		if (sensors[dir][pos][0] == sensors[dir][pos][1])
-		    error = true;
-		if (sensors[dir][pos][0] != sensState[dir][pos]) {
-		    sensState[dir][pos] = sensors[dir][pos][0];
-		    if (sensState[dir][pos]) {
-			if (pos < 2)
-			    counters[dir][pos]++;
-			if (pos > 0) {
-			    counters[dir][pos-1]--;
-			    if (counters[dir][pos-1] < 0)
-				error = true;
+		if (sensors[dir][pos][0] == sensors[dir][pos][1]) {
+		    if (startDiff[dir][pos] == -1)
+			startDiff[dir][pos] = time;
+		    else if (time - startDiff[dir][pos] > DIFF_TIME
+			     && !error) {
+			System.err.println("ERROR: Diffed for "
+					   +(time - startDiff[dir][pos])
+					   + "0 ms");
+			error = true;
+		    }
+		} else {
+		    if (startDiff[dir][pos] >= 0) {
+			if (time - startDiff[dir][pos] > 10)
+			    System.err.println("Diffed for "
+					       +(time - startDiff[dir][pos])
+					       + "0 ms");
+			startDiff[dir][pos] = -1;
+		    }
+
+		    if (sensors[dir][pos][0] != sensState[dir][pos]) {
+			lastSwitch[dir][pos] = time;
+			sensState[dir][pos] = sensors[dir][pos][0];
+			if (sensState[dir][pos]) {
+			    if (pos < 2)
+				counters[dir][pos]++;
+			    if (pos > 0) {
+				counters[dir][pos-1]--;
+				if (counters[dir][pos-1] < 0)
+				    error = true;
+			    }
+//  			    System.err.println("Dir: "+dir
+//  					       +" EC: "+counters[dir][0]
+//  					       +" CL: "+counters[dir][1]);
 			}
+		    } else if (time - lastSwitch[dir][pos] > BOUNCE_TIME) {
+			sensState[dir][pos] = sensors[dir][pos][0];
 		    }
 		}
 	    }
@@ -153,7 +177,16 @@ class SimulationServer {
     }
 	
 
-
+    public void initSensors() {
+	for (int dir = 0; dir < 2; dir++) {
+	    for (int pos = 0; pos < 3; pos++) {
+		sensors[dir][pos][0] = false;
+		sensors[dir][pos][1] = true;
+		startDiff[dir][pos] = -1;
+	    }
+	}
+    }
+		
     public void handleMessages() {
 	try {
 	    while (animIS.available() > 3) {
@@ -169,6 +202,9 @@ class SimulationServer {
 		    int direction = Integer.parseInt(tokenScanner.nextToken());
 		    boolean value = tokenScanner.nextToken().equals("true");
 		    sensors[direction-1][number][inverse] = value;
+//  		    System.err.println("Sensor["+direction+"]["+sensdescr
+//  				       +"]["+(inverse==1?"C": "V")+"] = "
+//  				       +(inverse == 1 ? !value : value));
 		}
 	    }
 	} catch (IOException e) { 

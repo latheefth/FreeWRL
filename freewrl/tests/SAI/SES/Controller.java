@@ -84,11 +84,12 @@ public class Controller extends Script {
       return;
     }
 
-    if ((simTick == 0) && (! start)) {
+    if ((simTick >= 0) && (! start)) {
       System.err.println("## init " );
       ltrCtrl.sendInit();
       rtlCtrl.sendInit();
       lastTickTime = now;
+      lastTicks = simTick;
       start = true;
     }
     
