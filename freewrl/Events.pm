@@ -70,15 +70,46 @@ sub remove_first {
 
 sub add_route {
 	my($this,$fn, $ff0, $tn, $tf0) = @_;
-	print "ADD_ROUTE $fn $ff $tn $tf\n" if $VRML::verbose::events;
 	$ff = $fn->{Type}{EventOuts}{$ff0};
 	$tf = $tn->{Type}{EventIns}{$tf0};
+
+
+	# debugging code
+
+	print "EVENTS:ADD_ROUTE ($fn) ",VRML::NodeIntern::dump_name($fn)," field $ff (EventOut $ff0) to ($tn)",
+		VRML::NodeIntern::dump_name($tn), " field $tf (EventIn $tf0)\n"if $VRML::verbose::events;
+	if ($VRML::verbose::events) {
+		print "EVENTS:ADD_ROUTE from fields:\n";
+		my $item;
+		foreach $item (keys %{$fn->{Type}{EventOuts}}) {
+			print "		$item\n";
+		}
+
+		print "EVENTS:ADD_ROUTE to fields:\n";
+		foreach $item (keys % {$tn->{Type}{EventIns}}) {
+			print "		$item\n";
+		}
+	}
+
+	# end of debugging code
+
+
 	print "MAPPED: $ff, $tf\n" if $VRML::verbose::events;
 	if(!defined $ff) {
-		die("Invalid fromfield '$ff0' for ROUTE");
+		print "Invalid fromfield '$ff0' for ROUTE. Valid fields are:\n";
+		my $item;
+		foreach $item (keys %{$fn->{Type}{EventOuts}}) {
+			print "		$item\n";
+		}
+		return;
 	}
 	if(!defined $tf) {
-		die("Invalid tofield '$tf0' for ROUTE");
+		print "Invalid tofield '$tf0' for ROUTE. Valid fields are:\n";
+		my $item;
+		foreach $item (keys % {$tn->{Type}{EventIns}}) {
+			print "		$item\n";
+		}
+		return;
 	}
 
 	# is this route already here? If so, then don't bother adding it to
@@ -88,16 +119,20 @@ sub add_route {
 	# scene, but we don't want scene::new_route to be able to duplicate
 	# routes, either.
 
-	foreach (@{$this->{Route}{$fn}{$ff}}) {
-		# print "Events: add_route: route: ",@{$_},"\n";
-		my ($n, $f) = @{$_};
-		if ($n eq $tn) {
-			if ($f eq $tf) {
-				return;
-			}
-		} 
-	}
-	push @{$this->{Route}{$fn}{$ff}}, [$tn, $tf]
+	# print "Events, going to add_route to route\n";
+	# foreach (@{$this->{Route}{$fn}{$ff}}) {
+	# 	my ($n, $f) = @{$_};
+	# 	print "Events: add_route: route: from ",VRML::NodeIntern::dump_name($fn),
+	# 		" field $f  to ",VRML::NodeIntern::dump_name($n), "field $f \n";
+	# 	if ($n eq $tn) {
+	# 		if ($f eq $tf) {
+	# 			print "EVENTS:ADD_ROUTE, duplicate, just returning\n";
+	# 			return;
+	# 		}
+	# 	} 
+	# }
+	# print "EVENTS:ADD_ROUTE, route passed, pushing route on $this-> Routestack\n";
+	push @{$this->{Route}{$fn}{$ff}}, [$tn, $tf];
 }
 
 sub delete_route {
@@ -144,6 +179,9 @@ sub propagate_events {
 	my @e;
 	my @ne;
 	my %sent; # to prevent sending twice, always set bit here
+
+	#print "propagate_events, looking at First of ",
+	#	VRML::NodeIntern::dump_name($this),"\n";
 	for(values %{$this->{First}}) {
 		print "GETFIRST $_\n" 
 			if $VRML::verbose::events;
