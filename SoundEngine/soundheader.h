@@ -27,8 +27,15 @@
 #define DSP "/dev/dsp"
 
 #define MAXSOURCES 50
-#define BUFSIZE  1024
+#define BUFSIZE  512
 #define NUMBUFS 2 
+
+
+/* number of fragments */
+#define N_FRAGMENTS 	48 
+/* a buffersize of 2^8 = 256 bytes */
+#define FRAG_SIZE 	8 
+
 
 #define FormatID 'fmt '   /* chunkID for Format Chunk. NOTE: There is a space at the end of this ID. */
 

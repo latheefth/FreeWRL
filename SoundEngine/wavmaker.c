@@ -9,81 +9,114 @@
 #include "soundheader.h"
 
 int 	dspFile = -1;		// Sound output device
-int 	dspBlockSize = 0;	// blocking size for output
 char 	*dspBlock = NULL;	// a block to send
 
-// Fragment parameters
-int n_fragments = 12; /* number of fragments */
-int fragment_size = 8; /* a buffersize of 2^8 = 256 bytes */
 long int bytes_remaining;	// how many bytes are remaining in the file?
+
+// Fragment parameters
 int readSize;			// how much to read from wav file - either BUFSIZE or less
 
-// how much data was used since last write.
-int DSPbufferSize = -1;
+// are we playing a sound?
+int DSPplaying = -1;
+
+// How many bytes have been used since the last cycle?
+int bytesPerCycle = 0;
+
+// how many bytes can we write to the sound card assuming no sound playing?
+int soundcardBufferEmptySize = 0;
+int soundcardBufferCurrentSize = 0;
+
+// if FreeWRL's fps is too low, we may have to read and write more than one
+// block from the wav file per update. The following variable tells us how
+// many to do.
+int loopsperloop = 1;
+
 
 void playWavFragment(SNDFILE *wavfile) {
 	audio_buf_info leftover;
 	int mydata;			// DSP buffer size... used to keep data flowing
-	int bytes_read; 		// amount read in from the file - temp variable
-	//int tmp;
-
+	int tmp;
+	
 	// Only write if there is the need to write data. - dont want
 	// to buffer too much; want sound to be responsive but smooth
+	// -- this call tells us how much room there is.
 
-	if (ioctl(dspFile, SNDCTL_DSP_GETOSPACE,&leftover) <0) {
-		printf ("error, SNDCTL_DSP_GETOSPACE\n");
-		dspFile = -1;
-	}
-	//printf ("leftover %d fragsize %d canwrite %d ",leftover.fragments,leftover.fragsize,
-	//		leftover.bytes);
 
-	if (DSPbufferSize < 0) {
-		DSPbufferSize =  leftover.bytes;
-		mydata = 0; // lets guess - first time through.
-
+	// Find out how much data was processed by the sound card since the
+	// last write. First time through we assume that the sound card
+	// buffer is flushed, and that we have to write data.	
+	if (DSPplaying != 0) {
+		// first time through
+		//printf ("first time through\n");
+		DSPplaying =  0;
+		mydata = 0; 
+		readSize = 0;
+		bytesPerCycle = BUFSIZE; // make an assumption.
+		loopsperloop = 1;
 		fseek (wavfile->fd, wavfile->wavdataoffset, SEEK_SET);
 	} else {
-		mydata = DSPbufferSize - leftover.bytes;
-	}
+		// we have done this before since the file open...
+		mydata = soundcardBufferEmptySize - soundcardBufferCurrentSize;
+		//printf ("SCES %d SCCS %d mydata %d bytes_remaining %ld\n",
+		//		soundcardBufferEmptySize,
+		//		soundcardBufferCurrentSize,mydata,bytes_remaining);
 
-	//printf ("amt writ %d \n",mydata);
-	
-	// Should we write? multiply bytes written by three, so there is a bit
-	// of a buffer in the soundcard.
-	if (mydata < (BUFSIZE*NUMBUFS)) {
+
+		// lets try some scaling here.
+		// did we (or are we close to) running out of data?
+		if ((mydata <= 0x4ff) && 
+				(bytesPerCycle < BUFSIZE*16) &&
+				(bytes_remaining > bytesPerCycle)) {
+			//printf ("increasing bps\n");
+			bytesPerCycle += 0x100;
+			loopsperloop += 1;
+		}
+	}
+	//printf ("bps %d\n",bytesPerCycle);
+
+	// Should we read and write? 
+	if (mydata <= (bytesPerCycle*2)) {
 
 		// ok - we should write. Get the next bit of data
-		//printf ("bufsize %x, data chunk size %lx remaining %lx\n",
-		//		BUFSIZE,wavfile->DataChunk.chunkSize,bytes_remaining);	
 
-		//printf ("bytes_remaining %ld readSize %d\n",bytes_remaining,readSize);
+		// Calculate if we are going to go past the EOF marker,
+		// and if so, go back to the beginning. (assume loop=true)
+		//
 		if (bytes_remaining <= 0) {
 			//printf ("EOF input, lets reset and re-read\n");
 			fseek (wavfile->fd, wavfile->wavdataoffset, SEEK_SET);
 			bytes_remaining = wavfile->DataChunk.chunkSize;
 		}
 
-		// Are we reaching the end of the file?
-		if (bytes_remaining < BUFSIZE) {
-			readSize = (int) bytes_remaining;
-			bytes_remaining = 0;
-		} else {
-			readSize = BUFSIZE;
-			bytes_remaining -= BUFSIZE;
+		// Are we reaching the end of the file? Lets calculate the 
+		// size of the WAV file read we are going to do, and adjust
+		// where we are in the read of the WAV file. Note that for
+		// really short files, this works, too!
+		//
+		//
+
+		for (tmp = 0; tmp < loopsperloop; tmp++) {
+			if (bytes_remaining < BUFSIZE) {
+				readSize = (int) bytes_remaining;
+				bytes_remaining = 0;
+			} else {
+				readSize = BUFSIZE;
+				bytes_remaining -= BUFSIZE;
+			}
+
+			// read and write here.
+			if (bytes_remaining > 0) {
+				fread(wavfile->data,readSize,1,wavfile->fd);	
+				write (dspFile, wavfile->data, readSize);
+			}
 		}
-
-			
-		bytes_read = BUFSIZE*fread(wavfile->data,readSize,1,wavfile->fd);	
-
-		//printf ("bytes read from index %x\n",wavfile->wavdataoffset);
-		//for (tmp=0; tmp<readSize; tmp++) {
-		//	printf ("\n %x: ",tmp);
-		//	printf ("%x",(wavfile->data[tmp] & 0xff));
-		//}
-		//printf ("\n");
-
-		write (dspFile, wavfile->data, readSize);
 	}
+
+	if (ioctl(dspFile, SNDCTL_DSP_GETOSPACE,&leftover) <0) {
+		printf ("error, SNDCTL_DSP_GETOSPACE\n");
+		dspFile = -1;
+	}
+	soundcardBufferCurrentSize = leftover.bytes;
 }
 
 
@@ -100,24 +133,37 @@ void closeDSP () {
 	if (dspBlock!=NULL) free(dspBlock);
 	if (dspFile>=0) close(dspFile);
 	dspFile = -1;
-	DSPbufferSize = -1;
+	DSPplaying = -1;
 }
 
 void initiateDSP() {
-    int i;
+	int i;
+	audio_buf_info leftover;
 
-    if ( (dspFile = open("/dev/dsp",O_WRONLY)) 
+	if ( (dspFile = open("/dev/dsp",O_WRONLY)) 
                                    == -1 ) {
-        perror("open /dev/dsp");
-        return;
-    }
+		printf ("open /dev/dsp problem\n");
+		dspFile=-1;
+		return;
+	}
 
-    i = (n_fragments<<16) | fragment_size;
-    if ( ioctl(dspFile, SNDCTL_DSP_SETFRAGMENT,
+	i = (N_FRAGMENTS<<16) | FRAG_SIZE;
+	if ( ioctl(dspFile, SNDCTL_DSP_SETFRAGMENT,
                              &i) == -1 ) {
-        perror("ioctl set fragment");
-        return ;
-    }
+		printf("ioctl set fragment problem\n");
+		dspFile=-1;
+		return ;
+	}
+
+	// quick calculation to find out how much space the DRIVER thinks
+	// we have when the sound card buffer is empty.
+	if (ioctl(dspFile, SNDCTL_DSP_GETOSPACE,&leftover) <0) {
+		printf ("error, SNDCTL_DSP_GETOSPACE\n");
+		dspFile = -1;
+	}
+	soundcardBufferEmptySize = leftover.bytes;
+	//printf ("can write a possible amount of %d bytes\n",leftover.bytes);
+
     return ;
 }
 
