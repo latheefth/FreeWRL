@@ -976,7 +976,9 @@ if($f(convex)) {
 	
 
     	if(verbose)printf("Extrusion.GenPolyRep: Trying to tessellate caps.\n");
-	
+
+	tesselize_extrusion();
+
 	nctri=0;
 	tess_polyrep.ntri= nsec*2 ;	
 	tess_polyrep.alloc_tri= nsec*2 ;	
