@@ -36,7 +36,8 @@ sub toJava {
 			$o->toJava($subtype, $_);
 		}
 	} elsif ($type =~ /SFNode/) {
-		$o->printUTF(VRML::Handles::reserve($value->real_node(1)));
+		#AK - #$o->printUTF(VRML::Handles::reserve($value->real_node(1)));
+		$o->printUTF(VRML::Handles::reserve($value->real_node()));
 	} elsif ($type =~ /SFString/) {
 		$o->printUTF($value);
 	} elsif ($type =~ /SFImage/) {
