@@ -234,14 +234,9 @@ public class Node {
       EventOut ret = new EventOutSFVec3f(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
 		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
     }
-    // Return default
-    EventOutMFNode ret = new EventOutMFNode();
-    System.out.println ("WARNING: getEventOut - don't know how to handle " + name
-		+ " asked for " + st + " returning Class EventOutMFnode");
+    // unknown type - throw an exception
 
-    ret.command = name; ret.outNode = NNN; ret.datatype=NewDT; ret.nodeptr=NNPR; ret.offset=NOFF;
-    ret.datasize = NDS;
-    return ret;
+	throw new InvalidEventOutException();
   }
 
 }

@@ -224,6 +224,10 @@ sub ExtraMemory {
 	#foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
 
 	my $type = $node->{Scene}{Pars}{$field}[1];
+
+	# test to see if this is a valid type
+	if ($type eq "") { return (0, 0, 0);}	
+
 	my $clen = VRML::VRMLFunc::getClen("VRML::Field::$type"->clength($type));
 
 	# have we seen this one before?
@@ -473,13 +477,14 @@ sub resolve_node_cnode {
 				($outptr,$fieldtype,$clen) = ExtraMemory($node,$field);
 				$outoffset = 0;
 
-				if ($outptr eq 0) {  # browser call failed to alloc more memory.
+				if ($outptr eq 0) {  # browser call failed to alloc more memory. - maybe
+						     # the field did not exist? Whatever, return.
 
-					print "resolve_node_cnode: CNodes entry ",
-					VRML::Debug::toString($VRML::CNodes{$node->{TypeName}}),
-							", $node->{TypeName} ",
-								VRML::NodeIntern::dump_name($node),
-										", event $field offset not defined\n";
+					#print "resolve_node_cnode: CNodes entry ",
+					#VRML::Debug::toString($VRML::CNodes{$node->{TypeName}}),
+					#		", $node->{TypeName} ",
+					#			VRML::NodeIntern::dump_name($node),
+					#					", event $field offset not defined\n";
 					return (0,0,0,0,0);
 				}
 			}

@@ -4,8 +4,14 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
+
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+
 #include "Structs.h"
 #include "GeoVRML.h"
+
 
 void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *description) {
 	int tmp;

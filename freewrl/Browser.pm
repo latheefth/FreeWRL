@@ -928,9 +928,9 @@ sub EAI_GetType {
 	elsif ($fieldtype eq "MFRotation") {$retft = 114;}
 	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
 	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
-	else {	
-		print "EAI_GetType, unhandled type $fieldtype - this is an error!\n";
-	}
+	#else {	
+	#	print "EAI_GetType, unhandled type $fieldtype - this is an error!\n";
+	#}
 		
 	# print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
 
