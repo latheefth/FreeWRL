@@ -20,6 +20,11 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.43  2001/12/14 16:35:34  crc_canada
+# TextureTransform bug fixed - texture transforms were not within the
+# associated Display List for the Shape. Moved creating display list to
+# before texture code in Shape node.
+#
 # Revision 1.42  2001/12/14 14:46:06  crc_canada
 # Transparency issues fixed, this time with debug statements removed!
 #
@@ -333,40 +338,40 @@ Cylinder => '
 
 
 Cone => '
-/*==================================================================
-May 10th 2001, Alain Gagnon.
-This block of code was fixed from the original because of normals.  
- y axis
- ^
- |                                           
- |       /|\             /|                     
- |      / | \          /  |                   
- |     /  |  \ml     /hyp |                  
- |    / hreal \    /      |htwo
- |   /    |   T\ /G        |
- |   -----+----- ---------+    
- |
- |  |__r__|         rtwo
- +--------------------------->x axis
- |
-To understand these variables is to understand this code.
-	r     : the radius of the cone bottom 
-	hreal : the actual height of the cone
-	h     : hreal/2
-        ml    : the hypothenuse on the cone side
+	/*==================================================================
+	May 10th 2001, Alain Gagnon.
+	This block of code was fixed from the original because of normals.  
+	 y axis
+	 ^
+	 |                                           
+	 |       /|\             /|                     
+	 |      / | \          /  |                   
+	 |     /  |  \ml     /hyp |                  
+	 |    / hreal \    /      |htwo
+	 |   /    |   T\ /G        |
+	 |   -----+----- ---------+    
+	 |
+	 |  |__r__|         rtwo
+	 +--------------------------->x axis
+	 |
+	To understand these variables is to understand this code.
+		r     : the radius of the cone bottom 
+		hreal : the actual height of the cone
+		h     : hreal/2
+	        ml    : the hypothenuse on the cone side
 	 
-	hyp   : a unit vector (length = 1) which is perpendicular to
-		ml.  Is is a normal for a given triangle making up 
-		the cone side.
-	htwo  : the height of the hyp vector
-	rtwo  : a radius tha yields the start point of each normal
-		vector.
-	div   : the number of triangles that make up the cone surface
-	d_div : div * 2
+		hyp   : a unit vector (length = 1) which is perpendicular to
+			ml.  Is is a normal for a given triangle making up 
+			the cone side.
+		htwo  : the height of the hyp vector
+		rtwo  : a radius tha yields the start point of each normal
+			vector.
+		div   : the number of triangles that make up the cone surface
+		d_div : div * 2
 
-	theta : the angle located at T. 
-	gamma : the angle located at G. 
-===================================================================*/
+		theta : the angle located at T. 
+		gamma : the angle located at G. 
+	===================================================================*/
 
 		int div = horiz_div;
 		int d_div = div * 2;
@@ -841,7 +846,6 @@ TextureTransform => '
 	this_->_myshape = last_visited_shape; 
 
        	glEnable(GL_TEXTURE_2D);
-
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glTranslatef($f(translation,0), $f(translation,1), 0);
@@ -1770,10 +1774,10 @@ Billboard => (join '','
 
 			/* is there an associated appearance node? */	
         	        if($f(appearance)) {
+				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
 				render_textures = 1;
 	                        render_node($f(appearance));
 				render_textures = 0;
-				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
 	                        render_node($f(appearance));
         	        } else {
 				if (render_geom) {
