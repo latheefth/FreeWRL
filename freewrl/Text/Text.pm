@@ -12,7 +12,7 @@ bootstrap VRML::Text;
 # can not be found, then the second should have the baklava font supplied
 # with FreeWRL
 
-open_font($VRML::ENV{FREETYPE_FONT_PATH},($VRML::ENV{FREEWRL_FONTS}||"fonts"));
+open_font($VRML::ENV{FREETYPE_FONT_PATH},($VRML::ENV{FREEWRL_FONTS}||"fonts"), VRML::GLBackEnd::get_BE_triangulator());
 
 
 1;
