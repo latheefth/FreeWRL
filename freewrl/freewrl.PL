@@ -255,6 +255,13 @@ Enables the fastest rendering in exchange for poorer picture quality.
 This is the default and overrides any C<-best> options seen on the command
 line.
 
+=item C<-fullscreen>
+
+Forces FreeWRL to run in fullscreen mode.  Note that if your graphics drivers
+have an alternate way to enable fullscreen rendering it may be best to use that
+way instead. The fullscreen flag will not enable hardware acceleration if it has
+not already been enabled. 
+
 =item C<-geo[metry]> I<geom>
 
 Set the initial window geometry with the usual X window format string.
@@ -436,6 +443,7 @@ BEGIN {
 		"zpl=f" => \$zpl,
 		"best" => \$best,
 		"fast" => \$fast, 
+		"fullscreen" => \$fullscreen,
 		"geometry=s" => \$geometry,
 		"lwp!" => \$VRML::ENV{FREEWRL_NO_LWP},
 		"save=s" => \$VRML::ENV{FREEWRL_SAVE},
@@ -530,7 +538,16 @@ if($VRML::verbose::text) {
 
 require 'VRML/Browser.pm';
 
-$b = new VRML::Browser({BackEnd => [Geometry => $geometry]}); # By default creates front- and back-ends.
+if ($fullscreen)
+{
+	;
+}
+else
+{
+	$fullscreen = 0;
+}
+
+$b = new VRML::Browser({FullScreen => $fullscreen, BackEnd => [Geometry => $geometry]}); # By default creates front- and back-ends.
 
 $be = $b->get_backend;
 
@@ -560,6 +577,7 @@ $b->eventloop();
 !NO!SUBS!
 
 close OUT;
+
 chmod 0555, $file;
 
 
