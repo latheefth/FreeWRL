@@ -16,7 +16,11 @@
 
 #include "headers.h"
 
+#ifndef AQUA
 #include <GL/gl.h>
+#else
+#include <gl.h>
+#endif
 #include <math.h>
 
 typedef struct quaternion {

@@ -6,8 +6,11 @@
 #include "LinearAlgebra.h"
 #include "constants.h"
 
-
+#ifndef AQUA
 #include <GL/glu.h>
+#else
+#include <glu.h>
+#endif
 
 /* number of tesselated coordinates allowed */
 #define TESS_MAX_COORDS  500
