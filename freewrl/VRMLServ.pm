@@ -10,6 +10,12 @@
 
 #
 # $Log$
+# Revision 1.17  2002/05/08 14:46:57  crc_canada
+# Had a problem finding a reference to a route that was within a proto. Fixed
+# I hope.
+#
+# send_listened, only sends if value is changed.
+#
 # Revision 1.16  2002/04/22 18:20:42  crc_canada
 # Extra debugging print statements removed (in GV routine)
 #
@@ -227,16 +233,20 @@ sub poll {
 sub find_actual_node_and_field {
 	my ($id, $field, $eventin) = @_;
 
-	# my $node = VRML::Handles::front_end_child_get(VRML::Handles::get($id));
+	# JASmy $node = VRML::Handles::front_end_child_get(VRML::Handles::get($id));
 	my $node = VRML::Handles::get($id);
+	if ($node == ""){ 
+		# node was not registered
+		$node = $id;
+	}
 
-	#print "find_actual_node, looking at node ",
-	#	VRML::Node::dump_name($node),  " ref ", ref $node, 
-	#	" field $field, eventin flag $eventin\n";
+	# print "find_actual_node, looking at node ",
+	# 	VRML::Node::dump_name($node),  " ref ", ref $node, 
+	# 	" field $field, eventin flag $eventin\n";
 
 	if (defined $node->{IsProto}) {
 		# aha! is this an "IS"?
-		
+
 		my $direction;
 		my $n; my $f;
 
@@ -245,15 +255,20 @@ sub find_actual_node_and_field {
 
 		$n = $node->{ProtoExp}{$direction}{$field}[0][0];
 		$f = $node->{ProtoExp}{$direction}{$field}[0][1];
-		#print "find_actual_node, returning ",VRML::Node::dump_name($n), " $f\n";
-		return ($n, $f);
+
+		if ($n != "") {
+			# it is an is...
+			return ($n, $f);
+		}
+		# it is a protoexp, and it it not an IS, so, lets just return
+		# the original, and cross our fingers that it is right.
+		return ($node,$field);
 	}
 
 	# Hmmm - it was not a PROTO, lets just see if the field 
 	# exists here.
 
 	if (defined $node->{$field}) {
-		#print "find_actual_node, test2 passed, node is simple\n";
 		return ($node,$field);
 	}
 
@@ -262,14 +277,9 @@ sub find_actual_node_and_field {
 
 	if (defined $node->{Scene}) {
 		$node = VRML::Handles::front_end_child_get($node);
-		#print "find_actual_node, fec returns ", VRML::Node::dump_name(
-		#	$node), "\n";
 		return ($node,$field);
 	}
-
-	print "find_actual_node, dont know what to do here - please submit a bug report\n";
 	return ($node,$field);
-
 }
 
 
@@ -304,7 +314,7 @@ sub handle_input {
 			}
 
 			if (defined $node->{IsProto}) {
-				print "GN of $1 is a proto, getting the real node\n";
+				# print "GN of $1 is a proto, getting the real node\n";
 				$node = $node->real_node();
 			}
 
@@ -545,11 +555,10 @@ sub handle_input {
   			$v =~ s/\s+$//; # trailing new line....
 
 			my $node = VRML::Handles::get($id);
+	
 			$node = VRML::Handles::front_end_child_get($node);
 
-			# print "SE to node ",VRML::Node::dump_name($node),"\n";
 			my ($x,$ft) = $this->{B}->api__getFieldInfo($node,$field);
-			# print "SE, my x is $x, my ft is $ft\n";
 
 			# make sure it gets rendered
 			VRML::OpenGL::set_render_frame();
@@ -568,7 +577,7 @@ sub handle_input {
 			    	$this->{B}->api__sendEvent($node, $field, $child);
 			} else {
 			    	my $value = "VRML::Field::$ft"->parse("FOO",$v);
-		    		# print "VRMLServ.pm, at 3, sending to ",
+		    		#print "VRMLServ.pm, at 3, sending to ",
 				# 	VRML::Node::dump_name($node), 
 				# 	" field $field value $v\n";
 		    		$this->{B}->api__sendEvent($node, $field, $value);
@@ -586,6 +595,7 @@ sub handle_input {
 
 			($node,$field) = find_actual_node_and_field($id,$field,0);
 
+			# print "RL, field $field, node $node, ",VRML::Node::dump_name($node),"\n";
 			$this->{B}->api__registerListener(
 				$node,
 				$field,
@@ -599,8 +609,8 @@ sub handle_input {
 
 		} elsif($str =~ /^AR ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {  # addRoute
 			my($fn, $ff, $tn, $tf) = ($1,$2,$3,$4);
-			print "addroute, $fn (",VRML::Node::dump_name($fn),
-			"), $ff, $tn (",VRML::Node::dump_name($tn),"), $tf\n";
+			# print "addroute, $fn (",VRML::Node::dump_name($fn),
+			# "), $ff, $tn (",VRML::Node::dump_name($tn),"), $tf\n";
 
 			my $fromNode = VRML::Handles::get($fn)->real_node();
 			my $toNode = VRML::Handles::get($tn)->real_node();
@@ -685,12 +695,21 @@ sub send_listened {
 	my($this, $hand, $node, $id, $field, $lid, $value) = @_;
 
 	# print "send_listened, hand $hand node ",VRML::Node::dump_name($node),
-	#	" id $id  field $field  lid $lid  value $value\n";
+	# 	" id $id  field $field  lid $lid  value $value\n";
+
 
 	my $ft = $node->{Type}{FieldTypes}{$field};
 	my $str = "VRML::Field::$ft"->as_string($value);
 
-	$VRML::EAIServer::evvals{$lid} = $str;
+	# position and orientation sends an event per loop, we do not need
+	# to send duplicate positions and orientations, but this may give us a bug...
+
+
+	if ($VRML::EAIServer::evvals{$lid} eq $str) {
+		return;
+	}
+
+	$VRML::EAIServer::evvals{$lid} = $str; # save it for next time.
 	$hand->print("EV\n"); # Event incoming
 	$hand->print("$lid\n");
 	$hand->print("$str\n");
