@@ -107,7 +107,6 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, js
 	sprintf (FPSstring,"%6.2f",BrowserFPS);
 	_str = JS_NewString(context,FPSstring,strlen(FPSstring)+1);
 	*rval = STRING_TO_JSVAL(_str);
-	printf ("fps from freewrl %s rval ptr %d val %d\n",FPSstring,rval,*rval);
 	return JS_TRUE;
 }
 
