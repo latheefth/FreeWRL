@@ -1,0 +1,34 @@
+This file describes how to install the RPMS on Linux machines.
+We spend our time developing software, not fine-tuning installs
+on all versions of Linux, so please have patience and understanding
+for us, ok? :-)
+
+
+
+1) RedHat 7.3 machines.
+
+	if you have an NVidia card, choose the NVidia version,
+	if not, choose the non-NVivia version.
+
+	rpm -Uvh rpm-file
+
+
+2) Other machines.
+
+	These RPMs should work on most current or slightly older
+	versions of Linux. Here are some notes, in case you have
+	problems.
+
+	a) make sure freetype version 2 is installed.
+	   ldconfig -p | grep freetype  should print if it is.
+
+
+
+	b) The perl files are installed as for version 5.6.1;
+	look in /usr/lib/perl5/site_perl/5.6.1/i386-linux/VRML
+	and /usr/lib/perl5/site_perl/5.6.1/i386-linux/auto/VRML.
+
+	if your machine still has perl 5.6.0; try moving these
+	directories from the 5.6.1 path to 5.6.0.
+
+
