@@ -176,12 +176,12 @@ void EventLoop() {
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
 		printf ("times %lf %lf %lf %lf %lf %lf\n",
-				//timeA,timeB,
-				//timeC, timeD,
-				//timeE,timeF);
-				timeA/oxf*100.0,timeB/oxf*100.0,
-				timeC/oxf*100.0, timeD/oxf*100.0,
-				timeE/oxf*100.0,timeF/oxf*100.0);
+				timeA,timeB,
+				timeC, timeD,
+				timeE,timeF);
+				//timeA/oxf*100.0,timeB/oxf*100.0,
+				//timeC/oxf*100.0, timeD/oxf*100.0,
+				//timeE/oxf*100.0,timeF/oxf*100.0);
 		#endif
 		BrowserStartTime = TickTime; 
 		loop_count = 1;
@@ -261,6 +261,7 @@ void EventLoop() {
 
 	/* handle_mouse events if clicked on a sensitive node */
 	if (!NavigationMode && HaveSensitive) {
+	//if (!NavigationMode) {
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint(FALSE);
 		render_hier((void *)rootNode,VF_Sensitive);
@@ -694,6 +695,7 @@ void setup_viewpoint(int doBinding) {
 
 void setup_projection(int pick, int x, int y) {
 	fwMatrixMode(GL_PROJECTION);
+	invalidateProjMatrix();
 	
 	glViewport(0,0,screenWidth,screenHeight);
 	glLoadIdentity();
