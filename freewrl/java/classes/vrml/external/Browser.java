@@ -59,14 +59,16 @@ public class Browser implements BrowserInterface
     // Interface methods.
     public int get_Browser_EVtype (int event)
       {
-	System.out.println ("get_Browser_EVtype is returning " + BrowserGlobals.EVtype[event] + 
-		" for event " + event);
+	//System.out.println ("get_Browser_EVtype is returning " + 
+	//	BrowserGlobals.EVtype[event] + 
+	//	" for event " + event);
         return BrowserGlobals.EVtype[event];
       }
 
     public EventOutObserver get_Browser_EVObserver (int eventno)
       {
-	// System.out.println ("get_Browser_EVObserver is returning " +  BrowserGlobals.EVObserver[eventno]);
+	// System.out.println ("get_Browser_EVObserver is returning " +  
+	// 	BrowserGlobals.EVObserver[eventno]);
         return BrowserGlobals.EVObserver[eventno];
       }
 
@@ -106,32 +108,21 @@ public class Browser implements BrowserInterface
 	try {
 		PrivilegeManager.enablePrivilege ("UniversalConnect");
 	} catch (Throwable e) {
-		System.out.println("caught exception; not using netscape");
+		System.out.println("EAI: not using Netscape");
 	}
 	
-	// This was an attempt to make multi-freewrls run on one machine...
-	// while ((EAISocket == null) && (incrport < 30))
-  	// try {
-	//	incrport = incrport + 1;
-  	//	EAISocket = new ServerSocket(2000 + incrport);
-  	//} catch (IOException e) {
-  	//  System.out.print ("Browser: Error creating socket for FreeWRL EAI on port " + incrport + "\n");
-  	//}
-  
-	// Lets just do this with one socket...
-
 	try {
 		EAISocket = new ServerSocket(2000);
 	} catch (IOException e) {
-		System.out.println ("Browser: Error creating socket for FreeWRL EAI on port 2000");
+		System.out.println ("EAI: Error creating socket for FreeWRL EAI on port 2000");
 	}
-	System.out.println ("Browser: opened port on port 2000 waiting for data" );
+	System.out.println ("EAI: opened port, ready for data" );
 
 
   	try {
   		sock=EAISocket.accept();
   	} catch (IOException e) {
-  	  System.out.print ("Browser: error creating sub-scoket in FreeWrl Javascript\n");
+  	  System.out.print ("EAI: System error on accept method\n");
   	}
   	// Start the readfrom FREEWRL thread...
    	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, this));
@@ -141,25 +132,26 @@ public class Browser implements BrowserInterface
         try {
           EAIfromFreeWRLStream = new PipedReader (EAIinThread.EAItoBrowserStream);
         } catch (IOException ie) {
-          System.out.println ("caught error in new PipedReader: " + ie);
+          System.out.println ("EAI: caught error in new PipedReader: " + ie);
         }
 		EAIfromFreeWRLInputStream = new BufferedReader (EAIfromFreeWRLStream);	
 		
-		System.out.println("waiting for thread...");
+		//System.out.println("waiting for thread...");
 
   	// Wait for the FreeWRL browser to send us something...
         try {
-          System.out.println (EAIfromFreeWRLInputStream.readLine());
-        } catch (IOException ie) {System.out.println ("Browser: caught " + ie);}
+          String fwvers = EAIfromFreeWRLInputStream.readLine());
+	  System.out.println ("EAI: FreeWRL Version: " + fwvers);
+        } catch (IOException ie) {System.out.println ("EAI: caught " + ie);}
   
-		System.out.println("got response from thread");
+	//System.out.println("got response from thread");
   	// Send the correct response...
 	try {
 		EAIout = new PrintWriter (sock.getOutputStream());
 		EAIout.print ("FreeWRL EAI Serv0.27");
 		EAIout.flush ();
 	} catch (IOException e) {
-		System.out.print ("error on reiniting output stream");
+		System.out.print ("EAI: Problem in handshaking with Browser");
 	}
 	// System.out.println("browser is gotten");
   	// Browser is "gotten", and is started.
@@ -184,15 +176,13 @@ public class Browser implements BrowserInterface
     }
   
     public String        getVersion() {
-      System.out.println ("getVersion Not Implemented");
-  
-       return "0.17";
+       return "0.28";
      }
   
     // Get the current velocity of the bound viewpoint in meters/sec,
     // if available, or 0.0 if not
     public float         getCurrentSpeed() {
-      System.out.println ("getCurrentSpeed Not Implemented");
+      System.out.println ("EAI: getCurrentSpeed Not Implemented");
   
       return (float) 0.0;
     }
@@ -251,7 +241,7 @@ public class Browser implements BrowserInterface
     // Load the given URL with the passed parameters (as described
     // in the Anchor node)
     public void          loadURL(String[] url, String[] parameter) {
-      System.out.println ("loadURL Not Implemented");
+      System.out.println ("EAI: loadURL Not Implemented");
   
       return;
     }
@@ -260,7 +250,7 @@ public class Browser implements BrowserInterface
     // Set the description of the current world in a browser-specific
     // manner. To clear the description, pass an empty string as argument
     public void          setDescription(String description) {
-      System.out.println ("setDescription Not Implemented");
+      System.out.println ("EAI: setDescription Not Implemented");
   
       return;
     }
@@ -293,7 +283,7 @@ public class Browser implements BrowserInterface
           count ++;
 	  if (count == 2000) {
 		count = 1999;
-		System.out.println ("Browser:createVrmlFromString - warning, tied to 2000 nodes");
+		System.out.println ("EAI: createVrmlFromString - warning, tied to 2000 nodes");
 	  }
         }
         queryno += 1;
@@ -362,14 +352,14 @@ public class Browser implements BrowserInterface
   
     // called after the scene is loaded, before the first event is processed
     public void initialize() {
-      System.out.println ("Initialize Not Implemented");
+      System.out.println ("EAI: Initialize Not Implemented");
   
     }
     
   
     // called just before the scene is unloaded
     public void shutdown() {
-      System.out.println ("Shutdown Not Implemented");
+      System.out.println ("EAI: Shutdown Not Implemented");
   
     }
   
@@ -384,7 +374,7 @@ public class Browser implements BrowserInterface
     static public Browser getBrowser(Applet pApplet, String frameName, int index) {
       // We don't have frames and indexes yet...
       Browser x = getBrowser(pApplet);
-      System.out.println ("getBrowser possibly Not Implemented");
+      System.out.println ("EAI: getBrowser possibly Not Implemented");
   
       return x;
     }
@@ -556,19 +546,19 @@ public class Browser implements BrowserInterface
            try {
              req = Browser.EAIfromFreeWRLInputStream.readLine();
            } catch (IOException ie) {
-		System.out.println ("Browser: caught " + ie);
+		System.out.println ("EAI: caught " + ie);
 		return rep;
 	   }
 
            if (queryno != Integer.parseInt(req)) {
-             System.out.println ("getVRMLreply - REPLIES MIXED UP!!! Expecting " 
+             System.out.println ("EAI: getVRMLreply - REPLIES MIXED UP!!! Expecting " 
                 + queryno + 
    	     " got " + req);
            }
        
            try {
                  rep = Browser.EAIfromFreeWRLInputStream.readLine(); 
-           } catch (IOException ie) { System.out.println ("getVRMLreply failed"); return null; }
+           } catch (IOException ie) { System.out.println ("EAI: getVRMLreply failed"); return null; }
 	
 
          }
@@ -576,7 +566,7 @@ public class Browser implements BrowserInterface
         return rep; 
       }  
 	public void close() {
-		System.out.println("closing socket");
+		System.out.println("EAI: closing socket");
 		try {
 			EAIoutSender.stopThread();
 			EAISocket.close();
