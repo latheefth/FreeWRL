@@ -84,6 +84,8 @@ char thisfontname[fp_name_len];
 /* where are we? */
 double pen_x, pen_y;
 
+/* if this is a status bar, put depth different than 0.0 */
+static float TextZdist;
 
 double x_size;		/* size of chars from file */
 double y_size;		/* size of chars from file */
@@ -133,7 +135,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 	/* 	FW_pointctr, FW_pointctr*3+2,FW_rep_->coord[FW_pointctr*3+2]); */
 	FW_rep_->coord[FW_pointctr*3+0] = OUT2GL(last_point.x + pen_x);
 	FW_rep_->coord[FW_pointctr*3+1] = OUT2GL(last_point.y) + pen_y;
-	FW_rep_->coord[FW_pointctr*3+2] = 0.0;
+	FW_rep_->coord[FW_pointctr*3+2] = TextZdist;
 
 	/* the following should NEVER happen.... */
 	if (FW_RIA_indx >500) { ConsoleMessage ("Text, relative index too small\n");exit(1);}
@@ -422,6 +424,14 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 
 			bit: 17-31	spare
 	*/
+
+	/* z distance for text - only the status bar has anything other than 0.0 */
+	if (directstring) {
+		TextZdist = -0.2; // this is good for fov of 45
+		TextZdist = -1000.0 / (fieldofview * fieldofview);
+	} else {
+		TextZdist = 0.0;
+	}
 
 	/* have we done any rendering yet */
 
