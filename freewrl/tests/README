@@ -108,6 +108,7 @@ Notes:
 
 44.wrl: Extrusion test: neat slide?
 
+45.wrl:	PixelTexture test.
 
 AddRemove:	
 	Java applet with EAI add/remove button. Run the script "standalone"
