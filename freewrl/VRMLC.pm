@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.135  2004/03/29 19:14:14  crc_canada
+# Irix compilation fixes
+#
 # Revision 1.134  2004/02/25 19:09:14  crc_canada
 # code cleanup.
 #
@@ -2042,7 +2045,7 @@ do_newJavaClass(scriptInvocationNumber,nodestr,node)
 	int node
 CODE:
 	printf ("do_newJavaClass, script %d, node %s\n",scriptInvocationNumber,nodestr);
-	RETVAL = newJavaClass(scriptInvocationNumber,nodestr,node);
+	RETVAL = (int) newJavaClass(scriptInvocationNumber,nodestr,node);
 OUTPUT:
 	RETVAL
 
@@ -2240,7 +2243,7 @@ int
 malloc_this (size)
 	int size
 	CODE:
-	RETVAL = malloc(size);
+	RETVAL = (int) malloc(size);
 OUTPUT:
 RETVAL
 

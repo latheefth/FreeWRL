@@ -34,6 +34,10 @@
 #define TO_SCRIPT 2
 #define SCRIPT_TO_SCRIPT 3
 
+/* old perl - eg, IRIX 6.5, perl 5.6.0 */
+#ifndef STRUCT_SV
+#define STRUCT_SV sv
+#endif
 
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
@@ -960,11 +964,11 @@ void setMFElementtype (int num) {
 					      strcat (scriptline, "new MFColor(");
 					      elementlen = sizeof (float) * 3;
 					      for (x=0; x<(len/elementlen); x++) {
-						      fp = pptr;
+						      fp = (float *)pptr;
 						      sprintf (sline,"%f %f %f",*fp,
 								      *(fp+elementlen),
 								      *(fp+(elementlen*2)),
-									      *(fp+(elementlen*3)));
+								      *(fp+(elementlen*3)));
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
 						      }
@@ -977,7 +981,7 @@ void setMFElementtype (int num) {
 					      strcat (scriptline, "new MFFloat(");
 					      elementlen = sizeof (float);
 					      for (x=0; x<(len/elementlen); x++) {
-						      fp = pptr;
+						      fp = (float *)pptr;
 						      sprintf (sline,"%f",*fp);
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
@@ -991,7 +995,7 @@ void setMFElementtype (int num) {
 					      strcat (scriptline, "new MFTime(");
 					      elementlen = sizeof (double);
 					      for (x=0; x<(len/elementlen); x++) {
-						      dp = pptr;
+						      dp = (double *)pptr;
 						      sprintf (sline,"%lf",*dp);
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
@@ -1005,7 +1009,7 @@ void setMFElementtype (int num) {
 					      strcat (scriptline, "new MFInt32(");
 					      elementlen = sizeof (int);
 					      for (x=0; x<(len/elementlen); x++) {
-						      ip = pptr;
+						      ip = (int *)pptr;
 						      sprintf (sline,"%d",*ip);
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
@@ -1020,7 +1024,7 @@ void setMFElementtype (int num) {
 					      elementlen = sizeof (float);
 					      printf ("ScriptAssign, MFString probably broken\n");
 					      for (x=0; x<(len/elementlen); x++) {
-						      fp = pptr;
+						      fp = (float *)pptr;
 						      sprintf (sline,"%f",*fp);
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
@@ -1034,7 +1038,7 @@ void setMFElementtype (int num) {
 					      strcat (scriptline, "new MFNode(");
 					      elementlen = sizeof (int);
 					      for (x=0; x<(len/elementlen); x++) {
-						      ip = pptr;
+						      ip = (int *)pptr;
 						      sprintf (sline,"%u",*ip);
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
@@ -1047,7 +1051,7 @@ void setMFElementtype (int num) {
 			case MFROTATION: {	strcat (scriptline, "new MFRotation(");
 					      elementlen = sizeof (float)*4;
 					      for (x=0; x<(len/elementlen); x++) {
-						      fp = pptr;
+						      fp = (float *)pptr;
 						      sprintf (sline,"%f %f %f %f",*fp,
 								*(fp+elementlen),
 								*(fp+(elementlen*2)),

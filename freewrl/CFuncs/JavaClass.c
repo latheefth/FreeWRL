@@ -42,6 +42,12 @@ int bufsize;
 char *buffer;
 int eid = 0; /* event id */
 
+void send_string (char *string, int fd) ;
+
+
+
+
+
 /* a new .class file has been called - lets load it */
 int newJavaClass(int scriptInvocationNumber,char * nodestr,int *node) {
 	char newURL [MURLLEN];
@@ -74,7 +80,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodestr,int *node) {
 		}
 
 		/* now, strip off the wrl filename, and place our name here */
-		ri = rindex(newURL,'/'); 
+		ri = (char *)rindex((char *)newURL,(int) '/'); 
 		*ri = '\0';
 
 		strcat (newURL,"/");
@@ -91,7 +97,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodestr,int *node) {
 
 	send_string("NEWSCRIPT", lfd);
 	send_string ("SFNode", lfd);
-	send_int (node,lfd);
+	send_int ((int)node,(int)lfd);
 	printf ("newURL :%s:\n",newURL);
 	send_string (newURL, lfd);
 		
@@ -99,8 +105,8 @@ int newJavaClass(int scriptInvocationNumber,char * nodestr,int *node) {
         eid++;
         send_string("INITIALIZE",lfd);
 	send_string ("SFNode", lfd);
-	send_int (node,lfd);
-	send_int (eid,lfd);
+	send_int ((int)node,(int)lfd);
+	send_int ((int)eid,(int)lfd);
         receive_string();
 
 	/* is this the eventid, or a command? */

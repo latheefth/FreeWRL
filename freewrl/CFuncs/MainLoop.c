@@ -505,8 +505,8 @@ void setup_viewpoint(int doBinding) {
 
 	if (doBinding & (!isPerlParsing())) { 
 		for (i=0; i<totviewpointnodes; i++) {
-			setBindPtr = viewpointnodes[i]+offsetof (struct VRML_Viewpoint, 
-				set_bind);
+			setBindPtr = (unsigned int *)(viewpointnodes[i]+
+				offsetof (struct VRML_Viewpoint, set_bind));
 
 			/* check the set_bind eventin to see if it is TRUE or FALSE */
 			if (*setBindPtr < 100) {
@@ -514,7 +514,7 @@ void setup_viewpoint(int doBinding) {
 				/* up_vector is reset after a bind */
 				if (*setBindPtr==1) reset_upvector();
 
-				bind_node (viewpointnodes[i],
+				bind_node ((void *)viewpointnodes[i],
 					offsetof (struct VRML_Viewpoint,set_bind),
 					offsetof (struct VRML_Viewpoint,isBound),
 					&viewpoint_tos,&viewpoint_stack[0]);
