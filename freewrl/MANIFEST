@@ -195,7 +195,6 @@ Viewer.pm
 bt/1.wrl
 bt/2.wrl
 bt/3.wrl
-examples/vrml.wrl
 fonts/Baklava_.txt
 fonts/README
 fonts/baklava.ttf
@@ -324,7 +323,6 @@ jt/4.wrl
 jt/5.wrl
 jt/6.wrl
 jt/7.wrl
-jt/J1.class
 jt/J1.java
 nodes/Background.wrl
 nodes/Background2.wrl
