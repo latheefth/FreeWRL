@@ -3,149 +3,146 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
-$moduleName = "VRML::PluginGlue";
-
-require '../vrml.conf';
-
-if ($^V lt v5.6.0) {
-    warn "Warning: module $moduleName was created under Perl v5.6.0.\n";
+BEGIN {
+	if ($^V lt v5.6.0) {
+		warn "Warning: module $moduleName was created under Perl v5.6.0 or greater.\n";
+	}
 }
 
 use ExtUtils::MakeMaker;
+require '../Config.pm';
+
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
+
+$moduleName = "VRML::PluginGlue";
+
 WriteMakefile(
-			  'NAME' => $moduleName,
-			  'VERSION_FROM' => "PluginGlue.pm", # finds $VERSION
-			  'PREREQ_PM' => {},	# e.g., Module::Name => 1.1
-			  'LIBS' => [''],	# e.g., '-lm'
-dynamic_lib => { 'OTHERLDFLAGS' => $VRML_CONFIG{LDFLAGS}, 'LDDLFLAGS' => $VRML_CONFIG{LDDLFLAGS} },
-#'DEFINE' => "",	# e.g., '-DHAVE_SOMETHING'
-			  'INC' => "-ICFuncs"
+			  NAME => $moduleName,
+			  VERSION_FROM => "PluginGlue.pm", # finds $VERSION
+			  PREREQ_PM => {},		# e.g., Module::Name => 1.1
+			  LIBS => "",			# e.g., '-lm'
+			  dynamic_lib => {
+							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
+							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
+							 },
+			  INC => "-ICFuncs"
 			 );
 
 my $install = 0;
 
-sub MY::post_initialize {
-    use Cwd;
-    my($ver, $nc);
-    my $dir = getcwd();
-    my $post_init = "";
+{
+	package MY;
+
+	sub post_initialize {
+		use Cwd;
+		my($ver, $nc);
+		my $dir = getcwd();
+		my $post_init = "";
 
 
-    if ($VRML_CONFIG{NETSCAPE_INST}) {
-		$install = 1;
-		$post_init = join(
-						  "\n",
-						  qq{\nPLUGIN=$dir/netscape},
-						  qq{LIB_DIR=$dir/netscape/_lib},
-						  qq{PLUGIN_DIR=$VRML_CONFIG{NETSCAPE_PLUGINS}}
-						 );
-	} elsif ($VRML_CONFIG{MOZILLA_INST}) {
-		$install = 1;
-		$post_init = join(
-						  "\n",
-						  qq{\nPLUGIN=$dir/mozilla},
-						  qq{LIB_DIR=$dir/mozilla/_lib},
-						  qq{PLUGIN_DIR=$VRML_CONFIG{MOZILLA_PLUGINS}}
-						 );
-    }
+		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
+			$install = 1;
+			$post_init = join(
+							  "\n",
+							  qq{\nPLUGIN=$dir/netscape},
+							  qq{LIB_DIR=$dir/netscape/_lib},
+							  qq{PLUGIN_DIR=$VRML::Config::vrml_config{NETSCAPE_PLUGINS}}
+							 );
+		} elsif ($VRML::Config::vrml_config{MOZILLA_INST}) {
+			$install = 1;
+			$post_init = join(
+							  "\n",
+							  qq{\nPLUGIN=$dir/mozilla},
+							  qq{LIB_DIR=$dir/mozilla/_lib},
+							  qq{PLUGIN_DIR=$VRML::Config::vrml_config{MOZILLA_PLUGINS}}
+							 );
+		}
 
-    return($post_init);
-}
+		return($post_init);
+	}
 
 
-sub MY::post_constants {
-	my $post_const = "";
+	sub post_constants {
+		my $post_const = "";
 
-	$post_const =
-q{
+		$post_const = join("\n",
+						   qq{\n\n\#ifeq (\$(OSNAME),linux)},
+						   qq{DEFINE+=-DXP_UNIX=1 -D_GNU_SOURCE=1\n},
+						   qq{INC+= -I/usr/X11R6/include -I/usr/X11/include\n},
+						   qq{\#endif\n\n},
+						   qq{vpath %.c .:./CFuncs:../CFuncs},
+						   qq{CFUNCS_SRC:=\$(notdir \$(wildcard ./CFuncs/*.c))},
+						   qq{OBJECT+=\$(CFUNCS_SRC:%c=%o)}
+						  );
 
-#ifeq ($(OSNAME),linux)
+		return ($post_const);
+	}
 
-DEFINE+=\
--DXP_UNIX=1\
--D_GNU_SOURCE=1
-
-INC+=\
--I/usr/X11R6/include\
--I/usr/X11/include	
-
-#endif
-
-vpath %.c .:./CFuncs
-
-CFUNCS_SRC:=$(notdir $(wildcard ./CFuncs/*.c))
-OBJECT+=$(CFUNCS_SRC:%c=%o)
-
-};
-
-	return ($post_const);
-}
-sub MY::dynamic_lib {
-"ARMAYBE = :
-OTHERLDFLAGS = $VRML_CONFIG{LDFLAGS} 
+	sub dynamic_lib {
+		if ($VRML::Config::vrml_config{PLATFORM} =~ /macosx/i) {
+			return "ARMAYBE = :
+OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS}
 INST_DYNAMIC_DEP =
 
 \$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
 	\$\(RM_F\) \$\@
 	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOADLIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
-	\$\(CHMOD\) \$\(PERM_RWX\) \$\@
-"
-}
+	\$\(CHMOD\) \$\(PERM_RWX\) \$\@\n";
+		} else {
+			return shift->SUPER::dynamic_lib(@_);
+		}
+	}
 
-sub MY::c_o {
-	my $c_o = "";
+	sub c_o {
+		my $cxx_rule = qq{\t\$(CCCMD) \$< \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n};
 
-	$c_o =
-q{
+		my $c_o = join(
+					   "\n",
+					   qq{\n%.i : %.c},
+					   qq{\tgcc -E -c \$(PASTHRU_INC) \$(INC)\\},
+					   qq{\t\$(CCFLAGS) \$(OPTIMIZE)\\},
+					   qq{\t\$(PERLTYPE) \$(MPOLLUTE) \$(DEFINE_VERSION)\\},
+					   qq{\t\$(XS_DEFINE_VERSION) \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) \$< > \$@\n},
+					   qq{\n%.s : %.c},
+					   qq{\t\$(CCCMD) -S \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n},
+					   qq{\n%.o : %.c},
+					   $cxx_rule,
+					   qq{%.o : %.C},
+					   $cxx_rule,
+					   qq{%.o : %.cpp},
+					   $cxx_rule,
+					   qq{%.o : %.cxx},
+					   $cxx_rule,
+					   qq{%.o : %.cc},
+					   $cxx_rule
+					  );
 
-%.o : %.c
-	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-%.o : %.C
-	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-%.o : %.cpp
-	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-%.o : %.cxx
-	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-%.o : %.cc
-	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-};
-
-	return ($c_o);
-}
+		return $c_o;
+	}
 
 
-sub MY::postamble {
-    my $postamble = "";
+	sub postamble {
+		my $postamble = "";
 
-    if ($install) {
-	$postamble =
-q{
-# --- FreeWRL web browser plugin:
+		if ($install) {
+			my $defines = "LIB_DIR=\$(LIB_DIR) OSNAME=\$(OSNAME) PLUGIN_DIR=\$(PLUGIN_DIR) CC=\$(CC)";
+			$postamble = join("\n",
+							  qq{\n\# --- FreeWRL web browser plugin:},
+							  qq{all :: plugin\n},
+							  qq{plugin ::},
+							  qq{\@cd \$(PLUGIN) && \$(MAKE) all $defines\n},
+							  qq{install ::},
+							  qq{\@cd \$(PLUGIN) && \$(MAKE) install $defines\n},
+							  qq{clean ::},
+							  qq{\@cd \$(PLUGIN) && \$(MAKE) clean LIB_DIR=\$(LIB_DIR)\n},
+							  qq{realclean ::},
+							  qq{\@cd \$(PLUGIN) && \$(MAKE) clean PLUGIN_DIR=\$(PLUGIN_DIR)\n},
+							  qq{distclean :: realclean\n}
+							 );
 
-all :: plugin
+		}
+		return($postamble);
+	}
 
-plugin ::
-	@cd $(PLUGIN) && $(MAKE) all LIB_DIR=$(LIB_DIR) OSNAME=$(OSNAME) PLUGIN_DIR=$(PLUGIN_DIR) CC=$(CC)
-
-install ::
-	@cd $(PLUGIN) && $(MAKE) install LIB_DIR=$(LIB_DIR) OSNAME=$(OSNAME) PLUGIN_DIR=$(PLUGIN_DIR) CC=$(CC)
-
-clean ::
-	@cd $(PLUGIN) && $(MAKE) clean LIB_DIR=$(LIB_DIR)
-
-realclean ::
-	@cd $(PLUGIN) && $(MAKE) realclean PLUGIN_DIR=$(PLUGIN_DIR)
-
-distclean :: realclean
-};
-
-    }
-    return($postamble);
 }

@@ -1,15 +1,21 @@
-use ExtUtils::MakeMaker;
+BEGIN {
+	if ($^V lt v5.6.0) {
+		warn "Warning: module $moduleName was created under Perl v5.6.0 or greater.\n";
+	}
+}
 
+use ExtUtils::MakeMaker;
+require '../Config.pm';
 
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 
 WriteMakefile(
 			  NAME => "VRML::CFuncs",
-			  CCFLAGS => $VRML_CONFIG{FREEWRL_CCFLAGS},
-			  DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
-			  INC => $VRML_CONFIG{FREEWRL_INC},
-			  LIBS => $VRML_CONFIG{FREEWRL_LIBS}
+			  CCFLAGS => $VRML::Config::vrml_config{FREEWRL_CCFLAGS},
+			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
+			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
+			  LIBS => $VRML::Config::vrml_config{FREEWRL_LIBS}
 			 );
 
 sub MY::post_initialize { return qq{\nLIBDIR=\n}; }

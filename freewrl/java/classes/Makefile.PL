@@ -4,13 +4,13 @@
 # for conditions of use and redistribution.
 
 BEGIN {
-    require '../../vrml.conf';
     eval "use 5.004";
     warn "VRML::Browser requires Perl v5.0.4 or later -- go to http://www.perl.com"
     if $@;
 }
 
 use ExtUtils::MakeMaker;
+require '../Config.pm';
 use File::Find;
 use Cwd;
 use English;
@@ -25,7 +25,7 @@ WriteMakefile(
 ## Override and customize ExtUtils::MM_Unix::constants.
 sub MY::post_constants {
     my $constants ="";
-    if ($VRML_CONFIG{JAVA_INST}) {
+    if ($VRML::Config::vrml_config{JAVA_INST}) {
 	my $class_re = qr/^.*\.java\z/;
 	my $source = findFiles("vrml", $class_re,"\\\n"); 
 	$constants .= qq{
@@ -36,11 +36,11 @@ $source
 
 CLASSES=\$(SOURCE:.java=.class)
 
-JFLAGS=-classpath .:$VRML_CONFIG{NETSCAPE_CLASSES}/java40.jar
+JFLAGS=-classpath .:$VRML::Config::vrml_config{NETSCAPE_CLASSES}/java40.jar
 };
-	if ($VRML_CONFIG{NETSCAPE_CLASSES}) {
+	if ($VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
 	    $constants .= qq{
-NETSCAPE_CLASS_DIR=$VRML_CONFIG{NETSCAPE_CLASSES}
+NETSCAPE_CLASS_DIR=$VRML::Config::vrml_config{NETSCAPE_CLASSES}
 };
 	}
     }
@@ -56,7 +56,7 @@ sub MY::postamble {
 vrml.jar: $(CLASSES)
 	$(JAR) cf $@ `find vrml -name \*.class`
 };
-    if ($VRML_CONFIG{NETSCAPE_CLASSES}) {
+    if ($VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
         $_ .= q{
 
 install ::

@@ -6,16 +6,16 @@
 #
 # $Id$
 
-my $moduleName = 'VRML::JS';
-
-
-
-if ($^V lt v5.6.0) {
-    warn "Warning: module $moduleName was created under Perl v5.6.0.\n";
+BEGIN {
+	if ($^V lt v5.6.0) {
+		warn "Warning: module $moduleName was created under Perl v5.6.0 or greater.\n";
+	}
 }
 
+my $moduleName = 'VRML::JS';
 
 use ExtUtils::MakeMaker;
+require '../Config.pm';
 
 WriteMakefile(
 			  NAME => $moduleName,
@@ -23,22 +23,29 @@ WriteMakefile(
 			  LIBS => "",
 			  INC => "",
 			  dynamic_lib => {
-							  OTHERLDFLAGS => $VRML_CONFIG{LDFLAGS},
-							  LDDLFLAGS => $VRML_CONFIG{LDDLFLAGS}
+							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
+							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
 							 },
 			  DEFINE => "",
 			  CCFLAGS => "",
 			  OPTIMIZE => '-O2'
 			 );
 
-sub MY::dynamic_lib {
-"ARMAYBE = :
-OTHERLDFLAGS = $VRML_CONFIG{LDFLAGS} 
+{
+	package MY;
+
+	sub dynamic_lib {
+		if ($VRML::Config::vrml_config{PLATFORM} =~ /macosx/i) {
+			return "ARMAYBE = :
+OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS}
 INST_DYNAMIC_DEP =
 
 \$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
 	\$\(RM_F\) \$\@
 	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOADLIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
-	\$\(CHMOD\) \$\(PERM_RWX\) \$\@
-"
+	\$\(CHMOD\) \$\(PERM_RWX\) \$\@\n";
+		} else {
+			return shift->SUPER::dynamic_lib(@_);
+		}
+	}
 }
