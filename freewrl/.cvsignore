@@ -4,6 +4,7 @@ tmp
 VRMLFunc.c
 VRMLFunc.bs
 VRMLFunc.xs
+VRMLFunc.pm
 .javapipej
 .javapipep
 Config.pm
