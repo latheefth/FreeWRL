@@ -14,7 +14,6 @@
 
 #ifdef AQUA
 #include <unistd.h>
-#include <X11/X.h>
 #else
 #include <X11/X.h>
 #endif
