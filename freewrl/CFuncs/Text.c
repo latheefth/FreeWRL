@@ -32,9 +32,10 @@
 #include <GL/glu.h>
 #include <GL/glx.h>
 
-#include "../OpenGL/OpenGL.m"
+/* #include "../OpenGL/OpenGL.m"
 
 D_OPENGL;
+*/ 
 
 #include <stdio.h>
 
