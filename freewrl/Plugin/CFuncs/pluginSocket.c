@@ -81,25 +81,27 @@ setIOOptions(int sockDesc,
     return NO_ERROR;
 }
 
-int
+char *
 requestUrl(int sockDesc,
 		   unsigned int plugin_instance,
-		   const char *url,
-		   char *return_url)
+		   const char *url)
 {
 	int flags = 0;
-	size_t len = 0, bytes = 0;
+	size_t len = 0, ulen = 0, bytes = 0;
+	char return_url[FILENAME_MAX];
 	urlRequest request;
 
 	request.instance = (void *) plugin_instance;
 	request.notifyCode = 0; /* not currently used */
 
-	len = FILENAME_MAX * (sizeof(char));
+	len = FILENAME_MAX * sizeof(char);
 	memset(request.url, 0, len);
+	memset(return_url, 0, len);
 
-	len = strlen(url) + 1;
-	memmove(request.url, url, len);
+	ulen = strlen(url) + 1;
+	memmove(request.url, url, ulen);
 	bytes = sizeof(urlRequest);
+
 
 #if FALSE
 #ifdef MSG_CONFIRM
@@ -107,23 +109,29 @@ requestUrl(int sockDesc,
 #endif /* MSG_CONFIRM */
 #endif /* FALSE */
 
-	if (send(sockDesc, (urlRequest *) &request, bytes, 0) < 0) {
-		perror("send failed");
-		return SOCKET_ERROR;
+	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
+		perror("write failed in requestUrl");
+		/* return SOCKET_ERROR; */
+		return NULL;
 	}
 
+#if FALSE
 	flags |= MSG_WAITALL;
+#endif /* FALSE */
 	
-	if (recv(sockDesc, (char *) return_url, FILENAME_MAX, flags) < 0) {
-		perror("recv failed");
+	//if (read(sockDesc, (char *) return_url, FILENAME_MAX) < 0) {
+	if (read(sockDesc, (char *) return_url, len) < 0) {
+		perror("read failed in requestUrl");
  		 /* If blocked or interrupted... */
 /* 		if (errno != EAGAIN && errno != EINTR) { */
 /* 			return SOCKET_ERROR; */
 /* 		} */
-		return SOCKET_ERROR;
+fprintf(stderr, "Testing: error from read -- returned url is %s.\n", return_url);
+		/* return SOCKET_ERROR; */
+		return NULL;
 	}
 
-	return NO_ERROR;
+	return return_url;
 }
 
 int
@@ -167,7 +175,7 @@ receiveUrl(int sockDesc, urlRequest *request)
         return SIGNAL_ERROR;
     }
     
-    if (recv(sockDesc, (urlRequest *) request, request_size, 0) < 0) {
+    if (read(sockDesc, (urlRequest *) request, request_size) < 0) {
 		perror("recv failed");
         /* If blocked or interrupted... */
 /*     	if (errno != EINTR && errno != EAGAIN) { */

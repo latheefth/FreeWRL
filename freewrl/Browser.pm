@@ -221,7 +221,7 @@ sub eventloop {
 	$this->{BE}->close_screen();
 	if ($VRML::ENV{AS_PLUGIN}) {
 		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
-		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
+		#VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
 	}
 }
 

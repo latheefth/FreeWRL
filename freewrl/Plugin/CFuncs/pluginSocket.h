@@ -36,11 +36,10 @@ setIOOptions(int sockDesc,
 			 int nonblock,
 			 int timeout);
 
-int
+char *
 requestUrl(int sockDesc,
 		   unsigned int plugin_instance,
-		   const char *url,
-		   char *return_url);
+		   const char *url);
 
 int
 receiveUrl(int sockDesc, urlRequest *request);

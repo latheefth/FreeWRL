@@ -21,12 +21,11 @@ MODULE = VRML::PluginGlue PACKAGE = VRML::PluginGlue
 PROTOTYPES: ENABLE
 
 
-int
-requestUrl(fd, plugin_instance, url, return_url)
+char *
+requestUrl(fd, plugin_instance, url)
 	int fd
 	unsigned int plugin_instance
 	const char *url
-	char *return_url
 
 int
 connectToPlugin(server)
