@@ -20,8 +20,9 @@ package VRML::IS;
 sub new {
 	my ($type, $name) = @_;
 	my $this = bless {
-		Name => $name
-	}, $type;
+					  Name => $name,
+					  Ref => undef
+					 }, $type;
 	return $this;
 }
 
