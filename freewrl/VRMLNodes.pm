@@ -2334,7 +2334,6 @@ my $protono;
 					   },
 					   {
 						Initialize => sub {
-							#JAS $VRML::verbose::script = 1;
 							my($t, $f, $time, $scene) = @_;
 
 							print "ScriptInit t ",
@@ -2371,9 +2370,9 @@ my $protono;
 										my $tie = join("", map {
 											"tie \$$_, 'MTS',  \\\$t->{$_};"
 										} script_variables($u));
-										## print "tie = $tie\n";
-										## $h = eval "$tie ({$_})";
+
 										$h = eval "({$_})";
+
 										# Wrap up each sub in the script node
 										foreach (keys %$h) {
 											my $tmp = $h->{$_};
@@ -2385,8 +2384,6 @@ my $protono;
 											## print "---- src ----$src\n--------------",
 											$h->{$_} = eval $src ;
 										}
-
-										## $h = eval "({$_})";
 
 										print "Evaled: $h\n",
 											"-- h = $h --\n",
@@ -2407,61 +2404,38 @@ my $protono;
 									}
 									last;
 								} elsif (/\.class$/) {
-									my $wurl = $scene->get_world_url;
-									$t->{PURL} = $scene->get_url;
+									my $wurl = $scene->get_world_url();
+									$t->{PURL} = $scene->get_url();
 									if (!defined $VRML::J) {
 										eval('require "VRML/VRMLJava.pm"');
-										if ($@) {
-											die $@;
-										}
+										die $@ if ($@);
+
 										$VRML::J =
 											VRML::JavaCom->new($scene->get_browser);
 									}
 									if (defined $wurl) {
-										$VRML::J->newscript($wurl,$_,$t);
+										$VRML::J->newscript($wurl, $_, $t);
 									} else {
-										$VRML::J->newscript($t->{PURL},$_,$t);
+										$VRML::J->newscript($t->{PURL}, $_, $t);
 									}
 
 									$t->{J} = $VRML::J;
 									last;
 								} elsif (/\.js/) {
 									# New js url handling
-									my $purl = $t->{PURL} = $scene->get_url();
-									my $wurl = $scene->get_world_url();
-									my $file;
-
-									if (defined $wurl) {
-										$file =
-											VRML::URL::get_relative($wurl, $_, 1);
-									} else {
-										$file =
-											VRML::URL::get_relative($purl, $_, 1);
-									}
-
-									print "JS url: file = $file\n"
-										if $VRML::verbose::script;
-									open (SCRIPT_CODE, "< $file") ||
-										die ("Couldn't retrieve javascript url $_ !");
-									my $code = "";
-									while (<SCRIPT_CODE>) {
-										$code .= $_;
-									}
-									close(SCRIPT_CODE);
+									my $code = getTextFromURLs($scene, $_, $t);
 
 									print "JS url: code = $code\n"
 										if $VRML::verbose::script;
 									eval('require VRML::JS;');
-									if ($@) {
-										die $@;
-									}
+									die $@ if ($@);
+
 									$t->{J} = VRML::JS->new($code, $t, $Browser);
 									last;
 								} elsif (s/^(java|vrml)script://) {
 									eval('require VRML::JS;');
-									if ($@) {
-										die $@;
-									}
+									die $@ if ($@);
+
 									$t->{J} = VRML::JS->new($_, $t, $Browser);
 									last;
 								} else {
@@ -2469,9 +2443,9 @@ my $protono;
 								}
 							}
 
-							if (!defined $h and !defined $t->{J}) {
-								die "Didn't find a valid perl(_tjl_xxx)? or java script";
-							}
+							die "Didn't find a valid perl(_tjl_xxx)? or java script"
+								if (!defined $h and !defined $t->{J});
+
 							print "Script got: ", (join ',',keys %$h), "\n"
 								if $VRML::verbose::script;
 							$t->{ScriptScript} = $h;
@@ -2582,47 +2556,26 @@ my $protono;
 					   },
 					   {
 						Initialize => sub {
-							my($t, $f, $time, $scene) = @_;
+							my($node, $f, $time, $scene) = @_;
+
 							my $urls = $f->{url};
 							my $proto;
 
-							my $p = $scene->new_proto("__proto".$protono++);
-							my ($text, $url);
-							my $purl = $t->{PURL} = $scene->get_url();
-							my $wurl = $scene->get_world_url();
-							my $valid = 0;
+							my ($text, $url) = getTextFromURLs($scene, $urls, $node);
+							if ($text) {
+								$proto = $scene->new_proto("__proto".$protono++);
+								$node->{ProtoExp} = $proto;
+								$node->{ProtoExp}->set_parentnode($node);
+								$node->{IsProto} = 1;
+								$node->{ProtoExp}{IsInline} = 1;
 
-						URL:
-							for $u (@$urls) {
-								if (defined $wurl) {
-									($text, $url) = VRML::URL::get_relative($wurl, $u);
-								} else {
-									($text, $url) = VRML::URL::get_relative($purl, $u);
-								}
+								$proto->set_url($url);
+								$proto->set_world_url($url);
 
-								if (!$text) {
-									warn("Warning: could not retrieve $u");
-									next URL;
-								}
-
-								$p->set_url($url);
-								$p->set_world_url($url);
-								VRML::Parser::parse($p, $text);
-								if (!defined $p) {
-									die("Inline not found");
-								}
-
-								$t->{ProtoExp} = $p;
-								$t->{ProtoExp}->set_parentnode($t);
-								$t->{ProtoExp}->make_executable();
-								$t->{ProtoExp}{IsInline} = 1;
-								$t->{IsProto} = 1;
-
-								$valid = 1;
-							} # for $u (@$urls)
-
-							if (!$valid) {
-								die("Unable to locate a valid url");
+								VRML::Parser::parse($proto, $text);
+								$node->{ProtoExp}->make_executable();
+							} else {
+								warn("Unable to locate a valid url from ".VRML::Debug::toString($urls));
 							}
 
 							return ();
