@@ -114,8 +114,8 @@ void SoundEngineInit () {
 		return;
 	}
 
-	// printf ("Client - msq_toserver %d msq_fromserver %d\n",
-	// 	msq_toserver,msq_fromserver);
+	 //printf ("Client - msq_toserver %d msq_fromserver %d\n",
+	 //	msq_toserver,msq_fromserver);
 
 	sprintf(buf,"INIT %d",my_ipc_key);
 
@@ -140,7 +140,7 @@ void SoundEngineInit () {
 		return;
 	}
 
-	// printf ("Client: - server pid %d\n",S_Server_PID);
+	//printf ("Client: - server pid %d\n",S_Server_PID);
 
 	// if FreeWRL actually gets to the exit stage... :-)
 	atexit(SoundEngineDestroy);	
@@ -152,14 +152,14 @@ void SoundEngineInit () {
 		int xx;
 
 		// wait for a response - is the server telling us it is ok?
-		printf ("Client: waiting for response on %d\n",msq_toserver);
+		//printf ("Client: waiting for response on %d\n",msq_toserver);
 
 		do {
 			xx = msgrcv(msq_fromserver,&msg,128,1,0);
 			//printf ("Client waiting... xx is %d\n",xx);
 		} while (!xx);
 
-		// printf ("message received was %s\n", msg.msg);
+		//printf ("message received was %s\n", msg.msg);
 		if (xx) {
 			 // We have a message from the server
 			if ( msg.mtype == 1 ) {
@@ -193,7 +193,7 @@ void SoundEngineDestroy() {
 	if (initialized == SOUND_STARTED) {
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
-		printf ("SoundEngineDestroy, sound was started successfully\n");
+		//printf ("SoundEngineDestroy, sound was started successfully\n");
 		kill(S_Server_PID,SIGTERM);
 	}
 	initialized = !SOUND_STARTED;
