@@ -70,7 +70,7 @@ int	listenfd = -1;			// listen to this one for an incoming connection
 struct hostent *hostptr;
 struct sockaddr_in	servaddr, cliaddr;
 fd_set rfds2;
-struct timeval tv;
+struct timeval tv2;
 
 unsigned char loopFlags = 0;
 
@@ -280,13 +280,13 @@ void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 
 	retval = FALSE;
 	do {
-		tv.tv_sec = 0;
-		tv.tv_usec = 0;
+		tv2.tv_sec = 0;
+		tv2.tv_usec = 0;
 		FD_ZERO(&rfds2);
 		FD_SET((*listenfd), &rfds2);
 	
 		oldRetval = retval;
-		retval = select((*listenfd)+1, &rfds2, NULL, NULL, &tv);
+		retval = select((*listenfd)+1, &rfds2, NULL, NULL, &tv2);
 
 		if (retval != oldRetval) {
 			loopFlags &= NO_RETVAL_CHANGE;
