@@ -17,7 +17,7 @@
 
 <BR WP="BR1"><BR WP="BR2">
 <P><SPAN STYLE="font-family: Helvetica">The following instructions are for compiling the FreeWRL rendering engine for use with the FreeWRL Aqua GUI for Mac OSX. 
-The release of Mac OS X used was Mac OS X v 10.2.6.  The instructions assume that you are starting with a freshly
+The release of Mac OS X used was Mac OS X v 10.3.2.  The instructions assume that you are starting with a freshly
 installed Mac OS system, and all supporting packages required are listed and referenced.  You may already have some
 of these packages installed on your system.  If so, you may be able to skip some steps.</SPAN></P>
 
@@ -88,7 +88,13 @@ and</SPAN></P>
 <P><SPAN STYLE="font-family: Helvetica">Step 7.  Download the FreeWRL source code.  This source code is available from sourceforge in the aptly named FreeWRLSource package.  This package contains two directories: freewrl, which contains the files needed to recompile the FreeWRL program itself, and freewrlFrontEnd which contains the Project Builder files needed to recompile the GUI.  You do not need to recompile the GUI in order to update the FreeWRL program.  In most cases, the files in the FreeWRLFrontEnd can be left alone.  Should you wish to change the GUI (add controls etc.) you may do so by opening the files in the FreeWRLFrontEnd directory in ProjectBuilder.  The following instructions are for recompiling the code in the freewrl directory.  Move into the freewrl directory and continue with Step 8.</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 8.  Check that the directories for the libaries in the file vrml.conf are
+<P><SPAN STYLE="font-family: Helvetica">Step 8.  Copy the aqua makefiles and configuration files over their linux equivalents .  This can be accomplished by issuing the following commands from the freewrl directory:</span></p>
+<p><SPAN STYLE="font-family: Helvetica">mv vrml.conf.aqua vrml.conf</SPAN></P>
+<p><SPAN STYLE="font-family: Helvetica">mv Makefile.aqua.PL Makefile.PL</SPAN></P>
+<p><SPAN STYLE="font-family: Helvetica">mv JS/Makefile.aqua.PL JS/Makefile.PL</SPAN></P>
+<p><SPAN STYLE="font-family: Helvetica">mv CFrontEnd/Makefile.aqua CFrontEnd/Makefile</SPAN></P>
+<p><span style = "font-family: Helvetica">
+Check that the directories for the libaries in the file vrml.conf are
 correct.  These are dependant on where you installed the libjpeg/libpng/zlib/Freetype packages above.  Make any required changes. 
 
 <BR WP="BR1"><BR WP="BR2">
