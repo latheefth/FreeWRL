@@ -1,0 +1,191 @@
+<HTML>
+<HEAD>
+<META NAME="Generator" CONTENT="WordPerfect 9">
+<TITLE></TITLE>
+</HEAD>
+<P>&#35;Copyright (C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart, CRC Canada.  
+<BR>&#35;DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+<BR>&#35;See the GNU Library General Public License (file COPYING in the distribution)
+<BR>&#35;for conditions of use and redistribution, EXCEPT on the files  
+<BR>&#35;which belong under the mozilla public license. 
+
+<BODY TEXT="#000000" LINK="#0000ff" VLINK="#551a8b" ALINK="#ff0000" BGCOLOR="#c0c0c0">
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica"></SPAN><SPAN STYLE="font-family: Helvetica">Macintosh Installation Instructions</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">The following instructions are for buidling FreeWRL as a standalone executable running under XDarwin on Mac OS X. 
+The release of Mac OS X used was Mac OS X v 10.1.3.  The instructions assume that you are starting with a freshly
+installed Mac OS system, and all supporting packages required are listed and referenced.  You may already have some
+of these packages installed on your system.  If so, you may be able to skip some or all of the first six steps.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 1.  Download and install the developer tools for Mac OS X 10.1 and the developer tools December 2001 update
+from connect.apple.com.  These packages are self installing.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 2.  Download and install the XonX XFree86 package from www.sourceforge.org.  This package is self installing. 
+This package allows you to run Xwindows in rootless mode on your system, and supports X extensions required by
+FreeWRL. </SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 3. Download and install the ImageMagick package from www.entropy.ch/software/macosx/.  The package available
+from this location is self-installing and requires no tweaking to install on Darwin.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 4. Download and install the libjpeg package from www.freshmeat.net.  This package looks for a man directory as
+specified in the Makefile.  Edit the makefile to point to a valid directory on your system before running make.   Change
+into the directory and </SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">./configure</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 5. Download and install the zlib and libpng packages from www.sourceforge.org.  Rename the source directories to
+simply "zlib" and "libpng" and make sure that they are in the same subdirectory.  Install the zlib package first, then the
+libpng package.  Change into the zlib directory and</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">./configure</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Then change into the libpng directory and</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">cp scripts/makefile.macosx makefile</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 6. Download and install Freetype2 from freetype.sourceforge.org.  You will need to move
+/usr/local/include/freetype2/freetype to /usr/local/include/freetype after installation.  Change into the freetype directory
+and</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">./configure</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">cp -r /usr/local/include/freetype2/freetype /usr/local/include/freetype</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">rm -r /usr/local/include/freetype2/freetype</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 7.  The version of dyld shipped with Darwin causes some problems with multiply defined symbols.  You must
+download a new version of dyld from www.lehigh.edu/~sol0/Macintosh/X/ptk/dyld-tk/.  COPY your old /usr/lib/dyld to
+/usr/lib/dyld.back and place the downloaded dyld into /usr/lib.  Make sure that the permissions for the new dyld file are
+set correctly (chmod 555 dyld will ensure that these are correct).  You will need to set the environment variable
+DYLD_ALLOW_MULTISYMS in xwindows before running freeWRL.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">**** CAUTION *****</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Do not at any time make any changes such as there is no dyld in /usr/lib.  You must use </SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">cp /usr/lib/dyld /usr/lib/dyld.bak</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">*not* the move command.  Then you may copy over the old dyld with the new copy.  Your MacOSx system needs a
+copy of dyld in /usr/lib at *all* times.  </SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">******</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 8. Install the perl modules available from the www.crc.ca/FreeWRL website.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Digest-MD5-2.09</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">HTML-Parser-2.25</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">MIME-Base64-2.11</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">URI-1.04</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">libnet-1.0607</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">libwww-perl-5.47</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">Image-Base-1.07</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">To install each of these modules, untar them, go into their directories, and</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">perl Makefile.PL</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make test (if applicable)</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Note that libwww-perl may ask you if you want to reconfigure.  I always just select the default.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 9.  Download the FreeWRL source code.  Now to the actual installation of FreeWRL!</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 10.  Rename the file vrml.conf.macosx to vrml.conf.  Check that the directories for the libaries in this file are
+correct.  If you followed the instructions above, they should be, with the exception of the JPEG libraries and includes
+which will have to point to the directory in which you installed the jpeg-6b package.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 11.  A couple of the FreeWRL filenames seem to be too long for the Mac system to pick up properly for some
+reason.  You should rename them so that they have the appropriate names.</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">mv  java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.c
+java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.class</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">mv java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.j</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.java</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 12.  Build the javascript libary.  </SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">cd JS/js</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 13.  Make the Makefile</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">perl Makefile.PL</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 14. run ranlib on /usr/local/lib/libpng.a</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">ranlib /usr/local/lib/libpng.a</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">Step 15. Build and install FreeWRL</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+
+<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<P><SPAN STYLE="font-family: Helvetica">You should now be able to successfully run all of the tests in the tests directory from an X command prompt. 
+Remember to set the environment variable DYLD_ALLOW_MULTISYMS to TRUE before running FreeWRL.</SPAN></P>
+
+<BR WP="BR1"><BR WP="BR2">
+<BR WP="BR1"><BR WP="BR2">
+</BODY>
+</HTML>
