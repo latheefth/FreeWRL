@@ -1,0 +1,46 @@
+Summary: A vrml viewer
+Name: freewrl
+Version: 1.06 
+Release: 1
+Copyright: GPL
+Group: Applications/Multimedia
+Source0: FreeWRL-1.06.tar.gz
+Provides: perl(VRML::Config), perl(VRMLFields), perl(VRMLNodes), perl(VRMLRend), perl(VRML::VRMLCU), perl(VRML::VRMLFields), perl(VRML::VRMLNodes),perl(VRML::Events)
+
+%define __check_files %{nil}
+
+%description
+FreeWRL is an Open Source, cross platform VRML2 compliant browser, with script and EAI support. The primary
+platform is Linux; used by FreeWRL users. A Windows port is not yet started, but will eventually happen. Free
+
+%prep
+%setup -q
+
+%build
+perl Makefile.PL
+make 
+
+%install
+make install
+
+%post
+/sbin/ldconfig
+
+%clean
+
+%files
+%defattr(-,root,root)
+
+/usr/bin/freewrl
+/usr/bin/FreeWRL_SoundServer
+/usr/bin/fw2init.pl
+/usr/lib/libFreeWRLFunc.so
+/usr/lib/libjs.so
+/usr/share/man/man1/freewrl.1
+/usr/share/man/man3/VRML::Browser.3pm
+/usr/lib/perl5/5.8.1/VRML
+/usr/lib/perl5/site_perl/5.8.1/i386-linux-thread-multi/VRML
+/usr/lib/perl5/site_perl/5.8.1/i386-linux-thread-multi/auto
+/usr/lib/mozilla-1.4.1/plugins/vrml.jar
+/usr/lib/mozilla-1.4.1/plugins/npfreewrl.so
+
