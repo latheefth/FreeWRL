@@ -32,8 +32,7 @@
 #include "jsVRMLClasses.h" /* VRML field type implementation */
 
 
-/* #define MAX_RUNTIME_BYTES 0x100000UL */
-#define MAX_RUNTIME_BYTES 0xF4240L
+#define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
 JSBool verbose = 0;
@@ -327,6 +326,7 @@ void
 SFImageNativeSet(void *p, SV *sv)
 {
 	SFImageNative *ptr = p;
+	UNUSED(sv);
 
 	ptr->touched = 0;
 }
@@ -555,16 +555,16 @@ CODE:
 
 ## worry about garbage collection here ???
 void
-init(context, global, brow, sv_js)
-	void *context
-	void *global
+init(cx, glob, brow, sv_js)
+	void *cx
+	void *glob
 	void *brow
 	SV *sv_js
 CODE:
 {
-    JSContext *cx;
+    JSContext *_context;
+	JSObject *_globalObj;
 	BrowserNative *br;
-	JSObject *glob;
 
 	if (verbose) {
 		printf("init:\n");
@@ -578,26 +578,26 @@ CODE:
 		printf("\tJS runtime created,\n");
 	}
 	
-	cx = JS_NewContext(runtime, STACK_CHUNK_SIZE);
-	if (!cx) {
+	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
+	if (!_context) {
 		die("JS_NewContext failed");
 	}
-	context = cx;
+	cx = _context;
 	if (verbose) {
-		printf("\tJS context created,\n");
+		printf("\tJS _context created,\n");
 	}
 	
-	glob = JS_NewObject(context, &globalClass, NULL, NULL);
-	if (!glob) {
+	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
+	if (!_globalObj) {
 		die("JS_NewObject failed");
 	}
-	global = glob;
+	glob = _globalObj;
 	if (verbose) {
 		printf("\tJS global object created,\n");
 	}
 
 	/* gets JS standard classes */
-	if (!JS_InitStandardClasses(context, global)) {
+	if (!JS_InitStandardClasses(_context, _globalObj)) {
 		die("JS_InitStandardClasses failed");
 	}
 	if (verbose) {
@@ -610,25 +610,24 @@ CODE:
 		reportWarningsOff();
 	}
 	
-	JS_SetErrorReporter(context, errorReporter);
+	JS_SetErrorReporter(_context, errorReporter);
 	if (verbose) {
 		printf("\tJS errror reporter set,\n");
 	}
 
-	br = (BrowserNative *) JS_malloc(context, sizeof(BrowserNative));
+	br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
 	br->sv_js = newSVsv(sv_js); /* new duplicate of sv_js */
 	br->magic = BROWMAGIC; /* needed ??? */
 	brow = br;
 	
-	if (!loadVrmlClasses(cx, glob)) {
-	/* if (!LoadVrmlClasses(context, global)) { */
+	if (!loadVrmlClasses(_context, _globalObj)) {
 		die("loadVrmlClasses failed");
 	}
 	if (verbose) {
 		printf("\tVRML classes loaded,\n");
 	}
 
-	if (!VrmlBrowserInit(cx, glob, br)) {
+	if (!VrmlBrowserInit(_context, _globalObj, br)) {
 		die("VrmlBrowserInit failed");
 	}
 	if (verbose) {
@@ -636,10 +635,11 @@ CODE:
 	}
 }
 OUTPUT:
-context
-global
+cx
+glob
 brow
 sv_js
+
 
 void
 cleanupJS(cx, br)
@@ -648,16 +648,16 @@ cleanupJS(cx, br)
 CODE:
 {
 	BrowserNative *brow = br;
-	JSContext *context = cx;
+	JSContext *_context = cx;
 
 	if (brow) {
 		printf("\tfree browser internals!!!\n");
-		JS_free(context, brow);
+		JS_free(_context, brow);
 		printf("\tbrowser internals freed!!!\n");
 	}
 
-	/* JS_DestroyContext(context); */
-	/* printf("\tJS context destroyed!!!\n"); */
+	/* JS_DestroyContext(_context); */
+	/* printf("\tJS _context destroyed!!!\n"); */
 
 	JS_DestroyRuntime(runtime);
     JS_ShutDown();
@@ -673,32 +673,32 @@ runScript(cx, obj, script, rstr, rnum)
 	SV *rnum
 CODE:
 {
-	jsval rval;
+	JSObject *_obj = obj;
+	JSContext *_context = cx;
 	JSString *strval;
+	jsval rval;
 	jsdouble dval = -1.0;
 	char *strp;
 	size_t len;
-	JSObject *_obj = obj;
-	JSContext *context = cx;
 
 	if (verbose) {
 		printf("runScript: \"%s\", ", script);
 	}
 	len = strlen(script);
-	if (!JS_EvaluateScript(context, _obj, script, len,
+	if (!JS_EvaluateScript(_context, _obj, script, len,
 						   FNAME_STUB, LINENO_STUB, &rval)) {
 		fprintf(stderr, "JS_EvaluateScript failed for \"%s\".\n", script);
 		RETVAL = JS_FALSE;
 		return;
 	}
-	strval = JS_ValueToString(context, rval);
+	strval = JS_ValueToString(_context, rval);
 	strp = JS_GetStringBytes(strval);
 	sv_setpv(rstr, strp);
 	if (verbose) {
 		printf("strp=\"%s\", ", strp);
 	}
 
-	if (!JS_ValueToNumber(context, rval, &dval)) {
+	if (!JS_ValueToNumber(_context, rval, &dval)) {
 		fprintf(stderr, "JS_ValueToNumber failed.\n");
 		RETVAL = JS_FALSE;
 		return;
@@ -707,9 +707,6 @@ CODE:
 		printf("dval=%.4g\n", dval);
 	}
 	sv_setnv(rnum, dval);
-	//cx = context;
-	//obj = _obj;
-
 	RETVAL = JS_TRUE;
 }
 OUTPUT:
@@ -729,34 +726,34 @@ jsSFColorSet(cx, obj, name, sv)
 	SV *sv
 CODE:
 {
-	jsval v;
-	void *privateData;
 	JSContext *_cx;
-	JSObject *_obj, *_o;
+	JSObject *_obj, *_sfcolObj;
+	jsval _val;
+	void *_privPtr;
 
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
 		printf("jsSFColorSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
 	}
-	if (!JS_GetProperty(_cx, _obj, name, &v)) {
+	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFColorSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	if (!JSVAL_IS_OBJECT(v)) {
+	if (!JSVAL_IS_OBJECT(_val)) {
 		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFColorSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	_o = JSVAL_TO_OBJECT(v);
+	_sfcolObj = JSVAL_TO_OBJECT(_val);
 
-	if ((privateData = JS_GetPrivate(_cx, _o)) == NULL) {
+	if ((_privPtr = JS_GetPrivate(_cx, _sfcolObj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in jsSFColorSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	SFColorNativeSet(privateData, sv);
+	SFColorNativeSet(_privPtr, sv);
 	RETVAL = JS_TRUE;
 }
 OUTPUT:
@@ -774,34 +771,34 @@ jsSFImageSet(cx, obj, name, sv)
 	SV *sv
 CODE:
 {
-	jsval v;
-	void *privateData;
 	JSContext *_cx;
-	JSObject *_obj, *_o;
+	JSObject *_obj, *_sfimObj;
+	jsval _val;
+	void *_privPtr;
 
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
 		printf("jsSFImageSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
 	}
-	if (!JS_GetProperty(_cx, _obj, name, &v)) {
+	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFImageSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	if (!JSVAL_IS_OBJECT(v)) {
+	if (!JSVAL_IS_OBJECT(_val)) {
 		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFImageSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	_o = JSVAL_TO_OBJECT(v);
+	_sfimObj = JSVAL_TO_OBJECT(_val);
 
-	if ((privateData = JS_GetPrivate(_cx, _o)) == NULL) {
+	if ((_privPtr = JS_GetPrivate(_cx, _sfimObj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in jsSFColorSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	SFImageNativeSet(privateData, sv);
+	SFImageNativeSet(_privPtr, sv);
 	RETVAL = JS_TRUE;
 }
 OUTPUT:
@@ -819,34 +816,34 @@ jsSFVec2fSet(cx, obj, name, sv)
 	SV *sv
 CODE:
 {
-	jsval v;
-	void *privateData;
 	JSContext *_cx;
-	JSObject *_obj, *_o;
+	JSObject *_obj, *_sfvec2fObj;
+	jsval _val;
+	void *_privPtr;
 
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
 		printf("jsSFVec2fSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
 	}
-	if(!JS_GetProperty(_cx, _obj, name, &v)) {
+	if(!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFVec2fSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	if(!JSVAL_IS_OBJECT(v)) {
+	if(!JSVAL_IS_OBJECT(_val)) {
 		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFVec2fSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	_o = JSVAL_TO_OBJECT(v);
+	_sfvec2fObj = JSVAL_TO_OBJECT(_val);
 
-	if ((privateData = JS_GetPrivate(_cx, _o)) == NULL) {
+	if ((_privPtr = JS_GetPrivate(_cx, _sfvec2fObj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in jsSFVec2fSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	SFVec2fNativeSet(privateData, sv);
+	SFVec2fNativeSet(_privPtr, sv);
 	RETVAL = JS_TRUE;
 }
 OUTPUT:
@@ -864,34 +861,34 @@ jsSFVec3fSet(cx, obj, name, sv)
 	SV *sv
 CODE:
 {
-	jsval v;
-	void *privateData;
 	JSContext *_cx;
-	JSObject *_obj, *_o;
+	JSObject *_obj, *_sfvec3fObj;
+	jsval _val;
+	void *_privPtr;
 
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
 		printf("jsSFVec3fSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
 	}
-	if(!JS_GetProperty(_cx, _obj, name, &v)) {
+	if(!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFVec3fSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	if(!JSVAL_IS_OBJECT(v)) {
+	if(!JSVAL_IS_OBJECT(_val)) {
 		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFVec3fSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	_o = JSVAL_TO_OBJECT(v);
+	_sfvec3fObj = JSVAL_TO_OBJECT(_val);
 
-	if ((privateData = JS_GetPrivate(_cx, _o)) == NULL) {
+	if ((_privPtr = JS_GetPrivate(_cx, _sfvec3fObj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in jsSFVec3fSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	SFVec3fNativeSet(privateData, sv);
+	SFVec3fNativeSet(_privPtr, sv);
 	RETVAL = JS_TRUE;
 }
 OUTPUT:
@@ -909,34 +906,34 @@ jsSFRotationSet(cx, obj, name, sv)
 	SV *sv
 CODE:
 {
-	jsval v;
-	void *privateData;
 	JSContext *_cx;
-	JSObject *_obj, *_o;
+	JSObject *_obj, *_sfrotObj;
+	jsval _val;
+	void *_privPtr;
 
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
 		printf("jsSFRotationSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
 	}
-	if (!JS_GetProperty(_cx, _obj, name, &v)) {
+	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFRotationSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	if (!JSVAL_IS_OBJECT(v)) {
+	if (!JSVAL_IS_OBJECT(_val)) {
 		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFRotationSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	_o = JSVAL_TO_OBJECT(v);
+	_sfrotObj = JSVAL_TO_OBJECT(_val);
 
-	if ((privateData = JS_GetPrivate(_cx, _o)) == NULL) {
+	if ((_privPtr = JS_GetPrivate(_cx, _sfrotObj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in jsSFRotationSet.\n");
 		RETVAL = JS_FALSE;
 		return;
 	}
-	SFRotationNativeSet(privateData, sv);
+	SFRotationNativeSet(_privPtr, sv);
 	RETVAL = JS_TRUE;
 }
 OUTPUT:
@@ -947,38 +944,47 @@ sv
 
 
 JSBool
-addAssignProperty(cx, glob, name, str)
+addSFNodeProperty(cx, glob, nodeName, name, str)
 	void *cx
 	void *glob
+	char *nodeName
 	char *name
 	char *str
 CODE:
 {
-	JSContext *context;
-	JSObject *globalObj;
-	jsval _rval = INT_TO_JSVAL(0);
+	JSContext *_context;
+	JSObject *_globalObj, *_obj;
+	jsval _val, _rval = INT_TO_JSVAL(0);
 
-	context = cx;
-	globalObj = glob;
+	_context = cx;
+	_globalObj = glob;
 
 	if (verbose) {
-		printf("addAssignProperty: name = \"%s\", evaluate script = \"%s\"\n",
-			   name, str);
+		printf("addSFNodeProperty: name=\"%s\", node name=\"%s\", script = \"%s\"\n",
+			   name, nodeName, str);
 	}
-	if (!JS_EvaluateScript(context, globalObj, str, strlen(str),
+	if (!JS_GetProperty(_context, _globalObj, nodeName, &_val)) {
+		fprintf(stderr,
+				"JS_GetProperty failed for \"%s\" in addSFNodeProperty.\n",
+				nodeName);
+		RETVAL = JS_FALSE;
+		return;
+	}
+	_obj = JSVAL_TO_OBJECT(_val);
+
+	if (!JS_EvaluateScript(_context, _obj, str, strlen(str),
 						   FNAME_STUB, LINENO_STUB, &_rval)) {
 		fprintf(stderr,
-				"JS_EvaluateScript failed for \"%s\" in addAssignProperty.\n",
+				"JS_EvaluateScript failed for \"%s\" in addSFNodeProperty.\n",
 				str);
 		RETVAL = JS_FALSE;
 		return;
 	}
-	if (!JS_DefineProperty(context, globalObj,
-						   name, _rval, getAssignProperty, setAssignProperty,
-						   /* name, _rval, JS_PropertyStub, setAssignProperty, */
+	if (!JS_DefineProperty(_context, _obj, name, _rval,
+						   NULL, NULL,
 						   0 | JSPROP_PERMANENT)) {
 		fprintf(stderr,
-				"JS_DefineProperty failed for \"%s\" in addAssignProperty.\n",
+				"JS_DefineProperty failed for \"%s\" in addSFNodeProperty.\n",
 				name);
 		RETVAL = JS_FALSE;
 		return;
@@ -992,32 +998,72 @@ glob
 
 
 JSBool
-addECMANativeProperty(cx, glob, name)
+addGlobalAssignProperty(cx, glob, name, str)
+	void *cx
+	void *glob
+	char *name
+	char *str
+CODE:
+{
+	JSContext *_context;
+	JSObject *_globalObj;
+	jsval _rval = INT_TO_JSVAL(0);
+
+	_context = cx;
+	_globalObj = glob;
+
+	if (verbose) {
+		printf("addGlobalAssignProperty: name = \"%s\", evaluate script = \"%s\"\n",
+			   name, str);
+	}
+	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
+						   FNAME_STUB, LINENO_STUB, &_rval)) {
+		fprintf(stderr,
+				"JS_EvaluateScript failed for \"%s\" in addGlobalAssignProperty.\n",
+				str);
+		RETVAL = JS_FALSE;
+		return;
+	}
+	if (!JS_DefineProperty(_context, _globalObj, name, _rval,
+						   getAssignProperty, setAssignProperty,
+						   0 | JSPROP_PERMANENT)) {
+		fprintf(stderr,
+				"JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n",
+				name);
+		RETVAL = JS_FALSE;
+		return;
+	}
+	RETVAL = JS_TRUE;
+}
+OUTPUT:
+RETVAL
+cx
+glob
+
+
+JSBool
+addGlobalECMANativeProperty(cx, glob, name)
 	void *cx
 	void *glob
 	char *name
 CODE:
 {
-	JSContext *context;
-	JSObject *globalObj;
+	JSContext *_context;
+	JSObject *_globalObj;
 	char buffer[STRING];
-	jsval v, rval = INT_TO_JSVAL(0);
+	jsval _val, rval = INT_TO_JSVAL(0);
 
-	context = cx;
-	globalObj = glob;
+	_context = cx;
+	_globalObj = glob;
 	if (verbose) {
-		printf("addECMANativeProperty: name = \"%s\"\n", name);
+		printf("addGlobalECMANativeProperty: name = \"%s\"\n", name);
 	}
 
-	if (!JS_DefineProperty(context,
-						   globalObj,
-						   name,
-						   rval,
-						   NULL,
-						   setECMANative,
+	if (!JS_DefineProperty(_context, _globalObj, name, rval,
+						   NULL, setECMANative,
 						   0 | JSPROP_PERMANENT)) {
 		fprintf(stderr,
-				"JS_DefineProperty failed for \"%s\" in addECMANativeProperty.\n",
+				"JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
 				name);
 		RETVAL = JS_FALSE;
 		return;
@@ -1025,10 +1071,10 @@ CODE:
 
 	memset(buffer, 0, STRING);
 	sprintf(buffer, "_%s_touched", name);
-	v = INT_TO_JSVAL(1);
-	if (!JS_SetProperty(context, globalObj, buffer, &v)) {
+	_val = INT_TO_JSVAL(1);
+	if (!JS_SetProperty(_context, _globalObj, buffer, &_val)) {
 		fprintf(stderr,
-				"JS_SetProperty failed for \"%s\" in addECMANativeProperty.\n",
+				"JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
 				buffer);
 		RETVAL = JS_FALSE;
 		return;

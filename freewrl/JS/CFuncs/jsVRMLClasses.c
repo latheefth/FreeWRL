@@ -401,7 +401,8 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 	UNUSED(vp);
 	
 	if (verbose) {
-		printf("setECMANative: id = \"%s\"\n", n);
+		printf("setECMANative: obj = %u, id = \"%s\"\n",
+			   (unsigned int) obj, n);
 	}
 
 	memset(buffer, 0, STRING);
@@ -470,6 +471,13 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			fprintf(stderr,
 					"JS_CallFunctionName failed in setAssignProperty.\n");
 			return JS_FALSE;
+		}
+	} else {
+		if (verbose) {
+			_str = JS_ValueToString(cx, id);
+			_id_c = JS_GetStringBytes(_str);
+			printf("setAssignProperty: obj = %u, id = \"%s\"\n",
+				   (unsigned int) obj, _id_c);
 		}
 	}
 
@@ -942,6 +950,11 @@ SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	SFVec2fNative *ptr;
 	jsdouble d, *dp;
+
+	if (verbose) {
+		printf("SFVec2fGetProperty: obj = %u, id = %d\n",
+			   (unsigned int) obj, JSVAL_TO_INT(id));
+	}
 
 	if ((ptr = JS_GetPrivate(cx,obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in SFVec2fGetProperty.\n");
@@ -1529,7 +1542,7 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	jsdouble d, *dp;
 
 	if (verbose) {
-		printf("SFVec3fSetProperty: obj = %u, id = %d\n",
+		printf("SFVec3fGetProperty: obj = %u, id = %d\n",
 			   (unsigned int) obj, JSVAL_TO_INT(id));
 	}
 
@@ -2675,7 +2688,6 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	float v1len, v2len;
 	double v12dp;
 	struct pt v1, v2;
-/* 	JSFunction *_f; */
 
 	if ((ptr = SFRotationNativeNew()) == NULL) {
 		fprintf(stderr, "SFRotationNativeNew failed in SFRotationConstr.\n");
@@ -2964,7 +2976,7 @@ SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
         return JS_FALSE;
 	}
 	if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
-		fprintf(stderr, "JS_GetGlobalObject failed in SFNodeSetProperty.\n");
+		fprintf(stderr, "JS_GetGlobalObject failed in SFNodeAssign.\n");
 		return JS_FALSE;
 	}
 	if (!getBrowser(cx, globalObj, &brow)) {
@@ -2982,6 +2994,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	SFNodeNative *ptr;
 	JSString *_str;
+	char *_id_c;
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in SFNodeGetProperty.\n");
@@ -2998,6 +3011,13 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			_str = JS_NewStringCopyZ(cx, ptr->handle);
 			*vp = STRING_TO_JSVAL(_str);
 			break; 
+		}
+	} else {
+		if (verbose) {
+			_str = JS_ValueToString(cx, id);
+			_id_c = JS_GetStringBytes(_str);
+			printf("SFNodeGetProperty: obj = %u, id = \"%s\"\n",
+				   (unsigned int) obj, _id_c);
 		}
 	}
 	return JS_TRUE;
@@ -3017,9 +3037,12 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	_idStr = JS_ValueToString(cx, id);
 	_id_c = JS_GetStringBytes(_idStr);
 
+	_valStr = JS_ValueToString(cx, *vp);
+	_val_c = JS_GetStringBytes(_valStr);
+
 	if (verbose) {
-		printf("SFNodeSetProperty: obj = %u, id = \"%s\"\n",
-			   (unsigned int) obj, _id_c);
+		printf("SFNodeSetProperty: obj = %u, id = \"%s\", vp = %s\n",
+			   (unsigned int) obj, _id_c, _val_c);
 	}
 
 	if (JSVAL_IS_INT(id)) {
@@ -3028,8 +3051,6 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 		ptr->touched++;
-		_valStr = JS_ValueToString(cx, *vp);
-		_val_c = JS_GetStringBytes(_valStr);
 		val_len = strlen(_val_c) + 1;
 
 		switch (JSVAL_TO_INT(id)) {
@@ -4687,7 +4708,7 @@ MFNodeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	char *_c;
 	int32 _index;
 
-	if (JSVAL_IS_INT(id)) {
+	if (JSVAL_IS_INT(id) && verbose) {
 		_index = JSVAL_TO_INT(id);
 		if (JSVAL_IS_OBJECT(*vp)) {
 			if (!JS_ValueToObject(cx, *vp, &_obj)) {
@@ -4702,10 +4723,8 @@ MFNodeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			}
 			_str = JSVAL_TO_STRING(_val);
 			_c = JS_GetStringBytes(_str);
-			if (verbose) {
-				printf("MFNodeAddProperty: obj = %u, id = %d, handle = \"%s\"\n",
-					   (unsigned int) obj, _index, _c);
-			}
+			printf("MFNodeAddProperty: obj = %u, id = %d, handle = \"%s\"\n",
+				   (unsigned int) obj, _index, _c);
 		}
 	} else {
 		if (verbose) {
@@ -4754,6 +4773,7 @@ MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 				return JS_FALSE;
 			}
 			*vp = OBJECT_TO_JSVAL(_obj);
+
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp,
 								  JS_PropertyStub, JS_PropertyStub,
 								  JSPROP_ENUMERATE)) {
@@ -4771,7 +4791,7 @@ MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 				fprintf(stderr,
 						"MFNodeGetProperty: obj = %u, jsval = %d does not exist!\n",
 					   (unsigned int) obj, (int) _index);
-				return JS_FALSE;
+				*vp = INT_TO_JSVAL(0);
 			}
 		}
 	} else {

@@ -90,69 +90,150 @@ sub new {
 			$_ eq "directOutput" or
 			$_ eq "mustEvaluate";
 
-		$type = $nt->{FieldTypes}{$_};
-		$ftype = "VRML::Field::$type";
-
-		print "\t\tJS field $_, type=$type, field kind=", $nt->{FieldKinds}{$_}, "\n"
-			if $VRML::verbose::js;
-
-		if ($nt->{FieldKinds}{$_} eq "eventOut") {
-			if ($type =~ /$ECMAScriptNative/) {
-				if (!addECMANativeProperty($this->{JSContext},
-										   $this->{JSGlobal}, $_)) {
-					$this->cleanupDie("addECMANativeProperty failed in VRML::JS::new");
-				}
-			} else {
-				if ($type =~ /SFNode/) {
-					$value = $node->{RFields}{$_};
-					$constr = $this->constrString($type, $value);
-				} else {
-					$constr = $this->constrString($type, 0);
-				}
-				if (!addAssignProperty($this->{JSContext}, $this->{JSGlobal}, $_, $constr)) {
-					$this->cleanupDie("addAssignProperty failed in VRML::JS::new");
-				}
-			}
-		} elsif ($nt->{FieldKinds}{$_} eq "eventIn") {
-			if ($type !~ /$ECMAScriptNative/) {
-				$constr = $this->constrString($type, 0);
-				if (!addAssignProperty($this->{JSContext}, $this->{JSGlobal},
-									   "__tmp_arg_$_", $constr)) {
-					$this->cleanupDie("addAssignProperty failed in VRML::JS::new");
-				}
-			}
-		} elsif ($nt->{FieldKinds}{$_} eq "field") {
-				$value = $node->{RFields}{$_};
-				print "\t\t\tJS field property $_, value=",
-					(ref $value eq "ARRAY" ?
-					 "(".join(', ', @{$value}).")" : "$value"), "\n"
-						 if $VRML::verbose::js;
-
-				if ($type =~ /$ECMAScriptNative/) {
-					if (!addECMANativeProperty($this->{JSContext},
-											   $this->{JSGlobal}, $_)) {
-						$this->cleanupDie("addECMANativeProperty failed in VRML::JS::new");
-					}
-					if (!runScript($this->{JSContext}, $this->{JSGlobal},
-								   "$_=".$ftype->as_string($value, 1), $rs, $v)) {
-						$this->cleanupDie("runScript failed in VRML::JS::new");
-					}
-				} else {
-					$constr = $this->constrString($type, $value);
-					if (!addAssignProperty($this->{JSContext}, $this->{JSGlobal},
-										   $_, $constr)) {
-						$this->cleanupDie("addAssignProperty failed in VRML::JS::new");
-					}
-				}
-			} else {
-			warn("Invalid field type '$_' for $node->{TypeName}");
-		}
+		$this->initScriptFields($node, $_);
 	}
 	# Ignore all events we may have sent while building
 	$this->gatherSentEvents(1);
 
-
 	return $this;
+}
+
+sub initScriptFields {
+	my ($this, $node, $field) = @_;
+	my $nt = $node->{Type};
+	my $type = $nt->{FieldTypes}{$field};
+	my $ftype = "VRML::Field::$type";
+	my $fkind = $nt->{FieldKinds}{$field};
+	my ($rstr, $v);
+
+	print "VRML::JS::initScriptFields: field $field, type=$type, field kind=",
+		$nt->{FieldKinds}{$field}, "\n"
+		if $VRML::verbose::js;
+
+	if ($fkind eq "eventIn") {
+		if ($type !~ /$ECMAScriptNative/) {
+			$constr = $this->constrString($type, 0);
+			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
+								   "__tmp_arg_$field", $constr)) {
+				$this->cleanupDie("addGlobalAssignProperty failed in VRML::JS::new");
+			}
+		}
+	} elsif ($fkind eq "eventOut") {
+		if ($type =~ /$ECMAScriptNative/) {
+			if (!addGlobalECMANativeProperty($this->{JSContext}, $this->{JSGlobal},
+											 $field)) {
+				$this->cleanupDie("addGlobalECMANativeProperty failed in VRML::JS::new");
+			}
+		} else {
+			if ($type eq "SFNode") {
+				$value = $node->{RFields}{$field};
+				print "\tJS field property $field, value=",
+					(ref $value eq "ARRAY" ?
+					 "(".join(', ', @{$value}).")" : "$value"), "\n"
+				 if $VRML::verbose::js;
+				$constr = $this->constrString($type, $value);
+				$this->initSFNodeFields($field, $value);
+			} else {
+				$constr = $this->constrString($type, 0);
+			}
+			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
+								   $field, $constr)) {
+				$this->cleanupDie("addGlobalAssignProperty failed in VRML::JS::new");
+			}
+		}
+	} elsif ($fkind eq "field") {
+		$value = $node->{RFields}{$field};
+		print "\tJS field property $field, value=",
+			(ref $value eq "ARRAY" ?
+			 "(".join(', ', @{$value}).")" : "$value"), "\n"
+				 if $VRML::verbose::js;
+
+		if ($type =~ /$ECMAScriptNative/) {
+			if (!addGlobalECMANativeProperty($this->{JSContext}, $this->{JSGlobal},
+											 $field)) {
+				$this->cleanupDie("addGlobalECMANativeProperty failed in VRML::JS::new");
+			}
+			if (!runScript($this->{JSContext}, $this->{JSGlobal},
+						   "$field=".$ftype->as_string($value, 1), $rstr, $v)) {
+				$this->cleanupDie("runScript failed in VRML::JS::new");
+			}
+		} else {
+			$constr = $this->constrString($type, $value);
+			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
+								   $field, $constr)) {
+				$this->cleanupDie("addGlobalAssignProperty failed in VRML::JS::new");
+			}
+			if ($type eq "SFNode") {
+				$this->initSFNodeFields($field, $value);
+			}
+		}
+	} else {
+		warn("Invalid field $fkind $field for $node->{TypeName}");
+	}
+}
+
+sub initSFNodeFields {
+	my ($this, $nodeName, $node) = @_;
+	my $nt = $node->{Type};
+	my $ntn = $node->{TypeName};
+	my ($constr, $fkind, $ftype, $type, $value, $rstr, $v);
+	my @fields = keys %{$node->{Fields}};
+
+	print "VRML::JS::initSFNodeFields: $nodeName, $ntn, [",
+		join(", ",
+			 map("$nt->{FieldTypes}{$_} $_", @fields)
+			), "]\n"
+				if $VRML::verbose::js;
+
+	for (@fields) {
+		$fkind = $nt->{FieldKinds}{$_};
+		$type = $nt->{FieldTypes}{$_};
+		$ftype = "VRML::Field::$type";
+
+		if ($fkind eq "eventIn") { ## correct???
+			if ($type !~ /$ECMAScriptNative/) {
+				$constr = $this->constrString($type, 0);
+				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
+									   $nodeName, $_, $constr)) {
+					$this->cleanupDie("addSFNodeProperty failed in VRML::JS::new");
+				}
+			}
+		} elsif ($fkind eq "eventOut") {
+			if ($type !~ /$ECMAScriptNative/) {
+				if ($type eq "SFNode") {
+					$value = $node->{RFields}{$_};
+					print "\tJS field property $_, value=",
+						(ref $value eq "ARRAY" ?
+						 "(".join(', ', @{$value}).")" : "$value"), "\n"
+							 if $VRML::verbose::js;
+
+					$constr = $this->constrString($type, $value);
+				} else {
+					$constr = $this->constrString($type, 0);
+				}
+				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
+									   $nodeName, $_, $constr)) {
+					$this->cleanupDie("addSFNodeProperty failed in VRML::JS::new");
+				}
+			}
+		} elsif ($fkind =~ /^(?:exposed)??[Ff]ield$/) {
+			$value = $node->{RFields}{$_};
+			print "\tJS field property $_, value=",
+				(ref $value eq "ARRAY" ?
+				 "(".join(', ', @{$value}).")" : "$value"), "\n"
+					 if $VRML::verbose::js;
+
+			if ($type !~ /$ECMAScriptNative/) {
+				$constr = $this->constrString($type, $value);
+				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
+									   $nodeName, $_, $constr)) {
+					$this->cleanupDie("addSFNodeProperty failed in VRML::JS::new");
+				}
+			}
+		} else {
+			warn("Invalid field $fkind $_ for $ntn");
+		}
+	}
 }
 
 sub constrString {
@@ -508,9 +589,12 @@ sub jspSFNodeSetProperty {
 	$val = $this->getProperty($vt, $prop);
 
 	print "VRML::JS::jspSFNodeSetProperty: setting $actualField, $val",
-		(ref $val eq "ARRAY" ? "=[".join(", ", @{$val})."] " : " "),
-			"for $prop of $handle\n"
+		(ref $val eq "ARRAY" ?
+		 "=[".join(", ", map(VRML::NodeIntern::dump_name($_), @{$val}))."] " :
+		 " "),
+			 "for $prop of $handle\n"
 		if $VRML::verbose::js;
+
 	$node->{RFields}{$actualField} = $val;
 
 	if ($actualField eq "removeChildren") {

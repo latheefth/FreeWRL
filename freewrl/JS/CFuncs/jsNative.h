@@ -74,16 +74,22 @@ doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...);
  * type.
  */
 extern JSBool
-addECMANativeProperty(void *cx,
-					  void *glob,
-					  char *name);
+addGlobalECMANativeProperty(void *cx,
+							void *glob,
+							char *name);
 
 extern JSBool
-addAssignProperty(void *cx,
+addGlobalAssignProperty(void *cx,
+						void *glob,
+						char *name,
+						char *str);
+
+extern JSBool
+addSFNodeProperty(void *cx,
 				  void *glob,
+				  char *nodeName,
 				  char *name,
 				  char *str);
-
 
 extern void *
 SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len);
