@@ -693,7 +693,7 @@ FontStyle => new VRML::NodeType("FontStyle",
 	 leftToRight => [SFBool, 1],
 	 size => [SFFloat, 1.0],
 	 spacing => [SFFloat, 1.0],
-	 style => [SFString, ["PLAIN"]],
+	 style => [SFString, "PLAIN"],
 	 topToBottom => [SFBool, 1],
 	}
 ),
