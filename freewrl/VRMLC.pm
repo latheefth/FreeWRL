@@ -26,9 +26,12 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.53  2002/06/17 12:27:41  crc_canada
+# Material node properties
+#
 # Revision 1.52  2002/06/05 18:57:16  crc_canada
 # Function Prototypes moved to CFuncs/headers.h
-#
+# 
 # Revision 1.51  2002/05/30 21:18:04  ncoder
 # Fixed bug with the order of the multiplication of the transformations while rendering the viewpoint.
 # Increased performance of viewpoint rendering code.
@@ -994,7 +997,13 @@ int nextlight() {
 	return lightcode[curlight++];
 }
 
+
+/* for display list regeneration, we need to keep track of this*/
 struct VRML_Shape *last_visited_shape = 0;
+
+/* material node usage depends on texture depth; if rgb (depth1) we blend color field
+   and diffusecolor with texture, else, we dont bother with material colors */
+int last_texture_depth = 0;
 
 int verbose;
 
