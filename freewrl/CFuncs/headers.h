@@ -222,3 +222,6 @@ void do_SphereSensor (struct VRML_SphereSensor *px, char *typ, double time, int 
 void do_CylinderSensor (struct VRML_CylinderSensor *px, char *typ, double time, int over);
 void do_PlaneSensor (struct VRML_PlaneSensor *px, char *typ, double time, int over);
 
+
+/* bindable nodes */
+extern GLint viewport[];
