@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.56  2002/05/08 18:15:07  crc_canada
+# Text nodes without a FontStyle were not rendered correctly. Fixed.
+#
 # Revision 1.55  2002/05/06 16:44:20  crc_canada
 # initial MovieTexture work
 #
@@ -767,7 +770,7 @@ FontStyle => '',
 Text => '
 	void (*f)(int n, SV **p,int nl, float *l, float maxext, float spacing, float size, unsigned int fsparams);
         float spacing = 1.0;
-        float size = 0;
+        float size = 1.0;
 	unsigned int fsparams = 0;
 
 	/* for shape display list redrawing */
@@ -875,7 +878,11 @@ Text => '
 			else if (!strcmp(stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
 			else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
 		}
+	} else {
+		/* send in defaults */
+		fsparams = 0x2427;
 	}
+
 	if(f) {
 		f($f_n(string),$f(string),$f_n(length),$f(length),
 			$f(maxExtent),spacing,size,fsparams);
