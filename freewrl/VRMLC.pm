@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.37  2001/07/18 14:09:29  crc_canada
+# IFS tecCoordIndex with selected coordinates from within a large Coordinate node
+# verified to work.
+#
 # Revision 1.36  2001/07/17 19:09:17  crc_canada
 # render_polyrep to generate default tex coords with IFS a little bit better.
 #
@@ -958,12 +962,11 @@ IndexedFaceSet => '
 
 
                                         if(tcin && ntexCoords) {
-						/* printf("tcin && ntexCoords = %d && %d\\n", 								tcin, ntexCoords);  */
+						/* printf("tcin && ntexCoords = %d && %d\\n",tcin, ntexCoords);  */
                                                 tcindex[triind*3+0] = inittcind;
                                                 tcindex[triind*3+1] = lasttcind;
                                                 tcindex[triind*3+2] = $f(texCoordIndex,i);
-						/* printf ("tcoords are %d %d %d\n",inittcind, 
-							lasttcind, $f(texCoordIndex,i)); */
+						/* printf ("tcoords are %d %d %d\n",inittcind, lasttcind, $f(texCoordIndex,i)); */
                                         } else if (!tcin && ntexCoords) {
 						/* printf("! tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords);  */
                                                 /* Use coord index */
@@ -972,7 +975,11 @@ IndexedFaceSet => '
                                                 tcindex[triind*3+2] = cindex[triind*3+2];
                                         }
 					lastind = $f(coordIndex,i);
-					lasttcind = $f(coordIndex,i);
+					if(tcin && ntexCoords) {
+						lasttcind =  $f(texCoordIndex,i);
+					} else {	
+						lasttcind = $f(coordIndex,i);
+					}
 					triind++;
 				}
 			}
@@ -1878,7 +1885,7 @@ void render_polyrep(void *node,
 	r = p->_intern;
 
 
-	/*
+	/*	
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 			p->_change, r->_change, r->ntri);
 	printf ("\tnpoints %d ncolors %d nnormals %d\n",
@@ -1886,6 +1893,7 @@ void render_polyrep(void *node,
 	printf("\tntexcoords = %d    texcoords = 0x%lx\n",
 			ntexcoords, texcoords);
 	*/
+	
 
 	/* do we need to generate default texture mapping? */
 	if (glIsEnabled(GL_TEXTURE_2D) && (ntexcoords == 0) && (!r->tcoord)) {
@@ -1959,7 +1967,7 @@ void render_polyrep(void *node,
 		GLfloat color[4];
 		GLfloat a,b,c = 0.0;
 
-		/* printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3);  */
+		/*  printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); */
 
 		/* get normals and colors, if any	*/
 		if(r->norindex) {nori = r->norindex[i];}
@@ -1971,7 +1979,7 @@ void render_polyrep(void *node,
 
 		/* get texture coordinates, if any	*/
 		if (glIsEnabled(GL_TEXTURE_2D)) {
-		if((r->tcindex) && (ntexcoords)) {tci = r->tcindex[i];}
+		if((r->tcindex) && (ntexcoords)) {tci = r->tcindex[i]; }
 		}
 
 		/* get the normals, if there are any	*/
@@ -2012,13 +2020,17 @@ void render_polyrep(void *node,
 		/* Textures	*/
 		if (glIsEnabled(GL_TEXTURE_2D)) {
 		    if(texcoords && ntexcoords) {
+			/* printf ("tc1 %f %f\n",texcoords[tci].c[0],texcoords[tci].c[1]); */
 		  	glTexCoord2fv(texcoords[tci].c);
 		    } else if (r->tcoord) {
+			/* printf ("tc2 %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]); */
 		  	glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 		    } else {
 			/* default textures */
 			/* we want the S values to range from 0..1, and the 
 			   T values to range from 0...S/T */
+		  	/* printf ("tc3, %f %f\n", (XYZ[Sindex] - minVals[Sindex])/Ssize,
+                                        (XYZ[Tindex] - minVals[Tindex])/Ssize); */
 			glTexCoord2f( (XYZ[Sindex] - minVals[Sindex])/Ssize,
 					(XYZ[Tindex] - minVals[Tindex])/Ssize);
 		    }
