@@ -209,6 +209,7 @@ void do_possible_multitexture(int texno) {
 		/* this is the size of each image frame */
 		imageDatasize = sizeof (GLbyte) * loadparams[texno].x *
                                 loadparams[texno].y * loadparams[texno].depth;
+printf ("ids is %d %d %d\n",loadparams[texno].x,loadparams[texno].y,loadparams[texno].depth);
 
 		/* and, get a pointer to the whole, unsquished, image data */
 		imageptr = loadparams[texno].texdata;
@@ -864,7 +865,7 @@ int j;
 
 	/* store the "generic" data */
 	store_tex_info(currentlyWorkingOn,
-		(int)depth,(int)x,(int)x,ptr,
+		(int)depth,(int)x,(int)y,ptr,
 		((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP,
 		((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_NEAREST);
