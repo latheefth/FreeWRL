@@ -143,8 +143,9 @@ For translation in the x-y plane press mouse button 3 and drag.
 
 =head2 Fly - keyboard mode
 
-This mode is fun if you have ever played the game Descent
-using the keyboard (definitely worth doing ;).
+This mode allows translation/rotations in all planes. There are two
+keymappings: those from the game Descent, and a mapping using the
+keypad.
 
 There is currently no mouse control, rather, all motion is controlled
 by 12 keys, two for each of your 6 degrees of freedom (3 translations, 
@@ -154,37 +155,37 @@ The default keymap in this mode is
 
 =over 4
 
-=item '8'/'k' 
+=item '8'/'k' and 'Keypad Down'/'Keypad Up' 
 
 rotation down/up
 
 
 
-=item 'u'/'o' 
+=item 'u'/'o' and 'Keypad Left'/'Keypad Right'
 
 rotation left/right
 
 
 
-=item '7'/'9'
+=item '7'/'9' and 'Keypad 7'/'Keypad 9'
 
 rotation about the Z axis
 
 
 
-=item 'a'/'z' 
+=item 'a'/'z' and 'Keypad 0'/'Keypad .' 
 
 translation forwards/backwards
 
 
 
-=item 'j'/'l'
+=item 'j'/'l' and 'Arrow left'/'Arrow right'
 
 translation left/right
 
 
 
-=item 'p'/';'
+=item 'p'/';' and 'Arrow up'/'Arrow down'
 
 translation up/down
 
@@ -389,7 +390,7 @@ there should be an entry for FreeWRL with Mime Type x-world/x-vrml.
 Project started by Tuomas J. Lukka, continued by John Stewart.
 
 
-Please send bug reports to C<john.stewart@crc.ca>
+Please send bug reports to C<john.stewart --at--  crc.ca>
 including the word "freewrl"
 on the subject line will make sure that I'll notice it. Also,
 see the FreeWRL home page at C<http://www.crc.ca/FreeWRL>.
