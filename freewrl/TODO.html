@@ -12,41 +12,26 @@
 
 <H2>
 
-TODO wishlist for 0.29 release.
+TODO wishlist for 0.30 release.
 </H2>
 This list simply outlines the wishes and status for the next release
 of FreeWRL.
 <P>
-Last Update: July 12, 2001
+Last Update: July 24, 2001
 <P>
 Additions/comments welcome.
 <P>
 <UL>
+<LI><B>Bounds</B> checking on IndexedFaceSet parameters.
+<P>
+<LI><B>Verify memory usage for textures -are we saving them twice?</B>
+<P>
 <LI><B>RPM:</B> from Clayton's web page; Clayton has outline complete.
-<LI><B>DONE:</B> Had to disable addChildren fields for SAI; interfered with add
-Children when using EAI. Figure out how not to get the invalid
-event with both addChildren methods enabled.
 <P>
 <LI><B>ALMOST COMPLETE:</B> Netscape Plugin, to provide better functionality than XSwallow.
 <B>(It works, uses Netscape's cache, but should have better Java integration)</B>
 <P>
-<LI><B>DONE:</B>EAI CreateTest working (needs replaceworld EAI call)
-<P>
-<LI><B>DONE:</B>DEF and USE's for textures.
-<P>
-<LI><B>DONE:</B>Rectangular pictures are not mapped correctly.
-<P>
-<LI><B>DONE:</B>Extrusion endCaps are facing the wrong way! (begincaps are ok)
-<P>
-<LI><B>DONE:</B>Display list and Texture binding works. Was: Does render_polyrep'd nodes use display/texture lists?
-<P>
-<LI><B>DONE:</B>	do_textures smooths textures, but make it NOT smooth pixeltextures. (need another
-parameter) - see t4*wrl in luigi's home directory
-<P>
-<LI><B>DONE: </B>Try GL_CULLing backgrounds and basic shapes. (COSMO on the SGI does this)
-this should double rendering speed for them.
-<P>
-<LI><B>E</B>xtrusion, ElevationGrid, and IndexedFaceSet  default textures not working reliably. (rewrite in progress)
+<LI><B>E</B>xtrusion default textures not working reliably. (rewrite in progress)
 <P>
 <LI><B>ALMOST COMPLETE: I</B>ndexedFaceSets are not using all points correctly. (check out the lightning bolt
 example) (Kiwano.wrl, and ast.wrl)
@@ -56,22 +41,8 @@ example) (Kiwano.wrl, and ast.wrl)
 <LI><B>M</B>ore SAI work.
 	- automatic creation of pipes.
 <P>
-<LI><B>DONE: H-</B>ANIM working.
-	- Nancy "works", but:	
-		1) run mode, arms flail around.
-		2) face is not good. (IFS problem, again)
-		3) buttons don't float properly. (rotation problem,
-		   as in the robotic finger test???)
-		4) what happened to the "stand" button?
-<P>
 <LI><B>Javascript - </B> the "Warbird" code fails on MFInt32. Make sure that all of JS/test.pl
 works with all datatypes.
-<P>
-
-<LI><B>DONE: S</B>ensor nodes - dragging when on a sensor also causes navigation changes.
-<P>
-<LI><B>DONE: C</B>ompile time options for non-Linux systems, and some code changes to help compile on
-other systems. (eg, IRIX changes from Mufti)
 <P>
 <LI><B>Javascript</B>errors when trying to run 
 http://www.lug-s.org/dokumentation/software/vrml/vrmldemo/compressed/warbird.wrz
