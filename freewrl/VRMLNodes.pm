@@ -750,7 +750,8 @@ FontStyle => new VRML::NodeType("FontStyle",
      print("Transform:removeChildren\n");
      print ("node $node, values ",(join " ", @$value),"\n");
      my %toremove = map { $_ => 1 } @{$value};
-     $node->{RFields}{children} = grep { !$toremove{$_} }  @{$node->{Fields}{children}};
+     my @nchild = grep { !$toremove{$_} }  @{$node->{Fields}{children}};
+     $node->{RFields}{children} = \@nchild;
      return ();
  },
 
