@@ -571,7 +571,7 @@ sub set_backend_fields {
 
 {
 
-my %NOT = map {($_=>1)} qw/
+	my %NOT = map {($_=>1)} qw/
 		WorldInfo
 		TimeSensor
 		TouchSensor
@@ -585,77 +585,88 @@ my %NOT = map {($_=>1)} qw/
 		SphereSensor
 		CylinderSensor
 		VisibilitySensor
-/;
-#JAS: Collision
-#JAS: NavigationInfo
+	/;
+	#JAS: Collision
+	#JAS: NavigationInfo
 
 
-#############################################################
-#
-# VRML::NodeIntern::make_backend
-#
-#############################################################
+	#############################################################
+	#
+	# VRML::NodeIntern::make_backend
+	#
+	#############################################################
 
-sub make_backend {
-    my ($this, $be, $parentbe) = @_;
+	sub make_backend {
+		my ($this, $be, $parentbe) = @_;
 
-    print "VRML::NodeIntern::make_backend ",VRML::NodeIntern::dump_name($this),
-	" $this->{TypeName}, $be, $parentbe\n"
-		 if $VRML::verbose::be;
+		print "VRML::NodeIntern::make_backend ", VRML::NodeIntern::dump_name($this),
+			", $this->{TypeName}: ", %{$this}, ",\n\tBackEnd: ", %{$be},
+				",\n\tParent BackEnd: ", %{$parentbe},"\n"
+					if $VRML::verbose::be;
 
-    if (!defined $this->{BackNode}) {
+		if (!defined $this->{BackNode}) {
 
-		if ($this->{TypeName} eq "Inline") {
-			print "NodeInter: Inline initialize ",
-				{$this->{Type}{Actions}{Initialize}}, " RFields ",
-					$this->{RFields},"\n"
-						if $VRML::verbose::be;
-			&{$this->{Type}{Actions}{Initialize}}($this, $this->{RFields},
-				(my $timestamp=XXX), $this->{Scene});
-		}
-
-		if ($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
-			print "NodeInter: makebe NOT - ", $this->{TypeName},"\n"
-				if $VRML::verbose::be;
-			return ();
-		}
-
-		if (defined $this->{IsProto}) {
-			print "NodeIntern: makebe PROTO\n"
-				if $VRML::verbose::be;
-			## does anything else need to be set?
-			$this->{BackNode} = $this->{ProtoExp}->make_backend($be, $parentbe);
-			return $this->{BackNode};
-		}
-
-		my $ben = $be->new_node($this->{TypeName});
-		$this->{BackNode} = $ben;
-		$this->{BackEnd} = $be;
-		$this->set_backend_fields();
-
-		# was this a viewpoint? Was it not in a proto definition?
-		if ($this->{TypeName} eq "Viewpoint") {
-			# print "NodeIntern::register_vp, viewpoint is ", $this->{Fields}{description},"\n";
-			if ($this->{BackEnd}) {
-				my $scene = $this->{Scene};
-				VRML::NodeType::register_vp($scene, $this);
+			if ($this->{TypeName} eq "Inline") {
+				print "\tVRML::NodeIntern::make_backend Inline initialize: ",
+					{
+					 $this->{Type}{Actions}{Initialize}}, ", RFields: ",
+						 %{$this->{RFields}},"\n"
+							 if $VRML::verbose::be;
+			
+				&{$this->{Type}{Actions}{Initialize}}($this, $this->{RFields},
+													  (my $timestamp=XXX), $this->{Scene});
 			}
 
-			# print "ref t ", ref $this,"\n";
-			# print "ref t backend ", ref $this->{BackEnd},"\n";
-			# print "t backend ", $this->{BackEnd},"\n";
-			# print "ref t backNode ", ref $this->{BackNode},"\n";
-			# print "t backNode ", $this->{BackNode},"\n";
-			# print "ref t protoexp ", ref $this->{ProtoExp},"\n";
-			# print "t protoexp ", $this->{ProtoExp},"\n";
+			if ($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
+				print "VRML::NodeIntern::make_backend NOT - ", $this->{TypeName},"\n"
+					if $VRML::verbose::be;
+				return ();
+			}
+
+			if (defined $this->{IsProto}) {
+				print "\tVRML::NodeIntern::make_backend IsProto ",
+					VRML::NodeIntern::dump_name($this), "\n"
+							if $VRML::verbose::be;
+
+				## Inline'd node backends need special handling
+				if ($this->{TypeName} eq "Inline") {
+					$this->{BackNode} = $this->{ProtoExp}->make_backend($be, $parentbe);
+					return $this->{BackNode};
+				}
+
+				return $this->{ProtoExp}->make_backend($be, $parentbe);
+			}
+
+			my $ben = $be->new_node($this->{TypeName});
+			$this->{BackNode} = $ben;
+			$this->{BackEnd} = $be;
+			$this->set_backend_fields();
+
+			# was this a viewpoint? Was it not in a proto definition?
+			if ($this->{TypeName} eq "Viewpoint") {
+				# print "NodeIntern::register_vp, viewpoint is ", $this->{Fields}{description},"\n";
+				if ($this->{BackEnd}) {
+					my $scene = $this->{Scene};
+					VRML::NodeType::register_vp($scene, $this);
+				}
+
+				# print "ref t ", ref $this,"\n";
+				# print "ref t backend ", ref $this->{BackEnd},"\n";
+				# print "t backend ", $this->{BackEnd},"\n";
+				# print "ref t backNode ", ref $this->{BackNode},"\n";
+				# print "t backNode ", $this->{BackNode},"\n";
+				# print "ref t protoexp ", ref $this->{ProtoExp},"\n";
+				# print "t protoexp ", $this->{ProtoExp},"\n";
+			}
 		}
-    }
-    print "VRML::NodeIntern::make_backend finished ",
-		VRML::NodeIntern::dump_name($this),
-			" $this->{TypeName}, ", %{$this->{BackNode}}, "\n"
-				if $VRML::verbose::be;
+		print "\tVRML::NodeIntern::make_backend finished ",
+			VRML::NodeIntern::dump_name($this),
+					" $this->{TypeName}, ", %{$this->{BackNode}}, "\n"
+						if $VRML::verbose::be;
 
-    return $this->{BackNode};
+		return $this->{BackNode};
+	}
+
 }
 
-}
+1;

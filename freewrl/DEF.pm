@@ -39,9 +39,10 @@ sub make_executable {
 sub make_backend {
 	my ($this, $be, $parentbe) = @_;
 	
-	print "VRML::DEF::make_backend $this $this->{Name} ", 
-		VRML::NodeIntern::dump_name($this->{Node}), " ", ref $this->{Node},"\n" 
-		if $VRML::verbose::be;
+	print "VRML::DEF::make_backend $this->{Name}, ",
+		VRML::NodeIntern::dump_name($this->{Node}),
+				", $this->{Node}{TypeName}\n"
+					if $VRML::verbose::be;
 
 	# use the node's make_backend
 	return $this->{Node}->make_backend($be, $parentbe);
@@ -75,7 +76,7 @@ sub real_node {
         # print "(Name)\t\t\t", $_[0][0], "\n";
         # print "(Node)\t\t\t", $_[0][1], "\n";
         # print "ref of Node is\t\t", ref($_[0][1]), "\n";
-	return $this->{Node}->real_node($obj); 
+	return $this->{Node}->real_node($obj);
 }
 
 sub initialize {()}

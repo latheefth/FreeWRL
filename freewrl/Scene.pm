@@ -112,14 +112,19 @@ sub new {
 					  EventModel => $eventmodel,
 					  URL => $url,
 					  WorldURL => $worldurl,
+					  SubScenes => undef,
+					  Bindable => undef,
+					  Bindables => undef,
 					  Routes => undef,
 					  DelRoutes => undef,
 					  RootNode => undef,
 					  Nodes => undef,
-					  SubScenes => undef,
+					  NodeParent => undef,
+					  Parent => undef,
+					  Protos => undef,
 					  DEF => undef
 					 }, $type;
-	print "Newscene $this, $eventmodel, $url\n" 
+	print "VRML::Scene::new $this, $eventmodel, $url, $worldurl\n"
 		if $VRML::verbose::scene;
 	return $this;
 	
@@ -396,21 +401,29 @@ sub delete_route {
 sub new_def {
 	my ($this, $name, $node) = @_;
 
-	print "NEW DEF ", VRML::NodeIntern::dump_name($this),
-		 " $name ", VRML::NodeIntern::dump_name($node),"\n" if $VRML::verbose::scene;
+	print "VRML::Scene::new_def ", VRML::NodeIntern::dump_name($this),
+		" $name ", VRML::NodeIntern::dump_name($node),"\n"
+			if $VRML::verbose::scene;
 	my $def = VRML::DEF->new($name, $node);
 	## Using $this->{TmpDef} and $this->{DEF} seems redundant! 
 	## $this->{TmpDef}{$name} = $def;
+
 	$this->{DEF}{$name} = $def;
 	# print "NEW DEF IS ",VRML::NodeIntern::dump_name($def),"\n"; 
-	VRML::Handles::reserve($def);
+
+	VRML::Handles::def_reserve($def);
 	return $def;
 }
 
 sub new_use {
 	my ($this, $name) = @_;
+
+	if (defined $this->{DEF}{$name}) {
+		return VRML::USE->new($name, $this->{DEF}{$name}{Node});
+	}
+
 	return VRML::USE->new($name,
-		(VRML::Handles::get($this->{DEF}{$name}))->{Node});
+						  (VRML::Handles::return_def_name($name))->{Node});
 }
 
 sub new_is {
@@ -621,7 +634,7 @@ sub getNode {
 
 sub as_string {
 	my ($this) = @_;
-print "Scene::as_string, nodes are ", @{$this->{Nodes}},"\n";
+	print "Scene::as_string, nodes are ", @{$this->{Nodes}},"\n";
 	join "\n ($this) ",map {$_->as_string} @{$this->{Nodes}};
 }
 
@@ -702,7 +715,9 @@ sub make_is {
 #
 
 sub iterate_nodes {
-	print "ITERATE NODES - PROTO expansion\n" if $VRML::verbose::scene;
+	print "VRML::Scene::iterate_nodes - PROTO expansion\n"
+		if $VRML::verbose::scene;
+
 	my ($this, $sub, $parent) = @_;
 	# for (@{$this->{Nodes}}) {
 	if ($this->{RootNode}) {
@@ -758,78 +773,80 @@ sub set_parentnode {
 # cought by this "sends" stuff....
 
 {
-my %sends = map {($_ => 1)} qw/ TouchSensor TimeSensor /;
+	my %sends = map {($_ => 1)} qw/ TouchSensor TimeSensor /;
 
-sub make_executable {
-	my ($this) = @_;
+	sub make_executable {
+		my ($this) = @_;
 
-	# Step 1) Go through all nodes in "this" scene. Make executable
-	# on them. Hopefully, all nodes are of type VRML::NodeIntern!
+		# Step 1) Go through all nodes in "this" scene. Make executable
+		# on them. Hopefully, all nodes are of type VRML::NodeIntern!
 
-	for (@{$this->{Nodes}}) {
-		# print "in SCENE::make_executable, looking at ",
-		# ref $_, " scene $this\n";
-		$_->make_executable($this);
-	}
+		for (@{$this->{Nodes}}) {
+			# print "in SCENE::make_executable, looking at ",
+			# ref $_, " scene $this\n";
+			$_->make_executable($this);
+		}
 
 
-	# Step 2) Give all ISs references to my data
-	if ($this->{NodeParent}) {
-		print "MAKEEXNOD\n" if $VRML::verbose::scene;
-		$this->iterate_nodes(sub {
-			print "MENID\n" if $VRML::verbose::scene;
-			return unless (ref $this eq "VRML::NodeIntern");
+		# Step 2) Give all ISs references to my data
+		if ($this->{NodeParent}) {
+			print "VRML::Scene::make_executable NodeParent\n"
+				if $VRML::verbose::scene;
+			$this->iterate_nodes(sub {
+									 print "MENID\n" if $VRML::verbose::scene;
+									 return unless (ref $this eq "VRML::NodeIntern");
 			
-			for (keys %{$this->{Fields}}) {
-				print "MENIDF $_\n" if $VRML::verbose::scene;
-				next unless ((ref $this->{Fields}->{$_}) eq "VRML::IS");
-				print "MENIDFSET $_\n" if $VRML::verbose::scene;
-				$this->{Fields}->{$_}->set_ref(
-							\$this->{NodeParent}->{Fields}->{
-				  				$this->{Fields}->{$_}->name});
-			}
-		});
-	}
+									 for (keys %{$this->{Fields}}) {
+										 print "MENIDF $_\n" if $VRML::verbose::scene;
+										 next unless ((ref $this->{Fields}->{$_}) eq "VRML::IS");
+										 print "MENIDFSET $_\n" if $VRML::verbose::scene;
+										 $this->{Fields}->{$_}->set_ref(
+																		\$this->{NodeParent}->{Fields}->{$this->{Fields}->{$_}->name});
+									 }
+								 });
+		}
 
 
-	# Step 3) Gather all 'DEF' statements and update
-	my %DEF;
-	$this->iterate_nodes(sub {
-		return unless (ref $_[0] eq "VRML::DEF");
-		print "FOUND DEF ($this, $_[0]) ", $_[0]->name,"\n" 
-			if $VRML::verbose::scene;
-		$DEF{$_[0]->name} = $_[0];
-	});
+		# Step 3) Gather all 'DEF' statements and update
+		my %DEF;
+		$this->iterate_nodes(sub {
+								 return unless (ref $_[0] eq "VRML::DEF");
+								 print "\tfound DEF ($this, $_[0]) ", $_[0]->name,"\n" 
+									 if $VRML::verbose::scene;
+								 $DEF{$_[0]->name} = $_[0];
+
+								 ## Update scene's stored hash of DEFs
+								 if (! defined $this->{DEF}{$_[0]->name}) {
+									 $this->{DEF}{$_[0]->name} = $DEF{$_[0]->name};
+								 }
+							 });
 	
 
-	# Step 4) Update all USEs
-	$this->iterate_nodes(sub {
-		return unless ref $_[0] eq "VRML::USE";
-		print "FOUND USE ($this, $_[0]) ", $_[0]->name,"\n"
-			if $VRML::verbose::scene;
-		$_[0]->set_used($_[0]->name, $DEF{$_[0]->name}{Node});
-	});
+		# Step 4) Update all USEs
+		$this->iterate_nodes(sub {
+								 return unless ref $_[0] eq "VRML::USE";
+								 print "\tfound USE ($this, $_[0]) ", $_[0]->name,"\n"
+									 if $VRML::verbose::scene;
+								 $_[0]->set_used($_[0]->name, $DEF{$_[0]->name}{Node});
+							 });
 
 
-	# Step 5) Collect all prototyped nodes from here
-	# so we can call their events
-	# JAS XXX I think that this is just BS, as Sensors, SubScenes are
-	# not found anywhere else, and the ref is VRML::Scene in here...
-	# Still, until I make sure that TouchSensors are ok from within
-	# PROTOS...
+		# Step 5) Collect all prototyped nodes from here
+		# so we can call their events
+		# JAS XXX I think that this is just BS, as Sensors, SubScenes are
+		# not found anywhere else, and the ref is VRML::Scene in here...
+		# Still, until I make sure that TouchSensors are ok from within
+		# PROTOS...
 
-	$this->iterate_nodes(sub { 
-		return unless ref $this eq "VRML::NodeIntern";
-		push @{$this->{SubScenes}}, $this
-		 	if $this->{ProtoExp};
-		push @{$this->{Sensors}}, $this
-			if $sends{$this};
-	});
+		$this->iterate_nodes(sub {
+								 return unless ref $this eq "VRML::NodeIntern";
+								 push @{$this->{SubScenes}}, $this
+									 if $this->{ProtoExp};
+								 push @{$this->{Sensors}}, $this
+									 if $sends{$this};
+							 });
 
-	## Update scene's stored hash of DEFs
-	$this->{DEF} = \%DEF;
-
-}
+	}
 }
 
 ############################################################3
