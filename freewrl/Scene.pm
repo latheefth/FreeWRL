@@ -1022,8 +1022,14 @@ sub mkbe_and_array {
     # node definition, BUT generate the real node!
 
     my $c = $_[0]{Nodes}[$curindex];
+
+    # print "Scene.pm - first $c ref ",ref($c),"\n";
     if("ARRAY" eq ref $c) {
 	$c = @{$c};
+    } elsif ("VRML::DEF" eq ref ($c)) {
+	print "Scene.pm - dereferencing def \n";
+	$c = $c->real_node();
+
     }
     # lets make backend here, while we are having fun...
     if (!defined $c->{BackNode}) {
