@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.4  2000/08/08 21:15:36  rcoscali
+# Fixed Image Texture rendering problem (depth parameter on gluScaleImage)
+#
 # Revision 1.3  2000/08/07 02:41:01  rcoscali
 # Removed the comment of John (we discuss it and I think not usefull anymore in pixel tex code). Was image relevant.
 #
@@ -940,7 +943,7 @@ static struct VRML_Virt virt_${n} = { ".
 					 	\$f(__x$1), \$f(__y$1) ,
 					 	rx, ry);
 					gluScaleImage(
-					     \$f(__depth$1),
+					     (\$f(__depth$1)==1 ? GL_LUMINANCE : GL_RGB),
 					     \$f(__x$1), \$f(__y$1),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -1004,6 +1007,15 @@ static struct VRML_Virt virt_${n} = { ".
  
 			  printf ("\\n"); 
 }
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, \$f(repeatS$1) ? GL_REPEAT : GL_CLAMP );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, \$f(repeatT$1) ? GL_REPEAT : GL_CLAMP );
+
+				glDisable(GL_LIGHTING);
+				glEnable(GL_TEXTURE_2D);
+				glColor3f(1.0,1.0,1.0);
+
 				glTexImage2D(GL_TEXTURE_2D,
 					     0, 
 					     \$f(__depth$1),  
@@ -1013,11 +1025,6 @@ static struct VRML_Virt virt_${n} = { ".
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);
-
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, \$f(repeatS$1) ? GL_REPEAT : GL_CLAMP );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, \$f(repeatT$1) ? GL_REPEAT : GL_CLAMP );
 
 				if(ptr != dest) free(dest);
 			}
@@ -1125,8 +1132,6 @@ static struct VRML_Virt virt_${n} = { ".
 					     rx, ry,
 					     0,
 				      	     (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==2 ? GL_LUMINANCE_ALPHA : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA ))),
-
-
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);
