@@ -1,5 +1,5 @@
 /* 
- * Copyright(C) 1998 Tuomas J. Lukka
+ * Copyright(C) 1998 Tuomas J. Lukka, 2001 John Stewart. CRC Canada.
  * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
  * distribution) for details.
  */
@@ -8,6 +8,9 @@
 #include "perl.h"
 #include "XSUB.h"
 
+#define XCOORD(outline,i) ((outline).points[i].x)
+#define YCOORD(outline,i) ((outline).points[i].y)
+
 #define XRES 96
 #define YRES 96
 #define PPI 72
@@ -15,7 +18,8 @@
 #define POINTSIZE 50
 
 /* XXX Find out why *1.7... */
-#define OUT2GL(a) (size * (0.0 +(a))/(1.7*(font->ascent + font->descent)) /PPI*XRES/64.0)
+/* #define OUT2GL(a,i) (size * (0.0 +(a))/(1.7*(font_face[i]->ascender + font_face[i]->descender)) /PPI*XRES/64.0) */
+#define OUT2GL(a,i) (size * (0.0 +(a))/(1.0*(font_face[i]->ascender + font_face[i]->descender)) /PPI*XRES/8.0)
 
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -27,283 +31,440 @@ D_OPENGL;
 
 #include <stdio.h>
 
-#include <freetype.h>
-
-/* We assume that all pre-1.1 are 1.0 */
-#ifndef TT_FREETYPE_MAJOR
-#define TT_FREETYPE_MAJOR 1
-#define TT_FREETYPE_MINOR 0
-#endif
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
 
 
-#if TT_FREETYPE_MINOR != 0 || TT_FREETYPE_MAJOR > 1
-#define N_CONTOURS(outline) ((outline).n_contours)
-#define N_CONENDS(outline) ((outline).contours)
-#define XCOORD(outline,i) ((outline).points[i].x)
-#define YCOORD(outline,i) ((outline).points[i].y)
-#define FLAG(outline,i) ((outline).flags[i])
-#else
-#define N_CONTOURS(outline) ((outline).contours)
-#define N_CONENDS(outline) ((outline).conEnds)
-#define XCOORD(outline,i) ((outline).xCoord[i])
-#define YCOORD(outline,i) ((outline).yCoord[i])
-#define FLAG(outline,i) ((outline).flag[i])
-#endif
+/* initialize the library with this variable */
+FT_Library library; /* handle to library */
 
-TT_Engine engine;
+#define num_fonts 32
+FT_Face font_face[num_fonts];		/* handle to face object */
+int	font_opened[num_fonts];		/* is this font opened   */
+
+
+/* we load so many gliphs into an array for processing */
+#define 	MAX_GLYPHS	2048
+int		num_glyphs;
+FT_Glyph	glyphs[MAX_GLYPHS];
+int		cur_glyph = 0;
+int		verbose = 0;
+
+
+
+/* lets store the font paths here */
+#define fp_len 128
+#define fp_name_len 140
+char sys_fp[fp_len];
+char fw_fp[fp_len];
+char thisfontname[fp_name_len];
+
+/* where are we? */
+int xorig = 0;
+int yorig = 0;
+
+
+/* are we initialized yet */
+int initialized = FALSE;
+
 
 GLUtriangulatorObj *triang;
 
-static int verbose;
+static GLdouble vecs[3*10000];
 
-static void tjl_beg(GLenum e) {
+
+/* routines for the tesselation callbacks */
+static void FW_beg(GLenum e) {
 	if(verbose) printf("BEGIN %d\n",e);
 	glBegin(e);
 }
 
-static void tjl_end() {
+static void FW_end() {
 	if(verbose) printf("END\n");
 	glEnd();
 }
 
-static void tjl_ver(void *p) {
+static void FW_ver(void *p) {
 	GLdouble *dp = p;
 	if(verbose) printf("V: %f %f %f\n",dp[0],dp[1],dp[2]);
 	glVertex3f(dp[0],dp[1],dp[2]);
 }
 
-static void tjl_err(GLenum e) {
-	/* if(verbose) */ printf("ERROR %d: '%s'\n",e,gluErrorString(e));
+static void FW_err(GLenum e) {
+	/* if(verbose) */ printf("FreeWRL Text error %d: '%s'\n",e,gluErrorString(e));
 }
 
-typedef struct Tjl_Font {
-	TT_Face face;
-	TT_Face_Properties prop;
-	TT_CharMap charmap;
-	TT_Instance instance;
-	TT_Instance_Metrics imetrics;
-	float ascent,descent; /* points */
-} Tjl_Font;
-
-typedef struct Tjl_Glyph {
-	TT_Glyph glyph;
-	TT_Outline outline;
-	TT_Glyph_Metrics metrics;
-} Tjl_Glyph;
-
-int myglyph_is = 0;
-static Tjl_Glyph myglyph; /* Later, cache.. */
-static Tjl_Font myfont;
-static Tjl_Font *myfontp;
-
-static Tjl_Font *get_font(char *name) {
-	Tjl_Font *font = &myfont;
-	int err;
-	double upm;
-	if(err = TT_Open_Face(engine, name, &(font->face))) 
-	  die("TT 2err %d\n",err);
-	if(err = TT_Get_Face_Properties(font->face, &(font->prop))) 
-	  die("TT 2.5err %d\n",err);
-	if(err = TT_New_Instance(font->face, &(font->instance))) 
-	  die("TT 3err %d\n",err);
-/*	if(err = TT_Set_Instance_PixelSizes(font->instance,PIXELSIZE,PIXELSIZE,POINTSIZE)) 
-	  die("TT 3err %d\n",err);
- */
-	if(err = TT_Set_Instance_PointSize(font->instance,POINTSIZE)) 
-	  die("TT 3err %d\n",err);
-	if(err = TT_Get_Instance_Metrics(font->instance,&(font->imetrics))) 
-	  die("TT 3.5err %d\n",err);
-	if(err = TT_Get_CharMap(font->face, 2, &(font->charmap)))
-	  die("TT 5err %d\n",err);
-	upm = font->prop.header->Units_Per_EM;
-	font->ascent = (0.0 + font->prop.horizontal->Ascender * font->imetrics.y_ppem) / upm;
-	font->descent = (0.0 + font->prop.horizontal->Descender * font->imetrics.y_ppem) / upm;
-	return &myfont;
-}
-
-static Tjl_Glyph *get_glyph(Tjl_Font *font, char ch) {
-	int gindex,err;
-	Tjl_Glyph *glyph = &myglyph;
-	if(!myglyph_is) {
-		/* TT_Done_Glyph(glyph->glyph); */
-		if(err = TT_New_Glyph(font->face, &(glyph->glyph)))
-		  die("TT 4err %d\n",err);
-	}
-	myglyph_is = 1;
-
-	gindex = TT_Char_Index(font->charmap, ch);
-	if(err = TT_Load_Glyph(font->instance,(glyph->glyph), gindex, TTLOAD_SCALE_GLYPH))
-	  die("TT 10err %d\n",err);
-	if(err = TT_Get_Glyph_Outline(glyph->glyph, &(glyph->outline)))
-	  die("TT 11err %d\n",err);
-	if(err = TT_Get_Glyph_Metrics(glyph->glyph, &(glyph->metrics)))
-	  die("TT 12err %d\n",err);
-
-	  return glyph;
-}
-
-static double Tjl_extent(Tjl_Font *font, char *str)
-{
-	double cur = 0;
+/* make up the font name */
+FW_make_fontname (int num, char *name) {
 	int i;
-	for(i=0; i<strlen(str); i++) {
-		Tjl_Glyph *g = get_glyph(font, str[i]);
-		cur += g->metrics.advance;
+
+	if (num == 0) {
+		strcpy (thisfontname,fw_fp);
+		strcat (thisfontname,"/baklava.ttf");
+	} else {
+		strcpy (thisfontname,sys_fp);
+		
+		if (!(num & 0x10)) strcat (thisfontname,"/SERIF");
+		else if (!(num & 0x20)) strcat (thisfontname,"/SANS");
+		else if (!(num & 0x40)) strcat (thisfontname,"/TYPEWRITER");
+
+		if (!(num & 0x04)) strcat (thisfontname,"b");
+		if (!(num & 0x08)) strcat (thisfontname,"i");
+
+		strcat (thisfontname,".ttf");
 	}
-	return cur;
+	
+	printf ("FW_make_fontname made %s\n",thisfontname);
 }
 
-/* XXX Argh... */
-static GLdouble vecs[3*10000];
 
-static void tjl_rendertext(int n,SV **p,int nl, float *length, 
-		float maxext, double spacing, double size) {
-	char *str;
-	int i,gindex,row;
-	int contour; int point;
+
+/* initialize the freetype library */
+int FW_init_face(int num, char *name) {
 	int err;
-	float xorig = 0;
-	float yorig = 0;
-	float shrink = 0;
-	float rshrink = 0;
-	Tjl_Font *font = myfontp;
-	int flag;
+
+	/* load a font face */
+	err = FT_New_Face(library, name, 0, &font_face[num]);
+	if (err) {
+		printf ("FreeType - can not use font %s\n",name);
+		return FALSE;
+	} else {
+		/* access face content */
+		err = FT_Set_Char_Size (font_face[num],	/* handle to face object 	*/
+				0,	/* char width in 1/64th of points */
+				16*64,	/* char height in 1/64th of points */
+				300,	/* horiz device resolution	*/
+				300	/* vert device resolution	*/
+				);
+
+		if (err) { 
+			printf ("FreeWRL - FreeType, can not set char size for font %s\n",name);
+			return FALSE;
+		} else {
+			font_opened[num] = TRUE;
+		}
+	}
+	return FALSE;
+}
+
+/* calculate extent of a range of characters */
+double FW_extent (int start, int length) {
+	int count;
+	double ret = 0;
+
+	for (count = start; count <length; count++) {
+		ret += glyphs[count]->advance.x;
+	}
+	printf ("FW_Extent returning %lf\n",ret);
+	return ret;
+}
+
+
+
+/* Load a character, a maximum of MAX_GLYPHS are here. Note that no 
+   line formatting is done here; this is just for pre-calculating
+   extents, etc.
+
+   NOTE: we store the handles to each glyph object for each
+   character in the glyphs array
+*/
+FT_Error  FW_Load_Char(int num, int idx) {
+	FT_Glyph  glyph;
+	FT_UInt glyph_index;
+	int error;
+
+	if (cur_glyph >= MAX_GLYPHS) {
+		return 1;
+	}
+
+	/* retrieve glyph index from character code */
+	glyph_index = FT_Get_Char_Index(font_face[num],idx);
+
+	/* loads the glyph in the glyph slot */
+
+	error = FT_Load_Glyph( font_face[num], glyph_index, FT_LOAD_DEFAULT ) ||
+		FT_Get_Glyph ( font_face[num]->glyph, &glyph );
+	if (!error) { glyphs[cur_glyph++] = glyph; }
+	return error;
+}
+
+
+
+void FW_draw_outline (int myff, FT_OutlineGlyph oglyph, float size) {
+	int nthvec = 0;
+	int contour; int point;
+	int flag,x,y = 0;
+        GLdouble *vlast;
+	int flaglast;
 	GLdouble v[3];
 	GLdouble *v2;
 	GLdouble *vnew;
-	GLdouble *vlast;
-	int flaglast;
-	glNormal3f(0,0,-1);
-	glEnable(GL_LIGHTING);
-	if(verbose) printf("Tjl TT_Render\n");
-	if(maxext > 0) {
-	   double maxlen = 0;
-	   double l;
-	   for(row = 0; row < n; row++) {
-		str = SvPV(p[row],PL_na);
-		l = Tjl_extent(font, str) ;
-		if(l > maxlen) {maxlen = l;}
-	   }
-	   if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
-	}
-   for(row = 0; row < n; row++) {
-   	double l;
-   	str = SvPV(p[row],PL_na);
-        xorig = 0;
-	rshrink = 0;
-	if(row < nl && length[row]) {
-		l = Tjl_extent(font,str);
-		rshrink = length[row] / OUT2GL(l);
-	}
-	if(shrink) {
-		glScalef(shrink,1,1);
-	}
-	if(rshrink) {
-		glScalef(rshrink,1,1);
-	}
-	for(i=0; i<strlen(str); i++) {
-		Tjl_Glyph *glyph = get_glyph(font,str[i]);
-		int nthvec = 0;
-		gluBeginPolygon(triang);
-		if(verbose) printf("Contours: %d\n",glyph->outline.contours);
-		for(contour = 0; contour < N_CONTOURS(glyph->outline); contour++) {
-			vlast = 0;
-			flaglast = 0;
-			if(contour) {
-				gluNextContour(triang,GLU_UNKNOWN);
+
+
+	gluBeginPolygon(triang);
+	if (verbose) printf("Contours: %d\n",oglyph->outline.contours);
+
+	for(contour = 0; contour < oglyph->outline.n_contours; contour++) {
+		if (verbose) 
+			printf ("FW_draw_character, contour %d of %d\n",contour, oglyph->outline.n_contours);
+
+		vlast = 0;
+		flaglast = 0;
+		if(contour) { gluNextContour(triang,GLU_UNKNOWN); }
+
+		if (verbose) printf("End %d: %d\n", contour, oglyph->outline.contours[contour]);
+
+		for(point = (contour ? oglyph->outline.contours[contour-1]+1 : 0); 
+		   		point <= oglyph->outline.contours[contour];
+		   		point ++) {
+
+
+			float x = OUT2GL(XCOORD(oglyph->outline,point)+xorig,myff);
+			float y = (0.0 + OUT2GL(YCOORD(oglyph->outline,point),myff) + yorig);
+
+			flag = oglyph->outline.tags[point];
+			v[0] = x; v[1] = y; v[2] = 0;
+			v2 = vecs+3*(nthvec++);
+			if(nthvec >= 10000) {
+				die("Too large letters");
 			}
-			if(verbose) printf("End %d: %d\n", contour, N_CONENDS(glyph->outline)[contour]);
-			for(point = (contour ? N_CONENDS(glyph->outline)[contour-1]+1
-					: 0); 
-			    point <= N_CONENDS(glyph->outline)[contour];
-			    point ++) {
-			    	float x = OUT2GL(XCOORD(glyph->outline,point)+xorig);
-			    	float y = (0.0 + OUT2GL(YCOORD(glyph->outline,point)) + yorig);
-				flag = FLAG(glyph->outline,point);
-				v[0] = x; v[1] = y; v[2] = 0;
-				v2 = vecs+3*(nthvec++);
-				if(nthvec >= 10000) {
-					die("Too large letters");
-				}
-				v2[0] = v[0]; v2[1] = v[1]; v2[2] = v[2];
-				if(vlast &&
+			v2[0] = v[0]; v2[1] = v[1]; v2[2] = v[2];
+			if(vlast &&
 				   v2[0] == vlast[0] &&
 				   v2[1] == vlast[1] &&
 				   v2[2] == vlast[2]) {
 					continue;
-				}
-				if(verbose) printf("OX, OY: %f, %f, X,Y: %f,%f FLAG %d\n",XCOORD(glyph->outline,point)+0.0,
-							YCOORD(glyph->outline,point)+0.0,x,y,flag);
-				if(flag) {
-					gluTessVertex(triang,v2,v2);
-				} else {
-					if(!vlast) {
-						die("Can't be first off");
-						if(flaglast) {
-							/* Interp */
-							vnew = vecs+3*(nthvec++);
-							if(nthvec >= 10000) {
-								die("Too large letters2");
-							}
-							vnew[0] = 0.5*(v2[0]+vlast[0]);
-							vnew[1] = 0.5*(v2[1]+vlast[1]);
-							vnew[2] = 0.5*(v2[2]+vlast[2]);
-							gluTessVertex(triang,vnew,vnew);
-						} else {
-							/* Nothing */
+			}
+			if (verbose)
+				 printf("OX, OY: %f, %f, X,Y: %f,%f FLAG %d\n",
+						XCOORD(oglyph->outline,point)+0.0,
+						YCOORD(oglyph->outline,point)+0.0,x,y,flag);
+			if(flag) {
+				gluTessVertex(triang,v2,v2);
+			} else {
+				if(!vlast) {
+					die("Can't be first off");
+					if(flaglast) {
+						/* Interp */
+						vnew = vecs+3*(nthvec++);
+						if(nthvec >= 10000) {
+							die("Too large letters2");
 						}
+						vnew[0] = 0.5*(v2[0]+vlast[0]);
+						vnew[1] = 0.5*(v2[1]+vlast[1]);
+						vnew[2] = 0.5*(v2[2]+vlast[2]);
+						gluTessVertex(triang,vnew,vnew);
 					}
 				}
-				vlast = v2;
-				flaglast = flag;
 			}
+			vlast = v2;
+			flaglast = flag;
 		}
-		gluEndPolygon(triang);
-		xorig += glyph->metrics.advance;
 	}
-	yorig -= spacing;
+	if (verbose) printf ("end of FW_draw_outline\n");
+	gluEndPolygon(triang);
+	if (verbose) printf ("end of FW_draw_outline -- really!\n");
+}
+
+/* draw a glyph object */
+FW_draw_character (int myff, FT_Glyph glyph, float size) {
+
+	if (glyph->format == ft_glyph_format_outline) {
+		FW_draw_outline (myff, (FT_OutlineGlyph) glyph,size);
+	} else {
+		printf ("FW_draw_character; glyphformat  -- need outline\n"); 
+	}
+	xorig +=  font_face[myff]->glyph->metrics.horiAdvance;
+}
+
+
+
+
+
+static void FW_rendertext(int n,SV **p,int nl, float *length, 
+		float maxext, float spacing, float size, unsigned int fsparam) {
+	char *str;
+	int i,gindex,row;
+	int contour; int point;
+	int err;
+	float shrink = 0;
+	float rshrink = 0;
+	int flag;
+	int counter=0;
+	int myff;
+
+	/* fsparam has the following bitmaps:
+	
+			bit:	0	horizontal  (boolean)
+			bit:	1	leftToRight (boolean)
+			bit:	2	topToBottom (boolean)
+			  (style)
+			bit:	3	BOLD	    (boolean)
+			bit:	4	ITALIC	    (boolean)
+			  (family)
+			bit:	5	SERIF
+			bit:	6	SANS	
+			bit:	7	TYPEWRITER
+			bit:	8 	indicates exact font pointer (future use)
+			  (Justify - major)
+			bit:	9	FIRST
+			bit:	10	BEGIN
+			bit:	11	MIDDLE
+			bit:	12	END
+			  (Justify - minor)
+			bit:	13	FIRST
+			bit:	14	BEGIN
+			bit:	15	MIDDLE
+			bit:	16	END
+
+			bit: 17-31	spare
+	*/
+	printf ("rendering text n %d nl %d first line length %f maxext %f spacing %f size %f fsparam %x\n",
+			n, nl, length[0], maxext, spacing, size, fsparam);
+
+	/* have we done any rendering yet */
+	if (!initialized) {
+		printf (" have to initialize\n");
+		if(err = FT_Init_FreeType(&library))
+		  die("FreeWRL FreeType Initialize error %d\n",err);
+		initialized = TRUE;
+	}
+
+	/* is this font opened */
+	myff = (fsparam >> 3) & 0x1F;
+	printf ("my ff is %x, from %x\n",myff,fsparam);
+	if (myff <4) {
+		/* we dont yet allow externally specified fonts, so one of
+		   the font style bits HAS to be set */	
+		printf ("FreeWRL - Warning - FontStyle funny - setting to SERIF\n");
+		myff = 4;
+	}
+
+	if (!font_opened[myff]) {
+		FW_make_fontname(myff,thisfontname);
+		if (!FW_init_face(myff,thisfontname)) {
+			/* tell this to render as fw internal font */
+			FW_make_fontname (0,thisfontname);
+			FW_init_face(myff,thisfontname);
+		}
+	}
+
+	glNormal3f(0,0,-1);
+	glEnable(GL_LIGHTING);
+
+	printf ("here1\n");
+
+
+	/* load all of the characters first... */
+	for (row=0; row<n; row++) {
+		str = SvPV(p[row],PL_na);
+		for(i=0; i<strlen(str); i++) {
+			FW_Load_Char(myff,str[i]);
+		}
+	}
+
+	if(maxext > 0) {
+	   double maxlen = 0;
+	   double l;
+	   int counter = 0;
+	   for(row = 0; row < n; row++) {
+		str = SvPV(p[row],PL_na);
+		printf ("text: %s\n",str);
+		l = FW_extent(counter,strlen(str));
+		counter += strlen(str);
+		if(l > maxlen) {maxlen = l;}
+	   }
+
+	   if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen,myff);}
+	}
+	printf ("shrink is %f\n",shrink);
+
+	yorig = 0;
+	for(row = 0; row < n; row++) {
+	   	double l;
+
+	   	str = SvPV(p[row],PL_na);
+		printf ("text2 row %d :%s:\n",row, str);
+	        xorig = 0;
+		rshrink = 0;
+		if(row < nl && length[row]) {
+			l = FW_extent(counter,strlen(str));
+			rshrink = length[row] / OUT2GL(l,myff);
+		}
+
+		if(shrink) { glScalef(shrink,1,1); }
+		if(rshrink) { glScalef(rshrink,1,1); }
+
+		for(i=0; i<strlen(str); i++) {
+			FT_UInt glyph_index;
+			int error;
+	
+			FW_draw_character (myff, glyphs[counter+i],size);
+			FT_Done_Glyph (glyphs[counter+i]);
+		}
+		counter += strlen(str);
+		yorig -= 1.0;  /* row increment */
    }
 }
+
 
 
 MODULE=VRML::Text 	PACKAGE=VRML::Text
 
 PROTOTYPES: ENABLE
 
+
 void *
 get_rendptr()
 CODE:
-	RETVAL = (void *)tjl_rendertext;
+	RETVAL = (void *)FW_rendertext;
 OUTPUT:
 	RETVAL
 
-void
-open_font(name)
-char *name
-CODE:
-	int err;
-	if(err = TT_Init_FreeType(&engine))
-	  die("TT 1err %d\n",err);
-	/* myfontp = get_font("fonts/baklava.ttf"); */
-	myfontp = get_font(name);
 
+
+
+int
+open_font(sys_path, fw_path)
+char *sys_path
+char *fw_path
+CODE:
+	{
+	int len;
+
+	/* copy over font paths */
+	if (strlen(sys_path) < fp_len) {
+		strcpy (sys_fp,sys_path);
+	} else { 
+		printf ("FreeWRL - System font path in vrml.conf too long:\n\t%s\n",sys_path);
+		sys_fp[0] = 0;
+	}
+
+	if (strlen(fw_path) < fp_len) {
+		strcpy (fw_fp,fw_path);
+	} else { 
+		printf ("FreeWRL - internal font path in vrml.conf too long:\n\t%s\n",fw_path);
+		fw_fp[0] = 0;
+	}
+
+	/* register tesselation callbacks for OpenGL calls */
 	triang = gluNewTess();
-	/* gluTessCallback(triang, GLU_BEGIN, glBegin);
-	 * gluTessCallback(triang, GLU_VERTEX, glVertex3dv);
-	 * gluTessCallback(triang, GLU_END, glEnd);
-	 */
-	gluTessCallback(triang, GLU_BEGIN, tjl_beg);
-	gluTessCallback(triang, GLU_VERTEX, tjl_ver);
-	gluTessCallback(triang, GLU_END, tjl_end);
-	gluTessCallback(triang, GLU_ERROR, tjl_err);
+	gluTessCallback(triang, GLU_BEGIN, FW_beg);
+	gluTessCallback(triang, GLU_VERTEX, FW_ver);
+	gluTessCallback(triang, GLU_END, FW_end);
+	gluTessCallback(triang, GLU_ERROR, FW_err);
 
-void
-set_verbose(i)
-	int i
-CODE:
-	verbose = i;
 
-BOOT: 
+	/* lets initialize some things */
+	for (len = 0; len < num_fonts; len++) {
+		font_opened[len] = FALSE;
+	}
+
+	}
+
+
+BOOT:
 	{
 	I_OPENGL;
 	}
