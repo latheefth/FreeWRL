@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.97  2003/07/03 20:01:20  ayla
+# Added include for new header file.
+#
 # Revision 1.96  2003/06/20 07:12:24  ayla
 # Code cleanup and attempts to silence some C compile warnings.
 #
@@ -1194,9 +1197,9 @@ struct sNaviInfo {
 
 /* Code here comes almost verbatim from VRMLC.pm */
 
-#include "EXTERN.h"
-#include "perl.h"
+#include "CFuncs/headers.h"
 #include "XSUB.h"
+
 #include <math.h>
 
 #ifndef AQUA
@@ -1210,13 +1213,14 @@ struct sNaviInfo {
 #endif
 
 #include "OpenGL/OpenGL.m"
-#include "CFuncs/headers.h"
 #include "CFuncs/Viewer.h"
 #include "CFuncs/OpenGL_Utils.h"
 #include "CFuncs/Collision.h"
 #include "CFuncs/Bindable.h"
 #include "CFuncs/Textures.h"
 #include "CFuncs/Polyrep.h"
+#include "CFuncs/sounds.h"
+#include "CFuncs/SensInterps.h"
 
 
 D_OPENGL;
