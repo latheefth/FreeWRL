@@ -226,7 +226,8 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	   (strncmp(thisurl,"HTTP://", strlen("HTTP://"))) &&
 	   (strncmp(thisurl,"/",strlen("/")))) {
 		strcpy (filename,pspath);
-		strcat (filename,"/");
+		/* do we actually have anything here? */
+		if (strlen(pspath) > 0) strcat (filename,"/");
 
 	} else {
 		filename[0]=0;
@@ -890,7 +891,7 @@ void __pt_doInline() {
 		/* printf ("we were successful at locating %s\n",filename); */
 		psp.type=FROMURL;
 	} else {
-		printf ("Could not locate url (last choice was %s)\n",filename);
+		if (count > 0) printf ("Could not locate url (last choice was %s)\n",filename);
 	}
 }
 
@@ -901,7 +902,6 @@ void __pt_doStringUrl () {
 	int myretarr[2000];
 	char firstBytes[4];
 
-	/* printf ("starting function __pt_doStringUrl, type %d inp %s\n", psp.type,psp.inp); */
 	if (psp.type==FROMSTRING) {
        		retval = _pt_CreateVrml("String",psp.inp,myretarr);
 		
@@ -918,14 +918,18 @@ void __pt_doStringUrl () {
        	/* now that we have the VRML/X3D file, load it into the scene.
        	   myretarr contains node number/memory location pairs; thus the count
        	   by two. */
-	if (psp.ptr != (unsigned int)NULL)
+	if (psp.ptr != (unsigned int)NULL) {
 		/* if we have a valid node to load this into, do it */
+		/* note that EAI CreateVRML type commands will NOT give */
+		/* a valid node */
+
 	       	for (count =1; count < retval; count+=2) {
        			addToNode(psp.ptr+psp.ofs, (unsigned)(myretarr[count]));
        		}
 
-	/* tell the node that we have changed */
-	update_node((void *)psp.ptr);
+		/* tell the node that we have changed */
+		update_node((void *)psp.ptr);
+	}
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {

@@ -1608,7 +1608,7 @@ void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	printf("sendScriptEventIn, num %d\n",num);
+	//printf("sendScriptEventIn, num %d\n",num);
 
 	/* script value: 1: this is a from script route
 			 2: this is a to script route

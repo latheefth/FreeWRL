@@ -548,7 +548,9 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	if (count != loadparams[*texnum].url.n) {
 		/* printf ("we were successful at locating %s\n",filename);  */
 	} else {
-		printf ("Could not locate url (last choice was %s)\n",filename);
+		if (count > 0) {
+			printf ("Could not locate url (last choice was %s)\n",filename);
+		}
 		free (filename);
 		isloaded[*texnum]=INVALID;
 		/* this crashes some Nvidia drivers 
