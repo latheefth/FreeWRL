@@ -244,14 +244,18 @@ typedef enum JSShellErrNum {
 static const JSErrorFormatString *
 my_GetErrorMessage(void *userRef, const char *locale, const uintN errorNumber);
 
-#ifdef EDITLINE
+#ifdef __APPLE__
+#undef EDITLINE
+#endif
+
+#ifdef EDITLINE 
 extern char     *readline(const char *prompt);
 extern void     add_history(char *line);
 #endif
 
 static JSBool
 GetLine(JSContext *cx, char *bufp, FILE *file, const char *prompt) {
-#ifdef EDITLINE
+#ifdef EDITLINE 
     /*
      * Use readline only if file is stdin, because there's no way to specify
      * another handle.  Are other filehandles interactive?
