@@ -3,6 +3,9 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution, EXCEPT on the files
 # which belong under the mozilla public license.
+#
+# $Id$
+#
 
 
 ==================================================================
@@ -334,3 +337,9 @@ http://www.crc.ca/FreeWRL/download/joystickxxx.
 
 
 
+#
+# $Log$
+# Revision 1.3  2000/09/01 00:15:34  rcoscali
+# Add cvs tags to trace changes
+#
+#
