@@ -99,6 +99,7 @@ struct PSStruct {
 	char *inp;		/* data for task (eg, vrml text)	*/
 	unsigned ptr;		/* address (node) to put data		*/
 	unsigned ofs;		/* offset in node for data		*/
+	int zeroBind;		/* should we dispose Bindables in Perl?	*/
 	int bind;		/* should we issue a bind? 		*/
 	char *path;		/* path of parent URL			*/
 	int *comp;		/* pointer to complete flag		*/
@@ -131,7 +132,8 @@ unsigned int __pt_getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
 int isPerlinitialized(void);
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-			unsigned ptr, unsigned ofs, int *complete);
+			unsigned ptr, unsigned ofs, int *complete,
+			int zeroBind);
 void __pt_doInline(void);
 void __pt_doStringUrl (void);
 void __pt_doPerlCallMethodVA(void);
@@ -145,10 +147,10 @@ void __pt_EAI_Route (void);
 void EAI_readNewWorld(char *inputstring);
 
 /* Bindables */
-int *fognodes;
-int *backgroundnodes;
-int *navnodes;
-int *viewpointnodes;
+int *fognodes = NULL;
+int *backgroundnodes = NULL;
+int *navnodes = NULL;
+int *viewpointnodes = NULL;
 int totfognodes = 0;
 int totbacknodes = 0;
 int totnavnodes = 0;
@@ -317,7 +319,7 @@ void loadInline(struct VRML_Inline *node) {
 	perlParse(INLINE,(char *)node, FALSE, FALSE, 
 		(unsigned) node,
 		offsetof (struct VRML_Inline, __children),
-		&node->__loadstatus);
+		&node->__loadstatus,FALSE);
 }
 
 /* Javascript interface to the perl interpreter thread */
@@ -338,6 +340,7 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 	psp.type = CALLMETHOD;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
+	psp.zeroBind = FALSE;
 	psp.path = NULL;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
@@ -385,6 +388,7 @@ unsigned int EAI_GetNode(char *nname) {
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
+	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	psp.fieldname = nname;
@@ -408,6 +412,7 @@ unsigned int EAI_GetViewpoint(char *nname) {
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
+	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	psp.fieldname = nname;
@@ -444,6 +449,7 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	psp.type = EAIGETTYPE;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
+	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	DATA_LOCK_SIGNAL
@@ -476,6 +482,7 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 	psp.type = EAIGETVALUE;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
+	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	DATA_LOCK_SIGNAL
@@ -506,6 +513,7 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 	psp.type = EAIGETTYPENAME;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
+	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	DATA_LOCK_SIGNAL
@@ -532,6 +540,7 @@ void EAI_Route(char cmnd, char *fn) {
 	psp.ptr = (unsigned) cmnd;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
+	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	psp.fieldname = fn;
@@ -560,6 +569,7 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
+	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.retarr = retarr;
 	psp.retarrsize = retarrsize;
@@ -586,6 +596,7 @@ void EAI_readNewWorld(char *inputstring) {
     psp.ptr  = rootNode;
     psp.ofs  = offsetof(struct VRML_Group, children);
     psp.path = NULL;
+    psp.zeroBind = FALSE;
     psp.bind = TRUE; /* should we issue a set_bind? */
     /* copy over the command */
     psp.inp  = malloc (strlen(inputstring)+2);
@@ -599,7 +610,8 @@ void EAI_readNewWorld(char *inputstring) {
 
 /****************************************************************************/
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-			unsigned ptr, unsigned ofs,int *complete) {
+			unsigned ptr, unsigned ofs,int *complete, 
+			int zeroBind) {
 
 	/* do we want to return if the parsing thread is busy, or do
 	   we want to wait? */
@@ -617,6 +629,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	psp.ofs = ofs;
 	psp.path = NULL;
 	psp.bind = bind; /* should we issue a set_bind? */
+	psp.zeroBind = zeroBind; /* should we zero bindables? */
 
 	psp.inp = malloc (strlen(inp)+2);
 
@@ -845,6 +858,8 @@ void getAllBindables() {
 	if (backgroundnodes) free (backgroundnodes);
 	if (navnodes) free (navnodes);
 	if (viewpointnodes) free (viewpointnodes);
+	fognodes=NULL; backgroundnodes=NULL;
+	navnodes=NULL; viewpointnodes=NULL;
 
 	/* now, get the values */
 	totviewpointnodes = __pt_getBindables("Viewpoint",aretarr);
@@ -919,6 +934,12 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr) 
 }
 
 
+/* zero the bindables in Browser. */
+void __pt_zeroBindables() {
+	dSP;
+	PUSHMARK(SP);
+	call_pv("VRML::Browser::zeroBindables", G_ARRAY);
+}
 
 unsigned int __pt_getBindables (char *tp, unsigned int *retarr) {
 	int count;
@@ -987,16 +1008,7 @@ void __pt_openBrowser() {
 	ENTER;
 	SAVETMPS;
 
-	set_viewer_type(1);
-
-	set_eyehalf( eyedist/2.0,
-		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
-
-#ifndef AQUA
-	if (shutter) 
-		XEventStereo();
-#endif
-
+	viewer_default();
 	
 	PUSHMARK(SP);
 	XPUSHs(sv_2mortal(newSViv(1000))); // left in as an example
@@ -1076,6 +1088,12 @@ void __pt_doStringUrl () {
 	int count;
 	int retval;
 	int myretarr[2000];
+
+	if (psp.zeroBind) {
+		//printf ("doStringUrl, have to zero Bindables in Perl\n");
+		__pt_zeroBindables();
+		psp.zeroBind=FALSE;
+	}
 
 	if (psp.type==FROMSTRING) {
        		retval = _pt_CreateVrml("String",psp.inp,myretarr);

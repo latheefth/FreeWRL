@@ -10,6 +10,9 @@
 
 /* implement Anchor/Browser actions */
 
+int checkIfX3DVRMLFile(char *fn);
+void Anchor_ReplaceWorld (char *fn);
+
 void doBrowserAction () {
 	int count;
 	int xx;
@@ -31,7 +34,8 @@ void doBrowserAction () {
 	
 	Anchor_url = AnchorsAnchor->url;
 	
-	printf ("FreeWRL::Anchor: going to \"%s\"\n",
+	if (!RUNNINGASPLUGIN) 
+		printf ("FreeWRL::Anchor: going to \"%s\"\n",
 			SvPV(AnchorsAnchor->description,xx));
 
 	filename = malloc(1000);
@@ -108,12 +112,82 @@ void doBrowserAction () {
 		free (filename);
 		return;
 	}
-	printf ("we were successful at locating %s\n",filename);
+	printf ("we were successful at locating :%s:\n",filename);
 
-	strcpy (sysline, "mozilla ");
-	strcat (sysline, filename);
-	strcat (sysline, " &");
-	system (sysline);
-	free (filename);
+	//which browser are we running under? if we are running as a 
+	//plugin, we'll have some of this information already.
 	
+	if (RUNNINGASPLUGIN) {
+		printf ("Anchor, running as a plugin...\n");
+	} else {
+		if (checkIfX3DVRMLFile(filename)) {
+			Anchor_ReplaceWorld (filename);
+
+		} else {
+			//printf ("IS NOT a vrml/x3d file\n");
+			//printf ("Anchor: -DBROWSER is :%s:\n",BROWSER);
+			strcpy (sysline, BROWSER);
+			strcat (sysline, " ");
+			strcat (sysline, filename);
+			strcat (sysline, " &");
+			system (sysline);
+		}
+	}
+	free (filename);
+}
+
+
+
+/*
+ * Check to see if the file name is a geometry file.
+ * return TRUE if it looks like it is, false otherwise
+ *
+ * We cant use the firstbytes of fileExists, because, we may be
+ * trying to get a whole web-page for reload, and lets let the
+ * browser adequately resolve that one.
+ *
+ * This should be kept in line with the plugin register code in
+ * Plugin/netscape/source/npfreewrl.c
+ */
+
+int checkIfX3DVRMLFile(char *fn) {
+	if ((strstr(fn,".wrl") > 0) ||
+		(strstr(fn,".WRL") > 0) ||
+		(strstr(fn,".x3d") > 0) ||
+		(strstr(fn,".x3dv") > 0) ||
+		(strstr(fn,".x3db") > 0) ||
+		(strstr(fn,".X3DV") > 0) ||
+		(strstr(fn,".X3DB") > 0) ||
+		(strstr(fn,".X3D") > 0)) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+/* we are an Anchor, and we are not running in a browser, and we are
+ * trying to do an external VRML or X3D world.
+ */
+
+void Anchor_ReplaceWorld (char *filename) {
+	int tmp;
+	struct VRML_Group *rn;
+	struct Multi_Node *par;
+
+	rn = (struct VRML_Group *) rootNode;
+	par = &(rn->children);
+
+	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
+	par->n = 1;
+
+	/* tell statusbar that we have none */
+	viewer_default();
+	viewpoint_name_status("NONE");
+
+	/* reset OpenGL positioning */
+
+	/* set the initial viewpoint to 0,0,0... */
+
+	perlParse(FROMURL, filename,TRUE,FALSE,
+		rootNode, offsetof (struct VRML_Group, children),&tmp,
+		TRUE);
 }

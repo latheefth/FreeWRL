@@ -524,4 +524,7 @@ void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (unsigned rc, unsigned newNode);
+
+void zeroAllBindables(void);
+
 #endif /* __HEADERS_H__ */

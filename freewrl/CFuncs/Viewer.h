@@ -249,4 +249,9 @@ bind_geoviewpoint(struct VRML_GeoViewpoint *node);
 
 extern VRML_Viewer Viewer; //in VRMLC.pm
 
+void viewer_default(void);
+
+extern float eyedist;
+extern float screendist;
+
 #endif /* __VIEWER_H_ */

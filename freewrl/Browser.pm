@@ -152,11 +152,19 @@ my %bgd = (); my $bgcount=0;
 my %nav=(); my $navcount=0;
 my %fog=(); my $fogcount=0;
 
+# zero out bindables; called from C when we have a replaceWorld
+# type of action - Anchor is one...
+
+sub zeroBindables {
+	%vpn=(); %bgd = (); %nav = (); %fog = ();
+	$vpcount=0; $bgcount=0; $navcount=0; $fogcount=0;
+}
 
 # Save this node pointer so that the C backend can get it.
 # save a maximum of 900; this is to avoid any stack overflow.
 sub register_bind {
 	my ($node) = @_;
+
         if (!defined ($node->{BackNode}{CNode})) {
                 print "register_vp - no backend CNode node\n";
                 return;

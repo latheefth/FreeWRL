@@ -965,7 +965,7 @@ void initFreewrl() {
         }
 
         int tmp = 0;
-        perlParse(FROMURL, BrowserURL, TRUE, FALSE, rootNode, offsetof(struct VRML_Group, children), &tmp);
+        perlParse(FROMURL, BrowserURL, TRUE, FALSE, rootNode, offsetof(struct VRML_Group, children), &tmp, TRUE);
 }
 
 void aqDisplayThread() {

@@ -40,6 +40,39 @@ void handle_tick_fly(void);
 void handle_tick_exfly(void);
 void handle_tick(void);
 
+
+void viewer_default() {
+	Quaternion q_i;
+
+	(Viewer.Pos).x = 0;
+	(Viewer.Pos).y = 0;
+	(Viewer.Pos).z = 10;
+
+	(Viewer.AntiPos).x = 0;
+	(Viewer.AntiPos).y = 0;
+	(Viewer.AntiPos).z = 0;
+	vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
+	vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
+	inverse(&(Viewer.AntiQuat),&q_i);
+
+	Viewer.headlight = TRUE;
+	Viewer.speed = 1.0;
+	Viewer.Dist = 10.0;
+	Viewer.walk = &viewer_walk;
+	Viewer.examine = &viewer_examine;
+	Viewer.fly = &viewer_fly;
+
+	set_viewer_type(1);
+
+	set_eyehalf( eyedist/2.0,
+		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
+
+#ifndef AQUA
+	if (shutter) 
+		XEventStereo();
+#endif
+}
+
 void viewer_init (VRML_Viewer *viewer, int type) {
 	Quaternion q_i;
 
@@ -63,26 +96,13 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 		vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
 		inverse(&(Viewer.AntiQuat),&q_i);
 
-/* 		Navi => undef, */
-/* 		$this->{Navi} = VRML::Scene->new_node("NavigationInfo", */
-/* 							VRML::Nodes->{NavigationInfo}{Defaults}); */
-		/* speed & headlight are the only NavigationInfo fields used */
-		/* check out set_ViewerParams for what happens during a NavigationInfo bind */
 		viewer->headlight = TRUE;
 		viewer->speed = 1.0;
-/* 		Dist = 10.0; */
 		viewer->Dist = 10.0;
-/*
-		viewer->eyehalf = 0.0;
-		viewer->eyehalfangle = 0.0;
-		viewer->buffer = 0;
-*/
 		viewer->walk = &viewer_walk;
 		viewer->examine = &viewer_examine;
 		viewer->fly = &viewer_fly;
-	} else {
 	}
-
 	resolve_pos(viewer);
 }
 
@@ -357,7 +377,6 @@ void handle(const int mev, const unsigned int button, const float x, const float
 void
 handle_key(const char key)
 {
-	/* my($this,$time,$key) = @_; */
 	VRML_Viewer_Fly *fly = Viewer.fly;
 	char _key;
 	int i;
@@ -757,7 +776,8 @@ bind_viewpoint (struct VRML_Viewpoint *vp) {
 	/*printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
-	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); */
+	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
+	*/
 	
 
 	Viewer.Pos.x = vp->position.c[0];
