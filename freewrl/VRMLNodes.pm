@@ -717,10 +717,8 @@ Transform => new VRML::NodeType ("Transform",
 	 center => [SFVec3f, [0,0,0]],
 	 bboxCenter => [SFVec3f, [0,0,0]],
 	 bboxSize => [SFVec3f, [-1,-1,-1]],
-### Added by Henri...
-# re-added by JAS - Nov 27, 2000
-#
          addChildren => [MFNode, [], eventIn],
+         removeChildren => [MFNode, [], eventIn],
         },
         {
 #            Initialize => sub
@@ -738,6 +736,11 @@ Transform => new VRML::NodeType ("Transform",
 #                $node->{RFields}{children}=$node->{Fields}{children};
                 return ();
             },
+
+	    removeChildren => sub
+	    {
+	    },
+
             EventsProcessed => sub
             {
 #                my($node,$fields,$time) = @_;
@@ -765,6 +768,22 @@ Group => new VRML::NodeType("Group",
 	{children => [MFNode, []],
 	 bboxCenter => [SFVec3f, [0,0,0]],
 	 bboxSize => [SFVec3f, [-1,-1,-1]],
+         addChildren => [MFNode, [], eventIn],
+         removeChildren => [MFNode, [], eventIn],
+        },
+        {
+	    # copy these from Transform...
+            addChildren => sub
+            {
+            },
+
+	    removeChildren => sub
+	    {
+	    },
+
+            EventsProcessed => sub
+            {
+            }
 	}
 ),
 
@@ -1742,6 +1761,9 @@ Script => new VRML::NodeType("Script",
 # XXX Well, at least it will display children now... JAS.
 Collision => new VRML::NodeType("Collision",
 	{collide => [SFBool, 1],
+	 bboxSize => [SFVec3f, [-1,-1,-1]],
+	 bboxCenter => [SFVec3f, [0,0,0]],
+	 proxy => [SFNode, NULL],
 	 children => [MFNode, []]
 	}
 ),
