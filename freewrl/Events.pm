@@ -371,6 +371,15 @@ sub resolve_node_cnode {
 	# ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
 	# eventIns (see VRML97 node reference)
 	# these things have set_xxx and xxx... if we have one of these...
+	if (($node->{TypeName} eq "Extrusion") ||
+	    ($node->{TypeName} eq "ElevationGrid") ||
+	    ($node->{TypeName} eq "IndexedFaceSet") ||
+	    ($node->{TypeName} eq "IndexedLineSet")) {
+		if ($field =~ /^set_($VRML::Error::Word+)/) {
+			$field = $1;
+		}
+	}
+
 	if ($field =~ /^set_($VRML::Error::Word+)/) {
 		my $tmp = $1;
 		if ($node->{Type}{EventIns}{$tmp} and
@@ -385,9 +394,6 @@ sub resolve_node_cnode {
 			$field = $tmp;
 		}
 	}
-	#print "event now is ",VRML::NodeIntern::dump_name($node)," $field\n";
-
-
 
 	if ($node->{TypeName} =~/^__script__/) {
 		$outptr = $scenenum; 
@@ -676,12 +682,12 @@ sub propagate_events {
 # This puts an event coming FROM node
 
 
-sub put_event {
-	my ($this, $node, $field, $value) = @_;
-	print "put_event\n";
-	push @{$this->{Queue}}, [ $node, $field, $value ];
-	return;
-}
+#JAS sub put_event {
+#JAS 	my ($this, $node, $field, $value) = @_;
+#JAS 	#print "put_event\n";
+#JAS 	#push @{$this->{Queue}}, [ $node, $field, $value ];
+#JAS 	return;
+#JAS }
 
 # This sends an event TO node - should be removed for CRoutes.
 sub send_event_to {
@@ -719,14 +725,14 @@ sub send_set_bind_to {
 	VRML::VRMLFunc::do_bind_to ($node->{TypeName}, $outptr, $bindValue);
 }
 
-sub put_events {
-	my ($this, $events) = @_;
-	# print "Put_events\n";
-	for (@$events) {
-		die("Invalid put_events event $_\n") if (ref $_ ne "ARRAY");
-	}
-	push @{$this->{Queue}}, @$events;
-}
+#JAS sub put_events {
+#JAS 	my ($this, $events) = @_;
+#JAS 	# print "Put_events\n";
+#JAS 	#for (@$events) {
+#JAS 	#	die("Invalid put_events event $_\n") if (ref $_ ne "ARRAY");
+#JAS 	#}
+#JAS 	#push @{$this->{Queue}}, @$events;
+#JAS }
 
 sub handle_touched {
 	my($this, $node, $but, $move, $over) = @_;
