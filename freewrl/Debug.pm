@@ -17,9 +17,12 @@ package VRML::Debug;
 sub toString {
 	my ($dt) = @_;
 
-	return "NULL" if ($dt eq "");
+	return "NULL" if (!defined $dt);
+	return "\"\"" if ($dt eq "");
 
 	my $ref = ref $dt;
+
+	return $dt if (!$ref);
 
 	if ($ref eq "HASH") {
 		my $key;
@@ -45,8 +48,10 @@ sub toString {
 		return "$dt { $dt->{DEFName}, ".toString($dt->{DEFNode})." }";
 	} elsif ($ref eq "VRML::IS") {
 		return "$dt { $dt->{Name}, ".toString($dt->{Ref}).", ".toString($dt->{ISField})." }";
-	} else {
+	} elsif ($ref =~ /(Intern|Scene|Type)$/) {
 		return VRML::NodeIntern::dump_name($dt);
+	} else {
+		return "$ref ".$dt;
 	}
 }
 
