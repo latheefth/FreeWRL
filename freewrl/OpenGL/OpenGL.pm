@@ -109,7 +109,6 @@
 		glMultMatrixd
 		glPixelStorei
 		glPolygonMode
-		glPolygonOffsetEXT
 		glPopMatrix
 		glPushMatrix
 		glReadPixels
@@ -119,6 +118,7 @@
 		glViewport
 		glXDestroyContext
 		glXSwapBuffers
+		glpOpenGLInitialize
 		glpOpenWindow
 		glpXNextEvent
 		gluPerspective
