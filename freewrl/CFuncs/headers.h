@@ -320,6 +320,6 @@ extern int navi_tos;
 extern void initializePerlThread(void);
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
-extern int fileExists(char *fname);
+extern int fileExists(char *fname, char *firstBytes);
 
 #endif /* __HEADERS_H__ */

@@ -30,5 +30,4 @@
 void bind_image(int type, SV *parenturl, struct Multi_String url,
 				GLuint *texture_num,
 				int repeatS,
-				int repeatT,
-				int remove);
+				int repeatT);

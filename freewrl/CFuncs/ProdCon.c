@@ -57,7 +57,6 @@ unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
 unsigned int getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
 int isPerlinitialized(void);
-int fileExists(char *fn);
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 			unsigned ptr, unsigned ofs);
 
@@ -105,17 +104,21 @@ int isPerlinitialized() {return PerlInitialized;}
 int isPerlParsing() {return(PerlParsing);}
 
 /* does this file exist on the local file system, or via the HTML Browser? */
-int fileExists(char *fname) {
+int fileExists(char *fname, char *firstBytes) {
 	FILE *fp;
-	int ok;
+	int ok, tx;
 
 	/* are we running under netscape? if so, ask the browser */
 
 	/* we are not netscaped */
 	fp= fopen (fname,"r");
 	ok = (fp != NULL);
-	fclose (fp);
-	
+
+	/* try reading the first 4 bytes into the firstBytes array */
+	if (ok) {
+		if (fread(firstBytes,1,4,fp)!=4) ok = FALSE;
+		fclose (fp);
+	} 
 	return (ok);
 }
 
@@ -166,6 +169,7 @@ void _perlThread() {
 	int xx;
 	char *thisurl;
 	char *slashindex;
+	char firstBytes[4];
 
 	// is the browser started yet? 
 	if (!browserRunning) {
@@ -247,7 +251,7 @@ void _perlThread() {
 				}
 				strcat(filename,thisurl);
 
-				if (fileExists(filename)) {
+				if (fileExists(filename,firstBytes)) {
 					break;
 				}
 				count ++;
@@ -269,7 +273,7 @@ void _perlThread() {
 			if (psp.type==FROMSTRING) {
 	        		retval = CreateVrml("String",psp.inp,retarr);
 			} else {
-				if (!fileExists(psp.inp)) { 
+				if (!fileExists(psp.inp,firstBytes)) { 
 					retval=0;
 					psp.bind=0;
 					printf ("file problem: %s does not exist\n",psp.inp);

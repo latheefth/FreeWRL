@@ -21,7 +21,6 @@ struct loadTexParams {
 	unsigned *texture_num;
 	unsigned repeatS;
 	unsigned repeatT;
-	unsigned remove;
 	SV *parenturl;
 	unsigned type;
 	struct Multi_String url;
@@ -80,7 +79,7 @@ int TextureParsing = FALSE;
 int currentlyWorkingOn = -1;
 
 /* function Prototypes */
-int findTextureFile (int *texnum, int type);
+int findTextureFile (int *texnum, int type, int *remove);
 void _textureThread(void);
 void store_tex_info(
 		int texno,
@@ -112,7 +111,7 @@ int isTextureParsing() {return currentlyWorkingOn>=0;}
 void loadImageTexture (struct VRML_ImageTexture *node) {
 	bind_image(IMAGETEXTURE, node->__parenturl, 
 		node->url, 
-		&node->__texture,node->repeatS,node->repeatT,FALSE);
+		&node->__texture,node->repeatS,node->repeatT);
 }
 
 /* load in a texture, if possible */
@@ -120,14 +119,14 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 	struct Multi_String mynull;
 	bind_image(PIXELTEXTURE, node->image, 
 		mynull, 
-		&node->__texture,node->repeatS,node->repeatT,FALSE);
+		&node->__texture,node->repeatS,node->repeatT);
 }
 
 /* load in a texture, if possible */
 void loadMovieTexture (struct VRML_MovieTexture *node) {
 	bind_image(MOVIETEXTURE, node->__parenturl, 
 		node->url, 
-		&node->__texture0_,node->repeatS,node->repeatT,FALSE);
+		&node->__texture0_,node->repeatS,node->repeatT);
 }
 
 
@@ -224,12 +223,10 @@ void new_do_texture(int texno) {
 	texture_num	the OpenGL texture identifier
 
 	repeatS, repeatT VRML fields
-
-	remove	remove this temporary file, eg, if we converted a .tiff to .png
 */
 
 void bind_image(int itype, SV *parenturl, struct Multi_String url, 
-		GLuint *texture_num, int repeatS, int repeatT, int remove) {
+		GLuint *texture_num, int repeatS, int repeatT) {
 
 	/* temp variable */
 	int count;
@@ -305,7 +302,6 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	loadparams[*texture_num].texture_num = texture_num;
 	loadparams[*texture_num].repeatS = repeatS;
 	loadparams[*texture_num].repeatT = repeatT;
-	loadparams[*texture_num].remove = remove;
 	if (currentlyWorkingOn <0) {
 		if (TexVerbose) 
 			printf ("currentlyWorkingOn WAS %d ",currentlyWorkingOn);
@@ -332,17 +328,29 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
    this is almost identical to the one for Inlines, but running
    in different threads */
 
-int findTextureFile (int *texnum, int type) {
+int findTextureFile (int *texnum, int type, int *istemp) {
 	char *filename;
 	char *mypath;
 	char *thisurl;
 	char *slashindex;
 	int count,flen;
+	char firstBytes[4];
+	char *sysline;
+
+	/* pattern matching, for finding internally handled types */
+	char firstPNG[] = {0x89,0x50,0x4e,0x47};
+	char firstJPG[] = {0xff,0xd8,0xff,0xe0};
+	char firstMPGa[] = {0x00, 0x00, 0x01, 0xba};
+	char firstMPGb[] = {0x00, 0x00, 0x01, 0xb3};
+
 
 	int xx;
+	*istemp=FALSE;	/* don't remove this file */
 
 	/* is this a PixelTexture? if so, we have the "file" in memory */
-	if (type == PIXELTEXTURE) return TRUE;
+	if (type == PIXELTEXTURE) {
+		return TRUE;
+	}	
 
 	/* nope, try to find this file. */
 	filename = malloc(1000);
@@ -385,9 +393,7 @@ int findTextureFile (int *texnum, int type) {
 			filename[0]=0;
 		}
 		strcat(filename,thisurl);
-		if (fileExists(filename)) {
-			break;
-		}
+		if (fileExists(filename,firstBytes)) { break; }
 		count ++;
 	}
 	
@@ -440,6 +446,23 @@ int findTextureFile (int *texnum, int type) {
 			return FALSE;
 		    }
 		}	
+	}
+
+	/* is this a texture type that is *not* handled internally? */
+	if ((strncmp(firstBytes,firstPNG,4) != 0) && 
+	    (strncmp(firstBytes,firstJPG,4) != 0) && 
+	    (strncmp(firstBytes,firstMPGa,4) != 0) && 
+	    (strncmp(firstBytes,firstMPGb,4) != 0)) {
+		sysline = malloc(sizeof(char)*(strlen(filename)+100));
+		if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
+		sprintf(sysline,"convert %s /tmp/freewrl%d.png",filename,getpid());
+		if (system (sysline) != 0) {
+			printf ("Freewrl: error running convert line %s\n",sysline);
+		} else {
+			sprintf (filename,"/tmp/freewrl%d.png",getpid());
+			*istemp=TRUE;
+		}	
+		free (sysline);
 	}
 
 	/* save filename in data structure for later comparisons */
@@ -505,14 +528,11 @@ void _textureThread(void) {
 			printf ("tex thread, currentlyworking on %d\n",currentlyWorkingOn);
 
 		if (findTextureFile(loadparams[currentlyWorkingOn].texture_num,
-			loadparams[currentlyWorkingOn].type)) {
-
+			loadparams[currentlyWorkingOn].type,&remove)) {
 			filename = loadparams[currentlyWorkingOn].filename;
 			texture_num = *loadparams[currentlyWorkingOn].texture_num;
 			repeatS = loadparams[currentlyWorkingOn].repeatS;
 			repeatT = loadparams[currentlyWorkingOn].repeatT;
-			remove = loadparams[currentlyWorkingOn].remove;
-			infile = fopen(filename,"r");
 	
 			/* is this a pixeltexture? */
 			if (loadparams[currentlyWorkingOn].type==PIXELTEXTURE) {
@@ -588,6 +608,7 @@ void _textureThread(void) {
 		
 		
 			} else{ 
+			infile = fopen(filename,"r");
 			if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
 		
 				/* it is not a png file - assume a jpeg file */
