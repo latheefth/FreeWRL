@@ -20,6 +20,11 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.109  2003/05/17 05:54:30  ayla
+#
+# Changes needed to support the port of Viewer and Quaternion Perl code to C - pass 1.
+# No doubt there will also be problems with this, and there are blocks of code that have been disabled for now.
+#
 # Revision 1.108  2003/05/14 17:25:06  crc_canada
 # ProximitySensor code now in C
 #
@@ -1504,6 +1509,7 @@ Billboard => '
 	static const struct pt xvec = {1.0, 0, 0};
 	static const struct pt yvec = {0, 1.0, 0};
 	static const struct pt zvec = {0, 0, 1.0};
+	struct orient viewer_orient;
 	int align;
 	double len, len2, angle, angle2;
 	int sign;
@@ -1512,20 +1518,37 @@ Billboard => '
 	ax.z = $f(axisOfRotation,2);
 	align = (APPROX(VECSQ(ax),0));
 
+	quaternion_to_vrmlrot(&(Viewer.Quat),
+		&(viewer_orient.x), &(viewer_orient.y),
+		&(viewer_orient.z), &(viewer_orient.a));
+
 	glPushMatrix();
 
-	vpos.x = ViewerPosition.x;
-	vpos.y = ViewerPosition.y;
-	vpos.z = ViewerPosition.z;
+/*
+ *	vpos.x = ViewerPosition.x;
+ *	vpos.y = ViewerPosition.y;
+ *	vpos.z = ViewerPosition.z;
+ */
+
+	vpos.x = (Viewer.Pos).x;
+	vpos.y = (Viewer.Pos).y;
+	vpos.z = (Viewer.Pos).z;
 
 	len = VECSQ(vpos);
 	if (APPROX(len, 0)) { return; }
 	VECSCALE(vpos, 1/sqrt(len));
 
 	if (align) {
-		ax.x = ViewerOrientation.x;
-		ax.y = ViewerOrientation.y;
-		ax.z = ViewerOrientation.z;
+/*
+ *		ax.x = ViewerOrientation.x;
+ *		ax.y = ViewerOrientation.y;
+ *		ax.z = ViewerOrientation.z;
+ */
+
+		ax.x = viewer_orient.x;
+		ax.y = viewer_orient.y;
+		ax.z = viewer_orient.z;
+
 	}
 
 	VECCP(ax, zvec, arcp);
@@ -1539,7 +1562,8 @@ Billboard => '
 	VECCP(vpos, ax, cp); /* cp is now 90deg to both vector and axis */
 	len = sqrt(VECSQ(cp));
 	if (APPROX(len, 0)) {
-		glRotatef(-ViewerOrientation.a/3.1415926536*180, ax.x, ax.y, ax.z);
+		/* glRotatef(-ViewerOrientation.a/3.1415926536*180, ax.x, ax.y, ax.z); */
+		glRotatef(-viewer_orient.a/3.1415926536*180, ax.x, ax.y, ax.z);
 		return;
 	}
 	VECSCALE(cp, 1/len);

@@ -26,6 +26,11 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.88  2003/05/17 05:54:30  ayla
+#
+# Changes needed to support the port of Viewer and Quaternion Perl code to C - pass 1.
+# No doubt there will also be problems with this, and there are blocks of code that have been disabled for now.
+#
 # Revision 1.87  2003/05/14 18:03:32  crc_canada
 # Collision now done in C
 #
@@ -1178,6 +1183,7 @@ struct sNaviInfo {
 #include "CFuncs/Structs.h"
 #include "CFuncs/headers.h"
 #include "CFuncs/constants.h"
+#include "CFuncs/Viewer.h"
 
 #include "CFuncs/LinearAlgebra.h"
 #include "CFuncs/Collision.h"
@@ -1251,13 +1257,12 @@ struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 /* for alignment of collision cylinder, and gravity (later). */
 struct pt ViewerUpvector = {0,0,0};
 
+VRML_Viewer Viewer;
 
 /* viewer position obtained from Viewer.pm */
-struct pt ViewerPosition = {0, 0, 10};
-
-
+/* struct pt ViewerPosition = {0, 0, 10}; */
 /* viewer orientation (calculated from quaternion) obtained from Viewer.pm */
-struct orient ViewerOrientation = {0, 0, 1, 0};
+/* struct orient ViewerOrientation = {0, 0, 1, 0}; */
 
 
 /* These two points define a ray in window coordinates */
@@ -1271,7 +1276,7 @@ struct pt hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
 GLint viewport[4] = {-1,-1,2,2};
 
 /* These three points define 1. hitpoint 2., 3. two different tangents
- * of the surface at hitpoint (to get transformation correctly */ 
+ * of the surface at hitpoint (to get transformation correctly */
 
 /* All in window coordinates */
 
@@ -1609,41 +1614,6 @@ MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 
 PROTOTYPES: ENABLE
 
-void
-update_viewerpos(x, y, z)
-	double x
-	double y
-	double z
-CODE:
-	ViewerPosition.x = x;
-	ViewerPosition.y = y;
-	ViewerPosition.z = z;
-	if (verbose) {
-		printf("VRML::VRMLFunc::update_viewerpos: (%f, %f, %f)\n",
-			ViewerPosition.x,
-			ViewerPosition.y,
-			ViewerPosition.z);
-	}
-
-
-void
-update_viewerorient(x, y, z, a)
-	double x
-	double y
-	double z
-	double a
-CODE:
-	ViewerOrientation.x = x;
-	ViewerOrientation.y = y;
-	ViewerOrientation.z = z;
-	ViewerOrientation.a = a;
-	if (verbose) {
-		printf("VRML::VRMLFunc::update_viewerorient: (%f, %f, %f, %f)\n",
-			ViewerOrientation.x,
-			ViewerOrientation.y,
-			ViewerOrientation.z,
-			ViewerOrientation.a);
-	}
 
 
 #####################################################################
@@ -1835,38 +1805,14 @@ set_fieldofview(angle)
 CODE:
 	fieldofview = angle;
 
-void
-set_stereo_offset(buffer,eyehalf,eyehalfangle)
-	int buffer
-	double eyehalf
-	double eyehalfangle
+
+# allow Perl code to get the fieldOfView
+double
+get_fieldofview()
 CODE:
-
-	double x;
-	double correction;
-	double angle;
-
-	x = 0.0;
-	angle = 0.0;
-	/* correction for fieldofview
-		# 18.0: builtin fieldOfView of human eye
-		# 45.0: default fieldOfView of VRML97 viewpoint
-	*/
-
-	correction = 18.0/fieldofview;
-	if (buffer==GL_BACK_LEFT) {
-
-		x=eyehalf;
-		angle=eyehalfangle*correction;
-	} else if (buffer==GL_BACK_RIGHT) {
-		x=-eyehalf;
-		angle=-eyehalfangle*correction;
-	}
-	glTranslatef(x,0,0);
-	glRotatef(angle, 0,1,0);
-
-
-
+	RETVAL = fieldofview;
+OUTPUT:
+	RETVAL
 
 
 # setup_projection
@@ -2099,6 +2045,101 @@ do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr)
 	void *intptr
 CODE:
 	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr);
+
+
+#********************************************************************************
+# initialize viewer implemented in C replacing viewer Perl module
+
+void
+do_viewer_init(type)
+	int type
+CODE:
+	viewer_init(&Viewer, type);
+
+unsigned int
+do_get_buffer()
+CODE:
+	RETVAL = get_buffer(&Viewer);
+OUTPUT:
+	RETVAL
+
+void
+do_set_buffer(buffer)
+   unsigned int buffer
+CODE:
+	set_buffer(&Viewer, buffer);
+
+int
+do_get_headlight()
+CODE:
+	RETVAL = get_headlight(&Viewer);
+OUTPUT:
+	RETVAL
+
+void
+do_toggle_headlight()
+CODE:
+	toggle_headlight(&Viewer);
+
+#********************************************************************************
+# call viewer function viewer_togl
+void
+do_viewer_togl()
+CODE:
+	viewer_togl(&Viewer, fieldofview);
+
+void
+do_set_eyehalf(eyehalf, eyehalfangle)
+	double eyehalf
+	double eyehalfangle
+CODE:
+	set_eyehalf(&Viewer, eyehalf, eyehalfangle);
+
+void
+do_set_viewer_type(type)
+	int type
+CODE:
+	set_viewer_type(type);
+
+void
+do_handle_key(time, key)
+	double time
+	char *key
+CODE:
+	handle_key(&Viewer, time, key);
+
+
+void
+do_handle_keyrelease(time, key)
+	double time
+	char *key
+CODE:
+	handle_keyrelease(&Viewer, time, key);
+
+
+void
+do_handle_tick(time)
+	double time
+CODE:
+	handle_tick(&Viewer, time);
+
+
+void
+do_handle(mev, button, x, y)
+	char *mev
+	unsigned int button
+	double x
+	double y
+CODE:
+	handle(&Viewer, mev, button, x, y);
+
+
+int
+use_keys()
+
+void
+set_viewer_type(type)
+	int type
 
 
 #********************************************************************************

@@ -1,8 +1,23 @@
+#ifndef __HEADERS_H__
+#define __HEADERS_H__
+
+#include "Structs.h"
+
+#include <GL/glu.h>
+
 
 /* number of tesselated coordinates allowed */
 #define TESS_MAX_COORDS  500
 
 #define offset_of(p_type,field) ((unsigned int)(&(((p_type)NULL)->field)-NULL))
+
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
 
 #ifdef M_PI
 #define PI M_PI
@@ -234,3 +249,6 @@ extern struct sNaviInfo naviinfo;
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
 extern char * BrowserActionString;
+
+
+#endif /* __HEADERS_H__ */

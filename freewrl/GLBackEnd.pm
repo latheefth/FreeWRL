@@ -18,7 +18,7 @@ if($VRML::verbose::collision) {
     VRML::VRMLFunc::render_verbose_collision(1);
 }
 require 'VRML/VRMLCU.pm';
-require 'VRML/Viewer.pm';
+#AK - require 'VRML/Viewer.pm';
 use strict vars;
 # ISA?
 
@@ -34,6 +34,13 @@ my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
 my $becollision = 1;	# collision detection turned on or off - 1 = on.
 
+## from Viewer.h:
+sub NONE  { return 0; }
+sub EXAMINE { return 1; }
+sub WALK { return 2; }
+sub EXFLY { return 3; }
+sub FLY { return 4; }
+
 ####
 #
 # set fast rendering - don't do smooth shading
@@ -47,16 +54,18 @@ sub set_fast {
 #
 # Set / pop views for snapshots
 
-sub pushview {
-	my($this, $loc, $ori) = @_;
-	push @{$this->{AView}}, $this->{Viewer};
-	$this->{Viewer} = VRML::Viewer::None->new($loc,$ori);
-}
+##AK - not currently used
+#sub pushview {
+#	my($this, $loc, $ori) = @_;
+#	push @{$this->{AView}}, $this->{Viewer};
+#	$this->{Viewer} = VRML::Viewer::None->new($loc,$ori);
+#}
 
-sub popview {
-	my($this) = @_;
-	$this->{Viewer} = pop @{$this->{AView}};
-}
+##AK - not currently used
+#sub popview {
+#	my($this) = @_;
+#	$this->{Viewer} = pop @{$this->{AView}};
+#}
 
 ####
 #
@@ -193,20 +202,27 @@ sub new {
 	if ($VRML::offline) {
 		$this->doconfig($w,$h);
 	}
-	$this->{Viewer} = VRML::Viewer::Examine->new;
+#AK - #$this->{Viewer} = VRML::Viewer::Examine->new;
+	VRML::VRMLFunc::do_viewer_init(EXAMINE);
 
-	$this->{Viewer}->{eyehalf}=$eyedist/2.0;
-	$this->{Viewer}->{eyehalfangle}=atan2($eyedist/2.0,$screendist)*
-		360.0/(2.0*$pi);
-
+#AK - #$this->{Viewer}->{eyehalf}=$eyedist/2.0;
+#AK - #$this->{Viewer}->{eyehalfangle}=atan2($eyedist/2.0,$screendist)*360.0/(2.0*$pi);
+	VRML::VRMLFunc::do_set_eyehalf(
+								   $eyedist/2.0,
+								   atan2($eyedist/2.0,$screendist)*360.0/(2.0*$pi)
+								  );
 	return $this;
 }
 
 sub setEyeDist {
 	my ($this, $eyedist, $screendist) = @_;
 	my $pi = atan2(1,1) * 4;
-	$this->{Viewer}->{eyehalf} = $eyedist/2.0;
-	$this->{Viewer}->{eyehalfangle} = atan2($eyedist/2.0,$screendist)*360.0/(2.0*$pi);
+#AK - #$this->{Viewer}->{eyehalf} = $eyedist/2.0;
+#AK - #$this->{Viewer}->{eyehalfangle} = atan2($eyedist/2.0,$screendist)*360.0/(2.0*$pi);
+	VRML::VRMLFunc::do_set_eyehalf(
+								   $eyedist/2.0,
+								   atan2($eyedist/2.0,$screendist)*360.0/(2.0*$pi)
+								  );
 }
 
 # SD - adding call to shut down Open GL screen
@@ -242,7 +258,7 @@ sub handle_events {
 
 	$this->finish_event();
 	}
-	#	$this->{Viewer}->handle_tick($time);
+	#$this->{Viewer}->handle_tick($time);
 	
 }
 
@@ -256,70 +272,75 @@ sub updateCoords {
 
 sub set_root { $_[0]{Root} = $_[1] }
 
-sub bind_viewpoint {
-	my($this,$node,$bind_info) = @_;
-	VRML::VRMLFunc::set_fieldofview ($node->{Fields}{fieldOfView});
-	$this->{Viewer}->bind_viewpoint($node,$bind_info);
-}
+#AK - not currently used
+#sub bind_viewpoint {
+#	my($this,$node,$bind_info) = @_;
+#	VRML::VRMLFunc::set_fieldofview ($node->{Fields}{fieldOfView});
+#	$this->{Viewer}->bind_viewpoint($node,$bind_info);
+#}
 
-sub unbind_viewpoint {
-	my($this, $node) = @_;
-	return $this->{Viewer}->unbind_viewpoint($node);
-}
+#AK - not currently used
+#sub unbind_viewpoint {
+#	my($this, $node) = @_;
+#	return $this->{Viewer}->unbind_viewpoint($node);
+#}
 
-sub bind_navi_info {
-	my($this,$node) = @_;
-	$this->{Viewer}->bind_navi_info($node);
-	my $t = ref $this->{Viewer};
-	$t =~ /^VRML::Viewer::(\w+)/ or die("Invalid viewer");
-	$this->choose_viewer($1);
-}
+#AK - not currently used
+#sub bind_navi_info {
+#	my($this,$node) = @_;
+#	$this->{Viewer}->bind_navi_info($node);
+#	my $t = ref $this->{Viewer};
+#	$t =~ /^VRML::Viewer::(\w+)/ or die("Invalid viewer");
+#	$this->choose_viewer($1);
+#}
 
-sub choose_viewer {
-	my($this,$viewer) = @_;
-	my $vs = [];
-	if($this->{Viewer}{Navi}) 
-	  {
-	    $vs = $this->{Viewer}{Navi}{RFields}{"type"};
-	  }
-	if(!@$vs)
-	  {
-	    if($viewer) 
-	      {
-		$this->set_viewer($viewer);
-	      }
-	    else
-	      {
-		$this->set_viewer("WALK");
-	      }
-	    return;
-	  } 
-	if(grep {(lc $_) eq (lc $viewer)} @$vs) 
-	  {
-	    $this->set_viewer($viewer);
-	    return;
-	  }
-	$this->set_viewer($vs->[0]);
-}
+#AK - not currently used
+#sub choose_viewer {
+#	my($this,$viewer) = @_;
+#	my $vs = [];
+#	if($this->{Viewer}{Navi}) 
+#	  {
+#	    $vs = $this->{Viewer}{Navi}{RFields}{"type"};
+#	  }
+#	if(!@$vs)
+#	  {
+#	    if($viewer) 
+#	      {
+#		$this->set_viewer($viewer);
+#	      }
+#	    else
+#	      {
+#		$this->set_viewer("WALK");
+#	      }
+#	    return;
+#	  } 
+#	if(grep {(lc $_) eq (lc $viewer)} @$vs) 
+#	  {
+#	    $this->set_viewer($viewer);
+#	    return;
+#	  }
+#	$this->set_viewer($vs->[0]);
+#}
 	
-sub set_viewer {
-	my($this,$viewer) = @_;
-	$viewer = ucfirst lc $viewer;
+#AK - not currently used
+#sub set_viewer {
+#	my($this,$viewer) = @_;
+#	$viewer = ucfirst lc $viewer;
 
-	# sanity check navigation info viewer type. Note that "ANY"
-	# will get mapped to Examine, along with any errors
+#	# sanity check navigation info viewer type. Note that "ANY"
+#	# will get mapped to Examine, along with any errors
 
-	if (($viewer ne "Walk") &&
-	    ($viewer ne "Examine") &&
-            ($viewer ne "Fly") &&
-	    ($viewer ne "None")) { 
-		# print "this is not a known viewer $viewer\n"; 
-		$viewer = "Examine";
-	}
+#	if (($viewer ne "Walk") &&
+#	    ($viewer ne "Examine") &&
+#            ($viewer ne "Fly") &&
+#	    ($viewer ne "None")) { 
+#		# print "this is not a known viewer $viewer\n"; 
+#		$viewer = "Examine";
+#	}
 
-	# print "Setting viewing mode '$viewer'\n";
-	$this->{Viewer} = "VRML::Viewer::$viewer"->new($this->{Viewer});
-}
+#	# print "Setting viewing mode '$viewer'\n";
+#	$this->{Viewer} = "VRML::Viewer::$viewer"->new($this->{Viewer});
+#}
 
 
 #event: Handles external sensory events (keys, mouse, etc)
@@ -379,9 +400,8 @@ sub event {
 
 	  # If this is not on a sensitive node....
 	  if ($cursortype == 0) {
-	      $this->{Viewer}->handle("PRESS",$but,$x,$y,
-				  $args[5] & &ShiftMask,
-				  $args[5] & &ControlMask);
+	      #AK - #$this->{Viewer}->handle("PRESS",$but,$x,$y, $args[5] & &ShiftMask, $args[5] & &ControlMask);
+		VRML::VRMLFunc::do_handle("PRESS", $but, $x, $y);
 	  }
 	}
       push @{$this->{BUTEV}}, [PRESS, $but, $args[1], $args[2]];
@@ -401,7 +421,8 @@ sub event {
       push @{$this->{BUTEV}}, [RELEASE, $but, $args[1], $args[2]];
       $this->finish_event;
       if ($cursortype == 0) {  #ie, it is not a sensitive node being released
-	$this->{Viewer}->handle("RELEASE",$but,0,0);
+		#AK - #$this->{Viewer}->handle("RELEASE",$but,0,0);
+		VRML::VRMLFunc::do_handle("RELEASE", $but, 0, 0);
       }
 
       $this->{SENSBUTREL} = $but;
@@ -410,38 +431,38 @@ sub event {
     } elsif($type == &KeyPress) {
       # print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
       if((lc $args[0]) eq "e") {
-	  $this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
+		  #AK - #$this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
+		VRML::VRMLFunc::set_viewer_type(EXAMINE);
 	} elsif((lc $args[0]) eq "w") {
-	  $this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
+		  #AK - #$this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
+		VRML::VRMLFunc::set_viewer_type(WALK);
 	} elsif((lc $args[0]) eq "d") {
-	  $this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
+		  #AK - #$this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
+		VRML::VRMLFunc::set_viewer_type(FLY);
 	} elsif((lc $args[0]) eq "f") {
-	  $this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
+		  #AK - #$this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
+		VRML::VRMLFunc::set_viewer_type(EXFLY);
 	} elsif((lc $args[0]) eq "h") {
-	  if($this->{Viewer}{Navi}{RFields}{headlight}) {
+	  #AK - #if($this->{Viewer}{Navi}{RFields}{headlight}) {
 	      #print "headlight going off...\n";
-	      $this->{Viewer}{Navi}{RFields}{headlight}=0;
-	    } else {
+	      #AK - #$this->{Viewer}{Navi}{RFields}{headlight}=0;
+	    #AK - #} else {
 	      #print "headlight going on...\n";
-	      $this->{Viewer}{Navi}{RFields}{headlight}=1;
-	    }
-
+	     #AK - # $this->{Viewer}{Navi}{RFields}{headlight}=1;
+	    #AK - #}
+		VRML::VRMLFunc::do_toggle_headlight();
 	} elsif((lc $args[0]) eq "/") {
 	  # the following 3 lines commented out for
 	  # Etienne's changes. JAS
 	  # my $tr = join ', ',@{$this->{Viewer}{Pos}};
-	  my $quat = join ', ',@{$this->{Viewer}{Quat}};
-	  print "QuatViewpoint: [$quat]\n";
-	  
-	  my $tr = sprintf("%8.4f " x 3, 
-			   @{$this->{Viewer}{Pos}});
-	  my $rot = sprintf("%8.4f " x 4, 
-			    @{$this->{Viewer}{Quat}->to_vrmlrot()});
-	  print("Viewpoint {\n",
-		"   position    $tr\n",
-		"   orientation $rot\n",
-		"}\n",
-		) ;
+
+	  #AK - #my $quat = join ', ',@{$this->{Viewer}{Quat}};
+	  #AK - #print "QuatViewpoint: [$quat]\n";
+
+	  #AK - #my $tr = sprintf("%8.4f " x 3, @{$this->{Viewer}{Pos}});
+	  #AK - #my $rot = sprintf("%8.4f " x 4, @{$this->{Viewer}{Quat}->to_vrmlrot()});
+	  #AK - #print("Viewpoint {\n", "\tposition\t$tr\n", "\torientation $rot\n", "}\n");
+		print("'/' key is temporarily non-functional.\n");
 
 	  # Sequence / Single Image saving ###########
 	} elsif((lc $args[0]) eq "s") {
@@ -483,29 +504,40 @@ sub event {
 	  } else {
 		$becollision=1;
 	  }
-	} elsif(!$this->{Viewer}->use_keys) {
+	#AK - #elsif(!$this->{Viewer}->use_keys())
+	} elsif(!VRML::VRMLFunc::use_keys()) {
 	    if((lc $args[0]) eq "k") {
-		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-		$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
+			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
+			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+			VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.4);
 	      } elsif((lc $args[0]) eq "j") {
-		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-		$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
+			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
+			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+			VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.6);
 	      } elsif((lc $args[0]) eq "l") {
-		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-		$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
+			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
+			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+			VRML::VRMLFunc::do_handle("DRAG", 1, 0.6, 0.5);
 	      } elsif((lc $args[0]) eq "h") {
-		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-		$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
+			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
+			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+			VRML::VRMLFunc::do_handle("DRAG", 1, 0.4, 0.5);
 	      }
 	  } else {
-	  $this->{Viewer}->handle_key($time,$args[0]);
+		  #AK - #$this->{Viewer}->handle_key($time,$args[0]);
+		  VRML::VRMLFunc::do_handle_key($time, $args[0]);
 	}
     } elsif($type == &KeyRelease) {
-      if($this->{Viewer}->use_keys) {
-	  $this->{Viewer}->handle_keyrelease($time,$args[0]);
-	}
+	  #AK - #if($this->{Viewer}->use_keys()) {
+		if(!VRML::VRMLFunc::use_keys()) {
+		  #AK - #$this->{Viewer}->handle_keyrelease($time,$args[0]);
+		  VRML::VRMLFunc::do_handle_key($time, $args[0]);
+		}
     }
-
 }
 	
 sub finish_event {
@@ -516,7 +548,8 @@ sub finish_event {
 	my $y = $this->{MY} / $this->{H};
 	my $but = $this->{BUT};
 	if(($but == 1 or $but == 3) and $cursortype==0) {
-	    $this->{Viewer}->handle("DRAG", $but, $x, $y);
+	    #AK - #$this->{Viewer}->handle("DRAG", $but, $x, $y);
+		VRML::VRMLFunc::do_handle("DRAG", $but, $x, $y);
 	    # print "FE: $but $x $y\n";
 	} elsif($but == 2) {
 	    $this->{MCLICK} = 1;
@@ -615,12 +648,13 @@ sub setup_viewpoint {
 	my($this,$node) = @_;
 	my $viewpoint = 0;
 
-
 	glMatrixMode(&GL_MODELVIEW); # this should be assumed , here for safety.
+	glLoadIdentity();
 
-        glLoadIdentity(); 
-	$this->{Viewer}->togl(); # Make viewpoint, adds offset in stereo mode.
-	                         # FIXME: I think it also adds offset of left eye in mono mode.
+	# Make viewpoint, adds offset in stereo mode.
+	# FIXME: I think it also adds offset of left eye in mono mode.
+	#AK - #$this->{Viewer}->togl();
+	VRML::VRMLFunc::do_viewer_togl();
 
 	VRML::VRMLFunc::render_hier($node, 	# Node
 				    &VF_Viewpoint,# render view point
@@ -654,7 +688,8 @@ sub render_pre {
 	# when in stereo mode.
 	glLoadIdentity();
 
-	if($this->{Viewer}{Navi}{RFields}{headlight}) {
+	#AK - #if($this->{Viewer}{Navi}{RFields}{headlight})
+	if (VRML::VRMLFunc::do_get_headlight()) {
 		VRML::OpenGL::BackEndHeadlightOn();
 	}
 
@@ -693,8 +728,9 @@ sub render_collisions {
     VRML::VRMLFunc::get_collisionoffset($x,$y,$z);
 #    print "$x,$y,$z";
 
-    my $nv = $this->{Viewer}->{Quat}->invert->rotate([$x,$y,$z]);
-    for(0..2) {$this->{Viewer}->{Pos}[$_] += $nv->[$_]}
+	#AK - replace this!!! XXX
+    #AK - #my $nv = $this->{Viewer}->{Quat}->invert->rotate([$x,$y,$z]);
+    #AK - #for(0..2) {$this->{Viewer}->{Pos}[$_] += $nv->[$_]}
 }
 
 # Given root node of scene, render it all
@@ -718,14 +754,17 @@ sub render {
     print "Render: root $node\n" if ($VRML::verbose::be);
 	
     foreach $i (@{$this->{bufferarray}}) {
-	$this->{Viewer}->{buffer}=$i;
-	glDrawBuffer($this->{Viewer}->{buffer});
+	#AK - #$this->{Viewer}->{buffer}=$i;
+	VRML::VRMLFunc::do_set_buffer($i);
+	#AK - #glDrawBuffer($this->{Viewer}->{buffer});
+	glDrawBuffer(VRML::VRMLFunc::do_get_buffer());
 
 	# turn lights off, and clear buffer bits
 	VRML::OpenGL::BackEndClearBuffer();
 	VRML::OpenGL::BackEndLightsOff();
 	# turn light #0 off only if it is not a headlight.
-	if(! $this->{Viewer}{Navi}{RFields}{headlight}) {
+	#AK - #if(! $this->{Viewer}{Navi}{RFields}{headlight})
+	if (! VRML::VRMLFunc::do_get_headlight()) {
 	    VRML::OpenGL::BackEndHeadlightOff();
 	}
 
