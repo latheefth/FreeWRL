@@ -195,22 +195,23 @@
 \newcommand{\BkgFb}{To Nadir}
 \newcommand{\BkgGa}{When Last Angle Is $ < \frac{\pi}{2}$ Then Last Angle/Equator~}
 \newcommand{\BkgGb}{Region Should Be Invisible}
-\newcommand{\BkgH}{}
-\newcommand{\BkgI}{}
-\newcommand{\BkgJ}{}
-\newcommand{\BkgK}{}
-\newcommand{\BkgL}{}
-\newcommand{\BkgM}{}
-\newcommand{\BkgN}{}
-\newcommand{\BkgO}{}
-\newcommand{\BkgP}{}
-\newcommand{\BkgQ}{}
-\newcommand{\BkgR}{}
-\newcommand{\BkgS}{}
-\newcommand{\BkgT}{}
-\newcommand{\BkgU}{}
-\newcommand{\BkgV}{}
-\newcommand{\BkgW}{}
+\newcommand{\BkgH}{Set Different Values for the frontUrl Field (Jpeg Images)}
+\newcommand{\BkgI}{Set Different Values for the leftUrl Field (Jpeg Images)}
+\newcommand{\BkgJ}{Set Different Values for the rightUrl Field (Jpeg Images)}
+\newcommand{\BkgK}{Set Different Values for the backUrl Field (Jpeg Images)}
+\newcommand{\BkgL}{Set Different Values for the topUrl Field (Jpeg Images)}
+\newcommand{\BkgM}{Set Different Values for the bottomUrl Field (Jpeg Images)}
+\newcommand{\BkgN}{Whole Panorama Made up of JPEG Images}
+\newcommand{\BkgO}{Set Different Values for the frontUrl Field (png Images)}
+\newcommand{\BkgP}{Set Different Values for the leftUrl Field (png Images)}
+\newcommand{\BkgQ}{Set Different Values for the rightUrl Field (png Images)}
+\newcommand{\BkgR}{Set Different Values for the backUrl Field (png Images)}
+\newcommand{\BkgS}{Set Different Values for the topUrl Field (png Images)}
+\newcommand{\BkgT}{Set Different Values for the bottomUrl Field (png Images)}
+\newcommand{\BkgU}{Whole Panorama Made up of PNG Images}
+\newcommand{\BkgV}{Variations of the Same Color at Different Angles}
+\newcommand{\BkgWa}{Variations of the same ground color at different ground}
+\newcommand{\BkgWb}{angles (same sky color)}
 
 %% Bindable Nodes: Fog test cases
 \newcommand{\FogA}{Default Browser Behavior When No Fog Nodes Are Present}
@@ -869,7 +870,24 @@ Background & \testCase \BkgA & Failed \\\cline{2-3}
  & \BkgFb & \\\cline{2-3}
  & \testCase \BkgGa & Passed \\
  & \BkgGb & \\\cline{2-3}
- & & \\\hline
+ & \testCase \BkgH & Failed \\\cline{2-3}
+ & \testCase \BkgI & Failed \\\cline{2-3}
+ & \testCase \BkgJ & Failed \\\cline{2-3}
+ & \testCase \BkgK & Failed \\\cline{2-3}
+ & \testCase \BkgL & Failed \\\cline{2-3}
+ & \testCase \BkgM & Failed \\\cline{2-3}
+ & \testCase \BkgN & Failed \\\cline{2-3}
+ & \testCase \BkgO & Failed \\\cline{2-3}
+ & \testCase \BkgP & Failed \\\cline{2-3}
+ & \testCase \BkgQ & Failed \\\cline{2-3}
+ & \testCase \BkgR & Failed \\\cline{2-3}
+ & \testCase \BkgS & Failed \\\cline{2-3}
+ & \testCase \BkgT & Failed \\\cline{2-3}
+ & \testCase \BkgU & Failed \\\cline{2-3}
+ & \testCase \BkgV & Failed \\\cline{2-3}
+ & \testCase \BkgWa & Failed \\
+ & \BkgWb & \\\cline{2-3}
+
 \resetTestCase
 Fog & \testCase \FogA & Passed \\\cline{2-3}
  & \multicolumn{2}{|c|}{\textbf{Fog not supported.}} \\\hline
@@ -884,11 +902,103 @@ Viewpoint & & \\\cline{2-3}
 
 \subsection{Background Test Cases}
 
-\setcounter{subsubsection}{6}
-%% The next subsubsection should be test case 7:
+\setcounter{subsubsection}{0}
+%% The next subsubsection should be test case 1:
+
+\subsubsection{\BkgA}
+The VRML file is test-binding1.wrl.
+Animation does not work.
+
+\subsubsection{\BkgB}
+The VRML file is test-binding2.wrl.
+Button does not work.
+
+\subsubsection{\BkgCa\BkgCb}
+The VRML file is test-binding3.wrl.
+Button does not work.
+
+\subsubsection{\BkgDa\BkgDb}
+The VRML file is test-binding4.wrl.
+Button does not work.
+
+\subsubsection{\BkgE}
+The VRML file is test-binding5.wrl.
+Background switching does not work does not work.
+
+\subsubsection{\BkgFa\BkgFb}
+The VRML file is verify-clampingsky.wrl.
+
 \subsubsection{\BkgGa\BkgGb}
 The VRML file is verify-lastground.wrl.
 See bug 444966.
+
+\subsubsection{\BkgH}
+The VRML file is set-fronturl.wrl.
+Buttons do not work.
+
+\subsubsection{\BkgI}
+The VRML file is set-lefturl.wrl.
+Buttons do not work.
+
+\subsubsection{\BkgJ}
+The VRML file is set-righturl.wrl.
+Buttons do not work.
+
+\subsubsection{\BkgK}
+The VRML file is set-backurl.wrl.
+Buttons do not work.
+
+\subsubsection{\BkgL}
+The VRML file is set-topurl.wrl.
+Freewrl dies.
+
+\subsubsection{\BkgM}
+The VRML file is set-bottomurl.wrl.
+Buttons do not work.
+
+\subsubsection{\BkgN}
+The VRML file is test-wholejpeg.wrl.
+Button does not work.
+
+\subsubsection{\BkgO}
+The VRML file is set-fronturlpng.wrl
+Nothing is displayed. Freewrl appears to die.
+
+\subsubsection{\BkgP}
+The VRML file is set-lefturlpng.wrl
+Nothing is displayed. Freewrl appears to die.
+
+\subsubsection{\BkgQ}
+The VRML file is set-righturlpng.wrl
+Nothing is displayed. Freewrl appears to die.
+
+\subsubsection{\BkgR}
+The VRML file is set-backurlpng.wrl
+Nothing is displayed. Freewrl appears to die.
+
+\subsubsection{\BkgS}
+The VRML file is set-topurlpng.wrl
+Nothing is displayed. Freewrl appears to die.
+
+\subsubsection{\BkgT}
+The VRML file is bottomurlpng.wrl
+Nothing is displayed. Freewrl appears to die.
+
+\subsubsection{\BkgU}
+The VRML file is test-wholepng.wrl
+Nothing is displayed. Freewrl appears to die.
+
+\subsubsection{\BkgV}
+The VRML file is set-skycolor2.wrl.
+Buttons do not work.
+
+\subsubsection{\BkgWa\BkgWb}
+The VRML file is set-groundcolor2.wrl.
+Buttons do not work.
+
+
+
+
 
 \subsection{Fog Test Cases}
 Fog is not supported.
