@@ -70,8 +70,10 @@ void FW_IFS_tess_vertex(void *p) {
 	int *dp=p;
 
 	if (global_IFS_Coord_count == TESS_MAX_COORDS) {
-		printf ("FW_IFS_tess_vertex, too many coordinates in this face, change TESS_MAX_COORDS\n");
+		//printf ("FW_IFS_tess_vertex, too many coordinates in this face, change TESS_MAX_COORDS\n");
 		global_IFS_Coord_count++;
+		global_IFS_Coords[global_IFS_Coord_count] = 
+			global_IFS_Coords[global_IFS_Coord_count-1];
 	} else {
 		//printf ("FW_IFS_tess_vertex, global_ifs_coord count %d, pointer %d\n",global_IFS_Coord_count,*dp);
 		global_IFS_Coords[global_IFS_Coord_count++] = *dp;
@@ -80,14 +82,37 @@ void FW_IFS_tess_vertex(void *p) {
 }
 
 void FW_tess_error(GLenum e) {
-	printf("FW_tess_error %d: >%s<\n",e,gluErrorString(e));
+	// Prints out tesselation errors. Older versions of at least MESA would
+	// give errors, so for now at least, lets just ignore them.
+	// printf("FW_tess_error %d: >%s<\n",e,gluErrorString(e));
 }
 
 
 
+void FW_tess_combine_data (GLdouble c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
+	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
+	//printf("FW_tess_combine data\n");
+	//printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
+	//	c[0],c[1],c[2],w[0],w[1],w[2],w[3]);
+	//printf ("vertex 0 %lf %lf %lf, 1 %lf %lf %lf, 2 %lf %lf %lf, 3 %lf %lf %lf\n",
+	//	*d[0]->x,*d[0]->y,*d[0]->z,
+	//	*d[1]->x,*d[1]->y,*d[1]->z,
+	//	*d[2]->x,*d[2]->y,*d[2]->z,
+	//	*d[3]->x,*d[3]->y,*d[3]->z);
+
+	//printf ("d %d %d %d %d\n",d[0],d[1],d[2],d[3]);
+	//printf ("d %f %f %f %f\n",*d[0],*d[1],*d[2],*d[3]);
+	//printf ("new coord %d\n",nv);
+	nv[0] = c[0];
+	nv[1] = c[1];
+	nv[2] = c[2];
+	*out = nv; 
+}
+
 void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
-	//printf("FW_tess_combine\n");
+	//printf("FW_tess_combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
+	//	c[0],c[1],c[2],w[0],w[1],w[2],w[3]);
 	nv[0] = c[0];
 	nv[1] = c[1];
 	nv[2] = c[2];
@@ -107,8 +132,10 @@ void new_tessellation(void) {
 	gluTessCallback(global_tessobj,GLU_BEGIN,FW_tess_begin);
 	gluTessCallback(global_tessobj,GLU_EDGE_FLAG,FW_tess_edgeflag);
 	gluTessCallback(global_tessobj,GLU_VERTEX,FW_IFS_tess_vertex);
+	gluTessCallback(global_tessobj,GLU_TESS_VERTEX,FW_IFS_tess_vertex);
 	gluTessCallback(global_tessobj,GLU_ERROR,FW_tess_error);
 	gluTessCallback(global_tessobj,GLU_END,FW_tess_end);
+	gluTessCallback(global_tessobj, GLU_TESS_COMBINE_DATA,FW_tess_combine_data);
 	gluTessCallback(global_tessobj, GLU_TESS_COMBINE,FW_tess_combine);
 
 
