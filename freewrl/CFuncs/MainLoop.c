@@ -317,7 +317,7 @@ void handle_Xevents() {
 		lastMouseEvent=event.type;
 		switch(event.type) {
 			case ConfigureNotify:
-				setScreenDim (event.xconfigure.width,event.xconfigure.height);
+				//setScreenDim (event.xconfigure.width,event.xconfigure.height);
 				break;
 			case KeyPress:
 			case KeyRelease:
@@ -780,7 +780,7 @@ void Next_ViewPoint() {
 
 /* set internal variables for screen sizes, and calculate frustum */
 void setScreenDim(int wi, int he) {
-	//printf ("setScreenDim called - %d x %d\n",wi,he);
+	printf ("setScreenDim called - %d x %d\n",wi,he);
         screenWidth = wi;
         screenHeight = he;
         if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
@@ -893,3 +893,12 @@ void doQuit(void) {
 	shutdown_EAI();
 	exit(0);
 }
+
+#ifdef AQUA
+void freewrlDie (const char *format) {
+        printf ("\nFreeWRL: Catastrophic error:\n");
+        printf (format);
+        printf ("\n");
+        doQuit();
+}
+#endif
