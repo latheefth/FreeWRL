@@ -683,9 +683,17 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 			}
 		}
 		my $frac = 0;
+		my $time;
 		my $lowest = $f->{__texture}[0];
 		my $highest = $f->{__texture}[1];
-		my $time = ($tick - $f->{startTime}) * $f->{speed} / (($highest-$lowest)/30);
+
+		# sanity check
+
+		if ($lowest >= $highest) {
+			$lowest = $highest-1;
+		}	
+			
+		$time = ($tick - $f->{startTime}) * $f->{speed} / (($highest-$lowest)/30);
 		print "MovieTexture: $time '$act'\n" if $VRML::verbose::timesens;
 		if($act) {
 			if($f->{loop}) {
