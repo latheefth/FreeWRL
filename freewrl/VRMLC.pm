@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.24  2001/03/23 16:01:45  crc_canada
+# Unknown
+#
 # Revision 1.23  2001/03/13 16:18:59  crc_canada
 # Pre 0.28 checkin
 #
@@ -2457,8 +2460,8 @@ CODE:
 	y2 = px->__t2.r[1];
 	z2 = px->__t2.r[2];
 	q2 = px->__t2.r[3];
-	printf ("get_proximitysensor_vecs, x %f y %f z %f, x2 %f y2 %f z2 %f q2 %f\n",
-			x1,y1,z1,x2,y2,z2,q2); 
+	/* printf ("get_proximitysensor_vecs, x %f y %f z %f, x2 %f y2 %f z2 %f q2 %f\n", 
+			x1,y1,z1,x2,y2,z2,q2);  */
 OUTPUT:
 	hit
 	x1
