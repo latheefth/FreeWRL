@@ -12,8 +12,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/xf86vmode.h>
+#include <X11/keysym.h>
 
-#define NUM_ARG 6
+#define NUM_ARG 7
 
 Display *dpy;
 XVisualInfo *vi;
@@ -21,6 +23,19 @@ Colormap cmap;
 XSetWindowAttributes swa;
 Window win;
 GLXContext cx;
+unsigned int width, height;
+
+int screen;
+int modeNum;
+int bestMode;
+Window winDummy;
+unsigned int borderDummy;
+int glwinx, glwiny;
+unsigned int glwinwidth, glwinheight, glwindepth;
+int i;
+int dpyWidth, dpyHeight;
+XF86VidModeModeInfo **modes;
+XF86VidModeModeInfo original_display;
 
 Cursor arrowc;
 Cursor sensorc;
@@ -72,18 +87,20 @@ sensor_cursor()
 	}
 
 void
-glpcOpenWindow(x,y,w,h,pw,event_mask, ...)
+glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 	int	x
 	int	y
 	int	w
 	int	h
 	int	pw
+	int	fullscreen
 	long	event_mask
 	CODE:
 	{
 	    XEvent event;
 	    Window pwin=(Window)pw;
 	    int *attributes = default_attributes;
+
 	    if(items>NUM_ARG){
 	        int i;
 	        attributes = (int *)malloc((items-NUM_ARG+1)* sizeof(int));
@@ -95,36 +112,74 @@ glpcOpenWindow(x,y,w,h,pw,event_mask, ...)
 	    /* get a connection */
 	    dpy = XOpenDisplay(0);
 	    if (!dpy) { fprintf(stderr, "No display!\n");exit(-1);}
+
+	    screen = DefaultScreen(dpy);
+	    XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
+
+	    bestMode = 0;
 	
+	    for (i=0; i < modeNum; i++)
+	    {
+		if ((modes[i]->hdisplay == w) && (modes[i]->vdisplay==h))
+		{
+			bestMode = i;
+		}
+	    }
+
+	   original_display = *modes[0];
+
 	    /* get an appropriate visual */
-	    vi = glXChooseVisual(dpy, DefaultScreen(dpy),attributes);
+	    vi = glXChooseVisual(dpy, screen, attributes);
 	    if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
-	
+
 	    /* create a GLX context */
 	    /*JAS cx = glXCreateContext(dpy, vi, 0, GL_FALSE); */
 	    cx = glXCreateContext(dpy, vi, 0, GL_TRUE);
 	    if(!cx){fprintf(stderr, "No context!\n");exit(-1);}
-	
+
 	    /* create a color map */
 	    cmap = XCreateColormap(dpy, RootWindow(dpy, vi->screen),
 				   vi->visual, AllocNone);
-	
+
 	    /* create a window */
 	    swa.colormap = cmap;
 	    swa.border_pixel = 0;
 	    swa.event_mask = event_mask;
+
+	    if (fullscreen == 1)
+	    {
+	    	XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
+	    	XF86VidModeSetViewPort(dpy, screen, 0, 0);
+	    	dpyWidth = modes[bestMode]->hdisplay;
+	    	dpyHeight = modes[bestMode]->vdisplay;
+	    	swa.override_redirect = True;
+	    }
+
+	    XFree(modes);
+
 	    if(!pwin){pwin=RootWindow(dpy, vi->screen);}
+		
 	    if(x>=0) {
-	    	XTextProperty textpro;
-		char *slist[2]={"FreeWRL",NULL};
-		    win = XCreateWindow(dpy, pwin, 
-					x, y, w, h,
+	    	    XTextProperty textpro;
+		    char *slist[2]={"FreeWRL",NULL};
+		    if (fullscreen == 1)
+		    {
+		    	win = XCreateWindow(dpy, pwin, 
+					0, 0, dpyWidth, dpyHeight,
 					0, vi->depth, InputOutput, vi->visual,
-					CWBorderPixel|
-					 CWColormap|CWEventMask, &swa);
-		XStringListToTextProperty(slist, 1, &textpro);
-		    XSetWMName(dpy,win,&textpro);
-		XFree(textpro.value);
+					CWBorderPixel| CWOverrideRedirect |
+					 CWColormap | CWEventMask, &swa);
+		    }
+		    else
+		    {
+			win = XCreateWindow(dpy, pwin, x, y, w, h, 0, vi->depth, InputOutput, vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
+		    }
+
+	    		glXMakeCurrent(dpy, win, cx);
+	    		glFlush();
+		
+			XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
+
 		    if(!win) {
 			fprintf(stderr, "No Window\n");
 			exit(-1);
@@ -166,7 +221,7 @@ GLXFBConfig *glXChooseFBConfigSGIX(Display *dpy, int screen,
 	        fprintf(stderr, "Non current\n");
 	        exit(-1);
 	    }
-	
+
 	    /* clear the buffer */
 	    glClearColor(0,0,0,1);
 
@@ -2886,12 +2941,12 @@ glXChooseVisual(dpy,screen,attribList)
 	}
 
 void
-glXDestroyContext(dpy,ctx)
-	char *	dpy
-	GLXContext	ctx
+glXDestroyContext()
 	CODE:
 	{
-	   glXDestroyContext((Display *)dpy,ctx);
+	   XF86VidModeSwitchToMode((Display*) dpy, DefaultScreen((Display*)dpy), &original_display);
+	   XF86VidModeSetViewPort((Display*) dpy, DefaultScreen((Display*)dpy), 0, 0);
+	   glXDestroyContext((Display *)dpy,cx);
 	}
 
 Bool
