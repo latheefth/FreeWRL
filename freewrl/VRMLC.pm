@@ -25,9 +25,11 @@
 #
 # TODO:
 #  Test indexedlineset
-#  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.21  2000/12/20 17:28:14  crc_canada
+# more IndexedFaceSet work - normals this time
+#
 # Revision 1.20  2000/12/18 21:16:56  crc_canada
 # IndexedFaceSet colorIndex and colorPerVertex now working correctly.
 #
@@ -572,27 +574,32 @@ ElevationGrid => '
 Extrusion => (do "VRMLExtrusion.pm"),
 IndexedFaceSet => '
 	int i;
+
 	int cin = $f_n(coordIndex);
 	int cpv = $f(colorPerVertex);
-	/* int npv = xf(normalPerVertex); */
+	int npv = $f(normalPerVertex);
+	int tcin = $f_n(texCoordIndex);
+	int colin = $f_n(colorIndex); 
+	int norin = $f_n(normalIndex);
+
 	int curpoly;
 	int ntri = 0;
 	int nvert = 0;
-	struct SFColor *c1,*c2,*c3;
-	float a[3]; float b[3];
-	struct SFColor *points; 
-	int npoints;
-	struct SFColor *normals; 
+	int npoints = 0;
 	int nnormals=0;
+	int ntexCoords = 0;
+
+	float a[3]; float b[3];
+	struct SFColor *c1,*c2,*c3;
+	struct SFColor *points; 
+        struct SFVec2f *texCoords; 
 	struct VRML_PolyRep *rep_ = this_->_intern;
+	struct SFColor *normals;
+
 	int *cindex;
 	int *colindex;
         int *tcindex;
-        /* texture coord index */
-	int tcin = $f_n(texCoordIndex);
-        struct SFVec2f *texCoords; 
-	int ntexCoords = 0;
-	int colin = $f_n(colorIndex); 	/* colorIndex number 	*/
+	int *norindex;
 
         /* texture coords */
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
@@ -604,19 +611,25 @@ IndexedFaceSet => '
         printf("NtexCoordIndex = %d\n", tcin);
 	*/
 
-	/* IndexedFaceSet coords */
+	/* IndexedFaceSet coords and normals */
 	$fv(coord, points, get3, &npoints);
-	$fv_null(normal, normals, get3, &nnormals);
+	$fv_null(normal, normals, get3, &nnormals); 
+
 	
+	/*
 	printf ("points = %lx \n",npoints);
 	for (i=0; i<npoints; i++)
 	  printf ("\t point #%d = [%.5f %.5f %.5f]\n", i,
 		points[i].c[0], points[i].c[1], points[i].c[2]);
 	
-	printf ("normals = %lx\n",nnormals);
-	for (i=0; i<nnormals; i++)
+
+	printf ("normalIndex size (norin) %d\n",norin);
+	printf ("normals = (nnormals) %d\n",nnormals);
+	for (i=0; i<nnormals; i++) {
 	  printf ("\t normal #%d = [%.5f %.5f %.5f]\n", i,
-		normals[i].c[0], normals[i].c[1], normals[i].c[2]);
+		normals[i].c[0],normals[i].c[1],normals[i].c[2]);
+	}
+	*/
 
         if(tcin == 0 && ntexCoords != 0 && ntexCoords != npoints) {
            die("Invalid number of texture coordinates");
@@ -639,42 +652,40 @@ IndexedFaceSet => '
 	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 	colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
 	tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+	norindex = rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
+	rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
 	rep_->ntri = ntri;
-	if(!nnormals) {
-		/* We have to generate -- do flat only for now */
-		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
-		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
-	} else {
-		rep_->normal = NULL;
-		rep_->norindex = NULL;
-	}
+
+
+
 	if(!$f(convex)) {
                /* Begin a non-convex polygon */
                gluBeginPolygon( global_tessobj );
 
 	} /* else */ {  
 		/* coord indexes */
-		int initind=-1;
+		int initind = -1; 
 		int lastind=-1;
 		/* texture coord indexes */
-		int inittcind=-1;
+		int inittcind = -1; 
 		int lasttcind=-1;
 		/* color index indexes */
-		int initcolind=-1;
+		int initcolind = -1; 
 		int lastcolind=-1;
+		/* normalIndex indexes */
+		int initnorind = -1; 
+		int lastnorind = -1;
 		
 		int triind = 0;
 		curpoly = 0;
 		for(i=0; i<cin; i++) {
-			printf ("count is %d Coord index is %d\n",i,$f(coordIndex,i));
+			/*printf ("count is %d Coord index is %d\n",i,$f(coordIndex,i)); */
 
 			if($f(coordIndex,i) == -1) {
-				initind=-1;
-				lastind=-1;
-                                inittcind = -1;
-                                lasttcind = -1;
-				initcolind=-1;
-				lastcolind=-1;
+				initind=-1; lastind=-1;
+                                inittcind = -1; lasttcind = -1;
+				initcolind=-1; lastcolind=-1;
+				initnorind=-1; lastnorind=-1;
 				curpoly ++;
 			} else {
 				if(initind == -1) {
@@ -682,11 +693,13 @@ IndexedFaceSet => '
 					initind = $f(coordIndex,i);
 					if(tcin) inittcind = $f(texCoordIndex,i);
 					if(colin) initcolind = $f(colorIndex,i);
+					if(norin) initnorind = $f(normalIndex,i);
 				} else if(lastind == -1) {
 					/* printf ("lastind == -1\n"); */
 					lastind = $f(coordIndex,i);
 					if(tcin) lasttcind = $f(texCoordIndex,i);
 					if(colin) lastcolind = $f(colorIndex,i);
+					if(norin) lastnorind = $f(normalIndex,i);
 				} else {
 					cindex[triind*3+0] = initind;
 					cindex[triind*3+1] = lastind;
@@ -700,6 +713,16 @@ IndexedFaceSet => '
 						printf ("IFS - colorIndex too small\n");
 						colin = 0; 
 					}
+
+					/* normalIndex bounds check */
+        				if (norin && npv &&(norin <=i)) {
+						printf ("IFS - normalIndex too small\n");
+						norin = 0; 
+					} else if (norin && (norin<=curpoly)) {
+						printf ("IFS - normalIndex too small\n");
+						norin = 0; 
+					}
+
 
 
 					/* colour index */
@@ -730,15 +753,43 @@ IndexedFaceSet => '
 						}
 					}
 
-					if(rep_->normal) {
-						/* printf ("Normal\n"); */
+					/* normal index */
+					if(npv && nnormals) {
+						if (norin) {
+						norindex[triind*3+0] = initnorind;
+						norindex[triind*3+1] = lastnorind;
+						norindex[triind*3+2] = $f(normalIndex,i);
+						} else {
+						norindex[triind*3+0] = initind;
+						norindex[triind*3+1] = lastind;
+						norindex[triind*3+2] = $f(coordIndex,i);
+						}
+					} 
+					if (!npv && nnormals) {
+						if (norin) {
+						norindex[triind*3+0] = 
+								$f(normalIndex,curpoly);
+						norindex[triind*3+1] = 
+								$f(normalIndex,curpoly);
+						norindex[triind*3+2] = 
+								$f(normalIndex,curpoly);
+						} else {
+						norindex[triind*3+0] = curpoly;
+						norindex[triind*3+1] = curpoly;
+						norindex[triind*3+2] = curpoly;
+						}
+					}
+					/* no normals, so calculate them */
+					if (!nnormals) {
 						c1 = &(points[initind]);
 						c2 = &(points[lastind]); 
 						c3 = &(points[$f(coordIndex,i)]);
-						/* printf ("using points : \n\t%f %f %f, \n\t%f %f %f, \n\t%f %f %f\n",
+						/*
+						printf ("using points : \n\t%f %f %f, \n\t%f %f %f, \n\t%f %f %f\n",
 						c1->c[0], c1->c[1], c1->c[2],
 						c2->c[0], c2->c[1], c2->c[2], 
-						c3->c[0], c3->c[1], c3->c[2]); */
+						c3->c[0], c3->c[1], c3->c[2]); 
+						*/
 
 						a[0] = c2->c[0] - c1->c[0];
 						a[1] = c2->c[1] - c1->c[1];
@@ -756,6 +807,8 @@ IndexedFaceSet => '
 						rep_->norindex[triind*3+1] = triind;
 						rep_->norindex[triind*3+2] = triind;
 					}
+
+
 
                                         if(tcin && ntexCoords) {
 						/* printf("tcin && ntexCoords = %d && %d\\n", 								tcin, ntexCoords);  */
@@ -792,6 +845,7 @@ IndexedFaceSet => '
            glTexGenfv(GL_T, GL_OBJECT_PLANE, tgenparams);
            glEnable(GL_TEXTURE_GEN_T);
         }
+
 if(!$f(convex)) {
 
 /* End a non-convex polygon */
@@ -1669,9 +1723,14 @@ void render_polyrep(void *node,
 		/* get the normals, if there are any	*/
 		if(nnormals) {
 			if(nori >= nnormals) {
+				/* this should be caught before here JAS */
 				warn("Too large normal index -- help??");
 			}
 			glNormal3fv(normals[nori].c);
+/*
+printf ("Normal  #%d = [%.5f, %.5f, %.5f]\n",nori,normals[nori].c[0],
+				normals[nori].c[1], normals[nori].c[2]);
+*/
 		} else if(r->normal) {
 			glNormal3fv(r->normal+3*nori);
 		}
@@ -1690,18 +1749,15 @@ void render_polyrep(void *node,
 		/* Textures	*/
 		if(texcoords && ntexcoords) {
 		  	/* printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] ); */
-			/* fflush(stdout); */
 		  	glTexCoord2fv(texcoords[tci].c);
 		} /* TODO RCS: Complete use of texCoordIndex */
 
 		/* Coordinate points	*/
 		if(points) {
 		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] );  */
-			/*fflush(stdout);*/
 			glVertex3fv(points[ind].c);
 		} else if(r->coord) {	
 		  	/* printf("Render (r->coord) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]);  */
-			/*fflush(stdout);*/
 			glVertex3fv(r->coord+3*ind);
 		}
 	}
@@ -1876,7 +1932,7 @@ void regen_polyrep(void *node)
 	/* printf ("done regen_polyrep\n"); */
 }
 
-/* Assuming that norindexes set */
+/* Assuming that norindexes set and that cindex is set */
 void calc_poly_normals_flat(struct VRML_PolyRep *rep) 
 {
 	int i;
@@ -1885,6 +1941,12 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep)
 		v1 = rep->coord+3*rep->cindex[i*3+0];
 		v2 = rep->coord+3*rep->cindex[i*3+1];
 		v3 = rep->coord+3*rep->cindex[i*3+2];
+printf ("cpnf %d using cindex %d %d %d\n",
+i,rep->cindex[i*3],rep->cindex[i*3+1],rep->cindex[i*3+2]);
+printf ("	v1 %f %f %f\n",v1[0],v1[1],v1[2]);
+printf ("	v2 %f %f %f\n",v2[0],v2[1],v2[2]);
+printf ("	v3 %f %f %f\n",v3[0],v3[1],v3[2]);
+
 		a[0] = v2[0]-v1[0];
 		a[1] = v2[1]-v1[1];
 		a[2] = v2[2]-v1[2];
