@@ -21,6 +21,11 @@ even symbolic links don't work.
 So, copy all files (and directories) from the 
 <freewrl builddir>/java/classes/* to here.
 
+eg, in this directory, type:
+
+	cp -r ../../java/classes/* .
+
+
 You should then have a "vrml" directory here, and then the
 standalone script should work.
 
