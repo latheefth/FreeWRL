@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.132  2004/07/12 13:30:37  crc_canada
+# more steps to getting frustum culling working.
+#
 # Revision 1.131  2004/06/21 15:15:20  crc_canada
 # 1.07 pre changes.
 #
@@ -98,6 +101,10 @@ Box => '
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
+	/* for BoundingBox calculations */
+	setExtent(x,y,z,(struct VRML_Box *)this_);
+
+
 	if (this_->_ichange != this_->_change) {
 		// have to regen the shape
 
@@ -161,6 +168,9 @@ Cylinder => '
 	extern GLfloat cylsidetex[];		// in CFuncs/statics.c
 
 	if ((h < 0) || (r < 0)) {return;}
+
+	/* for BoundingBox calculations */
+	setExtent(r,h,r,(struct VRML_Box *)this_);
 
 	if (this_->_ichange != this_->_change) {
 		// have to regen the shape
@@ -243,9 +253,11 @@ Cone => '
 
 	if ((h < 0) || (r < 0)) {return;}
 
+	/* for BoundingBox calculations */
+	setExtent(r,h,r,(struct VRML_Box *)this_);
+
 	if (this_->_ichange != this_->_change) {
 		// have to regen the shape
-
 		this_->_ichange = this_->_change;
 
 		// malloc memory (if possible) 
@@ -352,6 +364,9 @@ Sphere => '
 	extern float spheretex[];		// in CFuncs/statics.c
 	int count;
 	float rad = $f(radius);
+
+	/* for BoundingBox calculations */
+	setExtent(rad,rad,rad,(struct VRML_Box *)this_);
 
 	if (this_->_ichange != this_->_change) {
 		int v; int h;
@@ -1077,6 +1092,12 @@ Transform => '
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
 			glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+			this_->bboxCenter.c[0] = modelMatrix[12];
+			this_->bboxCenter.c[1] = modelMatrix[13];
+			this_->bboxCenter.c[2] = modelMatrix[14];
+			//printf ("Transform - center is at %f %f %f\n",
+			//modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+			
 			this_->_dist = modelMatrix[14];
 			//printf ("getDist - recalculating distance, it is %f for %d\n", 
 			//	this_->_dist,this_);
@@ -1214,214 +1235,25 @@ Billboard => (join '','
 
 # Render children (real child nodes, not e.g. appearance/geometry)
 %ChildC = (
-	Group => '
-		int nc = $f_n(children); 
-		int i,j;
-		int savedlight = curlight;
-		struct VRML_Box *a, *b, *c;
-		int noswitch;
-
-		if(verbose) 
-			printf("RENDER GROUP START %d (%d)\n",this_, nc);
-
-		/* do we have to sort this node? */
-		if ((nc > 2 && render_blend)) {
-			//printf ("have to sort %d, nc %d\n",this_, nc);
-			/* simple, inefficient bubble sort */
-			/* this is a fast sort when nodes are already sorted;
-			   may wish to go and "QuickSort" or so on, when nodes
-			   move around a lot. (Bubblesort is bad when nodes
-			   have to be totally reversed) */
-
-			for(i=0; i<nc; i++) {
-				noswitch = TRUE;
-				for (j=(nc-1); j>i; j--) {
-					//printf ("comparing %d %d\n",i,j);
-					a = ((this_->children).p[j-1]);
-					b = ((this_->children).p[j]);
-
-					if (a->_dist > b->_dist) {
-						//printf ("have to switch %d %d\n",i,j);
-						c = a;
-						(this_->children).p[j-1] = b;
-						(this_->children).p[j] = c;
-						noswitch = FALSE;
-					}
-				}
-				/* did we have a clean run? */
-				if (noswitch) {
-					break;
-				}
-			}
-			//for(i=0; i<nc; i++) {
-			//	b = ((this_->children).p[i]);
-			//	printf ("child %d %d %f\n",i,b,b->_dist);
-			//}
-		}
-
-		if($i(has_light)) {
-			glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
-			for(i=0; i<nc; i++) {
-				struct VRML_Box *p = $f(children,i);
-				struct VRML_Virt *v = *(struct VRML_Virt **)p;
-				if(v->rend == DirectionalLight_Rend) {
-					render_node(p);
-				}
-			}
-		}
-
-		for(i=0; i<nc; i++) {
-			struct VRML_Box *p = $f(children,i);
-			struct VRML_Virt *v = *(struct VRML_Virt **)p;
-			if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
-			/* Hmm - how much time does this consume? */
-			/* Not that much. */
-			if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
-				render_node(p);
-			}
-		}
-		if($i(has_light)) {
-			glPopAttrib();
-		}
-		if(verbose) {printf("RENDER GROUP END %d\n",this_);}
-
-		curlight = savedlight;
-	',
-	Inline => '
-		int nc = $f_n(__children); 
-		int i;
-		int savedlight = curlight;
-
-		if(verbose) {printf("RENDER INLINE START %d (%d)\n",this_, nc);}
-
-		/* lets see if we still have to load this one... */
-		if ($f(__loadstatus)==0) loadInline(this_);
-		if($i(has_light)) {
-			glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
-			for(i=0; i<nc; i++) {
-				struct VRML_Box *p = $f(__children,i);
-				struct VRML_Virt *v = *(struct VRML_Virt **)p;
-				if(v->rend == DirectionalLight_Rend) {
-					render_node(p);
-				}
-			}
-		}
-		for(i=0; i<nc; i++) {
-			struct VRML_Box *p = $f(__children,i);
-			struct VRML_Virt *v = *(struct VRML_Virt **)p;
-			if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
-			if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
-				render_node(p);
-			}
-		}
-		if($i(has_light)) {
-			glPopAttrib();
-		}
-		if(verbose) {printf("RENDER INLINE END %d\n",this_);}
-
-		curlight = savedlight;
-	',
-	InlineLoadControl => '
-		int nc = $f_n(children); 
-		int i;
-		int savedlight = curlight;
-		struct VRML_Inline *inl;
-
-		if(verbose) {printf("RENDER INLINE START %d (%d)\n",this_, nc);}
-
-		/* lets see if we still have to load this one... */
-		if (($f(__loadstatus)==0) && ($f(load))) {
-			/* treat this as an inline; copy params over */
-			inl->url = this_->url;
-			inl->__children = this_->children;
-			inl->__parenturl = this_->__parenturl;
-			inl->__loadstatus = this_->__loadstatus;
-			loadInline(inl);
-			this_->url = inl->url;
-			this_->children = inl->__children;
-			this_->__parenturl = inl->__parenturl;
-			this_->__loadstatus = inl->__loadstatus;
-		} else if (!($f(load)) && ($f(__loadstatus) != 0)) {
-			printf ("InlineLoadControl, removing children\n");
-			this_->children.n = 0;
-			free (this_->children.p);
-			this_->__loadstatus = 0;
-		}
-
-		if($i(has_light)) {
-			glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
-			for(i=0; i<nc; i++) {
-				struct VRML_Box *p = $f(children,i);
-				struct VRML_Virt *v = *(struct VRML_Virt **)p;
-				if(v->rend == DirectionalLight_Rend) {
-					render_node(p);
-				}
-			}
-		}
-		for(i=0; i<nc; i++) {
-			struct VRML_Box *p = $f(children,i);
-			struct VRML_Virt *v = *(struct VRML_Virt **)p;
-			if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
-			if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
-				render_node(p);
-			}
-		}
-		if($i(has_light)) {
-			glPopAttrib();
-		}
-		if(verbose) {printf("RENDER INLINE END %d\n",this_);}
-
-		curlight = savedlight;
-	',
+	Group => 'groupingChild(this_); ',
+	Billboard => 'billboardChild(this_); ',
+	Transform => 'transformChild(this_); ',
+	Anchor => 'anchorChild(this_); ',
+	GeoLocation => 'geolocationChild(this_); ',
+	Inline => 'inlineChild(this_); ',
+	InlineLoadControl => 'inlinelodChild (this_); ',
 	Switch => '
+		/* exceedingly simple - render only one child */
 		int wc = $f(whichChoice);
 		if(wc >= 0 && wc < $f_n(choice)) {
 			void *p = $f(choice,wc);
 			render_node(p);
 		}
 	',
+	GeoLOD => '',
+	LOD => 'lodChild(this_);',
+	Collision => 'collisionChild(this_);',
 
-	GeoLOD => '
-	',
-
-	LOD => '
-		GLdouble mod[16];
-		GLdouble proj[16];
-		struct pt vec;
-		double dist;
-		int nran = $f_n(range);
-		int nnod = $f_n(level);
-		int i;
-		void *p;
-
-		if(!nran) {
-			void *p = $f(level, 0);
-			render_node(p);
-			return;
-		}
-
-		glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-		glGetDoublev(GL_PROJECTION_MATRIX, proj);
-		gluUnProject(0,0,0,mod,proj,viewport,
-			&vec.x,&vec.y,&vec.z);
-		vec.x -= $f(center,0);
-		vec.y -= $f(center,1);
-		vec.z -= $f(center,2);
-		dist = sqrt(VECSQ(vec));
-		i = 0;
-
-		while (i<nran) {
-			if(dist < $f(range,i)) {
-				break;
-			}
-			i++;
-		}
-		if(i >= nnod) {i = nnod-1;}
-
-		p = $f(level,i);
-		render_node(p);
-
-	',
 	Appearance => '
 		if($f(texture)) {
 
@@ -1539,66 +1371,7 @@ Billboard => (join '','
 
 		glPopAttrib();
 	',
-	Collision => '
-		int nc = $f_n(children); 
-		int i;
-		if(render_collision) {
-			if($f(collide) && !$f(proxy)) {
-				struct sCollisionInfo OldCollisionInfo = CollisionInfo;
-				for(i=0; i<nc; i++) {
-					void *p = $f(children,i);
-					if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
-					render_node(p);
-				}
-				if(CollisionInfo.Offset.x != OldCollisionInfo.Offset.x ||
-				   CollisionInfo.Offset.y != OldCollisionInfo.Offset.y ||
-				   CollisionInfo.Offset.z != OldCollisionInfo.Offset.z) {
-					/*collision occured
-					 * bit 0 gives collision, bit 1 gives change */
-					this_->__hit = (this_->__hit & 1) ? 1 : 3;
-				} else
-					this_->__hit = (this_->__hit & 1) ? 2 : 0;
-
-			}
-        	        if($f(proxy)) 
-	                        render_node($f(proxy));
-
-		} else { /*standard group behaviour*/
-			int savedlight = curlight;
-
-			if(verbose) {printf("RENDER GROUP START %d (%d)\n",this_, nc);}
-			if($i(has_light)) {
-				glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
-				for(i=0; i<nc; i++) {
-					struct VRML_Box *p = $f(children,i);
-					struct VRML_Virt *v = *(struct VRML_Virt **)p;
-					if(v->rend == DirectionalLight_Rend) {
-						render_node(p);
-					}
-				}
-			}
-			for(i=0; i<nc; i++) {
-				struct VRML_Box *p = $f(children,i);
-				struct VRML_Virt *v = *(struct VRML_Virt **)p;
-				if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
-				if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
-					render_node(p);
-				}
-			}
-			if($i(has_light)) {
-				glPopAttrib();
-			}
-			if(verbose) {printf("RENDER GROUP END %d\n",this_);}
-	
-			curlight = savedlight;
-		}
-	',
 );
-
-$ChildC{Transform} = $ChildC{Group};
-$ChildC{Billboard} = $ChildC{Group};
-$ChildC{Anchor} = $ChildC{Group};
-$ChildC{GeoLocation} = $ChildC{Group};
 
 #######################################################################
 #######################################################################
@@ -1726,6 +1499,7 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 #
 # ChangedC - when the fields change, the following code is run before
 # rendering for caching the data.
+#
 # 	
 
 %ChangedC = (

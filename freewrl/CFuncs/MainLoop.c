@@ -72,7 +72,10 @@ GLint viewPort2[10];
 /* screen width and height. */
 int screenWidth=1;
 int screenHeight=1;
+double nearPlane=0.1;
+double farPlane=21000.0;
 double screenRatio=1.5;
+double fieldofview=45.0;
 int CursorOverSensitive=FALSE;		// is Cursor over a Sensitive node?
 int oldCOS=FALSE;			// which node was cursor over before this node?
 int NavigationMode=FALSE;		// are we navigating or sensing?
@@ -314,10 +317,7 @@ void handle_Xevents() {
 		lastMouseEvent=event.type;
 		switch(event.type) {
 			case ConfigureNotify:
-				screenWidth = event.xconfigure.width;
-				screenHeight = event.xconfigure.height;
-				if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
-				else screenRatio =  screenWidth;
+				setScreenDim (event.xconfigure.width,event.xconfigure.height);
 				break;
 			case KeyPress:
 			case KeyRelease:
@@ -590,7 +590,6 @@ void setup_projection(int pick, int x, int y) {
 	if(pick) {
 		/* picking for mouse events */
 		glGetIntegerv(GL_VIEWPORT,viewPort2);
-		//gluPickMatrix(x,viewPort2[3]-y,3,3,viewPort2);
 		gluPickMatrix((float)x,(float)viewPort2[3]-y,
 			(float)100,(float)100,viewPort2);
 	}
@@ -598,7 +597,7 @@ void setup_projection(int pick, int x, int y) {
         /* bounds check */
         if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
 
-        gluPerspective(fieldofview, screenRatio, 0.1, 21000.0);
+        gluPerspective(fieldofview, screenRatio, nearPlane, farPlane);
         glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
         glMatrixMode(GL_MODELVIEW);
 
@@ -779,6 +778,17 @@ void Next_ViewPoint() {
 	}
 }
 
+/* set internal variables for screen sizes, and calculate frustum */
+void setScreenDim(int wi, int he) {
+	printf ("setScreenDim called - %d x %d\n",wi,he);
+        screenWidth = wi;
+        screenHeight = he;
+        if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
+        else screenRatio =  screenWidth;
+
+	calculateFrustum();
+}
+
 #ifdef AQUA
 void initGL() {
         aqglobalContext = CGLGetCurrentContext();
@@ -837,12 +847,6 @@ void setButDown(int button, int value) {
         ButDown[button] = value;
 }
 
-void setScreenDim(int wi, int he) {
-        screenWidth = wi;
-        screenHeight = he;
-        if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
-        else screenRatio =  screenWidth;
-}
 
 void setSnapSeq() {
         snapsequence = TRUE;

@@ -1435,8 +1435,6 @@ struct fchain
 float  *readMFFloatString(char *input, int *eQty, int type)
 {
 
-    CRVerbose = 0;
-    
     float *retVal = NULL;
     char *retValPtr;
     char  *tptr;
@@ -1569,8 +1567,6 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 /*--------------------------------------------------------------------------*/
 
 void set_EAI_MFElementtype (int num, int offset, void *pptr, int len) {
-    CRVerbose = 0; 
-    if (CRVerbose) printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
     
     int tn, tptr;
     char scriptline[2000];
@@ -1584,6 +1580,8 @@ void set_EAI_MFElementtype (int num, int offset, void *pptr, int len) {
 
     JSContext *_context;
     JSObject *_globalObj;
+
+    if (CRVerbose) printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
 	
     tn   = num;
     tptr = offset;

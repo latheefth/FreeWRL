@@ -39,7 +39,6 @@ extern CGLContextObj aqglobalContext;
 
 #define BOOL_STRING(b) (b ? "TRUE" : "FALSE")
 
-
 #ifdef M_PI
 #define PI M_PI
 #else
@@ -464,6 +463,26 @@ extern char *myPerlInstallDir;
 extern void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
+void BoundingBox(struct SFColor bbc,struct SFColor bbs);
+void setExtent (float x, float y, float z, struct VRML_Box *this_);
+void propagateExtent (float x, float y, float z, struct VRML_Box *this_);
+void calculateFrustum(void);
+
+/* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
+void groupingChild (struct VRML_Group *this_);
+void billboardChild (struct VRML_Billboard *this_);
+void transformChild (struct VRML_Transform *this_);
+void anchorChild (struct VRML_Anchor *this_);
+void geolocationChild (struct VRML_GeoLocation *this_);
+void inlineChild (struct VRML_Inline *this_);
+void lodChild (struct VRML_LOD *this_);
+void inlinelodChild (struct VRML_InlineLoadControl *this_);
+void collisionChild(struct VRML_Collision *this_);
+
+extern int curlight,verbose,render_blend,render_geom,render_collision;
+
+
+
 
 /* Java CLASS invocation */
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);

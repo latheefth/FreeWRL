@@ -144,6 +144,7 @@ void render_status () {
 	rep_.tcoord = 0;
 
 	holder._intern = &rep_;
+	holder._nparents=0;		// stops boundingbox calcs from propagating
 
 	FW_rendertext (1,		// lines
 		NULL,			// Perl SV pointer

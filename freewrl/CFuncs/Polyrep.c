@@ -5,7 +5,6 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
-
 #include "Polyrep.h"
 
 /* reset colors to defaults, if we have to */
@@ -718,10 +717,10 @@ void render_polyrep(void *node,
 				nnormals,normals,ntexcoords,texcoords);
 	}
 
+	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
+
 	// printing.
-	//for(i=0; i<r->ntri*3; i++) {
-	//	printf ("i %d cindex %d\n",i,r->cindex[i]);
-	//}
+	//{int i; for(i=0; i<r->ntri*3; i++) { printf ("i %d cindex %d\n",i,r->cindex[i]); }}
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) { 
@@ -1030,6 +1029,11 @@ void stream_polyrep(void *node,
 			newtc[i*2+1] = (newpoints[i].c[Tindex] - minVals[Tindex])/Ssize;
 		    }
 		}
+
+		/* calculate maxextents */
+		if (fabs(newpoints[i].c[0]) > (p->_extent[0])) p->_extent[0] = fabs(newpoints[i].c[0]); 
+		if (fabs(newpoints[i].c[1]) > (p->_extent[1])) p->_extent[1] = fabs(newpoints[i].c[1]); 
+		if (fabs(newpoints[i].c[2]) > (p->_extent[2])) p->_extent[2] = fabs(newpoints[i].c[2]); 
 	}
 
 	/* free the old, and make the new current. */

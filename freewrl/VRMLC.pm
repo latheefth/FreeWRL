@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.146  2004/07/12 13:30:36  crc_canada
+# more steps to getting frustum culling working.
+#
 # Revision 1.145  2004/06/25 18:19:09  crc_canada
 # EXTERNPROTO geturl; Solaris changes, and general changing the way URLs are
 # handled.
@@ -577,6 +580,7 @@ sub gen_struct {
 	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
 	       "       float _dist; /*sorting for blending */ \n".
+	       "	float _extent[3]; /* used for boundingboxes */ \n" .
                " /*d*/ void *_intern; \n"              	.
                " /***/\n";
 	
@@ -968,9 +972,6 @@ GLint viewport[4] = {-1,-1,2,2};
 struct pt hp, ht1, ht2;
 double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 
-/* Viewpoint Field of View */
-GLdouble fieldofview = 45;
-
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
@@ -1104,7 +1105,7 @@ void render_node(void *node) {
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
-	
+
 	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
@@ -1265,6 +1266,8 @@ void add_parent(void *node_, void *parent_) {
 	struct VRML_Box *node = node_;
 	struct VRML_Box *parent = parent_;
 	if(!node) return;
+	//printf ("adding node %d to parent %d\n",node_, parent_);
+
 	node->_nparents ++;
 	if(node->_nparents > node->_nparalloc) {
 		node->_nparalloc += 10;
@@ -1391,6 +1394,10 @@ CODE:
 	p->_ichange = 0;
 	p->_dist = -10000.0; /* put unsorted nodes first in rendering */
 	//p->_dist = 0.0; /* put unsorted nodes first in rendering */
+	p->_extent[0] = 0.0;
+	p->_extent[1] = 0.0;
+	p->_extent[2] = 0.0;
+
 	RETVAL=ptr;
 OUTPUT:
 	RETVAL
@@ -1413,53 +1420,6 @@ set_sensitive(ptr,datanode,type)
 CODE:
 	setSensitive ((void *)ptr,datanode,type);
 
-
-void
-set_viewer_delta(x,y,z)
-	double x
-	double y
-	double z
-CODE:
-	    /*prototype code, currently UNUSED */
-	ViewerDelta.x = x;
-	ViewerDelta.y = y;
-	ViewerDelta.z = z;
-
-
-# allow Perl code to set the fieldOfView
-void
-set_fieldofview(angle)
-	double angle
-CODE:
-	fieldofview = angle;
-
-
-# allow Perl code to get the fieldOfView
-double
-get_fieldofview()
-CODE:
-	RETVAL = fieldofview;
-OUTPUT:
-	RETVAL
-
-
-int
-get_hits(ptr)
-	void *ptr
-CODE:
-	struct VRML_Box *p = ptr;
-	RETVAL = p->_hit;
-	p->_hit = 0;
-OUTPUT:
-	RETVAL
-
-void
-zero_hits(ptr)
-	void *ptr
-CODE:
-	struct VRML_Box *p = ptr;
-	p->_hit = 0;
-
 void
 render_verbose(i)
 	int i;
@@ -1471,44 +1431,6 @@ render_verbose_collision(i)
 	int i;
 CODE:
 	verbose_collision=i;
-
-
-void
-render_hier(p,rwhat)
-	void *p
-	int rwhat
-
-
-void
-render_geom(p)
-	void *p
-CODE:
-	struct VRML_Virt *v;
-	if(!p) {
-		freewrlDie("Render_geom null!??");
-	}
-	v = *(struct VRML_Virt **)p;
-	v->rend(p);
-
-
-# get the current rayhit. Save the rayhit for later use by Cfunctions, eg, PlaneSensor
-void *
-get_rayhit()
-CODE:
-	double x,y,z;
-
-	if(hpdist >= 0) {
-		gluUnProject(hp.x,hp.y,hp.z,rh.modelMatrix,rh.projMatrix,viewport,&x,&y,&z);
-
-		/* and save this globally */
-		ray_save_posn.c[0] = x; ray_save_posn.c[1] = y; ray_save_posn.c[2] = z;
-
-		RETVAL = rh.node;
-	} else {
-		RETVAL=0;
-	}
-OUTPUT:
-	RETVAL
 
 #*****************************************************************************
 # return a C pointer to a func for the interpolator functions. Used in CRoutes
