@@ -121,6 +121,9 @@ void Extru_ST_map(
 	int nsec,
         struct VRML_PolyRep *this_Extru);
 
+/* from the PNG examples */
+unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
+		                       unsigned long *pRowbytes);
 
 
 
