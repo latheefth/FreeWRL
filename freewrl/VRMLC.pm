@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.68  2003/01/31 19:33:18  crc_canada
+# More SoundEngine work
+#
 # Revision 1.67  2003/01/07 18:59:49  crc_canada
 # more sound engine work
 #
@@ -1212,6 +1215,23 @@ GLdouble projMatrix[16];
 } rh,rph,rhhyper;
  /* used to test new hits */
 
+/* this is used to return the duration of an audioclip to the perl
+side of things. SvPV et al. works, but need to figure out all
+references, etc. to bypass this fudge JAS */
+float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0} ;
+
+/* is the sound engine started yet? */
+static int SoundEngineStarted = FALSE;
+
 
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz, 
@@ -1354,12 +1374,14 @@ void render_node(void *node) {
 
 	if(render_proximity && v->proximity) 
 	{
+	    if (verbose) printf ("rs 2a\n");
 	    v->proximity(node);
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
 	}
 
 	if(render_collision && v->collision) 
 	{
+	    if (verbose) printf ("rs 2b\n");
 	    v->collision(node);
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
 	}
@@ -1532,6 +1554,42 @@ CODE:
 	}
 
 
+#####################################################################
+#
+# for AudioClips - return the duration of the last registered clip
+#
+# This should not be necessary, but I had difficulty setting this
+# from within C in the AudioClip rend function in VRMLRend.pm
+#
+#####################################################################
+float
+return_Duration (indx)
+	int indx;
+CODE:
+	//printf ("return_Duration indx %d val %f\n",indx,AC_LastDuration[indx]);
+	if (indx < 0) RETVAL = -1.0;
+	else if (indx > 50) RETVAL = -1.0;
+	else RETVAL = AC_LastDuration[indx];
+OUTPUT:
+	RETVAL
+
+#####################################################################
+#
+# SetAudioActive - tell the SoundEngine whether a source is active or not.
+#
+#####################################################################
+void
+SetAudioActive (indx,status)
+	int indx;
+	int status;
+CODE:
+	if (!SoundEngineStarted) {
+		//printf ("SetAudioActive: initializing SoundEngine\n");
+		SoundEngineStarted = TRUE;
+		SoundEngineInit();
+	}
+
+	SetAudioActive (indx,status);		
 
 
 #####################################################################

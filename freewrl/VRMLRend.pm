@@ -20,8 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.87  2003/01/29 15:47:26  crc_canada
-# AudioClip/Sound work.
+# Revision 1.88  2003/01/31 19:34:05  crc_canada
+# More SoundEngine work
 #
 # Revision 1.86  2003/01/24 18:01:23  crc_canada
 # Update Sound distance algorithm. Not perfect, but works a bit...
@@ -1142,9 +1142,9 @@ Sound => '
 	float radius;
 	struct VRML_AudioClip *acp = $f(source);
 	struct VRML_MovieTexture *mcp = $f(source);
-
-
 	char mystring[256];
+
+	// MovieTextures NOT handled yet
 	// first - is there a node (any node!) attached here?
 	if (acp) {
 		// do the sound registering first, and tell us if this is an audioclip
@@ -1152,7 +1152,9 @@ Sound => '
 
 		render_node(acp);
 
-
+		// if the attached node is not active, just return
+		//printf ("in Sound, checking AudioClip isactive %d\n", acp->isActive);
+		if (acp->isActive == 0) return;
 
 		direction.x = $f(direction,0);
 		direction.y = $f(direction,1);
@@ -1219,6 +1221,9 @@ Sound => '
 					amp = (this_->maxFront - len) / (this_->maxFront - this_->minFront);
 				}
 			}
+
+			// Now, fit in the intensity.
+			amp = amp*this_->intensity;
 			if (sound_from_audioclip) {
 				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,0.0);
 			} else {
@@ -1232,21 +1237,27 @@ Sound => '
 
 AudioClip => '
 	// register an audioclip
-	static int init = FALSE;
 	float pitch,stime, sttime;
 	int loop;
-	unsigned char *filename = SvPV((this_->__localFileName),PL_na);
-
-	//printf ("AudioClip rend for clip %d change %d\n",this_->__sourceNumber,this_->_ichange);
+	unsigned char *filename = SvPV(this_->__localFileName,PL_na);
+	// JAS - cant get setting perl variable to work, so using AC_LastDuration
+	//sv_setnv(this_->__duration,(double) 23.4);
+	//sv_setpv(this_->__duration,"234.5");
 
 	// tell Sound that this is an audioclip
 	sound_from_audioclip = TRUE;
 
-	if (!init) { 
-		//printf ("initializing SoundEngine\n");
-		init = TRUE;
+	//printf ("_change %d _dlchange %d _ichange %d\n",this_->_change,
+	//	this_->_dlchange, this_->_ichange); 
+
+	if (!SoundEngineStarted) { 
+		//printf ("AudioClip: initializing SoundEngine\n");
+		SoundEngineStarted = TRUE;
 		SoundEngineInit();
 	}
+
+	if (this_->isActive == 0) return;  // not active, so just bow out
+
 	if (!SoundSourceRegistered(this_->__sourceNumber)) {
 		//printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
 		//	this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
@@ -1257,8 +1268,11 @@ AudioClip => '
 		sttime = this_->stopTime;
 		loop = this_->loop;
 
-		SoundSourceInit (this_->__sourceNumber, this_->loop,
+		AC_LastDuration[this_->__sourceNumber] = 
+			SoundSourceInit (this_->__sourceNumber, this_->loop,
 			(float) pitch,(float) stime, (float) sttime, filename);
+		//printf ("globalDuration source %d %f\n",
+		//		this_->__sourceNumber,AC_LastDuration[this_->__sourceNumber]);
 	}
 
 	
