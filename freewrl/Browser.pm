@@ -49,7 +49,8 @@ use Config;
 
 # path for x3d conversion template
 
-my $XSLTpath = "";
+my $XSLTpath = "$VRML::ENV{FREEWRL_BUILDDIR}/x3d/X3dToVrml97.xsl";
+print "my xsltpath $XSLTpath\n";
 my $globalBrowser = "";
 
 
@@ -85,9 +86,6 @@ sub new {
 		eval 'use AppKit';
 		eval 'use AppKit::Functions';
 	}
-
-	# for x3d conversions. 
-	$XSLTpath = $pars->{XSLTpath};
 
 	# save browser version
 	VRML::VRMLFunc::SaveVersion($VRML::Config::vrml_config{VERSION});

@@ -1,3 +1,7 @@
+package main;
+
+use strict;
+
 use Carp;
 $SIG{__DIE__} = sub {print Carp::longmess(@_);die;};
 
@@ -5,7 +9,6 @@ $SIG{__DIE__} = sub {print Carp::longmess(@_);die;};
 eval ('require DynaLoader;');
 eval ('use VRML::Config;');
 eval ('use VRML::Browser;');
-
 
 my $b;
 my $be;
@@ -31,22 +34,13 @@ sub open_browser {
 	require "VRML/Config.pm";
 	require "VRML/Browser.pm";
 
-	$b = new VRML::Browser({
-                                                CocoaContext => undef,
-                                                FullScreen => $fullscreen,
-                                                Shutter => $shutter,
-                                                EyeDist => $eyedist,
-                                                Parent => $parent,
-                                                ScreenDist => $screendist,
-                                                BackEnd => [Geometry => $geometry],
-                                                XSLTpath => $xsltpath,
-                                           });
+	$b = new VRML::Browser({});
 
 	# By default creates front- and back-ends.
 	$be = $b->{BE};
 	
 	# fonts
-	$testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/fonts";
+	my $testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/fonts";
 	if (-e "$testpath/Baubodi.ttf") {
 		VRML::VRMLFunc::save_font_path($testpath);
 	} else {
@@ -55,7 +49,7 @@ sub open_browser {
 			if (-e "$testpath/Baubodi.ttf") {
 				VRML::VRMLFunc::save_font_path($testpath);
 				print "found font path at $testpath\n";
-				break;
+				return;
 			}
 		}
 	}
@@ -67,8 +61,8 @@ sub load_file_intro {
 	my $url = VRML::VRMLFunc::GetBrowserURL();
 
         delete $b->{Scene};
-        $b->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
-        $b->{Scene}->set_browser($this);
+        $b->{Scene} = VRML::Scene->new(0, $url, $url);
+        $b->{Scene}->set_browser();
 	VRML::Parser::parse($b->{Scene},$string);
         VRML::Browser::prepare ($b);
 }

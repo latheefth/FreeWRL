@@ -59,10 +59,6 @@ file in the distribution. Please correct and try again");
 
 $VRML_CONFIG{VERSION} = $VERSION;
 
-
-print "Make, version $VERSION, cc $CC, make $MAKE\n";
-
-
 print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.\n";
 
 ## Handle platform-specific compile options for the Javascript engine
@@ -183,8 +179,13 @@ if (-e "JS/$jsobjdir/libjs.a" && -e "JS/$jsobjdir/libjs.so" && -e "JS/$jsobjdir/
     print STDERR "The Javascript library and application were found.\n";
 } else {
     print STDERR "The Javascript library and application were not found - make them.\n";
+
+print "changing dir to JS/$jsdir\n";
+
     chdir("JS/$jsdir");
     system("make -f Makefile.ref BUILD_OPT=$BUILD_OPT");
+
+print "finished make, now back to $pwd\n";
     chdir($pwd);
 }
 
@@ -211,12 +212,12 @@ WriteMakefile(
 			  MAN1PODS => { freewrl => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
 			  PL_FILES => {'freewrl.PL' => 'freewrl'},
 			  PREREQ_PM => {
-							'Digest::MD5' =>  "2.09",
+#							'Digest::MD5' =>  "2.09",
 							'File::Basename' =>  "0", # any version will do
-							'HTML::Parser' => "2.25",
-							'MIME::Base64' => "2.11",
-							'URI'          => "1.04",
-							'LWP'          => "5.47",
+#							'HTML::Parser' => "2.25",
+#							'MIME::Base64' => "2.11",
+#							'URI'          => "1.04",
+#							'LWP'          => "5.47",
 						   },
 			  LIBS => $VRML::Config::vrml_config{FREEWRL_LIBS},
 			  OBJECT => 'VRMLFunc.o',
