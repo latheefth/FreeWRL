@@ -1,3 +1,10 @@
+/*******************************************************************
+ Copyright (C) 1998 Tuomas J. Lukka
+ Copyright (C) 2002 John Stewart, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
 
 #include "CORE/EXTERN.h"
 #include "CORE/perl.h"
@@ -17,6 +24,190 @@ extern struct pt t_r1;
 extern struct pt t_r2;
 extern struct pt t_r3;
 
+
+
+/* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
+/* 								*/
+
+
+/* How many faces are in this IndexedFaceSet?			*/
+
+int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {	
+	/* lets see how many faces we have */
+	int pointctr=0;
+	int max_points_per_face = 0;
+	int min_points_per_face = 99999;
+	int i;
+	int faces = 0;
+
+	for(i=0; i<cin; i++) {
+
+		if(((this_IFS->coordIndex.p[i]) == -1) || (i==cin-1)) {
+			if((this_IFS->coordIndex.p[i]) != -1) {
+				pointctr++;
+			}
+
+			faces++;
+			if (pointctr > max_points_per_face) 
+				max_points_per_face = pointctr;
+			if (pointctr < min_points_per_face) 
+				min_points_per_face = pointctr;
+			pointctr = 0;
+		} else pointctr++;
+	}
+
+	/*	
+	printf ("this structure has %d faces\n",faces);
+	printf ("	max points per face %d\n",max_points_per_face);
+	printf ("	min points per face %d\n\n",min_points_per_face);
+	*/
+	
+
+	/* bounds check  XXX should free all mallocd memory */	
+	if (min_points_per_face < 3) { 
+		printf ("have an IFS with a face with too few vertex\n"); 
+		return(1);
+	}
+	if (faces < 1) {
+		printf("an IndexedFaceSet with no faces found\n");
+		return (1);
+	}
+	return faces;
+}
+
+
+/* Generate the normals for each face of an IndexedFaceSet	*/
+/* create two datastructures:					*/
+/* 	- face normals; given a face, tell me the normal	*/
+/*	- point-face;   for each point, tell me the face(s)	*/
+
+void IFS_face_normals (
+	struct pt *facenormals,
+	int *pointfaces,
+	int faces, 
+	int npoints,
+	int cin,
+	struct SFColor *points,
+	struct VRML_IndexedFaceSet *this_IFS) {
+
+	int tmp_a, tmp_b, tmp_c;
+	int i;
+	int facectr;
+	int pt_1, pt_2, pt_3;
+	float AC, BC;
+	struct SFColor *c1,*c2,*c3;
+	float a[3]; float b[3];
+
+	tmp_a = 0;
+	for(i=0; i<faces; i++) {
+		/* check for degenerate triangles -- if found, try to select another point */
+		tmp_c = FALSE;
+		pt_1 = tmp_a; pt_2 = tmp_a+1; pt_3 = tmp_a+2;
+
+		do {	
+			/* first three coords give us the normal */
+			c1 = &(points[this_IFS->coordIndex.p[pt_1]]);
+			c2 = &(points[this_IFS->coordIndex.p[pt_2]]); 
+			c3 = &(points[this_IFS->coordIndex.p[pt_3]]);
+
+			a[0] = c2->c[0] - c1->c[0];
+			a[1] = c2->c[1] - c1->c[1];
+			a[2] = c2->c[2] - c1->c[2];
+			b[0] = c3->c[0] - c1->c[0];
+			b[1] = c3->c[1] - c1->c[1];
+			b[2] = c3->c[2] - c1->c[2];
+
+			facenormals[i].x = a[1]*b[2] - b[1]*a[2];
+			facenormals[i].y = -(a[0]*b[2] - b[0]*a[2]);
+			facenormals[i].z = a[0]*b[1] - b[0]*a[1];
+
+			/* printf ("vector length is %f\n",calc_vector_length (facenormals[i])); */
+
+			if (fabs(calc_vector_length (facenormals[i])) < 0.0001) {
+				AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
+				BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
+				/* printf ("AC %f ",AC);
+				printf ("BC %f \n",BC); */
+
+				/* we have 3 points, a, b, c */
+				/* we also have 3 vectors, AB, AC, BC */
+				/* find out which one looks the closest one to skip out */
+				/* either we move both 2nd and 3rd points, or just the 3rd */
+				if (fabs(AC) < fabs(BC)) { pt_2++; }
+				pt_3++;
+
+				/* skip forward to the next couple of points - if possible */
+				/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
+				tmp_a ++;
+				if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
+					/* printf ("possible degenerate triangle, but no more points\n"); */
+					/* put values in there so normals will work out */
+					if (fabs(calc_vector_length (facenormals[i])) < 0.0000001) {
+						/* we would have a divide by zero in normalize_vector, so... */
+						facenormals[i].z = 1.0;
+					}
+					tmp_c = TRUE;  tmp_a +=2;
+				}
+			} else {
+				tmp_c = TRUE;
+				tmp_a +=3;
+			}
+
+		} while (!tmp_c);
+
+		normalize_vector(&facenormals[i]);
+		/*
+		printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+			c1->c[0],c1->c[1],c1->c[2],
+			c2->c[0],c2->c[1],c2->c[2],
+			c3->c[0],c3->c[1],c3->c[2]);
+		printf ("normal %f %f %f\n\n",facenormals[i].x,
+			facenormals[i].y,facenormals[i].z);
+		*/
+
+		/* skip forward to next ifs - we have the normal */
+		if (i<faces-1) {
+			while ((this_IFS->coordIndex.p[tmp_a-1]) != -1) {
+				tmp_a++;
+			}
+		}
+	}
+
+
+	/* now, go through each face, and make a point-face list 
+	   so that I can give it a point later, and I will know which face(s) 
+	   it belong to that point */
+
+	/* printf ("\nnow generating point-face list\n");  */
+	for (i=0; i<npoints; i++) { pointfaces[i*POINT_FACES]=0; }
+	facectr=0; 
+	for(i=0; i<cin; i++) {
+		tmp_a=this_IFS->coordIndex.p[i];
+		/* printf ("pointfaces, coord %d coordIndex %d face %d\n",i,tmp_a,facectr); */
+		if (tmp_a == -1) {
+			facectr++;
+		} else {
+			tmp_a*=POINT_FACES;
+			/* is this point in too many faces? if not, record it */
+			if (pointfaces[tmp_a] < (POINT_FACES-1)) {
+				pointfaces[tmp_a]++;
+				pointfaces[tmp_a+ pointfaces[tmp_a]] = facectr; 
+			}
+		}
+	}
+
+	/* printf ("\ncheck \n");
+	for (i=0; i<npoints; i++) {
+		tmp_a = i*POINT_FACES;
+		printf ("point %d is in %d faces, these are:\n ", i, pointfaces[tmp_a]);
+		for (tmp_b=0; tmp_b<pointfaces[tmp_a]; tmp_b++) {
+			printf ("%d ",pointfaces[tmp_a+tmp_b+1]);
+		}
+		printf ("\n");
+	}
+	*/
+}
+
 /*********************************************************************
  *
  * render_polyrep : render one of the internal polygonal representations
@@ -222,11 +413,8 @@ void render_polyrep(void *node,
 		glDisable(GL_COLOR_MATERIAL);
 	}
 }
-
-
-
+
 /*********************************************************************
- *********************************************************************
  *
  * render_ray_polyrep : get intersections of a ray with one of the
  * polygonal representations
@@ -338,7 +526,7 @@ void render_ray_polyrep(void *node,
 		}
 	}
 }
-
+
 void regen_polyrep(void *node) 
 {
 	struct VRML_Virt *v;
