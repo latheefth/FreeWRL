@@ -129,11 +129,14 @@ static double PROJmat[16];
 static int sav = 0;
 static int tot = 0;
 
-void invalidateStack() {
-	//printf ("invalidateStack\n");
-	//printf ("sav %d tot %d\n",sav,tot);
-	MODmatOk=FALSE;
+
+/* the Projection Matrix has changed... */
+void invalidateProjMatrix() {
 	PROJmatOk=FALSE;
+}
+
+void invalidateStack() {
+	MODmatOk=FALSE;
 }
 
 void fwMatrixMode (int mode) { 
@@ -144,6 +147,13 @@ void fwMatrixMode (int mode) {
 	}
 }
 	
+void pmat (double *mat) {
+	int i;
+	for (i=0; i<16; i++) {
+		printf ("%3.2f ",mat[i]);
+	}
+	printf ("\n");
+}
 void fwGetDoublev (int ty, double *mat) {
 	//printf ("glGetDoublev, type %d sav %d tot %d\n",ty,sav,tot);
 	tot++;
@@ -153,6 +163,7 @@ void fwGetDoublev (int ty, double *mat) {
 			MODmatOk = TRUE;
 		} else sav ++;
 		memcpy (mat, MODmat, sizeof (MODmat));
+
 	} else if (ty == GL_PROJECTION_MATRIX) {
 		if (!PROJmatOk) {
 			glGetDoublev (ty, PROJmat);
@@ -167,14 +178,9 @@ void fwGetDoublev (int ty, double *mat) {
 void fwXformPush(struct VRML_Transform *me) {
 	glPushMatrix();
 	MODmatOk = FALSE;
-	PROJmatOk = FALSE;
-	//printf ("XFORM Push\n");
-
 }
 
 void fwXformPop(struct VRML_Transform *me) {
 	glPopMatrix();
 	MODmatOk = FALSE;
-	PROJmatOk = FALSE;
-	//printf ("XFORM Pop\n");
 }

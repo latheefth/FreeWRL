@@ -511,4 +511,5 @@ void fwMatrixMode (int mode);
 void fwXformPush(struct VRML_Transform *me);
 void fwXformPop(struct VRML_Transform *me);
 void invalidateStack(void);
+void invalidateProjMatrix(void);
 #endif /* __HEADERS_H__ */

@@ -179,6 +179,9 @@ return;
 void calculateFrustumCone () {
 	GLdouble mod[16];
 	GLdouble proj[16];
+
+	/* tell the Matrix cache routine to re-cache. */
+	invalidateProjMatrix();
 	
 #ifdef BOUNDINGBOX
 

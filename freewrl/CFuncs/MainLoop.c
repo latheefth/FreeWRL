@@ -144,7 +144,7 @@ void EventLoop() {
 	struct timezone tz; /* unused see man gettimeofday */
 
 	//printf ("start of MainLoop\n");
-invalidateStack();
+	invalidateStack();
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
