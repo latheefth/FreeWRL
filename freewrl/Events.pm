@@ -30,21 +30,21 @@ sub print {
 	return unless $VRML::verbose::events;
 	print "DUMPING EVENTMODEL\nFIRST:\n";
 	for(values %{$this->{First}}) {
-		print "\t",VRML::Node::dump_name($_),":\t$_->{TypeName}\n";
+		print "\t",VRML::NodeIntern::dump_name($_),":\t$_->{TypeName}\n";
 	}
 	print "ROUTES:\n";
 	for my $fn (keys %{$this->{Route}}) {
-		print "\t",VRML::Node::dump_name($fn)," $this->{Route}{$fn}{TypeName}\n";
+		print "\t",VRML::NodeIntern::dump_name($fn)," $this->{Route}{$fn}{TypeName}\n";
 		for my $ff (keys %{$this->{Route}{$fn}}) {
 			print "\t\t$ff\n";
 			for (@{$this->{Route}{$fn}{$ff}}) {
-				print "\t\t\t",VRML::Node::dump_name($_->[0]),":\t$_->[0]{TypeName}\t$_->[1]\n";
+				print "\t\t\t",VRML::NodeIntern::dump_name($_->[0]),":\t$_->[0]{TypeName}\t$_->[1]\n";
 			}
 		}
 	}
 	print "ISS:\n";
 	for my $pn (keys %{$this->{PIs}}) {
-		print "\t",VRML::Node::dump_name($pn)," $this->{PIsN}{$pn}{TypeName}\n";
+		print "\t",VRML::NodeIntern::dump_name($pn)," $this->{PIsN}{$pn}{TypeName}\n";
 		for my $pf (keys %{$this->{PIs}{$pn}}) {
 			print "\t\t$pf\n";
 			for(@{$this->{PIs}{$pn}{$pf}}) {
@@ -57,7 +57,7 @@ sub print {
 # XXX Softref
 sub add_first {
 	my($this,$node) = @_;
-	print "Events.pm add_first ", VRML::Node::dump_name($node),"\n"
+	print "Events.pm add_first ", VRML::NodeIntern::dump_name($node),"\n"
 		if $VRML::verbose::events;
 	$this->{First}{$node} = $node;
 

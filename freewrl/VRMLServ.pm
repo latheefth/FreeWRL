@@ -10,6 +10,10 @@
 
 #
 # $Log$
+# Revision 1.19  2002/05/22 21:49:51  ayla
+#
+# Files changed to reflect change from VRML::Node to VRML::NodeIntern.
+#
 # Revision 1.18  2002/05/08 18:13:27  crc_canada
 # debugging statements removed
 #
@@ -244,7 +248,7 @@ sub find_actual_node_and_field {
 	}
 
 	# print "find_actual_node, looking at node ",
-	# 	VRML::Node::dump_name($node),  " ref ", ref $node, 
+	# 	VRML::NodeIntern::dump_name($node),  " ref ", ref $node, 
 	# 	" field $field, eventin flag $eventin\n";
 
 	if (defined $node->{IsProto}) {
@@ -327,7 +331,7 @@ sub handle_input {
                         VRML::Handles::displayed($node);
 
 			if($VRML::verbose::EAI) {
-	                  print "GN returns ",VRML::Node::dump_name($node),"\n";
+	                  print "GN returns ",VRML::NodeIntern::dump_name($node),"\n";
        		        }
 		        $hand->print("RE\n$reqid\n1\n$id\n");
 
@@ -361,7 +365,7 @@ sub handle_input {
 
                         if ($VRML::verbose::EAI) {
 				print "GT, looking for type for node ",
-					VRML::Node::dump_name($node),"\n";
+					VRML::NodeIntern::dump_name($node),"\n";
 			}
 
 			my ($kind, $type) = 
@@ -379,7 +383,7 @@ sub handle_input {
 
                         if ($VRML::verbose::EAI) {
 				print "GV, looking for type for node ",
-					VRML::Node::dump_name($node),"\n";
+					VRML::NodeIntern::dump_name($node),"\n";
 			}
 
 			my ($kind, $type) = 
@@ -399,7 +403,7 @@ sub handle_input {
                         if ($type eq "MFNode") {
                                 if ($VRML::verbose::EAI) {
                                         print "VRMLServ.pm: GV found a MFNode for ",
-						VRML::Node::dump_name($node)," \n";
+						VRML::NodeIntern::dump_name($node)," \n";
                                 }
 
                                 # if this is a MFnode, we don't want the VRML CODE
@@ -478,8 +482,8 @@ sub handle_input {
 			($node,$field) = find_actual_node_and_field($id,$field,1);
 
 			my $child = VRML::Handles::get($v);
-			# print "VRMLServ.pm - node ",VRML::Node::dump_name($node),
-			# 	 " child ", VRML::Node::dump_name($child)," field $field\n";
+			# print "VRMLServ.pm - node ",VRML::NodeIntern::dump_name($node),
+			# 	 " child ", VRML::NodeIntern::dump_name($child)," field $field\n";
 
 			if (defined $child->{IsProto}) {
 				my $temp = $child;
@@ -510,7 +514,7 @@ sub handle_input {
 			# The FieldHash
 			#
 			# This is the object behind the "RFields" hash member of
-			# the object VRML::Node. It allows you to send an event by
+			# the object VRML::NodeIntern. It allows you to send an event by
 			# simply saying "$node->{RFields}{xyz} = [3,4,5]" for which
 			# calls the STORE method here which then queues the event.
 			#
@@ -581,7 +585,7 @@ sub handle_input {
 			} else {
 			    	my $value = "VRML::Field::$ft"->parse("FOO",$v);
 		    		#print "VRMLServ.pm, at 3, sending to ",
-				# 	VRML::Node::dump_name($node), 
+				# 	VRML::NodeIntern::dump_name($node), 
 				# 	" field $field value $v\n";
 		    		$this->{B}->api__sendEvent($node, $field, $value);
 			}
@@ -598,7 +602,7 @@ sub handle_input {
 
 			($node,$field) = find_actual_node_and_field($id,$field,0);
 
-			# print "RL, field $field, node $node, ",VRML::Node::dump_name($node),"\n";
+			# print "RL, field $field, node $node, ",VRML::NodeIntern::dump_name($node),"\n";
 			$this->{B}->api__registerListener(
 				$node,
 				$field,
@@ -612,8 +616,8 @@ sub handle_input {
 
 		} elsif($str =~ /^AR ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {  # addRoute
 			my($fn, $ff, $tn, $tf) = ($1,$2,$3,$4);
-			# print "addroute, $fn (",VRML::Node::dump_name($fn),
-			# "), $ff, $tn (",VRML::Node::dump_name($tn),"), $tf\n";
+			# print "addroute, $fn (",VRML::NodeIntern::dump_name($fn),
+			# "), $ff, $tn (",VRML::NodeIntern::dump_name($tn),"), $tf\n";
 
 			my $fromNode = VRML::Handles::get($fn)->real_node();
 			my $toNode = VRML::Handles::get($tn)->real_node();
@@ -631,8 +635,8 @@ sub handle_input {
 
 		} elsif($str =~ /^DR ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {  # deleteRoute
 			my($fn, $ff, $tn, $tf) = ($1,$2,$3,$4);
-			print "deleteroute, $fn (",VRML::Node::dump_name($fn),
-			"), $ff, $tn (",VRML::Node::dump_name($tn),"), $tf\n";
+			print "deleteroute, $fn (",VRML::NodeIntern::dump_name($fn),
+			"), $ff, $tn (",VRML::NodeIntern::dump_name($tn),"), $tf\n";
 
 			my $fromNode = VRML::Handles::get($fn)->real_node();
 			my $toNode = VRML::Handles::get($tn)->real_node();
@@ -697,7 +701,7 @@ sub handle_input {
 sub send_listened {
 	my($this, $hand, $node, $id, $field, $lid, $value) = @_;
 
-	# print "send_listened, hand $hand node ",VRML::Node::dump_name($node),
+	# print "send_listened, hand $hand node ",VRML::NodeIntern::dump_name($node),
 	# 	" id $id  field $field  lid $lid  value $value\n";
 
 

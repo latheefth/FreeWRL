@@ -703,232 +703,203 @@ sub setup_viewpoint {
 # Given root node of scene, render it all
 
 sub render {
-	my($this) = @_;
-	my($node,$viewpoint) = @{$this}{Root, Viewpoint};
-	my($i);
-	$node = $node->{CNode};
-	$viewpoint = $viewpoint->{CNode};
-
-	if($VRML::verbose::be) 
-	  {
-	    print "Render: root $node\n";
-	  }
-
-        foreach $i (@{$this->{bufferarray}})
-          {
-            $this->{Viewer}->{buffer}=$i;
-	    glDrawBuffer($this->{Viewer}->{buffer});
-    
-	    # turn lights off, and clear buffer bits
-	    VRML::OpenGL::BackEndRender1();
-
-	    my $pick;
-	    # 1. Set up projection
-	    $this->setup_projection();
-
-	    # 2. Headlight
-	    if($this->{Viewer}{Navi}{RFields}{headlight}) 
-	      {
-	        VRML::OpenGL::BackEndHeadlightOn();
-	      }
-	    				
-	    # 3. Viewpoint
-	    $this->setup_viewpoint($node);
-
-	    # Other lights
-
-	    VRML::VRMLFunc::render_hier($node,	# Node                 
-	     			        0,		# reverse_trans        
-	    			        0,		# render view point    
-	    			        0,		# render geoms         
-	    			        1,		# render lights        
-	    			        0,		# render sensitive
-				        0, 		# render blend
-				        0);		# what view point      
-
-	    # 4. Nodes (not the blended ones)
-	    VRML::VRMLFunc::render_hier($node,	# Node                 
-				        0,		# reverse_trans        
-				        0,		# render view point    
-				        1,		# render geoms         
-				        0,		# render lights        
-				        0,		# render sensitive     
-				        0,		# render blend         
-				        0);		# what view point      
-	  }
-
-	glXSwapBuffers();
-
-	# Do selection
-	if(@{$this->{Sens}}) 
-	  {
-	    # print "SENS: $this->{MOUSEGRABBED}\n";
-	    # my $b = delete $this->{SENSBUT};
-	    # my $sb = delete $this->{SENSBUTREL};
-	    # my $m = delete $this->{SENSMOVE};
-	    print "SENSING\n"
-	      if $VRML::verbose::glsens;
-	    
-	    for(my $i = 1; $i < scalar @{$this->{BUTEV}}; $i ++) 
-	      {
-		if($this->{BUTEV}[$i-1][0] eq "MOVE" and $this->{BUTEV}[$i][0] eq "MOVE") 
-		  {
-		    splice @{$this->{BUTEV}}, $i-1, 1;
-		    $i --;
-		  }
-	      }
-
-	    for(@{$this->{BUTEV}}) 
-	      {
-		print "BUTEV: $_->[0]\n" 
-		  if $VRML::verbose::glsens;
+    my ($this) = @_;
+    my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
+    my ($i);
+    $node = $node->{CNode};
+    $viewpoint = $viewpoint->{CNode};
 	
-		# loop through all the "Sensor" nodes.	
-		for(@{$this->{Sens}})
-		  {
-		    if ((defined $_->[0]) && (defined $_->[1])) 
-		      { 
-			# print "GLBackEnd.pm, going throuh Sens for $_ : \n";
+    print "Render: root $node\n" if ($VRML::verbose::be);
 
-		        VRML::VRMLFunc::zero_hits($_->[0]{CNode});
-			VRML::VRMLFunc::set_sensitive($_->[0]{CNode},1);
-		      }
-		    else
-		      {
-			print "BUTEV - should remove this one from the list\n"
-			  if $VRML::verbose::glsens;
-		      }
-		  }
-		if($this->{MOUSEGRABBED}) 
-		  {
-		    VRML::VRMLFunc::set_hypersensitive($this->{MOUSEGRABBED});
-		  }
-		else
-		  {
-		    VRML::VRMLFunc::set_hypersensitive(0);
-		  }
+    foreach $i (@{$this->{bufferarray}}) {
+	$this->{Viewer}->{buffer}=$i;
+	glDrawBuffer($this->{Viewer}->{buffer});
 
-		my $nints = 100;
-		my $s = pack("i$nints");
-		
-		glRenderMode(&GL_SELECT);
+	# turn lights off, and clear buffer bits
+	VRML::OpenGL::BackEndRender1();
 
-		$this->setup_projection();
-		
-		glSelectBuffer($nints, $s);
-		
-		$this->setup_projection(1, $_->[2], $_->[3]);
-		$this->setup_viewpoint($node);
-		
-	      VRML::VRMLFunc::render_hier($node,	# Node                 
-					  0,	# reverse_trans        
-					  0,	# render view point    
-					  0,	# render geoms         
-					  0,	# render lights        
-					  1,	# render sensitive     
-					  0,	# render blend         
-					  0);	# what view point      
+	my $pick;
+	# 1. Set up projection
+	$this->setup_projection();
 
-		# print "SENS_BR: $b\n" if $VRML::verbose::glsens;
-		my($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
-		my $p = VRML::VRMLFunc::get_rayhit($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
-		my $pos;
-		if($this->{MOUSEGRABBED}) 
-		  {
-		    if($_->[0] eq "RELEASE") 
-		      {
-			# XXX The position at release is garbage :(
-			my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-			$pos = [$x,$y,$z];
-			my $nor = [$nx,$ny,$nz];
-			$rout->("RELEASE", 0, 1, $pos, $nor);
-			undef $this->{MOUSEGRABBED};
-		      }
-		    elsif($_->[0] eq "MOVE") 
-		      {
-			my $over = ($this->{MOUSEGRABBED} == $p);
-			my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-			$pos = [$x,$y,$z];
-			my $nor = [$nx,$ny,$nz];
-			$rout->("",1,$over,$pos,$nor);
-			
-			die("No hyperhit??? REPORT BUG!") if(!VRML::VRMLFunc::get_hyperhit($x,$y,$z,$nx,$ny,$nz));
-			
-			print "HYP: $x $y $z $nx $ny $nz\n" 
-			  if $VRML::verbose::glsens;
-			
-			my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-			$pos = [$x,$y,$z];
-			$nor = [$nx,$ny,$nz];
-			$rout->("DRAG", 1, $over, $pos, $nor);
-		      }
-		  }
-		else
-		  {
-		    if(defined $this->{SensC}{$p}) 
-		      {
-			$cursortype = 1;
-
-			my $rout = $this->{SensR}{$p};
-			
-			print "HIT: $p, $x $y $z\n"
-			  if $VRML::verbose::glsens;
-			
-			$pos = [$x,$y,$z];
-			my $nor = [$nx,$ny,$nz];
-			
-			if($_->[0] eq "MOVE") 
-			  {
-			    $rout->("",1,1,$pos,$nor);
-			  }
-			
-			if($_->[0] eq "PRESS") 
-			  {
-			    print "PRESS ,0,1,$pos,$nor\n" 
-				if $VRML::verbose::glsens;
-			    $rout->("PRESS",0,1,$pos,$nor);
-			    $this->{MOUSEGRABBED} = $p;
-			  }
-			# if($sb) {
-			# 	$rout->("RELEASE",0,1,$pos,$nor);
-			# }
-		      }
-		    else
-		      {	
-			$cursortype=0;
-			print "No hit: $p\n"
-				  if $VRML::verbose::glsens;
-		      }
-		    
-		    print "MOUSOVER: $this->{MOUSOVER}, p: $p\n"
-		      if $VRML::verbose::glsens;
-		    
-		    if(defined $this->{MOUSOVER} and $this->{MOUSOVER} != $p and defined($this->{SensC}{$this->{MOUSOVER}})) 
-		      {	
-			# print "in final MOUSOVER code\n";
-			my $rout = $this->{SensR}{$this->{MOUSOVER}};
-			$rout->("",1,0,undef,undef);
-		      }
-		    $this->{MOUSOVER} = $p;
-		  } 
-	      }
-	  }
-	
-	$#{$this->{BUTEV}} = -1;
-	glRenderMode(&GL_RENDER);
-
-	# determine whether cursor should be "sensor".
-	if ($cursortype != $curcursor) {
-		$curcursor = $cursortype;
-		if ($cursortype == 0) {
-			VRML::OpenGL::arrow_cursor();
-		} else {
-			VRML::OpenGL::sensor_cursor();
-		}
+	# 2. Headlight
+	if($this->{Viewer}{Navi}{RFields}{headlight}) {
+	    VRML::OpenGL::BackEndHeadlightOn();
 	}
+				
+	# 3. Viewpoint
+	$this->setup_viewpoint($node);
+
+	# Other lights
+
+	VRML::VRMLFunc::render_hier($node,  # Node
+	     			        0,  # reverse_trans
+	    			        0,  # render view point
+	    			        0,  # render geoms
+	    			        1,  # render lights
+	    			        0,  # render sensitive
+				        0,  # render blend
+				        0); # what view point
+
+	# 4. Nodes (not the blended ones)
+
+	VRML::VRMLFunc::render_hier($node,	# Node
+				        0,	# reverse_trans
+				        0,      # render view point
+				        1,      # render geoms
+				        0,      # render lights
+				        0,      # render sensitive
+				        0,      # render blend
+				        0);     # what view point
+    }
+
+    glXSwapBuffers();
+
+    # Do selection
+    if (@{$this->{Sens}}) {
+	# print "SENS: $this->{MOUSEGRABBED}\n";
+	# my $b = delete $this->{SENSBUT};
+	# my $sb = delete $this->{SENSBUTREL};
+	# my $m = delete $this->{SENSMOVE};
+	print "SENSING\n" if $VRML::verbose::glsens;
+
+	for (my $i = 1; $i < scalar @{$this->{BUTEV}}; $i ++) {
+	    if ($this->{BUTEV}[$i-1][0] eq "MOVE" and
+		   $this->{BUTEV}[$i][0] eq "MOVE") {
+		splice @{$this->{BUTEV}}, $i-1, 1;
+		$i --;
+	    }
+	}
+
+	for (@{$this->{BUTEV}}) {
+	    print "BUTEV: $_->[0]\n" if $VRML::verbose::glsens;
+	
+	    # loop through all the "Sensor" nodes.	
+	    for (@{$this->{Sens}}) {
+		if ((defined $_->[0]) && (defined $_->[1])) {
+		    # print "GLBackEnd.pm, going throuh Sens for $_ : \n";
+
+		    VRML::VRMLFunc::zero_hits($_->[0]{CNode});
+		    VRML::VRMLFunc::set_sensitive($_->[0]{CNode},1);
+		} else {
+		    print "BUTEV - should remove this one from the list\n"
+			if $VRML::verbose::glsens;
+		}
+	    }
+	    if ($this->{MOUSEGRABBED}) {
+		VRML::VRMLFunc::set_hypersensitive($this->{MOUSEGRABBED});
+	    } else {
+		VRML::VRMLFunc::set_hypersensitive(0);
+	    }
+
+	    my $nints = 100;
+	    my $s = pack("i$nints");
+		
+	    glRenderMode(&GL_SELECT);
+
+	    $this->setup_projection();
+		
+	    glSelectBuffer($nints, $s);
+		
+	    $this->setup_projection(1, $_->[2], $_->[3]);
+	    $this->setup_viewpoint($node);
+		
+	    VRML::VRMLFunc::render_hier($node,	# Node
+					  0,	# reverse_trans
+					  0,	# render view point
+					  0,	# render geoms
+					  0,	# render lights
+					  1,	# render sensitive
+					  0,	# render blend
+					  0);	# what view point
+
+	    # print "SENS_BR: $b\n" if $VRML::verbose::glsens;
+	    my($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
+	    my $p = VRML::VRMLFunc::get_rayhit($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
+	    my $pos;
+	    if ($this->{MOUSEGRABBED}) {
+		if($_->[0] eq "RELEASE") {
+		    # XXX The position at release is garbage :(
+		    my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
+		    $pos = [$x,$y,$z];
+		    my $nor = [$nx,$ny,$nz];
+		    $rout->("RELEASE", 0, 1, $pos, $nor);
+		    undef $this->{MOUSEGRABBED};
+		} elsif($_->[0] eq "MOVE") {
+		    my $over = ($this->{MOUSEGRABBED} == $p);
+		    my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
+		    $pos = [$x,$y,$z];
+		    my $nor = [$nx,$ny,$nz];
+		    $rout->("",1,$over,$pos,$nor);
+	
+		    die("No hyperhit??? REPORT BUG!")
+			if (!VRML::VRMLFunc::get_hyperhit($x,$y,$z,$nx,$ny,$nz));
+			
+		    print "HYP: $x $y $z $nx $ny $nz\n" 
+			if $VRML::verbose::glsens;
+			
+		    my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
+		    $pos = [$x,$y,$z];
+		    $nor = [$nx,$ny,$nz];
+		    $rout->("DRAG", 1, $over, $pos, $nor);
+		}
+	    } else {
+		if(defined $this->{SensC}{$p}) {
+		    $cursortype = 1;
+
+		    my $rout = $this->{SensR}{$p};
+			
+		    print "HIT: $p, $x $y $z\n"
+			if $VRML::verbose::glsens;
+			
+		    $pos = [$x,$y,$z];
+		    my $nor = [$nx,$ny,$nz];
+			
+		    if($_->[0] eq "MOVE") {
+			$rout->("",1,1,$pos,$nor);
+		    }
+			
+		    if($_->[0] eq "PRESS") {
+			print "PRESS ,0,1,$pos,$nor\n" 
+			    if $VRML::verbose::glsens;
+			$rout->("PRESS",0,1,$pos,$nor);
+			$this->{MOUSEGRABBED} = $p;
+		    }
+		    # if($sb) {
+		    # 	$rout->("RELEASE",0,1,$pos,$nor);
+		    # }
+		} else {	
+		    $cursortype=0;
+		    print "No hit: $p\n"
+			if $VRML::verbose::glsens;
+		}
+
+		print "MOUSOVER: $this->{MOUSOVER}, p: $p\n"
+		    if $VRML::verbose::glsens;
+
+		if(defined $this->{MOUSOVER} and $this->{MOUSOVER}
+			!= $p and defined($this->{SensC}{$this->{MOUSOVER}})) {
+		    # print "in final MOUSOVER code\n";
+		    my $rout = $this->{SensR}{$this->{MOUSOVER}};
+		    $rout->("",1,0,undef,undef);
+		}
+		$this->{MOUSOVER} = $p;
+	    }
+	}
+    }
+	
+    $#{$this->{BUTEV}} = -1;
+    glRenderMode(&GL_RENDER);
+
+    # determine whether cursor should be "sensor".
+    if ($cursortype != $curcursor) {
+	$curcursor = $cursortype;
+	if ($cursortype == 0) {
+	    VRML::OpenGL::arrow_cursor();
+	} else {
+	    VRML::OpenGL::sensor_cursor();
+	}
+    }
 }
-
-
-
 
 1;
