@@ -348,11 +348,7 @@ sub get_firstevent {
     if ($this->{Type}{Actions}{ClockTick}) {
 		print "\tAction clocktick!\n" if $VRML::verbose;
 		my @ev = &{$this->{Type}{Actions}{ClockTick}}(
-				$this, $this->{RFields}, $timestamp);
-#JAS		for (@ev) {
-#JAS			$this->{Fields}{$_->[1]} = $_->[2];
-#JAS		}
-#JAS		return @ev;
+				$this, $timestamp);
     }
     return ();
 }
