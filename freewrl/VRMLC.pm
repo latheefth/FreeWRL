@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.45  2002/02/05 20:31:20  crc_canada
+# Cleaned up way "smooth normals" were tagged in the code.
+#
 # Revision 1.44  2002/01/22 16:34:50  crc_canada
 # When a display list becomes invalid (eg, node has changed), propagate
 # the changed_flag to all parents.
@@ -739,6 +742,11 @@ ElevationGrid => '
 			}
 		}
                 if (nnormals <= 0){
+			if (smooth_normals == -1) {
+				/* Needs to be initialized */
+	    			glGetIntegerv (GL_SHADE_MODEL, &smooth_normals);
+				smooth_normals = smooth_normals == GL_SMOOTH;
+			}
                         if (smooth_normals){
                                 calc_poly_normals_extrusion(rep_, adj, nx, nz, ntri, 0, crease_angle);
 
@@ -1590,11 +1598,11 @@ int render_blend;
 GLuint last_bound_texture;
 struct VRML_Shape *last_visited_shape = 0;
 
-int horiz_div; int vert_div;
+int horiz_div = 20; int vert_div = 20;
 int vp_dist = 200000;
 
-/* flag which specifies smooth or rough shading for extrusions */
-int smooth_normals = 0; 
+
+int smooth_normals = -1; /* -1 means, uninitialized */
 
 int cur_hits=0;
 
@@ -1882,7 +1890,7 @@ struct VRML_PolyRep *global_tess_polyrep=NULL;
 	by OpenGL automatically, if the Polygon is specified	*/
 
 void ber_tess_begin(GLenum e) {
-/*               printf(" ber_tess_begin   e = %s\\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN")); */
+               //printf(" ber_tess_begin   e = %s\\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN")); 
 		/* we only should get GL_TRIANGLES as type, because
 		we defined  the edge_flag callback		*/
 		/* check, if the structure is there		*/
@@ -1891,12 +1899,12 @@ void ber_tess_begin(GLenum e) {
 }
 
 void ber_tess_end(void) {
-/*printf("ber_tess_end: Tesselation done.\\n");*/
+	//printf("ber_tess_end: Tesselation done.\\n");
 	/* nothing to do	*/
 }
 
 void ber_tess_edgeflag(GLenum flag) {
-/* printf("ber_tess_end: An edge was done (flag = %d).\\n", flag); */
+	// printf("ber_tess_end: An edge was done (flag = %d).\\n", flag); 
 	/* nothing to do, this function has to be registered
 	so that only GL_TRIANGLES are used	*/
 }
@@ -1911,7 +1919,7 @@ void ber_tess_vertex(void *p) {
 		die("Too many tesselated triangles!");
 	}
 
-/*printf("ber_tess_vertex: A vertex is coming   x = %d   ntri = %d.\\n", x, GTP->ntri); */
+	//printf("ber_tess_vertex: A vertex is coming   x = %d   ntri = %d.\\n", x, GTP->ntri); 
 #undef GTP
 	
 	global_tess_polyrep->coord[(global_tess_polyrep->ntri)*9+x*3]  =dp[0];
@@ -1944,13 +1952,13 @@ void new_tessellation(void) {
 	gluTessCallback(global_tessobj,GLU_ERROR,ber_tess_error);
 	gluTessCallback(global_tessobj,GLU_END,ber_tess_end);
 	
-	if(verbose){ printf("Tessellation Initialized!\n"); }
+	//printf("Tessellation Initialized!\n");
 }
 
 /* next function should be called once at the end, but where?	*/
 void destruct_tessellation(void) {
 	gluDeleteTess(global_tessobj);
-	if(verbose){ printf("Tessellation Object deleted!\n"); }
+	printf("Tessellation Object deleted!\n"); 
 }
 
 
@@ -3684,20 +3692,6 @@ OUTPUT:
 	y2
 	z2
 	q2
-
-void
-set_divs(horiz,vert)
-int horiz
-int vert
-CODE:
-	horiz_div = horiz;
-	vert_div = vert;
-
-void
-set_smooth_normals(flag)
-int flag
-CODE:
-	smooth_normals = flag;
 
 void
 set_vpdist(dist)
