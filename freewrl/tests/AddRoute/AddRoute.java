@@ -28,8 +28,6 @@ public class AddRoute extends Applet {
   // EventIns of the root node
   EventInMFNode addChildren;
   EventInMFNode removeChildren;
-  EventInMFNode addRoute;
-  EventInMFNode deleteRoute;
 
   // Add and Remove Buttons
   Button addButton;
@@ -38,17 +36,14 @@ public class AddRoute extends Applet {
   Button removeRButton;
 
   public void init() {
-System.out.println ("start of init");
     // Paint the Java Buttons
     add(addButton = new Button("Add Object"));
     add(removeButton = new Button("Remove Object"));
     add(addRButton = new Button("Add Route"));
     add(removeRButton = new Button("Remove Route"));
 
-System.out.println ("buttons added");
     // Get the browser
     browser = Browser.getBrowser(this);
-
     // Get root node of the scene
     try 
 	{ root = browser.getNode("ROOT"); }
@@ -56,15 +51,15 @@ System.out.println ("buttons added");
 	System.out.println ("caught " + e);
     }
 
+
     // Instantiate (get handle to) the EventIn objects
+
     addChildren = (EventInMFNode) root.getEventIn("addChildren");
     removeChildren = (EventInMFNode) root.getEventIn("removeChildren");
-    addRoute = (EventInMFNode) root.getEventIn("addRoute");
-    deleteRoute = (EventInMFNode) root.getEventIn("deleteRoute");
     
+
     // Instantiate a lovely shape
     Shape = browser.createVrmlFromString(
-	" PROTO CYL[] { \n" +
 	"Transform { \n" +
 	"	rotation 0.0 0.0 1.0 0.0 \n" +
 	"	children Shape { \n" +
@@ -76,14 +71,13 @@ System.out.println ("buttons added");
 	"			radius 0.2 \n" +
 	"		} \n" +
 	"	} \n" +
-	"} } DEF xx  CYL {}");
+	"} ");
 
     Clock =  browser.createVrmlFromString(
 	"TimeSensor { \n" +
 	"	cycleInterval 4.0 \n" +
 	"	loop TRUE \n" +
 	"}");
-
 
     ColumnPath =  browser.createVrmlFromString(
 	"OrientationInterpolator { \n" +
@@ -96,13 +90,8 @@ System.out.println ("buttons added");
 	"}");
 
     // Add the clock and interpolator here, even if they are not used yet.
-    System.out.println ("adding clock and columnpath");
     addChildren.setValue(Clock);
     addChildren.setValue(ColumnPath);
-    System.out.println ("clock and columnpath done");
-
-
-
   }
 
   // Main Program
@@ -126,7 +115,6 @@ System.out.println ("buttons added");
 			} catch (IllegalArgumentException e) {
 				System.out.println ("caught " + e);
 			}
-			System.out.println ("Routes done");
 		} else if (b == removeRButton) {
 			try { 
 				browser.deleteRoute (Clock[0], "fraction_changed", ColumnPath[0], 
@@ -136,7 +124,6 @@ System.out.println ("buttons added");
 			} catch (IllegalArgumentException e) {
 				System.out.println ("caught " + e);
 			}
-			System.out.println ("Routes done");
 		}
 	}
 	return true;
