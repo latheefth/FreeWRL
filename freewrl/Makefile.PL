@@ -72,8 +72,12 @@ print OUT "VERSION => \"$VERSION\"\n";
 print OUT ");\n";
 chomp ($a = `which convert`);
 chomp ($pwd = `pwd`);
+chomp ($java = `which java`);
 print OUT qq(\$VRML::Browser::CONVERT = "$a";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_FONTS} = "$pwd/fonts";\n);
+print OUT qq(\$VRML::Browser::JCP = "$VRML_CONFIG{SAXON_LOC}";\n);
+print OUT qq(\$VRML::Browser::JAVA = "$java";\n);
+print OUT qq(\$VRML::Browser::X3DTOVRMLXSL = "$pwd/x3d/X3dToVrml97.xsl";\n);
 print OUT "1;\n";
 close OUT;
 
