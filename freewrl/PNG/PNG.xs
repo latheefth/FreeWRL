@@ -1,8 +1,17 @@
-/* 
+/*
+ * $Id$
+ * 
  * Copyright(C) 1998 Tuomas J. Lukka 2000 John Stewart.
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  * See the GNU General Library Public License (the file COPYING in the FreeWRL
  * distribution) for details.
+ *
+ * $Log$
+ * Revision 1.4  2000/09/02 23:59:04  rcoscali
+ * Implement the flipping of image directly in reading routine to avoid
+ *  overhead of flipping after read. Flip occurs if a flip param is given
+ * o 1. It does not occur if 0.
+ *
  */
 
 #include "zlib.h"
@@ -33,12 +42,13 @@ MODULE = VRML::PNG	PACKAGE = VRML::PNG
 PROTOTYPES: ENABLE
 
 int
-read_file(filename,sv,dep,hei,wi)
+read_file(filename,sv,dep,hei,wi,flip)
 	char *filename
 	SV *sv
 	int dep
 	int hei
 	int wi
+	int flip
 CODE:
    png_bytep *row_pointers;
 
@@ -140,7 +150,7 @@ for(;;) {
 
    row_pointers = malloc(sizeof(*row_pointers)*height);
    for(i=0; i<height; i++) {
-	row_pointers[i] = SvPV(sv,PL_na) + rowbytes * i;
+	row_pointers[((flip != 0) ? height -i -1 : i)] = SvPV(sv,PL_na) + rowbytes * i;
    }
 
    png_read_image(png_ptr, row_pointers);
