@@ -20,6 +20,7 @@ import vrml.external.FreeWRLEAI.EAIAsyncThread;
 import vrml.external.exception.InvalidNodeException;
 import vrml.external.exception.InvalidVrmlException;
 import vrml.external.BrowserGlobals;
+import java.lang.System;
 //JAS - no longer using Netscape import netscape.security.*;
 
 public class Browser implements BrowserInterface
@@ -119,6 +120,7 @@ public class Browser implements BrowserInterface
 
     // Associates this instance with the first embedded plugin in the current frame.
     public Browser(Applet pApplet) {
+	int counter;
 
   	// Create a socket here for an EAI server on localhost
 	int incrport = -1;
@@ -131,21 +133,21 @@ public class Browser implements BrowserInterface
 	//JAS } catch (Throwable e) {
 	//JAS 	System.out.println("EAI: not using Netscape");
 	//JAS }
-	
-	try {
-		EAISocket = new Socket("localhost",9877);
-	} catch (IOException e) {
-		System.out.println ("EAI: Error creating socket for FreeWRL EAI on port 2000");
+
+	counter = 1;	
+	while (EAISocket == null) {
+		try {
+			EAISocket = new Socket("localhost",9877);
+		} catch (IOException e) {
+			// wait up to 30 seconds for FreeWRL to answer.
+			counter = counter + 1;
+			if (counter == 60) {
+				System.out.println ("EAI: Java code timed out finding FreeWRL");
+				System.exit(1);
+			}
+			try {Thread.sleep (500);} catch (InterruptedException f) { }
+		}
 	}
-	//System.out.println ("EAI: opened TCP Client port, ready for data" );
-
-
-  	//JAStry {
-  	//JAS	sock=EAISocket.accept();
-  	//JAS} catch (IOException e) {
-  	  //JASSystem.out.print ("EAI: System error on accept method\n");
-  	//JAS}
-
 
 	sock = EAISocket;	//JAS - these are the same now...
 
@@ -641,13 +643,14 @@ public class Browser implements BrowserInterface
       }  
 	public void close() {
 		System.out.println("EAI: closing socket");
-		try {
-			EAIoutSender.stopThread();
-			EAISocket.close();
+		//JAS try {
+			System.exit(1);
+			//JAS EAIoutSender.stopThread();
+			//JAS EAISocket.close();
 			//JAS EAIfromFreeWRLStream.close();
   
-		} catch (IOException e) {
-		}
+		//JAS } catch (IOException e) {
+		//JAS }
 	}
 }
 

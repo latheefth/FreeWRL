@@ -22,12 +22,12 @@
 /*	very simple example:						*/
 /*		move a transform; Java code:				*/
 /*									*/
-/*		EventInEAI_MFNode addChildren;				*/
-/*		EventInEAI_SFVec3f newpos;					*/
+/*		EventInMFNode addChildren;				*/
+/*		EventInSFVec3f newpos;					*/
 /*		try { root = browser.getNode("ROOT"); }			*/
 /*		catch (InvalidNodeException e) { ... }			*/
 /*									*/
-/*		newpos=(EventInEAI_SFVec3f)root.getEventIn("translation");	*/
+/*		newpos=(EventInSFVec3f)root.getEventIn("translation");	*/
 /*		val[0] = 1.0; val[1] = 1.0; val[2] = 1.0;		*/
 /*		newpos.setValue(val);					*/
 /*									*/
@@ -160,6 +160,7 @@ void CRoutes_Register(unsigned int from, unsigned int fromoffset,
 	int to_count, char *tonode_str, unsigned int length,
 	void *intptr, int scrdir, int extra);				// CFuncs/CRoutes.c
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
+void shutdown_EAI(void);
 
 
 void EAI_send_string(char *str){
@@ -270,6 +271,16 @@ void connect_EAI() {
 	}
 }
 
+/* the user has pressed the "q" key */
+void shutdown_EAI() {
+	
+	if (EAIVerbose) printf ("shutting down EAI\n");
+	strcpy (EAIListenerData,"QUIT\n\n\n");
+	if (EAIinitialized) {
+		EAI_send_string(EAIListenerData);
+	}
+
+}
 void create_EAI(char *eailine) {
         if (EAIVerbose) printf ("EAISERVER:create_EAI called :%s:\n",eailine);
 

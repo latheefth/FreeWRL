@@ -893,9 +893,10 @@ sub make_backend {
 		print "VRML::Scene::make_be: PROTO ",
 			VRML::NodeIntern::dump_name($this),
 					", Nodes ", VRML::Debug::toString($this->{Nodes}),
-						" $be $parentbe\n" if $VRML::verbose::be;
+						" $be $parentbe\n" 
+				if $VRML::verbose::be;
 
-		# print "   has node $#{$this->{Nodes}}\n";
+		#print "   has node $#{$this->{Nodes}}\n";
 
 		# this is the first node; make it no matter what kind it is.
 		# print "going to make this, no matter what: ",$this->{Nodes}[0]->{TypeName},"\n";
@@ -931,11 +932,12 @@ sub make_backend {
 		}
 	} else {
 		print "\tScene: I'm not PROTO ", VRML::NodeIntern::dump_name($this),
-			" $be $parentbe ($this->{IsInline})\n" if $VRML::verbose::be;
+			" $be $parentbe ($this->{IsInline})\n"
+				 if $VRML::verbose::be;
 
 		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 
-		$be->set_root($bn) unless $this->{IsInline};
+		#JAS $be->set_root($bn) unless $this->{IsInline};
 
 		#print "Scene, done NOT PROTO ",VRML::NodeIntern::dump_name($this)," $be $parentbe\n";
  		$be->set_vp_sub(
@@ -956,7 +958,7 @@ sub make_backend {
  			}
  		);	
 	}
-	$this->{BackNode} = $bn;
+	#JAS $this->{BackNode} = $bn;
 	return $bn;
 }
 
@@ -1008,8 +1010,9 @@ sub setup_routing {
 
 				 print "\tREALNODE: $n $n->{TypeName}\n" if $VRML::verbose::scene;
 				 if ($VRML::Nodes::siblingsensitive{$n->{TypeName}}) {
-					 print "VRML::Scene sibling sensitive $n $n->{TypeName} bn ",
+					 print "VRML::Scene sibling sensitive $n, $n->{TypeName}, bn, ",
 						 $_[0], "\n" if $VRML::verbose::scene;
+
 					 $be->set_sensitive($_[0]->{BackNode},
 						sub {
 							$eventmodel->handle_touched($n, @_);

@@ -399,9 +399,13 @@ sub prepare {
 	my $bind = 1;
 
 	$this->{Scene}->make_executable();
-	$this->{Scene}->make_backend($this->{BE});
+	my $bn = $this->{Scene}->make_backend($this->{BE});
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 	$this->{Scene}->init_events($this->{EV}, $this->{BE}, $bind);
+	
+	# display this one
+	$this->{BE}->set_root($bn);
+
 	$this->{EV}->print;
 }
 
@@ -417,6 +421,7 @@ sub shut {
 	}
 
 	VRML::VRMLFunc::do_CRoutes_free();
+	VRML::VRMLFunc::do_EAI_shutdown();
 	$this->{BE}->close_screen();
 }
 
@@ -514,16 +519,20 @@ sub loadURL { print "Can't do loadURL yet\n"; }
 sub create_common {
 	my ($this,$f1,$f2,$string) = @_;
 	my $bind = 0;
+	my $ret;
 
 	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
-	$scene->set_browser($this);
+	#$scene->set_browser($this);
 
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
-	#JAS $scene->make_backend($this->{BE});
+
+	# need make_backend, so that Sensors work.
+	$scene->make_backend($this->{BE});
+
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$scene->init_events($this->{EV}, $this->{BE}, $bind);
-	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
+	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
 
 	$scene->dump(0) if $VRML::verbose::scenegraph;
 
@@ -877,19 +886,19 @@ sub EAI_GetType {
 		FOUNDIT:
 	}
 
-	#print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
+	# print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
 
 	
 
 	# get info from FreeWRL internals.
 	if ($direction eq "eventOut") {
 		($outptr, $outoffset, $fc, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
-        		$globalBrowser->{Scene}, "NODE$nodenum", $fieldname, $direction);
+        		$globalBrowser->{Scene}, $realele, $fieldname, $direction);
 
 	} else {
         	($to_count, $tonode_str, $tc, $ok, $intptr, $fieldtype) = 
 				$globalBrowser->{EV}->resolve_node_cnode($globalBrowser->{Scene}, 
-					"NODE$nodenum", $fieldname, $direction);
+					$realele, $fieldname, $direction);
 
 		$datalen = 0; # we either know the length (eg, SFInt32), or if MF, it is the eventOut that
 			      # determines the exact length.

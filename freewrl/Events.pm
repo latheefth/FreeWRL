@@ -595,10 +595,10 @@ sub delete_route {
 	my $i = 0;
 	my @ar;
 
-	print "Events.pm: DELETE_ROUTE $fn $ff $tn $tf\n" ;#JAS  if $VRML::verbose::events;
+	print "Events.pm: DELETE_ROUTE $fn $ff $tn $tf\n"  if $VRML::verbose::events;
 	$ff = $fn->{Type}{EventOuts}{$ff0};
 	$tf = $tn->{Type}{EventIns}{$tf0};
-	print "Events.pm: DELETE_ROUTE mapped $ff, $tf\n" ;#JAS if $VRML::verbose::events;
+	print "Events.pm: DELETE_ROUTE mapped $ff, $tf\n" if $VRML::verbose::events;
 
 	die("Invalid fromfield '$ff0' for ROUTE") if (!defined $ff);
 

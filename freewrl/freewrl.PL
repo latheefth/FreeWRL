@@ -667,12 +667,7 @@ $SIG{USR1} = sub {
 $SIG{BUS} = \&clean_exit;
 $SIG{SEGV} = \&clean_exit;
 
-## How long should freewrl poll before giving up on an EAI
-## socket connect while using FreeWRL as a Netscape plugin?
-## See VRMLServ.pm.
-
-$VRML::ENV{EAI_CONN_RETRY} = 25;
-
+# start up EAI, if we want it.
 if($eai) {
 	VRML::VRMLFunc::do_create_EAI($eai);
 }

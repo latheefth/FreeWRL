@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.114  2003/09/17 17:23:31  crc_canada
+# More EAI updates; TouchSensors advise ok; better error handling
+#
 # Revision 1.113  2003/09/16 14:57:24  crc_canada
 # EAI in C updates for Sept 15 2003
 #
@@ -1723,8 +1726,7 @@ void render_node(void *node) {
 	v = *(struct VRML_Virt **)node;
 	p = node;
 
-	if(verbose)
-	  {
+	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
 		   v->name, 
@@ -1739,7 +1741,7 @@ void render_node(void *node) {
 		   render_light, 
 		   render_sensitive);
 	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
-	  }
+	}
 
         /* we found viewpoint on render_vp pass, stop exploring tree.. */
         if(render_vp && found_vp) return;
@@ -2779,6 +2781,10 @@ do_handle_EAI ()
 	CODE:
 	handle_EAI();
 
+void
+do_EAI_shutdown ()
+	CODE:
+	shutdown_EAI();
 
 int
 EAIExtraMemory (type,size,data)
