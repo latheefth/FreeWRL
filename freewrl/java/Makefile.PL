@@ -11,14 +11,10 @@ BEGIN {
 }
 
 use ExtUtils::MakeMaker;
-use File::Find;
-use Cwd;
-use English;
 
-if ($PERL_VERSION lt v5.6.0) {
-    my $dir = getcwd();
-    warn "Warning: $dir/$PROGRAM_NAME was created under Perl v5.6.0.\n";
-}
+WriteMakefile(
+    NAME => 'VRML::Java'
+);
 
 sub MY::postamble {
     return q{
@@ -29,6 +25,3 @@ install ::
 };
 }
 
-WriteMakefile(
-    NAME => 'Java'
-);
