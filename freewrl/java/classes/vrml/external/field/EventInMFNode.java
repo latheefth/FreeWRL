@@ -13,7 +13,6 @@ public class EventInMFNode extends EventIn {
     for (count = 0; count < node.length; count++) {
       Browser.SendChildEvent (inNode , command, node[count].NodeName);
     }
-System.out.println ("EventInMFNode done");
   return;
   }
 
