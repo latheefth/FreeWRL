@@ -13,6 +13,7 @@ require 'VRML/NodeIntern.pm';
 
 
 package VRML::Debug;
+use File::Basename;
 
 sub toString {
 	my ($dt) = @_;
@@ -59,11 +60,13 @@ sub toString {
 ## untested
 sub stackTrace {
 	my $frame = 0;
+	my $basename;
 	my @str;
 	while (my ($package, $filename, $line, $subroutine, $hasargs,
 			   $wantarray, $evaltext, $is_require, $hints, $bitmask) =
-		   caller($frame++)) {
-		push @str, "frame $frame: $package $subroutine ".($wantarray ? "wantarray " : "")." $line";
+		   caller($frame)) {
+		$basename = basename($filename);
+		push @str, "frame ".$frame++.": $package, $basename, $subroutine, ".($wantarray ? "wantarray, " : "")."line $line";
 	}
 	return join("\n", @str);
 }
