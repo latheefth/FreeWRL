@@ -111,6 +111,26 @@ void FW_tess_combine_data (GLdouble c[3], GLfloat *d[4], GLfloat w[4], void **ou
 	*out = nv; 
 }
 
+
+/* Some tesselators will give back garbage. Lets try and remove it */
+/* Text handles errors better itself, so this is just used for Extrusions and IndexedFaceSets */
+void verify_global_IFS_Coords(int max) {
+	int count;
+
+	for (count = 0; count < global_IFS_Coord_count; count++) {
+		if ((global_IFS_Coords[count] < 0) ||
+			(global_IFS_Coords[count] >= max)) {
+
+			if (count == 0) { 
+				global_IFS_Coords[count] = 0;
+			} else { 
+				global_IFS_Coords[count] = global_IFS_Coords[count-1];
+			}
+
+		}
+	}
+}
+
 void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
 	//printf("FW_tess_combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
