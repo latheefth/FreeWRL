@@ -12,6 +12,7 @@
 
 #include "jsVRMLBrowser.h"
 
+
 JSBool
 VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 {
@@ -47,10 +48,340 @@ VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 
 
 JSBool
+VrmlBrowserGetName(JSContext *context, JSObject *obj,
+							   uintN argc, jsval *argv, jsval *rval)
+{
+	jsval _rval;
+	BrowserNative *brow;
+
+	UNUSED(argv);
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetName.\n");
+		return JS_FALSE;
+	}
+
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+
+	if (argc > 0) {
+		fprintf(stderr, "\nIncorrect argument format for getName().\n");
+	}
+
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetName");
+
+	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetName.\n");
+		return JS_FALSE;
+	}
+	
+	*rval = _rval;
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlBrowserGetVersion(JSContext *context, JSObject *obj,
+							   uintN argc, jsval *argv, jsval *rval)
+{
+	jsval _rval;
+	BrowserNative *brow;
+
+	UNUSED(argv);
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetVersion.\n");
+		return JS_FALSE;
+	}
+	
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+
+	if (argc > 0) {
+		fprintf(stderr, "\nIncorrect argument format for getVersion().\n");
+	}
+
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetVersion");
+
+	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetVersion.\n");
+		return JS_FALSE;
+	}
+	*rval = _rval;
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj,
+							   uintN argc, jsval *argv, jsval *rval)
+{
+	jsval _rval;
+	BrowserNative *brow;
+
+	UNUSED(argv);
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetCurrentSpeed.\n");
+		return JS_FALSE;
+	}
+	
+	
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+	if (argc > 0) {
+		fprintf(stderr, "\nIncorrect argument format for getCurrentSpeed().\n");
+	}
+
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetCurrentSpeed");
+
+	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetCurrentSpeed.\n");
+		return JS_FALSE;
+	}
+	*rval = _rval;
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj,
+							   uintN argc, jsval *argv, jsval *rval)
+{
+	jsval _rval;
+	BrowserNative *brow;
+
+	UNUSED(argv);
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetCurrentFrameRate.\n");
+		return JS_FALSE;
+	}
+	
+	
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+	if (argc > 0) {
+		fprintf(stderr, "\nIncorrect argument format for getCurrentFrameRate().\n");
+	}
+
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetCurrentFrameRate");
+
+	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetCurrentFrameRate.\n");
+		return JS_FALSE;
+	}
+	*rval = _rval;
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj,
+					   uintN argc, jsval *argv, jsval *rval)
+{
+	jsval _rval;
+	BrowserNative *brow;
+
+	UNUSED(argv);
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetWorldURL.\n");
+		return JS_FALSE;
+	}
+
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+
+	if (argc > 0) {
+		fprintf(stderr, "\nIncorrect argument format for getWorldURL().\n");
+	}
+
+	doPerlCallMethod(brow->sv_js, "jspBrowserGetWorldURL");
+
+	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetWorldURL.\n");
+		return JS_FALSE;
+	}
+
+	*rval = _rval;
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
+						uintN argc, jsval *argv, jsval *rval)
+{
+	JSObject *_obj;
+	JSString *_str;
+	JSClass *_cls;
+	jsval _v, _rval = INT_TO_JSVAL(0);
+	BrowserNative *brow;
+	char *_c_args = "MFNode nodes",
+		*_costr,
+		*_c_format = "o";
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr,
+				"JS_GetPrivate failed in VrmlBrowserReplaceWorld.\n");
+		return JS_FALSE;
+	}
+	
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+
+	if (JS_ConvertArguments(context, argc, argv, _c_format, &_obj)) {
+		if ((_cls = JS_GetClass(_obj)) == NULL) {
+			fprintf(stderr,
+					"JS_GetClass failed in VrmlBrowserReplaceWorld.\n");
+			return JS_FALSE;
+		}
+
+		if (memcmp("MFNode", _cls->name, strlen(_cls->name)) != 0) {
+			fprintf(stderr,
+					"\nIncorrect argument in VrmlBrowserReplaceWorld.\n");
+			return JS_FALSE;
+		}
+		if (!JS_GetProperty(context, _obj, "__handle", &_v)) {
+			fprintf(stderr,
+					"JS_GetProperty failed for \"__handle\" in VrmlBrowserReplaceWorld.\n");
+			return JS_FALSE;
+		}
+		_str = JS_ValueToString(context, _v);
+		_costr = JS_GetStringBytes(_str);
+
+		doPerlCallMethodVA(brow->sv_js,
+						   "jspBrowserReplaceWorld",
+						   "s",
+						   _costr);
+	} else {
+		fprintf(stderr,
+				"\nIncorrect argument format for replaceWorld(%s).\n",
+				_c_args);
+		return JS_FALSE;
+	}
+
+	*rval = _rval;
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
+				   uintN argc, jsval *argv, jsval *rval)
+{
+	JSObject *_obj[2];
+	JSString *_str[2];
+	JSClass *_cls[2];
+	jsval _rval = INT_TO_JSVAL(0);
+	BrowserNative *brow;
+	char *_c_args = "MFString url, MFString parameter",
+		*_costr[2],
+		*_c_format = "o o";
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr,
+				"JS_GetPrivate failed in VrmlBrowserLoadURL.\n");
+		return JS_FALSE;
+	}
+	
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+
+	if (JS_ConvertArguments(context,
+							argc,
+							argv,
+							_c_format,
+							&(_obj[0]), &(_obj[1]))) {
+		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
+			fprintf(stderr,
+					"JS_GetClass failed for arg 0 in VrmlBrowserLoadURL.\n");
+			return JS_FALSE;
+		}
+		if ((_cls[1] = JS_GetClass(_obj[1])) == NULL) {
+			fprintf(stderr,
+					"JS_GetClass failed for arg 1 in VrmlBrowserLoadURL.\n");
+			return JS_FALSE;
+		}
+		if (memcmp("MFString", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
+			memcmp("MFString", (_cls[1])->name, strlen((_cls[1])->name)) != 0) {
+			fprintf(stderr,
+					"\nIncorrect arguments in VrmlBrowserLoadURL.\n");
+			return JS_FALSE;
+		}
+		_str[0] = JS_ValueToString(context, argv[0]);
+		_costr[0] = JS_GetStringBytes(_str[0]);
+
+		_str[1] = JS_ValueToString(context, argv[1]);
+		_costr[1] = JS_GetStringBytes(_str[1]);
+		doPerlCallMethodVA(brow->sv_js,
+						   "jspBrowserLoadURL", "ss",
+						   _costr[0], _costr[1]);
+	} else {
+		fprintf(stderr,
+				"\nIncorrect argument format for loadURL(%s).\n",
+				_c_args);
+		return JS_FALSE;
+	}
+
+	*rval = _rval;
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
+						  uintN argc, jsval *argv, jsval *rval)
+{
+	jsval _rval = INT_TO_JSVAL(0);
+	char *_c, *_c_args = "SFString description", *_c_format = "s";
+	BrowserNative *brow;
+
+	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+		fprintf(stderr,
+				"JS_GetPrivate failed in VrmlBrowserSetDescription.\n");
+		return JS_FALSE;
+	}
+
+	if (brow->magic != BROWMAGIC) {
+		fprintf(stderr, "Wrong browser magic!\n");
+		return JS_FALSE;
+	}
+
+	if (argc == 1 &&
+		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
+		doPerlCallMethodVA(brow->sv_js, "jspBrowserSetDescription", "s", _c);
+		*rval = _rval;
+	} else {
+		fprintf(stderr,
+				"\nIncorrect argument format for setDescription(%s).\n",
+				_c_args);
+		return JS_FALSE;
+	}
+	return JS_TRUE;
+}
+
+
+JSBool
 VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 								uintN argc, jsval *argv, jsval *rval)
 {
-	jsval v;
+	jsval _rval;
 	BrowserNative *brow;
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
 
@@ -80,14 +411,15 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 		return JS_FALSE;
 	}
 
-	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
+	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
 		fprintf(stderr,
 				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromString.\n");
 		return JS_FALSE;
 	}
-	*rval = v;
+	*rval = _rval;
 	return JS_TRUE;
 }
+
 
 JSBool
 VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
@@ -96,7 +428,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 	JSObject *_obj[2];
 	JSString *_str[2];
 	JSClass *_cls[2];
-	jsval _v[2], _rval;
+	jsval _v, _rval = INT_TO_JSVAL(0);
 	BrowserNative *brow;
 	char *_c,
 		*_c_args = "MFString url, SFNode node, SFString event",
@@ -139,12 +471,12 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 		_str[0] = JS_ValueToString(context, argv[0]);
 		_costr[0] = JS_GetStringBytes(_str[0]);
 
-		if (!JS_GetProperty(context, _obj[1], "__handle", &(_v[1]))) {
+		if (!JS_GetProperty(context, _obj[1], "__handle", &_v)) {
 			fprintf(stderr,
 					"JS_GetProperty failed for \"__handle\" in VrmlBrowserCreateVrmlFromURL.\n");
 			return JS_FALSE;
 		}
-		_str[1] = JS_ValueToString(context, _v[1]);
+		_str[1] = JS_ValueToString(context, _v);
 		_costr[1] = JS_GetStringBytes(_str[1]);
 		doPerlCallMethodVA(brow->sv_js,
 						   "jspBrowserCreateVrmlFromURL", "sss",
@@ -155,10 +487,18 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 				_c_args);
 		return JS_FALSE;
 	}
+	*rval = _rval;
+	return JS_TRUE;
+}
 
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
-		fprintf(stderr,
-				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromURL.\n");
+
+JSBool
+VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	jsval _rval = INT_TO_JSVAL(0);
+	if (!doVRMLRoute(context, obj, argc, argv,
+					 "VrmlBrowserAddRoute", "jspBrowserAddRoute", "addRoute")) {
+		fprintf(stderr, "doVRMLRoute failed in VrmlBrowserAddRoute.\n");
 		return JS_FALSE;
 	}
 	*rval = _rval;
@@ -167,294 +507,26 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 
 
 JSBool
-VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
-						  uintN argc, jsval *argv, jsval *rval)
+VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	jsval _v;
-	char *_c, *_c_args = "SFString description", *_c_format = "s";
-	BrowserNative *brow;
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr,
-				"JS_GetPrivate failed in VrmlBrowserSetDescription.\n");
+	jsval _rval = INT_TO_JSVAL(0);
+	if (!doVRMLRoute(context, obj, argc, argv,
+					 "VrmlBrowserDeleteRoute", "jspBrowserDeleteRoute", "deleteRoute")) {
+		fprintf(stderr, "doVRMLRoute failed in VrmlBrowserDeleteRoute.\n");
 		return JS_FALSE;
 	}
-
-	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr, "Wrong browser magic!\n");
-		return JS_FALSE;
-	}
-
-	if (argc == 1 &&
-		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
-		doPerlCallMethodVA(brow->sv_js, "jspBrowserSetDescription", "s", _c);
-
-		if (!JS_GetProperty(context, obj, "__bret",  &_v)) {
-			fprintf(stderr,
-					"JS_GetProperty failed in VrmlBrowserSetDescription.\n");
-			return JS_FALSE;
-		}
-		*rval = _v;
-	} else {
-		fprintf(stderr,
-				"\nIncorrect argument format for setDescription(%s).\n",
-				_c_args);
-		return JS_FALSE;
-	}
-	return JS_TRUE;
-}
-
-		
-JSBool
-VrmlBrowserGetName(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	jsval _rval;
-/* 	unsigned int i; */
-	BrowserNative *brow;
-	UNUSED(argc);
-	UNUSED(argv);
-
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetName.\n");
-		return JS_FALSE;
-	}
-
-	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr, "Wrong browser magic!\n");
-		return JS_FALSE;
-	}
-
-	doPerlCallMethod(brow->sv_js, "jspBrowserGetName");
-
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
-		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetName.\n");
-		return JS_FALSE;
-	}
-	
 	*rval = _rval;
 	return JS_TRUE;
 }
 
-		
-#if FALSE		
-/* JSBool */
-/* VrmlBrowserLoadURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) */
-/* { */
-/* 	int count; */
-/* 	SV *sv; */
-/* 	jsval v; */
-/* 	unsigned int i; */
-/* 	BrowserNative *brow = JS_GetPrivate(context, obj); */
-/* 	UNUSED(count); */
-/* 	UNUSED(sv); */
 
-/* 	if (!brow) { */
-/* 		return JS_FALSE; */
-/* 	} */
-	
-/* 	if (brow->magic != BROWMAGIC) { */
-/* 		fprintf(stderr, "Wrong browser magic!\n"); */
-/* 	} */
-/* 	if (argc != 2) { */
-/* 		fprintf(stderr, "Invalid number of arguments for browser method!\n"); */
-/* 	} */
-/* 	for (i = 0; i < argc; i++) { */
-/* 		char buffer[SMALLSTRING]; */
-/* 		sprintf(buffer,"__arg%d", i); */
-/* 		JS_SetProperty(context, obj, buffer, argv+i); */
-/* 	} */
-/* 	if (verbose) { */
-/* 		printf("Calling method with sv %u (%s)\n", (unsigned int) brow->sv_js, SvPV(brow->sv_js, PL_na)); */
-/* 	} */
-
-/* 	{ */
-/* 		dSP; */
-/* 		ENTER; */
-/* 		SAVETMPS; */
-/* 		PUSHMARK(sp); */
-/* 		XPUSHs(brow->sv_js); */
-/* 		PUTBACK; */
-/* 		count = perl_call_method("brow_loadURL",  G_SCALAR); */
-/* 		if (count) { */
-/* 			if (verbose) printf("Got return %f\n", POPn); */
-/* 		} */
-/* 		PUTBACK; */
-/* 		FREETMPS; */
-/* 		LEAVE; */
-/* 	} */
-
-/* 	if (!JS_GetProperty(context, obj, "__bret", &v)) { */
-/* 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserLoadURL.\n"); */
-		/* exit(1); */
-/* 	} */
-	
-/* 	*rval = v; */
-/* 	return JS_TRUE; */
-/* } */
-#endif /* FALSE */
-
-		
-#if FALSE		
-/* JSBool */
-/* VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) */
-/* { */
-/* 	int count; */
-/* 	SV *sv; */
-/* 	jsval v; */
-/* 	unsigned int i; */
-/* 	BrowserNative *brow = JS_GetPrivate(context, obj); */
-/* 	UNUSED(count); */
-/* 	UNUSED(sv); */
-
-/* 	if (!brow) { */
-/* 		return JS_FALSE; */
-/* 	} */
-	
-/* 	if (brow->magic != BROWMAGIC) { */
-/* 		fprintf(stderr, "Wrong browser magic!\n"); */
-/* 	} */
-/* 	if (argc != 1) { */
-/* 		fprintf(stderr, "Invalid number of arguments for browser method!\n"); */
-/* 	} */
-/* 	for (i = 0; i < argc; i++) { */
-/* 		char buffer[SMALLSTRING]; */
-/* 		sprintf(buffer,"__arg%d", i); */
-/* 		JS_SetProperty(context, obj, buffer, argv+i); */
-/* 	} */
-/* 	if (verbose) { */
-/* 		printf("Calling method with sv %u (%s)\n", (unsigned int) brow->sv_js, SvPV(brow->sv_js, PL_na)); */
-/* 	} */
-
-/* 	{ */
-/* 		dSP; */
-/* 		ENTER; */
-/* 		SAVETMPS; */
-/* 		PUSHMARK(sp); */
-/* 		XPUSHs(brow->sv_js); */
-/* 		PUTBACK; */
-/* 		count = perl_call_method("brow_replaceWorld",  G_SCALAR); */
-/* 		if (count) { */
-/* 			if (verbose) printf("Got return %f\n", POPn); */
-/* 		} */
-/* 		PUTBACK; */
-/* 		FREETMPS; */
-/* 		LEAVE; */
-/* 	} */
-
-
-/* 	if (!JS_GetProperty(context, obj, "__bret",  &v)) { */
-/* 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserReplaceWorld.\n"); */
-		/* exit(1); */
-/* 	} */
-/* 	*rval = v; */
-/* 	return JS_TRUE; */
-/* } */
-#endif /* FALSE */
-
-	
-#if FALSE		
-/* JSBool */
-/* VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval) */
-/* { */
-/* 	int count; */
-/* 	SV *sv; */
-/* 	jsval v; */
-/* 	unsigned int i; */
-/* 	BrowserNative *brow = JS_GetPrivate(context, obj); */
-/* 	UNUSED(count); */
-/* 	UNUSED(sv); */
-
-/* 	if (!brow) { */
-/* 		return JS_FALSE; */
-/* 	} */
-	
-/* 	if (brow->magic != BROWMAGIC) { */
-/* 		fprintf(stderr, "Wrong browser magic!\n"); */
-/* 	} */
-/* 	if (argc != 0) { */
-/* 		fprintf(stderr, "Invalid number of arguments for browser method!\n"); */
-/* 	} */
-/* 	for (i = 0; i < argc; i++) { */
-/* 		char buffer[SMALLSTRING]; */
-/* 		sprintf(buffer,"__arg%d", i); */
-/* 		JS_SetProperty(context, obj, buffer, argv+i); */
-/* 	} */
-/* 	if (verbose) { */
-/* 		printf("Calling method with sv %u (%s)\n", (unsigned int) brow->sv_js, SvPV(brow->sv_js, PL_na)); */
-/* 	} */
-
-/* 	{ */
-/* 		dSP; */
-/* 		ENTER; */
-/* 		SAVETMPS; */
-/* 		PUSHMARK(sp); */
-/* 		XPUSHs(brow->sv_js); */
-/* 		PUTBACK; */
-/* 		count = perl_call_method("brow_getCurrentSpeed",  G_SCALAR); */
-/* 		if (count) { */
-/* 			if (verbose) printf("Got return %f\n", POPn); */
-/* 		} */
-/* 		PUTBACK; */
-/* 		FREETMPS; */
-/* 		LEAVE; */
-/* 	} */
-
-
-/* 	if (!JS_GetProperty(context, obj, "__bret",  &v)) { */
-/* 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetCurrentSpeed.\n"); */
-		/* exit(1); */
-/* 	} */
-
-/* 	*rval = v; */
-/* 	return JS_TRUE; */
-/* } */
-#endif /* FALSE */
-
-		
-JSBool
-VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	int count;
-	jsval v;
-	unsigned int i;
-	BrowserNative *brow;
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetVersion.\n");
-		return JS_FALSE;
-	}
-	
-	UNUSED(count);
-
-	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr, "Wrong browser magic!\n");
-		return JS_FALSE;
-	}
-	if (argc != 0) {
-		fprintf(stderr, "Invalid number of arguments for browser method!\n");
-		return JS_FALSE;
-	}
-	for (i = 0; i < argc; i++) {
-		char buffer[SMALLSTRING];
-		sprintf(buffer,"__arg%d", i);
-		JS_SetProperty(context, obj, buffer, argv+i);
-	}
-
-	doPerlCallMethod(brow->sv_js, "jspBrowserGetVersion");
-
-	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
-		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetVersion.\n");
-		return JS_FALSE;
-	}
-	*rval = v;
-	return JS_TRUE;
-}
-
-JSBool
+static JSBool
 doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 			const char *callingFunc, const char *perlBrowserFunc, const char *browserFunc)
 {
 	jsval _v[2];
 	BrowserNative *brow;
-	JSObject *_obj[4];
+	JSObject *_obj[2];
 	JSClass *_cls[2];
 	JSString *_str[2];
 	char *_route,
@@ -540,119 +612,3 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 
 	return JS_TRUE;
 }
-
-	
-JSBool
-VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	jsval _v;
-	if (!doVRMLRoute(context, obj, argc, argv,
-					 "VrmlBrowserAddRoute", "jspBrowserAddRoute", "addRoute")) {
-		fprintf(stderr, "doVRMLRoute failed in VrmlBrowserAddRoute.\n");
-		return JS_FALSE;
-	}
-	if (!JS_GetProperty(context, obj, "__bret",  &_v)) {
-		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserAddRoute.\n");
-		return JS_FALSE;
-	}
-	*rval = _v;
-	return JS_TRUE;
-}
-
-JSBool
-VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	jsval _v;
-	if (!doVRMLRoute(context, obj, argc, argv,
-					 "VrmlBrowserDeleteRoute", "jspBrowserDeleteRoute", "deleteRoute")) {
-		fprintf(stderr, "doVRMLRoute failed in VrmlBrowserDeleteRoute.\n");
-		return JS_FALSE;
-	}
-	if (!JS_GetProperty(context, obj, "__bret",  &_v)) {
-		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserDeleteRoute.\n");
-		return JS_FALSE;
-	}
-	*rval = _v;
-	return JS_TRUE;
-}
-
-	
-JSBool
-VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	int count;
-	jsval v;
-	unsigned int i;
-	BrowserNative *brow;
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetCurrentFrameRate.\n");
-		return JS_FALSE;
-	}
-	
-	UNUSED(count);
-	
-	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr, "Wrong browser magic!\n");
-		return JS_FALSE;
-	}
-	if (argc != 0) {
-		fprintf(stderr, "Invalid number of arguments for browser method!\n");
-		return JS_FALSE;
-	}
-	for (i = 0; i < argc; i++) {
-		char buffer[SMALLSTRING];
-		sprintf(buffer,"__arg%d", i);
-		JS_SetProperty(context, obj, buffer, argv+i);
-	}
-
-	doPerlCallMethod(brow->sv_js, "jspBrowserGetCurrentFrameRate");
-
-	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
-		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetCurrentFrameRate.\n");
-		return JS_FALSE;
-	}
-	*rval = v;
-	return JS_TRUE;
-}
-
-	
-JSBool
-VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	int count;
-	jsval v;
-	unsigned int i;
-	BrowserNative *brow;
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in VrmlBrowserGetWorldURL.\n");
-		return JS_FALSE;
-	}
-	
-	UNUSED(count);
-
-	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr, "Wrong browser magic!\n");
-		return JS_FALSE;
-	}
-
-	if (argc != 0) {
-		fprintf(stderr, "Invalid number of arguments for browser method!\n");
-		return JS_FALSE;
-	}
-	for (i = 0; i < argc; i++) {
-		char buffer[SMALLSTRING];
-		sprintf(buffer,"__arg%d", i);
-		JS_SetProperty(context, obj, buffer, argv+i);
-	}
-
-	doPerlCallMethod(brow->sv_js, "jspBrowserGetWorldURL");
-
-	if (!JS_GetProperty(context, obj, "__bret",  &v)) {
-		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetWorldURL.\n");
-		return JS_FALSE;
-	}
-
-	*rval = v;
-	return JS_TRUE;
-}
-

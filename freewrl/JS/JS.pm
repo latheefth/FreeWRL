@@ -45,9 +45,10 @@ if ($VRML::verbose::js) {
 
 our $ECMAScriptNative = qr{^SF(?:Bool|Float|Time|Int32|String)$};
 
-
 ## See VRML97, section 4.12 (Scripting)
 my $DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false;";
+
+my $eventInArg = "__tmp_arg_";
 
 
 sub new {
@@ -115,7 +116,7 @@ sub initScriptFields {
 		if ($type !~ /$ECMAScriptNative/) {
 			$constr = $this->constrString($type, 0);
 			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
-								   "__tmp_arg_$field", $constr)) {
+								   "$eventInArg"."$field", $constr)) {
 				$this->cleanupDie("addGlobalAssignProperty failed in VRML::JS::new");
 			}
 		}
@@ -317,7 +318,7 @@ sub initialize {
 		cleanupDie("runScript failed in VRML::JS::initialize");
 	}
 
-	$this->gatherSentEvents();
+	return $this->gatherSentEvents();
 }
 
 sub sendeventsproc {
@@ -386,13 +387,16 @@ sub sendevent {
 	my ($this, $node, $event, $value, $timestamp) = @_;
 	my $type = $node->{Type}{FieldTypes}{$event};
 	my $ftype = "VRML::Field::$type";
-	my $aname = "__tmp_arg_$event";
+	my $aname = "$eventInArg"."$event";
 	my ($rs, $rval);
 
 
-	print "VRML::JS::sendevent $node $event $value $timestamp ($type)\n"
+	print "VRML::JS::sendevent ",
+		VRML::NodeIntern::dump_name($node),
+				" $event $value $timestamp ($type)\n"
 		if $VRML::verbose::js;
-	## this is a problem for SFNode!!!
+
+	## is this a problem for SFNode???
 	$this->setProperty($event, $value, $aname);
 
 	if (!runScript($this->{JSContext}, $this->{JSGlobal},
@@ -400,24 +404,6 @@ sub sendevent {
 		cleanupDie("runScript failed in VRML::JS::sendevent");
 	}
 	return $this->gatherSentEvents();
-
-	### executes ???
-
-#	unless ($type =~ /$ECMAScriptNative|^SFNode$/) {
-#		&{"js$type"."Set"}($this->{JSContext}, $this->{JSGlobal}, "__evin", $value);
-#		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-#					   "$event(__evin,$timestamp)", $rs, $rval)) {
-#			cleanupDie("runScript failed in VRML::JS::sendevent");
-#		}
-#	} else {
-#		print "\t$event $timestamp\n"."$event(".$ftype->as_string($value, 1).",$timestamp)\n"
-#				if $VRML::verbose::js;
-#		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-#					   "$event(".$ftype->as_string($value, 1).",$timestamp)", $rs, $rval)) {
-#			cleanupDie("runScript failed in VRML::JS::sendevent");
-#		}
-#	}
-#	$this->gatherSentEvents();
 }
 
 
@@ -434,6 +420,7 @@ sub setProperty { # Assigns a value to a property.
 
 	print "VRML::JS::setProperty args: field $field, value $value, property $prop\n"
 		if $VRML::verbose::js;
+
 	## problem with MF types - what to do from new ???
 	if ($ftype =~ /^MF/) {
 		$styp = $ftype;
@@ -473,6 +460,7 @@ sub setProperty { # Assigns a value to a property.
 	}
 }
 
+## perhaps this should be rewritten to use toString instead...
 sub getProperty {
 	my ($this, $type, $prop) = @_;
 	my ($rstr, $rval, $l);
@@ -689,57 +677,17 @@ sub jspBrowserGetVersion {
 	}
 }
 
-## VRML::Browser::setDescription doesn't return anything...FIX!!!
-sub jspBrowserSetDescription {
-	my ($this, $desc) = @_;
+sub jspBrowserGetCurrentSpeed {
+	my ($this) = @_;
 	my ($rval, $rs);
-	print "VRML::JS::jspBrowserSetDescription\n"
+
+	print "VRML::JS::jspBrowserGetCurrentSpeed\n"
 		if $VRML::verbose::js;
-	my $n = $this->{Browser}->setDescription($desc);
+	my $n = $this->{Browser}->getCurrentSpeed();
+
 	if (!runScript($this->{JSContext}, $this->{JSGlobal},
-				   "Browser.__bret=\"$n\"", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspBrowserSetDescription");
-	}
-}
-
-## VRML::Browser::addRoute doesn't return anything...FIX!!!
-sub jspBrowserAddRoute {
-	my ($this, $str) = @_;
-	my ($rval, $rs);
-
-	print "VRML::JS::jspBrowserAddRoute: route \"$str\"\n"
-			if $VRML::verbose::js;
-	if ($str =~ /^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {
-		my ($fn, $ff, $tn, $tf) = ($1, $2, $3, $4);
-
-		my $n = $this->{Browser}->addRoute($fn, $ff, $tn, $tf, $this->{Browser}{Scene});
-
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "Browser.__bret=$n", $rs, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::jspBrowserAddRoute");
-		}
-	} else {
-		cleanupDie("Invalid route for addRoute.");
-	}
-}
-
-## VRML::Browser::deleteRoute doesn't return anything...FIX!!!
-sub jspBrowserDeleteRoute {
-	my ($this, $str) = @_;
-	my ($rval, $rs);
-
-	print "VRML::JS::jspBrowserDeleteRoute: route \"$str\"\n"
-			if $VRML::verbose::js;
-	if ($str =~ /^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {
-		my ($fn, $ff, $tn, $tf) = ($1, $2, $3, $4);
-
-		my $n = $this->{Browser}->deleteRoute($fn, $ff, $tn, $tf, $this->{Browser}{Scene});
-
-		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "Browser.__bret=$n", $rs, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::jspBrowserDeleteRoute");
-		}
-	} else {
-		cleanupDie("Invalid route for deleteRoute.");
+				   "Browser.__bret=$n", $rs, $rval)) {
+		cleanupDie("runScript failed in VRML::JS::jspBrowserGetCurrentSpeed");
 	}
 }
 
@@ -751,7 +699,8 @@ sub jspBrowserGetCurrentFrameRate {
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getCurrentFrameRate();
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal}, "Browser.__bret=$n", $rs, $rval)) {
+	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				   "Browser.__bret=$n", $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspBrowserGetCurrentFrameRate");
 	}
 }
@@ -764,9 +713,48 @@ sub jspBrowserGetWorldURL {
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getWorldURL();
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal}, "Browser.__bret=$n", $rs, $rval)) {
+	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				   "Browser.__bret=\"$n\"", $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspBrowserGetWorldURL");
 	}
+}
+
+sub jspBrowserReplaceWorld {
+	my ($this, $handles) = @_;
+
+	print "VRML::JS::jspBrowserReplaceWorld $handles\n"
+		if $VRML::verbose::js;
+
+	$this->{Browser}->replaceWorld($handles);
+}
+
+sub jspBrowserLoadURL {
+	my ($this, $url, $parameter) = @_;
+
+	print "VRML::JS::jspBrowserLoadURL $url, $parameter\n"
+		if $VRML::verbose::js;
+
+	## VRML::Browser::loadURL not implemented yet
+	$this->{Browser}->loadURL($url, $handles);
+}
+
+sub jspBrowserSetDescription {
+	my ($this, $desc) = @_;
+	$desc = join(" ", split(" ", $desc));
+
+	## see VRML97 4.12.10.8
+	if (!$this->{Node}{Type}{Defaults}{"mustEvaluate"}) {
+		warn "VRML::JS::jspBrowserSetDescription: mustEvaluate for ",
+			$this->{Node}{TypeName},
+				" (", VRML::NodeIntern::dump_name($this->{Node}),
+					") must be set to TRUE to call setDescription($desc)";
+		return;
+	}
+
+	print "VRML::JS::jspBrowserSetDescription: $desc\n"
+		if $VRML::verbose::js;
+
+	$this->{Browser}->setDescription($desc);
 }
 
 sub jspBrowserCreateVrmlFromString {
@@ -792,55 +780,48 @@ sub jspBrowserCreateVrmlFromString {
 }
 
 sub jspBrowserCreateVrmlFromURL {
-	my ($this, $u, $handle, $event) = @_;
-	my ($h, $rval, $rstr);
-	my @handles;
+	my ($this, $url, $handle, $event) = @_;
+	my $h;
+	my @createdHandles;
 	my @rootNodes;
 	my @av;
 
-	print "VRML::JS::jspBrowserCreateVrmlFromURL: $u, $handle, $event\n"
+	print "VRML::JS::jspBrowserCreateVrmlFromURL: $url, $handle, $event\n"
 		if $VRML::verbose::js;
 	my $scene = $this->{Browser}{Scene};
 	my $root = $scene->{RootNode};
-	my $urls = VRML::Field::MFString->parse($scene, $u);
+	my $urls = VRML::Field::MFString->parse($scene, $url);
+	my $node = VRML::Handles::get($handle);
 
 	for (@{$urls}) {
 		$h = $this->{Browser}->createVrmlFromURL($_);
-		push @handles, split(" ", $h);
+		push @createdHandles, split(" ", $h);
 	}
-	my @nodes = map(VRML::Handles::get($_), @handles);
+	my @createdNodes = map(VRML::Handles::get($_), @createdHandles);
 
-	my $constr = $this->constrString(MFNode, \@nodes);
-	my $script = "Browser.__bret=$constr";
-
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
-				   $script, $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspBrowserCreateVrmlFromURL");
-	}
-	my $node = VRML::Handles::get($handle);
-
-	for(@nodes) {
+	for(@createdNodes) {
 		if (defined $_->{Scene}{RootNode}) {
 			push @rootNodes, $_->{Scene}{RootNode};
 		}
 	}
 
-	print "VRML::JS::jspBrowserCreateVrmlFromURL: handles [ ",
-		join(", ", @handles), " ], root nodes [ ",
+	print "VRML::JS::jspBrowserCreateVrmlFromURL: createdHandles [ ",
+		join(", ", @createdHandles), " ], root nodes [ ",
 			join(", ",
 				 map(VRML::NodeIntern::dump_name($_)." $_", @rootNodes)),
 					 " ]\n"
 						 if $VRML::verbose::js;
 
+	## correct???
 	if ($event eq "removeChildren") {
-		for (@nodes) {
+		for (@createdNodes) {
 			if ($this->{Browser}->checkChildPresent($root, $_)) {
 				push @av, $this->{Browser}->removeChild($root, $_);
 			}
 		}
 		$this->{Browser}->api__sendEvent($root, $event, \@av);
-	} elsif ($event !~ /^[ar].{2,5}?Children$/) {
-		for (@nodes) {
+	} elsif ($event ne "addChildren") {
+		for (@createdNodes) {
 			if (!($this->{Browser}->checkChildPresent($root, $_))) {
 				push @av, $_;
 			}
@@ -851,4 +832,32 @@ sub jspBrowserCreateVrmlFromURL {
 
 	## Debug:
 	##$this->{Browser}{Scene}->dump(0);
+}
+
+sub jspBrowserAddRoute {
+	my ($this, $str) = @_;
+
+	print "VRML::JS::jspBrowserAddRoute: route \"$str\"\n"
+			if $VRML::verbose::js;
+	if ($str =~ /^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {
+		my ($fn, $ff, $tn, $tf) = ($1, $2, $3, $4);
+
+		$this->{Browser}->addRoute($fn, $ff, $tn, $tf, $this->{Browser}{Scene});
+	} else {
+		cleanupDie("Invalid route for addRoute.");
+	}
+}
+
+sub jspBrowserDeleteRoute {
+	my ($this, $str) = @_;
+
+	print "VRML::JS::jspBrowserDeleteRoute: route \"$str\"\n"
+			if $VRML::verbose::js;
+	if ($str =~ /^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {
+		my ($fn, $ff, $tn, $tf) = ($1, $2, $3, $4);
+
+		$this->{Browser}->deleteRoute($fn, $ff, $tn, $tf, $this->{Browser}{Scene});
+	} else {
+		cleanupDie("Invalid route for deleteRoute.");
+	}
 }

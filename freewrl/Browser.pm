@@ -70,18 +70,19 @@ sub new {
 	my($type, $pars) = @_;
 
 	my $this = bless {
-			  Verbose => delete $pars->{Verbose},
-			  BE => new VRML::GLBackEnd($pars->{FullScreen}, 
-						    $pars->{Shutter}, 
-						    $pars->{EyeDist}, 
-						    $pars->{Parent}, 
-						    $pars->{ScreenDist}, 
-						    @{$pars->{BackEnd} or []}),
-			  EV => new VRML::EventMachine(),
-			  Scene => undef,
-			  URL => undef,
-			  JSCleanup => undef
-			 }, $type;
+					  Verbose => delete $pars->{Verbose},
+					  BE => new VRML::GLBackEnd($pars->{FullScreen},
+												$pars->{Shutter},
+												$pars->{EyeDist},
+												$pars->{Parent},
+												$pars->{ScreenDist},
+												@{$pars->{BackEnd} or []}),
+					  Description => "",
+					  EV => new VRML::EventMachine(),
+					  Scene => undef,
+					  URL => undef,
+					  JSCleanup => undef
+					 }, $type;
 	return $this;
 }
 
@@ -308,17 +309,23 @@ sub set_next_vp {
 
 
 
-
 # The routines below implement the browser object interface.
 
-sub getName { return "FreeWRL VRML Browser" }
-sub getVersion { return $VRML::Config{VERSION} } 
-sub getCurrentSpeed { return 0.0 } # legal
-sub getCurrentFrameRate { return $FPS }
-sub getWorldURL { return $_[0]{URL} }
-sub loadURL { print "Can't do loadURL yet\n"; exit (1) }
-sub setDescription { print "Set description: ",
-	(join '',reverse split '',$_[1]),"\n" } # Read the spec: 4.12.10.8 ;)
+sub getName { return VRML::NodeType::getName(); }
+sub getVersion { return $VRML::Config{VERSION}; }
+sub getCurrentSpeed { return 0.0; } # legal
+sub getCurrentFrameRate { return $FPS; }
+
+sub setDescription {
+	my ($this, $desc) = @_;
+	$this->{Description} = $desc;
+	print "Set description: $desc\n"; ## may do more later
+} # Read the spec: 4.12.10.8 ;)
+
+sub getWorldURL {
+	my ($this) = @_;
+	return $this->{URL};
+}
 
 # Warning: due to the lack of soft references, all unreferenced nodes
 # leak horribly. Perl 5.005 (to be out soon) will probably
@@ -329,7 +336,7 @@ sub replaceWorld {
 	# make a new scene, this is very similar to load_string, found
 	# in this file.
 
-	my ($this,$string) = @_;
+	my ($this, $string) = @_;
 	my @newnodes = ();
 	my $n;
 
@@ -355,19 +362,18 @@ sub replaceWorld {
 	# JAS $this->{Scene}->register_vps($this);
 }
 
+sub loadURL { print "Can't do loadURL yet\n"; }
 
 sub createVrmlFromString {
 	my ($this, $string) = @_;
 
-	my $scene = VRML::Scene->new($this->{EV}, "FROM A STRING");
-	$scene->set_world_url($this->{Scene}->get_world_url());
+	my $wurl = $this->{Scene}->get_world_url();
+	my $scene = VRML::Scene->new($this->{EV}, "FROM A STRING", $wurl);
 
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
 	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
-	# print "CVS - ret is $ret\n";
-	# debugging scene graph call: 
-	#print "dump createVrmlFromString commented out\n";
+
 	$scene->dump(0) if $VRML::verbose::scenegraph;
 
 	return $ret;
@@ -445,7 +451,7 @@ sub deleteRoute {
 	$this->prepare2();
 }
 
-# EAI
+# EAI & Script node
 sub api_beginUpdate { print "no beginupdate yet\n"; exit(1) }
 sub api_endUpdate { print "no endupdate yet\n"; exit(1) }
 sub api_getNode {
