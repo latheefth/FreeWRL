@@ -58,5 +58,8 @@ gcc -o freewrl \
 	../CFuncs/PluginSocket.o    \
 	../CFuncs/Snapshot.o	\
 	../CFuncs/JavaClass.o	\
+	../CFuncs/Frustum.o    \
+	../CFuncs/Children.c   \
+	../CFuncs/InputFunctions.c \
 	-lboundscheck \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts`

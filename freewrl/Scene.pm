@@ -149,8 +149,12 @@ sub new {
 }
 
 sub set_url {
-    my ($this, $url) = @_;
+    my ($this, $url, $parentURL) = @_;
+    my $ri = rindex ($parentURL,"/");
+    my $ps = substr($parentURL,0,$ri);
+
     $this->{URL} = $url;
+    $this->{WorldURL} = $ps;
 }
 
 sub newp {
@@ -208,7 +212,22 @@ sub newextp {
     $this->{Pars} = $pars;
     $this->{Name} = $name;
     $this->{Parent} = $parent;
+    $this->{URL} = $url;
+    $this->{WorldURL} = $parentURL;
 
+    # is this an EXTERNPROTO invoked from another EXTERNPROTO? If so,
+    # we may not have the correct parent url passed in.
+    # this is not quite correct, but should work for 99% of the time.
+    # we should go to the url for the parent EXTERNPROTO, rather than
+    # the parent for the whole scene, but, this is not stored in Perl
+    # anywhere.
+
+    if (!$parentURL) {
+	    $parentURL = VRML::VRMLFunc::GetBrowserFullPath();
+	    $this->{WorldURL} = $parentURL;
+	  }
+    
+    
     # Extract the field types
     $this->{FieldTypes} = {map {$_ => $this->{Pars}{$_}[1]} keys %{$this->{Pars}}};
     $this->{FieldKinds} = {map {$_ => $this->{Pars}{$_}[0]} keys %{$this->{Pars}}};
@@ -237,12 +256,13 @@ sub newextp {
 
 	for (@{$url}) {
 		($protourl, $protoname) = split(/#/, $_, 2);
+
 		$string = VRML::Browser::getTextFromFile($protourl,$parentURL);
 
 		next if (!$string);
 
 		# marijn: set the url for this proto
-		$this->set_url($protourl);
+		$this->set_url($protourl,$parentURL);
 
 		# convert from X3D if required.
 		if ($string =~/^<\?xml version/s) {
@@ -255,6 +275,9 @@ sub newextp {
 				if ($string =~ /^#VRML V1.0/);
 			warn("File $protourl doesn't start with the '#VRML V2.0' header line");
 		}
+
+		# remove comments, etc...
+		$string = VRML::VRMLFunc::sanitizeInput($string);
 
 		# XXX marijn: code copied from Browser->parse()
 		$po = pos $string;
@@ -416,7 +439,6 @@ sub new_externproto {
 	print "VRML::Scene::new_externproto: ", VRML::Debug::toString(\@_), "\n"
 		if $VRML::verbose::scene;
 
-	#print "new_externproto, ",$this->{URL},",",$this->{WorldURL},"\n";
 	# pass in url to allow finding of files relative to url.
 	my $p = $this->{Protos}{$name} = (ref $this)->newextp($pars, $this, $name, 
 			$url,$this->{URL});

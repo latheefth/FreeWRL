@@ -174,7 +174,7 @@ void EventLoop() {
 
 	/* Handle X events */
 	handle_Xevents();
-
+	
 	/* Viewer move viewpoint */
 	handle_tick();
 
@@ -183,7 +183,7 @@ void EventLoop() {
 
 	/* first events (clock ticks, etc) */
 	if (doEvents) do_first ();
-	
+
 	/* actual rendering */
 	render();
 
@@ -617,10 +617,6 @@ void do_keyPress(const char kp, int type) {
 			case '.': { display_status = !display_status; break; }
 			case 'q': { if (!RUNNINGASPLUGIN) {
 					  doQuit();
-#ifndef AQUA
-					if (wantEAI) shutdown_EAI();
-#endif
-					exit(0);
 					break;
 				    }
 				  }
@@ -890,7 +886,7 @@ void doQuit(void) {
 #ifndef AQUA
 	resetGeometry();
 #endif
-	shutdown_EAI();
+	if (wantEAI) shutdown_EAI();
 	exit(0);
 }
 

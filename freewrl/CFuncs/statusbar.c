@@ -109,6 +109,10 @@ void render_status () {
 	if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
 		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s", 
 			"(Loading...)", BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
+
+		// let the other threads run, too
+		sched_yield();
+		
 	} else { 
 		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s", 
 		vpname, BrowserFPS, VIEWER_STRING(viewer_type),HELPER);

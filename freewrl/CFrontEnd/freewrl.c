@@ -290,15 +290,21 @@ int main (int argc, char **argv) {
 	filename = malloc(1000 * sizeof (char));
 	pwd = malloc(1000 * sizeof (char));
 	getcwd(pwd,1000);
+	
 
 #ifndef AQUA
 	/* if this is a network file, leave the name as is. If it is
 	 * a local file, prepend the path to it */
 	if (checkNetworkFile(argv[optind])) {
 		strcpy (filename,argv[optind]);
+		BrowserFullPath = malloc ((strlen(argv[optind])+1) * sizeof(char));
+		strcpy(BrowserFullPath,pwd);
+				
 	} else {
 
 		makeAbsoluteFileName(filename, pwd, argv[optind]);
+		BrowserFullPath = malloc ((strlen(filename)+1) * sizeof(char));
+		strcpy (BrowserFullPath,filename);
 	}
 #endif
 	// printf ("FrontEnd, filename %s\n",filename);
@@ -326,6 +332,7 @@ void displayThread() {
 #ifndef AQUA
 	openMainWindow(Disp,&Win,&globalContext);
 #endif
+
 	glpOpenGLInitialize();
 	new_tessellation();
 
@@ -342,6 +349,8 @@ void catch_SIGQUIT() {
 }
 
 void catch_SIGSEGV() {
+	fprintf (stderr,"FreeWRL got a SIGSEGV - can you please mail the file(s) to\n");
+	fprintf (stderr,"freewrl-04@rogers.com with a valid subject line. Thanks.\n");
     fflush(NULL);
 }
 

@@ -66,15 +66,21 @@ extern unsigned _fw_instance;
 
 #define DATA_LOCK       	pthread_mutex_lock(&condition_mutex);
 #define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);
+#define DATA_LOCK_WAIT          pthread_cond_wait(&condition_cond, &condition_mutex);
 #define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); 
 
-/* Used for debugging signalling
-#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex); printf ("locked by %d\n",pthread_self());
-#define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);printf ("signaled by %d\n",pthread_self());
-#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); printf ("unlocked by %d\n",pthread_self());
-*/
+//#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex); \
+					printf ("locked by %d\n",pthread_self());
 
-#define DATA_LOCK_WAIT          pthread_cond_wait(&condition_cond, &condition_mutex);
+//#define DATA_LOCK_SIGNAL        printf ("signalling by %d\n",pthread_self()); \
+					pthread_cond_signal(&condition_cond); \
+					printf ("signaled by %d\n",pthread_self());
+
+//#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); \
+					printf ("unlocked by %d\n",pthread_self());
+//#define DATA_LOCK_WAIT          printf ("waiting by %d\n",pthread_self()); \
+					pthread_cond_wait(&condition_cond, &condition_mutex);
+
 
 /* for debugging
 #define PSP_LOCK		while(PerlParsing){printf("pp\n");usleep(10);}pthread_mutex_lock(&psp_mutex);
@@ -564,10 +570,12 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	/* do we want to return if the parsing thread is busy, or do
 	   we want to wait? */
 	if (returnifbusy) {
+		printf ("perlParse, returnifbusy, PerlParsing %d\n",PerlParsing);
 		if (PerlParsing) return (FALSE);
 	}
 	PSP_LOCK
 	DATA_LOCK
+
 	/* copy the data over; malloc and copy input string */
 	psp.comp = complete;
 	psp.type = type;
@@ -575,9 +583,12 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	psp.ofs = ofs;
 	psp.path = NULL;
 	psp.bind = bind; /* should we issue a set_bind? */
+
 	psp.inp = malloc (strlen(inp)+2);
+
 	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
 	memcpy (psp.inp,inp,strlen(inp)+1);
+	
 	DATA_LOCK_SIGNAL
 	DATA_UNLOCK
 	PSP_UNLOCK
@@ -672,8 +683,6 @@ void _perlThread(void *perlpath) {
 			__pt_doInline();
 		}
 
-
-
 		switch (psp.type) {
 
 		case FROMSTRING:
@@ -732,7 +741,6 @@ void _perlThread(void *perlpath) {
 			printf ("produceTask - invalid type!\n");
 			}
 		}
-
 
 		/* finished this loop, free data */
 		if (psp.inp) free (psp.inp);
@@ -1034,10 +1042,10 @@ void __pt_doStringUrl () {
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {
-		/* printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
-			psp.retarr, retval); */
+		 /* printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
+			psp.retarr, retval);  */
 		for (count = 0; count < retval; count ++) {
-			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
+			// printf ("	...saving %d in %d\n",myretarr[count],count); 
 			psp.retarr[count] = myretarr[count];
 		}
 		psp.retarrsize = retval;	
