@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.76  2003/04/09 16:30:57  sdumoulin
+# Changed for Aqua build
+#
 # Revision 1.75  2003/04/04 15:24:24  crc_canada
 # set_stereo_offset C function added - uses fieldofview variable now.
 # (works reliably only with 45 degrees; algorithm will have to be tweaked
@@ -1044,7 +1047,11 @@ sub gen {
 
 #include "EXTERN.h"
 #include "perl.h"
+#ifdef AQUA
+#include <gl.h>
+#else
 #include "GL/gl.h"
+#endif
 
 struct pt {GLdouble x,y,z;};
 
@@ -1120,9 +1127,15 @@ struct sNaviInfo {
 #include "XSUB.h"
 #include <math.h>
 
+#ifndef AQUA
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glx.h>
+#else
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+#endif
 
 #include "OpenGL/OpenGL.m"
 #include "CFuncs/Structs.h"
@@ -1622,7 +1635,9 @@ read_mpg_file(init_tex, fname,repeatS,repeatT)
 	int repeatT
 CODE:
 	/* go directly to the CFuncs/MPEG_Utils, and run from there */
+#ifndef AQUA
 	RETVAL = mpg_main(init_tex, fname, repeatS, repeatT);
+#endif
 OUTPUT:
 	RETVAL
 
