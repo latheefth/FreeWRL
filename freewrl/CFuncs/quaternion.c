@@ -56,6 +56,89 @@
 
 #include "quaternion.h"
 
+/* change matrix rotation to/from a quaternion */
+void
+matrix_to_quaternion (Quaternion *quat, double *mat) {
+	double T, S, X, Y, Z, W;
+
+	/* get the trace of the matrix */
+	T = 1 + MAT00 + MAT11 + MAT22;
+	printf ("T is %f\n",T);
+
+	if (T > 0) {
+		S = 0.5/sqrt(T);
+		W = 0.25 / S;
+		//x =  (m21 - m12) *S
+		//y =  (m02 - m20) *s
+		//z =  (m10 - m01) *s
+		X = (MAT21 - MAT12) * S;
+		Y = (MAT02 - MAT20) * S;
+		Z = (MAT10 - MAT01) * S;
+	} else {
+		//If the trace of the matrix is equal to zero then identify
+		//which major diagonal element has the greatest value.
+		//Depending on this, calculate the following:
+		
+		if ((MAT00>MAT11)&&(MAT00>MAT22))  {// Column 0: 
+			S  = sqrt( 1.0 + MAT00 - MAT11 - MAT22 ) * 2;
+			X = 0.25 * S;
+			Y = (MAT01 + MAT10) / S;
+			Z = (MAT02 + MAT20) / S;
+			W = (MAT12 - MAT21) / S;
+		} else if ( MAT11>MAT22 ) {// Column 1: 
+			S  = sqrt( 1.0 + MAT11 - MAT00 - MAT22) * 2;
+			X = (MAT01 + MAT10) / S;
+			Y = 0.25 * S;
+			Z = (MAT12 + MAT21) / S;
+			W = (MAT02 - MAT20) / S;
+		} else {// Column 2:
+			S  = sqrt( 1.0 + MAT22 - MAT00 - MAT11) * 2;
+			X = (MAT02 + MAT20) / S;
+			Y = (MAT12 + MAT21) / S;
+			Z = 0.25 * S;
+			W = (MAT01 - MAT10) / S;
+		}
+	}
+
+	quat->x = X;
+	quat->y = Y;
+	quat->z = Z;
+	quat->w = W;
+}
+
+void
+quaternion_to_matrix (float *mat, Quaternion *q) {
+	double sqw, sqx, sqy, sqz, tmp1, tmp2;
+	int i;
+
+	/* first, zero matrix */
+	for (i=0; i<16;i++) mat[i]=0.0;
+
+	/* assumes matrix in OpenGL format */
+	sqw = q->w*q->w;
+	sqx = q->x*q->x;
+	sqy = q->y*q->y;
+	sqz = q->z*q->z;
+	
+	/* scale */
+	MAT00 =  sqx - sqy - sqz + sqw; // since sqw + sqx + sqy + sqz =1
+	MAT11 = -sqx + sqy - sqz + sqw;
+	MAT22 = -sqx - sqy + sqz + sqw;
+
+	tmp1 = q->x*q->y;
+	tmp2 = q->z*q->w;
+	MAT10 = 2.0 * (tmp1 + tmp2); //m[1][0]
+	MAT01 = 2.0 * (tmp1 - tmp2); //m[0][1]
+
+	tmp1 = q->x*q->z;
+	tmp2 = q->y*q->w;
+	MAT20 = 2.0 * (tmp1 - tmp2); //m[2][0]
+	MAT02 = 2.0 * (tmp1 + tmp2); //m[0][2]
+	tmp1 = q->y*q->z;
+	tmp2 = q->x*q->w;
+	MAT21 = 2.0 * (tmp1 + tmp2); //m[2][1]
+	MAT12 = 2.0 * (tmp1 - tmp2); //m[1][2]
+}
 
 /*
  * VRML rotation (axis, angle) to quaternion (q = (w, v)):

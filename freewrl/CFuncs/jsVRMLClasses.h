@@ -90,13 +90,13 @@ static JSBool
 doMFAddProperty(JSContext *cx,
 				JSObject *obj,
 				jsval id,
-				jsval *vp);
+				jsval *vp, char *name);
 
 static JSBool
 doMFSetProperty(JSContext *cx,
 				JSObject *obj,
 				jsval id,
-				jsval *vp);
+				jsval *vp, char *name);
 
 static JSBool
 getBrowser(JSContext *context,
