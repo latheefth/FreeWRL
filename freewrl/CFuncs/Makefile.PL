@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     'NAME'              => "VRML::CFuncs",
-    'CCFLAGS'		=> "-Wall",
+    'CCFLAGS'		=> "",
     'DEFINE'		=> "",
     'INC'		=> "",
     'LIBS'		=> ""
