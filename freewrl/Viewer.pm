@@ -146,6 +146,8 @@ sub handle {}
 package VRML::Viewer::Walk;
 @VRML::Viewer::Walk::ISA=VRML::Viewer;
 
+
+# handle, called on sensory events. (mouse here)
 sub handle {
     my($this, $mev, $but, $mx, $my) = @_;
     if($mev eq "PRESS" and $but == 1) {
@@ -171,6 +173,11 @@ sub handle {
     }
 }
 
+# handle_tick, called once per frame.
+#	Sets viewer to next expected position.
+#	This should be called before position sensor calculations(and event triggering) take place.
+#	Position dictated by this routine is NOT final, and is likely to change if the viewer is left in
+#	a state of collision. (ncoder)
 sub handle_tick {
     my($this, $time) = @_;
     # print "handle_tick: time=$time rd=$this->{RD} yd=$this->{YD} zd=$this->{ZD}\n";

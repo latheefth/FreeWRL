@@ -20,6 +20,12 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.57  2002/05/30 21:18:04  ncoder
+# Fixed bug with the order of the multiplication of the transformations while rendering the viewpoint.
+# Increased performance of viewpoint rendering code.
+#
+# Added some comments.
+#
 # Revision 1.56  2002/05/08 18:15:07  crc_canada
 # Text nodes without a FontStyle were not rendered correctly. Fixed.
 #
@@ -1598,7 +1604,7 @@ ProximitySensor => q~
 
 		/* Now, the intersection of the planes, obviously cp */
 		VECCP(nor1,nor2,ins);
-/* don't know why this is here JAS
+/* don t know why this is here JAS
 
 		if(APPROX(VECSQ(ins),0)) {
 			printf ("Should die here: Proximitysensor problem!\n");
@@ -1675,9 +1681,12 @@ DirectionalLight => '
 
 %PrepC = (
 Transform => (join '','
-	glPushMatrix();
-
-	if(!reverse_trans) {
+	
+        /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
+         * so we do nothing here in that case -ncoder */
+	if(!render_vp) {
+                glPushMatrix();
+    
 		glTranslatef(',(join ',',map {getf(Transform,translation,$_)} 0..2),'
 		);
 		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
@@ -1695,26 +1704,7 @@ Transform => (join '','
 		);
 		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
 		);
-	} else {
-		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
-		);
-		glRotatef(',getf(Transform,scaleOrientation,3),'/3.1415926536*180,',
-			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
-		);
-		glScalef(',(join ',',map {"1.0/(".getf(Transform,scale,$_).")"} 0..2),'
-		);
-		glRotatef(-(',getf(Transform,scaleOrientation,3),'/3.1415926536*180),',
-			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
-		);
-		glRotatef(-(',getf(Transform,rotation,3),')/3.1415926536*180,',
-			(join ',',map {getf(Transform,rotation,$_)} 0..2),'
-		);
-		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
-		);
-		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"} 
-			0..2),'
-		);
-	}
+        } 
 	/*
 	$endlist();
 	*/
@@ -1794,7 +1784,13 @@ Viewpoint => (join '','
 		if(verbose) printf("Viewpoint: %d IB: %d..\n", 
 			this_,$f(isBound));
 		if(!$f(isBound)) {return;}
-		render_anything = 0; /* Stop rendering any more */
+
+		/* stop rendering when we hit A viewpoint or THE viewpoint???
+		   shouldnt we check for what_vp???? 
+                   maybe only one viewpoint is in the tree at a time? -  ncoder*/
+
+		found_vp = 1; /* We found the viewpoint */
+
 		/* These have to be in this order because the viewpoint
 		 * rotates in its place */
 		glRotatef(-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
@@ -1863,7 +1859,33 @@ NavigationInfo => '
 ##JAS 	glPopMatrix();
 ##JAS '),
 Transform => (join '','
-	glPopMatrix();
+        
+	if(!render_vp) {
+            glPopMatrix();
+	} else {
+           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+            if(found_vp) {
+		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
+		);
+		glRotatef(',getf(Transform,scaleOrientation,3),'/3.1415926536*180,',
+			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
+		);
+		glScalef(',(join ',',map {"1.0/(".getf(Transform,scale,$_).")"} 0..2),'
+		);
+		glRotatef(-(',getf(Transform,scaleOrientation,3),'/3.1415926536*180),',
+			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
+		);
+		glRotatef(-(',getf(Transform,rotation,3),')/3.1415926536*180,',
+			(join ',',map {getf(Transform,rotation,$_)} 0..2),'
+		);
+		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
+		);
+		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"} 
+			0..2),'
+		);
+            }
+        }
+
 '),
 Billboard => (join '','
 	glPopMatrix();

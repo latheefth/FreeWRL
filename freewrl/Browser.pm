@@ -241,10 +241,19 @@ sub tick {
 	my($this) = @_;
 	my $time = get_timestamp();
 
-	$this->{BE}->update_scene($time);
+	
+	#handle app/os events.
+	$this->{BE}->handle_events($time);	
 
+	#update viewer position (first draft)
+	$this->{BE}->{Viewer}->handle_tick($time);
+	
+	
 	$this->{EV}->propagate_events($time,$this->{BE},
 		$this->{Scene});
+
+	#do actual screen writing
+	$this->{BE}->update_scene($time);
 
 	for(@{$this->{Periodic}}) {
 		&$_();

@@ -26,6 +26,12 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.51  2002/05/30 21:18:04  ncoder
+# Fixed bug with the order of the multiplication of the transformations while rendering the viewpoint.
+# Increased performance of viewpoint rendering code.
+#
+# Added some comments.
+#
 # Revision 1.50  2002/05/23 18:26:48  crc_canada
 # move some "externs" out to CFuncs/headers.h
 #
@@ -989,12 +995,14 @@ struct VRML_Shape *last_visited_shape = 0;
 
 int verbose;
 
-int reverse_trans;
-int render_vp; 
+int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
 int render_geom;
 int render_light;
 int render_sensitive;
 int render_blend;
+
+
+int found_vp; /*true when viewpoint found*/
 
 GLuint last_bound_texture;
 
@@ -1076,7 +1084,6 @@ void upd_ray() {
 
 
 void *what_vp;
-int render_anything; /* Turned off when we hit the viewpoint */
 
 void calc_poly_normals_flat(struct VRML_PolyRep *rep);
 
@@ -1165,12 +1172,14 @@ void render_node(void *node) {
 		   v->rendray,
 		   hypersensitive);
 	    printf("Render_state any %d geom %d light %d sens %d\n",
-		   render_anything, 
 		   render_geom, 
 		   render_light, 
 		   render_sensitive);
 	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
 	  }
+
+        /* we found viewpoint on render_vp pass, stop exploring tree.. */
+        if(render_vp && found_vp) return;
 
 	if(p->_change != p->_ichange && v->changed) 
 	  {
@@ -1179,7 +1188,7 @@ void render_node(void *node) {
 	    p->_ichange = p->_change;
 	  }
 
-	if(render_anything && v->prep) 
+	if(v->prep) 
 	  {
 	    if (verbose) printf ("rs 2\n");
 	    v->prep(node);
@@ -1188,12 +1197,13 @@ void render_node(void *node) {
 		upd_ray();
 	      }
 	  }
-	if(render_anything && render_geom && !render_sensitive && v->rend) 
+
+	if(render_geom && !render_sensitive && v->rend) 
 	  {
 	    if (verbose) printf ("rs 3\n");
 	    v->rend(node);
 	  }
-	if(render_anything && render_light && v->light) 
+	if(render_light && v->light) 
 	  {
 	    if (verbose) printf ("rs 4\n");
 	    v->light(node);
@@ -1202,7 +1212,7 @@ void render_node(void *node) {
 	 * that child... further in future: could just calculate
 	 * transforms myself..
 	 */
-	if(render_anything && render_sensitive && p->_sens) 
+	if(render_sensitive && p->_sens) 
 	  {
 	    if (verbose) printf ("rs 5\n");
 	    srg = render_geom;
@@ -1216,23 +1226,26 @@ void render_node(void *node) {
 	    glGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
 	    glGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
 	  }
-	if(render_anything && render_geom && render_sensitive && !hypersensitive && v->rendray) 
+	if(render_geom && render_sensitive && !hypersensitive && v->rendray) 
 	  {
 	    if (verbose) printf ("rs 6\n");
 	    v->rendray(node);
 	  }
-	if(hypersensitive == node) 
-	  {
-	    if (verbose) printf ("rs 7\n");
-	    hyper_r1 = t_r1;
-	    hyper_r2 = t_r2;
-	    hyperhit = 1;
-	  }
-	if(render_anything && v->children) {
-	    if (verbose) printf ("rs 8\n");
-	  v->children(node);
-	}
-	if(render_anything && render_sensitive && p->_sens) 
+        
+
+        if(hypersensitive == node)  /* is this really common to all rendering passes? -ncoder */
+        {
+            /*if (verbose)*/ printf ("rs 7\n");
+            hyper_r1 = t_r1;
+            hyper_r2 = t_r2;
+            hyperhit = 1;
+        }
+        if(v->children) {
+            if (verbose) printf ("rs 8\n");
+            v->children(node);
+        }
+
+	if(render_sensitive && p->_sens) 
 	  {
 	    if (verbose) printf ("rs 9\n");
 	    render_geom = srg;
@@ -1241,7 +1254,8 @@ void render_node(void *node) {
 	    /* HP */
 	      rph = srh;
 	  }
-	if(render_anything && v->fin) 
+
+	if(v->fin) 
 	  {
 	    if (verbose) printf ("rs A\n");
 	    v->fin(node);
@@ -1424,9 +1438,8 @@ CODE:
 	v->rend(p);
 
 void 
-render_hier(p,revt,rvp,rgeom,rlight,rsens,rblend,wvp)
+render_hier(p,rvp,rgeom,rlight,rsens,rblend,wvp)
 	void *p
-	int revt
 	int rvp
 	int rgeom
 	int rlight
@@ -1434,21 +1447,20 @@ render_hier(p,revt,rvp,rgeom,rlight,rsens,rblend,wvp)
   	int rblend
 	void *wvp
 CODE:
-	reverse_trans = revt;
 	render_vp = rvp;
+        found_vp = 0;
 	render_geom =  rgeom;
 	render_light = rlight;
 	render_sensitive = rsens;
 	render_blend = rblend;
 	curlight = 0;
 	what_vp = wvp;
-	render_anything = 1;
 	hpdist = -1;
 	if(!p) {
 		die("Render_hier null!??");
 	}
 	if(verbose)
-  		printf("Render_hier rev_trans=%d vp=%d geom=%d light=%d sens=%d blend=%d what_vp=%d\n", p, revt, rvp, rgeom, rlight, rblend, wvp);
+  		printf("Render_hier vp=%d geom=%d light=%d sens=%d blend=%d what_vp=%d\n", p, rvp, rgeom, rlight, rblend, wvp);
 
 	if(render_sensitive) 
 		upd_ray();

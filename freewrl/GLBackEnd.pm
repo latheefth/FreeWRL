@@ -226,10 +226,10 @@ sub quitpressed {
 	return delete $_[0]{QuitPressed};
 }
 
-
-sub update_scene {
+#handles os/app events. (i think.. -ncoder)
+sub handle_events {
 	my($this,$time) = @_;
-
+	
 	while(XPending()) 
 	  {
 	    # print "UPDS: Xpend:",XPending(),"\n";
@@ -245,7 +245,12 @@ sub update_scene {
 
 	$this->finish_event();
 
-	$this->{Viewer}->handle_tick($time);
+#	$this->{Viewer}->handle_tick($time);
+	
+}
+
+sub update_scene {
+	my($this,$time) = @_;
 
 	if (VRML::OpenGL::get_render_frame() > 0) {
 		$this->render();
@@ -321,6 +326,8 @@ sub set_viewer {
 	$this->{Viewer} = "VRML::Viewer::$viewer"->new($this->{Viewer});
 }
 
+
+#event: Handles external sensory events. (keys, mouse, etc). 
 sub event {
   my $w;
   my($this,$time,$type,@args) = @_;
@@ -607,14 +614,15 @@ sub get_proximitysensor_stuff {
 
 	VRML::VRMLFunc::get_proximitysensor_vecs($node->{CNode},$hit,$x1,$y1,$z1,$x2,$y2,$z2,$q2);
 
-	if($hit or !$hit)
-	  {
+# either this is stupid, or useless... (ncoder)
+#	if($hit or !$hit)
+#	  {
 	    return [$hit, [$x1, $y1, $z1], [$x2, $y2, $z2, $q2]];
-	  }
-	else
-	  {
-	    return [$hit];
-	  }
+#	  }
+#	else
+#	  {
+#	    return [$hit];
+#	  }
 }
 
 sub setup_projection {
@@ -649,26 +657,20 @@ sub setup_projection {
 	gluPerspective(40.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 200000);
 	glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
 	glMatrixMode(&GL_MODELVIEW);
-	glLoadIdentity();
 }
 
 sub setup_viewpoint {
 	my($this,$node) = @_;
 	my $viewpoint = 0;
+
+       
+	glMatrixMode(&GL_MODELVIEW); # this should be assumed , here for safety.
+
+        glLoadIdentity(); 
 	$this->{Viewer}->togl(); # Make viewpoint
 
-	# Store stack depth
-	my $i = pack ("i",0);
-	glGetIntegerv(&GL_MODELVIEW_STACK_DEPTH,$i);
 
-	my $dep = unpack("i",$i);
-
-	# Go through the scene, rendering all transforms
-	# in reverse until we hit the viewpoint
-	# die "NOVP" if !$viewpoint;
-	glMatrixMode(&GL_MODELVIEW);
 	VRML::VRMLFunc::render_hier($node, 	# Node
-				    1, 		# reverse_trans
 				    1, 		# render view point
 				    0, 		# render geoms
 				    0, 		# render lights
@@ -676,27 +678,11 @@ sub setup_viewpoint {
 				    0, 		# render blend
 				    $viewpoint);# what view point      
 
-	my $i2 = pack ("i",0);
-	glGetIntegerv(&GL_MODELVIEW_STACK_DEPTH,$i2);
+#	 my $mod = pack ("d16",0,0,0,0,0,0,0,0,0,0,0,0);
+#	 glGetDoublev(&GL_MODELVIEW_MATRIX, $mod);
+#        my @mat = unpack(d16,$mod);
+#        print "ncoder: matrix is @mat\n";
 
-	my $depnow = unpack("i",$i2);
-
-#	print "GLBackEnd::setup_viewpoint -- DEP: $dep $depnow\n";
-
-	if($depnow > $dep) 
-	  {
-	    my $mod = pack ("d16",0,0,0,0,0,0,0,0,0,0,0,0);
-	    glGetDoublev(&GL_MODELVIEW_MATRIX, $mod);
-
-	    while($depnow-- > $dep) 
-	      {
-		# print "GLBackEnd::setup_viewpoint -- POP! $depnow $dep\n";
-		glPopMatrix();
-	      }
-
-	    glLoadIdentity();
-	    glMultMatrixd($mod);
-	  }
 }
 
 
@@ -724,6 +710,7 @@ sub render {
 
 	# 2. Headlight
 	if($this->{Viewer}{Navi}{RFields}{headlight}) {
+	    glLoadIdentity();
 	    VRML::OpenGL::BackEndHeadlightOn();
 	}
 				
@@ -733,7 +720,6 @@ sub render {
 	# Other lights
 
 	VRML::VRMLFunc::render_hier($node,  # Node
-	     			        0,  # reverse_trans
 	    			        0,  # render view point
 	    			        0,  # render geoms
 	    			        1,  # render lights
@@ -744,7 +730,6 @@ sub render {
 	# 4. Nodes (not the blended ones)
 
 	VRML::VRMLFunc::render_hier($node,	# Node
-				        0,	# reverse_trans
 				        0,      # render view point
 				        1,      # render geoms
 				        0,      # render lights
@@ -805,7 +790,6 @@ sub render {
 	    $this->setup_viewpoint($node);
 		
 	    VRML::VRMLFunc::render_hier($node,	# Node
-					  0,	# reverse_trans
 					  0,	# render view point
 					  0,	# render geoms
 					  0,	# render lights
