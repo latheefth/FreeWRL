@@ -85,6 +85,185 @@ sub printX3DPRotoDeclares {
 }
 
 
+#find the correct ProtoDefine in an ExternProto file.
+sub findProtoDefine {
+	my ($proto, $name) = @_;
+	my $retval = "";
+
+	#print "findProtoDefine, name $name\n";
+	#print "findProtoDefine\n"; print Dumper ($proto), "\n\n";
+	my $arele = 0; #the first element will be the name of this proto
+	my $nele = $#$proto;
+	my $bnub;
+	
+	#print "parseProtoInterface  for proto $name- we were passede in $proto\n";
+
+	if (ref $proto ne "ARRAY") {
+		VRML::VRMLFunc::ConsoleMessage ("parseProtoInterface for proto $name is not an array\n");
+		return;
+	}
+
+	while ($arele <= $nele ){
+		$bnub = $proto->[$arele];
+		#print "find protoDefine element $bnub\n";
+
+		# did we find the hash? If so, these are the fields of the ProtoDeclare node.
+
+		# is this array element a ProtoDeclare?
+		if ($bnub eq "ProtoDeclare") {
+			# is this our proto?
+
+			$arele++;
+			my $hk = $proto->[$arele];
+
+			#print "ref of next element is ",ref $hk,"\n";
+			#print "findProtoDefine\n"; print Dumper ($hk), "\n\n";
+
+			my $testname = $hk->[0]->{name};
+
+			# is this the one we are looking for?
+			if ($testname eq $name) {
+				#print "FOUND IT!!!\n";
+				my $are = 1;
+				my $nel = $#$hk;
+
+				while ($are <= $nel) {
+					my $arel = $hk->[$are];
+	
+					if ($arel eq "ProtoInterface") {
+						print "found ProtoInterface\n";
+						$are++;
+						parseProtoInterface($name,$hk->[$are]);
+
+
+					#print "is this the protobody? $arel\n";
+					} elsif ($arel eq "ProtoBody") {
+						#print "found proto body\n";
+						$are++;
+						return $hk->[$are];
+						
+					}
+
+					$are++;
+				}
+				
+			}
+
+
+		} elsif (ref $bnub eq "ARRAY") {
+			$retval = findProtoDefine($bnub,$name);
+		}
+		$arele++;
+	}
+	return $retval;
+}
+
+sub getX3DExternProtoBody {
+	my ($url) =@_;
+
+	my $parentURL;
+	my $string = "";
+	my $protourl;
+	my $protoname;
+	my $success;
+
+	
+	# is this a SFString or MFString?
+	#if (ref $url ne "ARRAY") {
+	#	$url = "[".$url."]";
+	#}
+	print "getX3DExternProtoBody, url $url\n";
+	print "ref of url is ",ref $url,"\n";
+
+#JAS    # is this an EXTERNPROTO invoked from another EXTERNPROTO? If so,
+#JAS    # we may not have the correct parent url passed in.
+#JAS    # this is not quite correct, but should work for 99% of the time.
+#JAS    # we should go to the url for the parent EXTERNPROTO, rather than
+#JAS    # the parent for the whole scene, but, this is not stored in Perl
+#JAS    # anywhere.
+#JAS
+#JAS    if (!$parentURL) {
+	    $parentURL = VRML::VRMLFunc::GetBrowserFullPath();
+#JAS	    $this->{WorldURL} = $parentURL;
+#JAS	  }
+#JAS    
+#JAS	for (@{$url}) {
+		#JAS ($protourl, $protoname) = split(/#/, $_, 2);
+		($protourl, $protoname) = split(/#/, $url, 2);
+		print "looking for $protourl, protoname $protoname\n";
+		$string = VRML::Browser::getTextFromFile($protourl,$parentURL);
+#JAS		next if (!$string);
+
+		#print "string read in is:\n $string\n";
+
+		# now, XMLparse this.
+		my $p = XML::Parser->new( Style => 'Tree' );
+		my $doc = $p->parse($string);
+
+
+		# go through, and find the proto def.
+		print "ref of doc is ", ref $doc,"\n";
+
+		my $bnub = findProtoDefine($doc,$protoname);
+		print "my bnub is $bnub\n";
+		return $bnub;
+
+
+
+#JAS		my $newurl = VRML::VRMLFunc::GetLastReadFile();
+		#print "Scene.pm - this file is $newurl\n";
+		# marijn: set the url for this proto
+#JAS		$this->set_url($newurl,$parentURL);
+
+#JAS		# XXX marijn: code copied from Browser->parse()
+#JAS		$po = pos $string;
+#JAS		while ($string =~ /([\#\"])/gsc) {
+#JAS			(pos $string)--;
+#JAS			if ($1 eq "#") {
+#JAS				$string =~ s/#.*$//m;
+#JAS			} else {
+#JAS				VRML::Field::SFString->parse($this, $string);
+#JAS			}
+#JAS		}
+#JAS		(pos $string) = $po;
+#JAS
+#JAS		# marijn: end of copying, now locate right PROTO
+#JAS		while ($string =~ /[\s,^](PROTO\s+)($VRML::Error::Word)/gsc ) {
+#JAS			if (!$protoname) {
+#JAS				$protoname = $2;
+#JAS			}
+#JAS
+#JAS			if ($2 eq $protoname) {
+#JAS				(pos $string) -= ((length $1) + (length $2));
+#JAS				VRML::Parser::parse_statement($this, $string);
+#JAS				$success = 1;
+#JAS				last;
+#JAS			}
+#JAS		}
+#JAS		last if ($success);
+#JAS	}
+#JAS
+#JAS	VRML::Error::parsefail("no PROTO found", VRML::Debug::toString($url))
+#JAS		if (!$success);
+#JAS
+#JAS    # marijn: now create an instance of the PROTO, with all fields IS'd.
+#JAS    my %fields = map { $_ => $this->new_is($_) } keys %{$this->{Pars}};
+#JAS    my $n = $this->new_node($protoname, \%fields);
+#JAS    my @node = ($n);
+#JAS
+#JAS
+#JAS    # XXX marijn: code copied from Parser::parse_proto
+#JAS    $this->topnodes(\@node);
+#JAS
+#JAS    # marijn: copy defaults from PROTO
+#JAS	$this->{Defaults} = {
+#JAS						 map {$_ => $this->{Protos}{$protoname}->{Defaults}{$_}}
+#JAS						 keys %{$this->{Protos}{$protoname}->{Defaults}}
+#JAS						};
+#JAS	return $this;
+#JAS}
+
+}
 
 
 sub parseProtoInterfaceField {
@@ -94,6 +273,7 @@ sub parseProtoInterfaceField {
 	my $bnub;
 
 	#print "parseiProtoInterfaceField - proto $protoName, field $field\n";
+	#print "parseiProtoInterfaceField\n"; print Dumper ($field), "\n\n";
 	if (ref $field ne "ARRAY") {
 		VRML::VRMLFunc::ConsoleMessage ("parseProtoInterfaceField for proto $protoName is not an array\n");
 		return;
@@ -108,20 +288,17 @@ sub parseProtoInterfaceField {
 				#print "key $key is ",$bnub->{$key},"\n";
 				if ($key ne ("name") &&
 				    $key ne ("value") &&
+				    $key ne ("appinfo") &&
 				    $key ne ("accessType") &&
 				    $key ne ("type"))  {
 					VRML::VRMLFunc::ConsoleMessage (
 						"protoInterface field $key ignored in proto $protoName\n");
 				}
+				#$X3DProtos{proto2}{ProtoInterface}{field}{leg1}{value}="1.0 0.45 0.0";
+				my $fn = $bnub->{name};
+				$X3DProtos{$protoName}{ProtoInterface}{field}{$fn}{$key}=
+					$bnub->{$key};
 			}
-
-			#$X3DProtos{proto2}{ProtoInterface}{field}{leg1}{value}="1.0 0.45 0.0";
-			my $fn = $bnub->{name};
-			$X3DProtos{$protoName}{ProtoInterface}{field}{$fn}{value}=$bnub->{value};
-			$X3DProtos{$protoName}{ProtoInterface}{field}{$fn}{type}=$bnub->{type};
-			$X3DProtos{$protoName}{ProtoInterface}{field}{$fn}{accessType}=$bnub->{accessType};
-		
-
 		} else {
 			VRML::VRMLFunc::ConsoleMessage ("parseProtoInterfaceField - expected a HASH here\n");
 			return;
@@ -147,14 +324,14 @@ sub parseProtoInterface {
 
 	while ($arele <= $nele ){
 		$bnub = $proto->[$arele];
-		#print "element $bnub\n";
+		#print "parseProtoInterface element $bnub\n";
 
 		# did we find the hash? If so, these are the fields of the ProtoDeclare node.
 		if (ref $bnub eq "HASH") {
 			my $key;
 			foreach $key (keys(%{$bnub})) {
 				# are there ANY valid keys here?
-				print "key $key is ",$bnub->{$key},"\n";
+				#print "key $key is ",$bnub->{$key},"\n";
 				VRML::VRMLFunc::ConsoleMessage ("ProtoInterface - field $key is invalid\n");
 			}
 
@@ -180,7 +357,58 @@ sub parseProtoInterface {
 	}
 }
 
+sub parseX3DExternProtoDeclare {
+	my ($proto) = @_;
+	my $arele = 0; #the first element will be the name of this proto
+	my $nele = $#$proto;
+	my $bnub;
+	my $protoName = "";
+	my $url = "";
 
+	#print "parseX3DExternProtoDeclare call\n"; print Dumper ($proto), "\n\n";
+
+	# go through the tree structure for the ExternProtoDeclare. 
+	while ($arele <= $nele ){
+		$bnub = $proto->[$arele];
+		#print "Declare: $bnub, ref ",ref $bnub," element $arele\n";
+
+		# did we find the hash? If so, these are the fields of the ExternProtoDeclare node.
+		if (ref $bnub eq "HASH") {
+			my $key;
+			foreach $key (keys(%{$bnub})) {
+				#print "key $key is ",$bnub->{$key},"\n";
+				if ($key eq "name") {
+					$protoName = $bnub->{$key};
+			 	} elsif ($key eq "url") {
+					#print "Got an ExternExternProtoDeclare URL\n";
+					$url = $bnub->{$key};
+				} else {
+					VRML::VRMLFunc::ConsoleMessage ("ExternProtoDeclare - field $key is invalid\n");
+				}
+			}
+
+		} elsif ($bnub eq "field") {
+			$arele++;
+			parseProtoInterfaceField($protoName,$proto->[$arele]);
+		} else {
+			$bnub =~ s/\s+//g;
+			
+			# skip past "empty" elements in tree. 
+			if ($bnub ne "0") {
+				if ($bnub ne "") {
+					print "ExternProtoDeclare: skip this :$bnub: \n";
+
+				}
+			}
+		}
+		$arele += 1;
+	}
+
+	my $body = getX3DExternProtoBody($url);
+	$X3DProtos{$protoName}{ProtoBody} = $body;
+
+	#print "done parseX3DExternProtoDeclare - name is $protoName\n";
+}
 sub parseX3DProtoDeclare {
 	my ($proto) = @_;
 	my $arele = 0; #the first element will be the name of this proto
@@ -245,6 +473,7 @@ sub parseX3DProtoInstance {
 	my %fieldValueHash = ();
 	my $fvref = \%fieldValueHash;
 	my $retval;
+	my $LocalDEF = "";
 
 
 	#print "protoInstance call\n"; print Dumper ($proto), "\n\n";
@@ -259,6 +488,8 @@ sub parseX3DProtoInstance {
 				#print "key $key is ",$bnub->{$key},"\n";
 				if ($key eq "name") {
 					$protoName = $bnub->{$key};
+				} elsif ($key eq "DEF") {
+					$LocalDEF = $bnub->{$key};
 				} else {
 					VRML::VRMLFunc::ConsoleMessage ("ProtoInstance - field $key is invalid\n");
 				}
@@ -349,18 +580,31 @@ sub parseX3DProtoInstance {
 		}
 
 		# verify that all name/values are copied over for this Proto.
-       		#foreach my $key (keys %{$fvref}) {
-       		#	my $hk = $fvref->{$key};
-		#	print "NOW ProtoInstance key $key\n";
-		#	foreach my $sk (keys %{$hk}) {
-		#		print "	$sk = ",$hk->{$sk},"\n";
-		#	}
-		#}
+       		foreach my $key (keys %{$fvref}) {
+       			my $hk = $fvref->{$key};
+			#print "NOW ProtoInstance key $key\n";
+			foreach my $sk (keys %{$hk}) {
+				#print "	$sk = ",$hk->{$sk},"\n";
+			}
+		}
 
 		# now parse the proto with new values from the ProtoInstance
+		#print "parsing protoexpansion now; protobody ",$protoRef->{ProtoBody},"\n";
 		$retval = parse_X3DStatement("Group",$protoRef->{ProtoBody},$fvref);
 	}
-	#print "parseX3DProtoInstance, returning $retval\n";
+
+	# did we have a local DEF in here?
+	if ($LocalDEF ne "") {
+                # store this as a sequence number, because multiple DEFS of the same name
+                # must be unique. (see the spec)
+                VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
+                $LASTDEF++;
+                my $defname = VRML::Handles::return_def_name($LocalDEF);
+                print "X3DParser.pm: DEF $LocalDEF as $defname\n"
+                        if $X3D::verbose;
+
+                return $X3DScene->new_def($defname, $retval, $LocalDEF);
+	}
 	return $retval; 
 }
 #PROTOTYPES - PROTOTYPES - PROTOTYPES - PROTOTYPES - PROTOTYPES
@@ -414,7 +658,9 @@ sub parse {
 	PARSE_EXIT:
 
 	$X3DScene->topnodes(\@RetArr);
-	if ($X3D::parse::verbose)  {printX3DPRotoDeclares ($protoTableRef,"");}
+	if ($X3D::parse::verbose)  {
+		printX3DPRotoDeclares ($protoTableRef,"");
+	}
 }
 
 
@@ -433,6 +679,7 @@ sub verifyX3DNodeExists {
 
 		#PROTOTYPES
 
+		if ($node eq "ExternProtoDeclare") { return 1; }
 		if ($node eq "ProtoDeclare") { return 1; }
 		if ($node eq "ProtoInstance") { return 1; }
 		if ($node eq "IS") { return 1;}
@@ -697,9 +944,11 @@ sub parse_X3DStatement {
 			# handle routes here.
 			if ($nextNodeName eq "ROUTE") {
 				parseRoute ($bnub);
-			# is this a ProtoDeclare?
+			# is this a ProtoDeclare or ExternProtoDeclare?
 			} elsif ($nextNodeName eq "ProtoDeclare") {
 				parseX3DProtoDeclare($bnub);
+			} elsif ($nextNodeName eq "ExternProtoDeclare") {
+				parseX3DExternProtoDeclare($bnub);
 			} elsif (verifyX3DNodeExists($nextNodeName)) { 
 				parseX3DNodeField($parentNode,$nextNodeName,\%field,$bnub,$protoFields);
 			}	

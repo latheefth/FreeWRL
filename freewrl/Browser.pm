@@ -36,10 +36,7 @@ require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
 require 'VRML/Events.pm';
 require 'VRML/Config.pm';
-require 'VRML/X3DParser.pm';
-
-
-#JAS if ($VRML::ENV{AS_PLUGIN}) { require 'VRML/PluginGlue.pm'; }
+#JAS require 'VRML/X3DParser.pm';
 
 package VRML::Browser;
 use File::Basename;
@@ -49,9 +46,6 @@ use POSIX;
 # threaded model requires config.
 use Config;
 
-# path for x3d conversion template
-
-my $XSLTpath = "$VRML::ENV{FREEWRL_BUILDDIR}/x3d/X3dToVrml97.xsl";
 my $globalBrowser = "";
 
 ###############################################
@@ -240,8 +234,13 @@ sub create_common {
 	# if not, then just call the VRML parser
 	# JAS ----- USE the old one for now; fields not quite correct.
         if ($type == 1)  {
-		#JAS eval('require VRML/X3DParser;');
-		X3D::Parser::parse($scene, $string);
+		if (!eval('require VRML::X3DParser')) {
+			VRML::VRMLFunc::ConsoleMessage (
+				"FreeWRL can not load the X3DParser perl module".
+				"\n - this is going to fail");
+		} else {
+			X3D::Parser::parse($scene, $string);
+		}
         } else {
 		# remove comments, etc:
 		$string = VRML::VRMLFunc::sanitizeInput($string);
@@ -300,41 +299,6 @@ sub EAI_Route {
 			$ar , $fn, $ff, $tn, $tf);
 }
 
-#######################################################################
-#
-# X3D Conversion routines.
-#
-#######################################################################
-sub convertX3D {
-	my ($string) = @_;
-
-	# x3d - convert this to VRML.
-        my $lgname = $ENV{LOGNAME};
-        my $tempfile_name = "/tmp/freewrl_xmlConversionFile__";
-        my $tempfile1 = join '', $tempfile_name,$lgname, ,".in";
-        my $tempfile2 = join '', $tempfile_name,$lgname, ,".out";
-
-	# write string to a file for conversion (inefficient, but...)
-	open(fileOUT, ">$tempfile1") or warn("Can't open xml conversion file for writing: $!");
-	print fileOUT "$string\n";
-	close(fileOUT);
-
-	# do the conversion
-	my $cmd = "$VRML::Browser::XSLTPROC -o $tempfile2 $XSLTpath $tempfile1";
-
-        my $status = system ($cmd);
-        warn "X3D conversion problem: $?"
-                        unless $status == 0;
-
-	# read the VRML in.
-	$string = `cat $tempfile2`;  
-
-	# remove the two temporary files
-	unlink ($tempfile1);
-	unlink ($tempfile2);
-
-	return $string;
-}
 ################
 # EAI Perl functions.
 

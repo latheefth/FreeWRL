@@ -783,6 +783,7 @@ my $protono;
 						hitTexCoord_changed => [SFVec2f, [0, 0], eventOut],
 						isActive => [SFBool, 0, eventOut],
 						isOver => [SFBool, 0, eventOut],
+						description => [SFString, "", field],
 						touchTime => [SFTime, -1, eventOut]
 					   },
 					  ),
@@ -1126,6 +1127,7 @@ my $protono;
 						hitGeoCoord_changed => [SFString,"",eventOut],
 						isActive => [SFBool, 0, eventOut],
 						isOver => [SFBool, 0, eventOut],
+						description => [SFString, "", field],
 						touchTime => [SFTime, -1, eventOut]
 					}
 				),

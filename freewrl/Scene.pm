@@ -268,12 +268,6 @@ sub newextp {
 		# marijn: set the url for this proto
 		$this->set_url($newurl,$parentURL);
 
-		# convert from X3D if required.
-		if ($string =~/^<\?xml version/s) {
-			$brow = $this->get_browser();
-			$string = $brow->convertX3D($string);
-		}
-
 		unless ($string =~ /^#VRML V2.0/s) {
 			die("Sorry, this file is according to VRML V1.0, I only know V2.0")
 				if ($string =~ /^#VRML V1.0/);

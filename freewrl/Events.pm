@@ -67,9 +67,9 @@ sub ExtraMemory {
 	my $value;
 	
 	print "ExtraMemory: wanting field $field for node ",VRML::NodeIntern::dump_name($node),"\n";
-	foreach (keys%{$node}) {print "	node key $_\n";}
-	foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
-	foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
+	#foreach (keys%{$node}) {print "	node key $_\n";}
+	#foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
+	#foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
 
 	my $type = $node->{Scene}{Pars}{$field}[1];
 
