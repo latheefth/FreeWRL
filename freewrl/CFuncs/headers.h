@@ -383,4 +383,6 @@ void handle_EAI(void);
 
 extern int screenWidth, screenHeight;
 
+extern char *getLibVersion();
+
 #endif /* __HEADERS_H__ */

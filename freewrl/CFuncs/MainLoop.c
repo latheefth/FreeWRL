@@ -89,6 +89,12 @@ int  rayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(int COS,int ev, int status);
 
+/* a simple routine to allow the front end to get our version */
+char *getLibVersion() {
+	return (FWVER);
+}
+
+
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
 

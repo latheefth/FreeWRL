@@ -131,6 +131,9 @@ push @inc, " -DFW2INITPL=\\\"$VRML_CONFIG{BIN_DIR}/fw2init.pl\\\" ";
 my $bdir = getcwd();
 push @inc, " -DBUILDDIR=\\\"$bdir\\\" ";
 
+#push Version to inc...
+push @inc, " -DFWVER=\\\"$VERSION\\\" ";
+
 
 $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
@@ -330,7 +333,6 @@ INST_DYNAMIC_DEP =
 
 		# make the C Front End.
 
-		#JASmy $def1 = "OSNAME=\$(OSNAME) PPATH=\$(SITEARCHEXP)/VRML BINDIR=\$(FRONTEND_DIR) CC=\$(CC) FWVER=\$(VERSION)";
 		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(SITEARCHEXP)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION)";
 		my $def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
 

@@ -65,6 +65,12 @@ int main (int argc, char **argv) {
 	char *filename;
 	char *pwd;
 
+	/* first, get the FreeWRL shared lib, and verify the version. */
+	if (strcmp(FWVER,getLibVersion())) {
+		printf ("FreeWRL expected library version %s, got %s, exiting...\n",FWVER,getLibVersion());
+		exit(1);
+	}
+
 #ifndef IRIX
 
 	/* set the screen width and height before getting into arguments */
