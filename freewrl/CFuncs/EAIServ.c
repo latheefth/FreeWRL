@@ -120,12 +120,10 @@ int EAIconnectstep = 0;			// where we are in the connect sequence
 int 	sockfd = -1;			// main TCP socket fd
 int	listenfd = -1;			// listen to this one for an incoming connection
 
+struct hostent *hostptr;
 struct sockaddr_in	servaddr, cliaddr;
 fd_set rfds;
 struct timeval tv;
-
-/* eai connect line */
-char *inpline;
 
 /* EAI input buffer */
 char *buffer;
@@ -145,7 +143,6 @@ void EAI_parse_commands (char *stptr);
 unsigned int EAI_SendEvent(char *bufptr);
 void EAI_send_string (char *str);
 void connect_EAI(void);
-void create_EAI(char *eailine);
 void handle_EAI(void);
 int EAI_GetNode(char *str);		// in VRMLC.pm
 void EAI_GetType (unsigned int uretval,
@@ -153,9 +150,8 @@ void EAI_GetType (unsigned int uretval,
 	int *ra, int *rb,
 	int *rc, int *rd, int *re);		// in VRMLC.pm
 void read_EAI_socket(void);
-int EAI_CreateVrml(char *type, char *str, unsigned int *retarr);	// in VRMLC.pm
 void handle_Listener (void);
-void CRoutes_Register(unsigned int from, unsigned int fromoffset,
+void CRoutes_Register(int adrem, unsigned int from, unsigned int fromoffset,
 	int to_count, char *tonode_str, unsigned int length,
 	void *intptr, int scrdir, int extra);				// CFuncs/CRoutes.c
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
@@ -283,8 +279,8 @@ void shutdown_EAI() {
 	}
 
 }
-void create_EAI(char *eailine) {
-        if (EAIVerbose) printf ("EAISERVER:create_EAI called :%s:\n",eailine);
+void create_EAI() {
+        if (EAIVerbose) printf ("EAISERVER:create_EAI called\n");
 
 	/* already wanted? if so, just return */
 	if (EAIwanted) return;
@@ -292,19 +288,6 @@ void create_EAI(char *eailine) {
 	/* so we know we want EAI */
 	EAIwanted = TRUE;
 
-	/* copy over the eailine to a local variable */
-
-	// JAS - right now we use localhost, and a base of EAIBASESOCKET, so ignore this line
-	//inpline = malloc((strlen (eailine)+1) * sizeof (char));
-
-	//if (inpline == 0) {
-	//	printf ("can not malloc memory in create_EAI\n");
-	//	EAIwanted = FALSE;
-	//	return;
-	//}
-
-	//strcpy (inpline,eailine);
-	
 	/* have we already started? */
 	if (!EAIinitialized) {
 		connect_EAI();
@@ -490,10 +473,10 @@ void EAI_parse_commands (char *bufptr) {
 	
 					*EOT = 0; // take off the EOT marker
 	
-					ra = EAI_CreateVrml("String",bufptr,nodarr);
+					ra = EAI_CreateVrml("String",bufptr,nodarr,200);
 				} else {
 					if (EAIVerbose) printf ("CREATEVU %s\n",bufptr);
-					ra = EAI_CreateVrml("URL",bufptr,nodarr);
+					ra = EAI_CreateVrml("URL",bufptr,nodarr,200);
 				}
 	
 				sprintf (buf,"RE\n%d\n",count);
@@ -550,7 +533,7 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
 
 				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (ra,rb, 1, EAIListenerArea, rc, &handle_Listener, 0, 
+				CRoutes_Register  (1,ra,rb, 1, EAIListenerArea, rc, &handle_Listener, 0, 
 					(count<<8)+ctmp[0]); // encode id and type here
 	
 				sprintf (buf,"RE\n%d\n0",count);
@@ -572,11 +555,17 @@ void EAI_parse_commands (char *bufptr) {
 				EAI_replaceWorld(bufptr);
 				break;
 				}
-//XXX			case ADDROUTE:  
-//XXX			case DELETEROUTE:  
-//XXX			case LOADURL: 
-//XXX			case SETDESCRIPT:  
-//XXX			case STOPFREEWRL:  
+			case ADDROUTE:  
+			case DELETEROUTE:  {
+				if (EAIVerbose) printf ("Add/Delete route %s\n",bufptr);
+				EAI_Route (command,bufptr);
+				sprintf (buf,"RE\n%d\n0",count);
+				break;
+				}
+				
+//XXXX			case LOADURL: 
+//XXXX			case SETDESCRIPT:  
+//XXXX			case STOPFREEWRL:  
 			default: {
 				printf ("unhandled command :%c: %d\n",command,command);
 				strcat (buf, "unknown_EAI_command");
@@ -836,7 +825,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	/* convert the type string to an internal type */
 	ty = convert_typetoInt (type);
 
-	//printf ("EAI - extra memory for size %d type %s\n",size,type);
+	printf ("EAI - extra memory for size %d type %s\n",size,type);
 
 	if (size > 0) {
 		memptr = malloc ((unsigned)size);

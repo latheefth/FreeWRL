@@ -386,21 +386,6 @@ sub new_route {
 	}
 }
 
-sub delete_route {
-	my ($this, $fn, $eo, $tn, $ei) = @_;
-	my $route = "$fn"."$eo"."$tn"."$ei";
-
-	print "VRML::Scene::delete_route: ", VRML::Debug::toString(\@_), "\n"
-		if $VRML::verbose::scene;
-
-	if (exists $this->{Routes}{$route}) {
-		# make sure that the eventmodel knows that this route no longer exists
-		push @{$this->{DelRoutes}}, $this->{Routes}{$route};
-		# take it off the known routes for this node.
-		delete $this->{Routes}{$route};
-	}
-}
-
 sub new_def {
 	my ($this, $name, $node, $vrmlname) = @_;
 
@@ -621,8 +606,6 @@ sub getNode {
 		warn("Node $name is not defined");
 		return undef;
 	}
-#print "VRML::Scene::getNode: ", VRML::Debug::toString($n), "\n";
-	#AK - #return $n->real_node(1); # Return proto enclosing node.
 	return $n->node();
 }
 
@@ -807,45 +790,48 @@ sub set_parentnode {
 		# Step 3) Gather all 'DEF' statements and update
 		my %DEF;
 		$this->iterate_nodes(sub {
-								 my ($node) = @_;
+			 my ($node) = @_;
 
-								 return unless (ref $node eq "VRML::DEF");
+			 return unless (ref $node eq "VRML::DEF");
 
-								 print "VRML::Scene::make_executable: ",
-									 VRML::Debug::toString($node), "\n"
-											 if $VRML::verbose::scene;
-								 $DEF{$node->{Name}} = $node;
+			 print "VRML::Scene::make_executable: ",
+				 VRML::Debug::toString($node), "\n"
+						 if $VRML::verbose::scene;
+			 $DEF{$node->{Name}} = $node;
 
-								 if (!defined $this->{DEF}{$node->{Name}}) {
-									 $this->{DEF}{$node->{Name}} = $DEF{$node->{Name}};
-								 }
-							 });
+			# for EAI, reserve this name and node
+			VRML::Handles::EAI_reserve ($node->{Name},$node->real_node());
+
+			 if (!defined $this->{DEF}{$node->{Name}}) {
+				 $this->{DEF}{$node->{Name}} = $DEF{$node->{Name}};
+			 }
+		 });
 	
 
 		# Step 4) Update all USEs
 		$this->iterate_nodes(sub {
-								 my ($node) = @_;
+			 my ($node) = @_;
 
-								 return unless ref $node eq "VRML::USE";
-								 print "VRML::Scene::make_executable: ",
-									 VRML::Debug::toString($node), "\n"
-											 if $VRML::verbose::scene;
-								 $node->set_used($node->name(), $DEF{$node->name()});
-							 });
+			 return unless ref $node eq "VRML::USE";
+			 print "VRML::Scene::make_executable: ",
+				 VRML::Debug::toString($node), "\n"
+						 if $VRML::verbose::scene;
+			 $node->set_used($node->name(), $DEF{$node->name()});
+		 });
 
 
 		# Step 5) Collect all prototyped nodes from here
 		# so we can call their events
 
 		$this->iterate_nodes(sub {
-								 my ($node) = @_;
+			 my ($node) = @_;
 
-								 return unless ref $node eq "VRML::NodeIntern";
-								 push @{$node->{SubScenes}}, $node
-									 if $node->{ProtoExp};
-								 push @{$node->{Sensors}}, $node
-									 if $sends{$node};
-							 });
+			 return unless ref $node eq "VRML::NodeIntern";
+			 push @{$node->{SubScenes}}, $node
+				 if $node->{ProtoExp};
+			 push @{$node->{Sensors}}, $node
+				 if $sends{$node};
+		 });
 
 	}
 }
@@ -1013,7 +999,7 @@ sub setup_routing {
 	for (values %{$this->{Routes}}) {
 		next if ($_->[4]);
 		#print "setup_routing calling add_route, ",VRML::Debug::toString($this),"\n";
-		$_->[4] = $eventmodel->add_route($this, $_->[0], $_->[1], $_->[2], $_->[3]);
+		$_->[4] = $eventmodel->add_route($this, 1, $_->[0], $_->[1], $_->[2], $_->[3]);
 	}
 
 	# Any routes to delete? Maybe from the EAI...
@@ -1053,7 +1039,8 @@ sub setup_routing {
 			next;
 		}
 
-		$eventmodel->delete_route($fromNode, $eventOut, $toNode, $eventIn);
+		# to delete, add_route with 2nd param of 0
+		$eventmodel->add_route($this, 0, $fromNode, $eventOut, $toNode, $eventIn);
 	}
 	# ok, its processed; we don't want this route deleted from the events more than once
 	$this->{DelRoutes} = [];

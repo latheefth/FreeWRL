@@ -59,7 +59,7 @@ void
 Multimemcpy(void *tn, void *fn, int len);
 
 void
-CRoutes_Register(unsigned int from,
+CRoutes_Register(int adrem, 	unsigned int from,
 				 int fromoffset,
 				 unsigned int to_count,
 				 char *tonode_str,
@@ -590,10 +590,10 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 	int num_removed;
 	int counter;
 
-//JAS	if (CRVerbose) {
+	if (CRVerbose) {
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
 		printf ("getMFNodetype, parent %d has %d nodes currently\n",par,par->n); 
-//JAS	}
+	}
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
@@ -993,7 +993,6 @@ void add_first(char *clocktype,unsigned int node) {
 	ClockEvents[num_ClockEvents].interpptr = myp;
 	ClockEvents[num_ClockEvents].tonode = node;
 
-	
 	num_ClockEvents++;
 }
 
@@ -1108,7 +1107,7 @@ Register a route in the routing table.
 
 void
 
-CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char *tonode_str,
+CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_count, char *tonode_str,
 				 int length, void *intptr, int scrdir, int extra)
 {
 	int insert_here, shifter;
@@ -1118,8 +1117,7 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 	unsigned int to_counter;
 	char *mptr;
 	char buf[20];
-
-
+	int ton,toof;		/* used to help determine duplicate routes */
 
 	/* is this a script to script route??? */
 	if (scrdir == SCRIPT_TO_SCRIPT) {
@@ -1128,16 +1126,14 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 			mptr = malloc (sizeof(char)*length);
 			sprintf (buf,"%d:0",mptr);
 			// printf ("script to script, memory is %d, string %s\n",mptr,buf);
-			CRoutes_Register (from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
-			CRoutes_Register ((unsigned int *)mptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
+			CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
+			CRoutes_Register (adrem, (unsigned int *)mptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
 			return;
 		} else {
 			// XXXX
 			printf ("CRoutes_Register, can't handle script to script with MF* nodes yet\n");
 			return;
 		}
-
-		
 	}
 
 	/* first time through, create minimum and maximum for insertion sorts */
@@ -1145,9 +1141,6 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 		/* allocate the CRoutes structure */
 		CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
 		CRoutes = malloc (sizeof (*CRoutes) * CRoutes_MAX);
-
-
-
 
 		CRoutes[0].fromnode = 0;
 		CRoutes[0].fnptr = 0;
@@ -1188,13 +1181,55 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 		insert_here++;
 	}
 
-	if (CRVerbose) printf ("CRoutes, inserting at %d\n",insert_here);
+	/* Quick check to verify that we don't have a duplicate route here 
+	   OR to delete a route... */
+	if ((CRoutes[insert_here-1].fromnode==from) &&
+		(CRoutes[insert_here-1].fnptr==fromoffset) &&
+		(CRoutes[insert_here-1].interpptr==intptr) &&
+		(CRoutes[insert_here-1].tonodes!=0)) {
 
+		/* possible duplicate route */
+		sscanf (tonode_str, "%u:%u", &ton,&toof);
+		if ((ton == (CRoutes[insert_here-1].tonodes)->node) &&
+			(toof == (CRoutes[insert_here-1].tonodes)->foffset)) {
+			/* this IS a duplicate, now, what to do? */
+			
+			/* is this an add? */
+			if (adrem == 1) {
+				/* printf ("definite duplicate, returning\n"); */
+				return;
+			} else {
+				/* this is a remove */
+				for (shifter = CRoutes_Count-1; shifter > insert_here-1; shifter--) {
+				if (CRVerbose) printf ("copying from %d to %d\n",shifter, shifter-1);
+					memcpy ((void *)&CRoutes[shifter-1], 
+						(void *)&CRoutes[shifter], 
+						sizeof (struct CRStruct));
+				}
+				CRoutes_Count --;
+				if (CRVerbose) {
+					printf ("routing table now %d\n",CRoutes_Count);
+					for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
+						printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr, 
+							CRoutes[shifter].interpptr);
+					}
+				}
+
+				return;
+			}
+		}
+	}
+
+	/* is this a removeRoute? if so, its not found, and we SHOULD return here */
+	if (adrem != 1) return;
+
+	if (CRVerbose) printf ("CRoutes, inserting at %d\n",insert_here);
 	/* create the space for this entry. */
 	for (shifter = CRoutes_Count; shifter > insert_here; shifter--) {
 		memcpy ((void *)&CRoutes[shifter], (void *)&CRoutes[shifter-1],sizeof(struct CRStruct));
 		if (CRVerbose) printf ("Copying from index %d to index %d\n",shifter, shifter-1);
 	}
+
 
 	/* and put it in */
 	CRoutes[insert_here].fromnode = from;
@@ -1223,7 +1258,7 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 				if (sscanf(buffer, "%u:%u",
 						   &(to_ptr->node), &(to_ptr->foffset)) == 2) {
 					if (CRVerbose) printf("\tsscanf returned: %u, %u\n",
-										  to_ptr->node, to_ptr->foffset);
+						  to_ptr->node, to_ptr->foffset);
 				}
 
 
@@ -1251,17 +1286,16 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 		CRoutes = realloc (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 	}
 
-
 	CRoutes_Count ++;
 
- 	/*if (CRVerbose)  
- 		for (shifter = 1; shifter < (CRoutes_Count-1); shifter ++) { 
- 			printf ("Route indx %d is (%#x %#x) to (%#x %#x) len %d\n", 
- 			shifter, CRoutes[shifter].fromnode, 
- 			CRoutes[shifter].fnptr, CRoutes[shifter].tonode, 
- 			CRoutes[shifter].tnptr, CRoutes[shifter].len); 
- 		} 
-	*/
+	if (CRVerbose) {
+		printf ("routing table now %d\n",CRoutes_Count);
+		for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
+			printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr, 
+				CRoutes[shifter].interpptr);
+		}
+	}
+
 }
 
 void
@@ -1753,4 +1787,7 @@ void do_first() {
 	for (counter =0; counter < num_ClockEvents; counter ++) {
 		ClockEvents[counter].interpptr(ClockEvents[counter].tonode);
 	}
+
+	/* now, propagate these events */
+	propagate_events();
 }

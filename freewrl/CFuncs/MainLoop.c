@@ -144,7 +144,7 @@ void EventLoop() {
 
 	/* first events (clock ticks, etc) */
 	do_first ();
-
+	
 	/* actual rendering */
 	render();
 
@@ -208,11 +208,9 @@ void EventLoop() {
 			curcursor = cursor;
 			XDefineCursor (dpy, win, cursor);
 		}
+	}
 
-
-	} 
-
-	/* handle ROUTES */
+	/* handle ROUTES - at least the ones not generated in do_first() */
 	propagate_events();
 
 	/* Javascript events processed */
@@ -533,6 +531,7 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	} else if (strncmp("CylinderSensor",type,10) == 0) { myp = do_CylinderSensor;
 	} else if (strncmp("SphereSensor",type,10) == 0) { myp = do_SphereSensor;
 	} else if (strncmp("Anchor",type,10) == 0) { myp = do_Anchor;
+	} else if (strncmp("ProximitySensor",type,10) == 0) { return; /* its time sensive only */
 
 	} else {
 		printf ("set_sensitive, unhandled type %s\n",type);
@@ -563,14 +562,13 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	num_SensorEvents++;
 }
 
-
 /* we have a sensor event changed, look up event and do it */
+/* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
 void sendSensorEvents(int COS,int ev, int status) {
 	int count;
 	char *st;
 
-
-	//printf ("sio, COS %d ev %d status %d\n",COS,ev,status);
+	/* printf ("sio, COS %d ev %d status %d\n",COS,ev,status); */
 	if (!COS) return;
 
 	for (count = 0; count < num_SensorEvents; count++) {
@@ -594,6 +592,7 @@ void sendSensorEvents(int COS,int ev, int status) {
 		}
 	}
 }
+
 
 /* If we have a sensitive node, that is clicked and moved, get the posn
    for use later								*/

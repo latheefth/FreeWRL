@@ -35,6 +35,8 @@ Display *Disp;
 Window Win;
 GLXContext globalContext;
 
+int wantEAI=FALSE;		/* enable EAI? */
+
 /* threading variables for event loop */
 static pthread_t *loopthread;
 char *threadmsg = "eventloop";
@@ -73,7 +75,7 @@ int main (int argc, char **argv) {
 			{"screendist", 1, 0, 'x'},
 			{"gif", 0, 0, 'x'},
 			{"maximg", 1, 0, 'x'},
-			{"eai", 1, 0, 'x'},
+			{"eai", 0, 0, 'e'},
 			{"server", 1, 0, 'x'},
 			{"sig", 1, 0, 'x'},
 			{"ps", 1, 0, 'x'},
@@ -97,6 +99,11 @@ int main (int argc, char **argv) {
 				printf ("option --%s not implemented yet, complain bitterly\n",
 					long_options[option_index].name);
 				break;
+
+			case 'e':
+				wantEAI=TRUE;
+				break;
+
 			case 'f':
 				global_texSize = 256;
 				break;
@@ -155,6 +162,9 @@ int main (int argc, char **argv) {
 		rootNode, offsetof (struct VRML_Group, children),&tmp);
 
 	free(filename); free(pwd);
+
+	/* do we require EAI? */
+	if (wantEAI) create_EAI();
 
 	/* now wait around until something kills this thread. */
 	pthread_join(thread1, NULL);

@@ -719,6 +719,12 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	}
 }
 
+
+/****************************************************************************
+
+	Sensitive nodes
+
+*****************************************************************************/
 void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, int ev, int over) {
 };
 

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.131  2003/12/18 18:18:44  crc_canada
+# EAI and Javascript working.
+#
 # Revision 1.130  2003/12/10 17:11:31  crc_canada
 # mpeg movies working in threaded system
 #
@@ -1442,241 +1445,7 @@ char *BrowserName = "FreeWRL VRML/X3D Browser";
 
 int rootNode=0;	// scene graph root node
 
-/* the perl interpreter - made in the Producer/Consumer threading init */
-extern PerlInterpreter *my_perl;
-
-/*************************JAVASCRIPT*********************************/
-#ifndef __jsUtils_h__
-#include "jsUtils.h" /* misc helper C functions and globals */
-#endif
-
-#ifndef __jsVRMLBrowser_h__
-#include "jsVRMLBrowser.h" /* VRML browser script interface implementation */
-#endif
-
-#include "jsVRMLClasses.h" /* VRML field type implementation */
-
-
-#define MAX_RUNTIME_BYTES 0x100000L
-#define STACK_CHUNK_SIZE 0x2000L
-
-/*
- * See perldoc perlapi, perlcall, perlembed, perlguts for how this all
- * works.
- */
-void
-doPerlCallMethod(SV *sv, const char *methodName)
-{
-	int count = 0;
-	SV *retSV;
-
- #define PERL_NO_GET_CONTEXT
-
-	dSP; /* local copy of stack pointer (dont leave home without it) */
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP); /* keep track of the stack pointer */
-	XPUSHs(sv); /* push package ref to the stack */
-	PUTBACK;
-	count = call_method(methodName, G_SCALAR);
-
-	SPAGAIN; /* refresh local copy of the stack pointer */
-	
-	if (count > 1) {
-		fprintf(stderr,
-				"doPerlCallMethod: call_method returned in list context - shouldnt happen here!\n");
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-
-void
-doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
-{
-	va_list ap; /* will point to each unnamed argument in turn */
-	char *c;
-	void *v;
-	int count = 0;
-	size_t len = 0;
-	const char *p = format;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv);
-
-	//printf ("doPerlCallMethodVA, method %s format %s\n",methodName,format);
-	va_start(ap, format); /* point to first element after format*/
-	while(*p) {
-		switch (*p++) {
-		case 0x73: /* ascii letter "s" -xs screws this up if in quotes */
-			c = va_arg(ap, char *);
-			len = strlen(c);
-			c[len] = 0;
-			XPUSHs(sv_2mortal(newSVpv(c, len)));
-			break;
-		case 0x70: /* ascii letter "p" -xs screws this up if in quotes */
-			v = va_arg(ap, void *);
-			XPUSHs(sv_2mortal(newSViv((IV) v)));
-			break;
-		default:
-			fprintf(stderr, "doPerlCallMethodVA: argument type not supported!\n");
-			break;
-		}
-	}
-	va_end(ap);
-
-	PUTBACK;
-	count = call_method(methodName, G_SCALAR);
-
-	SPAGAIN;
-	
-
-if (count > 1) {
-		fprintf(stderr,
-				"doPerlCallMethodVA: call_method returned in list context - shouldnt happen here!\n");
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-
-/*************************END OF JAVASCRIPT*********************************/
-
-
-/****************************** EAI ****************************************/
-
-unsigned int EAI_GetNode (char *nname) {
-	int count;
-	unsigned int noderef;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	//this is for integers XPUSHs(sv_2mortal(newSViv(nname)));
-	XPUSHs(sv_2mortal(newSVpv(nname, 0)));
-
-
-	PUTBACK;
-	count = call_pv("EAI_GetNode", G_SCALAR);
-	SPAGAIN ;
-
-	if (count != 1)
-		croak("Big trouble\n") ;
-
-	noderef = POPi;
-
-	// printf ("The node is %x\n", noderef) ;
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	//printf ("returning from EAI_GetNode\n");
-	return (noderef);
-}
-
-void EAI_GetType (unsigned int nodenum, char *fieldname, char *direction,
-	unsigned int	*nodeptr,
-	unsigned int	*dataoffset,
-	unsigned int	*datalen,
-	unsigned int	*nodetype,
-	unsigned int	*scripttype) {
-
-	unsigned int 	count;
-
-	// printf ("entering C get_type; nodenum %d, field %s direction %s\n",nodenum,fieldname,direction);	
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSViv(nodenum)));
-	XPUSHs(sv_2mortal(newSVpv(fieldname, 0)));
-	XPUSHs(sv_2mortal(newSVpv(direction, 0)));
-
-	PUTBACK;
-	count = call_pv("EAI_GetType",G_ARRAY);
-	SPAGAIN;
-
-	if (count != 5) {
-		*nodetype=97;	// SFUNKNOWN - check CFuncs/EAIServ.c
-		*datalen=0;*dataoffset=0;*nodeptr=0;*scripttype=0;
-	} else {
-		/* pop values off stack in reverse of perl return order */
-		*scripttype = POPi;
-		*nodetype = POPi;
-		*datalen = POPi;
-		*dataoffset = POPi;
-		*nodeptr = POPi;
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	// printf ("returning from EAI_GetType\n");
-	// printf ("node pointer %d, dataoffset %d, datalen %d nodetype %d\n",
-	// 		*nodeptr, *dataoffset, *datalen, *nodetype);
-	return;
-}
-
-unsigned int EAI_CreateVrml (char *tp, char *inputstring, unsigned int *retarr) {
-	int count;
-	unsigned int noderef;
-	int tmp;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSVpv(inputstring, 0)));
-
-
-	PUTBACK;
-	if (strcmp(tp,"URL")==0)
-		count = call_pv("EAI_CreateVrmlFromURL", G_ARRAY);
-	else
-		count = call_pv("EAI_CreateVrmlFromString", G_ARRAY);
-	SPAGAIN ;
-
-	//Perl is returning a series of BN/node# pairs, reorder to node#/BN.
-	for (tmp = 1; tmp <= count; tmp++) {
-		retarr[count-tmp] = POPi;
-	}
-
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	return (count);
-}
-
-void EAI_replaceWorld (char *inputstring) {
-	int count;
-	unsigned int noderef;
-	int tmp;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSVpv(inputstring, 0)));
-	PUTBACK;
-		count = call_pv("EAI_replaceWorld", G_ARRAY);
-	SPAGAIN ;
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-
-	return;
-}
-
-/****************************** END OF EAI **********************************/
+/*******************************************************************************/
 
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz, 
@@ -2293,7 +2062,8 @@ OUTPUT:
 # register a route that can go via C, rather than perl.
 
 void
-do_CRoutes_Register(from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra)
+do_CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra)
+	int adrem
 	void *from
 	int fromoffset
 	int to_count
@@ -2303,7 +2073,7 @@ do_CRoutes_Register(from, fromoffset, to_count, tonode_str, len, intptr, scrpt, 
 	int scrpt
 	int extra
 CODE:
-	CRoutes_Register(from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
+	CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
 
 void
 do_CRoutes_js_new (num, cx, glob, brow)
@@ -2474,11 +2244,6 @@ CODE:
 		!strncmp (fiel,"addChild",strlen ("addChild")));
 
 # link into EAI.
-void
-do_create_EAI(eailine)
-	char *eailine
-	CODE:
-	create_EAI(eailine);
 
 int
 EAIExtraMemory (type,size,data)

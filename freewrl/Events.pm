@@ -188,7 +188,6 @@ sub resolve_node_cnode {
 			}
 			$tonode_str = join(" ", @tonodes);
 		} else { # XXX PROTO multiple eventOuts not handled yet
-			##foreach (@{$this->{IS}{$node}{$field}}) {
 			while (@is) {
 				$f = shift @is;
 				$proto_node = $f->[0];
@@ -272,8 +271,6 @@ sub resolve_node_cnode {
 			$to_count = 1;
 			$tonode_str = "$outptr:$outoffset";
 		}
-		#print "got a script: outptr $outptr, offset $outoffset, scenenum $scenenum\n";
-
 	} elsif ($proto_node->{TypeName} =~ /script/i) {
 		$outoffset = VRML::VRMLFunc::paramIndex($proto_field, $proto_node->{Type}{FieldTypes}{$proto_field});
 		$outptr = $proto_node->{scriptInvocationNumber};
@@ -299,7 +296,7 @@ sub resolve_node_cnode {
 
 
 			my $brow = $scene->get_browser();
-			#print "No backend, but browser has ",$brow->{BE}, " for node ",
+			# print "No backend, but browser has ",$brow->{BE}, " for node ",
 			#	VRML::NodeIntern::dump_name($node),"\n";
 
 			# make a backend
@@ -341,7 +338,6 @@ sub resolve_node_cnode {
 
 	# ok, we have node and field, lets find either field length, or interpolator
 	# if this is a node that had to be allocated by ExtraMemory, we must bypass some of this.
-
 	if ($fieldtype ne "") {   # we have handled this by "ExtraMemory", above.
 		if ($direction =~ /eventOut/i) {
 			$il = $clen;
@@ -402,14 +398,13 @@ sub resolve_node_cnode {
 #	- script value of 2 - toNode is a script node
 #	- script value of 3 - fromNode and toNodes are script nodes
 #
+#  if the parameter $add_rem is NOT 1, this is a delete, not an add.
 
 sub add_route {
-	my($this, $scene, $fromNode, $eventOut, $toNode, $eventIn) = @_;
+	my($this, $scene, $add_rem, $fromNode, $eventOut, $toNode, $eventIn) = @_;
 
 	my $outptr;
 	my $outoffset;
-#	my $inptr;
-#	my $inoffset;
 	my $to_count = 0;
 	my $tonode_str = "";
 	my $datalen;
@@ -419,7 +414,7 @@ sub add_route {
 	my $extraparam = 0;
 	my $fc = 0; my $tc = 0; #from and to script nodes.
 
-	# print "\nstart of add_route, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
+	# print "\nstart of add_route, $add_rem, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
 
 	# FROM NODE
 	my ($outptr, $outoffset, $fc, $ok, $datalen) = $this->resolve_node_cnode($scene, $fromNode, $eventOut, "eventOut");
@@ -438,33 +433,9 @@ sub add_route {
 
 	# print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
 
-	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset,
-										$to_count, $tonode_str,
-										$datalen, $intptr, $scrpt, $extraparam);
-}
-
-## needs to be tested with more than just the EAI AddRoute test and to have CRoutes added to it.
-sub delete_route {
-	my($this, $fn, $ff0, $tn, $tf0) = @_;
-	my $i = 0;
-	my @ar;
-
-	print "Events.pm: DELETE_ROUTE $fn $ff $tn $tf\n"  if $VRML::verbose::events;
-	$ff = $fn->{Type}{EventOuts}{$ff0};
-	$tf = $tn->{Type}{EventIns}{$tf0};
-	print "Events.pm: DELETE_ROUTE mapped $ff, $tf\n" if $VRML::verbose::events;
-
-	die("Invalid fromfield '$ff0' for ROUTE") if (!defined $ff);
-
-	die("Invalid tofield '$tf0' for ROUTE") if (!defined $tf);
-
-	foreach (@{$this->{Route}{$fn}{$ff}}) {
-		if ($_->[0] eq $tn && $_->[1] eq $tf) {
-			splice(@{$this->{Route}{$fn}{$ff}}, $i, 1);
-			last;
-		}
-		$i++;
-	}
+	VRML::VRMLFunc::do_CRoutes_Register($add_rem, $outptr, $outoffset,
+		$to_count, $tonode_str,
+		$datalen, $intptr, $scrpt, $extraparam);
 }
 
 sub add_is {

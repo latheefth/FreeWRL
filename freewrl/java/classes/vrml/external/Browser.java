@@ -391,7 +391,7 @@ public class Browser implements BrowserInterface
       String retval;
 
       synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "\nAR " + fromNode + " " + fromEventOut +
+         EAIoutSender.send ("" + queryno + "H " + fromNode + " " + fromEventOut +
 		" " + toNode + " " + toEventIn +"\n");
          retval = getVRMLreply(queryno);
          queryno += 1;
@@ -406,7 +406,7 @@ public class Browser implements BrowserInterface
       String retval;
 
       synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "\nDR " + fromNode + " " + fromEventOut +
+         EAIoutSender.send ("" + queryno + "J " + fromNode + " " + fromEventOut +
 		" " + toNode + " " + toEventIn +"\n");
          retval = getVRMLreply(queryno);
          queryno += 1;

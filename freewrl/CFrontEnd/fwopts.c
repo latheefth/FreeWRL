@@ -138,8 +138,8 @@ void setGeometry (char *gstring);
 
 static int xPos = 0;
 static int yPos = 0;
-static int Wwidth = 300;
-static int Wheight = 200;
+static int Wwidth = 450;
+static int Wheight = 300;
 
 void openMainWindow (unsigned *Disp, unsigned *Win,
 		GLXContext *Cont) {

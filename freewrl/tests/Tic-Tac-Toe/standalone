@@ -6,5 +6,5 @@ EAI=../../java/classes
 ##
 ## However, this is the best way to work around appletviewer.
 
-freewrl tictactoe-eai.wrl -eai localhost:2000 -best &
+freewrl tictactoe-eai.wrl --eai &
 appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" tictactoe-eai.html 

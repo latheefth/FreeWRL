@@ -28,15 +28,49 @@
 
 #endif
 
+#ifndef __jsUtils_h__
+#include "jsUtils.h" /* misc helper C functions and globals */
+#endif
+
+#ifndef __jsVRMLBrowser_h__
+#include "jsVRMLBrowser.h" /* VRML browser script interface implementation */
+#endif
+
+#include "jsVRMLClasses.h" /* VRML field type implementation */
+
+
+#define MAX_RUNTIME_BYTES 0x100000L
+#define STACK_CHUNK_SIZE 0x2000L
+
 /* thread synchronization issues */
 pthread_mutex_t condition_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t psp_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  condition_cond  = PTHREAD_COND_INITIALIZER;
 
 #define DATA_LOCK       	pthread_mutex_lock(&condition_mutex);
 #define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);
-#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex);
+#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); 
+
+/* Used for debugging signalling
+#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex); printf ("locked by %d\n",pthread_self());
+#define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);printf ("signaled by %d\n",pthread_self());
+#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); printf ("unlocked by %d\n",pthread_self());
+*/
+
 #define DATA_LOCK_WAIT          pthread_cond_wait(&condition_cond, &condition_mutex);
 
+/* for debugging
+#define PSP_LOCK		while(PerlParsing){printf("pp\n");usleep(10);}pthread_mutex_lock(&psp_mutex);
+*/
+
+#define PSP_LOCK		while(PerlParsing){usleep(10);}pthread_mutex_lock(&psp_mutex);
+#define PSP_UNLOCK		pthread_mutex_unlock(&psp_mutex);
+
+
+/*
+#define PSP_LOCK
+#define PSP_UNLOCK
+*/
 struct PSStruct {
 	unsigned type;		/* what is this task? 			*/
 	char *inp;		/* data for task (eg, vrml text)	*/
@@ -45,21 +79,41 @@ struct PSStruct {
 	int bind;		/* should we issue a bind? 		*/
 	char *path;		/* path of parent URL			*/
 	int *comp;		/* pointer to complete flag		*/
+
+	/* for javascript items, for Ayla's generic doPerlCallMethodVA call */
+	/* warning; some fields shared by EAI */
+	char *fieldname;	/* pointer to a static field name	*/
+	unsigned Jptr[10];	/* array of x pointers    		*/
+	char Jtype[10];		/* array of x pointer types (s or p)	*/
+	int jparamcount;	/* number of parameters for this one	*/
+	SV *sv;			/* the SV for javascript		*/
+
+	/* for EAI */
+	int *retarr;		/* the place to put nodes		*/
+	int retarrsize;		/* size of array pointed to by retarr	*/
+	unsigned Etype[10];	/* EAI return values			*/
 };
 
 
 
 void addToNode (unsigned rc, unsigned newNode);
 void _perlThread (void);
-void loadInitialGroup(void); 
-void openBrowser(void); 
+void __pt_loadInitialGroup(void); 
+void __pt_openBrowser(void); 
 void initializePerlThread(void);
-unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
-unsigned int getBindables (char *tp, unsigned int *retarr);
+unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
+unsigned int __pt_getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
 int isPerlinitialized(void);
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 			unsigned ptr, unsigned ofs, int *complete);
+void __pt_doInline(void);
+void __pt_doStringUrl (void);
+void __pt_doPerlCallMethodVA(void);
+void __pt_EAI_GetNode (void);
+void __pt_EAI_GetType (void);
+void __pt_EAI_replaceWorld (void);
+void __pt_EAI_Route (void);
 
 /* Bindables */
 int *fognodes;
@@ -151,7 +205,11 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 }
 
 
-
+/************************************************************************/
+/*									*/
+/* THE FOLLOWING ROUTINES INTERFACE TO THE PERL THREAD			*/
+/*									*/
+/************************************************************************/
 
 /* Inlines... Multi_URLs, load only when available, etc, etc */
 void loadInline(struct VRML_Inline *node) {
@@ -164,6 +222,190 @@ void loadInline(struct VRML_Inline *node) {
 		&node->__loadstatus);
 }
 
+/* Javascript interface to the perl interpreter thread */
+void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...) {
+	va_list ap; /* will point to each unnamed argument in turn */
+	char *c;
+	void *v;
+	size_t len = 0;
+	const char *p = format;
+	int complete;
+
+	PSP_LOCK
+	DATA_LOCK
+	complete=0;
+	/* copy the data over; malloc and copy input strings */
+	psp.sv = sv;
+	psp.comp = &complete;
+	psp.type = CALLMETHOD;
+	psp.ptr = NULL;
+	psp.ofs = NULL;
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	psp.fieldname = methodname;
+
+	psp.jparamcount = 0;
+	va_start (ap,format);
+	while (*p) {
+		switch (*p++) {
+		case 's':
+			c = va_arg(ap, char *);
+			len = strlen(c);
+			c[len] = 0;
+			psp.Jptr[psp.jparamcount]=(unsigned)c;
+			psp.Jtype[psp.jparamcount]='s';
+			break;
+		case 'p':
+			v = va_arg(ap, void *);
+			psp.Jptr[psp.jparamcount]=(unsigned)v;
+			psp.Jtype[psp.jparamcount]='p';
+			break;
+		default:
+			fprintf(stderr, "doPerlCallMethodVA: argument type not supported!\n");
+			break;
+		}
+		psp.jparamcount ++;
+	}
+	va_end(ap);
+
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) usleep(10);
+	PSP_UNLOCK
+}
+
+/* interface for getting a node number via the EAI */
+unsigned int EAI_GetNode(char *nname) {
+	int complete;
+	int retval;
+
+	PSP_LOCK
+	DATA_LOCK
+	psp.comp = &complete;
+	psp.type = EAIGETNODE;
+	psp.ptr = NULL;
+	psp.ofs = NULL;
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	psp.fieldname = nname;
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) usleep(10);
+	retval = psp.jparamcount;
+	PSP_UNLOCK
+	return (retval);
+}
+
+/* interface for getting node type parameters from EAI */
+void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
+	unsigned int *nodeptr,
+	unsigned int *dataoffset,
+	unsigned int *datalen,
+	unsigned int *nodetype,
+	unsigned int *scripttype) {
+	int complete;
+	
+	PSP_LOCK
+	DATA_LOCK
+	psp.ptr = direction;
+	psp.jparamcount=nodenum;
+	psp.fieldname = fieldname;
+
+	psp.comp = &complete;
+	psp.type = EAIGETTYPE;
+	psp.ofs = NULL;
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) usleep(10);
+
+	/* copy results out */
+	*nodeptr = psp.Etype[0];
+	*dataoffset = psp.Etype[1];
+	*datalen = psp.Etype[2];
+	*nodetype = psp.Etype[3];
+	*scripttype = psp.Etype[4];
+	PSP_UNLOCK
+}
+
+/* interface for getting a node number via the EAI */
+void EAI_Route(char cmnd, char *fn) {
+	int complete;
+	int retval;
+
+	PSP_LOCK
+	DATA_LOCK
+	psp.comp = &complete;
+	psp.type = EAIROUTE;
+	psp.ptr = (unsigned) cmnd;
+	psp.ofs = NULL;
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	psp.fieldname = fn;
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) usleep(10);
+	retval = psp.jparamcount;
+	PSP_UNLOCK
+	return (retval);
+}
+
+/* interface for creating VRML for EAI */
+int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize) {
+	int complete;
+	int retval;
+
+	PSP_LOCK
+	DATA_LOCK
+	psp.comp = &complete;
+	psp.type = FROMSTRING;
+	psp.ptr = NULL;
+	psp.ofs = NULL;
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.retarr = retarr;
+	psp.retarrsize = retarrsize;
+	/* copy over the command */
+	psp.inp = malloc (strlen(inputstring)+2);
+	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) {usleep(10);}
+	retval = psp.retarrsize;
+	PSP_UNLOCK
+	return (retval);
+}
+
+/* interface for replacing worlds from EAI */
+void EAI_replaceWorld(char *inputstring) {
+	int complete;
+
+	PSP_LOCK
+	DATA_LOCK
+	psp.comp = &complete;
+	psp.type = EAIREPWORLD;
+	psp.ptr = rootNode;
+	psp.ofs = offsetof(struct VRML_Group, children);
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	/* copy over the command */
+	psp.inp = malloc (strlen(inputstring)+2);
+	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) usleep(10);
+	PSP_UNLOCK
+}
+
+
+/****************************************************************************/
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 			unsigned ptr, unsigned ofs,int *complete) {
 	int iret;
@@ -174,6 +416,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 		if (PerlParsing) return (FALSE);
 	}
 
+	PSP_LOCK
 	DATA_LOCK
 	/* copy the data over; malloc and copy input string */
 	psp.comp = complete;
@@ -187,6 +430,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	memcpy (psp.inp,inp,strlen(inp)+1);
 	DATA_LOCK_SIGNAL
 	DATA_UNLOCK
+	PSP_UNLOCK
 	return (TRUE);
 }
 	
@@ -204,7 +448,7 @@ void _perlThread() {
 	char *slashindex;
 	char firstBytes[4];
 
-	// is the browser started yet? 
+	/* is the browser started yet? */
 	if (!browserRunning) {
 
 		commandline[1] = "/usr/bin/fw2init.pl";
@@ -217,15 +461,15 @@ void _perlThread() {
 			exit (1);
 		}
 
-		//printf ("opening browser\n");
-		openBrowser();
+		/* printf ("opening browser\n"); */
+		__pt_openBrowser();
 
-		//printf ("loading in initial Group{} \n");
-		loadInitialGroup();
+		/* printf ("loading in initial Group{} \n"); */
+		__pt_loadInitialGroup();
 		browserRunning=TRUE;
 
-		//Now, possibly this is the first VRML file to
-		//add. Check to see if maybe we have a ptr of 0.
+		/* Now, possibly this is the first VRML file to
+		   add. Check to see if maybe we have a ptr of 0. */
 		if ((psp.ptr==0) && (psp.ofs==offsetof(
 			struct VRML_Group, children))) {
 			psp.ptr=rootNode;
@@ -239,97 +483,74 @@ void _perlThread() {
 		DATA_LOCK_WAIT
 		PerlParsing=TRUE;
 
-		/* is this a INLINE? If it is, try to load one of the URLs. */
+		/* have to handle these types of commands: 
+			FROMSTRING 	create vrml from string
+			FROMURL		create vrml from url
+			INLINE		convert an inline into code, and load it.
+			CALLMETHOD	Javascript... 	
+			EAIGETNODE      EAI getNode     
+			EAIGETTYPE	EAI getType	
+			EAIROUTE	EAI add/delete route
+			EAIREPWORLD     EAI replace world */
+
 		if (psp.type == INLINE) {
-			inl = (struct VRML_Inline *)psp.ptr;
-			inurl = &(inl->url);
-			filename = malloc(1000);
-
-			/* lets make up the path and save it, and make it the global path */
-			count = strlen(SvPV(inl->__parenturl,xx));
-			psp.path = malloc (count+1);
-
-			if ((!filename) || (!psp.path)) {
-				printf ("perl thread can not malloc for filename\n");
-				exit(1);
-			}
-			
-			/* copy the parent path over */
-			strcpy (psp.path,SvPV(inl->__parenturl,xx));
-
-			/* and strip off the file name, leaving any path */
-			slashindex = rindex(psp.path,'/');
-			if (slashindex != NULL) { 
-				slashindex ++; /* leave the slash there */
-				*slashindex = 0;
-			} else {psp.path[0] = 0;}
-
-			/* try the first url, up to the last */
-			count = 0;
-			while (count < inurl->n) {
-				thisurl = SvPV(inurl->p[count],xx);
-
-				/* check to make sure we don't overflow */
-				if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
-
-				/* we work in absolute filenames... */
-				makeAbsoluteFileName(filename,psp.path,thisurl);
-
-				if (fileExists(filename,firstBytes)) {
-					break;
-				}
-				count ++;
-			}
-			psp.inp = filename; /* will be freed later */
-			/* printf ("inlining %s\n",filename); */
-
-			/* were we successful at locating one of these? if so,
-			   make it into a FROMURL */
-			if (count != inurl->n) {
-				/* printf ("we were successful at locating %s\n",filename); */
-				psp.type=FROMURL;
-			} else {
-				printf ("Could not locate url (last choice was %s)\n",filename);
-			}
+		/* is this a INLINE? If it is, try to load one of the URLs. */
+			__pt_doInline();
 		}
 
-			
-		if ((psp.type == FROMSTRING) || (psp.type==FROMURL)) {
-			if (psp.type==FROMSTRING) {
-	        		retval = CreateVrml("String",psp.inp,retarr);
-			} else {
-				if (!fileExists(psp.inp,firstBytes)) { 
-					retval=0;
-					psp.bind=0;
-					printf ("file problem: %s does not exist\n",psp.inp);
-				} else {
-					retval = CreateVrml("URL",psp.inp,retarr);
-				}
-			} 
-	
-	        	// now that we have the VRML/X3D file, load it into the scene.
-	        	// retarr contains node number/memory location pairs; thus the count
-	        	// by two.
-	        	for (count =1; count < retval; count+=2) {
-	        		addToNode(psp.ptr+psp.ofs, retarr[count]);
-	        	}
-	
-			/* get the Bindables from this latest VRML/X3D file */
-			if (retval > 0) getAllBindables();
-	
-			/* send a set_bind to any nodes that exist */
-			if (psp.bind) {
-				if (totfognodes != 0) send_bind_to (FOG,fognodes[0],1);
-				if (totbacknodes != 0) send_bind_to (BACKGROUND,backgroundnodes[0],1);
-				if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,navnodes[0],1);
-				if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,viewpointnodes[0],1);
+
+
+		switch (psp.type) {
+
+		case FROMSTRING:
+		case FROMURL:	{ 
+			/* is this a Create from URL or string, or a successful INLINE? */	
+			__pt_doStringUrl();
+			break;
 			}
-		} else if (psp.type==INLINE) {
-			/* this should be changed to a FROMURL before here */
+
+		case CALLMETHOD: {
+			/* Javascript command???? , do it */
+			__pt_doPerlCallMethodVA();
+			break;
+			}
+
+		case INLINE: {
+			/* this should be changed to a FROMURL before here  - check */
 			printf ("Inline unsuccessful\n");
-		} else {
+			break;
+			}
+
+		case EAIGETNODE: {
+			/* EAI wants info from a node */
+			__pt_EAI_GetNode();
+			break;
+			}
+
+		case EAIGETTYPE: {
+			/* EAI wants type for a node */
+			__pt_EAI_GetType();
+			break;
+			}
+		case EAIROUTE: {
+			/* EAI wants type for a node */
+			__pt_EAI_Route();
+			break;
+			}
+
+		case EAIREPWORLD: {
+			/* EAI sending in a new world */
+			__pt_EAI_replaceWorld();
+			break;
+			}
+
+		default: {
 			printf ("produceTask - invalid type!\n");
+			}
 		}
+
+
+		/* finished this loop, free data */
 		if (psp.inp) free (psp.inp);
 		if (psp.path) free (psp.path);
 
@@ -394,10 +615,10 @@ void getAllBindables() {
 	if (viewpointnodes) free (viewpointnodes);
 
 	/* now, get the values */
-	totviewpointnodes = getBindables("Viewpoint",aretarr);
-	totfognodes = getBindables("Fog",bretarr);
-	totnavnodes = getBindables("NavigationInfo",cretarr);
-	totbacknodes = getBindables("Background",dretarr);
+	totviewpointnodes = __pt_getBindables("Viewpoint",aretarr);
+	totfognodes = __pt_getBindables("Fog",bretarr);
+	totnavnodes = __pt_getBindables("NavigationInfo",cretarr);
+	totbacknodes = __pt_getBindables("Background",dretarr);
 
 	/* and, malloc the memory needed */
 	viewpointnodes = malloc (sizeof(int)*totviewpointnodes);
@@ -412,10 +633,30 @@ void getAllBindables() {
 	memcpy (viewpointnodes,aretarr,(unsigned) totviewpointnodes*sizeof(int));
 }
 
+/*****************************************************************************
+ *
+ * Call Perl Routines. This has to happen from the "Perl" thread, otherwise
+ * a segfault happens.
+ *
+ * See perldoc perlapi, perlcall, perlembed, perlguts for how this all
+ * works.
+ * 
+ *****************************************************************************/
+
+/****************************************************************************
+ *
+ * General load/create routines
+ *
+ ****************************************************************************/
+
+
+
+
+/*************************NORMAL ROUTINES***************************/
+
 /* Create VRML/X3D, returning an array of nodes */
-unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr) {
+unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr) {
 	int count;
-	unsigned int noderef;
 	int tmp;
 
 	dSP;
@@ -447,9 +688,8 @@ unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr) {
 
 
 
-unsigned int getBindables (char *tp, unsigned int *retarr) {
+unsigned int __pt_getBindables (char *tp, unsigned int *retarr) {
 	int count;
-	unsigned int noderef;
 	int tmp, addr, ind;
 
 	dSP;
@@ -477,14 +717,14 @@ unsigned int getBindables (char *tp, unsigned int *retarr) {
 	return (count);
 }
 
-void loadInitialGroup() {
+void __pt_loadInitialGroup() {
 	dSP;
 	PUSHMARK(SP);
 	call_pv("load_file_intro", G_ARRAY);
 }
 
 
-void openBrowser() {
+void __pt_openBrowser() {
 	float eyedist = 10.0;	// have to really allow this to be passed in
 	float screendist = 10.0;	// have to really allow this to be passed in
 	int stereo = FALSE;
@@ -509,3 +749,271 @@ void openBrowser() {
 	FREETMPS;
 	LEAVE;
 }
+
+/* handle an INLINE - should make it into a CreateVRMLfromURL type command */
+void __pt_doInline() {
+	int count;
+	char *filename;
+	struct Multi_String *inurl;
+	struct VRML_Inline *inl;
+	int xx;
+	char *thisurl;
+	char *slashindex;
+	char firstBytes[4];
+	inl = (struct VRML_Inline *)psp.ptr;
+	inurl = &(inl->url);
+	filename = malloc(1000);
+
+	/* lets make up the path and save it, and make it the global path */
+	count = strlen(SvPV(inl->__parenturl,xx));
+	psp.path = malloc (count+1);
+
+	if ((!filename) || (!psp.path)) {
+		printf ("perl thread can not malloc for filename\n");
+		exit(1);
+	}
+	
+	/* copy the parent path over */
+	strcpy (psp.path,SvPV(inl->__parenturl,xx));
+
+	/* and strip off the file name, leaving any path */
+	slashindex = rindex(psp.path,'/');
+	if (slashindex != NULL) { 
+		slashindex ++; /* leave the slash there */
+		*slashindex = 0;
+	} else {psp.path[0] = 0;}
+
+	/* try the first url, up to the last, until we find a valid one */
+	count = 0;
+	while (count < inurl->n) {
+		thisurl = SvPV(inurl->p[count],xx);
+
+		/* check to make sure we don't overflow */
+		if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
+
+		/* we work in absolute filenames... */
+		makeAbsoluteFileName(filename,psp.path,thisurl);
+
+		if (fileExists(filename,firstBytes)) {
+			break;
+		}
+		count ++;
+	}
+	psp.inp = filename; /* will be freed later */
+	/* printf ("inlining %s\n",filename); */
+
+	/* were we successful at locating one of these? if so,
+	   make it into a FROMURL */
+	if (count != inurl->n) {
+		/* printf ("we were successful at locating %s\n",filename); */
+		psp.type=FROMURL;
+	} else {
+		printf ("Could not locate url (last choice was %s)\n",filename);
+	}
+}
+
+/* this is a CreateVrmlFrom URL or STRING command */
+void __pt_doStringUrl () {
+	int count;
+	int retval;
+	int myretarr[2000];
+	char firstBytes[4];
+
+	/* printf ("starting function __pt_doStringUrl, type %d inp %s\n", psp.type,psp.inp); */
+	if (psp.type==FROMSTRING) {
+       		retval = _pt_CreateVrml("String",psp.inp,myretarr);
+		
+	} else {
+		if (!fileExists(psp.inp,firstBytes)) { 
+			retval=0;
+			psp.bind=0;
+			printf ("file problem: %s does not exist\n",psp.inp);
+		} else {
+			retval = _pt_CreateVrml("URL",psp.inp,myretarr);
+		}
+	} 
+	
+       	/* now that we have the VRML/X3D file, load it into the scene.
+       	   myretarr contains node number/memory location pairs; thus the count
+       	   by two. */
+	if (psp.ptr != NULL)
+		/* if we have a valid node to load this into, do it */
+	       	for (count =1; count < retval; count+=2) {
+       			addToNode(psp.ptr+psp.ofs, myretarr[count]);
+       		}
+
+	/* copy the returned nodes to the caller */
+	if (psp.retarr != NULL) {
+		/* printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
+			psp.retarr, retval); */
+		for (count = 0; count < retval; count ++) {
+			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
+			psp.retarr[count] = myretarr[count];
+		}
+		psp.retarrsize = retval;	
+	}	
+	
+	/* get the Bindables from this latest VRML/X3D file */
+	if (retval > 0) getAllBindables();
+
+	/* send a set_bind to any nodes that exist */
+	if (psp.bind) {
+		if (totfognodes != 0) send_bind_to (FOG,fognodes[0],1);
+		if (totbacknodes != 0) send_bind_to (BACKGROUND,backgroundnodes[0],1);
+		if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,navnodes[0],1);
+		if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,viewpointnodes[0],1);
+	}
+}
+
+
+/************************END OF NORMAL ROUTINES*********************/
+
+/*************************JAVASCRIPT*********************************/
+void
+__pt_doPerlCallMethodVA() {
+	int count = 0;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(psp.sv);
+
+	for (count = 0; count < psp.jparamcount; count++) {
+        /* for javascript items, for Ayla's generic doPerlCallMethodVA call */
+		switch (psp.Jtype[count]) {
+		case 's':
+			XPUSHs(sv_2mortal(newSVpv((char *)psp.Jptr[count], strlen((char *)psp.Jptr[count]))));
+			break;
+		case 'p':
+			XPUSHs(sv_2mortal(newSViv((IV) (void *)psp.Jptr[count])));
+			break;
+		default:
+			break;
+		}
+	}
+
+	PUTBACK;
+	count = call_method(psp.fieldname, G_SCALAR);
+
+	SPAGAIN;
+	
+
+if (count > 1) {
+	fprintf(stderr,
+		"__pt_doPerlCallMethodgVA: call_method returned in list context - shouldnt happen here!\n");
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+/*************************END OF JAVASCRIPT*********************************/
+
+
+/****************************** EAI ****************************************/
+
+/* get node info, send in a character string, get a node reference number */
+void __pt_EAI_GetNode () {
+	int count;
+	unsigned int noderef;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	//this is for integers XPUSHs(sv_2mortal(newSViv(nname)));
+	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+
+
+	PUTBACK;
+	count = call_pv("VRML::Browser::EAI_GetNode", G_SCALAR);
+	SPAGAIN ;
+
+	if (count != 1)
+		printf ("EAI_getNode, node returns %d\n",count);
+
+	/* return value in psp.jparamcount */
+	psp.jparamcount = POPi;
+
+	/* 
+		printf ("The node is %x\n", noderef) ;
+	*/
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+
+/* set/delete route */
+void __pt_EAI_Route () {
+	unsigned int noderef;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSViv(psp.ptr)));
+	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+	PUTBACK;
+	call_pv("VRML::Browser::EAI_Route", G_SCALAR);
+	SPAGAIN ;
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+void __pt_EAI_GetType (){
+	unsigned int 	count;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+
+	/* push on the nodenum, fieldname and direction */
+	XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
+	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+	XPUSHs(sv_2mortal(newSVpv(psp.ptr, 0)));
+
+	PUTBACK;
+	count = call_pv("VRML::Browser::EAI_GetType",G_ARRAY);
+	SPAGAIN;
+
+	if (count != 5) {
+		/* invalid return values; make *nodeptr = 97, the rest 0 */
+		psp.Etype[0]=97;	/* SFUNKNOWN - check CFuncs/EAIServ.c */
+		psp.Etype[4] = 0;
+		psp.Etype[3] = 0;
+		psp.Etype[2] = 0;
+		psp.Etype[1] = 0;
+	} else {
+		/* pop values off stack in reverse of perl return order */
+		psp.Etype[4] = POPi; psp.Etype[3] = POPi; psp.Etype[2] = POPi; 
+		psp.Etype[1] = POPi; psp.Etype[0] = POPi;
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+void __pt_EAI_replaceWorld () {
+	int count;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+	PUTBACK;
+		count = call_pv("EAI_replaceWorld", G_ARRAY);
+	SPAGAIN ;
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+/****************************** END OF EAI **********************************/

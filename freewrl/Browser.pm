@@ -234,45 +234,6 @@ sub rectChanged
 # End of Aqua interface functions
 
 
-########################################################################
-#
-# load the initial file at startup
-#
-# Discards previous scene
-#
-#########################################################################
-sub load_file_intro {
-	my($this, $url) = @_;
-	my $string;
-
-	# save this for getworldurl calls...
-	$this->{URL} = $url;
-
-	print "load_file_intro, url $url\n";
-
-	delete $this->{Scene};
-	$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
-
-	$this->{Scene}->set_browser($this);
-
-	if (defined $url) {
-		$string = VRML::URL::get_absolute($url);
-	}
-
-	# Required due to changes in VRML::URL::get_absolute in URL.pm:
-	if (!$string) { print "\nFreeWRL Exiting -- File $url was not found.\n"; 
-		exit(1);}
-
-	$this->load_string($string, $url);
-
-       	prepare ($this);
-
-	# debugging scene graph call: 
-	$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
-}
-
-########################################################################
-
 # actually load the file and parse it.
 sub load_string {
 	my($this,$string,$file) = @_;
@@ -424,7 +385,7 @@ sub create_common {
 	my $ret;
 
 	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
-	#$scene->set_browser($this);
+	$scene->set_browser($this);
 
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
@@ -461,19 +422,21 @@ sub createVrmlFromURL {
 	return $this->create_common($url,$wurl,$t);
 }
 
-sub addRoute {
-	my ($this, $fn, $ff, $tn, $tf) = @_;
+sub EAI_Route {
+	my ($dir, $str) = @_;
+	#print "EAI_Route in Browser,pm, dir $dir, str $str\n";
 
-	$this->{Scene}->new_route($fn, $ff, $tn, $tf);
-	## not initializing Bindables -- necessary???
-	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-}
+	my ($fn, $ff, $tn, $tf) = split (" ",$str);
+	my $ar = 0;
 
-sub deleteRoute {
-	my ($this, $fn, $ff, $tn, $tf) = @_;
+	$ff = VRML::Parser::parse_exposedField($ff, VRML::Handles::get($fn)->{Type});
+	$tf = VRML::Parser::parse_exposedField($tf, VRML::Handles::get($tn)->{Type});
 
-	$this->{Scene}->delete_route($fn, $ff, $tn, $tf);
-	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
+	# the direction is "72" for an add; it has no specific meaning.
+	if ($dir == 72) {$ar = 1;}
+
+	$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
+			$ar , $fn, $ff, $tn, $tf);
 }
 
 #######################################################################
@@ -636,19 +599,20 @@ my @EAIinfo;
 sub EAI_GetNode {
 	my ($nodetoget) = @_;
 
-	my $node = $globalBrowser->{Scene}->getNode($nodetoget);
+	# print "\n\nEAI_GetNode, getting $nodetoget\n";
+	# now we change the node into a DEF name.	
+	my $node = VRML::Handles::return_def_name($nodetoget);
+
+	#print "step 1, node is $node, ref ",ref $node,"\n";
+
+	# then change the DEF name into a VRML node pointer.
+	$node = VRML::Handles::return_EAI_name($node);
+
+	#print "step 2, node is $node, ref ",ref $node,"\n";
 
 	if (!defined $node) {
 		warn("Node $nodetoget is not defined");
 		return 0;
-	}
-
-	if ("VRML::DEF" eq ref $node) {
-		$node = $globalBrowser->{Scene}->getNode(VRML::Handles::return_def_name($nodetoget));
-		if (!defined $node) {
-			warn("DEF node $nodetoget is not defined");
-			return 0;
-		}
 	}
 
 	my $id = VRML::Handles::reserve($node);
@@ -656,11 +620,6 @@ sub EAI_GetNode {
 	# print "handle is $id\n";
 	$id =~ s/^NODE//;
 	# print "node number is $id\n";
-
-	# remember this - this node is displayed already
-	#VRML::Handles::displayed($node);
-
-	
 	return $id;
 }
 
@@ -770,19 +729,15 @@ sub EAI_GetType {
 	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
 	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
 		
-	# print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
-
-	return ($outptr, $outoffset, $datalen, $retft, $type); 
-
+	# print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
+	my $scalaroutptr = $outptr;
+	return ($scalaroutptr, $outoffset, $datalen, $retft, $type); 
 }
-
-sub printhere { print "here from Browser.pm\n";}
 
 # EAI_CreateVrmlFromString - parse commands, and return a string of (node-number backnode) pairs.
 sub EAI_CreateVrmlFromString {
 	my ($string) = @_;
 
-print "here, string $string\n";
 	my $rv = createVrmlFromString ($globalBrowser,$string);
 
 	my @rvarr = split (" ", $rv);
@@ -877,6 +832,7 @@ my %ONSCREEN = ();
 ## delete %RP???
 my %RP = ();
 my %DEFNAMES = ();
+my %EAINAMES = ();
 
 
 # keep a list of DEFined names and their real names around. Because
@@ -886,22 +842,47 @@ my %DEFNAMES = ();
 # ALSO: for EAI, we need a way of keeping def names global, as EAI requires
 # us to be able to get to Nodes in one scene from another.
 
+## specifics for EAI. We care about node pointers outside of scene methods.
+sub EAI_reserve {
+	my ($name, $realnode) = @_;
+	$EAINAMES{$name} = $realnode;
+	#print "reserving EAINAME $name ", ref $name, "is real $realnode, ref ", ref $realnode,"\n";
+}
+sub return_EAI_name {
+	my ($name) = @_;
+	if (!exists $EAINAMES{$name}) {
+	
+		#print "return_EAI_name, looking for $name , it is not a EAI, returning $name\n";
+		#print "return_EAI_name - Name $name does not exist!\n";
+		return $name;
+	}
+	#print "return_EAI_name, looking for $name , it IS a EAI, returning ",
+	#	$EAINAMES{$name},"\n";
+
+	return $EAINAMES{$name};
+}
+
+
 
 ## keep refs to DEFs instead??? vrml name kept in DEF instances...
 
 sub def_reserve {
 	my ($name, $realnode) = @_;
 	$DEFNAMES{$name} = $realnode;
-	# print "reserving DEFNAME $name ", ref $name, "is real $realnode, ref ", ref $realnode,"\n";
+	#print "reserving DEFNAME $name ", ref $name, "is real $realnode, ref ", ref $realnode,"\n";
 
 }
 sub return_def_name {
 	my ($name) = @_;
-	# print "return_def_name, looking for $name , it is ";
 	if (!exists $DEFNAMES{$name}) {
+	
+		#print "return_def_name, looking for $name , it is not a def, returning $name\n";
 		#print "return_def_name - Name $name does not exist!\n";
 		return $name;
 	}
+	#print "return_def_name, looking for $name , it IS a def, returning ",
+	#	$DEFNAMES{$name},"\n";
+
 	return $DEFNAMES{$name};
 }
 
@@ -963,7 +944,7 @@ sub CNodeLinkreserve {
 sub reserve {
 	my($object) = @_;
 	my $str = VRML::NodeIntern::dump_name($object);
-	# print "Handle::reserve, reserving $str for object $object type ", ref($object), "\n";
+	#print "Handle::reserve, reserving $str for object $object type ", ref($object), "\n";
 
 	if(!defined $S{$str}) {
 		$S{$str} = [$object, 0];
@@ -981,6 +962,7 @@ sub release {
 
 sub get {
 	my($handle) = @_;
+	#print "Handle::get, looking for $handle\n";
 	return NULL if $handle eq "NULL";
 
 	if(!exists $S{$handle}) {

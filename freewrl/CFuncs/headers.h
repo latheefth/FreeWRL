@@ -286,6 +286,12 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define FROMSTRING 	1
 #define	FROMURL		2
 #define INLINE		3
+#define CALLMETHOD	4  /* Javascript... 	*/
+#define CALLMETHODVA    5  /* Javascript... 	*/
+#define EAIGETNODE      6  /* EAI getNode      	*/
+#define EAIGETTYPE	7  /* EAI getType	*/
+#define EAIREPWORLD     8  /* EAI replace world */
+#define EAIROUTE	9  /* EAI add/del route */
 
 
 
@@ -326,6 +332,10 @@ extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_siz
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,char *ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
+
+void create_EAI(void);
+int EAI_CreateVrml(char *type, char *str, unsigned int *retarr, int retarrsize);
+void EAI_Route(char cmnd, char *tf);
 
 
 
