@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.6  2000/10/16 17:07:32  crc_canada
+# Finish EAI add/remove children code.
+#
 # Revision 1.5  2000/10/13 14:13:48  crc_canada
 # removed some unneeded print statements
 #
@@ -243,6 +246,18 @@ sub handle_input {
        		        }
 		        $hand->print("RE\n$reqid\n2\n$strval\n");
 
+		} elsif($str =~ /^UR ([^ ]+) ([^ ]+)$/) { # update routing - for 0.27's adding
+							# MFNodes - to get touchsensors, etc, in there
+
+			# we should do things with this, rather than go through the
+			# whole scene graph again... JAS.
+			my($id, $field) = ($1,$2);
+			my $v = (shift @lines)."\n";
+
+
+			$this->{B}->prepare2();
+		        $hand->print("RE\n$reqid\n0\n0\n");
+
 		} elsif($str =~ /^SC ([^ ]+) ([^ ]+)$/) { # send SFNode eventIn to node
 			my($id, $field) = ($1,$2);
 			my $v = (shift @lines)."\n";
@@ -303,14 +318,12 @@ sub handle_input {
 		  			$this->{B}->api__sendEvent($node, "children",\@av);
 				}
 			} else {
-		  		print "VRMLServ.pm, 2\n";
 				if ($this->{B}->checkChildPresent($node,$child)) {
 		  			my @av = $this->{B}->removeChild($node, $child);
 		  			$this->{B}->api__sendEvent($node, "children",\@av);
 				}
 			}
 		        $hand->print("RE\n$reqid\n0\n0\n");
-			print "VRMLServ.pm - done SC\n";
 		} elsif($str =~ /^SE ([^ ]+) ([^ ]+)$/) { # send eventIn to node
 			my($id, $field) = ($1,$2);
 			my $v = (shift @lines)."\n";
