@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.35  2001/07/16 18:55:18  crc_canada
+# Scale textures to fit texture limits of OpenGL implementation. (do_texture changed)
+#
 # Revision 1.34  2001/07/12 15:50:23  kitfox
 # Merging extrusion_normals branch to the main branch
 #
@@ -534,7 +537,7 @@ ElevationGrid => '
 		$fv_null(color, colors, get3, &ncolors);
 		rep_->ntri = ntri;
 
-		printf("Gen elevgrid %d %d %d\\n", ntri, nx, nz);
+		/* printf("Gen elevgrid %d %d %d\\n", ntri, nx, nz); */
 		if(nf != nx * nz) {
 			die("Elevationgrid: too many / too few: %d %d %d\\n",
 				nf, nx, nz);
@@ -1963,6 +1966,7 @@ void render_polyrep(void *node,
 			/* printf ("polyrep structure has ind %d tex coords %f %f %f \n",ind,
 			r->tcoord[3*ind+0], r->tcoord[3*ind+1],r->tcoord[3*ind+2]   );
 			*/
+
 		  	glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 			
 		    }
@@ -3214,8 +3218,11 @@ do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	GLint Tgl_rep_or_clamp;
 	GLint Image;
 	unsigned char *ptr;
+
+
 {
 
+	GLint texSize;
 	int rx,ry,sx,sy;
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -3227,17 +3234,24 @@ do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Sgl_rep_or_clamp);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Tgl_rep_or_clamp);
 
-	if((depth) && (x) && (y)) {
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
+printf ("texture size is %d\n",texSize);
+
+	if((depth) && x && y) {
 		unsigned char *dest = ptr;
-		rx = 1; sx = (x);
+		rx = 1; sx = x;
 		while(sx) {sx /= 2; rx *= 2;}
-		if(rx/2 == (x)) {rx /= 2;}
-		ry = 1; sy = (y);
+		if(rx/2 == x) {rx /= 2;}
+		ry = 1; sy = y;
 		while(sy) {sy /= 2; ry *= 2;}
-		if(ry/2 == (y)) {ry /= 2;}
-		if(rx != (x) || ry != (y)) {
+		if(ry/2 == y) {ry /= 2;}
+		if(rx != x || ry != y || rx > texSize || ry > texSize) {
+			/* do we have texture limits??? */
+			if (rx > texSize) rx = texSize;
+			if (ry > texSize) ry = texSize;
+
 			/* We have to scale */
-			/* printf ("scaling from rx %d ry %d to x %d y %d\n",x,y,rx,ry); */
+			/* printf ("Do_Texture scaling from rx %d ry %d to x %d y %d\n",x,y,rx,ry);  */
 			dest = malloc((depth) * rx * ry);
 			gluScaleImage(
 			     ((depth)==1 ? GL_LUMINANCE : 
