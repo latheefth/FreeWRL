@@ -717,10 +717,10 @@ Transform => new VRML::NodeType ("Transform",
 	 center => [SFVec3f, [0,0,0]],
 	 bboxCenter => [SFVec3f, [0,0,0]],
 	 bboxSize => [SFVec3f, [-1,-1,-1]],
-         addChildren => [MFNode, [], eventIn],
-         removeChildren => [MFNode, [], eventIn],
-        },
-        {
+#JAS         addChildren => [MFNode, [], eventIn],
+#JAS         removeChildren => [MFNode, [], eventIn],
+#JAS        },
+#JAS        {
 #            Initialize => sub
 #            {
 #                print("Transform:Initialize\n");
@@ -728,29 +728,29 @@ Transform => new VRML::NodeType ("Transform",
 #                $Scene = $scene;
 #                return ();
 #            },
-            addChildren => sub
-            {
+#JAS            addChildren => sub
+#JAS            {
 #                print("Transform:addChildren\n");
 #                my($node,$fields,$value,$time) = @_;
 #                add_MFNode($node, "children", $value->[0], 1);
 #                $node->{RFields}{children}=$node->{Fields}{children};
-                return ();
-            },
+#JAS                return ();
+#JAS            },
 
-	    removeChildren => sub
-	    {
-	    },
+#JAS	    removeChildren => sub
+#JAS	    {
+#JAS	    },
 
-            EventsProcessed => sub
-            {
+   #JAS         EventsProcessed => sub
+#JAS            {
 #                my($node,$fields,$time) = @_;
 #                #my $ac = $fields->{addChildren};
 #                print("Transform:EventsProcessed\n");
 #                #$node->{BackEnd}->update_scene($time);
 #                #add_MFNode($t,"children",$ac->[0], 1);
 #                #$node->receive_event("addChildren", $ac, $time);
-                return ();
-            }
+#JAS                return ();
+#JAS            }
 
 	},
 ),
@@ -768,22 +768,22 @@ Group => new VRML::NodeType("Group",
 	{children => [MFNode, []],
 	 bboxCenter => [SFVec3f, [0,0,0]],
 	 bboxSize => [SFVec3f, [-1,-1,-1]],
-         addChildren => [MFNode, [], eventIn],
-         removeChildren => [MFNode, [], eventIn],
-        },
-        {
+#JAS         addChildren => [MFNode, [], eventIn],
+#JAS         removeChildren => [MFNode, [], eventIn],
+#JAS        },
+#JAS        {
 	    # copy these from Transform...
-            addChildren => sub
-            {
-            },
+#JAS            addChildren => sub
+#JAS            {
+#JAS            },
 
-	    removeChildren => sub
-	    {
-	    },
+#JAS	    removeChildren => sub
+#JAS	    {
+#JAS	    },
 
-            EventsProcessed => sub
-            {
-            }
+#JAS            EventsProcessed => sub
+#JAS            {
+#JAS            }
 	}
 ),
 
@@ -1389,9 +1389,9 @@ ProximitySensor => new VRML::NodeType("ProximitySensor",
 		return if !$t->{BackEnd};
 		# Ugly - should abstract
 		my $r = $t->{BackEnd}->get_proximitysensor_stuff($t->{BackNode});
-		if($VRML::verbose::prox) {
+#JAS		if($VRML::verbose::prox) {
 			print "PROX: $r->[0] ($r->[1][0] $r->[1][1] $r->[1][2]) ($r->[2][0] $r->[2][1] $r->[2][2] $r->[2][3])\n";
-		}
+#JAS		}
 		if($r->[0]) {
 			if(!$f->{isActive})  {
 				# print "PROX - initial defaults\n";
@@ -1414,7 +1414,9 @@ ProximitySensor => new VRML::NodeType("ProximitySensor",
 			     ($r->[2][1] != $f->{orientation_changed}[1]) ||
 			     ($r->[2][2] != $f->{orientation_changed}[2]) ||
                              ($r->[2][3] != $f->{orientation_changed}[3])) {
-				# print "PROX - orientation changed!!! \n";
+				print "PROX - orientation changed!!! ";
+				print $r->[2][0]," ", $r->[2][1], " ",$r->[2][2]," ",$r->[2][3],"\n";
+				
 				$f->{orientation_changed} = $r->[2];
 				$ch = 1;
 			}
