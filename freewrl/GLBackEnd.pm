@@ -185,6 +185,7 @@ sub quitpressed {
 	return delete $_[0]{QuitPressed};
 }
 
+
 sub update_scene {
 	my($this,$time) = @_;
 
@@ -200,8 +201,11 @@ sub update_scene {
 	      } 
 	    $this->event($time,@e);
 	  }
+
 	$this->finish_event();
+
 	$this->{Viewer}->handle_tick($time);
+
 	$this->render();
 }
 
@@ -676,6 +680,7 @@ sub render {
 	$this->setup_viewpoint($node);
 
         # Other lights
+
      	VRML::VRMLFunc::render_hier($node,	# Node                 
 				    0,		# reverse_trans        
 				    0,		# render view point    
@@ -684,7 +689,6 @@ sub render {
 				    0,		# render sensitive         
 				    0, 		# render blend
 				    0);		# what view point      
-
 
 	# 4. Nodes (not the blended ones)
 	VRML::VRMLFunc::render_hier($node,	# Node                 
@@ -696,7 +700,6 @@ sub render {
 				    0,		# render blend         
 				    0);		# what view point      
 
-	# glFlush();
 	glXSwapBuffers();
 
 	# Do selection
