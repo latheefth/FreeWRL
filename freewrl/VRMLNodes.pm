@@ -2066,7 +2066,8 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 
 							# This string ties scalars
 							my $tie = 
-								join "", map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
+								join "",
+									map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
 							## print "tie = $tie\n";
 							## $h = eval "$tie ({$_})";
 							$h = eval "({$_})";
@@ -2125,7 +2126,6 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 						# New js url handling
 						my $purl = $t->{PURL} = $scene->get_url;
 						my $wurl = $scene->get_world_url;
-						print "JS url: purl = $purl\n";
 						my $file;
 
 						if (defined $wurl) {
@@ -2136,15 +2136,18 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 								VRML::URL::get_relative($purl, $_, 1);
 						}
 
-						print "JS url: file = $file\n";
-						open (SCRIPT_CODE, "< $file") || die("Couldn't retrieve javascript url $_ !");
+						print "JS url: file = $file\n"
+							if $VRML::verbose::script;
+						open (SCRIPT_CODE, "< $file") ||
+							die("Couldn't retrieve javascript url $_ !");
 						my $code ="";
 						while (<SCRIPT_CODE>) {
 							$code.=$_;
 						}
 						;
 						close(SCRIPT_CODE);
-						print "JS url: code = $code\n";
+						print "JS url: code = $code\n"
+							if $VRML::verbose::script;
 						eval('require VRML::JS;');
 						if ($@) {
 							die $@;
@@ -2166,7 +2169,7 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 				if (!defined $h and !defined $t->{J}) {
 					die "Didn't find a valid perl(_tjl_xxx)? or java script";
 				}
-				print "GOT EVS: ",(join ',',keys %$h),"\n" 
+				print "Script got: ",(join ',',keys %$h),"\n"
 					if $VRML::verbose::script;
 				$t->{ScriptScript} = $h;
 				my $s;
