@@ -41,7 +41,7 @@ bootstrap VRML::JS $VERSION;
 
 
 if ($VRML::verbose::js) {
-	setVerbose(1);
+	VRML::VRMLFunc::setJSVerbose(1);
 }
 
 our $ECMAScriptNative = qr{^SF(?:Bool|Float|Time|Int32|String)$};
@@ -58,35 +58,23 @@ my $browserRetval = "Browser.__ret";
 
 
 sub new {
-	my ($type, $text, $node, $browser) = @_;
+	my ($type, $number, $text, $node, $browser) = @_;
 	my $this = bless {
 					  Node => $node,
 					  Browser => $browser,
-					  BrowserIntern => undef,
-					  JSContext => undef,
-					  JSGlobal => undef
+					  ScriptNum => undef,
 					 }, $type;
-	print "VRML::JS::new: $this $this->{Node}{TypeName} ",
+	print "VRML::JS::new: num $number $this $this->{Node}{TypeName} ",
 		VRML::NodeIntern::dump_name($node),
 				"\n$text\n" if $VRML::verbose::js;
 	${$this->{Browser}}{JSCleanup} = \&{cleanup};
 
-	init($this->{JSContext}, $this->{JSGlobal}, $this->{BrowserIntern}, $this);
-	print "\tcontext $this->{JSContext}, global object $this->{JSGlobal}\n"
-		if $VRML::verbose::js;
+	$this->{ScriptNum} = $number;  # we go by this script number
 
-	my ($rs, $rval);
+	VRML::VRMLFunc::jsinit($number,$this);
 
-	if (!runScript($this->{JSContext},
-				   $this->{JSGlobal},
-				   $DefaultScriptMethods,
-				   $rs,
-				   $rval)) {
-		cleanupDie("runScript failed in VRML::JS");
-	}
-
-	if (!runScript($this->{JSContext}, $this->{JSGlobal}, $text, $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS");
+	if (!VRML::VRMLFunc::jsrunScript($number, $text, $rs, $rval)) {
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS");
 	}
 
 	# Initialize fields.
@@ -122,16 +110,16 @@ sub initScriptFields {
 	if ($fkind eq "eventIn") {
 		if ($type !~ /$ECMAScriptNative/) {
 			$constr = $this->constrString($type, 0);
-			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
+			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
 								   "$eventInArg"."$field", $constr)) {
-				$this->cleanupDie("addGlobalAssignProperty failed in initScriptFields");
+				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
 			}
 		}
 	} elsif ($fkind eq "eventOut") {
 		if ($type =~ /$ECMAScriptNative/) {
-			if (!addGlobalECMANativeProperty($this->{JSContext}, $this->{JSGlobal},
+			if (!VRML::VRMLFunc::addGlobalECMANativeProperty($this->{ScriptNum},
 											 $field)) {
-				$this->cleanupDie("addGlobalECMANativeProperty failed in initScriptFields");
+				$this->cleanupDie("VRML::VRMLFunc::addGlobalECMANativeProperty failed in initScriptFields");
 			}
 		} else {
 			if ($type eq "SFNode") {
@@ -144,9 +132,9 @@ sub initScriptFields {
 			} else {
 				$constr = $this->constrString($type, 0);
 			}
-			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
+			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum}, 
 								   $field, $constr)) {
-				$this->cleanupDie("addGlobalAssignProperty failed in initScriptFields");
+				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
 			}
 		}
 	} elsif ($fkind eq "field") {
@@ -156,19 +144,19 @@ sub initScriptFields {
 					if $VRML::verbose::js;
 
 		if ($type =~ /$ECMAScriptNative/) {
-			if (!addGlobalECMANativeProperty($this->{JSContext}, $this->{JSGlobal},
+			if (!VRML::VRMLFunc::addGlobalECMANativeProperty($this->{ScriptNum},
 											 $field)) {
-				$this->cleanupDie("addGlobalECMANativeProperty failed in initScriptFields");
+				$this->cleanupDie("VRML::VRMLFunc::addGlobalECMANativeProperty failed in initScriptFields");
 			}
-			if (!runScript($this->{JSContext}, $this->{JSGlobal},
+			if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
 						   "$field=".$ftype->as_string($value, 1), $rstr, $v)) {
-				$this->cleanupDie("runScript failed in initScriptFields");
+				$this->cleanupDie("VRML::VRMLFunc::jsrunScript failed in initScriptFields");
 			}
 		} else {
 			$constr = $this->constrString($type, $value);
-			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
+			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
 								   $field, $constr)) {
-				$this->cleanupDie("addGlobalAssignProperty failed in initScriptFields");
+				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
 			}
 			if ($type eq "SFNode") {
 				$this->initSFNodeFields($field, $value);
@@ -202,9 +190,9 @@ sub initSFNodeFields {
 		if ($fkind eq "eventIn") { ## correct???
 			if ($type !~ /$ECMAScriptNative/) {
 				$constr = $this->constrString($type, 0);
-				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
+				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum}, 
 									   $nodeName, $_, $constr)) {
-					$this->cleanupDie("addSFNodeProperty failed in initSFNodeFields");
+					$this->cleanupDie("VRML::VRMLFunc::addSFNodeProperty failed in initSFNodeFields");
 				}
 			}
 		} elsif ($fkind eq "eventOut") {
@@ -218,9 +206,9 @@ sub initSFNodeFields {
 				} else {
 					$constr = $this->constrString($type, 0);
 				}
-				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
+				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum}, 
 									   $nodeName, $_, $constr)) {
-					$this->cleanupDie("addSFNodeProperty failed in initSFNodeFields");
+					$this->cleanupDie("VRML::VRMLFunc::addSFNodeProperty failed in initSFNodeFields");
 				}
 			}
 		} elsif ($fkind =~ /^(?:exposed)??[Ff]ield$/) {
@@ -230,9 +218,10 @@ sub initSFNodeFields {
 						if $VRML::verbose::js;
 			if ($type !~ /$ECMAScriptNative/) {
 				$constr = $this->constrString($type, $value);
-				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
+
+				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum}, 
 									   $nodeName, $_, $constr)) {
-					$this->cleanupDie("addSFNodeProperty failed in initSFNodeFields");
+					$this->cleanupDie("VRML::VRMLFunc::addSFNodeProperty failed in initSFNodeFields");
 				}
 			}
 		} else {
@@ -247,7 +236,13 @@ sub constrString {
 	my ($i, $l, $sft, $c);
 
 	if ($v) {
-		$c = "new $ft(";
+		# check for CNode constructor type
+		if ($ft eq "CNode") {
+			$c = "new MFNode(";
+		} else {
+			$c = "new $ft(";
+		}
+
 		if ($ft =~ /^SFNode/) {
 			if (VRML::Handles::check($v)) {
 				$h = VRML::Handles::get($v);
@@ -270,6 +265,30 @@ sub constrString {
 					$h = VRML::Handles::reserve($v->[$i]);
 				}
 				$c .= "new SFNode('".VRML::Field::SFNode->as_string($v->[$i])."','".$h."')";
+				$c .= "," unless ($i == ($l - 1));
+			}
+		} elsif ($ft =~ /^CNode/) {
+			my $cn;		# CNode backend structure
+
+			$l = scalar(@{$v});
+			for ($i = 0; $i < $l; $i++) {
+				if (VRML::Handles::check($v->[$i])) {
+					$h = VRML::Handles::get($v->[$i]);
+				} else {
+					$h = VRML::Handles::reserve($v->[$i]);
+				}
+
+				print "in constrString, h is $h, arris ",$v->[$i],"\n";
+				foreach (keys %{$h}) {
+					print "key $_\n";
+				}
+
+				if (!defined ($cn=$h->{BackNode}{CNode})) {
+					cleanupDie("ConstrString: no backend node for node $h");
+				}
+
+				#JAS $c .= "new SFNode('".VRML::Field::SFNode->as_string($h)."','".$cn."')";
+				$c .= "new SFNode('".$cn."','".VRML::Field::SFNode->as_string($h)."')";
 				$c .= "," unless ($i == ($l - 1));
 			}
 		} elsif ($ft =~ /^MF(?:Color|Rotation|Vec2f|Vec3f)$/) {
@@ -305,29 +324,16 @@ sub cleanupDie {
 
 sub cleanup {
 	my ($this) = @_;
-	cleanupJS($this->{JSContext}, $this->{BrowserIntern});
-}
-
-sub initialize {
-	my ($this) = @_;
-	my ($rs, $val);
-	print "VRML::JS::initialize: $this\n" if $VRML::verbose::js;
-
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
-				   "initialize()", $rs, $val)) {
-		cleanupDie("runScript failed in VRML::JS::initialize");
-	}
-
-	return $this->gatherSentEvents();
+	VRML::VRMLFunc::jscleanup($this->{ScriptNum});
 }
 
 sub sendeventsproc {
 	my($this) = @_;
 	my ($rs, $rval);
 	print "VRML::JS::sendeventproc: $this\n" if $VRML::verbose::js;
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 				   "eventsProcessed()", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::sendeventproc");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::sendeventproc");
 	}
 
 	return $this->gatherSentEvents();
@@ -351,27 +357,27 @@ sub gatherSentEvents {
 			print "\teventOut $_\n" if $VRML::verbose::js;
 
 			if ($type =~ /^MF/) {
-				if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 							   "$_.__touched_flag", $rstr, $rnum)) {
-					cleanupDie("runScript failed in VRML::JS::gatherSentEvents");
+					cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::gatherSentEvents");
 				}
-				if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 							   "$_.__touched_flag=0", $rstr, $runused)) {
-					cleanupDie("runScript failed in VRML::JS::gatherSentEvents");
+					cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::gatherSentEvents");
 				}
 			} elsif ($ftyp =~ /$ECMAScriptNative/) {
-				if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 							   "_${_}_touched", $rstr, $rnum)) {
-					cleanupDie("runScript failed in VRML::JS::gatherSentEvents");
+					cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::gatherSentEvents");
 				}
-				if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 							   "_${_}_touched=0", $rstr, $runused)) {
-					cleanupDie("runScript failed in VRML::JS::gatherSentEvents");
+					cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::gatherSentEvents");
 				}
 			} else {
-				if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 							   "$_.__touched()", $rstr, $rnum)) {
-					cleanupDie("runScript failed in VRML::JS::gatherSentEvents");
+					cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::gatherSentEvents");
 				}
 			}
 			if ($rnum and !$ignore) {
@@ -383,145 +389,56 @@ sub gatherSentEvents {
 	return @a;
 }
 
-## Called from VRML::NodeIntern::receive_event.
-sub sendevent {
-	my ($this, $node, $event, $value, $timestamp) = @_;
-	my $type = $node->{Type}{FieldTypes}{$event};
-	my $ftype = "VRML::Field::$type";
-	my $eventArg = "$eventInArg"."$event";
-	my ($rs, $rval);
 
-
-	print "VRML::JS::sendevent: ", VRML::Debug::toString(\@_),
-		" field type $type\n"
-			if $VRML::verbose::js;
-
-	$this->setProperty($event, $value, $eventArg);
-
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
-				   "$event($eventArg,$timestamp)", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::sendevent");
-	}
-	return $this->gatherSentEvents();
-}
-
-
-## Assign values set in FreeWRL to properties stored in and used by the JS
-## engine in preparation for calling eventIn(args) functions.
-sub setProperty {
-	my ($this, $f, $value, $prop) = @_;
-	my ($ftype, $rs, $i, $rval);
-
-	if ($f =~ s/^$tmpFieldKind//) { # recurse hack
-		$ftype = $f;
-	} else {
-		$ftype = $this->{Node}{Type}{FieldTypes}{$f};
-	}
-	$vftype = "VRML::Field::$ftype";
-
-	print "VRML::JS::setProperty: ", VRML::Debug::toString(\@_),
-		" field type $ftype\n"
-			if $VRML::verbose::js;
-
-	if ($ftype =~ /^MF/) {
-		my $length = scalar(@{$value});
-		my $stype = $ftype;
-		$stype =~ s/^MF/SF/;
-
-		my $l;
-		my $constr;
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop.length", $rs, $l)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
-		}
-		print "\trunScript returned length $l for MFNode\n" if $VRML::verbose::js;
-		for ($i = 0; $i < $length; $i++) {
-			if ($i >= $l) {
-				$constr = $this->constrString($stype, $value->[$i]);
-				if (!runScript($this->{JSContext}, $this->{JSGlobal},
-							   "$prop"."[$i]=$constr", $rs, $rval)) {
-					cleanupDie("runScript failed in VRML::JS::setProperty");
-				}
-			} else { ## correct to assume property exists at index $i???
-				$this->setProperty("$tmpFieldKind"."$stype", $value->[$i], "$prop"."[$i]");
-			}
-		}
-
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop.__touched_flag=0", $rs, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::setProperty");
-		}
-	} elsif ($ftype =~ /$ECMAScriptNative/) {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop=".$vftype->as_string($value, 1), $rs, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::setProperty");
-		}
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "_${prop}__touched=0", $rs, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::setProperty");
-		}
-	} elsif ($ftype eq "SFNode") {
-		print "VRML::JS::setProperty: do nothing for SFNode for now.\n";
-	} else {
-		my $fxn = "js$ftype"."Set";
-		&{$fxn}($this->{JSContext}, $this->{JSGlobal}, $prop, $value);
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop.__touched()", $rs, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::setProperty");
-		}
-	}
-}
-
-
-sub getProperty {
-	my ($this, $type, $prop) = @_;
-	my ($rstr, $rval, $l, $i);
-	my @res;
-
-	print "VRML::JS::getProperty: ", VRML::Debug::toString(\@_), "\n"
-		if $VRML::verbose::js;
-
-	if ($type eq "SFNode") {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop.__handle", $rstr, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty");
-		}
-		return VRML::Handles::get($rstr);
-	} elsif ($type =~ /$ECMAScriptNative/) {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "_".$prop."_touched=0; $prop", $rstr, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty");
-		}
-		return $rval;
-	} elsif ($type eq "MFNode") {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop.length", $rstr, $l)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
-		}
-		print "\trunScript returned length $l for MFNode\n"
-			if $VRML::verbose::js;
-		for ($i = 0; $i < $l; $i++) {
-			if (!runScript($this->{JSContext}, $this->{JSGlobal},
-						   "$prop"."[$i].__handle", $rstr, $rval)) {
-				cleanupDie("runScript failed in VRML::JS::getProperty");
-			}
-			if ($rstr !~ /^undef/) {
-				push @res, VRML::Handles::get($rstr);
-			}
-		}
-		print "\treturn ", VRML::Debug::toString(\@res), "\n"
-			if $VRML::verbose::js;
-		return \@res;
-	} else {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop", $rstr, $rval)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty");
-		}
-		print "\trunScript returned \"$rstr\" for $type.\n"
-			if $VRML::verbose::js;
-		(pos $rstr) = 0;
-		return "VRML::Field::$type"->parse($this->{Browser}{Scene}, $rstr);
-	}
-}
+#JASsub getProperty {
+#JAS	my ($this, $type, $prop) = @_;
+#JAS	my ($rstr, $rval, $l, $i);
+#JAS	my @res;
+#JAS
+#JAS	print "VRML::JS::getProperty: ", VRML::Debug::toString(\@_), "\n"
+#JAS		;#JAS if $VRML::verbose::js;
+#JAS
+#JAS	if ($type eq "SFNode") {
+#JAS		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+#JAS					   "$prop.__handle", $rstr, $rval)) {
+#JAS			cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::getProperty");
+#JAS		}
+#JAS		return VRML::Handles::get($rstr);
+#JAS	} elsif ($type =~ /$ECMAScriptNative/) {
+#JAS		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+#JAS					   "_".$prop."_touched=0; $prop", $rstr, $rval)) {
+#JAS			cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::getProperty");
+#JAS		}
+#JAS		return $rval;
+#JAS	} elsif ($type eq "MFNode") {
+#JAS		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+#JAS					   "$prop.length", $rstr, $l)) {
+#JAS			cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::getProperty for \"$prop.length\"");
+#JAS		}
+#JAS		print "\tVRML::VRMLFunc::jsrunScript returned length $l for MFNode\n"
+#JAS			if $VRML::verbose::js;
+#JAS		for ($i = 0; $i < $l; $i++) {
+#JAS			if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
+#JAS						   "$prop"."[$i].__handle", $rstr, $rval)) {
+#JAS				cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::getProperty");
+#JAS			}
+#JAS			if ($rstr !~ /^undef/) {
+#JAS				push @res, VRML::Handles::get($rstr);
+#JAS			}
+#JAS		}
+#JAS		print "\treturn ", VRML::Debug::toString(\@res), "\n"
+#JAS			if $VRML::verbose::js;
+#JAS		return \@res;
+#JAS	} else {
+#JAS		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, "$prop", $rstr, $rval)) {
+#JAS			cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::getProperty");
+#JAS		}
+#JAS		print "\tVRML::VRMLFunc::jsrunScript returned \"$rstr\" for $type.\n"
+#JAS			if $VRML::verbose::js;
+#JAS		(pos $rstr) = 0;
+#JAS		return "VRML::Field::$type"->parse($this->{Browser}{Scene}, $rstr);
+#JAS	}
+#JAS}
 
 
 sub addRemoveChildren {
@@ -553,10 +470,10 @@ sub jspSFNodeGetProperty {
 	my ($rs, $rval);
 
 	my $value = $node->{RFields}{$prop};
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
 				   "$handle"."_$prop=".$ftype->as_string($value, 1),
 				   $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspSFNodeGetProperty");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspSFNodeGetProperty");
 	}
 }
 
@@ -627,9 +544,9 @@ sub jspSFNodeConstr {
 	print "VRML::JS::jspSFNodeConstr: handle $handle, string \"$str\"\n"
 		if $VRML::verbose::js;
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
 				   "$browserSFNodeHandle"."=\"$handle\"", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspSFNodeConstr");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspSFNodeConstr");
 	}
 }
 
@@ -641,9 +558,9 @@ sub jspBrowserGetName {
 	print "VRML::JS::jspBrowserGetName\n"
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getName();
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
 				   "$browserRetval"."=\"$n\"", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspBrowserGetName");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetName");
 	}
 }
 
@@ -655,9 +572,9 @@ sub jspBrowserGetVersion {
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getVersion();
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
 				   "$browserRetval"."=\"$n\"", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspBrowserGetVersion");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetVersion");
 	}
 }
 
@@ -669,9 +586,9 @@ sub jspBrowserGetCurrentSpeed {
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getCurrentSpeed();
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
 				   "$browserRetval"."=$n", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspBrowserGetCurrentSpeed");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetCurrentSpeed");
 	}
 }
 
@@ -683,9 +600,9 @@ sub jspBrowserGetCurrentFrameRate {
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getCurrentFrameRate();
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 				   "$browserRetval"."=$n", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspBrowserGetCurrentFrameRate");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetCurrentFrameRate");
 	}
 }
 
@@ -697,9 +614,9 @@ sub jspBrowserGetWorldURL {
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getWorldURL();
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
 				   "$browserRetval"."=\"$n\"", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspBrowserGetWorldURL");
+		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetWorldURL");
 	}
 }
 
@@ -741,6 +658,7 @@ sub jspBrowserSetDescription {
 	$this->{Browser}->setDescription($desc);
 }
 
+# create vrml, send it back to javascript interpreter. works with CRoutes JAS 
 sub jspBrowserCreateVrmlFromString {
 	my ($this, $str) = @_;
 	my ($rval, $rs);
@@ -749,14 +667,18 @@ sub jspBrowserCreateVrmlFromString {
 		if $VRML::verbose::js;
 
 	my $h = $this->{Browser}->createVrmlFromString($str);
+	print "cvs returns $h\n";
 	push @handles, split(" ", $h);
 
-	my @nodes = map(VRML::Handles::get($_), @handles);
-	my $constr = $this->constrString(MFNode, \@nodes);
+	#JAS my @nodes = map(VRML::Handles::get($_), @handles);
+	#JAS my $constr = $this->constrString(CNode, \@nodes);
+	my $constr = $this->constrString(CNode, \@handles);
+	print "jspBrowserCreateVrmlFromString, constr is:\n$constr\n";
+
 	my $script = "$browserRetval"."=$constr";
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal},
-				   $script, $rs, $rval)) {
+	print "passed in context ",$this->{JSContext}," scriptnum ",$this->{ScriptNum},"\n";
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, $script, $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspBrowserCreateVrmlFromString");
 	}
 }
