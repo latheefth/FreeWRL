@@ -6,6 +6,10 @@
 
 #include "Structs.h"
 
+typedef int prflags;
+#define PR_DOUBLESIDED 0x01
+#define PR_FRONTFACING 0x02 //overrides effect of doublesided.
+#define PR_BACKFACING 0x04 //overrides effect of doublesided, all normals are reversed.
 
 double closest_point_of_segment_to_y_axis(struct pt p1, struct pt p2);
 
@@ -70,7 +74,7 @@ struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt to
 /*basically, it does collision with a rectangle on a plane that passes through the origin.*/
 struct pt cylinder_disp(double y1, double y2, double r, struct pt base, struct pt top, double baseradius);
 
-struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat);
+struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags);
 
 #ifdef DEBUGPTS
 void printpolyrep(struct VRML_PolyRep pr, int npoints);

@@ -43,6 +43,14 @@ int intersect_segment_with_line_on_yplane(struct pt* pk, struct pt p1, struct pt
     VECDIFF(p2,p1,p2);
     /* q2 becomes offset */
     VECDIFF(q2,q1,q2);
+
+    if(q2.x * q2.z == 0.) {
+	//degenerate case.
+	//it fits our objective to simply specify a random line.
+	q2.x = 1;
+	q2.y = 0;
+	q2.z = 0;
+	}
      
     quotient = ((-p2.z)*q2.x + p2.x*q2.z);
     if(quotient == 0.) return 0;
@@ -146,14 +154,6 @@ int getk_intersect_line_with_ycylinder(double* k1, double* k2, double r, struct 
 
     /*solves (pp1+ k n) . (pp1 + k n) = r^2 */
     a = 2*(n.x*n.x + n.z*n.z);
-/*    if(a == 0.) {
-	//degenerate case.
-	//it fits our objective to simply specify a random normal.
-	n.x = 1;
-	n.y = 0;
-	n.z = 0;
-	a = 2;
-	}*/
     b = -2*(pp1.x*n.x + pp1.z*n.z);
     delta = (4*((pp1.x*n.x + pp1.z*n.z)*(pp1.x*n.x + pp1.z*n.z)) - 
 	     4*((n.x*n.x + n.z*n.z))*((pp1.x*pp1.x + pp1.z*pp1.z - r*r)));
@@ -200,7 +200,6 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	struct pt dessect[2];
 	double k1,k2;
 	int nsect;
-
 
 	/*find intersections of poly with cylinder cap edge*/
 	for(i=0; i <num; i++) {
@@ -763,7 +762,7 @@ struct pt cylinder_disp(double y1, double y2, double r, struct pt base, struct p
 }
 
 
-struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* pr, struct pt* n, /*struct pt inv,*/ struct pt dispsum) {
+struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* pr, struct pt* n, /*struct pt inv,*/ struct pt dispsum, prflags flags) {
     struct pt p[3];
     double mindisp = 1E99;
     struct pt mindispv = {0,0,0};
@@ -772,6 +771,8 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
     static int recursion_count = 0;
     int nextrec = 0;
     int i;
+    int frontfacing;
+    int minisfrontfacing = 1;
 /*    struct pt tmpv;
       struct pt tmpsum;*/
 
@@ -780,8 +781,18 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 	p[0].y = pr->coord[pr->cindex[i*3]*3+1]  +dispsum.y;
 	p[0].z = pr->coord[pr->cindex[i*3]*3+2]  +dispsum.z;
 
-	/*only use if normal facing avatar */
-	if(vecdot(&n[i],&p[0]) > 0) {
+	frontfacing = (vecdot(&n[i],&p[0]) > 0);	/*if normal facing avatar */
+	/* use if either:
+	   -frontfacing and not in doubleside mode;
+	   -if in doubleside mode:
+	       use if either:
+	       -PR_FRONTFACING or PR_BACKFACING not yet specified
+	       -fontfacing and PR_FRONTFACING specified
+	       -not frontfacing and PR_BACKFACING specified */
+	if(    (frontfacing && !(flags & PR_DOUBLESIDED) )
+	    || ( (flags & PR_DOUBLESIDED)  && !(flags & (PR_FRONTFACING | PR_BACKFACING) )  )
+	    || (frontfacing && (flags & PR_FRONTFACING))
+	    || (!frontfacing && (flags & PR_BACKFACING))  ) {
 	    p[1].x = pr->coord[pr->cindex[i*3+1]*3]    +dispsum.x;
 	    p[1].y = pr->coord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
 	    p[1].z = pr->coord[pr->cindex[i*3+1]*3+2]  +dispsum.z;
@@ -789,7 +800,14 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 	    p[2].y = pr->coord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
 	    p[2].z = pr->coord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
 	    
-	    dispv = get_poly_normal_disp(y1,y2,r, p, 3, n[i]);
+	    if(frontfacing) {
+		dispv = get_poly_normal_disp(y1,y2,r, p, 3, n[i]);
+	    } else { /*can only be true in DoubleSided mode*/
+		struct pt ninv;
+		/*reverse polygon orientation, and do calculations*/
+		vecscale(&ninv,&n[i],-1);
+		dispv = get_poly_normal_disp(y1,y2,r, p, 3, ninv);
+	    }
 	    disp = maxdisp; /*global variable. was calculated inside poly_normal_disp already. */
 
 #ifdef DEBUGPTS
@@ -810,6 +828,7 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 		mindisp = disp;
 		mindispv = dispv;
 		nextrec = 1;
+		minisfrontfacing = frontfacing;
 	    }
 	}
 	
@@ -819,7 +838,24 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 #endif
     VECADD(dispsum,mindispv);
     if(nextrec && mindisp > FLOAT_TOLERANCE && recursion_count++ < MAX_POLYREP_DISP_RECURSION_COUNT) {
-	return polyrep_disp_rec(y1, y2, r, pr, n, dispsum);
+	/*jugement has been rendered on the first pass, wether we should be on the 
+	  front side of the surface, or the back side of the surface.
+	  setting the PR_xFACING flag enforces the decision, for following passes */
+	if(recursion_count ==1) {
+	    if(minisfrontfacing /*!(flags & (PR_FRONTFACING | PR_BACKFACING))*/) 
+	    {
+		flags = flags | PR_FRONTFACING;
+//		printf("FRONTFACING %d\n",recursion_count);
+		
+	    }
+	    else 
+	    {
+		flags = flags | PR_BACKFACING;
+//		printf("BACKFACING %d\n",recursion_count);
+	    }
+	}
+
+	return polyrep_disp_rec(y1, y2, r, pr, n, dispsum, flags);
     } else /*end condition satisfied */
     {
 #ifdef DEBUGPTS
@@ -865,7 +901,7 @@ void printmatrix(GLdouble* mat) {
 }
 #endif
 
-struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat) {
+struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags) {
     float* newc;
     struct pt* normals; 
     struct pt res ={0,0,0};
@@ -905,7 +941,7 @@ struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, G
     }
     
     
-    res = polyrep_disp_rec(y1,y2,r,&pr,normals,res);
+    res = polyrep_disp_rec(y1,y2,r,&pr,normals,res,flags);
 
     
     /*free! */
