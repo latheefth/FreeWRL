@@ -733,9 +733,11 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	char *memptr;
 	int ty;
 	float fl[4];
+	int len;
 
 	/* variables for MFStrings */
 	struct Multi_String *MSptr;
+	struct SFRotation *SFFloats;
 	AV *aM;
 	SV **bM;
 	int iM;
@@ -747,7 +749,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	/* convert the type string to an internal type */
 	ty = convert_typetoInt (type);
 
-	// printf ("EAI - extra memory for size %d type %s\n",size,type);
+	//printf ("EAI - extra memory for size %d type %s\n",size,type);
 
 	if (size > 0) {
 		memptr = malloc ((unsigned)size);
@@ -767,22 +769,48 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 			}
 		case SFFLOAT: {
 				fl[0] = SvNV(data);
-				memcpy(memptr,&val,(unsigned) size);
+				memcpy(memptr,&fl[0],(unsigned) size);
 				break; 
 			}	
 
 
-//XXX		case SFCOLOR: { break; }
-//XXX		case SFFLOAT: { break; }
-//XXX		case SFTIME : { break; }
-//XXX		case SFSTRING: { break; }
-//XXX		case SFROTATION: { break; }
-//XXX		case SFVEC2F: { break; }
-//XXX		case SFIMAGE: { break; }
-//XXX		case MFCOLOR: { break; }
-//XXX		case MFFLOAT: { break; }
-//XXX		case MFTIME: { break; }
-//XXX		case MFINT32: { break; }
+		case SFSTRING: { 
+				memptr = malloc (strlen(SvPV(data,len))+1);
+				if (memptr == NULL) {
+					printf ("can not allocate memory for PROTO Interface decls\n");
+					return 0;
+				}
+				strcpy (memptr, SvPV(data,PL_na));
+				break; 
+			}
+		case SFROTATION:
+		case SFCOLOR:
+		case SFVEC2F: { 
+				/* these are the same, different lengths for different types, though. */
+				SFFloats = (struct SFRotation *) memptr;
+				len = size / (sizeof(float));	// should be 2 for SFVec2f, 3 for SFVec3F...
+
+				if(!SvROK(data)) {
+					for (iM=0; iM<len; iM++) (*SFFloats).r[iM] = 0;
+					printf ("EAI_Extra_Memory: Help! SFFloattype without being ref\n");
+					return 0;
+				} else {
+					if(SvTYPE(SvRV(data)) != SVt_PVAV) {
+						printf ("EAI_Extra_Memory: Help! SFfloattype without being arrayref\n");
+						return 0;
+					}
+					aM = (AV *) SvRV(data);
+					for(iM=0; iM<len; iM++) {
+						bM = av_fetch(aM, iM, 1); /* LVal for easiness */
+						if(!bM) {
+							printf ("EAI_Extra_Memory: Help: SFfloattype b == 0\n");
+							return 0;
+						}
+						(*SFFloats).r[iM] = SvNV(*bM);
+					}
+				}
+				break; 
+			}
 
 		case MFSTRING: { 
 			/* malloc the main pointer */
@@ -826,6 +854,12 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 //XXX		case MFNODE: { break; }
 //XXX		case MFROTATION: { break; }
 //XXX		case MFVEC2F: { break; }
+//XXX		case SFTIME : { break; }
+//XXX		case SFIMAGE: { break; }
+//XXX		case MFCOLOR: { break; }
+//XXX		case MFFLOAT: { break; }
+//XXX		case MFTIME: { break; }
+//XXX		case MFINT32: { break; }
 		default: {
 			printf ("EAI_do_ExtraMemory, unhandled type %s\n",type);
 		}
