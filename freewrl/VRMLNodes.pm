@@ -461,47 +461,58 @@ my $protono;
 
 {
     my %MAP = (
-     "" => "field",
-     "in" => "eventIn",
-     "out" => "eventOut"
-    );
+			   "" => "field",
+			   "in" => "eventIn",
+			   "out" => "eventOut"
+			  );
 
     # XXX When this changes, change Scene.pm: VRML::Scene::newp too --
     # the members must correspond.
     sub new {
-	my($type,$name,$fields,$eventsubs) = @_;
-	my $this = bless {
-	    Name => $name,
-	    Fields => {},
-	    Defaults => {},
-	    Actions => $eventsubs,
-	},$type;
+		my($type,$name,$fields,$eventsubs) = @_;
+		my $this = bless {
+						  Name => $name,
+						  Actions => $eventsubs,
+						  Defaults => {},
+						  EventOuts => {},
+						  EventIns => {},
+						  Fields => {},
+						  FieldKinds => {},
+						  FieldTypes => {}
+						 },$type;
 
-	for(keys %$fields) {
-	    $this->{Defaults}{$_} = $fields->{$_}[1];
-	    $this->{FieldTypes}{$_} = $fields->{$_}[0];
-	    # $this->{Fields}{$_} = "VRML::Field::$fields->{$_}[0]";
-	    my $t = $fields->{$_}[2];
+		my $t;
+		for (keys %$fields) {
+			$this->{Defaults}{$_} = $fields->{$_}[1];
+			$this->{FieldTypes}{$_} = $fields->{$_}[0];
+			# $this->{Fields}{$_} = "VRML::Field::$fields->{$_}[0]";
+			$t = $fields->{$_}[2];
 
-	    if(!defined $t or $t eq "" or $t eq "field" or $t eq "exposedField") {
-		if(!defined $t or $t eq "exposedField") {
-		    $this->{EventOuts}{$_} = $_;
-		    $this->{EventOuts}{$_."_changed"} = $_;
-		    $this->{EventIns}{$_} = $_;
-		    $this->{EventIns}{"set_".$_} = $_;
+			if (!defined $t or $t eq "" or $t eq "field" or $t eq "exposedField") {
+				if (!defined $t or $t eq "exposedField") {
+					$this->{EventOuts}{$_} = $_;
+					$this->{EventOuts}{$_."_changed"} = $_;
+					$this->{EventIns}{$_} = $_;
+					$this->{EventIns}{"set_".$_} = $_;
+				}
+			} else {
+				my $io;
+				if ($t =~ /[oO]ut$/) {
+					$io = Out;
+				} else {
+					$io = In;
+				}
+				$this->{Event.$io."s"}{$_} = $_;
+			}
+
+			if (!defined $t) {
+				$t = exposedField;
+			} else {
+				$t = ($MAP{$t} or $t);
+			}
+			$this->{FieldKinds}{$_} = $t;
 		}
-	    } else {
-		my $io;
-		if($t =~ /[oO]ut$/) { $io = Out; }
-		else { $io = In; }
-		$this->{Event.$io."s"}{$_} = $_;
-	    }
-
-	    if(!defined $t) { $t = exposedField; }
-	    else { $t = ($MAP{$t} or $t); }
-	    $this->{FieldKinds}{$_} = $t;
-	}
-	return $this;
+		return $this;
     }
 }
 
@@ -1101,36 +1112,43 @@ TextureTransform => new VRML::NodeType ("TextureTransform",
 ),
 
 # Complete 
-Group => new VRML::NodeType("Group",
-	{children => [MFNode, []],
-	 bboxCenter => [SFVec3f, [0,0,0]],
-	 bboxSize => [SFVec3f, [-1,-1,-1]],
-         addChildren => [MFNode, [], eventIn],
-         removeChildren => [MFNode, [], eventIn],
-        },
-        {
-	    # copy these from Transform...
-            addChildren => sub
-            {
-#                print("Group:addChildren ");
-#                my($node,$fields,$value,$time) = @_;
-#		print ("node $node, value $value\n");
-		return();
-            },
+	Group => new VRML::NodeType("Group",
+								{
+								 children => [MFNode, []],
+								 bboxCenter => [SFVec3f, [0,0,0]],
+								 bboxSize => [SFVec3f, [-1,-1,-1]],
+								 addChildren => [MFNode, [], eventIn],
+								 removeChildren => [MFNode, [], eventIn],
+								},
+								{
+								 # these were copied from Transform...
+								 addChildren => sub {
+									 print("Group: addChildren\n");
+									 my ($node, $fields, $value, $time) = @_;
+									 print ("node $node, value $value\n");
+									 push @{$node->{Fields}{children}}, @{$value};
+									 $node->{RFields}{children} = $node->{Fields}{children};
+									 return ();
+								 },
 
-	    removeChildren => sub
-	    {
-		return();
-	    },
+								 removeChildren => sub {
+									 my ($node, $fields, $value, $time) = @_;
+									 print("Group: removeChildren\n");
+									 print ("node $node, values ",(join " ", @$value),"\n");
+									 my %toremove = map { $_ => 1 } @{$value};
+									 my @nchild =
+										 grep { !$toremove{$_} } @{$node->{Fields}{children}};
+									 $node->{RFields}{children} = \@nchild;
+									 return ();
+								 },
 
-            EventsProcessed => sub
-            {
-#                my($node,$fields,$time) = @_;
-#		print ("Group, EP, $node $fields\n");
-		return();
-            }
-	}
-),
+								 EventsProcessed => sub {
+									 # my($node,$fields,$time) = @_;
+									 # print ("Group, EP, $node $fields\n");
+									 return();
+								 }
+								}
+							   ),
 
 Anchor => new VRML::NodeType("Anchor",
 	{
