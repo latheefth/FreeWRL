@@ -158,7 +158,7 @@ JS/test.pl
 MANIFEST			This file
 MANIFEST.SKIP
 Makefile.PL
-NODES
+NODES.txt
 OpenGL/.cvsignore
 OpenGL/Makefile.PL
 OpenGL/OpenGL.m
