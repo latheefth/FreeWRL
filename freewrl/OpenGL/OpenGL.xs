@@ -54,6 +54,8 @@ struct fudge original_display;
 
 Cursor arrowc;
 Cursor sensorc;
+int	render_frame = 0;	/* do we render, or do we sleep? */
+int	now_mapped = 1;		/* are we on screen, or minimized? */
 
 #define OPENGL_NOVIRT
 #include "OpenGL.m"
@@ -86,6 +88,31 @@ raise_me_please()
 	  XRaiseWindow(dpy, win);
 	}
 
+# should we render?
+void
+set_render_frame()
+	CODE:
+	{
+	render_frame = 1;
+	}
+
+void
+BackEndSleep()
+	CODE:
+	{
+	usleep(100);
+	}
+
+int
+get_render_frame()
+	CODE:
+	{
+		RETVAL = (render_frame && now_mapped);
+	}
+	OUTPUT:
+	RETVAL
+
+
 # cursor stuff JAS
 void
 arrow_cursor()
@@ -107,6 +134,8 @@ void
 BackEndRender1()
 	CODE:
 	{
+	render_frame = 0;
+
         glDisable(GL_LIGHT0); /* Put them all off first */
         glDisable(GL_LIGHT1);
         glDisable(GL_LIGHT2);
@@ -274,6 +303,10 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	    /* what is the hardware 3d accel? */
 	    strncpy (renderer, glGetString(GL_RENDERER), 250);
 	    /* printf ("%s\n",renderer); */
+
+
+	    /* and make it so that we render 1 frame, at least */
+	    render_frame = 1;
 	}
 
 
@@ -306,6 +339,11 @@ glpXNextEvent(d=dpy)
 		char buf[10];
 		KeySym ks;
 		XNextEvent(d,&event);
+
+
+		/* must render now */
+		render_frame = 1;
+
 		switch(event.type) {
 			case ConfigureNotify:
 				EXTEND(sp,3);
@@ -341,6 +379,15 @@ glpXNextEvent(d=dpy)
 				PUSHs(sv_2mortal(newSViv(event.xmotion.y)));
 				break;
 			case Expose:
+				break;
+			case MapNotify:
+				now_mapped = 1;
+				/* printf ("now mapped\n"); */
+				break;
+			case UnmapNotify:
+				now_mapped = 0;
+				/* printf ("Now unmapped\n"); */
+				break;
 			default:
 				EXTEND(sp,1);
 				PUSHs(sv_2mortal(newSViv(event.type)));
