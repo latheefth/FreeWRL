@@ -279,12 +279,6 @@ Set the initial window geometry with the usual X window format string.
 Use / don't use libwww-perl. If you use the option -nolwp, you can only
 view documents on your local file system.
 
-=item C<-zpl> I<number>
-
-Set the Z-buffer backplane level. If your world is very big, try setting
-this number large. (NOTE: once NavigationInfo properly works, this option
-will probably be deprecated)
-
 =item C<-log> I<file>
 
 Log stdout and stderr into I<file>.
@@ -445,7 +439,6 @@ BEGIN {
 	GetOptions(
 		"url=s" => \$url,
 		"eai=s" => \$eai,
-		"zpl=f" => \$zpl,
 		"best" => \$best,
 		"fast" => \$fast, 
 		"fullscreen" => \$fullscreen,
@@ -651,8 +644,6 @@ $SIG{USR1} = sub {
 ## either make better or remove...
 $SIG{BUS} = \&clean_exit;
 $SIG{SEGV} = \&clean_exit;
-
-if($zpl) {VRML::VRMLFunc::set_vpdist($zpl)}
 
 ## How long should freewrl poll before giving up on an EAI
 ## socket connect while using FreeWRL as a Netscape plugin?
