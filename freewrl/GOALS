@@ -1,0 +1,26 @@
+# Copyright (C) 1998 Tuomas J. Lukka, 1999 John Stewart, CRC Canada.
+# DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+# See the GNU Library General Public License (file COPYING in the distribution)
+# for conditions of use and redistribution, EXCEPT on the files
+# which belong under the mozilla public license.
+
+
+Goals of the VRML::Browser, in order of importance
+
+	- EAI integration for shared virtual worlds (john.stewart@crc.ca)
+	- absolute compliance to VRML97 spec. If extensions appear, a 
+	  "anal-retentive" mode will be provided which recognizes just
+	  VRML97
+	- easy portability for many platforms
+	- lightweight - include as few big libraries, as little code
+ 	  as possible. 
+	- coded in short form - use code generation if repetitive
+  	  tasks occur.
+	- comprehensive support of different scripting languages, file 
+	  types and interfaces
+	- free software, with GNU copyleft.
+	- do hard things first so that they won't be extremely difficult
+	  and kludgy later on
+	- extensibility 
+	- good performance
+	- authoring

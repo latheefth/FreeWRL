@@ -1,0 +1,71 @@
+This file attempts to document "strange" behaviour...
+
+---------------------------------------------------------------
+
+in "f" mode, the input file in /tmp/inpdev looks like:
+
+
+    1.00     2.00     3.00  0.00000  0.000000  1.00000  0.00000
+
+
+typing "/" , gives us:
+
+
+QuatViewpoint: [  0.00000,   0.00000, 0  1.0000, 0  0.0000]
+Viewpoint {
+   position      2.0000   3.0000   1.0000 
+   orientation   0.0000   0.0000   0.0000   3.1416 
+}
+
+---------------------------------------------------------------
+
+Going to a viewpoint defined in a file:
+
+    DEF VIEWPOINT Viewpoint {
+        description "one"
+         position     0.0 0.0 -8.0
+         orientation   0.0000  1.0000   0.0000   3.22
+
+
+
+    }
+
+GOING TO VP: 'one'
+QuatViewpoint: [-0.0391936317729877, 0, 0.999231634421391, 0]
+Viewpoint {
+   position      0.0000   0.0000  -8.0000 
+   orientation   0.0000   1.0000   0.0000   3.2200 
+}
+
+
+
+    Viewpoint {
+        description "two"
+        position 8.6 0 -5
+        orientation 0 1 0 2.0943951
+    }
+
+
+
+GOING TO VP: 'two'
+QuatViewpoint: [0.500000001036284, 0, 0.86602540318614, 0]
+Viewpoint {
+   position      8.6000   0.0000  -5.0000 
+   orientation   0.0000   1.0000   0.0000   2.0944 
+}
+
+
+
+    Viewpoint {
+        description "three"
+        position -8.6 0 -5
+        orientation 0 1 0 4.1887902
+    }
+
+GOING TO VP: 'three'
+QuatViewpoint: [-0.499999997927432, 0, 0.866025404981036, 0]
+Viewpoint {
+   position     -8.6000   0.0000  -5.0000 
+   orientation   0.0000   1.0000   0.0000   4.1888 
+}
+

@@ -1,0 +1,11 @@
+struct VRML_Cone {
+	struct VRML_Virt *v;int _sens;
+	int _hit; 
+	int _change; int _dlchange; 
+	GLuint _dlist; int _dl2change; 
+	GLuint _dl2ist; void *_intern; 
+        float height;
+        float bottomRadius;
+        int side;
+        int bottom;
+};

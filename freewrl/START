@@ -1,0 +1,50 @@
+#! /bin/csh
+# Virtual Worlds.
+# Using my own implementation of EAI for FreeWRL; this code may work
+# within Netscape, but, as our project needs IPv6....
+# 
+# Please feel free to join. Code is not 100% yet (maybe 50%!!!). Yes,
+# you can break it, but why don't you develop it, and get your name
+# in lights?
+#
+# NOTE this server should be reachable from outside for a number of months
+# still. email me with problems. Note, NT machines with Cosmoplayer
+# can attach. email me for the url for the "normal" code on the server.
+#
+# NOTE - use FLY mode in FreeWRL (bug with mouse and EAI)
+# type the "d" key when in the freewrl window, then a,z or u,o keys...
+#
+# NOTE - Right now, children are not 100%... you will notice that avatars
+# are cones. That is being worked on.
+# 
+# NOTE - clicking OOBE gives us proximity problems; go to a different
+# viewpoint, then you will be ok. That, too, is being worked on...
+#
+#    John.Stewart@crc.ca
+#
+# as the example below starts the vrml browser up, expecting to get stuff sent to
+# the server (avatar, etc) that info comes from the applet....
+#
+#/usr/lib/java/bin/appletviewer http://meson.dgrc.crc.ca/DIVE/TextVNet.html &
+#
+# The following try the connect with freewrl browser, WITHOUT needing
+# netscape!
+#
+#
+# NOTES: Need to change applet security behaviour by program. For now, you have
+# to change the security via the pull down menu, and you have "sleep" time to
+# do it...
+#
+
+# do we want hardware (de)celleration???
+
+#setenv LD_LIBRARY_PATH /usr/local/home/luigi/Mesa-3.0/lib
+#setenv MESA_GLX_FX fullscreen
+
+# 
+
+/usr/lib/java/bin/appletviewer http://meson.dgrc.crc.ca/DIVE/FreeWRLVnet.html &
+
+sleep 2 
+
+nice ./freewrl -eai localhost:2000 http://meson.dgrc.crc.ca/DIVE/EAISimple.wrl -best -geom 640x480 eai &

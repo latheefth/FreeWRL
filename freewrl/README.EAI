@@ -1,0 +1,31 @@
+EAI code, as it stood, was prone to errors, because
+socket forking did not happen, and waiting around
+for the "Server" to appear did not work.
+
+
+So, we make it such that:
+
+1) the server listens on port 2000 for incoming
+connections. 
+
+2) the server replies with a sub port number, then closes
+that "waiting" socket.
+
+3) the server then opens the sub port number for
+actual eai transfers.
+
+4) when the server detects an open and a close
+of that socket, it deems itself to have been
+"used and discarded", and exits.
+
+5) the client waits around, trying to get 
+something out of the servers port 2000. When it
+does, it closes the initial socket, and opens
+the real EAI socket on the port given to it by
+the server.
+
+6) when the client is finished, it closes the socket,
+and the server picks this up.
+
+
+

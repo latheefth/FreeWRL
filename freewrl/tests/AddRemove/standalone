@@ -1,0 +1,3 @@
+echo "make sure you are in the FreeWRL build directory..."
+appletviewer tests/AddRemove/add-remove1.html &
+./freewrl -eai localhost:2000 tests/AddRemove/root.wrl -best &

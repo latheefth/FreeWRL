@@ -1,0 +1,25 @@
+#!/bin/sh
+# Shell script by Etienne Grossman, to replay a series of
+# screen dumps, started by the "s" key, or by the "-save"
+# option
+#
+# Notes (John Stewart)
+#
+#	- the "-save" option or the "s" key starts/stops
+#	
+#	- the subdir seqs must exist
+#
+#	- run it with ./Sequencer seqs/*  (for instance)
+#
+#	- the w and h params below MUST match the geom
+#	  of the freewrl window.
+#
+#
+# How shameful! should write size by hand!
+w=640          
+h=480
+for i in $* ; do
+  j=`dirname $i`/`basename $i .$w.$h.raw`;
+  rawtoppm -rgb $w $h < $i | pnmflip -tb  > $j.ppm ;
+done
+convert -delay 35 -loop 100 seqs/seq00*.ppm seqs/my_whole_sequence.gif

@@ -1,0 +1,19 @@
+use VRML::Browser;
+$b = new VRML::Browser();
+$s = $b->get_scene();
+
+$s->topnodes([
+ $s->new_node(Shape, 
+  appearance => $s->new_node(Appearance, 
+  {
+   material => $s->new_node(Material, 
+   {
+    diffuseColor => [0.8, 0, 0]
+   }),
+  }),
+  geometry => $s->new_node(Box, {
+  }),
+ )
+]);
+
+$b->eventloop;

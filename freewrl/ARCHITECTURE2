@@ -1,0 +1,123 @@
+OK, here is my (John Stewarts) view on things. This documentation
+for my own consumption of debugging EAI code.
+
+-------------------------------------------------------------------
+Browser starts; (file freewrl)
+
+	# some global variables:
+	# - b	: browser object.
+	#	  {BE} back end. (new VRML::GLBackEnd(...))
+	#	  {EV} eventmachine (new VRML::EventMachine())
+	# - be 	: back end object.
+	# - s	: EAI server.
+
+	# by default creates front and back ends.	
+	$b = new VRML::Browser({BackEnd => [Geometry => $geometry]});
+
+	# back end is created, so go and get it!
+	$be = $b->get_backend;
+
+	# if fast or best rendering is selected, then
+	$be->set_fast() OR $be->set_best()
+
+	# now parse, run, and do everything else...
+	$b->load_file($ARGV[0],$url);
+
+	# hmmm - zpl = z buffer backplane level.
+	if($zpl) {VRML::VRMLFunc::set_vpdist($zpl)}
+
+	# is EAI wanted? if so, start the server.
+	if($eai) {
+       	 require "VRML/VRMLServ.pm";
+       	 $s = VRML::EAIServer->new($b);
+       	 $s->connect($eai);
+	}
+
+
+	# and, run the browser event loop.
+	$b->eventloop();
+
+
+------------------------------------------------------------
+load_file consists of:
+
+	# Save a ref to this URL so that we have the "location"
+	# of the world, for position relatice adds of the VRML
+	# code.
+	$this->{URL} = $url;
+
+	# get the file and check to make sure that it is VRML2.0 code
+	 my $t = VRML::URL::get_absolute($file);
+	warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");
+
+	# and load it in.
+	 $this->load_string($t,$url);
+
+-------------------------------------------------------------
+load_string consists of:
+
+	# this deals with the "scene" stuff.
+
+	# remove any previous scene here.
+        $this->clear_scene();
+
+	# create a new one. EV is created already.
+        $this->{Scene} = VRML::Scene->new($this->{EV},$file);
+
+	# So, then set the scene to this browser. This simply
+	# sets the object variable to "this".
+        $this->{Scene}->set_browser($this);
+
+	# parse the scene in. do_defaults for all nodes is
+	# called from within the parser.
+        VRML::Parser::parse($this->{Scene},$string);
+
+	# and, prepare it for displaying.
+        prepare ($this);
+
+
+
+
+
+-------------------------------------------------------------
+prepare consists of:
+	# $this->{Scene} is of class VRML::Scene.
+	# it has two variables; EventModel and URL.
+
+	# VRML::Scene::make_executable steps:
+	# 	
+	# 1) make executable goes through front end
+	#    scene graph (package VRML::Scene). This
+	#    should consist of an array of nodes. 
+	#    each node in turn is make_executable'd...
+	#    (package VRML::Node) 
+
+	# 2) go through all tof the IS nodes, ($this->{NodeParent}
+	#    seems to indicate that this is an IS node???)
+	#    and reference the real data.
+
+	# 3) Gather all of the "DEF" statements for later use...
+	
+	# 4) fill in all of the "USE" statements.
+
+	# 5) Collect all of the prototyped nodes so that events
+	#    within them can be called.
+	#
+	# so...	
+	# VRML::Scene::make_executable calls:
+	#	VRML::Node::make_executable calls:
+	#		various defs, IS's, USE's, etc, to
+	#		fill out the scene tree (copy things, expand
+	#		protos, etc, etc.
+
+
+	$this->{scene}->make_executable();
+
+
+	
+	# VRML::Scene::make_backend steps:
+	#
+	
+	$this->{scene}->make_backend($this->{BE});
+
+	$this->{scene}->setup_routing($this->{EV}, $this->{BE});

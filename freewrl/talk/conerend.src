@@ -1,0 +1,42 @@
+Cone => '
+    int div = horiz_div;
+    float df = div;
+    float h = $f(height)/2;
+    float r = $f(bottomRadius); 
+    float a,a1;
+    int i;
+    $start_list();
+    if(h <= 0 && r <= 0) {return;}
+    if($f(bottom)) {
+      glBegin(GL_POLYGON);
+      glNormal3f(0,-1,0);
+      for(i=div-1; i>=0; i--) {
+        a = i * 6.29 / div;
+        TC(0.5+0.5*sin(a),0.5+0.5*cos(a));
+        glVertex3f(r*sin(a),-h,r*cos(a));
+      }
+      glEnd();
+    }
+    if($f(side)) {
+      double ml = sqrt(h*h + r * r);
+      double mlh = h / ml;
+      double mlr = r / ml;
+      glBegin(GL_QUADS);
+      for(i=0; i<div; i++) {
+        a = i * 6.29 / div;
+        a1 = (i+1) * 6.29 / div;
+        glNormal3f(mlh*sin(a),mlr,mlh*cos(a));
+        TC((i+1)/df,0);
+        glVertex3f(0,h,0);
+        TC(i/df,0);
+        glVertex3f(r*sin(a),-h,r*cos(a));
+        glNormal3f(mlh*sin(a1),mlr,mlh*cos(a1));
+        TC(i/df,1);
+        glVertex3f(r*sin(a1),-h,r*cos(a1));
+        TC((i+1)/df,1);
+        glVertex3f(0,h,0);
+      }
+      glEnd();
+    }
+    $end_list();
+',

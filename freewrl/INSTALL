@@ -1,0 +1,316 @@
+# Copyright (C) 1998 Tuomas J. Lukka, 2000 John Stewart, CRC Canada.
+# DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+# See the GNU Library General Public License (file COPYING in the distribution)
+# for conditions of use and redistribution, EXCEPT on the files
+# which belong under the mozilla public license.
+
+
+==================================================================
+
+Introduction:
+-------------
+
+The Install is possibly a long-winded affair; it depends
+on your distribution of Linux, and what other packages you
+have installed.
+
+At this point in time, I am using RedHat 6.2.
+
+Comments/help more than welcome.
+
+
+This install is divided up into the following sections:
+
+1) Building FreeWRL to run "standalone", without Netscape.
+	
+2) Installing FreeWRL for non-root usage.
+
+3) Installing Java support.
+
+4) Getting it all to work with Netscape.
+
+5) Getting it to work with the Polhemus Fastrak 3d, or a Joystick.
+
+
+(updated 19 June 2000 - john.stewart@crc.ca)
+
+
+===================================================================
+1) Building FreeWRL as a standalone executable.
+
+Notes:	All files are available here: http://www.crc.ca/FreeWRL/download/
+
+	The tests directory has a README in it - it describes the
+ 	tests available. RUN THEM ALL - and note that test 14 
+	will fail right now.
+
+	
+1.1)  Mesa and Mesa demos.
+
+	EITHER install the Mesa rpms from the RedHat disk, or get
+	the latest from the Mesa Web page:
+
+		http://www.mesa3d.org
+
+	I put the files in /usr/local/src/Mesa-3.2.
+
+	Add /usr/local/src/Mesa-3.2/lib to LD_LIBRARY_PATH
+	in /etc/csh.cshrc
+
+	eg:
+	setenv LD_LIBRARY_PATH /usr/local/src/Mesa-3.2/lib
+
+	If you go the RPM route, install all of the Mesa-3.2
+	rpms as found on the disk. (look for something like
+	Mesa-3.2.x and Mesa-devel-3.2.x)
+
+1.2) Mesa 3DFX hardware accelleration.
+
+	NOTE: DO THIS IF YOU WANT AND HAVE A 3DFX CARD ONLY!!!
+
+	NOTE: I want my hw-accellerated window to come up
+	on another monitor (for my cave and HMD)
+
+	1) Follow the directions in:
+
+		http://linux.3dfx.com/open_source.htm
+
+	2) rebuild mesa so that hardware accel. is used.
+	test it with the demo programs.
+
+	Neat!!! 
+
+1.3) FreeWRL Installation.
+
+	1) grab the latest FreeWRL tar file, and untar it.
+
+	2) verify that the vrml.conf file points to the Mesa
+	install directory (2 references in this file)
+
+	3) install the FreeType RPMs from the RH 6.2 CD #1.
+	(I do this manually; mount the cd, cd into the RedHat
+	RPM directory - and "rpm -i" all three of the freetype
+	rpms - freetype-1.3.x, freetype-devel-1.3.x, and 
+	freetype-utils-1.3.x)
+
+	4) had to install Perl Modules:
+	(perl modules are stored on my download page) 
+
+		Digest-MD5-2.09
+		HTML-Parser-2.25	
+		MIME-Base64-2.11
+		URI-1.04
+		libnet-1.0607
+		libwww-perl-5.47
+		Image-Base-1.07
+		Image-Xpm-1.07
+
+	Installing these modules is a no-brainer; just untar
+	each module, then go into the directory, and 
+		perl Makefile.PL
+		make
+		make install
+
+	Note that libwww-perl will most likely ask you if you
+	want to reconfigure- I always just select the default (no)
+
+
+
+1.4) Make the Makefile 
+
+	perl Makefile.PL
+
+in the main FreeWRL directory. If there are any errors, correct
+them first. If there is no -ljs, see below: this is the javascript
+library. Email me if the problem persists.
+ 
+Go to JS/js/ subdirectory and compile the Mozilla javascript code.
+
+       cd JS/js; make
+
+
+1.5) Make ./freewrl
+
+	make
+
+which should compile and install (in the blib/ directory) the files.
+Because this release is strictly alpha, installing them anywhere else
+takes a couple of steps. See the major steps below.
+ 
+1.6) (should be already there, but... ) For the java interface, 
+you have to first create the named pipes via the commands (in the 
+FreeWRL build directory)
+
+       mknod .javapipej p
+       mknod .javapipep p
+
+classpath, like this: assuming that FreeWRL is in /opt/FreeWRL/ , 
+then you would do:
+
+	bash, ksh:
+
+	export CLASSPATH=/opt/FreeWRL/java/classes:$CLASSPATH
+
+	tcsh, csh:
+
+	setenv CLASSPATH /opt/FreeWRL/java/classes:$CLASSPATH
+
+
+1.7) Do tests of all of the numbered files (And any others that
+you want!) in the tests directory. Note that some use javascript,
+so you will be testing javascript, too. 
+
+===================================================================
+2) Installing FreeWRL for non-root usage.
+
+
+2.1) To install freewrl, type:
+
+	make install
+
+
+===================================================================
+3) Installing Java support.
+
+3.1) Javascript:
+
+In the basic install, you should have installed the java support
+to allow some of the test programs in the tests directory to work.
+(eg, 7.wrl, 8.wrl, and 10.wrl)
+
+If these programs don't run, then go back and make FreeWRL
+it so that it does work.
+
+3.2) EAI code:
+
+Make sure that the CLASSPATH environment variable is set
+correctly (see above).
+
+On my system, (RH6.2) it is:
+
+[luigi@meson ~]$ setenv | grep CLASSPATH
+CLASSPATH=/usr/local/src/VRML/FreeWRL/java/classes:/usr/lib/netscape:
+
+Any java code that uses the "import vrml.external..." command, will
+get the requsite classes from this directory.
+
+
+3.3) Testing the EAI code.
+
+cd into the tests/AddRemove directory in the build tree.
+
+run the script "standalone" in there.
+
+NOTE: The appletviewer should be set to allow network access.
+I have my appletviewer set so that network access is only on
+the Applet Host. Class access is set to Restricted.
+
+NOTE: RH6.2 does not seem to have the appletviewer installed
+by default - have a look at the file via netscape (see below)
+
+
+===================================================================
+4) Getting it all to work with Netscape.
+
+4.1) get XSwallow, Build it according to the directions.
+
+	http://www.csn.ul.ie/~caolan/docs/Xswallow.html
+
+4.2) I HAD to remove the .netscape/plugins and the .netscape/plugins.BAK
+files in the non-root accounts that I wished to use. Then, within
+netscape, the "Edit" "Preferences" "Navigator" Applications" showed me
+using Embedded Vrml   Plugin XSwallow Ver 1.
+
+4.3) point netscape to one of the test files on the local machine;
+eg, test/1.wrl in the distribution directory is fine.
+
+4.4) to test EAI with netscape, open the html file in the 
+tests/AddRemove directory. 
+
+
+4.5) Configuration files of importance:
+
+To get it to really swallow the file once it was working, I changed
+the line shown belowin my ~/.netscape/xswallow.conf:
+
+x-world/x-vrml;  vr,wrl;         /usr/local/bin/dispatch-vrml-c 
+		%s %u %w %h; "FreeWRL" ;  Embedded Vrml
+
+(all on one line)
+
+
+And, because some web pages serve up VRML files as MIME type
+world/vrml, I added the line:
+
+
+model/vrml;  wrl;                /usr/local/bin/dispatch-vrml-c 
+             %s %u %w %h; "FreeWRL" ;  Embedded Vrml Model
+
+(again, all on one line)
+
+
+And, in /usr/local/bin/dispatch-vrml-c, I changed the stock
+XSwallow distribution to invoke freewrl as a vrml 2.0 format:
+
+exec /usr/local/src/VRML/freewrl -eai localhost:2000  
+	"$2" 2>/tmp/free.2 >/tmp/free.1 -best
+
+(again, all on one line)
+
+===================================================================
+
+5.0) Getting it to work with external sensors.
+
+
+5.1) Joystick - It works!!! I have "tied" it to ground use
+only, though.
+
+http://www.crc.ca/FreeWRL/download/joystickxxx.
+
+
+
+
+5.2) Polhemus/Virtual Research goggles with position sensor.
+
+5.2.1) Polhemus Position Sensor.
+
+	- Untar and compile the code in the Polhemus1.0.tar file.
+
+	- run minicom (with modem init strings set to null) and see
+	  if you can get any input. 
+
+	- allign the Fastrak. I use the A0 command, as found in 
+	  the manual, to do the allignment. ("Enhanced Allignment
+	  Procedure, pg 48a of my manual - Sept 1998)
+
+		eg:
+		(in minicom)
+		A0
+		P
+		(now, move the sensor 24" in positive X axis)
+		P
+		(now, move the sensor 24" in positive Y axis)
+		P
+
+		Exit minicom
+
+
+
+	- run the program Polhemus/termite to get the polhemus interface
+	  code working. Note - headset should be pointed at where you
+	  want "front" to be.
+
+5.2.2) Virtual Research goggles
+
+	- I use a Monster 3dfx card, with Mesa. I send the mesa output
+	  directly to the 3dfx card, so there is no VRML display on my
+	  X display. Simply connect the goggles to the output of the
+	  3dfx card.
+
+	- I start up FreeWRL with the options "-best" and i"-geom 640x480"
+	  I should check to see if the geometry matches the Virtual
+	  Research goggle display - but it appears to work ok.
+
+
+
+

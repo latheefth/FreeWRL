@@ -1,0 +1,22 @@
+By Tjl
+Create config/IRIX 646 something
+
+Edit config/IRIX.mk
+
+
+by EJB (12/23/98)
+
+- Added Linux_alpha.mk to config.  A copy of Linux_All.mk where
+  CPU_ARCH is alpha, and  -mieee is added to compile flags to take care of
+  floating point problems. 
+
+- Modified Makefile to use Linux_alpha.mk when OS_CPUARCH is alpha and
+  OS_ARCH is linux. 
+
+- Modified alpha condition in prcpucfg.c
+
+- Added linux_alpha subsection to prcpucfg.h based on results from
+  modified prcpucfg which make sense on the 64bit alpha linux.
+
+- Modified os/linux.h so things are only undefed for the non alpha linuxes.
+	

@@ -1,0 +1,39 @@
+Notes from Marijn Ros <J.M.Ros@phys.uu.nl>
+
+July 24, 1999:
+
+Partial EXTERNPROTO support (EXTERNPROTO.patch). Only first url used
+and get_absolute($url) doesn't return the right url. It's probably
+easy to fix, so I'll try to look at it this weekend.
+(patched by Marijn - JAS)
+
+The code could use some reorganisation. I copied lots of code from
+other functions. I wrote comments telling what code is copied ('# XXX
+marijn: co'), for easier separation later-on.
+
+Also, I happened to note that 'Shape' is parsed, but nodes that are
+not a child of a 'Shape' node are nonetheless drawn. VRML 2.0
+prohibits this, but I don't know about VRML 97. This probably requires
+changes in the GL backend, which I haven't looked at yet, so I won't
+change it unless I am really bored for a couple of days.
+
+Juli 9, 1999:
+
+For good EXTERNPROTO support, comment deletion had to be enhanced. The
+new comment deletion code is in COMMENTS.patch.
+
+Juli 4, 1999:
+
+In the current version of FreeWRL, version 0.20a1, EXTERNPROTO is not
+yet implemented. I will suggest a simple way to implement EXTERNPROTO
+support in FreeWRL.
+
+A problem with EXTERNPROTO is that the interface described in the
+EXTERNPROTO is only a subset of the one in the PROTO referenced by
+it. I suggest to solve this problem by making EXTERNPROTO's as PROTO's
+containing only an instance of the referenced PROTO.
+
+Another problem is that an EXTERNPROTO has its own namespace. This is
+not a problem with FreeWRL, because PROTO's are scene's, which
+probably (I haven't checked it yet) have their own namespace.
+

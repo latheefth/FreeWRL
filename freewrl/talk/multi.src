@@ -1,0 +1,20 @@
+package VRML::Field::Multi;
+sub parse {
+    my($type,$p) = @_;
+    my $stype = $type;
+    $stype =~ s/::MF/::SF/;
+    if($_[2] =~ /\G\s*\[\s*/gsc) {
+        my @a;
+        while($_[2] !~ /\G\s*,?\s*\]\s*/gsc) {
+            $_[2] =~ /\G\s*,\s*/gsc; # Eat comma if it is there...
+            my $v =  $stype->parse($p,$_[2],$_[3]);
+            push @a, $v if defined $v; 
+        }
+        return \@a;
+    } else {
+        my $res = [$stype->parse($p,$_[2],$_[3])];
+        # Eat comma if it is there
+        $_[2] =~ /\G\s*,\s*/gsc;
+        return $res;
+    }
+}

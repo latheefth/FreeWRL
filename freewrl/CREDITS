@@ -1,0 +1,41 @@
+# Copyright (C) 1998 Tuomas J. Lukka, 1999, John Stewart CRC Canada.
+# DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+# See the GNU Library General Public License (file COPYING in the distribution)
+# for conditions of use and redistribution, EXCEPT on the files
+# which belong under the mozilla public license.
+
+Originally developed by Tuomas Lukka (lukka@fas.harvard.edu), 
+now under the wings of John Stewart (john.stewart@crc.ca).
+
+What code in the distribution is not Tuomas's  (if I have left something
+out, contact me as soon as possible at john.stewart@crc.ca - I really
+want no-one to be left out accidentally) 
+
+ - Polhemus help - Dan Ratta of Polhemus. (Dan.Ratta@polhemus.com)
+
+ - Serial Interface code snarfed from a terminal emulator prog
+   written by Nadav Cohen
+
+ - Serial Slide code (see "s" key) from Etienne Grossman.
+
+ - Mozilla JS (http://www.mozilla.com) (JS/js)
+
+ - John Breen's new WALK viewer (Viewer.pm, VRML::Viewer::Walk) + 
+   Viewer handle RELEASE 
+
+ - Robin Williams: numerical improvements to rendering - 2nd degree eqs
+   + trigs
+
+ - Bernhard Reiter: Extrusion genpolyrep code and nodes/Extrusion[23].wrl,
+   misc comments & generated code cleanup (e.g. the cool vertical "standard"
+   thingy ;) along with the general tesselation code. (bernhard@csd.uwm.edu)
+
+ - Documentation and install changes - Ed - (ed@chronos.net)
+
+ - Additional work on EXTERNPROTOS and handling of comments Marijn 
+   (J.M.Ros@phys.uu.nl) and, later, Remi Cohen-Scali.
+
+ - Sequence of saving images by Etienne Grossman and many other additions.
+   (etienne@anonimo.isr.ist.utl.pt)
+
+ - PixelTexture implementation Remi Cohen-Scali; remi.cohenscali@pobox.com

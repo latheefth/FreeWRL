@@ -1,0 +1,70 @@
+#VRML V2.0 utf8
+# Copyright (C) 1998 Bernhard Reiter
+# DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+# See the GNU General Public License (file COPYING in the distribution)
+# for conditions of use and redistribution.
+#
+# Test for Extrusion node.
+# Demonstrates that the VRML`97 specs are somewhat interesting,
+# producing nice results
+#
+# Have a look at the second figure.
+# result of the middle SCP is SCP.z=[-1,0,0] (which results in the same
+# z vector for all SCPs) it turns the crosssection around.
+#
+# If we use the VECCP of FreeWRL-0.14 and follow the rule of the specs:
+# 
+#|The Z-axis is determined as follows:
+#|
+#|    d.For all points other than the first or last: Take the following cross-product: 
+#|
+#|      Z = (spine[i+1] - spine[i]) × (spine[i-1] - spine[i])
+#
+# we have   ( 0 0 -1 ) × ( 0 -1 0 ) = ( -1 0 0 ) which is computes correctly
+#	but as you can see, the crosssection in the second figure is turned
+#	around in respect to the first.        
+
+
+#first line of figures
+#
+Transform  {
+  translation 0 0 0 
+  children [
+  
+    Transform  {
+    translation 0 0 0 
+     children [
+      Shape {
+        appearance Appearance { material Material { diffuseColor 0.8 0.4 0.7 } }
+        geometry Extrusion {
+		convex FALSE
+		beginCap TRUE
+		endCap FALSE
+		crossSection [ 1 1, 1 -1, -1 -1, -1 1, 
+			-0.8 1, 0 0 , 0.8 1 , 1 1] 
+                solid FALSE
+              	spine [0 0 0, 0 1 0]
+	}
+      }
+     ]
+    }
+
+    Transform  {
+    translation 0 0 -4 
+     children [
+      Shape {
+        appearance Appearance { material Material { diffuseColor 0.85 0.6 0.3 }}
+        geometry Extrusion {
+		crossSection [ 	1 1, 1 -1, -1 -1, -1 1, 
+			-0.8 1, 0 0 , 0.8 1 , 1 1] 
+                solid FALSE
+		convex FALSE
+		spine [ 0 -2 0, 0 0 0 , 0 0 -2]
+	}
+      }
+     ]
+    }
+    
+  ]
+}
+

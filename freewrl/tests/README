@@ -1,0 +1,84 @@
+To run tests, go to main FreeWRL directory, and type:
+
+./freewrl tests/x.wrl
+
+where x is the test number.
+
+Notes:
+
+14:	This should fail - may work soon when convex polygons
+	work.
+
+
+1.wrl:	A cone.
+
+2.wrl:	A bunch of rotated rectangles.
+
+3.wrl:	A "flat" staircase.
+
+4.wrl:	This should rotate around central red column.
+
+5.wrl:	Arrows and yellow cube.
+
+6.wrl:	Rotating Red Cones.
+
+7.wrl:	Rotating Red and Blue Cones.
+
+8.wrl:	Moving boxes. Click on the red arrows.
+
+9.wrl:	Moving pink cube/red sphere. 3 cornered triangular movement.
+
+10.wrl:	Two vectors that you can manipulate with the mouse; and their
+	sum, cross product, and difference move. (JAS - Click on one of
+	the points of the yellow arrows, and move the mouse. The vectors
+	should change. )
+
+11.wrl:	pointset test.
+
+12.wrl:	indexed lineset test.
+
+13.wrl:	indexed face set test.
+
+14.wrl:	THIS TEST SHOULD FAIL - Concave Indexed Face Set not working yet.
+
+15.wrl:	Circular arc.
+
+16.wrl:	Flying blimp pulling a coke can. 
+
+	This is a world to test the headlight toggle ("h" key).
+
+
+17.wrl:	Simple Externproto test.
+
+18.wrl:	different viewpoints. hit the "v" key to change.
+
+19.wrl:	A Simple "tinman" avatar. a
+
+20.wrl:	A cone with a bookcase texture superimposed over it.
+
+21.wrl: A bookcase. NOTE THAT THE TEXTURE IS NOT YET DISPLAYED - SOON!!!
+
+22.wrl: A finger. click on any joint. 0.22 - ROTATIONS NOT CORRECT
+
+23.wrl: 
+
+24.wrl: HUD simple display. Bottom cube stays put when you
+	navigate. from 
+		http://www.vapourtech.com/vrmlguide/workshop/hud/
+
+25.wrl: Background binding - click on the objects to change them.
+	from the VRML source book, fig 22.4
+
+26.wrl: Background images.
+
+27.wrl: bouncing ball. Click on the ball. (from Jed Hartman)
+
+
+AddRemove:	
+	Java applet with EAI add/remove button. Run the script "standalone"
+	in the directory - check paths for everything, as it is dependent
+	on these, or run it from within netscape.
+
+helpers:	
+	Misc. directory of included files for the above tests.
+

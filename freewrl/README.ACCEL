@@ -1,0 +1,147 @@
+Hardware accel issues.
+
+
+Voodoo 2. test 16 has background funnies, and some other tests
+(eg, pointset test) does not work.
+
+
+Voodoo3. non-dri drivers.
+
+
+	- Background funnies still exist.
+
+	- need to ensure 640x480 mode is in XF86Config, otherwise
+	  glide tests hang.
+
+
+=======================================================================
+Timing tests; 
+
+
+./freewrl tests/16.wrl -best -geom 640x480
+P3-600, voodoo3. NON-DRI drivers.
+
+
+MESA_GLX_FX unset		8fps
+
+MESA_GLX_FX d			8fps
+
+MESA_GLX_FX f			67fps  !!!
+
+
+=======================================================================
+DRI drivers, first try:
+
+8fps
+
+with LIBGL_DEBUG set to verbose, got:_glapi_Context is
+     undefined error message.
+
+So, rebuild perl, making sure that the RTLD_GLOBAL mode is turned
+on in ext/DynaLoader/dl_dlopen.xs
+
+Error message is gone, but no change in speed noted.
+
+
+=======================================================================
+DRI Drivers, second try:
+
+Try verifying what the OpenGL code in FreeWRL does...
+
+	- remove color map stuff- nobody runs old video cards, do they?
+
+	- change param in OpenGL/OpenGL.xs call to glXCreateContext from
+	  GL_FALSE to GL_TRUE
+
+
+HW Accelleration now works!!!!!
+
+fps - 59 to 60.
+
+=======================================================================
+
+So, hw accel works, but background funnies still exist. hmmm.
+
+
+June 29 - its a lighting bug! Changed background from a light to an
+emissive material, and set lighting down to all off. WORKS!!!
+
+This may explain other bugs.
+
+speed 68-75fps.
+
+
+=======================================================================
+
+July 4th
+
+Background Images. hmmm. ok, 
+
+1) Does not work with HW accel.
+
+2) backURL ok.
+   leftURL is off to right.
+   rightURL is not there.
+   frongURL is not there.
+   topURL is ok.
+   bottomURL is not there.
+
+These things are gelerated by VRMLRend.pm and VRMLC.pm making VRMLFunc.xs.
+
+
+=======================================================================
+
+Background textures in 3d accel - we have:
+
+
+and, a texture with no material specified gives us:
+
+GL_FRONT, GL_SPECULAR 0.00 0.00 0.00 1.00
+GL_FRONT, GL_AMBIENT 0.20 0.20 0.20 1.00
+GL_FRONT, GL_DIFFUSE 0.80 0.80 0.80 1.00
+GL_FRONT, GL_EMISSION 0.40 0.25 0.20 0.00
+GL_FRONT, GL_SHINESSES 25.60 
+GL_FRONT, GL_COLOR_INDEXES 0.00 1.00 1.00 0.00
+GL_BACK, GL_SPECULAR 0.00 0.00 0.00 1.00
+GL_BACK, GL_AMBIENT 0.20 0.20 0.20 1.00
+GL_BACK, GL_DIFFUSE 0.80 0.80 0.80 1.00
+GL_BACK, GL_EMISSION 0.00 0.00 0.00 1.00
+GL_BACK, GL_SHININESS 25.60 
+GL_BACK, GL_COLOR_INDEXES 0.00 1.00 1.00 1.00
+GL_LIGHT0, GL_AMBIENT 0.00 0.00 0.00 1.00
+GL_LIGHT0, GL_DIFFUSE 0.00 0.00 0.00 1.00
+GL_LIGHT0, GL_SPECULAR 0.00 0.00 0.00 1.00
+GL_LIGHT0, GL_POSITION 1.00 1.00 1.00 0.00
+GL_LIGHT0, GL_SPOT_DIRECTION 0.00 0.00 -1.00 
+GL_LIGHT0, GL_SPOT_EXPONENT 0.00
+GL_LIGHT0, GL_SPOT_CUTOFF 180.00
+GL_LIGHT0, GL_CONSTANT_ATTENUATION 1.00
+GL_LIGHT0, GL_SPOT_LINEAR_ATTENUATION 0.00
+GL_LIGHT0, GL_SPOT_QUADRATIC_ATTENUATION 0.00
+
+
+and, test 20 (cone with texture on it) gives us:
+
+GL_FRONT, GL_SPECULAR 0.00 0.00 0.00 1.00
+GL_FRONT, GL_AMBIENT 0.20 0.20 0.20 1.00
+GL_FRONT, GL_DIFFUSE 0.80 0.80 0.80 1.00
+GL_FRONT, GL_EMISSION 0.00 0.00 0.00 1.00
+GL_FRONT, GL_SHINESSES 25.60 
+GL_FRONT, GL_COLOR_INDEXES 0.00 1.00 1.00 1.00
+GL_BACK, GL_SPECULAR 0.00 0.00 0.00 1.00
+GL_BACK, GL_AMBIENT 0.20 0.20 0.20 1.00
+GL_BACK, GL_DIFFUSE 0.80 0.80 0.80 1.00
+GL_BACK, GL_EMISSION 0.00 0.00 0.00 1.00
+GL_BACK, GL_SHININESS 25.60 
+GL_BACK, GL_COLOR_INDEXES 0.00 1.00 1.00 1.00
+GL_LIGHT0, GL_AMBIENT 1.00 1.00 1.00 1.00
+GL_LIGHT0, GL_DIFFUSE 1.00 1.00 1.00 1.00
+GL_LIGHT0, GL_SPECULAR 1.00 1.00 1.00 1.00
+GL_LIGHT0, GL_POSITION 0.00 0.00 1.00 0.00
+GL_LIGHT0, GL_SPOT_DIRECTION 0.00 0.00 -1.00 
+GL_LIGHT0, GL_SPOT_EXPONENT 0.00
+GL_LIGHT0, GL_SPOT_CUTOFF 180.00
+GL_LIGHT0, GL_CONSTANT_ATTENUATION 1.00
+GL_LIGHT0, GL_SPOT_LINEAR_ATTENUATION 0.00
+GL_LIGHT0, GL_SPOT_QUADRATIC_ATTENUATION 0.00
+
