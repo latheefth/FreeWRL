@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "/usr/include/unistd.h"
+#include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifdef __APPLE__
 #include <sys/malloc.h>
+#else
+#include <malloc.h>
+#endif
 #include <string.h>
 #include <memory.h>
 #include <signal.h>
@@ -87,12 +91,8 @@ typedef struct {
 	datChnk DataChunk;	// the one and only one "data" chunk is copied here
 } SNDFILE;
 
-#ifndef ALREADYHERE
-#define ALREADYHERE
-extern int loop[MAXSOURCES];
-extern char theFile[310];
-extern AudioUnit theUnit;
-#endif
+int loop[MAXSOURCES];
+char theFile[310];
 extern int dspFile;
 void closeDSP();
 SNDFILE *initiateWAVSound (SNDFILE *wavfile); 
@@ -104,3 +104,5 @@ void rewind_to_beginning (SNDFILE *wavfile);
 // Mixer proto defs
 void closeMixer();
 void setMixerGain(float mygain);
+
+

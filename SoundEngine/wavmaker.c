@@ -7,6 +7,7 @@
  *******************************************************************/
 
 #include "soundheader.h"
+#include <math.h>
 
 int 	dspFile = -1;		// Sound output device
 char 	*dspBlock = NULL;	// a block to send
@@ -28,10 +29,37 @@ int soundcardBufferCurrentSize = 0;
 // block from the wav file per update. The following variable tells us how
 // many to do.
 int loopsperloop = 1;
+//extern int loop[MAXSOURCES];
+//extern char theFile[310];
+#ifdef __APPLE__
+Boolean playbackIsFinished = TRUE;
+OSStatus result = noErr;
+FSRef ref;
+AudioUnit theUnit;
+ComponentDescription desc;
+Component comp;
+AudioFilePlayID player;
+#endif
 
+#ifdef __APPLE__
+OSStatus MatchAUFormats (AudioUnit theUnit, UInt32 theInputBus);
+
+void FilePlayNotificationHandler (void* inRefCon, OSStatus inStatus)
+{
+	AFP_Disconnect((AudioFilePlayID)inRefCon);
+	playbackIsFinished = TRUE;
+	result = AudioOutputUnitStop(theUnit);
+	result = AFP_Disconnect(player);
+	result = DisposeAudioFilePlayID(player);
+}
+#endif
 
 void playWavFragment(SNDFILE *wavfile, int source) {
+#ifndef __APPLE__
 	audio_buf_info leftover;
+#else
+
+#endif
 	int mydata;			// DSP buffer size... used to keep data flowing
 	int tmp;
 	
@@ -44,8 +72,8 @@ void playWavFragment(SNDFILE *wavfile, int source) {
 	// last write. First time through we assume that the sound card
 	// buffer is flushed, and that we have to write data.	
 	
-	//printf ("start of playWavFragment source %d\n",source);
-
+	//printf ("start of playWavFragment\n");
+#ifndef __APPLE__
 	if (DSPplaying != 0) {
 		// first time through
 		//printf ("first time through\n");
@@ -122,6 +150,24 @@ void playWavFragment(SNDFILE *wavfile, int source) {
 		dspFile = -1;
 	}
 	soundcardBufferCurrentSize = leftover.bytes;
+#else
+	if (playbackIsFinished || DSPplaying != 0)
+	{
+		DSPplaying =  0;
+		//printf("About to call Start");
+		comp = FindNextComponent(NULL, &desc);
+		result = OpenAComponent(comp, &theUnit);
+		result = AudioUnitInitialize(theUnit);
+		result = NewAudioFilePlayID(&ref, &player);
+		result = MatchAUFormats(theUnit, 0);
+		result = AFP_SetDestination(player, theUnit, 0);
+		result = AFP_SetNotifier(player, FilePlayNotificationHandler, player);
+		result = AFP_Connect(player);
+		result = AudioOutputUnitStart(theUnit);
+		playbackIsFinished  = FALSE;
+	}
+#endif
+	//printf("end of playWavFragment playbackIsFinished %d\n", playbackIsFinished);
 }
 
 
@@ -135,23 +181,48 @@ SNDFILE *initiateWAVSound (SNDFILE *wavfile) {
 // Close the DSP, release memory.
 void closeDSP () {
 	setMixerGain(0.0);
+#ifndef __APPLE__
 	if (dspBlock!=NULL) free(dspBlock);
 	if (dspFile>=0) close(dspFile);
+#else 
+	result = AudioOutputUnitStop(theUnit);
+	if (result)
+		printf("Could not stop unit\n");
+	result = AFP_Disconnect(player);
+	if (result)
+		printf("Could not disconnect player\n");
+	result = DisposeAudioFilePlayID(player);
+	if (result)
+		printf("could not dispose of player ID\n");
+#endif
 	dspFile = -1;
 	DSPplaying = -1;
 }
 
 void initiateDSP() {
 	int i;
+#ifndef __APPLE__
 	audio_buf_info leftover;
+#endif
 
+#ifndef __APPLE__
 	if ( (dspFile = open("/dev/dsp",O_WRONLY)) 
                                    == -1 ) {
 		printf ("open /dev/dsp problem\n");
 		dspFile=-1;
 		return;
 	}
+#else
+		result = FSPathMakeRef((const UInt8 *) theFile, &ref, NULL);
+	
+		desc.componentType = kAudioUnitType_Output;
+		desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+		desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+		desc.componentFlags = 0;
+		desc.componentFlagsMask = 0;
 
+#endif
+#ifndef __APPLE__
 	i = (N_FRAGMENTS<<16) | FRAG_SIZE;
 	if ( ioctl(dspFile, SNDCTL_DSP_SETFRAGMENT,
                              &i) == -1 ) {
@@ -168,6 +239,7 @@ void initiateDSP() {
 	}
 	soundcardBufferEmptySize = leftover.bytes;
 	//printf ("can write a possible amount of %d bytes\n",leftover.bytes);
+#endif
 
     return ;
 }
@@ -180,22 +252,26 @@ void selectWavParameters (SNDFILE *wavfile) {
 	int tmp;
 
 	// first - is the DSP open?
+#ifndef __APPLE__
 	if (dspFile<0) return;
+#endif
 
-	//second - find out how many bytes in the data chunk
-	//second and a half - make sure we are at the beginning of data
-	rewind_to_beginning (wavfile);
+        //second - find out how many bytes in the data chunk
+        //second and a half - make sure we are at the beginning of data
+        rewind_to_beginning (wavfile);
 
-	// third - set the bit size
-	tmp = wavfile->FormatChunk.wBitsPerSample;
-	//printf ("SNDCTL_DSP_SAMPLESIZE %d\n",tmp);
-	if (ioctl(dspFile,SNDCTL_DSP_SETFMT,&tmp)<0) {
-		printf ("unable to set DSP bit size to %d\n",tmp);
-		dspFile = -1; // flag an error
-		//JAS return;
-	}	
+        // third - set the bit size
+        tmp = wavfile->FormatChunk.wBitsPerSample;
+        //printf ("SNDCTL_DSP_SAMPLESIZE %d\n",tmp);
+#ifndef __APPLE__
+        if (ioctl(dspFile,SNDCTL_DSP_SETFMT,&tmp)<0) {
+                printf ("unable to set DSP bit size to %d\n",tmp);
+                dspFile = -1; // flag an error
+                //JAS return;
+        }
+#endif
 
-
+#ifndef __APPLE__
 	// fourth - set mono or stereo
 	tmp = wavfile->FormatChunk.wChannels-1;
 	//printf ("SNDCTL_DSP_STEREO %d channels %d\n",tmp, wavfile->FormatChunk.wChannels);
@@ -205,6 +281,9 @@ void selectWavParameters (SNDFILE *wavfile) {
 		//JAS return;
 	}	
 
+#endif
+
+#ifndef __APPLE__
 	// second - set the sampling rate
 	ltmp = (long int) ((float) wavfile->FormatChunk.dwSamplesPerSec * wavfile->pitch);
 	//printf ("SNDCTL_DSP_SPEED %ld from %ld pitch %f \n",ltmp,
@@ -221,9 +300,19 @@ void selectWavParameters (SNDFILE *wavfile) {
 		dspFile = -1; // flag an error
 		//JAS return;
 	}	
-
+#endif
 	//printf ("selectWavParameters - returning...\n");
 	return;
 }
 
-	
+#ifdef __APPLE__
+OSStatus MatchAUFormats (AudioUnit theUnit, UInt32 theInputBus)
+{
+	AudioStreamBasicDescription theDesc;
+	UInt32 size = sizeof (theDesc);
+	result = AudioUnitGetProperty(theUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &theDesc, &size);
+	result = AudioUnitSetProperty(theUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, theInputBus, &theDesc, size);
+	return result;
+}
+#endif
+		

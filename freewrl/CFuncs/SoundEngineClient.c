@@ -40,6 +40,8 @@
 #include <sys/msg.h>
 #endif
 #if defined(__APPLE__)
+#include <unistd.h>
+#include <sys/uio.h>
 #include <sys/ipc.h>
 #include <sys/wait.h>
 #endif
@@ -58,9 +60,18 @@ char sspath[] = "/usr/local/bin/FreeWRL_SoundServer";
 
 int initialized = SOUND_NEEDS_STARTING; // are we able to run?
 
+
 // IPC stuff
+#ifndef __APPLE__
 int msq_toserver = -1;
 int msq_fromserver = -1;
+#else
+char* serverpipe = "/tmp/soundserver";
+char* clientpipe = "/tmp/soundclient";
+int server_pipe_fd, client_pipe_fd;
+time_t last_time, current_time;
+#endif
+
 pid_t S_Server_PID;
 
 void Sound_toserver (char *message) {
@@ -70,10 +81,19 @@ void Sound_toserver (char *message) {
 
 	strcpy (msg.msg,message);
 	//printf ("Client:Sending to server %s\n",msg.msg);
+#ifndef __APPLE__
         while(xx = msgsnd(msq_toserver, &msg,strlen(msg.msg)+1,IPC_NOWAIT));
+#else
+	xx = write(server_pipe_fd, &msg, sizeof(msg));
+	if (xx > 0)
+		xx = 0;
+#endif
         if (xx) {   /* Send to server */
-                //printf ("SoundEngineServer - error sending ready msg\n");
+		perror("server error");
+                printf ("SoundEngineServer - error sending ready msg\n");
+		#ifndef __APPLE__
                 initialized = !SOUND_STARTED;
+		#endif
         }
 }
 
@@ -96,9 +116,9 @@ void SoundEngineInit () {
 		return;
 	}
 
-	
 	my_ipc_key = getpid();
 	//my_ipc_key = 1234;
+
 	msg.mtype=1;
 
 	// initialize SoundRegistered "database"
@@ -107,6 +127,7 @@ void SoundEngineInit () {
 	//printf ("Client, thus queue key is %d\n",my_ipc_key);
 	
 	// message queue for client/server comms
+#ifndef __APPLE__
 	if ( (msq_toserver = msgget(my_ipc_key,IPC_CREAT|0666)) < 0 ) {
 		printf ("FreeWRL:SoundServer error creating toserver message queue\n");
 		initialized = SOUND_FAILED;
@@ -117,9 +138,22 @@ void SoundEngineInit () {
 		initialized = SOUND_FAILED;
 		return;
 	}
+#else
 
-	//printf ("Client - msq_toserver=%x, msq_fromserver=%x.\n",
-	//	msq_toserver,msq_fromserver);
+	if ((client_pipe_fd = open (clientpipe, O_RDONLY | O_NONBLOCK)) < 0) {
+		if ((mkfifo(clientpipe, S_IRUSR | S_IWUSR | S_IXUSR)) < 0) {
+			printf("FreeWRL:SoundServer error creating client pipe\n");
+			initialized = SOUND_FAILED;
+			return;
+		}
+		if ((client_pipe_fd = open (clientpipe, O_RDONLY | O_NONBLOCK)) < 0) {
+			printf("FreeWRL:SoundServer error opening client pipe\n");
+			initialized = SOUND_FAILED;
+			return;
+		}
+	}
+#endif
+	// printf ("Client - msq_toserver=%x, msq_fromserver=%x.\n", msq_toserver,msq_fromserver);
 
 	sprintf(buf,"INIT %d",my_ipc_key);
 //printf("buf='%s' sspath='%s'.\n",buf,sspath);
@@ -131,19 +165,28 @@ void SoundEngineInit () {
 		// if we got here, we have an error...
 		printf("FreeWRL:SoundServer:%s: exec of %s\n",
 			sys_errlist[errno],sspath);
+#ifndef __APPLE__
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
+#else
+	fclose((FILE*)client_pipe_fd);
+#endif
 		initialized = SOUND_FAILED;
 		return;
 
 	} else if ( S_Server_PID < 0 ) {
 		printf ("FreeWRL:SoundServer %s: error starting server process",
 			sys_errlist[errno]);
+#ifndef __APPLE__
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
+#else
+		fclose((FILE*)client_pipe_fd);
+#endif
 		initialized = SOUND_FAILED;
 		return;
 	}
+
 
 	//printf ("Client: - server pid %d\n",S_Server_PID);
 
@@ -153,6 +196,14 @@ void SoundEngineInit () {
 	// wait for the message queue to initialize.
 	waitformessage();
 	
+#ifdef __APPLE__
+	if ((server_pipe_fd = open (serverpipe, O_WRONLY | O_NONBLOCK)) < 0) {
+		perror("Open error\n");
+		printf("FreeWRL:SoundServer error opening server pipe\n");
+		initialized = SOUND_FAILED;
+		return;
+	}
+#endif
 	if (initialized == SOUND_FAILED) {
 		printf("FreeWRL:SoundServer: Timeout: starting server.");
 		SoundEngineDestroy();
@@ -171,11 +222,19 @@ waitformessage () {
 	while ( 1 ) {
 
 		// wait for a response - is the server telling us it is ok?
-		//printf ("Client: waiting for response on %d\n",msq_toserver);
+		// printf ("Client: waiting for response on %d\n",msq_toserver);
+		//printf("Client: waiting for response\n");
 
 		do {
+#ifndef __APPLE__
 			xx = msgrcv(msq_fromserver,&msg,128,1,0);
-			//printf ("Client waiting... xx is %d\n",xx);
+#else
+	 		xx = read (client_pipe_fd, &msg, sizeof(msg));
+			if (xx <= 1)
+				xx = 0;
+#endif	
+			// printf ("Client waiting... xx is %d\n",xx);
+			usleep(1000);
 		} while (!xx);
 
 		//printf ("message received was %s\n", msg.msg);
@@ -206,10 +265,18 @@ waitformessage () {
 
 // close socket, destroy the server
 void SoundEngineDestroy() {
+	//printf("reached DESTROY\n");
 	if (initialized == SOUND_STARTED) {
+#ifndef __APPLE__
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
-		//printf ("SoundEngineDestroy, sound was started successfully\n");
+#else
+	//fclose((FILE*)serverpipe);
+	//fclose((FILE*)clientpipe);
+	//unlink(serverpipe);
+	//unlink(clientpipe);
+#endif
+		printf ("SoundEngineDestroy, sound was started successfully\n");
 		kill(S_Server_PID,SIGTERM);
 	}
 	initialized = !SOUND_STARTED;
@@ -254,7 +321,7 @@ float SoundSourceInit (int num, int loop, float pitch, float start_time, float s
 void SetAudioActive (int num, int stat) {
 	char mystring[512];
 
-	//printf ("SoundSource - got SetAudioActive for %d state %d\n",num,stat);
+	printf ("SoundSource - got SetAudioActive for %d state %d\n",num,stat);
 	sprintf (mystring,"ACTV %2d %2d",num,stat);
 	Sound_toserver(mystring);
 }

@@ -8,22 +8,34 @@
 
 #include "soundheader.h"
 int mixerFile = -10; // -10 means "try me"
+#ifdef __APPLE__
+OSStatus Mresult;
+#endif
 
 
 void openMixer() {
+#ifndef __APPLE__
 	mixerFile = open("/dev/mixer",O_WRONLY);
+#else
+	mixerFile = 1;
+#endif
 }
 
 
 void closeMixer() {
+#ifndef __APPLE__
 	close(mixerFile);
 	mixerFile = -1; // -10 means, "try me".
+#else
+	
+#endif
 }
 
 
 void setMixerGain(float mygain) {
 	int vol;
 
+#ifndef __APPLE__
 	if (mixerFile == -10) {
 		openMixer();
 	}
@@ -38,6 +50,17 @@ void setMixerGain(float mygain) {
 			closeMixer();
 		}
 	}
+#else
+	if (mixerFile == -10) {
+		openMixer();
+	}
+	if (mixerFile >= 0) {
+		//printf("setting volume to %f\n", mygain);
+		Mresult = AudioUnitSetParameter(theUnit, kHALOutputParam_Volume, kAudioUnitParameterFlag_Output, 0, mygain, 0);
+		if (Mresult)
+			printf("setting volume failed\n");
+		Mresult = AudioUnitGetParameter(theUnit, kHALOutputParam_Volume, kAudioUnitParameterFlag_Output, 0, &mygain);
+	}
+#endif
 }
-
 
