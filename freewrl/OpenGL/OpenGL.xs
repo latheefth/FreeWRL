@@ -500,6 +500,52 @@ glpXNextEvent(d=dpy)
 				EXTEND(sp,3);
 				PUSHs(sv_2mortal(newSViv(event.type)));
 				XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
+
+				// Map keypad keys in - thanks to Aubrey Jaffer.
+				// JAS - num lock had an effect, so added 
+				// more definitions.
+				switch(ks) {
+				   // the non-keyboard arrow keys
+				   case XK_Left: ks = XK_j; break;
+				   case XK_Right: ks = XK_l; break;
+				   case XK_Up: ks = XK_p; break;
+				   case XK_Down: ks = XK_semicolon; break;
+
+				   case XK_KP_0: 
+				   case XK_KP_Insert:
+					ks = XK_a; break;
+
+				   case XK_KP_Decimal: 
+				   case XK_KP_Delete:
+					ks = XK_z; break;
+
+				   case XK_KP_7:
+				   case XK_KP_Home:
+					 ks = XK_7; break;
+
+				   case XK_KP_9: 
+				   case XK_KP_Page_Up:
+					ks = XK_9; break;
+
+				   case XK_KP_8: 
+				   case XK_KP_Up:
+					ks = XK_k; break;
+
+				   case XK_KP_2: 
+				   case XK_KP_Down:
+					ks = XK_8; break;
+
+				   case XK_KP_4: 
+				   case XK_KP_Left:
+					ks = XK_u; break;
+
+				   case XK_KP_6: 
+				   case XK_KP_Right:
+					ks = XK_o; break;
+
+				   case XK_Num_Lock: ks = XK_h; break;
+				   default: break;
+				   }
 				buf[0]=(char)ks;buf[1]='\0';
 				PUSHs(sv_2mortal(newSVpv(buf,1)));
 				PUSHs(sv_2mortal(newSViv(event.xkey.state)));
