@@ -5,6 +5,11 @@
 # which belong under the mozilla public license.
 
 TODO wishlist for 0.28 release.
+-------------------------------
+
+Had to disable addChildren fields for SAI; interfered with add
+Children when using EAI. Figure out how not to get the invalid
+event with both addChildren methods enabled.
 
 STARTED: Fran Taylor sent in some great tips for getting FreeWRL to work 
 	better with Netscape. Implement and document these.
