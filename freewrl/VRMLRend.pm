@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.150  2005/03/30 21:56:55  crc_canada
+# remove GL_TEXTURE_BIT on Shape - speeds up rendering.
+#
 # Revision 1.149  2005/03/22 15:15:47  crc_canada
 # more compile bugs; binary files were dinked in last upload.
 #
@@ -1578,7 +1581,8 @@ Billboard => (join '','
 		have_textureTransform = FALSE;
 
 
-		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
+		/* JAS glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT); */
+		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT); 
 
 		/* is there an associated appearance node? */
        	        if($f(appearance)) {
@@ -1632,6 +1636,11 @@ Billboard => (join '','
 			}
 			/* Now, do the geometry */
 			render_node((this_->geometry));
+
+			/* disable the texture */
+			if (last_bound_texture != 0) {
+				glDisable (GL_TEXTURE_2D);
+			}
 		}
 
 		/* did we have a TextureTransform in the Appearance node? */

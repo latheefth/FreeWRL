@@ -492,7 +492,7 @@ void render_Background (struct VRML_Background *node) {
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 
-	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
+	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT); 
 	glShadeModel(GL_SMOOTH);
 	glPushMatrix();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
