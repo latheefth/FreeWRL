@@ -86,7 +86,7 @@ int bufcount2;				// pointer into buffer
 int bufsize2;				// current size in bytes of input buffer 
 
 
-int EAIVerbose = 1;
+int EAIVerbose = 0;
 
 int EAIsendcount = 0;			// how many commands have been sent back?
 

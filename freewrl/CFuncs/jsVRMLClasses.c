@@ -201,7 +201,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	if (len == 0) {
 		_str = JS_NewStringCopyZ(cx, _empty_array);
 		*rval = STRING_TO_JSVAL(_str);
-		printf ("doMFToString, len is zero, returning JS_TRUE, and %d\n",*rval);
+		//printf ("doMFToString, len is zero, returning JS_TRUE, and %d\n",*rval);
 		return JS_TRUE;
 	}
 
@@ -3838,7 +3838,7 @@ JSBool
 MFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
-	printf ("CALLED MFVec3fToString\n");
+	//printf ("CALLED MFVec3fToString\n");
 	return doMFToString(cx, obj, "MFVec3f", rval);
 }
 

@@ -2892,7 +2892,13 @@ void propagate_events() {
 						} else {	
 							/* just an eventIn node. signal to the reciever to update */
 							mark_event(to_ptr->node, to_ptr->foffset);
-							update_node((void *)to_ptr->node);
+
+							/* make sure that this is pointing to a real node,
+							 * not to a block of memory created by 
+							 * EAI - extra memory - if it has an offset of
+							 * zero, it is most certainly made. */
+							if ((to_ptr->foffset) != 0)
+								update_node((void *)to_ptr->node);
 						}
 					}
 				}
