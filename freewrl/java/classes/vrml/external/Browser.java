@@ -18,8 +18,11 @@ import vrml.external.field.EventInMFNode;
 import vrml.external.FreeWRLEAI.EAIoutThread;
 import vrml.external.FreeWRLEAI.EAIinThread;
 import vrml.external.FreeWRLEAI.EAIAsyncThread;
+import vrml.external.exception.InvalidNodeException;
+import vrml.external.exception.InvalidVrmlException;
 
-public synchronized class Browser
+public class Browser implements BrowserInterface
+
 {
     // The thread that reads and processes FreeWRL EAI replies...
      Thread 		FreeWRLThread;
@@ -31,48 +34,121 @@ public synchronized class Browser
     // The following are used to send to/from the FreeWLR Browser...
     ServerSocket	EAISocket;
     Socket		sock;
-    public static PrintStream         EAIout;
+    static PrintStream         EAIout;
 
     // The following pipe listens for replies to events sent to
     // the FreeWRL VRML viewer via the EAI port.
 
     private PipedInputStream EAIfromFreeWRLStream;
-    public static DataInputStream EAIfromFreeWRLInputStream;
+    static DataInputStream EAIfromFreeWRLInputStream;
 
     private String              reply = "";
 
-    // Sending to FreeWRL needs to synchronize on an object;
     
-    // static Object BrowserGlobals.FreeWRLToken = new Object();
+    // Events. EVno is the "highest +1" registered event number...
+    // EVarray corresponds to the events returned by FreeWRL  to our
+    // type, EVtype is the type as registered.
+    
+    public static int	EVno = 0;
+    public static int	EVarray [] = new int[256];
+    public static int	EVtype [] = new int[256];
+    public static boolean   EVshortreply [] = new boolean[256];
+    public static Object EVObject[] = new Object[256];
+    public static EventOutObserver EVObserver[] = new EventOutObserver[256];
+    
+    // The FreeWRL browser sends us changes to variables if/when they
+    // are updated. We tell the FreeWRL viewer what variables to look at
+    // by giving it a register listener command. The EAIinThread thread
+    // will send responses to the getVRMLReply procedure (below), or, if
+    // it receives an event, will send the result to the RL_Async thread...
+    
+    static EAIAsyncThread        RL_Async;
+    
+    // Query Number as sent to the FreeWRL Browser.
+    static int   queryno = 1;
+    
+    
+    // Sending to FreeWRL needs to synchronize on an object;
+    static Object FreeWRLToken = new Object();
+    
+
+    // Interface methods.
+    public int get_Browser_EVtype (int event)
+      {
+	System.out.println ("get_Browser_EVtype is returning " + EVtype[event]);
+        return EVtype[event];
+      }
+
+    public EventOutObserver get_Browser_EVObserver (int eventno)
+      {
+	System.out.println ("get_Browser_EVObserver is returning " +  EVObserver[eventno]);
+        return EVObserver[eventno];
+      }
+
+    public boolean get_Browser_EV_short_reply (int event)
+      {
+	int EVcounter;
+        for (EVcounter=0; EVcounter<Browser.EVno; EVcounter++) {
+          if (EVarray[EVcounter] == event) {
+            break;
+          }
+        }
+	System.out.println ("get_Browser_EV_short_reply is returning " + EVshortreply[EVcounter]);
+        return EVshortreply[EVcounter];
+
+      }
+
+    public void Browser_RL_Async_send (String EVentreply, int eventno) 
+      {
+        int EVcounter;
+        for (EVcounter=0; EVcounter<Browser.EVno; EVcounter++) {
+          if (Browser.EVarray[EVcounter] == eventno) {
+            break;
+          }
+        }
+	System.out.println ("Browser_RL_Async_send sending " + EVentreply + " to number " + EVcounter);
+        RL_Async.send(EVentreply, EVcounter);
+      }
 
     // Associates this instance with the first embedded plugin in the current frame.
     public Browser(Applet pApplet) {
 
-
+System.out.println ("Browser: Starting Browser applet");
 
   	// Create a socket here for an EAI server on localhost
 	int incrport = -1;
 	EAISocket = null;
 
-	while ((EAISocket == null) && (incrport < 30))
-  	try {
-		incrport = incrport + 1;
-  		EAISocket = new ServerSocket(2000 + incrport);
-  	} catch (IOException e) {
-  	  System.out.print ("Error creating socket for FreeWRL EAI on port " + incrport + "\n");
-  	}
-	System.out.println ("opened port on port " + incrport );
+	// This was an attempt to make multi-freewrls run on one machine...
+	// while ((EAISocket == null) && (incrport < 30))
+  	// try {
+	//	incrport = incrport + 1;
+  	//	EAISocket = new ServerSocket(2000 + incrport);
+  	//} catch (IOException e) {
+  	//  System.out.print ("Browser: Error creating socket for FreeWRL EAI on port " + incrport + "\n");
+  	//}
   
+	// Lets just do this with one socket...
+
+	try {
+		EAISocket = new ServerSocket(2000);
+	} catch (IOException e) {
+		System.out.println ("Browser: Error creating socket for FreeWRL EAI on port 2000");
+	}
+	System.out.println ("Browser: opened port on port 2000 waiting for data" );
+
+
   	try {
   		sock=EAISocket.accept();
   	} catch (IOException e) {
-  	  System.out.print ("error creating sub-scoket in FreeWrl Javascript\n");
+  	  System.out.print ("Browser: error creating sub-scoket in FreeWrl Javascript\n");
   	}
-  
+ System.out.println ("Browser: starting EAIinThread"); 
   	// Start the readfrom FREEWRL thread...
-   	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet));
+   	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, this));
            FreeWRLThread.start();
   
+ System.out.println ("Browser: starting EAIinThread done"); 
   	// Open the pipe for EAI replies to be sent to us...
         try {
           EAIfromFreeWRLStream = new PipedInputStream (EAIinThread.EAItoBrowserStream);
@@ -81,7 +157,8 @@ public synchronized class Browser
           System.out.println (ie);
         }
   
-  
+ System.out.println ("Browser: Waiting for FreeWRL to send us something...");
+ 
   	// Wait for the FreeWRL browser to send us something...
         try {
           System.out.println (EAIfromFreeWRLInputStream.readLine());
@@ -90,23 +167,26 @@ public synchronized class Browser
   	// Send the correct response...
 	try {
 		EAIout = new PrintStream (sock.getOutputStream());
-		EAIout.print ("FreeWRL EAI Serv0.21");
+		EAIout.print ("FreeWRL EAI Serv0.27");
 		EAIout.flush ();
 	} catch (IOException e) {
 		System.out.print ("error on reiniting output stream");
 	}
   	// Browser is "gotten", and is started.
+System.out.println ("Browser: Browser is found; starting EAIoutThread");
 
   	// Start the SendTo FREEWRL thread...
 	EAIoutSender = new EAIoutThread(EAIout);
         EAIoutSender.start();
 
+System.out.println ("Browser: EAIoutThread started; workin on EAIAsyncThread");
+
 	// Start the thread that allows Registered Listenered
 	// updates to come in.
-	BrowserGlobals.RL_Async = new EAIAsyncThread();
-	BrowserGlobals.RL_Async.start();
+	RL_Async = new EAIAsyncThread();
+	RL_Async.start();
 
-	
+System.out.println ("Browser: all done; returning");	
   	return;
     }
   
@@ -136,10 +216,10 @@ public synchronized class Browser
   
     String retval;
 
-    synchronized (BrowserGlobals.FreeWRLToken) {
-      EAIoutSender.send ("" + BrowserGlobals.queryno + "\nGCFR\n");
-      retval = getVRMLreply(BrowserGlobals.queryno);
-      BrowserGlobals.queryno += 1;
+    synchronized (FreeWRLToken) {
+      EAIoutSender.send ("" + queryno + "\nGCFR\n");
+      retval = getVRMLreply(queryno);
+      queryno += 1;
     }
 
     return Float.valueOf(retval).floatValue();
@@ -152,10 +232,10 @@ public synchronized class Browser
       String retval;
 
       
-       synchronized (BrowserGlobals.FreeWRLToken) {
-         EAIoutSender.send ("" + BrowserGlobals.queryno + "\nGWU\n");
-         retval = getVRMLreply(BrowserGlobals.queryno);
-         BrowserGlobals.queryno += 1;
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "\nGWU\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
        }
       return retval;
 
@@ -164,9 +244,8 @@ public synchronized class Browser
     // Replace the current world with the passed array of nodes
     public void          replaceWorld(Node[] nodes)
          throws IllegalArgumentException {
-      System.out.println ("illegalargumentexception Not Implemented");
-  
-    return; }
+         throw new IllegalArgumentException ("replaceWorld Not Implemented");
+    } 
   
   
     // Load the given URL with the passed parameters (as described
@@ -189,7 +268,8 @@ public synchronized class Browser
   
     // Parse STRING into a VRML scene and return the list of root
     // nodes for the resulting scene
-    public Node[]        createVrmlFromString(String vrmlSyntax) {
+    public Node[]        createVrmlFromString(String vrmlSyntax) 
+			throws InvalidVrmlException {
 
       Node[]  x = {new Node()};
       StringTokenizer tokens;
@@ -197,9 +277,9 @@ public synchronized class Browser
       String temp;
       int count;
 
-      synchronized (BrowserGlobals.FreeWRLToken) {
-        EAIoutSender.send ("" +BrowserGlobals.queryno + "\nCVS "+vrmlSyntax+"\nEOT\n");
-        retval = getVRMLreply(BrowserGlobals.queryno);
+      synchronized (FreeWRLToken) {
+        EAIoutSender.send ("" +queryno + "\nCVS "+vrmlSyntax+"\nEOT\n");
+        retval = getVRMLreply(queryno);
 
         tokens = new StringTokenizer (retval);
         count = 0;
@@ -209,7 +289,7 @@ public synchronized class Browser
           x[count].NodeName = tokens.nextToken();
           count ++;
         }
-        BrowserGlobals.queryno += 1;
+        queryno += 1;
       }
       return x;
     }
@@ -230,10 +310,10 @@ public synchronized class Browser
       int count;
 
 
-       synchronized (BrowserGlobals.FreeWRLToken) {
-         EAIoutSender.send ("" + BrowserGlobals.queryno + "\nCVU " + url[0] + "\n");
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "\nCVU " + url[0] + "\n");
 
-         retval = getVRMLreply(BrowserGlobals.queryno);
+         retval = getVRMLreply(queryno);
 
          tokens = new StringTokenizer (retval);
          count = 0;
@@ -244,7 +324,7 @@ public synchronized class Browser
            x[count].NodeName = tokens.nextToken();
            count ++;
          }
- 	BrowserGlobals.queryno += 1;
+ 	queryno += 1;
        }
 
       // Now, sent the event to the event!
@@ -256,18 +336,16 @@ public synchronized class Browser
     // Add and delete, respectively, a route between the specified eventOut
     // and eventIn of the given nodes
     public void          addRoute(Node fromNode, String fromEventOut,
-                                  Node toNode, String toEventIn) {
-      System.out.println ("AddRoute Not Implemented");
-      return;
-  
+                                  Node toNode, String toEventIn) throws
+				  IllegalArgumentException {
+      throw new IllegalArgumentException ("AddRoute Not Implemented");
     }
   
   
     public void          deleteRoute(Node fromNode, String fromEventOut,
-                                     Node toNode, String toEventIn) {
-      System.out.println ("DeleteRoute Not Implemented");
-  
-      return;
+                                     Node toNode, String toEventIn) 
+			 throws IllegalArgumentException {
+      throw new IllegalArgumentException ("DeleteRoute Not Implemented");
     }
   
     // begin and end an update cycle
@@ -310,17 +388,19 @@ public synchronized class Browser
     // or may not be made available to this method, depending on the
     // browser's implementation
   
-    public Node getNode (String NodeName)
+    public Node getNode (String NodeName) throws InvalidNodeException
       {
       Node temp;
 
       temp = new Node();  
 
-      synchronized (BrowserGlobals.FreeWRLToken) {
-        EAIoutSender.send ("" + BrowserGlobals.queryno + "\nGN " + NodeName + "\n");
-        temp.NodeName = getVRMLreply (BrowserGlobals.queryno);
-        BrowserGlobals.queryno += 1;
+      synchronized (FreeWRLToken) {
+        EAIoutSender.send ("" + queryno + "\nGN " + NodeName + "\n");
+        temp.NodeName = getVRMLreply (queryno);
+        queryno += 1;
       }
+      if (temp.NodeName.equals("undefined"))
+	throw new InvalidNodeException(NodeName + "undefined");
 
       return temp;
       }
@@ -365,14 +445,32 @@ public synchronized class Browser
 //REDO    }
 
 
+  // SendChildEvent waits for confirmation that child is added/removed to MFNode array.
+  // This gets around the problem of sending two adds in succession, and having
+  // the second overwrite the first.
+  public static void SendChildEvent (String NodeName, String FieldName, String Value)
+    {
+      String retval;
+
+      synchronized (FreeWRLToken) {
+        EAIoutSender.send ("" + queryno + "\nSC " + NodeName + " " + 
+           FieldName + "\n" + Value + "\n");
+        retval = getVRMLreply(queryno);
+	System.out.println ("Browser, got " + retval);
+        queryno += 1;
+      }
+      return;
+    }
+
+  // Most events don't need us to wait around for it.
   public static void SendEvent (String NodeName, String FieldName, String Value)
     {
 
-      synchronized (BrowserGlobals.FreeWRLToken) {
-        EAIoutSender.send ("" + BrowserGlobals.queryno + "\nSE " + NodeName + " " + 
+      synchronized (FreeWRLToken) {
+        EAIoutSender.send ("" + queryno + "\nSE " + NodeName + " " + 
            FieldName + "\n" + Value + "\n");
-        // JAS - don't wait. getVRMLreply(BrowserGlobals.queryno);
-        BrowserGlobals.queryno += 1;
+        // JAS - don't wait. getVRMLreply(queryno);
+        queryno += 1;
       }
       return;
     }
@@ -381,10 +479,10 @@ public synchronized class Browser
   public static String getName() {
       String retval;
 
-       synchronized (BrowserGlobals.FreeWRLToken) {
-         EAIoutSender.send ("" + BrowserGlobals.queryno + "\nGNAM\n");
-         retval = getVRMLreply(BrowserGlobals.queryno);
-         BrowserGlobals.queryno += 1;
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "\nGNAM\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
        }
       return retval;
   }
@@ -395,11 +493,11 @@ public synchronized class Browser
 
       String retval;
 
-      synchronized (BrowserGlobals.FreeWRLToken) {
-        EAIoutSender.send ("" + BrowserGlobals.queryno + "\nGT " + NodeName + " " +
+      synchronized (FreeWRLToken) {
+        EAIoutSender.send ("" + queryno + "\nGT " + NodeName + " " +
            FieldName + "\n");
-        retval = getVRMLreply(BrowserGlobals.queryno);
-        BrowserGlobals.queryno += 1;
+        retval = getVRMLreply(queryno);
+        queryno += 1;
       }
       return retval;
 }
@@ -409,32 +507,40 @@ public synchronized class Browser
 
       String retval;
 
-       synchronized (BrowserGlobals.FreeWRLToken) {
-         EAIoutSender.send ("" + BrowserGlobals.queryno + "\nGV " + NodeName + " " +
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "\nGV " + NodeName + " " +
             FieldName + "\n");
-         retval = getVRMLreply(BrowserGlobals.queryno);
-         BrowserGlobals.queryno += 1;
+         retval = getVRMLreply(queryno);
+         queryno += 1;
       }
      return retval;
 }
 
-  public static void RegisterListener (EventOutObserver f, Object userData)
+  public static void RegisterListener (EventOutObserver f, Object userData,
+			String outNode, String command,  int EventType)
     {
-       EventOut me = (EventOut) userData;
+System.out.println ("RegisterListener, sending "
++ queryno + "\nRL " + outNode +
+                " " + command + " " + queryno + "\n");
 
-       synchronized (BrowserGlobals.FreeWRLToken) {
-         EAIoutSender.send ("" + BrowserGlobals.queryno + "\nRL " + me.outNode + 
- 		" " + me.command + " " + BrowserGlobals.queryno + "\n");
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "\nRL " + outNode + 
+ 		" " + command + " " + queryno + "\n");
  
-         BrowserGlobals.EVarray [BrowserGlobals.EVno] =  BrowserGlobals.queryno;
-         BrowserGlobals.EVtype [BrowserGlobals.EVno] = me.EventType;     
-         BrowserGlobals.EVObject[BrowserGlobals.EVno] = userData;
-         BrowserGlobals.EVObserver[BrowserGlobals.EVno] = f;
+         EVarray [EVno] =  queryno;
+         EVtype [EVno] = EventType;     
+         EVObject[EVno] = userData;
+         EVObserver[EVno] = f;
+
+System.out.println ("RegisterListener: Evarray " + EVarray[EVno] +
+" EVtype " + EVtype[EVno] + 
+" EVObject " + EVObject[EVno] +
+" EBObserver " + EVObserver[EVno]);
 
 	 // Is this a short, consise answer type? 
 	 // (see field/FieldTypes.java for more info)
 
-	 switch (me.EventType) {
+	 switch (EventType) {
 		case 1:
 		case 3:
 		case 4:
@@ -451,17 +557,18 @@ public synchronized class Browser
 		case 17:
 		case 18:
 		case 19:
-			BrowserGlobals.EVshortreply[BrowserGlobals.EVno] = true;
+			EVshortreply[EVno] = true;
 			break;
 		default:
-			BrowserGlobals.EVshortreply[BrowserGlobals.EVno] = false;
+			EVshortreply[EVno] = false;
 	 } 
 
 
-         BrowserGlobals.EVno += 1;
+         EVno += 1;
        
-         getVRMLreply(BrowserGlobals.queryno); 
-         BrowserGlobals.queryno += 1;
+         getVRMLreply(queryno); 
+         queryno += 1;
+System.out.println ("RegisterListener - returning");
        }
     }
 
