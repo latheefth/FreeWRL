@@ -881,11 +881,151 @@ void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
 	}
 }
 
+
 void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
-/* not implemented */
-	UNUSED(node);
-	UNUSED(ev);
+	int len;
+	float rot, radius, ang, length, w, x, y, z;
+	double det, pos, neg, temp;
+	Quaternion bv, dir1, dir2, tempV;
+	GLdouble modelMatrix[16];
+        
 	UNUSED(over);
+
+	if (!node) return;
+	len = strlen(ev);
+
+	if (len == strlen("PRESS")) {
+		/* record the current position from the saved position */
+    		memcpy ((void *) &node->_origPoint,
+			(void *) &ray_save_posn,sizeof(struct SFColor));
+			
+		/* set isActive true */
+		node->isActive=1;
+		mark_event ((unsigned int) node, 
+			offsetof (struct VRML_CylinderSensor, isActive));
+	
+    		/* record the current Radius */
+		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] + 
+				ray_save_posn.c[1] * ray_save_posn.c[1] +
+				ray_save_posn.c[2] * ray_save_posn.c[2];
+		
+        	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+     		/*
+     		printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
+               		modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
+               		modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
+               		modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
+               		modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
+		*/
+		
+		/* find the bearing vector in the local coordinate system */
+        	pos = neg = 0.0;
+		temp =  modelMatrix[1] * modelMatrix[6] * modelMatrix[8];
+        	if(temp >= 0.0) pos += temp; else neg += temp;       
+		temp = -modelMatrix[2] * modelMatrix[5] * modelMatrix[8];
+        	if(temp >= 0.0) pos += temp; else neg += temp; 
+		temp = -modelMatrix[0] * modelMatrix[6] * modelMatrix[9];
+        	if(temp >= 0.0) pos += temp; else neg += temp;    
+		temp =  modelMatrix[2] * modelMatrix[4] * modelMatrix[9];
+		if(temp >= 0.0) pos += temp; else neg += temp;         	
+		temp =  modelMatrix[0] * modelMatrix[5] * modelMatrix[10];
+		if(temp >= 0.0) pos += temp; else neg += temp;     
+		temp = -modelMatrix[1] * modelMatrix[4] * modelMatrix[10];
+       	 	if(temp >= 0.0) pos += temp; else neg += temp;    	
+		det = pos + neg;
+        	det = 1.0 / det;
+        
+		bv.w = 0;/* set to 0 to ensure vector is normalised correctly */
+        	bv.x = (modelMatrix[4] * modelMatrix[9] - modelMatrix[5] * modelMatrix[8]) * det;
+        	bv.y = -(modelMatrix[0] * modelMatrix[9] - modelMatrix[1] * modelMatrix[8]) * det;
+        	bv.z = (modelMatrix[0] * modelMatrix[5] - modelMatrix[1] * modelMatrix[4]) * det;
+		
+		normalize(&bv);
+		ang = acos(bv.y);
+        	if (ang > (M_PI/2)) { ang = M_PI - ang; }
+        
+        	if (ang < node->diskAngle) { 	
+			node->_dlchange=1;
+        	} else {  
+			node->_dlchange=0;
+        	}
+
+	} else if (len == strlen("DRAG")) {		
+		
+		memcpy ((void *) &node->trackPoint_changed,
+			(void *) &ray_save_posn,sizeof(struct SFColor));
+			
+		mark_event ((unsigned int) node, 
+			offsetof (struct VRML_CylinderSensor, trackPoint_changed));
+		
+		dir1.w=0;
+  		dir1.x=ray_save_posn.c[0];
+  		dir1.y=0;
+  		dir1.z=ray_save_posn.c[2];
+	
+        	if (node->_dlchange) {
+            		radius = 1.0;
+		} else {
+			/* get the radius */
+            		radius = (dir1.x * dir1.x + dir1.y * dir1.y + dir1.z * dir1.z); 
+		}
+
+        	normalize(&dir1);
+        	dir2.w=0;
+        	dir2.x=node->_origPoint.c[0];
+		dir2.y=0;
+  		dir2.z=node->_origPoint.c[2];
+
+		normalize(&dir2);
+       
+    		tempV.w = 0;
+    		tempV.x = dir2.y * dir1.z - dir2.z * dir1.y;
+    		tempV.y = dir2.z * dir1.x - dir2.x * dir1.z;
+    		tempV.z = dir2.x * dir1.y - dir2.y * dir1.x;
+		normalize(&tempV);
+        
+        	length = tempV.x * tempV.x + tempV.y * tempV.y + tempV.z * tempV.z;
+        	if (length == 0.0) { return; }
+        
+		/* Find the angle of the dot product */
+        	rot = radius * acos((dir1.x*dir2.x+dir1.y*dir2.y+dir1.z*dir2.z)) ;
+        
+		if (APPROX(tempV.y,-1.0)) rot = -rot;
+  
+        	if (node->autoOffset) {
+            	rot = node->offset + rot;
+		}
+        	if (node->minAngle < node->maxAngle) {
+            		if (rot < node->minAngle) {
+                		rot = node->minAngle;
+            		} else if (rot > node->maxAngle) {
+                		rot = node->maxAngle;
+            		}
+        	}
+
+		node->rotation_changed.r[0] = 0;
+		node->rotation_changed.r[1] = 1;
+		node->rotation_changed.r[2] = 0;
+		node->rotation_changed.r[3] = rot;
+
+		mark_event ((unsigned int) node, 
+			offsetof (struct VRML_CylinderSensor, rotation_changed));
+	
+	} else if (len == strlen("RELEASE")) {
+		/* set isActive false */
+		node->isActive=0;
+		mark_event ((unsigned int) node, 
+			offsetof (struct VRML_SphereSensor, isActive));
+		/* save auto offset of rotation */
+		if (node->autoOffset) {
+			memcpy ((void *) &node->offset,
+				(void *) &node->rotation_changed.r[3],
+				sizeof (float));
+				
+		mark_event ((unsigned int) node, 
+			offsetof (struct VRML_CylinderSensor, rotation_changed));
+		}
+	}
 }
 
 
@@ -915,13 +1055,13 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 		/* set isActive true */
 		node->isActive=1;
 		mark_event ((unsigned int) node, 
-			offsetof (struct VRML_PlaneSensor, isActive));
+			offsetof (struct VRML_SphereSensor, isActive));
 
 	} else if (len == strlen("RELEASE")) {
 		/* set isActive false */
 		node->isActive=0;
 		mark_event ((unsigned int) node, 
-			offsetof (struct VRML_PlaneSensor, isActive));
+			offsetof (struct VRML_SphereSensor, isActive));
 
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
