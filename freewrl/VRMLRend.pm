@@ -20,8 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.127  2004/05/25 15:47:12  crc_canada
-# Node sorting.
+# Revision 1.128  2004/05/25 18:18:51  crc_canada
+# more sorting of nodes
 #
 # Revision 1.126  2003/12/22 18:49:01  crc_canada
 # replace URL.pm; now do via C or browser
@@ -661,7 +661,12 @@ Material =>  '
 
 		/* set the transparency here for the material */
 		trans = 1.0 - $f(transparency);
-		if ((trans<0.0) || (trans>1.0)) trans = 1.0;
+		if ((trans<0.0) || (trans>1.0)) trans = 0.0;
+
+		/* and, record that we have a transparency here */
+		if (trans <=0.97) {
+			have_transparency++;
+		}
 
 		dcol[3] = trans;
 
@@ -675,12 +680,12 @@ Material =>  '
 
 		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); } 
 		scol[3] = trans;
-		scol[3] = 1.0;
+		//scol[3] = 1.0;
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
 		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); } 
 		ecol[3] = trans;
-		ecol[3] = 1.0;
+		//ecol[3] = 1.0;
 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
 		glColor3f(ecol[0],ecol[1],ecol[2]);
@@ -990,9 +995,16 @@ Transform => '
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
 
-	recalculate_dist = FALSE;	/* no change in position */
-	/* WE NEED TO DETERMINE WHEN TO RECALC DISTANCE */
-	recalculate_dist = TRUE;	/* no change in position */
+	 /* we recalculate distance on last pass, or close to it, and only
+	 once per event-loop tick. we can do it on the last pass - the 
+	 render_sensitive pass, but when mouse is clicked (eg, moving in
+	 examine mode, sensitive node code is not rendered. So, we choose
+	 the second-last pass. ;-) */
+	recalculate_dist = render_light;
+
+
+	//printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
 
 	if(!render_vp) {
                 glPushMatrix();
@@ -1006,7 +1018,6 @@ Transform => '
 			this_->__do_rotation = verify_rotate ((GLfloat *)this_->rotation.r);
 			this_->__do_scaleO = verify_rotate ((GLfloat *)this_->scaleOrientation.r);
 			this_->_dlchange = this_->_change;
-			recalculate_dist = TRUE;
 		}
 
 
@@ -1203,6 +1214,11 @@ Billboard => (join '','
 		if ((nc > 2 && render_blend)) {
 			//printf ("have to sort %d, nc %d\n",this_, nc);
 			/* simple, inefficient bubble sort */
+			/* this is a fast sort when nodes are already sorted;
+			   may wish to go and "QuickSort" or so on, when nodes
+			   move around a lot. (Bubblesort is bad when nodes
+			   have to be totally reversed) */
+
 			for(i=0; i<nc; i++) {
 				noswitch = TRUE;
 				for (j=(nc-1); j>i; j--) {
@@ -1223,6 +1239,10 @@ Billboard => (join '','
 					break;
 				}
 			}
+			//for(i=0; i<nc; i++) {
+			//	b = ((this_->children).p[i]);
+			//	printf ("child %d %d %f\n",i,b,b->_dist);
+			//}
 		}
 
 		if($i(has_light)) {
@@ -1372,8 +1392,8 @@ Billboard => (join '','
 	',
 	Shape => '
 		GLenum glError;
-
-
+		int trans;
+		int should_rend;
 
 		if(!(this_->geometry)) { return; }
 
@@ -1387,11 +1407,17 @@ Billboard => (join '','
 		/* JAS - if not collision, and render_geom is not set, no need to go further */
 		if (!render_geom) return;
 
+
+	//printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+
 		/* Display lists used here. The name of the game is to use the
 		display list for everything, except for sensitive nodes. */
 
-		/* a texture flag... */
+		/* a texture and a transparency flag... */
 		last_bound_texture = 0;
+		trans = have_transparency;
+
 
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
 
@@ -1399,21 +1425,47 @@ Billboard => (join '','
        	        if($f(appearance)) {
                         render_node($f(appearance));
        	        } else {
-			if (render_geom) {
-                            /* no material, so just colour the following shape */
-                       	    /* Spec says to disable lighting and set coloUr to 1,1,1 */
-                       	    glDisable (GL_LIGHTING);
-       	                    glColor3f(1.0,1.0,1.0);
-			}
+                        /* no material, so just colour the following shape */
+                       	/* Spec says to disable lighting and set coloUr to 1,1,1 */
+                       	glDisable (GL_LIGHTING);
+       	                glColor3f(1.0,1.0,1.0);
                 }
-		if (last_bound_texture != 0) {
-			/* we had a texture */
-			glEnable (GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D,last_bound_texture);
+
+
+		/* lets look at texture depth, and if it has alpha, call
+		it a transparent node */
+		if (last_texture_depth >3) have_transparency++;
+
+		//printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",
+		//	have_transparency, trans, last_texture_depth);
+
+		should_rend = FALSE;
+		/* now, are we rendering blended nodes? */
+		if (render_blend) { 
+			if (have_transparency!=trans) {
+					should_rend = TRUE;
+			}
+
+		/* no, maybe we are rendering straight nodes? */
+		} else {
+			if (have_transparency == trans) {
+					should_rend = TRUE;
+			}
 		}
 
-		/* Now, do the geometry */
-		render_node((this_->geometry));
+		//if (should_rend) {printf ("RENDERING THIS ONE\n");
+		//} else { printf ("NOT RENDERING THIS ONE\n");}
+
+		/* should we render this node on this pass? */
+		if (should_rend) {
+			if (last_bound_texture != 0) {
+				/* we had a texture */
+				glEnable (GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D,last_bound_texture);
+			}
+			/* Now, do the geometry */
+			render_node((this_->geometry));
+		}
 
 		glPopAttrib();
 	',

@@ -424,6 +424,9 @@ void render_pre() {
 void render() {
 	int count;
 
+	/* set transparency flag */
+	have_transparency = 0;
+
 	for (count = 0; count < maxbuffers; count++) {
 		set_buffer((unsigned)bufferarray[count]);		// in Viewer.c
 		glDrawBuffer((unsigned)bufferarray[count]);
@@ -450,6 +453,13 @@ void render() {
 
 		render_hier((void *)rootNode, VF_Geom);
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
+
+		// 5. Blended Nodes 
+
+		if (have_transparency > 0) {
+			render_hier((void *)rootNode, VF_Geom | VF_Blend);
+			glPrintError("XEvents::render, render_hier(VF_Geom)");
+		}
 	}
 #ifndef AQUA
 	glXSwapBuffers(dpy,win);

@@ -26,8 +26,8 @@
 #  Test indexedlineset
 #
 # $Log$
-# Revision 1.142  2004/05/25 15:47:11  crc_canada
-# Node sorting.
+# Revision 1.143  2004/05/25 18:18:51  crc_canada
+# more sorting of nodes
 #
 # Revision 1.140  2004/05/06 14:37:21  crc_canada
 # more .class changes.
@@ -922,6 +922,7 @@ int be_collision = 1;	/* do collision detection? */
 int found_vp; /*true when viewpoint found*/
 
 GLuint last_bound_texture;
+int	have_transparency;	/* did this Shape have transparent material? */
 
 int smooth_normals = -1; /* -1 means, uninitialized */
 
@@ -1381,6 +1382,7 @@ CODE:
         p->_nparalloc = 0;
 	p->_ichange = 0;
 	p->_dist = -10000.0; /* put unsorted nodes first in rendering */
+	//p->_dist = 0.0; /* put unsorted nodes first in rendering */
 	RETVAL=ptr;
 OUTPUT:
 	RETVAL

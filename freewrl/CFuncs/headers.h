@@ -153,6 +153,10 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
    display lists, so we just use an already created variable. */
 extern GLuint last_bound_texture;
 
+/* used to determine whether we have transparent materials. */
+extern int have_transparency;
+
+
 /* current time */
 extern double TickTime;
 
