@@ -74,9 +74,6 @@ void
 mark_script(int num);
 
 void
-zero_scripts(void);
-
-void
 propagate_events(void);
 
 void
@@ -557,10 +554,10 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 	newlen = JSVAL_TO_INT(_v);	
 
-	// printf ("new len %d old len %d\n",newlen,oldlen);
+	//printf ("new len %d old len %d\n",newlen,oldlen);
 
 	if (newlen > oldlen) {
-		// printf ("MFString assignment, new string has more elements than old, cant do this yet\n");
+		printf ("MFString assignment, new string has more strings than old, cant do this yet\n");
 		newlen = oldlen;
 	}
 
@@ -578,7 +575,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		strval = JS_ValueToString(cx, _v);
 		valStr = JS_GetStringBytes(strval);
 
-		// printf ("new string %d is %s\n",i,valStr);
+		//printf ("new string %d is %s\n",i,valStr);
 
 		// if the strings are different...
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
@@ -1060,8 +1057,8 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
 
-		/* and mark all scripts inactive */
-		scripts_active = FALSE;
+		/* and mark all scripts active to get the initialize() events */
+		scripts_active = TRUE;
 	}
 
 	if (CRVerbose) 
@@ -1231,16 +1228,6 @@ void mark_script (int num) {
 	if (CRVerbose) printf ("mark_script - script %d has been invoked\n",num); 
 	scr_act[num]= TRUE;
 	scripts_active = TRUE;
-}
-
-
-void zero_scripts () {
-	/* mark all scripts inactive */
-	int count;
-
-	// JAS - now done on realloc for (count = 0; count < MAXSCRIPTS; count ++)
-	// JAS - now done on realloc 	scr_act[count] = FALSE;
-	scripts_active = FALSE;
 }
 
 
@@ -1418,8 +1405,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 				/* tell this node now needs to redraw */
 				update_node(tn);
-				mark_event (tn,tptr);
-				//mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
+				//mark_event (tn,tptr);
+				mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
 
 				/* run an interpolator, if one is attached. */
 				if (CRoutes[route].interpptr != 0) {
@@ -1493,8 +1480,8 @@ void sendScriptEventIn(int num) {
 			}
 			}
 		}
-	} else {
-		printf("WARNING: sendScriptEventIn, don't handle %d yet\n",CRoutes[num].direction_flag);
+	} else if (CRoutes[num].direction_flag == SCRIPT_TO_SCRIPT) {
+		printf("WARNING: sendScriptEventIn, don't handle script to script routes yet\n");
 	}
 }
 
@@ -1519,9 +1506,6 @@ void propagate_events() {
 		printf ("\npropagate_events start\n");
 
 	do {
-		/* set all script flags to false - no triggers */
-		zero_scripts();
-
 		havinterp=FALSE; /* assume no interpolators triggered */
 
 		for (counter = 1; counter < CRoutes_Count-1; counter++) {
@@ -1555,7 +1539,6 @@ void propagate_events() {
 					if (CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */
 						sendScriptEventIn(counter);
-						//gatherScriptEventOuts (counter,TRUE);
 						if (scripts_active) havinterp = TRUE;
 					} else {
 
@@ -1614,6 +1597,10 @@ void propagate_events() {
 				gatherScriptEventOuts (counter,TRUE);
 			}
 		}
+
+		/* set all script flags to false - no triggers */
+		scripts_active = FALSE;
+
 		
 	} while (havinterp==TRUE);
 
