@@ -23,7 +23,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/lib -L/System/Library/Frameworks/OpenGL.framework/Libraries -L/Freewrl/jpeg-6b -ljpeg -L/usr/local/lib -lpng -lz -lSystem -lfreetype -lGL -lGLU -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
-    FREEWRL_DEFINE => '-DAQUA -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`',
+    FREEWRL_DEFINE => '-D_REENTRANT `perl -MExtUtils::Embed -e ccopts`',
     FREEWRL_INC => '-I/usr/include -I/usr/include/sys -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/GLUT.framework/Headers -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config -I/usr/local/include/freetype',
 
 ############################################################################
