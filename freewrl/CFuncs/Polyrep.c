@@ -445,14 +445,16 @@ void Extru_tex(
 	this_Elev->tcindex[vertex_ind+1] =tci_ct+B;
 	this_Elev->tcindex[vertex_ind+2] =tci_ct+C;
 
+	/*
 	c1 = (struct SFColor *) &this_Elev->coord[3*A];
 	c2 = (struct SFColor *) &this_Elev->coord[3*C];
 	c3 = (struct SFColor *) &this_Elev->coord[3*B];
 
-	//printf ("Extru_tex, vertices are %f %f %f\n%f %f %f\n%f %f %f\n\n",
-	//	c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
-	//	c3->c[0],c3->c[1],c3->c[2]);
-	//printf ("for points %d %d %d\n",A,C,B);
+	printf ("Extru_tex, vertices are %f %f %f\n%f %f %f\n%f %f %f\n\n",
+		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
+		c3->c[0],c3->c[1],c3->c[2]);
+	printf ("for points %d %d %d\n",A,C,B);
+	*/
 }
 
 
@@ -468,7 +470,8 @@ void Extru_ST_map(
 	int end,
 	float *Vals,
 	int nsec,
-	struct VRML_PolyRep *this_Extru) {
+	struct VRML_PolyRep *this_Extru,
+	int tcoordsize) {
 
 	int x;
 	GLfloat minS = 9999.9; 
@@ -483,8 +486,8 @@ void Extru_ST_map(
 
 	/* find the base and range of S, T */
 	for (x=0; x<nsec; x++) {
-		// printf ("for textures, coord vals %f %f for sec %d\n",
-		// Vals[x*2+0], Vals[x*2+1],x);
+		 //printf ("for textures, coord vals %f %f for sec %d\n",
+		 //Vals[x*2+0], Vals[x*2+1],x);
 		if (Vals[x*2+0] < minS) minS = Vals[x*2+0];
 		if (Vals[x*2+0] > maxS) maxS = Vals[x*2+0];
 		if (Vals[x*2+1] < minT) minT = Vals[x*2+1];
@@ -497,7 +500,7 @@ void Extru_ST_map(
 	if (Srange == 0.0) Srange = 0.001;
 	if (Trange == 0.0) Trange = 0.001;
 
-	// printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange);
+	//printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange);
 
 	/* Ok, we know the min vals of S and T; and the ranges. The way that end cap
 	 * triangles are drawn is that we have one common point, the first point in
@@ -507,20 +510,26 @@ void Extru_ST_map(
 
 	for(x=start; x<end; x++) {
 		int tci, ci;
-		//printf ("triangle has tex vertices:%d %d %d ",
-		//	this_Extru->tcindex[triind_start*3],
-		//	this_Extru->tcindex[triind_start*3+1] ,
-		//	this_Extru->tcindex[triind_start*3+2]);
-		//printf ("coord vertices:%d %d %d\n",
-		//	this_Extru->cindex[triind_start*3],
-		//	this_Extru->cindex[triind_start*3+1] ,
-		//	this_Extru->cindex[triind_start*3+2]);
+		/*
+		printf ("triangle has tex vertices:%d %d %d ",
+			this_Extru->tcindex[triind_start*3],
+			this_Extru->tcindex[triind_start*3+1] ,
+			this_Extru->tcindex[triind_start*3+2]);
+		printf ("coord vertices:%d %d %d\n",
+			this_Extru->cindex[triind_start*3],
+			this_Extru->cindex[triind_start*3+1] ,
+			this_Extru->cindex[triind_start*3+2]);
+		*/
+
 
 		/* for first vertex */
 		tci = this_Extru->tcindex[triind_start*3];
 		ci = this_Extru->cindex[triind_start*3];
 		Point_Zero = tci;
 
+		if ((tci*3+2) >= tcoordsize) { 
+			printf ("Extru_ST_map, index %d greater than %d \n",(tci*3+2),tcoordsize);
+		}
 
 		/* S value */
 		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
@@ -622,6 +631,7 @@ void render_polyrep(void *node,
 			npoints,ncolors,nnormals);
 		printf("\tntexcoords = %d    texcoords = 0x%lx\n",
 			ntexcoords, texcoords);
+		printf ("\ttcindex %d\n",r->tcindex);
 	}
 	
 		
@@ -710,7 +720,7 @@ void render_polyrep(void *node,
 		else coli = ind;
 
 		/* get texture coordinates, if any	*/
-		if (HAVETODOTEXTURES && r->tcindex) {
+		if (BEHAVETODOTEXTURES && r->tcindex) {
 			tci = r->tcindex[i]; 
 			if (polyrep_verbose) printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
@@ -770,16 +780,15 @@ void render_polyrep(void *node,
 
 
 		/* Textures	*/
-		if (HAVETODOTEXTURES) {
+		if (BEHAVETODOTEXTURES) {
 		    if(texcoords && ntexcoords) {
 			if (polyrep_verbose) 
-				printf ("tc1 %f %f\n",texcoords[tci].c[0],texcoords[tci].c[1]); 
+				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]); 
 		  	glTexCoord2fv(texcoords[tci].c);
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
 				if (polyrep_verbose) 
-					printf ("tc2a %f %f %d\n", r->tcoord[3*tci+0], r->tcoord[3*tci+2],
-							&r->tcoord[3*tci]);
+					printf ("tc2a %f %f\n", r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
 		  		glTexCoord2f( r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
 			} else {
 				if (polyrep_verbose) 
