@@ -39,7 +39,7 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
     length_a = calc_vector_length(a);
     length_b = calc_vector_length(b);
 
-    printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);
+    //printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);
 	
     if (scalar == 0){
 	return M_PI/2;	
