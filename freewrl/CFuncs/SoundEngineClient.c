@@ -76,9 +76,6 @@ void Sound_toserver (char *message) {
 void SoundEngineInit () { 
 	int x;
 	char buf[200];
-	pid_t PID;
-	int proc_status;
-	time_t t0, t;
 
 	struct stat enginestat;
 
@@ -146,10 +143,24 @@ void SoundEngineInit () {
 	atexit(SoundEngineDestroy);	
 
 	// wait for the message queue to initialize.
+	waitformessage();
+	
+	if (initialized == SOUND_FAILED) {
+		printf("FreeWRL:SoundServer: Timeout: starting server.");
+		SoundEngineDestroy();
+	}
+}
+
+// Wait for SoundServer to return a response. Note: Not all commands wait for this return.
+waitformessage () {
+	int xx;
+	time_t t0, t;
+	pid_t PID;
+	int proc_status;
+
 	time(&t0);
 
 	while ( 1 ) {
-		int xx;
 
 		// wait for a response - is the server telling us it is ok?
 		//printf ("Client: waiting for response on %d\n",msq_toserver);
@@ -183,9 +194,6 @@ void SoundEngineInit () {
 			break;
 	}
 
-	printf("FreeWRL:SoundServer: Timeout: starting server.");
-	SoundEngineDestroy();
-	return;
 }
 
 // close socket, destroy the server
@@ -207,10 +215,12 @@ int SoundSourceRegistered  (int num) {
 	return SReg[num];
 }
 
-void SoundSourceInit (int num, int loop, float pitch, float start_time, float stop_time,
+float SoundSourceInit (int num, int loop, float pitch, float start_time, float stop_time,
 		char *url) {
 
 	char mystring[512];
+	float duration;
+	int returnednum;
 
 	if (strlen(url) > 192) {
 		printf ("SoundSourceInit - url %s is too long\n",url);
@@ -221,5 +231,22 @@ void SoundSourceInit (int num, int loop, float pitch, float start_time, float st
 			stop_time);
 	SReg[num] = TRUE;
 	Sound_toserver(mystring);
+	//printf ("SoundSourceInit, waiting for response\n");
+	waitformessage();
+	//printf ("SoundSourceInit, got message %s\n",msg.msg);
+	if (sscanf (msg.msg,"REGS %d %f",&returnednum,&duration) != 2) {
+		// something funny happened here	
+		return 1.0;
+	} else {
+		return duration;
+	}
 }
 
+// send new active state to the soundengine.
+void SetAudioActive (int num, int stat) {
+	char mystring[512];
+
+	//printf ("SoundSource - got SetAudioActive for %d state %d\n",num,stat);
+	sprintf (mystring,"ACTV %2d %2d",num,stat);
+	Sound_toserver(mystring);
+}
