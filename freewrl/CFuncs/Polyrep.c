@@ -641,6 +641,10 @@ void render_polyrep(void *node,
 	p = node;
 	r = p->_intern;
 
+	if (r->ntri==0) {
+		if (polyrep_verbose) printf ("Render polyrep, no triangles\n");
+		return;
+	}
 		
 	if (polyrep_verbose) {
 		printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
