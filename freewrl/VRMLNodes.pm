@@ -373,8 +373,8 @@ sub init_pixel_image {
 
 # MPEG picture image
 sub init_movie_image {
-    my($name, $urlname, $t, $f, $scene, $flip) = @_;
-    # print "init_movie_image, name $name, urlname $urlname t $t f $f flip $flip\n";
+    my($name, $urlname, $t, $f, $scene) = @_;
+    # print "init_movie_image, name $name, urlname $urlname t $t f $f \n";
 
     my $purl = $t->{PURL} = $scene->get_url;
 	my $wurl = $scene->get_world_url;
@@ -404,7 +404,7 @@ sub init_movie_image {
 
 		my $init_tex = VRML::OpenGL::glGenTexture();
 		$f->{__texture0_} = $init_tex;
-		$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file);
+		$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file,$f->{repeatS},$f->{repeatT});
 		$f->{__depth} = $dep;
 		$f->{__x} = $wi;
 		$f->{__y} = $hei;
@@ -598,7 +598,7 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	repeatS	=> [SFBool, 1, ""],	# not exposedfield
 	repeatT	=> [SFBool, 1, ""], 	# not exposedfield
 	duration_changed	=> [SFTime,undef,eventOut],
-	isActive	=> [SFBool, undef, eventOut],
+	isActive	=> [SFBool, undef, out],
         __depth => [SFInt32, 1, "field"],
         __x => [SFInt32,0, "field"],
         __y => [SFInt32,0, "field"],
@@ -613,7 +613,7 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 @x= {
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
-	init_movie_image("","url",$t,$f,$scene,1);
+	init_movie_image("","url",$t,$f,$scene);
 
 	# which frame to start with?
 	if ($f->{speed} >= 0) {
@@ -648,7 +648,7 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 			return();
 		}
 
-		my $act = 0; 
+		my $oldstatus = $f->{__status}; 
 		my @e;
 
 		my $frac = $f->{__ctex};
@@ -757,20 +757,24 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 
 		# verify parameters
 		if ($frac < $lowest){ 
-			print "frac $frac lowest $lowest\n"; 
+			#print "frac $frac lowest $lowest\n"; 
 			$frac = $lowest
 		}
 		if ($frac > $highest){ 
-			print "frac $frac highest $highest\n";
+			#print "frac $frac highest $highest\n";
 			$frac = $highest
+		}
+
+		if ($oldstatus != $f->{__status}) {
+			push @e, [$t, "isActive", $f->{__status}];
 		}
 
 		if ($f->{__ctex} != $frac) {
 			$f->{__ctex} = $frac;
 			#print "pushing image $frac of $lowest $highest\n";
 			push @e, [$t, "mytexfrac", $f->{__ctex}];
-			return @e;
 		}
+		return @e;
 	 },
 
 
@@ -930,7 +934,7 @@ AudioClip => new VRML::NodeType("AudioClip",
 	stopTime => [SFTime, 0],
 	url => [MFString,[""]],
 	duration_changed => [SFTime,undef,eventOut],
-	isActive => [SFBool,undef,eventOut]
+	isActive => [SFBool,undef,out]
  }
 ),
 
@@ -1576,7 +1580,7 @@ PlaneSensor => new VRML::NodeType("PlaneSensor",
 	 minPosition => [SFVec2f, [0,0]],
 	 offset => [SFVec3f, [0,0,0]],
 	 autoOffset => [SFBool, 1],
-	 isActive => [SFBool, undef, eventOut],
+	 isActive => [SFBool, undef, out],
 	 trackPoint_changed => [SFVec3f, undef, eventOut],
 	 translation_changed => [SFVec3f, undef, eventOut],
 	},
@@ -1633,7 +1637,7 @@ SphereSensor => new VRML::NodeType("SphereSensor",
 	 enabled => [SFBool, 1],
 	 offset => [SFRotation, [0,1,0,0]],
 	 autoOffset => [SFBool, 1],
-	 isActive => [SFBool, undef, eventOut],
+	 isActive => [SFBool, undef, out],
 	 trackPoint_changed => [SFVec3f, undef, eventOut],
 	 rotation_changed => [SFRotation, undef, eventOut],
 	}, 
