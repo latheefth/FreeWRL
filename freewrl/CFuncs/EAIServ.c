@@ -509,7 +509,8 @@ void EAI_parse_commands (char *bufptr) {
 				sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
 				rc = ra+rb; // final pointer- should point to a Multi_Node
 	
-				if (EAIVerbose) printf ("SENDCHILD %d %d %s %s\n",ra, rb, ctmp, dtmp);
+				if (EAIVerbose) printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
+
 	
 				getMFNodetype (dtmp,(struct Multi_Node *)rc, 
 						strcmp(ctmp,"removeChildren"));

@@ -585,7 +585,6 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 	int num_removed;
 	int counter;
 
-
 	if (CRVerbose) {
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
 		printf ("getMFNodetype, parent %d has %d nodes currently\n",par,par->n); 
@@ -613,6 +612,7 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 
 	if (ar != 0) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
+
 		newmal = malloc ((oldlen+newlen)*sizeof(unsigned int));
 	
 		if (newmal == 0) {
@@ -621,7 +621,7 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 		}
 	
 		/* copy the old stuff over */
-		memcpy (newmal,par->p,oldlen*sizeof(unsigned int));
+		if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(unsigned int));
 	
 		/* set up the C structures for this new MFNode addition */
 		free (par->p);

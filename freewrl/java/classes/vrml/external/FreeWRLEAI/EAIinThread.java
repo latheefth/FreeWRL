@@ -112,17 +112,14 @@ public  class EAIinThread implements Runnable {
             reply = EAIin.readLine();
 	    if (debug) System.out.println ("EAIinThread 7 reply is " + reply);
   
-            //JASif (reply.equals("RE") || reply.equals("EV")) {
-             //JAS // send the previous line down the pipe...
-             //JAS EAItoBrowserPrintWriter.println(REreply); 
-             //JAS EAItoBrowserPrintWriter.flush();
-            //JAS} else {
               // send the current line down the pipe, and read in the next line...
               EAItoBrowserPrintWriter.println(reply); 
               EAItoBrowserPrintWriter.flush();
               reply = EAIin.readLine();
               if (debug) System.out.println ("EAIinThread 8 reply is " + reply);
-            //JAS} 
+	} else if (reply.equals ("QUIT")) {
+		if (debug) System.out.println ("EAIinThread, got the quit signal");
+		System.exit(0);	
           } else {
     	    System.out.println ("expecting REor EV, got " + reply);
             reply = EAIin.readLine();

@@ -958,7 +958,7 @@ sub make_backend {
  			}
  		);	
 	}
-	#JAS $this->{BackNode} = $bn;
+	$this->{BackNode} = $bn;
 	return $bn;
 }
 
