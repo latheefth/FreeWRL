@@ -3,6 +3,9 @@
 
 package vrml.field;
 import vrml.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class ConstSFFloat extends ConstField {
     float f;
@@ -23,11 +26,11 @@ public class ConstSFFloat extends ConstField {
         return String.valueOf(f);
     }
 
-    public void __fromPerl(String str) {
-        f = new Float(str).floatValue();
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        f = Float.parseFloat(in.readUTF());
     }
 
-    public String __toPerl() {
-        return toString();
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeUTF(""+f);
     }
 }

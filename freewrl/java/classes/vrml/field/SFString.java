@@ -3,6 +3,9 @@
 
 package vrml.field;
 import vrml.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class SFString extends Field {
     String s;
@@ -40,11 +43,11 @@ public class SFString extends Field {
         return vrml.FWHelper.quote(s);
     }
 
-    public void __fromPerl(String str) {
-        s = FWHelper.base64decode(str);
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        s = in.readUTF();
     }
 
-    public String __toPerl() {
-        return FWHelper.base64encode(s);
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeUTF(s);
     }
 }

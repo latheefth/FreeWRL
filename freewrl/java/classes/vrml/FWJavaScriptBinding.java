@@ -22,7 +22,7 @@ public class FWJavaScriptBinding {
     public void updateRead(Field field) {
 	if (!doUpdateRead || lastUpdate == FWJavaScript.reqid)
 	    return;
-	field.__fromPerl(FWJavaScript.readField(node, fieldName));
+	FWJavaScript.readField(node, fieldName, field);
 	lastUpdate = FWJavaScript.reqid;
     }
 

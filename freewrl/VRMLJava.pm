@@ -8,22 +8,137 @@
 # Implement VRMLPERL-JAVA communication.
 
 package VRML::JavaCom::OHandle;
-sub new {my($type,$handle) = @_; bless {Handle => $handle},$type;}
-sub print {my $this = shift;
-	if($VRML::verbose::java >= 2) {
-		print "TO JAVA:\n---\n";
-		print @_; print "---\n";
+@ISA=FileHandle;
+
+sub new {
+	my($type,$handle) = @_; 
+	binmode $handle;
+	bless $handle,$type;
+}
+sub printUTF {
+	my $this = shift;
+	my $str = join "", @_;
+	open FOO, ">foo";
+	print FOO (pack("n", length($str)),$str);
+	close FOO;
+	$this->print (pack("n", length($str)),$str);
+}
+sub println {
+	print "TO JAVA:\t\t---",@_[1..$#_],"---\n" if $VRML::verbose::java >= 2;
+	printUTF @_;
+}
+sub toJava {
+	my ($o, $type, $value) = @_;
+	print "TO JAVA ($type):\t---",$value,"---\n"
+		if($VRML::verbose::java >= 2);
+	if ($type =~ /MF(.*)/) {
+		my $subtype = "SF$1";
+		my @result = ();
+		$o->print(pack("N", scalar(@{$value})));
+		for (@{$value}) {
+			$o->toJava($subtype, $_);
+		}
+	} elsif ($type =~ /SFNode/) {
+		$o->printUTF(VRML::Handles::reserve($value->real_node(1)));
+	} elsif ($type =~ /SFString/) {
+		$o->printUTF($value);
+	} elsif ($type =~ /SFImage/) {
+		die "SFImage to java not implemented";
+	} elsif ($type =~ /SF(Float|Time)/) {
+		$o->printUTF($value);
+	} elsif ($type =~ /SFVec2f/) {
+		$o->printUTF($value->[0]);
+		$o->printUTF($value->[1]);
+	} elsif ($type =~ /SF(Color|Vec3f)/) {
+		$o->printUTF($value->[0]);
+		$o->printUTF($value->[1]);
+		$o->printUTF($value->[2]);
+	} elsif ($type =~ /SFRotation/) {
+		$o->printUTF($value->[0]);
+		$o->printUTF($value->[1]);
+		$o->printUTF($value->[2]);
+		$o->printUTF($value->[3]);
+	} elsif ($type =~ /SFInt32/) {
+		$o->print(pack("N", length($value)));
+	} elsif ($type =~ /SFBool/) {
+		$o->print(pack("c", length($value)));
+	} else {
+		die "Illegal Field $type";
 	}
-	$this->{Handle}->print(@_);}
-sub flush {$_[0]{Handle}->flush}
+}
 
 package VRML::JavaCom::IHandle;
-sub new {my($type,$handle) = @_; bless {Handle => $handle},$type;}
-sub getline {
-	my $l = $_[0]{Handle}->getline;
-	print "FROM JAVA:\n---\n$l---\n" if $VRML::verbose::java >= 2;
-	return $l;
+@ISA=FileHandle;
+
+sub new {
+	my($type,$handle) = @_; 
+	binmode $handle;
+	bless $handle,$type;
 }
+sub readfully {
+	my $h = $_[0];
+	my $len = $_[1];
+	my $val = "";
+	my $offset = read $h, $val, $len;
+	while ($offset < $len) {
+		$offset += read $h, $val, $len-$offset, $offset;
+	}
+	return $val;
+}
+
+sub getUTF2 {
+	my $len = unpack("n", $_[0]->readfully(2));
+	return $_[0]->readfully($len);
+}
+
+sub getUTF {
+	my $value = $_[0]->getUTF2();
+	print "FM JAVA:\t\t---",$value,"---\n" 
+		if $VRML::verbose::java >= 2;
+	return $value;
+}
+
+sub fromJava2 {
+	my ($i, $type) = @_;
+	if ($type =~ /MF(.*)/) {
+		my $subtype = "SF$1";
+		my $values = unpack("N", $_[0]->readfully(4));
+		my @result = ();
+		while ($values-- > 0) {
+			push @result, $i->fromJava($subtype);
+		}
+		return \@result;
+	} elsif ($type =~ /SFNode/) {
+		return VRML::Handles::get($_[0]->getUTF2);
+	} elsif ($type =~ /SFString/) {
+		return $_[0]->getUTF2;
+	} elsif ($type =~ /SFImage/) {
+		die "SFImage from java not implemented";
+	} elsif ($type =~ /SF(Float|Time)/) {
+		return $_[0]->getUTF2();
+	} elsif ($type =~ /SFVec2f/) {
+		return [ $_[0]->getUTF2(), $_[0]->getUTF2() ];
+	} elsif ($type =~ /SF(Color|Vec3f)/) {
+		return [ $_[0]->getUTF2(), $_[0]->getUTF2(), $_[0]->getUTF2() ];
+	} elsif ($type =~ /SFRotation/) {
+		return [ $_[0]->getUTF2(), $_[0]->getUTF2(), $_[0]->getUTF2(), $_[0]->getUTF2() ];
+	} elsif ($type =~ /SFInt32/) {
+		return unpack("N", $_[0]->getFully(4));
+	} elsif ($type =~ /SFBool/) {
+		return unpack("c", $_[0]->getFully(1));
+	} else {
+		die "Illegal Field $type";
+	}
+}
+
+sub fromJava {
+	my ($i, $type) = @_;
+	$value = $i->fromJava2($type);
+	print "FM JAVA ($type):\t---",$value,"---",ref $value,"\n" 
+		if $VRML::verbose::java >= 2;
+	return $value;
+}
+
 
 package VRML::JavaCom;
 use FileHandle;
@@ -34,69 +149,32 @@ use MIME::Base64;
 
 my $eid;
 
-sub toJava {
-	my ($type, $value) = @_;
-	if ($type =~ /MF(.*)/) {
-		my $subtype = "SF$1";
-		my @result = ();
-		for (@{$value}) {
-			push @result, toJava($subtype, $_);
-		}
-		return join ",", @result;
-	} elsif ($type =~ /SFNode/) {
-		return VRML::Handles::reserve($value->real_node(1));
-	} elsif ($type =~ /SFString/) {
-		$value = encode_base64($value);
-		$value =~ tr/\n//d;
-		return $value;
-	} elsif ($type =~ /SFImage/) {
-		die "SFImage to java not implemented";
-	} elsif ($type =~ /SF(Color|Rotation|Vec2f|Vec3f)/) {
-		return join " ", @{$value};
-	} else {
-		return "".(0+$value);
-	}
-}
-
-sub fromJava {
-	my ($type, $str) = @_;
-	if ($type =~ /MF(.*)/) {
-		my $subtype = "SF$1";
-		my @result = ();
-		for (split ",", $str) {
-			push @result, fromJava($subtype, $_);
-		}
-		return \@result;
-	} elsif ($type =~ /SFNode/) {
-		return VRML::Handles::get($_[1]);
-	} elsif ($type =~ /SFString/) {
-		return decode_base64($str);
-	} elsif ($type =~ /SFImage/) {
-		die "SFImage from java not implemented";
-	} elsif ($type =~ /SF(Color|Rotation|Vec2f|Vec3f)/) {
-		return [ split " ", $str ];
-	} else {
-		return $str;
-	}
-}
-
 
 sub new {
-	my($type) = @_;
-	bless {
-	}, $type;
+	my($type, $browser) = @_;
+	bless { "B" => $browser }, $type;
 }
 
 sub connect {
-	my($this) = @_;
-# XXX java VM name
+	my ($this) = @_;
 
 	print "VRMLJava.pm - connect called\n";
+	my $libdir;
+	for (@INC) {
+	    print "$_\n";
+	    if (-f "$_/VRML/vrml.jar" && -f "$_/VRML/java.policy") {
+		$libdir = "$_/VRML";
+		last;
+	    }
+	}
+	die "Can't find vrml.jar and java.policy" if !$libdir;
+	my $cmdline ="java -Dfreewrl.lib.dir=$libdir "
+	    . "-Djava.security.policy=$libdir/java.policy "
+		. "-classpath $libdir/vrml.jar vrml.FWJavaScript";
+	print "VRMLJava.pm: Running $cmdline\n";
 
-	# my @cmd = split ' ','java FWJavaScript';
-	# $pid = system 1, @cmd;
 #	unless ($pid = fork()) {
-#	 	exec 'java vrml.FWJavaScript';
+#	 	exec "$cmdline"
 #	}
 #	print "VRMLJava.pm - pid is $pid\n";
 
@@ -107,18 +185,20 @@ sub connect {
 #	print "VRMLJava.pm -  output file handle is ",$this->{O},"\n";
 
 
-	$this->{I} = FileHandle->new;
-	$this->{O} = FileHandle->new;
-	open2($this->{I}, $this->{O}, 'java -Xbootclasspath/a:java/classes/vrml.jar vrml.FWJavaScript');
-	$this->{I}->setvbuf("",_IONBF,0);
+	# I'm still not sure if communicating via stdin/stdout is the
+	# right thing.  It makes it impossible for Java to write something
+	# to stdout.
+	# Alternatives are named pipes or a socket.
+	my $i = FileHandle->new;
+	my $o = FileHandle->new;
+	open2($i, $o, $cmdline);
 
-	# $pid = open3("<, $this->{O}, 'java_g -v FWJavaScript ');
-	$this->{O} = VRML::JavaCom::OHandle->new($this->{O});
-	$this->{I} = VRML::JavaCom::IHandle->new($this->{I});
-	$this->{O}->print( "TJL XXX PERL-JAVA 0.02\n" );
-	$this->{O}->flush();
-	$str = $this->{I}->getline; chomp $str;
-	if("TJL XXX JAVA-PERL 0.03" ne $str) {
+	$this->{O} = $o = VRML::JavaCom::OHandle->new($o);
+	$this->{I} = $i = VRML::JavaCom::IHandle->new($i);
+
+	$o->println( "TJL XXX PERL-JAVA 0.10" );
+	$o->flush();
+	if($i->getUTF ne "TJL XXX JAVA-PERL 0.10") {
 		die("Invalid response from java scripter: '$str'");
 	}
 }
@@ -127,7 +207,9 @@ sub initialize {
 	my($this,$scene,$node) = @_;
 	$eid++;
 	print "INITIALIZE $node\n" if $VRML::verbose::java;
-	$this->{O}->print("INITIALIZE\n$node\n$eid\n");
+	$this->{O}->println("INITIALIZE");
+	$this->{O}->toJava("SFNode", $node);
+	$this->{O}->println($eid);
 	$this->{O}->flush();
 	$this->receive($eid);
     }
@@ -171,72 +253,78 @@ sub newscript {
 
 	if(!$this->{O}) {$this->connect}
 	print "VRMLJava.pm - connect passed\n";
+	my $o = $this->{O};
 
-	$this->{O}->print("NEWSCRIPT\n"
-			  .toJava("SFNode", $node)."\n$url\n");
-	$this->{O}->flush();
+	$o->println("NEWSCRIPT");
+	$o->toJava("SFNode", $node);
+	$o->println($url);
+	$o->flush();
 }
 
 sub sendevent {
 	my($this,$node,$event,$value,$timestamp) = @_;
+	my $o = $this->{O};
 	$eid++;
-	print "SENDEVENT $node.$event = $value...\n" if $VRML::verbose::java;
-	$this->{O}->print("SENDEVENT\n$node\n$eid\n$event\n");
-	$this->{O}->print("$node->{Type}{FieldTypes}{$event}\n");
-	$this->{O}->print(toJava($node->{Type}{FieldTypes}{$event}, $value)
-			  ."\n");
-	$this->{O}->print("$timestamp\n");
-	$this->{O}->flush();
+	print "SENDEVENT $node.$event = $value...\n" if $VRML::verbose::java == 1;
+	$o->println("SENDEVENT");
+	$o->toJava("SFNode", $node);
+	$o->println($eid);
+	$o->println($event);
+	$o->println($node->{Type}{FieldTypes}{$event});
+	$o->toJava($node->{Type}{FieldTypes}{$event}, $value);
+	$o->println($timestamp);
+	$o->flush();
 	$this->receive($eid);
 }
 
 sub sendeventsproc {
 	my($this,$node) = @_;
+	my $o = $this->{O};
 	$eid++;
-	$this->{O}->print("EVENTSPROCESSED\n$node\n$eid\n");
-	$this->{O}->flush();
+	$o->println("EVENTSPROCESSED");
+	$o->toJava("SFNode", $node);
+	$o->println("$eid");
+	$o->flush();
 	$this->receive($eid);
 }
 
 sub receive {
 	my($this,$id) = @_;
 	my @a;
-	$i = $this->{I};
+	my $i = $this->{I};
+	my $o = $this->{O};
 	while(1) {
 		print "WAITING FOR JAVA EVENT...\n" if $VRML::verbose::java;
-		my $cmd = $i->getline; 
+		my $cmd = $i->getUTF; 
 		die("EOF on java filehandle") 
 			if !defined $cmd;
 		chomp $cmd;
-		print "JAVA EVENT '$cmd'\n" if $VRML::verbose::java;
+		print "JAVA EVENT '$cmd'\n" if $VRML::verbose::java == 1;
 		if($cmd eq "FINISHED") {
-			my $ri = $i->getline; chomp $ri;
+			my $ri = $i->getUTF;
 			if($ri ne $id) {
 				die("Invalid request id from java scripter: '$ri' should be '$id'\n");
 			}
 			#return;
 			return @a;
 		} elsif($cmd eq "GETFIELD") {
-			my $nid = $i->getline; chomp $nid;
-			my $node = fromJava("SFNode", $nid);
-			my $field = $i->getline; chomp $field;
-			my $kind = $i->getline; chomp $kind;
+			my $node = $i->fromJava("SFNode");
+			my $field = $i->getUTF;
+			my $kind = $i->getUTF;
 			my $t = $node->{Type};
 			print "Name: ".$node->dump_name().".$field\n"
 			    if $VRML::verbose::java;
 
 			if (exists $t->{FieldKinds}{$field}
 			    && $t->{FieldKinds}{$field} eq $kind) {
-				$this->{O}->print($t->{FieldTypes}{$field}
-						  ."\n");
+				$o->println($t->{FieldTypes}{$field});
 			} else {
-				$this->{O}->print("ILLEGAL\n");
+				$o->println("ILLEGAL");
 			}
-			$this->{O}->flush();
+			$o->flush();
 		} elsif($cmd eq "READFIELD") {
-			my $nid = $i->getline; chomp $nid;
-			my $node = fromJava("SFNode", $nid);
-			my $field = $i->getline; chomp $field;
+			my $node = $i->fromJava("SFNode");
+			my $field = $i->getUTF;
 			my $t = $node->{Type};
 			my $ft = $t->{FieldTypes}{$field};
 			my $value = $node->{Fields}{$field};
@@ -246,15 +334,12 @@ sub receive {
 			       ? join ",", @{$value} : $value) . "\n"
 				   if $VRML::verbose::java;
 			
-			$this->{O}->print(toJava($ft, $node->{Fields}{$field})
-					  ."\n");
-			$this->{O}->flush();
+			$o->toJava($ft, $node->{Fields}{$field});
+			$o->flush();
 		} elsif($cmd eq "SENDEVENT") {
-			my $nid = $i->getline; chomp $nid;
-			my $field = $i->getline; chomp $field;
-			my $value = $i->getline; chomp $value;
-			my $node = fromJava("SFNode", $nid);
-			$value = fromJava($node->{Type}{FieldTypes}{$field}, $value);
+			my $node = $i->fromJava("SFNode");
+			my $field = $i->getUTF;
+			$value = $i->fromJava($node->{Type}{FieldTypes}{$field});
 			print "$node.$field := ".
 				(ref $value eq "ARRAY" ? join ",",@{$value} : "$value")."\n"
 				if $VRML::verbose::java;
@@ -263,30 +348,22 @@ sub receive {
 			} else {
 				$node->{EventModel}->send_event_to($node, $field, $value);
 			}
-		} elsif($cmd eq "GETBROWSER") {
-			my $nid = $i->getline; chomp $nid;
-			my $node = fromJava("SFNode", $nid);
-			my $browser = VRML::Handles::reserve($node->{Scene}->get_browser());
-
-			print "$node->Browser is $browser\n"
-			    if $VRML::verbose::java;
-			
-			$this->{O}->print("$browser\n");
-			$this->{O}->flush();
+		} elsif($cmd eq "GETTYPE") {
+			my $node = $i->fromJava("SFNode");
+			$o->println($node->{NodeType}{Name});
+			$o->flush();
 		} elsif($cmd eq "CREATEVRML") {
 			my($this) = @_; 
-			my $bid = $i->getline; chomp $bid;
-			my $browser = VRML::Handles::get($bid);
-			my $input = $i->getline; chomp $input;
-			my $rs = fromJava("SFString", $input);
-			print "createVRML($rs)\n" if $VRML::verbose::java;
-			my $scene = $browser->createVrmlFromString($rs);
-			print "Result: $scene\n" if $VRML::verbose::java;
-			my @nodes = split " ", $scene;
-			$this->{O}->print(scalar(@nodes)."\n");
-			for (@nodes) {
-				$this->{O}->print("$_\n");
+			my $rs = $i->fromJava("SFString");
+			print "createVRML($rs)\n" if $VRML::verbose::java == 1;
+			my $scene = $this->{B}->createVrmlFromString($rs);
+			print "Result: $scene\n" if $VRML::verbose::java == 1;
+			## AARRGH createVrml returns node handles instead of nodes!!!
+			my @nodes = ();
+			for (split " ", $scene) {
+				push @nodes, VRML::Handles::get($_);
 			}
+			$o->toJava("MFNode", \@nodes);
 		} else {
 			die("Invalid Java event '$cmd'");
 		}

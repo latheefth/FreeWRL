@@ -9,16 +9,17 @@ import vrml.node.*;
 
 public final class FWJavaScript {
     static Hashtable touched = new Hashtable();
-    static PrintWriter out;
-    static LineNumberReader in;
+    static DataOutputStream out;
+    static DataInputStream  in;
     static String reqid;
+    static Browser theBrowser;
     
 
     public static void add_touched(Field f) {
 	touched.put(f, Boolean.TRUE);
     }
 
-    public static void send_touched(String reqid) {
+    public static void send_touched(String reqid) throws IOException {
 	// System.err.println("send_touched\n");
 	Enumeration e = touched.keys();
 	while(e.hasMoreElements()) {
@@ -28,14 +29,14 @@ public final class FWJavaScript {
 	    BaseNode n = b.node();
 	    String f = b.field();
 	    String nodeid = n._get_nodeid();
-	    out.println("SENDEVENT");
-	    out.println(nodeid);
-	    out.println(f);
-	    out.println(val.__toPerl());
+	    out.writeUTF("SENDEVENT");
+	    out.writeUTF(nodeid);
+	    out.writeUTF(f);
+	    val.__toPerl(out);
 	}
 	touched.clear();
-	out.println("FINISHED");
-	out.println(reqid);
+	out.writeUTF("FINISHED");
+	out.writeUTF(reqid);
 	out.flush();
     }
 
@@ -48,8 +49,8 @@ public final class FWJavaScript {
 	       Exception,
 	       Throwable
     {
-	in  = new LineNumberReader(new InputStreamReader(System.in));
-	out = new PrintWriter(System.out);
+	in  = new DataInputStream(System.in);
+	out = new DataOutputStream(System.out);
 
 	/* Protect our communication channels */
 	System.setOut(System.err);
@@ -58,38 +59,39 @@ public final class FWJavaScript {
 	/* Install security */
 	System.setSecurityManager(new SecurityManager());
 
-	/* And GO... */
+	/* And Go... */
+	theBrowser = new Browser();
+
 	 	Hashtable scripts = new Hashtable();
 		// String dirname = argv[0];
-		// out.println("FWJavaScript says: Hello World! dirname is " + dirname);
+		// out.writeUTF("FWJavaScript says: Hello World! dirname is " + dirname);
 //		Class mr = Class.forName("MuchRed");
 //		Constructor mrc = mr.getConstructor(
 //			new Class[] {});
 //		Script c = (Script)mrc.newInstance(new Class[] {});
 //		c.eventsProcessed();
-//		out.println("Goodbye World!\n");
+//		out.writeUTF("Goodbye World!\n");
 		try {
-		String ver = in.readLine().trim();
+		String ver = in.readUTF();
 		System.err.println("Got a line:'"+ver+"'");
 		// Stupid handshake - just make sure about protocol.
 		// Change this often between versions.
-		if(!ver.equals("TJL XXX PERL-JAVA 0.02")) {
+		if(!ver.equals("TJL XXX PERL-JAVA 0.10")) {
 			throw new Exception(
 				"Wrong script version '"+ver+"'!"
 			);
 		}
 		System.err.println("Sending a line:'"+ver+"'");
-		out.println("TJL XXX JAVA-PERL 0.03");
+		out.writeUTF("TJL XXX JAVA-PERL 0.10");
 		System.err.println("Sent a line:'"+ver+"'");
 		out.flush();
 		while(true) {
-			String cmd = in.readLine();
+			String cmd = in.readUTF();
 			//System.err.println("got ");
 			//System.err.println("--- "+cmd);
-			cmd = cmd.trim();
-			String nodeid =	in.readLine().trim();
+			String nodeid =	in.readUTF();
 			if(cmd.equals("NEWSCRIPT")) {
-				String url = in.readLine().trim();
+				String url = in.readUTF();
 				System.err.println("NEWSCRIPT: "+url);
 				FWJavaScriptClassLoader classloader = 
 				    new FWJavaScriptClassLoader(url);
@@ -112,25 +114,24 @@ public final class FWJavaScript {
 			} else if(cmd.equals("SETFIELD")) {
 			} else if(cmd.equals("INITIALIZE")) {
 				Script s = (Script)scripts.get(nodeid);
-				reqid = in.readLine().trim();
+				reqid = in.readUTF();
 				s.initialize();
 				send_touched(reqid);
 			} else if(cmd.equals("EVENTSPROCESSED")) {
 				Script s = (Script)scripts.get(nodeid);
-				reqid = in.readLine().trim();
+				reqid = in.readUTF();
 				s.eventsProcessed();
 				send_touched(reqid);
 			} else if(cmd.equals("SENDEVENT")) {
 				Script s = (Script)scripts.get(nodeid);
-				reqid = in.readLine().trim();
-				String fname = in.readLine().trim();
-				String ftype = in.readLine().trim();
-				String fs = in.readLine().trim();
+				reqid = in.readUTF();
+				String fname = in.readUTF();
+				String ftype = in.readUTF();
 				ConstField fval = 
 				    FWCreateField.createConstField(ftype);
-				fval.__fromPerl(fs);
-				double timestamp = new 
-				    Double(in.readLine().trim()).doubleValue();
+				fval.__fromPerl(in);
+				double timestamp = 
+				    Double.parseDouble(in.readUTF());
 				Event ev = new Event(
 					fname, 
 					timestamp,
@@ -157,66 +158,63 @@ public final class FWJavaScript {
 	    System.err.println("Java: "+node._get_nodeid()
 			       +".getField("+fieldname+")");
 
-	    out.println("GETFIELD");
-	    out.println(node._get_nodeid());
-	    out.println(fieldname);
-	    out.println(kind);
+	    out.writeUTF("GETFIELD");
+	    out.writeUTF(node._get_nodeid());
+	    out.writeUTF(fieldname);
+	    out.writeUTF(kind);
 	    out.flush();
 
-	    return in.readLine().trim();
+	    return in.readUTF();
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
 	}
     }
 
-    public static String readField(BaseNode node, String fieldName) {
+    public static void readField(BaseNode node, String fieldName, Field fld) {
 	try {
 	    System.err.println("FWJ: "+node._get_nodeid()+".readField("+fieldName+")");
-	    FWJavaScript.out.println("READFIELD");
-	    FWJavaScript.out.println(node._get_nodeid());
-	    FWJavaScript.out.println(fieldName);
+	    FWJavaScript.out.writeUTF("READFIELD");
+	    FWJavaScript.out.writeUTF(node._get_nodeid());
+	    FWJavaScript.out.writeUTF(fieldName);
 	    FWJavaScript.out.flush();
-	    
-	    String value = FWJavaScript.in.readLine().trim();
-	    System.err.println("FWJ value: "+value);
-	    return value;
+	    fld.__fromPerl(in);
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
 	}
     }
 
-    public static Browser getBrowser(BaseNode node)
-    {
-	try {
-	    System.err.println("Java: "+node._get_nodeid()+".getBrowser()");
-
-	    out.println("GETBROWSER");
-	    out.println(node._get_nodeid());
-	    out.flush();
-
-	    return Browser.lookup(in.readLine().trim());
-	} catch (IOException e) {
-	    throw new InternalError("Communication error: "+e);
-	}
-    }
-
-
-    public static BaseNode[] createVrmlFromString(String browserID, 
-						  String vrmlSyntax) 
-	throws InvalidVRMLSyntaxException
+    public static String getNodeType(BaseNode node)
     {
 	try {
 	    System.err.println("creating VRML.");
-	    FWJavaScript.out.println("CREATEVRML");
-	    FWJavaScript.out.println(browserID);
-	    FWJavaScript.out.println(FWHelper.base64encode(vrmlSyntax));
+	    FWJavaScript.out.writeUTF("GETTYPE");
+	    FWJavaScript.out.writeUTF(node._get_nodeid());
 	    FWJavaScript.out.flush();
-	    int number = Integer.parseInt(in.readLine().trim());
+	    return in.readUTF();
+	} catch (IOException e) {
+	    throw new InternalError("Communication error: "+e);
+	}
+    }
+
+    public static Browser getBrowser()
+    {
+	return theBrowser;
+    }
+
+
+    public static BaseNode[] createVrmlFromString(String vrmlSyntax) 
+	throws InvalidVRMLSyntaxException
+    {
+	try {
+	    FWJavaScript.out.writeUTF("CREATEVRML");
+	    FWJavaScript.out.writeUTF(vrmlSyntax);
+	    FWJavaScript.out.flush();
+	    int number = in.readInt();
 	    if (number == -1)
-		throw new InvalidVRMLSyntaxException(in.readLine().trim());
+		throw new InvalidVRMLSyntaxException(in.readUTF());
 	    Node[] nodes = new Node[number];
 	    for (int i = 0; i < number; i++)
-		nodes[i] = new Node(in.readLine().trim());
+		nodes[i] = new Node(in.readUTF());
 	    return nodes;
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);

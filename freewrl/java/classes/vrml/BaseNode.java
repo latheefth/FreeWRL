@@ -5,7 +5,6 @@ package vrml;
 public abstract class BaseNode 
 {
     String nodeid;  // id for communication
-    Browser myBrowser = null;
 
     public BaseNode() {}
     
@@ -22,13 +21,13 @@ public abstract class BaseNode
 
     // Returns the type of the node.  If the node is a prototype
     // it returns the name of the prototype.
-    public String getType() { return null/*XXX*/; }
+    public String getType() { 
+	return FWJavaScript.getNodeType(this);
+    }
     
     // Get the Browser that this node is contained in.
     public Browser getBrowser() { 
-	if (myBrowser == null)
-	    myBrowser = FWJavaScript.getBrowser(this);
-	return myBrowser; 
+	return FWJavaScript.getBrowser();
     }
 }
 

@@ -24,7 +24,7 @@ public abstract class Script extends BaseNode
 	   throw new InvalidFieldException(_get_nodeid()+"."+fieldName);
 	Field fval = FWCreateField.createField(ftype);
 	/* read field only once, nobody except us may change it */
-	fval.__fromPerl(FWJavaScript.readField(this, fieldName));
+	FWJavaScript.readField(this, fieldName, fval);
 	return fval;
    }
     

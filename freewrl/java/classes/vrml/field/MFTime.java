@@ -3,7 +3,9 @@
 
 package vrml.field;
 import vrml.*;
-import java.util.StringTokenizer;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class MFTime extends MField {
     public MFTime() {
@@ -93,23 +95,21 @@ public class MFTime extends MField {
         return sb.append("]").toString();
     }
 
-    public void __fromPerl(String str) {
+    public void __fromPerl(DataInputStream in)  throws IOException {
         __vect.clear();
-        StringTokenizer st = new StringTokenizer(str,",");
-        while (st.hasMoreTokens()) {
+        int len = in.readInt();
+        for (int i = 0; i < len; i++) {
             ConstSFTime sf = new ConstSFTime();
-            sf.__fromPerl(st.nextToken());
+            sf.__fromPerl(in);
             __vect.addElement(sf);
         }
     }
 
-    public String __toPerl() {
+    public void __toPerl(DataOutputStream out)  throws IOException {
         StringBuffer sb = new StringBuffer("");
         int size = __vect.size();
-        for (int i = 0; i < size; i++) {
-            if (i > 0) sb.append(",");
-            sb.append(((ConstSFTime) __vect.elementAt(i)).__toPerl());
-        }
-        return sb.append("").toString();
+	out.writeInt(size);
+        for (int i = 0; i < size; i++)
+            ((ConstSFTime) __vect.elementAt(i)).__toPerl(out);
     }
 }

@@ -3,7 +3,9 @@
 
 package vrml.field;
 import vrml.*;
-import java.util.StringTokenizer;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class ConstMFVec3f extends ConstMField {
     public ConstMFVec3f() {
@@ -62,23 +64,21 @@ public class ConstMFVec3f extends ConstMField {
         return sb.append("]").toString();
     }
 
-    public void __fromPerl(String str) {
+    public void __fromPerl(DataInputStream in)  throws IOException {
         __vect.clear();
-        StringTokenizer st = new StringTokenizer(str,",");
-        while (st.hasMoreTokens()) {
+        int len = in.readInt();
+        for (int i = 0; i < len; i++) {
             ConstSFVec3f sf = new ConstSFVec3f();
-            sf.__fromPerl(st.nextToken());
+            sf.__fromPerl(in);
             __vect.addElement(sf);
         }
     }
 
-    public String __toPerl() {
+    public void __toPerl(DataOutputStream out)  throws IOException {
         StringBuffer sb = new StringBuffer("");
         int size = __vect.size();
-        for (int i = 0; i < size; i++) {
-            if (i > 0) sb.append(",");
-            sb.append(((ConstSFVec3f) __vect.elementAt(i)).__toPerl());
-        }
-        return sb.append("").toString();
+	out.writeInt(size);
+        for (int i = 0; i < size; i++)
+            ((ConstSFVec3f) __vect.elementAt(i)).__toPerl(out);
     }
 }

@@ -3,7 +3,9 @@
 
 package vrml.field;
 import vrml.*;
-import java.util.StringTokenizer;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class ConstSFRotation extends ConstField {
     float axisX;
@@ -33,15 +35,17 @@ public class ConstSFRotation extends ConstField {
         return ""+axisX+" "+axisY+" "+axisZ+" "+angle;
     }
 
-    public void __fromPerl(String str) {
-        StringTokenizer tok = new StringTokenizer(str, " ");
-	axisX = new Float(tok.nextToken()).floatValue();
-	axisY =	new Float(tok.nextToken()).floatValue();
-	axisZ =	new Float(tok.nextToken()).floatValue();
-	angle =	new Float(tok.nextToken()).floatValue();
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        axisX = Float.parseFloat(in.readUTF());
+        axisY = Float.parseFloat(in.readUTF());
+        axisZ = Float.parseFloat(in.readUTF());
+        angle = Float.parseFloat(in.readUTF());
     }
 
-    public String __toPerl() {
-        return toString();
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeUTF(""+axisX);
+        out.writeUTF(""+axisY);
+        out.writeUTF(""+axisZ);
+        out.writeUTF(""+angle);
     }
 }

@@ -3,6 +3,9 @@
 
 package vrml.field;
 import vrml.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class SFBool extends Field {
     boolean value;
@@ -40,11 +43,11 @@ public class SFBool extends Field {
         return value ? "TRUE" : "FALSE";
     }
 
-    public void __fromPerl(String str) {
-        value = str.equals("1");
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        value = in.readBoolean();
     }
 
-    public String __toPerl() {
-        return value ? "1" : "0";
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeBoolean(value);
     }
 }

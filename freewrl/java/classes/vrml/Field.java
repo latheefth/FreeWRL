@@ -1,4 +1,7 @@
 package vrml;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public abstract class Field implements Cloneable
 {
@@ -27,8 +30,8 @@ public abstract class Field implements Cloneable
 	    __binding.updateWrite(this);
     }
 
-    public abstract void __fromPerl(String str);
-    public abstract String __toPerl();
+    public abstract void __fromPerl(DataInputStream in) throws IOException;
+    public abstract void __toPerl(DataOutputStream out) throws IOException;
 }
 
 

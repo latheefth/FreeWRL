@@ -3,6 +3,9 @@
 
 package vrml.field;
 import vrml.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class SFImage extends Field {
     int width;
@@ -78,11 +81,18 @@ public class SFImage extends Field {
         return sb.toString();
     }
 
-    public void __fromPerl(String str) {
-        /*XXX*/
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        width = in.readInt();
+        height = in.readInt(); 
+        components = in.readInt();
+        pixels = new byte[height*width*components];
+        in.readFully(pixels);
     }
 
-    public String __toPerl() {
-        return toString();
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeInt(width);
+        out.writeInt(height); 
+        out.writeInt(components);
+        out.write(pixels);
     }
 }

@@ -3,8 +3,7 @@ import java.util.Hashtable;
 
 public class Browser 
 {
-    String id;
-   Browser(String id) {this.id = id;}
+    Browser() {}
    public String toString() {return "";}   // This overrides a method in Object
 
    // Browser interface
@@ -23,7 +22,7 @@ public class Browser
     public BaseNode[] createVrmlFromString(String vrmlSyntax) 
 	throws InvalidVRMLSyntaxException
     {
-	return FWJavaScript.createVrmlFromString(id, vrmlSyntax);
+	return FWJavaScript.createVrmlFromString(vrmlSyntax);
     }
    //   
 
@@ -40,16 +39,6 @@ public class Browser
    //   throws InvalidVRMLSyntaxException;
 
    // public void setDescription(String description);
-
-    static Hashtable hash = new Hashtable();
-    static Browser lookup(String id) {
-	Browser b = (Browser) hash.get(id);
-	if (b == null) {
-	    b = new Browser(id);
-	    hash.put(id, b);
-	}
-	return b;
-    }
 }
 
 

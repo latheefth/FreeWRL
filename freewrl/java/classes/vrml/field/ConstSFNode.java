@@ -3,6 +3,9 @@
 
 package vrml.field;
 import vrml.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class ConstSFNode extends ConstField {
     BaseNode node;
@@ -23,11 +26,11 @@ public class ConstSFNode extends ConstField {
         return FWHelper.nodeToString(node);
     }
 
-    public void __fromPerl(String str) {
-        node = new vrml.node.Node(str);
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        node = new vrml.node.Node(in.readUTF());
     }
 
-    public String __toPerl() {
-        return node._get_nodeid();;
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeUTF(node._get_nodeid());
     }
 }

@@ -3,6 +3,9 @@
 
 package vrml.field;
 import vrml.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class SFInt32 extends Field {
     int value;
@@ -40,11 +43,11 @@ public class SFInt32 extends Field {
         return String.valueOf(value);
     }
 
-    public void __fromPerl(String str) {
-        value = Integer.parseInt(str);
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        value = in.readInt();
     }
 
-    public String __toPerl() {
-        return toString();
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeInt(value);
     }
 }

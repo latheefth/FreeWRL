@@ -3,7 +3,9 @@
 
 package vrml.field;
 import vrml.*;
-import java.util.StringTokenizer;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class ConstSFColor extends ConstField {
     float red;
@@ -45,14 +47,15 @@ public class ConstSFColor extends ConstField {
         return ""+red+" "+green+" "+blue;
     }
 
-    public void __fromPerl(String str) {
-        StringTokenizer tok = new StringTokenizer(str, " ");
-	red = 	new Float(tok.nextToken()).floatValue();
-	green =	new Float(tok.nextToken()).floatValue();
-	blue =	new Float(tok.nextToken()).floatValue();
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        red = Float.parseFloat(in.readUTF());
+        green = Float.parseFloat(in.readUTF()); 
+        blue = Float.parseFloat(in.readUTF());
     }
 
-    public String __toPerl() {
-        return toString();
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeUTF(""+red);
+        out.writeUTF(""+green); 
+        out.writeUTF(""+blue);
     }
 }

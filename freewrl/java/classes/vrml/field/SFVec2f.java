@@ -3,7 +3,9 @@
 
 package vrml.field;
 import vrml.*;
-import java.util.StringTokenizer;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class SFVec2f extends Field {
     float x;
@@ -63,13 +65,13 @@ public class SFVec2f extends Field {
         return ""+x+" "+y;
     }
 
-    public void __fromPerl(String str) {
-        StringTokenizer tok = new StringTokenizer(str, " ");
-	x = new Float(tok.nextToken()).floatValue();
-	y = new Float(tok.nextToken()).floatValue();
+    public void __fromPerl(DataInputStream in)  throws IOException {
+        x = Float.parseFloat(in.readUTF());
+        y = Float.parseFloat(in.readUTF());
     }
 
-    public String __toPerl() {
-        return toString();
+    public void __toPerl(DataOutputStream out)  throws IOException {
+        out.writeUTF(""+x);
+        out.writeUTF(""+y);
     }
 }
