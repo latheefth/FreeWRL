@@ -349,10 +349,10 @@ sub get_firstevent {
 		print "\tAction clocktick!\n" if $VRML::verbose;
 		my @ev = &{$this->{Type}{Actions}{ClockTick}}(
 				$this, $this->{RFields}, $timestamp);
-		for (@ev) {
-			$this->{Fields}{$_->[1]} = $_->[2];
-		}
-		return @ev;
+#JAS		for (@ev) {
+#JAS			$this->{Fields}{$_->[1]} = $_->[2];
+#JAS		}
+#JAS		return @ev;
     }
     return ();
 }
@@ -624,14 +624,15 @@ sub set_backend_fields {
 	#		CoordinateInterpolator
 	#		NormalInterpolator
 	#		TimeSensor
+	#		TouchSensor
+	#		PlaneSensor
+	#		SphereSensor
+	#		CylinderSensor
+	#		VisibilitySensor
 
+	# Nodes without C backends (ie, no C structs)
 	my %NOT = map {($_=>1)} qw/
 		WorldInfo
-		TouchSensor
-		PlaneSensor
-		SphereSensor
-		CylinderSensor
-		VisibilitySensor
 	/;
 
 	#############################################################

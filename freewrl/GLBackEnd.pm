@@ -637,12 +637,12 @@ sub render_pre {
 	my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
 	$node = $node->{CNode};
 
-	if (!(defined $this->{CONTEXT})) {
-		if( VRML::OpenGL::get_render_frame() == 0) {
-			VRML::OpenGL::BackEndSleep();
-			return;
-		}
-	}
+#JAS	if (!(defined $this->{CONTEXT})) {
+#JAS		if( VRML::OpenGL::get_render_frame() == 0) {
+#JAS			VRML::OpenGL::BackEndSleep();
+#JAS			return;
+#JAS		}
+#JAS	}
 
 
 	# 1. Set up projection
@@ -705,15 +705,15 @@ sub render {
     $node = $node->{CNode};
     $viewpoint = $viewpoint->{CNode};
 	
-    if (!(defined $this->{CONTEXT}))
-    {
-    if( VRML::OpenGL::get_render_frame() == 0) {
-        VRML::OpenGL::BackEndSleep();
-        return;
-    }
+#JAS    if (!(defined $this->{CONTEXT}))
+  #JAS  {
+#JAS    if( VRML::OpenGL::get_render_frame() == 0) {
+#JAS        VRML::OpenGL::BackEndSleep();
+#JAS        return;
+#JAS    }
 
-    VRML::OpenGL::dec_render_frame();
-    }
+#JAS    VRML::OpenGL::dec_render_frame();
+#JAS    }
 
     print "Render: root $node\n" if ($VRML::verbose::be);
 	
@@ -798,40 +798,34 @@ sub render {
 
 	    $this->setup_projection(1, $_->[2], $_->[3]);
 	    $this->setup_viewpoint($node);
-		
+	
+	    # sensitive nodes. Note, the routing no longer handles values,
+	    # only events; the pos, hyperhits, are stored in C structures
+	    # to save saving/setting from Perl. JAS.
+	
 	    VRML::VRMLFunc::render_hier($node,	# Node
 					&VF_Sensitive,	# render sensitive
 					0);	# what view point
 
 	    # print "SENS_BR: $b\n" if $VRML::verbose::glsens;
-	    my($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
-	    my $p = VRML::VRMLFunc::get_rayhit($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
-	    my $pos;
+
+	    my $p = VRML::VRMLFunc::get_rayhit();
 	    if ($this->{MOUSEGRABBED}) {
 		if($_->[0] eq "RELEASE") {
 		    # XXX The position at release is garbage :(
 		    my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-		    $pos = [$x,$y,$z];
-		    my $nor = [$nx,$ny,$nz];
-		    $rout->("RELEASE", 0, 1, $pos, $nor);
+		    $rout->("RELEASE", 0, 1);
 		    undef $this->{MOUSEGRABBED};
 		} elsif($_->[0] eq "MOVE") {
 		    my $over = ($this->{MOUSEGRABBED} == $p);
 		    my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-		    $pos = [$x,$y,$z];
-		    my $nor = [$nx,$ny,$nz];
-		    $rout->("",1,$over,$pos,$nor);
+		    $rout->("",1,$over);
 	
 		    die("No hyperhit??? REPORT BUG!")
-			if (!VRML::VRMLFunc::get_hyperhit($x,$y,$z,$nx,$ny,$nz));
-			
-		    print "HYP: $x $y $z $nx $ny $nz\n" 
-			if $VRML::verbose::glsens;
+			if (!VRML::VRMLFunc::get_hyperhit());
 			
 		    my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-		    $pos = [$x,$y,$z];
-		    $nor = [$nx,$ny,$nz];
-		    $rout->("DRAG", 1, $over, $pos, $nor);
+		    $rout->("DRAG", 1, $over);
 		}
 	    } else {
 		if(defined $this->{SensC}{$p}) {
@@ -839,24 +833,16 @@ sub render {
 
 		    my $rout = $this->{SensR}{$p};
 			
-		    print "HIT: $p, $x $y $z\n"
-			if $VRML::verbose::glsens;
-			
-		    $pos = [$x,$y,$z];
-		    my $nor = [$nx,$ny,$nz];
-			
 		    if($_->[0] eq "MOVE") {
-			$rout->("",1,1,$pos,$nor);
+			$rout->("",1,1);
 		    }
 			
 		    if($_->[0] eq "PRESS") {
-			print "PRESS ,0,1,$pos,$nor\n" 
-			    if $VRML::verbose::glsens;
-			$rout->("PRESS",0,1,$pos,$nor);
+			$rout->("PRESS",0,1);
 			$this->{MOUSEGRABBED} = $p;
 		    }
 		    # if($sb) {
-		    # 	$rout->("RELEASE",0,1,$pos,$nor);
+		    # 	$rout->("RELEASE",0,1);
 		    # }
 		} else {	
 		    $cursortype=0;
@@ -871,7 +857,7 @@ sub render {
 			!= $p and defined($this->{SensC}{$this->{MOUSOVER}})) {
 		    # print "in final MOUSOVER code\n";
 		    my $rout = $this->{SensR}{$this->{MOUSOVER}};
-		    $rout->("",1,0,undef,undef);
+		    $rout->("",1,0);
 		}
 		$this->{MOUSOVER} = $p;
 	    }
