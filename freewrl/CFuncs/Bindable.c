@@ -59,6 +59,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	if (strncmp("Background",nodetype,strlen("Background"))==0) {
 		bg = (struct VRML_Background *) node;
 		bg->set_bind = value;
+
 		bind_node (node,offsetof (struct VRML_Background,set_bind),
 			offsetof (struct VRML_Background,isBound),
 			&background_tos,&background_stack[0]);
@@ -117,20 +118,26 @@ void bind_node (void *node, unsigned int setBindofst,
 	oldstacktop = stack + *tos;  
 
 
-	// printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
+	//printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
 	   is not a new push or pop */
 
-	/* isBound mimics setBind */
-	*isBoundptr = *setBindptr;
-	mark_event ((unsigned int) node, (unsigned int) isboundofst);
+
 
 	if (*setBindptr == 1) {
 		/* PUSH THIS TO THE TOP OF THE STACK */
 
 		/* are we off the top of the stack? */
 		if (*tos >= (MAX_STACK-2)) return;
+
+		/* isBound mimics setBind */
+		*isBoundptr = 1;
+
+		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
+		*setBindptr = 100;
+
+		mark_event ((unsigned int) node, (unsigned int) isboundofst);
 
 		/* set up pointers, increment stack */
 		*tos = *tos+1;
@@ -139,35 +146,51 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		/* save pointer to new top of stack */
 		*newstacktop = (unsigned int) node;
+		update_node(*newstacktop);
 
 		/* was there another node at the top of the stack? */
 		if (*tos >= 1) {
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = *oldstacktop + isboundofst;
 			*oldboundptr = 0;
+			// printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
 	
 			/* tell the possible parents of this change */
 			update_node(*oldstacktop);
 		}
 	} else {
-		/* POP FROM TOP OF STACK */
+		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
+
+		/* isBound mimics setBind */
+		*isBoundptr = 0;
+
+		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
+		*setBindptr = 100;
+
+		mark_event ((unsigned int) node, (unsigned int) isboundofst);
+
+		//printf ("old TOS is %d, we are %d\n",*oldstacktop, node);
+		if (node != *oldstacktop) return;
+
+		//printf ("ok, we were TOS, setting %d to 0\n",node);
+
+
+		*tos = *tos - 1;
+
 		if (*tos >= 0) {
 			/* stack is not empty */
 			newstacktop = stack + *tos;
+			//printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);
 		
 			/* set the popped value of isBound to true */
 			isBoundptr = *newstacktop + isboundofst;
-			*isBoundptr = 0;
+			*isBoundptr = 1;
 
 			/* tell the possible parents of this change */
 			update_node(*newstacktop);
-
-			/* and decrement stack pointer */
-			*tos = *tos - 1;
+			mark_event ((unsigned int) *newstacktop, (unsigned int) isboundofst);
 		}
 	}
-	/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
-	*setBindptr = 100;
 }
 
 void render_Fog (struct VRML_Fog *node) {
