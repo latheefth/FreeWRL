@@ -578,6 +578,11 @@ else
         $screendist = 0.8;
 }
 
+
+# Save font path, text nodes will require this
+VRML::VRMLFunc::save_font_paths($VRML::ENV{FREETYPE_FONT_PATH},($VRML::ENV{FREEWRL_FONTS}||"fonts"));
+
+
 $b = new VRML::Browser({ FullScreen => $fullscreen, Shutter => $shutter,
                          EyeDist => $eyedist, ScreenDist => $screendist,
                          BackEnd => [Geometry => $geometry]
