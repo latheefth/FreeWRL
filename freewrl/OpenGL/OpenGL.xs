@@ -25,6 +25,7 @@ Window win;
 GLXContext cx;
 unsigned int width, height;
 
+char renderer[256];	/* what device are we using? */
 int screen;
 int modeNum;
 int bestMode;
@@ -244,7 +245,8 @@ GLXFBConfig *glXChooseFBConfigSGIX(Display *dpy, int screen,
 	    }
 	
 	    /* what is the hardware 3d accel? */
-	    printf ("%s\n",glGetString(GL_RENDERER));
+	    strncpy (renderer, glGetString(GL_RENDERER), 250);
+	    printf ("%s\n",renderer);
 	}
 
 int
@@ -2958,9 +2960,15 @@ void
 glXDestroyContext()
 	CODE:
 	{
-	   XF86VidModeSwitchToMode((Display*) dpy, DefaultScreen((Display*)dpy), &original_display);
-	   XF86VidModeSetViewPort((Display*) dpy, DefaultScreen((Display*)dpy), 0, 0);
-	   glXDestroyContext((Display *)dpy,cx);
+	   /* had a problem with this killing some older video cards display */
+	   if (strcmp(renderer,"Mesa X11") != 0) {
+	     /* printf ("destroying context\n"); */
+  	     XF86VidModeSwitchToMode((Display*) dpy, DefaultScreen((Display*)dpy), &original_display);
+	     XF86VidModeSetViewPort((Display*) dpy, DefaultScreen((Display*)dpy), 0, 0);
+	     glXDestroyContext((Display *)dpy,cx);
+	   } else {
+	      /* printf ("Skipping destroy of context\n"); */
+	   }
 	}
 
 Bool
