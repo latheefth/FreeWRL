@@ -170,11 +170,11 @@ for (keys %VRML_CONFIG) {
 
 print OUT ");\n\n";
 chomp ($myconv = `which convert`);
-#JAS chomp ($myxsltproc = `which xsltproc`);
+chomp ($myxsltproc = `which xsltproc`);
 chomp ($pwd = getcwd());
 chomp ($java = `which java`);
 print OUT qq(\$VRML::Browser::CONVERT = "$myconv";\n);
-#JAS print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
+print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_BUILDDIR} = "$pwd";\n\n);
 print OUT "1;\n";
 close OUT;

@@ -188,6 +188,8 @@ sub prepare {
 	
 	# display this one
 
+	VRML::NodeIntern::dump_name($bn), ", ",
+	VRML::NodeIntern::dump_name($bn->{CNode}), ", ",
 	$this->{BE}->set_root($bn); # should eventually be removed
 	VRML::VRMLFunc::set_root($bn->{CNode});
 	
@@ -299,9 +301,13 @@ sub create_common {
 
 	# call Clayton's X3D parser, if this is an X3D file.
 	# if not, then just call the VRML parser
+	# JAS ----- USE the old one for now; fields not quite correct.
         if ($type == 1)  {
-		eval('require VRML/X3DParser;');
-		X3D::Parser::parse($scene, $string);
+		#JAS eval('require VRML/X3DParser;');
+		#JAS X3D::Parser::parse($scene, $string);
+		#JAS use the old NPS conversion stuff for now.
+		$string = convertX3D($string);
+		VRML::Parser::parse($scene, $string);
         } else {
 		VRML::Parser::parse($scene, $string);
 	}
@@ -358,6 +364,41 @@ sub EAI_Route {
 			$ar , $fn, $ff, $tn, $tf);
 }
 
+#######################################################################
+#
+# X3D Conversion routines.
+#
+#######################################################################
+sub convertX3D {
+	my ($string) = @_;
+
+	# x3d - convert this to VRML.
+        my $lgname = $ENV{LOGNAME};
+        my $tempfile_name = "/tmp/freewrl_xmlConversionFile__";
+        my $tempfile1 = join '', $tempfile_name,$lgname, ,".in";
+        my $tempfile2 = join '', $tempfile_name,$lgname, ,".out";
+
+	# write string to a file for conversion (inefficient, but...)
+	open(fileOUT, ">$tempfile1") or warn("Can't open xml conversion file for writing: $!");
+	print fileOUT "$string\n";
+	close(fileOUT);
+
+	# do the conversion
+	my $cmd = "$VRML::Browser::XSLTPROC -o $tempfile2 $XSLTpath $tempfile1";
+
+        my $status = system ($cmd);
+        warn "X3D conversion problem: $?"
+                        unless $status == 0;
+
+	# read the VRML in.
+	$string = `cat $tempfile2`;  
+
+	# remove the two temporary files
+	unlink ($tempfile1);
+	unlink ($tempfile2);
+
+	return $string;
+}
 ################
 # EAI Perl functions.
 
