@@ -530,38 +530,51 @@ sub EAI_GetType {
 		#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
 	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
 	#print "\n\n\n";
-	# print "BROWSER::EAI_GetType now $fieldname\n";
+	#print "BROWSER::EAI_GetType now $fieldname\n";
 
 	if ((exists $realele->{Fields}{$fieldname}) && ($realele->{Fields}{$fieldname} ne "")) {
-		#print "BROWSER:EAI - field $fieldname exists in node, it is ",
-		#	$realele->{Fields}{$fieldname},"\n";
+	#	print "BROWSER:EAI - field $fieldname exists in node, it is ",
+	#		$realele->{Fields}{$fieldname},"\n";
 	} else {
-		# print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
+	#	print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
+
+		# try and see if this is a PROTO expansion.
+		my $testnode = $realele->{Fields}{children}[0];
+		#print "my testnode is ",
+		#	VRML::NodeIntern::dump_name($testnode),"\n";
+
+		if (exists $testnode->{Fields}{$fieldname}) {
+			#print "field exists! making testnode realnode\n";
+			$realele = $testnode;
+		}
+
 		my $ms = $realele->{Scene};		
 		my ($xele, $sc, $in, $rn, $rf);
 
 		# try to find this node/field within this scene.
 		foreach $xele (@EAIinfo) {
 			($sc, $rf, $rn, $in) = @{$xele};
-			#print "in $in rf $rf fieldname $fieldname\n";
+#			print "in $in rf $rf fieldname $fieldname scene ",
+#				VRML::NodeIntern::dump_name($ms), " ",
+#				VRML::NodeIntern::dump_name($sc),"\n";
 			if ($ms eq $sc) {  # same scene
 				if ($fieldname eq $rf) {
 					$realele = $rn;
 					$fieldname = $in;
-					#print "realele now is $realele, field $fieldname\n";
+#					print "realele now is $realele, field $fieldname\n";
 					goto FOUNDIT;
 				}
 			}
 		}
 		#goto NOFOUNDNOTHING;
 		FOUNDIT:
-		#print "------------------";
-		#print "Was Found!";
+#		print "------------------";
+#		print "Was Found!";
 		#NOFOUNDNOTHING:
 		#print "------------------\n";
 	}
 
-	#print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
+#	print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
 
 	# get info from FreeWRL internals.
 	if ($direction =~/eventIn/i) {
@@ -570,24 +583,24 @@ sub EAI_GetType {
 					$realele, $fieldname, $direction);
 
 		$datalen = 0; # we either know the length (eg, SFInt32), or if MF, it is the eventOut that
-		#print "Browser.pm, tonodestr: $tonode_str\n";
+#		print "Browser.pm, tonodestr: $tonode_str\n";
 			      # determines the exact length.
 		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
 
-		#print "BROWSER:EAI_GetType to_count:",$to_count,
-		#" tonode_str:",$tonode_str,
-		#" type:", $type,
-		#" ok:", $ok,
-		#" intptr:", $intptr,
-		#" fieldtype:", $fieldtype,
-		#"\n";
+#		print "BROWSER:EAI_GetType to_count:",$to_count,
+#		" tonode_str:",$tonode_str,
+#		" type:", $type,
+#		" ok:", $ok,
+#		" intptr:", $intptr,
+#		" fieldtype:", $fieldtype,
+#		"\n";
 	} else {
 		($outptr, $outoffset, $type, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
         		$globalBrowser->{Scene}, $realele, $fieldname, $direction);
 
 	}
 
-	#print "Browser, type $type, fieldtype $fieldtype, offset $outoffset\n";
+#	print "Browser, type $type, fieldtype $fieldtype, offset $outoffset\n";
 
 	# return node pointer, offset, data length, type - see the EAI C code (EAIServ.c) for definitions.
 	$retft = 97; 	#SFUNKNOWN
