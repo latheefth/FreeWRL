@@ -34,15 +34,15 @@ sub new_vrmlrot {
 	# print "NEWQ: $type $x $y $z $a\n";
 	my $this = bless [cos($a/2),map {sin($a/2)*$_/$l} $x,$y,$z],$type;
 	$this->normalize_this();
+	# print "Quaternion:new_vrmlrot, returning ",$this->as_str(),"\n";
 	return $this;
 }
 
 sub to_vrmlrot {
 	my($this) = @_;
-#print "Quaternion:to_vrmlrot,0: ",$this->[0]," 1: ",$this->[1]," 2: ",
-#                  $this->[2], " 3: ", $this->[3],"\n";
-
-	to_angle_vector($this->[0],$this->[1],$this->[2],$this->[3]);
+# print "Quaternion:to_vrmlrot,0: ",$this->[0]," 1: ",$this->[1]," 2: ",
+ #                 $this->[2], " 3: ", $this->[3],"\n";
+	# print "Quaternion:to_vrmlrot ",$this->as_str(),"\n";
 
 	my $d = POSIX::acos($this->[0]);
 	if(abs($d) < 0.0000001) {
@@ -51,36 +51,10 @@ sub to_vrmlrot {
 	return [(map {$_/sin($d)} @{$this}[1..3]),2*$d];
 }
 
-# convert this to an angle/vector.
-# from "The Matrix and Quaternion FAQ, question - JAS
-
-sub to_angle_vector {
-	my($qx,$qy,$qz,$qa) = @_;
-
-	#$this->normalize_this();
-
-	# C code is
-	my $cos_angle = $qa;
-	my $angle = POSIX::acos($cos_angle) * 2;
-	my $sin_angle = sqrt (1.0 - $cos_angle * $cos_angle);
-	if (abs(sin_angle) < 0.0005) {
-		$sin_angle = 1;
-	}
-
-	my $vx = $qx/$sin_angle;
-	my $vy = $qy/$sin_angle;
-	my $vz = $qz/$sin_angle;
-
-my $tr = sprintf("%8.4f " x 4, $vx,$vy,$vz,$angle);
-#print "x,y,z,angle $tr \n";
-
-}
-	
-
-
 # Yuck
 sub multiply {
 	my($this,$with) = @_;
+	# print "Quaternion Multiply\n";
 	return VRML::Quaternion->new(
 		$this->[0] * $with->[0] -
 		$this->[1] * $with->[1] -
@@ -131,6 +105,7 @@ sub add {
 
 sub abssq {
 	my($this) = @_;
+	# print "Quaternion, abssq\n";
 	return  $this->[0] ** 2 + 
 		$this->[1] ** 2 +
 		$this->[2] ** 2 +
@@ -139,6 +114,9 @@ sub abssq {
 
 sub invert {
 	my($this) = @_;
+	# print "Quaternion, invert ",
+        #         (join ', ',@$this),"\n";
+
 	my $abssq = $this->abssq();
 	return VRML::Quaternion->new(
 		 1/$abssq * $this->[0] ,
@@ -149,17 +127,24 @@ sub invert {
 
 sub invert_rotation_this {
 	my($this) = @_;
+	# print "Quaternion, invert_rotation of ",
+        #         (join ', ',@$this),"\n";
 	$this->[0] = - $this->[0];
 }
 
 sub normalize_this {
 	my($this) = @_;
+	# print "Quaternion.pm - normalizing from ",
+        #         (join ', ',@$this),"\n";
 	my $abs = sqrt($this->abssq());
 	@$this = map {$_/$abs} @$this;
+	# print "Quaternion.pm - normalizing to ",
+        #         (join ', ',@$this),"\n";
 }
 
 sub rotate {
   my($this,$vec) = @_;
+  # print "Quaternion.pm - rotate\n";
   my $q = (VRML::Quaternion)->new(0,@$vec);
   my $m = $this->multiply($q->multiply($this->invert));
   return [@$m[1..3]];
@@ -210,6 +195,8 @@ sub togl {
 	my($this) = @_;
 	if(abs($this->[0]) == 1) {return}
 	if(abs($this->[0]) >= 1) {$this->normalize_this()}
+	# print "togl, ", $this->[0], " ", @{$this}[1], " ",
+ # 		@{$this}[2], " ", @{$this}[3],"\n";
 	VRML::OpenGL::glRotatef(2*POSIX::acos($this->[0])/3.14*180, @{$this}[1..3]);
 }
 

@@ -108,8 +108,6 @@ sub load_string {
         prepare ($this);
 	# and, take care of keeping the viewpoints active...
 	$this->{Scene}->register_vps($this);
-
-
 }
 
 sub get_scene {
@@ -352,7 +350,6 @@ sub api_getNode {
 }
 sub api__sendEvent { 
 	my($this,$node,$field,$val) = @_;
-	# print "Browser.pm: api__sendEvent, sending $val to $node, field $field\n";
 	$this->{EV}->send_event_to($node,$field,$val);
 }
 

@@ -20,9 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.21  2001/02/16 18:34:27  crc_canada
-# 1) Colour backgrounds now work with Nvidia cards.
-# 2) params to do_texture now correct
+# Revision 1.22  2001/03/13 16:19:57  crc_canada
+# Pre 0.28 checkin
 #
 # Revision 1.20  2000/12/20 17:27:52  crc_canada
 # more IndexedFaceSet work - normals this time.
@@ -642,6 +641,7 @@ ImageTexture => ('
 PixelTexture => ('
 	$start_list();
 	$ptex2d();
+
 	$end_list();
 '),
      
@@ -669,7 +669,6 @@ Background => '
 	int h,v;
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
 	double vatemp;		
-	GLuint mask;
 
 	/* only do background lighting, etc, once for textures */
 	extern void do_texture();
@@ -691,14 +690,8 @@ Background => '
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 
-	/* Sarah Dumoulin - problems with GEforce cards */
-        mask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
-        glClear(mask);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_LIGHTING);
-	/* SD. glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT); */
-	/* SD. glShadeModel(GL_SMOOTH); */
-
+	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
+	glShadeModel(GL_SMOOTH);
 	glPushMatrix();
 	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	glGetDoublev(GL_PROJECTION_MATRIX, proj);
@@ -816,7 +809,6 @@ Background => '
 			GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                		glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 		}
-                glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 
 		/* Actually, one should do it... ? */
 		glBegin(GL_TRIANGLES);
@@ -848,14 +840,12 @@ Background => '
 					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
                				glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
-                                glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 				{            
 					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                 			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
-                                glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}
@@ -878,7 +868,6 @@ Background => '
 				GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
                			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 			}
-                        glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 			glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 			glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 			glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
@@ -907,14 +896,12 @@ Background => '
 					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
 	                		glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
-				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 				{            
 					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                 			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
-                                glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}

@@ -127,6 +127,7 @@ sub propagate_events {
 			$this->{ToQueue} = [];
 			@ne = ();
 			for my $e (@e) {
+
 				if($VRML::verbose::events) {
 					print "Events.pm:while:SEND $e->[0] $e->[0]{TypeName} $e->[1] $e->[2]\n" ;
 					if("ARRAY" eq ref $e->[2]) {
@@ -147,12 +148,14 @@ sub propagate_events {
 					push @ne, 
 					   $_->[0]->receive_event($_->[1],
 							$e->[2],$timestamp);
+print "received event, ", $_->[0],"\n";
+
 					$ep{$_->[0]} = $_->[0];
 					# Was this event routed to someone
 					# who has children?
 					for(@{$this->{PIs}{$_->[0]}{$_->[1]}}) {
 						print "P_IS: send to $_\n"
-						 if $VRML::verbose::events;
+						 ;#JAS if $VRML::verbose::events;
 						my $fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
 						if(!defined $fk) {die("Fieldkind getting")}
 						if($fk eq "eventIn" or 
@@ -236,8 +239,8 @@ sub put_event {
 # This sends an event TO node
 sub send_event_to {
 	my($this,$node,$field,$value) = @_;
-	push @{$this->{ToQueue}}, [$node, $field, $value];
 	# print "Events.pm:send_event_to, pushing $node, $field $value\n";
+	push @{$this->{ToQueue}}, [$node, $field, $value];
 }
 
 sub put_events {

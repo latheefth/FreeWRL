@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.23  2001/03/13 16:18:59  crc_canada
+# Pre 0.28 checkin
+#
 # Revision 1.22  2001/02/16 18:31:52  crc_canada
 # Cleaned up pixeltextures in do_texture routine
 #
@@ -1718,12 +1721,16 @@ void render_polyrep(void *node,
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
-	/*
-	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, p->_change, r->_change, r->ntri);
-	printf ("	npoints %d ncolors %d nnormals %d\n",points,colors,normals);
-	printf("         ntexcoords = %d    texcoords = 0x%lx\n",ntexcoords, texcoords);
-	*/
 
+	/*	
+	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
+			p->_change, r->_change, r->ntri);
+	printf ("\tnpoints %d ncolors %d nnormals %d\n",
+			points,colors,normals);
+	printf("\tntexcoords = %d    texcoords = 0x%lx\n",
+			ntexcoords, texcoords);
+	*/
+	
 	/* Do we have any colours?	*/
 	hasc = (ncolors || r->color);
 	if(hasc) {
@@ -1754,7 +1761,7 @@ void render_polyrep(void *node,
 		else coli = ind;
 
 		/* get texture coordinates, if any	*/
-		if(r->tcindex) {tci = r->tcindex[i];}
+		if((r->tcindex) && (ntexcoords)) {tci = r->tcindex[i];}
 
 		/* get the normals, if there are any	*/
 		if(nnormals) {
@@ -1784,9 +1791,31 @@ printf ("Normal  #%d = [%.5f, %.5f, %.5f]\n",nori,normals[nori].c[0],
 
 		/* Textures	*/
 		if(texcoords && ntexcoords) {
-		  	/* printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] ); */
+		  	/* printf("Render tex coord #%d = [%.5f, %.5f]\t\t",
+				tci, texcoords[tci].c[0], texcoords[tci].c[1] ); */
 		  	glTexCoord2fv(texcoords[tci].c);
-		} /* TODO RCS: Complete use of texCoordIndex */
+
+		} else {
+			/* maybe the Material node has textures? 	*/
+			/* if so, try some kind of mapping.		*/
+			/* lord knows if anything will happen...	*/
+			switch (tci -tci/6*6) {
+			case 0:
+				TC(1,1); break;
+			case 1:
+				TC(0,1); break;
+			case 2:
+				TC(0,0); break;
+			case 3:
+				TC(1,1); break;
+			case 4:
+				TC(0,0); break; 
+			case 5:
+				TC(1,0); break;
+			}
+		}
+
+
 
 		/* Coordinate points	*/
 		if(points) {
@@ -1802,6 +1831,7 @@ printf ("Normal  #%d = [%.5f, %.5f, %.5f]\n",nori,normals[nori].c[0],
 		glDisable(GL_COLOR_MATERIAL);
 	}
 }
+
 
 /*********************************************************************
  *********************************************************************
