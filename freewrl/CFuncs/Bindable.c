@@ -27,6 +27,10 @@ unsigned int fog_stack[MAX_STACK];
 unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
 
+void saveBGVert (struct VRML_Background *node, 
+		int *vertexno, float *col, float dist,
+		float x, float y, float z) ;
+
 /* this is called after a Viewpoint or GeoViewpoint bind */
 void reset_upvector() {
     ViewerUpvector.x = 0;
@@ -401,10 +405,10 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
                         GeoOrig[1] - node->__position.c[1],
                         GeoOrig[2] - node->__position.c[2]);
 
-        //printf ("GeoViewing at %f %f %f\n", 
-        //		GeoOrig[0] - node->__position.c[0],
-         //               GeoOrig[1] - node->__position.c[1],
-          //              GeoOrig[2] - node->__position.c[2]);
+        /* printf ("GeoViewing at %f %f %f\n", 
+        		GeoOrig[0] - node->__position.c[0],
+                        GeoOrig[1] - node->__position.c[1],
+                        GeoOrig[2] - node->__position.c[2]); */
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
@@ -469,20 +473,8 @@ void render_Background (struct VRML_Background *node) {
 	int hdiv = 20;			/* number of horizontal strips allowed */
 	int h,v;
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
-	/* double vatemp;	 */	
-	/* GLuint mask; */
-	GLfloat bk_emis[4];		/* background emissive colour	*/
-	float	sc;
-
-
-	/* Background Texture Objects.... */
-	static int bcklen,frtlen,rtlen,lftlen,toplen,botlen;
-	unsigned char *bckptr,*frtptr,*rtptr,*lftptr,*topptr,*botptr;
-
-	static GLfloat light_ambient[] = {0.0, 0.0, 0.0, 1.0};
-	static GLfloat light_diffuse[] = {0.0, 0.0, 0.0, 1.0};
-	static GLfloat light_specular[] = {0.0, 0.0, 0.0, 1.0};
-	static GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};
+	int estq;
+	int actq;
 
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
@@ -493,8 +485,6 @@ void render_Background (struct VRML_Background *node) {
 
 	/* don't even bother going further if this node is not bound on the top */
 	if(!node->isBound) return;
-
-	bk_emis[3]=0.0; /* always zero for backgrounds */
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 
@@ -521,266 +511,204 @@ void render_Background (struct VRML_Background *node) {
 	/* Undo the translation and scale effects */
 	glScaled(sx,sy,sz);
 
-#ifdef DLIST
-	/* now, is this the same background as before??? */
-	if (node->_dlist) {
-		if (node->_dlchange == node->_change) {
-			glCallList(node->_dlist);
-			glPopMatrix();
-			glPopAttrib();
-			return;
-		} else {
-			glDeleteLists(node->_dlist,1);
-		}
-	}
-
-	/* we are here; compile and display a new background! */
-	node->_dlist = glGenLists(1);
-	node->_dlchange = node->_change;
-	glNewList(node->_dlist,GL_COMPILE_AND_EXECUTE);
-#endif
-
-	/* do we have any background textures?  */
-	frtptr = SvPV((node->__locfilefront),frtlen); 
-	bckptr = SvPV((node->__locfileback),bcklen);
-	topptr = SvPV((node->__locfiletop),toplen);
-	botptr = SvPV((node->__locfilebottom),botlen);
-	lftptr = SvPV((node->__locfileleft),lftlen);
-	rtptr = SvPV((node->__locfileright),rtlen);
-
-	/*printf ("background textures; lengths %d %d %d %d %d %d\n",
-		frtlen,bcklen,toplen,botlen,lftlen,rtlen);
-	printf ("backgrouns textures; names %s %s %s %s %s %s\n",
-		frtptr,bckptr,topptr,botptr,lftptr,rtptr); */
-
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glEnable(GL_LIGHT0);
-
-
-	sc = 20000.0; /* where to put the sky quads */
-	glBegin(GL_QUADS);
-	if(node->skyColor.n == 1) {
-		c1 = &node->skyColor.p[0];
-		va1 = 0;
-		va2 = PI/2; 
-		bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
-		glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-		glColor3d(c1->c[0], c1->c[1], c1->c[2]);
-
-		for(v=0; v<2; v++) {
-			for(h=0; h<hdiv; h++) {
-				ha1 = h * PI*2 / hdiv;
-				ha2 = (h+1) * PI*2 / hdiv;
-
-				glVertex3d(sin(va2)*sc * cos(ha1), cos(va2)*sc, sin(va2) * sin(ha1)*sc);
-				glVertex3d(sin(va2)*sc * cos(ha2), cos(va2)*sc, sin(va2) * sin(ha2)*sc);
-				glVertex3d(sin(va1)*sc * cos(ha2), cos(va1)*sc, sin(va1) * sin(ha2)*sc);
-				glVertex3d(sin(va1)*sc * cos(ha1), cos(va1)*sc, sin(va1) * sin(ha1)*sc);
-			}
-			va1 = va2;
-			va2 = PI;
-		}
-	} else {
-		va1 = 0;
-		/* this gets around a compiler warning - we really DO want last values of this from following
-		   for loop */
-		c1 = &node->skyColor.p[0]; va2= node->skyAngle.p[0];
-
-		for(v=0; v<(node->skyColor.n-1); v++) {
-			c1 = &node->skyColor.p[v];
-			c2 = &node->skyColor.p[v+1];
-			va2 = node->skyAngle.p[v];
-			
-			for(h=0; h<hdiv; h++) {
-				ha1 = h * PI*2 / hdiv;
-				ha2 = (h+1) * PI*2 / hdiv;
-
-				bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
-				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-				glColor3d(c2->c[0], c2->c[1], c2->c[2]);
-				glVertex3d(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
-				glVertex3d(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
-				bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
-				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-				glColor3d(c1->c[0], c1->c[1], c1->c[2]);
-				glVertex3d(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
-				glVertex3d(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
-			}
-			va1 = va2;
-		}
-
-		/* now, the spec states: "If the last skyAngle is less than pi, then the
-		  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
-		if (va2 < (PI-0.01)) {
-			bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
-			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-			glColor3d(c2->c[0], c2->c[1], c2->c[2]);
-			for(h=0; h<hdiv; h++) {
-				ha1 = h * PI*2 / hdiv;
-				ha2 = (h+1) * PI*2 / hdiv;
-	
-				glVertex3d(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
-				glVertex3d(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
-				glVertex3d(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
-				glVertex3d(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
-			}
-		}
-	}
-	glEnd();
-
-
-	/* Do the ground, if there is anything  to do. */
-	if (node->groundColor.n>0) {
-		// JAS sc = 1250.0; /* where to put the ground quads */
-		sc = 12500.0; /* where to put the ground quads */
-		glBegin(GL_QUADS);
-		if(node->groundColor.n == 1) {
-			c1 = &node->groundColor.p[0];
-			bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
-			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-			glColor3d(c1->c[0], c1->c[1], c1->c[2]);
-			for(h=0; h<hdiv; h++) {
-				ha1 = h * PI*2 / hdiv;
-				ha2 = (h+1) * PI*2 / hdiv;
-
-				glVertex3d(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
-				glVertex3d(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
-				glVertex3d(sin(PI/2) * cos(ha2)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha2)*sc);
-				glVertex3d(sin(PI/2) * cos(ha1)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha1)*sc);
-			}
-		} else {
-			va1 = PI;
-			for(v=0; v<node->groundColor.n-1; v++) {
-				c1 = &node->groundColor.p[v];
-				c2 = &node->groundColor.p[v+1];
-				va2 = PI - node->groundAngle.p[v];
+	if (node->_change != node->_ichange) {
+		/* we have to re-calculate display arrays */
+		node->_ichange = node->_change;
 		
+		/* do we have an old background to destroy? */
+		if (node->__points != 0) free (node->__points);
+		if (node->__colours != 0) free (node->__colours);
+	
+		/* calculate how many quads are required */
+		estq=0; actq=0;
+		if(node->skyColor.n == 1) {
+			estq += 40;
+		} else {
+			estq += (node->skyColor.n-1) * 20;
+			if (node->skyAngle.p[node->skyColor.n-2] < (PI-0.01)) estq += 20;
+		}
+	
+		if(node->groundColor.n == 1) estq += 40;
+		else if (node->groundColor.n>0) estq += (node->groundColor.n-1) * 20;
+
+		/* remember how many quads are in this background */
+		node->__quadcount = estq * 4;
+
+		/* now, malloc space for new arrays  - 3 points per vertex, 4 per quad. */
+		node->__points = malloc (sizeof (GLfloat) * estq * 3 * 4);
+		node->__colours = malloc (sizeof (GLfloat) * estq * 3 * 4);
+		if ((node->__points == 0) || (node->__colours == 0)) {
+			printf ("malloc failure in background\n");
+			exit(1);
+		}
+	
+		if(node->skyColor.n == 1) {
+			c1 = &node->skyColor.p[0];
+			va1 = 0;
+			va2 = PI/2; 
+			/* glColor3d(c1->c[0], c1->c[1], c1->c[2]); */
+	
+			for(v=0; v<2; v++) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
-
-					bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
-					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-					glColor3d(c1->c[0], c1->c[1], c1->c[2]);
-					glVertex3d(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
-					glVertex3d(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
-
-					bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
-					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-					glColor3d(c2->c[0], c2->c[1], c2->c[2]);
-					glVertex3d(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
-					glVertex3d(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+					saveBGVert (node,&actq,&c1->c[0],20000,
+					  sin(va2)*cos(ha1), cos(va2), sin(va2)*sin(ha1));
+					saveBGVert (node,&actq,&c1->c[0],20000,
+					  sin(va2)*cos(ha2), cos(va2), sin(va2)*sin(ha2));
+					saveBGVert (node,&actq,&c1->c[0],20000,
+					  sin(va1)*cos(ha2), cos(va1), sin(va1)*sin(ha2));
+					saveBGVert (node,&actq,&c1->c[0],20000,
+					  sin(va1)*cos(ha1), cos(va1), sin(va1) * sin(ha1));
+				}
+				va1 = va2;
+				va2 = PI;
+			}
+		} else {
+			va1 = 0;
+			/* this gets around a compiler warning - we really DO want last values of this from following
+			   for loop */
+			c1 = &node->skyColor.p[0]; va2= node->skyAngle.p[0];
+			for(v=0; v<(node->skyColor.n-1); v++) {
+				c1 = &node->skyColor.p[v];
+				c2 = &node->skyColor.p[v+1];
+				va2 = node->skyAngle.p[v];
+				
+				for(h=0; h<hdiv; h++) {
+					ha1 = h * PI*2 / hdiv;
+					ha2 = (h+1) * PI*2 / hdiv;
+					saveBGVert(node,&actq,&c2->c[0],20000,	
+					  sin(va2)*cos(ha1), cos(va2), sin(va2) * sin(ha1));
+					saveBGVert(node,&actq,&c2->c[0],20000,	
+					  sin(va2)*cos(ha2), cos(va2), sin(va2) * sin(ha2));
+					saveBGVert(node,&actq,&c1->c[0],20000,	
+					  sin(va1)*cos(ha2), cos(va1), sin(va1) * sin(ha2));
+					saveBGVert(node,&actq,&c1->c[0],20000,	
+					  sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 				}
 				va1 = va2;
 			}
+	
+			/* now, the spec states: "If the last skyAngle is less than pi, then the
+			  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
+		printf (" and va2 here %f ",va2);
+			if (va2 < (PI-0.01)) {
+				for(h=0; h<hdiv; h++) {
+					ha1 = h * PI*2 / hdiv;
+					ha2 = (h+1) * PI*2 / hdiv;
+					saveBGVert(node,&actq,&c2->c[0],20000,	
+					  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
+					saveBGVert(node,&actq,&c2->c[0],20000,	
+					  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
+					saveBGVert(node,&actq,&c2->c[0],20000,	
+					  sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
+					saveBGVert(node,&actq,&c2->c[0],20000,	
+					  sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
+				}
+			}
 		}
-		glEnd();
+	
+		/* Do the ground, if there is anything  to do. */
+		if (node->groundColor.n>0) {
+			if(node->groundColor.n == 1) {
+				c1 = &node->groundColor.p[0];
+				for(h=0; h<hdiv; h++) {
+					ha1 = h * PI*2 / hdiv;
+					ha2 = (h+1) * PI*2 / hdiv;
+	
+					saveBGVert(node,&actq,&c1->c[0],12500,	
+					  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
+					saveBGVert(node,&actq,&c1->c[0],12500,	
+					  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
+					saveBGVert(node,&actq,&c1->c[0],12500,	
+					  sin(PI/2) * cos(ha2), cos(PI/2), sin(PI/2) * sin(ha2));
+					saveBGVert(node,&actq,&c1->c[0],12500,	
+					  sin(PI/2) * cos(ha1), cos(PI/2), sin(PI/2) * sin(ha1));
+				}
+			} else {
+				va1 = PI;
+				for(v=0; v<node->groundColor.n-1; v++) {
+					c1 = &node->groundColor.p[v];
+					c2 = &node->groundColor.p[v+1];
+					va2 = PI - node->groundAngle.p[v];
+			
+					for(h=0; h<hdiv; h++) {
+						ha1 = h * PI*2 / hdiv;
+						ha2 = (h+1) * PI*2 / hdiv;
+	
+						saveBGVert(node,&actq,&c1->c[0],12500,	
+						  sin(va1)*cos(ha1), cos(va1), sin(va1)*sin(ha1));
+						saveBGVert(node,&actq,&c1->c[0],12500,	
+						  sin(va1)*cos(ha2), cos(va1), sin(va1)*sin(ha2));
+						saveBGVert(node,&actq,&c2->c[0],12500,	
+						  sin(va2)*cos(ha2), cos(va2), sin(va2)*sin(ha2));
+						saveBGVert(node,&actq,&c2->c[0],12500,	
+						  sin(va2) * cos(ha1), cos(va2), sin(va2)*sin(ha1));
+					}
+					va1 = va2;
+				}
+			}
+		}
 	}
+
+	/* now, display the lists */
+	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
+	glColorPointer(3, GL_FLOAT, 0, (GLfloat *)node->__colours);
+	glEnableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+
+	glDrawArrays (GL_QUADS, 0, node->__quadcount);
+
+	glDisableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+
 
 
 
 
 	/* now, for the textures, if they exist */
-
-	if ((node->__textureback>0) || 
-			(node->__texturefront>0) || 
-			(node->__textureleft>0) || 
-			(node->__textureright>0) || 
-			(node->__texturetop>0) || 
-			(node->__texturebottom>0)) {
+	if (((node->backUrl).n>0) || 
+			((node->frontUrl).n>0) || 
+			((node->leftUrl).n>0) || 
+			((node->rightUrl).n>0) || 
+			((node->topUrl).n>0) || 
+			((node->bottomUrl).n>0)) {
         	GLfloat mat_emission[] = {1.0,1.0,1.0,1.0};
        	 	GLfloat col_amb[] = {1.0, 1.0, 1.0, 1.0};
        	 	GLfloat col_dif[] = {1.0, 1.0, 1.0, 1.0};
 
-        	glEnable (GL_LIGHTING);
         	glEnable(GL_TEXTURE_2D);
         	glColor3d(1.0,1.0,1.0);
+        	glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+        	glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
+        	glNormalPointer (GL_FLOAT,0,Backnorms);
+        	glTexCoordPointer (2,GL_FLOAT,0,Backtex);
 
-		// JAS sc = 500.0; /* where to put the tex vertexes */
-		sc = 5000.0; /* where to put the tex vertexes */
+		loadBackgroundTextures(node);
 
-        	glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
-        	glLightfv (GL_LIGHT0, GL_AMBIENT, col_amb);
-        	glLightfv (GL_LIGHT0, GL_DIFFUSE, col_dif);
-
-		/* go through each of the 6 possible sides */
-
-		if(node->__textureback>0) {
-
-printf ("textures disabled here\n");
-			//bind_image (bckptr, (unsigned *) &node->__textureback, 0,0,node->__istemporaryback);
-			glBegin(GL_QUADS);
-			glNormal3d(0.0,0.0,1.0); 
-			glTexCoord2d(1.0, 0.0); glVertex3d(-sc, -sc, sc);
-			glTexCoord2d(1.0, 1.0); glVertex3d(-sc, sc, sc);
-			glTexCoord2d(0.0, 1.0); glVertex3d(sc, sc, sc);
-			glTexCoord2d(0.0, 0.0); glVertex3d(sc, -sc, sc);
-			glEnd();
-		};
-
-		if(node->__texturefront>0) {
-			//bind_image (frtptr, (unsigned *) &node->__texturefront, 0,0,node->__istemporaryfront);
-			glBegin(GL_QUADS);
-			glNormal3d(0.0,0.0,-1.0);
-			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,-sc);
-			glTexCoord2d(0.0,1.0); glVertex3d(-sc,sc,-sc);
-			glTexCoord2d(0.0,0.0); glVertex3d(-sc,-sc,-sc);
-			glTexCoord2d(1.0,0.0); glVertex3d(sc,-sc,-sc); 
-			glEnd();
-		};
-
-		if(node->__texturetop>0) {
-			//bind_image (topptr, (unsigned *) &node->__texturetop, 0,0,node->__istemporarytop);
-			glBegin(GL_QUADS);
-			glNormal3d(0.0,1.0,0.0);
-			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
-			glTexCoord2d(0.0,1.0); glVertex3d(-sc,sc,sc);
-			glTexCoord2d(0.0,0.0); glVertex3d(-sc,sc,-sc);
-			glTexCoord2d(1.0,0.0); glVertex3d(sc,sc,-sc);
-			glEnd();
-		};
-
-		if(node->__texturebottom>0) {
-			//bind_image (botptr, (unsigned *) &node->__texturebottom, 0,0,node->__istemporarybottom);
-			glBegin(GL_QUADS);
-			glNormal3d(0.0,-(1.0),0.0);
-			glTexCoord2d(1.0,1.0); glVertex3d(sc,-sc,-sc);
-			glTexCoord2d(0.0,1.0); glVertex3d(-sc,-sc,-sc);
-			glTexCoord2d(0.0,0.0); glVertex3d(-sc,-sc,sc);
-			glTexCoord2d(1.0,0.0); glVertex3d(sc,-sc,sc);
-			glEnd();
-		};
-
-		if(node->__textureright>0) {
-			//bind_image (rtptr, (unsigned *) &node->__textureright, 0,0,node->__istemporaryright);
-			glBegin(GL_QUADS);
-			glNormal3d(1.0,0.0,0.0);
-			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
-			glTexCoord2d(0.0,1.0); glVertex3d(sc,sc,-sc);
-			glTexCoord2d(0.0,0.0); glVertex3d(sc,-sc,-sc);
-			glTexCoord2d(1.0,0.0); glVertex3d(sc,-sc,sc);
-			glEnd();
-		};
-
-		if(node->__textureleft>0) {
-			//bind_image (lftptr, (unsigned *) &node->__textureleft, 0,0,node->__istemporaryleft);
-			glBegin(GL_QUADS);
-			glNormal3d(-1.0,0.0,0.0);
-			glTexCoord2d(1.0,1.0); glVertex3d(-sc,sc, -sc);
-			glTexCoord2d(0.0,1.0); glVertex3d(-sc,sc,  sc); 
-			glTexCoord2d(0.0,0.0); glVertex3d(-sc,-sc, sc);
-			glTexCoord2d(1.0,0.0); glVertex3d(-sc,-sc,-sc);
-			glEnd();
-		 };
+        	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 	}
-
-	/* end of textures... */
-#ifdef DLIST
-	glEndList();
-#endif
 	glPopMatrix();
 	glPopAttrib();
+}
+
+/* save a Background vertex into the __points and __colours arrays */
+void saveBGVert (struct VRML_Background *node, 
+		int *vertexno, float *col, float dist,
+		float x, float y, float z) {
+		
+		float *pt;
+		
+		/* first, save the colour */
+		pt = (float *) node->__colours;
+
+		memcpy (&pt[*vertexno*3], col, sizeof(float)*3);
+
+		/* and, save the vertex info */
+		pt = (float *) node->__points;
+		pt[*vertexno*3+0] = x*dist;
+		pt[*vertexno*3+1] = y*dist;
+		pt[*vertexno*3+2] = z*dist;
+		
+		(*vertexno)++;
 }

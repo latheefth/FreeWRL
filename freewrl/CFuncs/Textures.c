@@ -114,6 +114,30 @@ int isTextureinitialized() {
 /* statusbar uses this to tell user that we are still loading */
 int isTextureParsing() {return currentlyWorkingOn>=0;}
 
+/* do Background textures, if possible */
+void loadBackgroundTextures (struct VRML_Background *node) {
+	int *thistex;
+	struct Multi_String thisurl;
+	int count;
+
+	for (count=0; count<6; count++) {
+		/* go through these, back, front, top, bottom, right left */
+		switch (count) {
+			case 0: {thistex = &node->__texturefront;  thisurl = node->frontUrl; break;}
+			case 1: {thistex = &node->__textureback;   thisurl = node->backUrl; break;}
+			case 2: {thistex = &node->__texturetop;    thisurl = node->topUrl; break;}
+			case 3: {thistex = &node->__texturebottom; thisurl = node->bottomUrl; break;}
+			case 4: {thistex = &node->__textureright;  thisurl = node->rightUrl; break;}
+			case 5: {thistex = &node->__textureleft;   thisurl = node->leftUrl; break;}
+		}
+		if (thisurl.n != 0) {
+			/* we have an image for this face */
+			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, thistex, 0, 0);
+			glDrawArrays (GL_QUADS, count*4,4);
+		};
+	}
+}
+
 /* load in a texture, if possible */
 void loadImageTexture (struct VRML_ImageTexture *node) {
 	bind_image(IMAGETEXTURE, node->__parenturl, 

@@ -766,10 +766,7 @@ void render_polyrep(void *node,
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->coord);
-
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
-	//else glDrawArrays (GL_TRIANGLES,0,r->ntri);
-
 
 	// put things back to the way they were; 
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);

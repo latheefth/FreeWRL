@@ -8,9 +8,6 @@
 
 package VRML::NodeType; 
 
-#JAS my $globalAudioSource = 0;  # count of audio sources
-#JAS my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
-
 #########################################################
 # The routines below implement the browser object interface.
 
@@ -149,26 +146,6 @@ sub STORE {
 
 
 package VRML::NodeType;
-
-#JAS # AudioClip WAV/MIDI sound file
-#JAS sub init_sound {
-#JAS 	my($name, $urlname, $t, $f, $scene) = @_;
-#JAS 	#print "init_sound_image, name $name, urlname $urlname t $t f $f \n";
-#JAS 
-#JAS 	my $urls = $f->{$urlname};
-#JAS 	if ($#{$urls} == -1) { goto NO_TEXTURE; }
-#JAS 
-#JAS 	my $file;
-#JAS 	my $suffix;
-#JAS 	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
-#JAS 
-#JAS 	$f->{__localFileName} = $file;
-#JAS 
-#JAS 	return;
-#JAS 
-#JAS NO_TEXTURE:
-#JAS 	return;
-#JAS }
 
 ########################################################################
 
@@ -876,7 +853,6 @@ my $protono;
 						fogType => [SFString, "LINEAR", exposedField],
 						visibilityRange => [SFFloat, 0, exposedField],
 						isBound => [SFBool, 0, eventOut]
-						# AK - not in spec #bindTime => [SFTime, undef, eventOut]
 					   }
 					  ),
 
@@ -889,14 +865,15 @@ my $protono;
 						skyAngle => [MFFloat, [], exposedField],
 						skyColor => [MFColor, [[0, 0, 0]], exposedField],
 						isBound => [SFBool, 0, eventOut],
+						__parenturl =>[SFString,"",field],
+						__points =>[SFInt32,0,field],
+						__colours =>[SFInt32,0,field],
+						__quadcount => [SFInt32,0,field],
+						
 						(map {(
 							   $_.Url => [MFString, [], exposedField],
-							   # local or temp file name
-							   __locfile.$_ => [SFString, "", exposedField],
 							   # OpenGL texture number
 							   __texture.$_ => [SFInt32, 0, exposedField],
-							   # is this a temp file?
-							   __istemporary.$_ => [SFInt32, 0, exposedField]
 							  )} qw/back front top bottom left right/),
 					   },
 					  ),

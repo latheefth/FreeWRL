@@ -303,6 +303,10 @@ extern void loadInline(struct VRML_Inline *node);
 extern void loadImageTexture(struct VRML_ImageTexture *node);
 extern void loadPixelTexture(struct VRML_PixelTexture *node);
 extern void loadMovieTexture(struct VRML_MovieTexture *node);
+extern void loadBackgroundTextures (struct VRML_Background *node);
+extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
+extern GLfloat Backtex[], Backnorms[];
+
 extern void new_tessellation(void);
 extern void initializePerlThread(void);
 extern PerlInterpreter *my_perl;
