@@ -25,8 +25,7 @@ fwopts:
 	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
 
 freewrl: perlxsi fwopts
-	$(CC) $(INC) $(FRFLAGS) $(DEFINE) freewrl.c \
-	-L/usr/people/luigi/freewrl/FreeWRL-1.04.3/blib 
+	$(CC) $(INC) $(FRFLAGS) $(DEFINE) freewrl.c 
 
 	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
 	perlxsi.o freewrl.o fwopts.o \

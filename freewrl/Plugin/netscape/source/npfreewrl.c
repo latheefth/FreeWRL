@@ -276,6 +276,7 @@ void Run (NPP instance) {
 	char	pipetome[25];
 	char	childFd[25];
 	char	instanceStr[25];
+	char	UserAgent[2000];
 
 	print_here ("start of Run");
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
@@ -389,6 +390,16 @@ void Run (NPP instance) {
 		
 	XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
 	print_here ("after mapwindow/n");
+
+	// get Browser information
+	strcpy (UserAgent, NPN_UserAgent(instance));
+	sprintf (debs, "BrowserAgent: %s\n",UserAgent);
+	print_here (debs);
+	if (write(FW_Plugin->fd[NP], UserAgent, strlen(UserAgent)+1) < 0) {
+		print_here ("Call to write failed sending UserAgent");
+	}
+
+
 }
 
 

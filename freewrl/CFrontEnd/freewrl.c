@@ -13,6 +13,7 @@
 #include <headers.h>
 #include <getopt.h>
 #include <Snapshot.h>
+#include <PluginSocket.h>
 
 #ifndef AQUA
 
@@ -258,6 +259,14 @@ int main (int argc, char **argv) {
 	/* create the Texture parser thread */
 	initializeTextureThread();
 	while (!isTextureinitialized()) {usleep(50);}
+
+	/* get the Netscape Browser name, if we are pluggind */
+	NetscapeName[0] = NULL;
+ 	if (RUNNINGASPLUGIN) {
+		if (read(_fw_FD, NetscapeName,MAXNETSCAPENAMELEN) < 0) {
+		}
+	}
+
 
 	/* create the initial scene, from the file passed in
 	and place it as a child of the rootNode. */
