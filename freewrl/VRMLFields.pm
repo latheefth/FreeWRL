@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.28  2003/01/28 18:23:59  ayla
+# Problem with checking for undefined values in VRML::Field::Multi::as_string fixed.
+#
 # Revision 1.27  2002/11/29 17:07:10  ayla
 #
 # Parser was choking on escaped double quotes inside strings.  This should
@@ -799,19 +802,15 @@ sub print {
 }
 
 sub as_string {
-	my $r = $_[0];
-	$r =~ s/::MF/::SF/;
+	my ($type, $value, $as_ecmascript) = @_;
+	$type =~ s/::MF/::SF/;
 
-	if (!defined($_[1])) {
-		# print "as_string, undefined, returning nothing\n";
-		return;
-	}
+	if (!$value) { return; }
 
-	# print "MFNode:as_string, r is $r, 0 is ",$_[0]," 1 is ",$_[1],"\n";
-	if("ARRAY" eq ref $_[1]) {
-		"(Multi print, $_[0], $_[1])", @{$_[1]},"  [ ".(join ' ',map {$r->as_string($_)} @{$_[1]})." ] ";
+	if("ARRAY" eq ref $value) {
+		return "[ ".(join ' ', map {$type->as_string($_)} @{$value})." ]";
 	} else {
-		$_[1]->as_string();
+		return $value->as_string();
 	}
 }
 
