@@ -486,37 +486,37 @@ sub set_sensitive {
 	my($this,$node,$sub) = @_;
 
 	print "\nBE SET SENS Node: $node, Sub: $sub\n"
-	  ; #JAS :if $VRML::verbose::glsens;
+	  if $VRML::verbose::glsens;
 
         # is it already here???
 #JAS Uncommented set_sensitive code
-print "GLBackEnd.pm - setsensitive print code\n";
-	my $match_idx = 0;
-        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
-		print "GLBackEnd:set_sensitive, comparing $node $sub",
-			$VRML::VRMLFunc::item->[0], 
-			$VRML::VRMLFunc::item->[1], "\n";
-
-          if ($VRML::VRMLFunc::item->[0] eq $node) {
-	  # maybe this node has a new sub???
-	  print "same nodes...replacing it\n";
-	  #JAS splice(@{ $this->{Sens} }, $match_idx, 1);
-	  #JAS last;
-	}
-  	$match_idx++;
-       }
+#JAS print "GLBackEnd.pm - setsensitive print code\n";
+#JAS	my $match_idx = 0;
+#JAS        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
+#JAS		print "GLBackEnd:set_sensitive, comparing $node $sub",
+#JAS			$VRML::VRMLFunc::item->[0], 
+#JAS			$VRML::VRMLFunc::item->[1], "\n";
+#JAS
+#JAS          if ($VRML::VRMLFunc::item->[0] eq $node) {
+#JAS	  # maybe this node has a new sub???
+#JAS	  print "same nodes...replacing it\n";
+#JAS	  #JAS splice(@{ $this->{Sens} }, $match_idx, 1);
+#JAS	  #JAS last;
+#JAS	}
+#JAS  	$match_idx++;
+#JAS    }
 	
 	push @{$this->{Sens}}, [$node, $sub];
 	$this->{SensC}{$node->{CNode}} = $node;
 	$this->{SensR}{$node->{CNode}} = $sub;
 
-        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
-                print "GLBackEnd:set_sensitive, vrfy",
-                        $VRML::VRMLFunc::item->[0],
-                        $VRML::VRMLFunc::item->[1], "\n"
-	}
-print "GLBackEnd.pm - end of setsensitive print code\n";
-	print "\n";
+#JAS        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
+#JAS                print "GLBackEnd:set_sensitive, vrfy",
+#JAS                        $VRML::VRMLFunc::item->[0],
+#JAS                        $VRML::VRMLFunc::item->[1], "\n"
+#JAS	}
+#JASprint "GLBackEnd.pm - end of setsensitive print code\n";
+#JAS	print "\n";
 
 }
 

@@ -614,7 +614,6 @@ sub set_backend_fields {
 			$f{$_} = $v;
 		}
 	}
-	# print "Scene.pm, calling setfields in backend with BackNode defined\n";
 	$be->set_fields($this->{BackNode},\%f);
 }
 
@@ -1335,10 +1334,10 @@ sub setup_routing {
 				print "REALNODE: $n $n->{TypeName}\n"
 					if $VRML::verbose::scene;
 				if($VRML::Nodes::siblingsensitive{$n->{TypeName}}) {
-					print "Scene.pm:SES: $n $n->{TypeName}\n"; #JAS if $VRML::verbose::scene;
+					print "Scene.pm:SES: $n $n->{TypeName}\n" if $VRML::verbose::scene;
 					$be->set_sensitive(
 						$_[0]->{BackNode},
-						sub { print "Scene.pm:SES sub\n";
+						sub { # JAS print "Scene.pm:SES sub\n";
 							$eventmodel->
 							    handle_touched($n,
 							    		@_);

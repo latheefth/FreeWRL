@@ -187,6 +187,16 @@ sub prepare {
 	$this->{EV}->print;
 }
 
+# prepare2 - re-do just the routing when adding/removing a child. This should
+# NOT be this static. XXX
+
+sub prepare2 {
+	my($this) = @_;
+	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
+	$this->{Scene}->init_routing($this->{EV},$this->{BE});
+}
+
+
 sub tick {
 	#
 	# some timing print statements in here, will be
@@ -329,7 +339,7 @@ sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
 # is the child already present in the parent? If so, then return 1, if not, return 0
 sub checkChildPresent {
 	my ($this, $node, $child) = @_;
-	print "Browser.pm:checkChildPresent:: checking $node for child $child\n";
+	# print "Browser.pm:checkChildPresent:: checking $node for child $child\n";
 	return VRML::NodeType::checkChildPresent ($node, $child);
 }
 
@@ -337,114 +347,13 @@ sub checkChildPresent {
 # EAI is asking to remove this child.
 sub removeChild {
 	my ($this, $node, $child) = @_;
-	print "Browser.pm:removeChild, removing $child from parent $node\n";
+	# print "Browser.pm:removeChild, removing $child from parent $node\n";
 
 	my @av = VRML::NodeType::removeChild ($node, $child);
-	print "Browser.pm:removeChild, array now is @av\n";
+	# print "Browser.pm:removeChild, array now is @av\n";
 	return @av;
 }
 
-#JAS - NOT NEEDED for 0.27sub api__make_MFNode {
-#JAS - NOT NEEDED for 0.27	my ($this,$SFNode) = @_;
-#JAS - NOT NEEDED for 0.27	return VRML::NodeType::make_MFNode($SFNode);
-#JAS - NOT NEEDED for 0.27}
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27sub api__setMFNode {
-#JAS - NOT NEEDED for 0.27	my($this,$node,$f,$v) = @_;
-#JAS - NOT NEEDED for 0.27	
-#JAS - NOT NEEDED for 0.27	# this = method
-#JAS - NOT NEEDED for 0.27	# node = node to add to.
-#JAS - NOT NEEDED for 0.27	# f    = field of node to add to.
-#JAS - NOT NEEDED for 0.27	# v    = string id of node to add to field of object node.
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27	# Step 1.need to sanitize $v... it probably has trailing newline...
-#JAS - NOT NEEDED for 0.27	$v =~ s/^\s+//;
-#JAS - NOT NEEDED for 0.27	$v =~ s/\s+$//;
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27	# Is the parent displayed yet??? if not, then save it, and
-#JAS - NOT NEEDED for 0.27	# add it in AFTER the parent has been added.
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27	if (VRML::Handles::check_displayed ($node)) {
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27print "set_MFNode - node $node is displayed.\n";
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27		# Step 2. Add it to the scene.
-#JAS - NOT NEEDED for 0.27		VRML::NodeType::add_MFNode ($node, $f, $v);
-#JAS - NOT NEEDED for 0.27	
-#JAS - NOT NEEDED for 0.27		# Step 3: Set up the new backend, routing, etc, etc...
-#JAS - NOT NEEDED for 0.27		# (this is like prepare in the Browser.pm file, except that
-#JAS - NOT NEEDED for 0.27		# make_executable was already done, and the rest need only to
-#JAS - NOT NEEDED for 0.27		# be done on the node and lower...
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27###JAS	        $this->{Scene}->make_backend($this->{BE});
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27	        $this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-#JAS - NOT NEEDED for 0.27	        $this->{Scene}->init_routing($this->{EV},$this->{BE});
-#JAS - NOT NEEDED for 0.27	        $this->api__sendEvent($node, $f, $node->{RFields}{$f});
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27		# yes!!! register this node as being displayed.
-#JAS - NOT NEEDED for 0.27		VRML::Handles::displayed ($v);
-#JAS - NOT NEEDED for 0.27	
-#JAS - NOT NEEDED for 0.27		# any children to add here, if it is a "delayed" add???
-#JAS - NOT NEEDED for 0.27		# (see above, in the check_displayed function)
-#JAS - NOT NEEDED for 0.27		my $unborn = VRML::Handles::unborn_children($v);
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27		for (split /,/, $unborn) {
-#JAS - NOT NEEDED for 0.27			print "doing the unborn for $_\n";
-#JAS - NOT NEEDED for 0.27			my ($nf, $nv) = split " ",$_;
-#JAS - NOT NEEDED for 0.27			print "doing the stuff for $nf, $nv\n";
-#JAS - NOT NEEDED for 0.27			api__setMFNode($this, VRML::Handles::get($v), $nf, $nv);	
-#JAS - NOT NEEDED for 0.27		};
-#JAS - NOT NEEDED for 0.27		VRML::Handles::all_born($v);
-#JAS - NOT NEEDED for 0.27print "now, the unborn are:";
-#JAS - NOT NEEDED for 0.27		my $unborn = VRML::Handles::unborn_children($v);
-#JAS - NOT NEEDED for 0.27print $unborn;
-#JAS - NOT NEEDED for 0.27print "\n";
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27#JAS		if($VRML::verbose::eai) {
-#JAS - NOT NEEDED for 0.27		  print "setting field $f in node $node to $v\n";
-#JAS - NOT NEEDED for 0.27		  my $s = " $node->{TypeName} { \n";
-#JAS - NOT NEEDED for 0.27		  for(keys %{$node->{RFields}}) {
-#JAS - NOT NEEDED for 0.27		          $s .= "\n $_ ";
-#JAS - NOT NEEDED for 0.27		          if("VRML::IS" eq ref $node->{RFields}{$_}) {
-#JAS - NOT NEEDED for 0.27		                  $s .= "(is) ";
-#JAS - NOT NEEDED for 0.27	
-#JAS - NOT NEEDED for 0.27		                  $s .= $node->{RFields}{$_}->as_string();
-#JAS - NOT NEEDED for 0.27		          } else {
-#JAS - NOT NEEDED for 0.27		                  $s .= "VRML::Field::$node->{Type}{FieldTypes}{$_}"->
-#JAS - NOT NEEDED for 0.27		                          as_string($node->{RFields}{$_});
-#JAS - NOT NEEDED for 0.27		          }
-#JAS - NOT NEEDED for 0.27		  }
-#JAS - NOT NEEDED for 0.27		  $s .= "}\n";
-#JAS - NOT NEEDED for 0.27		  print $s;
-#JAS - NOT NEEDED for 0.27		  print "do_add, print done\n\n";
-#JAS - NOT NEEDED for 0.27		
-#JAS - NOT NEEDED for 0.27#JAS		}
-#JAS - NOT NEEDED for 0.27	} else {
-#JAS - NOT NEEDED for 0.27print "set_MFNode - saving node $node for later display.\n";
-#JAS - NOT NEEDED for 0.27		VRML::Handles::save_for_later ($node, $f, $v);
-#JAS - NOT NEEDED for 0.27	}
-#JAS - NOT NEEDED for 0.27}
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27sub api__unsetMFNode {
-#JAS - NOT NEEDED for 0.27	my($this,$node,$f, $v) = @_;
-#JAS - NOT NEEDED for 0.27	
-#JAS - NOT NEEDED for 0.27	# this = method
-#JAS - NOT NEEDED for 0.27	# node = node to add to.
-#JAS - NOT NEEDED for 0.27	# f    = field of node to add to.
-#JAS - NOT NEEDED for 0.27	# v    = string id of node to add to field of object node.
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27	# need to sanitize $v... it probably has trailing newline...
-#JAS - NOT NEEDED for 0.27	$v =~ s/^\s+//;
-#JAS - NOT NEEDED for 0.27	$v =~ s/\s+$//;
-#JAS - NOT NEEDED for 0.27	
-#JAS - NOT NEEDED for 0.27	#print "api__remove_child - removing $v from $node\n";
-#JAS - NOT NEEDED for 0.27
-#JAS - NOT NEEDED for 0.27	# do it, and display it...
-#JAS - NOT NEEDED for 0.27	VRML::NodeType::remove_MFNode ($node, $f, $v);
-#JAS - NOT NEEDED for 0.27	$this->api__sendEvent($node, $f, $node->{RFields}{$f});
-#JAS - NOT NEEDED for 0.27}
 
 ## Get a snapshot from backend and save it
 ##
@@ -592,7 +501,6 @@ package VRML::Handles;
 {
 my %S = ();
 my %ONSCREEN = ();
-my %SEhash = ();
 
 sub displayed {
         my($node) = @_;
@@ -615,30 +523,6 @@ sub check_displayed {
         }
         return 0;
 }
-
-sub save_for_later {
-	my ($node, $field, $child) = @_;
-
-	$SEhash{$node} = "$SEhash{$node},$field $child";
-	# take off the comma at the beginning, if there
-	$SEhash{$node} =~s/^,//;
-
-	print "HANDLES::save_for_later for $node is $SEhash{$node}\n";
-}
-
-sub unborn_children {
-	my ($node) = @_;
-	my $mm = $SEhash{$node};
-	# print "HANDLES::unborn_children ifor $node are $mm\n";
-	delete $SEhash{$node};
-	return $mm;
-}
-
-sub all_born {
-	my ($node) = @_;
-	$SEhash{$node} = "";
-}
-
 
 sub reserve {
 	my($object) = @_;
