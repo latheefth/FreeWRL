@@ -44,7 +44,7 @@ void send_int (int node, int fd);
 void send_type (int node, int offset, int len, int fd);
 void receive_command(int scriptno);
 
-int JavaClassVerbose = 1;
+int JavaClassVerbose = 0;
 
 /* input ClassBuffer */
 int bufcount; 
@@ -52,9 +52,6 @@ int bufsize;
 char *ClassBuffer;
 int eid = 0; /* event id */
 int startEntry, endEntry;
-
-int ClassVerbose = 1;
-
 
 void send_string (char *string, int fd) ;
 
@@ -144,7 +141,6 @@ void sendCLASSEvent(int fn, int scriptno, char *fieldname, int type, int len) {
 	sprintf (mytype, "%d",type);
 	EAI_Convert_mem_to_ASCII(eid,mytype,
 			type+(int)EAI_SFUNKNOWN,(char *)fn,mystring);
-	printf ("mystring would be :%s:\n",mystring);
 
 	send_string("SENDEVENT", scriptno);
 	send_string(ScriptControl[scriptno].NodeID,scriptno);
@@ -439,7 +435,7 @@ void receive_command(int scriptno) {
 			ptr += strlen(FN) +1;
 			finished_found = TRUE;
 		} else if (strncmp (ptr,GF,strlen(GF)) == 0) {
-			printf ("JavaClass:receive_command, GETFIELD\n");
+			//printf ("JavaClass:receive_command, GETFIELD\n");
 	
 			ptr += strlen(GF) +1;
 	
@@ -496,7 +492,7 @@ void receive_command(int scriptno) {
 			free (retstr); // malloc'd in ProdCon
 
 		} else if (strncmp(ptr,SE,strlen(SE)) == 0) {
-			printf ("JavaClass:receive_command, JSENDEV\n");
+			//printf ("JavaClass:receive_command, JSENDEV\n");
 
 			/* skip past the command */
 			ptr += strlen(SE) + 1;
@@ -507,18 +503,16 @@ void receive_command(int scriptno) {
 			 * is not routed */
 
 			/* skip past the perl node number "xx:ddd" to the ptr */
-			printf ("string here is %s\n",ptr);
+			//printf ("string here is %s\n",ptr);
 			sscanf(ptr,"%d:%d",&uretval,&nodeptr);
 			while (*ptr >=' ') ptr++; /* now at the ptr */
 			ptr++;   /* skip the carriage return */
-			printf ("now string here is :%s\n",ptr);
-			printf ("JSENDEV, node ptr is %d\n",nodeptr);
+			//printf ("now string here is :%s\n",ptr);
+			//printf ("JSENDEV, node ptr is %d\n",nodeptr);
 
 			/* process this event, then return */
 			ptr = processThisClassEvent (nodeptr,startEntry,endEntry,ptr);
-			printf ("after processThisClassEvent, string is :%s:\n",ptr);
-			printf ("BTW, offset of enabled is %d\n",
-					offsetof (struct VRML_TouchSensor, enabled));
+			//printf ("after processThisClassEvent, string is :%s:\n",ptr);
 
 		} else if (strncmp(ptr,GT,strlen(GT)) == 0) {
 			//printf ("JavaClass:receive_command, GETTYPENAME\n");
@@ -552,7 +546,7 @@ void receive_command(int scriptno) {
 			ptr += strlen(CV) + 1;
 			ra = EAI_CreateVrml("String",ptr,nodarr,100);
 			ptr = EOT;
-		//	printf ("CreateVRML returned %d nodes\n",ra);
+			//printf ("CreateVRML returned %d nodes\n",ra);
 			if (ra < 0) ra =-1;
 			send_int(ra/2,scriptno);
 			// send frontend name "NODExx" and CNode backends, for each returned node.

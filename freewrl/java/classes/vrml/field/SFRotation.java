@@ -8,15 +8,15 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFRotation extends Field {
-    float axisX;
-    float axisY;
-    float axisZ;
-    float angle;
+     float axisX;
+     float axisY;
+     float axisZ;
+     float angle;
 
-    public SFRotation() {
-    }
+    public SFRotation() { }
+
     public SFRotation(float axisX, float axisY, float axisZ, float angle) {
-        this.axisX = axisX;
+	        this.axisX = axisX;
         this.axisY = axisY;
         this.axisZ = axisZ;
         this.angle = angle;
@@ -37,6 +37,7 @@ public class SFRotation extends Field {
         this.angle = angle;
         __updateWrite();
     }
+
 
     public void setValue(float[] values) {
         this.axisX = values[0];
@@ -64,6 +65,7 @@ public class SFRotation extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return ""+axisX+" "+axisY+" "+axisZ+" "+angle;
@@ -71,7 +73,7 @@ public class SFRotation extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Rotation");
+	//System.out.println ("fromPerl, Rotation");
 		axisX = Float.parseFloat(in.readLine());
 	        axisY = Float.parseFloat(in.readLine());
         	axisZ = Float.parseFloat(in.readLine());
@@ -79,9 +81,8 @@ public class SFRotation extends Field {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+axisX);
-        out.print(""+axisY);
-        out.print(""+axisZ);
-        out.print(""+angle);
+        out.println(axisX+" "+axisY+" "+axisZ+" "+angle);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

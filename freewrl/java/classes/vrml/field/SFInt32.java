@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFInt32 extends Field {
-    int value;
+     int value;
 
-    public SFInt32() {
-    }
+    public SFInt32() { }
+
     public SFInt32(int value) {
-        this.value = value;
+	        this.value = value;
     }
 
     public int getValue() {
@@ -25,6 +25,7 @@ public class SFInt32 extends Field {
         this.value = value;
         __updateWrite();
     }
+
 
     public void setValue(ConstSFInt32 sfInt32) {
         sfInt32.__updateRead();
@@ -38,6 +39,7 @@ public class SFInt32 extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return String.valueOf(value);
@@ -45,11 +47,13 @@ public class SFInt32 extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Int32");
+	//System.out.println ("fromPerl, Int32");
 		value = Integer.parseInt(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(value);
+        out.println(value);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

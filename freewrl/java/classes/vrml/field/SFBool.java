@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFBool extends Field {
-    boolean value;
+     boolean value;
 
-    public SFBool() {
-    }
+    public SFBool() { }
+
     public SFBool(boolean value) {
-        this.value = value;
+	        this.value = value;
     }
 
     public boolean getValue() {
@@ -25,6 +25,7 @@ public class SFBool extends Field {
         this.value = value;
         __updateWrite();
     }
+
 
     public void setValue(ConstSFBool sfBool) {
         sfBool.__updateRead();
@@ -38,6 +39,7 @@ public class SFBool extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return value ? "TRUE" : "FALSE";
@@ -46,7 +48,7 @@ public class SFBool extends Field {
     public void __fromPerl(BufferedReader in)  throws IOException {
         
 			String myline;
-			System.out.println ("fromPerl, Bool");
+		//System.out.println ("fromPerl, Bool");
 			myline = in.readLine();
 			// direct from perl, will be 0 or 1, from a route, TRUE, FALSE
 			value = (myline.equals("TRUE") || myline.equals("1"));
@@ -56,6 +58,8 @@ public class SFBool extends Field {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print (""+value);
+        out.println (value);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

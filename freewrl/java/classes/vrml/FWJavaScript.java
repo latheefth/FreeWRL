@@ -36,8 +36,8 @@ public final class FWJavaScript {
 	    FWJavaScriptBinding b = val.__binding;
 	    BaseNode n = b.node();
 	    String f = b.field() + " " + val.getOffset();
-	    System.out.println ("java, send_touched, offset of " +
-			    b.field() + " is " + val.getOffset());
+	    //System.out.println ("java, send_touched, offset of " +
+	//		    b.field() + " is " + val.getOffset());
 	    String nodeid = n._get_nodeid();
 	    EAIout.println("JSENDEV");
 	    EAIout.println(nodeid);
@@ -154,9 +154,9 @@ public final class FWJavaScript {
 				reqid = EAIin.readLine(); // note reqid position, different than
 							// others, but we are using EAI functions.
 							// position does not matter...
-				System.out.println ("      ....FWJ, got SENDEVENT, NodeID " + nodeid
-						+ " field " + fname + " type " + ftype + " reqid "
-						+ reqid);
+				//System.out.println ("      ....FWJ, got SENDEVENT, NodeID " + nodeid
+				//		+ " field " + fname + " type " + ftype + " reqid "
+				//		+ reqid);
 
 				ConstField fval = 
 				    FWCreateField.createConstField(ftype);

@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFString extends Field {
-    String s;
+     String s;
 
-    public SFString() {
-    }
+    public SFString() { }
+
     public SFString(String s) {
-        this.s = s;
+	        this.s = s;
     }
 
     public String getValue() {
@@ -25,6 +25,7 @@ public class SFString extends Field {
         this.s = s;
         __updateWrite();
     }
+
 
     public void setValue(ConstSFString sfString) {
         sfString.__updateRead();
@@ -38,6 +39,7 @@ public class SFString extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return vrml.FWHelper.quote(s);
@@ -45,11 +47,13 @@ public class SFString extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, String");
+	//System.out.println ("fromPerl, String");
 		s = in.readLine();
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(s);
+        out.println(s);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

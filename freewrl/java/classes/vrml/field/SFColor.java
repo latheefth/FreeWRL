@@ -8,14 +8,14 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFColor extends Field {
-    float red;
-    float green;
-    float blue;
+     float red;
+     float green;
+     float blue;
 
-    public SFColor() {
-    }
+    public SFColor() { }
+
     public SFColor(float red, float green, float blue) {
-        this.red = red;
+	        this.red = red;
         this.green = green;
         this.blue = blue;
     }
@@ -49,6 +49,7 @@ public class SFColor extends Field {
         __updateWrite();
     }
 
+
     public void setValue(float[] values) {
         this.red = values[0];
         this.green = values[1];
@@ -72,6 +73,7 @@ public class SFColor extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return ""+red+" "+green+" "+blue;
@@ -79,15 +81,15 @@ public class SFColor extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Color");
+	//System.out.println ("fromPerl, Color");
 		red = Float.parseFloat(in.readLine());
         	green = Float.parseFloat(in.readLine()); 
         	blue = Float.parseFloat(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+red);
-        out.print(""+green); 
-        out.print(""+blue);
+        out.println(red+ " "+green+" "+blue);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

@@ -8,15 +8,15 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFImage extends Field {
-    int width;
-    int height;
-    int components;
-    byte[] pixels;
+     int width;
+     int height;
+     int components;
+     byte[] pixels;
 
-    public SFImage() {
-    }
+    public SFImage() { }
+
     public SFImage(int width, int height, int components, byte[] pixels) {
-        this.width = width;
+	        this.width = width;
         this.height = height;
         this.components = components;
         this.pixels = pixels;
@@ -50,6 +50,7 @@ public class SFImage extends Field {
         __updateWrite();
     }
 
+
     public void setValue(ConstSFImage sfImage) {
         sfImage.__updateRead();
         width = sfImage.width;
@@ -68,6 +69,7 @@ public class SFImage extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         StringBuffer sb = new StringBuffer();
@@ -83,20 +85,19 @@ public class SFImage extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Image");
+	//System.out.println ("fromPerl, Image");
 		width = Integer.parseInt(in.readLine());
         	height = Integer.parseInt(in.readLine()); 
         	components = Integer.parseInt(in.readLine());
         	pixels = new byte[height*width*components];
-		System.out.println ("JavaClass -- fix method to read in pixels");
+	//System.out.println ("JavaClass -- fix method to read in pixels");
         	// pixels = String.getBytes(pst);
 		
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(width);
-        out.print(height); 
-        out.print(components);
-        out.print(pixels);
+        out.println(width+" "+height+" "+components+" "+pixels);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

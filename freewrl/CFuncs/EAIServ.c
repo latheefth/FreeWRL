@@ -1162,8 +1162,6 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 int ScanValtoString(int len, int type, char *buf, void *memptr) {
 	int xx;
 	
-printf ("Scanval, len %d, type %d\n",len,type);
-
 	switch (type) {
 	    case SFBOOL:	{	/* SFBool */
 	    	if (strncmp(buf,"true",4)==0) {
@@ -1186,25 +1184,24 @@ printf ("Scanval, len %d, type %d\n",len,type);
 	    }
 
 	    case SFVEC2F: {	/* SFVec2f */
-	    	sscanf (buf,"%f %f",(float*)memptr, (float*)memptr+sizeof(float));
+	    	sscanf (buf,"%f %f",(float*)memptr, 
+				(float*)(memptr+sizeof(float)));
 	    	break;
 	    }
 
 	    case SFVEC3F:
 	    case SFCOLOR: {	/* SFColor */
 	    	sscanf (buf,"%f %f %f",(float *)memptr,
-			(float*)memptr+sizeof(float),
-			(float*)memptr+sizeof(float)*2,
-			(float*)memptr+sizeof(float)*3);
+		(float*)(memptr+sizeof(float)),
+		(float*)(memptr+(sizeof(float)*2)));
 	    	break;
 	    }
 
 	    case SFROTATION: {
 	    	sscanf (buf,"%f %f %f %f",(float *)memptr,
-			(float*)memptr+sizeof(float),
-			(float*)memptr+sizeof(float)*2,
-			(float*)memptr+sizeof(float)*3,
-			(float*)memptr+sizeof(float)*4);
+		(float*)(memptr+sizeof(float)),
+		(float*)(memptr+(sizeof(float)*2)),
+		(float*)(memptr+(sizeof(float)*3)));
 	    	break;
 	    }
 

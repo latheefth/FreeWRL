@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFFloat extends Field {
-    float f;
+     float f;
 
-    public SFFloat() {
-    }
+    public SFFloat() { }
+
     public SFFloat(float f) {
-        this.f = f;
+	        this.f = f;
     }
 
     public float getValue() {
@@ -25,6 +25,7 @@ public class SFFloat extends Field {
         this.f = f;
         __updateWrite();
     }
+
 
     public void setValue(ConstSFFloat sfFloat) {
         sfFloat.__updateRead();
@@ -38,6 +39,7 @@ public class SFFloat extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return String.valueOf(f);
@@ -45,11 +47,13 @@ public class SFFloat extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Float");
+	//System.out.println ("fromPerl, Float");
 		f = Float.parseFloat(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+f);
+        out.println(f);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

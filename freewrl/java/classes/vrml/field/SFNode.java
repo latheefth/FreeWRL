@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFNode extends Field {
-    BaseNode node;
+     BaseNode node;
 
-    public SFNode() {
-    }
+    public SFNode() { }
+
     public SFNode(BaseNode node) {
-        this.node = node;
+	        this.node = node;
     }
 
     public BaseNode getValue() {
@@ -25,6 +25,7 @@ public class SFNode extends Field {
         this.node = node;
         __updateWrite();
     }
+
 
     public void setValue(ConstSFNode sfNode) {
         sfNode.__updateRead();
@@ -38,6 +39,7 @@ public class SFNode extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return FWHelper.nodeToString(node);
@@ -45,11 +47,13 @@ public class SFNode extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Node");
+	//System.out.println ("fromPerl, Node");
 		node = new vrml.node.Node(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(node._get_nodeid());
+        out.println(node._get_nodeid());
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

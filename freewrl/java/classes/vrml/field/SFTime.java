@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFTime extends Field {
-    double value;
+     double value;
 
-    public SFTime() {
-    }
+    public SFTime() { }
+
     public SFTime(double value) {
-        this.value = value;
+	        this.value = value;
     }
 
     public double getValue() {
@@ -25,6 +25,7 @@ public class SFTime extends Field {
         this.value = value;
         __updateWrite();
     }
+
 
     public void setValue(ConstSFTime sfTime) {
         sfTime.__updateRead();
@@ -38,6 +39,7 @@ public class SFTime extends Field {
         __updateWrite();
     }
 
+
     public String toString() {
         __updateRead();
         return String.valueOf(value);
@@ -45,11 +47,13 @@ public class SFTime extends Field {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Time");
+	//System.out.println ("fromPerl, Time");
 		value = Double.parseDouble(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+value);
+        out.println(value);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }
