@@ -132,9 +132,7 @@ typedef struct viewer_fly {
 
 typedef struct viewer {
 	struct pt Pos;
-	struct pt AntiPos;
 	Quaternion Quat;
-	Quaternion AntiQuat;
 	int headlight;
 	double speed;
 	double Dist;
@@ -246,10 +244,11 @@ set_stereo_offset(unsigned int buffer,
 				  const double eyehalfangle,
 				  double fieldofview);
 
-
 void
 increment_pos(VRML_Viewer *viewer,
 			  struct pt *vec);
 
+void
+bind_viewpoint(struct VRML_Viewpoint *node);
 
 #endif /* __VIEWER_H_ */

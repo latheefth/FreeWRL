@@ -11,8 +11,12 @@
  *
  */
 
+#include "headers.h"
+#include "Structs.h"
 #include "Viewer.h"
 
+/* The global viewer - should be passed in by pointer JAS  */
+extern VRML_Viewer Viewer;
 
 static int viewer_type = NONE;
 static int viewer_initialized = FALSE;
@@ -38,25 +42,11 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 		(viewer->Pos).y = 0;
 		(viewer->Pos).z = 10;
 
-/* 		# The viewpoint node at the time of the binding -- we have */
-/* 		# to counteract it. */
-/* 		# AntiPos is the real position, AntiQuat is inverted ;) */
-/* 		AntiPos => [0,0,0], */
-		(viewer->AntiPos).x = 0;
-		(viewer->AntiPos).y = 0;
-		(viewer->AntiPos).z = 0;
-
 /* 		Quat => new VRML::Quaternion(1,0,0,0), */
 		(viewer->Quat).w = 1;
 		(viewer->Quat).x = 0;
 		(viewer->Quat).y = 0;
 		(viewer->Quat).z = 0;
-
-/* 		AntiQuat => new VRML::Quaternion(1,0,0,0), */
-		(viewer->AntiQuat).w = 1;
-		(viewer->AntiQuat).x = 0;
-		(viewer->AntiQuat).y = 0;
-		(viewer->AntiQuat).z = 0;
 
 /* 		Navi => undef, */
 /* 		$this->{Navi} = VRML::Scene->new_node("NavigationInfo", */
@@ -204,12 +194,6 @@ viewer_togl(VRML_Viewer *viewer, double fieldofview)
 	glTranslated(-(viewer->Pos).x,
 				 -(viewer->Pos).y,
 				 -(viewer->Pos).z);
-/* 	VRML::OpenGL::glTranslatef(@{$this->{AntiPos}}); */
-	glTranslated((viewer->AntiPos).x,
-				 (viewer->AntiPos).y,
-				 (viewer->AntiPos).z);
-/* 	$this->{AntiQuat}->togl(); */
-	togl(&(viewer->AntiQuat));
 }
 
 
@@ -232,14 +216,11 @@ handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 		walk->SX = x;
 /* 	} elsif($mev eq "DRAG" and $but == 1) { */
 	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
-	printf ("walk drag, button %d\n",button);
 		if (button == 1) {
 /* 		$this->{ZD} = ($my - $this->{SY}) * $this->{Navi}{Fields}{speed}; */
 			walk->ZD = (y - walk->SY) * viewer->speed;
 /* 		$this->{RD} = ($mx - $this->{SX}) * 0.1; */
 			walk->RD = (x - walk->SX) * 0.1;
-printf ("ZD %f RD %f speed %f\n",walk->ZD, walk->RD,viewer->speed);
-
 /* 	} elsif($mev eq "DRAG" and $but == 3) { */
 		} else if (button == 3) {
 /* 		$this->{XD} = ($mx - $this->{SX}) * $this->{Navi}{Fields}{speed}; */
@@ -857,4 +838,27 @@ increment_pos(VRML_Viewer *viewer, struct pt *vec)
 	(viewer->Pos).x += nv.x;
 	(viewer->Pos).y += nv.y;
 	(viewer->Pos).z += nv.z;
+}
+
+
+
+void
+bind_viewpoint (struct VRML_Viewpoint *vp) {
+
+	/* set Viewer position and orientation */
+
+	/* printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
+	vp->orientation.r[3]);
+	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView);
+	*/
+
+	Viewer.Pos.x = vp->position.c[0];
+	Viewer.Pos.y = vp->position.c[1];
+	Viewer.Pos.z = vp->position.c[2];
+
+	vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
+		vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+
+	resolve_pos(&Viewer);
 }
