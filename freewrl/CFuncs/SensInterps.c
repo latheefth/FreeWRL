@@ -548,7 +548,7 @@ void do_GeoOint (void *node) {
 /* fired at start of event loop for every Collision */
 /* void do_CollisionTick(struct VRML_Collision *cx) {*/
 void do_CollisionTick( void *ptr) {
-	struct VRML_Collision *cx = (struct VRML_Collision *)cx;
+	struct VRML_Collision *cx = (struct VRML_Collision *)ptr;
         if (cx->__hit == 3) {
                 /* printf ("COLLISION at %f\n",TickTime); */
                 cx->collideTime = TickTime;
