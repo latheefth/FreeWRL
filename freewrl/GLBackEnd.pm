@@ -32,6 +32,8 @@ use strict vars;
 my $cursortype = 0;  # pointer cursor
 my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
+my $becollision = 1;	# collision detection turned on or off - 1 = on.
+
 ####
 #
 # set fast rendering - don't do smooth shading
@@ -475,13 +477,12 @@ sub event {
 	    } else {
 	      die("No VPSUB");
 	    }
-	} elsif((lc $args[0]) eq "b") {
-	  print "PREV VP\n";
-	  if($this->{VPSub}) {
-	      $this->{VPSub}->(-1)
-	      } else {
-	      die("No VPSUB");
-	    }
+	} elsif((lc $args[0]) eq "c") { # toggle collision detection on/off
+	  if($becollision==1) {
+		$becollision=0;
+	  } else {
+		$becollision=1;
+	  }
 	} elsif(!$this->{Viewer}->use_keys) {
 	    if((lc $args[0]) eq "k") {
 		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
@@ -629,48 +630,54 @@ sub setup_viewpoint {
 }
 
 
+
 sub render_pre {
-    my ($this) = @_;
-    my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
-    $node = $node->{CNode};
+	my ($this) = @_;
 
-    if (!(defined $this->{CONTEXT}))
-    {
-    if( VRML::OpenGL::get_render_frame() == 0) {
-        VRML::OpenGL::BackEndSleep();
-        return;
-    }
-    }
+	my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
+	$node = $node->{CNode};
 
-    # 1. Set up projection
-    $this->setup_projection();
-
-    # 2. Headlight, initialized here where we have the modelview matrix to Identity.
-    # FIXME: position of light sould actually be offset a little (towards the center)
-    # when in stereo mode.
-    glLoadIdentity();
-
-    if($this->{Viewer}{Navi}{RFields}{headlight}) {
-	VRML::OpenGL::BackEndHeadlightOn();
-    }
+	if (!(defined $this->{CONTEXT})) {
+		if( VRML::OpenGL::get_render_frame() == 0) {
+			VRML::OpenGL::BackEndSleep();
+			return;
+		}
+	}
 
 
-    # 3. Viewpoint
-    $this->setup_viewpoint($node); #need this to render collisions correctly
-    $this->render_collisions();
+	# 1. Set up projection
+	$this->setup_projection();
 
-    $this->setup_viewpoint($node); #update viewer position after collision, to 
-                                   #give accurate info to Proximity sensors.
-    VRML::VRMLFunc::render_hier($node,  # Node
+
+	# 2. Headlight, initialized here where we have the modelview matrix to Identity.
+	# FIXME: position of light sould actually be offset a little (towards the center)
+	# when in stereo mode.
+	glLoadIdentity();
+
+	if($this->{Viewer}{Navi}{RFields}{headlight}) {
+		VRML::OpenGL::BackEndHeadlightOn();
+	}
+
+
+	# 3. Viewpoint
+	$this->setup_viewpoint($node); #need this to render collisions correctly
+
+	# 4. Collisions
+	if ($becollision == 1) {
+		$this->render_collisions();
+		$this->setup_viewpoint($node); #update viewer position after collision, to 
+						#give accurate info to Proximity sensors.
+	}
+
+	# 5. render hierarchy - proximity
+	VRML::VRMLFunc::render_hier($node,  # Node
 				&VF_Proximity, 
 				0); # what view point
 
-    glPrintError("GLBackend::render_pre");
-
+	glPrintError("GLBackend::render_pre");
 }
 
-# ModelMatrix must be correctly set
-# TODO: must implement event feedback in case of collision.
+
 sub render_collisions {
     my ($this) = @_;
     my ($node,$viewpoint) = @{$this}{Root, Viewpoint};

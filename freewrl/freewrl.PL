@@ -129,6 +129,10 @@ slower.
 
 Toggle the headlight on or off.
 
+=item c
+
+Toggle collision detection on or off.
+
 =item q
 
 Quit the browser 
