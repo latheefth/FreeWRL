@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.16  2002/05/01 15:12:24  crc_canada
+# add __texture field to store OpenGLs bound texture number
+#
 # Revision 1.15  2002/01/12 15:44:18  hoenicke
 # Removed the Java SAI stuff from here.  It moved to VRMLJava.pm
 # and java/classes/vrml/genfields.pl
@@ -1024,6 +1027,7 @@ struct SFImage {
   int __y;
   int __depth;
   unsigned char *__data;
+  int __texture;
 };
 EOF
 }
