@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.104  2003/05/08 16:01:47  crc_canada
+# Moving code to C
+#
 # Revision 1.103  2003/05/02 05:41:31  ayla
 #
 # Fixed Billboard code for the case where axisOfRotation is [0, 0, 0] - the Billboard does't quite line up correctly, but it's an improvement over the previous implementation.
@@ -1401,12 +1404,6 @@ AudioClip => '
 	
  ',
 
-
-
-# CylinderSensor .... Nothing here
-CylinderCensor => ' ',
-
-
 # GLBackend is using 200000 as distance - we use 100000 for background
 # XXX Should just make depth test always fail.
 Background => '
@@ -1788,6 +1785,11 @@ OrientationInterpolator => '',
 NormalInterpolator => '',
 CoordinateInterpolator => '',
 TimeSensor => '',
+SphereSensor => '',
+CylinderSensor =>'',
+TouchSensor => '',
+PlaneSensor => '',
+
 
 Transform => '
 

@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.31  2003/05/08 16:01:33  crc_canada
+# Moving code to C
+#
 # Revision 1.30  2003/04/25 19:43:13  crc_canada
 # changed SFTime to double from float - float was not enough precision
 # to hold time since epoch values.
@@ -175,6 +178,7 @@ sub es {
 # By encapsulating things well enough, we'll be able to completely
 # change the interface later, e.g. to fit together with javascript etc.
 sub ctype ($) {die "VRML::Field::ctype - abstract function called"}
+sub clength ($) {0} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub calloc ($$) {""}
 sub cassign ($$) {"$_[1] = $_[2];"}
 sub cfree ($) {if($_[0]->calloc) {return "free($_[1]);"} return ""}
@@ -226,6 +230,7 @@ sub as_string { return sprintf("%.4g", $_[1]); }
 sub print {print $_[1]}
 
 sub ctype {"float $_[1]"}
+sub clength {2} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub cfunc {"$_[1] = SvNV($_[2]);\n"}
 
 
@@ -235,6 +240,7 @@ package VRML::Field::SFTime;
 
 sub as_string { return sprintf("%f", $_[1]); }
 sub ctype {"double $_[1]"}
+sub clength {3} #for C routes. Keep in sync with getClen in VRMLC.pm.
 
 ###########################################################
 package VRML::Field::SFInt32;
@@ -254,6 +260,7 @@ sub print {print " $_[1] "}
 sub as_string {$_[1]}
 
 sub ctype {return "int $_[1]"}
+sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
 
 
@@ -279,6 +286,7 @@ sub as_string {join ' ',@{$_[1]}}
 sub cstruct {return "struct SFColor {
 	float c[3]; };"}
 sub ctype {return "struct SFColor $_[1]"}
+sub clength {5} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub cget {return "($_[1].c[$_[2]])"}
 
 sub cfunc {
@@ -402,6 +410,7 @@ sub as_string {join ' ',@{$_[1]}}
 sub cstruct {return "struct SFVec2f {
 	float c[2]; };"}
 sub ctype {return "struct SFVec2f $_[1]"}
+sub clength {6} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub cget {return "($_[1].c[$_[2]])"}
 
 sub cfunc {
@@ -475,7 +484,6 @@ sub rot_multvec {
 	qq~
 		double rl = AVECLEN($_[1].r);
 		double vl = AVECLEN($_[2].c);
-		/* Unused JAS double rlpt = AVECPT($_[1].r, $_[2].c) / rl / vl; */
 		float c1[3];
 		float c2[3];
 		double s = sin($_[1].r[3]), c = cos($_[1].r[3]);
@@ -494,6 +502,7 @@ sub rot_multvec {
 }
 
 sub ctype {return "struct SFRotation $_[1]"}
+sub clength {4} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub cget {return "($_[1].r[$_[2]])"}
 
 sub cfunc {
@@ -541,6 +550,7 @@ sub parse {
 }
 
 sub ctype {return "int $_[1]"}
+sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub cget {return "($_[1])"}
 sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
 
@@ -709,6 +719,14 @@ sub ctype {
 	my $r = (ref $_[0] or $_[0]);
 	$r =~ s/VRML::Field::MF//;
 	return "struct Multi_$r $_[1]";
+}
+sub clength {
+	my $r = (ref $_[0] or $_[0]);
+	$r =~ s/VRML::Field::MF//;
+	if ($r eq "Vec3f") {return -1;} # signal that a -1 is a Multi_Vec3f for CRoutes
+
+	print "clength struct not handled Multi_$r $_[1]";
+	return 0;
 }
 sub cstruct {
 	my $r = (ref $_[0] or $_[0]);
@@ -879,9 +897,6 @@ sub init { return [0, 0, 0]; }
 
 sub parse {
   my($type,$p) = @_;
-
-  # JAS $VRML::verbose::parse=1;
-
 
 # define SFImage as being a range of "numbers" separated by spaces, tabs, newlines, etc.
 # this will end at what hopefully is the trailing brace.

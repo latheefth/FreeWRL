@@ -755,21 +755,8 @@ my $protono;
 
 							ClockTick => sub {
 								my($t,$f,$tick) = @_;
-								my $ac, $evtodo;
-								my @e;
-
 								VRML::VRMLFunc::MovieTextureClockTick(
-									$t->{BackNode}->{CNode},$tick,
-									$evtodo,$ac);
-
-								# for now, tell the backend to render new texture
-								if ($ac == 1) {
-									VRML::OpenGL::set_render_frame();
-								}
-								if ($evtodo == 1) {
-									push @e, [$t, "isActive", $ac];
-								}
-								return @e;
+									$t->{BackNode}->{CNode},$tick);
 							},
 							 }
 					   ),
@@ -859,7 +846,8 @@ my $protono;
 						crossSection => [MFVec2f, [[1, 1],[1, -1],[-1, -1],
 												   [-1, 1],[1, 1]], field],
 						endCap => [SFBool, 1, field],
-						orientation => [MFRotation, [[0, 0, 1, 0]], field],
+						orientation => [MFRotation, [[0, 0, 1, 0]],field],
+
 						scale => [MFVec2f, [[1, 1]], field],
 						solid => [SFBool, 1, field],
 						spine => [MFVec3f, [[0, 0, 0],[0, 1, 0]], field]
@@ -872,7 +860,6 @@ my $protono;
 					   { radius => [SFFloat, 1.0, field] }
 					  ),
 
-	 # normalPerVertex does not work.
 	IndexedFaceSet =>
 	new VRML::NodeType("IndexedFaceSet",
 					   {
@@ -990,14 +977,9 @@ my $protono;
 
 							ClockTick => sub {
 								my($t,$f,$tick) = @_;
-								my $ac, $evtodo;
 
 								VRML::VRMLFunc::AudioClockTick(
-									$t->{BackNode}->{CNode},$tick,
-									$evtodo,$ac);
-								if ($evtodo == 1) {
-									return [$t, "isActive", $ac];
-								}
+									$t->{BackNode}->{CNode},$tick);
 							},
 						   },
 					  ),
@@ -1295,8 +1277,6 @@ my $protono;
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFVec3f, [], exposedField],
 			value_changed => [MFVec3f, [], eventOut],
-			_this_value => [SFVec3f, [], eventOut],
-			_counter => [SFInt32, 0, exposedField],
 			_type => [SFInt32, 0, exposedField], #1 means dont normalize
 		},
 		@x = {	
@@ -1341,8 +1321,6 @@ my $protono;
 			key => [MFFloat, [], exposedField],
 			keyValue => [MFVec3f, [], exposedField],
 			value_changed => [MFVec3f, [], eventOut],
-			_this_value => [SFVec3f, [], eventOut],
-			_counter => [SFInt32, 0, exposedField],
 			_type => [SFInt32, 1, exposedField], #1 means normalize
 		},
 		   @x  # use the init and ep of CoordInterpolator
@@ -1366,22 +1344,17 @@ my $protono;
 						 # time that we were initialized at
 						 __inittime => [SFTime, 0, field],
 						# cycleTimer flag.
-						__ctflag =>[SFTime, 0, exposedField]
+						__ctflag =>[SFTime, 10, exposedField]
 					   },
 					   {
 						Initialize => sub {
 							my($t,$f) = @_;
 
 							# force an event at startup
-							$f->{__ctflag} = 10.0;
+							#$f->{__ctflag} = 10.0;
 							# print "TS init\n";
 							return ();
 						},
-
-						#JAS EventsProcessed => sub {
-						#JAS 	# print "TS EV\n";
-						#JAS 	return ();
-						#JAS },
 
 						#
 						#  Ignore startTime and cycleInterval when active..
@@ -1416,47 +1389,13 @@ my $protono;
 
 						ClockTick => sub {
 							my($t,$f,$tick) = @_;
-							my $doac, $astate, $doct, $dofrac, $retfrac;
-							my @e;
-
-							# are we enabled? If not, make sure we are not marked active.
-							if (!$f->{enabled}) {
-								if ($f->{isActive}) {
-									$f->{isActive}=0;
-									push @e, [$t, "isActive", 0];
-								}
-								return @e;
-							}
 
 							VRML::VRMLFunc::TimeSensorClockTick(
-								$t->{BackNode}->{CNode},$tick,
-								$doac,$astate,$doct,$dofrac,$retfrac);
-
-							if ($doac == 1) {
-								push @e, [$t, "isActive", $astate];
-							}
-							if ($doct == 1) {
-								push @e, [$t, cycleTime, $tick];
-							}
-
-							if ($dofrac == 1) {
-								push @e, [$t, "time", $tick];
-								push @e, [$t, fraction_changed, $retfrac]; 
-							}
-							return @e;
+								$t->{BackNode}->{CNode},$tick);
 						},
 					   }
 					  ),
 
-
-# new touchsensor rules; the old ones were broken. JAS.
-# if we are on a touchsensor, and the button is "PRESS",
-# then it is pressed. Period.
-
-# this mimics Cosmoplayer, except that we don't (yet) change
-# the cursor type
-#
-# JAS.
 
 	TouchSensor =>
 	new VRML::NodeType("TouchSensor",
@@ -1469,28 +1408,6 @@ my $protono;
 						isOver => [SFBool, 0, eventOut],
 						touchTime => [SFTime, -1, eventOut]
 					   },
-					   {
-						__mouse__ => sub {
-							my($t, $f, $time, $moved, $button, $over, $pos,
-							   $norm, $texc) = @_;
-							print "MOUSE: over $over but $button moved $moved\n"
-								if $VRML::verbose::timesens;
-							if ($button ne "PRESS") {
-								return;
-							}
-
-							#ok, we are here, and we have a button press.
-							# Don't know how many of these thingies we need, nor
-							# what they all do, but, this seems to work, at least
-							# for simple data... JAS.
-
-							$f->{isOver} = $over;
-							$f->{hitPoint_changed} = $pos;
-							$f->{hitNormal_changed} = $norm;
-							$f->{isActive} = 1;
-							$f->{touchTime} = $time;
-						}
-					   }
 					  ),
 
 
@@ -1504,58 +1421,10 @@ my $protono;
 						offset => [SFVec3f, [0, 0, 0], exposedField],
 						isActive => [SFBool, 0, eventOut],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
-						translation_changed => [SFVec3f, [0, 0, 0], eventOut]
+						translation_changed => [SFVec3f, [0, 0, 0], eventOut],
+						# where we are at a press...
+						_origPoint => [SFVec3f, [0, 0, 0], field],
 					   },
-					   {
-						__mouse__ => sub {
-							my($t, $f, $time, $moved, $button, $over, $pos,
-							   $norm, $texc) = @_;
-							# print "PS_MOUSE: $moved $button $over @$pos @$norm\n";
-							if ($button eq "PRESS") {
-								$t->{OrigPoint} = $pos;
-								$f->{isActive} = 1;
-							} elsif ($button eq "RELEASE") {
-								# print "PLREL!\n";
-								undef $t->{OrigPoint};
-								$t->{isActive} = 0;
-								if ($f->{autoOffset}) {
-									$f->{offset} =
-										$f->{translation_changed};
-								}
-							} elsif ($button eq "DRAG") {
-								# 1. get the point on the plane
-								my $op = $t->{OrigPoint};
-								my $of = $f->{offset};
-								my $mult =
-									($op->[2] - $pos->[2]) /
-									($norm->[2] - $pos->[2]);
-								my $nx = $pos->[0] + $mult *
-									($norm->[0] - $pos->[0]);
-								my $ny = $pos->[1] + $mult *
-									($norm->[1] - $pos->[1]);
-								# print "Now: ($mult $op->[2]) $nx $ny $op->[0] $op->[1] $of->[0] $of->[1]\n";
-								$f->{trackPoint_changed} =
-									[$nx,$ny,$op->[2]];
-								my $tr = [$nx - $op->[0] + $of->[0],
-										  $ny - $op->[1] + $of->[1],
-										  0 + $of->[2]];
-								# print "TR: @$tr\n";
-								for (0..1) {
-									# Clamp
-									if ($f->{maxPosition}[$_] >=
-										$f->{minPosition}[$_]) {
-										if ($tr->[$_] < $f->{minPosition}[$_]) {
-											$tr->[$_] = $f->{minPosition}[$_];
-										} elsif ($tr->[$_] > $f->{maxPosition}[$_]) {
-											$tr->[$_] = $f->{maxPosition}[$_];
-										}
-									}
-								}
-								# print "TRC: (@$tr) (@$pos)\n";
-								$f->{translation_changed} = $tr;
-							}
-						}
-					   }
 					  ),
 
 	SphereSensor =>
@@ -1568,105 +1437,6 @@ my $protono;
 						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut]
 					   },
-					   {
-						__mouse__ => sub {
-							my($t, $f, $time, $moved, $button, $over, $pos,
-							   $norm, $texc) = @_;
-							# print "PS_MOUSE: $moved $button $over @$pos @$norm\n";
-							if ($button eq "PRESS") {
-								$t->{OrigPoint} = $pos;
-								$t->{Radius} = $pos->[0] ** 2 +
-									$pos->[1] ** 2 + $pos->[2] ** 2;
-								$f->{isActive} = 1;
-							} elsif ($button eq "RELEASE") {
-								undef $t->{OrigPoint};
-								$t->{isActive} = 0;
-								if ($f->{autoOffset}) {
-									$f->{offset} = $f->{rotation_changed};
-								}
-							} elsif ($button eq "DRAG") {
-								# 1. get the point on the plane
-								my $op = $t->{OrigPoint};
-								my $r = $t->{Radius};
-								my $of = $f->{offset};
-
-								my $tr1sq =
-									$pos->[0]**2 +
-									$pos->[1]**2 +
-									$pos->[2]**2;
-								my $tr2sq =
-									$norm->[0]**2 +
-									$norm->[1]**2 +
-									$norm->[2]**2;
-								my $tr1tr2 =
-									$pos->[0]*$norm->[0] +
-									$pos->[1]*$norm->[1] +
-									$pos->[2]*$norm->[2];
-								my @d = map {
-									$norm->[$_] - $pos->[$_]
-								} 0..2;
-								my $dlen =
-									$d[0]**2 +
-									$d[1]**2 +
-									$d[2]**2;
-
-								my $a = $dlen;
-								my $b = 2*($d[0]*$pos->[0] +
-										   $d[1]*$pos->[1] +
-										   $d[2]*$pos->[2]);
-								my $c = $tr1sq - $r*$r;
-								$b /= $a;
-								$c /= $a;
-
-								my $und = $b*$b - 4*$c;
-								if ($und >= 0) {
-									my $sol;
-									if ($b >= 0) {
-										$sol = (-$b + sqrt($und)) / 2;
-									} else {
-										$sol = (-$b - sqrt($und)) / 2;
-									}
-									my @r = map {
-										$pos->[$_] + $sol * ($norm->[$_] - $pos->[$_])
-									} 0..2;
-									# Ok, now we have the two vectors op
-									# and r, find out the rotation to take 
-									# one to the other.
-									my @cp = (
-											  $r[1] * $op->[2] - $op->[1] * $r[2],
-											  $r[2] * $op->[0] - $op->[2] * $r[0],
-											  $r[0] * $op->[1] - $op->[0] * $r[1],
-											 );
-									my @dot = (
-											   $r[0] * $op->[0],
-											   $r[1] * $op->[1],
-											   $r[2] * $op->[2]
-											  );
-									my $an = atan2((my $cl =
-													$cp[0]**2 +
-													$cp[1]**2 +
-													$cp[2]**2),
-												   $dot[0]**2 +
-												   $dot[1]**2 +
-												   $dot[2]**2);
-									for (@cp) {
-										$_ /= $cl;
-									}
-									$f->{trackPoint_changed} = [@r];
-				
-									# print "QNEW: @cp, $an (R: $r)\n";
-									my $q =
-										VRML::Quaternion->new_vrmlrot(@cp, -$an);
-									# print "QNEW2: @$of\n";
-									my $q2 =
-										VRML::Quaternion->new_vrmlrot(@$of);
-
-									$f->{rotation_changed} =
-										$q->multiply($q2)->to_vrmlrot();
-								}
-							}
-						}
-					   }
 					  ),
 
 	CylinderSensor =>
@@ -1682,12 +1452,6 @@ my $protono;
 						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],	
 						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut]
 					   },
-					   {
-						__mouse__ => sub {
-							## until there's code, need empty method to prevent
-							## the browser from crashing
-						}
-					   }
 					  ),
 
 
@@ -1863,7 +1627,6 @@ my $protono;
 							   # is this a temp file?
 							   __istemporary.$_ => [SFInt32, 0, exposedField]
 							  )} qw/back front top bottom left right/),
-						# AK - not in spec #bindTime => [SFTime, undef, eventOut]
 					   },
 					   {
 						Initialize => sub {
