@@ -328,10 +328,17 @@ void render_Fog (struct VRML_Fog *node) {
 
 	/* now do the foggy stuff */
 	glFogfv(GL_FOG_COLOR,fog_colour);
-	glFogf(GL_FOG_END, (float) (node->visibilityRange));
+
+	/* make the fog look like the examples in the VRML Source Book */
 	if (strncmp("LINEAR",fogptr,(unsigned) foglen)) {
+		/* Exponential */
+		glFogf(GL_FOG_DENSITY, (float) (4.0)/ (node->visibilityRange));
+		glFogf(GL_FOG_END, (float) (node->visibilityRange));
 		glFogi(GL_FOG_MODE, GL_EXP);
 	} else {
+		/* Linear */
+		glFogf(GL_FOG_START, 1.0);
+		glFogf(GL_FOG_END, (float) (node->visibilityRange));
 		glFogi(GL_FOG_MODE, GL_LINEAR);
 	}
 	glEnable (GL_FOG);
