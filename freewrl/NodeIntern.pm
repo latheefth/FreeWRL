@@ -310,7 +310,11 @@ sub do_defaults {
 
 	for (keys %{$this->{Type}{Defaults}}) {
 		if (!exists $this->{Fields}{$_}) {
-			$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
+			if (ref $this->{Type}{Defaults}{$_} eq "ARRAY") {
+				push @{$this->{Fields}{$_}}, @{$this->{Type}{Defaults}{$_}};
+			} else {
+				$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
+			}
 		}
 	}
 }
