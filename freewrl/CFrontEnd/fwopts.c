@@ -311,8 +311,6 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 		exit(-1);
 	}
 
-#endif
-
 
 	// For Vertex arrays - we always assume these are enabled.
 	glEnableClientState (GL_VERTEX_ARRAY);
