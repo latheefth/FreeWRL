@@ -1,5 +1,5 @@
 /* 
- * Copyright(C) 1998 Tuomas J. Lukka, 2001 John Stewart. CRC Canada.
+ * Copyright(C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart. CRC Canada.
  * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
  * distribution) for details.
  */
@@ -168,7 +168,7 @@ int FW_lineto ( FT_Vector* to, void* user) {
 	GLdouble *v2;
 
 	if ((last_point.x == to->x) && (last_point.y == to->y)) {
-		printf ("FW_lineto, early return\n");
+		// printf ("FW_lineto, early return\n");
 		return 0;
 	}
 
@@ -191,51 +191,16 @@ int FW_lineto ( FT_Vector* to, void* user) {
   }
 
 int FW_conicto ( FT_Vector* control, FT_Vector* to, void* user) {
-	GLdouble *v2;
-	int step;
-	FT_Vector b,c,d,f,delta,delta2;
-	FT_Vector tmp_vertex;
 
-	/* skip out for now... */
+	/* Ok, we could make some really pretty characters, but
+	   that would take up triangles, something that is bad for
+	   speed. This shortcut seems to work quite well */
+
+	if (verbose)
+		printf ("FW_conicto\n");
+
 	FW_lineto (control,user);
 	FW_lineto (to,user);
-	return 0;
-
-
-
-	/* rough calculate the spline, and line-to these points */
-
-
-
-
-	b.x = last_point.x  - 2 * control->x + to->x;
-	b.y = last_point.y - 2 * control->x + to->y;
-
-	c.x = -2 * last_point.x + 2 * control->x;
-	c.y = -2 * last_point.y + 2 * control->y;
-
-	d.x = last_point.x;
-	d.y = last_point.y;
-
-	f.x = d.x;
-	f.y = d.y;
-	delta.x = c.x * DELTA + b.x * DELTA2;
-	delta.y = c.x * DELTA + b.x * DELTA2;
-	delta2.x = 2 * b.x * DELTA2;
-	delta2.y = 2 * b.x * DELTA2;
-
-	for (step = 0; step < CONIC_STEPS; step++ ) {
-
-		if (verbose) printf ("conic-to step %d\n",step);
-
-		tmp_vertex.x += delta.x;
-		tmp_vertex.y += delta.y;
-		FW_lineto ( &tmp_vertex , user );
-		delta.x += delta2.x;
-		delta.y += delta2.y;
-	}
-
-	FW_lineto (to, user);
 
 	return 0;
 }
@@ -244,7 +209,7 @@ int FW_cubicto ( FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* 
 	GLdouble *v2;
 
 	/* really ignore control points */
-	//if (verbose)
+	if (verbose)
 		printf ("FW_cubicto\n");
 
 	FW_lineto (control1, user);
