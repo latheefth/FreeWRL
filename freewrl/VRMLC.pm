@@ -26,6 +26,12 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.58  2002/07/19 14:05:29  crc_canada
+# seg fault caused in save_font_paths; changed way of verifying that
+# files exist to fopen/fclosed from fstat. Appears to fix problem. Also
+# changed it to return a success/fail flag; this allows freewrl to search
+# a bunch of directories for fonts
+#
 # Revision 1.57  2002/07/15 15:37:48  crc_canada
 # add CFunc to allow setting of max texture size from freewrl.PL
 #
@@ -1446,7 +1452,6 @@ read_mpg_file(init_tex, fname)
 	char *fname
 CODE:
 	/* go directly to the CFuncs/MPEG_Utils, and run from there */
-	printf ("read_mpg_file, reading %s\n",fname);
 	RETVAL = mpg_main(init_tex, fname);
 OUTPUT:
 	RETVAL
@@ -1457,35 +1462,27 @@ OUTPUT:
 #
 ####################################################################
 
-void
-save_font_paths(sysfp, myfp)
-	char *sysfp
+int
+save_font_path(myfp)
 	char *myfp
 CODE:
-	struct stat *buf;
+	FILE *fp;
 	char fname [1024];
-	//printf ("SaveFontPaths, saving %s and %s\n",sysfp,myfp);
-	strncpy(fname,sysfp,fp_name_len-20);
+	strncpy(fname,myfp,fp_name_len-20);
+	
 	strcat(fname,"/Amrigoi.ttf");
-	//printf ("looking for %s\n",fname);
-	if (stat(fname,buf) == 0) {
-		// this path is ok
-		strncpy(sys_fp,sysfp,fp_name_len-20);
-	} else {
-		strncpy(fname,myfp,fp_name_len-20);
-		strcat(fname,"/Amrigoi.ttf");
-		//printf ("looking for %s\n",fname);
-		if (stat(fname,buf) == 0) {
-			// this second path is ok
-			strncpy (sys_fp,myfp,fp_name_len-20);
-		} else {
-			printf ("no FreeWRL fonts found\n");
-			sys_fp[0] = 0;
-		}
-	}
 
-	// and initialize the font structures
-	open_font();
+	//printf ("save_font_path, trying %s\n",fname);
+	if ((fp=fopen(fname,"r"))!=NULL) {
+		// this path is ok
+		strncpy(sys_fp,myfp,fp_name_len-20);
+		fclose(fp);
+		RETVAL=1;
+	} else {
+		RETVAL=0;
+	}
+OUTPUT:
+	RETVAL
 
 
 
@@ -1663,6 +1660,7 @@ CODE:
 	if(!p) {
 		die("Render_hier null!??");
 	}
+	//verbose = 1;
 	if(verbose)
   		printf("Render_hier node=%d what=%d what_vp=%d\n", p, rwhat, wvp);
 
