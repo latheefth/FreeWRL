@@ -769,6 +769,7 @@ void addToNode (unsigned rc, unsigned newNode) {
 	unsigned *tmp;
 
 	par = (struct Multi_Node *) rc;
+	//printf ("addToNode, adding %d to %d\n",newNode,rc);
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
@@ -1078,7 +1079,11 @@ void __pt_doStringUrl () {
 		/* a valid node */
 
 	       	for (count =1; count < retval; count+=2) {
+			/* add this child to the node */
        			addToNode(psp.ptr+psp.ofs, (unsigned)(myretarr[count]));
+
+			/* tell the child that it has a new parent! */
+			add_parent(myretarr[count],psp.ptr);
        		}
 
 		/* tell the node that we have changed */

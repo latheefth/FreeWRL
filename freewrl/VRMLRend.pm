@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.136  2004/09/08 18:58:58  crc_canada
+# More Frustum culling work.
+#
 # Revision 1.135  2004/08/23 17:46:26  crc_canada
 # Bulk commit: IndexedLineWidth width setting, and more Frustum culling work.
 #
@@ -1133,6 +1136,7 @@ Transform => '
 
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
+			//printf ("calling PointInView for %d\n",this_);
 			this_->PIV = PointInView(this_);
 			//printf ("ppv %d\n",this_->PIV);
 

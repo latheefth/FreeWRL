@@ -870,7 +870,7 @@ void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) 
 	if (len <=0) return;
 
 	oldlen = tn->n;
-	//printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);
+	printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);
 	
 	if (ar != 0) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
@@ -895,6 +895,11 @@ void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) 
 		/* copy the new stuff over */
 		newmal = (void *) ((int) newmal + sizeof (unsigned int) * oldlen);
 		memcpy(newmal,nodelist,sizeof(unsigned int) * len);
+
+		/* tell each node in the nodelist that it has a new parent */
+		for (counter = 0; counter < len; counter++) {
+			add_parent(nodelist[counter],tn);
+		}
 
 		/* and, set the new length */
 		tn->n = len+oldlen;
@@ -934,6 +939,7 @@ void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) 
 			for (counter = 0; counter < tn->n; counter ++) {
 				if (*remptr != 0) {
 					*tmpptr = *remptr;
+					remove_parent(*remptr,tn);
 					tmpptr ++;
 				}
 				remptr ++;

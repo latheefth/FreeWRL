@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.152  2004/09/08 18:58:58  crc_canada
+# More Frustum culling work.
+#
 # Revision 1.151  2004/08/25 14:57:12  crc_canada
 # more Frustum culling work
 #
@@ -1075,6 +1078,7 @@ void update_node(void *ptr) {
 	struct VRML_Box *p = ptr;
 	int i;
 	p->_change ++;
+	p->PIV=1;
 	for (i = 0; i < p->_nparents; i++) {
 		update_node(p->_parents[i]);
 	}

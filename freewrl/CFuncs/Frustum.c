@@ -70,8 +70,9 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 	int i;
 	struct VRML_Box *parent;
 
-	//printf ("propextent, bboxcenter %f %f %f, myextent %f %f %f\n",
-	//		x,y,z,me->_extent[0],me->_extent[1],me->_extent[2]);
+	//printf ("propextent, bboxcenter %f %f %f, myextent %f %f %f me %d parents %d\n",
+	//		x,y,z,me->_extent[0],me->_extent[1],me->_extent[2],me,
+	//		me->_nparents);
 
 	/* calculate the maximum of the current position, and add the previous extent */
 	x =fabs(x)+me->_extent[0];y=fabs(y)+me->_extent[1];z=fabs(z)+me->_extent[2];
@@ -81,6 +82,7 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 		if (x > parent->_extent[0]) parent->_extent[0] = x; 
 		if (y > parent->_extent[1]) parent->_extent[1] = y; 
 		if (z > parent->_extent[2]) parent->_extent[2] = z; 
+	//	printf ("propextent, me %d my parent %d is %d ext %4.2f %4.2f %4.2f\n",me,i,parent, parent->_extent[0],parent->_extent[1],parent->_extent[2]);
 	}
 #endif
 }
@@ -94,9 +96,9 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV) {
 	//printf ("BoundingBox, size %f %f %f %d\n",x,y,z, PIV);
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
 	if (PIV == 0) return;
+	if (PIV < 2) return;
 
-
-	return;
+	//return;
 	/* calculate distance to this box from the Frustum */
 
 	
@@ -107,7 +109,7 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV) {
 
 	if (PIV >= 2) {
 
-		glColor3f(1.0, 1.0, 0.0);
+		glColor3f(1.0, 0.0, 0.0);
 	} else if (PIV >= 1) {
 		glColor3f(0.0, 1.0, 0.0);
 	}
@@ -231,13 +233,13 @@ void calculateFrustumCone () {
 void inCheck(GLdouble Distance,GLdouble bb,GLdouble cc, int *xcount, int *pointok) {
 	GLdouble xx;	
 	
-	xx = tan(0.3)*Distance;
+	xx = tan(0.7)*Distance;
 
-	//printf ("        comparing %f with %f, %f ",xx, bb,cc);
+	printf ("        comparing %f with %f, %f ",xx, bb,cc);
 
 	// Point is behind viewer
 	if (Distance<0.0) {
-		//printf (" Xcount %d\n",0);
+		printf (" Xcount %d\n",0);
 		return;
 	}
 
@@ -247,7 +249,7 @@ void inCheck(GLdouble Distance,GLdouble bb,GLdouble cc, int *xcount, int *pointo
 	
 	if ((bb>0.0) && (cc>0.0)) (*pointok)++;
 
-	//printf (" Xcount %d pok %d\n",*xcount,*pointok);
+	printf (" Xcount %d pok %d\n",*xcount,*pointok);
 }
 
 
@@ -271,7 +273,7 @@ int PointInView(struct VRML_Transform *nod) {
 	// get the x,y values from the modelMatrix
 	bb = modelMatrix[12]; // x ish
 	cc = modelMatrix[13]; // y ish
-	//printf ("\nbb %f cc %f\n",bb,cc);
+	printf ("\nbb %f cc %f dist approx %f\n",bb,cc,modelMatrix[14]);
 
 	// get the extent from the VRML Struct passed in
 	ex_X=nod->_extent[0]; 
