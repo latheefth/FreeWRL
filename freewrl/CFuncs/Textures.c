@@ -95,7 +95,6 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	}
 }
 
-
 void bind_image (filename, texture_num, repeatS, repeatT, remove) 
 	char *filename;
 	GLuint texture_num;
@@ -106,6 +105,13 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	FILE *infile;
 	unsigned char *image_data = 0;
 
+	/* PixelTexture variables */
+	int hei,wid,depth;
+	int ok;
+	ulong inval;
+	unsigned char *texture;
+	int tctr;
+	
 	/* png reading variables */
 	int rc;
 	int len;
@@ -131,6 +137,7 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	/* temp variable */
 	int count;
 
+	//printf ("bind image, filename %s\n",filename);
 	//printf ("start of bind_image %d  %d\n",texture_num,max_texture);
 
 	/* do we have enough room to save the isloaded flag for this texture? */
@@ -158,7 +165,73 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	if (!(infile = fopen(filename, "rb"))) {
 		printf("can not open ImageTexture file [%s]\n", filename);
 	} else {
-		if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
+
+		/* is this a pixeltexture? */
+		if (strstr(filename,".pixtex")) {
+			if (fscanf (infile, "%i%i%i",&wid,&hei,&depth)) {
+				if ((depth < 1) || (depth >4)) {
+					printf ("PixelTexture, depth %d out of range, assuming 1\n");
+					depth = 1;
+				}
+
+				/* have header ok, now read in all values */
+				count = 0; ok = 1; tctr = 0;
+
+				texture = malloc (wid*hei*4);
+
+
+				while (count < wid*hei) {
+					inval = -9999;
+					if (fscanf (infile,"%lx",&inval) != 1) {
+						printf("PixelTexture: expected %d pixels, got %d\n",wid*hei,count);
+						ok = 0; 
+						break;
+					}
+					switch (depth) {
+						case 1: {
+							   texture[tctr++] = inval & 0xff;
+							   break;
+						   }
+						case 2: {
+							   texture[tctr++] = inval & 0x00ff;
+							   texture[tctr++] = (inval>>8) & 0xff;
+							   break;
+						   }
+						case 3: {
+							   texture[tctr++] = (inval>>16) & 0xff; //R
+							   texture[tctr++] = (inval>>8) & 0xff;	 //G
+							   texture[tctr++] = (inval>>0) & 0xff; //B
+							   break;
+						   }
+						case 4: {
+							   texture[tctr++] = (inval>>24) & 0xff; //A
+							   texture[tctr++] = (inval>>16) & 0xff; //R
+							   texture[tctr++] = (inval>>8) & 0xff;	 //G
+							   texture[tctr++] = (inval>>0) & 0xff; //B
+							   break;
+						   }
+					}
+
+					count ++;
+				}
+
+				if (count == wid*hei) {
+					glBindTexture (GL_TEXTURE_2D, texture_num);
+					do_texture (depth,wid,hei,texture,
+						((repeatS)) ? GL_REPEAT : GL_CLAMP, 
+						((repeatT)) ? GL_REPEAT : GL_CLAMP,
+						GL_NEAREST);
+
+					free(texture);
+				}
+
+				
+			} else {
+				printf ("PixelTexture, invalid height, width, or depth\n");
+			}
+
+
+		} else{ if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
 
 			/* it is not a png file - assume a jpeg file */
 			/* start from the beginning again */
@@ -219,7 +292,7 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 				GL_LINEAR);
 
 			free(image_data);
-		} else {
+		} else { /* it is not a pixeltexture, nor a png file - must be  a jpeg */
 			//JAS if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
 			if (rc != 0) {
 			switch (rc) {
@@ -248,6 +321,7 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 					GL_LINEAR);
 			}
 			readpng_cleanup (TRUE);
+		}
 		}
 		fclose (infile);
 	}
