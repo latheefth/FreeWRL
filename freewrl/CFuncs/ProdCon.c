@@ -28,40 +28,36 @@
 
 #endif
 
+/* thread synchronization issues */
+pthread_mutex_t condition_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  condition_cond  = PTHREAD_COND_INITIALIZER;
+
+#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex);
+#define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);
+#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex);
+#define DATA_LOCK_WAIT          pthread_cond_wait(&condition_cond, &condition_mutex);
 
 struct PSStruct {
-	unsigned type;		// what is this task? 
-	char *inp;		// data for task
-	unsigned ptr;		// node to put data
-	unsigned ofs;		// offset in node for data
+	unsigned type;		/* what is this task? 			*/
+	char *inp;		/* data for task (eg, vrml text)	*/
+	unsigned ptr;		/* address (node) to put data		*/
+	unsigned ofs;		/* offset in node for data		*/
+	int bind;		/* should we issue a bind? 		*/
 };
 
 
 
 void addToNode (unsigned rc, unsigned newNode);
-void consumeTask (struct PSStruct *psptr);
+void _perlThread (void);
 void loadInitialGroup(void); 
 void openBrowser(void); 
+void initializePerlThread(void);
 unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
 unsigned int getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
-
-extern void xs_init(void);
-extern unsigned rootNode;
-extern Display *dpy;
-extern Window win;
-extern GLXContext cx;
-
-
-/* variables for gl context switching. */
-pthread_mutex_t _ContextLock 	= PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t condition_mutex	= PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t	condition_cond	= PTHREAD_COND_INITIALIZER;
-int TextureWantsCX = FALSE;	
-#define LOCK()     pthread_mutex_lock(&_ContextLock)
-#define UNLOCK()   pthread_mutex_unlock(&_ContextLock)
-#define CXSIG()	   pthread_cond_signal(&condition_cond)
-#define CXWAIT()   pthread_cond_wait (&condition_cond, &condition_mutex)
+int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+                        unsigned ptr, unsigned ofs);
+int isPerlinitialized(void);
 
 /* Bindables */
 int *fognodes;
@@ -75,32 +71,62 @@ int totviewpointnodes = 0;
 int currboundvpno=0;
 
 /* keep track of the producer thread made */
-pthread_t PCthread = NULL;
+pthread_t PCthread;
+
+/* is the Browser initialized? */
 static int browserRunning=FALSE;
+
+/* is the perlParse thread created? */
+int PerlInitialized=FALSE;
+
+/* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
+int PerlParsing=FALSE;
+
+/* the actual perl interpreter */
 PerlInterpreter *my_perl;
 
+/* psp is the data structure that holds parameters for the parsing thread */
+struct PSStruct psp;
 
-void produceTask(unsigned type, char *inp, unsigned ptr, unsigned ofs) {
-	struct PSStruct *psptr;
+void initializePerlThread() {
 	int iret;
 
+	/* create consumer thread and set the "read only" flag indicating this */
+	iret = pthread_create (&PCthread, NULL, (void *)&_perlThread, NULL);
+}
 
-	psptr = malloc (sizeof (struct PSStruct));
-	if (!psptr) {printf ("malloc failure in produceTask\n"); exit(1);}
+/* is Perl running? this is a function, because if we need to mutex lock, we
+   can do all locking in this file */
+int isPerlinitialized() {return PerlInitialized;}
 
-	psptr->type = type;
-	psptr->ptr = ptr;
-	psptr->ofs = ofs;
-	psptr->inp = malloc (strlen(inp)+2);
-	if (!(psptr->inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
-	memcpy (psptr->inp,inp,strlen(inp)+1);
+/* statusbar uses this to tell user that we are still loading */
+int isPerlParsing() {return(PerlParsing);}
 
-	// create consumer thread
-	iret = pthread_create (&PCthread, NULL, (void *)&consumeTask, (void *) psptr);
+int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+			unsigned ptr, unsigned ofs) {
+	int iret;
+
+	/* do we want to return if the parsing thread is busy, or do
+	   we want to wait? */
+	if (returnifbusy) {
+		if (PerlParsing) return (FALSE);
+	}
+	DATA_LOCK
+	/* copy the data over; malloc and copy input string */
+	psp.type = type;
+	psp.ptr = ptr;
+	psp.ofs = ofs;
+	psp.bind = bind; /* should we issue a set_bind? */
+	psp.inp = malloc (strlen(inp)+2);
+	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+	memcpy (psp.inp,inp,strlen(inp)+1);
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	return (TRUE);
 }
 	
 
-void consumeTask(struct PSStruct *psptr) {
+void _perlThread() {
 	int count;
 	int retval;
 	int retarr[1000];
@@ -128,39 +154,49 @@ void consumeTask(struct PSStruct *psptr) {
 
 		//Now, possibly this is the first VRML file to
 		//add. Check to see if maybe we have a ptr of 0.
-		if ((psptr->ptr==0) && (psptr->ofs==offsetof(
+		if ((psp.ptr==0) && (psp.ofs==offsetof(
 			struct VRML_Group, children))) {
-			psptr->ptr=rootNode;
+			psp.ptr=rootNode;
 		}
 	}
 
-	if ((psptr->type == FROMSTRING) || (psptr->type==FROMURL)) {
-		if (psptr->type==FROMSTRING) {
-        		retval = CreateVrml("String",psptr->inp,retarr);
+	/* now, loop here forever, waiting for instructions and obeying them */
+	for (;;) {
+		DATA_LOCK
+		PerlInitialized=TRUE; /* have to do this AFTER ensuring we are locked */
+		DATA_LOCK_WAIT
+		PerlParsing=TRUE;
+		if ((psp.type == FROMSTRING) || (psp.type==FROMURL)) {
+			if (psp.type==FROMSTRING) {
+	        		retval = CreateVrml("String",psp.inp,retarr);
+			} else {
+				retval = CreateVrml("URL",psp.inp,retarr);
+			} 
+	
+	        	// now that we have the VRML/X3D file, load it into the scene.
+	        	// retarr contains node number/memory location pairs; thus the count
+	        	// by two.
+	        	for (count =1; count < retval; count+=2) {
+	        		addToNode(psp.ptr+psp.ofs, retarr[count]);
+	        	}
+	
+			/* get the Bindables from this latest VRML/X3D file */
+			getAllBindables();
+	
+			/* send a set_bind to any nodes that exist */
+			if (psp.bind) {
+				if (totfognodes != 0) send_bind_to (FOG,fognodes[0],1);
+				if (totbacknodes != 0) send_bind_to (BACKGROUND,backgroundnodes[0],1);
+				if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,navnodes[0],1);
+				if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,viewpointnodes[0],1);
+			}
 		} else {
-			retval = CreateVrml("URL",psptr->inp,retarr);
-		} 
-
-        	// now that we have the VRML/X3D file, load it into the scene.
-        	// retarr contains node number/memory location pairs; thus the count
-        	// by two.
-        	for (count =1; count < retval; count+=2) {
-        		addToNode(psptr->ptr+psptr->ofs, retarr[count]);
-        	}
-
-		/* get the Bindables from this latest VRML/X3D file */
-		getAllBindables();
-
-		/* send a set_bind to any nodes that exist */
-		if (totfognodes != 0) send_bind_to (FOG,fognodes[0],1);
-		if (totbacknodes != 0) send_bind_to (BACKGROUND,backgroundnodes[0],1);
-		if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,navnodes[0],1);
-		if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,viewpointnodes[0],1);
-	} else {
-		printf ("produceTask - invalid type!\n");
+			printf ("produceTask - invalid type!\n");
+		}
+		free (psp.inp);
+		PerlParsing=FALSE;
+		DATA_UNLOCK
 	}
-	free (psptr->inp);
-	free (psptr);
 }
 
 // add a node to the root group. ASSUMES ROOT IS A GROUP NODE! (it should be)

@@ -15,8 +15,6 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 #include "Viewer.h"
 #include "GeoVRML.h"
 
-extern VRML_Viewer Viewer; //in VRMLC.pm
-
 /* Viewport data */
 GLint viewPort[10];
 

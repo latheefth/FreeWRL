@@ -52,7 +52,6 @@
 #include <sys/socket.h>
 #endif
 
-extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
 
 
 #define MAXEAIHOSTNAME	255		// length of hostname on command line

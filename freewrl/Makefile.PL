@@ -284,7 +284,7 @@ INST_DYNAMIC_DEP =
 				qq{\tcp -r fonts $vrmlinstdir\n},
 				qq{\tcp -r x3d $vrmlinstdir\n},
 				qq{\tcp JS/$jsobjdir/libjs.so /usr/local/lib\n},
-				qq{\tldconfig\n},
+				qq{\t/sbin/ldconfig\n},
 				qq{\# compile C front end\n},
 				qq{\t\@cd CFrontEnd && sh maker\n},
 				qq{\# install C front end\n},

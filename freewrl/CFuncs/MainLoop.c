@@ -32,28 +32,8 @@ Cursor sensorc;
 Cursor curcursor;
 #endif
 
-extern Display *dpy;
-extern Window win;
-
-extern int display_status;		// toggle status bar - defined in VRMLC.pm
-extern int be_collision;		// toggle collision detection - defined in VRMLC.pm
 void Next_ViewPoint();			// switch to next viewpoint - 
 void Snapshot();			// get a snapshot
-extern int rootNode;			// Scenegraph root node - in VRMLC.pm
-extern double hpdist;			// in VRMLC.pm
-extern struct pt hp;			// in VRMLC.pm
-extern void *hypersensitive; 		// in VRMLC.pm
-extern int hyperhit;			// in VRMLC.pm
-extern struct pt r1, r2;		// in VRMLC.pm
-extern BrowserAction;			// in VRMLC.pm
-extern char *BrowserActionString;	// in VRMLC.pm
-
-
-
-extern struct sCollisionInfo CollisionInfo;
-
-
-extern struct currayhit rh,rph,rhhyper;
 
 /* Sensor table. When clicked, we get back from rayHit the fromnode, 
 	have to look up type and data in order to properly handle it */

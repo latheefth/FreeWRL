@@ -26,8 +26,13 @@
 
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
+#ifdef AQUA 
+#define HELPER "(command-? help)"
+#else
+#define HELPER "(? help)"
+#endif
 
-extern VRML_Viewer Viewer; //in VRMLC.pm
+
 void statusbar_position (void);
 
 
@@ -101,13 +106,13 @@ void render_status () {
 		strcat (vpname, "NONE");
 		vplen = strlen (vpname);
 	}
-#ifndef AQUA
-	sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  (? help)", 
-		vpname, BrowserFPS, VIEWER_STRING(viewer_type));
-#else
-	sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  (command-? help)", 
-		vpname, BrowserFPS, VIEWER_STRING(viewer_type));
-#endif
+	if (isPerlParsing() || (!isPerlinitialized())) {
+		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s", 
+			"(Loading...)", BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
+	} else { 
+		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s", 
+		vpname, BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
+	}
 
 	/* we are here; compile and display a new background! */
 	new_status = FALSE;

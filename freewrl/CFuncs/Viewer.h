@@ -247,4 +247,6 @@ bind_viewpoint(struct VRML_Viewpoint *node);
 void
 bind_geoviewpoint(struct VRML_GeoViewpoint *node);
 
+extern VRML_Viewer Viewer; //in VRMLC.pm
+
 #endif /* __VIEWER_H_ */

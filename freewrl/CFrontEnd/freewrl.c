@@ -43,16 +43,9 @@ pthread_t thread1;
 
 /* function prototypes */
 //extern void xs_init(void);
-extern void openMainWindow(Display *dpy, Window *win,
-		GLXContext *glocx);
-extern unsigned rootNode;
 void displayThread();
-extern void glpOpenGLInitialize(void);
-extern void new_tessellation(void);
-extern char *BrowserURL;
-extern produceTask(unsigned a,char *b,unsigned ptr, unsigned ofs);
-extern PerlInterpreter *my_perl;
-extern void setGeometry (char *optarg);
+int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+                        unsigned ptr, unsigned ofs);
 
 int main (int argc, char **argv) {
 	int retval;
@@ -138,10 +131,15 @@ int main (int argc, char **argv) {
 	/* create the display thread. */
 	pthread_create (&thread1, NULL, (void *)&displayThread, (void *)threadmsg);
 
+	/* create the Perl parser thread */
+	initializePerlThread();
+	while (!isPerlinitialized()) {usleep(200);}
+
+
 	/* create the initial scene, from the file passed in
 	and place it as a child of the rootNode. */
 
-	produceTask(FROMURL, argv[optind],
+	perlParse(FROMURL, argv[optind],TRUE,FALSE,
 		rootNode, offsetof (struct VRML_Group, children));
 
 	/* now wait around until something kills this thread. */

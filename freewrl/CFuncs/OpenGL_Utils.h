@@ -56,4 +56,9 @@ BackEndHeadlightOff(void);
 void
 BackEndHeadlightOn(void);
 
+extern Display *dpy;
+extern Window win;
+extern void openMainWindow(Display *dpy, Window *win, GLXContext *glocx);
+extern void glpOpenGLInitialize(void);
+
 #endif /* __OPENGL_UTILS_H_ */

@@ -15,11 +15,6 @@
 #include "Structs.h"
 #include "Viewer.h"
 
-/* The global viewer - should be passed in by pointer JAS  */
-extern VRML_Viewer Viewer;
-
-extern int navi_tos;
-
 static int viewer_type = NONE;
 static int viewer_initialized = FALSE;
 static VRML_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };

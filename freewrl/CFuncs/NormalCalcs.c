@@ -26,9 +26,6 @@
 #include "headers.h"
 #include "LinearAlgebra.h"
 
-extern int smooth_normals;
-
-
 void fwnorprint (float *norm) {
 		printf ("normals %f %f %f\n",norm[0],norm[1],norm[2]);
 }
