@@ -151,10 +151,10 @@ for(;;) {
    hei = height;
    wi = width;
    dep = png_get_channels( png_ptr, info_ptr ); 
-
+/*
    if ((height > 256) || (width > 256))
 	printf ("PNG::WARNING: image is big - may not be displayed");
-
+*/
 	RETVAL=1; break;
 }
 OUTPUT:
