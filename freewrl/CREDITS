@@ -11,6 +11,12 @@ What code in the distribution is not Tuomas's  (if I have left something
 out, contact me as soon as possible at john.stewart@crc.ca - I really
 want no-one to be left out accidentally) 
 
+ - Ayla Khan
+	- Interface parse corrections
+
+ - Alain Gagnon
+	- Normals for Cones fixed
+
  - Many, many, node additions/fixing - Remi Cohen-Scali.
 
  - Perl scripting - Etienne Grossman.
