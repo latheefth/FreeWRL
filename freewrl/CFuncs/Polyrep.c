@@ -263,7 +263,7 @@ void Extru_check_normal (
 	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1] * direction;
 
 	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
-		printf ("tesselator should not give degenerate triangles back\n");
+		printf ("INTERNAL ERROR: tesselator should not give degenerate triangles back\n");
 	}
 
 	normalize_vector(&facenormals[this_face]);
@@ -432,11 +432,17 @@ void Extru_tex(
 	int B,
 	int C,
 	struct VRML_PolyRep *this_Elev,
-	int ccw) {
+	int ccw,
+	int tcindexsize) {
 
 	struct SFColor *c1,*c2,*c3;
 	int j;
 
+	/* bounds check */
+	if (vertex_ind+2 >= tcindexsize) {
+		printf ("INTERNAL ERROR: Extru_tex, bounds check %d >= %d\n",vertex_ind+2,tcindexsize);
+	}
+	
 	/* generate textures in a clockwise manner, reverse the triangle */
 	if (!(ccw)) { j = B; B = C; C = j; }
 
@@ -445,7 +451,7 @@ void Extru_tex(
 	this_Elev->tcindex[vertex_ind+1] =tci_ct+B;
 	this_Elev->tcindex[vertex_ind+2] =tci_ct+C;
 
-	/*
+	/*	
 	c1 = (struct SFColor *) &this_Elev->coord[3*A];
 	c2 = (struct SFColor *) &this_Elev->coord[3*C];
 	c3 = (struct SFColor *) &this_Elev->coord[3*B];
@@ -454,7 +460,11 @@ void Extru_tex(
 		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
 		c3->c[0],c3->c[1],c3->c[2]);
 	printf ("for points %d %d %d\n",A,C,B);
+	printf ("Extru_tex, vert_ind %d, tcindexes %d %d %d\n",vertex_ind,
+			this_Elev->tcindex[vertex_ind],this_Elev->tcindex[vertex_ind+1],
+			this_Elev->tcindex[vertex_ind+2]);
 	*/
+	
 }
 
 
@@ -510,12 +520,13 @@ void Extru_ST_map(
 
 	for(x=start; x<end; x++) {
 		int tci, ci;
+		
 		/*
-		printf ("triangle has tex vertices:%d %d %d ",
+		printf ("Extru_ST_Map: triangle has tex vertices:%d %d %d ",
 			this_Extru->tcindex[triind_start*3],
 			this_Extru->tcindex[triind_start*3+1] ,
 			this_Extru->tcindex[triind_start*3+2]);
-		printf ("coord vertices:%d %d %d\n",
+		printf ("Extru_ST_Map: coord vertices:%d %d %d\n",
 			this_Extru->cindex[triind_start*3],
 			this_Extru->cindex[triind_start*3+1] ,
 			this_Extru->cindex[triind_start*3+2]);
@@ -528,7 +539,8 @@ void Extru_ST_map(
 		Point_Zero = tci;
 
 		if ((tci*3+2) >= tcoordsize) { 
-			printf ("Extru_ST_map, index %d greater than %d \n",(tci*3+2),tcoordsize);
+			printf ("INTERNAL ERROR: Extru_ST_map(1), index %d greater than %d \n",(tci*3+2),tcoordsize);
+			return;
 		}
 
 		/* S value */
@@ -541,10 +553,14 @@ void Extru_ST_map(
 		this_Extru->tcoord[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
 
 
-
 		/* for second vertex */
 		tci = this_Extru->tcindex[triind_start*3+1];
 		ci = this_Extru->cindex[triind_start*3+1];
+
+		if ((tci*3+2) >= tcoordsize) { 
+			printf ("INTERNAL ERROR: Extru_ST_map(2), index %d greater than %d \n",(tci*3+2),tcoordsize);
+			return;
+		}
 
 		/* S value */
 		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
@@ -560,6 +576,11 @@ void Extru_ST_map(
 		tci = this_Extru->tcindex[triind_start*3+2];
 		ci = this_Extru->cindex[triind_start*3+2];
 
+		if ((tci*3+2) >= tcoordsize) { 
+			printf ("INTERNAL ERROR: Extru_ST_map(3), index %d greater than %d \n",(tci*3+2),tcoordsize);
+			return;
+		}
+
 		/* S value */
 		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
 
@@ -571,9 +592,6 @@ void Extru_ST_map(
 
 		triind_start++;
 	}
-
-
-
 }
 
 
@@ -817,6 +835,9 @@ void render_polyrep(void *node,
 	if(hasc) {
 		glDisable(GL_COLOR_MATERIAL);
 	}
+
+	if (polyrep_verbose)
+		printf ("end render_polyrep\n\n");
 }
 
 /*********************************************************************
