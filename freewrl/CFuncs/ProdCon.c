@@ -102,10 +102,10 @@ struct PSStruct {
 
 
 void addToNode (unsigned rc, unsigned newNode);
-void _perlThread (void);
+void _perlThread (void *perlpath);
 void __pt_loadInitialGroup(void); 
+void __pt_setPath(char *perlpath); 
 void __pt_openBrowser(void); 
-void initializePerlThread(void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
 unsigned int __pt_getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
@@ -149,11 +149,11 @@ PerlInterpreter *my_perl;
 /* psp is the data structure that holds parameters for the parsing thread */
 struct PSStruct psp;
 
-void initializePerlThread() {
+void initializePerlThread(char *perlpath) {
 	int iret;
 
 	/* create consumer thread and set the "read only" flag indicating this */
-	iret = pthread_create (&PCthread, NULL, (void *)&_perlThread, NULL);
+	iret = pthread_create (&PCthread, NULL, (void *)&_perlThread, (void *) perlpath);
 }
 
 /* is Perl running? this is a function, because if we need to mutex lock, we
@@ -456,7 +456,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 }
 	
 
-void _perlThread() {
+void _perlThread(void *perlpath) {
 	int count;
 	int retval;
 	int retarr[1000];
@@ -484,6 +484,10 @@ void _perlThread() {
 
 		/* printf ("opening browser\n"); */
 		__pt_openBrowser();
+
+		/* pass in the compiled perl path */
+		/* printf ("sending in path %s\n",perlpath); */
+		__pt_setPath(perlpath);
 
 		/* printf ("loading in initial Group{} \n"); */
 		__pt_loadInitialGroup();
@@ -736,6 +740,18 @@ unsigned int __pt_getBindables (char *tp, unsigned int *retarr) {
 	LEAVE;
 
 	return (count);
+}
+/* pass in the compiled path to the perl interpreter */
+void __pt_setPath(char *perlpath) {
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSVpv((char *)perlpath, strlen ((char *)perlpath))));
+	PUTBACK;
+	call_pv("setINCPath", G_ARRAY);
+	FREETMPS;
+	LEAVE;
 }
 
 void __pt_loadInitialGroup() {

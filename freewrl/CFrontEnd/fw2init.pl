@@ -11,6 +11,19 @@ use VRML::Browser;
 my $b;
 my $be;
 
+# some people like to use rpms on systems that they were not built for,
+# with perl module problems. So, attempt to put the compiled in path
+# (and thus, the path in the rpm or equiv) onto the perl internal path.
+sub setINCPath {
+	my ($INCpath) = @_;
+
+	$INCpath =~ s/\/VRML$//;
+
+	push (@INC,$INCpath);
+	#foreach (@INC) { print "incline $_\n";}
+	#print "setIncpath, $INCpath\n";
+}
+
 
 sub open_browser {
 	my ($q, $s) = @_;

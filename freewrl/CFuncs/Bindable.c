@@ -591,7 +591,6 @@ void render_Background (struct VRML_Background *node) {
 	
 			/* now, the spec states: "If the last skyAngle is less than pi, then the
 			  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
-		printf (" and va2 here %f ",va2);
 			if (va2 < (PI-0.01)) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;

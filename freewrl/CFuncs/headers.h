@@ -308,7 +308,7 @@ extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
 extern GLfloat Backtex[], Backnorms[];
 
 extern void new_tessellation(void);
-extern void initializePerlThread(void);
+extern void initializePerlThread(char *perlpath);
 extern PerlInterpreter *my_perl;
 extern void setGeometry (char *optarg);
 extern void setPluginPipe(char *optarg);
@@ -331,7 +331,6 @@ extern struct currayhit rh,rph,rhhyper;
 extern int smooth_normals;
 extern void xs_init(void);
 extern int navi_tos;
-extern void initializePerlThread(void);
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
 extern int fileExists(char *fname, char *firstBytes);

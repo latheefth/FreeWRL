@@ -154,7 +154,7 @@ int main (int argc, char **argv) {
 	pthread_create (&thread1, NULL, (void *)&displayThread, (void *)threadmsg);
 
 	/* create the Perl parser thread */
-	initializePerlThread();
+	initializePerlThread(PERLPATH);
 	while (!isPerlinitialized()) {usleep(50);}
 
 	/* create the Texture parser thread */
