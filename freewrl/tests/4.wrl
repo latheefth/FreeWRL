@@ -478,4 +478,4 @@ DEF WHOLE Transform {
 }
 
 ROUTE TIMER.fraction_changed TO ORI.set_fraction
-ROUTE ORI.value_changed TO WHOLE.rotation
+ROUTE ORI.value_changed TO WHOLE.set_rotation
