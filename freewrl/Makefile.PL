@@ -121,9 +121,10 @@ if ($VRML_CONFIG{WARNINGS} eq "high") {
 }
 
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
+	print "MAKING WITH BOUNDSCHECKING ENABLED\n";
 	push @inc, "-fbounds-checking";
 	push @ldflags, "-L$VRML_CONFIG{LIBCHECK_INST}";
-	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}", "-lboundscheck";
+	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}";
 }
 
 push @inc, $VRML_CONFIG{FREEWRL_INC},
@@ -351,21 +352,31 @@ INST_DYNAMIC_DEP =
 
 
 		# make the C Front End.
+		my $def2;
+		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION) ";
 
-		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION)";
-		my $def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
+		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
+			print "COMPILING WITH BOUNDSCHECKING\n";
+			$def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
+			print "line is $def2\n";
+		} else {
+			$def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
+		}
+
+		my $def = $def1.$def2;
+		print "my def is $def\n";
 
 		push (@postamble, join("\n",
 			  qq{\n\# --- FreeWRL C Front End:},
 			  qq{all ::},
 			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def2 $def1 \n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def \n},
 			  qq{install ::},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def1 $def2\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def\n},
 			  qq{clean ::},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
 			  qq{realclean ::},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
 			  qq{distclean :: realclean\n}
 			 ));
 

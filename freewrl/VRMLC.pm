@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.156  2004/09/30 20:11:55  crc_canada
+# Bug fixes for EAI.
+#
 # Revision 1.155  2004/09/21 17:52:46  crc_canada
 # make some rendering improvements.
 #
@@ -1134,7 +1137,8 @@ void render_node(void *node) {
 	#endif
 	char* stage = "";
 
-	if(verbose) printf("\nRender_node %u\n",(unsigned int) node);
+	if(verbose) 
+		printf("\nRender_node %u\n",(unsigned int) node);
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
@@ -1801,7 +1805,8 @@ RETVAL
 
 # allow Javascript to add/remove children when the parent is a USE - see JS/JS.pm.
 void
-jsManipulateChild(par, fiel, child)
+jsManipulateChild(ptr, par, fiel, child)
+	int ptr
 	int par
 	char *fiel
 	int child
@@ -1809,7 +1814,9 @@ CODE:
 	char onechildline[100];
 
 	sprintf (onechildline, "[ %d ]",child);
-	getMFNodetype (onechildline, (struct Multi_Node *) par,
+
+	getMFNodetype (onechildline, (struct Multi_Node *) ptr,
+		(struct VRML_Box *)par,
 		!strncmp (fiel,"addChild",strlen ("addChild")));
 
 # link into EAI.

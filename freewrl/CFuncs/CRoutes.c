@@ -41,7 +41,7 @@
 
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
-void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar);
+void AddRemoveChildren (struct VRML_Box *parent, struct Multi_Vec3f *tn, int *nodelist, int len, int ar);
 
 /*****************************************
 C Routing Methodology:
@@ -794,9 +794,11 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /************************************************************************/
 /* a script is returning a MFNode type; add or remove this to the C	*/
 /* children field							*/
+/* note params - tn is the address of the actual field, parent is parent*/
+/* structure								*/
 /************************************************************************/
 
-void getMFNodetype (char *strp, struct Multi_Node *tn, int ar) {
+void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, int ar) {
 	unsigned int newptr;
 	int newlen;
 	char *cptr;
@@ -843,20 +845,26 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, int ar) {
 	}
 
 	/* now, perform the add/remove */
-	AddRemoveChildren (tn, newmal, newlen, ar);
+	AddRemoveChildren (parent, tn, newmal, newlen, ar);
 }
 
 /****************************************************************/
 /* Add or Remove a series of children				*/
 /*								*/
 /* pass in a pointer to a node, (see Structs.h for defn)	*/
+/* a pointer to the actual field in that node,			*/
 /*	a list of node pointers, in memory,			*/
 /*	the length of this list, (ptr size, not bytes)		*/
 /*	and a flag for add or remove 				*/
 /*								*/
 /****************************************************************/
 
-void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) {
+void AddRemoveChildren (
+		struct VRML_Box *parent,
+		struct Multi_Vec3f *tn, 
+		int *nodelist, 
+		int len, 
+		int ar) {
 	int oldlen;
 	void *newmal;
 	int num_removed;
@@ -898,7 +906,7 @@ void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) 
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
-			add_parent(nodelist[counter],tn);
+			add_parent(nodelist[counter],parent);
 		}
 
 		/* and, set the new length */
@@ -978,6 +986,7 @@ void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) 
 
 void getCLASSMultNumType (char *buf, int bufSize, 
 			  struct Multi_Vec3f *tn,
+			  struct VRML_Box *parent,
 			  int eletype, int addChild) {
 	float f2, f3, f4;
 	int len;
@@ -1040,7 +1049,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		tn->n = len;
 	} else {
 		/* this is a Node type, so we need to add/remove children */
-		AddRemoveChildren (tn, buf, len, addChild);
+		AddRemoveChildren (parent, tn, buf, len, addChild);
 	}
 }
 
@@ -2396,7 +2405,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),1); break;}
 				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),4); break;}
 				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),2); break;}
-				case MFNODE: {getMFNodetype (strp,(void *)(tn+tptr),CRoutes[route].extra); break;}
+				case MFNODE: {getMFNodetype (strp,(void *)(tn+tptr),(void *)tn,CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
 						 (jsval *)global_return_val,(void *)(tn+tptr)); 
@@ -2539,6 +2548,7 @@ char *processThisClassEvent (unsigned int fn,
 				    /* this is a MF*node type - the extra field should be 1 for add */
 				    getCLASSMultNumType (membuffer, len,
 							 (struct Multi_Vec3f *) memptr,
+							 (struct VRML_Box *)tn,
 							 CRoutes[ctr].len, CRoutes[ctr].extra);
 				} else {
 					/* simple copy */

@@ -136,9 +136,15 @@ void groupingChild (struct VRML_Group *this_) {
 	/* should we go down here? */
 	//printf ("Group, rb %x VF_B %x, flags %x\n",render_blend, VF_Blend, this_->_renderFlags);
 	if (render_blend == VF_Blend) 
-		if ((this_->_renderFlags & VF_Blend) != VF_Blend)  return;
+		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
+			if(ChildVerbose) VerboseEnd ("GROUP");
+			return;
+		}
 	if (render_proximity == VF_Proximity) 
-		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity)  return;
+		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity)  {
+			if(ChildVerbose) VerboseEnd ("GROUP");
+			return;
+		}
 
 	/* do we have to sort this node? */
 	if ((nc > 2 && render_blend)) sortChildren(this_->children);
@@ -216,9 +222,16 @@ void transformChild (struct VRML_Transform *this_) {
 	//printf("transformChild %d render_blend %x renderFlags %x\n",
 	//		this_, render_blend, this_->_renderFlags);
 	if (render_blend == VF_Blend) 
-		if ((this_->_renderFlags & VF_Blend) != VF_Blend)  return;
+		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
+			if(ChildVerbose) VerboseEnd ("TRANSFORM");
+			return;
+		}
 	if (render_proximity == VF_Proximity) 
-		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity)  return;
+		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity) {
+			if(ChildVerbose) VerboseEnd ("TRANSFORM");
+			return;
+		}
+
 
 
 #ifdef BOUNDINGBOX
@@ -538,9 +551,13 @@ void update_renderFlag(void *ptr, int flag) {
 	int i;
 
 	/* send notification up the chain */
+	//printf ("start of update_RenderFlag for %d parents %d\n",p,
+	//		p->_nparents);
 	p->_renderFlags = p->_renderFlags | flag;
 
 	for (i = 0; i < p->_nparents; i++) {
+		//printf ("node %d has %d for a parent\n",p,p->_parents[i]);
 		update_renderFlag(p->_parents[i],flag);
 	}
+	//printf ("finished update_RenderFlag for %d\n",p);
 }

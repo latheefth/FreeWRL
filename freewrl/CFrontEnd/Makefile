@@ -31,7 +31,7 @@ freewrl: perlxsi fwopts
 	perlxsi.o freewrl.o fwopts.o \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
 	$(LIBS) \
-	-lpthread -lFreeWRLFunc \
+	-lpthread -lFreeWRLFunc $(BC)\
 
 clean:
 	rm *o; rm perlxsi*; rm freewrl;

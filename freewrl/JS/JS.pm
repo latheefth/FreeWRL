@@ -632,7 +632,9 @@ sub jspSFNodeSetProperty {
 	        foreach $mych (@{$val}) {
 			#print "sendevto ",$node->{BackNode}{CNode}, 
 			#	" field $actualField child $mych, BN ", $mych,"\n";
-			VRML::VRMLFunc::jsManipulateChild($node->{BackNode}{CNode}+$outoffset,
+			VRML::VRMLFunc::jsManipulateChild(
+				$node->{BackNode}{CNode}+$outoffset,
+				$node->{BackNode}{CNode},
 							$actualField, $mych);
         	}
 

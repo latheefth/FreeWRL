@@ -113,6 +113,7 @@ int main (int argc, char **argv) {
 			{"version", 0, 0, 'v'},
 			{"big",  0, 0, 'b'},		/* Alberto Dubuc */
 			{"nostatus",0, 0, 's'},		/* Alberto Dubuc */
+			{"nocollision",0, 0, 'Q'},		/* Alberto Dubuc */
 			{"keypress",1, 0, 'K'},		/* Robert Sim */
 
 			{"seq", 0, 0, 'l'},
@@ -139,7 +140,7 @@ int main (int argc, char **argv) {
 		c = getopt_long (argc, argv, "h", long_options, &option_index);
 #else
 		/*Sun version of getopt_long needs all the letters of parameters defined*/
-		                c = getopt_long (argc, argv, "efghijkvlpqmnobsK", long_options, &option_index);
+		                c = getopt_long (argc, argv, "efghijkvlpqmnobsQWK", long_options, &option_index);
 #endif
 
 		if (c == -1)
@@ -192,7 +193,9 @@ int main (int argc, char **argv) {
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
 			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
 			/* Petr Mikiluk - ILS line width */
-			case 'W': sscanf (optarg,"%g",&global_linewidth);
+			case 'W': sscanf (optarg,"%g",&global_linewidth); break;
+
+			case 'Q': be_collision = FALSE; break;
 
 
 			/* Snapshot stuff */

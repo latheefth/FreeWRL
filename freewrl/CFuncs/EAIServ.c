@@ -584,6 +584,7 @@ void EAI_parse_commands (char *bufptr) {
 
 	
 				getMFNodetype (dtmp,(struct Multi_Node *)rc, 
+						(struct VRML_Box *)ra,
 						strcmp(ctmp,"removeChildren"));
 	
 				/* tell the routing table that this node is updated - used for RegisterListeners */
@@ -960,7 +961,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 	/* variables for MFStrings */
 	struct Multi_String *MSptr;
-	struct SFRotation *SFFloats;
+	float *SFFloats;
 	AV *aM;
 	SV **bM;
 	int iM;
@@ -1011,11 +1012,15 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 		case SFCOLOR:
 		case SFVEC2F: { 
 				/* these are the same, different lengths for different types, though. */
-				SFFloats = (struct SFRotation *) memptr;
+				SFFloats = (float *) memptr;
 				len = size / (sizeof(float));	// should be 2 for SFVec2f, 3 for SFVec3F...
+				printf ("EAI Extra - size %d len %d\n",size,len);
 
 				if(!SvROK(data)) {
-					for (iM=0; iM<len; iM++) (*SFFloats).r[iM] = 0;
+					for (iM=0; iM<len; iM++) {
+						*SFFloats = 0;
+						SFFloats++;
+					}
 					printf ("EAI_Extra_Memory: Help! SFFloattype without being ref\n");
 					return 0;
 				} else {
@@ -1030,7 +1035,8 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 							printf ("EAI_Extra_Memory: Help: SFfloattype b == 0\n");
 							return 0;
 						}
-						(*SFFloats).r[iM] = SvNV(*bM);
+						*SFFloats = SvNV(*bM);
+						SFFloats ++;
 					}
 				}
 				break; 

@@ -244,7 +244,7 @@ extern struct Multi_String Anchor_url;
 void CRoutes_js_new (int num,int scriptType);
 extern int max_script_found;
 void gatherScriptEventOuts(int script, int ignore);
-void getMFNodetype (char *strp, struct Multi_Node *ch, int ar);
+void getMFNodetype (char *strp, struct Multi_Node *ch, struct VRML_Box *par, int ar);
 
 void update_node(void *ptr);
 void update_renderFlag(void *ptr, int flag);
@@ -501,7 +501,11 @@ void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
 void processClassEvents(int scriptno, int startEntry, int endEntry); 
 char *processThisClassEvent (unsigned int fn, int startEntry, int endEntry, char *buf);
 int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen); 
-void getCLASSMultNumType (char *buf, int bufSize, struct Multi_Vec3f *tn, int eletype, int addChild) ;
+void getCLASSMultNumType (char *buf, int bufSize,
+	struct Multi_Vec3f *tn,
+	struct VRML_Box *parent,
+	int eletype, int addChild);
+
 #ifdef AQUA
 void freewrlDie(const char *format);
 #endif
