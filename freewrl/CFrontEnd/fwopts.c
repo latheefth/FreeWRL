@@ -179,6 +179,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	dpy = XOpenDisplay(0);
 	if (!dpy) { fprintf(stderr, "No display!\n");exit(-1);}
 
+	bestMode = -1;
 	screen = DefaultScreen(dpy);
 #ifdef XF86V4
 	 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
@@ -187,10 +188,11 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
  		for (i=0; i < modeNum; i++) {
  			if ((modes[i]->hdisplay == screenWidth) && (modes[i]->vdisplay==screenHeight)) {
  				bestMode = i;
+				break;
  			}
  		}
 		/* There is no mode equivalent to the geometry specified */
-		if (!bestMode) {
+		if (bestMode == -1) {
 			fullscreen = 0;
 			printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", screenWidth, screenHeight);
 		}
