@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.62  2002/07/03 17:02:59  crc_canada
+# MovieTexture now has internal decoding
+#
 # Revision 1.61  2002/06/21 20:15:43  crc_canada
 # compile warning removed in Appearance
 #
@@ -1082,27 +1085,10 @@ MovieTexture => '
 
 	int temp;
 
-	/* for shape display list redrawing */
+	/* really simple, the texture number is calculated, then simply sent here.
+	   The last_bound_texture field is sent, and, made current */
 
-	if (this_->_myshape ==0) {
-		/* create the textures first time through. We dont want
-		   to do this for every frame. This might be a bug, as maybe
-		   the user will want to select different movies. */
-	
-		for (temp = 0; temp < (this_->__texture).n; temp++) {
-	 		ptr = SvPV(((this_->__data).p[temp]),PL_na);
-			glBindTexture (GL_TEXTURE_2D, (this_->__texture).p[temp]);
-			do_texture ((this_->__depth), (this_->__x), (this_->__y), 
-				ptr,
-				((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
-				((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
-				GL_LINEAR);
-		}
-	} else {
-		last_bound_texture = (this_->__texture).p[this_->__ctex];
-		
-	}
-
+	last_bound_texture = this_->__ctex;
 	this_->_myshape = last_visited_shape; 
 
 ',

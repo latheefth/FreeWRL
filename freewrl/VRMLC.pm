@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.55  2002/07/03 17:04:09  crc_canada
+# MovieTexture now has internal decoding
+#
 # Revision 1.54  2002/06/17 14:41:45  ncoder
 # Added sphere collision detection (more to come)
 # -This included adding rendering passes,
@@ -1416,6 +1419,27 @@ void remove_parent(void *node_, void *parent_) {
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 
 PROTOTYPES: ENABLE
+
+#####################################################################
+#
+# get an MPEG file
+#
+####################################################################
+
+int 
+read_mpg_file(init_tex, fname)
+	unsigned int init_tex
+	char *fname
+CODE:
+	/* go directly to the CFuncs/MPEG_Utils, and run from there */
+	printf ("read_mpg_file, reading %s\n",fname);
+	RETVAL = mpg_main(init_tex, fname);
+OUTPUT:
+	RETVAL
+
+
+
+
 
 void *
 alloc_struct(siz,virt)

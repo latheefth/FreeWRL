@@ -412,84 +412,28 @@ sub init_movie_image {
 		}
 
 		print "VRML::Nodes::init_movie_image got: $file\n"
-			if $VRML::verbose;
+;#JAS			if $VRML::verbose;
 
-		my ($hei,$wi,$dep,$dat);
-		my $tempfile = $file;
-		$dat = "";
-
-		if ($@) {
-			die("Cannot open image textures: '$@'");
-		}
-
-		# Use Imagemagick to do the conversion, and flipping.
-	
-		# Simply make a default user specific file by
-		# attaching the username (LOGNAME from environment).
-
-		my $lgname = $ENV{LOGNAME};
-		my $tempfile_name = "/tmp/freewrl_mpeg_";
-		$png_tempfile = join '', $tempfile_name,$lgname,".png";
-		$mpg_tempfile = join '', $tempfile_name,$lgname,"%04d";
-		my $tempfile_rm = join '', $tempfile_name,$lgname,"*.tga";
-
-
-		# Step 1 - decode the input file.
-		my $cmd = "$VRML::Browser::MPEG2DEC -q -b $file -o2 $mpg_tempfile";
-		my $status = system ($cmd);
-		warn "$image conversion problem: '$cmd' returns $?"
-			unless $status == 0;
-	
-		# Step 2 - get list of the files there.
-		my @file_list = `ls -c1 $tempfile_rm | sort`;
-
-		# Step 3 - read each file in.
-		eval 'require VRML::PNG';
-		my $num=0;
-
-		my @tex_num_array = ();
-		my @data_array = ();
-		foreach (@file_list) {
-
-			$_ =~ s/\s+$//;		# trailing new line....
-			my $cmd = "$VRML::Browser::CONVERT $_ $png_tempfile";
-
-			my $status = system ($cmd);
-			warn "$image conversion problem: '$cmd' returns $?"
-				unless $status == 0;
-	
-			if (!VRML::PNG::read_file($png_tempfile,$dat,$dep,$hei,$wi,$flip)) {
-				warn("Couldn't read texture file $png_tempfile");
-			}
-
-
-			push @data_array, $dat;
-			push @tex_num_array, VRML::OpenGL::glGenTexture();
-			$num += 1;
-		}
+		my $init_tex = VRML::OpenGL::glGenTexture();
+		$f->{__texture}[0] = $init_tex;
+		$f->{__texture}[1] =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file);
 		$f->{__depth} = $dep;
 		$f->{__x} = $wi;
 		$f->{__y} = $hei;
-		$f->{__texture} = \@tex_num_array;
-		$f->{__data} = \@data_array;
+		$f->{__data} = ();
+		print "init_movie, first texture is ",$f->{__texture}[0],"\n";
+		print "init_movie, last texture is ",$f->{__texture}[1],"\n";
 
-		# Step 4. remove temporary files
-		my $cmd = "rm $png_tmpfile $tempfile_rm";
-        my $status = system ($cmd);
-        die "$image conversion problem: '$cmd' returns $?"
-			unless $status == 0;
 		return;
     }							# for $u (@$urls) 
 
  NO_TEXTURE:
-    my @tex_num_array = ();
-    my @data_array = ();
-
     $f->{__depth} = 0;
     $f->{__x} = 0;
     $f->{__y} = 0;
-    $f->{__data} = \@data_array;
-    $f->{__texture} = \@tex_num_array;
+    $f->{__data} = ();
+    $f->{__texture}[0] = 0;
+    $f->{__texture}[1] = 0;
     return;
 }
 
@@ -682,6 +626,7 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
 	init_movie_image("","url",$t,$f,$scene,1);
+	$f->{__ctex} = $f->{__texture}[0];
 	$f->{__tick0} = $time;
 	return ();
     },
@@ -738,7 +683,9 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 			}
 		}
 		my $frac = 0;
-		my $time = ($tick - $f->{startTime}) / $f->{speed};
+		my $lowest = $f->{__texture}[0];
+		my $highest = $f->{__texture}[1];
+		my $time = ($tick - $f->{startTime}) * $f->{speed} / (($highest-$lowest)/30);
 		print "MovieTexture: $time '$act'\n" if $VRML::verbose::timesens;
 		if($act) {
 			if($f->{loop}) {
@@ -749,8 +696,12 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 		} else {$frac = 1}
 
 		# frac will tell us what texture frame we should apply...
-		$frac = int ($frac * ($#{$f->{__texture}}+1)); 
-	
+		$frac = int ($frac*($highest+1)) + $lowest;
+		
+		# verify parameters
+		if ($frac < $lowest){ print "frac $frac lowest $lowest\n"; $frac = $lowest}
+		if ($frac > $highest){ print "frac $frac highest $highest\n";$frac = $highest}
+
 		if ($f->{__ctex} != $frac) {
 			$f->{__ctex} = $frac;
 			push @e, [$t, "mytexfrac", $f->{__ctex}];

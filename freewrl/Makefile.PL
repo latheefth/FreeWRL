@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "0.33";
+$VERSION = "0.34";
 
 BEGIN {
  eval "use 5.004";
@@ -75,12 +75,10 @@ print OUT ");\n";
 chomp ($a = `which convert`);
 chomp ($pwd = getcwd());
 chomp ($java = `which java`);
-chomp ($mpeg2dec = `which mpeg2decode`);
 print OUT qq(\$VRML::Browser::CONVERT = "$a";\n);
 print OUT qq(\$VRML::ENV{FREETYPE_FONT_PATH} = "$VRML_CONFIG{FREETYPE_FONT_PATH}";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_FONTS} = "$pwd/fonts";\n);
 print OUT qq(\$VRML::Browser::X3DTOVRMLXSL = "$pwd/x3d/X3dToVrml97.xsl";\n);
-print OUT qq(\$VRML::Browser::MPEG2DEC = "$mpeg2dec";\n);
 print OUT "1;\n";
 close OUT;
 
@@ -121,7 +119,7 @@ WriteMakefile(
 		   'LWP'          => "5.47",
 		 },
    LIBS => $VRML_CONFIG{OPENGL_LIBS},
-   OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o CFuncs/LinearAlgebra.o',
+   OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o CFuncs/LinearAlgebra.o CFuncs/MPEG_Utils.o',
 );
 
 sub MY::postamble {
