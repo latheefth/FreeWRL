@@ -1298,8 +1298,10 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 	 */
 	if (argc == 1 && JS_ConvertArguments(cx, argc, argv, "s",
 							&_vrmlstr)) {
+
 		vrmlstring_len = strlen(_vrmlstr) + 1;
 		handle_len = strlen(NULL_HANDLE) + 1;
+		//printf ("SFNodeConstr, argc==1, vrmlstr = %s\n",_vrmlstr);
 
 		if ((ptr = SFNodeNativeNew(vrmlstring_len, handle_len)) == NULL) {
 			fprintf(stderr, "SFNodeNativeNew failed in SFNodeConstr.\n");
@@ -1342,6 +1344,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 		vrmlstring_len = strlen(_vrmlstr) + 1;
 		handle_len = strlen(_handle) + 1;
 
+		//printf ("SFNodeConstr, argc==2, vrmlstr = %s\n",_vrmlstr);
 		if ((ptr = SFNodeNativeNew(vrmlstring_len, handle_len)) == NULL) {
 			fprintf(stderr, "SFNodeNativeNew failed in SFNodeConstr.\n");
 			return JS_FALSE;
@@ -1488,10 +1491,10 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	_valStr = JS_ValueToString(cx, *vp);
 	_val_c = JS_GetStringBytes(_valStr);
 
-//	if (JSVerbose) {
+	if (JSVerbose) {
 		printf("SFNodeSetProperty: obj = %u, id = %s, vp = %s\n",
 			   (unsigned int) obj, _id_c, _val_c);
-//	}
+	}
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in SFNodeSetProperty.\n");
@@ -1503,7 +1506,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		ptr->touched++;
 		val_len = strlen(_val_c) + 1;
 
-		printf ("switching on %d\n",JSVAL_TO_INT(id));
+		if (JSVerbose) printf ("switching on %d\n",JSVAL_TO_INT(id));
 
 		switch (JSVAL_TO_INT(id)) {
 		case 0:
@@ -1524,7 +1527,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			break;
 		}
 	} else {
-		printf ("JS_IS_INT false\n");
+		if (JSVerbose) printf ("JS_IS_INT false\n");
 		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
 			fprintf(stderr, "JS_GetGlobalObject failed in SFNodeSetProperty.\n");
 			return JS_FALSE;
