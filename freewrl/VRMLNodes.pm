@@ -158,11 +158,11 @@ use Data::Dumper ;
 # EG : returns the list of names of fields that are visible in the
 # script
 sub script_variables {
-  my $fields = shift ;
-  
-  my @res = grep { ! /mustEvaluate|directOutput/ } sort keys %$fields ;
+  ## my $fields = shift ;
+  ## my @res = grep { ! /mustEvaluate|directOutput/ } sort keys %$fields ;
   ## map {print "$_ has value ", Dumper ($fields->{$_}) } @res ;
-  @res;
+  ## @res;
+  grep { ! /mustEvaluate|directOutput/ } sort keys %{shift()};
 }
 
 package MTS ;			# My tied Scalar : Will be used to tie scalars
@@ -175,19 +175,24 @@ use Exporter ;
 require Tie::Scalar;
 
 sub TIESCALAR {
-  my $class = shift;
-  my $self = shift;
-  bless $self;
+  ### my $class = shift;
+  ## my $self = shift;
+  ## bless $self;
+  ### bless shift ; 
+  bless $_[1];
 }
 
 sub FETCH {
-  my $self = shift;
-  $$self ;
+  ## my $self = shift;
+  ## $$self ;
+  ### ${shift()};
+  ${$_[0]};
 }
 
 sub STORE {
-  my $self = shift;
-  $$self = shift ;
+  ## my $self = shift;
+  ## $$self = shift ;
+  ${$_[0]} = $_[1];
 }
 
 
