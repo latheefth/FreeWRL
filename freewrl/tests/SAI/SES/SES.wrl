@@ -1,5 +1,17 @@
 #VRML V2.0 utf8
 
+DirectionalLight {
+  intensity 1
+  direction 0 -20 -10
+}
+DirectionalLight {
+  intensity .3
+  direction 10 0 0
+}
+DirectionalLight {
+  intensity .3
+  direction -10 0 0
+}
 
 DEF Blick0 Viewpoint { 
   #orientation <?> <?> <?> <Neigung des Blickwinkels>
@@ -216,14 +228,6 @@ ROUTE Controller.toggleColor2 TO LK1.color
 ROUTE Controller.toggleColor3 TO EK2.color
 ROUTE Controller.toggleColor4 TO AK2.color
 ROUTE Controller.toggleColor5 TO LK2.color
-
-
-DirectionalLight {
-  intensity 1
-  direction 2 -20 2
-}
-
-
 
 DEF Boden Transform {
   children [
