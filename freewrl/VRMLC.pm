@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.89  2003/05/28 14:54:15  crc_canada
+# Javascript interface moved mainly to C code in CFuncs dir.
+#
 # Revision 1.88  2003/05/17 05:54:30  ayla
 #
 # Changes needed to support the port of Viewer and Quaternion Perl code to C - pass 1.
@@ -1286,6 +1289,10 @@ double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 /* Viewpoint Field of View */
 GLdouble fieldofview = 45;
 
+
+/* current time */
+double TickTime;
+
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
@@ -1316,6 +1323,159 @@ float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
+
+
+/*************************JAVASCRIPT*********************************/
+#ifndef __jsUtils_h__
+#include "jsUtils.h" /* misc helper C functions and globals */
+#endif
+
+#ifndef __jsVRMLBrowser_h__
+#include "jsVRMLBrowser.h" /* VRML browser script interface implementation */
+#endif
+
+#include "jsVRMLClasses.h" /* VRML field type implementation */
+
+
+#define MAX_RUNTIME_BYTES 0x100000L
+#define STACK_CHUNK_SIZE 0x2000L
+
+//JAS int verbose = 0;
+
+//JAS
+//JAS/*
+//JAS * Global JS variables (from Brendan Eichs short embedding tutorial):
+//JAS *
+//JAS * JSRuntime       - 1 runtime per process
+//JAS * JSContext       - 1 CONTEXT per thread
+//JAS * global JSObject - 1 global object per CONTEXT
+//JAS *
+//JAS * struct JSClass {
+//JAS *     char *name;
+//JAS *     uint32 flags;
+//JAS * Mandatory non-null function pointer members:
+//JAS *     JSPropertyOp addProperty;
+//JAS *     JSPropertyOp delProperty;
+//JAS *     JSPropertyOp getProperty;
+//JAS *     JSPropertyOp setProperty;
+//JAS *     JSEnumerateOp enumerate;
+//JAS *     JSResolveOp resolve;
+//JAS *     JSConvertOp convert;
+//JAS *     JSFinalizeOp finalize;
+//JAS * Optionally non-null members start here:
+//JAS *     JSGetObjectOps getObjectOps;
+//JAS *     JSCheckAccessOp checkAccess;
+//JAS *     JSNative call;
+//JAS *     JSNative construct;
+//JAS *     JSXDRObjectOp xdrObject;
+//JAS *     JSHasInstanceOp hasInstance;
+//JAS *     prword spare[2];
+//JAS * };
+//JAS * 
+//JAS * global JSClass  - populated by stubs
+//JAS * 
+//JAS */
+//JAS
+//JASstatic JSRuntime *runtime;
+//JASstatic JSClass globalClass = {
+//JAS	"global",
+//JAS	0,
+//JAS	JS_PropertyStub,
+//JAS	JS_PropertyStub,
+//JAS	JS_PropertyStub,
+//JAS	JS_PropertyStub,
+//JAS	JS_EnumerateStub,
+//JAS	globalResolve,
+//JAS	JS_ConvertStub,
+//JAS	JS_FinalizeStub
+//JAS};
+//JAS
+//JAS
+/*
+ * See perldoc perlapi, perlcall, perlembed, perlguts for how this all
+ * works.
+ */
+void
+doPerlCallMethod(SV *sv, const char *methodName)
+{
+	int count = 0;
+	SV *retSV;
+
+ #define PERL_NO_GET_CONTEXT
+
+	dSP; /* local copy of stack pointer (dont leave home without it) */
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP); /* keep track of the stack pointer */
+	XPUSHs(sv); /* push package ref to the stack */
+	PUTBACK;
+	count = call_method(methodName, G_SCALAR);
+
+	SPAGAIN; /* refresh local copy of the stack pointer */
+	
+	if (count > 1) {
+		fprintf(stderr,
+				"doPerlCallMethod: call_method returned in list context - shouldnt happen here!\n");
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+void
+doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
+{
+	va_list ap; /* will point to each unnamed argument in turn */
+	char *c;
+	void *v;
+	int count = 0;
+	size_t len = 0;
+	const char *p = format;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv);
+
+	va_start(ap, format); /* point to first element after format*/
+	while(*p) {
+		switch (*p++) {
+		case 0x73: /* ascii letter "s" -xs screws this up if in quotes */
+			c = va_arg(ap, char *);
+			len = strlen(c);
+			c[len] = 0;
+			XPUSHs(sv_2mortal(newSVpv(c, len)));
+			break;
+		case 0x70: /* ascii letter "p" -xs screws this up if in quotes */
+			v = va_arg(ap, void *);
+			XPUSHs(sv_2mortal(newSViv((IV) v)));
+			break;
+		default:
+			fprintf(stderr, "doPerlCallMethodVA: argument type not supported!\n");
+			break;
+		}
+	}
+	va_end(ap);
+
+	PUTBACK;
+	count = call_method(methodName, G_SCALAR);
+
+	SPAGAIN;
+	
+
+if (count > 1) {
+		fprintf(stderr,
+				"doPerlCallMethodVA: call_method returned in list context - shouldnt happen here!\n");
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+/*************************JAVASCRIPT*********************************/
 
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz, 
@@ -2036,15 +2196,26 @@ OUTPUT:
 # register a route that can go via C, rather than perl.
 
 void
-do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr)
+do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr, scrpt)
 	void *from
 	int fromoffset
 	void *to
 	int tooffset
 	int len
 	void *intptr
+	int scrpt
 CODE:
-	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr);
+	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr,scrpt);
+
+void
+CRoutes_js_new (num, cx, glob, brow)
+	int num
+	void *cx
+	void *glob
+	void *brow
+CODE:
+	do_CRoutes_js_new (num, cx, glob, brow);
+
 
 
 #********************************************************************************
@@ -2167,30 +2338,28 @@ CODE:
 # params - x		- pointer to type string; 
 #	 - pt		- pointer to data structure (CNode) for this invocation
 #	 - typ		- mouse action, eg "DRAG" (string! yeeech!)
-#	 - tick		- time 
 #	 - over 	- isOver
 void
-handle_mouse_sensitive(x,pt,typ,tick,over)
+handle_mouse_sensitive(x,pt,typ,over)
 	char *x
 	void *pt
 	char *typ
-	double tick
 	int over
 CODE:
 	if (strncmp("TouchSensor",x,strlen("TouchSensor"))==0) {
-		do_TouchSensor (pt,typ,tick,over);
+		do_TouchSensor (pt,typ,over);
 		
 	} else if (strncmp("PlaneSensor",x,strlen("PlaneSensor"))==0) {
-		do_PlaneSensor (pt,typ,tick,over);
+		do_PlaneSensor (pt,typ,over);
 
 	} else if (strncmp("CylinderSensor",x,strlen("CylinderSensor"))==0) {
-		do_CylinderSensor (pt,typ,tick,over);
+		do_CylinderSensor (pt,typ,over);
 
 	} else if (strncmp("SphereSensor",x,strlen("SphereSensor"))==0) {
-		do_SphereSensor (pt,typ,tick,over);
+		do_SphereSensor (pt,typ,over);
 
 	} else if (strncmp("Anchor",x,strlen("Anchor"))==0) {
-		do_Anchor (pt,typ,tick,over);
+		do_Anchor (pt,typ,over);
 
 	} else { printf ("do_handle_events, unknown %s\n",x);}
 	
@@ -2199,46 +2368,309 @@ CODE:
 
 
 #********************************************************************************
+
+# tell the backend what the current time is
 void
-AudioClockTick(node,tick)
-	void *node
-	double tick
+setTick(timestamp)
+	double timestamp
 CODE:
-	do_AudioTick(node,tick);
+	TickTime = timestamp;
+
+
 
 void
-MovieTextureClockTick(node,tick)
+AudioClockTick(node)
 	void *node
-	double tick
 CODE:
-	do_MovieTextureTick(node,tick);
+	do_AudioTick(node);
+
+void
+MovieTextureClockTick(node)
+	void *node
+CODE:
+	do_MovieTextureTick(node);
 
 void 
-ProximitySensorClockTick(node,tick)
+ProximitySensorClockTick(node)
 	void *node
-	double tick
 CODE:
-	do_ProximitySensorTick(node,tick);
+	do_ProximitySensorTick(node);
 
 void 
-TimeSensorClockTick(node,tick)
+TimeSensorClockTick(node)
 	void *node
-	double tick
 CODE:
-	do_TimeSensorTick(node,tick);
+	do_TimeSensorTick(node);
 
 void
-CollisionClockTick(node,tick)
+CollisionClockTick(node)
 	void *node
-	double tick
 CODE:
 	struct VRML_Collision *cx = node;
 	if (cx->__hit == 3) {
-		/* printf ("COLLISION at %f\n",tick); */
-		cx->collideTime = tick;
+		/* printf ("COLLISION at %f\n",TickTime); */
+		cx->collideTime = TickTime;
 		mark_event ((unsigned int) node, offsetof(struct VRML_Collision, collideTime));
 	}
 
+#****************JAVASCRIPT FUNCTIONS*********************************
+
+void
+setJSVerbose(v)
+	int v;
+CODE:
+{
+	JSVerbose = v;
+}
+
+
+## worry about garbage collection here ???
+void
+jsinit(num, sv_js)
+	int num
+	SV *sv_js
+CODE:
+	JSInit(num,sv_js);
+
+void
+jscleanup(num)
+	int num
+CODE:
+	JScleanup(num);
+
+int
+jsrunScript(num, script, rstr, rnum)
+	int num
+	char *script
+	SV *rstr
+	SV *rnum
+CODE:
+	RETVAL = JSrunScript (num, script, rstr, rnum);
+OUTPUT:
+RETVAL
+rstr
+rnum
+
+
+
+int
+jsSFColorSet(cx, obj, name, sv)
+	void *cx
+	void *obj
+	char *name
+	SV *sv
+CODE:
+{
+	JSContext *_cx;
+	JSObject *_obj, *_sfcolObj;
+	jsval _val;
+	void *_privPtr;
+
+	_cx = cx;
+	_obj = obj;
+	if (JSVerbose) {
+		printf("jsSFColorSet: obj %u, name %s\n", (unsigned int) _obj, name);
+	}
+	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
+		fprintf(stderr, "JS_GetProperty failed in jsSFColorSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	if (!JSVAL_IS_OBJECT(_val)) {
+		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFColorSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	_sfcolObj = JSVAL_TO_OBJECT(_val);
+
+	if ((_privPtr = JS_GetPrivate(_cx, _sfcolObj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in jsSFColorSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	SFColorNativeSet(_privPtr, sv);
+	RETVAL = JS_TRUE;
+}
+OUTPUT:
+RETVAL
+cx
+obj
+
+
+int
+jsSFImageSet(cx, obj, name, sv)
+	void *cx
+	void *obj
+	char *name
+	SV *sv
+CODE:
+{
+	JSContext *_cx;
+	JSObject *_obj, *_sfimObj;
+	jsval _val;
+	void *_privPtr;
+
+	_cx = cx;
+	_obj = obj;
+	if (JSVerbose) {
+		printf("jsSFImageSet: obj %u, name %s\n", (unsigned int) _obj, name);
+	}
+	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
+		fprintf(stderr, "JS_GetProperty failed in jsSFImageSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	if (!JSVAL_IS_OBJECT(_val)) {
+		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFImageSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	_sfimObj = JSVAL_TO_OBJECT(_val);
+
+	if ((_privPtr = JS_GetPrivate(_cx, _sfimObj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in jsSFColorSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	SFImageNativeSet(_privPtr, sv);
+	RETVAL = JS_TRUE;
+}
+OUTPUT:
+RETVAL
+cx
+obj
+
+
+int
+jsSFVec2fSet(cx, obj, name, sv)
+	void *cx
+	void *obj
+	char *name
+	SV *sv
+CODE:
+{
+	JSContext *_cx;
+	JSObject *_obj, *_sfvec2fObj;
+	jsval _val;
+	void *_privPtr;
+
+	_cx = cx;
+	_obj = obj;
+	if (JSVerbose) {
+		printf("jsSFVec2fSet: obj %u, name %s\n", (unsigned int) _obj, name);
+	}
+	if(!JS_GetProperty(_cx, _obj, name, &_val)) {
+		fprintf(stderr, "JS_GetProperty failed in jsSFVec2fSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	if(!JSVAL_IS_OBJECT(_val)) {
+		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFVec2fSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	_sfvec2fObj = JSVAL_TO_OBJECT(_val);
+
+	if ((_privPtr = JS_GetPrivate(_cx, _sfvec2fObj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in jsSFVec2fSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	SFVec2fNativeSet(_privPtr, sv);
+	RETVAL = JS_TRUE;
+}
+OUTPUT:
+RETVAL
+cx
+obj
+
+
+int
+jsSFRotationSet(cx, obj, name, sv)
+	void *cx
+	void *obj
+	char *name
+	SV *sv
+CODE:
+{
+	JSContext *_cx;
+	JSObject *_obj, *_sfrotObj;
+	jsval _val;
+	void *_privPtr;
+
+	_cx = cx;
+	_obj = obj;
+	if (JSVerbose) {
+		printf("jsSFRotationSet: obj %u, name %s\n", (unsigned int) _obj, name);
+	}
+	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
+		fprintf(stderr, "JS_GetProperty failed in jsSFRotationSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	if (!JSVAL_IS_OBJECT(_val)) {
+		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFRotationSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	_sfrotObj = JSVAL_TO_OBJECT(_val);
+
+	if ((_privPtr = JS_GetPrivate(_cx, _sfrotObj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed in jsSFRotationSet.\n");
+		RETVAL = JS_FALSE;
+		return;
+	}
+	SFRotationNativeSet(_privPtr, sv);
+	RETVAL = JS_TRUE;
+}
+OUTPUT:
+RETVAL
+cx
+obj
+
+
+int
+addSFNodeProperty(num, nodeName, name, str)
+	int num
+	char *nodeName
+	char *name
+	char *str
+CODE:
+	RETVAL = JSaddSFNodeProperty(num, nodeName, name, str);
+OUTPUT:
+RETVAL
+
+
+int
+addGlobalAssignProperty(num, name, str)
+	int num
+	char *name
+	char *str
+CODE:
+	RETVAL = JSaddGlobalAssignProperty(num, name, str);
+OUTPUT:
+RETVAL
+
+
+int
+addGlobalECMANativeProperty(num, name)
+	int num
+	char *name
+CODE:
+	RETVAL = JSaddGlobalECMANativeProperty(num, name);
+OUTPUT:
+RETVAL
+
+int
+paramIndex(evin, evtype)
+	char *evin
+	char *evtype
+CODE:
+	RETVAL = JSparamIndex (evin,evtype);
+OUTPUT:
+RETVAL
+
+#****************JAVASCRIPT FUNCTIONS*********************************
 
 ENDHERE
 ;
