@@ -371,12 +371,12 @@ Material => new VRML::NodeType ("Material",
 
 ImageTexture => new VRML::NodeType("ImageTexture",
 	{url => [MFString, []],
-	 repeatS => [SFBool, 1],
-	 repeatT => [SFBool, 1],
-	 __depth => [SFInt32, 1],
-	 __x => [SFInt32,0],
-	 __y => [SFInt32,0],
-	 __data => [SFString, ""],
+	 repeatS => [SFBool, 1, "field"],
+	 repeatT => [SFBool, 1, "field"],
+	 __depth => [SFInt32, 1, "field"],
+	 __x => [SFInt32,0, "field"],
+	 __y => [SFInt32,0, "field"],
+	 __data => [SFString, "", "field"],
 	},{
 	Initialize => sub {
 		my($t,$f,$time,$scene) = @_;
@@ -390,13 +390,13 @@ ImageTexture => new VRML::NodeType("ImageTexture",
 # From Remi Cohen-Scali
 
 PixelTexture => new VRML::NodeType("PixelTexture",
-       {image => [SFImage, [0,0,0,""], ""],
-        repeatS => [SFBool, 1, 0],
-        repeatT => [SFBool, 1, 0],
-        __depth => [SFInt32, 1, 0],
-        __x => [SFInt32,0, 0],
-        __y => [SFInt32,0, 0],
-        __data => [SFString, "", 0],
+       {image => [SFImage, [0,0,0,""]],
+        repeatS => [SFBool, 1, "field"],
+        repeatT => [SFBool, 1, "field"],
+        __depth => [SFInt32, 1, "field"],
+        __x => [SFInt32,0, "field"],
+        __y => [SFInt32,0, "field"],
+        __data => [SFString, "", "field"],
        },{
        Initialize => sub { 
                my($t,$f,$time,$scene) = @_;
