@@ -323,7 +323,8 @@ INST_DYNAMIC_DEP =
 
 	sub postamble {
 		my @postamble;
-		my $VRMLINSTDIR   = "\$(INSTALLPRIVLIB)/VRML";
+		#JAS my $VRMLINSTDIR   = "\$(INSTALLPRIVLIB)/VRML";
+		my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
 		my $FRONTEND      = "\$(dir)/CFrontEnd";
 		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
 		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
