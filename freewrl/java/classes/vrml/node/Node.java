@@ -2,11 +2,11 @@ package vrml.node;
 import java.util.Hashtable;
 import vrml.Field;
 import vrml.ConstField;
-
+import vrml.node.BaseNode;
 //
 // This is the general Node class
 // 
-public abstract class Node extends vrml.BaseNode
+public abstract class Node extends BaseNode
 { 
    Hashtable fields;
    // Get an EventIn by name. Return value is write-only.
