@@ -11,6 +11,11 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.27  2002/11/29 17:07:10  ayla
+#
+# Parser was choking on escaped double quotes inside strings.  This should
+# make it better.
+#
 # Revision 1.26  2002/11/28 20:15:41  crc_canada
 # For 0.37, PixelTextures are handled in the same fashion as other static images
 #
@@ -531,21 +536,17 @@ package VRML::Field::SFString;
 
 # Ayla... This is closer to the VRML97 specification,
 # which allows anything but unescaped " or \ in SFStrings.
-#
-# The qr// operator enables more regex processing at
-# compile time.
-# The Perl logical operators are less greedy than
-# the regex alternation operator, so this is more
-# efficient.
-$SFStringChars = qr/(?ixs:[^\"\\])*/||qr/(?ixs:\\[\"\\])*/;
+
+$Chars = qr/(?:[\x00-\x21\x23-\x5b\x5d-\x7f]*|\x5c\x22|\x5c{2}[^\x22])*/o;
+
 
 # XXX Handle backslashes in string properly
 sub parse {
-##print "VRML::Field::SFString::parse: $_[2]\n";
-	$_[2] =~ /\G\s*\"($SFStringChars)\"\s*/gc
+	$_[2] =~ /\G\s*\x22($Chars)\x22\s*/g
 		or VRML::Error::parsefail($_[2], "improper SFString");
-	## cleanup ms-dos/windows end of line chars
 	my $str = $1;
+	## cleanup ms-dos/windows end of line chars
+	$str =~ s///g;
 	$str =~ s/\\(.)/$1/g;
 	return $str;
 }

@@ -83,8 +83,7 @@ VRML::Error->import;
 
 # Parse a whole file into $scene.
 sub parse {
-  ## $VRML::verbose::parse = 1;
-        my($scene, $text) = @_;
+	my($scene, $text) = @_;
 	# XXX marijn: this sorta works for deleting comments
 	### Remove comments while ignoring anything between "":
 	print "Deleting comments\n" if $VRML::verbose::parse;
@@ -95,14 +94,15 @@ sub parse {
 	my $t2 = substr ($text, $po);
 	my $l2 = length ($t2);
 
-	$t2 =~ s/([\"\'].*[\"\'])|(#+[^\n]*)/$1?$1:""/eg;
+	$t2 =~ s/(\x22$VRML::Field::SFString::Chars\x22)|([\x23]+[^\x0a-\x0d]*)/$1?$1:""/eg;
 	substr($text, $po, $l2, $t2);
 
 	my @a;
+	my ($n, $r);
 	while($text !~ /\G\s*$/gsc) {
-		my $n = parse_statement($scene,$text);
+		$n = parse_statement($scene,$text);
 
-		my $r = ($text =~ /\G\s*,\s*/gsc); # Eat comma if it is there...
+		$r = ($text =~ /\G\s*,\s*/gsc); # Eat comma if it is there...
 		if(defined $n) {push @a, $n}
 		# print "parsing statement, my n is $n array is ", scalar(@a), " long\n";
 	}
