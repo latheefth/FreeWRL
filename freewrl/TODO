@@ -8,12 +8,19 @@ TODO wishlist for 0.28 release.
 
 DONE:	EAI CreateTest working (needs replaceworld EAI call)
 
-DEF and USE's for textures.
+DONE:	DEF and USE's for textures.
+
+Rectangular pictures are not mapped correctly.
 
 IndexedFaceSets are not using all points correctly. (check out the lightning bolt
 example)
 
+DEF and USE in createVrmlFromString examples (eg, Etiennes perl tests)
+
 More SAI work.
+	- automatic creation of pipes.
+
+Sometimes things seg-fault. Check out ~/uigi/example*wrl - the chopper.
 
 H-ANIM working.
 
