@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.44  2002/01/22 16:34:50  crc_canada
+# When a display list becomes invalid (eg, node has changed), propagate
+# the changed_flag to all parents.
+#
 # Revision 1.43  2001/12/14 17:54:28  crc_canada
 # render_polyrep changed - IFS and ElevationGrids should have colour field
 # superceded by textures, if there are any.
@@ -1332,16 +1336,7 @@ set_offs_$f(ptr,offs,sv_)
 	SV *sv_
 CODE:
 	$ct = ($ctp)(((char *)ptr)+offs);
-	{struct VRML_Box *p;
-	 p = ptr;
-	 p->_change ++;
-
-	/* force a rebuild of the display list for this shape */
-	if (p->_myshape != 0) {
-        	p->_myshape->_change++;
-	}
-
-	}
+	update_node(ptr);
 	$c
 
 
@@ -1845,6 +1840,19 @@ void normalize_vector(struct pt *vec);
 void render_ray_polyrep(void *node,
 	int npoints, struct SFColor *points);
 	
+
+/* if a node changes, void the display lists */
+/* Courtesy of Jochen Hoenicke */
+
+void update_node(void *ptr) {
+	struct VRML_Box *p = ptr;
+	int i;
+	p->_change ++;
+	for (i = 0; i < p->_nparents; i++) {
+		update_node(p->_parents[i]);
+	}
+}
+
 	
 /*********************************************************************
  * General tessellation functions
