@@ -633,7 +633,7 @@ $b = new VRML::Browser({
 
 # By default creates front- and back-ends.
 
-$be = $b->get_backend;
+$be = $b->{BE};
 
 # machines are getting better and better - make great rendering the default
 if($fast) {
