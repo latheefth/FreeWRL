@@ -844,9 +844,7 @@ void render_polyrep(void *node,
 	do_color_normal_reset();
 
 	// clockwise or not?
-	if (r->ccw) { 
-		glFrontFace(GL_CCW);
-	} else {
+	if (!r->ccw) { 
 		glFrontFace(GL_CW);
 	}
 
@@ -972,6 +970,11 @@ void render_polyrep(void *node,
 
 	if(hasc) {
 		glDisable(GL_COLOR_MATERIAL);
+	}
+
+	// clockwise or not? - NVIDIA needs this reset; Mesa was ok without it
+	if (!r->ccw) {
+		glFrontFace(GL_CCW);
 	}
 
 	if (polyrep_verbose)
