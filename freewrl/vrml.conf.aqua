@@ -5,12 +5,19 @@
 ############################################################################
 # don't touch this!!!
     PLATFORM => 'MACOSX',
+BIN_DIR => "/usr/bin",
+LIB_DIR => "/usr/lib",
+WARNINGS => "off",
+DEBUG => "off",
+BOUNDS_CHECK => "off",
+LIBCHECK_INST => "",
+
 
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
-    FREEWRL_LIBS => '-L/usr/lib -L/System/Library/Frameworks/OpenGL.framework/Libraries -L/Freewrl/jpeg-6b -ljpeg -L/usr/local/lib -lpng -lz -lfreetype -lGL -lGLU',
-    FREEWRL_DEFINE => '-DAQUA',
-    FREEWRL_INC => '-I/usr/include/sys/ -I/System/Library/Frameworks/OpenGL.framework/Headers -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config -I/usr/local/include/freetype',
+    FREEWRL_LIBS => '-L/usr/lib -L/System/Library/Frameworks/OpenGL.framework/Libraries -L/Freewrl/jpeg-6b -ljpeg -L/usr/local/lib -lpng -lz -lSystem -lfreetype -lGL -lGLU -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
+    FREEWRL_DEFINE => '-DAQUA -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`',
+    FREEWRL_INC => '-I/usr/include -I/usr/include/sys -I/System/Library/Frameworks/OpenGL.framework/Headers -I/System/Library/Frameworks/GLUT.framework/Headers -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config -I/usr/local/include/freetype',
 
 ############################################################################
 # Saxon location - required for x3d running.
@@ -28,5 +35,6 @@
 
 ############################################################################
 # LD flags
-	LDFLAGS => '-twolevel_namespace -undefined error -dynamic -bundle -L/usr/local/lib -L/System/Library/Perl/darwin/CORE/ -lperl',
+	LDFLAGS => '-twolevel_namespace -undefined error -dynamiclib -L/usr/lib -L/usr/local/lib -L/System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/ -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -lAquaIntLib -lperl `perl -MExtUtils::Embed -e ldopts`',
+	LDFLAGS2 => '-twolevel_namespace -undefined error -bundle -L/usr/lib -L/usr/local/lib -L/System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/ -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa -lAquaIntLib -lperl `perl -MExtUtils::Embed -e ldopts`',
 );
