@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.24  2001/03/26 17:41:50  crc_canada
+# Background rendering for some OpenGL implementations fixed.
+# IndexedLineSet no longer disrupts other renderings.
+#
 # Revision 1.23  2001/03/23 16:00:02  crc_canada
 # IndexedLineSet culling disabled - it was affecting other shapes in the scene graph.
 #
@@ -387,8 +391,7 @@ IndexedFaceSet =>  ( join '',
 		struct SFColor *colors; int ncolors=0;
 		struct SFColor *normals; int nnormals=0;
 		struct SFVec2f *texcoords; int ntexcoords=0;
-		/* int colin; */		/* colorIndex number 	*/
-		/*int *colorIndex;*/	/* colorIndex array	*/
+
 		$start_list();
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
@@ -437,8 +440,7 @@ IndexedLineSet => '
 		if(verbose) printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
-		/* JAS glDisable(GL_LIGHTING); */
-		glEnable(GL_COLOR_MATERIAL); /* JAS */
+		glEnable(GL_COLOR_MATERIAL); 
                 glPushAttrib(GL_ENABLE_BIT);
                 glDisable(GL_CULL_FACE);
 
@@ -493,8 +495,7 @@ IndexedLineSet => '
 			}
 		}
 		glEnd();
-		/* JAS glEnable(GL_LIGHTING); */
-		glDisable(GL_COLOR_MATERIAL); /* JAS */
+		glDisable(GL_COLOR_MATERIAL); 
                 glPopAttrib();
 		$end_list();
 ',
@@ -681,6 +682,7 @@ Background => '
 	int h,v;
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
 	double vatemp;		
+	GLuint mask;
 
 	/* only do background lighting, etc, once for textures */
 	extern void do_texture();
@@ -710,6 +712,8 @@ Background => '
 	/* Get origin */
 	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
 	glTranslatef(x,y,z);
+
+	glDisable (GL_LIGHTING);
 
 	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
@@ -852,12 +856,14 @@ Background => '
 					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
                				glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 				{            
 					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                 			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+				glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}
@@ -880,6 +886,7 @@ Background => '
 				GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
                			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 			}
+			glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 			glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 			glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 			glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
@@ -908,12 +915,14 @@ Background => '
 					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
 	                		glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
 				{            
 					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
                 			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
 				}
+				glColor3d(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 			}
@@ -1207,6 +1216,7 @@ Transform => (join '','
 		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"} 
 			0..2),'
 		);
+		$end_list();
 	}
 '),
 
