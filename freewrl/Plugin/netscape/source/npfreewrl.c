@@ -67,6 +67,7 @@ typedef struct _FW_PluginInstance
 	int			embedded;
 	pid_t 			childPID;
 	char 			*fName;
+	int			freewrl_running;
 
 	int			precv[2];		/* pipe plugin FROM freewrl	*/
 } FW_PluginInstance;
@@ -96,22 +97,25 @@ Sigfunc signal (int, Sigfunc func);
  ******************************************************************************/
 
 char debs[256];
-static int freewrl_running = 0;
 
 // Debugging routine
 static void print_here (char * xx)
 {
 // uncomment this stuff to enable log printing.
-//    if (tty == NULL) {
-//	tty = fopen("/tmp/log", "w");
-//
-//	if (tty == NULL)
-//	    abort();
-//	fprintf (tty, "\nplugin restarted\n");
-//	}
-//
-//    fprintf(tty, "plug-in: %s\n", xx);
-//    fflush(tty);
+/*
+    if (tty == NULL) {
+	tty = fopen("/home/luigi/log", "w");
+
+
+	if (tty == NULL)
+	    abort();
+	fprintf (tty, "\nplugin restarted\n");
+	}
+
+    fprintf(tty, "plug-in: %s\n", xx);
+    fflush(tty);
+*/
+
 }
 
 
@@ -142,7 +146,7 @@ Sigfunc signal(int signo, Sigfunc func) {
 }
 
 void signalHandler(int signo) {
-	sprintf(debs, "Signal %d caught from signalHandler!\n", signo);
+	sprintf(debs, "Signal %d caught from signalHandler! %d\n", signo,SIGIO);
 	print_here(debs);
 
 	if (signo == SIGIO) {
@@ -162,6 +166,9 @@ int freewrlReceive(int fd) {
 	urlRequest request;
 	size_t request_size = 0;
 	int rv = 0;
+
+	sprintf(debs, "Call to freewrlReceive fd %d.\n", fd);
+	print_here (debs);
 
 	bzero(request.url, FILENAME_MAX);
 	request.instance = 0;
@@ -191,12 +198,16 @@ int freewrlReceive(int fd) {
 		return(NPERR_GENERIC_ERROR);
 	}
 
+print_here ("step 1\n");
+
 	/* Code to block SIGIO while saving the old signal set. */
 	if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0) {
 		print_here("Call to sigprocmask failed");
 		return(NPERR_GENERIC_ERROR);
 	}
     
+print_here ("step 2\n");
+
 	/* If blocked or interrupted, be silent. */
 	if (read(fd, (urlRequest *) &request, request_size) < 0) {
 		if (errno != EINTR && errno != EAGAIN) {
@@ -211,11 +222,15 @@ int freewrlReceive(int fd) {
 		}
 	}
 
+print_here ("step 3\n");
+
 	/* Restore old signal set, which unblocks SIGIO. */
 	if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0) {
 		print_here("Call to sigprocmask failed");
 		return(NPERR_GENERIC_ERROR);
 	}
+
+print_here ("step 4\n");
 
 	return(NPERR_NO_ERROR);
 }
@@ -276,8 +291,8 @@ void Run (NPP instance) {
 
 
 	// start FreeWRL, if it is not running already.
-	if (!freewrl_running) {
-		freewrl_running = 1;
+	if (!FW_Plugin->freewrl_running) {
+		FW_Plugin->freewrl_running = 1;
 		sprintf (debs,"STARTING testrun program, disp and win %x %x\n",FW_Plugin->display, FW_Plugin->mozwindow);
 		print_here (debs);
 
@@ -344,7 +359,7 @@ void Run (NPP instance) {
 		}
 	}		
 
-	print_here ("after freewrl_running call - waiting on pipe");
+	print_here ("after FW_Plugin->freewrl_running call - waiting on pipe");
 
 	read(FW_Plugin->precv[FWRL],&FW_Plugin->fwwindow,4);
 
@@ -561,6 +576,7 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->childPID=0;
 	FW_Plugin->mozillaWidget = 0;
 	FW_Plugin->fName = NULL;
+	FW_Plugin->freewrl_running = 0;
 	pipe(FW_Plugin->precv);
 
 
@@ -588,6 +604,7 @@ NPError
 NPP_Destroy(NPP instance, NPSavedData** save)
 {
 	FW_PluginInstance* FW_Plugin;
+	int status;
 
 	print_here ("NPP_Destroy kill FreeWRL if it is running still");
 	if (instance == NULL)
@@ -609,7 +626,12 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 
 
 		if (FW_Plugin->childPID >0) {
-			kill(FW_Plugin->childPID*-1, SIGQUIT);
+	
+			sprintf (debs,"killing command kill %d",FW_Plugin->childPID);
+			print_here(debs);
+			//JAS kill(FW_Plugin->childPID*-1, SIGQUIT);
+			kill(FW_Plugin->childPID, SIGQUIT);
+			waitpid(FW_Plugin->childPID, &status, 0);
 		}
 	
 		// Close file descriptors
@@ -624,7 +646,7 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 		NPN_MemFree(instance->pdata);
 		instance->pdata = NULL;
 	}
-	freewrl_running = 0;
+	FW_Plugin->freewrl_running = 0;
 
 //JAS	DisplayJavaMessage(instance, "Calling NPP_Destroy.", -1);
 
@@ -670,7 +692,8 @@ print_here (debs);
 		FW_Plugin->mozwindow = (Window) browser_window->window;
 
 		// run FreeWRL, if it is not already running. It might not be...
-		if (!freewrl_running) {
+		if (!FW_Plugin->freewrl_running) {
+			printf ("NPP_SetWindow, running FreeWRL here!");
 				Run(instance);
 		}
 	}
@@ -800,8 +823,7 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 		sprintf (debs,"NPP_StreamAsFile, name is %s",FW_Plugin->fName);
 		print_here(debs);
 
-		if (!freewrl_running) {
-
+		if (!FW_Plugin->freewrl_running) {
 			// if we are not running yet, see if we have enough to start.
 			Run (instance);
 
