@@ -1,0 +1,73 @@
+#VRML V2.0 utf8
+
+# Simple example fo perl scripting 
+#
+# Author : Etienne Grossmann <etienne@isr.ist.utl.pt>
+
+# A sphere with a touch sensor
+PROTO ClickSphere [
+  eventIn  SFColor  the_color   # This event accepted (from script)
+  eventOut SFTime   touched	# This event emitted when touched
+] {
+  Transform {
+    children [
+      TouchSensor { touchTime IS touched }
+      
+      Shape {	
+	appearance Appearance {material Material {diffuseColor IS the_color}}
+	geometry Sphere { }
+      }
+    ]
+  }
+}
+
+PROTO ToggleSphere [
+  field MFColor  COL   [0.4   0.4   0.9]
+] {
+  Group {
+      children [				
+	
+				# The sphere itself is here
+	  DEF TS ClickSphere { }
+
+	  # The script that receives pointer
+	  # events from the ClickSphere, updates
+	  # the state of the ToggleSphere
+
+	  DEF PS Script {
+	      eventIn  SFTime   touch_function
+	      eventOut SFColor  col
+	      field    SFInt32  state 0
+	      field    SFColor  colors   IS  COL
+	      url [
+		  "perl:
+		   touch_function => sub {
+		   
+                      print \"colors is $colors\\n\";
+		      $state++;
+		      $state %= @$colors ;
+		      # Set the eventOut 'col'
+		      $col = $colors->[$state];
+		      [];
+		  },
+		  initialize      => sub {
+		      $col = $colors->[$state];
+		  }
+		  "
+	      ]
+	  }
+      ]
+      # Send touch event into script and
+      # updated color into ClickSphere
+      ROUTE TS.touched TO PS.touch_function
+      ROUTE PS.col     TO TS.the_color
+  }
+}
+
+ToggleSphere { 
+    COL [0.8 0.2 0.0
+	 0.2 0.8 0.0    
+	 0.2 0.2 1.0    
+     ] 
+}
+

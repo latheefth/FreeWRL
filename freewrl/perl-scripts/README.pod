@@ -3,7 +3,7 @@
 
 This file contains some information on perl scripting in vrml 97/2.0
 code and examples. As of today, 2000/10/05, they work with
-CVS L<freewrl|REFERENCES>. They should work with
+CVS L<freewrl|/REFERENCES>. They should work with
 freewrl-0.27 when it gets out.
 
 Also it is explained L<below|freewrl 0.26> how to have scripts work
@@ -65,6 +65,20 @@ C<col> C<eventOut>.
 
 This code is modified from F<simple-1.wrl>.
 
+=head1 Perl - VRML interface
+
+VRML "SF" nodes (C<SFColor>, C<SFFloat>, C<SFInt32> etc) are mapped to
+scalar 
+perl variables with the same name.
+
+VRML "MF" nodes (C<MFColor>, C<MFFloat>, C<MFInt32> etc) are mapped to
+ref to array perl variables with the same name.
+
+VRML C<eventOut's> are mapped to perl variables that emit a signal
+when set. 
+
+VRML C<eventIn's> are mapped to perl sub's that must be defined in the
+C<url> field of the C<Script> node.
 
 =head1 Script in PROTO node
 
@@ -135,6 +149,10 @@ accept C<"the_color"> events.
 Lines 26-42 : The perl script node, a simplified version of the
 L<first example|Example perl script node> The color is randomly
 chosen.
+
+Lines 36-38 : The function C<initialize> that will be called at
+initialization. Without it, the sphere remains white until it is
+clicked upon.
 
 Lines 43,44 : Route the events from the C<ClickSphere> to the
 C<Script> nodes
