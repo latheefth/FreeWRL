@@ -591,9 +591,16 @@ $b = new VRML::Browser({ FullScreen => $fullscreen, Shutter => $shutter,
 
 $be = $b->get_backend;
 
-# machines are getting better and better - make fast the default
+# machines are getting better and better - make great rendering the default
 if($fast) {
 	$be->set_fast();
+}
+
+# texture size - if fast, reduce texture size (really helps sw rendering)
+if ($fast) {
+	&VRML::VRMLFunc::set_maxtexture_size (64);
+} else {
+	&VRML::VRMLFunc::set_maxtexture_size(2048);
 }
 
 $b->load_file($ARGV[0],$url);
