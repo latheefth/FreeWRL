@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.108  2003/08/14 15:06:40  crc_canada
+# code to handle status bar statistics, and toggling it on/off
+#
 # Revision 1.107  2003/07/31 17:07:30  crc_canada
 # delays (to restrict rendering speed) moved to C.
 #
@@ -1307,6 +1310,7 @@ int render_blend;
 int render_proximity;
 int render_collision;
 
+int display_status = 1;  /* display a status bar? */
 
 int found_vp; /*true when viewpoint found*/
 
@@ -1818,6 +1822,11 @@ render_hier(void *p, int rwhat, void *wvp)
 	if (verbose)
   		printf("Render_hier node=%d what=%d what_vp=%d\n", p, rwhat, wvp);
 
+	/* status bar */
+	if ((render_geom) && (display_status)) {
+		render_status();
+	}
+	
 	if (render_sensitive) {
 		upd_ray();
 	}
@@ -2456,7 +2465,7 @@ CODE:
 
 	if (loop_count == 25) {
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
-		//printf ("Fps: %f\n",BrowserFPS);
+		update_status(); // tell status bar to refresh, if it is displayed 
 		BrowserStartTime = TickTime; 
 		loop_count = 1;
 	} else {
@@ -2803,6 +2812,13 @@ CODE:
 	sprintf (onechildline, "[ %d ]",child);
 	getMFNodetype (onechildline, (struct Multi_Node *) par,
 		!strncmp (fiel,"addChild",strlen ("addChild")));
+
+# status bar
+void
+toggle_status_bar()
+	CODE:
+	display_status = !display_status;
+
 
 # link into EAI.
 void
