@@ -9,15 +9,18 @@
 use strict vars;
 
 package VRML::Error;
-use vars qw/@ISA @EXPORT $Word $Float $Integer/;
+use vars qw/@ISA @EXPORT $Word $qre $cre $Float $Integer/;
 require Exporter;
 @ISA=qw/Exporter/;
 
-@EXPORT=qw/parsefail parsewarnstd $Word $Float $Integer/;
+@EXPORT=qw/parsefail parsewarnstd $Word $qre $cre $Float $Integer/;
 
 # Define the RE for a VRML word.
 # $Word = q|[^\-+0-9"'#,\.\[\]\\{}\0-\x20][^"'#,\.\{\}\\{}\0-\x20]*|;
 $Word = q|[^\x30-\x39\x0-\x20\x22\x23\x27\x2b\x2c\x2d\x2e\x5b\x5c\x5d\x7b\x7d\x7f][^\x0-\x20\x22\x23\x27\x2c\x2e\x5b\x5c\x5d\x7b\x7d\x7f]*|;
+$qre = qr{(?<!\\)\"};		# " Regexp for unquoted double quote  
+$cre = qr{[^\"\n]};		# " Regexp for not dquote, not \n char
+
 
 # Spec:
 # ([+/-]?(
@@ -56,33 +59,48 @@ require 'VRML/VRMLNodes.pm';
 require 'VRML/VRMLFields.pm';
 
 package VRML::Parser;
-use vars qw/$Word/;
+use vars qw/$Word $qre $cre/;
 VRML::Error->import;
 
 # Parse a whole file into $scene.
 sub parse {
-	my($scene,$text) = @_;
+  ## $VRML::verbose::parse = 1;
+        my($scene,$text) = @_;
 	# XXX marijn: this sorta works for deleting comments
 	print "Deleting comments\n" if $VRML::verbose::parse;
-	my $po = pos $text;
-	my $mpo = $po;
-	while($text =~ /([#\"])/gsc ) {
-		my $npo = pos $text;
-		print "found $1 at position $npo\n" if $VRML::verbose::parse;
-		(pos $text)--;
-		if ( $1 eq "#" ) {
-			print "Identified $1 as a comment, deleting!\n" if $VRML::verbose::parse;
-			# Marijns code:  $text =~ s/#.*$//m;
-			# Remi's fix:
-			$text =~ s/\G.*$//m;
-		} else {
-			print "Identified as a string, skipping!\n" if $VRML::verbose::parse;
-			VRML::Field::SFString->parse($scene,$text);
-		}
-		$mpo = pos $text;
-		print "Searching from position $mpo\n" if $VRML::verbose::parse;
-	}
-	(pos $text) = $po;
+	my $po = pos ($text);
+	$po = 0 unless defined $po ;
+	my $t2 = substr ($text, $po);
+	my $l2 = length ($t2);
+	## (etienne) FIX ME : Tentative comment-removing fix. Must do
+	## something better. Especially, the
+	## VRML::Field::SFString->parse($scene,$text) has been commented.
+	$t2 =~ s{^($cre*?($qre($cre|\\\")*$qre)*?$cre*?)#[^\n]*$}{$1}omg; #"
+        substr ($text, $po, $l2, $t2); 
+
+        ## pos($text) should not have changed
+        ## pos ($text) = $po if defined $po; # Just in case
+
+#	open AA, ">uncommented.wrl" ;
+#	print AA $text ;
+#	close AA;
+#  	while($text =~ /\G([#\"])/gsc ) { # "cperl-mode trick
+#  		my $npo = pos $text;
+#  		print "found $1 at position $npo\n" if $VRML::verbose::parse;
+#  		(pos $text)--;
+#  		if ( $1 eq "#" ) {
+#  			print "Identified $1 as a comment, deleting!\n" if $VRML::verbose::parse;
+#  			# Marijns code:  $text =~ s/#.*$//m;
+#  			# Remi's fix:
+#  			$text =~ s/\G.*$//m;
+#  		      } else {
+#  			print "Identified as a string, skipping!\n" if $VRML::verbose::parse;
+#  			VRML::Field::SFString->parse($scene,$text);
+#  		}
+#  		$mpo = pos $text;
+#  		print "Searching from position $mpo\n" if $VRML::verbose::parse;
+#  	}
+#	(pos $text) = $po;
 	my @a;
 	while($text !~ /\G\s*$/gsc) {
 		my $n = parse_statement($scene,$text);
