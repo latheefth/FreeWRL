@@ -21,7 +21,7 @@ if ($PERL_VERSION lt v5.6.0) {
 }
 
 WriteMakefile(
-    NAME => 'EAIJava'
+    NAME => 'Java/classes'
 );
 
 ## The Netscape jar file containing the package netscape.security is

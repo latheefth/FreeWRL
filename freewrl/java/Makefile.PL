@@ -20,6 +20,15 @@ if ($PERL_VERSION lt v5.6.0) {
     warn "Warning: $dir/$PROGRAM_NAME was created under Perl v5.6.0.\n";
 }
 
+sub MY::postamble {
+    return q{
+# --- Java Archive
+
+install ::
+	@cd classes && $(MAKE) install
+};
+}
+
 WriteMakefile(
-    NAME => 'EAIJava'
+    NAME => 'Java'
 );
