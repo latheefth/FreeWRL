@@ -6,8 +6,8 @@ import vrml.external.Browser;
 public class EventInSFTime extends EventIn {
   public EventInSFTime() { EventType = FieldTypes.SFTIME;}
 
-  public void          setValue(String value) {
-    Browser.SendEvent (inNode , command, "\"" + value + "\"");
+  public void          setValue(double value) {
+    Browser.SendEvent (inNode , command, "" + value);
     return;
   }
 }
