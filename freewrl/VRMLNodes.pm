@@ -602,7 +602,8 @@ ElevationGrid => new VRML::NodeType("ElevationGrid",
 	 creaseAngle => [SFFloat, 0],
 	 color => [SFNode, NULL],
 	 normal => [SFNode, NULL],
-
+	 texCoord => [SFNode, NULL],
+	 ccw => [SFBool, 1],
 	 colorPerVertex => [SFBool, 1],
 	 normalPerVertex => [SFBool, 1],
 	}
