@@ -1,0 +1,25 @@
+%% $Id$
+
+%% TeX packages:
+\usepackage{times,pifont,longtable,ulem,test-names}
+
+%% Margins
+\setlength{\topmargin}{0mm}
+\setlength{\voffset}{0mm}
+\setlength{\hoffset}{0mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\marginparsep}{0mm}
+\setlength{\marginparwidth}{0mm}
+\setlength{\marginparpush}{0mm}
+\setlength{\textwidth}{158mm}
+\setlength{\textheight}{206mm}
+
+%% Counters
+\newcounter{testCaseCtr}
+
+%% New Commands
+\newcommand{\testCase}{\arabic{testCaseCtr}.~ \stepcounter{testCaseCtr}}
+\newcommand{\resetTestCase}{\setcounter{testCaseCtr}{1}}
+
+%% give \emph default behaviour
+\normalem
