@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.35  2001/06/18 19:11:50  crc_canada
+# Background ground angle bug if > 3 angles fixed.
+#
 # Revision 1.34  2001/06/18 17:24:32  crc_canada
 # IRIX compile warnings removed.
 #
@@ -1017,6 +1020,9 @@ Background => '
 		}
 	}
 
+	/* now, the spec states: "If the last skyAngle is less than pi, then the
+	  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
+
 	/* do we have any ground angles? */
 	va1 = va2; /* start va1 where we left off... */
 	if ((this_->groundColor).n==0) { vatemp = PI;}
@@ -1048,7 +1054,7 @@ Background => '
 			if (v==1) {
 				va2=PI; /* we go to the pole */
 			} else {
-				va2 = ((this_->groundAngle).p[v-2]) + PI/2;
+				va2 = PI - ((this_->groundAngle).p[v-2]);
 			}
 
 			for(h=0; h<hdiv; h++) {
