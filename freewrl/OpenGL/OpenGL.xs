@@ -316,7 +316,8 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	    Window pwin=(Window)pw;
 	    int *attributes = default_attributes3;
 	    int number;
-            int len=0;
+		int len=0;
+		XTextProperty windowName;
 
 	   
 	    if(items>NUM_ARG+1){
@@ -381,40 +382,47 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 	    if(!pwin){pwin=RootWindow(dpy, vi->screen);}
 		
-	    if(x>=0) {
-	    	    XTextProperty textpro;
-		    if (fullscreen == 1)
-		    {
+	    if (x>=0) {
+			XTextProperty textpro;
+		    if (fullscreen == 1) {
 		    	win = XCreateWindow(dpy, pwin, 
-					0, 0, dpyWidth, dpyHeight,
-					0, vi->depth, InputOutput, vi->visual,
-					CWBorderPixel| CWOverrideRedirect |
-					 CWColormap | CWEventMask, &swa);
-			cursor_pixmap = XCreatePixmap(dpy, win ,1, 1, 1);
-			black.pixel = WhitePixel(dpy, DefaultScreen(dpy));
-			XQueryColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), &black);
- 			cursor = XCreatePixmapCursor(dpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
-			XDefineCursor(dpy, win, cursor);
+									0, 0, dpyWidth, dpyHeight,
+									0, vi->depth, InputOutput, vi->visual,
+									CWBorderPixel| CWOverrideRedirect |
+									CWColormap | CWEventMask, &swa);
+				cursor_pixmap = XCreatePixmap(dpy, win ,1, 1, 1);
+				black.pixel = WhitePixel(dpy, DefaultScreen(dpy));
+				XQueryColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), &black);
+				cursor = XCreatePixmapCursor(dpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
+				XDefineCursor(dpy, win, cursor);
 			
-		    }
-		    else
-		    {
-			win = XCreateWindow(dpy, pwin, x, y, w, h, 0, vi->depth, InputOutput, vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
+		    } else {
+				win = XCreateWindow(dpy, pwin, x, y, w, h, 0, vi->depth, InputOutput, vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
 
-			/* create window name */
-			XStoreName(dpy,win,wintitle);
-
-		    }
-	    	    glXMakeCurrent(dpy, win, cx);
-	    	    glFlush();
+				/* create window and icon name */
+				if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
+					fprintf(stderr,
+							"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
+							wintitle);
+				} 
+				if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
+					fprintf(stderr,
+							"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
+							wintitle);
+				}
+				XSetWMName(dpy, win, &windowName);
+				XSetWMIconName(dpy, win, &windowName);
+			}
+			glXMakeCurrent(dpy, win, cx);
+			glFlush();
 		    XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
 		    if(!win) {
-			fprintf(stderr, "No Window\n");
-			exit(-1);
+				fprintf(stderr, "No Window\n");
+				exit(-1);
 		    }
 		    XMapWindow(dpy, win);
-		    if(event_mask & StructureNotifyMask) {
-			XIfEvent(dpy, &event, WaitForNotify, (char*)win);
+		    if (event_mask & StructureNotifyMask) {
+				XIfEvent(dpy, &event, WaitForNotify, (char*)win);
 		    }
 	    } else { 
 		    die("NO PBUFFER EXTENSION\n");
@@ -423,13 +431,10 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	    glClearColor(0,0,0,1);
 
 	    /* Create Cursors */
-	    if (fullscreen == 1)
-	    {
-		arrowc = cursor;
-		sensorc = cursor;
-	    }
-	    else
-	    {
+	    if (fullscreen == 1) {
+			arrowc = cursor;
+			sensorc = cursor;
+	    } else {
 	    	arrowc = XCreateFontCursor (dpy, XC_left_ptr);
 	    	sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
 	    }

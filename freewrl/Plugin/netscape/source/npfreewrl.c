@@ -81,6 +81,7 @@ typedef void (* Sigfunc) (int);
  * 
  */
 static int np_fd;
+static int child_pid;
 static int abortFlag;
 
 #if _DEBUG
@@ -178,10 +179,8 @@ void swallow_check (PluginInstance * This)
     Widget temp;
     int i, k, l, j, FoundIt = FALSE;
     int width, height;
-    char *windowname;
     unsigned int number_of_subkids=0, number_of_kids=0, number_of_subsubkids=0;
     Window root, parent, *children = NULL, *subchildren = NULL, *subsubchildren = NULL;
-
     Atom type_ret;
     int fmt_ret;
     unsigned long nitems_ret;
@@ -189,6 +188,7 @@ void swallow_check (PluginInstance * This)
     Window *win = NULL;
     Atom _XA_WM_CLIENT_LEADER;
     char FreeWRLName[30];
+	XTextProperty windowName;
 
 #if _DEBUG
     unsigned int err;
@@ -210,16 +210,23 @@ void swallow_check (PluginInstance * This)
 #endif
 		}
     
-		 /* find the number of children on the root window */
-        if (0 != XQueryTree (This->display, RootWindowOfScreen (XtScreen 
-																(This->netscapeWidget)), &root,
-							 &parent, &children, &number_of_kids)) 
+		/* find the number of children on the root window */
+        if (XQueryTree(This->display,
+					   RootWindowOfScreen(XtScreen(This->netscapeWidget)),
+					   &root,
+					   &parent,
+					   &children,
+					   &number_of_kids) != 0) {
     
-			 /* go through the children, and see if one matches our FreeWRL win */
+			/* go through the children, and see if one matches our FreeWRL win */
 			for (i = 0; i < number_of_kids; i++) {
-				if (0 != XFetchName (This->display, children[i], &windowname)) {
-					if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
-						 /* Found it!!! */
+				if (XGetWMName(This->display, children[i], &windowName) != 0) {
+#if _DEBUG
+					fprintf(log,
+							"\tXGetWMName returned \"%s\".\n", windowName.value);
+#endif
+					if (!strncmp(windowName.value, FreeWRLName, strlen(FreeWRLName))) {
+						/* Found it!!! */
 #if _DEBUG
 						fprintf(log,
 								"\tFound FreeWRL among the children of the root window.\n");
@@ -227,15 +234,9 @@ void swallow_check (PluginInstance * This)
 						FoundIt = TRUE;
 						This->victim = children[i];
 					}
-#if _DEBUG
-					err = XFree(windowname);
-					printXError("XFree(windowname)", err);
-#else
-					XFree(windowname);
-#endif
 				}
     
-				 /* nope, go through the sub-children */
+				/* nope, go through the sub-children */
 				if (FoundIt == FALSE) {
 					if (subchildren != (Window *) NULL) {
 #if _DEBUG
@@ -246,11 +247,21 @@ void swallow_check (PluginInstance * This)
 #endif
 					}
 
-					if (0 != XQueryTree (This->display, children[i], &root, &parent, 
-										 &subchildren, &number_of_subkids))
+					if (XQueryTree(This->display,
+								   children[i],
+								   &root,
+								   &parent,
+								   &subchildren,
+								   &number_of_subkids) != 0) {
 						for (k = 0; k < number_of_subkids; k++) {
-							if (0 != XFetchName (This->display, subchildren[k], &windowname)) {
-								if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
+							if (XGetWMName(This->display, subchildren[k], &windowName) != 0) {
+#if _DEBUG
+								fprintf(log,
+										"\tXGetWMName returned \"%s\".\n", windowName.value);
+#endif
+								if (!strncmp(windowName.value,
+											 FreeWRLName,
+											 strlen(FreeWRLName))) {
 #if _DEBUG
 									fprintf(log,
 											"\tFound FreeWRL among the subchildren of the root window.\n");
@@ -258,12 +269,6 @@ void swallow_check (PluginInstance * This)
 									FoundIt = TRUE;
 									This->victim = subchildren[k];
 								}
-#if _DEBUG
-								err = XFree(windowname);
-								printXError("XFree(windowname)", err);
-#else
-								XFree (windowname);
-#endif
 							}
 							if (FoundIt == FALSE) {
 								if (subsubchildren != (Window *) NULL) {
@@ -274,11 +279,23 @@ void swallow_check (PluginInstance * This)
 									XFree (subchildren);
 #endif
 								}
-								if (0 != XQueryTree (This->display, subchildren[k], &root,
-													 &parent, &subsubchildren, &number_of_subsubkids))
+								if (XQueryTree(This->display,
+											   subchildren[k],
+											   &root,
+											   &parent,
+											   &subsubchildren,
+											   &number_of_subsubkids) != 0) {
 									for (l = 0; l < number_of_subsubkids; l++) {
-										if (0 != XFetchName (This->display, subsubchildren[l], &windowname)) {
-											if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
+										if (XGetWMName(This->display,
+													   subsubchildren[l],
+													   &windowName) != 0) {
+#if _DEBUG
+											fprintf(log,
+													"\tXGetWMName returned \"%s\".\n", windowName.value);
+#endif
+											if (!strncmp(windowName.value,
+														 FreeWRLName,
+														 strlen(FreeWRLName))) {
 #if _DEBUG
 												fprintf(log,
 														"\tFound FreeWRL among the subsubchildren of the root window.\n");
@@ -286,44 +303,41 @@ void swallow_check (PluginInstance * This)
 												FoundIt = TRUE;
 												This->victim = subsubchildren[l];
 											}
-#if _DEBUG
-											err = XFree(windowname);
-											printXError("XFree(windowname)", err);
-#else
-											XFree (windowname);
-#endif
 										}
 									}
+								}
 							}
 						}
+					}
 				}
 			}
-		 /* still in the for loop... */
+		}
+		/* still in the for loop... */
 		if (FoundIt == TRUE) {
-			 /*search up the current tree to add a resize event handler */
+			/*search up the current tree to add a resize event handler */
             temp = XtWindowToWidget (This->display, This->window);
 
-			 /* tree is:
+			/* tree is:
 		
-			 netscape-communicator
-			 Navigator
-			 form	-------- While loop stops on this one.
-			 mainForm
-			 viewParent
-			 scrollerForm
-			 pane
-			 scroller
-			 drawingArea
-			 form
-			 pane
-			 scroller
-			 drawingArea
-			 form
-			 pane
-			 scroller
-			 drawingArea
-			 netscapeEmbed
-			 */
+			netscape-communicator
+			Navigator
+			form	-------- While loop stops on this one.
+			mainForm
+			viewParent
+			scrollerForm
+			pane
+			scroller
+			drawingArea
+			form
+			pane
+			scroller
+			drawingArea
+			form
+			pane
+			scroller
+			drawingArea
+			netscapeEmbed
+			*/
 		
             while (strcmp (XtName (temp), "form")) {
 				temp = XtParent (temp);
@@ -339,24 +353,14 @@ void swallow_check (PluginInstance * This)
 				}
             }
 
-			 /* remember - temp now points to "form" - see above tree */
-			 /* we don't need this to be printed out. JAS
-
-			 if (This->fullsize!=TRUE) {
-			 #if _DEBUG
-			 fprintf (log, "\tSurprise!!! This is not fullsize!\n");
-			 #else
-			 fprintf (stderr, "Surprise!!! This is not fullsize!\n");
-			 #endif
-			 }
-			 */
-
+			/* remember - temp now points to "form" - see above tree */
+			/* we don't need this to be printed out. JAS */
 
             This->resizeWatch = temp;
             This->resizeEvent = TRUE;
 
-			 /* when netscape is resized, the "form" will be resized, and */
-			 /* we'll get a notification via this event handler		 */
+			/* when netscape is resized, the "form" will be resized, and */
+			/* we'll get a notification via this event handler		 */
             XtAddEventHandler(This->resizeWatch, StructureNotifyMask, 
 							  False, (XtEventHandler) resizeCB, (XtPointer) This);
 #if _DEBUG
@@ -366,13 +370,13 @@ void swallow_check (PluginInstance * This)
             err = XSync(This->display, FALSE);
 			printXError("XSync", err);
 #else
-			 /* make it the right size for us; redundant if fullsize */
+			/* make it the right size for us; redundant if fullsize */
             XResizeWindow(This->display, This->victim, This->width, This->height);
 
             XSync(This->display, FALSE);
 #endif
 
-			 /* still have to figure the following couple of lines out. */
+			/* still have to figure the following couple of lines out. */
             _XA_WM_CLIENT_LEADER = XInternAtom (This->display, "WM_CLIENT_LEADER", False);
 
 #if _DEBUG
@@ -459,9 +463,9 @@ void swallow_check (PluginInstance * This)
             XSync(This->display, FALSE);
 #endif
 
-			 /* huh? One should do this... */
+			/* huh? One should do this... */
             for (j = 0; j < REPARENT_LOOPS; j++) {
-				 /* more bloody serious dodginess */
+				/* more bloody serious dodginess */
 #if _DEBUG
 				err = XReparentWindow (This->display, This->victim, This->window, 0, 0);
 				printXError("XReparentWindow", err);
@@ -518,7 +522,7 @@ void swallow_check (PluginInstance * This)
 												  (XtPointer) This);
 		}
     } else {
-		 /* can't run */
+		/* can't run */
 #if _DEBUG
 		fprintf (log, "\tFreeWRL invocation can not be found\n");
 #else
@@ -784,7 +788,7 @@ NPP_Destroy (NPP instance, NPSavedData ** save) {
     }
 
     if (This->fName != NULL) {
-      free(This->fName);
+      NPN_MemFree(This->fName);
     }
 
     if (This->fwrlAlive) {
@@ -797,7 +801,7 @@ NPP_Destroy (NPP instance, NPSavedData ** save) {
     fclose(log);
 #endif
 
-    NPN_MemFree (instance->pdata);
+    NPN_MemFree(instance->pdata);
     instance->pdata = NULL;
   }
   return(NPERR_NO_ERROR);
@@ -965,21 +969,21 @@ NPP_StreamAsFile (NPP instance, NPStream * stream, const char *fname)
 	if (This->netscapeWidget != NULL) {
 	    This->childPID = run_child (instance, fname,
 			    This->width,This->height, This->fd);
-	    if (This->childPID == -1)
+	    if (This->childPID == -1) {
 #if _DEBUG
 		fprintf(log,"\tError: attempt to run FreeWRL failed.\n");
 #else
 		fprintf(stderr,"Attempt to run FreeWRL failed.\n");
 #endif
-
-	    else {
-		setpgid(This->childPID,This->childPID);
+	    } else {
+		child_pid = This->childPID;
+		setpgid(This->childPID, This->childPID);
 		do_swallow (This); /* swallowTimer will be set away from -1*/
 		This->fwrlAlive = TRUE; /* freewrl is now loaded */
 	    }
 	} else {
 	    This->swallowTimer = -2; /*inform setwindow to run it instead*/
-	    This->fName = (char *) malloc((strlen(fname) +1) *sizeof(char *));
+	    This->fName = (char *) NPN_MemAlloc((strlen(fname) +1) *sizeof(char *));
 	    strcpy(This->fName,fname);
 	}
     } else {
@@ -1126,6 +1130,11 @@ signalHandler(int signo)
 	fprintf(log, "\nClosing plugin log.\n");
 	fclose(log);
 #endif
+/*
+	if (child_pid != -1) {
+	    kill(child_pid, SIGQUIT);
+	}
+*/
 	exit(1);
     }
 }
