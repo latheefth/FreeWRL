@@ -702,10 +702,6 @@ sub render {
 	    glLightfv(&GL_LIGHT0,&GL_DIFFUSE, $s);
 	    glLightfv(&GL_LIGHT0,&GL_SPECULAR, $s);
 	  }
-	else
-	  {
-	    glDisable(&GL_LIGHT0);
-	  }
 					
 	# 3. Viewpoint
 	$this->setup_viewpoint($node);
