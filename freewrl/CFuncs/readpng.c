@@ -109,6 +109,8 @@ int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight)
     *pWidth = width;
     *pHeight = height;
 
+//printf ("png, width %d height %d bit_depth %d color_type %d\n",
+//width,height,bit_depth,color_type);
 
     /* OK, that's all we need for now; return happy */
 
@@ -138,17 +140,44 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
      * transparency chunks to full alpha channel; strip 16-bit-per-sample
      * images to 8 bits per sample; and convert grayscale to RGB[A] */
 
-    if (color_type == PNG_COLOR_TYPE_PALETTE)
-        png_set_expand(png_ptr);
-    if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
-        png_set_expand(png_ptr);
-    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
-        png_set_expand(png_ptr);
-    if (bit_depth == 16)
-        png_set_strip_16(png_ptr);
-    if (color_type == PNG_COLOR_TYPE_GRAY ||
-        color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-        png_set_gray_to_rgb(png_ptr);
+// this expands opaque textures of depth 1 to depth 3
+//    if (color_type == PNG_COLOR_TYPE_PALETTE)
+//        png_set_expand(png_ptr);
+
+
+
+//if (bit_depth < 8)
+               png_set_packing(png_ptr);
+
+
+//    if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+//        png_set_expand(png_ptr);
+
+
+//JAS    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+//JAS        png_set_expand(png_ptr);
+
+//JAS    if (bit_depth == 16)
+//JAS        png_set_strip_16(png_ptr);
+
+// this one destroys alpha images...
+//    if (color_type == PNG_COLOR_TYPE_GRAY ||
+//        color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+//        png_set_gray_to_rgb(png_ptr);
+
+
+//testing from the manual.
+
+//if (color_type == PNG_COLOR_TYPE_PALETTE &&
+ //              bit_depth <= 8) png_set_expand(png_ptr);
+
+//           if (color_type == PNG_COLOR_TYPE_GRAY &&
+//               bit_depth < 8) png_set_expand(png_ptr);
+
+//           if (png_get_valid(png_ptr, info_ptr,
+//               PNG_INFO_tRNS)) png_set_expand(png_ptr);
+
+
 
 
     /* unlike the example in the libpng documentation, we have *no* idea where
