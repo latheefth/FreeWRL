@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.15  2002/04/18 17:42:54  crc_canada
+# Some debugging print statements commented out.
+#
 # Revision 1.14  2001/12/12 17:02:04  crc_canada
 # more updates for EAI
 #
@@ -227,9 +230,9 @@ sub find_actual_node_and_field {
 	# my $node = VRML::Handles::front_end_child_get(VRML::Handles::get($id));
 	my $node = VRML::Handles::get($id);
 
-	print "find_actual_node, looking at node ",
-		VRML::Node::dump_name($node),  " ref ", ref $node, 
-		" field $field, eventin flag $eventin\n";
+	#print "find_actual_node, looking at node ",
+	#	VRML::Node::dump_name($node),  " ref ", ref $node, 
+	#	" field $field, eventin flag $eventin\n";
 
 	if (defined $node->{IsProto}) {
 		# aha! is this an "IS"?
@@ -242,7 +245,7 @@ sub find_actual_node_and_field {
 
 		$n = $node->{ProtoExp}{$direction}{$field}[0][0];
 		$f = $node->{ProtoExp}{$direction}{$field}[0][1];
-		print "find_actual_node, returning ",VRML::Node::dump_name($n), " $f\n";
+		#print "find_actual_node, returning ",VRML::Node::dump_name($n), " $f\n";
 		return ($n, $f);
 	}
 
@@ -250,7 +253,7 @@ sub find_actual_node_and_field {
 	# exists here.
 
 	if (defined $node->{$field}) {
-		print "find_actual_node, test2 passed, node is simple\n";
+		#print "find_actual_node, test2 passed, node is simple\n";
 		return ($node,$field);
 	}
 
@@ -259,12 +262,12 @@ sub find_actual_node_and_field {
 
 	if (defined $node->{Scene}) {
 		$node = VRML::Handles::front_end_child_get($node);
-		print "find_actual_node, fec returns ", VRML::Node::dump_name(
-			$node), "\n";
+		#print "find_actual_node, fec returns ", VRML::Node::dump_name(
+		#	$node), "\n";
 		return ($node,$field);
 	}
 
-	print "find_actual_node, dont know what to do here\n";
+	print "find_actual_node, dont know what to do here - please submit a bug report\n";
 	return ($node,$field);
 
 }
