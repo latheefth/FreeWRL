@@ -317,7 +317,7 @@ sub do_defaults {
 sub as_string {
     my ($this) = @_;
 
-    my $s = "$this->{TypeName} { \n";
+    my $s = "$this->{TypeName} {";
 
     # is this a script being sent back via EAI?
     if ("__script" eq substr($this->{TypeName},0,8)) {
@@ -326,15 +326,15 @@ sub as_string {
     }
 
     for (keys %{$this->{Fields}}) {
-	$s .= "\n $_ ";
-	if ("VRML::IS" eq ref $this->{Fields}{$_}) {
-	    $s .= $this->{Fields}{$_}->as_string();
-	} else {
-	    $s .= "VRML::Field::$this->{Type}{FieldTypes}{$_}"->
-			as_string($this->{Fields}{$_});
-	}
+		$s .= " $_ ";
+		if ("VRML::IS" eq ref $this->{Fields}{$_}) {
+			$s .= $this->{Fields}{$_}->as_string();
+		} else {
+			$s .= "VRML::Field::$this->{Type}{FieldTypes}{$_}"->
+				as_string($this->{Fields}{$_});
+		}
     }
-    $s .= "}\n";
+    $s .= "}";
     return $s;
 }
 
