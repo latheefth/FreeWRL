@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.14  2000/11/03 21:52:16  crc_canada
+# Speed updates - texture objects added
+#
 # Revision 1.13  2000/10/28 17:42:51  crc_canada
 # EAI addchildren, etc, should be ok now.
 #
@@ -630,6 +633,13 @@ PixelTexture => ('
 # GLBackend is using 200000 as distance - we use 100000 for background
 # XXX Should just make depth test always fail.
 Background => '
+	#define BACKTEX		0
+	#define FRONTTEX	1
+	#define LEFTTEX		2
+	#define RIGHTTEX	3
+	#define TOPTEX		4
+	#define BOTTEX		5
+
 	GLdouble mod[16];
 	GLdouble proj[16];
 	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
@@ -645,8 +655,13 @@ Background => '
 	double vatemp;		
 
 	/* only do background lighting, etc, once for textures */
-	int background_texture_inited = FALSE;
-	extern void do_background_texture();
+	extern void do_texture();
+
+	/* Background Texture Objects.... */
+	static int bcklen,frtlen,rtlen,lftlen,toplen,botlen;
+	unsigned char *bckptr,*frtptr,*rtptr,*lftptr,*topptr,*botptr;
+	static GLuint BackTextures[6];
+
 
 	static unsigned int displayed_node = 0;
 	static int background_display_list = -1;
@@ -679,7 +694,8 @@ Background => '
 
 	/* Undo the translation and scale effects */
 	glScalef(sx,sy,sz);
-	
+
+
 	/* now, is this the same background as before??? */
 	if(displayed_node==(unsigned int) nod_) {
 		glCallList(background_display_list);
@@ -696,6 +712,65 @@ Background => '
 		glDeleteLists(background_display_list,1);
 	}
 	background_display_list = glGenLists(1);
+
+	/* do we have any background textures? if so, bind them here, before
+	   the display list is started */
+	frtptr = SvPV((this_->__data_front),frtlen); 
+	bckptr = SvPV((this_->__data_back),bcklen);
+	topptr = SvPV((this_->__data_top),toplen);
+	botptr = SvPV((this_->__data_bottom),botlen);
+	lftptr = SvPV((this_->__data_left),lftlen);
+	rtptr = SvPV((this_->__data_right),rtlen);
+
+	if (frtptr || bckptr || topptr || botptr || lftptr || rtptr) {
+		unsigned char *ptr;
+		glGenTextures (6,BackTextures);
+
+ 		if (frtptr && frtlen) {
+			ptr = SvPV((this_->__data_front),PL_na);
+			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
+                	do_texture(this_->__depth_front, this_->__x_front,
+                       		 this_->__y_front,ptr,GL_REPEAT);
+		}
+
+ 		if (bckptr && bcklen) {
+			ptr = SvPV((this_->__data_back),PL_na);
+			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
+                	do_texture(this_->__depth_back, this_->__x_back,
+                       		 this_->__y_back,ptr,GL_REPEAT);
+		}
+
+ 		if (rtptr && rtlen) {
+			ptr = SvPV((this_->__data_right),PL_na);
+			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
+                	do_texture(this_->__depth_right, this_->__x_right,
+                       		 this_->__y_right,ptr,GL_REPEAT);
+		}
+
+ 		if (topptr && toplen) {
+			ptr = SvPV((this_->__data_top),PL_na);
+			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
+                	do_texture(this_->__depth_top, this_->__x_top,
+                       		 this_->__y_top,ptr,GL_REPEAT);
+		}
+
+ 		if (botptr && botlen) {
+			ptr = SvPV((this_->__data_bottom),PL_na);
+			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
+                	do_texture(this_->__depth_bottom, this_->__x_bottom,
+                       		 this_->__y_bottom,ptr,GL_REPEAT);
+		}
+
+
+ 		if (lftptr && lftlen) {
+			ptr = SvPV((this_->__data_left),PL_na);
+			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
+                	do_texture(this_->__depth_left, this_->__x_left,
+                       		 this_->__y_left,ptr,GL_REPEAT);
+		}
+
+	}
+
 	/* printf ("new background display list is %d\n",background_display_list); */
 	glNewList(background_display_list,GL_COMPILE_AND_EXECUTE);
 
@@ -820,342 +895,90 @@ Background => '
 	glEnd();
 
 
+
 	/* now, for the textures, if they exist */
-	{
-		unsigned int len;
-		unsigned char *ptr = SvPV((this_->__data_back),len);
-		if(ptr && len) {
-		  {
-			int rx,sx,ry,sy;
-			unsigned char *ptr = SvPV((this_->__data_back),PL_na);
-			if((this_->__depth_back) && (this_->__x_back) && (this_->__y_back)) {
-				unsigned char *dest = ptr;
-				rx = 1; sx = (this_->__x_back);
-				while(sx) {sx /= 2; rx *= 2;}
-				if(rx/2 == (this_->__x_back)) {rx /= 2;}
-				ry = 1; sy = (this_->__y_back);
-				while(sy) {sy /= 2; ry *= 2;}
-				if(ry/2 == (this_->__y_back)) {ry /= 2;}
 
-				if(rx != (this_->__x_back) || ry != (this_->__y_back)) {
-					/* We have to scale */
-					dest = malloc((this_->__depth_back) * rx * ry);
-					gluScaleImage( ((this_->__depth_back)==1 ? GL_LUMINANCE : ((this_->__depth_back)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_back)==3 ? GL_RGB : GL_RGBA))),
-					     (this_->__x_back), (this_->__y_back),
-					     GL_UNSIGNED_BYTE, ptr, rx, ry,
-					     GL_UNSIGNED_BYTE, dest);
-				}
-				if (!background_texture_inited) {
-        				do_background_texture();
-					background_texture_inited = TRUE;
-				}
-				glTexImage2D(GL_TEXTURE_2D, 0, (this_->__depth_back),  rx, ry, 0, 
-					((this_->__depth_back)==1 ? GL_LUMINANCE : ((this_->__depth_back)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_back)==3 ? GL_RGB : GL_RGBA))), 
-					GL_UNSIGNED_BYTE, dest);
-				if(ptr != dest) free(dest);
-			}
-		     };
+	if (frtptr || bckptr || topptr || botptr || lftptr || rtptr) {
+        	GLfloat mat_emission[] = {1.0,1.0,1.0,1.0};
+       	 	GLfloat col_amb[] = {1.0, 1.0, 1.0, 1.0};
+       	 	GLfloat col_dif[] = {1.0, 1.0, 1.0, 1.0};
 
-		glBegin(GL_QUADS);
-		glNormal3f(0,0,1); 
-		TC(1, 1); glVertex3f(-0.43, -0.43, 0.43);
-		TC(1, 0); glVertex3f(-0.43, 0.43, 0.43);
-		TC(0, 0); glVertex3f(0.43, 0.43, 0.43);
-		TC(0, 1); glVertex3f(0.43, -0.43, 0.43);
+        	glEnable (GL_LIGHTING);
+        	glEnable(GL_TEXTURE_2D);
+        	glColor3f(1,1,1);
 
-		glEnd();
-		glFlush();
-		}
-		}
-		{
-		unsigned int len;
-		unsigned char *ptr = SvPV((this_->__data_front),len);
-		if(ptr && len) {
-		
-		  {
-			int rx,sx,ry,sy;
-			unsigned char *ptr = SvPV((this_->__data_front),PL_na);
-			if((this_->__depth_front) && (this_->__x_front) && (this_->__y_front)) {
-				unsigned char *dest = ptr;
-				rx = 1; sx = (this_->__x_front);
-				while(sx) {sx /= 2; rx *= 2;}
-				if(rx/2 == (this_->__x_front)) {rx /= 2;}
-				ry = 1; sy = (this_->__y_front);
-				while(sy) {sy /= 2; ry *= 2;}
-				if(ry/2 == (this_->__y_front)) {ry /= 2;}
+        	glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
+        	glLightfv (GL_LIGHT0, GL_AMBIENT, col_amb);
+        	glLightfv (GL_LIGHT0, GL_DIFFUSE, col_dif);
 
-				if(rx != (this_->__x_front) || ry != (this_->__y_front)) {
-					/* We have to scale */
-					dest = malloc((this_->__depth_front) * rx * ry);
-					gluScaleImage(
-					     ((this_->__depth_front)==1 ? GL_LUMINANCE : ((this_->__depth_front)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_front)==3 ? GL_RGB : GL_RGBA))),
-					     (this_->__x_front), (this_->__y_front),
-					     GL_UNSIGNED_BYTE,
-					     ptr,
-					     rx, ry,
-					     GL_UNSIGNED_BYTE,
-					     dest
-					);
-				}
-				if (!background_texture_inited) {
-        				do_background_texture();
-					background_texture_inited = TRUE;
-				}
+		/* go through each of the 6 possible sides */
 
-				glTexImage2D(GL_TEXTURE_2D,
-					     0, 
-					     (this_->__depth_front),  
-					     rx, ry,
-					     0,
-					     ((this_->__depth_front)==1 ? GL_LUMINANCE : ((this_->__depth_front)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_front)==3 ? GL_RGB : GL_RGBA))),
-					     GL_UNSIGNED_BYTE,
-					     dest
-				);
-				if(ptr != dest) free(dest);
-			}
-		     }
-			;
-		glBegin(GL_QUADS);
-		glNormal3f(0,0,-1);
-		TC(1,0); glVertex3f(0.43,0.43,-0.43);
-		TC(0,0); glVertex3f(-0.43,0.43,-0.43);
-		TC(0,1); glVertex3f(-0.43,-0.43,-0.43);
-		TC(1,1); glVertex3f(0.43,-0.43,-0.43); 
-		glEnd();
-		}
-		}
-		{
-		unsigned int len;
-		unsigned char *ptr = SvPV((this_->__data_top),len);
-		if(ptr && len) {
-		
-		  {
-			int rx,sx,ry,sy;
-			unsigned char *ptr = SvPV((this_->__data_top),PL_na);
-			if((this_->__depth_top) && (this_->__x_top) && (this_->__y_top)) {
-				unsigned char *dest = ptr;
-				rx = 1; sx = (this_->__x_top);
-				while(sx) {sx /= 2; rx *= 2;}
-				if(rx/2 == (this_->__x_top)) {rx /= 2;}
-				ry = 1; sy = (this_->__y_top);
-				while(sy) {sy /= 2; ry *= 2;}
-				if(ry/2 == (this_->__y_top)) {ry /= 2;}
+		if(bckptr && bcklen) {
+			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
+			glBegin(GL_QUADS);
+			glNormal3f(0,0,1); 
+			TC(1, 1); glVertex3f(-0.43, -0.43, 0.43);
+			TC(1, 0); glVertex3f(-0.43, 0.43, 0.43);
+			TC(0, 0); glVertex3f(0.43, 0.43, 0.43);
+			TC(0, 1); glVertex3f(0.43, -0.43, 0.43);
+			glEnd();
+		};
 
-				if(rx != (this_->__x_top) || ry != (this_->__y_top)) {
-					/* We have to scale */
-					dest = malloc((this_->__depth_top) * rx * ry);
-					gluScaleImage(
-					     ((this_->__depth_top)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     (this_->__x_top), (this_->__y_top),
-					     GL_UNSIGNED_BYTE,
-					     ptr,
-					     rx, ry,
-					     GL_UNSIGNED_BYTE,
-					     dest
-					);
-				}
-				if (!background_texture_inited) {
-        				do_background_texture();
-					background_texture_inited = TRUE;
-				}
+		if(frtptr && frtlen) {
+			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
+			glBegin(GL_QUADS);
+			glNormal3f(0,0,-1);
+			TC(1,0); glVertex3f(0.43,0.43,-0.43);
+			TC(0,0); glVertex3f(-0.43,0.43,-0.43);
+			TC(0,1); glVertex3f(-0.43,-0.43,-0.43);
+			TC(1,1); glVertex3f(0.43,-0.43,-0.43); 
+			glEnd();
+		};
 
-				glTexImage2D(GL_TEXTURE_2D,
-					     0, 
-					     (this_->__depth_top),  
-					     rx, ry,
-					     0,
-					     ((this_->__depth_top)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     GL_UNSIGNED_BYTE,
-					     dest
-				);
-				if(ptr != dest) free(dest);
-			}
-		     }
-			;
+		if(topptr && toplen) {
+			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
+			glBegin(GL_QUADS);
+			glNormal3f(0,1,0);
+			TC(1,0); glVertex3f(0.43,0.43,0.43);
+			TC(0,0); glVertex3f(-0.43,0.43,0.43);
+			TC(0,1); glVertex3f(-0.43,0.43,-0.43);
+			TC(1,1); glVertex3f(0.43,0.43,-0.43);
+			glEnd();
+		};
 
-		glBegin(GL_QUADS);
-		glNormal3f(0,1,0);
-		TC(1,0); glVertex3f(0.43,0.43,0.43);
-		TC(0,0); glVertex3f(-0.43,0.43,0.43);
-		TC(0,1); glVertex3f(-0.43,0.43,-0.43);
-		TC(1,1); glVertex3f(0.43,0.43,-0.43);
-		glEnd();
-		}
-		}
-		{
-		unsigned int len;
-		unsigned char *ptr = SvPV((this_->__data_bottom),len);
-		if(ptr && len) {
-		
-		  {
-			int rx,sx,ry,sy;
-			unsigned char *ptr = SvPV((this_->__data_bottom),PL_na);
-			if((this_->__depth_bottom) && (this_->__x_bottom) && (this_->__y_bottom)) {
-				unsigned char *dest = ptr;
-				rx = 1; sx = (this_->__x_bottom);
-				while(sx) {sx /= 2; rx *= 2;}
-				if(rx/2 == (this_->__x_bottom)) {rx /= 2;}
-				ry = 1; sy = (this_->__y_bottom);
-				while(sy) {sy /= 2; ry *= 2;}
-				if(ry/2 == (this_->__y_bottom)) {ry /= 2;}
+		if(botptr && botlen) {
+			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
+			glBegin(GL_QUADS);
+			glNormal3f(0,-(1),0);
+			TC(1,0); glVertex3f(0.43,-0.43,-0.43);
+			TC(0,0); glVertex3f(-0.43,-0.43,-0.43);
+			TC(0,1); glVertex3f(-0.43,-0.43,0.43);
+			TC(1,1); glVertex3f(0.43,-0.43,0.43);
+			glEnd();
+		};
 
-				if(rx != (this_->__x_bottom) || ry != (this_->__y_bottom)) {
-					/* We have to scale */
-					dest = malloc((this_->__depth_bottom) * rx * ry);
-					gluScaleImage(
-					     ((this_->__depth_bottom)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     (this_->__x_bottom), (this_->__y_bottom),
-					     GL_UNSIGNED_BYTE,
-					     ptr,
-					     rx, ry,
-					     GL_UNSIGNED_BYTE,
-					     dest
-					);
-				}
-				if (!background_texture_inited) {
-        				do_background_texture();
-					background_texture_inited = TRUE;
-				}
+		if(rtptr && rtlen) {
+			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
+			glBegin(GL_QUADS);
+			glNormal3f(1,0,0);
+			TC(1,0); glVertex3f(0.43,0.43,0.43);
+			TC(0,0); glVertex3f(0.43,0.43,-0.43);
+			TC(0,1); glVertex3f(0.43,-0.43,-0.43);
+			TC(1,1); glVertex3f(0.43,-0.43,0.43);
+			glEnd();
+		};
 
-				glTexImage2D(GL_TEXTURE_2D,
-					     0, 
-					     (this_->__depth_bottom),  
-					     rx, ry,
-					     0,
-					     ((this_->__depth_bottom)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     GL_UNSIGNED_BYTE,
-					     dest
-				);
-				if(ptr != dest) free(dest);
-			}
-		     }
-			;
-
-		glBegin(GL_QUADS);
-		glNormal3f(0,-(1),0);
-		TC(1,0); glVertex3f(0.43,-0.43,-0.43);
-		TC(0,0); glVertex3f(-0.43,-0.43,-0.43);
-		TC(0,1); glVertex3f(-0.43,-0.43,0.43);
-		TC(1,1); glVertex3f(0.43,-0.43,0.43);
-		glEnd();
-		}
-		}
-		{
-		unsigned int len;
-		unsigned char *ptr = SvPV((this_->__data_right),len);
-		if(ptr && len) {
-		
-		  {
-			int rx,sx,ry,sy;
-			unsigned char *ptr = SvPV((this_->__data_right),PL_na);
-			if((this_->__depth_right) && (this_->__x_right) && (this_->__y_right)) {
-				unsigned char *dest = ptr;
-				rx = 1; sx = (this_->__x_right);
-				while(sx) {sx /= 2; rx *= 2;}
-				if(rx/2 == (this_->__x_right)) {rx /= 2;}
-				ry = 1; sy = (this_->__y_right);
-				while(sy) {sy /= 2; ry *= 2;}
-				if(ry/2 == (this_->__y_right)) {ry /= 2;}
-
-				if(rx != (this_->__x_right) || ry != (this_->__y_right)) {
-					/* We have to scale */
-					dest = malloc((this_->__depth_right) * rx * ry);
-					gluScaleImage(
-					     ((this_->__depth_right)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     (this_->__x_right), (this_->__y_right),
-					     GL_UNSIGNED_BYTE,
-					     ptr,
-					     rx, ry,
-					     GL_UNSIGNED_BYTE,
-					     dest
-					);
-				}
-				if (!background_texture_inited) {
-        				do_background_texture();
-					background_texture_inited = TRUE;
-				}
-
-				glTexImage2D(GL_TEXTURE_2D,
-					     0, 
-					     (this_->__depth_right),  
-					     rx, ry,
-					     0,
-					     ((this_->__depth_right)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     GL_UNSIGNED_BYTE,
-					     dest
-				);
-				if(ptr != dest) free(dest);
-			}
-		     }
-			;
-
-		glBegin(GL_QUADS);
-		glNormal3f(1,0,0);
-		TC(1,0); glVertex3f(0.43,0.43,0.43);
-		TC(0,0); glVertex3f(0.43,0.43,-0.43);
-		TC(0,1); glVertex3f(0.43,-0.43,-0.43);
-		TC(1,1); glVertex3f(0.43,-0.43,0.43);
-		glEnd();
-		}
-		}
-		{
-		unsigned int len;
-		unsigned char *ptr = SvPV((this_->__data_left),len);
-		if(ptr && len) {
-		
-		  {
-			int rx,sx,ry,sy;
-			unsigned char *ptr = SvPV((this_->__data_left),PL_na);
-			if((this_->__depth_left) && (this_->__x_left) && (this_->__y_left)) {
-				unsigned char *dest = ptr;
-				rx = 1; sx = (this_->__x_left);
-				while(sx) {sx /= 2; rx *= 2;}
-				if(rx/2 == (this_->__x_left)) {rx /= 2;}
-				ry = 1; sy = (this_->__y_left);
-				while(sy) {sy /= 2; ry *= 2;}
-				if(ry/2 == (this_->__y_left)) {ry /= 2;}
-
-				if(rx != (this_->__x_left) || ry != (this_->__y_left)) {
-					/* We have to scale */
-					dest = malloc((this_->__depth_left) * rx * ry);
-					gluScaleImage(
-					     ((this_->__depth_left)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     (this_->__x_left), (this_->__y_left),
-					     GL_UNSIGNED_BYTE,
-					     ptr,
-					     rx, ry,
-					     GL_UNSIGNED_BYTE,
-					     dest
-					);
-				}
-				if (!background_texture_inited) {
-        				do_background_texture();
-					background_texture_inited = TRUE;
-				}
-
-				glTexImage2D(GL_TEXTURE_2D,
-					     0, 
-					     (this_->__depth_left),  
-					     rx, ry,
-					     0,
-					     ((this_->__depth_left)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
-					     GL_UNSIGNED_BYTE,
-					     dest
-				);
-				if(ptr != dest) free(dest);
-			}
-		     }
-			;
-
-		glBegin(GL_QUADS);
-		glNormal3f(-1,0,0);
-		TC(1,0); glVertex3f(-0.43,0.43, -0.43);
-		TC(0,0); glVertex3f(-0.43,0.43,  0.43); 
-		TC(0,1); glVertex3f(-0.43,-0.43, 0.43);
-		TC(1,1); glVertex3f(-0.43,-0.43,-0.43);
-		glEnd();
-		}
-		}
+		if(lftptr && lftlen) {
+			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
+			glBegin(GL_QUADS);
+			glNormal3f(-1,0,0);
+			TC(1,0); glVertex3f(-0.43,0.43, -0.43);
+			TC(0,0); glVertex3f(-0.43,0.43,  0.43); 
+			TC(0,1); glVertex3f(-0.43,-0.43, 0.43);
+			TC(1,1); glVertex3f(-0.43,-0.43,-0.43);
+			glEnd();
+		 };
+	}
 
 	/* end of textures... */
 	glEndList();
