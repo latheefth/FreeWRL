@@ -162,7 +162,7 @@ sub parse_proto {
 	$pro->topnodes(\@a);
 
 	# Register viewpoints from this proto invocation
-	# JAS - can kill us... ! $pro->register_vps($scene->get_browser());
+	# $pro->register_vps($scene->get_browser());
 
 	my $np = $pro->{Bindables}{Viewpoint};
 	#JAS print "Parser, number of viewpoints found for $pro is ", $#$np, "my scene $scene\n";
