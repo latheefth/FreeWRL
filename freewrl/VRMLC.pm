@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.92  2003/06/12 18:21:47  ayla
+#
+# Re-enabled '/' key function which is to print Viewer information.
+#
 # Revision 1.91  2003/06/06 20:22:49  ayla
 #
 # Migrating more OpenGL module code from XS to C.
@@ -2228,15 +2232,20 @@ CODE:
 	do_CRoutes_js_new (num, cx, glob, brow);
 
 
-
 #********************************************************************************
-# initialize viewer implemented in C replacing viewer Perl module
+# Viewer functions implemented in C replacing viewer Perl module
 
 void
 do_viewer_init(type)
 	int type
 CODE:
 	viewer_init(&Viewer, type);
+
+void
+do_print_viewer()
+CODE:
+	print_viewer(&Viewer);
+
 
 unsigned int
 do_get_buffer()
@@ -2263,8 +2272,6 @@ do_toggle_headlight()
 CODE:
 	toggle_headlight(&Viewer);
 
-#********************************************************************************
-# call viewer function viewer_togl
 
 void
 do_viewer_togl()
@@ -2324,6 +2331,7 @@ void
 set_viewer_type(type)
 	int type
 
+#********************************************************************************
 
 #********************************************************************************
 # Send a bind/unbind to this node

@@ -79,6 +79,15 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 }
 
 
+void
+print_viewer(VRML_Viewer *viewer)
+{
+	struct orient or;
+	quaternion_to_vrmlrot(&(viewer->Quat), &(or.x), &(or.y), &(or.z), &(or.a));
+
+	printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (viewer->Pos).x, (viewer->Pos).x, (viewer->Pos).z, (viewer->Quat).w, (viewer->Quat).x, (viewer->Quat).y, (viewer->Quat).z, or.x, or.y, or.z, or.a);
+}
+
 unsigned int
 get_buffer(VRML_Viewer *viewer)
 {
@@ -258,6 +267,10 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 	struct pt p = { 0, 0, viewer->Dist };
 	VRML_Viewer_Examine *examine = viewer->examine;
 
+printf("Viewer handle_examine: mouse event %s, button %u, x %f, y %f\n",
+	   mev, button, x, y);
+
+
 /* 	if($mev eq "PRESS" and $but == 1) { */
 	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
 		if (button == 1) {
@@ -310,6 +323,10 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 
 void handle(VRML_Viewer *viewer, const char *mev, const unsigned int button, const double x, const double y)
 {
+
+/* printf("Viewer handle: viewer_type %s, mouse event %s, button %u, x %f, y %f\n", */
+/* 	   VIEWER_STRING(viewer_type), mev, button, x, y); */
+
 	if (button == 2) {
 		return;
 	}
@@ -743,6 +760,10 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 void
 handle_tick(VRML_Viewer *viewer, const double time)
 {
+
+/* printf("Viewer handle_tick: viewer_type %s, time %f\n", */
+/* 	   VIEWER_STRING(viewer_type), time); */
+
 	switch(viewer_type) {
 	case NONE:
 		break;

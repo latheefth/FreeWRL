@@ -243,23 +243,19 @@ sub quitpressed {
 sub handle_events {
 	my($this, $time) = @_;
 	
-	if (!(defined $this->{CONTEXT}))
-	{
-	while (XPending()) {
-	    # print "UPDS: Xpend:",XPending(),"\n";
-	    my @e = &glpXNextEvent();
-	    # print "EVENT $e[0] $e[1] $e[2] !!!\n";
-	    if ($e[0] == &ConfigureNotify) {
-			$this->{W} = $e[1];
-			$this->{H} = $e[2];
+	if (!(defined $this->{CONTEXT})) {
+		while (XPending()) {
+			# print "UPDS: Xpend:",XPending(),"\n";
+			my @e = &glpXNextEvent();
+			# print "EVENT $e[0] $e[1] $e[2] !!!\n";
+			if ($e[0] == &ConfigureNotify) {
+				$this->{W} = $e[1];
+				$this->{H} = $e[2];
+			}
+			$this->event($time, @e);
 		}
-	    $this->event($time, @e);
+		$this->finish_event();
 	}
-
-	$this->finish_event();
-	}
-	#$this->{Viewer}->handle_tick($time);
-	
 }
 
 sub updateCoords {
@@ -353,6 +349,8 @@ sub event {
 	# JAS - uncomment this to see all events, even mouse movenemts
 	# print "EVENT $this $type $args[0] $args[1] $args[2]\n";
 
+	##print "VRML::GLBackEnd::event: $time, $type, [ ", join(", ", @args)," ]\n";
+
 	if ($type == &MotionNotify) {
 
 		my $but;
@@ -428,19 +426,21 @@ sub event {
 
     } elsif ($type == &KeyPress) {
 		# print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
-		if ((lc $args[0]) eq "e") {
+		my $key = lc $args[0];
+
+		if ($key eq "e") {
 			#AK - #$this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
 			VRML::VRMLFunc::set_viewer_type(EXAMINE);
-		} elsif ((lc $args[0]) eq "w") {
+		} elsif ($key eq "w") {
 			#AK - #$this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
 			VRML::VRMLFunc::set_viewer_type(WALK);
-		} elsif ((lc $args[0]) eq "d") {
+		} elsif ($key eq "d") {
 			#AK - #$this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
 			VRML::VRMLFunc::set_viewer_type(FLY);
-		} elsif ((lc $args[0]) eq "f") {
+		} elsif ($key eq "f") {
 			#AK - #$this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
 			VRML::VRMLFunc::set_viewer_type(EXFLY);
-		} elsif ((lc $args[0]) eq "h") {
+		} elsif ($key eq "h") {
 			#AK - #if($this->{Viewer}{Navi}{RFields}{headlight}) {
 			#print "headlight going off...\n";
 			#AK - #$this->{Viewer}{Navi}{RFields}{headlight}=0;
@@ -449,7 +449,7 @@ sub event {
 			#AK - # $this->{Viewer}{Navi}{RFields}{headlight}=1;
 			#AK - #}
 			VRML::VRMLFunc::do_toggle_headlight();
-		} elsif ((lc $args[0]) eq "/") {
+		} elsif ($key eq "/") {
 			# the following 3 lines commented out for
 			# Etienne's changes. JAS
 			# my $tr = join ', ',@{$this->{Viewer}{Pos}};
@@ -460,10 +460,10 @@ sub event {
 			#AK - #my $tr = sprintf("%8.4f " x 3, @{$this->{Viewer}{Pos}});
 			#AK - #my $rot = sprintf("%8.4f " x 4, @{$this->{Viewer}{Quat}->to_vrmlrot()});
 			#AK - #print("Viewpoint {\n", "\tposition\t$tr\n", "\torientation $rot\n", "}\n");
-			print("'/' key is temporarily non-functional.\n");
+			VRML::VRMLFunc::do_print_viewer();
 
 			# Sequence / Single Image saving ###########
-		} elsif ((lc $args[0]) eq "s") {
+		} elsif ($key eq "s") {
 
 			# Sequence saving ##########################
 			if ($main::seq) {
@@ -483,20 +483,20 @@ sub event {
 				print "Saving snapshot\n";
 				VRML::Browser::save_snapshot($this);
 			}
-		} elsif ((lc $args[0]) eq "q") {
+		} elsif ($key eq "q") {
 			# if in netscape, don't do the quitpressed!
 			if (!$VRML::ENV{AS_PLUGIN}) {
 				$this->{QuitPressed} = 1;
 			}
 
-		} elsif ((lc $args[0]) eq "v") {
+		} elsif ($key eq "v") {
 			# print "NEXT VP\n";
 			if ($this->{VPSub}) {
 				$this->{VPSub}->(1);
 			} else {
 				die("No VPSUB");
 			}
-		} elsif ((lc $args[0]) eq "c") { # toggle collision detection on/off
+		} elsif ($key eq "c") { # toggle collision detection on/off
 			if ($becollision == 1) {
 				$becollision = 0;
 			} else {
@@ -504,36 +504,36 @@ sub event {
 			}
 			#AK - #elsif(!$this->{Viewer}->use_keys())
 		} elsif (!VRML::VRMLFunc::use_keys()) {
-			if ((lc $args[0]) eq "k") {
+			if ($key eq "k") {
 				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.4);
-			} elsif ((lc $args[0]) eq "j") {
+			} elsif ($key eq "j") {
 				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.6);
-			} elsif ((lc $args[0]) eq "l") {
+			} elsif ($key eq "l") {
 				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.6, 0.5);
-			} elsif ((lc $args[0]) eq "h") {
+			} elsif ($key eq "h") {
 				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.4, 0.5);
 			}
 		} else {
-print "\nVRML::GLBackEnd::event Key: $args[0]\n";
+			##print "VRML::GLBackEnd::event KeyPress: $args[0]\n";
 			#AK - #$this->{Viewer}->handle_key($time,$args[0]);
 			VRML::VRMLFunc::do_handle_key($time, $args[0]);
 		}
 	} elsif ($type == &KeyRelease) {
 		#AK - #if($this->{Viewer}->use_keys()) {
 		if (VRML::VRMLFunc::use_keys()) {
-print "\nVRML::GLBackEnd::event Key: $args[0]\n";
+			##print "VRML::GLBackEnd::event KeyRelease: $args[0]\n";
 			#AK - #$this->{Viewer}->handle_keyrelease($time,$args[0]);
 			VRML::VRMLFunc::do_handle_keyrelease($time, $args[0]);
 		}
@@ -579,8 +579,7 @@ sub new_node {
 
 sub set_fields {
   my($this,$node,$fields) = @_;
-  for(keys %$fields) 
-    {
+  for(keys %$fields) {
       my $value = $fields->{$_};
       # if("HASH" eq ref $value) { # Field
       # 	$value = $value->{CNode};
@@ -597,8 +596,7 @@ sub set_fields {
       #print ", ";
       #print $fields->{$_};
       #print "\n"; 
-      VRML::CU::set_field_be($node->{CNode}, 
-			     $node->{Type}, $_, $fields->{$_});
+      VRML::CU::set_field_be($node->{CNode}, $node->{Type}, $_, $fields->{$_});
     }
 }
 
@@ -658,7 +656,7 @@ sub setup_viewpoint {
 
 	VRML::VRMLFunc::render_hier($node, 	# Node
 				    &VF_Viewpoint,# render view point
-				    $viewpoint);# what view point      
+				    $viewpoint);# what view point
 	glPrintError("GLBackEnd::setup_viewpoint");
 
 }
