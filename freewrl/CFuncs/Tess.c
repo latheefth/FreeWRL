@@ -1,3 +1,11 @@
+/*******************************************************************
+ Copyright (C) 1998 Tuomas J. Lukka
+ Copyright (C) 2002 John Stewart, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
+
 /*********************************************************************
  * General tessellation functions
  *
@@ -29,9 +37,6 @@
 #include "headers.h"
 
   
-/* GLUtesselator *global_tessobj;	/* this would be GLU 1.2 */
-/* unfortunately we have to use GLU v1.1			 */
-
 GLUtriangulatorObj *global_tessobj;	
 struct VRML_PolyRep *global_tess_polyrep=NULL;
 

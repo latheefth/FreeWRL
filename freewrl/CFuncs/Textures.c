@@ -1,3 +1,10 @@
+/*******************************************************************
+ Copyright (C) 1998 Tuomas J. Lukka
+ Copyright (C) 2002 John Stewart, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
 
 /*
  * General Texture objects
@@ -17,7 +24,7 @@
 #include "headers.h"
 
 
-do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
+void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	int x,y,depth;
 	GLint Sgl_rep_or_clamp;
 	GLint Tgl_rep_or_clamp;

@@ -1,3 +1,10 @@
+/*******************************************************************
+ Copyright (C) 1998 Tuomas J. Lukka
+ Copyright (C) 2002 John Stewart, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
 
 #include "CORE/EXTERN.h"
 #include "CORE/perl.h"
@@ -10,6 +17,8 @@
 
 #include "Structs.h"
 #include "headers.h"
+
+extern int smooth_normals;
 
 
 /* Assuming that norindexes set and that cindex is set */
@@ -142,10 +151,10 @@ void normalize_ifs_face (float *point_normal,
 
 	/*
 	printf ("normface poly %d point %d\n ",curpoly,mypoint);
-	printf ("this point is in %d faces, these are: ", pointfaces[mypoint*16]);
+	printf ("this point is in %d faces, these are: ", pointfaces[mypoint*POINT_FACES]);
 
-	for (tmp_b=0; tmp_b<pointfaces[mypoint*16]; tmp_b++) {
-		printf ("%d ",pointfaces[mypoint*16+tmp_b+1]);
+	for (tmp_b=0; tmp_b<pointfaces[mypoint*POINT_FACES]; tmp_b++) {
+		printf ("%d ",pointfaces[mypoint*POINT_FACES+tmp_b+1]);
 	}
 	printf ("\n");
 	printf ("my normal is %f %f %f\n", facenormals[curpoly].x,
@@ -153,7 +162,7 @@ void normalize_ifs_face (float *point_normal,
 	*/
 
 	/* short cut for a point in only 1 face */
-	if (pointfaces[mypoint*16] == 1) {
+	if (pointfaces[mypoint*POINT_FACES] == 1) {
 		point_normal[0]=facenormals[curpoly].x;
 		point_normal[1]=facenormals[curpoly].y;
 		point_normal[2]=facenormals[curpoly].z;
@@ -162,8 +171,8 @@ void normalize_ifs_face (float *point_normal,
 
 	/* ok, calculate normal */
 	facecount = 0;
-	for (tmp_b=0; tmp_b<pointfaces[mypoint*16]; tmp_b++) {
-		tmp_a = pointfaces[mypoint*16+tmp_b+1];
+	for (tmp_b=0; tmp_b<pointfaces[mypoint*POINT_FACES]; tmp_b++) {
+		tmp_a = pointfaces[mypoint*POINT_FACES+tmp_b+1];
 		/* printf ("comparing myface %d to %d\n",curpoly,tmp_a); */
 	
 		if (curpoly == tmp_a) {
@@ -985,3 +994,12 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 }/*calc_poly_normals_extrusion*/
 
 
+void initialize_smooth_normals() {
+
+	/* first complex face - are we running in fast or good mode... */
+	if (smooth_normals == -1) {
+		/* Needs to be initialized */
+		glGetIntegerv (GL_SHADE_MODEL, &smooth_normals);
+		smooth_normals = smooth_normals == GL_SMOOTH;
+	}
+}
