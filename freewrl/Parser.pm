@@ -21,7 +21,6 @@ $Word = q|[^\x30-\x39\x0-\x20\x22\x23\x27\x2b\x2c\x2d\x2e\x5b\x5c\x5d\x7b\x7d\x7
 $qre = qr{(?<!\\)\"};		# " Regexp for unquoted double quote  
 $cre = qr{[^\"\n]};		# " Regexp for not dquote, not \n char
 
-
 # Spec:
 # ([+/-]?(
 #         (
@@ -65,17 +64,22 @@ VRML::Error->import;
 # Parse a whole file into $scene.
 sub parse {
   ## $VRML::verbose::parse = 1;
-        my($scene,$text) = @_;
+        my($scene, $text) = @_;
 	# XXX marijn: this sorta works for deleting comments
 	print "Deleting comments\n" if $VRML::verbose::parse;
-	my $po = pos ($text);
-	$po = 0 unless defined $po ;
+	my $po = pos($text);
+	$po = 0 unless defined $po;
+
 	my $t2 = substr ($text, $po);
 	my $l2 = length ($t2);
 	## (etienne) FIX ME : Tentative comment-removing fix. Must do
 	## something better. Especially, the
 	## VRML::Field::SFString->parse($scene,$text) has been commented.
-	$t2 =~ s{^($cre*?($qre($cre|\\\")*$qre)*?$cre*?)#[^\n]*$}{$1}omg; #"
+	###$t2 =~ s{^($cre*?($qre($cre|\\\")*$qre)*?$cre*?)#[^\n]*$}{$1}omg; #"
+        ###substr ($text, $po, $l2, $t2); 
+
+	### (ayla) Is this better?
+	$t2 =~ s/#+[^\n]*//g;
         substr ($text, $po, $l2, $t2); 
 
         ## pos($text) should not have changed
@@ -101,6 +105,7 @@ sub parse {
 #  		print "Searching from position $mpo\n" if $VRML::verbose::parse;
 #  	}
 #	(pos $text) = $po;
+
 	my @a;
 	while($text !~ /\G\s*$/gsc) {
 		my $n = parse_statement($scene,$text);
