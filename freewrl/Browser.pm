@@ -197,25 +197,19 @@ sub prepare2 {
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 	$this->{Scene}->init_routing($this->{EV},$this->{BE});
 }
-
-
 sub tick {
-	#
-	# some timing print statements in here, will be
-	# removed once timing is ok.
 	#
 	my($this) = @_;
 	my $time = get_timestamp();
-	#JAS print "tick 1 ",get_timestamp(),"\n";
+
 	$this->{BE}->update_scene($time);
-	#JAS print "tick 2 ",get_timestamp(),"\n";
+
 	$this->{EV}->propagate_events($time,$this->{BE},
 		$this->{Scene});
-	#JAS print "tick 3 ",get_timestamp(),"\n";
+
 	for(@{$this->{Periodic}}) {
 		&$_();
 	}
-	#JAS print "tick 4 ",get_timestamp(),"\n";
 }
 
 my $FPS = 0;
