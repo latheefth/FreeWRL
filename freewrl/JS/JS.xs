@@ -99,7 +99,7 @@ doPerlCallMethod(SV *sv, const char *methodName)
 	PUTBACK;
 	count = perl_call_method(methodName, G_SCALAR);
 	if (count && verbose) {
-		printf("perl_call_method returned %f in doPerlCallMethod.\n", POPn);
+		printf("perl_call_method returned %.1g in doPerlCallMethod.\n", POPn);
 	}
 	PUTBACK;
 	FREETMPS;
@@ -145,7 +145,7 @@ doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
 	PUTBACK;
 	count = perl_call_method(methodName, G_SCALAR);
 	if (count && verbose) {
-		printf("perl_call_method returned %f in doPerlCallMethod.\n", POPn);
+		printf("perl_call_method returned %.1g in doPerlCallMethod.\n", POPn);
 	}
 	PUTBACK;
 	FREETMPS;
@@ -464,7 +464,7 @@ SFVec2fNativeSet(void *p, SV *sv)
 			(ptr->v).c[i] = SvNV(*b);
 		}
 		if (verbose) {
-			printf("\tvec3f values: (%f, %f)\n",
+			printf("\tvec3f values: (%.1g, %.1g)\n",
 				   (ptr->v).c[0],
 				   (ptr->v).c[1]);
 		}
@@ -534,7 +534,7 @@ SFVec3fNativeSet(void *p, SV *sv)
 			(ptr->v).c[i] = SvNV(*b);
 		}
 		if (verbose) {
-			printf("\tvec3f values: (%f, %f, %f)\n",
+			printf("\tvec3f values: (%.1g, %.1g, %.1g)\n",
 				   (ptr->v).c[0],
 				   (ptr->v).c[1],
 				   (ptr->v).c[2]);
@@ -633,7 +633,6 @@ CODE:
 	}
 
 	if (!VrmlBrowserInit(cx, glob, br)) {
-	/* if (!VrmlBrowserInit(context, global, brow)) { */
 		die("VrmlBrowserInit failed");
 	}
 	if (verbose) {
@@ -709,7 +708,7 @@ CODE:
 		return;
 	}
 	if (verbose) {
-		printf("dval=%f\n", dval);
+		printf("dval=%.1g\n", dval);
 	}
 	sv_setnv(rnum, dval);
 	//cx = context;

@@ -469,7 +469,7 @@ SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[0];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFColorGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFColorGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -479,7 +479,7 @@ SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[1];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFColorGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFColorGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -489,7 +489,7 @@ SFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[2];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFColorGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFColorGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -558,7 +558,7 @@ SFColorToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 	}
     
 	memset(_buff, 0, STRING);
-	sprintf(_buff, "%f %f %f",
+	sprintf(_buff, "%.1g %.1g %.1g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	_str = JS_NewStringCopyZ(cx, _buff);
 	    
@@ -665,7 +665,7 @@ SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		return JS_FALSE;
 	}
 	if (verbose) {
-		printf("SFColorConstr: obj = %u, %u args, %f %f %f\n",
+		printf("SFColorConstr: obj = %u, %u args, %.1g %.1g %.1g\n",
 			   (unsigned int) obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	}
@@ -996,7 +996,7 @@ SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[0];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFVec2fGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFVec2fGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -1006,7 +1006,7 @@ SFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[1];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFVec2fGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFVec2fGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -1074,7 +1074,7 @@ SFVec2fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 	}
     
 	memset(buff, 0, STRING);
-	sprintf(buff, "%f %f", (ptr->v).c[0], (ptr->v).c[1]);
+	sprintf(buff, "%.1g %.1g", (ptr->v).c[0], (ptr->v).c[1]);
 	_str = JS_NewStringCopyZ(cx, buff);
 	    
     *rval = STRING_TO_JSVAL(_str);
@@ -1334,7 +1334,7 @@ SFVec2fLength(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 /* 				  (*vec).v.c[1] * (*vec).v.c[1]); */
 	result = (double) veclength(v);
 	if ((dp = JS_NewDouble(cx, result)) == NULL) {
-		fprintf(stderr, "JS_NewDouble failed for %f in SFVec2fLength.\n", result);
+		fprintf(stderr, "JS_NewDouble failed for %.1g in SFVec2fLength.\n", result);
 		return JS_FALSE;
 	}
 	*rval = DOUBLE_TO_JSVAL(dp); 
@@ -1419,7 +1419,7 @@ SFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		(ptr->v).c[1] = pars[1];
 	}
 	if (verbose) {
-		printf("SFVec2fConstr: obj = %u, %u args, %f %f\n",
+		printf("SFVec2fConstr: obj = %u, %u args, %.1g %.1g\n",
 			   (unsigned int) obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1]);
 	}
@@ -1467,7 +1467,7 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[0];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFVec3fGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFVec3fGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -1477,7 +1477,7 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[1];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFVec3fGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFVec3fGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -1487,7 +1487,7 @@ SFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).c[2];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFVec3fGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFVec3fGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -1554,7 +1554,8 @@ SFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
         return JS_FALSE;
 	}
 	memset(buff, 0, STRING);
-	sprintf(buff, "%f %f %f", (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
+	sprintf(buff, "%.1g %.1g %.1g",
+			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	_str = JS_NewStringCopyZ(cx, buff);
 	    
     *rval = STRING_TO_JSVAL(_str);
@@ -1814,7 +1815,7 @@ SFVec3fLength(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 /* 				  (*vec1).v.c[2] * (*vec1).v.c[2]);  */
 	result = (double) veclength(v);
 	if ((dp = JS_NewDouble(cx, result)) == NULL) {
-		fprintf(stderr, "JS_NewDouble failed for %f in SFVec3fLength.\n", result);
+		fprintf(stderr, "JS_NewDouble failed for %.1g in SFVec3fLength.\n", result);
 		return JS_FALSE;
 	}
 	*rval = DOUBLE_TO_JSVAL(dp); 
@@ -1962,7 +1963,7 @@ SFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		(ptr->v).c[2] = pars[2];
 	}
 	if (verbose) {
-		printf("SFVec3fConstr: obj = %u, %u args, %f %f %f\n",
+		printf("SFVec3fConstr: obj = %u, %u args, %.1g %.1g %.1g\n",
 			   (unsigned int) obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	}
@@ -2004,7 +2005,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).r[0];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFRotationGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -2014,7 +2015,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).r[1];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFRotationGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -2024,7 +2025,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).r[2];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFRotationGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -2034,7 +2035,7 @@ SFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			d = (ptr->v).r[3];
 			if ((dp = JS_NewDouble(cx, d)) == NULL) {
 				fprintf(stderr,
-						"JS_NewDouble failed for %f in SFRotationGetProperty.\n",
+						"JS_NewDouble failed for %.1g in SFRotationGetProperty.\n",
 						d);
 				return JS_FALSE;
 			}
@@ -2104,7 +2105,8 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	}
     
 	memset(buff, 0, STRING);
-	sprintf(buff, "%f %f %f %f", (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
+	sprintf(buff, "%.1g %.1g %.1g %.1g",
+			(ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
 	    
     *rval = STRING_TO_JSVAL(_str);
@@ -2388,7 +2390,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 
 	if (verbose) {
-		printf("SFRotationConstr: obj = %u, %u args, %f %f %f %f\n",
+		printf("SFRotationConstr: obj = %u, %u args, %.1g %.1g %.1g %.1g\n",
 			   (unsigned int) obj, argc,
 			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
 	}
@@ -2829,7 +2831,7 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 			return JS_FALSE;
 		}
 		if (verbose) {
-			printf("%f ", _d);
+			printf("%.1g ", _d);
 		}
 	}
 	if (verbose) {
@@ -3028,7 +3030,7 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 			return JS_FALSE;
 		}
 		if (verbose) {
-			printf("%f ", _d);
+			printf("%.1g ", _d);
 		}
 	}
 	if (verbose) {

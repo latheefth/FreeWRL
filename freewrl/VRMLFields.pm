@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.23  2002/11/22 16:28:57  ayla
+#
+# Format floating point numbers for string conversion.
+#
 # Revision 1.22  2002/11/20 21:33:55  ayla
 #
 # Modified as_string functions as needed, commented unused js functions.
@@ -187,7 +191,7 @@ sub parse {
 	return $1;
 }
 
-sub as_string {$_[1]}
+sub as_string { return sprintf("%.1g", $_[1]); }
 
 sub print {print $_[1]}
 
@@ -482,104 +486,6 @@ sub cfunc {
 	"
 }
 
-#sub jsprop {
-#	return '{"x", 0, JSPROP_ENUMERATE},{"y", 1, JSPROP_ENUMERATE},
-#		{"z", 2, JSPROP_ENUMERATE},{"angle",3, JSPROP_ENUMERATE}'
-#}
-#sub jsnumprop {
-#	return { map {($_ => "$_[1].r[$_]")} 0..3 }
-#}
-#sub jstostr {
-#	return "
-#		{static char buff[250];
-#		 sprintf(buff,\"\%f \%f \%f \%f\", $_[1].r[0], $_[1].r[1], $_[1].r[2], $_[1].r[3]);
-#		 \$RET(buff);
-#		}
-#	"
-#}
-#sub jscons {
-#return ["",qq~
-#	jsdouble pars[4];
-#	JSObject *ob1;
-#	JSObject *ob2;
-#	if(JS_ConvertArguments(cx,argc,argv,"d d d d",
-#		&(pars[0]),&(pars[1]),&(pars[2]),&(pars[3])) == JS_TRUE) {
-#		$_[1].r[0] = pars[0]; 
-#		$_[1].r[1] = pars[1]; 
-#		$_[1].r[2] = pars[2]; 
-#		$_[1].r[3] = pars[3];
-#	} else if(JS_ConvertArguments(cx,argc,argv,"o o",
-#		&ob1,&ob2) == JS_TRUE) {
-#		TJL_SFVec3f *vec1;
-#		TJL_SFVec3f *vec2;
-#		double v1len, v2len, v12dp;
-#		    if (!JS_InstanceOf(cx, ob1, &cls_SFVec3f, argv)) {
-#			die("sfrot obj: has to be SFVec3f ");
-#			return JS_FALSE;
-#		    }
-#		    if (!JS_InstanceOf(cx, ob2, &cls_SFVec3f, argv)) {
-#			die("sfrot obj: has to be SFVec3f ");
-#			return JS_FALSE;
-#		    }
-#		vec1 = JS_GetPrivate(cx,ob1);
-#		vec2 = JS_GetPrivate(cx,ob2);
-#		v1len = sqrt( vec1->v.c[0] * vec1->v.c[0] + 
-#			vec1->v.c[1] * vec1->v.c[1] + 
-#			vec1->v.c[2] * vec1->v.c[2] );
-#		v2len = sqrt( vec2->v.c[0] * vec2->v.c[0] + 
-#			vec2->v.c[1] * vec2->v.c[1] + 
-#			vec2->v.c[2] * vec2->v.c[2] );
-#		v12dp = vec1->v.c[0] * vec2->v.c[0] + 
-#			vec1->v.c[1] * vec2->v.c[1] + 
-#			vec1->v.c[2] * vec2->v.c[2] ;
-#		$_[1].r[0] = 
-#			vec1->v.c[1] * vec2->v.c[2] - 
-#			vec2->v.c[1] * vec1->v.c[2];
-#		$_[1].r[1] = 
-#			vec1->v.c[2] * vec2->v.c[0] - 
-#			vec2->v.c[2] * vec1->v.c[0];
-#		$_[1].r[2] = 
-#			vec1->v.c[0] * vec2->v.c[1] - 
-#			vec2->v.c[0] * vec1->v.c[1];
-#		v12dp /= v1len * v2len;
-#		$_[1].r[3] = 
-#			atan2(sqrt(1-v12dp*v12dp),v12dp);
-#		/* 
-#		printf("V12cons: (%f %f %f) (%f %f %f) %f %f %f (%f %f %f : %f)\n",
-#			vec1->v.c[0], vec1->v.c[1], vec1->v.c[2],
-#			vec2->v.c[0], vec2->v.c[1], vec2->v.c[2],
-#			v1len, v2len, v12dp, 
-#			$_[1].r[0], $_[1].r[1], $_[1].r[2], $_[1].r[3]);
-#		*/
-#	} else if(JS_ConvertArguments(cx,argc,argv,"o d",
-#		&ob1,&(pars[0])) == JS_TRUE) {
-#		TJL_SFVec3f *vec;
-#		    if (!JS_InstanceOf(cx, ob1, &cls_SFVec3f, argv)) {
-#			die("multVec: has to be SFVec3f ");
-#			return JS_FALSE;
-#		    }
-#		vec = JS_GetPrivate(cx,ob1);
-#		$_[1].r[0] = vec->v.c[0]; 
-#		$_[1].r[1] = vec->v.c[1]; 
-#		$_[1].r[2] = vec->v.c[2]; 
-#		$_[1].r[3] = pars[0];
-		
-#	} else if(argc == 0) {
-#		$_[1].r[0] = 0;
-#		$_[1].r[0] = 0;
-#		$_[1].r[0] = 1;
-#		$_[1].r[0] = 0;
-#	} else {
-#		die("Invalid constructor for SFRotation");
-#	}
-
-#~];
-#}
-
-##sub js_default {
-##	return "new SFRotation(0,0,1,0)"
-##}
-
 
 ###########################################################
 package VRML::Field::SFBool;
@@ -623,6 +529,7 @@ $SFStringChars = qr/(?ixs:[^\"\\])*/||qr/(?ixs:\\[\"\\])*/;
 
 # XXX Handle backslashes in string properly
 sub parse {
+##print "VRML::Field::SFString::parse: $_[2]\n";
 	$_[2] =~ /\G\s*\"($SFStringChars)\"\s*/gc
 		or VRML::Error::parsefail($_[2], "improper SFString");
 	## cleanup ms-dos/windows end of line chars
@@ -896,13 +803,6 @@ sub as_string {
 }
 
 
-##sub js_default {
-##	my($type) = @_;
-##	# $type =~ s/::MF/::SF/;
-##	$type =~ s/VRML::Field:://;
-##	return "new $type()";
-##}
-
 
 ###########################################################
 package VRML::Field::SFNode;
@@ -923,9 +823,6 @@ sub as_string {
 	$_[1]->as_string();
 }
 
-##sub js_default { 'new SFNode("","NULL")' }
-
-# javascript implemented in place because of special nature.
 
 ##
 ## RCS: Implement SFImage
@@ -1110,20 +1007,6 @@ sub cfunc {
 EOF
 }
 
-##sub js_ctor {
-##  return <<EOF;
-##    function SFImage (x, y, d, data) {
-##      this.x = x
-##      this.y = y
-##      this.d = d
-##      this.data = data
-##    }
-##EOF
-##}
-
-##sub js_default {
-##  return "new SFImage(0,0,0,\"\")";
-##}
 
 1;
 
