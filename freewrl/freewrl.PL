@@ -247,13 +247,14 @@ so that relative links will still work.
 =item C<-best>
 
 Enables the best-quality rendering (this may slow down your frame rate
-considerably)
+considerably). It enables smooth mode shading, and divides round objects
+into more triangles.
 
 =item C<-fast>
 
 Enables the fastest rendering in exchange for poorer picture quality.
 This is the default and overrides any C<-best> options seen on the command
-line.
+line. As of 0.29, it also renders in line-mode.
 
 =item C<-fullscreen>
 
@@ -557,10 +558,13 @@ $b = new VRML::Browser({FullScreen => $fullscreen, BackEnd => [Geometry => $geom
 
 $be = $b->get_backend;
 
-if($fast) {
-	$be->set_fast();
-} elsif($best) {
+if($best) {
 	$be->set_best();
+} else {
+	if($fast) {
+		$be->set_fast();
+	}
+	print "FreeWRL NOTE: run with -best mode to get smooth shading\n";
 }
 
 $b->load_file($ARGV[0],$url);
