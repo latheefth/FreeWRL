@@ -395,18 +395,45 @@ loadVrmlClasses(JSContext *context, JSObject *globalObj)
 JSBool
 setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 {
+	JSString *_idStr, *_vpStr, *_newVpStr;
 	jsval v;
-	char buffer[STRING];
-	char *n = JS_GetStringBytes(JSVAL_TO_STRING(id));
-	UNUSED(vp);
+	char *_id_c, *_vp_c, *_new_vp_c, buffer[STRING];
+	size_t len = 0;
+
+	_idStr = JS_ValueToString(context, id);
+	_id_c = JS_GetStringBytes(_idStr);
 	
-	if (verbose) {
-		printf("setECMANative: obj = %u, id = \"%s\"\n",
-			   (unsigned int) obj, n);
+	if (JSVAL_IS_STRING(*vp)) {
+		_vpStr = JS_ValueToString(context, *vp);
+		_vp_c = JS_GetStringBytes(_vpStr);
+
+		len = strlen(_vp_c);
+		/* len + 3 for '\0' and "..." */
+		if ((_new_vp_c = (char *) JS_malloc(context, len + 3)) == NULL) {
+			fprintf(stderr, "JS_malloc failed in getECMANative.\n");
+			return JS_FALSE;
+		}
+
+		sprintf(_new_vp_c, "\"%s\"", _vp_c);
+		_newVpStr = JS_NewStringCopyZ(context, _new_vp_c);
+		*vp = STRING_TO_JSVAL(_newVpStr);
+
+		if (verbose) {
+			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
+				   (unsigned int) obj, _id_c, _vp_c);
+		}
+		JS_free(context, _new_vp_c);
+	} else {
+		if (verbose) {
+			_vpStr = JS_ValueToString(context, *vp);
+			_vp_c = JS_GetStringBytes(_vpStr);
+			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
+				   (unsigned int) obj, _id_c, _vp_c);
+		}
 	}
 
 	memset(buffer, 0, STRING);
-	sprintf(buffer, "_%s_touched", n);
+	sprintf(buffer, "_%s_touched", _id_c);
 	v = INT_TO_JSVAL(1);
 	if (!JS_SetProperty(context, obj, buffer, &v)) {
 		fprintf(stderr,
