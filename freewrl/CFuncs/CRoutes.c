@@ -912,6 +912,190 @@ void setMultiElementtype (int num) {
 	}
 }
 
+
+void setMFElementtype (int num) {
+	int fn, fptr, tn, tptr;
+	int len;
+	unsigned int to_counter;
+	CRnodeStruct *to_ptr = NULL;
+	char scriptline[2000];
+	char sline[100];
+	jsval retval;
+	int x;
+	int elementlen;
+	int pptr;
+	float *fp;
+	int *ip;
+	double *dp;
+
+	JSContext *_context;
+	JSObject *_globalObj;
+
+	fn = (int) CRoutes[num].fromnode; 
+	fptr = (int) CRoutes[num].fnptr;
+	pptr = fn + fptr;
+	len = CRoutes[num].len;
+	
+	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+		to_ptr = &(CRoutes[num].tonodes[to_counter]);
+		tn = (int) to_ptr->node;
+		tptr = (int) to_ptr->foffset;
+
+		if (CRVerbose) {
+			printf ("got a script event! index %d type %d\n",
+					num, CRoutes[num].direction_flag);
+			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,tptr);
+			printf ("\tdata length %d\n",len);
+			printf ("and, sending it to %s\n",JSparamnames[tptr].name);
+		}
+
+		/* get context and global object for this script */
+		_context = (JSContext *) JSglobs[tn].cx;
+		_globalObj = (JSObject *)JSglobs[tn].glob;
+
+		/* make uep the name */
+		sprintf (scriptline,"%s(",JSparamnames[tptr].name);
+		switch (JSparamnames[tptr].type) {
+			case MFCOLOR: {
+					      strcat (scriptline, "new MFColor(");
+					      elementlen = sizeof (float) * 3;
+					      for (x=0; x<(len/elementlen); x++) {
+						      fp = pptr;
+						      sprintf (sline,"%f %f %f",*fp,
+								      *(fp+elementlen),
+								      *(fp+(elementlen*2)),
+									      *(fp+(elementlen*3)));
+						      if (x < ((len/elementlen)-1)) {
+							      strcat(sline,",");
+						      }
+						     pptr += elementlen;
+							strcat (scriptline,sline);
+					      }
+					      break;
+				      }
+			case MFFLOAT: {		
+					      strcat (scriptline, "new MFFloat(");
+					      elementlen = sizeof (float);
+					      for (x=0; x<(len/elementlen); x++) {
+						      fp = pptr;
+						      sprintf (sline,"%f",*fp);
+						      if (x < ((len/elementlen)-1)) {
+							      strcat(sline,",");
+						      }
+						     pptr += elementlen;
+							strcat (scriptline,sline);
+					      }
+						break;
+				      }
+			case MFTIME:  {
+					      strcat (scriptline, "new MFTime(");
+					      elementlen = sizeof (double);
+					      for (x=0; x<(len/elementlen); x++) {
+						      dp = pptr;
+						      sprintf (sline,"%lf",*dp);
+						      if (x < ((len/elementlen)-1)) {
+							      strcat(sline,",");
+						      }
+						     pptr += elementlen;
+							strcat (scriptline,sline);
+					      }
+					      break;
+				      }
+			case MFINT32: {	
+					      strcat (scriptline, "new MFInt32(");
+					      elementlen = sizeof (int);
+					      for (x=0; x<(len/elementlen); x++) {
+						      ip = pptr;
+						      sprintf (sline,"%d",*ip);
+						      if (x < ((len/elementlen)-1)) {
+							      strcat(sline,",");
+						      }
+						     pptr += elementlen;
+							strcat (scriptline,sline);
+					      }
+					      break;
+				      }
+			case MFSTRING:{	
+					      strcat (scriptline, "new MFString(");
+					      elementlen = sizeof (float);
+					      printf ("ScriptAssign, MFString probably broken\n");
+					      for (x=0; x<(len/elementlen); x++) {
+						      fp = pptr;
+						      sprintf (sline,"%f",*fp);
+						      if (x < ((len/elementlen)-1)) {
+							      strcat(sline,",");
+						      }
+						     pptr += elementlen;
+							strcat (scriptline,sline);
+					      }
+					      break;
+				      }
+			case MFNODE:  {	
+					      strcat (scriptline, "new MFNode(");
+					      elementlen = sizeof (int);
+					      for (x=0; x<(len/elementlen); x++) {
+						      ip = pptr;
+						      sprintf (sline,"%u",*ip);
+						      if (x < ((len/elementlen)-1)) {
+							      strcat(sline,",");
+						      }
+						     pptr += elementlen;
+							strcat (scriptline,sline);
+					      }
+					      break;
+				      }
+			case MFROTATION: {	strcat (scriptline, "new MFRotation(");
+					      elementlen = sizeof (float)*4;
+					      for (x=0; x<(len/elementlen); x++) {
+						      fp = pptr;
+						      sprintf (sline,"%f %f %f %f",*fp,
+								*(fp+elementlen),
+								*(fp+(elementlen*2)),
+								*(fp+(elementlen*3)),
+								*(fp+(elementlen*4)));
+						      sprintf (sline,"%f",*fp);
+						      if (x < ((len/elementlen)-1)) {
+							      strcat(sline,",");
+						      }
+						     pptr += elementlen;
+							strcat (scriptline,sline);
+					      }
+						 break;
+					 }
+			default: {
+					 printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
+					 strcat (scriptline,"(");
+				 }
+		}
+		
+		/* convert these values to a jsval type */
+		strcat (scriptline,"))");
+		if (!ActualrunScript(tn,scriptline,&retval))
+			printf ("AR failed in setxx\n");
+
+		// JAS - not sure what to do; we have called the function with new
+		// objects. What else is required?
+		//
+		//if (!JS_SetProperty (_context, _globalObj, scriptline, &retval))
+		//	printf ("JS_SetProperty failed in setMFElementtype\n");
+
+		//_privPtr->touched = 0;
+
+		/* now, runscript to tell it that it has been touched */
+		//sprintf (scriptline,"__tmp_arg_%s.__touched()", JSparamnames[tptr].name);
+		//if (!ActualrunScript(tn, scriptline ,&retval)) 
+		//	printf ("failed to set parameter, line %s\n",scriptline);
+
+		/* and run the function */
+		//sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
+		//	 JSparamnames[tptr].name,JSparamnames[tptr].name,
+		//	 TickTime);
+		//if (!ActualrunScript(tn, scriptline ,&retval)) {
+		//	printf ("failed to set parameter, line %s\n",scriptline);
+		//}
+	}
+}
+
 /* internal variable to copy a C structure's Multi* field */
 void Multimemcpy (void *tn, void *fn, int multitype) {
 	unsigned int structlen;
@@ -1609,7 +1793,7 @@ void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	//printf("sendScriptEventIn, num %d\n",num);
+	if (JSVerbose) printf("sendScriptEventIn, num %d\n",num);
 
 	/* script value: 1: this is a from script route
 			 2: this is a to script route
@@ -1650,8 +1834,7 @@ void sendScriptEventIn(int num) {
 			case MFSTRING:
 			case MFNODE:
 			case MFROTATION: {
-				printf("WARNING: entry set in sendScriptEventIn, but no code yet for type %s.\n", 
-					FIELD_TYPE_STRING(JSparamnames[to_ptr->foffset].type));
+				setMFElementtype(num);
 				break;
 			}
 			default : {

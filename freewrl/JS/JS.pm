@@ -51,9 +51,6 @@ if ($VRML::verbose::js) {
 
 our $ECMAScriptNative = qr{^SF(?:Bool|Float|Time|Int32|String)$};
 
-## See VRML97, section 4.12 (Scripting)
-my $DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false;";
-
 my $eventInArg = "__tmp_arg_";
 my $tmpFieldKind = "____tmp_f_";
 
@@ -75,9 +72,7 @@ sub new {
 	${$this->{Browser}}{JSCleanup} = \&{cleanup};
 
 	$this->{ScriptNum} = $number;  # we go by this script number
-
 	VRML::VRMLFunc::jsinit($number,$this);
-
 	if (!VRML::VRMLFunc::jsrunScript($number, $text, $rs, $rval)) {
 		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS");
 	}
@@ -99,9 +94,6 @@ sub new {
 	if (!VRML::VRMLFunc::jsrunScript($number, "initialize()", $rs, $rval)) {
 		cleanupDie("VRML::VRMLFunc::jsrunScript initialize failed in VRML::JS");
 	}
-
-	# Ignore all events we may have sent while building
-	#JAS $this->gatherSentEvents(1);
 
 	return $this;
 }
