@@ -36,7 +36,7 @@ package VRML::FieldHash;
 @VRML::FieldHash::ISA=Tie::StdHash;
 
 sub TIEHASH {
-	my ($type,$node) = @_;
+	my ($type, $node) = @_;
 	bless \$node, $type;
 }
 
@@ -51,7 +51,7 @@ sub FETCH {
 
 	if ($VRML::verbose::tief) {
 		print "TIEH: FETCH $k $v\n" ;
-		if("ARRAY" eq ref $v) {
+		if ("ARRAY" eq ref $v) {
 			print "TIEHARRVAL: @$v\n";
 		}
 	}
@@ -76,7 +76,7 @@ sub STORE {
 	my ($this, $k, $value) = @_;
 	if ($VRML::verbose::tief) {
 		print "TIEH: STORE Node $this K $k value $value\n" ;
-		if("ARRAY" eq ref $value) {
+		if ("ARRAY" eq ref $value) {
 			print "TIEHARRVAL: @$value\n";
 		}
 	}
@@ -135,7 +135,7 @@ sub new {
 	my ($type, $name) = @_;
 	my $this = bless {
 		Name => $name
-	},$type;
+	}, $type;
 	return $this;
 }
 
@@ -147,14 +147,11 @@ sub copy {
 
 sub make_executable {
 	my ($this, $scene, $node, $field) = @_;
-	# print "make executable in IS, node $node field $field\n";
 }
 
 sub iterate_nodes {
 	my ($this, $sub) = @_;
-	# print "iterate_nodes in package VRML::IS, sub is $sub\n";
 	&$sub($this);
-	# print "iterate_nodes in package VRML::IS, sub is $sub DONE\n";
 }
 
 sub name { 
@@ -188,10 +185,10 @@ sub as_string {
 sub gather_defs {}
 
 sub dump { 
-	my ($this,$level) = @_;
+	my ($this, $level) = @_;
 	my $lp = $level*2+2;
 	my $padded = pack("A$lp","$level ");
-	print "$padded node $this IS ",$this->{Name},"\n";
+	print "$padded node $this IS ", $this->{Name},"\n";
 }
 
 ###################
@@ -205,11 +202,11 @@ sub new {
 	# 0 - the object ref type (VRML::DEF)
 	# 1 - the name of the object
 	# 2 - the node of the object
-	# print "VRML::DEF, blessing ",$_[1], " and ",VRML::Node::dump_name($_[2]),"\n";
+	# print "VRML::DEF, blessing ", $_[1], " and ",VRML::Node::dump_name($_[2]),"\n";
 	my ($type, $name, $node) = @_;
 	my $this = bless {
 		Name => $name,
-		Node => $node
+		Node => $node,		
 	}, $type;
 	return $this;
 }
@@ -221,7 +218,6 @@ sub copy {
 
 sub make_executable {
 	my ($this, $obj) = @_;
-	print "VRML::DEF::make_exec args $_[0], $_[1]\n";
 	$this->{Node}->make_executable($obj);
 }
 
@@ -251,21 +247,17 @@ sub make_backend {
 	## print "my ref is $$ref ,",ref $$ref,", ref of d0 is ", $_[0]," , ",ref $_[0],"\n";
 	## print "my ref is $$ref2 ,",ref $$ref2,", ref of d01 is ", $_[0][1]," , ",ref $_[0][1],"\n";
 
-	#return  $$ref2->make_backend($_[1],$_[2]);
+	#return  $$ref2->make_backend($_[1], $_[2]);
 
-	#$retval = $$ref2->make_backend($_[1],$_[2]);
+	#$retval = $$ref2->make_backend($_[1], $_[2]);
 	#return $retval;
 	}
 }
 
 sub iterate_nodes {
-	my($this,$sub,$parent) = @_;
-	# print "iterate_nodes in package VRML::DEF, sub is $sub this ",VRML::Node::dump_name($this), 
-	#	" parent ", VRML::Node::dump_name($parent),"\n";
-	&$sub($this,$parent);
-	## $this->[1]->iterate_nodes($sub,$parent);
-	$this->{Node}->iterate_nodes($sub,$parent);
-	#print "iterate_nodes in package VRML::DEF, sub is $sub DONE\n";
+	my ($this, $sub, $parent) = @_;
+	&$sub($this, $parent);
+	$this->{Node}->iterate_nodes($sub, $parent);
 }
 
 sub name {
@@ -287,31 +279,31 @@ sub real_node {
 	my ($this, $obj) = @_;
         # print "(a)in real_node $_ in VRML::DEF, ", $_[0],"\n";
         # print "(a)in real_node1  in VRML::DEF, ", $_[1],"\n";
-        # print "(Name)                       ", $_[0][0], "\n";
-        # print "(Node)                       ", $_[0][1], "\n";
-        # print "ref of Node is               ", ref($_[0][1]), "\n";
+        # print "(Name)\t\t\t", $_[0][0], "\n";
+        # print "(Node)\t\t\t", $_[0][1], "\n";
+        # print "ref of Node is\t\t", ref($_[0][1]), "\n";
 	return $this->{Node}->real_node($obj); 
 }
 
 sub initialize {()}
 
 sub as_string {
-	my ($this) = @_;
-	return 
-	 	" ($this) DEF Name: $this->{Name} Node: $this->{Node} ".
-	 		$this->{Node}->as_string;
+    my ($this) = @_;
+    return 
+	" ($this) DEF Name: $this->{Name} Node: $this->{Node} ".
+	    $this->{Node}->as_string;
 }
 
 sub gather_defs {
-	my ($this,$parentnode) = @_;
+	my ($this, $parentnode) = @_;
 
-	# print "VRML::DEF - gather defs, this is ", VRML::Node::dump_name($this), "name is ",
-	# 			$this->name(), " ref is ", $this->get_ref(),
-	# 			"  parent is ", VRML::Node::dump_name($parentnode),"\n";
+	# print "VRML::DEF - gather defs, this is ",
+	# VRML::Node::dump_name($this), "name is ",
+	# $this->name(), " ref is ", $this->get_ref(),
+	# " parent is ", VRML::Node::dump_name($parentnode),"\n";
 
 	$parentnode->{DEF}{$this->{Name}} = $this->get_ref();
 	my $real = $this->get_ref();
-	# print "\treal node is ",VRML::Node::dump_name($real),")\n";
 	$real->gather_defs($parentnode);
 }
 	
@@ -320,7 +312,8 @@ sub dump {
 	my $lp = $level*2+2;
 	my $padded = pack("A$lp","$level ");
 
-	print $padded,"VRML::DEF, name is ",$this->{Name}," def is ",VRML::Node::dump_name($this->def),"\n";
+	print $padded,"VRML::DEF, name is ", $this->{Name}," def is ",
+		VRML::Node::dump_name($this->def),"\n";
 	my $real =  $this->get_ref();
 	$real->dump($level+1);
 }
@@ -349,7 +342,7 @@ sub copy {
 sub make_executable {}
 
 sub set_used {
-	my($this, $node) = @_;
+	my ($this, $node) = @_;
 	$this->{DEFNode} = $node;
 }
 
@@ -367,7 +360,7 @@ sub make_backend {
 	## print "ref $_[0] ", ref $_[0], ref $_[0][0], ref $_[0][1],"\n";
 	## print "USE::make_backend, looking at ", $_[0][1],"\n";
 	## foreach (keys %{$_[0][1]}) {
-		## print "\t$_,$_[0][1]->{$_}\n";
+		## print "\t$_, $_[0][1]->{$_}\n";
 	##}
 
 	## return $_[0][1]{DEFBackEnd};				
@@ -375,10 +368,8 @@ sub make_backend {
 }
 
 sub iterate_nodes {
-	my($this,$sub,$parent) = @_;
-	# print "iterate_nodes in package VRML::USE, sub is $sub\n";
-	&$sub($this,$parent);
-	# print "iterate_nodes in package VRML::USE, sub is $sub DONE\n";
+	my ($this, $sub, $parent) = @_;
+	&$sub($this, $parent);
 }
 
 sub name {
@@ -402,7 +393,7 @@ sub real_node {
 	# $this->{Scene} the original scene for the definition,
 	#	which doesn't appear anywhere in this package at the moment.
 
-	# print "(a)in real_node $_ in VRML::USE, ", $_[0],$_[0]->as_string(),"\n";
+	# print "(a)in real_node $_ in VRML::USE, ", $_[0], $_[0]->as_string(),"\n";
 	# print "(Name)                       ", $_[0][0], "\n";
 	# print "(Node)                       ", $_[0][1], "\n";
 	# print "ref of Node is               ", ref($_[0][1]), "\n";
@@ -431,7 +422,7 @@ sub dump {
 	my ($this, $level) = @_;
 	my $lp = $level*2+2;
 	my $padded = pack("A$lp","$level ");
-	print $padded,"$this, name is ",$this->{DEFName},
+	print $padded,"$this, name is ", $this->{DEFName},
 		" def is ",VRML::Node::dump_name($this->{DEFNode}),"\n";
 }
 
@@ -463,567 +454,541 @@ my $DNINDEX = 1;
 my $SCINDEX = 1;
 
 sub dump_name {
-        my ($name) = @_;
+    my ($name) = @_;
 
-	my $nr = ref $name;
+    my $nr = ref $name;
 
-        if (!exists $DUMPNAMES{$name}) {
-		if ("VRML::Node" eq $nr) {
-			$DUMPNAMES{$name} = "NODE$DNINDEX";
-			$DNINDEX++;
-		} elsif ("VRML::Scene" eq $nr) {
-			$DUMPNAMES{$name} = "SCENE$SCINDEX";
-			$SCINDEX ++;
-		} elsif ("VRML::NodeType" eq $nr) {
-			$DUMPNAMES{$name} = $name->{Name};
-		} else {
-			# dont map this one
-			return $name;
-		}
-		
+    if (!exists $DUMPNAMES{$name}) {
+	if ("VRML::Node" eq $nr) {
+	    $DUMPNAMES{$name} = "NODE$DNINDEX";
+	    $DNINDEX++;
+	} elsif ("VRML::Scene" eq $nr) {
+	    $DUMPNAMES{$name} = "SCENE$SCINDEX";
+	    $SCINDEX++;
+	} elsif ("VRML::NodeType" eq $nr) {
+	    $DUMPNAMES{$name} = $name->{Name};
+	} else {
+	    # dont map this one
+	    return $name;
 	}
-	return $DUMPNAMES{$name};
+    }
+    return $DUMPNAMES{$name};
 }
 
 sub gather_defs {
-	my ($this,$parentnode) = @_;
+    my ($this, $parentnode) = @_;
 
-	# print "Scene::VRML::Node gather_defs, this ",dump_name($this), "   parentnode ",
-	# 	dump_name($parentnode),"\n";
+    # print "Scene::VRML::Node gather_defs, this ",dump_name($this), "   parentnode ",
+    # 	dump_name($parentnode),"\n";
 
-	if (defined $this->{IsProto}) {
-		# possibly this is a Scene PROTO Expansion
-		foreach (@{$this->{ProtoExp}{Nodes}}) {
-			# print "VRML::Node in ",dump_name($this)," we are going to look at ",
-			# 	dump_name($_),"\n";
-			$_->gather_defs($parentnode);
-		}
-	} elsif (defined $this->{Fields}) {
-                # print "VRML::Node gather_defs (children of ",dump_name($this),")\n";
+    if (defined $this->{IsProto}) {
+	# possibly this is a Scene PROTO Expansion
+	foreach (@{$this->{ProtoExp}{Nodes}}) {
+	    # print "VRML::Node in ",dump_name($this)," we are going to look at ",
+	    # dump_name($_),"\n";
+	    $_->gather_defs($parentnode);
+	}
+    } elsif (defined $this->{Fields}) {
+	# print "VRML::Node gather_defs (children of ",dump_name($this),")\n";
 
-		my $fld;
-		for $fld (keys %{$this->{Fields}}) {
-			if (ref $this->{Fields}{$fld} eq "ARRAY") {
-				# first level of an array...
+	my $fld;
+	for $fld (keys %{$this->{Fields}}) {
+	    if (ref $this->{Fields}{$fld} eq "ARRAY") {
+		# first level of an array...
 
-				foreach (@{$this->{Fields}{$fld}}) { 
-					if (ref $_ ne "") { 
-						if (ref $_ eq "ARRAY") {
-							# two dimensional array
+		foreach (@{$this->{Fields}{$fld}}) { 
+		    if (ref $_ ne "") { 
+			if (ref $_ eq "ARRAY") {
+			    # two dimensional array
 
-							my $ae;
-							foreach $ae (@{$_}) {
-								if (ref $ae ne "") {
-									$ae->gather_defs($parentnode);
-								}
-							}
-						} else {
-							$_->gather_defs($parentnode);
-						}
-					}
+			    my $ae;
+			    foreach $ae (@{$_}) {
+				if (ref $ae ne "") {
+				    $ae->gather_defs($parentnode);
 				}
+			    }
 			} else {
-				if (ref $this->{Fields}{$fld} ne "") {
-					$this->{Fields}{$fld}->gather_defs($parentnode);
-				}
+			    $_->gather_defs($parentnode);
 			}
+		    }
 		}
-        }
+	    } else {
+		if (ref $this->{Fields}{$fld} ne "") {
+		    $this->{Fields}{$fld}->gather_defs($parentnode);
+		}
+	    }
+	}
+    }
 }
 
 
 sub dump {
-	my ($this,$level) = @_;
+    my ($this, $level) = @_;
 
-	if ($level > 20) {
-		print "level too deep, returning\n";
-		return();
-	}
-	my $lp = $level*2+2;
-	my $padded = pack("A$lp","$level ");
+    if ($level > 20) {
+	print "level too deep, returning\n";
+	return();
+    }
+    my $lp = $level*2+2;
+    my $padded = pack("A$lp","$level ");
 
-	# Debugging - print out this node.
-	print $padded,"NODE DUMP OF: ",dump_name($this),"\n";
-	foreach (keys %{$this}) {
-		print $padded,"$_\t";
+    # Debugging - print out this node.
+    print $padded,"NODE DUMP OF: ",dump_name($this),"\n";
+    foreach (keys %{$this}) {
+	print $padded,"$_\t";
 
-		# lets do something special for Routes
-		if ("Routes" eq $_) {
-       		 for (@{$this->{$_}}) {
-                	my($fnam, $ff, $tnam, $tf) = @$_;
-                	print "$padded    Route from $fnam field $ff to $tnam field $tf\n";
-        	 }
+	# lets do something special for Routes
+	if ("Routes" eq $_) {
+	    for (@{$this->{$_}}) {
+		my ($fnam, $ff, $tnam, $tf) = @$_;
+		print "$padded    Route from $fnam field $ff to $tnam field $tf\n";
+	     }
 					
-		} elsif ("ARRAY" eq ref $this->{$_}) {
-			print "(array) ";
-			foreach (@{$this->{$_}}) {
-				print dump_name($_);
-				print " ";
-			}
-		} elsif ("HASH" eq ref $this->{$_}) {
-			print "(hash) ";
-			foreach (keys %{ $this->{$_}}) {
-			  print "$_ ";
-			}
-		} else {
-		 	print dump_name($this->{$_});
-		}
-		print "\n";
+	} elsif ("ARRAY" eq ref $this->{$_}) {
+	    print "(array) ";
+	    foreach (@{$this->{$_}}) {
+		print dump_name($_);
+		print " ";
+	    }
+	} elsif ("HASH" eq ref $this->{$_}) {
+	    print "(hash) ";
+	    foreach (keys %{ $this->{$_}}) {
+		print "$_ ";
+	    }
+	} else {
+	    print dump_name($this->{$_});
 	}
+	print "\n";
+    }
 
-	if (defined $this->{SceneRoutes}) {
-        	print "\n$padded(SceneRoutes of ",dump_name($this),")\n";
-	        my $sk;
-	        foreach $sk (@{{$this}->{SceneRoutes}}) {
-	                print "SceneRoutes of ",dump_name($this),") ";
-			print "$sk\n";
-	                $sk->dump($level+1);
-	        }
+    if (defined $this->{SceneRoutes}) {
+	print "\n$padded(SceneRoutes of ",dump_name($this),")\n";
+	my $sk;
+	foreach $sk (@{{$this}->{SceneRoutes}}) {
+	    print "SceneRoutes of ",dump_name($this),") ";
+	    print "$sk\n";
+	    $sk->dump($level+1);
 	}
+    }
 
-	if (defined $this->{ProtoExp}) {
-		print "\n$padded(ProtoExp of ",dump_name($this),"\n";
-		$this->{ProtoExp}->dump($level+1);
-	} elsif (defined $this->{Type}) {
-		print "\n$padded(Type of ",dump_name($this),")\n";
-		if ("VRML::NodeType" ne ref $this->{Type}) {
-			$this->{Type}->dump($level+1);
-		}
+    if (defined $this->{ProtoExp}) {
+	print "\n$padded(ProtoExp of ",dump_name($this),"\n";
+	$this->{ProtoExp}->dump($level+1);
+    } elsif (defined $this->{Type}) {
+	print "\n$padded(Type of ",dump_name($this),")\n";
+	if ("VRML::NodeType" ne ref $this->{Type}) {
+	    $this->{Type}->dump($level+1);
 	}
+    }
 
-	if (defined $this->{Fields}) {
-		my $fld;
-		for $fld (keys %{$this->{Fields}}) {
-			print "\n$padded(Fields $fld of ",dump_name($this),")\n";
+    if (defined $this->{Fields}) {
+	my $fld;
+	for $fld (keys %{$this->{Fields}}) {
+	    print "\n$padded(Fields $fld of ",dump_name($this),")\n";
 
-			if (ref $this->{Fields}{$fld} eq "ARRAY") {
-				# first level of an array...
+	    if (ref $this->{Fields}{$fld} eq "ARRAY") {
+		# first level of an array...
 
-				foreach (@{$this->{Fields}{$fld}}) { 
-					if (ref $_ ne "") { 
-						if (ref $_ eq "ARRAY") {
-							# two dimensional array
-
-							my $ae;
-							foreach $ae (@{$_}) {
-								if (ref $ae ne "") {
-									$ae->dump(level+1);
-								} else {
-									print "$padded(DATA) $ae\n";
-								}
-							}
-						} else {
-							$_->dump($level+1);
-						}
-					} else {
-						print "$padded(DATA) $_\n";
-					}
-				}
-			} else {
-				if (ref $this->{Fields}{$fld} ne "") {
-					$this->{Fields}{$fld}->dump($level+1);
+		foreach (@{$this->{Fields}{$fld}}) { 
+		    if (ref $_ ne "") { 
+			if (ref $_ eq "ARRAY") {
+			    # two dimensional array
+			    my $ae;
+			    foreach $ae (@{$_}) {
+				if (ref $ae ne "") {
+				    $ae->dump(level+1);
 				} else {
-					print "$padded(DATA) $_\n";
+				    print "$padded(DATA) $ae\n";
 				}
+			    }
+			} else {
+			    $_->dump($level+1);
 			}
+		    } else {
+			print "$padded(DATA) $_\n";
+		    }
 		}
+	    } else {
+		if (ref $this->{Fields}{$fld} ne "") {
+		    $this->{Fields}{$fld}->dump($level+1);
+		} else {
+		    print "$padded(DATA) $_\n";
+		}
+	    }
 	}
+    }
 }
 
 
 sub new {
-	my($type, $scene, $ntype, $fields,$eventmodel) = @_;
-	print "new Node (sub new): $ntype\n" if $VRML::verbose::nodec;
-	my %rf;
-	my $this = bless {
+    my ($type, $scene, $ntype, $fields, $eventmodel) = @_;
+    print "new Node (sub new): $ntype\n" if $VRML::verbose::nodec;
+    my %rf;
+    my $this = bless {
 		TypeName => $ntype,
 		Fields => $fields,
 		EventModel => $eventmodel,
 		Scene => $scene,
-	}, $type;
-	tie %rf, VRML::FieldHash, $this;
-	$this->{RFields} = \%rf;
-	my $t;
-	if(!defined ($t = $VRML::Nodes{$this->{TypeName}})) {
-		# PROTO
-		$this->{IsProto} = 1;
-		$this->{Type} = $scene->get_proto($this->{TypeName});
-		print "new Node ", VRML::Node::dump_name($this), 
-			"of type $ntype is a proto, type is ",VRML::Node::dump_name($this->{Type}),"\n"
+    }, $type;
+    tie %rf, VRML::FieldHash, $this;
+    $this->{RFields} = \%rf;
+    my $t;
+    if (!defined ($t = $VRML::Nodes{$this->{TypeName}})) {
+	# PROTO
+	$this->{IsProto} = 1;
+	$this->{Type} = $scene->get_proto($this->{TypeName});
+	print "new Node ", VRML::Node::dump_name($this), 
+	    "of type $ntype is a proto, type is ",VRML::Node::dump_name($this->{Type}),"\n"
+		 if $VRML::verbose::nodec;
+    } else {
+	# REGULAR
+	$this->{Type} = $t;
+	print "new Node of type $ntype is regular, type is ", $this->{Type},"\n"
 			 if $VRML::verbose::nodec;
-	} else {
-		# REGULAR
-		$this->{Type} = $t;
-		print "new Node of type $ntype is regular, type is ",$this->{Type},"\n"
-			 if $VRML::verbose::nodec;
-	}
-	$this->do_defaults();
-	return $this;
+    }
+    $this->do_defaults();
+    return $this;
 }
 
 # Construct a new Script node -- the Type argument is different
 # and there is no way of this being a proto.
 sub new_script {
-	my($type, $scene, $stype, $fields, $eventmodel) = @_;
-	print "new Node (new_script): $stype->{Name}\n" if $VRML::verbose::nodec;
-	my %rf;
-	my $this = bless {
-		TypeName => $stype->{Name},
-		Type => $stype,
-		Fields => $fields,
-		EventModel => $eventmodel,
-		Scene => $scene,
-	}, $type;
-	tie %rf, VRML::FieldHash, $this;
-	$this->{RFields} = \%rf;
-	$this->do_defaults();
-	return $this;
+    my ($type, $scene, $stype, $fields, $eventmodel) = @_;
+    print "new Node (new_script): $stype->{Name}\n" if $VRML::verbose::nodec;
+    my %rf;
+    my $this = bless {
+	TypeName => $stype->{Name},
+	Type => $stype,
+	Fields => $fields,
+	EventModel => $eventmodel,
+	    Scene => $scene,
+    }, $type;
+    tie %rf, VRML::FieldHash, $this;
+    $this->{RFields} = \%rf;
+    $this->do_defaults();
+    return $this;
 }
 
 # Fill in nonexisting field values by the default values.
 # XXX Maybe should copy?
 sub do_defaults {
-	my($this) = @_;
-	# print "do_defaults  - this is ",VRML::Node::dump_name($this),"\n";
+    my ($this) = @_;
 
-	for(keys %{$this->{Type}{Defaults}}) {
-		# print "  $_\n";
-		if(!exists $this->{Fields}{$_}) {
-			$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
-			# print "      (created!)\n";
-		}
+    for (keys %{$this->{Type}{Defaults}}) {
+	if (!exists $this->{Fields}{$_}) {
+	    $this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
 	}
+    }
 }
 
 sub as_string {
-	my($this) = @_;
-	my $s = " ($this) $this->{TypeName} { \n";
-	for(keys %{$this->{Fields}}) {
-		$s .= "\n $_ ";
-		if("VRML::IS" eq ref $this->{Fields}{$_}) {
-			$s .= $this->{Fields}{$_}->as_string();
-		} else {
-			$s .= "VRML::Field::$this->{Type}{FieldTypes}{$_}"->
-				as_string($this->{Fields}{$_});
-		}
+    my ($this) = @_;
+    my $s = " ($this) $this->{TypeName} { \n";
+    for (keys %{$this->{Fields}}) {
+	$s .= "\n $_ ";
+	if ("VRML::IS" eq ref $this->{Fields}{$_}) {
+	    $s .= $this->{Fields}{$_}->as_string();
+	} else {
+	    $s .= "VRML::Field::$this->{Type}{FieldTypes}{$_}"->
+			as_string($this->{Fields}{$_});
 	}
-	$s .= "}\n";
-	return $s;
+    }
+    $s .= "}\n";
+    return $s;
 }
 
 # If this is a PROTO expansion, return the actual "physical" VRML
 # node under it.
 sub real_node {
-	my($this, $proto) = @_;
-	# print "Scene.pm - real node in PROTO, $this, $proto\n";
+    my ($this, $proto) = @_;
 
-	if(!$proto and defined $this->{IsProto}) {
-		# print "Scene.pm - PROTO real node returning the proto expansion...\n";
-		# print "	{protoExp}{Nodes}[0] is ", $this->{ProtoExp}{Nodes}[0],"\n";
-		# print "	{protoExp}{Nodes}[1] is ", $this->{ProtoExp}{Nodes}[1],"\n";
-		# print "	{protoExp}{Nodes}[2] is ", $this->{ProtoExp}{Nodes}[2],"\n";
+    if (!$proto and defined $this->{IsProto}) {
+	# print "Scene.pm - PROTO real node returning the proto expansion...\n";
+	# print "\t{protoExp}{Nodes}[0] is ", $this->{ProtoExp}{Nodes}[0],"\n";
+	# print "\t{protoExp}{Nodes}[1] is ", $this->{ProtoExp}{Nodes}[1],"\n";
+	# print "\t{protoExp}{Nodes}[2] is ", $this->{ProtoExp}{Nodes}[2],"\n";
 	
-		VRML::Handles::front_end_child_reserve ($this->{ProtoExp}{Nodes}[0]->real_node(),$this);	
-		return $this->{ProtoExp}{Nodes}[0]->real_node;
-	} else {
-		# print "Scene.pm - PROTO real node returning just $this\n";
-		return $this;
-	}
+	VRML::Handles::front_end_child_reserve(
+	    $this->{ProtoExp}{Nodes}[0]->real_node(),
+	    $this);
+	return $this->{ProtoExp}{Nodes}[0]->real_node;
+    } else {
+	# print "Scene.pm - PROTO real node returning just $this\n";
+	return $this;
+    }
 }
 
 # Return the initial events returned by this node.
 sub get_firstevent {
-	my($this,$timestamp) = @_;
-	print "GFE $this $this->{TypeName} $timestamp\n" 
-		if $VRML::verbose;
-	if($this->{Type}{Actions}{ClockTick}) {
-		print "ACT!\n" 
-		if $VRML::verbose;
-		my @ev = &{$this->{Type}{Actions}{ClockTick}}($this, $this->{RFields},
-			$timestamp);
-		for(@ev) {
-			$this->{Fields}{$_->[1]} = $_->[2];
-		}
-		return @ev;
+    my ($this, $timestamp) = @_;
+    print "GFE $this $this->{TypeName} $timestamp\n" 
+	    if $VRML::verbose;
+    if ($this->{Type}{Actions}{ClockTick}) {
+	print "ACT!\n" if $VRML::verbose;
+	my @ev = &{$this->{Type}{Actions}{ClockTick}}(
+		$this, $this->{RFields}, $timestamp);
+	for (@ev) {
+	    $this->{Fields}{$_->[1]} = $_->[2];
 	}
-	return ();
+	return @ev;
+    }
+    return ();
 }
 
 sub receive_event {
-	my($this,$field,$value,$timestamp) = @_;
+    my ($this, $field, $value, $timestamp) = @_;
 
-	if(!exists $this->{Fields}{$field}) {
-		die("Invalid event received: $this->{TypeName} $field")
-		unless($field =~ s/^set_// and
-		       exists($this->{Fields}{$field})) ;
-	}
-	print "REC $this $this->{TypeName} $field $timestamp $value : ",
-		("ARRAY" eq ref $value? (join ', ',@$value):$value),"\n" 
-		if $VRML::verbose::events;
-	$this->{RFields}{$field} = $value;
+    if (!exists $this->{Fields}{$field}) {
+	die("Invalid event received: $this->{TypeName} $field")
+	unless($field =~ s/^set_// and
+		   exists($this->{Fields}{$field})) ;
+    }
+    print "REC $this $this->{TypeName} $field $timestamp $value : ",
+	    ("ARRAY" eq ref $value? (join ', ',@$value):$value),"\n" 
+	    if $VRML::verbose::events;
+    $this->{RFields}{$field} = $value;
 
-	if($this->{Type}{Actions}{$field}) {
-		print "RACT!\n" if $VRML::verbose::events;
-		my @ev = &{$this->{Type}{Actions}{$field}}($this,$this->{RFields},
-			$value,$timestamp);
-		for(@ev) {
-			$this->{Fields}{$_->[1]} = $_->[2];
-		}
-		return @ev;
-	}  elsif($this->{Type}{Actions}{__any__}) {
-		my @ev = &{$this->{Type}{Actions}{__any__}}(
-			$this,
-			$this->{RFields},
-			$value,
-			$timestamp,
-			$field,
-		);
-		# XXXX!!!???
-		for(@ev) {
-			$this->{Fields}{$_->[1]} = $_->[2];
-		}
-		return @ev;
-	} elsif ($VRML::Nodes::bindable{$this->{TypeName}} 
-			and $field eq "set_bind") {
-		my $scene = $this->get_global_scene();
-		$scene->set_bind($this, $value, $timestamp);
-		return ();
-	} else {
-		# Ignore event
+    if ($this->{Type}{Actions}{$field}) {
+	print "RACT!\n" if $VRML::verbose::events;
+	my @ev = &{$this->{Type}{Actions}{$field}}($this, $this->{RFields},
+			$value, $timestamp);
+	for (@ev) {
+	    $this->{Fields}{$_->[1]} = $_->[2];
 	}
+	return @ev;
+    }  elsif ($this->{Type}{Actions}{__any__}) {
+	my @ev = &{$this->{Type}{Actions}{__any__}}(
+		    $this,
+		    $this->{RFields},
+		    $value,
+		    $timestamp,
+		    $field,
+	);
+	# XXXX!!!???
+	for (@ev) {
+	    $this->{Fields}{$_->[1]} = $_->[2];
+	}
+	return @ev;
+    } elsif ($VRML::Nodes::bindable{$this->{TypeName}} 
+		    and $field eq "set_bind") {
+	my $scene = $this->get_global_scene();
+	$scene->set_bind($this, $value, $timestamp);
+	return ();
+    } else {
+	# Ignore event
+    }
 }
 
 # Get the outermost scene we are in
 sub get_global_scene {
-	my($this) = @_;
-	return $this->{Scene}->get_scene();
+    my ($this) = @_;
+    return $this->{Scene}->get_scene();
 }
 
 sub events_processed {
-	my($this,$timestamp,$be) = @_;
-	print "EP: $this $this->{TypeName} $timestamp $be\n" if $VRML::verbose;
-	if($this->{Type}{Actions}{EventsProcessed}) {
-		print "PACT!\n" if $VRML::verbose;
-		return &{$this->{Type}{Actions}{EventsProcessed}}($this, 
-			$this->{RFields},
-			$timestamp);
-	}
+    my ($this, $timestamp, $be) = @_;
+    print "EP: $this $this->{TypeName} $timestamp $be\n" if $VRML::verbose;
 
-	# JAS - this seemed to be a spurrious call - this simply resets ALL
-	# fields.
-	# if($this->{BackNode}) {
-	# 	$this->set_backend_fields();
-	# }
+    if ($this->{Type}{Actions}{EventsProcessed}) {
+	print "PACT!\n" if $VRML::verbose;
+	return &{$this->{Type}{Actions}{EventsProcessed}}($this, 
+		    $this->{RFields},
+		    $timestamp);
+    }
+
+    # JAS - this seemed to be a spurrious call - this simply resets ALL
+    # fields.
+    # if ($this->{BackNode}) {
+    # 	$this->set_backend_fields();
+    # }
 }
 
 # Copy a deeper struct
 sub ccopy {
-	my($v,$scene) = @_;
-	# print "node ccopy\n";
-	if(!ref $v) { return $v }
-	elsif("ARRAY" eq ref $v) { return [map {ccopy($_,$scene)} @$v] }
-	else { return $v->copy($scene) }
+    my ($v, $scene) = @_;
+    if (!ref $v) { return $v }
+    elsif ("ARRAY" eq ref $v) { return [map {ccopy($_, $scene)} @$v] }
+    else { return $v->copy($scene) }
 }
 
 # Copy me
 sub copy {
-	my($this, $scene) = @_;
-	# print "node copy this $this scene $scene\n";
-	my $new = {};
-	$new->{Type} = $this->{Type};
-	$new->{TypeName} = $this->{TypeName};
-	$new->{EventModel} = $this->{EventModel} ;
-	my %rf;
-	if (defined $this->{IsProto}) {$new->{IsProto} = $this->{IsProto};};
+    my ($this, $scene) = @_;
+    my $new = {};
+    $new->{Type} = $this->{Type};
+    $new->{TypeName} = $this->{TypeName};
+    $new->{EventModel} = $this->{EventModel} ;
+    my %rf;
+    if (defined $this->{IsProto}) {$new->{IsProto} = $this->{IsProto};};
 
-	tie %rf, VRML::FieldHash, $new;
-	$new->{RFields} = \%rf;
-	for(keys %{$this->{Fields}}) {
-		my $v = $this->{Fields}{$_};
-		$new->{Fields}{$_} = ccopy($v,$scene);
-	}
-	$new->{Scene} = $scene;
-	return bless $new,ref $this;
+    tie %rf, VRML::FieldHash, $new;
+    $new->{RFields} = \%rf;
+    for (keys %{$this->{Fields}}) {
+	my $v = $this->{Fields}{$_};
+	$new->{Fields}{$_} = ccopy($v, $scene);
+    }
+    $new->{Scene} = $scene;
+    return bless $new,ref $this;
 }
 
 sub iterate_nodes {
-	my($this, $sub,$parent) = @_;
-	# print "iterate_nodes in package VRML::Node, sub is $sub \n";
-	&$sub($this,$parent);
-	# print "after sub call in ITERATE_NODES 2\n";
+    my ($this, $sub, $parent) = @_;
+    &$sub($this, $parent);
 
-	for(keys %{$this->{Fields}}) {
-		if($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
-			print "FIELDI: SFNode\n" if $VRML::verbose::scene;
-			$this->{Fields}{$_}->iterate_nodes($sub,$this);
-		} elsif($this->{Type}{FieldTypes}{$_} =~ /MFNode$/) {
-			print "FIELDT: MFNode\n" if $VRML::verbose::scene;
-			my $ref = $this->{RFields}{$_};
-			for(@$ref) {
-				print "ITERATE_NODES 3 going down... $_\n" if $VRML::verbose::scene;
-				$_->iterate_nodes($sub,$this);
-			}
-		} else {
-		}
-	}
-	# print "iterate_nodes in package VRML::Node, sub is $sub DONE\n";
+    for (keys %{$this->{Fields}}) {
+	if ($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
+	    print "FIELDI: SFNode\n" if $VRML::verbose::scene;
+	    $this->{Fields}{$_}->iterate_nodes($sub, $this);
+	} elsif ($this->{Type}{FieldTypes}{$_} =~ /MFNode$/) {
+	    print "FIELDT: MFNode\n" if $VRML::verbose::scene;
+	    my $ref = $this->{RFields}{$_};
+	    for (@$ref) {
+		print "ITERATE_NODES 3 going down... $_\n" if $VRML::verbose::scene;
+		$_->iterate_nodes($sub, $this);
+	    }
+	} else {}
+    }
 }
 
 sub make_executable {
-	my($this,$scene) = @_;
-	print "MKEXE ",VRML::Node::dump_name($this), " $this->{TypeName}\n" 
-		if $VRML::verbose::scene;
+    my ($this, $scene) = @_;
+    print "MKEXE ",VRML::Node::dump_name($this), " $this->{TypeName}\n" 
+	if $VRML::verbose::scene;
 
-	# loop through all the fields for this node type.
+    # loop through all the fields for this node type.
 
-	for(keys %{$this->{Fields}}) {
+    for (keys %{$this->{Fields}}) {
+	print "MKEXE - key $_\n" if $VRML::verbose::scene;
 
-		print "MKEXE - key $_\n" if $VRML::verbose::scene;
-		# print "    MKEXE - key $_ ", ref $this->{Fields}{$_}, "\n";
-
-		# First, get ISes values
-		if( ref $this->{Fields}{$_} eq "VRML::IS" ) {
-			print "MKEXE - its an IS!!!\n" if $VRML::verbose::scene;
-			my $n = $this->{Fields}{$_}->name;
-			$this->{Fields}{$_} =
-				$scene->make_is($this, $_, $n);
-		} 
-		# Then, make the elements executable. Note that 
-		# we do two things; the first is for non-arrays, the
-		# second for arrays.
-
-		if(ref $this->{Fields}{$_} and
-		   "ARRAY" ne ref $this->{Fields}{$_}) {
-			print "EFIELDT: SFReference\n" if $VRML::verbose::scene;
-			$this->{Fields}{$_}->make_executable($scene,
-				$this, $_);
-
-		} elsif( $this->{Type}{FieldTypes}{$_} =~ /^MF/) {
-			print "EFIELDT: MF\n" if $VRML::verbose::scene;
-			my $ref = $this->{RFields}{$_};
-			for (@$ref)
-			 {
-				# print "EFIELDT, field $_, ",ref $_,"\n";
-			 	$_->make_executable($scene)
-				 if(ref $_ and "ARRAY" ne ref $_);
-			 } 
-
-		} else {
-			print "MKEXE - dont do anything\n" if $VRML::verbose::scene;
-			# Nada
-		}
+	# First, get ISes values
+	if (ref $this->{Fields}{$_} eq "VRML::IS" ) {
+	    print "MKEXE - its an IS!!!\n" if $VRML::verbose::scene;
+	    my $n = $this->{Fields}{$_}->name;
+	    $this->{Fields}{$_} = $scene->make_is($this, $_, $n);
 	}
+	# Then, make the elements executable. Note that 
+	# we do two things; the first is for non-arrays, the
+	# second for arrays.
 
+	if (ref $this->{Fields}{$_} and
+		    "ARRAY" ne ref $this->{Fields}{$_}) {
+	    print "EFIELDT: SFReference\n" if $VRML::verbose::scene;
+	    $this->{Fields}{$_}->make_executable($scene, $this, $_);
 
-	# now, is this a PROTO, and is it not expanded yet?
+	} elsif ( $this->{Type}{FieldTypes}{$_} =~ /^MF/) {
+	    print "EFIELDT: MF\n" if $VRML::verbose::scene;
+	    my $ref = $this->{RFields}{$_};
+	    for (@$ref) {
+		# print "EFIELDT, field $_, ",ref $_,"\n";
+		$_->make_executable($scene) if (ref $_ and "ARRAY" ne ref $_);
+	    }
 
-	if(defined $this->{IsProto} && !$this->{ProtoExp}) {
-		 # print "MAKE_EXECUTABLE_PROTOEXP $this, $this->{TypeName},
-		 #	$this->{Type}\n";
-		print "COPYING $this->{Type} $this->{TypeName}\n"
-			if $VRML::verbose::scene;
+	} else {
+	    print "MKEXE - doesn't do anything.\n" if $VRML::verbose::scene;
+	    # Nada
+	}
+    }
 
-		$this->{ProtoExp} = $this->{Type}->get_copy();
-		$this->{ProtoExp}->set_parentnode($this,$scene);
-		$this->{ProtoExp}->make_executable();
+    # now, is this a PROTO, and is it not expanded yet?
 
-		#  print "MAKE_EXECUTABLE_PROTOEXP finish $this, $this->{TypeName},
-		# 		$this->{Type}, $this->{ProtoExp}\n";
+    if (defined $this->{IsProto} && !$this->{ProtoExp}) {
+	# print "MAKE_EXECUTABLE_PROTOEXP $this, $this->{TypeName},
+	# $this->{Type}\n";
 
-		my $ptr = $this->{ProtoExp};
-                # print " lets see, the newp definition of $ptr is: \n";
-                # print "         parent:", $ptr->{Parent},"\n";
-                # print "         Name:", $ptr->{Name},"\n";
-                # print "         Parameters: ";
-                # for (keys %{$ptr->{Pars}}) {
-                #   print " $_";
-               #  }
-                # print "\n";
-                # print "         FieldKinds: ";
-                # for (keys %{$ptr->{FieldKinds}}) {
-                #   print ", $_ ", $ptr->{FieldKinds}{$_};
-                # }
-                # print "\nMAKE_EXECUTABLE_PROTOEXP returning\n";
+	print "COPYING $this->{Type} $this->{TypeName}\n"
+	    if $VRML::verbose::scene;
 
+	$this->{ProtoExp} = $this->{Type}->get_copy();
+	$this->{ProtoExp}->set_parentnode($this, $scene);
+	$this->{ProtoExp}->make_executable();
 
-	} 
+	# print "MAKE_EXECUTABLE_PROTOEXP finish $this, $this->{TypeName},
+	# $this->{Type}, $this->{ProtoExp}\n";
 
-	print "END MKEXE ",VRML::Node::dump_name($this)," $this->{TypeName}\n"
-		if $VRML::verbose::scene;
+	my $ptr = $this->{ProtoExp};
+	# print " lets see, the newp definition of $ptr is: \n";
+	# print "\t parent:", $ptr->{Parent},"\n";
+	# print "\t Name:", $ptr->{Name},"\n";
+	# print "\t Parameters: ";
+	# for (keys %{$ptr->{Pars}}) {
+	    # print " $_";
+	# }
+	# print "\n";
+	# print "\t FieldKinds: ";
+	# for (keys %{$ptr->{FieldKinds}}) {
+	    # print ", $_ ", $ptr->{FieldKinds}{$_};
+	# }
+	# print "\nMAKE_EXECUTABLE_PROTOEXP returning\n";
+
+    } 
+
+    print "END MKEXE ",VRML::Node::dump_name($this)," $this->{TypeName}\n"
+	    if $VRML::verbose::scene;
 }
 
 sub initialize {
-	my($this,$scene) = @_;
-	# Inline is initialized at make_backend
+    my ($this, $scene) = @_;
+    # Inline is initialized at make_backend
 
-	# print "initializing ",$this, " typename ",$this->{TypeName},"\n";
-	if($this->{Type}{Actions}{Initialize}
-	 && $this->{TypeName} ne "Inline") {
-		return &{$this->{Type}{Actions}{Initialize}}($this,$this->{RFields},
+    # print "initializing ", $this, " typename ", $this->{TypeName},"\n";
+    if ($this->{Type}{Actions}{Initialize}
+	     && $this->{TypeName} ne "Inline") {
+	return &{$this->{Type}{Actions}{Initialize}}($this, $this->{RFields},
 			(my $timestamp=XXX), $this->{Scene});
-		# XXX $this->{Scene} && $scene ??
-	}
-	return ()
+	# XXX $this->{Scene} && $scene ??
+    }
+    return ();
 }
 
 sub set_backend_fields {
-	my($this, @fields) = @_;
-	my $be = $this->{BackEnd};
-	# print "Scene.pm: set_backend_fields for this ",VRML::Node::dump_name($this),"\n";
-	## Debug:
-	print "VRML::Node::set_backend_fields for this ", VRML::Node::dump_name($this),"\n";
+    my ($this, @fields) = @_;
+    my $be = $this->{BackEnd};
 
-	if(!@fields) {@fields = keys %{$this->{Fields}}}
-	my %f;
-	for(@fields) {
-		# print "Scene.pm - iterating field $_\n";
-		my $v = $this->{RFields}{$_};
-		print "SBEF: ",VRML::Node::dump_name($this)," $_ '",("ARRAY" eq ref $v ?
-			(join ' ,',@$v) : $v),"' \n" if 
-				$VRML::verbose::be && $_ ne "__data";
+    if (!@fields) { @fields = keys %{$this->{Fields}} }
 
+    my %f;
+    for (@fields) {
+	my $v = $this->{RFields}{$_};
+	print "SBEF: ",VRML::Node::dump_name($this)," $_ '",
+	    ("ARRAY" eq ref $v ? (join ' ,',@$v) : $v), "' \n"
+		if $VRML::verbose::be && $_ ne "__data";
 
-		print "Field: $_, FieldType: $this->{Type}{FieldTypes}{$_}, $v\n";
-
-
-		if($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
-			##print "SBEF: SFNODE\n" if $VRML::verbose::be;
-			print "SBEF: SFNODE\n" if (1);
-			$f{$_} = $v->make_backend($be);
-			print "SFNODE GOT $_: ", %{$f{$_}}, "\n\n" if (1);
-		} elsif($this->{Type}{FieldTypes}{$_} =~ /MFNode$/) {
-			##print "SBEF: MFNODE @$v\n" if $VRML::verbose::be;
-			print "SBEF: MFNODE @$v\n" if (1);
-			$f{$_} = [
-				map {$_->make_backend($be)} @{$v}
-			];
-			##print "MFNODE GOT $_: @{$f{$_}}\n" if $VRML::verbose::be;
-			print "MFNODE GOT $_: @{$f{$_}}\n\n" if (1);
-
-		} else {
-			##print "SBEF: Not MF or SF Node...\n"  if $VRML::verbose::be;
-			print "SBEF: Not MF or SF Node...\n"  if (1);
-			$f{$_} = $v;
-		}
+	if ($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
+	    print "SBEF: SFNODE\n" if $VRML::verbose::be;
+	    $f{$_} = $v->make_backend($be);
+	    print "SFNODE GOT $_: ", %{$f{$_}}, "\n\n" if $VRML::verbose::be;
+	} elsif ($this->{Type}{FieldTypes}{$_} =~ /MFNode$/) {
+	    print "SBEF: MFNODE @$v\n" if $VRML::verbose::be;
+	    $f{$_} = [ map {$_->make_backend($be)} @{$v} ];
+	    print "MFNODE GOT $_: @{$f{$_}}\n" if $VRML::verbose::be;
+	} else {
+	    print "SBEF: Not MF or SF Node...\n"  if $VRML::verbose::be;
+	    $f{$_} = $v;
 	}
-	$be->set_fields($this->{BackNode},\%f);
+    }
+    $be->set_fields($this->{BackNode},\%f);
 }
 
 
 {
-my %NOT = map {($_=>1)} qw/WorldInfo TimeSensor TouchSensor
-	ScalarInterpolator ColorInterpolator
-	PositionInterpolator
-	OrientationInterpolator
-	CoordinateInterpolator
-	NormalInterpolator
-	PlaneSensor
-	SphereSensor
-	CylinderSensor
-	VisibilitySensor
-	/;
-#JAS	Collision #JAS
-#	NavigationInfo
+
+my %NOT = map {($_=>1)} qw/
+		WorldInfo
+		TimeSensor
+		TouchSensor
+		ScalarInterpolator
+		ColorInterpolator
+		PositionInterpolator
+		OrientationInterpolator
+		CoordinateInterpolator
+		NormalInterpolator
+		PlaneSensor
+		SphereSensor
+		CylinderSensor
+		VisibilitySensor
+/;
+#JAS: Collision
+#JAS: NavigationInfo
 
 
 #############################################################
@@ -1033,70 +998,65 @@ my %NOT = map {($_=>1)} qw/WorldInfo TimeSensor TouchSensor
 #############################################################
 
 sub make_backend {
-	my($this,$be,$parentbe) = @_;
-	
-	print "Node::make_backend ",VRML::Node::dump_name($this),
-		" $this->{TypeName}, $be, $parentbe\n"
-		 ##if $VRML::verbose::be;
-		 if (1);
+    my ($this, $be, $parentbe) = @_;
 
-	## original code
-	## if(defined $this->{BackNode}) {
-		# print "backnode defined for ", VRML::Node::dump_name($this), " ... just returning BackNode \n";
-		## return $this->{BackNode};
-	## }
+    print "Node::make_backend ",VRML::Node::dump_name($this),
+	" $this->{TypeName}, $be, $parentbe\n"
+		 if $VRML::verbose::be;
 
-	if(!defined $this->{BackNode}) {
+    if (!defined $this->{BackNode}) {
 
-		if($this->{TypeName} eq "Inline") {
-			print "NODE: Inline initialize ",
-				{$this->{Type}{Actions}{Initialize}}, " RFields ",
-					$this->{RFields},"\n"
-					if $VRML::verbose::be;
-			&{$this->{Type}{Actions}{Initialize}}($this,$this->{RFields},
-				(my $timestamp=XXX), $this->{Scene});
-		}
-		if($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
-			print "NODE: makebe NOT - ", $this->{TypeName},"\n"
-				if $VRML::verbose::be;
-			return ();
-		}
-		if(defined $this->{IsProto}) {
-			print "NODE: makebe PROTO\n"
-				if $VRML::verbose::be;
-			return $this->{ProtoExp}->make_backend($be,$parentbe);
-		}
-
-		my $ben = $be->new_node($this->{TypeName});
-		$this->{BackNode} = $ben;
-		$this->{BackEnd} = $be;
-		$this->set_backend_fields();
-
-		# was this a viewpoint? Was it not in a proto definition?
-		if ($this->{TypeName} eq "Viewpoint") {
-        	# print "Node::register_vp, viewpoint is ",$this->{Fields}{description},"\n";
-			if ($this->{BackEnd}) {
-				# print " should register this one!\n";
-				my $scene = $this->{Scene};
-				VRML::NodeType::register_vp($scene, $this);
-			}
-                 # print "ref t ", ref $this,"\n";
-                 # print "ref t backend ", ref $this->{BackEnd},"\n";
-                 # print "t backend ", $this->{BackEnd},"\n";
-                 # print "ref t backNode ", ref $this->{BackNode},"\n";
-                 # print "t backNode ", $this->{BackNode},"\n";
-                 # print "ref t protoexp ", ref $this->{ProtoExp},"\n";
-                 # print "t protoexp ", $this->{ProtoExp},"\n";
-
-		}
+	if ($this->{TypeName} eq "Inline") {
+	    print "NODE: Inline initialize ",
+		    {$this->{Type}{Actions}{Initialize}}, " RFields ",
+			$this->{RFields},"\n"
+			    if $VRML::verbose::be;
+	    &{$this->{Type}{Actions}{Initialize}}($this, $this->{RFields},
+		    (my $timestamp=XXX), $this->{Scene});
 	}
-	print "Node::make_backend finished ",VRML::Node::dump_name($this),
-		" $this->{TypeName}, ", %{$this->{BackNode}}, "\n"
-		##if $VRML::verbose::be;
-		if (1);
-	return $this->{BackNode};
 
+	if ($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
+	    print "NODE: makebe NOT - ", $this->{TypeName},"\n"
+		if $VRML::verbose::be;
+	    return ();
+	}
+
+	if (defined $this->{IsProto}) {
+	    print "NODE: makebe PROTO\n"
+		if $VRML::verbose::be;
+	    return $this->{ProtoExp}->make_backend($be, $parentbe);
+	}
+
+	my $ben = $be->new_node($this->{TypeName});
+	$this->{BackNode} = $ben;
+	$this->{BackEnd} = $be;
+	$this->set_backend_fields();
+
+	# was this a viewpoint? Was it not in a proto definition?
+	if ($this->{TypeName} eq "Viewpoint") {
+	    # print "Node::register_vp, viewpoint is ", $this->{Fields}{description},"\n";
+	    if ($this->{BackEnd}) {
+		# print " should register this one!\n";
+		my $scene = $this->{Scene};
+		VRML::NodeType::register_vp($scene, $this);
+	    }
+
+	    # print "ref t ", ref $this,"\n";
+	    # print "ref t backend ", ref $this->{BackEnd},"\n";
+	    # print "t backend ", $this->{BackEnd},"\n";
+	    # print "ref t backNode ", ref $this->{BackNode},"\n";
+	    # print "t backNode ", $this->{BackNode},"\n";
+	    # print "ref t protoexp ", ref $this->{ProtoExp},"\n";
+	    # print "t protoexp ", $this->{ProtoExp},"\n";
+	}
+    }
+    print "Node::make_backend finished ",VRML::Node::dump_name($this),
+	" $this->{TypeName}, ", %{$this->{BackNode}}, "\n"
+	    if $VRML::verbose::be;
+
+    return $this->{BackNode};
 }
+
 }
 
 #######################################################################
@@ -1120,7 +1080,7 @@ package VRML::Scene;
 
 
 sub dump {
-	my ($this,$level) = @_;
+	my ($this, $level) = @_;
 
 	if ($level > 20) {
 		print "level too deep, returning\n";
@@ -1131,14 +1091,14 @@ sub dump {
 
 
 	# print out the Scene graph, to help in debugging.
-	print $padded,"SCENE DUMP ",VRML::Node::dump_name($this),"\t",$this->{URL},"\n\n";
+	print $padded,"SCENE DUMP ",VRML::Node::dump_name($this),"\t", $this->{URL},"\n\n";
 	foreach (keys %{$this}) {
 		print $padded,"$_\t";
 		
 		# lets do something special for Routes
 		if ("Routes" eq $_) {
        		 for (@{$this->{$_}}) {
-                	my($fnam, $ff, $tnam, $tf) = @$_;
+                	my ($fnam, $ff, $tnam, $tf) = @$_;
                 	print "$padded    Route from $fnam field $ff to $tnam field $tf\n";
         	 }
 					
@@ -1186,11 +1146,11 @@ sub dump {
 
 
 sub new {
-	my($type,$eventmodel,$url) = @_;
+	my ($type, $eventmodel, $url) = @_;
 	my $this = bless {
 		EventModel => $eventmodel,
 		URL => $url,
-	},$type;
+	}, $type;
 	print "Newscene $this, $eventmodel, $url\n" 
 		if $VRML::verbose::scene;
 	return $this;
@@ -1199,21 +1159,18 @@ sub new {
 
 # is this node a new "replaceWorld'd" node, and does it need to be put on the stack?
 sub replaceWorld_Bindable {
-	my ($this, $node) = @_;
+    my ($this, $node) = @_;
 
-        # Check if it is bindable and first -> bind to it later..
+    # Check if it is bindable and first -> bind to it later..
 
-	# print "Scene.pm:replaceWorld_Bindable, looking at node $node, type ",
-	#	$node->{TypeName}," type node ", $node->{Type},"\n";
+    if ($VRML::Nodes::bindable{$node->{TypeName}}) {
+	# this should never happen...
+	if (!defined $this->{Bindable}{$node->{TypeName}}) {
+	    $this->{Bindable}{$node->{TypeName}} = $node;
+	}
 
-        if($VRML::Nodes::bindable{$node->{TypeName}}) {
-		# this should never happen...
-                if(!defined $this->{Bindable}{$node->{TypeName}}) {
-                        $this->{Bindable}{$node->{TypeName}} = $node;
-                }
-		# print "Scene.pm:replaceWorld_Bindable, found one! $node\n";
-                push @{$this->{Bindables}{$node->{TypeName}}}, $node;
-        }
+	push @{$this->{Bindables}{$node->{TypeName}}}, $node;
+    }
 }
 
 
@@ -1221,199 +1178,207 @@ sub replaceWorld_Bindable {
 #JAS sub register_vps {
 #JAS 	my ($this, $browser) = @_;
 #JAS 
-    #JAS     my $np = $this->{Bindables}{Viewpoint};
+#JAS     my $np = $this->{Bindables}{Viewpoint};
 #JAS 
 #JAS 	my $c = 0;
 #JAS 	while ($c <= $#$np) {
-    #JAS     	print "register_vps for $this ", $np->[$c]->real_node()," viewpoint $c is ",$np->[$c]{Fields}{description},"\n";
-#JAS 		$browser->register_vp($this,$np->[$c]->real_node());
+#JAS        print "register_vps for $this ", $np->[$c]->real_node(),"
+#JAS                   viewpoint $c is ", $np->[$c]{Fields}{description},"\n";
+#JAS 		$browser->register_vp($this, $np->[$c]->real_node());
 #JAS 		$c++;
 #JAS 	}
 #JAS }
 
 
 sub set_url {
-	$_[0]{URL} = $_[1];
+    my ($this, $url) = @_;
+    $this->{URL} = $url;
 }
 
 sub newp {
-	# newp - ...
-	# actually creates a new prototype.
-        #
-	# parameters:
+    # newp - ...
+    # actually creates a new prototype.
+    #
+    # parameters:
 	
-	# type:	 probably always VRML::Scene
-        # pars:	 not yet decoded. prints as HASH(0x83e45f0)
-	#        look below for its usage in extracting fields.
-        # parent:which invocationo of scene this is in.  SCENE_2
-        # name:	 VRML name, eg, dirigible
+    # type: probably always VRML::Scene
+    # pars: not yet decoded. prints as HASH(0x83e45f0)
+    # look below for its usage in extracting fields.
+    # parent:which invocationo of scene this is in.  SCENE_2
+    # name: VRML name, eg, dirigible
 
+    my ($type, $pars, $parent, $name) = @_;
 
+    my $this = $type->new;
+    $this->{Pars} = $pars;
+    $this->{Name} = $name;
+    $this->{Parent} = $parent;
 
-	my ($type,$pars,$parent,$name) = @_;
+    # Extract the field types
+    $this->{FieldTypes} = {map {$_ => $this->{Pars}{$_}[1]} keys %{$this->{Pars}}};
+    $this->{FieldKinds} = {map {$_ => $this->{Pars}{$_}[0]} keys %{$this->{Pars}}};
 
-	# print "Scene:newp: \n	type $type \n	pars $pars \n	parent $parent \n	name $name\n";
-	my $this = $type->new;
-	$this->{Pars} = $pars;
-	$this->{Name} = $name;
-	$this->{Parent} = $parent;
-
-	# Extract the field types
-	$this->{FieldTypes} = {map {$_ => $this->{Pars}{$_}[1]} keys %{$this->{Pars}}};
-	$this->{FieldKinds} = {map {$_ => $this->{Pars}{$_}[0]} keys %{$this->{Pars}}};
-
-	$this->{EventModel} = $parent->{EventModel};
-	$this->{Defaults} = {map {$_ => $this->{Pars}{$_}[2]} keys %{$this->{Pars}}};
-	for(keys %{$this->{FieldKinds}}) {
-		my $k = $this->{FieldKinds}{$_};
-		if($k eq "exposedField") {
-			$this->{EventOuts}{$_} = $_;
-			$this->{EventOuts}{$_."_changed"} = $_;
-			$this->{EventIns}{$_} = $_;
-			$this->{EventIns}{"set_".$_} = $_;
-		} elsif($k eq "eventIn") {
-			$this->{EventIns}{$_} = $_;
-		} elsif($k eq "eventOut") {
-			$this->{EventOuts}{$_} = $_;
-		} elsif($k ne "field") {
-			print "Truly strange - shouldn't happen\n"; 
-			exit (1);
-		}
+    $this->{EventModel} = $parent->{EventModel};
+    $this->{Defaults} = {map {$_ => $this->{Pars}{$_}[2]} keys %{$this->{Pars}}};
+    for (keys %{$this->{FieldKinds}}) {
+	my $k = $this->{FieldKinds}{$_};
+	if ($k eq "exposedField") {
+	    $this->{EventOuts}{$_} = $_;
+	    $this->{EventOuts}{$_."_changed"} = $_;
+	    $this->{EventIns}{$_} = $_;
+	    $this->{EventIns}{"set_".$_} = $_;
+	} elsif ($k eq "eventIn") {
+	    $this->{EventIns}{$_} = $_;
+	} elsif ($k eq "eventOut") {
+	    $this->{EventOuts}{$_} = $_;
+	} elsif ($k ne "field") {
+	    print "Truly strange - shouldn't happen\n"; 
+	    exit (1);
 	}
-	# print "Scene:newp finished, returning $this\n";
-	return $this;
+    }
+    # print "Scene:newp finished, returning $this\n";
+    return $this;
 }
 
+## Note: url handling needs to be fixed
 sub newextp {
-	my ($type,$pars,$parent,$name,$url) = @_;
-	# XXX marijn: code copied from newp()
+    my ($type, $pars, $parent, $name, $url) = @_;
+    # XXX marijn: code copied from newp()
 
-	my $this = $type->new;
-	$this->{Pars} = $pars;
-	$this->{Name} = $name;
-	$this->{Parent} = $parent;
+    my $this = $type->new;
+    $this->{Pars} = $pars;
+    $this->{Name} = $name;
+    $this->{Parent} = $parent;
 
-	# Extract the field types
-	$this->{FieldTypes} = {map {$_ => $this->{Pars}{$_}[1]} keys %{$this->{Pars}}};
-	$this->{FieldKinds} = {map {$_ => $this->{Pars}{$_}[0]} keys %{$this->{Pars}}};
-	#print "Scene:newextp: this parent is $parent\n";
-	$this->{EventModel} = $parent->{EventModel};
-	for(keys %{$this->{FieldKinds}}) {
-		 my $k = $this->{FieldKinds}{$_};
-		 if($k eq "exposedField") {
-			 $this->{EventOuts}{$_} = $_;
-			 $this->{EventOuts}{$_."_changed"} = $_;
-			 $this->{EventIns}{$_} = $_;
-			 $this->{EventIns}{"set_".$_} = $_;
-		 } elsif($k eq "eventIn") {
-			 $this->{EventIns}{$_} = $_;
-		 } elsif($k eq "eventOut") {
-			 $this->{EventOuts}{$_} = $_;
-		 } elsif($k ne "field") {
-			 print "Truly strange - shouldn't happen\n";
-			 exit (1);
-		 }
-	}
-	# XXX marijn: fix this: only first url currently used
-	if(ref $url) {
-		 $url = $url->[0];
-	}
-	print("EXTERNPROTO with URL: $url\n") if $VRML::verbose::parse;
-	my ($protourl,$protoname) = split(/\#/,$url,2);
-	# marijn: set the url for this proto
-	$this->set_url($protourl);
+    # Extract the field types
+    $this->{FieldTypes} = {map {$_ => $this->{Pars}{$_}[1]} keys %{$this->{Pars}}};
+    $this->{FieldKinds} = {map {$_ => $this->{Pars}{$_}[0]} keys %{$this->{Pars}}};
+    $this->{EventModel} = $parent->{EventModel};
 
-	# XXX marijn: code copied from Browser->load_file()
-	my $string = VRML::URL::get_relative($parent->{URL},$protourl);
+    for (keys %{$this->{FieldKinds}}) {
+	my $k = $this->{FieldKinds}{$_};
+	if ($k eq "exposedField") {
+	    $this->{EventOuts}{$_} = $_;
+	    $this->{EventOuts}{$_."_changed"} = $_;
+	    $this->{EventIns}{$_} = $_;
+	    $this->{EventIns}{"set_".$_} = $_;
+	 } elsif ($k eq "eventIn") {
+	    $this->{EventIns}{$_} = $_;
+	 } elsif ($k eq "eventOut") {
+	     $this->{EventOuts}{$_} = $_;
+	 } elsif ($k ne "field") {
+	     print "Truly strange - shouldn't happen\n";
+	     exit (1);
+	 }
+    }
+    # XXX marijn: fix this: only first url currently used
+    if (ref $url) {
+	$url = $url->[0];
+    }
 
-	# Required due to changes in VRML::URL::get_relative in URL.pm:
-	if (!$string) { die "File $protourl was not found"; }
+    print("EXTERNPROTO with URL: $url\n") if $VRML::verbose::parse;
+    my ($protourl, $protoname) = split(/\#/, $url,2);
+    # marijn: set the url for this proto
+    $this->set_url($protourl);
 
-        if ($string =~/^<\?xml version/s) {
-                eval 'require XML::LibXSLT';
-                eval 'require XML::LibXML';
+    # XXX marijn: code copied from Browser->load_file()
+    my $string = VRML::URL::get_relative($parent->{URL}, $protourl);
 
-                my $parser = XML::LibXML->new();
-                my $xslt = XML::LibXSLT->new();
+    # Required due to changes in VRML::URL::get_relative in URL.pm:
+    if (!$string) { die "File $protourl was not found"; }
 
-                my $source = $parser->parse_string($string);
-                my $style_doc = $parser->parse_file($VRML::Browser::X3DTOVRMLXSL);
+    if ($string =~/^<\?xml version/s) {
+	eval 'require XML::LibXSLT';
+	eval 'require XML::LibXML';
 
-                my $stylesheet = $xslt->parse_stylesheet($style_doc);
+	my $parser = XML::LibXML->new();
+	my $xslt = XML::LibXSLT->new();
 
-                my $results = $stylesheet->transform($source);
+	my $source = $parser->parse_string($string);
+	my $style_doc = $parser->parse_file($VRML::Browser::X3DTOVRMLXSL);
 
-                $string = $stylesheet->output_string($results);
-        }
+	my $stylesheet = $xslt->parse_stylesheet($style_doc);
 
-	unless($string =~ /^#VRML V2.0/s) {
-		 if($string =~ /^#VRML V1.0/) {
-			 print "Sorry, this file is according to VRML V1.0, I only know V2.0\n";
-			 exit(1);
-                }
+	my $results = $stylesheet->transform($source);
 
-		 warn("WARNING: file '$protourl' doesn't start with the '#VRML V2.0' header line");
+	$string = $stylesheet->output_string($results);
+    }
+
+    unless ($string =~ /^#VRML V2.0/s) {
+	if ($string =~ /^#VRML V1.0/) {
+	    print "Sorry, this file is according to VRML V1.0, I only know V2.0\n";
+	    exit(1);
 	}
 
-	# XXX marijn: code copied from Browser->parse()
-	my $po = pos $string;
-	while($string =~ /([#\"])/gsc ) {
-		 (pos $string)--;
-		 if( $1 eq "#" ) {
-			 $string =~ s/#.*$//m;
-		 } else {
-			 VRML::Field::SFString->parse($this,$string);
-		 }
-	}
-	(pos $string) = $po;
+	warn("WARNING: file '$protourl' doesn't start with the '#VRML V2.0' header line");
+    }
 
-	# marijn: end of copying, now locate right PROTO
-	my $succes = 0;
-	while($string =~ /[\s,^](PROTO\s+)($VRML::Parser::Word)/gsc ) {
-		 if ( !$protoname ) {
-			 $protoname = $2;
-		 }
-		 if ( $2 eq $protoname ) {
-			 (pos $string) -= ((length $1) + (length $2));
-			 VRML::Parser::parse_statement($this, $string);
-			 $succes = 1;
-			 last;
-		 }
+    # XXX marijn: code copied from Browser->parse()
+    my $po = pos $string;
+    while ($string =~ /([#\"])/gsc ) {
+	(pos $string)--;
+	if ($1 eq "#") {
+	    $string =~ s/#.*$//m;
+	} else {
+	    VRML::Field::SFString->parse($this, $string);
 	}
-	if(!$succes) {
-		 VRML::Error::parsefail("no PROTO found", "$url");
+    }
+    (pos $string) = $po;
+
+    # marijn: end of copying, now locate right PROTO
+    my $succes = 0;
+    while ($string =~ /[\s,^](PROTO\s+)($VRML::Parser::Word)/gsc ) {
+	if (!$protoname) {
+	    $protoname = $2;
 	}
 
-	# marijn: now create an instance of the PROTO, with all fields ISsed.
-	# XXX marijn: What about FieldTypes/FieldKinds?
-	my %fields = map {$_ => $this->new_is($_)} keys %{$this->{Pars}};
-	my $n = $this->new_node($protoname,\%fields);
-	my @node = ($n);
+	if ($2 eq $protoname) {
+	    (pos $string) -= ((length $1) + (length $2));
+	    VRML::Parser::parse_statement($this, $string);
+	    $succes = 1;
+	    last;
+	}
+    }
 
-	# XXX marijn: code copied from Parser::parse_proto
-	$this->topnodes(\@node);
+    if (!$succes) {
+	VRML::Error::parsefail("no PROTO found", "$url");
+    }
 
-	# marijn: copy defaults from PROTO
-	$this->{Defaults} = {map {$_ => $this->{Protos}{$protoname}->{Defaults}{$_}} keys %{$this->{Protos}{$protoname}->{Defaults}}};
+    # marijn: now create an instance of the PROTO, with all fields ISsed.
+    # XXX marijn: What about FieldTypes/FieldKinds?
 
-	return $this;
+    my %fields = map {$_ => $this->new_is($_)} keys %{$this->{Pars}};
+    my $n = $this->new_node($protoname,\%fields);
+    my @node = ($n);
+
+    # XXX marijn: code copied from Parser::parse_proto
+    $this->topnodes(\@node);
+
+    # marijn: copy defaults from PROTO
+    $this->{Defaults} = {
+	    map {$_ => $this->{Protos}{$protoname}->{Defaults}{$_}}
+		keys %{$this->{Protos}{$protoname}->{Defaults}}};
+
+    return $this;
 }
 
 ##################################################################
 #
 # This is the public API for use of the parser or whoever..
 
-{my $cnt;
+{
+
+my $cnt;
 sub new_node {
-	my($this, $type, $fields) = @_;
-	if($type eq "Script") {
+	my ($this, $type, $fields) = @_;
+	if ($type eq "Script") {
 		# Special handling for Script which has an interface.
 		my $t = "__script__".$cnt++;
 		my %f = 
 		(url => [MFString, []],
 		 directOutput => [SFBool, 0, ""], # not exposedfields
 		 mustEvaluate => [SFBool, 0, ""]);
-		for(keys %$fields) {
+		for (keys %$fields) {
 			$f{$_} = [
 				$fields->{$_}[1],
 				$fields->{$_}[2],
@@ -1426,17 +1391,18 @@ sub new_node {
 			$this, $type, {}, $this->{EventModel});
 		return $node;
 	}
-	my $node = VRML::Node->new($this,$type,$fields, $this->{EventModel});
+	my $node = VRML::Node->new($this, $type, $fields, $this->{EventModel});
 
 	# Check if it is bindable and first -> bind to it later..
-	if($VRML::Nodes::bindable{$type}) {
-		if(!defined $this->{Bindable}{$type}) {
+	if ($VRML::Nodes::bindable{$type}) {
+		if (!defined $this->{Bindable}{$type}) {
 			$this->{Bindable}{$type} = $node;
 		}
 		push @{$this->{Bindables}{$type}}, $node;
 	}
 	return $node;
 }
+
 }
 
 sub new_route {
@@ -1460,86 +1426,85 @@ sub delete_route {
 }
 
 sub new_def {
-	my($this,$name,$node) = @_;
+	my ($this, $name, $node) = @_;
 
 	print "NEW DEF ", VRML::Node::dump_name($this),
 		 " $name ", VRML::Node::dump_name($node),"\n" if $VRML::verbose::scene;
-	my $def = VRML::DEF->new($name,$node);
-	$this->{TmpDef}{$name} = $def;
+	my $def = VRML::DEF->new($name, $node);
+	## Using $this->{TmpDef} and $this->{DEF} seems redundant! 
+	## $this->{TmpDef}{$name} = $def;
+	$this->{DEF}{$name} = $def;
 	# print "NEW DEF IS ",VRML::Node::dump_name($def),"\n"; 
-        VRML::Handles::reserve($def);
+	VRML::Handles::reserve($def);
 	return $def;
 }
 
 sub new_use {
-	my($this,$name) = @_;
+	my ($this, $name) = @_;
 	# print "new_use for $name required\n";
-	return VRML::USE->new($name, VRML::Handles::get($this->{TmpDef}{$name}));
+	## return VRML::USE->new($name, VRML::Handles::get($this->{TmpDef}{$name}));
+	return VRML::USE->new($name, VRML::Handles::get($this->{DEF}{$name}));
 }
 
 sub new_is {
-	my($this, $name) = @_;
+	my ($this, $name) = @_;
 	return VRML::IS->new($name);
 }
 
 sub new_proto {
-	my($this,$name,$pars) = @_;
-	#print "Scene:new_proto, \n	this $this \n	name $name \n	pars $pars\n";
-	# for(keys %{$pars}) {
-        #       print "parameter $_\n";
-        #}
+	my ($this, $name, $pars) = @_;
 
 	print "NEW_PROTO $this $name\n" if $VRML::verbose::scene;
-	my $p = $this->{Protos}{$name} = (ref $this)->newp($pars,$this,$name);
+	my $p = $this->{Protos}{$name} = (ref $this)->newp($pars, $this, $name);
 	print "Scene:new_proto, returning $p \n" if $VRML::verbose::scene;
 	return $p;
 }
 
 sub new_externproto {
-	my($this,$name,$pars,$url) = @_;
+	my ($this, $name, $pars, $url) = @_;
 	print "NEW_EXTERNPROTO $this $name\n" if $VRML::verbose::scene;
-	my $p = $this->{Protos}{$name} = (ref $this)->newextp($pars,$this,$name,$url);
+	my $p = $this->{Protos}{$name} = (ref $this)->newextp($pars, $this, $name, $url);
 	return $p;
 }
 
 sub topnodes {
-	my($this,$nodes) = @_;
+	my ($this, $nodes) = @_;
 	$this->{Nodes} = $nodes;
 	$this->{RootNode} = $this->new_node("Group",{children => $nodes});
 }
 
 sub get_proto {
-	my($this,$name) = @_;
+	my ($this, $name) = @_;
 	print "GET_PROTO $this $name\n" if $VRML::verbose::scene;
-	if($this->{Protos}{$name}) {return $this->{Protos}{$name}}
+	if ($this->{Protos}{$name}) {return $this->{Protos}{$name}}
 	# print "Scene:GET_PROTO: \n	this $this\n	parent ", $this->{Parent},"\n";
-	if($this->{Parent}) {return $this->{Parent}->get_proto($name)}
+	if ($this->{Parent}) {return $this->{Parent}->get_proto($name)}
 	print "GET_PROTO_UNDEF $this $name\n" if $VRML::verbose::scene;
 	return undef;
 }
 
 sub get_url {
-	my($this) = @_;
+	my ($this) = @_;
 	print "Get_url $this\n" if $VRML::verbose::scene;
-	if(defined $this->{URL}) {return $this->{URL}}
+	if (defined $this->{URL}) {return $this->{URL}}
 	# print "Scene:get_url: this parent is ", $this->{Parent},"\n";
-	if($this->{Parent}) {return $this->{Parent}->get_url()}
+	if ($this->{Parent}) {return $this->{Parent}->get_url()}
 	print "Undefined URL tree\n";
 	exit (1);
 }
 
 sub get_scene {
-	my($this) = @_;
+	my ($this) = @_;
 	# print "Scene:get_scene: this $this \n	parent ", $this->{Parent},"\n";
-	if($this->{Parent}) {return $this->{Parent}->get_scene()}
+	if ($this->{Parent}) {return $this->{Parent}->get_scene()}
 	return $this;
 }
 
 sub set_browser { $_[0]{Browser} = $_[1]; }
 
 sub get_browser {
-	my($this) =@_;
-	if($this->{Parent}) {return $this->{Parent}->get_browser()}
+	my ($this) =@_;
+	if ($this->{Parent}) {return $this->{Parent}->get_browser()}
 	return $this->{Browser};
 }
 
@@ -1557,7 +1522,7 @@ sub mkbe_and_array {
 
   # lets get the number of items in there...
 
-  my ($this,$be,$parentscene) = @_;
+  my ($this, $be, $parentscene) = @_;
 
 
   # copy over any generic scene DEFs. Proto specific DEFS below
@@ -1589,7 +1554,7 @@ sub mkbe_and_array {
   	  # node definition, BUT generate the real node!
 
   	  $c = $_[0]{Nodes}[$curindex];
-  	  if("ARRAY" eq ref $c) {
+  	  if ("ARRAY" eq ref $c) {
 		$c = @{$c};
 	  } elsif ("VRML::DEF" eq ref ($c)) {
 	 	# print "mkbe - this is a def!\n";
@@ -1600,12 +1565,12 @@ sub mkbe_and_array {
 	  # lets make backend here, while we are having fun...
 	  if (!defined $c->{BackNode}) {
 		my $rn = c;
-		if(defined $c->{IsProto}) {
+		if (defined $c->{IsProto}) {
 			$rn = $c->real_node();
-	       		$rn->{BackNode} = VRML::Node::make_backend($rn,$be);
+	       		$rn->{BackNode} = VRML::Node::make_backend($rn, $be);
 	    		VRML::Handles::reserve($rn);
 		} else {
-	       		$c->{BackNode} = VRML::Node::make_backend($c,$be);
+	       		$c->{BackNode} = VRML::Node::make_backend($c, $be);
 		}
 	  # } else {
 	# 	print "BackNode already defined\n";
@@ -1642,7 +1607,7 @@ sub mkbe_and_array {
 		# PROTO Routes
 		for (@{$this->{Protos}{$k}{Routes}}) {
 			push (@{$c->{SceneRoutes}}, $_);	
-                	my($fnam, $ff, $tnam, $tf) = @$_;
+                	my ($fnam, $ff, $tnam, $tf) = @$_;
                 	# print "Scene.pm - routes in $k are from $fnam field $ff to $tnam field $tf\n";
         	}
   	}
@@ -1656,18 +1621,20 @@ sub mkbe_and_array {
   return $q
 }
 
-
+## used for DEF'd nodes
 sub getNode {
-	my $n = $_[0]{TmpDef}{VRML::Handles::return_def_name($_[1])};
-	if(!defined $n) {
-		print "Node '$_[1]' not defined\n";
+	my ($this, $name) = @_;
+	## my $n = $_[0]{TmpDef}{VRML::Handles::return_def_name($_[1])};
+	my $n = $this->{DEF}->{VRML::Handles::return_def_name($name)};
+	if (!defined $n) {
+		print "Node $name is not defined.\n";
 		return "undefined";
 	}
 	return $n->real_node(1); # Return proto enclosing node.
 }
 
 sub as_string {
-	my($this) = @_;
+	my ($this) = @_;
 print "Scene::as_string, nodes are ", @{$this->{Nodes}},"\n";
 	join "\n ($this) ",map {$_->as_string} @{$this->{Nodes}};
 }
@@ -1675,10 +1642,10 @@ print "Scene::as_string, nodes are ", @{$this->{Nodes}},"\n";
 # Construct a full copy of this scene -- used for protos.
 # Note: much data is shared - problems?
 sub get_copy {
-	my($this,$name) = @_;
+	my ($this, $name) = @_;
 	my $new = bless {
 	},ref $this;
-	if(defined $this->{URL}) {
+	if (defined $this->{URL}) {
 		$new->{URL} = $this->{URL};
 	}
 	$new->{Pars} = $this->{Pars};
@@ -1698,23 +1665,23 @@ sub get_copy {
 }
 
 sub make_is {
-	my($this, $node, $field, $is) = @_;
+	my ($this, $node, $field, $is) = @_;
 	my $retval;
 	print "Make_is ",VRML::Node::dump_name($this), " ",
-		VRML::Node::dump_name( $node), " $node->{TypeName} $field $is\n"
+		VRML::Node::dump_name($node), " $node->{TypeName} $field $is\n"
 		 if $VRML::verbose::scene;
 	my $pk = $this->{NodeParent}{Type}{FieldKinds}{$is} or
 		die("IS node problem") ;
 	my $ck = $node->{Type}{FieldKinds}{$field} or
 		die("IS node problem 2");
-	if($pk ne $ck and $ck ne "exposedField") {
+	if ($pk ne $ck and $ck ne "exposedField") {
 		print "INCOMPATIBLE PROTO TYPES (XXX FIXME Error message)!\n";
 		exit (1);
 	}
 	# If child's a field or exposedField, get initial value
 	print "CK: $ck, PK: $pk\n" 
 		 if $VRML::verbose::scene;
-	if($ck =~ /[fF]ield$/ and $pk =~ /[fF]ield$/) {
+	if ($ck =~ /[fF]ield$/ and $pk =~ /[fF]ield$/) {
 		print "SETV: $_ NP : '$this->{NodeParent}' '$this->{NodeParent}{Fields}{$_}'\n" 
 			if $VRML::verbose::scene;
 		$retval=
@@ -1730,12 +1697,12 @@ sub make_is {
 	# where the array is looked at. So, we use a global array
 	# within the Browser to keep track of things
 
-	if($ck ne "field" and $pk ne "field") {
-		if($pk eq "eventIn" or ($pk eq "exposedField" and
+	if ($ck ne "field" and $pk ne "field") {
+		if ($pk eq "eventIn" or ($pk eq "exposedField" and
 			$ck eq "exposedField")) {
 			push @{$this->{IS_ALIAS_IN}{$is}}, [$node, $field];
 		}
-		if($pk eq "eventOut" or ($pk eq "exposedField" and
+		if ($pk eq "eventOut" or ($pk eq "exposedField" and
 			$ck eq "exposedField")) {
 			push @{$this->{IS_ALIAS_OUT}{$is}}, [$node, $field];
 		}
@@ -1750,32 +1717,32 @@ sub make_is {
 
 sub iterate_nodes {
 	print "ITERATE NODES - proto expansion\n" if $VRML::verbose::scene;
-	my($this,$sub,$parent) = @_;
-	# for(@{$this->{Nodes}}) {
-	if($this->{RootNode}) {
-		for($this->{RootNode}) {
-			$_->iterate_nodes($sub,$parent);
+	my ($this, $sub, $parent) = @_;
+	# for (@{$this->{Nodes}}) {
+	if ($this->{RootNode}) {
+		for ($this->{RootNode}) {
+			$_->iterate_nodes($sub, $parent);
 		}
 	} else {
-		for(@{$this->{Nodes}}) {
-			$_->iterate_nodes($sub,$parent);
+		for (@{$this->{Nodes}}) {
+			$_->iterate_nodes($sub, $parent);
 		}
 	}
 }
 
 sub iterate_nodes_all {
-	my($this,$subfoo) = @_;
+	my ($this, $subfoo) = @_;
 	# print "iterate_nodes in package SCENE::IS (all), sub is $subfoo \n";
-	# for(@{$this->{Nodes}}) {
+	# for (@{$this->{Nodes}}) {
 	my @l; 
-	if($this->{RootNode}) {@l = $this->{RootNode}}
+	if ($this->{RootNode}) {@l = $this->{RootNode}}
 	else {@l = @{$this->{Nodes}}}
-	for(@l) {
+	for (@l) {
 		my $sub;
 		$sub = sub {
 			# print "ALLITER $_[0]\n";
 			&$subfoo($_[0]);
-			if(ref $_[0] eq "VRML::Node" and $_[0]->{ProtoExp}) {
+			if (ref $_[0] eq "VRML::Node" and $_[0]->{ProtoExp}) {
 				$_[0]->{ProtoExp}->iterate_nodes($sub);
 			}
 		};
@@ -1788,7 +1755,7 @@ sub set_parentnode {
 	# NodeParent is used in IS's - 
 	# Parent is used for tracing back up the tree.
 
-	my ($this,$nodeparent,$parent) = @_;
+	my ($this, $nodeparent, $parent) = @_;
 	my $b = $this->get_browser();
 
 	# print "Scene::set_parentnode\n	this $this\n	nodeparent $nodeparent\n	parent $parent\n	browser	$b\n";
@@ -1805,44 +1772,44 @@ sub set_parentnode {
 # cought by this "sends" stuff....
 
 {
-my %sends = map {($_=>1)} qw/
-	TouchSensor TimeSensor
-/;
+my %sends = map {($_ => 1)} qw/ TouchSensor TimeSensor /;
+
 sub make_executable {
-	my($this) = @_;
+	my ($this) = @_;
 
-
-	# step 1) Go through all nodes in "this" scene. Make executable
+	# Step 1) Go through all nodes in "this" scene. Make executable
 	# on them. Hopefully, all nodes are of type VRML::Node!
 
-	for(@{$this->{Nodes}}) {
-		# print "in SCENE::make_executable, looking at ", ref $_, " scene $this\n";
+	for (@{$this->{Nodes}}) {
+		# print "in SCENE::make_executable, looking at ",
+		# ref $_, " scene $this\n";
 		$_->make_executable($this);
 	}
 
 
 	# Step 2) Give all ISs references to my data
-	if($this->{NodeParent}) {
+	if ($this->{NodeParent}) {
 		print "MAKEEXNOD\n" if $VRML::verbose::scene;
 		$this->iterate_nodes(sub {
 			print "MENID\n" if $VRML::verbose::scene;
-			return unless ref $_[0] eq "VRML::Node";
-			for(keys %{$_[0]->{Fields}}) {
+			return unless (ref $this eq "VRML::Node");
+			
+			for (keys %{$this->{Fields}}) {
 				print "MENIDF $_\n" if $VRML::verbose::scene;
-				next unless ((ref $_[0]{Fields}{$_}) eq "VRML::IS");
+				next unless ((ref $this->{Fields}->{$_}) eq "VRML::IS");
 				print "MENIDFSET $_\n" if $VRML::verbose::scene;
-				$_[0]{Fields}{$_}->set_ref(
-				  \$this->{NodeParent}{Fields}{
-				  	$_[0]{Fields}{$_}->name});
+				$this->{Fields}->{$_}->set_ref(
+							\$this->{NodeParent}->{Fields}->{
+				  				$this->{Fields}->{$_}->name});
 			}
 		});
 	}
 
-	# step 3) Gather all 'DEF' statements
+	# Step 3) Gather all 'DEF' statements
 	my %DEF;
 	$this->iterate_nodes(sub {
-		return unless ref $_[0] eq "VRML::DEF";
-		print "FOUND DEF ($this, $_[0]) ",$_[0]->name,"\n" 
+		return unless (ref $_[0] eq "VRML::DEF");
+		print "FOUND DEF ($this, $_[0]) ", $_[0]->name,"\n" 
 			if $VRML::verbose::scene;
 		$DEF{$_[0]->name} = $_[0]->def;
 	});
@@ -1850,7 +1817,7 @@ sub make_executable {
 	# Step 4) Set all USEs
 	$this->iterate_nodes(sub {
 		return unless ref $_[0] eq "VRML::USE";
-		print "FOUND USE ($this, $_[0]) ",$_[0]->name,"\n"
+		print "FOUND USE ($this, $_[0]) ", $_[0]->name,"\n"
 			if $VRML::verbose::scene;
 		$_[0]->set_used($DEF{$_[0]->name});
 	});
@@ -1865,11 +1832,11 @@ sub make_executable {
 	# PROTOS...
 
 	$this->iterate_nodes(sub { 
-		return unless ref $_[0] eq "VRML::Node";
-		push @{$this->{SubScenes}}, $_[0]
-		 	if $_[0]->{ProtoExp};
-		push @{$this->{Sensors}}, $_[0] 
-			if $sends{$_[0]};
+		return unless ref $this eq "VRML::Node";
+		push @{$this->{SubScenes}}, $this
+		 	if $this->{ProtoExp};
+		push @{$this->{Sensors}}, $this
+			if $sends{$this};
 	});
 }
 }
@@ -1882,25 +1849,25 @@ sub make_executable {
 
 
 sub make_backend {
-	my($this,$be,$parentbe) = @_;
+	my ($this, $be, $parentbe) = @_;
 	print "SCENE::make_backend ",VRML::Node::dump_name($this), " $be $parentbe \n" 
 		if $VRML::verbose::be;
 
 
-	if($this->{BackNode}) {return $this->{BackNode}}
+	if ($this->{BackNode}) {return $this->{BackNode}}
 
 	my $bn;
-	if($this->{Parent}) {
+	if ($this->{Parent}) {
 
 		# I am a proto -- only my first node renders anything...
 		print "Scene: I'm a PROTO ",VRML::Node::dump_name($this)," $be $parentbe\n"
 			if $VRML::verbose::be;
-		$bn = $this->{Nodes}[0]->make_backend($be,$parentbe);
+		$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
 	} else {
 		print "Scene: I'm not proto $this $be $parentbe ($this->{IsInline})\n"
 			if $VRML::verbose::be;
 
-		$bn = $this->{RootNode}->make_backend($be,$parentbe);
+		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 
 		$be->set_root($bn) unless $this->{IsInline};
 
@@ -1930,104 +1897,102 @@ sub make_backend {
 # or routes change. Of course, that's a bit overkill.
 
 sub setup_routing {
-	my($this,$eventmodel,$be) = @_;
+    my ($this, $eventmodel, $be) = @_;
 
-	print "SETUP_ROUTING $this $eventmodel $be\n" if $VRML::verbose::scene;
+    print "SETUP_ROUTING $this $eventmodel $be\n" if $VRML::verbose::scene;
 
-	$this->iterate_nodes(sub {
-		print "ITNOREF: $_[0]\n" if $VRML::verbose::scene;
-		return unless "VRML::Node" eq ref $_[0];
-		print "ITNO: $_[0] $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n" 
-			if $VRML::verbose::scene;
-		if($VRML::Nodes::initevents{$_[0]->{TypeName}}) {
-			print "ITNO:FIRST $_[0]\n" 
-			if $VRML::verbose::scene;
-			$eventmodel->add_first($_[0]);
-		} else {
-			if($_[0]{ProtoExp}) {
-				 $_[0]{ProtoExp}->setup_routing(
-				 	$eventmodel,$be) ;
-			}
+    $this->iterate_nodes(sub {
+	print "ITNOREF: $_[0]\n" if $VRML::verbose::scene;
+	return unless "VRML::Node" eq ref $_[0];
+	print "ITNO: $_[0] $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n" 
+	    if $VRML::verbose::scene;
+	if ($VRML::Nodes::initevents{$_[0]->{TypeName}}) {
+	    print "ITNO:FIRST $_[0]\n" 
+		if $VRML::verbose::scene;
+	    $eventmodel->add_first($_[0]);
+	} else {
+	    if ($_[0]{ProtoExp}) {
+		$_[0]{ProtoExp}->setup_routing($eventmodel, $be);
+	    }
+	}
+	# Look at child nodes
+	my $c;
+	# for (keys %{$_[0]{Fields}}) {
+	#	if ("VRML::IS" eq ref $_[0]{Fields}{$_}) {
+	#		$eventmodel->add_is($this->{NodeParent},
+	#			$_[0]{Fields}{$_}->name,
+	#			$_[0],
+	#			$_
+	#		);
+	#	}
+	# }
+	if ($c = $VRML::Nodes::children{$_[0]->{TypeName}}) {
+	    my $ref = $_[0]{RFields}{$c};
+	    print "CHILDFIELD: GOT @$ref FOR CHILDREN\n"
+		if $VRML::verbose::scene;
+	    for (@$ref) {
+		# XXX Removing/moving sensors?!?!
+		my $n = $_->real_node();
+		print "REALNODE: $n $n->{TypeName}\n"
+		    if $VRML::verbose::scene;
+		if ($VRML::Nodes::siblingsensitive{$n->{TypeName}}) {
+		    print "Scene.pm:SES: $n $n->{TypeName}", 
+			" bn ", $_[0],"\n" 
+			    if $VRML::verbose::scene;
+		    $be->set_sensitive($_[0]->{BackNode},
+			sub {
+			    $eventmodel->handle_touched($n, @_);
+			});
 		}
-		# Look at child nodes
-		my $c;
-		# for(keys %{$_[0]{Fields}}) {
-		# 	if("VRML::IS" eq ref $_[0]{Fields}{$_}) {
-		# 		$eventmodel->add_is($this->{NodeParent},
-		# 			$_[0]{Fields}{$_}->name,
-		# 			$_[0],
-		# 			$_
-		# 		);
-		# 	}
-		# }
-		if(($c = $VRML::Nodes::children{$_[0]->{TypeName}})) {
-			my $ref = $_[0]{RFields}{$c};
-			print "CHILDFIELD: GOT @$ref FOR CHILDREN\n"
-				if $VRML::verbose::scene;
-			for(@$ref) {
-				# XXX Removing/moving sensors?!?!
-				my $n = $_->real_node();
-				print "REALNODE: $n $n->{TypeName}\n"
-					if $VRML::verbose::scene;
-				if($VRML::Nodes::siblingsensitive{$n->{TypeName}}) {
-					print "Scene.pm:SES: $n $n->{TypeName}", 
-						" bn ", $_[0],"\n" 
-						if $VRML::verbose::scene;
-					$be->set_sensitive(
-						$_[0]->{BackNode},
-						sub { $eventmodel->
-							    handle_touched($n,
-							    		@_);
-						}
-					);
-				}
-			}
-		}
-		if($VRML::Nodes::sensitive{$_[0]{TypeName}}) {
-			$be->set_sensitive($_[0]->{BackNode},
-				sub {},
-			);
-		}
-	});
-	print "DEFINED NODES in ", VRML::Node::dump_name($this),": ",
-		(join ',',keys %{$this->{DEF}}),"\n" if $VRML::verbose::scene;
+	    }
+	}
 
-	# any routes to add?
-	if (exists $this->{Routes}) {
-	  for(@{$this->{Routes}}) {
-		my($fn, $ff, $tn, $tf) = @$_;
-		# print "Scene.pm - routes from $fn field $ff to $tn field $tf scene $this\n";
-		
-		# Now, map the DEF names into a node name. Note, EAI will send in
-		# the node, ROUTES in one VRML file will use DEFs.
+	if ($VRML::Nodes::sensitive{$_[0]{TypeName}}) {
+	    $be->set_sensitive($_[0]->{BackNode}, sub {},);
+	}
+    });
 
-		if ("VRML::Node" ne ref $fn) {
-			if (!exists $this->{DEF}{$fn}) {
-				print "Routed node name '$fn' not found ($fn, $ff, $tn, $tf)\n";
-				exit (1);
-			}
-			$fn = $this->{DEF}{$fn}
-		# } else {
-		# 	print "ROUTE: $fn must be from EAI\n";
+    print "DEFINED NODES in ", VRML::Node::dump_name($this),": ",
+	(join ',',keys %{$this->{DEF}}),"\n"
+	    if $VRML::verbose::scene;
+
+    # any routes to add?
+    if (exists $this->{Routes}) {
+	for (@{$this->{Routes}}) {
+	    my ($fn, $ff, $tn, $tf) = @$_;
+    
+	    # Now, map the DEF names into a node name. Note, EAI will send in
+	    # the node, ROUTES in one VRML file will use DEFs.
+
+	    if ("VRML::Node" ne ref $fn) {
+		if (!exists $this->{DEF}{$fn}) {
+		    print "Routed node name '$fn' not found ($fn, $ff, $tn, $tf)\n";
+		    exit (1);
 		}
 
-		if ("VRML::Node" ne ref $tn) {
-			if (!exists $this->{DEF}{$tn}) {
-				print "Routed node name '$tn' not found ($tn, $ff, $tn, $tf)\n";
-				exit (1);
-			}
-			$tn = $this->{DEF}{$tn}
+		$fn = $this->{DEF}{$fn}
+	    # } else {
+	    # 	print "ROUTE: $fn must be from EAI\n";
+	    }
+
+	    if ("VRML::Node" ne ref $tn) {
+		if (!exists $this->{DEF}{$tn}) {
+		    print "Routed node name '$tn' not found ($tn, $ff, $tn, $tf)\n";
+		    exit (1);
+		}
+
+		$tn = $this->{DEF}{$tn}
 		# } else {
 		# 	print "ROUTE: $tn must be from EAI\n";
 		}
-		$eventmodel->add_route($fn,$ff,$tn,$tf);
+		$eventmodel->add_route($fn, $ff, $tn, $tf);
 	    }
 	}
 
 	# Any routes to delete? Maybe from the EAI...
 	if (exists $this->{DelRoutes}) {
-	    for(@{$this->{DelRoutes}}) {
-		my($fn, $ff, $tn, $tf) = @$_;
+	    for (@{$this->{DelRoutes}}) {
+		my ($fn, $ff, $tn, $tf) = @$_;
 		print "Scene.pm - route remove from $fn field $ff to $tn field $tf scene $this\n";
 		
 		# Now, map the DEF names into a node name. Note, EAI will send in
@@ -2053,25 +2018,22 @@ sub setup_routing {
 			print "ROUTE: $tn must be from EAI\n";
 		}
 			
-		$eventmodel->delete_route($fn,$ff,$tn,$tf);
+		$eventmodel->delete_route($fn, $ff, $tn, $tf);
 	    }
 	    # ok, its processed; we don't want this route deleted from the events more than once
 	    delete ($this->{DelRoutes});
 	}
 
 	for my $isn (keys %{$this->{IS_ALIAS_IN}}) {
-		# print "setup_routing: first IS_ALIAS_IN loop\n";
-		for(@{$this->{IS_ALIAS_IN}{$isn}}) {
-			$eventmodel->add_is_in($this->{NodeParent},
-				$isn, @$_);
-		}
+	    for (@{$this->{IS_ALIAS_IN}{$isn}}) {
+		$eventmodel->add_is_in($this->{NodeParent}, $isn, @$_);
+	    }
 	}
+
 	for my $isn (keys %{$this->{IS_ALIAS_OUT}}) {
-		# print "setup_routing: first IS_ALIAS_OUT loop\n";
-		for(@{$this->{IS_ALIAS_OUT}{$isn}}) {
-			$eventmodel->add_is_out($this->{NodeParent},
-				$isn, @$_);
-		}
+	    for (@{$this->{IS_ALIAS_OUT}{$isn}}) {
+		$eventmodel->add_is_out($this->{NodeParent}, $isn, @$_);
+	    }
 	}
 	print "SETUP_ROUTING FINISHED $this $eventmodel $be\n" if $VRML::verbose::scene;
 }
@@ -2079,14 +2041,14 @@ sub setup_routing {
 
 # Send initial events
 sub init_routing {
-	my($this,$eventmodel, $backend, $no_bind) = @_;
+	my ($this, $eventmodel, $backend, $no_bind) = @_;
 	# XXX no_bind not used - I initialize all subnodes...
 	my @e;
 
 	print "INIT_ROUTING\n" if $VRML::verbose::scene;
 	$this->iterate_nodes_all(sub { push @e, $_[0]->initialize($this); });
 
-	for(keys %{$this->{Bindable}}) {
+	for (keys %{$this->{Bindable}}) {
 		print "INIT_BINDABLE '$_'\n" if $VRML::verbose::scene;
 		$eventmodel->send_event_to($this->{Bindable}{$_},
 			set_bind, 1);
@@ -2097,75 +2059,78 @@ sub init_routing {
 }
 
 sub set_bind {
-	my($this, $node, $value, $time) = @_;
-	my $t = $node->{TypeName};
-	my $s = ($this->{Stack}{$t} or $this->{Stack}{$t} = []);
-	print "\nScene: SET_BIND! $this\n   ($node $t $value), \n  STACK #: $#$s\n"
-		if $VRML::verbose::bind;
-	if($value) {
-		print "Scene: BINDING IT!\n"
-			if $VRML::verbose::bind;
-		if($#$s != -1) {  # Do we have a stack?
+    my ($this, $node, $value, $time) = @_;
+    my $t = $node->{TypeName};
+    my $s = ($this->{Stack}{$t} or $this->{Stack}{$t} = []);
+    print "\nScene: SET_BIND! $this\n   ($node $t $value), \n  STACK #: $#$s\n"
+	if $VRML::verbose::bind;
+    if ($value) {
+	print "Scene: BINDING IT!\n"
+	    if $VRML::verbose::bind;
+	if ($#$s != -1) {  # Do we have a stack?
 
-			if($node == $s->[-1]) {
-				print("Scene: Bind node is top of stack...\n")
-					if $VRML::verbose::bind;
-				return; ## JAS - according to the book, do nothing.
-			}
-			my $i;
-			for(0..$#$s) {
-				if($s->[$_] == $node) {$i = $_}
-			}
-			print "Scene: WAS AS '$i'\n"
-				if $VRML::verbose::bind;
-			$s->[-1]->{RFields}{isBound} = 0;
-			if($s->[-1]->{Type}{Actions}{WhenUnBound}) {
-				&{$s->[-1]->{Type}{Actions}{WhenUnBound}}($s->[-1],$this);
-			}
-			if(defined $i) {
-				splice @$s, $i, 1;
-			}
-		}
-		$node->{RFields}{bindTime} = $time;
-		$node->{RFields}{isBound} = 1;
-		if($node->{Type}{Actions}{WhenBound}) {
-			&{$node->{Type}{Actions}{WhenBound}}($node,$this,0);
-		}
-		print "Scene: PUSHING $node on @{$s}\n" if $VRML::verbose::bind;
-		push @$s, $node;
-		print "Scene: ..... is @{$s}\n" if $VRML::verbose::bind;
-	} else {
-		# We're unbinding a node.
-		print "Scene: UNBINDING IT!\n"
-			if $VRML::verbose::bind;
-		if($node == $s->[-1]) {
-			print "Scene: WAS ON TOP!\n"
-				if $VRML::verbose::bind;
-			$node->{RFields}{isBound} = 0;
-			if($node->{Type}{Actions}{WhenUnBound}) {
-				&{$node->{Type}{Actions}{WhenUnBound}}($node,$this);
-			}
-			pop @$s;
-			if(@$s) {
-				$s->[-1]->{RFields}{isBound} = 1;
-				$s->[-1]->{RFields}{bindTime} = $time;
-				if($s->[-1]->{Type}{Actions}{WhenBound}) {
-					&{$s->[-1]->{Type}{Actions}{WhenBound}}($s->[-1],$this,1);
-				}
-			}
-		} else {
-			my $i;
-			for(0..$#$s) {
-				if($s->[$_] == $node) {$i = $_}
-			}
-			print "Scene: WAS AS '$i'\n"
-				if $VRML::verbose::bind;
-			if(defined $i) {
-				splice @$s, $i, 1;
-			}
-		}
-	print "\n" if $VRML::verbose::bind;
+	    if ($node == $s->[-1]) {
+		print("Scene: Bind node is top of stack...\n")
+		    if $VRML::verbose::bind;
+		return; ## JAS - according to the book, do nothing.
+	    }
+
+	    my $i;
+	    for (0..$#$s) {
+		if ($s->[$_] == $node) {$i = $_}
+	    }
+
+	    print "Scene: WAS AS '$i'\n" if $VRML::verbose::bind;
+
+	    $s->[-1]->{RFields}{isBound} = 0;
+	    if ($s->[-1]->{Type}{Actions}{WhenUnBound}) {
+		&{$s->[-1]->{Type}{Actions}{WhenUnBound}}($s->[-1], $this);
+	    }
+
+	    if (defined $i) {
+		splice @$s, $i, 1;
+	    }
 	}
+
+	$node->{RFields}{bindTime} = $time;
+	$node->{RFields}{isBound} = 1;
+	if ($node->{Type}{Actions}{WhenBound}) {
+	    &{$node->{Type}{Actions}{WhenBound}}($node, $this,0);
+	}
+
+	print "Scene: PUSHING $node on @{$s}\n" if $VRML::verbose::bind;
+	push @$s, $node;
+	print "Scene: ..... is @{$s}\n" if $VRML::verbose::bind;
+    } else {
+	# We're unbinding a node.
+	print "Scene: UNBINDING IT!\n" if $VRML::verbose::bind;
+	if ($node == $s->[-1]) {
+	    print "Scene: WAS ON TOP!\n" if $VRML::verbose::bind;
+	    $node->{RFields}{isBound} = 0;
+	    if ($node->{Type}{Actions}{WhenUnBound}) {
+		&{$node->{Type}{Actions}{WhenUnBound}}($node, $this);
+	    }
+
+	    pop @$s;
+	    if (@$s) {
+		$s->[-1]->{RFields}{isBound} = 1;
+		$s->[-1]->{RFields}{bindTime} = $time;
+		if ($s->[-1]->{Type}{Actions}{WhenBound}) {
+		    &{$s->[-1]->{Type}{Actions}{WhenBound}}($s->[-1], $this,1);
+		}
+	    }
+	} else {
+	    my $i;
+	    for (0..$#$s) {
+		if ($s->[$_] == $node) {$i = $_}
+	    }
+	    print "Scene: WAS AS '$i'\n" if $VRML::verbose::bind;
+	    if (defined $i) {
+		splice @$s, $i, 1;
+	    }
+	}
+	print "\n" if $VRML::verbose::bind;
+    }
 }
 
 1;
