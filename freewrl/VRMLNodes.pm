@@ -38,6 +38,7 @@ my @vps;	# viewpoint Scenes.
 my @vpn;	# viewpoint Nodes.
 my $vpno = 1;
 my $globalAudioSource = 0;  # count of audio sources
+my $globalDuration = -1.0;	# have problems setting duration variable from C for AudioClips.
 my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
 
 # Viewpoints are stored in the browser rather in the 
@@ -220,6 +221,7 @@ package VRML::NodeType;
 # JAS - the same code (kind of) Make it all happen here. Refer to the VRML
 # JAS - spec 4.6.9- Time Dependent Nodes.
 
+
 sub ClockTick_TimeDepNodes {
 	my($t,$f,$tick) = @_;
 
@@ -258,6 +260,13 @@ sub ClockTick_TimeDepNodes {
 	} elsif ($f->{__type} == 1) {
 		# AudioClip
 		$speed = $f->{pitch};
+		if ($f->{__duration} < 0.0) {
+			# lets see if it has finally been registered yet.
+			$f->{__duration} = VRML::VRMLFunc::return_Duration($f->{__sourceNumber});
+		}
+		$duration = $f->{__duration};
+		# duration not available from clip
+		if ($duration <=0.0) {$duration = 1.0;}
 
 	} elsif ($f->{__type} == 2) {
 		# TimeSensor
@@ -345,6 +354,10 @@ sub ClockTick_TimeDepNodes {
 	}
 	if ($oldstatus != $f->{isActive}) {
 		push @e, [$t, "isActive", $f->{isActive}];
+		if ($f->{__type} == 1) {
+			# tell SoundEngine that this source has changed. 
+			VRML::VRMLFunc::SetAudioActive($f->{__sourceNumber},$f->{isActive});
+		}
 	}
 
 	if($f->{isActive} == 1) {
@@ -408,6 +421,7 @@ sub ClockTick_TimeDepNodes {
 	} 
 	return @e;
 }
+
 
 # AK - Grouping nodes (see VRML97 4.6.5) that have children use essentially
 # AK - the same code to add & remove child nodes.
@@ -1044,6 +1058,8 @@ AudioClip => new VRML::NodeType("AudioClip",
 	__localFileName => [SFString, ""],	# local name, as received on system
 	__inittime => [SFInt32,0,"field"],	# time that we were initialized at
 	__type => [SFInt32,1],			# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
+	__duration =>[SFString,"-1"],		# duration assuming pitch=1 - note, its a string 
+						# that contains a floating point value.
  },
 @x= {
 	Initialize => sub {
