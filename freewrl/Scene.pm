@@ -1079,18 +1079,19 @@ sub setup_routing {
 
 
 # Send initial events
-sub init_routing {
-	my ($this, $eventmodel, $backend, $no_bind) = @_;
-	# XXX no_bind not used - I initialize all subnodes...
+sub init_events {
+	my ($this, $eventmodel, $backend, $bind) = @_;
 	my @e;
 
-	print "VRML::Scene::init_routing\n" if $VRML::verbose::scene;
+	print "VRML::Scene::init_events\n" if $VRML::verbose::scene;
 
 	$this->iterate_nodes_all(sub { push @e, $_[0]->initialize($this); });
 
-	for (keys %{$this->{Bindable}}) {
-		print "\tINIT Bindable '$_'\n" if $VRML::verbose::scene;
-		$eventmodel->send_event_to($this->{Bindable}{$_}, set_bind, 1);
+	if ($bind) {
+		for (keys %{$this->{Bindable}}) {
+			print "\tINIT Bindable '$_'\n" if $VRML::verbose::scene;
+			$eventmodel->send_event_to($this->{Bindable}{$_}, set_bind, 1);
+		}
 	}
 	$eventmodel->put_events(\@e);
 }
@@ -1138,7 +1139,7 @@ sub set_bind {
 			splice(@$s, $i, 1) if (defined $i);
 		}
 
-		$node->{RFields}{bindTime} = $time;
+		$node->{RFields}{bindTime} = $time if ($t eq "Viewpoint");
 		$node->{RFields}{isBound} = 1;
 		if ($node->{Type}{Actions}{WhenBound}) {
 			&{$node->{Type}{Actions}{WhenBound}}($node, $this,0);
@@ -1160,7 +1161,7 @@ sub set_bind {
 			pop @$s;
 			if (@$s) {
 				$s->[-1]->{RFields}{isBound} = 1;
-				$s->[-1]->{RFields}{bindTime} = $time;
+				$s->[-1]->{RFields}{bindTime} = $time if ($t eq "Viewpoint");
 				if ($s->[-1]->{Type}{Actions}{WhenBound}) {
 					&{$s->[-1]->{Type}{Actions}{WhenBound}}($s->[-1], $this,1);
 				}

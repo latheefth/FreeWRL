@@ -455,11 +455,12 @@ sub eventloop {
 
 sub prepare {
 	my($this) = @_;
+	my $bind = 1;
 
 	$this->{Scene}->make_executable();
 	$this->{Scene}->make_backend($this->{BE});
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	$this->{Scene}->init_routing($this->{EV}, $this->{BE});
+	$this->{Scene}->init_events($this->{EV}, $this->{BE}, $bind);
 	$this->{EV}->print;
 }
 
@@ -468,9 +469,10 @@ sub prepare {
 
 sub prepare2 {
 	my($this) = @_;
+	my $bind = 0;
 
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	$this->{Scene}->init_routing($this->{EV}, $this->{BE});
+	$this->{Scene}->init_events($this->{EV}, $this->{BE}, $bind);
 	$this->{EV}->print;
 }
 
@@ -587,6 +589,7 @@ sub loadURL { print "Can't do loadURL yet\n"; }
 
 sub createVrmlFromString {
 	my ($this, $string) = @_;
+	my $bind = 0;
 
 	my $wurl = $this->{Scene}->get_world_url();
 	my $scene = VRML::Scene->new($this->{EV}, "FROM A STRING", $wurl);
@@ -594,7 +597,7 @@ sub createVrmlFromString {
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
 	$scene->setup_routing($this->{EV}, $this->{BE});
-	$scene->init_routing($this->{EV}, $this->{BE});
+	$scene->init_events($this->{EV}, $this->{BE}, $bind);
 	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
 
 	$scene->dump(0) if $VRML::verbose::scenegraph;
@@ -604,6 +607,7 @@ sub createVrmlFromString {
 
 sub createVrmlFromURL {
 	my ($this, $file, $url) = @_;
+	my $bind = 0;
 
 	# stage 1a - get the URL....
 	$url = ($url || $file);
@@ -630,7 +634,7 @@ sub createVrmlFromURL {
 	VRML::Parser::parse($scene, $t);
 	$scene->make_executable();
 	$scene->setup_routing($this->{EV}, $this->{BE});
-	$scene->init_routing($this->{EV}, $this->{BE});
+	$scene->init_events($this->{EV}, $this->{BE}, $bind);
 
 	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
 	print "VRML::Browser::createVrmlFromUrl: mkbe_and_array returned $ret\n"
