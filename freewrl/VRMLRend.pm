@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.85  2003/01/07 19:00:39  crc_canada
+# more sound engine work
+#
 # Revision 1.84  2002/11/28 20:15:41  crc_canada
 # For 0.37, PixelTextures are handled in the same fashion as other static images
 #
@@ -1109,7 +1112,7 @@ Fog => '
 
 
 Sound => ' 
-/*
+/* node fields...
 	direction => [SFVec3f, [0, 0, 1]],
 	intensity => [SFFloat, 1.0],
 	location => [SFVec3f, [0,0,0]],
@@ -1136,98 +1139,6 @@ Sound => '
 
 
 	char mystring[256];
-
-
-// put a shape here...
-//JAS
-//JAS	 float x = 0.5;
-//JAS	 float y = 0.5;
-//JAS	 float z = 0.5;
-//JAS
-//JAS	/* for shape display list redrawing */
-//JAS	this_->_myshape = last_visited_shape; 
-//JAS
-//JAS	 glPushAttrib(GL_LIGHTING);
-//JAS	glPushMatrix();
-//JASglTranslatef ($f(location,0),$f(location,1),$f(location,2));
-//JASglScalef (1.0,1.0,2.0);
-//JAS 
-//JAS	 glShadeModel(GL_FLAT);
-//JAS	 glBegin(GL_QUADS);
-//JAS
-//JAS		/* front side */
-//JAS		glNormal3f(0,0,1);
-//JAS		glTexCoord2f(1,1);
-//JAS		glVertex3f(x,y,z);
-//JAS		glTexCoord2f(0,1);
-//JAS		glVertex3f(-x,y,z);
-//JAS		glTexCoord2f(0,0);
-//JAS		glVertex3f(-x,-y,z);
-//JAS		glTexCoord2f(1,0);
-//JAS		glVertex3f(x,-y,z);
-//JAS
-//JAS		/* back side */
-//JAS		glNormal3f(0,0,-1);
-//JAS		glTexCoord2f(0,0);
-//JAS		glVertex3f(x,-y,-z);
-//JAS		glTexCoord2f(1,0);
-//JAS		glVertex3f(-x,-y,-z);
-//JAS		glTexCoord2f(1,1);
-//JAS		glVertex3f(-x,y,-z);
-//JAS		glTexCoord2f(0,1);
-//JAS		glVertex3f(x,y,-z);
-//JAS
-//JAS		/* top side */
-//JAS		glNormal3f(0,1,0);
-//JAS		glTexCoord2f(0,0);
-//JAS		glVertex3f(-x,y,z);
-//JAS		glTexCoord2f(1,0);
-//JAS		glVertex3f(x,y,z);
-//JAS		glTexCoord2f(1,1);
-//JAS		glVertex3f(x,y,-z);
-//JAS		glTexCoord2f(0,1);
-//JAS		glVertex3f(-x,y,-z);
-//JAS
-//JAS		/* down side */
-//JAS		glNormal3f(0,-1,0);
-//JAS		glTexCoord2f(0,0);
-//JAS		glVertex3f(-x,-y,-z);
-//JAS		glTexCoord2f(1,0);
-//JAS		glVertex3f(x,-y,-z);
-//JAS		glTexCoord2f(1,1);
-//JAS		glVertex3f(x,-y,z);
-//JAS		glTexCoord2f(0,1);
-//JAS		glVertex3f(-x,-y,z);
-//JAS
-//JAS		/* right side */
-//JAS		glNormal3f(1,0,0);
-//JAS		glTexCoord2f(0,0);
-//JAS		glVertex3f(x,-y,z);
-//JAS		glTexCoord2f(1,0);
-//JAS		glVertex3f(x,-y,-z);
-//JAS		glTexCoord2f(1,1);
-//JAS		glVertex3f(x,y,-z);
-//JAS		glTexCoord2f(0,1);
-//JAS		glVertex3f(x,y,z);
-//JAS
-//JAS		/* left side */
-//JAS		glNormal3f(-1,0,0);
-//JAS		glTexCoord2f(1,0);
-//JAS		glVertex3f(-x,-y,z);
-//JAS		glTexCoord2f(1,1);
-//JAS		glVertex3f(-x,y,z);
-//JAS		glTexCoord2f(0,1);
-//JAS		glVertex3f(-x,y,-z);
-//JAS		glTexCoord2f(0,0);
-//JAS		glVertex3f(-x,-y,-z);
-//JAS		glEnd();
-//JAS		glDepthMask(GL_TRUE);
-//JASglPopMatrix();
-//JAS	glPopAttrib();
-//JAS
-
-// end of put a shape here...
-	
 	// first - is there a node (any node!) attached here?
 	if (acp) {
 		// do the sound registering first, and tell us if this is an audioclip
@@ -1250,33 +1161,44 @@ Sound => '
 	
 	 
 		glPushMatrix();
+
+		// first, find whether or not we are within the maximum circle.
+
+		// translate to the location, and move the centre point, depending
+		// on whether we have a direction and differential maxFront and MaxBack
+		// directions.
+
+		glTranslatef (location.x + midmax*direction.x, 
+				location.y + midmax*direction.y, 
+				location.z + midmax * direction.z);
+
+		// make the ellipse a circle by scaling...
+		//JAS glScalef (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
+		// JAS - scaling needs work - we need direction information, and parameter work.
+
+		if ((fabs(this_->minFront - this_->minBack) > 0.5) || 
+			(fabs(this_->maxFront - this_->maxBack) > 0.5)) {
+			if (!soundWarned) {
+				printf ("FreeWRL:Sound: Warning - minBack and maxBack ignored in this version\n");
+				soundWarned = TRUE;
+			}
+		} 
+
+		
 	
 		glGetDoublev(GL_MODELVIEW_MATRIX, mod);
 		glGetDoublev(GL_PROJECTION_MATRIX, proj);
 		gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 	
-		// add in the local offset
-		vec.x -= location.x; vec.y -= location.y; vec.z -= location.z;
-	
 		len = sqrt(VECSQ(vec)); 
+		//printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
+		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
 	
-		// elipse calculations.
-		elipse.x = vec.x * sin(direction.x);
-		elipse.y = vec.y * sin(direction.y);
-		elipse.z = vec.z * sin(direction.z);
-	
-		//printf ("Soundx len*elipse +midmin = %f %f %f \n",len*elipse.x,len*elipse.y, len*elipse.z);
 		amp = 0.0;
 		// is this within the maxFront maxBack?
-	
-		// This should be elipse, but make it vec for now. (this then is a "funny" circle,
-		// if the mins and maxs are not the same
 		if (((vec.x >= -this_->maxBack)  && (vec.x <= this_->maxFront)) &&
 		    ((vec.y >= -this_->maxBack)  && (vec.y <= this_->maxFront)) &&
 		    ((vec.z >= -this_->maxBack)  && (vec.z <= this_->maxFront))) {
-			//printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
-			//-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
-			//elipse.x, elipse.y, elipse.z); 
 	
 			// note: using vecs, length is always positive - need to work in direction
 			// vector
@@ -1291,7 +1213,6 @@ Sound => '
 					amp = (this_->maxFront - len) / (this_->maxFront - this_->minFront);
 				}
 			}
-		//	printf ("amplitude %f\n",amp);
 			if (sound_from_audioclip) {
 				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,0.0);
 			} else {
