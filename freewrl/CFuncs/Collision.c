@@ -54,7 +54,7 @@ int intersect_segment_with_line_on_yplane(struct pt* pk, struct pt p1, struct pt
     /* q2 becomes offset */
     VECDIFF(q2,q1,q2);
 
-    if(q2.x * q2.z == 0.) {
+    if(q2.x == 0 && q2.z == 0.) {
 	//degenerate case.
 	//it fits our objective to simply specify a random line.
 	q2.x = 1;
@@ -1041,7 +1041,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double r, struct VRML_PolyRe
     pr.coord = newc; /*remember, coords are only replaced in our local copy of PolyRep */
 
     /*if normal not speced, calculate it */
-    if(n.x * n.y * n.z == 0.) {
+    if(n.x == 0 && n.y == 0 && n.z == 0.) {
 	polynormalf(&n,&pr.coord[pr.cindex[0]*3],&pr.coord[pr.cindex[1]*3],&pr.coord[pr.cindex[2]*3]);
     }
     

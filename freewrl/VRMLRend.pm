@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.75  2002/08/08 17:56:13  ncoder
+# small mistake corrected : forgot to enable doublesided mode when IndexFaceSets not solid.
+#
 # Revision 1.74  2002/08/08 17:03:05  ncoder
 # Added Text collision
 # Added ElevationGrid collision
@@ -2567,6 +2570,7 @@ IndexedFaceSet => q~
 	       struct pt delta = {0,0,0};
 
 	       struct VRML_PolyRep pr;
+	       prflags flags = 0;
 	       int change;
 
 	       /*save changed state.*/
@@ -2577,8 +2581,13 @@ IndexedFaceSet => q~
 	         correclty in the RENDER pass */
 	       /* get "coord", why isn''t this already in the polyrep??? */
 	       $fv(coord, points, get3, &npoints);
+
+	       if(!$f(solid)) {
+		   flags = flags | PR_DOUBLESIDED;
+	       }
+
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
-	       
+
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       /* values for rapid test */
@@ -2594,7 +2603,7 @@ IndexedFaceSet => q~
 		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
 	       }*/
 	       pr.coord = (void*)points;
-	       delta = polyrep_disp(abottom,atop,awidth,pr,modelMatrix,0);
+	       delta = polyrep_disp(abottom,atop,awidth,pr,modelMatrix,flags);
 	       
 	       vecscale(&delta,&delta,-1);
 	       
@@ -2745,12 +2754,11 @@ ElevationGrid => q~
 	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
-	       pr = *((struct VRML_PolyRep*)this_->_intern);
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-
 	       if(!$f(solid)) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
+	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
@@ -2758,6 +2766,7 @@ ElevationGrid => q~
 	       t_orig.z = modelMatrix[14];
 /*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
 	            
+
 	       delta = elevationgrid_disp(abottom,atop,awidth,pr,$f(xDimension),$f(zDimension),$f(xSpacing),$f(zSpacing),modelMatrix,flags);
 	       
 	       vecscale(&delta,&delta,-1);
