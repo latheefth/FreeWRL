@@ -1,6 +1,14 @@
 # The protocol between the script processor and the rest of the browser:
-
 # WARNING:  The protocol is work in progress and may change at any time.
+
+The protocol is binary.  Strings are send in Java's DataOutput.writeUTF
+format, i.e. with two bytes in network order encoding the length followed
+by the raw UTF stream, e.g.:
+"\000\005Hello"
+
+Most types are sent in network order in the Java's DataOutput format. 
+Exceptions are currently floats and doubles as perl can't pack them in
+compatible format.
 
 # Format of a request 1 thing per line:
 
@@ -31,7 +39,7 @@ __reqid
 SETFIELD
 __id__
 fieldName
-value (all on one line)
+value
 
 
 
@@ -57,6 +65,11 @@ __id__
 fieldName
 value
 
+CREATEVRML
+vrml
+# The server will immediately answer with
+nodes (in MFNode format)
+
 FINISHED
 __reqid
 
@@ -65,15 +78,15 @@ __reqid
 
 value format (regular expressions):
 
-SFBool:     1 or 0
-SFColor:    float float float
-SFFloat:    float
-SFImage:    <not specified yet>
+SFBool:     one byte \000 or \001
+SFColor:    utf utf utf
+SFFloat:    utf (Float.toString())
+SFImage:    int int int byte[]  (length of byte array can be calculated)
 SFInt32:    int
-SFNode:     String "VRML::Node=(0x12345678)"
-SFRotation: float float float float
-SFString:   base64encoded UTF8 string (without whitespaces)
-SFTime:     double
-SFVec2f:    float float
-SFVec3f:    float float float
-MFxxx:      value,value,...,value  (where value encoded as in SFxxx)
+SFNode:     utf ("VRML::Node=(0x12345678)")
+SFRotation: utf utf utf utf
+SFString:   utf
+SFTime:     utf (Double.toString())
+SFVec2f:    uft utf
+SFVec3f:    utf utf utf
+MFxxx:      int valuer value ... value  (where value encoded as in SFxxx)
