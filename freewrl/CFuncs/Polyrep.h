@@ -27,10 +27,15 @@
 #include "LinearAlgebra.h"
 
 
+#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
+
+
 /* transformed ray */
 extern struct pt t_r1;
 extern struct pt t_r2;
 extern struct pt t_r3;
+
+
 
 int
 count_IFS_faces(int cin,
@@ -102,13 +107,13 @@ void
 do_color_normal_reset(void);
 
 void
-do_glColor3fv(GLfloat *param);
+do_glColor3fv(struct SFColor *dest, GLfloat *param);
 
 void
-do_glNormal3fv(GLfloat *param);
+do_glNormal3fv(struct SFColor *dest, GLfloat *param);
 
 void
-render_polyrep(void *node,
+stream_polyrep(void *node,
 			   int npoints,
 			   struct SFColor *points,
 			   int ncolors,

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.122  2003/10/24 14:04:08  crc_canada
+# Fast drawing for polyreps - try1
+#
 # Revision 1.121  2003/10/22 19:36:29  crc_canada
 # glDrawArrays and glDrawElements for simple shapes.
 #
@@ -702,6 +705,7 @@ Cone => '
 	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	
 ',
+
 Sphere => '
 
 	#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
@@ -722,6 +726,7 @@ Sphere => '
 	extern GLfloat spherenorms[];		// side normals
 	extern float spheretex[];		// in CFuncs/statics.c
 	int count;
+	float rad = $f(radius);
 
 	if (this_->_ichange != this_->_change) {
 		int v; int h;
@@ -736,7 +741,7 @@ Sphere => '
 		this_->_ichange = this_->_change;
 
 		// malloc memory (if possible) 
-		// 16x17 array, 2 vertexes per points. (17, to loop around and close structure)
+		// 2 vertexes per points. (+1, to loop around and close structure)
 		if (!this_->__points) this_->__points = 
 		(int) malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
 		if (!this_->__points) {
@@ -763,13 +768,13 @@ Sphere => '
 				float hsin1 = SIN2;
 				float hcos1 = COS2;
 				UP_TRIG2
-				pts[count].c[0] = vsin2 * hcos1;
-				pts[count].c[1] = vcos2;
-				pts[count].c[2] = vsin2 * hsin1;
+				pts[count].c[0] = rad * vsin2 * hcos1;
+				pts[count].c[1] = rad * vcos2;
+				pts[count].c[2] = rad * vsin2 * hsin1;
 				count++;
-				pts[count].c[0] = vsin1 * hcos1;
-				pts[count].c[1] = vcos1;
-				pts[count].c[2] = vsin1 * hsin1;
+				pts[count].c[0] = rad * vsin1 * hcos1;
+				pts[count].c[1] = rad * vcos1;
+				pts[count].c[2] = rad * vsin1 * hsin1;
 				count++;
 			}
 		}
@@ -791,7 +796,6 @@ Sphere => '
 	if (HAVETODOTEXTURES) glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 
 ',
-
 IndexedFaceSet => '
 		struct SFColor *points; int npoints;
 		struct SFColor *colors; int ncolors=0;
@@ -2488,6 +2492,7 @@ Cylinder => q~
 	       
 	       ~,
 
+
 IndexedFaceSet => q~
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
@@ -2515,14 +2520,22 @@ IndexedFaceSet => q~
  	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
 	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
-	       /* get "coord", why isn''t this already in the polyrep??? */
-	       $fv(coord, points, get3, &npoints);
 
 	       if(!$f(solid)) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
+
+		/* IndexedFaceSets are "different", in that the user specifies points, among
+		   other things.  The rendering pass takes these external points, and streams
+		   them to make rendering much faster on hardware accel. We have to check to
+		   see whether we have got here before the first rendering of a possibly new
+		   IndexedFaceSet */
+		if (!pr.coord) {
+	       		$fv(coord, points, get3, &npoints);
+			pr.coord = (void*)points;
+		}
 
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
@@ -2543,7 +2556,6 @@ IndexedFaceSet => q~
 	       for(i = 0; i < npoints; i++) {
 		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
 	       }*/
-	       pr.coord = (void*)points;
 	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
 	       
 	       vecscale(&delta,&delta,-1);

@@ -409,7 +409,6 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 
 	/* now, lets work on the GeoViewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, viewPort);
-printf ("Viewport, %d %d\n",viewPort[2],viewPort[3]);
 	if(viewPort[2] > viewPort[3]) {
 		a1=0;
 		fieldofview = node->fieldOfView/3.1415926536*180;
@@ -446,13 +445,13 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 	glTranslated(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the Viewpoint fieldOfView */
-	glGetIntegerv(GL_VIEWPORT, vp);
-	if(vp[2] > vp[3]) {
+	glGetIntegerv(GL_VIEWPORT, viewPort);
+	if(viewPort[2] > viewPort[3]) {
 		a1=0;
 		fieldofview = node->fieldOfView/3.1415926536*180;
 	} else {
 		a1 = node->fieldOfView;
-		a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
+		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
 		fieldofview = a1/3.1415926536*180;
 	}
 	//printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
@@ -468,7 +467,7 @@ void render_Background (struct VRML_Background *node) {
 	GLdouble x1,y1,z1;
 	GLdouble sx, sy, sz;
 	struct SFColor *c1,*c2;
-	int hdiv = horiz_div;
+	int hdiv = 20;			/* number of horizontal strips allowed */
 	int h,v;
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
 	/* double vatemp;	 */	

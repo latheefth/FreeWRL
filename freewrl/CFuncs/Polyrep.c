@@ -15,7 +15,6 @@ GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
 GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
 
 GLfloat last_color[] = {0.0,0.0,0.0};
-GLfloat last_normal[] = {0.0,0.0,0.0};
 
 
 /* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
@@ -647,71 +646,34 @@ void Extru_ST_map(
 
 
 
-/* verify and prune colour/normals */
-
-void do_color_normal_reset() {
-	/* set color and normal to an invalid value, so next one is sure to do */
-	last_color[0] = -99.0; 
-	last_normal[0] = -99.0;
-}
-
-void do_glColor3fv(GLfloat *param) {
-	int i,diff;
+void do_glColor3fv(struct SFColor *dest, GLfloat *param) {
+	int i;
 
 	/* parameter checks */
 	for (i=0; i<3; i++) { 
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
-			return; /* bounds check error found, break out */
+			param[i] = 0.5;
 		}
 	}
-
-	/* last values with new */
-	diff = FALSE;
-	for (i=0; i<3; i++) {
-		if (fabs(last_color[i]-param[i]) > 0.001) {
-			diff = TRUE;
-			break;
-		}
-	}
-
-
-/* 	printf ("last color %f %f %f this %f %f %f\n",last_color[0],
-		last_color[1],last_color[2],param[0],param[1],param[2]); */
-
-	if (diff) {
-		for (i=0;i<3;i++) { last_color[i] = param[i];}
-		glColor3fv(param);
-	}
+	dest->c[0] = param[0];
+	dest->c[1] = param[1];
+	dest->c[2] = param[2];
 }
 
 
-void do_glNormal3fv(GLfloat *param) {
-	int i,diff;
+void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
+	int i;
 
 	/* parameter checks */
 	for (i=0; i<3; i++) { 
 		if ((param[i] < -1.0) || (param[i] >1.0)) {
-			return; /* bounds check error found, break out */
+			param[i] = 0.0;
 		}
 	}
 
-	/* last values with new */
-	diff = FALSE;
-	for (i=0; i<3; i++) {
-		if (fabs(last_normal[i]-param[i]) > 0.001) {
-			diff = TRUE;
-			break;
-		}
-	}
-
-
-	/* printf ("last normal %f %f %f this %f %f %f\n",last_normal[0],
-		last_normal[1],last_normal[2],param[0],param[1],param[2]); */
-
-	if (diff) {
-		for (i=0;i<3;i++) { last_normal[i] = param[i];}
-		glNormal3fv(param);
-	}
+	dest->c[0] = param[0];
+	dest->c[1] = param[1];
+	dest->c[2] = param[2];
 }
 
 
@@ -726,6 +688,15 @@ void do_glNormal3fv(GLfloat *param) {
  
 
 
+/********************************************************************
+* 
+* stream_polyrep
+* 
+*  convert a polyrep into a structure format that displays very
+*  well, especially on fast graphics hardware 
+*
+*********************************************************************/
+
 
 
 void render_polyrep(void *node, 
@@ -737,14 +708,101 @@ void render_polyrep(void *node,
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
-	int prevcolor = -1;
+	int polyrep_verbose = 0;
+
+	v = *(struct VRML_Virt **)node;
+	p = node;
+	r = p->_intern;
+
+	if (r->ntri==0) {
+		if (polyrep_verbose) printf ("Render polyrep, no triangles\n");
+		return;
+	}
+
+	/* do we still have to stream this one for faster rendering? */
+	if (r->norindex) {
+		stream_polyrep (node,npoints,points,ncolors,colors,
+				nnormals,normals,ntexcoords,texcoords);
+	}
+
+	// printing.
+	//for(i=0; i<r->ntri*3; i++) {
+	//	printf ("i %d cindex %d\n",i,r->cindex[i]);
+	//}
+
+	/* Do we have any colours? Are textures, if present, not RGB? */
+	if(r->color) { 
+		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
+		glEnable(GL_COLOR_MATERIAL);
+	}
+
+	// clockwise or not?
+	if (!r->ccw) { 
+		glFrontFace(GL_CW);
+	}
+
+	// status bar, text do not have normals
+	if (r->normal) {
+		glNormalPointer(GL_FLOAT,0,(GLfloat *) r->normal);
+	} else {
+		glDisableClientState(GL_NORMAL_ARRAY);
+	}
+
+	// textures?
+	if (r->tcoord) {
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer (2,GL_FLOAT,0,r->tcoord);
+	}
+
+	// colours?
+	if (r->color) {
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(3,GL_FLOAT,0,r->color);
+	}
+
+	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->coord);
+
+	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
+	//else glDrawArrays (GL_TRIANGLES,0,r->ntri);
+
+
+	// put things back to the way they were; 
+	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
+	if (r->color) {
+		glDisable(GL_COLOR_MATERIAL);
+		glDisableClientState(GL_COLOR_ARRAY);
+	}
+	if (r->tcoord) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	// clockwise or not? - NVIDIA needs this reset; Mesa was ok without it
+	if (!r->ccw) glFrontFace(GL_CCW);
+
+}
+
+/********************************************************************
+* 
+* stream_polyrep
+* 
+*  convert a polyrep into a structure format that displays very
+*  well, especially on fast graphics hardware 
+*
+*********************************************************************/
+
+void stream_polyrep(void *node, 
+	int npoints, struct SFColor *points,
+	int ncolors, struct SFColor *colors,
+	int nnormals, struct SFColor *normals,
+	int ntexcoords, struct SFVec2f *texcoords)
+{
+	struct VRML_Virt *v;
+	struct VRML_Box *p;
+	struct VRML_PolyRep *r;
 	int i;
 	int hasc;
-
-
-	/* temporary place for X,Y,Z */
-	GLfloat XYZ[] = {0.0, 0.0, 0.0};
-
 
 	/* texture generation points... */
 	int j;
@@ -758,31 +816,51 @@ void render_polyrep(void *node,
 	int Sindex = 0;
 	int Tindex = 0;
 
-	int polyrep_verbose = 0;
+	/* new memory locations for new data */
+	int *newcindex;
+	struct SFColor *newpoints;
+	struct SFColor *newnorms;
+	struct SFColor *newcolors;
+	float *newtc;
+
+	int stream_poly_verbose = 0;
+
 
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
 
-	if (r->ntri==0) {
-		if (polyrep_verbose) printf ("Render polyrep, no triangles\n");
-		return;
+	/* Do we have any colours? Are textures, if present, not RGB? */
+	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
+
+	newtc = 0;  	// unless we have to use it; look for malloc below
+	newcolors=0;	// only if we have colours
+
+	/* malloc required memory */
+	newcindex = malloc (sizeof (int)*r->ntri*3);
+	if (!newcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
+
+	newpoints = malloc (sizeof (struct SFColor)*r->ntri*3);
+	if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
+
+	if ((nnormals) || (r->normal)) {
+		newnorms = malloc (sizeof (struct SFColor)*r->ntri*3);
+		if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
+	} else newnorms = 0;
+
+
+	if (hasc) {
+		newcolors = malloc (sizeof (struct SFColor)*r->ntri*3);
+		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
-		
-	if (polyrep_verbose) {
-		printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
-			p->_change, r->_change, r->ntri);
-		printf ("\tnpoints %d ncolors %d nnormals %d\n",
-			npoints,ncolors,nnormals);
-		printf("\tntexcoords = %d    texcoords = 0x%lx\n",
-			ntexcoords, texcoords);
-		printf ("\ttcindex %d\n",r->tcindex);
-	}
-	
-		
 
 	/* do we need to generate default texture mapping? */
 	if (HAVETODOTEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
+
+		/* newtc is indexed as 2 floats per vertex */
+		newtc = malloc (sizeof (float)*2*r->ntri*3);
+		if (!newtc) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
+
 		/* use Mufti's initialization scheme for minVals and maxVals; */
 		for (j=0; j<3; j++) {    
 			if (points) {
@@ -814,69 +892,35 @@ void render_polyrep(void *node,
 
 		if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
 			/* X size largest */
-			Ssize = Xsize;
-			Sindex = 0;
-			if (Ysize >= Zsize) {
-				Tsize = Ysize;
-				Tindex = 1;
-			} else {
-				Tsize = Zsize;
-				Tindex = 2;
-			}
+			Ssize = Xsize; Sindex = 0;
+			if (Ysize >= Zsize) { Tsize = Ysize; Tindex = 1;
+			} else { Tsize = Zsize; Tindex = 2; }
 		} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
 			/* Y size largest */
-			Ssize = Ysize;
-			Sindex = 1;
-			if (Xsize >= Zsize) {
-				Tsize = Xsize;
-				Tindex = 0;
-			} else {
-				Tsize = Zsize;
-				Tindex = 2;
-			}
+			Ssize = Ysize; Sindex = 1;
+			if (Xsize >= Zsize) { Tsize = Xsize; Tindex = 0;
+			} else { Tsize = Zsize; Tindex = 2; }
 		} else {
 			/* Z is the largest */
-			Ssize = Zsize;
-			Sindex = 2;
-			if (Xsize >= Ysize) {
-				Tsize = Xsize;
-				Tindex = 0;
-			} else {
-				Tsize = Ysize;
-				Tindex = 1;
-			}
+			Ssize = Zsize; Sindex = 2;
+			if (Xsize >= Ysize) { Tsize = Xsize; Tindex = 0;
+			} else { Tsize = Ysize; Tindex = 1; }
 		}
 	}
 
+	/* now, lets go through the old, non-linear polyrep structure, and
+	   put it in a stream format */
 
-	/* Do we have any colours? Are textures, if present, not RGB? */
-	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
-	if(hasc) { 
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
-		glEnable(GL_COLOR_MATERIAL);
-	}
-
-
-	/* reset the do normal/color verification and pruning */
-	do_color_normal_reset();
-
-	// clockwise or not?
-	if (!r->ccw) { 
-		glFrontFace(GL_CW);
-	}
-
-	glBegin(GL_TRIANGLES);
-	  for(i=0; i<r->ntri*3; i++) {
+	for(i=0; i<r->ntri*3; i++) {
 		int nori = i;
 		int coli = i;
 		int tci = i;
 		int ind = r->cindex[i];
 
-		if (polyrep_verbose) printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
+		/* new cindex, this should just be a 1.... ntri*3 linear string */
+		newcindex[i] = i;
+
+		if (stream_poly_verbose) printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
 
 		/* get normals and colors, if any	*/
 		if(r->norindex) { nori = r->norindex[i];}
@@ -890,7 +934,7 @@ void render_polyrep(void *node,
 		/* get texture coordinates, if any	*/
 		if (HAVETODOTEXTURES && r->tcindex) {
 			tci = r->tcindex[i]; 
-			if (polyrep_verbose) printf ("have textures, and tcindex i %d tci %d\n",i,tci);
+			if (stream_poly_verbose) printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
 
 		/* get the normals, if there are any	*/
@@ -899,51 +943,54 @@ void render_polyrep(void *node,
 				/* this should be caught before here JAS */
 				warn("Too large normal index %d nnormals %d-- help??",nori, nnormals);
 			}
-			if (polyrep_verbose) {
+			if (stream_poly_verbose) {
 				printf ("nnormals at %d , nori %d ",&normals[nori].c,nori);
 				fwnorprint (normals[nori].c);
 			}
 
-			do_glNormal3fv(normals[nori].c);
+			do_glNormal3fv(&newnorms[i], normals[nori].c);
 		} else if(r->normal) {
-			if (polyrep_verbose) {
+			if (stream_poly_verbose) {
 				printf ("r->normal nori %d ",nori);
 				fwnorprint(r->normal+3*nori);
 			}
 			
-			do_glNormal3fv(r->normal+3*nori);
+			do_glNormal3fv(&newnorms[i], r->normal+3*nori);
 		}
 
-		if(hasc && prevcolor != coli) {
+		if(hasc) {
 			if(ncolors) { 
 				/* ColorMaterial -> these set Material too */
-				if (polyrep_verbose) {
+				if (stream_poly_verbose) {
 					printf ("coloUr"); 
 					fwnorprint(colors[coli].c); 
 					printf ("\n");
 				}
-				do_glColor3fv(colors[coli].c);
+				do_glColor3fv(&newcolors[i],colors[coli].c);
 			} else if(r->color) {
-				if (polyrep_verbose) {
+				if (stream_poly_verbose) {
 					printf ("coloUr"); 
 					fwnorprint(r->color+3*coli); 
 					printf ("\n"); 
 				}
-				do_glColor3fv(r->color+3*coli);
+				do_glColor3fv(&newcolors[i],r->color+3*coli);
 			} 
 		}
-		prevcolor = coli;
 
 
 		/* Coordinate points	*/
 		if(points) {
-			XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
-			if (polyrep_verbose) 
-				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
+			memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
+			//XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
+			if (stream_poly_verbose) 
+				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",i,
+					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 		} else if(r->coord) {	
-			XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
-			if (polyrep_verbose) 
-				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
+			memcpy (&newpoints[i].c[0], &r->coord[3*ind], sizeof(struct SFColor));
+			//XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
+			if (stream_poly_verbose) 
+				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",i,  
+					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 		}
 
 
@@ -952,53 +999,56 @@ void render_polyrep(void *node,
 		    if(texcoords && ntexcoords) {
 			// did we run out of tex coords? Hanim-Nancy does this...
 			if (tci < ntexcoords) {
-			    if (polyrep_verbose) {
+			    if (stream_poly_verbose) {
 				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]); 
 			    }
-		  	    glTexCoord2fv(texcoords[tci].c);
+			    memcpy(&newtc[i*2],texcoords[tci].c,sizeof(float)*2);
+		  	    //glTexCoord2fv(texcoords[tci].c);
 			} else {
-				 if (polyrep_verbose)
+				 if (stream_poly_verbose)
 					 printf ("caught ntexcoord problem: index %d gt %d\n",tci,ntexcoords);
+				newtc[i*2] = 0.0; newtc[i*2+1] = 0.0;
 			}
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
-				if (polyrep_verbose) 
+				if (stream_poly_verbose) 
 					printf ("tc2a %f %f\n", r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
-		  		glTexCoord2f( r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
+		  		newtc[i*2] = r->tcoord[3*tci+0]; newtc[i*2+1] =  r->tcoord[3*tci+2];
 			} else {
-				if (polyrep_verbose) 
+				if (stream_poly_verbose) 
 					printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
-		  		glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
+		  		newtc[i*2] = r->tcoord[3*ind+0]; newtc[i*2+1] = r->tcoord[3*ind+2];
 			}
 		    } else {
 			/* default textures */
 			/* we want the S values to range from 0..1, and the 
 			   T values to range from 0...S/T */
-		  	if (polyrep_verbose) printf ("tc3, %f %f\n", (XYZ[Sindex] - minVals[Sindex])/Ssize,
-                                        (XYZ[Tindex] - minVals[Tindex])/Ssize);
 			
-			glTexCoord2f( (XYZ[Sindex] - minVals[Sindex])/Ssize,
-					(XYZ[Tindex] - minVals[Tindex])/Ssize);
+			newtc[i*2]   = (newpoints[i].c[Sindex] - minVals[Sindex])/Ssize;
+			newtc[i*2+1] = (newpoints[i].c[Tindex] - minVals[Tindex])/Ssize;
 		    }
-
 		}
-
-		/* now, make the Vertex */
-		glVertex3fv (XYZ);
 	}
 
-	glEnd();
+	/* free the old, and make the new current. */
+	FREE_IF_NZ(r->coord);
+	r->coord = newpoints;
+	FREE_IF_NZ(r->normal);
+	r->normal = newnorms;
+	FREE_IF_NZ(r->cindex);
+	r->cindex = newcindex;
+	FREE_IF_NZ(r->tcoord);
+	r->tcoord = newtc;
 
-	if(hasc) {
-		glDisable(GL_COLOR_MATERIAL);
-	}
+	FREE_IF_NZ(r->color);
+	FREE_IF_NZ(r->colindex);
+	r->color = newcolors;
 
-	// clockwise or not? - NVIDIA needs this reset; Mesa was ok without it
-	if (!r->ccw) {
-		glFrontFace(GL_CCW);
-	}
+	/* we dont require these indexes any more */
+	FREE_IF_NZ(r->norindex);
+	FREE_IF_NZ(r->tcindex);
 
-	if (polyrep_verbose)
+	if (stream_poly_verbose)
 		printf ("end render_polyrep\n\n");
 }
 
@@ -1110,8 +1160,8 @@ void render_ray_polyrep(void *node,
 				 if(k+l > 1 || k < 0 || l < 0) {
 				 	continue;
 				 }
-				 rayhit(tmp2, hitpoint.x,hitpoint.y,hitpoint.z,
-				 	v3.x,v3.y,v3.z, -1,-1, "polyrep");
+				 rayhit(tmp2, hitpoint.x, hitpoint.y, hitpoint.z,
+				 	v3.x, v3.y, v3.z, -1,-1, "polyrep");
 			 }
 		/*
 		} else {
@@ -1148,7 +1198,6 @@ void regen_polyrep(void *node)
 	r = p->_intern;
 	r->_change = p->_change;
 
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);
 	FREE_IF_NZ(r->tcoord);
