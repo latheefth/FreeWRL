@@ -10,7 +10,6 @@ package VRML::GLBackEnd;
 use VRML::OpenGL;
 
 use VRML::VRMLFunc;
-glShadeModel(&GL_SMOOTH);
 
 if($VRML::verbose::rend) {
 	VRML::VRMLFunc::render_verbose(1);
@@ -128,6 +127,9 @@ sub new {
 		      wintitle => $mytitle);
 
 
+
+	
+	glShadeModel(&GL_SMOOTH);
         glClearColor(0,0,0,1);
 	glDepthFunc(&GL_LEQUAL);
         glEnable(&GL_DEPTH_TEST);
