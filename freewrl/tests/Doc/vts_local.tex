@@ -1,4 +1,5 @@
 %% $Id$
+%% break this up into multiple files!!!
 
 \documentclass[12pt,letterpaper]{article}
 \usepackage{times}
@@ -149,6 +150,23 @@
 \newcommand{\MatAB}{5 Transparency Values For Primitive Geometries}
 \newcommand{\MatAC}{5 Transparency Values For Complex Geometries}
 
+%% Appearance: TextureTransform test cases
+\newcommand{\TTA}{Default TextureTransform Node To Primitive Geometries}
+\newcommand{\TTBa}{Default TextureTransform Mapping Of ImageTexture}
+\newcommand{\TTBb}{For Extrusion Geometry}
+\newcommand{\TTCa}{Default TextureTransform Mapping Of ImageTexture}
+\newcommand{\TTCb}{For ElevationGrid Geometry}
+\newcommand{\TTDa}{Default TextureTransform Mapping Of ImageTexture}
+\newcommand{\TTDb}{For IndexedFaceSet Geometry}
+\newcommand{\TTEa}{Scale Field Applied To ImageTexture Mapped}
+\newcommand{\TTEb}{To Primitive Geometry}
+\newcommand{\TTFa}{Scale Field Applied To ImageTexture Mapped}
+\newcommand{\TTFb}{To Complex Geometry}
+\newcommand{\TTGa}{Rotation Field Applied To ImageTexture Mapped}
+\newcommand{\TTGb}{To Primitive Geometry}
+\newcommand{\TTHa}{Rotation Field Applied To ImageTexture Mapped}
+\newcommand{\TTHb}{To Complex Geometry}
+
 %% Special Groups: Inline test cases
 \newcommand{\SpGrA}{Single Url Item}
 \newcommand{\SpGrB}{Inline Node Referencing Another Inline Node}
@@ -261,8 +279,8 @@ ImageTexture & \testCase \ITA & Passed \\\cline{2-3}
 Material & \testCase \MatA & Passed \\\cline{2-3}
  & \testCase \MatB & Passed \\\cline{2-3}
  & \testCase \MatC & Passed \\\cline{2-3}
- & \testCase \MatD & \\\cline{2-3}
- & \testCase \MatE & \\\cline{2-3}
+ & \testCase \MatD & Passed \\\cline{2-3}
+ & \testCase \MatE & Passed \\\cline{2-3}
  & \testCase \MatF & \\\cline{2-3}
  & \testCase \MatGa & \\
  & \MatGb & \\\cline{2-3}
@@ -302,16 +320,25 @@ Material & \testCase \MatA & Passed \\\cline{2-3}
  & \testCase \MatAB & \\\cline{2-3}
  & \testCase \MatAC & \\\hline
 \resetTestCase
-MovieTexture & \testCase & \\\cline{2-3}
- & \testCase & \\\hline
+MovieTexture & MovieTexture not supported. & \\\hline
 \resetTestCase
-PixelTexture & \testCase & \\\cline{2-3}
- & \testCase & \\\hline
+PixelTexture & & \\\hline
 \resetTestCase
-Texture- & \testCase & \\\cline{2-3}
-Transform & \testCase & \\\cline{2-3}
- & \testCase & \\
-%%\hline
+Texture- & \testCase \TTA & Passed \\\cline{2-3}
+Transform & \testCase \TTBa & Failed \\
+ & \TTBb & \\\cline{2-3}
+ & \testCase \TTCa & Passed \\
+ & \TTCb & \\\cline{2-3}
+ & \testCase \TTDa & Passed \\
+ & \TTDb & \\\cline{2-3}
+ & \testCase \TTEa & Failed \\
+ & \TTEb & \\\cline{2-3}
+ & \testCase \TTFa & Failed \\
+ & \TTFb & \\\cline{2-3}
+ & \testCase \TTGa & Failed \\
+ & \TTGb & \\\cline{2-3}
+ & \testCase \TTHa & Failed \\
+ & \TTHb & \\\cline{2-3}
 \end{longtable}
 \end{center}
 
@@ -600,31 +627,21 @@ The VRML file is shininess.wrl.
 The VRML file is diffusecolor\_complex.wrl.\newline
 The background, which should be dark grey not black, is too dark to see the black geometries.
 
-\subsubsection{}
+\subsubsection{\MatF}
 The VRML file is shininess\_complex.wrl.
 
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
+\subsubsection{\MatGa \MatGb}
+\subsubsection{\MatHa \MatHb}
+\subsubsection{\MatIa \MatIb}
+\subsubsection{\MatJa \MatJb}
+\subsubsection{\MatKa \MatKb}
+\subsubsection{\MatL}
 The VRML file is complex\_color\_first.wrl.
 
-\subsubsection{}
+\subsubsection{\MatMa \MatMb}
 The VRML file is allgeoms\_diffusecolor.wrl.
 
-\subsubsection{} 
+\subsubsection{\MatNa \MatNb}
 The VRML file is pointset\_color\_first.wrl.\newline
 FreeWRL crashes as both plug-in and stand-alone application:
 \begin{verbatim}
@@ -643,34 +660,45 @@ Not same number of colors and points at
 Died at /usr/bin/freewrl line 391.
 \end{verbatim}
 
-\subsubsection{}
+\subsubsection{\MatOa \MatOb}
 The VRML file is pointset.wrl.\newline
 The PointSet is not visible, rather the entire FreeWRL display is red in both the plug-in and
 the stand-alone application.
 
-\subsubsection{}
+\subsubsection{\MatPa \MatPb}
 The VRML file is indexedlineset\_color\_first.wrl.
 
-\subsubsection{}
-The VRML file is indexedlineset.wrl.\newline
+\subsubsection{\MatQa \MatQb}
+The VRML file is indexedlineset.wrl.
 
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
-The VRML file is
-
-\subsubsection{}
-The VRML file is
+\subsubsection{\MatRa \MatRb}
+\subsubsection{\MatSa \MatSb}
+\subsubsection{\MatTa \MatTb}
+\subsubsection{\MatUa \MatUb}
+\subsubsection{\MatV}
+\subsubsection{\MatW}
+\subsubsection{\MatX}
+\subsubsection{\MatY}
+\subsubsection{\MatZ}
+\subsubsection{\MatAA}
+\subsubsection{\MatAB}
+\subsubsection{\MatAC}
 
 \subsection{MovieTexture Test Cases}
 MovieTexture is not supported. See bug 435228.
 
-\subsubsection{}
-The VRML file is 
+\subsection{PixelTexture Test Cases}
+
+\subsection{TextureTransform Test Cases}
+
+\subsubsection{\TTA}
+\subsubsection{\TTBa \TTBb}
+\subsubsection{\TTCa \TTCb}
+\subsubsection{\TTDa \TTDb}
+\subsubsection{\TTEa \TTEb}
+\subsubsection{\TTFa \TTFb}
+\subsubsection{\TTGa \TTGb}
+\subsubsection{\TTHa \TTHb}
 
 \section{Bindable Nodes Test Cases}
 \resetTestCase
@@ -695,17 +723,10 @@ The VRML file is
 \end{center}
 
 \subsection{Background Test Cases}
-
-\subsubsection{}
-The VRML file is 
-
 \subsection{Fog Test Cases}
-
 \subsection{NavigationInfo Test Cases}
-
 \section{Geometric Properties Test Cases}
 \resetTestCase
-
 
 \begin{center}
 \setlongtables
@@ -725,14 +746,10 @@ The VRML file is
 \cline{2-3}
 \end{longtable}
 \end{center}
-
-\subsubsection{}
-The VRML file is 
 
 \section{Interpolators Test Cases}
 \resetTestCase
 
-
 \begin{center}
 \setlongtables
 \begin{longtable}{|l|l|l|}
@@ -751,14 +768,10 @@ The VRML file is
 \cline{2-3}
 \end{longtable}
 \end{center}
-
-\subsubsection{}
-The VRML file is 
 
 \section{Lights Test Cases}
 \resetTestCase
 
-
 \begin{center}
 \setlongtables
 \begin{longtable}{|l|l|l|}
@@ -777,14 +790,10 @@ The VRML file is
 \cline{2-3}
 \end{longtable}
 \end{center}
-
-\subsubsection{}
-The VRML file is 
 
 \section{Miscellaneous Test Cases}
 \resetTestCase
 
-
 \begin{center}
 \setlongtables
 \begin{longtable}{|l|l|l|}
@@ -803,14 +812,10 @@ The VRML file is
 \cline{2-3}
 \end{longtable}
 \end{center}
-
-\subsubsection{}
-The VRML file is 
 
 \section{Sensors Test Cases}
 \resetTestCase
 
-
 \begin{center}
 \setlongtables
 \begin{longtable}{|l|l|l|}
@@ -830,12 +835,8 @@ The VRML file is
 \end{longtable}
 \end{center}
 
-\subsubsection{}
-The VRML file is 
-
 \section{Sounds Test Cases}
 \resetTestCase
-
 
 \begin{center}
 \setlongtables
@@ -878,7 +879,7 @@ The VRML file is
 \endlastfoot
 Inline & \testCase \SpGrA & Passed \\\cline{2-3}
 & \testCase \SpGrB & Passed \\\cline{2-3}
-& \testCase \SpGrC &  Failed \\\cline{2-3}
+& \testCase \SpGrC & Passed \\\cline{2-3}
 & \testCase \SpGrD & Passed \\\cline{2-3}
 & \testCase \SpGrE & Passed \\\hline
 \multicolumn{3}{|l|}{\textbf{Beyond minimum conformance requirements:
@@ -902,8 +903,8 @@ The VRML file is single-url.wrl.
 The VRML file is nested-inline.wrl.
 
 \subsubsection{\SpGrC}
-The VRML file is invalid-url.wrl.\newline
-Work is in progress to fix this, see bug 435578.
+The VRML file is invalid-url.wrl.
+See bug 435578.
 
 \subsubsection{\SpGrD}
 The VRML file is absolute-url.wrl.
