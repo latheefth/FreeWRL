@@ -56,16 +56,6 @@
 
 #include "quaternion.h"
 
-/*
- * void
- * copy(const Quaternion *quat, Quaternion *copy)
- * {
- * 	copy->w = quat->w;
- * 	copy->x = quat->x;
- * 	copy->y = quat->y;
- * 	copy->z = quat->z;
- * }
- */
 
 /*
  * VRML rotation (axis, angle) to quaternion (q = (w, v)):
@@ -88,12 +78,6 @@ vrmlrot_to_quaternion(Quaternion *quat, const double x, const double y, const do
 
 	/* no rotation - use (multiplication ???) identity quaternion */
 	if (APPROX(scale, 0)) {
-/*
-		quat->w = 0;
-		quat->x = 0;
-		quat->y = 1;
-		quat->z = 0;
-*/
 		quat->w = 1;
 		quat->x = 0;
 		quat->y = 0;
@@ -163,9 +147,6 @@ inverse(Quaternion *ret, const Quaternion *quat)
 	conjugate(ret);
 
 	/* unit quaternion, so take conjugate */
-/* 	if (APPROX(n, 1)) { */
-/* 		return; */
-/* 	} */
 	normalize(ret);
 /* 	printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n", */
 /* 		   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z); */
@@ -266,7 +247,52 @@ set(Quaternion *ret, const Quaternion *quat)
 	ret->z = quat->z;
 }
 
-/* void */
-/* slerp() */
-/* { */
-/* } */
+/*
+ * Code from www.gamasutra.com/features/19980703/quaternions_01.htm,
+ * Listing 5.
+ *
+ * SLERP(p, q, t) = [p sin((1 - t)a) + q sin(ta)] / sin(a)
+ *
+ * where a is the arc angle, quaternions pq = cos(q) and 0 <= t <= 1
+ */
+void
+slerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t)
+{
+	double omega, cosom, sinom, scale0, scale1, q2_array[4];
+
+	cosom =
+		q1->x * q2->x +
+		q1->y * q2->y +
+		q1->z * q2->z +
+		q1->w * q2->w;
+
+	if (cosom < 0.0) {
+		cosom = -cosom;
+		q2_array[0] = -q2->x;
+		q2_array[1] = -q2->y;
+		q2_array[2] = -q2->z;
+		q2_array[3] = -q2->w;
+	} else {
+		q2_array[0] = q2->x;
+		q2_array[1] = q2->y;
+		q2_array[2] = q2->z;
+		q2_array[3] = q2->w;
+	}
+
+	/* calculate coefficients */
+	if ((1.0 - cosom) > DELTA) {
+		/* standard case (SLERP) */
+		omega = acos(cosom);
+		sinom = sin(omega);
+		scale0 = sin((1.0 - t) * omega) / sinom;
+		scale1 = sin(t * omega) / sinom;
+	} else {
+		/* q1 & q2 are very close, so do linear interpolation */
+		scale0 = 1.0 - t;
+		scale1 = t;
+	}
+	ret->x = scale0 * q1->x + scale1 * q2_array[0];
+	ret->y = scale0 * q1->y + scale1 * q2_array[1];
+	ret->z = scale0 * q1->z + scale1 * q2_array[2];
+	ret->w = scale0 * q1->w + scale1 * q2_array[3];
+}
