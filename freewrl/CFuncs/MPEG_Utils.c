@@ -40,11 +40,11 @@
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 #ifndef AQUA 
-#include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
-
+#include <stdio.h>
+#endif
+#include <assert.h>
 
 #ifdef AQUA 
 #include <gl.h>
@@ -58,12 +58,7 @@
 
 #include "mpeg.h"
 
-#ifndef MIPS
 #include <sys/time.h>
-#else
-#include <sys/types.h>
-#include <sys/system.h>
-#endif
 
 #ifdef __STDC__
 #include <stdlib.h>
@@ -7442,7 +7437,6 @@ int mpg_main(init_tex, fname, repeatS, repeatT)
   if (repeatS) { mt_repeatS = GL_REPEAT; } else { mt_repeatS = GL_CLAMP; }
   if (repeatT) { mt_repeatT = GL_REPEAT; } else { mt_repeatT = GL_CLAMP; }
 
-
   /* save the texture numbers; we'll sanity check these later */
   latest_texture_number = 0;
   initial_texture_number = init_tex;
@@ -7510,4 +7504,3 @@ int mpg_main(init_tex, fname, repeatS, repeatT)
       fclose(mpegfile);
   return latest_texture_number;
 }
-#endif
