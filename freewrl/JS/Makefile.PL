@@ -62,6 +62,7 @@ my $ccflags = q{-Wall\
 
 my $inc = join(' ', $VRML_CONFIG{JS_INC}, $VRML_CONFIG{FREEWRL_INC}, q{-ICFuncs}, q{-I../CFuncs});
 my $libs = join(' ', $VRML_CONFIG{JS_LIBS}, q{-lm});
+my $defs = join(' ', $VRML_CONFIG{FREEWRL_DEFINE}, q{-DXP_UNIX});
 
 ## OSNAME = linux, irix, ...
 
@@ -72,7 +73,7 @@ WriteMakefile(
 			  LIBS => $libs,
 			  INC => $inc,
 dynamic_lib => { 'OTHERLDFLAGS' => $VRML_CONFIG{LDFLAGS}, 'LDDLFLAGS' => $VRML_CONFIG{LDDLFLAGS} },
-			  DEFINE => '-DXP_UNIX', # assume Unix and related OSs for now
+			  DEFINE => $defs, # assume Unix and related OSs for now
 			  CCFLAGS => $ccflags,
 			  OPTIMIZE => '-O2'
 			 );
