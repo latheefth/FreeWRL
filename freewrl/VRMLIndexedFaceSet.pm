@@ -127,6 +127,12 @@ if (!smooth_normals){
 
 /* count the faces in this polyrep and allocate memory. */
 faces = count_IFS_faces (cin,this_);
+
+if (faces == 0) {
+	rep_->ntri = 0;
+	return;
+}
+
 facenormals = malloc(sizeof(*facenormals)*faces);
 pointfaces = malloc(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
 
