@@ -47,6 +47,10 @@ extern int *navnodes;
 extern int *viewpointnodes;
 extern int totfognodes, totbacknodes, totnavnodes, totviewpointnodes;
 extern int currboundvpno;
+
+extern int viewpoint_tos;
+extern unsigned int viewpoint_stack[];
+ 
 void
 reset_upvector(void);
 

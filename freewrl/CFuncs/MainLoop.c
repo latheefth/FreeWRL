@@ -53,7 +53,7 @@ int ocurse = ACURSE;
 #include "headers.h"
 
 void Next_ViewPoint(void);		// switch to next viewpoint - 
-void setup_viewpoint(void);
+void setup_viewpoint(int doBinding);
 void get_collisionoffset(double *x, double *y, double *z);
 
 /* Sensor table. When clicked, we get back from rayHit the fromnode, 
@@ -175,7 +175,7 @@ void EventLoop() {
 	/* handle_mouse events if clicked on a sensitive node */
 	if (!NavigationMode) {
 		setup_projection(TRUE,currentX,currentY);
-		setup_viewpoint();
+		setup_viewpoint(FALSE);
 		render_hier((void *)rootNode,VF_Sensitive);
 		CursorOverSensitive = rayHit();
 
@@ -403,12 +403,12 @@ void render_pre() {
 
 
 	/* 3. Viewpoint */
-	setup_viewpoint(); 	// need this to render collisions correctly
+	setup_viewpoint(TRUE); 	// need this to render collisions correctly
 
 	/* 4. Collisions */
 	if (be_collision == 1) {
 		render_collisions();
-		setup_viewpoint(); // update viewer position after collision, to 
+		setup_viewpoint(FALSE); // update viewer position after collision, to 
 				   // give accurate info to Proximity sensors.
 	}
 
@@ -421,7 +421,6 @@ void render_pre() {
 /* Render the scene */
 void render() {
 	int count;
-
 
 	for (count = 0; count < maxbuffers; count++) {
 		set_buffer((unsigned)bufferarray[count]);		// in Viewer.c
@@ -437,7 +436,7 @@ void render() {
 		}
 
 		// Correct Viewpoint, only needed when in stereo mode.
-		if (count > 0) setup_viewpoint();
+		if (count > 0) setup_viewpoint(FALSE);
 
 		// Other lights
 		glPrintError("XEvents::render, before render_hier");
@@ -494,7 +493,35 @@ void render_collisions() {
 	increment_pos(&v);
 }
 
-void setup_viewpoint() {
+void setup_viewpoint(int doBinding) {
+	int i;
+	unsigned int *setBindPtr;
+
+	/* first, go through, and see if any viewpoints require binding. */
+	/* some scripts just send a set_bind to a Viewpoint; if another  */
+	/* viewpoint beforehand is bound, the set_bind will never get	 */
+	/* seen if we leave this to the rendering stage	(grep for 	 */
+	/* found_vp to see why	JAS					 */
+
+	if (doBinding & (!isPerlParsing())) { 
+		for (i=0; i<totviewpointnodes; i++) {
+			setBindPtr = viewpointnodes[i]+offsetof (struct VRML_Viewpoint, 
+				set_bind);
+
+			/* check the set_bind eventin to see if it is TRUE or FALSE */
+			if (*setBindPtr < 100) {
+				//printf ("Found a vp to modify %d\n",viewpointnodes[i]);
+				/* up_vector is reset after a bind */
+				if (*setBindPtr==1) reset_upvector();
+
+				bind_node (viewpointnodes[i],
+					offsetof (struct VRML_Viewpoint,set_bind),
+					offsetof (struct VRML_Viewpoint,isBound),
+					&viewpoint_tos,&viewpoint_stack[0]);
+			}
+		}
+	}
+	
         glMatrixMode(GL_MODELVIEW); // this should be assumed , here for safety.
         glLoadIdentity();
 

@@ -920,22 +920,6 @@ void __pt_doStringUrl () {
 		}
 	} 
 
-       	/* now that we have the VRML/X3D file, load it into the scene.
-       	   myretarr contains node number/memory location pairs; thus the count
-       	   by two. */
-	if (psp.ptr != (unsigned int)NULL) {
-		/* if we have a valid node to load this into, do it */
-		/* note that EAI CreateVRML type commands will NOT give */
-		/* a valid node */
-
-	       	for (count =1; count < retval; count+=2) {
-       			addToNode(psp.ptr+psp.ofs, (unsigned)(myretarr[count]));
-       		}
-
-		/* tell the node that we have changed */
-		update_node((void *)psp.ptr);
-	}
-
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {
 		/* printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
@@ -956,6 +940,22 @@ void __pt_doStringUrl () {
 		if (totbacknodes != 0) send_bind_to (BACKGROUND,(void *)(backgroundnodes[0]),1);
 		if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,(void *)(navnodes[0]),1);
 		if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,(void *)(viewpointnodes[0]),1);
+	}
+
+       	/* now that we have the VRML/X3D file, load it into the scene.
+       	   myretarr contains node number/memory location pairs; thus the count
+       	   by two. */
+	if (psp.ptr != (unsigned int)NULL) {
+		/* if we have a valid node to load this into, do it */
+		/* note that EAI CreateVRML type commands will NOT give */
+		/* a valid node */
+
+	       	for (count =1; count < retval; count+=2) {
+       			addToNode(psp.ptr+psp.ofs, (unsigned)(myretarr[count]));
+       		}
+
+		/* tell the node that we have changed */
+		update_node((void *)psp.ptr);
 	}
 }
 

@@ -110,7 +110,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	char * nameptr;
 	unsigned int len;
 
-	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); */
+	//printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); 
 
 	if (nodetype == BACKGROUND) {
 		bg = (struct VRML_Background *) node;
@@ -191,12 +191,10 @@ void bind_node (void *node, unsigned int setBindofst,
 	isBoundptr = (unsigned int *) ((unsigned int) node + isboundofst);
 	oldstacktop = stack + *tos;  
 
-	// printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
+	printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
 	   is not a new push or pop */
-
-
 
 	if (*setBindptr == 1) {
 		/* PUSH THIS TO THE TOP OF THE STACK */
@@ -230,7 +228,7 @@ void bind_node (void *node, unsigned int setBindofst,
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = (unsigned int *) (*oldstacktop + isboundofst);
 			*oldboundptr = 0;
-			 // printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
+			 printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
 	
 			/* tell the possible parents of this change */
 			update_node((void *) *oldstacktop);
@@ -426,18 +424,13 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 
 void render_Viewpoint (struct VRML_Viewpoint *node) {
 	double a1;
-       /* GLdouble modelMatrix[16]; */
 
-	// printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	 /* printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]);
+	 */
+
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
-	if (node->set_bind < 100) {
-		/* up_vector is reset after a bind */
-		if (node->set_bind==1) reset_upvector();
-
-		bind_node (node,offsetof (struct VRML_Viewpoint,set_bind),
-			offsetof (struct VRML_Viewpoint,isBound),
-			&viewpoint_tos,&viewpoint_stack[0]);
-	}
+	/* code to perform binding is now in set_viewpoint. */
 
 	if(!node->isBound) return;
 
@@ -477,6 +470,7 @@ void render_Background (struct VRML_Background *node) {
 	int estq;
 	int actq;
 
+	 //printf ("RBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		bind_node (node,offsetof (struct VRML_Background,set_bind),
