@@ -409,6 +409,7 @@ VFUNC(void,gluNextContour,V_gluNextContour,( GLUtriangulatorObj *tobj, GLenum ty
 VFUNC(void,gluTessVertex,V_gluTessVertex,( GLUtriangulatorObj *tobj, GLdouble v[3],
                                     void *data ))
 VFUNC(const GLubyte*,gluGetString,V_gluGetString,( GLenum name ))
+#ifndef AQUA 
 VFUNC(XVisualInfo*,glXChooseVisual,V_glXChooseVisual,( Display *dpy, int screen,
 				     int *attribList ))
 VFUNC(void,glXDestroyContext,V_glXDestroyContext,( Display *dpy, GLXContext ctx ))
@@ -427,3 +428,4 @@ VFUNC(GLXDrawable,glXGetCurrentDrawable,V_glXGetCurrentDrawable,( void ))
 VFUNC(void,glXWaitGL,V_glXWaitGL,( void ))
 VFUNC(void,glXWaitX,V_glXWaitX,( void ))
 VFUNC(void,glXUseXFont,V_glXUseXFont,( Font font, int first, int count, int list ))
+#endif

@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'              => "VRML::CFuncs",
     'CCFLAGS'		=> "",
-    'DEFINE'		=> "",
+    'DEFINE'		=> "$VRML_CONFIG{FREEWRL_DEFINE}",
     'INC'               => $VRML_CONFIG{FREEWRL_INC},
 dynamic_lib => { 'OTHERLDFLAGS' => $VRML_CONFIG{LDFLAGS}, 'LDDLFLAGS' => $VRML_CONFIG{LDDLFLAGS} },
     'LIBS'		=> ""
@@ -35,7 +35,7 @@ sub MY::c_o {
 	my $c_o =
 q{
 %.o: %.c
-	$(CCCMD) -I$(PERL_INC) $(CCFLAGS) -o $@ $(LIBDIR) $< $(LIBS)
+	$(CCCMD) -I$(PERL_INC) $(CCFLAGS) -o $@ $(LIBDIR) $< $(LIBS) $(DEFINE)
 };
 	return ($c_o);
 }

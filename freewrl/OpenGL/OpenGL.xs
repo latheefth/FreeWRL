@@ -4,26 +4,36 @@
 #include "perl.h"
 #include "XSUB.h"
 
+#ifdef AQUA 
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+#else
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
+#endif
+
 #include <unistd.h>
 #include <stdio.h>
+
+#ifndef AQUA 
 #include <X11/cursorfont.h>
-
-
 #ifdef XF86V4
 #include <X11/extensions/xf86vmode.h>
 #endif
-
 #include <X11/keysym.h>
+#endif
 
+#ifndef AQUA
 Display *dpy;
 XVisualInfo *vi;
 Colormap cmap;
 XSetWindowAttributes swa;
 Window win;
 GLXContext cx;
+Window winDummy;
+#endif
 unsigned int width, height;
 
 char renderer[256];	/* what device are we using? */
@@ -31,27 +41,31 @@ int screen;
 int modeNum;
 int bestMode;
 int quadbuff_stereo_mode;
-Window winDummy;
 unsigned int borderDummy;
 int glwinx, glwiny;
 unsigned int glwinwidth, glwinheight, glwindepth;
 int i;
 int dpyWidth, dpyHeight;
 
+#ifndef AQUA 
 #ifdef XF86V4
 XF86VidModeModeInfo **modes;
 XF86VidModeModeInfo original_display;
 int ihaveXF86V4=TRUE;
 #else
+
 /* fudge calls for compiler - gosh, perl is certainly fun. */
 int ihaveXF86V4=FALSE;
 struct fudge { int hdisplay; int vdisplay;};
 struct fudge **modes;
 struct fudge original_display;
 #endif
+#endif
 
+#ifndef AQUA 
 Cursor arrowc;
 Cursor sensorc;
+#endif
 int	render_frame = 5;	/* do we render, or do we sleep? */
 int	now_mapped = 1;		/* are we on screen, or minimized? */
 
@@ -77,6 +91,7 @@ static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRU
 
 int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
 
+#ifndef AQUA 
 int  default_attributes0[] = 
    {
    GLX_DEPTH_SIZE,         24,		// JAS
@@ -111,11 +126,12 @@ int  default_attributes3[] =
    GLX_RGBA,               GL_TRUE,
    0
    };
-
+#endif
 
 
 /***************************************************************************/
 
+#ifndef AQUA 
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len) {
    XVisualInfo *vi=NULL;
    int attrib;
@@ -176,10 +192,13 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len) {
    return(NULL);
 }
 
+#endif
 /***************************************************************************/
+#ifndef AQUA 
 static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
     return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
 }
+#endif
 
 
 /***************************************************************************/
@@ -194,9 +213,11 @@ void
 raise_me_please()
 	CODE:
         {
+#ifndef AQUA 
 	  /* XMapRaised(dpy, win); 
 	     EG : XRaiseWindow should be more appropriate */
 	  XRaiseWindow(dpy, win);
+#endif
 	}
 
 # should we render?
@@ -235,16 +256,19 @@ void
 arrow_cursor()
 	CODE:
 	{ 
+#ifndef AQUA 
 	XDefineCursor (dpy, win, arrowc);
+#endif
 	}
 
 void
 sensor_cursor()
 	CODE:
 	{
+#ifndef AQUA 
 	XDefineCursor (dpy, win, sensorc);
+#endif
 	}
-
 
 # GL Render loop C functions
 void
@@ -293,7 +317,6 @@ BackEndHeadlightOn()
 
 	
 #define NUM_ARG 9
-
 void
 glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	int	x
@@ -308,6 +331,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 	CODE:
 	{
+#ifndef AQUA 
 		XColor  black; 
 		Cursor  cursor;
 		Pixmap  cursor_pixmap; 
@@ -481,6 +505,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 	/* and make it so that we render 1 frame, at least */
 	render_frame = 5;
+#endif
 }
 
 void
@@ -513,20 +538,20 @@ glpOpenGLInitialize()
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-
+#ifndef AQUA  
 	glEnable(GL_POLYGON_OFFSET_EXT);
-
+#endif
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.2 * 128);
 	}
 
-
+#ifndef AQUA 
 void
 glXSwapBuffers(d=dpy,w=win)
 	void *	d
-	GLXDrawable	w
+	GLXDrawable  w
 	CODE:
 	{
 	    glXSwapBuffers(d,w);
@@ -552,11 +577,8 @@ glpXNextEvent(d=dpy)
 		char buf[10];
 		KeySym ks;
 		XNextEvent(d,&event);
-
-
 		/* must render now */
 		render_frame = 5;
-
 		switch(event.type) {
 			case ConfigureNotify:
 				EXTEND(sp,3);
@@ -569,7 +591,6 @@ glpXNextEvent(d=dpy)
 				EXTEND(sp,3);
 				PUSHs(sv_2mortal(newSViv(event.type)));
 				XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
-
 				// Map keypad keys in - thanks to Aubrey Jaffer.
 				// JAS - num lock had an effect, so added 
 				// more definitions.
@@ -579,39 +600,30 @@ glpXNextEvent(d=dpy)
 				   case XK_Right: ks = XK_l; break;
 				   case XK_Up: ks = XK_p; break;
 				   case XK_Down: ks = XK_semicolon; break;
-
 				   case XK_KP_0: 
 				   case XK_KP_Insert:
 					ks = XK_a; break;
-
 				   case XK_KP_Decimal: 
 				   case XK_KP_Delete:
 					ks = XK_z; break;
-
 				   case XK_KP_7:
 				   case XK_KP_Home:
 					 ks = XK_7; break;
-
 				   case XK_KP_9: 
 				   case XK_KP_Page_Up:
 					ks = XK_9; break;
-
 				   case XK_KP_8: 
 				   case XK_KP_Up:
 					ks = XK_k; break;
-
 				   case XK_KP_2: 
 				   case XK_KP_Down:
 					ks = XK_8; break;
-
 				   case XK_KP_4: 
 				   case XK_KP_Left:
 					ks = XK_u; break;
-
 				   case XK_KP_6: 
 				   case XK_KP_Right:
 					ks = XK_o; break;
-
 				   case XK_Num_Lock: ks = XK_h; break;
 				   default: break;
 				   }
@@ -652,7 +664,9 @@ glpXNextEvent(d=dpy)
 				PUSHs(sv_2mortal(newSViv(event.type)));
 				break;
 		}
-	}
+}
+
+#endif
 
 
 void
@@ -669,6 +683,7 @@ glReadPixels(x,y,width,height,format,type,pixels)
 	   glReadPixels(x,y,width,height,format,type,(GLvoid *)pixels);
 	}
 
+#ifndef AQUA 
 int
 glpRasterFont(name,base,number,d=dpy)
 	char *name
@@ -692,6 +707,8 @@ glpRasterFont(name,base,number,d=dpy)
 	}
 	OUTPUT:
 	RETVAL
+
+#endif
 
 void
 glpPrintString(base,str)
@@ -933,6 +950,7 @@ gluPerspective(fovy,aspect,zNear,zFar)
 	GLdouble	zFar
 
 
+#ifndef AQUA 
 void
 glXDestroyContext()
 	CODE:
@@ -950,7 +968,7 @@ glXDestroyContext()
 	  }
 	}
 
-
+#endif
 
 void
 glPrintError(str)
