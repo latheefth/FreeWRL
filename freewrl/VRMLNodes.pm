@@ -302,7 +302,9 @@ my $protono;
 	new VRML::NodeType ("Shape",
 						{
 						 appearance => [SFNode, NULL, exposedField],
-						 geometry => [SFNode, NULL, exposedField]
+						 geometry => [SFNode, NULL, exposedField],
+						 bboxCenter => [SFVec3f, [0, 0, 0], field],
+						 bboxSize => [SFVec3f, [-1, -1, -1], field],
 						}
 					   ),
 	Appearance =>
@@ -310,7 +312,9 @@ my $protono;
 						{
 						 material => [SFNode, NULL, exposedField],
 						 texture => [SFNode, NULL, exposedField],
-						 textureTransform => [SFNode, NULL, exposedField]
+						 textureTransform => [SFNode, NULL, exposedField],
+						 lineProperties => [SFNode, NULL, exposedField],
+						 fillProperties => [SFNode, NULL, exposedField],
 						}
 					   ),
 	Material =>
@@ -357,6 +361,11 @@ my $protono;
 						 repeatT => [SFBool, 1, field],
 						 duration_changed => [SFTime, -1, eventOut],
 						 isActive => [SFBool, 0, eventOut],
+
+						resumeTime => [SFTime,0,exposedField],
+						pauseTime => [SFTime,0,exposedField],
+						isActive => [SFTime,0,eventOut],
+						isPaused => [SFTime,0,eventOut],
 						 
 						 # has the URL changed???
 						 __oldurl => [MFString, [""], field],
@@ -530,6 +539,7 @@ my $protono;
 						 string => [MFString, [], exposedField],
 						 fontStyle => [SFNode, NULL, exposedField],
 						 length => [MFFloat, [], exposedField],
+						solid => [SFBool, 1, field],
 						 maxExtent => [SFFloat, 0, exposedField],
 						 __rendersub => [SFInt32, 0, exposedField] # Function ptr hack
 						}
@@ -559,6 +569,12 @@ my $protono;
 						url => [MFString, [], exposedField],
 						duration_changed => [SFTime, -1, eventOut],
 						isActive => [SFBool, 0, eventOut],
+						
+						pauseTime => [SFTime,0,exposedField],
+						resumeTime => [SFTime,0,exposedField],
+						elapsedTime => [SFTime,0,eventOut],
+						isPaused => [SFBool,0,eventOut],
+
 						# parent url, gets replaced at node build time
 						__parenturl =>[SFString,"",field],
 
@@ -588,17 +604,23 @@ my $protono;
 	Switch =>
 	new VRML::NodeType("Switch",
 					   {
+					 	addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
 						choice => [MFNode, [], exposedField],
-						whichChoice => [SFInt32, -1, exposedField]
+						whichChoice => [SFInt32, -1, exposedField],
+						 bboxCenter => [SFVec3f, [0, 0, 0], field],
+						 bboxSize => [SFVec3f, [-1, -1, -1], field],
 					   }
 					  ),
 	LOD =>
 	new VRML::NodeType("LOD",
 					   {
+						 addChildren => [MFNode, undef, eventIn],
+						 removeChildren => [MFNode, undef, eventIn],
 						level => [MFNode, [], exposedField],
 						center => [SFVec3f, [0, 0, 0],  field],
 						range => [MFFloat, [], field],
-						_selected =>[SFInt32,0,field]
+						_selected =>[SFInt32,0,field],
 					   }
 					  ),
 	Transform =>
@@ -766,6 +788,9 @@ my $protono;
 						fraction_changed => [SFFloat, 0.0, eventOut],
 						isActive => [SFBool, 0, eventOut],
 						time => [SFTime, -1, eventOut],
+						resumeTime => [SFTime,0,exposedField],
+						pauseTime => [SFTime,0,exposedField],
+						isPaused => [SFTime,0,eventOut],
 						 # time that we were initialized at
 						 __inittime => [SFTime, 0, field],
 						# cycleTimer flag.
@@ -798,6 +823,8 @@ my $protono;
 						minPosition => [SFVec2f, [0, 0], exposedField],
 						offset => [SFVec3f, [0, 0, 0], exposedField],
 						isActive => [SFBool, 0, eventOut],
+						isOver => [SFBool, 0, eventOut],
+						description => [SFString, "", field],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
 						translation_changed => [SFVec3f, [0, 0, 0], eventOut],
 						# where we are at a press...
@@ -814,6 +841,8 @@ my $protono;
 						isActive => [SFBool, 0, eventOut],
 						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
+						isOver => [SFBool, 0, eventOut],
+						description => [SFString, "", field],
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], field],
 						_radius => [SFFloat, 0, field],
@@ -830,6 +859,8 @@ my $protono;
 						minAngle => [SFFloat, 0, exposedField],
 						offset => [SFFloat, 0, exposedField],
 						isActive => [SFBool, 0, eventOut],
+						isOver => [SFBool, 0, eventOut],
+						description => [SFString, "", field],
 						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],	
 						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
 						# where we are at a press...
@@ -850,6 +881,8 @@ my $protono;
 						orientation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
 						enterTime => [SFTime, -1, eventOut],
 						exitTime => [SFTime, -1, eventOut],
+						centerOfRotation_changed =>[SFVec3f, [0,0,0], eventOut],
+
 						# These fields are used for the info.
 						__hit => [SFInt32, 0, exposedField],
 						__t1 => [SFVec3f, [10000000, 0, 0], exposedField],
@@ -919,6 +952,7 @@ my $protono;
 						groundColor => [MFColor, [], exposedField],
 						skyAngle => [MFFloat, [], exposedField],
 						skyColor => [MFColor, [[0, 0, 0]], exposedField],
+						bindTime => [SFTime,0,eventOut],
 						isBound => [SFBool, 0, eventOut],
 						__parenturl =>[SFString,"",field],
 						__points =>[SFInt32,0,field],
@@ -944,6 +978,7 @@ my $protono;
 						description => [SFString, "", field],
 						bindTime => [SFTime, -1, eventOut],
 						isBound => [SFBool, 0, eventOut],
+						centerOfRotation =>[SFVec3f, [0,0,0], exposedField],
 					   },
 					  ),
 
@@ -957,7 +992,9 @@ my $protono;
 						speed => [SFFloat, 1.0, exposedField],
 						type => [MFString, ["WALK", "ANY"], exposedField],
 						visibilityLimit => [SFFloat, 0, exposedField],
-						isBound => [SFBool, 0, eventOut]
+						isBound => [SFBool, 0, eventOut],
+						transitionType => [MFString, [],exposedField],
+						bindTime => [SFTime, -1, eventOut],
 					   },
 					  ),
 
@@ -1033,6 +1070,7 @@ my $protono;
 						url => [MFString, [], exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
+						load => [SFBool,0,field],
                                                 __children => [MFNode, [], exposedField],
 						__loadstatus =>[SFInt32,0,field],
 						__parenturl =>[SFString,"",field],
