@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.98  2003/04/16 16:46:56  ayla
+#
+# Added check to prevent possible divide by zero error in Billboard.
+#
 # Revision 1.97  2003/04/15 16:47:47  crc_canada
 # reworked Shape so that explicit geometry was called only when required.
 #
@@ -1804,7 +1808,7 @@ Transform => (join '','
 Billboard => '
 	GLdouble mod[16];
 	GLdouble proj[16];
-	struct pt vec, ax, cp, z = {0,0,1}, cp2,cp3, arcp;
+	struct pt vec, ax, cp, z = {0,0,1}, cp2, cp3, arcp;
 	int align;
 	double len; double len2;
 	double angle;
@@ -1845,9 +1849,11 @@ Billboard => '
 		glRotatef(angle/3.1415926536*180, ax.x,ax.y,ax.z);
 	} else {
 		/* cp is the axis of the first rotation... */
-		VECCP(z,vec,cp); len = sqrt(VECSQ(cp)); 
+		VECCP(z,vec,cp);
+        len = sqrt(VECSQ(cp));
+		if (APPROX(len, 0)) { return; }
 		VECSCALE(cp,1/len);
-		VECCP(z,cp,cp2); 
+		VECCP(z,cp,cp2);
 		angle = asin(VECPT(cp2,vec));
 		glRotatef(angle/3.1415926536*180, ax.x,ax.y,ax.z);
 		
