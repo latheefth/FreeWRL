@@ -299,6 +299,7 @@ INST_DYNAMIC_DEP =
 		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
 		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
 		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
+		my $MYDEFS 	  = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
 
 		## Add extra make instructions that don't quite fit into the
@@ -349,7 +350,7 @@ INST_DYNAMIC_DEP =
 		# make the C Front End.
 
 		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION)";
-		my $def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
+		my $def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
 
 		push (@postamble, join("\n",
 			  qq{\n\# --- FreeWRL C Front End:},
