@@ -158,14 +158,14 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 /* load in a texture, if possible */
 void loadImageTexture (struct VRML_ImageTexture *node) {
 	if (node->_ichange != node->_change) {
+		// force a node reload - make it a new texture. Don't change
+		// the parameters for the original number, because if this 
+		// texture is shared, then ALL references will change! so,
+		// we just accept that the current texture parameters have to
+		// be left behind.
 		node->_ichange = node->_change;
-		// is this an initial load, or a reload?
-		if (node->__texture > 0) {
-			//printf ("loadImageTexture, this is a reload!\n");
-			isloaded[node->__texture] = NOTLOADED;
-			loadparams[node->__texture].filename="uninitialized file";
-			loadparams[node->__texture].depth = 0;
-		}
+		node->__texture = 0; // this will cause bind_image to create a 
+				     // new "slot" for this texture
 	}
 	
 	bind_image(IMAGETEXTURE, node->__parenturl, 
@@ -177,14 +177,14 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 void loadPixelTexture (struct VRML_PixelTexture *node) {
 	struct Multi_String mynull;
 	if (node->_ichange != node->_change) {
+		// force a node reload - make it a new texture. Don't change
+		// the parameters for the original number, because if this 
+		// texture is shared, then ALL references will change! so,
+		// we just accept that the current texture parameters have to
+		// be left behind.
 		node->_ichange = node->_change;
-		// is this an initial load, or a reload?
-		if (node->__texture > 0) {
-			//printf ("loadImageTexture, this is a reload!\n");
-			isloaded[node->__texture] = NOTLOADED;
-			loadparams[node->__texture].filename="uninitialized file";
-			loadparams[node->__texture].depth = 0;
-		}
+		node->__texture = 0; // this will cause bind_image to create a 
+				     // new "slot" for this texture
 	}
 	bind_image(PIXELTEXTURE, node->image, 
 		mynull, 
@@ -194,6 +194,11 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 /* load in a texture, if possible */
 void loadMovieTexture (struct VRML_MovieTexture *node) {
 	int firsttex;
+
+	/* possible bug? If two nodes use the same MovieTexture URL, and,
+	 * one changes (eg, EAI), then possibly both will change. This
+	 * happened with ImageTextures, doubt if it will happen here */
+	
 	/* when the data is "unsquished", this texture becomes invalid,
 		and the new texture ranges are placed */
 	firsttex = node->__texture0_;
@@ -225,6 +230,7 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 		&node->__texture0_,node->repeatS,node->repeatT);
 
 	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
+
 	if (isloaded[firsttex] == UNSQUASHED) {
 		if (TexVerbose) 
 			printf ("movie texture now unsquished, first and last textures %d %d ctex %d\n",
@@ -245,8 +251,6 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 		/* make an event for the inittime */
 		node->__inittime = TickTime;
 	}
-			
-		
 }
 
 
@@ -613,7 +617,6 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		loadparams[*texnum].filename="file not found";
 		return FALSE;
 	}
-#ifdef USETEXTUREDUPS
 	/* ok, have we seen this one before? */
 	flen = strlen(filename);
 	for (count=1; count < max_texture; count++) {
@@ -651,7 +654,6 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		    }
 		}	
 	}
-#endif
 
 	/* is this a texture type that is *not* handled internally? */
 	if ((strncmp(firstBytes,firstPNG,4) != 0) && 
