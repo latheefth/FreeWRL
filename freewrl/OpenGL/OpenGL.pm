@@ -2003,6 +2003,7 @@ sub X_PROTOCOL_REVISION () {0}
                 'height'=> 500,
                 'parent'=> 0,
                 'mask'  => StructureNotifyMask,
+		'fs'	=> 0,
 		'cmap' => 1,
                 'attributes'=> [GLX_RGBA],
         );
@@ -2013,11 +2014,11 @@ sub glpOpenWindow {
         foreach $k (keys(%a)){
                 defined($p{$k}) || warn "Not a valid parameter to glpOpenWindow: `$k'
 \n";
-                #print "parameter $k now ",$a{$k}," was ",$p{$k},"\n";
+                # print "parameter $k now ",$a{$k}," was ",$p{$k},"\n";
                 $p{$k} = $a{$k};
         }
         glpcOpenWindow($p{x},$p{y},$p{width},$p{height},
-                       $p{parent},$p{'mask'},$p{'cmap'},
+                       $p{parent},$p{fs},$p{'mask'},$p{'cmap'},
                        @{$p{attributes}});
 }
 1;
