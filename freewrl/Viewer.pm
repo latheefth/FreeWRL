@@ -143,15 +143,6 @@ package VRML::Viewer::None;
 
 sub handle {}
 
-#sub new {
-#	my($type, $loc, $ori) = @_;
-#	my $this = VRML::Viewer->new();
-#	print "new viewer, loc is $loc, pos is $ori\n";
-#	$this->{Pos} = $loc;
-#	$this->{Quat} = new_vrmlrot VRML::Quaternion(@$ori);
-#	return $this;
-#}
-
 package VRML::Viewer::Walk;
 @VRML::Viewer::Walk::ISA=VRML::Viewer;
 
@@ -194,7 +185,9 @@ sub handle_tick {
     $this->{Quat} = $nq->multiply($this->{Quat});
 
     # any movement? if so, lets render it.
-    if ((abs($this->{RD}) > 0.000001) || (abs($this->{ZD}) > 0.000001)) {
+    if ((abs($this->{RD}) > 0.000001) || 
+	(abs($this->{YD}) > 0.000001) ||
+	(abs($this->{ZD}) > 0.000001)) {
 	VRML::OpenGL::set_render_frame();
     }
 }
