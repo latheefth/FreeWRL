@@ -93,10 +93,7 @@ if (verbose) printf ("VRMLExtrusion.pm start\n");
 /* Get the value of GL_SHADE_MODEL to see whether we have to potentially
    calculate smooth normals. Only once per invocation of FreeWRL */
 
-if (smooth_normals == -1) {
-	glGetIntegerv (GL_SHADE_MODEL, &smooth_normals);
-	smooth_normals = smooth_normals == GL_SMOOTH;
-}
+initialize_smooth_normals();
 
 
 /* do we have a closed curve?						*/
