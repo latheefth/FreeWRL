@@ -11,6 +11,11 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.29  2003/03/20 18:37:22  ayla
+#
+# Added init() functions to be used by VRML::NodeIntern::do_defaults() to
+# supply eventOuts with default values (used by Script, PROTO definitions).
+#
 # Revision 1.28  2003/01/28 18:23:59  ayla
 # Problem with checking for undefined values in VRML::Field::Multi::as_string fixed.
 #
@@ -203,6 +208,8 @@ package VRML::Field::SFFloat;
 @ISA=VRML::Field;
 VRML::Error->import();
 
+sub init { return 0.0; }
+
 sub parse {
 	my($type,$p,$s,$n) = @_;
 	$_[2] =~ /\G\s*($Float)/ogcs or 
@@ -229,6 +236,8 @@ package VRML::Field::SFInt32;
 @ISA=VRML::Field;
 VRML::Error->import;
 
+sub init { return 0; }
+
 sub parse {
 	my($type,$p,$s,$n) = @_;
 	$_[2] =~ /\G\s*($Integer)\b/ogsc 
@@ -247,6 +256,8 @@ sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
 package VRML::Field::SFColor;
 @ISA=VRML::Field;
 VRML::Error->import;
+
+sub init { return [0, 0, 0]; }
 
 sub parse {
 	my($type,$p) = @_;
@@ -370,6 +381,8 @@ package VRML::Field::SFVec2f;
 @ISA=VRML::Field;
 VRML::Error->import();
 
+sub init { return [0, 0]; }
+
 sub parse {
 	my($type,$p) = @_;
 
@@ -417,6 +430,8 @@ sub cfunc {
 package VRML::Field::SFRotation;
 @ISA=VRML::Field;
 VRML::Error->import();
+
+sub init { return [0, 0, 1, 0]; }
 
 sub parse {
 	my($type,$p) = @_;
@@ -511,6 +526,8 @@ sub cfunc {
 package VRML::Field::SFBool;
 @ISA=VRML::Field;
 
+sub init { return 0; }
+
 sub parse {
 	my($type,$p,$s,$n) = @_;
 	$_[2] =~ /\G\s*(TRUE|FALSE)\b/gs
@@ -542,6 +559,7 @@ package VRML::Field::SFString;
 
 $Chars = qr/(?:[\x00-\x21\x23-\x5b\x5d-\x7f]*|\x5c\x22|\x5c{2}[^\x22])*/o;
 
+sub init { return ""; }
 
 # XXX Handle backslashes in string properly
 sub parse {
@@ -680,6 +698,8 @@ package VRML::Field::MFRotation;
 package VRML::Field::Multi;
 @ISA=VRML::Field;
 
+sub init { return []; }
+
 sub ctype {
 	my $r = (ref $_[0] or $_[0]);
 	$r =~ s/VRML::Field::MF//;
@@ -808,6 +828,7 @@ sub as_string {
 	if (!$value) { return; }
 
 	if("ARRAY" eq ref $value) {
+		return "[]" if (!@{$value});
 		return "[ ".(join ' ', map {$type->as_string($_)} @{$value})." ]";
 	} else {
 		return $value->as_string();
@@ -818,6 +839,8 @@ sub as_string {
 
 ###########################################################
 package VRML::Field::SFNode;
+
+sub init { return "NULL"; }
 
 sub copy { return $_[1] }
 
@@ -846,6 +869,8 @@ sub as_string {
 package VRML::Field::SFImage;
 @ISA=VRML::Field;
 VRML::Error->import;
+
+sub init { return [0, 0, 0]; }
 
 sub parse {
   my($type,$p) = @_;
