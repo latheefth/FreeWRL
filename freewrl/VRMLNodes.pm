@@ -1,3 +1,6 @@
+#
+# $Id$
+#
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
@@ -31,7 +34,6 @@
 
 package VRML::NodeType; # Same for internal and external!
 
-
 my @vps;	# viewpoint Scenes.
 my @vpn;	# viewpoint Nodes.
 my $vpno = 1;
@@ -57,6 +59,8 @@ sub get_vp_node { return $vpn[$vpno];}
 
 sub get_vp_scene {return $vps[$vpno];}
 
+# Inlined files are stored in the browser...
+my @ilf;	# Files referenced by Inline Node urls.
 
 # The routines below implement the browser object interface.
 
@@ -293,238 +297,246 @@ sub removeChild {
 
 
 sub init_image {
-	my($name, $urlname, $t, $f, $scene, $flip) = @_;
-	my $purl = $t->{PURL} = $scene->get_url;
-	my $urls = $f->{$urlname};
-	if($#{$urls} == -1) {
-		goto NO_TEXTURE;
+    my($name, $urlname, $t, $f, $scene, $flip) = @_;
+    my $purl = $t->{PURL} = $scene->get_url;
+    my $urls = $f->{$urlname};
+    if($#{$urls} == -1) {
+	goto NO_TEXTURE;
+    }
+
+    URL: for $u (@$urls) {
+	next unless $u =~ /\.(\w*)$/;
+	my $suffix = $1;
+	my $file;
+
+	$file = VRML::URL::get_relative($purl, $u, 1);
+
+	# Required due to changes in VRML::URL::get_relative in URL.pm:
+	if (!$file) {
+	    warn "Could not retrieve $u";
+	    next URL;
 	}
-	for(@$urls) {
-		next unless $urls->[0] =~ /\.(\w*)$/;
-			# or die("Suffixless image '$urls->[0]' (@$urls)?");
-		my $suffix = $1;
-		my $file = VRML::URL::get_relative($purl, $urls->[0], 1);
-		my ($hei,$wi,$dep,$dat);
-		my $tempfile = $file;
 
-		if($@) {die("Cannot open image textures: '$@'")}
+	my ($hei,$wi,$dep,$dat);
+	my $tempfile = $file;
 
-		$dat = "";
-                if(!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
-			# lets convert to a png, and go from there...
-			# use Imagemagick to do the conversion, and flipping.
-			# XXX - do I need a flip because of a "Box" problem? 
-	
-			# simply make a default user specific file by
-			# attaching the username (LOGNAME from environment)
-			my $lgname = $ENV{LOGNAME};
-			my $tempfile_name = "/tmp/freewrl_";
-			$tempfile = join '', $tempfile_name,$lgname,".png";
-	
-			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
-			my $status = system ($cmd);
-			die "$image conversion problem: '$cmd' returns $?"
-				unless $status == 0;
-	
-			eval 'require VRML::PNG';
-			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-			  next;
-			  warn("Couldn't read texture file $tempfile");
-			}
-		} elsif ($suffix =~ /png/i) {
-			eval 'require VRML::PNG';
-			eval 'require VRML::JPEG';
-			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-			  next;
-			  warn("Couldn't read texture file $tempfile");
-			}
-		} elsif ($suffix =~ /jpg/i) {
-			eval 'require VRML::JPEG';
-			if(!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-			  next;
-			  warn("Couldn't read texture file $tempfile");
-			}
-		}
+	if ($@) { die("Cannot open image textures: '$@'"); }
 
-		$f->{__depth.$name} = $dep;
-		$f->{__x.$name} = $wi;
-		$f->{__y.$name} = $hei;
-		$f->{__data.$name} = $dat;
-		# print"GOT IMAGE $urlname into $name [$file] ($dep $wi $hei)\n";
-		return;
+	$dat = "";
+	if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
+	    # Lets convert to a png, and go from there...
+	    # Use Imagemagick to do the conversion, and flipping.
+	    # XXX - Do I need a flip because of a "Box" problem? 
+	
+	    # Simply make a default user specific file by
+	    # attaching the username (LOGNAME from environment).
+
+	    my $lgname = $ENV{LOGNAME};
+	    my $tempfile_name = "/tmp/freewrl_";
+	    $tempfile = join '', $tempfile_name,$lgname,".png";
+	
+	    my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
+	    my $status = system ($cmd);
+	    die "$image conversion problem: '$cmd' returns $?"
+		unless $status == 0;
+	
+	    eval 'require VRML::PNG';
+	    if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
+		warn("Couldn't read texture file $tempfile");
+		next URL;
+	    }
+	} elsif ($suffix =~ /png/i) {
+	    eval 'require VRML::PNG';
+	    eval 'require VRML::JPEG';
+	    if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
+		warn("Couldn't read texture file $tempfile");
+		next URL;
+	    }
+	} elsif ($suffix =~ /jpg/i) {
+	    eval 'require VRML::JPEG';
+	    if (!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
+		warn("Couldn't read texture file $tempfile");
+		next URL;
+	    }
 	}
-  NO_TEXTURE:
-	$f->{__depth.$name} = 0;
-	$f->{__x.$name} = 0;
-	$f->{__y.$name} = 0;
-	$f->{__data.$name} = "";
+
+	$f->{__depth.$name} = $dep;
+	$f->{__x.$name} = $wi;
+	$f->{__y.$name} = $hei;
+	$f->{__data.$name} = $dat;
 	return;
+    } # for $u (@$urls) 
+
+    NO_TEXTURE:
+    $f->{__depth.$name} = 0;
+    $f->{__x.$name} = 0;
+    $f->{__y.$name} = 0;
+    $f->{__data.$name} = "";
+    return;
 }
 
 
 # From: Remi Cohen-Scali
 
 sub init_pixel_image {
-  my($imagename, $t, $f, $scene) = @_;
-  my $sfimage = $f->{$imagename};
-  if (!defined $sfimage) {
-    goto NO_PIXEL_TEXTURE;
-  } 
+    my($imagename, $t, $f, $scene) = @_;
+    my $sfimage = $f->{$imagename};
+    if (!defined $sfimage) {
+	goto NO_PIXEL_TEXTURE;
+    } 
 
-  $f->{__depth} = $sfimage->[2];
-  $f->{__x} = $sfimage->[0];
-  $f->{__y} = $sfimage->[1];
-  $f->{__data} = $sfimage->[3];
-  # print"GOT IMAGE $urlname into $name [$file] ($dep $wi $hei)\n";
-  return;
+    $f->{__depth} = $sfimage->[2];
+    $f->{__x} = $sfimage->[0];
+    $f->{__y} = $sfimage->[1];
+    $f->{__data} = $sfimage->[3];
+    return;
    
- NO_PIXEL_TEXTURE:
-  $f->{__depth} = 0;
-  $f->{__x} = 0;
-  $f->{__y} = 0;
-  $f->{__data} = ""; 
-  return;  
+    NO_PIXEL_TEXTURE:
+    $f->{__depth} = 0;
+    $f->{__x} = 0;
+    $f->{__y} = 0;
+    $f->{__data} = ""; 
+    return;  
 } 
   
 
 my $protono;
 
 {
-my %MAP = (
-	"" => "field",
-	"in" => "eventIn",
-	"out" => "eventOut"
-);
+    my %MAP = (
+     "" => "field",
+     "in" => "eventIn",
+     "out" => "eventOut"
+    );
 
-# XXX When this changes, change Scene.pm: VRML::Scene::newp too --
-# the members must correspond
-sub new {
-
+    # XXX When this changes, change Scene.pm: VRML::Scene::newp too --
+    # the members must correspond.
+    sub new {
 	my($type,$name,$fields,$eventsubs) = @_;
 	my $this = bless {
-		Name => $name,
-		Fields => {},
-		Defaults => {},
-		Actions => $eventsubs,
+	    Name => $name,
+	    Fields => {},
+	    Defaults => {},
+	    Actions => $eventsubs,
 	},$type;
+
 	for(keys %$fields) {
-		$this->{Defaults}{$_} = $fields->{$_}[1];
-		$this->{FieldTypes}{$_} = $fields->{$_}[0];
-		# $this->{Fields}{$_} = "VRML::Field::$fields->{$_}[0]";
-		my $t = $fields->{$_}[2];
-		if(!defined $t or $t eq "" or $t eq "field" or $t eq "exposedField") {
-			if(!defined $t or $t eq "exposedField") {
-				$this->{EventOuts}{$_} = $_;
-				$this->{EventOuts}{$_."_changed"} = $_;
-				$this->{EventIns}{$_} = $_;
-				$this->{EventIns}{"set_".$_} = $_;
-			}
-		} else {
-			my $io;
-			if($t =~ /[oO]ut$/) {
-				$io = Out;
-			} else {
-				$io = In;
-			}
-			$this->{Event.$io."s"}{$_} = $_;
+	    $this->{Defaults}{$_} = $fields->{$_}[1];
+	    $this->{FieldTypes}{$_} = $fields->{$_}[0];
+	    # $this->{Fields}{$_} = "VRML::Field::$fields->{$_}[0]";
+	    my $t = $fields->{$_}[2];
+	    if(!defined $t or $t eq "" or $t eq "field" or $t eq "exposedField") {
+		if(!defined $t or $t eq "exposedField") {
+		    $this->{EventOuts}{$_} = $_;
+		    $this->{EventOuts}{$_."_changed"} = $_;
+		    $this->{EventIns}{$_} = $_;
+		    $this->{EventIns}{"set_".$_} = $_;
 		}
-		if(!defined $t) {
-			$t = exposedField;
-		} else {
-			$t = ($MAP{$t} or $t);
-		}
-		$this->{FieldKinds}{$_} = $t;
+	    } else {
+		my $io;
+		if($t =~ /[oO]ut$/) { $io = Out; }
+		else { $io = In; }
+		$this->{Event.$io."s"}{$_} = $_;
+	    }
+
+	    if(!defined $t) { $t = exposedField; }
+	    else { $t = ($MAP{$t} or $t); }
+	    $this->{FieldKinds}{$_} = $t;
 	}
 	return $this;
-}
+    }
 }
 
 
 %VRML::Nodes::bindable = map {($_,1)} qw/
-	Viewpoint
-	Background
-	NavigationInfo
-	Fog
+ Viewpoint
+ Background
+ NavigationInfo
+ Fog
 /;
 
 %VRML::Nodes::initevents = map {($_,1)} qw/
-	TimeSensor
-	TouchSensor
-	PlaneSensor
-	CylinderSensor
-	SphereSensor
-	ProximitySensor
-	##JAS Collision
-	VisibilitySensor
-  	PixelTexture
+ TimeSensor
+ TouchSensor
+ PlaneSensor
+ CylinderSensor
+ SphereSensor
+ ProximitySensor
+ ##JAS Collision
+ VisibilitySensor
+ PixelTexture
 /;
 
 # What are the transformation-hierarchy child nodes?
 %VRML::Nodes::children = qw(
-	Transform	children
-	Group		children
-	Billboard	children
-	Anchor		children
-	Collision	children
+ Transform	children
+ Group		children
+ Billboard	children
+ Anchor		children
+ Collision	children
 );
 
 %VRML::Nodes::siblingsensitive = map {($_,1)} qw/
-	TouchSensor
-	PlaneSensor
-	CylinderSensor
-	SphereSensor
+ TouchSensor
+ PlaneSensor
+ CylinderSensor
+ SphereSensor
 /;
 
 %VRML::Nodes::sensitive = map {($_,1)} qw/
-	ProximitySensor
+ ProximitySensor
 /;
 
-
-
 %VRML::Nodes = (
-# Internal structures, to store def and use in the right way
-DEF => new VRML::NodeType("DEF",{node => [SFNode, NULL]}, id => [SFString,""]),
-USE => new VRML::NodeType("USE",{node => [SFNode, NULL]}, id => [SFString,""]),
+ # Internal structures, to store def and use in the right way
+ DEF => new VRML::NodeType("DEF",{node => [SFNode, NULL]}, id => [SFString,""]),
+ USE => new VRML::NodeType("USE",{node => [SFNode, NULL]}, id => [SFString,""]),
 
-Shape => new VRML::NodeType ("Shape",
-	{appearance => [SFNode, NULL],
-	 geometry => [SFNode, NULL]}
-),
+ Shape => new VRML::NodeType ("Shape",
+ {
+    appearance => [SFNode, NULL],
+    geometry => [SFNode, NULL]
+ }
+ ),
 
-# Complete
-Appearance => new VRML::NodeType ("Appearance",
-	{material => [SFNode,NULL],
-	 texture => [SFNode,NULL],
-	textureTransform => [SFNode,NULL]
-	 }
-),
+ # Complete
+ Appearance => new VRML::NodeType ("Appearance",
+ {
+    material => [SFNode,NULL],
+    texture => [SFNode,NULL],
+    textureTransform => [SFNode,NULL]
+ }
+ ),
 
-# Complete 
-Material => new VRML::NodeType ("Material",
-	{diffuseColor => [SFColor, [0.8, 0.8, 0.8]],
-	 ambientIntensity => [SFFloat, 0.2],
-	 specularColor => [SFColor, [0,0,0]],
-	 emissiveColor => [SFColor, [0,0,0]],
-	 shininess => [SFFloat, 0.2],
-	 transparency => [SFFloat, 0]}
-),
+ # Complete 
+ Material => new VRML::NodeType ("Material",
+ {
+    diffuseColor => [SFColor, [0.8, 0.8, 0.8]],
+    ambientIntensity => [SFFloat, 0.2],
+    specularColor => [SFColor, [0,0,0]],
+    emissiveColor => [SFColor, [0,0,0]],
+    shininess => [SFFloat, 0.2],
+    transparency => [SFFloat, 0]
+ }
+ ),
 
-ImageTexture => new VRML::NodeType("ImageTexture",
-	{url => [MFString, []],
-	 repeatS => [SFBool, 1, "field"],
-	 repeatT => [SFBool, 1, "field"],
-	 __depth => [SFInt32, 1, "field"],
-	 __x => [SFInt32,0, "field"],
-	 __y => [SFInt32,0, "field"],
-	 __data => [SFString, "", "field"],
-	},{
-	Initialize => sub {
-		my($t,$f,$time,$scene) = @_;
-		init_image("","url",$t,$f,$scene,1);
-		return ();
-	}
-      }
-),
+ ImageTexture => new VRML::NodeType("ImageTexture",
+ {
+    url => [MFString, []],
+    repeatS => [SFBool, 1, "field"],
+    repeatT => [SFBool, 1, "field"],
+    __depth => [SFInt32, 1, "field"],
+    __x => [SFInt32,0, "field"],
+    __y => [SFInt32,0, "field"],
+    __data => [SFString, "", "field"],
+ },{
+    Initialize => sub {
+	my ($t,$f,$time,$scene) = @_;
+	init_image("","url",$t,$f,$scene,1);
+	return ();
+    }
+ }
+ ),
 
 
 # From Remi Cohen-Scali
@@ -559,76 +571,88 @@ Box => new VRML::NodeType("Box",
 	{size => [SFVec3f, [2,2,2]]}
 ),
 
-# Complete
-Cylinder => new VRML::NodeType ("Cylinder",
-	{radius => [SFFloat,1],
-	 height => [SFFloat,2],
-	 side => [SFBool,1],
-	 top => [SFBool,1],
-	 bottom => [SFBool,1]},
-),
+ Box => new VRML::NodeType("Box",
+ { size => [SFVec3f, [2,2,2]] }
+ ),
+
+ # Complete
+ Cylinder => new VRML::NodeType ("Cylinder",
+ {
+    radius => [SFFloat,1],
+    height => [SFFloat,2],
+    side => [SFBool,1],
+    top => [SFBool,1],
+    bottom => [SFBool,1]
+ },
+ ),
 
 # Complete
-Cone => new VRML::NodeType ("Cone",
-	{bottomRadius => [SFFloat,1],
-	 height => [SFFloat,2],
-	 side => [SFBool,1],
-	 bottom => [SFBool,1]},
-),
+ Cone => new VRML::NodeType ("Cone",
+ {
+    bottomRadius => [SFFloat,1],
+    height => [SFFloat,2],
+    side => [SFBool,1],
+    bottom => [SFBool,1]
+ },
+ ),
 
 # Complete
-Coordinate => new VRML::NodeType("Coordinate",
-	{point => [MFVec3f, []]}
-),
-Color => new VRML::NodeType("Color",
-	{color => [MFColor, []]}
-),
-Normal => new VRML::NodeType("Normal",
-	{vector => [MFVec3f, []]}
+ Coordinate => new VRML::NodeType("Coordinate",
+ { point => [MFVec3f, []] }
+ ),
+
+ Color => new VRML::NodeType("Color",
+ { color => [MFColor, []] }
+ ),
+
+ Normal => new VRML::NodeType("Normal",
+ { vector => [MFVec3f, []] }
+ ),
+
+ TextureCoordinate => new VRML::NodeType("TextureCoordinate",
+ { point => [MFVec2f, []] }
+ ),
+
+
+ ElevationGrid => new VRML::NodeType("ElevationGrid",
+ {
+    height => [MFFloat, []],
+    xDimension => [SFInt32, 0],
+    zDimension => [SFInt32, 0],
+    xSpacing => [SFFloat, 1.0],
+    zSpacing => [SFFloat, 1.0],
+    solid => [SFBool, 1],
+    creaseAngle => [SFFloat, 0],
+    color => [SFNode, NULL],
+    normal => [SFNode, NULL],
+    texCoord => [SFNode, NULL],
+    ccw => [SFBool, 1],
+    colorPerVertex => [SFBool, 1],
+    normalPerVertex => [SFBool, 1],
+ }
+ ),
+
+ Extrusion => new VRML::NodeType("Extrusion",
+ {
+    beginCap => [SFBool, 1],
+    ccw => [SFBool, 1],
+    convex => [SFBool, 1],
+    creaseAngle => [SFFloat, 0],
+    crossSection => [MFVec2f, [[1,1],[1,-1],[-1,-1],[-1,1],[1,1]]],
+    endCap => [SFBool, 1],
+    orientation => [MFRotation, [[0,0,1,0]]],
+    scale => [MFVec2f, [[1,1]]],
+    solid => [SFBool, 1],
+    spine => [MFVec3f, [[0,0,0],[0,1,0]]]
+ }
 ),
 
-TextureCoordinate => new VRML::NodeType("TextureCoordinate",
-	{point => [MFVec2f, []]}
-),
+ # Complete
+ Sphere => new VRML::NodeType("Sphere",
+ { radius => [SFFloat, 1] }
+ ),
 
-
-ElevationGrid => new VRML::NodeType("ElevationGrid",
-	{height => [MFFloat, []],
-	 xDimension => [SFInt32, 0],
-	 zDimension => [SFInt32, 0],
-	 xSpacing => [SFFloat, 1.0],
-	 zSpacing => [SFFloat, 1.0],
-	 solid => [SFBool, 1],
-	 creaseAngle => [SFFloat, 0],
-	 color => [SFNode, NULL],
-	 normal => [SFNode, NULL],
-	 texCoord => [SFNode, NULL],
-	 ccw => [SFBool, 1],
-	 colorPerVertex => [SFBool, 1],
-	 normalPerVertex => [SFBool, 1],
-	}
-),
-
-Extrusion => new VRML::NodeType("Extrusion",
-	{beginCap => [SFBool, 1],
-	 ccw => [SFBool, 1],
-	 convex => [SFBool, 1],
-	 creaseAngle => [SFFloat, 0],
-	 crossSection => [MFVec2f, [[1,1],[1,-1],[-1,-1],[-1,1],[1,1]]],
-	 endCap => [SFBool, 1],
-	 orientation => [MFRotation, [[0,0,1,0]]],
-	 scale => [MFVec2f, [[1,1]]],
-	 solid => [SFBool, 1],
-	 spine => [MFVec3f, [[0,0,0],[0,1,0]]]
-	}
-),
-
-# Complete
-Sphere => new VRML::NodeType("Sphere",
-	{radius => [SFFloat, 1]}
-),
-
-# normalPerVertex does not work.
+ # normalPerVertex does not work.
 
 IndexedFaceSet => new VRML::NodeType("IndexedFaceSet",
 	{coord => [SFNode, NULL],
@@ -696,67 +720,69 @@ FontStyle => new VRML::NodeType("FontStyle",
 	}
 ),
 
-Switch => new VRML::NodeType("Switch",
-	{choice => [MFNode, []],
-	 whichChoice => [SFInt32, -1]
-	}
-),
+ Switch => new VRML::NodeType("Switch",
+ {
+    choice => [MFNode, []],
+    whichChoice => [SFInt32, -1]
+ }
+ ),
 
-LOD => new VRML::NodeType("LOD",
-	{level => [MFNode, []],
-	 center => [SFVec3f, [0,0,0],  field],
-	 range => [MFFloat, []]
-	}
-),
+ LOD => new VRML::NodeType("LOD",
+ {
+    level => [MFNode, []],
+    center => [SFVec3f, [0,0,0],  field],
+    range => [MFFloat, []]
+ }
+ ),
 
-Transform => new VRML::NodeType ("Transform",
-	{translation => [SFVec3f, [0,0,0]],
-	 rotation => [SFRotation, [0,0,1,0]],
-	 scale => [SFVec3f, [1,1,1]],
-	 scaleOrientation => [SFRotation, [0,0,1,0]],
-	 children => [MFNode, []],
-	 center => [SFVec3f, [0,0,0]],
-	 bboxCenter => [SFVec3f, [0,0,0]],
-	 bboxSize => [SFVec3f, [-1,-1,-1]],
-         addChildren => [MFNode, [], eventIn],
-         removeChildren => [MFNode, [], eventIn],
-        },
-        {
-#            Initialize => sub
-#            {
-#                print("Transform:Initialize\n");
-#                my($t,$f,$time,$scene) = @_;
-#                $Scene = $scene;
-#                return ();
-#            },
-            addChildren => sub
-            {
-#                print("Transform:addChildren\n");
-#                my($node,$fields,$value,$time) = @_;
-#		print ("node $node, value $value\n");
-#                add_MFNode($node, "children", $value->[0], 1);
-#                $node->{RFields}{children}=$node->{Fields}{children};
-                return ();
-            },
+ Transform => new VRML::NodeType ("Transform",
+ {
+    translation => [SFVec3f, [0,0,0]],
+    rotation => [SFRotation, [0,0,1,0]],
+    scale => [SFVec3f, [1,1,1]],
+    scaleOrientation => [SFRotation, [0,0,1,0]],
+    children => [MFNode, []],
+    center => [SFVec3f, [0,0,0]],
+    bboxCenter => [SFVec3f, [0,0,0]],
+    bboxSize => [SFVec3f, [-1,-1,-1]],
+    addChildren => [MFNode, [], eventIn],
+    removeChildren => [MFNode, [], eventIn],
+ },
+ {
+#Initialize => sub
+#{
+#print("Transform:Initialize\n");
+#my($t,$f,$time,$scene) = @_;
+#$Scene = $scene;
+#return ();
+#},
+ addChildren => sub
+ {
+#print("Transform:addChildren\n");
+#my($node,$fields,$value,$time) = @_;
+#print ("node $node, value $value\n");
+#add_MFNode($node, "children", $value->[0], 1);
+#$node->{RFields}{children}=$node->{Fields}{children};
+    return ();
+ },
 
-	    removeChildren => sub
-	    {
-		return ();
-	    },
+ removeChildren => sub
+ {
+    return ();
+ },
 
-         EventsProcessed => sub
-          {
-#                my($node,$fields,$time) = @_;
-#                #my $ac = $fields->{addChildren};
-#                print("Transform:EventsProcessed $node $fields\n");
-#                #$node->{BackEnd}->update_scene($time);
-#                #add_MFNode($t,"children",$ac->[0], 1);
-#                #$node->receive_event("addChildren", $ac, $time);
-                return ();
-            }
-
-	},
-),
+ EventsProcessed => sub
+ {
+#my($node,$fields,$time) = @_;
+##my $ac = $fields->{addChildren};
+#print("Transform:EventsProcessed $node $fields\n");
+##$node->{BackEnd}->update_scene($time);
+##add_MFNode($t,"children",$ac->[0], 1);
+##$node->receive_event("addChildren", $ac, $time);
+    return ();
+ }
+ },
+ ),
 
 TextureTransform => new VRML::NodeType ("TextureTransform",
 	{center => [SFVec2f, [0,0]],
@@ -1807,48 +1833,62 @@ Script => new VRML::NodeType("Script",
 	}
 ),
 
-# XXX Well, at least it will display children now... JAS.
-Collision => new VRML::NodeType("Collision",
-	{collide => [SFBool, 1],
-	 bboxSize => [SFVec3f, [-1,-1,-1]],
-	 bboxCenter => [SFVec3f, [0,0,0]],
-	 proxy => [SFNode, NULL],
-	 children => [MFNode, []]
-	}
-),
+ # XXX Well, at least it will display children now... JAS.
+ Collision => new VRML::NodeType("Collision",
+ {
+    collide => [SFBool, 1],
+    bboxSize => [SFVec3f, [-1,-1,-1]],
+    bboxCenter => [SFVec3f, [0,0,0]],
+    proxy => [SFNode, NULL],
+    children => [MFNode, []]
+ }
+ ),
 
-Inline => new VRML::NodeType("Inline",
-	{bboxSize => [SFVec3f, [-1,-1,-1]],
-	 bboxCenter => [SFVec3f, [0,0,0]],
-	 url => [MFString, []]
-	},
-	{
-	Initialize => sub {
-		my($t,$f,$time,$scene) = @_;
-		# XXXXXX!!
-		# print "VRMLNode::Inline\n	t $t\n	f $f\n	time $time\n	scene $scene\n";
-		my $purl = $scene->get_url();
+ Inline => new VRML::NodeType("Inline",
+ {
+    bboxSize => [SFVec3f, [-1,-1,-1]],
+    bboxCenter => [SFVec3f, [0,0,0]],
+    url => [MFString, []]
+ },
+ {
+    Initialize => sub {
+	my($t, $f, $time, $scene) = @_;
+	# XXXXXX!!
+	#print "VRMLNode::Inline\n\tt $t\n\tf $f\n\ttime $time\n\tscene $scene\n";
 
-		my $urls = $f->{url};
-		my ($text,$url) = VRML::URL::get_relative($purl, $urls->[0]);
+	my ($text, $url);
+	my $purl = $scene->get_url();
+	my $urls = $f->{url};
+	$p = $scene->new_proto("__proto".$protono++);
 
-		$p = $scene->new_proto("__proto".$protono++);
-	
-		$p->set_url($url);
-		VRML::Parser::parse($p, $text);
+	my $valid = 0;
 
-		if(!defined $p) {
-			die("Inline not found");
-		}
-		$t->{ProtoExp} = $p;
-		$t->{ProtoExp}->set_parentnode($t);
-		$t->{ProtoExp}->make_executable();
-		$t->{ProtoExp}{IsInline} = 1;
-		$t->{IsProto} = 1;
-		return ();
-	}
-	}
-),
+	URL: for $u (@$urls) {
+	    ($text,$url) = VRML::URL::get_relative($purl, $u);
+	    if (!$text) {
+		warn "Warning: could not retrieve $u";
+		next URL;
+	    }
+
+	    $p->set_url($url);
+	    VRML::Parser::parse($p, $text);
+	    if(!defined $p) { die("Inline not found"); }
+
+	    $t->{ProtoExp} = $p;
+	    $t->{ProtoExp}->set_parentnode($t);
+	    $t->{ProtoExp}->make_executable();
+	    $t->{ProtoExp}{IsInline} = 1;
+	    $t->{IsProto} = 1;
+
+	    $valid =1;
+
+	} # for $u (@$urls)
+
+	if (!$valid) { die "Unable to loacte a valid url"; }
+	return ();
+    }
+ }
+ ),
 
 );
 
