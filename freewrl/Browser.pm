@@ -95,21 +95,54 @@ sub load_file {
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
 	if (!$t) { die "File $file was not found"; }
 
-	unless($t =~ /^#VRML V2.0/s) {
-		if($t =~ /^#VRML V1.0/s) {
-			print "Sorry, this file is according to VRML V1.0, I only know V2.0";
+	if ($t =~ /^#VRML V2.0/s) {
+		$this->load_string($t,$url,2);
+	} elsif($t =~ /^#VRML V1.0/s) {
+			print "VRML V1.0, I only know V2.0";
 			exit (1);
-		}
+	} elsif ($t =~/^<\?xml version/s) {
+		$this->load_string($t,$url,3);
+	} else {
+
 		warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");
+		$this->load_string($t,$url,2);
 	}
-	$this->load_string($t,$url);
 }
 
 sub load_string {
-	my($this,$string,$file) = @_;
+	my($this,$string,$file,$type) = @_;
+
+	# type is 2 for VRML v2, 3 for xml
+
 	$this->clear_scene();
 	$this->{Scene} = VRML::Scene->new($this->{EV},$file);
 	$this->{Scene}->set_browser($this);
+	if ($type == 3)  {
+		# x3d - convert this to VRML.
+
+		my $lgname = $ENV{LOGNAME};
+		my $tempfile_name = "/tmp/freewrl_xtov_";
+		my $tmpfile = join '',$tempfile_name,$lgname,".x3d";
+		my $newfile = join '',$tempfile_name,$lgname,".wrl";
+	
+		# write the current x3d string to a temp file	
+		open (MYTMP,"> $tmpfile") or die "could not open $tmpfile for writing: $!\n";
+		print MYTMP $string;
+		close (MYTMP);
+	
+		# run the xsl conversion program, saxon, on this temp file.	
+		my $cmd = "$VRML::Browser::JAVA -cp  $VRML::Browser::JCP com.icl.saxon.StyleSheet $tmpfile $VRML::Browser::X3DTOVRMLXSL > $newfile";
+		my $status = system ($cmd);
+		die "X3D conversion problem: '$cmd' returns $?" unless $status == 0;
+	
+		# and get the vrml string back again.	
+		$string = `cat $newfile`;
+		
+		# delete temporary files
+		my $cmd = "rm $newfile $tmpfile";
+		my $status = system ($cmd);
+		die "X3D conversion problem: '$cmd' returns $?" unless $status == 0;
+	}
 	VRML::Parser::parse($this->{Scene},$string);
         prepare ($this);
 	# and, take care of keeping the viewpoints active...
