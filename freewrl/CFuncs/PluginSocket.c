@@ -12,6 +12,9 @@
 
 static int PluginSocketVerbose = 0; // CHECK DIRECTORY IN PLUGINPRINT
 static FILE * tty = NULL;
+fd_set rfds;
+struct timeval tv;
+
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
@@ -22,7 +25,7 @@ int createUDPSocket();
 void pluginprint (const char *m, const char *p) {
 	if (!PluginSocketVerbose) return;
 	if (tty == NULL) {
-		tty = fopen("/tmp/logPluginSocket", "w");
+		tty = fopen("/home/luigi/logPluginSocket", "w");
 		if (tty == NULL)
 			abort();
 		fprintf (tty, "\nplugin restarted\n");
@@ -32,6 +35,33 @@ void pluginprint (const char *m, const char *p) {
 	fflush(tty);
 }
 
+/* loop about waiting for the Browser to send us some stuff. */
+int waitForData(int sock) {
+
+	int retval;
+	int count;
+
+	retval = FALSE;
+	count = 0;
+	do {
+		tv.tv_sec = 0;
+		tv.tv_usec = 100;
+		FD_ZERO(&rfds);
+		FD_SET((sock), &rfds);
+	
+		retval = select((sock)+1, &rfds, NULL, NULL, &tv);
+		
+
+		if (retval) {
+			pluginprint ("waitForData returns TRUE\n","");
+			return (TRUE);
+		} else {
+			pluginprint ("eaitForData returns FALSE\n","");
+			count ++;
+			if (count > 10000) return (FALSE);
+		}
+	} while (!retval);
+}
 
 int
 createUDPSocket()
@@ -141,7 +171,6 @@ requestUrlfromPlugin(int sockDesc,
 
 	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
 		pluginprint ("write failed in requestUrlfromPlugin","");
-		/* return SOCKET_ERROR; */
 		return NULL;
 	}
 
@@ -150,15 +179,13 @@ requestUrlfromPlugin(int sockDesc,
 	flags |= MSG_WAITALL;
 #endif /* FALSE */
 	
-	//if (read(sockDesc, (char *) return_url, FILENAME_MAX) < 0) {
+
+	/* wait around for a bit to see if this is going to pass or fail */
+	if (!waitForData(sockDesc)) return NULL;
+
 	if (read(sockDesc, (char *) return_url, len) < 0) {
 		pluginprint("read failed in requestUrlfromPlugin","");
- 		 /* If blocked or interrupted... */
-/* 		if (errno != EAGAIN && errno != EINTR) { */
-/* 			return SOCKET_ERROR; */
-/* 		} */
 		pluginprint("Testing: error from read -- returned url is %s.\n", return_url);
-		/* return SOCKET_ERROR; */
 		return NULL;
 	}
 

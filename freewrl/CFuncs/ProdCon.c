@@ -193,6 +193,9 @@ int fileExists(char *fname, char *firstBytes) {
 	   save the name it returns (cache entry) */
 	if (RUNNINGASPLUGIN && (strcmp(BrowserURL,fname)!=0)) {
 		retName = requestUrlfromPlugin(_fw_FD,_fw_instance,fname);
+
+		/* check for timeout; if not found, return false */
+		if (!retName) return (FALSE);
 		strcpy (fname,retName);
 	}
 

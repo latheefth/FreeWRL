@@ -47,7 +47,7 @@
 
 char *paramline[15]; /* parameter line */
 
-static int PluginVerbose = 0;  // CHECK DIRECTORY BEFORE SETTING THIS TO 1
+static int PluginVerbose = 0;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
 
 /*******************************************************************************
  * Instance state information about the plugin.
@@ -103,7 +103,7 @@ static void print_here (char * xx) {
 	if (!PluginVerbose) return;
 
 	if (tty == NULL) {
-		tty = fopen("/tmp/log.npfreewrl.so", "w");
+		tty = fopen("/home/luigi/log", "w");
 		if (tty == NULL)
 			abort();
 		fprintf (tty, "\nplugin restarted\n");
@@ -161,6 +161,9 @@ int freewrlReceive(int fd) {
 	urlRequest request;
 	size_t request_size = 0;
 	int rv = 0;
+	int retval;
+
+	retval = NPERR_NO_ERROR;
 
 	sprintf(debs, "Call to freewrlReceive fd %d.\n", fd);
 	print_here (debs);
@@ -213,11 +216,21 @@ print_here ("step 2");
 		return(NPERR_GENERIC_ERROR);
 	} else {
 print_here("past the read for the url request");
-		if ((rv = NPN_GetURL(request.instance, request.url, NULL)) 
+		if ((rv = NPN_GetURL(request.instance, request.url, NULL))
 			!= NPERR_NO_ERROR) {
 			sprintf(debs, "Call to NPN_GetURL failed with error %d.\n", rv);
 			print_here(debs);
+			retval = NPERR_GENERIC_ERROR;
+
+			/* tell FreeWRL that this name does not exist */
+		//	if (write(np_fd, 
+		//		"FILE DOES NOT EXIST",
+		//		strlen ("FILE DOES NOT EXIST")) < 0) {
+		//		print_here ("Call to write failed");
+		//	}
 		}
+		sprintf(debs, "Call to NPN_GetURL returned %d.\n", rv);
+		print_here(debs);
 		sprintf (debs, "step 2a, request.url %s\n",request.url);
 		print_here(debs);
 	}
@@ -230,9 +243,9 @@ print_here ("step 3");
 		return(NPERR_GENERIC_ERROR);
 	}
 
-print_here ("step 4, returning NPERR_NO_ERROR");
+print_here ("step 4, returning at end");
 
-	return(NPERR_NO_ERROR);
+	return(retval);
 }
 
 int init_socket(int fd, Boolean nonblock) {
@@ -943,8 +956,10 @@ NPP_Print(NPP instance, NPPrint* printInfo)
 // call, and can be used by your plug-in to uniquely identify the request. 
  ******************************************************************************/
 
-void
-NPP_URLNotify(NPP instance, const char* url, NPReason reason, void* notifyData)
-{
-}
+//void
+//NPP_URLNotify(NPP instance, const char* url, NPReason reason, void* notifyData)
+//{
+//	sprintf (debs, "NPP_URLNotify called, reason %d\n",notifyData);
+//	print_here (debs);
+//}
 
