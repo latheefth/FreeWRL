@@ -587,11 +587,11 @@ my $ok = 0;
 #push (@INC,'/usr/lib/perl5/5.6.1');
 #foreach (@INC) { print "incline $_\n";}
 
-
 $ok = VRML::VRMLFunc::save_font_path(($VRML::ENV{FREEWRL_FONTS}||"fonts"));
+
 if ($ok == 0) {
 	foreach (@INC) {
-		$ok = VRML::VRMLFunc::save_font_path("$_/fonts");
+		$ok = VRML::VRMLFunc::save_font_path("$_/VRML/fonts");
 	}
 }
 
