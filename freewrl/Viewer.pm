@@ -169,6 +169,11 @@ sub handle_tick {
     my $nq = new VRML::Quaternion(1-0.2*$this->{RD},0,0.2*$this->{RD},0);
     $nq->normalize_this;
     $this->{Quat} = $nq->multiply($this->{Quat});
+
+    # any movement? if so, lets render it.
+    if ((abs($this->{RD}) > 0.000001) || (abs($this->{ZD}) > 0.000001)) {
+	VRML::OpenGL::set_render_frame();
+    }
 }
 
 
@@ -269,6 +274,16 @@ sub handle_tick {
 	$this->{Quat} = $nq->multiply($this->{Quat});
 
 	# print "HANDLE_TICK($dt): @aadd | @{$this->{Velocity}} | @$nv\n";
+
+    	# any movement? if so, lets render it.
+	if ((abs($this->{Velocity}[0]) > 0.000001) ||
+	    (abs($this->{Velocity}[1]) > 0.000001) ||
+	    (abs($this->{Velocity}[2]) > 0.000001)) {
+        	VRML::OpenGL::set_render_frame();
+    	}
+
+
+
 	$lasttime = $time;
 }
 }
@@ -331,6 +346,8 @@ sub handle_tick {
 #			print "Fly Viewpoint: [$tr], [$rot]\n";
 #print "this's quat is ",$this->{Quat}->as_str,"\n";
 #JAS}
+                VRML::OpenGL::set_render_frame();
+
 	}
 }
 }
