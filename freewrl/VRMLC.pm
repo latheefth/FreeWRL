@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.69  2003/02/06 20:27:54  crc_canada
+# remove unused endlist macro
+#
 # Revision 1.68  2003/01/31 19:33:18  crc_canada
 # More SoundEngine work
 #
@@ -926,11 +929,6 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern || 
 			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
 				regen_polyrep(this_);/g;
-
-
-		$c =~ s/\$endlist\(\)/
-			glEndList()
-			/g;
 
 		$c =~ s/\$ntyptest\(([^),]*),([^),]*)\)/
 				(((struct VRML_Box *)$1)->v == 	
