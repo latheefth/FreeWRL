@@ -37,6 +37,7 @@ public class Node {
   // it thinks...
 
    // lets remember the addChildren and removeChildren specials...
+   // FreeWRL does not differentiate between addChildren and removeChildren
    if (name.equals("addChildren") || (name.equals("removeChildren"))) {
       EventInMFNode ret = new EventInMFNode();
       ret.command = name; ret.inNode = NodeName; return ret;
