@@ -212,44 +212,6 @@ sub STORE {
 package VRML::NodeType;
 
 
-# AK - Grouping nodes (see VRML97 4.6.5) that have children use essentially
-# AK - the same code to add & remove child nodes.
-sub addChildren_GroupingNodes {
-	my ($node, $fields, $value, $time) = @_;
-
-	# debug:
-	#print "VRML::NodeType::addChildren_GroupingNodes: ", VRML::Debug::toString(\@_), "\n";
-
-	my %children = map { $_ => 1 } @{$node->{RFields}{children}};
-	for (@{$value}) {
-		if (!$children{$_}) {
-			push @{$node->{Fields}{children}}, $_;
-		}
-	}
-	$node->{RFields}{children} = $node->{Fields}{children};
-
-	@{$node->{Fields}{addChildren}} = ();
-}
-
-sub removeChildren_GroupingNodes {
-	my ($node, $fields, $value, $time) = @_;
-
-	# debug:
-	#print "VRML::NodeType::removeChildren_GroupingNodes: ", VRML::Debug::toString(\@_), "\n";
-
-	my %toremove = map { $_ => 1 } @{$value};
-	my @children = grep { !$toremove{$_} } @{$node->{RFields}{children}};
-
-	@{$node->{Fields}{children}} = ();
-
-	push @{$node->{Fields}{children}}, @children;
-
-	$node->{RFields}{children} = $node->{Fields}{children};
-
-	@{$node->{Fields}{removeChildren}} = ();
-}
-
-
 # pass in a scene, and an MFString of urls, returns a local name to the file.
 sub getFileFromUrls {
 	my ($scene, $urls, $node) = @_;
@@ -1045,17 +1007,6 @@ my $protono;
 						 __do_rotation => [SFInt32, 0, field],
 						 __do_scaleO => [SFInt32, 0, field],
 						 __do_scale => [SFInt32, 0, field],
-
-
-						},
-						{
-						 addChildren => sub {
-							 return addChildren_GroupingNodes(@_);
-						 },
-
-						 removeChildren => sub {
-							 return removeChildren_GroupingNodes(@_);
-						 },
 						},
 					   ),
 
@@ -1079,15 +1030,6 @@ my $protono;
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field]
 					   },
-					   {
-						addChildren => sub {
-							return addChildren_GroupingNodes(@_);
-						},
-
-						removeChildren => sub {
-							return removeChildren_GroupingNodes(@_);
-						},
-					   }
 					  ),
 
 	Anchor =>
@@ -1102,15 +1044,6 @@ my $protono;
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field]
 					   },
-					   {
-						addChildren => sub {
-							return addChildren_GroupingNodes(@_);
-						},
-
-						removeChildren => sub {
-							return removeChildren_GroupingNodes(@_);
-						}
-					   }
 					  ),
 
 	Billboard =>
@@ -1123,15 +1056,6 @@ my $protono;
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field]
 					   },
-					   {
-						addChildren => sub {
-							return addChildren_GroupingNodes(@_);
-						},
-
-						removeChildren => sub {
-							return removeChildren_GroupingNodes(@_);
-						}
-					   }
 					  ),
 
 	# Complete
@@ -1527,14 +1451,6 @@ my $protono;
 						__hit => [SFInt32, 0, exposedField]
 					   },
 					   {
-						addChildren => sub {
-							return addChildren_GroupingNodes(@_);
-						},
-
-						removeChildren => sub {
-							return removeChildren_GroupingNodes(@_);
-						},
-
 						ClockTick => sub {
 							my($t) = @_;
 
