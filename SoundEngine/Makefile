@@ -7,17 +7,21 @@ CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
 LIBRARIES = -lm
 SVROBJ = main.o wavmaker.o mixer.o
 
-install:  main
-	cp FreeWRL_SoundServer /usr/local/bin
-
 All: main 
 
 main: $(SVROBJ)
 	$(CC) $(SVROBJ) $(CFLAGS) -o FreeWRL_SoundServer $(LIBDIR) $(LIBRARIES)
+	@ls -al FreeWRL_SoundServer;strip FreeWRL_SoundServer;ls -al FreeWRL_SoundServer
 
 mixer: mixer.o
 	$(CC) $(CFLAGS) -o $mixer $(LIBDIR) $< $(LIBRARIES)
 
 wavmaker: wavmaker.o
 	$(CC) $(CFLAGS) -o $wavmaker $(LIBDIR) $< $(LIBRARIES)
+
+clean:
+	rm -f *.o FreeWRL_SoundServer
+
+install:  main
+	cp FreeWRL_SoundServer /usr/local/bin/.
 

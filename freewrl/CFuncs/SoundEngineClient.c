@@ -90,8 +90,8 @@ void SoundEngineInit () {
 	}
 
 	
-	//my_ipc_key = getpid();
-	my_ipc_key = 1234;
+	my_ipc_key = getpid();
+	//my_ipc_key = 1234;
 	msg.mtype=1;
 
 	// initialize SoundRegistered "database"
@@ -111,10 +111,11 @@ void SoundEngineInit () {
 		return;
 	}
 
-	 //printf ("Client - msq_toserver %d msq_fromserver %d\n",
-	 //	msq_toserver,msq_fromserver);
+	//printf ("Client - msq_toserver=%x, msq_fromserver=%x.\n",
+	//	msq_toserver,msq_fromserver);
 
 	sprintf(buf,"INIT %d",my_ipc_key);
+//printf("buf='%s' sspath='%s'.\n",buf,sspath);
 
 	if ( (S_Server_PID = fork()) == (pid_t)0L ) {
 		// is this path ok?

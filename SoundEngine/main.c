@@ -363,7 +363,6 @@ void process_command () {
 
 
 int main(int argc,char **argv) {
-
 	if (argc <1) {
 		printf ("Server: too few args\n");
 		exit(1);
@@ -378,11 +377,14 @@ int main(int argc,char **argv) {
 
 
 	//printf ("Server - getting the client IPC from argv %s\n", argv[0]);
+	S_Server_IPC=getppid();
 
+	//printf ("a='%s', msg='%s', d='%d'.\n", argv[0],msg.msg,S_Server_IPC);
 	if (!strncmp("INIT",argv[0],4)) {
 		sscanf (argv[0],"%s%d",msg.msg,&S_Server_IPC);
 	} else {
 		printf ("SoundServer: no Client_IPC on command line\n");
+		//printf ("a='%s', msg='%s', dud='%d'.\n", argv[0],msg.msg,dud);
 		exit(1);
 	}	
 
@@ -395,7 +397,7 @@ int main(int argc,char **argv) {
 		printf ("SoundServer: no IPC queue available\n");
 		exit(1);
 	}
-	//printf ("Server, ok, msq_fromclnt %d msq_toclnt %d key %d\n",
+	//printf ("Server, ok, msq_fromclnt=%x msq_toclnt=%x key %d\n",
 	//		msq_fromclnt,msq_toclnt,S_Server_IPC);
 
 
@@ -408,7 +410,7 @@ int main(int argc,char **argv) {
 			exit (0);
 		}
 		
-		//printf ("server, got fromclnt %d message %s\n",xx,msg.msg);
+		//printf ("server, from FreeWRL=%x message='%s'\n",xx,msg.msg);
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
 	closeMixer();
