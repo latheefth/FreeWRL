@@ -615,27 +615,6 @@ $b = new VRML::Browser({
 						BackEnd => [Geometry => $geometry]
 					   });
 
-if (0) {
-#my $host = "localhost"; ## move to vrml.conf eventually
-
-#if ($VRML::ENV{AS_PLUGIN}) {
-#	if (($VRML::PluginGlue::globals{freeWRLSock} =
-#			VRML::PluginGlue::connectToPlugin($host)) < 0) {
-#	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
-#	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
-#	    exit(1);
-#	}
-
-
-#	if (VRML::PluginGlue::setIOOptions($VRML::PluginGlue::globals{freeWRLSock},
-#											$$, 0, 1) < 0) {
-#	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
-#	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
-#	    exit(1);
-#	}
-#}
-}
-
 # By default creates front- and back-ends.
 
 $be = $b->get_backend;
