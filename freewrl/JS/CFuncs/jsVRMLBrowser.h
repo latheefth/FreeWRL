@@ -151,8 +151,8 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"getCurrentSpeed", VrmlBrowserGetCurrentSpeed, 0},
 	{"getCurrentFrameRate", VrmlBrowserGetCurrentFrameRate, 0},
 	{"getWorldURL", VrmlBrowserGetWorldURL, 0},
-/* 	{"replaceWorld", VrmlBrowserReplaceWorld, 0}, */
-/* 	{"loadURL", VrmlBrowserLoadURL, 0}, */
+	{"replaceWorld", VrmlBrowserReplaceWorld, 0},
+	{"loadURL", VrmlBrowserLoadURL, 0},
 	{"setDescription", VrmlBrowserSetDescription, 0},
 	{"createVrmlFromString", VrmlBrowserCreateVrmlFromString, 0},
 	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL, 0},
