@@ -550,13 +550,11 @@ my $protono;
 					   { node => [SFNode, NULL, exposedField] },
 					   id => [SFString, ""]
 					  ),
-
 	USE =>
 	new VRML::NodeType("USE",
 					   { node => [SFNode, NULL, exposedField] },
 					   id => [SFString, ""]
 					  ),
-
 	Shape =>
 	new VRML::NodeType ("Shape",
 						{
@@ -564,8 +562,6 @@ my $protono;
 						 geometry => [SFNode, NULL, exposedField]
 						}
 					   ),
-
-	# Complete
 	Appearance =>
 	new VRML::NodeType ("Appearance",
 						{
@@ -574,8 +570,6 @@ my $protono;
 						 textureTransform => [SFNode, NULL, exposedField]
 						}
 					   ),
-
-	# Complete
 	Material =>
 	new VRML::NodeType ("Material",
 						{
@@ -587,7 +581,6 @@ my $protono;
 						 transparency => [SFFloat, 0, exposedField]
 						}
 					   ),
-
 	ImageTexture =>
 	new VRML::NodeType("ImageTexture",
 					   {
@@ -612,10 +605,6 @@ my $protono;
 						}
 					   }
 					  ),
-
-
-# From Remi Cohen-Scali
-
 	PixelTexture =>
 	new VRML::NodeType("PixelTexture",
 					   {
@@ -645,8 +634,6 @@ my $protono;
 						}
 					   }
 					  ),
-
-
 	MovieTexture =>
 	new VRML::NodeType ("MovieTexture",
 						{
@@ -703,14 +690,12 @@ my $protono;
 							  },
 							 }
 					   ),
-
-
 	Box =>
 	new VRML::NodeType("Box",
-					   { size => [SFVec3f, [2, 2, 2], field] }
+					   { 	size => [SFVec3f, [2, 2, 2], field],
+						__points  =>[SFInt32,0,field],
+					   }
 					  ),
-
-	# Complete
 	Cylinder =>
 	new VRML::NodeType ("Cylinder",
 						{
@@ -718,11 +703,11 @@ my $protono;
 						 height => [SFFloat, 2.0, field],
 						 radius => [SFFloat, 1.0, field],
 						 side => [SFBool, 1, field],
-						 top => [SFBool, 1, field]
+						 top => [SFBool, 1, field],
+						 __points =>[SFInt32,0,field],
+						 __normals =>[SFInt32,0,field],
 						},
 					   ),
-
-	# Complete
 	Cone =>
 	new VRML::NodeType ("Cone",
 						{
@@ -730,33 +715,27 @@ my $protono;
 						 height => [SFFloat, 2.0, field],
 						 side => [SFBool, 1, field],
 						 bottom => [SFBool, 1, field],
-						 __points =>[SFInt32,0,field],
+						 __sidepoints =>[SFInt32,0,field],
+						 __botpoints =>[SFInt32,0,field],
 						 __normals =>[SFInt32,0,field],
 						},
 					   ),
-
-	# Complete
 	Coordinate =>
 	new VRML::NodeType("Coordinate",
 					   { point => [MFVec3f, [], exposedField] }
 					  ),
-
 	Color =>
 	new VRML::NodeType("Color",
 					   { color => [MFColor, [], exposedField] }
 					  ),
-
 	Normal =>
 	new VRML::NodeType("Normal",
 					   { vector => [MFVec3f, [], exposedField] }
 					  ),
-
 	TextureCoordinate =>
 	new VRML::NodeType("TextureCoordinate",
 					   { point => [MFVec2f, [], exposedField] }
 					  ),
-
-
 	ElevationGrid =>
 	new VRML::NodeType("ElevationGrid",
 					   {
@@ -776,7 +755,6 @@ my $protono;
 						zSpacing => [SFFloat, 1.0, field]
 					   }
 					  ),
-
 	Extrusion =>
 	new VRML::NodeType("Extrusion",
 					   {
@@ -798,13 +776,12 @@ my $protono;
 						spine => [MFVec3f, [[0, 0, 0],[0, 1, 0]], field]
 					   }
 					  ),
-
-	# Complete
 	Sphere =>
 	new VRML::NodeType("Sphere",
-					   { radius => [SFFloat, 1.0, field] }
+					   { 	radius => [SFFloat, 1.0, field],
+						 __points =>[SFInt32,0,field],
+ 					   }
 					  ),
-
 	IndexedFaceSet =>
 	new VRML::NodeType("IndexedFaceSet",
 					   {
@@ -828,8 +805,6 @@ my $protono;
 						texCoordIndex => [MFInt32, [], field]
 					   }
 					  ),
-
-	# Complete
 	IndexedLineSet =>
 	new VRML::NodeType("IndexedLineSet",
 					   {
@@ -842,8 +817,6 @@ my $protono;
 						coordIndex => [MFInt32, [], field]
 					   }
 					  ),
-
-
 	PointSet =>
 	new VRML::NodeType("PointSet",
 					   {
@@ -851,7 +824,6 @@ my $protono;
 						coord => [SFNode, NULL, exposedField]
 					   }
 					  ),
-
 	Text =>
 	new VRML::NodeType ("Text",
 						{
@@ -862,7 +834,6 @@ my $protono;
 						 __rendersub => [SFInt32, 0, exposedField] # Function ptr hack
 						}
 					   ),
-
 	FontStyle =>
 	new VRML::NodeType("FontStyle",
 					   {
@@ -877,7 +848,6 @@ my $protono;
 						topToBottom => [SFBool, 1, field]
 					   }
 					  ),
-
 	AudioClip =>
 	new VRML::NodeType("AudioClip",
 					   {
@@ -922,8 +892,6 @@ my $protono;
 
 						   },
 					  ),
-
-
 	Sound =>
 	new VRML::NodeType("Sound",
 					   {
@@ -945,7 +913,6 @@ my $protono;
 						}
 					   }
 					  ),
-
 	Switch =>
 	new VRML::NodeType("Switch",
 					   {
@@ -953,7 +920,6 @@ my $protono;
 						whichChoice => [SFInt32, -1, exposedField]
 					   }
 					  ),
-
 	LOD =>
 	new VRML::NodeType("LOD",
 					   {
@@ -962,7 +928,6 @@ my $protono;
 						range => [MFFloat, [], field]
 					   }
 					  ),
-
 	Transform =>
 	new VRML::NodeType ("Transform",
 						{
@@ -985,7 +950,6 @@ my $protono;
 						 __do_scale => [SFInt32, 0, field],
 						},
 					   ),
-
 	TextureTransform =>
 	new VRML::NodeType ("TextureTransform",
 						{
@@ -995,8 +959,6 @@ my $protono;
 						 translation => [SFVec2f, [0, 0], exposedField]
 						}
 					   ),
-
-	# Complete
 	Group =>
 	new VRML::NodeType("Group",
 					   {
@@ -1007,7 +969,6 @@ my $protono;
 						bboxSize => [SFVec3f, [-1, -1, -1], field]
 					   },
 					  ),
-
 	Anchor =>
 	new VRML::NodeType("Anchor",
 					   {
@@ -1021,7 +982,6 @@ my $protono;
 						bboxSize => [SFVec3f, [-1, -1, -1], field]
 					   },
 					  ),
-
 	Billboard =>
 	new VRML::NodeType("Billboard",
 					   {
@@ -1033,8 +993,6 @@ my $protono;
 						bboxSize => [SFVec3f, [-1, -1, -1], field]
 					   },
 					  ),
-
-	# Complete
 	WorldInfo =>
 	new VRML::NodeType("WorldInfo",
 					   {

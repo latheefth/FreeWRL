@@ -36,36 +36,6 @@
 #define PI 3.141592653589793
 #endif
 
-/* how many steps for dividing a shape into - eg spheres, cones... */
-#define horiz_div 20
-#define vert_div 20
-
-/* Faster trig macros (thanks for Robin Williams) */
-/* fixed code, thanks to Etienne Grossmann */
-
-/*
-   (t_aa,  t_ab)  constants for the rotation params 
-   (t_sa,  t_ca)  this 2D point will be rotated by UP_TRIG1
-   (t_sa1, t_ca1) temp vars
-*/
-#define DECL_TRIG1 float t_aa, t_ab, t_sa, t_ca, t_sa1, t_ca1;
-#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
-#define START_TRIG1 t_sa = 0; t_ca = -1;
-#define UP_TRIG1 t_sa1 = t_sa; t_sa -= t_sa*t_aa - t_ca * t_ab; t_ca -= t_ca * t_aa + t_sa1 * t_ab;
-#define SIN1 t_sa
-#define COS1 t_ca
-
-
-#define DECL_TRIG2 float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1, t2_ca1;
-#define INIT_TRIG2(div) t2_aa = sin(PI/(div)); t2_aa *= 2*t2_aa; t2_ab = -sin(2*PI/(div));
-/* Define starting point of horizontal rotations */
-#define START_TRIG2 t2_sa = -1; t2_ca = 0;
-/* #define START_TRIG2 t2_sa = 0; t2_ca = -1; */
-#define UP_TRIG2 t2_sa1 = t2_sa; t2_sa -= t2_sa*t2_aa - t2_ca * t2_ab; t2_ca -= t2_ca * t2_aa + t2_sa1 * t2_ab;
-#define SIN2 t2_sa
-#define COS2 t2_ca
-
-
 
 /* defines for raycasting: */
 #define APPROX(a,b) (fabs(a-b)<0.00000001)

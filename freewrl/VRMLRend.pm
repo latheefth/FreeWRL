@@ -20,8 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.120  2003/10/17 19:54:33  crc_canada
-# trying to make vertex array speed improvements; first one for Cone.
+# Revision 1.121  2003/10/22 19:36:29  crc_canada
+# glDrawArrays and glDrawElements for simple shapes.
 #
 # Revision 1.119  2003/10/16 17:24:59  crc_canada
 # remove unused code
@@ -451,335 +451,345 @@
 #Viewpoint => ' ',
 #GeoViewpoint => ' ',
 
-
-
 NavigationInfo => 'render_NavigationInfo ((struct VRML_NavigationInfo *) this_);',
+
 Fog => '
 	if (!render_geom) printf ("rendering fog while not geom\n");
 render_Fog((struct VRML_Fog *) this_);',
+
 Background => '
 	if (!render_geom) printf ("rendering background while not geom\n");
 		render_Background ((struct VRML_Background *) this_); ',
 
 
-
-
-
-
 Box => '
-	 float x = $f(size,0)/2;
-	 float y = $f(size,1)/2;
-	 float z = $f(size,2)/2;
+	extern GLfloat boxtex[];		// in CFuncs/statics.c
+	extern GLfloat boxnorms[];		// in CFuncs/statics.c
+	float *pt;
+	float x = $f(size,0)/2;
+	float y = $f(size,1)/2;
+	float z = $f(size,2)/2;
 
-	 glPushAttrib(GL_LIGHTING);
-	 glShadeModel(GL_FLAT);
-	 glBegin(GL_QUADS);
+	if (this_->_ichange != this_->_change) {
+		// have to regen the shape
 
-		/* front side */
-		glNormal3f(0,0,1);
-		glTexCoord2f(1,1);
-		glVertex3f(x,y,z);
-		glTexCoord2f(0,1);
-		glVertex3f(-x,y,z);
-		glTexCoord2f(0,0);
-		glVertex3f(-x,-y,z);
-		glTexCoord2f(1,0);
-		glVertex3f(x,-y,z);
+		this_->_ichange = this_->_change;
 
-		/* back side */
-		glNormal3f(0,0,-1);
-		glTexCoord2f(0,0);
-		glVertex3f(x,-y,-z);
-		glTexCoord2f(1,0);
-		glVertex3f(-x,-y,-z);
-		glTexCoord2f(1,1);
-		glVertex3f(-x,y,-z);
-		glTexCoord2f(0,1);
-		glVertex3f(x,y,-z);
+		// malloc memory (if possible) 
+		if (!this_->__points) this_->__points = (int) malloc (sizeof(struct SFColor)*(24));
+		if (!this_->__points) {
+			printf ("can not malloc memory for box points\n");
+			return;
+		}
 
-		/* top side */
-		glNormal3f(0,1,0);
-		glTexCoord2f(0,0);
-		glVertex3f(-x,y,z);
-		glTexCoord2f(1,0);
-		glVertex3f(x,y,z);
-		glTexCoord2f(1,1);
-		glVertex3f(x,y,-z);
-		glTexCoord2f(0,1);
-		glVertex3f(-x,y,-z);
+		// now, create points; 4 points per face.
+		pt = (float *) this_->__points;
+		// front
+		*pt++ =  x; *pt++ =  y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
+		*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ =  z;
+		// back
+		*pt++ =  x; *pt++ = -y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
+		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ = -z;
+		// top
+		*pt++ = -x; *pt++ =  y; *pt++ =  z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
+		*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ =  y; *pt++ = -z;
+		// down
+		*pt++ = -x; *pt++ = -y; *pt++ = -z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
+		*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ = -y; *pt++ =  z;
+		// right
+		*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
+		*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
+		// left
+		*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
+		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
+	}
 
-		/* down side */
-		glNormal3f(0,-1,0);
-		glTexCoord2f(0,0);
-		glVertex3f(-x,-y,-z);
-		glTexCoord2f(1,0);
-		glVertex3f(x,-y,-z);
-		glTexCoord2f(1,1);
-		glVertex3f(x,-y,z);
-		glTexCoord2f(0,1);
-		glVertex3f(-x,-y,z);
+	// Draw it; assume VERTEX and NORMALS already defined. 
+	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
-		/* right side */
-		glNormal3f(1,0,0);
-		glTexCoord2f(0,0);
-		glVertex3f(x,-y,z);
-		glTexCoord2f(1,0);
-		glVertex3f(x,-y,-z);
-		glTexCoord2f(1,1);
-		glVertex3f(x,y,-z);
-		glTexCoord2f(0,1);
-		glVertex3f(x,y,z);
+	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
+	glNormalPointer (GL_FLOAT,0,boxnorms);
+	if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,boxtex);
 
-		/* left side */
-		glNormal3f(-1,0,0);
-		glTexCoord2f(1,0);
-		glVertex3f(-x,-y,z);
-		glTexCoord2f(1,1);
-		glVertex3f(-x,y,z);
-		glTexCoord2f(0,1);
-		glVertex3f(-x,y,-z);
-		glTexCoord2f(0,0);
-		glVertex3f(-x,-y,-z);
-		glEnd();
-		glDepthMask(GL_TRUE);
-	glPopAttrib();
-	
+	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
+	glDrawArrays (GL_QUADS, 0, 24);
+
+	if (HAVETODOTEXTURES) glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 ',
 
 
 Cylinder => '
-		int div = horiz_div;
-		float df = div;
-		float h = $f(height)/2;
-		float r = $f(radius);
-		float a,a1,a2;
-		DECL_TRIG1
-		int i = 0;
-		INIT_TRIG1(div)
-        
-		if($f(top)) {
-			            /*	printf ("Cylinder : top\n"); */
-			glBegin(GL_POLYGON);
-			glNormal3f(0,1,0);
-			START_TRIG1
-			for(i=0; i<div; i++) {
-				glTexCoord2f( 0.5 - 0.5*SIN1, 0.5 - 0.5*COS1);
-				glVertex3f( -r*SIN1, (float)h, r*COS1 );
-				UP_TRIG1
-			}
-			glEnd();
-		} else {
-			/* printf ("Cylinder : NO top\n"); */
+	#define CYLDIV 20
+	float h = $f(height)/2;
+	float r = $f(radius);
+	int i = 0;
+	struct SFColor *pt;
+	float a1, a2;
+	extern GLfloat cylnorms[];		// in CFuncs/statics.c
+	extern unsigned char cyltopindx[];	// in CFuncs/statics.c
+	extern unsigned char cylbotindx[];	// in CFuncs/statics.c
+	extern unsigned char cylsideindx[];	// in CFuncs/statics.c
+	extern GLfloat cylendtex[];		// in CFuncs/statics.c
+	extern GLfloat cylsidetex[];		// in CFuncs/statics.c
+
+	if(h <= 0 && r <= 0) {return;}
+
+	if (this_->_ichange != this_->_change) {
+		// have to regen the shape
+
+		this_->_ichange = this_->_change;
+
+		// malloc memory (if possible) 
+		if (!this_->__points) this_->__points = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
+		if (!this_->__normals) this_->__normals = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
+		if ((!this_->__normals) || (!this_->__points)) {
+			printf ("error mallocing memory for Cylinder\n");
+			return;
+		}
+		// now, create the vertices; this is a quad, so each face = 4 points
+		pt = (struct SFColor *) this_->__points;
+		for (i=0; i<CYLDIV; i++) {
+			a1 = PI*2*i/(float)CYLDIV;
+			a2 = PI*2*(i+1)/(float)CYLDIV;
+			pt[i*2+0].c[0] = r*sin(a1);
+			pt[i*2+0].c[1] = (float) h;
+			pt[i*2+0].c[2] = r*cos(a1);
+			pt[i*2+1].c[0] = r*sin(a1);
+			pt[i*2+1].c[1] = (float) -h;
+			pt[i*2+1].c[2] = r*cos(a1);
 		}
 
-		if($f(bottom)) {
-            		/* printf ("Cylinder : bottom\n"); */
-			glBegin(GL_POLYGON);
-			glNormal3f(0,-1,0);
-			START_TRIG1
-			for(i=0; i<div; i++) {
-				glTexCoord2f(0.5+0.5*SIN1,0.5+0.5*COS1);
-				glVertex3f(r*SIN1,(float)-h,r*COS1);
-				UP_TRIG1
-			}
-			glEnd();
-		} else {
-			/* printf ("Cylinder : NO bottom\n"); */
-		} 
+		// wrap the points around
+		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
 
-		if($f(side)) {
-				/* if(!nomode) {
-				glPushAttrib(GL_LIGHTING);
-				} */
-			glBegin(GL_QUADS);
-			START_TRIG1
-			for(i=0; i<div; i++) {
-				float lsin = SIN1;
-				float lcos = COS1;
-				UP_TRIG1;
+		// center points of top and bottom
+		pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
+		pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
+	}
 
-				glNormal3f(lsin, 0.0, lcos);
- 				glTexCoord2f(1.0-((float)i/df), 1.0);
-				 glVertex3f((float)r*lsin, (float)h, (float)r*lcos);
+	// Display the shape
+	if (HAVETODOTEXTURES) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 
-				glNormal3f(SIN1, 0.0, COS1);
- 				glTexCoord2f(1.0-(((float)i+1.0)/df), 1.0);
-				glVertex3f(r*SIN1,  (float)h, r*COS1);
+	if ($f(side)) {
+		glNormalPointer (GL_FLOAT,0,cylnorms);
+		if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,cylsidetex);
 
-				/* glNormal3f(SIN1, 0.0, COS1); (same) */
-				glTexCoord2f(1.0-(((float)i+1.0)/df), 0.0);
-				glVertex3f(r*SIN1, (float)-h, r*COS1);
+		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+		glDrawArrays (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
+	}
+	if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,cylendtex);
+	if($f(bottom)) {
+		glDisableClientState (GL_NORMAL_ARRAY);
+		glNormal3f(0.0,-1.0,0.0);
+		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
+		glEnableClientState(GL_NORMAL_ARRAY);
+	}
 
-				glNormal3f(lsin, 0.0, lcos);
-				glTexCoord2f(1.0-((float)i/df), 0.0);
-				glVertex3f((float)r*lsin, (float)-h, (float)r*lcos);
+	if ($f(top)) {
+		glDisableClientState (GL_NORMAL_ARRAY);
+		glNormal3f(0.0,1.0,0.0);
+		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
+		glEnableClientState(GL_NORMAL_ARRAY);
+	}
+	// set things back to normal - Textures and ColoUrs disabled.
+	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-
-			}
-			glEnd();
-				/*
-				if(!nomode) {
-				glPopAttrib();
-				}
-				*/
-		}
 ',
 
 
 Cone => '
-		int div = horiz_div;
-		float h = $f(height)/2;
-		float r = $f(bottomRadius); 
-		float angle;
-		int i;
-		struct SFColor *pt;
-		struct SFColor *norm;
-		GLfloat *nptr;
+	// DO NOT change this define, unless you want to recalculate statics below....
+	#define  CONEDIV 20
 
-		//printf ("Cone, points %d change %d ichange %d div %d\n",this_->__points, this_->_change, this_->_ichange,div);
+	float h = $f(height)/2;
+	float r = $f(bottomRadius); 
+	float angle;
+	int i;
+	struct SFColor *pt;			// bottom points
+	struct SFColor *spt;			// side points
+	struct SFColor *norm;			// side normals
+	extern unsigned char tribotindx[];	// in CFuncs/statics.c
+	extern float tribottex[];		// in CFuncs/statics.c
+	extern float trisidtex[];		// in CFuncs/statics.c
 
-		if(h <= 0 && r <= 0) {return;}
+	if(h <= 0 && r <= 0) {return;}
 
-		if (this_->_ichange != this_->_change) {
-			// have to regen the shape
+	if (this_->_ichange != this_->_change) {
+		// have to regen the shape
 
-			this_->_ichange = this_->_change;
+		this_->_ichange = this_->_change;
 
-			// malloc memory (if possible) 
-			if (!this_->__points) this_->__points = (int) malloc (sizeof(struct SFColor)*(div+2));
-			if (!this_->__points) {printf ("failure mallocing more memory\n"); return; }
-			pt = (struct SFColor *)this_->__points;
-			if (!this_->__normals) this_->__normals = (int) malloc (sizeof(struct SFColor)*2*(div+1));
-			if (!this_->__normals) {printf ("failure mallocing more memory\n"); return; }
-			norm = (struct SFColor *)this_->__normals;
-
-			// generate the vertexes for the triangles; top point first.
-			pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
-			for (i=1; i<=div; i++) {
-				pt[i].c[0] = r*sin(PI*2*i/(float)div);
-				pt[i].c[1] = (float) -h;
-				pt[i].c[2] = r*cos(PI*2*i/(float)div);
-			}
-			// and throw another point that is centre of bottom
-			pt[div+1].c[0] = 0.0; pt[div+1].c[1] = (float) -h; pt[div+1].c[2] = 0.0;
-
-			// Normals - note, normals for faces doubled - see malloc above
-			// this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...
-			for (i=0; i<=div*2; i++) {
-				angle = PI * 2 * (0.5+i) / (float) (div*2);
-
-				norm[i].c[0] = sin(angle);
-				norm[i].c[1] = (float)h/r;
-				norm[i].c[2] = cos(angle);
-			}
+		// malloc memory (if possible) 
+		if (!this_->__botpoints) this_->__botpoints = (int) malloc (sizeof(struct SFColor)*(CONEDIV+3));
+		if (!this_->__sidepoints) this_->__sidepoints = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+		if (!this_->__normals) this_->__normals = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+		if ((!this_->__normals) || (!this_->__botpoints) || (!this_->__sidepoints)) {
+			printf ("failure mallocing more memory for Cone rendering\n"); 
+			return; 
 		}
 
+		// generate the vertexes for the triangles; top point first. (note: top point no longer used)
+		pt = (struct SFColor *)this_->__botpoints;
+		pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
+		for (i=1; i<=CONEDIV; i++) {
+			pt[i].c[0] = r*sin(PI*2*i/(float)CONEDIV);
+			pt[i].c[1] = (float) -h;
+			pt[i].c[2] = r*cos(PI*2*i/(float)CONEDIV);
+		}
+		// and throw another point that is centre of bottom
+		pt[CONEDIV+1].c[0] = 0.0; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0;
+		
+		// and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...
+		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
 
-		// OK - we have vertex data, so lets just render it.
-		pt = (struct SFColor *)this_->__points;
-		nptr = (GLfloat *)this_->__normals;
-
-		glEnableClientState (GL_VERTEX_ARRAY);
-		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
-
-		if($f(bottom)) {
-			glBegin(GL_TRIANGLE_FAN);
-			glNormal3f(0.0,-1.0,0.0);
-			if (HAVETODOTEXTURES) glTexCoord2f(0.5,0.5);
-			glArrayElement(div+1); /* center at bottom point */
-
-			for(i=div; i>0; i--) {
-				if (HAVETODOTEXTURES) {
-					angle = PI * 2 * (0.5+i*2) / (float) (div*2);
-					glTexCoord2f(0.5+0.5*sin(angle), 0.5+0.5*cos(angle));
-				}
-				glArrayElement(i);
-			}
-			/* close the circle */
-			if (HAVETODOTEXTURES) glTexCoord2f(0.5,1.0);
-			glArrayElement(div);
-			glEnd();
+		// side triangles. Make 3 seperate points per triangle... makes glDrawArrays with normals
+		// easier to handle.
+		// rearrange bottom points into this array; top, bottom, left.
+		spt = (struct SFColor *)this_->__sidepoints;
+		for (i=0; i<CONEDIV; i++) {
+			// top point
+			spt[i*3].c[0] = 0.0; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0;
+			// left point
+			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
+			//right point
+			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
 		}
 
-		if($f(side)) {
-			glBegin(GL_TRIANGLES);
-			for(i=div; i>=1; i--) {
-				// right point - do we loop around?
-				if (i==div) {
-					glNormal3fv(nptr);
-					if (HAVETODOTEXTURES) glTexCoord2f(1.0,0.0);
-					glArrayElement(1);
-				} else {
-					// normal already sent - last of prev loop
-					if (HAVETODOTEXTURES) glTexCoord2f((float)(i)/div,0.0);
-					glArrayElement(i+1);
-				}
-
-				// top point, use normal calculated for this face
-				glNormal3fv(&nptr[(i*2-1)*3]);
-				if (HAVETODOTEXTURES) glTexCoord2f((float)(i-0.5)/div,1.0);
-				glArrayElement(0);
-
-				// left point, use normal calculated for preceeding tri
-				glNormal3fv(&nptr[(i*2-2)*3]);
-				if (HAVETODOTEXTURES) glTexCoord2f((float)(i-1)/div,0.0);
-
-				glArrayElement(i);
-			}
-			if (HAVETODOTEXTURES) glTexCoord2f(0.0,0.0);
-			glEnd();
+		// wrap bottom point around once again... ie, final right point = initial left point
+		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
+			
+		// Side Normals - note, normals for faces doubled - see malloc above
+		// this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...
+		norm = (struct SFColor *)this_->__normals;
+		for (i=0; i<=CONEDIV; i++) {
+			// top point 
+			angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
+			norm[i*3+0].c[0] = sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = cos(angle);
+			//left point 
+			angle = PI * 2 * (i+0) / (float) (CONEDIV);
+			norm[i*3+1].c[0] = sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = cos(angle);
+			// right point
+			angle = PI * 2 * (i+1) / (float) (CONEDIV);
+			norm[i*3+2].c[0] = sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = cos(angle);
 		}
+	}
+
+
+	// OK - we have vertex data, so lets just render it.
+	// Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.
+
+	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+
+	if($f(bottom)) {
+		glDisableClientState (GL_NORMAL_ARRAY);
+		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__botpoints);
+		if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,tribottex);
+		glNormal3f(0.0,-1.0,0.0);
+		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
+		glEnableClientState(GL_NORMAL_ARRAY);
+	}
+
+	if($f(side)) {
+		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__sidepoints);
+		glNormalPointer (GL_FLOAT,0,(GLfloat *)this_->__normals);
+		if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,trisidtex);
+
+		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+		glDrawArrays (GL_TRIANGLES, 0, 60);
+	}
+	// set things back to normal - Textures and ColoUrs disabled.
+	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	
 ',
-Sphere => 'int vdiv = vert_div;
-		int hdiv = horiz_div;
-	   	float vf = vert_div;
-	   	float hf = horiz_div;
+Sphere => '
+
+	#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
+	#define START_TRIG1 t_sa = 0; t_ca = -1;
+	#define UP_TRIG1 t_sa1 = t_sa; t_sa -= t_sa*t_aa - t_ca * t_ab; t_ca -= t_ca * t_aa + t_sa1 * t_ab;
+	#define SIN1 t_sa
+	#define COS1 t_ca
+	#define INIT_TRIG2(div) t2_aa = sin(PI/(div)); t2_aa *= 2*t2_aa; t2_ab = -sin(2*PI/(div));
+	#define START_TRIG2 t2_sa = -1; t2_ca = 0;
+	#define UP_TRIG2 t2_sa1 = t2_sa; t2_sa -= t2_sa*t2_aa - t2_ca * t2_ab; t2_ca -= t2_ca * t2_aa + t2_sa1 * t2_ab;
+	#define SIN2 t2_sa
+	#define COS2 t2_ca
+
+	// make the divisions 20; dont change this, because statics.c values 
+	// will then need recaculating.
+	#define SPHDIV 20
+
+	extern GLfloat spherenorms[];		// side normals
+	extern float spheretex[];		// in CFuncs/statics.c
+	int count;
+
+	if (this_->_ichange != this_->_change) {
 		int v; int h;
 		float va1,va2,van,ha1,ha2,han;
-		DECL_TRIG1
-		DECL_TRIG2
+		float t_aa, t_ab, t_sa, t_ca, t_sa1, t_ca1;
+		float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1, t2_ca1;
+		struct SFColor *pts;
+		int count;
 
-		INIT_TRIG1(vdiv) 
-		INIT_TRIG2(hdiv)
-		glPushMatrix();
-		glScalef($f(radius), $f(radius), $f(radius));
-		glBegin(GL_QUAD_STRIP);
+		// have to regen the shape
+
+		this_->_ichange = this_->_change;
+
+		// malloc memory (if possible) 
+		// 16x17 array, 2 vertexes per points. (17, to loop around and close structure)
+		if (!this_->__points) this_->__points = 
+		(int) malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
+		if (!this_->__points) {
+			printf ("can not malloc memory in Sphere\n");
+			return;
+		}
+
+		pts = (struct SFColor *) this_->__points;
+		count = 0;
+
+		INIT_TRIG1(SPHDIV) 
+		INIT_TRIG2(SPHDIV)
+		//glScalef($f(radius), $f(radius), $f(radius));
+
 		START_TRIG1
-		for(v=0; v<vdiv; v++) {
+		for(v=0; v<SPHDIV; v++) {
 			float vsin1 = SIN1;
 			float vcos1 = COS1, vsin2,vcos2;
 			UP_TRIG1
 			vsin2 = SIN1;
 			vcos2 = COS1;
 			START_TRIG2
-			for(h=0; h<=hdiv; h++) {
+			for(h=0; h<=SPHDIV; h++) {
 				float hsin1 = SIN2;
 				float hcos1 = COS2;
 				UP_TRIG2
-/* 
- * Round a tex coord just barely greater than 1 to 1 : Since we are 
- * counting modulo 1, we do not want 1 to become zero spuriously.
- */
-/* We really want something more rigorous here */
-#define MY_EPS 0.000001
-#define MOD_1(x) ( (x)<=1 ? (x) : ((x)<=(1.0+MY_EPS))? 1.0 : (x)-1.0 )
-
-				glNormal3f(vsin2 * hcos1, vcos2, vsin2 * hsin1);
-				glTexCoord2f(MOD_1(h / hf), 2.0 * ((v + 1.0) / vf));
-				glVertex3f(vsin2 * hcos1, vcos2, vsin2 * hsin1);
-
-				glNormal3f(vsin1 * hcos1, vcos1, vsin1 * hsin1); 
-				glTexCoord2f(MOD_1(h / hf), 2.0 * (v/vf));
-				glVertex3f(vsin1 * hcos1, vcos1, vsin1 * hsin1); 
-#undef MOD_1
-#undef MY_EPS
+				pts[count].c[0] = vsin2 * hcos1;
+				pts[count].c[1] = vcos2;
+				pts[count].c[2] = vsin2 * hsin1;
+				count++;
+				pts[count].c[0] = vsin1 * hcos1;
+				pts[count].c[1] = vcos1;
+				pts[count].c[2] = vsin1 * hsin1;
+				count++;
 			}
 		}
-		glEnd();
-		glPopMatrix();
-					/* if(!$nomode) {
-						glPopAttrib();
-					} */
+	}
+
+	// Display the shape
+	if (HAVETODOTEXTURES) {
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer (2,GL_FLOAT,0,spheretex);
+	}
+	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
+	glNormalPointer (GL_FLOAT,0,spherenorms);
+
+	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
+	for (count = 0; count < SPHDIV; count ++) {
+		glDrawArrays (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
+	}
+
+	if (HAVETODOTEXTURES) glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+
 ',
 
 IndexedFaceSet => '
@@ -1019,116 +1029,13 @@ Material =>  '
 		float shin;
 		float amb;
 		float trans;
+		extern GLbyte cleartone[];		// in CFuncs/statics.c
+		extern GLbyte eighthtone[];		// in CFuncs/statics.c
+		extern GLbyte quartertone[];		// in CFuncs/statics.c
+		extern GLbyte halftone[];		// in CFuncs/statics.c
+		extern GLbyte threequartertone[];	// in CFuncs/statics.c
+		extern GLbyte seveneighthtone[];	// in CFuncs/statics.c
 
-		GLbyte  cleartone[] = {
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-		   };
-		GLbyte  eighthtone[] = {
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00,
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00,
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00,
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00,
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00,
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00,
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00,
-		      0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00,
-		      0x08, 0x08, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00
-		   };
-
-		GLubyte quartertone[] = {
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
-		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22
-		   };
-		GLubyte halftone[] = {
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		      0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55
-		   };
-		GLubyte threequartertone[] = {
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77,
-		      0xDD, 0xDD, 0xDD, 0xDD, 0x77, 0x77, 0x77, 0x77
-		   };
-		GLbyte  seveneighthtone[] = {
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff,
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff,
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff,
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff,
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff,
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff,
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff,
-		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
-		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff
-		   };
 #ifndef X3DMATERIALPROPERTY
 		/* We have to keep track of whether to reset diffuseColor if using
 		   textures; no texture or greyscale, we use the diffuseColor, if
