@@ -82,7 +82,6 @@ void SoundEngineInit () {
 	// is the sound engine installed on this system?
 	if (stat(sspath,&enginestat)) {
 		printf ("FreeWRL: SoundEngine not installed on system\n");
-		printf ("errno is %d\n",errno);
 		initialized = SOUND_FAILED;
 		return;
 	}
