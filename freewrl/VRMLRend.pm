@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.27  2001/05/03 20:24:08  crc_canada
+# Proper use of Display lists and Textures for Shape nodes and below.
+#
 # Revision 1.26  2001/04/27 16:50:03  crc_canada
 # Working display lists for Shape nodes
 #
@@ -665,6 +668,8 @@ TextureTransform => '
 
 		/* for shape display list redrawing */
 	this_->_myshape = last_visited_shape; 
+
+       	glEnable(GL_TEXTURE_2D);
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
@@ -1506,10 +1511,10 @@ Billboard => (join '','
 
 		/* do we want to do textures ? */
 		if (render_textures == 1) {
-		    if($f(texture))
-			render_node($f(texture));
 		    if($f(textureTransform)) 
 			render_node($f(textureTransform));
+		    if($f(texture))
+			render_node($f(texture));
 		} else {
 
 		    if($f(material)) {
@@ -1550,7 +1555,6 @@ Billboard => (join '','
 			last_bound_texture = 0;
 	
 			/* is there an associated appearance node? */	
-		
         	        if($f(appearance)) {
 				render_textures = 1;
 	                        render_node($f(appearance));
@@ -1564,6 +1568,7 @@ Billboard => (join '','
         	                    glColor3f(1.0,1.0,1.0);
 				}
 	                }
+			printf ("Done the shape\n");
 
 			if (last_bound_texture != 0) {
 				/* we had a texture */
