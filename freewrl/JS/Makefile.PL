@@ -72,7 +72,7 @@ WriteMakefile(
 			  LIBS => $libs,
 			  INC => $inc,
 			  DEFINE => '-DXP_UNIX', # assume Unix and related OSs for now
-			  CCFLAGS => $ccflags,
+			  ##CCFLAGS => $ccflags,
 			  OPTIMIZE => '-O2'
 			 );
 
