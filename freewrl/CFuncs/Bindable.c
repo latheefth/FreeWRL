@@ -13,6 +13,8 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 
 
 #include "Bindable.h"
+#include "Viewer.h"
+
 
 
 int background_tos = -1;
@@ -24,6 +26,8 @@ unsigned int fog_stack[MAX_STACK];
 unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
 
+/* we need this link to the Viewer, for binding to the current Viewpoint */
+extern VRML_Viewer Viewer;
 
 /* this is called after a Viewpoint bind */
 void reset_upvector() {
@@ -69,7 +73,20 @@ void send_bind_to(char *nodetype, void *node, int value) {
 			&viewpoint_tos,&viewpoint_stack[0]);
 
 		/* up_vector is reset after a bind */
-		if (value==1) reset_upvector();
+		if (value==1) {
+			reset_upvector();
+			
+			/* set Viewer position and orientation */
+			printf ("setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+			vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
+			vp->orientation.r[3]);
+
+			Viewer.Pos.x = vp->position.c[0];
+			Viewer.Pos.y = vp->position.c[1];
+			Viewer.Pos.z = vp->position.c[2];
+			vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
+				vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+		}
 
 	} else if (strncmp("Fog",nodetype,strlen("Fog"))==0) {
 		fg = (struct VRML_Fog *) node;
