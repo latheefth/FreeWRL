@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.43  2001/12/14 17:54:28  crc_canada
+# render_polyrep changed - IFS and ElevationGrids should have colour field
+# superceded by textures, if there are any.
+#
 # Revision 1.42  2001/08/17 20:11:05  ayla
 #
 # Begin initial trunk-NetscapeIntegration merge.
@@ -1268,8 +1272,6 @@ sub gen_struct {
                " /*a*/ int _change; \n"                	.
                " /*n*/ int _dlchange; \n"              	.
                " /*d*/ GLuint _dlist; \n"              	.
-               " /*a*/ int _dl2change; \n"             	.
-               " /*r*/ GLuint _dl2ist; \n"             	.
 	       "       void **_parents; \n"	  	.
 	       "       int _nparents; \n"		.
 	       "       int _nparalloc; \n"		.
@@ -1393,16 +1395,6 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$endlist\(\)/
 			glEndList()
 			/g;
-		$c =~ s/\$startlist2\(\)/
-		        if(!this_->_dl2ist) {
-				this_->_dl2ist = glGenLists(1);
-			}
-			if(this_->_dl2change != this_->_change) {
-				glNewList(this_->_dl2ist,GL_COMPILE_AND_EXECUTE);
-				this_->_dl2change = this_->_change;
-			} else {
-				glCallList(this_->_dl2ist); return;
-			}/g;
 
 		$c =~ s/\$ntyptest\(([^),]*),([^),]*)\)/
 				(((struct VRML_Box *)$1)->v == 	
@@ -1600,8 +1592,6 @@ int render_light;
 int render_sensitive;
 int render_blend;
 
-/* in Shape/Appearance, we want two kicks at the can */
-int render_textures;
 GLuint last_bound_texture;
 struct VRML_Shape *last_visited_shape = 0;
 
@@ -2010,6 +2000,7 @@ void render_polyrep(void *node,
 	GLfloat Xsize, Ysize, Zsize = 0.0;
 	int Sindex, Tindex = 0;
 
+
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
@@ -2082,8 +2073,8 @@ void render_polyrep(void *node,
 	}
 
 
-	/* Do we have any colours?	*/
-	hasc = (ncolors || r->color);
+	/* Do we have any colours? Are textures NOT enabled? */
+	hasc = ((ncolors || r->color) && (!glIsEnabled(GL_TEXTURE_2D)));
 	if(hasc) {
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
@@ -3479,8 +3470,6 @@ CODE:
 	p->_change = 153;
 	p->_dlchange = 0;
 	p->_dlist = 0;
-	p->_dl2change = 0;
-	p->_dl2ist = 0;
         p->_parents = 0;
         p->_nparents = 0;
         p->_nparalloc = 0;
@@ -3498,7 +3487,6 @@ CODE:
 	struct VRML_Box *p = ptr;
 	if(p->_parents) free(p->_parents);
 	if(p->_dlist) glDeleteLists(p->_dlist,1);
-	if(p->_dl2ist) glDeleteLists(p->_dl2ist,1);
 	if(p->_texture) glDeleteTextures(1,&p->_texture);
 	free(ptr); /* COULD BE MEMLEAK IF STUFF LEFT INSIDE */
 
