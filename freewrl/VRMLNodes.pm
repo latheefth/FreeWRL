@@ -849,15 +849,15 @@ Text => new VRML::NodeType ("Text",
 	 length => [MFFloat, []],
 	 maxExtent => [SFFloat, 0.0],
 	 __rendersub => [SFInt32, 0],   # Function ptr hack
-	}, {
-	Initialize => sub {
-		print "Text, initialize\n";
+#JAS	}, {
+#JAS	Initialize => sub {
+#JAS		print "Text, initialize\n";
 #JAS		my($t,$f) = @_;
 #JAS		my $a = eval 'require VRML::Text; VRML::Text::get_rendptr();';
 #JAS		if($@) {die("Warning: text loading error: '$@'\n");}
 #JAS		$f->{__rendersub} = $a;
 #JAS		return ();
-	}
+#JAS	}
 	}
 ),
 
