@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.30  2001/05/16 16:00:06  crc_canada
+# Check for glError at the end of Shape node.
+#
 # Revision 1.29  2001/05/11 15:00:11  crc_canada
 # Cone Normals now correct
 #
@@ -815,7 +818,7 @@ Background => '
 	GLuint mask;
 
 	/* only do background lighting, etc, once for textures */
-	extern void do_texture();
+	void do_texture();
 
 	/* Background Texture Objects.... */
 	static int bcklen,frtlen,rtlen,lftlen,toplen,botlen;
@@ -1593,11 +1596,13 @@ Billboard => (join '','
 	
 	',
 	Shape => '
+		GLenum glError;
+
+
 		if(!(this_->geometry)) { return; }
 
 		/* Display lists used here. The name of the game is to use the
 		display list for everything, except for sensitive nodes. */
-	
 
 		/* Appearance, Material, Shape, will make a new list, via this pointer */
 		last_visited_shape = this_;
@@ -1645,8 +1650,15 @@ Billboard => (join '','
 		/* Now, do the geometry */
 		render_node((this_->geometry));
 
-		if ((render_geom) && (!render_sensitive))
+		if ((render_geom) && (!render_sensitive)) {
 			glEndList();
+
+			glError = glGetError();
+			while (glError != GL_NO_ERROR) {
+				printf ("VRMLRend.pm::Shape:glError: %s\n",gluErrorString(glError));
+				glError = glGetError();
+			}
+		}
 
 		last_visited_shape = 0;
 		glPopAttrib();
