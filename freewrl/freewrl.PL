@@ -55,7 +55,8 @@ print OUT <<'!NO!SUBS!';
 
 =head1 NAME
 
-freewrl -- run the FreeWRL VRML97 browser on the command line
+freewrl -- run the FreeWRL VRML97 browser on the command line, or, if the plugin
+is installed, via an HTML browser.
 
 =head1 SYNOPSIS
 
@@ -63,13 +64,7 @@ C<freewrl> [I<options>] I<url> [I<debugcode> ...]
 
 =head1 DESCRIPTION
 
-See the bottom of this text for the copyright and license.
-
 This command runs the FreeWRL VRML browser.
-See L<VRML::Viewer> for details on the user interface and 
-L<VRML::Browser> for some other things. This manual
-page explains how to use the browser, how to start it on 
-the command line, and how to use it with Netscape.
 
 =head1 KEYS/MOUSE
 
@@ -83,6 +78,10 @@ In addition to the keys described below, there are some keys
 which work in all the modes:
 
 =over 4
+
+=item ?
+
+Display this man page in a window
 
 =item d
 
@@ -151,11 +150,11 @@ This mode allows translation/rotations in all planes. There are two
 keymappings: those from the game Descent, and a mapping using the
 keypad.
 
-There is currently no mouse control, rather, all motion is controlled
+All motion is controlled
 by 12 keys, two for each of your 6 degrees of freedom (3 translations, 
 3 rotations).
 
-The default keymap in this mode is
+The keymap in this mode is
 
 =over 4
 
@@ -203,10 +202,9 @@ one with full freedom of motion currently.
 =head2 Fly - External Sensor input
 
 This mode is entered via the "f" key. It takes input from the file F</tmp/inpdev>: 
-this file contains x,y,z and quat info, and puts the viewpoint there.
+this file contains x,y,z and Quaternion-based rotation information, and puts the viewpoint there.
 
-As of December 17, 1999, only Polhemus code works, but Joystick 
-input is literally around the corner.
+It is possible to force this mode in a NavigationInfo mode by making type "EXFLY".
 
 =head2 Examine
 
@@ -247,10 +245,6 @@ For example,
 
 can be used to run C<bigrworld.wrl> from a copy on the local hard drive
 so that relative links will still work.
-
-=item C<-best>
-
-Depreciated
 
 =item C<-fast>
 
@@ -375,7 +369,7 @@ in the distribution for the codes.
 
 =back
 
-=head1 USING FREEWRL WITH NETSCAPE
+=head1 USING FREEWRL WITH NETSCAPE AND OTHER BROWSERS
 
 If Netscape is installed, and the entries in vrml.conf are correct, the
 FreeWRL plug-in will be installed in Netscape's system plugins folder.
@@ -384,10 +378,10 @@ there should be an entry for FreeWRL with Mime Type x-world/x-vrml.
 
 =head1 AUTHOR
 
-Project started by Tuomas J. Lukka, continued by John Stewart.
+Project started by Tuomas J. Lukka, continued by John Stewart and others.
 
 
-Please send bug reports to C<john.stewart --at--  crc.ca>
+Please send bug reports to C<freewrl-1 --at--  rogers.com>
 including the word "freewrl"
 on the subject line will make sure that I'll notice it. Also,
 see the FreeWRL home page at C<http://www.crc.ca/FreeWRL>.
