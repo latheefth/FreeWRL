@@ -65,39 +65,82 @@ sub remove_first {
 sub add_route {
 	my($this, $fromNode, $eventOut, $toNode, $eventIn) = @_;
 
-	# debugging code
-	if ($VRML::verbose::events) {
-		print "Events.pm: ADD_ROUTE from fields\n";
-		my $item;
-		foreach $item (keys %{$fromNode->{Type}{EventOuts}}) {
-			print "\t$item\n";
-		}
+	my $outoffset;
+	my $inoffset;
+	my $outptr;
+	my $inptr;
+	my $datalen;
 
-		print "Events.pm: ADD_ROUTE to fields\n";
-		foreach $item (keys % {$toNode->{Type}{EventIns}}) {
-			print "\t$item\n";
+	# are there backends made for both from and to nodes?
+	if (!defined $fromNode->{BackNode}) {
+		print "add_route, from $eventOut - no backend node\n";
+		return 1;
+	}
+	if (!defined $toNode->{BackNode}) {
+		print "add_route, to $eventin - no backend node\n";
+		return 1;
+	}
+
+	# are there backend CNodes made for both from and to nodes?
+	if (!defined ($outptr=$fromNode->{BackNode}{CNode})) {
+		print "add_route, from $eventOut - no backend CNode node\n";
+		return 1;
+	}
+	if (!defined ($inptr=$toNode->{BackNode}{CNode})) {
+		print "add_route, to $eventin - no backend CNode node\n";
+		return 1;
+	}
+
+
+	## ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
+	## eventIns (see VRML97 node reference)
+	## these things have set_xxx and xxx... if we have one of these...
+	if ($eventIn =~ /^set_($VRML::Error::Word+)/) {
+		$tmp = $1;
+		if ($toNode->{Type}{EventIns}{$eventIn} and
+			$toNode->{Type}{FieldKinds}{$tmp} eq "field") {
+			$eventIn = $tmp;
 		}
 	}
 
-	# end of debugging code
 
+	# are there offsets for these eventins and eventouts?
+	if(!defined ($outoffset=$VRML::CNodes{$fromNode->{TypeName}}{Offs}{$eventOut})) {
+		print "add_route, eventout $eventOut offset not defined\n";
+		return 1;
+	}
+	if(!defined ($inoffset=$VRML::CNodes{$toNode->{TypeName}}{Offs}{$eventIn})) {
+		print "add_route, eventin $eventIn offset not defined\n";
+		return 1;
+	}
 
-	print "MAPPED: $eventOut, $eventIn\n" if $VRML::verbose::events;
+	# length of the field
+	$datalen=VRML::VRMLFunc::getClen(
+		"VRML::Field::$fromNode->{Type}{FieldTypes}{$eventOut}"->clength($eventOut));
 
-	push @{$this->{Route}{$fromNode}{$eventOut}}, [$toNode, $eventIn];
-	return 1;
+	# do we handle this type of data within C yet?
+	if ($datalen==0) {
+		print "add_route, dont handle $eventOut types in C yet\n";
+		return 1;
+	}
+
+	# is this an interpolator that is handled by C yet?
+	$intptr = VRML::VRMLFunc::InterpPointer($toNode->{Type}{Name});
+
+	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,
+		$intptr);
 }
 
-## needs to be tested with more than just the EAI AddRoute test
+## needs to be tested with more than just the EAI AddRoute test and to have CRoutes added to it.
 sub delete_route {
 	my($this, $fn, $ff0, $tn, $tf0) = @_;
 	my $i = 0;
 	my @ar;
 
-	print "Events.pm: DELETE_ROUTE $fn $ff $tn $tf\n"  if $VRML::verbose::events;
+	print "Events.pm: DELETE_ROUTE $fn $ff $tn $tf\n" ;#JAS  if $VRML::verbose::events;
 	$ff = $fn->{Type}{EventOuts}{$ff0};
 	$tf = $tn->{Type}{EventIns}{$tf0};
-	print "Events.pm: DELETE_ROUTE mapped $ff, $tf\n" if $VRML::verbose::events;
+	print "Events.pm: DELETE_ROUTE mapped $ff, $tf\n" ;#JAS if $VRML::verbose::events;
 
 	die("Invalid fromfield '$ff0' for ROUTE") if (!defined $ff);
 
@@ -142,29 +185,41 @@ sub propagate_events {
 			if $VRML::verbose::events;
 		push @e, $_->get_firstevent($timestamp);
 	}
-	for(@{$this->{Mouse}}) {
-		print "MEV $_->[0] $_->[1] $_->[2]\n"
+	for(@{$this->{MouseSensitive}}) {
+		# Mouse Sensitive nodes, eg, PlaneSensors, TouchSensors. Actual
+		# position, hyperhit, etc, now stored in C structures; only the
+		# node event is passed from GLBackEnd now.
+
+		# this can be sped up quite a bit, but it requires some 
+		# rewriting on GLBackEnd.pm for Sensitive nodes.
+
+		print "MEV node $_->[0], but $_->[1], move $_->[2], over $_->[3]\n"
 			if $VRML::verbose::events;
-		$_->[0]->{Type}{Actions}{__mouse__}->($_->[0], $_->[0]{RFields},
-			$timestamp,
-			$_->[2], $_->[1], $_->[3], @{$_}[4..6]);
+		my $nd = $_->[0];
+		VRML::VRMLFunc::handle_mouse_sensitive($nd->{Type}{Name},
+				$nd->{BackNode}{CNode},
+				$_->[1],$timestamp,$_->[3]);
 	}
 	my $n = scalar @e;
 	push @e, @{$this->{Queue}};
 
-	$this->{Mouse} = [];
+	$this->{MouseSensitive} = [];
+
+	# CRoutes
+	VRML::VRMLFunc::do_propagate_events();
 
 	while(1) {
 		my %ep; # All nodes for which ep must be called
 		# Propagate our events as long as they last
 		while(@e || @{$this->{ToQueue}}) {
+			print "Something in the old queue\n";
 			$havevent = 1;
 			$this->{Queue} = [];
 			@ne = ();
 			for my $e (@e) {
-				print "Events.pm: while SEND ",
+				print "Events.pm: old loop while SEND ",
 					VRML::Debug::toString($e), "\n"
-							if $VRML::verbose::events;
+					;#JAS		if $VRML::verbose::events;
 				#AK The following line of code causes problems when a node
 				#AK ($e->[0]) needs to have more than one event processed
 				#AK for a given EventsProcessed. This causes problems with
@@ -268,9 +323,9 @@ sub put_events {
 }
 
 sub handle_touched {
-	my($this, $node, $but, $move, $over, $pos, $norm, $texc) = @_;
-	# print "HTOUCH: $node $but $move\n";
-	push @{$this->{Mouse}}, [ $node, $but, $move, $over, $pos, $norm, $texc ];
+	my($this, $node, $but, $move, $over) = @_;
+	#print "HTOUCH: node $node, but $but, move $move, over $over \n";
+	push @{$this->{MouseSensitive}}, [ $node, $but, $move, $over];
 }
 
 1;
