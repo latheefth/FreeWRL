@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.94  2003/04/02 19:21:56  crc_canada
+# Material parameter checking - some systems would give a GLError if a parameter was out of
+# bounds
+#
 # Revision 1.93  2003/04/01 20:07:22  crc_canada
 # Background is put 10 times further "away" so that large models don't disappear
 #
@@ -1047,7 +1051,8 @@ Material =>  '
 		}
 #endif
 		dcol[3] = 1.0;
-
+		// bounds check
+		for (i=0; i<3; i++) { if ((dcol[i] < 0.0) || (dcol[i] >1.0)) {dcol[i] = 0.8;}}
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
 		amb = $f(ambientIntensity);
@@ -1055,14 +1060,19 @@ Material =>  '
 		for(i=0; i<3; i++) {
 			dcol[i] *= amb;
 		}
+		// bounds check
+		for (i=0; i<3; i++) { if ((dcol[i] < 0.0) || (dcol[i] >1.0)) {dcol[i] = 0.2;}}
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
 		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); } scol[3] = 1.0;
+		// bounds check
+		for (i=0; i<3; i++) { if ((scol[i] < 0.0) || (scol[i] >1.0)) {scol[i] = 0.0;}}
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
 		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); } ecol[3] = 1.0;
+		// bounds check
+		for (i=0; i<3; i++) { if ((ecol[i] < 0.0) || (ecol[i] >1.0)) {ecol[i] = 0.0;}}
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
-
 		glColor3f(ecol[0],ecol[1],ecol[2]);
 
 		if (fabs($f(transparency)) > 0.01) {
@@ -1080,9 +1090,12 @@ Material =>  '
 			} else { glPolygonStipple (cleartone);}
 		}
 
-		if(fabs($f(shininess) - 0.2) > 0.001) {
-			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 
-				128.0 * $f(shininess));
+		shin = $f(shininess);
+		if(fabs(shin - 0.2) > 0.001) {
+			shin = shin*128.0;
+			if ((shin <= 128.0) && (shin >= 0.0)) {
+				glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shin);
+			}
 		}
 ',
 
