@@ -103,20 +103,36 @@ Notes:
 AddRemove:	
 	Java applet with EAI add/remove button. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
-	on these, or run it from within netscape.
+	on these, or run it from within netscape. Also, read the "README" 
+	in the directory.
 
 Tiny3D:
 	Java applet with EAI to create a scene. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
-	on these, or run it from within netscape.
+	on these, or run it from within netscape. Also, read the "README" 
+	in the directory.
+
+Tic-Tac-Toe:
+	Java applet with EAI code to play tic-tac-toe. Run the script 
+	in the directory - check paths for everything, as it is dependent
+	on these, or run it from within netscape. Also, read the "README" 
+	in the directory.
+
+CreateTest:
+	Java applet with EAI. Run the script 
+	in the directory - check paths for everything, as it is dependent
+	on these, or run it from within netscape. Also, read the "README" 
+	in the directory.
 
 SAIColor:
-	Script Authoring Interface example. Please read the README in
-	the directory.
+	SAI example. Please read the README in the directory.
 
 SAIClick:
-	Script Authoring Interface example. Please read the README in
-	the directory.
+	SAI example. Please read the README in the directory.
+
+SAITic-Tac-Toe:
+	SAI example of the Tic-Tac-Toe program. Please read the README
+	in the directory.
 
 
 helpers:	
