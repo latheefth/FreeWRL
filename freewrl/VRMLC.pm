@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.109  2003/08/25 21:43:46  sdumoulin
+# #Modified to remove poll function calls
+#
 # Revision 1.108  2003/08/14 15:06:40  crc_canada
 # code to handle status bar statistics, and toggling it on/off
 #
@@ -1164,7 +1167,6 @@ sub gen {
 
 /* for time tick calculations */
 #include <sys/time.h>
-#include <sys/poll.h>
 
 struct pt {GLdouble x,y,z;};
 struct orient {GLdouble x,y,z,a;};
@@ -1361,7 +1363,6 @@ double TickTime;
 double lastTime;
 double BrowserStartTime; 	/* start of calculating FPS 	*/
 double BrowserFPS = 0.0;	/* calculated FPS		*/
-struct pollfd waittimer[1];	/* used to rate-limit freewrl	*/
 
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
@@ -2269,13 +2270,13 @@ CODE:
 	CRoutes_Register(from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
 
 void
-CRoutes_js_new (num, cx, glob, brow)
+do_CRoutes_js_new (num, cx, glob, brow)
 	int num
 	void *cx
 	void *glob
 	void *brow
 CODE:
-	do_CRoutes_js_new (num, cx, glob, brow);
+	CRoutes_js_new (num, cx, glob, brow);
 
 
 #********************************************************************************
@@ -2441,7 +2442,7 @@ double
 get_timestamp()
 CODE:
 	static int loop_count = 0;
-	double waittime;
+	struct timeval waittime;
 
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
@@ -2454,12 +2455,12 @@ CODE:
 		lastTime = TickTime;
 	} else {
 		// rate limit ourselves to 120fps. 
-		waittime = TickTime - lastTime - 0.0084; 
+		waittime.tv_usec = (TickTime - lastTime - 0.0084)*1000000.0; 
 		lastTime = TickTime;
-		if (waittime < 0.0) {
-			waittime = 1000.0 * -waittime;
-			//printf ("waiting %d\n",(int)waittime);
-			poll (waittimer,0,(int)waittime); // sleep for so many milliseconds
+		if (waittime.tv_usec < 0.0) {
+			waittime.tv_usec = -waittime.tv_usec;
+			//printf ("waiting %d\n",(int)waittime.tv_usec);
+			usleep(waittime.tv_usec);
 		}
 	}
 
@@ -2580,183 +2581,6 @@ CODE:
 OUTPUT:
 RETVAL
 rstr
-
-
-int
-jsSFColorSet(cx, obj, name, sv)
-	void *cx
-	void *obj
-	char *name
-	SV *sv
-CODE:
-{
-	JSContext *_cx;
-	JSObject *_obj, *_sfcolObj;
-	jsval _val;
-	void *_privPtr;
-
-	_cx = cx;
-	_obj = obj;
-	if (JSVerbose) {
-		printf("jsSFColorSet: obj %u, name %s\n", (unsigned int) _obj, name);
-	}
-	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
-		fprintf(stderr, "JS_GetProperty failed in jsSFColorSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	if (!JSVAL_IS_OBJECT(_val)) {
-		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFColorSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	_sfcolObj = JSVAL_TO_OBJECT(_val);
-
-	if ((_privPtr = JS_GetPrivate(_cx, _sfcolObj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in jsSFColorSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	SFColorNativeSet(_privPtr, sv);
-	RETVAL = JS_TRUE;
-}
-OUTPUT:
-RETVAL
-cx
-obj
-
-
-int
-jsSFImageSet(cx, obj, name, sv)
-	void *cx
-	void *obj
-	char *name
-	SV *sv
-CODE:
-{
-	JSContext *_cx;
-	JSObject *_obj, *_sfimObj;
-	jsval _val;
-	void *_privPtr;
-
-	_cx = cx;
-	_obj = obj;
-	if (JSVerbose) {
-		printf("jsSFImageSet: obj %u, name %s\n", (unsigned int) _obj, name);
-	}
-	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
-		fprintf(stderr, "JS_GetProperty failed in jsSFImageSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	if (!JSVAL_IS_OBJECT(_val)) {
-		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFImageSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	_sfimObj = JSVAL_TO_OBJECT(_val);
-
-	if ((_privPtr = JS_GetPrivate(_cx, _sfimObj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in jsSFColorSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	SFImageNativeSet(_privPtr, sv);
-	RETVAL = JS_TRUE;
-}
-OUTPUT:
-RETVAL
-cx
-obj
-
-
-int
-jsSFVec2fSet(cx, obj, name, sv)
-	void *cx
-	void *obj
-	char *name
-	SV *sv
-CODE:
-{
-	JSContext *_cx;
-	JSObject *_obj, *_sfvec2fObj;
-	jsval _val;
-	void *_privPtr;
-
-	_cx = cx;
-	_obj = obj;
-	if (JSVerbose) {
-		printf("jsSFVec2fSet: obj %u, name %s\n", (unsigned int) _obj, name);
-	}
-	if(!JS_GetProperty(_cx, _obj, name, &_val)) {
-		fprintf(stderr, "JS_GetProperty failed in jsSFVec2fSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	if(!JSVAL_IS_OBJECT(_val)) {
-		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFVec2fSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	_sfvec2fObj = JSVAL_TO_OBJECT(_val);
-
-	if ((_privPtr = JS_GetPrivate(_cx, _sfvec2fObj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in jsSFVec2fSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	SFVec2fNativeSet(_privPtr, sv);
-	RETVAL = JS_TRUE;
-}
-OUTPUT:
-RETVAL
-cx
-obj
-
-
-int
-jsSFRotationSet(cx, obj, name, sv)
-	void *cx
-	void *obj
-	char *name
-	SV *sv
-CODE:
-{
-	JSContext *_cx;
-	JSObject *_obj, *_sfrotObj;
-	jsval _val;
-	void *_privPtr;
-
-	_cx = cx;
-	_obj = obj;
-	if (JSVerbose) {
-		printf("jsSFRotationSet: obj %u, name %s\n", (unsigned int) _obj, name);
-	}
-	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
-		fprintf(stderr, "JS_GetProperty failed in jsSFRotationSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	if (!JSVAL_IS_OBJECT(_val)) {
-		fprintf(stderr, "JSVAL_IS_OBJECT failed in jsSFRotationSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	_sfrotObj = JSVAL_TO_OBJECT(_val);
-
-	if ((_privPtr = JS_GetPrivate(_cx, _sfrotObj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in jsSFRotationSet.\n");
-		RETVAL = JS_FALSE;
-		return;
-	}
-	SFRotationNativeSet(_privPtr, sv);
-	RETVAL = JS_TRUE;
-}
-OUTPUT:
-RETVAL
-cx
-obj
-
 
 int
 addSFNodeProperty(num, nodeName, name, str)
