@@ -200,6 +200,102 @@ sub verify_script_started {
 		perl_script_output(0);
 	}
 }
+
+
+###############################################################################
+#
+# If we have a DEF that is a field of a Script, we need to get/set that 
+# value so that the perl C structures remain in sync
+#
+
+
+sub findDEFwithinScript {
+	my ($this,$root,$nodetofind) = @_;
+
+	# go through this scene, until we find a node that equals our $node.
+	if (ref $root eq "VRML::DEF") {
+		$root = $root->node;
+	}
+
+	#print "findDEFwithinScript - finding ",
+	#	VRML::NodeIntern::dump_name($root), " node ",
+	#	VRML::NodeIntern::dump_name($nodetofind),"field $field\n";
+
+	# did we find a script?
+	if ($root->{TypeName} =~/^__script__/) {
+		my $fieldname;
+		foreach $fieldname (keys %{$root->{Fields}}) {
+			if (ref $root->{Fields}{$fieldname} eq "VRML::DEF") {
+				# looking more likely - found a script with a def
+				my $tmp = $root->{Fields}{$fieldname}->node;
+				if ($tmp = $nodetofind) {
+					#print "found it at field $fieldname\n";
+					my $cs = $root->{Scene};
+					if (!defined $SCENENUMBERS{$cs}) { $SCENENUMBERS{$cs} = $scenecount++; }
+					my $scenenum = $SCENENUMBERS{$cs};
+
+					my $scrpt = 1; # an eventOut   ;-)
+
+					#print " scene $cs\n";
+					#print "scene number $scenenum\n ",
+					#print " script name ",$root->{TypeName},"\n";
+					#print " script field name ",
+					#	VRML::NodeIntern::dump_name($root->{Fields}{$fieldname}->node),"\n";
+					#print " node to find ",VRML::NodeIntern::dump_name($nodetofind),
+					#	"\n field $field\n";
+
+
+					# now go through all fields of this node, copying them back to C
+					my $subfield;
+					my $outoffset;
+					foreach $subfield (keys %{$tmp->{Fields}}) {
+						#print "$fieldname has $subfield as a field\n";
+						$outoffset = VRML::VRMLFunc::paramIndex ("$fieldname.$subfield",
+							$tmp->{Type}{FieldTypes}{$subfield});
+
+						#print "offset $outoffset fieldtype ",
+						#	$tmp->{Type}{FieldTypes}{$subfield},"\n";
+
+
+						my $datalen=VRML::VRMLFunc::getClen(
+       				                 "VRML::Field::$tmp->{Type}{FieldTypes}{$subfield}"->clength($subfield));
+
+						#print "field length $datalen\n";
+
+						# now get the fields in C where to put this.
+						my $inptr = $nodetofind->{BackNode}{CNode};
+						my $inoffset = $VRML::CNodes{$nodetofind->{TypeName}}{Offs}{$subfield};
+
+						# add a route from the script to the C node
+						VRML::VRMLFunc::do_CRoutes_Register(
+								$scenenum, $outoffset,
+								$inptr, $inoffset, 
+								$datalen,
+								0, $scrpt);
+					}
+
+
+					return;
+				}
+			}
+		}
+	}
+
+	# no script in this node, keep on looking
+	if (ref $root eq "VRML::Scene") {
+		foreach (@{$root->{Nodes}}) {
+			$this->findDEFwithinScript ($_,$nodetofind);
+		}
+	} else {
+		foreach (@{$root->{Fields}{children}}) {
+			$this->findDEFwithinScript ($_,$nodetofind);
+		}
+	}
+
+}
+
+
+
 ###############################################################################
 #
 # Nodes get stored in many ways, depending on whether it is a PROTO, normal
@@ -310,19 +406,23 @@ sub resolve_node_cnode {
 
 	} else {
 		if (!defined $node->{BackNode}) {
-			# wierd placement sometimes "hides" nodes; look at PositionInterp in tests/8.wrl
-			my $brow = $scene->get_browser();
-			#print "No backend, but browser has ",$brow->{BE},"\n";
+			# check if this node resides within a Javascript invocation...
+			# if so, we have to ensure the equivalence of nodes between 
+			# the C structures and the Javascript invocation.
+			# check out tests/8.wrl in the FreeWRL source distribution for
+			# a script with a DEF'd node in it's parameter declarations.
 
+
+			my $brow = $scene->get_browser();
+			#print "No backend, but browser has ",$brow->{BE}, " for node ",
+			#	VRML::NodeIntern::dump_name($node),"\n";
+
+			# make a backend
 			$node->make_backend($brow->{BE},$brow->{BE});
 
-			# now, do a final check - this should neve happen, though
-			if (!defined $node->{BackNode}) {
-				print "add_route, from $field - no backend node\n";
-				return (0,0,0,0);
-			}
+			# add a route to copy ALL fields of this. 
+			$this->findDEFwithinScript($scene,$node);
 		}
-
 
 		if (!defined ($outptr=$node->{BackNode}{CNode})) {
 			# are there backend CNodes made for both from and to nodes?
@@ -386,7 +486,7 @@ sub add_route {
 	my $scrpt = 0;
 	my $fc = 0; my $tc = 0; #from and to script nodes.
 
-	#print "\nstart of add_route, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
+	# print "\nstart of add_route, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
 
 	# FROM NODE
 	my ($outptr,$outoffset,$fc,$ok,$datalen) = $this->resolve_node_cnode ($scene,$fromNode,$eventOut,"eventOut");
@@ -399,7 +499,7 @@ sub add_route {
 
 	$scrpt = $fc + $tc;
 
-	# print "add_route, outptr $outptr, ofst $outoffset, inptr $inptr, ofst $inoffset len $datalen interp $intptr sc $scrpt\n";
+	#print "add_route, outptr $outptr, ofst $outoffset, inptr $inptr, ofst $inoffset len $datalen interp $intptr sc $scrpt\n";
 	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,
 		$intptr, $scrpt);
 }
