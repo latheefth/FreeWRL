@@ -421,7 +421,7 @@ sub api__getFieldInfo {
 	# 	($k,$t) = ($node->{FieldKinds}{$field},$node->{FieldTypes}{$field});
 	# }
 	
-	 print "getFieldInfo, k is $k, type is $t\n";
+	# print "getFieldInfo, k is $k, type is $t\n";
 	return($k,$t);
 }
 
