@@ -174,7 +174,7 @@ sub verify_script_started {
 
 			$node->{J} = VRML::JS->new($number, $code, $node, $Browser);
 			last;
-		} elsif (s/^(java|vrml)script://) {
+		} elsif (s/^\s*?(java|vrml)script://) {
 			eval('require VRML::JS;');
 			die $@ if ($@);
 
