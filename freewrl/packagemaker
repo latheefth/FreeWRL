@@ -15,4 +15,4 @@ find . -name typescript -exec rm {} \;
 find . -name CVS -exec rm -r {} \;
 rm package*
 rm JS/js/Linux_All_DBG.OBJ/*
-rm freewrl.PL
+rm freewrl
