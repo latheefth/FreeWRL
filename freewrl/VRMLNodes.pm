@@ -154,15 +154,21 @@ sub show_stack {
 }
 
 sub add_MFNode {
-	my ($node, $field, $child, $flag) = @_;
+	my ($node, $field, $child) = @_;
 	# $node  - node to add child to.
 	# $field - field of $node to add child to.
 	# $child - add this to the $field of $node.
-	# $flag  - if 1, this is an add, else a replace.
+#JAS print "VRMLNodes:add_MFNode, node $node field $field child $child\n";
+#JAS print "VRMLNodes:add_MFNode, node->RFields ";
+#JAS print $node->{RFields};
+#JAS print "\nVRMLNodes:add_MFNode, node->rfields $field ";
+#JAS print $node->{RFields}{$field};
+#JAS print "\n\n";
+
 
 	# Step 1: - is it already here???
-	foreach $item (@{$node->{Fields}{$field}}) {
-		# print "VRMLNode::add_child, child is $item\n";
+	foreach $item (@{$node->{RFields}{$field}}) {
+#JAS 		print "VRMLNode::add_MFNode, checking to see if $child is equal to $item\n";
 		if ($item eq $child) {
 			print "VRMLNode::add_MFNode: child $child already ",
 				"present in parent\n";
@@ -170,27 +176,43 @@ sub add_MFNode {
 		}
 	}
 
+#JAS 	print "VRMLNode::add_MFNode: child $child not found in $node $field\n";
 	# Step 2: Add the node to the field. Back end stuff handled by
 	# the browser.
 
-	if ($flag eq 1) {
-  		push(@{ $node->{Fields}{$field} }, VRML::Handles::get($child));
+	# Is this an array we are adding to, or just a scalar?
+
+	# print "Node RFields Field is of type: ";
+	if ("ARRAY" eq ref $node->{RFields}{$field}) {
+#JAS 		print "ARRAY ";
+#JAS 		print $node->{RFields}{$field};
+#JAS 		print " Node: $node field $field child ";
+#JAS 		print VRML::Handles::get($child);
+ #JAS 		print "\n";
+#JAS 		print "VRMLNodes:add_MFNode: ARRAY was is: ";
+#JAS 		print @{ $node->{RFields}{$field} };
+
+  		push(@{ $node->{RFields}{$field} }, VRML::Handles::get($child));
+
+#JAS 		print "VRMLNodes:add_MFNode: ARRAY now is: ";
+#JAS 		print @{ $node->{RFields}{$field} };
 	} else {
-		@{$node->{Fields}{$field}} = VRML::Handles::get($child);
+		#print "Not an array value\n";
+		$node->{RFields}{$field} = VRML::Handles::get($child);
 	}
 }
 
 sub remove_MFNode {
         my ($node, $field, $child) = @_;
-        # $node  - node to add child to.
-        # $field - field of $node to add child to.
-        # $child - add this to the $field of $node.
+        # $node  - node to remove child from.
+        # $field - field of $node to remove child from.
+        # $child - remove this $child from $field of $node.
 	
-	# print "remove_child, node is $node, child is $child\n";
+#JAS 	print "remove_child, node is $node, child is $child\n";
 	my ($i, $match_idx);
 
 	my $i = 0;
-	foreach $item (@{$node->{Fields}{children}}) {
+	foreach $item (@{$node->{RFields}{children}}) {
 		if ($item eq $child) {
 			$match_idx = $i;
 			last;
@@ -200,7 +222,7 @@ sub remove_MFNode {
 
 	if (defined $match_idx) {
 		# remove child
-		my $removed = splice(@{ $node->{Fields}{children} }, $match_idx, 1);
+		my $removed = splice(@{ $node->{RFields}{children} }, $match_idx, 1);
 	} else {
 		print "WARNING: remove_child - child $child not found in parent\n";
 	}
