@@ -37,5 +37,7 @@ public class VSFInt32 extends VField
 	out.writeInt(value);
     }
 
+    public int getValue() { return value;}
+
     public byte getType() { return SFINT32; }
 }
