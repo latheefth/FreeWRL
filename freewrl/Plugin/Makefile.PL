@@ -18,16 +18,16 @@ require '../Config.pm';
 $moduleName = "VRML::PluginGlue";
 
 WriteMakefile(
-			  NAME => $moduleName,
-			  VERSION_FROM => "PluginGlue.pm", # finds $VERSION
-			  PREREQ_PM => {},		# e.g., Module::Name => 1.1
-			  LIBS => "",			# e.g., '-lm'
-			  dynamic_lib => {
-							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
-							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
-							 },
-			  INC => "-ICFuncs"
-			 );
+	  NAME => $moduleName,
+	  VERSION_FROM => "PluginGlue.pm", # finds $VERSION
+	  PREREQ_PM => {},		# e.g., Module::Name => 1.1
+	  LIBS => "",			# e.g., '-lm'
+	  dynamic_lib => {
+		  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
+		  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
+			 },
+	  INC => "-ICFuncs"
+ );
 
 my $install = 0;
 
@@ -44,19 +44,11 @@ my $install = 0;
 		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
 			$install = 1;
 			$post_init = join(
-							  "\n",
-							  qq{\nPLUGIN=$dir/netscape},
-							  qq{LIB_DIR=$dir/netscape/_lib},
-							  qq{PLUGIN_DIR=$VRML::Config::vrml_config{NETSCAPE_PLUGINS}}
-							 );
-		} elsif ($VRML::Config::vrml_config{MOZILLA_INST}) {
-			$install = 1;
-			$post_init = join(
-							  "\n",
-							  qq{\nPLUGIN=$dir/mozilla},
-							  qq{LIB_DIR=$dir/mozilla/_lib},
-							  qq{PLUGIN_DIR=$VRML::Config::vrml_config{MOZILLA_PLUGINS}}
-							 );
+			  "\n",
+			  qq{\nPLUGIN=$dir/netscape},
+			  qq{LIB_DIR=$dir/netscape/_lib},
+			  qq{PLUGIN_DIR=$VRML::Config::vrml_config{NETSCAPE_PLUGINS}}
+			 );
 		}
 
 		return($post_init);
@@ -67,14 +59,14 @@ my $install = 0;
 		my $post_const = "";
 
 		$post_const = join("\n",
-						   qq{\n\n\#ifeq (\$(OSNAME),linux)},
-						   qq{DEFINE+=-DXP_UNIX=1 -D_GNU_SOURCE=1\n},
-						   qq{INC+= -I/usr/X11R6/include -I/usr/X11/include\n},
-						   qq{\#endif\n\n},
-						   qq{vpath %.c .:./CFuncs:../CFuncs},
-						   qq{CFUNCS_SRC:=\$(notdir \$(wildcard ./CFuncs/*.c))},
-						   qq{OBJECT+=\$(CFUNCS_SRC:%c=%o)}
-						  );
+			   qq{\n\n\#ifeq (\$(OSNAME),linux)},
+			   qq{DEFINE+=-DXP_UNIX=1 -D_GNU_SOURCE=1\n},
+			   qq{INC+= -I/usr/X11R6/include -I/usr/X11/include\n},
+			   qq{\#endif\n\n},
+			   qq{vpath %.c .:./CFuncs:../CFuncs},
+			   qq{CFUNCS_SRC:=\$(notdir \$(wildcard ./CFuncs/*.c))},
+			   qq{OBJECT+=\$(CFUNCS_SRC:%c=%o)}
+		  );
 
 		return ($post_const);
 	}
@@ -98,25 +90,25 @@ INST_DYNAMIC_DEP =
 		my $cxx_rule = qq{\t\$(CCCMD) \$< \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n};
 
 		my $c_o = join(
-					   "\n",
-					   qq{\n%.i : %.c},
-					   qq{\tgcc -E -c \$(PASTHRU_INC) \$(INC)\\},
-					   qq{\t\$(CCFLAGS) \$(OPTIMIZE)\\},
-					   qq{\t\$(PERLTYPE) \$(MPOLLUTE) \$(DEFINE_VERSION)\\},
-					   qq{\t\$(XS_DEFINE_VERSION) \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) \$< > \$@\n},
-					   qq{\n%.s : %.c},
-					   qq{\t\$(CCCMD) -S \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n},
-					   qq{\n%.o : %.c},
-					   $cxx_rule,
-					   qq{%.o : %.C},
-					   $cxx_rule,
-					   qq{%.o : %.cpp},
-					   $cxx_rule,
-					   qq{%.o : %.cxx},
-					   $cxx_rule,
-					   qq{%.o : %.cc},
-					   $cxx_rule
-					  );
+		   "\n",
+		   qq{\n%.i : %.c},
+		   qq{\tgcc -E -c \$(PASTHRU_INC) \$(INC)\\},
+		   qq{\t\$(CCFLAGS) \$(OPTIMIZE)\\},
+		   qq{\t\$(PERLTYPE) \$(MPOLLUTE) \$(DEFINE_VERSION)\\},
+		   qq{\t\$(XS_DEFINE_VERSION) \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) \$< > \$@\n},
+		   qq{\n%.s : %.c},
+		   qq{\t\$(CCCMD) -S \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n},
+		   qq{\n%.o : %.c},
+		   $cxx_rule,
+		   qq{%.o : %.C},
+		   $cxx_rule,
+		   qq{%.o : %.cpp},
+		   $cxx_rule,
+		   qq{%.o : %.cxx},
+		   $cxx_rule,
+		   qq{%.o : %.cc},
+		   $cxx_rule
+		  );
 
 		return $c_o;
 	}
@@ -128,21 +120,20 @@ INST_DYNAMIC_DEP =
 		if ($install) {
 			my $defines = "LIB_DIR=\$(LIB_DIR) OSNAME=\$(OSNAME) PLUGIN_DIR=\$(PLUGIN_DIR) CC=\$(CC)";
 			$postamble = join("\n",
-							  qq{\n\# --- FreeWRL web browser plugin:},
-							  qq{all :: plugin\n},
-							  qq{plugin ::},
-							  qq{\tcd \$(PLUGIN) && \$(MAKE) all $defines\n},
-							  qq{install ::},
-							  qq{\tcd \$(PLUGIN) && \$(MAKE) install $defines\n},
-							  qq{clean ::},
-							  qq{\tcd \$(PLUGIN) && \$(MAKE) clean LIB_DIR=\$(LIB_DIR)\n},
-							  qq{realclean ::},
-							  qq{\tcd \$(PLUGIN) && \$(MAKE) clean PLUGIN_DIR=\$(PLUGIN_DIR)\n},
-							  qq{distclean :: realclean\n}
-							 );
+			  qq{\n\# --- FreeWRL web browser plugin:},
+			  qq{all :: plugin\n},
+			  qq{plugin ::},
+			  qq{\tcd \$(PLUGIN) && \$(MAKE) all $defines\n},
+			  qq{install ::},
+			  qq{\tcd \$(PLUGIN) && \$(MAKE) install $defines\n},
+			  qq{clean ::},
+			  qq{\tcd \$(PLUGIN) && \$(MAKE) clean LIB_DIR=\$(LIB_DIR)\n},
+			  qq{realclean ::},
+			  qq{\tcd \$(PLUGIN) && \$(MAKE) clean PLUGIN_DIR=\$(PLUGIN_DIR)\n},
+			  qq{distclean :: realclean\n}
+			 );
 
 		}
 		return($postamble);
 	}
-
 }

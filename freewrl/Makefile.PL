@@ -9,8 +9,7 @@
 
 system "perl VRMLC.pm";
 
-# put the version here, and, in the "sh maker" section below.
-$VERSION = "1.04-pre3";
+$VERSION = "1.04";
 
 BEGIN {
  eval "use 5.004";
@@ -123,6 +122,11 @@ push @inc, $VRML_CONFIG{FREEWRL_INC},
 	"-I../JS/$jsobjdir", "-IJS/$jsobjdir", "-IJS/$jsdir", "-I../JS/$jsdir -ICFuncs";
 push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-ljs";
 push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
+
+# Path to SoundServer binary
+push @inc, " -DSOUNDSERVERBINARY=\\\"$VRML_CONFIG{BIN_DIR}/FreeWRL_SoundServer\\\" ";
+print "INC now is ",@inc,"\n";
+
 
 $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
@@ -246,9 +250,37 @@ INST_DYNAMIC_DEP =
 		}
 	}
 
+
+	sub post_initialize {
+		use Cwd;
+		my($ver, $nc);
+		my $dir = getcwd();
+		my $post_init = "";
+
+
+		$post_init = join(
+			  "\n",
+			  qq{\nFRONTEND=$dir/CFrontEnd},
+			  qq{\nSOUNDENGINE=$dir/SoundEngine},
+			  qq{FRONTEND_DIR=$VRML::Config::vrml_config{BIN_DIR}},
+			  qq{LIB_DIR=$VRML::Config::vrml_config{LIB_DIR}},
+		 );
+
+		return($post_init);
+	}
+
+
+
 	sub postamble {
 		my @postamble;
-		my $vrmlinstdir = "\$(SITEARCHEXP)/VRML";
+		my $VRMLINSTDIR   = "\$(SITEARCHEXP)/VRML";
+		my $FRONTEND      = "\$(dir)/CFrontEnd";
+		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
+		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
+		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
+		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
+		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
+		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
 
 		## Add extra make instructions that don't quite fit into the
 		## ExtUtils::MakeMaker framework.
@@ -278,22 +310,50 @@ INST_DYNAMIC_DEP =
 				 ));
 		}
 
+		# Copy fonts over, etc.
 		push(@postamble, join(
 				  "\n",
 				qq{\# copy fonts, x3d, libjs.so over\n},
 				qq{install ::},
-				qq{\tcp -r fonts $vrmlinstdir\n},
-				qq{\tcp -r x3d $vrmlinstdir\n},
-				qq{\tcp JS/$jsobjdir/libjs.so /usr/local/lib\n},
-				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so /usr/local/lib/libFreeWRLFunc.so\n},
+				qq{\tcp -r fonts $VRMLINSTDIR\n},
+				qq{\tcp -r x3d $VRMLINSTDIR\n},
+				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
+				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
 				qq{\t/sbin/ldconfig\n},
-				qq{\# compile C front end\n},
-				qq{\t\@cd CFrontEnd && sh maker $vrmlinstdir "1.04-pre3" \n},
-				qq{\# install C front end\n},
-				qq{\tcp CFrontEnd/fw2init.pl "/usr/bin"\n},
-				qq{\tcp CFrontEnd/freewrl "/usr/bin"\n},
+				));
 
-				 ));
+		# make the C Front End.
+
+		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(SITEARCHEXP)/VRML BINDIR=\$(FRONTEND_DIR) CC=\$(CC) FWVER=\$(VERSION)";
+		my $def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
+
+		push (@postamble, join("\n",
+			  qq{\n\# --- FreeWRL C Front End:},
+			  qq{all ::},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def2 $def1 \n},
+			  qq{install ::},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def1 $def2\n},
+			  qq{clean ::},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{realclean ::},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{distclean :: realclean\n}
+			 ));
+
+		# make the sound engine.
+		push (@postamble, join("\n",
+			  qq{\n\# --- Sound Engine:},
+			  qq{all ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all  $def1  \n},
+			  qq{install ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def1  \n},
+			  qq{clean ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def1  \n},
+			  qq{realclean ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def1  \n},
+			  qq{distclean :: realclean\n}
+			 ));
+
 
 		push(@postamble, join(
 				  "\n",

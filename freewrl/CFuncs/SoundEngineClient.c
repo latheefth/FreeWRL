@@ -22,7 +22,7 @@ int my_ipc_key;
 
 FWSNDMSG msg;		/* message buffer */
 
-char sspath[] = "/usr/local/bin/FreeWRL_SoundServer";
+char sspath[] = SOUNDSERVERBINARY; /* compile line flag */
 
 int initialized = SOUND_NEEDS_STARTING; /* are we able to run? */
 

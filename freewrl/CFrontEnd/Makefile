@@ -1,0 +1,39 @@
+# make file for FreeWRL front end.
+#
+
+# for making the Perl interface
+PFLAGS = -c -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts` 
+
+# for making the freewrl opts file
+FWFLAGS = -c -D_REENTRANT 
+
+CC = gcc
+
+FRFLAGS = -c -DFWVER=\"\$(FWVER)\" -DPERLPATH=\"\$(PPATH)\" \
+		 -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+
+all:	freewrl
+
+install:  freewrl
+	strip freewrl
+	cp freewrl $(BINDIR)
+	cp fw2init.pl $(BINDIR)
+
+perlxsi: 
+	perl -MExtUtils::Embed -e xsinit -- -o perlxsi.c;
+	$(CC) $(INC) $(PFLAGS) perlxsi.c
+
+fwopts: 
+	$(CC) $(INC) $(FWFLAGS) fwopts.c
+
+freewrl: perlxsi fwopts
+	$(CC) $(INC) $(FRFLAGS) freewrl.c
+	$(CC) $(LIBS) -o freewrl \
+	-lpthread -lFreeWRLFunc \
+	perlxsi.o freewrl.o fwopts.o \
+	`perl -MExtUtils::Embed -e ccopts -e ldopts`
+
+clean:
+	rm *o; rm perlxsi*; rm freewrl;
+
+distclean: clean
