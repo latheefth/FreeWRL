@@ -617,7 +617,10 @@ void render_polyrep(void *node,
 	int hasc;
 
 	/* reset colors to defaults, if we have to */
-	GLfloat diffuseColor[] = {0.8, 0.8, 0.8};
+	GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
+	GLfloat ambientIntensity[] = {0.2, 0.2, 0.2, 1.0};
+	GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
+	GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
 
 	/* temporary place for X,Y,Z */
 	GLfloat XYZ[] = {0.0, 0.0, 0.0};
@@ -720,6 +723,9 @@ void render_polyrep(void *node,
 	if(hasc) {
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 		glEnable(GL_COLOR_MATERIAL);
 	}
 
