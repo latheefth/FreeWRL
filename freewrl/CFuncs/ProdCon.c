@@ -470,7 +470,7 @@ void _perlThread(void *perlpath) {
 	char *slashindex;
 	char firstBytes[4];
 
-	int tempfp; /* for tring to locate the fw2init.pl file */
+	FILE *tempfp; /* for tring to locate the fw2init.pl file */
 
 	/* is the browser started yet? */
 	if (!browserRunning) {
@@ -478,9 +478,9 @@ void _perlThread(void *perlpath) {
 		commandline[1] = FW2INITPL;
 
 		/* find out where the fw2init.pl file is */
-		if ((tempfp = open(commandline[1],"r")) >= 0) {
+		if ((tempfp = fopen(commandline[1],"r")) != NULL) {
 			/* printf ("opened %s %d\n",commandline[1],tempfp); */
-			close(tempfp);
+			fclose(tempfp);
 		} else {
 			/* printf ("error opening %s\n",commandline[1]);  */
 			xx = strlen (BUILDDIR) + strlen ("./CFrontEnd/fw2init.pl") + 10;
@@ -489,10 +489,10 @@ void _perlThread(void *perlpath) {
 			strcat (builddir, "/CFrontEnd/fw2init.pl");
 			commandline[1] = builddir;
 
-			if ((tempfp = open(commandline[1],"r")) >= 0) {
+			if ((tempfp = fopen(commandline[1],"r")) != NULL) {
 	
 				/* printf ("opened %s\n",commandline[1]);  */
-				close(tempfp);
+				fclose(tempfp);
 			} else {
 				printf ("can not locate the fw2init.pl file, tried:\n");
 				printf ("    %s\n    and\n    %s\nexiting...\n",
