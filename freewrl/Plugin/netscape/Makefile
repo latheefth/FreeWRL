@@ -36,7 +36,7 @@ CC=gcc
 OPTIMIZER:=-O2
 PLUGIN_DEFINES:=-DXP_UNIX
 
-LIB_JAVA:=-L/usr/java/jdk1.3.1/jre/lib/i386 -ljava
+LIB_JAVA:=-L${JAVA_DIR}/jre/lib/i386 -ljava
 
 DEBUG:=0
 ifeq (${DEBUG},1)
