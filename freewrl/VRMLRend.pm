@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.142  2004/11/18 18:19:19  crc_canada
+# SoundEngine work.
+#
 # Revision 1.141  2004/11/09 16:11:43  crc_canada
 # added "pan" field for sound rendering.
 #
@@ -916,18 +919,37 @@ Sound => '
 	
 		fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
-		gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+		gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
+			mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+		//printf ("mod %lf %lf %lf proj %lf %lf %lf\n",
+		//mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);
 	
 		len = sqrt(VECSQ(vec)); 
 		//printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
 		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
 
+		
 		// pan left/right. full left = 0; full right = 1.
 		if (len < 0.001) angle = 0;
 		else {
-			angle = mod[12]/len; // returns a -0.999 to + 0.999
-			angle = angle / 2.0;
+			if (APPROX (mod[12],0)) {
+				//printf ("mod12 approaches zero\n");
+				mod[12] = 0.001;
+			}
+			angle = fabs(atan2(mod[14],mod[12])) - (PI/2.0);
+			angle = angle/(PI/2.0);
+
+			// Now, scale this angle to make it between -0.5
+			// and +0.5; if we divide it by 2.0, we will get
+			// this range, but if we divide it by less, then
+			// the sound goes "hard over" to left or right for
+			// a bit.
+			angle = angle / 1.5; 
+		
+			// now scale to 0 to 1
 			angle = angle + 0.5;
+
+			// bounds check...
 			if (angle > 1.0) angle = 1.0;
 			if (angle < 0.0) angle = 0.0;
 			//printf ("angle: %f\n",angle);

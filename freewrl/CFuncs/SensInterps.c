@@ -26,6 +26,8 @@ Interps are the "EventsProcessed" fields of interpolators.
 #endif
 #include "SensInterps.h"
 
+/* if a Sound {} can not be found... */
+#define BADAUDIOSOURCE -9999
 
 int SEVerbose = 0;
 
@@ -560,6 +562,7 @@ void do_AudioTick(struct VRML_AudioClip *node) {
 
 	/* can we possibly have started yet? */
 	if (!node) return;
+
 	if(TickTime < node->startTime) {
 		return;
 	}
@@ -567,10 +570,15 @@ void do_AudioTick(struct VRML_AudioClip *node) {
 	oldstatus = node->isActive;
 
 	/* is this audio wavelet initialized yet? */
-	if (node->__sourceNumber < 0) {
+	if (node->__sourceNumber == -1) {
 		locateAudioSource (node);
 		/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber); */
 	}
+
+	/* is this audio ok? if so, the sourceNumber will range
+	 * between 0 and infinity; if it is BADAUDIOSOURCE, bad source.
+	 * check out locateAudioSource to find out reasons */
+	if (node->__sourceNumber == BADAUDIOSOURCE) return;
 
 	/* call common time sensor routine */
 	do_active_inactive (
@@ -1278,6 +1286,7 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 		/* well, no file found */
 		printf ("Audio: could not find audio file\n");
 		free (filename);
+		node->__sourceNumber = BADAUDIOSOURCE;
 	} else { 
 		/* save local file in the structure, so that it can 
 		   be initialized later */

@@ -24,16 +24,20 @@ int bytesPerCycle = 0;
 int soundcardBufferEmptySize = 0;
 int soundcardBufferCurrentSize = 0;
 
-// if FreeWRL's fps is too low, we may have to read and write more than one
-// block from the wav file per update. The following variable tells us how
-// many to do.
-int loopsperloop = 1;
+// DSP parameters, should match sox call parameters.
+int SystemBPSample = 16;
+int MaxChannels = 2;
+long int Rate = 22050;
 
 
-void playWavFragment(SNDFILE *wavfile, int source) {
+// where the data gets munged to.
+short int CombiningBuffer[MAXBUFSIZE];
+void initializeCombiningBuffer();
+
+void playWavFragment() {
+	//SNDFILE *wavfile, int source) {
 	audio_buf_info leftover;
 	int mydata;			// DSP buffer size... used to keep data flowing
-	int tmp;
 	
 	// Only write if there is the need to write data. - dont want
 	// to buffer too much; want sound to be responsive but smooth
@@ -52,9 +56,7 @@ void playWavFragment(SNDFILE *wavfile, int source) {
 		DSPplaying =  0;
 		mydata = 0; 
 		readSize = 0;
-		bytesPerCycle = BUFSIZE; // make an assumption.
-		loopsperloop = 1;
-		rewind_to_beginning (wavfile);
+		bytesPerCycle = MAXBUFSIZE/2; // make an assumption.
 	} else {
 		// we have done this before since the file open...
 		mydata = soundcardBufferEmptySize - soundcardBufferCurrentSize;
@@ -65,76 +67,38 @@ void playWavFragment(SNDFILE *wavfile, int source) {
 
 		// lets try some scaling here.
 		// did we (or are we close to) running out of data?
-		if ((mydata <= 0x4ff) && 
-				(bytesPerCycle < BUFSIZE*16) &&
-				(wavfile->bytes_remaining > bytesPerCycle)) {
+		if ((mydata <= 0x4ff) && (bytesPerCycle < BUFSIZE*16)) {
 			//printf ("increasing bps\n");
 			bytesPerCycle += 0x100;
-			loopsperloop += 1;
 		}
 	}
-	//printf ("bps %d\n",bytesPerCycle);
+	//printf ("md %d, bps %d rate %f bytes/sec\n",mydata, bytesPerCycle, fps*bytesPerCycle);
 
 	// Should we read and write? 
 	if (mydata <= (bytesPerCycle*2)) {
-
-		// ok - we should write. Get the next bit of data
-
-		// Calculate if we are going to go past the EOF marker,
-		// and if so, go back to the beginning. (assume loop=true)
-		//
-		if (wavfile->bytes_remaining <= 0) {
-			//printf ("EOF input, lets reset and re-read\n");
-		       if (loop[source] == 1) {
-			       rewind_to_beginning(wavfile);
-			} else {
-				// dont loop - just return
-				return;
-			}
-		}
-
-		// Are we reaching the end of the file? Lets calculate the 
-		// size of the WAV file read we are going to do, and adjust
-		// where we are in the read of the WAV file. Note that for
-		// really short files, this works, too!
-		//
-		//
-
-		for (tmp = 0; tmp < loopsperloop; tmp++) {
-			if (wavfile->bytes_remaining < BUFSIZE) {
-				readSize = (int) wavfile->bytes_remaining;
-				wavfile->bytes_remaining = 0;
-			} else {
-				readSize = BUFSIZE;
-				wavfile->bytes_remaining -= BUFSIZE;
-			}
-
-			// read and write here.
-			if (wavfile->bytes_remaining > 0) {
-				fread(wavfile->data,readSize,1,wavfile->fd);	
-				write (dspFile, wavfile->data, readSize);
-			}
-		}
+		initializeCombiningBuffer();
+		//printf ("icb, smd %d\n",bytesPerCycle);
+		streamMoreData(bytesPerCycle);
 	}
 
 	if (ioctl(dspFile, SNDCTL_DSP_GETOSPACE,&leftover) <0) {
 		printf ("error, SNDCTL_DSP_GETOSPACE\n");
 		dspFile = -1;
 	}
+	//printf ("space leftover is %d\n",leftover.bytes);
 	soundcardBufferCurrentSize = leftover.bytes;
 }
 
 
 
 // WAV file header read in, lets get the rest of the data ready.
-SNDFILE *initiateWAVSound (SNDFILE *wavfile) {
+SNDFILE *initiateWAVSound (SNDFILE *wavfile,int mynumber) {
 	wavfile->type=WAVFILE;
 	return wavfile;
 }
 
 // Close the DSP, release memory.
 void closeDSP () {
-	setMixerGain(0.0);
 	if (dspBlock!=NULL) free(dspBlock);
 	if (dspFile>=0) close(dspFile);
 	dspFile = -1;
@@ -168,62 +132,105 @@ void initiateDSP() {
 	}
 	soundcardBufferEmptySize = leftover.bytes;
 	//printf ("can write a possible amount of %d bytes\n",leftover.bytes);
+	
+	// set for 16 bit samples.
+	if (ioctl(dspFile,SNDCTL_DSP_SETFMT,&SystemBPSample)<0) {
+		printf ("unable to set DSP bit size to %d\n",SystemBPSample);
+		dspFile = -1; // flag an error
+	}
+
+	// set for stereo.
+	if (ioctl(dspFile,SNDCTL_DSP_STEREO,&MaxChannels)<0) {
+		printf ("unable to set mono/stereo mode to %d\n",MaxChannels);
+		dspFile = -1; // flag an error
+	}
+
+	// Set rate.
+	if (ioctl(dspFile,SNDCTL_DSP_SPEED,&Rate)<0) {
+		printf ("unable to set DSP sampling rate to %ld\n",Rate);
+		dspFile = -1; // flag an error
+	}
+
 
     return ;
 }
 
 
-// Different WAV files may have different representations; set the
-// DSP for this file.
-void selectWavParameters (SNDFILE *wavfile) {
-	unsigned long ltmp;
-	int tmp;
+void initializeCombiningBuffer() {
+	int count;
 
-	// first - is the DSP open?
-	if (dspFile<0) return;
-
-	//second - find out how many bytes in the data chunk
-	//second and a half - make sure we are at the beginning of data
-	rewind_to_beginning (wavfile);
-
-	// third - set the bit size
-	tmp = wavfile->FormatChunk.wBitsPerSample;
-	//printf ("SNDCTL_DSP_SAMPLESIZE %d\n",tmp);
-	if (ioctl(dspFile,SNDCTL_DSP_SETFMT,&tmp)<0) {
-		printf ("unable to set DSP bit size to %d\n",tmp);
-		dspFile = -1; // flag an error
-		//JAS return;
-	}	
-
-
-	// fourth - set mono or stereo
-	tmp = wavfile->FormatChunk.wChannels-1;
-	//printf ("SNDCTL_DSP_STEREO %d channels %d\n",tmp, wavfile->FormatChunk.wChannels);
-	if (ioctl(dspFile,SNDCTL_DSP_STEREO,&tmp)<0) {
-		printf ("unable to set mono/stereo mode to %d\n",tmp);
-		dspFile = -1; // flag an error
-		//JAS return;
-	}	
-
-	// second - set the sampling rate
-	ltmp = (long int) ((float) wavfile->FormatChunk.dwSamplesPerSec * wavfile->pitch);
-	//printf ("SNDCTL_DSP_SPEED %ld from %ld pitch %f \n",ltmp,
-	//		wavfile->FormatChunk.dwSamplesPerSec,wavfile->pitch);
-	if (ioctl(dspFile,SNDCTL_DSP_SPEED,&ltmp)<0) {
-		printf ("unable to set DSP sampling rate to %ld\n",ltmp);
-		dspFile = -1; // flag an error
-		return;
-	}	
-
-	//printf ("SNDCTL_DSP_SYNC,0\n");
-	if (ioctl(dspFile,SNDCTL_DSP_SYNC,0)!= 0) {
-		printf("unable to set sync on dsp\n");
-		dspFile = -1; // flag an error
-		//JAS return;
-	}	
-
-	//printf ("selectWavParameters - returning...\n");
-	return;
+	for (count =0; count < MAXBUFSIZE; count++) {
+		//CombiningBuffer[count] = 32767;
+		CombiningBuffer[count] = 0;
+		//printf ("initialized %d\n",CombiningBuffer[count]);
+	}
 }
 
+// add this new stream to our standard buffer. Convert as appropriate.
+void addToCombiningBuffer(int source,int readSize, int offset) {
+	int tc;
+	short int *siptr;
+	int tmp;
+	int ampl;
+	int lbal, rbal;
+
+
+	//printf ("afer start, offset = %d readSize %d \n", offset,readSize);
 	
+	ampl = 100 - (sndfile[source]->ampl);
+	if (ampl < 1) ampl = 1;	// stops divide by zero errors
+
+	switch (sndfile[source]->FormatChunk.wBitsPerSample) {
+		case SIXTEEN: {
+			siptr = (short int *)(sndfile[source]->data);
+			lbal = sndfile[source]->balance;
+			rbal = 100 - lbal;
+
+			// lets try this... basically, either add to or
+			// reduce balance, but keep average at 1.0
+			rbal = rbal*2;
+			lbal = lbal*2;
+
+			//printf ("lbal %d rbal %d\n",lbal, rbal);
+
+			for (tc=0; tc<(readSize/2); tc++) {
+				// get value, and adjust for volume
+				if ((tc & 0x01) == 0) {
+					//printf ("left\n");
+					tmp = *siptr;
+					tmp = (tmp *100)/ampl;
+					tmp = (tmp * lbal) / 50;
+					tmp = tmp/100;
+					// balance
+				} else {
+					//printf ("right\n");
+					tmp = *siptr;
+					tmp = (tmp *100)/ampl;
+					tmp = (tmp * rbal) / 50;
+					tmp = tmp/100;
+				}
+
+				// combine them, then check for overflow
+				tmp = tmp + (int)CombiningBuffer[offset];
+				if ((tmp > 32767) || (tmp <-32768)) {
+					//printf ("have a problem, %d\n",tmp);
+					if (tmp > 32767) {
+						tmp = 32767;
+					} else {
+						tmp = -32768;
+					}
+				}
+
+				//CombiningBuffer[offset] += tmp;
+				CombiningBuffer[offset] = tmp;
+				offset++;
+				siptr++;
+			}
+			break;
+		}
+				
+		default: {
+			 printf ("woops, addToStreaming not for this type\n");
+		}
+	}
+}

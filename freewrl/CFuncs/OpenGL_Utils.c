@@ -148,75 +148,79 @@ void fwMatrixMode (int mode) {
 	}
 }
 	
-#ifdef CACHEMATRIX
-//void pmat (double *mat) {
-//	int i;
-//	for (i=0; i<16; i++) {
-//		printf ("%3.2f ",mat[i]);
-//	}
-//	printf ("\n");
-//}
-//
-//void compare (char *where, double *a, double *b) {
-//	int count;
-//	double va, vb;
-//
-//	for (count = 0; count < 16; count++) {
-//		va = a[count];
-//		vb = b[count];
-//		if (fabs(va-vb) > 0.001) {
-//			printf ("%s difference at %d %lf %lf\n",
-//					where,count,va,vb);
-//		}
-//
-//	}
-//}
+#ifdef DEBUGCACHEMATRIX
+void pmat (double *mat) {
+	int i;
+	for (i=0; i<16; i++) {
+		printf ("%3.2f ",mat[i]);
+	}
+	printf ("\n");
+}
+
+void compare (char *where, double *a, double *b) {
+	int count;
+	double va, vb;
+
+	for (count = 0; count < 16; count++) {
+		va = a[count];
+		vb = b[count];
+		if (fabs(va-vb) > 0.001) {
+			printf ("%s difference at %d %lf %lf\n",
+					where,count,va,vb);
+		}
+
+	}
+}
 #endif
 
 void fwGetDoublev (int ty, double *mat) {
-#ifdef CACHEMATRIX
-	//double TMPmat[16];
-
-	//printf ("glGetDoublev, type ");
-	//if (ty==GL_MODELVIEW_MATRIX) {printf ("MODELVIEW");}
-	//else if (ty == GL_PROJECTION_MATRIX) {printf ("PROJECTION\n");}
-	//else {printf ("UNKNOWN");}
+#ifdef DEBUGCACHEMATRIX
+	double TMPmat[16];
 	//printf (" sav %d tot %d\n",sav,tot);
 	tot++;
+
+#endif
+
+
 	if (ty == GL_MODELVIEW_MATRIX) {
 		if (!MODmatOk) {
 			glGetDoublev (ty, MODmat);
 			MODmatOk = TRUE;
+
+#ifdef DEBUGCACHEMATRIX
 		} else sav ++;
 
 		// debug memory calls
-		//glGetDoublev(ty,TMPmat);
-		//compare ("MODELVIEW", TMPmat, MODmat);
-		//memcpy (MODmat,TMPmat, sizeof (MODmat));
+		glGetDoublev(ty,TMPmat);
+		compare ("MODELVIEW", TMPmat, MODmat);
+		memcpy (MODmat,TMPmat, sizeof (MODmat));
 		// end of debug
-		
+#else
+		}
+#endif
+
 		memcpy (mat, MODmat, sizeof (MODmat));
 
 	} else if (ty == GL_PROJECTION_MATRIX) {
 		if (!PROJmatOk) {
 			glGetDoublev (ty, PROJmat);
 			PROJmatOk = TRUE;
+#ifdef DEBUGCACHEMATRIX
 		} else sav ++;
 
 		// debug memory calls
-		//glGetDoublev(ty,TMPmat);
-		//compare ("PROJECTION", TMPmat, PROJmat);
-		//memcpy (PROJmat,TMPmat, sizeof (PROJmat));
+		glGetDoublev(ty,TMPmat);
+		compare ("PROJECTION", TMPmat, PROJmat);
+		memcpy (PROJmat,TMPmat, sizeof (PROJmat));
 		// end of debug
+#else
+		}
+#endif
 
 		memcpy (mat, PROJmat, sizeof (PROJmat));
 	} else {
 		printf ("fwGetDoublev, inv type %d\n",ty);
 	}
-#else
-	glGetDoublev (ty,mat);
-#endif
-
 }
 
 void fwXformPush(struct VRML_Transform *me) {
