@@ -130,7 +130,9 @@ sub new {
         glEnable(&GL_NORMALIZE);
         glEnable(&GL_LIGHTING);
         glEnable(&GL_LIGHT0);
+
 	glEnable(&GL_CULL_FACE);
+
         glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
         glLightModeli(&GL_LIGHT_MODEL_LOCAL_VIEWER, &GL_FALSE);
         glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
