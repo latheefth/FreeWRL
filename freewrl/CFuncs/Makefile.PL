@@ -12,16 +12,20 @@ WriteMakefile(
 );
 
 sub MY::post_initialize {
-    return q /
-LIBDIR  = 
-    /;
+	my $post_init =
+q{
+LIBDIR=
+};
+	return ($post_init);
 }
 
 sub MY::c_o {
-    q /
+	my $c_o =
+q{
 %.o: %.c
 	$(CCCMD) -I$(PERL_INC) $(CCFLAGS) -o $@ $(LIBDIR) $< $(LIBS)
-    /;
+};
+	return ($c_o);
 }
 
 ## Override all this stuff
@@ -42,11 +46,13 @@ sub MY::xs_o { "" }
 ## C_FILES and O_FILES are generated automatically by MakeMaker
 
 sub MY::postamble {
-    return q /
+	my $postamble =
+q{
 
 vpath %.c
 
 all :: ${O_FILES}
 
-    /;
+};
+	return ($postamble);
 }

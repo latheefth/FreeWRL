@@ -110,15 +110,62 @@ WriteMakefile(
     EXE_FILES => ['freewrl'],
     MAN1PODS => { 'freewrl' => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
     PL_FILES => {'freewrl.PL' => 'freewrl'},
-    PREREQ_PM => { 'Digest::MD5' =>  "2.09",
-		   'HTML::Parser' => "2.25",
-		   'MIME::Base64' => "2.11",
-		   'URI'          => "1.04",
-		   'LWP'          => "5.47",
-		 },
-   LIBS => $VRML_CONFIG{FREEWRL_LIBS},
-   OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o CFuncs/LinearAlgebra.o CFuncs/Collision.o CFuncs/MPEG_Utils.o CFuncs/Text.o CFuncs/readpng.o',
+	PREREQ_PM => { 'Digest::MD5' =>  "2.09",
+					'HTML::Parser' => "2.25",
+					'MIME::Base64' => "2.11",
+					'URI'          => "1.04",
+					'LWP'          => "5.47",
+				   },
+			  LIBS => $VRML_CONFIG{FREEWRL_LIBS},
+   ##OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o CFuncs/LinearAlgebra.o CFuncs/Collision.o CFuncs/MPEG_Utils.o CFuncs/Text.o CFuncs/readpng.o',
+   OBJECT => 'VRMLFunc.o',
 );
+
+
+sub MY::post_constants {
+	my $post_const = "";
+
+	$post_const =
+q{
+
+vpath %.c .:./CFuncs
+
+CFUNCS_SRC:=$(wildcard ./CFuncs/*.c)
+OBJECT+=$(CFUNCS_SRC:%c=%o)
+
+};
+
+	return ($post_const);
+}
+
+
+#sub MY::c_o {
+#	my $c_o = "";
+
+#	$c_o =
+#q{
+
+#%.o : %.c
+#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
+
+#%.o : %.C
+#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
+
+#%.o : %.cpp
+#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
+
+#%.o : %.cxx
+#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
+
+#%.o : %.cc
+#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
+
+#};
+
+#	return ($c_o);
+#}
+
+
 
 sub MY::postamble {
     ## Add extra make instructions that don't quite fit into the
