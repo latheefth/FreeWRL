@@ -26,6 +26,7 @@ extern struct pt t_r1;
 extern struct pt t_r2;
 extern struct pt t_r3;
 
+void add_to_face ( int point, int face, int *pointfaces);
 
 /* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
 /* 								*/
