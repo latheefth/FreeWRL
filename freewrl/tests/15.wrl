@@ -51,5 +51,6 @@ Shape {
 			11, 24, 25, 12, -1, 
 		]
 		solid FALSE
+		creaseAngle 1.0
 		}
 }		
