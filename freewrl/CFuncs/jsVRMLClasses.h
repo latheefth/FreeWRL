@@ -962,6 +962,55 @@ MFVec3fSetProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
+JSBool
+VrmlMatrixToString(JSContext *cx,
+				JSObject *obj,
+				uintN argc,
+				jsval *argv,
+				jsval *rval);
+
+JSBool
+VrmlMatrixAssign(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+
+JSBool VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool VrmlMatrixinverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool VrmlMatrixtranspose(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool VrmlMatrixmultLeft(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool VrmlMatrixmultRight(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+JSBool VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval);
+
+JSBool
+VrmlMatrixConstr(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+VrmlMatrixAddProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+JSBool 
+VrmlMatrixGetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+JSBool 
+VrmlMatrixSetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
 
 
 /*
@@ -1373,6 +1422,36 @@ static JSClass MFVec3fClass = {
 static JSFunctionSpec (MFVec3fFunctions)[] = {
 	{"toString", MFVec3fToString, 0},
 	{"assign", MFVec3fAssign, 0},
+	{0}
+};
+
+/* VrmlMatrix - JAS */
+static JSObject *proto_VrmlMatrix;
+
+static JSClass VrmlMatrixClass = {
+	"VrmlMatrix",
+	JSCLASS_HAS_PRIVATE,
+	VrmlMatrixAddProperty,
+	JS_PropertyStub,
+	VrmlMatrixGetProperty,
+	VrmlMatrixSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_FinalizeStub
+};
+
+static JSFunctionSpec (VrmlMatrixFunctions)[] = {
+	{"toString", VrmlMatrixToString, 0},
+	{"assign", VrmlMatrixAssign, 0},
+	{"getTransform", VrmlMatrixgetTransform, 0},
+	{"setTransform", VrmlMatrixsetTransform, 0},
+	{"inverse", VrmlMatrixinverse, 0},
+	{"transpose", VrmlMatrixtranspose, 0},
+	{"multLeft", VrmlMatrixmultLeft, 0},
+	{"multRight", VrmlMatrixmultRight, 0},
+	{"multVecMatrix", VrmlMatrixmultVecMatrix, 0},
+	{"multMatrixVec", VrmlMatrixmultMatrixVec, 0},
 	{0}
 };
 

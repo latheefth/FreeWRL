@@ -158,9 +158,19 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	p = JS_GetStringBytes(str);
 
 	p_len = strlen(p);
-	if (!strncmp(p, "length", p_len) || !strncmp(p, "toString", p_len) ||
-		!strncmp(p, "__touched_flag", p_len) || !strncmp(p, "assign", p_len) ||
-		!strncmp(p, "constructor", p_len)) {
+	if (!strncmp(p, "length", p_len) ||
+		!strncmp(p, "toString", p_len) ||
+		!strncmp(p, "__touched_flag", p_len) || 
+		!strncmp(p, "setTransform", p_len) ||
+		!strncmp(p, "assign", p_len) ||
+		!strncmp(p, "inverse", p_len) ||
+		!strncmp(p, "transpose", p_len) ||
+		!strncmp(p, "multLeft", p_len) ||
+		!strncmp(p, "multRight", p_len) ||
+		!strncmp(p, "multVecMatrix", p_len) ||
+		!strncmp(p, "multMatrixVec", p_len) ||
+		!strncmp(p, "constructor", p_len) ||
+		!strncmp(p, "getTransform", p_len)) {
 		if (JSVerbose) {
 			printf("property \"%s\" is one of \"length\", \"constructor\", \"assign\", \"__touched_flag\", \"toString\". Do nothing.\n", p);
 		}
@@ -171,7 +181,7 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		sstr = JS_ValueToString(cx, *vp);
 		pp = JS_GetStringBytes(sstr);
 
-		printf("adding property %s, %s to object %u, ",
+		printf("adding property %s, %s to object %u, \n",
 			   p, pp, (unsigned int) obj);
 	}
 	if (!JSVAL_IS_INT(id)){ 
@@ -547,6 +557,19 @@ loadVrmlClasses(JSContext *context, JSObject *globalObj)
 		return JS_FALSE;
 	}
 	v = 0;
+	if ((proto_VrmlMatrix = JS_InitClass(context, globalObj, NULL, &VrmlMatrixClass,
+									   VrmlMatrixConstr, INIT_ARGC, NULL,
+									   VrmlMatrixFunctions, NULL, NULL)) == NULL) {
+		fprintf(stderr,
+				"JS_InitClass for VrmlMatrixClass failed in loadVrmlClasses.\n");
+		return JS_FALSE;
+	}
+	v = OBJECT_TO_JSVAL(proto_VrmlMatrix);
+	if (!JS_SetProperty(context, globalObj, "__VrmlMatrix_proto", &v)) {
+		fprintf(stderr,
+				"JS_SetProperty for VrmlMatrixClass failed in loadVrmlClasses.\n");
+		return JS_FALSE;
+	}
 
 	return JS_TRUE;
 }
@@ -4604,7 +4627,7 @@ MFVec2fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
     return JS_TRUE;
 }
 
-
+/* MFVec3f */
 JSBool
 MFVec3fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
@@ -4798,7 +4821,281 @@ MFVec3fAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
     return JS_TRUE;
 }
 
+/* VrmlMatrix */
 
+
+JSBool
+VrmlMatrixToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	UNUSED(argc);
+	UNUSED(argv);
+
+	return doMFToString(cx, obj, "MFFloat", rval);
+}
+
+JSBool
+VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixgetTransform\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixsetTransform\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixinverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixinverse\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixtranspose(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixtranspose\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixmultLeft(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixmultLeft\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixmultRight(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixmultRight\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixmultVecMatrix\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	printf ("VrmlMatrixmultMatrixVec\n");
+	return JS_TRUE;
+}
+
+
+JSBool
+VrmlMatrixAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+    JSObject *_from_obj;
+    jsval val, myv;
+    int32 len, i;
+    char *_id_str;
+    printf ("VRMLMatrixAssign\n");
+
+	if (!JS_InstanceOf(cx, obj, &VrmlMatrixClass, argv)) {
+		fprintf(stderr, "JS_InstanceOf failed in VrmlMatrixAssign.\n");
+		return JS_FALSE;
+	}
+
+	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+		fprintf(stderr, "JS_ConvertArguments failed in VrmlMatrixAssign.\n");
+		return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, _from_obj, &VrmlMatrixClass, argv)) {
+		fprintf(stderr, "JS_InstanceOf failed in VrmlMatrixAssign.\n");
+        return JS_FALSE;
+    }
+
+	myv = INT_TO_JSVAL(1);
+    if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
+		fprintf(stderr,
+				"JS_SetProperty failed for \"__touched_flag\" in VrmlMatrixAssign.\n");
+        return JS_FALSE;
+	}
+    if (!JS_GetProperty(cx, _from_obj, "length", &val)) {
+		fprintf(stderr, "JS_GetProperty failed for \"length\" in VrmlMatrixAssign.\n");
+        return JS_FALSE;
+	}
+    if (!JS_SetProperty(cx, obj, "length", &val)) {
+		fprintf(stderr, "JS_SetProperty failed for \"length\" in VrmlMatrixAssign.\n");
+        return JS_FALSE;
+	}
+    len = JSVAL_TO_INT(val); /* XXX Assume int */
+
+	if (JSVerbose) {
+		printf("VrmlMatrixAssign: obj = %u, id = \"%s\", from = %u, len = %d\n",
+			   (unsigned int) obj, _id_str, (unsigned int) _from_obj, len);
+	}
+
+    for (i = 0; i < len; i++) {
+		if (!JS_GetElement(cx, _from_obj, (jsint) i, &val)) {
+			fprintf(stderr,
+					"JS_GetElement failed for %d in VrmlMatrixAssign.\n", i);
+			return JS_FALSE;
+		}
+		if (!JS_SetElement(cx, obj, (jsint) i, &val)) {
+			fprintf(stderr,
+					"JS_SetElement failed for %d in VrmlMatrixAssign.\n", i);
+			return JS_FALSE;
+		}
+    }
+    *rval = OBJECT_TO_JSVAL(obj); 
+    return JS_TRUE;
+}
+
+JSBool
+VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	jsdouble _d;
+	unsigned int i;
+	jsval v = INT_TO_JSVAL(16);
+	jsval thisnum;
+	jsdouble d, *dp;
+	jsval vp;
+
+	printf ("vrmlmat constr %d\n",argc);
+
+	if ((argc != 16) && (argc != 0)) {
+		printf ("VrmlMatrixConstr - require either 16 or no values\n");
+		return JS_FALSE;
+	}
+
+	if (!JS_DefineProperty(cx, obj, "length", v,
+				   JS_PropertyStub, JS_PropertyStub,
+				   JSPROP_PERMANENT)) {
+		fprintf(stderr,
+			"JS_DefineProperty failed for \"length\" in VrmlMatrixConstr.\n");
+		return JS_FALSE;
+	}
+
+	v = INT_TO_JSVAL(0);
+	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
+				   JS_PropertyStub, JS_PropertyStub,
+				   JSPROP_PERMANENT)) {
+		fprintf(stderr,
+			"JS_DefineProperty failed for \"__touched_flag\" in VrmlMatrixConstr.\n");
+		return JS_FALSE;
+	}
+
+	if (argc == 16) {
+		for (i = 0; i < 16; i++) {
+			if (!JS_ValueToNumber(cx, argv[i], &_d)) {
+				fprintf(stderr,
+					"JS_ValueToNumber failed in VrmlMatrixConstr.\n");
+				return JS_FALSE;
+			}
+	
+			if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
+						  JS_PropertyStub, JS_PropertyStub,
+						  JSPROP_ENUMERATE)) {
+				fprintf(stderr,
+					"JS_DefineElement failed for arg %u in VrmlMatrixConstr.\n",
+						i);
+				return JS_FALSE;
+			}
+		}
+	} else {
+		/* make the identity matrix */
+		for (i=0; i<16; i++) {
+			if ((i==0) || (i==5) || (i==10) || (i==15)) { d = 1.0;
+			} else { d = 0.0; }
+  
+			if ((dp = JS_NewDouble(cx, d)) == NULL) {
+				printf ("problem creating id matrix\n");
+				return JS_FALSE;
+			}
+
+			if (!JS_DefineElement(cx, obj, (jsint) i, 
+					  DOUBLE_TO_JSVAL(dp),
+					  JS_PropertyStub, JS_PropertyStub,
+					  JSPROP_ENUMERATE)) {
+				fprintf(stderr,
+					"JS_DefineElement failed for arg %u in VrmlMatrixConstr.\n",
+						i);
+				return JS_FALSE;
+			}
+		}
+	}
+	*rval = OBJECT_TO_JSVAL(obj);
+	return JS_TRUE;
+}
+
+JSBool
+VrmlMatrixAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	if (JSVerbose) {
+		printf("VrmlMatrixAddProperty: obj = %u\n", (unsigned int) obj);
+	}
+	return doMFAddProperty(cx, obj, id, vp);
+}
+
+JSBool 
+VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	int32 _length, _index;
+    jsval _length_val;
+
+    if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
+		fprintf(stderr,
+				"JS_GetProperty failed for \"length\" in VrmlMatrixGetProperty.\n");
+        return JS_FALSE;
+	}
+	_length = JSVAL_TO_INT(_length_val);
+
+	if (JSVAL_IS_INT(id)) {
+		_index = JSVAL_TO_INT(id);
+
+		if (_index >= _length) {
+			*vp = DOUBLE_TO_JSVAL(0.0);
+			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp,
+								  JS_PropertyStub, JS_PropertyStub,
+								  JSPROP_ENUMERATE)) {
+				fprintf(stderr,
+						"JS_DefineElement failed in VrmlMatrixGetProperty.\n");
+				return JS_FALSE;
+			}
+		} else {
+			if (!JS_LookupElement(cx, obj, _index, vp)) {
+				fprintf(stderr,
+						"JS_LookupElement failed in VrmlMatrixGetProperty.\n");
+				return JS_FALSE;
+			}
+			if (*vp == JSVAL_VOID) {
+				fprintf(stderr,
+						"VrmlMatrixGetProperty: obj = %u, jsval = %d does not exist!\n",
+					   (unsigned int) obj, (int) _index);
+				return JS_FALSE;
+			}
+		}
+	}
+
+	return JS_TRUE;
+}
+
+JSBool 
+VrmlMatrixSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
+{
+	//if (JSVerbose) {
+		printf("VrmlMatrixSetProperty:\n");
+	//}
+	return doMFSetProperty(cx, obj, id, vp);
+}
+
+/* MFRotation */
 JSBool
 MFRotationAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
