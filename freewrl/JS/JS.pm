@@ -278,16 +278,10 @@ sub constrString {
 					$h = VRML::Handles::reserve($v->[$i]);
 				}
 
-				print "in constrString, h is $h, arris ",$v->[$i],"\n";
-				foreach (keys %{$h}) {
-					print "key $_\n";
-				}
-
 				if (!defined ($cn=$h->{BackNode}{CNode})) {
 					cleanupDie("ConstrString: no backend node for node $h");
 				}
 
-				#JAS $c .= "new SFNode('".VRML::Field::SFNode->as_string($h)."','".$cn."')";
 				$c .= "new SFNode('".$cn."','".VRML::Field::SFNode->as_string($h)."')";
 				$c .= "," unless ($i == ($l - 1));
 			}

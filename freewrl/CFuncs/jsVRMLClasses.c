@@ -1180,57 +1180,57 @@ SFNodeToString(JSContext *cx, JSObject *obj,
     return JS_TRUE;
 }
 
-//JASJSBool
-//JASSFNodeAssign(JSContext *cx, JSObject *obj,
-//JAS			 uintN argc, jsval *argv, jsval *rval)
-//JAS{
-//JAS    JSObject *_from_obj, *globalObj;
-//JAS	BrowserNative *brow;
-//JAS    SFNodeNative *fptr, *ptr;
-//JAS    char *_id_str;
-//JAS
-//JAS	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
-//JAS		fprintf(stderr, "JS_GetPrivate failed for obj in SFNodeAssign.\n");
-//JAS        return JS_FALSE;
-//JAS	}
-//JAS    if (!JS_InstanceOf(cx, obj, &SFNodeClass, argv)) {
-//JAS		fprintf(stderr, "JS_InstanceOf failed for obj in SFNodeAssign.\n");
-//JAS        return JS_FALSE;
-//JAS	}
-//JAS	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
-//JAS		fprintf(stderr, "JS_ConvertArguments failed in SFNodeAssign.\n");
-//JAS		return JS_FALSE;
-//JAS	}
-//JAS    if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
-//JAS		fprintf(stderr, "JS_InstanceOf failed for _from_obj in SFNodeAssign.\n");
-//JAS        return JS_FALSE;
-//JAS    }
-//JAS	if ((fptr = JS_GetPrivate(cx, _from_obj)) == NULL) {
-//JAS		fprintf(stderr, "JS_GetPrivate failed for _from_obj in SFNodeAssign.\n");
-//JAS        return JS_FALSE;
-//JAS	}
-//JAS	if (JSVerbose) {
-//JAS		printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
-//JAS			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
-//JAS	}
-//JAS
-//JAS    if (!SFNodeNativeAssign(ptr, fptr)) {
-//JAS		fprintf(stderr, "SFNodeNativeAssign failed in SFNodeAssign.\n");
-//JAS        return JS_FALSE;
-//JAS	}
-//JAS	if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
-//JAS		fprintf(stderr, "JS_GetGlobalObject failed in SFNodeAssign.\n");
-//JAS		return JS_FALSE;
-//JAS	}
-//JAS	if (!getBrowser(cx, globalObj, &brow)) {
-//JAS		fprintf(stderr, "getBrowser failed in SFNodeConstr.\n");
-//JAS		return JS_FALSE;
-//JAS	}
-//JAS	doPerlCallMethodVA(brow->sv_js, "jspSFNodeAssign", "s", _id_str);
-//JAS
-//JAS    *rval = OBJECT_TO_JSVAL(obj);
-//JAS    return JS_TRUE;
-//JAS}
+JSBool
+SFNodeAssign(JSContext *cx, JSObject *obj,
+			 uintN argc, jsval *argv, jsval *rval)
+{
+    JSObject *_from_obj, *globalObj;
+	BrowserNative *brow;
+    SFNodeNative *fptr, *ptr;
+    char *_id_str;
+
+	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed for obj in SFNodeAssign.\n");
+        return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, obj, &SFNodeClass, argv)) {
+		fprintf(stderr, "JS_InstanceOf failed for obj in SFNodeAssign.\n");
+        return JS_FALSE;
+	}
+	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
+		fprintf(stderr, "JS_ConvertArguments failed in SFNodeAssign.\n");
+		return JS_FALSE;
+	}
+    if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
+		fprintf(stderr, "JS_InstanceOf failed for _from_obj in SFNodeAssign.\n");
+        return JS_FALSE;
+    }
+	if ((fptr = JS_GetPrivate(cx, _from_obj)) == NULL) {
+		fprintf(stderr, "JS_GetPrivate failed for _from_obj in SFNodeAssign.\n");
+        return JS_FALSE;
+	}
+	if (JSVerbose) {
+		printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
+			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
+	}
+
+    if (!SFNodeNativeAssign(ptr, fptr)) {
+		fprintf(stderr, "SFNodeNativeAssign failed in SFNodeAssign.\n");
+        return JS_FALSE;
+	}
+	if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
+		fprintf(stderr, "JS_GetGlobalObject failed in SFNodeAssign.\n");
+		return JS_FALSE;
+	}
+	if (!getBrowser(cx, globalObj, &brow)) {
+		fprintf(stderr, "getBrowser failed in SFNodeConstr.\n");
+		return JS_FALSE;
+	}
+	doPerlCallMethodVA(brow->sv_js, "jspSFNodeAssign", "s", _id_str);
+
+    *rval = OBJECT_TO_JSVAL(obj);
+    return JS_TRUE;
+}
 
 JSBool
 SFNodeTouched(JSContext *cx, JSObject *obj,

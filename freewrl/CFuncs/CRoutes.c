@@ -389,11 +389,12 @@ void setMultiElementtype (int num) {
 	tptr = (int) CRoutes[num].tnptr;
 	len = CRoutes[num].len;
 	
-
-	printf ("got a script event! index %d type %d\n",num,CRoutes[num].script);
-	printf ("	from %x from ptr %x\n	to %x toptr %x\n",fn,fptr,tn,tptr);
-	printf ("	data length %d\n",len);
-printf ("setMultiElementtype here tn %d tptr %d len %d\n",tn, tptr,len);
+	if (CRVerbose) {
+		printf ("got a script event! index %d type %d\n",num,CRoutes[num].script);
+		printf ("	from %x from ptr %x\n	to %x toptr %x\n",fn,fptr,tn,tptr);
+		printf ("	data length %d\n",len);
+		printf ("setMultiElementtype here tn %d tptr %d len %d\n",tn, tptr,len);
+	}
 	/* get context and global object for this script */
 	_context = (JSContext *) JSglobs[tn].cx;
 	_globalObj = (JSObject *)JSglobs[tn].glob;
@@ -402,7 +403,7 @@ printf ("setMultiElementtype here tn %d tptr %d len %d\n",tn, tptr,len);
 	/* make up the name */
 	sprintf (scriptline,"__tmp_arg_%s", JSparamnames[tptr].name);
 
-	printf ("script %d line %s\n",tn, scriptline);
+	if (CRVerbose) printf ("script %d line %s\n",tn, scriptline);
 
 	if (!JS_GetProperty(_context,_globalObj,scriptline,&retval)) 
 		printf ("JS_GetProperty failed in jsSFVec3fSet.\n");
@@ -434,80 +435,6 @@ printf ("setMultiElementtype here tn %d tptr %d len %d\n",tn, tptr,len);
 		printf ("failed to set parameter, line %s\n",scriptline);
 	}
 }
-
-/* from a script to VRML - assign a SFNode */
-JSBool
-SFNodeAssign(int num, uintN argc, jsval *argv, jsval *rval) {
-	JSObject *_from_obj, *globalObj;
-	BrowserNative *brow;
-	SFNodeNative *sfptr, *ptr;
-	char *_id_str;
-	JSContext *cx;
-	char scriptline[100];
-	int fn, tn, fptr, tptr;
-	int len;
-	jsval retval;
-
-	printf ("SFNodeAssign - code not working yet!!\n");
-	return FALSE;
-
-	fn = (int) CRoutes[num].fromnode;
-	tn = (int) CRoutes[num].tonode;
-	fptr = (int) CRoutes[num].fnptr;
-	tptr = (int) CRoutes[num].tnptr;
-	len = CRoutes[num].len;
-
-	/* get context and global object for this script */
-	cx = (JSContext *) JSglobs[fn].cx;
-	globalObj = (JSObject *)JSglobs[fn].glob;
-	brow = (BrowserNative *) JSglobs[fn].brow;
-
-printf ("start of SFNodeAssign\n");
-//	if ((ptr = JS_GetPrivate(cx, globalObj)) == NULL) {
-//		fprintf(stderr, "JS_GetPrivate failed for obj in SFNodeAssign.\n");
-//        return JS_FALSE;
-//	}
-//    if (!JS_InstanceOf(cx, globalObj, &SFNodeClass, argv)) {
-//		fprintf(stderr, "JS_InstanceOf failed for obj in SFNodeAssign.\n");
-//        return JS_FALSE;
-//	}
-//	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
-//		fprintf(stderr, "JS_ConvertArguments failed in SFNodeAssign.\n");
-//		return JS_FALSE;
-//	}
-//    if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
-//		fprintf(stderr, "JS_InstanceOf failed for _from_obj in SFNodeAssign.\n");
-//        return JS_FALSE;
-//    }
-//	if ((sfptr = JS_GetPrivate(cx, _from_obj)) == NULL) {
-//		fprintf(stderr, "JS_GetPrivate failed for _from_obj in SFNodeAssign.\n");
-//        return JS_FALSE;
-//	}
-//	if (JSVerbose) {
-//		printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
-//			   (unsigned int) globalObj, _id_str, (unsigned int) _from_obj);
-//	}
-//
-//    if (!SFNodeNativeAssign(ptr, sfptr)) {
-//		fprintf(stderr, "SFNodeNativeAssign failed in SFNodeAssign.\n");
-//        return JS_FALSE;
-//	}
-//	if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
-//		fprintf(stderr, "JS_GetGlobalObject failed in SFNodeAssign.\n");
-//		return JS_FALSE;
-//	}
-//	if (!getBrowser(cx, globalObj, &brow)) {
-//		fprintf(stderr, "getBrowser failed in SFNodeConstr.\n");
-//		return JS_FALSE;
-//	}
-//	doPerlCallMethodVA(brow->sv_js, "jspSFNodeAssign", "s", _id_str);
-//
-//    *rval = OBJECT_TO_JSVAL(globalObj);
-//    return JS_TRUE;
-}
-
-
-
 
 /* internal variable to copy a C structure's Multi* field */
 void Multimemcpy (void *tn, void *fn, int len) {
@@ -587,10 +514,15 @@ int JSparamIndex (char *name, char *type) {
 		ty = SFUNKNOWN;
 	}
 
-	/* is this a duplicate name and type? */
+	len = strlen(name);
+
+	/* is this a duplicate name and type? types have to be same,
+	   name lengths have to be the same, and the strings have to be the same.
+	*/
 	for (ctr=0; ctr<=jsnameindex; ctr++) {
 		if (ty==JSparamnames[ctr].type) {
-			if (strncmp(name,JSparamnames[ctr].name,strlen(JSparamnames[ctr].name))==0) {
+			if ((strlen(JSparamnames[ctr].name) == len) && 
+				(strncmp(name,JSparamnames[ctr].name,len)==0)) {
 				return ctr;
 			}
 		}
@@ -607,7 +539,6 @@ int JSparamIndex (char *name, char *type) {
 		return 0; /* oh well! */
 	}
 
-	len = strlen(name);
 	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
 	strncpy (JSparamnames[jsnameindex].name,name,len);
 	JSparamnames[jsnameindex].name[len+1] = 0; /* make sure terminated */
@@ -702,7 +633,6 @@ unsigned int CRoutes_Register (unsigned int from, int fromoffset,
 			CRoutes[shifter].fnptr, CRoutes[shifter].tonode,
 			CRoutes[shifter].tnptr, CRoutes[shifter].len);
 	}
-
 }
 
 /********************************************************************
@@ -798,214 +728,218 @@ void gatherScriptEventOuts(int script, int ignore) {
 
 	fromalready=FALSE; 
 
+
 	/* go through all routes, looking for this script as an eventOut */
-	for (route =1; route < CRoutes_Count-1; route++) {
-		/* printf ("top of loop, root count is %d, script %d fromnode %d\n",route,
-			CRoutes[route].script,CRoutes[route].fromnode); */
 
-		if ((CRoutes[route].script != 0) && 
-			(CRoutes[route].fromnode == script)) {
+	/* do we have any routes yet? - we can gather events before any routes are made */
+	if (!CRoutes_Initiated) return;
 
-			/* is this the same from node/field as before? */
-			if ((CRoutes[route].fromnode == CRoutes[route-1].fromnode) &&
-				(CRoutes[route].fnptr == CRoutes[route-1].fnptr) &&
-				(route > 1)) {
-				fromalready=TRUE;
-			} else {
-				/* printf ("different from, have to get value\n"); */
-				fromalready=FALSE;
-			}
-			
-			fn = CRoutes[route].fromnode;	
-			fptr = CRoutes[route].fnptr;
-			len = CRoutes[route].len;
+	/* routing table is ordered, so we can walk up to this script */
+	route=1;
+	while (CRoutes[route].fromnode<script) route++;
+	
+	while (CRoutes[route].fromnode == script) {
+
+		/* is this the same from node/field as before? */
+		if ((CRoutes[route].fromnode == CRoutes[route-1].fromnode) &&
+			(CRoutes[route].fnptr == CRoutes[route-1].fnptr) &&
+			(route > 1)) {
+			fromalready=TRUE;
+		} else {
+			/* printf ("different from, have to get value\n"); */
+			fromalready=FALSE;
+		}
 		
-			/* in Ayla's Perl code, the following happened:
-				MF* - run __touched_flag
+		fn = CRoutes[route].fromnode;	
+		fptr = CRoutes[route].fnptr;
+		len = CRoutes[route].len;
+	
+		/* in Ayla's Perl code, the following happened:
+			MF* - run __touched_flag
 
-				SFBool, SFFloat, SFTime, SFInt32, SFString-
-					this is her $ECMASCriptNative; run _name_touched
-					and _name_touched=0
+			SFBool, SFFloat, SFTime, SFInt32, SFString-
+				this is her $ECMASCriptNative; run _name_touched
+				and _name_touched=0
 
-				else, run _name.__touched()
-			*/
+			else, run _name.__touched()
+		*/
 
-			/* now, set the actual properties - switch as documented above */
-			if (!fromalready) {
-				switch (JSparamnames[fptr].type) {
-				case MFBOOL:
+		/* now, set the actual properties - switch as documented above */
+		if (!fromalready) {
+			switch (JSparamnames[fptr].type) {
+			case MFBOOL:
+			case MFFLOAT:
+			case MFTIME:
+			case MFINT32:
+			case MFSTRING: {
+				sprintf (scriptline,"_%s__touched_flag",JSparamnames[fptr].name);
+				if (!ActualrunScript(script, scriptline ,&touched))
+					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
+				
+				sprintf (scriptline,"_%s__touched_flag=0",JSparamnames[fptr].name);
+				if (!ActualrunScript(script, scriptline ,&retval)) 
+					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
+				
+				break;
+				}
+			
+			case SFBOOL:
+			case SFFLOAT:
+			case SFTIME:
+			case SFINT32:
+			case SFSTRING: {
+				sprintf (scriptline,"_%s_touched",JSparamnames[fptr].name);
+				if (!ActualrunScript(script, scriptline ,&touched)) 
+					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
+				
+				sprintf (scriptline,"_%s_touched=0",JSparamnames[fptr].name);
+				if (!ActualrunScript(script, scriptline ,&retval)) 
+					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
+				
+				break;
+				}
+
+			case MFCOLOR:
+			case MFROTATION: 
+			case MFVEC2F:
+			case MFNODE: {
+				sprintf (scriptline,"%s.__touched_flag",JSparamnames[fptr].name);
+				if (!ActualrunScript(script, scriptline ,&touched)) 
+					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
+
+				sprintf (scriptline,"%s.__touched_flag=0",JSparamnames[fptr].name);
+				if (!ActualrunScript(script, scriptline ,&retval)) 
+					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
+
+				break;
+				}	
+
+			case SFCOLOR: 
+			case SFNODE:
+			case SFROTATION:
+			case SFVEC2F: {
+				sprintf (scriptline,"%s.__touched()",JSparamnames[fptr].name);
+				if (!ActualrunScript(script, scriptline ,&touched)) 
+					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
+				break;
+				}
+			default: {
+				printf ("WARNING, this type (%d) not handled yet\n",
+					JSparamnames[fptr].type);
+				}
+			}
+
+			strval = JS_ValueToString((JSContext *)JSglobs[script].cx, touched);
+			strtouched = JS_GetStringBytes(strval);
+			if (JSVerbose ) printf ("touched string is %s\n",strtouched);
+			if (*strtouched!='0') {
+				/* we did, so get the value */
+				if (!ActualrunScript(script, JSparamnames[fptr].name ,&retval)) {
+					printf ("WARNING: Failed to get value, line %s\n",scriptline);
+				}
+				strval = JS_ValueToString((JSContext *)JSglobs[script].cx, retval);
+			        strp = JS_GetStringBytes(strval);
+				if (JSVerbose) printf ("retval string is %s\n",strp);
+			}
+		}
+
+
+		if (*strtouched!='0') {
+			/* get some easy to use pointers */
+			tn = (int) CRoutes[route].tonode;
+			tptr = (int) CRoutes[route].tnptr;
+
+			/* eventOuts go to VRML data structures */
+
+			switch (JSparamnames[fptr].type) {
+				case SFBOOL:	{	/* SFBool */
+						/* printf ("we have a boolean, copy value over string is %s\n",strp); */
+						if (strncmp(strp,"true",4)==0) {
+							ival = 1;
+						} else {
+							/* printf ("ASSUMED TO BE FALSE\n"); */
+							ival = 0;
+						}	
+						memcpy ((void *)tn+tptr, (void *)&ival,len);
+						break;
+					}
+
+				case SFTIME: {
+						sscanf (strp,"%f",&tval);
+						//printf ("SFTime conversion numbers %f\n",tval);
+						memcpy ((void *)tn+tptr, (void *)&tval,len);
+						break;
+				}
+				case SFINT32: {
+						sscanf (strp,"%d",&ival);
+						//printf ("SFTime conversion numbers %f\n",ival);
+						memcpy ((void *)tn+tptr, (void *)&ival,len);
+						break;
+				}
+				case SFFLOAT: {
+						sscanf (strp,"%f",&fl);
+						memcpy ((void *)tn+tptr, (void *)&fl,len);
+						break;
+				}
+
+				case SFVEC2F: {	/* SFVec2f */
+						sscanf (strp,"%f %f",&fl[0],&fl[1]);
+						//printf ("conversion numbers %f %f\n",fl[0],fl[1]);
+						memcpy ((void *)tn+tptr, (void *)fl,len);
+						break;
+				}
+
+				case SFCOLOR: {	/* SFColor */
+						sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
+						//printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]);
+						memcpy ((void *)tn+tptr, (void *)fl,len);
+						break;
+				}
+
+				case SFROTATION: {
+						sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
+						//printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]);
+						memcpy ((void *)tn+tptr, (void *)fl,len);
+						break;
+				}
+
+
+				/* a series of Floats... */
+				case MFCOLOR:
+					{
+						getMultiElementtype (strp, tn+tptr,3);
+						break;
+				}
 				case MFFLOAT:
+					{
+						getMultiElementtype (strp, tn+tptr,1);
+						break;
+				}
+				case MFROTATION:
+					{
+						getMultiElementtype (strp, tn+tptr,4);
+						break;
+				}
+				case MFVEC2F: 
+					{
+						getMultiElementtype (strp, tn+tptr,2);
+						break;
+				}
+
+				case MFNODE:
+					{	getMFNodetype (strp,tn+tptr);
+						break;
+					}
 				case MFTIME:
 				case MFINT32:
-				case MFSTRING: {
-					sprintf (scriptline,"_%s__touched_flag",JSparamnames[fptr].name);
-					if (!ActualrunScript(script, scriptline ,&touched))
-						printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-					
-					sprintf (scriptline,"_%s__touched_flag=0",JSparamnames[fptr].name);
-					if (!ActualrunScript(script, scriptline ,&retval)) 
-						printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-					
-					break;
+				default: {	printf ("WARNING: unhandled from type %d\n",JSparamnames[fptr].type);
 					}
-				
-				case SFBOOL:
-				case SFFLOAT:
-				case SFTIME:
-				case SFINT32:
-				case SFSTRING: {
-					sprintf (scriptline,"_%s_touched",JSparamnames[fptr].name);
-					if (!ActualrunScript(script, scriptline ,&touched)) 
-						printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-					
-					sprintf (scriptline,"_%s_touched=0",JSparamnames[fptr].name);
-					if (!ActualrunScript(script, scriptline ,&retval)) 
-						printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-					
-					break;
-					}
-
-				case MFCOLOR:
-				case MFROTATION: 
-				case MFVEC2F:
-				case MFNODE: {
-					sprintf (scriptline,"%s.__touched_flag",JSparamnames[fptr].name);
-					if (!ActualrunScript(script, scriptline ,&touched)) 
-						printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-
-					sprintf (scriptline,"%s.__touched_flag=0",JSparamnames[fptr].name);
-					if (!ActualrunScript(script, scriptline ,&retval)) 
-						printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-
-					break;
-					}	
-
-				case SFCOLOR: 
-				case SFNODE:
-				case SFROTATION:
-				case SFVEC2F: {
-					sprintf (scriptline,"%s.__touched()",JSparamnames[fptr].name);
-					if (!ActualrunScript(script, scriptline ,&touched)) 
-						printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-					break;
-					}
-				default: {
-					printf ("WARNING, this type (%d) not handled yet\n",
-						JSparamnames[fptr].type);
-					}
-				}
-
-				strval = JS_ValueToString((JSContext *)JSglobs[script].cx, touched);
-				strtouched = JS_GetStringBytes(strval);
-				if (JSVerbose ) printf ("touched string is %s\n",strtouched);
-				if (*strtouched!='0') {
-					/* we did, so get the value */
-					if (!ActualrunScript(script, JSparamnames[fptr].name ,&retval)) {
-						printf ("WARNING: Failed to get value, line %s\n",scriptline);
-					}
-					strval = JS_ValueToString((JSContext *)JSglobs[script].cx, retval);
-				        strp = JS_GetStringBytes(strval);
-					if (JSVerbose) printf ("retval string is %s\n",strp);
-				}
 			}
 
-
-			if (*strtouched!='0') {
-				/* get some easy to use pointers */
-				tn = (int) CRoutes[route].tonode;
-				tptr = (int) CRoutes[route].tnptr;
-	
-				/* eventOuts go to VRML data structures */
-
-				switch (JSparamnames[fptr].type) {
-					case SFBOOL:	{	/* SFBool */
-							/* printf ("we have a boolean, copy value over string is %s\n",strp); */
-							if (strncmp(strp,"true",4)==0) {
-								ival = 1;
-							} else {
-								/* printf ("ASSUMED TO BE FALSE\n"); */
-								ival = 0;
-							}	
-							memcpy ((void *)tn+tptr, (void *)&ival,len);
-							break;
-						}
-
-					case SFTIME: {
-							sscanf (strp,"%f",&tval);
-							//printf ("SFTime conversion numbers %f\n",tval);
-							memcpy ((void *)tn+tptr, (void *)&tval,len);
-							break;
-					}
-					case SFINT32: {
-							sscanf (strp,"%d",&ival);
-							//printf ("SFTime conversion numbers %f\n",ival);
-							memcpy ((void *)tn+tptr, (void *)&ival,len);
-							break;
-					}
-					case SFFLOAT: {
-							sscanf (strp,"%f",&fl);
-							memcpy ((void *)tn+tptr, (void *)&fl,len);
-							break;
-					}
-
-					case SFVEC2F: {	/* SFVec2f */
-							sscanf (strp,"%f %f",&fl[0],&fl[1]);
-							//printf ("conversion numbers %f %f\n",fl[0],fl[1]);
-							memcpy ((void *)tn+tptr, (void *)fl,len);
-							break;
-					}
-
-					case SFCOLOR: {	/* SFColor */
-							sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-							//printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]);
-							memcpy ((void *)tn+tptr, (void *)fl,len);
-							break;
-					}
-
-					case SFROTATION: {
-							sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-							//printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]);
-							memcpy ((void *)tn+tptr, (void *)fl,len);
-							break;
-					}
-
-
-					/* a series of Floats... */
-					case MFCOLOR:
-						{
-							getMultiElementtype (strp, tn+tptr,3);
-							break;
-					}
-					case MFFLOAT:
-						{
-							getMultiElementtype (strp, tn+tptr,1);
-							break;
-					}
-					case MFROTATION:
-						{
-							getMultiElementtype (strp, tn+tptr,4);
-							break;
-					}
-					case MFVEC2F: 
-						{
-							getMultiElementtype (strp, tn+tptr,2);
-							break;
-					}
-
-					case MFNODE:
-						{	getMFNodetype (strp,tn+tptr);
-							break;
-						}
-					case MFTIME:
-					case MFINT32:
-					default: {	printf ("WARNING: unhandled from type %d\n",JSparamnames[fptr].type);
-						}
-				}
-
-				/* tell this node now needs to redraw */
-				update_node(CRoutes[route].tonode);
-			} 
-		}
+			/* tell this node now needs to redraw */
+			update_node(CRoutes[route].tonode);
+		} 
+		route++;
 	}
 }
 

@@ -385,6 +385,9 @@ SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len)
 {
 	SFNodeNative *ptr;
 	ptr = (SFNodeNative *) malloc(sizeof(*ptr));
+
+	printf ("SFNodeNativeNew; string len %d\n",vrmlstring_len);
+
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -406,7 +409,6 @@ void
 SFNodeNativeDelete(void *p)
 {
 	SFNodeNative *ptr;
-	printf ("OLD CODE 2 - NOT USED\n");
 	if (p != NULL) {
 		ptr = p;
 		if (ptr->vrmlstring != NULL) {
@@ -426,7 +428,9 @@ SFNodeNativeAssign(void *top, void *fromp)
 		from_vrmlstring_len = 0, from_handle_len = 0;
 	SFNodeNative *to = top;
 	SFNodeNative *from = fromp;
-	printf ("OLD CODE - NOT USED\n");
+
+	printf ("SFNodeNativeAssign, assigning from %s to %s\n",from->vrmlstring,to->vrmlstring);
+
 	to->touched++;
 
 	to_vrmlstring_len = strlen(to->vrmlstring) + 1;
@@ -477,7 +481,6 @@ void
 SFColorNativeDelete(void *p)
 {
 	SFColorNative *ptr;
-	printf ("OLD CODE 4 - NOT USED\n");
 	if (p != NULL) {
 		ptr = p;
 		free(ptr);
@@ -497,7 +500,6 @@ void *
 SFImageNativeNew()
 {
 	SFImageNative *ptr;
-	printf ("OLD CODE 7 - NOT USED\n");
 	ptr = malloc(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
@@ -510,7 +512,6 @@ void
 SFImageNativeDelete(void *p)
 {
 	SFImageNative *ptr;
-	printf ("OLD CODE 8 - NOT USED\n");
 	if (p != NULL) {
 		ptr = p;
 		free(ptr);
@@ -522,7 +523,6 @@ SFImageNativeAssign(void *top, void *fromp)
 {
 	SFImageNative *to = top;
 	SFImageNative *from = fromp;
-	printf ("OLD CODE 9 - NOT USED\n");
 	to->touched++;
 /* 	(to->v) = (from->v); */
 }
@@ -543,7 +543,6 @@ void
 SFRotationNativeDelete(void *p)
 {
 	SFRotationNative *ptr;
-	printf ("OLD CODE 12 - NOT USED\n");
 	if (p != NULL) {
 		ptr = p;
 		free(ptr);
@@ -555,7 +554,6 @@ SFRotationNativeAssign(void *top, void *fromp)
 {
 	SFRotationNative *to = top;
 	SFRotationNative *from = fromp;
-	printf ("OLD CODE 13 - NOT USED\n");
 	to->touched++;
 	(to->v) = (from->v);
 }

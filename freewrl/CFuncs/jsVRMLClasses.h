@@ -256,8 +256,7 @@ SFNodeToString(JSContext *cx,
 			   jsval *rval);
 
 JSBool
-SFNodeAssign(
-			 int num,
+SFNodeAssign(JSContext *cx, JSObject *obj,
 			 uintN argc,
 			 jsval *argv,
 			 jsval *rval);
