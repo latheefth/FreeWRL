@@ -56,9 +56,9 @@ sub toJava {
 		$o->printUTF($value->[2]);
 		$o->printUTF($value->[3]);
 	} elsif ($type =~ /SFInt32/) {
-		$o->print(pack("N", length($value)));
+		$o->print(pack("N", $value));
 	} elsif ($type =~ /SFBool/) {
-		$o->print(pack("c", length($value)));
+		$o->print(pack("c", $value));
 	} else {
 		die "Illegal Field $type";
 	}
@@ -120,9 +120,9 @@ sub fromJava2 {
 	} elsif ($type =~ /SFRotation/) {
 		return [ $_[0]->getUTF2(), $_[0]->getUTF2(), $_[0]->getUTF2(), $_[0]->getUTF2() ];
 	} elsif ($type =~ /SFInt32/) {
-		return unpack("N", $_[0]->getFully(4));
+		return unpack("N", $_[0]->readfully(4));
 	} elsif ($type =~ /SFBool/) {
-		return unpack("c", $_[0]->getFully(1));
+		return unpack("c", $_[0]->readfully(1));
 	} else {
 		die "Illegal Field $type";
 	}
