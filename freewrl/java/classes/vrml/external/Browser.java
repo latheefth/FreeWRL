@@ -26,27 +26,49 @@ import netscape.security.*;
 public class Browser implements BrowserInterface
 
 {
-    // The thread that reads and processes FreeWRL EAI replies...
-     Thread 		FreeWRLThread;
 
-    // The Thread that sends stuff to the EAI port for FreeWRL...
-    static EAIoutThread 		EAIoutSender;
+	//====================================================================
+	// Threads:
+
+		// Replies from FreeWRL.
+		static Thread 		FreeWRLThread; // of type EAIinThread
+
+		// Send commands to FreeWRL.
+		static EAIoutThread 		EAIoutSender;
+
+		// Handle Async communications from FreeWRL (eg, Regisered Listeners)
+    		static EAIAsyncThread        RL_Async;
 
 
-    // The following are used to send to/from the FreeWLR Browser...
+	//====================================================================
+	// Communication Paths:
+
+		// FreeWRLThread to Browser - responses from commands to FreeWRL.
+    		PrintWriter EAIinThreadtoBrowser;
+    		PipedWriter EAIinThreadtoBrowserPipe = null;
+
+		// 
+    		static BufferedReader BrowserfromEAI = null;
+    		PipedReader BrowserfromEAIPipe = null;
+
+
+
+
+    // The following are used to send to/from the FreeWRL Browser by:
+    // 		- EAIinThread
+
     ServerSocket	EAISocket;
     Socket		sock;
     static PrintWriter         EAIout;
+    
 
     // The following pipe listens for replies to events sent to
     // the FreeWRL VRML viewer via the EAI port.
 
-    private PipedReader EAIfromFreeWRLStream;
-    static BufferedReader EAIfromFreeWRLInputStream;
 
     private String              reply = "";
+    String fwvers = "not initialized yet";
 
-    static EAIAsyncThread        RL_Async;
     
     // Query Number as sent to the FreeWRL Browser.
     static int   queryno = 1;
@@ -116,7 +138,7 @@ public class Browser implements BrowserInterface
 	} catch (IOException e) {
 		System.out.println ("EAI: Error creating socket for FreeWRL EAI on port 2000");
 	}
-	System.out.println ("EAI: opened port, ready for data" );
+	//System.out.println ("EAI: opened port, ready for data" );
 
 
   	try {
@@ -124,47 +146,60 @@ public class Browser implements BrowserInterface
   	} catch (IOException e) {
   	  System.out.print ("EAI: System error on accept method\n");
   	}
-  	// Start the readfrom FREEWRL thread...
-   	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, this));
-           FreeWRLThread.start();
-  
+
+
+
+
+	//===================================================================
+	// create the EAIinThread to Browser.
+
   	// Open the pipe for EAI replies to be sent to us...
         try {
-          EAIfromFreeWRLStream = new PipedReader (EAIinThread.EAItoBrowserStream);
+		EAIinThreadtoBrowserPipe = new PipedWriter();
+		BrowserfromEAIPipe = new PipedReader(EAIinThreadtoBrowserPipe);
         } catch (IOException ie) {
           System.out.println ("EAI: caught error in new PipedReader: " + ie);
         }
-		EAIfromFreeWRLInputStream = new BufferedReader (EAIfromFreeWRLStream);	
-		
-		//System.out.println("waiting for thread...");
 
-  	// Wait for the FreeWRL browser to send us something...
-        try {
-          String fwvers = EAIfromFreeWRLInputStream.readLine();
-	  System.out.println ("EAI: FreeWRL Version: " + fwvers);
-        } catch (IOException ie) {System.out.println ("EAI: caught " + ie);}
-  
-	//System.out.println("got response from thread");
-  	// Send the correct response...
-	try {
-		EAIout = new PrintWriter (sock.getOutputStream());
-		EAIout.print ("FreeWRL EAI Serv0.27");
-		EAIout.flush ();
-	} catch (IOException e) {
-		System.out.print ("EAI: Problem in handshaking with Browser");
-	}
-	// System.out.println("browser is gotten");
-  	// Browser is "gotten", and is started.
+	EAIinThreadtoBrowser = new PrintWriter(EAIinThreadtoBrowserPipe);
+	BrowserfromEAI = new BufferedReader (BrowserfromEAIPipe);	
 
-  	// Start the SendTo FREEWRL thread...
-	EAIoutSender = new EAIoutThread(EAIout);
-        EAIoutSender.start();
+  	// Start the readfrom FREEWRL thread...
+   	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, 
+		EAIinThreadtoBrowser, this));
+        FreeWRLThread.start();
 
+
+	//====================================================================
 	// Start the thread that allows Registered Listenered
 	// updates to come in.
 	RL_Async = new EAIAsyncThread();
 	RL_Async.start();
 
+  
+	//====================================================================
+	// create the EAIoutThread - send data to FreeWRL.
+	try {
+		EAIout = new PrintWriter (sock.getOutputStream());
+	} catch (IOException e) {
+		System.out.print ("EAI: Problem in handshaking with Browser");
+	}
+
+
+  	// Start the SendTo FREEWRL thread...
+	EAIoutSender = new EAIoutThread(EAIout);
+        EAIoutSender.start();
+
+
+
+	//====================================================================
+  	// Wait for the FreeWRL browser to send us something...
+        try {
+          fwvers = BrowserfromEAI.readLine();
+	  //System.out.println ("Browser: FreeWRL Version: " + fwvers);
+        } catch (IOException ie) {System.out.println ("EAI: caught " + ie);}
+  
+  	// Browser is "gotten", and is started.
   	return;
     }
   
@@ -176,7 +211,8 @@ public class Browser implements BrowserInterface
     }
   
     public String        getVersion() {
-       return "0.28";
+	// this is returned as part of the initial handshaking.
+       return fwvers;
      }
   
     // Get the current velocity of the bound viewpoint in meters/sec,
@@ -564,7 +600,7 @@ public class Browser implements BrowserInterface
  
  	while (queryno != Integer.parseInt(req)) { 
            try {
-             req = Browser.EAIfromFreeWRLInputStream.readLine();
+             req = BrowserfromEAI.readLine();
            } catch (IOException ie) {
 		System.out.println ("EAI: caught " + ie);
 		return rep;
@@ -577,7 +613,7 @@ public class Browser implements BrowserInterface
            }
        
            try {
-                 rep = Browser.EAIfromFreeWRLInputStream.readLine(); 
+                 rep = BrowserfromEAI.readLine(); 
            } catch (IOException ie) { System.out.println ("EAI: getVRMLreply failed"); return null; }
 	
 
@@ -590,7 +626,8 @@ public class Browser implements BrowserInterface
 		try {
 			EAIoutSender.stopThread();
 			EAISocket.close();
-			EAIfromFreeWRLStream.close();
+			//JAS EAIfromFreeWRLStream.close();
+  
 		} catch (IOException e) {
 		}
 	}
