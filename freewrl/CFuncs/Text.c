@@ -42,6 +42,7 @@ D_OPENGL;
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+int dumbvar;
 
 /* spline calculations */
 #define CONIC_STEPS	4
@@ -108,7 +109,7 @@ int FW_moveto ( FT_Vector* to, void* user) {
 	/* Have we started a new line */
 	if (contour_started) {
 		gluNextContour(global_tessobj,GLU_UNKNOWN);
-	} 
+	}
 
 	/* well if not, tell us that we have started one */
 	contour_started = TRUE;
@@ -116,7 +117,7 @@ int FW_moveto ( FT_Vector* to, void* user) {
 	last_point.x = to->x; last_point.y = to->y;
 
 	if (TextVerbose) 
-		printf ("moveto tox %ld toy %ld\n",to->x, to->y);
+		printf ("FW_moveto tox %ld toy %ld\n",to->x, to->y);
 
     return 0;
 }
@@ -132,6 +133,7 @@ int FW_lineto ( FT_Vector* to, void* user) {
 
 	last_point.x = to->x; last_point.y = to->y;
 
+	//printf ("setting coord index %d %d %d\n",point_count, point_count*3+2,rep_->coord[point_count*3+2]);
 	rep_->coord[point_count*3+0] = OUT2GL(last_point.x + pen_x);
 	rep_->coord[point_count*3+1] = OUT2GL(last_point.y) + pen_y;
 	rep_->coord[point_count*3+2] = 0.0;
@@ -147,11 +149,11 @@ int FW_lineto ( FT_Vector* to, void* user) {
 	gluTessVertex(global_tessobj,v2,&relative_index[relindx]);
 
 	if (TextVerbose) {
-		printf ("lineto, going to %d %d\n",to->x, to->y);
+		printf ("FW_lineto, going to %d %d\n",to->x, to->y);
 		printf ("gluTessVertex %f %f %f index %d\n", 
 				rep_->coord[point_count*3+0],
 				rep_->coord[point_count*3+1],
-				rep_->coord[point_count*3+1],
+				rep_->coord[point_count*3+2],
 				relindx);
 	}
 	point_count++;
@@ -452,9 +454,9 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 	}
 
 	/* what is the estimated number of triangles? assume a certain number of tris per char */
-	est_tri = char_count*150;
+	est_tri = char_count*TESS_MAX_COORDS;
 	coordmaxsize=est_tri;
-	cindexmaxsize=est_tri;
+	cindexmaxsize=TESS_MAX_COORDS;
 	rep_->cindex=malloc(sizeof(*(rep_->cindex))*est_tri);
 	rep_->coord = malloc(sizeof(*(rep_->coord))*est_tri*3);
 	if (!(rep_->coord && rep_->cindex)) {
@@ -535,24 +537,27 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 			/* copy over the tesselated coords for the character to
 			 * the rep structure */
 
-			//printf ("we have global_IFS_Coord_count at %d\n",global_IFS_Coord_count);
 			for (x=0; x<global_IFS_Coord_count; x++) {
 				//printf ("copying %d\n",global_IFS_Coords[x]);
 				//
 				//did the tesselator give us back garbage?
 
-				if ((global_IFS_Coords[x] > cindexmaxsize) ||
+				if ((global_IFS_Coords[x] >= cindexmaxsize) ||
+				   (indx_count >= cindexmaxsize) ||
 				   (global_IFS_Coords[x] < 0)) {
 					if (TextVerbose) 
 					printf ("Tesselated index %d out of range; skipping\n",
 						     global_IFS_Coords[x]);
 				} else {	
+					//printf ("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],indx_count);
+					//printf ("filling up cindex; index %d now points to %d\n",indx_count,global_IFS_Coords[x]);
 					rep_->cindex[indx_count++] = global_IFS_Coords[x];
 				}
 			}
 
 			if (indx_count > (cindexmaxsize-400)) {
 				cindexmaxsize +=500;
+				//printf ("CINDEX REALLOC!!!\n");
 				rep_->cindex=realloc(rep_->cindex,sizeof(*(rep_->cindex))*cindexmaxsize);
 				if (!(rep_->cindex)) {
 					printf ("out of memory at realloc for cindex\n");
@@ -567,10 +572,11 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
 	rep_->ntri=indx_count/3;
 
-	// if indx count is zero, DO NOT get rid of mallocd memory
+	// if indx count is zero, DO NOT get rid of mallocd memory - creates a bug as pointers cant be null
 	if (indx_count !=0) {
-		realloc (rep_->cindex,sizeof(*(rep_->cindex))*indx_count);
-		realloc (rep_->coord,sizeof(*(rep_->coord))*point_count*3);
+		//realloc bug in linux - this causes the pointers to be eventually lost...
+		//realloc (rep_->cindex,sizeof(*(rep_->cindex))*indx_count);
+		//realloc (rep_->coord,sizeof(*(rep_->coord))*point_count*3);
 	}
 
 	/* now, generate normals */
@@ -584,7 +590,7 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 
 	/* do we have texture mapping to do? */
 	if (HAVETODOTEXTURES) {
-		rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*point_count*3);
+		rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*(point_count+1)*3);
 		if (!(rep_->tcoord)) {
 			printf ("can not malloc memory for text textures\n");
 		} else {
