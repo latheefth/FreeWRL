@@ -11,8 +11,6 @@
 int 	dspFile = -1;		// Sound output device
 char 	*dspBlock = NULL;	// a block to send
 
-long int bytes_remaining;	// how many bytes are remaining in the file?
-
 // Fragment parameters
 int readSize;			// how much to read from wav file - either BUFSIZE or less
 
@@ -32,7 +30,7 @@ int soundcardBufferCurrentSize = 0;
 int loopsperloop = 1;
 
 
-void playWavFragment(SNDFILE *wavfile) {
+void playWavFragment(SNDFILE *wavfile, int source) {
 	audio_buf_info leftover;
 	int mydata;			// DSP buffer size... used to keep data flowing
 	int tmp;
@@ -45,6 +43,9 @@ void playWavFragment(SNDFILE *wavfile) {
 	// Find out how much data was processed by the sound card since the
 	// last write. First time through we assume that the sound card
 	// buffer is flushed, and that we have to write data.	
+	
+	//printf ("start of playWavFragment source %d\n",source);
+
 	if (DSPplaying != 0) {
 		// first time through
 		//printf ("first time through\n");
@@ -53,20 +54,20 @@ void playWavFragment(SNDFILE *wavfile) {
 		readSize = 0;
 		bytesPerCycle = BUFSIZE; // make an assumption.
 		loopsperloop = 1;
-		fseek (wavfile->fd, wavfile->wavdataoffset, SEEK_SET);
+		rewind_to_beginning (wavfile);
 	} else {
 		// we have done this before since the file open...
 		mydata = soundcardBufferEmptySize - soundcardBufferCurrentSize;
 		//printf ("SCES %d SCCS %d mydata %d bytes_remaining %ld\n",
 		//		soundcardBufferEmptySize,
-		//		soundcardBufferCurrentSize,mydata,bytes_remaining);
+		//		soundcardBufferCurrentSize,mydata,wavfile->bytes_remaining);
 
 
 		// lets try some scaling here.
 		// did we (or are we close to) running out of data?
 		if ((mydata <= 0x4ff) && 
 				(bytesPerCycle < BUFSIZE*16) &&
-				(bytes_remaining > bytesPerCycle)) {
+				(wavfile->bytes_remaining > bytesPerCycle)) {
 			//printf ("increasing bps\n");
 			bytesPerCycle += 0x100;
 			loopsperloop += 1;
@@ -82,10 +83,14 @@ void playWavFragment(SNDFILE *wavfile) {
 		// Calculate if we are going to go past the EOF marker,
 		// and if so, go back to the beginning. (assume loop=true)
 		//
-		if (bytes_remaining <= 0) {
+		if (wavfile->bytes_remaining <= 0) {
 			//printf ("EOF input, lets reset and re-read\n");
-			fseek (wavfile->fd, wavfile->wavdataoffset, SEEK_SET);
-			bytes_remaining = wavfile->DataChunk.chunkSize;
+		       if (loop[source] == 1) {
+			       rewind_to_beginning(wavfile);
+			} else {
+				// dont loop - just return
+				return;
+			}
 		}
 
 		// Are we reaching the end of the file? Lets calculate the 
@@ -96,16 +101,16 @@ void playWavFragment(SNDFILE *wavfile) {
 		//
 
 		for (tmp = 0; tmp < loopsperloop; tmp++) {
-			if (bytes_remaining < BUFSIZE) {
-				readSize = (int) bytes_remaining;
-				bytes_remaining = 0;
+			if (wavfile->bytes_remaining < BUFSIZE) {
+				readSize = (int) wavfile->bytes_remaining;
+				wavfile->bytes_remaining = 0;
 			} else {
 				readSize = BUFSIZE;
-				bytes_remaining -= BUFSIZE;
+				wavfile->bytes_remaining -= BUFSIZE;
 			}
 
 			// read and write here.
-			if (bytes_remaining > 0) {
+			if (wavfile->bytes_remaining > 0) {
 				fread(wavfile->data,readSize,1,wavfile->fd);	
 				write (dspFile, wavfile->data, readSize);
 			}
@@ -178,8 +183,8 @@ void selectWavParameters (SNDFILE *wavfile) {
 	if (dspFile<0) return;
 
 	//second - find out how many bytes in the data chunk
-	//JAS bytes_remaining = wavfile->DataChunk.chunkSize;
-	bytes_remaining = -1; 
+	//second and a half - make sure we are at the beginning of data
+	rewind_to_beginning (wavfile);
 
 	// third - set the bit size
 	tmp = wavfile->FormatChunk.wBitsPerSample;
@@ -201,8 +206,9 @@ void selectWavParameters (SNDFILE *wavfile) {
 	}	
 
 	// second - set the sampling rate
-	ltmp = wavfile->FormatChunk.dwSamplesPerSec;
-	//printf ("SNDCTL_DSP_SPEED %ld\n",ltmp);
+	ltmp = (long int) ((float) wavfile->FormatChunk.dwSamplesPerSec * wavfile->pitch);
+	//printf ("SNDCTL_DSP_SPEED %ld from %ld pitch %f \n",ltmp,
+	//		wavfile->FormatChunk.dwSamplesPerSec,wavfile->pitch);
 	if (ioctl(dspFile,SNDCTL_DSP_SPEED,&ltmp)<0) {
 		printf ("unable to set DSP sampling rate to %ld\n",ltmp);
 		dspFile = -1; // flag an error

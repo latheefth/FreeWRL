@@ -71,17 +71,22 @@ typedef struct {
 	char	data[BUFSIZE];	// data read in from file
 	int	dataptr;	// where in the data field we are
 	int	wavdataoffset;	// this is the offset from start of file to wave data
+	float	pitch;		// pitch multiplier
+	long int bytes_remaining;	// how many bytes until EOF is reached - used in 
+					// playing the file
 	fmtChnk	FormatChunk;	// the "fmt " chunk is copied here
 	datChnk DataChunk;	// the one and only one "data" chunk is copied here
 } SNDFILE;
+
+int loop[MAXSOURCES];
 
 extern int dspFile;
 void closeDSP();
 SNDFILE *initiateWAVSound (SNDFILE *wavfile); 
 void selectWavParameters (SNDFILE *wavfile); 
-void playWavFragment (SNDFILE *wavfile);
+void playWavFragment (SNDFILE *wavfile, int currentSource);
 void initiateDSP ();
-
+void rewind_to_beginning (SNDFILE *wavfile);
 
 // Mixer proto defs
 void closeMixer();
