@@ -557,9 +557,6 @@ sub propagate_events {
 	my $fk;
 	my %sent; # to prevent sending twice, always set bit here
 
-	#save timestamp in backend 
-	VRML::VRMLFunc::setTick($timestamp);
-	
 	for(values %{$this->{First}}) {
 		print "GETFIRST ", VRML::NodeIntern::dump_name($_), " $_\n" 
 			if $VRML::verbose::events;
