@@ -26,6 +26,11 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.75  2003/04/04 15:24:24  crc_canada
+# set_stereo_offset C function added - uses fieldofview variable now.
+# (works reliably only with 45 degrees; algorithm will have to be tweaked
+# for other angles)
+#
 # Revision 1.74  2003/04/03 20:04:37  crc_canada
 # cleanup and bounds check fieldOfView
 #
@@ -1792,6 +1797,38 @@ set_fieldofview(angle)
 CODE:
 	fieldofview = angle;
 
+void
+set_stereo_offset(buffer,eyehalf,eyehalfangle)
+	int buffer
+	double eyehalf
+	double eyehalfangle
+CODE:
+
+	double x;
+	double correction;
+	double angle;
+
+	x = 0.0;
+	angle = 0.0;
+	/* correction for fieldofview
+		# 18.0: builtin fieldOfView of human eye
+		# 45.0: default fieldOfView of VRML97 viewpoint
+	*/
+
+	correction = 18.0/fieldofview;
+	if (buffer==GL_BACK_LEFT) {
+
+		x=eyehalf;
+		angle=eyehalfangle*correction;
+	} else if (buffer==GL_BACK_RIGHT) {
+		x=-eyehalf;
+		angle=-eyehalfangle*correction;
+	}
+	glTranslatef(x,0,0);
+	glRotatef(angle, 0,1,0);
+
+
+
 
 
 # setup_projection
@@ -1801,7 +1838,7 @@ setup_projection(ratio)
 CODE:
 
 	/* bounds check */
-	if ((fieldofview < 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
+	if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
 
         gluPerspective(fieldofview, ratio, 0.1, 21000.0);
         glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
