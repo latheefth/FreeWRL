@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.18  2002/05/08 18:13:27  crc_canada
+# debugging statements removed
+#
 # Revision 1.17  2002/05/08 14:46:57  crc_canada
 # Had a problem finding a reference to a route that was within a proto. Fixed
 # I hope.
@@ -431,11 +434,11 @@ sub handle_input {
 
 			# are there any routes?
          		if (defined $cnode->{SceneRoutes}) {
-				print "VRMLServ.pm - UR ROUTE ",
-        		        $cnode->{SceneRoutes}[0][0] , " ",
-        		        $cnode->{SceneRoutes}[0][1] , " ",
-        		        $cnode->{SceneRoutes}[0][2] , " ",
-        		        $cnode->{SceneRoutes}[0][3] , " from $this to node: $cnode\n";
+				# print "VRMLServ.pm - UR ROUTE ",
+        		        # $cnode->{SceneRoutes}[0][0] , " ",
+        		        # $cnode->{SceneRoutes}[0][1] , " ",
+        		        # $cnode->{SceneRoutes}[0][2] , " ",
+        		        # $cnode->{SceneRoutes}[0][3] , " from $this to node: $cnode\n";
 
 				my $scene = $this->{B}{Scene};
 	
