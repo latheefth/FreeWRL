@@ -1808,9 +1808,11 @@ void Box_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Box */
 			} else {
 				glCallList(this_->_dlist); return;
 			};
-	glPushAttrib(GL_LIGHTING);
-	glShadeModel(GL_FLAT);
-		glBegin(GL_QUADS);
+	 glPushAttrib(GL_LIGHTING);
+	 glShadeModel(GL_FLAT);
+	 glBegin(GL_QUADS);
+
+		/* front side */
 		glNormal3f(0,0,1);
 		TC(1,1);
 		glVertex3f(x,y,z);
@@ -1821,54 +1823,59 @@ void Box_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Box */
 		TC(1,0);
 		glVertex3f(x,-y,z);
 
+		/* back side */
 		glNormal3f(0,0,-1);
-		TC(1,0);
+		TC(0,0);
 		glVertex3f(x,-y,-z);
-		TC(0,0);
-		glVertex3f(-x,-y,-z);
-		TC(0,1);
-		glVertex3f(-x,y,-z);
-		TC(1,1);
-		glVertex3f(x,y,-z);
-
-		glNormal3f(0,1,0);
-		TC(1,1);
-		glVertex3f(x,y,z);
 		TC(1,0);
-		glVertex3f(x,y,-z);
-		TC(0,0);
+		glVertex3f(-x,-y,-z);
+		TC(1,1);
 		glVertex3f(-x,y,-z);
 		TC(0,1);
-		glVertex3f(-x,y,z);
+		glVertex3f(x,y,-z);
 
-		glNormal3f(0,-1,0);
+		/* top side */
+		glNormal3f(0,1,0);
+		TC(0,0);
+		glVertex3f(-x,y,z);
+		TC(1,0);
+		glVertex3f(x,y,z);
+		TC(1,1);
+		glVertex3f(x,y,-z);
 		TC(0,1);
-		glVertex3f(-x,-y,z);
+		glVertex3f(-x,y,-z);
+
+		/* down side */
+		glNormal3f(0,-1,0);
 		TC(0,0);
 		glVertex3f(-x,-y,-z);
 		TC(1,0);
 		glVertex3f(x,-y,-z);
 		TC(1,1);
 		glVertex3f(x,-y,z);
+		TC(0,1);
+		glVertex3f(-x,-y,z);
 
+		/* right side */
 		glNormal3f(1,0,0);
 		TC(0,0);
-		glVertex3f(x,-y,-z);
-		TC(0,1);
-		glVertex3f(x,y,-z);
-		TC(1,1);
-		glVertex3f(x,y,z);
-		TC(1,0);
 		glVertex3f(x,-y,z);
-
-		glNormal3f(-1,0,0);
-		TC(0,0);
-		glVertex3f(-x,-y,z);
-		TC(0,1);
-		glVertex3f(-x,y,z);
-		TC(1,1);
-		glVertex3f(-x,y,-z);
 		TC(1,0);
+		glVertex3f(x,-y,-z);
+		TC(1,1);
+		glVertex3f(x,y,-z);
+		TC(0,1);
+		glVertex3f(x,y,z);
+
+		/* left side */
+		glNormal3f(-1,0,0);
+		TC(1,0);
+		glVertex3f(-x,-y,z);
+		TC(1,1);
+		glVertex3f(-x,y,z);
+		TC(0,1);
+		glVertex3f(-x,y,-z);
+		TC(0,0);
 		glVertex3f(-x,-y,-z);
 		glEnd();
 	glPopAttrib();
@@ -3771,7 +3778,6 @@ void Cylinder_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Cylinder */
 			glNormal3f(0,1,0);
 			START_TRIG1
 			for(i=0; i<div; i++) {
-printf("top arc #%d  coord[%2.7f, %2.7f, %2.7f]      \ttexccord[%2.7f, %2.7f]       COS1 = %2.7f     SIN = %2.7f\n", i, -r*SIN1, (float)+h, r*COS1, 0.5 - 0.5*SIN1, 0.5 -0.5*COS1, COS1, SIN1);
 				TC( 0.5 - 0.5*SIN1, 0.5 - 0.5*COS1);
 				glVertex3f( -r*SIN1, (float)h, r*COS1 );
 				UP_TRIG1
@@ -3787,7 +3793,6 @@ printf("top arc #%d  coord[%2.7f, %2.7f, %2.7f]      \ttexccord[%2.7f, %2.7f]   
 			glNormal3f(0,-1,0);
 			START_TRIG1
 			for(i=0; i<div; i++) {
-printf("bottom arc #%d  coord[%2.7f, %2.7f, %2.7f]      \ttexccord[%2.7f, %2.7f]       COS1 = %2.7f     SIN = %2.7f\n", i, r*SIN1, (float)-h, r*COS1, 0.5 + 0.5*SIN1, 0.5 + 0.5*COS1, COS1, SIN1);
 				TC(0.5+0.5*SIN1,0.5+0.5*COS1);
 				glVertex3f(r*SIN1,(float)-h,r*COS1);
 				UP_TRIG1
