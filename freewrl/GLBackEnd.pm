@@ -45,7 +45,6 @@ if (0) {
 sub new {
 	my(
 	   $type,
-	   $cocoaContext, # SD reference to Aqua GL context
 	   $fullscreen,
 	   $shutter,
 	   $eyedist,
@@ -68,9 +67,6 @@ sub new {
 	}
 	$this->{W} = $w;
 	$this->{H} = $h;
-	$this->{CONTEXT} = $cocoaContext;
-	$this->{CROSSCURSOR} = undef;
-	$this->{ARROWCURSOR} = undef;
 	return $this;
 }
 
@@ -83,13 +79,6 @@ sub setEyeDist {
 								  );
 }
 
-sub updateCoords {
-	my ($this, $xcoor, $ycoor) = @_;
-
-	$this->{W} = $xcoor;
-	$this->{H} = $ycoor;
-	$this->{CONTEXT}->update;
-}
 
 sub set_root { $_[0]{Root} = $_[1] }
 

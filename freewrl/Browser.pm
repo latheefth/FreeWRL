@@ -61,7 +61,7 @@ sub new {
 
 	my $this = bless {
 		Verbose => delete $pars->{Verbose},
-		BE => new VRML::GLBackEnd($pars->{CocoaContext},
+		BE => new VRML::GLBackEnd(
 			$pars->{FullScreen},
 			$pars->{Shutter},
 			$pars->{EyeDist},
@@ -73,17 +73,7 @@ sub new {
 		Scene => undef,
 		URL => undef,
 		JSCleanup => undef,
-		CONTEXT => $pars->{CocoaContext},
 	 }, $type;
-
-	if (defined $pars->{CocoaContext})
-	{
-		eval 'use CustomClass';
-		eval 'use Foundation';
-		eval 'use Foundation::Functions';
-		eval 'use AppKit';
-		eval 'use AppKit::Functions';
-	}
 
 	# save browser version
 	VRML::VRMLFunc::SaveVersion($VRML::Config::vrml_config{VERSION});
@@ -96,131 +86,6 @@ sub new {
 
 	return $this;
 }
-
-# SD Functions used to set values from Aqua interface, and functions used to pass events from Aqua interface to perl backend
-sub setLogFile
-{
-	my($this, $logfile) = @_;
-	open STDOUT, ">$logfile" || die("Can't redirect stdout to $logfile: $!");
-	open STDERR, ">&STDOUT" || die("Can't redirect stderr to stdout: $!");
-}
-
-sub doScripts 
-{
-	#\$VRML::DO_PERL = 1;
-}
-
-sub setSaveDir
-{
-	my($this, $savedir) = @_;
-	#\$VRML::ENV{FREEWRL_SAVE} = $savedir;
-}
-	
-sub setZbuff
-{
-	my ($this, $zbuff) = @_;
-	VRML::VRMLFunc::set_vpdist($zbuff);
-}
-
-sub setSeq
-{
-	$main::seq = 1;
-}
-
-sub setSeqFile
-{
-	my ($this, $file) = @_;
-	$main::seqname = $file;
-}
-
-sub setTempSeqFile
-{
-	my ($this, $file) = @_;
-	$main::seqtmp = $file;
-}
-
-sub setSnapFile
-{
-	my ($this, $file) = @_;
-	$main::snapname = $file;
-}
-
-sub setShutter
-{
-	my ($this, $shutter) = @_;
-	$this->{BE}->setShutter($shutter);
-}
-
-sub keyUpWithKey
-{
-	my ($this, $key) = @_;
-	$this->{BE}->event(0.0, 3, $key);
-	#print "Got key up event with key $key\n";
-}
-
-sub keyDownWithKey
-{
-	my ($this, $key) = @_;
-	$this->{BE}->event(0.0, 2, $key);
-	#print "Got key up event with key $key\n";
-}
-
-sub setArrowCursor
-{
-	my($this, $cursor) = @_;
-	$this->{BE}->{ARROWCURSOR} = $cursor;
-}
-
-sub setCrossCursor
-{
-	my ($this, $cursor) = @_;
-	$this->{BE}->{CROSSCURSOR} = $cursor;
-}
-
-sub setEyeDist
-{
-	my ($this, $eyes) = @_;
-	my @args = split(/ /, $eyes);
-	$this->{BE}->setEyeDist($args[0], $args[1]);
-}
-
-sub mouseDownAt
-{
-	my ($this, $xvalue) = @_;
-        my @args = split(/ /, $xvalue);
-	#print "Got mouse down for button $args[2] at $args[0] $args[1]\n";
-	$this->{BE}->event(0.0, 4, $args[2], $args[0], $args[1]);
-	$this->{BE}->finish_event;
-}
-
-sub mouseUpAt
-{
-	my ($this, $xvalue) = @_;
-        my @args = split(/ /, $xvalue);
-	#print "Got mouse up for button $args[2] at $args[0] $args[1]\n";
-	$this->{BE}->event(0.0, 5, $args[2], $args[0], $args[1]); 
-	$this->{BE}->finish_event;
-}
-
-sub mouseMovedAt
-{
-	my ($this, $xvalue) = @_;
-        my @args = split(/ /, $xvalue);
-	#print "Got mouse moved for button $args[2] at $args[0] $args[1]\n";
-	$this->{BE}->event(0.0, 6, $args[2], $args[0], $args[1]);
-	$this->{BE}->finish_event;
-}
-sub rectChanged
-{
-	my ($this) = @_;
-	my $customClass = CustomClass->alloc->init;
-	$customClass->setView($this->{CONTEXT}->view);
-	my $ycoor = $customClass->getWidth;
-	my $xcoor = $customClass->getHeight;
-	$this->{BE}->updateCoords($xcoor, $ycoor);
-	$this->{BE}->finish_event;
-}
-# End of Aqua interface functions
 
 
 ##############################################################
