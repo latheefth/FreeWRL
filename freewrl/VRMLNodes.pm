@@ -1719,7 +1719,7 @@ Script => new VRML::NodeType("Script",
 						eval('require "VRML/VRMLJava.pm"');
 						if($@) {die $@;}
 						$VRML::J = 
-							VRML::JavaCom->new();
+							VRML::JavaCom->new($scene->get_browser);
 					}
 					$VRML::J->newscript($t->{PURL},$_,$t);
 					$t->{J} = $VRML::J;
