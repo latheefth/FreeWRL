@@ -110,10 +110,10 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 void
 print_viewer()
 {
-	struct orient or;
-	quaternion_to_vrmlrot(&(Viewer.Quat), &(or.x), &(or.y), &(or.z), &(or.a));
+  struct orient ori;
+  quaternion_to_vrmlrot(&(Viewer.Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
+  printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (Viewer.Pos).x, (Viewer.Pos).y, (Viewer.Pos).z, (Viewer.Quat).w, (Viewer.Quat).x, (Viewer.Quat).y, (Viewer.Quat).z, ori.x, ori.y, ori.z, ori.a);
 
-	printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (Viewer.Pos).x, (Viewer.Pos).y, (Viewer.Pos).z, (Viewer.Quat).w, (Viewer.Quat).x, (Viewer.Quat).y, (Viewer.Quat).z, or.x, or.y, or.z, or.a);
 }
 
 unsigned int
@@ -539,6 +539,27 @@ handle_tick_exfly()
 }
 
 
+//Added Dec 15/04 M. Ward
+/**********************************************
+*Name: handle_tick_exin
+*Function: this is a direct access function to let me change the viewer position directly 
+* with data from the external inputs(the ascension or polhemus at least)
+*I/O: takes a pointer to a list of data, returns nothing
+*************************************************/
+void handle_tick_exin ( float *data ) {
+
+  viewer_type = EXFLY;
+
+  (Viewer.Pos).x = data[0];
+  (Viewer.Pos).y = data[1];
+  (Viewer.Pos).z = data[2];
+  //quaternion data
+  (Viewer.Quat).w = data[3];
+  (Viewer.Quat).x = data[4];
+  (Viewer.Quat).y = data[5];
+  (Viewer.Quat).z = data[6];
+
+}
 
 void
 set_action(char *key)
@@ -614,7 +635,6 @@ handle_tick_fly()
 	for (i = 0; i < KEYS_HANDLED; i++) {
 		(ps[i]).hit += (fly->WasDown[i]).hit;
 		(fly->WasDown[i]).hit = 0;
-	}
 
 	memset(translate, 0, sizeof(int) * COORD_SYS);
 	memset(rotate, 0, sizeof(int) * COORD_SYS);
@@ -662,6 +682,9 @@ handle_tick_fly()
 
 	set(&q_v, &(Viewer.Quat));
 	multiply(&(Viewer.Quat), &nq, &q_v);
+
+    }
+
 }
 
 void

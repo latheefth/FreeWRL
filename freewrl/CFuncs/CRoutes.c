@@ -187,7 +187,7 @@ jsval global_return_val;
 /* ClockTick structure for processing all of the initevents - eg, TimeSensors */
 struct FirstStruct {
 	void *	tonode;
-	void (*interpptr)(unsigned *);
+	void (*interpptr)(void *);
 };
 
 /* ClockTick structure and counter */
@@ -647,7 +647,7 @@ void verifySVtype(struct Multi_String *to) {
 		if (SvFLAGS(svptr[i]) != (SVt_PV | SVf_POK)) {
 			//printf ("comparing %x to %x\n",SvFLAGS(svptr[i]),(SVt_PV | SVf_POK));
 			//printf ("have to convert element %d\n",i);
-			newSV = malloc (sizeof (struct STRUCT_SV));
+			newSV = ( struct STRUCT_SV *)malloc (sizeof (struct STRUCT_SV));
 			/* copy over old to new */
 			newSV->sv_flags = SVt_PV | SVf_POK;
 			newSV->sv_refcnt = 1;
@@ -700,7 +700,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	if (newlen > oldlen) {
 		oldp = to->p; // same as svptr, assigned above
 		to->n = newlen;
-		to->p = malloc(newlen * sizeof(to->p));
+		to->p = (SV**)malloc(newlen * sizeof(to->p));
 		newp = to->p; 
 
 		// copy old values over
@@ -714,14 +714,14 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		// zero new entries
 		for (count = oldlen; count < newlen; count ++) {
 			/* make the new SV */
-			*newp = malloc (sizeof (struct STRUCT_SV));
+			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
 			(*newp)->sv_flags = SVt_PV | SVf_POK;
 			(*newp)->sv_refcnt=1;
-			mypv = malloc(sizeof (struct xpv));
+			mypv = (xpv *)malloc(sizeof (struct xpv));
 			(*newp)->sv_any = mypv;
 
 			/* now, make it point to a blank string */
-			(*mypv).xpv_pv = malloc (2);
+			(*mypv).xpv_pv = (char *)malloc (2);
 			strcpy((*mypv).xpv_pv ,"");
 			(*mypv).xpv_cur = 0;
 			(*mypv).xpv_len = 1;
@@ -761,13 +761,13 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 			// ourselves: sv_setpv(svptr[i],valStr);
 
 			// get a pointer to the xpv to modify
-			mypv = SvANY(svptr[i]);
+			mypv = (xpv *)SvANY(svptr[i]);
 
 			// free the old string
 			free (mypv->xpv_pv); 
 
 			// malloc a new string, of correct len for terminator
-			mypv->xpv_pv = malloc (strlen(valStr)+2);
+			mypv->xpv_pv =(char *) malloc (strlen(valStr)+2);
 
 			// copy string over
 			strcpy (mypv->xpv_pv, valStr);
@@ -833,7 +833,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 
 	/* create the list to send to the AddRemoveChildren function */
 	newmal = malloc (newlen*sizeof(void *));
-	tmpptr = newmal;
+	tmpptr = (unsigned long int *)newmal;
 	
 	if (newmal == 0) {
 		printf ("cant malloc memory for addChildren");
@@ -846,11 +846,11 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 		/* skip past this number */
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 		while (*cptr == ' ') cptr++; /* skip spaces */
-		tmpptr = (void *) ((int)tmpptr + sizeof (void *));
+		tmpptr = (unsigned long int *) ((int)tmpptr + sizeof (void *));
 	}
 
 	/* now, perform the add/remove */
-	AddRemoveChildren (parent, tn, newmal, newlen, ar);
+	AddRemoveChildren (parent, tn, (int *)newmal, newlen, ar);
 }
 
 /****************************************************************/
@@ -908,7 +908,7 @@ void AddRemoveChildren (
 	
 		/* set up the C structures for this new MFNode addition */
 		free (tn->p);
-		tn->p = newmal;
+		tn->p = &newmal;
 	
 		/* copy the new stuff over */
 		newmal = (void *) ((int) newmal + sizeof (void *) * oldlen);
@@ -929,9 +929,9 @@ void AddRemoveChildren (
 		   the parameters */
 
 		num_removed = 0;
-		remchild = nodelist;
+		remchild = (long int*)nodelist;
 		for (c2 = 0; c2 < len; c2++) {
-			remptr = (int *)tn->p;
+			remptr = (long int *)tn->p;
 			for (counter = 0; counter < tn->n; counter ++) {
 				if (*remptr == *remchild) {
 					*remptr = 0;  /* "0" can not be a valid memory address */
@@ -946,7 +946,7 @@ void AddRemoveChildren (
 
 		if (num_removed > 0) {
 			newmal = malloc ((oldlen-num_removed)*sizeof(void *));
-			tmpptr = newmal;
+			tmpptr = (long int *)newmal;
 			remptr = (long int *)tn->p;
 			if (newmal == 0) {
 				printf ("cant malloc memory for removeChildren");
@@ -966,7 +966,7 @@ void AddRemoveChildren (
 			/* now, do the move of data */
 			tn->n = 0;
 			free (tn->p);
-			tn->p = newmal;
+			tn->p = &newmal;
 			tn->n = oldlen - num_removed;
 		}
 	}
@@ -1042,7 +1042,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		        // printf ("old pointer %d\n",tn->p);
 			tn->n = 0;	/* gets around possible mem problem */
 			if (tn->p != NULL) free (tn->p);
-			tn->p = malloc ((unsigned)(elesize*len));
+			tn->p =(SFColor *)malloc ((unsigned)(elesize*len));
 			if (tn->p == NULL) {
 				printf ("can not malloc memory in getMultNumType\n");
 				return;
@@ -1056,7 +1056,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		tn->n = len;
 	} else {
 		/* this is a Node type, so we need to add/remove children */
-		AddRemoveChildren (parent, tn, buf, len, addChild);
+		AddRemoveChildren (parent, (Multi_Node*)tn, (int *)buf, len, addChild);
 	}
 }
 
@@ -1117,7 +1117,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		/* yep... */
 			// printf ("old pointer %d\n",tn->p);
 		if (tn->p != NULL) free (tn->p);
-		tn->p = malloc ((unsigned)(elesize*len));
+		tn->p = (SFColor *)malloc ((unsigned)(elesize*len));
 		if (tn->p == NULL) {
 			printf ("can not malloc memory in getJSMultiNumType\n");
 			return;
@@ -1195,7 +1195,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 		//printf ("have to expand...\n");
 		oldp = to->p; // same as oldsvptr, assigned above
 		to->n = newlen;
-		to->p = malloc(newlen * sizeof(to->p));
+		to->p =(SV **) malloc(newlen * sizeof(to->p));
 		newp = to->p; 
 		//printf ("newp is %d, size %d\n",newp, newlen * sizeof(to->p));
 
@@ -1210,14 +1210,14 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 		for (count = oldlen; count < newlen; count ++) {
 			//printf ("zeroing %d\n",count);
 			/* make the new SV */
-			*newp = malloc (sizeof (struct STRUCT_SV));
+			*newp = (SV *)malloc (sizeof (struct STRUCT_SV));
 			(*newp)->sv_flags = SVt_PV | SVf_POK;
 			(*newp)->sv_refcnt=1;
-			mypv = malloc(sizeof (struct xpv));
+			mypv = (xpv *)malloc(sizeof (struct xpv));
 			(*newp)->sv_any = mypv;
 
 			/* now, make it point to a blank string */
-			(*mypv).xpv_pv = malloc (2);
+			(*mypv).xpv_pv =(char *) malloc (2);
 			strcpy((*mypv).xpv_pv ,"");
 			(*mypv).xpv_cur = 0;
 			(*mypv).xpv_len = 1;
@@ -1257,13 +1257,13 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 			// ourselves: sv_setpv(oldsvptr[i],valStr);
 
 			// get a pointer to the xpv to modify
-			mypv = SvANY(oldsvptr[i]);
+			mypv = (xpv *)SvANY(oldsvptr[i]);
 
 			// free the old string
 			free (mypv->xpv_pv); 
 
 			// malloc a new string, of correct len for terminator
-			mypv->xpv_pv = malloc (strlen(valStr)+2);
+			mypv->xpv_pv = (char *)malloc (strlen(valStr)+2);
 
 			// copy string over
 			strcpy (mypv->xpv_pv, valStr);
@@ -1321,7 +1321,7 @@ void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dat
 
 	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
 
-	if ((_privPtr = JS_GetPrivate(_context, _sfvec3fObj)) == NULL) 
+	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(_context, _sfvec3fObj)) == NULL) 
 		printf("JS_GetPrivate failed in jsSFVec3fSet.\n");
 
 	/* copy over the data from the perl/C VRML side into the script. */
@@ -1626,7 +1626,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
     while((!iscntrl(*token))&&(!isalpha(*token))) token++;
     count = token - input;
     if(count > 0) {
-	tptr  = malloc(count + 2);
+	tptr  = (char *)malloc(count + 2);
 	
 	strncpy(tptr,input,(count));
 	tptr[count] = 0;
@@ -1637,7 +1637,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 	if(NULL != token)
 	{
 	    count = 1;
-	    theChainHd = malloc(sizeof(struct fchain));
+	    theChainHd = (fchain *)malloc(sizeof(struct fchain));
 	    theChainHd->next = NULL;
 	    actual = theChainHd;
 	    
@@ -1656,7 +1656,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 		token = strtok(NULL,theSpc);
 		if(NULL != token)
 		{
-		    actual->next =  malloc(sizeof(struct fchain));
+		    actual->next = (fchain *) malloc(sizeof(struct fchain));
 		    actual = actual->next;
 		    actual->next = NULL;
 		    count++;
@@ -1671,8 +1671,8 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 	    if(count > 0)
 	    {
 		/* malloc the return data location */
-		retVal = malloc(dataSize*count);
-		retValPtr = (void *)retVal;
+		retVal = (float *)malloc(dataSize*count);
+		retValPtr = (char *)retVal;
 		
 		actual = theChainHd;
 		/* copy each "element" over to the final location */
@@ -1938,7 +1938,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 	if ((mv3ftn->p) != NULL) free (mv3ftn->p);
 
 	/* malloc the toptr */
-	mv3ftn->p = malloc (structlen*fromcount);
+	mv3ftn->p = (SFColor *)malloc (structlen*fromcount);
 	toptr = (void *)mv3ftn->p;
 
 	/* tell the recipient how many elements are here */
@@ -1956,20 +1956,20 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
    Regsister them with add_first, then call them during the event loop with do_first.    */
 
 void add_first(char *clocktype,void * node) {
-	void (*myp)(unsigned *);
+	void (*myp)(void *);
 
-	if (strncmp("TimeSensor",clocktype,10) == 0) { myp =  (void *)do_TimeSensorTick;
-	} else if (strncmp("ProximitySensor",clocktype,10) == 0) { myp = (void *)do_ProximitySensorTick;
-	} else if (strncmp("Collision",clocktype,10) == 0) { myp = (void *)do_CollisionTick;
-	} else if (strncmp("MovieTexture",clocktype,10) == 0) { myp = (void *)do_MovieTextureTick;
-	} else if (strncmp("AudioClip",clocktype,10) == 0) { myp = (void *)do_AudioTick;
+	if (strncmp("TimeSensor",clocktype,10) == 0) { myp =  do_TimeSensorTick;
+	} else if (strncmp("ProximitySensor",clocktype,10) == 0) { myp = do_ProximitySensorTick;
+	} else if (strncmp("Collision",clocktype,10) == 0) { myp = do_CollisionTick;
+	} else if (strncmp("MovieTexture",clocktype,10) == 0) { myp = do_MovieTextureTick;
+	} else if (strncmp("AudioClip",clocktype,10) == 0) { myp = do_AudioTick;
 
 	} else {
 		printf ("VRML::VRMLFunc::add_first, unhandled type %s\n",clocktype);
 		return;
 	}
 
-	ClockEvents = realloc(ClockEvents,sizeof (struct FirstStruct) * (num_ClockEvents+1));
+	ClockEvents = (FirstStruct *)realloc(ClockEvents,sizeof (struct FirstStruct) * (num_ClockEvents+1));
 	if (ClockEvents == 0) {
 		printf ("can not allocate memory for add_first call\n");
 		num_ClockEvents = 0;
@@ -2086,7 +2086,7 @@ int JSparamIndex (char *name, char *type) {
 	if (jsnameindex >= MAXJSparamNames) {
 		/* oooh! not enough room at the table */
 		MAXJSparamNames += 100; /* arbitrary number */
-		JSparamnames = realloc (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
+		JSparamnames = (CRjsnameStruct*)realloc (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
 	}
 
 	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
@@ -2122,7 +2122,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 
 	/* is this a script to script route??? */
 	if (scrdir == SCRIPT_TO_SCRIPT) {
-		chptr = malloc (sizeof (char) * length);
+		chptr = (char *)malloc (sizeof (char) * length);
 		// printf ("wwwwwoooowwww!!! script to script!! length %d\n",length);
 		if (length > 0) {
 			sprintf (buf,"%d:0",(int) chptr);
@@ -2140,7 +2140,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	if (!CRoutes_Initiated) {
 		/* allocate the CRoutes structure */
 		CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
-		CRoutes = malloc (sizeof (*CRoutes) * CRoutes_MAX);
+		CRoutes = (CRStruct *)malloc (sizeof (*CRoutes) * CRoutes_MAX);
 
 		CRoutes[0].fromnode = 0;
 		CRoutes[0].fnptr = 0;
@@ -2239,7 +2239,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	CRoutes[insert_here].tonode_count = 0;
 	CRoutes[insert_here].tonodes = NULL;
 	CRoutes[insert_here].len = length;
-	CRoutes[insert_here].interpptr = intptr;
+	CRoutes[insert_here].interpptr = (void (*)(void*))intptr;
 	CRoutes[insert_here].direction_flag = scrdir;
 	CRoutes[insert_here].extra = extra;
 
@@ -2284,7 +2284,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	if (CRoutes_Count >= (CRoutes_MAX-2)) {
 		//printf("WARNING: expanding routing table\n");
 		CRoutes_MAX += 50; /* arbitrary expansion number */
-		CRoutes = realloc (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
+		CRoutes =(CRStruct *) realloc (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 	}
 
 	CRoutes_Count ++;
@@ -2524,19 +2524,19 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 					/* a series of Floats... */
-				case MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),3); break;}
-				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),1); break;}
-				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),4); break;}
-				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),2); break;}
-				case MFNODE: {getMFNodetype (strp,(void *)(tn+tptr),(void *)tn,CRoutes[route].extra); break;}
+				case MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),3); break;}
+				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),1); break;}
+				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),4); break;}
+				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),2); break;}
+				case MFNODE: {getMFNodetype (strp,(Multi_Node *)(tn+tptr),(VRML_Box *)tn,CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
-						 (jsval *)global_return_val,(void *)(tn+tptr)); 
+						 (jsval *)global_return_val,(Multi_String *)(tn+tptr)); 
 					break;
 				}
 
-				case MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),0); break;}
-				case MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),5); break;}
+				case MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),0); break;}
+				case MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),5); break;}
 
 				default: {	printf("WARNING: unhandled from type %s\n", FIELD_TYPE_STRING(JSparamnames[fptr].type));
 				printf (" -- string from javascript is %s\n",strp);
@@ -2983,7 +2983,7 @@ void do_first() {
 	   to either field, so we don't need to bounds check here */
 
 	for (counter =0; counter < num_ClockEvents; counter ++) {
-		ClockEvents[counter].interpptr((int *)(ClockEvents[counter].tonode));
+		ClockEvents[counter].interpptr((unsigned int *)(ClockEvents[counter].tonode));
 	}
 
 	/* now, propagate these events */

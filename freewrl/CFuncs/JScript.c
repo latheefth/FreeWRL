@@ -129,8 +129,8 @@ void JSMaxAlloc() {
 	int count;
 
 	JSMaxScript += 10;
-	ScriptControl = realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
-	scr_act = realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
+	ScriptControl = (CRscriptStruct*)realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
+	scr_act = (int *)realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
 
 	if ((ScriptControl == NULL) || (scr_act == 0)) {
 		printf ("Can not allocate memory for more script indexes\n");
@@ -458,7 +458,7 @@ SFNodeNativeDelete(void *p)
 {
 	SFNodeNative *ptr;
 	if (p != NULL) {
-		ptr = p;
+		ptr = (SFNodeNative *)p;
 		if (ptr->vrmlstring != NULL) {
 			free(ptr->vrmlstring);
 		}
@@ -475,8 +475,8 @@ SFNodeNativeAssign(void *top, void *fromp)
 {
 	size_t to_vrmlstring_len = 0, to_handle_len = 0,
 		from_vrmlstring_len = 0, from_handle_len = 0;
-	SFNodeNative *to = top;
-	SFNodeNative *from = fromp;
+	SFNodeNative *to = (SFNodeNative *)top;
+	SFNodeNative *from = (SFNodeNative *)fromp;
 
 	//printf ("SFNodeNativeAssign, assigning from vrmlstring %s handle %s to vrmlstring %s handle %s\n",
 	//	from->vrmlstring,from->handle,to->vrmlstring,to->handle);
@@ -522,7 +522,7 @@ void *
 SFColorNativeNew()
 {
 	SFColorNative *ptr;
-	ptr = malloc(sizeof(*ptr));
+	ptr = (SFColorNative *)malloc(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -535,7 +535,7 @@ SFColorNativeDelete(void *p)
 {
 	SFColorNative *ptr;
 	if (p != NULL) {
-		ptr = p;
+		ptr = (SFColorNative *)p;
 		free(ptr);
 	}
 }
@@ -543,8 +543,8 @@ SFColorNativeDelete(void *p)
 void
 SFColorNativeAssign(void *top, void *fromp)
 {
-	SFColorNative *to = top;
-	SFColorNative *from = fromp;
+	SFColorNative *to = (SFColorNative *)top;
+	SFColorNative *from = (SFColorNative *)fromp;
 	to->touched++;
 	(to->v) = (from->v);
 }
@@ -553,7 +553,7 @@ void *
 SFImageNativeNew()
 {
 	SFImageNative *ptr;
-	ptr = malloc(sizeof(*ptr));
+	ptr =(SFImageNative *) malloc(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -566,7 +566,7 @@ SFImageNativeDelete(void *p)
 {
 	SFImageNative *ptr;
 	if (p != NULL) {
-		ptr = p;
+		ptr = (SFImageNative *)p;
 		free(ptr);
 	}
 }
@@ -574,7 +574,7 @@ SFImageNativeDelete(void *p)
 void
 SFImageNativeAssign(void *top, void *fromp)
 {
-	SFImageNative *to = top;
+	SFImageNative *to = (SFImageNative *)top;
 	/* SFImageNative *from = fromp; */
 	UNUSED(fromp);
 
@@ -586,7 +586,7 @@ void *
 SFRotationNativeNew()
 {
 	SFRotationNative *ptr;
-	ptr = malloc(sizeof(*ptr));
+	ptr = (SFRotationNative *)malloc(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -599,7 +599,7 @@ SFRotationNativeDelete(void *p)
 {
 	SFRotationNative *ptr;
 	if (p != NULL) {
-		ptr = p;
+		ptr = (SFRotationNative *)p;
 		free(ptr);
 	}
 }
@@ -607,8 +607,8 @@ SFRotationNativeDelete(void *p)
 void
 SFRotationNativeAssign(void *top, void *fromp)
 {
-	SFRotationNative *to = top;
-	SFRotationNative *from = fromp;
+	SFRotationNative *to = (SFRotationNative *)top;
+	SFRotationNative *from = (SFRotationNative *)fromp;
 	to->touched++;
 	(to->v) = (from->v);
 }
@@ -617,7 +617,7 @@ void *
 SFVec2fNativeNew()
 {
 	SFVec2fNative *ptr;
-	ptr = malloc(sizeof(*ptr));
+	ptr = (SFVec2fNative *)malloc(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -630,7 +630,7 @@ SFVec2fNativeDelete(void *p)
 {
 	SFVec2fNative *ptr;
 	if (p != NULL) {
-		ptr = p;
+		ptr = (SFVec2fNative *)p;
 		free(ptr);
 	}
 }
@@ -638,8 +638,8 @@ SFVec2fNativeDelete(void *p)
 void
 SFVec2fNativeAssign(void *top, void *fromp)
 {
-	SFVec2fNative *to = top;
-	SFVec2fNative *from = fromp;
+	SFVec2fNative *to = (SFVec2fNative *)top;
+	SFVec2fNative *from = (SFVec2fNative *)fromp;
 	to->touched++;
 	(to->v) = (from->v);
 }
@@ -648,7 +648,7 @@ void *
 SFVec3fNativeNew()
 {
 	SFVec3fNative *ptr;
-	ptr = malloc(sizeof(*ptr));
+	ptr = (SFVec3fNative *)malloc(sizeof(*ptr));
 	if (ptr == NULL) {
 		return NULL;
 	}
@@ -661,7 +661,7 @@ SFVec3fNativeDelete(void *p)
 {
 	SFVec3fNative *ptr;
 	if (p != NULL) {
-		ptr = p;
+		ptr = (SFVec3fNative *)p;
 		free(ptr);
 	}
 }
@@ -669,8 +669,8 @@ SFVec3fNativeDelete(void *p)
 void
 SFVec3fNativeAssign(void *top, void *fromp)
 {
-	SFVec3fNative *to = top;
-	SFVec3fNative *from = fromp;
+	SFVec3fNative *to = (SFVec3fNative *)top;
+	SFVec3fNative *from = (SFVec3fNative *)fromp;
 	to->touched++;
 	(to->v) = (from->v);
 }

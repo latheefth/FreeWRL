@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.145  2005/01/16 20:55:08  crc_canada
+# Various compile warnings removed; some code from Matt Ward for Alldev;
+# some perl changes for generated code to get rid of warnings.
+#
 # Revision 1.144  2005/01/06 14:29:01  crc_canada
 # IFS with color nodes and no appearance now rendered.
 #
@@ -208,7 +212,6 @@ Cylinder => '
 	extern GLfloat cylnorms[];		// in CFuncs/statics.c
 	extern unsigned char cyltopindx[];	// in CFuncs/statics.c
 	extern unsigned char cylbotindx[];	// in CFuncs/statics.c
-	extern unsigned char cylsideindx[];	// in CFuncs/statics.c
 	extern GLfloat cylendtex[];		// in CFuncs/statics.c
 	extern GLfloat cylsidetex[];		// in CFuncs/statics.c
 
@@ -435,9 +438,8 @@ Sphere => '
 
 	if (this_->_ichange != this_->_change) {
 		int v; int h;
-		float va1,va2,van,ha1,ha2,han;
-		float t_aa, t_ab, t_sa, t_ca, t_sa1, t_ca1;
-		float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1, t2_ca1;
+		float t_aa, t_ab, t_sa, t_ca, t_sa1;
+		float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1;
 		struct SFColor *pts;
 		int count;
 
@@ -508,10 +510,10 @@ Sphere => '
 	if(!$f(solid)) { glPopAttrib(); }
 ',
 IndexedFaceSet => '
-		struct SFColor *points; int npoints;
-		struct SFColor *colors; int ncolors=0;
-		struct SFColor *normals; int nnormals=0;
-		struct SFVec2f *texcoords; int ntexcoords=0;
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct SFVec2f *texcoords=0; int ntexcoords=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
 		$fv(coord, points, get3, &npoints);
@@ -541,11 +543,10 @@ IndexedLineSet => '
 		int colin = $f_n(colorIndex);
 		int cpv = $f(colorPerVertex);
 		int plno = 0;
-		int ind1,ind2;
 		int ind;
 		int c;
-		struct SFColor *points; int npoints;
-		struct SFColor *colors; int ncolors=0;
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
 
 
 		if(verbose) printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
@@ -625,8 +626,8 @@ IndexedLineSet => '
 
 PointSet => '
 	int i; 
-	struct SFColor *points; int npoints=0;
-	struct SFColor *colors; int ncolors=0;
+	struct SFColor *points=0; int npoints=0;
+	struct SFColor *colors=0; int ncolors=0;
 
 	$fv(coord, points, get3, &npoints);
 	$fv_null(color, colors, get3, &ncolors);
@@ -657,9 +658,9 @@ PointSet => '
 	glEnable(GL_LIGHTING);
 ',
 GeoElevationGrid => '
-		struct SFColor *colors; int ncolors=0;
+		struct SFColor *colors=0; int ncolors=0;
                 struct SFVec2f *texcoords; int ntexcoords=0;
-		struct SFColor *normals; int nnormals=0;
+		struct SFColor *normals=0; int nnormals=0;
 
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -683,9 +684,9 @@ GeoElevationGrid => '
 ',
 
 ElevationGrid =>  '
-		struct SFColor *colors; int ncolors=0;
-                struct SFVec2f *texcoords; int ntexcoords=0;
-		struct SFColor *normals; int nnormals=0;
+		struct SFColor *colors=0; int ncolors=0;
+                struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct SFColor *normals=0; int nnormals=0;
 
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -721,7 +722,7 @@ Extrusion => '
 ',
 
 # FontStyle params handled in Text.
-FontStyle => '',
+FontStyle => 'UNUSED(this_);',
 
 # Text is a polyrep, as of freewrl 0.34
 Text => '
@@ -737,7 +738,7 @@ Text => '
 ',
 
 Material =>  '
-		float m[4]; int i;
+		int i;
 		float dcol[4];
 		float ecol[4];
 		float scol[4];
@@ -832,10 +833,6 @@ ImageTexture => '
 
 ######
 MovieTexture => '
-	unsigned char *ptr;
-
-	int temp;
-
 	/* really simple, the texture number is calculated, then simply sent here.
 	   The last_bound_texture field is sent, and, made current */
 
@@ -864,16 +861,18 @@ Sound => '
 
 	GLdouble mod[16];
 	GLdouble proj[16];
-	struct pt vec, direction, location, elipse;
+	struct pt vec, direction, location;
 	double len; 
 	double angle;
 	float midmin, midmax;
 	float amp;
 
-	float radius;
-	struct VRML_AudioClip *acp = $f(source);
-	struct VRML_MovieTexture *mcp = $f(source);
+	struct VRML_AudioClip *acp;
+	struct VRML_MovieTexture *mcp;
 	char mystring[256];
+
+	acp = (struct VRML_AudioClip *) $f(source);
+	mcp = (struct VRML_MovieTexture *) $f(source);
 
 	// MovieTextures NOT handled yet
 	// first - is there a node (any node!) attached here?
@@ -1008,7 +1007,6 @@ AudioClip => '
 	// register an audioclip
 	float pitch,stime, sttime;
 	int loop;
-	int xx;
 	unsigned char *filename = (unsigned char *)this_->__localFileName;
 
 	/* tell Sound that this is an audioclip */
@@ -1041,7 +1039,7 @@ AudioClip => '
 
 		AC_LastDuration[this_->__sourceNumber] = 
 			SoundSourceInit (this_->__sourceNumber, this_->loop,
-			(float) pitch,(float) stime, (float) sttime, filename);
+			(float) pitch,(float) stime, (float) sttime, (char *)filename);
 		/* printf ("globalDuration source %d %f\n",
 				this_->__sourceNumber,AC_LastDuration[this_->__sourceNumber]); */
 
@@ -1098,20 +1096,20 @@ DirectionalLight => '
 
 %PrepC = (
 # this creates the Struct values required to allow backend to fill the C values out
-ColorInterpolator => '',
-PositionInterpolator => '',  
-GeoPositionInterpolator => '',  
-ScalarInterpolator => '',
-OrientationInterpolator => '',
-NormalInterpolator => '',
-CoordinateInterpolator => '',
-TimeSensor => '',
-SphereSensor => '',
-CylinderSensor =>'',
-GeoTouchSensor => '',
-TouchSensor => '',
-PlaneSensor => '',
-VisibilitySensor => '',
+ColorInterpolator => 'UNUSED(this_); /* compiler warning */',
+PositionInterpolator => 'UNUSED(this_); /* compiler warning */',  
+GeoPositionInterpolator => 'UNUSED(this_); /* compiler warning */',  
+ScalarInterpolator => 'UNUSED(this_); /* compiler warning */',
+OrientationInterpolator => 'UNUSED(this_); /* compiler warning */',
+NormalInterpolator => 'UNUSED(this_); /* compiler warning */',
+CoordinateInterpolator => 'UNUSED(this_); /* compiler warning */',
+TimeSensor => 'UNUSED(this_); /* compiler warning */',
+SphereSensor => 'UNUSED(this_); /* compiler warning */',
+CylinderSensor =>'UNUSED(this_); /* compiler warning */',
+GeoTouchSensor => 'UNUSED(this_); /* compiler warning */',
+TouchSensor => 'UNUSED(this_); /* compiler warning */',
+PlaneSensor => 'UNUSED(this_); /* compiler warning */',
+VisibilitySensor => 'UNUSED(this_); /* compiler warning */',
 
 GeoOrigin => 'render_GeoOrigin ((struct VRML_GeoOrigin *) this_);',
 
@@ -1134,10 +1132,8 @@ GeoLocation => '
 Transform => '
 
 	GLfloat my_rotation;
-	GLfloat my_scaleO;
+	GLfloat my_scaleO=0;
 	int	recalculate_dist;
-
-	int ppv;
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
@@ -1217,15 +1213,13 @@ Transform => '
 Billboard => '
 	struct pt vpos, ax, cp, cp2, arcp;
 	static const struct pt orig = {0.0, 0.0, 0.0};
-	static const struct pt xvec = {1.0, 0.0, 0.0};
-	static const struct pt yvec = {0.0, 1.0, 0.0};
 	static const struct pt zvec = {0.0, 0.0, 1.0};
 	struct orient viewer_orient;
 	GLdouble mod[16];
 	GLdouble proj[16];
 
 	int align;
-	double len, len2, angle, angle2;
+	double len, len2, angle;
 	int sign;
 	ax.x = $f(axisOfRotation,0);
 	ax.y = $f(axisOfRotation,1);
@@ -1297,6 +1291,7 @@ Billboard => '
 # Finish rendering
 %FinC = (
 GeoLocation => (join '','
+	UNUSED(this_);
 	if (!render_vp) glPopMatrix();
 	'),
 
@@ -1331,6 +1326,7 @@ Transform => (join '','
 
 '),
 Billboard => (join '','
+	UNUSED (this_);
 	glPopMatrix();
 '),
 );
@@ -1361,7 +1357,7 @@ Billboard => (join '','
 			render_node(p);
 		}
 	',
-	GeoLOD => '',
+	GeoLOD => 'UNUSED (this_);',
 	LOD => 'lodChild(this_);',
 	Collision => 'collisionChild(this_);',
 
@@ -1394,7 +1390,6 @@ Billboard => (join '','
 		} 
 	',
 	Shape => '
-		GLenum glError;
 		int trans;
 		int should_rend;
 		GLdouble modelMatrix[16];
@@ -1627,11 +1622,13 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 	Group => '
 		int i;
 		int nc = $f_n(children); 
+		struct VRML_Box *p;
+		struct VRML_Virt *v;
 
 		$i(has_light) = 0;
 		for(i=0; i<nc; i++) {
-			struct VRML_Box *p = $f(children,i);
-			struct VRML_Virt *v = *(struct VRML_Virt **)p;
+			p = (struct VRML_Box *)$f(children,i);
+			v = *(struct VRML_Virt **)p;
 			if (v->rend == DirectionalLight_Rend) {
 				// printf ("group found a light\n");
 				$i(has_light) ++;
@@ -1641,11 +1638,13 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 	Inline => '
 		int i;
 		int nc = $f_n(__children); 
+		struct VRML_Box *p;
+		struct VRML_Virt *v;
 
 		$i(has_light) = 0;
 		for(i=0; i<nc; i++) {
-			struct VRML_Box *p = $f(__children,i);
-			struct VRML_Virt *v = *(struct VRML_Virt **)p;
+			p = (struct VRML_Box *)$f(__children,i);
+			v = *(struct VRML_Virt **)p;
 			if (v->rend == DirectionalLight_Rend) {
 				// printf ("group found a light\n");
 				$i(has_light) ++;
@@ -1678,7 +1677,6 @@ ProximitySensor => q~
 	double len;
 	struct pt dr1r2;
 	struct pt dr2r3;
-	struct pt vec;
 	struct pt nor1,nor2;
 	struct pt ins;
 	static const struct pt yvec = {0,0.05,0};
@@ -1840,19 +1838,15 @@ Sphere => q~
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
 	       GLdouble dist2;
-	       struct pt tmppt;
 	       struct pt delta = {0,0,0};
 	       GLdouble radius;
-	       GLdouble tmp;
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
 	       struct pt tupv = {0,1,0};
-	       struct pt dir;
 
 		/* are we initialized yet? */
 		if (this_->__points==0) {
@@ -2198,8 +2192,7 @@ IndexedFaceSet => q~
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       struct SFColor *points; int npoints;
-	       int i;
+	       struct SFColor *points=0; int npoints;
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
@@ -2210,7 +2203,7 @@ IndexedFaceSet => q~
 
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
-	       int change;
+	       int change = 0;
 
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
@@ -2232,7 +2225,8 @@ IndexedFaceSet => q~
 		   IndexedFaceSet */
 		if (!pr.coord) {
 	       		$fv(coord, points, get3, &npoints);
-			pr.coord = (void*)points;
+			pr.coord = (float*)points;
+
 		}
 
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
@@ -2281,8 +2275,6 @@ Extrusion => q~
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       struct SFColor *points; int npoints;
-	       int i;
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
@@ -2293,7 +2285,7 @@ Extrusion => q~
 
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
-	       int change;
+	       int change = 0;
 
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
@@ -2350,9 +2342,7 @@ Text => q~
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       int i;
 
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
@@ -2363,8 +2353,7 @@ Text => q~
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,-1}; 
 	       struct VRML_PolyRep pr;
-	       prflags flags = 0;
-	       int change;
+	       int change = 0;
 
 
 		/* JAS - first pass, intern is probably zero */
@@ -2419,9 +2408,7 @@ GeoElevationGrid => q~
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       int i;
 
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
@@ -2430,8 +2417,8 @@ GeoElevationGrid => q~
 
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
-	       int change;
-		int xx;
+	       int change = 0;
+		STRLEN xx;
 
 		float xSpacing = 0.0;	/* GeoElevationGrid uses strings here */
 		float zSpacing = 0.0;	/* GeoElevationGrid uses strings here */
@@ -2488,9 +2475,7 @@ ElevationGrid => q~
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       int i;
 
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
@@ -2499,7 +2484,7 @@ ElevationGrid => q~
 
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
-	       int change;
+	       int change = 0;
 
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;

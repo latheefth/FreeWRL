@@ -11,6 +11,8 @@
 #include <signal.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/wait.h>
+
 
 #ifdef AQUA
 #include <unistd.h>

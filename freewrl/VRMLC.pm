@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.161  2005/01/16 20:55:08  crc_canada
+# Various compile warnings removed; some code from Matt Ward for Alldev;
+# some perl changes for generated code to get rid of warnings.
+#
 # Revision 1.160  2005/01/12 15:43:55  crc_canada
 # TouchSensor hitPoint_changed and hitNormal_changed
 #
@@ -272,8 +276,8 @@ Sphere => '
 	float r = $f(radius);
 	/* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
 	float tr1sq = VECSQ(t_r1);
-	float tr2sq = VECSQ(t_r2);
-	float tr1tr2 = VECPT(t_r1,t_r2);
+	/* float tr2sq = VECSQ(t_r2); */
+	/* float tr1tr2 = VECPT(t_r1,t_r2); */
 	struct pt dr2r1;
 	float dlen;
 	float a,b,c,disc;
@@ -453,7 +457,7 @@ Extrusion => ( '
 '),
 
 IndexedFaceSet => '
-		struct SFColor *points; int npoints;
+		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
 		render_ray_polyrep(this_, 
@@ -634,7 +638,7 @@ get_${name}_offsets(p)
 	SV *p;
 CODE:
 	int *ptr_;
-	int xx;
+	STRLEN xx;
 	SvGROW(p,($nf+1)*sizeof(int));
 	SvCUR_set(p,($nf+1)*sizeof(int));
 	ptr_ = (int *)SvPV(p,xx);
@@ -666,11 +670,26 @@ OUTPUT:
 #########################################################
 sub get_offsf {
 	my($f) = @_;
-	my ($ct) = ("VRML::Field::$_")->ctype("*ptr_");
 	my ($ctp) = ("VRML::Field::$_")->ctype("*");
+	my ($ct) = ("VRML::Field::$_")->ctype("*ptr_");
 	my ($c) = ("VRML::Field::$_")->cfunc("(*ptr_)", "sv_");
 	my ($ca) = ("VRML::Field::$_")->calloc("(*ptr_)");
 	my ($cf) = ("VRML::Field::$_")->cfree("(*ptr_)");
+
+
+	print "get_offsf; for $f, have ca $ca and cf $cf\n";
+	print "and ctp $ctp\n";
+	print "and ct $ct\n";
+	print "c $c\n\n";
+	
+	# ifwe dont have to do anything, then we dont bother with the ctype field.
+	# this gets rid of some compiler warnings.
+
+	if ($ca) { #print "ca is something\n";
+	} else { $ca = "UNUSED(ptr_);"; }
+	if ($cf) { #print "cf is something\n";
+	} else { $cf = "UNUSED(ptr_);"; }
+
 	return "
 
 void 
@@ -803,6 +822,7 @@ sub gen {
 	for(@NodeTypes) {
 		my $no = $VRML::Nodes{$_}; 
 		my($str, $offs, $perl) = gen_struct($_, $no);
+
 		push @str, $str;
 		push @xsfn, $offs;
 		push @poffsfn, $perl;
@@ -903,6 +923,8 @@ struct sNaviInfo {
 /* Code here comes almost verbatim from VRMLC.pm */
 
 #include "CFuncs/headers.h"
+#include "CFuncs/GeoVRML.h"
+#include "CFuncs/jsUtils.h"
 #include "XSUB.h"
 
 #include <math.h>
@@ -1060,7 +1082,7 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 float tx,float ty, char *descr)  {
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
-	GLdouble wx, wy, wz;
+
 	/* Real rat-testing */
 	if(verbose) 
 		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
@@ -1104,12 +1126,15 @@ void upd_ray() {
 /* Courtesy of Jochen Hoenicke */
 
 void update_node(void *ptr) {
-	struct VRML_Box *p = ptr;
+	struct VRML_Box *p;
 	int i;
+
+	p = (struct VRML_Box*) ptr;
+
 	p->_change ++;
 	p->PIV=1;
 	for (i = 0; i < p->_nparents; i++) {
-		update_node(p->_parents[i]);
+		update_node((void *)p->_parents[i]);
 	}
 }
 
@@ -1121,12 +1146,8 @@ void Group_Child(void *nod_);
  */
 	';
 
-#######################################################j
-
-
 	print XS join '',@func;
 	print XS join '',@vstruc;
-#######################################################
 	print XS <<'ENDHERE'
 
 /*********************************************************************
@@ -1143,19 +1164,19 @@ void Group_Child(void *nod_);
 void render_node(void *node) {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
-	int srg;
-	int sch;
+	int srg = 0;
+	int sch = 0;
 	struct currayhit srh;
 	#ifdef GLERRORS
 	int glerror = GL_NONE;
-	#endif
 	char* stage = "";
+	#endif
 
 	if(verbose) 
 		printf("\nRender_node %u\n",(unsigned int) node);
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
-	p = node;
+	p = (struct VRML_Box *)node;
 
 	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
@@ -1339,22 +1360,26 @@ void render_node(void *node) {
 #define NODE_ADD_PARENT(a) add_parent(a,ptr)
 
 void add_parent(void *node_, void *parent_) {
-	struct VRML_Box *node = node_;
-	struct VRML_Box *parent = parent_;
-	if(!node) return;
+	struct VRML_Box *node;
+	struct VRML_Box *parent;
+	if(!node_) return;
+
+	node = (struct VRML_Box *)node_;
+	parent = (struct VRML_Box *)parent_;
+
 	//printf ("adding node %d to parent %d\n",node_, parent_);
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
 	node->_nparents ++;
 	if(node->_nparents > node->_nparalloc) {
 		node->_nparalloc += 10;
+		if (node->_parents == NULL)  {
+			node->_parents = (void **)malloc(sizeof(node->_parents[0])* node->_nparalloc) ;
+		} else {
 		node->_parents = 
-		 (node->_parents ? 
-			realloc(node->_parents, sizeof(node->_parents[0])*
-							node->_nparalloc) 
-							:
-			malloc(sizeof(node->_parents[0])* node->_nparalloc) 
-		 );
+			(void **)realloc(node->_parents, sizeof(node->_parents[0])*
+							node->_nparalloc) ;
+		}
 	}
 	node->_parents[node->_nparents-1] = parent_;
 }
@@ -1362,10 +1387,12 @@ void add_parent(void *node_, void *parent_) {
 #define NODE_REMOVE_PARENT(a) add_parent(a,ptr)
 
 void remove_parent(void *node_, void *parent_) {
-	struct VRML_Box *node = node_;
-	struct VRML_Box *parent = parent_;
+	struct VRML_Box *node;
+	struct VRML_Box *parent;
 	int i;
-	if(!node) return;
+	if(!node_) return;
+	node = (struct VRML_Box *)node_;
+	parent = (struct VRML_Box *)parent_;
 	node->_nparents --;
 	for(i=0; i<node->_nparents; i++) {
 		if(node->_parents[i] == parent) {
@@ -1486,7 +1513,7 @@ PROTOTYPES: ENABLE
 #
 ####################################################################
 
-int
+void
 save_font_path(myfp)
 	char *myfp
 CODE:
@@ -1500,7 +1527,10 @@ alloc_struct(siz,virt)
 	void *virt
 CODE:
 	void *ptr = malloc(siz);
-	struct VRML_Box *p = ptr;
+	struct VRML_Box *p;
+
+	p = (struct VRML_Box *) ptr;
+
 	/* printf("Alloc: %d %d -> %d\n", siz, virt, ptr);  */
 	*(struct VRML_Virt **)ptr = (struct VRML_Virt *)virt;
 	p->_renderFlags = 0;
@@ -1529,7 +1559,10 @@ void
 release_struct(ptr)
 	void *ptr
 CODE:
-	struct VRML_Box *p = ptr;
+	struct VRML_Box *p;
+
+	p = (struct VRML_Box *) ptr;
+
 	if(p->_parents) free(p->_parents);
 	if(p->_dlist) glDeleteLists(p->_dlist,1);
 	printf ("release_struct, texture needs deletion \n");
@@ -1569,25 +1602,25 @@ CODE:
 	/* XXX still to do; Fog, Background, Viewpoint, NavigationInfo, Collision */
 
 	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
-		pt = do_Oint4;
+		pt = (void *)do_Oint4;
 		RETVAL = (unsigned int) pt;
 	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
-		pt = do_OintScalar;
+		pt = (void *)do_OintScalar;
 		RETVAL = (unsigned int) pt;
 	} else if (strncmp("ColorInterpolator",x,strlen("ColorInterpolator"))==0) {
-		pt = do_Oint3;
+		pt = (void *)do_Oint3;
 		RETVAL = (unsigned int) pt;
 	} else if (strncmp("PositionInterpolator",x,strlen("PositionInterpolator"))==0) {
-		pt = do_Oint3;
+		pt = (void *)do_Oint3;
 		RETVAL = (unsigned int) pt;
 	} else if (strncmp("CoordinateInterpolator",x,strlen("CoordinateInterpolator"))==0) {
-		pt = do_OintCoord;
+		pt = (void *)do_OintCoord;
 		RETVAL = (unsigned int) pt;
 	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
-		pt = do_OintCoord;
+		pt = (void *)do_OintCoord;
 		RETVAL = (unsigned int) pt;
 	} else if (strncmp("GeoPositionInterpolator",x,strlen("GeoPositionInterpolator"))==0) {
-		pt = do_GeoOint;
+		pt = (void *)do_GeoOint;
 		RETVAL = (unsigned int) pt;
 	} else {
 		RETVAL = 0;
@@ -1681,7 +1714,7 @@ CODE:
 unsigned int
 do_get_buffer()
 CODE:
-	RETVAL = get_buffer(&Viewer);
+	RETVAL = get_buffer();
 OUTPUT:
 	RETVAL
 
@@ -1699,7 +1732,7 @@ add_first(clocktype,node)
 	char *clocktype
 	int node
 CODE:
-	add_first(clocktype,node);
+	add_first(clocktype,(void *)node);
 
 #********************************************************************************
 
@@ -1708,7 +1741,7 @@ void
 SaveVersion(str)
 	char *str
 CODE:
-	BrowserVersion = malloc (strlen(str)+1);
+	BrowserVersion = (char *)malloc (strlen(str)+1);
 	strcpy (BrowserVersion,str);
 
 SV *
@@ -1859,7 +1892,7 @@ void *
 malloc_this (size)
 	int size
 	CODE:
-	RETVAL = (int) malloc(size);
+	RETVAL = malloc(size);
 OUTPUT:
 RETVAL
 
@@ -1888,12 +1921,13 @@ CODE:
 RETVAL
 
 
-#****************JAVASCRIPT FUNCTIONS*********************************
+#****************END JAVASCRIPT FUNCTIONS*********************************
 
 ENDHERE
 ;
+	print XS '#**************************START XSFN*************************';
 	print XS join '',@xsfn;
-	print XS '
+	print XS '#**************************END XSFN*************************
 ';
 
 	open PM, ">VRMLFunc.pm";

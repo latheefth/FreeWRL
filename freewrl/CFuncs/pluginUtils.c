@@ -8,7 +8,7 @@
 #include "headers.h"
 #include "Bindable.h"
 #include "PluginSocket.h"
-
+#include "Viewer.h"
 extern unsigned _fw_instance;
 
 /* get all system commands, and pass them through here. What we do
@@ -114,7 +114,7 @@ void Anchor_ReplaceWorld (char *fn);
 
 void doBrowserAction () {
 	int count;
-	int xx;
+	STRLEN xx;
 
 	int localNode;
 	int tableIndex;
@@ -137,11 +137,11 @@ void doBrowserAction () {
 		printf ("FreeWRL::Anchor: going to \"%s\"\n",
 			SvPV(AnchorsAnchor->description,xx));
 
-	filename = malloc(1000);
+	filename = (char *)malloc(1000);
 	
 	/* lets make up the path and save it, and make it the global path */
 	count = strlen(SvPV(AnchorsAnchor->__parenturl,xx));
-	mypath = malloc ((sizeof(char)* count)+1);
+	mypath = (char *)malloc ((sizeof(char)* count)+1);
 	
 	if ((!filename) || (!mypath)) {
 		printf ("Anchor can not malloc for filename\n");

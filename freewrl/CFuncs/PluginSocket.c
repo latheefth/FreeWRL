@@ -21,6 +21,9 @@ struct timeval tv;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
+//added M. Ward Dec8/04
+extern void abort();
+
 /* prints to a log file if we are running as a plugin */
 void pluginprint (const char *m, const char *p) {
 	if (!PluginSocketVerbose) return;
@@ -180,6 +183,6 @@ void requestNewWindowfromPlugin(int sockDesc,
 
 	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
 		pluginprint ("write failed in requestUrlfromPlugin","");
-		return NULL;
+		return;
 	}
 }

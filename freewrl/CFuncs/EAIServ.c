@@ -101,6 +101,11 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 void EAI_RW(char *str);
 void EAI_RNewW(char *);
 
+//added nov 26/04 m. Ward
+extern void Next_ViewPoint();
+extern void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len);
+extern float  *readMFFloatString(char *input, int *eQty, int type);
+
 void EAI_send_string(char *str, int lfd){
 	unsigned int n;
 
@@ -182,7 +187,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	if (((*sockfd) >=0) && ((*listenfd)<0)) {
 		// step 4 - accept
 		len = sizeof(cliaddr);
-	        if ( ((*listenfd) = accept((*sockfd), (struct sockaddr *) &cliaddr, &len)) < 0) {
+	        if ( ((*listenfd) = accept((*sockfd), (struct sockaddr *) &cliaddr, (socklen_t *)&len)) < 0) {
 			if (EAIVerbose && !(loopFlags&NO_CLIENT_CONNECTED)) {
 				printf ("EAISERVER: no client yet\n");
 				loopFlags |= NO_CLIENT_CONNECTED;
@@ -201,7 +206,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		/* allocate memory for input buffer */
 		bufcount2 = 0;
 		bufsize2 = 2 * EAIREADSIZE; // initial size
-		buffer2 = malloc(bufsize2 * sizeof (char));
+		buffer2 = (char *)malloc(bufsize2 * sizeof (char));
 		if (buffer2 == 0) {
 			printf ("can not malloc memory for input buffer in create_EAI\n");
 			loopFlags &= ~NO_EAI_CLASS;
@@ -388,7 +393,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 			if (((*bfsz) - (*bfct)) < 128) {
 				printf ("HAVE TO REALLOC INPUT MEMORY\n");
 				(*bfsz) += EAIREADSIZE;
-				bf = realloc (bf, (unsigned int) (*bfsz));
+				bf = (char *)realloc (bf, (unsigned int) (*bfsz));
 			}
 		}
 	} while (retval);
@@ -527,7 +532,7 @@ void EAI_parse_commands (char *bufptr) {
 				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
 				if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
 	
-				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd,&scripttype);
+				EAI_GetType (uretval,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
 	
 				sprintf (buf,"RE\n%d\n%d %d %d %c %d",count,ra,rb,rc,rd,scripttype);
 				break;
@@ -626,8 +631,7 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
 
 				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (1,ra,(int)rb, 1, EAIListenerArea, (int) rc, &handle_Listener, 0, 
-					(count<<8)+ctmp[0]); // encode id and type here
+				CRoutes_Register  (1,ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); // encode id and type here
 	
 				sprintf (buf,"RE\n%d\n0",count);
 				break;
@@ -756,7 +760,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 	if (len == 0) {
 		printf ("EAI_SendEvent, conversion failure\n");
-		return;
+		return( -1 );
 	}
 
 	MultiElement=FALSE;
@@ -839,8 +843,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		  case EAI_MFFLOAT: {
 		      if (EAIVerbose)
 			printf("EAI_SendEvent, elem %i, count %i, nodeptr %i, off %i, ptr \"%s\".\n",len, elemCount, (int)nodeptr,(int)offset,ptr);
-		      set_EAI_MFElementtype ((int)nodeptr, (int)offset,
-					     myBuffer, len);
+		      set_EAI_MFElementtype ((int)nodeptr, (int)offset, (unsigned char *)myBuffer, len);
 		      break;
 		  }
 		  case EAI_SFVEC2F   : 
@@ -985,7 +988,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	if (EAIVerbose) printf ("EAI - extra memory for size %d type %s\n",size,type);
 
 	if (size > 0) {
-		memptr = malloc ((unsigned)size);
+		memptr =(char *) malloc ((unsigned)size);
 		if (memptr == NULL) {
 			printf ("can not allocate memory for PROTO Interface decls\n");
 			return 0;
@@ -1013,12 +1016,12 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 
 		case SFSTRING: { 
-				memptr = malloc (strlen(SvPV(data,len))+1);
+				memptr = (char *)malloc(strlen(SvPV(data,(STRLEN&)len))+1);
 				if (memptr == NULL) {
 					printf ("can not allocate memory for PROTO Interface decls\n");
 					return 0;
 				}
-				strcpy (memptr, SvPV(data,xx));
+				strcpy (memptr, SvPV(data,(STRLEN&)xx));
 				break; 
 			}
 		case SFROTATION:
@@ -1058,7 +1061,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 		case MFSTRING: { 
 			/* malloc the main pointer */
-			memptr = malloc (sizeof (struct Multi_String));
+			memptr = (char *)malloc (sizeof (struct Multi_String));
 
 			if (memptr == NULL) {
 				printf ("can not allocate memory for PROTO Interface decls\n");
@@ -1082,7 +1085,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 				aM = (AV *) SvRV(data);
 				lM = av_len(aM)+1;
 				(*MSptr).n = lM;
-				(*MSptr).p = malloc(lM * sizeof(*((*MSptr).p)));
+				(*MSptr).p = (SV**)malloc(lM * sizeof(*((*MSptr).p)));
 				for(iM=0; iM<lM; iM++) {
 					bM = av_fetch(aM, iM, 1); /* LVal for easiness */
 					if(!bM) {
@@ -1197,10 +1200,10 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 			for (row=0; row<(*MSptr).n; row++) {
         	        	// printf ("String %d is %s\n",row,SvPV((*MSptr).p[row],xx));
-				if (strlen (SvPV((*MSptr).p[row],xx)) == 0) {
+				if (strlen (SvPV((*MSptr).p[row],(STRLEN&)xx)) == 0) {
 					sprintf (ptr, "\"XyZZtitndi\" "); // encode junk for Java side.
 				} else {
-					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],xx));
+					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],(STRLEN&)xx));
 				}
 				// printf ("buf now is %s\n",buf);
 				ptr = buf + strlen (buf);
@@ -1376,7 +1379,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		// make (and initialize) this MFString internal representation.
 		strptr->n = maxele;
 		//printf ("mallocing strptr->p, size %d\n",sizeof(strptr->p));
-		strptr->p = malloc (maxele * sizeof(strptr->p));
+		strptr->p = (SV**)malloc (maxele * sizeof(strptr->p));
 		newp = strptr->p;
 
 		// scan through EAI string, extract strings, etc, etc.
@@ -1384,10 +1387,10 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			// scan to start of element number
 
 			/* make the new SV */
-			*newp = malloc (sizeof (struct STRUCT_SV));
+			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
 			(*newp)->sv_flags = SVt_PV | SVf_POK;
 			(*newp)->sv_refcnt=1;
-			mypv = malloc(sizeof (struct xpv));
+			mypv = (xpv *)malloc(sizeof (struct xpv));
 			//printf ("just mallocd for mypv, it is %d and size %d\n",
 			//		mypv, sizeof (struct xpv));
 			(*newp)->sv_any = mypv;
@@ -1402,7 +1405,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			while (*buf!=':') buf++; buf++;
 			
 			// fill in the SV values...copy the string over...
-			(*mypv).xpv_pv = malloc (thissize+2);
+			(*mypv).xpv_pv = (char *)malloc (thissize+2);
 			strncpy((*mypv).xpv_pv ,buf,thissize);
 			(*mypv).xpv_pv[thissize] = '\0'; // null terminate
 			(*mypv).xpv_cur = thissize-1;    // size without term

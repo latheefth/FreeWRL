@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.42  2005/01/16 20:55:08  crc_canada
+# Various compile warnings removed; some code from Matt Ward for Alldev;
+# some perl changes for generated code to get rid of warnings.
+#
 # Revision 1.41  2004/12/07 15:05:26  crc_canada
 # Various changes; eat comma before SFColors for Rasmol; Anchor work,
 # and general configuration changes.
@@ -211,11 +215,11 @@ sub es {
 sub ctype ($) {die "VRML::Field::ctype - abstract function called"}
 sub clength ($) {0} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub calloc ($$) {""}
-sub cassign ($$) {"$_[1] = $_[2];"}
+sub cassign ($$) {"$_[1] = $_[2];/*cassign*/"}
 sub cfree ($) {if($_[0]->calloc) {return "free($_[1]);"} return ""}
-sub cget {if(!defined $_[2]) {return "$_[1]"}
+sub cget {if(!defined $_[2]) {return "$_[1] /*cget*/"}
 	else {die "If CGet with indices, abstract must be overridden"} }
-sub cstruct () {""}
+sub cstruct () {"/*cstruct*/"}
 sub cfunc {die("Must overload cfunc")}
 
 sub copy {
@@ -267,7 +271,7 @@ sub print {print $_[1]}
 
 sub ctype {"float $_[1]"}
 sub clength {2} #for C routes. Keep in sync with getClen in VRMLC.pm. 
-sub cfunc {"$_[1] = SvNV($_[2]);\n"}
+sub cfunc {"$_[1] = SvNV($_[2]); /*aa*/\n"}
 
 
 ###########################################################
@@ -297,7 +301,7 @@ sub as_string {$_[1]}
 
 sub ctype {return "int $_[1]"}
 sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm. 
-sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
+sub cfunc {return "$_[1] = SvIV($_[2]);/*bb*/\n"}
 
 
 ###########################################################
@@ -329,8 +333,6 @@ sub clength {5} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cget {return "($_[1].c[$_[2]])"}
 
 sub cfunc {
-#	return ("a,b,c","float a;\nfloat b;\nfloat c;\n",
-#		"$_[1].c[0] = a; $_[1].c[1] = b; $_[1].c[2] = c;");
 	return "{
 		AV *a;
 		SV **b;
@@ -353,7 +355,7 @@ sub cfunc {
 				$_[1].c[i] = SvNV(*b);
 			}
 		}
-	}
+	} /*cc*/
 	"
 }
 
@@ -433,7 +435,7 @@ sub cfunc {
 				$_[1].c[i] = SvNV(*b);
 			}
 		}
-	}
+	} /*dd*/
 	"
 }
 
@@ -504,8 +506,6 @@ sub clength {4} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cget {return "($_[1].r[$_[2]])"}
 
 sub cfunc {
-#	return ("a,b,c,d","float a;\nfloat b;\nfloat c;\nfloat d;\n",
-#		"$_[1].r[0] = a; $_[1].r[1] = b; $_[1].r[2] = c; $_[1].r[3] = d;");
 	return "{
 		AV *a;
 		SV **b;
@@ -529,7 +529,7 @@ sub cfunc {
 				$_[1].r[i] = SvNV(*b);
 			}
 		}
-	}
+	} /*ee*/
 	"
 }
 
@@ -551,7 +551,7 @@ sub parse {
 sub ctype {return "int $_[1]"}
 sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm. 
 sub cget {return "($_[1])"}
-sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
+sub cfunc {return "$_[1] = SvIV($_[2]);/*ff*/\n"}
 
 sub print {print ($_[1] ? TRUE : FALSE)}
 sub as_string {
@@ -592,7 +592,7 @@ sub ctype {return "SV *$_[1]"}
 sub calloc {"$_[1] = newSVpv(\"\",0);"}
 sub cassign {"sv_setsv($_[1],$_[2]);"}
 sub cfree {"SvREFCNT_dec($_[1]);"}
-sub cfunc {"sv_setsv($_[1],$_[2]);"}
+sub cfunc {"sv_setsv($_[1],$_[2]);/*gg*/"}
 
 sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}
@@ -787,10 +787,36 @@ sub cget { if($#_ == 1) {"($_[1].p)"} else {
 
 sub cfunc {
 	my $r = (ref $_[0] or $_[0]);
+
 	$r =~ s/::MF/::SF/;
+
+	# get the base type, ie, get something like SFFloat from VRML::Field::SFFloat
+	my $baseType = $r;
+	$baseType =~ s/VRML::Field:://;
+	print "cfunc, basetype $baseType\n";
+	# we do not need to make a float into a (struct SFFloat *)...
+	# and we have other compiler warnings. So, change some castings around to satisfy
+	# the compilers.
+
+	if ($baseType eq "SFFloat") {
+		$baseType = "float";
+	} elsif ($baseType eq "SFVec3f") {
+		$baseType = "struct SFColor";
+	} elsif ($baseType eq "SFInt32") {
+		$baseType = "int";
+	} elsif ($baseType eq "SFNode") {
+		$baseType = "void *";
+	} elsif ($baseType eq "SFString") {
+		$baseType = "SV *";
+	} else {
+		$baseType = "struct $baseType";
+	}
+
+	
 	my $cm = $r->calloc("$_[1].p[iM]");
 	my $su = $r->cfunc("($_[1].p[iM])","(*bM)");
 	return "{
+		/* generic cfunc function */
 		AV *aM;
 		SV **bM;
 		int iM;
@@ -807,7 +833,7 @@ sub cfunc {
 			lM = av_len(aM)+1;
 			/* XXX Free previous p */
 			$_[1].n = lM;
-			$_[1].p = malloc(lM * sizeof(*($_[1].p)));
+			$_[1].p = ($baseType *)malloc(lM * sizeof(*($_[1].p)));
 			/* XXX ALLOC */
 			for(iM=0; iM<lM; iM++) {
 				bM = av_fetch(aM, iM, 1); /* LVal for easiness */
@@ -818,7 +844,7 @@ sub cfunc {
 				$su
 			}
 		}
-	}
+	} /*hh*/
 	"
 }
 
@@ -890,7 +916,7 @@ sub calloc {"$_[1] = 0;"}
 sub cfree {"NODE_REMOVE_PARENT($_[1]); $_[1] = 0;"}
 sub cstruct {""}
 sub cfunc {
-	"$_[1] = (void *)SvIV($_[2]); NODE_ADD_PARENT($_[1]);"
+	"$_[1] = (void *)SvIV($_[2]); NODE_ADD_PARENT($_[1]);/*ii*/"
 }
 sub cget {if(!defined $_[2]) {return "$_[1]"}
 	else {die "SFNode index!??!"} }
@@ -933,7 +959,7 @@ sub ctype {return "SV *$_[1]"}
 sub calloc {"$_[1] = newSVpv(\"\",0);"}
 sub cassign {"sv_setsv($_[1],$_[2]);"}
 sub cfree {"SvREFCNT_dec($_[1]);"}
-sub cfunc {"sv_setsv($_[1],$_[2]);"}
+sub cfunc {"sv_setsv($_[1],$_[2]);/*jj*/"}
 
 sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}

@@ -230,7 +230,7 @@ void do_OintCoord(void *node) {
 			free (px->value_changed.p);
 		}
 		px->value_changed.n = kpkv;
-		px->value_changed.p = malloc (sizeof (struct SFColor) * kpkv);
+		px->value_changed.p =(struct SFColor*) malloc (sizeof (struct SFColor) * kpkv);
 	}
 
 	/* shortcut valchanged; have to put it here because might be remalloc'd */
@@ -546,7 +546,9 @@ void do_GeoOint (void *node) {
 
 
 /* fired at start of event loop for every Collision */
-void do_CollisionTick(struct VRML_Collision *cx) {
+//void do_CollisionTick(struct VRML_Collision *cx) {
+void do_CollisionTick( void *ptr) {
+	struct VRML_Collision *cx = (struct VRML_Collision *)cx;
         if (cx->__hit == 3) {
                 /* printf ("COLLISION at %f\n",TickTime); */
                 cx->collideTime = TickTime;
@@ -557,7 +559,9 @@ void do_CollisionTick(struct VRML_Collision *cx) {
 
 
 /* Audio AudioClip sensor code */
-void do_AudioTick(struct VRML_AudioClip *node) {
+//void do_AudioTick(struct VRML_AudioClip *node) {
+void do_AudioTick(void *ptr) {
+	struct VRML_AudioClip *node = (struct VRML_AudioClip *)ptr;
 	int 	oldstatus;	
 
 	/* can we possibly have started yet? */
@@ -601,7 +605,9 @@ void do_AudioTick(struct VRML_AudioClip *node) {
 }
 
 
-void do_TimeSensorTick (struct VRML_TimeSensor *node) {
+//void do_TimeSensorTick (struct VRML_TimeSensor *node) {
+void do_TimeSensorTick ( void *ptr) {
+	struct VRML_TimeSensor *node = (struct VRML_TimeSensor *)ptr;
 	double myDuration;
 	int oldstatus;
 	double myTime;
@@ -680,8 +686,9 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 
 
 /* ProximitySensor code for ClockTick */
-void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {
-	
+//void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {
+void do_ProximitySensorTick( void *ptr) {
+	struct VRML_ProximitySensor *node = (struct VRML_ProximitySensor *)ptr;
 	/* are we enabled? */
 	if (!node) return;
 	if (!node->enabled) return;
@@ -727,7 +734,9 @@ void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {
 
 
 /* Audio MovieTexture code */
-void do_MovieTextureTick(struct VRML_MovieTexture *node) {
+//void do_MovieTextureTick(struct VRML_MovieTexture *node) {
+void do_MovieTextureTick( void *ptr) {
+	struct VRML_MovieTexture *node = (struct VRML_MovieTexture *)ptr;
 	int 	oldstatus;	
 	float 	frac;		/* which texture to display */
 	int 	highest,lowest;	/* selector variables		*/
@@ -799,7 +808,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	
 		/* if (node->__ctex != frac) */
 		if (! APPROX(node->__ctex, frac)) {
-			node->__ctex = frac;
+			node->__ctex = (int)frac;
 
 			/* force a change to re-render this node */
 			update_node(node);
@@ -813,7 +822,10 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	Sensitive nodes
 
 *****************************************************************************/
-void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, int ev, int over) {
+//void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, int ev, int over) {
+void do_GeoTouchSensor ( void *ptr, int ev, int over) {
+
+struct VRML_GeoTouchSensor *node = (struct VRML_GeoTouchSensor *)ptr;
 UNUSED(node);
 UNUSED(ev);
 UNUSED(over);
@@ -821,7 +833,12 @@ UNUSED(over);
 };
 
 
-void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
+//void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
+void do_TouchSensor ( void *ptr, int ev, int over) {
+
+	struct VRML_TouchSensor *node;
+
+    	node = (struct VRML_TouchSensor *)ptr;
 	struct pt normalval;	/* different structures for normalization calls */
 
 	/* if not enabled, do nothing */
@@ -871,7 +888,9 @@ void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
 	}
 }
 
-void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {
+//void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {
+void do_PlaneSensor ( void *ptr, int ev, int over) {
+	struct VRML_PlaneSensor *node = (struct VRML_PlaneSensor *)ptr;
 	float mult, nx, ny;
 	struct SFColor tr;
 	int tmp;
@@ -956,7 +975,9 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {
 }
 
 
-void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
+//void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
+void do_Anchor ( void *ptr, int ev, int over) {
+	struct VRML_Anchor *node = (struct VRML_Anchor *)ptr;
 	UNUSED(over);
 	
 	if (!node) return;
@@ -969,7 +990,9 @@ void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
 }
 
 
-void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
+//void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
+void do_CylinderSensor ( void *ptr, int ev, int over) {
+	struct VRML_CylinderSensor *node = (struct VRML_CylinderSensor *)ptr;	
 	float rot, radius, ang, length;
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
@@ -1114,7 +1137,9 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
 }
 
 
-void do_SphereSensor (struct VRML_SphereSensor *node, int ev, int over) {
+//void do_SphereSensor (struct VRML_SphereSensor *node, int ev, int over) {
+void do_SphereSensor ( void *ptr, int ev, int over) {
+	struct VRML_SphereSensor *node = (struct VRML_SphereSensor *)ptr;
 	int tmp;
 	float tr1sq, tr2sq, tr1tr2;
 	struct SFColor dee, arr, cp, dot;
@@ -1255,11 +1280,11 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	node->__sourceNumber = SoundSourceNumber;
 	SoundSourceNumber++;
 
-	filename = malloc(1000);
+	filename = (char*)malloc(1000);
 	
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(node->__parenturl,xx));
-	mypath = malloc ((sizeof(char)* count)+1);
+	count = strlen(SvPV(node->__parenturl,(STRLEN &)xx));
+	mypath = (char *)malloc ((sizeof(char)* count)+1);
 	
 	if ((!filename) || (!mypath)) {
 		printf ("locateAudioSource:can not malloc for filename\n");
@@ -1267,7 +1292,7 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	}
 	
 	/* copy the parent path over */
-	strcpy (mypath,SvPV(node->__parenturl,xx));
+	strcpy (mypath,SvPV(node->__parenturl,(STRLEN &)xx));
 	
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *)rindex(mypath,'/');
@@ -1279,7 +1304,7 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < (node->url).n) {
-		thisurl = SvPV((node->url).p[count],xx);
+		thisurl = SvPV((node->url).p[count],(STRLEN &)xx);
 	
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;

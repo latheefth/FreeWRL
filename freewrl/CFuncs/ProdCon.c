@@ -183,11 +183,13 @@ char *myPerlInstallDir;
 void initializePerlThread(char *perlpath) {
 	int iret;
 
-	myPerlInstallDir = malloc (strlen (perlpath) + 2);
+	myPerlInstallDir = (char *)malloc (strlen (perlpath) + 2);
 	strcpy (myPerlInstallDir, perlpath);
 
 	/* create consumer thread and set the "read only" flag indicating this */
-	iret = pthread_create (&PCthread, NULL, (void *)&_perlThread, (void *) perlpath);
+        //M. Ward Dec 8/04 - ICAC the typecast here is for a pointer to a function that 
+	//returns a pointer to a void and takes a pointer to a void as a parameter
+	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_perlThread, (void *) perlpath);
 }
 
 /* is Perl running? this is a function, because if we need to mutex lock, we
@@ -200,6 +202,8 @@ int isPerlParsing() {return(PerlParsing);}
 /* is the initial URL loaded? Robert Sim */
 int isURLLoaded() {return(URLLoaded&&!PerlParsing);}
 
+//Added M. Ward Dec 8/04
+extern void XEventStereo();
 
 /*
  * Check to see if the file name is a local file, or a network file.
@@ -519,7 +523,7 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 	//printf ("EAI_GetTypeName starting node %d \n",nodenum);
 	PSP_LOCK
 	DATA_LOCK
-	psp.ptr = NULL;
+	psp.ptr = (unsigned int)NULL;
 	psp.jparamcount=nodenum;
 	psp.fieldname = NULL;
 
@@ -585,10 +589,10 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
-	psp.retarr = retarr;
+	psp.retarr = (int *)retarr;
 	psp.retarrsize = retarrsize;
 	/* copy over the command */
-	psp.inp = malloc (strlen(inputstring)+2);
+	psp.inp = (char *)malloc (strlen(inputstring)+2);
 	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
 	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
 	DATA_LOCK_SIGNAL
@@ -613,7 +617,7 @@ void EAI_readNewWorld(char *inputstring) {
     psp.zeroBind = FALSE;
     psp.bind = TRUE; /* should we issue a set_bind? */
     /* copy over the command */
-    psp.inp  = malloc (strlen(inputstring)+2);
+    psp.inp  = (char *)malloc (strlen(inputstring)+2);
     if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
     memcpy (psp.inp,inputstring,strlen(inputstring)+1);
     DATA_LOCK_SIGNAL
@@ -645,7 +649,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	psp.bind = bind; /* should we issue a set_bind? */
 	psp.zeroBind = zeroBind; /* should we zero bindables? */
 
-	psp.inp = malloc (strlen(inp)+2);
+	psp.inp = (char *)malloc (strlen(inp)+2);
 
 	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
 	memcpy (psp.inp,inp,strlen(inp)+1);
@@ -676,7 +680,7 @@ void _perlThread(void *perlpath) {
 		} else {
 			/* printf ("error opening %s\n",commandline[1]);  */
 			xx = strlen (BUILDDIR) + strlen ("./CFrontEnd/fw2init.pl") + 10;
-			builddir = malloc (sizeof(char) * xx);
+			builddir = (char *)malloc (sizeof(char) * xx);
 			strcpy (builddir, BUILDDIR);
 			strcat (builddir, "/CFrontEnd/fw2init.pl");
 			commandline[1] = builddir;
@@ -703,7 +707,7 @@ void _perlThread(void *perlpath) {
 		}
 		/* pass in the compiled perl path */
 		/* printf ("sending in path %s\n",perlpath); */
-		__pt_setPath(perlpath);
+		__pt_setPath((char *)perlpath);
 
 		/* pass in the source directory path in case make install not called */
 		/* printf ("sending in path %s\n",BUILDDIR);  */
@@ -838,7 +842,7 @@ void addToNode (unsigned rc, unsigned newNode) {
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
 	newlen=1;
-	newmal = malloc ((oldlen+newlen)*sizeof(unsigned int));
+	newmal = (unsigned int *)malloc ((oldlen+newlen)*sizeof(unsigned int));
 	if (newmal == 0) {
 		printf ("cant malloc memory for addChildren");
 		return;
@@ -848,14 +852,14 @@ void addToNode (unsigned rc, unsigned newNode) {
 	if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(unsigned int));
 
 	/* increment pointer to point to place for new addition */
-	place = (void *) ((int) newmal + sizeof (unsigned int) * oldlen);
+	place = (unsigned int *) ((int) newmal + sizeof (unsigned int) * oldlen);
 
 	/* and store the new child. */
 	*place = newNode;
 
 	/* set up the C structures for this new MFNode addition */
-	tmp = (void *)par->p;
-	par->p = (void *)newmal;
+	tmp = (unsigned int *)par->p;
+	par->p = (void **)newmal;
 	par->n = oldlen+newlen;
 	free (tmp);
 }
@@ -876,16 +880,16 @@ void getAllBindables() {
 	navnodes=NULL; viewpointnodes=NULL;
 
 	/* now, get the values */
-	totviewpointnodes = __pt_getBindables("Viewpoint",aretarr);
-	totfognodes = __pt_getBindables("Fog",bretarr);
-	totnavnodes = __pt_getBindables("NavigationInfo",cretarr);
-	totbacknodes = __pt_getBindables("Background",dretarr);
+	totviewpointnodes =( int ) __pt_getBindables("Viewpoint",(unsigned int*)aretarr);
+	totfognodes = (int )__pt_getBindables("Fog",(unsigned int*)bretarr);
+	totnavnodes = ( int )__pt_getBindables("NavigationInfo",(unsigned int*)cretarr);
+	totbacknodes = (int )__pt_getBindables("Background",(unsigned int*)dretarr);
 
 	/* and, malloc the memory needed */
-	viewpointnodes = malloc (sizeof(int)*totviewpointnodes);
-	navnodes = malloc (sizeof(int)*totnavnodes);
-	backgroundnodes = malloc (sizeof(int)*totbacknodes);
-	fognodes = malloc (sizeof(int)*totfognodes);
+	viewpointnodes = (int *)malloc (sizeof(int)*totviewpointnodes);
+	navnodes = (int *)malloc (sizeof(int)*totnavnodes);
+	backgroundnodes = (int *)malloc (sizeof(int)*totbacknodes);
+	fognodes = (int *)malloc (sizeof(int)*totfognodes);
 
 	/* and, copy the results over */
 	memcpy (fognodes,bretarr,(unsigned) totfognodes*sizeof(int));
@@ -1045,11 +1049,11 @@ void __pt_doInline() {
 	char firstBytes[4];
 	inl = (struct VRML_Inline *)psp.ptr;
 	inurl = &(inl->url);
-	filename = malloc(1000);
+	filename = (char *)malloc(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(inl->__parenturl,xx));
-	psp.path = malloc ((unsigned)(count+1));
+	count = strlen(SvPV(inl->__parenturl,(STRLEN &)xx));
+	psp.path = (char *)malloc ((unsigned)(count+1));
 
 	if ((!filename) || (!psp.path)) {
 		printf ("perl thread can not malloc for filename\n");
@@ -1057,7 +1061,7 @@ void __pt_doInline() {
 	}
 	
 	/* copy the parent path over */
-	strcpy (psp.path,SvPV(inl->__parenturl,xx));
+	strcpy (psp.path,SvPV(inl->__parenturl,(STRLEN &)xx));
 
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *) rindex(psp.path, ((int) '/'));
@@ -1070,7 +1074,7 @@ void __pt_doInline() {
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
 	while (count < inurl->n) {
-		thisurl = SvPV(inurl->p[count],xx);
+		thisurl = SvPV(inurl->p[count],(STRLEN &)xx);
 
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
@@ -1110,10 +1114,10 @@ void __pt_doStringUrl () {
 	}
 
 	if (psp.type==FROMSTRING) {
-       		retval = _pt_CreateVrml("String",psp.inp,myretarr);
+       		retval = _pt_CreateVrml("String",psp.inp,(unsigned int *)myretarr);
 		
 	} else {
-		retval = _pt_CreateVrml("URL",psp.inp,myretarr);
+		retval = _pt_CreateVrml("URL",psp.inp,(unsigned int *)myretarr);
 	} 
 
 	/* copy the returned nodes to the caller */
@@ -1354,8 +1358,8 @@ void __pt_EAI_GetValue (){
 	//printf ("String is :%s: len %d \n",SvPV(retval,len),len);
 	
 	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval, len); // now, we have the length
-	psp.retstr = malloc (sizeof (char) * (len+5));
+	ctmp = SvPV(retval,(STRLEN &)len); // now, we have the length
+	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
 	strcpy (psp.retstr,ctmp);
 	//printf ("GetValue, retstr will be :%s:\n",psp.retstr);
 
@@ -1393,8 +1397,8 @@ void __pt_EAI_GetTypeName (){
 	PUTBACK;
                                                                                     
 	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval, len); // now, we have the length
-	psp.retstr = malloc (sizeof (char) * (len+5));
+	ctmp = SvPV(retval, (STRLEN &)len); // now, we have the length
+	psp.retstr =(char *) malloc (sizeof (char) * (len+5));
 	strcpy (psp.retstr,ctmp);
 	//printf ("GetTypeName, retstr will be :%s:\n",psp.retstr);
 

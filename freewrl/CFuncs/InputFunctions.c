@@ -31,7 +31,7 @@ char * readInputString(char *fn, char *parent) {
 	isTemp = FALSE;
 	bufcount = 0;
 	bufsize = 5 * READSIZE; // initial size
-	buffer = malloc(bufsize * sizeof (char));
+	buffer =(char *)malloc(bufsize * sizeof (char));
 
 	//printf ("start of readInputString, \n\tfile: %s\n\tparent: %s\n",
 	//		fn,parent);
@@ -81,10 +81,8 @@ char * readInputString(char *fn, char *parent) {
 
 	/* save the file name, in case something in perl wants it */
 	if (lastReadFile != NULL) free(lastReadFile);
-	lastReadFile = malloc(strlen(mynewname)+2);
+	lastReadFile = (char *)malloc(strlen(mynewname)+2);
 	strncpy(lastReadFile,mynewname,strlen(mynewname)+1);
-
-
 
 	do {
 		justread = fread (&buffer[bufcount],1,READSIZE,infile);
@@ -94,7 +92,7 @@ char * readInputString(char *fn, char *parent) {
 		if ((bufsize - bufcount) < READSIZE) {
 			//printf ("HAVE TO REALLOC INPUT MEMORY\n");
 			bufsize += READSIZE;
-			buffer = realloc (buffer, (unsigned int) bufsize);
+			buffer =(char *) realloc (buffer, (unsigned int) bufsize);
 		}
 	} while (justread>0);
 

@@ -917,7 +917,7 @@ int *level;
   }
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -947,7 +947,7 @@ int *level;
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -976,9 +976,8 @@ int *level;
 }
 #endif
 
-static int
-number_of_bits_set(a)
-unsigned long a;
+static int number_of_bits_set(unsigned long a)
+//unsigned long a;
 {
     if(!a) return 0;
     if(a & 1) return 1 + number_of_bits_set(a >> 1);
@@ -990,8 +989,8 @@ unsigned long a;
  * Low performance, do not call often.
  */
 static int
-free_bits_at_bottom(a)
-unsigned long a;
+free_bits_at_bottom(unsigned long a)
+//unsigned long a;
 {
       /* assume char is 8 bits */
     if(!a) return sizeof(unsigned long) * 8;
@@ -1033,8 +1032,8 @@ static long *b_2_pix_alloc=NULL;
  */
 
 void
-InitColorDither(thirty2)
-int thirty2;
+InitColorDither(int thirty2)
+//int thirty2;
 {
     /*
      * misuse of the wpixel array for the pixel masks. Note that this
@@ -1081,10 +1080,10 @@ int thirty2;
       CB = CR = i;
 
       CB -= 128; CR -= 128;
-      Cr_r_tab[i] =  (0.419/0.299) * CR;
-      Cr_g_tab[i] = -(0.299/0.419) * CR;
-      Cb_g_tab[i] = -(0.114/0.331) * CB; 
-      Cb_b_tab[i] =  (0.587/0.331) * CB;
+      Cr_r_tab[i] = (int) (0.419/0.299) * CR;
+      Cr_g_tab[i] = - (int)(0.299/0.419) * CR;
+      Cb_g_tab[i] = - (int)(0.114/0.331) * CB; 
+      Cb_b_tab[i] = (int)(0.587/0.331) * CB;
     }
 
     /* 
@@ -1150,13 +1149,12 @@ int thirty2;
  */
 
 void
-Color32DitherImage(lum, cr, cb, out, rows, cols)
-  unsigned char *lum;
-  unsigned char *cr;
-  unsigned char *cb;
-  unsigned char *out;
-  int cols, rows;
-
+Color32DitherImage(
+  unsigned char *lum,
+  unsigned char *cr,
+  unsigned char *cb,
+  unsigned char *out,
+  int cols, int rows )
 {
 
     int L, CR, CB;
@@ -1249,8 +1247,8 @@ extern char *strrchr();
  */
 
 void
-ExecuteTexture(vid_stream)
-     mpeg_VidStream *vid_stream;
+ExecuteTexture(
+     mpeg_VidStream *vid_stream )
 {
   unsigned int *p;
   unsigned int r, g, b;
@@ -1284,7 +1282,7 @@ ExecuteTexture(vid_stream)
 	*ySize = vid_stream->v_size;
 
   	blockSize = sizeof(GLubyte) * 3 * vid_stream->v_size * vid_stream->h_size;
-        dataPointer = realloc(dataPointer,blockSize * (*frameCount));
+        dataPointer = (char *)realloc(dataPointer,blockSize * (*frameCount));
 	tmpptr = dataPointer + (blockSize * ((*frameCount)-1));
 
         memcpy (tmpptr, Image, blockSize);
@@ -1349,8 +1347,8 @@ unsigned int bitTest[] = {  0x80000000, 0x40000000, 0x20000000, 0x10000000,
  */
 
 void 
-correct_underflow(vid_stream)
-   mpeg_VidStream *vid_stream;
+correct_underflow(
+   mpeg_VidStream *vid_stream )
 {
 
   int status;
@@ -1393,10 +1391,10 @@ correct_underflow(vid_stream)
  *--------------------------------------------------------------
  */
 
-int next_bits(num, mask, vid_stream)
-int num;
-unsigned int mask;
-mpeg_VidStream *vid_stream;
+int next_bits(
+int num,
+unsigned int mask,
+mpeg_VidStream *vid_stream )
 {
   unsigned int stream;
   int ret_value;
@@ -1442,8 +1440,8 @@ mpeg_VidStream *vid_stream;
  *--------------------------------------------------------------
  */
 
-char *get_ext_data (vid_stream)
-   mpeg_VidStream *vid_stream;
+char *get_ext_data (
+   mpeg_VidStream *vid_stream)
 {
   unsigned int size, marker;
   char *dataPtr;
@@ -1508,8 +1506,8 @@ char *get_ext_data (vid_stream)
  *--------------------------------------------------------------
  */
 
-int next_start_code(vid_stream)
-   mpeg_VidStream *vid_stream;
+int next_start_code(
+   mpeg_VidStream *vid_stream)
 {
   int state;
   int byteoff;
@@ -1640,8 +1638,8 @@ int next_start_code(vid_stream)
  *--------------------------------------------------------------
  */
 
-char *get_extra_bit_info(vid_stream)
-mpeg_VidStream *vid_stream;
+char *get_extra_bit_info(
+mpeg_VidStream *vid_stream)
 {
   unsigned int size, marker;
   char *dataPtr;
@@ -1734,9 +1732,9 @@ extern int dcprec;
 #define DECODE_DCT_COEFF_NEXT DecodeDCTCoeffNext
 
 void
-ParseReconBlock(n, vid_stream)
-     int n;
-     mpeg_VidStream *vid_stream;
+ParseReconBlock(
+     int n,
+     mpeg_VidStream *vid_stream)
 {
 #ifdef RISC
   unsigned int temp_curBits;
@@ -2066,9 +2064,9 @@ ParseReconBlock(n, vid_stream)
  */
 
 void
-ParseAwayBlock(n, vid_stream)
-     int n;
-     mpeg_VidStream *vid_stream;
+ParseAwayBlock(
+     int n,
+     mpeg_VidStream *vid_stream)
 {
   unsigned int diff;
   unsigned int size, run;
@@ -2140,19 +2138,19 @@ ParseAwayBlock(n, vid_stream)
   }
 }
 /* Declarations of functions. */
-static void ReconIMBlock();
-static void ReconPMBlock();
-static void ReconBMBlock();
-static void ReconBiMBlock();
-static void ReconSkippedBlock();
-static void DoPictureDisplay();
-static int ParseSeqHead();
-static int ParseGOP();
-static int ParsePicture();
-static int ParseSlice();
-static int ParseMacroBlock();
-static void ProcessSkippedPFrameMBlocks();
-static void ProcessSkippedBFrameMBlocks();
+static void ReconIMBlock(mpeg_VidStream *vid_stream,int bnum);
+static void ReconPMBlock(mpeg_VidStream *vid_stream,int bnum,int recon_right_for,int recon_down_for,int zflag);
+static void ReconBMBlock(mpeg_VidStream *vid_stream,int bnum,int recon_right_back,int recon_down_back,int zflag);
+static void ReconBiMBlock( mpeg_VidStream *vid_stream,int bnum,int recon_right_for,int recon_down_for,int recon_right_back,int recon_down_back,int zflag);
+static void ReconSkippedBlock( unsigned char *source,unsigned char *dest,int row,int col,int row_size,int right,int down,int right_half,int down_half,int width);
+static void DoPictureDisplay(mpeg_VidStream *vid_stream);
+static int ParseSeqHead( mpeg_VidStream *vid_stream );
+static int ParseGOP( mpeg_VidStream *vid_stream );
+static int ParsePicture( mpeg_VidStream *vid_stream, TimeStamp time_stamp);
+static int ParseSlice(mpeg_VidStream *vid_stream);
+static int ParseMacroBlock( mpeg_VidStream *vid_stream );
+static void ProcessSkippedPFrameMBlocks(mpeg_VidStream *vid_stream);
+static void ProcessSkippedBFrameMBlocks(mpeg_VidStream *vid_stream);
 
 /* Macro for returning 1 if num is positive, -1 if negative, 0 if 0. */
 
@@ -2296,11 +2294,11 @@ InitCrop()
  */
 
 mpeg_VidStream *
-mpg_NewVidStream(buffer_len)
-  unsigned int buffer_len;
+mpg_NewVidStream(
+  unsigned int buffer_len)
 {
   int i, j;
-  mpeg_VidStream *new;
+  mpeg_VidStream *newstream;
   static const unsigned char default_intra_matrix[64] = {
     8, 16, 19, 22, 26, 27, 29, 34,
     16, 16, 22, 24, 27, 29, 34, 37,
@@ -2322,24 +2320,24 @@ mpg_NewVidStream(buffer_len)
 
   /* Allocate memory for new structure. */
 
-  new = (mpeg_VidStream *) malloc(sizeof(mpeg_VidStream));
+  newstream = (mpeg_VidStream *) malloc(sizeof(mpeg_VidStream));
 
   /* Initialize pointers to extension and user data. */
 
-  new->group.ext_data = NULL;
-  new->group.user_data = NULL;
-  new->picture.extra_info = NULL;
-  new->picture.user_data = NULL;
-  new->picture.ext_data = NULL;
-  new->slice.extra_info = NULL;
-  new->ext_data = NULL;
-  new->user_data = NULL;
+  newstream->group.ext_data = NULL;
+  newstream->group.user_data = NULL;
+  newstream->picture.extra_info = NULL;
+  newstream->picture.user_data = NULL;
+  newstream->picture.ext_data = NULL;
+  newstream->slice.extra_info = NULL;
+  newstream->ext_data = NULL;
+  newstream->user_data = NULL;
 
   /* Copy default intra matrix. */
 
   for (i = 0; i < 8; i++) {
     for (j = 0; j < 8; j++) {
-      new->intra_quant_matrix[i][j] = default_intra_matrix[i * 8 + j];
+      newstream->intra_quant_matrix[i][j] = default_intra_matrix[i * 8 + j];
     }
   }
 
@@ -2347,43 +2345,43 @@ mpg_NewVidStream(buffer_len)
 
   for (i = 0; i < 8; i++) {
     for (j = 0; j < 8; j++) {
-      new->non_intra_quant_matrix[i][j] = 16;
+      newstream->non_intra_quant_matrix[i][j] = 16;
     }
   }
 
   /* Initialize pointers to image spaces. */
 
-  new->current = new->past = new->future = NULL;
+  newstream->current = newstream->past = newstream->future = NULL;
   for (i = 0; i < RING_BUF_SIZE; i++) {
-    new->ring[i] = NULL;
+    newstream->ring[i] = NULL;
   }
 
   /* Create buffer. */
   
 
-  new->buf_start = (unsigned int *) malloc(buffer_len * 4);
+  newstream->buf_start = (unsigned int *) malloc(buffer_len * 4);
   
   /*
    * Set max_buf_length to one less than actual length to deal with messy
    * data without proper seq. end codes.
    */
 
-  new->max_buf_length = buffer_len - 1;
+  newstream->max_buf_length = buffer_len - 1;
 
   /* Initialize bitstream i/o fields. */
 
-  new->bit_offset = 0;
-  new->buf_length = 0;
-  new->buffer = new->buf_start;
+  newstream->bit_offset = 0;
+  newstream->buf_length = 0;
+  newstream->buffer = newstream->buf_start;
 
   /* Initialize fields that used to be global */
-  new->film_has_ended = FALSE;
-  new->filename = NULL;
-  new->EOF_flag = FALSE;
+  newstream->film_has_ended = FALSE;
+  newstream->filename = NULL;
+  newstream->EOF_flag = FALSE;
 
   /* Return structure. */
 
-  return new;
+  return newstream;
 }
 
 
@@ -2404,8 +2402,8 @@ mpg_NewVidStream(buffer_len)
  *--------------------------------------------------------------
  */
 void
-Destroympeg_VidStream(astream)
-  mpeg_VidStream *astream;
+Destroympeg_VidStream(
+  mpeg_VidStream *astream )
 {
   int i;
 
@@ -2469,16 +2467,15 @@ Destroympeg_VidStream(astream)
  */
 
 PictImage *
-NewPictImage(vid_stream)
-  mpeg_VidStream *vid_stream;
+NewPictImage( mpeg_VidStream *vid_stream )
 {
-  PictImage *new;
+  PictImage *newimage;
   unsigned int width=vid_stream->mb_width * 16;
   unsigned int height=vid_stream->mb_height * 16;
 
   /* Allocate memory space for new structure. */
 
-  new = (PictImage *) malloc(sizeof(PictImage));
+  newimage = (PictImage *) malloc(sizeof(PictImage));
 
 
   /* Allocate memory for image spaces. */
@@ -2491,20 +2488,20 @@ NewPictImage(vid_stream)
     if(temp_sz == 3) temp_sz = 4;
     factor = 1; 
 
-    new->display = (unsigned char *) malloc(width * height * temp_sz *
+    newimage->display = (unsigned char *) malloc(width * height * temp_sz *
                                                             factor * factor);
     }
-  new->luminance = (unsigned char *) malloc(width * height);
-  new->Cr = (unsigned char *) malloc(width * height / 4);
-  new->Cb = (unsigned char *) malloc(width * height / 4);
+  newimage->luminance = (unsigned char *) malloc(width * height);
+  newimage->Cr = (unsigned char *) malloc(width * height / 4);
+  newimage->Cb = (unsigned char *) malloc(width * height / 4);
   
   /* Reset locked flag. */
   
-  new->locked = 0;
+  newimage->locked = 0;
 
   /* Return pointer to new structure. */
 
-  return new;
+  return newimage;
 }
 
 
@@ -2525,8 +2522,8 @@ NewPictImage(vid_stream)
  *--------------------------------------------------------------
  */
 void
-DestroyPictImage(apictimage)
-  PictImage *apictimage;
+DestroyPictImage(
+  PictImage *apictimage)
 {
   if (apictimage->luminance != NULL) {
     free(apictimage->luminance);
@@ -2572,10 +2569,10 @@ DestroyPictImage(apictimage)
  */
 
 mpeg_VidStream *
-mpegVidRsrc(time_stamp, vid_stream, first)
-  TimeStamp  time_stamp;
-  mpeg_VidStream *vid_stream;
-  int        first;
+mpegVidRsrc(
+  TimeStamp  time_stamp,
+  mpeg_VidStream *vid_stream,
+  int first )
 {
   unsigned int data;
   int i, status;
@@ -2774,8 +2771,8 @@ done:
  *--------------------------------------------------------------
  */
 static int
-ParseSeqHead(vid_stream)
-  mpeg_VidStream *vid_stream;
+ParseSeqHead(
+  mpeg_VidStream *vid_stream)
 {
   unsigned int data;
   int i;
@@ -2918,8 +2915,8 @@ ParseSeqHead(vid_stream)
  */
 
 static int
-ParseGOP(vid_stream)
-  mpeg_VidStream *vid_stream;
+ParseGOP(
+  mpeg_VidStream *vid_stream)
 {
   unsigned int data;
 
@@ -3023,9 +3020,9 @@ ParseGOP(vid_stream)
  */
 
 static int
-ParsePicture(vid_stream, time_stamp)
-  mpeg_VidStream *vid_stream;
-  TimeStamp time_stamp;
+ParsePicture(
+  mpeg_VidStream *vid_stream,
+  TimeStamp time_stamp)
 {
   unsigned int data;
   int i;
@@ -3174,8 +3171,8 @@ ParsePicture(vid_stream, time_stamp)
  */
 
 static int
-ParseSlice(vid_stream)
-  mpeg_VidStream *vid_stream;
+ParseSlice(
+  mpeg_VidStream *vid_stream)
 {
   unsigned int data;
 
@@ -3249,8 +3246,8 @@ ParseSlice(vid_stream)
  */
 
 static int
-ParseMacroBlock(vid_stream)
-  mpeg_VidStream *vid_stream;
+ParseMacroBlock(
+  mpeg_VidStream *vid_stream)
 {
   int addr_incr;
   unsigned int data;
@@ -3515,9 +3512,9 @@ ParseMacroBlock(vid_stream)
 #endif
 
 static void
-ReconIMBlock(vid_stream, bnum)
-  mpeg_VidStream *vid_stream;
-  int bnum;
+ReconIMBlock(
+  mpeg_VidStream *vid_stream,
+  int bnum)
 {
   int mb_row, mb_col, row, col, row_size, rr;
   unsigned char *dest;
@@ -3651,9 +3648,12 @@ ReconIMBlock(vid_stream, bnum)
  */
 
 static void
-ReconPMBlock(vid_stream, bnum, recon_right_for, recon_down_for, zflag)
-  mpeg_VidStream *vid_stream;
-  int bnum, recon_right_for, recon_down_for, zflag;
+ReconPMBlock(
+  mpeg_VidStream *vid_stream,
+  int bnum, 
+  int recon_right_for,
+  int recon_down_for,
+  int zflag)
 {
   int mb_row, mb_col, row, col, row_size, rr;
   unsigned char *dest, *past;
@@ -3935,9 +3935,12 @@ ReconPMBlock(vid_stream, bnum, recon_right_for, recon_down_for, zflag)
  */
 
 static void
-ReconBMBlock(vid_stream, bnum, recon_right_back, recon_down_back, zflag)
-  mpeg_VidStream *vid_stream;
-  int bnum, recon_right_back, recon_down_back, zflag;
+ReconBMBlock(
+  mpeg_VidStream *vid_stream,
+  int bnum,
+  int recon_right_back,
+  int recon_down_back,
+  int zflag)
 {
   int mb_row, mb_col, row, col, row_size, rr;
   unsigned char *dest, *future;
@@ -4206,11 +4209,14 @@ ReconBMBlock(vid_stream, bnum, recon_right_back, recon_down_back, zflag)
  */
 
 static void
-ReconBiMBlock(vid_stream, bnum, recon_right_for, recon_down_for,
-	      recon_right_back, recon_down_back, zflag)
-  mpeg_VidStream *vid_stream;
-  int bnum, recon_right_for, recon_down_for, recon_right_back, recon_down_back;
-  int zflag;
+ReconBiMBlock(
+  mpeg_VidStream *vid_stream,
+  int bnum,
+  int recon_right_for,
+  int recon_down_for,
+  int recon_right_back,
+  int recon_down_back,
+  int zflag)
 {
   int mb_row, mb_col, row, col, row_size, rr;
   unsigned char *dest, *past=NULL, *future=NULL;
@@ -4447,8 +4453,8 @@ ReconBiMBlock(vid_stream, bnum, recon_right_for, recon_down_for,
  */
 
 static void
-ProcessSkippedPFrameMBlocks(vid_stream)
-  mpeg_VidStream *vid_stream;
+ProcessSkippedPFrameMBlocks(
+  mpeg_VidStream *vid_stream)
 {
   int row_size, half_row, mb_row, mb_col, row, col, rr;
   int addr, row_incr, half_row_incr, crow, ccol;
@@ -4571,8 +4577,8 @@ ProcessSkippedPFrameMBlocks(vid_stream)
  */
 
 static void
-ProcessSkippedBFrameMBlocks(vid_stream)
-  mpeg_VidStream *vid_stream;
+ProcessSkippedBFrameMBlocks(
+  mpeg_VidStream *vid_stream)
 {
   int row_size, half_row, mb_row, mb_col, row, col, rr;
   int right_half_for = 0, down_half_for = 0;
@@ -4868,11 +4874,17 @@ ProcessSkippedBFrameMBlocks(vid_stream)
  */
 
 static void
-ReconSkippedBlock(source, dest, row, col, row_size,
-		  right, down, right_half, down_half, width)
-  unsigned char *source;
-  unsigned char *dest;
-  int row, col, row_size, right, down, right_half, down_half, width;
+ReconSkippedBlock(
+  unsigned char *source,
+  unsigned char *dest,
+  int row,
+  int col,
+  int row_size,
+  int right,
+  int down,
+  int right_half,
+  int down_half,
+  int width)
 {
   int rr;
   unsigned char *source2;
@@ -5039,8 +5051,8 @@ ReconSkippedBlock(source, dest, row, col, row_size,
  */
 
 static void
-DoPictureDisplay(vid_stream)
-  mpeg_VidStream *vid_stream;
+DoPictureDisplay(
+  mpeg_VidStream *vid_stream)
 {
 
   if (No_B_Flag && (vid_stream->picture.code_type == B_TYPE)) return;
@@ -5250,9 +5262,9 @@ init_pre_idct() {
  */
 
 void
-j_rev_dct_sparse (data, pos)
-     DCTBLOCK data;
-     int pos;
+j_rev_dct_sparse (
+     DCTBLOCK data,
+     int pos)
 {
   short int val;
   register int *dp;
@@ -5373,8 +5385,8 @@ j_rev_dct_sparse (data, pos)
  *--------------------------------------------------------------
  */
 void
-j_rev_dct (data)
-     DCTBLOCK data;
+j_rev_dct (
+     DCTBLOCK data )
 {
   int tmp0, tmp1, tmp2, tmp3;
   int tmp10, tmp11, tmp12, tmp13;
@@ -5538,7 +5550,7 @@ j_rev_dct (data)
 		if (d0) {
 		    /* d0 != 0, d2 != 0, d4 != 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp0 = (d0 + d4) << CONST_BITS;
 		    tmp1 = (d0 - d4) << CONST_BITS;
@@ -5550,7 +5562,7 @@ j_rev_dct (data)
 		} else {
 		    /* d0 == 0, d2 != 0, d4 != 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp0 = d4 << CONST_BITS;
 
@@ -5575,7 +5587,7 @@ j_rev_dct (data)
 		if (d0) {
 		    /* d0 != 0, d2 != 0, d4 == 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp0 = d0 << CONST_BITS;
 
@@ -5586,7 +5598,7 @@ j_rev_dct (data)
 		} else {
 		    /* d0 == 0, d2 != 0, d4 == 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp10 = tmp3;
 		    tmp13 = -tmp3;
@@ -6017,7 +6029,7 @@ j_rev_dct (data)
 		if (d0) {
 		    /* d0 != 0, d2 != 0, d4 != 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp0 = (d0 + d4) << CONST_BITS;
 		    tmp1 = (d0 - d4) << CONST_BITS;
@@ -6029,7 +6041,7 @@ j_rev_dct (data)
 		} else {
 		    /* d0 == 0, d2 != 0, d4 != 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp0 = d4 << CONST_BITS;
 
@@ -6054,7 +6066,7 @@ j_rev_dct (data)
 		if (d0) {
 		    /* d0 != 0, d2 != 0, d4 == 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp0 = d0 << CONST_BITS;
 
@@ -6065,7 +6077,7 @@ j_rev_dct (data)
 		} else {
 		    /* d0 == 0, d2 != 0, d4 == 0, d6 == 0 */
 		    tmp2 = MULTIPLY(d2, FIX(0.541196100));
-		    tmp3 = MULTIPLY(d2, (FIX(1.306562965) + .5));
+		    tmp3 = (int)MULTIPLY(d2, (FIX(1.306562965) + .5));
 
 		    tmp10 = tmp3;
 		    tmp13 = -tmp3;
@@ -6483,10 +6495,10 @@ j_rev_dct (data)
  */
 
 void 
-ComputeForwVector(recon_right_for_ptr, recon_down_for_ptr, the_stream)
-     int *recon_right_for_ptr;
-     int *recon_down_for_ptr;
-     mpeg_VidStream *the_stream;
+ComputeForwVector(
+     int *recon_right_for_ptr,
+     int *recon_down_for_ptr,
+     mpeg_VidStream *the_stream)
 {
 
   Pict *picture;
@@ -6524,10 +6536,10 @@ ComputeForwVector(recon_right_for_ptr, recon_down_for_ptr, the_stream)
  */
 
 void 
-ComputeBackVector(recon_right_back_ptr, recon_down_back_ptr, the_stream)
-     int *recon_right_back_ptr;
-     int *recon_down_back_ptr;
-     mpeg_VidStream *the_stream;
+ComputeBackVector(
+     int *recon_right_back_ptr,
+     int *recon_down_back_ptr,
+     mpeg_VidStream *the_stream)
 {
   Pict *picture;
   Macroblock *mblock;
@@ -6589,8 +6601,8 @@ ComputeBackVector(recon_right_back_ptr, recon_down_back_ptr, the_stream)
  *--------------------------------------------------------------
  */
 int 
-get_more_data(vid_stream)
-      mpeg_VidStream *vid_stream;
+get_more_data(
+      mpeg_VidStream *vid_stream)
 {
   unsigned int **bs_ptr=&vid_stream->buf_start; 
   int *max_length=&vid_stream->max_buf_length;
@@ -6687,8 +6699,8 @@ get_more_data(vid_stream)
  *-------------------------------------------------------------
  */
 void 
-  clear_data_stream(vid_stream)
-     mpeg_VidStream *vid_stream;
+  clear_data_stream(
+     mpeg_VidStream *vid_stream)
 {
   /* Only internal buffer is in ReadPacket */
   if (vid_stream->sys_layer) {
@@ -6716,12 +6728,12 @@ void
  */
 
 int 
-pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
-     unsigned int *buf_start;
-     int max_length;
-     int *length_ptr;
-     unsigned int **buf_ptr;
-     mpeg_VidStream *vid_stream;
+pure_get_more_data(
+     unsigned int *buf_start,
+     int max_length,
+     int *length_ptr,
+     unsigned int **buf_ptr,
+     mpeg_VidStream *vid_stream)
 {
   
   int length, num_read, i;
@@ -6825,9 +6837,9 @@ pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
  *
  *----------------------------------------------------------
  */
-int read_sys(vid_stream, start)
-     mpeg_VidStream *vid_stream;
-     unsigned int start;  
+int read_sys(
+     mpeg_VidStream *vid_stream,
+     unsigned int start)  
      /* start is either a start code or 0 to indicate continued parsing */
 {
   unsigned int startCode;
@@ -6937,9 +6949,9 @@ int read_sys(vid_stream, start)
  *
  *-----------------------------------------------------------
  */
-int ReadStartCode(startCode, vid_stream)
-     unsigned int *startCode;
-     mpeg_VidStream *vid_stream;
+int ReadStartCode(
+     unsigned int *startCode,
+     mpeg_VidStream *vid_stream)
 {
   int numRead;
   
@@ -6976,8 +6988,8 @@ int ReadStartCode(startCode, vid_stream)
  *
  *-----------------------------------------------------------
  */
-int find_start_code(input)
-    FILE *input;
+int find_start_code(
+    FILE *input)
 {
  NO_ZEROS:
   switch(fgetc(input)) {
@@ -7022,10 +7034,10 @@ int find_start_code(input)
  *
  *-------------------------------------------------------------------
  */
-int ReadPackHeader(systemClockTime,muxRate, vid_stream)
-     double *systemClockTime;
-     unsigned long *muxRate;
-     mpeg_VidStream *vid_stream;
+int ReadPackHeader(
+     double *systemClockTime,
+     unsigned long *muxRate,
+     mpeg_VidStream *vid_stream)
 {
   int numRead;
   unsigned char inputBuffer[PACK_HEADER_SIZE];
@@ -7059,8 +7071,8 @@ int ReadPackHeader(systemClockTime,muxRate, vid_stream)
  *
  *------------------------------------------------------------------
  */
-int ReadSystemHeader(vid_stream)
-   mpeg_VidStream *vid_stream;
+int ReadSystemHeader(
+   mpeg_VidStream *vid_stream)
 { 
   unsigned char *inputBuffer = NULL;
   int numRead;
@@ -7156,9 +7168,9 @@ int ReadSystemHeader(vid_stream)
 #ifdef __STDC__
 int ReadPacket(unsigned char packetID, mpeg_VidStream *vid_stream)
 #else
-int ReadPacket(packetID, vid_stream)
-     unsigned char packetID;
-     mpeg_VidStream *vid_stream;
+int ReadPacket(
+     unsigned char packetID,
+     mpeg_VidStream *vid_stream)
 #endif
 
      /* Returns:
@@ -7322,9 +7334,10 @@ int ReadPacket(packetID, vid_stream)
 /*
  * The remaining procedures are formatting utility procedures.
  */
-void ReadTimeStamp(inputBuffer,hiBit,low4Bytes)
-     unsigned char *inputBuffer, *hiBit;
-     unsigned long *low4Bytes;
+void ReadTimeStamp(
+     unsigned char *inputBuffer, 
+     unsigned char *hiBit,
+     unsigned long *low4Bytes)
 {
   *hiBit = ((unsigned long)inputBuffer[0] >> 3) & 0x01;
   *low4Bytes = (((unsigned long)inputBuffer[0] >> 1) & 0x03) << 30; 
@@ -7334,10 +7347,10 @@ void ReadTimeStamp(inputBuffer,hiBit,low4Bytes)
   *low4Bytes |= ((unsigned long)inputBuffer[4]) >> 1; 
 }
 
-void ReadSTD(inputBuffer,stdBufferScale,stdBufferSize) 
-unsigned char *inputBuffer;
-unsigned char *stdBufferScale;
-unsigned long *stdBufferSize;
+void ReadSTD(
+unsigned char *inputBuffer,
+unsigned char *stdBufferScale,
+unsigned long *stdBufferSize)
 {
   /* Brown - get rid of ANSI C complaints */
   *stdBufferScale = ((int)(inputBuffer[0] & 0x20) >> 5); 
@@ -7346,9 +7359,9 @@ unsigned long *stdBufferSize;
 }
 
 
-void ReadRate(inputBuffer,rate)
-     unsigned char *inputBuffer;
-     unsigned long *rate;
+void ReadRate(
+     unsigned char *inputBuffer,
+     unsigned long *rate)
 {
   *rate = (inputBuffer[0] & 0x7f) << 15;
   *rate |= inputBuffer[1] << 7;
@@ -7362,10 +7375,10 @@ void ReadRate(inputBuffer,rate)
 int MakeFloatClockTime(unsigned char hiBit, unsigned long low4Bytes,
 		       double * floatClockTime)
 #else
-int MakeFloatClockTime(hiBit,low4Bytes,floatClockTime)
-     unsigned char hiBit;
-     unsigned long low4Bytes;
-     double *floatClockTime;
+int MakeFloatClockTime(
+     unsigned char hiBit,
+     unsigned long low4Bytes,
+     double *floatClockTime)
 #endif
 {
   if (hiBit != 0 && hiBit != 1) {

@@ -7,7 +7,7 @@
 
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
- 	 
+
 
 #include "Structs.h"
 
@@ -40,6 +40,7 @@ extern CGLContextObj aqglobalContext;
 #endif
 
 #define UNUSED(v) ((void) v)
+#define ISUSED(v) ((void) v)
 
 #define BOOL_STRING(b) (b ? "TRUE" : "FALSE")
 
@@ -419,7 +420,7 @@ extern struct pt r1, r2;		// in VRMLC.pm
 extern struct sCollisionInfo CollisionInfo;
 extern struct currayhit rh,rph,rhhyper;
 extern int smooth_normals;
-extern void xs_init(void);
+extern "C" void xs_init(void); 
 extern int navi_tos;
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
@@ -430,6 +431,7 @@ extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_siz
         int mt_repeatS, int mt_repeatT, char *Image);
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
+
 
 #ifndef AQUA
 extern int wantEAI;
@@ -476,7 +478,7 @@ char * sanitizeInputString(char *instr);
 void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV);
 void setExtent (float x, float y, float z, struct VRML_Box *this_);
 void propagateExtent (float x, float y, float z, struct VRML_Box *this_);
-//void calculateFrustumCone(void);
+void calculateFrustumCone(void);
 extern int PointInView(struct VRML_Transform *nod);
 
 extern double nearPlane, farPlane, screenRatio;
@@ -528,8 +530,21 @@ void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (unsigned rc, unsigned newNode);
+//added M. Ward Dec 13/04
+void make_text(struct VRML_Text *this_ );
+void make_elevationgrid(struct VRML_ElevationGrid *this_);
+void make_extrusion(struct VRML_Extrusion *this_);
+void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
+//void mark_event (unsigned int from, unsigned int totalptr);
+
+
 
 void zeroAllBindables(void);
 int freewrlSystem (char *string);
+
+int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+                        unsigned ptr, unsigned ofs, int *complete,
+                        int zeroBind);
+
 
 #endif /* __HEADERS_H__ */

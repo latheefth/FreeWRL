@@ -7,14 +7,16 @@
 
 /* beginnings of FreeWRL in C */
 #include "EXTERN.h"
-#include "perl.h"
+#include <perl.h>
 #include <Structs.h>
 #include <pthread.h>
 #include <headers.h>
 #include <getopt.h>
 #include <Snapshot.h>
 #include <PluginSocket.h>
-
+#include <stdlib.h>
+#include <unistd.h>
+#include <dlfcn.h>
 #ifndef AQUA
 
 #include <GL/gl.h>
@@ -43,6 +45,17 @@ int wantEAI=FALSE;		/* enable EAI? */
 #endif
 extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
 extern float global_linewidth;	/* in CFrontEnd/fwopts.c - ILS line width */
+extern void   XEventStereo();
+
+extern int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+                        unsigned ptr, unsigned ofs, int *complete,
+                        int zeroBind);
+
+
+extern void openMainWindow (Display *Disp, unsigned *Win, GLXContext *Cont);
+extern void glpOpenGLInitialize();
+extern void EventLoop();
+extern void resetGeometry();
 
 /* threading variables for event loop */
 static pthread_t *loopthread;
@@ -58,6 +71,58 @@ extern char *keypress_string;
 int _fw_pipe=0;
 int _fw_FD=0;
 unsigned  _fw_instance=0;
+#endif
+
+//These variables exsist for the device input libraries. Linux ONLY.
+//Added Nov 18/04 by M. Ward
+#ifndef AQUA
+
+  #ifdef do_open
+    #undef do_open
+  #endif
+  #ifdef do_close
+    #undef do_close
+  #endif
+
+  #include "libmio.h"
+  #include "libmread.h"
+  #include "interface.h"
+  #include "dev_core.h"
+
+  void* cyberlib; //this is for the cyberglove library(unused at this time Nov 18/04 )
+  create_t* create_cyber; //this is for creating a 'copy' the library
+  destroy_t* destroy_cyber; //this will destroy our copy of the library
+  void* flocklib;  //this is for the ascension flock library
+  create_t* create_flock;
+  destroy_t* destroy_flock;
+  void* joylib;	 //this is for the joystick library
+  create_t* create_joy;
+  destroy_t* destroy_joy;
+  void* spacelib;  //this is for the spaceball library
+  create_t* create_space;
+  destroy_t* destroy_space;
+  void* pollib;  //this is for the polhemus fastrak library
+  create_t* create_polhemus;
+  destroy_t* destroy_polhemus;
+  //these are for the 'copies' of the libraries to go into
+  device *glove;
+  device *fastrak;
+  device *nest;
+  device *joy;
+  device *space;
+  device *global_dev;
+  //this is an instance of the device manager class
+  managedev Manager;
+
+  //these are here to track the presence of the library
+  int have_cyberlib = -1;
+  int have_flocklib = -1;
+  int have_spacelib = -1;
+  int have_joylib = -1;
+  int have_polhemuslib = -1;
+  int connected_device = -1;
+  int use_external_input = 1;
+
 #endif
 
 /* function prototypes */
@@ -78,8 +143,8 @@ int main (int argc, char **argv) {
 #ifndef IRIX
 #ifndef AQUA
 	/* first, get the FreeWRL shared lib, and verify the version. */
-	if (strcmp(FWVER,getLibVersion())) {
-		printf ("FreeWRL expected library version %s, got %s...\n",FWVER,getLibVersion());
+	if(strcmp(FWVER,getLibVersion())){
+  	  printf ("FreeWRL expected library version %s, got %s...\n",FWVER,getLibVersion());
 	}
 #endif
 #endif
@@ -91,9 +156,9 @@ int main (int argc, char **argv) {
 
 #ifndef IRIX
 	/* install the signal handler for SIGQUIT */
-	signal (SIGQUIT, catch_SIGQUIT);
-	signal (SIGSEGV, catch_SIGSEGV);
-	signal (SIGALRM,catch_SIGALRM);
+	signal (SIGQUIT, (void(*)(int))catch_SIGQUIT);
+	signal (SIGSEGV,(void(*)(int))catch_SIGSEGV);
+	signal (SIGALRM,(void(*)(int))catch_SIGALRM);
 
 	/* parse command line arguments */
 	/* JAS - for last parameter of long_options entries, choose
@@ -140,7 +205,7 @@ int main (int argc, char **argv) {
 		c = getopt_long (argc, argv, "h", long_options, &option_index);
 #else
 		/*Sun version of getopt_long needs all the letters of parameters defined*/
-		                c = getopt_long (argc, argv, "efghijkvlpqmnobsQWK", long_options, &option_index);
+		                c = getopt_long (argc, argv, "efghijkvlpqmnobsQWKX", long_options, &option_index);
 #endif
 
 		if (c == -1)
@@ -211,19 +276,19 @@ int main (int argc, char **argv) {
 			case 'm': 
 				  count = strlen(argv[optind]);
 				  if (count > 500) count = 500;
-				  snapseqB = malloc (count+1);
+				  snapseqB = (char *)malloc (count+1);
                 		  strcpy (snapseqB,argv[optind]);
 				  break;
 			case 'n':
 				  count = strlen(argv[optind]);
 				  if (count > 500) count = 500;
-				  snapsnapB = malloc (count+1);
+				  snapsnapB = (char *)malloc (count+1);
                 		  strcpy (snapsnapB,argv[optind]);
 				  break;
 			case 'o':
 				  count = strlen(argv[optind]);
 				  if (count > 500) count = 500;
-				  seqtmp = malloc (count+1);
+				  seqtmp = (char*)malloc (count+1);
                 		  strcpy (seqtmp,argv[optind]);
 				  break;
 
@@ -271,60 +336,246 @@ int main (int argc, char **argv) {
 		/* save the url for later use, if required */
 		count = strlen(argv[optind]);
 		if (BrowserURL != NULL) free (BrowserURL);
-		BrowserURL = malloc (count+1);
+		BrowserURL = (char *)malloc (count+1);
 		strcpy (BrowserURL,argv[optind]);
 	} else {
 		printf ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
 	}
 #endif
-	/* create the display thread. */
-	pthread_create (&thread1, NULL, (void *)&displayThread, (void *)threadmsg);
 
+//Added Nov 18/04 M. Ward
 #ifndef AQUA
-	/* create the Perl parser thread */
-	initializePerlThread(PERLPATH);
-#endif
-	while (!isPerlinitialized()) {usleep(50);}
-
-	/* create the Texture parser thread */
-	initializeTextureThread();
-	while (!isTextureinitialized()) {usleep(50);}
-
-	/* get the Netscape Browser name, if we are pluggind */
-	NetscapeName[0] = NULL;
- 	if (RUNNINGASPLUGIN) {
-		if (read(_fw_FD, NetscapeName,MAXNETSCAPENAMELEN) < 0) {
-		}
-	}
-
-
-	/* create the initial scene, from the file passed in
-	and place it as a child of the rootNode. */
-
-	filename = malloc(1000 * sizeof (char));
-	pwd = malloc(1000 * sizeof (char));
-	getcwd(pwd,1000);
-	
-
-#ifndef AQUA
-	/* if this is a network file, leave the name as is. If it is
-	 * a local file, prepend the path to it */
-	if (checkNetworkFile(argv[optind])) {
-		strcpy (filename,argv[optind]);
-		BrowserFullPath = malloc ((strlen(argv[optind])+1) * sizeof(char));
-		strcpy(BrowserFullPath,pwd);
-				
+      //first a quick check did you want to use an external device for input control?
+      if( use_external_input == 1 ) {
+  	//now before we start forking threads and I get confused, lets check the status
+	//of the libraries. Are they present or not?
+	cyberlib = dlopen("libcyberglove.so.1", RTLD_LAZY);
+	if( !cyberlib ) {
+   	  printf("Cannot load library: %s .\n\r",dlerror() );
 	} else {
-
-		makeAbsoluteFileName(filename, pwd, argv[optind]);
-		BrowserFullPath = malloc ((strlen(filename)+1) * sizeof(char));
-		strcpy (BrowserFullPath,filename);
+	  //try and get handles to the create and destroy routines
+	  create_cyber = (create_t*) dlsym(cyberlib, "createdev");
+  	  destroy_cyber = (destroy_t*) dlsym(cyberlib, "destroydev");
+	  //if we can;t get the access routines, we need to show the error
+          if (!create_cyber || !destroy_cyber) {
+            printf("Cannot load symbols: %s .\n\r",dlerror() );
+  	  } else {
+	    //As this library is unused these are commented out, add them back in if you
+	    //want to enable the cyberglove
+	    //glove = create_cyber();
+	    //if( glove != NULL ) {	
+  	      //have_cyberlib = 1;
+	      //clear the interal data structures of the library
+	      //memset( &glove->info, 0, sizeof( space->info ) );
+            //}
+	    //remove this to prevent the library from closing before you use it
+	    dlclose( cyberlib );
+	  }
 	}
+        flocklib =  dlopen("libascension.so.1", RTLD_LAZY);
+        if( !flocklib ) {
+          printf("Cannot load library: %s .\n\r",dlerror() );
+        } else {
+          //try and get handles to the create and destroy routines
+          create_flock = (create_t*) dlsym(flocklib, "createdev");
+          destroy_flock = (destroy_t*) dlsym(flocklib, "destroydev");
+          //if we can;t get the access routines, we need to show the error
+          if (!create_flock || !destroy_flock) {
+            printf("Cannot load symbols: %s .\n\r",dlerror() );
+          } else {
+            nest = create_flock();
+	    if( nest != NULL ) {
+              have_flocklib = 1;
+  	      memset( &nest->info, 0, sizeof( nest->info ) );
+	    }
+	  }
+        }
+        pollib =  dlopen("libpolhemus.so.1", RTLD_LAZY);
+        if( !pollib ) {
+          printf("Cannot load library: %s .\n\r",dlerror() );
+        } else {
+          //try and get handles to the create and destroy routines
+          create_polhemus = (create_t*) dlsym(pollib, "createdev");
+          destroy_polhemus = (destroy_t*) dlsym(pollib, "destroydev");
+          //if we can;t get the access routines, we need to show the error
+          if (!create_polhemus || !destroy_polhemus) {
+            printf("Cannot load symbols: %s .\n\r",dlerror() );
+          } else {
+            fastrak = create_polhemus();
+	    if( fastrak != NULL ) {
+              have_polhemuslib = 1;
+	      memset( &fastrak->info, 0, sizeof( fastrak->info ) );
+	    }
+	  }
+        }
+	joylib = dlopen("libjoystick.so.1", RTLD_LAZY);
+        if( !joylib ) {
+          printf("Cannot load library: %s .\n\r",dlerror() );
+        } else {
+          //try and get handles to the create and destroy routines
+          create_joy = (create_t*) dlsym(joylib, "createdev");
+          destroy_joy = (destroy_t*) dlsym(joylib, "destroydev");
+          //if we can;t get the access routines, we need to show the error
+          if (!create_joy || !destroy_joy) {
+            printf("Cannot load symbols: %s .\n\r",dlerror() );
+          } else {
+            joy = create_joy();
+	    if( joy != NULL ) {
+              have_joylib = 1;
+	      memset( &joy->info, 0, sizeof( joy->info ) );
+	    }
+	  }
+        }
+        spacelib = dlopen("libspaceball.so.1", RTLD_LAZY);
+        if( !spacelib ) {
+          printf("Cannot load library: %s .\n\r",dlerror() );
+        } else {
+          //try and get handles to the create and destroy routines
+          create_space = (create_t*) dlsym(spacelib, "createdev");
+          destroy_space = (destroy_t*) dlsym(spacelib, "destroydev");
+          //if we can;t get the access routines, we need to show the error
+          if (!create_space || !destroy_space) {
+            printf("Cannot load symbols: %s .\n\r",dlerror() );
+          } else {
+            space = create_space();
+	    if( space != NULL ) {
+              have_spacelib = 1;
+	      memset( &space->info, 0, sizeof( space->info ) );
+	    }
+	  }
+        }
+
+	//this section actually tries to connect to the input device, and verify if it's 
+	//active and able to provide data
+	//Arbitrarily I've decided that the order of prefrence for the devices is:
+	// The Ascension, followed by the polhemus, then the joystick, then the spaceball
+	//and lastly the cyberglove. If any of the devices is found, then no other devices
+	//will be connected(at this time)
+	/*if( ( have_flocklib ) && ( connected_device == -1 ) ) {
+	  printf("Looking for Ascension..\n\r");
+	  //have the library auto-search for the device
+	  //if a value other than zero was returned we found something
+	  if( (nest->info.filep = nest->FindDev( &Manager )) != 0 ) {
+            //check that the device is connected
+  	    if( ( nest->VerifyDev( nest->info.filep ) ) != 0 ){
+	      printf("Verified the flock!\n\r");
+	      nest->info.NumberOfSensors = nest->GetNumberOfSensors(nest->info);
+	      connected_device = 1;
+	      nest->info.Type = FLOCKDEV;
+	      global_dev = nest;
+	    }else {
+	      #ifdef DEBUG
+	        printf("An error has occured while attempting to verify the connection to the Ascension. \n\p");
+	      #endif
+	    }
+	  }
+	}
+	if( ( have_polhemuslib ) && ( connected_device == -1 ) ) {
+	  printf("Looking for Polhemus..\n\r");
+	  //have the library auto-search for the device
+	  //if a value other than zero was returned we found something
+	  if ( (fastrak->info.filep = fastrak->FindDev( &Manager )) != 0 ) {
+            //check that the device is connected
+  	    if( ( fastrak->VerifyDev( fastrak->info.filep ) ) != 0 ){
+	      printf("Verified the Polhemus\n\r");
+	      fastrak->info.NumberOfSensors = fastrak->GetNumberOfSensors(fastrak->info);
+  	      connected_device = 1;
+	      fastrak->info.Type = FASTRAK;
+	      global_dev = fastrak;
+  	    }else {
+	      #ifdef DEBUG
+	        printf("An error has occured while attempting to verify the connection to the Fastrak. \n\p");
+	      #endif
+	    }
+	  }
+	}
+	if( ( have_joylib ) && ( connected_device == -1 ) ) {
+	  printf("Looking for Joystick..\n\r");	
+	  //have the library auto-search for the device
+	  //if a value other than zero was returned we found something
+	  if( (joy->info.filep = joy->FindDev( &Manager )) != 0 ) {
+            //check that the device is connected
+  	    if( ( joy->VerifyDev( joy->info.filep ) ) != 0 ){
+	      printf("Verified the Joystick\n\r");
+              joy->info.NumberOfSensors = joy->GetNumberOfSensors( joy->info );
+ connected_device = 1;
+              joy->info.Type = JOYDEV;
+              global_dev = joy;
+            }else {
+              #ifdef DEBUG
+                printf("An error has occured while attempting to verify the connection to the Joystick. \n\p");
+              #endif
+            }
+          }
+        }*/
+        if( ( have_spacelib ) && ( connected_device == -1 ) ) {
+	  printf("Looking for Spaceball..\n\r");
+          //have the library auto-search for the device
+          //if a value other than zero was returned we found something
+          if( (space->info.filep = space->FindDev( &Manager )) != 0 ) {
+            //check that the device is connected
+            if( ( space->VerifyDev( space->info.filep ) ) != 0 ){
+              printf("Verified the Spaceball\n\r");
+              space->info.NumberOfSensors = space->GetNumberOfSensors( space->info );
+ connected_device = 1;
+              space->info.Type = SPACEDEV;
+              global_dev = space;
+            }else {
+              #ifdef DEBUG
+                printf("An error has occured while attempting to verify the connection to the Spaceball. \n\p");
+              #endif
+            }
+          }
+        }
+      }
 #endif
-	// printf ("FrontEnd, filename %s\n",filename);
+   /* create the display thread. */
+        pthread_create (&thread1, NULL, (void *(*)(void *))&displayThread, (void *)threadmsg);
+                                                                                                          
+#ifndef AQUA
+        /* create the Perl parser thread */
+        initializePerlThread(PERLPATH);
+#endif
+        while (!isPerlinitialized()) {usleep(50);}
+                                                                                                          
+        /* create the Texture parser thread */
+        initializeTextureThread();
+        while (!isTextureinitialized()) {usleep(50);}
+                                                                                                          
+        /* get the Netscape Browser name, if we are pluggind */
+        NetscapeName[0] = (char)NULL;
+        if (RUNNINGASPLUGIN) {
+                if (read(_fw_FD, NetscapeName,MAXNETSCAPENAMELEN) < 0) {
+                }
+        }
+                                                                                                          
+                                                                                                          
+        /* create the initial scene, from the file passed in
+        and place it as a child of the rootNode. */
+                                                                                                          
+        filename = (char *)malloc(1000 * sizeof (char));
+        pwd = (char *)malloc(1000 * sizeof (char));
+        getcwd(pwd,1000);
+#ifndef AQUA
+        /* if this is a network file, leave the name as is. If it is
+         * a local file, prepend the path to it */
+        if (checkNetworkFile(argv[optind])) {
+                strcpy (filename,argv[optind]);
+                BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
+                strcpy(BrowserFullPath,pwd);
+                                                                                                          
+        } else {
+                                                                                                          
+                makeAbsoluteFileName(filename, pwd, argv[optind]);
+                BrowserFullPath = (char *)malloc ((strlen(filename)+1) * sizeof(char));
+                strcpy (BrowserFullPath,filename);
+        }
+#endif
+
+        // printf ("FrontEnd, filename %s\n",filename);
 	perlParse(FROMURL, filename,TRUE,FALSE,
-		rootNode, offsetof (struct VRML_Group, children),&tmp);
+		rootNode, offsetof (struct VRML_Group, children),&tmp,TRUE);
 
 	free(filename); free(pwd);
 
@@ -345,7 +596,7 @@ int main (int argc, char **argv) {
 void displayThread() {
 	int count;
 #ifndef AQUA
-	openMainWindow(Disp,&Win,&globalContext);
+	openMainWindow(Disp,(unsigned int *)&Win,&globalContext);
 #endif
 
 	glpOpenGLInitialize();

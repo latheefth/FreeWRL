@@ -114,7 +114,7 @@ void readpng_cleanup(int free_image_data);
 /************************************************************************/
 /* start up the texture thread */
 void initializeTextureThread() {
-	pthread_create (&loadThread, NULL, (void *)&_textureThread, NULL);
+	pthread_create (&loadThread, NULL, (void*(*)(void *))&_textureThread, NULL);
 }
 
 /* is the texture thread initialized yet? */
@@ -144,7 +144,7 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 		if (thisurl.n != 0) {
 			/* we have an image specified for this face */
 
-			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, thistex, 0, 0);
+			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, (GLuint *)thistex, 0, 0);
 
 			/* if we do not have an image for this Background face yet, dont draw
 			 * the quads */
@@ -170,7 +170,7 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 	
 	bind_image(IMAGETEXTURE, node->__parenturl, 
 		node->url, 
-		&node->__texture,node->repeatS,node->repeatT);
+		(GLuint*)&node->__texture,node->repeatS,node->repeatT);
 }
 
 /* load in a texture, if possible */
@@ -188,7 +188,7 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 	}
 	bind_image(PIXELTEXTURE, node->image, 
 		mynull, 
-		&node->__texture,node->repeatS,node->repeatT);
+		(GLuint*)&node->__texture,node->repeatS,node->repeatT);
 }
 
 /* load in a texture, if possible */
@@ -227,7 +227,7 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 
 	bind_image(MOVIETEXTURE, node->__parenturl, 
 		node->url, 
-		&node->__texture0_,node->repeatS,node->repeatT);
+		(GLuint*)&node->__texture0_,node->repeatS,node->repeatT);
 
 	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
 
@@ -291,8 +291,8 @@ void do_possible_multitexture(int texno) {
 		framecount = loadparams[texno].frames;
 
 		/* ok, a series of textures - eg, an mpeg file - needs unsquishing */
-		texnums = malloc (sizeof(GLuint) * framecount);
-		glGenTextures(framecount,texnums);
+		texnums = (int*)malloc (sizeof(GLuint) * framecount);
+		glGenTextures(framecount,(GLuint *)texnums);
 
 		/* Irix returns "wierd" numbers; this appears to work
 		   across all platforms */
@@ -316,8 +316,8 @@ void do_possible_multitexture(int texno) {
 			memcpy (&loadparams[texnums[st]], &loadparams[texno], sizeof (struct loadTexParams));
 
 			/* elements that are different from the "standard" */
-			loadparams[texnums[st]].texdata = malloc (imageDatasize);
-			loadparams[texnums[st]].texture_num = &texnums[st];
+			loadparams[texnums[st]].texdata =(unsigned char *) malloc (imageDatasize);
+			loadparams[texnums[st]].texture_num = (unsigned int *)&texnums[st];
 			loadparams[texnums[st]].frames=1;
 
 			/* copy the segment out of the squished data to this pure frame */
@@ -383,7 +383,7 @@ void new_do_texture(int texno) {
 			if (ry > global_texSize) ry = global_texSize;
 
 			/* We have to scale */
-			dest = malloc((unsigned) (depth) * rx * ry);
+			dest = (unsigned char *)malloc((unsigned) (depth) * rx * ry);
 			gluScaleImage((unsigned)
 			     ((depth)==1 ? GL_LUMINANCE : 
 			     ((depth)==2 ? GL_LUMINANCE_ALPHA : 
@@ -434,7 +434,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		/* check to see if "isloaded" and "loadparams" is ok 
 			size-wise. if not,
 			make them larger, by 16 */
-		checkAndAllocTexMemTables(texture_num, 16);
+		checkAndAllocTexMemTables((int *)texture_num, 16);
 	
 		glGenTextures(1,&loadparams[*texture_num].genned_texture);
 		if (TexVerbose) printf ("just genned texture %d\n",*texture_num);
@@ -442,7 +442,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,
 	   make them larger, by 16 */
-	checkAndAllocTexMemTables(texture_num, 16);
+	checkAndAllocTexMemTables((int *)texture_num, 16);
 
 	/* set the texture depth - required for Material diffuseColor selection */
 	last_texture_depth = loadparams[*texture_num].depth;
@@ -513,8 +513,8 @@ void checkAndAllocTexMemTables(int *texture_num, int increment) {
 		/* printf ("bind_image, must allocate a bunch more space for flags\n"); */
 		prev_max_texture = max_texture;
 		max_texture+=increment;
-		isloaded = realloc(isloaded, sizeof(*isloaded) * max_texture);
-		loadparams = realloc(loadparams, sizeof(*loadparams) * max_texture);
+		isloaded = (unsigned char *)realloc(isloaded, sizeof(*isloaded) * max_texture);
+		loadparams = (loadTexParams *)realloc(loadparams, sizeof(*loadparams) * max_texture);
 
 		/* printf ("zeroing from %d to %d\n",prev_max_texture,max_texture); */
 		for (count = prev_max_texture; count < (int)max_texture; count++) {
@@ -567,11 +567,11 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	}	
 
 	/* nope, try to find this file. */
-	filename = malloc(1000);
+	filename = (char *)malloc(1000);
 	
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(loadparams[*texnum].parenturl,xx));
-	mypath = malloc ((sizeof(char)* count)+1);
+	count = strlen(SvPV(loadparams[*texnum].parenturl,(STRLEN &)xx));
+	mypath = (char *)malloc ((sizeof(char)* count)+1);
 	
 	if ((!filename) || (!mypath)) {
 		printf ("texture thread can not malloc for filename\n");
@@ -579,7 +579,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	}
 	
 	/* copy the parent path over */
-	strcpy (mypath,SvPV(loadparams[*texnum].parenturl,xx));
+	strcpy (mypath,SvPV(loadparams[*texnum].parenturl,(STRLEN&)xx));
 	
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *)rindex(mypath,'/');
@@ -591,7 +591,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < loadparams[*texnum].url.n) {
-		thisurl = SvPV(loadparams[*texnum].url.p[count],xx);
+		thisurl = SvPV(loadparams[*texnum].url.p[count],(STRLEN&)xx);
 	
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
@@ -660,7 +660,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	    (strncmp(firstBytes,firstJPG,4) != 0) && 
 	    (strncmp(firstBytes,firstMPGa,4) != 0) && 
 	    (strncmp(firstBytes,firstMPGb,4) != 0)) {
-		sysline = malloc(sizeof(char)*(strlen(filename)+100));
+		sysline = (char *)malloc(sizeof(char)*(strlen(filename)+100));
 		if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
 		sprintf(sysline,"%s %s /tmp/freewrl%d.png",
 				CONVERT,filename,getpid());
@@ -674,7 +674,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	}
 
 	/* save filename in data structure for later comparisons */
-	loadparams[*texnum].filename = malloc(sizeof(char) * strlen(filename)+1);
+	loadparams[*texnum].filename = (char *)malloc(sizeof(char) * strlen(filename)+1);
 	strcpy (loadparams[*texnum].filename,filename);
 	free (filename);
 	if (TexVerbose) 
@@ -700,7 +700,7 @@ void _textureThread(void) {
 		if (TexVerbose) 
 			printf ("tex thread, currentlyworking on %d\n",currentlyWorkingOn);
 
-		if (findTextureFile(loadparams[currentlyWorkingOn].texture_num,
+		if (findTextureFile((int *)loadparams[currentlyWorkingOn].texture_num,
 			loadparams[currentlyWorkingOn].type,&remove)) {
 	
 			/* is this a pixeltexture? */
@@ -749,9 +749,9 @@ void __reallyloadPixelTexture() {
 	int xx;
 	int count;
 
-	tptr = SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
+	tptr = (unsigned char *)SvPV(loadparams[currentlyWorkingOn].parenturl,(STRLEN &)xx);
 	while (isspace(*tptr))tptr++;
-	if (sscanf (tptr, "%i%i%i",&wid,&hei,&depth)==3) {
+	if (sscanf ((const char *)tptr, "%i%i%i",&wid,&hei,&depth)==3) {
 		if ((depth < 1) || (depth >4)) {
 			printf ("PixelTexture, depth %d out of range, assuming 1\n",depth);
 			depth = 1;
@@ -765,7 +765,7 @@ void __reallyloadPixelTexture() {
 		/* have header ok, now read in all values */
 		count = 0; tctr = 0;
 		
-		texture = malloc (wid*hei*4);
+		texture = (unsigned char *)malloc (wid*hei*4);
 		
 		
 		while (count < (int)(wid*hei)) {
@@ -773,7 +773,7 @@ void __reallyloadPixelTexture() {
 			/* skip TO the number */
 			while (!isspace(*tptr))tptr++;
 			while (isspace(*tptr))tptr++;
-			if (sscanf (tptr,"%lx",&inval) != 1) {
+			if (sscanf ((const char *)tptr,"%lx",&inval) != 1) {
 				printf("PixelTexture: expected %d pixels, got %d\n",wid*hei,count);
 				isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
 				break;
@@ -897,6 +897,8 @@ void __reallyloadImageTexture() {
 	unsigned rowcount, columncount;
 	int dp;
 
+	int tempInt;
+
 	/* jpeg file detection */
 	size_t rval;
 	char teststring[10];
@@ -908,7 +910,7 @@ void __reallyloadImageTexture() {
 	infile = fopen(filename,"r");
 
 	if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
-
+#ifdef DOJPEG
 		/* it is not a png file - assume a jpeg file */
 		/* start from the beginning again */
 		rewind (infile);
@@ -926,7 +928,7 @@ void __reallyloadImageTexture() {
 		if (setjmp(jerr.setjmp_buffer)) {
 			/* if we are here, we have a JPEG error */
 			printf ("FreeWRL Image problem - could not read %s\n", filename);
-			jpeg_destroy_compress(&cinfo);
+			jpeg_destroy_compress((j_compress_ptr)&cinfo);
 			fclose (infile);
 			isloaded[texture_num] = INVALID;
 			return;
@@ -939,16 +941,18 @@ void __reallyloadImageTexture() {
 		jpeg_stdio_src(&cinfo, infile);
 
 		/* Read file header, set default decompression parameters */
-		(void) jpeg_read_header(&cinfo, TRUE);
+		//(void) jpeg_read_header(&cinfo, TRUE);
+		tempInt = jpeg_read_header(&cinfo, TRUE);
+
 
 		/* Start decompressor */
 		(void) jpeg_start_decompress(&cinfo);
 
 
 
-		row = malloc(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
+		row = (JSAMPLE*)malloc(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
 		rowptr[0] = row;
-		image_data = malloc(cinfo.output_width * sizeof (JSAMPLE) * cinfo.output_height * cinfo.output_components);
+		image_data = (unsigned char *)malloc(cinfo.output_width * sizeof (JSAMPLE) * cinfo.output_height * cinfo.output_components);
 		/* Process data */
 		for (rowcount = 0; rowcount < cinfo.output_height; rowcount++) {
 			nrows = jpeg_read_scanlines(&cinfo, rowptr, 1);
@@ -980,6 +984,9 @@ void __reallyloadImageTexture() {
 			((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP, 
 			((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
 			GL_LINEAR);
+#else
+printf ("jpegs currently commented out - JAS\n");
+#endif
 	} else { 
 		if (rc != 0) {
 		isloaded[texture_num] = INVALID;
@@ -1032,7 +1039,7 @@ void __reallyloadMovieTexture () {
 
 	/* store the "generic" data */
 	store_tex_info(currentlyWorkingOn,
-		(int)depth,(int)x,(int)y,(char *)ptr,
+		(int)depth,(int)x,(int)y,(unsigned char *)ptr,
 		((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP,
 		((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_NEAREST);

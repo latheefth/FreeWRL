@@ -77,7 +77,7 @@ void FW_tess_edgeflag(GLenum flag) {
 }
 
 void FW_IFS_tess_vertex(void *p) {
-	int *dp=p;
+	int *dp=(int*)p;
 
 	if (global_IFS_Coord_count == TESS_MAX_COORDS) {
 		/* printf ("FW_IFS_tess_vertex, too many coordinates in this face, change TESS_MAX_COORDS\n"); */

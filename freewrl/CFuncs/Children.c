@@ -71,8 +71,8 @@ void sortChildren (struct Multi_Node ch) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
 			//printf ("comparing %d %d\n",i,j);
-			a = ch.p[j-1];
-			b = ch.p[j];
+			a = (struct VRML_Box *)ch.p[j-1];
+			b = (struct VRML_Box *)ch.p[j];
 
 			if (a->_dist > b->_dist) {
 				//printf ("have to switch %d %d\n",i,j);
@@ -99,7 +99,7 @@ void dirlightChildren(struct Multi_Node ch) {
 
 	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
 	for(i=0; i<ch.n; i++) {
-		struct VRML_Box *p = ch.p[i];
+		struct VRML_Box *p = (struct VRML_Box *)ch.p[i];
 		struct VRML_Virt *v = *(struct VRML_Virt **)p;
 
 		if(v->rend == DirectionalLight_Rend) 
@@ -112,7 +112,7 @@ void normalChildren(struct Multi_Node ch) {
 	int i;
 
 	for(i=0; i<ch.n; i++) {
-		struct VRML_Box *p = ch.p[i];
+		struct VRML_Box *p = (struct VRML_Box *)ch.p[i];
 		struct VRML_Virt *v = *(struct VRML_Virt **)p;
 		/* Hmm - how much time does this consume? */
 		/* Not that much. */
@@ -166,7 +166,7 @@ void groupingChild (struct VRML_Group *this_) {
 		this_->bboxSize.c[2] = this_->_extent[2];
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,this_);
+		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct VRML_Box *)this_);
 		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
@@ -269,7 +269,7 @@ void transformChild (struct VRML_Transform *this_) {
 		propagateExtent(this_->bboxCenter.c[0],
 				this_->bboxCenter.c[1],
 				this_->bboxCenter.c[2],
-				this_);
+				(struct VRML_Box*)this_);
 		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
@@ -554,7 +554,7 @@ void collisionChild(struct VRML_Collision *this_) {
  * through it all when rendering only for nodes. */
 
 void update_renderFlag(void *ptr, int flag) {
-	struct VRML_Box *p = ptr;
+	struct VRML_Box *p = (struct VRML_Box *)ptr;
 	int i;
 
 	/* send notification up the chain */

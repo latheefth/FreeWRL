@@ -141,7 +141,7 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 		*_costr,
 		*_c_format = "o";
 
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+	if ((brow = (BrowserNative *)JS_GetPrivate(context, obj)) == NULL) {
 		printf("JS_GetPrivate failed in VrmlBrowserReplaceWorld.\n");
 		return JS_FALSE;
 	}
@@ -199,7 +199,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 		*_costr[2],
 		*_c_format = "o o";
 
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+	if ((brow = (BrowserNative *)JS_GetPrivate(context, obj)) == NULL) {
 		fprintf(stderr,
 				"JS_GetPrivate failed in VrmlBrowserLoadURL.\n");
 		return JS_FALSE;
@@ -259,7 +259,7 @@ VrmlBrowserSetDescription(JSContext *context, JSObject *obj,
 	char *_c, *_c_args = "SFString description", *_c_format = "s";
 	BrowserNative *brow;
 
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+	if ((brow = (BrowserNative *)JS_GetPrivate(context, obj)) == NULL) {
 		fprintf(stderr,
 				"JS_GetPrivate failed in VrmlBrowserSetDescription.\n");
 		return JS_FALSE;
@@ -292,7 +292,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 	BrowserNative *brow;
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
 
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+	if ((brow = (BrowserNative *)JS_GetPrivate(context, obj)) == NULL) {
 		fprintf(stderr,
 				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromString.\n");
 		return JS_FALSE;
@@ -343,7 +343,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 		*_costr[2],
 		*_c_format = "o o s";
 
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+	if ((brow = (BrowserNative *)JS_GetPrivate(context, obj)) == NULL) {
 		fprintf(stderr,
 				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromURL.\n");
 		return JS_FALSE;
@@ -469,7 +469,7 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 	size_t len;
 
 
-	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
+	if ((brow = (BrowserNative *)JS_GetPrivate(context, obj)) == NULL) {
 		printf("JS_GetPrivate failed in doVRMLRoute called from %s.\n",
 				callingFunc);
 		return JS_FALSE;
@@ -514,7 +514,7 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 
 		len = strlen(_costr[0]) + strlen(_cstr[0]) +
 			strlen(_costr[1]) + strlen(_cstr[1]) + 7;
-		_route = JS_malloc(context, len * sizeof(char *));
+		_route = (char *)JS_malloc(context, len * sizeof(char *));
 		sprintf(_route, "%s %s %s %s",
 				_costr[0], _cstr[0],
 				_costr[1], _cstr[1]);

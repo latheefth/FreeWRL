@@ -157,7 +157,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 
 	if (FW_pointctr >= coordmaxsize) {
 		coordmaxsize+=800;
-		FW_rep_->coord = realloc(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
+		FW_rep_->coord = (float *)realloc(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
 
 		if (!(FW_rep_->coord)) { 
 			printf ("realloc failed - out of memory \n");
@@ -386,7 +386,8 @@ void FW_draw_character (FT_Glyph glyph) {
 void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length, 
 		double maxext, double spacing, double mysize, unsigned int fsparam,
 		struct VRML_PolyRep *rp) {
-	unsigned char *str = "xx"; // string pointer- initialization gets around compiler warning
+	//unsigned char *str = "xx"; // string pointer- initialization gets around compiler warning
+	unsigned char *str; // string pointer- initialization gets around compiler warning
 	unsigned int i,row;
 	double shrink = 0;
 	double rshrink = 0;
@@ -475,13 +476,13 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
               x_size = x_size * font_face[myff]->units_per_EM/1000.0;
 
 	/* if we have a direct string, then we only have ONE, so initialize it here */
-	if (directstring != 0) str = directstring;
+	if (directstring != 0) str = (unsigned char *)directstring;
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		if (directstring == 0) str = SvPV(ptr[row],xx);
+		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],(STRLEN&)xx);
 
-		for(i=0; i<strlen(str); i++) {
+		for(i=0; i<strlen((const char *)str); i++) {
 			FW_Load_Char(str[i]);
 			char_count++;
 		}
@@ -495,8 +496,8 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	est_tri = char_count*TESS_MAX_COORDS;
 	coordmaxsize=est_tri;
 	cindexmaxsize=est_tri;
-	FW_rep_->cindex=malloc(sizeof(*(FW_rep_->cindex))*est_tri);
-	FW_rep_->coord = malloc(sizeof(*(FW_rep_->coord))*est_tri*3);
+	FW_rep_->cindex=(int*)malloc(sizeof(*(FW_rep_->cindex))*est_tri);
+	FW_rep_->coord = (float*)malloc(sizeof(*(FW_rep_->coord))*est_tri*3);
 	if (!(FW_rep_->coord && FW_rep_->cindex)) {
 		printf ("can not malloc memory for text triangles\n");
 		exit(1);
@@ -509,9 +510,9 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	   double l;
 	   int counter = 0;
 	   for(row = 0; row < numrows; row++) {
-		if (directstring == 0) str = SvPV(ptr[row],xx);
-		l = FW_extent(counter,(int) strlen(str));
-		counter += strlen(str);
+		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],(STRLEN&)xx);
+		l = FW_extent(counter,(int) strlen((const char *)str));
+		counter += strlen((const char *)str);
 		if(l > maxlen) {maxlen = l;}
 	   }
 
@@ -536,12 +537,12 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	for(row = 0; row < numrows; row++) {
 	   	double rowlen;
 
-		if (directstring == 0) str = SvPV(ptr[row],xx);
+		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],(STRLEN&)xx);
 		if (TextVerbose) 
 				printf ("text2 row %d :%s:\n",row, str);
 	        pen_x = 0.0;
 		rshrink = 0.0;
-		rowlen = FW_extent(counter,(int) strlen(str));
+		rowlen = FW_extent(counter,(int) strlen((const char *)str));
 		if((row < nl) && (APPROX(length[row],0.0))) {
 			rshrink = length[row] / OUT2GL(rowlen);
 		}
@@ -561,7 +562,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 		}
 
 
-		for(i=0; i<strlen(str); i++) {
+		for(i=0; i<strlen((const char *)str); i++) {
 			/* FT_UInt glyph_index; */
 			/* int error; */
 			int x;
@@ -600,14 +601,14 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 
 			if (indx_count > (cindexmaxsize-400)) {
 				cindexmaxsize +=TESS_MAX_COORDS;
-				FW_rep_->cindex=realloc(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
+				FW_rep_->cindex=(int *)realloc(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
 				if (!(FW_rep_->cindex)) {
 					printf ("out of memory at realloc for cindex\n");
 					exit(1);
 				}
 			}
 		}
-		counter += strlen(str);
+		counter += strlen((const char *)str);
 
 		pen_y += spacing * y_size;
    	}
@@ -622,7 +623,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	}
 
 	/* now, generate normals */
-	FW_rep_->normal = malloc(sizeof(*(FW_rep_->normal))*indx_count*3);
+	FW_rep_->normal = (float *)malloc(sizeof(*(FW_rep_->normal))*indx_count*3);
 	for (i = 0; i<(unsigned int)indx_count; i++) {
 		FW_rep_->normal[i*3+0] = 0.0;
 		FW_rep_->normal[i*3+1] = 0.0;
@@ -632,7 +633,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 
 	/* do we have texture mapping to do? */
 	if (HAVETODOTEXTURES) {
-		FW_rep_->tcoord = malloc(sizeof(*(FW_rep_->tcoord))*(FW_pointctr+1)*3);
+		FW_rep_->tcoord = (float *)malloc(sizeof(*(FW_rep_->tcoord))*(FW_pointctr+1)*3);
 		if (!(FW_rep_->tcoord)) {
 			printf ("can not malloc memory for text textures\n");
 		} else {

@@ -27,6 +27,64 @@
 #include <X11/keysym.h>
 #endif
 
+//Added Nov 19/04 M. Ward
+#ifndef AQUA
+
+  #ifdef do_open
+    #undef do_open
+    #undef do_close
+  #endif
+  //includes for the input device libraries
+  //#include "libmio.h"
+  //#include "libmread.h"
+  #include "interface.h"
+  #include <dlfcn.h>
+  #include "dev_core.h"
+//these are externs for the device input libraries
+  extern void* cyberlib; //this is for the cyberglove library( unused at this time Nov 18/04 )
+  extern destroy_t* destroy_cyber; //this will destroy our copy of the library
+  extern void* flocklib;  //this is for the ascension flock library
+  extern destroy_t* destroy_flock;
+  extern void* joylib;  //this is for the joystick library
+  extern destroy_t* destroy_joy;
+  extern void* spacelib;  //this is for the spaceball library
+  extern destroy_t* destroy_space;
+  extern void* pollib;  //this is for the polhemus fastrak library
+  extern destroy_t* destroy_polhemus;
+  //these are for the 'copies' of the libraries to go into
+  extern device *glove;
+  extern device *fastrak;
+  extern device *nest;
+  extern device *joy;
+  extern device *space;
+  extern device *global_dev;
+ //these are here to track the presence of the library
+  extern int have_cyberlib;
+  extern int have_flocklib;
+  extern int have_spacelib;
+  extern int have_joylib;
+  extern int have_polhemuslib;
+  extern int connected_device;
+  extern int use_external_input;
+
+  //added Nov 25/04 M. Ward
+  extern void initializeScript(int num,int evIn);
+
+  //this is local storage for the external data and should be large enough for all of the data we  //may ever get
+  float device_data[128];
+  //data sotrage for the joystick
+  float Front_Back;
+  float Left_Right;
+  #define ANGLESCALE 0.000001
+  #define SCALEBY 5.0
+
+  //xwindows fake out vars
+  XPointerMovedEvent *fake_mouse;
+  long fake_event_mask = PointerMotionMask;
+
+#endif
+
+
 #ifndef AQUA
 Cursor arrowc;
 Cursor sensorc;
@@ -62,7 +120,8 @@ void get_collisionoffset(double *x, double *y, double *z);
 struct SensStruct {
 	void *fromnode;
 	int  datanode;
-	void (*interpptr)(int, int, int);
+	//void (*interpptr)(int, int, int);
+	void (*interpptr)(void *, int, int);
 };
 struct SensStruct *SensorEvents = 0;
 int num_SensorEvents = 0;
@@ -143,6 +202,15 @@ void EventLoop() {
 
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
+	//test code
+	float  cp, sp, cr, sr, cy, sy;
+	float qw,qx,qy,qz;
+	float offsets[128];
+	//this si to test Sarahs idea
+	float jitter_control[128];
+        int loop,loop2;
+ 	float trans;
+
 
 	//printf ("start of MainLoop\n");
 
@@ -157,6 +225,33 @@ void EventLoop() {
 		#ifdef PROFILE
 		printf ("time setup for debugging\n");
 		timeA = timeB = timeC = timeD = timeE = timeF =0.0; 
+		//Added M. Ward Dec 15/04
+	 	//this is to start the data flowing from the external input
+		if ( use_external_input == 1 ) {
+		  //this is for the polhemus
+		  if( global_dev->info.Type == FASTRAK )
+		    global_dev->AlignSensor( global_dev->info );
+		  global_dev->StartData( global_dev->info );
+		  //this code is only need on the movable 6dof sensors we have(ascension and polhemus)
+		  if((global_dev->info.Type == FASTRAK)||(global_dev->info.Type == FLOCKDEV )) {
+                    memset( &offsets[0], 0, 128 );
+  	  	    while( offsets[0] == 0 ) {
+  	  	      if( global_dev->IsData() ) {
+                        //clear the data buffer
+                        memset( &offsets[0], 0, 128 );
+            	        //now read the data
+	                global_dev->ReadData( global_dev->info, &offsets[0] );
+	  	      }
+		    }
+		    //copy the data into the jitter buffer
+		    for(loop = 0; loop <6; loop++ ){
+		      jitter_control[loop] = offsets[loop];
+		    }
+		    printf("Offset data: %f %f %f Q: %f %f %f ::\n\r",offsets[0],offsets[1],offsets[2],offsets[3],offsets[4],offsets[5]);
+	          }
+		  //end of 6dof code
+		  printf("Main Window is %d wide and %d tall\n\r", screenWidth, screenHeight );
+		}
 		#endif
 	} else {
 		// rate limit ourselves to about 65fps. 
@@ -223,7 +318,145 @@ void EventLoop() {
 	#endif
 
 	/* Viewer move viewpoint */
-	handle_tick();
+        if( use_external_input == -1 )
+ 	  handle_tick();
+	else {
+	  //check for data
+	  if( global_dev->IsData() ) {
+	    //clear the data buffer
+	    memset( &device_data[0], 0, 128 );
+	    //now read the data
+	    if((global_dev->ReadData( global_dev->info, &device_data[0] )) > 0 ){
+              switch( global_dev->info.Type ) {
+	        case FLOCKDEV:
+		  //printf("Incomming Flock data: %f %f %f R: %f %f %f ::\n\r",device_data[0],device_data[1],device_data[2],device_data[3],device_data[4],device_data[5]);
+  	  	  //do the jitter check
+		  for( loop = 0; loop <6;loop++ ){
+		    //this code exsists in order to try and prevent the seemingly random changes
+		    //in data from the ascension. Best guess these data glitches are a result
+		    //of an I/O mixup possibly due to access time and buffering, but I really
+		    //don't know.
+		    if(fabs(fabs(device_data[loop])-fabs(jitter_control[loop]))<=0.3 )
+		      device_data[loop] = jitter_control[loop];
+		    //reload the jitter buffer on the way
+		    jitter_control[loop] = device_data[loop];
+		  }
+		
+		  //use the offset data to center the sensor regardless of position. we also 
+		  //need to change the data order around due to the difference in
+		  //the vrml coord system and the ascension, at least for my setup.
+		  device_data[0] = (device_data[1] - offsets[1])/SCALEBY;
+		  //invert the 'Y' position data so that up is up
+		  device_data[1] = -1 *(device_data[2] - offsets[2])/SCALEBY;
+		  device_data[2] = ((jitter_control[0] - offsets[0])/SCALEBY);
+		
+		  //radians conversion
+//		  printf("Zeroed Flock data: %f %f %f R: %f %f %f ::\n\r",device_data[0],device_data[1],device_data[2],(device_data[3]),(device_data[4]),(device_data[5]) );
+		  //the subtraction is to point us in the 'correct' direction on startup
+		  device_data[3] = ( (device_data[3] - 180.0)/180.0 )*3.1415;
+    		  device_data[4] = ( ( device_data[4]/180.0 )*3.1415);
+    		  device_data[5] = ( ( device_data[5]/180.0 )*3.1415);
+		  //NOTE: these adjustments work well enough for me. Change as you see fit.
+		  //If the sensor is rotated along the y-axis more than 90 degrees the 
+		  //'adjustments' need to be removed or else they have the opposite effect.
+		  // So my solution is to track the y rotation and change the value.  
+		  if( (device_data[3] <= -4.5 ) || (device_data[3] >= -1.5) ) {
+		    //this is to 'correct' the pitch direction
+    		    device_data[4] = -1 * device_data[4];
+		    //this is here to 'correct' the roll direction. Remove the -1 if you don't have the sensor facing the transmitter
+    		    device_data[5] = -1 * device_data[5];
+		  }
+		  //the order for freewrl should be xyz, and the order from the ascension is zyx
+    		  cp = cos((float)device_data[3]/2); sp = sin((float)device_data[3]/2);
+    		  cr = cos((float)device_data[4]/2); sr = sin((float)device_data[4]/2);
+    		  cy = cos((float)device_data[5]/2); sy = sin((float)device_data[5]/2);
+    		  device_data[3] = cr * cp * cy + sr * sp * sy;
+    		  device_data[4] = sr * cp * cy - cr * sp * sy;
+    		  device_data[5] = cr * sp * cy + sr * cp * sy;
+    		  device_data[6] = cr * cp * sy - sr * sp * cy;
+		  
+		  handle_tick_exin( &device_data[0] );
+	          /*qw = device_data[3];
+		  qx = device_data[4];
+		  qy = device_data[5];
+		  qz = device_data[6];	 
+
+		  device_data[3]= atan2(((2.0*qy*qw)-(2.0*qx*qz)), (1.0-(2.0*(qy*qy))-2.0*(qz*qz)));
+ 		  device_data[4]= asin(2.0*qx*qy + 2.0*qz*qw);
+		  device_data[5]= atan2(((2.0*qx*qw)-(2.0*qy*qz)), (1.0-(2.0*(qx*qx))-2.0*(qz*qz)));
+		  device_data[3] = ((device_data[3]/3.1415)*180.0);
+		  device_data[4] = ((device_data[4]/3.1415)*180.0);
+		  device_data[5] = ((device_data[5]/3.1415)*180.0);
+		  printf("Flock  data After: %f %f %f R: %f %f %f ::\n\r",device_data[0],device_data[1],device_data[2],device_data[3],device_data[4],device_data[5]);*/
+		  break;
+	        case FASTRAK:
+		  //do the jitter check
+                  for( loop = 0; loop <6;loop++ ){
+                    if(fabs(fabs(device_data[loop])-fabs(jitter_control[loop])) <= 0.2)
+                      device_data[loop] = jitter_control[loop];
+		    //reload the jitter buffer
+                    jitter_control[loop] = device_data[loop];
+                  }
+		
+		  //The reorder here occurs for the same reason as for the ascension. If you 
+		  //have a different setup then I do(which is very likely) you will need to tweek
+		  //the order and inversions.
+		  //scale the xyz values
+		  device_data[0] = (device_data[1]-offsets[1])/SCALEBY;
+		  //this axis is inverted so that up is up
+		  device_data[1] = -1 * ((device_data[2]-offsets[2])/SCALEBY);
+		  //radians conversion
+		  //the subtraction is to point us in the 'correct' direction on startup
+                  device_data[3] = ( (device_data[3]- 180.0 )/180.0 )*3.1415;
+                  device_data[4] = ( device_data[4]/180.0 )*3.1415;
+                  device_data[5] = -1 * (( device_data[5]/180.0 )*3.1415);
+	          if( (device_data[3] <= -4.5 ) || (device_data[3] >= -1.5) ) {
+		    device_data[4] = -1 * device_data[4];
+		    //this is here so that in theory when we turn around we will be moving in
+		    //the right direction.
+		    device_data[2] = -1 * ((jitter_control[0]-offsets[0])/SCALEBY);
+		  }
+  		  //create quat	
+	  	  cp = cos((float)device_data[3]/2); sp = sin((float)device_data[3]/2);
+                  cr = cos((float)device_data[4]/2); sr = sin((float)device_data[4]/2);
+                  cy = cos((float)device_data[5]/2); sy = sin((float)device_data[5]/2);
+                  device_data[3] = cr * cp * cy + sr * sp * sy;
+                  device_data[4] = sr * cp * cy - cr * sp * sy;
+                  device_data[5] = cr * sp * cy + sr * cp * sy;
+                  device_data[6] = cr * cp * sy - sr * sp * cy;
+		  handle_tick_exin( &device_data[0] );
+	          break;
+	        case JOYDEV:
+                  break;
+	        case SPACEDEV:
+		  break;
+	        case VTI:
+		  //this is alos uncertain at this point
+		  break;
+	        default:
+		  break;
+	      }
+	    }
+	  }
+	  //if there was no data but we have a joystick create a syntheitc event
+	  /*if( (!global_dev->IsData()) && (global_dev->info.Type == JOYDEV) ) {
+	    device_data[0] = 0.0;
+            device_data[1] = 0.0;
+            device_data[2] = Front_Back;
+            cp = cos(0.0);
+            sp = sin(0.0);
+            cr = cos(0.0);
+            sr = sin(0.0);
+            cy = cos((float)(Left_Right*ANGLESCALE)/2);
+            sy = sin((float)(Left_Right*ANGLESCALE)/2);
+            device_data[3] = cr * cp * cy + sr * sp * sy;
+            device_data[4] = sr * cp * cy - cr * sp * sy;
+            device_data[5] = cr * sp * cy + sr * cp * sy;
+            device_data[6] = cr * cp * sy - sr * sp * cy;
+            handle_tick_exin( &device_data[0] );
+	  }*/
+
+	}
 
 	#ifdef PROFILE	
 	gettimeofday (&mytime,&tz);
@@ -783,16 +1016,17 @@ int rayHit() {
 /* set a node to be sensitive, and record info for this node */
 void setSensitive(void *ptr,int datanode,char *type) {
 	struct VRML_Box *p;
-	void (*myp)(unsigned *);
-
+//	void (*myp)(unsigned *);
+	//Changed Nov 25/04 M. Ward
+	void (*myp)(void *, int, int);
 	//printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);
 
-	if (strncmp("TouchSensor",type,10) == 0) { myp =  (void *)do_TouchSensor;
-	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = (void *)do_GeoTouchSensor;
-	} else if (strncmp("PlaneSensor",type,10) == 0) { myp = (void *)do_PlaneSensor;
-	} else if (strncmp("CylinderSensor",type,10) == 0) { myp = (void *)do_CylinderSensor;
-	} else if (strncmp("SphereSensor",type,10) == 0) { myp = (void *)do_SphereSensor;
-	} else if (strncmp("Anchor",type,10) == 0) { myp = (void *)do_Anchor;
+	if (strncmp("TouchSensor",type,10) == 0) { myp =  do_TouchSensor;
+	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = do_GeoTouchSensor;
+	} else if (strncmp("PlaneSensor",type,10) == 0) { myp = do_PlaneSensor;
+	} else if (strncmp("CylinderSensor",type,10) == 0) { myp = do_CylinderSensor;
+	} else if (strncmp("SphereSensor",type,10) == 0) { myp = do_SphereSensor;
+	} else if (strncmp("Anchor",type,10) == 0) { myp = do_Anchor;
 	} else if (strncmp("ProximitySensor",type,10) == 0) { return; /* its time sensive only */
 
 	} else {
@@ -801,14 +1035,14 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	}
 
 	/* mark THIS node as sensitive. */
-	p = ptr;
+	p = (struct VRML_Box *)ptr;
 	p->_sens = TRUE;
 
 	/* tell mainloop that we have to do a sensitive pass now */
 	HaveSensitive = TRUE;
 
 	/* record this sensor event for clicking purposes */
-	SensorEvents = realloc(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
+	SensorEvents = (struct SensStruct *)realloc(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));
 	if (SensorEvents == 0) {
 		printf ("setSensitive: can not allocate memory\n");
 		num_SensorEvents = 0;
@@ -822,7 +1056,7 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	/* now, put the function pointer and data pointer into the structure entry */
 	SensorEvents[num_SensorEvents].fromnode = ptr;
 	SensorEvents[num_SensorEvents].datanode = datanode;
-	SensorEvents[num_SensorEvents].interpptr = (void *)myp;
+	SensorEvents[num_SensorEvents].interpptr = myp;
 	
 	num_SensorEvents++;
 }
@@ -851,7 +1085,7 @@ void sendSensorEvents(int COS,int ev, int status) {
 			}
 
 
-			SensorEvents[count].interpptr(SensorEvents[count].datanode,
+			SensorEvents[count].interpptr(&SensorEvents[count].datanode,
                                                                 ev,status);
 			return;
 		}
@@ -1036,6 +1270,39 @@ void setSeqTemp(char* file) {
 void doQuit(void) {
 #ifndef AQUA
 	char mystring[20];
+
+
+  //Added Nov 19/04 M. Ward
+  //these functions check for the exsistance of the input libraries and shut them down and off 
+  //if they are currently active.
+  global_dev->StopData( global_dev->info );
+  if( ( global_dev->CloseDevice( global_dev->info ) ) != 0 ) {
+    #ifdef DEBUG
+        printf("Freewrl: Close of the input device did not complete cleanly.  I Suggest you restart the device before next use.\n\r");
+      #endif
+  }
+  if( have_cyberlib == 1 ) {
+    //destroy our copy of the library
+    destroy_cyber( glove );
+    //close the library
+    dlclose( cyberlib );
+  }
+  if( have_flocklib == 1 ) {
+    destroy_flock( nest );
+    dlclose( flocklib );
+  }
+  if( have_joylib == 1 ) {
+    destroy_joy( joy );
+    dlclose( joylib );
+  }
+  if( have_polhemuslib == 1 ) {
+    destroy_polhemus( fastrak );
+    dlclose( pollib );
+  }
+  if( have_spacelib == 1 ) {
+    destroy_space( space );
+    dlclose( spacelib );
+  }
 
 	sprintf (mystring, "QUIT");
 	Sound_toserver(mystring);

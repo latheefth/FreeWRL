@@ -22,8 +22,21 @@
 #include "headers.h"
 #include "Structs.h"
 
+//added M. Ward Dec 6/04
+extern void initialize_smooth_normals();
+extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct VRML_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
+extern int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS);
+extern void IFS_face_normals(struct pt *facenormals,int *faceok,int *pointfaces,int faces,int npoints,int cin,struct SFColor *points,struct VRML_IndexedFaceSet *this_IFS,int ccw);
+extern void verify_global_IFS_Coords(int max);
+extern void IFS_check_normal(struct pt *facenormals,int this_face,struct SFColor *points,int base,struct VRML_IndexedFaceSet *this_IFS,int ccw);
+extern void Extru_tex(int vertex_ind,int tci_ct,int A,int B,int C,struct VRML_PolyRep *this_Elev,int ccw,int tcindexsize);
+extern void Extru_ST_map(int triind_start,int start,int end,float *Vals,int nsec,struct VRML_PolyRep *this_Extru, int tcoordsize);
+extern void Extru_check_normal(struct pt *facenormals,int this_face,int dire,struct VRML_PolyRep *rep_,int ccw);
+
+
+
 void make_text (struct VRML_Text *this_) {
-	struct VRML_PolyRep *rep_ = this_->_intern;
+	struct VRML_PolyRep *rep_ = (VRML_PolyRep *)this_->_intern;
         double spacing = 1.0;
         double size = 1.0;
 	unsigned int fsparams = 0;
@@ -73,12 +86,12 @@ void make_text (struct VRML_Text *this_) {
 		unsigned char *stmp;
 		
 		/* step 0 - is the FontStyle a proto? */ 
-		fsp = this_->fontStyle;
+		fsp = (VRML_FontStyle *)this_->fontStyle;
 		
 		/* step 0.5 - now that we know FontStyle points ok, go for
 		 * the other pointers */
-		lang = SvPV((fsp->language),xx);
-		style = SvPV((fsp->style),xx);
+		lang = (unsigned char *)SvPV((fsp->language),(STRLEN&)xx);
+		style = (unsigned char *)SvPV((fsp->style),(STRLEN&)xx);
 
 		family = fsp->family;	 
 		justify = fsp->justify;
@@ -95,14 +108,14 @@ void make_text (struct VRML_Text *this_) {
 		/* Step 3 - the SFStrings - style and language */
 		/* actually, language is not parsed yet */
 	
-		if (strlen(style)) {
-			if (!strcmp(style,"ITALIC")) {fsparams |= 0x10;}
-			else if(!strcmp(style,"BOLD")) {fsparams |= 0x08;}
-			else if (!strcmp(style,"BOLDITALIC")) {fsparams |= 0x18;}
-			else if (strcmp(style,"PLAIN")) {
+		if (strlen((const char *)style)) {
+			if (!strcmp((const char *)style,"ITALIC")) {fsparams |= 0x10;}
+			else if(!strcmp((const char *)style,"BOLD")) {fsparams |= 0x08;}
+			else if (!strcmp((const char *)style,"BOLDITALIC")) {fsparams |= 0x18;}
+			else if (strcmp((const char *)style,"PLAIN")) {
 				printf ("Warning - FontStyle style %s  assuming PLAIN\n",style);}
 		}
-		if (strlen(lang)) {printf ("Warning - FontStyle - language param unparsed\n");}
+		if (strlen((const char *)lang)) {printf ("Warning - FontStyle - language param unparsed\n");}
 
 
 		/* Step 4 - the MFStrings now. Family, Justify. */
@@ -110,11 +123,11 @@ void make_text (struct VRML_Text *this_) {
 
 		svptr = family.p;
 		for (tmp = 0; tmp < family.n; tmp++) {
-			stmp = SvPV(svptr[tmp],xx);
-			if (strlen(stmp) == 0) {fsparams |=0x20; } 
-			else if (!strcmp(stmp,"SERIF")) { fsparams |= 0x20;}
-			else if(!strcmp(stmp,"SANS")) { fsparams |= 0x40;}
-			else if (!strcmp(stmp,"TYPEWRITER")) { fsparams |= 0x80;}
+			stmp = (unsigned char *)SvPV(svptr[tmp],(STRLEN&)xx);
+			if (strlen((const char *)stmp) == 0) {fsparams |=0x20; } 
+			else if (!strcmp((const char *)stmp,"SERIF")) { fsparams |= 0x20;}
+			else if(!strcmp((const char *)stmp,"SANS")) { fsparams |= 0x40;}
+			else if (!strcmp((const char *)stmp,"TYPEWRITER")) { fsparams |= 0x80;}
 			//else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
 		}
 
@@ -129,16 +142,16 @@ void make_text (struct VRML_Text *this_) {
 		}
 		
 		for (tmp = 0; tmp < tx; tmp++) {
-			stmp = SvPV(svptr[tmp],xx);
-			if (strlen(stmp) == 0) {
+			stmp = (unsigned char *)SvPV(svptr[tmp],(STRLEN&)xx);
+			if (strlen((const char *)stmp) == 0) {
 				if (tmp == 0) {fsparams |= 0x400;
 				} else {fsparams |= 0x2000;
 				}
 			} 
-			else if (!strcmp(stmp,"FIRST")) { fsparams |= (0x200<<(tmp*4));}
-			else if(!strcmp(stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
-			else if (!strcmp(stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
-			else if (!strcmp(stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
+			else if (!strcmp((const char *)stmp,"FIRST")) { fsparams |= (0x200<<(tmp*4));}
+			else if(!strcmp((const char *)stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
+			else if (!strcmp((const char *)stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
+			else if (!strcmp((const char *)stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
 			//else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
 		}
 	} else {
@@ -177,7 +190,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	int cpv = ((this_->colorPerVertex));
 	struct SFColor *colors; 
 	int ncolors=0;
-	struct VRML_PolyRep *rep_ = this_->_intern;
+	struct VRML_PolyRep *rep_ = (VRML_PolyRep *)this_->_intern;
 	float creaseAngle = (this_->creaseAngle);
 	int npv = ((this_->normalPerVertex));
 	struct SFColor *normals;
@@ -253,7 +266,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 		if(cpv && ncolors < nx*nz) {
 			freewrlDie("Elevationgrid: 2too few colors");
 		}
-		colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
+		colindex = rep_->colindex = (int *)malloc(sizeof(*(rep_->colindex))*3*(ntri));
 		if (!(colindex)) { 
 			freewrlDie("Not enough memory for ElevationGrid node color index ");
 		}
@@ -261,7 +274,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	
 	if (HAVETODOTEXTURES) {
 		/* so, we now have to worry about textures. */
-		tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
+		tcoord = rep_->tcoord = (float *)malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
 		if (!(tcoord)) freewrlDie ("Not enough memory ElevGrid Tcoords");
 	
 		rep_->tcindex = 0; // we will generate our own mapping
@@ -277,16 +290,16 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	
 	
 	/* Coords, CoordIndexes, and Normals are needed all the time */
-	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
-	coord = rep_->coord = malloc(sizeof(*(rep_->coord))*nx*nz*3);
-	rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);	
+	cindex = rep_->cindex = (int *)malloc(sizeof(*(rep_->cindex))*3*(ntri));
+	coord = rep_->coord = (float *)malloc(sizeof(*(rep_->coord))*nx*nz*3);
+	rep_->norindex = (int *)malloc(sizeof(*(rep_->norindex))*3*ntri);	
 	if(!(cindex && coord && rep_->norindex)) {
 		freewrlDie("Not enough memory for ElevationGrid node triangles... ;(");
 	} 
 	
 	/* we are calculating Normals */
 	if (nnormals == 0) {
-		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri*3);
+		rep_->normal = (float *)malloc(sizeof(*(rep_->normal))*3*ntri*3);
 		if (!(rep_->normal)) {
 			freewrlDie("Not enough memory for ElevationGrid node normals");
 		}
@@ -301,10 +314,10 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 		faces = (nx-1) * (nz-1) * 2; /* we treat each triangle as a face = makes really nice normals */ 
 		
 		/* for each face, we can look in this structure and find the normal */
-		facenormals = malloc(sizeof(*facenormals)*faces);
+		facenormals = (pt*)malloc(sizeof(*facenormals)*faces);
 		
 		/* for each point, tell us which faces it is in, first index is  the face count */
-		pointfaces = malloc(sizeof(*pointfaces)*nz*nx*POINT_FACES);
+		pointfaces = (int *)malloc(sizeof(*pointfaces)*nz*nx*POINT_FACES);
 		for (tmp=0; tmp<nz*nx; tmp++) { pointfaces[tmp*POINT_FACES]=0; }
 	
 		if (!(pointfaces && facenormals)) {
@@ -457,7 +470,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	struct SFColor *c1;
 	struct SFColor *points; 
 	struct SFVec2f *texCoords; 
-	struct VRML_PolyRep *rep_ = this_->_intern;
+	struct VRML_PolyRep *rep_ = (VRML_PolyRep *)this_->_intern;
 	struct SFColor *normals;
 	struct SFColor *colors;
 	
@@ -592,9 +605,9 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 		return;
 	}
 	
-	facenormals = malloc(sizeof(*facenormals)*faces);
-	faceok = malloc(sizeof(int)*faces);
-	pointfaces = malloc(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
+	facenormals = (pt*)malloc(sizeof(*facenormals)*faces);
+	faceok = (int*)malloc(sizeof(int)*faces);
+	pointfaces = (int*)malloc(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
 	
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	if(!(faceok && pointfaces && facenormals )) {
@@ -634,21 +647,21 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	/* fudge factor - leave space for 1 more triangle just in case we have errors on input */
 	ntri++;
 	
-	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
-	colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
-	norindex = rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
+	cindex = rep_->cindex = (int*)malloc(sizeof(*(rep_->cindex))*3*(ntri));
+	colindex = rep_->colindex = (int*)malloc(sizeof(*(rep_->colindex))*3*(ntri));
+	norindex = rep_->norindex = (int*)malloc(sizeof(*(rep_->norindex))*3*ntri);
 	
 	/* if we calculate normals, we use a normal per point, NOT per triangle */ 
 	if (!nnormals) {  		/* 3 vertexes per triangle, and 3 points per tri */
-		rep_->normal = malloc(sizeof(*(rep_->normal))*3*3*ntri);
+		rep_->normal = (float*)malloc(sizeof(*(rep_->normal))*3*3*ntri);
 	} else { 			/* dont do much, but get past check below */
-		rep_->normal = malloc(1);
+		rep_->normal = (float*)malloc(1);
 	}
 	
 	
 	if (ntexerrors == 0) {
 		if ((ntexCoords) && (HAVETODOTEXTURES)) {
-			tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+			tcindex = rep_->tcindex = (int*)malloc(sizeof(*(rep_->tcindex))*3*(ntri));
 		}
 	} else {
 		ntexCoords = 0; tcin = 0; 
@@ -666,7 +679,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	
 	
 	/* Concave faces - use the OpenGL Triangulator to give us the triangles */
-	tess_vs=malloc(sizeof(*(tess_vs))*(ntri)*3);
+	tess_vs=(int*)malloc(sizeof(*(tess_vs))*(ntri)*3);
 	
 	this_coord = 0;
 	this_normal = 0;
@@ -881,7 +894,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	struct SFVec2f *curve =((this_->crossSection).p);/* vector of 2D curve points	*/
 	struct SFRotation *orientation=((this_->orientation).p);/*vector of SCP rotations*/
 	
-	struct VRML_PolyRep *rep_=this_->_intern;/*internal rep, we want to fill*/
+	struct VRML_PolyRep *rep_=(VRML_PolyRep *)this_->_intern;/*internal rep, we want to fill*/
 	
 	/* the next variables will point at members of *rep		*/
 	int   *cindex;				/* field containing indices into
@@ -980,7 +993,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		int tmp1, temp_indx;
 		int increment, currentlocn;
 	
-		crossSection     = malloc(sizeof(crossSection)*nsec*2);
+		crossSection     = (SFVec2f*)malloc(sizeof(crossSection)*nsec*2);
 		if (!(crossSection)) freewrlDie ("can not malloc memory for Extrusion crossSection");
 	
 	
@@ -1108,27 +1121,26 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 					the whole Extrusion Shape.		*/
 	
 	/* get some memory							*/
-	cindex  = rep_->cindex   = malloc(sizeof(*(rep_->cindex))*3*(rep_->ntri));
-	coord   = rep_->coord    =
-			malloc(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
-	normal  = rep_->normal   = malloc(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
-	norindex= rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri));
+	cindex  = rep_->cindex   = (int *)malloc(sizeof(*(rep_->cindex))*3*(rep_->ntri));
+	coord   = rep_->coord    = (float *)malloc(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
+	normal  = rep_->normal   = (float *)malloc(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
+	norindex= rep_->norindex = (int *)malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri));
 	
 	/* face normals - one face per quad (ie, 2 triangles) 			*/
 	/* have to make sure that if nctri is odd, that we increment by one	*/
 	
 	
-	facenormals = malloc(sizeof(*facenormals)*(rep_->ntri+1)/2);
+	facenormals = (pt *)malloc(sizeof(*facenormals)*(rep_->ntri+1)/2);
 	
 	/* for each triangle vertex, tell me which face(s) it is in		*/
-	pointfaces = malloc(sizeof(*pointfaces)*POINT_FACES*3*rep_->ntri);
+	pointfaces = (int *)malloc(sizeof(*pointfaces)*POINT_FACES*3*rep_->ntri);
 	
 	/* for each triangle, it has a defaultface...				*/
-	defaultface = malloc(sizeof(*defaultface)*rep_->ntri);
+	defaultface = (int *)malloc(sizeof(*defaultface)*rep_->ntri);
 	
 	
 	/*memory for the SCPs. Only needed in this function. Freed later	*/
-	SCP     = malloc(sizeof(struct SCP)*nspi);
+	SCP     = (struct SCP *)malloc(sizeof(struct SCP)*nspi);
 	 
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	  if(!(pointfaces && defaultface && facenormals && cindex && coord && normal && norindex && SCP )) {
@@ -1143,16 +1155,16 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 		if (Extru_Verbose) 
 			printf ("tcoordsize is %d\n",tcoordsize);
-		tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*tcoordsize);
+		tcoord = rep_->tcoord = (float *)malloc(sizeof(*(rep_->tcoord))*tcoordsize);
 	
 		tcindexsize = rep_->ntri*3;
 		if (Extru_Verbose) 
 			printf ("tcindexsize %d\n",tcindexsize);
-		tcindex  = rep_->tcindex   = malloc(sizeof(*(rep_->tcindex))*tcindexsize);
+		tcindex  = rep_->tcindex   = (int *)malloc(sizeof(*(rep_->tcindex))*tcindexsize);
 	
 		/* keep around cross section info for tex coord mapping */
-		beginVals = malloc(sizeof(float) * 2 * (nsec+1)*100);
-		endVals = malloc(sizeof(float) * 2 * (nsec+1)*100);
+		beginVals = (float *)malloc(sizeof(float) * 2 * (nsec+1)*100);
+		endVals = (float *)malloc(sizeof(float) * 2 * (nsec+1)*100);
 	
 		if (!(tcoord && tcindex && beginVals && endVals)) 
 			freewrlDie ("Not enough memory Extrusion Tcoords");
@@ -1814,7 +1826,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		GLdouble tess_v[3]; 
 		int endpoint;
 
-		tess_vs=malloc(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
+		tess_vs=(int *)malloc(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
 		if (!(tess_vs)) freewrlDie ("Extrusion - no memory for tesselated end caps");
 	
 		/* if not tubular, we need one more triangle */

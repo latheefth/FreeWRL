@@ -702,8 +702,8 @@ void render_polyrep(void *node,
 	int polyrep_verbose = 0;
 
 	v = *(struct VRML_Virt **)node;
-	p = node;
-	r = p->_intern;
+	p = (struct VRML_Box *)node;
+	r = (struct VRML_PolyRep *)p->_intern;
 
 	if (r->ntri==0) {
 		if (polyrep_verbose) printf ("Render polyrep, no triangles\n");
@@ -831,8 +831,8 @@ void stream_polyrep(void *node,
 	if (stream_poly_verbose) printf ("\nstart stream_polyrep\n");
 
 	v = *(struct VRML_Virt **)node;
-	p = node;
-	r = p->_intern;
+	p = (struct VRML_Box *)node;
+	r = (struct VRML_PolyRep *)p->_intern;
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
@@ -841,26 +841,26 @@ void stream_polyrep(void *node,
 	newcolors=0;	// only if we have colours
 
 	/* malloc required memory */
-	newcindex = malloc (sizeof (int)*r->ntri*3);
+	newcindex = (int*)malloc (sizeof (int)*r->ntri*3);
 	if (!newcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
-	newpoints = malloc (sizeof (struct SFColor)*r->ntri*3);
+	newpoints = (SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
 	if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
 	if ((nnormals) || (r->normal)) {
-		newnorms = malloc (sizeof (struct SFColor)*r->ntri*3);
+		newnorms = (SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
 		if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 	} else newnorms = 0;
 
 
 	if (hasc) {
-		newcolors = malloc (sizeof (struct SFRotation)*r->ntri*3);
+		newcolors = (struct SFRotation*)malloc (sizeof (struct SFRotation)*r->ntri*3);
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 
 	if (HAVETODOTEXTURES) {
 		/* newtc is indexed as 2 floats per vertex */
-		newtc = malloc (sizeof (float)*2*r->ntri*3);
+		newtc = (float *) malloc (sizeof (float)*2*r->ntri*3);
 		if (!newtc) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 	}
 
@@ -1095,8 +1095,8 @@ void render_ray_polyrep(void *node,
 	ray.y = t_r2.y - t_r1.y;
 	ray.z = t_r2.z - t_r1.z;
 	v = *(struct VRML_Virt **)node;
-	p = node;
-	r = p->_intern;
+	p =(struct VRML_Box *) node;
+	r = (struct VRML_PolyRep *)p->_intern;
 
 
 	UNUSED(npoints);
@@ -1203,7 +1203,7 @@ void regen_polyrep(void *node)
 	struct VRML_PolyRep *r;
 	v = *(struct VRML_Virt **)node;
 
-	p = node;
+	p = (struct VRML_Box *)node;
 	if(!p->_intern) {
 
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
@@ -1213,13 +1213,13 @@ void regen_polyrep(void *node)
 			freewrlDie("Not enough memory to regen_polyrep... ;(");
 		} 
  
-		r = p->_intern;
+		r = (struct VRML_PolyRep *)p->_intern;
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0; r->tcoord = 0;
 		r->tcindex = 0;  
 	}
-	r = p->_intern;
+	r = (struct VRML_PolyRep *)p->_intern;
 	r->_change = p->_change;
 
 	FREE_IF_NZ(r->cindex);

@@ -56,6 +56,8 @@ int startEntry, endEntry;
 
 void send_string (char *string, int fd) ;
 
+//Added M. Ward Dec 7/04
+extern void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 
 /* a new .class file has been called - lets load it */
 int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
@@ -250,7 +252,7 @@ int newClassConnection (int scriptno) {
 	/* allocate memory for input ClassBuffer */
 	bufcount = 0;
 	bufsize = 2 * EAIREADSIZE; // initial size
-	ClassBuffer = malloc(bufsize * sizeof (char));
+	ClassBuffer = (char *)malloc(bufsize * sizeof (char));
 	if (ClassBuffer == 0) {
 		printf ("can not malloc memory for input ClassBuffer in create_EAI\n");
 		return FALSE;
@@ -559,7 +561,7 @@ void receive_command(int scriptno) {
 	
 			// do the conversion
 			ptr += strlen(CV) + 1;
-			ra = EAI_CreateVrml("String",ptr,nodarr,100);
+			ra = EAI_CreateVrml("String",ptr,(unsigned int*)nodarr,100);
 			ptr = EOT;
 			//printf ("CreateVRML returned %d nodes\n",ra);
 			if (ra < 0) ra =-1;

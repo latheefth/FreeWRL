@@ -229,6 +229,9 @@ handle_tick_exfly();
 void
 handle_tick_fly();
 
+//Added M. Ward Dec 15/04
+void handle_tick_exin( float *data );
+
 void
 set_action(char *key);
 
@@ -254,4 +257,6 @@ void viewer_default(void);
 extern float eyedist;
 extern float screendist;
 
+
+void XEventStereo(void);
 #endif /* __VIEWER_H_ */
