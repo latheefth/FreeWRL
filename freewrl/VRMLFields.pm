@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.22  2002/11/20 21:33:55  ayla
+#
+# Modified as_string functions as needed, commented unused js functions.
+#
 # Revision 1.21  2002/09/19 19:39:35  crc_canada
 # some changes brought about by much EAI work.
 #
@@ -146,7 +150,7 @@ sub cget {if(!defined $_[2]) {return "$_[1]"}
 	else {die "If CGet with indices, abstract must be overridden"} }
 sub cstruct () {""}
 sub cfunc {die("Must overload cfunc")}
-sub jsimpleget {return {}}
+#sub jsimpleget {return {}}
 
 sub copy {
 	my($type, $value) = @_;
@@ -269,35 +273,35 @@ sub cfunc {
 
 # javascript
 
-sub jsprop {
-	return '{"r", 0, JSPROP_ENUMERATE},{"g", 1, JSPROP_ENUMERATE},
-		{"b", 2, JSPROP_ENUMERATE}'
-}
-sub jsnumprop {
-	return { map {($_ => "$_[1].c[$_]")} 0..2 }
-}
-sub jstostr {
-	return "
-		{static char buff[250];
-		 sprintf(buff,\"\%f \%f \%f\", $_[1].c[0], $_[1].c[1], $_[1].c[2]);
-		 \$RET(buff);
-		}
-	"
-}
-sub jscons {
-	return [
-		"jsdouble pars[3];",
-		"d d d",
-		"&(pars[0]),&(pars[1]),&(pars[2])",
-		"$_[1].c[0] = pars[0]; $_[1].c[1] = pars[1]; $_[1].c[2] = pars[2];",
-		# Last: argless
-		"$_[1].c[0] = 0; $_[1].c[1] = 0; $_[1].c[2] = 0;",
-	];
-}
+#sub jsprop {
+#	return '{"r", 0, JSPROP_ENUMERATE},{"g", 1, JSPROP_ENUMERATE},
+#		{"b", 2, JSPROP_ENUMERATE}'
+#}
+#sub jsnumprop {
+#	return { map {($_ => "$_[1].c[$_]")} 0..2 }
+#}
+#sub jstostr {
+#	return "
+#		{static char buff[250];
+#		 sprintf(buff,\"\%f \%f \%f\", $_[1].c[0], $_[1].c[1], $_[1].c[2]);
+#		 \$RET(buff);
+#		}
+#	"
+#}
+#sub jscons {
+#	return [
+#		"jsdouble pars[3];",
+#		"d d d",
+#		"&(pars[0]),&(pars[1]),&(pars[2])",
+#		"$_[1].c[0] = pars[0]; $_[1].c[1] = pars[1]; $_[1].c[2] = pars[2];",
+#		# Last: argless
+#		"$_[1].c[0] = 0; $_[1].c[1] = 0; $_[1].c[2] = 0;",
+#	];
+#}
 
-sub js_default {
-	return "new SFColor(0,0,0)"
-}
+##sub js_default {
+##	return "new SFColor(0,0,0)"
+##}
 
 
 ###########################################################
@@ -305,13 +309,13 @@ package VRML::Field::SFVec3f;
 @ISA=VRML::Field::SFColor;
 sub cstruct {return ""}
 
-sub jsprop {
-	return '{"x", 0, JSPROP_ENUMERATE},{"y", 1, JSPROP_ENUMERATE},
-		{"z", 2, JSPROP_ENUMERATE}'
-}
-sub js_default {
-	return "new SFVec3f(0,0,0)"
-}
+##sub jsprop {
+##	return '{"x", 0, JSPROP_ENUMERATE},{"y", 1, JSPROP_ENUMERATE},
+##		{"z", 2, JSPROP_ENUMERATE}'
+##}
+##sub js_default {
+##	return "new SFVec3f(0,0,0)"
+##}
 
 sub vec_add { join '',map {"$_[3].c[$_] = $_[1].c[$_] + $_[2].c[$_];"} 0..2; }
 sub vec_subtract { join '',map {"$_[3].c[$_] = $_[1].c[$_] - $_[2].c[$_];"} 0..2; }
@@ -478,103 +482,103 @@ sub cfunc {
 	"
 }
 
-sub jsprop {
-	return '{"x", 0, JSPROP_ENUMERATE},{"y", 1, JSPROP_ENUMERATE},
-		{"z", 2, JSPROP_ENUMERATE},{"angle",3, JSPROP_ENUMERATE}'
-}
-sub jsnumprop {
-	return { map {($_ => "$_[1].r[$_]")} 0..3 }
-}
-sub jstostr {
-	return "
-		{static char buff[250];
-		 sprintf(buff,\"\%f \%f \%f \%f\", $_[1].r[0], $_[1].r[1], $_[1].r[2], $_[1].r[3]);
-		 \$RET(buff);
-		}
-	"
-}
-sub jscons {
-return ["",qq~
-	jsdouble pars[4];
-	JSObject *ob1;
-	JSObject *ob2;
-	if(JS_ConvertArguments(cx,argc,argv,"d d d d",
-		&(pars[0]),&(pars[1]),&(pars[2]),&(pars[3])) == JS_TRUE) {
-		$_[1].r[0] = pars[0]; 
-		$_[1].r[1] = pars[1]; 
-		$_[1].r[2] = pars[2]; 
-		$_[1].r[3] = pars[3];
-	} else if(JS_ConvertArguments(cx,argc,argv,"o o",
-		&ob1,&ob2) == JS_TRUE) {
-		TJL_SFVec3f *vec1;
-		TJL_SFVec3f *vec2;
-		double v1len, v2len, v12dp;
-		    if (!JS_InstanceOf(cx, ob1, &cls_SFVec3f, argv)) {
-			die("sfrot obj: has to be SFVec3f ");
-			return JS_FALSE;
-		    }
-		    if (!JS_InstanceOf(cx, ob2, &cls_SFVec3f, argv)) {
-			die("sfrot obj: has to be SFVec3f ");
-			return JS_FALSE;
-		    }
-		vec1 = JS_GetPrivate(cx,ob1);
-		vec2 = JS_GetPrivate(cx,ob2);
-		v1len = sqrt( vec1->v.c[0] * vec1->v.c[0] + 
-			vec1->v.c[1] * vec1->v.c[1] + 
-			vec1->v.c[2] * vec1->v.c[2] );
-		v2len = sqrt( vec2->v.c[0] * vec2->v.c[0] + 
-			vec2->v.c[1] * vec2->v.c[1] + 
-			vec2->v.c[2] * vec2->v.c[2] );
-		v12dp = vec1->v.c[0] * vec2->v.c[0] + 
-			vec1->v.c[1] * vec2->v.c[1] + 
-			vec1->v.c[2] * vec2->v.c[2] ;
-		$_[1].r[0] = 
-			vec1->v.c[1] * vec2->v.c[2] - 
-			vec2->v.c[1] * vec1->v.c[2];
-		$_[1].r[1] = 
-			vec1->v.c[2] * vec2->v.c[0] - 
-			vec2->v.c[2] * vec1->v.c[0];
-		$_[1].r[2] = 
-			vec1->v.c[0] * vec2->v.c[1] - 
-			vec2->v.c[0] * vec1->v.c[1];
-		v12dp /= v1len * v2len;
-		$_[1].r[3] = 
-			atan2(sqrt(1-v12dp*v12dp),v12dp);
-		/* 
-		printf("V12cons: (%f %f %f) (%f %f %f) %f %f %f (%f %f %f : %f)\n",
-			vec1->v.c[0], vec1->v.c[1], vec1->v.c[2],
-			vec2->v.c[0], vec2->v.c[1], vec2->v.c[2],
-			v1len, v2len, v12dp, 
-			$_[1].r[0], $_[1].r[1], $_[1].r[2], $_[1].r[3]);
-		*/
-	} else if(JS_ConvertArguments(cx,argc,argv,"o d",
-		&ob1,&(pars[0])) == JS_TRUE) {
-		TJL_SFVec3f *vec;
-		    if (!JS_InstanceOf(cx, ob1, &cls_SFVec3f, argv)) {
-			die("multVec: has to be SFVec3f ");
-			return JS_FALSE;
-		    }
-		vec = JS_GetPrivate(cx,ob1);
-		$_[1].r[0] = vec->v.c[0]; 
-		$_[1].r[1] = vec->v.c[1]; 
-		$_[1].r[2] = vec->v.c[2]; 
-		$_[1].r[3] = pars[0];
+#sub jsprop {
+#	return '{"x", 0, JSPROP_ENUMERATE},{"y", 1, JSPROP_ENUMERATE},
+#		{"z", 2, JSPROP_ENUMERATE},{"angle",3, JSPROP_ENUMERATE}'
+#}
+#sub jsnumprop {
+#	return { map {($_ => "$_[1].r[$_]")} 0..3 }
+#}
+#sub jstostr {
+#	return "
+#		{static char buff[250];
+#		 sprintf(buff,\"\%f \%f \%f \%f\", $_[1].r[0], $_[1].r[1], $_[1].r[2], $_[1].r[3]);
+#		 \$RET(buff);
+#		}
+#	"
+#}
+#sub jscons {
+#return ["",qq~
+#	jsdouble pars[4];
+#	JSObject *ob1;
+#	JSObject *ob2;
+#	if(JS_ConvertArguments(cx,argc,argv,"d d d d",
+#		&(pars[0]),&(pars[1]),&(pars[2]),&(pars[3])) == JS_TRUE) {
+#		$_[1].r[0] = pars[0]; 
+#		$_[1].r[1] = pars[1]; 
+#		$_[1].r[2] = pars[2]; 
+#		$_[1].r[3] = pars[3];
+#	} else if(JS_ConvertArguments(cx,argc,argv,"o o",
+#		&ob1,&ob2) == JS_TRUE) {
+#		TJL_SFVec3f *vec1;
+#		TJL_SFVec3f *vec2;
+#		double v1len, v2len, v12dp;
+#		    if (!JS_InstanceOf(cx, ob1, &cls_SFVec3f, argv)) {
+#			die("sfrot obj: has to be SFVec3f ");
+#			return JS_FALSE;
+#		    }
+#		    if (!JS_InstanceOf(cx, ob2, &cls_SFVec3f, argv)) {
+#			die("sfrot obj: has to be SFVec3f ");
+#			return JS_FALSE;
+#		    }
+#		vec1 = JS_GetPrivate(cx,ob1);
+#		vec2 = JS_GetPrivate(cx,ob2);
+#		v1len = sqrt( vec1->v.c[0] * vec1->v.c[0] + 
+#			vec1->v.c[1] * vec1->v.c[1] + 
+#			vec1->v.c[2] * vec1->v.c[2] );
+#		v2len = sqrt( vec2->v.c[0] * vec2->v.c[0] + 
+#			vec2->v.c[1] * vec2->v.c[1] + 
+#			vec2->v.c[2] * vec2->v.c[2] );
+#		v12dp = vec1->v.c[0] * vec2->v.c[0] + 
+#			vec1->v.c[1] * vec2->v.c[1] + 
+#			vec1->v.c[2] * vec2->v.c[2] ;
+#		$_[1].r[0] = 
+#			vec1->v.c[1] * vec2->v.c[2] - 
+#			vec2->v.c[1] * vec1->v.c[2];
+#		$_[1].r[1] = 
+#			vec1->v.c[2] * vec2->v.c[0] - 
+#			vec2->v.c[2] * vec1->v.c[0];
+#		$_[1].r[2] = 
+#			vec1->v.c[0] * vec2->v.c[1] - 
+#			vec2->v.c[0] * vec1->v.c[1];
+#		v12dp /= v1len * v2len;
+#		$_[1].r[3] = 
+#			atan2(sqrt(1-v12dp*v12dp),v12dp);
+#		/* 
+#		printf("V12cons: (%f %f %f) (%f %f %f) %f %f %f (%f %f %f : %f)\n",
+#			vec1->v.c[0], vec1->v.c[1], vec1->v.c[2],
+#			vec2->v.c[0], vec2->v.c[1], vec2->v.c[2],
+#			v1len, v2len, v12dp, 
+#			$_[1].r[0], $_[1].r[1], $_[1].r[2], $_[1].r[3]);
+#		*/
+#	} else if(JS_ConvertArguments(cx,argc,argv,"o d",
+#		&ob1,&(pars[0])) == JS_TRUE) {
+#		TJL_SFVec3f *vec;
+#		    if (!JS_InstanceOf(cx, ob1, &cls_SFVec3f, argv)) {
+#			die("multVec: has to be SFVec3f ");
+#			return JS_FALSE;
+#		    }
+#		vec = JS_GetPrivate(cx,ob1);
+#		$_[1].r[0] = vec->v.c[0]; 
+#		$_[1].r[1] = vec->v.c[1]; 
+#		$_[1].r[2] = vec->v.c[2]; 
+#		$_[1].r[3] = pars[0];
 		
-	} else if(argc == 0) {
-		$_[1].r[0] = 0;
-		$_[1].r[0] = 0;
-		$_[1].r[0] = 1;
-		$_[1].r[0] = 0;
-	} else {
-		die("Invalid constructor for SFRotation");
-	}
+#	} else if(argc == 0) {
+#		$_[1].r[0] = 0;
+#		$_[1].r[0] = 0;
+#		$_[1].r[0] = 1;
+#		$_[1].r[0] = 0;
+#	} else {
+#		die("Invalid constructor for SFRotation");
+#	}
 
-~];
-}
+#~];
+#}
 
-sub js_default {
-	return "new SFRotation(0,0,1,0)"
-}
+##sub js_default {
+##	return "new SFRotation(0,0,1,0)"
+##}
 
 
 ###########################################################
@@ -583,7 +587,8 @@ package VRML::Field::SFBool;
 
 sub parse {
 	my($type,$p,$s,$n) = @_;
-	$_[2] =~ /\G\s*(TRUE|FALSE)\b/gs or die "Invalid value for BOOL\n";
+	$_[2] =~ /\G\s*(TRUE|FALSE)\b/gs
+		or die "Invalid value for SFBool\n";
 	return ($1 eq "TRUE");
 }
 
@@ -592,7 +597,14 @@ sub cget {return "($_[1])"}
 sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
 
 sub print {print ($_[1] ? TRUE : FALSE)}
-sub as_string {($_[1] ? TRUE : FALSE)}
+sub as_string {
+	my ($this, $bool, $as_ecmascript) = @_;
+	if ($as_ecmascript) {
+		return ($bool ? true : false);
+	} else {
+		return ($bool ? TRUE : FALSE);
+	}
+}
 
 
 ###########################################################
@@ -611,16 +623,12 @@ $SFStringChars = qr/(?ixs:[^\"\\])*/||qr/(?ixs:\\[\"\\])*/;
 
 # XXX Handle backslashes in string properly
 sub parse {
-###my($type,$p,$s,$n) = @_; -- NOT USED
-        # Magic regexp which hopefully exactly quotes backslashes and quotes
-        # Remi... $_[2] =~ /\G\s*"((?:[^"\\]|\\.)*)"\s*/gsc
-        # $_[2] =~ /\G\s*\"((?:[^\"\\]|\\.)*)\"\s*/gsc
 	$_[2] =~ /\G\s*\"($SFStringChars)\"\s*/gc
-                or VRML::Error::parsefail($_[2], "improper SFString");
+		or VRML::Error::parsefail($_[2], "improper SFString");
 	## cleanup ms-dos/windows end of line chars
-        my $str = $1;
-        $str =~ s/\\(.)/$1/g;
-        return $str;
+	my $str = $1;
+	$str =~ s/\\(.)/$1/g;
+	return $str;
 }
 
 sub ctype {return "SV *$_[1]"}
@@ -888,12 +896,12 @@ sub as_string {
 }
 
 
-sub js_default {
-	my($type) = @_;
-	# $type =~ s/::MF/::SF/;
-	$type =~ s/VRML::Field:://;
-	return "new $type()";
-}
+##sub js_default {
+##	my($type) = @_;
+##	# $type =~ s/::MF/::SF/;
+##	$type =~ s/VRML::Field:://;
+##	return "new $type()";
+##}
 
 
 ###########################################################
@@ -915,7 +923,7 @@ sub as_string {
 	$_[1]->as_string();
 }
 
-sub js_default { 'new SFNode("","NULL")' }
+##sub js_default { 'new SFNode("","NULL")' }
 
 # javascript implemented in place because of special nature.
 
@@ -1102,20 +1110,20 @@ sub cfunc {
 EOF
 }
 
-sub js_ctor {
-  return <<EOF;
-    function SFImage (x, y, d, data) {
-      this.x = x
-      this.y = y
-      this.d = d
-      this.data = data
-    }
-EOF
-}
+##sub js_ctor {
+##  return <<EOF;
+##    function SFImage (x, y, d, data) {
+##      this.x = x
+##      this.y = y
+##      this.d = d
+##      this.data = data
+##    }
+##EOF
+##}
 
-sub js_default {
-  return "new SFImage(0,0,0,\"\")";
-}
+##sub js_default {
+##  return "new SFImage(0,0,0,\"\")";
+##}
 
 1;
 
