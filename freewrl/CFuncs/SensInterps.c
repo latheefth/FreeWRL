@@ -13,31 +13,14 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 ******************************************/
 
+#include "SensInterps.h"
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-#include <math.h>
-
-#ifdef AQUA 
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "Structs.h"
-#include "headers.h"
-#include "LinearAlgebra.h"
 
 int SEVerbose = 0;
 
-#define ASLEN 500
 char AnchorString[ASLEN];
+
+
 
 /* returns the audio duration, unscaled by pitch */
 float return_Duration (int indx) {
@@ -73,7 +56,8 @@ void do_active_inactive (
 					/* printf ("case 1 and 2, not loop md %f sp %f fabs %f\n",
 							myDuration, speed, fabs(myDuration/speed));
 					*/
-					if (speed != 0) {
+					/* if (speed != 0) */
+					if (! APPROX(speed, 0)) {
 					    if (TickTime >= (*startt + 
 							fabs(myDuration/speed))) {
 						if (SEVerbose) printf ("stopping case x\n");
@@ -196,7 +180,7 @@ void do_OintScalar (void *node) {
 
 void do_OintCoord(void *node) {
 	struct VRML_CoordinateInterpolator *px;
-	int kin, kvin, counter;
+	int kin, kvin/* , counter */;
 	struct SFColor *kVs;
 	struct SFColor *valchanged;
 
@@ -263,9 +247,9 @@ void do_OintCoord(void *node) {
 		for (indx = 0; indx < kpkv; indx++) {
 			memcpy ((void *)&valchanged[indx], 
 				(void *)&kVs[indx], sizeof (struct SFColor));
-			//JAS valchanged[indx].c[0] = kVs[indx].c[0];
-			//JAS valchanged[indx].c[1] = kVs[indx].c[1];
-			//JAS valchanged[indx].c[2] = kVs[indx].c[2];
+			/* JAS valchanged[indx].c[0] = kVs[indx].c[0]; */
+			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
+			/* JAS valchanged[indx].c[2] = kVs[indx].c[2]; */
 		}
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
 		if (SEVerbose) printf ("COINT out1\n");
@@ -273,9 +257,9 @@ void do_OintCoord(void *node) {
 			memcpy ((void *)&valchanged[indx], 
 				(void *)&kVs[(kvin-1)*kpkv+indx], 
 				sizeof (struct SFColor));
-			//JAS valchanged[indx].c[0] = kVs[(kvin-1)*kpkv+indx].c[0];
-			//JAS valchanged[indx].c[1] = kVs[(kvin-1)*kpkv+indx].c[1];
-			//JAS valchanged[indx].c[2] = kVs[(kvin-1)*kpkv+indx].c[2];
+			/* JAS valchanged[indx].c[0] = kVs[(kvin-1)*kpkv+indx].c[0]; */
+			/* JAS valchanged[indx].c[1] = kVs[(kvin-1)*kpkv+indx].c[1]; */
+			/* JAS valchanged[indx].c[2] = kVs[(kvin-1)*kpkv+indx].c[2]; */
 		}
 	} else {
 		if (SEVerbose) printf ("COINT out1\n");
@@ -423,17 +407,17 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 	if (px->set_fraction <= ((px->key).p[0])) {
 		memcpy ((void *)&px->value_changed, 
 				(void *)&kVs[0], sizeof (struct SFRotation));
-		 //JAS px->value_changed.r[0] = kVs[0].r[0];
-		 //JAS px->value_changed.r[1] = kVs[0].r[1];
-		 //JAS px->value_changed.r[2] = kVs[0].r[2];
-		 //JAS px->value_changed.r[3] = kVs[0].r[3];
+		 /* JAS px->value_changed.r[0] = kVs[0].r[0]; */
+		 /* JAS px->value_changed.r[1] = kVs[0].r[1]; */
+		 /* JAS px->value_changed.r[2] = kVs[0].r[2]; */
+		 /* JAS px->value_changed.r[3] = kVs[0].r[3]; */
 	} else if (px->set_fraction >= ((px->key).p[kin-1])) {
 		memcpy ((void *)&px->value_changed, 
 				(void *)&kVs[kvin-1], sizeof (struct SFRotation));
-		 //JAS px->value_changed.r[0] = kVs[kvin-1].r[0];
-		 //JAS px->value_changed.r[1] = kVs[kvin-1].r[1];
-		 //JAS px->value_changed.r[2] = kVs[kvin-1].r[2];
-		 //JAS px->value_changed.r[3] = kVs[kvin-1].r[3];
+		 /* JAS px->value_changed.r[0] = kVs[kvin-1].r[0]; */
+		 /* JAS px->value_changed.r[1] = kVs[kvin-1].r[1]; */
+		 /* JAS px->value_changed.r[2] = kVs[kvin-1].r[2]; */
+		 /* JAS px->value_changed.r[3] = kVs[kvin-1].r[3]; */
 	} else {
 		counter = find_key(kin,px->set_fraction,px->key.p);
 		interval = (px->set_fraction - px->key.p[counter-1]) /
@@ -643,7 +627,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	int 	oldstatus;	
 	float 	frac;		/* which texture to display */
 	int 	highest,lowest;	/* selector variables		*/
-	double myDuration;
+	/* double myDuration; */
 	double myTime;
 	float 	speed;
 	float	duration;
@@ -688,7 +672,8 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 		/* negative speed? */
 		if (speed < 0) {
 			frac = 1+frac; /* frac will be *negative* */
-		} else if (speed == 0) {
+		/* else if (speed == 0) */
+		} else if (APPROX(speed, 0)) {
 			frac = 0;
 		}
 	
@@ -703,7 +688,8 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 			frac = highest;
 		}
 	
-		if (node->__ctex != frac) {
+		/* if (node->__ctex != frac) */
+		if (! APPROX(node->__ctex, frac)) {
 			node->__ctex = frac;
 
 			/* force a change to re-render this node */
@@ -762,7 +748,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
 	struct SFColor tr;
 	int tmp;
 
-
+	UNUSED(over);
 
 	if (!node) return;
 	len = strlen(ev);
@@ -848,6 +834,8 @@ void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
 	int urllen;
 	unsigned char *urlptr;
 	int counter;
+
+	UNUSED(over);
 	
 	if (!node) return;
 	len = strlen(ev);
@@ -883,6 +871,9 @@ void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
 
 void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
 /* not implemented */
+	UNUSED(node);
+	UNUSED(ev);
+	UNUSED(over);
 }
 
 
@@ -891,6 +882,9 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 	float tr1sq, tr2sq, tr1tr2;
 	struct SFColor dee, arr, cp, dot;
 	float deelen, aay, bee, cee, und, sol, cl, an;
+	Quaternion q, q2, q_r;
+
+	UNUSED(over);
 
 	if (!node) return;
 	len = strlen(ev);
@@ -992,17 +986,29 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_SphereSensor, trackPoint_changed));
 
-		printf ("Need C Quaternion rotation to finish this\n");
+/* 			# print "QNEW: @cp, $an (R: $r)\n"; */
+/* 			my $q = */
+/* 				VRML::Quaternion->new_vrmlrot(@cp, -$an); */
+			vrmlrot_to_quaternion(&q, cp.c[0], cp.c[1], cp.c[2], -an);
 
-//			# print "QNEW: @cp, $an (R: $r)\n";
-//			my $q =
-//				VRML::Quaternion->new_vrmlrot(@cp, -$an);
-//			# print "QNEW2: @$of\n";
-//			my $q2 =
-//				VRML::Quaternion->new_vrmlrot(@$of);
-//
-//			$f->{rotation_changed} =
-//				$q->multiply($q2)->to_vrmlrot();
+/* 			# print "QNEW2: @$of\n"; */
+/* 			my $q2 = */
+/* 				VRML::Quaternion->new_vrmlrot(@$of); */
+			vrmlrot_to_quaternion(&q2,
+								  (node->offset).r[0],
+								  (node->offset).r[1],
+								  (node->offset).r[2],
+								  (node->offset).r[3]);
+
+/* 			$f->{rotation_changed} = */
+/* 				$q->multiply($q2)->to_vrmlrot(); */
+
+			multiply(&q_r, &q, &q2);
+			quaternion_to_vrmlrot(&q_r,
+								  (double *) &((node->rotation_changed).r[0]),
+								  (double *) &((node->rotation_changed).r[1]),
+								  (double *) &((node->rotation_changed).r[2]),
+								  (double *) &((node->rotation_changed).r[3]));
 
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_SphereSensor, rotation_changed));
