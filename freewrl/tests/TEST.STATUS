@@ -45,10 +45,12 @@ Tests		      | status	      | comments
  28.wrl			KO		Seg fault because same pb as 21	=> Missing tex coord index not handled correctly
  29.wrl			ok		
  30.wrl			ok		
- 31.wrl			ok		
- 32.wrl			ok		
+ camera.wrl		ok		
+ 31.wrl			ok		use camera.wrl inlined
+ 32.wrl			ok		use camera.wrl inlined
  33.wrl			ok		
  34.wrl			ok		
  35.wrl			ok		
  36.wrl			ok		
  37.wrl			ok		
+ vrml.wrl		ok		The VRML logo in VRML :-)
