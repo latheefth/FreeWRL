@@ -925,12 +925,13 @@ Register a new script for future routing
 ********************************************************************/
 
 void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int brow) {
+	int count;
+
 	/* jsval retval; */
 	UNUSED(cx);
 	UNUSED(glob);
 	UNUSED(brow);
 
-	int count;
 
 	/* more scripts than we can handle right now? */
 	if (num >= JSMaxScript)  {
