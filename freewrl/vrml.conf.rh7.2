@@ -3,6 +3,8 @@
 # to inform the compiler where the libraries are on your system.
 
 %VRML_CONFIG = (
+# don't touch this!!!
+    PLATFORM => 'LINUX',
 
 # OpenGL (or Mesa) libraries, defines and includes (e.g. -I/usr/OpenGL...). 
     # for IRIX, the following 2 lines should be used.
@@ -35,10 +37,6 @@
     FREETYPE_INC => '-I/usr/include/freetype2/include -I/usr/include -I/usr/include/freetype2/freetype/config -I/usr/include/freetype2',
     FREETYPE_DEFINE => '',
     FREETYPE_FONT_PATH => '/usr/share/fonts/userfonts',
-
-# Javascript lib & include (relative to the JS/ directory)
-    JS_LIBS => '-Ljs/Linux_All_DBG.OBJ -ljs',
-    JS_INC => '-Ijs/Linux_All_DBG.OBJ -Ijs/',
 
 # Saxon location - required for x3d running.
     SAXON_LOC => '/usr/local/src/saxon/saxon.jar',

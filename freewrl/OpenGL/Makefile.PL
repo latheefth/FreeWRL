@@ -2,15 +2,23 @@
 
 use ExtUtils::MakeMaker;
 
-WriteMakefile(
-	NAME => 'VRML::OpenGL',
-    
-    LIBS      => $VRML_CONFIG{FREEWRL_LIBS},
 
-    DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
-    INC => $VRML_CONFIG{FREEWRL_INC},
-dynamic_lib => { 'OTHERLDFLAGS' => $VRML_CONFIG{LDFLAGS}, 'LDDLFLAGS' => $VRML_CONFIG{LDDLFLAGS} },
-);
+my $inc = join(" ", $VRML_CONFIG{FREEWRL_INC}, "-I../CFuncs");
+
+
+WriteMakefile(
+			  NAME => 'VRML::OpenGL',
+			  LIBS => $VRML_CONFIG{FREEWRL_LIBS},
+			  DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
+			  INC => $inc,
+			  dynamic_lib => {
+							  OTHERLDFLAGS => $VRML_CONFIG{LDFLAGS},
+							  LDDLFLAGS => $VRML_CONFIG{LDDLFLAGS}
+							 },
+			 );
+
+
+
 sub MY::dynamic_lib {
 "ARMAYBE = :
 OTHERLDFLAGS = $VRML_CONFIG{LDFLAGS} 

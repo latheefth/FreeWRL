@@ -6,8 +6,9 @@
 # Config file changed greatly for 0.34; now many modules included in base
 # package.
 
-# Config file changed greatly for 0.34; now many modules included in base
-# package.
+############################################################################
+# don't touch this!!!
+    PLATFORM => 'LINUX',
 
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
@@ -24,12 +25,6 @@
 
     FREEWRL_LIBS => '-L/usr/lib -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg',
     FREEWRL_INC => '-D_GNU_SOURCE -I/usr/X11R6/include/ -I/usr/include/freetype2',
-
-
-############################################################################
-# Javascript lib & include (relative to the JS/ directory)
-    JS_LIBS => '-Ljs/src/Linux_All_OPT.OBJ -ljs',
-    JS_INC => '-Ijs/src/Linux_All_OPT.OBJ -Ijs/src',
 
 ############################################################################
 # Saxon location - required for x3d running.

@@ -11,8 +11,10 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#include <ctype.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <math.h>
 
 #ifdef AQUA 
@@ -29,6 +31,9 @@
 #include "headers.h"
 #include "LinearAlgebra.h"
 #include "quaternion.h"
+#include "OpenGL_Utils.h"
+
+#define UNUSED(v) ((void) v)
 
 #define NONE 0
 #define EXAMINE 1
@@ -44,6 +49,38 @@
 
 #define RELEASE "RELEASE"
 #define RELEASE_LEN 7
+
+#define KEYS_HANDLED 12
+/* my %actions = ( */
+/* 	a => sub {$aadd[2] -= $_[0]}, */
+/* 	z => sub {$aadd[2] += $_[0]}, */
+/* 	j => sub {$aadd[0] -= $_[0]}, */
+/* 	l => sub {$aadd[0] += $_[0]}, */
+/* 	p => sub {$aadd[1] += $_[0]}, */
+/* 	';' => sub {$aadd[1] -= $_[0]}, */
+
+/* 	8 => sub {$radd[0] += $_[0]}, */
+/* 	k => sub {$radd[0] -= $_[0]}, */
+/* 	u => sub {$radd[1] -= $_[0]}, */
+/* 	o => sub {$radd[1] += $_[0]}, */
+/* 	7 => sub {$radd[2] -= $_[0]}, */
+/* 	9 => sub {$radd[2] += $_[0]}, */
+/* ); */
+#define KEYMAP {{ 'a', 0 }, { 'z', 0 }, { 'j', 0 }, { 'l', 0 }, { 'p', 0 }, { ';', 0 }, { '8', 0 }, { 'k', 0 }, { 'u', 0 }, { 'o', 0 }, { '7', 0 }, { '9', 0 }}
+
+#define STRING_SIZE 256
+
+#define IN_FILE "/tmp/inpdev"
+#define IN_FILE_BYTES 100
+#define INPUT_LEN 9
+#define INPUT_LEN_Z 8
+#define X_OFFSET 8
+#define Y_OFFSET 17
+#define Z_OFFSET 0
+#define QUAT_W_OFFSET 26
+#define QUAT_X_OFFSET 35
+#define QUAT_Y_OFFSET 44
+#define QUAT_Z_OFFSET 53
 
 
 /* extern struct pt ViewerPosition; */
@@ -68,11 +105,18 @@ typedef struct viewer_examine {
 	double SY;
 } VRML_Viewer_Examine;
 
+typedef struct key {
+	char key;
+	unsigned int hit;
+} Key;
+
 
 /* Modeled after Descent(tm) ;) */
 typedef struct viewer_fly {
 	struct pt Velocity;
 	struct pt AVelocity;
+	Key Down[KEYS_HANDLED];
+	Key WasDown[KEYS_HANDLED];
 	double lasttime;
 } VRML_Viewer_Fly;
 
@@ -135,7 +179,6 @@ resolve_pos(VRML_Viewer *viewer);
 void
 xy2qua(
 	   Quaternion *ret,
-	   VRML_Viewer *viewer,
 	   const double x,
 	   const double y
 	   );
@@ -145,6 +188,65 @@ viewer_togl(
 			VRML_Viewer *viewer,
 			double fieldofview
 			);
+
+
+void handle(
+			VRML_Viewer *viewer,
+			 const char *mev,
+			 const unsigned int button,
+			 const double x,
+			 const double y
+			);
+
+void
+handle_walk(
+			VRML_Viewer *viewer,
+			const char *mev,
+			const unsigned int button,
+			const double x,
+			const double y
+			);
+
+void
+handle_examine(
+			   VRML_Viewer *viewer,
+			   const char *mev,
+			   const unsigned int button,
+			   const double x,
+			   const double y
+			   );
+
+void
+handle_key(
+		   VRML_Viewer *viewer,
+		   const double time,
+		   const char key
+		   );
+
+void
+handle_keyrelease(
+				  VRML_Viewer *viewer,
+				  const double time,
+				  const char key
+				  );
+
+void
+handle_tick(
+			VRML_Viewer *viewer,
+			const double time
+			);
+
+void
+handle_tick_walk(
+				 VRML_Viewer *viewer,
+				 const double time
+				 );
+
+void
+handle_tick_exfly(
+				  VRML_Viewer *viewer,
+				  const double time
+				  );
 
 void
 set_stereo_offset(

@@ -345,28 +345,44 @@ sub set_root { $_[0]{Root} = $_[1] }
 
 #event: Handles external sensory events (keys, mouse, etc)
 sub event {
-  my $w;
-  my($this, $time, $type, @args) = @_;
-  my $code;
-  my $but;
-
-  # JAS - uncomment this to see all events, even mouse movenemts
-  # print "EVENT $this $type $args[0] $args[1] $args[2]\n";
-
-  if($type == &MotionNotify) {
-
+	my $w;
+	my($this, $time, $type, @args) = @_;
+	my $code;
 	my $but;
-	# print "MOT!\n";
-	if (!(defined $this->{CONTEXT}))
-	{
-	if($args[0] & (&Button1Mask)) {
-	    $but = 1;
-	} elsif ($args[0] & (&Button2Mask)) {
-	    $but = 2;
-	} elsif ($args[0] & (&Button3Mask)) {
-	    $but = 3;
-	}
-	} else {
+
+	# JAS - uncomment this to see all events, even mouse movenemts
+	# print "EVENT $this $type $args[0] $args[1] $args[2]\n";
+
+	if ($type == &MotionNotify) {
+
+		my $but;
+		# print "MOT!\n";
+		if (!(defined $this->{CONTEXT})) {
+			if ($args[0] & (&Button1Mask)) {
+				$but = 1;
+			} elsif ($args[0] & (&Button2Mask)) {
+				$but = 2;
+			} elsif ($args[0] & (&Button3Mask)) {
+				$but = 3;
+			}
+		} else {
+			if ($args[0] == (&Button1)) {
+				$but = 1;
+			} elsif ($args[0] == (&Button2)) {
+				$but = 2;
+			} elsif ($args[0] == (&Button3)) {
+				$but = 3;
+			}
+		}
+		# print "BUT: $but\n";
+		$this->{MX} = $args[1]; $this->{MY} = $args[2];
+		$this->{BUT} = $but;
+		$this->{SENSMOVE} = 1;
+		push @{$this->{BUTEV}}, [MOVE, undef, $args[1], $args[2]];
+		undef $this->{EDone} if ($but > 0);
+
+    } elsif ($type == &ButtonPress) {
+		# print "BP!\n";
 		if ($args[0] == (&Button1)) {
 			$but = 1;
 		} elsif ($args[0] == (&Button2)) {
@@ -374,168 +390,152 @@ sub event {
 		} elsif ($args[0] == (&Button3)) {
 			$but = 3;
 		}
-	}
-	# print "BUT: $but\n";
- 	$this->{MX} = $args[1]; $this->{MY} = $args[2];
-	$this->{BUT} = $but;
-	$this->{SENSMOVE} = 1;
-	push @{$this->{BUTEV}}, [MOVE, undef, $args[1], $args[2]];
-	undef $this->{EDone} if ($but > 0);
+		$this->{MX} = $args[1]; $this->{MY} = $args[2];
+		my $x = $args[1]/$this->{W};
+		my $y = $args[2]/$this->{H};
+		if ($but == 1 or $but == 3) {
+			# print "BPRESS $but $x $y\n";
 
-    } elsif($type == &ButtonPress) {
-      # print "BP!\n";
-      if($args[0] == (&Button1)) {
-	  $but = 1;
-	} elsif($args[0] == (&Button2)) {
-	  $but = 2;
-	} elsif ($args[0] == (&Button3)) {
-	  $but = 3;
-	}
-      $this->{MX} = $args[1]; $this->{MY} = $args[2];
-      my $x = $args[1]/$this->{W};
-	  my $y = $args[2]/$this->{H};
-      if($but == 1 or $but == 3)
-	{
-	  # print "BPRESS $but $x $y\n";
-
-	  # If this is not on a sensitive node....
-	  if ($cursortype == 0) {
-	      #AK - #$this->{Viewer}->handle("PRESS",$but,$x,$y, $args[5] & &ShiftMask, $args[5] & &ControlMask);
-		VRML::VRMLFunc::do_handle("PRESS", $but, $x, $y);
-	  }
-	}
-      push @{$this->{BUTEV}}, [PRESS, $but, $args[1], $args[2]];
-      $this->{BUT} = $but;
-      $this->{SENSBUT} = $but;
-      undef $this->{EDone};
-
-    } elsif($type == &ButtonRelease) {
-      # print "BR\n";
-      if($args[0] == (&Button1)) {
-	  $but = 1;
-	} elsif($args[0] == (&Button2)) {
-	  $but = 2;
-	} elsif ($args[0] == (&Button3)) {
-	  $but = 3;
-	}
-      push @{$this->{BUTEV}}, [RELEASE, $but, $args[1], $args[2]];
-      $this->finish_event;
-      if ($cursortype == 0) {  #ie, it is not a sensitive node being released
-		#AK - #$this->{Viewer}->handle("RELEASE",$but,0,0);
-		VRML::VRMLFunc::do_handle("RELEASE", $but, 0, 0);
-      }
-
-      $this->{SENSBUTREL} = $but;
-      undef $this->{BUT};
-
-    } elsif($type == &KeyPress) {
-      # print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
-      if((lc $args[0]) eq "e") {
-		  #AK - #$this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
-		VRML::VRMLFunc::set_viewer_type(EXAMINE);
-	} elsif((lc $args[0]) eq "w") {
-		  #AK - #$this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
-		VRML::VRMLFunc::set_viewer_type(WALK);
-	} elsif((lc $args[0]) eq "d") {
-		  #AK - #$this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
-		VRML::VRMLFunc::set_viewer_type(FLY);
-	} elsif((lc $args[0]) eq "f") {
-		  #AK - #$this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
-		VRML::VRMLFunc::set_viewer_type(EXFLY);
-	} elsif((lc $args[0]) eq "h") {
-	  #AK - #if($this->{Viewer}{Navi}{RFields}{headlight}) {
-	      #print "headlight going off...\n";
-	      #AK - #$this->{Viewer}{Navi}{RFields}{headlight}=0;
-	    #AK - #} else {
-	      #print "headlight going on...\n";
-	     #AK - # $this->{Viewer}{Navi}{RFields}{headlight}=1;
-	    #AK - #}
-		VRML::VRMLFunc::do_toggle_headlight();
-	} elsif((lc $args[0]) eq "/") {
-	  # the following 3 lines commented out for
-	  # Etienne's changes. JAS
-	  # my $tr = join ', ',@{$this->{Viewer}{Pos}};
-
-	  #AK - #my $quat = join ', ',@{$this->{Viewer}{Quat}};
-	  #AK - #print "QuatViewpoint: [$quat]\n";
-
-	  #AK - #my $tr = sprintf("%8.4f " x 3, @{$this->{Viewer}{Pos}});
-	  #AK - #my $rot = sprintf("%8.4f " x 4, @{$this->{Viewer}{Quat}->to_vrmlrot()});
-	  #AK - #print("Viewpoint {\n", "\tposition\t$tr\n", "\torientation $rot\n", "}\n");
-		print("'/' key is temporarily non-functional.\n");
-
-	  # Sequence / Single Image saving ###########
-	} elsif((lc $args[0]) eq "s") {
-
-	  # Sequence saving ##########################
-	  if ($main::seq) {
-	      $main::saving = ! $main::saving ;
-	      print "Saving ",$main::saving ? "on" : "off","\n" ;
-
-	      # At end of sequence, convert raw
-	      # images to a gif or ppm's 
-	      if (! $main::saving) {
-		  VRML::Browser::convert_raw_sequence();
-		} else {	# Start new sequence
-		  @main::saved = (); # Reset list of images
-		  $main::seqcnt = 0;
+			# If this is not on a sensitive node....
+			if ($cursortype == 0) {
+				#AK - #$this->{Viewer}->handle("PRESS",$but,$x,$y, $args[5] & &ShiftMask, $args[5] & &ControlMask);
+				VRML::VRMLFunc::do_handle("PRESS", $but, $x, $y);
+			}
 		}
-	      # Single image
-	    } else {
-	      print "Saving snapshot\n";
-	      VRML::Browser::save_snapshot($this);
-	    }
-	} elsif((lc $args[0]) eq "q") {
-	  # if in netscape, don't do the quitpressed!
-	  if (!$VRML::ENV{AS_PLUGIN}) {
-	    $this->{QuitPressed} = 1;
-          }
+		push @{$this->{BUTEV}}, [PRESS, $but, $args[1], $args[2]];
+		$this->{BUT} = $but;
+		$this->{SENSBUT} = $but;
+		undef $this->{EDone};
 
-	} elsif((lc $args[0]) eq "v") {
-	  # print "NEXT VP\n";
-	  if($this->{VPSub}) {
-	      $this->{VPSub}->(1);
-	    } else {
-	      die("No VPSUB");
-	    }
-	} elsif((lc $args[0]) eq "c") { # toggle collision detection on/off
-	  if($becollision==1) {
-		$becollision=0;
-	  } else {
-		$becollision=1;
-	  }
-	#AK - #elsif(!$this->{Viewer}->use_keys())
-	} elsif(!VRML::VRMLFunc::use_keys()) {
-	    if((lc $args[0]) eq "k") {
-			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
-			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-			VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.4);
-	      } elsif((lc $args[0]) eq "j") {
-			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
-			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-			VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.6);
-	      } elsif((lc $args[0]) eq "l") {
-			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
-			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-			VRML::VRMLFunc::do_handle("DRAG", 1, 0.6, 0.5);
-	      } elsif((lc $args[0]) eq "h") {
-			#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-			#AK - #$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
-			VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-			VRML::VRMLFunc::do_handle("DRAG", 1, 0.4, 0.5);
-	      }
-	  } else {
-		  #AK - #$this->{Viewer}->handle_key($time,$args[0]);
-		  VRML::VRMLFunc::do_handle_key($time, $args[0]);
-	}
-    } elsif($type == &KeyRelease) {
-	  #AK - #if($this->{Viewer}->use_keys()) {
-		if(!VRML::VRMLFunc::use_keys()) {
-		  #AK - #$this->{Viewer}->handle_keyrelease($time,$args[0]);
-		  VRML::VRMLFunc::do_handle_key($time, $args[0]);
+    } elsif ($type == &ButtonRelease) {
+		# print "BR\n";
+		if ($args[0] == (&Button1)) {
+			$but = 1;
+		} elsif ($args[0] == (&Button2)) {
+			$but = 2;
+		} elsif ($args[0] == (&Button3)) {
+			$but = 3;
+		}
+		push @{$this->{BUTEV}}, [RELEASE, $but, $args[1], $args[2]];
+		$this->finish_event;
+		if ($cursortype == 0) {			#ie, it is not a sensitive node being released
+			#AK - #$this->{Viewer}->handle("RELEASE",$but,0,0);
+			VRML::VRMLFunc::do_handle("RELEASE", $but, 0, 0);
+		}
+
+		$this->{SENSBUTREL} = $but;
+		undef $this->{BUT};
+
+    } elsif ($type == &KeyPress) {
+		# print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
+		if ((lc $args[0]) eq "e") {
+			#AK - #$this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
+			VRML::VRMLFunc::set_viewer_type(EXAMINE);
+		} elsif ((lc $args[0]) eq "w") {
+			#AK - #$this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
+			VRML::VRMLFunc::set_viewer_type(WALK);
+		} elsif ((lc $args[0]) eq "d") {
+			#AK - #$this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
+			VRML::VRMLFunc::set_viewer_type(FLY);
+		} elsif ((lc $args[0]) eq "f") {
+			#AK - #$this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
+			VRML::VRMLFunc::set_viewer_type(EXFLY);
+		} elsif ((lc $args[0]) eq "h") {
+			#AK - #if($this->{Viewer}{Navi}{RFields}{headlight}) {
+			#print "headlight going off...\n";
+			#AK - #$this->{Viewer}{Navi}{RFields}{headlight}=0;
+			#AK - #} else {
+			#print "headlight going on...\n";
+			#AK - # $this->{Viewer}{Navi}{RFields}{headlight}=1;
+			#AK - #}
+			VRML::VRMLFunc::do_toggle_headlight();
+		} elsif ((lc $args[0]) eq "/") {
+			# the following 3 lines commented out for
+			# Etienne's changes. JAS
+			# my $tr = join ', ',@{$this->{Viewer}{Pos}};
+
+			#AK - #my $quat = join ', ',@{$this->{Viewer}{Quat}};
+			#AK - #print "QuatViewpoint: [$quat]\n";
+
+			#AK - #my $tr = sprintf("%8.4f " x 3, @{$this->{Viewer}{Pos}});
+			#AK - #my $rot = sprintf("%8.4f " x 4, @{$this->{Viewer}{Quat}->to_vrmlrot()});
+			#AK - #print("Viewpoint {\n", "\tposition\t$tr\n", "\torientation $rot\n", "}\n");
+			print("'/' key is temporarily non-functional.\n");
+
+			# Sequence / Single Image saving ###########
+		} elsif ((lc $args[0]) eq "s") {
+
+			# Sequence saving ##########################
+			if ($main::seq) {
+				$main::saving = ! $main::saving ;
+				print "Saving ",$main::saving ? "on" : "off","\n" ;
+
+				# At end of sequence, convert raw
+				# images to a gif or ppm's 
+				if (! $main::saving) {
+					VRML::Browser::convert_raw_sequence();
+				} else {				# Start new sequence
+					@main::saved = ();	# Reset list of images
+					$main::seqcnt = 0;
+				}
+				# Single image
+			} else {
+				print "Saving snapshot\n";
+				VRML::Browser::save_snapshot($this);
+			}
+		} elsif ((lc $args[0]) eq "q") {
+			# if in netscape, don't do the quitpressed!
+			if (!$VRML::ENV{AS_PLUGIN}) {
+				$this->{QuitPressed} = 1;
+			}
+
+		} elsif ((lc $args[0]) eq "v") {
+			# print "NEXT VP\n";
+			if ($this->{VPSub}) {
+				$this->{VPSub}->(1);
+			} else {
+				die("No VPSUB");
+			}
+		} elsif ((lc $args[0]) eq "c") { # toggle collision detection on/off
+			if ($becollision == 1) {
+				$becollision = 0;
+			} else {
+				$becollision = 1;
+			}
+			#AK - #elsif(!$this->{Viewer}->use_keys())
+		} elsif (!VRML::VRMLFunc::use_keys()) {
+			if ((lc $args[0]) eq "k") {
+				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
+				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.4);
+			} elsif ((lc $args[0]) eq "j") {
+				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
+				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.6);
+			} elsif ((lc $args[0]) eq "l") {
+				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
+				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+				VRML::VRMLFunc::do_handle("DRAG", 1, 0.6, 0.5);
+			} elsif ((lc $args[0]) eq "h") {
+				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
+				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
+				VRML::VRMLFunc::do_handle("DRAG", 1, 0.4, 0.5);
+			}
+		} else {
+print "\nVRML::GLBackEnd::event Key: $args[0]\n";
+			#AK - #$this->{Viewer}->handle_key($time,$args[0]);
+			VRML::VRMLFunc::do_handle_key($time, $args[0]);
+		}
+	} elsif ($type == &KeyRelease) {
+		#AK - #if($this->{Viewer}->use_keys()) {
+		if (VRML::VRMLFunc::use_keys()) {
+print "\nVRML::GLBackEnd::event Key: $args[0]\n";
+			#AK - #$this->{Viewer}->handle_keyrelease($time,$args[0]);
+			VRML::VRMLFunc::do_handle_keyrelease($time, $args[0]);
 		}
     }
 }
@@ -900,8 +900,6 @@ sub render {
 		}
 		$this->{MOUSOVER} = $p;
 	    }
-#	    glRenderMode(&GL_RENDER);
-	    
 	}
     }
 	

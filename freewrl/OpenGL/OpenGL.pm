@@ -43,7 +43,7 @@
 		GL_FLAT
 		GL_FRONT_AND_BACK
 		GL_LEQUAL
-                GL_LEFT
+		GL_LEFT
 		GL_LIGHT0
 		GL_LIGHT1
 		GL_LIGHT2
@@ -90,29 +90,12 @@
 		ShiftMask
 		StructureNotifyMask
 		XPending
-		glBlendFunc
-		glClear
-		glClearColor
-		glDepthFunc
-		glDisable
 		glDrawBuffer
-		glEnable
-		glGetDoublev
 		glGetIntegerv
-		glHint
-		glLightModeli
-		glLightfv
 		glLoadIdentity
-		glMaterialf
 		glMatrixMode
-		glMultMatrixd
 		glPixelStorei
-		glPolygonMode
-		glPopMatrix
-		glPushMatrix
 		glReadPixels
-		glRenderMode
-		glSelectBuffer
 		glShadeModel
 		glViewport
 		glXDestroyContext
@@ -120,7 +103,6 @@
 		glpOpenGLInitialize
 		glpOpenWindow
 		glpXNextEvent
-		gluPerspective
 		glupPickMatrix
 		get_triangulator
 		glGenTexture

@@ -4,27 +4,29 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#ifdef AQUA 
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-#endif
+#include "OpenGL_Utils.h"
 
-#include <unistd.h>
-#include <stdio.h>
+/* #ifdef AQUA  */
+/* #include <gl.h> */
+/* #include <glu.h> */
+/* #include <glext.h> */
+/* #else */
+/* #include <GL/gl.h> */
+/* #include <GL/glx.h> */
+/* #include <GL/glu.h> */
+/* #include <GL/glext.h> */
+/* #endif */
 
-#ifndef AQUA 
-#include <X11/cursorfont.h>
-#ifdef XF86V4
-#include <X11/extensions/xf86vmode.h>
-#endif
-#include <X11/keysym.h>
-#endif
+/* #include <unistd.h> */
+/* #include <stdio.h> */
+
+/* #ifndef AQUA  */
+/* #include <X11/cursorfont.h> */
+/* #ifdef XF86V4 */
+/* #include <X11/extensions/xf86vmode.h> */
+/* #endif */
+/* #include <X11/keysym.h> */
+/* #endif */
 
 #ifndef AQUA
 Display *dpy;
@@ -67,10 +69,12 @@ struct fudge original_display;
 Cursor arrowc;
 Cursor sensorc;
 #endif
+
 int	render_frame = 5;	/* do we render, or do we sleep? */
 int	now_mapped = 1;		/* are we on screen, or minimized? */
 
-#define OPENGL_NOVIRT
+/* #define OPENGL_NOVIRT */
+
 #include "OpenGL.m"
 
 static OpenGLVTab vtab;
@@ -130,10 +134,20 @@ int  default_attributes3[] =
 #endif
 
 
+
 /***************************************************************************/
 
+/* should we render? */
+void
+set_render_frame()
+{
+	render_frame = 5; /* render a couple of frames to let events propagate */
+}
+
+
 #ifndef AQUA 
-XVisualInfo *find_best_visual(int shutter,int *attributes,int len) {
+XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
+{
    XVisualInfo *vi=NULL;
    int attrib;
    int startattrib=0;
@@ -196,10 +210,12 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len) {
 #endif
 /***************************************************************************/
 #ifndef AQUA 
-static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
+static Bool WaitForNotify(Display *d, XEvent *e, char *arg)
+{
     return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
 }
 #endif
+
 
 
 /***************************************************************************/
@@ -224,10 +240,6 @@ raise_me_please()
 # should we render?
 void
 set_render_frame()
-	CODE:
-	{
-	render_frame = 5; /* render a couple of frames to let events propagate */
-	}
 
 void
 BackEndSleep()
@@ -667,6 +679,8 @@ glpXNextEvent(d=dpy)
 #endif
 
 
+# used by VRML::GLBackEnd::snapshot
+
 void
 glReadPixels(x,y,width,height,format,type,pixels)
 	GLint	x
@@ -729,6 +743,8 @@ glpPrintString(base,str)
 # than the equivalent counter-part that needs pointer arguments
 #
 
+# used by VRML::GLBackEnd::setup_projection
+
 void
 glupPickMatrix(x,y,width,height,vp1,vp2,vp3,vp4)
 	GLdouble	x
@@ -747,28 +763,8 @@ glupPickMatrix(x,y,width,height,vp1,vp2,vp3,vp4)
 	}
 
 
-void
-glPolygonMode(face,mode)
-        GLenum  face
-        GLenum  mode
 
-
-void
-glClearColor(red,green,blue,alpha)
-	GLclampf	red
-	GLclampf	green
-	GLclampf	blue
-	GLclampf	alpha
-
-void
-glClear(mask)
-	GLbitfield	mask
-
-
-void
-glBlendFunc(sfactor,dfactor)
-	GLenum	sfactor
-	GLenum	dfactor
+# used by VRML::NodeType::init_image and VRML::NodeType::init_(movie|pixel)_image
 
 int
 glGenTexture()
@@ -783,24 +779,7 @@ glGenTexture()
 
 
 
-void
-glEnable(cap)
-	GLenum	cap
-
-void
-glDisable(cap)
-	GLenum	cap
-
-
-void
-glGetDoublev(pname,params)
-	GLenum	pname
-	char *	params
-	CODE:
-	{
-	   glGetDoublev(pname,(GLdouble *)params);
-	}
-
+# used by VRML::GLBackEnd::setup_projection
 
 void
 glGetIntegerv(pname,params)
@@ -811,35 +790,20 @@ glGetIntegerv(pname,params)
 	   glGetIntegerv(pname,(GLint *)params);
 	}
 
-void
-glPushAttrib(mask)
-	GLbitfield	mask
 
-void
-glPopAttrib()
-
-GLint
-glRenderMode(mode)
-	GLenum	mode
-
-
-void
-glHint(target,mode)
-	GLenum	target
-	GLenum	mode
-
-
-void
-glDepthFunc(func)
-	GLenum	func
+# used by VRML::GLBackEnd::render
 
 void
 glDrawBuffer(mode)
 	GLenum	mode 
 
+# used by VRML::GLBackEnd::setup_projection and VRML::GLBackEnd::setup_viewpoint
+
 void
 glMatrixMode(mode)
 	GLenum	mode
+
+# used by VRML::GLBackEnd::setup_projection
 
 void
 glViewport(x,y,width,height)
@@ -848,104 +812,27 @@ glViewport(x,y,width,height)
 	GLsizei	width
 	GLsizei	height
 
-void
-glPushMatrix()
 
-void
-glPopMatrix()
+# used by VRML::GLBackEnd::setup_projection and VRML::GLBackEnd::setup_viewpoint
 
 void
 glLoadIdentity()
 
 
-void
-glMultMatrixd(m)
-	char *	m
-	CODE:
-	{
-	   glMultMatrixd((GLdouble *)m);
-	}
-
-
-
-void
-glRotatef(angle,x,y,z)
-	GLfloat	angle
-	GLfloat	x
-	GLfloat	y
-	GLfloat	z
-
-
-void
-glTranslatef(x,y,z)
-	GLfloat	x
-	GLfloat	y
-	GLfloat	z
-
-
-
+# used by VRML::GLBackEnd::set_fast, which is called by freewrl.PL
 
 void
 glShadeModel(mode)
 	GLenum	mode
 
-void
-glLightfv(light,pname,params)
-	GLenum	light
-	GLenum	pname
-	char *	params
-	CODE:
-	{
-	   glLightfv(light,pname,(GLfloat *)params);
-	}
 
-
-
-
-void
-glLightModeli(pname,param)
-	GLenum	pname
-	GLint	param
-
-
-void
-glMaterialf(face,pname,param)
-	GLenum	face
-	GLenum	pname
-	GLfloat	param
-
-void
-glMaterialfv(face,pname,params)
-	GLenum	face
-	GLenum	pname
-	char *	params
-	CODE:
-	{
-	   glMaterialfv(face,pname,(GLfloat *)params);
-	}
-
+# used by VRML::GLBackEnd::snapshot
 
 void
 glPixelStorei(pname,param)
 	GLenum	pname
 	GLint	param
 
-
-void
-glSelectBuffer(size,buffer)
-	GLsizei	size
-	char *	buffer
-	CODE:
-	{
-	   glSelectBuffer(size,(GLuint *)buffer);
-	}
-
-void
-gluPerspective(fovy,aspect,zNear,zFar)
-	GLdouble	fovy
-	GLdouble	aspect
-	GLdouble	zNear
-	GLdouble	zFar
 
 
 #ifndef AQUA 

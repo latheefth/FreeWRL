@@ -3,22 +3,23 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 
-WriteMakefile(
-    'NAME'              => "VRML::CFuncs",
-    'CCFLAGS'		=> "",
-    'DEFINE'		=> "$VRML_CONFIG{FREEWRL_DEFINE}",
-    'INC'               => $VRML_CONFIG{FREEWRL_INC},
-dynamic_lib => { 'OTHERLDFLAGS' => $VRML_CONFIG{LDFLAGS}, 'LDDLFLAGS' => $VRML_CONFIG{LDDLFLAGS} },
-    'LIBS'		=> ""
-);
+## get rid of -W eventually
+my $ccflags = q{-Wall -W -Wundef -Wshadow -Wpointer-arith -Wconversion -Wbad-function-cast -Wcast-qual -Wsign-compare -Wmissing-prototypes -Wmissing-declarations};
 
-sub MY::post_initialize {
-	my $post_init =
-q{
-LIBDIR=
-};
-	return ($post_init);
-}
+WriteMakefile(
+			  NAME => "VRML::CFuncs",
+			  CCFLAGS => $ccflags,
+			  DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
+			  INC => $VRML_CONFIG{FREEWRL_INC},
+			  dynamic_lib => {
+							  OTHERLDFLAGS => $VRML_CONFIG{LDFLAGS},
+							  LDDLFLAGS => $VRML_CONFIG{LDDLFLAGS}
+							 },
+			  LIBS => $VRML_CONFIG{FREEWRL_LIBS}
+			 );
+
+sub MY::post_initialize { return qq{\nLIBDIR=\n}; }
+
 sub MY::dynamic_lib {
 "ARMAYBE = :
 OTHERLDFLAGS = $VRML_CONFIG{LDFLAGS} 
@@ -32,12 +33,31 @@ INST_DYNAMIC_DEP =
 }
 
 sub MY::c_o {
-	my $c_o =
-q{
-%.o: %.c
-	$(CCCMD) -I$(PERL_INC) $(CCFLAGS) -o $@ $(LIBDIR) $< $(LIBS) $(DEFINE)
-};
-	return ($c_o);
+	##my $cxx_rule = qq{\t\$(CCCMD) -c \$< \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n};
+	my $cxx_rule = qq{\t\$(CCCMD) \$< \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n};
+
+	my $c_o = join(
+				   "\n",
+				   qq{\n%.i : %.c},
+				   qq{\tgcc -E -c \$(PASTHRU_INC) \$(INC)\\},
+				   qq{\t\$(CCFLAGS) \$(OPTIMIZE)\\},
+				   qq{\t\$(PERLTYPE) \$(MPOLLUTE) \$(DEFINE_VERSION)\\},
+				   qq{\t\$(XS_DEFINE_VERSION) \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) \$< > \$@\n},
+				   qq{\n%.s : %.c},
+				   qq{\t\$(CCCMD) -S \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n},
+				   qq{\n%.o : %.c},
+				   $cxx_rule,
+				   qq{%.o : %.C},
+				   $cxx_rule,
+				   qq{%.o : %.cpp},
+				   $cxx_rule,
+				   qq{%.o : %.cxx},
+				   $cxx_rule,
+				   qq{%.o : %.cc},
+				   $cxx_rule
+				  );
+
+	return $c_o;
 }
 
 ## Override all this stuff
@@ -58,13 +78,10 @@ sub MY::xs_o { "" }
 ## C_FILES and O_FILES are generated automatically by MakeMaker
 
 sub MY::postamble {
-	my $postamble =
-q{
-
-vpath %.c
-
-all :: ${O_FILES}
-
-};
-	return ($postamble);
+	my $postamble = join(
+						 "\n",
+						 qq{\nvpath %.c\n},
+						 qq{all :: \${O_FILES}\n}
+						);
+	return $postamble;
 }

@@ -256,6 +256,14 @@ togl(Quaternion *quat)
 	glRotated(2 * (acos(quat->w) / PI * 180), quat->x, quat->y, quat->z);
 }
 
+void
+set(Quaternion *ret, const Quaternion *quat)
+{
+	ret->x = quat->x;
+	ret->y = quat->y;
+	ret->z = quat->z;
+}
+
 /* void */
 /* slerp() */
 /* { */

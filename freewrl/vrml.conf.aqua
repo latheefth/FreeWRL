@@ -2,21 +2,31 @@
 # You will probably need to edit at least these variables
 # to inform the compiler where the libraries are on your system.
 %VRML_CONFIG = (
+############################################################################
+# don't touch this!!!
+    PLATFORM => 'MACOSX',
+
+############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/lib -L/System/Library/Frameworks/OpenGL.framework/Libraries -L/Freewrl/jpeg-6b -ljpeg -L/usr/local/lib -lpng -lz -lfreetype -lGL -lGLU',
     FREEWRL_DEFINE => '-DAQUA',
     FREEWRL_INC => '-I/usr/include/sys/ -I/System/Library/Frameworks/OpenGL.framework/Headers -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config',
-# Javascript lib & include (relative to the JS/ directory)
-    JS_LIBS => '-Ljs/src/Darwin6.4_OPT.OBJ -ljs',
-    JS_INC => '-Ijs/src/Darwin6.4_OPT.OBJ -Ijs/src -Ijs/',
+
+############################################################################
 # Saxon location - required for x3d running.
     SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
+
+############################################################################
 # Netscape installation
 # If Netscape is not installed, leave NETSCAPE_INST empty e.g.
- NETSCAPE_INST => '',
+    NETSCAPE_INST => '',
+
+############################################################################
 # Java installation (Sun's Java 2 SDK Standard Edition 1.3.1)
 # If Java is not installed, leave JAVA_INST empty e.g.
- JAVA_INST => '',
+    JAVA_INST => '',
+
+############################################################################
 # LD flags
-	'LDFLAGS' =>  '-twolevel_namespace -undefined error -dynamic -bundle -L/usr/local/lib -L/System/Library/Perl/darwin/CORE/ -lperl',
+	LDFLAGS => '-twolevel_namespace -undefined error -dynamic -bundle -L/usr/local/lib -L/System/Library/Perl/darwin/CORE/ -lperl',
 );

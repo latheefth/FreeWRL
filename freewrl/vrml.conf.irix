@@ -5,26 +5,30 @@
 # This is the Irix vrml.conf file
 
 %VRML_CONFIG = (
+############################################################################
+# don't touch this!!!
+    PLATFORM => 'IRIX',
 
-#     # the following line is required to switch into quadbuffer stereo mode
-#     # on SGI Indigo2 Impact or some SGI O2 workstations
+############################################################################
+# the following line is required to switch into quadbuffer stereo mode
+# on SGI Indigo2 Impact or some SGI O2 workstations
     FREEWRL_DEFINE => '-DSTEREOCOMMAND="\"/usr/gfx/setmon -n 1024x768_96s\""',
-################################
 
+############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/freeware/lib32 -L/usr/lib32 -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg',
     FREEWRL_INC => '-I/usr/freeware/include -I/usr/X11R6/include/',
     SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
-    JS_LIBS => '-Ljs/IRIX646.5_DBG.OBJ -ljs',
-    JS_INC => '-Ijs/IRIX646.5_DBG.OBJ -Ijs/',
 
-    # netscape; if you dont want to build, leave NETSCAPE_INST blank.
+############################################################################
+# Netscape; if you dont want to build, leave NETSCAPE_INST blank.
     NETSCAPE_INST => '',
     #NETSCAPE_INST => '/usr/lib/netscape',
     NETSCAPE_CLASSES => '/usr/lib/netscape/java/classes',
     NETSCAPE_PLUGINS => '/usr/lib/netscape/plugins',
     
-    # java - if you dont want to build, leave JAVA_INST blank
+############################################################################
+# Java - if you dont want to build, leave JAVA_INST blank
     JAVA_INST => '',
     #JAVA_INST => '/usr/java/',
     JAVA_INC => '-I/usr/java/include -I/usr/java/include/irix'

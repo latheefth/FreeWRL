@@ -87,13 +87,19 @@ scalar_multiply(
 
 void
 rotation(
-			struct pt *ret,
-			const Quaternion *quat,
-			const struct pt *v
-			);
+		 struct pt *ret,
+		 const Quaternion *quat,
+		 const struct pt *v
+		 );
 
 void
 togl(Quaternion *quat);
+
+void
+set(
+	Quaternion *ret,
+	const Quaternion *quat
+	);
 
 /* void */
 /* slerp(); */
