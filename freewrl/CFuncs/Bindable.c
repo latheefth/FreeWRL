@@ -270,8 +270,7 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 void render_Viewpoint (struct VRML_Viewpoint *node) {
 	GLint vp[10];
 	double a1;
-	/* double angle; */
-	float rot[0];
+       /* GLdouble modelMatrix[16]; */
 
 	//printf ("rvp, node %d ib %d sb %d\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
@@ -286,11 +285,38 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 
 	if(!node->isBound) return;
 
+	/*
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+       printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
+                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
+                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
+                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
+                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
+	*/
+
+
 	/* stop rendering when we hit A viewpoint or THE viewpoint???
 	   shouldnt we check for what_vp???? 
            maybe only one viewpoint is in the tree at a time? -  ncoder*/
 
 	found_vp = 1; /* We found the viewpoint */
+
+	/* perform Viewpoint translations */
+	glRotatef(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
+		node->orientation.r[2]);
+	glTranslatef(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
+
+	/*
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+       printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
+                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
+                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
+                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
+                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
+	*/
+
+
+
 
 	/* now, lets work on the Viewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, vp);
