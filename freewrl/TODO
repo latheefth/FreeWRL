@@ -6,6 +6,9 @@
 
 TODO wishlist for 0.28 release.
 
+Fran Taylor sent in some great tips for getting FreeWRL to work better with
+Netscape. Implement and document these.
+
 DONE:	EAI CreateTest working (needs replaceworld EAI call)
 
 DONE:	DEF and USE's for textures.
@@ -16,10 +19,10 @@ DONE:	Extrusion endCaps are facing the wrong way! (begincaps are ok)
 
 Does render_polyrep'd nodes use display/texture lists?
 
-do_textures smooths textures, but make it NOT smooth pixeltextures. (need another
+DONE:	do_textures smooths textures, but make it NOT smooth pixeltextures. (need another
 parameter) - see t4*wrl in luigi's home directory
 
-Try GL_CULLing backgrounds and basic shapes. (COSMO on the SGI does this)
+DONE???: Try GL_CULLing backgrounds and basic shapes. (COSMO on the SGI does this)
 this should double rendering speed for them.
 
 Extrusion Textures not working reliably.
