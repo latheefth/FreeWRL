@@ -58,11 +58,11 @@ int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 		} else pointctr++;
 	}
 
-	/*	
+		
 	printf ("this structure has %d faces\n",faces);
 	printf ("	max points per face %d\n",max_points_per_face);
 	printf ("	min points per face %d\n\n",min_points_per_face);
-	*/
+	
 	
 	if (faces < 1) {
 		printf("an IndexedFaceSet with no faces found\n");
@@ -116,6 +116,8 @@ void IFS_face_normals (
 			    (this_IFS->coordIndex.p[tmp_a+2] == -1)) {
 				printf ("have a face with two or less vertexes\n");
 				faceok[i] = FALSE;
+
+				if (this_IFS->coordIndex.p[tmp_a] != -1) tmp_a++;
 			} else {
 	
 				
@@ -199,7 +201,9 @@ void IFS_face_normals (
 
 		/* skip forward to next ifs - we have the normal */
 		if (i<faces-1) {
-			while ((this_IFS->coordIndex.p[tmp_a-1]) != -1) {
+			while (((this_IFS->coordIndex.p[tmp_a-1]) != -1) &&
+				(tmp_a < cin-2)) {
+				this_IFS->coordIndex.p[tmp_a-1], tmp_a);
 				tmp_a++;
 			}
 		}
