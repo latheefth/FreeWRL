@@ -580,6 +580,13 @@ if (!$parent) {
 # Save font path, text nodes will require this
 my $ok = 0;
 
+# put the path to 5.6.1 here, as (as of 0.34 rpm) that is where
+# the RPM files are put.
+
+#push (@INC,'/usr/lib/perl5/5.6.1');
+#foreach (@INC) { print "incline $_\n";}
+
+
 $ok = VRML::VRMLFunc::save_font_path(($VRML::ENV{FREEWRL_FONTS}||"fonts"));
 if ($ok == 0) {
 	foreach (@INC) {
