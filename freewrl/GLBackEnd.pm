@@ -136,7 +136,7 @@ sub new {
 		      "y" => $y,
 		      wintitle => $mytitle);
 
-	
+
         glClearColor(0,0,0,1);
         glShadeModel (&GL_FLAT);
 	glDepthFunc(&GL_LEQUAL);
