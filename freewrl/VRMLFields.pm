@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.4  2000/11/15 13:51:25  crc_canada
+# First attempt to work again on SAI
+#
 # Revision 1.3  2000/08/13 14:26:46  rcoscali
 # Add a js constructor for SFImage (need some work to do)
 # Fixed default SFImage JS statement
@@ -148,6 +151,24 @@ sub as_string {$_[1]}
 sub ctype {return "int $_[1]"}
 sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
 
+# The java interface
+
+sub jdata {"int v;"}
+sub jalloc {""}
+sub jset {return {""=>"v = 0;", "int val" => "v=val;"}}
+sub jeaiset {return "int val"}
+sub jset_str { '
+	s = s.trim();
+	v = new Integer(s).intValue();
+'}
+sub jget {return {int => "return v;"}}
+sub jcopy {"v = f.getValue();"}
+sub jstr {"return new Integer(v).toString();"}
+sub jclonearg {"v"}
+sub toj {$_[1]}
+sub fromj {$_[1]}
+
+########
 package VRML::Field::SFColor;
 @ISA=VRML::Field;
 VRML::Error->import;
