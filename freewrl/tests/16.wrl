@@ -18,9 +18,7 @@ Group {
 
 
     NavigationInfo {
-      type "FLY"
-      type "WALK"
-        type "EXAMINE"
+        type "ANY"
 #      headlight FALSE
 	headlight TRUE
     }
