@@ -1380,6 +1380,7 @@ struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML
     int maxc;
     
 
+    res.x=0.0; res.y=0.0; res.z=0.0;
     maxc = 0; // highest cindex, used to point into newc structure.
 
     for(i = 0; i < pr.ntri*3; i++) {
@@ -1476,6 +1477,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, stru
     int maxc;
     
 
+    res.x=0.0; res.y=0.0; res.z=0.0;
     maxc = 0; // highest cindex, used to point into newc structure.
 
     for(i = 0; i < pr.ntri*3; i++) {
