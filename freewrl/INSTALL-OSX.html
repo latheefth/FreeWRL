@@ -158,18 +158,11 @@ java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.class</SPAN>
 <P><SPAN STYLE="font-family: Helvetica">java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.java</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 12.  Build the javascript libary.  </SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 12.  Modify your vrml.conf file to point to the correct Javascript library.  </SPAN></P>
 
-<P><SPAN STYLE="font-family: Helvetica">cd JS/js</SPAN></P>
 
-<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
-<p><SPAN STYLE="font-family: Helvetica">NOTE:  You may get an error message similar to the following when building the javascript library: "Makefile:43: config/Darwin*.*.mk: No such file or directory", where *.* is the version of Darwin you are currently running.  Currently, FreeWRL ships with a single MacOSX config file for javascript: Darwin5.3.mk.  This file will work for other versions of Darwin, it must simply be renamed to match the file that your system is searching for.  From the freewrl directory issue the following command: </span>
+<p><SPAN STYLE="font-family: Helvetica">In the vrml.conf file your JS_LIBS and JS_INC variables must be modified to point to the directories for the version of Darwin installed on your machine.  The include directory -Ijs/src/Darwin5.2.2_OPT.OBJ and the library directory -Ljs/src/Darwin5.2.2_OPT.OBJ must be modified to js/src/Darwin*_OPT.OBJ, where * is the version of Darwin installed on your machine.  You can check which version of Darwin you are running by entering "uname -a" at the command prompt.  Note that you may also need to add a mk file for your version of Darwin to the JS/js/src/config directory if one does not exist.  If a .mk file is not listed for your version of Darwin in the JS/js/src/config directory you can create one by copying one of the other Darwin mk files to a new file with the appropriate version name.  For example, if your version of Darwin is 6.0 and no Darwin6.0.mk file is listed in the JS/js/src/config directory, you will have to create one by issuing the command "cp Darwin.mk Darwin6.0.mk" in the JS/js/src/config directory. Any of the Darwin mk files may be copied to create the mk file for your system.</span> 
 
-<p><SPAN STYLE="font-family: Helvetica">
-cp JS/js/config/Darwin5.3.mk JS/js/config/Darwin*.*.mk </span> 
-
-<p><SPAN STYLE="font-family: Helvetica">
-Where *.* is the number that the error message indicates that the makefile is searching for.</span>
 
 <BR WP="BR1"><BR WP="BR2">
 <p><SPAN STYLE="font-family: Helvetica">Step 13. Modify the sv.h perl header file</span>
