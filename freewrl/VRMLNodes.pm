@@ -768,6 +768,7 @@ my $protono;
  MovieTexture
  AudioClip
  Sound
+
 /;
 
 # What are the transformation-hierarchy child nodes?
@@ -1369,375 +1370,179 @@ my $protono;
 					   }
 					  ),
 
-	# Complete
-	# XXX "getting value if no events should give keyValue[0]!!!"
+	#############################################################################################
+	# interpolators
+	#
+
 	ScalarInterpolator =>
 	new VRML::NodeType("ScalarInterpolator",
-					   {
-						set_fraction => [SFFloat, undef, eventIn],
-						key => [MFFloat, [], exposedField],
-						keyValue => [MFFloat, [], exposedField],
-						value_changed => [SFFloat, 0.0, eventOut]
-					   },
-					   {
-						Initialize => sub {
-							my($t,$f) = @_;
-							$t->{Fields}->{value_changed} =
-								(defined $f->{keyValue}[0] ?
-								 $f->{keyValue}[0] :
-								 0);
-							return [$t, value_changed, $f->{keyValue}[0]];
-						},
+		   {
+			set_fraction => [SFFloat, undef, eventIn],
+			key => [MFFloat, [], exposedField],
+			keyValue => [MFFloat, [], exposedField],
+			value_changed => [SFFloat, 0.0, eventOut]
+		   },
+		   {
+			Initialize => sub {
+				my($t,$f) = @_;
 
-						EventsProcessed => sub {
-							my($t, $f) = @_;
-							my $k = $f->{key};
-							my $kv = $f->{keyValue};
-							my $fr = $f->{set_fraction};
-							my $v;
-							if ($f->{set_fraction} <= $k->[0]) {
-								$v = $kv->[0]
-							} elsif ($f->{set_fraction} >= $k->[-1]) {
-								$v = $kv->[-1]
-							} else {
-								my $i;
-								for ($i=1; $i<=$#$k; $i++) {
-									if ($f->{set_fraction} < $k->[$i]) {
-										print "SCALARX: $i\n"
-											if $VRML::verbose;
-										$v = ($f->{set_fraction} - $k->[$i-1]) /
-											($k->[$i] - $k->[$i-1]) *
-												($kv->[$i] - $kv->[$i-1]) +
-													$kv->[$i-1];
-										last;
-									}
-								}
-							}
-							print "SCALAR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-								if $VRML::verbose;
-							return [$t, value_changed, $v];
-						}
-					   }
-					  ),
+				$t->{Fields}->{value_changed} =
+					(defined $f->{keyValue}[0] ?
+					 $f->{keyValue}[0] :
+					 0);
+				return [$t, value_changed, $f->{keyValue}[0]];
+			},
+
+			EventsProcessed => sub {
+				my($t, $f) = @_;
+				my $xx;
+	
+				# Get the values from the C code; look in  VRMLC.pm
+				# and CFuncs/SensInterps.c 
+ 				VRML::VRMLFunc::get_1_value_changed (
+					$t->{BackNode}->{CNode},$xx);
+				return [$t, value_changed,$xx];
+			}
+		   }
+		  ),
 
 	OrientationInterpolator =>
 	new VRML::NodeType("OrientationInterpolator",
-					   {
-						set_fraction => [SFFloat, undef, eventIn],
-						key => [MFFloat, [], exposedField],
-						keyValue => [MFRotation, [], exposedField],
-						value_changed => [SFRotation, [0, 0, 1, 0], eventOut]
-					   },
-					   {
-						Initialize => sub {
-							my($t,$f) = @_;
-							$t->{Fields}{value_changed} =
-								($f->{keyValue}[0] or [0, 0, 1, 0]);
-							return ();
-						},
+		   {
+			set_fraction => [SFFloat, undef, eventIn],
+			key => [MFFloat, [], exposedField],
+			keyValue => [MFRotation, [], exposedField],
+			value_changed => [SFRotation, [0, 0, 1, 0], eventOut]
+		   },
+		   {
+			Initialize => sub {
+				my($t,$f) = @_;
+				$t->{Fields}{value_changed} =
+					($f->{keyValue}[0] or [0, 0, 1, 0]);
+				return ();
+			},
 
-						EventsProcessed => sub {
-							my($t, $f) = @_;
-							my $k = $f->{key};
-							my $kv = $f->{keyValue};
-							my $fr = $f->{set_fraction};
-							my $v;
+			EventsProcessed => sub {
+				my($t, $f) = @_;
+				my $xx, $yy, $zz, $oo;
 
-							if ($f->{set_fraction} <= $k->[0]) {
-								$v = $kv->[0]
-							} elsif ($f->{set_fraction} >= $k->[-1]) {
-								$v = $kv->[-1]
-							} else {
-								my $i;
-								for ($i=1; $i<=$#$k; $i++) {
-									if ($f->{set_fraction} < $k->[$i]) {
-										print "ORIENTX: $i ($#$k) $k->[$i] $k->[$i-1] @{$kv->[$i]} | @{$kv->[$i-1]}\n"
-											if $VRML::verbose::oint;
+				# Get the values from the C code; look in  VRMLC.pm
+				# and CFuncs/SensInterps.c 
+ 				VRML::VRMLFunc::get_4_value_changed (
+					$t->{BackNode}->{CNode},$xx,$yy,$zz,$oo);
+				return [$t, value_changed,[$xx,$yy,$zz,$oo]];
+			}
+		   }
+		  ),
 
-										# get the rotation fraction, starting and ending rotations
-										my $f = ($f->{set_fraction} -
-												 $k->[$i-1]) /
-													 ($k->[$i] - $k->[$i-1]);
-										my $sr = [@{$kv->[$i-1]}];
-										my $er = [@{$kv->[$i]}];
+	###################################################################################
+	# PositionInterpolator,ColorInterpolator use same code
+	# MAKE SURE FIELD DEFS ARE SAME AND IN SAME ORDER
 
-
-										# THE FOLLOWING LINES COULD BE OPTIMIZED.
-										# are the rotations changed? Jeff Sonsteins blimp
-										# does this...
-										# eg, [0 1 0 0.5, 0 -1 0 0.0]
-										# and, we don't care if a starting/ending rotation has
-										# an angle of 0, because then the axis does not matter.
-										# Nancy in Jump mode has this "problem". Comment out the
-										# following if/elsif and run nancy to see what is up.
-										if (abs($sr->[3]) < 0.0001) {
-											$sr->[0] = $er->[0];
-											$sr->[1] = $er->[1];
-											$sr->[2] = $er->[2];
-										} elsif (abs($er->[3]) < 0.0001) {
-											$er->[0] = $sr->[0];
-											$er->[1] = $sr->[1];
-											$er->[2] = $sr->[2];
-										}
-
-										if (($sr->[0]*$er->[0] + $sr->[1]*$er->[1] +
-											 $sr->[2]*$er->[2]) >= 0) {
-											$v->[0] = $sr->[0] +
-												($f * ($er->[0] - $sr->[0]));
-											$v->[1] = $sr->[1] +
-												($f * ($er->[1] - $sr->[1]));
-											$v->[2] = $sr->[2] +
-												($f * ($er->[2] - $sr->[2]));
-										} else {
-											$v->[0] = $sr->[0] +
-												($f * (-$er->[0] - $sr->[0]));
-											$v->[1] = $sr->[1] +
-												($f * (-$er->[1] - $sr->[1]));
-											$v->[2] = $sr->[2] +
-												($f * (-$er->[2] - $sr->[2]));
-											$er->[3] = -$er->[3];
-										}
-
-										# now, the spec, section 6.32 says:
-										# If two consecutive keyValue values exist such that the
-										# arc length between them is greater than PI, the
-										# interpolation will take place on the arc complement.
-
-										if (abs($er->[3] - $sr->[3]) > 3.1415926) {
-											if ($sr->[3] >= $er->[3]) {
-												$er->[3] += 6.283;
-											} else {
-												$sr->[3] += 6.283;
-											}
-										}
-
-										# now calculate the angle
-										$v->[3] = $sr->[3] +
-											($f * ($er->[3] - $sr->[3]));
-
-										# Bounds check; angle between 0 and 2PI
-										if ($v->[3] < 0.0) {
-											$v->[3] += 6.283;
-										} else {
-											if ($v->[3] > 6.283) {
-												$v->[3] -=6.283;
-											}
-										}
-
-										print "V: ", (join ',  ',@$v), "\n"
-											if $VRML::verbose::oint;
-										last;
-									}
-								}
-							}
-							print "OR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-								if $VRML::verbose::oint;
-							return [$t, value_changed, $v];
-						}
-					   }
-					  ),
-
-# Complete
-# XXX "getting value if no events should give keyValue[0]!!!"
 	ColorInterpolator =>
 	new VRML::NodeType("ColorInterpolator",
-					   {
-						set_fraction => [SFFloat, undef, eventIn],
-						key => [MFFloat, [], exposedField],
-						keyValue => [MFColor, [], exposedField],
-						value_changed => [SFColor, [0, 0, 0], eventOut]
-					   },
-					   @x = {
-						Initialize => sub {
-							my($t,$f) = @_;
-							$t->{Fields}->{value_changed} = ($f->{keyValue}[0] or [0, 0, 0]);
-							return ();
-						},
-						EventsProcessed => sub {
-							my($t, $f) = @_;
-							my $k = $f->{key};
-							my $kv = $f->{keyValue};
-							# print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
-							# 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
-							my $fr = $f->{set_fraction};
-							my $v;
-							if ($f->{set_fraction} <= $k->[0]) {
-								$v = $kv->[0]
-							} elsif ($f->{set_fraction} >= $k->[-1]) {
-								$v = $kv->[-1]
-							} else {
-								my $i;
-								for ($i = 1; $i <= $#{$k}; $i++) {
-									if ($f->{set_fraction} < $k->[$i]) {
-										print "COLORX: $i\n"
-											if $VRML::verbose or
-												$VRML::sverbose =~ /\binterp\b/;
-										for (0..2) {
-											$v->[$_] =
-												($f->{set_fraction} - $k->[$i-1]) /
-												($k->[$i] - $k->[$i-1]) *
-													($kv->[$i][$_] - $kv->[$i-1][$_]) +
-														$kv->[$i-1][$_];
-										}
-										last;
-									}
-								}
-							}
-							print "SCALAR: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-								if $VRML::verbose or
-									$VRML::sverbose =~ /\binterp\b/;
-							return [$t, value_changed, $v];
-						}
-					   }
-					  ),
+		   {
+			set_fraction => [SFFloat, undef, eventIn],
+			key => [MFFloat, [], exposedField],
+			keyValue => [MFColor, [], exposedField],
+			value_changed => [SFColor, [0, 0, 0], eventOut],
+		   },
+		   @x = {
+			Initialize => sub {
+				my($t,$f) = @_;
+				# Can't do $f->{} = .. because that sends an event.
+				$t->{Fields}->{value_changed} = ($f->{keyValue}[0] or [0, 0, 0]);
+				return ();
+			},
+			EventsProcessed => sub {
+				my($t, $f) = @_;
+				my $xx, $yy, $zz;
+
+				# Get the values from the C code; look in  VRMLC.pm
+				# and CFuncs/SensInterps.c 
+ 				VRML::VRMLFunc::get_3_value_changed (
+					$t->{BackNode}->{CNode},$xx,$yy,$zz);
+				return [$t, value_changed,[$xx,$yy,$zz]];
+			}
+		   }
+		  ),
 
 	PositionInterpolator =>
 	new VRML::NodeType("PositionInterpolator",
-					   {
-						set_fraction => [SFFloat, undef, eventIn],
-						key => [MFFloat, [], exposedField],
-						keyValue => [MFVec3f, [], exposedField],
-						value_changed => [SFVec3f, [0, 0, 0], eventOut]
-					   },
-					   @x
-					  ),
-	
-	# Complete
-	# XXX "getting value if no events should give keyValue[0]!!!"
+		   {
+			set_fraction => [SFFloat, undef, eventIn],
+			key => [MFFloat, [], exposedField],
+			keyValue => [MFVec3f, [], exposedField],
+			value_changed => [SFVec3f, [0, 0, 0], eventOut],
+		   },
+		   @x  # use the init and ep of ColorInterpolator
+		  ),
+
+	############################################################################33
+	# CoordinateInterpolators and NormalInterpolators use almost the same thing;
+	# look at the _type field.
+
 	CoordinateInterpolator =>
 	new VRML::NodeType("CoordinateInterpolator",
-					   {
-						set_fraction => [SFFloat, undef, eventIn],
-						key => [MFFloat, [], exposedField],
-						keyValue => [MFVec3f, [], exposedField],
-						value_changed => [MFVec3f, [], eventOut]
-					   },
-					   @x = {
-							 Initialize => sub {
-								 my($t,$f) = @_;
-								 # Can't do $f->{} = .. because that sends an event.
-								 my $nkv =
-									 scalar(@{$f->{keyValue}}) /
-									 scalar(@{$f->{key}});
-								 $t->{Fields}->{value_changed} =
-									 ([@{$f->{keyValue}}[0..$nkv-1]] or []);
-								 return ();
-								 # XXX DON'T DO THIS!
-								 # return [$t, value_changed, $f->{keyValue}[0]];
-							 },
+		{
+			set_fraction => [SFFloat, undef, eventIn],
+			key => [MFFloat, [], exposedField],
+			keyValue => [MFVec3f, [], exposedField],
+			value_changed => [MFVec3f, [], eventOut],
+			_this_value => [SFVec3f, [], eventOut],
+			_counter => [SFInt32, 0, exposedField],
+			_type => [SFInt32, 0, exposedField], #1 means dont normalize
+		},
+		@x = {	
+			Initialize => sub {
+				 my($t,$f) = @_;
 
-							 EventsProcessed => sub {
-								 my($t, $f) = @_;
-								 my $k = $f->{key};
-								 my $kv = $f->{keyValue};
-								 my $n = scalar(@{$f->{keyValue}});
-								 my $nkv = scalar(@{$f->{keyValue}}) /
-									 scalar(@{$f->{key}});
-								 # print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
-								 # 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
-								 my $fr = $f->{set_fraction};
-								 my $v;
-								 if ($f->{set_fraction} <= $k->[0]) {
-									 $v = [@{$kv}[0..$nkv-1]];
-								 } elsif ($f->{set_fraction} >= $k->[-1]) {
-									 $v = [@{$kv}[$n-$nkv .. $n-1]];
-								 } else {
-									 my $i;
-									 for ($i = 1; $i <= $#{$k}; $i++) {
-										 if ($f->{set_fraction} < $k->[$i]) {
-											 print "CoordinateInterpolator: $f->{set_fraction} $i $k->[$i] - $k->[$i-1]\n"
-												 if $VRML::verbose::interp;
-											 $v = [];
-											 my $o = $i * $nkv;
-											 for my $kn (0..$nkv-1) {
-												 for (0..2) {
-													 $v->[$kn][$_] =
-														 ($f->{set_fraction} - $k->[$i-1]) /
-															 ($k->[$i] - $k->[$i-1]) *
-																 ($kv->[$o+$kn][$_] -
-																  $kv->[$o+$kn-$nkv][$_]) +
-																	  $kv->[$o+$kn-$nkv][$_];
-												 }
-											 }
-											 last;
-										 }
-									 }
-								 }
-								 print "CoordinateInterpolator: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-									 if $VRML::verbose::interp;
-								 return [$t, value_changed, $v];
-							 }
-							}
-					  ),
+				 # Can't do $f->{} = .. because that sends an event.
+				 my $nkv =
+					 scalar(@{$f->{keyValue}}) /
+					 scalar(@{$f->{key}});
+				 $t->{Fields}->{value_changed} =
+					 ([@{$f->{keyValue}}[0..$nkv-1]] or []);
+				 return ();
+				},
+
+			 EventsProcessed => sub {
+				my($t, $f) = @_;
+				my $nkv = scalar(@{$f->{keyValue}}) / scalar(@{$f->{key}});
+				my $v=[];
+				my $i;
+				my $xx, $yy, $zz;
+
+				# get the number of key frames required by this
+				for ($i=0; $i<$nkv; $i++) {
+ 					VRML::VRMLFunc::get_Coord_value_changed (
+						$t->{BackNode}->{CNode},$xx,$yy,$zz,$i);
+						$v->[$i][0]=$xx;
+						$v->[$i][1]=$yy;
+						$v->[$i][2]=$zz;
+				}
+				return [$t, value_changed,$v];
+			}
+		}
+	  ),
 
 
 
 	NormalInterpolator =>
 	new VRML::NodeType("NormalInterpolator",
-					   {
-						set_fraction => [SFFloat, undef, eventIn],
-						key => [MFFloat, [], exposedField],
-						keyValue => [MFVec3f, [], exposedField],
-						value_changed => [MFVec3f, [], eventOut]
-					   },
-					   @x = {
-							 Initialize => sub {
-								 my($t,$f) = @_;
-								 # Can't do $f->{} = .. because that sends an event.
-								 my $nkv =
-									 scalar(@{$f->{keyValue}}) /
-									 scalar(@{$f->{key}});
-								 $t->{Fields}->{value_changed} =
-									 ([@{$f->{keyValue}}[0..$nkv-1]] or []);
-								 return ();
-								 # XXX DON'T DO THIS!
-								 # return [$t, value_changed, $f->{keyValue}[0]];
-							 },
-							 EventsProcessed => sub {
-								 my($t, $f) = @_;
-								 my $k = $f->{key};
-								 my $kv = $f->{keyValue};
-								 my $n = scalar(@{$f->{keyValue}});
-								 my $nkv =
-									 scalar(@{$f->{keyValue}}) /
-									 scalar(@{$f->{key}});
-								 # print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
-								 # 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
-								 my $fr = $f->{set_fraction};
-								 my $v;
-								 if ($f->{set_fraction} <= $k->[0]) {
-									 $v = [@{$kv}[0..$nkv-1]];
-								 } elsif ($f->{set_fraction} >= $k->[-1]) {
-									 $v = [@{$kv}[$n-$nkv .. $n-1]];
-								 } else {
-									 my $i;
-									 for ($i=1; $i<=$#$k; $i++) {
-										 if ($f->{set_fraction} < $k->[$i]) {
-											 print "COLORX: $f->{set_fraction} $i $k->[$i] - $k->[$i-1]\n"
-												 if $VRML::verbose::interp;
-											 $v = [];
-											 my $o = $i * $nkv;
-											 for my $kn (0..$nkv-1) {
-												 for (0..2) {
-													 $v->[$kn][$_] =
-														 ($f->{set_fraction} -
-														  $k->[$i-1]) /
-														 ($k->[$i] - $k->[$i-1]) *
-															 ($kv->[$o+$kn][$_] -
-															  $kv->[$o+$kn-$nkv][$_]) +
-																 $kv->[$o+$kn-$nkv][$_];
-												 }
-											 }
-											 last;
-										 }
-									 }
-								 }
-								 print "NormalI: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
-									 if $VRML::verbose::interp;
-								 return [$t, value_changed, $v];
-							 }
-							}
-					  ),
+		{
+			set_fraction => [SFFloat, undef, eventIn],
+			key => [MFFloat, [], exposedField],
+			keyValue => [MFVec3f, [], exposedField],
+			value_changed => [MFVec3f, [], eventOut],
+			_this_value => [SFVec3f, [], eventOut],
+			_counter => [SFInt32, 0, exposedField],
+			_type => [SFInt32, 1, exposedField], #1 means normalize
+		},
+		   @x  # use the init and ep of CoordInterpolator
+	  ),
+
+	###################################################################################
 
 
 	TimeSensor =>

@@ -425,15 +425,15 @@ sub get_global_scene {
 sub events_processed {
     my ($this, $timestamp, $be) = @_;
     print "VRML::NodeIntern::events_processed $this $this->{TypeName} $timestamp $be\n"
-        if $VRML::verbose;
+         if $VRML::verbose;
 
     if ($this->{Type}{Actions}{EventsProcessed}) {
 		print "\tprocessed event action!\n" if $VRML::verbose;
 		return &{$this->{Type}{Actions}{EventsProcessed}}(
-														  $this,
-														  $this->{RFields},
-														  $timestamp
-														 );
+			$this,
+			$this->{RFields},
+			$timestamp
+			);
     }
 }
 
@@ -616,16 +616,18 @@ sub set_backend_fields {
 
 {
 
+	# removed from here as we now require backends made for C code datastructures		
+	#		PositionInterpolator
+	#		ColorInterpolator
+	#		ScalarInterpolator
+	#		OrientationInterpolator
+	#		CoordinateInterpolator
+	#		NormalInterpolator
+
 	my %NOT = map {($_=>1)} qw/
 		WorldInfo
 		TimeSensor
 		TouchSensor
-		ScalarInterpolator
-		ColorInterpolator
-		PositionInterpolator
-		OrientationInterpolator
-		CoordinateInterpolator
-		NormalInterpolator
 		PlaneSensor
 		SphereSensor
 		CylinderSensor

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.100  2003/04/25 15:51:05  crc_canada
+# Interpolators now in C
+#
 # Revision 1.99  2003/04/16 19:03:39  crc_canada
 # Transform and Material improvements.
 #
@@ -376,7 +379,10 @@
 #
 
 # Rend = real rendering
+
 %RendC = (
+
+
 Box => '
 	 float x = $f(size,0)/2;
 	 float y = $f(size,1)/2;
@@ -1767,6 +1773,13 @@ DirectionalLight => '
 #
 
 %PrepC = (
+# this creates the Struct values required to allow backend to fill the C values out
+ColorInterpolator => '',
+PositionInterpolator => '',  
+ScalarInterpolator => '',
+OrientationInterpolator => '',
+NormalInterpolator => '',
+CoordinateInterpolator => '',
 
 Transform => '
 

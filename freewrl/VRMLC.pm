@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.78  2003/04/25 15:50:24  crc_canada
+# Interpolators now in C
+#
 # Revision 1.77  2003/04/09 20:40:53  crc_canada
 # font paths now determined entirely in freewrl.PL; the save_font_path
 # function only serves to save it within the C side of FreeWRL.
@@ -1669,7 +1672,7 @@ alloc_struct(siz,virt)
 CODE:
 	void *ptr = malloc(siz);
 	struct VRML_Box *p = ptr;
-	if(verbose) printf("Alloc: %d %d -> %d\n", siz, virt, ptr); 
+	/* printf("Alloc: %d %d -> %d\n", siz, virt, ptr);  */
 	*(struct VRML_Virt **)ptr = (struct VRML_Virt *)virt;
 	p->_sens = p->_hit = 0;
 	p->_intern = 0;
@@ -1983,6 +1986,87 @@ OUTPUT:
 	tx
 	ty
 
+
+#********************************************************************************
+#* Interpolators in C code. Color,Position Interpolators are 3 values 		*
+#* called only during the "events_processed" side of the Event loop		*
+void
+get_3_value_changed(node,x,y,z)
+	void *node
+	double x
+	double y
+	double z
+CODE:
+	struct VRML_PositionInterpolator *px = node;
+	do_Oint3(px);
+	x = px->value_changed.c[0];
+	y = px->value_changed.c[1];
+	z = px->value_changed.c[2];
+OUTPUT:
+	x
+	y
+	z
+
+#********************************************************************************
+#* Interpolators in C code. CoordinateInterpolators and NormalInterpolators	*
+#* called only during the "events_processed" side of the Event loop		*
+#* Normalize if it is a normalinterp.						*
+void
+get_Coord_value_changed(node,x,y,z,indx)
+	void *node
+	double x
+	double y
+	double z
+	int indx
+CODE:
+	struct VRML_CoordinateInterpolator *px = node;
+	do_OintCoord(px,indx);
+	x = px->_this_value.c[0];
+	y = px->_this_value.c[1];
+	z = px->_this_value.c[2];
+OUTPUT:
+	x
+	y
+	z
+
+#********************************************************************************
+#* Interpolators in C code. OrientationInterpolators are 4 values 		*
+#* called only during the "events_processed" side of the Event loop		*
+void
+get_4_value_changed(node,x,y,z,o)
+	void *node
+	double x
+	double y
+	double z
+	double o
+CODE:
+	struct VRML_PositionInterpolator *px = node;
+	do_Oint4(px);
+	x = px->value_changed.c[0];
+	y = px->value_changed.c[1];
+	z = px->value_changed.c[2];
+	o = px->value_changed.c[3];
+OUTPUT:
+	x
+	y
+	z
+	o
+
+#********************************************************************************
+#* Interpolators in C code. ScalarInterpolator returns 1 value	 		*
+#* called only during the "events_processed" side of the Event loop		*
+void
+get_1_value_changed(node,x)
+	void *node
+	double x
+CODE:
+	struct VRML_ScalarInterpolator *px = node;
+	do_OintScalar(px);
+	x = px->value_changed;
+OUTPUT:
+	x
+
+#********************************************************************************
 void 
 get_proximitysensor_vecs(node,hit,x1,y1,z1,x2,y2,z2,q2)
 	void *node
