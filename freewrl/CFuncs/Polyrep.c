@@ -613,8 +613,8 @@ void render_polyrep(void *node,
 	p = node;
 	r = p->_intern;
 
-	/*	
-	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
+		
+	/*printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 			p->_change, r->_change, r->ntri);
 	printf ("\tnpoints %d ncolors %d nnormals %d\n",
 			npoints,ncolors,nnormals);
@@ -723,7 +723,6 @@ void render_polyrep(void *node,
 
 			glNormal3fv(normals[nori].c);
 		} else if(r->normal) {
-			
 			//printf ("r->normal nori %d ",nori);
 			//fwnorprint(r->normal+3*nori);
 			
@@ -831,6 +830,7 @@ void render_ray_polyrep(void *node,
 			} else if(r->coord) {
 				point[pt] = (r->coord+3*ind);
 			}
+
 		}
 		/* First we need to project our point to the surface */
 		/* Poss. 1: */
@@ -846,7 +846,11 @@ void render_ray_polyrep(void *node,
 		v2len = sqrt(VECSQ(v2)); VECSCALE(v2, 1/v2len);
 		v12pt = VECPT(v1,v2);
 
+		/* this will get around a divide by zero further on JAS */
+		if (fabs(v12pt-1.0) < 0.00001) continue;
+
 		/* if we have a degenerate triangle, we can't compute a normal, so skip */
+		
 		if ((fabs(v1len) > 0.00001) && (fabs(v2len) > 0.00001)) {
 
 			/* v3 is our normal to the surface */
@@ -865,6 +869,7 @@ void render_ray_polyrep(void *node,
 			 	float ra, rb;
 				float k,l;
 				struct pt p0h;
+
 			 	tmp2 = (pt1-pt3) / (pt1-pt2);
 				hitpoint.x = MRATX(tmp2);
 				hitpoint.y = MRATY(tmp2);
@@ -892,7 +897,7 @@ void render_ray_polyrep(void *node,
 				 if(k+l > 1 || k < 0 || l < 0) {
 				 	continue;
 				 }
-				 HIT(tmp2, hitpoint.x,hitpoint.y,hitpoint.z,
+				 rayhit(tmp2, hitpoint.x,hitpoint.y,hitpoint.z,
 				 	v3.x,v3.y,v3.z, -1,-1, "polyrep");
 			 }
 		/*
