@@ -832,10 +832,9 @@ sub EAI_GetType {
 	my $fieldtype;
 	my $retft;
 
-	my $fc;
 	my $ok;
 	my $datalen;
-	my $tc;
+	my $type;		# used for routing to scripts, etc.
 	my $intptr;
 	my $to_count;
 	my $tonode_str;
@@ -887,14 +886,14 @@ sub EAI_GetType {
 	# print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
 
 	
-
+	
 	# get info from FreeWRL internals.
 	if ($direction eq "eventOut") {
-		($outptr, $outoffset, $fc, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
+		($outptr, $outoffset, $type, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
         		$globalBrowser->{Scene}, $realele, $fieldname, $direction);
 
 	} else {
-        	($to_count, $tonode_str, $tc, $ok, $intptr, $fieldtype) = 
+        	($to_count, $tonode_str, $type, $ok, $intptr, $fieldtype) = 
 				$globalBrowser->{EV}->resolve_node_cnode($globalBrowser->{Scene}, 
 					$realele, $fieldname, $direction);
 
@@ -905,6 +904,7 @@ sub EAI_GetType {
 		
 	}
 
+	#print "Browser, type $type\n";
 
 	# return node pointer, offset, data length, type - see the EAI C code (EAIServ.c) for definitions.
 	$retft = 97; 	#SFUNKNOWN
@@ -928,13 +928,10 @@ sub EAI_GetType {
 	elsif ($fieldtype eq "MFRotation") {$retft = 114;}
 	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
 	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
-	#else {	
-	#	print "EAI_GetType, unhandled type $fieldtype - this is an error!\n";
-	#}
 		
 	# print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
 
-	return ($outptr, $outoffset, $datalen, $retft); 
+	return ($outptr, $outoffset, $datalen, $retft, $type); 
 
 }
 

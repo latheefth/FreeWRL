@@ -6,8 +6,7 @@ public class EventInSFVec2f extends EventIn {
   public EventInSFVec2f() { EventType = FieldTypes.SFVEC2F; };
 
   public void          setValue(float[] value) {
-    Browser.SendEvent (nodeptr,offset,datasize , datatype, "" + value[0] + 
-           " " + value[1]);
+    Browser.newSendEvent (this, "" + value[0] + " " + value[1]);
 
   return;
   }

@@ -152,7 +152,7 @@ int EAI_GetNode(char *str);		// in VRMLC.pm
 void EAI_GetType (unsigned int uretval,
 	char *ctmp, char *dtmp,
 	int *ra, int *rb,
-	int *rc, int *rd);		// in VRMLC.pm
+	int *rc, int *rd, int *re);		// in VRMLC.pm
 void read_EAI_socket(void);
 int EAI_CreateVrml(char *type, char *str, unsigned int *retarr);	// in VRMLC.pm
 void handle_Listener (void);
@@ -397,6 +397,7 @@ void EAI_parse_commands (char *bufptr) {
 	char command;
 	unsigned int uretval;		// unsigned return value
 	unsigned int ra,rb,rc,rd;	// temps
+	unsigned int scripttype;
 	char *EOT;		// ptr to End of Text marker
 
 	while (strlen(bufptr)> 0) {
@@ -464,9 +465,9 @@ void EAI_parse_commands (char *bufptr) {
 				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
 				if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
 	
-				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
+				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd,&scripttype);
 	
-				sprintf (buf,"RE\n%d\n%d %d %d %c",count,ra,rb,rc,rd);
+				sprintf (buf,"RE\n%d\n%d %d %d %c %d",count,ra,rb,rc,rd,scripttype);
 				break;
 				}
 			case SENDEVENT:   {
@@ -601,11 +602,13 @@ unsigned int EAI_SendEvent (char *ptr) {
 	unsigned char nodetype;
 	unsigned int nodeptr;
 	unsigned int offset;
+	unsigned int scripttype;
 
 	int ival;
 	float fl[4];
 	double tval;
 	unsigned int memptr;
+	int convertnodetype;
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
 		friggin do it! ;-) */
@@ -617,12 +620,18 @@ unsigned int EAI_SendEvent (char *ptr) {
 	ptr++;
 	
 	//nodeptr, offset
-	sscanf (ptr, "%d %d",&nodeptr, &offset);
+	sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
 	while ((*ptr) > ' ') ptr++; 	// node ptr
 	while ((*ptr) == ' ') ptr++;	// inter number space(s)
 	while ((*ptr) > ' ') ptr++;	// node offset
+	while ((*ptr) == ' ') ptr++;	// inter number space(s)
+	while ((*ptr) > ' ') ptr++;	// script type
 
-	if (EAIVerbose) printf ("EAI_SendEvent, nodeptr %x offset %x\n",nodeptr,offset);
+	if (EAIVerbose) 
+		printf ("EAI_SendEvent, nodeptr %x offset %x script type %d \n",nodeptr,offset, scripttype);
+
+	/* We have either a event to a memory location, or to a script. */
+	/* the field scripttype tells us whether this is true or not.   */
 
 	memptr = nodeptr+offset;	// actual pointer to start of destination data in memory
 
@@ -637,56 +646,67 @@ unsigned int EAI_SendEvent (char *ptr) {
 		case EAI_SFBOOL:	{	/* EAI_SFBool */
 			/* printf ("we have a boolean, copy value over string is %s\n",strp); */
 			/* yes, it is <space>TRUE... */
-			if (strncmp(ptr," TRUE",5)== (unsigned int) 0) {
-				ival = 1;
-			} else {
-				/* printf ("ASSUMED TO BE FALSE\n"); */
-				ival = 0;
-			}	
-			memcpy ((void *)memptr, (void *)&ival,sizeof(int));
+			if (strncmp(ptr," TRUE",5)== (unsigned int) 0) { ival = 1;
+			} else { ival = 0; }
+
+			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFBOOL,&ival,sizeof(int));
+			else memcpy ((void *)memptr, (void *)&ival,sizeof(int));
 			break;
 		}
 
 		case EAI_SFTIME: {
 			sscanf (ptr,"%lf",&tval);
 			//printf ("EAI_SFTime conversion numbers %f from string %s\n",tval,ptr);
-			memcpy ((void *)memptr, (void *)&tval,sizeof(double));
+			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFTIME,&tval,sizeof(double));
+			else memcpy ((void *)memptr, (void *)&tval,sizeof(double));
 			break;
 		}
 		case EAI_SFNODE:
 		case EAI_SFINT32: {
 			sscanf (ptr,"%d",&ival);
-			memcpy ((void *)memptr, (void *)&ival,sizeof(int));
+			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFINT32,&ival,sizeof(int));
+			else memcpy ((void *)memptr, (void *)&ival,sizeof(int));
 			break;
 		}
 		case EAI_SFFLOAT: {
 			sscanf (ptr,"%f",fl);
-			memcpy ((void *)memptr, (void *)fl,sizeof(float));
+			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFFLOAT,&fl,sizeof(float));
+			else memcpy ((void *)memptr, (void *)fl,sizeof(float));
 			break;
 		}
 
 		case EAI_SFVEC2F: {	/* EAI_SFVec2f */
 			sscanf (ptr,"%f %f",&fl[0],&fl[1]);
-			memcpy ((void *)memptr, (void *)fl,sizeof(float)*2);
+			if (scripttype) Set_one_MultiElementtype (nodeptr, offset, ptr, sizeof(float)*2);
+			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*2);
 			break;
 		}
 		case EAI_SFVEC3F:
 		case EAI_SFCOLOR: {	/* EAI_SFColor */
 			sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-			memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
+			if (scripttype) Set_one_MultiElementtype (nodeptr, offset, ptr, sizeof(float)*3);
+			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
 			break;
 		}
 
 		case EAI_SFROTATION: {
 			sscanf (ptr,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-			memcpy ((void *)memptr, (void *)fl,sizeof(float)*4);
+			if (scripttype) Set_one_MultiElementtype (nodeptr, offset, ptr, sizeof(float)*4);
+			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*4);
 			break;
 		}
 
 		case EAI_MFSTRING: {
 			printf ("EAI_MFSTRING, string is %s\nxxx\n",ptr);
 			printf ("EAI_MFSTRING, have to fix this code - sorry Sarah. JohnS\n");
+//xxx			getEAI_MFStringtype ((JSContext *) JSglobs[actualscript].cx,
+//xxx							 global_return_val,memptr); 
 			break;
+		}
+
+		case EAI_SFSTRING: {
+
+			// this can be handled exactly like a set_one_ECMAtype if it is a script
 		}
 
 
@@ -698,8 +718,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 //xxx		case EAI_MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,2); break;}
 //xxx		case EAI_MFNODE: {getEAI_MFNodetype (ptr,memptr,CRoutes[route].extra); break;}
 //xxx		case EAI_MFSTRING: {
-//xxx			getEAI_MFStringtype ((JSContext *) JSglobs[actualscript].cx,
-//xxx							 global_return_val,memptr); 
 //xxx			break;
 //xxx		}
 //xxx
@@ -712,12 +730,17 @@ unsigned int EAI_SendEvent (char *ptr) {
 		}
 	}
 
-	/* if this is a geometry, make it re-render. Some nodes (PROTO interface params w/o IS's) 
-	   will have an offset of zero, and are thus not "real" nodes, only memory locations */
-	if (offset > 0) update_node ((void *)nodeptr);
+	if (scripttype) {
+		mark_script(nodeptr);
+	} else {
+		/* if this is a geometry, make it re-render. Some nodes (PROTO interface params w/o IS's) 
+	   	   will have an offset of zero, and are thus not "real" nodes, only memory locations */
 
-	/* if anything uses this for routing, tell it that it has changed */
-	mark_event (nodeptr,offset);
+		if (offset > 0) update_node ((void *)nodeptr);
+
+		/* if anything uses this for routing, tell it that it has changed */
+		mark_event (nodeptr,offset);
+	}
 
 	return TRUE;
 }

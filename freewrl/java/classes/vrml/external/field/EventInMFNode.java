@@ -17,8 +17,7 @@ public class EventInMFNode extends EventIn {
   }
 
   public void          set1Value(int index, Node node) {
-    System.out.println ("ERROR: eventinmfnode.set1vanue Not Implemented");
-    // Browser.SendEvent (inNode , command, "TRUE");
+      Browser.SendChildEvent (nodeptr,offset, command, node.nodeptr);
 
   return;
   }

@@ -7,7 +7,7 @@ public class EventInSFString extends EventIn {
   public EventInSFString() { EventType = FieldTypes.SFSTRING;}
 
   public void          setValue(String value) {
-    Browser.SendEvent (nodeptr,offset,datasize , datatype, "\"" + value + "\"");
+    Browser.newSendEvent (this, "\"" + value + "\"");
     return;
   }
 }

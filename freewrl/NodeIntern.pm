@@ -198,6 +198,153 @@ sub dump {
 }
 
 
+###############################################################################
+#
+# Initialize Scripting interfaces. 
+
+my $scriptInvocationNumber = 0;		# keep track of script invocations - scripts in protos i
+					# have same TypeName but different runtime environments.
+
+sub startScript {
+	my ($node) = @_;
+
+	print "VRML::EventMachine::startScript: ",
+		VRML::Debug::toString(\@_), "\n"
+			if $VRML::verbose::events;
+
+	my $retval;
+	my $h;
+	my $scene = $node->{Scene};
+	my $Browser = $node->{Scene}->get_browser();
+
+	for (@{$node->{Fields}{url}}) {
+		# is this already made???
+		print "URL $_\n" if $VRML::verbose::events;
+		if (defined  $node->{J}) {
+			print "$node->{J} already defined for node ",
+				VRML::NodeIntern::dump_name($node), ", skipping\n"
+						if $VRML::verbose::script;
+			return;
+		}
+
+		my $str = $_;
+		print "TRY $str\n" 
+			if $VRML::verbose::script;
+
+		if (s/^perl(_tjl_xxx1)?://) {
+			print "perl scripting not moved yet to new routing structure\n";
+			last;
+
+			print "XXX1 script\n" if $VRML::verbose::script;
+			check_perl_script();
+
+			# See about RFields in file ARCHITECTURE and in
+			# Scene.pm's VRML::FieldHash package
+			my $u = $node->{Fields};
+
+			my $node = $node->{RFields};
+
+			# This string ties scalars
+			my $nodeie = join("", map {
+				"tie \$$_, 'MTS',  \\\$node->{$_};"
+			} script_variables($u));
+
+			$h = eval "({$_})";
+
+			# Wrap up each sub in the script node
+			foreach (keys %$h) {
+				my $nodemp = $h->{$_};
+				my $src = join ("\n",
+					"sub {",
+					"  $nodeie",
+					"  \&\$nodemp (\@_)",
+					"}");
+					## print "---- src ----$src\n--------------",
+					$h->{$_} = eval $src ;
+			}
+
+			print "Evaled: $h\n",
+				"-- h = $h --\n",
+					(map {"$_ => $h->{$_}\n"}
+					 keys %$h),
+					"-- u = $u --\n",
+					(map {
+					"$_ => $u->{$_}\n"
+					} keys %$u),
+					"-- t = $node --\n",
+					(map {
+					"$_ => $node->{$_}\n"
+					} keys %$node)
+			 if $VRML::verbose::script;
+			if ($@) {
+				die "Invalid script '$@'"
+			}
+			last;
+		} elsif (/\.class$/) {
+			print "java class invocation scripting not moved yet to new routing structure\n";
+			last;
+
+			my $wurl = $scene->get_world_url();
+			$node->{PURL} = $scene->get_url();
+			if (!defined $VRML::J) {
+				eval('require "VRML/VRMLJava.pm"');
+				die $@ if ($@);
+
+				$VRML::J =
+					VRML::JavaCom->new($scene->get_browser);
+			}
+			if (defined $wurl) {
+				$VRML::J->newscript($wurl, $_, $node);
+			} else {
+				$VRML::J->newscript($node->{PURL}, $_, $node);
+			}
+
+			$node->{J} = $VRML::J;
+			last;
+		} elsif (/\.js/) {
+			# New js url handling
+			my $code = VRML::NodeType::getTextFromURLs($scene, $_, $node);
+
+			print "JS url: code = $code\n"
+				if $VRML::verbose::script;
+			eval('require VRML::JS;');
+			die $@ if ($@);
+
+			$node->{J} = VRML::JS->new($scriptInvocationNumber, $code, $node, $Browser);
+			last;
+		} elsif (s/^\s*?(java|vrml)script://) {
+			eval('require VRML::JS;');
+			die $@ if ($@);
+
+			$node->{J} = VRML::JS->new($scriptInvocationNumber, $_, $node, $Browser);
+			last;
+		} else {
+			warn("Unknown script: $_");
+		}
+	}
+
+	die "Didn't find a valid perl(_tjl_xxx)? or java script"
+		if (!defined $h and !defined $node->{J});
+
+	print "Script got: ", (join ',',keys %$h), "\n"
+		if $VRML::verbose::script;
+	$node->{ScriptScript} = $h;
+	$node->{scriptInvocationNumber} = $scriptInvocationNumber;
+	my $s;
+	if (($s = $node->{ScriptScript}{"initialize"})) {
+		print "CALL $s\n if $VRML::verbose::script"
+			if $VRML::verbose::script;
+		perl_script_output(1);
+		my @res = &{$s}();
+		perl_script_output(0);
+	}
+
+	$scriptInvocationNumber ++;
+}
+
+
+
+
 sub new {
     my ($type, $scene, $ntype, $fields, $eventmodel) = @_;
     my %rf;
@@ -611,11 +758,6 @@ sub set_backend_fields {
 	#		CylinderSensor
 	#		VisibilitySensor
 
-	# Nodes without C backends (ie, no C structs)
-	my %NOT = map {($_=>1)} qw/
-		WorldInfo
-	/;
-
 	#############################################################
 	#
 	# VRML::NodeIntern::make_backend
@@ -649,10 +791,17 @@ sub set_backend_fields {
 				return undef if (!$this->{IsProto});
 			}
 
-			if ($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
+			if ($this->{TypeName} eq "WorldInfo") {
 				print "VRML::NodeIntern::make_backend NOT - ", $this->{TypeName},"\n"
 					if $VRML::verbose::be;
 				return ();
+			}
+
+			if ($this->{TypeName} =~ /^__script/) {
+				print "VRML::NodeIntern::make_backend script - ", $this->{TypeName},"\n"
+					if $VRML::verbose::be;
+				startScript($this);
+				return();
 			}
 
 			if ($this->{IsProto}) {

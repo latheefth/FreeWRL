@@ -150,7 +150,7 @@ void JSInit(int num, SV *script) {
 
 	int count;
 
-	if (JSVerbose) printf("init:\n");
+	if (JSVerbose) printf("init: script %d\n",num);
 
 	/* more scripts than we can handle right now? */
 	if (num >= JSMaxScript)  {
@@ -221,16 +221,6 @@ void JSInit(int num, SV *script) {
 	CRoutes_js_new (num,(unsigned int)_context, (unsigned int)_globalObj,
 		(unsigned int)br);
 	
-
-	//JAS printf ("calling javascript Initialize\n");
-	//JAS /* and run the initialize function */
-	//JAS if (!ActualrunScript(num, "initialize()",&rval)) {
-	//JAS 	cleanupDie("runScript failed in VRML::JS::initialize",_context);
-	//JAS }
-
-	//JAS printf ("Now gathering events, with param now eq TRUE\n");
-	//JAS gatherScriptEventOuts (num,TRUE);
-
 
 	if (JSVerbose) printf("\tVRML browser initialized\n");
 }

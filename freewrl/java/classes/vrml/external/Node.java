@@ -12,14 +12,27 @@ public class Node {
   // Get a string specifying the type of this node. May return the
   // name of a PROTO, or the class name
 
+
   public String NodeName  = "Not initiated yet";
-  public String nodeptr = "0";
-  public String offset = "0";
-  public String datasize = "0";
-  public String datatype;
+
+// the following fields are for treating this node as an eventIn or eventOut.
+ public int EventType = FieldTypes.UnknownType;
+ public String outNode;	// Node to send the command to... NULL if not
+			// a get value from viewer call (ie, a Listener
+			// response...
+ public String inNode;
+ public String command;	// the actual command...
+ public String RLreturn;	// If this is a register listener response...
+ public String nodeptr; //pointer to start of FreeWRL structure in memory
+ public String offset;  //offset of actual field in memory from base.
+ public String datasize; // how long this data really is
+ public String datatype;
+ public String ScriptType; // non zero indicates sending to a javascript
+
+
 
   public String toString() {
-    return NodeName;
+    return "NODE"+NodeName;
   }
 
   public String        getType() {
@@ -33,217 +46,103 @@ public class Node {
 
   public EventIn       getEventIn(String name) {
 
+	EventIn ret;
+
 	String NNN = "nodeFrom_getEventIn";
       StringTokenizer tokens;
 
   // Return the type that is asked for. To determine the
   // subclass, look at the string. 
-  // There *HAS* to be a better way than this!
-  // Maybe, send a GFT to the FreeWRL Browser, to see what
-  // it thinks...
 
     String st = Browser.SendEventType(NodeName, name, "eventIn");
-
-    // Did this fail??? if so, then keep trying...
-    if (st.equals("")) {
-
-      // Do we have a "set_" at the beginning????
-      if (name.length() > 5) {
-	  // possibly....
-	  if (name.substring(0,4).equals ("set_")) {
-            name = name.substring(4);
-            st = Browser.SendEventType(NodeName, name, "eventIn");
-	  }
-      }
-    }
 
     tokens = new StringTokenizer (st);
     String NNPR = tokens.nextToken();
     String NOFF = tokens.nextToken();
     String NDS = tokens.nextToken();
     String NewDT = tokens.nextToken();
-    //System.out.println ("EventOut: NNPR " + NNPR + " NOFF " + NOFF +
-    //	" NDS " + NDS + " NewDT " + NewDT);
-
+    String ScrT = tokens.nextToken();
+    // System.out.println ("EventIn: NNPR " + NNPR + " NOFF " + NOFF +
+    //	" NDS " + NDS + " NewDT " + NewDT + " ScrTyp" + ScrT);
 
     // check out the return values specified in CFuncs/EAIServ.c
-    if(NewDT.equals("p")) {
-      EventIn ret = new EventInMFString(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("k")) {
-      EventIn ret = new EventInSFImage(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("e")) {
-      EventIn ret = new EventInSFTime(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("c")) {
-      EventIn ret = new EventInSFColor(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("l")) {
-      EventIn ret = new EventInMFColor(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("d")) {
-      EventIn ret = new EventInSFFloat(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("m")) {
-      EventIn ret = new EventInMFFloat(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("o")) {
-      EventIn ret = new EventInMFInt32(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("h")) {
-      EventIn ret = new EventInSFNode(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; 
-		return ret;
-    } else if(NewDT.equals("r")) {
-      EventIn ret = new EventInMFRotation(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("s")) {
-      EventIn ret = new EventInMFVec2f(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("j")) {
-      EventIn ret = new EventInSFVec2f(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("l")) {
-      EventIn ret = new EventInMFVec3f(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("q")) {
-      EventIn ret = new EventInMFNode(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS;
-	return ret;
-    } else if(NewDT.equals("i")) {
-      EventIn ret = new EventInSFRotation(); ret.command = name; ret.inNode = NNN;ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("g")) {
-      EventIn ret = new EventInSFString(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("b")) {
-      EventIn ret = new EventInSFBool(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("f")) {
-      EventIn ret = new EventInSFInt32(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("u")) {
-      EventIn ret = new EventInSFVec3f(); ret.command = name; ret.inNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    }
-    // Return default
-    EventInMFNode ret = new EventInMFNode();
-    System.out.println ("WARNING: getEventIn - don't know how to handle " + name
+    if(NewDT.equals("p")) { ret = new EventInMFString(); 
+    } else if(NewDT.equals("k")) { ret = new EventInSFImage(); 
+    } else if(NewDT.equals("e")) { ret = new EventInSFTime(); 
+    } else if(NewDT.equals("c")) { ret = new EventInSFColor(); 
+    } else if(NewDT.equals("l")) { ret = new EventInMFColor(); 
+    } else if(NewDT.equals("d")) { ret = new EventInSFFloat(); 
+    } else if(NewDT.equals("m")) { ret = new EventInMFFloat(); 
+    } else if(NewDT.equals("o")) { ret = new EventInMFInt32(); 
+    } else if(NewDT.equals("h")) { ret = new EventInSFNode(); 
+    } else if(NewDT.equals("r")) { ret = new EventInMFRotation(); 
+    } else if(NewDT.equals("s")) { ret = new EventInMFVec2f(); 
+    } else if(NewDT.equals("j")) { ret = new EventInSFVec2f(); 
+    } else if(NewDT.equals("l")) { ret = new EventInMFVec3f(); 
+    } else if(NewDT.equals("q")) { ret = new EventInMFNode(); 
+    } else if(NewDT.equals("i")) { ret = new EventInSFRotation(); 
+    } else if(NewDT.equals("g")) { ret = new EventInSFString(); 
+    } else if(NewDT.equals("b")) { ret = new EventInSFBool(); 
+    } else if(NewDT.equals("f")) { ret = new EventInSFInt32(); 
+    } else if(NewDT.equals("u")) { ret = new EventInSFVec3f(); 
+    } else {
+    	// Return default
+
+	    ret = new EventInMFNode();
+	    System.out.println ("WARNING: getEventIn - don't know how to handle " + name
 		+ " asked for " + st + " returning Class EventInMFnode");
+    }
 
     ret.command = name; ret.inNode = NNN; ret.datatype=NewDT; ret.nodeptr=NNPR; ret.offset=NOFF;
-    ret.datasize = NDS;
+    ret.datasize = NDS; ret.ScriptType = ScrT;
     return ret;
   }
-
-
-
-
-
 
 
   // Means of getting a handle to an EventOut of this node
 
   public EventOut      getEventOut(String name) throws InvalidEventOutException {
+	EventOut ret;
       StringTokenizer tokens;
 	String NNN = "nodeFrom_getEventOut";
 
     String st = Browser.SendEventType(NodeName, name, "eventOut");
-    // Did this fail??? if so, then keep trying...
-    if (st.equals("")) {
-     // Do we have a "_changed" at the end????
-     if (name.length() > 8) {
-	// possibly....
-	if (name.substring(name.length()-8).equals ("_changed")) {
-	  //System.out.println ("java::eventOut:: removing changed from " + name);
-          name = name.substring(0,name.length()-8);
-	  //System.out.println ("java::eventOut:: done " + name);
-          st = Browser.SendEventType(NodeName, name, "eventOut");
-	}
-      }
-    }
 
     tokens = new StringTokenizer (st);
     String NNPR = tokens.nextToken();
     String NOFF = tokens.nextToken();
     String NDS = tokens.nextToken();
     String NewDT = tokens.nextToken();
-    //System.out.println ("EventOut: NNPR " + NNPR + " NOFF " + NOFF +
-    //	" NDS " + NDS + " NewDT " + NewDT);
-
+    String ScrT = tokens.nextToken();
+    // System.out.println ("EventOut: NNPR " + NNPR + " NOFF " + NOFF +
+    //	" NDS " + NDS + " NewDT " + NewDT + " ScrTyp" + ScrT);
 
     // check out the return values specified in CFuncs/EAIServ.c
-    if(NewDT.equals("p")) {
-      EventOut ret = new EventOutMFString(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("k")) {
-      EventOut ret = new EventOutSFImage(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("e")) {
-      EventOut ret = new EventOutSFTime(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("c")) {
-      EventOut ret = new EventOutSFColor(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("l")) {
-      EventOut ret = new EventOutMFColor(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("d")) {
-      EventOut ret = new EventOutSFFloat(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("m")) {
-      EventOut ret = new EventOutMFFloat(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("o")) {
-      EventOut ret = new EventOutMFInt32(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("h")) {
-      EventOut ret = new EventOutSFNode(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; 
-		return ret;
-    } else if(NewDT.equals("r")) {
-      EventOut ret = new EventOutMFRotation(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("s")) {
-      EventOut ret = new EventOutMFVec2f(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("j")) {
-      EventOut ret = new EventOutSFVec2f(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("l")) {
-      EventOut ret = new EventOutMFVec3f(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("q")) {
-      EventOut ret = new EventOutMFNode(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS;
-	return ret;
-    } else if(NewDT.equals("i")) {
-      EventOut ret = new EventOutSFRotation(); ret.command = name; ret.outNode = NNN;ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("g")) {
-      EventOut ret = new EventOutSFString(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("b")) {
-      EventOut ret = new EventOutSFBool(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("f")) {
-      EventOut ret = new EventOutSFInt32(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    } else if(NewDT.equals("u")) {
-      EventOut ret = new EventOutSFVec3f(); ret.command = name; ret.outNode = NNN; ret.datatype=NewDT;
-		ret.nodeptr = NNPR; ret.offset = NOFF; ret.datasize = NDS; return ret;
-    }
-    // Return default
-
+    if(NewDT.equals("p")) { ret = new EventOutMFString(); 
+    } else if(NewDT.equals("k")) { ret = new EventOutSFImage(); 
+    } else if(NewDT.equals("e")) { ret = new EventOutSFTime(); 
+    } else if(NewDT.equals("c")) { ret = new EventOutSFColor(); 
+    } else if(NewDT.equals("l")) { ret = new EventOutMFColor(); 
+    } else if(NewDT.equals("d")) { ret = new EventOutSFFloat(); 
+    } else if(NewDT.equals("m")) { ret = new EventOutMFFloat(); 
+    } else if(NewDT.equals("o")) { ret = new EventOutMFInt32(); 
+    } else if(NewDT.equals("h")) { ret = new EventOutSFNode(); 
+    } else if(NewDT.equals("r")) { ret = new EventOutMFRotation(); 
+    } else if(NewDT.equals("s")) { ret = new EventOutMFVec2f(); 
+    } else if(NewDT.equals("j")) { ret = new EventOutSFVec2f(); 
+    } else if(NewDT.equals("l")) { ret = new EventOutMFVec3f(); 
+    } else if(NewDT.equals("q")) { ret = new EventOutMFNode(); 
+    } else if(NewDT.equals("i")) { ret = new EventOutSFRotation(); 
+    } else if(NewDT.equals("g")) { ret = new EventOutSFString(); 
+    } else if(NewDT.equals("b")) { ret = new EventOutSFBool(); 
+    } else if(NewDT.equals("f")) { ret = new EventOutSFInt32(); 
+    } else if(NewDT.equals("u")) { ret = new EventOutSFVec3f(); 
+    } else {
 	throw new InvalidEventOutException();
-    //EventOut ret = new EventOut();
-    //System.out.println ("WARNING: getEventOut - don't know how to handle " + name
-//		+ " asked for " + st + " returning Class EventOut");
+    }
 
- //   ret.command = name; ret.outNode = NNN; ret.datatype=NewDT; ret.nodeptr=NNPR; ret.offset=NOFF;
-  //  ret.datasize = NDS;
-   // return ret;
+    ret.command = name; ret.inNode = NNN; ret.datatype=NewDT; ret.nodeptr=NNPR; ret.offset=NOFF;
+    ret.datasize = NDS; ret.ScriptType = ScrT;
+    return ret;
   }
-
 }

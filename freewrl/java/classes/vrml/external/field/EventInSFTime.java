@@ -7,7 +7,7 @@ public class EventInSFTime extends EventIn {
   public EventInSFTime() { EventType = FieldTypes.SFTIME;}
 
   public void          setValue(double value) {
-    Browser.SendEvent (nodeptr,offset,datasize , datatype, "" + value);
+    Browser.newSendEvent (this, "" + value);
     return;
   }
 }

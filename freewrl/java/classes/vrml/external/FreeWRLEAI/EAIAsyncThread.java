@@ -94,7 +94,8 @@ public class EAIAsyncThread extends Thread {
       int count = 0;
       EventOut me;
 
-      // System.out.println ("EAIAsyncThread.callback - value " + msg.value );
+      //System.out.println ("EAIAsyncThread.callback - value " + msg.value +
+	//		" EventType " + msg.EventNumber );
 
       if (BrowserGlobals.EVtype[msg.EventNumber]==18) {        
 	me = new EventOutSFVec3f();
@@ -136,7 +137,7 @@ public class EAIAsyncThread extends Thread {
       	BrowserGlobals.EVObserver[msg.EventNumber].callback (me, 
 		(double) 0.0, BrowserGlobals.EVObject[msg.EventNumber]);
       } else {
-	System.out.println ("WARNING - EAIAsyncThread.callback - thread callback null, discarding");
+		System.out.println ("WARNING - EAIAsyncThread.callback - thread callback null, discarding");
       }
     }
 }

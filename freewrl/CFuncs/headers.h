@@ -254,6 +254,15 @@ extern int CRVerbose, JSVerbose;
 
 int JSparamIndex (char *name, char *type);
 
+/* setting script eventIns from routing table or EAI */
+void Set_one_MultiElementtype (int tn, int tptr, void *fn, unsigned len);
+void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, unsigned datalen);
+void mark_script (int num);
+
+
+
+
+
 struct CRjsStruct {
 	unsigned int	cx;	/* JSContext		*/
 	unsigned int	glob;	/* JSGlobals		*/

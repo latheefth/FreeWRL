@@ -10,7 +10,7 @@ public class EventInSFInt32 extends EventIn {
   public void          setValue(Integer value) {
     int count;
 
-    Browser.SendEvent (nodeptr,offset,datasize , datatype, "" + value);
+    Browser.newSendEvent (this, "" + value);
 
   return;
   }

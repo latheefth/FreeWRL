@@ -474,49 +474,37 @@ public class Browser implements BrowserInterface
 
 
 
-  //
-  // Send Event to the VRML Browser. Note the different methods, depending
-  // on the parameters.
-  //
-  // SendChildEvent waits for confirmation that child is added/removed to MFNode array.
-  // This gets around the problem of sending two adds in succession, and having
-  // the second overwrite the first.
-  public static void SendChildEvent (String parent, String offset, String FieldName, String Value)
-    {
-      String retval;
+	//
+	// Send Event to the VRML Browser. Note the different methods, depending
+	// on the parameters.
+	//
+	public static void SendChildEvent (String parent, String offset, String FieldName, String Child) {
+		String retval;
 
-	// System.out.println ("SendChildEvent: sending to " + parent + " ofs:" + 
-	//	offset + " field " + FieldName + " child: " + Value);
+		// System.out.println ("SendChildEvent: sending to " + parent + " ofs:" + 
+		//	offset + " field " + FieldName + " child: " + Child);
 
-      synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "C " + parent + " " + offset + " " +
-           FieldName + " "+ Value + "\n");
-        retval = getVRMLreply(queryno);
-        queryno += 1;
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "C " + parent + " " + offset + " " +
+				FieldName + " "+ Child + "\n");
+			retval = getVRMLreply(queryno);
+			queryno += 1;
+		}
+		return;
+	}
+
+	// Most events don't need us to wait around for it.
+	public static void newSendEvent (Node node, String Value) {
 	
-        // Now, tell FreeWRL to update routes
-        //JAS EAIoutSender.send ("" + queryno + "B "  
-         //JAS   FieldName + " " + Value + "\n");
-        //JAS retval = getVRMLreply(queryno);
-        //JAS queryno += 1;
-      }
-      return;
-    }
-
-  // Most events don't need us to wait around for it.
-  public static void SendEvent (String NodePtr, String Offset, String datasize, String NodeType, String Value)
-    {
-
-	//System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + NodePtr +
-	//	" Offset " + Offset);
-      synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "D" + NodeType + " " + 
-           NodePtr + " " + Offset + " " + Value + "\n");
-        // JAS - don't wait. getVRMLreply(queryno);
-        queryno += 1;
-      }
-      return;
-    }
+		//System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + NodePtr +
+		//	" Offset " + Offset);
+		synchronized (FreeWRLToken) {
+			EAIoutSender.send ("" + queryno + "D" + node.datatype + " " + 
+				node.nodeptr + " " + node.offset + " " +node.ScriptType + " " + Value + "\n");
+			queryno += 1;
+		}
+		return;
+	}
 
 
   protected static String SendEventType (String NodeName, String FieldName, String direction) {

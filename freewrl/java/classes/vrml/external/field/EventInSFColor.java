@@ -9,8 +9,6 @@ public class EventInSFColor extends EventIn {
   public void          setValue(float[] value) throws
 	IllegalArgumentException {
 
-        Browser.SendEvent (nodeptr,offset,datasize , datatype, "" + value[0] + " " + value[1] +
-                  " " + value[2]);
-    return;
+        Browser.newSendEvent (this, "" + value[0] + " " + value[1] + " " + value[2]);
   }
 }

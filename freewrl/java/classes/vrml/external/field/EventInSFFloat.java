@@ -6,7 +6,7 @@ public class  EventInSFFloat extends EventIn {
   public EventInSFFloat() { EventType = FieldTypes.SFFLOAT; }
 
   public void          setValue(float value) {
-    Browser.SendEvent (nodeptr,offset,datasize , datatype, "" + value);
+    Browser.newSendEvent (this, "" + value);
     return;
   }
 }

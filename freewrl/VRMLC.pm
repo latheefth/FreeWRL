@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.117  2003/09/30 15:28:36  crc_canada
+# More CVS changes - EAI to script sendevents now work.
+#
 # Revision 1.116  2003/09/25 17:40:42  crc_canada
 # first steps at GeoVRML
 #
@@ -1561,7 +1564,8 @@ void EAI_GetType (unsigned int nodenum, char *fieldname, char *direction,
 	unsigned int	*nodeptr,
 	unsigned int	*dataoffset,
 	unsigned int	*datalen,
-	unsigned int	*nodetype) {
+	unsigned int	*nodetype,
+	unsigned int	*scripttype) {
 
 	unsigned int 	count;
 
@@ -1578,11 +1582,12 @@ void EAI_GetType (unsigned int nodenum, char *fieldname, char *direction,
 	count = call_pv("EAI_GetType",G_ARRAY);
 	SPAGAIN;
 
-	if (count != 4) {
+	if (count != 5) {
 		*nodetype=97;	// SFUNKNOWN - check CFuncs/EAIServ.c
-		*datalen=0;*dataoffset=0;*nodeptr=0;
+		*datalen=0;*dataoffset=0;*nodeptr=0;*scripttype=0;
 	} else {
 		/* pop values off stack in reverse of perl return order */
+		*scripttype = POPi;
 		*nodetype = POPi;
 		*datalen = POPi;
 		*dataoffset = POPi;
