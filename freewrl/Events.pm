@@ -66,22 +66,20 @@ sub remove_first {
 sub verify_script_started {
 	my ($scene, $node, $number) = @_;
 
-	#print "verify_script_started, $node, $number\n";
-
-	print "ScriptInit t ",
-		VRML::NodeIntern::dump_name($node), "\n"
- 			if $VRML::verbose::script;
+	print "VRML::EventMachine::verify_script_started: ",
+		VRML::Debug::toString(\@_), "\n"
+				if $VRML::verbose::events;
 
 	my $h;
 	my $Browser = $node->{Scene}->get_browser();
 
 	for (@{$node->{Fields}{url}}) {
 		# is this already made???
-		print "Working on $_\n" 
-			if $VRML::verbose::script;
+		print "URL $_\n" if $VRML::verbose::events;
 		if (defined  $node->{J}) {
-			print "...{J} already defined, skipping\n"
- 				if $VRML::verbose::script;
+			print "$node->{J} already defined for node ",
+				VRML::NodeIntern::dump_name($node), ", skipping\n"
+						if $VRML::verbose::script;
 			last;
 		}
 
@@ -225,9 +223,8 @@ sub resolve_node_cnode {
 	my $is_proto;
 	my $tmp;
 
-
-	print "\nVRML::EventMachine::resolve_node_cnode: ", VRML::Debug::toString(\@_), "\n"
-		if $VRML::verbose::events;
+	print "\nVRML::EventMachine::resolve_node_cnode: ",
+		VRML::Debug::toString(\@_), "\n" if $VRML::verbose::events;
 
 	$tmp = VRML::Handles::get($node);
 	if (ref $tmp eq "VRML::NodeIntern") {
@@ -239,17 +236,24 @@ sub resolve_node_cnode {
 			return (0,0,0,0,0);
 		}
 	}
-	print "handle got $node ", ($node->{IsProto} ? "PROTO " : ""),
-		"$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n"
-			if $VRML::verbose::events;
+	print "handle got $node ",
+		($node->{IsProto} ?
+		 "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : ""),
+			 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n"
+				 if $VRML::verbose::events;
 
+	my $f;
+	my @is;
 	# is this an IS?
 	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
 		$is_proto = 1;
+		push @is, @{$this->{IS}{$node}{$field}};
+
 		if ($direction =~ /eventIn/) {
-			foreach (@{$this->{IS}{$node}{$field}}) {
-				$proto_node = $_->[0];
-				$proto_field = $_->[1];
+			while (@is) {
+				$f = shift @is;
+				$proto_node = $f->[0];
+				$proto_field = $f->[1];
 
 				next if ($proto_node->{TypeName} =~ /script/i);
 
@@ -269,17 +273,21 @@ sub resolve_node_cnode {
 						push @tonodes, "$outptr:$outoffset";
 						$to_count++;
 					}
+				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
+					push @is, @{$this->{IS}{$proto_node}{$field}};
+					next;
 				} else {
 					print "No CNode for $proto_node->{TypeName} ",
-						VRML::NodeIntern::dump_name($proto_node), ".\n";
+						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
 				}
 			}
 			$tonode_str = join(" ", @tonodes);
 		} else { # XXX PROTO multiple eventOuts not handled yet
-
-			foreach (@{$this->{IS}{$node}{$field}}) {
-				$proto_node = $_->[0];
-				$proto_field = $_->[1];
+			##foreach (@{$this->{IS}{$node}{$field}}) {
+			while (@is) {
+				$f = shift @is;
+				$proto_node = $f->[0];
+				$proto_field = $f->[1];
 
 				next if ($proto_node->{TypeName} =~ /script/i);
 
@@ -298,9 +306,12 @@ sub resolve_node_cnode {
 									" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
 						last;
 					}
+				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
+					push @is, @{$this->{IS}{$proto_node}{$field}};
+					next;
 				} else {
 					print "No CNode for $proto_node->{TypeName} ",
-						VRML::NodeIntern::dump_name($proto_node), ".\n";
+						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
 				}
 			}
 			if (! ($outptr || $offset) &&
@@ -360,8 +371,8 @@ sub resolve_node_cnode {
 			$to_count = 1;
 			$tonode_str = "$outptr:$outoffset";
 		}
-		# print "got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
-	} elsif ($proto_node->{TypeName} =~ /script/i) { ## needed ???
+		# print "got a script: outptr $outptr, offset $outoffset, scenenum $scenenum\n";
+	} elsif ($proto_node->{TypeName} =~ /script/i) {
 		$outptr = $scenenum;
 		$outoffset = VRML::VRMLFunc::paramIndex($proto_field, $proto_node->{Type}{FieldTypes}{$proto_field});
 		verify_script_started($scene, $proto_node, $outptr);
@@ -373,7 +384,7 @@ sub resolve_node_cnode {
 			$to_count = 1;
 			$tonode_str = "$outptr:$outoffset";
 			}
-			# print "PROTO: got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
+			# print "PROTO got a script: outptr $outptr, offset $outoffset, scenenum $scenenum\n";
 	} else {
 		if (!defined $node->{BackNode}) {
 			# check if this node resides within a Javascript invocation...
@@ -415,11 +426,6 @@ sub resolve_node_cnode {
 				$tonode_str = "$outptr:$outoffset";
 			}
 		}
-#if ($is_proto) {
-#	print "$proto_node->{TypeName} ", VRML::NodeIntern::dump_name($proto_node), " CNode: $outptr, $field $direction: $outoffset.\n";
-#} else {
-#	print "$node->{TypeName} ", VRML::NodeIntern::dump_name($node), " CNode: $outptr, $field $direction: $outoffset.\n";
-#}
 	}
 
 	# ok, we have node and field, lets find either field length, or interpolator
