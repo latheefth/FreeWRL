@@ -27,6 +27,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.25  2001/03/26 17:40:36  crc_canada
+# Background fixes for some implementations of OpenGL.
+# IndexedLineSet no longer disrupts other renderings.
+#
 # Revision 1.24  2001/03/23 16:01:45  crc_canada
 # Unknown
 #
@@ -2010,11 +2014,14 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep)
 		v1 = rep->coord+3*rep->cindex[i*3+0];
 		v2 = rep->coord+3*rep->cindex[i*3+1];
 		v3 = rep->coord+3*rep->cindex[i*3+2];
-printf ("cpnf %d using cindex %d %d %d\n",
-i,rep->cindex[i*3],rep->cindex[i*3+1],rep->cindex[i*3+2]);
-printf ("	v1 %f %f %f\n",v1[0],v1[1],v1[2]);
-printf ("	v2 %f %f %f\n",v2[0],v2[1],v2[2]);
-printf ("	v3 %f %f %f\n",v3[0],v3[1],v3[2]);
+		
+		/* 
+		printf ("cpnf %d using cindex %d %d %d\n",
+		i,rep->cindex[i*3],rep->cindex[i*3+1],rep->cindex[i*3+2]);
+		printf ("	v1 %f %f %f\n",v1[0],v1[1],v1[2]);
+		printf ("	v2 %f %f %f\n",v2[0],v2[1],v2[2]);
+		printf ("	v3 %f %f %f\n",v3[0],v3[1],v3[2]);
+		*/
 
 		a[0] = v2[0]-v1[0];
 		a[1] = v2[1]-v1[1];
