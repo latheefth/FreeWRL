@@ -440,42 +440,24 @@ sub getProperty {
 }
 
 sub nodeSetProperty {
-#	my ($this) = @_;
-#	my ($node, $prop, $val, $rval);
-	my ($this, $node, $prop) = @_;
-	my ($val, $rval);
+	my ($this, $prop, $vt) = @_;
+	my ($node, $val, $rval);
 
 	print "VRML::JS::nodeSetProperty args: @_\n" if $VRML::verbose::js;
 
 	if (!runScript($this->{JSContext}, $this->{JSGlobal}, "__node.__id", $node, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::nodeSetProperty");
 	}
-	if (!runScript($this->{JSContext}, $this->{JSGlobal}, "__prop", $prop, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::nodeSetProperty");
-	}
 
 	print "\tsetting property $prop for $node\n" if $VRML::verbose::js;
 	$node = VRML::Handles::get($node);
 
-	my $vt = $node->{Type}{FieldTypes}{$prop};
+	$vt = $node->{Type}{FieldTypes}{$prop};
 	if (!defined $vt) {
 		cleanupDie("Javascript tried to assign to invalid property!\n");
 	}
 
-	my $val = $this->getProperty($vt, "__val");
-
-	if (0) {
-		#	if ($vt =~ /Node/) {cleanupDie("Can't handle yet");}
-		#	if ($Types{$vt}) {
-		#		runScript($this->{JSContext},$this->{JSGlobal},"__val",$val);
-		#		print "GOT '$val'\n";
-		#		$val = "VRML::Field::$vt"->parse(undef, $val);
-		#	} else {
-		#		runScript($this->{JSContext},$this->{JSGlobal},"__val.toString()",$val);
-		#		print "GOT '$val'\n";
-		#		$val = "VRML::Fields::$vt"->parse(undef, $val);
-		#	}
-	}
+	$val = $this->getProperty($vt, $prop);
 
 	print "\tsetting property to $val\n" if $VRML::verbose::js;
 	$node->{RFields}{$prop} = $val;

@@ -11,6 +11,11 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.25  2002/11/25 16:55:27  ayla
+#
+# Tweaked float/double formatting to strings and made changes to property
+# setting for SFNodes.
+#
 # Revision 1.24  2002/11/22 22:09:14  ayla
 # Tweaking SFFloat and SFTime formatting in as_string.
 #
@@ -194,7 +199,7 @@ sub parse {
 	return $1;
 }
 
-sub as_string { return sprintf("%.2g", $_[1]); }
+sub as_string { return sprintf("%.4g", $_[1]); }
 
 sub print {print $_[1]}
 

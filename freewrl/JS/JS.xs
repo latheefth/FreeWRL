@@ -708,7 +708,7 @@ CODE:
 		return;
 	}
 	if (verbose) {
-		printf("dval=%.1g\n", dval);
+		printf("dval=%.4g\n", dval);
 	}
 	sv_setnv(rnum, dval);
 	//cx = context;
