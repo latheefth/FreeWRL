@@ -1,4 +1,5 @@
 # Copyright (C) 1998 Bernhard Reiter and Tuomas J. Lukka
+# Copyright (C) 2000 John Stewart, CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
@@ -32,8 +33,9 @@ int   *cindex;				/* field containing indices into
 					   triangle			*/
 float *coord;				/* contains vertices building the
 					   triangles as x y z values	*/
-int   *norindex;			/* indices into *normal		*/
-float *normal;				/* (filled in a different function)*/ 
+
+int   *norindex; 			/* indices into *normal		*/
+float *normal; 				/* (filled in a different function)*/ 
 
 
 int ntri = 2 * (nspi-1) * (nsec-1);	/* no. of triangles to be used
@@ -76,6 +78,8 @@ struct SCP *SCP;			/* dyn. vector rep. the SCPs	*/
 struct pt spm1,spc,spp1,spcp,spy,spz,spoz,spx;	/* help vertix vars	*/
 
 
+if (verbose) printf ("VRMLExtrusion.pm start\n");
+
 /* do we have a closed curve?						*/
 if(curve[0].c[0] == curve[nsec-1].c[0] &&
    curve[0].c[1] == curve[nsec-1].c[1])
@@ -87,7 +91,8 @@ if(spine[0].c[0] == spine[nspi-1].c[0] &&
    spine[0].c[1] == spine[nspi-1].c[1] &&
    spine[0].c[2] == spine[nspi-1].c[2]) 
 	closed = 1;
- 
+
+if (verbose) printf ("curve_closed %d closed %d\n",curve_closed, closed); 
  
 
 /************************************************************************
@@ -108,6 +113,8 @@ if($f(beginCap)||$f(endCap)) {
 
 	if(curve_closed)	nctri=nsec-3;
 	else			nctri=nsec-2;	
+
+	if (verbose) printf ("nsec = %d, ntri = %d\n",nsec, ntri);
 
 		/* check if there are colinear points at the beginning of the curve*/
 	sec=0;
@@ -145,9 +152,12 @@ if($f(beginCap)||$f(endCap)) {
 /* if we have non-convex polygons, we might need a few triangles more	*/
 /* 	The unused memory will be freed with realloc later		*/
 if(!$f(convex)) {
+
 	max_ncoord_add=(nspi-1)*(nsec-1) /* because of intersections	*/
 			+nctri;		/* because of cap tesselation	*/
 	nctri*=2;	/* we might need more trigs for the caps	*/
+
+	printf ("non-convex polygons, need more triangles, max_ncoord_add %d, nctri %d\n",max_ncoord_add, nctri);
 }
 
 /************************************************************************
@@ -157,21 +167,22 @@ if(!$f(convex)) {
 rep_->ntri = ntri + nctri;	/* Thats the no. of triangles representing
 				the whole Extrusion Shape.		*/
 				
-
+/* Extrusions dont have texture coords, so setting this to 0 always	*/
+rep_->tcindex = 0;
 	
 /* get some memory							*/
 cindex  = rep_->cindex   = malloc(sizeof(*(rep_->cindex))*3*(rep_->ntri));
 coord   = rep_->coord    =
 		malloc(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
- 
 normal  = rep_->normal   = malloc(sizeof(*(rep_->normal))*3*(rep_->ntri));
 norindex= rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri));
+
  
 /*memory for the SCPs. Only needed in this function. Freed later	*/
 SCP     = malloc(sizeof(struct SCP)*nspi);
  
 /* in C always check if you got the mem you wanted...  >;->		*/
-if(!(cindex && coord && normal && norindex && SCP )) {
+  if(!(cindex && coord && normal && norindex && SCP )) {
 	die("Not enough memory for Extrusion node triangles... ;(");
 } 
  
@@ -221,6 +232,9 @@ for(spi=0; spi<nspi;spi++){
 
 /* calculate the SCPs now...						*/
 
+if (verbose) printf (" SCP[0].next = %d, nspi = %d\n",SCP[0].next,nspi);
+
+
 if(SCP[0].next==nspi) {
 	spine_is_one_vertix=1;
 	printf("All spine vertices are the same!\n");
@@ -249,17 +263,42 @@ if(SCP[0].next==nspi) {
 	t=nspi-1; 
 	while(SCP[t].next==nspi) t--;
 
+	if (verbose)
+		printf ("now, spi = %d, t = %d\n",spi,t);
+
 	/* for all but the first + last really different spine vertix	*/
-	for(; spi<=t; spi++) {
+	/* add case for then there are only 2 spines, and spi is already */
+	/* spi is already greater than t... JAS				*/
+
+	if (spi > t) {
 		/* calc y 	*/
-		VEC_FROM_CDIFF(spine[SCP[spi].next],spine[SCP[spi].prev],SCP[spi].y);
+		VEC_FROM_CDIFF(spine[1],spine[0],SCP[0].y);
 		/* calc z	*/
-		VEC_FROM_CDIFF(spine[SCP[spi].next],spine[spi],spp1);
-		VEC_FROM_CDIFF(spine[SCP[spi].prev],spine[spi],spm1);
- 		VECCP(spp1,spm1,SCP[spi].z);
- 	}
+		VEC_FROM_CDIFF(spine[1],spine[0],spp1);
+		VEC_FROM_CDIFF(spine[1],spine[0],spm1);
+ 		VECCP(spp1,spm1,SCP[1].z);
+		if (verbose) {
+		printf ("just calculated z for spi 0\n");
+		printf("SCP[0].y=[%lf,%lf,%lf], SCP[1].z=[%lf,%lf,%lf]\n",
+			SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
+			SCP[1].z.x,SCP[1].z.y,SCP[1].z.z);
+		}
+	}
+	
+	else {
+		for(; spi<=t; spi++) {
+			/* calc y 	*/
+			VEC_FROM_CDIFF(spine[SCP[spi].next],spine[SCP[spi].prev],SCP[spi].y);
+			/* calc z	*/
+			VEC_FROM_CDIFF(spine[SCP[spi].next],spine[spi],spp1);
+			VEC_FROM_CDIFF(spine[SCP[spi].prev],spine[spi],spm1);
+ 			VECCP(spp1,spm1,SCP[spi].z);
+			if (verbose) printf ("just calculated z for spi %d\n",spi);
+ 		}
+	}
  
  	if(closed) {
+		if (verbose) printf ("we are closed\n");
  		/* calc y for first SCP				*/
 		VEC_FROM_CDIFF(spine[SCP[0].next],spine[SCP[nspi-1].prev],SCP[0].y); 
  		/* the last is the same as the first */	
@@ -273,17 +312,28 @@ if(SCP[0].next==nspi) {
 		SCP[nspi-1].z=SCP[0].z;	
 		
  	} else {
+		if (verbose) printf ("we are not closed\n");
+
  		/* calc y for first SCP				*/
 		VEC_FROM_CDIFF(spine[SCP[0].next],spine[0],SCP[0].y);
 
  		/* calc y for the last SCP			*/
+		/* in the case of 2, nspi-1 = 1, ...prev = 0	*/
 		VEC_FROM_CDIFF(spine[nspi-1],spine[SCP[nspi-1].prev],SCP[nspi-1].y);
  
 		/* z for the start SESVs is the same as for the next SCP */
 		SCP[0].z=SCP[SCP[0].next].z; 
  		/* z for the last SCP is the same as for the one before the last*/
 		SCP[nspi-1].z=SCP[SCP[nspi-1].prev].z; 
-		
+	
+		if (verbose) {	
+		printf("SCP[0].y=[%lf,%lf,%lf], SCP[0].z=[%lf,%lf,%lf]\n",
+			SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
+			SCP[0].z.x,SCP[0].z.y,SCP[0].z.z);
+		printf("SCP[1].y=[%lf,%lf,%lf], SCP[1].z=[%lf,%lf,%lf]\n",
+			SCP[1].y.x,SCP[1].y.y,SCP[1].y.z,
+			SCP[1].z.x,SCP[1].z.y,SCP[1].z.z);
+		}
 	} /* else */
 	
 	/* fill the other start SESVs SCPs*/
@@ -337,7 +387,7 @@ for(spi=(closed?2:1);spi<nspi;spi++) {
 
 /* One case is missing: whole spine is colinear				*/
 if(pos_of_last_zvalue==-1) {
-	printf("Extrusion.GenPloyRep:Whole spine is colinear!\n");
+	if (verbose) printf("Extrusion.GenPloyRep:Whole spine is colinear!\n");
 
 	/* this is the default, if we don`t need to rotate		*/
 	spy.x=0; spy.y=1; spy.z=0;	
@@ -607,21 +657,14 @@ for(x=0; x<nsec-1; x++) {
 
   
   /* first triangle */
-  cindex[triind*3+0] = D;
-  cindex[triind*3+1] = A;
-  cindex[triind*3+2] = E;
-  norindex[triind*3+0] = triind;
-  norindex[triind*3+1] = triind;
-  norindex[triind*3+2] = triind;
+  cindex[triind*3+0] = D; cindex[triind*3+1] = A; cindex[triind*3+2] = E;
+  norindex[triind*3+0] = triind; norindex[triind*3+1] = triind; norindex[triind*3+2] = triind;
+
   triind ++;
   /* second triangle*/
-  cindex[triind*3+0] = B;
-  cindex[triind*3+1] = C;
-  cindex[triind*3+2] = F;
-  norindex[triind*3+0] = triind;
-  norindex[triind*3+1] = triind;
-  norindex[triind*3+2] = triind;
-  triind ++; 
+  cindex[triind*3+0] = B; cindex[triind*3+1] = C; cindex[triind*3+2] = F;
+  norindex[triind*3+0] = triind; norindex[triind*3+1] = triind; norindex[triind*3+2] = triind;
+     triind ++; 
  }
 }
 
@@ -660,15 +703,18 @@ if($f(convex)) {
 	
 	if($f(endCap)) {
 		for(x=0+ncolinear_at_begin; x<nsec-3-ncolinear_at_end; x++) {
-			cindex[triind*3+0] = 0  +(nspi-1)*nsec;
+			/* endCap not showing, because it is facing wrong way.	*/
+			/* try changing how triangles are drawn			*/
+			cindex[triind*3+2] = 0  +(nspi-1)*nsec;
 			cindex[triind*3+1] = x+2+(nspi-1)*nsec;
-			cindex[triind*3+2] = x+1+(nspi-1)*nsec;
+			cindex[triind*3+0] = x+1+(nspi-1)*nsec;
 			norindex[triind*3+0] = triind;
 			norindex[triind*3+1] = triind;
 			norindex[triind*3+2] = triind;
 			triind ++;
 		}
 		if(!curve_closed) {	/* non closed needs one triangle more	*/
+			/* lets flip 0 and 2 around; endCaps were being drawn inside-out */
 			cindex[triind*3+0] = 0  +(nspi-1)*nsec;
 			cindex[triind*3+1] = x+2+(nspi-1)*nsec;
 			cindex[triind*3+2] = x+1+(nspi-1)*nsec;
@@ -793,7 +839,7 @@ if(verbose) {
 		gluEndPolygon(global_tessobj);
 		
 		
-if(verbose) {
+		if(verbose) {
 		for(t=0;t<tess_polyrep.ntri;t++) {
 		    for(i=0;i<3;i++) {
 	        	printf("coord[%dff]=%lf,%lf,%lf\n",
@@ -803,7 +849,7 @@ if(verbose) {
 			   tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+2]);
 		    }
 		}
-}
+		}
 
 		help=(curve_closed?nsec-1:nsec)+(nspi-1)*nsec;
 		ncoord_new=0;
@@ -814,12 +860,10 @@ if(verbose) {
 			for(sec=(nspi-1)*nsec;sec<help;sec++) {
 				VEC_FROM_COORDDIFF(tess_polyrep.coord,tess_polyrep.cindex[t*3+i],coord,sec,help_pt);
 
-/*printf("help_pt=[%lf,%lf,%lf]\n",help_pt.x,help_pt.y,help_pt.z);
- */
+				/*printf("help_pt=[%lf,%lf,%lf]\n",help_pt.x,help_pt.y,help_pt.z); */
 				if(APPROX(VECSQ(help_pt),0)) {
 
-/*printf("vertex found at %d\n",sec);
- */
+					/*printf("vertex found at %d\n",sec); */
 		 			cindex[triind*3+i]=sec;
 					break;  
 		 		}
@@ -829,8 +873,10 @@ if(verbose) {
 				VEC_FROM_COORDDIFF(tess_polyrep.coord,tess_polyrep.cindex[t*3+i],coord,sec,help_pt);
 				if(APPROX(VECSQ(help_pt),0)) {
 
-/*printf("vertex found at %d\n",sec);
- */
+					if (verbose) 
+					printf("vertex found at %d\n",sec);
+
+ 
 		 			cindex[triind*3+i]=sec;
 					break;
 				}  
@@ -877,12 +923,15 @@ if(!$f(convex)) {
 }
 
 
-/* XXX if(verbose)*/
+if(verbose)
 	printf("Extrusion.GenPloyRep: triind=%d  ntri=%d nctri=%d "
 	"ncolinear_at_begin=%d ncolinear_at_end=%d\n",
 	triind,ntri,nctri,ncolinear_at_begin,ncolinear_at_end);
  
  
-calc_poly_normals_flat(rep_);
+ calc_poly_normals_flat(rep_); 
+
+if(verbose) printf ("end VRMLExtrusion.pm\n");
+
 /*****end of Member Extrusion	*/
 ';
