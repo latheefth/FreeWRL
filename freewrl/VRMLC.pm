@@ -26,6 +26,13 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.59  2002/07/19 16:56:52  ncoder
+# added collision detection for
+# Boxes, cones, cylinders.
+# Added a debug flag to print out collision information ("collision")
+#
+# a few modifications/additions to functions in LinearAlgebra
+#
 # Revision 1.58  2002/07/19 14:05:29  crc_canada
 # seg fault caused in save_font_paths; changed way of verifying that
 # files exist to fopen/fclosed from fstat. Appears to fix problem. Also
@@ -984,6 +991,7 @@ sub gen {
 
 #include "EXTERN.h"
 #include "perl.h"
+#include "GL/gl.h"
 
 struct pt {GLdouble x,y,z;};
 
@@ -1067,6 +1075,7 @@ struct sNaviInfo {
 #include "CFuncs/constants.h"
 
 #include "CFuncs/LinearAlgebra.h"
+#include "CFuncs/Collision.h"
 
 D_OPENGL;
 
@@ -1100,6 +1109,7 @@ int last_texture_depth = 0;
 GLint global_texSize = 64;
 
 int verbose;
+int verbose_collision; /*print out collision info*/
 
 int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
 int render_geom;
@@ -1627,6 +1637,12 @@ render_verbose(i)
 	int i;
 CODE:
 	verbose=i;
+
+void 
+render_verbose_collision(i)
+	int i;
+CODE:
+	verbose_collision=i;
 
 void
 render_geom(p)

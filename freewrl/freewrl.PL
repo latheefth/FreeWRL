@@ -525,6 +525,7 @@ $VRML::verbose::timesens = verb "time";
 $VRML::verbose::interp = verb "interp"; # interpolators
 $VRML::verbose::text = verbn "text"; 
 $VRML::verbose::rend = verb "rend";
+$VRML::verbose::collision = verb "collision";
 $VRML::verbose::nodec = verb "nodec";
 $VRML::verbose::bind = verb "bind";
 $VRML::verbose::prox = verb "prox";

@@ -124,17 +124,29 @@
 #define VECRROTATE(ro,c) VECROTATE((ro).r[0],(ro).r[1],(ro).r[2],(ro).r[3],c)	
 
 
+#define calc_vector_length(pt) veclength(pt)
 
-float calc_vector_length( struct pt p );
+float veclength( struct pt p );
 
-void normalize_vector(struct pt *vec);
+/* returns vector length, too */
+GLdouble vecnormal(struct pt*r, struct pt* v);
+
+#define normalize_vector(pt) vecnormal(pt,pt)
 
 float calc_angle_between_two_vectors(struct pt a, struct pt b);
 
-void calc_vector_product(struct pt a, struct pt b, struct pt *c );
+double vecangle(struct pt* V1, struct pt* V2);
+
+
+#define calc_vector_product(a,b,c) veccross(c,a,b);
+
+void veccross(struct pt *c , struct pt a, struct pt b);
 
 
 GLdouble det3x3(GLdouble* data);
+
+struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b);
+struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b);
 
 struct pt* vecscale(struct pt* r, struct pt* v, GLdouble s);
 
@@ -144,24 +156,13 @@ double vecdot(struct pt* a, struct pt* b);
 
 double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct pt p1, struct pt p2);
 
-
-#ifdef COMMENT
-
-GLdouble vecangle(struct pt* V1, struct pt* V2);
-
-struct pt* veccross(struct pt* r, struct pt* v1, struct pt* v2);
-
-struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2);
-
-
 struct pt* vecadd(struct pt* r, struct pt* v, struct pt* v2);
 
+void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n);
 
-/* returns vector length, too */
-GLdouble vecnormal(GLdouble*r, GLdouble* v);
+GLdouble* Inverse(GLdouble* res, GLdouble* m);
 
-#endif
-
+struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3);
 
 #endif
 

@@ -20,6 +20,13 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.66  2002/07/19 16:56:52  ncoder
+# added collision detection for
+# Boxes, cones, cylinders.
+# Added a debug flag to print out collision information ("collision")
+#
+# a few modifications/additions to functions in LinearAlgebra
+#
 # Revision 1.65  2002/07/15 15:38:41  crc_canada
 # enable sharing of textures, if they have the same url
 #
@@ -2313,13 +2320,183 @@ Sphere => q~
 
 	       VECADD(CollisionOffset,delta);
 
-	       if(verbose) printf("COLLISION_INT: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
-				      t_orig.x, t_orig.y, t_orig.z,
-				      delta.x, delta.y, delta.z,
-				      p_orig.x, n_orig.x, n_orig.z
-				      );
+	       if(verbose_collision && (delta.x != 0. || delta.y != 0. || delta.z != 0.)) 
+	           printf("COLLISION_SPH: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z,
+			  p_orig.x, n_orig.x, n_orig.z
+			  );
 	       
 
+	       ~,
+Box => q~
+
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+
+	       GLdouble modelMatrix[16]; 
+	       struct pt iv = {$f(size,0),0,0};
+	       struct pt jv = {0,$f(size,1),0};
+	       struct pt kv = {0,0,$f(size,2)};
+	       struct pt ov = {-$f(size,0)/2,-$f(size,1)/2,-$f(size,2)/2};
+	       struct pt t_orig = {0,0,0};
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+
+	       struct pt delta;
+	       
+	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*$f(size,0),scale*$f(size,1),scale*$f(size,2))) return;
+	            
+	       
+
+	       /* get transformed box edges and position */
+	       transform(&ov,&ov,modelMatrix);
+	       transform3x3(&iv,&iv,modelMatrix);
+	       transform3x3(&jv,&jv,modelMatrix);
+	       transform3x3(&kv,&kv,modelMatrix);
+
+	       
+
+	       delta = box_disp(abottom,atop,awidth,ov,iv,jv,kv);
+	       
+	       vecscale(&delta,&delta,-1);
+	       
+	       VECADD(CollisionOffset,delta);
+
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.)) 
+	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
+			  ov.x, ov.y, ov.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.)) 
+	           printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
+			  iv.x, iv.y, iv.z,
+			  jv.x, jv.y, jv.z,
+			  kv.x, kv.y, kv.z
+			  );
+	       
+	       
+	       ~,
+
+Cone => q~
+
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+
+		float h = $f(height)/2;
+		float r = $f(bottomRadius); 
+
+	       GLdouble modelMatrix[16]; 
+	       struct pt iv = {0,h,0};
+	       struct pt jv = {0,-h,0};
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+
+	       struct pt delta;
+	       
+	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
+	            
+	       
+
+	       /* get transformed box edges and position */
+	       transform(&iv,&iv,modelMatrix);
+	       transform(&jv,&jv,modelMatrix);
+
+
+	       delta = cone_disp(abottom,atop,awidth,jv,iv,scale*r);
+	       
+	       vecscale(&delta,&delta,-1);
+	       
+	       VECADD(CollisionOffset,delta);
+
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.)) 
+	           printf("COLLISION_CON: (%f %f %f) (%f %f %f)\n",
+			  iv.x, iv.y, iv.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.)) 
+	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
+			  iv.x, iv.y, iv.z,
+			  jv.x, jv.y, jv.z,
+			  scale*r							       
+			  );
+	       
+	       
+	       ~,
+
+Cylinder => q~
+
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+
+		float h = $f(height)/2;
+		float r = $f(radius); 
+
+	       GLdouble modelMatrix[16]; 
+	       struct pt iv = {0,h,0};
+	       struct pt jv = {0,-h,0};
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+
+	       struct pt delta;
+	       
+	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
+	            
+	       
+
+	       /* get transformed box edges and position */
+	       transform(&iv,&iv,modelMatrix);
+	       transform(&jv,&jv,modelMatrix);
+
+
+	       delta = cylinder_disp(abottom,atop,awidth,jv,iv,scale*r);
+	       
+	       vecscale(&delta,&delta,-1);
+	       
+	       VECADD(CollisionOffset,delta);
+
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.)) 
+	           printf("COLLISION_CYL: (%f %f %f) (%f %f %f)\n",
+			  iv.x, iv.y, iv.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.)) 
+	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
+			  iv.x, iv.y, iv.z,
+			  jv.x, jv.y, jv.z,
+			  scale*r							       
+			  );
+	       
+	       
 	       ~,
 
 Shape => '

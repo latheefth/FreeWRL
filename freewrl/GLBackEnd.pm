@@ -14,6 +14,9 @@ use VRML::VRMLFunc;
 if($VRML::verbose::rend) {
 	VRML::VRMLFunc::render_verbose(1);
 }
+if($VRML::verbose::collision) {
+    VRML::VRMLFunc::render_verbose_collision(1);
+}
 require 'VRML/VRMLCU.pm';
 require 'VRML/Viewer.pm';
 use strict vars;
