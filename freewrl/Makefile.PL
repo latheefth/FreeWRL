@@ -198,6 +198,7 @@ WriteMakefile(
 			  PL_FILES => {'freewrl.PL' => 'freewrl'},
 			  PREREQ_PM => {
 							'Digest::MD5' =>  "2.09",
+							'File::Basename' =>  "0", # any version will do
 							'HTML::Parser' => "2.25",
 							'MIME::Base64' => "2.11",
 							'URI'          => "1.04",
