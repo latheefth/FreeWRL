@@ -269,6 +269,36 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
 }
 
 
+/* perl wants a value returned. return return values */
+int JSGetProperty(int num, char *script, SV *rstr) {
+	JSString *strval;
+	jsval rval;
+	jsdouble dval = -1.0;
+	char *strp;
+	JSContext *_context;
+	JSObject *_globalObj;
+
+	/* get context and global object for this script */
+	_context = (JSContext *) JSglobs[num].cx;
+	_globalObj = (JSObject *)JSglobs[num].glob;
+
+	if (JSVerbose)
+		printf ("start of JSGetProperty, cx %d script %s\n",_context,script);
+
+	if (!JS_GetProperty(_context, _globalObj, script, &rval)) {
+		fprintf(stderr, "JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
+		return JS_FALSE;
+	}
+
+	strval = JS_ValueToString(_context, rval);
+	strp = JS_GetStringBytes(strval);
+	sv_setpv(rstr, strp);
+	if (JSVerbose) {
+		printf("JSGetProperty strp=:%s:\n", strp);
+	}
+
+	return JS_TRUE;
+}
 
 
 int JSaddGlobalAssignProperty(int num, char *name, char *str) {
