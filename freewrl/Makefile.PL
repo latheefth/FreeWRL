@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "0.38-pre1";
+$VERSION = "0.36-pre1";
 
 BEGIN {
  eval "use 5.004";
@@ -92,6 +92,7 @@ WriteMakefile(
 	dist => {
 		COMPRESS => 'gzip -9', SUFFIX => 'gz',
 	},
+	dynamic_lib => { 'OTHERLDFLAGS' => $VRML_CONFIG{LDFLAGS} },
     VERSION => $VERSION,
     DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
     INC => $VRML_CONFIG{FREEWRL_INC},
@@ -127,6 +128,17 @@ OBJECT+=$(CFUNCS_SRC:%c=%o)
 	return ($post_const);
 }
 
+sub MY::dynamic_lib {
+"ARMAYBE = :
+OTHERLDFLAGS =  -dynamic -bundle -L/usr/local/lib -L/Library/Perl/darwin/CORE/ -lperl
+INST_DYNAMIC_DEP = 
+
+\$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
+	\$\(RM_F\) \$\@
+	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOADLIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
+	\$\(CHMOD\) \$\(PERM_RWX\) \$\@
+"
+}
 
 sub MY::postamble {
     ## Add extra make instructions that don't quite fit into the
