@@ -92,7 +92,20 @@ Notes:	All files are available here:
 	2) rebuild mesa so that hardware accel. is used.
 	test it with the demo programs.
 
-	Neat!!! 
+	You may wish to set the following environment
+	variables (see the mesa/docs/README.3DFX)
+
+        - To set the default screen refresh rate:
+                setenv SST_SCREENREFRESH=75
+
+          the supported values are 60, 70, 72, 75, 80, 85, 90, 100, 120.
+
+        - To force the Mesa library to swap buffers as fast as possible,
+          without any vertical blanking synchronization:
+                setenv FX_GLIDE_SWAPINTERVAL 0
+                setenv SST_SWAP_EN_WAIT_ON_VIDSYNC 0
+
+
 
 1.3) FreeWRL Installation.
 
@@ -339,6 +352,9 @@ http://www.crc.ca/FreeWRL/download/joystickxxx.
 
 #
 # $Log$
+# Revision 1.4  2000/11/03 20:11:29  crc_canada
+# add text about speeding up 3dfx cards
+#
 # Revision 1.3  2000/09/01 00:15:34  rcoscali
 # Add cvs tags to trace changes
 #
