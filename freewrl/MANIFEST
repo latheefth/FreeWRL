@@ -177,7 +177,6 @@ VRMLCU.pm
 VRMLExtrusion.pm
 VRMLFields.pm
 VRMLJava.pm
-VRMLFunc.pm
 VRMLNodes.pm
 VRMLRend.pm
 VRMLServ.pm
