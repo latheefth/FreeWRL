@@ -373,8 +373,8 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 	myff = (fsparam >> 3) & 0x1F;
 	if (myff <4) {
 		/* we dont yet allow externally specified fonts, so one of
-		   the font style bits HAS to be set */	
-		printf ("FreeWRL - Warning - FontStyle funny - setting to SERIF\n");
+		   the font style bits HAS to be set. If there was no FontStyle
+		   node, this will be blank, so... */
 		myff = 4;
 	}
 
