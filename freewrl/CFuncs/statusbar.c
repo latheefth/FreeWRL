@@ -102,18 +102,18 @@ void render_status () {
 
 	/* make up new line to display */
 	if (vplen == 0) {
-		strcat (vpname, "NONE");
+		strcat (vpname, "No Viewpoint");
 		vplen = strlen (vpname);
 	}
 	if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
-		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s",
+		sprintf (statusline, "%s %5.2f fps %s %s",
 			"(Loading...)", BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 
 		/*  let the other threads run, too*/
 		sched_yield();
 
 	} else {
-		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s",
+		sprintf (statusline, "%s %5.2f fps %s %s",
 		vpname, BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 	}
 
