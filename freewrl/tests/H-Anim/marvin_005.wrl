@@ -1,0 +1,1689 @@
+#VRML V2.0 utf8 eMpTyWorlds V3.29.70
+
+DEF MARVIN_005_WorldInfo Group
+{
+  children [
+    WorldInfo
+    {
+				title "Marvin                                                   [version 005]"
+      info [ "
+
+                        MARVIN_005
+
+      HANIM 1.1 Compliant Standard VRML Humaniod 
+
+
+VRML 97 Author name:
+		eMpTy (a.k.a. Matthew T. Beitler)
+
+VRML 97 Author email:
+		beitler@graphics.cis.upenn.edu or beitler@acm.org
+
+VRML 97 Author homepage:
+		http://www.asel.udel.edu/~beitler
+
+VRML 97 Copyright:
+		Just don't sell it for $$$...  If you want one to sell for cash, email me...
+
+VRML 2.0 Creation Date:
+		December 3, 1997 (HANIM 1.0 Beta)
+
+HANIM 1.1 Compliant Modification Date:
+		July 15, 1998 (HANIM 1.1)
+
+HANIM 1.1 Original URL:
+		http://www.asel.udel.edu/~beitler/vrml/human/marvin/005/marvin_005.wrl
+
+HANIM 1.1 Compliant:
+		For more information on the HANIM Specification:
+			http://ece.uwaterloo.ca/~h-anim/
+      "]
+    }
+  ]
+}
+
+
+PROTO Humanoid [
+	exposedField    SFString   name                  ""
+	exposedField    MFString   info                  [ ]
+	exposedField    SFString   version               "1.1"
+	exposedField    MFNode     joints                [ ]
+	exposedField    MFNode     segments              [ ]
+	exposedField    MFNode     sites                 [ ]
+	exposedField    MFNode     viewpoints            [ ]
+	exposedField    MFNode     humanoidBody          [ ]
+	exposedField    SFVec3f    center                0 0 0
+	exposedField    SFRotation rotation              0 0 1 0
+	exposedField    SFVec3f    scale                 1 1 1
+	exposedField    SFRotation scaleOrientation      0 0 1 0
+	exposedField    SFVec3f    transalation          0 0 0
+	exposedField    SFVec3f    translation           0 0 0
+	field           SFVec3f    bboxCenter            0 0 0
+	field           SFVec3f    bboxSize              -1 -1 -1
+]
+{
+	Transform {
+		center           IS center
+		rotation         IS rotation
+		scale            IS scale
+		scaleOrientation IS scaleOrientation
+		translation      IS translation
+		children [
+			Group {
+				children IS humanoidBody 
+			}
+			Group {
+				children IS viewpoints
+			}
+		]
+	}
+}
+
+PROTO Joint [
+	exposedField SFVec3f    center             0 0 0
+	exposedField MFNode     children           []
+	exposedField SFRotation limitOrientation   0 0 1 0
+	exposedField MFFloat    llimit             []
+	exposedField SFString   name               ""
+	exposedField SFRotation rotation           0 0 1 0
+	exposedField SFVec3f    scale              1 1 1
+	exposedField SFRotation scaleOrientation   0 0 1 0
+	exposedField MFFloat    stiffness          [1 1 1]
+	exposedField SFVec3f    translation        0 0 0
+	exposedField MFFloat    ulimit             []
+] 
+{ 
+	Transform {
+		translation IS translation
+		rotation IS rotation
+		scale IS scale 
+		scaleOrientation IS scaleOrientation
+		center IS center 
+		children IS children
+	}
+}
+
+PROTO Segment [
+	exposedField    SFVec3f     centerOfMass   0 0 0
+	exposedField    MFNode      children       []
+	exposedField    SFString    name           ""
+	exposedField    SFFloat     mass           0 
+	field           SFVec3f     bboxCenter     0 0 0
+	field           SFVec3f     bboxSize       -1 -1 -1
+] 
+{ 
+	Transform {
+		children IS children
+		bboxCenter IS bboxCenter
+		bboxSize IS bboxSize
+	}
+}
+
+PROTO Site [
+	eventIn         MFNode      addChildren
+	eventIn         MFNode      removeChildren
+	exposedField    MFNode      children       []
+	exposedField    SFString    name           "" 
+	exposedField    SFRotation  rotation       0 0 1 0
+	exposedField    SFVec3f     translation    0 0 0
+]
+{ 
+	Transform {
+		addChildren IS addChildren
+		removeChildren IS removeChildren
+		children IS children
+		rotation IS rotation
+		translation IS translation
+	}
+}
+
+Background {
+	skyColor [0.112 0.552 0.8]
+}
+
+NavigationInfo
+{
+	headlight TRUE
+	speed 1.0
+	type "EXAMINE"
+}
+
+DEF MARVIN_005 Humanoid {
+	version "1.1"
+	name "humanoid"
+	info [
+		"authorName=Matthew T. Beitler (a.k.a. - eMpTy)"
+		"authorEmail=beitler@graphics.cis.upenn.edu or beitler@acm.org"
+		"creationDate=07/15/98"
+		"copyright=Copyright 1998, Matthew T. Beitler"
+		"humanoidVersion=Marvin 005"
+		"usageRestrictions=See the WorldInfo at the top of this file"
+	]
+	humanoidBody [
+		DEF hanim_HumanoidRoot Joint {
+ 			name "HumanoidRoot"
+					center 0.00 0.8606 0.0
+			children [
+				DEF hanim_sacrum Segment {
+					name "sacrum"
+					children [
+				 		DEF hanim_sacrum_1_pos Transform {     # ps
+							translation -0.025 0.2128 0.00
+							scale 0.005 0.005 0.005
+							children [
+								DEF hanim_sacrum_1 Shape {
+									appearance
+										Appearance {
+											material
+												Material {
+													ambientIntensity    0.0666667
+													diffuseColor        0.8 0 0
+													specularColor       0 0 0
+												}
+										}
+									geometry
+										Text { string "eMpTy Made This" }
+								}    # sacrum_1 Shape END
+							]
+						}    # sacrum_1_pos Transform ps END
+					]
+				}    # sacrum Transform Segment END
+				DEF hanim_sacroiliac Joint {
+					name "sacroiliac"
+					llimit [-0.000776 0 -0.000265]
+					ulimit [0.000776 0 0.000265]
+					center 0.00 0.2128 0.00
+					rotation 1 0 0 0
+					children [
+						DEF hanim_l_hip Joint {
+							name "l_hip"
+							llimit [-2.0420352 -0.6981317 -0.17453293]
+							ulimit [0.29670597 0.87266463 0.52359878]
+							center 0.0259 0.196 0.00
+#							rotation 1 0 0 -1.0
+							children [
+								DEF hanim_l_upperleg Segment {
+									name "l_upperleg"
+									children [
+										LOD {
+											range [ 10 ]
+											level [
+												DEF hanim_l_upperleg_high Transform {
+													translation 0.0311692 0.13625 0
+													rotation 0 0 1  0.0912813
+													scale 1.50 6 1.50
+													children [
+														DEF BodySegment Shape {
+															appearance
+																Appearance {
+																	material
+																		DEF MARVIN_RED Material {
+																			ambientIntensity 0.0506667
+																			diffuseColor 0.42 0.08 0.08
+																			specularColor 0 0 0
+																		}
+																}
+															geometry
+																DEF SmallSphere Sphere {radius 0.01}
+														}
+													]
+												}
+												USE hanim_l_upperleg_high
+											]
+										}
+									]
+								}     # hanim_l_upperleg Segment END
+
+								DEF hanim_l_knee Joint {
+									name "l_knee"
+									llimit [0 0 0]
+									ulimit [1.9198622 0 0]
+									center 0.0359 0.0855 0.00
+									children [
+										DEF hanim_l_lowerleg Segment {
+											name "l_lowerleg"
+											children [
+												LOD {
+													range [ 10 ]
+													level [
+														DEF hanim_l_lowerleg_high Transform {
+															translation 0.0391727 0.0499016 0
+															rotation 0 0 1  0.0912813
+															scale 1.50 4 1.50
+															children [
+																USE BodySegment
+															]
+														}
+														USE hanim_l_lowerleg_high
+													]
+												}
+											]
+										}     # hanim_l_lowerleg Segment END
+										DEF hanim_l_ankle Joint {
+											name "l_ankle"
+											llimit [0 0 0]
+											ulimit [1.9198622 0 0]
+											center 0.0424 0.0150 0.00
+											children [
+												DEF hanim_l_hindfoot Segment {
+													name "l_hindfoot"
+													children [
+														LOD {
+															range [ 10 ]
+															level [
+																DEF hanim_l_hindfoot_high Transform {
+																	children [
+																		Transform {
+																			translation 0.0606011 0.0100473 0.0429392
+																			rotation 0 1 0	0.354476
+																			scale 4 2 6
+																			children [
+																				DEF FootSegment Shape {
+																					appearance
+																						Appearance {
+																							material
+																								DEF MARVIN_WHITE Material {
+																									ambientIntensity 0.182667
+																									diffuseColor 0.696 0.74 0.696
+																									specularColor 0 0 0
+																								}
+																						}
+																					geometry
+																						USE SmallSphere
+																				}
+																			]
+																		}
+																		#Left Sole
+																		Transform {
+																			translation 0.0606011 -0.00085267 0.0429392
+																			rotation 0 1 0	0.354476
+																			scale 0.04 0.005 0.06
+																			children [
+																				DEF FootSole Shape {
+																					appearance
+																						Appearance {
+																							material
+																								USE MARVIN_RED
+																						}
+																					geometry
+																						Cylinder {}
+																				}
+																			]
+																		}
+																	]
+																}
+																USE hanim_l_hindfoot_high
+															]
+														}
+													]
+												}      # l_hindfoot Segment END
+											]
+										}     # hanim_l_ankle Joint END
+									]
+								}     # hanim_l_knee Joint END
+							] 
+						}     # hanim_l_hip Joint END
+
+						DEF hanim_r_hip Joint {
+							name "r_hip"
+							llimit [-2.0420352 -0.87266463 -0.52359878]
+							ulimit [0.29670597 0.6981317 0.17453293]
+							center -0.0259 0.196 0.00
+#							rotation 1 0 0 -1.0
+							children [
+								DEF hanim_r_upperleg Segment {
+									name "r_upperleg"
+									children [
+										LOD {
+											range [ 10 ]
+											level [
+												DEF hanim_r_upperleg_high Transform {
+													translation -0.0311692 0.13625 0
+													rotation 0 0 -1	0.0912813
+													scale 1.50 6 1.50
+													children [
+														USE BodySegment
+													]
+												}
+												USE hanim_r_upperleg_high
+											]
+										}
+									]
+								}      # r_upperleg Segment END
+								DEF hanim_r_knee Joint {
+									name "r_knee"
+									llimit [0 0 0]
+									ulimit [1.9198622 0 0]
+									center -0.0359 0.0855 0.00
+#									rotation 1 0 0 1.0
+									children [
+										DEF hanim_r_lowerleg Segment {
+											name "r_lowerleg"
+											children [
+												LOD {
+													range [ 10 ]
+													level [
+														DEF hanim_r_lowerleg_high Transform {
+															translation -0.0391727 0.0499016 0
+															rotation 0 0 -1	0.0912813
+															scale 1.50 4 1.50
+															children [
+																USE BodySegment
+															]
+														}
+														USE hanim_r_lowerleg_high
+													]
+												}
+											]
+										}      # r_lowerleg Segment END
+										DEF hanim_r_ankle Joint {
+											name "r_ankle"
+											llimit [0 0 0]
+											ulimit [1.9198622 0 0]
+											center -0.0424 0.0150 0.00
+											children [
+												DEF hanim_r_hindfoot Segment {
+													name "r_hindfoot"
+													children [
+														LOD {
+															range [ 10 ]
+															level [
+																DEF hanim_r_lowerleg_high Transform {
+																	children [
+																		Transform {
+																			translation -0.0606011 0.0100473 0.0429392
+																			rotation 0 -1 0	0.354476
+																			scale 4 2 6
+																			children [
+																				USE FootSegment
+																			]
+																		}
+																		Transform {
+																			translation -0.0606011 -0.00085267 0.0429392
+																			rotation 0 -1 0	0.354476
+																			scale 0.04 0.005 0.06
+																			children [
+																				USE FootSole 
+																			]
+																		}
+																	]
+																}
+																USE hanim_r_lowerleg_high
+															]
+														}
+													]
+												}      # r_hindfoot Segment END
+											]
+										}     # hanim_r_ankle Joint END
+									]
+								}     # hanim_r_knee Joint END
+							]
+						}     # hanim_r_hip END
+					]
+				}     # hanim_sacroiliac Joint END
+				DEF hanim_vl5 Joint {
+					name "vl5"
+					llimit [-0.17453293 -0.78539816 -0.6981317]
+					ulimit [2.5132741 0.78539816 0.6981317]
+					center 0.00 0.8606 0.0
+					children [
+						DEF hanim_l5 Segment {
+							name "l5"
+							children [
+								LOD {
+									range [ 10 ]
+									level [
+										DEF hanim_l5_high Transform {
+											children [
+												Transform {
+													translation 0 0.2708 0
+													scale 7 11 5
+													children [
+														USE BodySegment
+													]
+												}
+												#Belt
+												Transform {
+													translation 0 0.2028 0
+													scale 0.12 0.01 0.09
+													children [
+														Transform {
+															translation 0 1 0
+															scale 0.5 0.5 0.5
+															children [
+																Shape {
+																	appearance
+																		Appearance {
+																			material
+																				Material {
+																					ambientIntensity 0.0453333
+																					diffuseColor 0.004 0.37 0.185
+																					specularColor 0 0 0
+																				}
+																		}
+																	geometry
+																		Cylinder {}
+																}
+															]
+														}
+													]
+												}
+												#Skirt1 (flap)
+												Transform {
+													translation 0 0.167158 -0.0792916
+													rotation 1 0 0	0.834966
+													children [
+														DEF Flap Inline {
+															url "flap.wrl"
+														}
+													]
+												}
+												#Skirt2 (cone)
+												Transform {
+													translation 0.0834795 0.169951 -0.0385594
+													rotation 0.581034 -0.746291 0.324729	1.28557
+													scale 0.05 0.05 0.015
+													children [
+														DEF Skirt Transform {
+															translation 0 1 0
+															children [
+																Shape {
+																	appearance
+																		Appearance {
+																			material
+																				Material {
+																					ambientIntensity 0.0453333
+																					diffuseColor 0.004 0.37 0.185
+																					specularColor 0 0 0
+																				}
+																		}
+																	geometry
+																		Cone {}
+																}
+															]
+														}
+													]
+												}
+												#Skirt3 (cone)
+												Transform {
+													translation 0.0802743 0.169994 0.0440627
+													rotation -0.193344 0.899653 -0.391461	3.97787
+													scale 0.05 0.05 0.015
+													children [
+														USE Skirt 
+													]
+												}	
+												#Skirt4 (flap)
+												Transform {
+													translation 0.0004 0.167158 0.0792916
+													rotation -1 0 0	0.834965
+													children [
+														USE Flap
+													]
+												}
+												#Skirt5 (cone)
+												Transform {
+													translation -0.0798095 0.169838 0.0442398
+													rotation 0.190691 0.90013 -0.391668	2.31552
+													scale 0.05 0.05 0.015
+													children [
+														USE Skirt 
+													]
+												}		
+												#Skirt6 (cone)
+												Transform {
+													translation -0.0854653 0.16986 -0.0370992
+													rotation 0.561346 0.758856 -0.330196	1.3188
+													scale 0.05 0.05 0.015
+													children [
+														USE Skirt 
+													]
+												}
+											]
+										}
+										USE hanim_l5_high
+									]
+								}
+							]
+						}     # hanim_l5 Segment END
+						DEF hanim_l_shoulder Joint {
+							name "l_shoulder"
+							llimit [-3.5953783 -0.54105207 -0.21380283]
+							ulimit [1.1170107 1.0725048 2.9286625]
+							center 0.0298 0.3599 0.00
+							children [
+								DEF hanim_l_upperarm Segment {
+									name "l_upperarm"
+									children [
+										LOD {
+											range [ 10 ]
+											level [
+												DEF hanim_l_upperarm_high Transform {
+													translation 0.0625772 0.309721 0
+													rotation 0 0 1	0.490088
+													scale 1.50 7 1.50
+													children [
+														USE BodySegment
+													]
+												}
+												USE hanim_l_upperarm_high
+											]
+										} 
+									]
+								}     # hanim_l_upperarm Segment END
+
+								DEF hanim_l_elbow Joint {
+									name "l_elbow" 
+									llimit [-2.6136306 0 0]
+									ulimit [0 0 0]
+									center 0.0878 0.2639 0.0006
+									children [
+										DEF hanim_l_forearm Segment {
+											name "l_forearm"
+											children [
+												LOD {
+													range [ 10 ]
+													level [
+														DEF hanim_l_forearm_high Transform {
+															translation 0.10185 0.234817 0.0011
+															rotation 0 0 1	0.449597
+															scale 1.50 5 1.50
+															children [
+																USE BodySegment
+															]
+														}
+														USE hanim_l_forearm_high 
+													]
+												}
+											]
+										}     # hanim_l_forearm Segment END
+
+										DEF hanim_l_wrist Joint {
+											name "l_wrist"
+											llimit [-0.78539816 -1.6545721 -1.4835299]
+											ulimit [0.78539816 1.5707963 1.7453293]
+											center 0.1204 0.1993 0.0011
+#								 			rotation 0 0 -1 1.57
+											children [
+												DEF hanim_l_hand Segment {
+													name "l_hand"
+													children [
+														LOD {
+															range [ 10 ]
+															level [
+																DEF hanim_l_hand_high Transform {
+																	translation 0.128176 0.181947 0.0042
+																	rotation 0 0 1 0.287456
+																	scale 1.44 2.88 2.88
+																	children [
+																		DEF HandSegment Shape {
+																			appearance
+																				Appearance {
+																					material
+																						USE MARVIN_WHITE
+																				}
+																			geometry
+																				DEF SmallSphere Sphere {radius 0.01}
+																		}
+																	]
+																}
+																USE hanim_l_hand_high 
+															]
+														}
+													]
+												}     # hanim_l_hand Segment END
+												DEF hanim_l_thumb1 Joint {
+													name "l_thumb1"
+													llimit [-0.698131701 -1.005135116 0]
+													ulimit [0 0 0]
+													center 0.1971 0.8504 -0.1326
+													children [
+														DEF hanim_l_thumb_metacarpal Segment {
+															name "l_thumb_metacarpal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_l_thumb_metacarpal_high Transform {
+																			translation 0.131193 0.172367 0.0286529
+																			rotation -0.902057 0.418939 0.103838	0.801181
+																			scale 1.15 2.59 1.15
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_l_thumb_metacarpal_high 
+																	]
+																}
+															]
+														}    # hanim_l_thumb_metacarpal Segment END
+														DEF hanim_l_thumb3 Joint {
+															name "l_thumb3"
+															llimit [0 0 -1.139874534]
+															ulimit [0 0 0.34365533]
+															center 0.1889 0.7636 -0.0807
+															children [
+																DEF hanim_l_thumb_distal Segment {
+																	name "l_thumb_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_l_thumb_distal_high 
+																				Transform {
+																					translation 0.13609 0.1557 0.0443444
+																					rotation -1 0.000142464 -8.80843e-05	0.663522
+																					scale 0.86 1.44 0.86
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_l_thumb_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_l_thumb_distal Segment END
+															]
+														}    # hanim_l_thumb3 Joint END
+													]
+												}    # hanim_l_thumb1 Joint END
+												DEF hanim_l_index1 Joint {
+													name "l_index1"
+													llimit [-0.523598776 0 -1.273392222]
+													ulimit [0.523598776 0 0.297404105]
+													center 0.2033 0.7850 -0.107
+													children [
+														DEF hanim_l_index_proximal Segment {
+															name "l_index_proximal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_l_index_proximal_high Transform {
+																			translation 0.138364 0.151962 0.0194615
+																			rotation -0.350673 0.07131 0.933779 0.428857
+																			scale 0.79 1.30 0.79
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_l_index_proximal_high 
+																	]
+																}
+															]
+														}    # hanim_l_index_proximal Segment END
+														DEF hanim_l_index3 Joint {
+															name "l_index3"
+															llimit [0 0 -0.959931089]
+															ulimit [0 0 0.087266463]
+															center 0.1876 0.7198 -0.1029
+															children [
+																DEF hanim_l_index_distal Segment {
+																	name "l_index_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_l_index_distal_high Transform {
+																					translation 0.145829 0.133 0.0221587
+																					rotation -0.347443 0.0567929 0.93598	0.345622
+																					scale 0.78 1.30 0.78
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_l_index_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_l_index_distal Segment END
+															]
+														}    # hanim_l_index3 Joint END
+													]
+												}    # hanim_l_index1 Joint END
+												DEF hanim_l_middle1 Joint {
+													name "l_middle1"
+													llimit [-0.52359877 0 -1.256637061	]
+													ulimit [0.523598776 0 0.314159265]
+													center 0.2045 0.7852 -0.132
+													children [
+														DEF hanim_l_middle_proximal Segment {
+															name "l_middle_proximal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_l_middle_proximal_high Transform {
+																			translation 0.140286 0.149701 0.0035
+																			rotation 0 0 1 0.408931
+																			scale 0.86 1.44 0.86
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_l_middle_proximal_high 
+																	]
+																}
+															]
+														}    # hanim_l_middle_proximal Segment END
+														DEF hanim_l_middle3 Joint {
+															name "l_middle3"
+															llimit [0 0 -0.959931089]
+															ulimit [0 0 0.087266463]
+															center 0.1833 0.7080 -0.1288
+															children [
+																DEF hanim_l_middle_distal Segment {
+																	name "l_middle_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_l_middle_distal_high Transform {
+																					translation 0.146896 0.129399 0.00476877
+																					rotation -0.295677 0.0386585 0.954506	0.272054
+																					scale 0.79 1.44 0.79
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_l_middle_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_l_middle_distal Segment END
+															]
+														}    # hanim_l_middle3 Joint END
+													]
+												}    # hanim_l_middle1 Joint END
+
+												DEF hanim_l_pinky1 Joint {
+													name "l_pinky1"
+													llimit [-0.523598776 0 -1.256637061]
+													ulimit [0.523598776 0 0.314159265]
+													center 0.2000 0.7898 -0.1827
+													children [
+														DEF hanim_l_pinky_proximal Segment {
+															name "l_pinky_proximal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_l_pinky_proximal_high Transform {
+																			translation 0.137931 0.150158 -0.0137045
+																			rotation 0.227791 -0.0305515 0.973231	0.276428
+																			scale 0.79 2.02 0.79
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_l_pinky_proximal_high 
+																	]
+																}
+															]
+														}    # hanim_l_pinky_proximal Segment END
+														DEF hanim_l_pinky3 Joint {
+															name "l_pinky3"
+															llimit [0 0 -0.959931089]
+															ulimit [0 0 0.087266463]
+															center 0.1855 0.7329 -0.1811
+															children [
+																DEF hanim_l_pinky_distal Segment {
+																	name "l_pinky_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_l_pinky_distal_high Transform {
+																					translation 0.14409 0.128392 -0.0144596
+																					rotation -0.000241052 0.000305581 1 0.214036
+																					scale 0.79 1.44 0.79
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_l_pinky_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_l_pinky_distal Segment END
+															]
+														}    # hanim_l_pinky3 Joint END
+													]
+												}    # hanim_l_pinky1 Joint END
+											]
+										}     # hanim_l_wrist Joint END
+									]
+								}     # hanim_l_elbow Joint END
+							]
+						}     # hanim_l_shoulder Joint END
+						DEF hanim_r_shoulder Joint {
+							name "r_shoulder"
+							llimit [-3.5953783 -1.0725048 -2.9286625]
+							ulimit [1.1170107 0.54105207 0.21380283]
+							center -0.0298 0.3599 0.00
+							children [
+								DEF hanim_r_upperarm Segment {
+									name "r_upperarm"
+									children [
+										LOD {
+											range [ 10 ]
+											level [
+												DEF hanim_r_upperarm_high Transform {
+													translation -0.0625772 0.309721 0
+													rotation 0 0 -1	0.490088
+													scale 1.50 7 1.50
+													children [
+														USE BodySegment
+													]
+												}
+												USE hanim_r_upperarm_high
+											]
+										}
+									]
+								}     # hanim_r_upperarm Segment END
+								DEF hanim_r_elbow Joint {
+								 name "r_elbow"
+									llimit [-2.6136306 0 0]
+									ulimit [0 0 0]
+									center -0.0878 0.2639 0.0006
+									children [
+										DEF hanim_r_forearm Segment {
+											name "r_forearm"
+											children [
+												LOD {
+													range [ 10 ]
+													level [
+														DEF hanim_r_forearm_high Transform {
+															translation -0.10185 0.234817 0.0011
+															rotation 0 0 -1	0.449597
+															scale 1.50 5 1.50
+															children [
+																USE BodySegment
+															]
+														}
+														USE hanim_r_forearm_high
+													]
+												}
+											]
+										}     # hanim_r_forearm Segment END
+
+										DEF hanim_r_wrist Joint {
+											name "r_wrist"
+											llimit [-0.78539816 -1.5707963 -1.7453293]
+											ulimit [0.78539816 1.6545721 1.4835299]
+											center -0.1204 0.1993 0.0011
+											children [
+												DEF hanim_r_hand Segment {
+													name "r_hand"
+													children [
+														LOD {
+															range [ 10 ]
+															level [
+																DEF hanim_r_hand_high Transform {
+																	translation -0.128176 0.181947 0.0042
+																	rotation 0 0 -1 0.287456
+																	scale 1.44 2.88 2.88
+																	children [
+																		USE HandSegment 
+																	]
+																}
+																USE hanim_r_hand_high
+															]
+														}
+													]
+												}     # hanim_r_hand Segment END
+												DEF hanim_r_thumb1 Joint {
+													name "l_thumb1"
+													llimit [-0.698131701 -1.005135116 0]
+													ulimit [0 0 0]
+													center 0.1971 0.8504 -0.1326
+													children [
+														DEF hanim_r_thumb_metacarpal Segment {
+															name "l_thumb_metacarpal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_r_thumb_metacarpal_high Transform {
+																			translation -0.131193 0.172367 0.0286529
+																			rotation -0.902057 -0.418939 -0.103838	0.801181
+																			scale 1.15 2.59 1.15
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_r_thumb_metacarpal_high 
+																	]
+																}
+															]
+														}    # hanim_r_thumb_metacarpal Segment END
+														DEF hanim_r_thumb3 Joint {
+															name "l_thumb3"
+															llimit [0 0 -1.139874534]
+															ulimit [0 0 0.34365533]
+															center 0.1889 0.7636 -0.0807
+															children [
+																DEF hanim_r_thumb_distal Segment {
+																	name "l_thumb_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_r_thumb_distal_high Transform {
+																					translation -0.13609 0.1557 0.0443444
+																					rotation -1 -0.000142464 8.80843e-05	0.663522
+																					scale 0.86 1.44 0.86
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_r_thumb_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_r_thumb_distal Segment END
+															]
+														}    # hanim_r_thumb3 Joint END
+													]
+												}    # hanim_r_thumb1 Joint END
+												DEF hanim_r_index1 Joint {
+													name "l_index1"
+													llimit [-0.523598776 0 -1.273392222]
+													ulimit [0.523598776 0 0.297404105]
+													center 0.2033 0.7850 -0.107
+													children [
+														DEF hanim_r_index_proximal Segment {
+															name "l_index_proximal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_r_index_proximal_high Transform {
+																			translation -0.138364 0.151962 0.0194615
+																			rotation -0.350673 -0.07131 -0.933779	0.428857
+																			scale 0.79 1.30 0.79
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_r_index_proximal_high 
+																	]
+																}
+															]
+														}    # hanim_r_index_proximal Segment END
+														DEF hanim_r_index3 Joint {
+															name "l_index3"
+															llimit [0 0 -0.959931089]
+															ulimit [0 0 0.087266463]
+															center 0.1876 0.7198 -0.1029
+															children [
+																DEF hanim_r_index_distal Segment {
+																	name "l_index_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_r_index_distal_high Transform {
+																					translation -0.145829 0.133 0.0221587
+																					rotation -0.347443 -0.0567929 -0.93598	0.345622
+																					scale 0.78 1.30 0.78
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_r_index_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_r_index_distal Segment END
+
+															]
+														}    # hanim_r_index3 Joint END
+													]
+												}    # hanim_r_index1 Joint END
+												DEF hanim_r_middle1 Joint {
+													name "l_middle1"
+													llimit [-0.52359877 0 -1.256637061	]
+													ulimit [0.523598776 0 0.314159265]
+													center 0.2045 0.7852 -0.132
+													children [
+														DEF hanim_r_middle_proximal Segment {
+															name "l_middle_proximal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_r_middle_proximal_high Transform {
+																			translation -0.140286 0.149701 0.0035
+																			rotation 0 0 -1 0.408931
+																			scale 0.86 1.44 0.86
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_r_middle_proximal_high 
+																	]
+																}
+															]
+														}    # hanim_r_middle_proximal Segment END
+														DEF hanim_r_middle3 Joint {
+															name "l_middle3"
+															llimit [0 0 -0.959931089]
+															ulimit [0 0 0.087266463]
+															center 0.1833 0.7080 -0.1288
+															children [
+																DEF hanim_r_middle_distal Segment {
+																	name "l_middle_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_r_middle_distal_high Transform {
+																					translation -0.146896 0.129399 0.00476877
+																					rotation -0.295677 -0.0386585 -0.954506	0.272054
+																					scale 0.79 1.44 0.79
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_r_middle_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_r_middle_distal Segment END
+															]
+														}    # hanim_r_middle3 Joint END
+													]
+												}    # hanim_r_middle1 Joint END
+
+												DEF hanim_r_pinky1 Joint {
+													name "l_pinky1"
+													llimit [-0.523598776 0 -1.256637061]
+													ulimit [0.523598776 0 0.314159265]
+													center 0.2000 0.7898 -0.1827
+													children [
+														DEF hanim_r_pinky_proximal Segment {
+															name "l_pinky_proximal"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_r_pinky_proximal_high Transform {
+																			translation -0.137931 0.150158 -0.0137045
+																			rotation 0.227791 0.0305515 -0.973231	0.276428
+																			scale 0.79 2.02 0.79
+																			children [
+																				USE HandSegment 
+																			]
+																		}
+																		USE hanim_r_pinky_proximal_high 
+																	]
+																}
+															]
+														}    # hanim_r_pinky_proximal Segment END
+														DEF hanim_r_pinky3 Joint {
+															name "l_pinky3"
+															llimit [0 0 -0.959931089]
+															ulimit [0 0 0.087266463]
+															center 0.1855 0.7329 -0.1811
+															children [
+																DEF hanim_r_pinky_distal Segment {
+																	name "l_pinky_distal"
+																	children [
+																		LOD {
+																			range [ 10 ]
+																			level [
+																				DEF hanim_r_pinky_distal_high Transform {
+																					translation -0.14409 0.128392 -0.0144596
+																					rotation -0.000241052 -0.000305581 -1 0.214036
+																					scale 0.79 1.44 0.79
+																					children [
+																						USE HandSegment 
+																					]
+																				}
+																				USE hanim_r_pinky_distal_high 
+																			]
+																		}
+																	]
+																}    # hanim_r_pinky_distal Segment END
+															]
+														}    # hanim_r_pinky3 Joint END
+													]
+												}    # hanim_r_pinky1 Joint END
+											]
+										}     # hanim_r_wrist Joint END
+									]
+								}     # hanim_r_elbow Joint END
+							]
+						}     # hanim_r_shoulder Joint END
+						DEF hanim_vc7 Joint {
+							name "vc7"
+							llimit [-0.34906585 -0.52359878 -0.59341195]
+							ulimit [0.78539816 0.52359878 0.59341195]
+							center 0.00 0.3706 0.0005
+							children [
+								DEF hanim_c7 Segment {
+									name "c7"
+									children [
+										LOD {
+											range [ 10 ]
+											level [
+												DEF hanim_c7_high Transform {
+													translation 0 0.3706 0.0005
+													scale 0.015 0.04 0.015
+													children [
+														Shape {
+															appearance
+																Appearance {
+																	material
+																		USE MARVIN_RED
+																}
+															geometry
+																Cylinder {}
+														}
+													]
+												}
+												USE hanim_c7_high 
+											]
+										}
+									]
+								}
+								DEF hanim_skullbase Joint {
+									name "skullbase"
+									llimit [-0.89884456 -0.75921822 -0.41015237]
+									ulimit [0.45029495 0.75921822 0.41015237]
+									center 0.00 0.4106 0.0005
+									children [
+										DEF hanim_skull Segment {
+											name "skull"
+											children [
+												LOD {
+													range [ 10 ]
+													level [
+														DEF hanim_skull_high Transform {
+															children [
+																Transform {
+																	translation 0 0.5092 0
+																	scale 11 11 11
+																	children [
+																		Shape {
+																			appearance
+																				Appearance {
+																					material
+																						DEF MARVIN_BLACK Material {
+																							ambientIntensity 0
+																							diffuseColor	0 0 0
+																							specularColor	0 0 0
+																						}
+																				}
+																			geometry
+																				USE SmallSphere
+																		}
+																	]
+																}
+																Inline {
+																	url "helmet.wrl"
+																}
+																#Brush
+																Transform {
+																	translation -0.045 0.515398 -0.209029
+																	rotation -1 0 0 1.09118
+																	scale 0.09 0.08 0.21
+																	children [
+																		Transform {
+																			translation 0.5 0.5 0.5
+																			scale 0.5 0.5 0.5
+																			children [
+																				Shape {
+																					appearance
+																						Appearance {
+																							material
+																								Material {
+																									ambientIntensity	0.165333
+																									diffuseColor	0.784 0.8 0.4
+																									specularColor	0 0 0
+																								}
+																						}
+																					geometry
+																						Box {}
+																				}
+																			]
+																		}
+																	]
+																}
+																#Brush Base
+																Transform {
+																	translation -0.05 0.509227 -0.209083
+																	rotation -1 0 0	1.09118
+																	scale 0.10 0.02 0.22
+																	children [
+																		Transform {
+																			translation 0.5 0.5 0.5
+																			scale 0.5 0.5 0.5
+																			children [
+																				Shape {
+																					appearance
+																						Appearance {
+																							material
+																								Material {
+																									ambientIntensity 0.0766667
+																									diffuseColor 0.55 0.231 0.121
+																									specularColor 0 0 0
+																								}
+																						}
+																					geometry
+																						Box {}
+																				}
+																			]
+																		}
+																	]
+																}
+																#Brush Post
+																Transform {
+																	translation 	0 0.5684 -0.0914
+																	rotation -1 0 0 1.09118
+																	scale 0.03 0.10 0.03
+																	children [
+																		Transform {
+																			translation 0 0.5 0
+																			scale 0.5 0.5 0.5
+																			children [
+																				Shape {
+																					appearance
+																						Appearance {
+																							material
+																								Material {
+																									ambientIntensity 0.0766667
+																									diffuseColor 0.55 0.231 0.121
+																									specularColor 0 0 0
+																								}
+																						}
+																					geometry
+																						Cylinder {}
+																				}
+																			]
+																		}
+																	]
+																}
+															]
+														}
+														USE hanim_skull_high
+													]
+												}
+											]
+										}     # hanim_skull Segment END
+										DEF hanim_helmet_shield_hinge Joint {
+											name "helmet_shield_hinge"
+											center 0.1230 0.4979 -0.0343
+#											rotation 1 0 0 0.3
+											children [
+												DEF hanim_helmet_shield Segment {
+													name "helmet_shield"
+													children [
+														LOD {
+															range [ 10 ]
+															level [
+																DEF hanim_helmet_shield_high Inline {
+																	url "helmetshield.wrl"
+																}
+																USE hanim_helmet_shield_high 
+															]
+														}
+													]
+												}     # hanim_helmet_shield Segment END
+											]
+										}     # hanim_helmet_shield_hinge Joint	 END
+										DEF hanim_l_eye_socket Joint {
+											name "l_eye_socket"
+											center 0.0246 0.5361 0.0854
+											children [
+												DEF hanim_l_eye Segment {
+													name "l_eye"
+													children [
+														LOD {
+															range [ 10 ]
+															level [
+																DEF hanim_l_eye_high 										Transform {
+																	translation 0.0262944 0.54038 0.0942372
+																	rotation -0.91035 0.412384 0.0346725	0.487348
+																	scale 3 5 1
+																	children [
+																		DEF EyeBall Shape {
+																			appearance
+																				Appearance {
+																					material
+																						USE MARVIN_WHITE
+																				}
+																			geometry
+																				USE SmallSphere
+																		}
+																	]
+																}
+
+																USE hanim_l_eye_high 
+															]
+														}
+													]
+												}     # hanim_l_eye Segment END
+												DEF hanim_l_eye_ball Joint {
+													name "l_eye_ball"
+													center 0.0246 0.5361 0.0854
+													children [
+														DEF hanim_l_eye_iris Segment {
+															name "l_eye_iris"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_l_eye_iris_high 																	Transform {
+																			translation 0.0238 0.5227 0.1105
+																			scale 1 2 1
+																			children [
+																				DEF EyeIris Shape {
+																					appearance
+																						Appearance {
+																							material
+																								USE MARVIN_BLACK
+																						}
+																					geometry
+																						USE SmallSphere
+																				}
+																			]
+																		}
+																		USE hanim_l_eye_iris_high 
+																	]
+																}
+															]
+														}     # hanim_l_eye_iris Segment END
+													]
+												}     # hanim_l_eye_ball Joint	 END
+											]
+										}     # hanim_l_eye_socket Joint	 END
+
+										DEF hanim_r_eye_socket Joint {
+											name "r_eye_socket"
+											center -0.0246 0.5361 0.0854
+											children [
+												DEF hanim_r_eye Segment {
+													name "r_eye"
+													children [
+														LOD {
+															range [ 10 ]
+															level [
+																DEF hanim_r_eye_high Transform {
+																	translation -0.0262944 0.54038 0.0942372
+																	rotation -0.914245 -0.348573 0.206524	0.498006
+																	scale 3 5 1
+																	children [
+																		USE EyeBall
+																	]
+																}
+
+																USE hanim_r_eye_high 
+															]
+														}
+													]
+												}     # hanim_r_eye Segment END
+												DEF hanim_r_eye_ball Joint {
+													name "r_eye_ball"
+#													rotation 0 1 0 0.5
+													center -0.0246 0.5361 0.0854
+													children [
+														DEF hanim_r_eye_iris Segment {
+															name "r_eye_iris"
+															children [
+																LOD {
+																	range [ 10 ]
+																	level [
+																		DEF hanim_r_eye_iris_high 																	Transform {
+																			translation -0.0238 0.5227 0.1105
+																			scale 1 2 1
+																			children [
+																				USE EyeIris 
+																			]
+																		}
+																		USE hanim_r_eye_iris_high 
+																	]
+																}		
+															]
+														}     # hanim_r_eye_iris Segment END
+													]
+												}     # hanim_r_eye_ball Joint	 END
+											]
+										}     # hanim_r_eye_socket Joint	 END
+									]
+								}     # hanim_skullbase Joint	 END
+						 ]
+						}     # hanim_vc7 Joint END
+					]
+				}     # hanim_vl5 Joint END
+			]
+		} #end HumanoidRoot
+	]
+	joints [
+		USE hanim_HumanoidRoot,
+     USE hanim_sacroiliac,
+				USE hanim_l_hip, USE hanim_l_knee, USE hanim_l_ankle,
+				USE hanim_r_hip, USE hanim_r_knee, USE hanim_r_ankle,
+			USE hanim_vl5, 
+				USE hanim_vc7, USE hanim_skullbase,
+				USE hanim_l_shoulder, USE hanim_l_elbow, USE hanim_l_wrist,
+					USE hanim_l_thumb1, USE hanim_l_thumb3,
+					USE hanim_l_index1, USE hanim_l_index3,
+					USE hanim_l_middle1, USE hanim_l_middle3,
+					USE hanim_l_pinky1, USE hanim_l_pinky3,
+				USE hanim_r_shoulder, USE hanim_r_elbow, USE hanim_r_wrist,
+					USE hanim_r_thumb1, USE hanim_r_thumb3,
+					USE hanim_r_index1, USE hanim_r_index3,
+					USE hanim_r_middle1, USE hanim_r_middle3,
+					USE hanim_r_pinky1, USE hanim_r_pinky3
+	]
+	segments [
+		USE hanim_l_upperleg, USE hanim_l_lowerleg	, USE hanim_l_hindfoot,
+		USE hanim_r_upperleg	, USE hanim_r_lowerleg	, USE hanim_r_hindfoot,
+		USE hanim_l5	,
+			USE hanim_skull,
+			USE hanim_l_upperarm	, USE hanim_l_forearm, USE hanim_l_hand,
+				USE hanim_l_thumb_metacarpal, USE hanim_l_thumb_distal,
+				USE hanim_l_index_proximal, USE hanim_l_index_distal,
+				USE hanim_l_middle_proximal, USE hanim_l_middle_distal,
+				USE hanim_l_pinky_proximal, USE hanim_l_pinky_distal,
+			USE hanim_r_upperarm,	 USE hanim_r_forearm, USE hanim_r_hand,
+				USE hanim_r_thumb_metacarpal, USE hanim_r_thumb_distal,
+				USE hanim_r_index_proximal, USE hanim_r_index_distal,
+				USE hanim_r_middle_proximal, USE hanim_r_middle_distal,
+				USE hanim_r_pinky_proximal, USE hanim_r_pinky_distal
+	]
+	sites [
+	]
+	viewpoints [
+		DEF InclinedView Viewpoint
+		{
+			position 1.500 2.700 2.000
+			orientation -1.1 1.3 0.4 0.85
+			fieldOfView 0.785
+			description "Inclined View"
+			jump TRUE
+		}
+		DEF FrontView Viewpoint
+		{
+			position 0 0.900 2.600
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Front View"
+					jump TRUE
+		}
+		DEF SideView Viewpoint
+		{
+			position 2.600 0.900 0.000
+			orientation 0 1.0 0.0 1.57
+			fieldOfView 0.785
+			description "Side View"
+			jump TRUE
+		}
+		DEF TopView Viewpoint
+		{
+			position 0.000 2.500 0.000
+			orientation -1.0 0.0 0.0 1.57
+			fieldOfView 0.785
+			description "Top View"
+			jump TRUE
+		}
+		DEF FaceView Viewpoint
+		{
+			position 0 0.50 0.600
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Face View"
+			jump TRUE
+		}
+		DEF BackView Viewpoint
+		{
+			position 0 0.900 -2.600
+			orientation 0.0 1.0 0.0 3.14
+			fieldOfView 0.785
+			description "Back View"
+			jump TRUE
+		}
+		DEF LeftView Viewpoint
+		{
+			position -2.600 0.900 0.000
+			orientation 0 1.0 0.0 -1.57
+			fieldOfView 0.785
+			description "Left View"
+			jump TRUE
+		}
+		DEF RightView Viewpoint 
+		{
+			position 2.600 0.900 0.000
+			orientation 0 1.0 0.0 1.57
+			fieldOfView 0.785398
+			description "Right View"
+			jump TRUE
+		}
+		DEF BottomView Viewpoint
+		{
+			position 0.000 -0.500 0.000
+			orientation 1.0 0.0 0.0 1.57
+			fieldOfView 0.785
+			description "Bottom View"
+			jump TRUE
+		}
+		DEF VeryFarView Viewpoint
+		{
+			position 0 0.900 30.00
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Very Far View"
+					jump TRUE
+		}
+		DEF FarView Viewpoint
+		{
+			position 0 0.900 10.00
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Far View"
+					jump TRUE
+		}
+	]
+}
+
+DEF NotIncludedGroup Group {
+	children [
+		DEF hanim_vl4 Joint {}    # NotIncluded
+		DEF hanim_vl3 Joint {}    # NotIncluded
+		DEF hanim_vl2 Joint {}    # NotIncluded
+		DEF hanim_vl1 Joint {}    # NotIncluded
+		DEF hanim_vt12 Joint {}    # NotIncluded
+		DEF hanim_vt11 Joint {}    # NotIncluded
+		DEF hanim_vt10 Joint {}    # NotIncluded
+		DEF hanim_vt9 Joint {}    # NotIncluded
+		DEF hanim_vt8 Joint {}    # NotIncluded
+		DEF hanim_vt7 Joint {}    # NotIncluded
+		DEF hanim_vt6 Joint {}    # NotIncluded
+		DEF hanim_vt5 Joint {}    # NotIncluded
+		DEF hanim_vt4 Joint {}    # NotIncluded
+		DEF hanim_vt3 Joint {}    # NotIncluded
+		DEF hanim_vt2 Joint {}    # NotIncluded
+		DEF hanim_vt1 Joint {}    # NotIncluded
+		DEF hanim_vc6 Joint {}    # NotIncluded
+		DEF hanim_vc5 Joint {}    # NotIncluded
+		DEF hanim_vc4 Joint {}    # NotIncluded
+		DEF hanim_vc3 Joint {}    # NotIncluded
+		DEF hanim_vc2 Joint {}    # NotIncluded
+		DEF hanim_vc1 Joint {}    # NotIncluded
+		DEF hanim_l_sternoclavicular Joint {}    # NotIncluded
+		DEF hanim_l_acromioclavicular Joint {}    # NotIncluded
+		DEF hanim_l_thumb2 Joint {}    # NotIncluded
+		DEF hanim_l_index2 Joint {}    # NotIncluded
+		DEF hanim_l_middle2 Joint {}    # NotIncluded
+		DEF hanim_l_ring1 Joint {}    # NotIncluded
+		DEF hanim_l_ring2 Joint {}    # NotIncluded
+		DEF hanim_l_ring3 Joint {}    # NotIncluded
+		DEF hanim_l_pinky2 Joint {}    # NotIncluded
+		DEF hanim_r_sternoclavicular Joint {}    # NotIncluded
+		DEF hanim_r_acromioclavicular Joint {}    # NotIncluded
+		DEF hanim_r_thumb2 Joint {}    # NotIncluded
+		DEF hanim_r_index2 Joint {}    # NotIncluded
+		DEF hanim_r_middle2 Joint {}    # NotIncluded
+		DEF hanim_r_ring1 Joint {}    # NotIncluded
+		DEF hanim_r_ring2 Joint {}    # NotIncluded
+		DEF hanim_r_ring3 Joint {}    # NotIncluded
+		DEF hanim_r_pinky2 Joint {}    # NotIncluded
+		DEF hanim_l_subtalar Joint {}    # NotIncluded
+		DEF hanim_l_midtarsal Joint {}    # NotIncluded
+		DEF hanim_l_metatarsal Joint {}    # NotIncluded
+		DEF hanim_r_subtalar Joint {}    # NotIncluded
+		DEF hanim_r_midtarsal Joint {}    # NotIncluded
+		DEF hanim_r_metatarsal Joint {}    # NotIncluded
+		DEF hanim_pelvis Segment {}    # NotIncluded
+		DEF hanim_l4 Segment {}    # NotIncluded
+		DEF hanim_l3 Segment {}    # NotIncluded
+		DEF hanim_l2 Segment {}    # NotIncluded
+		DEF hanim_l1 Segment {}    # NotIncluded
+		DEF hanim_t12 Segment {}    # NotIncluded
+		DEF hanim_t11 Segment {}    # NotIncluded
+		DEF hanim_t10 Segment {}    # NotIncluded
+		DEF hanim_t9 Segment {}    # NotIncluded
+		DEF hanim_t8 Segment {}    # NotIncluded
+		DEF hanim_t7 Segment {}    # NotIncluded
+		DEF hanim_t6 Segment {}    # NotIncluded
+		DEF hanim_t5 Segment {}    # NotIncluded
+		DEF hanim_t4 Segment {}    # NotIncluded
+		DEF hanim_t3 Segment {}    # NotIncluded
+		DEF hanim_t2 Segment {}    # NotIncluded
+		DEF hanim_t1 Segment {}    # NotIncluded
+		DEF hanim_c6 Segment {}    # NotIncluded
+		DEF hanim_c5 Segment {}    # NotIncluded
+		DEF hanim_c4 Segment {}    # NotIncluded
+		DEF hanim_c3 Segment {}    # NotIncluded
+		DEF hanim_c2 Segment {}    # NotIncluded
+		DEF hanim_c1 Segment {}    # NotIncluded
+		DEF hanim_l_clavicle Segment {}    # NotIncluded
+		DEF hanim_l_scapula Segment {}    # NotIncluded
+		DEF hanim_l_thumb_proximal Segment {}    # NotIncluded
+		DEF hanim_l_index_middle Segment {}    # NotIncluded
+		DEF hanim_l_middle_middle Segment {}    # NotIncluded
+		DEF hanim_l_ring_proximal Segment {}    # NotIncluded
+		DEF hanim_l_ring_middle Segment {}    # NotIncluded
+		DEF hanim_l_ring_distal Segment {}    # NotIncluded
+		DEF hanim_l_pinky_middle Segment {}    # NotIncluded
+		DEF hanim_r_clavicle Segment {}    # NotIncluded
+		DEF hanim_r_scapula Segment {}    # NotIncluded
+		DEF hanim_r_thumb_proximal Segment {}    # NotIncluded
+		DEF hanim_r_index_middle Segment {}    # NotIncluded
+		DEF hanim_r_middle_middle Segment {}    # NotIncluded
+		DEF hanim_r_ring_proximal Segment {}    # NotIncluded
+		DEF hanim_r_ring_middle Segment {}    # NotIncluded
+		DEF hanim_r_ring_distal Segment {}    # NotIncluded
+		DEF hanim_r_pinky_middle Segment {}    # NotIncluded
+		DEF hanim_l_midproximal Segment {}    # NotIncluded
+		DEF hanim_l_middistal Segment {}    # NotIncluded
+		DEF hanim_l_forefoot Segment {}    # NotIncluded
+		DEF hanim_r_midproximal Segment {}    # NotIncluded
+		DEF hanim_r_middistal Segment {}    # NotIncluded
+		DEF hanim_r_forefoot Segment {}    # NotIncluded
+	]
+}
+
+

@@ -1,0 +1,839 @@
+#VRML V2.0 utf8 eMpTyWorlds V3.29.70
+
+DEF YT_005_WorldInfo Group
+{
+  children [
+    WorldInfo
+    {
+				title "Y.T.                                                   [version 005]"
+      info [ "
+
+                        YT_005
+
+      HANIM 1.1 Compliant Standard VRML Humaniod 
+						
+VRML 97 Author name:
+		eMpTy (a.k.a. Matthew T. Beitler)
+
+VRML 97 Author email:
+		beitler@graphics.cis.upenn.edu or beitler@acm.org
+
+VRML 97 Author homepage:
+		http://www.asel.udel.edu/~beitler
+
+VRML 97 Copyright:
+		You can use it as long as you keep these info
+		credits with it (eventually half the bandwidth
+		of the web will be layers of copyright
+		information!:~)...  Also, you can't package up
+		the VRML 97 model and sell it for cash (this
+		includes Acuris Inc.)...
+		Make sure to read the Geometry Copyright 
+		information below...
+
+VRML 97 Creation Date:
+		July 16, 1997 (HANIM 1.0 Beta)
+
+HANIM 1.0 Compliant Modification Date:
+		August 15, 1997 (HANIM 1.0)
+
+HANIM 1.1 Compliant Modification Date:
+		July 15, 1998 (HANIM 1.1)
+
+Level of Detail Nodes Addition Date:
+		September 2, 1997
+
+VRML 97 Original URL:
+		http://www.asel.udel.edu/~beitler/vrml/human/yt/005/yt_005.wrl
+
+Geometry Copyright:
+		The original geometry used for this model was
+		of Acuris' Ideal Woman...  The orginal data was
+		in .3ds form and I converted the geometry to VRML 
+		and added the appropriate Joint/Segment/Humaniod 
+		information to make it compliant with the 
+		HANIM Version 1.0 specification...
+
+		According to my license agreement I am allowed to 
+		use this on my web pages, alter it, as long as the
+		original reference to Acuris is retained...  However
+		unless you have purchased the Perfect People models
+		from Acuris, you will be in violation of their
+		copyright if you use it directly on your web pages...
+
+		So that give you 2 options:
+			1) Buy 18 Perfect People from Acuris...
+				The cost was 399 dollars, so unless you are
+				a cheap ass, just buy it from them,
+				it is worth it...
+			2) Make a reference to my copy of the model
+				with an Inline or externProto type
+				mechanism...  For as long as I am
+				able, a copy of this model will
+				exist at the original URL listed
+				above...  If for any reason it disappears from
+				that site, look for it on my web pages at UPENN...
+				This option is ok if you are a graduate student 
+				or just generally poor!:~)...
+
+		For more information on the Ideal WoMan and other
+		Perfect People models:
+			http://www.acuris.com/
+			http://www.acuris.com/18pp.htm
+
+		Oh, and incase any Acuris folks are reading this
+		I'd consider allowing you to include my model on
+		your Perfect People CDROM (for a small fee!:~)...
+		Graduate students have to eat too you know...
+
+HANIM 1.1 Compliant:
+		For more information on the HANIM Specification:
+			http://ece.uwaterloo.ca/~h-anim/
+      "]
+    }
+  ]
+}
+
+PROTO Humanoid [
+	exposedField    SFString   name                  ""
+	exposedField    MFString   info                  [ ]
+	exposedField    SFString   version               "1.1"
+	exposedField    MFNode     joints                [ ]
+	exposedField    MFNode     segments              [ ]
+	exposedField    MFNode     sites                 [ ]
+	exposedField    MFNode     viewpoints            [ ]
+	exposedField    MFNode     humanoidBody          [ ]
+	exposedField    SFVec3f    center                0 0 0
+	exposedField    SFRotation rotation              0 0 1 0
+	exposedField    SFVec3f    scale                 1 1 1
+	exposedField    SFRotation scaleOrientation      0 0 1 0
+	exposedField    SFVec3f    transalation          0 0 0
+	exposedField    SFVec3f    translation           0 0 0
+	field           SFVec3f    bboxCenter            0 0 0
+	field           SFVec3f    bboxSize              -1 -1 -1
+]
+{
+	Transform {
+		center           IS center
+		rotation         IS rotation
+		scale            IS scale
+		scaleOrientation IS scaleOrientation
+		translation      IS translation
+		children [
+			Group {
+				children IS humanoidBody 
+			}
+			Group {
+				children IS viewpoints
+			}
+		]
+	}
+}
+
+PROTO Joint [
+	exposedField SFVec3f    center             0 0 0
+	exposedField MFNode     children           []
+	exposedField SFRotation limitOrientation   0 0 1 0
+	exposedField MFFloat    llimit             []
+	exposedField SFString   name               ""
+	exposedField SFRotation rotation           0 0 1 0
+	exposedField SFVec3f    scale              1 1 1
+	exposedField SFRotation scaleOrientation   0 0 1 0
+	exposedField MFFloat    stiffness          [1 1 1]
+	exposedField SFVec3f    translation        0 0 0
+	exposedField MFFloat    ulimit             []
+] 
+{ 
+	Transform {
+		translation IS translation
+		rotation IS rotation
+		scale IS scale 
+		scaleOrientation IS scaleOrientation
+		center IS center 
+		children IS children
+	}
+}
+
+PROTO Segment [
+	exposedField    SFVec3f     centerOfMass   0 0 0
+	exposedField    MFNode      children       []
+	exposedField    SFString    name           ""
+	exposedField    SFFloat     mass           0 
+	field           SFVec3f     bboxCenter     0 0 0
+	field           SFVec3f     bboxSize       -1 -1 -1
+] 
+{ 
+	Transform {
+		children IS children
+		bboxCenter IS bboxCenter
+		bboxSize IS bboxSize
+	}
+}
+
+PROTO Site [
+	eventIn         MFNode      addChildren
+	eventIn         MFNode      removeChildren
+	exposedField    MFNode      children       []
+	exposedField    SFString    name           "" 
+	exposedField    SFRotation  rotation       0 0 1 0
+	exposedField    SFVec3f     translation    0 0 0
+]
+{ 
+	Transform {
+		addChildren IS addChildren
+		removeChildren IS removeChildren
+		children IS children
+		rotation IS rotation
+		translation IS translation
+	}
+}
+
+NavigationInfo
+{
+	headlight TRUE
+	speed 1.0
+	type "EXAMINE"
+}
+
+DEF YT_005 Humanoid {
+	version "1.1"
+	name "humanoid"
+	info [
+		"authorName=Matthew T. Beitler (a.k.a. - eMpTy)"
+		"authorEmail=beitler@graphics.cis.upenn.edu or beitler@acm.org"
+		"creationDate=07/15/98"
+		"copyright=Copyright 1998, Matthew T. Beitler"
+		"humanoidVersion=Y.T. 005"
+		"usageRestrictions=See the WorldInfo at the top of this file"
+	]
+	humanoidBody [
+		DEF hanim_HumanoidRoot Joint {
+ 			name "HumanoidRoot"
+			center 0 0.9343 -0.1642
+			rotation 0 0 1 0
+			children [
+				DEF hanim_sacroiliac Joint {
+					name "sacroiliac"
+					llimit [-0.000776 0 -0.000265]
+					ulimit [0.000776 0 0.000265]
+					center 0.00 0.9343 0.023
+					rotation 0 0 1 0
+					children [
+						DEF hanim_pelvis Segment {
+							name "pelvis"
+							children [
+								LOD {
+									range [ 10 30 ]
+									level [
+										DEF hanim_pelvis_high Inline { url "pelvis.wrl" }
+										DEF hanim_pelvis_medium Inline { url "pelvis2.wrl" }
+										DEF hanim_pelvis_low Inline { url "pelvis2.wrl" }
+									]
+								}
+							]
+						}     # hanim_pelvis Segment END
+						DEF hanim_l_hip Joint {
+							name "l_hip"
+							llimit [-2.0420352 -0.6981317 -0.17453293]
+							ulimit [0.29670597 0.87266463 0.52359878]
+							center 0.076 0.893 -0.045
+							rotation 0 0 1 0
+							children [
+								DEF hanim_l_upperleg Segment {
+									name "l_upperleg"
+									children [
+										LOD {
+											range [ 10 30 ]
+											level [
+												DEF hanim_l_upperleg_high Inline { url "l_upperleg.wrl" }
+												DEF hanim_l_upperleg_medium Inline { url "l_upperleg2.wrl" }
+												DEF hanim_l_upperleg_low Inline { url "l_upperleg2.wrl" }
+											]
+										}
+									]
+								}     # hanim_l_upperleg Segment END
+								DEF hanim_l_knee Joint {
+									name "l_knee"
+									llimit [0 0 0]
+									ulimit [1.9198622 0 0]
+									center 0.0630 0.4220 -0.0195
+									rotation 0 0 1 0
+									children [
+										DEF hanim_l_lowerleg Segment {
+											name "l_lowerleg"
+											children [
+												LOD {
+													range [ 10 30 ]
+													level [
+														DEF hanim_l_lowerleg_high Inline { url "l_lowerleg.wrl" }
+														DEF hanim_l_lowetleg_medium Inline { url "l_lowerleg2.wrl" }
+														DEF hanim_l_lowerleg_low Inline { url "l_lowerleg2.wrl" }
+													]
+												}
+											]
+										}     # hanim_l_lowerleg Segment END
+										DEF hanim_l_ankle Joint {
+											name "l_ankle"
+											llimit [-0.43633231 -1.0995574 -0.68067841]
+											ulimit [1.3892821 0.95993109 0.61086524]
+											center 0.0855 0.0745 -0.0485
+											rotation 0 0 1 0
+											children [
+												DEF hanim_l_hindfoot Segment {
+													name "l_hindfoot"
+													children [
+														LOD {
+															range [ 10 30 ]
+															level [
+																DEF hanim_l_lowerleg_high Inline { url "l_hindfoot.wrl" }
+																DEF hanim_l_lowetleg_medium Inline { url "l_hindfoot2.wrl" }
+																DEF hanim_l_lowerleg_low Inline { url "l_hindfoot2.wrl" }
+															]
+														}
+													]
+												}     # hanim_l_hindfoot Segment END 
+											]
+										}     # hanim_l_ankle Joint END
+									]
+								}     # hanim_l_knee Joint END
+							] 
+						}     # hanim_l_hip Joint END
+						DEF hanim_r_hip Joint {
+							name "r_hip"
+							llimit [-2.0420352 -0.87266463 -0.52359878]
+							ulimit [0.29670597 0.6981317 0.17453293]
+							center -0.076 0.893 -0.045
+							rotation 0 0 1 0
+							children [
+								DEF hanim_r_upperleg Segment {
+									name "r_upperleg"
+									children [
+										LOD {
+											range [ 10 30 ]
+											level [
+												DEF hanim_r_upperleg_high Inline { url "r_upperleg.wrl" }
+												DEF hanim_r_upperleg_medium Inline { url "r_upperleg2.wrl" }
+												DEF hanim_r_upperleg_low Inline { url "r_upperleg2.wrl" }
+											]
+										}
+									]
+								}      # r_upperleg Segment END
+								DEF hanim_r_knee Joint {
+									name "r_knee"
+									llimit [0 0 0]
+									ulimit [1.9198622 0 0]
+									center -0.0630 0.4220 -0.0195
+									rotation 0 0 1 0
+									children [
+										DEF hanim_r_lowerleg Segment {
+											name "r_lowerleg"
+											children [
+												LOD {
+													range [ 10 30 ]
+													level [
+														DEF hanim_r_lowerleg_high Inline { url "r_lowerleg.wrl" }
+														DEF hanim_r_lowerleg_medium Inline { url "r_lowerleg2.wrl" }
+														DEF hanim_r_lowerleg_low Inline { url "r_lowerleg2.wrl" }
+													]
+												}
+											]
+										}      # r_lowerleg Segment END
+										DEF hanim_r_ankle Joint {
+											name "r_ankle"
+											llimit [-0.43633231 -0.95993109 -0.61086524]
+											ulimit [1.3892821 1.0995574 0.68067841]
+											center -0.0855 0.0745 -0.0485
+											rotation 0 0 1 0
+											children [
+												DEF hanim_r_hindfoot Segment {
+													name "r_hindfoot"
+													children [
+														LOD {
+															range [ 10 30 ]
+															level [
+																DEF hanim_r_hindfoot_high Inline { url "r_hindfoot.wrl" }
+																DEF hanim_r_hindfoot_medium Inline { url "r_hindfoot2.wrl" }
+																DEF hanim_r_hindfoot_low Inline { url "r_hindfoot2.wrl" }
+															]
+														}
+													]
+												}     # hanim_r_hindfoot Segment END
+											]
+										}     # hanim_r_ankle Joint END
+									]
+								}     # hanim_r_knee Joint END
+							]
+						}     # hanim_r_hip END
+					]
+				}     # hanim_sacroiliac END
+				DEF hanim_vl5 Joint {
+					name "vl5"
+					llimit [-0.17453293 -0.78539816 -0.6981317]
+					ulimit [2.5132741 0.78539816 0.6981317]
+					center 0.00 1.0250 0.0230
+					rotation 0 0 1 0
+					children [
+						DEF hanim_l5 Segment {
+							name "l5"
+							children [
+								LOD {
+									range [ 10 30 ]
+									level [
+										DEF hanim_l5_high Inline { url "l5.wrl" }
+										DEF hanim_l5_medium Inline { url "l5_2.wrl" }
+										DEF hanim_l5_low Inline { url "l5_2.wrl" }
+									]
+								}
+							]
+						}     # hanim_l5 Segment END
+						DEF hanim_l_shoulder Joint {
+							name "l_shoulder"
+							llimit [-3.5953783 -0.54105207 -0.21380283]
+							ulimit [1.1170107 1.0725048 2.9286625]
+							center 0.1305 1.3150 -0.0160
+							rotation 0 0 1 0
+							children [
+								DEF hanim_l_upperarm Segment {
+									name "l_upperarm"
+									children [
+										LOD {
+											range [ 10 30 ]
+											level [
+												DEF hanim_l_upperarm_high Inline { url "l_upperarm.wrl" }
+												DEF hanim_l_upperarm_medium Inline { url "l_upperarm2.wrl" }
+												DEF hanim_l_upperarm_low Inline { url "l_upperarm2.wrl" }
+											]
+										}
+									]
+								}     # hanim_l_upperarm Segment END
+								DEF hanim_l_elbow Joint {
+									name "l_elbow"
+									llimit [-2.6136306 0 0]
+									ulimit [0 0 0]
+									center 0.197 1.0640 -0.0215
+									rotation 0 0 1 0
+									children [
+										DEF hanim_l_forearm Segment {
+											name "l_forearm"
+											children [
+												LOD {
+													range [ 10 30 ]
+													level [
+														DEF hanim_l_forearm_high Inline { url "l_forearm.wrl" }
+														DEF hanim_l_forearm_medium Inline { url "l_forearm2.wrl" }
+														DEF hanim_l_forearm_low Inline { url "l_forearm2.wrl" }
+													]
+												}
+											]
+										}     # hanim_l_forearm Segment END
+
+										DEF hanim_l_wrist Joint {
+											name "l_wrist"
+											llimit [-0.78539816 -1.6545721 -1.4835299]
+											ulimit [0.78539816 1.5707963 1.7453293]
+											center 0.2845 0.8600 0.0295
+											rotation 0 0 1 0
+											children [
+												DEF hanim_l_hand Segment {
+													name "l_hand"
+													children [
+														LOD {
+															range [ 10 30 ]
+															level [
+																DEF hanim_l_hand_high Inline { url "l_hand.wrl" }
+																DEF hanim_l_hand_medium Inline { url "l_hand2.wrl" }
+																DEF hanim_l_hand_low Inline { url "l_hand2.wrl" }
+															]
+														}
+													]
+												}     # hanim_l_hand Segment END
+											]
+										}     # hanim_l_wrist Joint END
+									]
+								}     # hanim_l_elbow Joint END
+							]
+						}     # hanim_l_shoulder Joint END
+						DEF hanim_r_shoulder Joint {
+							name "r_shoulder"
+							llimit [-3.5953783 -1.0725048 -2.9286625]
+							ulimit [1.1170107 0.54105207 0.21380283]
+							center -0.1305 1.3150 -0.0160
+							rotation 0 0 1 0
+							children [
+								DEF hanim_r_upperarm Segment {
+									name "r_upperarm"
+									children [
+										LOD {
+											range [ 10 30 ]
+											level [
+												DEF hanim_r_upperarm_high Inline { url "r_upperarm.wrl" }
+												DEF hanim_r_upperarm_medium Inline { url "r_upperarm2.wrl" }
+												DEF hanim_r_upperarm_low Inline { url "r_upperarm2.wrl" }
+											]
+										}
+									]
+								}     # hanim_r_upperarm Segment END
+								DEF hanim_r_elbow Joint {
+								 name "r_elbow"
+									llimit [-2.6136306 0 0]
+									ulimit [0 0 0]
+									center -0.197 1.0640 -0.0215
+									rotation 0 0 1 0
+									children [
+										DEF hanim_r_forearm Segment {
+											name "r_forearm"
+											children [
+												LOD {
+													range [ 10 30 ]
+													level [
+														DEF hanim_r_forearm_high Inline { url "r_forearm.wrl" }
+														DEF hanim_r_forearm_medium Inline { url "r_forearm2.wrl" }
+														DEF hanim_r_forearm_low Inline { url "r_forearm2.wrl" }
+													]
+												}
+											]
+										}     # hanim_r_forearm Segment END
+
+										DEF hanim_r_wrist Joint {
+											name "r_wrist"
+											llimit [-0.78539816 -1.5707963 -1.7453293]
+											ulimit [0.78539816 1.6545721 1.4835299]
+											center -0.2845 0.8600 0.0295
+											rotation 0 0 1 0
+											children [
+												DEF hanim_r_hand Segment {
+													name "r_hand"
+													children [
+														LOD {
+															range [ 10 30 ]
+															level [
+																DEF hanim_r_hand_high Inline { url "r_hand.wrl" }
+																DEF hanim_r_hand_medium Inline { url "r_hand2.wrl" }
+																DEF hanim_r_hand_low Inline { url "r_hand2.wrl" }
+															]
+														}
+													]
+												}     # hanim_r_hand Segment END
+											]
+										}     # hanim_r_wrist Joint END
+									]
+								}     # hanim_r_elbow Joint END
+							]
+						}     # hanim_r_shoulder Joint END
+						DEF hanim_vc7 Joint {
+							name "vc7"
+							llimit [-0.34906585 -0.52359878 -0.59341195]
+							ulimit [0.78539816 0.52359878 0.59341195]
+							center 0 1.3685 0
+							rotation 0 0 1 0
+							children [
+								DEF hanim_c7 Segment {
+									name "c7"
+									children [
+										LOD {
+											range [ 10 30 ]
+											level [
+												DEF hanim_c7_high Inline { url "c7.wrl" }
+												DEF hanim_c7_medium Inline { url "c7_2.wrl" }
+												DEF hanim_c7_low Inline { url "c7_2.wrl" }
+											]
+										}
+									]
+								}     # hanim_c7 Segment END
+
+								DEF hanim_skullbase Joint {
+									name "skullbase"
+									llimit [-0.89884456 -0.75921822 -0.41015237]
+									ulimit [0.45029495 0.75921822 0.41015237]
+									center 0 1.4305 0
+									rotation 0 0 1 0
+									children [
+										DEF hanim_skull Segment {
+											name "skull"
+											children [
+												LOD {
+													range [ 10 30 ]
+													level [
+														DEF hanim_skull_high Inline { url "skull.wrl" }
+														DEF hanim_skull_medium Inline { url "skull2.wrl" }
+														DEF hanim_skull7_low Inline { url "skull2.wrl" }
+													]
+												}
+#												DEF LeftEyeView Viewpoint
+#												{
+#													position 1 1 1
+#													orientation 0 0 0 1.0
+#													fieldOfView 0.785
+#													description "Left Eye View"
+#													jump TRUE
+#												}
+#												DEF RightEyeView Viewpoint
+#												{
+#													position 1 1 1
+#													orientation 0 0 0 1.0
+#													fieldOfView 0.785
+#													description "Right Eye View"
+#													jump TRUE
+#												}
+#												DEF CyclopeanView Viewpoint
+#												{
+#													position 1 1 1
+#													orientation 0 0 0 1.0
+#													fieldOfView 0.785
+#													description "Cyclopean View"
+#													jump TRUE
+#												}
+											]
+										}     # hanim_skull Segment END
+									]
+								}     # hanim_skullbase Joint	 END
+						 ]
+						}     # hanim_vc7 Joint END
+					]
+				}     # hanim_vl5 Joint END
+			]
+		} #end HumanoidRoot
+	]
+	joints [ 
+		USE hanim_HumanoidRoot,
+			USE hanim_sacroiliac,
+				USE hanim_l_hip, USE hanim_l_knee, USE hanim_l_ankle,
+				USE hanim_r_hip, USE hanim_r_knee, USE hanim_r_ankle,
+			USE hanim_vl5, 
+				USE hanim_vc7, USE hanim_skullbase,
+				USE hanim_l_shoulder, USE hanim_l_elbow, USE hanim_l_wrist,
+				USE hanim_r_shoulder, USE hanim_r_elbow, USE hanim_r_wrist
+	]
+	segments [
+		USE hanim_pelvis,	
+			USE hanim_l_upperleg, USE hanim_l_lowerleg	, USE hanim_l_hindfoot,
+			USE hanim_r_upperleg	, USE hanim_r_lowerleg	, USE hanim_r_hindfoot,
+		USE hanim_l5	,
+			USE hanim_c7, USE hanim_skull,
+			USE hanim_l_upperarm	, USE hanim_l_forearm, USE hanim_l_hand,
+			USE hanim_r_upperarm,	 USE hanim_r_forearm, USE hanim_r_hand
+	]
+	sites [
+	]
+	viewpoints [
+		DEF InclinedView Viewpoint
+		{
+			position 1.500 2.700 2.000
+			orientation -1.1 1.3 0.4 0.85
+			fieldOfView 0.785
+			description "Inclined View"
+			jump TRUE
+		}
+		DEF FrontView Viewpoint
+		{
+			position 0 0.900 2.600
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Front View"
+					jump TRUE
+		}
+		DEF SideView Viewpoint
+		{
+			position 2.600 0.900 0.000
+			orientation 0 1.0 0.0 1.57
+			fieldOfView 0.785
+			description "Side View"
+			jump TRUE
+		}
+		DEF TopView Viewpoint
+		{
+			position 0.000 2.500 0.000
+			orientation -1.0 0.0 0.0 1.57
+			fieldOfView 0.785
+			description "Top View"
+			jump TRUE
+		}
+		DEF FaceView Viewpoint
+		{
+			position 0 1.750 0.400
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Face View"
+			jump TRUE
+		}
+		DEF BackView Viewpoint
+		{
+			position 0 0.900 -2.600
+			orientation 0.0 1.0 0.0 3.14
+			fieldOfView 0.785
+			description "Back View"
+			jump TRUE
+		}
+		DEF LeftView Viewpoint
+		{
+			position -2.600 0.900 0.000
+			orientation 0 1.0 0.0 -1.57
+			fieldOfView 0.785
+			description "Left View"
+			jump TRUE
+		}
+		DEF RightView Viewpoint 
+		{
+			position 2.600 0.900 0.000
+			orientation 0 1.0 0.0 1.57
+			fieldOfView 0.785398
+			description "Right View"
+			jump TRUE
+		}
+		DEF BottomView Viewpoint
+		{
+			position 0.000 -0.500 0.000
+			orientation 1.0 0.0 0.0 1.57
+			fieldOfView 0.785
+			description "Bottom View"
+			jump TRUE
+		}
+		DEF VeryFarView Viewpoint
+		{
+			position 0 0.900 30.00
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Very Far View"
+					jump TRUE
+		}
+		DEF FarView Viewpoint
+		{
+			position 0 0.900 10.00
+			orientation 0.0 0.0 0.0 1.0
+			fieldOfView 0.785
+			description "Far View"
+					jump TRUE
+		}
+	]
+}     #end YT_002 Humanoid
+
+DEF NotIncludedGroup Group {
+	children [
+		DEF hanim_vl4 Joint {}    # NotIncluded
+		DEF hanim_vl3 Joint {}    # NotIncluded
+		DEF hanim_vl2 Joint {}    # NotIncluded
+		DEF hanim_vl1 Joint {}    # NotIncluded
+		DEF hanim_vt12 Joint {}    # NotIncluded
+		DEF hanim_vt11 Joint {}    # NotIncluded
+		DEF hanim_vt10 Joint {}    # NotIncluded
+		DEF hanim_vt9 Joint {}    # NotIncluded
+		DEF hanim_vt8 Joint {}    # NotIncluded
+		DEF hanim_vt7 Joint {}    # NotIncluded
+		DEF hanim_vt6 Joint {}    # NotIncluded
+		DEF hanim_vt5 Joint {}    # NotIncluded
+		DEF hanim_vt4 Joint {}    # NotIncluded
+		DEF hanim_vt3 Joint {}    # NotIncluded
+		DEF hanim_vt2 Joint {}    # NotIncluded
+		DEF hanim_vt1 Joint {}    # NotIncluded
+		DEF hanim_vc6 Joint {}    # NotIncluded
+		DEF hanim_vc5 Joint {}    # NotIncluded
+		DEF hanim_vc4 Joint {}    # NotIncluded
+		DEF hanim_vc3 Joint {}    # NotIncluded
+		DEF hanim_vc2 Joint {}    # NotIncluded
+		DEF hanim_vc1 Joint {}    # NotIncluded
+		DEF hanim_l_sternoclavicular Joint {}    # NotIncluded
+		DEF hanim_l_acromioclavicular Joint {}    # NotIncluded
+		DEF hanim_l_thumb1 Joint {}    # NotIncluded
+		DEF hanim_l_thumb2 Joint {}    # NotIncluded
+		DEF hanim_l_thumb3 Joint {}    # NotIncluded
+		DEF hanim_l_index1 Joint {}    # NotIncluded
+		DEF hanim_l_index2 Joint {}    # NotIncluded
+		DEF hanim_l_index3 Joint {}    # NotIncluded
+		DEF hanim_l_middle1 Joint {}    # NotIncluded
+		DEF hanim_l_middle2 Joint {}    # NotIncluded
+		DEF hanim_l_middle3 Joint {}    # NotIncluded
+		DEF hanim_l_ring1 Joint {}    # NotIncluded
+		DEF hanim_l_ring2 Joint {}    # NotIncluded
+		DEF hanim_l_ring3 Joint {}    # NotIncluded
+		DEF hanim_l_pinky1 Joint {}    # NotIncluded
+		DEF hanim_l_pinky2 Joint {}    # NotIncluded
+		DEF hanim_l_pinky3 Joint {}    # NotIncluded
+		DEF hanim_r_sternoclavicular Joint {}    # NotIncluded
+		DEF hanim_r_acromioclavicular Joint {}    # NotIncluded
+		DEF hanim_r_thumb1 Joint {}    # NotIncluded
+		DEF hanim_r_thumb2 Joint {}    # NotIncluded
+		DEF hanim_r_thumb3 Joint {}    # NotIncluded
+		DEF hanim_r_index1 Joint {}    # NotIncluded
+		DEF hanim_r_index2 Joint {}    # NotIncluded
+		DEF hanim_r_index3 Joint {}    # NotIncluded
+		DEF hanim_r_middle1 Joint {}    # NotIncluded
+		DEF hanim_r_middle2 Joint {}    # NotIncluded
+		DEF hanim_r_middle3 Joint {}    # NotIncluded
+		DEF hanim_r_ring1 Joint {}    # NotIncluded
+		DEF hanim_r_ring2 Joint {}    # NotIncluded
+		DEF hanim_r_ring3 Joint {}    # NotIncluded
+		DEF hanim_r_pinky1 Joint {}    # NotIncluded
+		DEF hanim_r_pinky2 Joint {}    # NotIncluded
+		DEF hanim_r_pinky3 Joint {}    # NotIncluded
+		DEF hanim_l_subtalar Joint {}    # NotIncluded
+		DEF hanim_l_midtarsal Joint {}    # NotIncluded
+		DEF hanim_l_metatarsal Joint {}    # NotIncluded
+		DEF hanim_r_subtalar Joint {}    # NotIncluded
+		DEF hanim_r_midtarsal Joint {}    # NotIncluded
+		DEF hanim_r_metatarsal Joint {}    # NotIncluded
+		DEF hanim_l4 Segment {}    # NotIncluded
+		DEF hanim_l3 Segment {}    # NotIncluded
+		DEF hanim_l2 Segment {}    # NotIncluded
+		DEF hanim_l1 Segment {}    # NotIncluded
+		DEF hanim_t12 Segment {}    # NotIncluded
+		DEF hanim_t11 Segment {}    # NotIncluded
+		DEF hanim_t10 Segment {}    # NotIncluded
+		DEF hanim_t9 Segment {}    # NotIncluded
+		DEF hanim_t8 Segment {}    # NotIncluded
+		DEF hanim_t7 Segment {}    # NotIncluded
+		DEF hanim_t6 Segment {}    # NotIncluded
+		DEF hanim_t5 Segment {}    # NotIncluded
+		DEF hanim_t4 Segment {}    # NotIncluded
+		DEF hanim_t3 Segment {}    # NotIncluded
+		DEF hanim_t2 Segment {}    # NotIncluded
+		DEF hanim_t1 Segment {}    # NotIncluded
+		DEF hanim_c6 Segment {}    # NotIncluded
+		DEF hanim_c5 Segment {}    # NotIncluded
+		DEF hanim_c4 Segment {}    # NotIncluded
+		DEF hanim_c3 Segment {}    # NotIncluded
+		DEF hanim_c2 Segment {}    # NotIncluded
+		DEF hanim_c1 Segment {}    # NotIncluded
+		DEF hanim_l_clavicle Segment {}    # NotIncluded
+		DEF hanim_l_scapula Segment {}    # NotIncluded
+		DEF hanim_l_thumb_metacarpal Segment {}    # NotIncluded
+		DEF hanim_l_thumb_proximal Segment {}    # NotIncluded
+		DEF hanim_l_thumb_distal Segment {}    # NotIncluded
+		DEF hanim_l_index_proximal Segment {}    # NotIncluded
+		DEF hanim_l_index_middle Segment {}    # NotIncluded
+		DEF hanim_l_index_distal Segment {}    # NotIncluded
+		DEF hanim_l_middle_proximal Segment {}    # NotIncluded
+		DEF hanim_l_middle_middle Segment {}    # NotIncluded
+		DEF hanim_l_middle_distal Segment {}    # NotIncluded
+		DEF hanim_l_ring_proximal Segment {}    # NotIncluded
+		DEF hanim_l_ring_middle Segment {}    # NotIncluded
+		DEF hanim_l_ring_distal Segment {}    # NotIncluded
+		DEF hanim_l_pinky_proximal Segment {}    # NotIncluded
+		DEF hanim_l_pinky_middle Segment {}    # NotIncluded
+		DEF hanim_l_pinky_distal Segment {}    # NotIncluded
+		DEF hanim_r_clavicle Segment {}    # NotIncluded
+		DEF hanim_r_scapula Segment {}    # NotIncluded
+		DEF hanim_r_thumb_metacarpal Segment {}    # NotIncluded
+		DEF hanim_r_thumb_proximal Segment {}    # NotIncluded
+		DEF hanim_r_thumb_distal Segment {}    # NotIncluded
+		DEF hanim_r_index_proximal Segment {}    # NotIncluded
+		DEF hanim_r_index_middle Segment {}    # NotIncluded
+		DEF hanim_r_index_distal Segment {}    # NotIncluded
+		DEF hanim_r_middle_proximal Segment {}    # NotIncluded
+		DEF hanim_r_middle_middle Segment {}    # NotIncluded
+		DEF hanim_r_middle_distal Segment {}    # NotIncluded
+		DEF hanim_r_ring_proximal Segment {}    # NotIncluded
+		DEF hanim_r_ring_middle Segment {}    # NotIncluded
+		DEF hanim_r_ring_distal Segment {}    # NotIncluded
+		DEF hanim_r_pinky_proximal Segment {}    # NotIncluded
+		DEF hanim_r_pinky_middle Segment {}    # NotIncluded
+		DEF hanim_r_pinky_distal Segment {}    # NotIncluded
+		DEF hanim_l_midproximal Segment {}    # NotIncluded
+		DEF hanim_l_middistal Segment {}    # NotIncluded
+		DEF hanim_l_forefoot Segment {}    # NotIncluded
+		DEF hanim_r_midproximal Segment {}    # NotIncluded
+		DEF hanim_r_middistal Segment {}    # NotIncluded
+		DEF hanim_r_forefoot Segment {}    # NotIncluded
+	]
+}
+
+	
