@@ -308,7 +308,6 @@ void new_do_texture(int texno) {
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, loadparams[texno].Src);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, loadparams[texno].Trc);
 	depth = loadparams[texno].depth; 
-	last_texture_depth = loadparams[texno].depth;
 	x = loadparams[texno].x;
 	y = loadparams[texno].y;
 
@@ -389,6 +388,9 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,
 	   make them larger, by 16 */
 	checkAndAllocTexMemTables(texture_num, 16);
+
+	/* set the texture depth - required for Material diffuseColor selection */
+	last_texture_depth = loadparams[*texture_num].depth;
 	
 	/* have we already processed this one before? */
 	if (isloaded[*texture_num] == LOADED) {
@@ -463,6 +465,7 @@ void checkAndAllocTexMemTables(int *texture_num, int increment) {
 		for (count = prev_max_texture; count < (int)max_texture; count++) {
 			isloaded[count] = NOTLOADED;
 			loadparams[count].filename="uninitialized file";
+			loadparams[count].depth = 0;
 		}
 		REGENUNLOCK
 	}
