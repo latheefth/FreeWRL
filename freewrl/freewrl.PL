@@ -422,6 +422,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 use Carp;
 $SIG{__DIE__} = sub {print Carp::longmess(@_);die;};
 
+# this allows us to get config information; eg, version et al.
+use VRML::Config;
+
 BEGIN {
 
 	# use VRML::Browser;
