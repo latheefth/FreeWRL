@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.86  2003/05/14 17:30:58  crc_canada
+# ProximitySensor now in C
+#
 # Revision 1.85  2003/05/14 15:42:43  crc_canada
 # Anchor code first pass
 #
@@ -2167,47 +2170,18 @@ CODE:
 	do_MovieTextureTick(node,tick);
 
 void 
+ProximitySensorClockTick(node,tick)
+	void *node
+	double tick
+CODE:
+	do_ProximitySensorTick(node,tick);
+
+void 
 TimeSensorClockTick(node,tick)
 	void *node
 	double tick
 CODE:
 	do_TimeSensorTick(node,tick);
-
-
-#********************************************************************************
-void 
-get_proximitysensor_vecs(node,hit,x1,y1,z1,x2,y2,z2,q2)
-	void *node
-	int hit
-	double x1
-	double y1
-	double z1
-	double x2
-	double y2
-	double z2
-	double q2
-CODE:
-	struct VRML_ProximitySensor *px = node;
-	hit = px->__hit;
-	px->__hit = 0;
-	x1 = px->__t1.c[0];
-	y1 = px->__t1.c[1];
-	z1 = px->__t1.c[2];
-	x2 = px->__t2.r[0];
-	y2 = px->__t2.r[1];
-	z2 = px->__t2.r[2];
-	q2 = px->__t2.r[3];
-	/* printf ("get_proximitysensor_vecs, x %f y %f z %f, x2 %f y2 %f z2 %f q2 %f\n", 
-			x1,y1,z1,x2,y2,z2,q2);  */
-OUTPUT:
-	hit
-	x1
-	y1
-	z1
-	x2
-	y2
-	z2
-	q2
 
 void 
 get_collision_info(node,hit)
