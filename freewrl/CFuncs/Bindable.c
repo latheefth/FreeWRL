@@ -659,7 +659,17 @@ void render_Background (struct VRML_Background *node) {
 				}
 			}
 		}
+	
+		/* We have guessed at the quad count; lets make sure
+		 * we record what we have. */
+		if (actq > node->__quadcount) {
+			printf ("Background quadcount error, %d > %d\n",
+					actq,node->__quadcount);
+		} else {
+			node->__quadcount = actq;
+		}
 	}
+
 
 	/* now, display the lists */
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
