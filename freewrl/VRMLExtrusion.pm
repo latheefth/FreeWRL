@@ -990,6 +990,7 @@ if($f(convex)) {
 			gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
 		}
 		gluEndPolygon(global_tessobj);
+		verify_global_IFS_Coords(ntri*3);
 
 		for (x=0; x<global_IFS_Coord_count; x+=3) {
   			Elev_Tri(triind*3, this_face, global_IFS_Coords[x], 
@@ -1015,6 +1016,7 @@ if($f(convex)) {
 			gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
 		}
 		gluEndPolygon(global_tessobj);
+		verify_global_IFS_Coords(ntri*3);
 
 		for (x=0; x<global_IFS_Coord_count; x+=3) {
   			Elev_Tri(triind*3, this_face, global_IFS_Coords[x], 
