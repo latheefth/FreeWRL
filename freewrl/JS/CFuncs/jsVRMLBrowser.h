@@ -14,19 +14,8 @@
 #ifndef __jsVRMLBrowser_h__
 #define __jsVRMLBrowser_h__
 
-#ifndef __jsUtils_h__
 #include "jsUtils.h"
-#endif /* __jsUtils_h__ */
-
-
-/*
- * for now, could try setting magic to pid since we only need one browser
- * per process -- but is it really needed ???
- */
-typedef struct _BrowserNative {
-	int magic; /* does this really do anything ??? */
-	SV *sv_js;
-} BrowserNative;
+#include "jsNative.h"
 
 
 static JSBool
@@ -40,8 +29,8 @@ doVRMLRoute(JSContext *context,
 
 JSBool
 VrmlBrowserInit(JSContext *context,
-			JSObject *globalObj, 
-			BrowserNative *brow);
+				JSObject *globalObj,
+				BrowserNative *brow);
 
 
 JSBool

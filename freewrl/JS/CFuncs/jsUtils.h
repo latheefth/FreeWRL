@@ -16,10 +16,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <EXTERN.h>
-#include <perl.h>
-
-#include "Structs.h" /* FreeWRL C structs */
 
 #include "jsapi.h" /* JS compiler */
 #include "jsdbgapi.h" /* JS debugger */
@@ -42,40 +38,6 @@
 
 extern JSBool verbose;
 static JSBool reportWarnings = JS_TRUE;
-
-extern void
-doPerlCallMethod(SV *sv, const char *methodName);
-
-extern void
-doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...);
-
-
-typedef struct _SFRotationNative {
-	int touched;
-	struct SFRotation v;
-} SFRotationNative;
-
-typedef struct _SFVec2fNative {
-	int touched; 
-	struct SFVec2f v;
-} SFVec2fNative;
-
-typedef struct _SFVec3fNative {
-	int touched; 
-	struct SFColor v;
-} SFVec3fNative;
-
-typedef struct _SFImageNative {
-	int touched; 
-#if FALSE
-	/* struct SFImage v; */
-#endif
-} SFImageNative;
-
-typedef struct _SFColorNative {
-	int touched; 
-	struct SFColor v;
-} SFColorNative;
 
 
 void

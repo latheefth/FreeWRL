@@ -16,14 +16,15 @@
 #define  __jsVRMLClasses_h__
 
 #include <math.h>
+#include "LinearAlgebra.h" /* FreeWRL math */
 
 #ifndef __jsUtils_h__
 #include "jsUtils.h"
 #endif /* __jsUtils_h__ */
 
-/* FreeWRL C headers */
-#include "Structs.h"
-#include "LinearAlgebra.h" /* FreeWRL math */
+#ifndef __jsNative_h__
+#include "jsNative.h"
+#endif /* __jsNative_h__ */
 
 #include "jsVRMLBrowser.h"
 
@@ -96,20 +97,6 @@ setECMANative(JSContext *cx,
 			  jsval id,
 			  jsval *vp);
 
-JSBool
-addAssignProperty(void *cx,
-				  void *glob,
-				  char *name,
-				  char *str);
-
-/*
- * Adds additional (touchable) property to instance of an existing
- * class.
- */
-extern JSBool
-addECMANativeProperty(void *cx,
-					  void *glob,
-					  char *name);
 
 /* JSBool */
 /* getAssignProperty(JSContext *context, */
@@ -148,19 +135,6 @@ SFNodeSetProperty(JSContext *cx,
 				  JSObject *obj,
 				  jsval id,
 				  jsval *vp);
-
-
-extern void *
-SFColorNativeNew(void);
-
-extern void
-SFColorNativeDelete(void *p);
-
-extern void
-SFColorNativeAssign(void *top, void *fromp);
-
-extern void
-SFColorNativeSet(void *p, SV *sv);
 
 
 JSBool
@@ -208,18 +182,6 @@ SFColorFinalize(JSContext *cx,
 				JSObject *obj);
 
 
-extern void *
-SFImageNativeNew(void);
-
-extern void
-SFImageNativeDelete(void *p);
-
-extern void
-SFImageNativeAssign(void *top, void *fromp);
-
-extern void
-SFImageNativeSet(void *p, SV *sv);
-
 
 JSBool
 SFImageToString(JSContext *cx,
@@ -264,18 +226,6 @@ SFImageSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
-
-extern void *
-SFVec2fNativeNew(void);
-
-extern void
-SFVec2fNativeDelete(void *p);
-
-extern void
-SFVec2fNativeAssign(void *top, void *fromp);
-
-extern void
-SFVec2fNativeSet(void *p, SV *sv);
 
 
 JSBool
@@ -356,18 +306,6 @@ SFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
-
-extern void *
-SFVec3fNativeNew(void);
-
-extern void
-SFVec3fNativeDelete(void *p);
-
-extern void
-SFVec3fNativeAssign(void *top, void *fromp);
-
-extern void
-SFVec3fNativeSet(void *p, SV *sv);
 
 
 JSBool
@@ -455,18 +393,6 @@ SFVec3fSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
-
-extern void *
-SFRotationNativeNew(void);
-
-extern void
-SFRotationNativeDelete(void *p);
-
-extern void
-SFRotationNativeAssign(void *top, void *fromp);
-
-extern void
-SFRotationNativeSet(void *p, SV *sv);
 
 
 JSBool
