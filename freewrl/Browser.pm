@@ -258,7 +258,7 @@ sub replaceWorld {
 	my @newnodes = ();
 	my $n;
 
-	print "replaceWorld, string is $string\n";
+	# print "replaceWorld, string is $string\n";
 
 	# lets go and create the new node array from the nodes as sent in.
 	for $n (split(' ',$string)) {
@@ -267,29 +267,17 @@ sub replaceWorld {
 	}
 
         $this->clear_scene();
-print "1\n";
-
         $this->{Scene} = VRML::Scene->new($this->{EV},"from replaceWorld");
-print "2\n";
-
         $this->{Scene}->set_browser($this);
-print "3\n";
 	$this->{Scene}->topnodes(\@newnodes);
-print "4\n";
-
         prepare ($this);
-
-print "4.5\n";
 
 	# go through the Bindables...
 	for $n (@newnodes) {
 		$this->{Scene}->replaceWorld_Bindable($n);
 	}
-print "5\n";
-
         # and, take care of keeping the viewpoints active...
         $this->{Scene}->register_vps($this);
-print "6\n";
 }
 
 
@@ -520,19 +508,21 @@ my $ind = 0;
 # affects the FPS, from what I can see.
 #my $start = (POSIX::times())[0] / &POSIX::CLK_TCK;
 
+# BUG FIX: Tobias Hintze <th@hbs-solutions.de> found that the fps
+# calc could divide by zero on fast machines, thus the need for 
+# the check now.
 
 my $start = (POSIX::times())[0] / 100;
 my $add = time() - $start; $start += $add;
 sub get_timestamp {
 	my $ticks = (POSIX::times())[0] / 100; # Get clock ticks
 	$ticks += $add;
-	print "TICK: $ticks\n"
-		if $VRML::verbose;
 	if(!$_[0]) {
 		$ind++;;
 		if($ind == 25) {
 			$ind = 0;
-			$FPS = 25/($ticks-$start);
+			if ($ticks != $start) 
+				$FPS = 25/($ticks-$start);
 			# print "Fps: ",$FPS,"\n";
 			pmeasures();
 			$start = $ticks;
