@@ -652,9 +652,9 @@ SFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
      	
 	if (argc == 0) {
-		(ptr->v).c[0] = 0;
-		(ptr->v).c[1] = 0;
-		(ptr->v).c[2] = 0;
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
 	} else if (JS_ConvertArguments(cx, argc, argv, "d d d",
 									&(pars[0]), &(pars[1]), &(pars[2]))) {
 		(ptr->v).c[0] = pars[0];
@@ -694,38 +694,44 @@ SFColorFinalize(JSContext *cx, JSObject *obj)
 JSBool
 SFImageGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
-	SFImageNative *ptr;
-	jsint i;
-	JSString *_str;
+	UNUSED(cx);
+	UNUSED(obj);
+	UNUSED(id);
+	UNUSED(vp);
+#if FALSE
+/* 	SFImageNative *ptr; */
+/* 	jsint i; */
+/* 	JSString *_str; */
 
-	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed in SFImageGetProperty.\n");
-		return JS_FALSE;
-	}
+/* 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) { */
+/* 		fprintf(stderr, "JS_GetPrivate failed in SFImageGetProperty.\n"); */
+/* 		return JS_FALSE; */
+/* 	} */
 
-	if (JSVAL_IS_INT(id)) {
-		switch (JSVAL_TO_INT(id)) {
-		case 0:
-			i = (ptr->v).__x;
-			*vp = INT_TO_JSVAL(i);
-			break;
-		case 1:
-			i = (ptr->v).__y;
-			*vp = INT_TO_JSVAL(i);
-			break;
-		case 2:
-			i = (ptr->v).__depth;
-			*vp = INT_TO_JSVAL(i);
-			break;
-		case 3:
-			_str = JS_NewStringCopyZ(cx, (ptr->v).__data);
-			*vp = STRING_TO_JSVAL(_str);
-		case 4:
-			i = (ptr->v).__texture;
-			*vp = INT_TO_JSVAL(i);
-			break;
-		}
-	}
+/* 	if (JSVAL_IS_INT(id)) { */
+/* 		switch (JSVAL_TO_INT(id)) { */
+/* 		case 0: */
+/* 			i = (ptr->v).__x; */
+/* 			*vp = INT_TO_JSVAL(i); */
+/* 			break; */
+/* 		case 1: */
+/* 			i = (ptr->v).__y; */
+/* 			*vp = INT_TO_JSVAL(i); */
+/* 			break; */
+/* 		case 2: */
+/* 			i = (ptr->v).__depth; */
+/* 			*vp = INT_TO_JSVAL(i); */
+/* 			break; */
+/* 		case 3: */
+/* 			_str = JS_NewStringCopyZ(cx, (ptr->v).__data); */
+/* 			*vp = STRING_TO_JSVAL(_str); */
+/* 		case 4: */
+/* 			i = (ptr->v).__texture; */
+/* 			*vp = INT_TO_JSVAL(i); */
+/* 			break; */
+/* 		} */
+/* 	} */
+#endif
 	return JS_TRUE;
 }
 
@@ -733,72 +739,78 @@ JSBool
 SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	SFImageNative *ptr;
-	JSString *_str;
-	jsval myv;
-	char *c;
-	size_t _len, _data_s;
+	UNUSED(id);
+	UNUSED(vp);
+#if FALSE
+/* 	JSString *_str; */
+/* 	jsval myv; */
+/* 	char *c; */
+/* 	size_t _len, _data_s; */
+#endif
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in SFImageSetProperty.\n");
 		return JS_FALSE;
 	}
 	ptr->touched++;
-	if (verbose) {
-		printf("SFImageSetProperty: obj = %u, id = %d, touched = %d\n",
-			   (unsigned int) obj, JSVAL_TO_INT(id), ptr->touched);
-	}
-	if (JSVAL_IS_NUMBER(*vp)) { /* succeeds for int and double */
-		if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
-			fprintf(stderr,
-					"JS_ConvertValue failed for vp as JSTYPE_NUMBER in SFImageSetProperty.\n");
-			return JS_FALSE;
-		}
-	} else if (JSVAL_IS_STRING(*vp)) {
-		if (!JS_ConvertValue(cx, *vp, JSTYPE_STRING, &myv)) {
-			fprintf(stderr,
-					"JS_ConvertValue failed for vp as JSTYPE_STRING in SFImageSetProperty.\n");
-			return JS_FALSE;
-		}
-	} else {
-			fprintf(stderr,
-					"Arg vp is not one of JSTYPE_NUMBER or JSTYPE_STRING.\n");
-			return JS_FALSE;
-	}
+#if FALSE
+/* 	if (verbose) { */
+/* 		printf("SFImageSetProperty: obj = %u, id = %d, touched = %d\n", */
+/* 			   (unsigned int) obj, JSVAL_TO_INT(id), ptr->touched); */
+/* 	} */
+/* 	if (JSVAL_IS_NUMBER(*vp)) { */ /* succeeds for int and double */
+/* 		if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) { */
+/* 			fprintf(stderr, */
+/* 					"JS_ConvertValue failed for vp as JSTYPE_NUMBER in SFImageSetProperty.\n"); */
+/* 			return JS_FALSE; */
+/* 		} */
+/* 	} else if (JSVAL_IS_STRING(*vp)) { */
+/* 		if (!JS_ConvertValue(cx, *vp, JSTYPE_STRING, &myv)) { */
+/* 			fprintf(stderr, */
+/* 					"JS_ConvertValue failed for vp as JSTYPE_STRING in SFImageSetProperty.\n"); */
+/* 			return JS_FALSE; */
+/* 		} */
+/* 	} else { */
+/* 			fprintf(stderr, */
+/* 					"Arg vp is not one of JSTYPE_NUMBER or JSTYPE_STRING.\n"); */
+/* 			return JS_FALSE; */
+/* 	} */
 
-	if (JSVAL_IS_INT(id)) {
-		switch (JSVAL_TO_INT(id)) {
-		case 0:
-			(ptr->v).__x = JSVAL_TO_INT(myv);
-			break;
-		case 1:
-			(ptr->v).__y = JSVAL_TO_INT(myv);
-			break;
-		case 2:
-			(ptr->v).__depth = JSVAL_TO_INT(myv);
-			break;
-		case 3:
-			_str = JS_ValueToString(cx, myv);
-			c = JS_GetStringBytes(_str);
+/* 	if (JSVAL_IS_INT(id)) { */
+/* 		switch (JSVAL_TO_INT(id)) { */
+/* 		case 0: */
+/* 			(ptr->v).__x = JSVAL_TO_INT(myv); */
+/* 			break; */
+/* 		case 1: */
+/* 			(ptr->v).__y = JSVAL_TO_INT(myv); */
+/* 			break; */
+/* 		case 2: */
+/* 			(ptr->v).__depth = JSVAL_TO_INT(myv); */
+/* 			break; */
+/* 		case 3: */
+/* 			_str = JS_ValueToString(cx, myv); */
+/* 			c = JS_GetStringBytes(_str); */
 
-			_len = strlen(c);
-			_data_s = sizeof((ptr->v).__data);
-			if (_len * sizeof(char) > _data_s) {
-				_data_s = (_len + 1) * sizeof(char);
-				if (((ptr->v).__data =
-					 (char *) realloc((ptr->v).__data, _data_s))
-					== NULL) {
-					fprintf(stderr,
-						"realloc failed in SFImageSetProperty.\n");
-					return JS_FALSE;
-				}
-			}
-			memset((ptr->v).__data, 0, _len + 1);
-			memmove((ptr->v).__data, c, _len);
-		case 4:
-			(ptr->v).__texture = JSVAL_TO_INT(myv);
-			break;
-		}
-	}
+/* 			_len = strlen(c); */
+/* 			_data_s = sizeof((ptr->v).__data); */
+/* 			if (_len * sizeof(char) > _data_s) { */
+/* 				_data_s = (_len + 1) * sizeof(char); */
+/* 				if (((ptr->v).__data = */
+/* 					 (char *) realloc((ptr->v).__data, _data_s)) */
+/* 					== NULL) { */
+/* 					fprintf(stderr, */
+/* 						"realloc failed in SFImageSetProperty.\n"); */
+/* 					return JS_FALSE; */
+/* 				} */
+/* 			} */
+/* 			memset((ptr->v).__data, 0, _len + 1); */
+/* 			memmove((ptr->v).__data, c, _len); */
+/* 		case 4: */
+/* 			(ptr->v).__texture = JSVAL_TO_INT(myv); */
+/* 			break; */
+/* 		} */
+/* 	} */
+#endif
 	return JS_TRUE;
 }
 
@@ -822,9 +834,11 @@ SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 	}
     
 	memset(buff, 0, LARGESTRING);
-	sprintf(buff, "%d %d %d %s %d",
-			(ptr->v).__x, (ptr->v).__y,
-			(ptr->v).__depth, (ptr->v).__data, (ptr->v).__texture);
+#if FALSE
+/* 	sprintf(buff, "%d %d %d %s %d", */
+/* 			(ptr->v).__x, (ptr->v).__y, */
+/* 			(ptr->v).__depth, (ptr->v).__data, (ptr->v).__texture); */
+#endif
 	_str = JS_NewStringCopyZ(cx, buff);
 	    
     *rval = STRING_TO_JSVAL(_str);
@@ -873,12 +887,12 @@ SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 {
     SFImageNative *ptr;
     int t;
+	UNUSED(argc);
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in SFSFImageTouched.\n");
 		return JS_FALSE;
 	}
-	UNUSED(argc);
 
     if (!JS_InstanceOf(cx, obj, &SFImageClass, argv)) {
 		fprintf(stderr, "JS_InstanceOf failed in SFImageTouched.\n");
@@ -898,9 +912,12 @@ JSBool
 SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	SFImageNative *ptr;
-	jsint pars[4];
-	char *cpars = 0;
-	size_t _len = 0, _data_s = 0;
+	UNUSED(argv);
+#if FALSE
+/* 	jsint pars[4]; */
+/* 	char *cpars = 0; */
+/* 	size_t _len = 0, _data_s = 0; */
+#endif
 
 	if ((ptr = (SFImageNative *) SFImageNativeNew()) == NULL) {
 		fprintf(stderr, "SFImageNativeNew failed in SFImageConstr.\n");
@@ -917,45 +934,51 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		return JS_FALSE;
 	}
      	
-	if (argc == 0) {
-		(ptr->v).__x = 0;
-		(ptr->v).__y = 0;
-		(ptr->v).__depth = 0;
-		(ptr->v).__data = "";
-		(ptr->v).__texture = 0;
-	} else {
-		if (!JS_ConvertArguments(cx, argc, argv, "i i i s i",
-								 &(pars[0]), &(pars[1]), &(pars[2]),
-								 cpars, &(pars[3]))) {
-			fprintf(stderr, "JS_ConvertArguments failed in SFImageConstr.\n");
-			return JS_FALSE;
-		}
-		(ptr->v).__x = pars[0];
-		(ptr->v).__y = pars[1];
-		(ptr->v).__depth = pars[2];
+#if FALSE
+/* 	if (argc == 0) { */
+/* 		(ptr->v).__x = 0; */
+/* 		(ptr->v).__y = 0; */
+/* 		(ptr->v).__depth = 0; */
+/* 		(ptr->v).__data = ""; */
+/* 		(ptr->v).__texture = 0; */
+/* 	} else { */
+/* 		if (!JS_ConvertArguments(cx, argc, argv, "i i i s i", */
+/* 								 &(pars[0]), &(pars[1]), &(pars[2]), */
+/* 								 cpars, &(pars[3]))) { */
+/* 			fprintf(stderr, "JS_ConvertArguments failed in SFImageConstr.\n"); */
+/* 			return JS_FALSE; */
+/* 		} */
+/* 		(ptr->v).__x = pars[0]; */
+/* 		(ptr->v).__y = pars[1]; */
+/* 		(ptr->v).__depth = pars[2]; */
 
-		_len = strlen(cpars);
-		_data_s = sizeof((ptr->v).__data);
-		if (_len * sizeof(char) > _data_s) {
-			_data_s = (_len + 1) * sizeof(char);
-			if (((ptr->v).__data =
-				 (char *) realloc((ptr->v).__data, _data_s))
-				== NULL) {
-				fprintf(stderr,
-						"realloc failed in SFImageConstr.\n");
-				return JS_FALSE;
-			}
-		}
-		memset((ptr->v).__data, 0, _len + 1);
-		memmove((ptr->v).__data, cpars, _len);
+/* 		_len = strlen(cpars); */
+/* 		_data_s = sizeof((ptr->v).__data); */
+/* 		if (_len * sizeof(char) > _data_s) { */
+/* 			_data_s = (_len + 1) * sizeof(char); */
+/* 			if (((ptr->v).__data = */
+/* 				 (char *) realloc((ptr->v).__data, _data_s)) */
+/* 				== NULL) { */
+/* 				fprintf(stderr, */
+/* 						"realloc failed in SFImageConstr.\n"); */
+/* 				return JS_FALSE; */
+/* 			} */
+/* 		} */
+/* 		memset((ptr->v).__data, 0, _len + 1); */
+/* 		memmove((ptr->v).__data, cpars, _len); */
 
-		(ptr->v).__texture = pars[3];
-	}
+/* 		(ptr->v).__texture = pars[3]; */
+/* 	} */
+#endif
 	if (verbose) {
-		printf("SFImageConstr: obj = %u, %u args, %d %d %d %s %d\n",
-			   (unsigned int) obj, argc,
-			   (ptr->v).__x, (ptr->v).__y,
-			   (ptr->v).__depth, (ptr->v).__data, (ptr->v).__texture);
+#if FALSE
+/* 		printf("SFImageConstr: obj = %u, %u args, %d %d %d %s %d\n", */
+/* 			   (unsigned int) obj, argc, */
+/* 			   (ptr->v).__x, (ptr->v).__y, */
+/* 			   (ptr->v).__depth, (ptr->v).__data, (ptr->v).__texture); */
+#endif
+		printf("SFImageConstr: obj = %u, %u args\n",
+			   (unsigned int) obj, argc);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
 		
@@ -1408,8 +1431,8 @@ SFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
      	
 	if (argc == 0) {
-		(ptr->v).c[0] = 0;
-		(ptr->v).c[1] = 0;
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d",
 								 &(pars[0]), &(pars[1]))) {
@@ -1950,9 +1973,9 @@ SFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
      	
 	if (argc == 0) {
-		(ptr->v).c[0] = 0;
-		(ptr->v).c[1] = 0;
-		(ptr->v).c[2] = 0;
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d d",
 								 &(pars[0]), &(pars[1]), &(pars[2]))) {
@@ -2320,10 +2343,10 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 
 	if (argc == 0) {
-		(ptr->v).r[0] = 0;
-		(ptr->v).r[1] = 0;
-		(ptr->v).r[2] = 1;
-		(ptr->v).r[3] = 0;
+		(ptr->v).r[0] = 0.0;
+		(ptr->v).r[1] = 0.0;
+		(ptr->v).r[2] = 1.0;
+		(ptr->v).r[3] = 0.0;
 	} else if (JS_ConvertArguments(cx, argc, argv, "d d d d",
 							&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
 		(ptr->v).r[0] = pars[0];
@@ -2419,10 +2442,10 @@ SFRotationFinalize(JSContext *cx, JSObject *obj)
 JSBool
 SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	char *_id;
+	char *_c_str;
 
 	if (argc == 1 &&
-		JS_ConvertArguments(cx, argc, argv, "s", &_id)) {
+		JS_ConvertArguments(cx, argc, argv, "s", &_c_str)) {
 		if (!JS_DefineProperty(cx, obj, "__id", argv[0],
 						   JS_PropertyStub, JS_PropertyStub,
 						   JSPROP_PERMANENT)) {
@@ -2438,7 +2461,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 	if (verbose) {
 		printf("SFNodeConstr: obj = %u, argc = %d, %s\n",
-			   (unsigned int) obj, argc, _id);
+			   (unsigned int) obj, argc, _c_str);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
@@ -2454,11 +2477,21 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 }
 
 JSBool
+SFNodeAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	if (verbose) {
+		printf("SFNodeAssign: obj = %u, argc = %u\n",
+			   (unsigned int) obj, argc);
+	}
+	*rval = OBJECT_TO_JSVAL(obj);
+	return JS_TRUE;
+}
+
+JSBool
 SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	JSObject *globalObj;
 	JSString *_idStr;
-	JSClass *_vClass;
 	BrowserNative *brow;
 	char *_id_c;
 	jsval _b_val, _obj_val = OBJECT_TO_JSVAL(obj);
@@ -2493,14 +2526,16 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	if (!JS_SetProperty(cx, globalObj, _id_c, vp)) {
 		fprintf(stderr,
-				"JS_SetProperty failed for \"__prop\" in SFNodeSetProperty.\n");
+				"JS_SetProperty failed for \"%s\" in SFNodeSetProperty.\n",
+				_id_c);
 		return JS_FALSE;
 	}
+
+	doPerlCallMethodVA(brow->sv_js, "nodeSetProperty", "s", _id_c);
 	if (verbose) {
 		printf("SFNodeSetProperty: obj = %u, id = %s\n",
 			   (unsigned int) obj, _id_c);
 	}
-	doPerlCallMethodVA(brow->sv_js, "nodeSetProperty", "s", _id_c);
 
 	return JS_TRUE;
 }

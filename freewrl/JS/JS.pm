@@ -166,6 +166,7 @@ sub jsConstructor {
 			} else {
 				$handle = VRML::Handles::reserve($v);
 			}
+##print "jsConstructor: value=$v, as string:\n".VRML::Field::SFNode->as_string($v)."\n";
 			$c .= "\"$handle\"";
 		} elsif ($ft =~ /^MF/) {
 			$sft = $ft;
@@ -265,7 +266,6 @@ sub gatherSentEvents {
 				push @a, [$node, $_, $this->getProperty($type, $_)]; # $this->get_prop($type,$_)];
 			}
 		}
-		# $this->{O}->print("$t->{FieldKinds}{$_}\n
 	}
 	return @a;
 }
@@ -278,7 +278,8 @@ sub sendevent {
 	my ($rs, $rval);
 
 
-	print "VRML::JS::sendevent $node $event $value $timestamp ($type)\n" if $VRML::verbose::js;
+	print "VRML::JS::sendevent $node $event $value $timestamp ($type)\n"
+		if $VRML::verbose::js;
 	$this->setProperty($event, $value, $aname);
 
 	if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$event($aname,$timestamp)", $rs, $rval)) {
@@ -317,7 +318,8 @@ sub setProperty { # Assigns a value to a property.
 	}
 	$vftype = "VRML::Field::$ftype";
 
-	print "VRML::JS::setProperty args: field=$field, value=$value, property=$prop\n" if $VRML::verbose::js;
+	print "VRML::JS::setProperty args: field=$field, value=$value, property=$prop\n"
+		if $VRML::verbose::js;
 	## problem with MF types - what to do from new ???
 	if ($ftype =~ /^MF/) {
 		$styp = $ftype;
@@ -440,8 +442,9 @@ sub getProperty {
 }
 
 sub nodeSetProperty {
-	my ($this, $prop, $vt) = @_;
-	my ($node, $val, $rval);
+	my ($this, $prop) = @_;
+	my ($node, $val, $vt);
+	my $exposedFieldProp = 0;
 
 	print "VRML::JS::nodeSetProperty args: @_\n" if $VRML::verbose::js;
 
@@ -452,15 +455,23 @@ sub nodeSetProperty {
 	print "\tsetting property $prop for $node\n" if $VRML::verbose::js;
 	$node = VRML::Handles::get($node);
 
-	$vt = $node->{Type}{FieldTypes}{$prop};
+	if ($prop =~ /^(?:set_($VRML::Error::Word+)|($VRML::Error::Word+)_changed)$/) {
+		$exposedFieldProp = $1;
+		$vt = $node->{Type}{FieldTypes}{$exposedFieldProp};
+	} else {
+		$vt = $node->{Type}{FieldTypes}{$prop};
+	}
+
 	if (!defined $vt) {
 		cleanupDie("Javascript tried to assign to invalid property!\n");
 	}
-
 	$val = $this->getProperty($vt, $prop);
 
-	print "\tsetting property to $val\n" if $VRML::verbose::js;
-	$node->{RFields}{$prop} = $val;
+	if ($exposedFieldProp) {
+		$node->{RFields}{$exposedFieldProp} = $val;
+	} else {
+		$node->{RFields}{$prop} = $val;
+	}
 }
 
 ## browser object set in JS global object ???
@@ -471,7 +482,6 @@ sub browserGetName {
 	print "browserGetName ($this) !\n"
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->getName();
-	# runScript($this->{JSContext}, $this->{JSGlobal}, "Browser.__bret = \"$n\"", $rs);
 	if (!runScript($this->{JSContext}, $this->{JSGlobal}, "Browser.__bret=\"$n\"", $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::browserGetName");
 	}

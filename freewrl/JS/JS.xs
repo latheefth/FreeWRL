@@ -198,9 +198,9 @@ SFColorNativeSet(void *p, SV *sv)
 	}
 
 	if (!SvROK(sv)) {
-		(ptr->v).c[0] = 0;
-		(ptr->v).c[1] = 0;
-		(ptr->v).c[2] = 0;
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
 	} else {
 		if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
 			fprintf(stderr, "SFColor without being arrayref in SFColorNativeSet.\n");
@@ -229,7 +229,9 @@ SFImageNativeNew()
 		return NULL;
 	}
 	ptr->touched = 0;
-	(ptr->v).__data = malloc(LARGESTRING * sizeof(char));
+#if FALSE
+/* 	(ptr->v).__data = malloc(LARGESTRING * sizeof(char)); */
+#endif
 	return ptr;
 }
 
@@ -239,9 +241,11 @@ SFImageNativeDelete(void *p)
 	SFImageNative *ptr;
 	if (p != NULL) {
 		ptr = p;
-		if ((ptr->v).__data != NULL) {
-			free((ptr->v).__data);
-		}
+#if FALSE
+/* 		if ((ptr->v).__data != NULL) { */
+/* 			free((ptr->v).__data); */
+/* 		} */
+#endif
 		free(ptr);
 	}
 }
@@ -252,86 +256,88 @@ SFImageNativeAssign(void *top, void *fromp)
 	SFImageNative *to = top;
 	SFImageNative *from = fromp;
 	to->touched++;
-	(to->v) = (from->v);
+/* 	(to->v) = (from->v); */
 }
 
 void
 SFImageNativeSet(void *p, SV *sv)
 {
 	SFImageNative *ptr = p;
-	AV *a;
-	SV **__data, **__x, **__y, **__depth, **__texture;
-	STRLEN pl_na;
-	size_t _len, _data_s;
-	char *c;
+#if FALSE
+/* 	AV *a; */
+/* 	SV **__data, **__x, **__y, **__depth, **__texture; */
+/* 	STRLEN pl_na; */
+/* 	size_t _len, _data_s; */
+/* 	char *c; */
 
-	if (!SvROK(sv)) {
-		(ptr->v).__x = 0;
-		(ptr->v).__y = 0;
-		(ptr->v).__depth = 0;
-		(ptr->v).__data = "";
-		(ptr->v).__texture = 0;
-	} else if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
-			fprintf(stderr, "SFImage without being arrayref in SFImageNativeSet.\n");
-			return;
-	} else {
-		a = (AV *) SvRV(sv);
+/* 	if (!SvROK(sv)) { */
+/* 		(ptr->v).__x = 0; */
+/* 		(ptr->v).__y = 0; */
+/* 		(ptr->v).__depth = 0; */
+/* 		(ptr->v).__data = ""; */
+/* 		(ptr->v).__texture = 0; */
+/* 	} else if (SvTYPE(SvRV(sv)) != SVt_PVAV) { */
+/* 			fprintf(stderr, "SFImage without being arrayref in SFImageNativeSet.\n"); */
+/* 			return; */
+/* 	} else { */
+/* 		a = (AV *) SvRV(sv); */
 
 		/* __x */
-		__x = av_fetch(a, 0, 1); /* LVal for easiness */
-		if (!__x) {
-			fprintf(stderr, "SFImage __x is NULL in SFImageNativeSet.\n");
-			return;
-		}
-		(ptr->v).__x = SvNV(*__x);
+/* 		__x = av_fetch(a, 0, 1); */
+/* 		if (!__x) { */
+/* 			fprintf(stderr, "SFImage __x is NULL in SFImageNativeSet.\n"); */
+/* 			return; */
+/* 		} */
+/* 		(ptr->v).__x = SvNV(*__x); */
 
 		/* __y */
-		__y = av_fetch(a, 1, 1); /* LVal for easiness */
-		if (!__y) {
-			fprintf(stderr, "SFImage __y is NULL in SFImageNativeSet.\n");
-			return;
-		}
-		(ptr->v).__y = SvNV(*__y);
+/* 		__y = av_fetch(a, 1, 1); */
+/* 		if (!__y) { */
+/* 			fprintf(stderr, "SFImage __y is NULL in SFImageNativeSet.\n"); */
+/* 			return; */
+/* 		} */
+/* 		(ptr->v).__y = SvNV(*__y); */
 
 		/* __depth */
-		__depth = av_fetch(a, 2, 1); /* LVal for easiness */
-		if (!__depth) {
-			fprintf(stderr, "SFImage __depth is NULL in SFImageNativeSet.\n");
-			return;
-		}
-		(ptr->v).__depth = SvNV(*__depth);
+/* 		__depth = av_fetch(a, 2, 1); */
+/* 		if (!__depth) { */
+/* 			fprintf(stderr, "SFImage __depth is NULL in SFImageNativeSet.\n"); */
+/* 			return; */
+/* 		} */
+/* 		(ptr->v).__depth = SvNV(*__depth); */
 
 		/* Handle image data */
-		/* __data = av_fetch(a, 4, 1); */ /* LVal for easiness */
-		__data = av_fetch(a, 3, 1); /* ??? */
-		if (!__data) {
-			fprintf(stderr, "SFImage __data is NULL in SFImageNativeSet.\n");
-			return;
-		}
-		c = SvPV(*__data, pl_na);
-		_len = strlen(c);
-		_data_s = sizeof((ptr->v).__data);
-		if (_len * sizeof(char) > _data_s) {
-			_data_s = (_len + 1) * sizeof(char);
-			if (((ptr->v).__data =
-				 (char *) realloc((ptr->v).__data, _data_s))
-				== NULL) {
-				fprintf(stderr,
-						"realloc failed in SFImageNativeSet.\n");
-				return;
-			}
-		}
-		memset((ptr->v).__data, 0, _len + 1);
-		memmove((ptr->v).__data, c, _len);
+		/* __data = av_fetch(a, 4, 1); */
+/* 		__data = av_fetch(a, 3, 1); */ /* ??? */
+/* 		if (!__data) { */
+/* 			fprintf(stderr, "SFImage __data is NULL in SFImageNativeSet.\n"); */
+/* 			return; */
+/* 		} */
+/* 		c = SvPV(*__data, pl_na); */
+/* 		_len = strlen(c); */
+/* 		_data_s = sizeof((ptr->v).__data); */
+/* 		if (_len * sizeof(char) > _data_s) { */
+/* 			_data_s = (_len + 1) * sizeof(char); */
+/* 			if (((ptr->v).__data = */
+/* 				 (char *) realloc((ptr->v).__data, _data_s)) */
+/* 				== NULL) { */
+/* 				fprintf(stderr, */
+/* 						"realloc failed in SFImageNativeSet.\n"); */
+/* 				return; */
+/* 			} */
+/* 		} */
+/* 		memset((ptr->v).__data, 0, _len + 1); */
+/* 		memmove((ptr->v).__data, c, _len); */
 
 		/* __texture */
-		__texture = av_fetch(a, 4, 1); /* ??? */ /* LVal for easiness */
-		if (!__texture) {
-			fprintf(stderr, "SFImage __texture is NULL in SFImageNativeSet.\n");
-			return;
-		}
-		(ptr->v).__texture = SvNV(*__texture);
-	}
+/* 		__texture = av_fetch(a, 4, 1); */ /* ??? */
+/* 		if (!__texture) { */
+/* 			fprintf(stderr, "SFImage __texture is NULL in SFImageNativeSet.\n"); */
+/* 			return; */
+/* 		} */
+/* 		(ptr->v).__texture = SvNV(*__texture); */
+/* 	} */
+#endif
 	ptr->touched = 0;
 }
 
@@ -380,10 +386,10 @@ SFRotationNativeSet(void *p, SV *sv)
 		printf("SFRotationNativeSet\n");
 	}
 	if (!SvROK(sv)) {
-		(ptr->v).r[0] = 0;
-		(ptr->v).r[1] = 1;
-		(ptr->v).r[2] = 0;
-		(ptr->v).r[3] = 0;
+		(ptr->v).r[0] = 0.0;
+		(ptr->v).r[1] = 1.0;
+		(ptr->v).r[2] = 0.0;
+		(ptr->v).r[3] = 0.0;
 	} else {
 		if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
 			fprintf(stderr, "SFRotation without being arrayref in SFRotationNativeSet.\n");
@@ -448,8 +454,8 @@ SFVec2fNativeSet(void *p, SV *sv)
 	}
 
 	if (!SvROK(sv)) {
-		(ptr->v).c[0] = 0;
-		(ptr->v).c[1] = 0;
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
 	} else if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
 			fprintf(stderr, "SFVec2f without being arrayref in SFVec2fNativeSet.\n");
 			return;
@@ -517,9 +523,9 @@ SFVec3fNativeSet(void *p, SV *sv)
 	}
 
 	if (!SvROK(sv)) {
-		(ptr->v).c[0] = 0;
-		(ptr->v).c[1] = 0;
-		(ptr->v).c[2] = 0;
+		(ptr->v).c[0] = 0.0;
+		(ptr->v).c[1] = 0.0;
+		(ptr->v).c[2] = 0.0;
 	} else if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
 			fprintf(stderr, "SFVec3f without being arrayref in SFVec3fNativeSet.\n");
 			return;

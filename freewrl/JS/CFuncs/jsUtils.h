@@ -50,7 +50,6 @@ extern void
 doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...);
 
 
-
 typedef struct _SFRotationNative {
 	int touched;
 	struct SFRotation v;
@@ -68,7 +67,9 @@ typedef struct _SFVec3fNative {
 
 typedef struct _SFImageNative {
 	int touched; 
-	struct SFImage v;
+#if FALSE
+	/* struct SFImage v; */
+#endif
 } SFImageNative;
 
 typedef struct _SFColorNative {

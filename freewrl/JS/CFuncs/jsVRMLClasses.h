@@ -125,6 +125,12 @@ setAssignProperty(JSContext *context,
 
 
 
+JSBool
+SFNodeAssign(JSContext *cx,
+			 JSObject *obj,
+			 uintN argc,
+			 jsval *argv,
+			 jsval *rval);
 
 JSBool
 SFNodeConstr(JSContext *cx,
@@ -873,20 +879,18 @@ static JSClass SFNodeClass = {
 	SFNodeFinalize
 };
 
-static JSFunctionSpec (SFNodeFunctions)[] = {{0}};
+/* static JSFunctionSpec (SFNodeFunctions)[] = {{0}}; */
 
-/* static JSFunctionSpec (SFNodeFunctions)[] = { */
+static JSFunctionSpec (SFNodeFunctions)[] = {
+	{"assign", SFNodeAssign, 0},
 /* 	{"toString", SFNodeToString, 0}, */
-/* 	{0} */
-/* }; */
+	{0}
+};
 
-/* static JSPropertySpec (SFNodeProperties)[] = { */
-/* 	{"vrmlstring", 0, JSPROP_ENUMERATE}, */
-/* 	{0} */
-/* }; */
+/* static JSPropertySpec (SFNodeProperties)[] = {{0}}; */
 
-JSObject *proto_SFRotation;
 
+static JSObject *proto_SFRotation;
 
 static JSClass SFRotationClass = {
 	"SFRotation",
@@ -967,9 +971,8 @@ static JSClass SFImageClass = {
 static JSPropertySpec (SFImageProperties)[] = {
 	{"x", 0, JSPROP_ENUMERATE},
 	{"y", 1, JSPROP_ENUMERATE},
-	{"depth", 2, JSPROP_ENUMERATE},
-	{"data", 3, JSPROP_ENUMERATE},
-	{"texture", 4, JSPROP_ENUMERATE},
+	{"comp", 2, JSPROP_ENUMERATE},
+	{"array", 3, JSPROP_ENUMERATE},
 	{0}
 };
 
