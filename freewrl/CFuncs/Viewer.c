@@ -155,6 +155,7 @@ resolve_pos(VRML_Viewer *viewer)
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
 		inverse(&q_inv, &(viewer->Quat));
 		rotation(&rot, &q_inv, &z_axis);
+		//rotation(&rot, &viewer->Quat, &z_axis);
 
 		/* my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]} */
 		dist = VECPT(viewer->Pos, rot);
@@ -200,45 +201,27 @@ viewer_togl(VRML_Viewer *viewer, double fieldofview)
 void
 handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, const double x, const double y)
 {
-/* 	my($this, $mev, $but, $mx, $my) = @_; */
 	VRML_Viewer_Walk *walk = viewer->walk;
 
 	/* printf("Viewer handle_walk: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); */
 
-/* 	if($mev eq "PRESS" and $but == 1) { */
 	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
-/* 		$this->{SY} = $my; */
-/* 		$this->{SX} = $mx; */
-/* 	} elsif($mev eq "PRESS" and $but == 3) { */
-/* 		$this->{SY} = $my; */
-/* 		$this->{SX} = $mx; */
 		walk->SY = y;
 		walk->SX = x;
-/* 	} elsif($mev eq "DRAG" and $but == 1) { */
 	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
 		if (button == 1) {
-/* 		$this->{ZD} = ($my - $this->{SY}) * $this->{Navi}{Fields}{speed}; */
 			walk->ZD = (y - walk->SY) * viewer->speed;
-/* 		$this->{RD} = ($mx - $this->{SX}) * 0.1; */
 			walk->RD = (x - walk->SX) * 0.1;
-/* 	} elsif($mev eq "DRAG" and $but == 3) { */
 		} else if (button == 3) {
-/* 		$this->{XD} = ($mx - $this->{SX}) * $this->{Navi}{Fields}{speed}; */
 			walk->XD = (x - walk->SX) * viewer->speed;
-/* 		$this->{YD} = -($my - $this->{SY}) * $this->{Navi}{Fields}{speed}; */
 			walk->YD = -(y - walk->SY) * viewer->speed;
 		}
-/* 	} elsif ($mev eq "RELEASE") { */
 	} else if (strncmp(mev, RELEASE, RELEASE_LEN) == 0) {
 		if (button == 1) {
-/* 			$this->{ZD} = 0; */
 			walk->ZD = 0;
-/* 			$this->{RD} = 0; */
 			walk->RD = 0;
 		} else if (button == 3) {
-/* 			$this->{XD} = 0; */
 			walk->XD = 0;
-/* 			$this->{YD} = 0; */
 			walk->YD = 0;
 		}
 	}
@@ -254,24 +237,17 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 	VRML_Viewer_Examine *examine = viewer->examine;
 	double squat_norm;
 
-	/* printf("Viewer handle_examine: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); */
+	//printf("Viewer handle_examine: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); 
 
 
-/* 	if($mev eq "PRESS" and $but == 1) { */
 	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
 		if (button == 1) {
-	/* 		$this->{SQuat} = $this->xy2qua($mx,$my); */
 			xy2qua(&(examine->SQuat), x, y);
-	/* 		$this->{OQuat} = $this->{Quat}; */
 			set(&(examine->OQuat), &(viewer->Quat));
-	/* 	} elsif($mev eq "PRESS" and $but == 3) { */
 		} else if (button == 3) {
-	/* 		$this->{SY} = $my; */
 			examine->SY = y;
-	/* 		$this->{ODist} = $this->{Dist}; */
 			examine->ODist = viewer->Dist;
 		}
-/* 	} elsif($mev eq "DRAG" and $but == 1) { */
 	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
 		if (button == 1) {
 			/* 		if (!defined $this->{SQuat}) {  */
@@ -298,11 +274,9 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 			viewer->Dist = examine->ODist * exp(examine->SY - y);
 		}
  	}
-/* 	$this->{Pos} = $this->{Quat}->invert->rotate([0,0,$this->{Dist}]); */
 	inverse(&q_i, &(viewer->Quat));
 	rotation(&(viewer->Pos), &q_i, &p);
 
-/* 	for(0..2) {$this->{Pos}[$_] += $this->{Origin}[$_]} */
 	(viewer->Pos).x += (examine->Origin).x;
 	(viewer->Pos).y += (examine->Origin).y;
 	(viewer->Pos).z += (examine->Origin).z;
@@ -326,7 +300,7 @@ void handle(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 		handle_examine(viewer, mev, button, x, y);
 		break;
 	case WALK:
-		handle_walk(viewer, mev, button, x, y);
+		handle_walk(viewer, mev, button, -x, y);
 		break;
 	case EXFLY:
 		break;
@@ -463,10 +437,8 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 {
 /* 	my($this, $time) = @_; */
 	size_t len = 0;
-	unsigned int i = 0;
 	char string[STRING_SIZE];
-	char x_str[INPUT_LEN], y_str[INPUT_LEN], z_str[INPUT_LEN];
-	char quat_w_str[INPUT_LEN], quat_x_str[INPUT_LEN], quat_y_str[INPUT_LEN], quat_z_str[INPUT_LEN];
+	float px,py,pz,q1,q2,q3,q4;
 
 	UNUSED(time);
 
@@ -505,47 +477,20 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 
 /* 	if (length($string)>0) */
 	if ((len = strlen(string)) > 0) {
-		while (i < len) {
-			if (i < INPUT_LEN_Z) { /* substr ($string,0,8); */
-				z_str[i] = string[i];
-			} else if (i >= X_OFFSET &&
-					   i < INPUT_LEN) { /* substr ($string,8,9); */
-				x_str[i] = string[i];
-			} else if (i >= Y_OFFSET &&
-					   i < INPUT_LEN) { /* substr ($string,17,9); */
-				y_str[i] = string[i];
-			} else if (i >= QUAT_W_OFFSET &&
-					   i < INPUT_LEN) { /* substr($string,26,9) */
-				quat_w_str[i] = string[i];
-			} else if (i >= QUAT_X_OFFSET &&
-					   i < INPUT_LEN) { /* substr($string,35,9) */
-				quat_x_str[i] = string[i];
-			} else if (i >= QUAT_Y_OFFSET &&
-					   i < INPUT_LEN) { /* substr($string,44,9) */
-				quat_y_str[i] = string[i];
-			} else if (i >= QUAT_Z_OFFSET &&
-					   i < INPUT_LEN) { /* substr($string,53,9) */
-				quat_z_str[i] = string[i];
-			} else {
-				break;
-			}
-			i++;
-		}
+		len = sscanf (string, "%f %f %f %f %f %f %f",&px,&py,&pz,
+			&q1,&q2,&q3,&q4);
 
-		/* $this->{Pos}[0] = substr ($string,8,9); */
-		(viewer->Pos).x = atof((const char *) x_str);
-		/* $this->{Pos}[1] = substr ($string,17,9); */
-		(viewer->Pos).y = atof((const char *) y_str);
-		/* $this->{Pos}[2] = substr ($string,0,8); */
-		(viewer->Pos).z = atof((const char *) z_str);
+		/* read error? */
+		if (len != 7) return;
 
-/* 		$this->{Quat} = new VRML::Quaternion(substr ($string,26,9),  */
-/* 			substr ($string,35,9), substr ($string,44,9), */
-/* 			substr ($string,53,9)); */
-		(viewer->Quat).w =  atof((const char *) quat_w_str);
-		(viewer->Quat).x =  atof((const char *) quat_x_str);
-		(viewer->Quat).y =  atof((const char *) quat_y_str);
-		(viewer->Quat).z =  atof((const char *) quat_z_str);
+		(viewer->Pos).x = px;
+		(viewer->Pos).y = py;
+		(viewer->Pos).z = pz;
+
+		(viewer->Quat).w = q1;
+		(viewer->Quat).x = q2;
+		(viewer->Quat).y = q3;
+		(viewer->Quat).z = q4;
 
 		set_render_frame();
 	}
@@ -597,10 +542,10 @@ set_action(char *key)
 		translate[X_AXIS] += 1;
 		break;
 	case 'p':
-		translate[Y_AXIS] += 1;
+		translate[Y_AXIS] -= 1;
 		break;
 	case ';':
-		translate[Y_AXIS] -= 1;
+		translate[Y_AXIS] += 1;
 		break;
 	case '8':
 		rotate[X_AXIS] += 1;
@@ -609,10 +554,10 @@ set_action(char *key)
 		rotate[X_AXIS] -= 1;
 		break;
 	case 'u':
-		rotate[Y_AXIS] -= 1;
+		rotate[Y_AXIS] += 1;
 		break;
 	case 'o':
-		rotate[Y_AXIS] += 1;
+		rotate[Y_AXIS] -= 1;
 		break;
 	case '7':
 		rotate[Z_AXIS] -= 1;
@@ -649,85 +594,57 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 	}
 	
 	/* first, get all the keypresses since the last time */
-/* 	for(keys %{$this->{Down}}) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
-/* 		$ps{$_} += $this->{Down}{$_}; */
 		(ps[i]).hit += (fly->Down[i]).hit;
 	}
 
-/* 	for(keys %{$this->{WasDown}}) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
-/* 		$ps{$_} += delete $this->{WasDown}{$_}; */
 		(ps[i]).hit += (fly->WasDown[i]).hit;
 		(fly->WasDown[i]).hit = 0;
 	}
 
-/* 	undef @aadd; */
-/* 	undef @radd; */
 	memset(translate, 0, sizeof(int) * COORD_SYS);
 	memset(rotate, 0, sizeof(int) * COORD_SYS);
 
-/* 	for(keys %ps) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
-/* 		if(exists $actions{$_}) { */
-/* 			$actions{$_}->($ps{$_}?1:0); */
-/* 		}  */
 		if ((ps[i]).hit) {
 			set_action(&(ps[i]).key);
 		}
 	}
 
 	/* has anything changed? if so, then re-render */
-/* 	for(@$v) */
 	for (i = 0; i < COORD_SYS; i++) {
-/* 		$_ *= 0.06 ** ($dt); */
 		fly->Velocity[i] *= pow(0.06, time_diff);
 
-/* 		$_ += $dt * $aadd[$ind++] * 14.5; */
 		fly->Velocity[i] += time_diff * translate[i] * 14.5;
 
-/* 		if(abs($_) > 9.0) {$_ /= abs($_)/9.0} */
 		if (fabs(fly->Velocity[i]) >9.0) {
 			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
 		}
-/* 		$changed += $_; */
 		changed += fly->Velocity[i];
 	}
 
-/* 	my $nv = $this->{Quat}->invert->rotate( */
-/* 		[map {$_ * $dt} @{$this->{Velocity}}] */
-/* 	); */
-/* 	for(0..2) {$this->{Pos}[$_] += $nv->[$_]} */
 	v.x = fly->Velocity[0] * time_diff;
 	v.y = fly->Velocity[1] * time_diff;
 	v.z = fly->Velocity[2] * time_diff;
 
 	increment_pos(viewer, &v);
 
-/* 	for(@$av) */
 	for (i = 0; i < COORD_SYS; i++) {
-/* 		$_ *= 0.04 ** ($dt); */
 		fly->AVelocity[i] *= pow(0.04, time_diff);
-/* 		$_ += $dt * $radd[$ind++] * 0.1; */
 		fly->AVelocity[i] += time_diff * rotate[i] * 0.1;
 
-/* 		if(abs($_) > 0.8) {$_ /= abs($_)/0.8;} */
 		if (fabs(fly->AVelocity[i]) > 0.8) {
 			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
 		}
-/* 		$sq += $_*$_; */
-/* 		$changed += $_; */
 		changed += fly->AVelocity[i];
 	}
 	
-/* 	my $nq = new VRML::Quaternion(1,@$av); */
 	nq.x = fly->AVelocity[0];
 	nq.y = fly->AVelocity[1];
 	nq.z = fly->AVelocity[2];
-/* 	$nq->normalize_this; */
 	normalize(&nq);
 
-/* 	$this->{Quat} = $nq->multiply($this->{Quat}); */
 	set(&q_v, &(viewer->Quat));
 	multiply(&(viewer->Quat), &nq, &q_v);
 
@@ -838,7 +755,7 @@ increment_pos(VRML_Viewer *viewer, struct pt *vec)
 	inverse(&q_i, &(viewer->Quat));
 	rotation(&nv, &q_i, vec);
 
-	(viewer->Pos).x += nv.x;
+	(viewer->Pos).x -= nv.x;
 	(viewer->Pos).y += nv.y;
 	(viewer->Pos).z += nv.z;
 }
