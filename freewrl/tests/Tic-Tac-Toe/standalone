@@ -1,0 +1,2 @@
+nice freewrl tictactoe-eai.wrl -eai localhost:2000 -best &
+appletviewer tictactoe-eai.html 
