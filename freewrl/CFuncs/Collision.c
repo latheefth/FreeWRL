@@ -11,7 +11,12 @@
 #include <stdio.h>
 #include <math.h>
 #include "LinearAlgebra.h"
+#ifndef __APPLE__
 #include <malloc.h>
+#endif
+#if defined(__APPLE__)
+#include <sys/malloc.h>
+#endif
 
 #define swap(x,y) {double k = x; x = y; y = k; }
 #define FLOAT_TOLERANCE 0.00000001
