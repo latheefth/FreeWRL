@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.57  2002/07/15 15:37:48  crc_canada
+# add CFunc to allow setting of max texture size from freewrl.PL
+#
 # Revision 1.56  2002/07/09 16:13:02  crc_canada
 # Text nodes now in here; seperate module removed
 #
@@ -1087,6 +1090,9 @@ struct VRML_Shape *last_visited_shape = 0;
    and diffusecolor with texture, else, we dont bother with material colors */
 int last_texture_depth = 0;
 
+/* and, we allow a maximum of so many pixels per texture */
+GLint global_texSize = 64;
+
 int verbose;
 
 int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
@@ -1401,6 +1407,32 @@ void remove_parent(void *node_, void *parent_) {
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 
 PROTOTYPES: ENABLE
+
+#####################################################################
+# 
+# Set the texture rendering size
+# 
+# OpenGL implementations specify a maximum texture size; resize
+# textures to this size, or allow specifying a smaller size
+#
+#####################################################################
+
+void
+set_maxtexture_size (maxsize)
+	int maxsize;
+CODE:
+        int texSize;
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
+	
+	/* see which one we should use */
+	if (maxsize < texSize) {
+		global_texSize = maxsize;
+	} else {
+		global_texSize = texSize;
+	}
+
+
+
 
 #####################################################################
 #
