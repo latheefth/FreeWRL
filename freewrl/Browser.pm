@@ -526,7 +526,6 @@ sub tick {
 	$this->{BE}->handle_events($time);
 
 	#update viewer position (first draft)
-	#AK - #$this->{BE}->{Viewer}->handle_tick($time);
 	VRML::VRMLFunc::do_handle_tick();
 
 	#setup projection.
@@ -539,9 +538,8 @@ sub tick {
 	#do actual screen writing
 	$this->{BE}->render();
 
-	for(@{$this->{Periodic}}) {
-		&$_();
-	}
+	#handle EAI.
+	VRML::VRMLFunc::handle_EAI();
 }
 
 my $FPS = 0;
@@ -718,10 +716,6 @@ sub api__updateRouting {
 	$this->{Scene}->update_routing($node, $field);
 	$this->prepare2();
 }
-
-
-sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
-
 
 
 #######################################################################
