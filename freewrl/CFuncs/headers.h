@@ -129,8 +129,8 @@ void normalize_ifs_face (float *point_normal,
                         float creaseAngle);
 
 
-void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *length,
-                float maxext, float spacing, float mysize, unsigned int fsparam,
+void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length,
+                double maxext, double spacing, double mysize, unsigned int fsparam,
                 struct VRML_PolyRep *rp);
 
 
@@ -220,10 +220,11 @@ void JSMaxAlloc();
 extern struct CRjsStruct *JSglobs; /* Javascript invocation parameters */
 extern int *scr_act;    /* script active array - defined in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
-void render_status(); /* status bar */
-void update_status(); 	/* update status bar */
+void render_status(void); /* status bar */
+void update_status(void); 	/* update status bar */
 void viewer_type_status(int x);		/* tell status bar what kind of viewer */
-//void viewpoint_name_status(char *str); /* tell status bar name of current vp 	*/
+void viewpoint_name_status(char *str); /* tell status bar name of current vp 	*/
+
 extern double BrowserFPS;
 void render_polyrep(void *node,
         int npoints, struct SFColor *points,
