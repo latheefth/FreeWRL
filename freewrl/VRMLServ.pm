@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.21  2002/09/19 19:40:14  crc_canada
+# much EAI work
+#
 # Revision 1.20  2002/08/06 04:41:36  ayla
 #
 # Merging mozilla development branch to trunk.
@@ -249,53 +252,101 @@ sub poll {
 
 sub find_actual_node_and_field {
 	my ($id, $field, $eventin) = @_;
+	my $actualfield;
 
-	# JASmy $node = VRML::Handles::front_end_child_get(VRML::Handles::get($id));
+	# print "find_actual_node_and_field, looking for ",
+	# 	VRML::NodeIntern::dump_name($id)," field $field\n";
 	my $node = VRML::Handles::get($id);
-	if ($node == ""){ 
+	if ($node eq ""){ 
+# print "find_actual_node_and_field, node $id was not registered\n";
 		# node was not registered
 		$node = $id;
 	}
 
-	# print "find_actual_node, looking at node ",
-	# 	VRML::NodeIntern::dump_name($node),  " ref ", ref $node, 
-	# 	" field $field, eventin flag $eventin\n";
+	# remove the set_ and _changed, if it exists.
+	# actual fields (NOT EventIN/OUTs) are what we are usually after
+	$actualfield = $field;
+	if ($eventin == 1) {
+  		$actualfield =~ s/^set_//; # trailing new line....
+	} else {
+  		$actualfield =~ s/_changed$//; # trailing new line....
+	}
 
-	if (defined $node->{IsProto}) {
+# foreach (keys %{$node->{Fields}}) {
+# 	print "	Field $_\n";
+# }
+
+	 # print "find_actual_node, looking at node ",
+	 # 	VRML::NodeIntern::dump_name($node),"  ref ", ref $node, 
+	 # 	" field :$field:, actualfield $actualfield eventin flag $eventin\n";
+
+	if (exists $node->{Fields}{$field}) {
+		# print "find_actual_node this is a direct pointer to the field, just returning\n";
+		return ($node, $field);
+	}
+
+	if (exists $node->{Fields}{$actualfield}) {
+		# print "find_actual_node this is a direct pointer to the actualfield, just returning\n";
+		return ($node, $actualfield);
+	}
+
+	# print "find_actual_node, step 0.3\n";
+
+	my $direction;
+	if ($eventin ==1) { $direction = "IS_ALIAS_IN"}
+	else {$direction = "IS_ALIAS_OUT"};
+
+# print "find_actual, looking if IS defined\n";
+# foreach (keys %{$node->{Scene}}) {
+# 	print "	Scene $_\n";
+# }
+
+	if (defined $node->{Scene}{$direction}{$field}) {
 		# aha! is this an "IS"?
+		# print "find_actual_node, this is a IsProto\n";
 
-		my $direction;
 		my $n; my $f;
 
-		if ($eventin ==1) { $direction = "IS_ALIAS_IN"}
-		else {$direction = "IS_ALIAS_OUT"};
 
-		$n = $node->{ProtoExp}{$direction}{$field}[0][0];
-		$f = $node->{ProtoExp}{$direction}{$field}[0][1];
-
+		$n = $node->{Scene}{$direction}{$field}[0][0];
+		$f = $node->{Scene}{$direction}{$field}[0][1];
+		# print "find_actual_node, n is ",VRML::NodeIntern::dump_name($n)," f is $f\n";
 		if ($n != "") {
 			# it is an is...
+			# print "find_actual_node, returning n,f\n";
 			return ($n, $f);
 		}
 		# it is a protoexp, and it it not an IS, so, lets just return
 		# the original, and cross our fingers that it is right.
+		# print "find_actual_node, actually, did not find node, returning defaults\n";
 		return ($node,$field);
 	}
+
+	#JAS . dont actually know if any of the rest is of importance, but
+	#JAS keeping it here for now.
 
 	# Hmmm - it was not a PROTO, lets just see if the field 
 	# exists here.
 
+	# print "find_actual_node, step2\n";
+
 	if (defined $node->{$field}) {
 		return ($node,$field);
 	}
-
 	# Well, next test. Is this an EventIn/EventOut, static parameter to
 	# a PROTO?
+	# print "find_actual_node, step3\n";
 
 	if (defined $node->{Scene}) {
+	
+		# print "find_actual_node, Scene defd, was ", VRML::NodeIntern::dump_name($node);
 		$node = VRML::Handles::front_end_child_get($node);
+		# print " is ", VRML::NodeIntern::dump_name($node)," field $field\n";
+
+		#JAS ($node,$field) = find_actual_node_and_field ($node,$field,$eventin);
 		return ($node,$field);
 	}
+	# print "find_actual_node, step4\n";
 	return ($node,$field);
 }
 
@@ -341,30 +392,9 @@ sub handle_input {
                         VRML::Handles::displayed($node);
 
 			if($VRML::verbose::EAI) {
-	                  print "GN returns ",VRML::NodeIntern::dump_name($node),"\n";
+	                  print "GN returns $id\n";
        		        }
 		        $hand->print("RE\n$reqid\n1\n$id\n");
-
-		#JAS } elsif($str =~ /^GFT ([^ ]+) ([^ ]+)$/) { # get field type & kind
-			# JAS Unused???  
-			# JAS my($id, $field) = ($1, $2);
-			# JAS my ($kind, $type) = 
-			# JAS $this->{B}->api__getFieldInfo(VRML::Handles::get($id),
-			# JAS 	$field);
-			# JAS if($VRML::verbose::EAI) {
-	                #JAS   print "GFT returns $kind $type\n";
-       		        #JAS }
-		        #JAS $hand->print("RE\n$reqid\n2\n$kind\n$type\n");
-
-		#JAS } elsif($str =~ /^GI ([^ ]+) ([^ ]+)$/) { # get eventIn type
-		 	#JAS my($id, $field) = ($1, $2);
-			#JAS my ($kind, $type) = 
-			#JAS  $this->{B}->api__getFieldInfo(VRML::Handles::get($id),
-			#JAS 	$field);
-			#JAS if($VRML::verbose::EAI) {
-	                #JAS   print "GI returns $type\n";
-       		        #JAS }
-		        #JAS $hand->print("RE\n$reqid\n1\n$type\n");
 
 		} elsif($str =~ /^GT ([^ ]+) ([^ ]+)$/) { # get eventOut type
 			my($id, $field) = ($1, $2);
@@ -374,14 +404,13 @@ sub handle_input {
 			($node,$field) = find_actual_node_and_field($id,$field,0);
 
                         if ($VRML::verbose::EAI) {
-				print "GT, looking for type for node ",
-					VRML::NodeIntern::dump_name($node),"\n";
+				print "GT, looking for type for node $node\n";
 			}
 
 			my ($kind, $type) = 
 			 $this->{B}->api__getFieldInfo($node, $field);
 
-			# print "GT is returning $type\n";
+			 if ($VRML::verbose::EAI) { print " type  $type\n";}
 		        $hand->print("RE\n$reqid\n0\n$type\n");
 
 		} elsif($str =~ /^GV ([^ ]+) ([^ ]+)$/) { # get eventOut Value
@@ -392,13 +421,12 @@ sub handle_input {
 			($node,$field) = find_actual_node_and_field($id,$field,0);
 
                         if ($VRML::verbose::EAI) {
-				print "GV, looking for type for node ",
-					VRML::NodeIntern::dump_name($node),"\n";
+				print "GV, looking for type for node $node\n";
 			}
 
 			my ($kind, $type) = 
 			 $this->{B}->api__getFieldInfo($node, $field);
-			#print "GV - kind is $kind, type is $type\n";
+			# print "GV - kind is $kind, type is $type\n";
 
 			#print "GV, trying first get\n";
 			my $val = $node->{RFields}{$field};
@@ -412,21 +440,26 @@ sub handle_input {
 
                         if ($type eq "MFNode") {
                                 if ($VRML::verbose::EAI) {
-                                        print "VRMLServ.pm: GV found a MFNode for ",
-						VRML::NodeIntern::dump_name($node)," \n";
+                                        print "VRMLServ.pm: GV found a MFNode for $node\n";
                                 }
 
                                 # if this is a MFnode, we don't want the VRML CODE
 				# if ("ARRAY" eq ref $node->{Fields}{$field}) { print "and, it is an ARRAY\n";}
 
+                                # $strval = "@{$node->{Fields}{$field}}";
 
-				#print " node->{Fields}{$field} = ", $node->{Fields}{$field}, "\n";
-                                $strval = "@{$node->{Fields}{$field}}";
-				#print " so, Im setting strval to $strval\n";
+				foreach (@{$node->{Fields}{$field}}) {
+					 if (VRML::Handles::check($_) == 0) {
+					$strval = $strval ." ". VRML::Handles::reserve($_);
+					 } else {
+					 	$strval = $strval ." ". VRML::Handles::get($_);
+					 }
+					# print " so, Im setting strval to $strval\n";
+				}
 
                         } else {
                                 $strval = "VRML::Field::$type"->as_string($val);
-                                #print "GV value is $val, strval is $strval\n";
+                                # print "GV value is $val, strval is $strval\n";
                         }
 
 			if($VRML::verbose::EAI) {
@@ -449,24 +482,32 @@ sub handle_input {
 			# are there any routes?
          		if (defined $cnode->{SceneRoutes}) {
 				# print "VRMLServ.pm - UR ROUTE ",
-        		        # $cnode->{SceneRoutes}[0][0] , " ",
-        		        # $cnode->{SceneRoutes}[0][1] , " ",
-        		        # $cnode->{SceneRoutes}[0][2] , " ",
-        		        # $cnode->{SceneRoutes}[0][3] , " from $this to node: $cnode\n";
+        		        #  $cnode->{SceneRoutes}[0][0] , " ",
+        		        #  $cnode->{SceneRoutes}[0][1] , " ",
+        		        #  $cnode->{SceneRoutes}[0][2] , " ",
+        		        #  $cnode->{SceneRoutes}[0][3] , " from $this to node: $cnode\n";
 
 				my $scene = $this->{B}{Scene};
 	
 	                        if($field eq "removeChildren") {
 					my $item;		
 					foreach $item (@{$cnode->{SceneRoutes}}) {
-						# print "deleting ",$_[0], $_[1], $_[2], $_[3],"\n";
+						# print "deleting route ",$_[0], $_[1], $_[2], $_[3],"\n";
 						$scene->delete_route($item);
 					}
 				} else {
 					my $item;		
 					foreach $item (@{$cnode->{SceneRoutes}}) {
-						# print "pushing ",$_[0], $_[1], $_[2], $_[3],"\n";
-						$scene->new_route($item);
+						my ($fn,$ff,$tn,$tf) = @{$item};
+						# print "VRMLServ.pm - expanded: $fn $ff $tn $tf\n";
+						#my $fh = VRML::Handles::return_def_name($fn);
+        					#my $th = VRML::Handles::return_def_name($tn);
+
+						#my $fh = VRML::Handles::get($fn);
+						#my $th = VRML::Handles::get($tn);
+						
+						my @ar=[$fn,$ff,$tn,$tf];
+						$scene->new_route(@ar);
 					}
 				}
 			# } else {
@@ -492,14 +533,16 @@ sub handle_input {
 			($node,$field) = find_actual_node_and_field($id,$field,1);
 
 			my $child = VRML::Handles::get($v);
-			# print "VRMLServ.pm - node ",VRML::NodeIntern::dump_name($node),
-			# 	 " child ", VRML::NodeIntern::dump_name($child)," field $field\n";
+
+			if ($VRML::verbose::EAI) {
+				print "VRMLServ.pm - node $node child $child field $field\n";
+			}
 
 			if (defined $child->{IsProto}) {
 				my $temp = $child;
 				$child = $child->real_node();
 				
-				# print "VRMLServ.pm - child proto got $child\n";
+				#print "VRMLServ.pm - child proto got $child\n";
 			}
 
 			# the events are as follows:
@@ -564,6 +607,7 @@ sub handle_input {
 			VRML::OpenGL::set_render_frame();
 
 		        $hand->print("RE\n$reqid\n0\n0\n");
+
 		} elsif($str =~ /^SE ([^ ]+) ([^ ]+)$/) { # send eventIn to node
 			my($id, $field) = ($1,$2);
 			my $v = (shift @lines)."\n";
@@ -580,7 +624,7 @@ sub handle_input {
 			# make sure it gets rendered
 			VRML::OpenGL::set_render_frame();
 	
-			($node,$field) = find_actual_node_and_field($node,$field,1);
+			($node,$field) = find_actual_node_and_field($id,$field,1);
 
 
 			if ($ft eq "SFNode"){
@@ -594,8 +638,7 @@ sub handle_input {
 			    	$this->{B}->api__sendEvent($node, $field, $child);
 			} else {
 			    	my $value = "VRML::Field::$ft"->parse("FOO",$v);
-		    		#print "VRMLServ.pm, at 3, sending to ",
-				# 	VRML::NodeIntern::dump_name($node), 
+		    		#print "VRMLServ.pm, at 3, sending to $node ",
 				# 	" field $field value $v\n";
 		    		$this->{B}->api__sendEvent($node, $field, $value);
 			}
@@ -612,7 +655,7 @@ sub handle_input {
 
 			($node,$field) = find_actual_node_and_field($id,$field,0);
 
-			# print "RL, field $field, node $node, ",VRML::NodeIntern::dump_name($node),"\n";
+			# print "RL, field $field, node $node\n";
 			$this->{B}->api__registerListener(
 				$node,
 				$field,
@@ -626,12 +669,24 @@ sub handle_input {
 
 		} elsif($str =~ /^AR ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {  # addRoute
 			my($fn, $ff, $tn, $tf) = ($1,$2,$3,$4);
-			# print "addroute, $fn (",VRML::NodeIntern::dump_name($fn),
-			# "), $ff, $tn (",VRML::NodeIntern::dump_name($tn),"), $tf\n";
+			# print "addroute, $fn $ff, $tn $tf\n";
 
-			my $fromNode = VRML::Handles::get($fn)->real_node();
-			my $toNode = VRML::Handles::get($tn)->real_node();
-			my @ar=[$fromNode,$ff,$toNode,$tf];
+			#JAS if ("VRML::DEF" eq ref $fn) {
+			#JAS 	print "$fn is a DEF, changing it to ";
+			#JAS 	$fn = VRML::Handles::return_def_name($fn);
+			#JAS 	print "$fn\n";
+			#JAS }
+
+			#JAS my $fromNode = VRML::Handles::get($fn)->real_node();
+			#JAS my $toNode = VRML::Handles::get($tn)->real_node();
+			
+			my $nfn;
+			my $ntn;
+			my $field;
+			($nfn,$field) = find_actual_node_and_field($fn,$ff,0);
+			($ntn,$field) = find_actual_node_and_field($tn,$tf,1);
+
+			my @ar=[$nfn,$ff,$ntn,$tf];
 			my $scene = $this->{B}{Scene};
 
                         $scene->new_route(@ar);
@@ -645,8 +700,7 @@ sub handle_input {
 
 		} elsif($str =~ /^DR ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {  # deleteRoute
 			my($fn, $ff, $tn, $tf) = ($1,$2,$3,$4);
-			print "deleteroute, $fn (",VRML::NodeIntern::dump_name($fn),
-			"), $ff, $tn (",VRML::NodeIntern::dump_name($tn),"), $tf\n";
+			print "deleteroute, $fn $ff, $tn $tf\n";
 
 			my $fromNode = VRML::Handles::get($fn)->real_node();
 			my $toNode = VRML::Handles::get($tn)->real_node();
@@ -692,10 +746,12 @@ sub handle_input {
 			} 
 
 			my $retval = $this->{B}->createVrmlFromString($vrmlcode);
+			if ($VRML::verbose::EAI) { print "CVS returns $retval\n";}
 		        $hand->print("RE\n$reqid\n0\n", $retval, "\n");
 
 		} elsif($str =~ /^CVU (.*)$/) { # Create VRML From URL
 			my $retval = $this->{B}->createVrmlFromURL($1,$2);
+			if ($VRML::verbose::EAI) { print "CVU returns $retval\n";}
 		        $hand->print("RE\n$reqid\n0\n", $retval, "\n");
 
 
@@ -711,11 +767,21 @@ sub handle_input {
 sub send_listened {
 	my($this, $hand, $node, $id, $field, $lid, $value) = @_;
 
-	# print "send_listened, hand $hand node ",VRML::NodeIntern::dump_name($node),
-	# 	" id $id  field $field  lid $lid  value $value\n";
-
-
 	my $ft = $node->{Type}{FieldTypes}{$field};
+
+	if ($VRML::verbose::EAI) {
+		print "send_listened, hand $hand node $node id $id  field $field  lid $lid  value $value\n";
+		print "field type is $ft\n";
+	 	if ("ARRAY" eq ref $value) { 
+			my $item;
+		 	foreach $item (@{$value}) {
+				print "	value element $item \n";
+			}
+		}
+	}
+
+
+	
 	my $str = "VRML::Field::$ft"->as_string($value);
 
 	# position and orientation sends an event per loop, we do not need
