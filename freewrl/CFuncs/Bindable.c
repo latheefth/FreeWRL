@@ -35,6 +35,10 @@ void reset_upvector() {
 
 /* called when binding NavigationInfo nodes */
 void set_naviinfo(struct VRML_NavigationInfo *node) {
+	struct Multi_String *to;
+	SV **svptr;
+	int i;
+	char *typeptr;
 
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");	
@@ -44,7 +48,48 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
         	naviinfo.step = node->avatarSize.p[2];
 	}
         Viewer.headlight = node->headlight;
-        Viewer.speed = node->speed;
+        Viewer.speed = (double) node->speed;
+
+	/* keep track of valid Navigation types. */
+	svptr = node->type.p;
+
+	/* assume "NONE" is set */
+	for (i=0; i<6; i++) Viewer.oktypes[i] = FALSE; 
+
+
+	/* now, find the ones that are ok */
+	for (i = 0; i < node->type.n; i++) {
+		// get the string pointer
+		typeptr = SvPV(svptr[i],PL_na);
+
+		if (strncmp(typeptr,"WALK",strlen("WALK")) == 0) {
+			Viewer.oktypes[WALK] = TRUE;
+			if (i==0) set_viewer_type(WALK);
+		}
+		if (strncmp(typeptr,"FLY",strlen("FLY")) == 0) {
+			Viewer.oktypes[FLY] = TRUE;
+			if (i==0) set_viewer_type(FLY);
+		}
+		if (strncmp(typeptr,"EXAMINE",strlen("EXAMINE")) == 0) {
+			Viewer.oktypes[EXAMINE] = TRUE;
+			if (i==0) set_viewer_type(EXAMINE);
+		}
+		if (strncmp(typeptr,"NONE",strlen("NONE")) == 0) {
+			Viewer.oktypes[NONE] = TRUE;
+			if (i==0) set_viewer_type(NONE);
+		}
+		if (strncmp(typeptr,"EXFLY",strlen("EXFLY")) == 0) {
+			Viewer.oktypes[EXFLY] = TRUE;
+			if (i==0) set_viewer_type(EXFLY);
+		}
+		if (strncmp(typeptr,"ANY",strlen("ANY")) == 0) {
+			Viewer.oktypes[EXAMINE] = TRUE;
+			Viewer.oktypes[WALK] = TRUE;
+			Viewer.oktypes[EXFLY] = TRUE;
+			Viewer.oktypes[FLY] = TRUE;
+			if (i==0) set_viewer_type (WALK); // just choose one
+		}
+	}
 }
 
 
