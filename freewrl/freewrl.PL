@@ -645,9 +645,9 @@ if($fast) {
 
 # texture size - if fast, reduce texture size (really helps sw rendering)
 if ($fast) {
-	&VRML::VRMLFunc::set_maxtexture_size (64);
+	&VRML::VRMLFunc::set_maxtexture_size (128);
 } else {
-	&VRML::VRMLFunc::set_maxtexture_size(2048);
+	&VRML::VRMLFunc::set_maxtexture_size(4096);
 }
 
 
