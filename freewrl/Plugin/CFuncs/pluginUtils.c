@@ -4,6 +4,7 @@
  * FreeWRL plugin utility functions.
  */
 
+#ifndef __APPLE__
 #include "pluginUtils.h"
 
 const char*
@@ -133,3 +134,4 @@ XErrorToString(int error)
             return "Unknown";
     }
 }
+#endif
