@@ -32,6 +32,7 @@ use strict vars;
 my $cursortype = 0;  # pointer cursor
 my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
+my $fieldofview = 45; # field of view; new field of views passed in when binding viewpoints
 
 ####
 #
@@ -203,6 +204,14 @@ sub set_root { $_[0]{Root} = $_[1] }
 
 sub bind_viewpoint {
 	my($this,$node,$bind_info) = @_;
+
+	# Get the field of view for this viewpoint and convert to degrees
+	$fieldofview = $node->{Fields}{fieldOfView};
+	if (($fieldofview < 0.0) || ($fieldofview > 3.1415926)) {
+		$fieldofview = 45.0;
+	} else {
+		$fieldofview = $fieldofview * 180.0 / 3.1415926;
+	}
 	$this->{Viewer}->bind_viewpoint($node,$bind_info);
 }
 
@@ -541,8 +550,7 @@ sub setup_projection {
 	    glupPickMatrix($x, $vp[3]-$y, 3, 3, @vp);
 	  }
 	
-	#FIXME: 45 deg. hardcoded angle??? must get this somewhere -ncoder
-	gluPerspective(45.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 21000.0);
+	gluPerspective($fieldofview, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 21000.0);
 	glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
 	glMatrixMode(&GL_MODELVIEW);
         glPrintError("GLBackEnd::setup_projection");
