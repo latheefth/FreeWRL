@@ -404,6 +404,7 @@ void resetGeometry() {
 		XF86VidModeModeInfo info;
 		int oldMode;
 
+	if (fullscreen) {
 	 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
  		oldMode = 0;
 
@@ -417,6 +418,7 @@ void resetGeometry() {
 	 	XF86VidModeSwitchToMode(dpy, screen, modes[oldMode]);
 	 	XF86VidModeSetViewPort(dpy, screen, 0, 0);
 		XFlush(dpy);
+	}
 
 #endif
 }
