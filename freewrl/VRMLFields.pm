@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.11  2001/06/18 17:25:11  crc_canada
+# IRIX compile warnings removed.
+#
 # Revision 1.10  2001/05/30 19:07:44  ayla
 #
 # Ref. bug id #426972: sfvec3f values don't take commas, submitted by J. Stewart (crc_canada).
@@ -492,7 +495,7 @@ sub rot_multvec {
 	qq~
 		double rl = AVECLEN($_[1].r);
 		double vl = AVECLEN($_[2].c);
-		double rlpt = AVECPT($_[1].r, $_[2].c) / rl / vl;
+		/* Unused JAS double rlpt = AVECPT($_[1].r, $_[2].c) / rl / vl; */
 		float c1[3];
 		float c2[3];
 		double s = sin($_[1].r[3]), c = cos($_[1].r[3]);

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.34  2001/06/18 17:24:32  crc_canada
+# IRIX compile warnings removed.
+#
 # Revision 1.33  2001/06/15 19:32:18  crc_canada
 # lighting disabled as per spec if no Material and/or no Appearance
 #
@@ -774,7 +777,7 @@ ImageTexture => ('
 	last_bound_texture = this_->_texture;
 
 	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-	(void) do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
+	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_LINEAR);
@@ -795,7 +798,7 @@ PixelTexture => ('
 	last_bound_texture = this_->_texture;
 
 	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-	(void) do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
+	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_NEAREST);
@@ -829,7 +832,10 @@ Background => '
 	GLfloat bk_emis[4];		/* background emissive colour	*/
 
 	/* only do background lighting, etc, once for textures */
-	void do_texture();
+	/*
+	do_texture(int depth,int x,int y,unsigned char * ptr, 
+        	GLint Sgl_rep_or_clamp, GLint Tgl_rep_or_clamp,GLint Image);
+	*/
 
 	/* Background Texture Objects.... */
 	static int bcklen,frtlen,rtlen,lftlen,toplen,botlen;
