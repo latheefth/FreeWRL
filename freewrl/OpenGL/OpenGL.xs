@@ -48,7 +48,9 @@ void
 raise_me_please()
 	CODE:
         {
-	  XMapRaised(dpy, win); 
+	  /* XMapRaised(dpy, win); 
+	     EG : XRaiseWindow should be more appropriate */
+	  XRaiseWindow(dpy, win);
 	}
 
 
