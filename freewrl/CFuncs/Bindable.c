@@ -1,0 +1,550 @@
+/*******************************************************************
+ Copyright (C) 2003 John Stewart, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
+
+/*****************************************
+
+Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
+
+******************************************/
+
+
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+
+#include <math.h>
+
+#ifdef AQUA 
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glx.h>
+#endif
+
+#include "Structs.h"
+#include "headers.h"
+#include "LinearAlgebra.h"
+
+/* Bind stack */
+#define MAX_STACK 40
+int background_tos = -1;
+int fog_tos = -1;
+int navigationinfo_tos = -1;
+int viewpoint_tos = -1;
+unsigned int background_stack[MAX_STACK];
+
+
+/* Do binding for node and stack */
+
+void bind_node (void *node, unsigned int setBindofst,
+			int isboundofst, int *tos, int *stack) {
+
+	unsigned int *oldstacktop;
+	unsigned int *newstacktop;
+	unsigned int *setBindptr;	/* this nodes setBind */
+	unsigned int *isBoundptr;	/* this nodes isBound */
+	unsigned int *oldboundptr;	/* previous nodes isBound */
+
+	setBindptr = node + setBindofst;
+	isBoundptr = node + isboundofst;
+	oldstacktop = stack + *tos;  
+
+
+	/* we either have a setBind of 1, which is a push, or 0, which
+	   is a pop. the value of 100 (arbitrary) indicates that this
+	   is not a new push or pop */
+
+	/* isBound mimics setBind */
+	*isBoundptr = *setBindptr;
+	mark_event ((unsigned int) node, isboundofst);
+
+	if (*setBindptr == 1) {
+		/* PUSH THIS TO THE TOP OF THE STACK */
+
+		/* are we off the top of the stack? */
+		if (*tos >= (MAX_STACK-2)) return;
+
+		/* set up pointers, increment stack */
+		*tos = *tos+1;
+		newstacktop = stack + *tos;
+
+		/* save pointer to new top of stack */
+		*newstacktop = (unsigned int) node;
+
+		/* was there another node at the top of the stack? */
+		if (*tos>0) {
+			/* yep... unbind it */
+			oldboundptr = *oldstacktop + isboundofst;
+			*oldboundptr = 0;
+	
+			mark_event ((unsigned int) *oldstacktop, isboundofst);
+
+			/* tell the possible parents of this change */
+			update_node(*oldstacktop);
+		}
+	} else {
+		/* POP FROM TOP OF STACK */
+		if (*tos >= 1) {
+			*tos = *tos - 1;
+			newstacktop = stack + *tos;
+		
+			/* set the popped value of isBound to true */
+			isBoundptr = *newstacktop + isboundofst;
+			*isBoundptr = 1;
+
+			mark_event ((unsigned int) *newstacktop, isboundofst);
+
+			/* tell the possible parents of this change */
+			update_node(*newstacktop);
+		}
+	}
+	/* unset the set_bind flag */
+	*setBindptr = 100;
+}
+
+void render_Fog (struct VRML_Fog *node) {
+
+
+//	/* Fog node... */
+//
+//	GLdouble mod[16];
+//	GLdouble proj[16];
+//	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+//	GLdouble x,y,z;
+//	GLdouble x1,y1,z1;
+//	GLdouble sx, sy, sz;
+//	int frtlen;
+//	GLfloat fog_colour [4];
+//
+//	if(!((this_->isBound))) {return;}
+//	if ($f(visibilityRange) <= 0.00001) return;
+//
+//	fog_colour[0] = $f(color,0);
+//	fog_colour[1] = $f(color,1);
+//	fog_colour[2] = $f(color,2);
+//	fog_colour[3] = 1.0;
+//
+//	glPushMatrix();
+//	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
+//	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+//	/* Get origin */
+//	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
+//	glTranslatef(x,y,z);
+//
+//	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
+//	/* Get scale */
+//	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+//	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+//	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+//	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+//	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+//	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+//	/* Undo the translation and scale effects */
+//	glScalef(sx,sy,sz);
+//
+//
+//	/* now do the foggy stuff */
+//	glFogfv(GL_FOG_COLOR,fog_colour);
+//	glFogf(GL_FOG_END,$f(visibilityRange));
+//	if (strcmp("LINEAR",SvPV((this_->fogType),frtlen))) {
+//		glFogi(GL_FOG_MODE, GL_EXP);
+//	} else {
+//		glFogi(GL_FOG_MODE, GL_LINEAR);
+//	}
+//	glEnable (GL_FOG);
+//
+//	glPopMatrix();
+}
+
+void render_NavigationInfo (struct VRML_NavigationInfo *node) {
+
+//        if(verbose) printf("NavigationInfo: %d IB: %d..\n",
+//                this_,$f(isBound));
+//        if(!$f(isBound)) {return;}
+}
+
+void render_Viewpoint (struct VRML_Viewpoint *node) {
+
+//
+//(join '','
+//	if(render_vp) {
+//		GLint vp[10];
+//		double a1;
+//		double angle;
+//		if(verbose) printf("Viewpoint: %d IB: %d..\n", 
+//			this_,$f(isBound));
+//		if(!$f(isBound)) {return;}
+//
+//		/* stop rendering when we hit A viewpoint or THE viewpoint???
+//		   shouldnt we check for what_vp???? 
+//                   maybe only one viewpoint is in the tree at a time? -  ncoder*/
+//
+//		found_vp = 1; /* We found the viewpoint */
+//
+//		/* These have to be in this order because the viewpoint
+//		 * rotates in its place */
+//		glRotatef(-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
+//			(join ',',map {getf(Viewpoint,orientation,$_)} 0..2),'
+//		);
+//		glTranslatef(',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
+//			0..2),'
+//		);
+//
+//		if (verbose) { 
+//		printf ("Rotation %f %f %f %f\n",
+//		-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
+//			(join ',',map {getf(Viewpoint,orientation,$_)} 0..2),'
+//		);
+//
+//		printf ("Translation %f %f %f\n",
+//		',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
+//			0..2),'
+//		);
+//		}
+//
+//
+//		/* now, lets work on the Viewpoint fieldOfView */
+//		glGetIntegerv(GL_VIEWPORT, vp);
+//		if(vp[2] > vp[3]) {
+//			a1=0;
+//			fieldofview = $f(fieldOfView)/3.1415926536*180;
+//		} else {
+//			a1 = $f(fieldOfView);
+//			a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
+//			fieldofview = a1/3.1415926536*180;
+//		}
+//		/*printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3], a1, fieldofview);*/
+//	}
+//'),
+
+}
+
+
+
+void render_Background (struct VRML_Background *node) {
+	GLdouble mod[16];
+	GLdouble proj[16];
+	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	struct pt vec[4]; struct pt vec2[4]; struct pt vec3[4];
+	int i,j; int ind=0;
+	GLdouble x,y,z;
+	GLdouble x1,y1,z1;
+	GLdouble sx, sy, sz;
+	struct SFColor *c1,*c2;
+	int hdiv = horiz_div;
+	int h,v;
+	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
+	double vatemp;		
+	GLuint mask;
+	GLfloat bk_emis[4];		/* background emissive colour	*/
+	float	sc;
+
+
+	/* Background Texture Objects.... */
+	static int bcklen,frtlen,rtlen,lftlen,toplen,botlen;
+	unsigned char *bckptr,*frtptr,*rtptr,*lftptr,*topptr,*botptr;
+
+	static GLfloat light_ambient[] = {0.0, 0.0, 0.0, 1.0};
+	static GLfloat light_diffuse[] = {0.0, 0.0, 0.0, 1.0};
+	static GLfloat light_specular[] = {0.0, 0.0, 0.0, 1.0};
+	static GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};
+
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	if (node->set_bind < 100) {
+		bind_node (node,offsetof (struct VRML_Background,set_bind),
+			offsetof (struct VRML_Background,isBound),
+			&background_tos,&background_stack[0]);
+	//	node->set_bind = 100;
+	}
+
+	/* don't even bother going further if this node is not bound on the top */
+	if(!node->isBound) return;
+
+	bk_emis[3]=0.0; /* always zero for backgrounds */
+
+	/* Cannot start_list() because of moving center, so we do our own list later */
+
+	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
+	glShadeModel(GL_SMOOTH);
+	glPushMatrix();
+	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	/* Get origin */
+	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
+	glTranslatef(x,y,z);
+
+	glDisable (GL_LIGHTING);
+
+	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
+	/* Get scale */
+	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+
+	/* Undo the translation and scale effects */
+	glScalef(sx,sy,sz);
+
+
+	/* now, is this the same background as before??? */
+	if (node->_dlist) {
+		if (node->_dlchange == node->_change) {
+			glCallList(node->_dlist);
+			glPopMatrix();
+			glPopAttrib();
+			return;
+		} else {
+			glDeleteLists(node->_dlist,1);
+		}
+	}
+
+	/* we are here; compile and display a new background! */
+	node->_dlist = glGenLists(1);
+	node->_dlchange = node->_change;
+	glNewList(node->_dlist,GL_COMPILE_AND_EXECUTE);
+
+	/* do we have any background textures?  */
+	frtptr = SvPV((node->__locfilefront),frtlen); 
+	bckptr = SvPV((node->__locfileback),bcklen);
+	topptr = SvPV((node->__locfiletop),toplen);
+	botptr = SvPV((node->__locfilebottom),botlen);
+	lftptr = SvPV((node->__locfileleft),lftlen);
+	rtptr = SvPV((node->__locfileright),rtlen);
+
+	/*printf ("background textures; lengths %d %d %d %d %d %d\n",
+		frtlen,bcklen,toplen,botlen,lftlen,rtlen);
+	printf ("backgrouns textures; names %s %s %s %s %s %s\n",
+		frtptr,bckptr,topptr,botptr,lftptr,rtptr); */
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glEnable(GL_LIGHT0);
+
+
+	sc = 20000.0; /* where to put the sky quads */
+	glBegin(GL_QUADS);
+	if(((node->skyColor).n) == 1) {
+		c1 = &(((node->skyColor).p[0]));
+		va1 = 0;
+		va2 = PI/2; 
+		bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+		glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+		glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+
+		for(v=0; v<2; v++) {
+			for(h=0; h<hdiv; h++) {
+				ha1 = h * PI*2 / hdiv;
+				ha2 = (h+1) * PI*2 / hdiv;
+
+				glVertex3f(sin(va2)*sc * cos(ha1), cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				glVertex3f(sin(va2)*sc * cos(ha2), cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				glVertex3f(sin(va1)*sc * cos(ha2), cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+				glVertex3f(sin(va1)*sc * cos(ha1), cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+			}
+			va1 = va2;
+			va2 = PI;
+		}
+	} else {
+		va1 = 0;
+		for(v=0; v<((node->skyColor).n)-1; v++) {
+			c1 = &(((node->skyColor).p[v]));
+			c2 = &(((node->skyColor).p[v+1]));
+			va2 = ((node->skyAngle).p[v]);
+			
+			for(h=0; h<hdiv; h++) {
+				ha1 = h * PI*2 / hdiv;
+				ha2 = (h+1) * PI*2 / hdiv;
+
+				bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
+				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
+				glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+				glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+				glVertex3f(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+				glVertex3f(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+			}
+			va1 = va2;
+		}
+
+		/* now, the spec states: "If the last skyAngle is less than pi, then the
+		  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
+		if (va2 < (PI-0.01)) {
+			bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
+			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+			glColor3f(c2->c[0], c2->c[1], c2->c[2]);
+			for(h=0; h<hdiv; h++) {
+				ha1 = h * PI*2 / hdiv;
+				ha2 = (h+1) * PI*2 / hdiv;
+	
+				glVertex3f(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
+				glVertex3f(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
+				glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+			}
+		}
+	}
+	glEnd();
+
+
+	/* Do the ground, if there is anything  to do. */
+	if ((node->groundColor).n>0) {
+		// JAS sc = 1250.0; /* where to put the ground quads */
+		sc = 12500.0; /* where to put the ground quads */
+		glBegin(GL_QUADS);
+		if(((node->groundColor).n) == 1) {
+			c1 = &(((node->groundColor).p[0]));
+			bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+			glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+			for(h=0; h<hdiv; h++) {
+				ha1 = h * PI*2 / hdiv;
+				ha2 = (h+1) * PI*2 / hdiv;
+
+				glVertex3f(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
+				glVertex3f(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
+				glVertex3f(sin(PI/2) * cos(ha2)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha2)*sc);
+				glVertex3f(sin(PI/2) * cos(ha1)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha1)*sc);
+			}
+		} else {
+			va1 = PI;
+			for(v=0; v<((node->groundColor).n)-1; v++) {
+				c1 = &(((node->groundColor).p[v]));
+				c2 = &(((node->groundColor).p[v+1]));
+				va2 = PI - ((node->groundAngle).p[v]);
+		
+				for(h=0; h<hdiv; h++) {
+					ha1 = h * PI*2 / hdiv;
+					ha2 = (h+1) * PI*2 / hdiv;
+
+					bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+					glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+					glVertex3f(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+					glVertex3f(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+
+					bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
+					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
+					glColor3f(c2->c[0], c2->c[1], c2->c[2]);
+					glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+					glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				}
+				va1 = va2;
+			}
+		}
+		glEnd();
+	}
+
+
+
+
+	/* now, for the textures, if they exist */
+
+	if ((node->__textureback>0) || 
+			(node->__texturefront>0) || 
+			(node->__textureleft>0) || 
+			(node->__textureright>0) || 
+			(node->__texturetop>0) || 
+			(node->__texturebottom>0)) {
+        	GLfloat mat_emission[] = {1.0,1.0,1.0,1.0};
+       	 	GLfloat col_amb[] = {1.0, 1.0, 1.0, 1.0};
+       	 	GLfloat col_dif[] = {1.0, 1.0, 1.0, 1.0};
+
+        	glEnable (GL_LIGHTING);
+        	glEnable(GL_TEXTURE_2D);
+        	glColor3f(1,1,1);
+
+		// JAS sc = 500.0; /* where to put the tex vertexes */
+		sc = 5000.0; /* where to put the tex vertexes */
+
+        	glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
+        	glLightfv (GL_LIGHT0, GL_AMBIENT, col_amb);
+        	glLightfv (GL_LIGHT0, GL_DIFFUSE, col_dif);
+
+		/* go through each of the 6 possible sides */
+
+		if(node->__textureback>0) {
+			bind_image (bckptr,node->__textureback, 0,0,node->__istemporaryback);
+			glBegin(GL_QUADS);
+			glNormal3f(0,0,1); 
+			glTexCoord2f(1, 0); glVertex3f(-sc, -sc, sc);
+			glTexCoord2f(1, 1); glVertex3f(-sc, sc, sc);
+			glTexCoord2f(0, 1); glVertex3f(sc, sc, sc);
+			glTexCoord2f(0, 0); glVertex3f(sc, -sc, sc);
+			glEnd();
+		};
+
+		if(node->__texturefront>0) {
+			bind_image (frtptr,node->__texturefront, 0,0,node->__istemporaryfront);
+			glBegin(GL_QUADS);
+			glNormal3f(0,0,-1);
+			glTexCoord2f(1,1); glVertex3f(sc,sc,-sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,-sc,-sc);
+			glTexCoord2f(1,0); glVertex3f(sc,-sc,-sc); 
+			glEnd();
+		};
+
+		if(node->__texturetop>0) {
+			bind_image (topptr,node->__texturetop, 0,0,node->__istemporarytop);
+			glBegin(GL_QUADS);
+			glNormal3f(0,1,0);
+			glTexCoord2f(1,1); glVertex3f(sc,sc,sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,sc,sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,sc,-sc);
+			glTexCoord2f(1,0); glVertex3f(sc,sc,-sc);
+			glEnd();
+		};
+
+		if(node->__texturebottom>0) {
+			bind_image (botptr,node->__texturebottom, 0,0,node->__istemporarybottom);
+			glBegin(GL_QUADS);
+			glNormal3f(0,-(1),0);
+			glTexCoord2f(1,1); glVertex3f(sc,-sc,-sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,-sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,-sc,sc);
+			glTexCoord2f(1,0); glVertex3f(sc,-sc,sc);
+			glEnd();
+		};
+
+		if(node->__textureright>0) {
+			bind_image (rtptr,node->__textureright, 0,0,node->__istemporaryright);
+			glBegin(GL_QUADS);
+			glNormal3f(1,0,0);
+			glTexCoord2f(1,1); glVertex3f(sc,sc,sc);
+			glTexCoord2f(0,1); glVertex3f(sc,sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(sc,-sc,-sc);
+			glTexCoord2f(1,0); glVertex3f(sc,-sc,sc);
+			glEnd();
+		};
+
+		if(node->__textureleft>0) {
+			bind_image (lftptr,node->__textureleft, 0,0,node->__istemporaryleft);
+			glBegin(GL_QUADS);
+			glNormal3f(-1,0,0);
+			glTexCoord2f(1,1); glVertex3f(-sc,sc, -sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,sc,  sc); 
+			glTexCoord2f(0,0); glVertex3f(-sc,-sc, sc);
+			glTexCoord2f(1,0); glVertex3f(-sc,-sc,-sc);
+			glEnd();
+		 };
+	}
+
+	/* end of textures... */
+	glEndList();
+	glPopMatrix();
+	glPopAttrib();
+}
