@@ -130,6 +130,8 @@ void Extru_ST_map(
 unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 		                       unsigned long *pRowbytes);
 
+/* Used to determine in Group, etc, if a child is a DirectionalLight; do comparison with this */
+void DirectionalLight_Rend(void *nod_);
 
 
 
