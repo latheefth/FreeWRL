@@ -396,8 +396,10 @@ JSBool
 setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 {
 	JSString *_idStr, *_vpStr, *_newVpStr;
+	JSBool ret = JS_TRUE;
 	jsval v;
-	char *_id_c, *_vp_c, *_new_vp_c, buffer[STRING];
+	char *_id_c, *_vp_c, *_new_vp_c, *_buff;
+	const size_t touched_len = 10;
 	size_t len = 0;
 
 	_idStr = JS_ValueToString(context, id);
@@ -410,17 +412,19 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 		len = strlen(_vp_c);
 		/* len + 3 for '\0' and "..." */
 		if ((_new_vp_c = (char *) JS_malloc(context, len + 3)) == NULL) {
-			fprintf(stderr, "JS_malloc failed in getECMANative.\n");
+			fprintf(stderr, "JS_malloc failed in setECMANative.\n");
 			return JS_FALSE;
 		}
+		len += 3;
 
+		memset(_new_vp_c, 0, len);
 		sprintf(_new_vp_c, "\"%s\"", _vp_c);
 		_newVpStr = JS_NewStringCopyZ(context, _new_vp_c);
 		*vp = STRING_TO_JSVAL(_newVpStr);
 
 		if (verbose) {
 			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
-				   (unsigned int) obj, _id_c, _vp_c);
+				   (unsigned int) obj, _id_c, _new_vp_c);
 		}
 		JS_free(context, _new_vp_c);
 	} else {
@@ -432,34 +436,46 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 		}
 	}
 
-	memset(buffer, 0, STRING);
-	sprintf(buffer, "_%s_touched", _id_c);
-	v = INT_TO_JSVAL(1);
-	if (!JS_SetProperty(context, obj, buffer, &v)) {
-		fprintf(stderr,
-				"JS_SetProperty failed in setECMANative.\n");
+	len = strlen(_id_c);
+	if (len + touched_len >= STRING) {
+		len += SMALLSTRING;
+	} else {
+		len = STRING;
+	}
+	if ((_buff = (char *)
+		 JS_malloc(context, len)) == NULL) {
+		fprintf(stderr, "JS_malloc failed in setECMANative.\n");
 		return JS_FALSE;
 	}
-	return JS_TRUE;
+	memset(_buff, 0, len);
+	sprintf(_buff, "_%s_touched", _id_c);
+	v = INT_TO_JSVAL(1);
+	if (!JS_SetProperty(context, obj, _buff, &v)) {
+		fprintf(stderr,
+				"JS_SetProperty failed in setECMANative.\n");
+		ret = JS_FALSE;
+	}
+	JS_free(context, _buff);
+	return ret;
 }
 
 
+/* used mostly for debugging */
 JSBool
 getAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
-	JSString *_str;
-	char *_id_c;
+	JSString *_idStr, *_vpStr;
+	char *_id_c, *_vp_c;
 
-	UNUSED(cx);
-	UNUSED(vp);
+	if (verbose) {
+		_idStr = JS_ValueToString(cx, id);
+		_id_c = JS_GetStringBytes(_idStr);
 
-	if (JSVAL_IS_STRING(id)) {
-		_str = JSVAL_TO_STRING(id);
-		_id_c = JS_GetStringBytes(_str);
-		if (verbose) {
-			printf("getAssignProperty: obj = %u, id = \"%s\"\n",
-				   (unsigned int) obj, _id_c);
-		}
+		_vpStr = JS_ValueToString(cx, *vp);
+		_vp_c = JS_GetStringBytes(_vpStr);
+
+		printf("getAssignProperty: obj = %u, id = \"%s\", vp = %s\n",
+			   (unsigned int) obj, _id_c, _vp_c);
 	}
 	return JS_TRUE;
 }
