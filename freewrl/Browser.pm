@@ -122,8 +122,8 @@ sub get_backend { return $_[0]{BE} }
 sub eventloop {
 	my($this) = @_;
 	## my $seqcnt = 0;
-	# print "eventloop ";
 	while(!$this->{BE}->quitpressed) {
+		# print "eventloop\n";
 		$this->tick();
 				# Skip 1st image, which may not be good
                 if( $main::seq && $main::saving && ++$main::seqcnt )
@@ -616,13 +616,13 @@ sub release {
 sub get {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
+	#print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
+	#print "       type ",$S{$handle}[0]{Type},"\n";
+	#print "       typeName ",$S{$handle}[0]{TypeName},"\n";
 	if(!exists $S{$handle}) {
 		print "Nonexistent VRML Node Handle!\n";
 		exit (1);
 	}
-	# print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
-	# print "       type ",$S{$handle}[0]{Type},"\n";
-	# print "       typeName ",$S{$handle}[0]{TypeName},"\n";
 	return $S{$handle}[0];
 }
 sub check {
