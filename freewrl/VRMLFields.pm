@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.7  2000/12/13 14:41:57  crc_canada
+# Bug hunting.
+#
 # Revision 1.6  2000/12/01 02:01:39  crc_canada
 # More SAI work
 #
@@ -1043,7 +1046,7 @@ VRML::Error->import;
 sub parse {
   my($type,$p) = @_;
 
-  $VRML::verbose::parse=1;
+  # JAS $VRML::verbose::parse=1;
 
   $_[2] =~ /\G\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
     or parsefail($_[2], "didn't match width/height/depth of SFImage");
@@ -1187,25 +1190,25 @@ sub cfunc {
 			__x = av_fetch(a, 0, 1); /* LVal for easiness */
 			if(!__x) die(\"Help: SFImage __x == NULL\");
 			$_[1].__x = SvNV(*__x);
-			fprintf(stdout, \"SFImage __x = %d\\n\", $_[1].__x);
+			/* fprintf(stdout, \"SFImage __x = %d\\n\", $_[1].__x); */
 
 			/* __y */
 			__y = av_fetch(a, 1, 1); /* LVal for easiness */
 			if(!__y) die(\"Help: SFImage __y == NULL\");
 			$_[1].__y = SvNV(*__y);
-			fprintf(stdout, \"SFImage __y = %d\\n\", $_[1].__y);
+			/* fprintf(stdout, \"SFImage __y = %d\\n\", $_[1].__y); */
 
 			/* __depth */
 			__depth = av_fetch(a, 2, 1); /* LVal for easiness */
 			if(!__depth) die(\"Help: SFImage __depth == NULL\");
 			$_[1].__depth = SvNV(*__depth);
-			fprintf(stdout, \"SFImage __depth = %d\\n\", $_[1].__depth);
+			/* fprintf(stdout, \"SFImage __depth = %d\\n\", $_[1].__depth); */
 
 			/* Handle image data */
 			__data = av_fetch(a, 4, 1); /* LVal for easiness */
 			if(!__data) die(\"Help: SFImage __data == 0\");
 			$_[1].__data = SvPV(*__data, pl_na);
-			fprintf(stdout, \"SFImage __data = %s  (len = %d) \\n\", $_[1].__data, pl_na);
+			/* fprintf(stdout, \"SFImage __data = %s  (len = %d) \\n\", $_[1].__data, pl_na); */
 		}
 	}
 EOF
