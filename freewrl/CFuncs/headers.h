@@ -210,7 +210,28 @@ void Elev_Tri (
         int NONORMALS,
         struct VRML_PolyRep *this_Elev,
         struct pt *facenormals,
-        int *pointfaces);
+        int *pointfaces,
+	int ccw);
+
+void Extru_check_normal (
+        struct pt *facenormals,
+        int this_face,
+        float direction,
+        struct VRML_PolyRep  *rep_,
+	int ccw);
+
+void normalize_vector(struct pt *vec);
+
+void normalize_ifs_face (float *point_normal,
+                         struct pt *facenormals,
+                         int *pointfaces,
+                        int mypoint,
+                        int curpoly,
+                        float creaseAngle);
+
+void render_ray_polyrep(void *node,
+        int npoints, struct SFColor *points);
+
 
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
