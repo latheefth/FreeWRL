@@ -140,6 +140,8 @@ sub load_string {
         prepare ($this);
 	# and, take care of keeping the viewpoints active...
 	# JAS $this->{Scene}->register_vps($this);
+	# debugging scene graph call: 
+	# $scene->dump(0);
 }
 
 sub get_scene {
