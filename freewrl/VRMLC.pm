@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.11  2000/09/15 22:48:40  rcoscali
+# Add patch from bob kozdemba for concave polygon fix
+#
 # Revision 1.10  2000/09/03 20:17:50  rcoscali
 # Made some test for blending
 # Tests are displayed with 38 & 39.wrlð
@@ -562,11 +565,11 @@ IndexedFaceSet => '
 
         /* texture coords */
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
-        printf("texCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
+/*        printf("texCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);*/
 	/* for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
 		texCoords[i].c[0], texCoords[i].c[1] ); */
-        printf("NtexCoordIndex = %d\n", tcin);
+/*        printf("NtexCoordIndex = %d\n", tcin);*/
 
 	$fv(coord, points, get3, &npoints);
 	$fv_null(normal, normals, get3, &nnormals);
@@ -604,11 +607,11 @@ IndexedFaceSet => '
 	/* color = NULL; coord = NULL; normal = NULL;
 		colindex = NULL; norindex = NULL; tcindex = NULL;
 	*/
-
 	if(!$f(convex)) {
-		die("AAAAARGHHH!!!  Non-convex polygons! Help!");
-		/* XXX Fixme using gluNewTess, gluTessVertex et al */
-	} else {
+               /* Begin a non-convex polygon */
+               gluBeginPolygon( global_tessobj );
+
+	} /* else */ {  
 		int initind=-1;
 		int lastind=-1;
 		int inittcind=-1;
@@ -693,6 +696,12 @@ printf("! tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords);
            glTexGenfv(GL_T, GL_OBJECT_PLANE, tgenparams);
            glEnable(GL_TEXTURE_GEN_T);
         }
+if(!$f(convex)) {
+
+/* End a non-convex polygon */
+gluEndPolygon( global_tessobj );
+
+}
 ',
 );
 
@@ -1635,7 +1644,6 @@ void ber_tess_begin(GLenum e) {
 void ber_tess_end(void) {
 /*printf("ber_tess_end: Tesselation done.\\n");*/
 	/* nothing to do	*/
-               printf(" ber_tess_end\\n");
 }
 
 void ber_tess_edgeflag(GLenum flag) {
@@ -1741,10 +1749,10 @@ void render_polyrep(void *node,
 	p = node;
 	r = p->_intern;
 
-/* */
+/*
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, p->_change, r->_change, r->ntri);
 	printf("         ntexcoords = %d    texcoords = 0x%lx\n",ntexcoords, texcoords);
- /* */
+  */
 	hasc = (ncolors || r->color);
 	if(hasc) {
 		glEnable(GL_COLOR_MATERIAL);
@@ -1779,7 +1787,7 @@ void render_polyrep(void *node,
 		}
 		prevcolor = coli;
 		if(texcoords && ntexcoords) {
-		  	printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] );
+/*		  	printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] );*/
 			fflush(stdout);
 		  	glTexCoord2fv(texcoords[tci].c);
 		} /* TODO RCS: Complete use of texCoordIndex */
@@ -1940,7 +1948,7 @@ void regen_polyrep(void *node)
 	struct VRML_PolyRep *r;
 	v = *(struct VRML_Virt **)node;
 	p = node;
-	printf("Regen polyrep %d '%s'\n",node,v->name);
+	/*printf("Regen polyrep %d '%s'\n",node,v->name);*/
 	if(!p->_intern) {
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
 		r = p->_intern;
@@ -2373,7 +2381,7 @@ CODE:
 	if(!p) {
 		die("Render_hier null!??");
 	}
-	if(1 || verbose)
+	if(verbose)
   		printf("Render_hier rev_trans=%d vp=%d geom=%d light=%d sens=%d blend=%d what_vp=%d\n", p, revt, rvp, rgeom, rlight, rblend, wvp);
 	if(render_sensitive) 
 		upd_ray();

@@ -675,7 +675,7 @@ sub setup_viewpoint {
 
 	my $depnow = unpack("i",$i2);
 
-	print "GLBackEnd::setup_viewpoint -- DEP: $dep $depnow\n";
+#	print "GLBackEnd::setup_viewpoint -- DEP: $dep $depnow\n";
 
 	if($depnow > $dep) 
 	  {
