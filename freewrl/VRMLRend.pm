@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.141  2004/11/09 16:11:43  crc_canada
+# added "pan" field for sound rendering.
+#
 # Revision 1.140  2004/10/22 19:02:42  crc_canada
 # javascript work.
 #
@@ -916,9 +919,20 @@ Sound => '
 		gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 	
 		len = sqrt(VECSQ(vec)); 
-		/* printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
-			-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
-		*/
+		//printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
+		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
+
+		// pan left/right. full left = 0; full right = 1.
+		if (len < 0.001) angle = 0;
+		else {
+			angle = mod[12]/len; // returns a -0.999 to + 0.999
+			angle = angle / 2.0;
+			angle = angle + 0.5;
+			if (angle > 1.0) angle = 1.0;
+			if (angle < 0.0) angle = 0.0;
+			//printf ("angle: %f\n",angle);
+		}
+		
 	
 		amp = 0.0;
 		/* is this within the maxFront maxBack? */
@@ -940,25 +954,14 @@ Sound => '
 				}
 			}
 
-#ifdef JOHNSOUND
 			/* Now, fit in the intensity. Send along command, with
 			source number, amplitude, balance, and the current Framerate */
 			amp = amp*this_->intensity;
 			if (sound_from_audioclip) {
-				sprintf (mystring,"AMPL %d %f %d %f",acp->__sourceNumber,
-					amp,0,BrowserFPS);
+				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,angle);
 			} else {
-				sprintf (mystring,"MMPL %d %f %d %f",mcp->__sourceNumber,
-					amp,0,BrowserFPS);
+				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,angle);
 			}
-#else
-			amp = amp*this_->intensity;
-			if (sound_from_audioclip) {
-				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,0.0);
-			} else {
-				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,0.0);
-			}
-#endif
 			Sound_toserver(mystring);
 		} // from Matt Ward
 		else {
