@@ -51,8 +51,9 @@ extern int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
                         unsigned ptr, unsigned ofs, int *complete,
                         int zeroBind);
 
-
+#ifndef AQUA
 extern void openMainWindow (Display *Disp, unsigned *Win, GLXContext *Cont);
+#endif
 extern void glpOpenGLInitialize();
 extern void EventLoop();
 extern void resetGeometry();
