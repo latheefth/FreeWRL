@@ -335,6 +335,10 @@ the command line upon receival of a SIGUSR1 signal.
 
 Reload the URL given on the command line upon recept of a SIGUSR1 signal.
 
+=item C<-ps>
+
+Allow perl scripts in vrml files. Make sure your perl scripts are secure.
+
 =item I<debugcode>
 
 Various strings here turn on debugging for various parts of the browser.
