@@ -26,6 +26,11 @@
 
 #include "jpeglib.h"
 
+/* we keep track of which textures have been loaded, and which have not */
+static int max_texture = 0;
+static unsigned char  *isloaded;
+
+
 void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	int x,y,depth;
 	GLint Sgl_rep_or_clamp;
@@ -39,8 +44,11 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	int rx,ry,sx,sy;
 	int ct;
 
+	//printf ("do_texture; depth %d x %d y %d\n",depth,x,y);
+	
 	/* save this to determine whether we need to do material node
 	  within appearance or not */
+	
 	last_texture_depth = depth;
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -88,13 +96,12 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 }
 
 
-void bind_image (filename, texture_num, repeatS, repeatT, remove, isloaded) 
+void bind_image (filename, texture_num, repeatS, repeatT, remove) 
 	char *filename;
 	GLuint texture_num;
 	int repeatS;
 	int repeatT;
 	int remove;
-	int isloaded;
 {
 	FILE *infile;
 	unsigned char *image_data = 0;
@@ -124,14 +131,31 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove, isloaded)
 
 	int fnamelen;
 
+	/* temp variable */
+	int count;
+
+	//printf ("start of bind_image %d  %d\n",texture_num,max_texture);
+
+	/* do we have enough room to save the isloaded flag for this texture? */
+	if (texture_num>=max_texture) {
+		//printf ("must allocate a bunch more space for flags\n");
+		max_texture += 1024;
+		isloaded = realloc(isloaded, sizeof(*isloaded) * max_texture);
+		//printf ("zeroing from %d to %d\n",max_texture-1024,max_texture);
+		for (count = max_texture-1024; count < max_texture; count++) {
+		isloaded[count] = 0;
+		}
+	}
+	
+	//printf ("bind_image, binding to %s, %d isloaded %d\n",filename,texture_num,isloaded[texture_num]);
 
 	/* have we already processed this one before? */
-	if (isloaded == 1) {
+	if (isloaded[texture_num] == 1) {
 		//printf ("bind_image, simply reusing %d\n",texture_num);
 		glBindTexture (GL_TEXTURE_2D, texture_num);
 		return;
 	}
-
+	isloaded[texture_num] = 1;  // for next time...
 
 	/* determine whether it is a jpeg file, or a png file */
 	fnamelen = strlen(filename);
@@ -144,8 +168,6 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove, isloaded)
 		jpeg_file = (strcmp(last4,"png"));
 	}
 	
-
-
 
 	/* read in the file from the local file system */	
 	if (!(infile = fopen(filename, "rb"))) {
