@@ -61,7 +61,7 @@ public class EAIAsyncThread extends Thread {
                 running = false;
             }
 	}
-	System.out.println("EAIAsyncThread exiting");
+	//System.out.println("EAIAsyncThread exiting");
     }
 
     // this is the main access point to this object -- it enqueues
