@@ -1,0 +1,23 @@
+#!/bin/csh
+#
+# for running standalone, without installing, you need to set up
+# the LD_LIBRARY_PATH to show freewrl where to find libraries it
+# needs. Below is an example
+#
+# CHECK ALL PATHS!
+#
+# - check the path to the shell - look at the first line above. Should
+#   it be /usr/bin/csh?
+#
+# - note that the LD_LIBRARY_PATH has two paths on it - change the
+#   directories on BOTH paths.
+#
+# invoke it like: ./runme-standalone tests/45.wrl
+#
+
+
+setenv LD_LIBRARY_PATH /usr/people/luigi/freewrl/FreeWRL-1.04.4/blib/arch/auto/VRML/JS/:/usr/people/luigi/freewrl/FreeWRL-1.04.4/blib/arch/auto/VRML/VRMLFunc/
+
+# and, run this
+
+/usr/people/luigi/freewrl/FreeWRL-1.04.4/CFrontEnd/freewrl $1 $2 $3 $4 $5 $6
