@@ -1441,7 +1441,7 @@ sub mkbe_and_array {
 		$c = @{$c};
 	  } elsif ("VRML::DEF" eq ref ($c)) {
 	 	# print "mkbe - this is a def!\n";
-	      $c = $c->real_node();
+	      $c = $c->real_node(1);
 	  }
 
 	  # print "	mkbe_and_array; index $curindex, c $c, ref ", ref $c,"\n";
