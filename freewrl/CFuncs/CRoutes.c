@@ -1127,9 +1127,6 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 				/* condition statement changed */
 				buffer = strtok(NULL, token);
 				for (to_counter = 1;
-
-					// JAS - bounds check compile failure (to_counter < to_count) && ((buffer = strtok(NULL, token)) != NULL);
-
 					 ((to_counter < to_count) && (buffer != NULL));
 					 to_counter++) {
 					to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
@@ -1168,9 +1165,7 @@ void
 CRoutes_free()
 {
 	int i;
-	for (i = 0; i < CRoutes_MAX; i++) {
-/* 		if (CRoutes[i].is != NULL) { */
-/* 			free(CRoutes[i].is); */
+	for (i = 0; i < CRoutes_Count; i++) {
 		if (CRoutes[i].tonodes != NULL) {
 			free(CRoutes[i].tonodes);
 		}
@@ -1596,9 +1591,9 @@ void propagate_events() {
 						} else {	
 							/* just an eventIn node. signal to the reciever to update */
 /* 						update_node(CRoutes[counter].tonode); */
-							update_node(to_ptr->node);
 							/* try */
 							mark_event(to_ptr->node, to_ptr->foffset);
+							update_node(to_ptr->node);
 /* printf("propagate_events: update_node %u\n", to_ptr->node); */
 						}
 					}
