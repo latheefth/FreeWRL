@@ -1,7 +1,7 @@
 // Specification of the base interface for all eventIn types.
 package vrml.external.field;
 import vrml.external.field.FieldTypes;
-import vrml.external.Browser;
+//JAS import vrml.external.Browser;
 
 
 

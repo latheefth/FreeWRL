@@ -2,7 +2,7 @@
 package vrml.external.field;
 
 import vrml.external.field.EventOut;
-import vrml.external.Browser;
+//JAS import vrml.external.Browser;
 
 
 public interface EventOutObserver {

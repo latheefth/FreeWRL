@@ -1,7 +1,7 @@
 // Specification of the base interface for all eventOut types.
 package vrml.external.field;
 import vrml.external.Browser;
-import vrml.external.field.FieldTypes;
+//JAS import vrml.external.field.FieldTypes;
 
 public class EventOut extends vrml.external.Node {
 

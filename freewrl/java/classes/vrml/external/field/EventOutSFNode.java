@@ -1,6 +1,6 @@
 package vrml.external.field;
-import java.util.*;
-import vrml.external.Browser;
+//JAS import java.util.*;
+//JAS import vrml.external.Browser;
 import vrml.external.field.FieldTypes;
 
 

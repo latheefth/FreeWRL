@@ -6,12 +6,12 @@ package vrml.external;
 
 import java.util.*;
 import java.applet.*;
-import java.awt.*;
+//JAS import java.awt.*;
 import java.net.*;
 import java.io.*;
-import java.lang.reflect.*;
+//JAS import java.lang.reflect.*;
 import vrml.external.Node;
-import vrml.external.field.EventOut;
+//JAS import vrml.external.field.EventOut;
 import vrml.external.field.EventOutObserver;
 import vrml.external.field.EventInMFNode;
 import vrml.external.FreeWRLEAI.EAIoutThread;

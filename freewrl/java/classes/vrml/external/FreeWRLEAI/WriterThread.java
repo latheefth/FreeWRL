@@ -17,9 +17,9 @@
 package vrml.external.FreeWRLEAI;
 
 import java.io.IOException;
-import java.io.EOFException;
-import java.util.Vector;
-import java.util.Enumeration;
+//JAS import java.io.EOFException;
+//JAS import java.util.Vector;
+//JAS import java.util.Enumeration;
 
 class WriterThread extends Thread {
     private VFieldOutputStream		output;

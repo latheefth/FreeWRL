@@ -2,9 +2,9 @@ package vrml.external.FreeWRLEAI;
 
 import vrml.external.*;
 
-import java.util.*;
+//JAS import java.util.*;
 import java.applet.*;
-import java.awt.*;
+//JAS import java.awt.*;
 import java.net.*;
 import java.io.*;
 

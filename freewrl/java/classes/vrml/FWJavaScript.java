@@ -5,9 +5,9 @@ import java.lang.System;
 import java.lang.reflect.*;
 import java.io.*;
 import java.util.Hashtable;
-import java.util.Vector;
+//JAS import java.util.Vector;
 import java.util.Enumeration;
-import vrml.*;
+//JAS import vrml.*;
 import vrml.node.*;
 
 public final class FWJavaScript {

@@ -1,7 +1,7 @@
 package vrml.external.field;
 import vrml.external.field.FieldTypes;
-import vrml.external.Node;
-import vrml.external.Browser;
+//JAS import vrml.external.Node;
+//JAS import vrml.external.Browser;
 
 public class EventInMFColor extends EventIn {
 

@@ -3,10 +3,10 @@ package vrml.external;
 import vrml.external.field.*;
 import vrml.external.exception.*;
 import java.util.*;
-import java.awt.*;
-import java.net.*;
-import java.io.*;
-import java.lang.reflect.*;
+//JAS import java.awt.*;
+//JAS import java.net.*;
+//JAS import java.io.*;
+//JAS import java.lang.reflect.*;
 
 public class Node {
   // Get a string specifying the type of this node. May return the

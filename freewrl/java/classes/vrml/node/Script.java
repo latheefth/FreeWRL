@@ -1,5 +1,5 @@
 package vrml.node;
-import java.util.Hashtable;
+//JAS import java.util.Hashtable;
 import vrml.*;
 //
 // This is the general Script class, to be subclassed by all scripts.

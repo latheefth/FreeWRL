@@ -1,5 +1,5 @@
 package vrml.node;
-import java.util.Hashtable;
+//JAS import java.util.Hashtable;
 import vrml.Field;
 import vrml.ConstField;
 import vrml.BaseNode;

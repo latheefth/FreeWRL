@@ -1,6 +1,6 @@
 package vrml;
 import vrml.FWJavaScript;
-import java.io.IOException;
+//JAS import java.io.IOException;
 
 public class FWJavaScriptBinding {
     BaseNode node;

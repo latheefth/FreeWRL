@@ -1,5 +1,5 @@
 package vrml;
-import java.util.Hashtable;
+//JAS import java.util.Hashtable;
 
 public class Browser
 {

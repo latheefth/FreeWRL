@@ -18,7 +18,7 @@ package vrml.external.FreeWRLEAI;
 
 //JAS import vrml.external.*;
 //JAS import vrml.external.field.*;
-import java.util.Hashtable;
+//JAS import java.util.Hashtable;
 
 public class VRMLObject
 {
