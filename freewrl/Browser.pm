@@ -105,7 +105,7 @@ sub new {
 	$XSLTpath = $pars->{XSLTpath};
 
 	# save browser version
-	VRML::VRMLFunc::SaveVersion($VRML::Config{VERSION});
+	VRML::VRMLFunc::SaveVersion($VRML::Config::vrml_config{VERSION});
 
 
 	return $this;
@@ -568,7 +568,6 @@ sub set_next_vp {
 
 # The routines below implement the browser object interface.
 
-#sub getVersion { return $VRML::Config{VERSION}; }
 sub getCurrentSpeed { return 0.0; } # legal
 sub getCurrentFrameRate { return $FPS; }
 
@@ -577,11 +576,6 @@ sub setDescription {
 	$this->{Description} = $desc;
 	print "Set description: $desc\n"; ## may do more later
 } # Read the spec: 4.12.10.8 ;)
-
-#sub getWorldURL {
-#	my ($this) = @_;
-#	return $this->{URL};
-#}
 
 sub replaceWorld {
 	# make a new scene, this is very similar to load_string, found
