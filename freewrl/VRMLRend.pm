@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.33  2001/06/15 19:32:18  crc_canada
+# lighting disabled as per spec if no Material and/or no Appearance
+#
 # Revision 1.32  2001/06/01 15:37:36  crc_canada
 # ProximitySensor now has correct axis for rotations when rotating about
 # the X axis. This affects many things, particularly the HUD test (24.wrl)
@@ -1596,7 +1599,9 @@ Billboard => (join '','
 			render_node($f(material));
 		    } else {
 			/* no material, so just colour the following shape */
-			glColor3f(1.0,1.0,1.0);
+                        /* Spec says to disable lighting and set coloUr to 1,1,1 */
+                        glDisable (GL_LIGHTING);
+                        glColor3f(1.0,1.0,1.0);
 		    } 
 		}
 	
@@ -1642,6 +1647,10 @@ Billboard => (join '','
 				if (render_geom) {
 				    /* no appearance, so start the list and set colour */
 				    glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+
+	                            /* no material, so just colour the following shape */
+                        	    /* Spec says to disable lighting and set coloUr to 1,1,1 */
+                        	    glDisable (GL_LIGHTING);
         	                    glColor3f(1.0,1.0,1.0);
 				}
 	                }
