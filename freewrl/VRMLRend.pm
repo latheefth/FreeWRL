@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.19  2000/12/18 21:19:59  crc_canada
+# IndexedFaceSet colorPerVertex and colorIndex now working correctly
+#
 # Revision 1.18  2000/12/08 13:10:39  crc_canada
 # Two fixes to Background nodes:
 # 	- possible core dump if only one sky angle and no ground angles.
@@ -375,11 +378,20 @@ IndexedFaceSet =>  ( join '',
 		struct SFColor *colors; int ncolors=0;
 		struct SFColor *normals; int nnormals=0;
 		struct SFVec2f *texcoords; int ntexcoords=0;
+		/* int colin; */		/* colorIndex number 	*/
+		/*int *colorIndex;*/	/* colorIndex array	*/
 		$start_list();
+
+		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+		/*
+		colin = $f_n(colorIndex);
+		colorIndex = $f(colorIndex);
+		*/
+
 		$mk_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
