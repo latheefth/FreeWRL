@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.39  2001/08/16 16:56:25  crc_canada
+# Viewpoint work
+#
 # Revision 1.38  2001/07/31 16:20:33  crc_canada
 # more Background node work
 #
@@ -1485,6 +1488,21 @@ Viewpoint => (join '','
 		glTranslatef(',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
 			0..2),'
 		);
+
+		if (verbose) { 
+		printf ("Rotation %f %f %f %f\n",
+		-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
+			(join ',',map {getf(Viewpoint,orientation,$_)} 0..2),'
+		);
+
+		printf ("Translation %f %f %f\n",
+		',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
+			0..2),'
+		);
+		}
+
+
+
 		glGetIntegerv(GL_VIEWPORT, vp);
 		if(vp[2] > vp[3]) {
 			a1=0;

@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.13  2001/08/16 16:55:54  crc_canada
+# Viewpoint work
+#
 # Revision 1.12  2001/07/11 20:43:05  ayla
 #
 #
@@ -739,22 +742,21 @@ sub js_default {return "false"}
 ###########################################################
 package VRML::Field::SFString;
 @ISA=VRML::Field;
-
 # XXX Handle backslashes in string properly
 sub parse {
-	my($type,$p,$s,$n) = @_;
-	# Magic regexp which hopefully exactly quotes backslashes and quotes
-	# Remi... $_[2] =~ /\G\s*"((?:[^"\\]|\\.)*)"\s*/gsc 
+        my($type,$p,$s,$n) = @_;
+        # Magic regexp which hopefully exactly quotes backslashes and quotes
+        # Remi... $_[2] =~ /\G\s*"((?:[^"\\]|\\.)*)"\s*/gsc
 
-	# $_[2] =~ /\G\s*\"((?:[^\"\\]|\\.)*)\"\s*/gsc
-	# This regexp is closer to the VRML97 specification:
-	$_[2] =~ /\G\s*\"((?:[^\"\\]|\\[\"\\])*)\"\s*/gsc
-		or VRML::Error::parsefail($_[2],"improper SFString");
+        # $_[2] =~ /\G\s*\"((?:[^\"\\]|\\.)*)\"\s*/gsc
+        # This regexp is closer to the VRML97 specification:
+        $_[2] =~ /\G\s*\"((?:[^\"\\]|\\[\"\\])*)\"\s*/gsc
+                or VRML::Error::parsefail($_[2],"improper SFString");
 
-	my $str = $1;
-	$str =~ s/\\(.)/$1/g;
+        my $str = $1;
+        $str =~ s/\\(.)/$1/g;
 
-	return $str;
+        return $str;
 }
 
 sub ctype {return "SV *$_[1]"}

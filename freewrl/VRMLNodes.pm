@@ -46,7 +46,17 @@ sub register_vp {
 	# print "Node::register_vp $scene $node\n";
 	push @vpn, $node;
 	push @vps, $scene;
-        # print "register_vp, viewpoint is ",$node->{Fields}{description},"\n";
+        # print "VRML::Node::register_vp, viewpoint is ",$node->{Fields}{description},"\n";
+         #         print "ref t ", ref $node,"\n";
+         #         print "ref t backend ", ref $node->{BackEnd},"\n";
+         #         print "t backend ", $node->{BackEnd},"\n";
+         #         print "ref t backnode ", ref $node->{BackNode},"\n";
+         #         print "t backNode ", $node->{BackNode},"\n";
+         #         print "ref t protoexp ", ref $node->{ProtoExp},"\n";
+         #         print "t protoexp ", $node->{ProtoExp},"\n";
+         #         print "t isproto ", $node->{IsProto} ,"\n";
+# 		print "VRML::NODE::end\n";
+
 }
 
 sub set_next_vp {
@@ -55,9 +65,15 @@ sub set_next_vp {
 	# print "set_next_vp, next vp to get is number $vpno\n";
 }
 
-sub get_vp_node { return $vpn[$vpno];}
+sub get_vp_node { # print "get_vp_node, returning ", $vpn[$vpno],"\n";
+return $vpn[$vpno];}
 
-sub get_vp_scene {return $vps[$vpno];}
+sub get_vp_scene {# print "get_vp_scene, returning ", $vps[$vpno],"\n";
+return $vps[$vpno];}
+
+
+
+#########################################################
 
 # Inlined files are stored in the browser...
 my @ilf;	# Files referenced by Inline Node urls.
@@ -1597,17 +1613,18 @@ Viewpoint => new VRML::NodeType("Viewpoint",
 	},
 	WhenBound => sub {
 		my($t,$scene,$revealed) = @_;
-		# print "VP_BOUND t $t scene $scene revealed $revealed\n";
-		# print "VP_BOUND!\n" if $VRML::verbose::bind;
-		# print "ref t ", ref $t,"\n";
-		# print "ref t backend ", ref $t->{BackEnd},"\n";
-		# print "t backend ", $t->{BackEnd},"\n";
-		# print "ref t backnode ", ref $t->{BackNode},"\n";
-		# print "t backNode ", $t->{BackNode},"\n";
-		# print "ref t protoexp ", ref $t->{ProtoExp},"\n";
-		# print "t protoexp ", $t->{ProtoExp},"\n";
-		# print "t isproto ", $t->{IsProto} ,"\n";
-
+		# print "\nstart of WhenBound\n";
+		#  print "VP_BOUND t $t scene $scene revealed $revealed\n";
+		#  print "VP_BOUND!\n" if $VRML::verbose::bind;
+		#  print "ref t ", ref $t,"\n";
+		#  print "ref t backend ", ref $t->{BackEnd},"\n";
+		#  print "t backend ", $t->{BackEnd},"\n";
+		#  print "ref t backnode ", ref $t->{BackNode},"\n";
+		#  print "t backNode ", $t->{BackNode},"\n";
+		#  print "ref t protoexp ", ref $t->{ProtoExp},"\n";
+		#  print "t protoexp ", $t->{ProtoExp},"\n";
+		 # print "t isproto ", $t->{IsProto} ,"\n";
+		# print "END of WhenBound\n";
 
 
 		$t->{BackEnd}->bind_viewpoint($t,
