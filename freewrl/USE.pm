@@ -10,8 +10,6 @@
 use strict vars;
 
 package VRML::USE;
-
-
 sub new {
 	my ($type, $defname, $defnode) = @_;
 	my $this = bless {
@@ -22,67 +20,72 @@ sub new {
 }
 
 sub copy {
-    my ($this) = @_;
-    (ref $this)->new($this->{DEFName}, $this->{DEFNode});
+	my ($this) = @_;
+	(ref $this)->new($this->{DEFName}, $this->{DEFNode});
 }
 
 ## null procedure
 sub make_executable {}
 
+# replace the definitions with new ones; especially for the node - it
+# should be dereferenced by this time.
 sub set_used {
-    my ($this, $name, $node) = @_;
+	my ($this, $name, $node) = @_;
 	print "VRML::USE::set_used: ", VRML::Debug::toString(\@_), "\n"
 		if $VRML::verbose::scene;
-    $this->{DEFName} = $name;
-    $this->{DEFNode} = $node;
+	$this->{DEFName} = $name;
+	$this->{DEFNode} = $node;
 }
 
 sub make_backend {
-    my ($this, $be, $parentbe) = @_;
+	my ($this, $be, $parentbe) = @_;
 
 	if ($VRML::verbose::be) {
 		my ($package, $filename, $line) = caller;
 		print "VRML::USE::make_backend: ", VRML::Debug::toString(\@_),
 			" from $package, $line\n";
 	}
+	$this->{DEFNode},"\n";
 
-    if ($this->{DEFNode}{Node}{BackNode}) {
+	my $dn = $this->{DEFNode};
+
+	# this is a DEF here
+	if ($dn->{Node}{BackNode}) {
 		print "\tusing $this->{DEFName}{Node}'s BackNode.\n"
 			if $VRML::verbose::be;
 		return $this->{DEFNode}{Node}{BackNode};
-    } else {
+	} else {
+	    	# maybe this is a NodeIntern?
 		print "\tno BackNode associated with $this->{DEFNode}{Node}{TypeName}.\n"
 			if $VRML::verbose::be;
 		return $this->{DEFNode}{Node}->make_backend($be, $parentbe);
-    }
+	}
 }
 
 sub iterate_nodes {
-    my ($this, $sub, $parent) = @_;
-    &$sub($this, $parent);
+	my ($this, $sub, $parent) = @_;
+	&$sub($this, $parent);
 }
 
 sub name {
-    my ($this) = @_;
-    return $this->{DEFName};
+	my ($this) = @_;
+	return $this->{DEFName};
 }
 
 sub node {
-    my ($this) = @_;
-    if (!defined  ($this->{DEFNode})) {
+	my ($this) = @_;
+	if (!defined  ($this->{DEFNode})) {
 	    print "USE name: ", $this->{DEFName}, " not DEF'd\n";
 	    print "Unrecoverable error; FreeWRL has to exit. \n";
 	    exit(1);
-    }
+	}
 
-    return $this->{DEFNode}->node();
+	return $this->{DEFNode}->node();
 }
 
 sub real_node {
-    my ($this) = @_;
-
-    #AK - #return $this->{DEFNode}->real_node($proto);
-    return $this->{DEFNode}->real_node();
+	my ($this) = @_;
+	return $this->{DEFNode}->real_node();
 }
 
 sub initialize { return (); }
@@ -103,6 +106,4 @@ sub dump {
 	print $padded,"$this, name is ", $this->{DEFName},
 		" def is ", VRML::NodeIntern::dump_name($this->{DEFNode}{Node}),"\n";
 }
-
-
 1;

@@ -148,23 +148,6 @@ sub new {
 	
 }
 
-#JAS# is this node a new "replaceWorld'd" node, and does it need to be put on the stack?
-#JASsub replaceWorld_Bindable {
-#JAS    my ($this, $node) = @_;
-#JAS
-#JAS    # Check if it is bindable and first -> bind to it later..
-#JAS
-#JAS    if ($VRML::Nodes::bindable{$node->{TypeName}}) {
-#JAS		# this should never happen...
-#JAS		if (!defined $this->{Bindable}{$node->{TypeName}}) {
-#JAS			$this->{Bindable}{$node->{TypeName}} = $node;
-#JAS		}
-#JAS
-#JAS		push @{$this->{Bindables}{$node->{TypeName}}}, $node;
-#JAS    }
-#JAS}
-
-	
 sub set_url {
     my ($this, $url) = @_;
     $this->{URL} = $url;
@@ -393,7 +376,6 @@ sub new_def {
 		if $VRML::verbose::scene;
 
 	my $def = VRML::DEF->new($name, $node, $vrmlname);
-
 	$this->{DEF}{$name} = $def;
 
 	return $def;
@@ -402,17 +384,18 @@ sub new_def {
 sub new_use {
 	my ($this, $name) = @_;
 
+	#print "Scene, new_use for name $name, DEFname ",$this->{DEF}{$name}," ref ",
+	#ref $this->{DEF}{$name},"\n";
 	return VRML::USE->new($name, $this->{DEF}{$name})
 		if (defined $this->{DEF}{$name});
 
 	return VRML::USE->new($name,
-						  (VRML::Handles::return_def_name($name)));
+	  (VRML::Handles::return_def_name($name)));
 }
 
 sub new_is {
 	my ($this, $name, $is) = @_;
 	my $newObj = VRML::IS->new($name, $is);
-	#print $newObj->dump;
 	return $newObj;
 }
 
@@ -579,9 +562,6 @@ sub mkbe_and_array {
 
 	# gather any DEFS. Protos will have new DEF nodes (expanded nodes)
 	if (defined $this->{DEF}) {
-		#print "\nmkbe_and_array: Gathering defs of ",VRML::NodeIntern::dump_name($this),
-			#" parentscene ",VRML::NodeIntern::dump_name($parentscene),"\n";
-
 		%{$parentscene->{DEF}} = (%{$parentscene->{DEF}}, %{$this->{DEF}});
 
 		foreach ($this->{DEF}) {
@@ -801,7 +781,7 @@ sub set_parentnode {
 
 			 print "VRML::Scene::make_executable: ",
 				 VRML::Debug::toString($node), "\n"
-						 if $VRML::verbose::scene;
+					 if $VRML::verbose::scene;
 			 $DEF{$node->{Name}} = $node;
 
 			# for EAI, reserve this name and node
@@ -814,6 +794,7 @@ sub set_parentnode {
 	
 
 		# Step 4) Update all USEs
+		# it is supposed to make a DEF ref into a NodeIntern...
 		$this->iterate_nodes(sub {
 			 my ($node) = @_;
 
@@ -821,8 +802,14 @@ sub set_parentnode {
 			 print "VRML::Scene::make_executable: ",
 				 VRML::Debug::toString($node), "\n"
 						 if $VRML::verbose::scene;
-			 $node->set_used($node->name(), $DEF{$node->name()});
-		 });
+			 # has this one been defined yet? if not, defer and pray...
+			if (defined $DEF{$node->name()}) {
+				#print "it is defined, lets do it!\n";
+			 	$node->set_used($node->name(), $DEF{$node->name()});
+			} else {
+				#print "step 4, not defined yet, lets defer...\n";
+			}
+			 });
 
 
 		# Step 5) Collect all prototyped nodes from here
