@@ -10,23 +10,41 @@
 #define FSIGOK
 #endif
 
+static int PluginSocketVerbose = 0; // CHECK DIRECTORY IN PLUGINPRINT
+static FILE * tty = NULL;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
 /* Function Prototype */
 int createUDPSocket();
 
+/* prints to a log file if we are running as a plugin */
+void pluginprint (const char *m, const char *p) {
+	if (!PluginSocketVerbose) return;
+	if (tty == NULL) {
+		tty = fopen("/tmp/logPluginSocket", "w");
+		if (tty == NULL)
+			abort();
+		fprintf (tty, "\nplugin restarted\n");
+	}
+
+	fprintf(tty, m,p);
+	fflush(tty);
+}
+
 
 int
 createUDPSocket()
 {
 	int sockDesc = 0;
+	pluginprint ("createUDPSocket\n","");
 	
     if ((sockDesc = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
-		perror("socket failed");
+		printf ("socket failed\n");
 		return SOCKET_ERROR;
     }
 
+    	pluginprint ("createUDPSocket returning ok\n","");
 	return sockDesc;
 }
 
@@ -100,6 +118,8 @@ requestUrlfromPlugin(int sockDesc,
 	size_t len = 0, ulen = 0, bytes = 0;
 	urlRequest request;
 
+	pluginprint ("requestURL fromPlugin, getting %s\n",url);
+
 	request.instance = (void *) plugin_instance;
 	request.notifyCode = 0; /* not currently used */
 
@@ -111,6 +131,7 @@ requestUrlfromPlugin(int sockDesc,
 	memmove(request.url, url, ulen);
 	bytes = sizeof(urlRequest);
 
+	pluginprint ("requestURL fromPlugin, step 1\n","");
 
 #if FALSE
 #ifdef MSG_CONFIRM
@@ -119,27 +140,29 @@ requestUrlfromPlugin(int sockDesc,
 #endif /* FALSE */
 
 	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
-		perror("write failed in requestUrlfromPlugin");
+		pluginprint ("write failed in requestUrlfromPlugin","");
 		/* return SOCKET_ERROR; */
 		return NULL;
 	}
 
+	pluginprint ("requestURL fromPlugin, step 2\n","");
 #if FALSE
 	flags |= MSG_WAITALL;
 #endif /* FALSE */
 	
 	//if (read(sockDesc, (char *) return_url, FILENAME_MAX) < 0) {
 	if (read(sockDesc, (char *) return_url, len) < 0) {
-		perror("read failed in requestUrlfromPlugin");
+		pluginprint("read failed in requestUrlfromPlugin","");
  		 /* If blocked or interrupted... */
 /* 		if (errno != EAGAIN && errno != EINTR) { */
 /* 			return SOCKET_ERROR; */
 /* 		} */
-fprintf(stderr, "Testing: error from read -- returned url is %s.\n", return_url);
+		pluginprint("Testing: error from read -- returned url is %s.\n", return_url);
 		/* return SOCKET_ERROR; */
 		return NULL;
 	}
 
+	pluginprint ("requestURL fromPlugin, returning %s\n",return_url);
 	return return_url;
 }
 
@@ -149,6 +172,7 @@ receiveUrl(int sockDesc, urlRequest *request)
     sigset_t newmask, oldmask;
 	size_t len = 0, request_size = 0;
 	
+	pluginprint ("receiveUrl start, request %s\n",request);
 	
 	len = FILENAME_MAX * (sizeof(char));
 	memset(request->url, 0, len);
@@ -184,6 +208,7 @@ receiveUrl(int sockDesc, urlRequest *request)
         return SIGNAL_ERROR;
     }
     
+	pluginprint ("receiveUrl before read, request %s\n",request);
     if (read(sockDesc, (urlRequest *) request, request_size) < 0) {
 		perror("recv failed");
         /* If blocked or interrupted... */
@@ -200,6 +225,7 @@ receiveUrl(int sockDesc, urlRequest *request)
         return SIGNAL_ERROR;
     }
     
+	pluginprint ("receiveUrl end, request %s\n",request);
     return NO_ERROR;
 }
 

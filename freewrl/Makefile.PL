@@ -123,7 +123,7 @@ if ($VRML_CONFIG{WARNINGS} eq "high") {
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 	push @inc, "-fbounds-checking";
 	push @ldflags, "-L$VRML_CONFIG{LIBCHECK_INST}";
-	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}", "-lcheck";
+	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}", "-lboundscheck";
 }
 
 push @inc, $VRML_CONFIG{FREEWRL_INC},

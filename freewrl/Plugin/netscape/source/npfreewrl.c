@@ -37,8 +37,6 @@
 #include <errno.h>
 #include <signal.h>
 
-//JAS #include "Simple.h"
-
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
@@ -48,6 +46,8 @@
 #define PLUGIN_DESCRIPTION	"V3.0 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
 char *paramline[15]; /* parameter line */
+
+static int PluginVerbose = 0;  // CHECK DIRECTORY BEFORE SETTING THIS TO 1
 
 /*******************************************************************************
  * Instance state information about the plugin.
@@ -96,10 +96,23 @@ Sigfunc signal (int, Sigfunc func);
  ******************************************************************************/
 
 char debs[256];
+static FILE * tty = NULL;
 
 // Debugging routine
 static void print_here (char * xx) {
-	printf ("plugin: %s\n",xx);
+	if (!PluginVerbose) return;
+
+	if (tty == NULL) {
+		tty = fopen("/tmp/log.npfreewrl.so", "w");
+		if (tty == NULL)
+			abort();
+		fprintf (tty, "\nplugin restarted\n");
+	}
+
+	fprintf(tty, "plug-in: %s\n", xx);
+	fflush(tty);
+		    
+	//printf ("plugin: %s\n",xx);
 }
 
 
@@ -180,7 +193,7 @@ int freewrlReceive(int fd) {
 		return(NPERR_GENERIC_ERROR);
 	}
 
-print_here ("step 1\n");
+print_here ("step 1");
 
 	/* Code to block SIGIO while saving the old signal set. */
 	if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0) {
@@ -188,16 +201,18 @@ print_here ("step 1\n");
 		return(NPERR_GENERIC_ERROR);
 	}
     
-print_here ("step 2\n");
+print_here ("step 2");
 
 	/* If blocked or interrupted, be silent. */
 	if (read(fd, (urlRequest *) &request, request_size) < 0) {
 		if (errno != EINTR && errno != EAGAIN) {
 			print_here("Call to read failed");
 		}
+		/* most likely freewrl has died... */
+		print_here ("step 2, returning NPERR_GENERIC_ERROR");
 		return(NPERR_GENERIC_ERROR);
 	} else {
-print_here("past the read for the url request\n");
+print_here("past the read for the url request");
 		if ((rv = NPN_GetURL(request.instance, request.url, NULL)) 
 			!= NPERR_NO_ERROR) {
 			sprintf(debs, "Call to NPN_GetURL failed with error %d.\n", rv);
@@ -207,7 +222,7 @@ print_here("past the read for the url request\n");
 		print_here(debs);
 	}
 
-print_here ("step 3\n");
+print_here ("step 3");
 
 	/* Restore old signal set, which unblocks SIGIO. */
 	if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0) {
@@ -215,7 +230,7 @@ print_here ("step 3\n");
 		return(NPERR_GENERIC_ERROR);
 	}
 
-print_here ("step 4\n");
+print_here ("step 4, returning NPERR_NO_ERROR");
 
 	return(NPERR_NO_ERROR);
 }

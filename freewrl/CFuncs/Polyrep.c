@@ -968,8 +968,13 @@ void stream_polyrep(void *node,
 		if(hasc) {
 			if(ncolors) { 
 				/* ColorMaterial -> these set Material too */
+				/* bounds check colors[] here */
+				if (coli >= ncolors) {
+					//printf ("bounds check for Colors! have %d want %d\n",ncolors-1,coli);
+					coli = 0;
+				}
 				if (stream_poly_verbose) {
-					printf ("coloUr"); 
+					printf ("coloUr ncolors %d, coli %d",ncolors,coli); 
 					fwnorprint(colors[coli].c); 
 					printf ("\n");
 				}
