@@ -101,8 +101,12 @@ doMFSetProperty(JSContext *cx,
 
 static JSBool
 getBrowser(JSContext *context,
-				JSObject *obj,
-				BrowserNative **brow);
+		   JSObject *obj,
+		   BrowserNative **brow);
+
+static JSBool
+doMFStringUnquote(JSContext *cx,
+				  jsval *vp);
 
 
 /* class functions */

@@ -49,10 +49,10 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	}
 
 	buff_size = LARGESTRING;
-	if ((_buff =
-		 (char *) JS_malloc(cx, buff_size * sizeof(char))) == NULL) {
+	if ((_buff = (char *)
+		 malloc(buff_size * sizeof(char))) == NULL) {
 			fprintf(stderr,
-					"JS_malloc failed in doMFToString for %s.\n",
+					"malloc failed in doMFToString for %s.\n",
 					className);
 			return JS_FALSE;
 	}
@@ -92,11 +92,10 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 			break;
 		}
 
-		if ((_tmp_buff =
-			 (char *)
-			 JS_malloc(cx, (tmp_buff_len + 1) * sizeof(char))) == NULL) {
+		if ((_tmp_buff = (char *)
+			 malloc((tmp_buff_len + 1) * sizeof(char))) == NULL) {
 			fprintf(stderr,
-					"JS_malloc failed for %d in doMFToString for %s.\n",
+					"malloc failed for %d in doMFToString for %s.\n",
 					i, className);
 			return JS_FALSE;
 		}
@@ -134,17 +133,17 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 			}
 		}
 
-		JS_free(cx, _tmp_buff);
+		free(_tmp_buff);
     }
 
 	_str = JS_NewStringCopyZ(cx, _buff);
 	*rval = STRING_TO_JSVAL(_str);
 
-	if (verbose) {
-		printf("doMFToString: obj = %u, len = %d, class = %s, string = \"%s\"\n",
-			   (unsigned int) obj, len, className, _buff);
-	}
-	JS_free(cx, _buff);
+/* 	if (verbose) { */
+/* 		printf("doMFToString: obj = %u, len = %d, class = %s, string = \"%s\"\n", */
+/* 			   (unsigned int) obj, len, className, _buff); */
+/* 	} */
+	free(_buff);
 
     return JS_TRUE;
 }
@@ -153,10 +152,10 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 static JSBool
 doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
+	JSString *str, *sstr;
 	jsval v;
 	jsval myv;
 	char *p, *pp;
-	JSString *str, *sstr;
 	size_t p_len = 0;
 	int len = 0, ind = JSVAL_TO_INT(id);
 
@@ -266,6 +265,48 @@ getBrowser(JSContext *context, JSObject *obj, BrowserNative **brow)
 		fprintf(stderr, "JS_GetPrivate failed in getBrowser.\n");
 		return JS_FALSE;
 	}
+	return JS_TRUE;
+}
+
+
+static JSBool
+doMFStringUnquote(JSContext *cx, jsval *vp)
+{
+	JSString *_str, *_vpStr;
+	char *_buff, *_tmp_vpStr;
+	size_t _buff_len;
+	unsigned int i, j = 0;
+
+	_str = JS_ValueToString(cx, *vp);
+	_buff = JS_GetStringBytes(_str);
+	_buff_len = strlen(_buff) + 1;
+
+	if (verbose) {
+		printf("doMFStringUnquote: vp = \"%s\"\n", _buff);
+	}
+
+	if (memchr(_buff, '"', _buff_len) != NULL) {
+		if ((_tmp_vpStr = (char *)
+			 malloc(_buff_len * sizeof(char))) == NULL) {
+			fprintf(stderr, "malloc failed in doMFStringUnquote.\n");
+			return JS_FALSE;
+		}
+
+		memset(_tmp_vpStr, 0, _buff_len);
+
+		for (i = 0; i <= _buff_len; i++) {
+			if (_buff[i] != '"' ||
+				(i > 0 && _buff[i - 1] == '\\')) {
+				_tmp_vpStr[j++] = _buff[i];
+			}
+		}
+
+		_vpStr = JS_NewStringCopyZ(cx, _tmp_vpStr);
+		*vp = STRING_TO_JSVAL(_vpStr);
+
+		free(_tmp_vpStr);
+	}
+
 	return JS_TRUE;
 }
 
@@ -537,8 +578,8 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 
 		len = strlen(_vp_c);
 		/* len + 3 for '\0' and "..." */
-		if ((_new_vp_c = (char *) JS_malloc(context, len + 3)) == NULL) {
-			fprintf(stderr, "JS_malloc failed in setECMANative.\n");
+		if ((_new_vp_c = (char *) malloc(len + 3)) == NULL) {
+			fprintf(stderr, "malloc failed in setECMANative.\n");
 			return JS_FALSE;
 		}
 		len += 3;
@@ -552,7 +593,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
 				   (unsigned int) obj, _id_c, _new_vp_c);
 		}
-		JS_free(context, _new_vp_c);
+		free(_new_vp_c);
 	} else {
 		if (verbose) {
 			_vpStr = JS_ValueToString(context, *vp);
@@ -568,9 +609,8 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 	} else {
 		len = STRING;
 	}
-	if ((_buff = (char *)
-		 JS_malloc(context, len)) == NULL) {
-		fprintf(stderr, "JS_malloc failed in setECMANative.\n");
+	if ((_buff = (char *) malloc(len)) == NULL) {
+		fprintf(stderr, "malloc failed in setECMANative.\n");
 		return JS_FALSE;
 	}
 	memset(_buff, 0, len);
@@ -581,7 +621,8 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 				"JS_SetProperty failed in setECMANative.\n");
 		ret = JS_FALSE;
 	}
-	JS_free(context, _buff);
+	free(_buff);
+
 	return ret;
 }
 
@@ -743,10 +784,10 @@ SFColorToString(JSContext *cx, JSObject *obj,
 	_str = JS_NewStringCopyZ(cx, _buff);
     *rval = STRING_TO_JSVAL(_str);
 
-	if (verbose) {
-		printf("SFColorToString: obj = %u, string = \"%s\"\n",
-			   (unsigned int) obj, _buff);
-	}
+/* 	if (verbose) { */
+/* 		printf("SFColorToString: obj = %u, string = \"%s\"\n", */
+/* 			   (unsigned int) obj, _buff); */
+/* 	} */
 
     return JS_TRUE;
 }
@@ -980,10 +1021,10 @@ SFImageToString(JSContext *cx, JSObject *obj,
 	_str = JS_NewStringCopyZ(cx, buff);
     *rval = STRING_TO_JSVAL(_str);
 
-	if (verbose) {
-		printf("SFImageToString: obj = %u, string = \"%s\"\n",
-			   (unsigned int) obj, buff);
-	}
+/* 	if (verbose) { */
+/* 		printf("SFImageToString: obj = %u, string = \"%s\"\n", */
+/* 			   (unsigned int) obj, buff); */
+/* 	} */
 
     return JS_TRUE;
 }
@@ -1141,8 +1182,8 @@ SFNodeToString(JSContext *cx, JSObject *obj,
 
 	vrmlstring_len = strlen(ptr->vrmlstring) + 1;
 	if ((_buff = (char *)
-		 JS_malloc(cx, vrmlstring_len)) == NULL) {
-		fprintf(stderr, "JS_malloc failed in SFNodeToString.\n");
+		 malloc(vrmlstring_len)) == NULL) {
+		fprintf(stderr, "malloc failed in SFNodeToString.\n");
 		return JS_FALSE;
 	}
 
@@ -1151,11 +1192,11 @@ SFNodeToString(JSContext *cx, JSObject *obj,
 	_str = JS_NewStringCopyZ(cx, _buff);
     *rval = STRING_TO_JSVAL(_str);
 
-	if (verbose) {
-		printf("SFNodeToString: obj = %u, string = \"%s\"\n",
-			   (unsigned int) obj, _buff);
-	}
-	JS_free(cx, _buff);
+/* 	if (verbose) { */
+/* 		printf("SFNodeToString: obj = %u, string = \"%s\"\n", */
+/* 			   (unsigned int) obj, _buff); */
+/* 	} */
+	free(_buff);
 
     return JS_TRUE;
 }
@@ -1752,10 +1793,10 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	_str = JS_NewStringCopyZ(cx, buff);
     *rval = STRING_TO_JSVAL(_str);
 
-	if (verbose) {
-		printf("SFRotationToString: obj = %u, string = \"%s\"\n",
-			   (unsigned int) obj, buff);
-	}
+/* 	if (verbose) { */
+/* 		printf("SFRotationToString: obj = %u, string = \"%s\"\n", */
+/* 			   (unsigned int) obj, buff); */
+/* 	} */
 
     return JS_TRUE;
 }
@@ -2433,10 +2474,10 @@ SFVec2fToString(JSContext *cx, JSObject *obj,
 	_str = JS_NewStringCopyZ(cx, buff);
     *rval = STRING_TO_JSVAL(_str);
 
-	if (verbose) {
-		printf("SFVec2fToString: obj = %u, string = \"%s\"\n",
-			   (unsigned int) obj, buff);
-	}
+/* 	if (verbose) { */
+/* 		printf("SFVec2fToString: obj = %u, string = \"%s\"\n", */
+/* 			   (unsigned int) obj, buff); */
+/* 	} */
 
     return JS_TRUE;
 }
@@ -3114,10 +3155,10 @@ SFVec3fToString(JSContext *cx, JSObject *obj,
 	_str = JS_NewStringCopyZ(cx, buff);
     *rval = STRING_TO_JSVAL(_str);
 
-	if (verbose) {
-		printf("SFVec3fToString: obj = %u, string = \"%s\"\n",
-			   (unsigned int) obj, buff);
-	}
+/* 	if (verbose) { */
+/* 		printf("SFVec3fToString: obj = %u, string = \"%s\"\n", */
+/* 			   (unsigned int) obj, buff); */
+/* 	} */
 
     return JS_TRUE;
 }
@@ -4914,7 +4955,6 @@ MFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 }
 
 
-
 JSBool
 MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
@@ -4972,6 +5012,14 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 JSBool 
 MFStringSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
+	/* unquote parts of vp string if necessary */
+	if (JSVAL_IS_STRING(*vp)) {
+		if (!doMFStringUnquote(cx, vp)) {
+			fprintf(stderr,
+				"doMFStringUnquote failed in MFStringAddProperty.\n");
+			return JS_FALSE;
+		}
+	}
 	if (verbose) {
 		printf("MFStringSetProperty:\n");
 	}
