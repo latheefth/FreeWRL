@@ -73,7 +73,7 @@ sub parse {
 	my $doc = $p->parse($text);
 
 	# dump this internal structure to the output, if required.
-	print Dumper ($doc), "\n\n";# if $X3D::verbose::parse;
+	print Dumper ($doc), "\n\n" if $X3D::verbose::parse;
 
 	# make an initial topnode of a Group type.
 	# we'll get the fields later, so for now, just send in blank hash.
@@ -195,14 +195,10 @@ sub parse_X3DStatement {
 			# copy any keys over to the parent for later parsing. 
 			my $key;
 			foreach $key (keys(%{$bnub})) {
-				print "$key of nodeType $parentNode ";
-				print "is ",$bnub->{$key},"\n";
-				my $value = "\"".$bnub->{$key}."\"";
-				#$field{$key} = "VRML::Field::SFString"->parse(
-					#	$X3DScene,$value);
-				$field{$key} = $bnub->{$key};
-			}
+				#print "$key of $parentNode is ",$bnub->{$key},"\n";
 
+				$field{$key}=parseSimpleField($parentNode,$key,$bnub->{$key});
+			}
 
 
 		# else is this just junk, or a new Node type?
@@ -273,17 +269,10 @@ sub getChildType {
 }
 
 
-sub parseSimpleFields {
-	my ($me,$fieldVals) = @_;
+sub parseSimpleField {
 
-#	return; # do nothing for now.
-
-	print "start parseFields for $me\n";
-	my $key;
-	foreach $key (keys(%{$fieldVals})) {
-		print "$key of nodeType ",$me->{Type}{Name}," is $key\n";
-		print "value ",$fieldVals->{$key},"\n";
-	}
-	print "end parseFields\n";
+	my ($pn,$field,$value) = @_;
+	print "parseSimpleField field $field, node $pn, value $value \n";
+	return "xxxx";
 }
 1;
