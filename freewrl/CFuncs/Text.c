@@ -77,11 +77,11 @@ int   myff;		// which index into font_face are we using
 
 
 /* for keeping track of tesselated points */
-int relative_index[500];	/* pointer to which point is returned by tesselator  */
-int relindx;			/* index into relative_index			     */
-struct VRML_PolyRep *rep_;	/* this is the internal rep of the polyrep	     */
-int point_count;		/* how many points used so far? maps into rep-_coord */
-int indx_count;			/* maps intp rep_->cindex			     */
+int FW_RIA[500];	/* pointer to which point is returned by tesselator  */
+int FW_RIA_indx;			/* index into FW_RIA			     */
+struct VRML_PolyRep *FW_rep_;	/* this is the internal rep of the polyrep	     */
+int FW_pointctr;		/* how many points used so far? maps into rep-_coord */
+int indx_count;			/* maps intp FW_rep_->cindex			     */
 int coordmaxsize;		/* maximum coords before needing to realloc	     */
 int cindexmaxsize;		/* maximum cindexes before needing to realloc        */
 
@@ -94,6 +94,46 @@ int FW_Vertex;
 /* flag to determine if we need to call the open_font call */ 
 int started = FALSE;
 
+void FW_NewVertexPoint (float Vertex_x, float Vertex_y) {
+	GLdouble v2[3];
+
+	//printf ("FW_NewVertexPoint setting coord index %d %d %d\n",
+	//	FW_pointctr, FW_pointctr*3+2,FW_rep_->coord[FW_pointctr*3+2]);
+	FW_rep_->coord[FW_pointctr*3+0] = OUT2GL(last_point.x + pen_x);
+	FW_rep_->coord[FW_pointctr*3+1] = OUT2GL(last_point.y) + pen_y;
+	FW_rep_->coord[FW_pointctr*3+2] = 0.0;
+
+	/* the following should NEVER happen.... */
+	if (FW_RIA_indx >500) { printf ("Text, relative index too small\n");exit(1);}
+
+	FW_RIA[FW_RIA_indx]=FW_pointctr;
+	v2[0]=FW_rep_->coord[FW_pointctr*3+0];
+	v2[1]=FW_rep_->coord[FW_pointctr*3+1];
+	v2[2]=FW_rep_->coord[FW_pointctr*3+2];
+
+	gluTessVertex(global_tessobj,v2,&FW_RIA[FW_RIA_indx]);
+
+	if (TextVerbose) {
+		printf ("FW_NewVertexPoint %f %f %f index %d\n", 
+				FW_rep_->coord[FW_pointctr*3+0],
+				FW_rep_->coord[FW_pointctr*3+1],
+				FW_rep_->coord[FW_pointctr*3+2],
+				FW_RIA_indx);
+	}
+	FW_pointctr++;
+	FW_RIA_indx++;
+
+	if (FW_pointctr >= coordmaxsize) {
+		coordmaxsize+=800;
+		FW_rep_->coord = realloc(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
+
+		if (!(FW_rep_->coord)) { 
+			printf ("realloc failed - out of memory \n");
+			exit(1);
+		}
+	}
+
+  }
 
 int FW_moveto ( FT_Vector* to, void* user) {
 
@@ -116,7 +156,6 @@ int FW_moveto ( FT_Vector* to, void* user) {
 
 int FW_lineto ( FT_Vector* to, void* user) {
 
-	GLdouble v2[3];
 
 	if ((last_point.x == to->x) && (last_point.y == to->y)) {
 		// printf ("FW_lineto, early return\n");
@@ -124,57 +163,28 @@ int FW_lineto ( FT_Vector* to, void* user) {
 	}
 
 	last_point.x = to->x; last_point.y = to->y;
-
-	//printf ("setting coord index %d %d %d\n",point_count, point_count*3+2,rep_->coord[point_count*3+2]);
-	rep_->coord[point_count*3+0] = OUT2GL(last_point.x + pen_x);
-	rep_->coord[point_count*3+1] = OUT2GL(last_point.y) + pen_y;
-	rep_->coord[point_count*3+2] = 0.0;
-
-	/* the following should NEVER happen.... */
-	if (relindx >500) { printf ("Text, relative index too small\n");exit(1);}
-
-	relative_index[relindx]=point_count;
-	v2[0]=rep_->coord[point_count*3+0];
-	v2[1]=rep_->coord[point_count*3+1];
-	v2[2]=rep_->coord[point_count*3+2];
-
-	gluTessVertex(global_tessobj,v2,&relative_index[relindx]);
-
 	if (TextVerbose) {
 		printf ("FW_lineto, going to %d %d\n",to->x, to->y);
-		printf ("gluTessVertex %f %f %f index %d\n", 
-				rep_->coord[point_count*3+0],
-				rep_->coord[point_count*3+1],
-				rep_->coord[point_count*3+2],
-				relindx);
-	}
-	point_count++;
-	relindx++;
-
-	if (point_count >= coordmaxsize) {
-		coordmaxsize+=800;
-		rep_->coord = realloc(rep_->coord, sizeof(*(rep_->coord))*coordmaxsize*3);
-
-		if (!(rep_->coord)) { 
-			printf ("realloc failed - out of memory \n");
-			exit(1);
-		}
 	}
 
-    return 0;
-  }
+	FW_NewVertexPoint(OUT2GL(last_point.x+pen_x), OUT2GL(last_point.y + pen_y));
+
+	return 0;
+}
+
 
 int FW_conicto ( FT_Vector* control, FT_Vector* to, void* user) {
-
 	FT_Vector ncontrol;
 
-	// Bezier curve calculations
-	
+	// Bezier curve calcs; fairly rough, but makes ok characters
+
 	if (TextVerbose)
 		printf ("FW_conicto\n");
-
 	ncontrol.x =(int) ((float) 0.25*last_point.x + 0.5*control->x + 0.25*to->x),
 	ncontrol.y =(int) ((float) 0.25*last_point.y + 0.5*control->y + 0.25*to->y),
+
+	//printf ("Cubic points (%d %d) (%d %d) (%d %d)\n", last_point.x,last_point.y,
+	//	ncontrol.x, ncontrol.y, to->x,to->y);
 
 	FW_lineto (&ncontrol,user);
 	FW_lineto (to,user);
@@ -208,8 +218,7 @@ FW_make_fontname (int num) {
                         bit:    4       TYPEWRITER
 */
 
-		strcpy (thisfontname,sys_fp);
-
+strcpy (thisfontname, sys_fp);
 		switch (num) {
 			/* Serif, norm, bold, italic, bold italic */
 			case 0x04: strcat (thisfontname,"/Amrigon.ttf"); break;
@@ -308,6 +317,7 @@ void FW_draw_outline (FT_OutlineGlyph oglyph) {
 	int thisptr;
 	int retval;
 
+	// JAS gluTessBeginPolygon(global_tessobj,NULL);
 	gluBeginPolygon(global_tessobj);
 	FW_Vertex = 0;
 
@@ -318,6 +328,7 @@ void FW_draw_outline (FT_OutlineGlyph oglyph) {
 		// glEnd();
 	}
 
+	//gluTessEndPolygon(global_tessobj);
 	gluEndPolygon(global_tessobj);
 
 	if (retval != FT_Err_Ok) printf ("FT_Outline_Decompose, error %d\n");	
@@ -397,12 +408,12 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 
 	if (TextVerbose) printf ("entering FW_Render_text \n");
 
-	rep_ = rp;
+	FW_rep_ = rp;
 
 
-	relindx = 0;                /* index into relative_index                         */
-	point_count=0;              /* how many points used so far? maps into rep-_coord */
-	indx_count=0;               /* maps intp rep_->cindex                            */
+	FW_RIA_indx = 0;                /* index into FW_RIA                         */
+	FW_pointctr=0;              /* how many points used so far? maps into rep-_coord */
+	indx_count=0;               /* maps intp FW_rep_->cindex                            */
 	contour_started = FALSE;
 
 
@@ -451,10 +462,10 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 	/* what is the estimated number of triangles? assume a certain number of tris per char */
 	est_tri = char_count*TESS_MAX_COORDS;
 	coordmaxsize=est_tri;
-	cindexmaxsize=TESS_MAX_COORDS;
-	rep_->cindex=malloc(sizeof(*(rep_->cindex))*est_tri);
-	rep_->coord = malloc(sizeof(*(rep_->coord))*est_tri*3);
-	if (!(rep_->coord && rep_->cindex)) {
+	cindexmaxsize=est_tri;
+	FW_rep_->cindex=malloc(sizeof(*(FW_rep_->cindex))*est_tri);
+	FW_rep_->coord = malloc(sizeof(*(FW_rep_->coord))*est_tri*3);
+	if (!(FW_rep_->coord && FW_rep_->cindex)) {
 		printf ("can not malloc memory for text triangles\n");
 		exit(1);
 	}
@@ -524,7 +535,7 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 			int x;
 
 			global_IFS_Coord_count = 0;
-			relindx = 0;
+			FW_RIA_indx = 0;
 
 			FW_draw_character (glyphs[counter+i]);
 			FT_Done_Glyph (glyphs[counter+i]);
@@ -540,21 +551,26 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 				if ((global_IFS_Coords[x] >= cindexmaxsize) ||
 				   (indx_count >= cindexmaxsize) ||
 				   (global_IFS_Coords[x] < 0)) {
-					if (TextVerbose) 
-					printf ("Tesselated index %d out of range; skipping\n",
-						     global_IFS_Coords[x]);
+					//if (TextVerbose) 
+					//printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n",
+					//	     global_IFS_Coords[x],indx_count,cindexmaxsize,global_IFS_Coord_count);
+					// just use last point - this sometimes happens when
+					// we have intersecting lines. Lets hope first point is
+					// not invalid... JAS
+					FW_rep_->cindex[indx_count] = FW_rep_->cindex[indx_count-1];
+					if (indx_count < (cindexmaxsize-1)) indx_count ++;
 				} else {	
 					//printf ("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],indx_count);
 					//printf ("filling up cindex; index %d now points to %d\n",indx_count,global_IFS_Coords[x]);
-					rep_->cindex[indx_count++] = global_IFS_Coords[x];
+					FW_rep_->cindex[indx_count++] = global_IFS_Coords[x];
 				}
 			}
 
 			if (indx_count > (cindexmaxsize-400)) {
-				cindexmaxsize +=500;
-				//printf ("CINDEX REALLOC!!!\n");
-				rep_->cindex=realloc(rep_->cindex,sizeof(*(rep_->cindex))*cindexmaxsize);
-				if (!(rep_->cindex)) {
+				cindexmaxsize +=TESS_MAX_COORDS;
+				printf ("CINDEX REALLOC!!!\n");
+				FW_rep_->cindex=realloc(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
+				if (!(FW_rep_->cindex)) {
 					printf ("out of memory at realloc for cindex\n");
 					exit(1);
 				}
@@ -565,36 +581,36 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 		pen_y += spacing * y_size;
    	}
 	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
-	rep_->ntri=indx_count/3;
+	FW_rep_->ntri=indx_count/3;
 
 	// if indx count is zero, DO NOT get rid of mallocd memory - creates a bug as pointers cant be null
 	if (indx_count !=0) {
 		//realloc bug in linux - this causes the pointers to be eventually lost...
-		//realloc (rep_->cindex,sizeof(*(rep_->cindex))*indx_count);
-		//realloc (rep_->coord,sizeof(*(rep_->coord))*point_count*3);
+		//realloc (FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*indx_count);
+		//realloc (FW_rep_->coord,sizeof(*(FW_rep_->coord))*FW_pointctr*3);
 	}
 
 	/* now, generate normals */
-	rep_->normal = malloc(sizeof(*(rep_->normal))*indx_count*3);
+	FW_rep_->normal = malloc(sizeof(*(FW_rep_->normal))*indx_count*3);
 	for (i = 0; i<indx_count; i++) {
-		rep_->normal[i*3+0] = 0.0;
-		rep_->normal[i*3+1] = 0.0;
-		rep_->normal[i*3+2] = -1.0;
+		FW_rep_->normal[i*3+0] = 0.0;
+		FW_rep_->normal[i*3+1] = 0.0;
+		FW_rep_->normal[i*3+2] = -1.0;
 	}
 
 
 	/* do we have texture mapping to do? */
 	if (HAVETODOTEXTURES) {
-		rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*(point_count+1)*3);
-		if (!(rep_->tcoord)) {
+		FW_rep_->tcoord = malloc(sizeof(*(FW_rep_->tcoord))*(FW_pointctr+1)*3);
+		if (!(FW_rep_->tcoord)) {
 			printf ("can not malloc memory for text textures\n");
 		} else {
 			/* an attempt to try to make this look like the NIST example */
 			/* I can't find a standard as to how to map textures to text JAS */
-			for (i=0; i<point_count; i++) {
-				rep_->tcoord[i*3+0] = rep_->coord[i*3+0]*1.66;
-				rep_->tcoord[i*3+1] = 0.0; 
-				rep_->tcoord[i*3+2] = rep_->coord[i*3+1]*1.66;
+			for (i=0; i<FW_pointctr; i++) {
+				FW_rep_->tcoord[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
+				FW_rep_->tcoord[i*3+1] = 0.0; 
+				FW_rep_->tcoord[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
 			}
 
 		}
