@@ -200,6 +200,50 @@ extern int BrowserAction;
 extern char * BrowserActionString;
 
 /* Scripting Routing interfaces */
+
+#define SFUNKNOWN 0
+#define SFBOOL 	1
+#define SFCOLOR 2
+#define SFFLOAT 3
+#define SFTIME 	4
+#define SFINT32 5
+#define SFSTRING 6
+#define SFNODE	7
+#define SFROTATION 8
+#define SFVEC2F	9
+#define SFIMAGE	10
+
+#define MFCOLOR 11
+#define MFFLOAT 12
+#define MFTIME 	13
+#define MFINT32 14
+#define MFSTRING 15
+#define MFNODE	16
+#define MFROTATION 17
+#define MFVEC2F	18
+
+
+#define FIELD_TYPE_STRING(f) ( \
+	f == SFBOOL ? "SFBool" : ( \
+	f == SFCOLOR ? "SFColor or SFVec3f" : ( \
+	f == SFFLOAT ? "SFFloat" : ( \
+	f == SFTIME ? "SFTime" : ( \
+	f == SFINT32 ? "SFInt32" : ( \
+	f == SFSTRING ? "SFString" : ( \
+	f == SFNODE ? "SFNode" : ( \
+	f == SFROTATION ? "SFRotation" : ( \
+	f == SFVEC2F ? "SFVec2f" : ( \
+	f == SFIMAGE ? "SFImage" : ( \
+	f == MFCOLOR ? "MFColor or MFVec3f" : ( \
+	f == MFFLOAT ? "MFFloat" : ( \
+	f == MFTIME ? "MFTime" : ( \
+	f == MFINT32 ? "MFInt32" : ( \
+	f == MFSTRING ? "MFString" : ( \
+	f == MFNODE ? "MFNode" : ( \
+	f == MFROTATION ? "MFRotation" : ( \
+	f == MFVEC2F ? "MFVec2f" : "unknown field type"))))))))))))))))))
+
+
 void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int brow);
 void gatherScriptEventOuts(int script, int ignore);
 void getMFNodetype (char *strp, struct Multi_Node *ch, int ar);
@@ -224,6 +268,7 @@ void render_status(void); /* status bar */
 void update_status(void); 	/* update status bar */
 void viewer_type_status(int x);		/* tell status bar what kind of viewer */
 void viewpoint_name_status(char *str); /* tell status bar name of current vp 	*/
+int convert_typetoInt (char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
 extern double BrowserFPS;
 void render_polyrep(void *node,
@@ -233,6 +278,8 @@ void render_polyrep(void *node,
         int ntexcoords, struct SFVec2f *texcoords);
 
 
+extern int CRoutesExtra;		// let EAI see param of routing table - Listener data.
 
+unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 
 #endif /* __HEADERS_H__ */

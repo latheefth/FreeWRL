@@ -194,6 +194,52 @@ sub verify_script_started {
 }
 
 
+#################################################################################
+#
+# a PROTO interface declaration may have a variable that is referenced in Routes,
+# but is never IS'd.  EAI uses things like this. We REQUIRE memory in order to route
+# to,from; so tell Events where we are going to store it.
+# 
+# eg:
+#
+#	PROTO VNetInfo [ exposedField  SFFloat   brightness   0.5 ] { Group {} }
+#	Transform {
+#	  children [
+#	    DEF VNET VNetInfo { isConnected TRUE  brightness 0.75}
+#	    DEF LIGHT DirectionalLight....
+#	  ]
+#	  ROUTE LIGHT.intensity TO VNET.brightness
+#	}
+
+my %ExtraMem = ();
+sub ExtraMemory {
+	my ($node,$field) = @_;
+
+	my $memptr;
+	my $value;
+	
+	my $type = $node->{Scene}{Pars}{$field}[1];
+	my $clen = VRML::VRMLFunc::getClen("VRML::Field::$type"->clength($type));
+
+	# have we seen this one before?
+	if (exists $ExtraMem{"$node$field"}) {
+		# print "ExtraMemory, already found $node $field, returning \n";
+		$memptr = $ExtraMem{"$node$field"};
+	} else {
+		$value = $node->{Scene}{NodeParent}{Fields}{$field};
+		$memptr = VRML::VRMLFunc::EAIExtraMemory ($type,$clen,$value);
+
+		# save this, so we know if we have already allocated memory for it.
+		$ExtraMem{"$node$field"} = $memptr;
+	}
+
+	#print "Events.pm: ExtraMemory: field $field Clength $clen  type $type value $value address $memptr\n";
+	return ($memptr ,$type,$clen);
+}
+
+
+
+
 ###############################################################################
 #
 # Nodes get stored in many ways, depending on whether it is a PROTO, normal
@@ -222,7 +268,8 @@ sub resolve_node_cnode {
 	my $proto_field;
 	my $is_proto;
 	my $tmp;
-	my $fieldtype;
+	my $fieldtype = "";
+	my $clen = 0;		# length of the data  - check out "sub clength"
 
 	print "\nVRML::EventMachine::resolve_node_cnode: ",
 		VRML::Debug::toString(\@_), "\n" if $VRML::verbose::events;
@@ -415,12 +462,21 @@ sub resolve_node_cnode {
 
 			# are there offsets for these eventins and eventouts?
 			if (!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
-				print "resolve_node_cnode: CNodes entry ",
+
+				# this node is a proto interface node, but is not IS'd anywhere. Lets
+				# get the browser to give us some memory for it.
+				($outptr,$fieldtype,$clen) = ExtraMemory($node,$field);
+				$outoffset = 0;
+
+				if ($outptr eq 0) {  # browser call failed to alloc more memory.
+
+					print "resolve_node_cnode: CNodes entry ",
 					VRML::Debug::toString($VRML::CNodes{$node->{TypeName}}),
 							", $node->{TypeName} ",
 								VRML::NodeIntern::dump_name($node),
 										", event $field offset not defined\n";
-				return (0,0,0,0,0);
+					return (0,0,0,0,0);
+				}
 			}
 			if ($direction =~ /eventIn/i) {
 				$to_count = 1;
@@ -430,27 +486,39 @@ sub resolve_node_cnode {
 	}
 
 	# ok, we have node and field, lets find either field length, or interpolator
-	if ($direction =~ /eventOut/i) {
-		# do we handle this type of data within C yet?
-		if ($is_proto) {
-			$il = VRML::VRMLFunc::getClen("VRML::Field::$proto_node->{Type}{FieldTypes}{$proto_field}"->clength($proto_field));
-			$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
+	# if this is a node that had to be allocated by ExtraMemory, we must bypass some of this.
+
+	if ($fieldtype ne "") {   # we have handled this by "ExtraMemory", above.
+		if ($direction =~ /eventOut/i) {
+			$il = $clen;
 		} else {
-			$il = VRML::VRMLFunc::getClen("VRML::Field::$node->{Type}{FieldTypes}{$field}"->clength($field));
-			$fieldtype = $node->{Type}{FieldTypes}{$field};
-		}
-		if ($il == 0) {
-			print "add_route, dont handle $eventOut types in C yet\n";
-			return (0,0,0,0,0);
+			$il = 0;
 		}
 	} else {
-		# is this an interpolator that is handled by C yet?
-		if ($is_proto) {
-			$il = VRML::VRMLFunc::InterpPointer($proto_node->{Type}{Name});
-			$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
+		if ($direction =~ /eventOut/i) {
+			# do we handle this type of data within C yet?
+			if ($is_proto) {
+				$il = VRML::VRMLFunc::getClen(
+						"VRML::Field::$proto_node->{Type}{FieldTypes}{$proto_field}"->
+						clength($proto_field));
+				$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
+			} else {
+				$il = VRML::VRMLFunc::getClen("VRML::Field::$node->{Type}{FieldTypes}{$field}"->clength($field));
+				$fieldtype = $node->{Type}{FieldTypes}{$field};
+			}
+			if ($il == 0) {
+				print "add_route, dont handle $eventOut types in C yet\n";
+				return (0,0,0,0,0);
+			}
 		} else {
-			$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
-			$fieldtype = $node->{Type}{FieldTypes}{$field};
+			# is this an interpolator that is handled by C yet?
+			if ($is_proto) {
+				$il = VRML::VRMLFunc::InterpPointer($proto_node->{Type}{Name});
+				$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
+			} else {
+				$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
+				$fieldtype = $node->{Type}{FieldTypes}{$field};
+			}
 		}
 	}
 

@@ -22,12 +22,12 @@
 /*	very simple example:						*/
 /*		move a transform; Java code:				*/
 /*									*/
-/*		EventInMFNode addChildren;				*/
-/*		EventInSFVec3f newpos;					*/
+/*		EventInEAI_MFNode addChildren;				*/
+/*		EventInEAI_SFVec3f newpos;					*/
 /*		try { root = browser.getNode("ROOT"); }			*/
 /*		catch (InvalidNodeException e) { ... }			*/
 /*									*/
-/*		newpos=(EventInSFVec3f)root.getEventIn("translation");	*/
+/*		newpos=(EventInEAI_SFVec3f)root.getEventIn("translation");	*/
 /*		val[0] = 1.0; val[1] = 1.0; val[2] = 1.0;		*/
 /*		newpos.setValue(val);					*/
 /*									*/
@@ -82,28 +82,30 @@ extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
 #define	CREATEVU	'T'
 #define	STOPFREEWRL	'U'
 
-/* Subtypes - types of data to get from EAI */
-#define	SFUNKNOWN	'a'
-#define	SFBOOL		'b'
-#define	SFCOLOR		'c'
-#define	SFFLOAT		'd'
-#define	SFTIME		'e'
-#define	SFINT32		'f'
-#define	SFSTRING	'g'
-#define	SFNODE		'h'
-#define	SFROTATION	'i'
-#define	SFVEC2F		'j'
-#define	SFIMAGE		'k'
-#define	MFCOLOR		'l'
-#define	MFFLOAT		'm'
-#define	MFTIME		'n'
-#define	MFINT32		'o'
-#define	MFSTRING	'p'
-#define	MFNODE		'q'
-#define	MFROTATION	'r'
-#define	MFVEC2F		's'
-#define MFVEC3F		't'
-#define SFVEC3F		'u'
+/* Subtypes - types of data to get from EAI  - we don't use the ones defined in
+   headers.h, because we want ASCII characters */
+
+#define	EAI_SFUNKNOWN	'a'
+#define	EAI_SFBOOL		'b'
+#define	EAI_SFCOLOR		'c'
+#define	EAI_SFFLOAT		'd'
+#define	EAI_SFTIME		'e'
+#define	EAI_SFINT32		'f'
+#define	EAI_SFSTRING	'g'
+#define	EAI_SFNODE		'h'
+#define	EAI_SFROTATION	'i'
+#define	EAI_SFVEC2F		'j'
+#define	EAI_SFIMAGE		'k'
+#define	EAI_MFCOLOR		'l'
+#define	EAI_MFFLOAT		'm'
+#define	EAI_MFTIME		'n'
+#define	EAI_MFINT32		'o'
+#define	EAI_MFSTRING	'p'
+#define	EAI_MFNODE		'q'
+#define	EAI_MFROTATION	'r'
+#define	EAI_MFVEC2F		's'
+#define EAI_MFVEC3F		't'
+#define EAI_SFVEC3F		'u'
 
 
 
@@ -157,7 +159,7 @@ void handle_Listener (void);
 void CRoutes_Register(unsigned int from, unsigned int fromoffset,
 	int to_count, char *tonode_str, unsigned int length,
 	void *intptr, int scrdir, int extra);				// CFuncs/CRoutes.c
-
+void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 
 
 void EAI_send_string(char *str){
@@ -166,7 +168,7 @@ void EAI_send_string(char *str){
 	/* add a trailing newline */
 	strcat (str,"\n");
 
-	if (EAIVerbose) printf ("EAI Command returns\n%s",str);
+	if (EAIVerbose) printf ("EAI Command returns\n%s(end of command)\n",str);
 
 	n = write (listenfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
@@ -366,7 +368,7 @@ void handle_EAI () {
 * the command names are #defined at the start of this file.
 *
 * some commands have sub commands (eg, get a value) to indicate data types, 
-* (eg, SFFLOAT); these sub types are indicated with a lower case letter; again,
+* (eg, EAI_SFFLOAT); these sub types are indicated with a lower case letter; again,
 * look to the top of this file for the #defines
 *
 *********************************************************************************/
@@ -408,27 +410,27 @@ void EAI_parse_commands (char *bufptr) {
 		switch (command) {
 			case GETNAME: { 
 				if (EAIVerbose) printf ("GETNAME\n");
-				sprintf (buf,"RE\n%d\n1\n%s",count,BrowserName);
+				sprintf (buf,"RE\n%d\n%s",count,BrowserName);
 				break; 
 				}
 			case GETVERSION: { 
 				if (EAIVerbose) printf ("GETVERSION\n");
-				sprintf (buf,"RE\n%d\n1\n%s",count,BrowserVersion);
+				sprintf (buf,"RE\n%d\n%s",count,BrowserVersion);
 				break; 
 				}
 			case GETCURSPEED: { 
 				if (EAIVerbose) printf ("GETCURRENTSPEED\n");
-				sprintf (buf,"RE\n%d\n1\n%f",count,(float) 1.0/BrowserFPS);
+				sprintf (buf,"RE\n%d\n%f",count,(float) 1.0/BrowserFPS);
 				break; 
 				}
 			case GETFRAMERATE: { 
 				if (EAIVerbose) printf ("GETFRAMERATE\n");
-				sprintf (buf,"RE\n%d\n1\n%f",count,BrowserFPS);
+				sprintf (buf,"RE\n%d\n%f",count,BrowserFPS);
 				break; 
 				}
 			case GETURL: { 
 				if (EAIVerbose) printf ("GETURL\n");
-				sprintf (buf,"RE\n%d\n1\n%s",count,BrowserURL);
+				sprintf (buf,"RE\n%d\n%s",count,BrowserURL);
 				break; 
 				}
 			case GETNODE:  {
@@ -439,7 +441,7 @@ void EAI_parse_commands (char *bufptr) {
 
 				uretval = EAI_GetNode(ctmp);
 
-				sprintf (buf,"RE\n%d\n1\n%d",count,uretval);
+				sprintf (buf,"RE\n%d\n%d",count,uretval);
 				break; 
 			}
 			case GETTYPE:  {
@@ -450,7 +452,7 @@ void EAI_parse_commands (char *bufptr) {
 	
 				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
 	
-				sprintf (buf,"RE\n%d\n1\n%d %d %d %c",count,ra,rb,rc,rd);
+				sprintf (buf,"RE\n%d\n%d %d %d %c",count,ra,rb,rc,rd);
 				break;
 				}
 			case SENDEVENT:   {
@@ -480,7 +482,7 @@ void EAI_parse_commands (char *bufptr) {
 					ra = EAI_CreateVrml("URL",bufptr,nodarr);
 				}
 	
-				sprintf (buf,"RE\n%d\n%d\n",count,ra);
+				sprintf (buf,"RE\n%d\n",count);
 				for (rb = 0; rb < ra; rb++) {
 					sprintf (ctmp,"%d ", nodarr[rb]);
 					strcat (buf,ctmp);
@@ -501,7 +503,7 @@ void EAI_parse_commands (char *bufptr) {
 				getMFNodetype (dtmp,(struct Multi_Node *)rc, 
 						strcmp(ctmp,"removeChildren"));
 	
-				sprintf (buf,"RE\n%d\n1\n0",count);
+				sprintf (buf,"RE\n%d\n0",count);
 				break;
 				}
 			case UPDATEROUTING :  {
@@ -510,7 +512,7 @@ void EAI_parse_commands (char *bufptr) {
 				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
 				if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
 	
-				sprintf (buf,"RE\n%d\n1\n0",count);
+				sprintf (buf,"RE\n%d\n0",count);
 				break;
 				}
 			case REGLISTENER: {
@@ -530,16 +532,26 @@ void EAI_parse_commands (char *bufptr) {
 					(count<<8)+ctmp[0]); // encode id and type here
 	
 	
-				sprintf (buf,"RE\n%d\n1\n0",count);
+				sprintf (buf,"RE\n%d\n0",count);
 				break;
 				}
-			case REPLACEWORLD:  
-			case GETVALUE: 
-			case ADDROUTE:  
-			case DELETEROUTE:  
-			case LOADURL: 
-			case SETDESCRIPT:  
-			case STOPFREEWRL:  
+
+			case GETVALUE: {
+				if (EAIVerbose) printf ("GETVALUE %s \n",bufptr);
+
+				// format: ptr, offset, type, length (bytes)
+				sscanf (bufptr, "%d %d %c %d", &ra,&rb,ctmp,&rc);
+
+				ra = ra + rb;   // get absolute pointer offset
+				EAI_Convert_mem_to_ASCII (count,"RE",(int)ctmp[0],(char *)ra, buf);
+				break;
+				}
+//XXX			case REPLACEWORLD:  
+//XXX			case ADDROUTE:  
+//XXX			case DELETEROUTE:  
+//XXX			case LOADURL: 
+//XXX			case SETDESCRIPT:  
+//XXX			case STOPFREEWRL:  
 			default: {
 				printf ("unhandled command :%c: %d\n",command,command);
 				strcat (buf, "unknown_EAI_command");
@@ -597,9 +609,10 @@ unsigned int EAI_SendEvent (char *ptr) {
 	   are impossible here (this is not javascript!) */
 
 	switch (nodetype) {
-		case SFBOOL:	{	/* SFBool */
+		case EAI_SFBOOL:	{	/* EAI_SFBool */
 			/* printf ("we have a boolean, copy value over string is %s\n",strp); */
-			if (strncmp(ptr,"true",4)== (unsigned int) 0) {
+			/* yes, it is <space>TRUE... */
+			if (strncmp(ptr," TRUE",5)== (unsigned int) 0) {
 				ival = 1;
 			} else {
 				/* printf ("ASSUMED TO BE FALSE\n"); */
@@ -609,37 +622,37 @@ unsigned int EAI_SendEvent (char *ptr) {
 			break;
 		}
 
-		case SFTIME: {
+		case EAI_SFTIME: {
 			sscanf (ptr,"%lf",&tval);
-			//printf ("SFTime conversion numbers %f from string %s\n",tval,ptr);
+			//printf ("EAI_SFTime conversion numbers %f from string %s\n",tval,ptr);
 			memcpy ((void *)memptr, (void *)&tval,sizeof(double));
 			break;
 		}
-		case SFNODE:
-		case SFINT32: {
+		case EAI_SFNODE:
+		case EAI_SFINT32: {
 			sscanf (ptr,"%d",&ival);
 			memcpy ((void *)memptr, (void *)&ival,sizeof(int));
 			break;
 		}
-		case SFFLOAT: {
+		case EAI_SFFLOAT: {
 			sscanf (ptr,"%f",fl);
 			memcpy ((void *)memptr, (void *)fl,sizeof(float));
 			break;
 		}
 
-		case SFVEC2F: {	/* SFVec2f */
+		case EAI_SFVEC2F: {	/* EAI_SFVec2f */
 			sscanf (ptr,"%f %f",&fl[0],&fl[1]);
 			memcpy ((void *)memptr, (void *)fl,sizeof(float)*2);
 			break;
 		}
-		case SFVEC3F:
-		case SFCOLOR: {	/* SFColor */
+		case EAI_SFVEC3F:
+		case EAI_SFCOLOR: {	/* EAI_SFColor */
 			sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
 			memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
 			break;
 		}
 
-		case SFROTATION: {
+		case EAI_SFROTATION: {
 			sscanf (ptr,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
 			memcpy ((void *)memptr, (void *)fl,sizeof(float)*4);
 			break;
@@ -647,27 +660,34 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 
 		/* a series of Floats... */
-//xxx		case MFVEC3F:
-//xxx		case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,3); break;}
-//xxx		case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,1); break;}
-//xxx		case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,4); break;}
-//xxx		case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,2); break;}
-//xxx		case MFNODE: {getMFNodetype (ptr,memptr,CRoutes[route].extra); break;}
-//xxx		case MFSTRING: {
-//xxx			getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
+//xxx		case EAI_MFVEC3F:
+//xxx		case EAI_MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,3); break;}
+//xxx		case EAI_MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,1); break;}
+//xxx		case EAI_MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,4); break;}
+//xxx		case EAI_MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,2); break;}
+//xxx		case EAI_MFNODE: {getEAI_MFNodetype (ptr,memptr,CRoutes[route].extra); break;}
+//xxx		case EAI_MFSTRING: {
+//xxx			getEAI_MFStringtype ((JSContext *) JSglobs[actualscript].cx,
 //xxx							 global_return_val,memptr); 
 //xxx			break;
 //xxx		}
 //xxx
-//xxx		case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,0); break;}
-//xxx		case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,5); break;}
+//xxx		case EAI_MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,0); break;}
+//xxx		case EAI_MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,5); break;}
 
 		default: {
 			printf ("unhandled Event :%c: - get code in here\n",nodetype);
 			return FALSE;
 		}
 	}
-	update_node ((void *)nodeptr);
+
+	/* if this is a geometry, make it re-render. Some nodes (PROTO interface params w/o IS's) 
+	   will have an offset of zero, and are thus not "real" nodes, only memory locations */
+	if (offset > 0) update_node ((void *)nodeptr);
+
+	/* if anything uses this for routing, tell it that it has changed */
+	mark_event (nodeptr,offset);
+
 	return TRUE;
 }
 
@@ -690,94 +710,237 @@ unsigned int EAI_SendEvent (char *ptr) {
 void handle_Listener () {
 	int id, tp;
 	char buf[EAIREADSIZE];
-	double dval;
-	float fl[4];
-	int ival;
 
 	// get the type and the id.
 	tp = CRoutesExtra&0xff;
 	id = (CRoutesExtra & 0xffffff00) >>8;
 	if (EAIVerbose) printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
+	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
+	EAI_send_string(buf);
 
-	switch ((char) tp) {
-		case SFBOOL: 	{
-			if (EAIVerbose) printf ("SFBOOL\n");				
-			if (EAIListenerData[0] == 1) sprintf (buf,"EV\n%d\nTRUE",id);
-			else sprintf (buf,"EV\n%d\nFALSE",id);
-			EAI_send_string (buf);
+}
+
+
+/********************************************************************
+*
+* Extra Memory routine - for PROTO interface declarations that are used,
+* but are not IS'd. (EAI uses these things!)
+*
+**********************************************************************/
+
+unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
+	int val;
+	char *memptr;
+	int ty;
+	float fl[4];
+
+	/* variables for MFStrings */
+	struct Multi_String *MSptr;
+	AV *aM;
+	SV **bM;
+	int iM;
+	int lM;
+
+
+	memptr = 0;  /* get around a compiler warning */
+
+	/* convert the type string to an internal type */
+	ty = convert_typetoInt (type);
+
+	// printf ("EAI - extra memory for size %d type %s\n",size,type);
+
+	if (size > 0) {
+		memptr = malloc ((unsigned)size);
+		if (memptr == NULL) {
+			printf ("can not allocate memory for PROTO Interface decls\n");
+			return 0;
+		}
+	}
+
+	switch (ty) {
+		case SFNODE :
+		case SFBOOL: 
+		case SFINT32: { 
+				val = SvIV(data);
+				memcpy(memptr,&val,(unsigned) size);
+				break; 
+			}
+		case SFFLOAT: {
+				fl[0] = SvNV(data);
+				memcpy(memptr,&val,(unsigned) size);
+				break; 
+			}	
+
+
+//XXX		case SFCOLOR: { break; }
+//XXX		case SFFLOAT: { break; }
+//XXX		case SFTIME : { break; }
+//XXX		case SFSTRING: { break; }
+//XXX		case SFROTATION: { break; }
+//XXX		case SFVEC2F: { break; }
+//XXX		case SFIMAGE: { break; }
+//XXX		case MFCOLOR: { break; }
+//XXX		case MFFLOAT: { break; }
+//XXX		case MFTIME: { break; }
+//XXX		case MFINT32: { break; }
+
+		case MFSTRING: { 
+			/* malloc the main pointer */
+			memptr = malloc (sizeof (struct Multi_String));
+
+			if (memptr == NULL) {
+				printf ("can not allocate memory for PROTO Interface decls\n");
+				return 0;
+			}
+
+			/* set the contents pointer to zero  - mimics alloc_offs_MFString */
+			MSptr = (struct Multi_String *)memptr;
+        		(*MSptr).n = 0; (*MSptr).p = 0;
+
+			/* now we mimic set_offs_MFString to set these values in C */
+			if(!SvROK(data)) {
+				(*MSptr).n = 0;
+				(*MSptr).p = 0;
+				printf ("EAI_Extra_Memory: Help! Multi without being ref\n"); 
+				return 0;
+			} else {
+				if(SvTYPE(SvRV(data)) != SVt_PVAV) {
+					printf ("EAI_Extra_Memory: Help! Multi without being ref\n"); 
+				}
+				aM = (AV *) SvRV(data);
+				lM = av_len(aM)+1;
+				(*MSptr).n = lM;
+				(*MSptr).p = malloc(lM * sizeof(*((*MSptr).p)));
+				for(iM=0; iM<lM; iM++) {
+					bM = av_fetch(aM, iM, 1); /* LVal for easiness */
+					if(!bM) {
+						printf ("EAI_Extra_Memory: Help: Multi VRML::Field::SFString bM == 0\n");
+					}
+					(*MSptr).p[iM] = newSVpv("",0);
+					sv_setsv(((*MSptr).p[iM]),(*bM));
+				}
+			}
+			break; 
+		}
+
+//XXX		case MFNODE: { break; }
+//XXX		case MFROTATION: { break; }
+//XXX		case MFVEC2F: { break; }
+		default: {
+			printf ("EAI_do_ExtraMemory, unhandled type %s\n",type);
+		}
+	}
+	// printf ("EAI_Extra memory, returning %d\n",memptr);
+	return (unsigned) memptr;
+	
+}
+
+/* convert a number in memory to a printable type. Used to send back EVents, or replies to
+   the Java client program. */
+
+void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf) {
+
+	double dval;
+	float fl[4];
+	int ival;
+	int row;			/* MF* counter */
+	struct Multi_String *MSptr;	/* MFString pointer */
+	char *ptr;			/* used for building up return string */
+
+	switch (type) {
+		case EAI_SFBOOL: 	{
+			if (EAIVerbose) printf ("EAI_SFBOOL\n");				
+			if (memptr[0] == 1) sprintf (buf,"%s\n%d\nTRUE",reptype,id);
+			else sprintf (buf,"%s\n%d\nFALSE",reptype,id);
 			break;
 		}
 
-		case SFTIME:	{
-			if (EAIVerbose) printf ("SFTIME\n");
-			memcpy(&dval,EAIListenerData,sizeof(double));
-			sprintf (buf, "EV\n%d\n%lf",id,dval);
-			EAI_send_string(buf);
+		case EAI_SFTIME:	{
+			if (EAIVerbose) printf ("EAI_SFTIME\n");
+			memcpy(&dval,memptr,sizeof(double));
+			sprintf (buf, "%s\n%d\n%lf",reptype,id,dval);
 			break;
 		}
 
-		case SFNODE:
-		case SFINT32:	{
-			if (EAIVerbose) printf ("SFINT32 or SFNODE\n");
-			memcpy(&ival,EAIListenerData,sizeof(int));
-			sprintf (buf, "EV\n%d\n%d",id,ival);
-			EAI_send_string(buf);
+		case EAI_SFNODE:
+		case EAI_SFINT32:	{
+			if (EAIVerbose) printf ("EAI_SFINT32 or EAI_SFNODE\n");
+			memcpy(&ival,memptr,sizeof(int));
+			sprintf (buf, "%s\n%d\n%d",reptype,id,ival);
 			break;
 		}
 
-		case SFFLOAT:	{
-			if (EAIVerbose) printf ("SFTIME\n");
-			memcpy(fl,EAIListenerData,sizeof(float));
-			sprintf (buf, "EV\n%d\n%f",id,fl[0]);
-			EAI_send_string(buf);
+		case EAI_SFFLOAT:	{
+			if (EAIVerbose) printf ("EAI_SFTIME\n");
+			memcpy(fl,memptr,sizeof(float));
+			sprintf (buf, "%s\n%d\n%f",reptype,id,fl[0]);
 			break;
 		}
 
-		case SFVEC3F:
-		case SFCOLOR:	{
-			if (EAIVerbose) printf ("SFCOLOR or SFVEC3F\n");
-			memcpy(fl,EAIListenerData,sizeof(float)*3);
-			sprintf (buf, "EV\n%d\n%f %f %f",id,fl[0],fl[1],fl[2]);
-			EAI_send_string(buf);
+		case EAI_SFVEC3F:
+		case EAI_SFCOLOR:	{
+			if (EAIVerbose) printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
+			memcpy(fl,memptr,sizeof(float)*3);
+			sprintf (buf, "%s\n%d\n%f %f %f",reptype,id,fl[0],fl[1],fl[2]);
 			break;
 		}
 
-		case SFVEC2F:	{
-			if (EAIVerbose) printf ("SFVEC2F\n");
-			memcpy(fl,EAIListenerData,sizeof(float)*2);
-			sprintf (buf, "EV\n%d\n%f %f",id,fl[0],fl[1]);
-			EAI_send_string(buf);
+		case EAI_SFVEC2F:	{
+			if (EAIVerbose) printf ("EAI_SFVEC2F\n");
+			memcpy(fl,memptr,sizeof(float)*2);
+			sprintf (buf, "%s\n%d\n%f %f",reptype,id,fl[0],fl[1]);
 			break;
 		}
 
-		case SFROTATION:	{
-			if (EAIVerbose) printf ("SFROTATION\n");
-			memcpy(fl,EAIListenerData,sizeof(float)*4);
-			sprintf (buf, "EV\n%d\n%f %f %f %f",id,fl[0],fl[1],fl[2],fl[3]);
-			EAI_send_string(buf);
+		case EAI_SFROTATION:	{
+			if (EAIVerbose) printf ("EAI_SFROTATION\n");
+			memcpy(fl,memptr,sizeof(float)*4);
+			sprintf (buf, "%s\n%d\n%f %f %f %f",reptype,id,fl[0],fl[1],fl[2],fl[3]);
 			break;
 		}
 
-		case SFSTRING:		{
-			if (EAIVerbose) printf ("SFSTRING\n");
-			sprintf (buf, "\"%s\"",EAIListenerData);
-			EAI_send_string(buf);
+		case EAI_SFSTRING:	{
+			if (EAIVerbose) printf ("EAI_SFSTRING\n");
+			sprintf (buf, "%s\n%d\n\"%s\"",reptype,id,memptr);
+			break;
+		}
+
+		case EAI_MFSTRING:	{
+			if (EAIVerbose) printf ("EAI_MFSTRING\n");
+		
+			/* make the Multi_String pointer */
+			MSptr = (struct Multi_String *) memptr;
+
+			// printf ("EAI_MFString, there are %d strings\n",(*MSptr).n);
+			sprintf (buf, "%s\n%d\n",reptype,id);
+			ptr = buf + strlen(buf);
+
+			for (row=0; row<(*MSptr).n; row++) {
+        	        	// printf ("String %d is %s\n",row,SvPV((*MSptr).p[row],PL_na));
+				if (strlen (SvPV((*MSptr).p[row],PL_na)) == 0) {
+					sprintf (ptr, "\"XyZZtitndi\" "); // encode junk for Java side.
+				} else {
+					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],PL_na));
+				}
+				// printf ("buf now is %s\n",buf);
+				ptr = buf + strlen (buf);
+			}
+	
 			break;
 		}
 
 		default: {
-			printf ("handle listener, type %c not handled yet\n",tp);
+			printf ("EAI, type %c not handled yet\n",type);
 		}
 
-//XXX	case SFIMAGE:	{handleptr = &handleSFIMAGE_Listener;break;}
-//XXX	case MFCOLOR:	{handleptr = &handleMFCOLOR_Listener;break;}
-//XXX	case MFFLOAT:	{handleptr = &handleMFFLOAT_Listener;break;}
-//XXX	case MFTIME:	{handleptr = &handleMFTIME_Listener;break;}
-//XXX	case MFINT32:	{handleptr = &handleMFINT32_Listener;break;}
-//XXX	case MFSTRING:	{handleptr = &handleMFSTRING_Listener;break;}
-//XXX	case MFNODE:	{handleptr = &handleMFNODE_Listener;break;}
-//XXX	case MFROTATION:{handleptr = &handleMFROTATION_Listener;break;}
-//XXX	case MFVEC2F:	{handleptr = &handleMFVEC2F_Listener;break;}
-//XXX	case MFVEC3F:	{handleptr = &handleMFVEC3F_Listener;break;}
+//XXX	case EAI_SFIMAGE:	{handleptr = &handleEAI_SFIMAGE_Listener;break;}
+//XXX	case EAI_MFCOLOR:	{handleptr = &handleEAI_MFCOLOR_Listener;break;}
+//XXX	case EAI_MFFLOAT:	{handleptr = &handleEAI_MFFLOAT_Listener;break;}
+//XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}
+//XXX	case EAI_MFINT32:	{handleptr = &handleEAI_MFINT32_Listener;break;}
+//XXX	case EAI_MFNODE:	{handleptr = &handleEAI_MFNODE_Listener;break;}
+//XXX	case EAI_MFROTATION:{handleptr = &handleEAI_MFROTATION_Listener;break;}
+//XXX	case EAI_MFVEC2F:	{handleptr = &handleEAI_MFVEC2F_Listener;break;}
+//XXX	case EAI_MFVEC3F:	{handleptr = &handleEAI_MFVEC3F_Listener;break;}
 	}
 }

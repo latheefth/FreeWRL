@@ -842,8 +842,20 @@ sub EAI_GetType {
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
 
+	#print "\nBrowser.pm, fieldname $fieldname, evin: ",
+	#	$realele->{Type}{EventIns}{$fieldname}," kinds ",
+	#	$realele->{Type}{FieldKinds}{$fieldname},"\n";
+	
+	#foreach (%{$realele->{Type}{Pars}}) {print "	.... ",@{$_}, " \n";}
+	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
+	#print "\n\n\n";
+
+
+	# print "BROWSER::EAI_GetType now $fieldname\n";
+
 	if (exists $realele->{Fields}{$fieldname}) {
-		# print "BROWSER:EAI - field $fieldname exists in node\n";
+		# print "BROWSER:EAI - field $fieldname exists in node, it is ",
+		# 	$realele->{Fields}{$fieldname},"\n";
 	} else {
 		# print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
 		my $ms = $realele->{Scene};		
@@ -852,7 +864,7 @@ sub EAI_GetType {
 		# try to find this node/field within this scene.
 		foreach $xele (@EAIinfo) {
 			($sc, $rf, $rn, $in) = @{$xele};
-			# print "in $in rf $rf fieldname $fieldname\n";
+			#print "in $in rf $rf fieldname $fieldname\n";
 			if ($ms eq $sc) {  # same scene
 				if ($fieldname eq $rf) {
 					$realele = $rn;
@@ -865,34 +877,9 @@ sub EAI_GetType {
 		FOUNDIT:
 	}
 
-	# print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
+	#print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
 
 	
-	# return node pointer, offset, data length, type
-	# EAI C code expects the return type to be one of the following:
-	#define SFUNKNOWN       'a' (decimal 97)
-	#define SFBOOL          'b' (decimal 98.....
-	#define SFCOLOR         'c' 99
-	#define SFFLOAT         'd' 100
-	#define SFTIME          'e' 101
-	#define SFINT32         'f' 102
-	#define SFSTRING        'g' 103
-	#define SFNODE          'h' 104
-	#define SFROTATION      'i' 105
-	#define SFVEC2F         'j' 106
-	#define SFIMAGE         'k' 107
-	#define MFCOLOR         'l' 108
-	#define MFFLOAT         'm' 109
-	#define MFTIME          'n' 110
-	#define MFINT32         'o' 111
-	#define MFSTRING        'p' 112
-	#define MFNODE          'q' 113
-	#define MFROTATION      'r' 114
-	#define MFVEC2F         's' 115
-	#define MFVEC3F		't' 116
-	#define SFVEC3F		'u' 117
-
-
 
 	# get info from FreeWRL internals.
 	if ($direction eq "eventOut") {
@@ -910,8 +897,10 @@ sub EAI_GetType {
 		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
 		
 	}
-	$retft = 97; 	#SFUNKNOWN
 
+
+	# return node pointer, offset, data length, type - see the EAI C code (EAIServ.c) for definitions.
+	$retft = 97; 	#SFUNKNOWN
 	if ($fieldtype eq "SFBool") {$retft = 98;}
 	elsif ($fieldtype eq "SFVec3f") {$retft = 117;}
 	elsif ($fieldtype eq "SFColor") {$retft = 99; }# color and vec3f are identical

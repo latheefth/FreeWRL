@@ -4,7 +4,6 @@
 
 package vrml.external;
 
-
 import java.util.*;
 import java.applet.*;
 import java.awt.*;
@@ -546,14 +545,15 @@ public class Browser implements BrowserInterface
       return retval;
 }
 
-  public static String SendEventOut (String NodeName, String FieldName) {
+  public static String SendEventOut (String nodeptr, String offset, String datasize, String datatype,
+	String command) {
       // get a value from a particular node.
 
       String retval;
-
        synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "E " + NodeName + " " +
-            FieldName + "\n");
+         EAIoutSender.send ("" + queryno + "E " + nodeptr + " " + offset + " " + datatype +
+ 		" " + datasize + "\n");
+ 
          retval = getVRMLreply(queryno);
          queryno += 1;
       }

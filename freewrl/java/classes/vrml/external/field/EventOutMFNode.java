@@ -22,7 +22,7 @@ public class EventOutMFNode extends EventOutMField {
     int counttokens;
 
     if (command != null) {
-      rep = Browser.SendEventOut (outNode, command);
+      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
       tokens = new StringTokenizer (rep);
     } else {
       tokens = new StringTokenizer (RLreturn);

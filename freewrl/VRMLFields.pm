@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.35  2003/09/16 14:57:24  crc_canada
+# EAI in C updates for Sept 15 2003
+#
 # Revision 1.34  2003/06/12 19:08:56  crc_canada
 # more work on getting javascript routing into C
 #
@@ -555,7 +558,8 @@ sub parse {
 	my($type,$p,$s,$n) = @_;
 	$_[2] =~ /\G\s*(TRUE|FALSE)\b/gs
 		or die "Invalid value for SFBool\n";
-	return ($1 eq "TRUE");
+	if ($1 eq "TRUE") {return 1};
+	return 0;
 }
 
 sub ctype {return "int $_[1]"}

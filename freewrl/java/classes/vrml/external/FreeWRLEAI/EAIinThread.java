@@ -107,26 +107,22 @@ public  class EAIinThread implements Runnable {
             // This is the integer reply to the command... number...
             EAItoBrowserPrintWriter.println(EAIin.readLine());
     
-            // ... and the boolean value of success or fail...
-            REreply = EAIin.readLine();
-            if (debug) System.out.println ("EAIinThread 6 reply is " + REreply);
-  
             // Is this a 3 or 4 line reply??? If the following
             // returns an "EV" or "RE", then we have gone far enough...
             reply = EAIin.readLine();
 	    if (debug) System.out.println ("EAIinThread 7 reply is " + reply);
   
-            if (reply.equals("RE") || reply.equals("EV")) {
-              // send the previous line down the pipe...
-              EAItoBrowserPrintWriter.println(REreply); 
-              EAItoBrowserPrintWriter.flush();
-            } else {
+            //JASif (reply.equals("RE") || reply.equals("EV")) {
+             //JAS // send the previous line down the pipe...
+             //JAS EAItoBrowserPrintWriter.println(REreply); 
+             //JAS EAItoBrowserPrintWriter.flush();
+            //JAS} else {
               // send the current line down the pipe, and read in the next line...
               EAItoBrowserPrintWriter.println(reply); 
               EAItoBrowserPrintWriter.flush();
               reply = EAIin.readLine();
               if (debug) System.out.println ("EAIinThread 8 reply is " + reply);
-            } 
+            //JAS} 
           } else {
     	    System.out.println ("expecting REor EV, got " + reply);
             reply = EAIin.readLine();

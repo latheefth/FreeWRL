@@ -222,47 +222,6 @@ int CRVerbose = 0;
 jsval global_return_val;
 
 
-#define SFUNKNOWN 0
-#define SFBOOL 	1
-#define SFCOLOR 2
-#define SFFLOAT 3
-#define SFTIME 	4
-#define SFINT32 5
-#define SFSTRING 6
-#define SFNODE	7
-#define SFROTATION 8
-#define SFVEC2F	9
-#define SFIMAGE	10
-
-#define MFCOLOR 11
-#define MFFLOAT 12
-#define MFTIME 	13
-#define MFINT32 14
-#define MFSTRING 15
-#define MFNODE	16
-#define MFROTATION 17
-#define MFVEC2F	18
-
-
-#define FIELD_TYPE_STRING(f) ( \
-	f == SFBOOL ? "SFBool" : ( \
-	f == SFCOLOR ? "SFColor or SFVec3f" : ( \
-	f == SFFLOAT ? "SFFloat" : ( \
-	f == SFTIME ? "SFTime" : ( \
-	f == SFINT32 ? "SFInt32" : ( \
-	f == SFSTRING ? "SFString" : ( \
-	f == SFNODE ? "SFNode" : ( \
-	f == SFROTATION ? "SFRotation" : ( \
-	f == SFVEC2F ? "SFVec2f" : ( \
-	f == SFIMAGE ? "SFImage" : ( \
-	f == MFCOLOR ? "MFColor or MFVec3f" : ( \
-	f == MFFLOAT ? "MFFloat" : ( \
-	f == MFTIME ? "MFTime" : ( \
-	f == MFINT32 ? "MFInt32" : ( \
-	f == MFSTRING ? "MFString" : ( \
-	f == MFNODE ? "MFNode" : ( \
-	f == MFROTATION ? "MFRotation" : ( \
-	f == MFVEC2F ? "MFVec2f" : "unknown field type"))))))))))))))))))
 
 /****************************************************************************/
 /*									    */
@@ -957,6 +916,33 @@ void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int br
 	if (num > max_script_found) max_script_found = num;
 }
 
+int convert_typetoInt (char *type) {
+	/* first, convert the type to an integer value */
+	if (strncmp("SFBool",type,7) == 0) return SFBOOL;
+	else if (strncmp ("SFColor",type,7) == 0) return SFCOLOR;
+	else if (strncmp ("SFVec3f",type,7) == 0) return SFCOLOR; /*Colors and Vec3fs are same */
+	else if (strncmp ("SFFloat",type,7) == 0) return SFFLOAT;
+	else if (strncmp ("SFTime",type,6) == 0) return SFTIME;
+	else if (strncmp ("SFInt32",type,6) == 0) return SFINT32;
+	else if (strncmp ("SFString",type,6) == 0) return SFSTRING;
+	else if (strncmp ("SFNode",type,6) == 0) return SFNODE;
+	else if (strncmp ("SFVec2f",type,6) == 0) return SFVEC2F;
+	else if (strncmp ("SFRotation",type,6) == 0) return SFROTATION;
+	else if (strncmp ("MFColor",type,7) == 0) return MFCOLOR;
+	else if (strncmp ("MFVec3f",type,7) == 0) return MFCOLOR; /*Colors and Vec3fs are same */
+	else if (strncmp ("MFFloat",type,7) == 0) return MFFLOAT;
+	else if (strncmp ("MFTime",type,6) == 0) return MFTIME;
+	else if (strncmp ("MFInt32",type,6) == 0) return MFINT32;
+	else if (strncmp ("MFString",type,6) == 0) return MFSTRING;
+	else if (strncmp ("MFNode",type,6) == 0) return MFNODE;
+	else if (strncmp ("MFVec2f",type,6) == 0) return MFVEC2F;
+	else if (strncmp ("MFRotation",type,6) == 0) return MFROTATION;
+
+	else {
+		printf("WARNING: JSparamIndex, cant match type %s\n",type);
+		return SFUNKNOWN;
+	}
+}
 
 /********************************************************************
 
@@ -971,31 +957,7 @@ int JSparamIndex (char *name, char *type) {
 	int ty;
 	int ctr;
 
-	/* first, convert the type to an integer value */
-	if (strncmp("SFBool",type,7) == 0) ty = SFBOOL;
-	else if (strncmp ("SFColor",type,7) == 0) ty = SFCOLOR;
-	else if (strncmp ("SFVec3f",type,7) == 0) ty = SFCOLOR; /*Colors and Vec3fs are same */
-	else if (strncmp ("SFFloat",type,7) == 0) ty = SFFLOAT;
-	else if (strncmp ("SFTime",type,6) == 0) ty = SFTIME;
-	else if (strncmp ("SFInt32",type,6) == 0) ty = SFINT32;
-	else if (strncmp ("SFString",type,6) == 0) ty = SFSTRING;
-	else if (strncmp ("SFNode",type,6) == 0) ty = SFNODE;
-	else if (strncmp ("SFVec2f",type,6) == 0) ty = SFVEC2F;
-	else if (strncmp ("SFRotation",type,6) == 0) ty = SFROTATION;
-	else if (strncmp ("MFColor",type,7) == 0) ty = MFCOLOR;
-	else if (strncmp ("MFVec3f",type,7) == 0) ty = MFCOLOR; /*Colors and Vec3fs are same */
-	else if (strncmp ("MFFloat",type,7) == 0) ty = MFFLOAT;
-	else if (strncmp ("MFTime",type,6) == 0) ty = MFTIME;
-	else if (strncmp ("MFInt32",type,6) == 0) ty = MFINT32;
-	else if (strncmp ("MFString",type,6) == 0) ty = MFSTRING;
-	else if (strncmp ("MFNode",type,6) == 0) ty = MFNODE;
-	else if (strncmp ("MFVec2f",type,6) == 0) ty = MFVEC2F;
-	else if (strncmp ("MFRotation",type,6) == 0) ty = MFROTATION;
-
-	else {
-		printf("WARNING: JSparamIndex, cant match type %s\n",type);
-		ty = SFUNKNOWN;
-	}
+	ty = convert_typetoInt(type);
 
 	len = strlen(name);
 

@@ -18,7 +18,7 @@ public class EventOutMFVec3f extends EventOutMField {
     // if it does, then this is an ASYNC value sent from the FreeWRL VRML Browser.
 
     if (RLreturn == null) {
-      rep = Browser.SendEventOut (outNode, command);
+      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
     } else {
       rep = RLreturn;
     }
