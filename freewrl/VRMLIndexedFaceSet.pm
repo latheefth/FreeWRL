@@ -17,6 +17,7 @@ int tcin = $f_n(texCoordIndex);
 int colin = $f_n(colorIndex); 
 int norin = $f_n(normalIndex);
 float creaseAngle = $f(creaseAngle);
+int ccw = $f(ccw);
 
 int curpoly;
 int ntri = 0;
@@ -204,9 +205,6 @@ if (!(tcindex) && HAVETODOTEXTURES && ntexCoords) {
 
 /* Concave faces - use the OpenGL Triangulator to give us the triangles */
 tess_vs=malloc(sizeof(*(tess_vs))*(ntri)*3);
-
-/* Tell the tesselator that we are doing an IndexedFaceSet */
-tesselize_ifs();
 
 this_coord = 0;
 this_normal = 0;
