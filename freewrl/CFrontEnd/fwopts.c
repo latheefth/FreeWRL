@@ -20,8 +20,11 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
-#include <GL/glext.h>
 
+#endif
+
+#ifdef LINUX
+#include <GL/glext.h>
 #endif
 
 #ifndef AQUA 
@@ -332,7 +335,10 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    XVisualInfo *vi=NULL;
    int attrib;
    int startattrib=0;
-   int *attrib_mem=malloc(len*sizeof(int)+sizeof(default_attributes0));
+   int *attrib_mem;
+
+   attrib_mem=(int *)malloc(len*sizeof(int)+sizeof(default_attributes0));
+
 
    quadbuff_stereo_mode=0;
    if (!shutter)

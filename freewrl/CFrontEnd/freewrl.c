@@ -24,8 +24,11 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
-#include <GL/glext.h>
 
+#endif
+
+#ifdef LINUX
+#include <GL/glext.h>
 #endif
 
 // display and win are opened here, then pointers passed to
@@ -59,6 +62,8 @@ int main (int argc, char **argv) {
 	int tmp;
 	char *filename;
 	char *pwd;
+
+#ifndef IRIX
 
 	/* parse command line arguments */
 	while (1) {
@@ -135,6 +140,9 @@ int main (int argc, char **argv) {
 				break;
 		}
 	}
+
+#endif
+printf ("freewrl.c - argc %d\n",argc);
 	if (optind < argc) {
 		if (optind != (argc-1)) {
 			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n", 

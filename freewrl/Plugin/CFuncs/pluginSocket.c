@@ -7,6 +7,10 @@
 
 #include "pluginSocket.h"
 
+#ifdef F_SETSIG
+#define FSIGOK
+#endif
+
 int
 createUDPSocket()
 {
@@ -30,7 +34,7 @@ setIOOptions(int sockDesc,
 	struct timespec ts;
     int signo = 0; /* int io_flags = 0; */
 	const int on = 1;
-
+#ifdef FSIGOK
 	ts.tv_sec = PLUGIN_TIMEOUT_SEC;
 	ts.tv_nsec = PLUGIN_TIMEOUT_NSEC;
 
@@ -79,7 +83,7 @@ setIOOptions(int sockDesc,
 			return SOCKET_ERROR;
 		}
 	}
-
+#endif
     return NO_ERROR;
 }
 

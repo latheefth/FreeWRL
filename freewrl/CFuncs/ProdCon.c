@@ -913,7 +913,7 @@ void __pt_doStringUrl () {
        		}
 
 	/* tell the node that we have changed */
-	update_node(psp.ptr);
+	update_node((void *)psp.ptr);
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.133  2004/01/21 21:11:49  crc_canada
+# More SGI Irix compile errors fixed
+#
 # Revision 1.132  2003/12/22 18:49:01  crc_canada
 # replace URL.pm; now do via C or browser
 #
@@ -1849,7 +1852,7 @@ set_sensitive(ptr,datanode,type)
 	int datanode
 	char *type
 CODE:
-	setSensitive (ptr,datanode,type);
+	setSensitive ((void *)ptr,datanode,type);
 
 
 void
@@ -2039,7 +2042,7 @@ do_CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, 
 	int scrpt
 	int extra
 CODE:
-	CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
+	CRoutes_Register(adrem, (unsigned int)from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
 
 void
 do_CRoutes_js_new (num, cx, glob, brow)
