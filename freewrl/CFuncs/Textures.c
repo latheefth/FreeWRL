@@ -88,6 +88,8 @@ int TextureParsing = FALSE;
 /* current index into loadparams that texture thread is working on */
 int currentlyWorkingOn = -1;
 
+int textureInProcess = -1;
+
 /* function Prototypes */
 int findTextureFile (int *texnum, int type, int *remove);
 void _textureThread(void);
@@ -123,11 +125,40 @@ int isTextureinitialized() {
 }
 
 /* statusbar uses this to tell user that we are still loading */
-int isTextureParsing() {return currentlyWorkingOn>=0;}
+int isTextureParsing() {
+	//return currentlyWorkingOn>=0;
+	if (TexVerbose) printf ("call to isTextureParsing, returning %d\n",textureInProcess > 0);
+	return textureInProcess >0;
+}
+
+/* lets remove this texture from the process... */
+void freeTexture (int *texno) {
+	if (TexVerbose) printf ("freeTexture, texno %d cwo %d inprocess %d\n",*texno,currentlyWorkingOn, textureInProcess );
+
+	if (*texno > 0) isloaded[*texno] = INVALID;
+
+	/* is this the texture that we are currently working on?? */
+	if ((*texno) == textureInProcess) {
+		if (TexVerbose) printf ("freeTexture - zeroing textureInProcess, too\n");
+		textureInProcess = -1;
+	}
+	/*
+	if (currentlyWorkingOn != -1) {
+		printf ("freeTexture, cwo ne neg1, what should we do with it?\n");
+	}
+	*/
+
+	/* this crashes some Nvidia drivers 
+	glDeleteTextures(1,texo);
+	*/
+
+	*texno = 0;
+}
+
 
 /* do Background textures, if possible */
 void loadBackgroundTextures (struct VRML_Background *node) {
-	int *thistex;
+	int *thistex = 0;
 	struct Multi_String thisurl;
 	int count;
 
@@ -164,7 +195,7 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 		// we just accept that the current texture parameters have to
 		// be left behind.
 		node->_ichange = node->_change;
-		node->__texture = 0; // this will cause bind_image to create a 
+		freeTexture(&(node->__texture)); // this will cause bind_image to create a 
 				     // new "slot" for this texture
 	}
 	
@@ -183,7 +214,7 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 		// we just accept that the current texture parameters have to
 		// be left behind.
 		node->_ichange = node->_change;
-		node->__texture = 0; // this will cause bind_image to create a 
+		freeTexture(&(node->__texture)); // this will cause bind_image to create a 
 				     // new "slot" for this texture
 	}
 	bind_image(PIXELTEXTURE, node->image, 
@@ -215,8 +246,8 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 				isloaded[firsttex] = NOTLOADED;
 				loadparams[firsttex].filename="uninitialized file";
 				loadparams[firsttex].depth = 0;
-				node->__texture0_ = 0;
-				node->__texture1_ = 0;
+				freeTexture(&(node->__texture0_)); // this will cause bind_image to create a 
+				freeTexture(&(node->__texture1_)); // this will cause bind_image to create a 
 				node->__ctex = 0;
 				node->__inittime = 0;
 				node->__sourceNumber = -1;
@@ -426,9 +457,28 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	/* yield for a bit */
 	sched_yield();
 
+	if (TexVerbose) printf ("bind_image, textureInProcess %d\n",textureInProcess);
+	if (textureInProcess > 0) {
+		sched_yield();
+		/* we are already working on a texture. Is it THIS one? */
+		if (textureInProcess != (*texture_num)) {
+			if (TexVerbose) printf ("bind_image, textureInProcess = %d, texture_num %d returning \n",textureInProcess,*texture_num);
+			return;
+		}
+		if (TexVerbose) printf ("bind_image, textureInProcess == texture_num\n");
+	}
+
+	/* signal that his is the one we want to work on */
+	textureInProcess = *texture_num;
+
+
+
 	/* is this the first call for this texture? */
 	if (*texture_num==0) {
 		*texture_num = next_texture;
+		/* signal that his is the one we want to work on */
+		textureInProcess = *texture_num;
+
 		next_texture ++;
 
 		/* check to see if "isloaded" and "loadparams" is ok 
@@ -439,6 +489,8 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		glGenTextures(1,&loadparams[*texture_num].genned_texture);
 		if (TexVerbose) printf ("just genned texture %d\n",*texture_num);
 	}
+	if (TexVerbose) printf ("bind_image, textureInProcess %d status %d\n",textureInProcess,isloaded[*texture_num]);
+
 
 	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,
 	   make them larger, by 16 */
@@ -449,15 +501,18 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	
 	/* have we already processed this one before? */
 	if (isloaded[*texture_num] == LOADED) {
-		//printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
+		if (TexVerbose) printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
 
 		glBindTexture (GL_TEXTURE_2D, *texture_num);
+		textureInProcess = -1; /* we have finished the whole process */
 
 		return;
 	}
 
 	/* is this one bad? */
-	if (isloaded[*texture_num] == INVALID) { return; }
+	if (isloaded[*texture_num] == INVALID) { //freeTexture(texture_num); 
+				textureInProcess = -1;
+				return; }
 
 	/* is this one an unsquished movie texture? */
 	if (isloaded[*texture_num] == UNSQUASHED) { return; }
@@ -561,60 +616,77 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	STRLEN xx;
 	*istemp=FALSE;	/* don't remove this file */
 
-	/* is this a PixelTexture? if so, we have the "file" in memory */
-	if (type == PIXELTEXTURE) {
-		return TRUE;
-	}	
+	if (TexVerbose) printf ("start of findTextureFile for texture %d\n",*texnum);
 
-	/* nope, try to find this file. */
-	filename = (char *)malloc(1000);
-	
-	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(loadparams[*texnum].parenturl,xx));
-	mypath = (char *)malloc ((sizeof(char)* count)+1);
-	
-	if ((!filename) || (!mypath)) {
-		outOfMemory ("texture thread can not malloc for filename\n");
-	}
-	
-	/* copy the parent path over */
-	strcpy (mypath,SvPV(loadparams[*texnum].parenturl,xx));
-	
-	/* and strip off the file name, leaving any path */
-	slashindex = (char *)rindex(mypath,'/');
-	if (slashindex != NULL) { 
-		slashindex ++; /* leave the slash on */
-		*slashindex = 0; 
-	 } else {mypath[0] = 0;}
+	/* try to find this file. */
 
-	/* try the first url, up to the last */
-	count = 0;
-	while (count < loadparams[*texnum].url.n) {
-		thisurl = SvPV(loadparams[*texnum].url.p[count],xx);
-	
-		/* check to make sure we don't overflow */
-		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
+	/* pixelTextures - lets just make a specific string for this one */
+	if (type ==PIXELTEXTURE) {
+		int a,b,c;
+		char *name;
 
-		/* put the path and the file name together */	
-		makeAbsoluteFileName(filename,mypath,thisurl);
+		//printf ("findTextureFile, going to get name \n");
+		name = SvPV(loadparams[*texnum].parenturl,xx);
+		filename = (char *)malloc(100);
 
-		if (fileExists(filename,firstBytes,TRUE)) { break; }
-		count ++;
-	}
-	
-	if (count != loadparams[*texnum].url.n) {
-		/* printf ("we were successful at locating %s\n",filename);  */
-	} else {
-		if (count > 0) {
-			printf ("Could not locate url (last choice was %s)\n",filename);
+		//printf ("in find, name %s strlen %d\n",name,strlen(name));
+		/* make up a checksum name */
+		b = 0;
+		c = strlen(name);
+		if (c > 3000) c = 3000; // lets hope this is unique in 3000 characters
+		for (a=0; a<c; a++) {
+			b =  b + (int) (name[a] & 0xff);
 		}
-		free (filename);
-		isloaded[*texnum]=INVALID;
-		/* this crashes some Nvidia drivers 
-		   glDeleteTextures(1,texnum);
-		*/
-		loadparams[*texnum].filename="file not found";
-		return FALSE;
+
+		sprintf (filename,"PixelTexture_%d_%d",c,b);
+		//printf ("temp name is %s\n",filename);
+	} else {
+			
+		/* lets make up the path and save it, and make it the global path */
+		count = strlen(SvPV(loadparams[*texnum].parenturl,xx));
+		mypath = (char *)malloc ((sizeof(char)* count)+1);
+		filename = (char *)malloc(1000);
+		
+		if ((!filename) || (!mypath)) {
+			outOfMemory ("texture thread can not malloc for filename\n");
+		}
+		
+		/* copy the parent path over */
+		strcpy (mypath,SvPV(loadparams[*texnum].parenturl,xx));
+		
+		/* and strip off the file name, leaving any path */
+		slashindex = (char *)rindex(mypath,'/');
+		if (slashindex != NULL) { 
+			slashindex ++; /* leave the slash on */
+			*slashindex = 0; 
+		 } else {mypath[0] = 0;}
+	
+		/* try the first url, up to the last */
+		count = 0;
+		while (count < loadparams[*texnum].url.n) {
+			thisurl = SvPV(loadparams[*texnum].url.p[count],xx);
+		
+			/* check to make sure we don't overflow */
+			if ((strlen(thisurl)+strlen(mypath)) > 900) break;
+	
+			/* put the path and the file name together */	
+			makeAbsoluteFileName(filename,mypath,thisurl);
+	
+			if (fileExists(filename,firstBytes,TRUE)) { break; }
+			count ++;
+		}
+		
+		if (count != loadparams[*texnum].url.n) {
+			/* printf ("we were successful at locating %s\n",filename);  */
+		} else {
+			if (count > 0) {
+				printf ("Could not locate url (last choice was %s)\n",filename);
+			}
+			free (filename);
+			freeTexture(texnum);
+			loadparams[*texnum].filename="file not found";
+			return FALSE;
+		}
 	}
 	/* ok, have we seen this one before? */
 	flen = strlen(filename);
@@ -632,44 +704,47 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		/* are the names different lengths? */
 		if (strlen(loadparams[count].filename) == flen) {
 		    if(strncmp(loadparams[count].filename,filename,flen)==0) {
-			if (TexVerbose) printf ("duplicate name %s at %d %d\n",
+			if (TexVerbose) 
+				printf ("duplicate name %s at %d %d\n",
 					filename,count,*texnum);
 
 			/* duplicate, make this entry INVALID, and make the 
 			   filename the same (avoids segfaults in strncmp, above)
 			*/
-			isloaded[*texnum]=INVALID;
+
+			freeTexture(texnum);
+			//isloaded[*texnum]=INVALID;
 			loadparams[*texnum].filename="Duplicate Filename";
 
-			/* and, delete memory associated with this duplicate */
-			/* this crashes some nvidia drivers 
-			   glDeleteTextures(1,texnum);
-			*/
 			free (filename);
 
 			/* and tell OpenGL to use the previous texture number */
 			*texnum=count; 
+			textureInProcess = count;
+			if (TexVerbose) printf ("duplicate, so setting textureInProcess back to %d\n",count);
 			return FALSE;
 		    }
 		}	
 	}
 
-	/* is this a texture type that is *not* handled internally? */
-	if ((strncmp(firstBytes,firstPNG,4) != 0) && 
-	    (strncmp(firstBytes,firstJPG,4) != 0) && 
-	    (strncmp(firstBytes,firstMPGa,4) != 0) && 
-	    (strncmp(firstBytes,firstMPGb,4) != 0)) {
-		sysline = (char *)malloc(sizeof(char)*(strlen(filename)+100));
-		if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
-		sprintf(sysline,"%s %s /tmp/freewrl%d.png",
-				CONVERT,filename,getpid());
-		if (freewrlSystem (sysline) != 0) {
-			printf ("Freewrl: error running convert line %s\n",sysline);
-		} else {
-			sprintf (filename,"/tmp/freewrl%d.png",getpid());
-			*istemp=TRUE;
-		}	
-		free (sysline);
+	if (type !=PIXELTEXTURE) {
+		/* is this a texture type that is *not* handled internally? */
+		if ((strncmp(firstBytes,firstPNG,4) != 0) && 
+		    (strncmp(firstBytes,firstJPG,4) != 0) && 
+		    (strncmp(firstBytes,firstMPGa,4) != 0) && 
+		    (strncmp(firstBytes,firstMPGb,4) != 0)) {
+			sysline = (char *)malloc(sizeof(char)*(strlen(filename)+100));
+			if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
+			sprintf(sysline,"%s %s /tmp/freewrl%d.png",
+					CONVERT,filename,getpid());
+			if (freewrlSystem (sysline) != 0) {
+				printf ("Freewrl: error running convert line %s\n",sysline);
+			} else {
+				sprintf (filename,"/tmp/freewrl%d.png",getpid());
+				*istemp=TRUE;
+			}	
+			free (sysline);
+		}
 	}
 
 	/* save filename in data structure for later comparisons */
@@ -720,8 +795,8 @@ void _textureThread(void) {
 				unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
-			if (TexVerbose) printf ("duplicate file, currentlyWorkingOn %d texnum %s\n",
-				currentlyWorkingOn, loadparams[currentlyWorkingOn].texture_num);
+			if (TexVerbose) printf ("duplicate file, currentlyWorkingOn %d texnum %d\n",
+				currentlyWorkingOn, *(loadparams[currentlyWorkingOn].texture_num));
 		}
 
 		/* signal that we are finished */
@@ -740,43 +815,62 @@ void _textureThread(void) {
 /********************************************************************************/
 void __reallyloadPixelTexture() {
 	/* PixelTexture variables */
-	unsigned hei,wid,depth;
+	long hei,wid,depth;
 	long inval;
 	unsigned char *texture;
-	unsigned char *tptr;
+	char *tptr;
+	char *endptr;
 	int tctr;
 	STRLEN xx;
 	int count;
+	int ok;
 
+
+	/* check to see if there really is a PixelTexture there; if there is not,
+	   then mark texture INVALID and return. eg, PixelTexture {} will get 
+	   caught here */
+
+	if (TexVerbose) printf ("start of reallyLoadPixelTexture\n");
+	if ((SvFLAGS(loadparams[currentlyWorkingOn].parenturl) & SVf_POK) == 0) {
+		printf ("this one is going to fail\n");
+		freeTexture(loadparams[currentlyWorkingOn].texture_num);
+		//isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+		return;
+	}
+
+	/* ok - we have a valid Perl pointer, go for it. */
 	tptr = (unsigned char *)SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
+	//printf ("PixelTextures, string now is %s\n",tptr);
+
 	while (isspace(*tptr))tptr++;
-	if (sscanf ((const char *)tptr, "%i%i%i",&wid,&hei,&depth)==3) {
+	ok = TRUE;
+
+	/* scan in the width, height, and depth */
+	wid = strtol(tptr,&endptr,0);
+	if (tptr == endptr) { ok = FALSE; } else { tptr = endptr; }
+	hei = strtol(tptr,&endptr,0);
+	if (tptr == endptr) { ok = FALSE; } else { tptr = endptr; }
+	depth = strtol(tptr,&endptr,0);
+	if (tptr == endptr) { ok = FALSE; } else { tptr = endptr; }
+	
+	if (ok) {
 		if ((depth < 1) || (depth >4)) {
-			printf ("PixelTexture, depth %d out of range, assuming 1\n",depth);
+			printf ("PixelTexture, depth %d out of range, assuming 1\n",(int) depth);
 			depth = 1;
 		}
-		/* skip past the depth, width */
-		while (!isspace(*tptr))tptr++;
-		while (isspace(*tptr))tptr++;
-		while (!isspace(*tptr))tptr++;
-		while (isspace(*tptr))tptr++;
-	
 		/* have header ok, now read in all values */
 		count = 0; tctr = 0;
 		
 		texture = (unsigned char *)malloc (wid*hei*4);
 		
-		
 		while (count < (int)(wid*hei)) {
-			inval = -9999;
-			/* skip TO the number */
-			while (!isspace(*tptr))tptr++;
-			while (isspace(*tptr))tptr++;
-			if (sscanf ((const char *)tptr,"%lx",&inval) != 1) {
-				printf("PixelTexture: expected %d pixels, got %d\n",wid*hei,count);
-				isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+			inval = strtol(tptr,&endptr,0);
+			if (tptr == endptr) { 
+				printf("PixelTexture: expected %d pixels, got %d\n",(int)(wid*hei),count);
+				freeTexture(loadparams[currentlyWorkingOn].texture_num);
+				//isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
 				break;
-			}
+			} else { tptr = endptr; }
 
 			switch (depth) {
 				case 1: {
@@ -815,8 +909,11 @@ void __reallyloadPixelTexture() {
 		}
 	} else {
 		printf ("PixelTexture, invalid height, width, or depth\n");
-		isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+		freeTexture(loadparams[currentlyWorkingOn].texture_num);
+		//isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
 	}
+
+	if (TexVerbose) printf ("end of reallyloadPixelTextures\n");
 }
 		
 	
@@ -898,18 +995,12 @@ void __reallyloadImageTexture() {
 
 	int tempInt;
 
-	/* jpeg file detection */
-	size_t rval;
-	char teststring[10];
-
-
 
 	filename = loadparams[currentlyWorkingOn].filename;
 
 	infile = fopen(filename,"r");
 
 	if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
-#ifndef ALLDEV 
 		/* it is not a png file - assume a jpeg file */
 		/* start from the beginning again */
 		rewind (infile);
@@ -929,7 +1020,8 @@ void __reallyloadImageTexture() {
 			printf ("FreeWRL Image problem - could not read %s\n", filename);
 			jpeg_destroy_compress((j_compress_ptr)&cinfo);
 			fclose (infile);
-			isloaded[texture_num] = INVALID;
+			freeTexture(&texture_num);
+			//isloaded[texture_num] = INVALID;
 			return;
 		}
 
@@ -972,7 +1064,8 @@ void __reallyloadImageTexture() {
 
 		if (jpeg_finish_decompress(&cinfo) != TRUE) {
 			printf("warning: jpeg_finish_decompress error\n");
-			isloaded[texture_num] = INVALID;
+			//isloaded[texture_num] = INVALID;
+			freeTexture(&texture_num);
 		}
 		jpeg_destroy_decompress(&cinfo);
 		free(row);
@@ -983,12 +1076,10 @@ void __reallyloadImageTexture() {
 			((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP, 
 			((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
 			GL_LINEAR);
-#else
-printf ("jpegs currently commented out - JAS\n");
-#endif
 	} else { 
 		if (rc != 0) {
-		isloaded[texture_num] = INVALID;
+		freeTexture(&texture_num);
+		//isloaded[texture_num] = INVALID;
 		switch (rc) {
 			case 1:
 				printf("[%s] is not a PNG file: incorrect signature\n", filename);
@@ -1034,7 +1125,7 @@ void __reallyloadMovieTexture () {
 		&x,&y,&depth,&frameCount,&ptr);
 
 
-	if (TexVerbose) printf ("ireallyloadmv frame count is %d depth %d ptr %d\n",frameCount,depth,ptr);
+	if (TexVerbose) printf ("ireallyloadmv frame count is %d depth %d ptr %d\n",frameCount,depth,(int)ptr);
 
 	/* store the "generic" data */
 	store_tex_info(currentlyWorkingOn,

@@ -196,7 +196,7 @@ void EventLoop() {
 	}
 
 	/* should we do events, or maybe Perl is parsing? */
-	doEvents = (!isPerlParsing()) && isPerlinitialized();
+	doEvents = (!isPerlParsing()) && (!isTextureParsing()) && isPerlinitialized();
 
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {
@@ -244,8 +244,8 @@ void EventLoop() {
 	#endif
 
 
-	/* first events (clock ticks, etc) */
-	if (doEvents) do_first ();
+	/* first events (clock ticks, etc) if we have other things to do, yield */
+	if (doEvents) do_first (); else sched_yield();
 
 	#ifdef PROFILE	
 	gettimeofday (&mytime,&tz);

@@ -256,6 +256,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
     int len = 0, i;
 	size_t buff_size = 0, tmp_valStr_len = 0, tmp_buff_len = 0, className_len = 0;
 	JSBool isString = JS_FALSE;
+	JSBool isImage = JS_FALSE;
 
     if (!JS_GetProperty(cx, obj, "length", &_v)) {
 		printf( "JS_GetProperty failed for \"length\" in doMFToString for %s.\n",
@@ -276,6 +277,10 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	className_len = strlen(className);
 	if (!strncmp(className, "MFString", className_len)) {
 		isString = JS_TRUE;
+	}
+	if (!strncmp(className, "SFImage", className_len)) {
+		isImage = JS_TRUE;
+		if (JSVRMLClassesVerbose) printf ("doMFToString - doing an image\n");
 	}
 
 	buff_size = LARGESTRING;
@@ -319,7 +324,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 		if (len == 1) {
 			if (isString) {
 				sprintf(_buff, "[ \"%.*s\" ]", tmp_valStr_len, _tmp_valStr);
-			} else {
+			} else { 
 				sprintf(_buff, "[ %.*s ]", tmp_valStr_len, _tmp_valStr);
 			}
 			break;
@@ -341,33 +346,39 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 				sprintf(_buff, "[ \"%.*s\"",
 						tmp_valStr_len, _tmp_valStr);
 			} else {
-				sprintf(_buff, "[ %.*s",
-						tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "[ %.*s", tmp_valStr_len, _tmp_valStr);
 			}
 		} else if (i == (len - 1)) {
 			if (isString) {
-				sprintf(_buff,
-						"%.*s, \"%.*s\" ]",
-						tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "%.*s, \"%.*s\" ]",
+					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
 			} else {
-				sprintf(_buff,
-						"%.*s, %.*s ]",
-						tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "%.*s, %.*s ]",
+					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
 			}
 		} else {
 			if (isString) {
-				sprintf(_buff,
-						"%.*s, \"%.*s\"",
-						tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "%.*s, \"%.*s\"",
+					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
 			} else {
-				sprintf(_buff,
-						"%.*s, %.*s",
-						tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
+				sprintf(_buff, "%.*s, %.*s",
+					tmp_buff_len, _tmp_buff, tmp_valStr_len, _tmp_valStr);
 			}
 		}
 
 		free(_tmp_buff);
     }
+
+	/* PixelTextures are stored in Javascript as MFInt32s but in FreeWRL/Perl as an ascii string.
+	   we have to remove some characters to make it into a valid VRML image string */
+	if (isImage) {
+		for (i=0; i<strlen(_buff); i++) {
+			if (_buff[i] == ',') _buff[i]=' ';
+			if (_buff[i] == ']') _buff[i]=' ';
+			if (_buff[i] == '[') _buff[i]=' ';
+		}
+	}
+	//printf ("domfstring, buff %s\n",_buff);
 	_str = JS_NewStringCopyZ(cx, _buff);
 	*rval = STRING_TO_JSVAL(_str);
 
@@ -412,20 +423,6 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 		return JS_TRUE;
 	}
 
-	//if (JSVRMLClassesVerbose) {
-	//	printf ("(past quickreturn), context %d %x vp %d %x\n",cx,cx,*vp,*vp);
-	//	
-	//	sstr = JS_ValueToString(cx, *vp);
-	//	printf ("past JS_ValueToString\n");
-	//	if (JSVAL_IS_STRING(*vp)) {
-	//		pp = JS_GetStringBytes(sstr);
-	//
-	//		printf("adding property %s, %s to object %u, \n",
-	//			   p, pp, (unsigned int) obj);
-	//	} else {
-	//		printf ("OBJECT IS NOT A STRING!!! ERROR!!!\n");
-	//	}
-	//}
 	if (!JSVAL_IS_INT(id)){ 
 		printf( "JSVAL_IS_INT failed for id in doMFAddProperty.\n");
 		return JS_FALSE;
@@ -445,9 +442,9 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 			return JS_FALSE;
 		}
 	}
-	if (JSVRMLClassesVerbose) {
+	if (JSVRMLClassesVerbose) 
 		printf("index = %d, length = %d\n", ind, len);
-	}
+	
 
 	myv = INT_TO_JSVAL(1);
 	if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
@@ -1237,69 +1234,6 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	return JS_TRUE;
 }
 
-
-
-JSBool
-SFImageToString(JSContext *cx, JSObject *obj,
-				uintN argc, jsval *argv, jsval *rval)
-{
-    SFImageNative *ptr;
-    JSString *_str;
-	char buff[LARGESTRING];
-
-	UNUSED(argc);
-	UNUSED(argv);
-	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFImageToString.\n");
-		return JS_FALSE;
-	}
-
-	memset(buff, 0, LARGESTRING);
-	_str = JS_NewStringCopyZ(cx, buff);
-    *rval = STRING_TO_JSVAL(_str);
-
-    return JS_TRUE;
-}
-
-JSBool
-SFImageAssign(JSContext *cx, JSObject *obj,
-			  uintN argc, jsval *argv, jsval *rval)
-{
-    JSObject *_from_obj;
-    SFImageNative *ptr, *fptr;
-    char *_id_str;
-
-	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed for obj in SFImageAssign.\n");
-        return JS_FALSE;
-	}
-    if (!JS_InstanceOf(cx, obj, &SFImageClass, argv)) {
-		printf( "JS_InstanceOf failed for obj in SFImageAssign.\n");
-        return JS_FALSE;
-	}
-	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
-		printf( "JS_ConvertArguments failed in SFImageAssign.\n");
-		return JS_FALSE;
-	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFImageClass, argv)) {
-		printf( "JS_InstanceOf failed for _from_obj in SFImageAssign.\n");
-        return JS_FALSE;
-    }
-	if ((fptr = (SFImageNative *)JS_GetPrivate(cx, _from_obj)) == NULL) {
-		printf( "JS_GetPrivate failed for _from_obj in SFImageAssign.\n");
-        return JS_FALSE;
-	}
-	if (JSVRMLClassesVerbose) {
-		printf("SFImageAssign: obj = %u, id = \"%s\", from = %u\n",
-			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
-	}
-
-    SFImageNativeAssign(ptr, fptr);
-    *rval = OBJECT_TO_JSVAL(obj); 
-
-    return JS_TRUE;
-}
-
 JSBool
 SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
@@ -1322,36 +1256,6 @@ SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
     return JS_TRUE;
 }
 
-JSBool
-SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	SFImageNative *ptr;
-
-	UNUSED(argv);
-	if ((ptr = (SFImageNative *) SFImageNativeNew()) == NULL) {
-		printf( "SFImageNativeNew failed in SFImageConstr.\n");
-		return JS_FALSE;
-	}
-
-	if (!JS_DefineProperties(cx, obj, SFImageProperties)) {
-		printf( "JS_DefineProperties failed in SFImageConstr.\n");
-		return JS_FALSE;
-	}
-
-	if (!JS_SetPrivate(cx, obj, ptr)) {
-		printf( "JS_SetPrivate failed in SFImageConstr.\n");
-		return JS_FALSE;
-	}
-     	
-	if (JSVRMLClassesVerbose) {
-		printf("SFImageConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
-	}
-	*rval = OBJECT_TO_JSVAL(obj);
-		
-	return JS_TRUE;
-}
-
 void
 SFImageFinalize(JSContext *cx, JSObject *obj)
 {
@@ -1368,32 +1272,89 @@ SFImageFinalize(JSContext *cx, JSObject *obj)
 }
 
 JSBool
-SFImageGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
-{
-	UNUSED(cx);
-	UNUSED(obj);
-	UNUSED(id);
-	UNUSED(vp);
+SFImageToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	UNUSED(argc);
+	UNUSED(argv);
+	return doMFToString(cx, obj, "SFImage", rval);
+}
 
+JSBool
+SFImageAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
+	return _standardMFAssign (cx, obj, argc, argv, rval, &SFImageClass,"SFImageAssign");
+}
+
+JSBool
+SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+	JSString *_str;
+	unsigned int i;
+	jsval v = INT_TO_JSVAL(argc);
+
+	if (!JS_DefineProperty(cx, obj, "length", v,
+						   JS_PropertyStub, JS_PropertyStub,
+						   JSPROP_PERMANENT)) {
+		printf(
+				"JS_DefineProperty failed for \"length\" in SFImageConstr.\n");
+		return JS_FALSE;
+	}
+
+	v = INT_TO_JSVAL(0);
+	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
+						   JS_PropertyStub, JS_PropertyStub,
+						   JSPROP_PERMANENT)) {
+		printf(
+				"JS_DefineProperty failed for \"__touched_flag\" in SFImageConstr.\n");
+		return JS_FALSE;
+	}
+	if (!argv) {
+		return JS_TRUE;
+	}
+
+	if (JSVRMLClassesVerbose) {
+		printf("SFImageConstr: obj = %u, %u args\n",
+			   (unsigned int) obj, argc);
+	}
+
+
+
+	for (i = 0; i < argc; i++) {
+		if ((_str = JS_ValueToString(cx, argv[i])) == NULL) {
+			printf(
+					"JS_ValueToString failed in SFImageConstr.\n");
+			return JS_FALSE;
+		}
+		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
+							  JS_PropertyStub, JS_PropertyStub,
+							  JSPROP_ENUMERATE)) {
+			printf(
+					"JS_DefineElement failed for arg %d in SFImageConstr.\n",
+					i);
+			return JS_FALSE;
+		}
+	}
+
+	*rval = OBJECT_TO_JSVAL(obj);
 	return JS_TRUE;
 }
 
 JSBool
-SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
-{
-	SFImageNative *ptr;
-	UNUSED(id);
-	UNUSED(vp);
+SFImageAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+	return doMFAddProperty(cx, obj, id, vp,"SFImageAddProperty");
+}
 
-	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
-		printf( "JS_GetPrivate failed in SFImageSetProperty.\n");
-		return JS_FALSE;
-	}
-	ptr->touched++;
-	return JS_TRUE;
+JSBool 
+SFImageGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			"_FreeWRL_Internal = 0", "SFImage");
+}
+
+JSBool 
+SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
+	return doMFSetProperty(cx, obj, id, vp,"SFImageSetProperty");
 }
 
 
+/**********************************************************************************/
 
 /* returns the handle - either "NODExx" or (hopefully) a string rep of the pointer to the node in memory */
 JSBool
@@ -3579,7 +3540,6 @@ MFFloatAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool 
 MFFloatGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,  
-			//&MFFloatClass, proto_MFFloat,
 			"_FreeWRL_Internal = 0.0", "MFFloat");
 }
 
@@ -3659,7 +3619,6 @@ MFInt32AddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool 
 MFInt32GetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,  
-			//&MFInt32Class, proto_MFInt32,
 			"_FreeWRL_Internal = 0", "MFInt32");
 }
 

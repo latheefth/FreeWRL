@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.163  2005/01/28 14:55:26  crc_canada
+# Javascript SFImage works; Texture parsing changed to speed it up; and Cylinder side texcoords fixed.
+#
 # Revision 1.162  2005/01/18 20:52:33  crc_canada
 # Make a ConsoleMessage that displays xmessage for running in a plugin.
 #
@@ -1454,8 +1457,18 @@ render_hier(void *p, int rwhat)
   		printf("Render_hier node=%d what=%d\n", p, rwhat);
 
 	/* status bar */
-	if ((render_geom) && (display_status)) {
-		render_status();
+	if (render_geom) {
+
+	/*
+		if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
+		// let the other threads run, too
+			//sched_yield();
+		}
+	*/
+		
+		if (display_status) {
+			render_status();
+		}
 	}
 	
 

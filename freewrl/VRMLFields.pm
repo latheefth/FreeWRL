@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.44  2005/01/28 14:55:34  crc_canada
+# Javascript SFImage works; Texture parsing changed to speed it up; and Cylinder side texcoords fixed.
+#
 # Revision 1.43  2005/01/18 20:52:35  crc_canada
 # Make a ConsoleMessage that displays xmessage for running in a plugin.
 #
@@ -735,7 +738,7 @@ sub clength {
 	$r =~ s/VRML::Field::MF//;
 	# these negative ones are returned in other places...
 	# -11 = SFNode
-	# -12 = SFImage
+	#JAS - lets try SFImages as SFStrings for now... # -12 = SFImage
 
 	if ($r eq "String") {return -13;}	# signal that a clength -13 is a Multi_String for CRoutes
 	if ($r eq "Float") {return -14;}	# signal that a clength -14 is a Multi_Float for CRoutes

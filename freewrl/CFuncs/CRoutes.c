@@ -381,6 +381,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	/* Multi types */
 	switch (JSparamnames[fptr].type) {
+	case SFIMAGE: 
 	case MFFLOAT: case MFTIME: case MFINT32: case MFSTRING: {
 		strcpy (tmethod,"__touched_flag");
 		complex_name = TRUE;
@@ -1468,6 +1469,7 @@ void setMFElementtype (int num) {
 					      }
 					      break;
 				      }
+			case SFIMAGE:	/* JAS - SFIMAGES are SFStrings in Perl, but an MFInt in Java */
 			case MFINT32: {	
 					      strcat (scriptline, "new MFInt32(");
 					      elementlen = sizeof (int);
@@ -2025,6 +2027,7 @@ int convert_typetoInt (char *type) {
 	else if (strncmp ("SFTime",type,6) == 0) return SFTIME;
 	else if (strncmp ("SFInt32",type,6) == 0) return SFINT32;
 	else if (strncmp ("SFString",type,6) == 0) return SFSTRING;
+	else if (strncmp ("SFImage",type,6) == 0) return SFIMAGE;
 	else if (strncmp ("SFNode",type,6) == 0) return SFNODE;
 	else if (strncmp ("SFVec2f",type,6) == 0) return SFVEC2F;
 	else if (strncmp ("SFRotation",type,6) == 0) return SFROTATION;
@@ -2370,6 +2373,56 @@ void mark_script (int num) {
 	scripts_active = TRUE;
 }
 
+/******************************************************************
+
+saveSFImage - a PixelTexture is being sent back from a script, save it! 
+	It comes back as a string; have to put it in as a SV.
+
+*********************************************************************/
+void saveSFImage (struct VRML_PixelTexture *node, char *str) {
+	char *strptr;
+	STRLEN xx;
+	int thissize;
+	struct xpv *mypv;
+	SV *newSV;
+	SV *oldSV;
+
+	thissize = strlen(str);
+
+	/* make the new SV */
+	newSV = (SV*)malloc (sizeof (struct STRUCT_SV));
+	(newSV)->sv_flags = SVt_PV | SVf_POK;
+	(newSV)->sv_refcnt=1;
+	mypv = (struct xpv *)malloc(sizeof (struct xpv));
+	//printf ("just mallocd for mypv, it is %d and size %d\n",
+	//		mypv, sizeof (struct xpv));
+	(newSV)->sv_any = mypv;
+
+	/* fill in the SV values...copy the string over... */
+	(*mypv).xpv_pv = (char *)malloc (thissize+2);
+	strncpy((*mypv).xpv_pv ,str,thissize+1);
+	(*mypv).xpv_cur = thissize-1;    // size without term
+	(*mypv).xpv_len = thissize;      // size with termination
+	
+	/* switcheroo, image now is this new SV */
+	oldSV = node->image;
+	node->image = newSV;
+
+	/* remove the old one... */
+	if ((SvFLAGS(oldSV) & SVf_POK) == 0) {
+		//printf ("saveSFImage this one is going to fail\n");
+	} else {
+		//printf ("saveSFImage passed test, lets decode it\n");
+		/* ok - we have a valid Perl pointer, go for it. */
+		strptr = (unsigned char *)SvPV(node->image,xx);
+		//printf ("saveSFImage PixelTexture string was %s\n",strptr);
+
+		/* free the old "parts" of this... */
+		/* have to REALLY look at this - might be a memory leak */
+		//free( oldSV->sv_any);
+		//free (oldSV);
+	}
+}
 
 /********************************************************************
 
@@ -2440,7 +2493,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
-			if (CRVerbose) printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
+			if (CRVerbose) 
+				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			touched_flag = get_touched_flag(fptr,actualscript);
 
 			if (touched_flag) {
@@ -2521,6 +2575,10 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
 				}
+				case SFIMAGE: {
+					saveSFImage ((struct VRML_PixelTexture*) tn, strp);
+					break;
+				}
 
 
 					/* a series of Floats... */
@@ -2549,7 +2607,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 		}
 		route++;
 	}
-	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
+//	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
 }
 
 /* start getting events from a Class script. IF the script is not 
@@ -2757,6 +2815,7 @@ void sendJScriptEventIn (int num, int fromoffset) {
 	case MFFLOAT:
 	case MFTIME:
 	case MFINT32:
+	case SFIMAGE:
 	case MFSTRING:
 	case MFNODE:
 	case MFROTATION: {
