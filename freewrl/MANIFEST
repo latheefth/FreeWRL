@@ -1,7 +1,6 @@
 .cvsignore
 Browser.pm
 COPYING				License
-CREDITS
 Config.pm
 DEF.pm
 Events.pm
@@ -16,7 +15,6 @@ JS/Makefile.PL
 MANIFEST			This file
 MANIFEST.SKIP
 Makefile.PL
-NODES.txt
 NodeIntern.pm
 OpenGL/.cvsignore
 OpenGL/Makefile.PL
@@ -26,7 +24,6 @@ OpenGL/OpenGL.vf
 OpenGL/OpenGL.xs
 OpenGL/typemap
 Parser.pm
-README				READ THIS FIRST
 Scene.pm
 Text/.cvsignore
 URL.pm
@@ -207,10 +204,6 @@ tests/8.wrl
 tests/9.wrl
 typemap
 vrml.conf
-perl-scripts/Makefile
-perl-scripts/README.pod
-perl-scripts/simple-1.wrl
-perl-scripts/simple-2.wrl
 Plugin/Makefile.PL
 Plugin/PluginGlue.pm
 Plugin/PluginGlue.xs

@@ -19,4 +19,5 @@ rm Quaternion.pm
 rm VRMLServ.pm
 rm lastcvscheckin
 rm -r JS/js/Linux_All_DBG.OBJ
+rm -r Plugin/mozilla
 rm freewrl
