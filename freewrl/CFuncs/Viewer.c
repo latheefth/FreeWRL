@@ -29,6 +29,7 @@ static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 static FILE *exfly_in_file;
 
 void viewer_init (VRML_Viewer *viewer, int type) {
+	Quaternion q_i;
 
 	/* what type are we? used for handle events below */
 	viewer_type = type;
@@ -43,17 +44,12 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 
 		(viewer->AntiPos).x = 0;
 		(viewer->AntiPos).y = 0;
-		(viewer->AntiPos).z = 10;
+		(viewer->AntiPos).z = 0;
 
-		(viewer->Quat).w = 1;
-		(viewer->Quat).x = 0;
-		(viewer->Quat).y = 0;
-		(viewer->Quat).z = 0;
 
-		(viewer->AntiQuat).w = 1;
-		(viewer->AntiQuat).x = 0;
-		(viewer->AntiQuat).y = 0;
-		(viewer->AntiQuat).z = 0;
+		vrmlrot_to_quaternion (&Viewer.Quat,1.0,0.0,0.0,0.0);
+		vrmlrot_to_quaternion (&q_i,1.0,0.0,0.0,0.0);
+		inverse(&(Viewer.AntiQuat),&q_i);
 
 /* 		Navi => undef, */
 /* 		$this->{Navi} = VRML::Scene->new_node("NavigationInfo", */
@@ -124,7 +120,6 @@ set_eyehalf(VRML_Viewer *viewer, const double eyehalf, const double eyehalfangle
 void
 set_viewer_type(const int type)
 {
-
 	viewer_init(&Viewer,type);
 
 	switch(type) {
@@ -794,11 +789,11 @@ bind_viewpoint (struct VRML_Viewpoint *vp) {
 
 	/* set Viewer position and orientation */
 
-	/* printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
+	/*printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
-	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView);
-	*/
+	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); */
+	
 
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
