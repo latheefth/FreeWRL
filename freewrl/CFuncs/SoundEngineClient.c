@@ -62,10 +62,10 @@ void Sound_toserver (char *message) {
 	if (initialized != SOUND_STARTED)  return;
 
 	strcpy (msg.msg,message);
-	printf ("Client:Sending to server %s\n",msg.msg);
+	//printf ("Client:Sending to server %s\n",msg.msg);
         while(xx = msgsnd(msq_toserver, &msg,strlen(msg.msg)+1,IPC_NOWAIT));
         if (xx) {   /* Send to server */
-                printf ("SoundEngineServer - error sending ready msg\n");
+                //printf ("SoundEngineServer - error sending ready msg\n");
                 initialized = !SOUND_STARTED;
         }
 }
