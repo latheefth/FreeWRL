@@ -11,7 +11,6 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 
 ******************************************/
 
-
 #include "Bindable.h"
 #include "Viewer.h"
 
@@ -25,9 +24,6 @@ unsigned int background_stack[MAX_STACK];
 unsigned int fog_stack[MAX_STACK];
 unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
-
-/* we need this link to the Viewer, for binding to the current Viewpoint */
-extern VRML_Viewer Viewer;
 
 /* this is called after a Viewpoint bind */
 void reset_upvector() {
@@ -58,6 +54,8 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	struct VRML_NavigationInfo *nv;
 	struct VRML_Viewpoint *vp;
 
+	// printf ("\nsend_bind_to, nodetype %s node %d value %d\n",nodetype,node,value);
+
 	if (strncmp("Background",nodetype,strlen("Background"))==0) {
 		bg = (struct VRML_Background *) node;
 		bg->set_bind = value;
@@ -68,6 +66,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	} else if (strncmp("Viewpoint",nodetype,strlen("Viewpoint"))==0) {
 		vp = (struct VRML_Viewpoint *) node;
 		vp->set_bind = value;
+
 		bind_node (node,offsetof (struct VRML_Viewpoint,set_bind),
 			offsetof (struct VRML_Viewpoint,isBound),
 			&viewpoint_tos,&viewpoint_stack[0]);
@@ -75,17 +74,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 		/* up_vector is reset after a bind */
 		if (value==1) {
 			reset_upvector();
-			
-			/* set Viewer position and orientation */
-			printf ("setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
-			vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
-			vp->orientation.r[3]);
-
-			Viewer.Pos.x = vp->position.c[0];
-			Viewer.Pos.y = vp->position.c[1];
-			Viewer.Pos.z = vp->position.c[2];
-			vrmlrot_to_quaternion (&Viewer.Quat,vp->orientation.r[0],
-				vp->orientation.r[1],vp->orientation.r[2],vp->orientation.r[3]);
+			bind_viewpoint (vp);
 		}
 
 	} else if (strncmp("Fog",nodetype,strlen("Fog"))==0) {
@@ -123,11 +112,12 @@ void bind_node (void *node, unsigned int setBindofst,
 	unsigned int *oldboundptr;	/* previous nodes isBound */
 
 	/* setup some variables */
-	setBindptr = node + setBindofst;
-	isBoundptr = node + isboundofst;
+	setBindptr = (unsigned int) node + setBindofst;
+	isBoundptr = (unsigned int) node + isboundofst;
 	oldstacktop = stack + *tos;  
 
 
+	// printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
 	   is not a new push or pop */
@@ -146,11 +136,12 @@ void bind_node (void *node, unsigned int setBindofst,
 		*tos = *tos+1;
 		newstacktop = stack + *tos;
 
+
 		/* save pointer to new top of stack */
 		*newstacktop = (unsigned int) node;
 
 		/* was there another node at the top of the stack? */
-		if (*tos>0) {
+		if (*tos >= 1) {
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = *oldstacktop + isboundofst;
 			*oldboundptr = 0;
@@ -160,17 +151,19 @@ void bind_node (void *node, unsigned int setBindofst,
 		}
 	} else {
 		/* POP FROM TOP OF STACK */
-		if (*tos >= 1) {
+		if (*tos >= 0) {
 			/* stack is not empty */
-			*tos = *tos - 1;
 			newstacktop = stack + *tos;
 		
 			/* set the popped value of isBound to true */
 			isBoundptr = *newstacktop + isboundofst;
-			*isBoundptr = 1;
+			*isBoundptr = 0;
 
 			/* tell the possible parents of this change */
 			update_node(*newstacktop);
+
+			/* and decrement stack pointer */
+			*tos = *tos - 1;
 		}
 	}
 	/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
@@ -257,6 +250,7 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 	/* double angle; */
 	float rot[0];
 
+	//printf ("rvp, node %d ib %d sb %d\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		/* up_vector is reset after a bind */
@@ -275,17 +269,6 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 
 	found_vp = 1; /* We found the viewpoint */
 
-	/* These have to be in this order because the viewpoint
-	 * rotates in its place */
-	rot[0] = node->orientation.r[3]/3.1415926526*180;
-	rot[1] = node->orientation.r[0];
-	rot[2] = node->orientation.r[1];
-	rot[3] = node->orientation.r[2];
-
-	glRotated(rot[0],rot[1],rot[2],rot[3]);	
-	glTranslated(node->position.c[0],node->position.c[1],
-			node->position.c[2]); 
-
 	/* now, lets work on the Viewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, vp);
 	if(vp[2] > vp[3]) {
@@ -296,6 +279,7 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 		a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
 		fieldofview = a1/3.1415926536*180;
 	}
+	//printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
 }
 
 void render_Background (struct VRML_Background *node) {
