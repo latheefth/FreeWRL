@@ -1,0 +1,77 @@
+FreeWRL, as of version 1.0, has had significant changes to it.
+This text file attempts to outline the project.
+
+last updated February 20, 2004. John Stewart, CRC Canada.
+
+FreeWRL now:
+	- is threaded.
+	- runs mainly in C.
+	- uses Perl for parsing and creating the "scene graph"
+	- uses external conversion for X3D (but this is changing)
+
+The "main" program for FreeWRL is:
+	CFrontEnd/FreeWRL.c This creates an X window, some threads,
+	and then sends any input file to the parsing thread.
+
+The "parsing" thread for FreeWRL is:
+	perlParse. Perl can only run in one thread; all activities
+	that require Perl have to interface with this thread. All
+	VRML/X3D syntax is sent to this thread, and output nodes 
+	are returned. Note that hard memory addresses, and internal
+	"handles" are returned. The "handles" are for sending 
+	future commands to the perlParse routine; mainly used for
+	EAI commands.
+
+	perlParse is in CFuncs/ProdCon.c (producer consumer - thread)
+	It copies the data over, then tells the _perlThread to run.
+
+The "Scene Graph" is displayed by:
+	the "displayThread()". Created in CFrontEnd/freewrl.c; this
+	thread continuously goes through the scene graph and draws 
+	it.
+
+Textures are loaded by:
+	the " initializeTextureThread();" call in CFrontEnd/freewrl.c.
+	Textures are read in and "uncompressed" in this thread, but
+	because of thread-safe issues, actual converting to OpenGL
+	textures happens in the "Scene Graph" thread.
+
+The Scene Graph consists of perl-generated nodes, the prototypes for
+these nodes can be found in "CFuncs/Structs.h", which is generated
+by the perl make procedure. The Scene Graph is tree structured, and
+mimics exactly the VRML scene graph.
+
+For instance: a Group{} node is represented in memory as:
+struct VRML_Group {
+	/***/ struct VRML_Virt *v;
+	/*s*/ int _sens;
+	/*t*/ int _hit;
+	/*a*/ int _change;
+	/*n*/ int _dlchange;
+	/*d*/ GLuint _dlist;
+	void **_parents;
+	int _nparents;
+	int _nparalloc;
+	int _ichange;
+	/*d*/ void *_intern;
+	/***/
+	struct SFColor bboxCenter;
+	struct Multi_Node children;
+	struct Multi_Node addChildren;
+	struct Multi_Node removeChildren;
+	struct SFColor bboxSize;
+	int has_light; };
+
+Some of these fields are not used; some are "standard" amongst all nodes.
+The one of interest is the "struct Multi_Node children"; Multi_Node 
+consists of 2 fields; a field count, and a pointer to a list of nodes.
+
+struct Multi_Node { int n; void * *p; };
+
+is the definition.
+
+eg, if "n" is 2, then "p" will point to 2 sequential memory locations that
+contain the memory address of each child. 
+
+
+
