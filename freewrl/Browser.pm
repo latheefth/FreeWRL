@@ -65,8 +65,8 @@ sub new {
 		Scene => undef,
 		URL => undef,
 		JSCleanup => undef,
-		#IsThreaded => $Config{useithreads},
-		IsThreaded => undef,
+		IsThreaded => $Config{useithreads},
+		#IsThreaded => undef,
 		ParseThread => undef,
 		ImageThread => undef,
 		toParseQueue =>undef,
@@ -76,15 +76,15 @@ sub new {
 
 	# create threads, if we are indeed threaded
 	if (defined $this->{IsThreaded}) {
-		use threads;
-		use Thread::Queue;
+		eval 'threads';
+		eval 'require Thread::Queue';
 
 		# main to parser thread queues
 		$this->{toParseQueue} = Thread::Queue->new;
 		$this->{fromParseQueue} = Thread::Queue->new;
 
 		#the parser thread
-		$this->{ParseThread} = threads->new(\&parse_threaded, $this);
+		$this->{ParseThread} = threads->new(\&load_file_threaded, $this);
 	}
 
 	return $this;
@@ -120,24 +120,22 @@ sub load_file_intro {
 		$this->load_string("#VRML V2.0\n Group{}\n","initial null scene");
 		prepare($this);
 
-		print "going to enqueue data to queue ",$this->{toParseQueue}," fpq is ",
-			$this->{fromParseQueue},"\n";
-		
+		# send the command and file name to the Parser thread	
+		# it will be loaded into the scene graph in the event loop.
 		$this->{toParseQueue}->enqueue("loadFile");
 		$this->{toParseQueue}->enqueue($url)
 	}
-
 }
 
 # parse a file or string in threaded mode
-sub parse_threaded {
+sub load_file_threaded {
 	my($this) = @_;
 
 	my $command;
 	my $data;
 	my $url;
 
-print "parse_threaded, this is $this\n";
+print "load_file_threaded, this is $this\n";
 
 	# lets wait 
 	threads->yield;
@@ -146,12 +144,12 @@ print "parse_threaded, this is $this\n";
 	# Loop, get the command from the main thread.
 	while ($command = $this->{toParseQueue}->dequeue) {
 		$url= $this->{toParseQueue}->dequeue;
-		print "parse_threaded: command $command url $url\n" ;#JAS if $VRML::verbose::scene;
+		print "load_file_threaded: command $command url $url\n" ;#JAS if $VRML::verbose::scene;
 
 		# if command is "loadFile"
 		$data = VRML::URL::get_absolute($url);
 
-		print "parse_threaded, string is $data\n";
+		print "load_file_threaded, string is $data\n";
 
 		# Required due to changes in VRML::URL::get_absolute in URL.pm:
 		if (!$data) { 
@@ -159,7 +157,21 @@ print "parse_threaded, this is $this\n";
 			print "stopping threads...\n";
 		}
 
+		$this->{URL} = $url;
+		$this->clear_scene();
+		$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
+
 		$this->load_string($data, $url);
+
+		$this->{Scene}->make_executable();
+
+		my $ret = $this->{Scene}->mkbe_and_array($this->{BE}, $this->{Scene});
+		print "VRML::Browser::createVrmlFromUrl: mkbe_and_array returned $ret\n"
+			;#JAS if $VRML::verbose::scene;
+		# debugging scene graph call
+		$this->{Scene}->dump(0) ;#JAS if $VRML::verbose::scenegraph;
+	
+
 
 # DO THIS WHEN LOADED AS CHILD OF ROOT
 	#prepare($this);
