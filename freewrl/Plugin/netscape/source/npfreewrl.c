@@ -233,6 +233,10 @@ print_here("past the read for the url request");
 		print_here(debs);
 		sprintf (debs, "step 2a, request.url %s\n",request.url);
 		print_here(debs);
+
+		/* now, put a status line on bottom of browser */
+		sprintf (debs, "FreeWRL loading: %s\n",request.url);
+		NPN_Status (request.instance, debs);
 	}
 
 print_here ("step 3");
@@ -857,6 +861,10 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 				if (write(FW_Plugin->fd[NP], fname, bytes) < 0) {
 					print_here ("Call to write failed");
 				}
+
+				/* send a "done" message to status bar */
+				sprintf (debs, "FreeWRL: Done");
+				NPN_Status(instance,debs);
 
 			}
 		}

@@ -36,6 +36,7 @@ GLXContext globalContext;
 #endif
 
 int wantEAI=FALSE;		/* enable EAI? */
+extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
 
 /* threading variables for event loop */
 static pthread_t *loopthread;
@@ -76,6 +77,9 @@ int main (int argc, char **argv) {
 	fullscreen = 0;
 
 	/* parse command line arguments */
+	/* JAS - for last parameter of long_options entries, choose
+	 * ANY character that is not 'h', and that is not used */
+
 	while (1) {
 		int this_option_optind = optind ? optind : 1;
 		int option_index = 0;
@@ -140,7 +144,7 @@ int main (int argc, char **argv) {
 				setGeometry(optarg);
 				break;
 			
-			case 'r':
+			case 'c':
 				fullscreen = 1;
 #ifndef XF86V4
 				printf("\nFullscreen mode is only available for XFree86 version 4.\n");
