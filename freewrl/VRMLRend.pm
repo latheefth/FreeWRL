@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.64  2002/07/11 16:22:29  crc_canada
+# ImageTextures now read in by C rather than Perl
+#
 # Revision 1.63  2002/07/09 16:13:59  crc_canada
 # Text nodes now in main module, seperate module removed
 #
@@ -932,23 +935,17 @@ TextureTransform => '
 ',
 
 ImageTexture => '
-	unsigned char *ptr = SvPV((this_->__data),PL_na);
-
-		/* for shape display list redrawing */
+	unsigned char *filename = SvPV((this_->__data),PL_na);
+	
+	/* for shape display list redrawing */
 	this_->_myshape = last_visited_shape; 
-
-	/* printf ("ImageTexture, texture number is %d  this is %d %x\n",
-		this_->__texture,this_,this_); */
 
 	/* save the reference globally */
 	last_bound_texture = this_->__texture;
+	
+	printf ("ImageTexture, binding to texture %d name %s\n",last_bound_texture,filename);
 
-	glBindTexture (GL_TEXTURE_2D, this_->__texture);
-	/* printf ("ImageTexture, binding to %d\n",this_->__texture); */
-	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
-		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
-		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
-		GL_LINEAR);
+	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 ',
 
 PixelTexture => '
@@ -1145,51 +1142,47 @@ Background => '
 	lftptr = SvPV((this_->__data_left),lftlen);
 	rtptr = SvPV((this_->__data_right),rtlen);
 
-	if (frtptr || bckptr || topptr || botptr || lftptr || rtptr) {
-		unsigned char *ptr;
+	printf ("background textures; lengths %d %d %d %d %d %d\n",
+		frtlen,bcklen,toplen,botlen,lftlen,rtlen);
+	printf ("backgrouns textures; names %s %s %s %s %s %s\n",
+		frtptr,bckptr,topptr,botptr,lftptr,rtptr);
+
+	
+
+	if (frtlen || bcklen || toplen || botlen || lftlen || rtlen) {
+		unsigned char *filename;
 		glGenTextures (6,BackTextures);
 
- 		if (frtptr && frtlen) {
-			ptr = SvPV((this_->__data_front),PL_na);
-			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
-                	do_texture(this_->__depth_front, this_->__x_front,
-                       		 this_->__y_front,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
+ 		if (frtlen) {
+			bind_image (frtptr,BackTextures[FRONTTEX],
+				0,0,this_->__istemporary_front);
 		}
 
- 		if (bckptr && bcklen) {
-			ptr = SvPV((this_->__data_back),PL_na);
-			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
-                	do_texture(this_->__depth_back, this_->__x_back,
-                       		 this_->__y_back,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
+ 		if (bcklen) {
+			bind_image (bckptr,BackTextures[BACKTEX],
+				0,0,this_->__istemporary_back);
 		}
 
- 		if (rtptr && rtlen) {
-			ptr = SvPV((this_->__data_right),PL_na);
-			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
-                	do_texture(this_->__depth_right, this_->__x_right,
-                       		 this_->__y_right,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
+ 		if (rtlen) {
+			bind_image (rtptr,BackTextures[RIGHTTEX],
+				0,0,this_->__istemporary_right);
 		}
 
- 		if (topptr && toplen) {
-			ptr = SvPV((this_->__data_top),PL_na);
-			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
-                	do_texture(this_->__depth_top, this_->__x_top,
-                       		 this_->__y_top,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
+ 		if (toplen) {
+			bind_image (topptr,BackTextures[TOPTEX],
+				0,0,this_->__istemporary_top);
 		}
 
- 		if (botptr && botlen) {
-			ptr = SvPV((this_->__data_bottom),PL_na);
-			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
-                	do_texture(this_->__depth_bottom, this_->__x_bottom,
-                       		 this_->__y_bottom,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
+ 		if (botlen) {
+			bind_image (botptr,BackTextures[BOTTEX],
+				0,0,this_->__istemporary_bottom);
 		}
 
 
- 		if (lftptr && lftlen) {
-			ptr = SvPV((this_->__data_left),PL_na);
-			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
-                	do_texture(this_->__depth_left, this_->__x_left,
-                       		 this_->__y_left,ptr,GL_REPEAT,GL_REPEAT,GL_LINEAR);
+ 		if (lftlen) {
+			filename = SvPV((this_->__data_left),PL_na);
+			bind_image (filename,BackTextures[LEFTTEX],
+				0,0,this_->__istemporary_left);
 		}
 
 	}
@@ -1327,7 +1320,7 @@ Background => '
 
 	/* now, for the textures, if they exist */
 
-	if (frtptr || bckptr || topptr || botptr || lftptr || rtptr) {
+	if (frtlen || bcklen || toplen || botlen || lftlen || rtlen) {
         	GLfloat mat_emission[] = {1.0,1.0,1.0,1.0};
        	 	GLfloat col_amb[] = {1.0, 1.0, 1.0, 1.0};
        	 	GLfloat col_dif[] = {1.0, 1.0, 1.0, 1.0};
@@ -1344,7 +1337,7 @@ Background => '
 
 		/* go through each of the 6 possible sides */
 
-		if(bckptr && bcklen) {
+		if(bcklen) {
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,1); 
@@ -1355,7 +1348,7 @@ Background => '
 			glEnd();
 		};
 
-		if(frtptr && frtlen) {
+		if(frtlen) {
 			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,-1);
@@ -1366,7 +1359,7 @@ Background => '
 			glEnd();
 		};
 
-		if(topptr && toplen) {
+		if(toplen) {
 			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,1,0);
@@ -1377,7 +1370,7 @@ Background => '
 			glEnd();
 		};
 
-		if(botptr && botlen) {
+		if(botlen) {
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,-(1),0);
@@ -1388,7 +1381,7 @@ Background => '
 			glEnd();
 		};
 
-		if(rtptr && rtlen) {
+		if(rtlen) {
 			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(1,0,0);
@@ -1399,7 +1392,7 @@ Background => '
 			glEnd();
 		};
 
-		if(lftptr && lftlen) {
+		if(lftlen) {
 			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(-1,0,0);

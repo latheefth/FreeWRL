@@ -254,6 +254,8 @@ sub removeChild {
 # Image loading.
 #
 
+my $count = 0;
+
 # picture image
 sub init_image {
     my($name, $urlname, $t, $f, $scene, $flip) = @_;
@@ -286,64 +288,38 @@ sub init_image {
 		print "VRML::Nodes::init_image got: $file\n"
 			if $VRML::verbose;
 
-		my ($hei,$wi,$dep,$dat);
+		my ($hei,$wi,$dep);
 		my $tempfile = $file;
 
 		if ($@) {
 			die("Cannot open image textures: '$@'");
 		}
 
-		$dat = "";
+		$f->{__istemporary.$name} = 0;
+		$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+
 		if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
 			# Lets convert to a png, and go from there...
 			# Use Imagemagick to do the conversion, and flipping.
-			# XXX - Do I need a flip because of a "Box" problem? 
 	
 			# Simply make a default user specific file by
 			# attaching the username (LOGNAME from environment).
 
 			my $lgname = $ENV{LOGNAME};
 			my $tempfile_name = "/tmp/freewrl_";
-			$tempfile = join '', $tempfile_name,$lgname,".png";
-	
+			$tempfile = join '', $tempfile_name,$lgname,
+				$f->{__texture.$name},".png";
+
 			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
 			my $status = system ($cmd);
 			warn "$image conversion problem: '$cmd' returns $?"
 				unless $status == 0;
-	
-			eval 'require VRML::PNG';
-			if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-				warn("Couldn't read texture file $tempfile");
-				next URL;
-			}
-			# remove temporary file
-			my $cmd = "rm $tempfile";
-            my $status = system ($cmd);
-            die "$image conversion problem: '$cmd' returns $?"
-                unless $status == 0;
 
-
-
-		} elsif ($suffix =~ /png/i) {
-			eval 'require VRML::PNG';
-			eval 'require VRML::JPEG';
-			if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-				warn("Couldn't read texture file $tempfile");
-				next URL;
-			}
-		} elsif ($suffix =~ /jpg/i) {
-			eval 'require VRML::JPEG';
-			if (!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-				warn("Couldn't read texture file $tempfile");
-				next URL;
-			}
+			# tell bind_texture to remove this one
+			$f->{__istemporary.$name} = 1;
 		}
 
-		$f->{__depth.$name} = $dep;
-		$f->{__x.$name} = $wi;
-		$f->{__y.$name} = $hei;
-		$f->{__data.$name} = $dat;
-		$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+		$f->{__data.$name} = $tempfile; # store the name for later processing
 		return;
     }							# for $u (@$urls) 
 
@@ -564,14 +540,12 @@ my $protono;
 
  ImageTexture => new VRML::NodeType("ImageTexture",
  {
-    url => [MFString, []],
-    repeatS => [SFBool, 1, "field"],
-    repeatT => [SFBool, 1, "field"],
-    __depth => [SFInt32, 1, "field"],
-    __x => [SFInt32,0, "field"],
-    __y => [SFInt32,0, "field"],
-    __data => [SFString, "", "field"],
-    __texture => [SFInt32,0,"field"],
+    url => [MFString, []],			# original URL from VRML file
+    repeatS => [SFBool, 1, "field"],		# VRML repeatS field
+    repeatT => [SFBool, 1, "field"],		# VRML repeatT field
+    __data => [SFString, "", "field"],		# where on the local file system texture resides
+    __texture => [SFInt32,0,"field"],		# OpenGL texture number
+    __istemporary =>[SFInt32,0,"field"],	# if we have to remove this after processing
  },{
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
@@ -849,15 +823,6 @@ Text => new VRML::NodeType ("Text",
 	 length => [MFFloat, []],
 	 maxExtent => [SFFloat, 0.0],
 	 __rendersub => [SFInt32, 0],   # Function ptr hack
-#JAS	}, {
-#JAS	Initialize => sub {
-#JAS		print "Text, initialize\n";
-#JAS		my($t,$f) = @_;
-#JAS		my $a = eval 'require VRML::Text; VRML::Text::get_rendptr();';
-#JAS		if($@) {die("Warning: text loading error: '$@'\n");}
-#JAS		$f->{__rendersub} = $a;
-#JAS		return ();
-#JAS	}
 	}
 ),
 
@@ -1831,11 +1796,9 @@ Background => new VRML::NodeType("Background",
 	 bindTime => [SFTime, undef, eventOut],
 	 (map {(
 		 $_.Url => [MFString, []],
-		 __x_.$_ => [SFInt32,0],
-		 __y_.$_ => [SFInt32,0],
-		 __data_.$_ => [SFString, ""],
-		 __depth_.$_ => [SFInt32, 1],
-		 __texture.$_ => [SFInt32,0],
+		 __data_.$_ => [SFString, ""], 		# local or temp file name
+		 __texture.$_ => [SFInt32,0],		# OpenGL texture number
+		 __istemporary_.$_ => [SFInt32,0],	# is this a temp file?
 	 )} qw/back front top bottom left right/),
 	},
 	{
