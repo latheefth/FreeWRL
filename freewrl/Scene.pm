@@ -107,17 +107,18 @@ sub dump {
 
 
 sub new {
-	my ($type, $eventmodel, $url) = @_;
+	my ($type, $eventmodel, $url, $worldurl) = @_;
 	my $this = bless {
-		EventModel => $eventmodel,
-		URL => $url,
-		Routes => undef,
-		DelRoutes => undef,
-		RootNode => undef,
-		Nodes => undef,
-		SubScenes => undef,
-		DEF => undef
-	}, $type;
+					  EventModel => $eventmodel,
+					  URL => $url,
+					  WorldURL => $worldurl,
+					  Routes => undef,
+					  DelRoutes => undef,
+					  RootNode => undef,
+					  Nodes => undef,
+					  SubScenes => undef,
+					  DEF => undef
+					 }, $type;
 	print "Newscene $this, $eventmodel, $url\n" 
 		if $VRML::verbose::scene;
 	return $this;
@@ -452,11 +453,30 @@ sub get_proto {
 sub get_url {
 	my ($this) = @_;
 	print "Get_url $this\n" if $VRML::verbose::scene;
-	if (defined $this->{URL}) {return $this->{URL}}
+	if (defined $this->{URL}) {
+		return $this->{URL};
+	}
 	# print "Scene:get_url: this parent is ", $this->{Parent},"\n";
-	if ($this->{Parent}) {return $this->{Parent}->get_url()}
+	if ($this->{Parent}) {
+		return $this->{Parent}->get_url();
+	}
 	print "Undefined URL tree\n";
 	exit (1);
+}
+
+sub get_world_url {
+	my ($this) = @_;
+	print "VRML::Scene::get_world_url $this\n" if $VRML::verbose::scene;
+
+	if (defined $this->{WorldURL}) {
+		return $this->{WorldURL};
+	}
+
+	if ($this->{Parent}) {
+		return $this->{Parent}->get_world_url();
+	}
+
+	return undef;
 }
 
 sub get_scene {

@@ -118,8 +118,9 @@ sub load_string {
 
 	# type is 2 for VRML v2, 3 for xml
 
+	my $wurl = getWorldURL($this);
 	$this->clear_scene();
-	$this->{Scene} = VRML::Scene->new($this->{EV},$file);
+	$this->{Scene} = VRML::Scene->new($this->{EV}, $file, $wurl);
 
 	$this->{Scene}->set_browser($this);
 	if ($type == 3)  {
@@ -127,15 +128,15 @@ sub load_string {
 
   		eval 'require XML::LibXSLT';
   		eval 'require XML::LibXML';
-  
+
   		my $parser = XML::LibXML->new();
   		my $xslt = XML::LibXSLT->new();
-  
+
   		my $source = $parser->parse_string($string);
   		my $style_doc = $parser->parse_file($VRML::Browser::X3DTOVRMLXSL);
-  
+
   		my $stylesheet = $xslt->parse_stylesheet($style_doc);
-  
+
   		my $results = $stylesheet->transform($source);
 
    		$string = $stylesheet->output_string($results);
@@ -160,59 +161,60 @@ sub get_backend { return $_[0]{BE} }
 sub eventloop {
 	my($this) = @_;
 	## my $seqcnt = 0;
-	while(!$this->{BE}->quitpressed) {
+	while (!$this->{BE}->quitpressed) {
 		# print "eventloop\n";
 		$this->tick();
-				# Skip 1st image, which may not be good
-                if( $main::seq && $main::saving && ++$main::seqcnt )
-                {
-				# Too many images. Stop saving, do conversion
-		  if ($main::seqcnt > $main::maximg){
-		    print "Saving off : sequence too long (max is $main::maximg)\n" ;
-		    VRML::Browser::convert_raw_sequence();
-		    # @main::saved = (); # Reset list of images
-		    # $main::seqcnt = 1;
-		    # $main::saving = 0;
+		# Skip 1st image, which may not be good
+		if ( $main::seq && $main::saving && ++$main::seqcnt ) {
+			# Too many images. Stop saving, do conversion
+			if ($main::seqcnt > $main::maximg) {
+				print "Saving off : sequence too long (max is $main::maximg)\n" ;
+				VRML::Browser::convert_raw_sequence();
+				# @main::saved = (); # Reset list of images
+				# $main::seqcnt = 1;
+				# $main::saving = 0;
 
-		  } else {
-		    ## print " this : $this\n";
-		    ## print " BE   : $this->{BE}\n";
-		    my $s2 = $this->{BE}->snapshot();
-		    my $fn = "$main::seqtmp/$main::seqname" . 
-		      sprintf("%04d",$main::seqcnt) . 
-			".$s2->[0].$s2->[1].raw" ;
+			} else {
+				## print " this : $this\n";
+				## print " BE   : $this->{BE}\n";
+				my $s2 = $this->{BE}->snapshot();
+				my $fn = "$main::seqtmp/$main::seqname" . 
+					sprintf("%04d",$main::seqcnt) . 
+						".$s2->[0].$s2->[1].raw" ;
 
 				# Check temp dir
-		    if ( ! (-d $main::seqtmp) && ! mkdir($main::seqtmp,0755) ) {
-		      print (STDERR "Can't create $main::seqtmp,",
-			     " so can't save sequence\n");
-		      $main::seqcnt = 0;
-		      $main::saving = 0;
-		      print "Saving off : Can't save temp files\n";
-		    
-		      # Refuse to crush files. Maybe "convert" has not
-		      # finished its job. 
-		    } elsif (-f $fn) {
-		    
-		      print (STDERR "File '$fn' already exists.\n",
-			     "  Maybe previous sequence has not been converted\n".
-			     "  Maybe you should remove it by hand\n") ;
-		      $main::seqcnt = 0;
-		      $main::saving = 0;
-		      print "Saving off : Won't crush file\n";
-		      
-		    } elsif (open (O, ">$fn")){
-		      print O $s2->[2] ;
-		      close O ;
-		      push @main::saved, [$fn, $s2->[0], $s2->[1], $main::seqcnt]; 
-		    } else {
-		      print STDERR "Can't open '$fn' for writing\n";
-		    }
-		  }
-		}
-	      }
+				if ( ! (-d $main::seqtmp) && ! mkdir($main::seqtmp,0755) ) {
+					print (STDERR "Can't create $main::seqtmp,",
+						   " so can't save sequence\n");
+					$main::seqcnt = 0;
+					$main::saving = 0;
+					print "Saving off : Can't save temp files\n";
 
-	if ($VRML::PLUGIN{NETSCAPE}) { PluginGlue::close_fd($VRML::PLUGIN{socket}); }
+					# Refuse to crush files. Maybe "convert" has not
+					# finished its job. 
+				} elsif (-f $fn) {
+
+					print (STDERR "File '$fn' already exists.\n",
+						   "  Maybe previous sequence has not been converted\n".
+						   "  Maybe you should remove it by hand\n") ;
+					$main::seqcnt = 0;
+					$main::saving = 0;
+					print "Saving off : Won't crush file\n";
+
+				} elsif (open (O, ">$fn")) {
+					print O $s2->[2] ;
+					close O ;
+					push @main::saved, [$fn, $s2->[0], $s2->[1], $main::seqcnt]; 
+				} else {
+					print STDERR "Can't open '$fn' for writing\n";
+				}
+			}
+		}
+	}
+
+	if ($VRML::PLUGIN{NETSCAPE}) {
+		PluginGlue::close_fd($VRML::PLUGIN{socket});
+	}
 	$this->{BE}->close_screen();
 }
 
@@ -351,39 +353,43 @@ sub createVrmlFromString {
 sub createVrmlFromURL { 
 	my ($this,$file,$url) = @_;
 
-        # stage 1a - get the URL....
-        $url = ($url || $file);
+	# stage 1a - get the URL....
+	$url = ($url || $file);
+	my $wurl = getWorldURL($this);
 
 	# stage 1b - is this relative to the world URL base???
 	if ($url !~ m/\//) {
-		my $wurl = dirname(getWorldURL($this));
-		$url = "$wurl\/$url";
+		my $wdir = dirname($wurl);
+		$url = "$wdir\/$url";
 	}
 
-        print "File: $file URL: $url\n" if $VRML::verbose::scene;
-        my $t = VRML::URL::get_absolute($url);
+	print "File: $file URL: $url\n" if $VRML::verbose::scene;
+	my $t = VRML::URL::get_absolute($url);
 
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
-	if (!$t) { die "File $file was not found"; }
+	if (!$t) {
+		die "File $file was not found";
+	}
 
-        unless($t =~ /^#VRML V2.0/s) {
-                if($t =~ /^#VRML V1.0/s) {
-                        print "Sorry, this file is according to VRML V1.0, I only know V2.0\n"; exit (1);
-                }
-                warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");        }
+	unless($t =~ /^#VRML V2.0/s) {
+		if ($t =~ /^#VRML V1.0/s) {
+			print "Sorry, this file is according to VRML V1.0, I only know V2.0\n"; exit (1);
+		}
+		warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");
+	}
 
 	# Stage 2 - load the string in....
 
-	my $scene = VRML::Scene->new($this->{EV},$url);
+	my $scene = VRML::Scene->new($this->{EV},$url,$wurl);
 	VRML::Parser::parse($scene, $t);
-        $scene->make_executable();
+	$scene->make_executable();
 
 	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
 	# debugging scene graph call
 	# $scene->dump(0);
 	
 	return $ret
- }
+}
 
 
 sub addRoute {  print "No addroute yet\n"; exit(1) }
