@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.39  2001/07/30 20:06:48  kitfox
+# Added support for user-specified normals on elevation grids
+#
 # Revision 1.38  2001/07/24 13:22:06  crc_canada
 # 1) reduce memory usage for textures.
 # 2) more parameter checking on indexedfacesets
@@ -545,8 +548,14 @@ ElevationGrid => '
 		struct VRML_PolyRep *rep_ = this_->_intern;
 		struct VRML_Extrusion_Adj *adj; 
 		float crease_angle = $f(creaseAngle);
+                int npv = $f(normalPerVertex);
+                struct SFColor *normals;
+                int nnormals = 0;
+                int nquadpercol, nquadperrow, nquadcol, nquadrow;
+
 		$fv_null(color, colors, get3, &ncolors);
-		rep_->ntri = ntri;
+		$fv_null(normal, normals, get3, &nnormals);
+                rep_->ntri = ntri;
 
 		/* printf("Gen elevgrid %d %d %d\\n", ntri, nx, nz); */
 		if(nf != nx * nz) {
@@ -634,15 +643,15 @@ ElevationGrid => '
 		}
 		  
 		  /* 1: */
-		  cindex[triind*3+0] = D; cindex[triind*3+1] = A; cindex[triind*3+2] = E;
+		  cindex[triind*3+0] = A; cindex[triind*3+1] = D; cindex[triind*3+2] = E;
 		  if (glIsEnabled(GL_TEXTURE_2D)) {
-			tcindex[triind*3+0] =D;
-			tcindex[triind*3+1] =A;
+			tcindex[triind*3+0] =A;
+			tcindex[triind*3+1] =D;
 			tcindex[triind*3+2] =E;
 		  }
 		  if(cpv) {
-			  colindex[triind*3+0] = D;
-			  colindex[triind*3+1] = A;
+			  colindex[triind*3+0] = A;
+			  colindex[triind*3+1] = D;
 			  colindex[triind*3+2] = E;
 		  } else {
 			  colindex[triind*3+0] = x+z*(nx-1);
@@ -654,15 +663,15 @@ ElevationGrid => '
 		rep_->norindex[triind*3+2] = triind;
 		  triind ++;
 		  /* 2: */
-		  cindex[triind*3+0] = B; cindex[triind*3+1] = C; cindex[triind*3+2] = F;
+		  cindex[triind*3+0] = C; cindex[triind*3+1] = B; cindex[triind*3+2] = F;
 		  if (glIsEnabled(GL_TEXTURE_2D)) {
-			tcindex[triind*3+0] = B;
-			tcindex[triind*3+1] = C;
+			tcindex[triind*3+0] = C;
+			tcindex[triind*3+1] = B;
 			tcindex[triind*3+2] = F;
 		  }
 		  if(cpv) {
-			  colindex[triind*3+0] = B;
-			  colindex[triind*3+1] = C;
+			  colindex[triind*3+0] = C;
+			  colindex[triind*3+1] = B;
 			  colindex[triind*3+2] = F;
 		  } else {
 			  colindex[triind*3+0] = x+z*(nx-1);
@@ -711,15 +720,58 @@ ElevationGrid => '
                                 else {	adj[x + z * nx].south_west_pt = adj[x + z * nx].south_pt - 1;}
 			}
 		}
+                if (nnormals <= 0){
+                        if (smooth_normals){
+                                calc_poly_normals_extrusion(rep_, adj, nx, nz, ntri, 0, crease_angle);
 
-		if (smooth_normals){
-			calc_poly_normals_extrusion(rep_, adj, nx, nz, ntri, 0, crease_angle);
-		}
-		else {
-		        calc_poly_normals_flat(rep_);
-		}
+                                /*Flip all the normals to their correct directions. */
+                                /*This is ugly in the extreme because it directly   */
+                                /*interferes with and relies on the work done in the*/
+                                /*previous function call. */
+                                for (x=0; x < (ntri*9); x++){
+                                        rep_->normal[x]= rep_->normal[x]*(-1);
+                                }
+                        }
+                        else {
+                                calc_poly_normals_flat(rep_);
+                        }
+                }
+                else {
+                        if(npv){
+                                /*normal per vertex*/
+                                for (x=0; x < nx*nz; x++){
+                                        rep_->normal[x*3+0] = normals[x].c[0];
+                                        rep_->normal[x*3+1] = normals[x].c[1];
+                                        rep_->normal[x*3+2] = normals[x].c[2];
+                                }
+                                for (x=0; x<ntri; x++){
+                                        rep_->norindex[x*3+0] = rep_->cindex[x*3+0];
+                                        rep_->norindex[x*3+1] = rep_->cindex[x*3+1];
+                                        rep_->norindex[x*3+2] = rep_->cindex[x*3+2];
+                                }
+                        }
+                        else{
+                                /*normal per quad*/
+                                for (x=0; x < (nx-1)*(nz-1); x++){
+                                        rep_->normal[x*3+0] = normals[x].c[0];
+                                        rep_->normal[x*3+1] = normals[x].c[1];
+                                        rep_->normal[x*3+2] = normals[x].c[2];
+                                }
+                                nquadpercol= (nz-1);
+                                nquadperrow= (nx-1);
+                                for (x=0; x < ntri; x++){
+                                        nquadrow = (x/2) % nquadpercol;
+                                        nquadcol = (x/2) / nquadpercol;
+                                        rep_->norindex[x*3+0] = nquadrow * nquadperrow + nquadcol;
+                                        rep_->norindex[x*3+1] = rep_->norindex[x*3+0];
+                                        rep_->norindex[x*3+2] = rep_->norindex[x*3+0];
+                                        /* printf("%i  triangle:  %i  %i  %i   quad: %i \n",x, rep_->cindex[x*3+0],
+                                        rep_->cindex[x*3+1], rep_->cindex[x*3+2], rep_->norindex[x*3+0] ); */
+                                }
+                        }
+                }
 
-		if (adj) free(adj);
+                if (adj) free(adj);
 	',
 
 Extrusion => (do "VRMLExtrusion.pm"),
