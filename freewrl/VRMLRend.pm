@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.131  2004/06/21 15:15:20  crc_canada
+# 1.07 pre changes.
+#
 # Revision 1.130  2004/06/21 13:12:58  crc_canada
 # pre-1.07 changes.
 #
@@ -1003,8 +1006,8 @@ Transform => '
 
 	GLfloat my_rotation;
 	GLfloat my_scaleO;
-	GLdouble modelMatrix[16];
 	int	recalculate_dist;
+	GLdouble modelMatrix[16];
 	      
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
@@ -1015,7 +1018,6 @@ Transform => '
 	 examine mode, sensitive node code is not rendered. So, we choose
 	 the second-last pass. ;-) */
 	recalculate_dist = render_light;
-
 
 	//printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
@@ -1072,15 +1074,13 @@ Transform => '
 		if (this_->__do_center) 
 			glTranslatef(-this_->center.c[0],-this_->center.c[1],-this_->center.c[2]);	
 
-
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
-			/* get the transformed position of the Sphere, and the scale-corrected radius. */
 			glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 			this_->_dist = modelMatrix[14];
+			//printf ("getDist - recalculating distance, it is %f for %d\n", 
+			//	this_->_dist,this_);
 	       }
-
-
         } 
 ',
 Billboard => '
@@ -1459,8 +1459,17 @@ Billboard => (join '','
 		GLenum glError;
 		int trans;
 		int should_rend;
+		GLdouble modelMatrix[16];
 
 		if(!(this_->geometry)) { return; }
+
+		/* do we need to do some distance calculations? */
+		if (((!render_vp) && render_light)) { 
+			glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+			this_->_dist = modelMatrix[14];
+			//printf ("getDist - recalculating distance, it is %f for %d\n", 
+			//	this_->_dist,this_);
+		}
 
 		if((render_collision) || (render_sensitive)) {
 			/* only need to forward the call to the child */
@@ -1472,12 +1481,8 @@ Billboard => (join '','
 		/* JAS - if not collision, and render_geom is not set, no need to go further */
 		if (!render_geom) return;
 
-
-	//printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
-
-		/* Display lists used here. The name of the game is to use the
-		display list for everything, except for sensitive nodes. */
+		//printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+		//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
 
 		/* a texture and a transparency flag... */
 		last_bound_texture = 0;
