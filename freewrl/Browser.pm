@@ -254,16 +254,10 @@ sub createVrmlFromString {
 	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING, DUH");
 	VRML::Parser::parse($scene, $string);
         $scene->make_executable();
-print "Browser:createVrmlFromString, new calls make backend, setup routing, init routing\n";
-#JAS	$scene->make_backend($this->{BE});
 
-	$scene->setup_routing($this->{EV}, $this->{BE});
-	$scene->init_routing($this->{EV},$this->{BE});
-#JAS end of testing of putting make_backend here.
-
-#JAS	if ($VRML::verbose::eai) {
+	if ($VRML::verbose::eai) {
 		print "createVRMLFromString - nodes are ",  $scene->get_as_nodearraystring(), "\n";
-#JAS	}
+	}
 	return $scene->get_as_nodearraystring();
 }
 
