@@ -26,9 +26,6 @@ int SEVerbose = 0;
 /* when we get a new sound source, what is the number for this? */
 int SoundSourceNumber = 0;
 
-
-char AnchorString[ASLEN];
-
 /* function prototypes */
 void locateAudioSource (struct VRML_AudioClip *node);
 
@@ -941,29 +938,8 @@ void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 
-		/* return string initialize */
-		AnchorString[0] = 0;
-		BrowserActionString = AnchorString;
-
-		/* go through the URL field, sanitize them, and return the string
-		   to let Browser.pm parse/load/etc the files */
-		for (counter = 0; counter <node->url.n; counter++) {
-			urlptr = SvPV((node->url.p[counter]),urllen);
-			
-			/* not a blank entry? */
-			if (urllen > 0) {
-				/* remove whitespace of front */
-				while (*urlptr <= ' ') urlptr++;
-			
-				/* can we put this on the return string? */
-				if ((strlen(urlptr)+strlen(AnchorString)) < ASLEN-2) {
-					strcat (AnchorString,urlptr);
-					strcat (AnchorString," ");
-				}
-	
-				BrowserAction = TRUE;
-			}
-		}
+		Anchor_url = node->url;
+		BrowserAction = TRUE;
 	}
 }
 

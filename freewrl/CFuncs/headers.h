@@ -183,7 +183,8 @@ extern struct sNaviInfo naviinfo;
 
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
-extern char * BrowserActionString;
+extern struct Multi_String Anchor_url;
+
 
 /* Scripting Routing interfaces */
 

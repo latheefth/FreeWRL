@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.137  2004/04/02 21:32:42  crc_canada
+# anchor work
+#
 # Revision 1.136  2004/03/29 20:39:54  crc_canada
 # Compile for IRIX
 #
@@ -1431,7 +1434,8 @@ struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser (perl code) to do? */
 int BrowserAction = FALSE;
-char * BrowserActionString = 0;
+struct Multi_String Anchor_url;
+
 
 struct currayhit  rh,rph,rhhyper;
 /* used to test new hits */
