@@ -521,27 +521,33 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 }
 
 
-/****************************************************************/
-/* a script is returning a MFNode type; add this to the C	*/
-/* children field						*/
-/****************************************************************/
+/************************************************************************/
+/* a script is returning a MFNode type; add or remove this to the C	*/
+/* children field							*/
+/************************************************************************/
 
-void getMFNodetype (char *strp, struct Multi_Node *ch) {
+void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 	unsigned int newptr;
 	int oldlen, newlen;
 	char *cptr;
 	void *newmal;
+	unsigned int *tmpptr;
+
+	unsigned int *remptr;
+	unsigned int remchild;
+	int num_removed;
+	int counter;
 
 
-	/* printf ("getMFNodetype, %s\n",strp);
-	printf ("getMFNodetype, parent has %d nodes currently\n",ch->n); */
+	/*printf ("getMFNodetype, %s ar %d\n",strp,ar);
+	printf ("getMFNodetype, parent %d has %d nodes currently\n",par,par->n); */
 
 	/* oldlen = what was there in the first place */
-	oldlen = ch->n;
+	oldlen = par->n;
 	newlen=0;
 
 	/* this string will be in the form "[ CNode addr CNode addr....]" */
-	/* count the numbers to add */
+	/* count the numbers to add  or remove */
 	if (*strp == '[') {
 		strp++;
 	}
@@ -554,31 +560,78 @@ void getMFNodetype (char *strp, struct Multi_Node *ch) {
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 		while (*cptr == ' ') cptr++; /* skip spaces */
 	}
-
-	/* now we know how many SFNodes are in this MFNode, lets malloc and add */
-	newmal = malloc ((oldlen+newlen)*sizeof(unsigned int));
-
-	if (newmal == 0) {
-		printf ("cant malloc memory for addChildren");
-		return;
-	}
-
-	/* copy the old stuff over */
-	memcpy (newmal,ch->p,oldlen*sizeof(unsigned int));
-
-	/* set up the C structures for this new MFNode addition */
-	free (ch->p);
-	ch->p = newmal;
-	ch->n = oldlen+newlen;
-
-	newmal += sizeof (unsigned int)*oldlen;
 	cptr = strp; /* reset this pointer to the first number */
 
-	while (sscanf (cptr,"%d", newmal) == 1) {
-		/* skip past this number */
-		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
-		while (*cptr == ' ') cptr++; /* skip spaces */
-		newmal += sizeof (unsigned int);
+	if (ar != 0) {
+		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
+		newmal = malloc ((oldlen+newlen)*sizeof(unsigned int));
+	
+		if (newmal == 0) {
+			printf ("cant malloc memory for addChildren");
+			return;
+		}
+	
+		/* copy the old stuff over */
+		memcpy (newmal,par->p,oldlen*sizeof(unsigned int));
+	
+		/* set up the C structures for this new MFNode addition */
+		free (par->p);
+		par->p = newmal;
+		par->n = oldlen+newlen;
+	
+		newmal += sizeof (unsigned int)*oldlen;
+	
+		while (sscanf (cptr,"%d", newmal) == 1) {
+			/* skip past this number */
+			while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
+			while (*cptr == ' ') cptr++; /* skip spaces */
+			newmal += sizeof (unsigned int);
+		}
+
+	} else {
+		/* this is a removeChildren */
+
+		/* go through the original array, and "zero" out children that match one of
+		   the parameters */
+
+		num_removed = 0;
+		while (sscanf (cptr,"%d", &remchild) == 1) {
+			/* skip past this number */
+			while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
+			while (*cptr == ' ') cptr++; /* skip spaces */
+
+			remptr = par->p;
+			for (counter = 0; counter < par->n; counter ++) {
+				if (*remptr == remchild) {
+					*remptr = 0;  /* "0" can not be a valid memory address */
+					num_removed ++;
+				}
+				remptr ++;
+			}
+		}
+
+		if (num_removed > 0) {
+			newmal = malloc ((oldlen-num_removed)*sizeof(unsigned int));
+			tmpptr = newmal;
+			remptr = par->p;
+			if (newmal == 0) {
+				printf ("cant malloc memory for removeChildren");
+				return;
+			}
+
+			/* go through and copy over anything that is not zero */
+			for (counter = 0; counter < par->n; counter ++) {
+				if (*remptr != 0) {
+					*tmpptr = *remptr;
+					tmpptr ++;
+				}
+				remptr ++;
+			}
+
+			free (par->p);
+			par->p = newmal;
+			par->n = oldlen - num_removed;
+		}
 	}
 }
 
@@ -1167,7 +1220,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				case MFFLOAT: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,1); break;}
 				case MFROTATION: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,4); break;}
 				case MFVEC2F: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,2); break;}
-				case MFNODE: {getMFNodetype (strp,tn+tptr); break;}
+				case MFNODE: {getMFNodetype (strp,tn+tptr,1); break;}
 				case MFSTRING: {
 						getMFStringtype (JSglobs[actualscript].cx,
 									global_return_val,tn+tptr); 
