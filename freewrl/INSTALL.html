@@ -20,12 +20,10 @@ Most installs are very simple.
 I have tested the FreeWRL build on brand new installs of:
 <P>
 <LIST>
-<LI>
-        <B>SuSe 7.1</B> FTP'd on March 30-31 2001
-<LI>
-        <B>TurboLinux</B> Workstation 4.0.5.SMC Tues Oct 19, 1999
-<LI>
-        <B>Mandrake 7.2</B> from ISO CD images
+<LI><B>SuSe 7.1</B> FTP'd on March 30-31 2001
+<LI><B>TurboLinux</B> Workstation 4.0.5.SMC Tues Oct 19, 1999
+<LI><B>Mandrake 7.2</B> from ISO CD images
+<LI><B>Redhat 7.1</B>"SeaWolf" final release
 </LIST>
 <P>
 <B>
@@ -43,10 +41,11 @@ Comments/help/Additional build notes more than welcome.
 <LI>Getting it to work with the Polhemus Fastrak 3d, or a Joystick.
 </LIST>
 
-
-<P>(updated 19 June 2000 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
+<P>
+<BR>(updated 08 May 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
+<BR>(updated 08 April 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
 <BR>(updated 31 August 2000 - <A HREF="mailto:remi@cohen-scali.com">remi@cohen-scali.com</A>)
-<BR>(updated 08 April 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)</P>
+<BR>(updated 19 June 2000 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
 
 <H3>
 Building FreeWRL as a standalone executable
@@ -74,6 +73,7 @@ You can also access the cvs repository. The way to do it is explained at:
 <LI><B> Mandrake 7.2:</B> Had to install mesa from 
 <A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>
 to get all include files.
+<LI><B> Redhat 7.1:</B> nothing needed
 <LI><B> General:</B> Usually, Mesa is included in newer distributions. If not
 installed it is on the distribution disks, or available from
 <A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>
@@ -86,6 +86,15 @@ installed it is on the distribution disks, or available from
 If you have a Linux compatible 3D accel. card, then
 simply install it, and follow the directions from the
 manufacturer.
+<P><B>NOTE:</B>Voodoo3 cards, now obsolete, have the following problems with
+Redhat 7.1, and possibly other releases:
+<P>
+<LIST>
+<LI>OpenGL segfaults. This is not particularly related to FreeWRL. To get
+around this, comment out the 'Load "glx"' line of /etc/X11/XF86Config-4, and restart X.
+<LI>Texture Transforms are not correct. Rotations and Scaling will not work.
+<LI>Sometimes textures get mixed up. (eg, one texture replaces another)
+</LIST>
 <P>
 <H4>
 3. FreeWRL Build and Installation
@@ -122,10 +131,11 @@ and build it.
 <BR>zlib-devel-1.1.3-11mdk.i586.rpm
 <P>
 <LI> do steps do all the steps, except 8, below.
-
-
 </OL>
-
+<P>
+<LI><B>Redhat 7.1:</B>
+Perform steps 1, 4, 6, 7, 9.
+<P>
 <LI><B>General:</B>
 </LIST>
 <OL>
@@ -151,7 +161,6 @@ file has good paths for the libraries and includes.
 <P>Installing these modules is a no-brainer; just untar     
 each module, then go into the directory, and 
 <BR>perl Makefile.PL
-<BR>make
 <BR>make install</P>
 
 Note that libwww-perl will most likely ask you if you want to reconfigure - I always just select the default.
@@ -198,33 +207,28 @@ There are quite a few tests in the "tests" directory.
 </H4>
 
 <P><B>3.1)</B> Javascript:</P>
-
-<P>In the basic install, you should have installed the java support to allow some of the test programs in the tests directory to work. (eg, 7.wrl, 8.wrl, and 10.wrl)</P>
-
-<P>If these programs don't run, then go back and make FreeWRL it so that it does work.</P>
-
+<P>
+In the basic install, you should have installed the java support to allow some of the test programs in the tests directory to work. (eg, 7.wrl, 8.wrl, and 10.wrl)
+<P>
+If these programs don't run, then go back and make FreeWRL it so that it does work.
 <P><B>3.2)</B> EAIcode:</P>
+<p>
+<B>NOTE:</B> This is in active development, so may not work. 
+<P>
+<LIST>
+<LI>cd into the tests/AddRemove directory in the build tree.
+<LI>Read the README file in there to see what the latest commands are
+<LI>Send a case of beer to the developers, for their outstanding work.
+</LIST>
 
-<P>Make sure that the CLASSPATH environment variable is set correctly (see above).</P>
-
-<P>On my system, (RH6.2) it is:</P>
-
-<P>[luigi@meson ~] $ setenv | grep CLASSPATH
-
-<BR>CLASSPATH=/usr/local/src/VRML/FreeWRL/java/classes:/usr/lib/netscape:</P>
-
-<P>Any java code that uses the &quot;importvrml.external...&quot; command, will get there qusite classes from this directory.</P>
-
-<P><B>3.3)</B> Testing the EAI code.</P>
- 
-
-<P>cd into the tests/Add Remove directory in the build tree.</P>
-
-<P>run the script &quot;standalone&quot; in there.</P>
-
-<P><B>NOTE:</B> The applet viewer should be set to allow network access. I have my applet viewer set so that network access is only on the Applet Host. Class access is set to Restricted.</P>
-
-<P><B>NOTE:</B> RH6.2 does not seem to have the applet viewer installed by default - have a look at the file via netscape (seebelow).</P>
+<P><B>3.2)</B> SAIcode:</P>
+<p>
+<B>NOTE:</B> This is in active development, so may not work. 
+<P>
+<LIST>
+<LI>cd into the tests/SAIClick directory in the build tree.
+<LI>Read the README file in there to see what the latest commands are
+</LIST>
 
 
 <P><B>4) Getting it all to work with Netscape.</B></P>
@@ -234,14 +238,40 @@ There are quite a few tests in the "tests" directory.
 <A HREF="Plugin/readme.html">instructions</A>.</P>
 <P>
 <P><B>5) Getting it to work with external sensors.</B></P>
+<P>
+<B>5.1)</B> CRC's "Flying Chair".
+<P>
+This chair can be seen in the "links" section. The code to 
+run this chair is freely available, at:
+<A HREF="http://sourceforge.net/projects/mvip/">
+http://sourceforge.net/projects/mvip/</A>
+<P>
 
-<P><B>5.1)</B> Joystick-It works!!! I have &quot;tied&quot; it to ground use only, though.</P>
+<B>5.2)</B> Thrustmaster style Joystick 
+<P>
+The 2-D joystick interface is available at: 
+<A HREF="/html/FreeWRL/downloads/joystick/Joystick-1.0.tar.gz">http://www.crc.ca/FreeWRL/download/joystick/Joystick-1.0.tar.gz</A>, and the 3D joystick
+interface is available as part of the chair code, as outlined above.
 
-<P><A HREF="/html/FreeWRL/downloads/joystick/Joystick-1.0.tar.gz">http://www.crc.ca/FreeWRL/download/joystick/Joystick-1.0.tar.gz</A>.</P>
-
-<P><B>5.2)</B> Polhemus/Virtual Research goggles with position sensor.</P>
-
-<P><B>5.2.1)</B> Polhemus Position Sensor.</P>  
+<P><B>5.3)</B> Data Glove.</P>
+<P>
+This interface is being actively worked on.
+<P>
+<P><B>5.4)</B> Spaceball 3D positioning mouse.</P>
+<P>
+This interface is being actively worked on.
+<P>
+<P><B>5.4)</B> Touchscreens.</P>
+<P>
+One of our FreeWRL users has made a very interesting touchscreen
+interface to FreeWRL. This code will be incorporated into FreeWRL
+when it is complete.
+<P>
+<P><B>5.6)</B> Polhemus/Virtual Research goggles with position sensor.</P>
+This works very well with the "Flying Chair" mentioned above, but if you 
+wish to run this alone, without joystick (and chair!), here are the
+directions:
+<P><B>5.6.1)</B> Polhemus Position Sensor.</P>  
 
 <P> - Untar and compile the code in the Polhemus 1.0. tarfile. 
 <BR>- run minicom (with modem in it strings set to null) and see if you can get any input.  
@@ -261,9 +291,8 @@ There are quite a few tests in the "tests" directory.
 <P> - run the program Polhemus/termite to get the polhemus interface   code working. Note - headset should be pointed at where you want &quot;front&quot; to be.</P>
 
 
-<P><B>5.2.2)</B> Virtual Research goggles
-
-<BR> - I use a Monster 3d fx card, with Mesa. I send the mesa output   directly to the 3d fx card, so there is no VRML display on my X display. Simply connect the goggles to the output of the 3d fx card.
-
-<BR> - I start up FreeWRL with the options &quot;-best&quot; and i&quot;-geom 640x480&quot;        I should check to see if the geometry matches the Virtual Research goggle display - but it appears to work ok.</P>
+<P><B>5.6.2)</B> Virtual Research goggles
+<P> An option has been added to FreeWRL to run in full screen mode just for these goggles. Start FreeWRL with the "-fullscreen" option; eg:
+<P>
+freewrl tests/1.wrl -best -fullscreen -geometry 640x480
 
