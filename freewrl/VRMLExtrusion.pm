@@ -304,8 +304,8 @@ if (HAVETODOTEXTURES) { /* texture mapping "stuff" */
 	tcindex  = rep_->tcindex   = malloc(sizeof(*(rep_->tcindex))*tcindexsize);
 
 	/* keep around cross section info for tex coord mapping */
-	beginVals = malloc(sizeof(float) * 2 * nsec);
-	endVals = malloc(sizeof(float) * 2 * nsec);
+	beginVals = malloc(sizeof(float) * 2 * (nsec+1)*100);
+	endVals = malloc(sizeof(float) * 2 * (nsec+1)*100);
 
 	if (!(tcoord && tcindex && beginVals && endVals)) 
 		die ("Not enough memory Extrusion Tcoords");
@@ -668,15 +668,27 @@ for(spi = 0; spi<nspi; spi++) {
 		point.y = 0; 
 		point.z = ptz;
 
+		//printf ("working on sec %d of %d, spine %d of %d\n", sec, nsec, spi, nspi);
+
 
 	  /* texture mapping for caps - keep vals around */
-	  if (spi == 0) { /* begin cap vertices */
-		beginVals[sec*2+0] = ptx;
-		beginVals[sec*2+1] = ptz;
-	   } else if (spi == (nspi-1)) {  /* end cap vertices */
-		endVals[sec*2+0]=ptx;
-		endVals[sec*2+1]=ptz;
-	   } 
+	  if (HAVETODOTEXTURES) {
+	  	if (spi == 0) { /* begin cap vertices */
+			//printf ("begin cap vertecies index %d %d \n",
+			sec*2+0, sec*2+1);
+
+			beginVals[sec*2+0] = ptx;
+			beginVals[sec*2+1] = ptz;
+	   	} else if (spi == (nspi-1)) {  /* end cap vertices */
+			//printf ("end cap vertecies index %d %d size %d\n",
+			sec*2+0, sec*2+1, 2 * (nsec+1));
+			(float)endVals[(int) (sec*2)+0]=(float)ptx;
+			(float)endVals[(int ) (sec*2)+1]=(float)ptz;
+	   	} 
+
+	   }
+	   //printf ("coord index %x sec %d spi %d nsec %d\n",
+	   //		&coord[(sec+spi*nsec)*3+0], sec, spi,nsec);
 
 	   coord[(sec+spi*nsec)*3+0] = 
 	    spx.x * point.x + spy.x * point.y + spz.x * point.z
@@ -843,9 +855,11 @@ for(x=0; x<nsec-1; x++) {
   /* first triangle  calculate pointfaces, etc, for this face */
   Elev_Tri(triind*3, this_face, D,A,E, TRUE , rep_, facenormals, pointfaces,ccw);
 
-  tcindex[triind*3] = Dtex;
-  tcindex[triind*3+2] = Etex;
-  tcindex[triind*3+1] = Atex;
+  if (HAVETODOTEXTURES) {
+	tcindex[triind*3] = Dtex;
+	tcindex[triind*3+2] = Etex;
+	tcindex[triind*3+1] = Atex;
+  }
 
   defaultface[triind] = this_face;
   triind++;
@@ -854,11 +868,14 @@ for(x=0; x<nsec-1; x++) {
   /* second triangle - pointfaces, etc,for this face  */
   Elev_Tri(triind*3, this_face, B, C, F, TRUE, rep_, facenormals, pointfaces,ccw);
 
-  tcindex[triind*3] = Btex;
-  tcindex[triind*3+1] = Ctex;
-  tcindex[triind*3+2] = Ftex;
+  if (HAVETODOTEXTURES) {
+	tcindex[triind*3] = Btex;
+	tcindex[triind*3+1] = Ctex;
+	tcindex[triind*3+2] = Ftex;
+  }
 
-  if ((triind*3+2) >= tcindexsize) printf ("INTERNAL ERROR: Extrusion  - tcindex size too small!\n");
+  if ((HAVETODOTEXTURES) && ((triind*3+2) >= tcindexsize)) 
+	printf ("INTERNAL ERROR: Extrusion  - tcindex size too small!\n");
   defaultface[triind] = this_face;
   triind ++; 
   this_face ++;
@@ -907,15 +924,16 @@ if($f(convex)) {
 		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
   			Elev_Tri(triind*3, this_face, 0, x+2, x+1, TRUE , rep_, facenormals, pointfaces,ccw);
   			defaultface[triind] = this_face;
-			Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw,tcindexsize);
+			if (HAVETODOTEXTURES)
+				Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw,tcindexsize);
 			triind ++;
 		}
 
-		//printf ("INTERNAL calling Extru_ST_map(1), triind_start %d, begin %d end %d beginVals %d nsec %d tcsize%d\n",
-			//triind_start,0+ncolinear_at_begin,endpoint,beginVals,nsec,tcoordsize);
-		Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+		if(HAVETODOTEXTURES) {
+			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
 				beginVals,nsec,rep_,tcoordsize);
-		tci_ct+=endpoint-(0+ncolinear_at_begin);
+			tci_ct+=endpoint-(0+ncolinear_at_begin);
+		}
 		triind_start+=endpoint-(0+ncolinear_at_begin);
 		this_face++;
 	} /* if beginCap */
@@ -928,15 +946,15 @@ if($f(convex)) {
 				x+1+(nspi-1)*nsec,x+2+(nspi-1)*nsec,
 				TRUE , rep_, facenormals, pointfaces,ccw);
   			defaultface[triind] = this_face;
-			Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec, 
+			if (HAVETODOTEXTURES) 
+				Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec, 
 					x+1+(nspi-1)*nsec, 
 					x+2+(nspi-1)*nsec, rep_,ccw,tcindexsize);
 			triind ++;
 		}
 		this_face++;
-		// printf ("INTERNAL calling Extru_ST_map(2), triind_start %d, begin %d end %d beginVals %d nsec %d tcsize%d\n",
-		//	triind_start,0+ncolinear_at_begin,endpoint,beginVals,nsec,tcoordsize);
-		Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+		if (HAVETODOTEXTURES) 
+			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
 				endVals, nsec, rep_,tcoordsize);
 	} /* if endCap */
  	//for (tmp=0;tmp<tcindexsize; tmp++) printf ("index1D %d tcindex %d\n",tmp,tcindex[tmp]);
@@ -1030,22 +1048,24 @@ for (tmp=end_of_sides; tmp<(triind*3); tmp++) {
 }
 
 /* do texture mapping calculations for sides */
-/* range check - this should NEVER happen... */
-if (tcoordsize <= ((nsec-1)+(nspi-1)*(nsec-1)*3+2)) {
-	printf ("INTERNAL ERROR: Extrusion side tcoord calcs nspi %d nsec %d tcoordsize %d\n",
-		nspi,nsec,tcoordsize);
-}
-for(sec=0; sec<nsec; sec++) {
-	for(spi=0; spi<nspi; spi++) {
-		//printf ("tcoord idx %d %d %d tcoordsize %d ",
-		//(sec+spi*nsec)*3,(sec+spi*nsec)*3+1,(sec+spi*nsec)*3+2,tcoordsize);
-		//printf ("side texts sec %d spi %d\n",sec,spi);
-		tcoord[(sec+spi*nsec)*3+0] = (float) sec/(nsec-1);
-		tcoord[(sec+spi*nsec)*3+1] = 0;
-		tcoord[(sec+spi*nsec)*3+2] = (float) spi/(nspi-1);
-		//printf (" %f %f\n",tcoord[(sec+spi*nsec)*3+0],tcoord[(sec+spi*nsec)*3+2]);
+if (HAVETODOTEXTURES) {
+	/* range check - this should NEVER happen... */
+	if (tcoordsize <= ((nsec-1)+(nspi-1)*(nsec-1)*3+2)) {
+		printf ("INTERNAL ERROR: Extrusion side tcoord calcs nspi %d nsec %d tcoordsize %d\n",
+			nspi,nsec,tcoordsize);
 	}
-}	
+	for(sec=0; sec<nsec; sec++) {
+		for(spi=0; spi<nspi; spi++) {
+			//printf ("tcoord idx %d %d %d tcoordsize %d ",
+			//(sec+spi*nsec)*3,(sec+spi*nsec)*3+1,(sec+spi*nsec)*3+2,tcoordsize);
+			//printf ("side texts sec %d spi %d\n",sec,spi);
+			tcoord[(sec+spi*nsec)*3+0] = (float) sec/(nsec-1);
+			tcoord[(sec+spi*nsec)*3+1] = 0;
+			tcoord[(sec+spi*nsec)*3+2] = (float) spi/(nspi-1);
+			//printf (" %f %f\n",tcoord[(sec+spi*nsec)*3+0],tcoord[(sec+spi*nsec)*3+2]);
+		}
+	}	
+}
 
 if (Extru_Verbose) printf ("done, lets free\n");
 
@@ -1055,8 +1075,10 @@ free (pointfaces);
 free (facenormals);
 free (crossSection);
 
-free (beginVals); 
-free (endVals);
+if (HAVETODOTEXTURES) {
+	free (beginVals); 
+	free (endVals);
+}
 
 
 if(Extru_Verbose)
