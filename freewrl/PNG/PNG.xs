@@ -7,6 +7,9 @@
  * distribution) for details.
  *
  * $Log$
+ * Revision 1.5  2002/02/07 18:46:50  crc_canada
+ * Irix compile - remove warnings (hopefully!)
+ *
  * Revision 1.4  2000/09/02 23:59:04  rcoscali
  * Implement the flipping of image directly in reading routine to avoid
  *  overhead of flipping after read. Flip occurs if a flip param is given
@@ -71,7 +74,7 @@ for(;;) {
         RETVAL=0; break;
     }
     read(fd, header, HDNO);
-    is_png = png_check_sig(header, HDNO);
+    is_png = png_check_sig((png_bytep) header, HDNO);
     if (!is_png)
     {
         RETVAL=0; break;
@@ -150,7 +153,7 @@ for(;;) {
 
    row_pointers = malloc(sizeof(*row_pointers)*height);
    for(i=0; i<height; i++) {
-	row_pointers[((flip != 0) ? height -i -1 : i)] = SvPV(sv,PL_na) + rowbytes * i;
+	row_pointers[((flip != 0) ? height -i -1 : i)] = (png_bytep) SvPV(sv,PL_na) + rowbytes * i;
    }
 
    png_read_image(png_ptr, row_pointers);
