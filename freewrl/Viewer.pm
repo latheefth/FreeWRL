@@ -285,7 +285,6 @@ sub handle_tick {
 
     	# any movement? if so, lets render it.
 	if (abs($changed) > 0.000001) {
-		print "moving\n";
         	VRML::OpenGL::set_render_frame();
     	}
 
