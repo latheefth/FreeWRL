@@ -39,15 +39,23 @@ sub new {
 sub connect {
 	my($this) = @_;
 # XXX java VM name
-	# my @cmd = split ' ','java_g TjlScript';
+
+	print "VRMLJava.pm - connect called\n";
+
+	# my @cmd = split ' ','java FWJavaScript';
 	# $pid = system 1, @cmd;
 	unless ($pid = fork()) {
-		exec 'java_g -v TjlScript';
+	 	exec 'java vrml.FWJavaScript hereisme';
 	}
+	print "VRMLJava.pm - pid is $pid\n";
+
 	($this->{I} = FileHandle->new)->open("<.javapipej");
+	print "VRMLJava.pm - input file handle is ",$this->{I},"\n";
 	$this->{I}->setvbuf("",_IONBF,0);
 	($this->{O} = FileHandle->new)->open(">.javapipep");
-	# $pid = open3("<, $this->{O}, 'java_g -v TjlScript ');
+	print "VRMLJava.pm -  output file handle is ",$this->{O},"\n";
+
+	# $pid = open3("<, $this->{O}, 'java_g -v FWJavaScript ');
 	$this->{O} = VRML::JavaCom::OHandle->new($this->{O});
 	$this->{I} = VRML::JavaCom::IHandle->new($this->{I});
 	$this->{O}->print( "TJL XXX PERL-JAVA 0.00\n" );
@@ -63,10 +71,14 @@ sub initialize {return ()}
 
 sub newscript {
 	my($this, $purl, $url, $node) = @_;
-	undef $1;
+	#JAS undef $1;
 	$purl =~ /^(.*\/)[^\/]+$/;
 	$url = $1.$url; # XXXX!!
+	print ("VRMLJava.pm: url $url, purl $purl node $node\n");
+
 	if(!$this->{O}) {$this->connect}
+	print "VRMLJava.pm - connect passed\n";
+
 	$this->{Ids}{$node} = $node;
 	$this->{O}->print("NEWSCRIPT\n$node\n$url\n");
 	my $t = $node->{Type};
