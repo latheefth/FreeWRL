@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.50  2002/05/23 18:26:48  crc_canada
+# move some "externs" out to CFuncs/headers.h
+#
 # Revision 1.49  2002/05/13 14:59:51  crc_canada
 # Move some functions out to the CFuncs subdirectory
 #
@@ -963,12 +966,6 @@ struct VRML_PolyRep { /* Currently a bit wasteful, because copying */
 
 
 D_OPENGL;
-
-
-/* Triangulator extern defs - look in CFuncs/Tess.c */
-extern struct VRML_PolyRep *global_tess_polyrep;
-extern GLUtriangulatorObj *global_tessobj;
-
 
 
 /* Rearrange to take advantage of headlight when off */
