@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.16  2000/11/15 18:25:28  crc_canada
+# Changed texture quality to give us good quality when gluScaleTexture is called.
+#
 # Revision 1.15  2000/11/15 15:26:35  crc_canada
 # Removed a printf "Render tex coord".
 #
@@ -1983,8 +1986,15 @@ void do_texture(depth,x,y,ptr,gl_rep_or_clamp)
 	int rx,ry,sx,sy;
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+	/* if we have to scale, scale well.
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	*/
+
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_rep_or_clamp);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_rep_or_clamp);
 
@@ -1998,6 +2008,7 @@ void do_texture(depth,x,y,ptr,gl_rep_or_clamp)
 		if(ry/2 == (y)) {ry /= 2;}
 		if(rx != (x) || ry != (y)) {
 			/* We have to scale */
+printf ("scaling from rx %d ry %d to x %d y %d\n",rx,ry,x,y);
 			dest = malloc((depth) * rx * ry);
 			gluScaleImage(
 			     ((depth)==1 ? GL_LUMINANCE : 
