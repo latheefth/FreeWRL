@@ -574,7 +574,9 @@ void do_keyPress(const char kp, int type) {
 			case '.': { display_status = !display_status; break; }
 			case 'q': { if (!RUNNINGASPLUGIN) {
 					  doQuit();
+#ifndef AQUA
 					if (wantEAI) shutdown_EAI();
+#endif
 					exit(0);
 					break;
 				    }
@@ -837,7 +839,9 @@ void setSeqTemp(char* file) {
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
+#ifndef AQUA
 	resetGeometry();
+#endif
 	shutdown_EAI();
 	exit(0);
 }

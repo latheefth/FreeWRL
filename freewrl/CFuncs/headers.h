@@ -356,7 +356,9 @@ extern void setPluginInstance(char *optarg);
 
 /* shutter glasses, stereo view  from Mufti@rus */
 extern void setShutter (void);
+#ifndef AQUA
 extern int shutter;
+#endif
 extern void setScreenDist (char *optArg);
 extern void setStereoParameter (char *optArg);
 extern void setEyeDist (char *optArg);
@@ -384,7 +386,9 @@ extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_siz
 void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,char *ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 
+#ifndef AQUA
 extern int wantEAI;
+#endif
 void create_EAI(void);
 int EAI_CreateVrml(char *type, char *str, unsigned int *retarr, int retarrsize);
 void EAI_Route(char cmnd, char *tf);
