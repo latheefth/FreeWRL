@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.8  2000/11/24 19:02:45  crc_canada
+# Works with find_transform now!
+#
 # Revision 1.7  2000/10/28 17:43:20  crc_canada
 # EAI addchildren, etc, should be ok now.
 #
@@ -81,7 +84,7 @@ sub connect {
 	
 	($EAIhost, $EAIport) = ($1,$2);
 
-	print ("FreeWRL: connect: remote $EAIhost  port $EAIport\n");
+	# print ("FreeWRL: connect: remote $EAIhost  port $EAIport\n");
 	my $sock;
 	$sock = IO::Socket::INET->new(
 		Proto => "tcp",
@@ -91,7 +94,7 @@ sub connect {
 
 	# is socket open? If not, wait.....
 	if (!$sock) { 
-		print "FreeWRL: Connect: socket not opened yet...\n";
+		# print "FreeWRL: Connect: socket not opened yet...\n";
 		return;
 	}
 
@@ -166,12 +169,6 @@ sub poll {
 		}
 	}
 }
-
-sub  find_transform {
-
-	my ($node, $field) = @_;
-}
-
 
 sub handle_input {
 	my($this, $hand) = @_;
@@ -284,10 +281,11 @@ sub handle_input {
 				# child (nested Transform). We use the IS_AS tags
 				# to find the correct transform.
 				
-				my $node = $this->{B}->find_transform ($node, $field);
+				$node = $this->{B}->find_transform ($node, $field);
 				$field = "children";
 			}
 			my $child = VRML::Handles::get($v);
+			# print "VRMLServ.pm - node $node child $child field $field\n";
 			if ($child->{IsProto}) {
 				$child = $child->real_node();
 				# print "VRMLServ.pm - child proto got $child\n";
@@ -441,7 +439,27 @@ sub handle_input {
 
 		} elsif($str =~ /^RL ([^ ]+) ([^ ]+) ([^ ]+)$/) {
 			my($id, $field, $lid) = ($1,$2,$3);
+		
+			# Register Listener - send an event if changed.
+
 			my $node = VRML::Handles::get($id);
+
+			if ($node->{IsProto}) {
+				$node = $node->real_node();
+				# print "VRMLServ.pm - RL - parent proto got $node\n";
+
+				# Now, if this is an "IS", we may have to go through
+				# children recursively, until we find the correct
+				# child (nested Transform). We use the IS_AS tags
+				# to find the correct transform.
+				
+				$node = $this->{B}->find_transform ($node, $field);
+				# print "VRMLServ.pm - RL - node now is $node\n";
+
+				$field = VRML::Browser::api__find_IS_ALIAS($node,$field);
+				# print "VRMLServ.pm - RL - field now is $field\n";
+			}
+
 			$this->{B}->api__registerListener(
 				$node,
 				$field,
