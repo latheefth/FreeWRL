@@ -193,7 +193,7 @@ loadVrmlClasses(JSContext *context, JSObject *globalObj)
 	v = 0;
 
 	if ((proto_SFRotation = JS_InitClass(context, globalObj, NULL, &SFRotationClass,
-										 SFRotationConstr, 0,
+										 SFRotationConstr, INIT_ARGC_ROT,
 										 NULL, SFRotationFunctions, NULL,
 										 NULL)) == NULL) {
 		fprintf(stderr,
@@ -688,8 +688,6 @@ SFColorAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
     SFColorNativeAssign(ptr, fptr);
-	printf("TEST SFColorAssign: color = (%.4g, %.4g, %.4g)\n",
-		   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
     *rval = OBJECT_TO_JSVAL(obj); 
 
     return JS_TRUE;
@@ -2698,24 +2696,22 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		(ptr->v).r[1] = 0.0;
 		(ptr->v).r[2] = 1.0;
 		(ptr->v).r[3] = 0.0;
-	} else if (JS_ConvertArguments(cx, argc, argv, "d d d d",
-							&(pars[0]), &(pars[1]), &(pars[2]), &(pars[3]))) {
-		(ptr->v).r[0] = pars[0];
-		(ptr->v).r[1] = pars[1];
-		(ptr->v).r[2] = pars[2];
-		(ptr->v).r[3] = pars[3];
-	} else if (JS_ConvertArguments(cx, argc, argv, "o o", &_ob1, &_ob2)) {
+	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "o o",
+												&_ob1, &_ob2)) {
 		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
-			fprintf(stderr, "JS_InstanceOf failed for _ob1 in SFRotationConstr.\n");
+			fprintf(stderr,
+					"JS_InstanceOf failed for _ob1 in SFRotationConstr.\n");
 			return JS_FALSE;
 		}
 
 		if (!JS_InstanceOf(cx, _ob2, &SFVec3fClass, argv)) {
-			fprintf(stderr, "JS_InstanceOf failed for _ob2 in SFRotationConstr.\n");
+			fprintf(stderr,
+					"JS_InstanceOf failed for _ob2 in SFRotationConstr.\n");
 			return JS_FALSE;
 		}
 		if ((_vec = JS_GetPrivate(cx, _ob1)) == NULL) {
-			fprintf(stderr, "JS_GetPrivate failed for _ob1 in SFRotationConstr.\n");
+			fprintf(stderr,
+					"JS_GetPrivate failed for _ob1 in SFRotationConstr.\n");
 			return JS_FALSE;
 		}
 		v1.x = _vec->v.c[0];
@@ -2724,7 +2720,8 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		_vec = 0;
 
 		if ((_vec = JS_GetPrivate(cx, _ob2)) == NULL) {
-			fprintf(stderr, "JS_GetPrivate failed for _ob2 in SFRotationConstr.\n");
+			fprintf(stderr,
+					"JS_GetPrivate failed for _ob2 in SFRotationConstr.\n");
 			return JS_FALSE;
 		}
 		v2.x = _vec->v.c[0];
@@ -2740,25 +2737,29 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		(ptr->v).r[2] = v1.x * v2.y - v2.x * v1.y;
 		v12dp /= v1len * v2len;
 		(ptr->v).r[3] = atan2(sqrt(1 - v12dp * v12dp), v12dp);
-	} else if (JS_ConvertArguments(cx, argc, argv, "o d", &_ob1, &(pars[0]))) {
+	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "o d",
+					&_ob1, &(pars[0]))) {
 		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
-			fprintf(stderr, "JS_InstanceOf failed for _ob1 with arg format \"o d\" in SFRotationConstr.\n");
+			fprintf(stderr,
+					"JS_InstanceOf failed for arg format \"o d\" in SFRotationConstr.\n");
 			return JS_FALSE;
 		}
 		if ((_vec = JS_GetPrivate(cx, _ob1)) == NULL) {
-			fprintf(stderr, "JS_GetPrivate failed for _ob1 with arg format \"o d\" in SFRotationConstr.\n");
+			fprintf(stderr,
+					"JS_GetPrivate failed for arg format \"o d\" in SFRotationConstr.\n");
 			return JS_FALSE;
 		}
 		(ptr->v).r[0] = _vec->v.c[0]; 
 		(ptr->v).r[1] = _vec->v.c[1]; 
 		(ptr->v).r[2] = _vec->v.c[2]; 
 		(ptr->v).r[3] = pars[0];
-		_vec = 0;
-/* 	} else if (JS_ConvertArguments(cx, argc, argv, "o f", &_ob1, &_f)) { */
-/* 		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) { */
-/* 			fprintf(stderr, "JS_InstanceOf failed for _ob1 with arg format \"o f\" in SFRotationConstr.\n"); */
-/* 			return JS_FALSE; */
-/* 		} */
+	} else if (argc == 4 && JS_ConvertArguments(cx, argc, argv, "d d d d",
+												&(pars[0]), &(pars[1]),
+												&(pars[2]), &(pars[3]))) {
+		(ptr->v).r[0] = pars[0];
+		(ptr->v).r[1] = pars[1];
+		(ptr->v).r[2] = pars[2];
+		(ptr->v).r[3] = pars[3];
 	} else {
 		fprintf(stderr, "Invalid arguments for SFRotationConstr.\n");
 		return JS_FALSE;
