@@ -73,9 +73,6 @@ sub real_node {
 	my ($this, $obj) = @_;
         # print "(a)in real_node $_ in VRML::DEF, ", $_[0],"\n";
         # print "(a)in real_node1  in VRML::DEF, ", $_[1],"\n";
-        # print "(Name)\t\t\t", $_[0][0], "\n";
-        # print "(Node)\t\t\t", $_[0][1], "\n";
-        # print "ref of Node is\t\t", ref($_[0][1]), "\n";
 	return $this->{Node}->real_node($obj);
 }
 
@@ -83,20 +80,20 @@ sub initialize {()}
 
 sub as_string {
     my ($this) = @_;
+
     return 
 	" ($this) DEF Name: $this->{Name} Node: $this->{Node} ".
 	    $this->{Node}->as_string;
 }
-
 sub gather_defs {
 	my ($this, $parentnode) = @_;
 
-	# print "VRML::DEF - gather defs, this is ",
+	# print "VRML::DEF - gather_defs, this is ",
 	# VRML::NodeIntern::dump_name($this), "name is ",
-	# $this->name(), " ref is ", $this->get_ref(),
+	# $this->name(), " ref is ", VRML::NodeIntern::dump_name($this->get_ref()),
 	# " parent is ", VRML::NodeIntern::dump_name($parentnode),"\n";
 
-	$parentnode->{DEF}{$this->{Name}} = $this->get_ref();
+	#JAS - this is not the DEF we want $parentnode->{DEF}{$this->{Name}} = $this->get_ref();
 	my $real = $this->get_ref();
 	$real->gather_defs($parentnode);
 }
