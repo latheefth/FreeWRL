@@ -180,7 +180,8 @@ sub handle {
 #	a state of collision. (ncoder)
 sub handle_tick {
     my($this, $time) = @_;
-    # print "handle_tick: time=$time rd=$this->{RD} yd=$this->{YD} zd=$this->{ZD}\n";
+    # print "handle_tick: time=$time xd=$this->{XD} yd=$this->{YD} zd=$this->{ZD}";
+    # print " rd = $this->{RD}\n";
     my $nv = $this->{Quat}->invert->rotate([0.15*$this->{XD},0.15*$this->{YD},0.15*$this->{ZD}]);
 
     for(0..2) {$this->{Pos}[$_] += $nv->[$_]}
@@ -395,14 +396,27 @@ package VRML::Viewer::Examine;
 # Semantics: given a viewpoint and orientation,
 # we take the center to revolve around to be the closest point to origin
 # on the z axis.
+# Changed Feb27 2003 JAS - by fixing $d to 10.0, we make the rotation point to
+# be 10 metres in front of the user.
 
 sub resolve_pos {
 	my($this) = @_;
         my $z = $this->{Quat}->invert->rotate([0,0,1]);
 	# my $l = 0; for(0..2) {$l += $this->{Pos}[$_]**2} $l = sqrt($l);
 	my $d = 0; for(0..2) {$d += $this->{Pos}[$_] * $z->[$_]}
+
+	# fix the rotation point to be 10m in front of the user.
+	# $d = 10.0;  
+	# or, try for the origin. Preferential treatment would be to choose
+	# the shape within the center of the viewpoint. This information is
+	# found in the matrix, and is used for collision calculations - we
+	# need to better store it.
+	$d = abs($d);
+
 	$this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ];
 	$this->{Dist} = $d;
+	#print "resolve_pos, Dist =$d\n";
+	#for(0..2) {print"$this->{Origin}[$_] ";}print"\n";
 }
 
 
@@ -431,6 +445,8 @@ sub handle {
 	}
 	$this->{Pos} = $this->{Quat}->invert->rotate([0,0,$this->{Dist}]);
 	for(0..2) {$this->{Pos}[$_] += $this->{Origin}[$_]}
+	# print "Pos: ";for(0..2) {print " ",$this->{Pos}[$_];} print "\n";
+	
 }
 
 sub change_viewpoint {
