@@ -118,10 +118,9 @@ sub connect {
 	$this->{O}->print( "TJL XXX PERL-JAVA 0.02\n" );
 	$this->{O}->flush();
 	$str = $this->{I}->getline; chomp $str;
-	if("TJL XXX JAVA-PERL 0.02" ne $str) {
+	if("TJL XXX JAVA-PERL 0.03" ne $str) {
 		die("Invalid response from java scripter: '$str'");
 	}
-	$this->{O}->print("\n"); # Directory - currently ""
 }
 
 sub initialize {
@@ -137,7 +136,7 @@ sub newscript {
 	my($this, $purl, $url, $node) = @_;
 	#JAS undef $1;
 	$purl =~ /^(.*\/)[^\/]+$/;
-	$url = $1.$url; # XXXX!!
+	$url = "file://$1$url"; # XXXX!!
 	print ("VRMLJava.pm: url $url, purl $purl node $node\n");
 
 	if(!$this->{O}) {$this->connect}
