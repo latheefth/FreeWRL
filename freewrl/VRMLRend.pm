@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.68  2002/07/29 19:36:25  crc_canada
+# Background Textures now working with new style of texture reading.
+#
 # Revision 1.67  2002/07/26 18:15:51  ncoder
 # Added support (incomplete) of index face set collisions.
 # Bugs corrected in Collision detection
@@ -954,11 +957,10 @@ ImageTexture => '
 	this_->_myshape = last_visited_shape; 
 
 	/* save the reference globally */
-	last_bound_texture = this_->__texture_;
+	last_bound_texture = this_->__texture;
 	
 	/* and, bind to the texture */
-	bind_image (filename,this_->__texture_,this_->repeatS,this_->repeatT,this_->__istemporary_,
-		this_->__isloaded_);
+	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 ',
 
 PixelTexture => '
@@ -969,9 +971,9 @@ PixelTexture => '
 	this_->_myshape = last_visited_shape; 
 
 	/* save the reference globally */
-	last_bound_texture = this_->__texture_;
+	last_bound_texture = this_->__texture;
 
-	glBindTexture (GL_TEXTURE_2D, this_->__texture_);
+	glBindTexture (GL_TEXTURE_2D, this_->__texture);
 	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
@@ -1059,13 +1061,6 @@ CylinderCensor => ' ',
 # GLBackend is using 200000 as distance - we use 100000 for background
 # XXX Should just make depth test always fail.
 Background => '
-	#define BACKTEX		0
-	#define FRONTTEX	1
-	#define LEFTTEX		2
-	#define RIGHTTEX	3
-	#define TOPTEX		4
-	#define BOTTEX		5
-
 	GLdouble mod[16];
 	GLdouble proj[16];
 	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
@@ -1087,8 +1082,6 @@ Background => '
 	/* Background Texture Objects.... */
 	static int bcklen,frtlen,rtlen,lftlen,toplen,botlen;
 	unsigned char *bckptr,*frtptr,*rtptr,*lftptr,*topptr,*botptr;
-	static GLuint BackTextures[6];
-
 
 	static unsigned int displayed_node = 0;
 	static int background_display_list = -1;
@@ -1146,58 +1139,19 @@ Background => '
 	}
 	background_display_list = glGenLists(1);
 
-	/* do we have any background textures? if so, bind them here, before
-	   the display list is started */
-	frtptr = SvPV((this_->__data_front),frtlen); 
-	bckptr = SvPV((this_->__data_back),bcklen);
-	topptr = SvPV((this_->__data_top),toplen);
-	botptr = SvPV((this_->__data_bottom),botlen);
-	lftptr = SvPV((this_->__data_left),lftlen);
-	rtptr = SvPV((this_->__data_right),rtlen);
+	/* do we have any background textures?  */
+	frtptr = SvPV((this_->__datafront),frtlen); 
+	bckptr = SvPV((this_->__databack),bcklen);
+	topptr = SvPV((this_->__datatop),toplen);
+	botptr = SvPV((this_->__databottom),botlen);
+	lftptr = SvPV((this_->__dataleft),lftlen);
+	rtptr = SvPV((this_->__dataright),rtlen);
 
-	printf ("background textures; lengths %d %d %d %d %d %d\n",
+	/*printf ("background textures; lengths %d %d %d %d %d %d\n",
 		frtlen,bcklen,toplen,botlen,lftlen,rtlen);
 	printf ("backgrouns textures; names %s %s %s %s %s %s\n",
-		frtptr,bckptr,topptr,botptr,lftptr,rtptr);
+		frtptr,bckptr,topptr,botptr,lftptr,rtptr); */
 
-	
-
-	if (frtlen || bcklen || toplen || botlen || lftlen || rtlen) {
-		unsigned char *filename;
-		glGenTextures (6,BackTextures);
-
- 		if (frtlen) {
-			bind_image (frtptr,BackTextures[FRONTTEX],
-				0,0,this_->__istemporary_front,this_->__isloaded_front);
-		}
-
- 		if (bcklen) {
-			bind_image (bckptr,BackTextures[BACKTEX],
-				0,0,this_->__istemporary_back,this_->__isloaded_back);
-		}
-
- 		if (rtlen) {
-			bind_image (rtptr,BackTextures[RIGHTTEX],
-				0,0,this_->__istemporary_right,this_->__isloaded_right);
-		}
-
- 		if (toplen) {
-			bind_image (topptr,BackTextures[TOPTEX],
-				0,0,this_->__istemporary_top,this_->__isloaded_top);
-		}
-
- 		if (botlen) {
-			bind_image (botptr,BackTextures[BOTTEX],
-				0,0,this_->__istemporary_bottom,this_->__isloaded_bottom);
-		}
-
-
- 		if (lftlen) {
-			bind_image (filename,BackTextures[LEFTTEX],
-				0,0,this_->__istemporary_left,this_->__isloaded_left);
-		}
-
-	}
 
 	/* printf ("new background display list is %d\n",background_display_list); */
 	glNewList(background_display_list,GL_COMPILE_AND_EXECUTE);
@@ -1332,7 +1286,12 @@ Background => '
 
 	/* now, for the textures, if they exist */
 
-	if (frtlen || bcklen || toplen || botlen || lftlen || rtlen) {
+	if ((this_->__textureback>0) || 
+			(this_->__texturefront>0) || 
+			(this_->__textureleft>0) || 
+			(this_->__textureright>0) || 
+			(this_->__texturetop>0) || 
+			(this_->__texturebottom>0)) {
         	GLfloat mat_emission[] = {1.0,1.0,1.0,1.0};
        	 	GLfloat col_amb[] = {1.0, 1.0, 1.0, 1.0};
        	 	GLfloat col_dif[] = {1.0, 1.0, 1.0, 1.0};
@@ -1349,69 +1308,69 @@ Background => '
 
 		/* go through each of the 6 possible sides */
 
-		if(bcklen) {
-			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
+		if(this_->__textureback>0) {
+			bind_image (bckptr,this_->__textureback, 0,0,this_->__istemporaryback);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,1); 
-			glTexCoord2f(1, 1); glVertex3f(-sc, -sc, sc);
-			glTexCoord2f(1, 0); glVertex3f(-sc, sc, sc);
-			glTexCoord2f(0, 0); glVertex3f(sc, sc, sc);
-			glTexCoord2f(0, 1); glVertex3f(sc, -sc, sc);
+			glTexCoord2f(1, 0); glVertex3f(-sc, -sc, sc);
+			glTexCoord2f(1, 1); glVertex3f(-sc, sc, sc);
+			glTexCoord2f(0, 1); glVertex3f(sc, sc, sc);
+			glTexCoord2f(0, 0); glVertex3f(sc, -sc, sc);
 			glEnd();
 		};
 
-		if(frtlen) {
-			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
+		if(this_->__texturefront>0) {
+			bind_image (frtptr,this_->__texturefront, 0,0,this_->__istemporaryfront);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,-1);
-			glTexCoord2f(1,0); glVertex3f(sc,sc,-sc);
-			glTexCoord2f(0,0); glVertex3f(-sc,sc,-sc);
-			glTexCoord2f(0,1); glVertex3f(-sc,-sc,-sc);
-			glTexCoord2f(1,1); glVertex3f(sc,-sc,-sc); 
+			glTexCoord2f(1,1); glVertex3f(sc,sc,-sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,-sc,-sc);
+			glTexCoord2f(1,0); glVertex3f(sc,-sc,-sc); 
 			glEnd();
 		};
 
-		if(toplen) {
-			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
+		if(this_->__texturetop>0) {
+			bind_image (topptr,this_->__texturetop, 0,0,this_->__istemporarytop);
 			glBegin(GL_QUADS);
 			glNormal3f(0,1,0);
-			glTexCoord2f(1,0); glVertex3f(sc,sc,sc);
-			glTexCoord2f(0,0); glVertex3f(-sc,sc,sc);
-			glTexCoord2f(0,1); glVertex3f(-sc,sc,-sc);
-			glTexCoord2f(1,1); glVertex3f(sc,sc,-sc);
+			glTexCoord2f(1,1); glVertex3f(sc,sc,sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,sc,sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,sc,-sc);
+			glTexCoord2f(1,0); glVertex3f(sc,sc,-sc);
 			glEnd();
 		};
 
-		if(botlen) {
-			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
+		if(this_->__texturebottom>0) {
+			bind_image (botptr,this_->__texturebottom, 0,0,this_->__istemporarybottom);
 			glBegin(GL_QUADS);
 			glNormal3f(0,-(1),0);
-			glTexCoord2f(1,0); glVertex3f(sc,-sc,-sc);
-			glTexCoord2f(0,0); glVertex3f(-sc,-sc,-sc);
-			glTexCoord2f(0,1); glVertex3f(-sc,-sc,sc);
-			glTexCoord2f(1,1); glVertex3f(sc,-sc,sc);
+			glTexCoord2f(1,1); glVertex3f(sc,-sc,-sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,-sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(-sc,-sc,sc);
+			glTexCoord2f(1,0); glVertex3f(sc,-sc,sc);
 			glEnd();
 		};
 
-		if(rtlen) {
-			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
+		if(this_->__textureright>0) {
+			bind_image (rtptr,this_->__textureright, 0,0,this_->__istemporaryright);
 			glBegin(GL_QUADS);
 			glNormal3f(1,0,0);
-			glTexCoord2f(1,0); glVertex3f(sc,sc,sc);
-			glTexCoord2f(0,0); glVertex3f(sc,sc,-sc);
-			glTexCoord2f(0,1); glVertex3f(sc,-sc,-sc);
-			glTexCoord2f(1,1); glVertex3f(sc,-sc,sc);
+			glTexCoord2f(1,1); glVertex3f(sc,sc,sc);
+			glTexCoord2f(0,1); glVertex3f(sc,sc,-sc);
+			glTexCoord2f(0,0); glVertex3f(sc,-sc,-sc);
+			glTexCoord2f(1,0); glVertex3f(sc,-sc,sc);
 			glEnd();
 		};
 
-		if(lftlen) {
-			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
+		if(this_->__textureleft>0) {
+			bind_image (lftptr,this_->__textureleft, 0,0,this_->__istemporaryleft);
 			glBegin(GL_QUADS);
 			glNormal3f(-1,0,0);
-			glTexCoord2f(1,0); glVertex3f(-sc,sc, -sc);
-			glTexCoord2f(0,0); glVertex3f(-sc,sc,  sc); 
-			glTexCoord2f(0,1); glVertex3f(-sc,-sc, sc);
-			glTexCoord2f(1,1); glVertex3f(-sc,-sc,-sc);
+			glTexCoord2f(1,1); glVertex3f(-sc,sc, -sc);
+			glTexCoord2f(0,1); glVertex3f(-sc,sc,  sc); 
+			glTexCoord2f(0,0); glVertex3f(-sc,-sc, sc);
+			glTexCoord2f(1,0); glVertex3f(-sc,-sc,-sc);
 			glEnd();
 		 };
 	}
