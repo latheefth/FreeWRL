@@ -1362,3 +1362,9 @@ typedef struct {
   coded_bp = coded_block_pattern[index].cbp;				\
   flush_bits(coded_block_pattern[index].num_bits);			\
 }
+
+
+void j_rev_dct_sparse (DCTBLOCK data, int pos);
+void j_rev_dct (DCTBLOCK data);
+
+
