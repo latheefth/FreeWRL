@@ -16,13 +16,13 @@
 
 <BR WP="BR1"><BR WP="BR2">
 <P><SPAN STYLE="font-family: Helvetica">The following instructions are for buidling FreeWRL as a standalone executable running under XDarwin on Mac OS X. 
-The release of Mac OS X used was Mac OS X v 10.1.3.  The instructions assume that you are starting with a freshly
+The release of Mac OS X used was Mac OS X v 10.2.3.  The instructions assume that you are starting with a freshly
 installed Mac OS system, and all supporting packages required are listed and referenced.  You may already have some
 of these packages installed on your system.  If so, you may be able to skip some or all of the first six steps.</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 1.  Download and install the developer tools for Mac OS X 10.1 and the developer tools December 2001 update
-from connect.apple.com.  These packages are self installing.</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 1.  Download and install the developer tools for Mac OS X 
+from connect.apple.com.  This pacakge is self installing.</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
 <P><SPAN STYLE="font-family: Helvetica">Step 2.  Download and install the XonX XFree86 package from www.sourceforge.org.  This package is self installing. 
@@ -84,29 +84,7 @@ and</SPAN></P>
 <P><SPAN STYLE="font-family: Helvetica">rm -r /usr/local/include/freetype2/freetype</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 7.  The version of dyld shipped with Darwin causes some problems with multiply defined symbols.  You must
-download a new version of dyld from www.lehigh.edu/~sol0/Macintosh/X/ptk/dyld-tk/.  COPY your old /usr/lib/dyld to
-/usr/lib/dyld.back and place the downloaded dyld into /usr/lib.  Make sure that the permissions for the new dyld file are
-set correctly (chmod 555 dyld will ensure that these are correct).  You will need to set the environment variable
-DYLD_ALLOW_MULTISYMS in xwindows before running freeWRL.</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">**** CAUTION *****</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Do not at any time make any changes such as there is no dyld in /usr/lib.  You must use </SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">cp /usr/lib/dyld /usr/lib/dyld.bak</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">*not* the move command.  Then you may copy over the old dyld with the new copy.  Your MacOSx system needs a
-copy of dyld in /usr/lib at *all* times.  </SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">******</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 8. Install the perl modules available from the www.crc.ca/FreeWRL website.</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 7. Install the perl modules available from the www.crc.ca/FreeWRL website.</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
 <P><SPAN STYLE="font-family: Helvetica">Digest-MD5-2.09</SPAN></P>
@@ -138,15 +116,15 @@ copy of dyld in /usr/lib at *all* times.  </SPAN></P>
 <P><SPAN STYLE="font-family: Helvetica">Note that libwww-perl may ask you if you want to reconfigure.  I always just select the default.</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 9.  Download the FreeWRL source code.  Now to the actual installation of FreeWRL!</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 8.  Download the FreeWRL source code.  Now to the actual installation of FreeWRL!</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 10.  Rename the file vrml.conf.macosx to vrml.conf.  Check that the directories for the libaries in this file are
+<P><SPAN STYLE="font-family: Helvetica">Step 9.  Rename the file vrml.conf.macosx to vrml.conf.  Check that the directories for the libaries in this file are
 correct.  If you followed the instructions above, they should be, with the exception of the JPEG libraries and includes
 which will have to point to the directory in which you installed the jpeg-6b package.</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 11.  A couple of the FreeWRL filenames seem to be too long for the Mac system to pick up properly for some
+<P><SPAN STYLE="font-family: Helvetica">Step 10.  A couple of the FreeWRL filenames seem to be too long for the Mac system to pick up properly for some
 reason.  You should rename them so that they have the appropriate names.</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">mv  java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.c
@@ -158,29 +136,29 @@ java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.class</SPAN>
 <P><SPAN STYLE="font-family: Helvetica">java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.java</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 12.  Modify your vrml.conf file to point to the correct Javascript library.  </SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 11.  Modify your vrml.conf file to point to the correct Javascript library.  </SPAN></P>
 
 
 <p><SPAN STYLE="font-family: Helvetica">In the vrml.conf file your JS_LIBS and JS_INC variables must be modified to point to the directories for the version of Darwin installed on your machine.  The include directory -Ijs/src/Darwin5.2.2_OPT.OBJ and the library directory -Ljs/src/Darwin5.2.2_OPT.OBJ must be modified to js/src/Darwin*_OPT.OBJ, where * is the version of Darwin installed on your machine.  You can check which version of Darwin you are running by entering "uname -a" at the command prompt.  Note that you may also need to add a mk file for your version of Darwin to the JS/js/src/config directory if one does not exist.  If a .mk file is not listed for your version of Darwin in the JS/js/src/config directory you can create one by copying one of the other Darwin mk files to a new file with the appropriate version name.  For example, if your version of Darwin is 5.2.2 and no Darwin5.2.2.mk file is listed in the JS/js/src/config directory, you will have to create one by issuing the command "cp Darwin.mk Darwin5.2.2.mk" in the JS/js/src/config directory. Any of the Darwin mk files may be copied to create the mk file for your system, with the following caveat:  Mac OS X Jaguar installations (Darwin 6.0 and beyond) must copy a mk file for Darwin6.0 or greater; Mac OS X 10.1 installations must copy a mk file for a Darwin version earlier than 6.0</span> 
 
 
 <BR WP="BR1"><BR WP="BR2">
-<p><SPAN STYLE="font-family: Helvetica">Step 13. Modify the sv.h perl header file</span>
+<p><SPAN STYLE="font-family: Helvetica">Step 12. Modify the sv.h perl header file</span>
 
 <p><SPAN STYLE="font-family: Helvetica">There is a problem with one of the perl header files which stops the FreeWRL installation process.  In order to fix this problem you must comment out one of the lines in /System/Library/Perl/darwin/CORE/sv.h.  Line 356:  DIR * xio_dirp; /* for opendir, readdir, etc */ must be commented out.  You can do this by inserting two forward slash characters (//) at the start of this line.  Once you have done this the line 356 will read:</span> 
 <p><SPAN STYLE="font-family: Helvetica">// DIR * xio_dirp; /* for opendir, readdir, etc */
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 14.  Make the Makefile</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 13.  Make the Makefile</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">perl Makefile.PL</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 15. run ranlib on /usr/local/lib/libpng.a</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 14. run ranlib on /usr/local/lib/libpng.a</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">ranlib /usr/local/lib/libpng.a</SPAN></P>
 
 <BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 16. Build and install FreeWRL</SPAN></P>
+<P><SPAN STYLE="font-family: Helvetica">Step 15. Build and install FreeWRL</SPAN></P>
 
 <P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
 
@@ -188,8 +166,6 @@ java/classes/vrml/external/FreeWRLEAI/UnsupportedFieldTypeException.class</SPAN>
 
 <BR WP="BR1"><BR WP="BR2">
 <P><SPAN STYLE="font-family: Helvetica">You should now be able to successfully run all of the tests in the tests directory from an X command prompt. 
-Remember to set the environment variable DYLD_ALLOW_MULTISYMS to TRUE before running FreeWRL.</SPAN></P>
-
 <BR WP="BR1"><BR WP="BR2">
 <BR WP="BR1"><BR WP="BR2">
 </BODY>
