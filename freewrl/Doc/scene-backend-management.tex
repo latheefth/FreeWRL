@@ -1,0 +1,28 @@
+%% $Id$
+%%
+%% Documentation to explain how the scene graph and OpenGL backend is
+%% set up and run in FreeWRL.
+
+\documentclass[12pt,letterpaper]{article}
+
+\usepackage{freewrl}
+
+
+\begin{document}
+
+    The OpenGL libraries do the actual rendering work in the FreeWRL
+    browser.
+
+    \section{FreeWRL Initialization}
+
+    During initialization, a series of function calls are made to
+    build FreeWRL's backend to OpenGL.
+
+    \begin{figure}[!ht]
+	\centering
+	\epsfig{file=fig/be-setup.eps}
+	\caption{Function calls to set up the FreeWRL backend.}\label{fig:be-setup}
+    \end{figure}
+
+
+\end{document}
