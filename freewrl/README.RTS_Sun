@@ -1,4 +1,7 @@
-Readme file by Alberto Dubuc. 17.02.2004
+Readme file by Alberto Dubuc. 
+
+Version  00: 17.02.2004
+Revision 01: 10.03.2004
 
 Compilation of FreeWRL on Solaris 8.
 
@@ -135,22 +138,20 @@ gmake install
 
 That will install these perl modules in $PREFIX
 
-Step 3: Patch the sources of FreeWRL-1.04.4 with the content of this directory:
-(FreeWRL.RTS_sun)
+Step 3: Prepare FreeWRL-1.05 for compilation on Sun.
 
-Unpack the file FreeWRL-1.04.4.tar.gz (please do it outside the directory where
-this README is).
+Unpack the file FreeWRL-1.05.tar.gz.
 
-gtar xvzf FreeWRL-1.04.4.tar.gz
+gtar xvzf FreeWRL-1.05.tar.gz
 
-Then, go to the directory where this README is, and do the following:
+Change the following files in that way:
+cp -f ./vrml.conf.sunGcc ./vrml.conf
+cp -f ./CFrontEnd/Makefile.sunGcc ./CFrontEnd/Makefile
+cp -f ./CFrontEnd/freewrl.c.sunGcc ./CFrontEnd/freewrl.c
 
-tar cf - . | ( cd /the/dir/where/FreeWRL/was/uncmp/FreeWRL-1.04.4 ; tar xvf - )
-
-This makes a copy of all the necessary files to compile the FreeWRL.
 After that make the following:
 
-cd /the/dir/where/FreeWRL/was/uncmp/FreeWRL-1.04.4/JS/js/src
+cd /the/dir/where/FreeWRL/was/uncmp/FreeWRL-1.05/JS/js/src
 gmake -f Makefile.ref
 cd ../../..
 perl Makefile.PL PPREFIX=$PREFIX PREFIX=$PREFIX
