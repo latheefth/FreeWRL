@@ -346,7 +346,7 @@ sub init_image {
 		next URL;
 	    }
 	    # remove temporary file
-	    my $cmd = "rm $tmpfile";
+	    my $cmd = "rm $tempfile";
             my $status = system ($cmd);
             die "$image conversion problem: '$cmd' returns $?"
                 unless $status == 0;
