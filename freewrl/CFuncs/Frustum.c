@@ -94,9 +94,14 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV) {
 	y = bbs.c[1];
 	z = bbs.c[2];
 	//printf ("BoundingBox, size %f %f %f %d\n",x,y,z, PIV);
+	//
+	//
+	
+	return;
+	//
+	//
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
 	if (PIV == 0) return;
-	if (PIV < 2) return;
 
 	//return;
 	/* calculate distance to this box from the Frustum */
@@ -233,13 +238,14 @@ void calculateFrustumCone () {
 void inCheck(GLdouble Distance,GLdouble bb,GLdouble cc, int *xcount, int *pointok) {
 	GLdouble xx;	
 	
-	xx = tan(0.7)*Distance;
+	//xx = tan(0.7)*Distance;
+	xx = tan(0.2)*Distance;
 
 	//printf ("        comparing %f with %f, %f ",xx, bb,cc);
 
 	// Point is behind viewer
 	if (Distance<0.0) {
-		//printf (" Xcount %d\n",0);
+	//	printf (" Xcount %d\n",0);
 		return;
 	}
 
@@ -271,15 +277,17 @@ int PointInView(struct VRML_Transform *nod) {
 #ifdef BOUNDINGBOX
 
 	// get the x,y values from the modelMatrix
-	bb = modelMatrix[12]; // x ish
-	cc = modelMatrix[13]; // y ish
-	//printf ("\nbb %f cc %f dist approx %f\n",bb,cc,modelMatrix[14]);
+	//bb = modelMatrix[12]; // x ish
+	//cc = modelMatrix[13]; // y ish
+	bb = modelMatrix[13]; // x ish
+	cc = modelMatrix[12]; // y ish
+	printf ("\nbb %f cc %f dist approx %f\n",bb,cc,modelMatrix[14]);
 
 	// get the extent from the VRML Struct passed in
 	//ex_X=nod->_extent[0]; 
 	//ex_Y=nod->_extent[1];
 	ex_Z=nod->_extent[2];
-	//printf ("extent %f %f %f\n",nod->_extent[0], nod->_extent[1],nod->_extent[2]);
+	printf ("extent %f %f %f\n",nod->_extent[0], nod->_extent[1],nod->_extent[2]);
 
 	// check the 4 points closer to us
 	Distance = -modelMatrix[14]+ex_Z; // distance
@@ -307,8 +315,11 @@ int PointInView(struct VRML_Transform *nod) {
 	//	nod->_dist,nod);
 	
 	// are all 8 points within the view?
-	if (pointok==8) return 2;
-	if ((pointok>1) && (xcount>1)) return 1;
+	//if (pointok==8) return 2;
+	//if ((pointok>1) && (xcount>4)) return 1;
+	
+	// simple test - are all points behind us?
+	if (xcount > 0) return 1;
 	
 	
 	return retval;

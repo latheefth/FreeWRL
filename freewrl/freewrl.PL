@@ -273,7 +273,7 @@ from the browser, use the browser for EAI, not to handle the "q" key, pass the
 XID (see X11 header file X.h) of the parent window, and to use the PID as the
 window title.
 
-=item C<--geo[metry]> I<geom>
+=item C<--geometry> I<geom>
 
 =item C<--parent> I<xid>
 

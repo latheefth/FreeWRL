@@ -700,7 +700,7 @@ void render_polyrep(void *node,
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
-	int polyrep_verbose = 0;
+	int polyrep_verbose = 1;
 
 	v = *(struct VRML_Virt **)node;
 	p = node;
@@ -720,7 +720,19 @@ void render_polyrep(void *node,
 	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
 
 	// printing.
-	//{int i; for(i=0; i<r->ntri*3; i++) { printf ("i %d cindex %d\n",i,r->cindex[i]); }}
+	/*
+	{int i,j; 
+		for(i=0; i<r->ntri*3; i++) { 
+			printf ("i %d cindex %d ",i,r->cindex[i]); 
+			printf (" coords %f %f %f\n",
+					r->coord[3*r->cindex[i]+0],
+					r->coord[3*r->cindex[i]+1],
+					r->coord[3*r->cindex[i]+2]
+			       );
+		}
+	
+	}
+	*/
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) { 
