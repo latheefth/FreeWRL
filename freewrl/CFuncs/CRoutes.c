@@ -1200,7 +1200,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	/* hmmm - do we have a route from this node already? If so, go
 	   through and put the offsets in order */
 	while ((from == CRoutes[insert_here].fromnode) &&
-		((from + fromoffset) > CRoutes[insert_here].fnptr)) { 
+		(fromoffset > CRoutes[insert_here].fnptr)) { 
 		if (CRVerbose) printf ("same fromnode, different offset\n");
 		insert_here++;
 	}
