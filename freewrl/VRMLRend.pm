@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.17  2000/12/07 19:12:25  crc_canada
+# code cleanup, and IndexedFaceSet texture mapping
+#
 # Revision 1.16  2000/11/16 18:46:02  crc_canada
 # Nothing much - just comments and verbose code.
 #
@@ -376,6 +379,7 @@ IndexedFaceSet =>  ( join '',
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
+
 		}
 		render_polyrep(this_, 
 			npoints, points,
@@ -610,15 +614,15 @@ TextureTransform => '
 ',
 
 ImageTexture => ('
-	$start_list();
+	$start_list(); 
 	$tex2d();
-
 	$end_list();
 '),
 
 PixelTexture => ('
 	$start_list();
-	$ptex2d();
+	/* JAS - the same as tex2d $ptex2d(); */
+	$tex2d();
 
 	$end_list();
 '),
@@ -1183,7 +1187,6 @@ Transform => (join '','
 		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"} 
 			0..2),'
 		);
-		$end_list2();
 	}
 '),
 
