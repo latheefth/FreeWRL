@@ -40,7 +40,7 @@ Group {
 				Shape {
 					appearance Appearance{
 					  material Material {
-					    diffuseColor 1.0 0.0 0.0
+					    diffuseColor 0.8 0.0 0.0
 					  }
 					}
 					geometry Box {}
@@ -49,7 +49,7 @@ Group {
 			]
 		},
 
-		Transform {
+		DEF Column Transform {
 			translation 2.0 0.0 0.0
 			children [
 				Shape {
@@ -58,13 +58,35 @@ Group {
 					    diffuseColor 0.0 0.0 0.8
 					  }
 					}
-					geometry Sphere {}
+					geometry Cylinder {}
 				},
 				DEF TouchSphere TouchSensor {}
+			]
+		},
+
+
+	# Animation clock
+		DEF Clock TimeSensor {
+			cycleInterval 4.0
+			loop TRUE
+		},
+
+	# Animation path
+
+		DEF ColumnPath OrientationInterpolator {
+			key [ 0.0 0.5 1.0 ]
+			keyValue [
+				0.0 0.0 1.0 0.0,
+				0.0 0.0 1.0 3.14,
+				0.0 0.0 1.0 6.28
 			]
 		}
 	]
 }
 
+ROUTE Clock.fraction_changed TO ColumnPath.set_fraction
+ROUTE ColumnPath.value_changed TO Column.set_rotation
+
 ROUTE TouchBox.isActive		TO	AltBack1.set_bind
 ROUTE TouchSphere.isActive		TO	AltBack2.set_bind
+ROUTE AltBack2.isBound	TO Clock.enabled
