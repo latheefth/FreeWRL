@@ -5,7 +5,7 @@
 PFLAGS = -c -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
 
 # for making the freewrl opts file
-FWFLAGS = -c -D_REENTRANT
+FWFLAGS = -c -D_REENTRANT -I../CFuncs
 
 FRFLAGS = -c -DPERLPATH=\"\$(PPATH)\" \
 		 -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`

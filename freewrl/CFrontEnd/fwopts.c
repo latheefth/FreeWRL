@@ -10,12 +10,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <vrmlconf.h>
 
 extern int screenWidth, screenHeight;
 int fullscreen;
 
 /* Petr Mikulik - IndexedLineSet line width */
 float global_linewidth = 1.0;
+
 
 #ifndef AQUA
 

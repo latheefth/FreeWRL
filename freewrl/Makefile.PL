@@ -213,6 +213,10 @@ my @dumpToVRMLCONF = ("SOUND_ENGINE",
 
 foreach (@dumpToVRMLCONF) {
 	if (defined $VRML_CONFIG{$_}) {
+		if (!(-e $VRML_CONFIG{$_})) {
+			print "WARNING: Check your specific vrml.conf file; can not find ".
+				$VRML_CONFIG{$_}." for identifier $_\n";
+		}
 		print OUT "#define\t$_\t\t";
                 print OUT '"',$VRML_CONFIG{$_},'"';
  	} else {
@@ -222,6 +226,12 @@ foreach (@dumpToVRMLCONF) {
 }
 close OUT;
 
+
+# make the xs_init.c file We seem to need to do this for OS X
+
+if ($OS eq "Darwin") {
+	`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
+}
 
 ## make the Javascript libraries if needed
 
@@ -386,10 +396,10 @@ INST_DYNAMIC_DEP =
 				qq{\# copy fonts, libjs.so over\n},
 				qq{\tcp -r fonts $VRMLINSTDIR\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
-				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
 				));
 		if ($VRML_CONFIG{PLATFORM} =~ /LINUX/i) {
 			push(@postamble, join(
+				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
 				qq{\t/sbin/ldconfig\n}
 			));
 		}
@@ -459,11 +469,16 @@ INST_DYNAMIC_DEP =
 		push(@postamble, join(
 			  "\n",
 			  qq{all::},
-			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def \n},
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
 			 ));
+		if ($VRML_CONFIG{PLATFORM} =~ /LINUX/i) {
+			push(@postamble, join(
+				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
+				qq{\t/sbin/ldconfig\n}
+			));
+		}
 
 		return join("\n", @postamble);
 	}

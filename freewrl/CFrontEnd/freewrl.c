@@ -8,6 +8,7 @@
 /* beginnings of FreeWRL in C */
 #include "EXTERN.h"
 #include <perl.h>
+#include <vrmlconf.h>
 #include <Structs.h>
 #include <pthread.h>
 #include <headers.h>
@@ -17,6 +18,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <dlfcn.h>
+
 #ifndef AQUA
 
 #include <GL/gl.h>
