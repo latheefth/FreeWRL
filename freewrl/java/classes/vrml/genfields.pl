@@ -41,61 +41,86 @@ my %toString = (
 
 
 my %toPerl = (
-	"Bool"   => 'out.writeBoolean(value);',
-	"Color"  => 'out.writeUTF(""+red);
-        out.writeUTF(""+green); 
-        out.writeUTF(""+blue);',
-	"Float"  => 'out.writeUTF(""+f);',
-	"Image"  => 'out.writeInt(width);
-        out.writeInt(height); 
-        out.writeInt(components);
-        out.write(pixels);',
-	"Int32"  => 'out.writeInt(value);',
-	"Node"   => 'out.writeUTF(node._get_nodeid());',
-	"Rotation"  => 'out.writeUTF(""+axisX);
-        out.writeUTF(""+axisY);
-        out.writeUTF(""+axisZ);
-        out.writeUTF(""+angle);',
-	"String" => 'out.writeUTF(s);',
-	"Time"   => 'out.writeUTF(""+value);',
-	"Vec2f"  => 'out.writeUTF(""+x);
-        out.writeUTF(""+y);',
-	"Vec3f"  => 'out.writeUTF(""+x);
-        out.writeUTF(""+y);
-        out.writeUTF(""+z);'
+	"Bool"   => 'out.print (""+value);',
+	"Color"  => 'out.print(""+red);
+        out.print(""+green); 
+        out.print(""+blue);',
+	"Float"  => 'out.print(""+f);',
+	"Image"  => 'out.print(width);
+        out.print(height); 
+        out.print(components);
+        out.print(pixels);',
+	"Int32"  => 'out.print(value);',
+	"Node"   => 'out.print(node._get_nodeid());',
+	"Rotation"  => 'out.print(""+axisX);
+        out.print(""+axisY);
+        out.print(""+axisZ);
+        out.print(""+angle);',
+	"String" => 'out.print(s);',
+	"Time"   => 'out.print(""+value);',
+	"Vec2f"  => 'out.print(""+x);
+        out.print(""+y);',
+	"Vec3f"  => 'out.print(""+x);
+        out.print(""+y);
+        out.print(""+z);'
 	    );
 
 my %fromPerl = (
 	#"Bool"   => 'value = in.readBoolean();',
 	Bool => '
 			String myline;
+			System.out.println ("fromPerl, Bool");
 			myline = in.readLine();
-			value = myline.equals("1");
-			//System.out.println ("reading in a boolean value is " + value);
+			// direct from perl, will be 0 or 1, from a route, TRUE, FALSE
+			value = (myline.equals("TRUE") || myline.equals("1"));
+			//System.out.println ("reading in a boolean value is " + value 
+		          //      + " for string " + myline);
 		',
 	
-	"Color"  => 'red = Float.parseFloat(in.readUTF());
-        green = Float.parseFloat(in.readUTF()); 
-        blue = Float.parseFloat(in.readUTF());',
-	"Float"  => 'f = Float.parseFloat(in.readUTF());',
-	"Image"  => 'width = in.readInt();
-        height = in.readInt(); 
-        components = in.readInt();
-        pixels = new byte[height*width*components];
-        in.readFully(pixels);',
-	"Int32"  => 'value = in.readInt();',
-	"Node"   => 'node = new vrml.node.Node(in.readUTF());',
-	"Rotation"  => 'axisX = Float.parseFloat(in.readUTF());
-        axisY = Float.parseFloat(in.readUTF());
-        axisZ = Float.parseFloat(in.readUTF());
-        angle = Float.parseFloat(in.readUTF());',
-	"String" => 's = in.readUTF();',
-	"Time"   => 'value = Double.parseDouble(in.readUTF());',
-	"Vec2f"  => 'x = Float.parseFloat(in.readUTF());
-        y = Float.parseFloat(in.readUTF());',
-	"Vec3f"  => 'x = Float.parseFloat(in.readUTF());
-        y = Float.parseFloat(in.readUTF());
-        z = Float.parseFloat(in.readUTF());'
+	"Color"  => '
+		System.out.println ("fromPerl, Color");
+		red = Float.parseFloat(in.readLine());
+        	green = Float.parseFloat(in.readLine()); 
+        	blue = Float.parseFloat(in.readLine());',
+	"Float"  => '
+		System.out.println ("fromPerl, Float");
+		f = Float.parseFloat(in.readLine());',
+	"Image"  => '
+		System.out.println ("fromPerl, Image");
+		width = Integer.parseInt(in.readLine());
+        	height = Integer.parseInt(in.readLine()); 
+        	components = Integer.parseInt(in.readLine());
+        	pixels = new byte[height*width*components];
+		System.out.println ("JavaClass -- fix method to read in pixels");
+        	// pixels = String.getBytes(pst);
+		',
+	"Int32"  => '
+		System.out.println ("fromPerl, Int32");
+		value = Integer.parseInt(in.readLine());',
+	"Node"   => '
+		System.out.println ("fromPerl, Node");
+		node = new vrml.node.Node(in.readLine());',
+	"Rotation"  => '
+		System.out.println ("fromPerl, Rotation");
+		axisX = Float.parseFloat(in.readLine());
+	        axisY = Float.parseFloat(in.readLine());
+        	axisZ = Float.parseFloat(in.readLine());
+        	angle = Float.parseFloat(in.readLine());',
+	"String" => '
+		System.out.println ("fromPerl, String");
+		s = in.readLine();',
+	"Time"   => '
+		System.out.println ("fromPerl, Time");
+		value = Double.parseDouble(in.readLine());',
+	"Vec2f"  => '
+		System.out.println ("fromPerl, Vec2f");
+		x = Float.parseFloat(in.readLine());
+        	y = Float.parseFloat(in.readLine());',
+	"Vec3f"  => '
+		System.out.println ("fromPerl, Vec3f");
+		x = Float.parseFloat(in.readLine());
+	        y = Float.parseFloat(in.readLine());
+        	z = Float.parseFloat(in.readLine());'
 		);
 
 my $multival  = "Color|Vec.f|Rotation";
@@ -109,8 +134,8 @@ sub startclass
 	print O "//DO NOT EDIT!!!!\n\n";
 	print O "package vrml.field;\n";
 	print O "import vrml.*;\n";
-	print O "import java.io.DataInputStream;\n";
-	print O "import java.io.DataOutputStream;\n";
+	print O "import java.io.BufferedReader;\n";
+	print O "import java.io.PrintWriter;\n";
 	print O "import java.io.IOException;\n";
 	print O "\npublic class $class extends $super {\n";
 }
@@ -253,11 +278,11 @@ sub sf_stringfuncs
         $toString{$ft}
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
+    public void __fromPerl(BufferedReader in)  throws IOException {
         $fromPerl{$ft}
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
+    public void __toPerl(PrintWriter out)  throws IOException {
         $toPerl{$ft}
     }
 EOF
@@ -450,9 +475,12 @@ sub mf_stringfuncs
         return sb.append("]").toString();
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
+    public void __fromPerl(BufferedReader in)  throws IOException {
         __vect.clear();
-        int len = in.readInt();
+	String lenline = in.readLine();
+	System.out.println ("__fromPerl, read in length as " + lenline);
+        //int len = Integer.parseInt(in.readLine());
+	int len = Integer.parseInt(lenline);
         for (int i = 0; i < len; i++) {
             ConstSF$ft sf = new ConstSF$ft();
             sf.__fromPerl(in);
@@ -460,10 +488,10 @@ sub mf_stringfuncs
         }
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
+    public void __toPerl(PrintWriter out)  throws IOException {
         StringBuffer sb = new StringBuffer("");
         int size = __vect.size();
-	out.writeInt(size);
+	out.print(size);
         for (int i = 0; i < size; i++)
             ((ConstSF$ft) __vect.elementAt(i)).__toPerl(out);
     }

@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class MFFloat extends MField {
@@ -95,9 +95,12 @@ public class MFFloat extends MField {
         return sb.append("]").toString();
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
+    public void __fromPerl(BufferedReader in)  throws IOException {
         __vect.clear();
-        int len = in.readInt();
+	String lenline = in.readLine();
+	System.out.println ("__fromPerl, read in length as " + lenline);
+        //int len = Integer.parseInt(in.readLine());
+	int len = Integer.parseInt(lenline);
         for (int i = 0; i < len; i++) {
             ConstSFFloat sf = new ConstSFFloat();
             sf.__fromPerl(in);
@@ -105,10 +108,10 @@ public class MFFloat extends MField {
         }
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
+    public void __toPerl(PrintWriter out)  throws IOException {
         StringBuffer sb = new StringBuffer("");
         int size = __vect.size();
-	out.writeInt(size);
+	out.print(size);
         for (int i = 0; i < size; i++)
             ((ConstSFFloat) __vect.elementAt(i)).__toPerl(out);
     }

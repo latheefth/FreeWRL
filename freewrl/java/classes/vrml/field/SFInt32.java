@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFInt32 extends Field {
@@ -43,11 +43,13 @@ public class SFInt32 extends Field {
         return String.valueOf(value);
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        value = in.readInt();
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Int32");
+		value = Integer.parseInt(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeInt(value);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(value);
     }
 }

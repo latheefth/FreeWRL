@@ -453,31 +453,79 @@ sub EAI_GetValue {
 	my ($nodenum, $fieldname) = @_;
 
 	#chop $fieldname;
-	print "Browser.pm - EAI_GetValue on node $nodenum, field $fieldname\n";
+	#print "Browser.pm - EAI_GetValue on node $nodenum, field $fieldname\n";
 	my $realele = VRML::Handles::get("NODE$nodenum");
+
+	#my $key; foreach $key (keys(%{$realele})) {print "    node $key\n";}
+	#if ($realele->{IsProto}) {
+		#	print "this is a PROTO!";
+		#$realele = $realele->{ProtoExp};
+		#}
+
+	#if  $this->{ProtoExp}{Nodes}[0]->real_node() if ($this->{IsProto});
+
+	#print "Brwoser.pm - type ", $realele->{Type},"\n";
+	#print "Brwoser.pm - type ", $realele->{TypeName},"\n";
+	#print "Brwoser.pm - type ", $realele->{Type}{FieldTypes}{$fieldname},"\n";
+	#print "Brwoser.pm - type ", $realele->{Type}{FieldKinds}{$fieldname},"\n";
+	#my $key; foreach $key (keys(%{$realele->{Type}})) {print "    typekey $key\n";}
+	#my $key; foreach $key (keys(%{$realele->{Type}{FieldTypes}{$fieldname}})) {print "    fttypekey $key\n";}
+	#my $key; foreach $key (keys(%{$realele->{Type}{FieldKinds}{$fieldname}})) {print "    fktypekey $key\n";}
+
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
 
+	# determine whether it is a MF or not. MF's have to return a count as first line.
+	if ("HASH" eq ref $realele->{Type}{FieldTypes}{$fieldname}) {
+		print "this is a HASH! \n";
+		my $d; foreach $d (keys(%{$realele->{Type}{FieldTypes}{$fieldname}})) {
+			print "hk $d\n";}
+	}
+	#print "Brwoser.pm - checking against type ", $realele->{Type}{FieldTypes}{$fieldname},"\n";
+	my $typename = $realele->{Type}{FieldTypes}{$fieldname};
+	my $mf = substr ($typename, 0, 2);
+	#print "Browsxx  typename $typename mf $mf\n";
+
 	#print "Browser.pm now node $realele, field :$fieldname:\n";
-	print "exactvalue is ",$realele->{Fields}{$fieldname},"\n";
+	#print "exactvalue is ",$realele->{Fields}{$fieldname},"\n";
 	#print "exactvalue2 is ",$realele->{RFields}{$fieldname},"\n";
 
 	#my $key;
 	#foreach $key (keys(%{$realele})) {print "key $key\n";}
-	#foreach $key (keys(%{$realele->{Fields}})) {
-	#	print "Field $key, ",$realele->{Fields}{$key},"\n";}
+	#foreach $key (keys(%{$realele->{Type}})) {
+		#	print "Field $key, ",$realele->{Type}{$key},"\n";}
 
 	my $retval;
+	if ("MF" eq $mf) {
+		$retval = "1\n"; # add the number of elements here....
+	}
 	if ("ARRAY" eq ref $realele->{RFields}{$fieldname}) {
-		$retval = "[";
+		print "GetValue, this is an array\n";
+		#JAS $retval = "[";
 		foreach (@{$realele->{RFields}{$fieldname}}) {
-			$retval = $retval.$_." ";
+			$retval = $retval.$_."\n";
 		}
-		$retval = $retval."]";
+		#JAS $retval = $retval."]";
+		#JAS - remove the last cr
+		chop $retval;
 	} else {
 		$retval = "".$realele->{RFields}{$fieldname};
 	}
-	print "retval in Browser.pm is $retval\n";
+	#print "retval in Browser.pm is $retval\n";
+	return $retval;
+}
+
+# get the name for a node; NOT used for EAI, only for .class (and other scripts)
+# node is called EAI_... because it "fits" in with the other nodes.
+
+sub EAI_GetTypeName {
+	my ($nodenum) = @_;
+	my $retval;
+
+	#print "Browser.pm - EAI_GetTypeName on node $nodenum\n";
+	my $realele = VRML::Handles::get("NODE$nodenum");
+	$retval = "".$realele->{TypeName};
+	#print "retval in Browser.pm is $retval\n";
 	return $retval;
 }
 
@@ -505,7 +553,9 @@ sub EAI_GetType {
 	# is this an IS'd field?
 	my $realele = VRML::Handles::get("NODE$nodenum");
 
-	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{Type};
+	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{Type} , "\n";
+	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{TypeName} , "\n";
+	#	my $key; foreach $key (keys(%{$realele})) {print "realele key $key\n";}
 
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
@@ -513,10 +563,10 @@ sub EAI_GetType {
 	#print "BROWSER::EAI_GetType evin:",$realele->{Type}{EventIns};
 
 	#print "\nBrowser.pm, fieldname $fieldname, evin: ",
-	#	$realele->{Type}{EventIns}{$fieldname}," kinds ",
-	#	$realele->{Type}{FieldKinds}{$fieldname},"\n";
+	#$realele->{Type}{EventIns}{$fieldname}," kinds ",
+		#$realele->{Type}{FieldKinds}{$fieldname},"\n";
 	
-	#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
+		#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
 	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
 	#print "\n\n\n";
 
@@ -524,7 +574,7 @@ sub EAI_GetType {
 	#print "BROWSER::EAI_GetType now $fieldname\n";
 
 	if (exists $realele->{Fields}{$fieldname}) {
-		# print "BROWSER:EAI - field $fieldname exists in node, it is ",
+		#print "BROWSER:EAI - field $fieldname exists in node, it is ",
 		# 	$realele->{Fields}{$fieldname},"\n";
 	} else {
 		# print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
@@ -570,13 +620,13 @@ sub EAI_GetType {
 			      # determines the exact length.
 		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
 
-#		print "BROWSER:EAI_GetType to_count:",$to_count,
-#		" tonode_str:",$tonode_str,
-#		" type:", $type,
-#		" ok:", $ok,
-#		" intptr:", $intptr,
-#		" fieldtype:", $fieldtype,
-#		"\n";
+		#print "BROWSER:EAI_GetType to_count:",$to_count,
+		#" tonode_str:",$tonode_str,
+		#" type:", $type,
+		#" ok:", $ok,
+		#" intptr:", $intptr,
+		#" fieldtype:", $fieldtype,
+		#"\n";
 	}
 
 	#print "Browser, type $type\n";
@@ -623,6 +673,9 @@ sub EAI_CreateVrmlFromString {
 
 	foreach $ele (@rvarr) {
 		$realele = VRML::Handles::get($ele);
+		#print "Browser:CVS, ele $ele, real $realele has name ", $realele->{TypeName},"\n";
+		#my $key;
+		#foreach $key (keys(%{$realele})) {print "realele key $key\n";}
 
 		# get the back nodes; but if this is a proto defn, skip it.
 		if (exists $realele->{BackNode}{CNode}) {

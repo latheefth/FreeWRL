@@ -208,11 +208,14 @@ extern struct Multi_String Anchor_url;
 #define MFNODE	16
 #define MFROTATION 17
 #define MFVEC2F	18
+#define MFVEC3F 19
+#define SFVEC3F 20
 
 
 #define FIELD_TYPE_STRING(f) ( \
 	f == SFBOOL ? "SFBool" : ( \
-	f == SFCOLOR ? "SFColor or SFVec3f" : ( \
+	f == SFCOLOR ? "SFColor" : ( \
+	f == SFVEC3F ? "SFVec3f" : ( \
 	f == SFFLOAT ? "SFFloat" : ( \
 	f == SFTIME ? "SFTime" : ( \
 	f == SFINT32 ? "SFInt32" : ( \
@@ -221,14 +224,18 @@ extern struct Multi_String Anchor_url;
 	f == SFROTATION ? "SFRotation" : ( \
 	f == SFVEC2F ? "SFVec2f" : ( \
 	f == SFIMAGE ? "SFImage" : ( \
-	f == MFCOLOR ? "MFColor or MFVec3f" : ( \
+	f == MFCOLOR ? "MFColor" : ( \
+	f == MFVEC3F ? "MFVec3f" : ( \
 	f == MFFLOAT ? "MFFloat" : ( \
 	f == MFTIME ? "MFTime" : ( \
 	f == MFINT32 ? "MFInt32" : ( \
 	f == MFSTRING ? "MFString" : ( \
 	f == MFNODE ? "MFNode" : ( \
 	f == MFROTATION ? "MFRotation" : ( \
-	f == MFVEC2F ? "MFVec2f" : "unknown field type"))))))))))))))))))
+	f == MFVEC2F ? "MFVec2f" : ( \
+	f == MFVEC3F ? "MFVec3f" : ( \
+	f == MFROTATION ? "MFRotation" : ( \
+	f == SFVEC2F ? "SFVec2f" : "unknown field type")))))))))))))))))))))))
 
 
 void CRoutes_js_new (int num,int scriptType, unsigned int cx, unsigned int glob, unsigned int brow);
@@ -350,6 +357,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define EAIREPWORLD     8   /* EAI replace world */
 #define EAIROUTE	9   /* EAI add/del route */
 #define EAIGETVALUE	10  /* get a value of a node */
+#define EAIGETTYPENAME	11  /* get the type name for a  node */
 
 
 
@@ -447,10 +455,12 @@ extern char *myPerlInstallDir;
 /* Java CLASS invocation */
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
 int initJavaClass(int scriptno); 
+
+char *EAI_GetTypeName (unsigned int uretval);
 char *EAI_GetValue (unsigned int uretval,
 		        char *ctmp, char *dtmp);
 void setCLASStype (int num); 
-void sendCLASSEvent(int scriptno, char *fieldName, int type, int len);
+void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
 
 
 #endif /* __HEADERS_H__ */

@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFNode extends Field {
@@ -43,11 +43,13 @@ public class SFNode extends Field {
         return FWHelper.nodeToString(node);
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        node = new vrml.node.Node(in.readUTF());
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Node");
+		node = new vrml.node.Node(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeUTF(node._get_nodeid());
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(node._get_nodeid());
     }
 }

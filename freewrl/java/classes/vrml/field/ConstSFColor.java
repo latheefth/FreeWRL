@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFColor extends ConstField {
@@ -47,15 +47,17 @@ public class ConstSFColor extends ConstField {
         return ""+red+" "+green+" "+blue;
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        red = Float.parseFloat(in.readUTF());
-        green = Float.parseFloat(in.readUTF()); 
-        blue = Float.parseFloat(in.readUTF());
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Color");
+		red = Float.parseFloat(in.readLine());
+        	green = Float.parseFloat(in.readLine()); 
+        	blue = Float.parseFloat(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeUTF(""+red);
-        out.writeUTF(""+green); 
-        out.writeUTF(""+blue);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(""+red);
+        out.print(""+green); 
+        out.print(""+blue);
     }
 }

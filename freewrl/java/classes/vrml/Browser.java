@@ -8,7 +8,7 @@ public class Browser
 
    // Browser interface
    public String getName() {
-			return "VRML::Browser by Tuomas J. Lukka" ;
+			return "VRML/X3D Browser maintained by Communications Research Centre, Canada" ;
 		}
    public String getVersion() {return "0.02";}
 

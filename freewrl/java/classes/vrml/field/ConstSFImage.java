@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFImage extends ConstField {
@@ -55,18 +55,22 @@ public class ConstSFImage extends ConstField {
         return sb.toString();
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        width = in.readInt();
-        height = in.readInt(); 
-        components = in.readInt();
-        pixels = new byte[height*width*components];
-        in.readFully(pixels);
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Image");
+		width = Integer.parseInt(in.readLine());
+        	height = Integer.parseInt(in.readLine()); 
+        	components = Integer.parseInt(in.readLine());
+        	pixels = new byte[height*width*components];
+		System.out.println ("JavaClass -- fix method to read in pixels");
+        	// pixels = String.getBytes(pst);
+		
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeInt(width);
-        out.writeInt(height); 
-        out.writeInt(components);
-        out.write(pixels);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(width);
+        out.print(height); 
+        out.print(components);
+        out.print(pixels);
     }
 }

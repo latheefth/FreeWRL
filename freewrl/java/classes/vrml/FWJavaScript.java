@@ -16,10 +16,9 @@ public final class FWJavaScript {
     static Browser theBrowser;
 
 	static Socket sock;		// communication socket with FreeWRL
-	//static PrintWriter EAIout;
-	//static BufferedReader  EAIin;
-	static DataInputStream EAIin;
-	static DataOutputStream EAIout;
+	static BufferedReader  EAIin;
+	static PrintWriter EAIout;
+	
 
 
     
@@ -38,14 +37,13 @@ public final class FWJavaScript {
 	    BaseNode n = b.node();
 	    String f = b.field();
 	    String nodeid = n._get_nodeid();
-	    EAIout.writeBytes("SENDEVENT");
-	    EAIout.writeBytes(nodeid);
-	    EAIout.writeBytes(f);
-System.out.println ("commented out val.__toPerl");
-	    //val.__toPerl(out);
+	    EAIout.println("SENDEVENT");
+	    EAIout.println(nodeid);
+	    EAIout.println(f);
+	    val.__toPerl(EAIout);
 	}
 	touched.clear();
-	EAIout.writeBytes("FIN "+reqid);
+	EAIout.println("FINISHED "+reqid);
 	EAIout.flush();
     }
 
@@ -61,6 +59,7 @@ System.out.println ("commented out val.__toPerl");
 	int counter;
 	String reply;
 	String nodeid = "";
+	String seqno;
 
   	// Create a socket here for an EAI/CLASS server on localhost
 	sock = null;
@@ -68,23 +67,21 @@ System.out.println ("commented out val.__toPerl");
 	counter = 1;	
 	while (sock == null) {
 		try {
-			//System.out.println ("FWJavaScript trying socket " + argv[0]);
+			//System.out.println ("      ....FWJavaScript trying socket " + argv[0]);
 			sock = new Socket("localhost",Integer.parseInt(argv[0]));
 		} catch (IOException e) {
 			// wait up to 30 seconds for FreeWRL to answer.
 			counter = counter + 1;
 			if (counter == 10) {
-				System.out.println ("FWJavaScript: Java code timed out finding FreeWRL");
+				System.out.println ("      ....FWJavaScript: Java code timed out finding FreeWRL");
 				System.exit(1);
 			}
 			try {Thread.sleep (500);} catch (InterruptedException f) { }
 		}
 	}
 
-	//EAIout = new PrintWriter (sock.getOutputStream());
-	//EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
-	EAIout = new DataOutputStream (sock.getOutputStream());
-	EAIin = new DataInputStream(sock.getInputStream());
+	EAIout = new PrintWriter (sock.getOutputStream());
+	EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
 
 	/* Install security */
 	System.out.println ("Security manager commented out");
@@ -94,7 +91,7 @@ System.out.println ("commented out val.__toPerl");
 	theBrowser = new Browser();
 
 	 	Hashtable scripts = new Hashtable();
-		EAIout.writeBytes("JavaClass version 1.0 - www.crc.ca");
+		EAIout.println("JavaClass version 1.0 - www.crc.ca");
 		EAIout.flush();
 
 		while(true) {
@@ -106,14 +103,16 @@ System.out.println ("commented out val.__toPerl");
 				System.exit(1);
 			}
 
-			System.out.println("got ");
+			System.out.println("FWJ got ");
 			System.out.println("--- "+cmd);
 
-			nodeid =EAIin.readLine() + EAIin.readLine();
+			nodeid =EAIin.readLine();
+			//System.out.println ("      ....FWJ, got nodeID " + nodeid);
 
 			if(cmd.equals("NEWSCRIPT")) {
 				String url = EAIin.readLine();
-				System.out.println("NEWSCRIPT: "+url);
+				reqid = EAIin.readLine();
+				//System.out.println("NEWSCRIPT: "+url);
 				FWJavaScriptClassLoader classloader = 
 				    new FWJavaScriptClassLoader(url);
 				String classname
@@ -131,9 +130,11 @@ System.out.println ("commented out val.__toPerl");
 				    throw ex;
 				}
 				s._set_nodeid(nodeid);
-				System.out.println ("setting nodeid to " + nodeid);
+				//System.out.println ("setting nodeid to " + nodeid);
 				scripts.put(nodeid,s);
 			} else if(cmd.equals("SETFIELD")) {
+				System.out.println ("SETFIELD NOT HANDLED YET\n");
+
 			} else if(cmd.equals("INITIALIZE")) {
 				Script s = (Script)scripts.get(nodeid);
 				reqid = EAIin.readLine();
@@ -145,15 +146,15 @@ System.out.println ("commented out val.__toPerl");
 				s.eventsProcessed();
 				send_touched(reqid);
 			} else if(cmd.equals("SENDEVENT")) {
-				System.out.println ("FWJ - got a SENDEVENT");
-				System.out.println ("NodeID is " + nodeid);
 				Script s = (Script)scripts.get(nodeid);
-				System.out.println ("FWJ - got the script from nodeid");
-				reqid = EAIin.readLine();
 				String fname = EAIin.readLine();
 				String ftype = EAIin.readLine();
-				System.out.println ("FWJ, got SENDEVENT, script " + nodeid
-						+ " field " + fname + " type " + ftype);
+				reqid = EAIin.readLine(); // note reqid position, different than
+							// others, but we are using EAI functions.
+							// position does not matter...
+				//System.out.println ("      ....FWJ, got SENDEVENT, NodeID " + nodeid
+				//		+ " field " + fname + " type " + ftype + " reqid "
+				//		+ reqid);
 
 				ConstField fval = 
 				    FWCreateField.createConstField(ftype);
@@ -165,11 +166,8 @@ System.out.println ("commented out val.__toPerl");
 					timestamp,
 					fval
 				);
-				System.out.println ("FWJ: calling processEvent");
 				s.processEvent(ev);
-				System.out.println ("FWJ: sending touched");
 				send_touched(reqid);
-				System.out.println ("JWJ: finished sendevent");
 			} else {
 				throw new Exception("Invalid command '"
 						+ cmd + "'");
@@ -182,16 +180,9 @@ System.out.println ("commented out val.__toPerl");
 				      String kind)
     {
 	try {
-	    System.out.println ();
-	    System.out.println("FWJ:start getFieldType "+node._get_nodeid()
-			       +".getField("+fieldname+")");
-
-	    EAIout.writeBytes("GF " + node._get_nodeid() + " " + fieldname + " " + kind + "\n");
-	    EAIout.writeBytes(kind);
+	    EAIout.println("GETFIELD " + node._get_nodeid() + " " + fieldname + " " + kind);
 	    EAIout.flush();
 
-	    System.out.println ("FWJ: getFieldType complete for" +node._get_nodeid()
-			                                   +".getField("+fieldname+")");
 	    return EAIin.readLine();
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
@@ -200,27 +191,21 @@ System.out.println ("commented out val.__toPerl");
 
     public static void readField(BaseNode node, String fieldName, Field fld) {
 	try {
-	    System.out.println ();
-	    System.out.println("FWJ:start readField "+
-			    node._get_nodeid()+".readField("+fieldName+") " +
-			    fld);
-	    FWJavaScript.EAIout.writeBytes("RF " + 
-			    node._get_nodeid() + " " + fieldName + "\n");
+		//System.out.println ("start of readField for node " + node 
+		//		+ " fieldName " + fieldName + " fld " + fld);
+	    FWJavaScript.EAIout.println("READFIELD " + node._get_nodeid() + " " + fieldName);
 	    FWJavaScript.EAIout.flush();
 	    fld.__fromPerl(EAIin);
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
 	}
-	System.out.println ("FWJ: readField complete for " +node._get_nodeid()+".readField("+fieldName+")");
     }
 
     public static String getNodeType(BaseNode node)
     {
 	try {
-	    System.out.println("FWJ: creating VRML.");
-	    FWJavaScript.EAIout.writeBytes("GT "+ node._get_nodeid() + "\n");
+	    FWJavaScript.EAIout.println("GETTYPE "+ node._get_nodeid());
 	    FWJavaScript.EAIout.flush();
-	    System.out.println("FWJ: getNodeType complete");
 	    return EAIin.readLine();
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
@@ -237,16 +222,20 @@ System.out.println ("commented out val.__toPerl");
 	throws InvalidVRMLSyntaxException
     {
 	try {
-	    FWJavaScript.EAIout.writeBytes("CV");
-	    FWJavaScript.EAIout.writeBytes(vrmlSyntax);
+	    FWJavaScript.EAIout.println("CREATEVRML");
+	    FWJavaScript.EAIout.println(vrmlSyntax);
+	    FWJavaScript.EAIout.println("EOT");
 	    FWJavaScript.EAIout.flush();
 	    String intstring = FWJavaScript.EAIin.readLine();
 	    int number = Integer.parseInt(intstring);
 	    if (number == -1)
 		throw new InvalidVRMLSyntaxException(EAIin.readLine());
 	    Node[] nodes = new Node[number];
+
+	    // remember, nodes have a frontend:backend; one is known in Perl, the  
+	    // other is the C pointer to memory. 
 	    for (int i = 0; i < number; i++)
-		nodes[i] = new Node(EAIin.readLine());
+		nodes[i] = new Node(""+EAIin.readLine()+":"+EAIin.readLine());
 	    return nodes;
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);

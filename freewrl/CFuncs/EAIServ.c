@@ -109,12 +109,13 @@ void EAI_send_string(char *str, int lfd){
 	if (EAIVerbose) 
 		printf ("EAI Command returns\n%s(end of command)\n",str);
 
-	printf ("EAI_send_string, sending :%s:\n",str);
+	//printf ("EAI_send_string, sending :%s:\n",str);
 	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
 		if (EAIVerbose)
 		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
 	}
+	//printf ("EAI_send_string, wrote %d\n",n);
 }
 
 /* open the socket connection -  we open as a TCP server, and will find a free socket */
@@ -313,9 +314,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 			if (retval <= 0) {
 				if (EAIVerbose) 
 					printf ("read_EAI_socket, client is gone! errno %d\n",errno);
-					perror("READ_EAISOCKET");
-					printf ("EBADF %d, EINVAL %d, EFAULT %d\n",
-							EBADF, EINVAL, EFAULT);
+				perror("READ_EAISOCKET");
 				// client disappeared
 				close ((*listenfd));
 				(*listenfd) = -1;

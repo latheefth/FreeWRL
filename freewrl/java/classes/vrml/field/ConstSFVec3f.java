@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFVec3f extends ConstField {
@@ -47,15 +47,17 @@ public class ConstSFVec3f extends ConstField {
         return ""+x+" "+y+" "+z;
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        x = Float.parseFloat(in.readUTF());
-        y = Float.parseFloat(in.readUTF());
-        z = Float.parseFloat(in.readUTF());
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Vec3f");
+		x = Float.parseFloat(in.readLine());
+	        y = Float.parseFloat(in.readLine());
+        	z = Float.parseFloat(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeUTF(""+x);
-        out.writeUTF(""+y);
-        out.writeUTF(""+z);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(""+x);
+        out.print(""+y);
+        out.print(""+z);
     }
 }

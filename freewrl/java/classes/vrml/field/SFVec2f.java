@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFVec2f extends Field {
@@ -65,13 +65,15 @@ public class SFVec2f extends Field {
         return ""+x+" "+y;
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        x = Float.parseFloat(in.readUTF());
-        y = Float.parseFloat(in.readUTF());
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Vec2f");
+		x = Float.parseFloat(in.readLine());
+        	y = Float.parseFloat(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeUTF(""+x);
-        out.writeUTF(""+y);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(""+x);
+        out.print(""+y);
     }
 }

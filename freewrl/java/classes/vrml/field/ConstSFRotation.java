@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFRotation extends ConstField {
@@ -35,17 +35,19 @@ public class ConstSFRotation extends ConstField {
         return ""+axisX+" "+axisY+" "+axisZ+" "+angle;
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        axisX = Float.parseFloat(in.readUTF());
-        axisY = Float.parseFloat(in.readUTF());
-        axisZ = Float.parseFloat(in.readUTF());
-        angle = Float.parseFloat(in.readUTF());
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Rotation");
+		axisX = Float.parseFloat(in.readLine());
+	        axisY = Float.parseFloat(in.readLine());
+        	axisZ = Float.parseFloat(in.readLine());
+        	angle = Float.parseFloat(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeUTF(""+axisX);
-        out.writeUTF(""+axisY);
-        out.writeUTF(""+axisZ);
-        out.writeUTF(""+angle);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(""+axisX);
+        out.print(""+axisY);
+        out.print(""+axisZ);
+        out.print(""+angle);
     }
 }

@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFTime extends ConstField {
@@ -26,11 +26,13 @@ public class ConstSFTime extends ConstField {
         return String.valueOf(value);
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        value = Double.parseDouble(in.readUTF());
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Time");
+		value = Double.parseDouble(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeUTF(""+value);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(""+value);
     }
 }

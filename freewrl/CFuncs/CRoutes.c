@@ -1623,7 +1623,8 @@ int JSparamIndex (char *name, char *type) {
 	unsigned len;
 	int ty;
 	int ctr;
-printf ("start of JSparamIndex, name %s, type %s\n",name,type);
+
+	//printf ("start of JSparamIndex, name %s, type %s\n",name,type);
 
 	ty = convert_typetoInt(type);
 
@@ -1656,7 +1657,7 @@ printf ("start of JSparamIndex, name %s, type %s\n",name,type);
 	strncpy (JSparamnames[jsnameindex].name,name,len);
 	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
-	printf ("JSparamNameIndex, returning %d\n",jsnameindex);
+	//printf ("JSparamNameIndex, returning %d\n",jsnameindex);
 	return jsnameindex;
 }
 
@@ -2158,7 +2159,7 @@ void sendJClassEventIn(int num, int fromoffset) {
 		tn = (int) to_ptr->node;
 		tptr = (int) to_ptr->foffset;
 
-		sendCLASSEvent(tn, JSparamnames[tptr].name,
+		sendCLASSEvent(fn, tn, JSparamnames[tptr].name,
 			JSparamnames[tptr].type,len); 
 			
 	}

@@ -3,8 +3,8 @@
 
 package vrml.field;
 import vrml.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.IOException;
 
 public class SFFloat extends Field {
@@ -43,11 +43,13 @@ public class SFFloat extends Field {
         return String.valueOf(f);
     }
 
-    public void __fromPerl(DataInputStream in)  throws IOException {
-        f = Float.parseFloat(in.readUTF());
+    public void __fromPerl(BufferedReader in)  throws IOException {
+        
+		System.out.println ("fromPerl, Float");
+		f = Float.parseFloat(in.readLine());
     }
 
-    public void __toPerl(DataOutputStream out)  throws IOException {
-        out.writeUTF(""+f);
+    public void __toPerl(PrintWriter out)  throws IOException {
+        out.print(""+f);
     }
 }

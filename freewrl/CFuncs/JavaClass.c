@@ -30,9 +30,9 @@ as we can.
 #define CLASSVER "JavaClass version 1.0 - www.crc.ca"
 
 /* commands sent back from the class */
-#define FN "FIN"
-#define GF "GF"
-#define RF "RF"
+#define FN "FINISHED"
+#define GF "GETFIELD"
+#define RF "READFIELD"
 #define SE "SENDEVENT"
 #define GT "GETTYPE"
 #define CV "CREATEVRML"
@@ -44,7 +44,7 @@ void send_int (int node, int fd);
 void send_type (int node, int fd);
 void receive_command(int scriptno);
 
-int JavaClassVerbose = 1;
+int JavaClassVerbose = 0;
 
 /* input ClassBuffer */
 int bufcount; 
@@ -110,11 +110,9 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 	if (!(newClassConnection(scriptInvocationNumber))) return FALSE;
 
 	send_string("NEWSCRIPT", scriptInvocationNumber);
-	send_string ("SFNode", scriptInvocationNumber);
 	send_string (nodeID,scriptInvocationNumber);
-	//printf ("JavaClass:newURL :%s:\n",newURL);
 	send_string (newURL, scriptInvocationNumber);
-//printf ("newJavaClass returning TRUE\n");
+	send_int (eid, scriptInvocationNumber);
 	return TRUE;
 }
 
@@ -127,36 +125,28 @@ int initJavaClass(int scriptno) {
         eid++;
         //printf ("JavaClass:INITIALIZE script %d\n",scriptno);
         send_string("INITIALIZE",scriptno);
-	send_string ("SFNode", scriptno);
 	send_string (ScriptControl[scriptno].NodeID,scriptno);
 	send_int ((int)eid,scriptno);
 
         receive_command(scriptno);
-	//printf ("initJavaClass finished\n");
 }
 
-void sendCLASSEvent(int scriptno, char *fieldname, int type, int len) {
+void sendCLASSEvent(int fn, int scriptno, char *fieldname, int type, int len) {
 	char mystring [100];
 
-	//printf ("sending ClassEvent to script %d, node %s, field %d, type %d len %d\n",
-	//		scriptno, ScriptControl[scriptno].NodeID, fieldname, type, len);
+	//printf ("sending ClassEvent from %d to script %d, node %s, field %d, type %d len %d\n",
+	//		fn, scriptno, ScriptControl[scriptno].NodeID, fieldname, type, len);
+	
+	eid++;
+	EAI_Convert_mem_to_ASCII(eid,FIELD_TYPE_STRING(type),
+			type+(int)EAI_SFUNKNOWN,(char *)fn,mystring);
 
-	//send_string("SENDEVENT\n", scriptno);
-	//strcpy (mystring, "SFNode"); 
-	//strcpy (mystring, ""); 
-	//strcat (mystring, ScriptControl[scriptno].NodeID);
-	//strcat (mystring, "\n");
-send_string ("SENDEVENT\n15:0\n2\nset_enabled\nSFBool\n1\n1203330303.3",scriptno);
-	//send_string(mystring,scriptno);
-
-	//send_string ("\n2\n",scriptno);
-	//strcpy (mystring,fieldname);
-	//send_string ("set_enabled",scriptno);
-	//send_string ("SFBool",scriptno);
-	//send_string ("1033430433.63",scriptno);
+	send_string("SENDEVENT", scriptno);
+	send_string(ScriptControl[scriptno].NodeID,scriptno);
+	send_string (fieldname, scriptno);
+	send_string(mystring,scriptno);
+	send_string ("1203330303.3",scriptno);  // this is the time
         receive_command(scriptno);
-	//printf ("end of sendCLASSevent in JavaClass.c\n");
-
 }
 
 /* recieve a string from the java class */
@@ -207,6 +197,7 @@ void send_type (int node, int scriptno) {
 	node = node - (int)'a'; /* no longer "ascii" based... */
 
 	/* can not send in a const to EAI_send_string, so, copy it over */
+	//printf ("send_type, type now is %d\n",node);
 	strcpy(localchar,FIELD_TYPE_STRING(node));
 	printf ("TO JAVA :%s:\n",localchar);
 	EAI_send_string(localchar,ScriptControl[scriptno].listen_fd);
@@ -227,7 +218,7 @@ int newClassConnection (int scriptno) {
 		return FALSE;
 	}
 
-	printf ("JavaClass:start of newClassConnection, scriptno is %d\n",scriptno);
+	//printf ("JavaClass:start of newClassConnection, scriptno is %d\n",scriptno);
 
 	/* make the communications socket */
 	fd = -1; lfd = -1;
@@ -259,7 +250,7 @@ int newClassConnection (int scriptno) {
 		sleepcount++;
 	}
 
-	printf ("JavaClass:connection open, lfd %d\n",lfd);
+	//printf ("JavaClass:connection open, lfd %d\n",lfd);
 
 	/* save the file descriptors */
 	ScriptControl[scriptno].listen_fd = lfd;
@@ -395,7 +386,11 @@ void receive_command(int scriptno) {
 	int scripttype;
 	int tmp;
 	char *retstr;
+	char *EOT;
+	int nodarr[200];
+	int finished_found;
 
+	finished_found = FALSE;
 	ptr = ClassBuffer;
 	//printf ("JavaClass:start of receive_command, buffer len %d contents %s\n",strlen(ClassBuffer),ClassBuffer);
 
@@ -412,11 +407,12 @@ void receive_command(int scriptno) {
 	
 		if (strncmp(ptr,FN,strlen(FN)) == 0) {
 			//printf ("JavaClass:receive_command, FINISHED\n");
-			return;
+			ptr += strlen(FN) +1;
+			finished_found = TRUE;
 		} else if (strncmp (ptr,GF,strlen(GF)) == 0) {
-			//printf ("JavaClass:receive_command, GETFIELDTYPE\n");
+			printf ("JavaClass:receive_command, GETFIELD\n");
 	
-			ptr += strlen(GF) +1 +strlen ("SFNode");
+			ptr += strlen(GF) +1;
 	
 			// get the node id number - equiv of sscanf.
 			uretval=0;
@@ -424,7 +420,7 @@ void receive_command(int scriptno) {
 				uretval = uretval*10 + (int) *ptr - (int) '0';
 				ptr++;
 			}
-			//printf ("JavaClass:node is NODE%d\n",uretval);
+			printf ("JavaClass:node is NODE%d\n",uretval);
 	
 			/* get the field name */
 			while (*ptr != ' ') {ptr++;} ptr++;
@@ -440,11 +436,11 @@ void receive_command(int scriptno) {
 			EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd,&scripttype);
 		
 			send_type(rd,scriptno); 
-			//printf ("JavaClass:done GETFIELDTYPE\n");
+			printf ("JavaClass:done GETFIELDTYPE\n");
 			
 		} else if (strncmp(ptr,RF,strlen(RF)) == 0) {
 			//printf ("JavaClass:receive_command, READFIELD\n");
-			ptr += strlen(RF) +1 +strlen ("SFNode");
+			ptr += strlen(RF) +1;
 	
 			// get the node id number - equivalent of sscanf
 			uretval=0;
@@ -458,9 +454,7 @@ void receive_command(int scriptno) {
 			while (*ptr >' ') {ptr++;} ptr++;
 			tmp=0;
 			//printf ("getting field name for :%s:\n",ptr);
-			while (*ptr>' '){ctmp[tmp]=*ptr;
-				printf ("char %c\n",*ptr);
-				tmp++;ptr++;}
+			while (*ptr>' '){ctmp[tmp]=*ptr; tmp++;ptr++;}
 			//printf ("assigning null to index  %d\n",tmp);
 			ctmp[tmp] = '\0';
 
@@ -472,28 +466,69 @@ void receive_command(int scriptno) {
 			free (retstr); // malloc'd in ProdCon
 
 		} else if (strncmp(ptr,SE,strlen(SE)) == 0) {
-			printf ("JavaClass:receive_command, SENDEVENT\n");
+			printf ("JavaClass:receive_command, SENDEVENT UNIMPLEMENTED\n");
 		} else if (strncmp(ptr,GT,strlen(GT)) == 0) {
-			printf ("JavaClass:receive_command, GETTYPE\n");
+			//printf ("JavaClass:receive_command, GETTYPENAME\n");
+			ptr += strlen(GT) +1;
+	
+			// get the node id number - equivalent of sscanf
+			uretval=0;
+			while ((*ptr>='0') && (*ptr<='9')) {
+				uretval = uretval*10 + (int) *ptr - (int) '0';
+				ptr++;
+			}
+			retstr = EAI_GetTypeName(uretval);
+			send_string (retstr ,scriptno);
+			free (retstr);
+	
 		} else if (strncmp(ptr,CV,strlen(CV)) == 0) {
-			printf ("JavaClass:receive_command, CREATEVRML\n");
+			//printf ("JavaClass:receive_command, CREATEVRML\n");
+			//printf ("string here is %s\n",ptr);
+			EOT = strstr(ptr,"\nEOT\n");
+			// if we do not have a full string yet, we have to do this...
+			while (EOT == NULL) {
+				ClassBuffer = read_EAI_socket(ClassBuffer,&bufcount, &bufsize, 
+						&(ScriptControl[scriptno].listen_fd));
+				EOT = strstr(ClassBuffer,"\nEOT\n");
+			}
+	
+			*EOT = 0; // take off the EOT marker
+			ptr = ClassBuffer; // in case it was realloc'd
+	
+			// do the conversion
+			ptr += strlen(CV) + 1;
+			ra = EAI_CreateVrml("String",ptr,nodarr,100);
+			ptr = EOT;
+		//	printf ("CreateVRML returned %d nodes\n",ra);
+			if (ra < 0) ra =-1;
+			send_int(ra/2,scriptno);
+			// send frontend name "NODExx" and CNode backends, for each returned node.
+			// the java class code will create a name of xx:CNodeaddr for this variable
+			for (rb=0; rb<ra; rb++) {
+				send_int(nodarr[rb],scriptno);
+			}
 		} else {
 			printf ("JavaClass:receive_command, unknown command: %s\n",ptr);
 		}
 
 		/* skip to the end of the command, if possible */
 		//printf ("end of command loop strlen %d\n",strlen(ptr));
-		//printf ("end, ubf if %s\n",ptr);
 
 		while ((*ptr != '\0') && (*ptr != '\n')) ptr ++;
 		if (*ptr == '\n') ptr++; /* skip newline */
 
-		if (*ptr = 0) {
+		if (strlen(ptr) == 0) {
 			ClassBuffer[0] = '\0';
 			bufcount = 0;
 		}
 		//printf ("now, end of command loop strlen %d\n",strlen(ptr));
 		//printf ("now, end, ubf if %s\n",ptr);
+		if (finished_found) {
+			//printf ("we did find a finished; lets exit\n");
+			//printf ("JavaClass:END of receive_command, buffer len %d contents %s\n",strlen(ClassBuffer),ClassBuffer);
+
+			return;
+		}
 	}
 }
 
