@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.15  2002/01/12 15:44:18  hoenicke
+# Removed the Java SAI stuff from here.  It moved to VRMLJava.pm
+# and java/classes/vrml/genfields.pl
+#
 # Revision 1.14  2001/11/28 08:34:30  ayla
 #
 # Tweaked regexp processing for VRML::Field::SFString::parse due to a submitted
@@ -163,43 +167,9 @@ sub ctype {"float $_[1]"}
 sub cfunc {"$_[1] = SvNV($_[2]);\n"}
 
 
-# JAVA SAI stuff...
-
-sub jdata {"float v;"}
-sub jalloc {""}
-sub jset {return {""=>"v = 0;", "float val" => "v=val;"}}
-sub jset_str { '
-	s = s.trim();
-	v = new Float(s).floatValue();
-'}
-sub jget {return {float => "return v;"}}
-sub jcopy {"v = f.getValue();"}
-sub jstr {"return new Float(v).toString();"}
-sub jclonearg {"v"}
-sub toj {$_[1]}
-sub fromj {$_[1]}
-
-
-# end of JAVA SAI stuff...
-
-
 ###########################################################
 package VRML::Field::SFTime;
 @ISA=VRML::Field::SFFloat;
-
-
-# JAVA SAI stuff...
-
-sub jdata {"double v;"}
-sub jset {return {""=>"v = 0;", "double val" => "v=val;"}}
-sub jset_str { '
-	s = s.trim();
-	v = new Double(s).doubleValue();
-'}
-sub jget {return {double => "return v;"}}
-sub jstr {"return new Double(v).toString();"}
-
-# end of JAVA SAI stuff...
 
 
 ###########################################################
@@ -219,25 +189,6 @@ sub as_string {$_[1]}
 
 sub ctype {return "int $_[1]"}
 sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
-
-# JAVA SAI stuff...
-
-sub jdata {"int v;"}
-sub jalloc {""}
-sub jset {return {""=>"v = 0;", "int val" => "v=val;"}}
-# JAS sub jeaiset {return "int val"}
-sub jset_str { '
-	s = s.trim();
-	v = new Integer(s).intValue();
-'}
-sub jget {return {int => "return v;"}}
-sub jcopy {"v = f.getValue();"}
-sub jstr {"return new Integer(v).toString();"}
-sub jclonearg {"v"}
-sub toj {$_[1]}
-sub fromj {$_[1]}
-
-# end of JAVA SAI stuff...
 
 
 ###########################################################
@@ -292,35 +243,6 @@ sub cfunc {
 	"
 }
 
-# JAVA SAI stuff...
-
-sub jdata {"float red,green,blue;"}
-sub jalloc {""}
-sub jset {return {"" => "red=0; green=0; blue=0;",
-	"float colors[]" => "red = colors[0]; green=colors[1]; blue=colors[2];",
-	"float r,float g,float b" => "red=r; green=g; blue=b;"
-}}
-# JAS sub jeaiset { return "float colors[]" }
-sub jset_str {"
-   	StringTokenizer tok = new StringTokenizer(s);
-	red = 	new Float(tok.nextToken()).floatValue();
-	green =	new Float(tok.nextToken()).floatValue();
-	blue =	new Float(tok.nextToken()).floatValue();
-	"
-}
-sub jget {return {"void" => ["float colors[]",
-	"colors[0] = red; colors[1] = green; colors[2] = blue;"]}
-}
-sub jcopy {"red = f.getRed(); green = f.getGreen(); blue = f.getBlue();"}
-sub jstr {'return Float.toString(red) + " " + 
-	Float.toString(green) + " " + Float.toString(blue);'}
-sub jclonearg {"red,green,blue"}
-
-sub jsimpleget {return {red => float, green => float, blue => float}}
-sub toj {join ' ',@{$_[1]}}
-sub fromj {[split ' ',$_[1]]}
-
-# end of JAVA SAI stuff...
 
 # javascript
 
@@ -439,38 +361,6 @@ sub cfunc {
 	}
 	"
 }
-
-
-# JAVA SAI stuff...
-
-sub jdata {"float x,y;"}
-sub jalloc {""}
-sub jset {return {"" => "x=0; y=0;",
-	"float coords[]" => "x = coords[0]; y=coords[1];",
-	"float x2,float y2" => "x=x2; y=y2;"
-}}
-# JAS sub jeaiset { "float coords[]" }
-sub jset_str {"
-   	StringTokenizer tok = new StringTokenizer(s);
-	x = 	new Float(tok.nextToken()).floatValue();
-	y =	new Float(tok.nextToken()).floatValue();
-	"
-}
-sub jget {return {"void" => ["float coords[]",
-	"coords[0] = x; coords[1] = y;"]}
-}
-sub jcopy {"x = f.getX(); y = f.getY();"}
-sub jstr {'return Float.toString(x) + " " + 
-	Float.toString(y) ;'}
-sub jclonearg {"x,y"}
-
-sub jsimpleget {return {x => float, y => float}}
-sub toj {join ' ',@{$_[1]}}
-sub fromj {[split ' ',$_[1]]}
-
-
-# end of JAVA SAI stuff...
-
 
 
 ###########################################################
@@ -668,38 +558,7 @@ return ["",qq~
 sub js_default {
 	return "new SFRotation(0,0,1,0)"
 }
-# JAVA SAI stuff...
 
-sub jdata {"float myx,myy,myz,angle;"}
-sub jalloc {""}
-sub jset {return {"" => "myx=0; myy=0; myz=1; angle=0;",
-	"float rot[]" => "myx = rot[0]; myy=rot[1]; myz=rot[2];angle=rot[3];",
-	"float r,float g,float b,float a" => "myx=r; myy=g; myz=b;angle=a;"
-}}
-sub jset_str {"
-   	StringTokenizer tok = new StringTokenizer(s);
-	myx = 	new Float(tok.nextToken()).floatValue();
-	myy =	new Float(tok.nextToken()).floatValue();
-	myz =	new Float(tok.nextToken()).floatValue();
-	angle =	new Float(tok.nextToken()).floatValue();
-	"
-}
-sub jget {return {"void" => ["float rot[]",
-	"rot[0] = myx; rot[1] = myy; rot[2] = myz; rot[3] = angle;"]}
-}
-sub jcopy {"myx = f.getRed(); myy = f.getGreen(); myz = f.getBlue();",
-		"angle=getAngle();"}
-sub jstr {'return Float.toString(myx) + " " + 
-	Float.toString(myy) + " " + Float.toString(myz) + " " +
-	Float.toString(angle);'}
-sub jclonearg {"myx,myy,myz,angle"}
-
-sub jsimpleget {return {myx => float, myy => float, 
-		myz => float, angle => float}}
-sub toj {join ' ',@{$_[1]}}
-sub fromj {[split ' ',$_[1]]}
-
-# end of JAVA SAI stuff...
 
 ###########################################################
 package VRML::Field::SFBool;
@@ -717,33 +576,6 @@ sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
 
 sub print {print ($_[1] ? TRUE : FALSE)}
 sub as_string {($_[1] ? TRUE : FALSE)}
-
-# The java interface
-
-# JAVA SAI stuff...
-
-sub jdata {"boolean v;"}
-sub jalloc {""}
-sub jset {return {"" => "v = false;",
-	"boolean value" => "v = value;",
-}}
-sub jset_str { q~
-   	s = s.trim();
-	if(s.equals("1")) {v = true;}
-	else if(s.equals("0") || s.equals("")) {v = false;}
-	else {throw new Exception("Invalid boolean '"+s+"'");}
-~}
-sub jget {return {"boolean" => "return v;"}}
-sub jcopy {"v = f.getValue();"}
-sub jstr {'return (v? "1": "0");'}
-sub jclonearg {"v"}
-sub toj {return $_[1]}
-sub fromj {return $_[1]}
-
-sub js_default {return "false"}
-
-
-# end of JAVA SAI stuff...
 
 
 ###########################################################
@@ -782,22 +614,6 @@ sub cfunc {"sv_setsv($_[1],$_[2]);"}
 
 sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}
-
-# JAVA SAI stuff...
-
-sub jalloc {""}
-sub jcopy {"v = f.getValue();"}
-sub jdata {"String v;"}
-sub jclonearg {"v"}
-#sub jset {return {""=>"v = \"\";", "String val" => "v=val;"}}
-sub jset {}
-sub jset_str { '
-	v = new String(v);
-'}
-sub jget {return {String => "return v;"}}
-sub jstr {"return String(v);"}
-
-# end of JAVA SAI stuff...
 
 
 ###########################################################
@@ -1076,9 +892,6 @@ sub as_string {
 }
 
 sub js_default { 'new SFNode("","NULL")' }
-
-sub toj {$_[1]}
-sub fromj {$_[1]}
 
 # javascript implemented in place because of special nature.
 
