@@ -87,6 +87,7 @@ sub new {
 	my($w,$h) = (300,300);
         my $x = 0; 
         my $y = 0; 
+	my $mytitle = "FreeWRL";
 
 	if(my $g = $pars{Geometry}) 
 	  {
@@ -98,9 +99,16 @@ sub new {
 
 	$this->{W} = $w; $this->{H} = $h;
         my @db = &GLX_DOUBLEBUFFER;
-#       my @db = ();
+
         if($VRML::offline) {$x = -1; @db=()}
-        
+       
+	# Window title. If the netscape option is on the command
+	# line, use it's parameter for the window name
+	if ($VRML::ENV{NETSCAPE}) {
+		$mytitle = $VRML::ENV{NETSCAPE};
+	}
+
+ 
         print "STARTING OPENGL\n" if $VRML::verbose;
         glpOpenWindow(attributes=>[&GLX_RGBA, @db,
 				   &GLX_RED_SIZE,1,
@@ -115,14 +123,11 @@ sub new {
 			       PointerMotionMask),
 		      width => $w,height => $h, fs => $fullscreen,
 		      "x" => $x,
-		      "y" => $y);
+		      "y" => $y,
+		      wintitle => $mytitle);
 
 	
         glClearColor(0,0,0,1);
-#        my $lb = VRML::OpenGL::glpRasterFont("5x8",0,256);
-#        $VRML::OpenGL::fontbase = $lb;
-#       glDisable(&GL_DITHER);
-        # glShadeModel (&GL_SMOOTH);
         glShadeModel (&GL_FLAT);
 	glDepthFunc(&GL_LEQUAL);
         glEnable(&GL_DEPTH_TEST);
@@ -395,7 +400,10 @@ sub event {
 	      VRML::Browser::save_snapshot($this);
 	    }
 	} elsif((lc $args[0]) eq "q") {
-	  $this->{QuitPressed} = 1;
+	  # if in netscape, don't do the quitpressed!
+	  if (!($VRML::ENV{NETSCAPE})) {
+	    $this->{QuitPressed} = 1;
+          }
 	  
 	} elsif((lc $args[0]) eq "v") {
 	  # print "NEXT VP\n";
