@@ -1,4 +1,4 @@
-REVISED October 1, 2000.  
+REVISED October 27, 2000.  
 
 John Stewart.
 
@@ -6,6 +6,8 @@ John Stewart.
 The EAI classes are a "work in progress"; and are just getting
 rebuilt.
 
+Note that the EAI classes included with FreeWRL PRIOR to version
+0.27 WILL NOT WORK now.
 
 September 28, 2000 - John.Stewart@crc.ca
 

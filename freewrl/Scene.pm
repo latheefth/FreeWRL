@@ -88,7 +88,7 @@ sub STORE {
 	  print "STORE, defined eventmodel\n" if $VRML::verbose::events;
 	  $node->{EventModel}->put_event($node, $k, $value);
 	  if(defined $node->{BackNode}) { 
-		print "STORE, BackNode defined\n" if $VRML::verbose::events;
+		print "STORE, BackNode defined\n"  if $VRML::verbose::events;
 		$node->set_backend_fields($k);
 	  }
 	}
@@ -403,8 +403,13 @@ sub receive_event {
 		       exists($this->{Fields}{$field})) ;
 	}
 	print "REC $this $this->{TypeName} $field $timestamp $value : ",
-		("ARRAY" eq ref $value? (join ', ',@$value):$value),"\n" if $VRML::verbose::events;
+		("ARRAY" eq ref $value? (join ', ',@$value):$value),"\n" 
+		if $VRML::verbose::events;
 	$this->{RFields}{$field} = $value;
+        # if ("ARRAY" eq ref $value) {
+ 	# print "REC:.... array contains ",@$value,"\n";
+	# }
+
 	if($this->{Type}{Actions}{$field}) {
 		print "RACT!\n" if $VRML::verbose;
 		my @ev = &{$this->{Type}{Actions}{$field}}($this,$this->{RFields},
@@ -508,8 +513,6 @@ sub iterate_nodes {
 
 sub make_executable {
 	my($this,$scene) = @_;
-	# print "    NODE::make_executable, this is $this $this->{TypeName}, of ref ", ref $this,"\n";
-
 	print "MKEXE $this->{TypeName}\n" if $VRML::verbose::scene;
 
 	# loop through all the fields for this node type.
@@ -614,6 +617,7 @@ sub set_backend_fields {
 			$f{$_} = $v;
 		}
 	}
+	# print "Scene.pm: calling set_fields\n";
 	$be->set_fields($this->{BackNode},\%f);
 }
 
@@ -642,10 +646,12 @@ my %NOT = map {($_=>1)} qw/WorldInfo TimeSensor TouchSensor
 sub make_backend {
 	my($this,$be,$parentbe) = @_;
 	
-	print "Node::make_backend $this $this->{TypeName} $be $parentbe\n"
+	print "Node::make_backend $this, $this->{TypeName}, $be, $parentbe\n"
 		 if $VRML::verbose::be;
 
-	if(defined $this->{BackNode}) {return $this->{BackNode}}
+	if(defined $this->{BackNode}) {
+		return $this->{BackNode};
+	}
 
 	if($this->{TypeName} eq "Inline") {
 		print "NODE: Inline\n"
@@ -667,6 +673,7 @@ sub make_backend {
 	$this->{BackNode} = $ben;
 	$this->{BackEnd} = $be;
 	$this->set_backend_fields();
+	# print "Node::make_backend, $this, $ben, $be\n";
 	return $ben;
 }
 }
@@ -995,24 +1002,36 @@ sub get_as_mfnode {
 	return VRML::Handles::reserve($_[0]{Nodes});
 }
 
-sub get_as_nodearraystring {
+sub mkbe_and_array {
   # lets return an array of nodes that make up this scene...
 
   # lets get the number of items in there...
 
-  #my ($this) = @_;
-
+  my ($this,$be) = @_;
 
   my $lastindex = $#{$_[0]{Nodes}};
   my $curindex = 0;
   my $q = "";
 
   while ($curindex <= $lastindex) {
-    my $c = $_[0]{Nodes}[$curindex];
+    # PROTOS screw us up; the following line worked, but then
+    # PROTO information was not available. So, store the PROTO
+    # node definition, BUT generate the real node!
 
+    my $c = $_[0]{Nodes}[$curindex];
     if("ARRAY" eq ref $c) {
-	print "get_as_nodearraystring  - array!!!\n";
 	$c = @{$c};
+    }
+    # lets make backend here, while we are having fun...
+    if (!defined $c->{BackNode}) {
+	my $rn = c;
+	if($c->{IsProto}) {
+		$rn = $c->real_node();
+       		$rn->{BackNode} = VRML::Node::make_backend($rn,$be);
+    		VRML::Handles::reserve($rn);
+	} else {
+       		$c->{BackNode} = VRML::Node::make_backend($c,$be);
+	}
     }
     my $id = VRML::Handles::reserve($c);
 
@@ -1022,7 +1041,7 @@ sub get_as_nodearraystring {
   # need to sanitize $v... it probably has trailing newline...
   $q =~ s/^\s+//;
   $q =~ s/\s+$//;
-
+  # print "Scene.pm:mkbe_and_array: $q\n";
   return $q
 }
 
@@ -1090,14 +1109,21 @@ sub make_is {
 	}
 	# For eventIn, eventOut or exposedField, store for route
 	# building.
+	# XXX - JAS - is this code ever run? Can't find an example
+	# where the array is looked at. So, we use a global array
+	# within the Browser to keep track of things
+
 	if($ck ne "field" and $pk ne "field") {
 		if($pk eq "eventIn" or ($pk eq "exposedField" and
 			$ck eq "exposedField")) {
 			push @{$this->{IS_ALIAS_IN}{$is}}, [$node, $field];
+			VRML::Browser::api__register_IS_ALIAS ($node, $is, $field, "IS_ALIAS_IN");
+
 		}
 		if($pk eq "eventOut" or ($pk eq "exposedField" and
 			$ck eq "exposedField")) {
 			push @{$this->{IS_ALIAS_OUT}{$is}}, [$node, $field];
+			VRML::Browser::api__register_IS_ALIAS ($node, $is, $field, "IS_ALIAS_OUT");
 		}
 	}
 	return $retval;
@@ -1175,7 +1201,7 @@ sub make_executable {
 	# on them. Hopefully, all nodes are of type VRML::Node!
 
 	for(@{$this->{Nodes}}) {
-		# print "in SCENE::make_executable, looking at ", ref $_, "\n";
+		# print "in SCENE::make_executable, looking at ", ref $_, " scene $this\n";
 		$_->make_executable($this);
 	}
 
@@ -1363,12 +1389,14 @@ sub setup_routing {
 		$eventmodel->add_route($fn,$ff,$tn,$tf);
 	}
 	for my $isn (keys %{$this->{IS_ALIAS_IN}}) {
+		print "setup_routing: first IS_ALIAS_IN loop\n";
 		for(@{$this->{IS_ALIAS_IN}{$isn}}) {
 			$eventmodel->add_is_in($this->{NodeParent},
 				$isn, @$_);
 		}
 	}
 	for my $isn (keys %{$this->{IS_ALIAS_OUT}}) {
+		print "setup_routing: first IS_ALIAS_OUT loop\n";
 		for(@{$this->{IS_ALIAS_OUT}{$isn}}) {
 			$eventmodel->add_is_out($this->{NodeParent},
 				$isn, @$_);

@@ -304,6 +304,7 @@ sub parse {
 		return VRML::Parser::parse_script($scene,$_[2]);
 	}
 	my $proto;
+
 	my $no = $VRML::Nodes{$nt};
 	if(!defined $no) {
 		$no = $scene->get_proto($nt);
@@ -347,7 +348,7 @@ sub parse {
 
 		if($_[2] =~ /\G\s*IS\s+($Word)\b/gsc) {
 			$f{$f} = $scene->new_is($1);
-                        print "storing type 1, $f, ($f{$f})\n"  if $VRML::verbose::parse;
+                        print "storing type 1, $f, (@{$f{$f}})\n" if $VRML::verbose::parse;
 		} else {
 			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2]);
                         print "storing type 2, $f, ($f{$f})\n"  if $VRML::verbose::parse;

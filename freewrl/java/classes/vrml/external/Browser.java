@@ -461,6 +461,7 @@ public class Browser implements BrowserInterface
         retval = getVRMLreply(queryno);
         queryno += 1;
       }
+System.out.println ("SendEventType returning " + retval);
       return retval;
 }
 

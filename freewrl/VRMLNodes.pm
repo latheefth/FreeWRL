@@ -198,15 +198,40 @@ sub STORE {
 
 package VRML::NodeType;
 
+# used by EAI to find out where that IS is when used in a proto.... we are 
+# sent the parent, so have to go through tree to find child.
+
+sub find_transform {
+	my ($browser, $node, $field) = @_;
+
+	my $ret = "";
+
+	# print "find_transform, looking for node $node field $field with br $browser\n";
+	$ret = VRML::Browser::api__find_IS_ALIAS($node,$field);
+
+	foreach $item (@{$node->{Fields}{"children"}}) {
+		# print "find_transform, child $item children is ",$item->{Fields}{children},"\n";
+		$ret = VRML::Browser::api__find_IS_ALIAS($item,$field);
+		if ("children" eq $ret) {return $item;}
+
+		if ("ARRAY" eq ref $item->{Fields}{children}) {
+			$ret = find_transform ($browser, $item, $field);
+		}
+	}
+
+	return $ret;
+}
+
 # JAS - used by EAI to see if this child is already present in field "children" of parent.
 sub checkChildPresent {
 	my ($node,$child) = @_;
+
 	# print "VRMLNodes.pm:checkChildPresent: checking for child $child in node $node\n";
-	foreach $item (@{$node->{RFields}{"children"}}) {
+	foreach $item (@{$node->{Fields}{"children"}}) {
 		# print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
 		if ($item eq $child) {
-			print "VRMLNode::checkChildPresent: child $child already ",
-			"present in parent\n";
+			# print "VRMLNode::checkChildPresent: child $child already ",
+			# "present in parent\n";
 			return 1;
 		}
 	}
@@ -219,7 +244,7 @@ sub removeChild {
 	my @av;
 
 	# print "VRMLNodes.pm:removeChild: checking for child $child in node $node\n";
-	foreach $item (@{$node->{RFields}{"children"}}) {
+	foreach $item (@{$node->{Fields}{"children"}}) {
 		print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
 		if (!($item eq $child)) {
 			push @av, $item;

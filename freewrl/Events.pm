@@ -79,12 +79,14 @@ sub add_route {
 
 sub add_is_out {
 	my($this,$pn, $pf, $cn, $cf) = @_;
+print "Event.pm : add_is_out - this $this pn $pn pf $pf cn $cn cf $cf\n";
 	$this->{PIsN}{$pn} = $pn;
 	$this->{CIs}{$cn}{$cf} = [$pn,$pf];
 }
 
 sub add_is_in {
 	my($this,$pn, $pf, $cn, $cf) = @_;
+print "Event.pm : add_is_in - this $this pn $pn pf $pf cn $cn cf $cf\n";
 	$this->{PIsN}{$pn} = $pn;
 	push @{$this->{PIs}{$pn}{$pf}}, [$cn,$cf];
 }
@@ -187,9 +189,10 @@ sub propagate_events {
 					# Was this event routed to someone
 					# who has children?
 					for(@{$this->{PIs}{$e->[0]}{$e->[1]}}) {
-						print "P_IS: send to $_\n"
-						 if $VRML::verbose::events;
+						print "Events.pm:P_IS: send to $_\n"
+						 ;#JAS if $VRML::verbose::events;
 						my $fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
+print"Events.pm - fk $fk one ",$_->[1], " , e2 ", $e->[2],"\n";
 						if(!defined $fk) {die("Fieldkind getting")}
 						if($fk eq "eventIn" or 
 						   $fk eq "exposedField") {
@@ -234,27 +237,8 @@ sub put_event {
 sub send_event_to {
 	my($this,$node,$field,$value) = @_;
 	push @{$this->{ToQueue}}, [$node, $field, $value];
+	# print "Events.pm:send_event_to, pushing $node, $field $value\n";
 }
-#this one sends a value to an array, $ar is 1 for add, 2 for remove
-#JASsub send_arrayevent_to {
-#JAS	my($this,$node,$field,$value,$ar) = @_;
-#JAS	print "send_arrayevent_to, root node , field was ";
-   #JAS     print $node->{$field};
-#JAS	print "\n";
-#JAS	if ("ARRAY" eq ref $node->{$field}) {                                print "ARRAYVAL: @{$e->[2]}\n";
-#JAS        }
-#JASpush(@{ $node->{$field} }, VRML::Handles::get($child));
-#JAS        print $node->{$field};
-#JAS	print "\n";
-#JAS	if ("ARRAY" eq ref $node->{$field}) {                                print "ARRAYVAL: @{$e->[2]}\n";
-#JAS        }
-
-
-		#			print "SEND $e->[0] $e->[0]{TypeName} $e->[1] $e->[2]\n" ;
-		#			if("ARRAY" eq ref $e->[2]) {
-		#				print "ARRAYVAL: @{$e->[2]}\n";
-#JAS	push @{$this->{ToQueue}}, [$node, $field, $value,$ar];
-#JAS}
 
 sub put_events {
 	my($this,$events) = @_;

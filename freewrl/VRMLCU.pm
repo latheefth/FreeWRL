@@ -77,13 +77,16 @@ sub free_struct_be {
 sub set_field_be {
 	my($node, $type, $field, $value) = @_;
 	my $o;
-	# print "set_field_be, node $node, type $type, field $field, value $value\n";
+	 #JAS print "VRMLCU.pm:set_field_be, node $node, type $type, field $field, value $value\n";
+	#JAS  #if ("ARRAY" eq ref $value) {
+	#JAS 		print "VRMLCU.pm:set_field_be, value of array is @{$value}\n";
+	#JAS 	}
+
 	if(!defined ($o=$VRML::CNodes{$type}{Offs}{$field})) {
 		#JAS don't die; sometimes listeners try to change while other changes happen
 		#JAS (eg, addChild, removeChild...)
 
-		print "Field $field undefined for $type in C\n" 
-			if $VRML::verbose::warn;
+		print "Field $field undefined for $type in C\n" if $VRML::verbose::warn;
 		return;
 	}
 

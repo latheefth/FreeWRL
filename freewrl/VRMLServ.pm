@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.7  2000/10/28 17:43:20  crc_canada
+# EAI addchildren, etc, should be ok now.
+#
 # Revision 1.6  2000/10/16 17:07:32  crc_canada
 # Finish EAI add/remove children code.
 #
@@ -164,6 +167,12 @@ sub poll {
 	}
 }
 
+sub  find_transform {
+
+	my ($node, $field) = @_;
+}
+
+
 sub handle_input {
 	my($this, $hand) = @_;
 
@@ -266,8 +275,23 @@ sub handle_input {
   			$v =~ s/\s+$//; # trailing new line....
 
 			my $node = VRML::Handles::get($id);
-			my $child = VRML::Handles::get($v);
+			if ($node->{IsProto}) {
+				$node = $node->real_node();
+				# print "VRMLServ.pm - parent proto got $node\n";
 
+				# Now, if this is an "IS", we may have to go through
+				# children recursively, until we find the correct
+				# child (nested Transform). We use the IS_AS tags
+				# to find the correct transform.
+				
+				my $node = $this->{B}->find_transform ($node, $field);
+				$field = "children";
+			}
+			my $child = VRML::Handles::get($v);
+			if ($child->{IsProto}) {
+				$child = $child->real_node();
+				# print "VRMLServ.pm - child proto got $child\n";
+			}
 
 			# the events are as follows:
 			# VRMSServ.pm - api__sendEvent(
@@ -310,17 +334,21 @@ sub handle_input {
 			# ever after...
 			#	
 
-			if($field eq "addChildren") {
-				# is the child already there???
-				if (!($this->{B}->checkChildPresent($node,$child))) {
-					my @av = @{$node->{RFields}{children}};
-					push @av, $child;
-		  			$this->{B}->api__sendEvent($node, "children",\@av);
-				}
-			} else {
+			if($field eq "removeChildren") {
 				if ($this->{B}->checkChildPresent($node,$child)) {
 		  			my @av = $this->{B}->removeChild($node, $child);
 		  			$this->{B}->api__sendEvent($node, "children",\@av);
+				}
+			} else {
+				# is the child already there???
+				if ($field eq "addChildren") {
+					$field = "children";
+				}
+				if (!($this->{B}->checkChildPresent($node,$child))) {
+					#JAS my @av = @{$node->{RFields}{$field}};
+					my @av = @{$node->{Fields}{$field}};
+					push @av, $child;
+		  			$this->{B}->api__sendEvent($node, $field,\@av);
 				}
 			}
 		        $hand->print("RE\n$reqid\n0\n0\n");
@@ -333,16 +361,76 @@ sub handle_input {
 
 			my $node = VRML::Handles::get($id);
 			my $ft = $node->{Type}{FieldTypes}{$field};
+			my ($x,$FieldType) = $this->{B}->api__getFieldInfo($node,$field);
 
-			# JAS my ($x,$FieldType) = $this->{B}->api__getFieldInfo($node,$field);
-			# JAS print "VRMLServ.pm: for node $node, ft $ft, $x, $FieldType\n";
+#JAS	print "VRMLServ.pm, this is $this\n";
+#JAS
+#JAS        my @fields = keys %{$node->{Fields}};
+#JAS        my %f;
+#JAS        for(@fields) {
+#JAS                print "VRMLServ.pm:SE  - iterating field $_\n";
+#JAS                #my $v = $this->{RFields}{$_};
+#JAS                # First, get ISes values
+#JAS		if ("ARRAY" eq ref $node->{Fields}{$_}) {
+#JAS			print @{$node->{Fields}{$_}};
+#JAS 			#print (@{$f{$f}});
+#JAS		} else {
+#JAS			print $node->{Fields}{$_}
+#JAS		};
+#JAS		print",";
+#JAS		print	$node->{FieldTypes}{$_};
+#JAS		print",";
+#JAS		print	$node->{FieldKinds}{$_};
+#JAS		print"\n";
+#JAS	}
+#JAS
+
+			# so, by experiment we have the following:
+			# non-proto, just skip by, use the node as passed in.
+			# proto, IS:	use the real node, and the IS.
+			# proto, route: use the passed in node.
+
+			# ROUTEs affect this; lets see...
+			
+			if ($node->{IsProto}) {
+				my $testnode = $node->real_node();
+				my $ISfield = 
+					VRML::Browser::api__find_IS_ALIAS($testnode,$field);
+				#print "ISfield is $ISfield\n";
+				if ($ISfield ne "FALSE") {
+				#print "VRMLServ.pm - SE parent proto got\n";
+				$node =  $testnode;
+				$field = $ISfield;
+				}		
+			}
+
+        # my @fields = keys %{$node->{Fields}};
+        # my %f;
+        # for(@fields) {
+        #         print "VRMLServ.pm:SE  now, once again... - iterating field $_\n";
+# 		if ("ARRAY" eq ref $node->{Fields}{$_}) {
+# 			print @{$node->{Fields}{$_}};
+#  			#print (@{$f{$f}});
+# 		} else {
+# 			print $node->{Fields}{$_}
+# 		};
+# 		print",";
+# 		print	$node->{FieldTypes}{$_};
+# 		print",";
+# 		print	$node->{FieldKinds}{$_};
+# 		print"\n";
+# 	}
 			if ($ft eq "SFNode"){
-				# print "VRMLServ.pm - doing a SFNode\n";
+				#print "VRMLServ.pm - doing a SFNode\n";
 				my $child = VRML::Handles::get($v);
-				# print "VRMLServ.pm, ft $ft child $child\n";
+				if ($child->{IsProto}) {
+					#print "VRMLServ.pm - SE child proto got\n";
+					$child =  $child->real_node();
+				}
+				#print "VRMLServ.pm, ft $ft child $child\n";
 			    	$this->{B}->api__sendEvent($node, $field, $child);
 			} else {
-		    		# print "VRMLServ.pm, 3\n";
+		    		#print "VRMLServ.pm, 3\n";
 			    	my $value = "VRML::Field::$ft"->parse("FOO",$v);
 		    		$this->{B}->api__sendEvent($node, $field, $value);
 			}

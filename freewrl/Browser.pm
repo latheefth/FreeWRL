@@ -192,6 +192,8 @@ sub prepare {
 
 sub prepare2 {
 	my($this) = @_;
+	#JAS $this->{Scene}->make_executable();
+	#JAS $this->{Scene}->make_backend($this->{BE});
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 	$this->{Scene}->init_routing($this->{EV},$this->{BE});
 }
@@ -264,11 +266,7 @@ sub createVrmlFromString {
 	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING, DUH");
 	VRML::Parser::parse($scene, $string);
         $scene->make_executable();
-
-	if ($VRML::verbose::eai) {
-		print "createVRMLFromString - nodes are ",  $scene->get_as_nodearraystring(), "\n";
-	}
-	return $scene->get_as_nodearraystring();
+	return $scene->mkbe_and_array($this->{BE});
 }
 
 sub createVrmlFromURL { 
@@ -300,10 +298,10 @@ sub createVrmlFromURL {
         $scene->make_executable();
 
 	if ($VRML::verbose::eai) {
-		print "createVRMLFromURL - nodes are ",  $scene->get_as_nodearraystring(), "\n";
+		print "createVRMLFromURL - nodes are ",  $scene->mkbe_and_array(), "\n";
 	}
 
-	return $scene->get_as_nodearraystring();
+	return $scene->mkbe_and_array($this->{BE});
  }
 
 
@@ -318,9 +316,34 @@ sub api_getNode {
 }
 sub api__sendEvent { 
 	my($this,$node,$field,$val) = @_;
-	#print "Browser.pm: api__sendEvent, sending $val to $node, field $field\n";
+	# print "Browser.pm: api__sendEvent, sending $val to $node, field $field\n";
 	$this->{EV}->send_event_to($node,$field,$val);
 }
+
+# this one just registers real_node IS's.
+my %IS = ();
+sub api__register_IS_ALIAS {
+	my ($node, $is, $as, $direction) = @_;
+	# print "api__register_IS_ALIAS, node $node, is $is as $as direction $direction\n";
+	# note, we don't care right now what the direction is... Should we?
+	if(!defined $IS{$node}{$is}) {
+		$IS{$node}{$is} = $as;
+	}
+
+}
+
+sub api__find_IS_ALIAS {
+	my ($node, $is) = @_;
+	# print "api__find_IS_ALIAS, checking node $node for field $is\n";
+        if (!defined $IS{$node}{$is}) {
+		# print "api__find_IS_ALIAS returning FALSE \n";
+		return FALSE;
+	}
+	# print "api__find_IS_ALIAS returning ",  $IS{$node}{$is},"\n";
+	return $IS{$node}{$is};
+}
+
+
 
 sub api__registerListener { 
 	my($this, $node, $field, $sub) = @_;
@@ -335,6 +358,12 @@ sub api__getFieldInfo {
 
 
 sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
+
+# lets find the actual child transform that contains the field - PROTO stuff...
+sub  find_transform {
+        my ($this,$node, $field) = @_;
+	return VRML::NodeType::find_transform ($this, $node, $field);
+}
 
 # is the child already present in the parent? If so, then return 1, if not, return 0
 sub checkChildPresent {

@@ -468,15 +468,15 @@ sub set_fields {
       # 	$value = [map {$_->{CNode}} @$value];
       # }
       # print "set_fields, going through $_ for node $node fields is $fields\n";
-      #JAS print "GLBackEnd.pm:set_fields, calling VRML::CU::set_field_be with ";
-      #JAS print $node->{CNode};
-      #JAS print ", ";
-      #JAS print $node->{Type};
-      #JAS print ", ";
-      #JAS print $_;
-      #JAS print ", ";
-      #JAS print $fields->{$_};
-      #JAS print "\n"; 
+      #print "GLBackEnd.pm:set_fields, calling VRML::CU::set_field_be with ";
+      #print $node->{CNode};
+      #print ", ";
+      #print $node->{Type};
+      #print ", ";
+      #print $_;
+      #print ", ";
+      #print $fields->{$_};
+      #print "\n"; 
       VRML::CU::set_field_be($node->{CNode}, 
 			     $node->{Type}, $_, $fields->{$_});
     }
@@ -578,12 +578,6 @@ sub setup_projection {
 	# glShadeModel(GL_SMOOTH);
 }
 
-# sub unsetup_projection {
-# 	glMatrixMode(&GL_PROJECTION);
-# 	glPopMatrix();
-# 	glMatrixMode(&GL_MODELVIEW);
-# }
-
 sub setup_viewpoint {
 	my($this,$node) = @_;
 	my $viewpoint = 0;
@@ -622,7 +616,7 @@ sub setup_viewpoint {
 
 	    while($depnow-- > $dep) 
 	      {
-		print "GLBackEnd::setup_viewpoint -- POP!\n";
+		# print "GLBackEnd::setup_viewpoint -- POP! $depnow $dep\n";
 		glPopMatrix();
 	      }
 
@@ -863,6 +857,7 @@ sub render {
 	$#{$this->{BUTEV}} = -1;
 	glRenderMode(&GL_RENDER);
 
+	# determine whether cursor should be "sensor".
 	if ($cursortype != $curcursor) {
 		$curcursor = $cursortype;
 		if ($cursortype == 0) {

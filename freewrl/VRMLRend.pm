@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.13  2000/10/28 17:42:51  crc_canada
+# EAI addchildren, etc, should be ok now.
+#
 # Revision 1.12  2000/09/03 20:17:50  rcoscali
 # Made some test for blending
 # Tests are displayed with 38 & 39.wrlð
@@ -586,7 +589,7 @@ Material => ( join '',
 		glColor3f(m[0],m[1],m[2]);
 
 		if(fabs($f(shininess) - 0.2) > 0.001) {
-			printf("Set shininess: %f\n",$f(shininess));
+			/* printf("Set shininess: %f\n",$f(shininess)); */
 			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 
 				128 * $f(shininess));
 				/* 128*$f(shininess)*$f(shininess)); */

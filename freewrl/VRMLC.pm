@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.12  2000/10/28 17:40:57  crc_canada
+# EAI addchildren, etc, should be ok now.
+#
 # Revision 1.11  2000/09/15 22:48:40  rcoscali
 # Add patch from bob kozdemba for concave polygon fix
 #
@@ -987,6 +990,7 @@ static struct VRML_Virt virt_${n} = { ".
 
 			printf ("VRMLC.pm - get_rendfunc\n");
 /* void print_gl_stuff() */
+/*
 {
   float buf[4] = {-9.9, -9.9, -9.9, -9.9};
 
@@ -1038,6 +1042,8 @@ static struct VRML_Virt virt_${n} = { ".
  
 			  printf ("\\n"); 
 }
+*/
+
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, \$f(repeatS$1) ? GL_REPEAT : GL_CLAMP );
@@ -1108,7 +1114,7 @@ static struct VRML_Virt virt_${n} = { ".
 
 			printf ("VRMLC.pm - get_rendfunc\n");
 /* void print_gl_stuff() */
-{
+/*{
   float buf[4] = {-9.9, -9.9, -9.9, -9.9};
 
   glGetMaterialfv (GL_FRONT, GL_SPECULAR,buf);
@@ -1159,6 +1165,7 @@ static struct VRML_Virt virt_${n} = { ".
  
 			  printf ("\\n"); 
 }
+*/
 				glTexImage2D(GL_TEXTURE_2D,
 					     0, 
 					     \$f(__depth$1),  
@@ -2158,8 +2165,6 @@ void do_background_texture()
 	GLfloat col_pos[] = {0.0, 0.0, 1.0, 0.0};
   	float buf[4] = {-9.9, -9.9, -9.9, -9.9};
 
-  printf ("DOING BACKGROUND TEXTURE!!! \n");
-
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -2181,6 +2186,7 @@ void do_background_texture()
  	glLightfv (GL_LIGHT0, GL_POSITION, col_pos);
 */
 
+/* Do we want to print out values for debugging???
   glGetMaterialfv (GL_FRONT, GL_SPECULAR,buf);
   printf ("GL_FRONT, GL_SPECULAR %2.2f %2.2f %2.2f %2.2f\n",buf[0],buf[1],buf[2],buf[3]);
   glGetMaterialfv (GL_FRONT, GL_AMBIENT,buf);
@@ -2227,6 +2233,7 @@ void do_background_texture()
   printf ("GL_LIGHT0, GL_SPOT_QUADRATIC_ATTENUATION %2.2f\n",buf[0]);
  
   printf ("\n"); 
+*/
 }
 
 
