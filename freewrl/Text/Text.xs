@@ -83,56 +83,6 @@ int initialized = FALSE;
 
 GLUtriangulatorObj *triang;
 
-/* routines for the tesselation callbacks */
-static void FW_beg(GLenum e) {
-	if(verbose) 
-		printf("BEGIN %d\n",e);
-	glBegin(e);
-}
-
-static void FW_end() {
-	if(verbose) 
-		printf("END\n");
-	glEnd();
-}
-
-static void FW_ver(void *p) {
-	GLdouble *dp = p;
-	if(verbose) 
-		printf("V: %f %f %f\n",dp[0],dp[1],dp[2]);
-	glVertex3f(dp[0],dp[1],dp[2]);
-}
-
-static void FW_err(GLenum e) {
-	printf("FreeWRL Text error %d: '%s'\n",e,gluErrorString(e));
-}
-
-void FW_GLU_TESS_COMBINE (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
-	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
-	printf("FW_GLU_TESS_COMBINE\n");
-	nv[0] = c[0];
-	nv[1] = c[1];
-	nv[2] = c[2];
-	*out = nv; 
-}
-
-
-/* These are not used in FreeWRL - yet. 
-static void FW_GLU_TESS_BEGIN() { printf("FW_GLU_TESS_BEGIN\n");}
-static void FW_GLU_TESS_BEGIN_DATA() { printf("FW_GLU_TESS_BEGIN_DATA\n");}
-static void FW_GLU_TESS_EDGE_FLAG() { printf("FW_GLU_TESS_EDGE_FLAG\n");}
-static void FW_GLU_TESS_EDGE_FLAG_DATA() { printf("FW_GLU_TESS_EDGE_FLAG_DATA\n");}
-static void FW_GLU_TESS_VERTEX() { printf("FW_GLU_TESS_VERTEX\n");}
-static void FW_GLU_TESS_VERTEX_DATA() { printf("FW_GLU_TESS_VERTEX_DATA\n");}
-static void FW_GLU_TESS_END() { printf("FW_GLU_TESS_END\n");}
-static void FW_GLU_TESS_END_DATA() { printf("FW_GLU_TESS_END_DATA\n");}
-static void FW_GLU_TESS_COMBINE_DATA() { printf("FW_GLU_TESS_COMBINE_DATA\n");}
-static void FW_GLU_TESS_ERROR() { printf("FW_TESS_ERROR\n");}
-static void FW_GLU_TESS_ERROR_DATA() { printf("FW_GLU_TESS_ERROR_DATA\n");}
-*/
-
-
-
 
 
 /* Outline callbacks and global vars */
@@ -468,8 +418,6 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 	   if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
 	}
 
-	printf("topToBottom %d leftToRight %d\n",fsparam & 0x04, fsparam & 0x02);
-
 	/* topToBottom */
 	if (TOPTOBOTTOM) {
 		spacing =  -spacing;  /* row increment */
@@ -544,9 +492,10 @@ OUTPUT:
 
 
 int
-open_font(sys_path, fw_path)
+open_font(sys_path, fw_path, OpenGLtriangulator)
 char *sys_path
 char *fw_path
+unsigned int OpenGLtriangulator;
 CODE:
 	{
 	int len;
@@ -568,27 +517,7 @@ CODE:
 	}
 
 	/* register tesselation callbacks for OpenGL calls */
-	triang = gluNewTess();
-/*
-	gluTessCallback(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
-	gluTessCallback(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
-	gluTessCallback(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
-	gluTessCallback(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
-	gluTessCallback(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
-	gluTessCallback(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
-	gluTessCallback(triang, GLU_TESS_END,FW_GLU_TESS_END);
-	gluTessCallback(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
-*/
-	gluTessCallback(triang, GLU_TESS_COMBINE,FW_GLU_TESS_COMBINE);
-/*
-	gluTessCallback(triang, GLU_TESS_COMBINE_DATA,FW_GLU_TESS_COMBINE_DATA);
-	gluTessCallback(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
-	gluTessCallback(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
-*/
-	gluTessCallback(triang, GLU_BEGIN, FW_beg);
-	gluTessCallback(triang, GLU_VERTEX, FW_ver);
-	gluTessCallback(triang, GLU_END, FW_end);
-	gluTessCallback(triang, GLU_ERROR, FW_err);
+	triang = (GLUtriangulatorObj *)OpenGLtriangulator;
 
 	FW_outline_interface.move_to = (FT_Outline_MoveTo_Func)FW_moveto;
 	FW_outline_interface.line_to = (FT_Outline_LineTo_Func)FW_lineto;
