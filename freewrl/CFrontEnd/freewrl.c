@@ -87,6 +87,8 @@ int main (int argc, char **argv) {
 			{"fd", 1, 0, 'j'},
 			{"instance", 1, 0, 'k'},
 			{"version", 0, 0, 'v'},
+			{"big",  0, 0, 'b'},		/* Alberto Dubuc */
+			{"nostatus",0, 0, 's'},		/* Alberto Dubuc */
 
 			{"seq", 0, 0, 'l'},
 			{"seqb",1, 0, 'm'},
@@ -174,6 +176,13 @@ int main (int argc, char **argv) {
 				  seqtmp = malloc (count+1);
                 		  strcpy (seqtmp,argv[optind]);
 				  break;
+
+			case 'b': /* Alberto Dubuc - bigger window */
+				setGeometry ("800x600");
+				break;
+			case 's': /* Alberto Dubuc - no status bar */
+				display_status = 0;
+				break;
 
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */

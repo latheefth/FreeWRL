@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "1.06.1";
+$VERSION = "1.06-pre1";
 
 BEGIN {
  eval "use 5.004";
@@ -23,6 +23,14 @@ use Cwd qw(getcwd chdir);
 @ARGV = map {
 	if(/^CONF=(.*)$/) {
 		$vrml_conf_file = $1; ();
+	} else {
+		$_
+	}
+} @ARGV;
+
+@ARGV = map {
+	if(/^PPREFIX=(.*)$/) {
+		$PPREFIX = $1; ();
 	} else {
 		$_
 	}
@@ -64,7 +72,7 @@ print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.
 ## Handle platform-specific compile options for the Javascript engine
 ## and others specific to FreeWRL.
 
-my $sitearchjsdir = "\$(SITEARCHEXP)/auto/VRML/JS";
+my $sitearchjsdir = "\$(INSTALLPRIVLIB)/auto/VRML/JS";
 
 my $jsdir = "js/src";
 my $jsobjdir;
@@ -86,6 +94,8 @@ if ($VRML_CONFIG{PLATFORM} =~ /irix/i) {
 	$jsobjdir = "$jsdir/IRIX6.5";
 } elsif ($VRML_CONFIG{PLATFORM} =~ /macosx/i) {
 	$jsobjdir = "$jsdir/Darwin6.6";
+} elsif ($VRML_CONFIG{PLATFORM} =~ /sunos/i) {
+	$jsobjdir = "$jsdir/SunOS5.8";
 } else { ## linux used by default
 	$jsobjdir = "$jsdir/Linux_All";
 }
@@ -282,7 +292,7 @@ INST_DYNAMIC_DEP =
 
 	sub postamble {
 		my @postamble;
-		my $VRMLINSTDIR   = "\$(SITEARCHEXP)/VRML";
+		my $VRMLINSTDIR   = "\$(INSTALLPRIVLIB)/VRML";
 		my $FRONTEND      = "\$(dir)/CFrontEnd";
 		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
 		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
@@ -328,12 +338,17 @@ INST_DYNAMIC_DEP =
 				qq{\tcp -r x3d $VRMLINSTDIR\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
-				qq{\t/sbin/ldconfig\n},
 				));
+		if (!($VRML_CONFIG{PLATFORM} =~ /sunos/i)) {
+			push(@postamble, join(
+				qq{\t/sbin/ldconfig\n}
+			));
+		}
+
 
 		# make the C Front End.
 
-		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(SITEARCHEXP)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION)";
+		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION)";
 		my $def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
 
 		push (@postamble, join("\n",

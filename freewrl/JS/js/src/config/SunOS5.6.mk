@@ -37,16 +37,10 @@
 #
 
 AS = /usr/ccs/bin/as
-ifndef NS_USE_NATIVE
-  CC = gcc
-  CCC = g++
-  CFLAGS +=  -Wall -Wno-format
-else
-  CC = cc
-  CCC = CC
-  CFLAGS += -mt -KPIC
+CC = gcc
+CCC = g++
+CFLAGS +=  -Wall -Wno-format
 #  LD = CC
-endif
 
 RANLIB = echo
 

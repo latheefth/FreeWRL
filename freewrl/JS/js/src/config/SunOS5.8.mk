@@ -36,4 +36,4 @@
 # Config stuff for SunOS5.8
 #
 
-include $(DEPTH)/config/SunOS5.5.mk
+include $(DEPTH)/config/SunOS5.6.mk

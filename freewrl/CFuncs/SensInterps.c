@@ -671,6 +671,8 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	float 	speed;
 	float	duration;
 
+	int tmpTrunc; 		/* used for timing for textures */
+
 	/* can we possibly have started yet? */
 	if (!node) return;
 	if(TickTime < node->startTime) {
@@ -706,7 +708,8 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 		/* calculate what fraction we should be */
  		myTime = (TickTime - node->startTime) * speed/duration;
 
-		frac = myTime - truncf((float)myTime);
+		tmpTrunc = (int) myTime;
+		frac = myTime - (float)tmpTrunc;
 	
 		/* negative speed? */
 		if (speed < 0) {
@@ -717,7 +720,9 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 		}
 	
 		/* frac will tell us what texture frame we should apply... */
-		frac = truncf(frac*(highest-lowest+1)+lowest);
+		/* code changed by Alberto Dubuc to compile on Solaris 8 */
+		tmpTrunc = (int) (frac*(highest-lowest+1)+lowest);
+		frac = (float) tmpTrunc;
 	
 		/* verify parameters */
 		if (frac < lowest){ 
