@@ -58,7 +58,13 @@ public abstract class Script extends BaseNode
     // processEvents() is called automatically when the script receives 
     //   some set of events. It shall not be called directly except by its subclass.
     //   count indicates the number of events delivered.
-    public void processEvents(int count, Event events[]) { }
+    // Trevor John Thompson has submitted the following code.
+
+    public void processEvents(final int count, final Event events[]) {
+        for (int i = 0; i < count && i < events.length; ++i) {
+            processEvent(events[i]);
+        }
+    } 
     
     // processEvent() is called automatically when the script receives 
     // an event. 
