@@ -97,7 +97,7 @@ sub load_file {
 	my $t = VRML::URL::get_absolute($file);
 
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
-	if (!$t) { die "File $file was not found"; }
+	if (!$t) { print "Exiting -- File $file was not found.\n"; exit(1);}
 
 	if ($t =~ /^#VRML V2.0/s) {
 		$this->load_string($t,$url,2);
