@@ -154,7 +154,7 @@ sub propagate_events {
 					# who has children?
 					for(@{$this->{PIs}{$_->[0]}{$_->[1]}}) {
 						print "P_IS: send to $_\n"
-						 ;#JAS if $VRML::verbose::events;
+						 if $VRML::verbose::events;
 						my $fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
 						if(!defined $fk) {die("Fieldkind getting")}
 						if($fk eq "eventIn" or 
@@ -192,9 +192,9 @@ sub propagate_events {
 					# who has children?
 					for(@{$this->{PIs}{$e->[0]}{$e->[1]}}) {
 						print "Events.pm:P_IS: send to $_\n"
-						 ;#JAS if $VRML::verbose::events;
+						 if $VRML::verbose::events;
 						my $fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
-print"Events.pm - fk $fk one ",$_->[1], " , e2 ", $e->[2],"\n";
+						# print"Events.pm - fk $fk one ",$_->[1], " , e2 ", $e->[2],"\n";
 						if(!defined $fk) {die("Fieldkind getting")}
 						if($fk eq "eventIn" or 
 						   $fk eq "exposedField") {
