@@ -624,7 +624,7 @@ void regen_polyrep(void *node)
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->normal);
-	FREE_IF_NZ(rep_->tcindex);
+	FREE_IF_NZ(r->tcindex);
 	v->mkpolyrep(node);
 }
 
