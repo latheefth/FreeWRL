@@ -100,6 +100,15 @@ Notes:
 
 40.wrl:	Large IndexFaceSet example - concave.
 
+41.wrl:	Extrusion test: an animated snake.
+
+42.wrl: Extrusion test: a bottle.
+
+43.wrl: Extrusion test: Torroid.
+
+44.wrl: Extrusion test: neat slide?
+
+
 AddRemove:	
 	Java applet with EAI add/remove button. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
