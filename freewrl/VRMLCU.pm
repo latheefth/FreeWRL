@@ -106,7 +106,7 @@ sub set_field_be {
 	# if($fk !~ /[fF]ield$/ and !defined $value) {return}
 	print "SETS: $node $type $field '$value' (",(
 		"ARRAY" eq ref $value ? join ',',@$value : $value ),") $ft $o\n"
-		if $VRML::verbose::be && $field ne "__data";
+		if $VRML::verbose::be;
 
 	&{"VRML::VRMLFunc::set_offs_$ft"}(
 		$node, $o, 

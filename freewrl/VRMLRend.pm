@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.84  2002/11/28 20:15:41  crc_canada
+# For 0.37, PixelTextures are handled in the same fashion as other static images
+#
 # Revision 1.83  2002/11/12 19:36:30  crc_canada
 # ElevationGrid with TextureCoordinate - use calculated ones, not ones passed in.
 #
@@ -1013,8 +1016,16 @@ TextureTransform => '
 	glMatrixMode(GL_MODELVIEW);
 ',
 
+# Pixels and Images are all handled the same way now - the methods are identical.
+PixelTexture => '
+	unsigned char *filename = SvPV((this_->__locfile),PL_na);
+	this_->_myshape = last_visited_shape; 
+	last_bound_texture = this_->__texture;
+	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
+',
+
 ImageTexture => '
-	unsigned char *filename = SvPV((this_->__data),PL_na);
+	unsigned char *filename = SvPV((this_->__locfile),PL_na);
 	
 	/* for shape display list redrawing */
 	this_->_myshape = last_visited_shape; 
@@ -1026,24 +1037,7 @@ ImageTexture => '
 	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 ',
 
-PixelTexture => '
-
-	unsigned char *ptr = SvPV((this_->__data),PL_na);
-
-		/* for shape display list redrawing */
-	this_->_myshape = last_visited_shape; 
-
-	/* save the reference globally */
-	last_bound_texture = this_->__texture;
-
-	glBindTexture (GL_TEXTURE_2D, this_->__texture);
-	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
-		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
-		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
-		GL_NEAREST);
-',
-
-
+######
 MovieTexture => '
 	unsigned char *ptr;
 
@@ -1431,12 +1425,12 @@ Background => '
 	background_display_list = glGenLists(1);
 
 	/* do we have any background textures?  */
-	frtptr = SvPV((this_->__datafront),frtlen); 
-	bckptr = SvPV((this_->__databack),bcklen);
-	topptr = SvPV((this_->__datatop),toplen);
-	botptr = SvPV((this_->__databottom),botlen);
-	lftptr = SvPV((this_->__dataleft),lftlen);
-	rtptr = SvPV((this_->__dataright),rtlen);
+	frtptr = SvPV((this_->__locfilefront),frtlen); 
+	bckptr = SvPV((this_->__locfileback),bcklen);
+	topptr = SvPV((this_->__locfiletop),toplen);
+	botptr = SvPV((this_->__locfilebottom),botlen);
+	lftptr = SvPV((this_->__locfileleft),lftlen);
+	rtptr = SvPV((this_->__locfileright),rtlen);
 
 	/*printf ("background textures; lengths %d %d %d %d %d %d\n",
 		frtlen,bcklen,toplen,botlen,lftlen,rtlen);

@@ -335,42 +335,67 @@ sub init_image {
 		$f->{__istemporary.$name} = 1;
 	}
 
-	$f->{__data.$name} = $tempfile; # store the name for later processing
+	$f->{__locfile.$name} = $tempfile; # store the name for later processing
 		return;
 
 	NO_TEXTURE:
-	$f->{__depth.$name} = 0;
-	$f->{__x.$name} = 0;
-	$f->{__y.$name} = 0;
-	$f->{__data.$name} = "";
+#	$f->{__depth.$name} = 0;
+#	$f->{__x.$name} = 0;
+#	$f->{__y.$name} = 0;
+	$f->{__locfile.$name} = "";
 	$f->{__texture.$name} = 0;
 	$f->{__istemporary.$name} = 0;
 	return;
 }
 
 
-# From: Remi Cohen-Scali
-
 sub init_pixel_image {
     my($imagename, $t, $f, $scene) = @_;
     my $sfimage = $f->{$imagename};
+
+    # now, $sfimage contains the "image" field of the node.
+
     if (!defined $sfimage) {
-		goto NO_PIXEL_TEXTURE;
+	#    	$f->{__depth} = 0;
+	#    	$f->{__x} = 0;
+	#    	$f->{__y} = 0;
+	$f->{___istemporary} = 0;
+	$f->{___texture} = 0;
+	$f->{__locfile} = "";
+    } else {
+
+	# the following will parse off the x,y,depth. If we *REALLY* need
+	# to store it locally, we can. For now, we don't bother storing
+	# this, but let the C function read in and use this information. JAS
+
+	#	  $sfimage =~ /\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
+	#	    or parsefail($_[2], "didn't match width/height/depth of SFImage");
+
+	# should we just store the string here, or should we put it to a file?
+	# Some of these textures are large - in the order of a meg. For now,
+	# they are written to a file, which allows handling equivalent to
+	# what happens for other images.
+
+	#    	$f->{__depth} = $3;
+	#    	$f->{__x} = $2;
+	#	$f->{__y} = $1;
+	$f->{__istemporary} = 1;
+    	$f->{__texture} = VRML::OpenGL::glGenTexture();
+
+	my $lgname = $ENV{LOGNAME};
+	my $tempfile_name = "/tmp/freewrl_";
+	my $tempfile = join '', $tempfile_name,$lgname,
+			$f->{__texture},".pixtex";
+
+    	$f->{__locfile} = $tempfile;
+	
+	# write ascii pixeltexture data to file
+	my $fh;
+	open ($fh, "> $tempfile");
+	print $fh $sfimage;
+	close ($fh);
+
     }
-
-
-    $f->{__depth} = $sfimage->[2];
-    $f->{__x} = $sfimage->[0];
-    $f->{__y} = $sfimage->[1];
-    $f->{__data} = $sfimage->[3];
-    $f->{__texture} = VRML::OpenGL::glGenTexture();
-    return;
-
- NO_PIXEL_TEXTURE:
-    $f->{__depth} = 0;
-    $f->{__x} = 0;
-    $f->{__y} = 0;
-    $f->{__data} = "";
     return;
 }
 
@@ -394,19 +419,19 @@ sub init_movie_image {
 	$f->{__texture0_} = $init_tex;
 	$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
 		$file,$f->{repeatS},$f->{repeatT});
-	$f->{__depth} = $dep;
-	$f->{__x} = $wi;
-	$f->{__y} = $hei;
-	$f->{__data} = ();
+	#	$f->{__depth} = $dep;
+	#	$f->{__x} = $wi;
+	#	$f->{__y} = $hei;
+	$f->{__locfile} = ();
 	#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
 	#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
 	return;
 
  NO_TEXTURE:
-    $f->{__depth} = 0;
-    $f->{__x} = 0;
-    $f->{__y} = 0;
-    $f->{__data} = ();
+#    $f->{__depth} = 0;
+#    $f->{__x} = 0;
+#    $f->{__y} = 0;
+    $f->{__locfile} = ();
     $f->{__texture0_} = 0;
     $f->{__texture1_} = 0;
     return;
@@ -566,7 +591,7 @@ my $protono;
     url => [MFString, []],			# original URL from VRML file
     repeatS => [SFBool, 1, "field"],		# VRML repeatS field
     repeatT => [SFBool, 1, "field"],		# VRML repeatT field
-    __data => [SFString, "", "field"],		# where on the local file system texture resides
+    __locfile => [SFString, "", "field"],		# where on the local file system texture resides
     __texture => [SFInt32,0,"field"],		# OpenGL texture number
     __istemporary =>[SFInt32,0,"field"],	# if we have to remove this after processing
  },{
@@ -582,14 +607,16 @@ my $protono;
 # From Remi Cohen-Scali
 
 PixelTexture => new VRML::NodeType("PixelTexture",
-       {image => [SFImage, [0,0,0,""]],
-        repeatS => [SFBool, 1, "field"],
-        repeatT => [SFBool, 1, "field"],
-        __depth => [SFInt32, 1, "field"],
-        __x => [SFInt32,0, "field"],
-        __y => [SFInt32,0, "field"],
-        __data => [SFString, "", "field"],
-        __texture => [SFInt32,0,"field"],
+       {
+	image => [SFImage, []],			# pixeltexture value, uncompiled.
+        repeatS => [SFBool, 1, "field"],	# VRML repeatS field
+        repeatT => [SFBool, 1, "field"],	# VRML repeatT field
+        __texture => [SFInt32,0,"field"], 	# OpenGL texture number
+#        __depth => [SFInt32, 1, "field"],
+        __istemporary =>[SFInt32,0,"field"],	# if we have to remove this after processing
+#        __x => [SFInt32,0, "field"],
+#        __y => [SFInt32,0, "field"],
+        __locfile => [SFString, "", "field"],
        },{
        Initialize => sub { 
                my($t,$f,$time,$scene) = @_;
@@ -610,10 +637,10 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	repeatT	=> [SFBool, 1, ""], 	# not exposedfield
 	duration_changed	=> [SFTime,undef,eventOut],
 	isActive	=> [SFBool, undef, out],
-        __depth => [SFInt32, 1, "field"],
-        __x => [SFInt32,0, "field"],
-        __y => [SFInt32,0, "field"],
-        __data => [MFString, [], "field"],
+#        __depth => [SFInt32, 1, "field"],
+#        __x => [SFInt32,0, "field"],
+#        __y => [SFInt32,0, "field"],
+        __locfile => [MFString, [], "field"],
         __texture0_ => [SFInt32,0, "field"], # initial texture number 
         __texture1_ => [SFInt32,0, "field"], # last texture number
 	__ctex => [SFInt32, 0, "field"],	# which texture number is used
@@ -1936,7 +1963,7 @@ Background => new VRML::NodeType("Background",
 	 bindTime => [SFTime, undef, eventOut],
 	 (map {(
 		 $_.Url => [MFString, []],
-		 __data.$_ => [SFString, ""], 		# local or temp file name
+		 __locfile.$_ => [SFString, ""], 		# local or temp file name
 		 __texture.$_ => [SFInt32,0],		# OpenGL texture number
 		 __istemporary.$_ => [SFInt32,0],	# is this a temp file?
 	 )} qw/back front top bottom left right/),

@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.26  2002/11/28 20:15:41  crc_canada
+# For 0.37, PixelTextures are handled in the same fashion as other static images
+#
 # Revision 1.25  2002/11/25 16:55:27  ayla
 #
 # Tweaked float/double formatting to strings and made changes to property
@@ -849,172 +852,28 @@ sub parse {
 
   # JAS $VRML::verbose::parse=1;
 
-  $_[2] =~ /\G\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
-    or parsefail($_[2], "didn't match width/height/depth of SFImage");
-  my ($sfimage_width, $sfimage_height, $sfimage_depth) = ($1, $2, $3);
-  parsefail($_[2], "pixel texture depth is invalid: consider values between 1 and 4 inclusive !")
-    if (! (1 <= $sfimage_depth && $sfimage_depth <= 4));
-  print "VRML::Field::SFImage::parse -  width = $sfimage_width     height = $sfimage_height   depth = $sfimage_depth \n"
-    if $VRML::verbose::parse;
-  my $npixgrp = ($sfimage_width * $sfimage_height) -1;
-  my @pixrows; # A table of sfimage_height rows of (sfimage_width * sfimage_depth) columns
-  my $x = 0, $y = 0;
- PIXGRP:
-  while (1) 
-    {
-      $_[2] =~ /\G\s+((0x)[0-9A-Fa-f]+|[0-9]+)/ogcs
-  	or parsefail($_[2], "didn't match a pixel (still $npixgrp to go)");
-      my $pixel = $1;
-      my $isx = (defined $2);
-      print "VRML::Field::SFImage::parse -  pixel is $1 (".($2 ? "hexa" : "decimal").")\n" 
-	if $VRML::verbose::parse;
-      if ($isx) 
-	{
- 	DEPTHSWITCHX:
-	  for ($sfimage_depth) {
-	    m/1/ && do { 
-  	      parsefail($pixel, "pixel $pixel didn't match a one-component pixel", "do not have correct number of digits") if ($pixel !~ m/0x([0-9A-Fa-f]{2})/);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $1); 
-	      last DEPTHSWITCHX; 
-	    };
-	    m/2/ && do { 
-   	      parsefail($pixel, "pixel $pixel didn't match a two-component pixel", "do not have correct number of digits") if ($pixel !~ m/0x([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})/);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $1);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $2);
-	      last DEPTHSWITCHX; 
-	    };
-	    m/3/ && do {
-   	      parsefail($pixel, "pixel $pixel didn't match a three-component pixel", "do not have correct number of digits") if ($pixel !~ m/0x([0-9A-Fa-f]{2}){3}/);
-  	      $pixel =~ m/0x([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})/;
-  	      $pixrows[$y][$x++] = sprintf("%02s", $1);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $2);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $3);
-	      last DEPTHSWITCHX; 
-	    };
-	    m/4/ && do {
-   	      parsefail($pixel, "pixel $pixel didn't match a three-component pixel", "do not have correct number of digits") if ($pixel !~ m/0x([0-9A-Fa-f]{2}){4}/);
-  	      $pixel =~ m/0x([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})/;
-  	      $pixrows[$y][$x++] = sprintf("%02s", $1);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $2);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $3);
-  	      $pixrows[$y][$x++] = sprintf("%02s", $4);
-	      last DEPTHSWITCHX;
-	    };
-	  }
-	} 
-      else
-	{
- 	DEPTHSWITCH:
-	  for ($sfimage_depth) {
-	    m/1/ && do { 
-	      parsefail($pixel, "pixel $pixel didn't match a one-component pixel", "greater than 0xFF") if ($pixel >= 0x100);
-  	      $pixrows[$y][$x++] = sprintf("%x", $pixel); 
-	      last DEPTHSWITCH; 
-	    };
-	    m/2/ && do { 
- 	      parsefail($pixel, "pixel $pixel didn't match a two-component pixel", "greater than 0xFFFF") if ($pixel >= 0x10000);
-  	      $pixrows[$y][$x++] = sprintf("%02x", ((int($pixel) >> 8) & 0x00ff));	      
-  	      $pixrows[$y][$x++] = sprintf("%02x", (int($pixel) & 0x00ff));
-	      last DEPTHSWITCH; 
-	    };
-	    m/3/ && do {
- 	      parsefail($pixel, "pixel $pixel didn't match a three-component pixel", "greater than 0xFFFFFF") if ($pixel >= 0x1000000);
-  	      sprintf( "%06x", $pixel ) =~ m/([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})/;
-  	      $pixrows[$y][$x++] = $1;
-  	      $pixrows[$y][$x++] = $2;
-  	      $pixrows[$y][$x++] = $3;
-	      last DEPTHSWITCH; 
-	    };
-	    m/4/ && do {
- 	      parsefail($pixel, "pixel $pixel didn't match a three-component pixel", "greater than 0xFFFFFFFF") if ($pixel > 0xFFFFFFFF);
-  	      sprintf( "%06x", (($pixel >> 8) & 0x00ffffff)) =~ m/([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})/;
-  	      $pixrows[$y][$x++] = $1;
-  	      $pixrows[$y][$x++] = $2;
-  	      $pixrows[$y][$x++] = $3;
-  	      $pixrows[$y][$x++] = sprintf( "%02x", ($pixel & 0x000000ff));
-	      last DEPTHSWITCH;
-	    };
-	  }
-	}
-      do {$x = 0; $y++} if ($x == ($sfimage_width * $sfimage_depth));
-      next PIXGRP if ($npixgrp--);
-      last PIXGRP;
-    }
-  my $dat = '';
-  my $len = 0;
-  for $y (0 .. ($sfimage_height -1))
-    {
-      for $x (0 .. (($sfimage_width * $sfimage_depth) -1))
-	{
-  	  $dat = $dat.eval( 'chr(0x'.$pixrows[$y][$x].' )');
-	}
-    }
-  return [$sfimage_width, $sfimage_height, $sfimage_depth, $dat];
+
+# define SFImage as being a range of "numbers" separated by spaces, tabs, newlines, etc.
+# this will end at what hopefully is the trailing brace.
+
+$SFImageChars = qr~[a-fA-FxX+\- \n\t\s\d]+~;
+
+# now, get the image data
+$_[2] =~ /\G\s*($SFImageChars)\s*/gc
+	or parsefail ($_[2], " problem finding SFImage");
+  return $1;
 }
 
-sub print {print join ' ',@{$_[1]}}
-sub as_string {join ' ',@{$_[1]}}
 
-sub ctype {"struct SFImage $_[1]"}
-sub cstruct {return <<EOF
-struct SFImage {
-  int __x;
-  int __y;
-  int __depth;
-  unsigned char *__data; 	// file name where image resides
-  int __texture; 		// OpenGL texture number
-};
-EOF
-}
+sub ctype {return "SV *$_[1]"}
+sub calloc {"$_[1] = newSVpv(\"\",0);"}
+sub cassign {"sv_setsv($_[1],$_[2]);"}
+sub cfree {"SvREFCNT_dec($_[1]);"}
+sub cfunc {"sv_setsv($_[1],$_[2]);"}
 
-sub cget {return "($_[1].$_[2])"}
+sub print {print "\"$_[1]\""}
+sub as_string{"\"$_[1]\""}
 
-sub cfunc {
-	return <<EOF
-            {
-		AV *a;
-		SV **__data, **__x, **__y, **__depth;
-		STRLEN pl_na;
-		int i, x, y;
-		if(!SvROK($_[2])) {
-			$_[1].__data = NULL;
-			$_[1].__x = 0;
-			$_[1].__y = 0;
-			$_[1].__depth = 0;
-			/* die(\"Help! SFImage without being ref\"); */
-		} else {
-			if(SvTYPE(SvRV($_[2])) != SVt_PVAV) {
-				die(\"Help! SFImage without being arrayref\");
-			}
-			a = (AV *) SvRV($_[2]);
-
-			/* __x */
-			__x = av_fetch(a, 0, 1); /* LVal for easiness */
-			if(!__x) die(\"Help: SFImage __x == NULL\");
-			$_[1].__x = SvNV(*__x);
-			/* fprintf(stdout, \"SFImage __x = %d\\n\", $_[1].__x); */
-
-			/* __y */
-			__y = av_fetch(a, 1, 1); /* LVal for easiness */
-			if(!__y) die(\"Help: SFImage __y == NULL\");
-			$_[1].__y = SvNV(*__y);
-			/* fprintf(stdout, \"SFImage __y = %d\\n\", $_[1].__y); */
-
-			/* __depth */
-			__depth = av_fetch(a, 2, 1); /* LVal for easiness */
-			if(!__depth) die(\"Help: SFImage __depth == NULL\");
-			$_[1].__depth = SvNV(*__depth);
-			/* fprintf(stdout, \"SFImage __depth = %d\\n\", $_[1].__depth); */
-
-			/* Handle image data */
-			__data = av_fetch(a, 4, 1); /* LVal for easiness */
-			if(!__data) die(\"Help: SFImage __data == 0\");
-			$_[1].__data = SvPV(*__data, pl_na);
-			/* fprintf(stdout, \"SFImage __data = %s  (len = %d) \\n\", $_[1].__data, pl_na); */
-		}
-	}
-EOF
-}
 
 
 1;
