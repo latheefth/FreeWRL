@@ -231,6 +231,9 @@ close OUT;
 
 if ($OS eq "Darwin") {
 	`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
+	`cp JS/Makefile.aqua.PL JS/Makefile.PL`;
+	`cp CFrontEnd/Makefile.aqua CFrontEnd/Makefile`;
+	`cp FreeWRL_Message/Makefile.aqua FreeWRL_Message/Makefile`;
 }
 
 ## make the Javascript libraries if needed
@@ -372,6 +375,7 @@ INST_DYNAMIC_DEP =
 		));
 
 
+		if ($OS ne "Darwin") {
 		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
 		my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
 		my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
@@ -380,6 +384,7 @@ INST_DYNAMIC_DEP =
 				  qq{\# --- Mozilla/Netscape Plugin:\n},
 				  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"$x1\"\n}
 				 ));
+		}
 		}
 
 		if ($VRML::Config::vrml_config{JAVA_INST} && $VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
@@ -405,6 +410,15 @@ INST_DYNAMIC_DEP =
 				qq{\t/sbin/ldconfig\n}
 			));
 		}
+		if ($OS eq "Darwin") {
+			push(@postamble, join(
+				"\n",
+                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
+                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
+                                qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
+			));
+		}
+		
 
 
 
@@ -428,11 +442,13 @@ INST_DYNAMIC_DEP =
 			 ));
 
 		# make the sound engine.
-		if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
-		push (@postamble, join("\n",
-			  qq{\n\# --- Sound Engine:},
-			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def \n},
-			 ));
+		if ($OS ne "Darwin") {
+			if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
+			push (@postamble, join("\n",
+				  qq{\n\# --- Sound Engine:},
+				  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def \n},
+				 ));
+			}
 		}
 
 		# make the Console displayer.
@@ -450,9 +466,14 @@ INST_DYNAMIC_DEP =
 			  qq{clean ::},
 			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clean\n},
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
-			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			 ));
+		if ($OS ne "Darwin") {
+			push(@postamble, join(
+			  "\n",
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
+			));
+		}
 
 		###################################################
 		# lets do the distclean:: targets at this step.
@@ -462,9 +483,14 @@ INST_DYNAMIC_DEP =
 			  qq{distclean :: realclean},
 			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clobber},
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
-			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			 ));
+		if ($OS ne "Darwin") {
+			push(@postamble, join(
+			  "\n",
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
+			));
+		}
 
 		###################################################
 		# lets do the all:: targets at this step.
@@ -472,10 +498,7 @@ INST_DYNAMIC_DEP =
 		push(@postamble, join(
 			  "\n",
 			  qq{all::},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def \n},
-			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
-			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
-			 ));
+			));
 
 		if ($VRML::Config::vrml_config{PLATFORM} eq "LINUX") {
 			push(@postamble, join(
@@ -484,6 +507,29 @@ INST_DYNAMIC_DEP =
 				qq{\t/sbin/ldconfig\n}
 			));
 		}
+		if ($OS eq "Darwin") {
+			push(@postamble, join(
+				"\n",
+                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
+                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
+                             qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
+			));
+		}
+
+		if ($OS ne "Darwin") {
+		push(@postamble, join(
+			  "\n",
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
+			 ));
+		}
+
+
+		push(@postamble, join(
+			  "\n",
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def \n},
+			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
+			 ));
+
 
 		return join("\n", @postamble);
 	}

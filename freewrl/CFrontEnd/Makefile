@@ -2,13 +2,13 @@
 #
 
 # for making the Perl interface
-PFLAGS = -c -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+PFLAGS = -c -I../CFuncs -DAQUA -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
 
 # for making the freewrl opts file
-FWFLAGS = -c -D_REENTRANT -I../CFuncs
+FWFLAGS = -c -I../CFuncs -D_REENTRANT -DAQUA
 
 FRFLAGS = -c -DPERLPATH=\"\$(PPATH)\" \
-		 -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+		 -I../CFuncs -I/System/Library/Frameworks/OpenGL.framework/Headers -DAQUA -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
 
 all:	freewrl
 
@@ -34,6 +34,6 @@ freewrl: perlxsi fwopts
 	-lpthread -lFreeWRLFunc $(BC)\
 
 clean:
-	rm -f *o; rm -f perlxsi*; rm -f freewrl;
+	rm *o; rm perlxsi*; rm freewrl;
 
 distclean: clean
