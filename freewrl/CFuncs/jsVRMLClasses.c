@@ -22,6 +22,74 @@ static int JSVRMLClassesVerbose = 0;
 void _get4f(double *ret, double *mat, int row);
 void _set4f(double len, double *mat, int row);
 
+
+/* try and print what an element is in case of error */
+static void
+printNodeType (JSContext *context, JSObject *myobj) {
+	printf ("type was: ");
+	if (JS_InstanceOf(context, myobj, &SFColorClass, NULL)) {
+	printf ("SFColorClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFVec2fClass, NULL)) {
+	printf ("SFVec2fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFVec3fClass, NULL)) {
+	printf ("SFVec3fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFRotationClass, NULL)) {
+	printf ("SFRotationClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFImageClass, NULL)) {
+	printf ("SFImageClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &SFNodeClass, NULL)) {
+	printf ("SFNodeClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFFloatClass, NULL)) {
+	printf ("MFFloatClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFTimeClass, NULL)) {
+	printf ("MFTimeClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFInt32Class, NULL)) {
+	printf ("MFInt32Class\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFColorClass, NULL)) {
+	printf ("MFColorClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFVec2fClass, NULL)) {
+	printf ("MFVec2fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFVec3fClass, NULL)) {
+	printf ("MFVec3fClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFRotationClass, NULL)) {
+	printf ("MFRotationClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFNodeClass, NULL)) {
+	printf ("MFNodeClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &MFStringClass, NULL)) {
+	printf ("MFStringClass\n");
+	}
+	else if (JS_InstanceOf(context, myobj, &VrmlMatrixClass, NULL)) {
+	printf ("VrmlMatrixClass\n");
+	}
+/*	
+	else if (JSVAL_IS_STRING(myobj)==TRUE) {
+		printf ("Common String");
+	}
+	else if (JSVAL_IS_OBJECT(myobj)==TRUE) {
+		printf ("It is an object");
+	} 
+	else if (JSVAL_IS_PRIMITIVE(myobj)==TRUE) {
+		printf ("is a primitive");
+	}
+*/
+	else printf ("Unknown");
+	printf ("\n");
+}
+
 /* do a simple copy; from, to, and count */
 static JSBool _simplecopyElements (JSContext *cx, 
 		JSObject *fromObj,
@@ -460,9 +528,9 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 	_buff = JS_GetStringBytes(_str);
 	_buff_len = strlen(_buff) + 1;
 
-	if (JSVRMLClassesVerbose) {
+	//if (JSVRMLClassesVerbose) {
 		printf("doMFStringUnquote: vp = \"%s\"\n", _buff);
-	}
+	//}
 
 	if (memchr(_buff, '"', _buff_len) != NULL) {
 		if ((_tmp_vpStr = (char *)
@@ -473,7 +541,7 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 
 		memset(_tmp_vpStr, 0, _buff_len);
 
-		for (i = 0; i <= _buff_len; i++) {
+		for (i = 0; i <= (_buff_len-1); i++) {
 			if (_buff[i] != '"' ||
 				(i > 0 && _buff[i - 1] == '\\')) {
 				_tmp_vpStr[j++] = _buff[i];
@@ -1337,6 +1405,7 @@ SFNodeToString(JSContext *cx, JSObject *obj,
 
 	UNUSED(argc);
 	UNUSED(argv);
+	//printf ("SFNODETOSTRING\n");
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFNodeToString.\n");
 		return JS_FALSE;
@@ -1683,6 +1752,9 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 		*vp = _rval;
+		//printf ("jsp, returnval %d, storing in %d\n",_rval,vp);
+		//printf ("jsp, is rv a string?\n");
+		//if (JSVAL_IS_STRING(_rval)) printf ("yes!\n");
 		free(_buff);
 	}
 
@@ -2476,6 +2548,7 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 			}
 			if (!JS_InstanceOf(cx, _paramObj, &SFVec2fClass, argv)) {
 				printf( "SFVec2f - expected a SFVec2f parameter.\n");
+				printNodeType (cx,_paramObj);
 				return JS_FALSE;
 			}
 		
@@ -2862,6 +2935,10 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 	int retSFVec3f = FALSE;
 	int retNumeric = FALSE;
 
+	/* is the "argv" parameter a string? */
+	int param_isString;
+	char *charString;
+
 	/* determine what kind of parameter to get */
 	if ((op==__3FADD)||(op==__3FDOT)||(op==__3FCROSS)||(op==__3FSUBT))SFParam=TRUE;
 	if ((op==__3FDIVIDE)||(op==__3FMULT))numParam=TRUE;
@@ -2869,6 +2946,10 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 	/* determine the return value, if it is NOT a SFVec3f */
 	if ((op==__3FDOT)||(op==__3FLENGTH)) retNumeric = TRUE;
 	retSFVec3f = (!retNumeric);
+
+	/* is the parameter a string, possibly gotten from the VRML/X3d
+	 * side of things? */
+	param_isString = JSVAL_IS_STRING (*argv);
 
 	/* get the parameter */
 	if ((SFParam) || (numParam)) {
@@ -2882,18 +2963,30 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 				return JS_FALSE;
 			}
 		} else {
-			if (!JS_ConvertArguments(cx, argc, argv, "o", &_paramObj)) {
-				printf( "JS_ConvertArguments failed in SFVec3f.\n");
-				return JS_FALSE;
-			}
-			if (!JS_InstanceOf(cx, _paramObj, &SFVec3fClass, argv)) {
-				printf( "SFVec3f - expected a SFVec3f parameter.\n");
-				return JS_FALSE;
-			}
-		
-			if ((_vec2 = JS_GetPrivate(cx, _paramObj)) == NULL) {
-				printf( "JS_GetPrivate failed for _paramObj in SFVec3f.\n");
-				return JS_FALSE;
+			if (param_isString) {
+				//charString = JS_GetStringBytes(*argv);
+				//printf ("THIS IS A STRING! it is %s\n",charString);
+				(_vec2->v).c[0] = -4.0;
+				(_vec2->v).c[1] = 0.0;
+				(_vec2->v).c[2] = 0.0;
+
+
+			} else {
+				if (!JS_ConvertArguments(cx, argc, argv, "o", &_paramObj)) {
+					printf( "JS_ConvertArguments failed in SFVec3f.\n");
+					return JS_FALSE;
+				}
+				if (!JS_InstanceOf(cx, _paramObj, &SFVec3fClass, argv)) {
+					printf( "SFVec3f - expected a SFVec3f parameter.\n");
+					printNodeType (cx,_paramObj);
+	
+					return JS_FALSE;
+				}
+			
+				if ((_vec2 = JS_GetPrivate(cx, _paramObj)) == NULL) {
+					printf( "JS_GetPrivate failed for _paramObj in SFVec3f.\n");
+					return JS_FALSE;
+				}
 			}
 		}
 	}
@@ -2905,6 +2998,7 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 	}
 
 	/* do the operation */
+	//printf ("SFVec3f generic, vec2 %f %f %f\n",(_vec2->v).c[0],(_vec2->v).c[1],(_vec2->v).c[2]);
 	switch (op) {
 		/* returning a SFVec3f */
 		case __3FADD:
@@ -2957,8 +3051,10 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 		return JS_FALSE;
 	}
 
+	//printf ("past calcs\n");
 	/* set the return object */
 	if (retSFVec3f) {
+		//printf ("returning SFVec3f\n");
 		if ((_proto = JS_GetPrototype(cx, obj)) == NULL) {
 			printf( "JS_GetPrototype failed in SFVec3f.\n");
 			return JS_FALSE;
@@ -2983,7 +3079,6 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 		}
 		*rval = DOUBLE_TO_JSVAL(dp); 
 	}
-
 	if ((JSVRMLClassesVerbose) && (retSFVec3f)){
 		printf("SFVec3fgeneric: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
@@ -2994,8 +3089,7 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 		printf("SFVec2fgeneric: obj = %u, result = %.9g\n",
 			   (unsigned int) obj, d);
 	}
-
-	return JS_TRUE;
+return JS_TRUE;
 }
 
 JSBool

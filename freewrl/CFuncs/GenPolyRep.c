@@ -482,6 +482,8 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	rep_->ccw = ccw;
 	
 	
+	//printf ("IFS - cin %d\n",cin);
+
 	/* check to see if there are params to make at least one triangle */
 	if (cin<2) {
 		//printf ("Null IFS found, returing ntri0\n");
@@ -580,6 +582,12 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	faces = count_IFS_faces (cin,this_);
 	
 	if (faces == 0) {
+		rep_->ntri = 0;
+		return;
+	}
+
+	/* are there any coordinates? */
+	if (npoints <= 0) {
 		rep_->ntri = 0;
 		return;
 	}

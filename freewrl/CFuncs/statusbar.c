@@ -85,7 +85,7 @@ void render_status () {
 	/* perform translation and rotation for text posn */
 	statusbar_position ();
 
-#ifdef DLIST
+	/* lets do this with a display list for now. */
 	/* now, is this the same background as before??? */
 	if (status_dlist) {
 		if (!new_status) {
@@ -99,7 +99,6 @@ void render_status () {
 	}
 	status_dlist = glGenLists(1);
 	glNewList(status_dlist,GL_COMPILE_AND_EXECUTE);
-#endif
 
 	/* make up new line to display */
 	if (vplen == 0) {
@@ -176,10 +175,7 @@ void render_status () {
         FREE_IF_NZ(rep_.normal);
         FREE_IF_NZ(rep_.tcindex);
 
-#ifdef DLIST
 	glEndList();
-#endif
-
 	glPopMatrix();
 	glPopAttrib();
 }
