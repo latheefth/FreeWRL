@@ -209,19 +209,29 @@ int get_touched_flag (int fptr, int actualscript) {
         JSString *strval; /* strings */
 	char *strtouched;
 	int intval = 0;
+	int touched_Multi;
 	int touched_function;
-
+	int touched;
 
 	int index, locindex;
 	int len;
 	int complex_name; /* a name with a period in it */
 	char *myname;
+	JSContext *mycx;
 
-	if (JSVerbose) 
-		printf ("\nget_touched_flag, name %s script %d context %#x \n",JSparamnames[fptr].name,
-				actualscript,JSglobs[actualscript].cx);
+	// used for finding touched flag in multi nodes
+	jsval *vp;
+	jsval tval;
+	jsint jlen;
+	jsval _length_val;
+	int count;
 
+	mycx = (JSContext *) JSglobs[actualscript].cx;
 	myname = JSparamnames[fptr].name;
+	if (JSVerbose) 
+		printf ("\nget_touched_flag, name %s script %d context %#x \n",myname,
+				actualscript,mycx);
+
 	len = strlen(myname);
 	index = 0;
 	interpobj = JSglobs[actualscript].glob;
@@ -243,11 +253,11 @@ int get_touched_flag (int fptr, int actualscript) {
 		myname++;
 
 		//printf ("getting intermediate value by using %s\n",tmethod);
-		 if (!JS_GetProperty((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj,tmethod,&retval)) {
+		 if (!JS_GetProperty(mycx, (JSObject *) interpobj,tmethod,&retval)) {
 			printf ("cant get property for name %s\n",tmethod);
 			return FALSE;
 		} else {
-               		strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
+               		strval = JS_ValueToString(mycx, retval);
                 	strtouched = JS_GetStringBytes(strval);
                 	//printf ("interpobj %d and getproperty returns %s\n",retval,strtouched);
 		}
@@ -260,15 +270,21 @@ int get_touched_flag (int fptr, int actualscript) {
 	//printf ("before constructor, fullname is %s\n",fullname);
 	strcat (fullname,myname);
 	touched_function = FALSE;
+	touched_Multi = FALSE;
+
+
 
 	// Find out the method of getting the touched flag from this variable type
 
 	/* Multi types */
 	switch (JSparamnames[fptr].type) {
-	case MFFLOAT: case MFTIME: case MFINT32: case MFCOLOR:
-	case MFROTATION: case MFNODE: case MFVEC2F: 
-	case MFSTRING: {
+	case MFFLOAT: case MFTIME: case MFINT32: case MFSTRING: {
 		strcpy (tmethod,"__touched_flag");
+		complex_name = TRUE;
+		break;
+		}
+	case MFCOLOR: case MFROTATION: case MFNODE: case MFVEC2F: {
+		touched_Multi = TRUE;
 		complex_name = TRUE;
 		break;
 		}
@@ -296,11 +312,11 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// get the property value, if we can
 	//printf ("getting property for fullname %s\n",fullname);
-	if (!JS_GetProperty((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj ,fullname,&retval)) {
+	if (!JS_GetProperty(mycx, (JSObject *) interpobj ,fullname,&retval)) {
                	printf ("cant get property for %s\n",fullname);
 		return FALSE;
         } else {
-       	        strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
+       	        strval = JS_ValueToString(mycx, retval);
                	strtouched = JS_GetStringBytes(strval);
                	//printf ("and get of actual property %d returns %s\n",retval,strtouched);
 
@@ -338,10 +354,57 @@ int get_touched_flag (int fptr, int actualscript) {
 		interpobj = retval;
 	}	
 
+	// Multi types, go through each element, and find the touched flag. grep for
+	// touched in CFuncs/jsVRMLClasses.c to see what we are really trying to find.
+	if (touched_Multi) {
+		
+		touched = 0;
+		if (!JS_GetProperty(mycx, (JSObject *) interpobj, "length", &_length_val)) {
+				fprintf(stderr, "JS_GetProperty failed for \"length\" in here.\n");
+				            return JS_FALSE;
+            	}
+		jlen = JSVAL_TO_INT(_length_val);
+		//printf ("length of object %d is %d\n",interpobj,jlen);
+
+		// go through each element of the MF* and look for the touched flag.
+		for (count = 0; count < jlen; count ++) {		    
+			if (!JS_GetElement(mycx, (JSObject *) interpobj,
+				count, &vp)) { printf ("cant get element %d\n",count);
+			} else {
+				//printf ("first element %d is %d\n",count,vp);
+				switch (JSparamnames[fptr].type) {
+				  case MFCOLOR: {
+					if (!(SFColorTouched( mycx, vp, 0, 0, &tval))) 
+						printf ("cant get touched for MFColor/MFVec3f\n");
+				     	break;
+					}
+				  case MFROTATION: {
+					if (!(SFRotationTouched( mycx, vp, 0, 0, &tval))) 
+						printf ("cant get touched for MFRotation\n");
+				     	break;
+					}
+				  case MFNODE: {
+					if (!(SFNodeTouched( mycx, vp, 0, 0, &tval))) 
+						printf ("cant get touched for MFNode\n");
+				     	break;
+					}
+				  case MFVEC2F: {
+					if (!(SFVec2fTouched( mycx, vp, 0, 0, &tval))) 
+						printf ("cant get touched for MFVec2f\n");
+				     	break;
+					}
+				}
+				touched += JSVAL_TO_INT(tval);
+				//printf ("touched for %d is %d\n",count, JSVAL_TO_INT(tval));
+			}
+		}
+		return (touched != 0);
+	}
+
 	//printf ("using touched method %s on %d %d\n",tmethod,JSglobs[actualscript].cx,interpobj);
 
-	if (!JS_GetProperty((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj ,tmethod,&retval2)) {
-               	printf ("cant get property for %s\n",tmethod);
+	if (!JS_GetProperty(mycx, (JSObject *) interpobj ,tmethod,&retval2)) {
+              	printf ("cant get property for %s\n",tmethod);
 		return FALSE;
         } else {
        	        //strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval2);
@@ -354,8 +417,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 		// set it to 0 now.
 		v = INT_TO_JSVAL(0);
-		JS_SetProperty ((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj, tmethod, &v);
-
+		JS_SetProperty (mycx, (JSObject *) interpobj, tmethod, &v);
 		return (intval!=0);
 
 	}
