@@ -568,7 +568,6 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 
 			if (indx_count > (cindexmaxsize-400)) {
 				cindexmaxsize +=TESS_MAX_COORDS;
-				printf ("CINDEX REALLOC!!!\n");
 				FW_rep_->cindex=realloc(FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*cindexmaxsize);
 				if (!(FW_rep_->cindex)) {
 					printf ("out of memory at realloc for cindex\n");
