@@ -42,6 +42,11 @@ static pthread_t *loopthread;
 char *threadmsg = "eventloop";
 pthread_t thread1;
 
+/* for plugin running - these are read from the command line */
+int _fw_pipe=0;
+int _fw_FD=0;
+unsigned  _fw_instance=0;
+
 
 /* function prototypes */
 void displayThread();
@@ -62,8 +67,11 @@ int main (int argc, char **argv) {
 		static struct option long_options[] = {
 			{"version", 0, 0, 'x'},
 			{"fullscreen", 0, 0, 'x'},
+			{"eai", 0, 0, 'e'},
 			{"fast", 0, 0, 'f'},
-			{"plugin", 1, 0, 'x'},
+			{"plugin", 1, 0, 'i'},
+			{"fd", 1, 0, 'j'},
+			{"instance", 1, 0, 'k'},
 			{"geometry", 1, 0, 'g'},
 			{"parent", 1, 0, 'x'},
 			{"seq", 0, 0, 'x'},
@@ -75,7 +83,6 @@ int main (int argc, char **argv) {
 			{"screendist", 1, 0, 'x'},
 			{"gif", 0, 0, 'x'},
 			{"maximg", 1, 0, 'x'},
-			{"eai", 0, 0, 'e'},
 			{"server", 1, 0, 'x'},
 			{"sig", 1, 0, 'x'},
 			{"ps", 1, 0, 'x'},
@@ -108,15 +115,20 @@ int main (int argc, char **argv) {
 				global_texSize = 256;
 				break;
 
+			case 'g':
+				printf ("Geometry selected, with arg: %s\n",optarg);
+				setGeometry(optarg);
+				break;
+
 			case 'h':
 				printf ("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
 				printf ("   type \"man freewrl\" to view man pages\n\n");
 				break;
 
-			case 'g':
-				printf ("Geometry selected, with arg: %s\n",optarg);
-				setGeometry(optarg);
-				break;
+			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); break; 
+			case 'j': sscanf (optarg,"%d",&_fw_FD); break;
+			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
+
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */
 				break;

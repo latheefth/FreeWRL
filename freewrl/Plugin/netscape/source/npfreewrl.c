@@ -45,9 +45,9 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V2.1 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#define PLUGIN_DESCRIPTION	"V3.0 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
-char *paramline[20]; /* parameter line */
+char *paramline[15]; /* parameter line */
 
 /*******************************************************************************
  * Instance state information about the plugin.
@@ -78,7 +78,6 @@ typedef void (* Sigfunc) (int);
 
 
 
-static FILE * tty = NULL;
 static int np_fd;
 
 // Socket file descriptors
@@ -99,23 +98,8 @@ Sigfunc signal (int, Sigfunc func);
 char debs[256];
 
 // Debugging routine
-static void print_here (char * xx)
-{
-// uncomment this stuff to enable log printing.
-/*
-    if (tty == NULL) {
-	tty = fopen("/home/luigi/log", "w+");
-
-
-	if (tty == NULL)
-	    abort();
-	fprintf (tty, "\nplugin restarted\n");
-	}
-
-    fprintf(tty, "plug-in: %s\n", xx);
-    fflush(tty);
-*/
-
+static void print_here (char * xx) {
+	printf ("plugin: %s\n",xx);
 }
 
 
@@ -155,8 +139,6 @@ void signalHandler(int signo) {
 	} else {
 		/* Should handle all except the uncatchable ones. */
 		print_here("\nClosing plugin log.\n");
-		fclose(tty);
-		//JASexit(1);
 	}
 }
 
@@ -215,11 +197,14 @@ print_here ("step 2\n");
 		}
 		return(NPERR_GENERIC_ERROR);
 	} else {
+print_here("past the read for the url request\n");
 		if ((rv = NPN_GetURL(request.instance, request.url, NULL)) 
 			!= NPERR_NO_ERROR) {
 			sprintf(debs, "Call to NPN_GetURL failed with error %d.\n", rv);
 			print_here(debs);
 		}
+		sprintf (debs, "step 2a, request.url %s\n",request.url);
+		print_here(debs);
 	}
 
 print_here ("step 3\n");
@@ -316,22 +301,21 @@ void Run (NPP instance) {
 
 				// Pass in the pipe number so FreeWRL can return the 
 				// window id
-				paramline[3] = "-plugin";
+				paramline[3] = "--plugin";
 				paramline[4] = pipetome;
 
 				// EAI connection
-				paramline [5] = "-eai";
-				paramline [6] = "localhost:2000";
+				paramline [5] = "--eai";
 
 				// File descriptor and instance  - allows FreeWRL to
 				// request files from browser's cache
 
-				paramline[7] = "-fd";
-				paramline[8] = childFd;
-				paramline[9] = "-instance";
-				paramline[10] = instanceStr;
+				paramline[6] = "--fd";
+				paramline[7] = childFd;
+				paramline[8] = "--instance";
+				paramline[9] = instanceStr;
 
-				paramline[11] = NULL;
+				paramline[10] = NULL;
 
 
 				// create pipe string
@@ -840,6 +824,7 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 				bytes = (strlen(fname)+1)*sizeof(const char *);
 				sprintf (debs,"writing %s (%u bytes) to socket %d",
 						fname, bytes,FW_Plugin->fd[NP]);
+				print_here(debs);
 
 				if (write(FW_Plugin->fd[NP], fname, bytes) < 0) {
 					print_here ("Call to write failed");

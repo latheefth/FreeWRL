@@ -280,9 +280,9 @@ sub prepare {
 sub shut {
 	my($this) = @_;
 
-	if ($VRML::ENV{AS_PLUGIN}) {
-		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
-	}
+#JAS	if ($VRML::ENV{AS_PLUGIN}) {
+#JAS		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
+#JAS	}
 
 	if ($this->{JSCleanup}) {
 		&{$this->{JSCleanup}}();

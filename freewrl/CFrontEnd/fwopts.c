@@ -41,6 +41,10 @@ XVisualInfo *vi;
 	Window win;
 	GLXContext cx;
 #endif
+
+extern int _fw_pipe, _fw_FD;
+extern unsigned _fw_instance;
+
 char renderer[256];	/* what device are we using? */
 int screen;
 int modeNum;
@@ -50,8 +54,6 @@ unsigned int borderDummy;
 int glwinx, glwiny;
 int i;
 int dpyWidth, dpyHeight;
-
-
 
 #ifndef AQUA 
 #ifdef XF86V4
@@ -156,17 +158,15 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 
 
 #ifndef AQUA 
-		XColor  black; 
-		Cursor  cursor;
-		Pixmap  cursor_pixmap; 
-	    	XEvent event;
-	    	Window pwin=(Window)pw;
-	    	int *attributes = default_attributes3;
-	    	int number;
-		int len=0;
-		XTextProperty windowName;
-		int NotRunningAsPlugin = 0;
-		int tomozilla;
+	XColor  black; 
+	Cursor  cursor;
+	Pixmap  cursor_pixmap; 
+    	XEvent event;
+    	Window pwin=(Window)pw;
+    	int *attributes = default_attributes3;
+    	int number;
+	int len=0;
+	XTextProperty windowName;
 
 	int items=0; // jas
 	   
@@ -178,15 +178,6 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	//JAS 	}
 	//JAS }
 	    
-
-	NotRunningAsPlugin = strncmp ("pipe:",wintitle,5);
-
-	/* JAS if (NotRunningAsPlugin) { */
-	/* JAS 	printf ("NOT Running as plugin %d\n",NotRunningAsPlugin); */
-	/* JAS } else { */
-	/* JAS 	printf ("Running as plugin %d\n",NotRunningAsPlugin); */
-	/* JAS } */
-
 
 	/* get a connection */
 	dpy = XOpenDisplay(0);
@@ -284,17 +275,14 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 			exit(-1);
 		}
 
-
 		XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
-		if (NotRunningAsPlugin) {
+		if (_fw_pipe==0) {
 			/* just map us to the display */
 			XMapWindow(dpy, win);
 		} else {
 			/* send the window id back to the plugin parent */
-			sscanf (wintitle,"pipe:%d",&tomozilla);
-			/* JAS printf ("mozilla pipe is %d\n",tomozilla); */
-			write (tomozilla,&win,4);
-			close (tomozilla);
+			write (_fw_pipe,&win,4);
+			close (_fw_pipe);
 		}
 
 

@@ -44,4 +44,5 @@ gcc -o freewrl \
 	../CFuncs/readpng.o    \
 	../CFuncs/statics.o    \
 	../CFuncs/statusbar.o    \
+	../CFuncs/PluginSocket.o    \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts`

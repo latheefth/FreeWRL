@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "Structs.h"
 #include "headers.h"
+#include "PluginSocket.h"
 #include <pthread.h>
 #ifdef AQUA
 
@@ -37,6 +38,10 @@
 #endif
 
 #include "jsVRMLClasses.h" /* VRML field type implementation */
+
+/* for communicating with Netscape */
+extern int _fw_pipe, _fw_FD;
+extern unsigned _fw_instance;
 
 
 #define MAX_RUNTIME_BYTES 0x100000L
@@ -159,13 +164,20 @@ int isPerlinitialized() {return PerlInitialized;}
 int isPerlParsing() {return(PerlParsing);}
 
 /* does this file exist on the local file system, or via the HTML Browser? */
+/* WARNING! WARNING! the first parameter may be overwritten IF we are running
+   within a Browser, so make sure it is large, like 1000 bytes. 	   */
+
 int fileExists(char *fname, char *firstBytes) {
 	FILE *fp;
 	int ok, tx;
+	char *retName;
 
-	/* are we running under netscape? if so, ask the browser */
-
-
+	/* are we running under netscape? if so, ask the browser, and 
+	   save the name it returns (cache entry) */
+	if ((_fw_pipe != 0) && (strcmp(BrowserURL,fname)!=0)) {
+		retName = requestUrlfromPlugin(_fw_FD,_fw_instance,fname);
+		strcpy (fname,retName);
+	}
 
 	/* if not, do we need to invoke lwp to get the file, or 
 	   is it just local? */
@@ -186,6 +198,14 @@ int fileExists(char *fname, char *firstBytes) {
 /* filename is malloc'd, combine pspath and thisurl to make an
    absolute file name */
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
+
+	/* lets try this - if we are running under a browser, let the
+	   browser do the pathing stuff */
+	if (_fw_pipe != 0) {
+		printf ("makeAbsolute, running under a browser, just copy\n");
+		strcpy (filename,thisurl);
+		return;
+	}
 
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((strncmp(thisurl,"ftp://", strlen("ftp://"))) &&

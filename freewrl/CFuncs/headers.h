@@ -307,6 +307,10 @@ extern void new_tessellation(void);
 extern void initializePerlThread(void);
 extern PerlInterpreter *my_perl;
 extern void setGeometry (char *optarg);
+extern void setPluginPipe(char *optarg);
+extern void setPluginFD(char *optarg);
+extern void setPluginInstance(char *optarg);
+
 extern int isPerlinitialized(void);
 extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserPATH; // defined in VRMLC.pm
 extern int display_status;		// toggle status bar - defined in VRMLC.pm
