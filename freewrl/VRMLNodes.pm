@@ -409,40 +409,39 @@ sub ClockTick_TimeDepNodes {
 	return @e;
 }
 
+# AK - Grouping nodes (see VRML97 4.6.5) that have children use essentially
+# AK - the same code to add & remove child nodes.
+sub addChildren_GroupingNodes {
+	my ($node, $fields, $value, $time) = @_;
 
-# JAS - used by EAI to see if this child is already present in field "children" of parent.
-sub checkChildPresent {
-	my ($node,$child) = @_;
+	# debug:
+	#print ("VRML::NodeType::addChildren_GroupingNodes: ", $node, ", $fields, [ ", (join ", ", map(VRML::NodeIntern::dump_name($_).": $_", @{$value}))," ], $time\n");
 
-	# print "VRMLNodes.pm:checkChildPresent: checking for child $child in node $node\n";
-	foreach $item (@{$node->{Fields}{"children"}}) {
-		# print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
-		if ($item eq $child) {
-			# print "VRMLNode::checkChildPresent: child $child already ",
-			# "present in parent\n";
-			return 1;
+	my %children = map { $_ => 1 } @{$node->{Fields}{children}};
+	for (@{$value}) {
+		if (!$children{$_}) {
+			push @{$node->{Fields}{children}}, $_;
 		}
 	}
-	return 0;
+	$node->{RFields}{children} = $node->{Fields}{children};
+	# AK - why is this here? # return ();
 }
 
-# JAS - used by EAI to remove the desired node from the parent
-sub removeChild {
-	my ($node,$child) = @_;
-	my @av;
+sub removeChildren_GroupingNodes {
+	my ($node, $fields, $value, $time) = @_;
 
-	# print "VRMLNodes.pm:removeChild: checking for child $child in node $node\n";
-	foreach $item (@{$node->{Fields}{"children"}}) {
-		# print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
-		if (!($item eq $child)) {
-			push @av, $item;
-		#} else {
-		#	print "VRMLNode::removeChild: child $child found\n";
-		}
-	}
-	# print "VRMLNodes.pm:removeChild: array now is @av\n";
-	return @av;
+	# debug:
+	#print ("VRML::NodeType::removeChildren_GroupingNodes: $node, $fields, [ ", (join ", ", map(VRML::NodeIntern::dump_name($_).": $_", @{$value}))," ], $time\n");
+
+	my %toremove = map { $_ => 1 } @{$value};
+	my @children = grep { !$toremove{$_} } @{$node->{Fields}{children}};
+
+	$node->{Fields}{children} = [];
+	push @{$node->{Fields}{children}}, @children;
+	$node->{RFields}{children} = $node->{Fields}{children};
+	# AK - why is this here? # return ();
 }
+
 
 ########################################################################
 #
@@ -1115,40 +1114,29 @@ Sound => new VRML::NodeType("Sound",
  }
  ),
 
- Transform => new VRML::NodeType ("Transform",
- {
-    translation => [SFVec3f, [0,0,0]],
-    rotation => [SFRotation, [0,0,1,0]],
-    scale => [SFVec3f, [1,1,1]],
-    scaleOrientation => [SFRotation, [0,0,1,0]],
-    children => [MFNode, []],
-    center => [SFVec3f, [0,0,0]],
-    bboxCenter => [SFVec3f, [0,0,0]],
-    bboxSize => [SFVec3f, [-1,-1,-1]],
-    addChildren => [MFNode, [], eventIn],
-    removeChildren => [MFNode, [], eventIn],
- },
- {
- addChildren => sub
- {
-     print("Transform:addChildren\n");
-     my($node,$fields,$value,$time) = @_;
-     print ("node $node, value $value\n");
-     push @{$node->{Fields}{children}}, @{$value};
-     $node->{RFields}{children}=$node->{Fields}{children};
-     return ();
- },
+	Transform => new VRML::NodeType ("Transform",
+									 {
+									  translation => [SFVec3f, [0,0,0]],
+									  rotation => [SFRotation, [0,0,1,0]],
+									  scale => [SFVec3f, [1,1,1]],
+									  scaleOrientation => [SFRotation, [0,0,1,0]],
+									  children => [MFNode, []],
+									  center => [SFVec3f, [0,0,0]],
+									  bboxCenter => [SFVec3f, [0,0,0]],
+									  bboxSize => [SFVec3f, [-1,-1,-1]],
+									  addChildren => [MFNode, [], eventIn],
+									  removeChildren => [MFNode, [], eventIn],
+									 },
+									 {
+									  addChildren => sub
+									  {
+										  return addChildren_GroupingNodes(@_);
+									  },
 
- removeChildren => sub
- {
-     my($node,$fields,$value,$time) = @_;
-     print("Transform:removeChildren\n");
-     print ("node $node, values ",(join " ", @{$value}),"\n");
-     my %toremove = map { $_ => 1 } @{$value};
-     my @nchild = grep { !$toremove{$_} }  @{$node->{Fields}{children}};
-     $node->{RFields}{children} = \@nchild;
-     return ();
- },
+									  removeChildren => sub
+									  {
+										  return removeChildren_GroupingNodes(@_);
+									  },
 
  EventsProcessed => sub
  {
@@ -1183,23 +1171,11 @@ TextureTransform => new VRML::NodeType ("TextureTransform",
 								{
 								 # these were copied from Transform...
 								 addChildren => sub {
-									 print("Group: addChildren\n");
-									 my ($node, $fields, $value, $time) = @_;
-									 print ("node $node, value $value\n");
-									 push @{$node->{Fields}{children}}, @{$value};
-									 $node->{RFields}{children} = $node->{Fields}{children};
-									 return ();
+									return addChildren_GroupingNodes(@_);
 								 },
 
 								 removeChildren => sub {
-									 my ($node, $fields, $value, $time) = @_;
-									 print("Group: removeChildren\n");
-									 print ("node $node, values ",(join " ", @{$value}),"\n");
-									 my %toremove = map { $_ => 1 } @{$value};
-									 my @nchild =
-										 grep { !$toremove{$_} } @{$node->{Fields}{children}};
-									 $node->{RFields}{children} = \@nchild;
-									 return ();
+									return removeChildren_GroupingNodes(@_);
 								 },
 
 								 EventsProcessed => sub {
@@ -2298,23 +2274,11 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 									},
 									{
 									 addChildren => sub {
-										 print("Collision: addChildren\n");
-										 my ($node, $fields, $value, $time) = @_;
-										 print ("node $node, value $value\n");
-										 push @{$node->{Fields}{children}}, @{$value};
-										 $node->{RFields}{children} = $node->{Fields}{children};
-										 return ();
+										return addChildren_GroupingNodes(@_);
 									 },
 
 									 removeChildren => sub {
-										 my ($node, $fields, $value, $time) = @_;
-										 print("Collision: removeChildren\n");
-										 print ("node $node, values ",(join " ", @{$value}),"\n");
-										 my %toremove = map { $_ => 1 } @{$value};
-										 my @nchild =
-											 grep { !$toremove{$_} } @{$node->{Fields}{children}};
-										 $node->{RFields}{children} = \@nchild;
-										 return ();
+										return removeChildren_GroupingNodes(@_);
 									 },
 
 									 ClockTick => sub {

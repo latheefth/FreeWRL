@@ -251,7 +251,6 @@ sub shut {
 
 	if ($VRML::ENV{AS_PLUGIN}) {
 		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
-		##VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
 	}
 	if ($this->{JSCleanup}) {
 		&{$this->{JSCleanup}}();
@@ -502,32 +501,6 @@ sub api__getFieldInfo {
 
 sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
 
-# is the child already present in the parent? If so, then return 1, if not, return 0
-sub checkChildPresent {
-	my ($this, $node, $child) = @_;
-	# print "Browser.pm:checkChildPresent:: checking $node for child $child\n";
-	return VRML::NodeType::checkChildPresent ($node, $child);
-}
-
-
-# EAI is asking to remove this child.
-sub removeChild {
-	my ($this, $node, $child) = @_;
-	# print "Browser.pm:removeChild, removing $child from parent $node\n";
-
-	my @av = VRML::NodeType::removeChild ($node, $child);
-	# print "Browser.pm:removeChild, array now is @av\n";
-	return @av;
-}
-
-
-## Get a snapshot from backend and save it
-##
-## Uses variables :
-##
-## $main::snapcnt
-## $main::maximg
-## $main::snapname
 sub save_snapshot {
 				# Get snapshot
   my ($this) = @_ ;

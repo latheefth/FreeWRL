@@ -256,13 +256,13 @@ sub constrString {
 			}
 			$c .= "'".VRML::Field::SFNode->as_string($v)."','".$h."'";
 		} elsif ($ft =~ /^MFString/) {
-			$l = $#{$v} + 1;
+			$l = scalar(@{$v});
 			for ($i = 0; $i < $l; $i++) {
 				$c .= "'".$v->[$i]."'";
 				$c .= "," unless ($i == ($l - 1));
 			}
 		} elsif ($ft =~ /^MFNode/) {
-			$l = $#{$v} + 1;
+			$l = scalar(@{$v});
 			for ($i = 0; $i < $l; $i++) {
 				if (VRML::Handles::check($v->[$i])) {
 					$h = VRML::Handles::get($v->[$i]);
@@ -275,7 +275,7 @@ sub constrString {
 		} elsif ($ft =~ /^MF(?:Color|Rotation|Vec2f|Vec3f)$/) {
 			$sft = $ft;
 			$sft =~ s/^MF/SF/;
-			$l = $#{$v} + 1;
+			$l = scalar(@{$v});
 			for ($i = 0; $i < $l; $i++) {
 				if (ref($v->[$i]) eq "ARRAY") {
 					$h = join(",", @{$v->[$i]});
@@ -410,7 +410,7 @@ sub sendevent {
 sub setProperty { # Assigns a value to a property.
 	my ($this, $field, $value, $prop) = @_;
 	my $typ = $this->{Node}{Type};
-	my ($ftype, $rs, $i, $rval, $styp);
+	my ($ftype, $rs, $i, $rval, $styp, $length);
 	if ($field =~ s/^____//) { # recurse hack
 		$ftype = $field;
 	} else {
@@ -421,11 +421,13 @@ sub setProperty { # Assigns a value to a property.
 	print "VRML::JS::setProperty args: field $field, value $value, property $prop\n"
 		if $VRML::verbose::js;
 
-	## problem with MF types - what to do from new ???
+	## problem with MF types - what to do from new???
+	## what about SFNode???
 	if ($ftype =~ /^MF/) {
 		$styp = $ftype;
 		$styp =~ s/^MF/SF/;
-		for ($i = 0; $i < $#{$value}; $i++) {
+		$length = scalar(@{$v});
+		for ($i = 0; $i < $length; $i++) {
 			print "\tsetProperty(\"____$styp\", [ ", @{$value->[$i]}, " ], \"____tmp\")\n"
 				if $VRML::verbose::js;
 			$this->setProperty("____$styp", $value->[$i], "____tmp");
@@ -463,7 +465,8 @@ sub setProperty { # Assigns a value to a property.
 ## perhaps this should be rewritten to use toString instead...
 sub getProperty {
 	my ($this, $type, $prop) = @_;
-	my ($rstr, $rval, $l);
+	my ($rstr, $rval, $l, $i);
+	my @res;
 
 	print "VRML::JS::getProperty: type $type, property $prop\n"
 		if $VRML::verbose::js;
@@ -477,7 +480,7 @@ sub getProperty {
 		return VRML::Handles::get($rstr);
 	} elsif ($type =~ /$ECMAScriptNative/) {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "_${_}_touched=0; $prop", $rstr, $rval)) {
+					   "_".$prop."_touched=0; $prop", $rstr, $rval)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
 		return $rval;
@@ -487,29 +490,28 @@ sub getProperty {
 			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
 		}
 		print "\trunScript returned length $l for MFNode\n" if $VRML::verbose::js;
-		my $fn = $prop;
-		my @res = map {
+		for ($i = 0; $i < $l; $i++) {
 			if (!runScript($this->{JSContext}, $this->{JSGlobal},
-						   "$fn"."[$_].__handle", $rstr, $rval)) {
+						   "$prop"."[$i].__handle", $rstr, $rval)) {
 				cleanupDie("runScript failed in VRML::JS::getProperty");
 			}
-			## needed in case (for whatever reason) there is no SFNode at
-			## a given index
 			if ($rstr !~ /^undef/) {
-				VRML::Handles::get($rstr);
-			} else {
-				VRML::Handles::get("NULL");
+				push @res, VRML::Handles::get($rstr);
 			}
-		} (0..$l-1);
+		}
+		print "\treturn [",
+			join(", ",
+				 map((ref $_ eq "ARRAY" ? "(".join(", ", @{$_}).")" : "$_"),
+					 @res)),
+				"]\n" if $VRML::verbose::js;
 		return \@res;
 	} elsif ($type =~ /^MFString$/) {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rstr, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
 		print "\trunScript returned length $l for MFString\n" if $VRML::verbose::js;
-		my $fn = $prop;
-		my @res = map {
-			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$fn"."[$_]", $rstr, $rval)) {
+		@res = map {
+			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop"."[$_]", $rstr, $rval)) {
 				cleanupDie("runScript failed in VRML::JS::getProperty");
 			}
 			$rstr;
@@ -520,28 +522,21 @@ sub getProperty {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
 		print "\trunScript returned length $l for $type\n" if $VRML::verbose::js;
-		my $fn = $prop;
 		my $st = $type;
 		$st =~ s/MF/SF/;
-		my @res = map {
-			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$fn"."[$_]", $rstr, $rval)) {
+		@res = map {
+			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop"."[$_]", $rstr, $rval)) {
 				cleanupDie("runScript failed in VRML::JS::getProperty");
 			}
 			(pos $rstr) = 0;
 			"VRML::Field::$st"-> parse(undef, $rstr);
 		} (0..$l-1);
-		print "\tarray \@res: ( " if $VRML::verbose::js;
-		for (@res) {
-			if ("ARRAY" eq ref $_) {
-				##print "(@$_)\n"
-				print "(", join(', ', @{$_}), ") "
-					if $VRML::verbose::js;
-			}
-		}
-		print ")\n" if $VRML::verbose::js;
-		my $r = \@res;
-		print "\treference to \@ref: $r\n" if $VRML::verbose::js;
-		return $r;
+		print "\treturn [",
+			join(", ",
+				 map((ref $_ eq "ARRAY" ? "(".join(", ", @{$_}).")" : "$_"),
+					 @res)),
+				"]\n" if $VRML::verbose::js;
+		return \@res;
 	} else {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop", $rstr, $rval)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
@@ -551,11 +546,34 @@ sub getProperty {
 	}
 }
 
+
+sub addRemoveChildren {
+	my ($this, $node, $field, $c) = @_;
+	##my @av;
+
+	if ($field !~ /^(?:add|remove)Children$/) {
+		warn("Invalid field $field for VRML::JS::addChildren");
+		return;
+	}
+
+	print "VRML::JS::addRemoveChildren: ",
+		VRML::NodeIntern::dump_name($node), ", $field, ",
+				(ref $c eq "ARRAY" ?
+				 "[ ".join(", ", map(VRML::NodeIntern::dump_name($_), @{$c}))." ]" :
+				 "$c"), "\n" if $VRML::verbose::js;
+
+	if (ref $c eq "ARRAY") {
+		$this->{Browser}->api__sendEvent($node, $field, $c);
+	} else {
+		$this->{Browser}->api__sendEvent($node, $field, [$c]);
+	}
+}
+
+
 sub jspSFNodeSetProperty {
 	my ($this, $prop) = @_;
 	my ($handle, $node, $val, $vt, $actualField);
 	my $scene = $this->{Browser}{Scene};
-	my @av;
 
 	if (!runScript($this->{JSContext}, $this->{JSGlobal},
 				   "__node.__handle", $handle, $rval)) {
@@ -590,21 +608,8 @@ sub jspSFNodeSetProperty {
 
 	$node->{RFields}{$actualField} = $val;
 
-	if ($actualField eq "removeChildren") {
-		if ($this->{Browser}->checkChildPresent($node, $val)) {
-			@av = $this->{Browser}->removeChild($node, $val);
-			##$this->{Browser}->api__sendEvent($node, "children", \@av);
-			$this->{Browser}->api__sendEvent($node, $actualField, \@av);
-		}
-	} elsif ($actualField eq "addChildren") {
-		if (!($this->{Browser}->checkChildPresent($node, $val))) {
-			if (ref $val eq "ARRAY") {
-				push @av, @{$val};
-			} else {
-				push @av, $val;
-			}
-			$this->{Browser}->api__sendEvent($node, $actualField, \@av);
-		}
+	if ($actualField =~ /^(?:add|remove)Children$/) {
+		$this->addRemoveChildren($node, $actualField, $val);
 	}
 }
 
@@ -625,10 +630,7 @@ sub jspSFNodeAssign {
 	$val = $this->getProperty($vt, $id);
 	$this->{Node}{RFields}{$id} = $val;
 
-	if (!($this->{Browser}->checkChildPresent($root, $val))) {
-		push @av, $val;
-		$this->{Browser}->api__sendEvent($root, $field, \@av);
-	}
+	$this->addRemoveChildren($root, $field, $val);
 }
 
 sub jspSFNodeConstr {
@@ -784,7 +786,6 @@ sub jspBrowserCreateVrmlFromURL {
 	my $h;
 	my @createdHandles;
 	my @rootNodes;
-	my @av;
 
 	print "VRML::JS::jspBrowserCreateVrmlFromURL: $url, $handle, $event\n"
 		if $VRML::verbose::js;
@@ -813,21 +814,10 @@ sub jspBrowserCreateVrmlFromURL {
 						 if $VRML::verbose::js;
 
 	## correct???
-	if ($event eq "removeChildren") {
-		for (@createdNodes) {
-			if ($this->{Browser}->checkChildPresent($root, $_)) {
-				push @av, $this->{Browser}->removeChild($root, $_);
-			}
-		}
-		$this->{Browser}->api__sendEvent($root, $event, \@av);
-	} elsif ($event ne "addChildren") {
-		for (@createdNodes) {
-			if (!($this->{Browser}->checkChildPresent($root, $_))) {
-				push @av, $_;
-			}
-		}
-		$this->{Browser}->api__sendEvent($root, "addChildren", \@av);
+	if ($event !~ /^(?:add|remove)Children$/) {
+		$this->addRemoveChildren($root, "addChildren", \@createdNodes);
 	}
+
 	$this->{Browser}->api__sendEvent($node, $event, \@rootNodes);
 
 	## Debug:

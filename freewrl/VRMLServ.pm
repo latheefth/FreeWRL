@@ -10,6 +10,13 @@
 
 #
 # $Log$
+# Revision 1.23  2003/01/30 18:50:52  ayla
+#
+# Modified addChildren & removeChildren functions associated with grouping node
+# eventIn fields of the same name to call the same functions, Script node and EAI
+# code had to be changed to support this.
+# Also some misc. code cleanup.
+#
 # Revision 1.22  2002/11/14 20:09:42  crc_canada
 # handled EAI socket open hangs (I hope), and if socket closes, nicely
 # stops freewrl
@@ -593,32 +600,33 @@ sub handle_input {
 			# ever after...
 			#	
 
-			if($field eq "removeChildren") {
-				if ($this->{B}->checkChildPresent($node,$child)) {
-		  			my @av = $this->{B}->removeChild($node, $child);
-		  			$this->{B}->api__sendEvent($node, "children",\@av);
-				}
-			} else {
+			# AK - #if ($field eq "removeChildren") {
+				# AK - #if ($this->{B}->checkChildPresent($node,$child)) {
+		  			# AK - #my @av = $this->{B}->removeChild($node, $child);
+		  			# AK - #$this->{B}->api__sendEvent($node, "children",\@av);
+				# AK - #}
+			# AK - #} else {
 				# is the child already there???
-				if ($field eq "addChildren") {
-					$field = "children";
-				}
-				if (!($this->{B}->checkChildPresent($node,$child))) {
+				# AK - #if ($field eq "addChildren") {
+					# AK - #$field = "children";
+				# AK - #}
+				# AK - #if (!($this->{B}->checkChildPresent($node,$child))) {
 					#JAS my @av = @{$node->{RFields}{$field}};
-					my @av = @{$node->{Fields}{$field}};
-					push @av, $child;
-		  			$this->{B}->api__sendEvent($node, $field,\@av);
-				}
-			}
+					# AK - #my @av = @{$node->{Fields}{$field}};
+					# AK - #push @av, $child;
+		  			# AK - #$this->{B}->api__sendEvent($node, $field,\@av);
+				# AK - #}
+			# AK - #}
+
+			$this->{B}->api__sendEvent($node, $field, [$child]);
 			# make sure it gets rendered
 			VRML::OpenGL::set_render_frame();
-
-		        $hand->print("RE\n$reqid\n0\n0\n");
+		    $hand->print("RE\n$reqid\n0\n0\n");
 
 		} elsif($str =~ /^SE ([^ ]+) ([^ ]+)$/) { # send eventIn to node
 			my($id, $field) = ($1,$2);
 			my $v = (shift @lines)."\n";
-                        
+
 		        # JS - sure hope we can remove the trailing whitespace ALL the time...
   			$v =~ s/\s+$//; # trailing new line....
 
