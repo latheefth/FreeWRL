@@ -1,5 +1,24 @@
-I have made an effort to ensure that any of the fonts in here
-are distributable - please inform me if I'm wrong or if there are
-good fonts that I haven't included.
+Fonts, from the RedHat 7.2 distribution. I am unsure about
+the copyright on these files; I certainly don't hold them.
 
+If there is a problem with this form of distribution, this
+file is history.
 
+These are just the font files that FreeWRL uses. 
+
+John Stewart - CRC Canada.
+
+From RH 7.2:
+
+/usr/share/fonts/userfonts/Amrigon.ttf
+/usr/share/fonts/userfonts/Amrigob.ttf
+/usr/share/fonts/userfonts/Amrigoi.ttf
+/usr/share/fonts/userfonts/Amrigobi.ttf
+/usr/share/fonts/userfonts/Baubodn.ttf
+/usr/share/fonts/userfonts/Baubodn.ttf
+/usr/share/fonts/userfonts/Baubodi.ttf
+/usr/share/fonts/userfonts/Baubodbi.ttf
+/usr/share/fonts/userfonts/Futuran.ttf
+/usr/share/fonts/userfonts/Futurab.ttf
+/usr/share/fonts/userfonts/Futurabi.ttf
+/usr/share/fonts/userfonts/Futurabi.ttf
