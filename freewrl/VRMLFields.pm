@@ -11,6 +11,14 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.9  2001/05/25 21:34:00  ayla
+#
+#
+# The regexp used to identify and capture strings was altered to follow the VRML97
+# specification more closely.
+# The function parse in package VRML::Field::Multi was altered to handle the occurrence
+# of multiple commas in VRML fields (as in the NIST test file Appearance/FontStyle/default.wrl).
+#
 # Revision 1.8  2001/03/23 16:02:11  crc_canada
 # unknown, unrecorded changes.
 #
@@ -723,11 +731,15 @@ sub parse {
 	my($type,$p,$s,$n) = @_;
 	# Magic regexp which hopefully exactly quotes backslashes and quotes
 	# Remi... $_[2] =~ /\G\s*"((?:[^"\\]|\\.)*)"\s*/gsc 
-	$_[2] =~ /\G\s*\"((?:[^\"\\]|\\.)*)\"\s*/gsc
+
+	# $_[2] =~ /\G\s*\"((?:[^\"\\]|\\.)*)\"\s*/gsc
+	# This regexp is closer to the VRML97 specification:
+	$_[2] =~ /\G\s*\"((?:[^\"\\]|\\[\"\\])*)\"\s*/gsc
 		or VRML::Error::parsefail($_[2],"improper SFString");
+
 	my $str = $1;
 	$str =~ s/\\(.)/$1/g;
-	# print "GOT STRING '$str'\n";
+
 	return $str;
 }
 
@@ -965,7 +977,8 @@ sub parse {
 			# print "POS0: ",(pos $_[2]),"\n";
 			# removing $r = causes this to be evaluated
 			# in array context -> fail.
-			my $r = ($_[2] =~ /\G\s*,\s*/gsc); # Eat comma if it is there...
+			# eat commas if they are there...
+			my $r = ($_[2] =~ /\G\s*,+\s*/gsc);
 			# my $wa = wantarray;
 			# print "R: '$r' (WA: $wa)\n";
 			# print "POS1: ",(pos $_[2]),"\n";
@@ -976,8 +989,8 @@ sub parse {
 		return \@a;
 	} else {
 		my $res = [$stype->parse($p,$_[2],$_[3])];
-		# Eat comma if it is there
-		my $r = $_[2] =~ /\G\s*,\s*/gsc;
+		# eat commas if they are there
+		my $r = $_[2] =~ /\G\s*,+\s*/gsc;
 		return $res;
 	}
 }
