@@ -77,15 +77,12 @@ struct SCP *SCP;			/* dyn. vector rep. the SCPs	*/
 
 struct pt spm1,spc,spp1,spcp,spy,spz,spoz,spx;	/* help vertix vars	*/
 
-
-
-				/**AG**/
 struct VRML_Extrusion_Adj *adj; 	/* Holds the indexes of nodes	*/
 					/* that are adjacent for normals*/
 					/* calculations			*/
 
 int klm, kmem; 				/* help variables for normals */
-
+float crease_angle;
 
 
 
@@ -569,84 +566,84 @@ for(spi = 0; spi<nspi; spi++) {
 		/* Each point is surrounded by four quadrilaterals.          */
 		/* These are the names given to the neighbouring points.     */
 		/*                                                           */
-		/*         north_west_pt      prev_layer_pt      north_east_pt   */
+		/*         north_west_pt          north_pt       north_east_pt   */
 		/*                      *-----------*-----------*                */
 		/*                      |           |           |                */
 		/*                      |  4th quad | 1st quad  |                */
 		/*                      |           |           |                */
 		/*                      |           |           |                */
 		/*                      |           |           |                */
-		/*        prev_cross_pt *-----------*-----------* next_cross_pt  */
+		/*        west_pt       *-----------*-----------* east_pt  */
 		/*                      |           |           |                */
 		/*                      |  3rd quad | 2nd quad  |                */
 		/*                      |           |           |                */
 		/*                      |           |           |                */
 		/*                      |           |           |                */
 		/*                      *-----------*-----------*                */
-		/*         south_west_pt     next_layer_pt       south_east_pt   */
+		/*         south_west_pt          south_pt       south_east_pt   */
 		/*                                                               */
 		/* I cannot recommend trying to modify this code -> I took *days**/
 		/* to get right.                                                 */
 
 		if(spi == 0){
 			if(closed){
-				adj[spi * nsec + sec].prev_layer_pt = (nspi-2) * nsec + sec;
+				adj[spi * nsec + sec].north_pt = (nspi-2) * nsec + sec;
 			}
 			else{
-				adj[spi * nsec + sec].prev_layer_pt = -1;
+				adj[spi * nsec + sec].north_pt = -1;
 			}
 		}
 		else {
-			adj[spi * nsec + sec].prev_layer_pt = (spi-1) * nsec + sec; 
+			adj[spi * nsec + sec].north_pt = (spi-1) * nsec + sec; 
 		}
 
 
-		/*  set next_layer_pt  */
+		/*  set south_pt  */
 		if(spi == nspi-1){
 			if(closed){
-				adj[spi * nsec + sec].next_layer_pt = nsec + sec;
+				adj[spi * nsec + sec].south_pt = nsec + sec;
 			}
 			else{
-				adj[spi * nsec + sec].next_layer_pt = -1;
+				adj[spi * nsec + sec].south_pt = -1;
 			}
 		}
 		else{
-				adj[spi * nsec + sec].next_layer_pt = (spi+1) * nsec + sec ;
+				adj[spi * nsec + sec].south_pt = (spi+1) * nsec + sec ;
 		}
 
 
-		/*  set prev_cross_pt  */
+		/*  set west_pt  */
 		if(sec == 0){
 			if(curve_closed){
-				adj[spi * nsec + sec].prev_cross_pt = spi * (nsec) + nsec -2;
+				adj[spi * nsec + sec].west_pt = spi * (nsec) + nsec -2;
 			}
 			else{
-				adj[spi * nsec + sec].prev_cross_pt =  -1;
+				adj[spi * nsec + sec].west_pt =  -1;
 			}
 		}
 		else{
-			adj[spi * nsec + sec].prev_cross_pt = spi * nsec + sec -1;
+			adj[spi * nsec + sec].west_pt = spi * nsec + sec -1;
 		}
 
 
-                /*  set next_cross_pt  */
+                /*  set east_pt  */
                 if(sec == nsec-1){
                         if(curve_closed){
-                                adj[spi * nsec + sec].next_cross_pt = spi * (nsec) + 1 ;
+                                adj[spi * nsec + sec].east_pt = spi * (nsec) + 1 ;
                         }
                         else{
-                                adj[spi * nsec + sec].next_cross_pt =  -1;
+                                adj[spi * nsec + sec].east_pt =  -1;
                         }
                 }
                 else{
-                        adj[spi * nsec + sec].next_cross_pt = spi * nsec + sec + 1;
+                        adj[spi * nsec + sec].east_pt = spi * nsec + sec + 1;
                 }
 
 
 		/* More data collection, this is again needed for smooth normals. */
 		
-		if( (adj[spi * nsec + sec].prev_layer_pt == -1) 
-		|| (adj[spi * nsec + sec].next_cross_pt == -1 ) ) {
+		if( (adj[spi * nsec + sec].north_pt == -1) 
+		|| (adj[spi * nsec + sec].east_pt == -1 ) ) {
 			adj[spi * nsec + sec].north_east_pt = -1;
 		}
 		else if (curve_closed && (sec == nsec-1) && !closed){
@@ -659,12 +656,12 @@ for(spi = 0; spi<nspi; spi++) {
 			adj[spi * nsec + sec].north_east_pt = (nspi-2) * nsec + 1; 
 		}
 		else{
-			adj[spi * nsec + sec].north_east_pt = adj[spi * nsec + sec].prev_layer_pt + 1;
+			adj[spi * nsec + sec].north_east_pt = adj[spi * nsec + sec].north_pt + 1;
 		}
 
 		
-		if( (adj[spi * nsec + sec].next_cross_pt == -1) 
-		|| (adj[spi * nsec + sec].next_layer_pt == -1 ) ) {
+		if( (adj[spi * nsec + sec].east_pt == -1) 
+		|| (adj[spi * nsec + sec].south_pt == -1 ) ) {
 			adj[spi * nsec + sec].south_east_pt = -1;
 		}
 		else if (curve_closed && (sec == nsec-1) && !closed){
@@ -677,12 +674,12 @@ for(spi = 0; spi<nspi; spi++) {
 			adj[spi * nsec + sec].south_east_pt = 1*nsec + 1; 
 		}
 		else {
-			adj[spi * nsec + sec].south_east_pt = adj[spi * nsec + sec].next_layer_pt + 1;
+			adj[spi * nsec + sec].south_east_pt = adj[spi * nsec + sec].south_pt + 1;
 		}
 
 		
-		if( (adj[spi * nsec + sec].next_layer_pt == -1) 
-		|| (adj[spi * nsec + sec].prev_cross_pt == -1 ) ) {
+		if( (adj[spi * nsec + sec].south_pt == -1) 
+		|| (adj[spi * nsec + sec].west_pt == -1 ) ) {
 			adj[spi * nsec + sec].south_west_pt = -1;
 		}
 		else if (curve_closed && (sec == 0) && !closed){
@@ -695,12 +692,12 @@ for(spi = 0; spi<nspi; spi++) {
 			adj[spi * nsec + sec].south_west_pt = 1*nsec +nsec-2; 
 		}
 		else {
-			adj[spi * nsec + sec].south_west_pt = adj[spi * nsec + sec].next_layer_pt - 1;
+			adj[spi * nsec + sec].south_west_pt = adj[spi * nsec + sec].south_pt - 1;
 		}
 
 
-		if( (adj[spi * nsec + sec].prev_cross_pt == -1) 
-		|| (adj[spi * nsec + sec].prev_layer_pt == -1 ) ) {
+		if( (adj[spi * nsec + sec].west_pt == -1) 
+		|| (adj[spi * nsec + sec].north_pt == -1 ) ) {
 			adj[spi * nsec + sec].north_west_pt = -1;
 		}
 		else if (curve_closed && (sec == 0) && !closed){
@@ -713,7 +710,7 @@ for(spi = 0; spi<nspi; spi++) {
 			adj[spi * nsec + sec].north_west_pt = (nspi-2) * nsec + nsec -2; 
 		}
 		else {
-			adj[spi * nsec + sec].north_west_pt = adj[spi * nsec + sec].prev_layer_pt - 1;
+			adj[spi * nsec + sec].north_west_pt = adj[spi * nsec + sec].north_pt - 1;
 		}
 
 
@@ -722,16 +719,12 @@ for(spi = 0; spi<nspi; spi++) {
 } /* for(spi */
 ncoord=nsec*nspi;
 
-
-
-
-/**DEBUG CODE******************************************************/
-/*
+/**DEBUG CODE*****************************************************
 for(klm=0; klm < nspi*nsec; klm++ ){
-	printf("%i   next_layer_pt: %i\n", klm, adj[klm].next_layer_pt);
-	printf("%i   prev_layer_pt: %i\n", klm, adj[klm].prev_layer_pt);
-	printf("%i   next_cross_pt: %i\n", klm, adj[klm].next_cross_pt);
-	printf("%i   prev_cross_pt: %i\n", klm, adj[klm].prev_cross_pt);
+	printf("%i   south_pt: %i\n", klm, adj[klm].south_pt);
+	printf("%i   north_pt: %i\n", klm, adj[klm].north_pt);
+	printf("%i   east_pt: %i\n", klm, adj[klm].east_pt);
+	printf("%i   west_pt: %i\n", klm, adj[klm].west_pt);
 	printf("%i   north_east_pt: %i\n", klm, adj[klm].north_east_pt);
 	printf("%i   south_east_pt: %i\n", klm, adj[klm].south_east_pt);
 	printf("%i   south_west_pt: %i\n", klm, adj[klm].south_west_pt);
@@ -1169,10 +1162,10 @@ if(verbose)
 	"ncolinear_at_begin=%d ncolinear_at_end=%d\n",
 	triind,ntri,nctri,ncolinear_at_begin,ncolinear_at_end);
 
-
+	crease_angle = $f(creaseAngle);
 
 if (smooth_normals){
-	calc_poly_normals_extrusion(rep_, adj, nspi, nsec, ntri, nctri); 
+	calc_poly_normals_extrusion(rep_, adj, nspi, nsec, ntri, nctri, crease_angle); 
 }
 else {
 	calc_poly_normals_flat(rep_);

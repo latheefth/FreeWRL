@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.34  2001/07/12 15:50:23  kitfox
+# Merging extrusion_normals branch to the main branch
+#
 # Revision 1.33  2001/07/11 20:43:04  ayla
 #
 #
@@ -45,6 +48,22 @@
 #
 # Revision 1.29  2001/06/15 19:43:29  crc_canada
 # Alains Smooth Shading for Extrusions added.
+#
+# Revision 1.28.2.4  2001/07/10 14:05:01  kitfox
+# Code Cleanup after fixing the last bug
+#
+# Revision 1.28.2.3  2001/07/10 13:22:13  kitfox
+# Fixed a bug with smooth shading for elevation grids.  The bug had to do
+# with some indexing mix-ups.
+#
+# Revision 1.28.2.2  2001/07/04 16:49:24  uid53492
+#
+# Applied smooth normals to ElevationGrids using the extrusion code.
+#
+# Revision 1.28.2.1  2001/06/27 20:48:03  kitfox
+#
+# Added a significant chunk of code that calculates normals that allow
+# smooth shading on extrusions.
 #
 # Revision 1.28  2001/05/16 16:00:47  crc_canada
 # check for degenerate triangles in render_ray_polyrep, and skip it if one is found.
@@ -491,6 +510,7 @@ IndexedFaceSet => '
 # ElevationGrid = 2 triangles per each face.
 # No color or normal support yet
 ElevationGrid => '
+
 		int x,z;
 		int nx = $f(xDimension);
 		float xs = $f(xSpacing);
@@ -509,9 +529,12 @@ ElevationGrid => '
 		int cpv = $f(colorPerVertex);
 		struct SFColor *colors; int ncolors=0;
 		struct VRML_PolyRep *rep_ = this_->_intern;
-		
+		struct VRML_Extrusion_Adj *adj; 
+		float crease_angle = $f(creaseAngle);
 		$fv_null(color, colors, get3, &ncolors);
 		rep_->ntri = ntri;
+
+		printf("Gen elevgrid %d %d %d\\n", ntri, nx, nz);
 		if(nf != nx * nz) {
 			die("Elevationgrid: too many / too few: %d %d %d\\n",
 				nf, nx, nz);
@@ -535,12 +558,13 @@ ElevationGrid => '
 		}
 
 		/* Flat */
-		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
-		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
+		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri*3);
+		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);	
 
+		adj     = malloc( sizeof(struct VRML_Extrusion_Adj) * nx * nz ); /*AG*/
 
 		/* in C always check if you got the mem you wanted...  >;->		*/
-  		if(!(cindex && coord && tcoord && colindex && rep_->normal && rep_->norindex )) {
+  		if(!(cindex && coord && tcoord && colindex && rep_->normal && rep_->norindex && adj)) {
 			die("Not enough memory for ElevationGrid node triangles... ;(");
 		} 
  
@@ -638,7 +662,50 @@ ElevationGrid => '
 		 }
 		}
 		} /* end of block */
-		calc_poly_normals_flat(rep_);
+
+		/* smooth normals for the Elevation Grid */
+		/* In the part of this system that calculates these normals */
+		/* x is north-south,  z is east-west.                       */
+		for(x=0; x<nx; x++) {
+			for(z=0; z<nz; z++) {
+                                if (z == 0){adj[x + z * nx].north_pt = -1;}
+                                else {	adj[x + z * nx].north_pt = x + (z-1) * nx; }
+
+                                if (z == nz-1){adj[x + z * nx].south_pt = -1;}
+                                else {	adj[x + z * nx].south_pt = x + (z+1) * nx; }
+
+                                if (x == nx-1){adj[x + z * nx].east_pt = -1;}
+                                else {	adj[x + z * nx].east_pt = x + (z * nx) + 1;}
+
+                                if (x == 0){adj[x + z * nx].west_pt = -1;}
+                                else {	adj[x + z * nx].west_pt = x + (z * nx) - 1;}
+
+                                if ( (	adj[x + z * nx].north_pt == -1) || (adj[x + z * nx].east_pt == -1) ){
+                                        adj[x + z * nx].north_east_pt = -1;}
+                                else {	adj[x + z * nx].north_east_pt = adj[x + z * nx].north_pt + 1;}
+
+                                if ( (	adj[x + z * nx].north_pt == -1) || (adj[x + z * nx].west_pt == -1) ){
+                                        adj[x + z * nx].north_west_pt = -1;}
+                                else {	adj[x + z * nx].north_west_pt = adj[x + z * nx].north_pt - 1;}
+
+                                if ( (	adj[x + z * nx].south_pt == -1) || (adj[x + z * nx].east_pt == -1) ){
+                                        adj[x + z * nx].south_east_pt = -1;}
+                                else {	adj[x + z * nx].south_east_pt = adj[x + z * nx].south_pt + 1;}
+
+                                if ( (	adj[x + z * nx].south_pt == -1) || (adj[x + z * nx].west_pt == -1) ){
+                                        adj[x + z * nx].south_west_pt = -1;}
+                                else {	adj[x + z * nx].south_west_pt = adj[x + z * nx].south_pt - 1;}
+			}
+		}
+
+		if (smooth_normals){
+			calc_poly_normals_extrusion(rep_, adj, nx, nz, ntri, 0, crease_angle);
+		}
+		else {
+		        calc_poly_normals_flat(rep_);
+		}
+
+		if (adj) free(adj);
 	',
 
 Extrusion => (do "VRMLExtrusion.pm"),
@@ -1340,20 +1407,20 @@ int nextlight() {
 struct pt {GLdouble x,y,z;};
 
 struct VRML_Extrusion_Adj {
-	int next_layer_pt;
-	int prev_layer_pt;
-	int next_cross_pt;
-	int prev_cross_pt;
+	int south_pt;
+	int north_pt;
+	int east_pt;
+	int west_pt;
 
 	int north_east_pt;
 	int south_east_pt;
 	int south_west_pt;
 	int north_west_pt;
 
-	struct pt next_layer_vec;
-	struct pt prev_layer_vec;
-	struct pt next_cross_vec;
-	struct pt prev_cross_vec;
+	struct pt north_vec;
+	struct pt south_vec;
+	struct pt east_vec;
+	struct pt west_vec;
 	
 	struct pt first_quad_diag_vec;
 	struct pt second_quad_diag_vec;
@@ -1655,11 +1722,19 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep);
 
 void calc_poly_normals_extrusion(struct VRML_PolyRep *rep, 
 			struct VRML_Extrusion_Adj *adj,
-			int nspi, int nsec, int ntri, int nctri);
+			int nspi, int nsec, int ntri, int nctri,
+			float crease_angle);
 void calc_vector_product(struct pt a, struct pt b, struct pt *c );
 float calc_vector_length(struct pt p);
 float calc_vector_scalar_product(struct pt a, struct pt b);
 float calc_angle_between_two_vectors(struct pt a, struct pt b);
+int find_edge_config_at_this_point(struct VRML_PolyRep *rep,
+				struct VRML_Extrusion_Adj *adj,
+				int index_pt, float creaseAngle);
+int find_the_quadrant_of_this_triangle(struct VRML_PolyRep *rep,
+				struct VRML_Extrusion_Adj *adj, 
+				int index_pt, int a_pt, int b_pt);
+void normalize_vector(struct pt *vec); 
 
 void render_ray_polyrep(void *node,
 	int npoints, struct SFColor *points);
@@ -2125,29 +2200,321 @@ float calc_vector_length( struct pt p )
 
 float calc_vector_scalar_product(struct pt a, struct pt b)
 {
-	return a.x*b.x + a.y*b.y + a.z*b.z;
+	return (a.x*b.x) + (a.y*b.y) + (a.z*b.z);
 }
 
 
 
 float calc_angle_between_two_vectors(struct pt a, struct pt b)
 {
-	float length_a, length_b, scalar;
+	float length_a, length_b, scalar, temp;
 	scalar = calc_vector_scalar_product(a,b);
 	length_a = calc_vector_length(a);
 	length_b = calc_vector_length(b);
+
+	/*printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);*/
+	
+	if (scalar == 0){
+		return PI/2;	
+	}
+
 	if ( (length_a <= 0)  || (length_b <= 0)){
 		printf("Divide by 0 in calc_angle_between_two_vectors():  No can do! \n");
 		return 0;
 	}
-	return acos( scalar /(length_a * length_b) );
+	
+	temp = scalar /(length_a * length_b);
+	/*printf("temp: %f", temp);*/
+
+	/*acos() appears to be unable to handle 1 and -1  */
+	if ((temp >= 1) || (temp <= -1)){
+		return 0;
+	}
+	return acos(temp);
 }
+
+
+void normalize_vector(struct pt *vec)
+{
+	float vector_length;
+
+	vector_length = calc_vector_length(*vec);
+	
+	vec->x = vec->x / vector_length;
+	vec->y = vec->y / vector_length;
+	vec->z = vec->z / vector_length;
+}
+
+
+/* This fuction returns a code that determines whether edges   */
+/* at this point need to smoothed over or not. This code is    */
+/* number from -1 to 16. These correspond to 16 possible       */
+/* ways the edges can be configured at this point.             */
+/* This function uses the data in the adj struct to make       */
+/* these determinations. Macros would have been nice for this  */
+/* , but this system has enough already.                       */
+/*                                                             */
+/*  0       1      2      3       0-3 are corners              */
+/* ---*      |    |      *---                                  */
+/*    |      |    |      |                                     */
+/*    |   ---*    *---   |   s means the edge is smoothed over */
+/*                                                             */
+/*   4      5         6          7                             */
+/*    |      |       |          s       codes 4-11 are for     */
+/*    |      |       |          s       sides where one edge   */
+/* ---*   sss*    ---*---       s       may or may not have    */ 
+/*    |      |               ---*---    to be smoothed over    */
+/*    |      |                                                 */
+/*                                                             */
+/*    8      9      10          11                             */
+/*  |       |     ---*---     ---*---     code 16 is for error */
+/*  |       |        |           s                             */
+/*  *---    *sss     |           s                             */
+/*  |       |        |           s                             */
+/*  |       |                                                  */
+/*                                                             */
+/*      12       13          14         15                     */
+/*       s        |          |           s                     */
+/*       s        |          |           s                     */
+/*    ---*---  sss*sss    ---*---     sss*sss                  */
+/*       s        |          |           s                     */
+/*       s        |          |           s                     */
+/*                                                             */
+int find_edge_config_at_this_point(struct VRML_PolyRep *rep,
+				struct VRML_Extrusion_Adj *adj,
+				int index_pt, float creaseAngle){
+	
+	float angle_north_south, angle_east_west;
+
+	/* find out if we are in the north_east corner */
+	if (	(adj[index_pt].north_pt == -1)
+		&&(adj[index_pt].east_pt  == -1)
+		&&(adj[index_pt].south_pt != -1)
+		&&(adj[index_pt].west_pt  != -1)){
+		return 0;		
+	}
+	
+	/* find out if we are in the south_east corner */
+	if (	(adj[index_pt].north_pt != -1)
+		&&(adj[index_pt].east_pt  == -1)
+		&&(adj[index_pt].south_pt == -1)
+		&&(adj[index_pt].west_pt  != -1)){
+		return 1;		
+	}
+
+	/* find out if we are in the south_west corner */
+	if (	(adj[index_pt].north_pt != -1)
+		&&(adj[index_pt].east_pt  != -1)
+		&&(adj[index_pt].south_pt == -1)
+		&&(adj[index_pt].west_pt  == -1)){
+		return 2;		
+	}
+
+	/* find out if we are in the north_west corner */
+	if (	(adj[index_pt].north_pt == -1)
+		&&(adj[index_pt].east_pt  != -1)
+		&&(adj[index_pt].south_pt != -1)
+		&&(adj[index_pt].west_pt  == -1)){
+		return 3;		
+	}
+
+	/* find out if we are the east edge */
+	if (	(adj[index_pt].north_pt != -1)
+		&&(adj[index_pt].east_pt  == -1)
+		&&(adj[index_pt].south_pt != -1)
+		&&(adj[index_pt].west_pt  != -1)){
+
+		angle_north_south = calc_angle_between_two_vectors(
+				adj[index_pt].south_vec, adj[index_pt].north_vec);
+		if (angle_north_south <= creaseAngle){return 4;}
+		else {return 5;}
+	}
+
+	/* find out if we are the south edge */
+	if (	(adj[index_pt].north_pt != -1)
+		&&(adj[index_pt].east_pt  != -1)
+		&&(adj[index_pt].south_pt == -1)
+		&&(adj[index_pt].west_pt  != -1)){
+
+		angle_east_west = calc_angle_between_two_vectors(
+				adj[index_pt].west_vec, adj[index_pt].east_vec);
+		if (angle_east_west <= creaseAngle){return 6;}
+		else {return 7;}
+	}
+
+	/* find out if we are the west edge */
+	if (	(adj[index_pt].north_pt != -1)
+		&&(adj[index_pt].east_pt  != -1)
+		&&(adj[index_pt].south_pt != -1)
+		&&(adj[index_pt].west_pt  == -1)){
+
+		angle_north_south = calc_angle_between_two_vectors(
+				adj[index_pt].south_vec, adj[index_pt].north_vec);
+		if (angle_north_south <= creaseAngle){return 8;}
+		else {return 9;}
+	}
+
+	/* find out if we are the north edge */
+	if (	(adj[index_pt].north_pt == -1)
+		&&(adj[index_pt].east_pt  != -1)
+		&&(adj[index_pt].south_pt != -1)
+		&&(adj[index_pt].west_pt  != -1)){
+
+		angle_east_west = calc_angle_between_two_vectors(
+				adj[index_pt].west_vec, adj[index_pt].east_vec);
+		if (angle_east_west <= creaseAngle){return 10;}
+		else {return 11;}
+	}
+
+	/* general case */
+	if (	(adj[index_pt].north_pt != -1)
+		&&(adj[index_pt].east_pt  != -1)
+		&&(adj[index_pt].south_pt != -1)
+		&&(adj[index_pt].west_pt  != -1)){
+
+		angle_north_south = calc_angle_between_two_vectors(
+				adj[index_pt].south_vec, adj[index_pt].north_vec);
+		angle_east_west = calc_angle_between_two_vectors(
+				adj[index_pt].west_vec, adj[index_pt].east_vec);
+	
+		if ( 	(angle_east_west <= creaseAngle)
+			&&(angle_north_south <= creaseAngle)){return 14;}
+
+		if ( 	(angle_east_west > creaseAngle)
+			&&(angle_north_south <= creaseAngle)){return 12;}
+
+		if ( 	(angle_east_west <= creaseAngle)
+			&&(angle_north_south > creaseAngle)){return 13;}
+
+		if ( 	(angle_east_west > creaseAngle)
+			&&(angle_north_south > creaseAngle)){return 15;}
+	}
+/*	printf("angle_north_south: %f angle_east_west: %f \n", angle_north_south, angle_east_west);
+        printf("%i   north_vec:  %f  %f  %f \n", index_pt, adj[index_pt].north_vec.x,  
+				adj[index_pt].north_vec.y, adj[index_pt].north_vec.z);
+        printf("%i   south_vec:  %f  %f  %f \n", index_pt, adj[index_pt].south_vec.x,  
+				adj[index_pt].south_vec.y, adj[index_pt].south_vec.z);
+
+        printf("%i   north_pt: %i\n", index_pt, adj[index_pt].north_pt);
+        printf("%i   east_pt: %i\n", index_pt, adj[index_pt].east_pt);
+        printf("%i   south_pt: %i\n", index_pt, adj[index_pt].south_pt);
+        printf("%i   west_pt: %i\n", index_pt, adj[index_pt].west_pt);
+        printf("%i   north_east_pt: %i\n", index_pt, adj[index_pt].north_east_pt);
+        printf("%i   south_east_pt: %i\n", index_pt, adj[index_pt].south_east_pt);
+        printf("%i   south_west_pt: %i\n", index_pt, adj[index_pt].south_west_pt);
+        printf("%i   north_west_pt: %i\n", index_pt, adj[index_pt].north_west_pt);
+        printf("-----------------------------------------------\n");
+*/
+	return 16;
+}
+
+
+
+
+/* This function answers with a number from 1 thru 4. It determines */
+/* quadrant the triangle belongs to with reference to this point.   */
+/*   4th          1st                                               */
+/*       +---+---+      The triangle we are looking for is one of   */
+/*       |\  |\  |      the 8.                                      */
+/*       | \ | \ |                                                  */
+/*       |  \|  \|                                                  */
+/*       +---*---+                                                  */
+/*       |\  |\  |                                                  */
+/*       | \ | \ |                                                  */
+/*       |  \|  \|                                                  */
+/*   3rd +---+---+ 2nd                                              */
+/*                                                                  */
+int find_the_quadrant_of_this_triangle(struct VRML_PolyRep *rep,
+				struct VRML_Extrusion_Adj *adj, 
+				int index_pt, int a_pt, int b_pt){
+
+	/*first group of cases, diagonal goes from south_east to north_west*/
+	/*case where the triangle is in the first quadrant*/
+	if ( 	(adj[index_pt].north_pt == a_pt ) && (adj[index_pt].east_pt == b_pt)
+		||(adj[index_pt].north_pt == b_pt ) && (adj[index_pt].east_pt == a_pt)	){
+		return 1;
+	}
+		
+	/*case where the triangle is in the third quadrant*/
+	if ( 	(adj[index_pt].south_pt == a_pt ) && (adj[index_pt].west_pt == b_pt)
+		||(adj[index_pt].south_pt == b_pt ) && (adj[index_pt].west_pt == a_pt)	){
+		return 3;
+	}
+
+	/*case where the triangle is in the second quadrant*/
+	if ( 	(adj[index_pt].east_pt == a_pt ) && (adj[index_pt].south_east_pt == b_pt)
+		||(adj[index_pt].east_pt == b_pt ) && (adj[index_pt].south_east_pt == a_pt)	
+		||(adj[index_pt].south_pt == a_pt ) && (adj[index_pt].south_east_pt == b_pt)	
+		||(adj[index_pt].south_pt == b_pt ) && (adj[index_pt].south_east_pt == a_pt)	){
+		return 2;
+	}
+
+	/*case where the triangle is in the second quadrant*/
+	if ( 	(adj[index_pt].west_pt == a_pt ) && (adj[index_pt].north_west_pt == b_pt)
+		||(adj[index_pt].west_pt == b_pt ) && (adj[index_pt].north_west_pt == a_pt)	
+		||(adj[index_pt].north_pt == a_pt ) && (adj[index_pt].north_west_pt == b_pt)	
+		||(adj[index_pt].north_pt == b_pt ) && (adj[index_pt].north_west_pt == a_pt)	){
+		return 4;
+	}
+
+
+
+	/*second group of cases, diagonal goes from south_west to north_east*/
+
+	/*case where the triangle is in the first quadrant*/
+	if ( 	(adj[index_pt].east_pt == a_pt ) && (adj[index_pt].north_east_pt == b_pt)
+		||(adj[index_pt].east_pt == b_pt ) && (adj[index_pt].north_east_pt == a_pt)	
+		||(adj[index_pt].north_pt == a_pt ) && (adj[index_pt].north_east_pt == b_pt)	
+		||(adj[index_pt].north_pt == b_pt ) && (adj[index_pt].north_east_pt == a_pt)	){
+		return 1;
+	}
+
+	/*case where the triangle is in the second quadrant*/
+	if ( 	(adj[index_pt].south_pt == a_pt ) && (adj[index_pt].east_pt == b_pt)
+		||(adj[index_pt].south_pt == b_pt ) && (adj[index_pt].east_pt == a_pt)	){
+		return 2;
+	}
+		
+	/*case where the triangle is in the third quadrant*/
+	if ( 	(adj[index_pt].west_pt == a_pt ) && (adj[index_pt].south_west_pt == b_pt)
+		||(adj[index_pt].west_pt == b_pt ) && (adj[index_pt].south_west_pt == a_pt)	
+		||(adj[index_pt].south_pt == a_pt ) && (adj[index_pt].south_west_pt == b_pt)	
+		||(adj[index_pt].south_pt == b_pt ) && (adj[index_pt].south_west_pt == a_pt)	){
+		return 3;
+	}
+
+	/*case where the triangle is in the fourth quadrant*/
+	if ( 	(adj[index_pt].north_pt == a_pt ) && (adj[index_pt].west_pt == b_pt)
+		||(adj[index_pt].north_pt == b_pt ) && (adj[index_pt].west_pt == a_pt)	){
+		return 4;
+	}
+
+
+
+			
+        printf("%i   south_pt: %i\n", index_pt, adj[index_pt].south_pt);
+        printf("%i   north_pt: %i\n", index_pt, adj[index_pt].north_pt);
+        printf("%i   east_pt: %i\n", index_pt, adj[index_pt].east_pt);
+        printf("%i   west_pt: %i\n", index_pt, adj[index_pt].west_pt);
+        printf("%i   north_east_pt: %i\n", index_pt, adj[index_pt].north_east_pt);
+        printf("%i   south_east_pt: %i\n", index_pt, adj[index_pt].south_east_pt);
+        printf("%i   south_west_pt: %i\n", index_pt, adj[index_pt].south_west_pt);
+        printf("%i   north_west_pt: %i\n", index_pt, adj[index_pt].north_west_pt);
+        printf("-----------------------------------------------\n");
+        printf("index_pt: %i  a_pt: %i  b_pt: %i \n", index_pt, a_pt, b_pt);
+        printf("-----------------------------------------------\n");
+	
+
+	return 0;
+}
+
 
 
 
 void calc_poly_normals_extrusion(struct VRML_PolyRep *rep, 
 			struct VRML_Extrusion_Adj *adj,
-			int nspi, int nsec, int ntri, int nctri) 
+			int nspi, int nsec, int ntri, int nctri,
+			float crease_angle) 
 {
 
 /* Each point in the coord array now has a corresponding entry in */
@@ -2157,101 +2524,101 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 /* no adjacent point)  In this case, only the points present are  */
 /* considered */
 
-	int   i,j, p[3]; 
+	int   i, j, p[3], edge_config, quadrant; 
 	float vector_length;
-	struct pt base0, vec0, cap_vec1, cap_vec2, cap_normal;
+	struct pt cap_vec1, cap_vec2, cap_normal;	
 
         for(i=0; i < (nsec * nspi) ; i++) {
 
-                if ( adj[i].next_layer_pt != -1 ){
-			adj[i].next_layer_vec.x = 
-				rep->coord[ adj[i].next_layer_pt *3+0] - rep->coord[i*3+0];
-                        adj[i].next_layer_vec.y = 
-				rep->coord[ adj[i].next_layer_pt *3+1] - rep->coord[i*3+1];
-                        adj[i].next_layer_vec.z = 
-				rep->coord[ adj[i].next_layer_pt *3+2] - rep->coord[i*3+2];
+                if ( adj[i].north_pt != -1 ){
+			adj[i].north_vec.x = 
+				(rep->coord[ adj[i].north_pt *3+0] - rep->coord[i*3+0]);
+                        adj[i].north_vec.y = 
+				(rep->coord[ adj[i].north_pt *3+1] - rep->coord[i*3+1]);
+                        adj[i].north_vec.z = 
+				(rep->coord[ adj[i].north_pt *3+2] - rep->coord[i*3+2]);
                 }
                 else {
-                        adj[i].next_layer_vec.x = 0;
-			adj[i].next_layer_vec.y = 0;
-			adj[i].next_layer_vec.z = 0;
+                        adj[i].north_vec.x = 0;
+			adj[i].north_vec.y = 0;
+			adj[i].north_vec.z = 0;
                 }
 /*
-		printf("%i  next_layer vector: %f %f %f   \n",i, adj[i].next_layer_vec.x, 
-			adj[i].next_layer_vec.y, adj[i].next_layer_vec.z );
+		printf("%i  next_layer vector: %f %f %f   \n",i, adj[i].north_vec.x, 
+			adj[i].north_vec.y, adj[i].north_vec.z );
 */
 
 
-                if ( adj[i].prev_layer_pt != -1 ){
-                        adj[i].prev_layer_vec.x =
-                                rep->coord[ adj[i].prev_layer_pt *3+0] - rep->coord[i*3+0];
-                        adj[i].prev_layer_vec.y =
-                                rep->coord[ adj[i].prev_layer_pt *3+1] - rep->coord[i*3+1];
-                        adj[i].prev_layer_vec.z =
-                                rep->coord[ adj[i].prev_layer_pt *3+2] - rep->coord[i*3+2];
+                if ( adj[i].south_pt != -1 ){
+                        adj[i].south_vec.x =
+                                (rep->coord[ adj[i].south_pt *3+0] - rep->coord[i*3+0]);
+                        adj[i].south_vec.y =
+                                (rep->coord[ adj[i].south_pt *3+1] - rep->coord[i*3+1]);
+                        adj[i].south_vec.z =
+                                (rep->coord[ adj[i].south_pt *3+2] - rep->coord[i*3+2]);
                 }
                 else {
-                        adj[i].prev_layer_vec.x = 0;
-			adj[i].prev_layer_vec.y = 0;
-			adj[i].prev_layer_vec.z = 0;
+                        adj[i].south_vec.x = 0;
+			adj[i].south_vec.y = 0;
+			adj[i].south_vec.z = 0;
                 }
 /*
-                printf("%i  prev_layer vector: %f %f %f   \n",i, adj[i].prev_layer_vec.x,
-                        adj[i].prev_layer_vec.y, adj[i].prev_layer_vec.z );
+                printf("%i  prev_layer vector: %f %f %f   \n",i, adj[i].south_vec.x,
+                        adj[i].south_vec.y, adj[i].south_vec.z );
 */
 
 
-                if ( adj[i].next_cross_pt != -1 ){
-                        adj[i].next_cross_vec.x =
-                                rep->coord[ adj[i].next_cross_pt *3+0] - rep->coord[i*3+0];
-                        adj[i].next_cross_vec.y =
-                                rep->coord[ adj[i].next_cross_pt *3+1] - rep->coord[i*3+1];
-                        adj[i].next_cross_vec.z =
-                                rep->coord[ adj[i].next_cross_pt *3+2] - rep->coord[i*3+2];
+                if ( adj[i].east_pt != -1 ){
+                        adj[i].east_vec.x =
+                                (rep->coord[ adj[i].east_pt *3+0] - rep->coord[i*3+0]);
+                        adj[i].east_vec.y =
+                                (rep->coord[ adj[i].east_pt *3+1] - rep->coord[i*3+1]);
+                        adj[i].east_vec.z =
+                                (rep->coord[ adj[i].east_pt *3+2] - rep->coord[i*3+2]);
                 }
                 else {
-                        adj[i].next_cross_vec.x = 0;
-			adj[i].next_cross_vec.y = 0;
-			adj[i].next_cross_vec.z = 0;
+                        adj[i].east_vec.x = 0;
+			adj[i].east_vec.y = 0;
+			adj[i].east_vec.z = 0;
                 }
 /*
-                printf("%i  next_cross vector: %f %f %f   \n",i, adj[i].next_cross_vec.x,
-                        adj[i].next_cross_vec.y, adj[i].next_cross_vec.z );
+                printf("%i  next_cross vector: %f %f %f   \n",i, adj[i].east_vec.x,
+                        adj[i].east_vec.y, adj[i].east_vec.z );
 */
 
 
-                if ( adj[i].prev_cross_pt != -1 ){
-                        adj[i].prev_cross_vec.x =
-                                rep->coord[ adj[i].prev_cross_pt *3+0] - rep->coord[i*3+0];
-                        adj[i].prev_cross_vec.y =
-                                rep->coord[ adj[i].prev_cross_pt *3+1] - rep->coord[i*3+1];
-                        adj[i].prev_cross_vec.z =
-                                rep->coord[ adj[i].prev_cross_pt *3+2] - rep->coord[i*3+2];
+                if ( adj[i].west_pt != -1 ){
+                        adj[i].west_vec.x =
+                                (rep->coord[ adj[i].west_pt *3+0] - rep->coord[i*3+0]);
+                        adj[i].west_vec.y =
+                                (rep->coord[ adj[i].west_pt *3+1] - rep->coord[i*3+1]);
+                        adj[i].west_vec.z =
+                                (rep->coord[ adj[i].west_pt *3+2] - rep->coord[i*3+2]);
                 }
                 else {
-                        adj[i].prev_cross_vec.x = 0;
-			adj[i].prev_cross_vec.y = 0;
-			adj[i].prev_cross_vec.z = 0;
+                        adj[i].west_vec.x = 0;
+			adj[i].west_vec.y = 0;
+			adj[i].west_vec.z = 0;
                 }
 /*
-                printf("%i  prev_cross vector: %f %f %f   \n",i, adj[i].prev_cross_vec.x,
-                        adj[i].prev_cross_vec.y, adj[i].prev_cross_vec.z );
+                printf("%i  prev_cross vector: %f %f %f   \n",i, adj[i].west_vec.x,
+                        adj[i].west_vec.y, adj[i].west_vec.z );
 */
 	}/*for*/
 
 
 	/*Calculate the diag-normals*/
         for(i=0; i < (nsec * nspi) ; i++) {
-		if((adj[i].next_layer_pt != -1) && (adj[i].next_cross_pt != -1)){
+		if((adj[i].north_pt != -1) && (adj[i].east_pt != -1)){
 
-			calc_vector_product(adj[i].next_layer_vec, adj[i].next_cross_vec, 
+			calc_vector_product(adj[i].north_vec, adj[i].east_vec, 
 							&adj[i].first_quad_diag_vec);
 
 			vector_length = calc_vector_length( adj[i].first_quad_diag_vec);
 
-			adj[i].first_quad_diag_vec.x = adj[i].first_quad_diag_vec.x / vector_length;
-			adj[i].first_quad_diag_vec.y = adj[i].first_quad_diag_vec.y / vector_length;
-			adj[i].first_quad_diag_vec.z = adj[i].first_quad_diag_vec.z / vector_length;
+			adj[i].first_quad_diag_vec.x = (adj[i].first_quad_diag_vec.x / vector_length) ;
+			adj[i].first_quad_diag_vec.y = (adj[i].first_quad_diag_vec.y / vector_length) ;
+			adj[i].first_quad_diag_vec.z = (adj[i].first_quad_diag_vec.z / vector_length) ;
 
 		}				
 		else{
@@ -2263,16 +2630,16 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 /*		printf("%i   first_quad_diag_vec:  %f  %f  %f  \n",i, adj[i].first_quad_diag_vec.x, 
 			adj[i].first_quad_diag_vec.y, adj[i].first_quad_diag_vec.z);
 */
-		if((adj[i].next_cross_pt != -1) && (adj[i].prev_layer_pt != -1)){
+		if((adj[i].east_pt != -1) && (adj[i].south_pt != -1)){
 
-			calc_vector_product(adj[i].next_cross_vec, adj[i].prev_layer_vec,
+			calc_vector_product(adj[i].east_vec, adj[i].south_vec,
 							&adj[i].second_quad_diag_vec);
 
 			vector_length = calc_vector_length( adj[i].second_quad_diag_vec);
 
-			adj[i].second_quad_diag_vec.x = adj[i].second_quad_diag_vec.x / vector_length;
-			adj[i].second_quad_diag_vec.y = adj[i].second_quad_diag_vec.y / vector_length;
-			adj[i].second_quad_diag_vec.z = adj[i].second_quad_diag_vec.z / vector_length;
+			adj[i].second_quad_diag_vec.x = (adj[i].second_quad_diag_vec.x / vector_length);
+			adj[i].second_quad_diag_vec.y = (adj[i].second_quad_diag_vec.y / vector_length);
+			adj[i].second_quad_diag_vec.z = (adj[i].second_quad_diag_vec.z / vector_length);
 		}				
 		else{
 			adj[i].second_quad_diag_vec.x = 0;
@@ -2283,16 +2650,16 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 /*		printf("%i   second_quad_diag_vec:  %f  %f  %f  \n",i, adj[i].second_quad_diag_vec.x, 
 			adj[i].second_quad_diag_vec.y, adj[i].second_quad_diag_vec.z);
 */
-		if((adj[i].prev_layer_pt != -1) && (adj[i].prev_cross_pt != -1)){
+		if((adj[i].south_pt != -1) && (adj[i].west_pt != -1)){
 
-			calc_vector_product(adj[i].prev_layer_vec, adj[i].prev_cross_vec, 
+			calc_vector_product(adj[i].south_vec, adj[i].west_vec, 
 									&adj[i].third_quad_diag_vec);
 
 			vector_length = calc_vector_length( adj[i].third_quad_diag_vec);
 
-			adj[i].third_quad_diag_vec.x = adj[i].third_quad_diag_vec.x / vector_length;
-			adj[i].third_quad_diag_vec.y = adj[i].third_quad_diag_vec.y / vector_length;
-			adj[i].third_quad_diag_vec.z = adj[i].third_quad_diag_vec.z / vector_length;
+			adj[i].third_quad_diag_vec.x = (adj[i].third_quad_diag_vec.x / vector_length);
+			adj[i].third_quad_diag_vec.y = (adj[i].third_quad_diag_vec.y / vector_length);
+			adj[i].third_quad_diag_vec.z = (adj[i].third_quad_diag_vec.z / vector_length);
 		}				
 		else{
 			adj[i].third_quad_diag_vec.x = 0;
@@ -2303,16 +2670,16 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 /*		printf("%i   third_quad_diag_vec:  %f  %f  %f  \n",i, adj[i].third_quad_diag_vec.x, 
 			adj[i].third_quad_diag_vec.y, adj[i].third_quad_diag_vec.z);
 */
-		if((adj[i].prev_cross_pt != -1) && (adj[i].next_layer_pt != -1)){
+		if((adj[i].west_pt != -1) && (adj[i].north_pt != -1)){
 
-			calc_vector_product(adj[i].prev_cross_vec, adj[i].next_layer_vec,
+			calc_vector_product(adj[i].west_vec, adj[i].north_vec,
 									&adj[i].fourth_quad_diag_vec);
 
 			vector_length = calc_vector_length( adj[i].fourth_quad_diag_vec);
 
-			adj[i].fourth_quad_diag_vec.x = adj[i].fourth_quad_diag_vec.x / vector_length;
-			adj[i].fourth_quad_diag_vec.y = adj[i].fourth_quad_diag_vec.y / vector_length;
-			adj[i].fourth_quad_diag_vec.z = adj[i].fourth_quad_diag_vec.z / vector_length;
+			adj[i].fourth_quad_diag_vec.x = (adj[i].fourth_quad_diag_vec.x / vector_length);
+			adj[i].fourth_quad_diag_vec.y = (adj[i].fourth_quad_diag_vec.y / vector_length);
+			adj[i].fourth_quad_diag_vec.z = (adj[i].fourth_quad_diag_vec.z / vector_length);
 		}				
 		else{
 			adj[i].fourth_quad_diag_vec.x = 0;
@@ -2330,33 +2697,38 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 		adj[i].cumul_normal_vec.x = 	(adj[i].first_quad_diag_vec.x
 						+ adj[i].second_quad_diag_vec.x
 						+ adj[i].third_quad_diag_vec.x
-						+ adj[i].fourth_quad_diag_vec.x) * (-1) ;
+						+ adj[i].fourth_quad_diag_vec.x) ;
 
 		adj[i].cumul_normal_vec.y = 	(adj[i].first_quad_diag_vec.y
 						+ adj[i].second_quad_diag_vec.y
 						+ adj[i].third_quad_diag_vec.y
-						+ adj[i].fourth_quad_diag_vec.y) * (-1);
+						+ adj[i].fourth_quad_diag_vec.y) ;
  
 		adj[i].cumul_normal_vec.z = 	(adj[i].first_quad_diag_vec.z
 						+ adj[i].second_quad_diag_vec.z
 						+ adj[i].third_quad_diag_vec.z
-						+ adj[i].fourth_quad_diag_vec.z) * (-1);
+						+ adj[i].fourth_quad_diag_vec.z) ;
+		normalize_vector(&adj[i].cumul_normal_vec); 
 
 		adj[i].north_edge_vec.x = adj[i].fourth_quad_diag_vec.x + adj[i].first_quad_diag_vec.x;	
 		adj[i].north_edge_vec.y = adj[i].fourth_quad_diag_vec.y + adj[i].first_quad_diag_vec.y;	
 		adj[i].north_edge_vec.z = adj[i].fourth_quad_diag_vec.z + adj[i].first_quad_diag_vec.z;	
+		normalize_vector(&adj[i].north_edge_vec); 
 
 		adj[i].east_edge_vec.x = adj[i].first_quad_diag_vec.x + adj[i].second_quad_diag_vec.x;	
 		adj[i].east_edge_vec.y = adj[i].first_quad_diag_vec.y + adj[i].second_quad_diag_vec.y;	
 		adj[i].east_edge_vec.z = adj[i].first_quad_diag_vec.z + adj[i].second_quad_diag_vec.z;	
+		normalize_vector(&adj[i].east_edge_vec); 
 
 		adj[i].south_edge_vec.x = adj[i].second_quad_diag_vec.x + adj[i].third_quad_diag_vec.x;	
 		adj[i].south_edge_vec.y = adj[i].second_quad_diag_vec.y + adj[i].third_quad_diag_vec.y;	
 		adj[i].south_edge_vec.z = adj[i].second_quad_diag_vec.z + adj[i].third_quad_diag_vec.z;	
+		normalize_vector(&adj[i].south_edge_vec); 
 
 		adj[i].west_edge_vec.x = adj[i].third_quad_diag_vec.x + adj[i].fourth_quad_diag_vec.x;	
 		adj[i].west_edge_vec.y = adj[i].third_quad_diag_vec.y + adj[i].fourth_quad_diag_vec.y;	
 		adj[i].west_edge_vec.z = adj[i].third_quad_diag_vec.z + adj[i].fourth_quad_diag_vec.z;	
+		normalize_vector(&adj[i].west_edge_vec); 
 
 /*		printf("%i  %f  %f  %f   \n ",i ,adj[i].cumul_normal_vec.x, 
 				adj[i].cumul_normal_vec.y, adj[i].cumul_normal_vec.z );*/
@@ -2375,6 +2747,241 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 		rep->norindex[i*3+2] = i*3+2;
 
 		/* specify the normals */
+
+		/* Insert decision code right here */
+		
+		for (j=0; j<3; j++){
+			
+			edge_config = find_edge_config_at_this_point(rep, adj, p[j], crease_angle);
+			switch(j){
+				case(0):
+					quadrant = find_the_quadrant_of_this_triangle(rep, adj, p[j], p[1], p[2]);
+					break;
+				case(1):
+					quadrant = find_the_quadrant_of_this_triangle(rep, adj, p[j], p[0], p[2]);
+					break;
+				case(2):
+					quadrant = find_the_quadrant_of_this_triangle(rep, adj, p[j], p[0], p[1]);
+					break;
+				default:
+					printf("Error in calc_poly_normals_extrusion(): loop error \n");
+					break; 
+			}
+			/*printf("edge_config %i ", edge_config);*/	
+
+			switch(edge_config){
+
+				case(0):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].third_quad_diag_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].third_quad_diag_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].third_quad_diag_vec.z;
+					break;
+
+				case(1):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].fourth_quad_diag_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].fourth_quad_diag_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].fourth_quad_diag_vec.z;
+					break;
+
+				case(2):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].first_quad_diag_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].first_quad_diag_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].first_quad_diag_vec.z;
+					break;
+
+				case(3):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].second_quad_diag_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].second_quad_diag_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].second_quad_diag_vec.z;
+					break;
+
+				case(4):
+					switch(quadrant){
+					case(3):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].south_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].south_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].south_edge_vec.z;
+						break;
+					case(4):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].north_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].north_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].north_edge_vec.z;
+						break;
+					case(1):
+					case(2):
+					default:	
+						printf("Error in calc_poly_normals_extrusion(): quadrant error at case 4\n");
+						break;
+					}/*switch quadrant*/
+					break;
+					
+				case(5):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].west_edge_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].west_edge_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].west_edge_vec.z;
+					break;
+					
+				case(6):
+					switch(quadrant){
+					case(1):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].east_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].east_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].east_edge_vec.z;
+						break;
+					case(4):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].west_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].west_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].west_edge_vec.z;
+						break;
+					case(2):
+					case(3):
+					default:	
+						printf("Error in calc_poly_normals_extrusion(): quadrant error at case 6\n");
+						break;
+					}/*switch quadrant*/
+					break;
+
+				case(7):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].north_edge_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].north_edge_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].north_edge_vec.z;
+					break;
+
+				case(8):
+					switch(quadrant){
+					case(1):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].north_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].north_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].north_edge_vec.z;
+						break;
+					case(2):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].south_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].south_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].south_edge_vec.z;
+						break;
+					case(3):
+					case(4):
+					default:	
+						printf("Error in calc_poly_normals_extrusion(): quadrant error at case 8\n");
+
+						break;
+					}/*switch quadrant*/
+					break;
+
+				case(9):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].east_edge_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].east_edge_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].east_edge_vec.z;
+					break;
+
+				case(10):
+					switch(quadrant){
+					case(2):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].east_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].east_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].east_edge_vec.z;
+						break;
+					case(3):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].west_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].west_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].west_edge_vec.z;
+						break;
+					case(1):
+					case(4):
+					default:	
+						printf("Error in calc_poly_normals_extrusion(): quadrant error at case 10\n");
+						break;
+					}/*switch quadrant*/
+					break;
+
+				case(11):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].south_edge_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].south_edge_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].south_edge_vec.z;
+					break;
+
+				case(12):
+					switch(quadrant){
+					case(1):
+					case(4):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].north_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].north_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].north_edge_vec.z;
+						break;
+					case(2):
+					case(3):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].south_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].south_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].south_edge_vec.z;
+						break;
+					default:	
+						printf("Error in calc_poly_normals_extrusion(): quadrant error at case 12\n");
+						break;
+					}/*switch quadrant*/
+					break;
+				
+				case(13):
+					switch(quadrant){
+					case(1):
+					case(2):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].east_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].east_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].east_edge_vec.z;
+						break;
+					case(3):
+					case(4):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].west_edge_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].west_edge_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].west_edge_vec.z;
+						break;
+					default:	
+						printf("Error in calc_poly_normals_extrusion(): quadrant error at case 13\n");
+						break;
+					}/*switch quadrant*/
+					break;
+
+				case(14):
+					switch(quadrant){
+					case(1):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].first_quad_diag_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].first_quad_diag_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].first_quad_diag_vec.z;
+						break;
+					case(2):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].second_quad_diag_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].second_quad_diag_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].second_quad_diag_vec.z;
+						break;
+					case(3):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].third_quad_diag_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].third_quad_diag_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].third_quad_diag_vec.z;
+						break;
+					case(4):
+						rep->normal[i*9+j*3+0] = adj[ p[j] ].fourth_quad_diag_vec.x;
+						rep->normal[i*9+j*3+1] = adj[ p[j] ].fourth_quad_diag_vec.y;
+						rep->normal[i*9+j*3+2] = adj[ p[j] ].fourth_quad_diag_vec.z;
+						break;
+					default:	
+						printf("Error in calc_poly_normals_extrusion(): quadrant error at case 14\n");
+						break;
+					}/*switch quadrant*/
+					break;
+
+				case(15):
+					rep->normal[i*9+j*3+0] = adj[ p[j] ].cumul_normal_vec.x;
+					rep->normal[i*9+j*3+1] = adj[ p[j] ].cumul_normal_vec.y;
+					rep->normal[i*9+j*3+2] = adj[ p[j] ].cumul_normal_vec.z;
+					break;
+
+				default:
+					printf("Error in calc_poly_normals_extrusion(): unknown case error\n");
+					break;
+			}/*switch edge_config*/	
+
+		}/*for j */
+
+/*
 		rep->normal[i*9+0] = adj[ p[0] ].cumul_normal_vec.x;
 		rep->normal[i*9+1] = adj[ p[0] ].cumul_normal_vec.y;
 		rep->normal[i*9+2] = adj[ p[0] ].cumul_normal_vec.z;
@@ -2386,7 +2993,9 @@ void calc_poly_normals_extrusion(struct VRML_PolyRep *rep,
 		rep->normal[i*9+6] = adj[ p[2] ].cumul_normal_vec.x;
 		rep->normal[i*9+7] = adj[ p[2] ].cumul_normal_vec.y;
 		rep->normal[i*9+8] = adj[ p[2] ].cumul_normal_vec.z;
-	}/*for*/
+*/
+
+	}/*for i */
 
 
 	/*calculate the normals for the endcaps*/
