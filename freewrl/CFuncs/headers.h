@@ -187,5 +187,5 @@ extern char sys_fp[fp_name_len];
 
 
 /* Sound stuff */
-void SoundSourceInit (int sourcenum, int loop, float pitch,
+float SoundSourceInit (int sourcenum, int loop, float pitch,
 			float start_time, float stop_time, char *url);
