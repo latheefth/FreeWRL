@@ -11,6 +11,13 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.14  2001/11/28 08:34:30  ayla
+#
+# Tweaked regexp processing for VRML::Field::SFString::parse due to a submitted
+# bug report.  It appeared that perl crashed with a segmentation fault while
+# attempting to process the regexp for an SFString.  This process has
+# been optimized.  Hopefully it won't break anything!
+#
 # Revision 1.13  2001/08/16 16:55:54  crc_canada
 # Viewpoint work
 #
@@ -742,20 +749,28 @@ sub js_default {return "false"}
 ###########################################################
 package VRML::Field::SFString;
 @ISA=VRML::Field;
+
+# Ayla... This is closer to the VRML97 specification,
+# which allows anything but unescaped " or \ in SFStrings.
+#
+# The qr// operator enables more regex processing at
+# compile time.
+# The Perl logical operators are less greedy than
+# the regex alternation operator, so this is more
+# efficient.
+$SFStringChars = qr/(?ixs:[^\"\\])*/||qr/(?ixs:\\[\"\\])*/;
+
 # XXX Handle backslashes in string properly
 sub parse {
-        my($type,$p,$s,$n) = @_;
+###my($type,$p,$s,$n) = @_; -- NOT USED
         # Magic regexp which hopefully exactly quotes backslashes and quotes
         # Remi... $_[2] =~ /\G\s*"((?:[^"\\]|\\.)*)"\s*/gsc
-
         # $_[2] =~ /\G\s*\"((?:[^\"\\]|\\.)*)\"\s*/gsc
-        # This regexp is closer to the VRML97 specification:
-        $_[2] =~ /\G\s*\"((?:[^\"\\]|\\[\"\\])*)\"\s*/gsc
-                or VRML::Error::parsefail($_[2],"improper SFString");
-
+	$_[2] =~ /\G\s*\"($SFStringChars)\"\s*/gc
+                or VRML::Error::parsefail($_[2], "improper SFString");
+	## cleanup ms-dos/windows end of line chars
         my $str = $1;
         $str =~ s/\\(.)/$1/g;
-
         return $str;
 }
 
