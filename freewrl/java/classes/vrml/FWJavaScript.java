@@ -90,6 +90,16 @@ System.out.println ("commented out val.__toPerl");
 	EAIout = new PrintWriter (sock.getOutputStream());
 	EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
 
+	// send along the initial string
+	System.out.println ("sending initial string");
+	EAIout.println ("freewrl 1.1111 testing");
+	EAIout.println ("freewrl 1.1111 testing");
+	EAIout.println ("freewrl 1.1111 testing");
+	EAIout.println ("freewrl 1.1111 testing");
+	EAIout.println ("freewrl 1.1111 testing");
+	EAIout.println ("freewrl 1.1111 testing");
+	EAIout.flush();
+
 	/* Install security */
 	System.setSecurityManager(new SecurityManager());
 

@@ -155,6 +155,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	        servaddr.sin_family      = AF_INET;
 	        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	        servaddr.sin_port        = htons(EAIBASESOCKET+socketincrement);
+		printf ("binding to socket %d\n",EAIBASESOCKET+socketincrement);
 
 	        while (bind((*sockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 			return FALSE;
@@ -278,6 +279,7 @@ void create_EAI() {
 void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 	int retval, oldRetval;
 
+	printf ("read_EAI_socket, listenfd %d\n",*listenfd);
 	retval = FALSE;
 	do {
 		tv2.tv_sec = 0;
@@ -302,13 +304,14 @@ void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 			retval = read ((*listenfd), &buffer2[(*bfct)],EAIREADSIZE);
 
 			if (retval == 0) {
+				if (EAIVerbose) printf ("read_EAI_socket, client is gone!\n");
 				// client disappeared
 				close ((*listenfd));
 				(*listenfd) = -1;
 			}
 
 			if (EAIVerbose) 
-				printf ("read in from socket %d , max %d",retval,EAIREADSIZE);
+				printf ("read in from socket %d , max %d\n",retval,EAIREADSIZE);
 
 			(*bfct) += retval;
 
@@ -710,8 +713,10 @@ unsigned int EAI_SendEvent (char *ptr) {
 		}
 
 		case EAI_MFSTRING: {
-			printf ("EAI_MFSTRING, string is %s\nxxx\n",ptr);
-			printf ("EAI_MFSTRING, have to fix this code - sorry Sarah. JohnS\n");
+			if (EAIVerbose) {
+				printf ("EAI_MFSTRING, string is %s\nxxx\n",ptr);
+				printf ("EAI_MFSTRING, have to fix this code - sorry Sarah. JohnS\n");
+			}
 //xxx			getEAI_MFStringtype ((JSContext *) JSglobs[actualscript].cx,
 //xxx							 global_return_val,memptr); 
 			break;
@@ -850,7 +855,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	/* convert the type string to an internal type */
 	ty = convert_typetoInt (type);
 
-	printf ("EAI - extra memory for size %d type %s\n",size,type);
+	if (EAIVerbose) printf ("EAI - extra memory for size %d type %s\n",size,type);
 
 	if (size > 0) {
 		memptr = malloc ((unsigned)size);

@@ -131,6 +131,8 @@ void JSMaxAlloc() {
 	JSMaxScript += 10;
 	JSglobs = realloc (JSglobs, sizeof (*JSglobs) * JSMaxScript);
 	scr_act = realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
+	thisScriptType = realloc (scr_act, sizeof (int) * JSMaxScript);
+
 	if ((JSglobs == NULL) || (scr_act == 0)) {
 		printf ("Can not allocate memory for more script indexes\n");
 		exit(1);
@@ -138,7 +140,9 @@ void JSMaxAlloc() {
 
 	/* mark these scripts inactive */
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
+		printf ("initializing %d, address %d\n",count, &scr_act[count]);
 		scr_act[count]= FALSE;
+		thisScriptType[count] = NOSCRIPT;
 	}
 }
 
@@ -218,7 +222,8 @@ void JSInit(int num, SV *script) {
 		cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
 
 	/* send this data over to the routing table functions. */
-	CRoutes_js_new (num,(unsigned int)_context, (unsigned int)_globalObj,
+	CRoutes_js_new (num, JAVASCRIPT,
+		(unsigned int)_context, (unsigned int)_globalObj,
 		(unsigned int)br);
 	
 

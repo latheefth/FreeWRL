@@ -468,14 +468,18 @@ sub EAI_GetType {
 	# is this an IS'd field?
 	my $realele = VRML::Handles::get("NODE$nodenum");
 
+	# print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{Type};
+
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
+
+	#print "BROWSER::EAI_GetType evin:",$realele->{Type}{EventIns};
 
 	#print "\nBrowser.pm, fieldname $fieldname, evin: ",
 	#	$realele->{Type}{EventIns}{$fieldname}," kinds ",
 	#	$realele->{Type}{FieldKinds}{$fieldname},"\n";
 	
-	#foreach (%{$realele->{Type}{Pars}}) {print "	.... ",@{$_}, " \n";}
+	#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
 	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
 	#print "\n\n\n";
 
@@ -503,7 +507,12 @@ sub EAI_GetType {
 				}
 			}
 		}
+		#goto NOFOUNDNOTHING;
 		FOUNDIT:
+		#print "------------------";
+		#print "Was Found!";
+		#NOFOUNDNOTHING:
+		#print "------------------\n";
 	}
 
 	# print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
@@ -524,7 +533,14 @@ sub EAI_GetType {
 			      # determines the exact length.
 
 		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
-		
+
+		#print "BROWSER:EAI_GetType to_count:",$to_count,
+		#" tonode_str:",$tonode_str,
+		#" type:", $type,
+		#" ok:", $ok,
+		#" intptr:", $intptr,
+		#" fieldtype:", $fieldtype,
+		#"\n";
 	}
 
 	#print "Browser, type $type\n";

@@ -59,6 +59,7 @@ unsigned  _fw_instance=0;
 /* function prototypes */
 void displayThread();
 void catch_SIGQUIT();
+void catch_SIGSEGV();
 
 int main (int argc, char **argv) {
 	int retval;
@@ -73,8 +74,7 @@ int main (int argc, char **argv) {
 #ifndef AQUA
 	/* first, get the FreeWRL shared lib, and verify the version. */
 	if (strcmp(FWVER,getLibVersion())) {
-		printf ("FreeWRL expected library version %s, got %s, exiting...\n",FWVER,getLibVersion());
-		exit(1);
+		printf ("FreeWRL expected library version %s, got %s...\n",FWVER,getLibVersion());
 	}
 #endif
 #endif
@@ -87,6 +87,7 @@ int main (int argc, char **argv) {
 #ifndef IRIX
 	/* install the signal handler for SIGQUIT */
 	signal (SIGQUIT, catch_SIGQUIT);
+	signal (SIGSEGV, catch_SIGSEGV);
 
 	/* parse command line arguments */
 	/* JAS - for last parameter of long_options entries, choose
@@ -127,7 +128,13 @@ int main (int argc, char **argv) {
 			{0, 0, 0, 0}
 		};
 
+#ifndef sparc
 		c = getopt_long (argc, argv, "h", long_options, &option_index);
+#else
+		/*Sun version of getopt_long needs all the letters of parameters defined*/
+		                c = getopt_long (argc, argv, "efghijkvlpqmnobs", long_options, &option_index);
+#endif
+
 		if (c == -1)
 			break;
 
@@ -324,3 +331,8 @@ void displayThread() {
 void catch_SIGQUIT() {
 	doQuit();
 }
+
+void catch_SIGSEGV() {
+	        fflush(NULL);
+}
+

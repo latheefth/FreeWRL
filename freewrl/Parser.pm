@@ -11,6 +11,8 @@
 
 use strict vars;
 
+$VRML::verbose::parse=0;
+
 package VRML::Error;
 use vars qw/@ISA @EXPORT $Word $qre $cre $Float $Integer/;
 require Exporter;
@@ -155,6 +157,8 @@ sub parse_proto {
 	 or parsefail($_[1], "proto statement");
 	my $name = $1;
 
+	#print "parse_proto NAME:", $name,"\n";
+
 	my $int = parse_interfacedecl($scene,1,1,$_[1]);
 	$_[1] =~ /\G\s*{\s*/gsc or parsefail($_[1], "proto body start");
 	my $pro = $scene->new_proto($name, $int);
@@ -190,6 +194,7 @@ sub parse_externproto {
 # Returns:
 #  [field, SVFec3F, foo, [..]]
 sub parse_interfacedecl {
+	#print "parse_interfacedecl begin...\n";
 	my($scene,$exposed,$fieldval,$s, $script,$open,$close) = @_;
 	$open = ($open || "\\[");
 	$close = ($close || "\\]");
@@ -203,13 +208,16 @@ sub parse_interfacedecl {
 		# Parse an interface statement
 		if($_[3] =~ /\G\s*(eventIn|eventOut)\s+
 			  ($Word)\s+($Word)\s+/ogsxc) {
-			print "$1 $2 $3\n"
+			print "PARSING 1: $1 $2 $3\n"
 				if $VRML::verbose::parse;
 			$f{$3} = [$1,$2];
 			my $n = $3;
 			if($script and
 			   $_[3] =~ /\G\s*IS\s+($Word)\s+/ogsc) {
+				print "PARSING 1.1: A:$1 B:$2 C:$3, N:$n\n"
+				      if $VRML::verbose::parse;
 			   	push @{$f{$n}}, $scene->new_is($1, $n);
+				print "Is SCRIPT.\n" if $VRML::verbose::parse;
 			}
 		} elsif($_[3] =~ /\G\s*(field|exposedField)\s+
 			  ($Word)\s+($Word)/ogsxc) {
@@ -218,7 +226,7 @@ sub parse_interfacedecl {
 					   "exposedFields not allowed here");
 			  }
 			my($ft, $t, $n) = ($1, $2, $3);
-			print "$ft $t $n $fieldval\n"
+			print "PARSING 2: $ft $t $n $fieldval\n"
 				if $VRML::verbose::parse;
 			$f{$n} = [$ft, $t];
 			if($fieldval) {
@@ -246,6 +254,7 @@ sub parse_interfacedecl {
 			parsefail($_[3], "interface");
 		}
 	}
+	#print "parse_interfacedecl end...\n";
 	return \%f;
 }
 

@@ -128,8 +128,8 @@ sub resolve_node_cnode {
 	my $fieldtype = "";
 	my $clen = 0;		# length of the data  - check out "sub clength"
 
-	print "\nVRML::EventMachine::resolve_node_cnode: ",
-		VRML::Debug::toString(\@_), "\n" if $VRML::verbose::events;
+	#print "\nVRML::EventMachine::resolve_node_cnode: ",
+	#	VRML::Debug::toString(\@_), "\n" ;
 
 	$tmp = VRML::Handles::get($node);
 	if (ref $tmp eq "VRML::NodeIntern") {
@@ -141,16 +141,16 @@ sub resolve_node_cnode {
 			return (0,0,0,0,0);
 		}
 	}
-	print "handle got $node ",
-		($node->{IsProto} ?
-		 "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : ""),
-			 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n"
-				 if $VRML::verbose::events;
+	#print "handle got $node ",
+	#	($node->{IsProto} ?
+	#	 "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : " is not Proto "),
+	#		 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n";
 
 	my $f;
 	my @is;
 	# is this an IS?
 	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
+		#print "VRML::EventMachine::resolve_node_cnode:ISPROTO\n";
 		$is_proto = 1;
 		push @is, @{$this->{IS}{$node}{$field}};
 
@@ -263,13 +263,16 @@ sub resolve_node_cnode {
 	if (!$is_proto && $node->{TypeName} =~ /script/i) {
 		$outoffset = VRML::VRMLFunc::paramIndex($field, $node->{Type}{FieldTypes}{$field});
 		$outptr =$node->{scriptInvocationNumber};
+		#print "scriptInvocationNumber:", $node->{scriptInvocationNumber},"\n";
 
 		if ($direction eq "eventOut") {
 			$scrpt = 1;
 		} else {
+			#### Alendubri: Point where is entering.
 			$scrpt = 2;
 			$to_count = 1;
 			$tonode_str = "$outptr:$outoffset";
+			#print "outptr:outoffset->",$outptr,":",$outoffset,"\n";
 		}
 	} elsif ($proto_node->{TypeName} =~ /script/i) {
 		$outoffset = VRML::VRMLFunc::paramIndex($proto_field, $proto_node->{Type}{FieldTypes}{$proto_field});
@@ -315,7 +318,9 @@ sub resolve_node_cnode {
 
 				# this node is a proto interface node, but is not IS'd anywhere. Lets
 				# get the browser to give us some memory for it.
+				#print "Calling ExtraMemory\n";
 				($outptr,$fieldtype,$clen) = ExtraMemory($node,$field);
+				#print "Called....\n";
 				$outoffset = 0;
 
 				if ($outptr eq 0) {  # browser call failed to alloc more memory. - maybe

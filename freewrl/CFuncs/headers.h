@@ -231,7 +231,7 @@ extern struct Multi_String Anchor_url;
 	f == MFVEC2F ? "MFVec2f" : "unknown field type"))))))))))))))))))
 
 
-void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int brow);
+void CRoutes_js_new (int num,int scriptType, unsigned int cx, unsigned int glob, unsigned int brow);
 void gatherScriptEventOuts(int script, int ignore);
 void getMFNodetype (char *strp, struct Multi_Node *ch, int ar);
 
@@ -296,6 +296,7 @@ void process_eventsProcessed(void);
 
 extern struct CRjsStruct *JSglobs; /* Javascript invocation parameters */
 extern int *scr_act;    /* script active array - defined in CRoutes.c */
+extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 void render_status(void); /* status bar */
 void update_status(void); 	/* update status bar */
@@ -314,6 +315,13 @@ void render_polyrep(void *node,
 extern int CRoutesExtra;		// let EAI see param of routing table - Listener data.
 
 unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
+
+/* types of scripts. */
+#define NOSCRIPT 	0
+#define JAVASCRIPT	1
+#define	CLASSSCRIPT	2
+#define	PERLSCRIPT	3
+#define SHADERSCRIPT	4
 
 //printf is defined by perl; causes segfault in threaded freewrl
 #ifdef printf

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.138  2004/04/20 19:20:23  crc_canada
+# Alberto Dubuc cleanup; java .class work.
+#
 # Revision 1.137  2004/04/02 21:32:42  crc_canada
 # anchor work
 #
@@ -890,10 +893,10 @@ IndexedFaceSet => '
 #
 
 %GenPolyRepC = (
-	ElevationGrid => (do "VRMLElevationGrid.pm"),
-	Extrusion => (do "VRMLExtrusion.pm"),
-	IndexedFaceSet => (do "VRMLIndexedFaceSet.pm"),
-	Text => (do "VRMLText.pm"),
+	ElevationGrid => 'make_elevationgrid(this_);',
+	Extrusion => 'make_extrusion(this_);',
+	IndexedFaceSet => 'make_indexedfaceset(this_);',
+	Text => 'make_text(this_);',
 	GeoElevationGrid => (do "VRMLGeoElevationGrid.pm"),
 );
 
@@ -2051,8 +2054,10 @@ do_newJavaClass(scriptInvocationNumber,nodestr,node)
 	char *nodestr
 	int node
 CODE:
-	printf ("do_newJavaClass, script %d, node %s\n",scriptInvocationNumber,nodestr);
+	printf ("do_newJavaClass, script %d, node %d nodestr %s\n",
+		scriptInvocationNumber,node, nodestr);
 	RETVAL = (int) newJavaClass(scriptInvocationNumber,nodestr,(int *)node);
+	printf ("do_newJavaClass, going to return %d\n",RETVAL);
 OUTPUT:
 	RETVAL
 

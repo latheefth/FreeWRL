@@ -376,6 +376,7 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	*datalen = psp.Etype[2];
 	*nodetype = psp.Etype[3];
 	*scripttype = psp.Etype[4];
+	//printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype);
 	PSP_UNLOCK
 }
 
@@ -830,10 +831,8 @@ void __pt_openBrowser() {
 	set_eyehalf( eyedist/2.0,
 		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
 
-#ifndef AQUA
 	if (shutter) 
 		XEventStereo();
-#endif
 
 	
 	PUSHMARK(SP);

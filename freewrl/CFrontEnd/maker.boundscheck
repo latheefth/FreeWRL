@@ -28,6 +28,8 @@ gcc -o freewrl \
 	../VRMLFunc.o \
 	../JS/JS.o \
 	../CFuncs/Bindable.o    \
+	../CFuncs/GenPolyRep.o    \
+	../CFuncs/pluginUtils.o    \
 	../CFuncs/CRoutes.o    \
 	../CFuncs/Collision.o    \
 	../CFuncs/EAIServ.o    \

@@ -84,6 +84,9 @@ sub dump {
 	my $lp = $level*2+2;
 	my $padded = pack("A$lp","$level ");
 	print "$padded node ", VRML::NodeIntern::dump_name($this)," IS ", $this->{Name},"\n";
+	if (defined $this->{Ref}) {
+		print "$padded node ref:", $this->{Ref},"\n";
+	}
 }
 
 

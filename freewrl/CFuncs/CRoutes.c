@@ -150,7 +150,7 @@ struct CRStruct {
 	CRnodeStruct *tonodes;
 	int	act;
 	int	len;
-	void	(*interpptr)(void *);
+	void	(*interpptr)(void *); /* pointer to an interpolator to run */
 	int	direction_flag;	/* if non-zero indicates script in/out,
 						   proto in/out */
 	int	extra;		/* used to pass a parameter (eg, 1 = addChildren..) */
@@ -165,6 +165,7 @@ int CRoutes_MAX;
 /* Structure table */
 struct CRjsStruct *JSglobs = 0; 	/* global objects and contexts for each script */
 int *scr_act = 0;			/* this script has been sent an eventIn */
+int *thisScriptType = 0;		/* this script is a... */
 int scripts_active;		/* a script has been sent an eventIn */
 int max_script_found = -1;	/* the maximum script number found */
 
@@ -231,6 +232,12 @@ int get_touched_flag (int fptr, int actualscript) {
 	if (JSVerbose) 
 		printf ("\nget_touched_flag, name %s script %d context %#x \n",myname,
 				actualscript,mycx);
+
+	/* should never get into this if */
+	if (thisScriptType[actualscript] != JAVASCRIPT) {
+		printf ("gettouched, not a javascript\n");
+		return;
+	}
 
 	len = strlen(myname);
 	index = 0;
@@ -1280,18 +1287,20 @@ Register a new script for future routing
 
 ********************************************************************/
 
-void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int brow) {
-	/* jsval retval; */
+void CRoutes_js_new (int num,
+		int scriptType, 
+		unsigned int cx, unsigned int glob, unsigned int brow) {
 	UNUSED(cx);
 	UNUSED(glob);
 	UNUSED(brow);
-
-	//printf ("CRoutes_js_new, number %d\n",num);
 
 	/* more scripts than we can handle right now? */
 	if (num >= JSMaxScript)  {
 		JSMaxAlloc();
 	}
+
+	/* record whether this is a javascript, class invocation, ... */
+	thisScriptType[num] = scriptType;
 
 	if (num > max_script_found) max_script_found = num;
 }
@@ -1680,6 +1689,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	/* do we have any routes yet? - we can gather events before any routes are made */
 	if (!CRoutes_Initiated) return;
 
+
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
 	while (CRoutes[route].fromnode<(unsigned)actualscript) route++;
@@ -2011,7 +2021,11 @@ void propagate_events() {
 		/* run gatherScriptEventOuts for each active script */
 		if (scripts_active) {
 			for (counter =0; counter <= max_script_found; counter++) {
-				gatherScriptEventOuts (counter,TRUE);
+				if (thisScriptType[counter] == JAVASCRIPT) {
+					gatherScriptEventOuts (counter,TRUE);
+				} else {
+					printf ("only handle JAVASCRIPT here\n");
+				}
 			}
 		}
 
@@ -2040,8 +2054,11 @@ void process_eventsProcessed() {
 	jsval retval;
 
 	for (counter = 0; counter <= max_script_found; counter++) {
+	    if (thisScriptType[counter] == JAVASCRIPT) {
+		    printf ("process_eventsProcessed; script %d is a JAVASCRIPT\n",thisScriptType[counter]);
       		if (!ActualrunScript(counter, "eventsProcessed()" ,&retval))
                 	printf ("failed to run eventsProcessed for script %d\n",counter);
+	    }
 	}
 }
 

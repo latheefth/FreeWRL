@@ -411,7 +411,9 @@ sub new_use {
 
 sub new_is {
 	my ($this, $name, $is) = @_;
-	return VRML::IS->new($name, $is);
+	my $newObj = VRML::IS->new($name, $is);
+	#print $newObj->dump;
+	return $newObj;
 }
 
 sub new_proto {

@@ -314,6 +314,14 @@ sub startScript {
 		if $VRML::verbose::script;
 	$node->{ScriptScript} = $h;
 	$node->{scriptInvocationNumber} = $scriptInvocationNumber;
+
+	#print "NODE $node ",
+	#	($node->{IsProto} ?
+	#	 "PROTO ".VRML::NodeIntern::dump_name($node->{ProtoExp})." " : " is not Proto "),
+	#		 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),
+	#		 " scriptInvocationNumber:",$node->{scriptInvocationNumber},
+	#		 "\n";
+
 	my $s;
 	if (($s = $node->{ScriptScript}{"initialize"})) {
 		print "CALL $s\n if $VRML::verbose::script"
