@@ -418,7 +418,9 @@ sub setProperty { # Assigns a value to a property.
 	}
 	$vftype = "VRML::Field::$ftype";
 
-	print "VRML::JS::setProperty args: field $field, value $value, property $prop\n"
+	print "VRML::JS::setProperty args: $ftype $field, $prop ",
+		(ref $value eq "ARRAY" ? "[ ".join(", ", @{$value})." ]" :
+		 "$value"),"\n"
 		if $VRML::verbose::js;
 
 	## problem with MF types - what to do from new???
@@ -462,7 +464,7 @@ sub setProperty { # Assigns a value to a property.
 	}
 }
 
-## perhaps this should be rewritten to use toString instead...
+
 sub getProperty {
 	my ($this, $type, $prop) = @_;
 	my ($rstr, $rval, $l, $i);
@@ -470,7 +472,6 @@ sub getProperty {
 
 	print "VRML::JS::getProperty: type $type, property $prop\n"
 		if $VRML::verbose::js;
-
 
 	if ($type =~ /^SFNode$/) {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal},
@@ -505,42 +506,11 @@ sub getProperty {
 					 @res)),
 				"]\n" if $VRML::verbose::js;
 		return \@res;
-	} elsif ($type =~ /^MFString$/) {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rstr, $l)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty");
-		}
-		print "\trunScript returned length $l for MFString\n" if $VRML::verbose::js;
-		@res = map {
-			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop"."[$_]", $rstr, $rval)) {
-				cleanupDie("runScript failed in VRML::JS::getProperty");
-			}
-			$rstr;
-		} (0..$l-1);
-		return \@res;
-	} elsif ($type =~ /^MF/) {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rstr, $l)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty");
-		}
-		print "\trunScript returned length $l for $type\n" if $VRML::verbose::js;
-		my $st = $type;
-		$st =~ s/MF/SF/;
-		@res = map {
-			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop"."[$_]", $rstr, $rval)) {
-				cleanupDie("runScript failed in VRML::JS::getProperty");
-			}
-			(pos $rstr) = 0;
-			"VRML::Field::$st"-> parse(undef, $rstr);
-		} (0..$l-1);
-		print "\treturn [",
-			join(", ",
-				 map((ref $_ eq "ARRAY" ? "(".join(", ", @{$_}).")" : "$_"),
-					 @res)),
-				"]\n" if $VRML::verbose::js;
-		return \@res;
 	} else {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop", $rstr, $rval)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
+		print "\trunScript returned \"$rstr\" for $type." if $VRML::verbose::js;
 		(pos $rstr) = 0;
 		return "VRML::Field::$type"->parse(undef, $rstr);
 	}
@@ -549,7 +519,6 @@ sub getProperty {
 
 sub addRemoveChildren {
 	my ($this, $node, $field, $c) = @_;
-	##my @av;
 
 	if ($field !~ /^(?:add|remove)Children$/) {
 		warn("Invalid field $field for VRML::JS::addChildren");
@@ -585,9 +554,12 @@ sub jspSFNodeSetProperty {
 		$node = $node->real_node();
 	}
 
-	if ($prop =~ /^set_($VRML::Error::Word+)/) {
+	## see VRML97, section 4.7 (field, eventIn, and eventOut semantics)
+	if ($prop =~ /^set_($VRML::Error::Word+)/ and
+		$node->{Type}{FieldKinds}{$prop} !~ /in/i) {
 		$actualField = $1;
-	} elsif ($prop =~ /($VRML::Error::Word+)_changed$/) {
+	} elsif ($prop =~ /($VRML::Error::Word+)_changed$/ and
+			 $node->{Type}{FieldKinds}{$prop} !~ /out/i) {
 		$actualField = $1;
 	} else {
 		$actualField = $prop;
@@ -601,8 +573,10 @@ sub jspSFNodeSetProperty {
 
 	print "VRML::JS::jspSFNodeSetProperty: setting $actualField, $val",
 		(ref $val eq "ARRAY" ?
-		 " [ ".join(", ", map(VRML::NodeIntern::dump_name($_), @{$val}))." ] " :
-		 " "),
+		 " [ ".join(", ",
+					map((ref $_ eq "ARRAY" ?
+						 join(" ", @{$_}) :
+						 VRML::NodeIntern::dump_name($_)), @{$val}))." ] " : " "),
 			 "for $prop of $handle\n"
 		if $VRML::verbose::js;
 
@@ -744,7 +718,7 @@ sub jspBrowserSetDescription {
 	my ($this, $desc) = @_;
 	$desc = join(" ", split(" ", $desc));
 
-	## see VRML97 4.12.10.8
+	## see VRML97, section 4.12.10.8
 	if (!$this->{Node}{Type}{Defaults}{"mustEvaluate"}) {
 		warn "VRML::JS::jspBrowserSetDescription: mustEvaluate for ",
 			$this->{Node}{TypeName},
