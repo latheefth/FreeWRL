@@ -212,17 +212,23 @@ sub new {
 					  RFields => undef,
 					  Scene => $scene,
 					  Type => undef,
-					  TypeName => $ntype
+					  TypeName => undef
 					 }, $type;
     tie %rf, VRML::FieldHash, $this;
     $this->{RFields} = \%rf;
     my $t;
-    if (!defined ($t = $VRML::Nodes{$this->{TypeName}})) {
+
+	if ($ntype->{Name} =~ /script/i) {
+		$this->{TypeName} = $ntype->{Name};
+		$this->{Type} = $ntype;
+    } elsif (!defined ($t = $VRML::Nodes{$ntype})) {
 		# PROTO
 		$this->{IsProto} = 1;
+		$this->{TypeName} = $ntype;
 		$this->{Type} = $scene->get_proto($this->{TypeName});
     } else {
 		# REGULAR
+		$this->{TypeName} = $ntype;
 		$this->{Type} = $t;
     }
 
@@ -236,33 +242,6 @@ sub new {
     return $this;
 }
 
-# Construct a new Script node -- the Type argument is different
-# and there is no way of this being a proto.
-sub new_script {
-    my ($type, $scene, $stype, $fields, $eventmodel) = @_;
-    my %rf;
-    my $this = bless {
-					  BackEnd => undef,
-					  BackNode => undef,
-					  EventModel => $eventmodel,
-					  Fields => $fields,
-					  PURL => undef,
-					  RFields => undef,
-					  Scene => $scene,
-					  Type => $stype,
-					  TypeName => $stype->{Name}
-					 }, $type;
-    tie %rf, VRML::FieldHash, $this;
-    $this->{RFields} = \%rf;
-
-    $this->do_defaults();
-
-	print "VRML::NodeIntern::new_script: ", dump_name($this->{Scene}),
-		" $this->{Type} $this->{TypeName} ",
-			dump_name($this), "\n" if $VRML::verbose::nodec;
-
-    return $this;
-}
 
 # Fill in nonexisting field values by the default values.
 sub do_defaults {

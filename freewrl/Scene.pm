@@ -347,7 +347,7 @@ sub new_node {
 			];
 		}
 		my $type = VRML::NodeType->new($t, \%f, $VRML::Nodes{Script}{Actions});
-		my $node = VRML::NodeIntern->new_script($this, $type, {}, $this->{EventModel});
+		my $node = VRML::NodeIntern->new($this, $type, {}, $this->{EventModel});
 		VRML::Handles::reserve($node);
 		# print "handle is $node, ",VRML::NodeIntern::dump_name($node),"\n";
 		return $node;
