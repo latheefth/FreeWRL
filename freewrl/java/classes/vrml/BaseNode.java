@@ -5,7 +5,7 @@ package vrml;
 public abstract class BaseNode 
 {
     String nodeid;  // id for communication
-    private Browser browser = FWJavaScript.theBrowser;
+    Browser myBrowser = null;
 
     public BaseNode() {}
     
@@ -25,6 +25,10 @@ public abstract class BaseNode
     public String getType() { return null/*XXX*/; }
     
     // Get the Browser that this node is contained in.
-    public Browser getBrowser() { return browser; }
+    public Browser getBrowser() { 
+	if (myBrowser == null)
+	    myBrowser = FWJavaScript.getBrowser(this);
+	return myBrowser; 
+    }
 }
 

@@ -11,7 +11,6 @@ public final class FWJavaScript {
     static Hashtable touched = new Hashtable();
     static PrintWriter out;
     static LineNumberReader in;
-    static Browser theBrowser = new Browser();
     static String reqid;
     
 
@@ -50,6 +49,7 @@ public final class FWJavaScript {
 	       Throwable
     {
 	out = new PrintWriter(System.out);
+	System.setOut(System.err);
 	//new PrintWriter(new FileOutputStream(".javapipej")));
 	in = new LineNumberReader(new InputStreamReader(System.in));
 	//new LineNumberReader(new InputStreamReader(new FileInputStream(".javapipep")));
@@ -67,13 +67,13 @@ public final class FWJavaScript {
 		System.err.println("Got a line:'"+ver+"'");
 		// Stupid handshake - just make sure about protocol.
 		// Change this often between versions.
-		if(!ver.equals("TJL XXX PERL-JAVA 0.01")) {
+		if(!ver.equals("TJL XXX PERL-JAVA 0.02")) {
 			throw new Exception(
 				"Wrong script version '"+ver+"'!"
 			);
 		}
 		System.err.println("Sending a line:'"+ver+"'");
-		out.println("TJL XXX JAVA-PERL 0.01");
+		out.println("TJL XXX JAVA-PERL 0.02");
 		System.err.println("Sent a line:'"+ver+"'");
 		out.flush();
 		String dir = in.readLine().trim();
@@ -115,15 +115,8 @@ public final class FWJavaScript {
 				String fname = in.readLine().trim();
 				String ftype = in.readLine().trim();
 				String fs = in.readLine().trim();
-				Constructor cons = 
-					Class.forName("vrml.field.Const"+ftype).
-					 getConstructor(new Class[0]);
-				ConstField fval;
-				try {
-				    fval = (vrml.ConstField)cons.newInstance(new Object[0]);
-				} catch(InvocationTargetException e) {
-				    throw e.getTargetException();
-				}
+				ConstField fval = 
+				    FWCreateField.createConstField(ftype);
 				fval.__fromPerl(fs);
 				double timestamp = new 
 				    Double(in.readLine().trim()).doubleValue();
@@ -146,74 +139,74 @@ public final class FWJavaScript {
 		
 	}
 
-    public static Field getField(BaseNode node, 
-				 String fieldname, String type) {
+    public static String getFieldType(BaseNode node, String fieldname, 
+				      String kind)
+    {
 	try {
-	    System.err.println("FWJ: "+node._get_nodeid()+".getField("+fieldname+")");
+	    System.err.println("Java: "+node._get_nodeid()
+			       +".getField("+fieldname+")");
+
 	    out.println("GETFIELD");
 	    out.println(node._get_nodeid());
 	    out.println(fieldname);
-	    out.println(type);
+	    out.println(kind);
 	    out.flush();
-	    
-	    String ftype = in.readLine().trim();
-	    if (ftype.equals("ILLEGAL"))
-		throw new InvalidFieldException(""+node._get_nodeid()+": "
-						+type+" "+fieldname);
-	    
-	    String cname = "vrml.field."+ftype;
-	    System.err.println("CONS FIELD "+cname);
-	    Constructor cons = Class.forName(cname)
-		.getConstructor(new Class[0]);
-	    System.err.println("GOt fieldcons");
-	    Field fval;
-	    try {
-		fval = (vrml.Field)cons.newInstance(new Object[0]);
-	    } catch(Exception e) {
-		throw new InternalError("Can't create field: "+e);
-	    }
-	    fval.bind_to(new FWJavaScriptBinding(node, fieldname));
-	    return fval;
-	} catch (ClassNotFoundException e) {
-	    throw new NoClassDefFoundError(e.toString());
-	} catch (NoSuchMethodException e) {
-	    throw new NoSuchMethodError(e.toString());
+
+	    return in.readLine().trim();
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
 	}
     }
 
-    public static ConstField getEventOut(BaseNode node, String fieldname) {
+    public static String readField(BaseNode node, String fieldName) {
 	try {
-	    //System.err.println("FWJ: "+node+".getField("+fieldname+")");
-	    out.println("GETFIELD");
+	    System.err.println("FWJ: "+node._get_nodeid()+".readField("+fieldName+")");
+	    FWJavaScript.out.println("READFIELD");
+	    FWJavaScript.out.println(node._get_nodeid());
+	    FWJavaScript.out.println(fieldName);
+	    FWJavaScript.out.flush();
+	    
+	    String value = FWJavaScript.in.readLine().trim();
+	    System.err.println("FWJ value: "+value);
+	    return value;
+	} catch (IOException e) {
+	    throw new InternalError("Communication error: "+e);
+	}
+    }
+
+    public static Browser getBrowser(BaseNode node)
+    {
+	try {
+	    System.err.println("Java: "+node._get_nodeid()+".getBrowser()");
+
+	    out.println("GETBROWSER");
 	    out.println(node._get_nodeid());
-	    out.println(fieldname);
-	    out.println("eventOut");
 	    out.flush();
-	    
-	    String ftype = in.readLine().trim();
-	    if (ftype.equals("ILLEGAL"))
-		throw new InvalidEventOutException(""+node._get_nodeid()+": "
-						   +fieldname);
-	    
-	    String cname = "vrml.field.Const"+ftype;
-	    //System.err.println("CONS FIELD "+cname);
-	    Constructor cons = Class.forName(cname)
-		.getConstructor(new Class[0]);
-	    //System.err.println("GOt fieldcons");
-	    ConstField fval;
-	    try {
-		fval = (vrml.ConstField)cons.newInstance(new Object[0]);
-	    } catch(Exception e) {
-		throw new InternalError("Can't create field.");
-	    }
-	    fval.bind_to(new FWJavaScriptBinding(node, fieldname));
-	    return fval;
-	} catch (ClassNotFoundException e) {
-	    throw new NoClassDefFoundError(e.toString());
-	} catch (NoSuchMethodException e) {
-	    throw new NoSuchMethodError(e.toString());
+
+	    return Browser.lookup(in.readLine().trim());
+	} catch (IOException e) {
+	    throw new InternalError("Communication error: "+e);
+	}
+    }
+
+
+    public static BaseNode[] createVrmlFromString(String browserID, 
+						  String vrmlSyntax) 
+	throws InvalidVRMLSyntaxException
+    {
+	try {
+	    System.err.println("creating VRML.");
+	    FWJavaScript.out.println("CREATEVRML");
+	    FWJavaScript.out.println(browserID);
+	    FWJavaScript.out.println(FWHelper.base64encode(vrmlSyntax));
+	    FWJavaScript.out.flush();
+	    int number = Integer.parseInt(in.readLine().trim());
+	    if (number == -1)
+		throw new InvalidVRMLSyntaxException(in.readLine().trim());
+	    Node[] nodes = new Node[number];
+	    for (int i = 0; i < number; i++)
+		nodes[i] = new Node(in.readLine().trim());
+	    return nodes;
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
 	}

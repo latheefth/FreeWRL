@@ -1,8 +1,10 @@
 package vrml;
+import java.util.Hashtable;
 
 public class Browser 
 {
-   Browser() {}
+    String id;
+   Browser(String id) {this.id = id;}
    public String toString() {return "";}   // This overrides a method in Object
 
    // Browser interface
@@ -18,8 +20,12 @@ public class Browser
    // public String getWorldURL();
    // public void replaceWorld(BaseNode[] nodes);
 
-   // public BaseNode[] createVrmlFromString(String vrmlSyntax)
-   //   throws InvalidVRMLSyntaxException;
+    public BaseNode[] createVrmlFromString(String vrmlSyntax) 
+	throws InvalidVRMLSyntaxException
+    {
+	return FWJavaScript.createVrmlFromString(id, vrmlSyntax);
+    }
+   //   
 
    // public void createVrmlFromURL(String[] url, BaseNode node, String event)
    //   throws InvalidVRMLSyntaxException;
@@ -34,6 +40,16 @@ public class Browser
    //   throws InvalidVRMLSyntaxException;
 
    // public void setDescription(String description);
+
+    static Hashtable hash = new Hashtable();
+    static Browser lookup(String id) {
+	Browser b = (Browser) hash.get(id);
+	if (b == null) {
+	    b = new Browser(id);
+	    hash.put(id, b);
+	}
+	return b;
+    }
 }
 
 

@@ -6,34 +6,27 @@ public class FWJavaScriptBinding {
     BaseNode node;
     String fieldName;
     String lastUpdate;
-    
+    boolean doUpdateRead;
     
     public FWJavaScriptBinding(BaseNode n, String f) {
+	this(n,f,true);
+    }
+
+    public FWJavaScriptBinding(BaseNode n, String f, boolean u) {
 	node = n; fieldName = f;
+	doUpdateRead = u;
     }
     public BaseNode node() {return node;}
     public String field() {return fieldName;}
 
     public void updateRead(Field field) {
-	if (lastUpdate == FWJavaScript.reqid)
+	if (!doUpdateRead || lastUpdate == FWJavaScript.reqid)
 	    return;
-	try {
-	    // System.err.println("FWJB: "+node._get_nodeid()+".readField("+fieldName+")");
-	    FWJavaScript.out.println("READFIELD");
-	    FWJavaScript.out.println(node._get_nodeid());
-	    FWJavaScript.out.println(fieldName);
-	    FWJavaScript.out.flush();
-	    
-	    field.__fromPerl(FWJavaScript.in.readLine().trim());
-	    lastUpdate = FWJavaScript.reqid;
-	    // System.err.println("FWJB: got: "+field);
-	} catch (IOException e) {
-	    throw new InternalError("Communication error: "+e);
-	}
+	field.__fromPerl(FWJavaScript.readField(node, fieldName));
+	lastUpdate = FWJavaScript.reqid;
     }
 
     public void updateWrite(Field field) {
-	// System.err.println("FWJB: add_touched:"+node._get_nodeid()+".readField("+fieldName+")");
 	FWJavaScript.add_touched(field);
 	lastUpdate = FWJavaScript.reqid;
     }
