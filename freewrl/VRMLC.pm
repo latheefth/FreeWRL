@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.63  2002/08/02 15:08:53  ncoder
+# Corrected proximitysensor changes.
+# Added more fine-grained glError checking
+#
 # Revision 1.62  2002/07/31 20:56:53  ncoder
 # Added:
 #     Support for "collide" boolean field in collision nodes
@@ -1274,6 +1278,9 @@ void render_node(void *node) {
 	int srg;
 	int sch;
 	struct currayhit srh;
+	int glerror = GL_NONE;
+	char* stage = "";
+
 	if(verbose) printf("\nRender_node %d\n",node);
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
@@ -1305,6 +1312,7 @@ void render_node(void *node) {
 	    if (verbose) printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
 	    v->changed(node);
 	    p->_ichange = p->_change;
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
 	  }
 
 	if(v->prep) 
@@ -1315,27 +1323,32 @@ void render_node(void *node) {
 	      {
 		upd_ray();
 	      }
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "prep";
 	  }
 
 	if(render_proximity && v->proximity) 
 	{
 	    v->proximity(node);
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
 	}
 
 	if(render_collision && v->collision) 
 	{
 	    v->collision(node);
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
 	}
 
 	if(render_geom && !render_sensitive && v->rend) 
 	  {
 	    if (verbose) printf ("rs 3\n");
 	    v->rend(node);
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
 	  }
 	if(render_light && v->light) 
 	  {
 	    if (verbose) printf ("rs 4\n");
 	    v->light(node);
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_light";
 	  }
 	/* Future optimization: when doing VP/Lights, do only 
 	 * that child... further in future: could just calculate
@@ -1354,11 +1367,14 @@ void render_node(void *node) {
 	    rph.node = node;
 	    glGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
 	    glGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
+
 	  }
 	if(render_geom && render_sensitive && !hypersensitive && v->rendray) 
 	  {
 	    if (verbose) printf ("rs 6\n");
 	    v->rendray(node);
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
 	  }
         
 
@@ -1372,6 +1388,7 @@ void render_node(void *node) {
         if(v->children) {
             if (verbose) printf ("rs 8\n");
             v->children(node);
+	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
         }
 
 	if(render_sensitive && p->_sens) 
@@ -1392,8 +1409,27 @@ void render_node(void *node) {
 	      { 
 		upd_ray();
 	      }
+	    if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
 	  }
 	if (verbose) printf("(end render_node)\n");
+	if(glerror != GL_NONE)
+	  {
+	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
+	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
+		   v->name, 
+		   v->prep, 
+		   v->rend, 
+		   v->children, 
+		   v->fin, 
+		   v->rendray,
+		   hypersensitive);
+	    printf("Render_state geom %d light %d sens %d\n",
+		   render_geom, 
+		   render_light, 
+		   render_sensitive);
+	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
+	    printf("==============\n");
+	  }
 }
 
 /*

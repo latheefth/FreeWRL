@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.72  2002/08/02 15:08:53  ncoder
+# Corrected proximitysensor changes.
+# Added more fine-grained glError checking
+#
 # Revision 1.71  2002/07/31 20:56:53  ncoder
 # Added:
 #     Support for "collide" boolean field in collision nodes
@@ -1578,17 +1582,19 @@ Viewpoint => (join '','
 
 
 
-		glGetIntegerv(GL_VIEWPORT, vp);
-		if(vp[2] > vp[3]) {
-			a1=0;
-			angle = $f(fieldOfView)/3.1415926536*180;
-		} else {
-			a1 = $f(fieldOfView);
-			a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
-			angle = a1/3.1415926536*180;
+		if(verbose) {
+			glGetIntegerv(GL_VIEWPORT, vp);
+			if(vp[2] > vp[3]) {
+				a1=0;
+				angle = $f(fieldOfView)/3.1415926536*180;
+			} else {
+				a1 = $f(fieldOfView);
+				a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
+				angle = a1/3.1415926536*180;
+			}
+			printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3],
+				a1, angle);
 		}
-		if(verbose) printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3],
-			a1, angle);
 
 	}
 '),
@@ -1778,6 +1784,12 @@ Billboard => (join '','
 
 
 		if(!(this_->geometry)) { return; }
+
+		if(render_collision) {
+			/* only need to forward the call to the child */
+			render_node((this_->geometry));
+			return; 
+		}
 
 		/* Display lists used here. The name of the game is to use the
 		display list for everything, except for sensitive nodes. */
