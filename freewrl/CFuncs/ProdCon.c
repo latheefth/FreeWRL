@@ -44,6 +44,7 @@ struct PSStruct {
 	unsigned ofs;		/* offset in node for data		*/
 	int bind;		/* should we issue a bind? 		*/
 	char *path;		/* path of parent URL			*/
+	int *comp;		/* pointer to complete flag		*/
 };
 
 
@@ -58,7 +59,7 @@ unsigned int getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
 int isPerlinitialized(void);
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-			unsigned ptr, unsigned ofs);
+			unsigned ptr, unsigned ofs, int *complete);
 
 /* Bindables */
 int *fognodes;
@@ -127,14 +128,14 @@ void loadInline(struct VRML_Inline *node) {
 	/* first, are we busy? */
 	if (PerlParsing) return;
 
-	node->__loadstatus = 1;
 	perlParse(INLINE,(char *)node, FALSE, FALSE, 
 		(unsigned *) node,
-		offsetof (struct VRML_Inline, __children));
+		offsetof (struct VRML_Inline, __children),
+		&node->__loadstatus);
 }
 
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-			unsigned ptr, unsigned ofs) {
+			unsigned ptr, unsigned ofs,int *complete) {
 	int iret;
 
 	/* do we want to return if the parsing thread is busy, or do
@@ -144,6 +145,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	}
 	DATA_LOCK
 	/* copy the data over; malloc and copy input string */
+	psp.comp = complete;
 	psp.type = type;
 	psp.ptr = ptr;
 	psp.ofs = ofs;
@@ -257,6 +259,7 @@ void _perlThread() {
 				count ++;
 			}
 			psp.inp = filename; /* will be freed later */
+			/* printf ("inlining %s\n",filename); */
 
 			/* were we successful at locating one of these? if so,
 			   make it into a FROMURL */
@@ -308,6 +311,7 @@ void _perlThread() {
 		if (psp.inp) free (psp.inp);
 		if (psp.path) free (psp.path);
 
+		*psp.comp = 1;
 		PerlParsing=FALSE;
 		DATA_UNLOCK
 	}

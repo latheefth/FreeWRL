@@ -49,6 +49,7 @@ int main (int argc, char **argv) {
 	int count;
 	int c;
 	int digit_optind = 0;
+	int tmp;
 
 	/* parse command line arguments */
 	while (1) {
@@ -143,7 +144,7 @@ int main (int argc, char **argv) {
 	and place it as a child of the rootNode. */
 
 	perlParse(FROMURL, argv[optind],TRUE,FALSE,
-		rootNode, offsetof (struct VRML_Group, children));
+		rootNode, offsetof (struct VRML_Group, children),&tmp);
 
 	/* now wait around until something kills this thread. */
 	pthread_join(thread1, NULL);
