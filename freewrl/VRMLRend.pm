@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.28  2001/05/04 19:51:32  crc_canada
+# some extraneous debugging code removed.
+#
 # Revision 1.27  2001/05/03 20:24:08  crc_canada
 # Proper use of Display lists and Textures for Shape nodes and below.
 #
@@ -1568,7 +1571,6 @@ Billboard => (join '','
         	                    glColor3f(1.0,1.0,1.0);
 				}
 	                }
-			printf ("Done the shape\n");
 
 			if (last_bound_texture != 0) {
 				/* we had a texture */
