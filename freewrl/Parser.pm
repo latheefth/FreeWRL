@@ -265,6 +265,12 @@ sub parse_route {
 		   "lowercase or omission of TO");
 	}
 
+	my $fromNode = $scene->getNode($from);
+	$eventOut = parse_exposedField($eventOut, $fromNode->{Type});
+
+	my $toNode = $scene->getNode($to);
+	$eventIn = parse_exposedField($eventIn, $toNode->{Type});
+
 	$scene->new_route($from, $eventOut, $to, $eventIn);
 }
 
@@ -274,6 +280,29 @@ sub parse_script {
 
 	return $scene->new_node("Script", $i); # Scene knows that Script is different
 }
+
+
+sub parse_exposedField {
+	my ($field, $nodeType) = @_;
+	my $tmp;
+	if ($field =~ /^set_($VRML::Error::Word+)/) {
+		$tmp = $1;
+		if ($nodeType->{EventIns}{$tmp} and
+			$nodeType->{FieldKinds}{$tmp} =~ /^exposed/) {
+			$field = $tmp;
+		}
+	}
+
+	if ($field =~ /($VRML::Error::Word+)_changed$/) {
+		$tmp = $1;
+		if ($nodeType->{EventOuts}{$tmp} and
+			$nodeType->{FieldKinds}{$tmp} =~ /^exposed/) {
+			$field = $tmp;
+		}
+	}
+	return $field;
+}
+
 
 package VRML::Field::SFNode;
 use vars qw/$Word/;
@@ -368,7 +397,7 @@ sub parse {
 		print "FIELD: '$1'\n"
 			if $VRML::verbose::parse;
 
-		my $f = $1;
+		my $f = VRML::Parser::parse_exposedField($1, $no);
 		my $ft = $no->{FieldTypes}{$f};
 		print "FT: $ft\n"
 			if $VRML::verbose::parse;
@@ -379,6 +408,7 @@ sub parse {
 				print "$_ ";
 			}
 			print "\n";
+
 			exit(1);
 		}
 

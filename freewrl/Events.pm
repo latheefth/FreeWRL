@@ -388,21 +388,6 @@ sub resolve_node_cnode {
 		}
 	}
 
-	if ($field =~ /^set_($VRML::Error::Word+)/) {
-		my $tmp = $1;
-		if ($node->{Type}{EventIns}{$tmp} and
-			$node->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
-			$field = $tmp;
-		}
-	}
-	if ($field =~ /($VRML::Error::Word+)_changed$/) {
-		$tmp = $1;
-		if ($node->{Type}{EventOuts}{$tmp} and
-			$node->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
-			$field = $tmp;
-		}
-	}
-
 	if ($node->{TypeName} =~/^__script__/) {
 		$outptr = $scenenum; 
 		$outoffset = VRML::VRMLFunc::paramIndex($field,
