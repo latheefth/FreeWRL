@@ -85,8 +85,12 @@ sub STORE {
 	$$v = $value;
 	print "STORE, $node, $k, $value\n" if $VRML::verbose::events;
 	if (defined $node->{EventModel}){
+	  print "STORE, defined eventmodel\n" if $VRML::verbose::events;
 	  $node->{EventModel}->put_event($node, $k, $value);
-	  if(defined $node->{BackNode}) { $node->set_backend_fields($k);}
+	  if(defined $node->{BackNode}) { 
+		print "STORE, BackNode defined\n" if $VRML::verbose::events;
+		$node->set_backend_fields($k);
+	  }
 	}
 }
 }
@@ -585,11 +589,12 @@ sub initialize {
 sub set_backend_fields {
 	my($this, @fields) = @_;
 	my $be = $this->{BackEnd};
-	# print "set_backend_fields for this $this, backend $be\n";
+	# print "Scene.pm: set_backend_fields for this $this, backend $be\n";
 
 	if(!@fields) {@fields = keys %{$this->{Fields}}}
 	my %f;
 	for(@fields) {
+		# print "Scene.pm - iterating field $_\n";
 		my $v = $this->{RFields}{$_};
 		print "SBEF: $this $_ '",("ARRAY" eq ref $v ?
 			(join ' ,',@$v) : $v),"' \n" if 
@@ -603,11 +608,13 @@ sub set_backend_fields {
 				map {$_->make_backend($be)} @{$v}
 			];
 			print "MFNODE GOT $_: @{$f{$_}}\n" if $VRML::verbose::be;
+
 		} else {
 			print "SBEF: Not MF or SF Node...\n"  if $VRML::verbose::be;
 			$f{$_} = $v;
 		}
 	}
+	# print "Scene.pm, calling setfields in backend with BackNode defined\n";
 	$be->set_fields($this->{BackNode},\%f);
 }
 
@@ -1328,10 +1335,10 @@ sub setup_routing {
 				print "REALNODE: $n $n->{TypeName}\n"
 					if $VRML::verbose::scene;
 				if($VRML::Nodes::siblingsensitive{$n->{TypeName}}) {
-					print "SES: $n $n->{TypeName}\n" if $VRML::verbose::scene;
+					print "Scene.pm:SES: $n $n->{TypeName}\n"; #JAS if $VRML::verbose::scene;
 					$be->set_sensitive(
 						$_[0]->{BackNode},
-						sub {
+						sub { print "SES sub\n";
 							$eventmodel->
 							    handle_touched($n,
 							    		@_);
