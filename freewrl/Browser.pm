@@ -846,7 +846,6 @@ sub EAI_GetType {
 	# is this an IS'd field?
 	my $realele = VRML::Handles::get("NODE$nodenum");
 
-
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
 
@@ -959,6 +958,10 @@ sub EAI_CreateVrmlFromString {
 			$bn = $realele->{BackNode}{CNode};
 			$ele =~ s/^NODE//;
 			$retval{$ele} = $bn;
+
+			# reserve the CNODE as a node, because sometimes we do need to go
+			# from CNode to node.
+			VRML::Handles::CNodeLinkreserve("NODE$bn",$realele);
 		} else {
 			# print "warning, EAI_CreateVrmlFromString - no backnode found for $ele\n";
 		}
@@ -985,6 +988,10 @@ sub EAI_CreateVrmlFromURL {
 			$bn = $realele->{BackNode}{CNode};
 			$ele =~ s/^NODE//;
 			$retval{$ele} = $bn;
+
+			# reserve the CNODE as a node, because sometimes we do need to go
+			# from CNode to node.
+			VRML::Handles::CNodeLinkreserve("NODE$bn",$realele);
 		} else {
 			# print "warning, EAI_CreateVrmlFromURL - no backnode found for $ele\n";
 		}
@@ -1101,10 +1108,20 @@ sub front_end_child_get {
 }
 ######
 
+sub CNodeLinkreserve {
+	my($str,$object) = @_;
+	# print "Handle::CNodeLinkreserve, reserving $str for object $object type ", ref($object), "\n";
+
+	if(!defined $S{$str}) {
+		$S{$str} = [$object, 0];
+	}
+	$S{$str}[1]++;
+	return $str;
+}
 sub reserve {
 	my($object) = @_;
 	my $str = VRML::NodeIntern::dump_name($object);
-	#print "Handle::reserve, reserving $str for object $object type ", ref($object), "\n";
+	# print "Handle::reserve, reserving $str for object $object type ", ref($object), "\n";
 
 	if(!defined $S{$str}) {
 		$S{$str} = [$object, 0];

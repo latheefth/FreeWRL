@@ -37,6 +37,7 @@ public class EventOutMFNode extends EventOutMField {
       retnodes[sizeof] = new Node();
       rep = tokens.nextToken();
       retnodes[sizeof].NodeName = new String(rep);
+      retnodes[sizeof].nodeptr = new String(rep);
       sizeof ++;
     }
     return retnodes;

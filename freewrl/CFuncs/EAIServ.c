@@ -683,6 +683,12 @@ unsigned int EAI_SendEvent (char *ptr) {
 			break;
 		}
 
+		case EAI_MFSTRING: {
+			printf ("EAI_MFSTRING, string is %s\nxxx\n",ptr);
+			printf ("EAI_MFSTRING, have to fix this code - sorry Sarah. JohnS\n");
+			break;
+		}
+
 
 		/* a series of Floats... */
 //xxx		case EAI_MFVEC3F:
