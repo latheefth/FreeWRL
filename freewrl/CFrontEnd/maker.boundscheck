@@ -26,9 +26,9 @@ gcc -o freewrl \
 	-L../JS/js/src/Linux_All_OPT.OBJ  \
 	perlxsi.o freewrl.o fwopts.o \
 	../CFuncs/ProdCon.o\
-	../VRMLFunc.o \
 	../JS/JS.o \
 	../CFuncs/Bindable.o    \
+	../CFuncs/ConsoleMessage.o    \
 	../CFuncs/GenPolyRep.o    \
 	../CFuncs/pluginUtils.o    \
 	../CFuncs/CRoutes.o    \
@@ -63,4 +63,5 @@ gcc -o freewrl \
 	../CFuncs/Children.c   \
 	../CFuncs/InputFunctions.c \
 	-lboundscheck \
+	-lFreeWRLFunc \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts`

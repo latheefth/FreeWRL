@@ -878,6 +878,7 @@ my %VISIBLE = map {($_=>1)} qw/
 	GeoElevationGrid
 	Extrusion
 	IndexedLineSet
+	LineSet
 	Background
 	PointLight
 	Fog

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.146  2005/02/10 14:50:25  crc_canada
+# LineSet implemented.
+#
 # Revision 1.145  2005/01/16 20:55:08  crc_canada
 # Various compile warnings removed; some code from Matt Ward for Alldev;
 # some perl changes for generated code to get rid of warnings.
@@ -537,7 +540,149 @@ IndexedFaceSet => '
 		}
 ',
 
+
+LineSet => '
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+
+	int vtc;		/* which vertexCount[] we should be using for this line segment */
+	int ncoc;		/* which coord we are using for this vertex */
+	int punt;		/* how many vetex points are in this line segment */
+	int c;			/* temp variable */
+	//int *p;
+	struct SFColor *coord=0; int ncoord;
+	struct SFColor *color=0; int ncolor=0;
+	int *vertexC; int nvertexc;
+
+
+	glPushAttrib(GL_ENABLE_BIT);
+
+	/* do we have to re-verify LineSet? */
+	if (this_->_ichange != this_->_change) {
+		// re-draw every time. this_->_ichange = this_->_change;
+
+		nvertexc = (this_->vertexCount).n; vertexC = (this_->vertexCount).p;
+		$fv(coord, coord, get3, &ncoord);
+		$fv_null(color, color, get3, &ncolor);
+
+		//printf ("we have %d coords, %d colors\n",ncoord,ncolor);
+		ncoc = 0;
+
+		if ((nvertexc == 0) || (ncoord == 0)) {
+			printf ("LineSet, no vertexCounts or no coords\n");
+			this_->_ichange = this_->_change; /* make this error show only once */
+
+			return;
+		}
+
+
+		if (ncolor != 0) {
+			glDisable (GL_LIGHTING);
+			glEnable(GL_COLOR_MATERIAL); 
+		} else {
+			glNormal3f(0.0, 0.0, 1.0);
+		}
+
+		/* if we are re-genning; remalloc */
+		//if (this_->__points) free ((void *)this_->__points);
+
+		//if (!this_->__points) this_->__points = (int) malloc (sizeof(unsigned int)*(nvertexc));
+		//if (!this_->__points) {
+		//	printf ("can not malloc memory for LineSet points\n");
+		//	this_->_ichange = this_->_change; /* make this error show only once */
+		//	return;
+		//}
+		//p = (int *)this_->__points;
+
+	
+		/* go through the vertex count array and verify that all is good. */
+		for (vtc = 0; vtc < nvertexc; vtc++) {
+			/* save the pointer to the vertex array for the GL call */
+			//*p = vertexC;
+			//p++;
+
+			punt = *vertexC;
+
+			/* there HAVE to be 2 or more vertexen in a segment */
+			if (punt < 2) {
+				printf ("LineSet, vertexCount[%d] has %d vertices...\n",vtc,punt);
+				this_->_ichange = this_->_change; /* make this error show only once */
+				//free ((void *)this_->__points);
+glPopAttrib();
+				return;
+			}
+
+			/* do we have enough Vertex Coords? */
+			if ((punt + ncoc) > ncoord) {
+				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
+				this_->_ichange = this_->_change; /* make this error show only once */
+				//free ((void *)this_->__points);
+glPopAttrib();
+				return;
+			}
+			if (ncolor != 0) {
+			if ((punt + ncoc) > ncolor) {
+				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
+				this_->_ichange = this_->_change; /* make this error show only once */
+				//free ((void *)this_->__points);
+glPopAttrib();
+				return;
+			}
+			}
+
+			// do this for glMultiDrawElements ncoc += punt;
+			glBegin(GL_LINE_STRIP);
+
+			/* draw the line */
+			if (ncolor!= 0) {
+				glColor3f( color[ncoc].c[0],color[ncoc].c[1],color[ncoc].c[2]);
+			}
+			glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
+			ncoc++;
+
+
+			for (c=1; c<punt; c++) {
+				if (ncolor!= 0) {
+					glColor3f( color[ncoc].c[0],color[ncoc].c[1],color[ncoc].c[2]);
+				}
+				glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
+				ncoc++;
+			}
+			
+			/* now, lets go and get ready for the next vertexCount */
+			vertexC++;
+			glEnd();
+
+
+		}
+		if (ncolor != 0) {
+			glEnable (GL_LIGHTING);
+		}
+	}
+
+	/* now, actually draw array */
+	//if (this_->__points) {
+	//	printf ("calling glMultiDrawElements, promcount %d\n",(this_->vertexCount).n);
+	//	glMultiDrawElements(GL_LINE_STRIP,(this_->vertexCount).p,GL_FLOAT,
+	//			this_->__points,(this_->vertexCount).n);
+	//}
+glDisable(GL_COLOR_MATERIAL); 
+glPopAttrib();
+		
+',
 IndexedLineSet => '
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 		int i;
 		int cin = $f_n(coordIndex);
 		int colin = $f_n(colorIndex);
@@ -625,6 +770,13 @@ IndexedLineSet => '
 
 
 PointSet => '
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
+	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	int i; 
 	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;

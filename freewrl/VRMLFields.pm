@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.46  2005/02/10 14:50:25  crc_canada
+# LineSet implemented.
+#
 # Revision 1.45  2005/02/07 20:25:43  crc_canada
 # SFImage parse - parse an SFImage, new parsing terminal symbols include
 # those found when parsing a PROTO decl. Eg, "field" is now left alone.
@@ -981,7 +984,8 @@ sub parse {
 			$retstr = $retstr.$1;
 			$_[2] =~ /\G\s*($SFHEXmageChars)\s*/gc;
 			#print " in X, just matched $1\n";
-			$retstr = $retstr.$1;
+			$retstr = $retstr.$1." ";
+			#print "retstr now $retstr\n";
 		} else {
 			# most likely we got to a "field" or something else that looks hexidecimalish
 			#print "did not match an x\n";

@@ -461,6 +461,18 @@ my $protono;
 						coordIndex => [MFInt32, [], field]
 					   }
 					  ),
+
+	LineSet =>
+	new VRML::NodeType("LineSet",
+					   {
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						vertexCount => [MFInt32,[],exposedField],
+						__points  =>[SFInt32,0,field],
+
+					   }
+					  ),
+
 	PointSet =>
 	new VRML::NodeType("PointSet",
 					   {
