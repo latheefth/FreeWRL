@@ -26,8 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
-# Revision 1.93  2003/06/13 21:45:37  ayla
+# Revision 1.94  2003/06/16 17:06:42  crc_canada
+# save Browser URL and Version to C.
 #
+# Revision 1.93  2003/06/13 21:45:37  ayla
 # Migrating more code from Perl to C.
 # Removed UNUSED macro from jsUtils.h.
 #
@@ -1341,6 +1343,7 @@ float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
 
+/* stored FreeWRL version, pointers to initialize data */
 char *BrowserVersion = NULL;
 char *BrowserURL = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
@@ -1361,57 +1364,6 @@ char *BrowserName = "FreeWRL VRML/X3D Browser";
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
-//JAS int verbose = 0;
-
-//JAS
-//JAS/*
-//JAS * Global JS variables (from Brendan Eichs short embedding tutorial):
-//JAS *
-//JAS * JSRuntime       - 1 runtime per process
-//JAS * JSContext       - 1 CONTEXT per thread
-//JAS * global JSObject - 1 global object per CONTEXT
-//JAS *
-//JAS * struct JSClass {
-//JAS *     char *name;
-//JAS *     uint32 flags;
-//JAS * Mandatory non-null function pointer members:
-//JAS *     JSPropertyOp addProperty;
-//JAS *     JSPropertyOp delProperty;
-//JAS *     JSPropertyOp getProperty;
-//JAS *     JSPropertyOp setProperty;
-//JAS *     JSEnumerateOp enumerate;
-//JAS *     JSResolveOp resolve;
-//JAS *     JSConvertOp convert;
-//JAS *     JSFinalizeOp finalize;
-//JAS * Optionally non-null members start here:
-//JAS *     JSGetObjectOps getObjectOps;
-//JAS *     JSCheckAccessOp checkAccess;
-//JAS *     JSNative call;
-//JAS *     JSNative construct;
-//JAS *     JSXDRObjectOp xdrObject;
-//JAS *     JSHasInstanceOp hasInstance;
-//JAS *     prword spare[2];
-//JAS * };
-//JAS * 
-//JAS * global JSClass  - populated by stubs
-//JAS * 
-//JAS */
-//JAS
-//JASstatic JSRuntime *runtime;
-//JASstatic JSClass globalClass = {
-//JAS	"global",
-//JAS	0,
-//JAS	JS_PropertyStub,
-//JAS	JS_PropertyStub,
-//JAS	JS_PropertyStub,
-//JAS	JS_PropertyStub,
-//JAS	JS_EnumerateStub,
-//JAS	globalResolve,
-//JAS	JS_ConvertStub,
-//JAS	JS_FinalizeStub
-//JAS};
-//JAS
-//JAS
 /*
  * See perldoc perlapi, perlcall, perlembed, perlguts for how this all
  * works.
@@ -2470,6 +2422,25 @@ CODE:
 		cx->collideTime = TickTime;
 		mark_event ((unsigned int) node, offsetof(struct VRML_Collision, collideTime));
 	}
+
+
+# save the specific FreeWRL version number from the Config files.
+void
+SaveVersion(str)
+	char *str
+CODE:
+	BrowserVersion = malloc (strlen(str)+1);
+	strcpy (BrowserVersion,str);
+
+# save the specific FreeWRL version number from the Config files.
+void
+SaveURL(str)
+	char *str
+CODE:
+	if (BrowserURL != NULL) free (BrowserURL);
+	BrowserURL = malloc (strlen(str)+1);
+	strcpy (BrowserURL,str);
+
 
 #****************JAVASCRIPT FUNCTIONS*********************************
 
