@@ -1,0 +1,54 @@
+# Default VRML Configuration.
+# You will probably need to edit at least these variables
+# to inform the compiler where the libraries are on your system.
+
+# This is the Irix vrml.conf file
+
+%VRML_CONFIG = (
+
+# OpenGL (or Mesa) libraries, defines and includes (e.g. -I/usr/OpenGL...). 
+     OPENGL_LIBS => '-L/usr/lib32 -lGL -lGLU -lXext -lX11',
+     OPENGL_DEFINE => '',
+
+# JPEG libraries & includes
+    JPEG_LIBS => '-L/usr/freeware/lib32 -ljpeg',
+    JPEG_INC => '-I/usr/freeware/include',
+    JPEG_DEFINE => '',
+
+# PNG libraries & includes
+    PNG_LIBS => '-L/usr/freeware/lib32 -lpng -lz',
+    PNG_INC => '-I/usr/freeware/include',
+    PNG_DEFINE => '',
+
+# Freetype things
+    FREETYPE_LIBS => '-L/usr/freeware/lib32 -lfreetype',
+    FREETYPE_INC => '-I/usr/freeware/src/freetype2/freetype-2.0.4/include',
+    FREETYPE_DEFINE => '',
+
+# Javascript lib & include (relative to the JS/ directory)
+    JS_LIBS => '-Ljs/IRIX646.5_DBG.OBJ -ljs',
+    JS_INC => '-Ijs/IRIX646.5_DBG.OBJ -Ijs/',
+
+# Saxon location - required for x3d running.
+    SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
+
+# Netscape installation
+# 
+# If Netscape is not installed, leave NETSCAPE_INST empty e.g.
+# NETSCAPE_INST => ''
+#
+# NETSCAPE_CLASSES is where vrml.jar (needed for EAI applets) 
+# will be installed to.
+# NETSCAPE_PLUGINS is used to determine where the plugin will
+# be installed if this is your browser.
+    NETSCAPE_INST => '/usr/lib/netscape',
+    NETSCAPE_PLUGINS => '/var/netscape/communicator/plugins32',
+    NETSCAPE_CLASSES => '/var/netscape/communicator/java/classes',
+
+# Java installation (Sun's Java 2 SDK Standard Edition 1.3.1)
+# If Java is not installed, leave JAVA_INST empty e.g.
+# JAVA_INST => ''
+    JAVA_INST => '/usr/java/',
+    JAVA_INC => '-I/usr/java/include -I/usr/java/include/irix'
+
+);
