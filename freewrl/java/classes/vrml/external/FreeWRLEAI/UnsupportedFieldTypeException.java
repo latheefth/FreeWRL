@@ -16,7 +16,7 @@
 
 package vrml.external.FreeWRLEAI;
 
-class UnsupportedFieldTypeException extends RuntimeException {
+public class UnsupportedFieldTypeException extends RuntimeException {
     public UnsupportedFieldTypeException() {
         super();
     }
