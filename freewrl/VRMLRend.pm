@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.31  2001/05/16 18:04:17  crc_canada
+# changes to allow compiling on Irix without errors (still warnings, though)
+#
 # Revision 1.30  2001/05/16 16:00:06  crc_canada
 # Check for glError at the end of Shape node.
 #
@@ -816,6 +819,7 @@ Background => '
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
 	double vatemp;		
 	GLuint mask;
+	GLfloat bk_emis[4];		/* background emissive colour	*/
 
 	/* only do background lighting, etc, once for textures */
 	void do_texture();
@@ -834,6 +838,8 @@ Background => '
 	static GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};
 
 	if(!((this_->isBound))) {return;}
+
+	bk_emis[3]=0.0; /* always zero for backgrounds */
 
 	/* Cannot start_list() because of moving center, so we do our own list later */
 
@@ -954,10 +960,8 @@ Background => '
 	if(((this_->skyColor).n) == 1) {
 		c1 = &(((this_->skyColor).p[0]));
 		va2 = PI; /* so we dont fill in to ground angles */
-		{            
-			GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
-               		glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
-		}
+		bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+		glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 
 		/* Actually, one should do it... ? */
 		glBegin(GL_TRIANGLES);
@@ -985,17 +989,13 @@ Background => '
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
 
-				{            
-					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
-               				glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
-				}
+				bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
+				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
-				{            
-					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
-                			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
-				}
+				bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 				glColor3f(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
@@ -1015,10 +1015,8 @@ Background => '
 		for(h=0; h<hdiv; h++) {
 			ha1 = h * PI*2 / hdiv;
 			ha2 = (h+1) * PI*2 / hdiv;
-			{            
-				GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
-               			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
-			}
+			bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
+			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 			glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 			glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 			glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
@@ -1043,18 +1041,13 @@ Background => '
 			for(h=0; h<hdiv; h++) {
 				ha1 = (h * 6.29 / hdiv);
 				ha2 = ((h+1) * 6.29 / hdiv);
-
-				{            
-					GLfloat mat_emission[] = {c2->c[0], c2->c[1], c2->c[2],0.0};
-	                		glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
-				}
+				bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
+				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
 				glVertex3f(sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				glVertex3f(sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
-				{            
-					GLfloat mat_emission[] = {c1->c[0], c1->c[1], c1->c[2],0.0};
-                			glMaterialfv(GL_FRONT,GL_EMISSION, mat_emission);
-				}
+				bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
+				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
 				glColor3d(c1->c[0], c1->c[1], c1->c[2]);
 				glVertex3f(sin(va1) * cos(ha2), cos(va1), sin(va1) * sin(ha2));
 				glVertex3f(sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
