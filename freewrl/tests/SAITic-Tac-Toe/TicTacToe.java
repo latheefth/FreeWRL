@@ -133,10 +133,10 @@ public class TicTacToe extends Script {
       }
     }
     else if (e.getName().equals("newGame")) {
-      BaseNode[] nodes = new BaseNode[addedNodes.size()];
+      Node[] nodes = new Node[addedNodes.size()];
       for (int i=0; i< addedNodes.size(); i++)
-	nodes[i] = (BaseNode) addedNodes.elementAt(i);
-      removeStone.setValue((Node[])nodes);
+	nodes[i] = (Node) addedNodes.elementAt(i);
+      removeStone.setValue(nodes);
       addedNodes = new Vector();
       newEnabled.setValue(false);
       white = black = 0;

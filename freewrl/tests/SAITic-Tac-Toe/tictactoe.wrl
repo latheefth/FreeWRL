@@ -174,7 +174,7 @@ ROUTE touch7.touchTime TO logic.touched7
 ROUTE touch8.touchTime TO logic.touched8
 ROUTE touch9.touchTime TO logic.touched9
 ROUTE logic.addStone TO root.addChildren
-#ROUTE logic.removeStone TO root.removeChildren
+ROUTE logic.removeStone TO root.removeChildren
 ROUTE logic.checkDelay TO timer1.set_startTime
 ROUTE timer1.isActive TO logic.checkForWin
 ROUTE logic.nextDelay TO timer2.set_startTime
