@@ -95,8 +95,12 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 	int	pw
 	int	fullscreen
 	long	event_mask
+
 	CODE:
 	{
+		XColor  black; 
+		Cursor  cursor;
+		Pixmap  cursor_pixmap; 
 	    XEvent event;
 	    Window pwin=(Window)pw;
 	    int *attributes = default_attributes;
@@ -169,17 +173,20 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 					0, vi->depth, InputOutput, vi->visual,
 					CWBorderPixel| CWOverrideRedirect |
 					 CWColormap | CWEventMask, &swa);
+			cursor_pixmap = XCreatePixmap(dpy, win ,1, 1, 1);
+			black.pixel = WhitePixel(dpy, DefaultScreen(dpy));
+			XQueryColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), &black);
+ 			cursor = XCreatePixmapCursor(dpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
+			XDefineCursor(dpy, win, cursor);
+			
 		    }
 		    else
 		    {
 			win = XCreateWindow(dpy, pwin, x, y, w, h, 0, vi->depth, InputOutput, vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
 		    }
-
 	    		glXMakeCurrent(dpy, win, cx);
 	    		glFlush();
-		
 			XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
-
 		    if(!win) {
 			fprintf(stderr, "No Window\n");
 			exit(-1);
@@ -188,7 +195,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 		    if(event_mask & StructureNotifyMask) {
 			XIfEvent(dpy, &event, WaitForNotify, (char*)win);
 		    }
-	    } else {
+	    } else { 
 #ifdef FOIFJOISEJFOISJEFSF
 			/* This doesn't work too well because of
 			   trouble */
@@ -215,20 +222,27 @@ GLXFBConfig *glXChooseFBConfigSGIX(Display *dpy, int screen,
 		    die("NO PBUFFER EXTENSION\n");
 #endif
 	    }
+	    /* clear the buffer */
+	    glClearColor(0,0,0,1);
+
+	    /* Create Cursors */
+	    if (fullscreen == 1)
+	    {
+		arrowc = cursor;
+		sensorc = cursor;
+	    }
+	    else
+	    {
+	    	arrowc = XCreateFontCursor (dpy, XC_left_ptr);
+	    	sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
+	    }
 
 	    /* connect the context to the window */
 	    if(!glXMakeCurrent(dpy, win, cx)) {
 	        fprintf(stderr, "Non current\n");
 	        exit(-1);
 	    }
-
-	    /* clear the buffer */
-	    glClearColor(0,0,0,1);
-
-	    /* Create Cursors */
-	    arrowc = XCreateFontCursor (dpy, XC_left_ptr);
-	    sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
-
+	
 	    /* what is the hardware 3d accel? */
 	    printf ("%s\n",glGetString(GL_RENDERER));
 	}
