@@ -10,8 +10,8 @@
 
 #
 # $Log$
-# Revision 1.15  2002/04/18 17:42:54  crc_canada
-# Some debugging print statements commented out.
+# Revision 1.16  2002/04/22 18:20:42  crc_canada
+# Extra debugging print statements removed (in GV routine)
 #
 # Revision 1.14  2001/12/12 17:02:04  crc_canada
 # more updates for EAI
@@ -371,15 +371,15 @@ sub handle_input {
 
 			my ($kind, $type) = 
 			 $this->{B}->api__getFieldInfo($node, $field);
-			print "GV - kind is $kind, type is $type\n";
+			#print "GV - kind is $kind, type is $type\n";
 
-			print "GV, trying first get\n";
+			#print "GV, trying first get\n";
 			my $val = $node->{RFields}{$field};
 			if ($val eq '') {
-				print "GV, woops,, have to try normal fields\n";
+				#print "GV, woops,, have to try normal fields\n";
 				$val = $node->{Fields}{$field};
 			}
-			print "GV, got the value now\n";
+			#print "GV, got the value now\n";
 
 			my $strval;
 
@@ -393,13 +393,13 @@ sub handle_input {
 				# if ("ARRAY" eq ref $node->{Fields}{$field}) { print "and, it is an ARRAY\n";}
 
 
-				print " node->{Fields}{$field} = ", $node->{Fields}{$field}, "\n";
+				#print " node->{Fields}{$field} = ", $node->{Fields}{$field}, "\n";
                                 $strval = "@{$node->{Fields}{$field}}";
-				print " so, Im setting strval to $strval\n";
+				#print " so, Im setting strval to $strval\n";
 
                         } else {
                                 $strval = "VRML::Field::$type"->as_string($val);
-                                print "GV value is $val, strval is $strval\n";
+                                #print "GV value is $val, strval is $strval\n";
                         }
 
 			if($VRML::verbose::EAI) {
