@@ -19,7 +19,7 @@
 #ifndef nspr_linux_defs_h___
 #define nspr_linux_defs_h___
 
-#include <linux/autoconf.h>
+//#include <linux/autoconf.h>
 #ifndef __alpha__
 #undef	HAVE_LONG_LONG
 #undef	HAVE_ALIGNED_DOUBLES
