@@ -26,6 +26,11 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.82  2003/05/01 18:49:19  ayla
+#
+# Use viewer position and orientation from Viewer.pm for calculations in
+# the rendering loop.
+#
 # Revision 1.81  2003/04/29 19:56:45  crc_canada
 # MovieTexture rendering code now in C
 #
@@ -1070,6 +1075,7 @@ sub gen {
 #endif
 
 struct pt {GLdouble x,y,z;};
+struct orient {GLdouble x,y,z,a;};
 
 struct VRML_Virt {
 	void (*prep)(void *);
@@ -1225,11 +1231,20 @@ struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
 /* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
 struct pt ViewerDelta = {0,0,0}; 
 
-/*dimentions of viewer, and "up" vector (for collision detection) */
+/* dimentions of viewer, and "up" vector (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
-/*for alignment of collision cylinder, and gravity (later). */
+/* for alignment of collision cylinder, and gravity (later). */
 struct pt ViewerUpvector = {0,0,0};
+
+
+/* viewer position obtained from Viewer.pm */
+struct pt ViewerPosition = {0, 0, 10};
+
+
+/* viewer orientation (calculated from quaternion) obtained from Viewer.pm */
+struct orient ViewerOrientation = {0, 0, 1, 0};
+
 
 /* These two points define a ray in window coordinates */
 
@@ -1372,7 +1387,7 @@ void render_node(void *node) {
 	int glerror = GL_NONE;
 	char* stage = "";
 
-	if(verbose) printf("\nRender_node %d\n",node);
+	if(verbose) printf("\nRender_node %u\n",(unsigned int) node);
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
@@ -1574,6 +1589,43 @@ void remove_parent(void *node_, void *parent_) {
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 
 PROTOTYPES: ENABLE
+
+void
+update_viewerpos(x, y, z)
+	double x
+	double y
+	double z
+CODE:
+	ViewerPosition.x = x;
+	ViewerPosition.y = y;
+	ViewerPosition.z = z;
+	if (verbose) {
+		printf("VRML::VRMLFunc::update_viewerpos: (%f, %f, %f)\n",
+			ViewerPosition.x,
+			ViewerPosition.y,
+			ViewerPosition.z);
+	}
+
+
+void
+update_viewerorient(x, y, z, a)
+	double x
+	double y
+	double z
+	double a
+CODE:
+	ViewerOrientation.x = x;
+	ViewerOrientation.y = y;
+	ViewerOrientation.z = z;
+	ViewerOrientation.a = a;
+	if (verbose) {
+		printf("VRML::VRMLFunc::update_viewerorient: (%f, %f, %f, %f)\n",
+			ViewerOrientation.x,
+			ViewerOrientation.y,
+			ViewerOrientation.z,
+			ViewerOrientation.a);
+	}
+
 
 #####################################################################
 # 

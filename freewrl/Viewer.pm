@@ -68,15 +68,33 @@ sub new {
 		$this->{Dist} = $old->{Dist};
 		$this->{AntiPos} = $old->{AntiPos};
 		$this->{AntiQuat} = $old->{AntiQuat};
-                $this->{Navi} = $old->{Navi};
+		$this->{Navi} = $old->{Navi};
+		$this->{CNodes} = $old->{CNodes};
 		$this->{eyehalf} = $old->{eyehalf};
 		$this->{eyehalfangle} = $old->{eyehalfangle}; 
 	} else {
-                $this->{Navi} = VRML::Scene->new_node("NavigationInfo",
-                                VRML::Nodes->{NavigationInfo}{Defaults});
-        }
+		$this->{Navi} = VRML::Scene->new_node("NavigationInfo",
+							VRML::Nodes->{NavigationInfo}{Defaults});
+	}
 	$this->resolve_pos();
 	return $this;
+}
+
+sub update_viewer {
+	my ($this) = @_;
+
+	VRML::VRMLFunc::update_viewerpos(
+									 $this->{Pos}[0],
+									 $this->{Pos}[1],
+									 $this->{Pos}[2]
+									);
+	my $orientation = $this->{Quat}->to_vrmlrot();
+	VRML::VRMLFunc::update_viewerorient(
+										$orientation->[0],
+										$orientation->[1],
+										$orientation->[2],
+										$orientation->[3]
+									   );
 }
 
 sub use_keys { 0 }
@@ -97,6 +115,7 @@ sub bind_viewpoint {
 	$this->{AntiQuat} = VRML::Quaternion->new_vrmlrot(
 		@{$node->{Fields}{orientation}})->invert;
 	$this->resolve_pos();
+	$this->update_viewer();
 }
 
 sub resolve_pos { } # hook to modify Pos & Quat, e.g. for Examine
@@ -189,6 +208,7 @@ sub handle_tick {
 	(abs($this->{ZD}) > 0.000001)) {
 	VRML::OpenGL::set_render_frame();
     }
+	$this->update_viewer();
 }
 
 
@@ -306,6 +326,7 @@ sub handle_tick {
 
     	}
 
+	$this->update_viewer();
 
 
 	$lasttime = $time;
@@ -372,9 +393,10 @@ sub handle_tick {
 #			print "Fly Viewpoint: [$tr], [$rot]\n";
 #print "this's quat is ",$this->{Quat}->as_str,"\n";
 #JAS}
-                VRML::OpenGL::set_render_frame();
+		VRML::OpenGL::set_render_frame();
 
 	}
+	$this->update_viewer();
 }
 }
 
@@ -434,6 +456,8 @@ sub handle {
 	$this->{Pos} = $this->{Quat}->invert->rotate([0,0,$this->{Dist}]);
 	for(0..2) {$this->{Pos}[$_] += $this->{Origin}[$_]}
 	# print "Pos: ";for(0..2) {print " ",$this->{Pos}[$_];} print "\n";
+
+	$this->update_viewer();
 	
 }
 
