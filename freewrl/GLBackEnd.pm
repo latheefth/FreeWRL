@@ -571,14 +571,7 @@ sub setup_projection {
 	my $i = pack ("i",0);
 	
 	glMatrixMode(&GL_PROJECTION);
-	glGetIntegerv(&GL_PROJECTION_STACK_DEPTH,$i);
 	
-	my $dep = unpack("i",$i);
-	while($dep-- > 1)
-	  {
-	    glPopMatrix(); 
-	  }
-
 	glViewport(0,0,$this->{W},$this->{H});
 	glLoadIdentity();
 	# print "SVP: $this->{W} $this->{H}\n";
@@ -594,10 +587,12 @@ sub setup_projection {
 	    glupPickMatrix($x, $vp[3]-$y, 3, 3, @vp);
 	  }
 	
-	glPushMatrix();
-	gluPerspective(40.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 200000);
+	#FIXME: 45 deg. hardcoded angle??? must get this somewhere -ncoder
+	gluPerspective(45.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 200000);
 	glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
 	glMatrixMode(&GL_MODELVIEW);
+        glPrintError("GLBackEnd::setup_projection");
+
 }
 
 sub setup_viewpoint {
@@ -608,23 +603,17 @@ sub setup_viewpoint {
 	glMatrixMode(&GL_MODELVIEW); # this should be assumed , here for safety.
 
         glLoadIdentity(); 
-	$this->{Viewer}->togl(); # Make viewpoint
-
+	$this->{Viewer}->togl(); # Make viewpoint, adds offset in stereo mode.
+	                         # FIXME: I think it also adds offset of left eye in mono mode.
 
 	VRML::VRMLFunc::render_hier($node, 	# Node
 				    &VF_Viewpoint,# render view point
 				    $viewpoint);# what view point      
-
-#	 my $mod = pack ("d16",0,0,0,0,0,0,0,0,0,0,0,0);
-#	 glGetDoublev(&GL_MODELVIEW_MATRIX, $mod);
-#        my @mat = unpack(d16,$mod);
-#        print "ncoder: matrix is @mat\n";
+	glPrintError("GLBackEnd::setup_viewpoint");
 
 }
 
 
-# this is ugly, setup_projection() and setup_viewpoint() are called twice...
-# must fix.
 sub render_pre {
     my ($this) = @_;
     my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
@@ -638,7 +627,9 @@ sub render_pre {
     # 1. Set up projection
     $this->setup_projection();
 
-    # 2. Headlight 
+    # 2. Headlight, initialized here where we have the modelview matrix to Identity.
+    # FIXME: position of light sould actually be offset a little (towards the center)
+    # when in stereo mode.
     glLoadIdentity();
 
     if($this->{Viewer}{Navi}{RFields}{headlight}) {
@@ -647,14 +638,21 @@ sub render_pre {
 
 
     # 3. Viewpoint
-    $this->setup_viewpoint($node);
+    $this->setup_viewpoint($node); #need this to render collisions correctly
+    $this->render_collisions();
 
+    $this->setup_viewpoint($node); #update viewer position after collision, to 
+                                   #give accurate info to Proximity sensors.
     VRML::VRMLFunc::render_hier($node,  # Node
 				&VF_Proximity, 
 				0); # what view point
 
+    glPrintError("GLBackend::render_pre");
+
 }
 
+# ModelMatrix must be correctly set
+# TODO: must implement event feedback in case of collision.
 sub render_collisions {
     my ($this) = @_;
     my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
@@ -669,10 +667,14 @@ sub render_collisions {
     my($x,$y,$z);
     VRML::VRMLFunc::get_collisionoffset($x,$y,$z);
 #    print "$x,$y,$z";
+
+    my $nv = $this->{Viewer}->{Quat}->invert->rotate([$x,$y,$z]);
+    for(0..2) {$this->{Viewer}->{Pos}[$_] += $nv->[$_]}
+
     
 }
-# Given root node of scene, render it all
 
+# Given root node of scene, render it all
 sub render {
     my ($this) = @_;
     my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
@@ -701,38 +703,8 @@ sub render {
 	    VRML::OpenGL::BackEndHeadlightOff();
 	}
 
-	# this should be already done.
-	# i don't know why screen goes dark if this isn't here.
-	$this->setup_projection();
-
-	# 3. Viewpoint, maybe a simple correction here would be best.
-	#  (viewpoint already set from render_pre
-	$this->setup_viewpoint($node);
-
-    
-    
-	#ajust for collisions
-	VRML::VRMLFunc::set_collisionoffset(0,0,0);
-	
-	VRML::VRMLFunc::render_hier($node,  # Node
-				    &VF_Collision, 
-				    0); # what view point
-	my($x,$y,$z);
-	VRML::VRMLFunc::get_collisionoffset($x,$y,$z);
-
-	my $nv = $this->{Viewer}->{Quat}->invert->rotate([$x,$y,$z]);
-	for(0..2) {$this->{Viewer}->{Pos}[$_] += $nv->[$_]}
-
-#	print "$x,$y,$z => $nv->[0],$nv->[1],$nv->[2]\n";
-
-
-	# this should be already done.
-	# i don't know why screen goes dark if this isn't here.
-	$this->setup_projection();
-
-	# 3. Viewpoint, maybe a simple correction here would be best.
-	#  (viewpoint already set from render_pre
-	$this->setup_viewpoint($node);
+        # Correct Viewpoint, only needed when in stereo mode.
+	$this->setup_viewpoint($node) if @{$this->{bufferarray}} != 1;
 
 	# Other lights
 
@@ -789,12 +761,7 @@ sub render {
 	    my $nints = 100;
 	    my $s = pack("i$nints");
 		
-	    glRenderMode(&GL_SELECT);
 
-	    $this->setup_projection();
-		
-	    glSelectBuffer($nints, $s);
-		
 	    $this->setup_projection(1, $_->[2], $_->[3]);
 	    $this->setup_viewpoint($node);
 		
@@ -874,11 +841,12 @@ sub render {
 		}
 		$this->{MOUSOVER} = $p;
 	    }
+#	    glRenderMode(&GL_RENDER);
+	    
 	}
     }
 	
     $#{$this->{BUTEV}} = -1;
-    glRenderMode(&GL_RENDER);
 
     # determine whether cursor should be "sensor".
     if ($cursortype != $curcursor) {
@@ -889,6 +857,10 @@ sub render {
 	    VRML::OpenGL::sensor_cursor();
 	}
     }
+    glPrintError("GLBackEnd::render");
 }
 
 1;
+
+
+

@@ -118,6 +118,7 @@ children [
 	DEF DIFF SArrow { color 0 0 0.8 }
 	DEF CP SArrow { color 0 0.8 0 }
 
+
 	DEF S Script {
 		eventIn SFRotation rot1
 		eventIn SFRotation rot2

@@ -2,6 +2,7 @@
 
 
 #include <stdio.h>
+#include <memory.h>
 /* Altenate implemetations available, should merge them eventually */
 
 void veccross(struct pt *c, struct pt a, struct pt b)
@@ -247,6 +248,75 @@ struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3)
     vecnormal(r,r);
     return r;
 }
+
+
+GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z)
+{
+    GLdouble CosTheta = cos(Theta);
+    GLdouble SinTheta = sin(Theta);
+
+    Result[0] = x*x + (y*y+z*z)*CosTheta;
+    Result[1] = x*y - x*y*CosTheta + z*SinTheta;
+    Result[2] = x*z - x*z*CosTheta - y*SinTheta;
+    Result[4] = x*y - x*y*CosTheta - z*SinTheta;
+    Result[5] = y*y + (x*x+z*z)*CosTheta;
+    Result[6] = z*y - z*y*CosTheta + x*SinTheta;
+    Result[8] = z*x - z*x*CosTheta + y*SinTheta;
+    Result[9] = z*y - z*y*CosTheta - x*SinTheta;
+    Result[10]= z*z + (x*x+y*y)*CosTheta;
+    Result[3] = 0;
+    Result[7] = 0;
+    Result[11] = 0;
+    Result[12] = 0;
+    Result[13] = 0;
+    Result[14] = 0;
+    Result[15] = 1;
+
+    return Result;
+}
+
+GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz)
+{
+    r[0] = r[5] = r[10] = r[15] = 1;
+    r[1] = r[2] = r[3] = r[4] =
+	r[6] = r[7] = r[8] = r[9] = 
+	r[11] = 0;
+    r[12] = dx;
+    r[13] = dy;
+    r[14] = dz;
+    return r;
+}
+
+GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n)
+{
+    GLdouble tm[16],tn[16];
+    //prevent self-multiplication problems.
+    if(r == m) {
+	memcpy(tm,m,sizeof(GLdouble)*16);
+	m = tm;
+    }
+    if(r == n) {
+	memcpy(tn,n,sizeof(GLdouble)*16);
+	n = tn;
+    }
+    r[0] = m[0]*n[0]+m[4]*n[1]+m[8]*n[2];
+    r[4] = m[0]*n[4]+m[4]*n[5]+m[8]*n[6];
+    r[8] = m[0]*n[8]+m[4]*n[9]+m[8]*n[10];
+    r[12]= m[0]*n[12]+m[4]*n[13]+m[8]*n[14]+m[12];
+
+    r[1] = m[1]*n[0]+m[5]*n[1]+m[9]*n[2];
+    r[5] = m[1]*n[4]+m[5]*n[5]+m[9]*n[6];
+    r[9] = m[1]*n[8]+m[5]*n[9]+m[9]*n[10];
+    r[13]= m[1]*n[12]+m[5]*n[13]+m[9]*n[14]+m[13];
+
+    r[2] = m[2]*n[0]+m[6]*n[1]+m[10]*n[2];
+    r[6] = m[2]*n[4]+m[6]*n[5]+m[10]*n[6];
+    r[10]= m[2]*n[8]+m[6]*n[9]+m[10]*n[10];
+    r[14]= m[2]*n[12]+m[6]*n[13]+m[10]*n[14]+m[14];
+
+    return r;
+}
+
 
 #ifdef COMMENT
 /*fast crossproduct using references, that checks for auto-assignments */

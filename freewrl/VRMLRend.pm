@@ -20,6 +20,12 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.67  2002/07/26 18:15:51  ncoder
+# Added support (incomplete) of index face set collisions.
+# Bugs corrected in Collision detection
+# Further cleanup in rendering (GLBackEnd.pm)
+# removed useless free in Polyrep.c
+#
 # Revision 1.66  2002/07/19 16:56:52  ncoder
 # added collision detection for
 # Boxes, cones, cylinders.
@@ -1608,11 +1614,6 @@ Viewpoint => (join '','
 		if(verbose) printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3],
 			a1, angle);
 
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix(); /* This is so we do picking right */
-		/* glLoadIdentity(); */
-		gluPerspective(angle,vp[2]/(float)vp[3],0.1,vp_dist);
-		glMatrixMode(GL_MODELVIEW);
 	}
 '),
 
@@ -2499,6 +2500,59 @@ Cylinder => q~
 	       
 	       ~,
 
+IndexedFaceSet => q~
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble modelMatrix[16]; 
+	       struct SFColor *points; int npoints;
+	       int i;
+
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+	       struct pt delta = {0,0,0};
+
+	       struct VRML_PolyRep pr;
+	       $mk_polyrep();
+	       /* get "coord", why isn''t this already in the polyrep??? */
+	       $fv(coord, points, get3, &npoints);
+	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
+	            
+	
+/*	       printf("npoints=%d\n",npoints);
+	       for(i = 0; i < npoints; i++) {
+		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
+	       }*/
+	       pr.coord = (void*)points;
+	       delta = polyrep_disp(abottom,atop,awidth,pr,modelMatrix);
+	       
+	       vecscale(&delta,&delta,-1);
+	       
+	       VECADD(CollisionOffset,delta);
+
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		   printf("\nref%d:\n",refnum);
+		   printmatrix(modelMatrix);
+		   fprintf(stderr,"COLLISION_IFS: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+		   
+	       }
+	       
+~,
+
 Shape => '
 
 /*		printf("Shape\n");*/
@@ -2507,6 +2561,7 @@ Shape => '
 
 
 );
+
 
 
 1;

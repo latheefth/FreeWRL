@@ -125,6 +125,7 @@
 		glupPickMatrix
 		get_triangulator
 		glGenTexture
+		glPrintError
 	);
 	bootstrap VRML::OpenGL;
 

@@ -70,7 +70,16 @@ struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt to
 /*basically, it does collision with a rectangle on a plane that passes through the origin.*/
 struct pt cylinder_disp(double y1, double y2, double r, struct pt base, struct pt top, double baseradius);
 
+struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat);
+
+#ifdef DEBUGPTS
+void printpolyrep(struct VRML_PolyRep pr, int npoints);
+
+void printmatrix(GLdouble* mat);
 #endif
+
+#endif
+
 
 
 

@@ -164,5 +164,11 @@ GLdouble* Inverse(GLdouble* res, GLdouble* m);
 
 struct pt* polynormal(struct pt* r, struct pt* p1, struct pt* p2, struct pt* p3);
 
+GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z);
+
+GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
+
+GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
+
 #endif
 

@@ -61,6 +61,8 @@ int	now_mapped = 1;		/* are we on screen, or minimized? */
 static OpenGLVTab vtab;
 OpenGLVTab *OpenGLVPtr;
 
+
+
 /*
 static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRUE, None };
 */
@@ -847,6 +849,16 @@ glXDestroyContext()
 
 
 
+void
+glPrintError(str)
+	char *str
+	CODE:
+	{
+	int err; 
+	while((err = glGetError()) != GL_NO_ERROR) 
+		fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString(err),str); 
+	}
+
 
 
 
@@ -858,3 +870,8 @@ BOOT:
 #undef VFUNC
 	sv_setiv(perl_get_sv("VRML::OpenGLVPtr",1),(IV)OpenGLVPtr);
  }
+
+
+
+
+

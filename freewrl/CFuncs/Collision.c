@@ -10,6 +10,12 @@
 #define FLOAT_TOLERANCE 0.00000001
 #define MAX_POLYREP_DISP_RECURSION_COUNT 10
 
+#ifdef DEBUGPTS
+#define DEBUGPTSPRINT(x,y,z) printf(x,y,z)
+#else
+#define DEBUGPTSPRINT(x,y,z) {}
+#endif
+
 double closest_point_of_segment_to_y_axis(struct pt p1, struct pt p2) {
     /*the equation */
     double x12 = (p1.x - p2.x);
@@ -140,6 +146,14 @@ int getk_intersect_line_with_ycylinder(double* k1, double* k2, double r, struct 
 
     /*solves (pp1+ k n) . (pp1 + k n) = r^2 */
     a = 2*(n.x*n.x + n.z*n.z);
+/*    if(a == 0.) {
+	//degenerate case.
+	//it fits our objective to simply specify a random normal.
+	n.x = 1;
+	n.y = 0;
+	n.z = 0;
+	a = 2;
+	}*/
     b = -2*(pp1.x*n.x + pp1.z*n.z);
     delta = (4*((pp1.x*n.x + pp1.z*n.z)*(pp1.x*n.x + pp1.z*n.z)) - 
 	     4*((n.x*n.x + n.z*n.z))*((pp1.x*pp1.x + pp1.z*pp1.z - r*r)));
@@ -175,6 +189,7 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	if(ppoly[i].x*ppoly[i].x + ppoly[i].z*ppoly[i].z > r*r) {
 	    allin = 0;
 	} else {
+	    DEBUGPTSPRINT("intersect_point_cap(%f)= %d\n",y,clippedpolynum);
 	    clippedpoly[clippedpolynum++] = ppoly[i]; 
 	}
     }
@@ -192,8 +207,10 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,ppoly[i],ppoly[(i+1)%num]);
 	    switch(nsect) {
 	    case 2:
+		DEBUGPTSPRINT("intersect_segment_cap(%f)_2= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k2);
 	    case 1: 
+		DEBUGPTSPRINT("intersect_segment_cap(%f)_1= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k1);
 	    case 0: break;
 	    }
@@ -208,18 +225,14 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,dessect[0],dessect[1]);
 	    switch(nsect) {
 	    case 2:
+		DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_2= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k2);
 	    case 1: 
+		DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_1= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k1);
 	    case 0: break;
 	    }
-	} else { /*else one last case not treated above */
-	    if(n.y == -1. || n.y == 1.) {
-		struct pt c = {0,y,0};
-		clippedpoly[clippedpolynum++] = c;
-	    }
-	       
-	}
+	} 
     }
 
     free(ppoly);
@@ -241,7 +254,12 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
     int clippedpolynum = 0;
     static const struct pt zero = {0,0,0};
 
-    maxdisp = -1E99;
+    maxdisp = -1E90;
+    
+#ifdef DEBUGFACEMASK
+    printf("facemask = %d, debugsurface = %d\n",facemask,debugsurface);
+    if((facemask & (1 <<debugsurface++)) ) return zero;
+#endif
 
     /*allocate data */
     clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num*5 + 4));
@@ -292,13 +310,16 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
 	    dessect3d[0] = project_on_cylindersurface_plane(dessect3d[0],n,r);
 	    dessect3d[1] = project_on_cylindersurface_plane(dessect3d[1],n,r);
 
-	    if(dessect3d[0].y > y2) dessect3d[0].y = y2;
-	    if(dessect3d[0].y < y1) dessect3d[0].y = y1;
-	    if(dessect3d[1].y > y2) dessect3d[1].y = y2;
-	    if(dessect3d[1].y < y1) dessect3d[1].y = y1;
+	    /*only do/correct points if dessect3d line is somewhere inside the cylinder */
+	    if((dessect3d[0].y <= y2 || dessect3d[1].y <= y2) && (dessect3d[0].y >= y1 || dessect3d[1].y >= y1)) {
+		if(dessect3d[0].y > y2) dessect3d[0].y = y2;
+		if(dessect3d[0].y < y1) dessect3d[0].y = y1;
+		if(dessect3d[1].y > y2) dessect3d[1].y = y2;
+		if(dessect3d[1].y < y1) dessect3d[1].y = y1;
 
-	    clippedpoly[clippedpolynum++] = dessect3d[0];
-	    clippedpoly[clippedpolynum++] = dessect3d[1];
+		clippedpoly[clippedpolynum++] = dessect3d[0];
+		clippedpoly[clippedpolynum++] = dessect3d[1];
+	    }
 
 	} 
 	{ /*find intersections on cylinder of polygon points projected on surface */
@@ -318,6 +339,12 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
 	}
 
     }
+
+#ifdef DEBUGPTS
+    for(i=0; i < clippedpolynum; i++) {
+	debugpts.push_back(clippedpoly[i]);
+    }
+#endif
 
     /*here we find mimimum displacement possible */
     polydisp = vecdot(&p[0],&n);
@@ -382,13 +409,13 @@ int helper_line_clip_cap(struct pt* clippedpoly, int clippedpolynum, struct pt p
 		    
 		clippedpoly[clippedpolynum++] = dessect;
 	    }
-	} else { /*else one last case not treated above */
+	} /*else { //else one last case not treated above 
 	    if(n.y == -1. || n.y == 1.) {
 		struct pt c = {0,y,0};
 		clippedpoly[clippedpolynum++] = c;
 	    }
 	       
-	}
+	}*/
     }
 
     return clippedpolynum;
@@ -549,9 +576,9 @@ struct pt box_disp(double y1, double y2, double r,struct pt p0, struct pt i, str
     vecnormal(&n[3],&n[3]);
     vecnormal(&n[4],&n[4]);
     vecnormal(&n[5],&n[5]);
-    vecscale(&n[0],&n[0],-1.);
-    vecscale(&n[1],&n[1],-1.);
-    vecscale(&n[2],&n[2],-1.);
+    vecscale(&n[0],&n[3],-1.);
+    vecscale(&n[1],&n[4],-1.);
+    vecscale(&n[2],&n[5],-1.);
 
     /*what it says : middle of box */
     middle = weighted_sum(p[0],p[4],.5);
@@ -743,6 +770,7 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
     double disp;
     struct pt dispv;
     static int recursion_count = 0;
+    int nextrec = 0;
     int i;
 
     for(i = 0; i < pr->ntri; i++) {
@@ -760,19 +788,31 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 	    
 	    dispv = get_poly_normal_disp(y1,y2,r, p, 3, n[i]);
 	    disp = maxdisp; /*global variable. was calculated inside poly_normal_disp already. */
+
+#ifdef DEBUGPTS
+    printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
+#endif
 	    
-	    if((disp > 0.) && (disp < mindisp)) {
+	    
+	    if((disp > FLOAT_TOLERANCE) && (disp < mindisp)) {
 		mindisp = disp;
 		mindispv = dispv;
+		nextrec = 1;
 	    }
 	}
 	
     }
+#ifdef DEBUGPTS
+    printf("adding correction: (%f,%f,%f) |%f|\n",mindispv.x,mindispv.y,mindispv.z,mindisp);
+#endif
     VECADD(dispsum,mindispv);
-    if(mindisp > FLOAT_TOLERANCE && recursion_count++ < MAX_POLYREP_DISP_RECURSION_COUNT) {
+    if(nextrec && mindisp > FLOAT_TOLERANCE && recursion_count++ < MAX_POLYREP_DISP_RECURSION_COUNT) {
 	return polyrep_disp_rec(y1, y2, r, pr, n, dispsum);
     } else /*end condition satisfied */
     {
+#ifdef DEBUGPTS
+	printf("recursion_count = %d\n",recursion_count);
+#endif
 	recursion_count = 0;
 	return dispsum;
     }
@@ -780,12 +820,46 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 }
 
 
+#ifdef DEBUGPTS
+void printpolyrep(struct VRML_PolyRep pr, int npoints) {
+    int i;
+    printf("VRML_PolyRep makepolyrep() {\n");
+    printf("static int cindex[%d];\nstatic float coord[%d];\n",pr.ntri*3,npoints*3);
+    printf(" int cindext[%d] = {",pr.ntri*3);
+    for(i=0; i < pr.ntri*3-1; i++)
+	printf("%d,",pr.cindex[i]);
+    printf("%d};\n",pr.cindex[i]);
+
+    printf(" float coordt[%d] = {",npoints*3);
+    for(i=0; i < npoints*3-1; i++)
+	printf("%f,",pr.coord[i]);
+    printf("%f};\n",pr.coord[i]);
+    
+    printf("VRML_PolyRep pr = {0,%d,%d,cindex,coord,NULL,NULL,NULL,NULL,NULL,NULL};\n",pr.ntri,pr.alloc_tri);
+    printf("memcpy(cindex,cindext,sizeof(cindex));\n");
+    printf("memcpy(coord,coordt,sizeof(coord));\n");
+    printf("return pr; }\n");
+    
+};
+
+void printmatrix(GLdouble* mat) {
+    int i;
+    printf("void getmatrix(GLdouble* mat) {\n");
+    for(i = 0; i< 16; i++) {
+	printf("mat[%d] = %f;\n",i,mat[i]);
+    }
+    printf("}\n");
+
+}
+#endif
+
 struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat) {
     float* newc;
     struct pt* normals; 
     struct pt res ={0,0,0};
     int i;
     
+
     /*transform all points to viewer space */
     newc = (float*)malloc(pr.ntri*9*sizeof(float));
     for(i = 0; i < pr.ntri*3; i++) {

@@ -907,7 +907,7 @@ void render_ray_polyrep(void *node,
 		}
 	}
 }
-
+
 void regen_polyrep(void *node) 
 {
 	struct VRML_Virt *v;
@@ -918,8 +918,6 @@ void regen_polyrep(void *node)
 	p = node;
 	/* printf("Regen polyrep %d '%s'\n",node,v->name); */
 	if(!p->_intern) {
-
-		if (!(p->_intern)) free (p->_intern);
 
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
 
