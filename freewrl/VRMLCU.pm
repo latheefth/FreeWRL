@@ -15,28 +15,31 @@ use VRML::VRMLFunc;
 
 VRML::VRMLFunc::load_data(); # Fill hashes.
 
-sub alloc_struct {
-	my($node) = @_;
-	my $type = $node->{Type}{Name};
-	if(!defined $VRML::CNodes{$type}) {
-		return undef;
-	}
-	my $s = VRML::VRMLFunc::alloc_struct($VRML::CNodes{$type}{Offs}{_end_},
-		$VRML::CNodes{$type}{Virt}
-		);
-	for(keys %{$node->{Fields}}) {
-		# print "DO FIELD $_\n";
-		my $o;
-		if(!defined ($o=$VRML::CNodes{$type}{Offs}{$_})) {
-			die("Field $_ undefined for $type in C");
-		}
-		# print "$node->{Fields}{$_} \n";
-		&{"VRML::VRMLFunc::alloc_offs_$node->{Type}{FieldTypes}{$_}"}(
-			$s, $o
-		);
-	}
-	$node->{CNode} = $s;
-}
+#JAS unused sub alloc_struct {
+#JAS unused 	my($node) = @_;
+#JAS unused 
+#JAS unused 	my $type = $node->{Type}{Name};
+#JAS unused 	print "alloc struct type $type\n";
+#JAS unused 	if(!defined $VRML::CNodes{$type}) {
+#JAS unused 		return undef;
+#JAS unused 	}
+#JAS unused 	my $s = VRML::VRMLFunc::alloc_struct($VRML::CNodes{$type}{Offs}{_end_},
+#JAS unused 		$VRML::CNodes{$type}{Virt}
+#JAS unused 		);
+#JAS unused 	for(keys %{$node->{Fields}}) {
+#JAS unused 		print "DO FIELD $_\n";
+#JAS unused 		my $o;
+#JAS unused 		if(!defined ($o=$VRML::CNodes{$type}{Offs}{$_})) {
+#JAS unused 			die("Field $_ undefined for $type in C");
+#JAS unused 		}
+#JAS unused 		print "$node->{Fields}{$_} \n";
+#JAS unused 		&{"VRML::VRMLFunc::alloc_offs_$node->{Type}{FieldTypes}{$_}"}(
+#JAS unused 			$s, $o
+#JAS unused 		);
+#JAS unused 	}
+#JAS unused 	$node->{CNode} = $s;
+#JAS unused 	print "End alloc_struct\n";
+#JAS unused }
 
 sub alloc_struct_be {
 	my($type) = @_;
@@ -57,6 +60,7 @@ sub alloc_struct_be {
 		);
 	}
 	return $s;
+	print "end of alloc_struct_be\n";
 }
 
 sub free_struct_be {
@@ -77,10 +81,10 @@ sub free_struct_be {
 sub set_field_be {
 	my($node, $type, $field, $value) = @_;
 	my $o;
-	 #JAS print "VRMLCU.pm:set_field_be, node $node, type $type, field $field, value $value\n";
-	#JAS  #if ("ARRAY" eq ref $value) {
-	#JAS 		print "VRMLCU.pm:set_field_be, value of array is @{$value}\n";
-	#JAS 	}
+	#print "VRMLCU.pm:set_field_be, node $node, type $type, field $field, value $value\n";
+	#if ("ARRAY" eq ref $value) {
+	#	print "VRMLCU.pm:set_field_be, value of array is @{$value}\n";
+	#}
 
 	if(!defined ($o=$VRML::CNodes{$type}{Offs}{$field})) {
 		#JAS don't die; sometimes listeners try to change while other changes happen
@@ -114,42 +118,45 @@ sub set_field_be {
 	);
 }
 
-sub set_c_value {
-	my($node, $field) = @_;
-	my $type = $node->{Type}{Name};
-#	print "DO FIELD $field\n";
-	my $o;
-	if(!defined ($o=$VRML::CNodes{$type}{Offs}{$field})) {
-		die("Field $field undefined for $type in C");
-	}
-	# print "$node->{Fields}{$field} \n";
-	if("ARRAY" eq ref $node->{Fields}{$field}) {
-		#print "C: ",(join ',',@{$node->{Fields}{$field}}),"\n";
-	}
-	# print "$node $node->{Type}{Name} $field $node->{Type}{FieldTypes}{$field}\n";
-	my $val = $node->{Fields}{$field};
-	if((ref $val) =~ /Node$/) {
-		if(!defined $val->{CNode}) {
-			print "UNABLE TO RETURN UNCNODED\n";
-			return undef;
-		}
-		$val = $val->{CNode};
-	}
-	&{"VRML::VRMLFunc::set_offs_$node->{Type}{FieldTypes}{$field}"}(
-		$node->{CNode}, $o, 
-		$val
-	);
-}
-
-sub make_struct {
-	my($node) = @_;
-#	print "K: ",(join ',',keys %{$node->{Fields}}),"\n";
-	if(!defined $node->{CNode}) {
-		alloc_struct($node);
-	}
-	for(keys %{$node->{Fields}}) {
-		set_c_value($node,$_);
-	}
-}
+#JAS unused sub set_c_value {
+#JAS unused 	my($node, $field) = @_;
+#JAS unused 	my $type = $node->{Type}{Name};
+#JAS unused 
+#JAS unused 	
+#JAS unused 	print "set_c_value DO FIELD $field\n";
+#JAS unused 	my $o;
+#JAS unused 	if(!defined ($o=$VRML::CNodes{$type}{Offs}{$field})) {
+#JAS unused 		die("Field $field undefined for $type in C");
+#JAS unused 	}
+#JAS unused 	# print "$node->{Fields}{$field} \n";
+#JAS unused 	if("ARRAY" eq ref $node->{Fields}{$field}) {
+#JAS unused 		print "C: ",(join ',',@{$node->{Fields}{$field}}),"\n";
+#JAS unused 	}
+#JAS unused 	print "$node $node->{Type}{Name} $field $node->{Type}{FieldTypes}{$field}\n";
+#JAS unused 	my $val = $node->{Fields}{$field};
+#JAS unused 	if((ref $val) =~ /Node$/) {
+#JAS unused 		if(!defined $val->{CNode}) {
+#JAS unused 			print "UNABLE TO RETURN UNCNODED\n";
+#JAS unused 			return undef;
+#JAS unused 		}
+#JAS unused 		$val = $val->{CNode};
+#JAS unused 	}
+#JAS unused 	&{"VRML::VRMLFunc::set_offs_$node->{Type}{FieldTypes}{$field}"}(
+#JAS unused 		$node->{CNode}, $o, 
+#JAS unused 		$val
+#JAS unused 	);
+#JAS unused 	print "set_c_value DO FIELD $field FINISHED\n";
+#JAS unused }
+#JAS unused 
+#JAS unused sub make_struct {
+#JAS unused 	my($node) = @_;
+#JAS unused 	print "make_struct : ",(join ',',keys %{$node->{Fields}}),"\n";
+#JAS unused 	if(!defined $node->{CNode}) {
+#JAS unused 		alloc_struct($node);
+#JAS unused 	}
+#JAS unused 	for(keys %{$node->{Fields}}) {
+#JAS unused 		set_c_value($node,$_);
+#JAS unused 	}
+#JAS unused }
 
 1;
