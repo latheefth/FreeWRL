@@ -78,8 +78,7 @@ chomp ($pwd = getcwd());
 chomp ($java = `which java`);
 print OUT qq(\$VRML::Browser::CONVERT = "$myconv";\n);
 print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
-print OUT qq(\$VRML::ENV{FREEWRL_FONTS} = "$pwd/fonts";\n);
-print OUT qq(\$VRML::Browser::X3DTOVRMLXSL = "$pwd/x3d/X3dToVrml97.xsl";\n);
+print OUT qq(\$VRML::ENV{FREEWRL_BUILDDIR} = "$pwd";\n);
 print OUT "1;\n";
 close OUT;
 
@@ -174,6 +173,19 @@ install ::
 	@cd java && $(MAKE) install
 });
     }
+
+	push(@postamble,
+q{
+# copy fonts, libjs.org etc over
+
+install	::
+	# cp -r fonts 
+	echo  $(PERL_ARCHLIB);
+	cp -r fonts $(SITEARCHEXP)/VRML
+	cp -r x3d $(SITEARCHEXP)/VRML
+
+
+});
 
     return(join('', @postamble));
 }

@@ -583,20 +583,39 @@ if (!$parent) {
 
 # Save font path, text nodes will require this
 my $ok = 0;
+my $xsltpath = "";
+my $testpath = "";
 
-# put the path to 5.6.1 here, as (as of 0.34 rpm) that is where
-# the RPM files are put.
-
-#push (@INC,'/usr/lib/perl5/5.6.1');
-#foreach (@INC) { print "incline $_\n";}
-
-$ok = VRML::VRMLFunc::save_font_path(($VRML::ENV{FREEWRL_FONTS}||"fonts"));
-
-if ($ok == 0) {
+# fonts
+$testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/fonts";
+if (-e "$testpath/Baubodi.ttf") {
+	VRML::VRMLFunc::save_font_path($testpath);
+} else {
 	foreach (@INC) {
-		$ok = VRML::VRMLFunc::save_font_path("$_/VRML/fonts");
+		$testpath =  "$_/VRML/fonts";
+		if (-e "$testpath/Baubodi.ttf") {
+			VRML::VRMLFunc::save_font_path($testpath);
+			break;
+		}
 	}
 }
+
+$testpath = "";
+
+# now find out where the xslt stuff is.
+$testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/x3d/X3dToVrml97.xsl";
+if (-e $testpath) {
+	$xsltpath = $testpath;
+} else {
+	foreach (@INC) {
+		$testpath = "$_/VRML/x3d/X3dToVrml97.xsl";	
+		if (-e $testpath) {
+			$xsltpath = $testpath;
+			break;
+		}
+	}
+}
+
 
 # open the browser
 
@@ -607,7 +626,8 @@ $b = new VRML::Browser({
 						EyeDist => $eyedist,
 						Parent => $parent,
 						ScreenDist => $screendist,
-						BackEnd => [Geometry => $geometry]
+						BackEnd => [Geometry => $geometry],
+						XSLTpath => $xsltpath,
 					   });
 
 # By default creates front- and back-ends.
