@@ -33,7 +33,6 @@
 #define TO_SCRIPT 2
 #define SCRIPT_TO_SCRIPT 3
 
-
 /* scripting function protos PLACED HERE, not in headers.h,
    because these are shared only between this and JScript.c,
    and other modules dont require JavaScript headers */
@@ -57,16 +56,6 @@ setMultiElementtype(int num);
 
 void
 Multimemcpy(void *tn, void *fn, int len);
-
-/* void */
-/* CRoutes_Register(unsigned int from, */
-/* 				 int fromoffset, */
-/* 				 unsigned int to, */
-/* 				 int tooffset, */
-/* 				 int length, */
-/* 				 void *intptr, */
-/* 				 int scrdir, */
-/* 				 int extra); */
 
 void
 CRoutes_Register(unsigned int from,
@@ -211,19 +200,21 @@ struct CRStruct {
 };
 
 /* Routing table */
-struct CRStruct CRoutes[MAXROUTES];
+struct CRStruct *CRoutes;
 static int CRoutes_Initiated = FALSE;
 int CRoutes_Count;
+int CRoutes_MAX;
 
 /* Structure table */
-struct CRjsStruct JSglobs[MAXSCRIPTS];
-int scr_act[MAXSCRIPTS];	/* this script has been sent an eventIn */
+struct CRjsStruct *JSglobs = 0; 	/* global objects and contexts for each script */
+int *scr_act = 0;			/* this script has been sent an eventIn */
 int scripts_active;		/* a script has been sent an eventIn */
-int max_script_found = -1;	/* the maximum script number found -no need to search MAXSCRIPTS */
+int max_script_found = -1;	/* the maximum script number found */
 
 /* Script name/type table */
-struct CRjsnameStruct JSparamnames[MAXPARAMS];
+struct CRjsnameStruct *JSparamnames = 0;
 int jsnameindex = -1;
+int MAXJSparamNames = 0;
 
 
 int CRVerbose = 0;
@@ -939,12 +930,14 @@ void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int br
 	UNUSED(glob);
 	UNUSED(brow);
 
-	/* too many scripts? */
-	if (num >=MAXSCRIPTS) {
-		printf("WARNING: too many scripts - recompile with larger MAXSCRIPTS\n");
-	} else {
-		if (num > max_script_found) max_script_found = num;
+	int count;
+
+	/* more scripts than we can handle right now? */
+	if (num >= JSMaxScript)  {
+		JSMaxAlloc();
 	}
+
+	if (num > max_script_found) max_script_found = num;
 }
 
 
@@ -1006,10 +999,10 @@ int JSparamIndex (char *name, char *type) {
 	jsnameindex ++;
 
 	/* ok, we got a name and a type */
-	if (jsnameindex >= MAXPARAMS) {
-		printf("WARNING: too many Javascripts - recompile with larger MAXPARAMS\n");
-		jsnameindex = 0;
-		return 0; /* oh well! */
+	if (jsnameindex >= MAXJSparamNames) {
+		/* oooh! not enough room at the table */
+		MAXJSparamNames += 100; /* arbitrary number */
+		JSparamnames = realloc (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
 	}
 
 	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
@@ -1044,6 +1037,13 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 
 	/* first time through, create minimum and maximum for insertion sorts */
 	if (!CRoutes_Initiated) {
+		/* allocate the CRoutes structure */
+		CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
+		CRoutes = malloc (sizeof (*CRoutes) * CRoutes_MAX);
+
+
+
+
 		CRoutes[0].fromnode = 0;
 		CRoutes[0].fnptr = 0;
 		CRoutes[0].tonode_count = 0;
@@ -1059,15 +1059,11 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 		CRoutes_Count = 2;
 		CRoutes_Initiated = TRUE;
 
-
 		/* and mark all scripts inactive */
-		for (count=0; count<MAXSCRIPTS; count++) 
-			scr_act[count]= FALSE;
 		scripts_active = FALSE;
 	}
 
 	if (CRVerbose) 
-/* 		printf ("CRoutes_Register from %#x off %#x to %#x off %#x len %d intptr %#x\n", from, fromoffset, to,tooffset,length, intptr); */
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
 				from, fromoffset, to_count, tonode_str, length, intptr);
 
@@ -1075,7 +1071,6 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 
 	/* go through the routing list, finding where to put it */
 	while (from > CRoutes[insert_here].fromnode) {
-/* 		if (CRVerbose) printf ("comparing %#x to %#x\n",from, CRoutes[insert_here].fromnode); */
 		if (CRVerbose) printf ("comparing %u to %u\n",from, CRoutes[insert_here].fromnode);
 		insert_here++; 
 	}
@@ -1128,8 +1123,14 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 										  to_ptr->node, to_ptr->foffset);
 				}
 
+
+				/* condition statement changed */
+				buffer = strtok(NULL, token);
 				for (to_counter = 1;
-					 to_counter < to_count && (buffer = strtok(NULL, token)) != NULL;
+
+					// JAS - bounds check compile failure (to_counter < to_count) && ((buffer = strtok(NULL, token)) != NULL);
+
+					 ((to_counter < to_count) && (buffer != NULL));
 					 to_counter++) {
 					to_ptr = &(CRoutes[insert_here].tonodes[to_counter]);
 					if (sscanf(buffer, "%u:%u",
@@ -1137,31 +1138,37 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 						if (CRVerbose) printf("\tsscanf returned: %u, %u\n",
 											  to_ptr->node, to_ptr->foffset);
 					}
+					buffer = strtok(NULL, token);
 				}
 			}
 		}
 	}
 
 	/* record that we have one more route, with upper limit checking... */
-	if (CRoutes_Count >= (MAXROUTES-2)) {
-		printf("WARNING: Maximum number of routes exceeded\n");
-	} else {
-		CRoutes_Count ++;
+	if (CRoutes_Count >= (CRoutes_MAX-2)) {
+		//printf("WARNING: expanding routing table\n");
+		CRoutes_MAX += 50; /* arbitrary expansion number */
+		CRoutes = realloc (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 	}
-/* 	if (CRVerbose)  */
-/* 		for (shifter = 1; shifter < (CRoutes_Count-1); shifter ++) { */
-/* 			printf ("Route indx %d is (%#x %#x) to (%#x %#x) len %d\n", */
-/* 			shifter, CRoutes[shifter].fromnode, */
-/* 			CRoutes[shifter].fnptr, CRoutes[shifter].tonode, */
-/* 			CRoutes[shifter].tnptr, CRoutes[shifter].len); */
-/* 		} */
+
+
+	CRoutes_Count ++;
+
+ 	/*if (CRVerbose)  
+ 		for (shifter = 1; shifter < (CRoutes_Count-1); shifter ++) { 
+ 			printf ("Route indx %d is (%#x %#x) to (%#x %#x) len %d\n", 
+ 			shifter, CRoutes[shifter].fromnode, 
+ 			CRoutes[shifter].fnptr, CRoutes[shifter].tonode, 
+ 			CRoutes[shifter].tnptr, CRoutes[shifter].len); 
+ 		} 
+	*/
 }
 
 void
 CRoutes_free()
 {
 	int i;
-	for (i = 0; i < MAXROUTES; i++) {
+	for (i = 0; i < CRoutes_MAX; i++) {
 /* 		if (CRoutes[i].is != NULL) { */
 /* 			free(CRoutes[i].is); */
 		if (CRoutes[i].tonodes != NULL) {
@@ -1235,8 +1242,8 @@ void zero_scripts () {
 	/* mark all scripts inactive */
 	int count;
 
-	for (count = 0; count < MAXSCRIPTS; count ++)
-		scr_act[count] = FALSE;
+	// JAS - now done on realloc for (count = 0; count < MAXSCRIPTS; count ++)
+	// JAS - now done on realloc 	scr_act[count] = FALSE;
 	scripts_active = FALSE;
 }
 

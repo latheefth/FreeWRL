@@ -89,6 +89,9 @@ static JSClass globalClass = {
 
 
 int JSVerbose = 0;
+
+int JSMaxScript = 0;
+
 char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false;";
 
 /* housekeeping routines */
@@ -119,17 +122,41 @@ void cleanupDie(int num, char *msg) {
 	die(msg);
 }
 
+void JSMaxAlloc() {
+	/* perform some reallocs on JavaScript database stuff for interfacing */
+	int count;
+
+	JSMaxScript += 10;
+	JSglobs = realloc (JSglobs, sizeof (*JSglobs) * JSMaxScript);
+	scr_act = realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
+	if ((JSglobs == NULL) || (scr_act == 0)) {
+		printf ("Can not allocate memory for more script indexes\n");
+		exit(1);
+	}
+
+	/* mark these scripts inactive */
+	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
+		scr_act[count]= FALSE;
+	}
+}
+
+
+
 void JSInit(int num, SV *script) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
 
+	int count;
+
 	if (JSVerbose) printf("init:\n");
 
 	/* more scripts than we can handle right now? */
-	if (num >= MAXSCRIPTS) 
-		cleanupDie (num,"Too many scripts; increase MAXSCRIPTS value and recompile\n");
+	if (num >= JSMaxScript)  {
+		JSMaxAlloc();
+	}
+
 
 	runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
 	if (!runtime) die("JS_NewRuntime failed");

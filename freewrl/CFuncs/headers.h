@@ -182,9 +182,8 @@ int verify_rotate(GLfloat *params);
 int verify_translate(GLfloat *params);
 
 /* C routes */
-#define MAXROUTES 1000
-#define MAXSCRIPTS 40
 #define MAXPARAMS 100
+#define MAXSCRIPTS 100
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 
 void mark_event (unsigned int from, unsigned int fromoffset);
@@ -221,7 +220,12 @@ struct CRjsStruct {
 	unsigned int	glob;	/* JSGlobals		*/
 	unsigned int	brow;	/* BrowserIntern	*/
 };
-extern struct CRjsStruct JSglobs[];
+void JSMaxAlloc();
+
+extern struct CRjsStruct *JSglobs; /* Javascript invocation parameters */
+extern int *scr_act;    /* script active array - defined in CRoutes.c */
+extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
+
 
 
 #endif /* __HEADERS_H__ */
