@@ -11,78 +11,372 @@ system "perl VRMLC.pm";
 
 $VERSION = "1.04.4";
 
-
 BEGIN {
-	if ($^V lt v5.6.0) {
-		warn "Warning: module $moduleName was created under Perl v5.6.0 or greater.\n";
+ eval "use 5.004";
+ warn "VRML::Browser requires Perl v5.0.4 or later -- go to http://www.perl.com"
+  if $@;
+}
+
+use Cwd qw(getcwd chdir);
+
+# Remove our config argument
+@ARGV = map {
+	if(/^CONF=(.*)$/) {
+		$vrml_conf_file = $1; ();
+	} else {
+		$_
+	}
+} @ARGV;
+
+if(!defined $vrml_conf_file) {
+	my $defname = "$ENV{HOME}/.vrml.conf";
+	if(-e $defname) {
+		$vrml_conf_file = $defname;
 	}
 }
 
-use ExtUtils::MakeMaker;
-require '../Config.pm';
+require './vrml.conf';
+%VRML_CONFIG_DIST = %VRML_CONFIG;
 
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
-
-WriteMakefile(
-			  NAME => "VRML::CFuncs",
-			  CCFLAGS => $VRML::Config::vrml_config{FREEWRL_CCFLAGS},
-			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
-			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
-			  LIBS => $VRML::Config::vrml_config{FREEWRL_LIBS}
-			 );
-
-sub MY::post_initialize { return qq{\nLIBDIR=\n}; }
-
-sub MY::c_o {
-	my $cxx_rule = qq{\t\$(CCCMD) \$< \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n};
-
-	my $c_o = join(
-				   "\n",
-				   qq{\n%.i : %.c},
-				   qq{\tgcc -E -c \$(PASTHRU_INC) \$(INC)\\},
-				   qq{\t\$(CCFLAGS) \$(OPTIMIZE)\\},
-				   qq{\t\$(PERLTYPE) \$(MPOLLUTE) \$(DEFINE_VERSION)\\},
-				   qq{\t\$(XS_DEFINE_VERSION) \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) \$< > \$@\n},
-				   qq{\n%.s : %.c},
-				   qq{\t\$(CCCMD) -S \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n},
-				   qq{\n%.o : %.c},
-				   $cxx_rule,
-				   qq{%.o : %.C},
-				   $cxx_rule,
-				   qq{%.o : %.cpp},
-				   $cxx_rule,
-				   qq{%.o : %.cxx},
-				   $cxx_rule,
-				   qq{%.o : %.cc},
-				   $cxx_rule
-				  );
-
-	return $c_o;
+if(defined $vrml_conf_file) {
+ if(!-e $vrml_conf_file) {
+	die("Invalid config file '$vrml_conf_file' specified");
+ }
+ print STDERR "\nReading configuration from file '$vrml_conf_file'\n";
+ require $vrml_conf_file;
 }
 
-## Override all this stuff
-## (see perldoc ExtUtils::MakeMaker and ExtUtils::MM_Unix)
+for(keys %VRML_CONFIG) {
+	if(!exists($VRML_CONFIG_DIST{$_})) {
+		die("Invalid key '$_' found in user supplied file '$vrml_conf_file'.
+This key may no longer be in use, or someone may have garbled the 'vrml.conf' 
+file in the distribution. Please correct and try again");
+	}
+}
 
-sub MY::dynamic { "" }
-sub MY::dynamic_bs { "" }
-sub MY::dynamic_lib { "" }
-sub MY::install { "" }
-sub MY::static { "" }
-sub MY::static_lib { "" }
-sub MY::test { "" }
-sub MY::top_targets { "" }
-sub MY::xs_c { "" }
-sub MY::xs_cpp { "" }
-sub MY::xs_o { "" }
+%VRML_CONFIG = (%VRML_CONFIG_DIST, %VRML_CONFIG);
 
-## C_FILES and O_FILES are generated automatically by MakeMaker
 
-sub MY::postamble {
-	my $postamble = join(
-						 "\n",
-						 qq{\nvpath %.c\n},
-						 qq{all :: \${O_FILES}\n}
-						);
-	return $postamble;
+$VRML_CONFIG{VERSION} = $VERSION;
+
+print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.\n";
+
+## Handle platform-specific compile options for the Javascript engine
+## and others specific to FreeWRL.
+
+my $sitearchjsdir = "\$(SITEARCHEXP)/auto/VRML/JS";
+
+my $jsdir = "js/src";
+my $jsobjdir;
+my $BUILD_OPT;
+
+my $warnings_high = qq{-Wunreachable-code -Wshadow -Wcast-align};
+my $warnings_medium = qq{-W -Wpointer-arith -Wconversion -Wbad-function-cast -Wcast-qual -Wfloat-equal};
+my $warnings_low = qq{-Wall -Wundef -Wsign-compare -Wmissing-prototypes -Wmissing-declarations};
+
+my @ccflags;
+my @inc;
+my @libs;
+my @ldflags;
+my @jsinc;
+my @jslibs;
+
+
+if ($VRML_CONFIG{PLATFORM} =~ /irix/i) {
+	$jsobjdir = "$jsdir/IRIX6.5";
+} elsif ($VRML_CONFIG{PLATFORM} =~ /macosx/i) {
+	$jsobjdir = "$jsdir/Darwin6.6";
+} else { ## linux used by default
+	$jsobjdir = "$jsdir/Linux_All";
+}
+
+if ($VRML_CONFIG{DEBUG} eq "on") {
+	$jsobjdir .= "_DBG.OBJ";
+	$BUILD_OPT = 0;
+} else {
+	$jsobjdir .= "_OPT.OBJ";
+	$BUILD_OPT = 1;
+}
+
+if ($VRML_CONFIG{WARNINGS} eq "low") {
+	push @ccflags, $warnings_low;
+}
+
+if ($VRML_CONFIG{WARNINGS} eq "medium") {
+	push @ccflags, $warnings_low, $warnings_medium;
+}
+
+if ($VRML_CONFIG{WARNINGS} eq "high") {
+	push @ccflags, $warnings_low, $warnings_medium, $warnings_high;
+}
+
+if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
+	push @inc, "-fbounds-checking";
+	push @ldflags, "-L$VRML_CONFIG{LIBCHECK_INST}";
+	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}", "-lcheck";
+}
+
+push @inc, $VRML_CONFIG{FREEWRL_INC},
+	"-I../JS/$jsobjdir", "-IJS/$jsobjdir", "-IJS/$jsdir", "-I../JS/$jsdir -ICFuncs";
+push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/", "-ljs";
+push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/";
+
+# Path to SoundServer binary
+push @inc, " -DSOUNDSERVERBINARY=\\\"$VRML_CONFIG{BIN_DIR}/FreeWRL_SoundServer\\\" ";
+
+# Path to installed fw2init.pl
+push @inc, " -DFW2INITPL=\\\"$VRML_CONFIG{BIN_DIR}/fw2init.pl\\\" ";
+
+# push build directory, for running standalone
+my $bdir = getcwd();
+push @inc, " -DBUILDDIR=\\\"$bdir\\\" ";
+
+
+$VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
+$VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
+$VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
+$VRML_CONFIG{LDFLAGS} = join(' ', @ldflags);
+$VRML_CONFIG{LIBJS_INST} = $sitearchjsdir;
+
+print STDERR "Writing Config.pm\n";
+open OUT, ">Config.pm" or die("Couldn't write to Config.pm");
+print OUT "# AUTOMATICALLY GENERATED BY TOP-LEVEL MAKEFILE.PL -- DO NOT EDIT\n\n\n";
+print OUT "package VRML::Config;\n\n";
+
+print OUT "\%vrml_config = (\n";
+
+for (keys %VRML_CONFIG) {
+	print OUT "\t$_\t=>\t";
+	if(defined $VRML_CONFIG{$_}) {
+                print OUT '"',quotemeta($VRML_CONFIG{$_}),'"';
+	} else {
+		print OUT "undef";
+	}
+	print OUT ",\n";
+}
+
+print OUT ");\n\n";
+chomp ($myconv = `which convert`);
+chomp ($myxsltproc = `which xsltproc`);
+chomp ($pwd = getcwd());
+chomp ($java = `which java`);
+print OUT qq(\$VRML::Browser::CONVERT = "$myconv";\n);
+print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
+print OUT qq(\$VRML::ENV{FREEWRL_BUILDDIR} = "$pwd";\n\n);
+print OUT "1;\n";
+close OUT;
+
+print STDERR "Note that 'convert' cannot be found\n" unless $myconv ;
+
+
+
+## make the Javascript libraries if needed
+
+print STDERR "Checking for the Mozilla JavaScript Reference library and application.\n";
+
+if (-e "JS/$jsobjdir/libjs.a" && -e "JS/$jsobjdir/libjs.so" && -e "JS/$jsobjdir/js") {
+    print STDERR "The Javascript library and application were found.\n";
+} else {
+    print STDERR "The Javascript library and application were not found - make them.\n";
+
+    chdir("JS/$jsdir");
+    system("make -f Makefile.ref BUILD_OPT=$BUILD_OPT");
+    chdir($pwd);
+}
+
+
+use ExtUtils::MakeMaker;
+require './Config.pm';
+
+WriteMakefile(
+			  ##OPTIMIZE => "-g",
+			  NAME => "VRML::VRMLFunc",
+			  DISTNAME => "FreeWRL",
+			  dist => {
+					   COMPRESS => 'gzip -9',
+					   SUFFIX => 'gz',
+					  },
+			  dynamic_lib => {
+							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
+							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
+							 },
+			  VERSION => $VERSION,
+			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
+			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
+			  EXE_FILES => ['freewrl'],
+			  MAN1PODS => { freewrl => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
+			  PL_FILES => {'freewrl.PL' => 'freewrl'},
+			  PREREQ_PM => {
+#							'Digest::MD5' =>  "2.09",
+							'File::Basename' =>  "0", # any version will do
+#							'HTML::Parser' => "2.25",
+#							'MIME::Base64' => "2.11",
+#							'URI'          => "1.04",
+#							'LWP'          => "5.47",
+						   },
+			  LIBS => $VRML::Config::vrml_config{FREEWRL_LIBS},
+			  OBJECT => 'VRMLFunc.o',
+);
+
+{
+
+	package MY;
+
+	sub post_constants {
+		my $post_const = join(
+							  "\n",
+							  qq{\nvpath %.c .:./CFuncs},
+							  qq{vpath %.o .:./CFuncs\n},
+							  qq{CFUNCS_SRC:=\$(wildcard ./CFuncs/*.c)},
+							  qq{OBJECT+=\$(CFUNCS_SRC:%c=%o)}
+							 );
+
+		return $post_const;
+	}
+
+	sub const_loadlibs {
+		my $loadlibs = shift->SUPER::const_loadlibs(@_);
+		$loadlibs =~ s/(LD_RUN_PATH\s*=.*)$/$1:$VRML::Config::vrml_config{LIBJS_INST}/m;
+print "Makefile.PL - loadlibs $loadlibs\n";
+		return $loadlibs;
+	}
+
+	sub dynamic_lib {
+		if ($VRML::Config::vrml_config{PLATFORM} =~ /macosx/i) {
+			return "ARMAYBE = :
+OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS}
+INST_DYNAMIC_DEP =
+
+\$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
+	\$\(RM_F\) \$\@
+	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOADLIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
+	\$\(CHMOD\) \$\(PERM_RWX\) \$\@\n";
+		} else {
+			return shift->SUPER::dynamic_lib(@_);
+		}
+	}
+
+
+	sub post_initialize {
+		use Cwd;
+		my($ver, $nc);
+		my $dir = getcwd();
+		my $post_init = "";
+
+
+		$post_init = join(
+			  "\n",
+			  qq{\nFRONTEND=$dir/CFrontEnd},
+			  qq{\nSOUNDENGINE=$dir/SoundEngine},
+			  qq{FRONTEND_DIR=$VRML::Config::vrml_config{BIN_DIR}},
+			  qq{LIB_DIR=$VRML::Config::vrml_config{LIB_DIR}},
+		 );
+
+		return($post_init);
+	}
+
+
+
+	sub postamble {
+		my @postamble;
+		my $VRMLINSTDIR   = "\$(SITEARCHEXP)/VRML";
+		my $FRONTEND      = "\$(dir)/CFrontEnd";
+		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
+		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
+		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
+		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
+		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
+		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
+
+		## Add extra make instructions that don't quite fit into the
+		## ExtUtils::MakeMaker framework.
+
+		push(@postamble, join(
+				"\n",
+				qq{\# --- VRML::VRMLFunc:\n},
+				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExtrusion.pm},
+				qq{\t\$(PERL) VRMLC.pm\n},
+			 ));
+
+		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
+			push(@postamble, join(
+				  "\n",
+				  qq{\# --- Mozilla/Netscape Plugin:\n},
+				  qq{install ::},
+				  qq{\t\@cd Plugin && \$(MAKE) install\n}
+				 ));
+		}
+
+		if ($VRML::Config::vrml_config{JAVA_INST} && $VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
+			push(@postamble, join(
+				  "\n",
+				  qq{\# --- Java Archive\n},
+				  qq{install ::},
+				  qq{\t\@cd java && \$(MAKE) install\n}
+				 ));
+		}
+
+		# Copy fonts over, etc.
+		push(@postamble, join(
+				  "\n",
+				qq{\# copy fonts, x3d, libjs.so over\n},
+				qq{install ::},
+				qq{\tcp -r fonts $VRMLINSTDIR\n},
+				qq{\tcp -r x3d $VRMLINSTDIR\n},
+				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
+				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
+				qq{\t/sbin/ldconfig\n},
+				));
+
+		# make the C Front End.
+
+		#JASmy $def1 = "OSNAME=\$(OSNAME) PPATH=\$(SITEARCHEXP)/VRML BINDIR=\$(FRONTEND_DIR) CC=\$(CC) FWVER=\$(VERSION)";
+		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(SITEARCHEXP)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION)";
+		my $def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
+
+		push (@postamble, join("\n",
+			  qq{\n\# --- FreeWRL C Front End:},
+			  qq{all ::},
+			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def2 $def1 \n},
+			  qq{install ::},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def1 $def2\n},
+			  qq{clean ::},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{realclean ::},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{distclean :: realclean\n}
+			 ));
+
+		# make the sound engine.
+		if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
+		push (@postamble, join("\n",
+			  qq{\n\# --- Sound Engine:},
+			  qq{all ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all  $def1  \n},
+			  qq{install ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def1  \n},
+			  qq{clean ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def1  \n},
+			  qq{realclean ::},
+			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def1  \n},
+			  qq{distclean :: realclean\n}
+			 ));
+		}
+
+
+		push(@postamble, join(
+				  "\n",
+				  qq{clean ::},
+				  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clean\n}
+							 ));
+
+		push(@postamble, join(
+				  "\n",
+				  qq{distclean :: realclean},
+				  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clobber}
+							 ));
+
+		return join("\n", @postamble);
+	}
 }
