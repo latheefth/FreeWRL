@@ -254,7 +254,7 @@ sub removeChild {
 # Image loading.
 #
 
-my $count = 0;
+my %image_same_url = ();
 
 # picture image
 sub init_image {
@@ -295,8 +295,20 @@ sub init_image {
 			die("Cannot open image textures: '$@'");
 		}
 
-		$f->{__istemporary.$name} = 0;
-		$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+		$f->{__istemporary_.$name} = 0;
+
+	        if(exists $image_same_url{$file}) {
+			# we have already seen this image
+			$f->{__texture_.$name} = $image_same_url{$file};
+			$f->{__isloaded_.$name} = 1;
+			return;
+		}
+
+
+		$f->{__texture_.$name} = VRML::OpenGL::glGenTexture();
+
+		# save the texture number for later
+		$image_same_url{$file} = $f->{__texture_.$name};
 
 		if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
 			# Lets convert to a png, and go from there...
@@ -308,7 +320,7 @@ sub init_image {
 			my $lgname = $ENV{LOGNAME};
 			my $tempfile_name = "/tmp/freewrl_";
 			$tempfile = join '', $tempfile_name,$lgname,
-				$f->{__texture.$name},".png";
+				$f->{__texture_.$name},".png";
 
 			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
 			my $status = system ($cmd);
@@ -316,7 +328,7 @@ sub init_image {
 				unless $status == 0;
 
 			# tell bind_texture to remove this one
-			$f->{__istemporary.$name} = 1;
+			$f->{__istemporary_.$name} = 1;
 		}
 
 		$f->{__data.$name} = $tempfile; # store the name for later processing
@@ -328,7 +340,8 @@ sub init_image {
     $f->{__x.$name} = 0;
     $f->{__y.$name} = 0;
     $f->{__data.$name} = "";
-    $f->{__texture.$name} = 0;
+    $f->{__texture_.$name} = 0;
+    $f->{__istemporary_.$name} = 0;
     return;
 }
 
@@ -346,7 +359,7 @@ sub init_pixel_image {
     $f->{__x} = $sfimage->[0];
     $f->{__y} = $sfimage->[1];
     $f->{__data} = $sfimage->[3];
-    $f->{__texture} = VRML::OpenGL::glGenTexture();
+    $f->{__texture_} = VRML::OpenGL::glGenTexture();
     return;
 
  NO_PIXEL_TEXTURE:
@@ -391,14 +404,14 @@ sub init_movie_image {
 ;#JAS			if $VRML::verbose;
 
 		my $init_tex = VRML::OpenGL::glGenTexture();
-		$f->{__texture}[0] = $init_tex;
-		$f->{__texture}[1] =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file);
+		$f->{__texture_}[0] = $init_tex;
+		$f->{__texture_}[1] =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file);
 		$f->{__depth} = $dep;
 		$f->{__x} = $wi;
 		$f->{__y} = $hei;
 		$f->{__data} = ();
-		print "init_movie, first texture is ",$f->{__texture}[0],"\n";
-		print "init_movie, last texture is ",$f->{__texture}[1],"\n";
+		print "init_movie, first texture is ",$f->{__texture_}[0],"\n";
+		print "init_movie, last texture is ",$f->{__texture_}[1],"\n";
 
 		return;
     }							# for $u (@$urls) 
@@ -408,8 +421,8 @@ sub init_movie_image {
     $f->{__x} = 0;
     $f->{__y} = 0;
     $f->{__data} = ();
-    $f->{__texture}[0] = 0;
-    $f->{__texture}[1] = 0;
+    $f->{__texture_}[0] = 0;
+    $f->{__texture_}[1] = 0;
     return;
 }
 
@@ -544,8 +557,9 @@ my $protono;
     repeatS => [SFBool, 1, "field"],		# VRML repeatS field
     repeatT => [SFBool, 1, "field"],		# VRML repeatT field
     __data => [SFString, "", "field"],		# where on the local file system texture resides
-    __texture => [SFInt32,0,"field"],		# OpenGL texture number
-    __istemporary =>[SFInt32,0,"field"],	# if we have to remove this after processing
+    __texture_ => [SFInt32,0,"field"],		# OpenGL texture number
+    __istemporary_ =>[SFInt32,0,"field"],	# if we have to remove this after processing
+    __isloaded_ =>[SFInt32,0,"field"],		# is this one already used...
  },{
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
@@ -566,7 +580,7 @@ PixelTexture => new VRML::NodeType("PixelTexture",
         __x => [SFInt32,0, "field"],
         __y => [SFInt32,0, "field"],
         __data => [SFString, "", "field"],
-        __texture => [SFInt32,0,"field"],
+        __texture_ => [SFInt32,0,"field"],
        },{
        Initialize => sub { 
                my($t,$f,$time,$scene) = @_;
@@ -591,7 +605,7 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
         __x => [SFInt32,0, "field"],
         __y => [SFInt32,0, "field"],
         __data => [MFString, [], "field"],
-        __texture => [MFInt32,[], "field"],
+        __texture_ => [MFInt32,[], "field"],
 	__ctex => [SFInt32, 0, "field"],
 	__tick0 => [SFInt32, 0, "field"],
  },
@@ -600,7 +614,7 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
 	init_movie_image("","url",$t,$f,$scene,1);
-	$f->{__ctex} = $f->{__texture}[0];
+	$f->{__ctex} = $f->{__texture_}[0];
 	$f->{__tick0} = $time;
 	return ();
     },
@@ -658,8 +672,8 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 		}
 		my $frac = 0;
 		my $time;
-		my $lowest = $f->{__texture}[0];
-		my $highest = $f->{__texture}[1];
+		my $lowest = $f->{__texture_}[0];
+		my $highest = $f->{__texture_}[1];
 
 		# sanity check
 
@@ -1797,8 +1811,9 @@ Background => new VRML::NodeType("Background",
 	 (map {(
 		 $_.Url => [MFString, []],
 		 __data_.$_ => [SFString, ""], 		# local or temp file name
-		 __texture.$_ => [SFInt32,0],		# OpenGL texture number
+		 __texture_.$_ => [SFInt32,0],		# OpenGL texture number
 		 __istemporary_.$_ => [SFInt32,0],	# is this a temp file?
+		 __isloaded_.$_ => [SFInt32,0],
 	 )} qw/back front top bottom left right/),
 	},
 	{
