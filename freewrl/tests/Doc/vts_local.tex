@@ -333,28 +333,28 @@ Material & \testCase \MatA & Passed \\\cline{2-3}
  & \MatMb & \\\cline{2-3}
  & \testCase \MatNa & Failed \\
  & \MatNb & \\\cline{2-3}
- & \testCase \MatOa & \\
+ & \testCase \MatOa & Failed \\
  & \MatOb & \\\cline{2-3}
- & \testCase \MatPa & \\
+ & \testCase \MatPa & Passed \\
  & \MatPb & \\\cline{2-3}
- & \testCase \MatQa & \\
+ & \testCase \MatQa & Passed \\
  & \MatQb & \\\cline{2-3}
- & \testCase \MatRa & \\
+ & \testCase \MatRa & Failed \\
  & \MatRb & \\\cline{2-3}
- & \testCase \MatSa & \\
+ & \testCase \MatSa & Failed \\
  & \MatSb & \\\cline{2-3}
- & \testCase \MatTa & \\
+ & \testCase \MatTa & Failed \\
  & \MatTb & \\\cline{2-3}
- & \testCase \MatUa & \\
+ & \testCase \MatUa & Failed \\
  & \MatUb & \\\cline{2-3}
- & \testCase \MatV & \\\cline{2-3}
- & \testCase \MatW & \\\cline{2-3}
- & \testCase \MatX & \\\cline{2-3}
- & \testCase \MatY & \\\cline{2-3}
- & \testCase \MatZ & \\\cline{2-3}
- & \testCase \MatAA & \\\cline{2-3}
- & \testCase \MatAB & \\\cline{2-3}
- & \testCase \MatAC & \\\hline
+ & \testCase \MatV & Passed \\\cline{2-3}
+ & \testCase \MatW & Failed \\\cline{2-3}
+ & \testCase \MatX & Passed \\\cline{2-3}
+ & \testCase \MatY & Passed \\\cline{2-3}
+ & \testCase \MatZ & Failed \\\cline{2-3}
+ & \testCase \MatAA & Passed \\\cline{2-3}
+ & \testCase \MatAB & Failed \\\cline{2-3}
+ & \testCase \MatAC & Failed \\\hline
 \resetTestCase
 MovieTexture & \multicolumn{2}{|c|}{\textbf{MovieTexture not supported.}}\\\hline
 \resetTestCase
@@ -657,7 +657,8 @@ The VRML file is shininess\_complex.wrl.
 \label{sec:pref-colour}
 The VRML file is texture\_first\_primitives.wrl.\newline
 The texture colour does not supersede the blue diffuseColor field defined in the Material
-node for all four primitive types. 
+node for all four primitive types.
+See bug 444973.
 
 \subsubsection{\MatHa \MatHb}
 The VRML file is texture\_first\_complex.wrl.\newline
@@ -706,20 +707,48 @@ both the plug-in and the stand-alone application.
 The VRML file is indexedlineset\_color\_first.wrl.
 
 \subsubsection{\MatQa \MatQb}
-The VRML file is indexedlineset.wrl.
+The VRML file is indexedlineset.wrl.\newline
 
 \subsubsection{\MatRa \MatRb}
+The VRML file is rgb\_texture\_alpha\_first.wrl.\newline
+Improper texture mapping to the extrusion geometry.
+
 \subsubsection{\MatSa \MatSb}
+The VRML file is greyscale\_texture\_alpha\_first.wrl.\newline
+Improper texture mapping to the extrusion geometry.
+
 \subsubsection{\MatTa \MatTb}
+
 \subsubsection{\MatUa \MatUb}
 \subsubsection{\MatV}
+
 \subsubsection{\MatW}
+\label{sec:mat-emissive}
+The VRML file is emissiveColor.wrl.\newline
+The background should be dark grey, but is rendered white.
+
 \subsubsection{\MatX}
 \subsubsection{\MatY}
+
 \subsubsection{\MatZ}
+The VRML file is emissivecolor\_complex.wrl.\newline
+The results are similar to section~\ref{sec:mat-emissive}.
+
 \subsubsection{\MatAA}
+The VRML file is specularcolor\_complex.wrl.\newline
+The background, which should be dark grey not black, is too dark to see
+the black geometries.
+
 \subsubsection{\MatAB}
+\label{sec:mat-transparency}
+The VRML file is transparency.wrl.\newline
+There does not appear to be any appreciable difference between the
+geometries over the range of transparency values.
+See bug 444978.
+
 \subsubsection{\MatAC}
+The VRML file is transparency\_complex.wrl.\newline
+The results are similar to section~\ref{sec:mat-transparency}.
 
 \subsection{MovieTexture Test Cases}
 MovieTexture is not supported. See bug 435228.
@@ -763,7 +792,7 @@ Background & \testCase \BkgA & Failed \\\cline{2-3}
  & \testCase \BkgE & Failed \\\cline{2-3}
  & \testCase \BkgFa & Passed \\
  & \BkgFb & \\\cline{2-3}
- & \testCase \BkgGa & \\
+ & \testCase \BkgGa & Failed \\
  & \BkgGb & \\\cline{2-3}
  & & \\\hline
 \resetTestCase
@@ -779,6 +808,13 @@ Viewpoint & & \\\cline{2-3}
 \end{center}
 
 \subsection{Background Test Cases}
+
+\setcounter{subsubsection}{6}
+%% The next subsubsection should be test case 7:
+\subsubsection{\BkgGa \BkgGb}
+The VRML file is verify-lastground.wrl.\newline
+FreeWRL exits with a segmentation fault. See bug 444966.
+
 \subsection{Fog Test Cases}
 Fog is not supported. See bug 435229.
 
