@@ -361,6 +361,7 @@ void catch_SIGALRM(int sig)
  * eventually put errors/messages on a window
  * */
 
+#ifndef AQUA
 /* stop all of FreeWRL, terrible error! */
 void freewrlDie (const char *format) {
 	printf ("\nFreeWRL: Catastrophic error:\n");
@@ -368,3 +369,4 @@ void freewrlDie (const char *format) {
 	printf ("\n");
 	doQuit();
 }
+#endif
