@@ -878,10 +878,8 @@ OrientationInterpolator => new VRML::NodeType("OrientationInterpolator",
 	},
 	{Initialize => sub {
 		my($t,$f) = @_;
-		# XXX Correct?
 		$t->{Fields}{value_changed} = ($f->{keyValue}[0] or [0,0,1,0]);
 		return ();
-		# return [$t, value_changed, $f->{keyValue}[0]];
 	 },
 	 EventsProcessed => sub {
 		my($t, $f) = @_;
@@ -900,12 +898,44 @@ OrientationInterpolator => new VRML::NodeType("OrientationInterpolator",
 				if($f->{set_fraction} < $k->[$i]) {
 					print "ORIENTX: $i ($#$k) $k->[$i] $k->[$i-1] @{$kv->[$i]} | @{$kv->[$i-1]}\n"
 						if $VRML::verbose::oint;
+
+					# get the rotation fraction, starting and ending rotations
 					my $f = ($f->{set_fraction} - $k->[$i-1]) /
 					     ($k->[$i] - $k->[$i-1]) ;
+					my $sr = [@{$kv->[$i-1]}];
+					my $er = [@{$kv->[$i]}];
+					
+					# are the rotations changed? Jeff Sonsteins blimp
+					# does this...
+					if (($sr->[0]*$er->[0] + $sr->[1]*$er->[1] +
+						$sr->[2]*$er->[2]) < 0) {	
+						$sr->[0] = -$sr->[0];
+						$sr->[1] = -$sr->[1];
+						$sr->[2] = -$sr->[2];
+						$sr->[3] = -$sr->[3];
+					}
+
+
+					# now, the spec, section 6.32 says:
+					# If two consecutive keyValue values exist such that the 
+					# arc length between them is greater than PI, the 
+					# interpolation will take place on the arc complement. 
+
+					if (abs($er->[3] - $sr->[3]) > 3.1415926) {
+						if ($sr->[3] > $er->[3]) {
+							$er->[3] += 6.283;
+						} else {
+							$sr->[3] += 6.283;
+						}
+					}
+
+					# lets let Quaternions calculate rotations; possibly
+					# angle-axis will be different between values; this
+					# will smoothly interpolate here.
 					my $s = VRML::Quaternion->
-						new_vrmlrot(@{$kv->[$i-1]});
+						new_vrmlrot(@{$sr});
 					my $e = VRML::Quaternion->
-						new_vrmlrot(@{$kv->[$i]});
+						new_vrmlrot(@{$er});
 					print "Start: ",$s->as_str,"\n" if $VRML::verbose::oint;
 					print "End: ",$e->as_str,"\n" if $VRML::verbose::oint;
 					my $step = $e->multiply($s->invert);
