@@ -32,6 +32,15 @@ extern struct pt t_r1;
 extern struct pt t_r2;
 extern struct pt t_r3;
 
+/* reset colors to defaults, if we have to */
+GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
+GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
+GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
+GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
+
+GLfloat last_color[] = {0.0,0.0,0.0};
+GLfloat last_normal[] = {0.0,0.0,0.0};
+
 void add_to_face ( int point, int face, int *pointfaces);
 
 /* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
@@ -640,12 +649,86 @@ void Extru_ST_map(
 }
 
 
+
+/* verify and prune colour/normals */
+
+void do_color_normal_reset() {
+	/* set color and normal to an invalid value, so next one is sure to do */
+	last_color[0] = -99.0; 
+	last_normal[0] = -99.0;
+}
+
+void do_glColor3fv(GLfloat *param) {
+	int i,diff;
+
+	/* parameter checks */
+	for (i=0; i<3; i++) { 
+		if ((param[i] < 0.0) || (param[i] >1.0)) {
+			return; /* bounds check error found, break out */
+		}
+	}
+
+	/* last values with new */
+	diff = FALSE;
+	for (i=0; i<3; i++) {
+		if (fabs(last_color[i]-param[i]) > 0.001) {
+			diff = TRUE;
+			break;
+		}
+	}
+
+
+/* 	printf ("last color %f %f %f this %f %f %f\n",last_color[0],
+		last_color[1],last_color[2],param[0],param[1],param[2]); */
+
+	if (diff) {
+		for (i=0;i<3;i++) { last_color[i] = param[i];}
+		glColor3fv(param);
+	}
+}
+
+
+void do_glNormal3fv(GLfloat *param) {
+	int i,diff;
+
+	/* parameter checks */
+	for (i=0; i<3; i++) { 
+		if ((param[i] < -1.0) || (param[i] >1.0)) {
+			return; /* bounds check error found, break out */
+		}
+	}
+
+	/* last values with new */
+	diff = FALSE;
+	for (i=0; i<3; i++) {
+		if (fabs(last_normal[i]-param[i]) > 0.001) {
+			diff = TRUE;
+			break;
+		}
+	}
+
+
+	/* printf ("last normal %f %f %f this %f %f %f\n",last_normal[0],
+		last_normal[1],last_normal[2],param[0],param[1],param[2]); */
+
+	if (diff) {
+		for (i=0;i<3;i++) { last_normal[i] = param[i];}
+		glNormal3fv(param);
+	}
+}
+
+
+
+
+
 /*********************************************************************
  *
  * render_polyrep : render one of the internal polygonal representations
  * for some nodes
  */
  
+
+
 
 
 void render_polyrep(void *node, 
@@ -661,11 +744,6 @@ void render_polyrep(void *node,
 	int i;
 	int hasc;
 
-	/* reset colors to defaults, if we have to */
-	GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
-	GLfloat ambientIntensity[] = {0.2, 0.2, 0.2, 1.0};
-	GLfloat specularColor[] = {0.0, 0.0, 0.0, 1.0};
-	GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
 
 	/* temporary place for X,Y,Z */
 	GLfloat XYZ[] = {0.0, 0.0, 0.0};
@@ -765,7 +843,7 @@ void render_polyrep(void *node,
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
-	if(hasc) {
+	if(hasc) { 
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
@@ -773,6 +851,10 @@ void render_polyrep(void *node,
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 		glEnable(GL_COLOR_MATERIAL);
 	}
+
+
+	/* reset the do normal/color verification and pruning */
+	do_color_normal_reset();
 
 	// clockwise or not?
 	if (r->ccw) { 
@@ -800,7 +882,7 @@ void render_polyrep(void *node,
 		else coli = ind;
 
 		/* get texture coordinates, if any	*/
-		if (BEHAVETODOTEXTURES && r->tcindex) {
+		if (glIsEnabled(GL_TEXTURE_2D) && r->tcindex) {
 			tci = r->tcindex[i]; 
 			if (polyrep_verbose) printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
@@ -816,14 +898,14 @@ void render_polyrep(void *node,
 				fwnorprint (normals[nori].c);
 			}
 
-			glNormal3fv(normals[nori].c);
+			do_glNormal3fv(normals[nori].c);
 		} else if(r->normal) {
 			if (polyrep_verbose) {
 				printf ("r->normal nori %d ",nori);
 				fwnorprint(r->normal+3*nori);
 			}
 			
-			glNormal3fv(r->normal+3*nori);
+			do_glNormal3fv(r->normal+3*nori);
 		}
 
 		if(hasc && prevcolor != coli) {
@@ -834,14 +916,14 @@ void render_polyrep(void *node,
 					fwnorprint(colors[coli].c); 
 					printf ("\n");
 				}
-				glColor3fv(colors[coli].c);
+				do_glColor3fv(colors[coli].c);
 			} else if(r->color) {
 				if (polyrep_verbose) {
 					printf ("coloUr"); 
 					fwnorprint(r->color+3*coli); 
 					printf ("\n"); 
 				}
-				glColor3fv(r->color+3*coli);
+				do_glColor3fv(r->color+3*coli);
 			} 
 		}
 		prevcolor = coli;
@@ -860,7 +942,7 @@ void render_polyrep(void *node,
 
 
 		/* Textures	*/
-		if (BEHAVETODOTEXTURES) {
+		if (glIsEnabled(GL_TEXTURE_2D)) {
 		    if(texcoords && ntexcoords) {
 			// did we run out of tex coords? Hanim-Nancy does this...
 			if (tci < ntexcoords) {

@@ -172,7 +172,6 @@ extern int global_IFS_Coord_count;
 // time
 
 #define HAVETODOTEXTURES glIsEnabled(GL_TEXTURE_2D)
-#define BEHAVETODOTEXTURES  (1 || glIsEnabled(GL_TEXTURE_2D))
 
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
@@ -195,3 +194,8 @@ extern char sys_fp[fp_name_len];
 /* Sound stuff */
 float SoundSourceInit (int sourcenum, int loop, float pitch,
 			float start_time, float stop_time, char *url);
+
+/* Material optimizations */
+void do_shininess (float shininess);
+void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
+
