@@ -4,6 +4,15 @@
 # for conditions of use and redistribution.
 
 # $Log$
+# Revision 1.5  2002/08/06 04:41:36  ayla
+#
+# Merging mozilla development branch to trunk.
+# The plugin for the Mozilla browser (version 1.0) is only partially working.
+#
+# Revision 1.4.4.1  2002/08/02 05:51:29  ayla
+#
+# Latest mozilla files (still incomplete).
+#
 # Revision 1.4  2001/08/18 02:16:56  ayla
 #
 # Committing merge of Plugin files from NetscapeIntegration to trunk.
@@ -42,7 +51,7 @@
 # Communicator functions...
 
 package VRML::PluginGlue;
-$VERSION = '0.10';
+$VERSION = '0.20';
 
 BEGIN {
     if ($^V lt v5.6.0) {
@@ -62,9 +71,17 @@ our @ISA = qw(Exporter DynaLoader);
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 
-our @EXPORT = qw(plugin_connect close_fd);
+our @EXPORT = qw(
+				 globals
+				 connectToPlugin
+				 setIOOptions
+				 requestUrl
+				 closeFileDesc
+				);
 
 bootstrap VRML::PluginGlue $VERSION;
+
+our %globals;
 
 1;
 __END__

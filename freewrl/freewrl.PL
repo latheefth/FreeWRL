@@ -258,15 +258,18 @@ This is overrides any C<-best> options seen on the command line.
 Forces FreeWRL to run in fullscreen mode.  Note that if your graphics drivers
 have an alternate way to enable fullscreen rendering it may be best to use that
 way instead. The fullscreen flag will not enable hardware acceleration if it has
-not already been enabled. 
+not already been enabled.
 
-=item C<-netscape> I<PIDstring> 
+=item C<-plugin> I<PIDstring>
 
-Tells FreeWRL that it is running within Netscape, and thus to get all
-URLs from Netscape, use Netscape for EAI, not to handle the "q" key,
-and to use the PID as the window title for swallowing into netscape.
+Tells FreeWRL that it is running within a web browser, and thus to get all URLs
+from the browser, use the browser for EAI, not to handle the "q" key, pass the
+XID (see X11 header file X.h) of the parent window, and to use the PID as the
+window title.
 
 =item C<-geo[metry]> I<geom>
+
+=item C<-parent> I<xid>
 
 Set the initial window geometry with the usual X window format string.
 
@@ -345,7 +348,7 @@ to avoid filling up disk.
 =item C<-eai> I<host:port>
 
 The browser will try to connect to the socket at I<host:port> to obtain
-an EAI connection. This option is mostly for internal use by 
+an EAI connection. This option is mostly for internal use by
 the EAI libraries.
 
 =item C<-server>
@@ -378,16 +381,16 @@ in the distribution for the codes.
 
 If Netscape is installed, and the entries in vrml.conf are correct, the
 FreeWRL plug-in will be installed in Netscape's system plugins folder.
-If you go to Netscape's Help menu and select the About Plug-ins, 
-there should be an entry for FreeWRL with Mime Type x-world/x-vrml. 
+If you go to Netscape's Help menu and select the About Plug-ins,
+there should be an entry for FreeWRL with Mime Type x-world/x-vrml.
 
 =head1 AUTHOR
 
 Project started by Tuomas J. Lukka, continued by John Stewart.
 
 
-Please send bug reports to C<john.stewart@crc.ca> 
-including the word "freewrl" 
+Please send bug reports to C<john.stewart@crc.ca>
+including the word "freewrl"
 on the subject line will make sure that I'll notice it. Also,
 see the FreeWRL home page at C<http://www.crc.ca/FreeWRL>.
 
@@ -447,33 +450,34 @@ BEGIN {
 		"save=s" => \$VRML::ENV{FREEWRL_SAVE},
 		"log=s" => \$log,
 		"seq"=>\$seq,
-                "seqb=s"=>\$seqname_opt,
-                "seqtmp=s"=>\$seqtmp_opt,
+		"seqb=s"=>\$seqname_opt,
+		"seqtmp=s"=>\$seqtmp_opt,
 		"shutter" => \$shutter,
-                "eyedist=f"=>\$eyedist_opt,
-                "screendist=f"=>\$screendist_opt,
-                "snapb=s"=>\$snapname_opt,
+		"eyedist=f"=>\$eyedist_opt,
+		"screendist=f"=>\$screendist_opt,
+		"snapb=s"=>\$snapname_opt,
 		"ppm"=>\$nogif,
 		"ps"=>\$VRML::DO_PERL,
 		"psout=s"=>\$VRML::script_out_file,
 		"maximg=i"=>\$maximg,
 		"help" => \$usage,
 		"usage" => \$usage,
-                "server"=> \$server,
+		"server"=> \$server,
 		"sig" => \$sig_reload,
-		"netscape=s" => \$VRML::PLUGIN{NETSCAPE},
-		"fd=i" => \$VRML::PLUGIN{socket},
-		"instance=s" => \$VRML::PLUGIN{instance},
+		"plugin=s" => \$VRML::ENV{AS_PLUGIN},
+		"parent=i" => \$parent,
+		"fd=i" => \$VRML::PluginGlue::globals{pluginSock},
+		"instance=s" => \$VRML::PluginGlue::globals{instance},
 	);
 
-        if (defined $snapname_opt) { # Snapshot overrides sequence
-          $snapname = $snapname_opt;
-          $seq = 0;
-        } elsif (defined $seqname_opt) {
-          $seqname = $seqname_opt;
-          $seq = 1;
-        }
-        $seqtmp = $seqtmp_opt if defined $seqtmp_opt ;
+	if (defined $snapname_opt) { # Snapshot overrides sequence
+		$snapname = $snapname_opt;
+		$seq = 0;
+	} elsif (defined $seqname_opt) {
+		$seqname = $seqname_opt;
+		$seq = 1;
+	}
+	$seqtmp = $seqtmp_opt if defined $seqtmp_opt ;
 
 	exec ("perldoc -t $0 | cat") if $usage ;
 
@@ -481,13 +485,13 @@ BEGIN {
 		open STDOUT, ">$log" || die("Can't redirect stdout to $log: $!");
 		open STDERR, ">&STDOUT" || die("Can't redirect stderr to stdout: $!");
 	}
-	eval"use blib;"; 
+	eval"use blib;";
 	## I (Etienne) prefer having verbose output in the source dir (where
 	## I'm likely to be testing) 
-        ## warn "Use blib failed" if $@;
+	## warn "Use blib failed" if $@;
 	#warn "Use blib succeeded" unless $@;
 
-	if ($server){		# Behave as server : print pid and shut up
+	if ($server) {		# Behave as server : print pid and shut up
 	  $| = $sig_reload = 1;
 	  if ($pid = fork ()){
 	    print "$pid\n" ;
@@ -497,13 +501,12 @@ BEGIN {
             }
 	    exit 0;
 	  } else {
-	    if (!$log){
-               close STDOUT;
+	    if (!$log) {
+		   close STDOUT;
 	       close STDERR;
-            }
+		}
 	  }
 	}
-
 }
 
 my @verb = @ARGV[1..$#ARGV];
@@ -511,6 +514,9 @@ my @verb = @ARGV[1..$#ARGV];
 sub verb {return !!grep {$_ eq $_[0] or $_ eq "all"} @verb}
 sub verbn {return !!grep {$_ eq $_[0]} @verb}
 
+sub clean_exit {
+	$be->{QuitPressed} = 1;
+}
 
 # Turn these switches on if you are debugging
 $VRML::verbose = verb all;
@@ -518,12 +524,12 @@ $VRML::verbose::be = verb be;
 $VRML::verbose::wwarn = verb wwarn; # warnings, info messages, etc...
 $VRML::verbose::oint = verb oint; # OrientationIntepr
 $VRML::verbose::events = verb ev;
-$VRML::verbose::script = verb scr ;  
+$VRML::verbose::script = verb scr ;
 $VRML::verbose::glsens = verb glsens;  # GL sensor code
 $VRML::verbose::tief = verb "tie";    # The tied RFields-hash
 $VRML::verbose::timesens = verb "time";
 $VRML::verbose::interp = verb "interp"; # interpolators
-$VRML::verbose::text = verbn "text"; 
+$VRML::verbose::text = verbn "text";
 $VRML::verbose::rend = verb "rend";
 $VRML::verbose::collision = verb "collision";
 $VRML::verbose::nodec = verb "nodec";
@@ -542,43 +548,33 @@ if($VRML::verbose::text) {
 
 require 'VRML/Browser.pm';
 
-if ($fullscreen)
-{
-	;
-}
-else
-{
+if (!$fullscreen) {
 	$fullscreen = 0;
 }
 
-if ($shutter)
-{
+
+if ($shutter) {
         $shutter = 1;
-}
-else
-{
+} else {
         $shutter = 0;
 }
 
 
-if ($eyedist_opt)
-{
+if ($eyedist_opt) {
         $eyedist = $eyedist_opt;
-}
-else
-{
+} else {
         $eyedist = 0.06;
 }
 
-if ($screendist_opt)
-{
+if ($screendist_opt) {
         $screendist = $screendist_opt;
-}
-else
-{
+} else {
         $screendist = 0.8;
 }
 
+if (!$parent) {
+	$parent = 0;
+}
 
 # Save font path, text nodes will require this
 my $ok = 0;
@@ -590,14 +586,38 @@ if ($ok == 0) {
 	}
 }
 
-
 # open the browser
 
-$b = new VRML::Browser({ FullScreen => $fullscreen, Shutter => $shutter,
-                         EyeDist => $eyedist, ScreenDist => $screendist,
-                         BackEnd => [Geometry => $geometry]
-                       });
-                        # By default creates front- and back-ends.
+$b = new VRML::Browser({
+						FullScreen => $fullscreen,
+						Shutter => $shutter,
+						EyeDist => $eyedist,
+						Parent => $parent,
+						ScreenDist => $screendist,
+						BackEnd => [Geometry => $geometry]
+					   });
+
+my $host = "localhost"; ## move to vrml.conf eventually
+
+if ($VRML::ENV{AS_PLUGIN}) {
+	if (($VRML::PluginGlue::globals{freeWRLSock} =
+			VRML::PluginGlue::connectToPlugin($host)) < 0) {
+	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
+	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
+	    exit(1);
+	}
+
+
+	if (VRML::PluginGlue::setIOOptions($VRML::PluginGlue::globals{freeWRLSock},
+											$$, 0, 1) < 0) {
+	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
+	    VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
+	    exit(1);
+	}
+}
+
+
+# By default creates front- and back-ends.
 
 $be = $b->get_backend;
 
@@ -616,13 +636,18 @@ if ($fast) {
 $b->load_file($ARGV[0],$url);
 
 # lets handle a normal term...
-$SIG{TERM} = sub { $be->close_screen(); exit; };
-$SIG{QUIT} = sub { $be->close_screen();  exit;};
+$SIG{TERM} = \&clean_exit;
+$SIG{QUIT} = \&clean_exit;
+$SIG{USR2} = \&clean_exit;
 
-$SIG{USR1} = sub { 
-    $b->load_file($ARGV[0],$url); 
-    &VRML::OpenGL::raise_me_please ();
+$SIG{USR1} = sub {
+    $b->load_file($ARGV[0],$url);
+    &VRML::OpenGL::raise_me_please();
 } if $sig_reload;
+
+## either make better or remove...
+$SIG{BUS} = \&clean_exit;
+$SIG{SEGV} = \&clean_exit;
 
 if($zpl) {VRML::VRMLFunc::set_vpdist($zpl)}
 

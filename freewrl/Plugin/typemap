@@ -3,3 +3,6 @@
 TYPEMAP
 void (*) (int)	T_PTROBJ
 const char *	T_PV
+int	*			T_PTR
+long int		T_LONG
+pid_t			T_INT

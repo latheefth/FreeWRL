@@ -136,13 +136,10 @@ VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExt
     if ($VRML_CONFIG{NETSCAPE_INST}) {
 	push(@postamble,
 q{
-# --- Netscape Plugin:
+# --- Mozilla/Netscape Plugin:
 
-install :: install_plugin
-	@$(NOOP) 
-
-install_plugin ::
-	@cd Plugin && $(MAKE) install_plugin
+install ::
+	@cd Plugin && $(MAKE) install
 });
     }
 

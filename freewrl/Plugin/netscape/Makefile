@@ -33,19 +33,30 @@
 
 ## Change as required for your installation or override either on the
 ## command line or through the Perl module Makefile.PL scripts.
-INSTALLNP:=/usr/lib/netscape/plugins
+ifndef ${NETSCAPE_INST}
+
+NETSCAPE_INST:=/usr/lib/netscape
+
+endif
+
+PLUGIN_DIR:= ${NETSCAPE_INST}/plugins
+LIB_DIR:=./_lib
+OBJ_DIR:=./_obj
 LIBS:=
 
-#JAS CC=gcc
+CC:=gcc
 OPTIMIZER:=-O2
 PLUGIN_DEFINES:=-DXP_UNIX
+PLUGIN_GLUE:=..
+## linux, irix, ...
+OSNAME:=linux
 
 ## Override on the command line:
 ##
 ## e.g. $ make DEBUG=1
 ##
 ## Can also override through the Perl module Makefile.PL scripts.
-DEBUG:=0
+DEBUG:=1
 ifeq (${DEBUG},1)
     PLUGIN_DEFINES+=-D_DEBUG
 ##PLUGIN_DEFINES+=-DPLUGIN_TRACE 
@@ -54,37 +65,48 @@ endif
 INC:=\
     -I/usr/include\
     -I.\
-    -I./include
+    -Iinclude\
+    -I${PLUGIN_GLUE}/CFuncs
 
 CFLAGS=${OPTIMIZER} ${PLUGIN_DEFINES} ${INC}
+
+ifeq ($(strip ${OSNAME}),linux)
+
+CFLAGS+=-fPIC
+
+endif
 
 SRC:=\
     npfreewrl.c\
     npunix.c
 
-OBJ:=\
-    npfreewrl.o\
-    npunix.o
+OBJ:=${SRC:%c=${OBJ_DIR}/%o}
 
 vpath %.c ./source ./source/common
 
 SHAREDTARGET=npfreewrl.so
 
-all :: ${SHAREDTARGET}
+all :: ${LIB_DIR}/${SHAREDTARGET}
 
 .PHONY: all clean realclean
 
-install :: ${SHAREDTARGET}
-	@cp -f ${SHAREDTARGET} ${INSTALLNP}
+lib_dir ::
+	mkdir -p ${LIB_DIR}
 
-${SHAREDTARGET}: ${OBJ}
-	${CC} -shared ${LIBS} ${OBJ} ${LDFLAGS} -o ${SHAREDTARGET}
+obj_dir ::
+	mkdir -p ${OBJ_DIR}
 
-%.o: %.c
+install :: ${LIB_DIR}/${SHAREDTARGET}
+	cp -f ${LIB_DIR}/${SHAREDTARGET} ${PLUGIN_DIR}
+
+${LIB_DIR}/${SHAREDTARGET}: lib_dir obj_dir ${OBJ}
+	${CC} -shared ${LIBS} ${OBJ} ${LDFLAGS} -o ${LIB_DIR}/${SHAREDTARGET}
+
+${OBJ_DIR}/%.o: %.c
 	${CC} ${CFLAGS} -c $< -o $@
 
 clean ::
-	${RM} ${OBJ} ${SHAREDTARGET}
+	${RM} ${OBJ} ${LIB_DIR}/${SHAREDTARGET}
 
 realclean :: clean
-	${RM} ${INSTALLNP}/${SHAREDTARGET}
+	${RM} -Rf ${OBJ_DIR} ${LIB_DIR} ${PLUGIN_DIR}/${SHAREDTARGET}

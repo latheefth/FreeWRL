@@ -156,7 +156,6 @@ OpenGL/OpenGL.m
 OpenGL/OpenGL.pm
 OpenGL/OpenGL.vf
 OpenGL/OpenGL.xs
-OpenGL/X.h
 OpenGL/typemap
 Parser.pm
 Quaternion.pm

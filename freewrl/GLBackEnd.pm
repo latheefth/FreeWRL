@@ -78,81 +78,99 @@ sub snapshot {
 #
 # Private functions, used by other browser modules below
 
-if(0) {
-VRML::VRMLFunc::render_verbose(1);
-$VRML::verbose = 1;
+if (0) {
+	VRML::VRMLFunc::render_verbose(1);
+	$VRML::verbose = 1;
 }
 
 sub new {
-	my($type,$fullscreen,$shutter,$eyedist,$screendist,%pars) = @_;
+	my(
+	   $type,
+	   $fullscreen,
+	   $shutter,
+	   $eyedist,
+	   $parent,
+	   $screendist,
+	   %pars
+	  ) = @_;
 	my $this = bless {}, $type;
 
-	my($w,$h) = (300,300);
-        my $x = 0; 
-        my $y = 0; 
-	my $mytitle = "FreeWRL";
-        my $pi = atan2(1,1) * 4;
+	my($w,$h) = (300, 300);
+	my $x = 0;
+	my $y = 0;
+	my $wintitle;
+	my $pi = atan2(1,1) * 4;
 
-	if(my $g = $pars{Geometry}) 
-	  {
+	if (my $g = $pars{Geometry}) {
 	    $g =~ /^(\d+)x(\d+)(?:([+-]\d+)([+-]\d+))?$/ 
-	      or die("Invalid geometry string '$g' given to GLBackend");
-	    ($w,$h,$x,$y) = ($1,$2,$3,$4);
+			or die("Invalid geometry string '$g' given to GLBackend");
+	    ($w, $h, $x, $y) = ($1, $2, $3, $4);
 	    # print "GEOMETRY: $w $h $x $y\n";
-	  }
-
-	$this->{W} = $w; $this->{H} = $h;
-        if ($shutter) 
-          {
-          @{$this->{bufferarray}} = (&GL_BACK_LEFT, &GL_BACK_RIGHT);
-          }
-        else
-          {
-          @{$this->{bufferarray}} = (&GL_BACK);
-          }
-
-        my @db = &GLX_DOUBLEBUFFER;
-
-        if($VRML::offline) {$x = -1; @db=()}
-       
-	# Window title. If the netscape option is on the command
-	# line, use it's parameter for the window name
-	if ($VRML::PLUGIN{NETSCAPE}) {
-		$mytitle = $VRML::PLUGIN{NETSCAPE};
 	}
 
- 
-        print "STARTING OPENGL\n" if $VRML::verbose;
-        glpOpenWindow(attributes=>[],
-#                      attributes=>[&GLX_RGBA, @db,
-#				   &GLX_RED_SIZE,1,
-#				   &GLX_GREEN_SIZE,1,
-#				   &GLX_BLUE_SIZE,1,
-#				   &GLX_DEPTH_SIZE,1,
-## Alpha size?
-#				   ],
-		      mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
-			       ButtonMotionMask | ButtonReleaseMask |
-			       ExposureMask | StructureNotifyMask |
-			       PointerMotionMask),
-		      width => $w,height => $h, shutter=>$shutter,fs => $fullscreen,
-		      "x" => $x,
-		      "y" => $y,
-		      wintitle => $mytitle);
+	$this->{W} = $w;
+	$this->{H} = $h;
+	if ($shutter) {
+		@{$this->{bufferarray}} = (&GL_BACK_LEFT, &GL_BACK_RIGHT);
+	} else {
+		@{$this->{bufferarray}} = (&GL_BACK);
+	}
 
-        glClearColor(0,0,0,1);
-        glShadeModel (&GL_SMOOTH);
+	my @db = &GLX_DOUBLEBUFFER;
+
+	if ($VRML::offline) {
+		$x = -1; @db=();
+	}
+
+	# Window title. If the netscape option is on the command
+	# line, use it's parameter for the window name
+	if ($VRML::ENV{AS_PLUGIN}) {
+		$wintitle = $VRML::ENV{AS_PLUGIN};
+	} else {
+		$wintitle = "FreeWRL";
+	}
+
+	print "Starting OpenGL\n" if $VRML::verbose;
+	glpOpenWindow(
+#attributes=>[&GLX_RGBA, @db,
+#&GLX_RED_SIZE,1,
+#&GLX_GREEN_SIZE,1,
+#&GLX_BLUE_SIZE,1,
+#&GLX_DEPTH_SIZE,1,
+## Alpha size?
+#],
+#mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
+#ButtonMotionMask | ButtonReleaseMask |
+#ExposureMask | StructureNotifyMask |
+#PointerMotionMask),
+				  attributes=>[],
+				  mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
+						   ButtonMotionMask | ButtonReleaseMask |
+						   ExposureMask | StructureNotifyMask |
+						   PointerMotionMask),
+				  "x" => $x,
+				  "y" => $y,
+				  width => $w,
+				  height => $h,
+				  shutter=>$shutter,
+				  parent=>$parent,
+				  fs => $fullscreen,
+				  wintitle => $wintitle,
+				 );
+
+	glClearColor(0,0,0,1);
+	glShadeModel (&GL_SMOOTH);
 	glDepthFunc(&GL_LEQUAL);
-        glEnable(&GL_DEPTH_TEST);
+	glEnable(&GL_DEPTH_TEST);
 	glEnable(&GL_BLEND);
 	glBlendFunc(&GL_SRC_ALPHA,&GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(&GL_NORMALIZE);
-        glEnable(&GL_LIGHTING);
-        glEnable(&GL_LIGHT0);
+	glEnable(&GL_NORMALIZE);
+	glEnable(&GL_LIGHTING);
+	glEnable(&GL_LIGHT0);
 	glEnable(&GL_CULL_FACE);
-        glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
-        glLightModeli(&GL_LIGHT_MODEL_LOCAL_VIEWER, &GL_FALSE);
-        glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
+	glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
+	glLightModeli(&GL_LIGHT_MODEL_LOCAL_VIEWER, &GL_FALSE);
+	glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
 
 	glEnable(&GL_POLYGON_OFFSET_EXT);
 	glPolygonOffsetEXT(0.0000000001,0.00002);
@@ -161,41 +179,39 @@ sub new {
 	glPixelStorei(&GL_PACK_ALIGNMENT,1);
 
 	glMaterialf(&GL_FRONT_AND_BACK, &GL_SHININESS,
-		0.2 * 128);
+				0.2 * 128);
 
-        # $this->reshape();
+	# $this->reshape();
 
-# Try to interface with Tk event loop?
-        if(defined &Tk::DoOneEvent) 
-	  {
+	# Try to interface with Tk event loop?
+	if (defined &Tk::DoOneEvent) {
 	    my $gld = VRML::OpenGL::glpXConnectionNumber();
 	    # Create new mainwindow just for us.
 	    my $mw = MainWindow->new();
 	    $mw->iconify();
 	    my $fh = new FileHandle("<&=$gld\n") 
-	      or die("Couldn't reopen GL filehandle");
+			or die("Couldn't reopen GL filehandle");
 	    $mw->fileevent($fh,'readable',
-			   sub {
-			     # print "GLEV\n"; 
-			     $this->twiddle(1)
-			     });
+					   sub {
+						   # print "GLEV\n"; 
+						   $this->twiddle(1)
+					   });
 	    $this->{FileHandle} = $fh;
 	    $this->{MW} = $mw;
-	  }
+	}
 
 	$this->{Interactive} = 1;
-        print "STARTED OPENGL\n" if $VRML::verbose;
+	print "STARTED OPENGL\n" if $VRML::verbose;
 
-        if($VRML::offline) 
-	  {
-            $this->doconfig($w,$h);
-          }
+	if ($VRML::offline) {
+		$this->doconfig($w,$h);
+	}
 	$this->{Viewer} = VRML::Viewer::Examine->new;
 
-        $this->{Viewer}->{eyehalf}=$eyedist/2.0;
-        $this->{Viewer}->{eyehalfangle}=atan2($eyedist/2.0,$screendist)*
-                                        360.0/(2.0*$pi);
-                                 
+	$this->{Viewer}->{eyehalf}=$eyedist/2.0;
+	$this->{Viewer}->{eyehalfangle}=atan2($eyedist/2.0,$screendist)*
+		360.0/(2.0*$pi);
+
 	return $this;
 }
 
@@ -213,26 +229,24 @@ sub quitpressed {
 	return delete $_[0]{QuitPressed};
 }
 
-#handles os/app events. (i think.. -ncoder)
+# process xevents in browser's event loop
 sub handle_events {
-	my($this,$time) = @_;
+	my($this, $time) = @_;
 	
-	while(XPending()) 
-	  {
+	while (XPending()) {
 	    # print "UPDS: Xpend:",XPending(),"\n";
 	    my @e = &glpXNextEvent();
 	    # print "EVENT $e[0] $e[1] $e[2] !!!\n";
-	    if($e[0] == &ConfigureNotify) 
-	      {
-		$this->{W} = $e[1];
-		$this->{H} = $e[2];
-	      } 
-	    $this->event($time,@e);
-	  }
+	    if ($e[0] == &ConfigureNotify) {
+			$this->{W} = $e[1];
+			$this->{H} = $e[2];
+		}
+	    $this->event($time, @e);
+	}
 
 	$this->finish_event();
 
-#	$this->{Viewer}->handle_tick($time);
+	#	$this->{Viewer}->handle_tick($time);
 	
 }
 
@@ -297,24 +311,23 @@ sub set_viewer {
 		# print "this is not a known viewer $viewer\n"; 
 		$viewer = "Examine";
 	}
- 
+
 	# print "Setting viewing mode '$viewer'\n";
 	$this->{Viewer} = "VRML::Viewer::$viewer"->new($this->{Viewer});
 }
 
 
-#event: Handles external sensory events. (keys, mouse, etc). 
+#event: Handles external sensory events (keys, mouse, etc)
 sub event {
   my $w;
-  my($this,$time,$type,@args) = @_;
+  my($this, $time, $type, @args) = @_;
   my $code;
   my $but;
-  
+
   # JAS - uncomment this to see all events, even mouse movenemts
   # print "EVENT $this $type $args[0] $args[1] $args[2]\n";
 
-  if($type == &MotionNotify) 
-    {
+  if($type == &MotionNotify) {
 
 	my $but;
 	# print "MOT!\n";
@@ -342,8 +355,9 @@ sub event {
 	  $but = 3;
 	}
       $this->{MX} = $args[1]; $this->{MY} = $args[2];
-      my $x = $args[1]/$this->{W}; my $y = $args[2]/$this->{H};
-      if($but == 1 or $but == 3) 
+      my $x = $args[1]/$this->{W};
+	  my $y = $args[2]/$this->{H};
+      if($but == 1 or $but == 3)
 	{
 	  # print "BPRESS $but $x $y\n";
 
@@ -388,8 +402,7 @@ sub event {
 	} elsif((lc $args[0]) eq "f") {
 	  $this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
 	} elsif((lc $args[0]) eq "h") {
-	  if($this->{Viewer}{Navi}{RFields}{headlight}) 
-	    {
+	  if($this->{Viewer}{Navi}{RFields}{headlight}) {
 	      #print "headlight going off...\n";
 	      $this->{Viewer}{Navi}{RFields}{headlight}=0;
 	    } else {
@@ -416,13 +429,12 @@ sub event {
 
 	  # Sequence / Single Image saving ###########
 	} elsif((lc $args[0]) eq "s") {
-	  
+
 	  # Sequence saving ##########################
-	  if ($main::seq) 
-	    {
+	  if ($main::seq) {
 	      $main::saving = ! $main::saving ;
 	      print "Saving ",$main::saving ? "on" : "off","\n" ;
-	      
+
 	      # At end of sequence, convert raw
 	      # images to a gif or ppm's 
 	      if (! $main::saving) {
@@ -438,10 +450,10 @@ sub event {
 	    }
 	} elsif((lc $args[0]) eq "q") {
 	  # if in netscape, don't do the quitpressed!
-	  if (!($VRML::PLUGIN{NETSCAPE})) {
+	  if (!$VRML::ENV{AS_PLUGIN}) {
 	    $this->{QuitPressed} = 1;
           }
-	  
+
 	} elsif((lc $args[0]) eq "v") {
 	  # print "NEXT VP\n";
 	  if($this->{VPSub}) {
@@ -478,13 +490,15 @@ sub event {
 	  $this->{Viewer}->handle_keyrelease($time,$args[0]);
 	}
     }
+
 }
 	
 sub finish_event {
 	my($this) = @_;
 	
 	return if $this->{EDone};
-	my $x = $this->{MX} / $this->{W}; my $y = $this->{MY} / $this->{H};
+	my $x = $this->{MX} / $this->{W};
+	my $y = $this->{MY} / $this->{H};
 	my $but = $this->{BUT};
 	if(($but == 1 or $but == 3) and $cursortype==0) {
 	    $this->{Viewer}->handle("DRAG", $but, $x, $y);
@@ -590,7 +604,7 @@ sub setup_viewpoint {
 	my($this,$node) = @_;
 	my $viewpoint = 0;
 
-       
+
 	glMatrixMode(&GL_MODELVIEW); # this should be assumed , here for safety.
 
         glLoadIdentity(); 
@@ -650,7 +664,7 @@ sub render_collisions {
     $node = $node->{CNode};
 
     VRML::VRMLFunc::set_collisionoffset(0,0,0);
-    
+
     VRML::VRMLFunc::render_hier($node,  # Node
 				&VF_Collision, 
 				0); # what view point
@@ -661,8 +675,6 @@ sub render_collisions {
 
     my $nv = $this->{Viewer}->{Quat}->invert->rotate([$x,$y,$z]);
     for(0..2) {$this->{Viewer}->{Pos}[$_] += $nv->[$_]}
-
-    
 }
 
 # Given root node of scene, render it all
@@ -681,7 +693,7 @@ sub render {
     VRML::OpenGL::dec_render_frame();
 
     print "Render: root $node\n" if ($VRML::verbose::be);
-
+	
     foreach $i (@{$this->{bufferarray}}) {
 	$this->{Viewer}->{buffer}=$i;
 	glDrawBuffer($this->{Viewer}->{buffer});

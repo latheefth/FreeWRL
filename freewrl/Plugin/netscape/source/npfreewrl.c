@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <ctype.h>
@@ -25,14 +26,16 @@
 #include <unistd.h>
 
 #include "npapi.h"
-#include "nputils.h"
+#include "pluginUtils.h"
+
+
+#define FWRL 0
+#define NP   1
+
 
 #define NPDEBUG
 #define REPARENT_LOOPS 50
 #define GIVEUP 4000
-
-#define FWRL 0
-#define NP   1
 
 #ifndef _DEBUG
 #    define _DEBUG 0
@@ -102,70 +105,70 @@ static void printXError(const char *, unsigned int);
 
 Sigfunc signal(int, Sigfunc func);
 
-void resizeCB (Widget w, PluginInstance * data, XEvent * event, Boolean * cont) {
-  Arg args[2];
-  Widget temp;
+void resizeCB(Widget w, PluginInstance * data, XEvent * event, Boolean * cont) {
+	Arg args[2];
+	Widget temp;
 #if _DEBUG
-  unsigned int err;
+	unsigned int err;
 #endif
 
     printXEvent(event);
 
-    /* This will be "netscapeEmbed", go to "drawingArea" */
+	 /* This will be "netscapeEmbed", go to "drawingArea" */
     temp = data->netscapeWidget;
     while(strcmp(XtName(temp),"drawingArea")) {
-	temp = XtParent(temp);
+		temp = XtParent(temp);
     }
 
-  if (data->fullsize == FALSE) {
+	if (data->fullsize == FALSE) {
 #if _DEBUG
-    fprintf(log, "Function resizeCB with data->fullsize == FALSE:\n");
-    err = XReparentWindow(data->display, data->victim, XtWindow (data->resizeWatch), 0, 0);
-    printXError("XReparentWindow", err);
+		fprintf(log, "Function resizeCB with data->fullsize == FALSE:\n");
+		err = XReparentWindow(data->display, data->victim, XtWindow (data->resizeWatch), 0, 0);
+		printXError("XReparentWindow", err);
 #else
-    fprintf(stderr,"resizeCB, !!! fullsize is FALSE\n");
-    XReparentWindow(data->display, data->victim, XtWindow (data->resizeWatch), 0, 0);
+		fprintf(stderr,"resizeCB, !!! fullsize is FALSE\n");
+		XReparentWindow(data->display, data->victim, XtWindow (data->resizeWatch), 0, 0);
 #endif
-    XSync(data->display, FALSE);
-  } else {
+		XSync(data->display, FALSE);
+	} else {
 #if _DEBUG
-    fprintf(log, "Function resizeCB with data->fullsize == TRUE:\n");
+		fprintf(log, "Function resizeCB with data->fullsize == TRUE:\n");
 #endif
 
 #if _DEBUG
-    fprintf(log, "\tCalling XtSetArg for width, and again for height.\n");
+		fprintf(log, "\tCalling XtSetArg for width, and again for height.\n");
 #endif
-    XtSetArg (args[0], XtNwidth, (XtArgVal) &(data->width));
-    XtSetArg (args[1], XtNheight, (XtArgVal) &(data->height));
+		XtSetArg (args[0], XtNwidth, (XtArgVal) &(data->width));
+		XtSetArg (args[1], XtNheight, (XtArgVal) &(data->height));
 #if _DEBUG
-    fprintf(log, "\tCalling XtGetValues.\n");
+		fprintf(log, "\tCalling XtGetValues.\n");
 #endif
-    XtGetValues(temp, args, 2);
+		XtGetValues(temp, args, 2);
 #if _DEBUG
-    fprintf(log, "\tCalling XResizeWindow with data->window, w=%lu, h=%lu.\n",
-						    data->width, data->height);
-    err = XResizeWindow (data->display, data->window, data->width, data->height);
-    printXError("XResizeWindow", err);
+		fprintf(log, "\tCalling XResizeWindow with data->window, w=%lu, h=%lu.\n",
+				data->width, data->height);
+		err = XResizeWindow (data->display, data->window, data->width, data->height);
+		printXError("XResizeWindow", err);
 
-    fprintf(log, "\tCalling XResizeWindow with data->victim w=%lu, h=%lu.\n",
-						    data->width, data->height);
-    err = XResizeWindow (data->display, data->victim, data->width, data->height);
-    printXError("XResizeWindow", err);
+		fprintf(log, "\tCalling XResizeWindow with data->victim w=%lu, h=%lu.\n",
+				data->width, data->height);
+		err = XResizeWindow (data->display, data->victim, data->width, data->height);
+		printXError("XResizeWindow", err);
 #else
-    XResizeWindow (data->display, data->window, data->width, data->height);
-    XResizeWindow (data->display, data->victim, data->width, data->height);
+		XResizeWindow (data->display, data->window, data->width, data->height);
+		XResizeWindow (data->display, data->victim, data->width, data->height);
 #endif
-  }
+	}
 }
 
 void do_swallow (PluginInstance * This) {
-  /*add a timer*/
+	 /*add a timer*/
 #if _DEBUG
     fprintf(log, "Function do_swallow:\n\tCalling XtAppAddTimeOut.\n");
 #endif
-  This->swallowTimer = XtAppAddTimeOut(XtDisplayToApplicationContext
-	(This->display), 333, (XtTimerCallbackProc) swallow_check, 
-	(XtPointer)This);
+	This->swallowTimer = XtAppAddTimeOut(XtDisplayToApplicationContext
+										 (This->display), 333, (XtTimerCallbackProc) swallow_check, 
+										 (XtPointer)This);
 }
 
 
@@ -198,254 +201,254 @@ void swallow_check (PluginInstance * This)
     if ((This->count < GIVEUP) && (abortFlag == 0)) {
         This->count++;
 
-	if (children != (Window *) NULL) {
+		if (children != (Window *) NULL) {
 #if _DEBUG
-	    err = XFree(children);
-	    printXError("XFree(children)", err);
+			err = XFree(children);
+			printXError("XFree(children)", err);
 #else
-	    XFree (children);
+			XFree (children);
 #endif
-	}
+		}
     
-        /* find the number of children on the root window */
+		 /* find the number of children on the root window */
         if (0 != XQueryTree (This->display, RootWindowOfScreen (XtScreen 
-    		(This->netscapeWidget)), &root,
-                    &parent, &children, &number_of_kids)) 
+																(This->netscapeWidget)), &root,
+							 &parent, &children, &number_of_kids)) 
     
-        /* go through the children, and see if one matches our FreeWRL win */
-        for (i = 0; i < number_of_kids; i++) {
-          if (0 != XFetchName (This->display, children[i], &windowname)) {
-            if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
-              /* Found it!!! */
+			 /* go through the children, and see if one matches our FreeWRL win */
+			for (i = 0; i < number_of_kids; i++) {
+				if (0 != XFetchName (This->display, children[i], &windowname)) {
+					if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
+						 /* Found it!!! */
 #if _DEBUG
-		fprintf(log,
-		   "\tFound FreeWRL among the children of the root window.\n");
+						fprintf(log,
+								"\tFound FreeWRL among the children of the root window.\n");
 #endif
-              FoundIt = TRUE;
-              This->victim = children[i];
-            }
+						FoundIt = TRUE;
+						This->victim = children[i];
+					}
 #if _DEBUG
-            err = XFree(windowname);
-	    printXError("XFree(windowname)", err);
+					err = XFree(windowname);
+					printXError("XFree(windowname)", err);
 #else
-            XFree(windowname);
+					XFree(windowname);
 #endif
-          }
+				}
     
-          /* nope, go through the sub-children */
-          if (FoundIt == FALSE) {
-            if (subchildren != (Window *) NULL) {
+				 /* nope, go through the sub-children */
+				if (FoundIt == FALSE) {
+					if (subchildren != (Window *) NULL) {
 #if _DEBUG
-              err = XFree(subchildren);
-	      printXError("XFree(subchildren)", err);
+						err = XFree(subchildren);
+						printXError("XFree(subchildren)", err);
 #else
-              XFree(subchildren);
+						XFree(subchildren);
 #endif
-	    }
+					}
 
-            if (0 != XQueryTree (This->display, children[i], &root, &parent, 
-    		&subchildren, &number_of_subkids))
-              for (k = 0; k < number_of_subkids; k++) {
-                if (0 != XFetchName (This->display, subchildren[k], &windowname)) {
-                  if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
+					if (0 != XQueryTree (This->display, children[i], &root, &parent, 
+										 &subchildren, &number_of_subkids))
+						for (k = 0; k < number_of_subkids; k++) {
+							if (0 != XFetchName (This->display, subchildren[k], &windowname)) {
+								if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
 #if _DEBUG
-		    fprintf(log,
-		       "\tFound FreeWRL among the subchildren of the root window.\n");
+									fprintf(log,
+											"\tFound FreeWRL among the subchildren of the root window.\n");
 #endif
-                    FoundIt = TRUE;
-                    This->victim = subchildren[k];
-                  }
+									FoundIt = TRUE;
+									This->victim = subchildren[k];
+								}
 #if _DEBUG
-		    err = XFree(windowname);
-		    printXError("XFree(windowname)", err);
+								err = XFree(windowname);
+								printXError("XFree(windowname)", err);
 #else
-                  XFree (windowname);
+								XFree (windowname);
 #endif
-                }
-                if (FoundIt == FALSE) {
-                  if (subsubchildren != (Window *) NULL) {
+							}
+							if (FoundIt == FALSE) {
+								if (subsubchildren != (Window *) NULL) {
 #if _DEBUG
-		  err = XFree(subchildren);
-		  printXError("XFree(subchildren)", err);
+									err = XFree(subchildren);
+									printXError("XFree(subchildren)", err);
 #else
-                    XFree (subsubchildren);
+									XFree (subsubchildren);
 #endif
-		  }
-                  if (0 != XQueryTree (This->display, subchildren[k], &root,
-                              &parent, &subsubchildren, &number_of_subsubkids))
-                  for (l = 0; l < number_of_subsubkids; l++) {
-                    if (0 != XFetchName (This->display, subsubchildren[l], &windowname)) {
-                      if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
+								}
+								if (0 != XQueryTree (This->display, subchildren[k], &root,
+													 &parent, &subsubchildren, &number_of_subsubkids))
+									for (l = 0; l < number_of_subsubkids; l++) {
+										if (0 != XFetchName (This->display, subsubchildren[l], &windowname)) {
+											if (!strncmp (windowname, FreeWRLName, strlen (FreeWRLName))) {
 #if _DEBUG
-			fprintf(log,
-			  "\tFound FreeWRL among the subsubchildren of the root window.\n");
+												fprintf(log,
+														"\tFound FreeWRL among the subsubchildren of the root window.\n");
 #endif
-                        FoundIt = TRUE;
-                        This->victim = subsubchildren[l];
-                      }
+												FoundIt = TRUE;
+												This->victim = subsubchildren[l];
+											}
 #if _DEBUG
-			err = XFree(windowname);
-			printXError("XFree(windowname)", err);
+											err = XFree(windowname);
+											printXError("XFree(windowname)", err);
 #else
-                      XFree (windowname);
+											XFree (windowname);
 #endif
-                    }
-                  }
-                }
-              }
-            }
-          }
-          /* still in the for loop... */
-          if (FoundIt == TRUE) {
-            /*search up the current tree to add a resize event handler */
+										}
+									}
+							}
+						}
+				}
+			}
+		 /* still in the for loop... */
+		if (FoundIt == TRUE) {
+			 /*search up the current tree to add a resize event handler */
             temp = XtWindowToWidget (This->display, This->window);
 
-            /* tree is:
+			 /* tree is:
 		
-		netscape-communicator
-		Navigator
-		form	-------- While loop stops on this one.
-		mainForm
-		viewParent
-		scrollerForm
-		pane
-		scroller
-		drawingArea
-		form
-		pane
-		scroller
-		drawingArea
-		form
-		pane
-		scroller
-		drawingArea
-		netscapeEmbed
-	    */
+			 netscape-communicator
+			 Navigator
+			 form	-------- While loop stops on this one.
+			 mainForm
+			 viewParent
+			 scrollerForm
+			 pane
+			 scroller
+			 drawingArea
+			 form
+			 pane
+			 scroller
+			 drawingArea
+			 form
+			 pane
+			 scroller
+			 drawingArea
+			 netscapeEmbed
+			 */
 		
             while (strcmp (XtName (temp), "form")) {
-              temp = XtParent (temp);
-              if (!(strcmp (XtName (temp), "scroller"))) {
-                XtSetArg (args[0], XtNwidth, (XtArgVal) & width);
-                XtSetArg (args[1], XtNheight, (XtArgVal) & height);
-                XtGetValues (temp, args, 2);
-                if ((width == This->width) && (height == This->height))
-                  This->fullsize = TRUE;
-              }
-              if (!(strcmp (XtName (XtParent (temp)), "drawingArea"))) {
-                temp = XtParent (temp);
-	      }
+				temp = XtParent (temp);
+				if (!(strcmp (XtName (temp), "scroller"))) {
+					XtSetArg (args[0], XtNwidth, (XtArgVal) & width);
+					XtSetArg (args[1], XtNheight, (XtArgVal) & height);
+					XtGetValues (temp, args, 2);
+					if ((width == This->width) && (height == This->height))
+						This->fullsize = TRUE;
+				}
+				if (!(strcmp (XtName (XtParent (temp)), "drawingArea"))) {
+					temp = XtParent (temp);
+				}
             }
 
-            /* remember - temp now points to "form" - see above tree */
-	    /* we don't need this to be printed out. JAS
+			 /* remember - temp now points to "form" - see above tree */
+			 /* we don't need this to be printed out. JAS
 
-	    if (This->fullsize!=TRUE) {
-#if _DEBUG
-              fprintf (log, "\tSurprise!!! This is not fullsize!\n");
-#else
-              fprintf (stderr, "Surprise!!! This is not fullsize!\n");
-#endif
-	    }
-	    */
+			 if (This->fullsize!=TRUE) {
+			 #if _DEBUG
+			 fprintf (log, "\tSurprise!!! This is not fullsize!\n");
+			 #else
+			 fprintf (stderr, "Surprise!!! This is not fullsize!\n");
+			 #endif
+			 }
+			 */
 
 
             This->resizeWatch = temp;
             This->resizeEvent = TRUE;
 
-	    /* when netscape is resized, the "form" will be resized, and */
-	    /* we'll get a notification via this event handler		 */
+			 /* when netscape is resized, the "form" will be resized, and */
+			 /* we'll get a notification via this event handler		 */
             XtAddEventHandler(This->resizeWatch, StructureNotifyMask, 
-    		False, (XtEventHandler) resizeCB, (XtPointer) This);
+							  False, (XtEventHandler) resizeCB, (XtPointer) This);
 #if _DEBUG
             err = XResizeWindow(This->display, This->victim, This->width, This->height);
-	    printXError("XResizeWindow", err);
+			printXError("XResizeWindow", err);
 
             err = XSync(This->display, FALSE);
-	    printXError("XSync", err);
+			printXError("XSync", err);
 #else
-	    /* make it the right size for us; redundant if fullsize */
+			 /* make it the right size for us; redundant if fullsize */
             XResizeWindow(This->display, This->victim, This->width, This->height);
 
             XSync(This->display, FALSE);
 #endif
 
-            /* still have to figure the following couple of lines out. */
+			 /* still have to figure the following couple of lines out. */
             _XA_WM_CLIENT_LEADER = XInternAtom (This->display, "WM_CLIENT_LEADER", False);
 
 #if _DEBUG
             err = XGetWindowProperty ( /* Get value from property	*/
 
-		This->display, 		/* Server connection		*/
-		This->victim, 		/* Window ID, NOT Widget ID	*/
-		_XA_WM_CLIENT_LEADER, 	/* Atom id'ing property name	*/
-		0,			/* Offset (32 bit units to read)*/
+									  This->display, 		/* Server connection		*/
+									  This->victim, 		/* Window ID, NOT Widget ID	*/
+									  _XA_WM_CLIENT_LEADER, 	/* Atom id'ing property name	*/
+									  0,			/* Offset (32 bit units to read)*/
                                         
-		sizeof (Window), 	/* # of 32 bit units to read	*/
-		False, 			/* delete value after read?	*/
-		AnyPropertyType,	/* Requested type		*/
-		&type_ret, 		/* Atom iding type actually fnd	*/
-		&fmt_ret, 		/* Fmt of elements - 8,16,32	*/
-		&nitems_ret, 		/* Number of items returned	*/
-		&bytes_after_ret,	/* Bytes left in property	*/
-		(unsigned char **) &win);/* Returend property value	*/
+									  sizeof (Window), 	/* # of 32 bit units to read	*/
+									  False, 			/* delete value after read?	*/
+									  AnyPropertyType,	/* Requested type		*/
+									  &type_ret, 		/* Atom iding type actually fnd	*/
+									  &fmt_ret, 		/* Fmt of elements - 8,16,32	*/
+									  &nitems_ret, 		/* Number of items returned	*/
+									  &bytes_after_ret,	/* Bytes left in property	*/
+									  (unsigned char **) &win);/* Returend property value	*/
 
-		printXError("XGetWindowProperty", err);
+			printXError("XGetWindowProperty", err);
 #else
             if (XGetWindowProperty ( /* Get value from property		*/
 
-		This->display, 		/* Server connection		*/
-		This->victim, 		/* Window ID, NOT Widget ID	*/
-		_XA_WM_CLIENT_LEADER, 	/* Atom id'ing property name	*/
-		0,			/* Offset (32 bit units to read)*/
+									This->display, 		/* Server connection		*/
+									This->victim, 		/* Window ID, NOT Widget ID	*/
+									_XA_WM_CLIENT_LEADER, 	/* Atom id'ing property name	*/
+									0,			/* Offset (32 bit units to read)*/
                                         
-		sizeof (Window), 	/* # of 32 bit units to read	*/
-		False, 			/* delete value after read?	*/
-		AnyPropertyType,	/* Requested type		*/
-		&type_ret, 		/* Atom iding type actually fnd	*/
-		&fmt_ret, 		/* Fmt of elements - 8,16,32	*/
-		&nitems_ret, 		/* Number of items returned	*/
-		&bytes_after_ret,	/* Bytes left in property	*/
-		(unsigned char **) &win)/* Returend property value	*/
-		 == Success) 
+									sizeof (Window), 	/* # of 32 bit units to read	*/
+									False, 			/* delete value after read?	*/
+									AnyPropertyType,	/* Requested type		*/
+									&type_ret, 		/* Atom iding type actually fnd	*/
+									&fmt_ret, 		/* Fmt of elements - 8,16,32	*/
+									&nitems_ret, 		/* Number of items returned	*/
+									&bytes_after_ret,	/* Bytes left in property	*/
+									(unsigned char **) &win)/* Returend property value	*/
+				== Success) 
 #endif
-		if (nitems_ret > 0)
-		fprintf (stderr,
-			"FreeWRL Plugin: send in bug- WM_CLIENT_LEADER = %ld\n",
-			nitems_ret);
+				if (nitems_ret > 0)
+					fprintf (stderr,
+							 "FreeWRL Plugin: send in bug- WM_CLIENT_LEADER = %ld\n",
+							 nitems_ret);
 		
             if (win != (Window *) NULL) {
 #if _DEBUG
                 err = XFree(win);
-		printXError("XFree(win)", err);
+				printXError("XFree(win)", err);
 #else
                 XFree(win);
 #endif
-	    }
+			}
     
 #if _DEBUG
             err = XSync(This->display, FALSE);
-	    printXError("XSync", err);
+			printXError("XSync", err);
 
             err = XWithdrawWindow(This->display, This->victim, XScreenNumberOfScreen 
-    		(XtScreen (This->netscapeWidget)));
-	    printXError("XWithdrawWindow", err);
+								  (XtScreen (This->netscapeWidget)));
+			printXError("XWithdrawWindow", err);
 
             err = XSync(This->display, FALSE);
-	    printXError("XSync", err);
+			printXError("XSync", err);
 
             err = XMapWindow(This->display, This->window);
-	    printXError("XMapWindow", err);
+			printXError("XMapWindow", err);
 
             err = XResizeWindow(This->display, This->window, This->width, This->height);
-	    printXError("XResizeWindow", err);
+			printXError("XResizeWindow", err);
 
             err = XSync(This->display, FALSE);
-	    printXError("XSync", err);
+			printXError("XSync", err);
 #else
             XSync(This->display, FALSE);
 
             XWithdrawWindow(This->display, This->victim, XScreenNumberOfScreen 
-    		(XtScreen (This->netscapeWidget)));
+							(XtScreen (This->netscapeWidget)));
 
             XSync(This->display, FALSE);
 
@@ -456,27 +459,27 @@ void swallow_check (PluginInstance * This)
             XSync(This->display, FALSE);
 #endif
 
-	    /* huh? One should do this... */
+			 /* huh? One should do this... */
             for (j = 0; j < REPARENT_LOOPS; j++) {
-              /* * more bloody serious dodginess */
+				 /* more bloody serious dodginess */
 #if _DEBUG
-              err = XReparentWindow (This->display, This->victim, This->window, 0, 0);
-	      printXError("XReparentWindow", err);
+				err = XReparentWindow (This->display, This->victim, This->window, 0, 0);
+				printXError("XReparentWindow", err);
 
-              err = XSync (This->display, FALSE);
-	      printXError("XSync", err);
+				err = XSync (This->display, FALSE);
+				printXError("XSync", err);
 #else
-              XReparentWindow (This->display, This->victim, This->window, 0, 0);
-              XSync (This->display, FALSE);
+				XReparentWindow (This->display, This->victim, This->window, 0, 0);
+				XSync (This->display, FALSE);
 #endif
             }
     
 #if _DEBUG
             err = XMapWindow (This->display, This->victim);
-	    printXError("XMapWindow", err);
+			printXError("XMapWindow", err);
 
             err = XSync (This->display, FALSE);
-	    printXError("XSync", err);
+			printXError("XSync", err);
 #else
             XMapWindow (This->display, This->victim);
 
@@ -485,41 +488,41 @@ void swallow_check (PluginInstance * This)
 #endif
             if (children != (Window *) NULL) {
 #if _DEBUG
-              err = XFree(children);
-	      printXError("XFree(children)", err);
+				err = XFree(children);
+				printXError("XFree(children)", err);
 #else
-              XFree(children);
+				XFree(children);
 #endif
-	    }
+			}
 
             if (subchildren != (Window *) NULL) {
 #if _DEBUG
-              err = XFree(subchildren);
-	      printXError("XFree(subchildren)", err);
+				err = XFree(subchildren);
+				printXError("XFree(subchildren)", err);
 #else
-              XFree(subchildren);
+				XFree(subchildren);
 #endif
-	    }
+			}
 
             if (subsubchildren != (Window *) NULL) {
 #if _DEBUG
-              err = XFree(subsubchildren);
-	      printXError("XFree(subsubchildren)", err);
+				err = XFree(subsubchildren);
+				printXError("XFree(subsubchildren)", err);
 #else
-              XFree(subsubchildren);
+				XFree(subsubchildren);
 #endif
-	    }
-          } else {
+			}
+		} else {
             This->swallowTimer = XtAppAddTimeOut (XtDisplayToApplicationContext 
-    		(This->display), 333, (XtTimerCallbackProc) swallow_check, 
-    		(XtPointer) This);
-       }
+												  (This->display), 333, (XtTimerCallbackProc) swallow_check, 
+												  (XtPointer) This);
+		}
     } else {
-	/* can't run */
+		 /* can't run */
 #if _DEBUG
-	fprintf (log, "\tFreeWRL invocation can not be found\n");
+		fprintf (log, "\tFreeWRL invocation can not be found\n");
 #else
-	fprintf (stderr, "FreeWRL invocation can not be found\n");
+		fprintf (stderr, "FreeWRL invocation can not be found\n");
 #endif
     }
 }
@@ -576,7 +579,7 @@ int run_child (NPP instance, const char *filename, int width, int height, int fd
 	    paramline[3] = "-geom";
 	    paramline[4] = geom;
 	    paramline[5] = "-best";
-	    paramline[6] = "-netscape";
+	    paramline[6] = "-plugin";
 	    paramline[7] = childname;
 
 	    /*
@@ -988,8 +991,7 @@ NPP_StreamAsFile (NPP instance, NPStream * stream, const char *fname)
 	    if (write(This->fd[NP], "", 1) < 0) {
 		perror("Call to write failed"); 
 	    }
-	}
-	else {
+	} else {
 	    bytes = (strlen(fname) + 1) * sizeof(const char *);
 #if _DEBUG
 	    fprintf(log, "\tWriting %s (%u bytes) to socket %d.\n",
@@ -1052,15 +1054,18 @@ Redraw(Widget w, XtPointer closure, XEvent *event)
 #endif
 
 	XtVaGetValues(w, XtNbackground, &gcv.background,
-				  XtNforeground, &gcv.foreground, 0);
+				  XtNforeground, &gcv.foreground, NULL);
 #if _DEBUG
 	fprintf(log, "\tCalling XCreateGC.\n");
 #endif
 	gc = XCreateGC(This->display, This->window, 
 				   GCForeground|GCBackground, &gcv);
 #if _DEBUG
-	err = XDrawRectangle(This->display, This->window, gc, 
-				   0, 0, This->width-1, This->height-1);
+/* 	err = XDrawRectangle(This->display, This->window, gc,  */
+/* 				   0, 0, This->width-1, This->height-1); */
+	
+	err = XDrawRectangle(This->display, This->window, gc,
+						 This->x, This->y, This->width-1, This->height-1);
 	printXError("XDrawRectangle", err);
 
 	err = XDrawString(This->display, This->window, gc, 
@@ -1075,6 +1080,7 @@ Redraw(Widget w, XtPointer closure, XEvent *event)
 				This->width/2 - 100, This->height/2,
 				text, strlen(text));
 #endif
+/* XFreeGC(Display *display, GC gc) */
 }
 
 Sigfunc
@@ -1130,6 +1136,7 @@ int freewrlReceive(int fd)
 
     urlRequest request;
     size_t request_size = 0;
+	int rv = 0;
 
     bzero(request.url, FILENAME_MAX);
     request.instance = 0;
@@ -1173,8 +1180,12 @@ int freewrlReceive(int fd)
 	return(NPERR_GENERIC_ERROR);
     }
     else {
-	if ( (NPN_GetURL(request.instance, request.url, NULL)) != NPERR_NO_ERROR) {
-	    /* Change to stderr eventually! */
+	if ((rv = NPN_GetURL(request.instance, request.url, NULL)) != NPERR_NO_ERROR) {
+#if _DEBUG
+		fprintf(log, "Call to NPN_GetURL failed with error %d.\n", rv);
+#else
+		fprintf(stderr, "Call to NPN_GetURL failed with error %d.\n", rv);
+#endif
 	}
     }
 
