@@ -76,8 +76,8 @@ sub add_route {
 
 	# debugging code
 
-	print "Events.pm: ADD_ROUTE ($fn) ",
-		VRML::NodeIntern::dump_name($fn)," field $ff (EventOut $ff0) to ($tn)",
+	print "Events.pm: ADD_ROUTE ($fn), $fn->{TypeName}, ",
+		VRML::NodeIntern::dump_name($fn)," field $ff (EventOut $ff0) to ($tn), $tn->{TypeName}, ",
 		VRML::NodeIntern::dump_name($tn), " field $tf (EventIn $tf0)\n"if $VRML::verbose::events;
 	if ($VRML::verbose::events) {
 		print "Events.pm: ADD_ROUTE from fields\n";
@@ -213,9 +213,12 @@ sub propagate_events {
 							" $e->[0]{TypeName} $e->[1] $e->[2]",
 								(ref $e->[2] eq "ARRAY" ?
 								 " [ ".join(", ",
-											  map(VRML::NodeIntern::dump_name($_),
-												  @{$e->[2]}))." ]" :
-								 ""), "\n"
+											  map((ref $_ eq "ARRAY" ?
+												   "(".join(", ", @{$_}).")" :
+												   VRML::NodeIntern::dump_name($_)),
+												  @{$e->[2]})
+										   )." ]"
+								 : ""), "\n"
 									 if $VRML::verbose::events;
 				#AK The following line of code causes problems when a node
 				#AK ($e->[0]) needs to have more than one event processed

@@ -378,51 +378,68 @@ sub get_firstevent {
 }
 
 sub receive_event {
-    my ($this, $field, $value, $timestamp) = @_;
+	my ($this, $event, $value, $timestamp) = @_;
+	my ($field, $tmp);
 
-    if (!exists $this->{Fields}{$field}) {
-	die("Invalid event received: $this->{TypeName} $field")
-	unless($field =~ s/^set_// and
-		   exists($this->{Fields}{$field})) ;
-    }
-    print "VRML::NodeIntern::receive_event ",
+	if ($event =~ /^set_($VRML::Error::Word+)/ or
+		$event =~ /($VRML::Error::Word+)_changed$/) {
+		$tmp = $1;
+		## ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
+		## eventIns, all exposedField events
+		if (exists $this->{Fields}{$tmp} and
+			$this->{Type}{FieldKinds}{$tmp} =~ /field$/i) {
+			$field = $tmp;
+		## eventIns and eventOuts with set_ and _changed names
+		} elsif (exists $this->{Fields}{$event} and
+				 $this->{Type}{FieldKinds}{$event} =~ /^event/) {
+			$field = $event;
+		}
+	} elsif (exists $this->{Fields}{$event}) {
+		## hopefully covers every other case
+		$field = $event;
+	} else {
+		die("Invalid event $event received for $this->{TypeName}");
+	}
+
+	print "VRML::NodeIntern::receive_event ",
 		VRML::NodeIntern::dump_name($this),
-				" $this->{TypeName} $field $timestamp ",
+				" $this->{TypeName} event $event, field $field ",
 					(ref $value eq "ARRAY" ?
-					 "[ ".(join ", ", @{$value})." ]" :
-					 $value),"\n"
-						if $VRML::verbose::events;
-    $this->{RFields}{$field} = $value;
+					 "[ ".(join ", ", @{$value})." ]" : $value),
+						 ", timestamp $timestamp\n"
+							 if $VRML::verbose::events;
 
-    if ($this->{Type}{Actions}{$field}) {
-	print "\treceived event action!\n" if $VRML::verbose::events;
-	my @ev = &{$this->{Type}{Actions}{$field}}($this, $this->{RFields},
-			$value, $timestamp);
-	for (@ev) {
-	    $this->{Fields}{$_->[1]} = $_->[2];
+	$this->{RFields}{$field} = $value;
+
+	if ($this->{Type}{Actions}{$field}) {
+		print "\treceived event action!\n" if $VRML::verbose::events;
+		my @ev = &{$this->{Type}{Actions}{$field}}($this, $this->{RFields},
+												   $value, $timestamp);
+		for (@ev) {
+			$this->{Fields}{$_->[1]} = $_->[2];
+		}
+		return @ev;
+	} elsif ($this->{Type}{Actions}{__any__}) {
+		my @ev = &{$this->{Type}{Actions}{__any__}}(
+													$this,
+													$this->{RFields},
+													$value,
+													$timestamp,
+													$field,
+												   );
+		# XXXX!!!???
+		for (@ev) {
+			$this->{Fields}{$_->[1]} = $_->[2];
+		}
+		return @ev;
+	} elsif ($VRML::Nodes::bindable{$this->{TypeName}}
+			 and $field eq "set_bind") {
+		my $scene = $this->get_global_scene();
+		$scene->set_bind($this, $value, $timestamp);
+		return ();
+	} else {
+		# Ignore event
 	}
-	return @ev;
-    }  elsif ($this->{Type}{Actions}{__any__}) {
-	my @ev = &{$this->{Type}{Actions}{__any__}}(
-		    $this,
-		    $this->{RFields},
-		    $value,
-		    $timestamp,
-		    $field,
-	);
-	# XXXX!!!???
-	for (@ev) {
-	    $this->{Fields}{$_->[1]} = $_->[2];
-	}
-	return @ev;
-    } elsif ($VRML::Nodes::bindable{$this->{TypeName}} 
-		    and $field eq "set_bind") {
-	my $scene = $this->get_global_scene();
-	$scene->set_bind($this, $value, $timestamp);
-	return ();
-    } else {
-	# Ignore event
-    }
 }
 
 # Get the outermost scene we are in
