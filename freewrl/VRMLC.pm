@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.52  2002/06/05 18:57:16  crc_canada
+# Function Prototypes moved to CFuncs/headers.h
+#
 # Revision 1.51  2002/05/30 21:18:04  ncoder
 # Fixed bug with the order of the multiplication of the transformations while rendering the viewpoint.
 # Increased performance of viewpoint rendering code.
@@ -1084,35 +1087,6 @@ void upd_ray() {
 
 
 void *what_vp;
-
-void calc_poly_normals_flat(struct VRML_PolyRep *rep);
-
-void calc_poly_normals_extrusion(struct VRML_PolyRep *rep, 
-			struct VRML_Extrusion_Adj *adj,
-			int nspi, int nsec, int ntri, int nctri,
-			float crease_angle);
-void calc_vector_product(struct pt a, struct pt b, struct pt *c );
-float calc_vector_length(struct pt p);
-float calc_vector_scalar_product(struct pt a, struct pt b);
-float calc_angle_between_two_vectors(struct pt a, struct pt b);
-int find_edge_config_at_this_point(struct VRML_PolyRep *rep,
-				struct VRML_Extrusion_Adj *adj,
-				int index_pt, float creaseAngle);
-int find_the_quadrant_of_this_triangle(struct VRML_PolyRep *rep,
-				struct VRML_Extrusion_Adj *adj, 
-				int index_pt, int a_pt, int b_pt);
-void normalize_vector(struct pt *vec); 
-
-void normalize_ifs_face (float *point_normal,
-			 struct pt *facenormals,
-			 int *pointfaces,
-			int mypoint,
-			int curpoly,
-			float creaseAngle);
-
-void render_ray_polyrep(void *node,
-	int npoints, struct SFColor *points);
-	
 
 /* if a node changes, void the display lists */
 /* Courtesy of Jochen Hoenicke */
