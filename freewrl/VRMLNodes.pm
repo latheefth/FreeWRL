@@ -224,33 +224,66 @@ sub find_transform {
 	# and goes through the structure trying to find a node that matches
 	# the IS_ALIAS for this. 
 
-	my ($browser, $node, $field) = @_;
+	my ($browser, $node, $field,$level) = @_;
 
-	# print "\nfind_transform, looking at node $node field $field\n";
+	# print "$level enter find_transform; level $level, node $node, field $field\n";
+
 	if (VRML::Browser::api__find_IS_ALIAS($node,$field) ne FALSE) {
-		# print "found it at the top , returning $node\n";
+		# print "$level found it at the top , returning $node\n";
 		return $node;
 	}
 
 	foreach $item (@{$node->{Fields}{"children"}}) {
-		# print "   find_transform, item  $item children is ",$item->{Fields}{children},"\n";
+		# print "$level beginning of for loop, node $node, \n";
+		# print "$level item is $item\n";
+
+		if ("VRML::DEF" eq ref $item) {
+			# print "$level DEF!!!\n";
+			$item = $item ->get_ref();
+			# print "$level item is now $item\n";
+		}
+
+		if ("LOD" eq  $item->{Type}{Name}) {
+			# print "$level LOD found, children are ",  $item->{Fields}{level}," , ",
+			# 	ref $item->{Fields}{level}, ", ", @{$item->{Fields}{level}},"\n";
+			
+			foreach $nitem (@{$item->{Fields}{level}}) {
+				$ret = find_transform ($browser, $nitem, $field,$level+1);
+				# print "$level LOD, after find_transform, ret is $ret\n";
+				if (VRML::Browser::api__find_IS_ALIAS($ret,$field) ne FALSE) {
+				  # print "$level found it in array if, returning $nitem\n";
+				  return $ret;
+				}
+			}
+
+		}
+
+		if ($item->{IsProto}) { 
+			# print "$level item $item is a PROTO\n";
+			$item = $item->real_node();
+		}
+
+		# print "$level    find_transform, item  $item children is ",$item->{Fields}{children},"\n";
 		if (VRML::Browser::api__find_IS_ALIAS($item,$field) ne FALSE) {
-			# print "found it, returning $item\n";
+			# print "$level found it, returning $item\n";
 			return $item;
 		}
 
-		# print "    find_transform, checking $item for ARRAY as children\n";
+		# print "$level     find_transform, checking $item for ARRAY as children\n";
 		if ("ARRAY" eq ref $item->{Fields}{children}) {
-			# print "    array, lets go looking\n";
-			my $ret = find_transform ($browser, $item, $field);
-			# print "    We are back from arraylooking, ret is $ret\n";
+			# print "$level     array, lets go looking\n";
+			my $ret = find_transform ($browser, $item, $field,$level+1);
+			# print "$level     We are back from arraylooking, ret is $ret\n";
 			if (VRML::Browser::api__find_IS_ALIAS($ret,$field) ne FALSE) {
-			  # print "found it in array if, returning $item\n";
+			  # print "$level found it in array if, returning $item\n";
 			  return $ret;
 			}
 		}
+		# print "$level end of for loop, node $node, item $item"
+		# 	," name ", $item->{Type}{Name},"\n";
 	}
 	# we'll drop this far if the field was never found.
+	# print "$level dropping off the end, returning $node\n";
 	return $node;
 }
 # JAS - used by EAI to see if this child is already present in field "children" of parent.
@@ -445,6 +478,7 @@ my $protono;
 	    $this->{FieldTypes}{$_} = $fields->{$_}[0];
 	    # $this->{Fields}{$_} = "VRML::Field::$fields->{$_}[0]";
 	    my $t = $fields->{$_}[2];
+
 	    if(!defined $t or $t eq "" or $t eq "field" or $t eq "exposedField") {
 		if(!defined $t or $t eq "exposedField") {
 		    $this->{EventOuts}{$_} = $_;

@@ -299,7 +299,7 @@ package VRML::Node;
 
 sub new {
 	my($type, $scene, $ntype, $fields,$eventmodel) = @_;
-	print "new Node: $ntype\n" if $VRML::verbose::nodec;
+	print "new Node (sub new): $ntype\n" if $VRML::verbose::nodec;
 	my %rf;
 	my $this = bless {
 		TypeName => $ntype,
@@ -314,9 +314,31 @@ sub new {
 		# PROTO
 		$this->{IsProto} = 1;
 		$this->{Type} = $scene->get_proto($this->{TypeName});
+		print "new Node of type $ntype is a proto, type is ",$this->{Type},"\n"
+			;#JAS if $VRML::verbose::nodec;
+
+		# so, $this->{Type} has the scene declaration for the proto
+		# (see sub newp in Scene.pm)
+		my $ptr = $this->{Type};
+		print "	lets see, the newp definition of $ptr is: \n";
+		print "		parent:", $ptr->{Parent},"\n";
+		print "		Name:", $ptr->{Name},"\n";
+		print "		Parameters: ";
+		for (keys %{$ptr->{Pars}}) {
+		  print " $_";
+		}
+		print "\n";
+		print "		FieldKinds: ";
+		for (keys %{$ptr->{FieldKinds}}) {
+		  print ", $_ ", $ptr->{FieldKinds}{$_};
+		}
+		print "\n";
+
 	} else {
 		# REGULAR
 		$this->{Type} = $t;
+		print "new Node of type $ntype is regular, type is ",$this->{Type},"\n"
+			if $VRML::verbose::nodec;
 	}
 	$this->do_defaults();
 	return $this;
@@ -326,7 +348,7 @@ sub new {
 # and there is no way of this being a proto.
 sub new_script {
 	my($type, $scene, $stype, $fields, $eventmodel) = @_;
-	print "new Node: $stype->{Name}\n" if $VRML::verbose::nodec;
+	print "new Node (new_script): $stype->{Name}\n" ;#JAS if $VRML::verbose::nodec;
 	my %rf;
 	my $this = bless {
 		TypeName => $stype->{Name},
@@ -380,6 +402,11 @@ sub real_node {
 
 	if(!$proto and $this->{IsProto}) {
 		# print "Scene.pm - PROTO real node returning the proto expansion...\n";
+		# print "	{protoExp}{Nodes}[0] is ", $this->{ProtoExp}{Nodes}[0],"\n";
+		# print "	{protoExp}{Nodes}[1] is ", $this->{ProtoExp}{Nodes}[1],"\n";
+		# print "	{protoExp}{Nodes}[2] is ", $this->{ProtoExp}{Nodes}[2],"\n";
+	
+		VRML::Handles::front_end_child_reserve ($this->{ProtoExp}{Nodes}[0],$this);	
 		return $this->{ProtoExp}{Nodes}[0]->real_node;
 	} else {
 		# print "Scene.pm - PROTO real node returning just $this\n";
@@ -569,7 +596,7 @@ sub make_executable {
 
 	if($this->{IsProto} && !$this->{ProtoExp}) {
 		 # print "MAKE_EXECUTABLE_PROTOEXP $this, $this->{TypeName},
-		 # 	$this->{Type}\n";
+		 #	$this->{Type}\n";
 		print "COPYING $this->{Type} $this->{TypeName}\n"
 			if $VRML::verbose::scene;
 
@@ -577,8 +604,25 @@ sub make_executable {
 		$this->{ProtoExp}->set_parentnode($this,$scene);
 		$this->{ProtoExp}->make_executable();
 
-#		 print "MAKE_EXECUTABLE_PROTOEXP finish $this, $this->{TypeName},
-#			$this->{Type}, $this->{ProtoExp}\n";
+		#  print "MAKE_EXECUTABLE_PROTOEXP finish $this, $this->{TypeName},
+		# 		$this->{Type}, $this->{ProtoExp}\n";
+
+		my $ptr = $this->{ProtoExp};
+                # print " lets see, the newp definition of $ptr is: \n";
+                # print "         parent:", $ptr->{Parent},"\n";
+                # print "         Name:", $ptr->{Name},"\n";
+                # print "         Parameters: ";
+                # for (keys %{$ptr->{Pars}}) {
+                #   print " $_";
+               #  }
+                # print "\n";
+                # print "         FieldKinds: ";
+                # for (keys %{$ptr->{FieldKinds}}) {
+                #   print ", $_ ", $ptr->{FieldKinds}{$_};
+                # }
+                # print "\nMAKE_EXECUTABLE_PROTOEXP returning\n";
+
+
 	} 
 
 	print "END MKEXE $this->{TypeName}\n"
@@ -669,7 +713,7 @@ sub make_backend {
 			(my $timestamp=XXX), $this->{Scene});
 	}
 	if($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
-		print "NODE: makebe NOT\n"
+		print "NODE: makebe NOT - ", $this->{TypeName},"\n"
 			if $VRML::verbose::be;
 		return ();
 	}
@@ -791,7 +835,7 @@ sub newp {
 
 	my ($type,$pars,$parent,$name) = @_;
 
-	# print "Scene:newp: \n	type $type \n	pars $pars \n	parent $parent \n	name $name\n";
+	print "Scene:newp: \n	type $type \n	pars $pars \n	parent $parent \n	name $name\n";
 	my $this = $type->new;
 	$this->{Pars} = $pars;
 	$this->{Name} = $name;
@@ -819,7 +863,7 @@ sub newp {
 			exit (1);
 		}
 	}
-	# print "Scene:newp finished, returning $this\n";
+	print "Scene:newp finished, returning $this\n";
 	return $this;
 }
 
@@ -981,8 +1025,16 @@ sub new_node {
 
 sub new_route {
 	my $this = shift;
-	print "NEW_ROUTE $_[0][0] $_[0][1] $_[0][2] $_[0][3]\n" if $VRML::verbose::scene;
+	print "NEW_ROUTE $_[0][0] $_[0][1] $_[0][2] $_[0][3], this is $this\n" 
+		if $VRML::verbose::scene;
 	push @{$this->{Routes}}, $_[0];
+}
+
+sub delete_route {
+	my $this = shift;
+	print "DELETE_ROUTE $_[0][0] $_[0][1] $_[0][2] $_[0][3], this is $this\n" 
+		if $VRML::verbose::scene;
+	pop @{$this->{Routes}}, $_[0];
 }
 
 sub new_def {
@@ -1009,10 +1061,14 @@ sub new_is {
 
 sub new_proto {
 	my($this,$name,$pars) = @_;
-	# print "Scene:new_proto, \n	this $this \n	name $name \n	pars $pars\n";
-	print "NEW_PROTO $this $name\n" if $VRML::verbose::scene;
+	#print "Scene:new_proto, \n	this $this \n	name $name \n	pars $pars\n";
+	# for(keys %{$pars}) {
+        #       print "parameter $_\n";
+        #}
+
+	print "NEW_PROTO $this $name\n" ;#JAS if $VRML::verbose::scene;
 	my $p = $this->{Protos}{$name} = (ref $this)->newp($pars,$this,$name);
-	# print "Scene:new_proto, returning $p \n";
+	print "Scene:new_proto, returning $p \n";#JAS if $VRML::verbose::scene;
 	return $p;
 }
 
@@ -1077,12 +1133,11 @@ sub mkbe_and_array {
 
   # lets get the number of items in there...
 
-  my ($this,$be) = @_;
+  my ($this,$be,$parentscene) = @_;
 
   my $lastindex = $#{$_[0]{Nodes}};
   my $curindex = 0;
   my $q = "";
-
   while ($curindex <= $lastindex) {
     # PROTOS screw us up; the following line worked, but then
     # PROTO information was not available. So, store the PROTO
@@ -1107,6 +1162,42 @@ sub mkbe_and_array {
        		$c->{BackNode} = VRML::Node::make_backend($c,$be);
 	}
     }
+
+    # and, copy any DEFS and routes over, if there are any.
+    if (defined $this->{Routes}) {
+	    $c->{SceneRoutes} = $this->{Routes};
+        	# print "Scene.pm: Routes mkbe_and_array, ",
+	         #      $c->{SceneRoutes}[0][0] , " ",
+	         #      $c->{SceneRoutes}[0][1] , " ",
+	         #      $c->{SceneRoutes}[0][2] , " ",
+	         #      $c->{SceneRoutes}[0][3] , " from $this to c scene: $c\n";
+    # } else {
+	# print "Scene.pm: Routes mkbe_and_array this scene $this, has no Routes\n";
+    }
+
+    # now, go through the protos, and copy over active routes
+
+    # copy over any non-proto'd defs
+    %{$parentscene->{DEF}} = (%{$parentscene->{DEF}},%{$this->{DEF}});
+    my $k;
+    foreach $k (keys %{$this->{Protos}}) {
+	# DEFS
+    	# %{$c->{DEF}} = (%{$c->{DEF}},%{$this->{Protos}{$k}{DEF}});
+    	%{$parentscene->{DEF}} = (%{$parentscene->{DEF}},%{$c->{Scene}{DEF}});
+
+	# print "Scene.pm - defs for $k: ";	
+        # print (join ',',keys %{$c->{Scene}{DEF}}),"\n";
+	# print "Scene.pm - defs for parentscene $parentscene: ";	
+        # print (join ',',keys %{$parentscene->{Scene}{DEF}}),"\n";
+
+	# Routes
+	for (@{$this->{Protos}{$k}{Routes}}) {
+		push (@{$c->{SceneRoutes}}, $_);	
+                my($fnam, $ff, $tnam, $tf) = @$_;
+                # print "Scene.pm - routes in $k are from $fnam field $ff to $tnam field $tf\n";
+        }
+    }
+
     my $id = VRML::Handles::reserve($c);
 
     $q = "$q $id";
@@ -1121,7 +1212,7 @@ sub mkbe_and_array {
 
 
 sub getNode {
-	my $n = $_[0]{TmpDef}{VRML::Field::SFNode::return_def_name($_[1])};
+	my $n = $_[0]{TmpDef}{VRML::Handles::return_def_name($_[1])};
 	if(!defined $n) {
 		print "Node '$_[1]' not defined\n";
 		return "undefined";
@@ -1148,13 +1239,15 @@ sub get_copy {
 	$new->{FieldTypes} = $this->{FieldTypes};
 	$new->{Nodes} = [map {$_->copy($new)} @{$this->{Nodes}}];
 	$new->{EventModel} = $this->{EventModel};
-	$new->{Routes} = $this->{Routes};
-# XXX Done using the scene arg above..
-#	$new->iterate_nodes(sub {
-#		if(ref $_[0] eq "VRML::Node") {
-#			$_[0]{Scene} = $new;
-#		}
-#	});
+	if (defined $this->{Routes}) {
+		$new->{Routes} = $this->{Routes};
+	 print "Scene.pm: GET_COPY: ROUTE ", 
+	 	$new->{Routes}[0][0] , " ", 
+	 	$new->{Routes}[0][1] , " ",
+	 	$new->{Routes}[0][2] , " ",
+	 	$new->{Routes}[0][3] , " from $this to new scene: $new\n";
+	}
+
 	return $new;
 }
 
@@ -1393,6 +1486,7 @@ if($this->{BackNode}) {return $this->{BackNode}}
 
 sub setup_routing {
 	my($this,$eventmodel,$be) = @_;
+
 	print "SETUP_ROUTING $this $eventmodel $be\n" if $VRML::verbose::scene;
 
 	$this->iterate_nodes(sub {
@@ -1451,16 +1545,15 @@ sub setup_routing {
 	print "DEVINED NODES in $this: ",(join ',',keys %{$this->{DEF}}),"\n" if $VRML::verbose::scene;
 	for(@{$this->{Routes}}) {
 		my($fnam, $ff, $tnam, $tf) = @$_;
-		my $realname = VRML::Field::SFNode::return_def_name($fnam);
-		if($realname ne "") {
-			printf "Name probably already in internal format\n";
-			$realname = $_;
-		}
+		# print "Scene.pm - routes from $fnam field $ff to $tnam field $tf scene $this\n";
 			
 		my ($fn, $tn) = map {
 			$this->{DEF}{$_} or
 			 die("Routed node name '$_' not found ($fnam, $ff, $tnam, $tf)!");
 		} ($fnam, $tnam);
+		# print "Scene.pm - routes before eventmodel add - from $fnam ",
+		# 	ref $fnam, ", field $ff ",ref $ff, ", to $tnam ", ref $tnam,
+		# 	", field $tf ",ref $tf,"\n";
 		$eventmodel->add_route($fn,$ff,$tn,$tf);
 	}
 	for my $isn (keys %{$this->{IS_ALIAS_IN}}) {
@@ -1477,6 +1570,7 @@ sub setup_routing {
 				$isn, @$_);
 		}
 	}
+	print "SETUP_ROUTING FINISHED $this $eventmodel $be\n" if $VRML::verbose::scene;
 }
 
 
@@ -1496,6 +1590,8 @@ sub init_routing {
 	}
 
 	$eventmodel->put_events(\@e);
+	print "INIT_ROUTING COMPLETE\n"  if $VRML::verbose::scene;
+
 }
 
 sub set_bind {

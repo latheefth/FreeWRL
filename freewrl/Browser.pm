@@ -116,6 +116,7 @@ sub load_string {
 
 	$this->clear_scene();
 	$this->{Scene} = VRML::Scene->new($this->{EV},$file);
+
 	$this->{Scene}->set_browser($this);
 	if ($type == 3)  {
 		# x3d - convert this to VRML.
@@ -224,10 +225,10 @@ sub prepare {
 
 sub prepare2 {
 	my($this) = @_;
-	#JAS $this->{Scene}->make_executable();
-	#JAS $this->{Scene}->make_backend($this->{BE});
+
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 	$this->{Scene}->init_routing($this->{EV},$this->{BE});
+	$this->{EV}->print;
 }
 sub tick {
 	#
@@ -322,7 +323,7 @@ sub createVrmlFromString {
 	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING, DUH");
 	VRML::Parser::parse($scene, $string);
         $scene->make_executable();
-	return $scene->mkbe_and_array($this->{BE});
+	return $scene->mkbe_and_array($this->{BE},$this->{Scene});
 }
 
 sub createVrmlFromURL { 
@@ -350,7 +351,6 @@ sub createVrmlFromURL {
                 warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");        }
 
 	# Stage 2 - load the string in....
-        print "loading string, $this $t $url\n" if $VRML::verbose; 
 
 	my $scene = VRML::Scene->new($this->{EV},$url);
 	VRML::Parser::parse($scene, $t);
@@ -360,7 +360,7 @@ sub createVrmlFromURL {
 		print "createVRMLFromURL - nodes are ",  $scene->mkbe_and_array(), "\n";
 	}
 
-	return $scene->mkbe_and_array($this->{BE});
+	return $scene->mkbe_and_array($this->{BE},$this->{Scene});
  }
 
 
@@ -410,7 +410,20 @@ sub api__registerListener {
 
 sub api__getFieldInfo {
 	my($this,$node,$field) = @_;
+
+	#print "getFieldInfo, type is ",$node->{Type},"\n";
+	#print "getFieldInfo, FieldKinds is ",$node->{Type}{FieldKinds},"\n";
+        #for(keys %{$node->{Type}{FieldKinds}}) {
+	#	print "key $_\n";
+	#}
+	#print "getFieldInfo, Fieldtype is ",$node->{Type}{FieldTypes},"\n";
+        #for(keys %{$node->{Type}{FieldTypes}}) {
+	#	print "key $_\n";
+	#}
+
 	my($k,$t) = ($node->{Type}{FieldKinds}{$field},$node->{Type}{FieldTypes}{$field});
+	
+	# print "getFieldInfo, k is $k, type is $t\n";
 	return($k,$t);
 }
 
@@ -420,7 +433,7 @@ sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
 # lets find the actual child transform that contains the field - PROTO stuff...
 sub  find_transform {
         my ($this,$node, $field) = @_;
-	return VRML::NodeType::find_transform ($this, $node, $field);
+	return VRML::NodeType::find_transform ($this, $node, $field, 0);
 }
 
 # is the child already present in the parent? If so, then return 1, if not, return 0
@@ -598,6 +611,32 @@ package VRML::Handles;
 {
 my %S = ();
 my %ONSCREEN = ();
+my %RP = ();
+my %DEFNAMES = ();
+
+# keep a list of DEFined names and their real names around. Because
+# a name can be used more than once, (eg, DEF MX ..... USE MX .... DEF MX
+# USE MX...) we need to keep track of unique identifers. 
+# 
+# ALSO: for EAI, we need a way of keeping def names global, as EAI requires
+# us to be able to get to Nodes in one scene from another.
+
+sub def_reserve {
+	my ($name,$realnode) = @_;
+	$DEFNAMES{$name} = $realnode;
+	# print "reserving DEFNAME $name ", ref $name, "is real $realnode, ref ", ref $realnode,"\n";
+
+}
+sub return_def_name {
+	my ($name) = @_;
+	# print "return_def_name, looking for $name , it is ";
+	if (!exists $DEFNAMES{$name}) {
+		# print "return_def_name - Name $name does not exist!\n";
+		return $name;
+	}
+	# print $DEFNAMES{$name},"\n";
+	return $DEFNAMES{$name};
+	}
 
 sub displayed {
         my($node) = @_;
@@ -621,6 +660,28 @@ sub check_displayed {
         return 0;
 }
 
+# when sending children in EAI, we get the "real nodes". We actually want to
+# keep the backwards link, so that real nodes can point to their masters, in
+# cases of PROTOS.
+sub front_end_child_reserve {
+	my ($child,$real) = @_;
+	$RP{$child} = $real;
+	# print "front_end_child_reserve, reserving for child $child ", ref $child, " real $real ", ref $real, "\n";
+
+}
+
+sub front_end_child_get {
+	my ($handle) = @_;
+	# print "front_end_child_get looking for $handle ",ref $handle,"\n";
+        if(!exists $RP{$handle}) {
+                print "front_end_child_get Nonexistent parent for child !\n";
+                return $handle;
+        }
+	# print "front_end_child_get, returning for $handle ", $RP{$handle},"\n";
+        return $RP{$handle};
+}
+
+
 sub reserve {
 	my($object) = @_;
 	my $str = "$object";
@@ -643,9 +704,9 @@ sub release {
 sub get {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
-	#print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
-	#print "       type ",$S{$handle}[0]{Type},"\n";
-	#print "       typeName ",$S{$handle}[0]{TypeName},"\n";
+	# print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
+	##print "       type ",$S{$handle}[0]{Type},"\n";
+	##print "       typeName ",$S{$handle}[0]{TypeName},"\n";
 	if(!exists $S{$handle}) {
 		print "Nonexistent VRML Node Handle!\n";
 		exit (1);
@@ -656,7 +717,7 @@ sub check {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
 	if(!exists $S{$handle}) {
-		# print ("Handle::check $handle - Not a Node Handle!\n");
+		print ("Handle::check $handle - Not a Node Handle!\n");
 		return 0;
 	}
 	# print "Handle::check ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";

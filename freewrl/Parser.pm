@@ -154,6 +154,7 @@ sub parse_proto {
 	my $int = parse_interfacedecl($scene,1,1,$_[1]);
 	$_[1] =~ /\G\s*{\s*/gsc or parsefail($_[1], "proto body start");
 	my $pro = $scene->new_proto($name, $int);
+
 	my @a;
 	while($_[1] !~ /\G\s*}\s*/gsc) {
 		my $n = parse_statement($pro,$_[1]);
@@ -161,10 +162,46 @@ sub parse_proto {
 	}
 	$pro->topnodes(\@a);
 
+	# debugging code for getting EAI information about Routes.
+	# print "parse_proto: scene $scene has the following protos: ", 
+
+	# my $k;
+	# foreach $k (keys %{$scene->{Protos}}) {
+	# print "$k ",ref $k, ",";
+	# for (@{$k->{Routes}}) {
+	#                my($fnam, $ff, $tnam, $tf) = @$_;
+	#                 print "parse_proto - routes in $k are from $fnam field $ff to $tnam field $tf\n";
+	#	}
+	
+	# }
+
+	# print "\n";
+	#if ($scene->{Routes}) {
+	#print "parse_proto: my scene $scene has the following routes:\n";
+	#for(@{$scene->{Routes}}) {
+	#               my($fnam, $ff, $tnam, $tf) = @$_;
+	#               print "parse_proto - routes from $fnam field $ff to $tnam field $tf\n";
+	#}
+	#} else {
+	#	print "parse_proto - no routes \n";
+	#}
+
+	# if ($pro->{Routes}) {
+	# print "parse_proto: the proto expansion $pro has the following routes:\n";
+	# for(@{$pro->{Routes}}) {
+        #         my($fnam, $ff, $tnam, $tf) = @$_;
+	# 		
+        #        print "parse_proto - routes from $fnam field $ff to $tnam field $tf\n";
+	# }
+	# } else {
+	# 	print "parse_proto - no routes \n";
+	# }
+
+
 	# Register viewpoints from this proto invocation
 	# $pro->register_vps($scene->get_browser());
 
-	my $np = $pro->{Bindables}{Viewpoint};
+	#JAS my $np = $pro->{Bindables}{Viewpoint};
 	#JAS print "Parser, number of viewpoints found for $pro is ", $#$np, "my scene $scene\n";
 	#JAS print "and, the first viewpoint is ",$np->[0]{Fields}{description},"\n";
 }
@@ -186,12 +223,12 @@ sub parse_interfacedecl {
 	$open = ($open || "\\[");
 	$close = ($close || "\\]");
 	print "OPCL: '$open' '$close'\n"
-		if $VRML::verbose::parse;
+		 if $VRML::verbose::parse;
 	$_[3] =~ /\G\s*$open\s*/gsxc or parsefail($_[3], "interface declaration");
 	my %f;
 	while($_[3] !~ /\G\s*$close\s*/gsxc) {
 		print "PARSINT\n"
-			if $VRML::verbose::parse;
+		 	if $VRML::verbose::parse;
 		# Parse an interface statement
 		if($_[3] =~ /\G\s*(eventIn|eventOut)\s+
 			  ($Word)\s+($Word)\s+/ogsxc) {
@@ -208,6 +245,9 @@ sub parse_interfacedecl {
 					   "exposedFields not allowed here");
 			  }
 			my($ft, $t, $n) = ($1,$2,$3);
+			print "parse, $n, $ft, $t, $fieldval\n" 
+				if $VRML::verbose::parse;
+
 			$f{$n} = [$ft, $t];
 			if($fieldval) {
 				if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
@@ -222,13 +262,13 @@ sub parse_interfacedecl {
 			my $ft = $VRML::Nodes{Script}->{FieldTypes}{$1};
 			my $eft = ($f eq "url" ? "exposedField":"field");
 			print "SCRFIELD $f $ft $eft\n"
-				if $VRML::verbose::parse;
+		 		if $VRML::verbose::parse;
 			if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
 				$f{$f} = [$ft, $f, $scene->new_is($1)];
 			} else {
 				$f{$f} = [$ft, $f, "VRML::Field::$ft"->parse($scene,$_[3])];
 				print "SCRF_PARIELD $f $ft $eft\n"
-					if $VRML::verbose::parse;
+		 			if $VRML::verbose::parse;
 			}
 		} else {
 			parsefail($_[3], "interface");
@@ -248,8 +288,8 @@ sub parse_route {
 	/ogsxc or parsefail($_[1], "route statement");
 
 	# remember - we have our own internal names for these things...
-	my $rn = VRML::Field::SFNode::return_def_name($1);
-	my $trn = VRML::Field::SFNode::return_def_name($4);
+	my $rn = VRML::Handles::return_def_name($1);
+	my $trn = VRML::Handles::return_def_name($4);
 	$scene->new_route([$rn,$2,$trn,$5]);
 	if($3 !~ /TO\s+/) {
 		parsewarnstd($_[1],
@@ -269,13 +309,7 @@ use vars qw/$Word/;
 VRML::Error->import;
 
 
-my %DEFNAMES = ();
 my $LASTDEF = 1;
-
-sub return_def_name {
-		my ($name) = @_;
-		return $DEFNAMES{$name};
-}
 
 sub parse {
 	my($type,$scene) = @_;
@@ -295,17 +329,16 @@ sub parse {
 
 		# store this as a sequence number, because multiple DEFS of the same name
 		# must be unique. (see the spec)
-		# if(defined $DEFNAMES{$1}) {print "duplicate DEF - $1\n";}
-		$DEFNAMES{$1} = "DEF$LASTDEF";
+		VRML::Handles::def_reserve($1,"DEF$LASTDEF");
 		$LASTDEF++;
-		my $defname = $DEFNAMES{$1};
+		my $defname = VRML::Handles::return_def_name($1);
 		# my $defname = $1;
-		print "DEF $1 as $defname\n"
+		print "Parser.pm: DEF $1 as $defname\n"
 			if $VRML::verbose::parse;
 
 
 		my $node = VRML::Field::SFNode->parse($scene,$_[2]);
-		#print "DEF - node is $node \n" if  $VRML::verbose::parse;
+		print "DEF - node is $node \n" if  $VRML::verbose::parse;
 
 		# print "creating scene->new_def for $defname, $node\n";
                 return $scene->new_def($defname, $node);
@@ -317,12 +350,12 @@ sub parse {
 			"USE must be followed by a defname");
 
 		# is is already DEF'd???
-        	if(!defined $DEFNAMES{$1}) {
+		my $dn = VRML::Handles::return_def_name($1);
+        	if(!defined $dn) {
 			print "USE name $1 not DEFined yet\n";
 			exit(1);
 		}
 
-		my $dn = $DEFNAMES{$1};
 		print "USE $dn\n"
 			if $VRML::verbose::parse;
 		return $scene->new_use($dn);

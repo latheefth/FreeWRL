@@ -165,6 +165,7 @@ sub propagate_events {
 						if(!defined $fk) {die("Fieldkind getting")}
 						if($fk eq "eventIn" or 
 						   $fk eq "exposedField") {
+print "Event.pm - this is an exposedField\n";
 							push @ne, 
 							    $_->[0]->receive_event($_->[1],
 								$e->[2], $timestamp);
@@ -183,6 +184,7 @@ sub propagate_events {
 					if(!defined $fk) {die("Fieldkind getting")}
 					if($fk eq "eventOut" or 
 					   $fk eq "exposedField") {
+print "Event.pm - this is an exposedField\n";
 						push @ne, [
 							$c->[0], $c->[1], $e->[2]
 						];
