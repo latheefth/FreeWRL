@@ -59,7 +59,9 @@
 
 #ifndef jstypes_h___
 #define jstypes_h___
-
+#ifdef AQUA
+#define XP_MAC
+#endif
 #include <stddef.h>
 
 /***********************************************************************
@@ -113,7 +115,8 @@
 #define JS_STATIC_DLL_CALLBACK(__x) __x JS_DLL_CALLBACK
 #endif /* _WINDLL */
 
-#elif defined(XP_MAC)
+/* #elif defined(XP_MAC) */
+#elif defined(NOTDEF)
 #define JS_EXTERN_API(__type) extern __declspec(export) __type
 #define JS_EXPORT_API(__type) __declspec(export) __type
 #define JS_EXTERN_DATA(__type) extern __declspec(export) __type
