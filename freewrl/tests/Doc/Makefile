@@ -18,33 +18,23 @@ LOG = ${DOCS:.tex=.log}
 PS  = ${DOCS:.tex=.ps}
 PDF = ${DOCS:.tex=.pdf}
 
-# Target clean_dvi is necessary in case latex needs to be rerun to properly
-# set cross-references, tables, toc, Bibtex and so on.
-#
-# Just don't remove the *.aux, *.toc files etc. if latex is being rerun!!!
-dvi: clean_dvi ${DVI}
+dvi: ${DVI}
 
-%.dvi: %.tex 
+%.dvi: %.tex force
 	latex $<
-
-old_dvi: vts_local.tex
-	latex vts_local.tex
 
 display: dvi
 	xdvi vts_local.dvi
 
 ps: ${PS}
 
-%.ps: %.dvi
+%.ps: %.dvi force
 	dvips -o $@ $<
 
 pdf: ${PDF}
 
-%.pdf: %.ps
+%.pdf: %.ps force
 	ps2pdf $< $@
-
-clean_dvi:
-	-rm ${DVI}
 
 clean:
 	-rm ${LOG} ${PS} ${PDF}
@@ -58,3 +48,5 @@ spotless: realclean
 bak_dir:
 	-mkdir -p ${bak_dir}
 
+# empty target forces dependent targets to run their commands
+force:
