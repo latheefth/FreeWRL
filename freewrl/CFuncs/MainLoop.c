@@ -726,12 +726,10 @@ void setLastMouseEvent(int etype) {
 void setBrowserURL(char* file) {
         int count;
         count = strlen(file);
-        //printf("got to setBrowser file: %s, count %d\n", file, count);
         if (BrowserURL != NULL) {
-                printf("freeing browser URL\n");
-                myfree (BrowserURL);
+                free (BrowserURL);
         }
-        BrowserURL = mymalloc (count + 1);
+        BrowserURL = malloc (count + 1);
         strcpy(BrowserURL, file);
 }
 

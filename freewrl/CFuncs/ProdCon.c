@@ -46,11 +46,6 @@
 
 #include "Viewer.h"
 
-/* for communicating with Netscape */
-/* in headers.h extern int _fw_pipe, _fw_FD; */
-extern unsigned _fw_instance;
-
-
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
@@ -58,6 +53,16 @@ extern unsigned _fw_instance;
 pthread_mutex_t condition_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t psp_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t  condition_cond  = PTHREAD_COND_INITIALIZER;
+
+#ifdef AQUA
+int _fw_FD = 0;
+int _fw_pipe = 0;
+unsigned _fw_instance;
+#endif
+
+/* for communicating with Netscape */
+/* in headers.h extern int _fw_pipe, _fw_FD; */
+extern unsigned _fw_instance;
 
 #define DATA_LOCK       	pthread_mutex_lock(&condition_mutex);
 #define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);
