@@ -17,7 +17,13 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "perl.h"
 #include "XSUB.h"
 
-
+#ifdef AQUA
+#define KeyPress        2
+#define KeyRelease      3
+#define ButtonPress     4
+#define ButtonRelease   5
+#define MotionNotify    6
+#endif
 #include "SensInterps.h"
 
 
