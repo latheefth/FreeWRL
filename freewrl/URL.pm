@@ -124,7 +124,7 @@ sub ungzip_text {
 sub get_really {
 	my ($url) = @_;
 	$url = URI::URL::url($url,"file:".getcwd()."/")->abs->as_string;
-	print "VRML::URI::really '$url'\n" if $VRML::verbose::url;
+	print "VRML::URL::really '$url'\n" if $VRML::verbose::url;
 	return $url;
 }
 
@@ -144,49 +144,67 @@ sub get_absolute {
     my($url, $as_file, $key) = @_;
     my $local_filepath = 0;
 
-    if (!$key) { $key = ":$url"; }
+    if (!$key) {
+		$key = ":$url";
+	}
 
     ## TODO : Save modification date of file and check for changes
     if ($VRML::URL::savedUrls{$key}{$urlKeyList[1]} && !$main::sig_reload) {
-	return $VRML::URL::savedUrls{$key}{$urlKeyList[1]};
+		return $VRML::URL::savedUrls{$key}{$urlKeyList[1]};
     }
 
-    print "VRML::URI::get_absolute('$url', $as_file, $key)\n" if $VRML::verbose::url;
-    if($has_lwp) {
-	use POSIX qw/getcwd/;
+    print "VRML::URL::get_absolute('$url', $as_file, $key)\n" if $VRML::verbose::url;
+    if ($has_lwp) {
+		use POSIX qw/getcwd/;
 
-	if ($url =~ /^file:(.*)$/) { $local_filepath = 1; }
-	else { $url = get_really($url); }
+		if ($url =~ /^file:(.*)$/) {
+			$local_filepath = 1;
+		} else {
+			$url = get_really($url);
+		}
 
-	if (!$as_file) {
-	    my $r = LWP::Simple::get($url);
-	    if (!$r) {
-		warn "Warning: $url not obtained... something is wrong";
-		return undef;
-	    }
+		if (!$as_file) {
+			my $r = LWP::Simple::get($url);
+			if (!$r) {
+				warn("Url $url not obtained... something is wrong");
+				return undef;
+			}
 
-	    print "VRML::URI::GOT ".length($r)." bytes\n" if $VRML::verbose::url;
-	    return save_text($url, ungzip_text($r), $key);
-	} else {
-	    if ($local_filepath) {
-		return save_file($url, ungzip_file($1), $key);
-	    } else {
-		my($name) = temp_file();
-		LWP::Simple::getstore($url, $name);
-		return save_file($url, ungzip_file($name), $key);
-	    }
-	}
+			print "LWP::Simple::get returned ".length($r)." bytes\n"
+				if $VRML::verbose::url;
+			return save_text($url, ungzip_text($r), $key);
+		} else {
+			if ($local_filepath) {
+				if (-e $1) {
+					return save_file($url, ungzip_file($1), $key);
+				} else {
+					warn("Local file $1 not obtained... something is wrong");
+					return undef;
+				}
+			} else {
+				my($name) = temp_file();
+				my $rc = LWP::Simple::getstore($url, $name);
+				if (LWP::Simple::is_success($rc)) {
+					return save_file($url, ungzip_file($name), $key);
+				} else {
+					warn("Url $url not obtained as file... something is wrong");
+					return undef;
+				}
+			}
+		}
     } else {
-	if (-e $url) {
-	    $url = ungzip_file($url);
-	    if ($as_file) { return save_file($url, $url, $key); }
-		open FOOFILE, "<$url";
-		my $str = join '',<FOOFILE>;
-		close FOOFILE;
-		return save_text($url, $str, $key);
+		if (-e $url) {
+			$url = ungzip_file($url);
+			if ($as_file) {
+				return save_file($url, $url, $key);
+			}
+			open FOOFILE, "<$url";
+			my $str = join '',<FOOFILE>;
+			close FOOFILE;
+			return save_text($url, $str, $key);
 	    } else {
-		warn("Cannot find '$url'--if it is a web address, you need to install libwww-perl");
-		return undef;
+			warn("Cannot find '$url' -- if it is a web address, you need to install libwww-perl");
+			return undef;
 	    }
     }
 }
@@ -197,7 +215,7 @@ sub get_absolute {
 sub get_relative {
     my($base, $file, $as_file) = @_;
     $base = get_really($base);
-    print "VRML::URI::get_relative('$base', '$file', $as_file)\n" if $VRML::verbose::url;
+    print "VRML::URL::get_relative('$base', '$file', $as_file)\n" if $VRML::verbose::url;
 
     my $key = "$base:$file";
     my $url;
@@ -210,7 +228,7 @@ sub get_relative {
 												$VRML::PluginGlue::globals{instance},
 												$file);
 			if (!$url) {
-				warn "Warning: web browser plugin could not retrieve $file.\n";
+				warn("Web browser plugin could not retrieve $file.\n");
 				return undef;
 			}
 		} elsif ($has_lwp) {
@@ -257,6 +275,7 @@ BEGIN {
 	   }
 	}
 }
+
 sub unlinktmp {
 	if(!$temps{$_[0]}) {
 		die("Trying to unlink nonexistent tmp");
