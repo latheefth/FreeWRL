@@ -10,6 +10,10 @@
 
 #
 # $Log$
+# Revision 1.22  2002/11/14 20:09:42  crc_canada
+# handled EAI socket open hangs (I hope), and if socket closes, nicely
+# stops freewrl
+#
 # Revision 1.21  2002/09/19 19:40:14  crc_canada
 # much EAI work
 #
@@ -155,7 +159,7 @@ sub connect {
 	
 	($EAIhost, $EAIport) = ($1,$2);
 
-	# print ("FreeWRL: connect: remote $EAIhost  port $EAIport\n");
+	#print ("FreeWRL: connect: remote $EAIhost  port $EAIport\n");
 	my $sock;
 	$sock = IO::Socket::INET->new(
 		Proto => "tcp",
@@ -175,17 +179,12 @@ sub connect {
 sub doconnect {
 	my($this,$sock) = @_;
 
+	# set up a socket, when it is connected, then send EAI an initial message. 
 	$sock->autoflush(1);
+
 	$sock->setvbuf("",&_IONBF,0);
-	$sock->print("FreeWRL EAI Client 0.27\n");
-	my $x;
-	$sock->sysread($x,20); 
-	chomp $x;
-	if("FreeWRL EAI Serv0.27" ne $x) {
-		warn("EAI Version Mismatch! got $x");
-	}
 	push @{$this->{Conn}}, $sock;
-	
+	$sock->print("$VRML::Config{VERSION}\n");
 }
 
 sub poll {
@@ -223,7 +222,7 @@ sub poll {
 			 ## remove the sub poll from array reference
 			 shift(@{$this->{B}->{Periodic}});
        		 } else {
-			print "FreeWRL: Poll: Socket finally opened!!! \n";
+			#print "FreeWRL: Poll: Socket finally opened!!! \n";
         		$this->doconnect($sock);
 		}
 
@@ -232,6 +231,7 @@ sub poll {
 	if (defined $this->{Conn}) {
 		my $rin = '';
 
+	#print "poll opened, eof is ", ref $this->{Conn},"\n";
 	
 		for(@{$this->{Conn}}) {
 			vec($rin, $_->fileno, 1) = 1;
@@ -240,7 +240,6 @@ sub poll {
 		if($nfound) {
 			for(@{$this->{Conn}}) {
 				if(vec($rout, $_->fileno, 1)) {
-					# print "CONN: $_\n";
 					$this->handle_input($_);
 				}
 			}
@@ -355,6 +354,14 @@ sub handle_input {
 	my($this, $hand) = @_;
 
 	my @lines = split "\n",$this->gulp($hand);
+
+	# is the socket closed???
+	if ($#lines == -1) {
+		# send a "quitpressed" - note that this will only be
+		# intercepted when not running in netscape. It is 
+		# very useful, however, when running eai standalone.
+		$this->{B}->{BE}->{QuitPressed} = 1;
+	}
 
 	while(@lines) {
 		if($VRML::verbose::EAI) {
@@ -755,6 +762,8 @@ sub handle_input {
 		        $hand->print("RE\n$reqid\n0\n", $retval, "\n");
 
 
+		} elsif($str =~ /^STOP$/) { # set Description
+			print "FreeWRL got a stop!!\n";
 		} else {
 			if ($str ne  "") {
 				die("Invalid EAI input: '$str'");
