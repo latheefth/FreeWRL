@@ -29,7 +29,13 @@
 #include "headers.h"
 
 #include "sounds.h"
+#ifndef __APPLE__
 #include <sys/msg.h>
+#endif
+#if defined(__APPLE__)
+#include <sys/ipc.h>
+#include <sys/wait.h>
+#endif
 
 
 void SoundEngineDestroy ();
