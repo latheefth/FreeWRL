@@ -130,7 +130,7 @@ void SoundEngineInit () {
 
 		/* if we got here, we have an error... */
 		printf("FreeWRL:SoundServer:%s: exec of %s\n",
-			sys_errlist[errno],sspath);
+			strerror,sspath);
 #ifndef __APPLE__
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);
@@ -142,7 +142,7 @@ void SoundEngineInit () {
 
 	} else if ( S_Server_PID < 0 ) {
 		printf ("FreeWRL:SoundServer %s: error starting server process",
-			sys_errlist[errno]);
+			strerror);
 #ifndef __APPLE__
 		msgctl(msq_toserver,IPC_RMID,NULL);
 		msgctl(msq_fromserver,IPC_RMID,NULL);

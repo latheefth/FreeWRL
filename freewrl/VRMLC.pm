@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.125  2003/11/26 16:31:06  crc_canada
+# First pass at threading.
+#
 # Revision 1.124  2003/11/06 14:39:28  crc_canada
 # More moving event loop to C
 #
@@ -1010,9 +1013,10 @@ get_${name}_offsets(p)
 	SV *p;
 CODE:
 	int *ptr_;
+	int xx;
 	SvGROW(p,($nf+1)*sizeof(int));
 	SvCUR_set(p,($nf+1)*sizeof(int));
-	ptr_ = (int *)SvPV(p,PL_na);
+	ptr_ = (int *)SvPV(p,xx);
 ";
 	my $p = " {
 		my \$s = '';
@@ -1292,7 +1296,6 @@ struct sNaviInfo {
 #include <glext.h>
 #endif
 
-#include "OpenGL/OpenGL.m"
 #include "CFuncs/Viewer.h"
 #include "CFuncs/OpenGL_Utils.h"
 #include "CFuncs/Collision.h"
@@ -1302,8 +1305,6 @@ struct sNaviInfo {
 #include "CFuncs/sounds.h"
 #include "CFuncs/SensInterps.h"
 
-
-D_OPENGL;
 
 /* Rearrange to take advantage of headlight when off */
 int curlight = 0;
@@ -1427,7 +1428,7 @@ char *BrowserVersion = NULL;
 char *BrowserURL = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 
-int rootNode;	// scene graph root node
+int rootNode=0;	// scene graph root node
 
 
 /*************************JAVASCRIPT*********************************/
@@ -1984,7 +1985,8 @@ render_hier(void *p, int rwhat)
 	hpdist = -1;
 
 	if (!p) {
-		fprintf(stderr, "Render_hier: arg 1 is NULL\n");
+		//fprintf(stderr, "Render_hier: arg 1 is NULL\n");
+		sleep(1);
 		return;
 	}
 
@@ -2220,30 +2222,30 @@ CODE:
 OUTPUT:
 	RETVAL
 
-#*****************************************************************************
-#
-# signal to the Perl browser that Perl action is required. 
-#
-int 
-BrowserAction()
-CODE:
-	RETVAL = BrowserAction;
-OUTPUT:
-	RETVAL
-
-#*****************************************************************************
-#
-# return the action to the Browser
-#
-void
-getAnchorBrowserAction(x)
-	char * x
-CODE:
-	BrowserAction = FALSE;
-	x = BrowserActionString;
-OUTPUT:
-	x
-
+#JAS #*****************************************************************************
+#JAS #
+#JAS # signal to the Perl browser that Perl action is required. 
+#JAS #
+#JAS int 
+#JAS BrowserAction()
+#JAS CODE:
+#JAS 	RETVAL = BrowserAction;
+#JAS OUTPUT:
+#JAS 	RETVAL
+#JAS 
+#JAS #*****************************************************************************
+#JAS #
+#JAS # return the action to the Browser
+#JAS #
+#JAS void
+#JAS getAnchorBrowserAction(x)
+#JAS 	char * x
+#JAS CODE:
+#JAS 	BrowserAction = FALSE;
+#JAS 	x = BrowserActionString;
+#JAS OUTPUT:
+#JAS 	x
+#JAS 
 
 #*****************************************************************************
 # return a C pointer to a func for the interpolator functions. Used in CRoutes
@@ -2320,6 +2322,41 @@ CODE:
 OUTPUT:
 	RETVAL
 
+int
+glGenTexture()
+	CODE:
+	{
+	//extern GLXContext cx;
+	//extern XVisualInfo *vi;
+	//extern Window *win;
+	//extern Display *dpy;
+
+	GLuint texture;
+	//static myContext = NULL;
+
+	///* this thread, the parsing thread, requires the context */
+	//if (myContext==NULL) {
+//		myContext=glXCreateContext(dpy, vi, cx, GL_FALSE);
+//		printf ("linking %d %d cx %d\n",dpy,vi,cx);
+//		printf ("contextx linked %d\n",myContext);
+//	}
+printf ("renderer, my pid is %d\n",getpid());
+	
+	printf ("renderer %s\n",glGetString(GL_RENDERER));
+	printf ("and thread is %d\n",pthread_self());
+
+	glGenTextures(1, &texture);
+
+
+	texture=0;
+
+	printf ("glGenTexture , number %d\n",texture);
+	RETVAL = texture;
+	}
+	OUTPUT:
+	RETVAL
+
+
 
 #********************************************************************************
 #
@@ -2374,38 +2411,38 @@ set_root(rn)
 CODE:
 	rootNode = rn;
 
-void
-do_set_eyehalf(eyehalf, eyehalfangle)
-	double eyehalf
-	double eyehalfangle
-CODE:
-	set_eyehalf(&Viewer, eyehalf, eyehalfangle);
-
+#JAS void
+#JAS do_set_eyehalf(eyehalf, eyehalfangle)
+#JAS 	double eyehalf
+#JAS 	double eyehalfangle
+#JAS CODE:
+#JAS 	set_eyehalf(&Viewer, eyehalf, eyehalfangle);
+#JAS 
 #JAS - two temporary fns
-void
-set_win_ptr(ptr)
-	unsigned ptr
-	CODE:
-	set_Win_Ptr(ptr);
-
-void
-set_dpy_ptr (ptr)
-	unsigned ptr
-	CODE:
-	set_Display_Ptr(ptr);
-
-void
-setStereoView()
-	CODE:
-	XEventStereo();
+#JASvoid
+#JASset_win_ptr(ptr)
+#JAS	unsigned ptr
+#JAS	CODE:
+#JAS	set_Win_Ptr(ptr);
+#JAS
+#JASvoid
+#JASset_dpy_ptr (ptr)
+#JAS	unsigned ptr
+#JAS	CODE:
+#JAS	set_Display_Ptr(ptr);
+#JAS 
+#JAS void
+#JAS setStereoView()
+#JAS 	CODE:
+#JAS 	XEventStereo();
 
 
 int
 use_keys()
 
-void
-set_viewer_type(type)
-	int type
+#JAS void
+#JAS set_viewer_type(type)
+#JAS 	int type
 
 #********************************************************************************
 
@@ -2432,11 +2469,11 @@ CODE:
 
 #********************************************************************************
 
-void
-XXEventLoop()
-CODE:
-	EventLoop();
-
+#JAS void
+#JAS XXEventLoop()
+#JAS CODE:
+#JAS 	EventLoop();
+#JAS 
 
 # save the specific FreeWRL version number from the Config files.
 void
@@ -2586,11 +2623,6 @@ ENDHERE
 ;
 	print XS join '',@xsfn;
 	print XS '
-
-BOOT:
-	I_OPENGL;
-	new_tessellation();
-	
 ';
 
 	open PM, ">VRMLFunc.pm";

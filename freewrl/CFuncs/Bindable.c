@@ -41,6 +41,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 	SV **svptr;
 	int i;
 	char *typeptr;
+	int xx;
 
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");	
@@ -62,7 +63,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 	/* now, find the ones that are ok */
 	for (i = 0; i < node->type.n; i++) {
 		// get the string pointer
-		typeptr = SvPV(svptr[i],PL_na);
+		typeptr = SvPV(svptr[i],xx);
 
 		if (strncmp(typeptr,"WALK",strlen("WALK")) == 0) {
 			Viewer.oktypes[WALK] = TRUE;
@@ -354,6 +355,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	GLint vp[10];
 	double a1;
 	char *posnstring;
+	int xx;
 
 	//printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
@@ -377,16 +379,16 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	/* is the position "compiled" yet? */
 	if (node->_change != node->_dlchange) {
 		//printf ("have to recompile position...\n");
-		posnstring = SvPV(node->position,PL_na);
-		if (sscanf (SvPV(node->position,PL_na),"%f %f %f",&node->__position.c[0],
+		posnstring = SvPV(node->position,xx);
+		if (sscanf (SvPV(node->position,xx),"%f %f %f",&node->__position.c[0],
 			&node->__position.c[1], &node->__position.c[2]) != 3) {
 			printf ("GeoViewpoint - vp:%s: invalid position string: :%s:\n",
-					SvPV(node->description,PL_na),
-					SvPV(node->position,PL_na));
+					SvPV(node->description,xx),
+					SvPV(node->position,xx));
 		}
 
 		geoSystemCompile (&node->geoSystem, &node->__geoSystem, 
-			SvPV(node->description,PL_na));
+			SvPV(node->description,xx));
 
 		node->_dlchange = node->_change;
 	}
@@ -710,7 +712,7 @@ void render_Background (struct VRML_Background *node) {
 		/* go through each of the 6 possible sides */
 
 		if(node->__textureback>0) {
-			bind_image (bckptr, (unsigned) node->__textureback, 0,0,node->__istemporaryback);
+			bind_image (bckptr, (unsigned *) &node->__textureback, 0,0,node->__istemporaryback);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,0.0,1.0); 
 			glTexCoord2d(1.0, 0.0); glVertex3d(-sc, -sc, sc);
@@ -721,7 +723,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturefront>0) {
-			bind_image (frtptr, (unsigned) node->__texturefront, 0,0,node->__istemporaryfront);
+			bind_image (frtptr, (unsigned *) &node->__texturefront, 0,0,node->__istemporaryfront);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,0.0,-1.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,-sc);
@@ -732,7 +734,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturetop>0) {
-			bind_image (topptr, (unsigned) node->__texturetop, 0,0,node->__istemporarytop);
+			bind_image (topptr, (unsigned *) &node->__texturetop, 0,0,node->__istemporarytop);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,1.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
@@ -743,7 +745,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturebottom>0) {
-			bind_image (botptr, (unsigned) node->__texturebottom, 0,0,node->__istemporarybottom);
+			bind_image (botptr, (unsigned *) &node->__texturebottom, 0,0,node->__istemporarybottom);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,-(1.0),0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,-sc,-sc);
@@ -754,7 +756,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__textureright>0) {
-			bind_image (rtptr, (unsigned) node->__textureright, 0,0,node->__istemporaryright);
+			bind_image (rtptr, (unsigned *) &node->__textureright, 0,0,node->__istemporaryright);
 			glBegin(GL_QUADS);
 			glNormal3d(1.0,0.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
@@ -765,7 +767,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__textureleft>0) {
-			bind_image (lftptr, (unsigned) node->__textureleft, 0,0,node->__istemporaryleft);
+			bind_image (lftptr, (unsigned *) &node->__textureleft, 0,0,node->__istemporaryleft);
 			glBegin(GL_QUADS);
 			glNormal3d(-1.0,0.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(-sc,sc, -sc);

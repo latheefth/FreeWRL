@@ -272,7 +272,7 @@ sub getTextFromURLs {
 # Image loading.
 #
 
-my %image_same_url = ();
+#JAS broken in threads my %image_same_url = ();
 
 
 
@@ -297,17 +297,18 @@ sub init_image {
 		goto NO_TEXTURE;
 	}
 
-        if(exists $image_same_url{$file}) {
-		# we have already seen this image
-		$f->{__texture.$name} = $image_same_url{$file};
-		return;
-	}
+        #JAS broken in threads if(exists $image_same_url{$file}) {
+	#JAS broken in threads 	# we have already seen this image
+	#JAS broken in threads 	$f->{__texture.$name} = $image_same_url{$file};
+	#JAS broken in threads 	return;
+	#JAS broken in threads }
 
 
-	$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+	#JAS $f->{__texture.$name} = VRML::VRMLFunc::glGenTexture();
+	$f->{__texture.$name} = 0;	# bind during rendering stage
 
 	# save the texture number for later
-	$image_same_url{$file} = $f->{__texture.$name};
+	#JAS broken in threads $image_same_url{$file} = $f->{__texture.$name};
 
 
 	# find out what kind of file it is...
@@ -378,7 +379,8 @@ sub init_pixel_image {
 		$f->{__x} = $1;
 		$f->{__y} = $2;
 		$f->{__istemporary} = 1;
-		$f->{__texture} = VRML::OpenGL::glGenTexture();
+		#JAS $f->{__texture} = VRML::VRMLFunc::glGenTexture();
+		$f->{__texture} = 0;
 
 		my $lgname = $ENV{LOGNAME};
 		my $tempfile_name = "/tmp/freewrl_";
@@ -411,11 +413,15 @@ sub init_movie_image {
 	my $suffix;
 	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
 
-	my $init_tex = VRML::OpenGL::glGenTexture();
-	$f->{__texture0_} = $init_tex;
-	$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
-		$file,$f->{repeatS},$f->{repeatT});
-	$f->{__locfile} = ();
+	#JAS my $init_tex = VRML::VRMLFunc::glGenTexture();
+	#JAS $f->{__texture0_} = $init_tex;
+	#JAS $f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
+	#JAS 	$file,$f->{repeatS},$f->{repeatT});
+	#JAS $f->{__locfile} = ();
+
+	$f->{__texture0_}=0;
+	$f->{__texture1_}=0;
+
 	#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
 	#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
 	return;

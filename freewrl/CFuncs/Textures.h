@@ -27,16 +27,17 @@
 #include "headers.h"
 #include "jpeglib.h"
 
-void do_texture(int depth,
-				int x,
-				int y,
-				unsigned char *ptr,
-				GLint Sgl_rep_or_clamp,
-				GLint Tgl_rep_or_clamp,
-				GLint Image);
+void do_texture(int texture_num,
+		int depth,
+		int x,
+		int y,
+		unsigned char *ptr,
+		GLint Sgl_rep_or_clamp,
+		GLint Tgl_rep_or_clamp,
+		GLint Image);
 
 void bind_image(char *filename,
-				GLuint texture_num,
+				GLuint *texture_num,
 				int repeatS,
 				int repeatT,
 				int remove);

@@ -1,6 +1,7 @@
 /* $Id$
  *
  * Copyright (C) 2002 Nicolas Coderre CRC Canada
+ * Copyright (C) 2003 John Stewart CRC Canada
  * Portions Copyright (C) 1998 Tuomas J. Lukka 1998 Bernhard Reiter 1999 John Stewart CRC Canada
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  * See the GNU Library General Public License (file COPYING in the distribution)

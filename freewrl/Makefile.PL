@@ -253,49 +253,55 @@ INST_DYNAMIC_DEP =
 		## ExtUtils::MakeMaker framework.
 
 		push(@postamble, join(
-							  "\n",
-							  qq{\# --- VRML::VRMLFunc:\n},
-							  qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExtrusion.pm},
-							  qq{\t\$(PERL) VRMLC.pm\n}
-							 ));
+				"\n",
+				qq{\# --- VRML::VRMLFunc:\n},
+				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExtrusion.pm},
+				qq{\t\$(PERL) VRMLC.pm\n},
+			 ));
 
 		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
 			push(@postamble, join(
-								  "\n",
-								  qq{\# --- Mozilla/Netscape Plugin:\n},
-								  qq{install ::},
-								  qq{\t\@cd Plugin && \$(MAKE) install\n}
-								 ));
+				  "\n",
+				  qq{\# --- Mozilla/Netscape Plugin:\n},
+				  qq{install ::},
+				  qq{\t\@cd Plugin && \$(MAKE) install\n}
+				 ));
 		}
 
 		if ($VRML::Config::vrml_config{JAVA_INST} && $VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
 			push(@postamble, join(
-								  "\n",
-								  qq{\# --- Java Archive\n},
-								  qq{install ::},
-								  qq{\t\@cd java && \$(MAKE) install\n}
-								 ));
+				  "\n",
+				  qq{\# --- Java Archive\n},
+				  qq{install ::},
+				  qq{\t\@cd java && \$(MAKE) install\n}
+				 ));
 		}
 
 		push(@postamble, join(
-							  "\n",
-							  qq{\# copy fonts, x3d, libjs.so over\n},
-							  qq{install ::},
-							  qq{\tcp -r fonts $vrmlinstdir\n},
-							  qq{\tcp -r x3d $vrmlinstdir\n},
-							  qq{\tcp JS/$jsobjdir/libjs.so $VRML::Config::vrml_config{LIBJS_INST}\n}
+				  "\n",
+				qq{\# copy fonts, x3d, libjs.so over\n},
+				qq{install ::},
+				qq{\tcp -r fonts $vrmlinstdir\n},
+				qq{\tcp -r x3d $vrmlinstdir\n},
+				qq{\tcp JS/$jsobjdir/libjs.so $VRML::Config::vrml_config{LIBJS_INST}\n},
+				qq{\# compile C front end\n},
+				qq{\t\@cd CFrontEnd && sh maker\n},
+				qq{\# install C front end\n},
+				qq{\tcp CFrontEnd/fw2init.pl "/usr/bin"\n},
+				qq{\tcp CFrontEnd/freewrl "/usr/bin"\n},
+
+				 ));
+
+		push(@postamble, join(
+				  "\n",
+				  qq{clean ::},
+				  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clean\n}
 							 ));
 
 		push(@postamble, join(
-							  "\n",
-							  qq{clean ::},
-							  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clean\n}
-							 ));
-
-		push(@postamble, join(
-							  "\n",
-							  qq{distclean :: realclean},
-							  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clobber}
+				  "\n",
+				  qq{distclean :: realclean},
+				  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clobber}
 							 ));
 
 		return join("\n", @postamble);

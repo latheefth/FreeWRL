@@ -1302,8 +1302,8 @@ ExecuteTexture(vid_stream)
   	glGenTextures(1, &latest_texture_number);
   	glBindTexture(GL_TEXTURE_2D,latest_texture_number);
   }
-
-  do_texture(3,vid_stream->h_size,vid_stream->v_size,Image, mt_repeatS,mt_repeatT,GL_LINEAR);
+printf ("MPEG_Utils, fix do_texture call\n");
+  //JASdo_texture(3,vid_stream->h_size,vid_stream->v_size,Image, mt_repeatS,mt_repeatT,GL_LINEAR);
   texture_count++;
 }
 /* Bit masks used by bit i/o operations. */

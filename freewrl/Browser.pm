@@ -28,6 +28,9 @@ See L<freewrl>.
 
 =cut
 
+require DynaLoader;
+require POSIX;
+
 require 'VRML/GLBackEnd.pm';
 require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
@@ -245,6 +248,8 @@ sub load_file_intro {
 	# save this for getworldurl calls...
 	$this->{URL} = $url;
 
+	print "load_file_intro, url $url\n";
+
 	VRML::VRMLFunc::SaveURL($url);
 
 	delete $this->{Scene};
@@ -294,88 +299,6 @@ sub load_string {
                $string = convertX3D($string);
 	}
 	VRML::Parser::parse($this->{Scene},$string);
-}
-
-
-
-
-########################################################################
-sub eventloop {
-	my($this) = @_;
-	## my $seqcnt = 0;
-	while (!$this->{BE}->quitpressed) {
-		#print "eventloop\n";
-
-		# Events from within C; do we have a replaceWorld or goto Viewpoint action?
-
-		if (VRML::VRMLFunc::BrowserAction()) {
-			my $action;
-			my $try;
-			my $url;
-			my @stgs;
-			my $string;
-
-			VRML::VRMLFunc::getAnchorBrowserAction($action); 
-
-			# split the string up, if there are more items than one. 
-			@stgs = split (" ",$action);
-			foreach $try (@stgs) {
-				($string, $url) = VRML::NodeType::getTextFromURLs($this->{Scene}, $try);
-				if (defined $string) {
-					$this->load_file_intro($url);
-				}
-			}
-		}
-
-		VRML::VRMLFunc::XXEventLoop();
-		# Skip 1st image, which may not be good
-		if ( $main::seq && $main::saving && ++$main::seqcnt ) {
-			# Too many images. Stop saving, do conversion
-			if ($main::seqcnt > $main::maximg) {
-				print "Saving off : sequence too long (max is $main::maximg)\n" ;
-				VRML::Browser::convert_raw_sequence();
-				# @main::saved = (); # Reset list of images
-				# $main::seqcnt = 1;
-				# $main::saving = 0;
-
-			} else {
-				## print " this : $this\n";
-				## print " BE   : $this->{BE}\n";
-				my $s2 = $this->{BE}->snapshot();
-				my $fn = "$main::seqtmp/$main::seqname" . 
-					sprintf("%04d",$main::seqcnt) . 
-						".$s2->[0].$s2->[1].raw" ;
-
-				# Check temp dir
-				if ( ! (-d $main::seqtmp) && ! mkdir($main::seqtmp,0755) ) {
-					print (STDERR "Can't create $main::seqtmp,",
-						   " so can't save sequence\n");
-					$main::seqcnt = 0;
-					$main::saving = 0;
-					print "Saving off : Can't save temp files\n";
-
-					# Refuse to crush files. Maybe "convert" has not
-					# finished its job. 
-				} elsif (-f $fn) {
-
-					print (STDERR "File '$fn' already exists.\n",
-						   "  Maybe previous sequence has not been converted\n".
-						   "  Maybe you should remove it by hand\n") ;
-					$main::seqcnt = 0;
-					$main::saving = 0;
-					print "Saving off : Won't crush file\n";
-
-				} elsif (open (O, ">$fn")) {
-					print O $s2->[2] ;
-					close O ;
-					push @main::saved, [$fn, $s2->[0], $s2->[1], $main::seqcnt]; 
-				} else {
-					print STDERR "Can't open '$fn' for writing\n";
-				}
-			}
-		}
-	}
-	$this->shut();
 }
 
 sub prepare {
@@ -458,16 +381,6 @@ sub replaceWorld {
 	}
 
 	$this->{Scene}->topnodes(\@newnodes);
-	##JAS delete $this->{Scene};
-	##JAS $this->{Scene} = VRML::Scene->new($this->{EV}, "from replaceWorld");
-	##JAS $this->{Scene}->set_browser($this);
-	##JAS $this->{Scene}->topnodes(\@newnodes);
-	##JAS prepare ($this);
-
-	# go through the Bindables...
-	##JAS for $n (@newnodes) {
-	##JAS 	$this->{Scene}->replaceWorld_Bindable($n);
-	##JAS }
 }
 
 sub loadURL { print "Can't do loadURL yet\n"; }
@@ -476,7 +389,7 @@ sub loadURL { print "Can't do loadURL yet\n"; }
 #createVrml common stuff
 sub create_common {
 	my ($this,$f1,$f2,$string) = @_;
-	my $bind = 0;
+	my $bind = 1; #JAS - set this to 0 to stop initial binding
 	my $ret;
 
 	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
@@ -484,14 +397,10 @@ sub create_common {
 
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
-
-	# need make_backend, so that Sensors work.
 	$scene->make_backend($this->{BE});
-
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$scene->init_events($this->{EV}, $this->{BE}, $bind);
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
-
 	$scene->dump(0) if $VRML::verbose::scenegraph;
 
 	return $ret;
@@ -511,7 +420,8 @@ sub createVrmlFromURL {
 
 	# stage 1a - get the URL....
 	$url = ($url || $file);
-	my $wurl = $this->{Scene}->get_world_url();
+	#JAS my $wurl = $this->{Scene}->get_world_url();
+	my $wurl="./";
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
 	my $t = VRML::NodeType::getTextFromURLs($this->{Scene}, $url);
@@ -529,6 +439,7 @@ sub createVrmlFromURL {
 	}
 
 	# Stage 2 - load the string in....
+	#JAS return $this->create_common($url,$wurl,$t);
 	return $this->create_common($url,$wurl,$t);
 }
 
@@ -666,11 +577,6 @@ sub NextVP {
 		print "cant find VPSub\n";
 	}
 }
-#JAS sub render_pre() { $globalBrowser->{BE}->render_pre();}
-#JAS sub render() { $globalBrowser->{BE}->render();}
-#JAS sub propagate_Perl_events() { 
-#JAS 	$globalBrowser->{EV}->propagate_events($globalBrowser->{BE}, $globalBrowser->{Scene});
-#JAS }
 
 
 sub Snapshot {
@@ -850,9 +756,12 @@ sub EAI_GetType {
 
 }
 
+sub printhere { print "here from Browser.pm\n";}
+
 # EAI_CreateVrmlFromString - parse commands, and return a string of (node-number backnode) pairs.
 sub EAI_CreateVrmlFromString {
 	my ($string) = @_;
+print "EAI_CreateVrmlFromString, string $string\n";
 
 	my $rv = createVrmlFromString ($globalBrowser,$string);
 
@@ -883,6 +792,8 @@ sub EAI_CreateVrmlFromString {
 
 sub EAI_CreateVrmlFromURL {
 	my ($string) = @_;
+print "EAI_CreateVrmlFromURL, string $string\n";
+$globalBrowser->{URL} = $string;
 
 	my $rv = createVrmlFromURL ($globalBrowser,$string, $string);
 

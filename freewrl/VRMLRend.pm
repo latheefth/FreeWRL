@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.123  2003/11/26 16:31:06  crc_canada
+# First pass at threading.
+#
 # Revision 1.122  2003/10/24 14:04:08  crc_canada
 # Fast drawing for polyreps - try1
 #
@@ -1106,19 +1109,20 @@ TextureTransform => '
 
 # Pixels and Images are all handled the same way now - the methods are identical.
 PixelTexture => '
-	unsigned char *filename = SvPV((this_->__locfile),PL_na);
+	int xx;
+	unsigned char *filename = SvPV((this_->__locfile),xx);
+	bind_image (filename,&this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 	last_bound_texture = this_->__texture;
-	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 ',
 
 ImageTexture => '
-	unsigned char *filename = SvPV((this_->__locfile),PL_na);
+	int xx;
+	unsigned char *filename = SvPV((this_->__locfile),xx);
 
+	/* and, bind to the texture */
+	bind_image (filename,&this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 	/* save the reference globally */
 	last_bound_texture = this_->__texture;
-	
-	/* and, bind to the texture */
-	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 ',
 
 ######
@@ -1260,7 +1264,8 @@ AudioClip => '
 	// register an audioclip
 	float pitch,stime, sttime;
 	int loop;
-	unsigned char *filename = SvPV(this_->__localFileName,PL_na);
+	int xx;
+	unsigned char *filename = SvPV(this_->__localFileName,xx);
 
 	// tell Sound that this is an audioclip
 	sound_from_audioclip = TRUE;
@@ -2732,11 +2737,12 @@ GeoElevationGrid => q~
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
 	       int change;
+		int xx;
 
 		float xSpacing = 0.0;	/* GeoElevationGrid uses strings here */
 		float zSpacing = 0.0;	/* GeoElevationGrid uses strings here */
-		sscanf (SvPV (this_->xSpacing,PL_na),"%f",&xSpacing);
-		sscanf (SvPV(this_->zSpacing,PL_na),"%f",&zSpacing);
+		sscanf (SvPV (this_->xSpacing,xx),"%f",&xSpacing);
+		sscanf (SvPV(this_->zSpacing,xx),"%f",&zSpacing);
 
 
 	       /*save changed state.*/

@@ -1,3 +1,10 @@
+/*******************************************************************
+ Copyright (C) 2003 John Stewart, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
+
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
  	 
@@ -268,5 +275,16 @@ void render_polyrep(void *node,
 extern int CRoutesExtra;		// let EAI see param of routing table - Listener data.
 
 unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
+
+//printf is defined by perl; causes segfault in threaded freewrl
+#ifdef printf
+#undef printf
+#endif
+
+
+/* Producer/Consumer types */
+#define FROMSTRING 	1
+#define	FROMURL		2
+
 
 #endif /* __HEADERS_H__ */

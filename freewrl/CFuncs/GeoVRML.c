@@ -61,6 +61,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 	int numStrings;
 	char *cptr;
 	int tmp, tz, sl;
+	int xx;
 
 	*__geoSystem = GEO_GD + GEO_WE;
 
@@ -69,7 +70,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 
 	/* Spacial Reference Frame */
 	if (numStrings >=1) {
-		cptr = SvPV(geoSystem->p[0],PL_na);
+		cptr = SvPV(geoSystem->p[0],xx);
 		if (strncmp("GD",cptr,2) == 0) *__geoSystem = GEO_GD;
 		else if (strncmp("GC",cptr,2) == 0) *__geoSystem = GEO_GC;
 		else if (strncmp("UTM",cptr,3) == 0) *__geoSystem = GEO_UTM;
@@ -83,7 +84,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 	if (*__geoSystem == GEO_GD) {
 		/* GEO_GD geoids or ellipsoid */
 		if (numStrings >= 2) {
-			parse_ellipsoid (__geoSystem, SvPV(geoSystem->p[1],PL_na), description);
+			parse_ellipsoid (__geoSystem, SvPV(geoSystem->p[1],xx), description);
 		} else {
 			*__geoSystem += GEO_WE;
 		}
@@ -106,12 +107,13 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 
 
 void render_GeoOrigin (struct VRML_GeoOrigin *node) {
+	int xx;
         /* is the position "compiled" yet? */
         if (node->_change != node->_dlchange) {
-                if (sscanf (SvPV(node->geoCoords,PL_na),"%lf %lf %lf",&GeoOrig[0],
+                if (sscanf (SvPV(node->geoCoords,xx),"%lf %lf %lf",&GeoOrig[0],
                         &GeoOrig[1], &GeoOrig[2]) != 3) {
                         printf ("GeoOrigin: invalid geoCoords string: :%s:\n",
-                                        SvPV(node->geoCoords,PL_na));
+                                        SvPV(node->geoCoords,xx));
                 }
 
                 geoSystemCompile (&node->geoSystem, &GeoSys,"GeoOrigin");
@@ -124,14 +126,15 @@ void render_GeoOrigin (struct VRML_GeoOrigin *node) {
 }
 
 void render_GeoLocation (struct VRML_GeoLocation *node) {
+	int xx;
 	GLdouble modelMatrix[16];
 
         /* is the position "compiled" yet? */
         if (node->_change != node->_dlchange) {
-                if (sscanf (SvPV(node->geoCoords,PL_na),"%f %f %f",&node->__geoCoords.c[0],
+                if (sscanf (SvPV(node->geoCoords,xx),"%f %f %f",&node->__geoCoords.c[0],
                         &node->__geoCoords.c[1], &node->__geoCoords.c[2]) != 3) {
                         printf ("GeoLocation: invalid geoCoords string: :%s:\n",
-                                        SvPV(node->geoCoords,PL_na));
+                                        SvPV(node->geoCoords,xx));
                 }
 
                 geoSystemCompile (&node->geoSystem, &node->__geoSystem,"GeoLocation");

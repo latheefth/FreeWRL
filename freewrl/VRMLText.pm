@@ -50,8 +50,9 @@
 		*/
 
 		struct VRML_FontStyle *fsp = $f(fontStyle);
-		unsigned char *lang = SvPV((fsp->language),PL_na);
-		unsigned char *style = SvPV((fsp->style),PL_na);
+		int xx;
+		unsigned char *lang = SvPV((fsp->language),xx);
+		unsigned char *style = SvPV((fsp->style),xx);
 		struct Multi_String family = fsp->family;	 
 		struct Multi_String justify = fsp->justify;
 		int tmp; int tx;
@@ -85,7 +86,7 @@
 
 		svptr = family.p;
 		for (tmp = 0; tmp < family.n; tmp++) {
-			stmp = SvPV(svptr[tmp],PL_na);
+			stmp = SvPV(svptr[tmp],xx);
 			if (strlen(stmp) == 0) {fsparams |=0x20; } 
 			else if (!strcmp(stmp,"SERIF")) { fsparams |= 0x20;}
 			else if(!strcmp(stmp,"SANS")) { fsparams |= 0x40;}
@@ -104,7 +105,7 @@
 		}
 		
 		for (tmp = 0; tmp < tx; tmp++) {
-			stmp = SvPV(svptr[tmp],PL_na);
+			stmp = SvPV(svptr[tmp],xx);
 			if (strlen(stmp) == 0) {
 				if (tmp == 0) {fsparams |= 0x400;
 				} else {fsparams |= 0x2000;

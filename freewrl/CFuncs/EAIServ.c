@@ -829,6 +829,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	SV **bM;
 	int iM;
 	int lM;
+	int xx;
 
 
 	memptr = 0;  /* get around a compiler warning */
@@ -867,7 +868,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 					printf ("can not allocate memory for PROTO Interface decls\n");
 					return 0;
 				}
-				strcpy (memptr, SvPV(data,PL_na));
+				strcpy (memptr, SvPV(data,xx));
 				break; 
 			}
 		case SFROTATION:
@@ -968,6 +969,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	struct Multi_String *MSptr;	/* MFString pointer */
 	struct Multi_Node *MNptr;	/* MFNode pointer */
 	char *ptr;			/* used for building up return string */
+	int xx;
 
 	switch (type) {
 		case EAI_SFBOOL: 	{
@@ -1038,11 +1040,11 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MSptr).n; row++) {
-        	        	// printf ("String %d is %s\n",row,SvPV((*MSptr).p[row],PL_na));
-				if (strlen (SvPV((*MSptr).p[row],PL_na)) == 0) {
+        	        	// printf ("String %d is %s\n",row,SvPV((*MSptr).p[row],xx));
+				if (strlen (SvPV((*MSptr).p[row],xx)) == 0) {
 					sprintf (ptr, "\"XyZZtitndi\" "); // encode junk for Java side.
 				} else {
-					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],PL_na));
+					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],xx));
 				}
 				// printf ("buf now is %s\n",buf);
 				ptr = buf + strlen (buf);

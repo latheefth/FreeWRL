@@ -1093,16 +1093,17 @@ sub init_events {
 	my ($this, $eventmodel, $backend, $bind) = @_;
 	my @e;
 
-	print "VRML::Scene::init_events\n" if $VRML::verbose::scene;
+	print "VRML::Scene::init_events this $this ev $eventmodel be $backend bind $bind\n"
+		if $VRML::verbose::scene;
 
-	#JAS - see put_events comment below $this->iterate_nodes_all(sub { push @e, $_[0]->initialize($this); });
 	$this->iterate_nodes_all(sub {$_[0]->initialize($this);});
 
 	if ($bind) {
 		for (keys %{$this->{Bindable}}) {
 			# remember, Viewpoints and GeoViewpoints are treated the same.
 			if ($_ ne "GeoViewpoint") {
-				print "\tINIT Bindable '$_'\n" if $VRML::verbose::scene;
+				print "\tINIT Bindable '$_'\n" 
+					if $VRML::verbose::scene;
 				$eventmodel->send_set_bind_to($this->{Bindable}{$_}, 1);
 			}
 		}

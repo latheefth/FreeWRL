@@ -31,8 +31,8 @@ Cursor sensorc;
 Cursor curcursor;
 #endif
 
-Display *dpy;
-Window win;
+extern Display *dpy;
+extern Window win;
 
 extern int display_status;		// toggle status bar - defined in VRMLC.pm
 extern int be_collision;		// toggle collision detection - defined in VRMLC.pm
@@ -43,6 +43,8 @@ extern struct pt hp;			// in VRMLC.pm
 extern void *hypersensitive; 		// in VRMLC.pm
 extern int hyperhit;			// in VRMLC.pm
 extern struct pt r1, r2;		// in VRMLC.pm
+extern BrowserAction;			// in VRMLC.pm
+extern char *BrowserActionString;	// in VRMLC.pm
 
 
 
@@ -98,24 +100,11 @@ void setup_projection(int pick, int x, int y);
 void glPrintError(char *str);
 void handle_Xevents(void);
 void XEventStereo(void);
-void set_Display_Ptr(unsigned ddd);
-void set_Win_Ptr(unsigned ddd);
-void EventLoop(void);
 void handle_Xevents(void);
 void EventLoop(void);
 int  rayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(int COS,int ev, int status);
-
-/* temporary until most of FreeWRL is within C. Copies Display from OpenGL.xs to here. */
-void set_Display_Ptr(unsigned ddd) { 
-dpy = (Display *)ddd; printf ("dpy in XEvents is %d\n",dpy); 
-                arrowc = XCreateFontCursor (dpy, XC_left_ptr);
-                sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
-
-
-}
-void set_Win_Ptr(unsigned ddd) { win = (Window *)ddd; printf ("win in XEvents is %d\n",win); }
 
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
@@ -149,7 +138,6 @@ void EventLoop() {
 			usleep(waittime.tv_usec);
 		}
 	}
-
 	if (loop_count == 25) {
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		update_status(); // tell status bar to refresh, if it is displayed 
@@ -159,6 +147,9 @@ void EventLoop() {
 		loop_count++;
 	}
 
+	/* BrowserAction required? eg, anchors, etc */
+	if (BrowserAction) {puts ("BrowserAction required, command:");
+			puts (BrowserActionString);}
 
 	/* Handle X events */
 	handle_Xevents();
@@ -238,7 +229,6 @@ void EventLoop() {
 
 
 	} 
-		
 
 	/* handle ROUTES */
 	propagate_events();
@@ -259,6 +249,7 @@ void handle_Xevents() {
 	char buf[10];
 	KeySym ks;
 	int count;
+
 	while (XPending(dpy)) {
 
 		XNextEvent(dpy,&event);
@@ -515,7 +506,7 @@ void do_kp(char kp, int type) {
 			case 'h': { toggle_headlight(); break;}
 			case '/': { print_viewer(); break; }
 			case '.': { display_status = !display_status; break; }
-			case 'q': { printf ("check to see if we are netscaped \n");
+			case 'q': { puts ("check to see if we are netscaped \n");
 					shutdown_EAI();
 					exit(0);
 					break;
@@ -553,7 +544,7 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	struct VRML_Box *p;
 	void (*myp)(unsigned *);
 
-	printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);
+	//printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);
 	if (strncmp("TouchSensor",type,10) == 0) { myp =  do_TouchSensor;
 	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = do_GeoTouchSensor;
 	} else if (strncmp("PlaneSensor",type,10) == 0) { myp = do_PlaneSensor;

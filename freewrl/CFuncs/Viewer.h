@@ -1,3 +1,11 @@
+/*******************************************************************
+ Copyright (C) 2003 John Stewart, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
+
+
 #ifndef __VIEWER_H_
 #define __VIEWER_H_
 
@@ -171,8 +179,7 @@ int
 use_keys(void);
 
 void
-set_eyehalf(VRML_Viewer *viewer,
-			const double eyehalf,
+set_eyehalf( const double eyehalf,
 			const double eyehalfangle);
 
 void

@@ -487,6 +487,7 @@ void setECMAtype (int num) {
 /****************************************************************/
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	/* unsigned int newptr; */
+	int xx;
 	int oldlen, newlen;
 	/* char *cptr; */
 	/* void *newmal; */
@@ -544,7 +545,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 	for (i = 0; i < newlen; i++) {
 		// get the old string pointer
-		OldvalStr = SvPV(svptr[i],PL_na);
+		OldvalStr = SvPV(svptr[i],xx);
 		//printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr));
 
 		// get the new string pointer
@@ -589,10 +590,10 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 	int num_removed;
 	int counter;
 
-	if (CRVerbose) {
+//JAS	if (CRVerbose) {
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
 		printf ("getMFNodetype, parent %d has %d nodes currently\n",par,par->n); 
-	}
+//JAS	}
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
