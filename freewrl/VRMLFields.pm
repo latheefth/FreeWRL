@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.19  2002/06/21 19:51:54  crc_canada
+# Comma handling in number strings is much better now; previous code would
+# not handle commas when preceeded by a space.
+#
 # Revision 1.18  2002/06/17 16:39:19  ayla
 #
 # Fixed VRML::DEF copy problem in package VRML::Field.
@@ -213,8 +217,7 @@ VRML::Error->import;
 sub parse {
 	my($type,$p) = @_;
 
-	$_[2] =~ /\G\s*($Float)\s+($Float)\s+($Float)/ogsc
-	    or $_[2] =~ /\G\s*($Float),\s+($Float),\s+($Float)/ogsc 
+	$_[2] =~ /\G\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)/ogsc
 	    or parsefail($_[2],"Didn't match SFColor");
 
 	return [$1,$2,$3];
@@ -336,8 +339,7 @@ VRML::Error->import();
 sub parse {
 	my($type,$p) = @_;
 
-	$_[2] =~ /\G\s*($Float)\s+($Float)/ogsc
-	    or $_[2] =~ /\G\s*($Float),\s+($Float)/ogsc
+	$_[2] =~ /\G\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)/ogsc
 	    or parsefail($_[2],"didn't match SFVec2f");
 	return [$1,$2];
 }
@@ -385,14 +387,9 @@ VRML::Error->import();
 sub parse {
 	my($type,$p) = @_;
 
-	# first, look for 4 floats, NO COMMAS.
-	my $count=($_[2] =~ /\G\s*($Float)\s+($Float)\s+($Float)\s+($Float)/ogsc );
-
-	# XXX - Verify second, did not parse, maybe the user put commas in?
-	if (!$count) {
-	    $_[2] =~ /\G\s*($Float),\s+($Float),\s+($Float),\s+($Float)/ogsc 
+	# first, look for 4 floats, can have commas
+	$_[2] =~ /\G\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)/ogsc
 		or VRML::Error::parsefail($_[2],"not proper rotation");
-	}
 	return [$1,$2,$3,$4];
 }
 
