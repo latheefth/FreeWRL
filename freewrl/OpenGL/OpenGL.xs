@@ -472,7 +472,6 @@ glupPickMatrix(x,y,width,height,vp1,vp2,vp3,vp4)
 		gluPickMatrix(x,y,width,height,vp);
 	}
 
-
 void
 glPolygonOffsetEXT(factor,bias)
 	GLfloat factor
@@ -487,8 +486,6 @@ glPolygonOffsetEXT(factor,bias)
 		#endif
 */
 	}
-
-
 
 void
 glPolygonMode(face,mode)
@@ -669,7 +666,6 @@ glSelectBuffer(size,buffer)
 	   glSelectBuffer(size,(GLuint *)buffer);
 	}
 
-# We have scanned up to here for unused functions. JAS.
 
 void
 gluPerspective(fovy,aspect,zNear,zFar)
@@ -678,171 +674,126 @@ gluPerspective(fovy,aspect,zNear,zFar)
 	GLdouble	zNear
 	GLdouble	zFar
 
-GLint
-gluProject(objx,objy,objz,modelMatrix,projMatrix,viewport,winx,winy,winz)
-	GLdouble	objx
-	GLdouble	objy
-	GLdouble	objz
-	char *	modelMatrix
-	char *	projMatrix
-	char *	viewport
-	char *	winx
-	char *	winy
-	char *	winz
-	CODE:
-	{
-	   gluProject(objx,objy,objz,(GLdouble *)modelMatrix,(GLdouble *)projMatrix,(GLint *)viewport,(GLdouble *)winx,(GLdouble *)winy,(GLdouble *)winz);
-	}
+# We have scanned up to here for unused functions. JAS.
 
-GLint
-gluUnProject(winx,winy,winz,modelMatrix,projMatrix,viewport,objx,objy,objz)
-	GLdouble	winx
-	GLdouble	winy
-	GLdouble	winz
-	char *	modelMatrix
-	char *	projMatrix
-	char *	viewport
-	char *	objx
-	char *	objy
-	char *	objz
-	CODE:
-	{
-	   gluUnProject(winx,winy,winz,(GLdouble *)modelMatrix,(GLdouble *)projMatrix,(GLint *)viewport,(GLdouble *)objx,(GLdouble *)objy,(GLdouble *)objz);
-	}
+#GLint
+#gluProject(objx,objy,objz,modelMatrix,projMatrix,viewport,winx,winy,winz)
+#	GLdouble	objx
+#	GLdouble	objy
+#	GLdouble	objz
+#	char *	modelMatrix
+#	char *	projMatrix
+#	char *	viewport
+#	char *	winx
+#	char *	winy
+#	char *	winz
+#	CODE:
+#	{
+#	   gluProject(objx,objy,objz,(GLdouble *)modelMatrix,(GLdouble *)projMatrix,(GLint *)viewport,(GLdouble *)winx,(GLdouble *)winy,(GLdouble *)winz);
+#	}
+#
+#GLint
+#gluUnProject(winx,winy,winz,modelMatrix,projMatrix,viewport,objx,objy,objz)
+#	GLdouble	winx
+#	GLdouble	winy
+#	GLdouble	winz
+#	char *	modelMatrix
+#	char *	projMatrix
+#	char *	viewport
+#	char *	objx
+#	char *	objy
+#	char *	objz
+#	CODE:
+#	{
+#	   gluUnProject(winx,winy,winz,(GLdouble *)modelMatrix,(GLdouble *)projMatrix,(GLint *)viewport,(GLdouble *)objx,(GLdouble *)objy,(GLdouble *)objz);
+#	}
+#
+#const GLubyte*
+#gluErrorString(errorCode)
+#	GLenum	errorCode
+#
+#GLint
+#gluScaleImage(format,widthin,heightin,typein,datain,widthout,heightout,typeout,dataout)
+#	GLenum	format
+#	GLint	widthin
+#	GLint	heightin
+#	GLenum	typein
+#	char *	datain
+#	GLint	widthout
+#	GLint	heightout
+#	GLenum	typeout
+#	char *	dataout
+#	CODE:
+#	{
+#	   gluScaleImage(format,widthin,heightin,typein,(void *)datain,widthout,heightout,typeout,(void *)dataout);
+#	}
 
-const GLubyte*
-gluErrorString(errorCode)
-	GLenum	errorCode
-
-GLint
-gluScaleImage(format,widthin,heightin,typein,datain,widthout,heightout,typeout,dataout)
-	GLenum	format
-	GLint	widthin
-	GLint	heightin
-	GLenum	typein
-	char *	datain
-	GLint	widthout
-	GLint	heightout
-	GLenum	typeout
-	char *	dataout
-	CODE:
-	{
-	   gluScaleImage(format,widthin,heightin,typein,(void *)datain,widthout,heightout,typeout,(void *)dataout);
-	}
-
-GLint
-gluBuild1DMipmaps(target,components,width,format,type,data)
-	GLenum	target
-	GLint	components
-	GLint	width
-	GLenum	format
-	GLenum	type
-	char *	data
-	CODE:
-	{
-	   gluBuild1DMipmaps(target,components,width,format,type,(void *)data);
-	}
-
-GLint
-gluBuild2DMipmaps(target,components,width,height,format,type,data)
-	GLenum	target
-	GLint	components
-	GLint	width
-	GLint	height
-	GLenum	format
-	GLenum	type
-	char *	data
-	CODE:
-	{
-	   gluBuild2DMipmaps(target,components,width,height,format,type,(void *)data);
-	}
-
-GLUquadricObj*
-gluNewQuadric()
-
-void
-gluQuadricCallback(qobj,which,fn)
-	char *	qobj
-	GLenum	which
-	char *	fn
-	CODE:
-	{
-	   gluQuadricCallback((GLUquadricObj *)qobj,which,(CALLBACK *)fn);
-	}
-
-GLUnurbsObj*
-gluNewNurbsRenderer()
-
-GLUtriangulatorObj*
-gluNewTess()
-
-void
-gluTessCallback(tobj,which,fn)
-	char *	tobj
-	GLenum	which
-	char *	fn
-	CODE:
-	{
-	   gluTessCallback((GLUtriangulatorObj *)tobj,which,(CALLBACK *)fn);
-	}
-
-void
-gluDeleteTess(tobj)
-	char *	tobj
-	CODE:
-	{
-	   gluDeleteTess((GLUtriangulatorObj *)tobj);
-	}
-
-void
-gluBeginPolygon(tobj)
-	char *	tobj
-	CODE:
-	{
-	   gluBeginPolygon((GLUtriangulatorObj *)tobj);
-	}
-
-void
-gluEndPolygon(tobj)
-	char *	tobj
-	CODE:
-	{
-	   gluEndPolygon((GLUtriangulatorObj *)tobj);
-	}
-
-void
-gluNextContour(tobj,type)
-	char *	tobj
-	GLenum	type
-	CODE:
-	{
-	   gluNextContour((GLUtriangulatorObj *)tobj,type);
-	}
-
-void
-gluTessVertex(tobj,v,data)
-	char *	tobj
-	char *	v
-	char *	data
-	CODE:
-	{
-	   gluTessVertex((GLUtriangulatorObj *)tobj,(GLdouble *)v,(void *)data);
-	}
-
-const GLubyte*
-gluGetString(name)
-	GLenum	name
-
-XVisualInfo*
-glXChooseVisual(dpy,screen,attribList)
-	char *	dpy
-	int	screen
-	char *	attribList
-	CODE:
-	{
-	   glXChooseVisual((Display *)dpy,screen,(int *)attribList);
-	}
-
+#GLint
+#gluBuild1DMipmaps(target,components,width,format,type,data)
+#	GLenum	target
+#	GLint	components
+#	GLint	width
+#	GLenum	format
+#	GLenum	type
+#	char *	data
+#	CODE:
+#	{
+#	   gluBuild1DMipmaps(target,components,width,format,type,(void *)data);
+#	}
+#
+#GLint
+#gluBuild2DMipmaps(target,components,width,height,format,type,data)
+#	GLenum	target
+#	GLint	components
+#	GLint	width
+#	GLint	height
+#	GLenum	format
+#	GLenum	type
+#	char *	data
+#	CODE:
+#	{
+#	   gluBuild2DMipmaps(target,components,width,height,format,type,(void *)data);
+#	}
+#
+#void
+#gluBeginPolygon(tobj)
+#	char *	tobj
+#	CODE:
+#	{
+#	   gluBeginPolygon((GLUtriangulatorObj *)tobj);
+#	}
+#
+#void
+#gluEndPolygon(tobj)
+#	char *	tobj
+#	CODE:
+#	{
+#	   gluEndPolygon((GLUtriangulatorObj *)tobj);
+#	}
+#
+#void
+#gluNextContour(tobj,type)
+#	char *	tobj
+#	GLenum	type
+#	CODE:
+#	{
+#	   gluNextContour((GLUtriangulatorObj *)tobj,type);
+#	}
+#
+#void
+#gluTessVertex(tobj,v,data)
+#	char *	tobj
+#	char *	v
+#	char *	data
+#	CODE:
+#	{
+#	   gluTessVertex((GLUtriangulatorObj *)tobj,(GLdouble *)v,(void *)data);
+#	}
+#
+#const GLubyte*
+#gluGetString(name)
+#	GLenum	name
+#
 void
 glXDestroyContext()
 	CODE:
@@ -859,94 +810,6 @@ glXDestroyContext()
 	     glXDestroyContext((Display *)dpy,cx);
 	  }
 	}
-
-Bool
-glXMakeCurrent(dpy,drawable,ctx)
-	char *	dpy
-	GLXDrawable	drawable
-	GLXContext	ctx
-	CODE:
-	{
-	   glXMakeCurrent((Display *)dpy,drawable,ctx);
-	}
-
-GLXPixmap
-glXCreateGLXPixmap(dpy,visual,pixmap)
-	char *	dpy
-	char *	visual
-	Pixmap	pixmap
-	CODE:
-	{
-	   glXCreateGLXPixmap((Display *)dpy,(XVisualInfo *)visual,pixmap);
-	}
-
-void
-glXDestroyGLXPixmap(dpy,pixmap)
-	char *	dpy
-	GLXPixmap	pixmap
-	CODE:
-	{
-	   glXDestroyGLXPixmap((Display *)dpy,pixmap);
-	}
-
-Bool
-glXQueryExtension(dpy,errorb,event)
-	char *	dpy
-	char *	errorb
-	char *	event
-	CODE:
-	{
-	   glXQueryExtension((Display *)dpy,(int *)errorb,(int *)event);
-	}
-
-Bool
-glXQueryVersion(dpy,maj,min)
-	char *	dpy
-	char *	maj
-	char *	min
-	CODE:
-	{
-	   glXQueryVersion((Display *)dpy,(int *)maj,(int *)min);
-	}
-
-Bool
-glXIsDirect(dpy,ctx)
-	char *	dpy
-	GLXContext	ctx
-	CODE:
-	{
-	   glXIsDirect((Display *)dpy,ctx);
-	}
-
-int
-glXGetConfig(dpy,visual,attrib,value)
-	char *	dpy
-	char *	visual
-	int	attrib
-	char *	value
-	CODE:
-	{
-	   glXGetConfig((Display *)dpy,(XVisualInfo *)visual,attrib,(int *)value);
-	}
-
-GLXContext
-glXGetCurrentContext()
-
-GLXDrawable
-glXGetCurrentDrawable()
-
-void
-glXWaitGL()
-
-void
-glXWaitX()
-
-void
-glXUseXFont(font,first,count,list)
-	Font	font
-	int	first
-	int	count
-	int	list
 
 BOOT:
  {
