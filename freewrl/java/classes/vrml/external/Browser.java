@@ -20,6 +20,7 @@ import vrml.external.FreeWRLEAI.EAIinThread;
 import vrml.external.FreeWRLEAI.EAIAsyncThread;
 import vrml.external.exception.InvalidNodeException;
 import vrml.external.exception.InvalidVrmlException;
+import vrml.external.BrowserGlobals;
 
 public class Browser implements BrowserInterface
 
@@ -44,24 +45,6 @@ public class Browser implements BrowserInterface
 
     private String              reply = "";
 
-    
-    // Events. EVno is the "highest +1" registered event number...
-    // EVarray corresponds to the events returned by FreeWRL  to our
-    // type, EVtype is the type as registered.
-    
-    public static int	EVno = 0;
-    public static int	EVarray [] = new int[256];
-    public static int	EVtype [] = new int[256];
-    public static boolean   EVshortreply [] = new boolean[256];
-    public static Object EVObject[] = new Object[256];
-    public static EventOutObserver EVObserver[] = new EventOutObserver[256];
-    
-    // The FreeWRL browser sends us changes to variables if/when they
-    // are updated. We tell the FreeWRL viewer what variables to look at
-    // by giving it a register listener command. The EAIinThread thread
-    // will send responses to the getVRMLReply procedure (below), or, if
-    // it receives an event, will send the result to the RL_Async thread...
-    
     static EAIAsyncThread        RL_Async;
     
     // Query Number as sent to the FreeWRL Browser.
@@ -75,34 +58,35 @@ public class Browser implements BrowserInterface
     // Interface methods.
     public int get_Browser_EVtype (int event)
       {
-	// System.out.println ("get_Browser_EVtype is returning " + EVtype[event]);
-        return EVtype[event];
+	System.out.println ("get_Browser_EVtype is returning " + BrowserGlobals.EVtype[event] + 
+		" for event " + event);
+        return BrowserGlobals.EVtype[event];
       }
 
     public EventOutObserver get_Browser_EVObserver (int eventno)
       {
-	// System.out.println ("get_Browser_EVObserver is returning " +  EVObserver[eventno]);
-        return EVObserver[eventno];
+	// System.out.println ("get_Browser_EVObserver is returning " +  BrowserGlobals.EVObserver[eventno]);
+        return BrowserGlobals.EVObserver[eventno];
       }
 
     public boolean get_Browser_EV_short_reply (int event)
       {
 	int EVcounter;
-        for (EVcounter=0; EVcounter<Browser.EVno; EVcounter++) {
-          if (EVarray[EVcounter] == event) {
+        for (EVcounter=0; EVcounter<BrowserGlobals.EVno; EVcounter++) {
+          if (BrowserGlobals.EVarray[EVcounter] == event) {
             break;
           }
         }
-	// System.out.println ("get_Browser_EV_short_reply is returning " + EVshortreply[EVcounter]);
-        return EVshortreply[EVcounter];
+	// System.out.println ("get_Browser_EV_short_reply is returning " + BrowserGlobals.EVshortreply[EVcounter]);
+        return BrowserGlobals.EVshortreply[EVcounter];
 
       }
 
     public void Browser_RL_Async_send (String EVentreply, int eventno) 
       {
         int EVcounter;
-        for (EVcounter=0; EVcounter<Browser.EVno; EVcounter++) {
-          if (Browser.EVarray[EVcounter] == eventno) {
+        for (EVcounter=0; EVcounter<BrowserGlobals.EVno; EVcounter++) {
+          if (BrowserGlobals.EVarray[EVcounter] == eventno) {
             break;
           }
         }
@@ -485,11 +469,10 @@ public class Browser implements BrowserInterface
          EAIoutSender.send ("" + queryno + "\nRL " + outNode + 
  		" " + command + " " + queryno + "\n");
  
-         EVarray [EVno] =  queryno;
-         EVtype [EVno] = EventType;     
-         EVObject[EVno] = userData;
-         EVObserver[EVno] = f;
-
+         BrowserGlobals.EVarray [BrowserGlobals.EVno] =  queryno;
+         BrowserGlobals.EVtype [BrowserGlobals.EVno] = EventType;     
+         BrowserGlobals.EVObject[BrowserGlobals.EVno] = userData;
+         BrowserGlobals.EVObserver[BrowserGlobals.EVno] = f;
 	 // Is this a short, consise answer type? 
 	 // (see field/FieldTypes.java for more info)
 
@@ -510,14 +493,14 @@ public class Browser implements BrowserInterface
 		case 17:
 		case 18:
 		case 19:
-			EVshortreply[EVno] = true;
+			BrowserGlobals.EVshortreply[BrowserGlobals.EVno] = true;
 			break;
 		default:
-			EVshortreply[EVno] = false;
+			BrowserGlobals.EVshortreply[BrowserGlobals.EVno] = false;
 	 } 
 
 
-         EVno += 1;
+         BrowserGlobals.EVno += 1;
        
          getVRMLreply(queryno); 
          queryno += 1;
