@@ -36,7 +36,7 @@ Tests		      | status	      | comments
  20.wrl			ok		
  20.mountains.wrl	ok ?		If you have hardware having alpha blending you should not see the box (only the 6 faces mountain images).
  21.wrl			ok ?		Is this ('weird') result expected ?
- 22.wrl			Buggy		The 'finger' rotation is eratic
+ 22.wrl			ok
  23.wrl			ok		
  24.wrl			ok		
  25.wrl			ok		

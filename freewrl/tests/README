@@ -48,13 +48,13 @@ Notes:
 
 18.wrl:	different viewpoints. hit the "v" key to change.
 
-19.wrl:	A Simple "tinman" avatar. a
+19.wrl:	A Simple "tinman" avatar. 
 
 20.wrl:	A cone with a bookcase texture superimposed over it.
 
 21.wrl: A bookcase. 
 
-22.wrl: A finger. click on any joint. 0.22 - ROTATIONS NOT CORRECT
+22.wrl: A finger. click on any joint. 
 
 23.wrl: 
 
@@ -114,7 +114,7 @@ Notes:
 
 47.wrl: javascript bouncing ball test.
 
-48.wrl: PlaneSensor problem.
+48.wrl: PlaneSensor. Drag the buttons on the cube...
 
 Synth:
 	A 3D representation of a music synthesizer. Uses other programs
