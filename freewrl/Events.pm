@@ -223,6 +223,7 @@ sub findDEFwithinScript {
 
 	# did we find a script?
 	if ($root->{TypeName} =~/^__script__/) {
+		#print "	found a script\n";
 		my $fieldname;
 		foreach $fieldname (keys %{$root->{Fields}}) {
 			if (ref $root->{Fields}{$fieldname} eq "VRML::DEF") {
@@ -250,28 +251,35 @@ sub findDEFwithinScript {
 					my $outoffset;
 					foreach $subfield (keys %{$tmp->{Fields}}) {
 						#print "$fieldname has $subfield as a field\n";
-						$outoffset = VRML::VRMLFunc::paramIndex ("$fieldname.$subfield",
+
+						# we care only about the fields; not whether they are
+						# only EventIns OR EventOuts.
+						if ($tmp->{Type}{FieldKinds}{$subfield} eq "exposedField") {
+						    # print "lets worry about this one $subfield\n";
+
+						    $outoffset = VRML::VRMLFunc::paramIndex ("$fieldname.$subfield",
 							$tmp->{Type}{FieldTypes}{$subfield});
 
-						#print "offset $outoffset fieldtype ",
-						#	$tmp->{Type}{FieldTypes}{$subfield},"\n";
+						    # print "offset $outoffset fieldtype ",
+						    # 	$tmp->{Type}{FieldTypes}{$subfield},"\n";
 
 
-						my $datalen=VRML::VRMLFunc::getClen(
-       				                 "VRML::Field::$tmp->{Type}{FieldTypes}{$subfield}"->clength($subfield));
+						    my $datalen=VRML::VRMLFunc::getClen(
+       				                     "VRML::Field::$tmp->{Type}{FieldTypes}{$subfield}"->clength($subfield));
 
-						#print "field length $datalen\n";
+						    # print "field length $datalen\n";
 
-						# now get the fields in C where to put this.
-						my $inptr = $nodetofind->{BackNode}{CNode};
-						my $inoffset = $VRML::CNodes{$nodetofind->{TypeName}}{Offs}{$subfield};
+						    # now get the fields in C where to put this.
+						    my $inptr = $nodetofind->{BackNode}{CNode};
+						    my $inoffset = $VRML::CNodes{$nodetofind->{TypeName}}{Offs}{$subfield};
 
-						# add a route from the script to the C node
-						VRML::VRMLFunc::do_CRoutes_Register(
+						    # add a route from the script to the C node
+						    VRML::VRMLFunc::do_CRoutes_Register(
 								$scenenum, $outoffset,
 								$inptr, $inoffset, 
 								$datalen,
 								0, $scrpt);
+						}
 					}
 
 
