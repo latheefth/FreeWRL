@@ -6,14 +6,15 @@ January 12, 2002 Jochen Hoenicke
 This was originally started by Tuomas Lukka.  Jochen did a lot of
 changes and currently maintains the SAI code.
 
-I have made the example work (as of 0.27) and have added an example
-(and made it work) from Jeff Dubrule <igor@pobox.com>
+I (John Stewart?) have made the example work (as of 0.27) and have added
+an example (and made it work) from Jeff Dubrule <igor@pobox.com>
 
-Jochen broke the SAIClick example :) but made a simpler example work.
+Jochen made the SAITic-Tac-Toe example work, which dynamically creates
+new VRML objects. 
 
 Quick overview:
 
-CLASSPATH=java/classes/vrml.jar freewrl tests/SAIClick/testsimple.wrl -best
+freewrl tests/SAIClick/testscript.wrl -best
 
 -----------------------------------------------------------------------
 
@@ -23,16 +24,18 @@ Now, the way it works is this:
 
 	$this->{I} = FileHandle->new;
 	$this->{O} = FileHandle->new;
-	open2($this->{I}, $this->{O}, 'java vrml.FWJavaScript');
+	open2($this->{I}, $this->{O}, "java $options vrml.FWJavaScript");
 
-NOTE: java must be in your path, and the CLASSPATH must point
-to the directory or jar file which has the vrml classes in it. eg:
+NOTE: java, at least version 1.2, must be in your path.  The CLASSPATH
+is set automatically.  The script classes should not be in the CLASSPATH.
 
-	<parent>/freewrl/java/classes/vrml.jar
+The perl part searches for vrml.jar and java.policy in the perl library
+path.  These files must be present there but the Makefiles should take
+care of this.
 
-Just running "java vrml.FWJavaScript" on the command line should
-NOT give you any errors.
-
+The script classes are given a security policy:  They may contact the server
+they came from and if they are local they may read or modify files in the
+directory they were loaded from.  Everything else is forbidden.
 
 3) There are more notes in the <parent>/freewrl/java/classes/vrml/
 README.SCRIPTING and PROTOCOL file.
