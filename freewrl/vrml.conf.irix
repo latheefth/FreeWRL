@@ -22,8 +22,10 @@
 
 # Freetype things
     FREETYPE_LIBS => '-L/usr/freeware/lib32 -lfreetype',
-    FREETYPE_INC => '-I/usr/freeware/src/freetype2/freetype-2.0.4/include',
+    FREETYPE_INC => '-I/usr/freeware/include/freetype2/freetype -I/usr/freeware/include/freetype2/freetype/config -I/usr/freeware/include -I /usr/freeware/include/freetype2',
     FREETYPE_DEFINE => '',
+    FREETYPE_FONT_PATH => '/fwfonts',
+
 
 # Javascript lib & include (relative to the JS/ directory)
     JS_LIBS => '-Ljs/IRIX646.5_DBG.OBJ -ljs',
