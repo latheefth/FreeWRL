@@ -100,7 +100,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 
 	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
 		fprintf(stderr,
-				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromUrl.\n");
+				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromURL.\n");
 		return JS_FALSE;
 	}
 	
@@ -116,12 +116,12 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 							&(_obj[0]), &(_obj[1]), &_c)) {
 		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
 			fprintf(stderr,
-					"JS_GetClass failed for arg 0 in VrmlBrowserCreateVrmlFromUrl.\n");
+					"JS_GetClass failed for arg 0 in VrmlBrowserCreateVrmlFromURL.\n");
 			return JS_FALSE;
 		}
 		if ((_cls[1] = JS_GetClass(_obj[1])) == NULL) {
 			fprintf(stderr,
-					"JS_GetClass failed for arg 1 in VrmlBrowserCreateVrmlFromUrl.\n");
+					"JS_GetClass failed for arg 1 in VrmlBrowserCreateVrmlFromURL.\n");
 			return JS_FALSE;
 		}
 		if (memcmp("MFString", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
@@ -134,7 +134,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 		if (!JS_CallFunctionName(context, _obj[0],
 								 "toString", 0, NULL, &(_v[0]))) {
 			fprintf(stderr,
-					"JS_CallFunctionName failed in VrmlBrowserCreateVrmlFromUrl.\n");
+					"JS_CallFunctionName failed in VrmlBrowserCreateVrmlFromURL.\n");
 			return JS_FALSE;
 		}
 		_str[0] = JS_ValueToString(context, _v[0]);
@@ -142,24 +142,24 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 
 		if (!JS_GetProperty(context, _obj[1], "__handle", &(_v[1]))) {
 			fprintf(stderr,
-					"JS_GetProperty failed for \"__handle\" in VrmlBrowserCreateVrmlFromUrl.\n");
+					"JS_GetProperty failed for \"__handle\" in VrmlBrowserCreateVrmlFromURL.\n");
 			return JS_FALSE;
 		}
 		_str[1] = JS_ValueToString(context, _v[1]);
 		_costr[1] = JS_GetStringBytes(_str[1]);
 		doPerlCallMethodVA(brow->sv_js,
-						   "jspBrowserCreateVrmlFromUrl", "sss",
+						   "jspBrowserCreateVrmlFromURL", "sss",
 						   _costr[0], _costr[1], _c);
 	} else {
 		fprintf(stderr,
-				"\nIncorrect argument format for createVrmlFromUrl(%s).\n",
+				"\nIncorrect argument format for createVrmlFromURL(%s).\n",
 				_c_args);
 		return JS_FALSE;
 	}
 
 	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
 		fprintf(stderr,
-				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromUrl.\n");
+				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromURL.\n");
 		return JS_FALSE;
 	}
 	*rval = _rval;
