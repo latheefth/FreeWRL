@@ -1338,7 +1338,7 @@ sub setup_routing {
 					print "Scene.pm:SES: $n $n->{TypeName}\n"; #JAS if $VRML::verbose::scene;
 					$be->set_sensitive(
 						$_[0]->{BackNode},
-						sub { print "SES sub\n";
+						sub { print "Scene.pm:SES sub\n";
 							$eventmodel->
 							    handle_touched($n,
 							    		@_);
