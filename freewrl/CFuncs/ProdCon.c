@@ -955,8 +955,10 @@ void __pt_openBrowser() {
 	set_eyehalf( eyedist/2.0,
 		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
 
+#ifndef AQUA
 	if (shutter) 
 		XEventStereo();
+#endif
 
 	
 	PUSHMARK(SP);
