@@ -11,7 +11,7 @@
 #include <GL/glu.h>
 #include <unistd.h>
 #include <stdio.h>
-
+#include <X11/cursorfont.h>
 
 #define NUM_ARG 6
 
@@ -21,6 +21,9 @@ Colormap cmap;
 XSetWindowAttributes swa;
 Window win;
 GLXContext cx;
+
+Cursor arrowc;
+Cursor sensorc;
 
 #define OPENGL_NOVIRT
 #include "OpenGL.m"
@@ -53,6 +56,20 @@ raise_me_please()
 	  XRaiseWindow(dpy, win);
 	}
 
+# cursor stuff JAS
+void
+arrow_cursor()
+	CODE:
+	{ 
+	XDefineCursor (dpy, win, arrowc);
+	}
+
+void
+sensor_cursor()
+	CODE:
+	{
+	XDefineCursor (dpy, win, sensorc);
+	}
 
 void
 glpcOpenWindow(x,y,w,h,pw,event_mask, ...)
@@ -152,6 +169,10 @@ GLXFBConfig *glXChooseFBConfigSGIX(Display *dpy, int screen,
 	
 	    /* clear the buffer */
 	    glClearColor(0,0,0,1);
+
+	    /* Create Cursors */
+	    arrowc = XCreateFontCursor (dpy, XC_left_ptr);
+	    sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
 	}
 
 int
