@@ -233,7 +233,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	/* ccw or not? */
 	rep_->ccw = 1;
 	
-	printf ("nf %d nx %d nz %d\n",nf, nx, nz);
+	//printf ("nf %d nx %d nz %d\n",nf, nx, nz);
 
 	if(nf != nx * nz) {
 		freewrlDie("Elevationgrid: x,y vs. height: incorrect count:\n");

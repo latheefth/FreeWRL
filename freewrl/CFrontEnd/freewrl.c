@@ -292,9 +292,16 @@ int main (int argc, char **argv) {
 	getcwd(pwd,1000);
 
 #ifndef AQUA
-	makeAbsoluteFileName(filename, pwd, argv[optind]);
-#endif
+	/* if this is a network file, leave the name as is. If it is
+	 * a local file, prepend the path to it */
+	if (checkNetworkFile(argv[optind])) {
+		strcpy (filename,argv[optind]);
+	} else {
 
+		makeAbsoluteFileName(filename, pwd, argv[optind]);
+	}
+#endif
+	// printf ("FrontEnd, filename %s\n",filename);
 	perlParse(FROMURL, filename,TRUE,FALSE,
 		rootNode, offsetof (struct VRML_Group, children),&tmp);
 
@@ -343,7 +350,7 @@ void catch_SIGALRM(int sig)
     signal(SIGALRM, SIG_IGN);
     
     /* stuffs to do on alarm */
-    fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n");
+    //fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n");
     /* end of alarm actions */
     
     alarm(0);

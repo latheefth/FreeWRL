@@ -185,6 +185,27 @@ int isPerlinitialized() {return PerlInitialized;}
 /* statusbar uses this to tell user that we are still loading */
 int isPerlParsing() {return(PerlParsing);}
 
+
+
+/*
+ * Check to see if the file name is a local file, or a network file.
+ * return TRUE if it looks like a file from the network, false if it
+ * is local to this machine
+ */
+
+int checkNetworkFile(char *fn) {
+	if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
+	   (strncmp(fn,"FTP://", strlen("FTP://"))) &&
+	   (strncmp(fn,"http://", strlen("http://"))) &&
+	   (strncmp(fn,"HTTP://", strlen("HTTP://"))) &&
+	   (strncmp(fn,"urn://", strlen("urn://"))) &&
+	   (strncmp(fn,"URN://", strlen("URN://")))) {
+	   return FALSE;
+	}
+	return TRUE;
+}
+
+
 /* does this file exist on the local file system, or via the HTML Browser? */
 /* WARNING! WARNING! the first parameter may be overwritten IF we are running
    within a Browser, so make sure it is large, like 1000 bytes. 	   */
@@ -193,6 +214,9 @@ int fileExists(char *fname, char *firstBytes) {
 	FILE *fp;
 	int ok;
 	char *retName;
+
+	char tempname[1000];
+	char sysline[1000];
 
 	/* are we running under netscape? if so, ask the browser, and 
 	   save the name it returns (cache entry) */
@@ -205,9 +229,19 @@ int fileExists(char *fname, char *firstBytes) {
 	}
 
 	/* if not, do we need to invoke lwp to get the file, or 
-	   is it just local? */
+	   is it just local? if we are running as a plugin, this should
+	   be a local file by now 
+	 */
+	if (checkNetworkFile(fname)) {
+		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
+		sprintf (sysline,"wget %s -O %s\n",fname,tempname);
+		printf ("\nFreeWRL will try to use wget to get %s\n",fname);
+		system (sysline);
+		strcpy (fname,tempname);
+	}
 
-	/* we are not netscaped AND is local */
+
+	//printf ("fileExists, opening %s\n",fname);
 	fp= fopen (fname,"r");
 	ok = (fp != NULL);
 
@@ -233,11 +267,8 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	}
 
 	/* does this name start off with a ftp, http, or a "/"? */
-	if ((strncmp(thisurl,"ftp://", strlen("ftp://"))) &&
-	   (strncmp(thisurl,"FTP://", strlen("FTP://"))) &&
-	   (strncmp(thisurl,"http://", strlen("http://"))) &&
-	   (strncmp(thisurl,"HTTP://", strlen("HTTP://"))) &&
-	   (strncmp(thisurl,"/",strlen("/")))) {
+	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
+		//printf ("copying psppath over for %s\n",thisurl);
 		strcpy (filename,pspath);
 		/* do we actually have anything here? */
 		if (strlen(pspath) > 0) strcat (filename,"/");
@@ -248,7 +279,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	strcat(filename,thisurl);
 
 	/* and, return in the ptr filename, the filename created... */
-	/* printf ("makeAbsoluteFileName, just made :%s:\n",filename); */
+	//printf ("makeAbsoluteFileName, just made :%s:\n",filename); 
 }
 
 
@@ -955,6 +986,7 @@ void __pt_doInline() {
 		slashindex ++; /* leave the slash there */
 		*slashindex = 0;
 	} else {psp.path[0] = 0;}
+	//printf ("doInLine, parenturl is %s\n",psp.path);
 
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
@@ -973,6 +1005,7 @@ void __pt_doInline() {
 		count ++;
 	}
 	psp.inp = filename; /* will be freed later */
+	//printf ("doinline, psp.inp = %s\n",psp.inp);
 	/* printf ("inlining %s\n",filename); */
 
 	/* were we successful at locating one of these? if so,
@@ -996,13 +1029,7 @@ void __pt_doStringUrl () {
        		retval = _pt_CreateVrml("String",psp.inp,myretarr);
 		
 	} else {
-		if (!fileExists(psp.inp,firstBytes)) { 
-			retval=0;
-			psp.bind=0;
-			printf ("file problem: %s does not exist\n",psp.inp);
-		} else {
-			retval = _pt_CreateVrml("URL",psp.inp,myretarr);
-		}
+		retval = _pt_CreateVrml("URL",psp.inp,myretarr);
 	} 
 
 	/* copy the returned nodes to the caller */

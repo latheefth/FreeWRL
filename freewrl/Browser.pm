@@ -92,62 +92,7 @@ sub new {
 # set_backend_fields may require this one, if an SFNode comes in....
 sub getBE { return $globalBrowser->{BE}; }
 
-##############################################################
-#
-# Much of the VRML content is gzipped -- we have to recognize
-# it in the run.
-
-use IO::File;
-use Fcntl;
-my $temp_dir = -d '/tmp' ? '/tmp' : $ENV{TMP} || $ENV{TEMP};
-my $base_name = sprintf("%s/freewrl-%d-%d-00000", $temp_dir, $$, time());
-
-sub temp_file {
-	my $fh = undef;
-	my $count = 0;
-	until (defined($fh) || $count > 100) {
-		$base_name =~ s/-(\d+)$/"-" . (1 + $1)/e;
-		$fh = IO::File->new($base_name, O_WRONLY|O_EXCL|O_CREAT,0644)
-	}
-	if (defined($fh)) {
-		undef $fh;
-		unlink $base_name;
-		return $base_name;
-	} else {
-		die("Couldn't make temp file");
-	}
-}
-
-sub is_gzip {
-	if($_[0] =~ /^\037\213/) {
-		# warn "GZIPPED content -- trying to ungzip\n";
-		return 1;
-	}
-	return 0;
-}
-
-sub ungzip_file {
-	my($file) = @_;
-	if($file !~ /^[-\w~\.,\/]+$/) {
-	 warn("Suspicious file name '$file' -- not gunzipping");
-	 return $file;
-	}
-	open URLFOO,"<$file";
-	my $a;
-	read URLFOO, $a, 10;
-	if(is_gzip($a)) {
-		print "Seems to be gzipped - ungzipping\n" if $VRML::verbose::url;
-		my $f = temp_file();
-		system("gunzip <$file >$f") == 0
-		 or die("Gunzip failed: $?");
-		return $f;
-	} else {
-		return $file;
-	}
-	close URLFOO;
-}
-
-
+# read in text, unzip if required.
 sub getTextFromFile {
 	my ($file,$parentURL) = @_;
 	
@@ -155,27 +100,12 @@ sub getTextFromFile {
 	# to exist before here by "C" functions (or, it is the name
 	# of a file in the Browser cache). Read it in, and return
 
-	#print "getTextFromFile, file $file, parent $parentURL\n";
-	if (!(-e $file)) {
-		# try appending file to parenturl
-		my $ri = rindex ($parentURL,"/");
-		my $ps = substr ($parentURL,0,$ri+1);
-		$file = "$ps$file";
-	}
-	
-	my $nfile = ungzip_file($file);
+	#print "\ngetTextFromFile, file $file, parent $parentURL\n";
+	my $ri = rindex ($parentURL,"/");
+	my $ps = substr($parentURL,0,$ri);
 
-	open (INPUT, "<$nfile");
-	my @lines = (<INPUT>);
-	close (INPUT); 
-
-	my $text = "@lines";
-	# print "Browser:getTextFromFile, got $text\n";
-	if ($nfile ne $file) {
-		# unlink this temporary file
-		unlink $nfile;
-	}
-
+	#print "reading file \n";
+	my $text = VRML::VRMLFunc::readFile ($file,$ps);
 	return $text;
 }
 
@@ -276,8 +206,11 @@ sub setDescription {
 
 #createVrml common stuff
 sub create_common {
-	my ($this,$f1,$f2,$string) = @_;
+	my ($this,$f1,$f2,$str) = @_;
 	my $ret;
+
+	# remove comments, etc:
+	my $string = VRML::VRMLFunc::sanitizeInput($str);
 
 	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
 	$scene->set_browser($this);
@@ -340,7 +273,7 @@ sub createVrmlFromURL {
 	my $wurl = $url;
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
-	my $t = getTextFromFile($url);
+	my $t = getTextFromFile($url,$wurl);
 
 
 	# Stage 2 - load the string in....

@@ -235,51 +235,51 @@ sub startScript {
 			print "perl scripting not moved yet to new routing structure\n";
 			last;
 
-			print "XXX1 script\n" if $VRML::verbose::script;
-			check_perl_script();
-
-			# See about RFields in file ARCHITECTURE and in
-			# Scene.pm's VRML::FieldHash package
-			my $u = $node->{Fields};
-
-			my $node = $node->{RFields};
-
-			# This string ties scalars
-			my $nodeie = join("", map {
-				"tie \$$_, 'MTS',  \\\$node->{$_};"
-			} script_variables($u));
-
-			$h = eval "({$_})";
-
-			# Wrap up each sub in the script node
-			foreach (keys %$h) {
-				my $nodemp = $h->{$_};
-				my $src = join ("\n",
-					"sub {",
-					"  $nodeie",
-					"  \&\$nodemp (\@_)",
-					"}");
-					## print "---- src ----$src\n--------------",
-					$h->{$_} = eval $src ;
-			}
-
-			print "Evaled: $h\n",
-				"-- h = $h --\n",
-					(map {"$_ => $h->{$_}\n"}
-					 keys %$h),
-					"-- u = $u --\n",
-					(map {
-					"$_ => $u->{$_}\n"
-					} keys %$u),
-					"-- t = $node --\n",
-					(map {
-					"$_ => $node->{$_}\n"
-					} keys %$node)
-			 if $VRML::verbose::script;
-			if ($@) {
-				die "Invalid script '$@'"
-			}
-			last;
+#JAS			print "XXX1 script\n" if $VRML::verbose::script;
+#JAS			check_perl_script();
+#JAS
+#JAS			# See about RFields in file ARCHITECTURE and in
+#JAS			# Scene.pm's VRML::FieldHash package
+#JAS			my $u = $node->{Fields};
+#JAS
+#JAS			my $node = $node->{RFields};
+#JAS
+#JAS			# This string ties scalars
+#JAS			my $nodeie = join("", map {
+#JAS				"tie \$$_, 'MTS',  \\\$node->{$_};"
+#JAS			} script_variables($u));
+#JAS
+#JAS			$h = eval "({$_})";
+#JAS
+#JAS			# Wrap up each sub in the script node
+#JAS			foreach (keys %$h) {
+#JAS				my $nodemp = $h->{$_};
+#JAS				my $src = join ("\n",
+#JAS					"sub {",
+#JAS					"  $nodeie",
+#JAS					"  \&\$nodemp (\@_)",
+#JAS					"}");
+#JAS					## print "---- src ----$src\n--------------",
+#JAS					$h->{$_} = eval $src ;
+#JAS			}
+#JAS
+#JAS			print "Evaled: $h\n",
+#JAS				"-- h = $h --\n",
+#JAS					(map {"$_ => $h->{$_}\n"}
+#JAS					 keys %$h),
+#JAS					"-- u = $u --\n",
+#JAS					(map {
+#JAS					"$_ => $u->{$_}\n"
+#JAS					} keys %$u),
+#JAS					"-- t = $node --\n",
+#JAS					(map {
+#JAS					"$_ => $node->{$_}\n"
+#JAS					} keys %$node)
+#JAS			 if $VRML::verbose::script;
+#JAS			if ($@) {
+#JAS				die "Invalid script '$@'"
+#JAS			}
+#JAS			last;
 		} elsif (/\.class$/) {
 			eval ('require VRML::VRMLJava');
 			$node->{J}= VRML::JavaClass->new($node,$scriptInvocationNumber, $_);

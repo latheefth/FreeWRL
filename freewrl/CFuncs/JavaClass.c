@@ -77,6 +77,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 			
 
 	/* we have a url; have to make it into a real url for Java.  */
+	/* **** NOTE: WE CAN USE A ProdCon.c ROUTINE FOR THIS CHECK */
 	if ((strncmp("file:",nodeURLstr,5)!=0) &&
 		(strncmp("FILE:",nodeURLstr,5)!=0)  &&
 		(strncmp("HTTP:",nodeURLstr,5)!=0)  &&

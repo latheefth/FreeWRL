@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.145  2004/06/25 18:19:09  crc_canada
+# EXTERNPROTO geturl; Solaris changes, and general changing the way URLs are
+# handled.
+#
 # Revision 1.144  2004/06/10 20:05:52  crc_canada
 # Extrusion (with concave endcaps) bug fixed; some javascript changes.
 #
@@ -1794,6 +1798,31 @@ malloc_this (size)
 	RETVAL = (int) malloc(size);
 OUTPUT:
 RETVAL
+
+# remove comments, etc, from a string.
+SV *
+sanitizeInput(string)
+	char *string
+CODE:
+	char *buffer;
+	buffer = sanitizeInputString(string);
+	RETVAL = newSVpv(buffer,strlen(buffer));
+	OUTPUT:
+RETVAL
+
+# read in a string from a file
+SV *
+readFile(fn,parent)
+	char *fn
+	char *parent
+CODE:
+	char *buffer;
+
+	buffer = readInputString(fn,parent);
+	RETVAL= newSVpv(buffer,strlen(buffer));
+	OUTPUT:
+RETVAL
+
 
 #****************JAVASCRIPT FUNCTIONS*********************************
 

@@ -88,17 +88,18 @@ VRML::Error->import;
 sub parse {
 	my($scene, $text) = @_;
 	# XXX marijn: this sorta works for deleting comments
-	### Remove comments while ignoring anything between "":
-	print "Deleting comments\n" if $VRML::verbose::parse;
-
-	my $po = pos($text);
-	$po = 0 unless defined $po;
-
-	my $t2 = substr ($text, $po);
-	my $l2 = length ($t2);
-
-	$t2 =~ s/(\x22$VRML::Field::SFString::Chars\x22)|([\x23]+[^\x0a-\x0d]*)/$1?$1:""/eg;
-	substr($text, $po, $l2, $t2);
+#JAS - comments are now removed in C code.
+#JAS	### Remove comments while ignoring anything between "":
+#JAS	print "Deleting comments\n" if $VRML::verbose::parse;
+#JAS
+#JAS	my $po = pos($text);
+#JAS	$po = 0 unless defined $po;
+#JAS
+#JAS	my $t2 = substr ($text, $po);
+#JAS	my $l2 = length ($t2);
+#JAS
+#JAS	$t2 =~ s/(\x22$VRML::Field::SFString::Chars\x22)|([\x23]+[^\x0a-\x0d]*)/$1?$1:""/eg;
+#JAS	substr($text, $po, $l2, $t2);
 
 	my @a;
 	my ($n, $r);
@@ -443,7 +444,7 @@ sub parse {
 			print "Invalid field '$f' for node '$nt'\n";
 			print "Possible fields are: ";
 			foreach (keys % {$no->{FieldTypes}}) {
-				print "$_ ";
+				if (index($_,"_") !=0) {print "$_ ";}
 			}
 			print "\n";
 

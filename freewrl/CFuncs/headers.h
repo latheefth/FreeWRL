@@ -416,6 +416,7 @@ extern int navi_tos;
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
 extern int fileExists(char *fname, char *firstBytes);
+extern int checkNetworkFile(char *fn);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
@@ -461,6 +462,8 @@ extern void doBrowserAction ();
 extern char *myPerlInstallDir;
 
 extern void freewrlDie (const char *format);
+char * readInputString(char *fn, char *parent);
+char * sanitizeInputString(char *instr);
 
 /* Java CLASS invocation */
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);

@@ -114,37 +114,37 @@ sub script_variables {
   grep { ! /mustEvaluate|directOutput/ } sort keys %{shift()};
 }
 
-package MTS ;			# My tied Scalar : Will be used to tie scalars
-				# to fields and eventIn for perl scripting.
-
-use Exporter ;
-@ISA = qw(Exporter);
-@EXPORT = qw( with ) ;
-
-require Tie::Scalar;
-
-sub TIESCALAR {
-  ### my $class = shift;
-  ## my $self = shift;
-  ## bless $self;
-  ### bless shift ;
-  bless $_[1];
-}
-
-sub FETCH {
-  ## my $self = shift;
-  ## $$self ;
-  ### ${shift()};
-  ${$_[0]};
-}
-
-sub STORE {
-  ## my $self = shift;
-  ## $$self = shift ;
-  ${$_[0]} = $_[1];
-}
-
-
+#JASpackage MTS ;			# My tied Scalar : Will be used to tie scalars
+#JAS				# to fields and eventIn for perl scripting.
+#JAS
+#JASuse Exporter ;
+#JAS@ISA = qw(Exporter);
+#JAS@EXPORT = qw( with ) ;
+#JAS
+#JASrequire Tie::Scalar;
+#JAS
+#JASsub TIESCALAR {
+#JAS  ### my $class = shift;
+#JAS  ## my $self = shift;
+#JAS  ## bless $self;
+#JAS  ### bless shift ;
+#JAS  bless $_[1];
+#JAS}
+#JAS
+#JASsub FETCH {
+#JAS  ## my $self = shift;
+#JAS  ## $$self ;
+#JAS  ### ${shift()};
+#JAS  ${$_[0]};
+#JAS}
+#JAS
+#JASsub STORE {
+#JAS  ## my $self = shift;
+#JAS  ## $$self = shift ;
+#JAS  ${$_[0]} = $_[1];
+#JAS}
+#JAS
+#JAS
 package VRML::NodeType;
 
 ########################################################################
