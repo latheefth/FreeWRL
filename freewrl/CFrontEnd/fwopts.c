@@ -410,6 +410,7 @@ void resetGeometry() {
  		for (i=0; i < modeNum; i++) {
  			if ((modes[i]->hdisplay == oldx) && (modes[i]->vdisplay==oldy)) {
  				oldMode = i;
+				break;
  			}
  		}
 
