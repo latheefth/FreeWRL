@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.40  2001/12/12 19:17:16  crc_canada
+# LODS now spec compliant
+#
 # Revision 1.39  2001/08/16 16:56:25  crc_canada
 # Viewpoint work
 #
@@ -1361,7 +1364,6 @@ Transform => (join '','
 	glPushMatrix();
 
 	if(!reverse_trans) {
-		/* $startlist2(); */
 		glTranslatef(',(join ',',map {getf(Transform,translation,$_)} 0..2),'
 		);
 		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
@@ -1380,7 +1382,6 @@ Transform => (join '','
 		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
 		);
 	} else {
-		/* $startlist2(); */
 		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
 		);
 		glRotatef(',getf(Transform,scaleOrientation,3),'/3.1415926536*180,',
@@ -1613,6 +1614,8 @@ Billboard => (join '','
 		int nran = $f_n(range);
 		int nnod = $f_n(level);
 		int i;
+		void *p;
+
 		if(!nran) {
 			void *p = $f(level, 0);
 			render_node(p);
@@ -1627,15 +1630,18 @@ Billboard => (join '','
 		vec.y -= $f(center,1);
 		vec.z -= $f(center,2);
 		dist = sqrt(VECSQ(vec));
-		for(i=0; i<nran; i++) {
+		i = 0;
+
+		while (i<nran) {
 			if(dist < $f(range,i)) {
-				void *p;
-				if(i >= nnod) {i = nnod-1;}
-				p = $f(level,i);
-				render_node(p);
+				break;
 			}
+			i++;
 		}
-		render_node($f(level,nnod-1));
+		if(i >= nnod) {i = nnod-1;}
+
+		p = $f(level,i);
+		render_node(p);
 
 	',
 	Appearance => '
