@@ -1,4 +1,7 @@
 
+/* number of tesselated coordinates allowed */
+#define TESS_MAX_COORDS  500
+
 #define offset_of(p_type,field) ((unsigned int)(&(((p_type)NULL)->field)-NULL))
 
 #ifdef M_PI
