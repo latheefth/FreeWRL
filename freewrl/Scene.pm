@@ -196,7 +196,6 @@ sub newp {
 
     $this->{EventModel} = $parent->{EventModel};
     $this->{Defaults} = {map {$_ => $this->{Pars}{$_}[2]} keys %{$this->{Pars}}};
-	$this->{WorldURL} = $this->get_world_url();
 
 	my $k;
 
@@ -518,7 +517,7 @@ sub mkbe_and_array {
 	# to a node.
 
 	if (defined $this->{Scene}{DEF}) {
-		%{$parentscene->{DEF}} = (%{$parentscene->{DEF}},%{$this->{Scene}{DEF}});
+		%{$parentscene->{DEF}} = (%{$parentscene->{DEF}}, %{$this->{Scene}{DEF}});
 	}
 
 	# Now, should we return the "RootNode" if it exists (which is a Group node)
@@ -527,6 +526,7 @@ sub mkbe_and_array {
 	# add in the case of a proto.
 
 	my $c;
+	my $ref;
 	my $q = "";
 	my $lastindex = $#{$this->{Nodes}};
 
@@ -537,10 +537,11 @@ sub mkbe_and_array {
 		# node definition, BUT generate the real node!
 
 		$c = $this->{Nodes}[$curindex];
+		$ref = ref $c;
 
-		if ("ARRAY" eq ref $c) {
+		if ($ref eq "ARRAY") {
 			$c = @{$c};
-		} elsif ("VRML::DEF" eq ref ($c)) {
+		} elsif ($ref eq "VRML::DEF") {
 			#AK - #$c = $c->real_node(1);
 			$c = $c->node();
 		}
@@ -552,7 +553,7 @@ sub mkbe_and_array {
 			if (defined $c->{IsProto}) {
 				my $sf;
 				foreach $sf (@{$c->{ProtoExp}{Nodes}}) {
-					if ("VRML::DEF" eq ref $sf) {
+					if (ref $sf eq "VRML::DEF") {
 						$sf = $sf->node();
 					}
 					$sf->{BackNode} = VRML::NodeIntern::make_backend($sf, $be);
@@ -586,19 +587,7 @@ sub mkbe_and_array {
 
 		foreach ($this->{DEF}) {
 			$parentscene->{DEF} = $_;
-			#print "Gathering, found ";
-			#foreach (keys %{$_}) {
-			#	print "key $_ ";
-			#}
-			#print "\n";
 		}
-		#print "parentscene DEFS is now \n";
-		#foreach ($parentscene->{DEF}) {
-		#	foreach (keys %{$_}) {
-		#		print $_;
-		#	}
-		#}
-		#print "\nfinished $this defs\n";
 	}
 	if (defined $this->{Nodes}) {
 		foreach (@{$this->{Nodes}}) {
@@ -665,9 +654,9 @@ sub make_is {
 	my $retval;
 
 	print "VRML::Scene::make_is ", VRML::NodeIntern::dump_name($this),
-		": ($node->{TypeName} ", VRML::NodeIntern::dump_name($node),
+		": ($node->{TypeName} ", VRML::Debug::toString($node),
 			") $field IS ($this->{NodeParent}{TypeName} ",
-				VRML::NodeIntern::dump_name($this->{NodeParent}), ") $is\n"
+				VRML::Debug::toString($this->{NodeParent}), ") $is\n"
 						if $VRML::verbose::scene;
 
 
@@ -683,13 +672,16 @@ sub make_is {
 	print "CK: $node_ft, PK: $proto_ft\n" 
 		 if $VRML::verbose::scene;
 
+	my $ftype = "VRML::Field::"."$node->{Type}{FieldTypes}{$field}";
+
 	if ($node_ft =~ /[fF]ield$/ and $proto_ft =~ /[fF]ield$/) {
 		print "SETV: $_ NP : '$this->{NodeParent}' '$this->{NodeParent}{Fields}{$_}'\n"
 			if $VRML::verbose::scene;
-		$retval=
-		 "VRML::Field::$node->{Type}{FieldTypes}{$field}"->copy($this->{NodeParent}{Fields}{$is});
+		##$retval= "VRML::Field::$node->{Type}{FieldTypes}{$field}"->copy($this->{NodeParent}{Fields}{$is});
+		$retval= $ftype->copy($this->{NodeParent}{Fields}{$is});
 	} else {
-		$retval = $node->{Type}{Defaults}{$_};
+		##$retval = $node->{Type}{Defaults}{$_};
+		$retval = $node->{Type}{Defaults}{$is};
 	}
 
 	## add to event model
@@ -780,8 +772,8 @@ sub set_parentnode {
 
 		# Step 2) Give all ISs references to my data
 		if (defined $this->{NodeParent}) {
-			print "VRML::Scene::make_executable: ", VRML::NodeIntern::dump_name($this),
-				" NodeParent ", VRML::NodeIntern::dump_name($this->{NodeParent})
+			print "VRML::Scene::make_executable: ", VRML::Debug::toString($this),
+				" NodeParent ", VRML::Debug::toString($this->{NodeParent}), "\n"
 					if $VRML::verbose::scene;
 
 			$this->iterate_nodes(sub {
@@ -796,7 +788,7 @@ sub set_parentnode {
 										 next unless (ref $node->{Fields}{$_} eq "VRML::IS");
 										 print "MENIDFSET $_\n" if $VRML::verbose::scene;
 										 $node->{Fields}{$_}->set_ref(
-\$this->{NodeParent}{Fields}{$this->{NodeParent}{Fields}{$node->{Fields}{$_}{Name}}}, $_
+\$this->{NodeParent}{Fields}{$this->{NodeParent}{Fields}{$node->{Fields}{$_}{Name}}}
 																	 );
 									 }
 								 });
@@ -913,7 +905,7 @@ sub setup_routing {
 	if ($VRML::verbose::scene) {
 		my ($package, $filename, $line) = caller;
 		print "VRML::Scene::setup_routing: ",
-			VRML::NodeIntern::dump_name($this),
+			VRML::Debug::toString($this),
 					", event model = $eventmodel, back end = $be from $package, $line\n";
 	}
 
