@@ -201,9 +201,9 @@ package VRML::NodeType;
 # JAS - used by EAI to see if this child is already present in field "children" of parent.
 sub checkChildPresent {
 	my ($node,$child) = @_;
-	print "VRMLNodes.pm:checkChildPresent: checking for child $child in node $node\n";
+	# print "VRMLNodes.pm:checkChildPresent: checking for child $child in node $node\n";
 	foreach $item (@{$node->{RFields}{"children"}}) {
-		print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
+		# print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
 		if ($item eq $child) {
 			print "VRMLNode::checkChildPresent: child $child already ",
 			"present in parent\n";
@@ -218,7 +218,7 @@ sub removeChild {
 	my ($node,$child) = @_;
 	my @av;
 
-	print "VRMLNodes.pm:removeChild: checking for child $child in node $node\n";
+	# print "VRMLNodes.pm:removeChild: checking for child $child in node $node\n";
 	foreach $item (@{$node->{RFields}{"children"}}) {
 		print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
 		if (!($item eq $child)) {
@@ -227,7 +227,7 @@ sub removeChild {
 			print "VRMLNode::removeChild: child $child found\n";
 		}
 	}
-	print "VRMLNodes.pm:removeChild: array now is @av\n";
+	# print "VRMLNodes.pm:removeChild: array now is @av\n";
 	return @av;
 }
 
