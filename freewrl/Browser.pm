@@ -642,7 +642,9 @@ sub EAI_GetType {
 	#print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
 	my $scalaroutptr = $outptr;
 
-	if ($scalaroutptr == 0) {
+	# check for errors; both have to be zero, as the first script is "0"...
+	# (JSparamnames will ensure that the first outoffset is 1)
+	if (($scalaroutptr == 0) &&($outoffset == 0)) {
 		print "FreeWRL:EAI: could not find field '$fn' of ";
 		print "internal node 'NODE$nn'\n";
 	}
@@ -801,7 +803,7 @@ sub return_EAI_name {
 	if (!exists $EAINAMES{$name}) {
 	
 		print "return_EAI_name, looking for $name , it is not a EAI, returning $name\n" if $handles_debug;
-		print "return_EAI_name - Name $name does not exist!\n";
+		#print "return_EAI_name - Name $name does not exist!\n";
 		return $name;
 	}
 	print "return_EAI_name, looking for $name , it IS a EAI, returning ",
