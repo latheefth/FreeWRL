@@ -63,18 +63,20 @@ void do_active_inactive (
 	/* what we do now depends on whether we are active or not */
 
 	if (*act == 1) {   /* active - should we stop? */
-		if (SEVerbose) printf ("is active\n"); 
+		if (SEVerbose) printf ("is active tick %f startt %f stopt %f\n",
+				TickTime, *startt, *stopt); 
 
 		if (TickTime > *stopt) {
 			if (*startt >= *stopt) { 
 				/* cases 1 and 2 */
 				if (!(loop)) {
+					/* printf ("case 1 and 2, not loop md %f sp %f fabs %f\n",
+							myDuration, speed, fabs(myDuration/speed));
+					*/
 					if (speed != 0) {
 					    if (TickTime >= (*startt + 
 							fabs(myDuration/speed))) {
 						if (SEVerbose) printf ("stopping case x\n");
-			printf ("TickTime %f startt %f myD %f speed %f fabs %f\n",
-					TickTime, *startt, myDuration, speed, fabs(myDuration/speed));
 						*act = 0;
 						*stopt = TickTime;
 					    }
@@ -171,6 +173,9 @@ void do_OintScalar (void *node) {
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+
+	if (SEVerbose)
+		printf ("ScalarInterpolator, kin %d kvin %d, vc %f\n",kin,kvin,px->value_changed);
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= px->key.p[0]) {
@@ -339,6 +344,11 @@ void do_Oint3 (void *node) {
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
 
+	if (SEVerbose) {
+		printf ("Position/Color interp, kin %d kvin %d set_fraction %f\n",
+			kin,kvin,px->set_fraction);
+	}
+
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
 		px->value_changed.c[0] = 0.0;
@@ -353,15 +363,9 @@ void do_Oint3 (void *node) {
 	if (px->set_fraction <= ((px->key).p[0])) {
 		memcpy ((void *)&px->value_changed, 
 				(void *)&kVs[0], sizeof (struct SFColor));
-		 //JAS px->value_changed.c[0] = kVs[0].c[0];
-		 //JAS px->value_changed.c[1] = kVs[0].c[1];
-		 //JAS px->value_changed.c[2] = kVs[0].c[2];
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
 		memcpy ((void *)&px->value_changed, 
 				(void *)&kVs[kvin-1], sizeof (struct SFColor));
-		 //JAS px->value_changed.c[0] = kVs[kvin-1].c[0];
-		 //JAS px->value_changed.c[1] = kVs[kvin-1].c[1];
-		 //JAS px->value_changed.c[2] = kVs[kvin-1].c[2];
 	} else {
 		/* have to go through and find the key before */
 		counter = find_key(kin,px->set_fraction,px->key.p);
@@ -374,6 +378,8 @@ void do_Oint3 (void *node) {
 				kVs[counter-1].c[tmp];
 		}
 	}
+	if (SEVerbose) printf ("Pos/Col, new value (%f %f %f)\n",
+		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
 }
 
 /* OrientationInterpolator				 		*/
@@ -545,7 +551,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,node->cycleTime, 1.0);
+		&node->stopTime,node->loop,node->cycleInterval, 1.0);
 
 
 	/* now process if we have changed states */
