@@ -4,7 +4,7 @@ LIBDIR  = -L. -L/usr/X11R6/lib -L/usr/local/lib
 COMPILERFLAGS = -Wall
 CC = gcc
 CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
-LIBRARIES = -lX11 -lXi -lXmu -lglut -lGL -lGLU -lm
+LIBRARIES = -lm
 SVROBJ = main.o wavmaker.o mixer.o
 
 install:  main
