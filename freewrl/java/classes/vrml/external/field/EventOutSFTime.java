@@ -5,10 +5,10 @@ import vrml.external.Browser;
 
 
 public class EventOutSFTime extends EventOut {
-  public EventOutSFTime() {EventType = FieldTypes.SFTIME;}
+	public EventOutSFTime() {EventType = FieldTypes.SFTIME;}
 
-  public int           getSize() {
-    System.out.println ("ERROR: EventOutSFTime Not Implemented");
-    return 0;
-  }
+	public int           getSize() {
+		System.out.println ("ERROR: EventOutSFTime Not Implemented");
+		return 0;
+	}
 }

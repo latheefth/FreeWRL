@@ -5,20 +5,20 @@ import vrml.external.Browser;
 
 
 public class EventOutSFString extends EventOut {
-  public EventOutSFString() {EventType = FieldTypes.SFSTRING;}
+	public EventOutSFString() {EventType = FieldTypes.SFSTRING;}
 
-  public String        getValue() {
+	public String        getValue() {
 
-    if (command != null) {
-      String rep;
-      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
-      if (rep.length() > 2) {
-        // remove quotes at the beginning and end
-        rep = rep.substring (1,rep.length()-1);
-      }
-      return rep;
-    } else {
-      return RLreturn;
-    }
-  }
+		if (command != null) {
+			String rep;
+			rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+			if (rep.length() > 2) {
+				// remove quotes at the beginning and end
+				rep = rep.substring (1,rep.length()-1);
+			}
+			return rep;
+		} else {
+			return RLreturn;
+		}
+	}
 }

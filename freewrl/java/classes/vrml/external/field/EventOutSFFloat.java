@@ -5,12 +5,12 @@ import vrml.external.field.FieldTypes;
 
 
 public class EventOutSFFloat extends EventOut {
-  public EventOutSFFloat() {EventType = FieldTypes.SFFLOAT;}
+	public EventOutSFFloat() {EventType = FieldTypes.SFFLOAT;}
 
-  public String       getValue() {
-	//System.out.println ("in EventoutsfFloat, we have " + RLreturn);
+	public float getValue() {
+		String rep;
 
-    System.out.println ("ERROR: EventOutSFFloat not implemented");
-    return RLreturn;
-  }
+		rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+		return Float.valueOf(rep).floatValue();
+	}
 }
