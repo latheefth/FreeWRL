@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.36  2001/07/17 19:09:17  crc_canada
+# render_polyrep to generate default tex coords with IFS a little bit better.
+#
 # Revision 1.35  2001/07/16 18:55:18  crc_canada
 # Scale textures to fit texture limits of OpenGL implementation. (do_texture changed)
 #
@@ -741,27 +744,16 @@ IndexedFaceSet => '
         int *tcindex;
 	int *norindex;
 
-	/* Bounding Box, if needed */
-	float minVals[] = {999999.0, 999999.0, 999999.0};
-	float maxVals[] = {-999999.0, -999999.0, -999999.0};
-
         /* texture coords */
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
 
-	/* Textures. Well, if GL_TEXTURE_2D is enabled, we have
-	   to worry about textures.
-
-	   tcin is the number of texCoordIndexes.
-	   ntexCoords us the texCoord field. 
-
-	   According to the spec, we generate the bounding box
-	   if texCoord field is null. */
-
+	/*
         printf("\n\ntexCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
 	for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
 		texCoords[i].c[0], texCoords[i].c[1] ); 
         printf("NtexCoordIndex = %d\n", tcin);
+	*/
 
 	/* IndexedFaceSet coords and normals */
 	$fv(coord, points, get3, &npoints);
@@ -787,23 +779,6 @@ IndexedFaceSet => '
            die("Invalid number of texture coordinates");
         }
 
-	/* do we need to do the bounding box for textures?? */
-	if ((glIsEnabled(GL_TEXTURE_2D)) && (ntexCoords==0)) {
-		printf ("generating the bounding box\n");
-		for (i=0; i<npoints; i++) {
-			  printf ("\t point #%d = [%.5f %.5f %.5f]\n", i,
-				points[i].c[0], points[i].c[1], points[i].c[2]);
-			for (j=0; j<3; j++) {
-			    if (minVals[j] > points[i].c[j]) minVals[j] = points[i].c[j];
-			    if (maxVals[j] < points[i].c[j]) maxVals[j] = points[i].c[j];
-			}
-		}
-		printf ("BB is %f %f %f,  %f %f %f\n",minVals[0],minVals[1],minVals[2],
-				maxVals[0],maxVals[1],maxVals[2]);
-		
-	}
-
-
 	/* wander through to see how much memory needs allocating */
 	for(i=0; i<cin; i++) {
 		if($f(coordIndex,i) == -1) {
@@ -822,6 +797,7 @@ IndexedFaceSet => '
 	if(nvert>2) {ntri += nvert-2;}
 
 	/* printf ("IFS - nvert %d ntri %d\n",nvert,ntri); */
+
 	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 	colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
 	tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
@@ -1884,9 +1860,18 @@ void render_polyrep(void *node,
 	int pti;
 	int hasc;
 
+
+	/* temporary place for X,Y,Z */
+	GLfloat XYZ[] = {0.0, 0.0, 0.0};
+
+
 	/* texture generation points... */
-	GLfloat minx, miny, minz = 99999.0;
-	GLfloat maxx, maxy, maxz = -99999.0;
+	int j;
+	GLfloat minVals[] = {99999.9, 99999.9, 99999.9};
+	GLfloat maxVals[] = {-99999.9, -999999.9, -99999.0};
+	GLfloat Ssize, Tsize = 0.0;
+	GLfloat Xsize, Ysize, Zsize = 0.0;
+	int Sindex, Tindex = 0;
 
 	v = *(struct VRML_Virt **)node;
 	p = node;
@@ -1901,6 +1886,63 @@ void render_polyrep(void *node,
 	printf("\tntexcoords = %d    texcoords = 0x%lx\n",
 			ntexcoords, texcoords);
 	*/
+
+	/* do we need to generate default texture mapping? */
+	if (glIsEnabled(GL_TEXTURE_2D) && (ntexcoords == 0) && (!r->tcoord)) {
+		for(i=0; i<r->ntri*3; i++) {
+		  int ind = r->cindex[i];
+		  for (j=0; j<3; j++) {
+		      if(points) {
+			    if (minVals[j] > points[ind].c[j]) minVals[j] = points[ind].c[j];
+			    if (maxVals[j] < points[ind].c[j]) maxVals[j] = points[ind].c[j];
+		      } else if(r->coord) {	
+			    if (minVals[j] >  r->coord[3*ind+j]) minVals[j] =  r->coord[3*ind+j];
+			    if (maxVals[j] <  r->coord[3*ind+j]) maxVals[j] =  r->coord[3*ind+j];
+		      }
+		  } 
+		}
+
+		/* find the S,T mapping. */
+		Xsize = maxVals[0]-minVals[0]; 
+		Ysize = maxVals[1]-minVals[1];
+		Zsize = maxVals[2]-minVals[2];
+
+		if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
+			/* X size largest */
+			Ssize = Xsize;
+			Sindex = 0;
+			if (Ysize >= Zsize) {
+				Tsize = Ysize;
+				Tindex = 1;
+			} else {
+				Tsize = Zsize;
+				Tindex = 2;
+			}
+		} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
+			/* Y size largest */
+			Ssize = Ysize;
+			Sindex = 1;
+			if (Xsize >= Zsize) {
+				Tsize = Xsize;
+				Tindex = 0;
+			} else {
+				Tsize = Zsize;
+				Tindex = 2;
+			}
+		} else {
+			/* Z is the largest */
+			Ssize = Zsize;
+			Sindex = 2;
+			if (Xsize >= Ysize) {
+				Tsize = Xsize;
+				Tindex = 0;
+			} else {
+				Tsize = Ysize;
+				Tindex = 1;
+			}
+		}
+	}
+
 
 	/* Do we have any colours?	*/
 	hasc = (ncolors || r->color);
@@ -1954,40 +1996,42 @@ void render_polyrep(void *node,
 		prevcolor = coli;
 
 
+		/* Coordinate points	*/
+		if(points) {
+			XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
+		  	/*
+			printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
+			*/
+		} else if(r->coord) {	
+			XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
+		  	/*
+			printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
+			*/
+		}
+
 		/* Textures	*/
 		if (glIsEnabled(GL_TEXTURE_2D)) {
 		    if(texcoords && ntexcoords) {
-		  	/*printf("Render tex coord #%d = [%.5f, %.5f]\t\t",
-				tci, texcoords[tci].c[0], texcoords[tci].c[1] ); 
-			*/
 		  	glTexCoord2fv(texcoords[tci].c);
 		    } else if (r->tcoord) {
-			/* we generated these... */
-			/* printf ("polyrep structure has ind %d tex coords %f %f %f \n",ind,
-			r->tcoord[3*ind+0], r->tcoord[3*ind+1],r->tcoord[3*ind+2]   );
-			*/
-
 		  	glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
-			
+		    } else {
+			/* default textures */
+			/* we want the S values to range from 0..1, and the 
+			   T values to range from 0...S/T */
+			glTexCoord2f( (XYZ[Sindex] - minVals[Sindex])/Ssize,
+					(XYZ[Tindex] - minVals[Tindex])/Ssize);
 		    }
+
 		}
 
+		/* now, make the Vertex */
+		glVertex3fv (XYZ);
 
 
-		/* Coordinate points	*/
-		if(points) {
-		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",
-			  ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] );  */
-			glVertex3fv(points[ind].c);
-		} else if(r->coord) {	
-		  	/* printf("Render (r->coord) vertex #%d = [%.5f, %.5f, %.5f]\n",
-			  ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]); 
-			*/
-			glVertex3fv(r->coord+3*ind);
-		}
 	}
-
 	glEnd();
+
 	if(hasc) {
 		glDisable(GL_COLOR_MATERIAL);
 	}
@@ -3234,8 +3278,8 @@ do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Sgl_rep_or_clamp);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Tgl_rep_or_clamp);
 
+	/* find out the largest size that a texture can have. */
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
-printf ("texture size is %d\n",texSize);
 
 	if((depth) && x && y) {
 		unsigned char *dest = ptr;
