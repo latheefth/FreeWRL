@@ -30,8 +30,6 @@ my $cursortype = 0;  # pointer cursor
 my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
 
-my $triangulator = 0;	# OpenGL Triangulator
-
 ####
 #
 # set fast rendering - don't do smooth shading
@@ -39,16 +37,6 @@ my $triangulator = 0;	# OpenGL Triangulator
 sub set_fast {
 	glShadeModel(&GL_FLAT);
 }
-
-
-####
-#
-# let others use our triangulator
-
-sub get_BE_triangulator {
-	return $triangulator;
-}
-
 
 
 ####
@@ -148,10 +136,6 @@ sub new {
 		      "x" => $x,
 		      "y" => $y,
 		      wintitle => $mytitle);
-
-	# The Tesselator should have been started, and registered. Get a 
-	#   handle to it.
-	$triangulator = get_triangulator();
 
         glClearColor(0,0,0,1);
         glShadeModel (&GL_SMOOTH);
@@ -556,39 +540,12 @@ sub set_fields {
 sub set_sensitive {
 	my($this,$node,$sub) = @_;
 
-	print "\nBE SET SENS Node: $node, Sub: $sub\n"
+	print "\nBE SET SENS Node: $node, Sub: $sub for this $this\n"
 	  if $VRML::verbose::glsens;
 
-        # is it already here???
-#JAS Uncommented set_sensitive code
-#JAS print "GLBackEnd.pm - setsensitive print code\n";
-#JAS	my $match_idx = 0;
-#JAS        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
-#JAS		print "GLBackEnd:set_sensitive, comparing $node $sub",
-#JAS			$VRML::VRMLFunc::item->[0], 
-#JAS			$VRML::VRMLFunc::item->[1], "\n";
-#JAS
-#JAS          if ($VRML::VRMLFunc::item->[0] eq $node) {
-#JAS	  # maybe this node has a new sub???
-#JAS	  print "same nodes...replacing it\n";
-#JAS	  #JAS splice(@{ $this->{Sens} }, $match_idx, 1);
-#JAS	  #JAS last;
-#JAS	}
-#JAS  	$match_idx++;
-#JAS    }
-	
 	push @{$this->{Sens}}, [$node, $sub];
 	$this->{SensC}{$node->{CNode}} = $node;
 	$this->{SensR}{$node->{CNode}} = $sub;
-
-#JAS        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
-#JAS                print "GLBackEnd:set_sensitive, vrfy",
-#JAS                        $VRML::VRMLFunc::item->[0],
-#JAS                        $VRML::VRMLFunc::item->[1], "\n"
-#JAS	}
-#JASprint "GLBackEnd.pm - end of setsensitive print code\n";
-#JAS	print "\n";
-
 }
 
 sub delete_node {
