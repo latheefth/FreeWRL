@@ -491,7 +491,7 @@ void Extru_tex(
 	int j;
 
 	/* bounds check */
-printf ("Extru_tex, tcindexsize %d, vertex_ind %d\n",tcindexsize, vertex_ind);
+	/* printf ("Extru_tex, tcindexsize %d, vertex_ind %d\n",tcindexsize, vertex_ind); */
 
 	if (vertex_ind+2 >= tcindexsize) {
 		printf ("INTERNAL ERROR: Extru_tex, bounds check %d >= %d\n",vertex_ind+2,tcindexsize);
