@@ -29,7 +29,7 @@ sub make_executable {}
 sub gather_defs {}
 sub iterate_nodes {}
 
-sub as_string { " ($_) NULL" }
+sub as_string { "NULL" }
 
 
 ###############################################################
@@ -321,7 +321,7 @@ sub as_string {
 
     # is this a script being sent back via EAI?
     if ("__script" eq substr($this->{TypeName},0,8)) {
-    	$s .= "SCRIPT NOT PRINTED }\n";
+    	$s .= " SCRIPT NOT PRINTED } ";
     	return $s;
     }
 
