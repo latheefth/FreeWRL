@@ -266,14 +266,14 @@ sub event {
   my $but;
   
   # JAS - uncomment this to see all events, even mouse movenemts
-  # print "EVENT $this $type $args[0] $args[1] $args[2]\n";
+  print "EVENT $this $type $args[0] $args[1] $args[2]\n";
 
   if($type == &MotionNotify) 
     {
 
       # We should fix the mask, not do this if.... XXXX
-      if ($args[0] > 0) 
-	{
+  #JAS    if ($args[0] > 0) 
+#JAS	{
 	  my $but;
 	  # print "MOT!\n";
 	  if($args[0] & (&Button1Mask)) 
@@ -294,10 +294,10 @@ sub event {
 	  $this->{SENSMOVE} = 1;
 	  push @{$this->{BUTEV}}, [MOVE, undef, $args[1], $args[2]];
 	  undef $this->{EDone} if ($but > 0);
-	}
-      else
-	{
-	  # print "Motion without button press - fix mask\n";
+#JAS	}
+#JAS      else
+	if ($args[0] <= 0) {
+	  print "Motion without button press - fix mask\n";
 	}
     }
   elsif($type == &ButtonPress) 
@@ -705,13 +705,19 @@ sub setup_viewpoint {
 	  }
 }
 
+
 # Given root node of scene, render it all
+
+my $cursortype = 0;  # pointer cursor
+my $curcursor = 99;  # the last cursor change - force the cursor on startup
+
 sub render {
 	my($this) = @_;
 
 	my($node,$viewpoint) = @{$this}{Root, Viewpoint};
 	$node = $node->{CNode};
 	$viewpoint = $viewpoint->{CNode};
+
 	if($VRML::verbose::be) 
 	  {
 	    print "Render: root $node\n";
@@ -776,7 +782,7 @@ sub render {
 	# Do selection
 	if(@{$this->{Sens}}) 
 	  {
-	    print "SENS: $this->{MOUSEGRABBED}\n";
+	    # print "SENS: $this->{MOUSEGRABBED}\n";
 	    # my $b = delete $this->{SENSBUT};
 	    # my $sb = delete $this->{SENSBUTREL};
 	    # my $m = delete $this->{SENSMOVE};
@@ -795,13 +801,14 @@ sub render {
 	    for(@{$this->{BUTEV}}) 
 	      {
 		print "BUTEV: $_->[0]\n" 
-	;#JAS	  if $VRML::verbose::glsens;
-		
+		  ; #JAS if $VRML::verbose::glsens;
+	
+		# loop through all the "Sensor" nodes.	
 		for(@{$this->{Sens}})
 		  {
 		    if ((defined $_->[0]) && (defined $_->[1])) 
 		      { 
-			print "GLBackEnd.pm, going throuh Sens\n";
+			# print "GLBackEnd.pm, going throuh Sens for $_ : \n";
 
 		        VRML::VRMLFunc::zero_hits($_->[0]{CNode});
 			VRML::VRMLFunc::set_sensitive($_->[0]{CNode},1);
@@ -880,10 +887,12 @@ sub render {
 		  {
 		    if(defined $this->{SensC}{$p}) 
 		      {
+			$cursortype = 1;
+
 			my $rout = $this->{SensR}{$p};
 			
 			print "HIT: $p, $x $y $z\n"
-			  if $VRML::verbose::glsens;
+			  ; #JAS if $VRML::verbose::glsens;
 			
 			$pos = [$x,$y,$z];
 			my $nor = [$nx,$ny,$nz];
@@ -895,6 +904,7 @@ sub render {
 			
 			if($_->[0] eq "PRESS") 
 			  {
+			    print "PRESS ,0,1,$pos,$nor\n";
 			    $rout->("PRESS",0,1,$pos,$nor);
 			    $this->{MOUSEGRABBED} = $p;
 			  }
@@ -903,16 +913,18 @@ sub render {
 			# }
 		      }
 		    else
-		      {
+		      {	
+			$cursortype=0;
 			print "No hit: $p\n"
-			  if $VRML::verbose::glsens;
+				  if $VRML::verbose::glsens;
 		      }
 		    
 		    print "MOUSOVER: $this->{MOUSOVER}, p: $p\n"
 		      if $VRML::verbose::glsens;
 		    
 		    if(defined $this->{MOUSOVER} and $this->{MOUSOVER} != $p and defined($this->{SensC}{$this->{MOUSOVER}})) 
-		      {
+		      {	
+			print "in final MOUSOVER code\n";
 			my $rout = $this->{SensR}{$this->{MOUSOVER}};
 			$rout->("",1,0,undef,undef);
 		      }
@@ -920,9 +932,18 @@ sub render {
 		  } 
 	      }
 	  }
+	
 	$#{$this->{BUTEV}} = -1;
 	glRenderMode(&GL_RENDER);
 
+	if ($cursortype != $curcursor) {
+		$curcursor = $cursortype;
+		if ($cursortype == 0) {
+			VRML::OpenGL::arrow_cursor();
+		} else {
+			VRML::OpenGL::sensor_cursor();
+		}
+	}
 }
 
 
