@@ -11,7 +11,7 @@ public class EventInMFNode extends EventIn {
     int count;
 
     for (count = 0; count < node.length; count++) {
-      Browser.SendChildEvent (inNode , command, node[count].NodeName);
+      Browser.SendChildEvent (nodeptr,offset, command, node[count].nodeptr);
     }
   return;
   }

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.111  2003/09/09 14:24:36  crc_canada
+# EAI updates.
+#
 # Revision 1.110  2003/09/03 20:50:47  crc_canada
 # First pass at EAI in C code.
 #
@@ -1528,13 +1531,13 @@ unsigned int EAI_GetNode (char *nname) {
 
 	noderef = POPi;
 
-	printf ("The node is %x\n", noderef) ;
+	// printf ("The node is %x\n", noderef) ;
 
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
 
-	printf ("returning from EAI_GetNode\n");
+	//printf ("returning from EAI_GetNode\n");
 	return (noderef);
 }
 
@@ -1546,7 +1549,7 @@ void EAI_GetType (unsigned int nodenum, char *fieldname, char *direction,
 
 	unsigned int 	count;
 
-	printf ("entering C get_type; nodenum %d, field %s direction %s\n",nodenum,fieldname,direction);	
+	// printf ("entering C get_type; nodenum %d, field %s direction %s\n",nodenum,fieldname,direction);	
 	dSP;
 	ENTER;
 	SAVETMPS;
@@ -1574,13 +1577,41 @@ void EAI_GetType (unsigned int nodenum, char *fieldname, char *direction,
 	FREETMPS;
 	LEAVE;
 
-	printf ("returning from EAI_GetType\n");
-	printf ("node pointer %d, dataoffset %d, datalen %d nodetype %d\n",
-			*nodeptr, *dataoffset, *datalen, *nodetype);
+	// printf ("returning from EAI_GetType\n");
+	// printf ("node pointer %d, dataoffset %d, datalen %d nodetype %d\n",
+	// 		*nodeptr, *dataoffset, *datalen, *nodetype);
 	return;
 }
 
+unsigned int EAI_CreateVrmlFromString (char *inputstring, unsigned int *retarr) {
+	int count;
+	unsigned int noderef;
+	int tmp;
 
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSVpv(inputstring, 0)));
+
+
+	PUTBACK;
+	count = call_pv("EAI_CreateVrmlFromString", G_ARRAY);
+	SPAGAIN ;
+
+	//Perl is returning a series of BN/node# pairs, reorder to node#/BN.
+	for (tmp = 1; tmp <= count; tmp++) {
+		retarr[count-tmp] = POPi;
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+
+	return (count);
+}
+
+	
 
 
 

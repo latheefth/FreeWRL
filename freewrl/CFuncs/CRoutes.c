@@ -625,8 +625,10 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 	int counter;
 
 
-	/*printf ("getMFNodetype, %s ar %d\n",strp,ar);
-	printf ("getMFNodetype, parent %d has %d nodes currently\n",par,par->n); */
+	if (CRVerbose) {
+		printf ("getMFNodetype, %s ar %d\n",strp,ar);
+		printf ("getMFNodetype, parent %d has %d nodes currently\n",par,par->n); 
+	}
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;

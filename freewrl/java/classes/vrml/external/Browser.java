@@ -67,7 +67,6 @@ public class Browser implements BrowserInterface
 
 
     private String              reply = "";
-    String fwvers = "not initialized yet";
 
     
     // Query Number as sent to the FreeWRL Browser.
@@ -126,7 +125,7 @@ public class Browser implements BrowserInterface
 	int incrport = -1;
 	EAISocket = null;
 
-	System.out.println ("trying to open socket on 9877");
+	//System.out.println ("trying to open socket on 9877");
 	//enable privleges
 	//JAS try {
 	//JAS 	PrivilegeManager.enablePrivilege ("UniversalConnect");
@@ -139,7 +138,7 @@ public class Browser implements BrowserInterface
 	} catch (IOException e) {
 		System.out.println ("EAI: Error creating socket for FreeWRL EAI on port 2000");
 	}
-	System.out.println ("EAI: opened TCP Client port, ready for data" );
+	//System.out.println ("EAI: opened TCP Client port, ready for data" );
 
 
   	//JAStry {
@@ -196,16 +195,7 @@ public class Browser implements BrowserInterface
 
 
 	//====================================================================
-  	// Wait for the FreeWRL browser to send us something...
-        //try {
-         // fwvers = BrowserfromEAI.readLine();
-	 // System.out.println ("Browser: FreeWRL Version: " + fwvers);
-        //} catch (IOException ie) {System.out.println ("EAI: caught " + ie);}
-  
   	// Browser is "gotten", and is started.
-
-System.out.println ("Browser is here, and is running");
-
   	return;
     }
   
@@ -216,47 +206,59 @@ System.out.println ("Browser is here, and is running");
   
     }
   
+  // Get the browser name
+  public static String getName() {
+      String retval;
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "K\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+      return retval;
+  }
+
     public String        getVersion() {
-	// this is returned as part of the initial handshaking.
-       return fwvers;
+       String retval;
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "L\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+      return retval;
      }
   
     // Get the current velocity of the bound viewpoint in meters/sec,
-    // if available, or 0.0 if not
     public float         getCurrentSpeed() {
-      System.out.println ("EAI: getCurrentSpeed Not Implemented");
-  
-      return (float) 0.0;
+       String retval;
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "M\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+      return Float.valueOf(retval).floatValue();
     }
   
     // Get the current frame rate of the browser, or 0.0 if not available
     public float         getCurrentFrameRate() {
-  
     String retval;
-
     synchronized (FreeWRLToken) {
-      EAIoutSender.send ("" + queryno + "\nGCFR\n");
+      EAIoutSender.send ("" + queryno + "N\n");
       retval = getVRMLreply(queryno);
       queryno += 1;
     }
-
     return Float.valueOf(retval).floatValue();
     }
   
     // Get the URL for the root of the current world, or an empty string
     // if not available
     public String        getWorldURL() {
-
       String retval;
-
-      
        synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "\nGWU\n");
+         EAIoutSender.send ("" + queryno + "O\n");
          retval = getVRMLreply(queryno);
          queryno += 1;
        }
       return retval;
-
     }
   
     // Replace the current world with the passed array of nodes
@@ -272,7 +274,7 @@ System.out.println ("Browser is here, and is running");
 	}
 
         synchronized (FreeWRLToken) {
-          EAIoutSender.send ("" + queryno + "\nRW" + SysString);
+          EAIoutSender.send ("" + queryno + "RW" + SysString);
           retval = getVRMLreply(queryno);
           queryno += 1;
         }
@@ -303,18 +305,22 @@ System.out.println ("Browser is here, and is running");
     public Node[]        createVrmlFromString(String vrmlSyntax) 
 			throws InvalidVrmlException {
 
-      Node[]  x = new Node[2000];
+      Node[]  x = new Node[100];
       StringTokenizer tokens;
       String retval;
       String temp;
       int count;
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" +queryno + "\nCVS "+vrmlSyntax+"\nEOT\n");
+        EAIoutSender.send ("" +queryno + "S "+vrmlSyntax+"\nEOT\n");
         retval = getVRMLreply(queryno);
 
+	// System.out.println ("Browser.java - got " + retval);
+
         tokens = new StringTokenizer (retval);
-	x = new Node[tokens.countTokens()];
+
+	// We return a (node-index C-pointer) pair, so we have to divide by two
+	x = new Node[tokens.countTokens()/2];
         count = 0;
 
 	// Lets go through the output, and temporarily store it
@@ -322,15 +328,23 @@ System.out.println ("Browser is here, and is running");
         while (tokens.hasMoreTokens()) {
           x[count] = new Node();
           x[count].NodeName = tokens.nextToken();
+          x[count].nodeptr = tokens.nextToken();
+          x[count].offset = "0";
+          x[count].datasize = "4";
+          x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
+
+	  //System.out.println ("CVS - for this one, we have NODE" + x[count].NodeName +
+		//" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
+		//" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
+
           count ++;
-	  if (count == 2000) {
-		count = 1999;
-		System.out.println ("EAI: createVrmlFromString - warning, tied to 2000 nodes");
+	  if (count == 100) {
+		count = 99;
+		System.out.println ("EAI: createVrmlFromString - warning, tied to 100 nodes");
 	  }
         }
         queryno += 1;
       }
-
       return x;
     }
   
@@ -351,7 +365,7 @@ System.out.println ("Browser is here, and is running");
 
 
        synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "\nCVU " + url[0] + "\n");
+         EAIoutSender.send ("" + queryno + "T " + url[0] + "\n");
 
          retval = getVRMLreply(queryno);
 
@@ -475,21 +489,24 @@ System.out.println ("Browser is here, and is running");
   // SendChildEvent waits for confirmation that child is added/removed to MFNode array.
   // This gets around the problem of sending two adds in succession, and having
   // the second overwrite the first.
-  public static void SendChildEvent (String NodeName, String FieldName, String Value)
+  public static void SendChildEvent (String parent, String offset, String FieldName, String Value)
     {
       String retval;
 
+	// System.out.println ("SendChildEvent: sending to " + parent + " ofs:" + 
+	//	offset + " field " + FieldName + " child: " + Value);
+
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "\nSC " + NodeName + " " + 
-           FieldName + "\n" + Value + "\n");
+        EAIoutSender.send ("" + queryno + "C " + parent + " " + offset + " " +
+           FieldName + " "+ Value + "\n");
         retval = getVRMLreply(queryno);
         queryno += 1;
 	
         // Now, tell FreeWRL to update routes
-        EAIoutSender.send ("" + queryno + "\nUR " + NodeName + " " + 
-           FieldName + "\n" + Value + "\n");
-        retval = getVRMLreply(queryno);
-        queryno += 1;
+        //JAS EAIoutSender.send ("" + queryno + "B "  
+         //JAS   FieldName + " " + Value + "\n");
+        //JAS retval = getVRMLreply(queryno);
+        //JAS queryno += 1;
       }
       return;
     }
@@ -498,8 +515,8 @@ System.out.println ("Browser is here, and is running");
   public static void SendEvent (String NodePtr, String Offset, String datasize, String NodeType, String Value)
     {
 
-System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + NodePtr +
-		" Offset " + Offset);
+	//System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + NodePtr +
+	//	" Offset " + Offset);
       synchronized (FreeWRLToken) {
         EAIoutSender.send ("" + queryno + "D" + NodeType + " " + 
            NodePtr + " " + Offset + " " + Value + "\n");
@@ -508,18 +525,6 @@ System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + No
       }
       return;
     }
-
-  // Get the browser name
-  public static String getName() {
-      String retval;
-
-       synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "\nGNAM\n");
-         retval = getVRMLreply(queryno);
-         queryno += 1;
-       }
-      return retval;
-  }
 
 
   protected static String SendEventType (String NodeName, String FieldName, String direction) {

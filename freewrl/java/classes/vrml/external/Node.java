@@ -13,7 +13,10 @@ public class Node {
   // name of a PROTO, or the class name
 
   public String NodeName  = "Not initiated yet";
-  public String NodeAddress = "UNDEFINED";
+  public String nodeptr = "0";
+  public String offset = "0";
+  public String datasize = "0";
+  public String datatype;
 
   public String toString() {
     return NodeName;
@@ -31,10 +34,6 @@ public class Node {
   public EventIn       getEventIn(String name) {
 
       StringTokenizer tokens;
-      String nodeptr;
-      String offset;
-      String datasize;
-      String datatype;
 
   // Return the type that is asked for. To determine the
   // subclass, look at the string. 
@@ -42,16 +41,7 @@ public class Node {
   // Maybe, send a GFT to the FreeWRL Browser, to see what
   // it thinks...
 
-   // lets remember the addChildren and removeChildren specials...
-   // FreeWRL does not differentiate between addChildren and removeChildren
-   if (name.equals("addChildren") || (name.equals("removeChildren"))) {
-      EventInMFNode ret = new EventInMFNode();
-      ret.command = name; ret.inNode = NodeName; return ret;
-    }
-
-    String st = Browser.SendEventType(NodeName, name, "EventIn");
-
-	System.out.println ("Node.java  st = " + st);
+    String st = Browser.SendEventType(NodeName, name, "eventIn");
 
     // Did this fail??? if so, then keep trying...
     if (st.equals("")) {
@@ -61,7 +51,7 @@ public class Node {
 	  // possibly....
 	  if (name.substring(0,4).equals ("set_")) {
             name = name.substring(4);
-            st = Browser.SendEventType(NodeName, name, "EventIn");
+            st = Browser.SendEventType(NodeName, name, "eventIn");
 	  }
       }
     }
@@ -71,8 +61,8 @@ public class Node {
     offset = tokens.nextToken();
     datasize = tokens.nextToken();
     datatype = tokens.nextToken();
-    System.out.println ("EventOut: nodeptr " + nodeptr + " offset " + offset +
-	" datasize " + datasize + " datatype " + datatype);
+    //System.out.println ("EventOut: nodeptr " + nodeptr + " offset " + offset +
+    //	" datasize " + datasize + " datatype " + datatype);
 
 
     // check out the return values specified in CFuncs/EAIServ.c
@@ -102,7 +92,8 @@ public class Node {
 		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; return ret;
     } else if(datatype.equals("h")) {
       EventIn ret = new EventInSFNode(); ret.command = name; ret.inNode = NodeName; ret.datatype=datatype;
-		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; return ret;
+		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; 
+		return ret;
     } else if(datatype.equals("r")) {
       EventIn ret = new EventInMFRotation(); ret.command = name; ret.inNode = NodeName; ret.datatype=datatype;
 		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; return ret;
@@ -117,10 +108,8 @@ public class Node {
 		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; return ret;
     } else if(datatype.equals("q")) {
       EventIn ret = new EventInMFNode(); ret.command = name; ret.inNode = NodeName; ret.datatype=datatype;
-		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; return ret;
-    //} else if(datatype.equals("unknown")) {
-     // EventIn ret = new EventInMField(); ret.command = name; ret.inNode = NodeName; ret.datatype=datatype;
-//		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; return ret;
+		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize;
+	return ret;
     } else if(datatype.equals("i")) {
       EventIn ret = new EventInSFRotation(); ret.command = name; ret.inNode = NodeName;ret.datatype=datatype;
 		ret.nodeptr = nodeptr; ret.offset = offset; ret.datasize = datasize; return ret;
@@ -142,7 +131,8 @@ public class Node {
     System.out.println ("WARNING: getEventIn - don't know how to handle " + name
 		+ " asked for " + st + " returning Class EventInMFnode");
 
-    ret.command = name; ret.inNode = NodeName; 
+    ret.command = name; ret.inNode = NodeName; ret.datatype=datatype; ret.nodeptr=nodeptr; ret.offset=offset;
+    ret.datasize = datasize;
     return ret;
   }
 
@@ -156,12 +146,8 @@ public class Node {
 
   public EventOut      getEventOut(String name) throws InvalidEventOutException {
       StringTokenizer tokens;
-      String nodeptr;
-      String offset;
-      String datasize;
-      String datatype;
 
-    String st = Browser.SendEventType(NodeName, name, "EventOut");
+    String st = Browser.SendEventType(NodeName, name, "eventOut");
     // Did this fail??? if so, then keep trying...
     if (st.equals("")) {
      // Do we have a "_changed" at the end????
@@ -171,7 +157,7 @@ public class Node {
 	  System.out.println ("java::eventOut:: removing changed from " + name);
           name = name.substring(0,name.length()-8);
 	  System.out.println ("java::eventOut:: done " + name);
-          st = Browser.SendEventType(NodeName, name, "EventOut");
+          st = Browser.SendEventType(NodeName, name, "eventOut");
 	}
       }
     }
@@ -181,8 +167,8 @@ public class Node {
     datasize = tokens.nextToken();
     datatype = tokens.nextToken();
 
-    System.out.println ("EventOut: nodeptr " + nodeptr + " offset " + offset +
-	" datasize " + datasize + " datatype " + datatype);
+    //System.out.println ("EventOut: nodeptr " + nodeptr + " offset " + offset +
+    //	" datasize " + datasize + " datatype " + datatype);
 
     // check out the return values specified in CFuncs/EAIServ.c
     if(datatype.equals("p")) {

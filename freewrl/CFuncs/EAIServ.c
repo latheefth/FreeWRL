@@ -132,7 +132,7 @@ int bufcount;				// pointer into buffer
 int bufsize;				// current size in bytes of input buffer 
 
 
-int EAIVerbose = 1;
+int EAIVerbose = 0;
 
 int EAIsendcount = 0;			// how many commands have been sent back?
 
@@ -145,20 +145,28 @@ void EAI_send_string (char *str);
 void connect_EAI(void);
 void create_EAI(char *eailine);
 void handle_EAI(void);
+int EAI_GetNode(char *str);		// in VRMLC.pm
+void EAI_GetType (unsigned int uretval,
+	char *ctmp, char *dtmp,
+	int *ra, int *rb,
+	int *rc, int *rd);		// in VRMLC.pm
+void read_EAI_socket(void);
+int EAICreateVrmlFromString(char *str);	// in VRMLC.pm
+
 
 
 void EAI_send_string(char *str){
-	int n;
+	unsigned int n;
 
 	/* add a trailing newline */
 	strcat (str,"\n");
 
-	if (EAIVerbose) printf ("EAISERVER:EAI_send_string, %s\n",str);
+	if (EAIVerbose) printf ("EAI Command returns\n%s",str);
+
 	n = write (listenfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
 		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
 	}
-	if (EAIVerbose) printf ("EAISERVER:EAI_send_string, sent \n");
 
 }
 
@@ -173,8 +181,6 @@ void connect_EAI() {
 
 	if (EAIfailed) return;
 
-	//if (EAIVerbose) printf ("EAISERVER:connect\n");
-
 	if (sockfd < 0) {
 		// step 1  - create socket
 	        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -186,7 +192,7 @@ void connect_EAI() {
 	
 		setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 	
-		if (flags=fcntl(sockfd,F_GETFL,0) < 0) {
+		if ((flags=fcntl(sockfd,F_GETFL,0)) < 0) {
 			printf ("EAIServer: trouble gettingsocket flags\n");
 			EAIfailed=TRUE;
 			return;
@@ -200,7 +206,7 @@ void connect_EAI() {
 			}
 		}
 	
-		printf ("connect_EAI - socket made\n");
+		if (EAIVerbose) printf ("connect_EAI - socket made\n");
 	
 		// step 2 - bind to socket
 		socketincrement = 0;
@@ -230,7 +236,6 @@ void connect_EAI() {
 			EAIfailed=TRUE;
 			return;
 		}
-		//printf ("past step 3\n");
 	}
 
 	if ((sockfd >=0) && (listenfd<0)) {
@@ -239,7 +244,6 @@ void connect_EAI() {
 	        if ( (listenfd = accept(sockfd, (struct sockaddr *) &cliaddr, &len)) < 0) {
 			//printf ("EAIServer: no client yet\n");
 		}
-		//printf ("past step 4 - listenfd %d\n",listenfd);
 	}
 
 
@@ -287,22 +291,11 @@ void create_EAI(char *eailine) {
 	}
 }
 
-/* possibly we have an incoming EAI request from the client */
-void handle_EAI () {
+/* read in from the socket.  */
+void read_EAI_socket() {
 	int retval;
-	int len;
 
-	/* do nothing unless we are wanted */
-	if (!EAIwanted) return;
-	if (!EAIinitialized) {
-		connect_EAI();
-		return;
-	}
-
-	len = sizeof (servaddr);
 	retval = FALSE;
-	bufcount = 0;
-
 	do {
 		tv.tv_sec = 0;
 		tv.tv_usec = 0;
@@ -310,8 +303,6 @@ void handle_EAI () {
 		FD_SET(listenfd, &rfds);
 	
 		retval = select(listenfd+1, &rfds, NULL, NULL, &tv);
-	
-	        //if (EAIVerbose) printf ("EAISERVER:Select retval:%d\n",retval);
 	
 		if (retval) {
 			retval = read (listenfd, &buffer[bufcount],EAIREADSIZE);
@@ -323,154 +314,205 @@ void handle_EAI () {
 				EAIinitialized=FALSE;
 			}
 
-			printf ("read in %d , max %d",retval,EAIREADSIZE);
-			printf ("space left %d\n",bufsize - bufcount);
+			if (EAIVerbose) printf ("read in from socket %d , max %d",retval,EAIREADSIZE);
+
 			bufcount += retval;
 
 			if ((bufsize - bufcount) < 10) {
-				printf ("HAVE TO REALLOC INPUT MEMORY\n");
+				//printf ("HAVE TO REALLOC INPUT MEMORY\n");
 				bufsize += EAIREADSIZE;
-				buffer = realloc (buffer, bufsize);
+				buffer = realloc (buffer, (unsigned int) bufsize);
 			}
 		}
 	} while (retval);
+}
+
+
+/* possibly we have an incoming EAI request from the client */
+void handle_EAI () {
+	/* do nothing unless we are wanted */
+	if (!EAIwanted) return;
+	if (!EAIinitialized) {
+		connect_EAI();
+		return;
+	}
+
+	bufcount = 0;
+	read_EAI_socket();
 
 	/* make this into a C string */
-	bufcount ++;
 	buffer[bufcount] = 0;
 
 	/* any command read in? */
 	if (bufcount > 1) 
 		EAI_parse_commands (buffer);
-}
+	}
 
-/******************************************************************************
-*
-* EAI_parse_commands
-*
-* there can be many commands waiting, so we loop through commands, and return
-* a status of EACH command
-*
-* a Command starts off with a sequential number, a space, then a letter indicating
-* the command, then the parameters of the command.
-*
-* the command names are #defined at the start of this file.
-*
-* some commands have sub commands (eg, get a value) to indicate data types, 
-* (eg, SFFLOAT); these sub types are indicated with a lower case letter; again,
-* look to the top of this file for the #defines
-*
-*********************************************************************************/
+	/******************************************************************************
+	*
+	* EAI_parse_commands
+	*
+	* there can be many commands waiting, so we loop through commands, and return
+	* a status of EACH command
+	*
+	* a Command starts off with a sequential number, a space, then a letter indicating
+	* the command, then the parameters of the command.
+	*
+	* the command names are #defined at the start of this file.
+	*
+	* some commands have sub commands (eg, get a value) to indicate data types, 
+	* (eg, SFFLOAT); these sub types are indicated with a lower case letter; again,
+	* look to the top of this file for the #defines
+	*
+	*********************************************************************************/
 
-void EAI_parse_commands (char *bufptr) {
-	char buf[EAIREADSIZE];	// return value place
-	char ctmp[EAIREADSIZE];	// temporary character buffer
-	char dtmp[EAIREADSIZE];	// temporary character buffer
-	int count;
-	char command;
-	unsigned int uretval;		// unsigned return value
-	unsigned int ra,rb,rc,rd;	// temps
+	void EAI_parse_commands (char *bufptr) {
+		char buf[EAIREADSIZE];	// return value place
+		char ctmp[EAIREADSIZE];	// temporary character buffer
+		char dtmp[EAIREADSIZE];	// temporary character buffer
+		unsigned int nodarr[200]; // returning node/backnode combos from CreateVRML fns.
 
+		int count;
+		char command;
+		unsigned int uretval;		// unsigned return value
+		unsigned int ra,rb,rc,rd;	// temps
+		char *EOT;		// ptr to End of Text marker
 
-	while (strlen(bufptr)> 0) {
-		//for (tmp = 0; tmp <= strlen(bufptr); tmp ++) {
-		//	printf ("char %d is %x %d\n",tmp,bufptr[tmp],bufptr[tmp]);
-		//}
-	
-		printf ("EAIServer string is:%s: strlen %d\n",bufptr,strlen (bufptr));
+		while (strlen(bufptr)> 0) {
+			//printf ("start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
 
+			/* step 1, get the command sequence number */
+			if (sscanf (bufptr,"%d",&count) != 1) {
+				printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
+				count = 0;
+			}
 
-		/* step 1, get the command sequence number */
-		if (sscanf (bufptr,"%d",&count) != 1) {
-			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
-			count = 0;
-		}
+			/* step 2, skip past the sequence number */
+			while (isdigit(*bufptr)) bufptr++;
+			while (*bufptr == ' ') bufptr++;
 
-		/* step 2, skip past the sequence number */
-		while (isdigit(*bufptr)) bufptr++;
-		while (*bufptr == ' ') bufptr++;
+			/* step 3, get the command */
+			//printf ("command %c seq %d\n",*bufptr,count);
+			command = *bufptr;
+			bufptr++;
 
-		/* step 3, get the command */
-		printf ("command %c seq %d\n",*bufptr,count);
-		command = *bufptr;
-		bufptr++;
+			// return is something like: $hand->print("RE\n$reqid\n1\n$id\n");
 
-		// return is something like: $hand->print("RE\n$reqid\n1\n$id\n");
+			if (EAIVerbose) printf ("\n... %d ",count);
 
-		/* step 4, get the return string prepared */
-		sprintf (buf,"\nRE\n%d\n",count);
+			switch (command) {
+				case GETNAME: { 
+					if (EAIVerbose) printf ("GETNAME\n");
+					sprintf (buf,"RE\n%d\n1\n%s",count,BrowserName);
+					break; 
+					}
+				case GETVERSION: { 
+					if (EAIVerbose) printf ("GETVERSION\n");
+					sprintf (buf,"RE\n%d\n1\n%s",count,BrowserVersion);
+					break; 
+					}
+				case GETCURSPEED: { 
+					if (EAIVerbose) printf ("GETCURRENTSPEED\n");
+					sprintf (buf,"RE\n%d\n1\n%f",count,(float) 1.0/BrowserFPS);
+					break; 
+					}
+				case GETFRAMERATE: { 
+					if (EAIVerbose) printf ("GETFRAMERATE\n");
+					sprintf (buf,"RE\n%d\n1\n%f",count,BrowserFPS);
+					break; 
+					}
+				case GETURL: { 
+					if (EAIVerbose) printf ("GETURL\n");
+					sprintf (buf,"RE\n%d\n1\n%s",count,BrowserURL);
+					break; 
+					}
+				case GETNODE:  {
+					//format int seq# COMMAND    string nodename
 
-		switch (command) {
-			case GETNAME: { 
-				if (EAIVerbose) printf ("GETNAME command recieved\n");
-				strcat (buf,BrowserName);
-				break; 
-				}
-			case GETVERSION: { 
-				if (EAIVerbose) printf ("GETVERSION command recieved\n");
-				strcat (buf,BrowserVersion);
-				break; 
-				}
-			case GETCURSPEED: { 
-				if (EAIVerbose) printf ("GETCURRENTSPEED command recieved\n");
-				strcat (buf,"0.0"); // valid to return this
-				break; 
-				}
-			case GETFRAMERATE: { 
-				if (EAIVerbose) printf ("GETFRAMERATE command recieved\n");
-				sprintf (buf,"%d %f",count,BrowserFPS);
-				break; 
-				}
-			case GETURL: { 
-				if (EAIVerbose) printf ("GETURL command recieved\n");
-				strcat (buf,BrowserURL); // valid to return this
-				break; 
-				}
-			case GETNODE:  {
-				//format int seq# COMMAND    string nodename
+					sscanf (bufptr," %s",ctmp);
+					if (EAIVerbose) printf ("GETNODE %s\n",ctmp);
 
-				if (EAIVerbose) printf ("GETNODE command recieved\n");
+					uretval = EAI_GetNode(ctmp);
 
-				sscanf (bufptr," %s",ctmp);
-				uretval = EAI_GetNode(ctmp);
-
-				sprintf (buf,"RE\n%d\n1000\n%d",count,uretval);
-				break; 
+					sprintf (buf,"RE\n%d\n1\n%d",count,uretval);
+					break; 
 				}
 			case GETTYPE:  {
 				//format int seq# COMMAND  int node#   string fieldname   string direction
 
-				if (EAIVerbose) printf ("GETNODE command recieved\n");
-
 				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
+				if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
+
 				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
 
-				sprintf (buf,"RE\n%d\n01\n%d %d %d %c",count,ra,rb,rc,rd);
+				sprintf (buf,"RE\n%d\n1\n%d %d %d %c",count,ra,rb,rc,rd);
 				break;
 				}
 			case SENDEVENT:   {
 				//format int seq# COMMAND NODETYPE pointer offset data
-				if (EAIVerbose) printf ("SENDEVENT command recieved\n");
-				printf ("line is %s\n",bufptr);
+				if (EAIVerbose) printf ("SENDEVENT %s\n",bufptr);
+				EAI_SendEvent(bufptr);
+				break;
+				}
+			case CREATEVS: {
+				//format int seq# COMMAND vrml text     string EOT
+				if (EAIVerbose) printf ("CREATEVS %s\n",bufptr);
 
-				sprintf (buf,"%d %d\n",count,EAI_SendEvent(bufptr));
+				EOT = strstr(buffer,"\nEOT\n");
+				// if we do not have a string yet, we have to do this...
+				while (EOT == NULL) {
+					read_EAI_socket();
+					EOT = strstr(buffer,"\nEOT\n");
+				}
 
+				*EOT = 0; // take off the EOT marker
+
+				ra = EAI_CreateVrmlFromString(bufptr,nodarr);
+
+				sprintf (buf,"RE\n%d\n%d\n",count,ra);
+				for (rb = 0; rb < ra; rb++) {
+					sprintf (ctmp,"%d ", nodarr[rb]);
+					strcat (buf,ctmp);
+				}
+
+				// finish this for now
+				bufptr[0] = 0;
+				break;
+				}
+			case SENDCHILD :  {
+				//format int seq# COMMAND  int node#   ParentNode field ChildNode
+
+				sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
+				rc = ra+rb; // final pointer- should point to a Multi_Node
+
+				if (EAIVerbose) printf ("SENDCHILD %d %d %s %s\n",ra, rb, ctmp, dtmp);
+
+				getMFNodetype (dtmp,(struct Multi_Node *)rc, 
+						!strcmp(ctmp,"addChildren"));
+
+				sprintf (buf,"RE\n%d\n1\n0",count);
+				break;
+				}
+			case UPDATEROUTING :  {
+				//format int seq# COMMAND  int node#   ParentNode field ChildNode
+
+				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
+				if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
+
+				sprintf (buf,"RE\n%d\n1\n0",count);
 				break;
 				}
 			case REPLACEWORLD:  
-			case UPDATEROUTING : 
-			case SENDCHILD :  
 			case GETVALUE: 
 			case REGLISTENER: 
 			case ADDROUTE:  
 			case DELETEROUTE:  
 			case LOADURL: 
 			case SETDESCRIPT:  
-			case CREATEVS: 
 			case CREATEVU:  
 			case STOPFREEWRL:  
 			default: {
-				printf ("unknown command :%c: %d\n",command,command);
+				printf ("unhandled command :%c: %d\n",command,command);
 				strcat (buf, "unknown_EAI_command");
 				break;
 				}
@@ -478,16 +520,14 @@ void EAI_parse_commands (char *bufptr) {
 		}
 
 
-		/* send the response */
-		EAI_send_string (buf);
+		/* send the response - events don't send a reply */
+		if (command != SENDEVENT) EAI_send_string (buf);
 	
 		/* skip to the next command */
 		while (*bufptr >= ' ') bufptr++;
-		//printf ("at next command len %d str:%s:\n",strlen(bufptr),bufptr);
 
 		/* skip any new lines that may be there */
 		while ((*bufptr == 10) || (*bufptr == 13)) bufptr++;
-		//printf ("skipped newlines, len %d str:%s:\n",strlen(bufptr),bufptr);
 	}
 }
 
@@ -499,6 +539,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 	int ival;
 	float fl[4];
 	double dval;
+	unsigned int memptr;
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
 		friggin do it! ;-) */
@@ -514,10 +555,13 @@ unsigned int EAI_SendEvent (char *ptr) {
 	while ((*ptr) > ' ') ptr++; 	// node ptr
 	while ((*ptr) == ' ') ptr++;	// inter number space(s)
 	while ((*ptr) > ' ') ptr++;	// node offset
-	printf ("EAI_SendEvent, nodeptr %x offset %x\n",nodeptr,offset);
+
+	if (EAIVerbose) printf ("EAI_SendEvent, nodeptr %x offset %x\n",nodeptr,offset);
+
+	memptr = nodeptr+offset;	// actual pointer to start of destination data in memory
 
 	// now, we are at start of data.
-	printf ("EAI_SendEvent, event string now is %s\n",ptr);
+	if (EAIVerbose) printf ("EAI_SendEvent, event string now is %s\n",ptr);
 
 	/* This switch statement is almost identical to the one in the Javascript
 	   code (check out CFuncs/CRoutes.c), except that explicit Javascript calls
@@ -532,7 +576,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 				/* printf ("ASSUMED TO BE FALSE\n"); */
 				ival = 0;
 			}	
-			memcpy ((void *)nodeptr+offset, (void *)&ival,sizeof(int));
+			memcpy ((void *)memptr, (void *)&ival,sizeof(int));
 			break;
 		}
 
@@ -542,55 +586,55 @@ unsigned int EAI_SendEvent (char *ptr) {
 //xxx
 //xxx			//printf ("SFTime conversion numbers %f from string %s\n",tval,ptr);
 //xxx			//printf ("copying to %#x offset %#x len %d\n",tn, tptr,len);
-//xxx			memcpy ((void *)nodeptr+offset, (void *)&tval,sizeof(double));
+//xxx			memcpy ((void *)memptr, (void *)&tval,sizeof(double));
 //xxx			break;
 //xxx		}
 		case SFNODE:
 		case SFINT32: {
 			sscanf (ptr,"%d",&ival);
-			memcpy ((void *)nodeptr+offset, (void *)&ival,sizeof(int));
+			memcpy ((void *)memptr, (void *)&ival,sizeof(int));
 			break;
 		}
 		case SFFLOAT: {
-			sscanf (ptr,"%f",&fl);
-			memcpy ((void *)nodeptr+offset, (void *)&fl,sizeof(float));
+			sscanf (ptr,"%f",fl);
+			memcpy ((void *)memptr, (void *)fl,sizeof(float));
 			break;
 		}
 
 		case SFVEC2F: {	/* SFVec2f */
 			sscanf (ptr,"%f %f",&fl[0],&fl[1]);
-			memcpy ((void *)nodeptr+offset, (void *)fl,sizeof(float)*2);
+			memcpy ((void *)memptr, (void *)fl,sizeof(float)*2);
 			break;
 		}
 		case SFVEC3F:
 		case SFCOLOR: {	/* SFColor */
 			sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-			memcpy ((void *)nodeptr+offset, (void *)fl,sizeof(float)*3);
+			memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
 			break;
 		}
 
 		case SFROTATION: {
 			sscanf (ptr,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-			memcpy ((void *)nodeptr+offset, (void *)fl,sizeof(float)*4);
+			memcpy ((void *)memptr, (void *)fl,sizeof(float)*4);
 			break;
 		}
 
 
 		/* a series of Floats... */
 //xxx		case MFVEC3F:
-//xxx		case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,3); break;}
-//xxx		case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,1); break;}
-//xxx		case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,4); break;}
-//xxx		case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,2); break;}
-//xxx		case MFNODE: {getMFNodetype (ptr,nodeptr+offset,CRoutes[route].extra); break;}
+//xxx		case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,3); break;}
+//xxx		case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,1); break;}
+//xxx		case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,4); break;}
+//xxx		case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,2); break;}
+//xxx		case MFNODE: {getMFNodetype (ptr,memptr,CRoutes[route].extra); break;}
 //xxx		case MFSTRING: {
 //xxx			getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
-//xxx							 global_return_val,nodeptr+offset); 
+//xxx							 global_return_val,memptr); 
 //xxx			break;
 //xxx		}
 //xxx
-//xxx		case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,0); break;}
-//xxx		case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,5); break;}
+//xxx		case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,0); break;}
+//xxx		case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,5); break;}
 
 		default: {
 			printf ("unhandled Event :%c: - get code in here\n",nodetype);
@@ -602,671 +646,3 @@ unsigned int EAI_SendEvent (char *ptr) {
 }
 
 
-//sub gulp {
-//	my($this, $handle) = @_;
-//	my ($s,$b);
-//	my($rin,$rout);
-//	do {
-//		# print "GULPING\n";
-//		my $n = $handle->sysread($b,1000);
-//		# print "GULPED $n ('$b')\n";
-//		goto OUT if !$n;
-//		$s .= $b;
-//		vec($rin,$handle->fileno,1) = 1;
-//		select($rout=$rin,"","",0);
-//		# print "ROUT : $rout\n";
-//	} while(vec($rout,$handle->fileno,1));
-//	# print "ENDGULP\n";
-//  OUT:
-//	return $s;
-//}
-//
-//# However funny this is, we do connect as the client ;)
-//sub connect {
-//	my($this, $addr) = @_;
-//	$addr =~ /^(.*):(.*)$/ or 
-//		die  "Invalid EAI adress '$addr'";
-//	
-//	($EAIhost, $EAIport) = ($1,$2);
-//
-//	#print ("FreeWRL: connect: remote $EAIhost  port $EAIport\n");
-//	my $sock;
-//	$sock = IO::Socket::INET->new(
-//		Proto => "tcp",
-//		PeerAddr => $EAIhost,
-//		PeerPort => $EAIport
-//	);
-//
-//	# is socket open? If not, wait.....
-//	if (!$sock) { 
-//		# print "FreeWRL: Connect: socket not opened yet...\n";
-//		return;
-//	}
-//
-//	$this->doconnect($sock);
-//}
-//
-//sub doconnect {
-//	my($this,$sock) = @_;
-//
-//	# set up a socket, when it is connected, then send EAI an initial message. 
-//	$sock->autoflush(1);
-//
-//	$sock->setvbuf("",&_IONBF,0);
-//	push @{$this->{Conn}}, $sock;
-//	$sock->print("$VRML::Config{VERSION}\n");
-//}
-//
-//sub poll {
-//	my($this) = @_;
-//	my ($nfound, $timeleft,$rout);
-//
-//
-//	# if the socket is not open yet, try it, once again...
-//	if (!defined $this->{Conn}) {
-//		# print "FreeWRL: Poll: socket not opened yet for host $EAIhost port $EAIport\n";
-//		# lets just try again in a while...
-//		if ($EAIrecount < 100) {
-//			$EAIrecount +=1;
-//			return;
-//		}
-//
-//		# woops! While is up! lets try connecting again.
-//        	my $sock;
-//       		 $sock = IO::Socket::INET->new(
-//       		         Proto => "tcp",
-//       		         PeerAddr => $EAIhost,
-//       		         PeerPort => $EAIport
-//       		 );
-//
-//       		 # is socket open? If not, wait.....
-//		if (!$sock && $EAIfailure < $VRML::ENV{EAI_CONN_RETRY}) {
-//			 $EAIfailure += 1;
-//			 $EAIrecount = 0;
-//       		         #print "FreeWRL: Poll: socket not opened yet...\n";
-//       		 } elsif (!$sock
-//			     && $EAIfailure >= $VRML::ENV{EAI_CONN_RETRY}
-//			     && $VRML::ENV{AS_PLUGIN}) {
-//			 print "FreeWRL: Poll: connect to EAI socket timed-out.\n"
-//			     if $VRML::verbose::EAI;
-//			 ## remove the sub poll from array reference
-//			 shift(@{$this->{B}->{Periodic}});
-//       		 } else {
-//			#print "FreeWRL: Poll: Socket finally opened!!! \n";
-//        		$this->doconnect($sock);
-//		}
-//
-//	}
-//
-//	if (defined $this->{Conn}) {
-//		my $rin = '';
-//
-//	#print "poll opened, eof is ", ref $this->{Conn},"\n";
-//	
-//		for(@{$this->{Conn}}) {
-//			vec($rin, $_->fileno, 1) = 1;
-//		}
-//		($nfound, $timeleft) = select($rout = $rin, '', '', 0);
-//		if($nfound) {
-//			for(@{$this->{Conn}}) {
-//				if(vec($rout, $_->fileno, 1)) {
-//					$this->handle_input($_);
-//				}
-//			}
-//		}
-//	}
-//}
-//
-//
-//
-//sub find_actual_node_and_field {
-//	my ($id, $field, $eventin) = @_;
-//	my $actualfield;
-//
-//	# print "find_actual_node_and_field, looking for ",
-//	# 	VRML::NodeIntern::dump_name($id)," field $field\n";
-//	my $node = VRML::Handles::get($id);
-//	if ($node eq ""){
-//		# node was not registered
-//		$node = $id;
-//	}
-//
-//	# remove the set_ and _changed, if it exists.
-//	# actual fields (NOT EventIN/OUTs) are what we are usually after
-//	$actualfield = $field;
-//	if ($eventin == 1) {
-//  		$actualfield =~ s/^set_//; # trailing new line....
-//	} else {
-//  		$actualfield =~ s/_changed$//; # trailing new line....
-//	}
-//
-//	 # print "find_actual_node, looking at node ",
-//	 # 	VRML::NodeIntern::dump_name($node),"  ref ", ref $node, 
-//	 # 	" field :$field:, actualfield $actualfield eventin flag $eventin\n";
-//
-//	if (exists $node->{Fields}{$field}) {
-//		# print "find_actual_node this is a direct pointer to the field, just returning\n";
-//		return ($node, $field);
-//	}
-//
-//	if (exists $node->{Fields}{$actualfield}) {
-//		# print "find_actual_node this is a direct pointer to the actualfield, just returning\n";
-//		return ($node, $actualfield);
-//	}
-//
-//	# print "find_actual_node, step 0.3\n";
-//
-//	#AK - try to let FieldHash deal with locating IS references...
-//	#AK - #my $direction;
-//	#AK - #if ($eventin == 1) { $direction = "IS_ALIAS_IN"}
-//	#AK - #else {$direction = "IS_ALIAS_OUT"};
-//	#AK - #
-//	#AK - #if (defined $node->{Scene}{$direction}{$field}) {
-//		# aha! is this an "IS"?
-//		# print "find_actual_node, this is a IsProto\n";
-//
-//		#AK - #my $n; my $f;
-//
-//		#AK - #$n = $node->{Scene}{$direction}{$field}[0][0];
-//		#AK - #$f = $node->{Scene}{$direction}{$field}[0][1];
-//		# print "find_actual_node, n is ",VRML::NodeIntern::dump_name($n)," f is $f\n";
-//		#AK - #if ($n != "") {
-//			# it is an is...
-//			# print "find_actual_node, returning n,f\n";
-//			#AK - #return ($n, $f);
-//		#AK - #}
-//		# it is a protoexp, and it it not an IS, so, lets just return
-//		# the original, and cross our fingers that it is right.
-//		# print "find_actual_node, actually, did not find node, returning defaults\n";
-//		#AK - #return ($node, $field);
-//	#AK - #}
-//
-//	#JAS . dont actually know if any of the rest is of importance, but
-//	#JAS keeping it here for now.
-//
-//	# Hmmm - it was not a PROTO, lets just see if the field
-//	# exists here.
-//
-//	if (defined $node->{$field}) {
-//		return ($node, $field);
-//	}
-//	# Well, next test. Is this an EventIn/EventOut, static parameter to
-//	# a PROTO?
-//	# print "find_actual_node, step3\n";
-//
-//	#AK - #if (defined $node->{Scene}) {
-//		#AK - #$node = VRML::Handles::front_end_child_get($node);
-//		#JAS ($node,$field) = find_actual_node_and_field ($node,$field,$eventin);
-//		#AK - #return ($node,$field);
-//	#AK - #}
-//
-//	return ($node,$field);
-//}
-//
-//
-//sub handle_input {
-//	my($this, $hand) = @_;
-//
-//	my @lines = split "\n",$this->gulp($hand);
-//
-//	# is the socket closed???
-//	if ($#lines == -1) {
-//		# send a "quitpressed" - note that this will only be
-//		# intercepted when not running in netscape. It is 
-//		# very useful, however, when running eai standalone.
-//		$this->{B}->{BE}->{QuitPressed} = 1;
-//	}
-//
-//	while (@lines) {
-//		if($VRML::verbose::EAI) {
-//		  print "Handle input $#lines\nEAI input:\n";
-//		  my $myline; 
-//		  foreach $myline (@lines) {
-//			print "....",$myline,".... \n";
-//		  }
-//		  print ".. finished\n\n";
-//		}
-//
-//		my $reqid = shift @lines; # reqid + newline
-//
-//                if ($reqid eq '') {
-//		  $reqid = shift @lines; # reqid + newline
-//                }
-//
-//		my $str = shift @lines; 
-//
-//		if($str =~ /^GN (.*)$/) { # Get node
-//        		# Kevin Pulo <kev@pulo.com.au>
-//			my $node = $this->{B}->api_getNode($1);
-//			if (!defined $node) {
-//				warn("Node $1 is not defined");
-//				next;
-//			}
-//
-//			if ("VRML::DEF" eq ref $node) {
-//				$node = $this->{B}->api_getNode(VRML::Handles::return_def_name($1));
-//				if (!defined $node) {
-//					warn("DEF node $1 is not defined");
-//					next;
-//				}
-//			}
-//
-//			#AK - #if (defined $node->{IsProto}) {
-//				# print "GN of $1 is a proto, getting the real node\n";
-//				#AK - #$node = $node->real_node();
-//			#AK - #}
-//
-//			my $id = VRML::Handles::reserve($node);
-//
-//			# remember this - this node is displayed already
-//			VRML::Handles::displayed($node);
-//
-//			if ($VRML::verbose::EAI) {
-//				  print "GN returns $id\n";
-//			}
-//			$hand->print("RE\n$reqid\n1\n$id\n");
-//
-//		} elsif($str =~ /^GT ([^ ]+) ([^ ]+)$/) { # get eventOut type
-//			my($id, $field) = ($1, $2);
-//
-//			my $node;
-//
-//			($node,$field) = find_actual_node_and_field($id,$field,0);
-//
-//                        if ($VRML::verbose::EAI) {
-//				print "GT, looking for type for node $node\n";
-//			}
-//
-//			my ($kind, $type) = 
-//			 $this->{B}->api__getFieldInfo($node, $field);
-//
-//			 if ($VRML::verbose::EAI) { print " type  $type\n";}
-//		        $hand->print("RE\n$reqid\n0\n$type\n");
-//
-//		} elsif($str =~ /^GV ([^ ]+) ([^ ]+)$/) { # get eventOut Value
-//			my($id, $field) = ($1, $2);
-//			my $node;
-//
-//
-//			($node,$field) = find_actual_node_and_field($id,$field,0);
-//
-//                        if ($VRML::verbose::EAI) {
-//				print "GV, looking for type for node $node\n";
-//			}
-//
-//			my ($kind, $type) = 
-//			 $this->{B}->api__getFieldInfo($node, $field);
-//			# print "GV - kind is $kind, type is $type\n";
-//
-//			#print "GV, trying first get\n";
-//			my $val = $node->{RFields}{$field};
-//			if ($val eq '') {
-//				#print "GV, woops,, have to try normal fields\n";
-//				$val = $node->{Fields}{$field};
-//			}
-//			#print "GV, got the value now\n";
-//
-//			my $strval;
-//
-//			if ($type eq "MFNode") {
-//				if ($VRML::verbose::EAI) {
-//					print "VRMLServ.pm: GV found a MFNode for $node\n";
-//				}
-//
-//				# if this is a MFnode, we don't want the VRML CODE
-//				# if ("ARRAY" eq ref $node->{Fields}{$field}) { print "and, it is an ARRAY\n";}
-//
-//				# $strval = "@{$node->{Fields}{$field}}";
-//
-//				foreach (@{$node->{Fields}{$field}}) {
-//					if (VRML::Handles::check($_) == 0) {
-//						$strval = $strval ." ". VRML::Handles::reserve($_);
-//					} else {
-//					 	$strval = $strval ." ". VRML::Handles::get($_);
-//					}
-//					# print " so, Im setting strval to $strval\n";
-//				}
-//
-//			} else {
-//				$strval = "VRML::Field::$type"->as_string($val);
-//				# print "GV value is $val, strval is $strval\n";
-//			}
-//
-//			if ($VRML::verbose::EAI) {
-//				print "GV returns $strval\n";
-//			}
-//			$hand->print("RE\n$reqid\n2\n$strval\n");
-//
-//		} elsif($str =~ /^UR ([^ ]+) ([^ ]+)$/) { # update routing - for 0.27's adding
-//							# MFNodes - to get touchsensors, etc, in there
-//
-//			# we should do things with this, rather than go through the
-//			# whole scene graph again... JAS.
-//			my($id, $field) = ($1, $2);
-//			my $v = (shift @lines)."\n";
-//		        # JS - sure hope we can remove the trailing whitespace ALL the time...
-//  			$v =~ s/\s+$//; # trailing new line....
-//
-//			my $cnode = VRML::Handles::get($v);
-//			$this->{B}->api__updateRouting($cnode, $field);
-//
-//			# are there any routes?
-//         		#AK if (defined $cnode->{SceneRoutes}) {
-//				# print "VRMLServ.pm - UR ROUTE ",
-//        		        #  $cnode->{SceneRoutes}[0][0] , " ",
-//        		        #  $cnode->{SceneRoutes}[0][1] , " ",
-//        		        #  $cnode->{SceneRoutes}[0][2] , " ",
-//        		        #  $cnode->{SceneRoutes}[0][3] , " from $this to node: $cnode\n";
-//
-//				#AK my $scene = $this->{B}{Scene};
-//	
-//	             #AK if($field eq "removeChildren") {
-//					#AK my $item;		
-//					#AK foreach $item (@{$cnode->{SceneRoutes}}) {
-//						# print "deleting route ",$_[0], $_[1], $_[2], $_[3],"\n";
-//						#AK $scene->delete_route($item);
-//					#AK }
-//				#AK } else {
-//					#AK my $item;		
-//					#AK foreach $item (@{$cnode->{SceneRoutes}}) {
-//						#AK my ($fn,$ff,$tn,$tf) = @{$item};
-//						# print "VRMLServ.pm - expanded: $fn $ff $tn $tf\n";
-//						#my $fh = VRML::Handles::return_def_name($fn);
-//        					#my $th = VRML::Handles::return_def_name($tn);
-//
-//						#my $fh = VRML::Handles::get($fn);
-//						#my $th = VRML::Handles::get($tn);
-//						
-//						#AK my @ar=[$fn,$ff,$tn,$tf];
-//						#AK $scene->new_route(@ar);
-//					#AK }
-//				#AK }
-//			# } else {
-//			# 	print "VRMLServ.pm - no routes defined\n";
-//			#AK }
-//
-//			#AK $this->{B}->prepare2();
-//			# make sure it gets rendered
-//			#AK VRML::OpenGL::set_render_frame();
-//
-//			$hand->print("RE\n$reqid\n0\n0\n");
-//
-//		} elsif($str =~ /^SC ([^ ]+) ([^ ]+)$/) { # send SFNode eventIn to node
-//			my($id, $field) = ($1,$2);
-//			my $v = (shift @lines)."\n";
-//
-//		        # JS - sure hope we can remove the trailing whitespace ALL the time...
-//  			$v =~ s/\s+$//; # trailing new line....
-//
-//			my $node;
-//			($node,$field) = find_actual_node_and_field($id,$field,1);
-//
-//			my $child = VRML::Handles::get($v);
-//
-//			if ($VRML::verbose::EAI) {
-//				print "VRMLServ.pm - node $node child $child field $field\n";
-//			}
-//
-//			#AK - #if (defined $child->{IsProto}) {
-//				#AK - #my $temp = $child;
-//				#AK - #$child = $child->real_node();
-//				
-//				#print "VRMLServ.pm - child proto got $child\n";
-//			#AK - #}
-//
-//			# the events are as follows:
-//			# VRMSServ.pm - api__sendEvent(
-//			#	handle VRML::Handles::get($id); 
-//			#	"children"
-//			#	 array VRML::Handles::get($v) + previous children
-//			#
-//			# Browser.pm:api__sendEvent(
-//			#	->{EV}->send_event_to (same parameters)
-//			#	   ie, node, field, value
-//			#
-//			# Events.pm:send_event_to(
-//			#	push on {ToQueue}, [parameters] 
-//			#
-//			# then, some time later....
-//			# Browser.pm:tick calls
-//			# Events.pm:propagate_events sends this eventually to
-//			#
-//			# Scene.pm:receive_event (this, field, value...)
-//			# Tuomas' comments follow:	
-//			# The FieldHash
-//			#
-//			# This is the object behind the "RFields" hash member of
-//			# the object VRML::NodeIntern. It allows you to send an event by
-//			# simply saying "$node->{RFields}{xyz} = [3,4,5]" for which
-//			# calls the STORE method here which then queues the event.
-//			#
-//			# so, 
-//			# Scene.pm:STORE (node, "children" value)
-//			#	$$v = $value;
-//			# 	$node->set_backend_fields ("children");
-//			#
-//			# Scene.pm:set_backend_fields (field)
-//			#	calls make_backend for $v
-//			#	takes the global $v, creates a global $f{"children"}=$v, 
-//			#	and calls
-//			#	$be->set_fields($this->{BackNode},\%f);
-//			#	
-//			# and the backend sets the fields, and everyone lives happily
-//			# ever after...
-//			#	
-//
-//			# AK - #if ($field eq "removeChildren") {
-//				# AK - #if ($this->{B}->checkChildPresent($node,$child)) {
-//		  			# AK - #my @av = $this->{B}->removeChild($node, $child);
-//		  			# AK - #$this->{B}->api__sendEvent($node, "children",\@av);
-//				# AK - #}
-//			# AK - #} else {
-//				# is the child already there???
-//				# AK - #if ($field eq "addChildren") {
-//					# AK - #$field = "children";
-//				# AK - #}
-//				# AK - #if (!($this->{B}->checkChildPresent($node,$child))) {
-//					#JAS my @av = @{$node->{RFields}{$field}};
-//					# AK - #my @av = @{$node->{Fields}{$field}};
-//					# AK - #push @av, $child;
-//		  			# AK - #$this->{B}->api__sendEvent($node, $field,\@av);
-//				# AK - #}
-//			# AK - #}
-//
-//			$this->{B}->api__sendEvent($node, $field, [$child]);
-//
-//			# make sure it gets rendered
-//			VRML::OpenGL::set_render_frame();
-//		    $hand->print("RE\n$reqid\n0\n0\n");
-//
-//		} elsif($str =~ /^SE ([^ ]+) ([^ ]+)$/) { # send eventIn to node
-//			my($id, $field) = ($1,$2);
-//			my $v = (shift @lines)."\n";
-//
-//			# JS - sure hope we can remove the trailing whitespace ALL the time...
-//  			$v =~ s/\s+$//; # trailing new line....
-//
-//			my $node = VRML::Handles::get($id);
-//	
-//			#AK # $node = VRML::Handles::front_end_child_get($node);
-//
-//			my ($x,$ft) = $this->{B}->api__getFieldInfo($node,$field);
-//
-//			# make sure it gets rendered
-//			VRML::OpenGL::set_render_frame();
-//	
-//			($node,$field) = find_actual_node_and_field($id,$field,1);
-//
-//
-//			if ($ft eq "SFNode"){
-//				#print "VRMLServ.pm - doing a SFNode\n";
-//				my $child = VRML::Handles::get($v);
-//				#AK - #if (defined $child->{IsProto}) {
-//					#print "VRMLServ.pm - SE child proto got\n";
-//					#AK - #$child =  $child->real_node();
-//				#AK - #}
-//				#print "VRMLServ.pm, ft $ft child $child\n";
-//				$this->{B}->api__sendEvent($node, $field, $child);
-//			} else {
-//			    	my $value = "VRML::Field::$ft"->parse("FOO",$v);
-//		    		#print "VRMLServ.pm, at 3, sending to $node ",
-//				# 	" field $field value $v\n";
-//		    		$this->{B}->api__sendEvent($node, $field, $value);
-//			}
-//
-//		} elsif($str =~ /^DN (.*)$/) { # Dispose node
-//			VRML::Handles::release($1);
-//		        $hand->print("RE\n$reqid\n0\n");
-//
-//		} elsif($str =~ /^RL ([^ ]+) ([^ ]+) ([^ ]+)$/) {
-//			my($id, $field, $lid) = ($1,$2,$3);
-//			my $node;
-//		
-//			# Register Listener - send an event if changed.
-//
-//			($node,$field) = find_actual_node_and_field($id,$field,0);
-//
-//			# print "RL, field $field, node $node\n";
-//			$this->{B}->api__registerListener(
-//				$node,
-//				$field,
-//				sub {
-//					$this->send_listened($hand,
-//						$node,$id,$field,$lid,
-//						$_[0]);
-//				}
-//			);
-//		        $hand->print("RE\n$reqid\n0\n0\n");
-//
-//		} elsif($str =~ /^AR ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {  # addRoute
-//			my($fn, $ff, $tn, $tf) = ($1,$2,$3,$4);
-//
-//			my $nfn;
-//			my $ntn;
-//			my $field;
-//			($nfn, $field) = find_actual_node_and_field($fn, $ff, 0);
-//			($ntn, $field) = find_actual_node_and_field($tn, $tf, 1);
-//
-//			#AK - #my @ar = [$nfn,$ff,$ntn,$tf];
-//			my $scene = $this->{B}{Scene};
-//
-//			$scene->new_route($nfn, $ff, $ntn, $tf);
-//
-//			$this->{B}->prepare2();
-//			# make sure it gets rendered
-//			VRML::OpenGL::set_render_frame();
-//
-//
-//			$hand->print("RE\n$reqid\n0\n0\n");
-//
-//		} elsif($str =~ /^DR ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {  # deleteRoute
-//			my($fn, $ff, $tn, $tf) = ($1,$2,$3,$4);
-//			print "deleteroute, $fn $ff, $tn $tf\n";
-//
-//			my $scene = $this->{B}{Scene};
-//			#AK - #my $fromNode = VRML::Handles::get($fn)->real_node();
-//			#AK - #my $toNode = VRML::Handles::get($tn)->real_node();
-//			#AK - #my @ar = [$fromNode, $ff, $toNode, $tf];
-//			
-//			my $nfn;
-//			my $ntn;
-//			my $field;
-//			($nfn, $field) = find_actual_node_and_field($fn, $ff, 0);
-//			($ntn, $field) = find_actual_node_and_field($tn, $tf, 1);
-//
-//			$scene->delete_route($nfn, $ff, $ntn, $tf);
-//
-//			$this->{B}->prepare2();
-//
-//			$hand->print("RE\n$reqid\n0\n0\n");
-//
-//		} elsif($str =~ /^GNAM$/) { # Get name
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->getName(), "\n");
-//
-//		} elsif($str =~ /^GVER$/) { # Get Version
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->getVersion(), "\n");
-//
-//		} elsif($str =~ /^GCS$/) { # Get Current Speed
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->getCurrentSpeed(), "\n");
-//
-//		} elsif($str =~ /^GCFR$/) { # Get Current Frame Rate
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->getCurrentFrameRate(), "\n");
-//
-//		} elsif($str =~ /^GWU$/) { # Get WorldURL
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->getWorldURL(), "\n");
-//
-//		} elsif($str =~ /^RW (.*)$/) { # replaceWorld
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->replaceWorld($1), "\n");
-//
-//		} elsif($str =~ /^LU$/) { # LoadURL
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->loadURL(), "\n");
-//
-//		} elsif($str =~ /^SD$/) { # set Description
-//		        $hand->print("RE\n$reqid\n0\n", $this->{B}->setDescription(), "\n");
-//
-//		} elsif($str =~ /^CVS (.*)$/) { # Create VRML From String
-//			my $vrmlcode = $1;
-//			my $ll = "";
-//			while ($ll ne "EOT") {
-//			  $vrmlcode = "$vrmlcode $ll\n";
-//                          $ll = shift @lines;
-//			}
-//
-//			my $retval = $this->{B}->createVrmlFromString($vrmlcode);
-//
-//			if ($VRML::verbose::EAI) { print "CVS returns $retval\n";}
-//		        $hand->print("RE\n$reqid\n0\n", $retval, "\n");
-//
-//		} elsif($str =~ /^CVU (.*)$/) { # Create VRML From URL
-//			my $retval = $this->{B}->createVrmlFromURL($1,$2);
-//			if ($VRML::verbose::EAI) { print "CVU returns $retval\n";}
-//		        $hand->print("RE\n$reqid\n0\n", $retval, "\n");
-//
-//
-//		} elsif($str =~ /^STOP$/) { # set Description
-//			print "FreeWRL got a stop!!\n";
-//		} else {
-//			if ($str ne  "") {
-//				die("Invalid EAI input: '$str'");
-//			}
-//		}
-//	}
-//	# print "ENDLINES\n";
-//}
-//
-//sub send_listened {
-//	my($this, $hand, $node, $id, $field, $lid, $value) = @_;
-//
-//	my $ft = $node->{Type}{FieldTypes}{$field};
-//
-//	if ($VRML::verbose::EAI) {
-//		print "send_listened, hand $hand node $node id $id  field $field  lid $lid  value $value\n";
-//		print "field type is $ft\n";
-//	 	if ("ARRAY" eq ref $value) { 
-//			my $item;
-//		 	foreach $item (@{$value}) {
-//				print "	value element $item \n";
-//			}
-//		}
-//	}
-//
-//
-//	
-//	my $str = "VRML::Field::$ft"->as_string($value);
-//
-//	# position and orientation sends an event per loop, we do not need
-//	# to send duplicate positions and orientations, but this may give us a bug...
-//
-//
-//	if ($VRML::EAIServer::evvals{$lid} eq $str) {
-//		return;
-//	}
-//
-//	$VRML::EAIServer::evvals{$lid} = $str; # save it for next time.
-//	$hand->print("EV\n"); # Event incoming
-//	$hand->print("$lid\n");
-//	$hand->print("$str\n");
-//}
-//
-//
-//1;

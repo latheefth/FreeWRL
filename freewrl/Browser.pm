@@ -73,12 +73,6 @@ sub new {
 		URL => undef,
 		JSCleanup => undef,
 		CONTEXT => $pars->{CocoaContext},
-		#IsThreaded => $Config{useithreads},
-		IsThreaded => undef,
-		ParseThread => undef,
-		ImageThread => undef,
-		toParseQueue =>undef,
-		fromParseQueue => undef,
 	 }, $type;
 
 	if (defined $pars->{CocoaContext})
@@ -90,18 +84,6 @@ sub new {
 		eval 'use AppKit::Functions';
 	}
 
-	# create threads, if we are indeed threaded
-	if (defined $this->{IsThreaded}) {
-		eval 'threads';
-		eval 'require Thread::Queue';
-
-		# main to parser thread queues
-		$this->{toParseQueue} = Thread::Queue->new;
-		$this->{fromParseQueue} = Thread::Queue->new;
-
-		#the parser thread
-		$this->{ParseThread} = threads->new(\&load_file_threaded, $this);
-	}
 	# for x3d conversions. 
 	$XSLTpath = $pars->{XSLTpath};
 
@@ -269,83 +251,13 @@ sub load_file_intro {
 
 	$this->{Scene}->set_browser($this);
 
-	#print "isThreaded is ",$this->{IsThreaded},"\n";
-	if (!defined $this->{IsThreaded}) {
-		$this->load_file_nothreads($url,undef);
-        	prepare ($this);
-		# and, take care of keeping the viewpoints active...
-		# JAS $this->{Scene}->register_vps($this);
-		# debugging scene graph call: 
-		$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
-	} else {
-		$this->load_string("#VRML V2.0\n Group{}\n","initial null scene");
-		prepare($this);
-
-		# send the command and file name to the Parser thread	
-		# it will be loaded into the scene graph in the event loop.
-		$this->{toParseQueue}->enqueue("loadFile");
-		$this->{toParseQueue}->enqueue($url)
-	}
+	$this->load_file_nothreads($url,undef);
+       	prepare ($this);
+	# and, take care of keeping the viewpoints active...
+	# JAS $this->{Scene}->register_vps($this);
+	# debugging scene graph call: 
+	$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
 }
-
-# parse a file or string in threaded mode
-sub load_file_threaded {
-	my($this) = @_;
-
-	my $command;
-	my $data;
-	my $url;
-
-print "load_file_threaded, this is $this\n";
-
-	# lets wait 
-	threads->yield;
-
-
-	# Loop, get the command from the main thread.
-	while ($command = $this->{toParseQueue}->dequeue) {
-		$url= $this->{toParseQueue}->dequeue;
-		print "load_file_threaded: command $command url $url\n" ;#JAS if $VRML::verbose::scene;
-
-		# if command is "loadFile"
-		$data = VRML::URL::get_absolute($url);
-
-		print "load_file_threaded, string is $data\n";
-
-		# Required due to changes in VRML::URL::get_absolute in URL.pm:
-		if (!$data) { 
-			print "\nFreeWRL Exiting -- File $url was not found.\n"; 
-			print "stopping threads...\n";
-		}
-
-		$this->{URL} = $url;
-		$this->clear_scene();
-		$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
-
-		$this->load_string($data, $url);
-
-		$this->{Scene}->make_executable();
-
-		my $ret = $this->{Scene}->mkbe_and_array($this->{BE}, $this->{Scene});
-		print "VRML::Browser::createVrmlFromUrl: mkbe_and_array returned $ret\n"
-			;#JAS if $VRML::verbose::scene;
-		# debugging scene graph call
-		$this->{Scene}->dump(0) ;#JAS if $VRML::verbose::scenegraph;
-	
-
-
-# DO THIS WHEN LOADED AS CHILD OF ROOT
-	#prepare($this);
-		# and, take care of keeping the viewpoints active...
-		# JAS $this->{Scene}->register_vps($this);
-		# debugging scene graph call: 
-		#$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
-
-		# push results back to browser
-	}
-	print "parse thread exiting\n";
-}
-
 
 sub load_file_nothreads {
 	my($this,$url,$string) = @_;
@@ -690,13 +602,11 @@ sub deleteRoute {
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 }
 
-# EAI & Script node
+# EAI & Script node - these will go away after 1.01..
+
 sub api_beginUpdate { print "no beginupdate yet\n"; exit(1) }
 sub api_endUpdate { print "no endupdate yet\n"; exit(1) }
 
-#JAS sub api_getNode {
-#JAS 	$_[0]->{Scene}->getNode($_[1]);
-#JAS }
 sub api__sendEvent {
 	my($this, $node, $field, $val) = @_;
 	$this->{EV}->send_event_to($node, $field, $val);
@@ -914,9 +824,9 @@ sub EAI_GetNode {
 
 	my $id = VRML::Handles::reserve($node);
 
-	print "handle is $id\n";
+	# print "handle is $id\n";
 	$id =~ s/^NODE//;
-	print "node number is $id\n";
+	# print "node number is $id\n";
 
 	# remember this - this node is displayed already
 	#VRML::Handles::displayed($node);
@@ -925,6 +835,7 @@ sub EAI_GetNode {
 	return $id;
 }
 
+# get the type, return values used for direct manipulation in C, such as memory location, datasize, etc.
 sub EAI_GetType {
 	my ($nodenum, $fieldname, $direction) = @_;
 
@@ -942,7 +853,7 @@ sub EAI_GetType {
 	my $tonode_str;
 
 
-	print "BROWSER:EAI_GetType, $nodenum, $fieldname, $direction\n";
+	# print "BROWSER:EAI_GetType, $nodenum, $fieldname, $direction\n";
 	
 	# return node pointer, offset, data length, type
 	# EAI C code expects the return type to be one of the following:
@@ -1012,13 +923,41 @@ sub EAI_GetType {
 		print "EAI_GetType, unhandled type $fieldtype - this is an error!\n";
 	}
 		
-	print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
+	#print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
 
 	return ($outptr, $outoffset, $datalen, $retft); 
 
 }
 
+# EAI_CreateVrmlFromString - parse commands, and return a string of (node-number backnode) pairs.
+sub EAI_CreateVrmlFromString {
+	my ($string) = @_;
 
+	my $rv = createVrmlFromString ($globalBrowser,$string);
+
+	my @rvarr = split (" ", $rv);
+	my %retval = ();
+	my $ele;
+	my $realele;
+	my $bn;
+
+	foreach $ele (@rvarr) {
+		# print "element $ele \n";
+		$realele = VRML::Handles::get($ele);
+		# print "type ",$realele->{TypeName},"\n";
+
+		if (exists $realele->{BackNode}{CNode}) {
+			$bn = $realele->{BackNode}{CNode};
+		} else {
+			print "warning, EAI_CreateVrmlFromString - no backnode found for $ele\n";
+			$bn = 0;
+		}
+		$ele =~ s/^NODE//;
+		# print " as a number $bn\n";
+		$retval{$ele} = $bn;
+	}
+	return %retval;
+}
 
 
 #########################################################3
