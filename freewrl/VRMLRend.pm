@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.12  2000/09/03 20:17:50  rcoscali
+# Made some test for blending
+# Tests are displayed with 38 & 39.wrlð
+#
 # Revision 1.11  2000/08/31 23:00:00  rcoscali
 # Add depth 2 support (2 channels/color components) which isMINANCE_ALPHAre (wi
 #
@@ -77,6 +81,11 @@ Box => (join '',
 	 glPushAttrib(GL_LIGHTING);
 	 glShadeModel(GL_FLAT);
 	 glBegin(GL_QUADS);
+
+				  glEnable(GL_BLEND);
+				  glDepthFunc(GL_LEQUAL);
+				  glDepthMask(GL_FALSE);
+				  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 		/* front side */
 		glNormal3f(0,0,1);
@@ -144,6 +153,7 @@ Box => (join '',
 		TC(0,0);
 		glVertex3f(-x,-y,-z);
 		glEnd();
+				glDepthMask(GL_TRUE);
 	glPopAttrib();
 	 $end_list();
 	',
@@ -827,7 +837,7 @@ Background => '
 				if(rx != (this_->__x_back) || ry != (this_->__y_back)) {
 					/* We have to scale */
 					dest = malloc((this_->__depth_back) * rx * ry);
-					gluScaleImage( ((this_->__depth_back)==1 ? GL_LUMINANCE : GL_RGB),
+					gluScaleImage( ((this_->__depth_back)==1 ? GL_LUMINANCE : ((this_->__depth_back)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_back)==3 ? GL_RGB : GL_RGBA))),
 					     (this_->__x_back), (this_->__y_back),
 					     GL_UNSIGNED_BYTE, ptr, rx, ry,
 					     GL_UNSIGNED_BYTE, dest);
@@ -837,7 +847,7 @@ Background => '
 					background_texture_inited = TRUE;
 				}
 				glTexImage2D(GL_TEXTURE_2D, 0, (this_->__depth_back),  rx, ry, 0, 
-					((this_->__depth_back)==1 ? GL_LUMINANCE : GL_RGB), 
+					((this_->__depth_back)==1 ? GL_LUMINANCE : ((this_->__depth_back)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_back)==3 ? GL_RGB : GL_RGBA))), 
 					GL_UNSIGNED_BYTE, dest);
 				if(ptr != dest) free(dest);
 			}
@@ -875,7 +885,7 @@ Background => '
 					/* We have to scale */
 					dest = malloc((this_->__depth_front) * rx * ry);
 					gluScaleImage(
-					     ((this_->__depth_front)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_front)==1 ? GL_LUMINANCE : ((this_->__depth_front)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_front)==3 ? GL_RGB : GL_RGBA))),
 					     (this_->__x_front), (this_->__y_front),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -894,7 +904,7 @@ Background => '
 					     (this_->__depth_front),  
 					     rx, ry,
 					     0,
-					     ((this_->__depth_front)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_front)==1 ? GL_LUMINANCE : ((this_->__depth_front)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_front)==3 ? GL_RGB : GL_RGBA))),
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);
@@ -932,7 +942,7 @@ Background => '
 					/* We have to scale */
 					dest = malloc((this_->__depth_top) * rx * ry);
 					gluScaleImage(
-					     ((this_->__depth_top)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_top)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     (this_->__x_top), (this_->__y_top),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -951,7 +961,7 @@ Background => '
 					     (this_->__depth_top),  
 					     rx, ry,
 					     0,
-					     ((this_->__depth_top)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_top)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);
@@ -990,7 +1000,7 @@ Background => '
 					/* We have to scale */
 					dest = malloc((this_->__depth_bottom) * rx * ry);
 					gluScaleImage(
-					     ((this_->__depth_bottom)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_bottom)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     (this_->__x_bottom), (this_->__y_bottom),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -1009,7 +1019,7 @@ Background => '
 					     (this_->__depth_bottom),  
 					     rx, ry,
 					     0,
-					     ((this_->__depth_bottom)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_bottom)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);
@@ -1048,7 +1058,7 @@ Background => '
 					/* We have to scale */
 					dest = malloc((this_->__depth_right) * rx * ry);
 					gluScaleImage(
-					     ((this_->__depth_right)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_right)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     (this_->__x_right), (this_->__y_right),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -1067,7 +1077,7 @@ Background => '
 					     (this_->__depth_right),  
 					     rx, ry,
 					     0,
-					     ((this_->__depth_right)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_right)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);
@@ -1106,7 +1116,7 @@ Background => '
 					/* We have to scale */
 					dest = malloc((this_->__depth_left) * rx * ry);
 					gluScaleImage(
-					     ((this_->__depth_left)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_left)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     (this_->__x_left), (this_->__y_left),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -1125,7 +1135,7 @@ Background => '
 					     (this_->__depth_left),  
 					     rx, ry,
 					     0,
-					     ((this_->__depth_left)==1 ? GL_LUMINANCE : GL_RGB),
+					     ((this_->__depth_left)==1 ? GL_LUMINANCE : ((this_->__depth_top)==2 ? GL_LUMINANCE_ALPHA : ((this_->__depth_top)==3 ? GL_RGB : GL_RGBA))),
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);

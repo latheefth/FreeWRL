@@ -28,6 +28,10 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.10  2000/09/03 20:17:50  rcoscali
+# Made some test for blending
+# Tests are displayed with 38 & 39.wrlð
+#
 # Revision 1.9  2000/09/02 23:54:39  rcoscali
 # Fixed the core dump for 27.wrl and 28.wrl
 #
@@ -1359,6 +1363,7 @@ int render_vp;
 int render_geom;
 int render_light;
 int render_sensitive;
+int render_blend;
 
 int horiz_div; int vert_div;
 int vp_dist = 200000;
@@ -1996,61 +2001,93 @@ void render_node(void *node) {
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
-	if(verbose) printf("Render_node_v %d (%s) %d %d %d %d RAY: %d HYP: %d\n",v,
-		v->name, v->prep, v->rend, v->children, v->fin, v->rendray,
-		hypersensitive);
-	if(verbose) printf("Render_state any %d geom %d light %d sens %d\n",
-		render_anything, render_geom, render_light, render_sensitive);
+	
+	if(verbose)
+	  {
+	    printf("=========================================NODE RENDERED===================================================\n");
+	    printf("Render_node_v %d (%s) %d %d %d %d RAY: %d HYP: %d\n",v,
+		   v->name, 
+		   v->prep, 
+		   v->rend, 
+		   v->children, 
+		   v->fin, 
+		   v->rendray,
+		   hypersensitive);
+	    printf("Render_state any %d geom %d light %d sens %d\n",
+		   render_anything, 
+		   render_geom, 
+		   render_light, 
+		   render_sensitive);
+	  }
 
-	if(p->_change != p->_ichange && v->changed) {
-		v->changed(node);
-		p->_ichange = p->_change;
-	}
+	if(p->_change != p->_ichange && v->changed) 
+	  {
+	    v->changed(node);
+	    p->_ichange = p->_change;
+	  }
 
-	if(render_anything && v->prep) {
-		v->prep(node);
-		if(render_sensitive && !hypersensitive) { upd_ray(); }
-	}
-	if(render_anything && render_geom && !render_sensitive && v->rend) {v->rend(node);}
-	if(render_anything && render_light && v->light) {v->light(node);}
+	if(render_anything && v->prep) 
+	  {
+	    v->prep(node);
+	    if(render_sensitive && !hypersensitive) 
+	      {
+		upd_ray();
+	      }
+	  }
+	if(render_anything && render_geom && !render_sensitive && v->rend) 
+	  {
+	    v->rend(node);
+	  }
+	if(render_anything && render_light && v->light) 
+	  {
+	    v->light(node);
+	  }
 	/* Future optimization: when doing VP/Lights, do only 
 	 * that child... further in future: could just calculate
 	 * transforms myself..
 	 */
-	if(render_anything &&
-	   render_sensitive &&
-	   p->_sens) {
-	   	srg = render_geom;
-		render_geom = 1;
-		if(verbose) printf("CH1 %d: %d\n",node, cur_hits, p->_hit);
-		sch = cur_hits;
-		cur_hits = 0;
-		/* HP */
-		srh = rph;
-		rph.node = node;
-		glGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
-		glGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
+	if(render_anything && render_sensitive && p->_sens) 
+	  {
+	    srg = render_geom;
+	    render_geom = 1;
+	    if(verbose) printf("CH1 %d: %d\n",node, cur_hits, p->_hit);
+	    sch = cur_hits;
+	    cur_hits = 0;
+	    /* HP */
+	      srh = rph;
+	    rph.node = node;
+	    glGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
+	    glGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
+	  }
+	if(render_anything && render_geom && render_sensitive && !hypersensitive && v->rendray) 
+	  {
+	    v->rendray(node);
+	  }
+	if(hypersensitive == node) 
+	  {
+	    hyper_r1 = t_r1;
+	    hyper_r2 = t_r2;
+	    hyperhit = 1;
+	  }
+	if(render_anything && v->children) {
+	  v->children(node);
 	}
-	if(render_anything && render_geom && render_sensitive &&
-		!hypersensitive && v->rendray) {v->rendray(node);}
-	if(hypersensitive == node) {
-		hyper_r1 = t_r1;
-		hyper_r2 = t_r2;
-		hyperhit = 1;
-	}
-	if(render_anything && v->children) {v->children(node);}
-	if(render_anything &&
-	   render_sensitive &&
-	   p->_sens) {
-		render_geom = srg;
-		cur_hits = sch;
-		if(verbose) printf("CH3: %d %d\n",cur_hits, p->_hit);
-		/* HP */
-		rph = srh;
-	}
-	if(render_anything && v->fin) {v->fin(node);
-		if(render_sensitive && v == &virt_Transform) { upd_ray(); }
-	}
+	if(render_anything && render_sensitive && p->_sens) 
+	  {
+	    render_geom = srg;
+	    cur_hits = sch;
+	    if(verbose) printf("CH3: %d %d\n",cur_hits, p->_hit);
+	    /* HP */
+	      rph = srh;
+	  }
+	if(render_anything && v->fin) 
+	  {
+	    v->fin(node);
+	    if(render_sensitive && v == &virt_Transform) 
+	      { 
+		upd_ray();
+	      }
+	  }
 }
 
 /*
@@ -2313,13 +2350,14 @@ CODE:
 	v->rend(p);
 
 void 
-render_hier(p,revt,rvp,rgeom,rlight,rsens,wvp)
+render_hier(p,revt,rvp,rgeom,rlight,rsens,rblend,wvp)
 	void *p
 	int revt
 	int rvp
 	int rgeom
 	int rlight
 	int rsens
+  	int rblend
 	void *wvp
 CODE:
 	reverse_trans = revt;
@@ -2327,6 +2365,7 @@ CODE:
 	render_geom =  rgeom;
 	render_light = rlight;
 	render_sensitive = rsens;
+	render_blend = rblend;
 	curlight = 0;
 	what_vp = wvp;
 	render_anything = 1;
@@ -2334,10 +2373,13 @@ CODE:
 	if(!p) {
 		die("Render_hier null!??");
 	}
-	if(verbose) printf("Render_hier %d %d %d %d %d %d\n", p, revt, rvp, rgeom, rlight, wvp);
-	if(render_sensitive) upd_ray();
+	if(1 || verbose)
+  		printf("Render_hier rev_trans=%d vp=%d geom=%d light=%d sens=%d blend=%d what_vp=%d\n", p, revt, rvp, rgeom, rlight, rblend, wvp);
+	if(render_sensitive) 
+		upd_ray();
 	render_node(p);
-	if(render_sensitive) { /* Get raycasting results */
+	/* Get raycasting results */
+	if(render_sensitive) {
 		if(hpdist >= 0) {
 			if(verbose) printf("RAY HIT!\n");
 		}
@@ -2355,8 +2397,7 @@ get_rayhit(x,y,z,nx,ny,nz,tx,ty)
 	double ty
 CODE:
 	if(hpdist >= 0) {
-		gluUnProject(hp.x,hp.y,hp.z,rh.modelMatrix,rh.projMatrix,viewport,
-			&x,&y,&z);
+		gluUnProject(hp.x,hp.y,hp.z,rh.modelMatrix,rh.projMatrix,viewport,&x,&y,&z);
 		RETVAL = rh.node;
 	} else {
 		RETVAL=0;

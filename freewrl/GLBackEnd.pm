@@ -67,8 +67,7 @@ sub snapshot {
 	my $str = pack("C$n");
 	glPixelStorei(&GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(&GL_PACK_ALIGNMENT,1);
-	glReadPixels(0,0,$w,$h,&GL_RGB,&GL_UNSIGNED_BYTE,
-		$str);
+	glReadPixels(0,0,$w,$h,&GL_RGB,&GL_UNSIGNED_BYTE, $str);
 	return [$w,$h,$str];
 }
 
@@ -89,12 +88,13 @@ sub new {
         my $x = 0; 
         my $y = 0; 
 
-	if(my $g = $pars{Geometry}) {
-		$g =~ /^(\d+)x(\d+)(?:([+-]\d+)([+-]\d+))?$/ 
-			or die("Invalid geometry string '$g' given to GLBackend");
-		($w,$h,$x,$y) = ($1,$2,$3,$4);
-		# print "GEOMETRY: $w $h $x $y\n";
-	}
+	if(my $g = $pars{Geometry}) 
+	  {
+	    $g =~ /^(\d+)x(\d+)(?:([+-]\d+)([+-]\d+))?$/ 
+	      or die("Invalid geometry string '$g' given to GLBackend");
+	    ($w,$h,$x,$y) = ($1,$2,$3,$4);
+	    # print "GEOMETRY: $w $h $x $y\n";
+	  }
 
 	$this->{W} = $w; $this->{H} = $h;
         my @db = &GLX_DOUBLEBUFFER;
@@ -103,34 +103,37 @@ sub new {
         
         print "STARTING OPENGL\n" if $VRML::verbose;
         glpOpenWindow(attributes=>[&GLX_RGBA, @db,
-                                &GLX_RED_SIZE,1,
-                                &GLX_GREEN_SIZE,1,
-                                &GLX_BLUE_SIZE,1,
-                                &GLX_DEPTH_SIZE,1,
+				   &GLX_RED_SIZE,1,
+				   &GLX_GREEN_SIZE,1,
+				   &GLX_BLUE_SIZE,1,
+				   &GLX_DEPTH_SIZE,1,
 # Alpha size?
-                        ],
-                mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
-                        ButtonMotionMask | ButtonReleaseMask |
-                        ExposureMask | StructureNotifyMask |
-                        PointerMotionMask),
-                width => $w,height => $h,
-                "x" => $x,
-                "y" => $y);
-
+				   ],
+		      mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
+			       ButtonMotionMask | ButtonReleaseMask |
+			       ExposureMask | StructureNotifyMask |
+			       PointerMotionMask),
+		      width => $w,height => $h,
+		      "x" => $x,
+		      "y" => $y);
+	
         glClearColor(0,0,0,1);
 #        my $lb = VRML::OpenGL::glpRasterFont("5x8",0,256);
 #        $VRML::OpenGL::fontbase = $lb;
 #       glDisable(&GL_DITHER);
         # glShadeModel (&GL_SMOOTH);
         glShadeModel (&GL_FLAT);
+	glDepthFunc(&GL_LEQUAL);
         glEnable(&GL_DEPTH_TEST);
+	glEnable(&GL_BLEND);
+	glBlendFunc(&GL_SRC_ALPHA,&GL_ONE_MINUS_SRC_ALPHA);
         glEnable(&GL_NORMALIZE);
         glEnable(&GL_LIGHTING);
         glEnable(&GL_LIGHT0);
 	glEnable(&GL_CULL_FACE);
         glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
         glLightModeli(&GL_LIGHT_MODEL_LOCAL_VIEWER, &GL_FALSE);
-        # glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
+        glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
 
 	glEnable(&GL_POLYGON_OFFSET_EXT);
 	glPolygonOffsetEXT(0.0000000001,0.00002);
@@ -144,26 +147,30 @@ sub new {
         # $this->reshape();
 
 # Try to interface with Tk event loop?
-        if(defined &Tk::DoOneEvent) {
-                my $gld = VRML::OpenGL::glpXConnectionNumber();
-                # Create new mainwindow just for us.
-                my $mw = MainWindow->new();
-                $mw->iconify();
-                my $fh = new FileHandle("<&=$gld\n") 
-                        or die("Couldn't reopen GL filehandle");
-                $mw->fileevent($fh,'readable',
-                   sub {# print "GLEV\n"; 
-                        $this->twiddle(1)});
-                $this->{FileHandle} = $fh;
-                $this->{MW} = $mw;
-        }
+        if(defined &Tk::DoOneEvent) 
+	  {
+	    my $gld = VRML::OpenGL::glpXConnectionNumber();
+	    # Create new mainwindow just for us.
+	    my $mw = MainWindow->new();
+	    $mw->iconify();
+	    my $fh = new FileHandle("<&=$gld\n") 
+	      or die("Couldn't reopen GL filehandle");
+	    $mw->fileevent($fh,'readable',
+			   sub {
+			     # print "GLEV\n"; 
+			     $this->twiddle(1)
+			     });
+	    $this->{FileHandle} = $fh;
+	    $this->{MW} = $mw;
+	  }
 
-        $this->{Interactive} = 1;
+	$this->{Interactive} = 1;
         print "STARTED OPENGL\n" if $VRML::verbose;
 
-        if($VRML::offline) {
-                $this->doconfig($w,$h);
-        }
+        if($VRML::offline) 
+	  {
+            $this->doconfig($w,$h);
+          }
 	$this->{Viewer} = VRML::Viewer::Examine->new;
 
 	return $this;
@@ -181,16 +188,18 @@ sub quitpressed {
 sub update_scene {
 	my($this,$time) = @_;
 
-	while(XPending()) {
-		# print "UPDS: Xpend:",XPending(),"\n";
-		my @e = &glpXNextEvent();
-		# print "EVENT $e[0] $e[1] $e[2] !!!\n";
-		if($e[0] == &ConfigureNotify) {
-			$this->{W} = $e[1];
-			$this->{H} = $e[2];
-		} 
-		$this->event($time,@e);
-	}
+	while(XPending()) 
+	  {
+	    # print "UPDS: Xpend:",XPending(),"\n";
+	    my @e = &glpXNextEvent();
+	    # print "EVENT $e[0] $e[1] $e[2] !!!\n";
+	    if($e[0] == &ConfigureNotify) 
+	      {
+		$this->{W} = $e[1];
+		$this->{H} = $e[2];
+	      } 
+	    $this->event($time,@e);
+	  }
 	$this->finish_event();
 	$this->{Viewer}->handle_tick($time);
 	$this->render();
@@ -219,21 +228,27 @@ sub bind_navi_info {
 sub choose_viewer {
 	my($this,$viewer) = @_;
 	my $vs = [];
-	if($this->{Viewer}{Navi}) {
-		$vs = $this->{Viewer}{Navi}{RFields}{"type"};
-	}
-	if(!@$vs) {
-		if($viewer) {
-			$this->set_viewer($viewer);
-		} else {
-			$this->set_viewer("WALK");
-		}
-		return;
-	} 
-	if(grep {(lc $_) eq (lc $viewer)} @$vs) {
+	if($this->{Viewer}{Navi}) 
+	  {
+	    $vs = $this->{Viewer}{Navi}{RFields}{"type"};
+	  }
+	if(!@$vs)
+	  {
+	    if($viewer) 
+	      {
 		$this->set_viewer($viewer);
-		return;
-	}
+	      }
+	    else
+	      {
+		$this->set_viewer("WALK");
+	      }
+	    return;
+	  } 
+	if(grep {(lc $_) eq (lc $viewer)} @$vs) 
+	  {
+	    $this->set_viewer($viewer);
+	    return;
+	  }
 	$this->set_viewer($vs->[0]);
 }
 	
@@ -245,210 +260,297 @@ sub set_viewer {
 }
 
 sub event {
-	my $w;
-	my($this,$time,$type,@args) = @_;
-	my $code;
-	my $but;
-	# print "EVENT $this $type $args[0] $args[1] $args[2]\n";
-	if($type == &MotionNotify) {
-		# We should fix the mask, not do this if.... XXXX
-		if ($args[0] > 0) {
-			my $but;
-			# print "MOT!\n";
-			if($args[0] & (&Button1Mask)) {
-				$but = 1;
-			} elsif ($args[0] & (&Button2Mask)) {
-				$but = 2;
-			} elsif ($args[0] & (&Button3Mask)) {
-				$but = 3;
-			}
-			# print "BUT: $but\n";
-			$this->{MX} = $args[1]; $this->{MY} = $args[2];
-			$this->{BUT} = $but;
-			$this->{SENSMOVE} = 1;
-			push @{$this->{BUTEV}}, [MOVE, undef, $args[1], $args[2]];
-			undef $this->{EDone} if ($but > 0);
-		} else {
-			# print "Motion without button press - fix mask\n";
-		}
-	} elsif($type == &ButtonPress) {
-		# print "BP!\n";
-		if($args[0] == (&Button1)) {
-			$but = 1;
-		} elsif($args[0] == (&Button2)) {
-			$but = 2;
-		} elsif ($args[0] == (&Button3)) {
-			$but = 3;
-		}
-		$this->{MX} = $args[1]; $this->{MY} = $args[2];
-		my $x = $args[1]/$this->{W}; my $y = $args[2]/$this->{H};
-		if($but == 1 or $but == 3) {
-			# print "BPRESS $but $x $y\n";
-			$this->{Viewer}->handle("PRESS",$but,$x,$y,
-				$args[5] & &ShiftMask,
-				$args[5] & &ControlMask);
-		}
-		push @{$this->{BUTEV}}, [PRESS, $but, $args[1], $args[2]];
-		$this->{BUT} = $but;
-		$this->{SENSBUT} = $but;
-		undef $this->{EDone};
-	} elsif($type == &ButtonRelease) {
-		# print "BR\n";
-		if($args[0] == (&Button1)) {
-			$but = 1;
-		} elsif($args[0] == (&Button2)) {
-			$but = 2;
-		} elsif ($args[0] == (&Button3)) {
-			$but = 3;
-		}
-		push @{$this->{BUTEV}}, [RELEASE, $but, $args[1], $args[2]];
-		$this->finish_event;
-		$this->{Viewer}->handle("RELEASE",$but,0,0);
-		$this->{SENSBUTREL} = $but;
-		undef $this->{BUT};
-	} elsif($type == &KeyPress) {
-		# print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
-		if((lc $args[0]) eq "e") {
-			$this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
-		} elsif((lc $args[0]) eq "w") {
-			$this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
-		} elsif((lc $args[0]) eq "d") {
-			$this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
-		} elsif((lc $args[0]) eq "f") {
-			$this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
-		}elsif((lc $args[0]) eq "h") {
-			if($this->{Viewer}{Navi}{RFields}{headlight}) {
-				#print "headlight going off...\n";
-				$this->{Viewer}{Navi}{RFields}{headlight}=0;
-			} else {
-				#print "headlight going on...\n";
-				$this->{Viewer}{Navi}{RFields}{headlight}=1;
-			}
+  my $w;
+  my($this,$time,$type,@args) = @_;
+  my $code;
+  my $but;
+  
+  # print "EVENT $this $type $args[0] $args[1] $args[2]\n";
+  if($type == &MotionNotify) 
+    {
 
-		} elsif((lc $args[0]) eq "/") {
-			# the following 3 lines commented out for
-		        # Etienne's changes. JAS
-			# my $tr = join ', ',@{$this->{Viewer}{Pos}};
-			my $quat = join ', ',@{$this->{Viewer}{Quat}};
-			print "QuatViewpoint: [$quat]\n";
-
-                        my $tr = sprintf("%8.4f " x 3, 
-                                         @{$this->{Viewer}{Pos}});
-                        my $rot = sprintf("%8.4f " x 4, 
-                                          @{$this->{Viewer}{Quat}->to_vrmlrot()});
-                        print("Viewpoint {\n",
-                              "   position    $tr\n",
-                              "   orientation $rot\n",
-                              "}\n",
-                               ) ;
-
-				# Sequence / Single Image saving ###########
-                    } elsif((lc $args[0]) eq "s") {
-
-				# Sequence saving ##########################
-		      if ($main::seq) {	
-			$main::saving = ! $main::saving ;
-			print "Saving ",$main::saving ? "on" : "off","\n" ;
-
-			# At end of sequence, convert raw
-			# images to a gif or ppm's 
-			if (! $main::saving) {
-			  VRML::Browser::convert_raw_sequence();
-		      
-			} else {	# Start new sequence
-			  @main::saved = (); # Reset list of images
-			  $main::seqcnt = 0;
-			}
-				# Single image
-		      } else {
-			print "Saving snapshot\n";
-			VRML::Browser::save_snapshot($this);
-		      }
-
-		} elsif((lc $args[0]) eq "q") {
-			$this->{QuitPressed} = 1;
-
-		} elsif((lc $args[0]) eq "v") {
-			# print "NEXT VP\n";
-			if($this->{VPSub}) {$this->{VPSub}->(1)}
-			else {die("No VPSUB");}
-		} elsif((lc $args[0]) eq "b") {
-			print "PREV VP\n";
-			if($this->{VPSub}) {$this->{VPSub}->(-1)}
-			else {die("No VPSUB");}
-		} elsif(!$this->{Viewer}->use_keys) {
-			if((lc $args[0]) eq "k") {
-				$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
-			} elsif((lc $args[0]) eq "j") {
-				$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
-			} elsif((lc $args[0]) eq "l") {
-				$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
-			} elsif((lc $args[0]) eq "h") {
-				$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
-			}
-		} else {
-			$this->{Viewer}->handle_key($time,$args[0]);
-		}
-	} elsif($type == &KeyRelease) {
-		if($this->{Viewer}->use_keys) {
-			$this->{Viewer}->handle_keyrelease($time,$args[0]);
-		}
+      # We should fix the mask, not do this if.... XXXX
+      if ($args[0] > 0) 
+	{
+	  my $but;
+	  # print "MOT!\n";
+	  if($args[0] & (&Button1Mask)) 
+	    {
+	      $but = 1;
+	    }
+	  elsif ($args[0] & (&Button2Mask))
+	    {
+	      $but = 2;
+	    }
+	  elsif ($args[0] & (&Button3Mask))
+	    {
+	      $but = 3;
+	    }
+	  # print "BUT: $but\n";
+	  $this->{MX} = $args[1]; $this->{MY} = $args[2];
+	  $this->{BUT} = $but;
+	  $this->{SENSMOVE} = 1;
+	  push @{$this->{BUTEV}}, [MOVE, undef, $args[1], $args[2]];
+	  undef $this->{EDone} if ($but > 0);
 	}
+      else
+	{
+	  # print "Motion without button press - fix mask\n";
+	}
+    }
+  elsif($type == &ButtonPress) 
+    {
+      # print "BP!\n";
+      if($args[0] == (&Button1)) 
+	{
+	  $but = 1;
+	}
+      elsif($args[0] == (&Button2)) 
+	{
+	  $but = 2;
+	} 
+      elsif ($args[0] == (&Button3)) 
+	{
+	  $but = 3;
+	}
+      $this->{MX} = $args[1]; $this->{MY} = $args[2];
+      my $x = $args[1]/$this->{W}; my $y = $args[2]/$this->{H};
+      if($but == 1 or $but == 3) 
+	{
+	  # print "BPRESS $but $x $y\n";
+	  $this->{Viewer}->handle("PRESS",$but,$x,$y,
+				  $args[5] & &ShiftMask,
+				  $args[5] & &ControlMask);
+	}
+      push @{$this->{BUTEV}}, [PRESS, $but, $args[1], $args[2]];
+      $this->{BUT} = $but;
+      $this->{SENSBUT} = $but;
+      undef $this->{EDone};
+    }
+  elsif($type == &ButtonRelease) 
+    {
+      # print "BR\n";
+      if($args[0] == (&Button1)) 
+	{
+	  $but = 1;
+	} 
+      elsif($args[0] == (&Button2)) 
+	{
+	  $but = 2;
+	}
+      elsif ($args[0] == (&Button3)) 
+	{
+	  $but = 3;
+	}
+      push @{$this->{BUTEV}}, [RELEASE, $but, $args[1], $args[2]];
+      $this->finish_event;
+      $this->{Viewer}->handle("RELEASE",$but,0,0);
+      $this->{SENSBUTREL} = $but;
+      undef $this->{BUT};
+    }
+  elsif($type == &KeyPress) 
+    {
+      # print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
+      if((lc $args[0]) eq "e") 
+	{
+	  $this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
+	} 
+      elsif((lc $args[0]) eq "w") 
+	{
+	  $this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
+	} 
+      elsif((lc $args[0]) eq "d") 
+	{
+	  $this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
+	}
+      elsif((lc $args[0]) eq "f") 
+	{
+	  $this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
+	}
+      elsif((lc $args[0]) eq "h") 
+	{
+	  if($this->{Viewer}{Navi}{RFields}{headlight}) 
+	    {
+	      #print "headlight going off...\n";
+	      $this->{Viewer}{Navi}{RFields}{headlight}=0;
+	    }
+	  else
+	    {
+	      #print "headlight going on...\n";
+	      $this->{Viewer}{Navi}{RFields}{headlight}=1;
+	    }
+
+	}
+      elsif((lc $args[0]) eq "/") 
+	{
+	  # the following 3 lines commented out for
+	  # Etienne's changes. JAS
+	  # my $tr = join ', ',@{$this->{Viewer}{Pos}};
+	  my $quat = join ', ',@{$this->{Viewer}{Quat}};
+	  print "QuatViewpoint: [$quat]\n";
+	  
+	  my $tr = sprintf("%8.4f " x 3, 
+			   @{$this->{Viewer}{Pos}});
+	  my $rot = sprintf("%8.4f " x 4, 
+			    @{$this->{Viewer}{Quat}->to_vrmlrot()});
+	  print("Viewpoint {\n",
+		"   position    $tr\n",
+		"   orientation $rot\n",
+		"}\n",
+		) ;
+
+	  # Sequence / Single Image saving ###########
+	}
+      elsif((lc $args[0]) eq "s") 
+	{
+	  
+	  # Sequence saving ##########################
+	  if ($main::seq) 
+	    {
+	      $main::saving = ! $main::saving ;
+	      print "Saving ",$main::saving ? "on" : "off","\n" ;
+	      
+	      # At end of sequence, convert raw
+	      # images to a gif or ppm's 
+	      if (! $main::saving) 
+		{
+		  VRML::Browser::convert_raw_sequence();
+		}
+	      else
+		{	# Start new sequence
+		  @main::saved = (); # Reset list of images
+		  $main::seqcnt = 0;
+		}
+	      # Single image
+	    }
+	  else
+	    {
+	      print "Saving snapshot\n";
+	      VRML::Browser::save_snapshot($this);
+	    }
+	}
+      elsif((lc $args[0]) eq "q") 
+	{
+	  $this->{QuitPressed} = 1;
+	  
+	}
+      elsif((lc $args[0]) eq "v") 
+	{
+	  # print "NEXT VP\n";
+	  if($this->{VPSub}) 
+	    {
+	      $this->{VPSub}->(1);
+	    }
+	  else 
+	    {
+	      die("No VPSUB");
+	    }
+	}
+      elsif((lc $args[0]) eq "b") 
+	{
+	  print "PREV VP\n";
+	  if($this->{VPSub}) 
+	    {
+	      $this->{VPSub}->(-1)
+	      }
+	  else
+	    {
+	      die("No VPSUB");
+	    }
+	} elsif(!$this->{Viewer}->use_keys) 
+	  {
+	    if((lc $args[0]) eq "k") 
+	      {
+		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+		$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
+	      }
+	    elsif((lc $args[0]) eq "j") 
+	      {
+		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+		$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
+	      }
+	    elsif((lc $args[0]) eq "l") 
+	      {
+		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+		$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
+	      }
+	    elsif((lc $args[0]) eq "h") 
+	      {
+		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
+		$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
+	      }
+	  }
+      else 
+	{
+	  $this->{Viewer}->handle_key($time,$args[0]);
+	}
+    }
+  elsif($type == &KeyRelease) 
+    {
+      if($this->{Viewer}->use_keys) 
+	{
+	  $this->{Viewer}->handle_keyrelease($time,$args[0]);
+	}
+    }
 }
 	
 sub finish_event {
 	my($this) = @_;
+	
 	return if $this->{EDone};
 	my $x = $this->{MX} / $this->{W}; my $y = $this->{MY} / $this->{H};
 	my $but = $this->{BUT};
-	if($but == 1 or $but == 3) {
-		$this->{Viewer}->handle("DRAG", $but, $x, $y);
-		# print "FE: $but $x $y\n";
-	} elsif($but == 2) {
-		$this->{MCLICK} = 1;
-		$this->{MCLICKO} = 1;
-		$this->{MOX} = $this->{MX}; $this->{MOY} = $this->{MY}
-	}
+	if($but == 1 or $but == 3) 
+	  {
+	    $this->{Viewer}->handle("DRAG", $but, $x, $y);
+	    # print "FE: $but $x $y\n";
+	  }
+	elsif($but == 2)
+	  {
+	    $this->{MCLICK} = 1;
+	    $this->{MCLICKO} = 1;
+	    $this->{MOX} = $this->{MX}; $this->{MOY} = $this->{MY}
+	  }
 	$this->{EDone} = 1;
 }
 
 
 sub new_node {
 	my($this,$type,$fields) = @_;
+	
 	# print "GLBackEnd NEW_NODE $type\n    Fields $fields";
 	my $node = {
 		Type => $type,
 		CNode => VRML::CU::alloc_struct_be($type),
 	};
+
 	# print "calling set_fields from glbackend\n"; 
 	$this->set_fields($node,$fields);
 	return $node;
 }
 
 sub set_fields {
-	my($this,$node,$fields) = @_;
-	for(keys %$fields) {
-		my $value = $fields->{$_};
-		# if("HASH" eq ref $value) { # Field
-		# 	$value = $value->{CNode};
-		# } elsif("ARRAY" eq ref $value and "HASH" eq ref $value->[0]) {
-		# 	$value = [map {$_->{CNode}} @$value];
-		# }
-		# print "set_fields, going through $_ for node $node fields is $fields\n";
-
-		VRML::CU::set_field_be($node->{CNode}, 
-			$node->{Type}, $_, $fields->{$_});
-	}
+  my($this,$node,$fields) = @_;
+  for(keys %$fields) 
+    {
+      my $value = $fields->{$_};
+      # if("HASH" eq ref $value) { # Field
+      # 	$value = $value->{CNode};
+      # } elsif("ARRAY" eq ref $value and "HASH" eq ref $value->[0]) {
+      # 	$value = [map {$_->{CNode}} @$value];
+      # }
+      # print "set_fields, going through $_ for node $node fields is $fields\n";
+      
+      VRML::CU::set_field_be($node->{CNode}, 
+			     $node->{Type}, $_, $fields->{$_});
+    }
 }
 
 sub set_sensitive {
 	my($this,$node,$sub) = @_;
+
 	print "\nBE SET SENS $node, $sub\n"
-		 if $VRML::verbose::glsens;
+	  if $VRML::verbose::glsens;
 
         # is it already here???
 #JAS	my $match_idx = 0;
@@ -466,10 +568,10 @@ sub set_sensitive {
 #JAS		}
 #JAS	  	$match_idx++;
 #JAS        }
+	
 	push @{$this->{Sens}}, [$node, $sub];
 	$this->{SensC}{$node->{CNode}} = $node;
 	$this->{SensR}{$node->{CNode}} = $sub;
-
 
 #JAS        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
 #JAS                print "GLBackEnd:set_sensitive, vrfy",
@@ -482,50 +584,60 @@ sub set_sensitive {
 
 sub delete_node {
 	my($this,$node) = @_;
+
 	VRML::CU::free_struct_be($node->{CNode}, $node->{Type});
 }
 
 sub get_proximitysensor_stuff {
 	my($this,$node) = @_;
 	my($hit, $x1, $y1, $z1, $x2, $y2, $z2, $q2);
+
 	VRML::VRMLFunc::get_proximitysensor_vecs($node->{CNode},$hit,$x1,$y1,$z1,$x2,$y2,$z2,$q2);
-	if($hit or !$hit) {
-		return [$hit, [$x1, $y1, $z1], [$x2, $y2, $z2, $q2]];
-	} else {
-		return [$hit];
-	}
+
+	if($hit or !$hit)
+	  {
+	    return [$hit, [$x1, $y1, $z1], [$x2, $y2, $z2, $q2]];
+	  }
+	else
+	  {
+	    return [$hit];
+	  }
 }
 
 sub setup_projection {
 	my($this,$pick,$x,$y) = @_;
 	my $i = pack ("i",0);
-		glMatrixMode(&GL_PROJECTION);
+	
+	glMatrixMode(&GL_PROJECTION);
 	glGetIntegerv(&GL_PROJECTION_STACK_DEPTH,$i);
+	
 	my $dep = unpack("i",$i);
-	while($dep-- > 1) { glPopMatrix(); }
+	while($dep-- > 1)
+	  {
+	    glPopMatrix(); 
+	  }
 
-		glViewport(0,0,$this->{W},$this->{H});
-		glLoadIdentity();
+	glViewport(0,0,$this->{W},$this->{H});
+	glLoadIdentity();
 	# print "SVP: $this->{W} $this->{H}\n";
-		if($pick) { # We are picking for mouse events ..
-			my $vp = pack("i4",0,0,0,0);
-			glGetIntegerv(&GL_VIEWPORT, $vp);
-			# print "VPORT: ",(join ",",unpack"i*",$vp),"\n";
-			# print "PM: $this->{MX} $this->{MY} 3 3\n";
-			my @vp = unpack("i*",$vp);
-			print "Pick",
-			 (join ', ',$this->{MX}, $vp[3]-$this->{MY}, 3, 3, @vp),
-			 "\n"
-			  if $VRML::verbose::glsens;
-			glupPickMatrix($x, $vp[3]-$y, 3, 3, @vp);
-		}
-		glPushMatrix();
-		gluPerspective(40.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}),	
-			0.1, 200000);
-		glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
-		glMatrixMode(&GL_MODELVIEW);
-		glLoadIdentity();
-		# glShadeModel(GL_SMOOTH);
+	if($pick) 
+	  { # We are picking for mouse events ..
+	    my $vp = pack("i4",0,0,0,0);
+	    glGetIntegerv(&GL_VIEWPORT, $vp);
+	    # print "VPORT: ",(join ",",unpack"i*",$vp),"\n";
+	    # print "PM: $this->{MX} $this->{MY} 3 3\n";
+	    my @vp = unpack("i*",$vp);
+	    print "Pick".(join ', ',$this->{MX}, $vp[3]-$this->{MY}, 3, 3, @vp)."\n"
+	      if $VRML::verbose::glsens;
+	    glupPickMatrix($x, $vp[3]-$y, 3, 3, @vp);
+	  }
+	
+	glPushMatrix();
+	gluPerspective(40.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 200000);
+	glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
+	glMatrixMode(&GL_MODELVIEW);
+	glLoadIdentity();
+	# glShadeModel(GL_SMOOTH);
 }
 
 # sub unsetup_projection {
@@ -537,31 +649,48 @@ sub setup_projection {
 sub setup_viewpoint {
 	my($this,$node) = @_;
 	my $viewpoint = 0;
-		$this->{Viewer}->togl(); # Make viewpoint
-	     # Store stack depth
-		my $i = pack ("i",0);
-		glGetIntegerv(&GL_MODELVIEW_STACK_DEPTH,$i);
-		my $dep = unpack("i",$i);
-	     # Go through the scene, rendering all transforms
-	     # in reverse until we hit the viewpoint
-	     # die "NOVP" if !$viewpoint;
-		glMatrixMode(&GL_MODELVIEW);
-	         VRML::VRMLFunc::render_hier($node,
-		 		1, 1, 0, 0, 0, $viewpoint);
-		my $i2 = pack ("i",0);
-		glGetIntegerv(&GL_MODELVIEW_STACK_DEPTH,$i2);
-		my $depnow = unpack("i",$i2);
-#		print "DEP: $dep $depnow\n";
-		if($depnow > $dep) {
-			my $mod = pack ("d16",0,0,0,0,0,0,0,0,0,0,0,0);
-			glGetDoublev(&GL_MODELVIEW_MATRIX, $mod);
-			while($depnow-- > $dep) {
-				# print "POP!\n";
-				glPopMatrix();
-			}
-			glLoadIdentity();
-			glMultMatrixd($mod);
-		}
+	$this->{Viewer}->togl(); # Make viewpoint
+
+	# Store stack depth
+	my $i = pack ("i",0);
+	glGetIntegerv(&GL_MODELVIEW_STACK_DEPTH,$i);
+
+	my $dep = unpack("i",$i);
+
+	# Go through the scene, rendering all transforms
+	# in reverse until we hit the viewpoint
+	# die "NOVP" if !$viewpoint;
+	glMatrixMode(&GL_MODELVIEW);
+	VRML::VRMLFunc::render_hier($node, 	# Node
+				    1, 		# reverse_trans
+				    1, 		# render view point
+				    0, 		# render geoms
+				    0, 		# render lights
+				    0,		# render sensitive
+				    0, 		# render blend
+				    $viewpoint);# what view point      
+
+	my $i2 = pack ("i",0);
+	glGetIntegerv(&GL_MODELVIEW_STACK_DEPTH,$i2);
+
+	my $depnow = unpack("i",$i2);
+
+	print "GLBackEnd::setup_viewpoint -- DEP: $dep $depnow\n";
+
+	if($depnow > $dep) 
+	  {
+	    my $mod = pack ("d16",0,0,0,0,0,0,0,0,0,0,0,0);
+	    glGetDoublev(&GL_MODELVIEW_MATRIX, $mod);
+
+	    while($depnow-- > $dep) 
+	      {
+		print "GLBackEnd::setup_viewpoint -- POP!\n";
+		glPopMatrix();
+	      }
+
+	    glLoadIdentity();
+	    glMultMatrixd($mod);
+	  }
 }
 
 # Given root node of scene, render it all
@@ -571,7 +700,10 @@ sub render {
 	my($node,$viewpoint) = @{$this}{Root, Viewpoint};
 	$node = $node->{CNode};
 	$viewpoint = $viewpoint->{CNode};
-	if($VRML::verbose::be) {print "Render: root $node\n";}
+	if($VRML::verbose::be) 
+	  {
+	    print "Render: root $node\n";
+	  }
 	glDisable(&GL_LIGHT0); # /* Put them all off first */
 	glDisable(&GL_LIGHT1);
 	glDisable(&GL_LIGHT2);
@@ -581,137 +713,208 @@ sub render {
 	glDisable(&GL_LIGHT6);
 	glDisable(&GL_LIGHT7);
 	glClear(&GL_COLOR_BUFFER_BIT | &GL_DEPTH_BUFFER_BIT);
+
 	my $pick;
 	# 1. Set up projection
-		$this->setup_projection();
+	$this->setup_projection();
+
 	# 2. Headlight
-		if($this->{Viewer}{Navi}{RFields}{headlight}) {
-			glEnable(&GL_LIGHT0);
-			my $pos = pack ("f*",0,0,1,0);
-			glLightfv(&GL_LIGHT0,&GL_POSITION, $pos);
-			my $s = pack ("f*", 1,1,1,1);
-			glLightfv(&GL_LIGHT0,&GL_AMBIENT, $s);
-			glLightfv(&GL_LIGHT0,&GL_DIFFUSE, $s);
-			glLightfv(&GL_LIGHT0,&GL_SPECULAR, $s);
-		} else {
-			glDisable(&GL_LIGHT0);
-		}
+	if($this->{Viewer}{Navi}{RFields}{headlight}) 
+	  {
+	    glEnable(&GL_LIGHT0);
+	    my $pos = pack ("f*",0,0,1,0);
+	    glLightfv(&GL_LIGHT0,&GL_POSITION, $pos);
+	    my $s = pack ("f*", 1,1,1,1);
+	    glLightfv(&GL_LIGHT0,&GL_AMBIENT, $s);
+	    glLightfv(&GL_LIGHT0,&GL_DIFFUSE, $s);
+	    glLightfv(&GL_LIGHT0,&GL_SPECULAR, $s);
+	  }
+	else
+	  {
+	    glDisable(&GL_LIGHT0);
+	  }
 					
 	# 3. Viewpoint
-		$this->setup_viewpoint($node);
+	$this->setup_viewpoint($node);
+
         # Other lights
-	     	VRML::VRMLFunc::render_hier($node,
-				0,0,0,1,0,0);
-	# 4. Nodes
-		VRML::VRMLFunc::render_hier($node,
-				0, 0, 1, 0, 0, 0);
+     	VRML::VRMLFunc::render_hier($node,	# Node                 
+				    0,		# reverse_trans        
+				    0,		# render view point    
+				    0,		# render geoms         
+				    1,		# render lights        
+				    0,		# render sensitive         
+				    0, 		# render blend
+				    0);		# what view point      
+
+
+	# 4. Nodes (not the blended ones)
+	VRML::VRMLFunc::render_hier($node,	# Node                 
+				    0,		# reverse_trans        
+				    0,		# render view point    
+				    1,		# render geoms         
+				    0,		# render lights        
+				    0,		# render sensitive     
+				    0,		# render blend         
+				    0);		# what view point      
+
+	# 4. Render blended nodes (in reverse depth order)
+	VRML::VRMLFunc::render_hier($node,	# Node                 
+				    0,		# reverse_trans        
+				    0,		# render view point    
+				    1,		# render geoms         
+				    0,		# render lights        
+				    0,		# render sensitive     
+				    0,		# render blend         
+				    0);		# what view point      
 	# glFlush();
 	glXSwapBuffers();
 
 	# Do selection
-	if(@{$this->{Sens}}) {
-		# print "SENS: $this->{MOUSEGRABBED}\n";
-		# my $b = delete $this->{SENSBUT};
-		# my $sb = delete $this->{SENSBUTREL};
-		# my $m = delete $this->{SENSMOVE};
-		print "SENSING\n"
-			if $VRML::verbose::glsens;
-	   for(my $i = 1; $i < scalar @{$this->{BUTEV}}; $i ++) {
-	   	if($this->{BUTEV}[$i-1][0] eq "MOVE" and
-		   $this->{BUTEV}[$i][0] eq "MOVE") {
-		   	splice @{$this->{BUTEV}}, $i-1, 1;
-			$i --;
-		}
-	   }
+	if(@{$this->{Sens}}) 
+	  {
+	    # print "SENS: $this->{MOUSEGRABBED}\n";
+	    # my $b = delete $this->{SENSBUT};
+	    # my $sb = delete $this->{SENSBUTREL};
+	    # my $m = delete $this->{SENSMOVE};
+	    print "SENSING\n"
+	      if $VRML::verbose::glsens;
+	    
+	    for(my $i = 1; $i < scalar @{$this->{BUTEV}}; $i ++) 
+	      {
+		if($this->{BUTEV}[$i-1][0] eq "MOVE" and $this->{BUTEV}[$i][0] eq "MOVE") 
+		  {
+		    splice @{$this->{BUTEV}}, $i-1, 1;
+		    $i --;
+		  }
+	      }
 
-	   for(@{$this->{BUTEV}}) {
-	   	print "BUTEV: $_->[0]\n" 
-			if $VRML::verbose::glsens;
-		for(@{$this->{Sens}}) {
-			if ((defined $_->[0]) && (defined $_->[1])) {
-			VRML::VRMLFunc::zero_hits($_->[0]{CNode});
+	    for(@{$this->{BUTEV}}) 
+	      {
+		print "BUTEV: $_->[0]\n" 
+		  if $VRML::verbose::glsens;
+		
+		for(@{$this->{Sens}})
+		  {
+		    if ((defined $_->[0]) && (defined $_->[1])) 
+		      {
+		        VRML::VRMLFunc::zero_hits($_->[0]{CNode});
 			VRML::VRMLFunc::set_sensitive($_->[0]{CNode},1);
-			} else {
+		      }
+		    else
+		      {
 			print "BUTEV - should remove this one from the list\n"
-				if $VRML::verbose::glsens;
-			}
-		}
-		if($this->{MOUSEGRABBED}) {
-			VRML::VRMLFunc::set_hypersensitive($this->{MOUSEGRABBED});
-		} else {
-			VRML::VRMLFunc::set_hypersensitive(0);
-		}
+			  if $VRML::verbose::glsens;
+		      }
+		  }
+		if($this->{MOUSEGRABBED}) 
+		  {
+		    VRML::VRMLFunc::set_hypersensitive($this->{MOUSEGRABBED});
+		  }
+		else
+		  {
+		    VRML::VRMLFunc::set_hypersensitive(0);
+		  }
+
 		my $nints = 100;
 		my $s = pack("i$nints");
+		
 		glRenderMode(&GL_SELECT);
+
 		$this->setup_projection();
+		
 		glSelectBuffer($nints, $s);
+		
 		$this->setup_projection(1, $_->[2], $_->[3]);
 		$this->setup_viewpoint($node);
-		VRML::VRMLFunc::render_hier($node,
-				0, 0, 0, 0, 1, 0);
+		
+	      VRML::VRMLFunc::render_hier($node,	# Node                 
+					  0,	# reverse_trans        
+					  0,	# render view point    
+					  0,	# render geoms         
+					  0,	# render lights        
+					  1,	# render sensitive     
+					  0,	# render blend         
+					  0);	# what view point      
+
 		# print "SENS_BR: $b\n" if $VRML::verbose::glsens;
 		my($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
 		my $p = VRML::VRMLFunc::get_rayhit($x,$y,$z,$nx,$ny,$nz,$tx,$ty);
 		my $pos;
-		if($this->{MOUSEGRABBED}) {
-			if($_->[0] eq "RELEASE") {
-				# XXX The position at release is garbage :(
-				my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-				$pos = [$x,$y,$z];
-				my $nor = [$nx,$ny,$nz];
-				$rout->("RELEASE", 0, 1, $pos, $nor);
-				undef $this->{MOUSEGRABBED};
-			} elsif($_->[0] eq "MOVE") {
-				my $over = ($this->{MOUSEGRABBED} == $p);
-				my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-				$pos = [$x,$y,$z];
-				my $nor = [$nx,$ny,$nz];
-				$rout->("",1,$over,$pos,$nor);
-				if(!VRML::VRMLFunc::get_hyperhit(
-					$x,$y,$z,$nx,$ny,$nz)) {
-						die("No hyperhit??? REPORT BUG!");
-				}
-				print "HYP: $x $y $z $nx $ny $nz\n" 
-					if $VRML::verbose::glsens;
-				my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
-				$pos = [$x,$y,$z];
-				$nor = [$nx,$ny,$nz];
-				$rout->("DRAG", 1, $over, $pos, $nor);
-			}
-		} else {
-			if(defined $this->{SensC}{$p}) {
-				my $rout = $this->{SensR}{$p};
-				print "HIT: $p, $x $y $z\n"
-					if $VRML::verbose::glsens;
-				$pos = [$x,$y,$z];
-				my $nor = [$nx,$ny,$nz];
-				if($_->[0] eq "MOVE") {
-					$rout->("",1,1,$pos,$nor);
-				}
-				if($_->[0] eq "PRESS") {
-					$rout->("PRESS",0,1,$pos,$nor);
-					$this->{MOUSEGRABBED} = $p;
-				}
-				# if($sb) {
-				# 	$rout->("RELEASE",0,1,$pos,$nor);
-				# }
-			} else {
-				print "No hit: $p\n"
-					if $VRML::verbose::glsens;
-			}
-			print "MOUSOVER: $this->{MOUSOVER}, p: $p\n"
-				if $VRML::verbose::glsens;
-			if(defined $this->{MOUSOVER} and
-			   $this->{MOUSOVER} != $p and
-			   defined($this->{SensC}{$this->{MOUSOVER}})) {
-			   	my $rout = $this->{SensR}{$this->{MOUSOVER}};
-				$rout->("",1,0,undef,undef);
-			}
-			$this->{MOUSOVER} = $p;
-		} 
-	   }
-	}
+		if($this->{MOUSEGRABBED}) 
+		  {
+		    if($_->[0] eq "RELEASE") 
+		      {
+			# XXX The position at release is garbage :(
+			my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
+			$pos = [$x,$y,$z];
+			my $nor = [$nx,$ny,$nz];
+			$rout->("RELEASE", 0, 1, $pos, $nor);
+			undef $this->{MOUSEGRABBED};
+		      }
+		    elsif($_->[0] eq "MOVE") 
+		      {
+			my $over = ($this->{MOUSEGRABBED} == $p);
+			my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
+			$pos = [$x,$y,$z];
+			my $nor = [$nx,$ny,$nz];
+			$rout->("",1,$over,$pos,$nor);
+			
+			die("No hyperhit??? REPORT BUG!") if(!VRML::VRMLFunc::get_hyperhit($x,$y,$z,$nx,$ny,$nz));
+			
+			print "HYP: $x $y $z $nx $ny $nz\n" 
+			  if $VRML::verbose::glsens;
+			
+			my $rout = $this->{SensR}{$this->{MOUSEGRABBED}};
+			$pos = [$x,$y,$z];
+			$nor = [$nx,$ny,$nz];
+			$rout->("DRAG", 1, $over, $pos, $nor);
+		      }
+		  }
+		else
+		  {
+		    if(defined $this->{SensC}{$p}) 
+		      {
+			my $rout = $this->{SensR}{$p};
+			
+			print "HIT: $p, $x $y $z\n"
+			  if $VRML::verbose::glsens;
+			
+			$pos = [$x,$y,$z];
+			my $nor = [$nx,$ny,$nz];
+			
+			if($_->[0] eq "MOVE") 
+			  {
+			    $rout->("",1,1,$pos,$nor);
+			  }
+			
+			if($_->[0] eq "PRESS") 
+			  {
+			    $rout->("PRESS",0,1,$pos,$nor);
+			    $this->{MOUSEGRABBED} = $p;
+			  }
+			# if($sb) {
+			# 	$rout->("RELEASE",0,1,$pos,$nor);
+			# }
+		      }
+		    else
+		      {
+			print "No hit: $p\n"
+			  if $VRML::verbose::glsens;
+		      }
+		    
+		    print "MOUSOVER: $this->{MOUSOVER}, p: $p\n"
+		      if $VRML::verbose::glsens;
+		    
+		    if(defined $this->{MOUSOVER} and $this->{MOUSOVER} != $p and defined($this->{SensC}{$this->{MOUSOVER}})) 
+		      {
+			my $rout = $this->{SensR}{$this->{MOUSOVER}};
+			$rout->("",1,0,undef,undef);
+		      }
+		    $this->{MOUSOVER} = $p;
+		  } 
+	      }
+	  }
 	$#{$this->{BUTEV}} = -1;
 	glRenderMode(&GL_RENDER);
 
