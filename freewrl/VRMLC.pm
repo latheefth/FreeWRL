@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.5  2000/08/13 14:27:55  rcoscali
+# Fixed a trace
+#
 # Revision 1.4  2000/08/08 21:15:36  rcoscali
 # Fixed Image Texture rendering problem (depth parameter on gluScaleImage)
 #
@@ -641,11 +644,13 @@ IndexedFaceSet => '
 						rep_->norindex[triind*3+2] = triind;
 					}
                                         if(tcin && ntexCoords) {
+printf("tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords);
                                                 /* TODO: This mode is still a little obscur to me ... ? */
                                                 tcindex[triind*3+0] = inittcind;
                                                 tcindex[triind*3+1] = lasttcind;
                                                 tcindex[triind*3+2] = $f(texCoordIndex,i);
                                         } else if (!tcin && ntexCoords) {
+printf("! tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords);
                                                 /* Use coord index */
                                                 tcindex[triind*3+0] = cindex[triind*3+0];
                                                 tcindex[triind*3+1] = cindex[triind*3+1];
