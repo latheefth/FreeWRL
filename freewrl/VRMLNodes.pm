@@ -249,30 +249,14 @@ sub removeChild {
 	return @av;
 }
 
-# these are no longer used, but are kept around because of the
-# coding. JS
-#JSsub return_be_node {
-#JS        # this takes a hash, and returns the cnode benode thingie... JS
-#JS        my ($node) = @_;
-#JS         foreach $k (keys %{$node}) {
-#JS		print "for $node, hash $k => ${$node}{$k}\n";
-#JS	}
-#JS	return ${$node}{CNode};
-#JS}
-#JS
-#JSsub return_be_type {
-#JS        # this takes a hash, and returns the cnode benode thingie... JS
-#JS        my ($node) = @_;
-#JS        # foreach $k (keys %{$node}) {
-#JS	#	print "hash $k => ${$node}{$k}\n";
-#JS	#}
-#JS	return ${$node}{Type};
-#JS}
+########################################################################
+#
+# Image loading.
+#
 
-
+# picture image
 sub init_image {
     my($name, $urlname, $t, $f, $scene, $flip) = @_;
-    # print "init_image, $name, $urlnamd $t $f $scene\n";
 
     my $purl = $t->{PURL} = $scene->get_url;
     my $urls = $f->{$urlname};
@@ -349,10 +333,6 @@ sub init_image {
 	$f->{__y.$name} = $hei;
 	$f->{__data.$name} = $dat;
 	$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
-	# print "init_image, texture number ",$f->{__texture.$name},"\n";
-
-
-
 	return;
     } # for $u (@$urls) 
 
@@ -390,6 +370,108 @@ sub init_pixel_image {
     return;  
 } 
   
+
+
+# MPEG picture image
+sub init_movie_image {
+    my($name, $urlname, $t, $f, $scene, $flip) = @_;
+    # print "init_movie_image, name $name, urlname $urlname t $t f $f flip $flip\n";
+
+    my $purl = $t->{PURL} = $scene->get_url;
+    my $urls = $f->{$urlname};
+    if($#{$urls} == -1) {
+	goto NO_TEXTURE;
+    }
+
+    URL: for $u (@$urls) {
+	next unless $u =~ /\.(\w*)$/;
+	my $suffix = $1;
+	my $file;
+
+	$file = VRML::URL::get_relative($purl, $u, 1);
+
+	# Required due to changes in VRML::URL::get_relative in URL.pm:
+	if (!$file) { warn "Could not retrieve $u"; next URL; }
+
+	my ($hei,$wi,$dep,$dat);
+	my $tempfile = $file;
+	$dat = "";
+
+	if ($@) { die("Cannot open image textures: '$@'"); }
+
+	# Use Imagemagick to do the conversion, and flipping.
+	
+	# Simply make a default user specific file by
+	# attaching the username (LOGNAME from environment).
+
+	my $lgname = $ENV{LOGNAME};
+	my $tempfile_name = "/tmp/freewrl_mpeg_";
+	$png_tempfile = join '', $tempfile_name,$lgname,".png";
+	$mpg_tempfile = join '', $tempfile_name,$lgname,"%04d";
+	my $tempfile_rm = join '', $tempfile_name,$lgname,"*.tga";
+
+
+	# Step 1 - decode the input file.
+	my $cmd = "$VRML::Browser::MPEG2DEC -q -b $file -o2 $mpg_tempfile";
+	my $status = system ($cmd);
+	warn "$image conversion problem: '$cmd' returns $?"
+		unless $status == 0;
+	
+	# Step 2 - get list of the files there.
+	my @file_list = `ls -c1 $tempfile_rm | sort`;
+
+	# Step 3 - read each file in.
+	eval 'require VRML::PNG';
+	my $num=0;
+
+	my @tex_num_array = ();
+	my @data_array = ();
+	foreach (@file_list) {
+
+		$_ =~ s/\s+$//; # trailing new line....
+		my $cmd = "$VRML::Browser::CONVERT $_ $png_tempfile";
+
+		my $status = system ($cmd);
+		warn "$image conversion problem: '$cmd' returns $?"
+			unless $status == 0;
+	
+		if (!VRML::PNG::read_file($png_tempfile,$dat,$dep,$hei,$wi,$flip)) {
+			warn("Couldn't read texture file $png_tempfile");
+		}
+
+
+		push @data_array, $dat;
+		push @tex_num_array, VRML::OpenGL::glGenTexture();
+		$num += 1;
+	}
+	$f->{__depth} = $dep;
+	$f->{__x} = $wi;
+	$f->{__y} = $hei;
+	$f->{__texture} = \@tex_num_array;
+	$f->{__data} = \@data_array;
+
+	# Step 4. remove temporary files
+	my $cmd = "rm $png_tmpfile $tempfile_rm";
+        my $status = system ($cmd);
+        die "$image conversion problem: '$cmd' returns $?"
+                unless $status == 0;
+	return;
+    } # for $u (@$urls) 
+
+    NO_TEXTURE:
+    my @tex_num_array = ();
+    my @data_array = ();
+
+    $f->{__depth} = 0;
+    $f->{__x} = 0;
+    $f->{__y} = 0;
+    $f->{__data} = \@data_array;
+    $f->{__texture} = \@tex_num_array;
+    return;
+}
+
+########################################################################
+
 
 my $protono;
 
@@ -457,6 +539,7 @@ my $protono;
  ##JAS Collision
  VisibilitySensor
  PixelTexture
+ MovieTexture
 /;
 
 # What are the transformation-hierarchy child nodes?
@@ -551,6 +634,113 @@ PixelTexture => new VRML::NodeType("PixelTexture",
        }
        }
 ),
+
+
+MovieTexture => new VRML::NodeType ("MovieTexture",
+{	loop	=> [SFBool, 0],
+	speed	=> [SFFloat, 1],
+	startTime => [SFTime, 0],
+	stopTime  => [SFTime, 0],
+	url	=> [MFString, [""]],
+	repeatS	=> [SFBool, 1, ""],	# not exposedfield
+	repeatT	=> [SFBool, 1, ""], 	# not exposedfield
+	duration_changed	=> [SFTime,undef,eventOut],
+	isActive	=> [SFBool, undef, eventOut],
+        __depth => [SFInt32, 1, "field"],
+        __x => [SFInt32,0, "field"],
+        __y => [SFInt32,0, "field"],
+        __data => [MFString, [], "field"],
+        __texture => [MFInt32,[], "field"],
+	__ctex => [SFInt32, 0, "field"],
+	__tick0 => [SFInt32, 0, "field"],
+ },
+
+@x= {
+    Initialize => sub {
+	my ($t,$f,$time,$scene) = @_;
+	init_movie_image("","url",$t,$f,$scene,1);
+	$f->{__tick0} = $time;
+	return ();
+    },
+	 startTime => sub {
+	 	my($t,$f,$val) = @_;
+		print "MT ST\n";
+		if($t->{Priv}{active}) {
+		} else {
+			# $f->{startTime} = $val;
+		}
+	 },
+	 # Ignore if less than startTime
+	 stopTime => sub {
+	  	my($t,$f,$val) = @_;
+	 	print "MT ST\n";
+	 	if($t->{Priv}{active} and $val < $f->{startTime}) {
+	 	} else {
+	 		# return $t->set_field(stopTime,$val);
+	 	}
+	  },
+
+	 ClockTick => sub {
+		my($t,$f,$tick) = @_;
+		my $act = 0; 
+		my @e;
+
+		$tick -= $f->{__tick0}; # relative to initialize time
+
+		# print "MT CT ticks ",$tick, " st ", $f->{startTime},"\n";
+		# Are we active?
+
+		if($tick > $f->{startTime}) {
+			if($f->{startTime} >= $f->{stopTime}) {
+				if($f->{loop}) {
+					$act = 1;
+				} else {
+						print "st ", $f->{startTime}, " ci ",
+							 $f->{cycleInterval}, " tick ",
+							 $tick, "\n";
+						if($f->{startTime} >= $tick) {
+						$act = 1;
+					}
+				}
+			} else {
+				if($tick < $f->{stopTime}) {
+					if($f->{loop}) {
+						$act = 1;
+					} else {
+						if($f->{startTime} >= $tick) {
+							$act = 1;
+						}
+					}
+				}
+			}
+		}
+		my $frac = 0;
+		my $time = ($tick - $f->{startTime}) / $f->{speed};
+		print "MovieTexture: $time '$act'\n" if $VRML::verbose::timesens;
+		if($act) {
+			if($f->{loop}) {
+				$frac = $time - int $time;
+			} else {
+				$frac = ($time > 1 ? 1 : $time);
+			}
+		} else {$frac = 1}
+
+		# frac will tell us what texture frame we should apply...
+		$frac = int ($frac * ($#{$f->{__texture}}+1)); 
+	
+		if ($f->{__ctex} != $frac) {
+			$f->{__ctex} = $frac;
+			push @e, [$t, "mytexfrac", $f->{__ctex}];
+			return @e;
+		}
+	 },
+
+
+}
+),
+
+
+
 
  Box => new VRML::NodeType("Box",
  { size => [SFVec3f, [2,2,2]] }
@@ -730,21 +920,6 @@ Sound => new VRML::NodeType("Sound",
 }
 ),
 
-MovieTexture => new VRML::NodeType ("MovieTexture",
-{	loop	=> [SFBool, 0],
-	speed	=> [SFFloat, 1],
-	startTime => [SFTime, 0],
-	stopTime  => [SFTime, 0],
-	url	=> [MFString, [""]],
-	repeatS	=> [SFBool, 1, ""],	# not exposedfield
-	repeatT	=> [SFBool, 1, ""], 	# not exposedfield
-	duration_changed	=> [SFTime,undef,eventOut],
-	isActive	=> [SFBool, undef, eventOut]
-}
-),
-
-
-
  Switch => new VRML::NodeType("Switch",
  {
     choice => [MFNode, []],
@@ -774,13 +949,6 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
     removeChildren => [MFNode, [], eventIn],
  },
  {
-#Initialize => sub
-#{
-#print("Transform:Initialize\n");
-#my($t,$f,$time,$scene) = @_;
-#$Scene = $scene;
-#return ();
-#},
  addChildren => sub
  {
      print("Transform:addChildren\n");
@@ -1036,8 +1204,6 @@ ColorInterpolator => new VRML::NodeType("ColorInterpolator",
 		my($t,$f) = @_;
 		$t->{Fields}->{value_changed} = ($f->{keyValue}[0] or [0,0,0]);
 		return ();
-		# XXX DON'T DO THIS!
-		# return [$t, value_changed, $f->{keyValue}[0]];
 	 },
 	 EventsProcessed => sub {
 		my($t, $f) = @_;
