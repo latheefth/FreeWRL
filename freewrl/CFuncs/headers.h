@@ -10,6 +10,10 @@
 #define PI 3.141592653589793
 #endif
 
+/* how many steps for dividing a shape into - eg spheres, cones... */
+#define horiz_div 20
+#define vert_div 20
+
 /* Faster trig macros (thanks for Robin Williams) */
 /* fixed code, thanks to Etienne Grossmann */
 
