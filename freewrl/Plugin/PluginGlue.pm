@@ -4,6 +4,11 @@
 # for conditions of use and redistribution.
 
 # $Log$
+# Revision 1.3  2001/07/20 21:12:28  ayla
+#
+#
+# Fixed some backward compatibility problems with perl 5.00.
+#
 # Revision 1.2  2001/07/11 20:43:05  ayla
 #
 #
@@ -29,27 +34,29 @@
 # Communicator functions...
 
 package VRML::PluginGlue;
-our $VERSION = 0.1;
+$VERSION = '0.10';
 
-# The next few lines (until call to bootstrap) come from perldoc perlxstut:
-use strict vars;
-#use warnings;
+BEGIN {
+    if ($^V lt v5.6.0) {
+	# Perl voodoo to stop interpreters < v5.6.0 from complaining about
+	# using our:
+	sub our { return; }
+    }
+}
 
 require Exporter;
 require DynaLoader;
 
-our @ISA = qw(
-	      Exporter
-	      DynaLoader
-	     );
+# The next few lines (until call to bootstrap) come from perldoc perlxstut:
+our @ISA = qw(Exporter DynaLoader);
 
 # Items to export into callers namespace by default. Note: do not export
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 
-our @EXPORT = qw(
-		 plugin_connect
-		 close_fd
-		);
+our @EXPORT = qw(plugin_connect close_fd);
 
 bootstrap VRML::PluginGlue $VERSION;
+
+1;
+__END__

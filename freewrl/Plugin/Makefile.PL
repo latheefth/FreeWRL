@@ -10,19 +10,20 @@ print "in the system Netscape plugin directory\n";
 print "(the path may need to be edited in Makefile.plugin).\n";
 print "If you don't have superuser access, install locally.\n\n";
 
-BEGIN{
- eval "use 5.004";
- warn "VRML::Browser requires Perl v5.0.4 or later -- go to http://www.perl.com"
-  if $@;
+$moduleName = "VRML::PluginGlue";
+
+if ($^V lt v5.6.0) {
+    warn "Warning: module $moduleName was created under Perl v5.6.0.\n";
 }
 
 
 use ExtUtils::MakeMaker;
+
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    'NAME'		=> "VRML::PluginGlue",
-    'VERSION_FROM'	=> 'PluginGlue.pm', # finds $VERSION
+    'NAME'		=> $moduleName,
+    'VERSION_FROM'	=> "PluginGlue.pm", # finds $VERSION
     'PREREQ_PM'		=> {}, # e.g., Module::Name => 1.1
     'LIBS'		=> [''], # e.g., '-lm'
     'DEFINE'		=> '', # e.g., '-DHAVE_SOMETHING'

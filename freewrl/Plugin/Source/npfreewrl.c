@@ -1042,7 +1042,9 @@ signal(int signo, Sigfunc func)
 
     /* Add option flags for handling signal: */
     action.sa_flags |= SA_NOCLDSTOP;
-    action.sa_flags |= SA_NOCLDWAIT;
+#ifdef SA_NOCLDWAIT
+	action.sa_flags |= SA_NOCLDWAIT;
+#endif
 
     if (sigaction(signo, &action, &old_action) < 0) {
 	perror("Call to sigaction failed");
