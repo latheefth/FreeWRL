@@ -83,7 +83,7 @@ print OUT qq(\$VRML::Browser::X3DTOVRMLXSL = "$pwd/x3d/X3dToVrml97.xsl";\n);
 print OUT "1;\n";
 close OUT;
 
-print "Note that 'convert' cannot be found\n" unless $a ;
+print "Note that 'convert' cannot be found\n" unless $myconv ;
 
 
 use ExtUtils::MakeMaker;
