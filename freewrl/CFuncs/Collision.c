@@ -241,7 +241,7 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
     int clippedpolynum = 0;
     static const struct pt zero = {0,0,0};
 
-    maxdisp = 0; //-1E99;
+    maxdisp = -1E99;
 
     /*allocate data */
     clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num*5 + 4));
@@ -330,7 +330,7 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
     if(maxdisp >= 0.) {
 	vecscale(&result,&n,maxdisp);
     } else
-	result = n;
+	result = zero;
 
     /*free alloc'd data */
     free(clippedpoly);
