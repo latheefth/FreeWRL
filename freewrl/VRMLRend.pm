@@ -20,8 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.105  2003/05/09 15:03:54  crc_canada
-# Setting up for CFuncs/Bindables.c
+# Revision 1.106  2003/05/09 15:16:03  crc_canada
+# background_bindable node name change
 #
 # Revision 1.104  2003/05/08 16:01:47  crc_canada
 # Moving code to C
@@ -397,6 +397,16 @@
 # Rend = real rendering
 
 %RendC = (
+
+#Bindable nodes in seperate file now
+Viewpoint => 'render_Viewpoint ((struct VRML_Viewpoint*) this_);',
+NavigationInfo => 'render_NavigationInfo ((struct VRML_NavigationInfo *) this_);',
+Fog => 'render_Fog((struct VRML_Fog *) this_);',
+Background => 'render_Background ((struct VRML_Background *) this_); ',
+
+
+
+
 
 
 Box => '
@@ -1196,58 +1206,6 @@ MovieTexture => '
 ',
 
 
-Fog => '
-	/* Fog node... */
-
-	GLdouble mod[16];
-	GLdouble proj[16];
-	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	GLdouble x,y,z;
-	GLdouble x1,y1,z1;
-	GLdouble sx, sy, sz;
-	int frtlen;
-	GLfloat fog_colour [4];
-
-	if(!((this_->isBound))) {return;}
-	if ($f(visibilityRange) <= 0.00001) return;
-
-	fog_colour[0] = $f(color,0);
-	fog_colour[1] = $f(color,1);
-	fog_colour[2] = $f(color,2);
-	fog_colour[3] = 1.0;
-
-	glPushMatrix();
-	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
-	/* Get origin */
-	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
-	glTranslatef(x,y,z);
-
-	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
-	/* Get scale */
-	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
-	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
-	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
-	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
-	/* Undo the translation and scale effects */
-	glScalef(sx,sy,sz);
-
-
-	/* now do the foggy stuff */
-	glFogfv(GL_FOG_COLOR,fog_colour);
-	glFogf(GL_FOG_END,$f(visibilityRange));
-	if (strcmp("LINEAR",SvPV((this_->fogType),frtlen))) {
-		glFogi(GL_FOG_MODE, GL_EXP);
-	} else {
-		glFogi(GL_FOG_MODE, GL_LINEAR);
-	}
-	glEnable (GL_FOG);
-
-	glPopMatrix();
- ',
-
 
 Sound => ' 
 /* node fields...
@@ -1406,9 +1364,6 @@ AudioClip => '
 
 	
  ',
-
-Background => 'Background_bindable ((struct VRML_Background *) this_); ',
-
 
 DirectionalLight => '
 	/* NOTE: This is called by the Group Children code
@@ -1586,64 +1541,6 @@ Billboard => '
 	angle = atan2(len2, sign*len);
 
 	glRotatef(angle/3.1415926536*180, ax.x, ax.y, ax.z);
-',
-
-Viewpoint => (join '','
-	if(render_vp) {
-		GLint vp[10];
-		double a1;
-		double angle;
-		if(verbose) printf("Viewpoint: %d IB: %d..\n", 
-			this_,$f(isBound));
-		if(!$f(isBound)) {return;}
-
-		/* stop rendering when we hit A viewpoint or THE viewpoint???
-		   shouldnt we check for what_vp???? 
-                   maybe only one viewpoint is in the tree at a time? -  ncoder*/
-
-		found_vp = 1; /* We found the viewpoint */
-
-		/* These have to be in this order because the viewpoint
-		 * rotates in its place */
-		glRotatef(-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
-			(join ',',map {getf(Viewpoint,orientation,$_)} 0..2),'
-		);
-		glTranslatef(',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
-			0..2),'
-		);
-
-		if (verbose) { 
-		printf ("Rotation %f %f %f %f\n",
-		-(',getf(Viewpoint,orientation,3),')/3.1415926536*180,',
-			(join ',',map {getf(Viewpoint,orientation,$_)} 0..2),'
-		);
-
-		printf ("Translation %f %f %f\n",
-		',(join ',',map {"-(".getf(Viewpoint,position,$_).")"} 
-			0..2),'
-		);
-		}
-
-
-		/* now, lets work on the Viewpoint fieldOfView */
-		glGetIntegerv(GL_VIEWPORT, vp);
-		if(vp[2] > vp[3]) {
-			a1=0;
-			fieldofview = $f(fieldOfView)/3.1415926536*180;
-		} else {
-			a1 = $f(fieldOfView);
-			a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
-			fieldofview = a1/3.1415926536*180;
-		}
-		/*printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3], a1, fieldofview);*/
-	}
-'),
-
-NavigationInfo => '
-        if(verbose) printf("NavigationInfo: %d IB: %d..\n",
-                this_,$f(isBound));
-        if(!$f(isBound)) {return;}
-        /* I have no idea what else should go in here -- John Breen */
 ',
 
 );
