@@ -131,7 +131,7 @@ sub findProtoDefine {
 					my $arel = $hk->[$are];
 	
 					if ($arel eq "ProtoInterface") {
-						print "found ProtoInterface\n";
+						#print "found ProtoInterface\n";
 						$are++;
 						parseProtoInterface($name,$hk->[$are]);
 
@@ -158,8 +158,10 @@ sub findProtoDefine {
 	return $retval;
 }
 
+
+#
 sub getX3DExternProtoBody {
-	my ($url) =@_;
+	my ($rawurl) =@_;
 
 	my $parentURL;
 	my $string = "";
@@ -168,12 +170,11 @@ sub getX3DExternProtoBody {
 	my $success;
 
 	
-	# is this a SFString or MFString?
-	#if (ref $url ne "ARRAY") {
-	#	$url = "[".$url."]";
-	#}
-	print "getX3DExternProtoBody, url $url\n";
-	print "ref of url is ",ref $url,"\n";
+	# lets split this url up into individual strings.
+	$rawurl = "[".$rawurl."]";
+
+	# and, use the MFString parse routine to split them up.
+	my $url = "VRML::Field::MFString"->parse($X3DScene,$rawurl);
 
 #JAS    # is this an EXTERNPROTO invoked from another EXTERNPROTO? If so,
 #JAS    # we may not have the correct parent url passed in.
@@ -187,12 +188,14 @@ sub getX3DExternProtoBody {
 #JAS	    $this->{WorldURL} = $parentURL;
 #JAS	  }
 #JAS    
-#JAS	for (@{$url}) {
-		#JAS ($protourl, $protoname) = split(/#/, $_, 2);
-		($protourl, $protoname) = split(/#/, $url, 2);
-		print "looking for $protourl, protoname $protoname\n";
+	for (@{$url}) {
+#print "working on $_\n";
+
+		($protourl, $protoname) = split(/#/, $_, 2);
+##		($protourl, $protoname) = split(/#/, $url, 2);
+		#print "looking for $protourl, protoname $protoname\n";
 		$string = VRML::Browser::getTextFromFile($protourl,$parentURL);
-#JAS		next if (!$string);
+		next if (!$string);
 
 		#print "string read in is:\n $string\n";
 
@@ -202,10 +205,10 @@ sub getX3DExternProtoBody {
 
 
 		# go through, and find the proto def.
-		print "ref of doc is ", ref $doc,"\n";
+		#print "ref of doc is ", ref $doc,"\n";
 
 		my $bnub = findProtoDefine($doc,$protoname);
-		print "my bnub is $bnub\n";
+		#print "my bnub is $bnub\n";
 		return $bnub;
 
 
@@ -241,7 +244,7 @@ sub getX3DExternProtoBody {
 #JAS			}
 #JAS		}
 #JAS		last if ($success);
-#JAS	}
+	}
 #JAS
 #JAS	VRML::Error::parsefail("no PROTO found", VRML::Debug::toString($url))
 #JAS		if (!$success);
@@ -824,6 +827,14 @@ sub parseX3DNodeField {
 	} else {
 	$field = getChildType($parentNode,$nextNodeName);
 
+	# some nodes have same fields as VRML97, but different name.
+	if (($parentNode eq "LOD") && ($field eq "children")) {
+		$field = level; # VRML97, children 
+	}
+	if (($parentNode eq "Switch") && ($field eq "children")) {
+		$field = choice; # VRML97, children 
+	}
+
 				
 	my $ft = $no->{FieldTypes}{$field};
 	print "FT: $ft\n" if $X3D::verbose;
@@ -837,6 +848,7 @@ sub parseX3DNodeField {
 		goto PARSE_EXIT;
 	}
 	
+
 	if ($ft eq "MFNode") {
 		#print "have a MFNode\n";
 		if (ref $fieldref->{$field} eq "ARRAY") { 
