@@ -305,7 +305,19 @@ sub choose_viewer {
 sub set_viewer {
 	my($this,$viewer) = @_;
 	$viewer = ucfirst lc $viewer;
-	print "Setting viewing mode '$viewer'\n";
+
+	# sanity check navigation info viewer type. Note that "ANY"
+	# will get mapped to Examine, along with any errors
+
+	if (($viewer ne "Walk") &&
+	    ($viewer ne "Examine") &&
+            ($viewer ne "Fly") &&
+	    ($viewer ne "None")) { 
+		# print "this is not a known viewer $viewer\n"; 
+		$viewer = "Examine";
+	}
+ 
+	# print "Setting viewing mode '$viewer'\n";
 	$this->{Viewer} = "VRML::Viewer::$viewer"->new($this->{Viewer});
 }
 
