@@ -1,3 +1,11 @@
+/* $Id$
+ *
+ * Copyright (C) 2002 Nicolas Coderre CRC Canada
+ * Portions Copyright (C) 1998 Tuomas J. Lukka 1998 Bernhard Reiter 1999 John Stewart CRC Canada
+ * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ * See the GNU Library General Public License (file COPYING in the distribution)
+ * for conditions of use and redistribution.
+ */
 #ifndef LINEARALGEBRAH
 #define LINEARALGEBRAH
 
@@ -147,6 +155,9 @@ GLdouble det3x3(GLdouble* data);
 
 struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b);
 float* transformf(float* r, const float* a, const GLdouble* b);
+
+/*only transforms using the rotation component. 
+  Usefull for transforming normals, and optimizing when you know there's no translation */
 struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b);
 
 struct pt* vecscale(struct pt* r, struct pt* v, GLdouble s);
@@ -161,6 +172,7 @@ struct pt* vecadd(struct pt* r, struct pt* v, struct pt* v2);
 
 struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2);
 
+/*specify a direction "n", and you get two vectors i, and j, perpendicular to n and themselfs. */
 void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n);
 
 GLdouble* matinverse(GLdouble* res, GLdouble* m);
