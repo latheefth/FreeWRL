@@ -348,6 +348,21 @@ glpXNextEvent(d=dpy)
 		}
 	}
 
+
+void
+glReadPixels(x,y,width,height,format,type,pixels)
+	GLint	x
+	GLint	y
+	GLsizei	width
+	GLsizei	height
+	GLenum	format
+	GLenum	type
+	char *	pixels
+	CODE:
+	{
+	   glReadPixels(x,y,width,height,format,type,(GLvoid *)pixels);
+	}
+
 int
 glpRasterFont(name,base,number,d=dpy)
 	char *name
@@ -426,6 +441,12 @@ glPolygonOffsetEXT(factor,bias)
 */
 	}
 
+
+
+void
+glPolygonMode(face,mode)
+        GLenum  face
+        GLenum  mode
 
 
 void
