@@ -28,8 +28,8 @@
 #  do normals for indexedfaceset
 #
 # $Log$
-# Revision 1.1  2000/08/04 07:07:38  rcoscali
-# Initial revision
+# Revision 1.1.1.1  2000/08/04 07:07:38  rcoscali
+# initial import (creation) of sources repository
 #
 #
 
