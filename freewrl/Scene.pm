@@ -617,7 +617,7 @@ sub getNode {
 	my ($this, $name) = @_;
 	my $n = $this->{DEF}->{VRML::Handles::return_def_name($name)};
 	if (!defined $n) {
-		warn("Node $name is not defined");
+		#warn("Node $name is not defined");
 		return undef;
 	}
 	return $n->node();

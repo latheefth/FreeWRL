@@ -219,12 +219,11 @@ void do_OintCoord(void *node) {
 	kVs = px->keyValue.p;
 	kpkv = kvin/kin;
 
-
-
 	/* do we need to (re)allocate the value changed array? */
 	if (kpkv != px->value_changed.n) {
-		/*printf ("refactor valuechanged array. n %d sizeof p %d\n",
-			kpkv,sizeof (struct SFColor) * kpkv); */
+		if (SEVerbose) 
+		    printf ("refactor valuechanged array. n %d sizeof p %d\n",
+			kpkv,sizeof (struct SFColor) * kpkv); 
 		if (px->value_changed.n != 0) {
 			free (px->value_changed.p);
 		}
@@ -251,7 +250,7 @@ void do_OintCoord(void *node) {
 
 	if (SEVerbose) {
 		printf ("debugging, kpkv %d, px->value_changed.n %d\n", kpkv, px->value_changed.n);	
-		printf ("CoordinateInterpolator, kpkv %d index %d\n",kpkv,indx);
+		printf ("CoordinateInterpolator, kpkv %d\n",kpkv);
 	}
 
 	/* set_fraction less than or greater than keys */
@@ -264,18 +263,17 @@ void do_OintCoord(void *node) {
 			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
 			/* JAS valchanged[indx].c[2] = kVs[indx].c[2]; */
 		}
+		if (SEVerbose) printf ("COINT out1 copied\n");
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		if (SEVerbose) printf ("COINT out1\n");
+		if (SEVerbose) printf ("COINT out2\n");
 		for (indx = 0; indx < kpkv; indx++) {
 			memcpy ((void *)&valchanged[indx], 
-				(void *)&kVs[(kvin-1)*kpkv+indx], 
+				(void *)&kVs[kvin-kpkv+indx], 
 				sizeof (struct SFColor));
-			/* JAS valchanged[indx].c[0] = kVs[(kvin-1)*kpkv+indx].c[0]; */
-			/* JAS valchanged[indx].c[1] = kVs[(kvin-1)*kpkv+indx].c[1]; */
-			/* JAS valchanged[indx].c[2] = kVs[(kvin-1)*kpkv+indx].c[2]; */
 		}
+		if (SEVerbose) printf ("COINT out2 finished\n");
 	} else {
-		if (SEVerbose) printf ("COINT out1\n");
+		if (SEVerbose) printf ("COINT out3\n");
 		/* have to go through and find the key before */
 		if (SEVerbose) printf ("indx=0, kin %d frac %f\n",kin,px->set_fraction);
 
@@ -302,6 +300,7 @@ void do_OintCoord(void *node) {
 							kVs[prevone].c[tmp]);
 			}
 		}
+		if (SEVerbose) printf ("COINT out3 finished\n");
 
 	}
 
