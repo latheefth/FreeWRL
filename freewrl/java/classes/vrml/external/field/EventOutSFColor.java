@@ -7,10 +7,26 @@ import vrml.external.field.FieldTypes;
 public class EventOutSFColor extends EventOut {
   public EventOutSFColor() {EventType = FieldTypes.SFCOLOR;}
 
-  public String       getValue() {
-	//System.out.println ("in EventoutsfColor, we have " + RLreturn);
+public float[]       getValue() {
 
-    System.out.println ("ERROR: EventOutSFColor not implemented");
-    return RLreturn;
+    float[] fvals = new float[3];
+    int count;
+    String rep;
+    StringTokenizer tokens;
+
+    if (command != null) {
+      rep = Browser.SendEventOut (outNode, command);
+
+      tokens = new StringTokenizer (rep);
+    } else {
+      tokens = new StringTokenizer (RLreturn);
+    }
+
+    fvals[0]=Float.valueOf(tokens.nextToken()).floatValue();
+    fvals[1]=Float.valueOf(tokens.nextToken()).floatValue();
+    fvals[2]=Float.valueOf(tokens.nextToken()).floatValue();
+    
+    
+   return fvals;
   }
 }
