@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.99  2003/04/16 19:03:39  crc_canada
+# Transform and Material improvements.
+#
 # Revision 1.98  2003/04/16 16:46:56  ayla
 #
 # Added check to prevent possible divide by zero error in Billboard.
@@ -1077,28 +1080,19 @@ Material =>  '
 		}
 #endif
 		dcol[3] = 1.0;
-		// bounds check
-		for (i=0; i<3; i++) { if ((dcol[i] < 0.0) || (dcol[i] >1.0)) {dcol[i] = 0.8;}}
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
 		amb = $f(ambientIntensity);
-
 		for(i=0; i<3; i++) {
 			dcol[i] *= amb;
 		}
-		// bounds check
-		for (i=0; i<3; i++) { if ((dcol[i] < 0.0) || (dcol[i] >1.0)) {dcol[i] = 0.2;}}
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
 		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); } scol[3] = 1.0;
-		// bounds check
-		for (i=0; i<3; i++) { if ((scol[i] < 0.0) || (scol[i] >1.0)) {scol[i] = 0.0;}}
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
 		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); } ecol[3] = 1.0;
-		// bounds check
-		for (i=0; i<3; i++) { if ((ecol[i] < 0.0) || (ecol[i] >1.0)) {ecol[i] = 0.0;}}
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
+		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
 		glColor3f(ecol[0],ecol[1],ecol[2]);
 
 		if (fabs($f(transparency)) > 0.01) {
@@ -1116,13 +1110,8 @@ Material =>  '
 			} else { glPolygonStipple (cleartone);}
 		}
 
-		shin = $f(shininess);
-		if(fabs(shin - 0.2) > 0.001) {
-			shin = shin*128.0;
-			if ((shin <= 128.0) && (shin >= 0.0)) {
-				glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shin);
-			}
-		}
+		shin = 128.0*$f(shininess);
+		do_shininess(shin);
 ',
 
 TextureTransform => '
@@ -1778,33 +1767,66 @@ DirectionalLight => '
 #
 
 %PrepC = (
-Transform => (join '','
-	
+
+Transform => '
+
+	GLfloat my_rotation;
+	GLfloat my_scaleO;
+
+
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
 	if(!render_vp) {
                 glPushMatrix();
-    
-		glTranslatef(',(join ',',map {getf(Transform,translation,$_)} 0..2),'
-		);
-		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
-		);
-		glRotatef(',getf(Transform,rotation,3),'/3.1415926536*180,',
-			(join ',',map {getf(Transform,rotation,$_)} 0..2),'
-		);
-		glRotatef(',getf(Transform,scaleOrientation,3),'/3.1415926536*180,',
-			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
-		);
-		glScalef(',(join ',',map {getf(Transform,scale,$_)} 0..2),'
-		);
-		glRotatef(-(',getf(Transform,scaleOrientation,3),'/3.1415926536*180),',
-			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
-		);
-		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
-		);
-        } 
-'),
 
+		/* might we have had a change to a previously ignored value? */
+		if (this_->_change != this_->_dlchange) {
+			this_->__do_center = verify_translate ((GLfloat *)this_->center.c);
+			this_->__do_trans = verify_translate ((GLfloat *)this_->translation.c);
+			this_->__do_scale = verify_scale ((GLfloat *)this_->scale.c);
+			this_->__do_rotation = verify_rotate ((GLfloat *)this_->rotation.r);
+			this_->__do_scaleO = verify_rotate ((GLfloat *)this_->scaleOrientation.r);
+			this_->_dlchange = this_->_change;
+		}
+
+		/* TRANSLATION */
+		if (this_->__do_trans) 
+			glTranslatef(this_->translation.c[0],this_->translation.c[1],this_->translation.c[2]);
+
+		/* CENTER */
+		if (this_->__do_center) 
+			glTranslatef(this_->center.c[0],this_->center.c[1],this_->center.c[2]);
+
+		/* ROTATION */
+		if (this_->__do_rotation) {
+			my_rotation = this_->rotation.r[3]/3.1415926536*180;
+			glRotatef(my_rotation,
+				this_->rotation.r[0],this_->rotation.r[1],this_->rotation.r[2]);
+		}
+
+		/* SCALEORIENTATION */
+		if (this_->__do_scaleO) {
+			my_scaleO = this_->scaleOrientation.r[3]/3.1415926536*180;
+			glRotatef(my_scaleO, this_->scaleOrientation.r[0],
+				this_->scaleOrientation.r[1],this_->scaleOrientation.r[2]);
+		}
+
+
+		/* SCALE */
+		if (this_->__do_scale) 
+			glScalef(this_->scale.c[0],this_->scale.c[1],this_->scale.c[2]);
+
+		/* REVERSE SCALE ORIENTATION */
+		if (this_->__do_scaleO) 
+			glRotatef(-my_scaleO, this_->scaleOrientation.r[0],
+				this_->scaleOrientation.r[1],this_->scaleOrientation.r[2]);
+
+		/* REVERSE CENTER */
+		if (this_->__do_center) 
+			glTranslatef(-this_->center.c[0],-this_->center.c[1],-this_->center.c[2]);	
+
+        } 
+',
 Billboard => '
 	GLdouble mod[16];
 	GLdouble proj[16];
