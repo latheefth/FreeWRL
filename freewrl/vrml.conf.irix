@@ -14,15 +14,19 @@
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/freeware/lib32 -L/usr/lib32 -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg',
     FREEWRL_INC => '-I/usr/freeware/include -I/usr/X11R6/include/',
-    JS_LIBS => '-Ljs/Linux_All_DBG.OBJ -ljs',
-    JS_INC => '-Ijs/Linux_All_DBG.OBJ -Ijs/',
     SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
-    NETSCAPE_INST => '/usr/lib/netscape',
+    JS_LIBS => '-Ljs/IRIX646.5_DBG.OBJ -ljs',
+    JS_INC => '-Ijs/IRIX646.5_DBG.OBJ -Ijs/',
+
+    # netscape; if you dont want to build, leave NETSCAPE_INST blank.
+    NETSCAPE_INST => '',
+    #NETSCAPE_INST => '/usr/lib/netscape',
     NETSCAPE_CLASSES => '/usr/lib/netscape/java/classes',
     NETSCAPE_PLUGINS => '/usr/lib/netscape/plugins',
-    JAVA_INST => '/usr/java/jdk1.3.1',
-    JAVA_INC => '-I/usr/java/jdk1.3.1/include -I/usr/java/jdk1.3.1/include/linux'
+    
+    # java - if you dont want to build, leave JAVA_INST blank
+    JAVA_INST => '',
+    #JAVA_INST => '/usr/java/',
+    JAVA_INC => '-I/usr/java/include -I/usr/java/include/irix'
 
 );
-
-##################################
