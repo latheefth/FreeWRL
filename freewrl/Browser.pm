@@ -120,8 +120,8 @@ sub load_string {
 	if ($type == 3)  {
 		# x3d - convert this to VRML.
 
-  		use XML::LibXSLT;
-  		use XML::LibXML;
+  		eval 'require XML::LibXSLT';
+  		eval 'require XML::LibXML';
   
   		my $parser = XML::LibXML->new();
   		my $xslt = XML::LibXSLT->new();
@@ -138,7 +138,7 @@ sub load_string {
 	VRML::Parser::parse($this->{Scene},$string);
         prepare ($this);
 	# and, take care of keeping the viewpoints active...
-	$this->{Scene}->register_vps($this);
+	# JAS $this->{Scene}->register_vps($this);
 }
 
 sub get_scene {
@@ -249,10 +249,10 @@ my $FPS = 0;
 # Viewpoints are stored in the browser rather in the 
 # individual scenes...
 
-sub register_vp {
-	my ($this, $scene, $node) = @_;
-	VRML::NodeType::register_vp($scene, $node);
-}
+#sub register_vp {
+#	my ($this, $scene, $node) = @_;
+#	VRML::NodeType::register_vp($scene, $node);
+#}
 
 sub get_vp_node {
 	return VRML::NodeType::get_vp_node();
@@ -310,7 +310,7 @@ sub replaceWorld {
 		$this->{Scene}->replaceWorld_Bindable($n);
 	}
         # and, take care of keeping the viewpoints active...
-        $this->{Scene}->register_vps($this);
+        # JAS $this->{Scene}->register_vps($this);
 }
 
 

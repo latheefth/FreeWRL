@@ -682,7 +682,25 @@ sub make_backend {
 	$this->{BackNode} = $ben;
 	$this->{BackEnd} = $be;
 	$this->set_backend_fields();
-	# print "Node::make_backend, $this, $ben, $be\n";
+
+	# was this a viewpoint? Was it not in a proto definition?
+	if ($this->{TypeName} eq "Viewpoint") {
+        	# print "Node::register_vp, viewpoint is ",$this->{Fields}{description},"\n";
+		if ($this->{BackEnd}) {
+			# print " should register this one!\n";
+			my $scene = $this->{Scene};
+			VRML::NodeType::register_vp($scene, $this);
+		}
+                 # print "ref t ", ref $this,"\n";
+                 # print "ref t backend ", ref $this->{BackEnd},"\n";
+                 # print "t backend ", $this->{BackEnd},"\n";
+                 # print "ref t backNode ", ref $this->{BackNode},"\n";
+                 # print "t backNode ", $this->{BackNode},"\n";
+                 # print "ref t protoexp ", ref $this->{ProtoExp},"\n";
+                 # print "t protoexp ", $this->{ProtoExp},"\n";
+                 # print "t isproto ", $this->{IsProto} ,"\n";
+
+	}
 	return $ben;
 }
 }
@@ -739,17 +757,18 @@ sub replaceWorld_Bindable {
 
 
 	
-sub register_vps {
-	my ($this, $browser) = @_;
-
-        my $np = $this->{Bindables}{Viewpoint};
-	my $c = 0;
-	while ($c <= $#$np) {
-        	# print $np->[$c]," viewpoint $c is ",$np->[$c]{Fields}{description},"\n";
-		$browser->register_vp($this,$np->[$c]);
-		$c++;
-	}
-}
+#JAS sub register_vps {
+#JAS 	my ($this, $browser) = @_;
+#JAS 
+    #JAS     my $np = $this->{Bindables}{Viewpoint};
+#JAS 
+#JAS 	my $c = 0;
+#JAS 	while ($c <= $#$np) {
+    #JAS     	print "register_vps for $this ", $np->[$c]->real_node()," viewpoint $c is ",$np->[$c]{Fields}{description},"\n";
+#JAS 		$browser->register_vp($this,$np->[$c]->real_node());
+#JAS 		$c++;
+#JAS 	}
+#JAS }
 
 
 sub set_url {
@@ -800,7 +819,6 @@ sub newp {
 			exit (1);
 		}
 	}
-	$this->register_vps(get_browser());
 	# print "Scene:newp finished, returning $this\n";
 	return $this;
 }
@@ -1348,34 +1366,19 @@ if($this->{BackNode}) {return $this->{BackNode}}
 
 		$be->set_root($bn) unless $this->{IsInline};
 
-		my $nthvp = 0;
-#JAS - trying animated viewpoints - it fails...
-#JAS 		$be->set_vp_sub(
-#JAS 			sub {
-#JAS 				my $b = $this->get_browser();
-#JAS 				my $vn = $b->get_vp_node();
-#JAS 				my $vs = $b->get_vp_scene();
-#JAS 				if (!defined $vn) {return;}
-#JAS 				$b->set_next_vp();
-#JAS 				print "vp_sub, $b $vn $vs";
-#JAS 				$vs->{EventModel}->send_event_to(
-#JAS 					$vn, set_bind, 1);
-#JAS 				print "GOING TO VP: '$vn->{Fields}{description}'\n";
-#JAS 			}
-#JAS 		);	
-		$be->set_vp_sub(
-			sub {
-				my $p = $this->{Bindables}{Viewpoint};
-				return if !@$p;
-				$nthvp += $_[0];
-				if($nthvp < 0) {$nthvp = $#$p};
-				$nthvp = $nthvp % scalar @$p;
-				$this->{EventModel}->send_event_to(
-					$p->[$nthvp], set_bind, 1
-				);
-				print "GOING TO VP: '$p->[$nthvp]{Fields}{description}'\n";
-			}
-		);
+ 		$be->set_vp_sub(
+ 			sub {
+ 				my $b = $this->get_browser();
+ 				my $vn = $b->get_vp_node();
+ 				my $vs = $b->get_vp_scene();
+ 				if (!defined $vn) {return;}
+ 				$b->set_next_vp();
+ 				# print "vp_sub, $b $vn $vs";
+ 				print "GOING TO VP: '$vn->{Fields}{description}'\n";
+ 				$vs->{EventModel}->send_event_to(
+ 					$vn, set_bind, 1);
+ 			}
+ 		);	
 	}
 	$this->{BackNode} = $bn;
 	return $bn;
