@@ -1,6 +1,6 @@
-<TITLE>FreeWRL - Install</TITLE>
+	<TITLE>FreeWRL - Install</TITLE>
 
-<P>&#35;Copyright (C) 1998 Tuomas J. Lukka, 2001 John Stewart, CRC Canada.  
+<P>&#35;Copyright (C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart, CRC Canada.  
 
 <BR>&#35;DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 
@@ -17,7 +17,12 @@ The complexity of the install depends on what packages you have installed
 with your system, and what packages may have been installed later.
 Most installs are very simple.
 <P>
-I have tested the FreeWRL build on brand new installs of:
+I have tested FreeWRL 0.30 on <B>Irix 6.5</B>, and <B>Red Hat 7.2</B>.
+<P>
+<B>Red Hat 7.2, Irix 6.5, and  MacOS-X</B> will be the build platforms
+for FreeWRL 0.30 and beyond.
+<P>
+I have also tested the FreeWRL 0.29 build on brand new installs of:
 <P>
 <LIST>
 <LI><B>SuSe 7.1</B> FTP'd on March 30-31 2001
@@ -31,37 +36,35 @@ I have tested the FreeWRL build on brand new installs of:
 <LI><B>FreeBSD</B>
 </LIST>
 <P>
-<B>
-NOTE:
-</B> when build options were presented, I chose 
-the "Development Workstation" options - you may <B>not</B> have to do one
-or two of the steps outlined below if you install everything.
-Comments/help/Additional build notes more than welcome.
-
+Detailed install notes can be found in this file in the FreeWRL 0.29
+release; most of what is in there should help with installing FreeWRL 0.30
+on these platforms.
+<P>
 <P>This install is divided up into the following sections:<P> 
 <LIST>
 <LI>Building FreeWRL to run &quot;standalone&quot;, without Netscape.
 <LI>Installing Java support.
 <LI>Getting it all to work with Netscape.
+<LI>Adding X3D functionality.
 <LI>Getting it to work with the Polhemus Fastrak 3d, or a Joystick.
 </LIST>
 
 <P>
-<BR>(updated 13 August 2001 - <A HREF="mailto:ayla@users.sourceforge.net">ayla@users.sourceforge.net</A>)
-<BR>(updated 03 August  2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
-<BR>(updated 07 June  2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
-<BR>(updated 08 May 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
-
 <H3>
 Building FreeWRL as a standalone executable
 </H3>
 
+<P>
+This is the place to start. Once it runs, you can configure more options for FreeWRL to use.
+<P>
+<P>
 <P><B>Notes:</B> All files are available here:</P>
 
 <LIST>
 <P>- <A HREF="/en/html/FreeWRL/downloads/downloads">http://www.crc.ca/en/html/FreeWRL/downloads/downloads</A>
 
 <BR>- <A HREF="http://sourceforge.net/projects/freewrl/">http://sourceforge.net/projects/freewrl/</A>
+<BR>- <A HREF="http://freeware.sgi.com">http://freeware.sgi.com/</A>
 </LIST>
 <P>
 You can also access the cvs repository. The way to do it is explained at:
@@ -69,91 +72,42 @@ You can also access the cvs repository. The way to do it is explained at:
 <BR>- <A HREF="http://sourceforge.net/cvs/?group_id=9120">http://sourceforge.net/cvs/?group_id=9120</A>
 
 <H4>
-1. OpenGL (usually Mesa)
+1. OpenGL
 </H4>
 <P>
-<LIST>
-<LI><B> TurboLinux:</B> nothing needed
-<LI><B> Suse 7.1:</B> rpm -Uvh mesadev.rpm from disk x3d2.
-<LI><B> Mandrake 7.2:</B> Had to install mesa from 
-<A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>
-to get all include files.
-<LI><B> Redhat 7.1:</B> nothing needed
-<LI><B> General:</B> Usually, Mesa is included in newer distributions. If not
-installed it is on the distribution disks, or available from
-<A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>
-</LIST>
-<H4>
-2. Hardware accelleration
-</H4>
-
+OpenGL is a "standard" on all distributions.
 <P>
-If you have a Linux compatible 3D accel. card, then
-simply install it, and follow the directions from the
-manufacturer.
-<P><B>NOTE:</B>Voodoo3 cards, now obsolete, have the following problems with
-Redhat 7.1, and possibly other releases:
+Some versions of Linux have old implementations that can cause errors or even core dumps.
 <P>
-<LIST>
-<LI>OpenGL segfaults. This is not particularly related to FreeWRL. To get
-around this, comment out the 'Load "glx"' line of /etc/X11/XF86Config-4, and restart X.
-<LI>Texture Transforms are not correct. Rotations and Scaling will not work.
-<LI>Sometimes textures get mixed up. (eg, one texture replaces another)
-</LIST>
+If you experience these problems with FreeWRL, please download and make (you do not have
+to install) the latest version of Mesa (OpenGL) from 
+<A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>.
+<P>
+Text nodes now really use the OpenGL tesselator; you may experience character dropouts (VooDoo3 cards),
+or even core dumps (older GeForce drivers), if your OpenGL drivers do not use the latest OpenGL.
+<P>
+If you fall into this category, there are various options available to you, the simplest is
+to either ignore the errors (and/or remove the Text nodes), or install Mesa as indicated above.
 <P>
 <H4>
-3. FreeWRL Build and Installation
+2. FreeWRL Build and Installation
 </H4>
-<LIST>
-<LI><B>TurboLinux:</B>    
-<OL>
-<LI>Perform step 1 in the "General" section below.
-<LI>Step 2: change the references in vrml.conf from: "-lGL -lGLU" To:
-"-lMesaGL -lMesaGLU"
-<LI>Perform steps 6, 7 and 9.
-</OL>
-<P>
-<LI><B>Suse 7.1:</B>      
-<P>Perform steps 1, 4, 5, 6, 7 and 9 in the "General" section below.
-<P>
-<LI><B>Mandrake 7.2:</B>
-<P>
-This install was quite complex. 
-<OL> 
-<LI>get the latest stable perl release from
-<A HREF="http://www.perl.com">http://www.perl.com</A>
-and build it.
-<P>
-<LI> install, from the "inst" CD:
-<BR>make-3.79.1-5mdk.i586.rpm
-<BR>binutils-2.10.0.24-4mdk.i586.rpm
-<BR>kernel-headers-2.2.17-21mdk.i586.rpm
-<BR>glibc-devel-2.1.3-16mdk.i586.rpm
-<BR>gcc-2.95.2-12mdk.i586.rpm
-<BR>libjpeg-devel-6b-15mdk.i586.rpm
-<BR>XFree86-devel-4.0.1-28mdk.i586.rpm
-<BR>libpng-devel-1.0.8-2mdk.i586.rpm
-<BR>zlib-devel-1.1.3-11mdk.i586.rpm
-<P>
-<LI> do steps do all the steps, except 8, below.
-</OL>
-<P>
-<LI><B>Redhat 7.1:</B>
-Perform steps 1, 4, 6, 7, 9.
-<P>
-<LI><B>General:</B>
-</LIST>
 <OL>
 
 <LI>Grab the latest FreeWRL tar file, and untar it.
 <P>
 <LI>Verify that the vrml.conf 
-file has good paths for the libraries and includes.
+file has good paths for the libraries and includes. 
 <P>
-<LI>Install FreeType from the distribution CDs, or from
-<A HREF="http://freetype.sourceforge.net">http://freetype.sourceforge.net</A>
+I have included various configuration files to show examples of what
+can be done. Of particular interest are <B>vrml.conf.rh7.2</B> and
+<B>vrml.conf.localmesa</B>. You may wish to replace vrml.conf with one of these files.
 <P>
-<LI>Install Perl Modules:<BR>    
+<LI>for Irix users, Install FreeType distribution from 
+<A HREF="http://freeware.sgi.com">http://freeware.sgi.com/</A>
+<P>
+<LI>Install Perl Modules; Irix will need all of these, Red Hat will
+only need the ones indicated:<BR>    
 
 <P>Digest-MD5-2.09
 <BR>HTML-Parser-2.25        
@@ -161,7 +115,9 @@ file has good paths for the libraries and includes.
 <BR>URI-1.04
 <BR>libnet-1.0607
 <BR>libwww-perl-5.47
-<BR>Image-Base-1.07</P>
+<BR>Image-Base-1.07
+
+</P>
 
 <P>Installing these modules is a no-brainer; just untar     
 each module, then go into the directory, and 
@@ -178,6 +134,9 @@ files. The "convert" utility is used; this <B>should</B> now be
 installed with any graphical Linux distribution. If you
 can't find it, you can always download it from
 <A HREF="http://www.imagemagick.org">http://www.imagemagick.org</A>
+ or 
+<A HREF="http://freeware.sgi.com">http://freeware.sgi.com/</A>
+
 <P>
 <LI>Make the Make file
 
@@ -185,7 +144,7 @@ can't find it, you can always download it from
 
 <LI>Build/install FreeWRL
 <P>make
-<BR>make install (as superuser)
+<BR>make install (as root)
 </P>
 <P>
 <LI>Experimental SAI interface
