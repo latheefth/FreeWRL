@@ -1254,7 +1254,6 @@ void
 ExecuteTexture(vid_stream)
      mpeg_VidStream *vid_stream;
 {
-  int n;
   unsigned int *p;
   unsigned int r, g, b;
   int i,j;
@@ -2589,7 +2588,6 @@ mpegVidRsrc(time_stamp, vid_stream, first)
 {
   unsigned int data;
   int i, status;
-int ioBytes;
 
   /* If vid_stream is null, create new mpeg_VidStream structure. */
 
@@ -6747,7 +6745,13 @@ pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
   buffer = (unsigned char *) *buf_ptr;
   
   if (length > 0) {
-    memcpy((unsigned char *) buf_start, buffer, (unsigned int) (length*4));
+	  printf ("len %d going to copy %d %d len %d\n",
+			  	length,(unsigned char *) buf_start, buffer, (unsigned int) (length*4));
+	  //  a known problem - can overwrite - JAS
+	  //
+	  if (buf_start != buffer) {
+    		memcpy((unsigned char *) buf_start, buffer, (unsigned int) (length*4));
+	  }
     mark = ((unsigned char *) (buf_start + length));
   }
   else {
