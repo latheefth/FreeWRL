@@ -147,6 +147,7 @@ int ConsoleMessage(char *fmt, ...) {
 		freewrlSystem (FWbuffer);
 	} else {
 		printf (FWbuffer);
+		printf ("\n");
 	}
 #endif
 	return count;

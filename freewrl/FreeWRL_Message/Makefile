@@ -4,7 +4,8 @@
 COMPILERFLAGS = -Wall
 CC = gcc
 CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
-LIBRARIES = -lXaw3d
+# use this for better borders on window LIBRARIES = -lXaw3d
+LIBRARIES = -lXaw
 SVROBJ = FreeWRL_Message.o
 
 all: main 
