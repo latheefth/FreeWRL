@@ -486,8 +486,11 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 /* 	close $inf; */
 	if ((exfly_in_file = fopen(IN_FILE, "r")) == NULL) {
 		fprintf(stderr,
-				"Viewer handle_tick_exfly: could not open %s for read.\n",
+				"Viewer handle_tick_exfly: could not open %s for read, returning to EXAMINE mode.\nSee the FreeWRL man page for further details on the usage of Fly - External Sensor input mode.\n",
 				IN_FILE);
+
+		/* allow the user to continue in default Viewer mode */
+		viewer_type = EXAMINE;
 		return;
 	}
 	fread(string, sizeof(char), IN_FILE_BYTES, exfly_in_file);

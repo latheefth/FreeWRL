@@ -202,9 +202,8 @@ one with full freedom of motion currently.
 
 =head2 Fly - External Sensor input
 
-This mode is entered via the "f" key. It takes input from a file in
-the /tmp directory - this file contains x,y,z and quat info, and
-puts the viewpoint there. 
+This mode is entered via the "f" key. It takes input from the file F</tmp/inpdev>: 
+this file contains x,y,z and quat info, and puts the viewpoint there.
 
 As of December 17, 1999, only Polhemus code works, but Joystick 
 input is literally around the corner.
