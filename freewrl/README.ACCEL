@@ -1,5 +1,24 @@
 Hardware accel issues.
 
+Nov 2 2000 - John Stewart
+
+I use Voodoo2 and Voodoo3 cards. 
+
+	-look at the INSTALL file (this directory) for env vars
+	that dramatically speed up freewrl;
+
+	- did texture objects that speeds up freewrl dramatically.
+
+With this, test 16 (see below) now runs at 75fps; some other tests
+run at over 200fps.
+
+Mesa 3.4 has some texture fixes; we still have to download this
+and verify if all texture problems are corrected.
+
+=======================================================================
+
+Older notes:
+
 
 Voodoo 2. test 16 has background funnies, and some other tests
 (eg, pointset test) does not work.
@@ -59,89 +78,3 @@ HW Accelleration now works!!!!!
 fps - 59 to 60.
 
 =======================================================================
-
-So, hw accel works, but background funnies still exist. hmmm.
-
-
-June 29 - its a lighting bug! Changed background from a light to an
-emissive material, and set lighting down to all off. WORKS!!!
-
-This may explain other bugs.
-
-speed 68-75fps.
-
-
-=======================================================================
-
-July 4th
-
-Background Images. hmmm. ok, 
-
-1) Does not work with HW accel.
-
-2) backURL ok.
-   leftURL is off to right.
-   rightURL is not there.
-   frongURL is not there.
-   topURL is ok.
-   bottomURL is not there.
-
-These things are gelerated by VRMLRend.pm and VRMLC.pm making VRMLFunc.xs.
-
-
-=======================================================================
-
-Background textures in 3d accel - we have:
-
-
-and, a texture with no material specified gives us:
-
-GL_FRONT, GL_SPECULAR 0.00 0.00 0.00 1.00
-GL_FRONT, GL_AMBIENT 0.20 0.20 0.20 1.00
-GL_FRONT, GL_DIFFUSE 0.80 0.80 0.80 1.00
-GL_FRONT, GL_EMISSION 0.40 0.25 0.20 0.00
-GL_FRONT, GL_SHINESSES 25.60 
-GL_FRONT, GL_COLOR_INDEXES 0.00 1.00 1.00 0.00
-GL_BACK, GL_SPECULAR 0.00 0.00 0.00 1.00
-GL_BACK, GL_AMBIENT 0.20 0.20 0.20 1.00
-GL_BACK, GL_DIFFUSE 0.80 0.80 0.80 1.00
-GL_BACK, GL_EMISSION 0.00 0.00 0.00 1.00
-GL_BACK, GL_SHININESS 25.60 
-GL_BACK, GL_COLOR_INDEXES 0.00 1.00 1.00 1.00
-GL_LIGHT0, GL_AMBIENT 0.00 0.00 0.00 1.00
-GL_LIGHT0, GL_DIFFUSE 0.00 0.00 0.00 1.00
-GL_LIGHT0, GL_SPECULAR 0.00 0.00 0.00 1.00
-GL_LIGHT0, GL_POSITION 1.00 1.00 1.00 0.00
-GL_LIGHT0, GL_SPOT_DIRECTION 0.00 0.00 -1.00 
-GL_LIGHT0, GL_SPOT_EXPONENT 0.00
-GL_LIGHT0, GL_SPOT_CUTOFF 180.00
-GL_LIGHT0, GL_CONSTANT_ATTENUATION 1.00
-GL_LIGHT0, GL_SPOT_LINEAR_ATTENUATION 0.00
-GL_LIGHT0, GL_SPOT_QUADRATIC_ATTENUATION 0.00
-
-
-and, test 20 (cone with texture on it) gives us:
-
-GL_FRONT, GL_SPECULAR 0.00 0.00 0.00 1.00
-GL_FRONT, GL_AMBIENT 0.20 0.20 0.20 1.00
-GL_FRONT, GL_DIFFUSE 0.80 0.80 0.80 1.00
-GL_FRONT, GL_EMISSION 0.00 0.00 0.00 1.00
-GL_FRONT, GL_SHINESSES 25.60 
-GL_FRONT, GL_COLOR_INDEXES 0.00 1.00 1.00 1.00
-GL_BACK, GL_SPECULAR 0.00 0.00 0.00 1.00
-GL_BACK, GL_AMBIENT 0.20 0.20 0.20 1.00
-GL_BACK, GL_DIFFUSE 0.80 0.80 0.80 1.00
-GL_BACK, GL_EMISSION 0.00 0.00 0.00 1.00
-GL_BACK, GL_SHININESS 25.60 
-GL_BACK, GL_COLOR_INDEXES 0.00 1.00 1.00 1.00
-GL_LIGHT0, GL_AMBIENT 1.00 1.00 1.00 1.00
-GL_LIGHT0, GL_DIFFUSE 1.00 1.00 1.00 1.00
-GL_LIGHT0, GL_SPECULAR 1.00 1.00 1.00 1.00
-GL_LIGHT0, GL_POSITION 0.00 0.00 1.00 0.00
-GL_LIGHT0, GL_SPOT_DIRECTION 0.00 0.00 -1.00 
-GL_LIGHT0, GL_SPOT_EXPONENT 0.00
-GL_LIGHT0, GL_SPOT_CUTOFF 180.00
-GL_LIGHT0, GL_CONSTANT_ATTENUATION 1.00
-GL_LIGHT0, GL_SPOT_LINEAR_ATTENUATION 0.00
-GL_LIGHT0, GL_SPOT_QUADRATIC_ATTENUATION 0.00
-
