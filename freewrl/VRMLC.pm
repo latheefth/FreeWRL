@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.32  2001/07/05 16:04:00  crc_canada
+# Initial IFS default texture rewrite.
+#
 # Revision 1.31  2001/06/25 18:35:01  crc_canada
 # ElevationGrid textures now ok.
 #
@@ -516,9 +519,13 @@ ElevationGrid => '
 		}
 		cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 		coord = rep_->coord = malloc(sizeof(*(rep_->coord))*nx*nz*3);
-		tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
 		colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
-	        tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+		if (glIsEnabled(GL_TEXTURE_2D)) {
+			/* so, we now have to worry about textures. */
+			   
+	        	tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+			tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
+		}
 
 		/* Flat */
 		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
@@ -526,14 +533,12 @@ ElevationGrid => '
 
 
 		/* in C always check if you got the mem you wanted...  >;->		*/
-  		if(!(cindex && coord && colindex && rep_->normal && rep_->norindex )) {
+  		if(!(cindex && coord && tcoord && colindex && rep_->normal && rep_->norindex )) {
 			die("Not enough memory for ElevationGrid node triangles... ;(");
 		} 
  
 
 		/* Prepare the coordinates */
-		/* note, we always prepare our canned tcoords, even if we currently 
-		   dont need them */
 
 		for(x=0; x<nx; x++) {
 		 for(z=0; z<nz; z++) {
@@ -541,9 +546,11 @@ ElevationGrid => '
 		  coord[(x+z*nx)*3+0] = x*xs;
 		  coord[(x+z*nx)*3+1] = h;
 		  coord[(x+z*nx)*3+2] = z*zs;
-		  tcoord[(x+z*nx)*3+0] = (float) x/(nx-1);
-		  tcoord[(x+z*nx)*3+1] = 0;
-		  tcoord[(x+z*nx)*3+2] = (float) z/(nz-1);
+		  if (glIsEnabled(GL_TEXTURE_2D)) {
+			tcoord[(x+z*nx)*3+0] = (float) x/(nx-1);
+		  	tcoord[(x+z*nx)*3+1] = 0;
+		  	tcoord[(x+z*nx)*3+2] = (float) z/(nz-1);
+		  }
 		 }
 		}
 		/* set the indices to the coordinates		*/
@@ -582,9 +589,12 @@ ElevationGrid => '
 		}
 		  
 		  /* 1: */
-		  cindex[triind*3+0] = tcindex[triind*3+0] =D;
-		  cindex[triind*3+1] = tcindex[triind*3+1] =A;
-		  cindex[triind*3+2] = tcindex[triind*3+2] =E;
+		  cindex[triind*3+0] = D; cindex[triind*3+1] = A; cindex[triind*3+2] = E;
+		  if (glIsEnabled(GL_TEXTURE_2D)) {
+			tcindex[triind*3+0] =D;
+			tcindex[triind*3+1] =A;
+			tcindex[triind*3+2] =E;
+		  }
 		  if(cpv) {
 			  colindex[triind*3+0] = D;
 			  colindex[triind*3+1] = A;
@@ -599,9 +609,12 @@ ElevationGrid => '
 		rep_->norindex[triind*3+2] = triind;
 		  triind ++;
 		  /* 2: */
-		  cindex[triind*3+0] = tcindex[triind*3+0] = B;
-		  cindex[triind*3+1] = tcindex[triind*3+1] = C;
-		  cindex[triind*3+2] = tcindex[triind*3+2] = F;
+		  cindex[triind*3+0] = B; cindex[triind*3+1] = C; cindex[triind*3+2] = F;
+		  if (glIsEnabled(GL_TEXTURE_2D)) {
+			tcindex[triind*3+0] = B;
+			tcindex[triind*3+1] = C;
+			tcindex[triind*3+2] = F;
+		  }
 		  if(cpv) {
 			  colindex[triind*3+0] = B;
 			  colindex[triind*3+1] = C;
@@ -623,7 +636,7 @@ ElevationGrid => '
 
 Extrusion => (do "VRMLExtrusion.pm"),
 IndexedFaceSet => '
-	int i;
+	int i,j;	/* general purpose counters */
 
 	int cin = $f_n(coordIndex);
 	int cpv = $f(colorPerVertex);
@@ -651,23 +664,33 @@ IndexedFaceSet => '
         int *tcindex;
 	int *norindex;
 
+	/* Bounding Box, if needed */
+	float minVals[] = {999999.0, 999999.0, 999999.0};
+	float maxVals[] = {-999999.0, -999999.0, -999999.0};
+
         /* texture coords */
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
 
-	/*	
+	/* Textures. Well, if GL_TEXTURE_2D is enabled, we have
+	   to worry about textures.
+
+	   tcin is the number of texCoordIndexes.
+	   ntexCoords us the texCoord field. 
+
+	   According to the spec, we generate the bounding box
+	   if texCoord field is null. */
+
         printf("\n\ntexCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
 	for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
 		texCoords[i].c[0], texCoords[i].c[1] ); 
         printf("NtexCoordIndex = %d\n", tcin);
-	*/	
 
 	/* IndexedFaceSet coords and normals */
 	$fv(coord, points, get3, &npoints);
 	$fv_null(normal, normals, get3, &nnormals); 
 
-	
-	/*
+	/*	
 	printf ("points = %lx \n",npoints);
 	for (i=0; i<npoints; i++)
 	  printf ("\t point #%d = [%.5f %.5f %.5f]\n", i,
@@ -686,6 +709,23 @@ IndexedFaceSet => '
         if(tcin == 0 && ntexCoords != 0 && ntexCoords != npoints) {
            die("Invalid number of texture coordinates");
         }
+
+	/* do we need to do the bounding box for textures?? */
+	if ((glIsEnabled(GL_TEXTURE_2D)) && (ntexCoords==0)) {
+		printf ("generating the bounding box\n");
+		for (i=0; i<npoints; i++) {
+			  printf ("\t point #%d = [%.5f %.5f %.5f]\n", i,
+				points[i].c[0], points[i].c[1], points[i].c[2]);
+			for (j=0; j<3; j++) {
+			    if (minVals[j] > points[i].c[j]) minVals[j] = points[i].c[j];
+			    if (maxVals[j] < points[i].c[j]) maxVals[j] = points[i].c[j];
+			}
+		}
+		printf ("BB is %f %f %f,  %f %f %f\n",minVals[0],minVals[1],minVals[2],
+				maxVals[0],maxVals[1],maxVals[2]);
+		
+	}
+
 
 	/* wander through to see how much memory needs allocating */
 	for(i=0; i<cin; i++) {
@@ -1777,7 +1817,6 @@ void render_polyrep(void *node,
 			ntexcoords, texcoords);
 	*/
 
-	
 	/* Do we have any colours?	*/
 	hasc = (ncolors || r->color);
 	if(hasc) {
@@ -1804,7 +1843,9 @@ void render_polyrep(void *node,
 		else coli = ind;
 
 		/* get texture coordinates, if any	*/
+		if (glIsEnabled(GL_TEXTURE_2D)) {
 		if((r->tcindex) && (ntexcoords)) {tci = r->tcindex[i];}
+		}
 
 		/* get the normals, if there are any	*/
 		if(nnormals) {
@@ -1830,19 +1871,19 @@ void render_polyrep(void *node,
 
 		/* Textures	*/
 		if (glIsEnabled(GL_TEXTURE_2D)) {
-		if(texcoords && ntexcoords) {
+		    if(texcoords && ntexcoords) {
 		  	/*printf("Render tex coord #%d = [%.5f, %.5f]\t\t",
 				tci, texcoords[tci].c[0], texcoords[tci].c[1] ); 
 			*/
 		  	glTexCoord2fv(texcoords[tci].c);
-		} else if (r->tcoord) {
+		    } else if (r->tcoord) {
 			/* we generated these... */
 			/* printf ("polyrep structure has ind %d tex coords %f %f %f \n",ind,
 			r->tcoord[3*ind+0], r->tcoord[3*ind+1],r->tcoord[3*ind+2]   );
 			*/
 		  	glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 			
-		}
+		    }
 		}
 
 
