@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.58  2002/06/17 12:30:28  crc_canada
+# Material properties for greyscale textures and RGB textures should be ok now
+#
 # Revision 1.57  2002/05/30 21:18:04  ncoder
 # Fixed bug with the order of the multiplication of the transformations while rendering the viewpoint.
 # Increased performance of viewpoint rendering code.
@@ -1985,7 +1988,7 @@ Billboard => (join '','
 		this_->_myshape = last_visited_shape; 
 
 
-		    if($f(texture)) {
+		if($f(texture)) {
 
 			/* is there a TextureTransform? if no texture, forget about it */
 		    	if($f(textureTransform))   {
@@ -1999,10 +2002,13 @@ Billboard => (join '','
 				glMatrixMode(GL_MODELVIEW);
 		    	}
 			render_node($f(texture));
-		    }
+		} else {
+			last_texture_depth = 0;
+		}
 
 
-		if($f(material)) {
+		/* if we have a material, and we did NOT have a rgb texture, do material */
+		if(($f(material)) && (last_texture_depth <= 1)) {
 			render_node($f(material));
 		} else {
 			/* no material, so just colour the following shape */
