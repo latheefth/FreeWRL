@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.47  2002/04/17 19:20:34  crc_canada
+# ElevationGrid debug print statements left in by accident...
+#
 # Revision 1.46  2002/04/03 15:45:10  crc_canada
 # Smooth normals for Indexed Face Sets... initial try
 #
@@ -678,7 +681,6 @@ ElevationGrid => '
 		rep_->norindex[triind*3+0] = triind;
 		rep_->norindex[triind*3+1] = triind;
 		rep_->norindex[triind*3+2] = triind;
-		printf ("ElevationGrid, triind %d norindex %d %d %d\n",triind, triind*3,triind*3+1,triind*3+2);
 		  triind ++;
 		  /* 2: */
 		  cindex[triind*3+0] = C; cindex[triind*3+1] = B; cindex[triind*3+2] = F;
@@ -696,10 +698,9 @@ ElevationGrid => '
 			  colindex[triind*3+1] = x+z*(nx-1);
 			  colindex[triind*3+2] = x+z*(nx-1);
 		  }
-		rep_->norindex[triind*3+0] = triind;
-		rep_->norindex[triind*3+1] = triind;
-		rep_->norindex[triind*3+2] = triind;
-		printf ("ElevationGrid2, triind %d norindex %d %d %d\n",triind, triind*3,triind*3+1,triind*3+2);
+		  rep_->norindex[triind*3+0] = triind;
+		  rep_->norindex[triind*3+1] = triind;
+		  rep_->norindex[triind*3+2] = triind;
 		  triind ++; 
 		 }
 		}
