@@ -330,13 +330,12 @@ sub api__make_MFNode {
 }
 
 sub api__setMFNode {
-	my($this,$node,$f,$v,$flag) = @_;
+	my($this,$node,$f,$v) = @_;
 	
 	# this = method
 	# node = node to add to.
 	# f    = field of node to add to.
 	# v    = string id of node to add to field of object node.
-	# flag = if 1, this is an add or remove, else absolute set.
 
 	# Step 1.need to sanitize $v... it probably has trailing newline...
 	$v =~ s/^\s+//;
@@ -347,18 +346,21 @@ sub api__setMFNode {
 
 	if (VRML::Handles::check_displayed ($node)) {
 
+print "set_MFNode - node $node is displayed.\n";
+
 		# Step 2. Add it to the scene.
-		VRML::NodeType::add_MFNode ($node, $f, $v, $flag);
+		VRML::NodeType::add_MFNode ($node, $f, $v);
 	
 		# Step 3: Set up the new backend, routing, etc, etc...
 		# (this is like prepare in the Browser.pm file, except that
 		# make_executable was already done, and the rest need only to
 		# be done on the node and lower...
 
-##JAS	        $this->{Scene}->make_backend($this->{BE});
+###JAS	        $this->{Scene}->make_backend($this->{BE});
+
 	        $this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 	        $this->{Scene}->init_routing($this->{EV},$this->{BE});
-	        $this->api__sendEvent($node, $f, $node->{Fields}{$f});
+	        $this->api__sendEvent($node, $f, $node->{RFields}{$f});
 
 		# yes!!! register this node as being displayed.
 		VRML::Handles::displayed ($v);
@@ -368,32 +370,38 @@ sub api__setMFNode {
 		my $unborn = VRML::Handles::unborn_children($v);
 
 		for (split /,/, $unborn) {
-			# print "doing the unborn for $_\n";
+			print "doing the unborn for $_\n";
 			my ($nf, $nv) = split " ",$_;
-			# print "doing the stuff for $nf, $nv\n";
-			api__setMFNode($this, VRML::Handles::get($v), $nf, $nv, $flag);	
+			print "doing the stuff for $nf, $nv\n";
+			api__setMFNode($this, VRML::Handles::get($v), $nf, $nv);	
 		};
+		VRML::Handles::all_born($v);
+print "now, the unborn are:";
+		my $unborn = VRML::Handles::unborn_children($v);
+print $unborn;
+print "\n";
 
-		if($VRML::verbose::eai) {
+#JAS		if($VRML::verbose::eai) {
 		  print "setting field $f in node $node to $v\n";
 		  my $s = " $node->{TypeName} { \n";
-		  for(keys %{$node->{Fields}}) {
+		  for(keys %{$node->{RFields}}) {
 		          $s .= "\n $_ ";
-		          if("VRML::IS" eq ref $node->{Fields}{$_}) {
+		          if("VRML::IS" eq ref $node->{RFields}{$_}) {
 		                  $s .= "(is) ";
 	
-		                  $s .= $node->{Fields}{$_}->as_string();
+		                  $s .= $node->{RFields}{$_}->as_string();
 		          } else {
 		                  $s .= "VRML::Field::$node->{Type}{FieldTypes}{$_}"->
-		                          as_string($node->{Fields}{$_});
+		                          as_string($node->{RFields}{$_});
 		          }
 		  }
 		  $s .= "}\n";
 		  print $s;
 		  print "do_add, print done\n\n";
 		
-		}
+#JAS		}
 	} else {
+print "set_MFNode - saving node $node for later display.\n";
 		VRML::Handles::save_for_later ($node, $f, $v);
 	}
 }
@@ -415,7 +423,7 @@ sub api__unsetMFNode {
 
 	# do it, and display it...
 	VRML::NodeType::remove_MFNode ($node, $f, $v);
-	$this->api__sendEvent($node, $f, $node->{Fields}{$f});
+	$this->api__sendEvent($node, $f, $node->{RFields}{$f});
 }
 
 ## Get a snapshot from backend and save it
@@ -595,7 +603,7 @@ sub save_for_later {
 	# take off the comma at the beginning, if there
 	$SEhash{$node} =~s/^,//;
 
-	# print "HANDLES::save_for_later for $node is $SEhash{$node}\n";
+	print "HANDLES::save_for_later for $node is $SEhash{$node}\n";
 }
 
 sub unborn_children {
@@ -604,6 +612,11 @@ sub unborn_children {
 	# print "HANDLES::unborn_children ifor $node are $mm\n";
 	delete $SEhash{$node};
 	return $mm;
+}
+
+sub all_born {
+	my ($node) = @_;
+	$SEhash{$node} = "";
 }
 
 
