@@ -772,7 +772,7 @@ SFColorToString(JSContext *cx, JSObject *obj,
 	}
 
 	memset(_buff, 0, STRING);
-	sprintf(_buff, "%.4g %.4g %.4g",
+	sprintf(_buff, "%.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	_str = JS_NewStringCopyZ(cx, _buff);
     *rval = STRING_TO_JSVAL(_str);
@@ -1592,7 +1592,7 @@ SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	(_retNative->v).c[2] = (_rot->v).r[2];
 
 	if (JSVerbose) {
-		printf("SFRotationGetAxis: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFRotationGetAxis: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -1785,7 +1785,7 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 	*rval = OBJECT_TO_JSVAL(obj);
 
 	if (JSVerbose) {
-		printf("SFRotationSetAxis: obj = %u, result = [%.4g, %.4g, %.4g, %.4g]\n",
+		printf("SFRotationSetAxis: obj = %u, result = [%.9g, %.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_rot->v).r[0],
 			   (_rot->v).r[1],
@@ -1891,7 +1891,7 @@ SFRotationToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 	}
 
 	memset(buff, 0, STRING);
-	sprintf(buff, "%.4g %.4g %.4g %.4g",
+	sprintf(buff, "%.9g %.9g %.9g %.9g",
 			(ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
 	_str = JS_NewStringCopyZ(cx, buff);
     *rval = STRING_TO_JSVAL(_str);
@@ -2227,7 +2227,7 @@ SFVec2fAdd(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[1] = (_vec1->v).c[1] + (_vec2->v).c[1];
 
 	if (JSVerbose) {
-		printf("SFVec2fAdd: obj = %u, result = [%.4g, %.4g]\n",
+		printf("SFVec2fAdd: obj = %u, result = [%.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
@@ -2272,7 +2272,7 @@ SFVec2fDivide(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[1] = (_vec->v).c[1] / d;
 
 	if (JSVerbose) {
-		printf("SFVec2fDivide: obj = %u, result = [%.4g, %.4g]\n",
+		printf("SFVec2fDivide: obj = %u, result = [%.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
@@ -2325,7 +2325,7 @@ SFVec2fDot(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[1] = ret.y;
 
 	if (JSVerbose) {
-		printf("SFVec2fDot: obj = %u, result = [%.4g, %.4g]\n",
+		printf("SFVec2fDot: obj = %u, result = [%.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
@@ -2359,7 +2359,7 @@ SFVec2fLength(JSContext *cx, JSObject *obj,
 	*rval = DOUBLE_TO_JSVAL(dp); 
 
 	if (JSVerbose) {
-		printf("SFVec2fLength: obj = %u, result = %.4g\n",
+		printf("SFVec2fLength: obj = %u, result = %.9g\n",
 			   (unsigned int) obj, *dp);
 	}
 
@@ -2403,7 +2403,7 @@ SFVec2fMultiply(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[1] = (_vec->v).c[1] * d;
 
 	if (JSVerbose) {
-		printf("SFVec2fMultiply: obj = %u, result = [%.4g, %.4g]\n",
+		printf("SFVec2fMultiply: obj = %u, result = [%.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
@@ -2444,7 +2444,7 @@ SFVec2fNegate(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[1] = -(_vec->v).c[1];
 
 	if (JSVerbose) {
-		printf("SFVec2fNegate: obj = %u, result = [%.4g, %.4g]\n",
+		printf("SFVec2fNegate: obj = %u, result = [%.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
@@ -2490,7 +2490,7 @@ SFVec2fNormalize(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[1] = ret.y;
 
 	if (JSVerbose) {
-		printf("SFVec2fNormalize: obj = %u, result = [%.4g, %.4g]\n",
+		printf("SFVec2fNormalize: obj = %u, result = [%.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
@@ -2543,7 +2543,7 @@ SFVec2fSubtract(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[1] = (_vec1->v).c[1] - (_vec2->v).c[1];
 
 	if (JSVerbose) {
-		printf("SFVec2fSubtract: obj = %u, result = [%.4g, %.4g]\n",
+		printf("SFVec2fSubtract: obj = %u, result = [%.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
@@ -2567,7 +2567,7 @@ SFVec2fToString(JSContext *cx, JSObject *obj,
 	}
     
 	memset(buff, 0, STRING);
-	sprintf(buff, "%.4g %.4g",
+	sprintf(buff, "%.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1]);
 	_str = JS_NewStringCopyZ(cx, buff);
     *rval = STRING_TO_JSVAL(_str);
@@ -2819,7 +2819,7 @@ SFVec3fAdd(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = (_vec1->v).c[2] + (_vec2->v).c[2];
 
 	if (JSVerbose) {
-		printf("SFVec3fAdd: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fAdd: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -2883,7 +2883,7 @@ SFVec3fCross(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = ret.z;
 
 	if (JSVerbose) {
-		printf("SFVec3fCross: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fCross: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -2931,7 +2931,7 @@ SFVec3fDivide(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = (_vec->v).c[2] / d;
 
 	if (JSVerbose) {
-		printf("SFVec3fDivide: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fDivide: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -2987,7 +2987,7 @@ SFVec3fDot(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = ret.z;
 
 	if (JSVerbose) {
-		printf("SFVec3fDot: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fDot: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -3023,7 +3023,7 @@ SFVec3fLength(JSContext *cx, JSObject *obj,
 	*rval = DOUBLE_TO_JSVAL(dp); 
 
 	if (JSVerbose) {
-		printf("SFVec3fLength: obj = %u, result = %.4g\n",
+		printf("SFVec3fLength: obj = %u, result = %.9g\n",
 			   (unsigned int) obj, *dp);
 	}
 
@@ -3068,7 +3068,7 @@ SFVec3fMultiply(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = (_vec->v).c[2] * d;
 
 	if (JSVerbose) {
-		printf("SFVec3fMultiply: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fMultiply: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -3112,7 +3112,7 @@ SFVec3fNegate(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = -(_vec->v).c[2];
 
 	if (JSVerbose) {
-		printf("SFVec3fNegate: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fNegate: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -3161,7 +3161,7 @@ SFVec3fNormalize(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = ret.z;
 
 	if (JSVerbose) {
-		printf("SFVec3fNormalize: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fNormalize: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -3217,7 +3217,7 @@ SFVec3fSubtract(JSContext *cx, JSObject *obj,
 	(_retNative->v).c[2] = (_vec1->v).c[2] - (_vec2->v).c[2];
 
 	if (JSVerbose) {
-		printf("SFVec3fSubtract: obj = %u, result = [%.4g, %.4g, %.4g]\n",
+		printf("SFVec3fSubtract: obj = %u, result = [%.9g, %.9g, %.9g]\n",
 			   (unsigned int) obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
@@ -3243,7 +3243,7 @@ SFVec3fToString(JSContext *cx, JSObject *obj,
 	}
 
 	memset(buff, 0, STRING);
-	sprintf(buff, "%.4g %.4g %.4g",
+	sprintf(buff, "%.9g %.9g %.9g",
 			(ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	_str = JS_NewStringCopyZ(cx, buff);
     *rval = STRING_TO_JSVAL(_str);

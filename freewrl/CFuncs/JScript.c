@@ -36,8 +36,10 @@ Javascript C language binding.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
-#define MAX_RUNTIME_BYTES 0x100000L
-#define STACK_CHUNK_SIZE 0x2000L
+//#define MAX_RUNTIME_BYTES 0x100000L
+#define MAX_RUNTIME_BYTES 0x1000000L
+//#define STACK_CHUNK_SIZE 0x2000L
+#define STACK_CHUNK_SIZE 0x20000L
 
 
 /*
