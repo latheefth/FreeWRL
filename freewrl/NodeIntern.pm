@@ -533,7 +533,7 @@ sub initialize {
     if ($this->{Type}{Actions}{Initialize}
 	     && $this->{TypeName} ne "Inline") {
 	return &{$this->{Type}{Actions}{Initialize}}($this, $this->{RFields},
-			(my $timestamp=XXX), $this->{Scene});
+			(my $timestamp=(POSIX::times())[0] / 100), $this->{Scene});
 	# XXX $this->{Scene} && $scene ??
     }
     return ();
@@ -614,7 +614,7 @@ sub set_backend_fields {
 							 if $VRML::verbose::be;
 			
 				&{$this->{Type}{Actions}{Initialize}}($this, $this->{RFields},
-													  (my $timestamp=XXX), $this->{Scene});
+					(my $timestamp=(POSIX::times())[0] / 100), $this->{Scene});
 			}
 
 			if ($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
