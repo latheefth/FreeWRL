@@ -140,7 +140,7 @@ public class Browser implements BrowserInterface
 
   	// Wait for the FreeWRL browser to send us something...
         try {
-          String fwvers = EAIfromFreeWRLInputStream.readLine());
+          String fwvers = EAIfromFreeWRLInputStream.readLine();
 	  System.out.println ("EAI: FreeWRL Version: " + fwvers);
         } catch (IOException ie) {System.out.println ("EAI: caught " + ie);}
   

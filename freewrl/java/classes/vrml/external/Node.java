@@ -3,7 +3,6 @@ package vrml.external;
 import vrml.external.field.*;
 import vrml.external.exception.*;
 import java.util.*;
-import java.applet.*;
 import java.awt.*;
 import java.net.*;
 import java.io.*;

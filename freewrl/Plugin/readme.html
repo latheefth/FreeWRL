@@ -7,50 +7,34 @@
 
 <H1>What does the Plugin do?</H1>
 <P>
-This plugin replaces XSwallow. It (will!) handle the following:
+This plugin replaces XSwallow. It handles the following:
 <OL>
-<LI>Integration with Netscape, including all of the quit and
-destroy functionality.
+<LI>Integration with Netscape, including all of the quit and destroy functionality.
 <LI>URL Retrieval via Netscape - this gives us caching and proxy access.
-<LI>Java EAI integration - better integration into netscape than current EAI implementation.
+<LI>Java EAI integration.
 </OL>
 
 <H2>Building and using the FreeWRL Plugin</H2>
 
-<H3>Making the software: </H3>
-<OL>
-<LI> Make sure you are in the source directory of the plugin (.../freewrl/Plugin)
-<LI> issue the "make" command
-</OL>
-
-<H3>Installing the software:</H3>
-
 <OL>
 <LI> Compile and install FreeWRL
 <LI> Exit all running Netscape windows on your box
-<LI> Locate the plugin directory; either system wide in the
-netscape/plugins directory (eg,  /usr/lib/netscape/plugins), or in your account  
-(~/.netscape/plugins)
-<LI> If installing in your account, make sure that this directory exists;
-it will not, if you have not installed plugins before
-<LI> copy the file "npfreewrl.so" over to the plugin directory
 </OL>
 <H3>Testing the software:</H3>
 <OL>
 <LI> startup netscape
 <LI> in the "Locations" window, type "about:plugins". You will see what plugins
 are installed; you should see the FreeWRL plugin listed.
-<LI> open a VRML file; eg, open the "tests/1.wrl" file, by following the 
-"File -> Open Page -> Choose" dialogue.
+<LI> open a VRML file; eg, get the file over http or open the "tests/1.wrl" file,
+by following the "File -> Open Page -> Choose" dialogue.
 </OL>
 	
 <H3>Further Notes:</H3>
 <OL>
-<LI>I built this on Linux, but have included all of the Netscape Makefiles. If you are
-building on another software platform, you will have to copy the correct Makefile over
-the Makefile in the distribution. You will find other makefiles in the "Unix" directory.
-<LI>As of this version, only step 1) of the "what does this do?" list is complete, but the
-older method of invoking EAI still works.
+<LI> EAI now works with Netscape. The EAI tests contain unsigned jar files that
+contain the applet classes.  The EAI archive vrml.jar is also unsigned. 
+If you want to try these tests, you will have to deal with the Netscape Java Security
+dialog.
 </OL>
 <I>The FreeWRL Plugin uses a template by Netscape, and some window rehosting code from XSwallow.
 <P>

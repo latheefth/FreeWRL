@@ -1,17 +1,35 @@
-As of 0.27, Tiny3D now works. 
+The EAI classes are a "work in progress"; and are just getting
+rebuilt.
 
-BUT -- the appletviewer no longer uses CLASSPATH (!!!) so please
-copy over these files to the ../../java directory, and run from
-there. 
+October 13, 2000 - John.Stewart@crc.ca
+August 9, 2001   - updated by Ayla Khan
 
-eg, in this directory, type:
+Things to watch out for:
 
-	cp -r ../../java/classes/* .
+1) sometimes the appletviewer does not shutdown correctly.
 
-This will put the EAI classes local to the Tiny3D program, and
-the appletviewer will be happy.
+ps -aux | grep jdk 
 
-Anybody want to investigate a workaround? IF not, check back
-here later...
+to find out if one is running, and
+kill "pid" (the number of the process) to stop it.
 
-John.
+2) the appletviewer now ignores the CLASSPATH.
+
+Appletviewer's -J option can be used as a temporary work-around.
+This option is non-standard however, and it's usage may change in the future.
+
+In the meanwhile:
+
+EAI=../../java/classes
+
+sets the path to the EAI classes, and
+
+appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" add-remove1.html
+
+sets up the classpath, and the java security policy file needed to run the applet in
+appletviewer.
+
+3) verify all paths in the script "standalone", to run it with
+the appletviewer. It assumes that both freewrl and the appletviewer
+are installed and in your path.
+

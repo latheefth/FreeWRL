@@ -69,7 +69,7 @@ This command runs the FreeWRL VRML browser.
 See L<VRML::Viewer> for details on the user interface and 
 L<VRML::Browser> for some other things. This manual
 page explains how to use the browser, how to start it on 
-the command line, and how to use it with XSwallow..
+the command line, and how to use it with Netscape.
 
 =head1 KEYS/MOUSE
 
@@ -343,11 +343,11 @@ the EAI libraries.
 
 FreeWRL will behave as a server : it spawns a child browser, prints
 its PID on STDOUT and exits. The child then reloads the url given on
-the command line upon receival of a SIGUSR1 signal. 
+the command line upon receipt of a SIGUSR1 signal. 
 
 =item C<-sig>
 
-Reload the URL given on the command line upon recept of a SIGUSR1 signal.
+Reload the URL given on the command line upon receipt of a SIGUSR1 signal.
 
 =item C<-ps>
 
@@ -365,29 +365,12 @@ in the distribution for the codes.
 
 =back
 
-=head1 USING FREEWRL WITH XSWALLOW
+=head1 USING FREEWRL WITH NETSCAPE
 
-Add the following, B<all on one line>, to your xswallow.conf.
-Of course, replace the directories with where your copy of freewrl is located.
-
-
-x-world/x-vrml;  vr,wrl;         
-	/usr/local/bin/dispatch-vrml-c %s %u %w %h; 
-	"FreeWRL" ;  Embedded Vrml
-
-(and)
-
-model/vrml;  wrl;                
-	/usr/local/bin/dispatch-vrml-c %s %u %w %h; 
-	"FreeWRL" ;  Embedded Vrml Model
-
-after this, you need to do Edit/Preferences/Navigator/Applications
-(in Netscape 4.05) to enable displaying Embedded VRML with FreeWRL.
-
-FreeWRL doesn't currently support EAI inside Netscape - it would probably
-not be too difficult to make this happen, all that is necessary is to
-let Netscape use the EAI classes, and make Xswallow contact FreeWRL
-with the correct C<-eai> option.
+If Netscape is installed, and the entries in vrml.conf are correct, the
+FreeWRL plug-in will be installed in Netscape's system plugins folder.
+If you go to Netscape's Help menu and select the About Plug-ins, 
+there should be an entry for FreeWRL with Mime Type x-world/x-vrml. 
 
 =head1 AUTHOR
 
@@ -581,6 +564,12 @@ $SIG{USR1} = sub {
 } if $sig_reload;
 
 if($zpl) {VRML::VRMLFunc::set_vpdist($zpl)}
+
+## How long should freewrl poll before giving up on an EAI
+## socket connect while using FreeWRL as a Netscape plugin?
+## See VRMLServ.pm.
+
+$VRML::ENV{EAI_CONN_RETRY} = 25;
 
 if($eai) {
 	require "VRML/VRMLServ.pm";

@@ -1,4 +1,4 @@
-# Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
+# Copyright (C) 1998 Tuomas J. Lukka 1999, John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
@@ -11,11 +11,13 @@ system "perl VRMLC.pm";
 
 $VERSION = "0.29";
 
-BEGIN{
+BEGIN {
  eval "use 5.004";
  warn "VRML::Browser requires Perl v5.0.4 or later -- go to http://www.perl.com"
   if $@;
 }
+
+use Cwd qw(getcwd chdir);
 
 # Remove our config argument
 @ARGV = map {
@@ -71,7 +73,7 @@ for(keys %VRML_CONFIG) {
 print OUT "VERSION => \"$VERSION\"\n";
 print OUT ");\n";
 chomp ($a = `which convert`);
-chomp ($pwd = `pwd`);
+chomp ($pwd = getcwd());
 chomp ($java = `which java`);
 print OUT qq(\$VRML::Browser::CONVERT = "$a";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_FONTS} = "$pwd/fonts";\n);
@@ -81,6 +83,19 @@ close OUT;
 
 print "Note that 'convert' cannot be found\n" unless $a ;
 
+## Check for required Javascript libraries,
+## if they don't exist, make them.
+
+print "Checking for the Mozilla JavaScript Reference library and application.\n";
+if (-e "JS/js/Linux_All_DBG.OBJ/libjs.a" && -e "JS/js/Linux_All_DBG.OBJ/js") {
+    print "The Javascript library and application were found.\n";
+} else {
+    print "The Javascript library and application were not found - make them.\n";
+    chdir("JS/js");
+    system("make");
+    chdir($pwd);
+}
+
 use ExtUtils::MakeMaker;
 WriteMakefile(
       ## OPTIMIZE => "-g",
@@ -89,17 +104,56 @@ WriteMakefile(
 	dist => {
 		COMPRESS => 'gzip -9', SUFFIX => 'gz',
 	},
-	VERSION => $VERSION,
+    VERSION => $VERSION,
     DEFINE => $VRML_CONFIG{OPENGL_DEFINE},
     INC => $VRML_CONFIG{OPENGL_INC},
     EXE_FILES => ['freewrl'],
     MAN1PODS => { 'freewrl' => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
     PL_FILES => {'freewrl.PL' => 'freewrl'},
+    PREREQ_PM => { 'Digest::MD5' =>  "2.09",
+		   'HTML::Parser' => "2.25",
+		   'MIME::Base64' => "2.11",
+		   'URI'          => "1.04",
+		   'Image::Base'  => "1.07",
+		   'LWP'          => "5.47",
+		 }
 );
 
 sub MY::postamble {
-	'
+    ## Add extra make instructions that don't quite fit into the
+    ## ExtUtils::MakeMaker framework.
+
+    my @postamble = ();
+    push(@postamble,
+q{
+# --- VRML::VRMLFunc:
+
 VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExtrusion.pm
 	$(PERL) VRMLC.pm
-'
+});
+
+    if ($VRML_CONFIG{NETSCAPE_INST}) {
+	push(@postamble,
+q{
+# --- Netscape Plugin:
+
+install :: install_plugin
+	@$(NOOP) 
+
+install_plugin ::
+	@cd Plugin && $(MAKE) install_plugin
+});
+    }
+
+    if ($VRML_CONFIG{NETSCAPE_INST}) {
+	push(@postamble,
+q{
+# --- Java Archive
+
+install ::
+	@cd java && $(MAKE) install
+});
+    }
+
+    return(join('', @postamble));
 }

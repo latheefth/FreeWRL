@@ -45,8 +45,10 @@ public final class FWJavaScriptClassLoader extends ClassLoader {
 				throw new IOException("Couldn't read all");
 			}
 			// System.err.write(data,0,data.length);
-			c = defineClass(data,0,data.length);
-			System.err.println("Finished loading");
+
+			// is the class name known?
+			c = defineClass(null,data,0,data.length);
+			System.err.println("Finished loading c.getName().");
 			cache.put(name,c);
 		}
 		return c;

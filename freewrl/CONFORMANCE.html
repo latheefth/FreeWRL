@@ -1,19 +1,29 @@
+	<TITLE>FreeWRL - Conformance</TITLE>
+<H3>Conformance</H3>
 
-	<title>FreeWRL - Conformance</title>
-<h3>Conformance</h3>
-
-
-&#35;Copyright (C) 1998 Tuomas J.Lukka, 1999-2001, John Stewart CRC Canada.
+&#35; Copyright (C) 1998 Tuomas J.Lukka, 1999-2001, John Stewart CRC Canada.
 
 <BR>&#35; DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 
 <BR>&#35; See the GNU Library General Public License (file COPYING in the distribution) 
 
-<BR>&#35;for conditions of use and redistribution, EXCEPT on the files 
+<BR>&#35; for conditions of use and redistribution, EXCEPT on the files 
 
 <BR>&#35; which belong under the mozilla public license.
 
-<p>
-We have started running FreeWRL through the NIST Conformance Test Suite,
-and expect to have initial results posted sometime in the summer of 2001.
-
+<P>We have started running FreeWRL through the NIST Conformance Test Suite.
+The initial results can be found under tests/Doc.
+Since it usually takes a couple of passes through latex to get all the table
+measurements and cross-references right, issue the make command until all warnings
+such as the ones below no longer appear:
+<P>
+<BR>Package longtable Warning: Table widths have changed. Rerun LaTeX.
+<BR>LaTeX Warning: There were undefined references.
+<BR>LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+<BR><BR>
+<P>Then use the Makefile to create the document in the format of your choice:
+<BR>
+<LIST>
+<LI> make dvi for the DVI file
+<LI> make ps for the PS file
+<LI> make pdf for the PDF file

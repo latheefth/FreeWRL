@@ -23,7 +23,7 @@ I have tested the FreeWRL build on brand new installs of:
 <LI><B>SuSe 7.1</B> FTP'd on March 30-31 2001
 <LI><B>TurboLinux</B> Workstation 4.0.5.SMC Tues Oct 19, 1999
 <LI><B>Mandrake 7.2</B> from ISO CD images
-<LI><B>Redhat 7.1</B>"SeaWolf" final release
+<LI><B>Redhat 7.1</B> "SeaWolf" final release
 </LIST>
 <P>Others have tested FreeWRL on:
 <LIST>
@@ -47,6 +47,7 @@ Comments/help/Additional build notes more than welcome.
 </LIST>
 
 <P>
+<BR>(updated 13 August 2001 - <A HREF="mailto:ayla@users.sourceforge.net">ayla@users.sourceforge.net</A>)
 <BR>(updated 03 August  2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
 <BR>(updated 07 June  2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
 <BR>(updated 08 May 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
@@ -165,7 +166,10 @@ file has good paths for the libraries and includes.
 <P>Installing these modules is a no-brainer; just untar     
 each module, then go into the directory, and 
 <BR>perl Makefile.PL
-<BR>make install</P>
+<BR>make
+<BR>make test (if applicable)
+<BR>make install (as superuser)
+</P>
 
 Note that libwww-perl will most likely ask you if you want to reconfigure - I always just select the default.
 <P>
@@ -179,18 +183,10 @@ can't find it, you can always download it from
 
 <P>perl Makefile.PL</P>
 
-<P>In the main FreeWRL directory. There <B>will be</B> an error for the Javascript library. If there are any other errors, correct them first.</P>
-
-<P>to compile the Mozilla javascript code:
-<BR>cd JS/js
-<BR>make
-<BR>cd ../..
-
-<P> Then, re-run the build for the main make file:
-<P>perl Makefile.PL</P>
-
 <LI>Build/install FreeWRL
- <P>make install</P>
+<P>make
+<BR>make install (as superuser)
+</P>
 <P>
 <LI>Experimental SAI interface
 
@@ -202,7 +198,8 @@ You only need to do this if you wish to debug the SAI code.
 
 <P>
 There are quite a few tests in the "tests" directory.
-<P>Run all of the numbered files (And any others that you want!) in the tests directory. Note that some use javascript, so you will be testing javascript, too.</P>
+<P>Run all of the numbered files (and any others that you want!) in the tests
+directory. Note that some use javascript, so you will be testing javascript, too.</P>
 
 
 </OL>
@@ -212,18 +209,28 @@ There are quite a few tests in the "tests" directory.
 
 <P><B>3.1)</B> Javascript:</P>
 <P>
-In the basic install, you should have installed the java support to allow some of the test programs in the tests directory to work. (eg, 7.wrl, 8.wrl, and 10.wrl)
+In the basic install, you should have installed the java support to allow some of the
+test programs in the tests directory to work. (eg, 7.wrl, 8.wrl, and 10.wrl)
 <P>
 If these programs don't run, then go back and make FreeWRL it so that it does work.
 <P><B>3.2)</B> EAIcode:</P>
-<p>
+<P>
 <B>NOTE:</B> This is in active development, so may not work. 
+<P>
+The EAI classes have been gathered into the Java archive vrml.jar. A java.policy
+file is used to handle EAI code access to the local filesystem and sockets.
 <P>
 <LIST>
 <LI>cd into the tests/AddRemove directory in the build tree.
 <LI>Read the README file in there to see what the latest commands are
 <LI>Send a case of beer to the developers, for their outstanding work.
 </LIST>
+
+<P>
+<B>DEVELOPER'S NOTE:</B> EAI java classes can be compiled using the Perl generated Makefiles.
+<BR>Do not delete the vrml.jar file.
+It needs to be in the Java compiler classpath, and will be updated whenever an EAI java file
+is compiled.
 
 <P><B>3.2)</B> SAIcode:</P>
 <p>
@@ -237,9 +244,11 @@ If these programs don't run, then go back and make FreeWRL it so that it does wo
 
 <P><B>4) Getting it all to work with Netscape.</B></P>
 
-<P><B>4.1)</B> Go to the Plugin directory, and follow the
-
-<A HREF="Plugin/readme.html">instructions</A>.</P>
+<P><B>4.1)</B> Follow the
+<A HREF="Plugin/readme.html">instructions</A> in the Plugin readme file.</P>
+<P>
+If FreeWRL was built correctly, then the Netscape Plugin was
+installed in Netscape's system plugins directory.</P>
 <P>
 <P><B>5) X3D compatibility.</B></P>
 

@@ -19,7 +19,7 @@
 CC = gcc -Wall -Wno-format
 CCC = g++ -Wall -Wno-format
 
-RANLIB = echo
+RANLIB = @echo
 
 #.c.o:
 #      $(CC) -c -MD $*.d $(CFLAGS) $<

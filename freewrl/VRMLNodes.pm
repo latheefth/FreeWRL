@@ -74,10 +74,6 @@ return $vps[$vpno];}
 
 
 #########################################################
-
-# Inlined files are stored in the browser...
-my @ilf;	# Files referenced by Inline Node urls.
-
 # The routines below implement the browser object interface.
 
 sub getName { return "FreeWRL VRML Browser" }
@@ -588,11 +584,6 @@ PixelTexture => new VRML::NodeType("PixelTexture",
                return ();
        }
        }
-),
-
-
-Box => new VRML::NodeType("Box",
-	{size => [SFVec3f, [2,2,2]]}
 ),
 
  Box => new VRML::NodeType("Box",

@@ -10,6 +10,27 @@
 
 #
 # $Log$
+# Revision 1.11  2001/08/17 20:11:05  ayla
+#
+# Begin initial trunk-NetscapeIntegration merge.
+#
+# Revision 1.10  2001/07/31 16:24:13  crc_canada
+# added hooks to only update scene when an event happens (reduces cpu usage)
+#
+# Revision 1.9.4.3  2001/08/17 17:50:54  ayla
+#
+# Added a condition to stop polling for an EAI socket when FreeWRL is run as
+# a Netscape plugin after a time-out period.
+#
+# The POD at the beginning of freewrl.PL has also been updated.
+#
+# Revision 1.9.4.2  2001/08/17 14:42:34  ayla
+#
+# A parameter was added to the VRML env hash to establish how long it takes to
+# timeout on an attempt to connect to an EAI socket when FreeWRL is a Netscape
+# plugin.  This is necessary because the command line options used by the plugin
+# include -eai host:port.  See VRMLServ.pm for how the timing is done.
+#
 # Revision 1.10  2001/07/31 16:24:13  crc_canada
 # added hooks to only update scene when an event happens (reduces cpu usage)
 #
@@ -53,12 +74,18 @@ my $EAIport = 0;
 # EAIrecount  is used for when a connection is requested, but is not
 # opened. This is a retry counter.
 my $EAIrecount = 0;
+# Every 100th EAIrecount represents a failure.
+my $EAIfailure = 0;
 
 sub new {
 	my($type,$browser) = @_;
 	my $this = bless {
 		B => $browser,
 	}, $type;
+	## NB: This code reference will be shifted out of the browser's
+	## Periodic array if we hit the maximum connection failures, as
+	## specified in $VRML::ENV{EAI_CONN_RETRY} when FreeWRL is used
+	## as a Netscape plugin.
 	$browser->add_periodic(sub {$this->poll});
 	return $this;
 }
@@ -146,9 +173,17 @@ sub poll {
        		 );
 
        		 # is socket open? If not, wait.....
-    		    if (!$sock) {
+		if (!$sock && $EAIfailure < $VRML::ENV{EAI_CONN_RETRY}) {
+			 $EAIfailure += 1;
 			 $EAIrecount = 0;
        		         #print "FreeWRL: Poll: socket not opened yet...\n";
+       		 } elsif (!$sock
+			     && $EAIfailure >= $VRML::ENV{EAI_CONN_RETRY}
+			     && $VRML::PLUGIN{NETSCAPE}) {
+			 print "FreeWRL: Poll: connect to EAI socket timed-out.\n"
+			     if $VRML::verbose::EAI;
+			 ## remove the sub poll from array reference
+			 shift(@{$this->{B}->{Periodic}});
        		 } else {
 			print "FreeWRL: Poll: Socket finally opened!!! \n";
         		$this->doconnect($sock);

@@ -1,2 +1,10 @@
-nice freewrl tictactoe-eai.wrl -eai localhost:2000 -best &
-appletviewer tictactoe-eai.html 
+EAI=../../java/classes
+
+## Use the appletviewer option -J.
+## According to the appletviewer documentation, this option is not standard,
+## and it's usage may change in the future.
+##
+## However, this is the best way to work around appletviewer.
+
+freewrl tictactoe-eai.wrl -eai localhost:2000 -best &
+appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" tictactoe-eai.html 

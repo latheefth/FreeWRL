@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.42  2001/08/17 20:11:05  ayla
+#
+# Begin initial trunk-NetscapeIntegration merge.
+#
 # Revision 1.41  2001/08/16 16:55:19  crc_canada
 # Viewpoint work.
 #
@@ -818,6 +822,7 @@ IndexedFaceSet => '
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
 	
 	/*
+
         printf("\n\ntexCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
 	for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
@@ -2168,6 +2173,7 @@ void render_polyrep(void *node,
 
 
 	}
+
 	glEnd();
 
 	if(hasc) {
