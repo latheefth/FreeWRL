@@ -67,7 +67,7 @@ void saveSnapSequence() {
 		sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,snapGoodCount);
 	}
 	sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s",
-		CONVERT screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
+		CONVERT, screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
 
 	/* printf ("convert line %s\n",sysline); */
 
