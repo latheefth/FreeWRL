@@ -45,7 +45,7 @@ int waitForData(int sock) {
 	count = 0;
 	do {
 		tv.tv_sec = 0;
-		tv.tv_usec = 100;
+		tv.tv_usec = 50;
 		FD_ZERO(&rfds);
 		FD_SET((sock), &rfds);
 	
@@ -58,7 +58,10 @@ int waitForData(int sock) {
 		} else {
 			pluginprint ("eaitForData returns FALSE\n","");
 			count ++;
-			if (count > 10000) return (FALSE);
+			if (count > 1000) {
+				pluginprint ("waitForData, timing out\n","");
+				return (FALSE);
+			}
 		}
 	} while (!retval);
 }

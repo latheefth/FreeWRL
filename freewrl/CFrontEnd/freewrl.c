@@ -26,6 +26,8 @@
 #include <GL/glext.h>
 #endif
 
+#include <signal.h>
+
 // display and win are opened here, then pointers passed to
 // freewrl. We just use these as unsigned, because we just
 // pass the pointers along; we do not care what type they are.
@@ -53,6 +55,7 @@ unsigned  _fw_instance=0;
 
 /* function prototypes */
 void displayThread();
+void catch_SIGQUIT();
 
 int main (int argc, char **argv) {
 	int retval;
@@ -75,6 +78,9 @@ int main (int argc, char **argv) {
 	/* set the screen width and height before getting into arguments */
 	screenWidth = 450; screenHeight=300;
 	fullscreen = 0;
+
+	/* install the signal handler for SIGQUIT */
+	signal (SIGQUIT, catch_SIGQUIT);
 
 	/* parse command line arguments */
 	/* JAS - for last parameter of long_options entries, choose
@@ -294,4 +300,9 @@ void displayThread() {
 	}
 	if (fullscreen)
 		resetGeometry();
+}
+
+/* SIGQUIT handler - plugin code sends a SIGQUIT... */
+void catch_SIGQUIT() {
+	doQuit();
 }

@@ -43,7 +43,7 @@
 
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
-#define PLUGIN_DESCRIPTION	"V3.0 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
+#define PLUGIN_DESCRIPTION	"V3.1 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
 char *paramline[15]; /* parameter line */
 
@@ -196,16 +196,12 @@ int freewrlReceive(int fd) {
 		return(NPERR_GENERIC_ERROR);
 	}
 
-print_here ("step 1");
-
 	/* Code to block SIGIO while saving the old signal set. */
 	if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0) {
 		print_here("Call to sigprocmask failed");
 		return(NPERR_GENERIC_ERROR);
 	}
     
-print_here ("step 2");
-
 	/* If blocked or interrupted, be silent. */
 	if (read(fd, (urlRequest *) &request, request_size) < 0) {
 		if (errno != EINTR && errno != EAGAIN) {
@@ -215,19 +211,11 @@ print_here ("step 2");
 		print_here ("step 2, returning NPERR_GENERIC_ERROR");
 		return(NPERR_GENERIC_ERROR);
 	} else {
-print_here("past the read for the url request");
 		if ((rv = NPN_GetURL(request.instance, request.url, NULL))
 			!= NPERR_NO_ERROR) {
 			sprintf(debs, "Call to NPN_GetURL failed with error %d.\n", rv);
 			print_here(debs);
 			retval = NPERR_GENERIC_ERROR;
-
-			/* tell FreeWRL that this name does not exist */
-		//	if (write(np_fd, 
-		//		"FILE DOES NOT EXIST",
-		//		strlen ("FILE DOES NOT EXIST")) < 0) {
-		//		print_here ("Call to write failed");
-		//	}
 		}
 		sprintf(debs, "Call to NPN_GetURL returned %d.\n", rv);
 		print_here(debs);
@@ -239,15 +227,11 @@ print_here("past the read for the url request");
 		NPN_Status (request.instance, debs);
 	}
 
-print_here ("step 3");
-
 	/* Restore old signal set, which unblocks SIGIO. */
 	if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0) {
 		print_here("Call to sigprocmask failed");
 		return(NPERR_GENERIC_ERROR);
 	}
-
-print_here ("step 4, returning at end");
 
 	return(retval);
 }
@@ -863,7 +847,7 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 				}
 
 				/* send a "done" message to status bar */
-				sprintf (debs, "FreeWRL: Done");
+				sprintf (debs, "FreeWRL: Done\n");
 				NPN_Status(instance,debs);
 
 			}

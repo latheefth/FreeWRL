@@ -412,6 +412,7 @@ extern void aqDisplayThread();
 #endif
 
 extern char *getLibVersion();
+extern void doQuit(void);
 
 extern char *myPerlInstallDir;
 

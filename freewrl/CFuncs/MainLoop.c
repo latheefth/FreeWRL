@@ -571,6 +571,7 @@ void do_keyPress(const char kp, int type) {
 			case '/': { print_viewer(); break; }
 			case '.': { display_status = !display_status; break; }
 			case 'q': { if (!RUNNINGASPLUGIN) {
+					  doQuit();
 					shutdown_EAI();
 					exit(0);
 					break;
@@ -832,3 +833,8 @@ void setSeqTemp(char* file) {
 }
 #endif
 
+/* quit key pressed, or Plugin sends SIGQUIT */
+void doQuit(void) {
+	shutdown_EAI();
+	exit(0);
+}
