@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.90  2003/02/26 18:49:22  crc_canada
+# TextureTransform transformation/scaling/rotation/centre now according to spec
+#
 # Revision 1.89  2003/02/06 20:28:57  crc_canada
 # remove endlist macro (was commented out) also remove some incorrect
 # and commented out stuff at glEndList() call in Shape
@@ -1021,11 +1024,15 @@ TextureTransform => '
        	glEnable(GL_TEXTURE_2D);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
-	glTranslatef($f(translation,0), $f(translation,1), 0);
-	glTranslatef(-$f(center,0),-$f(center,1), 0);
-	glRotatef($f(rotation)/3.1415926536*180,0,0,1);
-	glScalef($f(scale,0),$f(scale,1),1);
-	glTranslatef($f(center,0),$f(center,1), 0);
+
+	// Render transformations according to spec.
+
+	glTranslatef(-$f(center,0),-$f(center,1), 0);		// 5
+	glScalef($f(scale,0),$f(scale,1),1);			// 4
+	glRotatef($f(rotation)/3.1415926536*180,0,0,1);		// 3
+	glTranslatef($f(center,0),$f(center,1), 0);		// 2
+	glTranslatef($f(translation,0), $f(translation,1), 0); 	// 1
+
 	glMatrixMode(GL_MODELVIEW);
 ',
 
