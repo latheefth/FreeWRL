@@ -245,7 +245,6 @@ sub resolve_node_cnode {
 
 	# is this an IS?
 	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
-#print "IS hash ", VRML::Debug::toString($this->{IS}), "\n";
 		$is_proto = 1;
 		if ($direction =~ /eventIn/) {
 			foreach (@{$this->{IS}{$node}{$field}}) {
@@ -254,7 +253,11 @@ sub resolve_node_cnode {
 
 				next if ($proto_node->{TypeName} =~ /script/i);
 
+				## see VRML::Field::SFNode::parse for why this is necessary
 				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
+						$proto_field = $1;
+					}
 					if (!defined ($outoffset =
 								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
 						print "No offset for $proto_field.\n";
@@ -280,7 +283,11 @@ sub resolve_node_cnode {
 
 				next if ($proto_node->{TypeName} =~ /script/i);
 
+				## see VRML::Field::SFNode::parse for why this is necessary
 				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
+						$proto_field = $1;
+					}
 					if (!defined ($outoffset =
 								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
 						print "No offset for $proto_field.\n";
@@ -491,7 +498,6 @@ sub add_route {
 
 
 	# TO NODE
-#	my ($inptr, $inoffset, $tc, $ok, $intptr) = $this->resolve_node_cnode($scene, $toNode, $eventIn, "eventIn");
 	my ($to_count, $tonode_str, $tc, $ok, $intptr) = $this->resolve_node_cnode($scene, $toNode, $eventIn, "eventIn");
 	if ($eventIn eq "addChildren") {
 		$extraparam = 1;
@@ -503,8 +509,6 @@ sub add_route {
 
 	#print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
 
-#	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,
-#										$intptr, $scrpt, $extraparam);
 	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset,
 										$to_count, $tonode_str,
 										$datalen, $intptr, $scrpt, $extraparam);
@@ -536,9 +540,6 @@ sub delete_route {
 
 sub add_is {
 	my ($this, $nodeParent, $is, $node, $field) = @_;
-#	print "\nVRML::EventMachine::add_is: $this $node (", VRML::NodeIntern::dump_name($node), ") $field IS $nodeParent (", VRML::NodeIntern::dump_name($nodeParent), ") $is\n";
-
-	#$this->{IS}{$nodeParent}{$is} = [ $node, $field ];
 
 	## VRML97 4.83: multiple IS statements for the fields, eventIns, and
 	## eventOuts in the prototype interface declaration is valid
@@ -571,7 +572,7 @@ sub propagate_events {
 		# this can be sped up quite a bit, but it requires some 
 		# rewriting on GLBackEnd.pm for Sensitive nodes.
 
-		print "MEV node $_->[0], but $_->[1], move $_->[2], over $_->[3]\n"
+		print "MEV node ", VRML::Debug::toString($_), " type $_->[0]->{TypeName}\n"
 			if $VRML::verbose::events;
 		my $nd = $_->[0];
 		VRML::VRMLFunc::handle_mouse_sensitive($nd->{Type}{Name},
