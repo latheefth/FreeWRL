@@ -1,352 +1,409 @@
-<HTML>
-<HEAD>
-<TITLE>freewrl -- run the FreeWRL VRML97 browser on the command line</TITLE>
-<LINK REV="made" HREF="mailto:bhcompile@daffy.perf.redhat.com">
-</HEAD>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>freewrl -- run the FreeWRL VRML97 browser on the command line, or, if the plugin
+is installed, via an HTML browser.</title>
+<link rev="made" href="mailto:root@localhost" />
+</head>
 
-<BODY>
+<body style="background-color: white">
 
-<A NAME="__index__"></A>
+<p><a name="__index__"></a></p>
 <!-- INDEX BEGIN -->
 
-<UL>
+<ul>
 
-	<LI><A HREF="#name">NAME</A></LI>
-	<LI><A HREF="#synopsis">SYNOPSIS</A></LI>
-	<LI><A HREF="#description">DESCRIPTION</A></LI>
-	<LI><A HREF="#keys/mouse">KEYS/MOUSE</A></LI>
-	<UL>
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#keys/mouse">KEYS/MOUSE</a></li>
+	<ul>
 
-		<LI><A HREF="#walk">Walk</A></LI>
-		<LI><A HREF="#fly  keyboard mode">Fly - keyboard mode</A></LI>
-		<LI><A HREF="#fly  external sensor input">Fly - External Sensor input</A></LI>
-		<LI><A HREF="#examine">Examine</A></LI>
-		<LI><A HREF="#none">None</A></LI>
-	</UL>
+		<li><a href="#walk">Walk</a></li>
+		<li><a href="#fly__keyboard_mode">Fly - keyboard mode</a></li>
+		<li><a href="#fly__external_sensor_input">Fly - External Sensor input</a></li>
+		<li><a href="#examine">Examine</a></li>
+		<li><a href="#none">None</a></li>
+	</ul>
 
-	<LI><A HREF="#options">OPTIONS</A></LI>
-	<LI><A HREF="#using freewrl with netscape">USING FREEWRL WITH NETSCAPE</A></LI>
-	<LI><A HREF="#author">AUTHOR</A></LI>
-</UL>
+	<li><a href="#options">OPTIONS</a></li>
+	<li><a href="#using_freewrl_with_netscape_and_other_browsers">USING FREEWRL WITH NETSCAPE AND OTHER BROWSERS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+</ul>
 <!-- INDEX END -->
 
-<HR>
-<P>
-<H1><A NAME="name">NAME</A></H1>
-<P>freewrl -- run the FreeWRL VRML97 browser on the command line</P>
-<P>
-<HR>
-<H1><A NAME="synopsis">SYNOPSIS</A></H1>
-<P><CODE>freewrl</CODE> [<EM>options</EM>] <EM>url</EM> [<EM>debugcode</EM> ...]</P>
-<P>
-<HR>
-<H1><A NAME="description">DESCRIPTION</A></H1>
-<P>See the bottom of this text for the copyright and license.</P>
-<P>This command runs the FreeWRL VRML browser.
-See <A HREF="/VRML/Viewer.html">the VRML::Viewer manpage</A> for details on the user interface and 
-<A HREF="/VRML/Browser.html">the VRML::Browser manpage</A> for some other things. This manual
-page explains how to use the browser, how to start it on 
-the command line, and how to use it with Netscape.</P>
-<P>
-<HR>
-<H1><A NAME="keys/mouse">KEYS/MOUSE</A></H1>
-<P>FreeWRL supports, as per VRML97 spec, several different <EM>navigation modes</EM>.
-In each mode, the meanings of mouse movements and keystrokes are different.</P>
-<P>Mouse button 2 + motion is usually unbound so if you want to click
-and drag something in the scene, use it.</P>
-<P>In addition to the keys described below, there are some keys
-which work in all the modes:</P>
-<DL>
-<DT><STRONG><A NAME="item_d">d</A></STRONG><BR>
-<DD>
+<hr />
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>freewrl -- run the FreeWRL VRML97 browser on the command line, or, if the plugin
+is installed, via an HTML browser.</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><code>freewrl</code> [<em>options</em>] <em>url</em> [<em>debugcode</em> ...]</p>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>This command runs the FreeWRL VRML browser.</p>
+<p>
+</p>
+<hr />
+<h1><a name="keys/mouse">KEYS/MOUSE</a></h1>
+<p>FreeWRL supports, as per VRML97 spec, several different <em>navigation modes</em>.
+In each mode, the meanings of mouse movements and keystrokes are different.</p>
+<p>Mouse button 2 + motion is usually unbound so if you want to click
+and drag something in the scene, use it.</p>
+<p>In addition to the keys described below, there are some keys
+which work in all the modes:</p>
+<dl>
+<dt><strong><a name="item_%3f">?</a></strong><br />
+</dt>
+<dd>
+Display this man page in a window
+</dd>
+<p></p>
+<dt><strong><a name="item_%2e">.</a></strong><br />
+</dt>
+<dd>
+Switch status bar display on or off
+</dd>
+<p></p>
+<dt><strong><a name="item_d">d</a></strong><br />
+</dt>
+<dd>
 Switch to the Fly (Keyboard input) navigation mode
-<P></P>
-<DT><STRONG><A NAME="item_f">f</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_f">f</a></strong><br />
+</dt>
+<dd>
 Switch to the Fly (External Sensor input) navigation mode
-<P></P>
-<DT><STRONG><A NAME="item_e">e</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_e">e</a></strong><br />
+</dt>
+<dd>
 Switch to the Examine navigation mode
-<P></P>
-<DT><STRONG><A NAME="item_w">w</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_w">w</a></strong><br />
+</dt>
+<dd>
 Switch to the Walk navigation mode
-<P></P>
-<DT><STRONG><A NAME="item_v">v</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_v">v</a></strong><br />
+</dt>
+<dd>
 Go to the next viewpoint in the scene
-<P></P>
-<DT><STRONG><A NAME="item_b">b</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_b">b</a></strong><br />
+</dt>
+<dd>
 Go to the previous viewpoint in the scene
-<P></P>
-<DT><STRONG><A NAME="item_%2F">/</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2f">/</a></strong><br />
+</dt>
+<dd>
 Print out the position and orientation of the current viewpoint
 in the current Viewpoint node's local coordinate system.
-<P>You can add the view you currently see in the window by creating a new
+</dd>
+<dd>
+<p>You can add the view you currently see in the window by creating a new
 Viewpoint node (in the same coordinate system as the one you used to
-go to this viewpoint) with these values.</P>
-<P></P>
-<DT><STRONG><A NAME="item_s">s</A></STRONG><BR>
-<DD>
+go to this viewpoint) with these values.</p>
+</dd>
+<p></p>
+<dt><strong><a name="item_s">s</a></strong><br />
+</dt>
+<dd>
 Save a snapshot or (with the ``-seq'' option) start/stop saving a
 sequence of images. By default, snapshots are saved to
-<EM>freewrl.snap.NNNN.ppm</EM> and sequences to <EM>freewrl.seq.gif</EM>; see
-options ``-ppm'', ``-seqb'' and ``-snapb''. While saving images, freewrl is
+<em>freewrl.snap.NNNN.ppm</em> and sequences to <em>freewrl.seq.mpg</em>; see
+options ``-gif'', ``-seqb'' and ``-snapb''. While saving images, freewrl is
 slower.
-<P></P>
-<DT><STRONG><A NAME="item_h">h</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_h_%2f_numlock">h / NumLock</a></strong><br />
+</dt>
+<dd>
 Toggle the headlight on or off.
-<P></P>
-<DT><STRONG><A NAME="item_q">q</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_c">c</a></strong><br />
+</dt>
+<dd>
+Toggle collision detection on or off.
+</dd>
+<p></p>
+<dt><strong><a name="item_q">q</a></strong><br />
+</dt>
+<dd>
 Quit the browser
-<P></P></DL>
-<P>
-<H2><A NAME="walk">Walk</A></H2>
-<P>Drag the mouse while mouse button 1 is pressed to move forwards/backwards
+</dd>
+<p></p></dl>
+<p>
+</p>
+<h2><a name="walk">Walk</a></h2>
+<p>Drag the mouse while mouse button 1 is pressed to move forwards/backwards
 or turn.
-For translation in the x-y plane press mouse button 3 and drag.</P>
-<P>
-<H2><A NAME="fly  keyboard mode">Fly - keyboard mode</A></H2>
-<P>This mode allows translation/rotations in all planes. There are two
+For translation in the x-y plane press mouse button 3 and drag.</p>
+<p>
+</p>
+<h2><a name="fly__keyboard_mode">Fly - keyboard mode</a></h2>
+<p>This mode allows translation/rotations in all planes. There are two
 keymappings: those from the game Descent, and a mapping using the
-keypad.</P>
-<P>There is currently no mouse control, rather, all motion is controlled
+keypad.</p>
+<p>All motion is controlled
 by 12 keys, two for each of your 6 degrees of freedom (3 translations, 
-3 rotations).</P>
-<P>The default keymap in this mode is</P>
-<DL>
-<DT><STRONG><A NAME="item_%278%27%2F%27k%27_and_%27Keypad_Down%27%2F%27Keypa">'8'/'k' and 'Keypad Down'/'Keypad Up'</A></STRONG><BR>
-<DD>
+3 rotations).</p>
+<p>The keymap in this mode is</p>
+<dl>
+<dt><strong><a name="item_%278%27%2f%27k%27_and_%27keypad_down%27%2f%27keypa">'8'/'k' and 'Keypad Down'/'Keypad Up'</a></strong><br />
+</dt>
+<dd>
 rotation down/up
-<P></P>
-<DT><STRONG><A NAME="item_%27u%27%2F%27o%27_and_%27Keypad_Left%27%2F%27Keypa">'u'/'o' and 'Keypad Left'/'Keypad Right'</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%27u%27%2f%27o%27_and_%27keypad_left%27%2f%27keypa">'u'/'o' and 'Keypad Left'/'Keypad Right'</a></strong><br />
+</dt>
+<dd>
 rotation left/right
-<P></P>
-<DT><STRONG><A NAME="item_%277%27%2F%279%27_and_%27Keypad_7%27%2F%27Keypad_9">'7'/'9' and 'Keypad 7'/'Keypad 9'</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%277%27%2f%279%27_and_%27keypad_7%27%2f%27keypad_9">'7'/'9' and 'Keypad 7'/'Keypad 9'</a></strong><br />
+</dt>
+<dd>
 rotation about the Z axis
-<P></P>
-<DT><STRONG><A NAME="item_%27a%27%2F%27z%27_and_%27Keypad_0%27%2F%27Keypad_%">'a'/'z' and 'Keypad 0'/'Keypad .'</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%27a%27%2f%27z%27_and_%27keypad_0%27%2f%27keypad_%">'a'/'z' and 'Keypad 0'/'Keypad .'</a></strong><br />
+</dt>
+<dd>
 translation forwards/backwards
-<P></P>
-<DT><STRONG><A NAME="item_%27j%27%2F%27l%27_and_%27Arrow_left%27%2F%27Arrow_">'j'/'l' and 'Arrow left'/'Arrow right'</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%27j%27%2f%27l%27_and_%27arrow_left%27%2f%27arrow_">'j'/'l' and 'Arrow left'/'Arrow right'</a></strong><br />
+</dt>
+<dd>
 translation left/right
-<P></P>
-<DT><STRONG><A NAME="item_%27p%27%2F%27%3B%27_and_%27Arrow_up%27%2F%27Arrow_">'p'/';' and 'Arrow up'/'Arrow down'</A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%27p%27%2f%27%3b%27_and_%27arrow_up%27%2f%27arrow_">'p'/';' and 'Arrow up'/'Arrow down'</a></strong><br />
+</dt>
+<dd>
 translation up/down
-<P></P></DL>
-<P>It may take a while to get used to the FLY navigation mode but it is the only
-one with full freedom of motion currently.</P>
-<P>
-<H2><A NAME="fly  external sensor input">Fly - External Sensor input</A></H2>
-<P>This mode is entered via the ``f'' key. It takes input from a file in
-the /tmp directory - this file contains x,y,z and quat info, and
-puts the viewpoint there.</P>
-<P>As of December 17, 1999, only Polhemus code works, but Joystick 
-input is literally around the corner.</P>
-<P>
-<H2><A NAME="examine">Examine</A></H2>
-<P>The examine navigation mode is analogous to holding an object in your
+</dd>
+<p></p></dl>
+<p>It may take a while to get used to the FLY navigation mode but it is the only
+one with full freedom of motion currently.</p>
+<p>
+</p>
+<h2><a name="fly__external_sensor_input">Fly - External Sensor input</a></h2>
+<p>This mode is entered via the ``f'' key. It takes input from the file <em>/tmp/inpdev</em>: 
+this file contains x,y,z and Quaternion-based rotation information, and puts the viewpoint there.</p>
+<p>It is possible to force this mode in a NavigationInfo mode by making type ``EXFLY''.</p>
+<p>
+</p>
+<h2><a name="examine">Examine</a></h2>
+<p>The examine navigation mode is analogous to holding an object in your
 hand and rotating it to see it from various sides: your line of view
 always goes through the same point but you can rotate the object and
-translate yourself closer and farther away.</P>
-<P>Currently, dragging with mouse button 1 pressed
+translate yourself closer and farther away.</p>
+<p>Currently, dragging with mouse button 1 pressed
 rotates the scene and dragging up or down mouse button 3 pressed 
-translates you towards and away from the scene. There are no other controls.</P>
-<P>The center around which you rotate is determined by taking the initial
+translates you towards and away from the scene. There are no other controls.</p>
+<p>The center around which you rotate is determined by taking the initial
 position and orientation of the viewpoint given in the VRML file. 
 A ray is cast along your line of view and the closest that ray comes 
 to the origin of the local coordinate system is defined as the origin
-of the rotations.</P>
-<P>
-<H2><A NAME="none">None</A></H2>
-<P>As the name says, there is nothing you can do in the NONE navigation mode.</P>
-<P>
-<HR>
-<H1><A NAME="options">OPTIONS</A></H1>
-<DL>
-<DT><STRONG><A NAME="item_%2Durl_baseurl"><CODE>-url</CODE> <EM>baseurl</EM></A></STRONG><BR>
-<DD>
-The browser downloads the URL given as the first argument on the command
-line. The contents of the VRML file can refer to relative URLs just like HTML.
-If given, this option is used to resolve the relative URLs instead
-of the first commandline argument.
-<P>For example,</P>
-<PRE>
-        freewrl -url <A HREF="http://www.foo.com/bigworld.wrl">http://www.foo.com/bigworld.wrl</A>  tmp.wrl</PRE>
-<P>can be used to run <CODE>bigrworld.wrl</CODE> from a copy on the local hard drive
-so that relative links will still work.</P>
-<P></P>
-<DT><STRONG><A NAME="item_%2Dbest"><CODE>-best</CODE></A></STRONG><BR>
-<DD>
-Depreciated
-<P></P>
-<DT><STRONG><A NAME="item_%2Dfast"><CODE>-fast</CODE></A></STRONG><BR>
-<DD>
-Enables the fastest rendering in exchange for poorer picture quality.
-This is overrides any <A HREF="#item_%2Dbest"><CODE>-best</CODE></A> options seen on the command line.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dfullscreen"><CODE>-fullscreen</CODE></A></STRONG><BR>
-<DD>
+of the rotations.</p>
+<p>
+</p>
+<h2><a name="none">None</a></h2>
+<p>As the name says, there is nothing you can do in the NONE navigation mode.</p>
+<p>
+</p>
+<hr />
+<h1><a name="options">OPTIONS</a></h1>
+<dl>
+<dt><strong><a name="item_%2d%2dversion"><code>--version</code></a></strong><br />
+</dt>
+<dd>
+Prints out the current FreeWRL version.
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dfullscreen"><code>--fullscreen</code></a></strong><br />
+</dt>
+<dd>
 Forces FreeWRL to run in fullscreen mode.  Note that if your graphics drivers
 have an alternate way to enable fullscreen rendering it may be best to use that
 way instead. The fullscreen flag will not enable hardware acceleration if it has
-not already been enabled.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dplugin_PIDstring"><CODE>-plugin</CODE> <EM>PIDstring</EM></A></STRONG><BR>
-<DD>
+not already been enabled. (see also --big option)
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dbig"><code>--big</code></a></strong><br />
+</dt>
+<dd>
+Forces FreeWRL to run in 800x600 mode.   See also --fullscreen option
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dnostatus"><code>--nostatus</code></a></strong><br />
+</dt>
+<dd>
+Starts FreeWRL without the on-screen status bar. See the ``.'' key definition
+for how to toggle this status bar display when running.
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dplugin_pidstring"><code>--plugin</code> <em>PIDstring</em></a></strong><br />
+</dt>
+<dd>
 Tells FreeWRL that it is running within a web browser, and thus to get all URLs
 from the browser, use the browser for EAI, not to handle the ``q'' key, pass the
 XID (see X11 header file X.h) of the parent window, and to use the PID as the
 window title.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dgeo%5Bmetry%5D_geom"><CODE>-geo[metry]</CODE> <EM>geom</EM></A></STRONG><BR>
-<DD>
-<DT><STRONG><A NAME="item_%2Dparent_xid"><CODE>-parent</CODE> <EM>xid</EM></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dgeo%5bmetry%5d_geom"><code>--geo[metry]</code> <em>geom</em></a></strong><br />
+</dt>
+<dt><strong><a name="item_%2d%2dparent_xid"><code>--parent</code> <em>xid</em></a></strong><br />
+</dt>
+<dd>
 Set the initial window geometry with the usual X window format string.
-<P></P>
-<DT><STRONG><A NAME="item_%2D%5Bno%5Dlwp"><CODE>-[no]lwp</CODE></A></STRONG><BR>
-<DD>
-Use / don't use libwww-perl. If you use the option -nolwp, you can only
-view documents on your local file system.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dzpl_number"><CODE>-zpl</CODE> <EM>number</EM></A></STRONG><BR>
-<DD>
-Set the Z-buffer backplane level. If your world is very big, try setting
-this number large. (NOTE: once NavigationInfo properly works, this option
-will probably be deprecated)
-<P></P>
-<DT><STRONG><A NAME="item_%2Dlog_file"><CODE>-log</CODE> <EM>file</EM></A></STRONG><BR>
-<DD>
-Log stdout and stderr into <EM>file</EM>.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dsave_dir"><CODE>-save</CODE> <EM>dir</EM></A></STRONG><BR>
-<DD>
-Save all the documents used in <EM>dir</EM>. Useful if you want to see what
-went wrong over a slow network connection.
-<P>This feature will probably be upgraded later to modify the urls and
-filenames in a proper way, for now it just plonks down files with
-names ``s0'', ``s1'' etc.</P>
-<P></P>
-<DT><STRONG><A NAME="item_%2Dseq"><CODE>-seq</CODE></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dseq"><code>--seq</code></a></strong><br />
+</dt>
+<dd>
 The ``s'' key will start/stop saving a sequence of images rather than
 saving a single snapshot.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dseqb_basename"><CODE>-seqb</CODE> <EM>basename</EM></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dseqb_basename"><code>--seqb</code> <em>basename</em></a></strong><br />
+</dt>
+<dd>
 Specify base name for the sequence file. Default is
-``freewrl.seq''. Sets the ``-seq'' option.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dsnapb_basename"><CODE>-snapb</CODE> <EM>basename</EM></A></STRONG><BR>
-<DD>
+``freewrl.seq''. Sets the ``--seq'' option.
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dsnapb_basename"><code>--snapb</code> <em>basename</em></a></strong><br />
+</dt>
+<dd>
 Specify base name for the snapshot files. Default is
-``freewrl.snap''. Unsets the ``-seq'' option.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dseqtmp_basename"><CODE>-seqtmp</CODE> <EM>basename</EM></A></STRONG><BR>
-<DD>
+``freewrl.snap''. Unsets the ``--seq'' option.
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dseqtmp_basename"><code>--seqtmp</code> <em>basename</em></a></strong><br />
+</dt>
+<dd>
 Specify base name for the sequence temporary files. Default is
 ~/freewrl_tmp.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dshutter"><CODE>-shutter</CODE></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dshutter"><code>--shutter</code></a></strong><br />
+</dt>
+<dd>
 Forces FreeWRL to start in shutterglas stereo mode via GLX_STEREO in
 attributs of glXChooseVisual. This needs software and hardware like
 XIG DX Platiuum Xserver on a Linux PC with 3DRelevator shutterglasses or
 IRIX on a SGI Indigo2 Impact with crystal eyes shutterglasses.
 On some SGI machines, you need to switch to a stereo capable visual 
 as root with setmon/xsetmon and then restart the X Server.
-<P></P>
-<DT><STRONG><A NAME="item_%2Deyedist_number"><CODE>-eyedist</CODE> <EM>number</EM></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2deyedist_number"><code>--eyedist</code> <em>number</em></a></strong><br />
+</dt>
+<dd>
 Distance between the eyes of the viewer in shutter mode, default 0.06
-<P></P>
-<DT><STRONG><A NAME="item_%2Dscreendist_number"><CODE>-screendist</CODE> <EM>number</EM></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dscreendist_number"><code>--screendist</code> <em>number</em></a></strong><br />
+</dt>
+<dd>
 Distance between screen and the eyes of the viewer in shutter mode, 
 default 0.8
-<P></P>
-<DT><STRONG><A NAME="item_%2Dppm"><CODE>-ppm</CODE></A></STRONG><BR>
-<DD>
-In conjunction of ``-seq'' only, the sequence will be saved as lots of
-ppm files.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dmaximg"><CODE>-maximg</CODE></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dgif"><code>--gif</code></a></strong><br />
+</dt>
+<dd>
+In conjunction of ``--seq'' only, the sequence will be saved as an animated gif,
+rather than a mpg file.
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dmaximg"><code>--maximg</code></a></strong><br />
+</dt>
+<dd>
 Maximum number of snapshots or images in the sequence. Default is 100
 to avoid filling up disk.
-<P></P>
-<DT><STRONG><A NAME="item_%2Deai_host%3Aport"><CODE>-eai</CODE> <EM>host:port</EM></A></STRONG><BR>
-<DD>
-The browser will try to connect to the socket at <EM>host:port</EM> to obtain
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2deai_host%3aport"><code>--eai</code> <em>host:port</em></a></strong><br />
+</dt>
+<dd>
+The browser will try to connect to the socket at <em>host:port</em> to obtain
 an EAI connection. This option is mostly for internal use by
 the EAI libraries.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dserver"><CODE>-server</CODE></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dserver"><code>--server</code></a></strong><br />
+</dt>
+<dd>
 FreeWRL will behave as a server : it spawns a child browser, prints
 its PID on STDOUT and exits. The child then reloads the url given on
 the command line upon receipt of a SIGUSR1 signal.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dsig"><CODE>-sig</CODE></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dsig"><code>--sig</code></a></strong><br />
+</dt>
+<dd>
 Reload the URL given on the command line upon receipt of a SIGUSR1 signal.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dps"><CODE>-ps</CODE></A></STRONG><BR>
-<DD>
+</dd>
+<p></p>
+<dt><strong><a name="item_%2d%2dps"><code>--ps</code></a></strong><br />
+</dt>
+<dd>
 Allow perl scripts in vrml files. Make sure your perl scripts are secure.
-<P></P>
-<DT><STRONG><A NAME="item_%2Dpsout_file"><CODE>-psout</CODE> <EM>file</EM></A></STRONG><BR>
-<DD>
-Print statements within perl scripts will -by default- go to <EM>file</EM>.
-<P></P>
-<DT><STRONG><A NAME="item_debugcode"><EM>debugcode</EM></A></STRONG><BR>
-<DD>
-Various strings here turn on debugging for various parts of the browser.
-Mostly of interest to developers, who can see the file <CODE>freewrl.PL</CODE> 
-in the distribution for the codes.
-<P></P></DL>
-<P>
-<HR>
-<H1><A NAME="using freewrl with netscape">USING FREEWRL WITH NETSCAPE</A></H1>
-<P>If Netscape is installed, and the entries in vrml.conf are correct, the
+</dd>
+<p></p></dl>
+<p>
+</p>
+<hr />
+<h1><a name="using_freewrl_with_netscape_and_other_browsers">USING FREEWRL WITH NETSCAPE AND OTHER BROWSERS</a></h1>
+<p>If Netscape is installed, and the entries in vrml.conf are correct, the
 FreeWRL plug-in will be installed in Netscape's system plugins folder.
 If you go to Netscape's Help menu and select the About Plug-ins,
-there should be an entry for FreeWRL with Mime Type x-world/x-vrml.</P>
-<P>
-<HR>
-<H1><A NAME="author">AUTHOR</A></H1>
-<P>Project started by Tuomas J. Lukka, continued by John Stewart.</P>
-<P>Please send bug reports to <CODE>john.stewart --at--  crc.ca</CODE>
+there should be an entry for FreeWRL with Mime Type x-world/x-vrml.</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Project started by Tuomas J. Lukka, continued by John Stewart and others.</p>
+<p>Please send bug reports to <code>freewrl-1 --at--  rogers.com</code>
 including the word ``freewrl''
 on the subject line will make sure that I'll notice it. Also,
-see the FreeWRL home page at <CODE>http://www.crc.ca/FreeWRL</CODE>.</P>
-<P>There is absolutely no warranty, express or implied for this software.
-For details on the conditions of use, see the FreeWRL distribution.</P>
-<P>FreeWRL is Copyright (C) 1998, 1999 Tuomas J. Lukka,
-John Stewart and others.</P>
-<P>This library is free software; you can redistribute it and/or
+see the FreeWRL home page at <code>http://www.crc.ca/FreeWRL</code>.</p>
+<p>There is absolutely no warranty, express or implied for this software.
+For details on the conditions of use, see the FreeWRL distribution.</p>
+<p>FreeWRL is Copyright (C) 1998, 1999 Tuomas J. Lukka,
+John Stewart and others.</p>
+<p>This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.</P>
-<P>This library is distributed in the hope that it will be useful,
+version 2 of the License, or (at your option) any later version.</p>
+<p>This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.</P>
-<P>You should have received a copy of the GNU Library General Public
+Library General Public License for more details.</p>
+<p>You should have received a copy of the GNU Library General Public
 License along with this library; if not, write to the Free
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA</P>
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA</p>
 
-</BODY>
+</body>
 
-</HTML>
+</html>
