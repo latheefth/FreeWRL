@@ -173,6 +173,9 @@ GLXFBConfig *glXChooseFBConfigSGIX(Display *dpy, int screen,
 	    /* Create Cursors */
 	    arrowc = XCreateFontCursor (dpy, XC_left_ptr);
 	    sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
+
+	    /* what is the hardware 3d accel? */
+	    printf ("%s\n",glGetString(GL_RENDERER));
 	}
 
 int
@@ -895,6 +898,11 @@ void
 glDeleteLists(list,range)
 	GLuint	list
 	GLsizei	range
+
+void
+glGenTextures(n,textures)
+	GLsizei	n
+	char *	textures
 
 GLuint
 glGenLists(range)
