@@ -160,6 +160,7 @@ sub parse_proto {
 		my $n = parse_statement($pro,$_[1]);
 		if(defined $n) {push @a, $n}
 	}
+	# print "parse_proto, setting topnodes for ",VRML::NodeIntern::dump_name($pro),"\n";
 	$pro->topnodes(\@a);
 
 	# Register viewpoints from this proto invocation
@@ -254,6 +255,7 @@ sub parse_route {
 	# remember - we have our own internal names for these things...
 	my $rn = VRML::Handles::return_def_name($1);
 	my $trn = VRML::Handles::return_def_name($4);
+	# print "Parser - parse_route; $rn (was $1)  $2 $trn (was $4) $5\n";
 	$scene->new_route([$rn,$2,$trn,$5]);
 	if($3 !~ /TO\s+/) {
 		parsewarnstd($_[1],
