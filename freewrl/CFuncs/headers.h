@@ -8,7 +8,11 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
  	 
+
 #include "Structs.h"
+
+// from the vrml.conf file...
+#include "vrmlconf.h"
 
 #include "LinearAlgebra.h"
 #include "constants.h"

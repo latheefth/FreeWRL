@@ -57,7 +57,7 @@ char * readInputString(char *fn, char *parent) {
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
 			((unsigned char) firstbytes[1] == 0x8b)) {
-		printf ("this is a gzipped file!\n");
+		//printf ("this is a gzipped file!\n");
 		isTemp = TRUE;
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 		/* first, move this to a .gz file */

@@ -55,13 +55,13 @@ int freewrlSystem (char *sysline) {
 			if (count >= MAXEXECPARAMS) return -1; // never...
 		}
 	}
-	
+/*	
 	 printf ("finished while loop, count %d\n",count);
 	{ int xx;
 		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
 	}}
-	
+*/	
 
 	/* is the last string "&"? if so, we don't need to wait around */
 	if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {

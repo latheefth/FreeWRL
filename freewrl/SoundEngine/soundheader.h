@@ -112,4 +112,5 @@ void adjustAmplitude(int source, int readSize);
 
 #define UNINITWAV	-20000
 
-
+// defines from the build environment
+#include "../CFuncs/vrmlconf.h"
