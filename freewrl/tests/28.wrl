@@ -8,8 +8,7 @@
 				point [ -2.0 0.0 0.0, 2.0 0.0 0.0
 				 	2.0 3.0 0.0,  -2.0 3.0 0.0 ]
 			}
-			# coordIndex [3, 2, 1, 0]
 			coordIndex [0, 1, 2, 3]
-			# solid FALSE
+			solid FALSE             # Show both sides
 		}
 	}
