@@ -1,7 +1,6 @@
 
 =head1 Perl Scripts in VRML 97/2.0, using FreeWRL 
 
-=for html
 This file contains some information on perl scripting in vrml 97/2.0
 code and examples. As of today, 2000/10/05, they work with
 CVS L<freewrl|REFERENCES>. They should work with
