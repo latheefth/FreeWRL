@@ -195,3 +195,7 @@ float SoundSourceInit (int sourcenum, int loop, float pitch,
 void do_shininess (float shininess);
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
 
+/* Transform node optimizations */
+int verify_rotate(GLfloat *params);
+int verify_translate(GLfloat *params);
+

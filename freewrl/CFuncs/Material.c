@@ -88,3 +88,33 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	}
 }
 
+
+
+int verify_rotate(GLfloat *params) {
+	/* angle very close to zero? */
+	if (fabs(params[3]) < 0.001) return FALSE;
+
+	return TRUE;
+}
+
+int verify_translate(GLfloat *params) {
+	/* no translation? */
+
+	if ((fabs(params[0]) < 0.001) && 
+		(fabs(params[1]) < 0.001) && 
+		(fabs(params[2]) < 0.001))  return FALSE;  
+
+	return TRUE;
+}
+
+
+int verify_scale(GLfloat *params) {
+	/* no translation? */
+
+	if ((fabs(params[0]-1.0) < 0.001) && 
+		(fabs(params[1]-1.0) < 0.001) && 
+		(fabs(params[2]-1.0) < 0.001))  return FALSE;  
+
+	return TRUE;
+}
+
