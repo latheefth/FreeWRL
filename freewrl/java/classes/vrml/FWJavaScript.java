@@ -48,11 +48,17 @@ public final class FWJavaScript {
 	       Exception,
 	       Throwable
     {
+	in  = new LineNumberReader(new InputStreamReader(System.in));
 	out = new PrintWriter(System.out);
+
+	/* Protect our communication channels */
 	System.setOut(System.err);
-	//new PrintWriter(new FileOutputStream(".javapipej")));
-	in = new LineNumberReader(new InputStreamReader(System.in));
-	//new LineNumberReader(new InputStreamReader(new FileInputStream(".javapipep")));
+	System.setIn(new ByteArrayInputStream(new byte[0]));
+	
+	/* Install security */
+	System.setSecurityManager(new SecurityManager());
+
+	/* And GO... */
 	 	Hashtable scripts = new Hashtable();
 		// String dirname = argv[0];
 		// out.println("FWJavaScript says: Hello World! dirname is " + dirname);

@@ -1,18 +1,6 @@
 // Grant all permissions to jar file containing our EAI classes:
-grant codeBase "file:./vrml.jar" {
-	permission java.security.AllPermission;
+grant codeBase "file:vrml.jar" {
+	permission java.security.RuntimePermission "createClassLoader";
 };
 
-// Default permissions granted to all domains:
-grant { 
-	// Allows any thread to stop itself using the java.lang.Thread.stop()
-	// method that takes no argument.
-	// Note that this permission is granted by default only to remain
-	// backwards compatible, and is potentially unsafe.
-	// See "http://java.sun.com/notes" for more information.
-	permission java.lang.RuntimePermission "stopThread";
-
-	// allows anyone to accept, resolve, connect and listen on port 2000 and above
-	permission java.net.SocketPermission "localhost:1024-", "accept,resolve,connect,listen";
-};
 

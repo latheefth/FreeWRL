@@ -248,7 +248,7 @@ pure_all: $(JAR_FILE)
 	$(JAVAC) $(JFLAGS) $<
 
 $(JAR_FILE): $(CLASSES)
-	$(JAR) cf $(JAR_FILE) $(CLASSES)
+	$(JAR) cf $(JAR_FILE) `find vrml -name \*.class`
 
 install: install_jar
 
