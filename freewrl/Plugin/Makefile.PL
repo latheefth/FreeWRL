@@ -84,7 +84,7 @@ OBJECT+=$(CFUNCS_SRC:%c=%o)
 }
 sub MY::dynamic_lib {
 "ARMAYBE = :
-OTHERLDFLAGS =  -dynamic -bundle -L/usr/local/lib -L/Library/Perl/darwin/CORE/ -lperl
+OTHERLDFLAGS = $VRML_CONFIG{LDFLAGS} 
 INST_DYNAMIC_DEP =
 
 \$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
