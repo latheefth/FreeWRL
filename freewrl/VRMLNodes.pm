@@ -40,10 +40,10 @@ my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
 
 sub register_vp {
 	my ($scene, $node) = @_;
-	# print "Node::register_vp $scene $node\n";
+	#print "Node::register_vp $scene $node\n";
 	push @vpn, $node;
 	push @vps, $scene;
-        # print "VRML::NodeIntern::register_vp, viewpoint is ",$node->{Fields}{description},"\n";
+        #	print "VRML::NodeIntern::register_vp, viewpoint is ",$node->{Fields}{description},"\n";
          #         print "ref t ", ref $node,"\n";
          #         print "ref t backend ", ref $node->{BackEnd},"\n";
          #         print "t backend ", $node->{BackEnd},"\n";
@@ -525,6 +525,7 @@ my $protono;
  Background
  NavigationInfo
  Fog
+ GeoViewpoint
 /;
 
 %VRML::Nodes::initevents = map {($_,1)} qw/
@@ -1378,7 +1379,7 @@ my $protono;
 						position => [SFVec3f,[0, 0, 10], exposedField],
 						description => [SFString, "", field],
 						bindTime => [SFTime, -1, eventOut],
-						isBound => [SFBool, 0, eventOut]
+						isBound => [SFBool, 0, eventOut],
 					   },
 					  ),
 
@@ -1514,6 +1515,46 @@ my $protono;
 						}
 					   }
 					  ),
+	# GeoVRML Nodes
+
+	GeoViewpoint =>
+	new VRML::NodeType("GeoViewpoint",
+					   {
+						set_bind => [SFBool, undef, eventIn],
+						set_orientation => [SFString, undef, eventIn],
+						set_position => [SFString, undef, eventIn],
+						fieldOfView => [SFFloat, 0.785398, exposedField],
+						headlight => [SFBool, 1, exposedField],
+						jump => [SFBool, 1, exposedField],
+						navType => [MFString, ["EXAMINE","ANY"],exposedField],
+						description => [SFString, "", field],
+						geoOrigin => [SFNode, NULL, field],
+						geoSystem => [MFString,["GD","WE"],field],
+						orientation => [SFRotation, [0, 0, 1, 0], field],
+						position => [SFString,"0, 0, 100000", field],
+						speedFactor => [SFFloat,1.0,field],
+						bindTime => [SFTime, -1, eventOut],
+						isBound => [SFBool, 0, eventOut],
+
+						# "compiled" versions of strings above
+						__position => [SFVec3f,[0, 0, 100000], field],
+						__geoSystem => [SFInt32,0,field],
+					   },
+					  ),
+	GeoOrigin =>
+	new VRML::NodeType("GeoOrigin",
+					{
+						geoSystem => [MFString,["GD","WE"],exposedField],
+						geoCoords => [SFString,"",exposedField],
+						rotateYUp => [SFBool,0,field],
+
+						# "compiled" versions of strings above
+						__geoCoords => [SFVec3f,[0, 0, 0], field],
+						__geoSystem => [SFInt32,0,field],
+					}
+					),
+
+
 
 ); ##%VRML::Nodes
 

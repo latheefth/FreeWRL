@@ -7,12 +7,13 @@
 
 /*****************************************
 
-Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
+Bindable nodes - Background, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
 ******************************************/
 
 #include "Bindable.h"
 #include "Viewer.h"
+#include "GeoVRML.h"
 
 extern VRML_Viewer Viewer; //in VRMLC.pm
 
@@ -26,7 +27,7 @@ unsigned int fog_stack[MAX_STACK];
 unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
 
-/* this is called after a Viewpoint bind */
+/* this is called after a Viewpoint or GeoViewpoint bind */
 void reset_upvector() {
     ViewerUpvector.x = 0;
     ViewerUpvector.y = 0;
@@ -101,10 +102,11 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	struct VRML_Fog *fg;
 	struct VRML_NavigationInfo *nv;
 	struct VRML_Viewpoint *vp;
+	struct VRML_GeoViewpoint *gvp;
 	char * nameptr;
 	int len;
 
-	// printf ("\nsend_bind_to, nodetype %s node %d value %d\n",nodetype,node,value);
+	//printf ("\nsend_bind_to, nodetype %s node %d value %d\n",nodetype,node,value);
 
 	if (strncmp("Background",nodetype,strlen("Background"))==0) {
 		bg = (struct VRML_Background *) node;
@@ -122,6 +124,22 @@ void send_bind_to(char *nodetype, void *node, int value) {
 
 		bind_node (node,offsetof (struct VRML_Viewpoint,set_bind),
 			offsetof (struct VRML_Viewpoint,isBound),
+			&viewpoint_tos,&viewpoint_stack[0]);
+
+		/* up_vector is reset after a bind */
+		if (value==1) {
+			reset_upvector();
+			bind_viewpoint (vp);
+		}
+
+	} else if (strncmp("GeoViewpoint",nodetype,strlen("GeoViewpoint"))==0) {
+		gvp = (struct VRML_GeoViewpoint *) node;
+		gvp->set_bind = value;
+		nameptr = SvPV(gvp->description,len);
+		viewpoint_name_status (nameptr);
+
+		bind_node (node,offsetof (struct VRML_GeoViewpoint,set_bind),
+			offsetof (struct VRML_GeoViewpoint,isBound),
 			&viewpoint_tos,&viewpoint_stack[0]);
 
 		/* up_vector is reset after a bind */
@@ -325,12 +343,75 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 	if(!node->isBound) return;
 }
 
+void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
+	GLint vp[10];
+	double a1;
+	char *posnstring;
+
+	//printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	if (node->set_bind < 100) {
+		/* up_vector is reset after a bind */
+		if (node->set_bind==1) reset_upvector();
+
+		bind_node (node,offsetof (struct VRML_GeoViewpoint,set_bind),
+			offsetof (struct VRML_GeoViewpoint,isBound),
+			&viewpoint_tos,&viewpoint_stack[0]);
+	}
+
+	if(!node->isBound) return;
+
+	/* stop rendering when we hit A viewpoint or THE viewpoint???
+	   shouldnt we check for what_vp???? 
+           maybe only one viewpoint is in the tree at a time? -  ncoder*/
+
+	found_vp = 1; /* We found the viewpoint */
+
+	/* is the position "compiled" yet? */
+	if (node->_change != node->_dlchange) {
+		//printf ("have to recompile position...\n");
+		posnstring = SvPV(node->position,PL_na);
+		if (sscanf (SvPV(node->position,PL_na),"%f %f %f",&node->__position.c[0],
+			&node->__position.c[1], &node->__position.c[2]) != 3) {
+			printf ("GeoViewpoint - vp:%s: invalid position string: :%s:\n",
+					SvPV(node->description,PL_na),
+					SvPV(node->position,PL_na));
+		}
+
+		geoSystemCompile (&node->geoSystem, &node->__geoSystem, 
+			SvPV(node->description,PL_na));
+
+		node->_dlchange = node->_change;
+	}
+
+	if (node->geoOrigin) {
+		render_node (node->geoOrigin);
+	}
+
+	/* perform GeoViewpoint translations */
+	glRotatef(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
+		node->orientation.r[2]);
+	glTranslatef(-node->__position.c[0],-node->__position.c[1],-node->__position.c[2]);
+
+	/* now, lets work on the GeoViewpoint fieldOfView */
+	glGetIntegerv(GL_VIEWPORT, vp);
+	if(vp[2] > vp[3]) {
+		a1=0;
+		fieldofview = node->fieldOfView/3.1415926536*180;
+	} else {
+		a1 = node->fieldOfView;
+		a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
+		fieldofview = a1/3.1415926536*180;
+	}
+	//printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
+}
+
 void render_Viewpoint (struct VRML_Viewpoint *node) {
 	GLint vp[10];
 	double a1;
        /* GLdouble modelMatrix[16]; */
 
-	//printf ("rvp, node %d ib %d sb %d\n",node,node->isBound,node->set_bind);
+	//printf ("rvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		/* up_vector is reset after a bind */
@@ -343,38 +424,12 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 
 	if(!node->isBound) return;
 
-	/*
-        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-       printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
-                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
-                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
-                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
-                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
-	*/
-
-
-	/* stop rendering when we hit A viewpoint or THE viewpoint???
-	   shouldnt we check for what_vp???? 
-           maybe only one viewpoint is in the tree at a time? -  ncoder*/
-
 	found_vp = 1; /* We found the viewpoint */
 
 	/* perform Viewpoint translations */
 	glRotatef(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
 		node->orientation.r[2]);
 	glTranslatef(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
-
-	/*
-        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-       printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
-                modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
-                modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
-                modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
-                modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
-	*/
-
-
-
 
 	/* now, lets work on the Viewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, vp);

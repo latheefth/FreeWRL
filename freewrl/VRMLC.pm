@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.116  2003/09/25 17:40:42  crc_canada
+# first steps at GeoVRML
+#
 # Revision 1.115  2003/09/23 18:35:23  crc_canada
 # sept 23, 2003 bulk EAI changes.
 #
@@ -1695,8 +1698,6 @@ void upd_ray() {
 }
 
 
-void *what_vp;
-
 /* if a node changes, void the display lists */
 /* Courtesy of Jochen Hoenicke */
 
@@ -1945,7 +1946,7 @@ void remove_parent(void *node_, void *parent_) {
 
 
 void
-render_hier(void *p, int rwhat, void *wvp)
+render_hier(void *p, int rwhat)
 {
 	struct pt upvec = {0,1,0};
 	GLdouble modelMatrix[16];
@@ -1959,7 +1960,6 @@ render_hier(void *p, int rwhat, void *wvp)
 	render_proximity = rwhat & VF_Proximity;
 	render_collision = rwhat & VF_Collision;
 	curlight = 0;
-	what_vp = wvp;
 	hpdist = -1;
 
 	if (!p) {
@@ -1969,7 +1969,7 @@ render_hier(void *p, int rwhat, void *wvp)
 
 	/* verbose = 1; */
 	if (verbose)
-  		printf("Render_hier node=%d what=%d what_vp=%d\n", p, rwhat, wvp);
+  		printf("Render_hier node=%d what=%d\n", p, rwhat);
 
 	/* status bar */
 	if ((render_geom) && (display_status)) {
@@ -2246,10 +2246,9 @@ get_collisionoffset(x,y,z)
 
 
 void
-render_hier(p,rwhat,wvp)
+render_hier(p,rwhat)
 	void *p
 	int rwhat
-	void *wvp
 
 
 void
@@ -2276,7 +2275,7 @@ CODE:
 	CollisionInfo.Count = 0;
 	CollisionInfo.Maximum2 = 0.;
 
-	render_hier(p, VF_Collision, 0);
+	render_hier(p, VF_Collision);
 	get_collisionoffset(&(v.x), &(v.y), &(v.z));
 	increment_pos(&Viewer, &v);
 

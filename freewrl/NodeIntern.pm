@@ -675,7 +675,8 @@ sub set_backend_fields {
 			$this->set_backend_fields();
 
 			# was this a viewpoint? Was it not in a proto definition?
-			if ($this->{TypeName} eq "Viewpoint") {
+			if (($this->{TypeName} eq "Viewpoint")  ||
+			    ($this->{TypeName} eq "GeoViewpoint")) {
 				if ($this->{BackEnd}) {
 					my $scene = $this->{Scene};
 					VRML::NodeType::register_vp($scene, $this);

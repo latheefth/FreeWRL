@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.115  2003/09/25 17:40:42  crc_canada
+# first steps at GeoVRML
+#
 # Revision 1.114  2003/07/31 17:32:55  crc_canada
 # compile error on some versions of gcc - fixed.
 #
@@ -431,6 +434,9 @@
 
 #Bindable nodes in seperate file now
 #Viewpoint => ' ',
+#GeoViewpoint => ' ',
+
+
 
 NavigationInfo => 'render_NavigationInfo ((struct VRML_NavigationInfo *) this_);',
 Fog => '
@@ -1461,10 +1467,18 @@ TouchSensor => '',
 PlaneSensor => '',
 VisibilitySensor => '',
 
+GeoOrigin => 'render_GeoOrigin ((struct VRML_GeoOrigin *) this_);',
+
 Viewpoint => '
 	/* Viewpoint is in the PrepC side of things, as it is rendered before other nodes */
 	if (!render_vp) return;
 	render_Viewpoint ((struct VRML_Viewpoint*) this_);',
+
+GeoViewpoint => '
+	/* Viewpoint is in the PrepC side of things, as it is rendered before other nodes */
+	if (!render_vp) return;
+	render_GeoViewpoint ((struct VRML_GeoViewpoint*) this_);',
+
 
 Transform => '
 

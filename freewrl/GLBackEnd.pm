@@ -514,10 +514,8 @@ sub setup_viewpoint {
 	VRML::VRMLFunc::do_viewer_togl();
 
 	VRML::VRMLFunc::render_hier($node, 	# Node
-				    &VF_Viewpoint,# render view point
-				    $viewpoint);# what view point
+				    &VF_Viewpoint);# render view point
 	glPrintError("GLBackEnd::setup_viewpoint");
-
 }
 
 
@@ -554,8 +552,7 @@ sub render_pre {
 
 	# 5. render hierarchy - proximity
 	VRML::VRMLFunc::render_hier($node,  # Node
-				&VF_Proximity, 
-				0); # what view point
+				&VF_Proximity);
 
 	glPrintError("GLBackend::render_pre");
 }
@@ -600,15 +597,13 @@ sub render {
 		glPrintError("GLBackEnd::render, before render_hier");
 
 		VRML::VRMLFunc::render_hier($node, # Node
-									&VF_Lights,	# render lights
-									0); # what view point
+				&VF_Lights);	# render lights
 		glPrintError("GLBackEnd::render, VRML::VRMLFUNC::render_hier(VF_Lights)");
 
 		# 4. Nodes (not the blended ones)
 
 		VRML::VRMLFunc::render_hier($node, # Node
-									&VF_Geom, # render geoms
-									0);	# what view point
+				&VF_Geom); # render geoms
 		glPrintError("GLBackEnd::render, VRML::VRMLFUNC::render_hier(VF_Geom)");
     }
 
@@ -667,8 +662,7 @@ sub render {
 			# to save saving/setting from Perl. JAS.
 	
 			VRML::VRMLFunc::render_hier($node, # Node
-										&VF_Sensitive, # render sensitive
-										0);	# what view point
+					&VF_Sensitive); # render sensitive
 
 			# print "SENS_BR: $b\n" if $VRML::verbose::glsens;
 

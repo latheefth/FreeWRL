@@ -166,13 +166,6 @@ sub parse_proto {
 	}
 	# print "parse_proto, setting topnodes for ",VRML::NodeIntern::dump_name($pro),"\n";
 	$pro->topnodes(\@a);
-
-	# Register viewpoints from this proto invocation
-	# $pro->register_vps($scene->get_browser());
-
-	#JAS my $np = $pro->{Bindables}{Viewpoint};
-	#JAS print "Parser, number of viewpoints found for $pro is ", $#$np, "my scene $scene\n";
-	#JAS print "and, the first viewpoint is ",$np->[0]{Fields}{description},"\n";
 }
 
 sub parse_externproto {
