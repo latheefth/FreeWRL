@@ -18,9 +18,6 @@ sub new {
 sub printUTF {
 	my $this = shift;
 	my $str = join "", @_;
-	open FOO, ">foo";
-	print FOO (pack("n", length($str)),$str);
-	close FOO;
 	$this->print (pack("n", length($str)),$str);
 }
 sub println {
