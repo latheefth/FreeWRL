@@ -8,7 +8,6 @@
 
 my $moduleName = 'VRML::JS';
 
-##require '../vrml.conf';
 
 
 if ($^V lt v5.6.0) {
@@ -21,10 +20,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 			  NAME => $moduleName,
 			  VERSION_FROM	=> 'JS.pm', # finds $VERSION
-			  # You have to explain here how to find your opengl libs.
-			  ##LIBS => $VRML_CONFIG{JS_LIBS},
 			  LIBS => "",
-			  ##INC => $VRML_CONFIG{JS_INC},
 			  INC => "",
 			  dynamic_lib => {
 							  OTHERLDFLAGS => $VRML_CONFIG{LDFLAGS},
