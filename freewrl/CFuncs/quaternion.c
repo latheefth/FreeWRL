@@ -63,7 +63,7 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 
 	/* get the trace of the matrix */
 	T = 1 + MAT00 + MAT11 + MAT22;
-	printf ("T is %f\n",T);
+	//printf ("T is %f\n",T);
 
 	if (T > 0) {
 		S = 0.5/sqrt(T);
@@ -71,9 +71,9 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 		//x =  (m21 - m12) *S
 		//y =  (m02 - m20) *s
 		//z =  (m10 - m01) *s
-		X = (MAT21 - MAT12) * S;
-		Y = (MAT02 - MAT20) * S;
-		Z = (MAT10 - MAT01) * S;
+		X=(MAT12-MAT21)*S;
+		Y=(MAT20-MAT02)*S;
+		Z=(MAT01-MAT10)*S;
 	} else {
 		//If the trace of the matrix is equal to zero then identify
 		//which major diagonal element has the greatest value.
@@ -84,19 +84,19 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 			X = 0.25 * S;
 			Y = (MAT01 + MAT10) / S;
 			Z = (MAT02 + MAT20) / S;
-			W = (MAT12 - MAT21) / S;
+			W = (MAT21 - MAT12) / S;
 		} else if ( MAT11>MAT22 ) {// Column 1: 
 			S  = sqrt( 1.0 + MAT11 - MAT00 - MAT22) * 2;
 			X = (MAT01 + MAT10) / S;
 			Y = 0.25 * S;
 			Z = (MAT12 + MAT21) / S;
-			W = (MAT02 - MAT20) / S;
+			W = (MAT20 - MAT02) / S;
 		} else {// Column 2:
 			S  = sqrt( 1.0 + MAT22 - MAT00 - MAT11) * 2;
 			X = (MAT02 + MAT20) / S;
 			Y = (MAT12 + MAT21) / S;
 			Z = 0.25 * S;
-			W = (MAT01 - MAT10) / S;
+			W = (MAT10 - MAT01) / S;
 		}
 	}
 

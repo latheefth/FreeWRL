@@ -99,7 +99,7 @@ Extru_ST_map(int triind_start,
 void
 Extru_check_normal(struct pt *facenormals,
 				   int this_face,
-				   float direction,
+				   int dire,
 				   struct VRML_PolyRep *rep_,
 				   int ccw);
 
@@ -107,7 +107,7 @@ void
 do_color_normal_reset(void);
 
 void
-do_glColor3fv(struct SFColor *dest, GLfloat *param);
+do_glColor3fv(struct SFRotation *dest, GLfloat *param);
 
 void
 do_glNormal3fv(struct SFColor *dest, GLfloat *param);

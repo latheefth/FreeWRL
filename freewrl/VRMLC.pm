@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.144  2004/06/10 20:05:52  crc_canada
+# Extrusion (with concave endcaps) bug fixed; some javascript changes.
+#
 # Revision 1.143  2004/05/25 18:18:51  crc_canada
 # more sorting of nodes
 #
@@ -893,6 +896,7 @@ int nextlight() {
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
 int last_texture_depth = 0;
+float last_transparency = 0.0;
 
 /* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
    structures on these */

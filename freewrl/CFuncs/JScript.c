@@ -220,10 +220,7 @@ void JSInit(int num, SV *script) {
 		cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
 
 	/* send this data over to the routing table functions. */
-	CRoutes_js_new (num, JAVASCRIPT,
-		(unsigned int)_context, (unsigned int)_globalObj,
-		(unsigned int)br);
-	
+	CRoutes_js_new (num, JAVASCRIPT);
 
 	if (JSVerbose) printf("\tVRML browser initialized\n");
 }
@@ -301,7 +298,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  	_context = (JSContext *) ScriptControl[num].cx;
  	_globalObj = (JSObject *)ScriptControl[num].glob;
  
- 	if (JSVerbose)
+	if (JSVerbose)
  		printf ("start of JSGetProperty, cx %d script %s\n",(int)_context,script);
  
  	if (!JS_GetProperty(_context, _globalObj, script, &rval)) {
@@ -416,6 +413,7 @@ int JSaddGlobalECMANativeProperty(int num, char *name) {
 	memset(buffer, 0, STRING);
 	sprintf(buffer, "_%s_touched", name);
 	_val = INT_TO_JSVAL(0);
+
 	if (!JS_SetProperty(_context, _globalObj, buffer, &_val)) {
 		printf("JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
 				buffer);

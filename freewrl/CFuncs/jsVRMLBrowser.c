@@ -470,46 +470,34 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 
 
 	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr,
-				"JS_GetPrivate failed in doVRMLRoute called from %s.\n",
+		printf("JS_GetPrivate failed in doVRMLRoute called from %s.\n",
 				callingFunc);
 		return JS_FALSE;
 	}
-	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr,
-				"Wrong browser magic doVRMLRoute called from %s!\n",
-				callingFunc);
-		return JS_FALSE;
-	}
-
 	if (JS_ConvertArguments(context,
-							argc,
-							argv,
-							_c_format,
-							&(_obj[0]), &(_cstr[0]), &(_obj[1]), &(_cstr[1]))) {
+				argc,
+				argv,
+				_c_format,
+				&(_obj[0]), &(_cstr[0]), &(_obj[1]), &(_cstr[1]))) {
 		if ((_cls[0] = JS_GetClass(_obj[0])) == NULL) {
-			fprintf(stderr,
-					"JS_GetClass failed for arg 0 in doVRMLRoute called from %s.\n",
+			printf("JS_GetClass failed for arg 0 in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;
 		}
 		if ((_cls[1] = JS_GetClass(_obj[1])) == NULL) {
-			fprintf(stderr,
-					"JS_GetClass failed for arg 2 in doVRMLRoute called from %s.\n",
+			printf("JS_GetClass failed for arg 2 in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;
 		}
 		if (memcmp("SFNode", (_cls[0])->name, strlen((_cls[0])->name)) != 0 &&
 			memcmp("SFNode", (_cls[1])->name, strlen((_cls[1])->name)) != 0) {
-			fprintf(stderr,
-					"\nArguments 0 and 2 must be SFNode in doVRMLRoute called from %s(%s): %s\n",
+			printf("\nArguments 0 and 2 must be SFNode in doVRMLRoute called from %s(%s): %s\n",
 					browserFunc, _c_args, callingFunc);
 			return JS_FALSE;
 		}
 
 		if (!JS_GetProperty(context, _obj[0], "__handle", &(_v[0]))) {
-			fprintf(stderr,
-					"JS_GetProperty failed for arg 0 and \"__handle\" in doVRMLRoute called from %s.\n",
+			printf("JS_GetProperty failed for arg 0 and \"__handle\" in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;
 		}
@@ -517,8 +505,7 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 		_costr[0] = JS_GetStringBytes(_str[0]);
 
 		if (!JS_GetProperty(context, _obj[1], "__handle", &(_v[1]))) {
-			fprintf(stderr,
-					"JS_GetProperty failed for arg 2 and \"__handle\" in doVRMLRoute called from %s.\n",
+			printf("JS_GetProperty failed for arg 2 and \"__handle\" in doVRMLRoute called from %s.\n",
 					callingFunc);
 			return JS_FALSE;
 		}
@@ -535,8 +522,7 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 		doPerlCallMethodVA(brow->sv_js, perlBrowserFunc, "s", _route);
 		JS_free(context, _route);
 	} else {
-		fprintf(stderr,
-				"\nIncorrect argument format for %s(%s).\n",
+		printf( "\nIncorrect argument format for %s(%s).\n",
 				callingFunc, _c_args);
 		return JS_FALSE;
 	}

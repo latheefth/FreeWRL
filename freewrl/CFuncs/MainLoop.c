@@ -91,6 +91,10 @@ double lastTime;
 double BrowserStartTime; 	/* start of calculating FPS 	*/
 double BrowserFPS = 0.0;	/* calculated FPS		*/
 
+/* used for initializing (sometimes!) javascript initialize() */
+int myMaxScript = -1;
+
+
 /* Function protos */
 void do_keyPress(char kp, int type);
 void render_collisions(void);
@@ -115,6 +119,7 @@ char *getLibVersion() {
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
 	int doEvents;
+	int counter;
 
 
 	#ifndef AQUA
@@ -130,6 +135,7 @@ void EventLoop() {
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+
 
 	/* First time through */
 	if (loop_count == 0) {
@@ -276,6 +282,19 @@ void EventLoop() {
 
 		/* EAI */
 		handle_EAI();
+
+	}
+	/* any new scripts in here, that maybe are not initialized yet? 
+	 * If they had some events already, they'll already be initialized;
+	 * but don't do this if perl is parsing, because script init might
+	 * reference VRML constructs NOT found yet */
+	if (myMaxScript != max_script_found) {
+		if (!isPerlParsing()) {
+		    for (counter = myMaxScript; counter <= max_script_found; counter++) {
+			initializeScript(counter, FALSE);
+		    }
+		    myMaxScript = max_script_found;
+		}
 	}
 }	
 

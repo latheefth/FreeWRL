@@ -124,6 +124,8 @@ void verify_global_IFS_Coords(int max) {
 	int count;
 
 	for (count = 0; count < global_IFS_Coord_count; count++) {
+		//printf ("verifying count %d; val is %d, max %d\n",
+		//		count,global_IFS_Coords[count],max);
 		if ((global_IFS_Coords[count] < 0) ||
 			(global_IFS_Coords[count] >= max)) {
 

@@ -1748,7 +1748,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	/* tcindexes are TOTALLY different from sides  - set this in case we are 
 	   doing textures in the end caps */
 	tci_ct = nspi*nsec; 
-	
+
 	if(((this_->convex))) {
 		int endpoint;
 	
@@ -1816,7 +1816,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		struct SFColor *c1;
 		GLdouble tess_v[3]; 
 		int endpoint;
-	
+
 		tess_vs=malloc(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
 		if (!(tess_vs)) freewrlDie ("Extrusion - no memory for tesselated end caps");
 	
@@ -1830,15 +1830,21 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 			gluBeginPolygon(global_tessobj);
 	
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
+				//printf ("starting tv for x %d of %d\n",x,endpoint);
 	                	c1 = (struct SFColor *) &rep_->coord[3*x];
+				//printf ("and, coords for this one are: %f %f %f\n",
+				//		c1->c[0], c1->c[1],c1->c[2]);
+
 				tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
 				tess_vs[x] = x;
 				gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
 			}
 			gluEndPolygon(global_tessobj);
 			verify_global_IFS_Coords(ntri*3);
-	
+
 			for (x=0; x<global_IFS_Coord_count; x+=3) {
+				//printf ("now, in 2nd for loop, x %d glob %d\n",x,
+				//		global_IFS_Coord_count);
 	  			Elev_Tri(triind*3, this_face, global_IFS_Coords[x], 
 					global_IFS_Coords[x+2], global_IFS_Coords[x+1],
 					TRUE , rep_, facenormals, pointfaces,ccw);
@@ -1846,7 +1852,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 				triind ++;
 			}
 			/* Tesselated faces may have a different normal than calculated previously */
-			Extru_check_normal (facenormals,this_face,-1.0,rep_,ccw);
+			Extru_check_normal (facenormals,this_face,-1,rep_,ccw);
 	
 			this_face++;
 		}	
@@ -1872,7 +1878,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 				triind ++;
 			}
 			/* Tesselated faces may have a different normal than calculated previously */
-			Extru_check_normal (facenormals,this_face,1.0,rep_,ccw);
+			Extru_check_normal (facenormals,this_face,1,rep_,ccw);
 	
 			this_face++;
 		}

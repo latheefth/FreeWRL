@@ -39,12 +39,6 @@ bootstrap VRML::JS $VERSION;
 ## Debug:
 #$VRML::verbose::js=1;
 
-# keep an association of CNode to name - eg, if you have 1433423423, return NODE132
-my %CNTONAME = ();
-
-
-
-
 if ($VRML::verbose::js) {
 	VRML::VRMLFunc::setJSVerbose(1);
 }
@@ -90,11 +84,6 @@ sub new {
 
 		$this->initScriptFields($node, $_);
 	}
-
-	if (!VRML::VRMLFunc::jsrunScript($number, "initialize()", $rs, $rval)) {
-		cleanupDie("VRML::VRMLFunc::jsrunScript initialize failed in VRML::JS");
-	}
-
 	return $this;
 }
 
@@ -241,23 +230,31 @@ sub constrString {
 		$c = "new $ft(";
 
 		if ($ft =~ /^SFNode/) {
+			#print "constr string, checking for $v\n";
+
+			if ((ref $v eq "VRML::USE") ||
+			    ( ref $v eq "VRML::DEF")) {
+				$v = $v->real_node();
+				#print "constr string, v now is $v\n";
+			}
+
 			if (VRML::Handles::check($v)) {
 				$h = VRML::Handles::get($v);
 			} else {
 				$h = VRML::Handles::reserve($v);
 			}
 
-			# print "constrString, handle for $v is $h\n";
+			#print "constrString, handle for $v is $h\n";
 
 			# is this made yet? if so, return the backnode
-			if (!defined $h->{BackNode}{CNode}) {
+			if (!defined $v->{BackNode}{CNode}) {
 				$cn = $h;
 			} else {
-				$cn = $h->{BackNode}{CNode};
+				$cn = $v->{BackNode}{CNode};
 			}
 
 			# save the association so we can look up handle from CNode if need be.
-        		$CNTONAME{$cn} = $h;
+			VRML::Handles::CNodeLinkreserve("NODE$cn",$v);
 
 			$c .= "'".VRML::Field::SFNode->as_string($v)."','".$cn."'";
 		} elsif ($ft =~ /^MFNode/) {
@@ -266,10 +263,12 @@ sub constrString {
 			$l = scalar(@{$v});
 			for ($i = 0; $i < $l; $i++) {
 				$node = $v->[$i];
-				# print "constr string, checking for $node\n";
+				#print "constr string, checking for $node\n";
 
-				if (ref $node eq "VRML::USE") {
+				if ((ref $node eq "VRML::USE") ||
+				    ( ref $node eq "VRML::DEF")) {
 					$node = $node->real_node();
+					#print "constr string, node now is $node\n";
 				}
 
 				if (VRML::Handles::check($node)) {
@@ -284,10 +283,13 @@ sub constrString {
 				} else {
 					$cn = $node->{BackNode}{CNode};
 				}
+
 				# print "constr string, node now is $node, handle $h cn $cn\n";
 
 				# save the association so we can look up handle from CNode if need be.
-        			$CNTONAME{$cn} = $h;
+
+				#print "reserving in MFNode, $node\n";
+				VRML::Handles::CNodeLinkreserve("NODE$cn",$node);
 
 				$c .= "new SFNode('".VRML::Field::SFNode->as_string($node)."','".$cn."')";
 				$c .= "," unless ($i == ($l - 1));
@@ -385,8 +387,8 @@ sub getNodeCNode {
 sub jspBrowserReplaceWorld {
 	my ($this, $handles) = @_;
 
-	print "VRML::JS::jspBrowserReplaceWorld $handles\n";
-	#JAS 	if $VRML::verbose::js;
+	print "VRML::JS::jspBrowserReplaceWorld $handles\n"
+		if $VRML::verbose::js;
 
 	$this->{Browser}->replaceWorld($handles);
 }
@@ -395,7 +397,7 @@ sub jspBrowserLoadURL {
 	my ($this, $url, $parameter) = @_;
 
 	print "VRML::JS::jspBrowserLoadURL $url, $parameter\n"
-	;#JAS 	if $VRML::verbose::js;
+	 	if $VRML::verbose::js;
 
 	## VRML::Browser::loadURL not implemented yet
 	$this->{Browser}->loadURL($url, $handles);
@@ -427,12 +429,20 @@ sub jspBrowserCreateVrmlFromString {
 	print "VRML::JS::jspBrowserCreateVrmlFromString: \"$str\"\n"
 	  	if $VRML::verbose::js;
 
-        my $h = $this->{Browser}->createVrmlFromString($str);
-        push @handles, split(" ", $h);
+	# get a hash of node values/CNode values. Will return a hash
+	# with the index being the xx of NODExx, and value being CNode.
+	my %retval = VRML::Browser::EAI_CreateVrmlFromString($str);
+	my $key; foreach $key (keys(%{retval})) {
+		# gets the CNODE values: push @handles, $retval{$key};
+		push @handles, "NODE".$key;
+	}
 
-
+	# get a list of nodes, eg VRML::NodeIntern=HASH(xxx);
         my @nodes = map(VRML::Handles::get($_), @handles);
+	
+	# and, combine the two together; VRML text and node CNode.
         my $constr = $this->constrString(MFNode, \@nodes);
+
         my $script = "$browserRetval"."=$constr";
 
 	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, $script, $rs, $rval)) {
@@ -448,7 +458,7 @@ sub jspBrowserCreateVrmlFromURL {
 
 	print "VRML::JS::jspBrowserCreateVrmlFromURL: ",
 		VRML::Debug::toString(\@_), "\n"
-	;#JAS 			if $VRML::verbose::js;
+	 			if $VRML::verbose::js;
 
 	my $scene = $this->{Browser}{Scene};
 	my $root = $scene->{RootNode};
@@ -479,20 +489,31 @@ sub jspBrowserCreateVrmlFromURL {
 
 sub jspSFNodeConstr {
 	my ($this, $str) = @_;
+	my ($rval, $rs);
+	my @handles;
 	my $scene = $this->{Browser}{Scene};
-	my $handle = $this->{Browser}->createVrmlFromString($str);
 
-	$node = VRML::Handles::get($handle);
 
-	print "VRML::JS::jspSFNodeConstr: handle $handle, string \"$str\"\n"
-		if $VRML::verbose::js;
+	print "VRML::JS::jspSFNodeConstr: \"$str\"\n"
+	  	if $VRML::verbose::js;
 
-	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
-				   "$browserSFNodeHandle"."=\"$handle\"", $rs, $rval)) {
-		cleanupDie("runScript failed in VRML::JS::jspSFNodeConstr");
+        my $h = $this->{Browser}->createVrmlFromString($str);
+	my ($handle, $stuff) = split (" ",$h);
+	print "jspSFNodeConstr, first handle is $handle\n";
+
+        my $constr = $this->constrString(SFNode, VRML::Handles::get($handle));
+        my $script = "__ret"."=$constr";
+
+	print "jspSFNodeConstr, script is $script\n";
+
+	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, $script, $rs, $rval)) {
+		cleanupDie("runScript failed in VRML::JS::jspBrowserCreateVrmlFromString");
 	}
 }
 
+
+# Property is stored in Javascript; we need the values here in Perl. Get the
+# values from Javascript and return them to the Perl caller.
 
 sub getProperty {
 	my ($this, $type, $prop, $handle) = @_;
@@ -527,23 +548,20 @@ sub getProperty {
 		}
 		return "VRML::Field::$type"->parse($this->{Browser}{Scene}, $rstr);
 	} elsif ($type eq "MFNode") {
-		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
-					   "$prop.length", $rstr, $l)) {
-			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
+		#print "JS.pm - getProperty for MFNode, prop $prop\n";
+		if (!VRML::VRMLFunc::jsGetProperty($this->{ScriptNum},
+					   "$prop", $rstr)) {
+			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
-		print "\trunScript returned length $l for MFNode\n"
+		print "\trunScript returned prop $rstr for MFNode\n"
 			if $VRML::verbose::js;
-		for ($i = 0; $i < $l; $i++) {
-			if (!VRML::VRMLFunc::jsGetProperty($this->{ScriptNum},
-						   "$prop"."[$i].__handle", $rstr)) {
-				cleanupDie("runScript failed in VRML::JS::getProperty");
-			}
-			if ($rstr !~ /^undef/) {
-				push @res, VRML::Handles::get($rstr);
-			}
-		}
-		print "\treturn ", VRML::Debug::toString(\@res), "\n"
-			if $VRML::verbose::js;
+		$rstr =~ s/\[//;	# remove initial bracket
+		$rstr =~ s/^\s+//;	# remove initial spaces
+		$rstr =~s/\]//;		# remove trailing bracket
+		$rstr =~s/\s+$//;	# remove trailing spaces
+
+		push @res, split(" ", $rstr);	# split it up.
+
 		return \@res;
 	} else {
 		if (!VRML::VRMLFunc::jsGetProperty($this->{ScriptNum}, "$prop", $rstr)) {
@@ -557,35 +575,25 @@ sub getProperty {
 	}
 }
 
-
-sub addRemoveChildren {
-	my ($this, $node, $field, $c) = @_;
-
-	if ($field !~ /^(?:add|remove)Children$/) {
-		warn("Invalid field $field for VRML::JS::addChildren");
-		return;
-	}
-
-	print "VRML::JS::addRemoveChildren: ", VRML::Debug::toString(\@_), "\n"
-		if $VRML::verbose::js;
-
-	if (ref $c eq "ARRAY") {
-		return if (!@{$c});
-		$this->{Browser}->api__sendEvent($node, $field, $c);
-	} else {
-		return if (!$c);
-		$this->{Browser}->api__sendEvent($node, $field, [$c]);
-	}
-}
-
+# assign a value to a node that is stored in VRML-space; this is an assign,
+# NOT a route. eg: 
+# DEF Fertig Transform {}
+# SCRIPT xx field SFNode node USE Fertig
+# .... node.addChildren(newSFNode);
+# 
+# this is called from CFuncs/jsVRMLClasses.c
+# 
+# we do this in Perl, because we don't have the field offset handy in C, as we
+# would have with a ROUTE.
 
 sub jspSFNodeSetProperty {
 	my ($this, $prop, $cn) = @_;
 	my ($node, $handle, $val, $vt, $actualField, $rval);
 	my $scene = $this->{Browser}{Scene};
 
-	$handle = $CNTONAME{$cn};
-	$node = VRML::Handles::get($handle);
+	# print "jspSFNodeSetProperty, this $this, prop $prop, cn $cn\n";
+
+	$node = VRML::Handles::get("NODE$cn");
 
 	## see VRML97, section 4.7 (field, eventIn, and eventOut semantics)
 	if ($prop =~ /^set_($VRML::Error::Word+)/ and
@@ -604,21 +612,28 @@ sub jspSFNodeSetProperty {
 		print "Invalid property $prop for handle $handle\n";
 		return;
 	}
-	$val = $this->getProperty($vt, "$cn"."_$prop", $cn);
+	#print "VRML::JS::jspSFNodeSetProperty, getting vt $vt, cn $cn, prop $prop\n";
+	#print "VRML::JS::jspSFNodeSetProperty, node $node, handle $handle\n";
+	my $gf = "__node_"."$prop";
+
+	$val = $this->getProperty($vt, $gf, $cn);
 
 	print "VRML::JS::jspSFNodeSetProperty: setting $actualField, ",
 		VRML::Debug::toString($val), " for $prop of $cn\n"
 			if $VRML::verbose::js;
 
-	if ($actualField =~ /^(?:add|remove)Children$/) {
+	#print "comparing :$actualField: for children\n";
+	if (($actualField eq "addChildren") || ($actualField eq "removeChildren")) {
 		my $outoffset;
+
+		#print "this is an add/remove children node\n";
 
 		$outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{children};
 	        foreach $mych (@{$val}) {
-        	        #print "sendevto ",$node->{BackNode}{CNode}, " field $actualField child $mych, BN ",
-                	#                $mych->{BackNode}{CNode},"\n";
+			#print "sendevto ",$node->{BackNode}{CNode}, 
+			#	" field $actualField child $mych, BN ", $mych,"\n";
 			VRML::VRMLFunc::jsManipulateChild($node->{BackNode}{CNode}+$outoffset,
-							$actualField, $mych->{BackNode}{CNode});
+							$actualField, $mych);
         	}
 
 	} else {
@@ -626,19 +641,55 @@ sub jspSFNodeSetProperty {
 	}
 }
 
+# get info for a node in Perl space, save it (via a running script) for 
+# JavaScript/C to get a hold of 
 sub jspSFNodeGetProperty {
 	my ($this, $prop, $handle) = @_;
 
+	# print "jspSFNodeGetProperty start, handle $handle, prop $prop\n";
+
 	$node = VRML::Handles::get($handle);
+
+	# is this possibly a CNode (aka, straight memory pointer?) if so, make
+	# it into a NODExxxx, and re-look for it.
+	if ($node eq $handle) {
+		$node = VRML::Handles::get("NODE".$handle);
+	}
+
 	my $type = $node->{Type}{FieldTypes}{$prop};
 	my $ftype = "VRML::Field::$type";
-	my ($rs, $rval);
+	#print "jspSFNodeGetProperty, handle $handle, type $type, ftype $ftype\n";
+	my ($rs, $rval,$levnode, $script);
 
-
-	my $value = $node->{RFields}{$prop};
+	$levnode = $node->{Fields}{$prop};
+	$script = "NODE"."$handle"."_$prop";
+	
+	# my $key;
+	
+	#print "node is ",VRML::NodeIntern::dump_name($node),", $node\n";
+	# foreach $key (keys(%{$node->{Fields}})) {
+		# 		print "node ",
+		# 	VRML::NodeIntern::dump_name($node),
+		# 	" Fields $key\n";
+		# }
+	if (("MFNode" eq $type) || ("SFNode" eq $type)) {
+		$script = $script."=".$this->constrString($type,$levnode);
+	} else {
+		$script = $script."=\"".$ftype->as_string($value, 1)."\"";
+	}
+	#print "script is:$script\n";
 	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
-				   "$handle"."_$prop=".$ftype->as_string($value, 1),
-				   $rs, $rval)) {
+				   $script,$rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspSFNodeGetProperty");
 	}
+}
+
+sub jspBrowserAddRoute {
+	my ($this, $route) = @_;
+	VRML::Browser::JSRoute($this,1,$route);
+}
+
+sub jspBrowserDeleteRoute {
+	my ($this, $route) = @_;
+	VRML::Browser::JSRoute($this,0,$route);
 }

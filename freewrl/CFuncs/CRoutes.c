@@ -220,6 +220,60 @@ void markScriptResults(int tn, int tptr, int route, int tonode) {
 	}
 }
 
+/* call initialize on this script. called for script eventins and eventouts */
+void initializeScript(int num,int evIn) {
+	jsval *retval;
+	int counter, tn;
+	CRnodeStruct *to_ptr = NULL;
+
+	/* is this an event in? If so, num is a routing table entry */
+	if (evIn) {
+	    for (counter = 0; counter < CRoutes[num].tonode_count; counter++) {
+		to_ptr = &(CRoutes[num].tonodes[counter]);
+		tn = (int) to_ptr->node;
+		if (!(ScriptControl[tn]._initialized)) {
+			switch (ScriptControl[tn].thisScriptType) {
+				case JAVASCRIPT: {
+			 		ActualrunScript(tn, "initialize()" ,&retval);
+					ScriptControl[tn]._initialized=TRUE;
+					break;
+				}
+				case CLASSSCRIPT: {
+					printf ("initialize this CLASS script!\n");
+					break;
+				  }
+				default: {
+					printf ("do not handle Initialize for script type %d\n",
+						ScriptControl[tn].thisScriptType);
+				 }
+			}
+		}
+	    }
+	} else {
+		/* bounds check */
+		if ((num <0) || (num>max_script_found)) return;
+
+		/* this script initialized yet? */
+		if (!(ScriptControl[num]._initialized)) {
+			switch (ScriptControl[num].thisScriptType) {
+				case JAVASCRIPT: {
+			 		ActualrunScript(num, "initialize()" ,&retval);
+					ScriptControl[num]._initialized=TRUE;
+					break;
+				}
+				case CLASSSCRIPT: {
+					printf ("have to initialize this CLASS script!\n");
+					break;
+				  }
+				default: {
+					printf ("do not handle Initialize for script type %d\n",
+						ScriptControl[num].thisScriptType);
+				 }
+			}
+		}
+	}
+}
+
 /****************************************************************************/
 /*									    */
 /* get_touched_flag - see if this variable (can be a sub-field; see tests   */
@@ -492,8 +546,8 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, unsigne
 	int il;
 	int intval = 0;
 
-	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
-		tonode,toname,JSparamnames[toname].name,dataType,datalen);
+	//printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
+	//	tonode,toname,JSparamnames[toname].name,dataType,datalen);
 
 	switch (dataType) {
 		case SFBOOL:	{	/* SFBool */
@@ -556,7 +610,6 @@ void setECMAtype (int num) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
 		tptr = (int) to_ptr->foffset;
-		printf("set_one_ECMAtype called in setECMAtype\n");
 		set_one_ECMAtype (tn, tptr, JSparamnames[tptr].type, (void *)fn,(unsigned) len);
 	}
 }
@@ -1790,30 +1843,19 @@ Register a new script for future routing
 
 ********************************************************************/
 
-void CRoutes_js_new (int num,
-		int scriptType, 
-		unsigned int cx, unsigned int glob, unsigned int brow) {
-	UNUSED(cx);
-	UNUSED(glob);
-	UNUSED(brow);
-
-	/* more scripts than we can handle right now? */
-	if (num >= JSMaxScript)  {
-		JSMaxAlloc();
-	}
+void CRoutes_js_new (int num, int scriptType) {
 
 	/* record whether this is a javascript, class invocation, ... */
 	ScriptControl[num].thisScriptType = scriptType;
 
-	/* if it is a CLASSSCRIPT, make sure we know that it is not
+	/* if it is a script (class or javascript), make sure we know that it is not
 	 * initialized yet; because of threading, we have to wait until
 	 * the creating (perl) function is finished, otherwise a 
 	 * potential deadlock situation occurs, if the initialize
 	 * tries to get something via perl...
 	 */
 
-	if (scriptType == CLASSSCRIPT) ScriptControl[num].initialized = FALSE;
-	else ScriptControl[num].initialized = TRUE;
+	ScriptControl[num]._initialized = FALSE;
 
 	if (num > max_script_found) max_script_found = num;
 }
@@ -2194,6 +2236,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	int touched_flag=FALSE;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
+	jsval *retval;
 
 	UNUSED(ignore);
 
@@ -2201,6 +2244,10 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 	/* do we have any routes yet? - we can gather events before any routes are made */
 	if (!CRoutes_Initiated) return;
+
+	/* this script initialized yet? */
+	//JAS - events are running already if (!isPerlParsing()) 
+		initializeScript(actualscript, FALSE);
 
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
@@ -2354,10 +2401,6 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 void gatherClassEventOuts (int script) {
 	int startEntry;
 	int endEntry;
-	if (!(ScriptControl[script].initialized)) {
-		initJavaClass(script);
-		ScriptControl[script].initialized=TRUE;
-	}
 
 	/* routing table is ordered, so we can walk up to this script */
 	startEntry=1;
@@ -2511,6 +2554,9 @@ this sends events to scripts that have eventIns defined.
 ********************************************************************/
 void sendJScriptEventIn (int num, int fromoffset) {
 	//printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset);
+
+	/* this script initialized yet? */
+	initializeScript(num, TRUE);
 
 	/* set the parameter */
 	/* see comments in gatherScriptEventOuts to see exact formats */
@@ -2705,8 +2751,6 @@ void propagate_events() {
 
 		/* set all script flags to false - no triggers */
 		scripts_active = FALSE;
-
-		
 	} while (havinterp==TRUE);
 
 	if (CRVerbose) printf ("done propagate_events\n\n");

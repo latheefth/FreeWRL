@@ -260,7 +260,7 @@ void IFS_face_normals (
 void Extru_check_normal (
 	struct pt *facenormals,
 	int this_face, 
-	float direction,
+	int direction,
 	struct VRML_PolyRep  *rep_, 
 	int ccw) {
 
@@ -277,20 +277,18 @@ void Extru_check_normal (
 		zz2 = 1;
 	}
 
-	//printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
-	//	global_IFS_Coords[1],global_IFS_Coords[2]);
-
 	/* first three coords give us the normal */
  	c1 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[0]];
  	c2 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[zz1]];
  	c3 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[zz2]];
 
-	//printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
-	//	global_IFS_Coords[1],global_IFS_Coords[2]);
-	//printf ("Extru_check_normal vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
-	//	c1->c[0],c1->c[1],c1->c[2],
-	//	c2->c[0],c2->c[1],c2->c[2],
-	//	c3->c[0],c3->c[1],c3->c[2]);
+	/*printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
+		global_IFS_Coords[1],global_IFS_Coords[2]);
+	printf ("Extru_check_normal vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+		c1->c[0],c1->c[1],c1->c[2],
+		c2->c[0],c2->c[1],c2->c[2],
+		c3->c[0],c3->c[1],c3->c[2]);
+	*/
 
 	a[0] = c2->c[0] - c1->c[0];
 	a[1] = c2->c[1] - c1->c[1];
@@ -652,7 +650,7 @@ void Extru_ST_map(
 
 
 
-void do_glColor3fv(struct SFColor *dest, GLfloat *param) {
+void do_glColor3fv(struct SFRotation *dest, GLfloat *param) {
 	int i;
 
 	/* parameter checks */
@@ -661,9 +659,10 @@ void do_glColor3fv(struct SFColor *dest, GLfloat *param) {
 			param[i] = 0.5;
 		}
 	}
-	dest->c[0] = param[0];
-	dest->c[1] = param[1];
-	dest->c[2] = param[2];
+	dest->r[0] = param[0];
+	dest->r[1] = param[1];
+	dest->r[2] = param[2];
+	dest->r[3] = last_transparency;
 }
 
 
@@ -688,18 +687,8 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
  *
  * render_polyrep : render one of the internal polygonal representations
  * for some nodes
- */
- 
-
-
-/********************************************************************
-* 
-* stream_polyrep
-* 
-*  convert a polyrep into a structure format that displays very
-*  well, especially on fast graphics hardware 
-*
-*********************************************************************/
+ *
+ ********************************************************************/
 
 
 
@@ -765,7 +754,7 @@ void render_polyrep(void *node,
 	// colours?
 	if (r->color) {
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3,GL_FLOAT,0,r->color);
+		glColorPointer(4,GL_FLOAT,0,r->color);
 	}
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
@@ -821,7 +810,8 @@ void stream_polyrep(void *node,
 	int *newcindex;
 	struct SFColor *newpoints;
 	struct SFColor *newnorms;
-	struct SFColor *newcolors;
+	//struct SFColor *newcolors;
+	struct SFRotation *newcolors;
 	float *newtc;
 
 	int stream_poly_verbose = 0;
@@ -854,7 +844,7 @@ void stream_polyrep(void *node,
 
 
 	if (hasc) {
-		newcolors = malloc (sizeof (struct SFColor)*r->ntri*3);
+		newcolors = malloc (sizeof (struct SFRotation)*r->ntri*3);
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 

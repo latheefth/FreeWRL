@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.129  2004/06/10 20:05:52  crc_canada
+# Extrusion (with concave endcaps) bug fixed; some javascript changes.
+#
 # Revision 1.128  2004/05/25 18:18:51  crc_canada
 # more sorting of nodes
 #
@@ -661,11 +664,16 @@ Material =>  '
 
 		/* set the transparency here for the material */
 		trans = 1.0 - $f(transparency);
-		if ((trans<0.0) || (trans>1.0)) trans = 0.0;
+		//printf ("Material, trans %f\n",$f(transparency));
+		if (trans<0.0) trans = 0.0;
+		if (trans>=0.99) trans = 0.99;
 
 		/* and, record that we have a transparency here */
-		if (trans <=0.97) {
+		/* and record transparency value, in case we have an
+		   indexedfaceset with colour node */
+		if (trans <=0.99) {
 			have_transparency++;
+			last_transparency=trans;
 		}
 
 		dcol[3] = trans;
@@ -1376,6 +1384,7 @@ Billboard => (join '','
 #ifndef X3DMATERIALPROPERTY
 		} else {
 			last_texture_depth = 0;
+			last_transparency = 1.0;
 #endif
 		}
 

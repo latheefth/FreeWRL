@@ -63,7 +63,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 
 
 	/* register this script.... */
-	CRoutes_js_new(scriptInvocationNumber, CLASSSCRIPT, 0, 0, 0);
+	CRoutes_js_new(scriptInvocationNumber, CLASSSCRIPT);
 
 	/* make sure we tell the EAI socket code that this is not opened yet */
 	ScriptControl[scriptInvocationNumber].listen_fd = -1;

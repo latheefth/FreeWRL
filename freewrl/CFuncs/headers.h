@@ -128,6 +128,7 @@ extern int _fw_pipe, _fw_FD;
 
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
+extern float last_transparency;
 
 
 /* what is the max texture size as set by FreeWRL? */
@@ -242,7 +243,8 @@ extern struct Multi_String Anchor_url;
 	f == SFVEC2F ? "SFVec2f" : "unknown field type")))))))))))))))))))))))
 
 
-void CRoutes_js_new (int num,int scriptType, unsigned int cx, unsigned int glob, unsigned int brow);
+void CRoutes_js_new (int num,int scriptType);
+extern int max_script_found;
 void gatherScriptEventOuts(int script, int ignore);
 void getMFNodetype (char *strp, struct Multi_Node *ch, int ar);
 
@@ -277,7 +279,7 @@ struct CRscriptStruct {
 	unsigned int	brow;	/* BrowserIntern	*/
 
 	/* Java .CLASS parameters */
-	unsigned int 	initialized; 	/* has initialize been sent? */
+	unsigned int 	_initialized; 	/* has initialize been sent? */
 	int listen_fd, send_fd;		/* socket descriptors */
 	char NodeID[20];		/* combo Perl NODEXXX, and CNODE */
 
@@ -473,6 +475,5 @@ void processClassEvents(int scriptno, int startEntry, int endEntry);
 char *processThisClassEvent (unsigned int fn, int startEntry, int endEntry, char *buf);
 int ScanValtoBuffer(int len, int type, char *buf, void *memptr, int buflen); 
 void getCLASSMultNumType (char *buf, int bufSize, struct Multi_Vec3f *tn, int eletype, int addChild) ;
-
 
 #endif /* __HEADERS_H__ */

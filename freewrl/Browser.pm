@@ -661,6 +661,7 @@ sub EAI_CreateVrmlFromString {
 			$bn = $realele->{BackNode}{CNode};
 			$ele =~ s/^NODE//;
 			$retval{$ele} = $bn;
+			#print "EAI, have ele $ele, bn $bn\n";
 
 			# reserve the CNODE as a node, because sometimes we do need to go
 			# from CNode to node.
@@ -718,6 +719,41 @@ sub save_EAI_info {
 
 	push @EAIinfo, [$scene,$in,$node,$rn];
 }
+
+
+# Javascripting routing interface
+sub JSRoute {
+	my ($js, $dir, $route) = @_;
+
+	my ($fn, $ff, $tn, $tf) = split (" ",$route);
+
+	# print "JSRouting, from $fn, fromField $ff, to $tn, toField $tf\n";
+
+	# check to see if any of these are simply CNode pointers; if so, 
+	# try to make them into a NODE(cnode), and re-do the checks
+	my $nfn = VRML::Handles::check($fn);
+	my $ntn = VRML::Handles::check($tn);
+	# print "jspBrowser - check for them is $nfn, $ntn\n";
+
+	if ($nfn == 0) {
+		# print "from node is not checked ok\n";
+		$fn = "NODE".$fn;
+		$nfn = VRML::Handles::check($fn);
+	}
+	if ($ntn == 0) {
+		# print "to node is not checked ok\n";
+		$tn = "NODE".$tn;
+		$ntn = VRML::Handles::check($tn);
+	}
+	
+	if (($nfn==0) || ($ntn==0)) {
+		print "jspBrowserAddRoute, can not find either of $nfn, $ntn\n";
+		return;
+	}
+
+	$globalBrowser->{EV}->add_route($globalBrowser->{Scene},
+				1,$fn,$ff,$tn,$tf);
+}
 #########################################################3
 #
 # Private stuff
@@ -728,9 +764,6 @@ package VRML::Handles;
 
 {
 my %S = ();
-my %ONSCREEN = ();
-## delete %RP???
-my %RP = ();
 my %DEFNAMES = ();
 my %EAINAMES = ();
 
@@ -786,54 +819,11 @@ sub return_def_name {
 	return $DEFNAMES{$name};
 }
 
-sub displayed {
-	my($node) = @_;
-
-	# print "HANDLES::displayed $node\n";
-	# this child is displayed here.
-
-	$ONSCREEN{$node} = "yes";
-}
-
-
-sub check_displayed {
-	my ($node) = @_;
-
-	# is this child displayed yet?
-	if (defined $ONSCREEN{$node}) {
-		return 1;
-	}
-	return 0;
-}
-
-## delete these???
-# when sending children in EAI, we get the "real nodes". We actually want to
-# keep the backwards link, so that real nodes can point to their masters, in
-# cases of PROTOS.
-sub front_end_child_reserve {
-	my ($child, $real) = @_;
-	$RP{$child} = $real;
-	# print "front_end_child_reserve, reserving for child $child ", ref $child,
-	# 	VRML::NodeIntern::dump_name($child),  " real $real ", ref $real,
-	# 	VRML::NodeIntern::dump_name($real), "\n";
-
-}
-
-sub front_end_child_get {
-	my ($handle) = @_;
-	# print "front_end_child_get looking for $handle ",ref $handle,"\n";
-	if (!exists $RP{$handle}) {
-		# print "front_end_child_get Nonexistent parent for child !\n";
-		return $handle;
-	}
-	# print "front_end_child_get, returning for $handle ", $RP{$handle},"\n";
-	return $RP{$handle};
-}
 ######
 
 sub CNodeLinkreserve {
 	my($str,$object) = @_;
-	# print "Handle::CNodeLinkreserve, reserving $str for object $object type ", ref($object), "\n";
+	#print "Handle::CNodeLinkreserve, reserving $str for object $object type ", ref($object), "\n";
 
 	if(!defined $S{$str}) {
 		$S{$str} = [$object, 0];
@@ -866,8 +856,10 @@ sub get {
 	return NULL if $handle eq "NULL";
 
 	if(!exists $S{$handle}) {
+		#print "handle $handle does not exist\n";
 		return $handle;
 	}
+	#print "returning ", $S{$handle}[0],"\n";
 	return $S{$handle}[0];
 }
 sub check {
