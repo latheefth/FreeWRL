@@ -110,8 +110,8 @@ PROTO Wheel [
 	DEF FR1 FullRound { cycleInterval IS speed1 }
 	DEF FR2 FullRound { cycleInterval IS speed2 
 				 axis 0 0 1}
-	ROUTE FR1.value_changed TO CONE.rotation
-	ROUTE FR2.value_changed TO WHOLE.rotation
+	ROUTE FR1.value_changed TO CONE.set_rotation
+	ROUTE FR2.value_changed TO WHOLE.set_rotation
 }
 
 
