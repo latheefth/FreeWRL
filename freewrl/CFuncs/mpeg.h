@@ -427,8 +427,16 @@ extern unsigned int cacheMiss[8][8];
 #define BIG_ENDIAN_ARCHITECTURE 1
 #endif
 
+#if defined(__APPLE__)
+#undef LITTLE_ENDIAN_ARCHITECTURE
+#define BIG_ENDIAN_ARCHITECTURE 1
+#endif
+
+
 #if !defined(LITTLE_ENDIAN_ARCHITECTURE) && !defined(BIG_ENDIAN_ARCHITECTURE)
 Error: Unknown endianism of architecture
+//#undef LITTLE_ENDIAN_ARCHITECTURE
+//#define BIG_ENDIAN_ARCHITECTURE 1
 #endif
 
 #ifdef __alpha__

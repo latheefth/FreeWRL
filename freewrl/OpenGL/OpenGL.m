@@ -7,11 +7,13 @@ typedef struct OpenGLVTab
 #include "OpenGL.vf"
 #undef VFUNC
 #undef VVAR
-} OpenGLVTab;
+} OpenGLVTab; 
 extern OpenGLVTab *OpenGLVPtr;
-#define D_OPENGL OpenGLVTab *OpenGLVPtr
-#define I_OPENGL OpenGLVPtr = (OpenGLVTab *) SvIV(perl_get_sv("VRML::OpenGLVPtr",5));   
+#define D_OPENGL extern OpenGLVTab *OpenGLVPtr
+#define I_OPENGL OpenGLVPtr = (OpenGLVTab *) SvIV(perl_get_sv("VRML::OpenGLVPtr",5));  
+#endif 
 #ifndef OPENGL_NOVIRT
+#define OPENGL_NOVIRT
 #define glClearIndex (*OpenGLVPtr->V_glClearIndex)
 #define glClearColor (*OpenGLVPtr->V_glClearColor)
 #define glClear (*OpenGLVPtr->V_glClear)
@@ -353,5 +355,4 @@ extern OpenGLVTab *OpenGLVPtr;
 #define glXWaitGL (*OpenGLVPtr->V_glXWaitGL)
 #define glXWaitX (*OpenGLVPtr->V_glXWaitX)
 #define glXUseXFont (*OpenGLVPtr->V_glXUseXFont)
-#endif
 #endif
