@@ -20,7 +20,7 @@ WriteMakefile(
     'PREREQ_PM'		=> {}, # e.g., Module::Name => 1.1
     'LIBS'		=> [''], # e.g., '-lm'
     'DEFINE'		=> '', # e.g., '-DHAVE_SOMETHING'
-    'INC'		=> "-Inetscape/include"
+    'INC'		=> "-Inetscape/include -I/usr/X11R6/include -I/usr/X11/include"
 );
 
 sub MY::post_initialize {
