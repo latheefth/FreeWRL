@@ -247,6 +247,9 @@ sub resolve_node_cnode {
 		#print "this is a protoexp, I am ",VRML::NodeIntern::dump_name($node->{Scene}), 
 		#		" ProtoExp ",VRML::NodeIntern::dump_name($node->{ProtoExp}),"\n";
 		$cs = $node->{ProtoExp};
+
+		$node = $node->{ProtoExp}{Nodes}[0];
+		#print "ProtoExp node now is ",VRML::NodeIntern::dump_name($node),"\n";
 	}
 	if (!defined $SCENENUMBERS{$cs}) { $SCENENUMBERS{$cs} = $scenecount++; }
 	my $scenenum = $SCENENUMBERS{$cs};
