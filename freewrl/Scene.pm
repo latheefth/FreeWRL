@@ -264,21 +264,10 @@ sub newextp {
 	## die or simply return?
 	die "File $protourl was not found" if (!$string);
 
+    # convert from X3D if required.
     if ($string =~/^<\?xml version/s) {
-		eval 'require XML::LibXSLT';
-		eval 'require XML::LibXML';
-
-		my $parser = XML::LibXML->new();
-		my $xslt = XML::LibXSLT->new();
-
-		my $source = $parser->parse_string($string);
-		my $style_doc = $parser->parse_file($VRML::Browser::X3DTOVRMLXSL);
-
-		my $stylesheet = $xslt->parse_stylesheet($style_doc);
-
-		my $results = $stylesheet->transform($source);
-
-		$string = $stylesheet->output_string($results);
+        my $brow = $this->get_browser();
+        $string = $brow->convertX3D($string);
     }
 
 	unless ($string =~ /^#VRML V2.0/s) {
