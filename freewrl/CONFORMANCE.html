@@ -1,7 +1,7 @@
 	<TITLE>FreeWRL - Conformance</TITLE>
 <H3>Conformance</H3>
 
-&#35; Copyright (C) 1998 Tuomas J.Lukka, 1999-2001, John Stewart CRC Canada.
+&#35; Copyright (C) 1998 Tuomas J.Lukka, 1999-2002, John Stewart CRC Canada.
 
 <BR>&#35; DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 
@@ -11,19 +11,350 @@
 
 <BR>&#35; which belong under the mozilla public license.
 
-<P>We have started running FreeWRL through the NIST Conformance Test Suite.
-The initial results can be found under tests/Doc.
-Since it usually takes a couple of passes through latex to get all the table
-measurements and cross-references right, issue the make command until all warnings
-such as the ones below no longer appear:
 <P>
-<BR>Package longtable Warning: Table widths have changed. Rerun LaTeX.
-<BR>LaTeX Warning: There were undefined references.
-<BR>LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-<BR><BR>
-<P>Then use the Makefile to create the document in the format of your choice:
-<BR>
-<LIST>
-<LI> make dvi for the DVI file
-<LI> make ps for the PS file
-<LI> make pdf for the PDF file
+This table outlines FreeWRL's complance to the Web3D VRML Base Spec. 
+<P><B>NOTE:</B> FreeWRL supports full conformance in some nodes to the 
+full VRML 97 spec, not only to the Base spec.
+<P>
+
+<P><TABLE BORDER="1" CELLPADDING="4" CELLSPACING="4" WIDTH="100%">
+<CAPTION ALIGN="TOP"><H4><A NAME="Table7.1"></A>Specifications for VRML browsers
+conforming to the base profile, FreeWRL Conformance</H4>
+</CAPTION>
+<TR>
+<TH WIDTH="28%"><DL>
+  <DT><CENTER><B><FONT COLOR="#000000">Item</FONT></B></CENTER>
+</DL>
+</TH>
+<TH WIDTH="50%"><B><FONT COLOR="#000000">Base Profile</FONT></B></TH>
+<TH WIDTH="22%"><B><FONT COLOR="#000000">FreeWRL 0.32</FONT></B></TH></TR>
+<TR ALIGN="LEFT">
+<TD>All groups</TD>
+<TD>500 children. Ignore <I>bboxCenter</I> and <I>bboxSize</I>.</TD>
+<TD>OK.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>All interpolators</TD>
+<TD>1000 key-value pairs.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>All lights</TD>
+<TD>8 simultaneous lights.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Names for DEF/PROTO/field</TD>
+<TD>50 utf8 octets.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>All <I>url</I> fields</TD>
+<TD>10 URLs. URN's ignored.<BR>
+Support `http', `file', and `ftp' protocols.<BR>
+Support relative URLs where relevant.</TD>
+<TD>OK.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>PROTO/<BR>
+EXTERNPROTO</TD>
+<TD>30 fields, 30 eventIns, 30 eventOuts, 30 exposedFields.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR>
+<TD>&nbsp;EXTERNPROTO</TD>
+<TD>URL references VRML files conforming to the base profile</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>PROTO definition nesting depth</TD>
+<TD>5 levels.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFBool</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFColor</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFFloat</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFImage</TD>
+<TD>256 width. 256 height.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFInt32</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFNode</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFRotation</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFString</TD>
+<TD>30,000 utf8 octets.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFTime</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFVec2f</TD>
+<TD>15,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SFVec3f</TD>
+<TD>15,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFColor</TD>
+<TD>15,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFFloat</TD>
+<TD>1,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFInt32</TD>
+<TD>20,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFNode</TD>
+<TD>500 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFRotation</TD>
+<TD>1,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFString</TD>
+<TD>30,000 utf8 octets per string, 10 strings.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFTime</TD>
+<TD>1,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFVec2f</TD>
+<TD>15,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MFVec3f</TD>
+<TD>15,000 values.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Anchor</TD>
+<TD>Ignore <I>parameter</I>. Ignore <I>description.</I></TD></TR>
+<TR ALIGN="LEFT">
+<TD>Appearance</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>AudioClip</TD>
+<TD>30 second uncompressed PCM WAV. Ignore <I>description</I>.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Background</TD>
+<TD>One <I>skyColor</I>, one <I>groundColor</I>, panorama images as per ImageTexture.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Billboard</TD>
+<TD>Full support except as for all groups.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Box</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Collision</TD>
+<TD>Full support except as for all groups. Any navigation behaviour acceptable
+when collision occurs.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Color</TD>
+<TD>15,000 colours.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>ColorInterpolator</TD>
+<TD>Full support except as for all interpolators.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Cone</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Coordinate</TD>
+<TD>15,000 points.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>CoordinateInterpolator</TD>
+<TD>15,000 coordinates per <I>keyValue</I>. Support as for all interpolators.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Cylinder</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>CylinderSensor</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>DirectionalLight</TD>
+<TD>Not scoped by parent Group or Transform.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>ElevationGrid</TD>
+<TD>16,000 heights.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Extrusion</TD>
+<TD>(#<I>crossSection</I> points)*(#<I>spine</I> points) &lt;= 2,500.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Fog</TD>
+<TD>&quot;EXPONENTIAL&quot; treated as &quot;LINEAR&quot;</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>FontStyle</TD>
+<TD>If the values of the text aspects character set, <I>family</I>, <I>style</I>
+cannot be simultaneously supported, the order of precedence shall be: 1)
+character set 2) <I>family</I> 3) <I>style</I>. Browser must display all
+characters in ISO 8859-1 character set.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Group</TD>
+<TD>Full support except as for all groups.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>ImageTexture</TD>
+<TD>JPEG and PNG format. Support as for PixelTexture.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>IndexedFaceSet</TD>
+<TD>10 vertices per face. 5000 faces. 15,000 indices in any index field.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>IndexedLineSet</TD>
+<TD>15,000 total vertices. 15,000 indices in any index field.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Inline</TD>
+<TD>Full support except as for all groups.<BR>
+<I>url</I> references VRML files conforming to the base profile</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>LOD</TD>
+<TD>At least first 4 <I>level</I>/<I>range</I> combinations interpreted, and
+support as for all groups. Implementations may disregard <I>level</I> distances.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Material</TD>
+<TD>Ignore ambient intensity. Ignore specular colour. Ignore emissive colour.
+One-bit transparency; transparency values &gt;= 0.5 transparent.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>MovieTexture</TD>
+<TD>MPEG1-Systems and MPEG1-Video formats. Display one active movie texture.
+Ignore <I>speed</I> field.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>NavigationInfo</TD>
+<TD>Ignore <I>avatarSize</I>. Ignore <I>visibilityLimit</I>.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Normal</TD>
+<TD>15,000 normals</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>NormalInterpolator</TD>
+<TD>15,000 normals per <I>keyValue</I>. Support as for all interpolators.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>OrientationInterpolator</TD>
+<TD>Full support except as for all interpolators.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>PixelTexture</TD>
+<TD>256 width. 256 height. Display fully transparent and fully opaque pixels.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>PlaneSensor</TD>
+<TD>Full support.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>PointLight</TD>
+<TD>Ignore <I>radius</I>. Linear attenuation.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>PointSet</TD>
+<TD>5000 points.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>PositionInterpolator</TD>
+<TD>Full support except as for all interpolators.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>ProximitySensor</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>ScalarInterpolator</TD>
+<TD>Full support except as for all interpolators.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Script</TD>
+<TD>25 eventIns. 25 eventOuts. 25 fields.<BR>
+No scripting language support required.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Shape</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Sound</TD>
+<TD>2 active sounds. Linear distance attenuation. No spatialization. See 7.3.4.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Sphere</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SphereSensor</TD>
+<TD>Full support.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>SpotLight</TD>
+<TD>Ignore <I>beamWidth</I>. Ignore <I>radius</I>. Linear attenuation.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Switch</TD>
+<TD>Full support except as for all groups.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Text</TD>
+<TD>100 characters per string. 100 strings.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>TextureCoordinate</TD>
+<TD>15,000 coordinates.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>TextureTransform</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>TimeSensor</TD>
+<TD>Ignored if <I>cycleInterval</I> &lt; 0.01 second.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>TouchSensor</TD>
+<TD>Full support.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Transform</TD>
+<TD>Full support except as for all groups.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>Viewpoint</TD>
+<TD>Ignore <I>fieldOfView</I>. Ignore <I>description</I>.</TD>
+<TD>Full VRML97 Conformance.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>VisibilitySensor</TD>
+<TD>Always visible.</TD></TR>
+<TR ALIGN="LEFT">
+<TD>WorldInfo</TD>
+<TD>Ignored.</TD></TR>
+</TABLE>
+</P>
