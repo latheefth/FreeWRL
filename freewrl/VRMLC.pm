@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.102  2003/07/15 18:51:48  crc_canada
+# EAI in C work
+#
 # Revision 1.101  2003/07/15 14:04:08  crc_canada
 # Viewer selection work
 #
@@ -2744,6 +2747,18 @@ CODE:
 	sprintf (onechildline, "[ %d ]",child);
 	getMFNodetype (onechildline, (struct Multi_Node *) par,
 		!strncmp (fiel,"addChild",strlen ("addChild")));
+
+# link into EAI.
+void
+do_create_EAI(eailine)
+	char *eailine
+	CODE:
+	printf ("create_EAI called :%s:\n",eailine);
+
+void
+do_handle_EAI ()
+	CODE:
+	//printf ("handle eai called\n");
 
 
 #****************JAVASCRIPT FUNCTIONS*********************************

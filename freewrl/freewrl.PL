@@ -676,9 +676,7 @@ $SIG{SEGV} = \&clean_exit;
 $VRML::ENV{EAI_CONN_RETRY} = 25;
 
 if($eai) {
-	require "VRML/VRMLServ.pm";
-	$s = VRML::EAIServer->new($b);
-	$s->connect($eai);
+	VRML::VRMLFunc::do_create_EAI($eai);
 }
 
 $b->eventloop();
