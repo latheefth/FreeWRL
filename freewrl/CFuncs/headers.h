@@ -226,7 +226,7 @@ int verify_translate(GLfloat *params);
 #define MAXROUTES 1000
 #define MAXSCRIPTS 40
 #define MAXPARAMS 100
-#define MAXJSVARIABLELENGTH 20	/* variable name length can be this long... */
+#define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 
 void mark_event (unsigned int from, unsigned int fromoffset);
 void do_OintScalar (void *px);
