@@ -91,9 +91,6 @@
 
 #define MONO_THRESHOLD 11
 
-#else
-#endif
-
 /* External declaration of row,col to zig zag conversion matrix. */
 
 /* Brown - changed to const int because it is a help variable */

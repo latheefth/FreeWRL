@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.115  2003/09/23 18:35:23  crc_canada
+# sept 23, 2003 bulk EAI changes.
+#
 # Revision 1.114  2003/09/17 17:23:31  crc_canada
 # More EAI updates; TouchSensors advise ok; better error handling
 #
@@ -1311,7 +1314,8 @@ int last_texture_depth = 0;
 int sound_from_audioclip = 0;
 
 /* and, we allow a maximum of so many pixels per texture */
-GLint global_texSize = 64;
+/* if this is zero, first time a texture call is made, this is set to the OpenGL implementations max */
+GLint global_texSize = 0;
 
 /* for printing warnings about Sound node problems - only print once per invocation */
 int soundWarned = FALSE;
@@ -1621,6 +1625,26 @@ unsigned int EAI_CreateVrml (char *tp, char *inputstring, unsigned int *retarr) 
 	LEAVE;
 
 	return (count);
+}
+
+void EAI_replaceWorld (char *inputstring) {
+	int count;
+	unsigned int noderef;
+	int tmp;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSVpv(inputstring, 0)));
+	PUTBACK;
+		count = call_pv("EAI_replaceWorld", G_ARRAY);
+	SPAGAIN ;
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+
+	return;
 }
 
 	
@@ -2046,9 +2070,7 @@ read_mpg_file(init_tex, fname,repeatS,repeatT)
 	int repeatT
 CODE:
 	/* go directly to the CFuncs/MPEG_Utils, and run from there */
-#ifndef AQUA
 	RETVAL = mpg_main(init_tex, fname, repeatS, repeatT);
-#endif
 OUTPUT:
 	RETVAL
 

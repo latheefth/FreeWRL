@@ -265,7 +265,10 @@ void connect_EAI() {
 			EAIfailed = TRUE;
 			return;
 		}
-		
+	
+		/* zero out the EAIListenerData here, and after every use */	
+		bzero(&EAIListenerData, sizeof(EAIListenerData));
+
 		/* seems like we are up and running now, and waiting for a command */
 		EAIinitialized = TRUE;	
 	}
@@ -515,6 +518,9 @@ void EAI_parse_commands (char *bufptr) {
 				getMFNodetype (dtmp,(struct Multi_Node *)rc, 
 						strcmp(ctmp,"removeChildren"));
 	
+				/* tell the routing table that this node is updated - used for RegisterListeners */
+				mark_event(ra,rb);
+
 				sprintf (buf,"RE\n%d\n0",count);
 				break;
 				}
@@ -538,8 +544,12 @@ void EAI_parse_commands (char *bufptr) {
 				//printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
 				//		ra, rb,rc,ctmp);
 				
+
+				/* put the address of the listener area in a string format for registering
+				   the route - the route propagation will copy data to here */
 				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
 
+				/* set up the route from this variable to the handle_Listener routine */
 				CRoutes_Register  (ra,rb, 1, EAIListenerArea, rc, &handle_Listener, 0, 
 					(count<<8)+ctmp[0]); // encode id and type here
 	
@@ -558,7 +568,11 @@ void EAI_parse_commands (char *bufptr) {
 				EAI_Convert_mem_to_ASCII (count,"RE",(int)ctmp[0],(char *)ra, buf);
 				break;
 				}
-//XXX			case REPLACEWORLD:  
+			case REPLACEWORLD:  {
+				if (EAIVerbose) printf ("REPLACEWORLD %s \n",bufptr);
+				EAI_replaceWorld(bufptr);
+				break;
+				}
 //XXX			case ADDROUTE:  
 //XXX			case DELETEROUTE:  
 //XXX			case LOADURL: 
@@ -722,14 +736,44 @@ unsigned int EAI_SendEvent (char *ptr) {
 void handle_Listener () {
 	int id, tp;
 	char buf[EAIREADSIZE];
+	struct Multi_Node *mfptr;	// used for freeing memory
 
 	// get the type and the id.
 	tp = CRoutesExtra&0xff;
 	id = (CRoutesExtra & 0xffffff00) >>8;
-	if (EAIVerbose) printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
-	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
-	EAI_send_string(buf);
 
+	if (EAIVerbose) 
+		printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
+
+	/* convert the data to string form, for sending to the EAI java client */
+	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
+
+	/* if this is a MF type, there most likely will be malloc'd memory to free... */
+	switch (tp) {
+		case EAI_MFCOLOR:
+		case EAI_MFFLOAT:
+		case EAI_MFTIME:
+		case EAI_MFINT32:
+		case EAI_MFSTRING:
+		case EAI_MFNODE:
+		case EAI_MFROTATION:
+		case EAI_MFVEC2F:
+		case EAI_MFVEC3F: {
+			mfptr = (struct Multi_Node *) EAIListenerData;
+			if (((*mfptr).p) != NULL) free ((*mfptr).p);
+		}
+		default: {}
+	}
+		
+
+	
+
+	/* zero the memory for the next time - MultiMemcpy needs this to be zero, otherwise
+	   it might think that the "oldlen" will be non-zero */
+	bzero(&EAIListenerData, sizeof(EAIListenerData));
+
+	/* send the EV reply */
+	EAI_send_string(buf);
 }
 
 
@@ -891,6 +935,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	int ival;
 	int row;			/* MF* counter */
 	struct Multi_String *MSptr;	/* MFString pointer */
+	struct Multi_Node *MNptr;	/* MFNode pointer */
 	char *ptr;			/* used for building up return string */
 
 	switch (type) {
@@ -975,16 +1020,29 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
+		case EAI_MFNODE: 	{
+			MNptr = (struct Multi_Node *) memptr;
+
+			if (EAIVerbose) printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(int) memptr);
+			sprintf (buf, "%s\n%d\n",reptype,id);
+			ptr = buf + strlen(buf);
+
+			for (row=0; row<(*MNptr).n; row++) {
+				sprintf (ptr, "%d ",(int) (*MNptr).p[row]);
+				ptr = buf + strlen (buf);
+			}
+			break;
+		}
 		default: {
 			printf ("EAI, type %c not handled yet\n",type);
 		}
+
 
 //XXX	case EAI_SFIMAGE:	{handleptr = &handleEAI_SFIMAGE_Listener;break;}
 //XXX	case EAI_MFCOLOR:	{handleptr = &handleEAI_MFCOLOR_Listener;break;}
 //XXX	case EAI_MFFLOAT:	{handleptr = &handleEAI_MFFLOAT_Listener;break;}
 //XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}
 //XXX	case EAI_MFINT32:	{handleptr = &handleEAI_MFINT32_Listener;break;}
-//XXX	case EAI_MFNODE:	{handleptr = &handleEAI_MFNODE_Listener;break;}
 //XXX	case EAI_MFROTATION:{handleptr = &handleEAI_MFROTATION_Listener;break;}
 //XXX	case EAI_MFVEC2F:	{handleptr = &handleEAI_MFVEC2F_Listener;break;}
 //XXX	case EAI_MFVEC3F:	{handleptr = &handleEAI_MFVEC3F_Listener;break;}

@@ -426,7 +426,7 @@ void setECMAtype (int num) {
 
 		switch (JSparamnames[tptr].type) {
 		case SFBOOL:	{	/* SFBool */
-			memcpy ((void *) &intval,(void *)fn+fptr, len);
+			memcpy ((void *) &intval,(void *)(fn+fptr), (unsigned) len);
 			if (intval == 1) sprintf (scriptline,"__tmp_arg_%s=true",JSparamnames[tptr].name);
 			else sprintf (scriptline,"__tmp_arg_%s=false",JSparamnames[tptr].name);
 			
@@ -434,20 +434,20 @@ void setECMAtype (int num) {
 		}
 
 		case SFFLOAT:	{
-			memcpy ((void *) &fl,(void *)fn+fptr, len);
+			memcpy ((void *) &fl,(void *)(fn+fptr), (unsigned) len);
 			sprintf (scriptline,"__tmp_arg_%s=%f",
 					 JSparamnames[tptr].name,fl);
 			break;
 		}
 		case SFTIME:	{
-			memcpy ((void *) &dl,(void *)fn+fptr, len);
+			memcpy ((void *) &dl,(void *)(fn+fptr), (unsigned) len);
 			sprintf (scriptline,"__tmp_arg_%s=%f",
 					 JSparamnames[tptr].name,dl);
 			break;
 		}
 		case SFNODE:
 		case SFINT32:	{ /* SFInt32 */
-			memcpy ((void *) &il,(void *)fn+fptr, len);
+			memcpy ((void *) &il,(void *)(fn+fptr), (unsigned) len);
 			sprintf (scriptline,"__tmp_arg_%s=%d",
 					 JSparamnames[tptr].name,il);
 			break;
@@ -628,13 +628,13 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 		par->p = newmal;
 		par->n = oldlen+newlen;
 	
-		newmal += sizeof (unsigned int)*oldlen;
+		newmal = (void *) ((int) newmal + sizeof (unsigned int) * oldlen);
 	
 		while (sscanf (cptr,"%d", newmal) == 1) {
 			/* skip past this number */
 			while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 			while (*cptr == ' ') cptr++; /* skip spaces */
-			newmal += sizeof (unsigned int);
+			newmal = (void *) (newmal + sizeof (unsigned int));
 		}
 
 	} else {
@@ -872,22 +872,74 @@ void setMultiElementtype (int num) {
 }
 
 /* internal variable to copy a C structure's Multi* field */
-void Multimemcpy (void *tn, void *fn, int len) {
-	struct Multi_Vec3f *mv3ffn;
-	struct Multi_Vec3f *mv3ftn;
+void Multimemcpy (void *tn, void *fn, int multitype) {
+	int structlen;
+	int fromcount, tocount;
+	void *fromptr, *toptr;
 
+	struct Multi_Vec3f *mv3ffn, *mv3ftn;
 
-	if (len == -1) {
-		/* this is a Multi_Vec3f */
-		mv3ffn = fn;
-		mv3ftn = tn;
-/* 		if (CRVerbose) printf ("MultiMemcpy to %#x from %#x lenf %d lent %d\n",tn,fn,mv3ftn->n,mv3ftn->n); */
-		if (CRVerbose) printf ("MultiMemcpy to %u from %u lenf %d lent %d\n",
-							   tn, fn, mv3ftn->n, mv3ftn->n);
-		memcpy (mv3ftn->p,mv3ffn->p,sizeof(struct SFColor) * mv3ftn->n);
-	} else {
-		printf("WARNING: Multimemcpy, don't handle type %d yet\n", len);
+	//printf ("Multimemcpy, copying structures %d %d type %d\n",tn,fn,multitype);
+
+	/* copy a complex (eg, a MF* node) node from one to the other 
+	   the following types are currently found in VRMLNodes.pm - 
+
+		 -1  is a Multi_Color or MultiVec3F
+		 -10 is a Multi_Node 
+		 -12 is a SFImage 
+		 -13 is a Multi_String 
+		 -14 is a Multi_Float 
+		 -15 is a Multi_Rotation 
+		 -16 is a Multi_Int32 
+		 -18 is a Multi_Vec2f 
+	*/
+
+	/* Multi_XXX nodes always consist of a count then a pointer - see
+	   Structs.h */
+
+	/* making the input pointers into a (any) structure helps deciphering params */
+	mv3ffn = (struct Multi_Vec3f *)fn;
+	mv3ftn = (struct Multi_Vec3f *)tn;
+
+	/* so, get the from memory pointer, and the to memory pointer from the structs */
+	fromptr = (void *)mv3ffn->p;
+
+	/* and the from and to sizes */
+	fromcount = mv3ffn->n;
+	tocount = mv3ftn->n;
+
+	/* get the structure length */
+	switch (multitype) {
+		case -1: {structlen = sizeof (struct SFColor); break; }
+		case -10: {structlen = sizeof (unsigned int); break; }
+		case -12: {structlen = sizeof (unsigned int); break; } // this is broken in many, many ways
+		case -13: {structlen = sizeof (unsigned int); break; }
+		case -14: {structlen = sizeof (float); break; }
+		case -15: {structlen = sizeof (struct SFRotation); break;}
+		case -16: {structlen = sizeof (int); break;}
+		case -18: {structlen = sizeof (struct SFVec2f); break;}
+		default: {
+			printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);
+			structlen=0;
+			return;
+		}
 	}
+
+
+	/* free the toptr */
+	if (toptr != NULL) free (toptr);
+
+	/* malloc the toptr */
+	mv3ftn->p = malloc (structlen*fromcount);
+	toptr = (void *)mv3ftn->p;
+
+	/* tell the recipient how many elements are here */
+	mv3ftn->n = fromcount;
+
+	//printf ("Multimemcpy, fromcount %d tocount %d fromptr %d toptr %d\n",fromcount,tocount,fromptr,toptr);
+
+	/* and do the copy of the data */
+	memcpy (toptr,fromptr,structlen * fromcount);
 }
 
 
@@ -1495,11 +1547,6 @@ void propagate_events() {
 							to_counter);
 					continue;
 				}
-/* 			if (CRVerbose) printf ("propagate_events, counter %d from %#x off %#x to %#x off %#x oint %#x\n", */
-/* 				counter,CRoutes[counter].fromnode,CRoutes[counter].fnptr, */
-/* 				CRoutes[counter].tonode,CRoutes[counter].tnptr, */
-/* 				CRoutes[counter].interpptr); */
-
 				if (CRVerbose)
 					/* printf("propagate_events: counter %d to_counter %u from %#x off %#x to %#x off %#x oint %#x\n", */
 					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u\n",
@@ -1525,18 +1572,12 @@ void propagate_events() {
 						if (CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
 
-/* 						memcpy (CRoutes[counter].tonode + CRoutes[counter].tnptr,  */
-/* 							CRoutes[counter].fromnode + CRoutes[counter].fnptr, */
-/* 							CRoutes[counter].len); */
 							memcpy(to_ptr->node + to_ptr->foffset,
 								   CRoutes[counter].fromnode + CRoutes[counter].fnptr,
 								   CRoutes[counter].len);
 						} else {
 							/* this is a Multi*node, do a specialized copy */
 
-/* 						Multimemcpy (CRoutes[counter].tonode + CRoutes[counter].tnptr,  */
-/* 							CRoutes[counter].fromnode + CRoutes[counter].fnptr, */
-/* 							CRoutes[counter].len); */
 							Multimemcpy (to_ptr->node + to_ptr->foffset,
 										 CRoutes[counter].fromnode + CRoutes[counter].fnptr,
 										 CRoutes[counter].len);
@@ -1551,8 +1592,9 @@ void propagate_events() {
 									   counter);
 							/* copy over this "extra" data, EAI "advise" calls need this */
 							CRoutesExtra = CRoutes[counter].extra;
-
+printf ("calling interpptr %d\n",CRoutes[counter].interpptr);
 							CRoutes[counter].interpptr(to_ptr->node);
+printf ("done the call\n");
 						} else {	
 							/* just an eventIn node. signal to the reciever to update */
 /* 							update_node(CRoutes[counter].tonode); */

@@ -498,18 +498,17 @@ sub replaceWorld {
 		@newnodes = (@newnodes,VRML::Handles::get($n));
 	}
 
-	$this->clear_scene();
-	$this->{Scene} = VRML::Scene->new($this->{EV}, "from replaceWorld");
-	$this->{Scene}->set_browser($this);
 	$this->{Scene}->topnodes(\@newnodes);
-	prepare ($this);
+	##JAS $this->clear_scene();
+	##JAS $this->{Scene} = VRML::Scene->new($this->{EV}, "from replaceWorld");
+	##JAS $this->{Scene}->set_browser($this);
+	##JAS $this->{Scene}->topnodes(\@newnodes);
+	##JAS prepare ($this);
 
 	# go through the Bindables...
-	for $n (@newnodes) {
-		$this->{Scene}->replaceWorld_Bindable($n);
-	}
-	# and, take care of keeping the viewpoints active...
-	# JAS $this->{Scene}->register_vps($this);
+	##JAS for $n (@newnodes) {
+	##JAS 	$this->{Scene}->replaceWorld_Bindable($n);
+	##JAS }
 }
 
 sub loadURL { print "Can't do loadURL yet\n"; }
@@ -992,6 +991,14 @@ sub EAI_CreateVrmlFromURL {
 	}
 	return %retval;
 }
+
+sub EAI_replaceWorld {
+	my ($string) = @_;
+
+	print "BROWSER: replace world with $string\n";
+	replaceWorld ($globalBrowser,$string);
+}
+
 
 #######################################################
 #

@@ -218,6 +218,11 @@ sub ExtraMemory {
 	my $memptr;
 	my $value;
 	
+	#print "ExtraMemory: wanting field $field for node ",VRML::NodeIntern::dump_name($node),"\n";
+	#foreach (keys%{$node}) {print "	node key $_\n";}
+	#foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
+	#foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
+
 	my $type = $node->{Scene}{Pars}{$field}[1];
 	my $clen = VRML::VRMLFunc::getClen("VRML::Field::$type"->clength($type));
 
