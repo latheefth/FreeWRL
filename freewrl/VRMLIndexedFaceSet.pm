@@ -62,7 +62,6 @@ int tmp_a, tmp_b;
 int this_face, this_coord, this_normal, this_normalindex;
 
 
-
 /* if the last coordIndex == -1, ignore it */
 if($f(coordIndex,cin-1) == -1) { cin--; }
 	
@@ -107,7 +106,6 @@ if (ntexCoords != 0) { /* texCoord field not NULL */
 		/* Rule F part 1 */
 		printf ("IndexedFaceSet, Rule F part 1: texCoordIndex less than coordIndex (%d %d)\n",
 			tcin, cin);
-		exit(1);
 		ntexerrors = 1;
 	}
 
@@ -116,7 +114,6 @@ if (ntexCoords != 0) { /* texCoord field not NULL */
 		printf ("IndexedFaceSet, Rule G: points %d texCoords %d and no texCoordIndex\n",
 			npoints,ntexCoords);
 		ntexerrors = 1;
-		exit(1);
    	}
 }
 
@@ -189,7 +186,6 @@ if (ntexerrors == 0) {
 	}
 } else {
 	ntexCoords = 0; tcin = 0; 
-	printf ("killing textures %x\n",this_->texCoord);
 }
 
 /* in C always check if you got the mem you wanted...  >;->		*/
