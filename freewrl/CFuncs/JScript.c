@@ -308,13 +308,13 @@ int JSaddGlobalAssignProperty(int num, char *name, char *str) {
 int JSaddSFNodeProperty(int num, char *nodeName, char *name, char *str) {
 	JSContext *_context;
 	JSObject *_globalObj;
+	JSObject *_obj;
+	jsval _val, _rval = INT_TO_JSVAL(0);
 
 	/* get context and global object for this script */
 	_context = (JSContext *) JSglobs[num].cx;
 	_globalObj = (JSObject *)JSglobs[num].glob;
 
-	JSObject *_obj;
-	jsval _val, _rval = INT_TO_JSVAL(0);
 
 	if (JSVerbose) {
 		printf("addSFNodeProperty: name \"%s\", node name \"%s\", evaluate script \"%s\"\n",
@@ -350,12 +350,12 @@ int JSaddGlobalECMANativeProperty(int num, char *name) {
 	JSContext *_context;
 	JSObject *_globalObj;
 
+	char buffer[STRING];
+	jsval _val, rval = INT_TO_JSVAL(0);
+
 	/* get context and global object for this script */
 	_context = (JSContext *) JSglobs[num].cx;
 	_globalObj = (JSObject *)JSglobs[num].glob;
-
-	char buffer[STRING];
-	jsval _val, rval = INT_TO_JSVAL(0);
 
 	if (JSVerbose) {
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
