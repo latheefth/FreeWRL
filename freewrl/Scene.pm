@@ -10,12 +10,13 @@
 # for circular data structures.
 
 use strict vars;
-use VRML::DEF;
-use VRML::FieldHash;
-use VRML::IS;
-use VRML::NodeIntern;
-use VRML::Parser;
-use VRML::USE;
+
+require 'VRML/DEF.pm';
+require 'VRML/FieldHash.pm';
+require 'VRML/IS.pm';
+require 'VRML/NodeIntern.pm';
+require 'VRML/Parser.pm';
+require 'VRML/USE.pm';
 
 
 #######################################################################
