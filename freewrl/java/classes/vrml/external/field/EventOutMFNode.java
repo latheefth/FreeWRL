@@ -1,44 +1,62 @@
-
-// This one is interesting... Is it a real node, or are we parsing
-// the value of something like a string of VRML stuff????
-
 package vrml.external.field;
 import vrml.external.Node;
-import vrml.external.Browser;
+import java.util.*;
 import vrml.external.field.FieldTypes;
+import vrml.external.Browser;
+
 
 public class EventOutMFNode extends EventOutMField {
-   public EventOutMFNode() { EventType = FieldTypes.MFNODE; }
 
-  public Node[]        getValue() {
-    Node x[] = {new Node()};
+  // retnodes is an array of string values.
+  // sizeof is the size of retnodes.
+
+  Node[] retnodes;
+  int sizeof = 0;
+
+
+  public EventOutMFNode() {EventType = FieldTypes.MFNODE;}
+
+  public Node[]      getValue() {
     String rep;
+    StringTokenizer tokens;
+    int counttokens;
 
-    // Ok, lets first see what the value of this thing is...
-    // I guess, lets see if the RLreturn field has something...
-    // if it does, then this is an ASYNC value sent from the FreeWRL VRML Browser.
-
-    if (RLreturn == null) {
+    if (command != null) {
       rep = Browser.SendEventOut (outNode, command);
+      tokens = new StringTokenizer (rep);
     } else {
-      rep = RLreturn;
+      tokens = new StringTokenizer (RLreturn);
     }
 
-    // System.out.println ("DEBUG: EventOutMFNode getValue - rep = " + rep);
+    counttokens = tokens.countTokens();
+    retnodes = new Node[counttokens];
+    sizeof = 0;
 
-    // ok, so now we have some VRML text in the String rep... 
-    // XXX - maybe we can split this up on matching []'s???????
+    while (sizeof < counttokens) {
 
-    x[0].NodeName = rep;
-
-    return x;
+      retnodes[sizeof] = new Node();
+      rep = tokens.nextToken();
+      retnodes[sizeof].NodeName = new String(rep);
+      sizeof ++;
+    }
+    return retnodes;
   }
 
-    
-  public Node          get1Value(int index) {
-    Node all[] = getValue();
+  public Node        get1Value(int index) {
 
-    return all[index]; 
+    // MyNode is used to ensure that the getValue call is called before this.
+
+    Node[] MyNode = getValue();
+
+    if ((index > sizeof) || (index < 0)) {
+	System.out.println ("EventOutMFNode.get1Value - index " + index +
+		" out of range");
+	index = 0;
+    }
+    return MyNode[index];
+  }
+
+  public int           getSize() {
+	return sizeof;
   }
 }
-
