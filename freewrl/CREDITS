@@ -11,6 +11,14 @@ What code in the distribution is not Tuomas's  (if I have left something
 out, contact me as soon as possible at john.stewart@crc.ca - I really
 want no-one to be left out accidentally) 
 
+- Collision work by Nicolas Coderre, University Laval, Quebec, Canada.
+
+- Javascript and Netscape/Mozilla plugin code from Ayla Khan, Ottawa,
+  Canada.
+
+- png and jpeg code modified from reference library test program
+  impelementations; credits and copyright was retained in the
+  respective files.
 
 - mpeg code from University of California; please read the top of the
   file "CFuncs/MPEG_Utils.c" for complete information.
