@@ -167,7 +167,7 @@ extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
 
 /* do we have to do textures?? */
-#define HAVETODOTEXTURES glIsEnabled(GL_TEXTURE_2D)
+#define HAVETODOTEXTURES (last_bound_texture != 0)
 
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
@@ -194,6 +194,12 @@ float SoundSourceInit (int sourcenum, int loop, float pitch,
 /* Material optimizations */
 void do_shininess (float shininess);
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
+
+/* Some drivers give a GL error if doing a glIsEnabled when creating
+   display lists, so we just use an already created variable. */
+extern GLuint last_bound_texture;
+
+
 
 /* Transform node optimizations */
 int verify_rotate(GLfloat *params);
