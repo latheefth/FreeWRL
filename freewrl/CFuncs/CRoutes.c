@@ -1008,7 +1008,7 @@ int JSparamIndex (char *name, char *type) {
 
 	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
 	strncpy (JSparamnames[jsnameindex].name,name,len);
-	JSparamnames[jsnameindex].name[len+1] = 0; /* make sure terminated */
+	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
 	return jsnameindex;
 }
