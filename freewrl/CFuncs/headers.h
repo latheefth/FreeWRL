@@ -161,8 +161,8 @@ extern int global_IFS_Coord_count;
 // Rendering order changes created problems, so we assume textures all the
 // time
 
-#define HAVETODOTEXTURES 1
-#define BEHAVETODOTEXTURES  (glIsEnabled(GL_TEXTURE_2D))
+#define HAVETODOTEXTURES glIsEnabled(GL_TEXTURE_2D)
+#define BEHAVETODOTEXTURES  (1 || glIsEnabled(GL_TEXTURE_2D))
 
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;

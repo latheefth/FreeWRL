@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.73  2002/08/02 16:43:29  ncoder
+# improved correction (still not perfect)
+# of the HAVETODOTEXTURES bug.
+#
 # Revision 1.72  2002/08/02 15:08:53  ncoder
 # Corrected proximitysensor changes.
 # Added more fine-grained glError checking
@@ -2557,7 +2561,14 @@ IndexedFaceSet => q~
 	       struct pt delta = {0,0,0};
 
 	       struct VRML_PolyRep pr;
+	       int change;
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
 	       $mk_polyrep();
+ 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
 	       /* get "coord", why isn''t this already in the polyrep??? */
 	       $fv(coord, points, get3, &npoints);
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
@@ -2611,7 +2622,15 @@ Extrusion => q~
 
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
+	       int change;
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
 	       $mk_polyrep();
+ 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
 	       if(!$f(solid)) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
@@ -2647,12 +2666,63 @@ Extrusion => q~
 ~,
 
 #Extrusion => '',
-Shape => '
-
-/*		printf("Shape\n");*/
-	',
+Text => q~
 
 
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble modelMatrix[16]; 
+	       struct SFColor *points; int npoints;
+	       int i;
+
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+	       struct pt delta = {0,0,0};
+
+	       struct VRML_PolyRep pr;
+	       prflags flags = 0;
+	       int change;
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
+	       $mk_polyrep();
+ 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
+	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
+	            
+/*	       printf("ntri=%d\n",pr.ntri);
+	       for(i = 0; i < pr.ntri; i++) {
+		   printf("cindex[%d]=%d\n",i,pr.cindex[i]);
+	       }*/
+	       delta = polyrep_disp(abottom,atop,awidth,pr,modelMatrix,0);
+	       
+	       vecscale(&delta,&delta,-1);
+	       
+	       VECADD(CollisionOffset,delta);
+
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		   fprintf(stderr,"COLLISION_EXT: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+		   
+	       }
+	       
+~,
+Text => '',
 
 );
 
