@@ -1765,7 +1765,7 @@ sub make_backend {
  				if (!defined $vn) {return;}
  				$b->set_next_vp();
  				# print "vp_sub, $b $vn $vs";
- 				print "GOING TO VP: '$vn->{Fields}{description}'\n";
+ 				# print "GOING TO VP: '$vn->{Fields}{description}'\n";
  				$vs->{EventModel}->send_event_to(
  					$vn, set_bind, 1);
  			}
