@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.52  2002/04/17 19:21:15  crc_canada
+# glErrors are no longer checked for and printed. Code is in there so at some
+# point in time, we can have a look at the problem again.
+#
 # Revision 1.51  2002/02/05 20:32:53  crc_canada
 # Aubery Jaffers lighting changes.
 #
@@ -1957,11 +1961,13 @@ Billboard => (join '','
 				glEndList();
 			}
 
+			/* JAS
 			glError = glGetError();
 			while (glError != GL_NO_ERROR) {
 				printf ("VRMLRend.pm::Shape:glError: %s\n",gluErrorString(glError));
 				glError = glGetError();
 			}
+			*/
 		}
 		last_visited_shape = 0;
 		glPopAttrib();
