@@ -8,14 +8,6 @@ Events.pm
 FieldHash.pm
 GLBackEnd.pm
 IS.pm
-JPEG/.cvsignore
-JPEG/JPEG.pm
-JPEG/JPEG.xs
-JPEG/Makefile.PL
-JPEG/test.pl
-PNG/Makefile.PL
-PNG/PNG.pm
-PNG/PNG.xs
 JS/.cvsignore
 JS/JS.pm
 JS/JS.xs
@@ -171,9 +163,6 @@ Quaternion.pm
 README				READ THIS FIRST
 Scene.pm
 Text/.cvsignore
-Text/Makefile.PL
-Text/Text.pm
-Text/Text.xs
 URL.pm
 USE.pm
 VRML.h
@@ -186,9 +175,7 @@ VRMLNodes.pm
 VRMLRend.pm
 VRMLServ.pm
 Viewer.pm
-fonts/Baklava_.txt
 fonts/README
-fonts/baklava.ttf
 freewrl.PL
 java/classes/vrml/external/Node.class
 java/classes/vrml/external/Node.java
