@@ -1321,7 +1321,6 @@ my $protono;
 					  ),
 
 
-	# This just about the minimal visibilitysensor allowed by the spec.
 	VisibilitySensor =>
 	new VRML::NodeType("VisibilitySensor",
 					   {
@@ -1331,16 +1330,6 @@ my $protono;
 						enterTime => [SFTime, -1, eventOut],
 						exitTime => [SFTime, -1, eventOut],
 						isActive => [SFBool, 0, eventOut]
-					   },
-					   {
-						Initialize => sub {
-							my($t,$f,$time,$scene) = @_;
-							if ($f->{enabled}) {
-								return ([$t, enterTime, $time],
-										[$t, isActive, 1]);
-							}
-							return ();
-						}
 					   }
 					  ),
 
@@ -1363,60 +1352,10 @@ my $protono;
 					   {
 						ClockTick => sub {
 							my($t,$f,$tick) = @_;
-							return if !$f->{enabled};
-							return if !$t->{BackEnd};
-							my($hit, $x1, $y1, $z1, $x2, $y2, $z2, $q2);
 
-							VRML::VRMLFunc::get_proximitysensor_vecs($t->{BackNode}->{CNode},
-																	 $hit,
-																	 $x1,
-																	 $y1,
-																	 $z1,
-																	 $x2,
-																	 $y2,
-																	 $z2,
-																	 $q2);
-
-							if ($VRML::verbose::prox) {
-								print "PROX: $r->[0] ($r->[1][0] $r->[1][1] $r->[1][2]) ($r->[2][0] $r->[2][1] $r->[2][2] $r->[2][3])\n";
-							}
-							if ($hit) {
-								if (!$f->{isActive}) {
-									#print "PROX - initial defaults\n";
-									$f->{isActive} = 1;
-									$f->{enterTime} = $tick;
-									$f->{position_changed} = [$x1,$y1,$z1];
-									$f->{orientation_changed} = [$x2,$y2,$z2,$q2];
-								}
-			
-								# now, has anything changed?
-								my $ch = 0;
-								if (($x1 != $f->{position_changed}[0]) ||
-									($y1 != $f->{position_changed}[1]) ||
-									($z1 != $f->{position_changed}[2])) {
-									#print "PROX - position changed!!! \n";
-									$f->{position_changed} = [$x1,$y1,$z1];
-									$ch = 1;
-								}
-								if (($x2 != $f->{orientation_changed}[0]) ||
-									($y2 != $f->{orientation_changed}[1]) ||
-									($z2 != $f->{orientation_changed}[2]) ||
-									($q2 != $f->{orientation_changed}[3])) {
-									#print "PROX - orientation changed!!! ";
-									#print $r->[2][0]," ", $r->[2][1], " ",$r->[2][2]," ",$r->[2][3],"\n";
-				
-									$f->{orientation_changed} = [$x2,$y2,$z2,$q2];
-									$ch = 1;
-								}
-								# return if !$ch;
-								return 1 if !$ch; #ncoder: added 1. seemed Scene.pm needed a return value. mustcheck.
-							} else {
-								if ($f->{isActive}) {
-									$f->{isActive} = 0;
-									$f->{exitTime} = $tick;
-								}
-							}
-						}
+							VRML::VRMLFunc::ProximitySensorClockTick(
+								$t->{BackNode}->{CNode},$tick);
+						},
 					   }
 					  ),
 

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.108  2003/05/14 17:25:06  crc_canada
+# ProximitySensor code now in C
+#
 # Revision 1.107  2003/05/12 18:56:40  crc_canada
 # Bindables in C, part II
 #
@@ -1433,6 +1436,7 @@ SphereSensor => '',
 CylinderSensor =>'',
 TouchSensor => '',
 PlaneSensor => '',
+VisibilitySensor => '',
 
 
 Transform => '

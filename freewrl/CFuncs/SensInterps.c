@@ -585,7 +585,45 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick) {
 }
 
 
+/* ProximitySensor code for ClockTick */
+void do_ProximitySensorTick(struct VRML_ProximitySensor *node, double tick) {
+	
+	/* are we enabled? */
+	if (!node->enabled) return;
 
+	if (node->__hit) {
+		if (!node->isActive) {
+			if (SEVerbose) printf ("PROX - initial defaults\n");
+			node->isActive = 1;
+			node->enterTime = tick;
+			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, isActive));
+			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, enterTime));
+		}
+			
+		/* now, has anything changed? */
+		if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
+			if (SEVerbose) printf ("PROX - position changed!!! \n");
+			memcpy ((void *) &node->position_changed,
+				(void *) &node->__t1,sizeof(struct SFColor));
+			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, position_changed));
+		}
+		if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
+			if (SEVerbose) printf  ("PROX - orientation changed!!!\n ");
+			memcpy ((void *) &node->orientation_changed,
+				(void *) &node->__t2,sizeof(struct SFRotation));
+			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, orientation_changed));
+		}
+	} else {
+		if (node->isActive) {
+			if (SEVerbose) printf ("PROX - stopping\n");
+			node->isActive = 0;
+			node->exitTime = tick;
+			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, isActive));
+			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, exitTime));
+		}
+	}
+	node->__hit=FALSE;
+}	
 
 
 /* Audio MovieTexture code */
