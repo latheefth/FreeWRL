@@ -410,7 +410,7 @@ void Elev_Tri (
 	float a[3]; float b[3];
 	int tmp;
 
-	//printf ("Triangle %d %d %d\n",A,D,E);
+	/* printf ("Elev_Tri Triangle %d %d %d\n",A,D,E); */
 
 	/* generate normals in a clockwise manner, reverse the triangle */
 	if (!(ccw)) {
@@ -424,14 +424,16 @@ void Elev_Tri (
 	this_Elev->cindex[vertex_ind+1] = D;
 	this_Elev->cindex[vertex_ind+2] = E;
 
-	//printf ("Elev_Tri, vertices for vertex_ind %d are:",vertex_ind);
-         //       c1 = (struct SFColor *) &this_Elev->coord[3*A];
-          //      c2 = (struct SFColor *) &this_Elev->coord[3*D];
-         //       c3 = (struct SFColor *) &this_Elev->coord[3*E];
+	/*
+	printf ("Elev_Tri, vertices for vertex_ind %d are:",vertex_ind);
+               c1 = (struct SFColor *) &this_Elev->coord[3*A];
+               c2 = (struct SFColor *) &this_Elev->coord[3*D];
+               c3 = (struct SFColor *) &this_Elev->coord[3*E];
 
-	//	printf ("\n%f %f %f\n%f %f %f\n%f %f %f\n\n",
-	//	c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
-	//	c3->c[0],c3->c[1],c3->c[2]);
+	printf ("\n%f %f %f\n%f %f %f\n%f %f %f\n\n",
+		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
+		c3->c[0],c3->c[1],c3->c[2]);
+	*/
 	
 
 	if (NONORMALS) {
@@ -440,9 +442,11 @@ void Elev_Tri (
                 c2 = (struct SFColor *) &this_Elev->coord[3*D];
                 c3 = (struct SFColor *) &this_Elev->coord[3*E];
 
-		//printf ("calc norms \n%f %f %f\n%f %f %f\n%f %f %f\n",
-		//c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
-		//c3->c[0],c3->c[1],c3->c[2]);
+		/*
+		printf ("calc norms \n%f %f %f\n%f %f %f\n%f %f %f\n",
+		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
+		c3->c[0],c3->c[1],c3->c[2]);
+		*/
 
 		a[0] = c2->c[0] - c1->c[0];
 		a[1] = c2->c[1] - c1->c[1];
@@ -455,8 +459,10 @@ void Elev_Tri (
 		facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
 		facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
 
-		//printf ("facenormals index %d is %f %f %f\n",this_face, facenormals[this_face].x,
-		//		facenormals[this_face].y, facenormals[this_face].z);
+		/*
+		printf ("facenormals index %d is %f %f %f\n",this_face, facenormals[this_face].x,
+				facenormals[this_face].y, facenormals[this_face].z); 
+		*/
 
 		/* add this face to the faces for this point */
 		add_to_face (A*POINT_FACES,this_face,pointfaces);
@@ -663,17 +669,15 @@ void do_glColor3fv(struct SFColor *dest, GLfloat *param) {
 
 void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 	int i;
+	struct pt myp;
 
-	/* parameter checks */
-	for (i=0; i<3; i++) { 
-		if ((param[i] < -1.0) || (param[i] >1.0)) {
-			param[i] = 0.0;
-		}
-	}
+	/* normalize all vectors; even if they are coded into a VRML file */
 
-	dest->c[0] = param[0];
-	dest->c[1] = param[1];
-	dest->c[2] = param[2];
+	myp.x = param[0]; myp.y = param[1]; myp.z = param[2];
+
+	normalize_vector (&myp);
+
+	dest->c[0] = myp.x; dest->c[1] = myp.y; dest->c[2] = myp.z;
 }
 
 
