@@ -520,7 +520,6 @@ void setECMAtype (int num) {
 /* a script is returning a MFString type; add this to the C	*/
 /* children field						*/
 /****************************************************************/
-
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	/* unsigned int newptr; */
 	int oldlen, newlen;
@@ -532,13 +531,11 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	int i;
 	char *valStr, *OldvalStr;
 	SV **svptr;
+	SV **newp, **oldp;
 	int myv;
+	int count;
 
 	JSString *strval; /* strings */
-
-
-
-	/* Multi_String def is struct Multi_String { int n; SV * *p; }; */
 
 	/* oldlen = what was there in the first place */
 	oldlen = to->n;
@@ -554,11 +551,30 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 	newlen = JSVAL_TO_INT(_v);	
 
-	//printf ("new len %d old len %d\n",newlen,oldlen);
+	// printf ("new len %d old len %d\n",newlen,oldlen);
 
+	// if we have to expand size of SV...
 	if (newlen > oldlen) {
-		printf ("MFString assignment, new string has more strings than old, cant do this yet\n");
-		newlen = oldlen;
+		oldp = to->p; // same as svptr, assigned above
+		to->n = newlen;
+		to->p = malloc(newlen * sizeof(to->p));
+		newp = to->p; 
+
+		// copy old values over
+		for (count = 0; count <oldlen; count ++) {
+			//printf ("copying over element %d\n",count);
+			newp = oldp;
+			newp+= sizeof (to->p);
+			oldp += sizeof (to->p);	
+		}
+		
+		// zero new entries
+		for (count = oldlen; count < newlen; count ++) {
+			//printf ("zeroing new element %d\n",count);
+			*newp = newSVpv("",0);
+		}
+		free (svptr);
+		svptr = to->p;
 	}
 
 	for (i = 0; i < newlen; i++) {
@@ -579,8 +595,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 		// if the strings are different...
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			if (OldvalStr!=NULL) free(OldvalStr);
-			svptr[i]= newSVpvn(valStr,strlen(valStr));
+			sv_setpv(svptr[i],valStr);
 		}
 	}
 
