@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.26  2001/04/24 19:55:00  crc_canada
+# Display list work
+#
 # Revision 1.25  2001/03/26 17:40:36  crc_canada
 # Background fixes for some implementations of OpenGL.
 # IndexedLineSet no longer disrupts other renderings.
@@ -1109,64 +1112,6 @@ static struct VRML_Virt virt_${n} = { ".
 		print "$_ (",length($c),") ";
 		# Substitute field gets
 
-		# ptex2d and tex2d are identical, except for a parameter
-		# to the do_texture.
-		$c =~ s~\$ptex2d\(([^)]*)\)~
-		  {
-			if(this_->_dlchange != this_->_change) {
-				unsigned char *ptr = SvPV(\$f(__data$1),PL_na);
-				void do_texture();
-
-				if(!this_->_texture) {
-					glGenTextures(1,&this_->_texture);
-				}
-
-                        	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
-					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
-					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP,
-					GL_NEAREST);
-
-				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
-				this_->_dlchange = this_->_change;
-			} else {
-				glCallList(this_->_dlist); return;
-			}
-			glEnable(GL_LIGHTING);
-			glColor3f(1.0,1.0,1.0);
-			glEnable(GL_TEXTURE_2D);
-                       	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-		     }
-			~g;
-
-		$c =~ s~\$tex2d\(([^)]*)\)~
-		  {
-			if(this_->_dlchange != this_->_change) {
-				unsigned char *ptr = SvPV(\$f(__data$1),PL_na);
-				void do_texture();
-
-				if(!this_->_texture) {
-					glGenTextures(1,&this_->_texture);
-				}
-
-                        	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
-					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
-					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP,
-					GL_LINEAR);
-
-				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
-				this_->_dlchange = this_->_change;
-			} else {
-				glCallList(this_->_dlist); return;
-			}
-			glEnable(GL_LIGHTING);
-			glColor3f(1.0,1.0,1.0);
-			glEnable(GL_TEXTURE_2D);
-                       	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-		     }
-			~g;
-
 		$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
 		$c =~ s/\$i\(([^)]*)\)/(this_->$1)/g;
 		$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
@@ -1175,14 +1120,12 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern || 
 			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
 				regen_polyrep(this_);/g;
-		$c =~ s/\$start(_|)list\(\)/
-		        if(!this_->_dlist) {
-				this_->_dlist = glGenLists(1);
-			}/g;
-		$c =~ s/\$end(_|)list\(\)/
+
+
+		$c =~ s/\$endlist\(\)/
 			glEndList()
 			/g;
-		$c =~ s/\$start(_|)list2\(\)/
+		$c =~ s/\$startlist2\(\)/
 		        if(!this_->_dl2ist) {
 				this_->_dl2ist = glGenLists(1);
 			}
@@ -1192,6 +1135,7 @@ static struct VRML_Virt virt_${n} = { ".
 			} else {
 				glCallList(this_->_dl2ist); return;
 			}/g;
+
 		$c =~ s/\$ntyptest\(([^),]*),([^),]*)\)/
 				(((struct VRML_Box *)$1)->v == 	
 					& virt_$2)/g;
@@ -1353,6 +1297,10 @@ int render_geom;
 int render_light;
 int render_sensitive;
 int render_blend;
+
+/* in Shape/Appearance, we want two kicks at the can */
+int render_textures;
+GLuint last_bound_texture;
 
 int horiz_div; int vert_div;
 int vp_dist = 200000;
@@ -2152,6 +2100,7 @@ void render_node(void *node) {
 	  }
 	if (verbose) printf("(end render_node)\n");
 }
+#undef verbose
 
 /*
  * The following code handles keeping track of the parents of a given

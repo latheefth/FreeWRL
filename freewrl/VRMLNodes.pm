@@ -1190,7 +1190,7 @@ TouchSensor => new VRML::NodeType("TouchSensor",
 	__mouse__ => sub {
 		my($t,$f,$time,$moved,$button,$over,$pos,$norm,$texc) = @_; 
 		print "MOUSE: over $over but $button moved $moved\n"
-			if $VRML::verbose::tsens;
+		; #JAS	if $VRML::verbose::tsens;
 		if($button ne "PRESS") {return}
 
 		#ok, we are here, and we have a button press.

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.25  2001/04/24 19:54:16  crc_canada
+# Display list work
+#
 # Revision 1.24  2001/03/26 17:41:50  crc_canada
 # Background rendering for some OpenGL implementations fixed.
 # IndexedLineSet no longer disrupts other renderings.
@@ -113,7 +116,6 @@ Box => (join '',
 	 float x = $f(size,0)/2;
 	 float y = $f(size,1)/2;
 	 float z = $f(size,2)/2;
-	 $start_list();
 	 glPushAttrib(GL_LIGHTING);
 	 glShadeModel(GL_FLAT);
 	 glBegin(GL_QUADS);
@@ -186,7 +188,6 @@ Box => (join '',
 		glEnd();
 				glDepthMask(GL_TRUE);
 	glPopAttrib();
-	 $end_list();
 	',
 ),
 
@@ -198,7 +199,6 @@ Cylinder => '
 		float a,a1,a2;
 		DECL_TRIG1
 		int i = 0;
-		$start_list();
 		INIT_TRIG1(div)
 
 		if($f(top)) {
@@ -268,7 +268,6 @@ Cylinder => '
 				}
 				*/
 		}
-		$end_list();
 ',
 
 Cone => '
@@ -279,7 +278,7 @@ Cone => '
 		float a,a1;
 		int i;
 		DECL_TRIG1
-		$start_list();
+
 		if(h <= 0 && r <= 0) {return;}
 		INIT_TRIG1(div)
 
@@ -309,14 +308,20 @@ Cone => '
 				float lcos = COS1;
 				UP_TRIG1;
 
+printf ("A point %d norm %f %f %f vertex %f %f %f\n",
+i,mlh*lsin, mlr, -mlh*lcos,0.0, (float)h, 0.0);
 				glNormal3f(mlh*lsin, mlr, -mlh*lcos);
 				glTexCoord2f(1.0-((i+0.5)/df), 1.0);
 				glVertex3f(0.0, (float)h, 0.0);
 
+printf ("A point %d norm %f %f %f vertex %f %f %f\n",
+i,mlh*SIN1, mlr, mlh*COS1,r*SIN1, (float)-h, r*COS1);
 				glNormal3f(mlh*SIN1, mlr, mlh*COS1);
 				TC(1.0-((i+1.0)/df), 0.0);
 				glVertex3f(r*SIN1, (float)-h, r*COS1);
 
+printf ("A point %d norm %f %f %f vertex %f %f %f\n",
+i,mlh*lsin, mlr, mlh*lcos,r*lsin, (float)-h, r*lcos);
 				glNormal3f(mlh*lsin, mlr, mlh*lcos);
 				TC(1.0-((float)i/df), 0.0);
 				glVertex3f(r*lsin, (float)-h, r*lcos);
@@ -324,8 +329,6 @@ Cone => '
 			}
 			glEnd();
 		}
-		
-		$end_list();
 ',
 
 Sphere => 'int vdiv = vert_div;
@@ -338,7 +341,6 @@ Sphere => 'int vdiv = vert_div;
 		DECL_TRIG2
 		INIT_TRIG1(vdiv) 
 		INIT_TRIG2(hdiv)
-		$start_list();
 		glPushMatrix();
         if (0) { /* Just tweaking around */
 		       /* glPushAttrib(GL_LIGHTING); This does what? */
@@ -382,7 +384,6 @@ Sphere => 'int vdiv = vert_div;
 					/* if(!$nomode) {
 						glPopAttrib();
 					} */
-		$end_list();
 ',
 
 IndexedFaceSet =>  ( join '',
@@ -391,8 +392,6 @@ IndexedFaceSet =>  ( join '',
 		struct SFColor *colors; int ncolors=0;
 		struct SFColor *normals; int nnormals=0;
 		struct SFVec2f *texcoords; int ntexcoords=0;
-
-		$start_list();
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
 		$fv(coord, points, get3, &npoints);
@@ -415,7 +414,6 @@ IndexedFaceSet =>  ( join '',
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
-		$end_list();
 '),
 
 # XXX emissiveColor not taken :(
@@ -436,7 +434,6 @@ IndexedLineSet => '
 		struct SFColor *points; int npoints;
 		struct SFColor *colors; int ncolors=0;
 
-		$start_list();
 		if(verbose) printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
@@ -497,7 +494,6 @@ IndexedLineSet => '
 		glEnd();
 		glDisable(GL_COLOR_MATERIAL); 
                 glPopAttrib();
-		$end_list();
 ',
 
 
@@ -506,7 +502,6 @@ PointSet => '
 	struct SFColor *points; int npoints=0;
 	struct SFColor *colors; int ncolors=0;
 
-	$start_list();
 	$fv(coord, points, get3, &npoints);
 	$fv_null(color, colors, get3, &ncolors);
 	if(ncolors && ncolors != npoints) {
@@ -533,13 +528,11 @@ PointSet => '
 	}
 	glEnd();
 	glEnable(GL_LIGHTING);
-	$end_list();
 ',
 
 ElevationGrid => ( '
 		struct SFColor *colors; int ncolors=0;
 		struct SFColor *normals; int nnormals=0;
-		$start_list();
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$mk_polyrep();
@@ -556,11 +549,9 @@ ElevationGrid => ( '
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
-		$end_list();
 '),
 
 Extrusion => ( '
-		$start_list();
 		$mk_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -575,7 +566,6 @@ Extrusion => ( '
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
-		$end_list();
 '),
 
 FontStyle => '',
@@ -584,7 +574,6 @@ Text => '
 	void (*f)(int n, SV **p,int nl, float *l, float maxext, double spacing,double size);
 	double spacing = 1.0;
 	double size = 1.0; 
-	$start_list();
 	/* We need both sides */
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable(GL_CULL_FACE);
@@ -599,14 +588,10 @@ Text => '
 		f($f_n(string),$f(string),$f_n(length),$f(length),$f(maxExtent),spacing,size );
 	}
 	glPopAttrib();
-	$end_list();
 ',
 
-# How to disable material when doing just select-rendering?
-# XXX Optimize..
 Material => ( join '',
-	"	float m[4]; int i;
-		\$start_list();
+	"	float m[4]; int i; 
 		",assgn_m(diffuseColor,1),";
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, m);
 		for(i=0; i<3; i++) {
@@ -629,11 +614,9 @@ Material => ( join '',
 				/* 128-(128*$f(shininess))); */
 				/* 1.0/((",getf(Material,shininess),"+1)/128.0)); */
 		}
-		$end_list();
 '),
 
 TextureTransform => '
-	$start_list();
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glTranslatef($f(translation,0), $f(translation,1), 0);
@@ -642,20 +625,41 @@ TextureTransform => '
 	glScalef($f(scale,0),$f(scale,1),1);
 	glTranslatef($f(center,0),$f(center,1), 0);
 	glMatrixMode(GL_MODELVIEW);
-	$end_list();
 ',
 
 ImageTexture => ('
-	$start_list(); 
-	$tex2d();
-	$end_list();
+	unsigned char *ptr = SvPV((this_->__data),PL_na);
+
+	if(!this_->_texture) {
+		glGenTextures(1,&this_->_texture);
+	}
+
+	/* save the reference globally */
+	last_bound_texture = this_->_texture;
+
+	glBindTexture (GL_TEXTURE_2D, this_->_texture);
+	(void) do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
+		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
+		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
+		GL_LINEAR);
 '),
 
 PixelTexture => ('
-	$start_list();
-	$ptex2d();
 
-	$end_list();
+	unsigned char *ptr = SvPV((this_->__data),PL_na);
+
+	if(!this_->_texture) {
+		glGenTextures(1,&this_->_texture);
+	}
+
+	/* save the reference globally */
+	last_bound_texture = this_->_texture;
+
+	glBindTexture (GL_TEXTURE_2D, this_->_texture);
+	(void) do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
+		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
+		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
+		GL_NEAREST);
 '),
      
 
@@ -1176,8 +1180,9 @@ DirectionalLight => '
 %PrepC = (
 Transform => (join '','
 	glPushMatrix();
+
 	if(!reverse_trans) {
-		$start_list();
+		/* $startlist2(); */
 		glTranslatef(',(join ',',map {getf(Transform,translation,$_)} 0..2),'
 		);
 		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
@@ -1195,9 +1200,8 @@ Transform => (join '','
 		);
 		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
 		);
-		$end_list();
 	} else {
-		$start_list2();
+		/* $startlist2(); */
 		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
 		);
 		glRotatef(',getf(Transform,scaleOrientation,3),'/3.1415926536*180,',
@@ -1216,8 +1220,10 @@ Transform => (join '','
 		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"} 
 			0..2),'
 		);
-		$end_list();
 	}
+	/*
+	$endlist();
+	*/
 '),
 
 ##JAS Collision=> ('
@@ -1395,6 +1401,7 @@ Billboard => (join '','
 			glPopAttrib();
 		}
 		if(verbose) {printf("RENDER GROUP END %d\n",this_);}
+
 		curlight = savedlight;
 	',
 	Switch => '
@@ -1438,31 +1445,74 @@ Billboard => (join '','
 
 	',
 	Appearance => '
-		if($f(material)) {
-			render_node($f(material));}
-		else {
-			glDisable(GL_LIGHTING);
-			glColor3f(1.0,1.0,1.0);
-		} /* XXX */
-		if($f(texture))
+		/* do we want to do textures ? */
+		if (render_textures == 1) {
+		    if($f(texture))
 			render_node($f(texture));
-		if($f(textureTransform))
+		    if($f(textureTransform)) 
 			render_node($f(textureTransform));
+		} else {
+
+		    if($f(material)) {
+			render_node($f(material));
+		    } else {
+			/* no material, so just colour the following shape */
+			glColor3f(1.0,1.0,1.0);
+		    } 
+		}
+	
 	',
 	Shape => '
-		/* if(!$f(appearance) || !$f(geometry)) */
-		if(!$f(geometry)) {
-			return;
-		}
+		if(!(this_->geometry)) { return; }
+
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
-		/*glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);*/
-		if($f(appearance)) {
-			render_node($f(appearance));
-		} else {
-			glDisable(GL_LIGHTING);
-			glColor3f(1.0,1.0,1.0);
+
+		/* if we are rendering the geometry, see if we have a disp. list */
+		if (render_geom) {
+			if(this_->_dlist) {
+				if(this_->_dlchange == this_->_change) {
+					glCallList(this_->_dlist); 
+					glPopAttrib();
+					return;
+				} else {
+					glDeleteLists(this_->_dlist,1);
+				}
+			}
+			this_->_dlist = glGenLists(1);
+			this_->_dlchange = this_->_change;
 		}
-		render_node($f(geometry));
+		/* nope, no display list... */
+
+		/* a texture flag... */
+		last_bound_texture = 0;
+
+		/* is there an associated appearance node? */	
+                if($f(appearance)) {
+			render_textures = 1;
+                        render_node($f(appearance));
+			render_textures = 0;
+			glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+                        render_node($f(appearance));
+                } else {
+			if (render_geom) {
+			    /* no appearance, so start the list and set colour */
+			    glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+                            glColor3f(1.0,1.0,1.0);
+			}
+                }
+
+		if (last_bound_texture != 0) {
+			/* we had a texture */
+			glEnable (GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D,last_bound_texture);
+		}
+
+		/* Now, do the geometry */
+		render_node((this_->geometry));
+
+		if (render_geom) 
+			glEndList();
+
 		glPopAttrib();
 	',
 );
