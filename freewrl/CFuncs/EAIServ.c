@@ -99,6 +99,7 @@ unsigned int EAI_SendEvent(char *bufptr);
 void handle_Listener (void);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 void EAI_RW(char *str);
+void EAI_RNewW(char *);
 
 void EAI_send_string(char *str, int lfd){
 	unsigned int n;
@@ -133,6 +134,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		// step 1  - create socket
 	        if (((*sockfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 			printf ("EAIServer: socket error\n");
+			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 	
@@ -140,12 +142,14 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 
 		if ((flags=fcntl((*sockfd),F_GETFL,0)) < 0) {
 			printf ("EAIServer: trouble gettingsocket flags\n");
+			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		} else {
 			flags |= O_NONBLOCK;
 		
 			if (fcntl((*sockfd), F_SETFL, flags) < 0) {
 				printf ("EAIServer: trouble setting non-blocking socket\n");
+				loopFlags &= ~NO_EAI_CLASS;
 				return FALSE;
 			}
 		}
@@ -160,6 +164,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		//printf ("binding to socket %d\n",EAIBASESOCKET+socketincrement);
 
 	        while (bind((*sockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 	
@@ -169,6 +174,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	
 	        if (listen((*sockfd), 1024) < 0) {
 	                printf ("EAIServer: listen error\n");
+			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE; 
 		}
 	}
@@ -198,6 +204,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		buffer2 = malloc(bufsize2 * sizeof (char));
 		if (buffer2 == 0) {
 			printf ("can not malloc memory for input buffer in create_EAI\n");
+			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 	
@@ -210,8 +217,50 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		if (socketincrement==0) EAIinitialized = TRUE;	
 	}
 	//if (EAIVerbose) printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
+	
+	if (EAIVerbose && !(loopFlags&NO_EAI_CLASS)) {
+		printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
+		loopFlags |= NO_EAI_CLASS;
+	}
 	return TRUE;
 }
+
+/* ========================================================================== */
+/* AD */
+
+void EAI_RNewW(char *bufptr) {
+
+	unsigned oldlen, newNode;
+	struct   VRML_Group *rn;
+	struct   Multi_Node *par;
+	char     *pstr;
+
+	rn = (struct VRML_Group *) rootNode;
+	par = &(rn->children);
+
+	if (EAIVerbose) printf ("EAI_RNewW, rootNode is %d\n",rootNode);
+
+	/* oldlen = what was there in the first place */
+	oldlen = par->n;
+
+	if (EAIVerbose) printf ("oldRoot has %d nodes\n",oldlen);
+
+	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
+	par->n = 1;
+
+	/* trick to put only the path name only */
+	pstr = bufptr;
+	while('/' != *pstr) {pstr ++; bufptr++;}
+	while(!isspace(*pstr)) pstr ++;
+	*pstr = 0;
+	if (EAIVerbose) printf ("New bufptr <%s>\n",bufptr);
+	
+	EAI_readNewWorld(bufptr);
+
+	if (EAIVerbose) printf ("EAI_RNewW, rootNode now is %d\n",rootNode);
+}
+
+/* ========================================================================== */
 
 /* EAI, replaceWorld. */
 void EAI_RW(char *str) {
@@ -320,9 +369,15 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 				(*listenfd) = -1;
 			}
 
-			//if (EAIVerbose) 
-			//	printf ("read in from socket %d , max %d bfct %d data %s\n",
-			//			retval,EAIREADSIZE, *bfct, &bf[(*bfct)]);
+			if (EAIVerbose)
+			{
+			    char tmpBuff1[EAIREADSIZE];
+			    strncpy(tmpBuff1,&bf[(*bfct)],retval);
+			    tmpBuff1[retval] = '\0';
+			    printf ("read in from socket %d bytes, max %d bfct %d cmd <%s>\n",
+				    retval,EAIREADSIZE, *bfct,tmpBuff1);/*, &bf[(*bfct)]);*/
+			}
+
 
 			(*bfct) += retval;
 
@@ -352,7 +407,7 @@ void handle_EAI () {
 
 	/* make this into a C string */
 	buffer2[bufcount2] = 0;
-	//printf ("buffer is :%s:\n",buffer2);
+	if(EAIVerbose && bufcount2) printf ("handle_EAI-- Data is :%s:\n",buffer2);
 
 	/* any command read in? */
 	if (bufcount2 > 1) 
@@ -594,7 +649,15 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 				}
 				
-//XXXX			case LOADURL: 
+			case REREADWRL: {
+
+				if (EAIVerbose) printf ("REREADWRL <%s> \n",bufptr);                                                                                
+				EAI_RNewW(bufptr);
+
+				sprintf (buf,"RE\n%d\n0",count);
+				break;
+			}
+
 //XXXX			case SETDESCRIPT:  
 		  	case STOPFREEWRL: {		    
 				if (EAIVerbose) printf ("Shutting down Freewrl\n");
@@ -640,26 +703,26 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 	unsigned int memptr;
 
-	int len;
+	int len, elemCount;
 	int MultiElement;
 	char myBuffer[2000];
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
 		friggin do it! ;-) */
 
-	// node type
+	/* node type */
 	nodetype = *ptr; ptr++;
 
-	//blank space
+	/* blank space */
 	ptr++;
 	
-	//nodeptr, offset
+	/* nodeptr, offset */
 	sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
-	while ((*ptr) > ' ') ptr++; 	// node ptr
-	while ((*ptr) == ' ') ptr++;	// inter number space(s)
-	while ((*ptr) > ' ') ptr++;	// node offset
-	while ((*ptr) == ' ') ptr++;	// inter number space(s)
-	while ((*ptr) > ' ') ptr++;	// script type
+	while ((*ptr) > ' ') ptr++; 	/* node ptr */
+	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
+	while ((*ptr) > ' ') ptr++;	/* node offset */
+	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
+	while ((*ptr) > ' ') ptr++;	/* script type */
 
 	if (EAIVerbose) 
 		 printf ("EAI_SendEvent, type %c, nodeptr %x offset %x script type %d \n",
@@ -668,9 +731,9 @@ unsigned int EAI_SendEvent (char *ptr) {
 	/* We have either a event to a memory location, or to a script. */
 	/* the field scripttype tells us whether this is true or not.   */
 
-	memptr = nodeptr+offset;	// actual pointer to start of destination data in memory
+	memptr = nodeptr+offset;	/* actual pointer to start of destination data in memory */
 
-	// now, we are at start of data.
+	/* now, we are at start of data. */
 	if (EAIVerbose) printf ("EAI_SendEvent, event string now is %s\n",ptr);
 
 	/* This switch statement is almost identical to the one in the Javascript
@@ -680,11 +743,11 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 	/* convert the ascii string into an internal representation */
 	/* this will return '0' on failure */
-	len = ScanValtoBuffer(1, nodetype - EAI_SFUNKNOWN, 
+	len = ScanValtoBuffer(&elemCount, nodetype - EAI_SFUNKNOWN, 
 			ptr , myBuffer, sizeof(myBuffer));
 
 	if (len == 0) {
-		printf ("EAI_SeneEvent, conversion failure\n");
+		printf ("EAI_SendEvent, conversion failure\n");
 		return;
 	}
 
@@ -694,16 +757,43 @@ unsigned int EAI_SendEvent (char *ptr) {
 		case EAI_SFTIME: 
 		case EAI_SFNODE:
 		case EAI_SFINT32: 
-		case EAI_SFFLOAT: { break; } /* these are all ok, just continue on */
+		case EAI_SFFLOAT: {
+			  MultiElement = FALSE;  /*Redundant, I hope the compiler will optimize */
+			  break;
+		} /* these are all ok, just continue on */
 
+		case EAI_SFVEC2F:
 	  	case EAI_SFVEC3F:
 	  	case EAI_SFCOLOR:
-		case EAI_SFROTATION: 
-		case EAI_SFVEC2F: {
+		case EAI_SFROTATION: {
 			MultiElement=TRUE;
 			break;
 		}
-
+		/* a series of Floats... (AD ????????)*/
+	        case EAI_MFROTATION:
+	        case EAI_MFTIME    :
+	        case EAI_MFINT32   :
+	        case EAI_MFNODE    :
+	        case EAI_MFVEC2F   :
+	        case EAI_MFVEC3F   :
+	        case EAI_MFCOLOR   :
+	        case EAI_MFFLOAT   : {
+		    /* Setting of MFFloat when is declared an MFFloat in script */
+		    MultiElement=TRUE;
+		    /*
+		      if (scripttype)
+		      {
+		      }
+		      else
+		      {
+		      
+		      getCLASSMultNumType (myBuffer, sizeof(float)*len,
+		      (struct Multi_Vec3f *) memptr, MFFLOAT, FALSE);
+		      
+		      }
+		     */
+		   break;
+		}
 		case EAI_MFSTRING: {
 			if (EAIVerbose) {
 				printf ("EAI_MFSTRING, string is %s\nxxx\n",ptr);
@@ -718,81 +808,76 @@ unsigned int EAI_SendEvent (char *ptr) {
 		case EAI_SFSTRING: {
 			len = 0;
 
-			// this can be handled exactly like a set_one_ECMAtype if it is a script
+			/* AD What happens here???????? */
+			/* this can be handled exactly like a set_one_ECMAtype if it is a script */
 		}
-
-
-		/* a series of Floats... */
-//xxx		case EAI_MFVEC3F:
-//xxx		case EAI_MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,3); break;}
-	  case EAI_MFFLOAT:
-	    {
-		/* Setting of MFFloat when is declared an MFFloat in script*/
-		int elem;
-		float *fl2 =  readMFFloatString(ptr,&elem, MFFLOAT);
-		 
-		if (scripttype)
-		{
-		    if (EAIVerbose) printf("EAI_SendEvent, nodeptr %i, off %i, ptr \"%s\".\n",(int)nodeptr,(int)offset,ptr);
-		    if(elem > 0)
-			set_EAI_MFElementtype ((int)nodeptr, (int)offset, fl2, sizeof(float)*elem);
-		}
-		else
-		{
-		    /*DANGER : I could overwrite memory when the MFFloat readed is */
-		    /*bigger than the one allocated. This could be a pontential    */
-		    /*failure. Possible workaround: try to find how big is the     */
-		    /*allocated MFFloat, or reallocate the existing one.           */
-		    memcpy ((void *)memptr, (void *)fl2,sizeof(float)*elem);
-		}
-		
-		if(elem > 0)
-		  free(fl2);
-		
-		break;
-	    }
-//xxx		case EAI_MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,4); break;}
-//xxx		case EAI_MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,2); break;}
-//xxx		case EAI_MFNODE: {getEAI_MFNodetype (ptr,memptr,CRoutes[route].extra); break;}
-//xxx		case EAI_MFSTRING: {
-//xxx			break;
-//xxx		}
-//xxx
-//xxx		case EAI_MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,0); break;}
-//xxx		case EAI_MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,5); break;}
-
 		default: {
                         printf ("unhandled Event :%c: - get code in here\n",nodetype);
-                        EAIVerbose = 0;
+                        //EAIVerbose = 0;
 			return FALSE;
 		}
 	}
 
 	/* if we had an error on conversion */
-	if (len == 0) return FALSE;
+	if (len <= 0)
+	{
+		//EAIVerbose = 0;
+		return FALSE;
+	}
 
 	if (scripttype) {
-		/* this is a Javascript route, so... */
-		if (MultiElement) {
-			Set_one_MultiElementtype ((int)nodeptr, (int)offset, 
-				myBuffer,len);
-		}else {
-			set_one_ECMAtype((int)nodeptr,(int)offset,
-				nodetype-EAI_SFUNKNOWN, myBuffer,len);
+	    /* this is a Javascript route, so... */
+	    if (MultiElement) {
+		switch (nodetype)
+		{
+		  case EAI_MFVEC3F:
+		  case EAI_MFCOLOR:
+		  case EAI_MFFLOAT: {
+		      if (EAIVerbose)
+			printf("EAI_SendEvent, elem %i, count %i, nodeptr %i, off %i, ptr \"%s\".\n",len, elemCount, (int)nodeptr,(int)offset,ptr);
+		      set_EAI_MFElementtype ((int)nodeptr, (int)offset,
+					     myBuffer, len);
+		      break;
+		  }
+		  case EAI_SFVEC2F   : 
+		  case EAI_SFVEC3F   :
+		  case EAI_SFCOLOR   :
+		  case EAI_SFROTATION: {
+		      Set_one_MultiElementtype ((int)nodeptr, (int)offset, 
+						myBuffer,len);
+		      break;
+		  }
 		}
-		mark_script((int)nodeptr);
+	    }else {
+		printf("set_one_ECMAtype called by EAI_SendEvent\n");
+		set_one_ECMAtype((int)nodeptr,(int)offset,
+				 nodetype-EAI_SFUNKNOWN, myBuffer,len);
+	    }
+	    mark_script((int)nodeptr);
 	} else {
-		/* now, do the memory copy */
-		memcpy ((void *)memptr, (void *)myBuffer,len);
+	    /* AD I think here is the rigth place to use this function,
+	       but I cannot see his rigth application
+	     */
+	    /*
+	    getCLASSMultNumType (myBuffer, sizeof(float)*len,
+	    (struct Multi_Vec3f *) memptr, MFFLOAT, FALSE);
+	     */
 
-		/* if this is a geometry, make it re-render. Some nodes (PROTO interface params w/o IS's) 
-	   	   will have an offset of zero, and are thus not "real" nodes, only memory locations */
-
-		if (offset > 0) update_node ((void *)nodeptr);
-
-		/* if anything uses this for routing, tell it that it has changed */
-		mark_event (nodeptr,offset);
+	    /* now, do the memory copy */
+	    memcpy ((void *)memptr, (void *)myBuffer,len);
+	    
+	    /* if this is a geometry, make it re-render.
+	       Some nodes (PROTO interface params w/o IS's) 
+	       will have an offset of zero, and are thus not
+	       "real" nodes, only memory locations
+	     */
+	    
+	    if (offset > 0) update_node ((void *)nodeptr);
+	    
+	    /* if anything uses this for routing, tell it that it has changed */
+	    mark_event (nodeptr,offset);
 	}
+	//EAIVerbose = 0;
 	return TRUE;
 }
 
@@ -1138,25 +1223,26 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 /* take an ASCII string from the EAI or CLASS, and convert it into
    a memory block */
 
-int ScanValtoBuffer(int len, int type, char *buf, void *memptr, int bufsz) {
+int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	float *floatptr;
-	int quant;
+	int len;
 
 	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
-	if (bufsz<10) {
+
+	if(EAIVerbose) printf("ScanValtoBuffer\n");
+	
+	if (bufsz < 10) {
 		printf ("cant perform conversion with small buffer\n");
 		return (0);
 	}
 
 	switch (type) {
 	    case SFBOOL:	{	/* SFBool */
-	    	if (strncmp(buf,"true",4)==0) {
-	    		(int *)memptr = 1;
-	    	} else { if (strncmp(buf,"TRUE",4)==0) {
-	    			(int *)memptr = 1;
-			} else {
-	    			(int *)memptr = 0;
-			}
+	    	if (strncasecmp(buf,"true",4)==0)
+		{
+		    (int *)memptr = 1;
+	    	} else { 
+		    (int *)memptr = 0;			
 	    	}	
 		len = sizeof(int);
 	    	break;
@@ -1213,26 +1299,30 @@ int ScanValtoBuffer(int len, int type, char *buf, void *memptr, int bufsz) {
 	    case MFROTATION: 
 	    case MFVEC2F: {
 		  /* use Alberto Dubuc's MFFloat scanning algorithm */
-		  floatptr = readMFFloatString(buf,&quant,type);
+		  floatptr = readMFFloatString(buf,quant,type);
 
 		  /* get how many bytes in the type */
 		  switch (type) {
-	    		case MFTIME: quant = quant * sizeof(double); break;
-	    		case SFNODE:
-	    		case MFNODE: 
-	    		case MFINT32:quant = quant * sizeof(int); break;
-		  	default: quant = quant * sizeof(float); /* turn into byte count */
+	    		case MFTIME : len = *quant * sizeof(double); break;
+	    		case SFNODE :
+	    		case MFNODE : 
+	    		case MFINT32: len = *quant * sizeof(int)   ; break;
+		  	default     : len = *quant * sizeof(float) ; /* turn into byte count */
 		  }
 
-		  len = quant;
-		  //printf ("bufsz is %d, len = %d quant = %d\n",bufsz, len, quant);
+		  if(EAIVerbose) printf ("bufsz is %d, len = %d quant = %d\n",bufsz, len, *quant);
 		  if (len > bufsz) {
 			  printf ("Warning, MultiFloat too large, truncating to %d \n",bufsz);
 			  len = bufsz;
 		  } 
 
 		  /* now, copy over the data to the memory pointer passed in */
-		  memcpy (memptr,floatptr,len);
+		  if(NULL != floatptr)
+		    memcpy (memptr,floatptr,len);
+		  else
+		  {
+		      perror("ScanValtoBuffer: floatptr NULL!");
+		  }
 
 		  /* free the memory malloc'd in Alberto's code */
 		  free (floatptr);
@@ -1241,12 +1331,12 @@ int ScanValtoBuffer(int len, int type, char *buf, void *memptr, int bufsz) {
 	    }
 
 	    case MFSTRING: 
-	    default: {	printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
-			printf ("complain to the FreeWRL team.\n");
-			printf ("(string is :%s:)\n",buf);
-			     return (0);
+	  default: {
+		printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
+		printf ("complain to the FreeWRL team.\n");
+		printf ("(string is :%s:)\n",buf);
+		return (0);
 	    }
 	}
 	return (len);
 }
-

@@ -500,7 +500,7 @@ void setCLASStype (int num);
 void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
 void processClassEvents(int scriptno, int startEntry, int endEntry); 
 char *processThisClassEvent (unsigned int fn, int startEntry, int endEntry, char *buf);
-int ScanValtoBuffer(int len, int type, char *buf, void *memptr, int buflen); 
+int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen); 
 void getCLASSMultNumType (char *buf, int bufSize, struct Multi_Vec3f *tn, int eletype, int addChild) ;
 #ifdef AQUA
 void freewrlDie(const char *format);

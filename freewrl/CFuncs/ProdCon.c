@@ -545,28 +545,27 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	return (retval);
 }
 
-//JAS/* interface for replacing worlds from EAI */
-//JASvoid EAI_replaceWorld(char *inputstring) {
-//JAS	int complete;
-//JAS
-//JAS	PSP_LOCK
-//JAS	DATA_LOCK
-//JAS	psp.comp = &complete;
-//JAS	psp.type = EAIREPWORLD;
-//JAS	psp.ptr = rootNode;
-//JAS	psp.ofs = offsetof(struct VRML_Group, children);
-//JAS	psp.path = NULL;
-//JAS	psp.bind = FALSE; /* should we issue a set_bind? */
-//JAS	/* copy over the command */
-//JAS	psp.inp = malloc (strlen(inputstring)+2);
-//JAS	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
-//JAS	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
-//JAS	DATA_LOCK_SIGNAL
-//JAS	DATA_UNLOCK
-//JAS	while (complete!=1) usleep(10);
-//JAS	PSP_UNLOCK
-//JAS}
-//JAS
+/* interface for replacing worlds from EAI */
+void EAI_readNewWorld(char *inputstring) {
+    int complete;
+    
+    PSP_LOCK
+    DATA_LOCK
+    psp.comp = &complete;
+    psp.type = FROMURL;
+    psp.ptr  = rootNode;
+    psp.ofs  = offsetof(struct VRML_Group, children);
+    psp.path = NULL;
+    psp.bind = TRUE; /* should we issue a set_bind? */
+    /* copy over the command */
+    psp.inp  = malloc (strlen(inputstring)+2);
+    if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+    memcpy (psp.inp,inputstring,strlen(inputstring)+1);
+    DATA_LOCK_SIGNAL
+    DATA_UNLOCK
+    while (complete!=1) usleep(10);
+    PSP_UNLOCK
+}
 
 /****************************************************************************/
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
@@ -575,7 +574,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	/* do we want to return if the parsing thread is busy, or do
 	   we want to wait? */
 	if (returnifbusy) {
-		printf ("perlParse, returnifbusy, PerlParsing %d\n",PerlParsing);
+		//printf ("perlParse, returnifbusy, PerlParsing %d\n",PerlParsing);
 		if (PerlParsing) return (FALSE);
 	}
 	PSP_LOCK
@@ -1053,7 +1052,7 @@ void __pt_doStringUrl () {
 		 /* printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
 			psp.retarr, retval);  */
 		for (count = 0; count < retval; count ++) {
-			// printf ("	...saving %d in %d\n",myretarr[count],count); 
+			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
 			psp.retarr[count] = myretarr[count];
 		}
 		psp.retarrsize = retval;	

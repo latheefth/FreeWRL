@@ -1,19 +1,21 @@
-Readme file by Alberto Dubuc. 
+Sun Solaris 8 Compilation and Instalation notes of FreeWRL.
+By Alberto Dubuc. (alendubri@yahoo.com, alberto.dubuc@siemens.com )
 
 Version  00: 17.02.2004
 Revision 01: 10.03.2004
-
-Compilation of FreeWRL on Solaris 8.
+Revision 02: 21.06.2004 (for FreeWRL-1.07-pre5)
 
 This document shows the procedure to compile and install the freewrl and his 
 dependent packages using gcc-3.3.2 and GNU Make version 3.75 (called as gmake).
-Please, do not use the make utility of the OS.
+***Please, do not use the make utility of the OS.***
 
 Packages needed:
 
 Included in the OS (but normally, not installed by default):
 OpenGL
 perl (version > 5.8)
+java SDK 1.4.1 (take care, some Solaris come with 1.1 preinstalled, then you 
+                must upgrade)
 
 Public Domain (must be compiled and installed):
 
@@ -21,6 +23,7 @@ Public Domain (must be compiled and installed):
  freetype-2.1.5
  jpeg-6b
  libpng-1.2.5
+ expat-1.95.7
 
 And the following perl modules:
 
@@ -52,6 +55,18 @@ setenv PREFIX /usr/local
 ----------------------
 
 Step 1: Compilation of individual packages:
+
+-expat-1.95.7:
+Uncompress expat: gtar xvzf expat-1.95.7.tar.gz
+This command creates a directory expat-1.95.7, cd into that directory, 
+then:
+
+setenv GNUMAKE gmake
+./configure --prefix=$PREFIX
+gmake
+gmake install
+
+
 
 -freetype-2.1.5:
 
@@ -119,6 +134,7 @@ Then, take the following packages and uncompress:
  libwww-perl-5.76.tar.gz
  MIME-Base64-3.00.tar.gz
  URI-1.30.tar.gz
+ XML-Parser-2.34
 
 After that, go into every directory in the following order:
 
@@ -130,35 +146,75 @@ libnet
 libwww-perl
 Image-Base
 
+
 And do the following on each directory:
 
 perl Makefile.PL PREFIX=$PREFIX
 gmake
 gmake install
 
+NOTE: package XML-Parser has a small difference than the others:
+
+perl Makefile.PL PREFIX=$PREFIX EXPATLIBPATH=$PREFIX/lib EXPATINCPATH=$PREFIX/include
+gmake
+gmake install
+
 That will install these perl modules in $PREFIX
 
-Step 3: Prepare FreeWRL-1.05 for compilation on Sun.
+Step 3: Prepare FreeWRL-1.XX for compilation on Sun.
+(Here XX represents the release, like 01, or 02.. etc.)
 
-Unpack the file FreeWRL-1.05.tar.gz.
+Unpack the file FreeWRL-1.XX.tar.gz.
 
-gtar xvzf FreeWRL-1.05.tar.gz
+gtar xvzf FreeWRL-1.XX.tar.gz
+
+change to the directory FreeWRL-1.XX
+
+Compile the java support files, before you do that, make sure that you have not
+the CLASSPATH enviroment variable setted:
+
+unsetenv CLASSPATH
+cd java/classes/
+find . -name "*.java" -exec javac {} \; -print
+jar cvf vrml.jar vrml
+cd ../..
 
 Change the following files in that way:
 cp -f ./vrml.conf.sunGcc ./vrml.conf
 cp -f ./CFrontEnd/Makefile.sunGcc ./CFrontEnd/Makefile
-cp -f ./CFrontEnd/freewrl.c.sunGcc ./CFrontEnd/freewrl.c
 
 After that make the following:
 
-cd /the/dir/where/FreeWRL/was/uncmp/FreeWRL-1.05/JS/js/src
+cd ./JS/js/src
 gmake -f Makefile.ref
 cd ../../..
-perl Makefile.PL PPREFIX=$PREFIX PREFIX=$PREFIX
+perl Makefile.PL PPREFIX=$PREFIX PREFIX=$PREFIX ***(PLEASE READ NOTE1)***
 gmake
 gmake install
 
 This will install the rest of the packages in $PREFIX/bin $PREFIX/lib etc.
+
+********
+ NOTE 1
+********
+Some perl implementations creates in this step a Makefile with a fixed gcc 
+compiler that could be a version lower than 3.3. If you look at the Makefile,
+search the definition of the CC variable. If this definitions is different that 
+this one:
+
+CC = gcc
+
+Then you are using a different gcc than the used by your path (and perhaps not
+the rigth version). If this is the case, you must run the following line:
+
+perl Makefile.PL PPREFIX=$PREFIX PREFIX=$PREFIX CC=gcc LD=gcc
+
+This will use you gcc defined in the path. To make sure over the gcc version 
+use:
+
+gcc -v
+
+********
 
 Now, you can test the instalation. Before that, you must set (or modify) 2 
 environment variables:

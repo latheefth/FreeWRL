@@ -1006,7 +1006,8 @@ void getCLASSMultNumType (char *buf, int bufSize,
 
 	len = bufSize / elesize;  /* convert Bytes into whatever */
 	
-	printf("getCLASSMultNumType: bufSize:%d, eletype:%d, allocated: %d, elesize: %d.\n",
+	if (CRVerbose) 
+		printf("getCLASSMultNumType: bufSize:%d, eletype:%d, allocated: %d, elesize: %d.\n",
 	       bufSize,eletype, tn->n, elesize);
 								       	
 	/* now, we either replace the whole data, or we add or remove it if
@@ -1016,7 +1017,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		/* do we have to realloc memory? */
 		if (len != tn->n) {
 			/* yep... */
-		    printf ("old pointer %d\n",tn->p);
+		        // printf ("old pointer %d\n",tn->p);
 			tn->n = 0;	/* gets around possible mem problem */
 			if (tn->p != NULL) free (tn->p);
 			tn->p = malloc ((unsigned)(elesize*len));
@@ -2493,7 +2494,7 @@ char *processThisClassEvent (unsigned int fn,
 	}
 
 	/* scan the ASCII string into memory */
-	len = ScanValtoBuffer(fieldLen, fieldType, buf, membuffer,
+	len = ScanValtoBuffer(&fieldLen, fieldType, buf, membuffer,
 			sizeof(membuffer));
 
 	/* can we do a direct copy here? (ie, is this a USE?) */
@@ -2522,7 +2523,8 @@ char *processThisClassEvent (unsigned int fn,
 				tn = (int) to_ptr->node;
 				tptr = (int) to_ptr->foffset;
 	
-				printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
+				if (CRVerbose)
+					printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
 						tn, tptr, len, CRoutes[ctr].len);
 				
 				memptr = tn+tptr;

@@ -14,6 +14,7 @@
 #define GETTYPE		'F'
 #define	REGLISTENER	'G'
 #define	ADDROUTE	'H'
+#define REREADWRL	'I'
 #define	DELETEROUTE	'J'
 #define GETNAME		'K'
 #define	GETVERSION	'L'
