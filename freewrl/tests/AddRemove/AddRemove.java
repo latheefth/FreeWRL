@@ -32,15 +32,21 @@ public class AddRemove extends Applet {
   Button removeButton;
 
   public void init() {
+System.out.println ("start of init");
     // Paint the Java Buttons
     add(addButton = new Button("Add Sphere"));
     add(removeButton = new Button("Remove Sphere"));
 
+System.out.println ("buttons added");
     // Get the browser
     browser = Browser.getBrowser(this);
 
     // Get root node of the scene
-    root = browser.getNode("ROOT");
+    try 
+	{ root = browser.getNode("ROOT"); }
+    catch (InvalidNodeException e) {
+	System.out.println ("caught " + e);
+    }
 
     // Instantiate (get handle to) the EventIn objects
     addChildren = (EventInMFNode) root.getEventIn("addChildren");
