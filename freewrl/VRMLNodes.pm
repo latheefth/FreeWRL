@@ -62,6 +62,7 @@ sub get_vp_scene {return $vps[$vpno];}
 
 sub getName { return "FreeWRL VRML Browser" }
 
+# EG Die unless perl scripts are enabled
 sub check_perl_script {
  	if(!$VRML::DO_PERL) {
  		die <<EOF ;
@@ -139,7 +140,7 @@ sub perl_script_output {
   } else {
     print "No script output file specified\n" if $v;
   }
-}
+}								# End perl_script_output
 
 ## EG : Just a little debugging function
 sub show_stack {
@@ -152,6 +153,46 @@ sub show_stack {
 	}
   }
 }
+use Data::Dumper ;
+
+# EG : returns the list of names of fields that are visible in the
+# script
+sub script_variables {
+  my $fields = shift ;
+  
+  my @res = grep { ! /mustEvaluate|directOutput/ } sort keys %$fields ;
+  map {print "$_ has value ", Dumper ($fields->{$_}) } @res ;
+  @res;
+}
+
+package MTS ;			# My tied Scalar : Will be used to tie scalars
+				# to fields and eventIn for perl scripting.
+
+use Exporter ;
+@ISA = qw(Exporter);
+@EXPORT = qw( with ) ;
+
+require Tie::Scalar;
+
+sub TIESCALAR {
+  print "tiescalar : ",join (",", @_),"\n";
+  my $class = shift;
+  my $self = shift;
+  bless $self;
+}
+
+sub FETCH {
+  my $self = shift;
+  $$self ;
+}
+
+sub STORE {
+  my $self = shift;
+  $$self = shift ;
+}
+
+
+package VRML::NodeType;
 
 sub add_MFNode {
 	my ($node, $field, $child) = @_;
@@ -1519,6 +1560,7 @@ Script => new VRML::NodeType("Script",
 		Initialize => sub {
 
 #JAS $VRML::verbose::script = 1;
+ $VRML::verbose::script = 1;
 
 			my($t,$f,$time,$scene) = @_;
 			print "ScriptInit $_[0] $_[1]!!\n" if $VRML::verbose::script;
@@ -1541,20 +1583,61 @@ Script => new VRML::NodeType("Script",
 ##  					}
 ##  					last;
 ##  				} elsif(s/^perl(_tjl_xxx1)?://) {
-			        if(s/^perl(_tjl_xxx1)?://) {
+				if(s/^perl(_tjl_xxx1)?://) {
 				  {  
 				    print "XXX1 script\n" if $VRML::verbose::script;
 				    check_perl_script();
 
 				    # See about RFields in file ARCHITECTURE and in 
 				    # Scene.pm's VRML::FieldHash package
+				    my $u = $t->{Fields};
+
 				    my $t = $t->{RFields};
-				    $h = eval "({$_})";
-				    print "Evaled: $h\n" if $VRML::verbose::script;
-				    print ("-- $h --\n",
-					   map {"$_ => $h->{$_}\n"} keys %$h);
+
+					## Failed attempt ... 
+					##  my $decl = 
+					##  join "",
+					##		map {"my *$_ = \\\$t->{$_}; "} script_variables ($u);
+					## print "decl = $decl\n";
+					## eval qq{$decl \$h = eval "({$_})"};
+
+					## fields of vrml node will appear as scalar
+					## variables in the script. In fact, they are
+					## scalars tied to the corresponding key/values of
+					## $h.
+
+								# This string ties scalars
+					my $tie = 
+					  join "", map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
+					print "tie = $tie\n";
+					## $h = eval "$tie ({$_})";
+					$h = eval "({$_})";
+								# Wrap up each sub in the script node
+					foreach (keys %$h) {
+					  my $tmp = $h->{$_};
+					  my $src = join ("\n",
+									  "sub {",
+									  "  $tie",
+									  "  \&\$tmp (\@_)",
+									  "}");
+					  print "---- src ----$src\n--------------",
+					  $h->{$_} = eval $src ;
+					}
+
+					## $h = eval "({$_})";
+					
+				    
+				    if ($VRML::verbose::script) {
+				      print "Evaled: $h\n",
+				      "-- h = $h --\n",
+				      (map {"$_ => $h->{$_}\n"} keys %$h),
+				      "-- u = $u --\n",
+				      (map {"$_ => $u->{$_}\n"} keys %$u),
+				      "-- t = $t --\n",
+				      (map {"$_ => $t->{$_}\n"} keys %$t);
+				    }
 				    if($@) {
-				      die "Inv script '$@'"
+				      die "Invalid script '$@'"
 				    }
 				  }
 				  last;
