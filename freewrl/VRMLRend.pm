@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.101  2003/04/28 19:40:02  crc_canada
+# AudioClip ClockTick now in C
+#
 # Revision 1.100  2003/04/25 15:51:05  crc_canada
 # Interpolators now in C
 #
@@ -1356,9 +1359,6 @@ AudioClip => '
 	float pitch,stime, sttime;
 	int loop;
 	unsigned char *filename = SvPV(this_->__localFileName,PL_na);
-	// JAS - cant get setting perl variable to work, so using AC_LastDuration
-	//sv_setnv(this_->__duration,(double) 23.4);
-	//sv_setpv(this_->__duration,"234.5");
 
 	// tell Sound that this is an audioclip
 	sound_from_audioclip = TRUE;

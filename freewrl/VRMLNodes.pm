@@ -33,7 +33,6 @@ my @vps;	# viewpoint Scenes.
 my @vpn;	# viewpoint Nodes.
 my $vpno = 1;
 my $globalAudioSource = 0;  # count of audio sources
-my $globalDuration = -1.0;	# have problems setting duration variable from C for AudioClips.
 my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
 
 # Viewpoints are stored in the browser rather in the 
@@ -915,7 +914,7 @@ my $protono;
 						 # which texture number is used
 						 __ctex => [SFInt32, 0, field],
 						 # time that we were initialized at
-						 __inittime => [SFInt32, 0, field],
+						 __inittime => [SFTime, 0, field],
 						 # internal sequence number
 						 __sourceNumber => [SFInt32, 0, field],
 						 # local name, as received on system
@@ -954,13 +953,11 @@ my $protono;
 							  },
 							  startTime => sub {
 								  my($t,$f,$val) = @_;
-								  #print "MT StartTime $val\n";
 								  $f->{startTime} = $val;
 							  },
 							  # Ignore if less than startTime
 							  stopTime => sub {
 								  my($t,$f,$val) = @_;
-								  #print "MT StopTime $val\n";
 								  $f->{stopTime} = $val;
 							  },
 
@@ -1157,20 +1154,16 @@ my $protono;
 						# internal sequence number
 						__sourceNumber => [SFInt32, 0, field],
 						# local name, as received on system
-						__localFileName => [SFString, "", exposedField],
+						__localFileName => [SFString, "",field],
 						# time that we were initialized at
-						__inittime => [SFInt32, 0, field],
-						# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
-						__type => [SFInt32, 1, exposedField],
-						# duration assuming pitch=1 - note, its a string
-						# that contains a floating point value.
-						__duration =>[SFString, "-1", exposedField]
+						__inittime => [SFTime, 0, field],
 					   },
-					   @x = {
+						{
 							Initialize => sub {
 								my ($t,$f,$time,$scene) = @_;
 								# Assign a source number to this source
 								$f->{__sourceNumber} = $globalAudioSource++;
+
 								# get the file
 								init_sound("","url",$t,$f,$scene,1);
 								# we are done with this Sound...
@@ -1180,18 +1173,25 @@ my $protono;
 
 							startTime => sub {
 								my($t,$f,$val) = @_;
-								#print "MT StartTime $val\n";
 								$f->{startTime} = $val;
 							},
 							# Ignore if less than startTime
 							stopTime => sub {
 								my($t,$f,$val) = @_;
-								#print "MT StopTime $val\n";
 								$f->{stopTime} = $val;
 							},
 
 							ClockTick => sub {
-								return ClockTick_TimeDepNodes (@_);
+								my($t,$f,$tick) = @_;
+								my $ac, $evtodo;
+
+								VRML::VRMLFunc::AudioClockTick(
+									$t->{BackNode}->{CNode},$tick,
+									$evtodo,$ac);
+								if ($evtodo == 1) {
+									VRML::OpenGL::set_render_frame();
+									return [$t, "isActive", $ac];
+								}
 							},
 						   },
 					  ),
@@ -1268,15 +1268,15 @@ my $protono;
 							 return removeChildren_GroupingNodes(@_);
 						 },
 
-						 EventsProcessed => sub {
-							 #my($node,$fields,$time) = @_;
-							 ##my $ac = $fields->{addChildren};
-							 #print("Transform:EventsProcessed $node $fields\n");
-							 ##$node->{BackEnd}->update_scene($time);
-							 ##add_MFNode($t,"children",$ac->[0], 1);
-							 ##$node->receive_event("addChildren", $ac, $time);
-							 return ();
-						 }
+						 #JAS EventsProcessed => sub {
+						#JAS 	 #my($node,$fields,$time) = @_;
+						#JAS 	 ##my $ac = $fields->{addChildren};
+						#JAS 	 #print("Transform:EventsProcessed $node $fields\n");
+						#JAS 	 ##$node->{BackEnd}->update_scene($time);
+						#JAS 	 ##add_MFNode($t,"children",$ac->[0], 1);
+						#JAS 	 ##$node->receive_event("addChildren", $ac, $time);
+						#JAS 	 return ();
+						 #JAS }
 						},
 					   ),
 
@@ -1309,11 +1309,11 @@ my $protono;
 							return removeChildren_GroupingNodes(@_);
 						},
 
-						EventsProcessed => sub {
-							# my($node,$fields,$time) = @_;
-							# print ("Group, EP, $node $fields\n");
-							return();
-						}
+						#JAS EventsProcessed => sub {
+						#JAS 	# my($node,$fields,$time) = @_;
+						#JAS 	# print ("Group, EP, $node $fields\n");
+						#JAS 	return();
+						#JAS }
 					   }
 					  ),
 
@@ -1572,10 +1572,10 @@ my $protono;
 							return ();
 						},
 
-						EventsProcessed => sub {
-							# print "TS EV\n";
-							return ();
-						},
+						#JAS EventsProcessed => sub {
+						#JAS 	# print "TS EV\n";
+						#JAS 	return ();
+						#JAS },
 
 						#
 						#  Ignore startTime and cycleInterval when active..

@@ -35,7 +35,103 @@ Interps are the "EventsProcessed" fields of interpolators.
 #include "LinearAlgebra.h"
 
 
-/* local routine, look for the appropriate key */
+/* returns the audio duration, unscaled by pitch */
+float return_Duration (int indx) {
+	float retval;
+
+	if (indx < 0)  retval = 1.0;
+	else if (indx > 50) retval = 1.0;
+	else retval = AC_LastDuration[indx];
+	return retval;
+}
+
+/* time dependent sensor nodes- check/change activity state */
+void do_active_inactive (
+	int *act, 		/* pointer to are we active or not?	*/
+	double *inittime,	/* pointer to nodes inittime		*/
+	double *startt,		/* pointer to nodes startTime		*/
+	double *stopt,		/* pointer to nodes stop time		*/
+	double tick,		/* time tick				*/
+	int loop,		/* nodes loop field			*/
+	float myDuration,	/* duration of cycle			*/
+	float speed		/* speed field				*/
+) {
+
+	/* what we do now depends on whether we are active or not */
+
+	if (*act == 1) {   /* active - should we stop? */
+		/* printf ("is active\n"); */
+
+		if (tick > *stopt) {
+			if (*startt >= *stopt) { 
+				/* cases 1 and 2 */
+				if (!(loop)) {
+					if (speed != 0) {
+					    if (tick >= (*startt + 
+							abs(myDuration/speed))) {
+						/* printf ("stopping case x\n"); */
+						*act = 0;
+						*stopt = tick;
+					    }
+					}
+				/*
+				} else {
+				#	print "stopping case y\n";
+				#	node->{isActive} = 0;
+				#	node->{stopTime} = $tick;
+				*/
+				}
+			} else {
+				/* printf ("stopping case z\n");  */
+				*act = 0;
+				*stopt = tick;
+			}
+		}
+	}
+
+	/* immediately process start events; as per spec.  */
+	if (*act == 0) {   /* active - should we start? */
+		/* printf ("is not active tick %f startt %f\n",tick,*startt); */
+
+		if (tick >= *startt) {
+			/* We just might need to start running */
+
+			if (tick >= *stopt) {
+				/* lets look at the initial conditions; have not had a stoptime
+				event (yet) */
+
+				if (loop) {
+					if (*startt >= *stopt) {
+						/* VRML standards, table 4.2 case 2 */
+						/* printf ("CASE 2\n"); */
+						*startt = tick;
+						*act = 1;
+					}
+				} else if (*startt >= *stopt) {
+					if (*startt > *inittime) { 
+						/* ie, we have an event */
+						 /* printf ("case 1 here\n"); */
+						/*
+						we should be running 
+						VRML standards, table 4.2 case 1 
+						*/
+						*startt = tick;
+						*act = 1;
+					}
+				}
+			} else {
+				/* printf ("case 3 here\n"); */
+				/* we should be running -  
+				VRML standards, table 4.2 cases 1 and 2 and 3 */
+				*startt = tick;
+				*act = 1;
+			}
+		}
+	}
+}
+
+
+/* Interpolators - local routine, look for the appropriate key */
 int find_key (int kin, float frac, float *keys) {
 	int counter;
 
@@ -99,7 +195,7 @@ do_OintCoord(struct VRML_CoordinateInterpolator *px, int indx) {
 	}
 	kpkv = kvin/kin;
 
-	//printf ("CoordinateInterpolator, kpkv %d index %d ",kpkv,indx);
+	/* printf ("CoordinateInterpolator, kpkv %d index %d ",kpkv,indx); */
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= px->key.p[0]) {
@@ -283,5 +379,44 @@ do_Oint4 (struct VRML_OrientationInterpolator *px) {
 		}
 
 		px->value_changed.r[3]=newangle;
+	}
+}
+
+
+/* Audio AudioClip sensor code */
+void do_AudioTick(struct VRML_AudioClip *node, double tick,int *doevent) {
+	int 	oldstatus;	
+
+	/* assume no event from this node */
+	*doevent = 0;
+
+	/* can we possibly have started yet? */
+	if(tick < node->startTime) {
+		return;
+	}
+
+	oldstatus = node->isActive;
+
+	/* call common time sensor routine */
+	do_active_inactive (
+		&node->isActive, &node->__inittime, &node->startTime,
+		&node->stopTime,tick,node->loop,return_Duration(node->__sourceNumber),
+		node->pitch);
+	
+
+	if (oldstatus != node->isActive) {
+		/* push @e, [$t, "isActive", node->{isActive}]; */
+		*doevent = 1;
+		/* tell SoundEngine that this source has changed.  */
+	        if (!SoundEngineStarted) {
+        	        /* printf ("SetAudioActive: initializing SoundEngine\n"); */
+                	SoundEngineStarted = TRUE;
+                	SoundEngineInit();
+		}
+        	SetAudioActive (node->__sourceNumber,node->isActive);
+	}
+
+	if(node->isActive == 1) {
+		/* VRML::OpenGL::set_render_frame(); */
 	}
 }

@@ -172,9 +172,6 @@ extern int global_IFS_Coord_count;
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
 
-/* does the sound come from an audioclip or from a movietexture?
-int sound_from_audioclip;
-
 
 /* what is the max texture size as set by FreeWRL? */
 extern GLint global_texSize;
@@ -190,6 +187,10 @@ extern char sys_fp[fp_name_len];
 /* Sound stuff */
 float SoundSourceInit (int sourcenum, int loop, float pitch,
 			float start_time, float stop_time, char *url);
+
+extern float AC_LastDuration[];
+
+extern int SoundEngineStarted;
 
 /* Material optimizations */
 void do_shininess (float shininess);

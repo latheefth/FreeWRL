@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.79  2003/04/28 19:40:25  crc_canada
+# AudioClip ClockTick now in C
+#
 # Revision 1.78  2003/04/25 15:50:24  crc_canada
 # Interpolators now in C
 #
@@ -1266,7 +1269,7 @@ float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 				-1.0,-1.0,-1.0,-1.0,-1.0} ;
 
 /* is the sound engine started yet? */
-static int SoundEngineStarted = FALSE;
+int SoundEngineStarted = FALSE;
 
 
 /* Sub, rather than big macro... */
@@ -1589,43 +1592,6 @@ CODE:
 		global_texSize = texSize;
 	}
 
-
-#####################################################################
-#
-# for AudioClips - return the duration of the last registered clip
-#
-# This should not be necessary, but I had difficulty setting this
-# from within C in the AudioClip rend function in VRMLRend.pm
-#
-#####################################################################
-float
-return_Duration (indx)
-	int indx;
-CODE:
-	//printf ("return_Duration indx %d val %f\n",indx,AC_LastDuration[indx]);
-	if (indx < 0) RETVAL = -1.0;
-	else if (indx > 50) RETVAL = -1.0;
-	else RETVAL = AC_LastDuration[indx];
-OUTPUT:
-	RETVAL
-
-#####################################################################
-#
-# SetAudioActive - tell the SoundEngine whether a source is active or not.
-#
-#####################################################################
-void
-SetAudioActive (indx,status)
-	int indx;
-	int status;
-CODE:
-	if (!SoundEngineStarted) {
-		//printf ("SetAudioActive: initializing SoundEngine\n");
-		SoundEngineStarted = TRUE;
-		SoundEngineInit();
-	}
-
-	SetAudioActive (indx,status);		
 
 
 #####################################################################
@@ -2065,6 +2031,21 @@ CODE:
 	x = px->value_changed;
 OUTPUT:
 	x
+
+#********************************************************************************
+void
+AudioClockTick(node,tick,evtodo,activestate)
+	void *node
+	double tick
+	int evtodo
+	int activestate
+CODE:
+	struct VRML_AudioClip *px = node;
+	do_AudioTick(px,tick,&evtodo);
+	activestate = px->isActive;
+OUTPUT:
+	evtodo
+	activestate
 
 #********************************************************************************
 void 
