@@ -32,12 +32,13 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep)
 		v2 = rep->coord+3*rep->cindex[i*3+1];
 		v3 = rep->coord+3*rep->cindex[i*3+2];
 		
-
-		printf ("cpnf %d using cindex %d %d %d\n",
+		/*
+		 printf ("cpnf %d using cindex %d %d %d\n",
 		i,rep->cindex[i*3],rep->cindex[i*3+1],rep->cindex[i*3+2]);
 		printf ("	v1 %f %f %f\n",v1[0],v1[1],v1[2]);
 		printf ("	v2 %f %f %f\n",v2[0],v2[1],v2[2]);
 		printf ("	v3 %f %f %f\n",v3[0],v3[1],v3[2]);
+		*/
 
 		a[0] = v2[0]-v1[0];
 		a[1] = v2[1]-v1[1];
@@ -174,33 +175,28 @@ void normalize_ifs_face (float *point_normal,
 	facecount = 0;
 	for (tmp_b=0; tmp_b<pointfaces[mypoint*POINT_FACES]; tmp_b++) {
 		tmp_a = pointfaces[mypoint*POINT_FACES+tmp_b+1];
-		/* printf ("comparing myface %d to %d\n",curpoly,tmp_a); */
+		//printf ("comparing myface %d to %d\n",curpoly,tmp_a);  
 	
 		if (curpoly == tmp_a) {
 			zz = 0.0;
 		} else {
 			zz = calc_angle_between_two_vectors(facenormals[curpoly],facenormals[tmp_a] );
 		}
-		/* printf ("angle between faces is %f, creaseAngle is %f\n",zz,creaseAngle); */
+		//printf ("angle between faces is %f, creaseAngle is %f\n",zz,creaseAngle); 
 
 		
 		if (zz <= creaseAngle) {
-			/* printf ("count this one in; adding %f %f %f\n",facenormals[tmp_a].x,facenormals[tmp_a].y,facenormals[tmp_a].z); */
+			//printf ("count this one in; adding %f %f %f\n",facenormals[tmp_a].x,facenormals[tmp_a].y,facenormals[tmp_a].z);
 			point_normal[0] += facenormals[tmp_a].x;
 			point_normal[1] += facenormals[tmp_a].y;
 			point_normal[2] += facenormals[tmp_a].z;
-		/*
-		} else {
-			printf ("count this one out\n");
-		*/
 		}
 	}
 	temp.x = point_normal[0]; temp.y=point_normal[1]; temp.z=point_normal[2];	
 	normalize_vector(&temp); 
 	point_normal[0]=temp.x; point_normal[1]=temp.y; point_normal[2]=temp.z;
 
-	/* printf ("normalized vector is %f %f %f\n",point_normal[0],
-		point_normal[1], point_normal[2]); */
+	//printf ("normalized vector is %f %f %f\n",point_normal[0], point_normal[1], point_normal[2]);
 }
 	
 
