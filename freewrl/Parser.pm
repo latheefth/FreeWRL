@@ -7,7 +7,7 @@
 # for conditions of use and redistribution.
 #
 # Parser.pm -- implement a VRML parser
-#  
+#
 
 use strict vars;
 
@@ -205,7 +205,7 @@ sub parse_interfacedecl {
 			my $n = $3;
 			if($script and
 			   $_[3] =~ /\G\s*IS\s+($Word)\s+/ogsc) {
-			   	push @{$f{$n}}, $scene->new_is($1);
+			   	push @{$f{$n}}, $scene->new_is($1, $n);
 			}
 		} elsif($_[3] =~ /\G\s*(field|exposedField)\s+
 			  ($Word)\s+($Word)/ogsxc) {
@@ -219,7 +219,7 @@ sub parse_interfacedecl {
 			$f{$n} = [$ft, $t];
 			if($fieldval) {
 				if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
-					push @{$f{$n}}, $scene->new_is($1);
+					push @{$f{$n}}, $scene->new_is($1, $n);
 				} else {
 					push @{$f{$n}},
 					  "VRML::Field::$t"->parse($scene,$_[3]);
@@ -232,7 +232,7 @@ sub parse_interfacedecl {
 			print "Script field $f $ft $eft\n"
 		 		if $VRML::verbose::parse;
 			if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
-				$f{$f} = [$ft, $f, $scene->new_is($1)];
+				$f{$f} = [$ft, $f, $scene->new_is($1, $f)];
 			} else {
 				$f{$f} = [$ft, $f, "VRML::Field::$ft"->parse($scene,$_[3])];
 				print "\tparsed $f $ft $eft\n"
@@ -254,23 +254,25 @@ sub parse_route {
 		\s*($Word)\s*\.
 		\s*($Word)
 	/ogsxc or parsefail($_[1], "route statement");
-
 	# remember - we have our own internal names for these things...
-	my $rn = VRML::Handles::return_def_name($1);
-	my $trn = VRML::Handles::return_def_name($4);
-	# print "Parser - parse_route; $rn (was $1)  $2 $trn (was $4) $5\n";
-	$scene->new_route([$rn,$2,$trn,$5]);
-	if($3 !~ /TO\s+/) {
+	my $from = VRML::Handles::return_def_name($1);
+	my $eventOut = $2;
+	my $to = VRML::Handles::return_def_name($4);
+	my $eventIn = $5;
+
+	if ($3 !~ /TO\s+/) {
 		parsewarnstd($_[1],
 		   "lowercase or omission of TO");
 	}
+
+	$scene->new_route($from, $eventOut, $to, $eventIn);
 }
 
 sub parse_script {
 	my($scene) = @_;
 	my $i = parse_interfacedecl($scene, 0,1,$_[1],1 ,'{','}');
 
-	return $scene->new_node("Script",$i); # Scene knows that Script is different
+	return $scene->new_node("Script", $i); # Scene knows that Script is different
 }
 
 package VRML::Field::SFNode;
@@ -281,34 +283,39 @@ VRML::Error->import;
 my $LASTDEF = 1;
 
 sub parse {
-	my($type,$scene) = @_;
+	my($type, $scene) = @_;
 	$_[2] =~ /\G\s*/gsc;
-	print "PARSENODES, ",(pos $_[2])," ",length $_[2],"\n"
-		if $VRML::verbose::parse;
-	###$_[2] =~ /\G\s*$Word\b/ogsc or parsefail($_[2],"didn't match for sfnode fword");
+
+	if ($VRML::verbose::parse) {
+		my ($package, $filename, $line) = caller;
+		print "VRML::Field::SFNode::parse: ",
+			(pos $_[2]), " ",
+				length $_[2], " from $package, $line\n";
+	}
+
 	$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],"didn't match for sfnode fword");
 
 	my $nt = $1;
 	if($nt eq "NULL") {
 		return "NULL";
 	}
+
 	if($nt eq "DEF") {
 		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
 			"DEF must be followed by a defname");
 
 		# store this as a sequence number, because multiple DEFS of the same name
 		# must be unique. (see the spec)
-		VRML::Handles::def_reserve($1,"DEF$LASTDEF");
+		VRML::Handles::def_reserve($1, "DEF$LASTDEF");
 		$LASTDEF++;
 		my $defname = VRML::Handles::return_def_name($1);
 		print "Parser.pm: DEF $1 as $defname\n"
 			if $VRML::verbose::parse;
 
-
 		my $node = VRML::Field::SFNode->parse($scene,$_[2]);
 		print "DEF - node $defname is $node \n" if  $VRML::verbose::parse;
 
-                return $scene->new_def($defname, $node);
+		return $scene->new_def($defname, $node, $1);
 
 	}
 	if($nt eq "USE") {
@@ -372,7 +379,7 @@ sub parse {
 				print "$_ ";
 			}
 			print "\n";
-			exit (1);
+			exit(1);
 		}
 
 		# the following lines return something like:
@@ -383,7 +390,7 @@ sub parse {
 			 if $VRML::verbose::parse;
 
 		if($_[2] =~ /\G\s*IS\s+($Word)/gsc) {
-			$f{$f} = $scene->new_is($1);
+			$f{$f} = $scene->new_is($1, $f);
 			print "storing type 1, $f, (name ", %{$f{$f}}, ")\n" if $VRML::verbose::parse;
 		} else {
 			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2]);
@@ -394,7 +401,7 @@ sub parse {
 	}
 	print "END\n"
 		if $VRML::verbose::parse;
-	return $scene->new_node($nt,\%f);
+	return $scene->new_node($nt, \%f);
 }
 
 

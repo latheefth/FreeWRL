@@ -21,37 +21,31 @@ my $havevent = 0;
 sub new {
 	my($type) = @_;
 	bless {
-		First => {},
-	},$type;
+		   First => {},
+		   Listen => undef,
+		   CIs => undef,
+		   PIs => undef,
+		   Queue => undef,
+		   Route => undef,
+		  },$type;
 }
 
 sub print {
 	my($this) = @_;
 	return unless $VRML::verbose::events;
-	print "DUMPING EVENTMODEL\nFIRST:\n";
+	my $handle;
+
+	print "DUMPING EventModel\nFIRST:\n";
 	for(values %{$this->{First}}) {
 		print "\t",VRML::NodeIntern::dump_name($_),":\t$_->{TypeName}\n";
 	}
-	print "ROUTES:\n";
-	for my $fn (keys %{$this->{Route}}) {
-		print "\t",VRML::NodeIntern::dump_name($fn)," $this->{Route}{$fn}{TypeName}\n";
-		for my $ff (keys %{$this->{Route}{$fn}}) {
-			print "\t\t$ff\n";
-			for (@{$this->{Route}{$fn}{$ff}}) {
-				print "\t\t\t",VRML::NodeIntern::dump_name($_->[0]),":\t$_->[0]{TypeName}\t$_->[1]\n";
-			}
-		}
-	}
-	print "ISS:\n";
-	for my $pn (keys %{$this->{PIs}}) {
-		print "\t",VRML::NodeIntern::dump_name($pn)," $this->{PIsN}{$pn}{TypeName}\n";
-		for my $pf (keys %{$this->{PIs}{$pn}}) {
-			print "\t\t$pf\n";
-			for(@{$this->{PIs}{$pn}{$pf}}) {
-				print "\t\t\t$_->[0]:\t$_->[0]{TypeName}\t$_->[1]\n";
-			}
-		}
-	}
+
+	print "ROUTEs\n", VRML::Debug::toString($this->{Route}), "\n";
+
+	print "ISs\nPI hash:\n",
+		VRML::Debug::toString($this->{PIs}),
+				"\nCI hash:\n",
+					VRML::Debug::toString($this->{CIs}), "\n";
 }
 
 # XXX Softref
@@ -69,25 +63,18 @@ sub remove_first {
 }
 
 sub add_route {
-	my($this,$fn, $ff0, $tn, $tf0) = @_;
-	$ff = $fn->{Type}{EventOuts}{$ff0};
-	$tf = $tn->{Type}{EventIns}{$tf0};
-
+	my($this, $fromNode, $eventOut, $toNode, $eventIn) = @_;
 
 	# debugging code
-
-	print "Events.pm: ADD_ROUTE ($fn), $fn->{TypeName}, ",
-		VRML::NodeIntern::dump_name($fn)," field $ff (EventOut $ff0) to ($tn), $tn->{TypeName}, ",
-		VRML::NodeIntern::dump_name($tn), " field $tf (EventIn $tf0)\n"if $VRML::verbose::events;
 	if ($VRML::verbose::events) {
 		print "Events.pm: ADD_ROUTE from fields\n";
 		my $item;
-		foreach $item (keys %{$fn->{Type}{EventOuts}}) {
+		foreach $item (keys %{$fromNode->{Type}{EventOuts}}) {
 			print "\t$item\n";
 		}
 
 		print "Events.pm: ADD_ROUTE to fields\n";
-		foreach $item (keys % {$tn->{Type}{EventIns}}) {
+		foreach $item (keys % {$toNode->{Type}{EventIns}}) {
 			print "\t$item\n";
 		}
 	}
@@ -95,78 +82,46 @@ sub add_route {
 	# end of debugging code
 
 
-	print "MAPPED: $ff, $tf\n" if $VRML::verbose::events;
-	if(!defined $ff) {
-		print "Invalid fromfield '$ff0' for ROUTE. Valid fields are\n";
-		my $item;
-		foreach $item (keys %{$fn->{Type}{EventOuts}}) {
-			print "\t$item\n";
-		}
-		return;
-	}
-	if(!defined $tf) {
-		print "Invalid tofield '$tf0' for ROUTE. Valid fields are\n";
-		my $item;
-		foreach $item (keys % {$tn->{Type}{EventIns}}) {
-			print "\t$item\n";
-		}
-		return;
-	}
+	print "MAPPED: $eventOut, $eventIn\n" if $VRML::verbose::events;
 
-	# is this route already here? If so, then don't bother adding it to
-	# the event loop, again. This situation can happen with the EAI,
-	# because we can add/delete nodes/routes in a pseudo random fashon.
-	# we don't want to loose the routes associated with a particular
-	# scene, but we don't want scene::new_route to be able to duplicate
-	# routes, either.
-
-	# print "Events, going to add_route to route\n";
-	# foreach (@{$this->{Route}{$fn}{$ff}}) {
-	# 	my ($n, $f) = @{$_};
-	# 	print "Events: add_route: route: from ",VRML::NodeIntern::dump_name($fn),
-	# 		" field $f  to ",VRML::NodeIntern::dump_name($n), "field $f \n";
-	# 	if ($n eq $tn) {
-	# 		if ($f eq $tf) {
-	# 			print "EVENTS:ADD_ROUTE, duplicate, just returning\n";
-	# 			return;
-	# 		}
-	# 	} 
-	# }
-	# print "EVENTS:ADD_ROUTE, route passed, pushing route on $this-> Routestack\n";
-	push @{$this->{Route}{$fn}{$ff}}, [$tn, $tf];
+	push @{$this->{Route}{$fromNode}{$eventOut}}, [$toNode, $eventIn];
+	return 1;
 }
 
+## needs to be tested with more than just the EAI AddRoute test
 sub delete_route {
-	my($this,$fn, $ff0, $tn, $tf0) = @_;
+	my($this, $fn, $ff0, $tn, $tf0) = @_;
+	my $i = 0;
+	my @ar;
+
 	print "Events.pm: DELETE_ROUTE $fn $ff $tn $tf\n"  if $VRML::verbose::events;
 	$ff = $fn->{Type}{EventOuts}{$ff0};
 	$tf = $tn->{Type}{EventIns}{$tf0};
 	print "Events.pm: DELETE_ROUTE mapped $ff, $tf\n" if $VRML::verbose::events;
-	if(!defined $ff) {
-		die("Invalid fromfield '$ff0' for ROUTE");
-	}
-	if(!defined $tf) {
-		die("Invalid tofield '$tf0' for ROUTE");
-	}
-	print "Events.pm: DELETE_ROUTE current routes\n";
+
+	die("Invalid fromfield '$ff0' for ROUTE") if (!defined $ff);
+
+	die("Invalid tofield '$tf0' for ROUTE") if (!defined $tf);
+
 	foreach (@{$this->{Route}{$fn}{$ff}}) {
-		print "route ",@{$_},"\n";
+		if ($_->[0] eq $tn && $_->[1] eq $tf) {
+			splice(@{$this->{Route}{$fn}{$ff}}, $i, 1);
+			last;
+		}
+		$i++;
 	}
-	pop @{$this->{Route}{$fn}{$ff}}, [$tn, $tf]
 }
 
 sub add_is_out {
-	my($this,$pn, $pf, $cn, $cf) = @_;
-	# print "Event.pm : add_is_out - this $this pn $pn pf $pf cn $cn cf $cf\n";
-	$this->{PIsN}{$pn} = $pn;
-	$this->{CIs}{$cn}{$cf} = [$pn,$pf];
+	my($this, $pn, $pf, $cn, $cf) = @_;
+
+	$this->{CIs}{$cn}{$cf} = [$pn, $pf];
 }
 
 sub add_is_in {
-	my($this,$pn, $pf, $cn, $cf) = @_;
-	# print "Event.pm : add_is_in - this $this pn $pn pf $pf cn $cn cf $cf\n";
-	$this->{PIsN}{$pn} = $pn;
-	push @{$this->{PIs}{$pn}{$pf}}, [$cn,$cf];
+	my($this, $pn, $pf, $cn, $cf) = @_;
+
+	push @{$this->{PIs}{$pn}{$pf}}, [$cn, $cf];
 }
 
 sub register_listener {
@@ -176,13 +131,12 @@ sub register_listener {
 
 # get_firstevent returns [$node, fieldName, value]
 sub propagate_events {
-	my($this,$timestamp,$be,$scene) = @_;
+	my($this, $timestamp, $be, $scene) = @_;
 	my @e;
 	my @ne;
+	my $fk;
 	my %sent; # to prevent sending twice, always set bit here
 
-	#print "propagate_events, looking at First of ",
-	#	VRML::NodeIntern::dump_name($this),"\n";
 	for(values %{$this->{First}}) {
 		print "GETFIRST ", VRML::NodeIntern::dump_name($_), " $_\n" 
 			if $VRML::verbose::events;
@@ -197,8 +151,8 @@ sub propagate_events {
 	}
 	my $n = scalar @e;
 	push @e, @{$this->{Queue}};
+
 	$this->{Mouse} = [];
-	print "GOT ",scalar(@e)," FIRSTEVENTS ($n n/q)\n" if $VRML::verbose::events;
 
 	while(1) {
 		my %ep; # All nodes for which ep must be called
@@ -209,17 +163,8 @@ sub propagate_events {
 			@ne = ();
 			for my $e (@e) {
 				print "Events.pm: while SEND ",
-					VRML::NodeIntern::dump_name($e->[0]),
-							" $e->[0]{TypeName} $e->[1] $e->[2]",
-								(ref $e->[2] eq "ARRAY" ?
-								 " [ ".join(", ",
-											  map((ref $_ eq "ARRAY" ?
-												   "(".join(", ", @{$_}).")" :
-												   VRML::NodeIntern::dump_name($_)),
-												  @{$e->[2]})
-										   )." ]"
-								 : ""), "\n"
-									 if $VRML::verbose::events;
+					VRML::Debug::toString($e), "\n"
+							if $VRML::verbose::events;
 				#AK The following line of code causes problems when a node
 				#AK ($e->[0]) needs to have more than one event processed
 				#AK for a given EventsProcessed. This causes problems with
@@ -242,17 +187,12 @@ sub propagate_events {
 				my $c;
 				# Was this eventOut a child of someone?
 				if($c = $this->{CIs}{$e->[0]}{$e->[1]}) {
-					print "CHILD_IS! Send from P\n"
-					 if $VRML::verbose::events;
-					# Check that it is not a field
-					# or eventIn!
-					my $fk = $c->[0]->{Type}{FieldKinds}{$c->[1]};
-					if(!defined $fk) {die("Fieldkind getting")}
-					if($fk eq "eventOut" or 
-					   $fk eq "exposedField") {
-						push @ne, [
-							$c->[0], $c->[1], $e->[2]
-						];
+
+					# Check that it is not a field or eventIn!
+					$fk = $c->[0]->{Type}{FieldKinds}{$c->[1]};
+					die("Field kind for $fk is not defined") if (!defined $fk);
+					if ($fk eq "eventOut" or $fk eq "exposedField") {
+						push @ne, [ $c->[0], $c->[1], $e->[2] ];
 					}
 				}
 			}
@@ -261,18 +201,16 @@ sub propagate_events {
 			for my $e (@te) {
 					push @ne, 
 					   $e->[0]->receive_event($e->[1],
-							$e->[2],$timestamp);
+							$e->[2], $timestamp);
 					$ep{$e->[0]} = $e->[0];
 					# Was this event routed to someone
 					# who has children?
+
 					for(@{$this->{PIs}{$e->[0]}{$e->[1]}}) {
-						print "Events.pm: P_IS send to $_\n"
-						 if $VRML::verbose::events;
-						my $fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
-						# print"Events.pm - fk $fk one ",$_->[1], " , e2 ", $e->[2],"\n";
-						if(!defined $fk) {die("Fieldkind getting")}
-						if($fk eq "eventIn" or 
-						   $fk eq "exposedField") {
+						$fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
+						die("Field kind for $fk is not defined") if (!defined $fk);
+
+						if ($fk eq "eventIn" or $fk eq "exposedField") {
 							push @{$this->{ToQueue}},
 								[ $_->[0], $_->[1], $e->[2] ];
 						}
@@ -283,16 +221,16 @@ sub propagate_events {
 		$this->{Queue} = [];
 		@ne = ();
 		# Call eventsprocessed
-		for(values %ep) {
+		for (values %ep) {
 			push @ne,$_->events_processed($timestamp,$be);
 		}
-		if($VRML::verbose::events) {
+		if ($VRML::verbose::events) {
 			print "NEWEVENTS:\n";
-			for(@ne) {
+			for (@ne) {
 				print "$_->[0] $_->[1] $_->[2]\n";
 			}
 		}
-		if(!@ne) {last}
+		last if(!@ne);
 		@e = (@ne,@{$this->{Queue}}); # Here we go again ;)
 		$this->{Queue} = [];
 	}
@@ -303,38 +241,36 @@ sub propagate_events {
 	}
 }
 
-# This puts an event coming FROM node 
+# This puts an event coming FROM node
 
 
 sub put_event {
-	my($this,$node,$field,$value) = @_;
-	push @{$this->{Queue}}, [$node, $field, $value];
+	my ($this, $node, $field, $value) = @_;
+	push @{$this->{Queue}}, [ $node, $field, $value ];
 	return;
 }
 
 # This sends an event TO node
 sub send_event_to {
-	my($this,$node,$field,$value) = @_;
+	my ($this, $node, $field, $value) = @_;
 	# print "Events.pm:send_event_to, pushing $node, $field $value\n";
-	push @{$this->{ToQueue}}, [$node, $field, $value];
+	push @{$this->{ToQueue}}, [ $node, $field, $value ];
 }
 
 sub put_events {
-	my($this,$events) = @_;
+	my ($this, $events) = @_;
 	print "Put_events\n"
 		if $VRML::verbose::events;
-	for(@$events) {
-		if(ref $_ ne "ARRAY") {
-			die("Invalid put_events event: '$_'\n");
-		}
+	for (@$events) {
+		die("Invalid put_events event $_\n") if (ref $_ ne "ARRAY");
 	}
 	push @{$this->{Queue}}, @$events;
 }
 
 sub handle_touched {
-	my($this,$node,$but,$move,$over,$pos,$norm,$texc) = @_;
+	my($this, $node, $but, $move, $over, $pos, $norm, $texc) = @_;
 	# print "HTOUCH: $node $but $move\n";
-	push @{$this->{Mouse}}, [$node, $but, $move,$over,$pos,$norm,$texc];
+	push @{$this->{Mouse}}, [ $node, $but, $move, $over, $pos, $norm, $texc ];
 }
 
 1;

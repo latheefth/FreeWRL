@@ -13,22 +13,20 @@ package VRML::DEF;
 
 
 sub new {
-	# parameters are:
-	# 0 - the object ref type (VRML::DEF)
-	# 1 - the name of the object
-	# 2 - the node of the object
-	# print "VRML::DEF, blessing ", $_[1], " and ",VRML::NodeIntern::dump_name($_[2]),"\n";
-	my ($type, $name, $node) = @_;
+	my ($type, $name, $node, $vrmlname) = @_;
 	my $this = bless {
 		Name => $name,
-		Node => $node
+		Node => $node,
+		VRMLName => $vrmlname
 	}, $type;
+
 	return $this;
 }
 
 sub copy {
 	my ($this, $node) = @_;
-	return (ref $this)->new($this->{Name}, $this->{Node}->copy($node));
+
+	return (ref $this)->new($this->{Name}, $this->{Node}->copy($node), $this->{VRMLName});
 }
 
 sub make_executable {
@@ -39,8 +37,8 @@ sub make_executable {
 sub make_backend {
 	my ($this, $be, $parentbe) = @_;
 	
-	print "VRML::DEF::make_backend $this->{Name}, ",
-		VRML::NodeIntern::dump_name($this->{Node}),
+	print "VRML::DEF::make_backend: ",
+		VRML::Debug::toString($this),
 				", $this->{Node}{TypeName}\n"
 					if $VRML::verbose::be;
 
@@ -64,37 +62,26 @@ sub node {
 	return $this->{Node};
 }
 
-sub get_ref {
-	my ($this) = @_;
-	$this->{Node};
-}
-
 sub real_node {
-	my ($this, $obj) = @_;
-        # print "(a)in real_node $_ in VRML::DEF, ", $_[0],"\n";
-        # print "(a)in real_node1  in VRML::DEF, ", $_[1],"\n";
-	return $this->{Node}->real_node($obj);
+	#AK - #my ($this, $proto) = @_;
+	my ($this) = @_;
+
+	#AK - #return $this->{Node}->real_node($proto);
+	return $this->{Node}->real_node();
 }
 
 sub initialize {()}
 
 sub as_string {
     my ($this) = @_;
-
-    return 
-	" ($this) DEF Name: $this->{Name} Node: $this->{Node} ".
-	    $this->{Node}->as_string;
+    return $this->{Node}->as_string();
 }
 sub gather_defs {
 	my ($this, $parentnode) = @_;
 
-	# print "VRML::DEF - gather_defs, this is ",
-	# VRML::NodeIntern::dump_name($this), "name is ",
-	# $this->name(), " ref is ", VRML::NodeIntern::dump_name($this->get_ref()),
-	# " parent is ", VRML::NodeIntern::dump_name($parentnode),"\n";
-
 	#JAS - this is not the DEF we want $parentnode->{DEF}{$this->{Name}} = $this->get_ref();
-	my $real = $this->get_ref();
+
+	my $real = $this->{Node};
 	$real->gather_defs($parentnode);
 }
 	
@@ -105,7 +92,8 @@ sub dump {
 
 	print $padded,"VRML::DEF, name is ", $this->{Name}," def is ",
 		VRML::NodeIntern::dump_name($this->node),"\n";
-	my $real =  $this->get_ref();
+
+	my $real = $this->{Node};
 	$real->dump($level+1);
 }
 

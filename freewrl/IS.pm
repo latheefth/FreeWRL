@@ -18,18 +18,20 @@ package VRML::IS;
 
 
 sub new {
-	my ($type, $name) = @_;
+	my ($type, $name, $is) = @_;
+
 	my $this = bless {
 					  Name => $name,
+					  ISField => $is,
 					  Ref => undef
 					 }, $type;
-	# print "IS::new, $this name is $name\n";
+
 	return $this;
 }
 
 sub copy {
 	my ($this) = @_;
-	my $a = $this->{Name}; 
+	my $a = $this->{Name};
 	bless { Name => $a }, ref $this;
 }
 
@@ -42,26 +44,24 @@ sub iterate_nodes {
 	&$sub($this);
 }
 
-sub name { 
+sub name {
 	my ($this) = @_;
-	# print "IS:: sub name returns ",$this->{Name},"\n";
 	return $this->{Name};
 }
 
 sub set_ref {
 	my ($this, $ref) = @_;
-	# print "IS::set_ref sets $this to ref $ref\n";
+
 	$this->{Ref} = $ref;
 }
 
 sub get_ref {
 	my ($this) = @_;
-	# print "IS::get_ref, getting for this $this\n";
-	if (!defined $this->{Ref}) {
-		print "IS not def!\n";
-		exit(1);
+
+	if (! defined $this->{Ref}) {
+		die("$this Ref has not been set");
 	}
-	# print "IS::get_ref, returning ",$this->{Ref},"\n";
+
 	return $this->{Ref};
 }
 
@@ -69,8 +69,7 @@ sub initialize {()}
 
 sub as_string {
 	my ($this) = @_;
-	## " ($_) IS $_[0][0] "
-	return " ($_) IS $this->{Name} ";
+	return " IS $this->{Name} ";
 }
 
 ## null procedure

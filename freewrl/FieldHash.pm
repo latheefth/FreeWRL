@@ -26,14 +26,16 @@ sub TIEHASH {
 }
 
 {
-my %DEREF = map {($_=>1)} qw/VRML::IS/;
 my %REALN = map {($_=>1)} qw/VRML::DEF VRML::USE/;
 sub FETCH {
 	my ($this, $k) = @_;
 	my $node = $$this;
 	my $v = $node->{Fields}{$k};
 
-# print "FETCH, this $this, node ",VRML::NodeIntern::dump_name($node), " v $v k $k\n";
+	#my ($package, $filename, $line) = caller;
+	#print "FETCH $this ", VRML::NodeIntern::dump_name($node), " $k ",
+	#VRML::Debug::toString($v), " from $package, $line\n";
+
 
 	if ($VRML::verbose::tief) {
 		print "TIEH: FETCH $k $v\n" ;
@@ -41,20 +43,21 @@ sub FETCH {
 			print "TIEHARRVAL: @$v\n";
 		}
 	}
-	# while($DEREF{ref $v}) {
-	#	$v = ${$v->get_ref};
-	#	print "DEREF: $v\n" if $VRML::verbose::tief;
-	#}
 
-	while ($REALN{ref $v}) {
-		$v = $v->real_node;
+	if ($REALN{ref $v}) {
+		#AK - #$v = $v->real_node();
+		$v = $v->node();
 		print "TIEH: MOVED TO REAL NODE: $v\n"
 			if $VRML::verbose::tief;
+	} elsif (ref $v eq "VRML::IS") {
+		$v = $v->get_ref();
+		# really shouldn't happen...
+		if (ref $v eq "VRML::IS") {
+			die("IS statement $v->{Name} should have been dereferenced by now");
+		}
+		return ${$v};
 	}
-	if (ref $v eq "VRML::IS") {
-		print "Is should've been dereferenced by now -- something's cuckoo\n";
-		exit (1);
-	}
+
 	return $v;
 }
 
@@ -66,24 +69,25 @@ sub STORE {
 			print "TIEHARRVAL: @$value\n";
 		}
 	}
+
 	my $node = $$this;
 	my $v = \$node->{Fields}{$k};
-	# while($DEREF{ref $$v}) {
-	# 	$v = ${$v}->get_ref;
-	# 	print "DEREF: $v\n" if $VRML::verbose::tief;
-	# }
-	$$v = $value;
-	if ($VRML::verbose::events) {
-		print "STORE, $node, $k, $value\n";
-	}
 
-	if (defined $node->{EventModel}){
-	  print "STORE, defined eventmodel\n" if $VRML::verbose::events;
-	  $node->{EventModel}->put_event($node, $k, $value);
-	  if (defined $node->{BackNode}) { 
-		print "STORE, BackNode defined\n"  if $VRML::verbose::events;
-		$node->set_backend_fields($k);
-	  }
+	my ($package, $filename, $line) = caller;
+	print "STORE $this ", VRML::NodeIntern::dump_name($node),
+		" $k, value ", VRML::Debug::toString($value),
+		", field was ", VRML::Debug::toString($$v),
+		" from $package, $line\n" if $VRML::verbose::events;
+
+	$$v = $value;
+
+	if (defined $node->{EventModel}) {
+		print "\tdefined eventmodel\n" if $VRML::verbose::events;
+		$node->{EventModel}->put_event($node, $k, $value);
+		if (defined $node->{BackNode}) {
+			print "\tBackNode defined $node->{BackNode}\n"  if $VRML::verbose::events;
+			$node->set_backend_fields($k);
+		}
 	}
 }
 }

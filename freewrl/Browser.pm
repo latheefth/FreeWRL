@@ -92,7 +92,7 @@ sub new {
 
 
 ########################################################################
-# 
+#
 # load the initial file at startup
 #
 # Discards previous scene
@@ -327,7 +327,7 @@ sub prepare {
 	$this->{Scene}->make_executable();
 	$this->{Scene}->make_backend($this->{BE});
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	$this->{Scene}->init_routing($this->{EV},$this->{BE});
+	$this->{Scene}->init_routing($this->{EV}, $this->{BE});
 	$this->{EV}->print;
 }
 
@@ -337,12 +337,8 @@ sub prepare {
 sub prepare2 {
 	my($this) = @_;
 
-	# print "Browser.pm - beginning prepare2, calling setup_routing\n";
-
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	# print "Browser.pm - prepare2, calling init_routing\n";
-
-	$this->{Scene}->init_routing($this->{EV},$this->{BE});
+	$this->{Scene}->init_routing($this->{EV}, $this->{BE});
 	$this->{EV}->print;
 }
 
@@ -360,7 +356,6 @@ sub shut {
 
 
 sub tick {
-	#
 	my($this) = @_;
 	my $time = get_timestamp();
 
@@ -443,7 +438,7 @@ sub replaceWorld {
 	}
 
 	$this->clear_scene();
-	$this->{Scene} = VRML::Scene->new($this->{EV},"from replaceWorld");
+	$this->{Scene} = VRML::Scene->new($this->{EV}, "from replaceWorld");
 	$this->{Scene}->set_browser($this);
 	$this->{Scene}->topnodes(\@newnodes);
 	prepare ($this);
@@ -466,6 +461,8 @@ sub createVrmlFromString {
 
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
+	$scene->setup_routing($this->{EV}, $this->{BE});
+	$scene->init_routing($this->{EV}, $this->{BE});
 	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
 
 	$scene->dump(0) if $VRML::verbose::scenegraph;
@@ -496,10 +493,9 @@ sub createVrmlFromURL {
 	}
 
 	unless($t =~ /^#VRML V2.0/s) {
-		if ($t =~ /^#VRML V1.0/s) {
-			die("Sorry, this file is according to VRML V1.0. I only know V2.0\n");
-		}
-		warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");
+		die("Sorry, this file is according to VRML V1.0. I only know V2.0")
+		   if ($t =~ /^#VRML V1.0/s);
+		warn("File $file doesn't start with the '#VRML V2.0' header line");
 	}
 
 	# Stage 2 - load the string in....
@@ -507,6 +503,8 @@ sub createVrmlFromURL {
 	my $scene = VRML::Scene->new($this->{EV}, $url, $wurl);
 	VRML::Parser::parse($scene, $t);
 	$scene->make_executable();
+	$scene->setup_routing($this->{EV}, $this->{BE});
+	$scene->init_routing($this->{EV}, $this->{BE});
 
 	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
 	print "VRML::Browser::createVrmlFromUrl: mkbe_and_array returned $ret\n"
@@ -518,36 +516,26 @@ sub createVrmlFromURL {
 }
 
 sub addRoute {
-	my ($this, $fn, $ff, $tn, $tf, $scene) = @_;
+	my ($this, $fn, $ff, $tn, $tf) = @_;
 
-	##print "VRML::Browser::addRoute: $fn, $ff, $tn, $tf, $scene\n";
-
-	my $fromNode = VRML::Handles::get($fn)->real_node();
-	my $toNode = VRML::Handles::get($tn)->real_node();
-	my @ar=[$fromNode, $ff, $toNode, $tf];
-
-	$scene->new_route(@ar);
-	$this->prepare2();
-	# make sure route gets rendered
-	VRML::OpenGL::set_render_frame();
+	$this->{Scene}->new_route($fn, $ff, $tn, $tf);
+	## not initializing Bindables -- necessary???
+	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
+	#AK - #$this->prepare2();
 }
 
 sub deleteRoute {
-	my ($this, $fn, $ff, $tn, $tf, $scene) = @_;
+	my ($this, $fn, $ff, $tn, $tf) = @_;
 
-	##print "VRML::Browser::deleteRoute\n";
-
-	my $fromNode = VRML::Handles::get($fn)->real_node();
-	my $toNode = VRML::Handles::get($tn)->real_node();
-	my @ar=[$fromNode, $ff, $toNode, $tf];
-
-	$scene->delete_route(@ar);
-	$this->prepare2();
+	$this->{Scene}->delete_route($fn, $ff, $tn, $tf);
+	#AK - #$this->prepare2();
+	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 }
 
 # EAI & Script node
 sub api_beginUpdate { print "no beginupdate yet\n"; exit(1) }
 sub api_endUpdate { print "no endupdate yet\n"; exit(1) }
+
 sub api_getNode {
 	$_[0]->{Scene}->getNode($_[1]);
 }
@@ -566,33 +554,19 @@ sub api__getFieldInfo {
 
 	my ($k, $t);
 
-	# print "api__getFieldInfor for node ",VRML::NodeIntern::dump_name($node),"\n";
-
-	# print "getFieldInfo, type is ",$node->{Type},"\n";
-	# print "getFieldInfo, FieldKinds is ",$node->{Type}{FieldKinds},"\n";
-        # for(keys %{$node->{Type}{FieldKinds}}) {
-	# 	print "key $_\n";
-	# }
-	# print "getFieldInfo, Fieldtype is ",$node->{Type}{FieldTypes},"\n";
-        # for(keys %{$node->{Type}{FieldTypes}}) {
-	# 	print "key $_\n";
-	# }
-	# print "getFieldInfo, Fieldtype is ",$node->{FieldTypes},"\n";
-        # for(keys %{$node->{FieldTypes}}) {
-	# 	print "key $_\n";
-	# }
-
-	# print "gestures try is ", $node->{FieldType}{gestures},"\n";
-	# if (exists $node->{Type}) {
-		($k,$t) = ($node->{Type}{FieldKinds}{$field},
-				   $node->{Type}{FieldTypes}{$field});
-	# } else {
-	# 	($k,$t) = ($node->{FieldKinds}{$field},$node->{FieldTypes}{$field});
-	# }
+	($k,$t) = ($node->{Type}{FieldKinds}{$field},
+			   $node->{Type}{FieldTypes}{$field});
 	
-	# print "getFieldInfo, k is $k, type is $t\n";
 	return($k,$t);
 }
+
+sub api__updateRouting {
+	my ($this, $node, $field) = @_;
+
+	$this->{Scene}->update_routing($node, $field);
+	$this->prepare2();
+}
+
 
 sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
 
@@ -786,8 +760,10 @@ package VRML::Handles;
 {
 my %S = ();
 my %ONSCREEN = ();
+## delete %RP???
 my %RP = ();
 my %DEFNAMES = ();
+
 
 # keep a list of DEFined names and their real names around. Because
 # a name can be used more than once, (eg, DEF MX ..... USE MX .... DEF MX
@@ -796,8 +772,11 @@ my %DEFNAMES = ();
 # ALSO: for EAI, we need a way of keeping def names global, as EAI requires
 # us to be able to get to Nodes in one scene from another.
 
+
+## keep refs to DEFs instead??? vrml name kept in DEF instances...
+
 sub def_reserve {
-	my ($name,$realnode) = @_;
+	my ($name, $realnode) = @_;
 	$DEFNAMES{$name} = $realnode;
 	# print "reserving DEFNAME $name ", ref $name, "is real $realnode, ref ", ref $realnode,"\n";
 
@@ -809,37 +788,35 @@ sub return_def_name {
 		#print "return_def_name - Name $name does not exist!\n";
 		return $name;
 	}
-	# print $DEFNAMES{$name},"\n";
 	return $DEFNAMES{$name};
-	}
+}
 
 sub displayed {
-        my($node) = @_;
+	my($node) = @_;
 
-        # print "HANDLES::displayed $node\n";
-        # this child is displayed here.
+	# print "HANDLES::displayed $node\n";
+	# this child is displayed here.
 
-        $ONSCREEN{$node} = "yes";
+	$ONSCREEN{$node} = "yes";
 }
 
 
 sub check_displayed {
-        my ($node) = @_;
+	my ($node) = @_;
 
-        # print "HANDLES::check_displayed $node\n";
-        # is this child displayed yet?
-
-        if (defined $ONSCREEN{$node}) {
-			return 1;
-        }
-        return 0;
+	# is this child displayed yet?
+	if (defined $ONSCREEN{$node}) {
+		return 1;
+	}
+	return 0;
 }
 
+## delete these???
 # when sending children in EAI, we get the "real nodes". We actually want to
 # keep the backwards link, so that real nodes can point to their masters, in
 # cases of PROTOS.
 sub front_end_child_reserve {
-	my ($child,$real) = @_;
+	my ($child, $real) = @_;
 	$RP{$child} = $real;
 	# print "front_end_child_reserve, reserving for child $child ", ref $child,
 	# 	VRML::NodeIntern::dump_name($child),  " real $real ", ref $real,
@@ -850,14 +827,14 @@ sub front_end_child_reserve {
 sub front_end_child_get {
 	my ($handle) = @_;
 	# print "front_end_child_get looking for $handle ",ref $handle,"\n";
-        if(!exists $RP{$handle}) {
-                # print "front_end_child_get Nonexistent parent for child !\n";
-                return $handle;
-        }
+	if (!exists $RP{$handle}) {
+		# print "front_end_child_get Nonexistent parent for child !\n";
+		return $handle;
+	}
 	# print "front_end_child_get, returning for $handle ", $RP{$handle},"\n";
-        return $RP{$handle};
+	return $RP{$handle};
 }
-
+######
 
 sub reserve {
 	my($object) = @_;
@@ -867,7 +844,7 @@ sub reserve {
 	if(!defined $S{$str}) {
 		$S{$str} = [$object, 0];
 	}
-	$S{$str}[1] ++;
+	$S{$str}[1]++;
 	return $str;
 }
 
@@ -881,9 +858,8 @@ sub release {
 sub get {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
-	#print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
+
 	if(!exists $S{$handle}) {
-		# print "Nonexistent VRML Node Handle!\n";
 		return $handle;
 	}
 	return $S{$handle}[0];
@@ -892,10 +868,8 @@ sub check {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
 	if(!exists $S{$handle}) {
-		##print ("Handle::check $handle - Not a Node Handle!\n");
 		return 0;
 	}
-	#print "Handle::check ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
 	return 1;
 }
 }

@@ -424,34 +424,35 @@ sub addChildren_GroupingNodes {
 	my ($node, $fields, $value, $time) = @_;
 
 	# debug:
-	#print ("VRML::NodeType::addChildren_GroupingNodes: ", VRML::NodeIntern::dump_name($node), ", $fields, [ ", (join ", ", map(VRML::NodeIntern::dump_name($_).": $_->{TypeName}", @{$value}))," ], $time\n");
+	#print "VRML::NodeType::addChildren_GroupingNodes: ", VRML::Debug::toString(\@_), "\n";
 
-	my %children = map { $_ => 1 } @{$node->{Fields}{children}};
+	my %children = map { $_ => 1 } @{$node->{RFields}{children}};
 	for (@{$value}) {
 		if (!$children{$_}) {
-			##push @{$node->{RFields}{children}}, $_;
 			push @{$node->{Fields}{children}}, $_;
 		}
 	}
 	$node->{RFields}{children} = $node->{Fields}{children};
 
-	@{$node->{RFields}{addChildren}} = ();
+	@{$node->{Fields}{addChildren}} = ();
 }
 
 sub removeChildren_GroupingNodes {
 	my ($node, $fields, $value, $time) = @_;
 
 	# debug:
-	#print ("VRML::NodeType::removeChildren_GroupingNodes: $node, $fields, [ ", (join ", ", map(VRML::NodeIntern::dump_name($_).": $_", @{$value}))," ], $time\n");
+	#print "VRML::NodeType::removeChildren_GroupingNodes: ", VRML::Debug::toString(\@_), "\n";
 
 	my %toremove = map { $_ => 1 } @{$value};
-	my @children = grep { !$toremove{$_} } @{$node->{Fields}{children}};
+	my @children = grep { !$toremove{$_} } @{$node->{RFields}{children}};
 
 	@{$node->{Fields}{children}} = ();
+
 	push @{$node->{Fields}{children}}, @children;
+
 	$node->{RFields}{children} = $node->{Fields}{children};
 
-	@{$node->{RFields}{removeChildren}} = ();
+	@{$node->{Fields}{removeChildren}} = ();
 }
 
 
@@ -2274,6 +2275,10 @@ my $protono;
 	# Complete
 	# fields, eventins and outs parsed in Parse.pm by special switch :(
 	# JAS took out perl script, because it is not standard.
+
+
+	## directOutput && mustEvaluate work???
+
 	Script =>
 	new VRML::NodeType("Script",
 					   {
@@ -2284,8 +2289,8 @@ my $protono;
 					   {
 						Initialize => sub {
 							#JAS $VRML::verbose::script = 1;
-
 							my($t,$f,$time,$scene) = @_;
+
 							print "ScriptInit t ",
 								VRML::NodeIntern::dump_name($t),
 										" f $f time $time scene ",

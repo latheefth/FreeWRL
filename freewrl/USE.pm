@@ -38,18 +38,17 @@ sub set_used {
 sub make_backend {
     my ($this, $be, $parentbe) = @_;
     print "VRML::USE::make_backend $this $this->{DEFName} ",
-	VRML::NodeIntern::dump_name($this->{DEFNode}), ":\n" 
-	    if $VRML::verbose::be;
+		VRML::NodeIntern::dump_name($this->{DEFNode}{Node}), ":\n" 
+				if $VRML::verbose::be;
 
-    if ($this->{DEFNode}{BackNode}) {
-	print "\tusing $this->{DEFName}'s BackNode.\n"
-	    if $VRML::verbose::be;
-	return $this->{DEFNode}{BackNode};
+    if ($this->{DEFNode}{Node}{BackNode}) {
+		print "\tusing $this->{DEFName}{Node}'s BackNode.\n"
+			if $VRML::verbose::be;
+		return $this->{DEFNode}{Node}{BackNode};
     } else {
-	print "\tno BackNode associated with $this->{DEFNode}{TypeName}.\n"
-	    if $VRML::verbose::be;
-	## original code
-	return $this->{DEFNode}->make_backend($be, $parentbe);
+		print "\tno BackNode associated with $this->{DEFNode}{Node}{TypeName}.\n"
+			if $VRML::verbose::be;
+		return $this->{DEFNode}{Node}->make_backend($be, $parentbe);
     }
 }
 
@@ -63,53 +62,35 @@ sub name {
     return $this->{DEFName};
 }
 
-sub real_node { 
-    my ($this, $obj) = @_;
-    # ok - the following conventions/params are here...
-    #
-    # appearance DEF Grey Appearance 
-    #	{ material Material 
-    #		{ emissiveColor .2 .2 .2 specularColor 1.0 0 0 } 
-    #	}
-    #
-    # $_ is the "name" of the DEF... eg, "appearance".
-    # $this is a "use" hash, defined and blessed. It contains...
-    # $this->{DEFName} name. In this case, "Grey".
-    # $this->{DEFNode} the node for the definition. 
-    # $this->{Scene} the original scene for the definition,
-    #	which doesn't appear anywhere in this package at the moment.
-
-    # print "(a)in real_node $_ in VRML::USE, ", $_[0], $_[0]->as_string(),"\n";
-    # print "(Name)                       ", $_[0][0], "\n";
-    # print "(Node)                       ", $_[0][1], "\n";
-    # print "ref of Node is               ", ref($_[0][1]), "\n";
-
-    return $this->{DEFNode}->real_node($obj); 
+sub node {
+    my ($this) = @_;
+    return $this->{DEFNode}->node();
 }
 
-
-sub get_ref {
+sub real_node {
     my ($this) = @_;
-    return $this->{DEFNode};
+
+    #AK - #return $this->{DEFNode}->real_node($proto);
+    return $this->{DEFNode}->real_node();
 }
 
 sub initialize {()}
 
 sub as_string {
 	my ($this) = @_;
-	return " ($_) USE Name: $this->{DEFName}  Node: $this->{DEFNode} ";
+	return $this->{DEFNode}->as_string();
 }
 
 ## null procedure
 sub gather_defs {}
 
 
-sub dump { 
+sub dump {
 	my ($this, $level) = @_;
 	my $lp = $level*2+2;
 	my $padded = pack("A$lp","$level ");
 	print $padded,"$this, name is ", $this->{DEFName},
-		" def is ", VRML::NodeIntern::dump_name($this->{DEFNode}),"\n";
+		" def is ", VRML::NodeIntern::dump_name($this->{DEFNode}{Node}),"\n";
 }
 
 
