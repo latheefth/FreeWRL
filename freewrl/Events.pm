@@ -204,108 +204,6 @@ sub verify_script_started {
 
 ###############################################################################
 #
-# If we have a DEF that is a field of a Script, we need to get/set that 
-# value so that the perl C structures remain in sync
-#
-
-
-sub findDEFwithinScript {
-	my ($this,$root,$nodetofind) = @_;
-
-	# go through this scene, until we find a node that equals our $node.
-	if (ref $root eq "VRML::DEF") {
-		$root = $root->node;
-	}
-
-	#print "findDEFwithinScript - finding ",
-	#	VRML::NodeIntern::dump_name($root), " node ",
-	#	VRML::NodeIntern::dump_name($nodetofind),"field $field\n";
-
-	# did we find a script?
-	if ($root->{TypeName} =~/^__script__/) {
-		#print "	found a script\n";
-		my $fieldname;
-		foreach $fieldname (keys %{$root->{Fields}}) {
-			if (ref $root->{Fields}{$fieldname} eq "VRML::DEF") {
-				# looking more likely - found a script with a def
-				my $tmp = $root->{Fields}{$fieldname}->node;
-				if ($tmp = $nodetofind) {
-					#print "found it at field $fieldname\n";
-					my $cs = $root->{Scene};
-					if (!defined $SCENENUMBERS{$cs}) { $SCENENUMBERS{$cs} = $scenecount++; }
-					my $scenenum = $SCENENUMBERS{$cs};
-
-					my $scrpt = 1; # an eventOut   ;-)
-
-					#print " scene $cs\n";
-					#print "scene number $scenenum\n ",
-					#print " script name ",$root->{TypeName},"\n";
-					#print " script field name ",
-					#	VRML::NodeIntern::dump_name($root->{Fields}{$fieldname}->node),"\n";
-					#print " node to find ",VRML::NodeIntern::dump_name($nodetofind),
-					#	"\n field $field\n";
-
-
-					# now go through all fields of this node, copying them back to C
-					my $subfield;
-					my $outoffset;
-					foreach $subfield (keys %{$tmp->{Fields}}) {
-						#print "$fieldname has $subfield as a field\n";
-
-						# we care only about the fields; not whether they are
-						# only EventIns OR EventOuts.
-						if ($tmp->{Type}{FieldKinds}{$subfield} eq "exposedField") {
-						    # print "lets worry about this one $subfield\n";
-
-						    $outoffset = VRML::VRMLFunc::paramIndex ("$fieldname.$subfield",
-							$tmp->{Type}{FieldTypes}{$subfield});
-
-						    # print "offset $outoffset fieldtype ",
-						    # 	$tmp->{Type}{FieldTypes}{$subfield},"\n";
-
-
-						    my $datalen=VRML::VRMLFunc::getClen(
-       				                     "VRML::Field::$tmp->{Type}{FieldTypes}{$subfield}"->clength($subfield));
-
-						    # print "field length $datalen\n";
-
-						    # now get the fields in C where to put this.
-						    my $inptr = $nodetofind->{BackNode}{CNode};
-						    my $inoffset = $VRML::CNodes{$nodetofind->{TypeName}}{Offs}{$subfield};
-
-						    # add a route from the script to the C node
-						    VRML::VRMLFunc::do_CRoutes_Register(
-								$scenenum, $outoffset,
-								$inptr, $inoffset, 
-								$datalen,
-								0, $scrpt);
-						}
-					}
-
-
-					return;
-				}
-			}
-		}
-	}
-
-	# no script in this node, keep on looking
-	if (ref $root eq "VRML::Scene") {
-		foreach (@{$root->{Nodes}}) {
-			$this->findDEFwithinScript ($_,$nodetofind);
-		}
-	} else {
-		foreach (@{$root->{Fields}{children}}) {
-			$this->findDEFwithinScript ($_,$nodetofind);
-		}
-	}
-
-}
-
-
-
-###############################################################################
-#
 # Nodes get stored in many ways, depending on whether it is a PROTO, normal
 # node, etc, etc. This tries to find a backend (CNode, or script) for a node.
 
@@ -411,6 +309,9 @@ sub resolve_node_cnode {
 			# check out tests/8.wrl in the FreeWRL source distribution for
 			# a script with a DEF'd node in it's parameter declarations.
 
+			# Javascript will "know" to send/get values from this
+			# VRML node, and will use perl calls to do so.
+
 
 			my $brow = $scene->get_browser();
 			#print "No backend, but browser has ",$brow->{BE}, " for node ",
@@ -418,9 +319,6 @@ sub resolve_node_cnode {
 
 			# make a backend
 			$node->make_backend($brow->{BE},$brow->{BE});
-
-			# add a route to copy ALL fields of this. 
-			$this->findDEFwithinScript($scene,$node);
 		}
 
 		if (!defined ($outptr=$node->{BackNode}{CNode})) {
@@ -673,23 +571,18 @@ sub propagate_events {
 	}
 }
 
-# This puts an event coming FROM node
-
-
-#JAS sub put_event {
-#JAS 	my ($this, $node, $field, $value) = @_;
-#JAS 	#print "put_event\n";
-#JAS 	#push @{$this->{Queue}}, [ $node, $field, $value ];
-#JAS 	return;
-#JAS }
-
-# This sends an event TO node - should be removed for CRoutes.
+# This sends an event TO node - only used by JavaScript to add/remove children.
 sub send_event_to {
 	my ($this, $node, $field, $value) = @_;
-	my $outptr;
-	my $datalen;
+	my $mych;
+	
+	print "send_event_to depreciated $node, $field, @{$value} ",{@{$value}}->{CNode},"\n";
 
-	print "send_event_to (node $node, field $field...) depreciated\n";
+	#foreach $mych (@{$value}) {
+	#	print "sendevto ",$node->{BackNode}{CNode}, " field $field child $mych, BN ",
+	#			$mych->{BackNode}{CNode},"\n";
+	#}
+
 }
 
 # This sends a bind/unbind event TO node
