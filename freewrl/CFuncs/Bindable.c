@@ -521,7 +521,7 @@ void render_Background (struct VRML_Background *node) {
 	/* Undo the translation and scale effects */
 	glScaled(sx,sy,sz);
 
-
+#ifdef DLIST
 	/* now, is this the same background as before??? */
 	if (node->_dlist) {
 		if (node->_dlchange == node->_change) {
@@ -538,6 +538,7 @@ void render_Background (struct VRML_Background *node) {
 	node->_dlist = glGenLists(1);
 	node->_dlchange = node->_change;
 	glNewList(node->_dlist,GL_COMPILE_AND_EXECUTE);
+#endif
 
 	/* do we have any background textures?  */
 	frtptr = SvPV((node->__locfilefront),frtlen); 
@@ -775,7 +776,9 @@ void render_Background (struct VRML_Background *node) {
 	}
 
 	/* end of textures... */
+#ifdef DLIST
 	glEndList();
+#endif
 	glPopMatrix();
 	glPopAttrib();
 }

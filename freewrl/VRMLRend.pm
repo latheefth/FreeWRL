@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.118  2003/10/10 14:10:17  crc_canada
+# Compile time option for display lists added.
+#
 # Revision 1.117  2003/10/01 16:56:55  crc_canada
 # More GeoVRML changes.
 #
@@ -1859,7 +1862,7 @@ Billboard => (join '','
 		last_bound_texture = 0;
 
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
-
+#ifdef DLIST
 		if(this_->_dlist) {
 			if(this_->_dlchange == this_->_change) {
 				glCallList(this_->_dlist); 
@@ -1872,6 +1875,7 @@ Billboard => (join '','
 		this_->_dlist = glGenLists(1);
 		this_->_dlchange = this_->_change;
 		glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+#endif
 
 		/* is there an associated appearance node? */	
        	        if($f(appearance)) {
@@ -1893,10 +1897,11 @@ Billboard => (join '','
 		/* Now, do the geometry */
 		render_node((this_->geometry));
 
-		
+#ifdef DLIST		
 		if (this_->_dlchange == this_->_change) {
 			glEndList();
 		}
+#endif
 
 		last_visited_shape = 0;
 		glPopAttrib();

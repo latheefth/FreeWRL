@@ -80,6 +80,7 @@ void render_status () {
 	/* perform translation and rotation for text posn */
 	statusbar_position ();
 
+#ifdef DLIST
 	/* now, is this the same background as before??? */
 	if (status_dlist) {
 		if (!new_status) {
@@ -91,6 +92,9 @@ void render_status () {
 			glDeleteLists(status_dlist,1);
 		}
 	}
+	status_dlist = glGenLists(1);
+	glNewList(status_dlist,GL_COMPILE_AND_EXECUTE);
+#endif
 
 	/* make up new line to display */
 	if (vplen == 0) {
@@ -106,9 +110,7 @@ void render_status () {
 #endif
 
 	/* we are here; compile and display a new background! */
-	status_dlist = glGenLists(1);
 	new_status = FALSE;
-	glNewList(status_dlist,GL_COMPILE_AND_EXECUTE);
 
 	glDisable (GL_LIGHTING);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
@@ -164,8 +166,10 @@ void render_status () {
         FREE_IF_NZ(rep_.normal);
         FREE_IF_NZ(rep_.tcindex);
 
-
+#ifdef DLIST
 	glEndList();
+#endif
+
 	glPopMatrix();
 	glPopAttrib();
 }
