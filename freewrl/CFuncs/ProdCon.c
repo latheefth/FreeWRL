@@ -766,6 +766,10 @@ void __pt_openBrowser() {
 	float screendist = 10.0;	// have to really allow this to be passed in
 	int stereo = FALSE;
 	
+	dSP;
+	ENTER;
+	SAVETMPS;
+
 	set_viewer_type(1);
 
 	set_eyehalf( eyedist/2.0,
@@ -775,9 +779,6 @@ void __pt_openBrowser() {
 		XEventStereo();
 
 	
-	dSP;
-	ENTER;
-	SAVETMPS;
 	PUSHMARK(SP);
 	XPUSHs(sv_2mortal(newSViv(1000))); // left in as an example
 	XPUSHs(sv_2mortal(newSViv(2000)));
