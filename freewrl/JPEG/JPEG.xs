@@ -179,8 +179,7 @@ for(;;) {
   dep = cinfo.output_components;
   hei = cinfo.output_height;
   wi = cinfo.output_width;
-  /* printf("Reading: %d %d %d\n",cinfo.output_width, cinfo.output_height, 
-  	cinfo.output_components); */
+  /*printf("Reading: w=%d h=%d d=%d\n",cinfo.output_width, cinfo.output_height, cinfo.output_components); */
   row_stride = cinfo.output_width * cinfo.output_components;
   /* Make a one-row-high sample array that will go away when done with image */
   buffer = (*cinfo.mem->alloc_sarray)
