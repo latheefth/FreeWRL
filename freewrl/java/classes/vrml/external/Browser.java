@@ -552,7 +552,7 @@ public class Browser implements BrowserInterface
       String retval;
 
        synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "\nGV " + NodeName + " " +
+         EAIoutSender.send ("" + queryno + "E " + NodeName + " " +
             FieldName + "\n");
          retval = getVRMLreply(queryno);
          queryno += 1;
@@ -561,11 +561,11 @@ public class Browser implements BrowserInterface
 }
 
   public static void RegisterListener (EventOutObserver f, Object userData,
-			String outNode, String command,  int EventType)
+			String nodeptr, String offset, String datatype,  String datasize, int EventType)
     {
        synchronized (FreeWRLToken) {
-         EAIoutSender.send ("" + queryno + "\nRL " + outNode + 
- 		" " + command + " " + queryno + "\n");
+         EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
+ 		" " + datasize + "\n");
  
          BrowserGlobals.EVarray [BrowserGlobals.EVno] =  queryno;
          BrowserGlobals.EVtype [BrowserGlobals.EVno] = EventType;     

@@ -136,7 +136,8 @@ int EAIVerbose = 0;
 
 int EAIsendcount = 0;			// how many commands have been sent back?
 
-
+char EAIListenerData[EAIREADSIZE];	// this is the location for getting Listenered data back again.
+char EAIListenerArea[40];		// put the address of the EAIListenerData here.
 
 // prototypes
 void EAI_parse_commands (char *stptr);
@@ -151,7 +152,11 @@ void EAI_GetType (unsigned int uretval,
 	int *ra, int *rb,
 	int *rc, int *rd);		// in VRMLC.pm
 void read_EAI_socket(void);
-int EAICreateVrmlFromString(char *str);	// in VRMLC.pm
+int EAI_CreateVrml(char *type, char *str, unsigned int *retarr);	// in VRMLC.pm
+void handle_Listener (void);
+void CRoutes_Register(unsigned int from, unsigned int fromoffset,
+	int to_count, char *tonode_str, unsigned int length,
+	void *intptr, int scrdir, int extra);				// CFuncs/CRoutes.c
 
 
 
@@ -437,92 +442,111 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%d\n1\n%d",count,uretval);
 				break; 
 			}
-		case GETTYPE:  {
-			//format int seq# COMMAND  int node#   string fieldname   string direction
-
-			sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
-			if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
-
-			EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
-
-			sprintf (buf,"RE\n%d\n1\n%d %d %d %c",count,ra,rb,rc,rd);
-			break;
-			}
-		case SENDEVENT:   {
-			//format int seq# COMMAND NODETYPE pointer offset data
-			if (EAIVerbose) printf ("SENDEVENT %s\n",bufptr);
-			EAI_SendEvent(bufptr);
-			break;
-			}
-		case CREATEVU: 
-		case CREATEVS: {
-			//format int seq# COMMAND vrml text     string EOT
-			if (command == CREATEVS) {
-				if (EAIVerbose) printf ("CREATEVS %s\n",bufptr);
-
-				EOT = strstr(buffer,"\nEOT\n");
-				// if we do not have a string yet, we have to do this...
-				while (EOT == NULL) {
-					read_EAI_socket();
-					EOT = strstr(buffer,"\nEOT\n");
+			case GETTYPE:  {
+				//format int seq# COMMAND  int node#   string fieldname   string direction
+	
+				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
+				if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
+	
+				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
+	
+				sprintf (buf,"RE\n%d\n1\n%d %d %d %c",count,ra,rb,rc,rd);
+				break;
 				}
+			case SENDEVENT:   {
+				//format int seq# COMMAND NODETYPE pointer offset data
+				if (EAIVerbose) printf ("SENDEVENT %s\n",bufptr);
+				EAI_SendEvent(bufptr);
+				break;
+				}
+			case CREATEVU: 
+			case CREATEVS: {
+				//format int seq# COMMAND vrml text     string EOT
+				if (command == CREATEVS) {
+					if (EAIVerbose) printf ("CREATEVS %s\n",bufptr);
+	
+					EOT = strstr(buffer,"\nEOT\n");
+					// if we do not have a string yet, we have to do this...
+					while (EOT == NULL) {
+						read_EAI_socket();
+						EOT = strstr(buffer,"\nEOT\n");
+					}
+	
+					*EOT = 0; // take off the EOT marker
+	
+					ra = EAI_CreateVrml("String",bufptr,nodarr);
+				} else {
+					if (EAIVerbose) printf ("CREATEVU %s\n",bufptr);
+					ra = EAI_CreateVrml("URL",bufptr,nodarr);
+				}
+	
+				sprintf (buf,"RE\n%d\n%d\n",count,ra);
+				for (rb = 0; rb < ra; rb++) {
+					sprintf (ctmp,"%d ", nodarr[rb]);
+					strcat (buf,ctmp);
+				}
+	
+				// finish this for now
+				bufptr[0] = 0;
+				break;
+				}
+			case SENDCHILD :  {
+				//format int seq# COMMAND  int node#   ParentNode field ChildNode
+	
+				sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
+				rc = ra+rb; // final pointer- should point to a Multi_Node
+	
+				if (EAIVerbose) printf ("SENDCHILD %d %d %s %s\n",ra, rb, ctmp, dtmp);
+	
+				getMFNodetype (dtmp,(struct Multi_Node *)rc, 
+						strcmp(ctmp,"removeChildren"));
+	
+				sprintf (buf,"RE\n%d\n1\n0",count);
+				break;
+				}
+			case UPDATEROUTING :  {
+				//format int seq# COMMAND  int node#   ParentNode field ChildNode
+	
+				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
+				if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
+	
+				sprintf (buf,"RE\n%d\n1\n0",count);
+				break;
+				}
+			case REGLISTENER: {
+				if (EAIVerbose) printf ("REGISTERLISTENER %s \n",bufptr);
+	
+				//143024848 88 8 e 6
+				sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
+				// so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length
+				ctmp[1]=0;
+	
+				//printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
+				//		ra, rb,rc,ctmp);
+				
+				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
 
-				*EOT = 0; // take off the EOT marker
-
-				ra = EAI_CreateVrml("String",bufptr,nodarr);
-			} else {
-				if (EAIVerbose) printf ("CREATEVU %s\n",bufptr);
-				ra = EAI_CreateVrml("URL",bufptr,nodarr);
+				CRoutes_Register  (ra,rb, 1, EAIListenerArea, rc, &handle_Listener, 0, 
+					(count<<8)+ctmp[0]); // encode id and type here
+	
+	
+				sprintf (buf,"RE\n%d\n1\n0",count);
+				break;
+				}
+			case REPLACEWORLD:  
+			case GETVALUE: 
+			case ADDROUTE:  
+			case DELETEROUTE:  
+			case LOADURL: 
+			case SETDESCRIPT:  
+			case STOPFREEWRL:  
+			default: {
+				printf ("unhandled command :%c: %d\n",command,command);
+				strcat (buf, "unknown_EAI_command");
+				break;
+				}
+						
 			}
-
-			sprintf (buf,"RE\n%d\n%d\n",count,ra);
-			for (rb = 0; rb < ra; rb++) {
-				sprintf (ctmp,"%d ", nodarr[rb]);
-				strcat (buf,ctmp);
-			}
-
-			// finish this for now
-			bufptr[0] = 0;
-			break;
-			}
-		case SENDCHILD :  {
-			//format int seq# COMMAND  int node#   ParentNode field ChildNode
-
-			sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
-			rc = ra+rb; // final pointer- should point to a Multi_Node
-
-			if (EAIVerbose) printf ("SENDCHILD %d %d %s %s\n",ra, rb, ctmp, dtmp);
-
-			getMFNodetype (dtmp,(struct Multi_Node *)rc, 
-					strcmp(ctmp,"removeChildren"));
-
-			sprintf (buf,"RE\n%d\n1\n0",count);
-			break;
-			}
-		case UPDATEROUTING :  {
-			//format int seq# COMMAND  int node#   ParentNode field ChildNode
-
-			sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
-			if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
-
-			sprintf (buf,"RE\n%d\n1\n0",count);
-			break;
-			}
-		case REPLACEWORLD:  
-		case GETVALUE: 
-		case REGLISTENER: 
-		case ADDROUTE:  
-		case DELETEROUTE:  
-		case LOADURL: 
-		case SETDESCRIPT:  
-		case STOPFREEWRL:  
-		default: {
-			printf ("unhandled command :%c: %d\n",command,command);
-			strcat (buf, "unknown_EAI_command");
-			break;
-			}
-					
-		}
 
 
 		/* send the response - events don't send a reply */
@@ -543,7 +567,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 	int ival;
 	float fl[4];
-	double dval;
+	double tval;
 	unsigned int memptr;
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
@@ -585,15 +609,12 @@ unsigned int EAI_SendEvent (char *ptr) {
 			break;
 		}
 
-//xxx		case SFTIME: {
-//xxx			if (!JS_ValueToNumber((JSContext *)JSglobs[actualscript].cx, 
-//xxx								  global_return_val,&tval)) tval=0.0;
-//xxx
-//xxx			//printf ("SFTime conversion numbers %f from string %s\n",tval,ptr);
-//xxx			//printf ("copying to %#x offset %#x len %d\n",tn, tptr,len);
-//xxx			memcpy ((void *)memptr, (void *)&tval,sizeof(double));
-//xxx			break;
-//xxx		}
+		case SFTIME: {
+			sscanf (ptr,"%lf",&tval);
+			//printf ("SFTime conversion numbers %f from string %s\n",tval,ptr);
+			memcpy ((void *)memptr, (void *)&tval,sizeof(double));
+			break;
+		}
 		case SFNODE:
 		case SFINT32: {
 			sscanf (ptr,"%d",&ival);
@@ -650,4 +671,113 @@ unsigned int EAI_SendEvent (char *ptr) {
 	return TRUE;
 }
 
+/*****************************************************************
+*
+*	handle_Listener is called when a requested value changes.
+*
+*	What happens is that the "normal" freewrl routing code finds
+*	an EventOut changed, copies the data to the buffer EAIListenerData,
+*	and copies an extra bit to the global CRoutesExtra. 
+*
+*	(see the CRoutes_Register call above for this routing setup)
+*
+*	This routine decodes the data type and acts on it. The data type
+*	has (currently) an id number, that the client uses, and the data
+*	type.
+*
+********************************************************************/
 
+void handle_Listener () {
+	int id, tp;
+	char buf[EAIREADSIZE];
+	double dval;
+	float fl[4];
+	int ival;
+
+	// get the type and the id.
+	tp = CRoutesExtra&0xff;
+	id = (CRoutesExtra & 0xffffff00) >>8;
+	if (EAIVerbose) printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
+
+	switch ((char) tp) {
+		case SFBOOL: 	{
+			if (EAIVerbose) printf ("SFBOOL\n");				
+			if (EAIListenerData[0] == 1) sprintf (buf,"EV\n%d\nTRUE",id);
+			else sprintf (buf,"EV\n%d\nFALSE",id);
+			EAI_send_string (buf);
+			break;
+		}
+
+		case SFTIME:	{
+			if (EAIVerbose) printf ("SFTIME\n");
+			memcpy(&dval,EAIListenerData,sizeof(double));
+			sprintf (buf, "EV\n%d\n%lf",id,dval);
+			EAI_send_string(buf);
+			break;
+		}
+
+		case SFNODE:
+		case SFINT32:	{
+			if (EAIVerbose) printf ("SFINT32 or SFNODE\n");
+			memcpy(&ival,EAIListenerData,sizeof(int));
+			sprintf (buf, "EV\n%d\n%d",id,ival);
+			EAI_send_string(buf);
+			break;
+		}
+
+		case SFFLOAT:	{
+			if (EAIVerbose) printf ("SFTIME\n");
+			memcpy(fl,EAIListenerData,sizeof(float));
+			sprintf (buf, "EV\n%d\n%f",id,fl[0]);
+			EAI_send_string(buf);
+			break;
+		}
+
+		case SFVEC3F:
+		case SFCOLOR:	{
+			if (EAIVerbose) printf ("SFCOLOR or SFVEC3F\n");
+			memcpy(fl,EAIListenerData,sizeof(float)*3);
+			sprintf (buf, "EV\n%d\n%f %f %f",id,fl[0],fl[1],fl[2]);
+			EAI_send_string(buf);
+			break;
+		}
+
+		case SFVEC2F:	{
+			if (EAIVerbose) printf ("SFVEC2F\n");
+			memcpy(fl,EAIListenerData,sizeof(float)*2);
+			sprintf (buf, "EV\n%d\n%f %f",id,fl[0],fl[1]);
+			EAI_send_string(buf);
+			break;
+		}
+
+		case SFROTATION:	{
+			if (EAIVerbose) printf ("SFROTATION\n");
+			memcpy(fl,EAIListenerData,sizeof(float)*4);
+			sprintf (buf, "EV\n%d\n%f %f %f %f",id,fl[0],fl[1],fl[2],fl[3]);
+			EAI_send_string(buf);
+			break;
+		}
+
+		case SFSTRING:		{
+			if (EAIVerbose) printf ("SFSTRING\n");
+			sprintf (buf, "\"%s\"",EAIListenerData);
+			EAI_send_string(buf);
+			break;
+		}
+
+		default: {
+			printf ("handle listener, type %c not handled yet\n",tp);
+		}
+
+//XXX	case SFIMAGE:	{handleptr = &handleSFIMAGE_Listener;break;}
+//XXX	case MFCOLOR:	{handleptr = &handleMFCOLOR_Listener;break;}
+//XXX	case MFFLOAT:	{handleptr = &handleMFFLOAT_Listener;break;}
+//XXX	case MFTIME:	{handleptr = &handleMFTIME_Listener;break;}
+//XXX	case MFINT32:	{handleptr = &handleMFINT32_Listener;break;}
+//XXX	case MFSTRING:	{handleptr = &handleMFSTRING_Listener;break;}
+//XXX	case MFNODE:	{handleptr = &handleMFNODE_Listener;break;}
+//XXX	case MFROTATION:{handleptr = &handleMFROTATION_Listener;break;}
+//XXX	case MFVEC2F:	{handleptr = &handleMFVEC2F_Listener;break;}
+//XXX	case MFVEC3F:	{handleptr = &handleMFVEC3F_Listener;break;}
+	}
+}

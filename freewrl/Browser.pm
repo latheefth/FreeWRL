@@ -838,6 +838,10 @@ sub EAI_GetType {
 	# is this an IS'd field?
 	my $realele = VRML::Handles::get("NODE$nodenum");
 
+
+	# strip off a "set_" or a "_changed" if we should.
+	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
+
 	if (exists $realele->{Fields}{$fieldname}) {
 		# print "BROWSER:EAI - field $fieldname exists in node\n";
 	} else {

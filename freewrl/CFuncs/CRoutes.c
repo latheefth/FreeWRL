@@ -213,6 +213,8 @@ struct CRjsnameStruct *JSparamnames = 0;
 int jsnameindex = -1;
 int MAXJSparamNames = 0;
 
+/* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
+int CRoutesExtra = 0;
 
 int CRVerbose = 0;
 
@@ -1037,8 +1039,6 @@ Register a route in the routing table.
 
 
 void
-/* CRoutes_Register(unsigned int from, int fromoffset, unsigned int to, int tooffset, int length, void *intptr, int scrdir, unsigned int is_count, char *is_str, int extra) */
-/* CRoutes_Register(unsigned int from, int fromoffset, unsigned int to, int tooffset, int length, void *intptr, int scrdir, int extra) */
 
 CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char *tonode_str,
 				 int length, void *intptr, int scrdir, int extra)
@@ -1048,7 +1048,6 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 	const char *token = " ";
 	CRnodeStruct *to_ptr = NULL;
 	unsigned int to_counter;
-
 
 	/* first time through, create minimum and maximum for insertion sorts */
 	if (!CRoutes_Initiated) {
@@ -1428,6 +1427,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				/* run an interpolator, if one is attached. */
 				if (CRoutes[route].interpptr != 0) {
 					/* this is an interpolator, call it */
+					CRoutesExtra = CRoutes[route].extra; // in case the interp requires it...
 					if (CRVerbose) printf ("script propagate_events. index %d is an interpolator\n",route);
 					CRoutes[route].interpptr(to_ptr->node);
 				}
@@ -1587,11 +1587,13 @@ void propagate_events() {
 							if (CRVerbose)
 								printf("propagate_events: index %d is an interpolator\n",
 									   counter);
-/* 						CRoutes[counter].interpptr(CRoutes[counter].tonode); */
+							/* copy over this "extra" data, EAI "advise" calls need this */
+							CRoutesExtra = CRoutes[counter].extra;
+
 							CRoutes[counter].interpptr(to_ptr->node);
 						} else {	
 							/* just an eventIn node. signal to the reciever to update */
-/* 						update_node(CRoutes[counter].tonode); */
+/* 							update_node(CRoutes[counter].tonode); */
 							/* try */
 							mark_event(to_ptr->node, to_ptr->foffset);
 							update_node(to_ptr->node);

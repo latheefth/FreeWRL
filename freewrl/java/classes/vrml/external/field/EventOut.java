@@ -27,7 +27,7 @@ public class EventOut {
   // EventOut's value changes.
   public void          advise(EventOutObserver f, Object userData) {
 
-    Browser.RegisterListener (f, userData, outNode, command, EventType);
+    Browser.RegisterListener (f, userData, nodeptr,offset,datatype , datasize, EventType);
   return;
   }
 
