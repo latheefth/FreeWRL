@@ -1227,7 +1227,7 @@ PlaneSensor => new VRML::NodeType("PlaneSensor",
 			$t->{OrigPoint} = $pos;
 			$f->{isActive} = 1;
 		} elsif($button eq "RELEASE") {
-			print "PLREL!\n";
+			# print "PLREL!\n";
 			undef $t->{OrigPoint};
 			$t->{isActive} = 0;
 			if($f->{autoOffset}) {
