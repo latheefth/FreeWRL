@@ -70,10 +70,12 @@ void FW_IFS_tess_vertex(void *p) {
 	int *dp=p;
 
 	if (global_IFS_Coord_count == TESS_MAX_COORDS) {
-		//printf ("FW_IFS_tess_vertex, too many coordinates in this face, change TESS_MAX_COORDS\n");
+		/* printf ("FW_IFS_tess_vertex, too many coordinates in this face, change TESS_MAX_COORDS\n"); */
+		/*
 		global_IFS_Coord_count++;
 		global_IFS_Coords[global_IFS_Coord_count] = 
 			global_IFS_Coords[global_IFS_Coord_count-1];
+		*/
 	} else {
 		//printf ("FW_IFS_tess_vertex, global_ifs_coord count %d, pointer %d\n",global_IFS_Coord_count,*dp);
 		global_IFS_Coords[global_IFS_Coord_count++] = *dp;
