@@ -228,18 +228,13 @@ rotation(struct pt *ret, const Quaternion *quat, const struct pt *v)
 void
 togl(Quaternion *quat)
 {
-	if (APPROX(fabs(quat->w), 1)) {
-		return;
-	}
+	if (APPROX(fabs(quat->w), 1)) { return; }
 
-	if (quat->w > 1) {
-		normalize(quat);
-	}
-	/* Invert around Y axis  - does this work on all cases? We want to face 180 degrees
-	   to what the quat says. */
-	//printf ("togl: setting rotation %f %f %f %f\n",2 * (acos(quat->w) / PI * 180),quat->x, -quat->y, quat->z);
+	if (quat->w > 1) { normalize(quat); }
 
-	glRotated(2 * (acos(quat->w) / PI * 180), quat->x, -quat->y, quat->z);
+	/* get the angle, but turn us around 180 degrees */
+	//printf ("togl: setting rotation %f %f %f %f\n",(2 * (acos(quat->w) / PI * 180)),-quat->x, -quat->y, -quat->z);
+	glRotated((2 * (acos(quat->w) / PI * 180)), -quat->x, -quat->y, -quat->z);
 }
 
 void
