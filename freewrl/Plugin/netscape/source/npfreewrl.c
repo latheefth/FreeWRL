@@ -337,6 +337,8 @@ void swallow_check (PluginInstance * This)
             }
 
             /* remember - temp now points to "form" - see above tree */
+	    /* we don't need this to be printed out. JAS
+
 	    if (This->fullsize!=TRUE) {
 #if _DEBUG
               fprintf (log, "\tSurprise!!! This is not fullsize!\n");
@@ -344,6 +346,8 @@ void swallow_check (PluginInstance * This)
               fprintf (stderr, "Surprise!!! This is not fullsize!\n");
 #endif
 	    }
+	    */
+
 
             This->resizeWatch = temp;
             This->resizeEvent = TRUE;
@@ -622,7 +626,7 @@ int run_child (NPP instance, const char *filename, int width, int height, int fd
 char*
 NPP_GetMIMEDescription(void)
 {
-	return("x-world/x-vrml:wrl:FreeWRL VRML Browser");
+	return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser");
 }
 
 #define PLUGIN_NAME		"FreeWRL VRML Browser"
