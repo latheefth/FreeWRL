@@ -126,6 +126,8 @@ char *getLibVersion() {
 	return (FWVER);
 }
 
+/* SoundServer changes - Matt Ward */
+char mystring[20];
 
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
@@ -171,6 +173,10 @@ void EventLoop() {
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		update_status(); // tell status bar to refresh, if it is displayed 
 		//printf ("fps %f\n",BrowserFPS);
+		/* SoundServer - Matt Ward */
+		sprintf (mystring, "FPS %d",(int)BrowserFPS);
+		Sound_toserver(mystring);
+		
 
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
@@ -1015,6 +1021,10 @@ void setSeqTemp(char* file) {
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
 #ifndef AQUA
+	char mystring[20];
+
+	sprintf (mystring, "QUIT");
+	Sound_toserver(mystring);
 	resetGeometry();
 	if (wantEAI) shutdown_EAI();
 #endif

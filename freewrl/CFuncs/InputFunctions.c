@@ -66,13 +66,21 @@ char * readInputString(char *fn, char *parent) {
 	}
 
 	/* ok, now, really read this one. */
+	//printf ("readInputString, reading from %s\n",mynewname);
 	infile = fopen(mynewname,"r");
 
 	if ((buffer == 0) || (infile == NULL)){
 		printf ("problem reading file step2 %s\n",fn);
 		strcpy (buffer,"\n");
 		return buffer;
-	} 
+	}
+
+
+	/* save the file name, in case something in perl wants it */
+	if (lastReadFile != NULL) free(lastReadFile);
+	lastReadFile = malloc(strlen(mynewname)+2);
+	strncpy(lastReadFile,mynewname,strlen(mynewname)+1);
+
 
 
 	do {

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.140  2004/10/22 19:02:42  crc_canada
+# javascript work.
+#
 # Revision 1.139  2004/10/15 19:26:13  crc_canada
 # Javascript bugs where if there were 2 scripts, with MFVecXf's, and all
 # elements were not filled in, things would segfault. Believe it or not.
@@ -956,6 +959,10 @@ Sound => '
 				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,0.0);
 			}
 #endif
+			Sound_toserver(mystring);
+		} // from Matt Ward
+		else {
+			sprintf (mystring, "ALIVE");
 			Sound_toserver(mystring);
 		}
 		glPopMatrix();

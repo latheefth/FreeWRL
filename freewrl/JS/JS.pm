@@ -647,8 +647,9 @@ sub jspSFNodeSetProperty {
 # JavaScript/C to get a hold of 
 sub jspSFNodeGetProperty {
 	my ($this, $prop, $handle) = @_;
+	my $realele; my $fieldname; my $direction;
 
-	# print "jspSFNodeGetProperty start, handle $handle, prop $prop\n";
+	#print "jspSFNodeGetProperty start, handle $handle, prop $prop\n";
 
 	$node = VRML::Handles::get($handle);
 
@@ -658,9 +659,14 @@ sub jspSFNodeGetProperty {
 		$node = VRML::Handles::get("NODE".$handle);
 	}
 
+	($node, $prop, $direction) =
+		VRML::Browser::EAI_LocateNode ($handle, $prop, "eventIn");
+
+	print "EAI_LocateNode returns node $node, prop $prop, direction $direction\n"; 
+
 	my $type = $node->{Type}{FieldTypes}{$prop};
 	my $ftype = "VRML::Field::$type";
-	#print "jspSFNodeGetProperty, handle $handle, type $type, ftype $ftype\n";
+	print "jspSFNodeGetProperty, handle $handle, type $type, ftype $ftype\n";
 	my ($rs, $rval,$levnode, $script);
 
 	$levnode = $node->{Fields}{$prop};
@@ -670,20 +676,23 @@ sub jspSFNodeGetProperty {
 	
 	#print "node is ",VRML::NodeIntern::dump_name($node),", $node\n";
 	# foreach $key (keys(%{$node->{Fields}})) {
-		# 		print "node ",
+		#	 		print "node ",
 		# 	VRML::NodeIntern::dump_name($node),
 		# 	" Fields $key\n";
 		# }
 	if (("MFNode" eq $type) || ("SFNode" eq $type)) {
 		$script = $script."=".$this->constrString($type,$levnode);
 	} else {
+		my $value;
+		$value = $node->{Fields}{$prop};
 		$script = $script."=\"".$ftype->as_string($value, 1)."\"";
 	}
-	#print "script is:$script\n";
+	print "script is:$script\n";
 	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 				   $script,$rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspSFNodeGetProperty");
 	}
+	print "script $script finished\n";
 }
 
 sub jspBrowserAddRoute {
