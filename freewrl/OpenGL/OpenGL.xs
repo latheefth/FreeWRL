@@ -43,10 +43,10 @@ int dpyWidth, dpyHeight;
 #ifdef XF86V4
 XF86VidModeModeInfo **modes;
 XF86VidModeModeInfo original_display;
-int XF86V4=TRUE;
+int ihaveXF86V4=TRUE;
 #else
 /* fudge calls for compiler - gosh, perl is certainly fun. */
-int XF86V4=FALSE;
+int ihaveXF86V4=FALSE;
 struct fudge { int hdisplay; int vdisplay;};
 struct fudge **modes;
 struct fudge original_display;
@@ -138,7 +138,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 
 	    screen = DefaultScreen(dpy);
 
-	    if (XF86V4) {
+	    if (ihaveXF86V4) {
 	      XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
 
 	      bestMode = 0;
@@ -168,7 +168,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	    swa.border_pixel = 0;
 	    swa.event_mask = event_mask;
 
-	    if ((fullscreen == 1) && (XF86V4))
+	    if ((fullscreen == 1) && (ihaveXF86V4))
 	    {
 	    	XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
 	    	XF86VidModeSetViewPort(dpy, screen, 0, 0);
@@ -2956,7 +2956,7 @@ void
 glXDestroyContext()
 	CODE:
 	{
-	  if (XF86V4) {
+	  if (ihaveXF86V4) {
 	   /* had a problem with this killing some older video cards display */
 	   if (strcmp(renderer,"Mesa X11") != 0) {
 	     /* printf ("destroying context\n"); */
