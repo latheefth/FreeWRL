@@ -31,6 +31,9 @@
 #define FNAME_STUB "file"
 #define LINENO_STUB 0
 
+#define BROWSER_SFNODE "__node"
+#define BROWSER_RETVAL "__ret"
+
 #define UNUSED(v) ((void) v)
 
 
