@@ -526,7 +526,6 @@ void swallow_check (PluginInstance * This)
 
 int run_child (NPP instance, const char *filename, int width, int height, int fd[]) {
     int  childPID;
-    int  parentPID;
     char geom[20];
     char fName[256];
     char childname[30];
@@ -539,7 +538,6 @@ int run_child (NPP instance, const char *filename, int width, int height, int fd
     fprintf(log, "Function run_child:\n");
 #endif
 
-    parentPID = getpid();
     childPID = fork ();
     if (childPID == -1) {
 #if _DEBUG
@@ -864,12 +862,8 @@ NPP_NewStream(NPP instance,
 	      NPBool seekable,
 	      uint16 *stype)
 {
-	PluginInstance* This;
-
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
-
-	This = (PluginInstance*) instance->pdata;
 
 #if _DEBUG
 	fprintf(log, "Function NPP_NewStream:\n");
@@ -910,12 +904,8 @@ int32 STREAMBUFSIZE = 0X0FFFFFFF; /*
 int32 
 NPP_WriteReady(NPP instance, NPStream *stream)
 {
-	PluginInstance* This;
-
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
-
-	This = (PluginInstance*) instance->pdata;
 
 	/* Number of bytes ready to accept in NPP_Write() */
 	return STREAMBUFSIZE;
@@ -925,13 +915,8 @@ NPP_WriteReady(NPP instance, NPStream *stream)
 int32 
 NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
 {
-	PluginInstance* This;
-
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
-
-	This = (PluginInstance*) instance->pdata;
-
 	return len; /* The number of bytes accepted. */
 }
 
@@ -939,10 +924,7 @@ NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
 NPError 
 NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 {
-	PluginInstance* This;
-
 	if (instance == NULL) return NPERR_INVALID_INSTANCE_ERROR;
-	This = (PluginInstance*) instance->pdata;
 
 #if _DEBUG
 	fprintf(log, "Function NPP_DestroyStream with NPError %d:\n", reason);
@@ -1023,59 +1005,9 @@ NPP_StreamAsFile (NPP instance, NPStream * stream, const char *fname)
 void 
 NPP_Print(NPP instance, NPPrint* printInfo)
 {
-	PluginInstance *This;
-	NPBool printOne;
-	void *platformPrint;
-	NPWindow *printWindow;
-
-	if(printInfo == NULL)
+	/* not used */
 	    return;
 
-	if (instance != NULL) {
-
-	    This = (PluginInstance*) instance->pdata;
-	
-	    if (printInfo->mode == NP_FULL) {
-		/*
-		 * PLUGIN DEVELOPERS:
-		 *	If your plugin would like to take over
-		 *	printing completely when it is in full-screen mode,
-		 *	set printInfo->pluginPrinted to TRUE and print your
-		 *	plugin as you see fit.  If your plugin wants Netscape
-		 *	to handle printing in this case, set
-		 *	printInfo->pluginPrinted to FALSE (the default) and
-		 *	do nothing.  If you do want to handle printing
-		 *	yourself, printOne is true if the print button
-		 *	(as opposed to the print menu) was clicked.
-		 *	On the Macintosh, platformPrint is a THPrint; on
-		 *	Windows, platformPrint is a structure
-		 *	(defined in npapi.h) containing the printer name, port,
-		 *	etc.
-		 */
-
-		platformPrint = printInfo->print.fullPrint.platformPrint;
-			    
-		printOne = printInfo->print.fullPrint.printOne;
-			
-		/* Do the default*/
-		printInfo->print.fullPrint.pluginPrinted = FALSE;
-	    } else {	/* If not fullscreen, we must be embedded */
-		/*
-		 * PLUGIN DEVELOPERS:
-		 *	If your plugin is embedded, or is full-screen
-		 *	but you returned false in pluginPrinted above, NPP_Print
-		 *	will be called with mode == NP_EMBED.  The NPWindow
-		 *	in the printInfo gives the location and dimensions of
-		 *	the embedded plugin on the printed page.  On the
-		 *	Macintosh, platformPrint is the printer port; on
-		 *	Windows, platformPrint is the handle to the printing
-		 *	device context.
-		 */
-
-		printWindow = &(printInfo->print.embedPrint.window);
-		platformPrint = printInfo->print.embedPrint.platformPrint;
-	    }
-	}
 }
 
 
@@ -1196,8 +1128,6 @@ int freewrlReceive(int fd)
 {
     sigset_t newmask, oldmask;
 
-    ssize_t result = 0;
-
     urlRequest request;
     size_t request_size = 0;
 
@@ -1235,29 +1165,16 @@ int freewrlReceive(int fd)
 	return(NPERR_GENERIC_ERROR);
     }
     
-    if ( (result = read(fd, (urlRequest *) &request, request_size)) < 0) {
+    if ( (read(fd, (urlRequest *) &request, request_size)) < 0) {
 	/* If blocked or interrupted, be silent. */
     	if (errno != EINTR && errno != EAGAIN) {
 	    perror("Call to read failed");
     	}
 	return(NPERR_GENERIC_ERROR);
     }
-#if _DEBUG
-    else if (result == 0) {
-	fprintf(log, "Call to read in freewrlReceive returned 0!\n");
-    }
-#endif
     else {
-#if _DEBUG
-	fprintf(log,
-	  "Received message on socket %d from FreeWRL: %s\n", fd, request.url);
-#endif
-
-	if ( (result = NPN_GetURL(request.instance, request.url, NULL)) != NPERR_NO_ERROR) {
+	if ( (NPN_GetURL(request.instance, request.url, NULL)) != NPERR_NO_ERROR) {
 	    /* Change to stderr eventually! */
-#if _DEBUG
-	    fprintf(log, "\tError - call to NPN_GetURL returned %d!\n", result);
-#endif
 	}
     }
 
@@ -1289,7 +1206,9 @@ init_socket(int fd, Boolean nonblock)
      * O_ASYNC is specific to BSD and Linux.
      * Use ioctl with FIOASYNC for others.
      */
+#ifndef __sgi
     io_flags |= O_ASYNC;
+#endif
 
     if (nonblock) { io_flags |= O_NONBLOCK; }
 
