@@ -82,11 +82,11 @@ char sys_fp[fp_name_len];
 char thisfontname[fp_name_len];
 
 /* where are we? */
-float pen_x, pen_y;
+double pen_x, pen_y;
 
 
-float x_size;		/* size of chars from file */
-float y_size;		/* size of chars from file */
+double x_size;		/* size of chars from file */
+double y_size;		/* size of chars from file */
 int   myff;		/* which index into font_face are we using  */
 
 
@@ -109,24 +109,21 @@ int FW_Vertex;
 int started = FALSE;
 
 /* function prototypes */
-void FW_NewVertexPoint(float Vertex_x, float Vertex_y);
+void FW_NewVertexPoint(double Vertex_x, double Vertex_y);
 int FW_moveto (FT_Vector* to, void* user);
 int FW_lineto(FT_Vector* to, void* user);
 int FW_conicto(FT_Vector* control, FT_Vector* to, void* user);
 int FW_cubicto(FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user);
 void FW_make_fontname (int num);
 int FW_init_face(void);
-float FW_extent (int start, int length);
-FT_Error FW_Load_Char(int idx);
+double FW_extent (int start, int length);
+FT_Error FW_Load_Char(unsigned int idx);
 void FW_draw_outline(FT_OutlineGlyph oglyph);
 void FW_draw_character(FT_Glyph glyph);
-void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *length,
-                float maxext, float spacing, float mysize, unsigned int fsparam,
-                struct VRML_PolyRep *rp) ;
 int open_font(void);
 
 
-void FW_NewVertexPoint (float Vertex_x, float Vertex_y) {
+void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 	GLdouble v2[3];
 
 	UNUSED(Vertex_x);
@@ -215,8 +212,8 @@ int FW_conicto (FT_Vector* control, FT_Vector* to, void* user) {
 
 	if (TextVerbose)
 		printf ("FW_conicto\n");
-	ncontrol.x =(int) ((float) 0.25*last_point.x + 0.5*control->x + 0.25*to->x),
-	ncontrol.y =(int) ((float) 0.25*last_point.y + 0.5*control->y + 0.25*to->y),
+	ncontrol.x =(int) ((double) 0.25*last_point.x + 0.5*control->x + 0.25*to->x),
+	ncontrol.y =(int) ((double) 0.25*last_point.y + 0.5*control->y + 0.25*to->y),
 
 	/* printf ("Cubic points (%d %d) (%d %d) (%d %d)\n", last_point.x,last_point.y, */
 	/* 	ncontrol.x, ncontrol.y, to->x,to->y); */
@@ -228,8 +225,6 @@ int FW_conicto (FT_Vector* control, FT_Vector* to, void* user) {
 }
 
 int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user) {
-	/* GLdouble *v2; */
-
 	/* really ignore control points */
 	if (TextVerbose)
 		printf ("FW_cubicto\n");
@@ -243,8 +238,6 @@ int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* u
 
 /* make up the font name */
 void FW_make_fontname (int num) {
-	/* int i; */
-
 /*
                         bit:    0       BOLD        (boolean)
                         bit:    1       ITALIC      (boolean)
@@ -308,9 +301,9 @@ int FW_init_face() {
 }
 
 /* calculate extent of a range of characters */
-float FW_extent (int start, int length) {
+double FW_extent (int start, int length) {
 	int count;
-	float ret = 0;
+	double ret = 0;
 
 	for (count = start; count <length; count++) {
 		ret += glyphs[count]->advance.x >> 10;
@@ -327,7 +320,7 @@ float FW_extent (int start, int length) {
    NOTE: we store the handles to each glyph object for each
    character in the glyphs array
 */
-FT_Error  FW_Load_Char(int idx) {
+FT_Error  FW_Load_Char(unsigned int idx) {
 	FT_Glyph  glyph;
 	FT_UInt glyph_index;
 	int error;
@@ -366,7 +359,7 @@ void FW_draw_outline (FT_OutlineGlyph oglyph) {
 	/* gluTessEndPolygon(global_tessobj); */
 	gluEndPolygon(global_tessobj);
 
-	if (retval != FT_Err_Ok) printf ("FT_Outline_Decompose, error %d\n");	
+	if (retval != FT_Err_Ok) printf ("FT_Outline_Decompose, error %d\n",retval);	
 }
 
 
@@ -390,17 +383,13 @@ void FW_draw_character (FT_Glyph glyph) {
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
 
-void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *length, 
-		float maxext, float spacing, float mysize, unsigned int fsparam,
+void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length, 
+		double maxext, double spacing, double mysize, unsigned int fsparam,
 		struct VRML_PolyRep *rp) {
-	char *str;
-	int i/* ,gindex */,row;
-	/* int contour; */
-	/* int point; */
-	/* int err; */
-	float shrink = 0;
-	float rshrink = 0;
-	/* int flag; */
+	unsigned char *str = "xx"; // string pointer- initialization gets around compiler warning
+	unsigned int i,row;
+	double shrink = 0;
+	double rshrink = 0;
 	int counter=0;
 	int char_count=0;
 	int est_tri=0;
@@ -520,7 +509,7 @@ void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *lengt
 	   int counter = 0;
 	   for(row = 0; row < numrows; row++) {
 		if (directstring == 0) str = SvPV(ptr[row],PL_na);
-		l = FW_extent(counter,strlen(str));
+		l = FW_extent(counter,(int) strlen(str));
 		counter += strlen(str);
 		if(l > maxlen) {maxlen = l;}
 	   }
@@ -544,19 +533,19 @@ void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *lengt
 
 
 	for(row = 0; row < numrows; row++) {
-	   	float rowlen;
+	   	double rowlen;
 
 		if (directstring == 0) str = SvPV(ptr[row],PL_na);
 		if (TextVerbose) 
 				printf ("text2 row %d :%s:\n",row, str);
 	        pen_x = 0.0;
-		rshrink = 0;
-		rowlen = FW_extent(counter,strlen(str));
-		if(row < nl && length[row]) {
+		rshrink = 0.0;
+		rowlen = FW_extent(counter,(int) strlen(str));
+		if((row < nl) && (APPROX(length[row],0.0))) {
 			rshrink = length[row] / OUT2GL(rowlen);
 		}
-		if(shrink) { glScaled(shrink,1.0,1.0); }
-		if(rshrink) { glScaled(rshrink,1.0,1.0); }
+		if(shrink>0.0001) { glScaled(shrink,1.0,1.0); }
+		if(rshrink>0.0001) { glScaled(rshrink,1.0,1.0); }
 
 
 		/* Justify, FIRST, BEGIN, MIDDLE and END */
@@ -633,7 +622,7 @@ void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *lengt
 
 	/* now, generate normals */
 	FW_rep_->normal = malloc(sizeof(*(FW_rep_->normal))*indx_count*3);
-	for (i = 0; i<indx_count; i++) {
+	for (i = 0; i<(unsigned int)indx_count; i++) {
 		FW_rep_->normal[i*3+0] = 0.0;
 		FW_rep_->normal[i*3+1] = 0.0;
 		FW_rep_->normal[i*3+2] = -1.0;
@@ -648,7 +637,7 @@ void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *lengt
 		} else {
 			/* an attempt to try to make this look like the NIST example */
 			/* I can't find a standard as to how to map textures to text JAS */
-			for (i=0; i<FW_pointctr; i++) {
+			for (i=0; i<(unsigned int)FW_pointctr; i++) {
 				FW_rep_->tcoord[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
 				FW_rep_->tcoord[i*3+1] = 0.0; 
 				FW_rep_->tcoord[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
