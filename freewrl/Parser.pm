@@ -63,8 +63,8 @@ sub parsefail {
 	my $n = ($p>=50 ? 50 : $p);
 	my $textb = substr($_[0],$p-$n,$n);
 	my $texta = substr($_[0],$p,50);
-	die ("PARSE ERROR: '$textb' XXX '$texta', in $_[1] because $_[2]");
-	# exit (1);
+	print ("PARSE ERROR: '$textb' XXX '$texta', $_[1] $_[2]\n");
+	exit (1);
 }
 
 sub parsewarnstd {
