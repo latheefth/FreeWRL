@@ -14,5 +14,5 @@ cd ../FreeWRL-0.31-pre1
 find . -name typescript -exec rm {} \;
 find . -name CVS -exec rm -r {} \;
 rm package*
-rm JS/js/Linux_All_DBG.OBJ/*
+rm -r JS/js/Linux_All_DBG.OBJ
 rm freewrl
