@@ -265,11 +265,6 @@ void openMainWindow (Display *Disp, unsigned *Win,
 					"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
 					wintitle);
 			} 
-			if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
-				fprintf(stderr,
-					"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
-					wintitle);
-			}
 			XSetWMName(dpy, win, &windowName);
 			XSetWMIconName(dpy, win, &windowName);
 		}

@@ -62,7 +62,13 @@ int ConsoleMessage(char *fmt, ...) {
 
 
 	FWbuffer[0] = '\0';
-	strcpy(FWbuffer,"xmessage -buttons \"dismiss\" -title \"FreeWRL Message:\" \"");
+
+#ifndef AQUA
+	if (RUNNINGASPLUGIN) {
+		strcpy (FWbuffer,XMESSAGE);
+		strcat (FWbuffer, " ");
+	}
+#endif
 	va_start(ap, fmt);		 /* must be called before work	 */
 	while (*fmt) {
 		tempbuf[0] = '\0';
@@ -133,10 +139,15 @@ int ConsoleMessage(char *fmt, ...) {
 	
 	va_end(ap);				/* clean up				 */
 
-	//printf ("buffer is %s\n",FWbuffer);
-	strcat (FWbuffer,"\" &");
-printf ("warning - using System, and not within IFRUNNINGASPLUGIN\n");
-	system (FWbuffer);
+#ifdef AQUA
+	printf (FWbuffer);
+#else
+	if (RUNNINGASPLUGIN) {
+		freewrlSystem (FWbuffer);
+	} else {
+		printf (FWbuffer);
+	}
+#endif
 	return count;
 }
 

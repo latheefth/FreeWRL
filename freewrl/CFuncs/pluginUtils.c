@@ -14,12 +14,11 @@ extern unsigned _fw_instance;
 /* get all system commands, and pass them through here. What we do
  * is take parameters and execl them, in specific formats, to stop
  * people (or, to try to stop) from typing malicious code. */
+
 int freewrlSystem (char *sysline) {
 
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
-	int ok;
-	char *params;
 	char *paramline[MAXEXECPARAMS];
 	char buf[EXECBUFSIZE];
 	char *internbuf;
@@ -28,10 +27,12 @@ int freewrlSystem (char *sysline) {
 	int pidStatus;
 
 	int waitForChild;
+	int haveXmessage;
+
 
 	waitForChild = TRUE;
+	haveXmessage = !strncmp(sysline,XMESSAGE,strlen(XMESSAGE));
 
-	ok = FALSE;
 	internbuf = buf;
 
 	/* bounds check */
@@ -40,33 +41,46 @@ int freewrlSystem (char *sysline) {
 
 	//printf ("freewrlSystem, have %s here\n",internbuf);
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
-
-	/* split the command off of internbuf, for execing. */
 	count = 0;
-	while (internbuf != NULL) {
-		paramline[count] = internbuf;
-		internbuf = strchr(internbuf,' ');
-		if (internbuf != NULL) {
-			//printf ("more strings here! :%s:\n",internbuf);
-			*internbuf = '\0';
-			//printf ("param %d is :%s:\n",count,paramline[count]);
-			internbuf++;
-			count ++;
-			if (count >= MAXEXECPARAMS) return -1; // never...
+
+	/* do we have a console message - (which is text with spaces) */
+	if (haveXmessage) {
+		paramline[0] = XMESSAGE;
+		paramline[1] = strchr(internbuf,' ');
+		count = 2;
+	} else {
+		/* split the command off of internbuf, for execing. */
+		while (internbuf != NULL) {
+			printf ("looping, count is %d\n",count);
+			paramline[count] = internbuf;
+			internbuf = strchr(internbuf,' ');
+			if (internbuf != NULL) {
+				//printf ("more strings here! :%s:\n",internbuf);
+				*internbuf = '\0';
+				printf ("param %d is :%s:\n",count,paramline[count]);
+				internbuf++;
+				count ++;
+				if (count >= MAXEXECPARAMS) return -1; // never...
+			}
 		}
 	}
-/*	
-	 printf ("finished while loop, count %d\n",count);
+	/*
+	printf ("finished while loop, count %d\n",count);
 	{ int xx;
 		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
 	}}
-*/	
+	*/
+	
 
-	/* is the last string "&"? if so, we don't need to wait around */
-	if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
-		waitForChild=FALSE;
-		paramline[count] = '\0'; // remove the ampersand.
+	if (haveXmessage) {
+		waitForChild = FALSE;
+	} else {
+		/* is the last string "&"? if so, we don't need to wait around */
+		if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
+			waitForChild=FALSE;
+			paramline[count] = '\0'; // remove the ampersand.
+		}
 	}
 
 	if (count > 0) {
@@ -83,7 +97,7 @@ int freewrlSystem (char *sysline) {
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
 				paramline[6],paramline[7]);
-			//printf ("child finished execing\n");
+			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
 			exit (Xrv);
 			} 
 			default: {

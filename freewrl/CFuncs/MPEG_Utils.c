@@ -39,6 +39,13 @@
  * BASIS, AND BROWN UNIVERSITY HAS NO OBLIGATION TO PROVIDE MAINTENANCE,
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
+
+/* ones in headers.h, but we dont include this here */
+int ConsoleMessage(char *fmt, ...);
+void outOfMemory(char *message);
+
+
+
 #ifndef AQUA 
 #include <stdlib.h>
 #include <math.h>

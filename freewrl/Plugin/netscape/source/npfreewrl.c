@@ -742,7 +742,7 @@ print_here (debs);
 
 		// run FreeWRL, if it is not already running. It might not be...
 		if (!FW_Plugin->freewrl_running) {
-			printf ("NPP_SetWindow, running FreeWRL here!");
+			print_here ("NPP_SetWindow, running FreeWRL here!");
 				Run(instance);
 		}
 	}
