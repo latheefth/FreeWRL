@@ -371,7 +371,7 @@ if (Extru_Verbose) printf (" SCP[0].next = %d, nspi = %d\n",SCP[0].next,nspi);
 
 if(SCP[0].next==nspi) {
 	spine_is_one_vertix=1;
-	printf("All spine vertices are the same!\n");
+	if (Extru_Verbose) printf("All spine vertices are the same!\n");
 
 	/* initialize all y and z values with zero, they will		*/
 	/* be treated as colinear case later then			*/
