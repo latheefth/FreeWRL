@@ -110,6 +110,9 @@ Notes:
 
 45.wrl:	PixelTexture test.
 
+46.wrl:	javascript addchild test.
+
+47.wrl: javascript bouncing ball test.
 Synth:
 	A 3D representation of a music synthesizer. Uses other programs
 	to help drive an external synthesizer.
