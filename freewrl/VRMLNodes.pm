@@ -165,7 +165,6 @@ sub script_variables {
   grep { ! /mustEvaluate|directOutput/ } sort keys %{shift()};
 }
 
-<<<<<<< VRMLNodes.pm
 package MTS ;			# My tied Scalar : Will be used to tie scalars
 				# to fields and eventIn for perl scripting.
 
@@ -205,57 +204,6 @@ sub checkChildPresent {
 	print "VRMLNodes.pm:checkChildPresent: checking for child $child in node $node\n";
 	foreach $item (@{$node->{RFields}{"children"}}) {
 		print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
-=======
-package MTS ;			# My tied Scalar : Will be used to tie scalars
-				# to fields and eventIn for perl scripting.
-
-use Exporter ;
-@ISA = qw(Exporter);
-@EXPORT = qw( with ) ;
-
-require Tie::Scalar;
-
-sub TIESCALAR {
-  ### my $class = shift;
-  ## my $self = shift;
-  ## bless $self;
-  ### bless shift ; 
-  bless $_[1];
-}
-
-sub FETCH {
-  ## my $self = shift;
-  ## $$self ;
-  ### ${shift()};
-  ${$_[0]};
-}
-
-sub STORE {
-  ## my $self = shift;
-  ## $$self = shift ;
-  ${$_[0]} = $_[1];
-}
-
-
-package VRML::NodeType;
-
-sub add_MFNode {
-	my ($node, $field, $child) = @_;
-	# $node  - node to add child to.
-	# $field - field of $node to add child to.
-	# $child - add this to the $field of $node.
-#JAS print "VRMLNodes:add_MFNode, node $node field $field child $child\n";
-#JAS print "VRMLNodes:add_MFNode, node->RFields ";
-#JAS print $node->{RFields};
-#JAS print "\nVRMLNodes:add_MFNode, node->rfields $field ";
-#JAS print $node->{RFields}{$field};
-#JAS print "\n\n";
-
-
-	# Step 1: - is it already here???
-	foreach $item (@{$node->{RFields}{$field}}) {
-#JAS 		print "VRMLNode::add_MFNode, checking to see if $child is equal to $item\n";
->>>>>>> 1.14
 		if ($item eq $child) {
 			print "VRMLNode::checkChildPresent: child $child already ",
 			"present in parent\n";
@@ -283,6 +231,8 @@ sub removeChild {
 	return @av;
 }
 
+# these are no longer used, but are kept around because of the
+# coding. JS
 #JSsub return_be_node {
 #JS        # this takes a hash, and returns the cnode benode thingie... JS
 #JS        my ($node) = @_;
