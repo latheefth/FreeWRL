@@ -185,8 +185,6 @@ VRMLC.pm
 VRMLCU.pm
 VRMLExtrusion.pm
 VRMLFields.pm
-VRMLFunc.pm
-VRMLFunc.xs
 VRMLJava.pm
 VRMLNodes.pm
 VRMLRend.pm
