@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.23  2001/03/23 16:00:02  crc_canada
+# IndexedLineSet culling disabled - it was affecting other shapes in the scene graph.
+#
 # Revision 1.22  2001/03/13 16:19:57  crc_canada
 # Pre 0.28 checkin
 #
@@ -434,7 +437,14 @@ IndexedLineSet => '
 		if(verbose) printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
-		glDisable(GL_LIGHTING);
+		/* JAS glDisable(GL_LIGHTING); */
+		glEnable(GL_COLOR_MATERIAL); /* JAS */
+                glPushAttrib(GL_ENABLE_BIT);
+                glDisable(GL_CULL_FACE);
+
+
+
+
 		if(ncolors && !cpv) {
 			if (verbose) printf("glColor3f(%f,%f,%f);\n",
 				  colors[plno].c[0],
@@ -483,7 +493,9 @@ IndexedLineSet => '
 			}
 		}
 		glEnd();
-		glEnable(GL_LIGHTING);
+		/* JAS glEnable(GL_LIGHTING); */
+		glDisable(GL_COLOR_MATERIAL); /* JAS */
+                glPopAttrib();
 		$end_list();
 ',
 
