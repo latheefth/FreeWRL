@@ -11,6 +11,11 @@ What code in the distribution is not Tuomas's  (if I have left something
 out, contact me as soon as possible at john.stewart@crc.ca - I really
 want no-one to be left out accidentally) 
 
+
+- mpeg code from University of California; please read the top of the
+  file "CFuncs/MPEG_Utils.c" for complete information.
+
+
 - Joerg Scheurich aka MUFTI 
 
 	- IRIX compilation help.
