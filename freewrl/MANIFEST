@@ -1,15 +1,10 @@
 .cvsignore
-ARCHITECTURE			Short explanation of how it works
 Browser.pm
-CONFORMANCE
 COPYING				License
 CREDITS
 Config.pm
 Events.pm
 GLBackEnd.pm
-GOALS				What I want to do
-INSTALL				READ THIS SECOND
-INTERPRETATION			My interpretations of VRML97 spec
 JPEG/.cvsignore
 JPEG/JPEG.pm
 JPEG/JPEG.xs
@@ -171,7 +166,6 @@ Parser.pm
 Quaternion.pm
 README				READ THIS FIRST
 Scene.pm
-TODO				Things left to do
 Text/.cvsignore
 Text/Makefile.PL
 Text/Text.pm
@@ -188,9 +182,6 @@ VRMLNodes.pm
 VRMLRend.pm
 VRMLServ.pm
 Viewer.pm
-bt/1.wrl
-bt/2.wrl
-bt/3.wrl
 fonts/Baklava_.txt
 fonts/README
 fonts/baklava.ttf
@@ -350,26 +341,11 @@ nodes/TimeSensor.wrl
 nodes/TouchSensor.wrl
 nodes/tex.jpg
 nodes/tex.png
-pt/arrows.pl
-pt/snap.pl
-speed/1.wrl
-speed/2.wrl
-talk/cnode.src
-talk/conerend.src
-talk/field.src
-talk/multi.src
-talk/node.src
-talk/perlcube.src
-talk/perlcube2.src
-talk/scapi.src
-talk/src1.src
 tests/1.wrl			Sample things
 tests/10.wrl
 tests/2.wrl
-tests/2.wrl.PL
 tests/3.wrl
 tests/4.wrl
-tests/4.wrl.PL
 tests/5.wrl
 tests/6.wrl
 tests/7.wrl
