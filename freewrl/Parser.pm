@@ -176,10 +176,18 @@ sub parse_proto {
 }
 
 sub parse_externproto {
-	my($scene) = @_;
-	$_[1] =~ /\G\s*EXTERNPROTO\s+($Word)\s*/ogsxc
-	 or parsefail($_[1], "externproto statement");
-	my $name = $1;
+	my ($scene) = @_;
+	my $name = $_[2];
+
+	if ($name) {
+		my $regex = qr{$name};
+		$_[1] =~ /\s*EXTERNPROTO\s+($regex)/gsxc
+			or parsefail($_[1], "externproto statement - looking for $name");
+	} else {
+		$_[1] =~ /\G\s*EXTERNPROTO\s+($Word)\s*/ogsxc
+			or parsefail($_[1], "externproto statement");
+		$name = $1;
+	}
 
 	my $int = parse_interfacedecl($scene,1,0,$_[1]);
 	my $str = VRML::Field::MFString->parse($scene,$_[1]);
@@ -392,7 +400,7 @@ sub parse {
 	if (!defined $no) {
 		## return to the beginning
 		pos $_[2] = 0;
-		VRML::Parser::parse_externproto($scene, $_[2]);
+		VRML::Parser::parse_externproto($scene, $_[2], $nt);
 
 		## reset position and try looking for PROTO nodes again
 		pos $_[2] = $p;
