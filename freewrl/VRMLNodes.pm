@@ -594,19 +594,19 @@ PixelTexture => new VRML::NodeType("PixelTexture",
 
  ElevationGrid => new VRML::NodeType("ElevationGrid",
  {
-    height => [MFFloat, []],
-    xDimension => [SFInt32, 0],
-    zDimension => [SFInt32, 0],
-    xSpacing => [SFFloat, 1.0],
-    zSpacing => [SFFloat, 1.0],
-    solid => [SFBool, 1],
-    creaseAngle => [SFFloat, 0],
-    color => [SFNode, NULL],
-    normal => [SFNode, NULL],
-    texCoord => [SFNode, NULL],
-    ccw => [SFBool, 1],
-    colorPerVertex => [SFBool, 1],
-    normalPerVertex => [SFBool, 1],
+	color => [SFNode, NULL],
+	normal => [SFNode, NULL],
+	texCoord => [SFNode, NULL],
+	height => [MFFloat, []],
+	ccw => [SFBool, 1],
+	colorPerVertex => [SFBool, 1],
+	creaseAngle => [SFFloat, 0],
+	normalPerVertex => [SFBool, 1],
+	solid => [SFBool, 1],
+	xDimension => [SFInt32, 0],
+	xSpacing => [SFFloat, 1.0],
+	zDimension => [SFInt32, 0],
+	zSpacing => [SFFloat, 1.0],
  }
  ),
 
@@ -697,6 +697,50 @@ FontStyle => new VRML::NodeType("FontStyle",
 	 topToBottom => [SFBool, 1],
 	}
 ),
+
+AudioClip => new VRML::NodeType("AudioClip",
+ {
+	description => [SFString, ""],
+	loop =>	[SFBool, 0],
+	pitch => [SFFloat, 1.0],
+	startTime => [SFTime, 0],
+	stopTime => [SFTime, 0],
+	url => [MFString,[""]],
+	duration_changed => [SFTime,undef,eventOut],
+	isActive => [SFBool,undef,eventOut]
+ }
+),
+
+
+Sound => new VRML::NodeType("Sound",
+{
+	direction => [SFVec3f, [0, 0, 1]],
+	intensity => [SFFloat, 1.0],
+	location => [SFVec3f, [0,0,0]],
+	maxBack => [SFFloat, 10],
+	maxFront => [SFFloat, 10],
+	minBack => [SFFloat, 1],
+	minFront => [SFFloat, 1],
+	priority => [SFFloat, 0],
+	source => [SFNode, NULL],
+	spatialize => [SFBool,1, ""]	# not exposedfield
+}
+),
+
+MovieTexture => new VRML::NodeType ("MovieTexture",
+{	loop	=> [SFBool, 0],
+	speed	=> [SFFloat, 1],
+	startTime => [SFTime, 0],
+	stopTime  => [SFTime, 0],
+	url	=> [MFString, [""]],
+	repeatS	=> [SFBool, 1, ""],	# not exposedfield
+	repeatT	=> [SFBool, 1, ""], 	# not exposedfield
+	duration_changed	=> [SFTime,undef,eventOut],
+	isActive	=> [SFBool, undef, eventOut]
+}
+),
+
+
 
  Switch => new VRML::NodeType("Switch",
  {
@@ -809,12 +853,13 @@ Group => new VRML::NodeType("Group",
 ),
 
 Anchor => new VRML::NodeType("Anchor",
-	{children => [MFNode, []],
-	 url => [MFString, []],
-	 description => [SFString, ""],
-	 parameter => [MFString, []],
-	 bboxCenter => [SFVec3f, [0,0,0]],
-	 bboxSize => [SFVec3f, [-1,-1,-1]],
+	{
+	children => [MFNode, []],
+	url => [MFString, []],
+	description => [SFString, ""],
+	parameter => [MFString, []],
+	bboxCenter => [SFVec3f, [0,0,0]],
+	bboxSize => [SFVec3f, [-1,-1,-1]],
 	}
 ),
 
@@ -1405,6 +1450,21 @@ SphereSensor => new VRML::NodeType("SphereSensor",
 	}
 ),
 
+CylinderSensor => new VRML::NodeType("CylinderSensor",
+	{
+	autoOffset => [SFBool,1],
+	diskAngle => [SFFloat, 0.262],
+	enabled => [SFBool, 1],
+	maxAngle => [SFFloat, -1],
+	minAngle => [SFFloat, 0],
+	offset => [SFFloat, 0],
+	isActive => [SFBool, undef, out],
+	rotation_changed => [SFRotation, undef ,out],	
+	trackPoint_changed => [SFVec3f, undef, out],
+	}
+),
+
+
 # This just about the minimal visibilitysensor allowed by the spec.
 VisibilitySensor => new VRML::NodeType("VisibilitySensor",
 	{center => [SFVec3f, [0,0,0]],
@@ -1527,13 +1587,30 @@ SpotLight => new VRML::NodeType("DirectionalLight",
 	}
 ),
 
+Fog => new VRML::NodeType("Fog",
+	{
+	color => [SFColor, 1.0, 1.0, 1.0],
+	fogType => [SFString, "LINEAR"],
+	visibilityRange => [SFFloat, 0.0],
+	set_bind => [SFBool, undef, eventIn],
+	bindTime => [SFTime, undef, eventOut],
+	isBound => [SFBool, undef, eventOut],
+	},
+	{
+	Initialize => sub { 
+			print "Fog Initialize\n"; 
+			return();
+		}
+	}
+),
+
 Background => new VRML::NodeType("Background",
 	{
 	 set_bind => [SFBool, undef, eventIn],
-	 skyAngle => [MFFloat, []],
-	 skyColor => [MFColor, [[0.0,0.0,0.0]]],
 	 groundAngle => [MFFloat, []],
 	 groundColor => [MFColor, []],
+	 skyAngle => [MFFloat, []],
+	 skyColor => [MFColor, [[0.0,0.0,0.0]]],
 	 isBound => [SFBool, undef, eventOut],
 	 bindTime => [SFTime, undef, eventOut],
 	 (map {(
@@ -1819,11 +1896,13 @@ Script => new VRML::NodeType("Script",
  # XXX Well, at least it will display children now... JAS.
  Collision => new VRML::NodeType("Collision",
  {
-    collide => [SFBool, 1],
-    bboxSize => [SFVec3f, [-1,-1,-1]],
-    bboxCenter => [SFVec3f, [0,0,0]],
-    proxy => [SFNode, NULL],
-    children => [MFNode, []]
+	children => [MFNode, []],
+	collide => [SFBool, 1],
+	bboxCenter => [SFVec3f, [0,0,0]],
+	bboxSize => [SFVec3f, [-1,-1,-1]],
+	proxy => [SFNode, NULL],
+	collideTime => [SFTime,undef,eventOut],
+	
  }
  ),
 
