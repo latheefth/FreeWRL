@@ -37,6 +37,7 @@ package VRML::NodeType; # Same for internal and external!
 my @vps;	# viewpoint Scenes.
 my @vpn;	# viewpoint Nodes.
 my $vpno = 1;
+my $globalAudioSource = 0;  # count of audio sources
 
 # Viewpoints are stored in the browser rather in the 
 # individual scenes...
@@ -256,92 +257,94 @@ sub removeChild {
 
 my %image_same_url = ();
 
-# picture image
-sub init_image {
-    my($name, $urlname, $t, $f, $scene, $flip) = @_;
 
-    my $purl = $t->{PURL} = $scene->get_url;
+
+# pass in a scene, and an MFString of urls, returns a local name to the file.
+sub getURLfromMFString {
+	my ($scene,$urls) = @_;
+
+    	my $purl = $t->{PURL} = $scene->get_url;
 	my $wurl = $scene->get_world_url;
-
-    my $urls = $f->{$urlname};
-    if ($#{$urls} == -1) {
-		goto NO_TEXTURE;
-    }
-
- URL: for $u (@$urls) {
+	my $file;
+	my $suffix;
+ 
+	URL: for $u (@$urls) {
 		next unless $u =~ /\.(\w*)$/;
-		my $suffix = $1;
-		my $file;
+		$suffix = $1;
 		
-		if (defined $wurl) {
-			$file = VRML::URL::get_relative($wurl, $u, 1);
-		} else {
-			$file = VRML::URL::get_relative($purl, $u, 1);
-		}
+		if (defined $wurl) { $file = VRML::URL::get_relative($wurl, $u, 1);
+		} else { $file = VRML::URL::get_relative($purl, $u, 1); }
 
 		# Required due to changes in VRML::URL::get_relative in URL.pm:
-		if (!$file) {
-			warn "Could not retrieve $u";
-			next URL;
-		}
+		if (!$file) { warn "Could not retrieve $u"; next URL; }
 
-		print "VRML::Nodes::init_image got: $file\n"
+	}
+	print "VRML::Nodes::getURLfromMFString got: $file Suffix: $suffix\n"
 			if $VRML::verbose;
-
-		my ($hei,$wi,$dep);
-		my $tempfile = $file;
-
-		if ($@) {
-			die("Cannot open image textures: '$@'");
-		}
-
-		$f->{__istemporary.$name} = 0;
-
-	        if(exists $image_same_url{$file}) {
-			# we have already seen this image
-			$f->{__texture.$name} = $image_same_url{$file};
-			return;
-		}
+	return ($file,$suffix);
+}
 
 
-		$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+# picture image
+sub init_image {
+	my($name, $urlname, $t, $f, $scene, $flip) = @_;
+	my $urls = $f->{$urlname};
 
-		# save the texture number for later
-		$image_same_url{$file} = $f->{__texture.$name};
+	if ($#{$urls} == -1) { goto NO_TEXTURE; }
 
-		if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
-			# Lets convert to a png, and go from there...
-			# Use Imagemagick to do the conversion, and flipping.
-	
-			# Simply make a default user specific file by
-			# attaching the username (LOGNAME from environment).
+	my $file;
+	my $suffix;
+	($file,$suffix)  = getURLfromMFString($scene,$urls);
 
-			my $lgname = $ENV{LOGNAME};
-			my $tempfile_name = "/tmp/freewrl_";
-			$tempfile = join '', $tempfile_name,$lgname,
-				$f->{__texture.$name},".png";
+	my ($hei,$wi,$dep);
+	my $tempfile = $file;
 
-			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
-			my $status = system ($cmd);
-			warn "$image conversion problem: '$cmd' returns $?"
-				unless $status == 0;
+	$f->{__istemporary.$name} = 0;
 
-			# tell bind_texture to remove this one
-			$f->{__istemporary.$name} = 1;
-		}
-
-		$f->{__data.$name} = $tempfile; # store the name for later processing
+        if(exists $image_same_url{$file}) {
+		# we have already seen this image
+		$f->{__texture.$name} = $image_same_url{$file};
 		return;
-    }							# for $u (@$urls) 
+	}
 
- NO_TEXTURE:
-    $f->{__depth.$name} = 0;
-    $f->{__x.$name} = 0;
-    $f->{__y.$name} = 0;
-    $f->{__data.$name} = "";
-    $f->{__texture.$name} = 0;
-    $f->{__istemporary.$name} = 0;
-    return;
+
+	$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+
+	# save the texture number for later
+	$image_same_url{$file} = $f->{__texture.$name};
+
+	if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
+		# Lets convert to a png, and go from there...
+		# Use Imagemagick to do the conversion, and flipping.
+	
+		# Simply make a default user specific file by
+		# attaching the username (LOGNAME from environment).
+
+		my $lgname = $ENV{LOGNAME};
+		my $tempfile_name = "/tmp/freewrl_";
+		$tempfile = join '', $tempfile_name,$lgname,
+			$f->{__texture.$name},".png";
+
+		my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
+		my $status = system ($cmd);
+		warn "$image conversion problem: '$cmd' returns $?"
+			unless $status == 0;
+
+		# tell bind_texture to remove this one
+		$f->{__istemporary.$name} = 1;
+	}
+
+	$f->{__data.$name} = $tempfile; # store the name for later processing
+		return;
+
+	NO_TEXTURE:
+	$f->{__depth.$name} = 0;
+	$f->{__x.$name} = 0;
+	$f->{__y.$name} = 0;
+	$f->{__data.$name} = "";
+	$f->{__texture.$name} = 0;
+	$f->{__istemporary.$name} = 0;
+	return;
 }
 
 
@@ -353,6 +356,7 @@ sub init_pixel_image {
     if (!defined $sfimage) {
 		goto NO_PIXEL_TEXTURE;
     }
+
 
     $f->{__depth} = $sfimage->[2];
     $f->{__x} = $sfimage->[0];
@@ -373,47 +377,29 @@ sub init_pixel_image {
 
 # MPEG picture image
 sub init_movie_image {
-    my($name, $urlname, $t, $f, $scene) = @_;
-    # print "init_movie_image, name $name, urlname $urlname t $t f $f \n";
+	my($name, $urlname, $t, $f, $scene) = @_;
+	# print "init_movie_image, name $name, urlname $urlname t $t f $f \n";
 
-    my $purl = $t->{PURL} = $scene->get_url;
+	my $purl = $t->{PURL} = $scene->get_url;
 	my $wurl = $scene->get_world_url;
-    my $urls = $f->{$urlname};
-    if ($#{$urls} == -1) {
-		goto NO_TEXTURE;
-    }
+	my $urls = $f->{$urlname};
+	if ($#{$urls} == -1) { goto NO_TEXTURE; }
 
- URL: for $u (@$urls) {
-		next unless $u =~ /\.(\w*)$/;
-		my $suffix = $1;
-		my $file;
+	my $file;
+	my $suffix;
+	($file,$suffix)  = getURLfromMFString($scene,$urls);
 
-		if (defined $wurl) {
-			$file = VRML::URL::get_relative($wurl, $u, 1);
-		} else {
-			$file = VRML::URL::get_relative($purl, $u, 1);
-		}
-
-		# Required due to changes in VRML::URL::get_relative in URL.pm:
-		if (!$file) {
-			warn "Could not retrieve $u"; next URL;
-		}
-
-		print "VRML::Nodes::init_movie_image got: $file\n"
-			if $VRML::verbose;
-
-		my $init_tex = VRML::OpenGL::glGenTexture();
-		$f->{__texture0_} = $init_tex;
-		$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file,$f->{repeatS},$f->{repeatT});
-		$f->{__depth} = $dep;
-		$f->{__x} = $wi;
-		$f->{__y} = $hei;
-		$f->{__data} = ();
-		#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
-		#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
-
-		return;
-    }							# for $u (@$urls) 
+	my $init_tex = VRML::OpenGL::glGenTexture();
+	$f->{__texture0_} = $init_tex;
+	$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
+		$file,$f->{repeatS},$f->{repeatT});
+	$f->{__depth} = $dep;
+	$f->{__x} = $wi;
+	$f->{__y} = $hei;
+	$f->{__data} = ();
+	#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
+	#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
+	return;
 
  NO_TEXTURE:
     $f->{__depth} = 0;
@@ -423,6 +409,28 @@ sub init_movie_image {
     $f->{__texture0_} = 0;
     $f->{__texture1_} = 0;
     return;
+}
+
+# AudioClip WAV/MIDI sound file
+sub init_sound {
+	my($name, $urlname, $t, $f, $scene) = @_;
+	# print "init_sound_image, name $name, urlname $urlname t $t f $f \n";
+
+	my $purl = $t->{PURL} = $scene->get_url;
+	my $wurl = $scene->get_world_url;
+	my $urls = $f->{$urlname};
+	if ($#{$urls} == -1) { goto NO_TEXTURE; }
+
+	my $file;
+	my $suffix;
+	($file,$suffix)  = getURLfromMFString($scene,$urls);
+
+	$f->{__localFileName} = $file;
+
+	return;
+
+NO_TEXTURE:
+	return;
 }
 
 ########################################################################
@@ -491,10 +499,10 @@ my $protono;
  CylinderSensor
  SphereSensor
  ProximitySensor
- ##JAS Collision
  VisibilitySensor
  PixelTexture
  MovieTexture
+ AudioClip
 /;
 
 # What are the transformation-hierarchy child nodes?
@@ -934,8 +942,24 @@ AudioClip => new VRML::NodeType("AudioClip",
 	stopTime => [SFTime, 0],
 	url => [MFString,[""]],
 	duration_changed => [SFTime,undef,eventOut],
-	isActive => [SFBool,undef,out]
- }
+	isActive => [SFBool,undef,out],
+
+        __sourceNumber => [SFInt32,0, "field"], # internal sequence number
+	__localFileName => [SFString, ""],	# local name, as received on system
+ },
+	{
+		Initialize => sub {
+			my ($t,$f,$time,$scene) = @_;
+
+			# Assign a source number to this source
+			$f->{__sourceNumber} = $globalAudioSource++;
+
+			# get the file
+			init_sound("","url",$t,$f,$scene,1);
+			print "local sound file name ",$f->{__localFileName},"\n";
+			return ();
+		 }
+	}
 ),
 
 
@@ -1893,7 +1917,6 @@ Background => new VRML::NodeType("Background",
 	Initialize => sub {
 		my($t,$f,$time,$scene) = @_;
 		for(qw/back front top bottom left right/) {
-			#init_image("_$_","${_}Url",$t,$f,$scene,0);
 			init_image("$_","${_}Url",$t,$f,$scene,0);
 		}
 		return ();
