@@ -1,4 +1,26 @@
 #VRML V2.0 utf8
+WorldInfo {
+	title "Alpha blend test 2"
+	info [
+		"This file build misc translucent objects                            			       
+		 The object are listed in reverse Z-order to achieve the blend effect			       
+		 Try to 'look back' the scene and the blend effect will vanish                                 
+		 because in that case the closest object is drawn first and the farest                         
+		 last. The Z-buffer so tell that the last one is 'hidden' by the first one.		       
+		 Objects:										       
+		   The first object is a cone with a translucent texture (a window with colored glass).	       
+		   The second is the same translucent window map on a square surface.                          
+		   The third one is another square surface with another translucent image (kind of mountain ?) 
+		   The fourth (farest) is a not translucent sphere, which is seen across others.	       
+		                                                    Remi Cohen-Scali			      "
+	]
+},
+NavigationInfo {
+	type "FLY"
+	type "WALK"
+	type "EXAMINE"
+	headlight TRUE
+}
 Group {
     children [
     	Background {
@@ -15,29 +37,20 @@ Group {
 				  0.3 0.6 0.3,
 				  0.0 1.0 0.0 ]
 	}
-	Shape {
-		appearance Appearance {
-			texture ImageTexture {url "helpers/blendwin.png"}
-		}
-		geometry IndexedFaceSet {
-			coord Coordinate {
-				point [ 
-					-2.0 0.0 0.0, 
-					2.0 0.0 0.0
-				 	2.0 3.0 0.0,  
-					-2.0 3.0 0.0 
-				]
+	Transform {
+		children [
+			Shape {
+				appearance Appearance {
+					texture ImageTexture {url "helpers/mandrill.jpg"}
+					textureTransform TextureTransform {
+						scale 2 2
+					}
+				}
+				geometry Sphere {
+				}
 			}
-			coordIndex [3, 2, 1, 0]
-			texCoord TextureCoordinate {
-				point [ 0.0 0.0,
-					1.0 0.0,
-					1.0 1.0,
-					0.0 1.0
-				]
-			}
-			solid FALSE             # Show both sides
-		}
+		]
+		translation 	0.5 1.0 -2.0
 	}
 	Transform {
 		children [
@@ -68,20 +81,45 @@ Group {
 		]
 		translation	0.0 0.0 -1.0
 	}
+	Shape {
+		appearance Appearance {
+			texture ImageTexture {url "helpers/blendwin.png"}
+		}
+		geometry IndexedFaceSet {
+			coord Coordinate {
+				point [ 
+					-2.0 0.0 0.0, 
+					2.0 0.0 0.0
+				 	2.0 3.0 0.0,  
+					-2.0 3.0 0.0 
+				]
+			}
+			coordIndex [3, 2, 1, 0]
+			texCoord TextureCoordinate {
+				point [ 0.0 0.0,
+					1.0 0.0,
+					1.0 1.0,
+					0.0 1.0
+				]
+			}
+			solid FALSE             # Show both sides
+		}
+	}
 	Transform {
 		children [
-			Shape {
+			DEF S0 Shape {
 				appearance Appearance {
-					texture ImageTexture {url "helpers/mandrill.jpg"}
+					texture ImageTexture {url "helpers/blendwin.png"}
+					#texture ImageTexture {url "helpers/mandrill.jpg"}
 					textureTransform TextureTransform {
 						scale 2 2
 					}
 				}
-				geometry Sphere {
+				geometry Cone {
 				}
 			}
 		]
-		translation 	0.0 0.0 -2.0
+		translation 	-0.5 1.0 1.0
 	}
     ]
 }

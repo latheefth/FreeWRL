@@ -1,4 +1,21 @@
 #VRML V2.0 utf8
+WorldInfo {
+	title "Alpha blend test 1"
+	info [
+		"This is a test for alpha blending 3D objects. The blending feature is not         
+		 well handled as it depends on the order the objects are described in the wrl file 
+		 This test is the better case possible because the background is always drawn first
+		 and no objects can be behind. The draw order is so always the good one.           
+		 Try the next test to see a more complex 3D blended scene.                         
+		                                                    Remi Cohen-Scali               "
+	]
+},
+NavigationInfo {
+	type "FLY"
+	type "WALK"
+	type "EXAMINE"
+	headlight TRUE
+}
 Group {
     children [
     	Background {
