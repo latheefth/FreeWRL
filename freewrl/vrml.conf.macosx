@@ -17,5 +17,5 @@
 # If Java is not installed, leave JAVA_INST empty e.g.
  JAVA_INST => '',
 # LD flags
-	'LDDLFLAGS' =>  '-twolevel_namespace -undefined error -dynamic -bundle -L/usr/local/lib -L/Library/Perl/darwin/CORE/ -lperl',
+	'LDFLAGS' =>  '-twolevel_namespace -undefined error -dynamic -bundle -L/usr/local/lib -L/Library/Perl/darwin/CORE/ -lperl',
 );
