@@ -451,7 +451,6 @@ BEGIN {
 		"fast" => \$fast, 
 		"fullscreen" => \$fullscreen,
 		"geometry=s" => \$geometry,
-		"netscape=s" => \$VRML::ENV{NETSCAPE},
 		"lwp!" => \$VRML::ENV{FREEWRL_NO_LWP},
 		"save=s" => \$VRML::ENV{FREEWRL_SAVE},
 		"fontdir=s" => \$VRML::ENV{FREEWRL_FONTS},
@@ -468,6 +467,9 @@ BEGIN {
 		"usage" => \$usage,
                 "server"=> \$server,
 		"sig" => \$sig_reload,
+		"netscape=s" => \$VRML::PLUGIN{NETSCAPE},
+		"fd=i" => \$VRML::PLUGIN{socket},
+		"instance=s" => \$VRML::PLUGIN{instance},
 	);
 
         if (defined $snapname_opt) { # Snapshot overrides sequence
@@ -572,7 +574,6 @@ $b->load_file($ARGV[0],$url);
 # lets handle a normal term...
 $SIG{TERM} = sub { $be->close_screen(); exit; };
 $SIG{QUIT} = sub { $be->close_screen();  exit;};
-
 
 $SIG{USR1} = sub { 
     $b->load_file($ARGV[0],$url); 

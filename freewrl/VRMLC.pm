@@ -1,4 +1,3 @@
-
 # $Id$
 #
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
@@ -27,6 +26,14 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.33  2001/07/11 20:43:04  ayla
+#
+#
+# Fixed problem with Plugin/Source/npfreewrl.c, so all debugging info. is turned
+# off.
+#
+# Committing merge between NetscapeIntegration and the trunk.
+#
 # Revision 1.32  2001/07/05 16:04:00  crc_canada
 # Initial IFS default texture rewrite.
 #

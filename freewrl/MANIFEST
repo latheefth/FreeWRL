@@ -381,4 +381,7 @@ perl-scripts/Makefile
 perl-scripts/README.pod
 perl-scripts/simple-1.wrl
 perl-scripts/simple-2.wrl
-
+Plugin/Makefile.PL
+Plugin/PluginGlue.pm
+Plugin/PluginGlue.xs
+Plugin/typemap

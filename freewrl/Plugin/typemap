@@ -1,0 +1,5 @@
+## $Id$
+## supplementary C types
+TYPEMAP
+void (*) (int)	T_PTROBJ
+const char *	T_PV

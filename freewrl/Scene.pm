@@ -846,6 +846,10 @@ sub newextp {
 
 	# XXX marijn: code copied from Browser->load_file()
 	my $string = VRML::URL::get_relative($parent->{URL},$protourl);
+
+	# Required due to changes in VRML::URL::get_relative in URL.pm:
+	if (!$string) { die "File $protourl was not found"; }
+
 	unless($string =~ /^#VRML V2.0/s) {
 		 if($string =~ /^#VRML V1.0/) {
 			 print "Sorry, this file is according to VRML V1.0, I only know V2.0\n";

@@ -319,9 +319,9 @@ extern "C" {
  */
 
 #ifdef XP_UNIX
-char*					NPP_GetMIMEDescription(void);
-NPError					NPP_GetValue(void *instance, NPPVariable variable,
-									 void *value);
+char*			NPP_GetMIMEDescription(void);
+NPError			NPP_GetValue(void *instance, NPPVariable variable, void *value);
+									 
 #endif /* XP_UNIX */
 NPError               	NPP_Initialize(void);
 void                  	NPP_Shutdown(void);
@@ -331,20 +331,20 @@ NPError     NP_LOADDS	NPP_New(NPMIMEType pluginType, NPP instance,
 NPError     NP_LOADDS	NPP_Destroy(NPP instance, NPSavedData** save);
 NPError     NP_LOADDS	NPP_SetWindow(NPP instance, NPWindow* window);
 NPError     NP_LOADDS	NPP_NewStream(NPP instance, NPMIMEType type,
-									  NPStream* stream, NPBool seekable,
+								NPStream* stream, NPBool seekable,
 									  uint16* stype);
 NPError     NP_LOADDS	NPP_DestroyStream(NPP instance, NPStream* stream,
-										  NPReason reason);
+									NPReason reason);
 int32       NP_LOADDS	NPP_WriteReady(NPP instance, NPStream* stream);
 int32       NP_LOADDS	NPP_Write(NPP instance, NPStream* stream, int32 offset,
 								  int32 len, void* buffer);
 void        NP_LOADDS	NPP_StreamAsFile(NPP instance, NPStream* stream,
-										 const char* fname);
+									const char* fname);
 void        NP_LOADDS	NPP_Print(NPP instance, NPPrint* platformPrint);
 int16                 	NPP_HandleEvent(NPP instance, void* event);
 void                 	NPP_URLNotify(NPP instance, const char* url,
-									  NPReason reason, void* notifyData);
-jref					NPP_GetJavaClass(void);
+								    NPReason reason, void* notifyData);
+jref			NPP_GetJavaClass(void);
 
 
 /*
@@ -352,15 +352,13 @@ jref					NPP_GetJavaClass(void);
  */
  
 #ifdef XP_UNIX
-NPError			NPN_GetValue(NPP instance, NPNVariable variable,
-							 void *value);
+NPError		NPN_GetValue(NPP instance, NPNVariable variable, void *value);
 #endif /* XP_UNIX */
 void        	NPN_Version(int* plugin_major, int* plugin_minor,
 							int* netscape_major, int* netscape_minor);
 NPError     	NPN_GetURLNotify(NPP instance, const char* url,
 								 const char* target, void* notifyData);
-NPError     	NPN_GetURL(NPP instance, const char* url,
-						   const char* target);
+NPError     	NPN_GetURL(NPP instance, const char* url, const char* target);
 NPError     	NPN_PostURLNotify(NPP instance, const char* url,
 								  const char* target, uint32 len,
 								  const char* buf, NPBool file,
@@ -371,19 +369,16 @@ NPError     	NPN_PostURL(NPP instance, const char* url,
 NPError     	NPN_RequestRead(NPStream* stream, NPByteRange* rangeList);
 NPError     	NPN_NewStream(NPP instance, NPMIMEType type,
 							  const char* target, NPStream** stream);
-int32       	NPN_Write(NPP instance, NPStream* stream, int32 len,
-						  void* buffer);
-NPError    		NPN_DestroyStream(NPP instance, NPStream* stream,
-								  NPReason reason);
+int32       	NPN_Write(NPP instance, NPStream* stream, int32 len, void* buffer);
+NPError    	NPN_DestroyStream(NPP instance, NPStream* stream, NPReason reason);
 void        	NPN_Status(NPP instance, const char* message);
 const char* 	NPN_UserAgent(NPP instance);
 void*       	NPN_MemAlloc(uint32 size);
 void        	NPN_MemFree(void* ptr);
 uint32      	NPN_MemFlush(uint32 size);
-void			NPN_ReloadPlugins(NPBool reloadPages);
-JRIEnv*			NPN_GetJavaEnv(void);
-jref			NPN_GetJavaPeer(NPP instance);
-
+void		NPN_ReloadPlugins(NPBool reloadPages);
+JRIEnv*		NPN_GetJavaEnv(void);
+jref		NPN_GetJavaPeer(NPP instance);
 
 #ifdef __cplusplus
 }  /* end extern "C" */

@@ -1,3 +1,6 @@
+#
+# $Id$
+#
 # Copyright (C) 1998 Tuomas J. Lukka, 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
@@ -30,34 +33,41 @@ unless($VRML::ENV{FREEWRL_NO_LWP})  {
 #
 # We make it possible to save stuff 
 
-my %saved;
+%VRML::URL::savedUrls;
+my @urlKeyList = qw(
+		    AbsolutePath
+		    FileContents
+		    UncachedParentUrl
+		   );
 
 {
 my $ind = 0;
 
 
 sub save_file {
+	my ($url, $file_contents, $key) = @_;
 	my $s;
 	if($s = $VRML::ENV{FREEWRL_SAVE}) {
-		system("cp $_[1] $s/s$ind");
-		system(qq{echo "$_[0] -> $s/s$ind" >>$s/dir});
+		system("cp $file_contents $s/s$ind");
+		system(qq{echo "$url -> $s/s$ind" >>$s/dir});
 		$ind ++;
 	}
-	$saved{"$_[0]:$_[2]"} = $_[1];
-	return $_[1];
+	$VRML::URL::savedUrls{$key}{$urlKeyList[1]} = $file_contents;
+	return $file_contents;
 }
 
 sub save_text {
+	my ($url, $text, $key) = @_;
 	my $s;
 	if($s = $VRML::ENV{FREEWRL_SAVE}) {
 		open FOO, ">$s/s$ind";
-		print FOO $_[1];
+		print FOO $text;
 		close FOO;
-		system(qq{echo "$_[0] -> $s/s$ind" >>$s/dir});
+		system(qq{echo "$url -> $s/s$ind" >>$s/dir});
 		$ind ++;
 	}
-	$saved{"$_[0]:$_[2]"} = $_[1];
-	return $_[1];
+	$VRML::URL::savedUrls{$key}{$urlKeyList[1]} = $text;
+	return $text;
 }
 
 }
@@ -114,61 +124,111 @@ sub ungzip_text {
 sub get_really {
 	my ($url) = @_;
 	$url = URI::URL::url($url,"file:".getcwd()."/")->abs->as_string;
-	print "VRML::URI really '$url'\n" if $VRML::verbose::url;
+	print "VRML::URI::really '$url'\n" if $VRML::verbose::url;
 	return $url;
 }
 
+# Changes to VRML::URL::get_absolute:
+#
+# If a url can't be found, a warning is issued and an undefined 
+# value returned. The caller is required to handle the failure to
+# locate the url.
+# The reason for the change is to bring FreeWRL's url handling behaviour
+# in compliance with the VRML97 specification (refer to the section
+# entitled "VRML and the World Wide Web" and bug 435578).
+#
+# Previously, the function exited by calling die if a url could not
+# be found.
+
 sub get_absolute {
-	my($url,$as_file) = @_;
-	if($saved{"$url:$as_file"}) {
-		return $saved{"$url:$as_file"}
-	}
-	print "VRML::URI::get_absolute('$url', $as_file)\n" if $VRML::verbose::url;
-	if($has_lwp) {
-		use POSIX qw/getcwd/;
-		$url = get_really($url);
-		if(!$as_file) {
-			my $r = LWP::Simple::get($url);
-			if(!defined $r) {die("URL not obtained: '$url'... something is wrong\n")}
-			print "VRML::URI: GOT ".length($r)." bytes\n" if $VRML::verbose::url;
-			return save_text($url,ungzip_text($r), $as_file);
-		} else {
-			if($url =~ /^file:(.*)$/) {
-				return save_file($url,ungzip_file($1), $as_file);
-			} else {
-				my($name) = temp_file();
-				LWP::Simple::getstore($url,$name);
-				return save_file($url,ungzip_file($name), $as_file);
-			}
-		}
+    my($url, $as_file, $key) = @_;
+    my $local_filepath = 0;
+
+    if (!$key) { $key = ":$url"; }
+
+    if ($VRML::URL::savedUrls{$key}{$urlKeyList[1]}) {
+	return $VRML::URL::savedUrls{$key}{$urlKeyList[1]};
+    }
+
+    print "VRML::URI::get_absolute('$url', $as_file, $key)\n" if $VRML::verbose::url;
+    if($has_lwp) {
+	use POSIX qw/getcwd/;
+
+	if ($url =~ /^file:(.*)$/) { $local_filepath = 1; }
+	else { $url = get_really($url); }
+
+	if (!$as_file) {
+	    my $r = LWP::Simple::get($url);
+	    if (!$r) {
+		warn "Warning: $url not obtained... something is wrong";
+		return undef;
+	    }
+
+	    print "VRML::URI::GOT ".length($r)." bytes\n" if $VRML::verbose::url;
+	    return save_text($url, ungzip_text($r), $key);
 	} else {
-		if(-e $url) {
-			$url = ungzip_file($url);
-			if($as_file) {return save_file($url,$url, $as_file)}
-			open FOOFILE, "<$url";
-			my $str = join '',<FOOFILE>;
-			close FOOFILE;
-			return save_text($url,$str, $as_file);
-		} else {
-			die("Cannot find file '$url' -- if it is a web
-address, you need to install libwww-perl \n");
-		}
+	    if ($local_filepath) {
+		return save_file($url, ungzip_file($1), $key);
+	    } else {
+		my($name) = temp_file();
+		LWP::Simple::getstore($url, $name);
+		return save_file($url, ungzip_file($name), $key);
+	    }
 	}
+    } else {
+	if (-e $url) {
+	    $url = ungzip_file($url);
+	    if ($as_file) { return save_file($url, $url, $key); }
+		open FOOFILE, "<$url";
+		my $str = join '',<FOOFILE>;
+		close FOOFILE;
+		return save_text($url, $str, $key);
+	    } else {
+		warn("Cannot find '$url'--if it is a web address, you need to install libwww-perl");
+		return undef;
+	    }
+    }
 }
 
+# Changes to VRML::URL::get_relative similar to
+# those made to VRML::URL::get_absolute:
+
 sub get_relative {
-	my($base,$extra,$as_file) = @_;
-	$base = get_really($base);
-	print "VRML::URI::get_relative('$base', '$extra', $as_file)\n" if $VRML::verbose::url;
-	my $url;
-	if($has_lwp) {
-		$url = URI::URL::url($extra,$base)->abs->as_string;
+    my($base, $file, $as_file) = @_;
+    $base = get_really($base);
+    print "VRML::URI::get_relative('$base', '$file', $as_file)\n" if $VRML::verbose::url;
+
+    my $key = "$base:$file";
+    my $url;
+
+    if (!$VRML::URL::savedUrls{$key}{$urlKeyList[0]}) {
+	if ($VRML::PLUGIN{NETSCAPE}) {
+	    eval 'require VRML::PluginGlue';
+	    $url = 
+		VRML::PluginGlue::plugin_connect($VRML::PLUGIN{socket},
+						     $VRML::PLUGIN{instance},
+						     $file);
+	    if (!$url) {
+		warn "Warning: netscape plugin could not retrieve $file.\n";
+		return undef;
+	    }
+	} elsif ($has_lwp) {
+	    $url = URI::URL::url($file, $base)->abs->as_string;
 	} else {
-		$url = $base;
-		$url =~ s/[^\/]+$/$extra/ or die("Can't do relativization");
+	    $url = $base;
+	    $url =~ s/[^\/]+$/$file/ or die("Can't do relativization");
 	}
-	my $txt = get_absolute($url,$as_file);
-	return (wantarray ? ($txt, $url) : $txt);
+
+	$VRML::URL::savedUrls{$key} = {
+	    $urlKeyList[0] => $url, # AbsolutePath
+	};
+    }
+    else {
+	$url = $VRML::URL::savedUrls{$key}{$urlKeyList[0]};
+    }
+
+    my $txt = get_absolute($url, $as_file, $key);
+    return (wantarray ? ($txt, $url) : $txt);
 }
 
 # Taken from perlfaq5

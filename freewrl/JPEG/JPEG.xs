@@ -8,6 +8,19 @@
  * distribution) for details.
  *
  * $Log$
+ * Revision 1.5  2001/07/11 20:43:05  ayla
+ *
+ *
+ * Fixed problem with Plugin/Source/npfreewrl.c, so all debugging info. is turned
+ * off.
+ *
+ * Committing merge between NetscapeIntegration and the trunk.
+ *
+ * Revision 1.4.8.1  2001/07/11 19:11:44  ayla
+ *
+ *
+ * Made a proper sentence out of error message at line 150.
+ *
  * Revision 1.4  2000/09/02 23:57:51  rcoscali
  * Implement the flipping of image directly in reading routine to avoid overhead of flipping after read. Flip occurs if a flip param is given to 1. It does not occur if 0.
  *
@@ -147,7 +160,7 @@ for(;;) {
    */
 
   if ((infile = fopen(filename, "rb")) == NULL) {
-    fprintf(stderr, "can't open %s\n", filename);
+    fprintf(stderr, "Can't open %s.\n", filename);
     RETVAL = 0; break;
   }
   /* We set up the normal JPEG error routines, then override error_exit. */

@@ -34,7 +34,7 @@
 #define FWRL 0
 #define NP   1
 
-#define _DEBUG 1
+#define _DEBUG 0
 
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
@@ -889,11 +889,11 @@ NPP_StreamAsFile (NPP instance, NPStream * stream, const char *fname)
 	if (fname == NULL) {
 #if _DEBUG
 	    fprintf(log, "Error - file could not be retrieved!\n");
+#endif
 	    /* Try sending an empty string! */
 	    if (write(This->fd[NP], "", 1) < 0) {
 		perror("Call to write failed"); 
 	    }
-#endif
 	}
 	else {
 	    bytes = (strlen(fname) + 1) * sizeof(const char *);

@@ -114,8 +114,8 @@ sub new {
        
 	# Window title. If the netscape option is on the command
 	# line, use it's parameter for the window name
-	if ($VRML::ENV{NETSCAPE}) {
-		$mytitle = $VRML::ENV{NETSCAPE};
+	if ($VRML::PLUGIN{NETSCAPE}) {
+		$mytitle = $VRML::PLUGIN{NETSCAPE};
 	}
 
  
@@ -418,7 +418,7 @@ sub event {
 	    }
 	} elsif((lc $args[0]) eq "q") {
 	  # if in netscape, don't do the quitpressed!
-	  if (!($VRML::ENV{NETSCAPE})) {
+	  if (!($VRML::PLUGIN{NETSCAPE})) {
 	    $this->{QuitPressed} = 1;
           }
 	  

@@ -55,6 +55,8 @@ require 'VRML/Events.pm';
 require 'VRML/Config.pm';
 require 'VRML/URL.pm';
 
+if ($VRML::PLUGIN{NETSCAPE}) { require 'VRML/PluginGlue.pm'; }
+
 package VRML::Browser;
 use File::Basename;
 use strict vars;
@@ -89,6 +91,10 @@ sub load_file {
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
 	my $t = VRML::URL::get_absolute($file);
+
+	# Required due to changes in VRML::URL::get_absolute in URL.pm:
+	if (!$t) { die "File $file was not found"; }
+
 	unless($t =~ /^#VRML V2.0/s) {
 		if($t =~ /^#VRML V1.0/s) {
 			print "Sorry, this file is according to VRML V1.0, I only know V2.0";
@@ -173,6 +179,8 @@ sub eventloop {
 		  }
 		}
 	      }
+
+	if ($VRML::PLUGIN{NETSCAPE}) { PluginGlue::close_fd($VRML::PLUGIN{socket}); }
 	$this->{BE}->close_screen();
 }
 
@@ -304,9 +312,12 @@ sub createVrmlFromURL {
 		$url = "$wurl\/$url";
 	}
 
-
         print "File: $file URL: $url\n" if $VRML::verbose::scene;
         my $t = VRML::URL::get_absolute($url);
+
+	# Required due to changes in VRML::URL::get_absolute in URL.pm:
+	if (!$t) { die "File $file was not found"; }
+
         unless($t =~ /^#VRML V2.0/s) {
                 if($t =~ /^#VRML V1.0/s) {
                         print "Sorry, this file is according to VRML V1.0, I only know V2.0\n"; exit (1);

@@ -29,6 +29,8 @@
 # PLUGIN_DEFINES= -DXP_UNIX -DPLUGIN_TRACE
 PLUGIN_DEFINES= -DXP_UNIX -I./include -ISource/_gen
 
+GLOBAL_PLUGIN_DIR=/usr/lib/netscape/plugins
+
 CC= gcc
 OPTIMIZER= -g
 CFLAGS=  $(OPTIMIZER) $(PLUGIN_DEFINES) -I. -I/usr/include
@@ -39,6 +41,9 @@ OBJ= npfreewrl.o stubs.o
 SHAREDTARGET=npfreewrl.so
 
 default all: $(SHAREDTARGET)
+
+install: $(SHAREDTARGET)
+	cp -f $(SHAREDTARGET) $(GLOBAL_PLUGIN_DIR)
 
 $(SHAREDTARGET): $(OBJ)
 	$(CC) -shared -o $(SHAREDTARGET) $(OBJ) $(LDFLAGS)
@@ -51,3 +56,6 @@ stubs.o: Source/stubs.c
 
 clean:
 	$(RM) $(OBJ) $(SHAREDTARGET)
+
+realclean: clean
+	$(RM) $(GLOBAL_PLUGIN_DIR)/$(SHAREDTARGET)
