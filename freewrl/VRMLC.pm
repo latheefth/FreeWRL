@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.30  2001/06/18 17:24:50  crc_canada
+# IRIX compile warnings removed
+#
 # Revision 1.29  2001/06/15 19:43:29  crc_canada
 # Alains Smooth Shading for Extrusions added.
 #
@@ -2012,36 +2015,6 @@ void render_ray_polyrep(void *node,
 			printf ("render_ray_polyrep, skipping degenerate triangle\n");
 		*/
 		}
-
-#ifdef FOOEIFJOESFIJESF
-		printf ("in FOOEIFJOESFIJESF\n");
-		/* But maybe easier: calc. (ray1->p1) x ray,
-		 * (ray1->p2) x ray and (ray1->p3) x ray 
-		 * and dot products of these. if sum > -180, ok.
-		 * XXX Doesn't give us point/normal easily.
-		 */
-		v1.x = point[0][0] - t_r1.x;
-		v1.y = point[0][1] - t_r1.y;
-		v1.z = point[0][2] - t_r1.z;
-		v2.x = point[1][0] - t_r1.x;
-		v2.y = point[1][1] - t_r1.y;
-		v2.z = point[1][2] - t_r1.z;
-		v3.x = point[2][0] - t_r1.x;
-		v3.y = point[2][1] - t_r1.y;
-		v3.z = point[2][2] - t_r1.z;
-		VECCP(v1, ray, x1);
-		VECCP(v2, ray, x2);
-		VECCP(v3, ray, x3);
-		len = 1/sqrt(VECSQ(x1)); VECSCALE(x1,len);
-		len = 1/sqrt(VECSQ(x2)); VECSCALE(x2,len);
-		len = 1/sqrt(VECSQ(x3)); VECSCALE(x3,len);
-		pt1 = VECPT(x1,x2);
-		pt2 = VECPT(x2,x3);
-		pt3 = VECPT(x3,x1);
-		/* Now the simple condition: one of the angles 
-		if( acos(pt1) + acos(pt2) + acos(pt3)
-		*/
-#endif FOEIJFOEJFOIEJ
 	}
 }
 
@@ -2611,7 +2584,7 @@ void remove_parent(void *node_, void *parent_) {
  * General Texture objects
  */
 
-void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
+do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	int x,y,depth;
 	GLint Sgl_rep_or_clamp;
 	GLint Tgl_rep_or_clamp;
