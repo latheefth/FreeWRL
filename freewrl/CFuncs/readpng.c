@@ -138,7 +138,7 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
      * transparency chunks to full alpha channel; strip 16-bit-per-sample
      * images to 8 bits per sample; and convert grayscale to RGB[A] */
 
-    if (color_type == PNG_COLOR_TYPE_PALETTE)
+    if (color_type == PNG_COLOR_TYPE_PALETTE && bit_depth <= 8)
         png_set_expand(png_ptr);
     if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
         png_set_expand(png_ptr);
@@ -146,17 +146,17 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
         png_set_expand(png_ptr);
     if (bit_depth == 16)
         png_set_strip_16(png_ptr);
-    if (color_type == PNG_COLOR_TYPE_GRAY ||
-        color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-        png_set_gray_to_rgb(png_ptr);
+    //JAS - breaks NIST testsif (color_type == PNG_COLOR_TYPE_GRAY ||
+    //JAS - breaks NIST tests    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+    //JAS - breaks NIST tests    png_set_gray_to_rgb(png_ptr);
 
 
     /* unlike the example in the libpng documentation, we have *no* idea where
      * this file may have come from--so if it doesn't have a file gamma, don't
      * do any correction ("do no harm") */
 
-    if (png_get_gAMA(png_ptr, info_ptr, &gamma))
-        png_set_gamma(png_ptr, display_exponent, gamma);
+    //JAS - breaks NIST testsif (png_get_gAMA(png_ptr, info_ptr, &gamma))
+    //JAS - breaks NIST tests    png_set_gamma(png_ptr, display_exponent, gamma);
 
 
     /* all transformations have been registered; now update info_ptr data,
