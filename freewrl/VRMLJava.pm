@@ -165,9 +165,11 @@ sub connect {
 	    }
 	}
 	die "Can't find vrml.jar and java.policy" if !$libdir;
+	my $classpath = "$libdir/vrml.jar";
+	$classpath .= ":$ENV{CLASSPATH}" if $ENV{CLASSPATH};
 	my $cmdline ="java -Dfreewrl.lib.dir=$libdir "
 	    . "-Djava.security.policy=$libdir/java.policy "
-		. "-classpath $libdir/vrml.jar vrml.FWJavaScript";
+		. "-classpath $classpath vrml.FWJavaScript";
 	print "VRMLJava.pm: Running $cmdline\n";
 
 #	unless ($pid = fork()) {
