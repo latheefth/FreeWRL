@@ -15,7 +15,7 @@
 #include <X11/extensions/xf86vmode.h>
 #include <X11/keysym.h>
 
-#define NUM_ARG 7
+#define NUM_ARG 8
 
 Display *dpy;
 XVisualInfo *vi;
@@ -88,7 +88,7 @@ sensor_cursor()
 	}
 
 void
-glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
+glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	int	x
 	int	y
 	int	w
@@ -96,6 +96,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 	int	pw
 	int	fullscreen
 	long	event_mask
+	char	*wintitle
 
 	CODE:
 	{
@@ -106,6 +107,8 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 	    Window pwin=(Window)pw;
 	    int *attributes = default_attributes;
 
+	    int number;
+
 	    if(items>NUM_ARG){
 	        int i;
 	        attributes = (int *)malloc((items-NUM_ARG+1)* sizeof(int));
@@ -114,6 +117,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 	        }
 	        attributes[items-NUM_ARG]=None;
 	    }
+
 	    /* get a connection */
 	    dpy = XOpenDisplay(0);
 	    if (!dpy) { fprintf(stderr, "No display!\n");exit(-1);}
@@ -138,7 +142,6 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 	    if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
 
 	    /* create a GLX context */
-	    /*JAS cx = glXCreateContext(dpy, vi, 0, GL_FALSE); */
 	    cx = glXCreateContext(dpy, vi, 0, GL_TRUE);
 	    if(!cx){fprintf(stderr, "No context!\n");exit(-1);}
 
@@ -166,7 +169,6 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 		
 	    if(x>=0) {
 	    	    XTextProperty textpro;
-		    char *slist[2]={"FreeWRL",NULL};
 		    if (fullscreen == 1)
 		    {
 		    	win = XCreateWindow(dpy, pwin, 
@@ -184,10 +186,14 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 		    else
 		    {
 			win = XCreateWindow(dpy, pwin, x, y, w, h, 0, vi->depth, InputOutput, vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
+
+			/* create window name */
+			XStoreName(dpy,win,wintitle);
+
 		    }
-	    		glXMakeCurrent(dpy, win, cx);
-	    		glFlush();
-			XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
+	    	    glXMakeCurrent(dpy, win, cx);
+	    	    glFlush();
+		    XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
 		    if(!win) {
 			fprintf(stderr, "No Window\n");
 			exit(-1);
@@ -197,31 +203,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, ...)
 			XIfEvent(dpy, &event, WaitForNotify, (char*)win);
 		    }
 	    } else { 
-#ifdef FOIFJOISEJFOISJEFSF
-			/* This doesn't work too well because of
-			   trouble */
-	    	    win = XCreatePixmap(dpy, pwin, w,h,vi->depth);
-		    if(!win) {
-			fprintf(stderr, "No Pixmap\n");
-			exit(-1);
-		    }
-		    win = glXCreateGLXPixmap(dpy, vi, win);
-		    if(!win) {
-			fprintf(stderr, "No GLXPixmap\n");
-			exit(-1);
-		    }
-#endif
-#ifdef SOEIFJSOEIFS_____GL_SGIX_pbuffer
-GLXFBConfig *glXChooseFBConfigSGIX(Display *dpy, int screen,
-                     const int *attrib_list, int *nitems)
-
-
-		win = glXCreateGLXPbufferSGIX(Display *dpy, 
-				GLXFBConfig config,
-				  unsigned int *width, unsigned int *height, int attrib_list)
-#else
 		    die("NO PBUFFER EXTENSION\n");
-#endif
 	    }
 	    /* clear the buffer */
 	    glClearColor(0,0,0,1);
@@ -246,7 +228,7 @@ GLXFBConfig *glXChooseFBConfigSGIX(Display *dpy, int screen,
 	
 	    /* what is the hardware 3d accel? */
 	    strncpy (renderer, glGetString(GL_RENDERER), 250);
-	    printf ("%s\n",renderer);
+	    /* printf ("%s\n",renderer); */
 	}
 
 int
