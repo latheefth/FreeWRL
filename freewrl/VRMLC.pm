@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.151  2004/08/25 14:57:12  crc_canada
+# more Frustum culling work
+#
 # Revision 1.150  2004/08/23 17:46:26  crc_canada
 # Bulk commit: IndexedLineWidth width setting, and more Frustum culling work.
 #
@@ -1410,7 +1413,7 @@ CODE:
 	p->_extent[0] = 0.0;
 	p->_extent[1] = 0.0;
 	p->_extent[2] = 0.0;
-	p->PIV = 0;
+	p->PIV = 1;
 
 	RETVAL=ptr;
 OUTPUT:

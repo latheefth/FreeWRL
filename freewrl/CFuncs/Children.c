@@ -187,7 +187,11 @@ void transformChild (struct VRML_Transform *this_) {
 	int savedlight = curlight;
 
 	if(verbose) printf("RENDER TRANSFORM START %d (%d)\n",this_, nc);
+//printf ("transformChild, PIV is %d\n",this_->PIV);
 
+#ifdef BOUNDINGBOX
+	if (this_->PIV > 0) {
+#endif
 	/* do we have to sort this node? */
 	if ((nc > 2 && render_blend)) sortChildren(this_->children);
 
@@ -196,6 +200,9 @@ void transformChild (struct VRML_Transform *this_) {
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(this_->children);
+#ifdef BOUNDINGBOX
+	}
+#endif
 
 	if (render_geom && (!render_blend)) {
 		//printf ("Transform, this is %d, extent %f %f %f\n",

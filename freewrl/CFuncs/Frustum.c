@@ -95,6 +95,8 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV) {
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
 	if (PIV == 0) return;
 
+
+	return;
 	/* calculate distance to this box from the Frustum */
 
 	
@@ -103,10 +105,10 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV) {
 	glEnable(GL_COLOR_MATERIAL); 
 	glDisable(GL_CULL_FACE);
 
-	if (PIV >= 8) {
+	if (PIV >= 2) {
 
 		glColor3f(1.0, 1.0, 0.0);
-	} else if (PIV >= 4) {
+	} else if (PIV >= 1) {
 		glColor3f(0.0, 1.0, 0.0);
 	}
 	else glColor3f(0, 0.0, 1.0);
@@ -175,19 +177,19 @@ void calculateFrustumCone () {
 	glGetDoublev (GL_PROJECTION_MATRIX, proj);
 	glGetDoublev (GL_MODELVIEW_MATRIX, mod);
 
-	printf ("calculateFrustum\n");
-	printf ("nearPlane    %f\n",nearPlane);
-	printf ("farPlane     %f\n",farPlane);
-	printf ("screenRatio  %f\n",screenRatio);
-	printf ("fieldofview  %f\n",fieldofview);
-	printf ("screenWidth  %d\n",screenWidth);
-	printf ("screenHeight %d\n",screenHeight);
+	//printf ("calculateFrustum\n");
+	//printf ("nearPlane    %f\n",nearPlane);
+	//printf ("farPlane     %f\n",farPlane);
+	//printf ("screenRatio  %f\n",screenRatio);
+	//printf ("fieldofview  %f\n",fieldofview);
+	//printf ("screenWidth  %d\n",screenWidth);
+	//printf ("screenHeight %d\n",screenHeight);
 
 	frustumConeAngle = fieldofview;
-	printf ("frust axis %f %f %f\n",
-			0.0, 0.0, 0.0);
-	printf ("Frust vertex %f %f %f\n",
-			0.0,0.0,0.0);
+	//printf ("frust axis %f %f %f\n",
+//			0.0, 0.0, 0.0);
+//	printf ("Frust vertex %f %f %f\n",
+//			0.0,0.0,0.0);
 #endif
 }
 
@@ -226,38 +228,26 @@ void calculateFrustumCone () {
  *
  *************************************************************/
 
-int inCheck(GLdouble Distance,GLdouble bb,GLdouble cc) {
+void inCheck(GLdouble Distance,GLdouble bb,GLdouble cc, int *xcount, int *pointok) {
 	GLdouble xx;	
-	int xcount;
-	int pointok;
 	
 	xx = tan(0.3)*Distance;
-	xcount=0;
-	pointok = FALSE;
 
-	printf ("        comparing %f with %f, %f ",xx, bb,cc);
+	//printf ("        comparing %f with %f, %f ",xx, bb,cc);
 
 	// Point is behind viewer
 	if (Distance<0.0) {
-		printf (" Xcount %d\n",0);
-		return 0;
+		//printf (" Xcount %d\n",0);
+		return;
 	}
 
 	// are both points positive?
-	if ((bb>0.0) && (xx > bb)) xcount++;
-	if ((cc>0.0) && (xx > cc)) xcount++;
+	if ((bb>0.0) && (xx > bb) && 
+		(cc>0.0) && (xx > cc)) (*xcount)++;
 	
-	if ((bb>0.0) && (cc>0.0)) pointok = TRUE;
+	if ((bb>0.0) && (cc>0.0)) (*pointok)++;
 
-	printf (" Xcount %d pok %d\n",xcount,pointok);
-	// if BOTH points are either in, or BOTH are out, return ok
-	if (pointok) {
-		if (xcount==0) xcount = 2; // possibly 
-		if (xcount==1) xcount = 0;
-		printf ("	pok ok, xc %d, returning 1\n",xcount);
-		if (xcount==2) return 1;
-	}
-	return 0;
+	//printf (" Xcount %d pok %d\n",*xcount,*pointok);
 }
 
 
@@ -265,8 +255,11 @@ int PointInView(struct VRML_Transform *nod) {
 	GLdouble xx,yy,Distance,bb,cc,dd,ee,ff,ex_X,ex_Y,ex_Z;
 	GLdouble modelMatrix[16];
 	int retval;
+	int xcount, pointok;
 
 	retval = 0;
+	xcount=0;
+	pointok=0;
 
 	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	nod->bboxCenter.c[0] = modelMatrix[12];
@@ -287,26 +280,28 @@ int PointInView(struct VRML_Transform *nod) {
 
 	// check the 4 points closer to us
 	Distance = -modelMatrix[14]+ex_Z; // distance
-	retval += inCheck(Distance, bb+ex_X, cc+ex_Y);
-	retval += inCheck(Distance, -(bb-ex_X), cc+ex_Y);
-	retval += inCheck(Distance, bb+ex_X, -(cc-ex_Y));
-	retval += inCheck(Distance, -(bb-ex_X), -(cc-ex_Y));
+	inCheck(Distance, bb+ex_X, cc+ex_Y,&xcount,&pointok);
+	inCheck(Distance, -(bb-ex_X), cc+ex_Y,&xcount,&pointok);
+	inCheck(Distance, bb+ex_X, -(cc-ex_Y),&xcount,&pointok);
+	inCheck(Distance, -(bb-ex_X), -(cc-ex_Y),&xcount,&pointok);
 
 	/* check the 4 points farther from us */
 	Distance = -modelMatrix[14]-ex_Z; // distance
-	retval += inCheck(Distance, bb+ex_X, cc+ex_Y);
-	retval += inCheck(Distance, -(bb-ex_X), cc+ex_Y);
-	retval += inCheck(Distance, bb+ex_X, -(cc-ex_Y));
-	retval += inCheck(Distance, -(bb-ex_X), -(cc-ex_Y));
+	inCheck(Distance, bb+ex_X, cc+ex_Y,&xcount,&pointok);
+	inCheck(Distance, -(bb-ex_X), cc+ex_Y,&xcount,&pointok);
+	inCheck(Distance, bb+ex_X, -(cc-ex_Y),&xcount,&pointok);
+	inCheck(Distance, -(bb-ex_X), -(cc-ex_Y),&xcount,&pointok);
 
-	//retval += inCheck(Distance, bb+ex_X, cc+ex_Y);
-	//retval += inCheck(Distance, bb-ex_X, cc+ex_Y);
-	//retval += inCheck(Distance, bb+ex_X, cc-ex_Y);
-	//retval += inCheck(Distance, bb-ex_X, cc-ex_Y);
+	//printf ("PIV %d %d\n",xcount,pointok);
 #endif
 	nod->_dist = modelMatrix[14];
 	//printf ("getDist - recalculating distance, it is %f for %d\n", 
 	//	nod->_dist,nod);
+	
+	// are all 8 points within the view?
+	if (pointok==8) return 2;
+	if ((pointok>1) && (xcount>1)) return 1;
+	
 	
 	return retval;
 }

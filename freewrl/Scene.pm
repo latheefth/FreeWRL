@@ -973,7 +973,18 @@ sub setup_routing {
 			 if $VRML::verbose::scene;
 		 if ($VRML::Nodes::initevents{$_[0]->{TypeName}}) {
 			 print "\tITNO:is member of initevents\n" 
-				 if $VRML::verbose::scene;
+				if $VRML::verbose::scene;
+
+				  
+			# is this a proto expansion SFNode field? 
+			# if so, the backnode->{CNode} will need to be created
+			if (!defined $_[0]->{BackNode}) {
+				print "backnode not defined\n";
+				
+				$_[0]->{BackNode} = 
+					VRML::NodeIntern::make_backend($_[0], $be);
+			}
+			
 			VRML::VRMLFunc::add_first($_[0]->{TypeName}, $_[0]->{BackNode}->{CNode});
 		 } else {
 			 if ($_[0]->{ProtoExp}) {
