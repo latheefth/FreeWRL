@@ -17,11 +17,22 @@ TODO wishlist for 0.30 release.
 This list simply outlines the wishes and status for the next release
 of FreeWRL.
 <P>
-Last Update: July 24, 2001
+Last Update: August 10, 2001
 <P>
 Additions/comments welcome.
 <P>
 <UL>
+<LI><B>glu lib</B> - gluBeginPolygon, gluNextContour, and gluEndPolygon depreciated. Replace with
+gluTessBeginPolygon, gluTessBeginContour; gluTessEndPolygon, gluTessEndContour.
+#ifdef GLU_VERSION_1_2
+...
+#else 
+  void glBeginPolygon(..);
+  ...
+#endif
+<P>
+<LI><B>IndexedFaceSet</B> smooth normals.
+<P>
 <LI><B>Bounds</B> checking on IndexedFaceSet parameters.
 <P>
 <LI><B>Verify memory usage for textures -are we saving them twice?</B>
