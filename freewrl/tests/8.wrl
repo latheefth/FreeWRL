@@ -178,9 +178,9 @@ DEF SCR Script {
 ROUTE TS.isActive TO SCR.busy
 ROUTE A1.touchTime TO SCR.startTimeLeft
 ROUTE A2.touchTime TO SCR.startTimeRight
-ROUTE SCR.startTime TO TS.startTime
+ROUTE SCR.startTime TO TS.set_startTime
 ROUTE TS.fraction_changed TO PI.set_fraction
-ROUTE PI.value_changed TO BT.translation
+ROUTE PI.value_changed TO BT.set_translation
 }
 
 

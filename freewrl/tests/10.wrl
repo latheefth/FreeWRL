@@ -56,7 +56,7 @@ Group {
   }
  ]
 }
-ROUTE S.rotation_changed TO T.rotation
+ROUTE S.rotation_changed TO T.set_rotation
 }
 
 PROTO SArrow [

@@ -35,4 +35,4 @@ DEF TR Transform {
 }
 
 ROUTE TS.fraction_changed TO POS.set_fraction
-ROUTE POS.value_changed TO TR.translation
+ROUTE POS.value_changed TO TR.set_translation
