@@ -1190,7 +1190,7 @@ TouchSensor => new VRML::NodeType("TouchSensor",
 	__mouse__ => sub {
 		my($t,$f,$time,$moved,$button,$over,$pos,$norm,$texc) = @_; 
 		print "MOUSE: over $over but $button moved $moved\n"
-		; #JAS	if $VRML::verbose::tsens;
+			if $VRML::verbose::tsens;
 		if($button ne "PRESS") {return}
 
 		#ok, we are here, and we have a button press.
@@ -1479,7 +1479,6 @@ SpotLight => new VRML::NodeType("DirectionalLight",
 	}
 ),
 
-# XXX
 Background => new VRML::NodeType("Background",
 	{
 	 set_bind => [SFBool, undef, eventIn],
