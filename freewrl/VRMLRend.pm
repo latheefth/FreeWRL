@@ -20,6 +20,13 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.50  2002/01/23 21:07:56  crc_canada
+# textureTransform problems fixed (they were not being zeroed), but efficiency
+# may be better handled.
+#
+# some material/texture problems - material should show through textures, now
+# works.
+#
 # Revision 1.49  2002/01/22 17:42:27  crc_canada
 # I made a mistake in comment types; comment changed to C style from Perl style
 #
@@ -1840,22 +1847,32 @@ Billboard => (join '','
 		/* for shape display list redrawing */
 		this_->_myshape = last_visited_shape; 
 
-		if($f(textureTransform)) 
-			render_node($f(textureTransform));
 
-		if($f(texture)) {
+		    if($f(texture)) {
+
+			/* is there a TextureTransform? if no texture, forget about it */
+		    	if($f(textureTransform))   {
+				render_node($f(textureTransform));
+			    } else {
+				glMatrixMode(GL_TEXTURE);
+				glLoadIdentity();
+				glTranslatef(0, 0, 0);
+				glRotatef(0,0,0,1);
+				glScalef(1,1,1);
+				glMatrixMode(GL_MODELVIEW);
+		    	}
 			render_node($f(texture));
-		} else {
+		    }
 
-			if($f(material)) {
-				render_node($f(material));
-			} else {
-				/* no material, so just colour the following shape */
-                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
-                        	glDisable (GL_LIGHTING);
-				glColor3f(1.0,1.0,1.0);
-			} 
-		}
+
+		if($f(material)) {
+			render_node($f(material));
+		} else {
+			/* no material, so just colour the following shape */
+                       	/* Spec says to disable lighting and set coloUr to 1,1,1 */
+                       	glDisable (GL_LIGHTING);
+			glColor3f(1.0,1.0,1.0);
+		} 
 	
 	',
 	Shape => '
