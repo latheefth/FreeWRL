@@ -646,6 +646,9 @@ sub mkbe_and_array {
 	# print "\nmkbe_and_array: Gathering defs for Nodes of ",VRML::NodeIntern::dump_name($this),")\n";
 	foreach (@{$this->{Nodes}}) {
 		$_->gather_defs($parentscene);
+
+		# reserve the Node so that EAI can get it, if necessary
+        	VRML::NodeIntern::dump_name($_->real_node());
 	}
   }
 
