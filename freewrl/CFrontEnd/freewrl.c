@@ -38,7 +38,9 @@ Window Win;
 GLXContext globalContext;
 #endif
 
+#ifndef AQUA
 int wantEAI=FALSE;		/* enable EAI? */
+#endif
 extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
 
 /* threading variables for event loop */
@@ -143,7 +145,9 @@ int main (int argc, char **argv) {
 				break;
 
 			case 'e':
+#ifndef AQUA
 				wantEAI=TRUE;
+#endif
 				break;
 
 			case 'f':
@@ -288,7 +292,9 @@ int main (int argc, char **argv) {
 	free(filename); free(pwd);
 
 	/* do we require EAI? */
+#ifndef AQUA
 	if (wantEAI) create_EAI();
+#endif
 
 	/* now wait around until something kills this thread. */
 	pthread_join(thread1, NULL);
