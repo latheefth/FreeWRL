@@ -717,7 +717,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
 			(*newp)->sv_flags = SVt_PV | SVf_POK;
 			(*newp)->sv_refcnt=1;
-			mypv = (xpv *)malloc(sizeof (struct xpv));
+			mypv = (struct xpv *)malloc(sizeof (struct xpv));
 			(*newp)->sv_any = mypv;
 
 			/* now, make it point to a blank string */
@@ -761,7 +761,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 			// ourselves: sv_setpv(svptr[i],valStr);
 
 			// get a pointer to the xpv to modify
-			mypv = (xpv *)SvANY(svptr[i]);
+			mypv = (struct xpv *)SvANY(svptr[i]);
 
 			// free the old string
 			free (mypv->xpv_pv); 
@@ -1042,7 +1042,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		        // printf ("old pointer %d\n",tn->p);
 			tn->n = 0;	/* gets around possible mem problem */
 			if (tn->p != NULL) free (tn->p);
-			tn->p =(SFColor *)malloc ((unsigned)(elesize*len));
+			tn->p =(struct SFColor *)malloc ((unsigned)(elesize*len));
 			if (tn->p == NULL) {
 				printf ("can not malloc memory in getMultNumType\n");
 				return;
@@ -1056,7 +1056,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		tn->n = len;
 	} else {
 		/* this is a Node type, so we need to add/remove children */
-		AddRemoveChildren (parent, (Multi_Node*)tn, (int *)buf, len, addChild);
+		AddRemoveChildren (parent, (struct Multi_Node*)tn, (int *)buf, len, addChild);
 	}
 }
 
@@ -1117,7 +1117,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		/* yep... */
 			// printf ("old pointer %d\n",tn->p);
 		if (tn->p != NULL) free (tn->p);
-		tn->p = (SFColor *)malloc ((unsigned)(elesize*len));
+		tn->p = (struct SFColor *)malloc ((unsigned)(elesize*len));
 		if (tn->p == NULL) {
 			printf ("can not malloc memory in getJSMultiNumType\n");
 			return;
@@ -1213,7 +1213,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 			*newp = (SV *)malloc (sizeof (struct STRUCT_SV));
 			(*newp)->sv_flags = SVt_PV | SVf_POK;
 			(*newp)->sv_refcnt=1;
-			mypv = (xpv *)malloc(sizeof (struct xpv));
+			mypv = (struct xpv *)malloc(sizeof (struct xpv));
 			(*newp)->sv_any = mypv;
 
 			/* now, make it point to a blank string */
@@ -1257,7 +1257,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 			// ourselves: sv_setpv(oldsvptr[i],valStr);
 
 			// get a pointer to the xpv to modify
-			mypv = (xpv *)SvANY(oldsvptr[i]);
+			mypv = (struct xpv *)SvANY(oldsvptr[i]);
 
 			// free the old string
 			free (mypv->xpv_pv); 
@@ -1637,7 +1637,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 	if(NULL != token)
 	{
 	    count = 1;
-	    theChainHd = (fchain *)malloc(sizeof(struct fchain));
+	    theChainHd = (struct fchain *)malloc(sizeof(struct fchain));
 	    theChainHd->next = NULL;
 	    actual = theChainHd;
 	    
@@ -1656,7 +1656,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 		token = strtok(NULL,theSpc);
 		if(NULL != token)
 		{
-		    actual->next = (fchain *) malloc(sizeof(struct fchain));
+		    actual->next = (struct fchain *) malloc(sizeof(struct fchain));
 		    actual = actual->next;
 		    actual->next = NULL;
 		    count++;
@@ -1938,7 +1938,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 	if ((mv3ftn->p) != NULL) free (mv3ftn->p);
 
 	/* malloc the toptr */
-	mv3ftn->p = (SFColor *)malloc (structlen*fromcount);
+	mv3ftn->p = (struct SFColor *)malloc (structlen*fromcount);
 	toptr = (void *)mv3ftn->p;
 
 	/* tell the recipient how many elements are here */
@@ -1969,7 +1969,7 @@ void add_first(char *clocktype,void * node) {
 		return;
 	}
 
-	ClockEvents = (FirstStruct *)realloc(ClockEvents,sizeof (struct FirstStruct) * (num_ClockEvents+1));
+	ClockEvents = (struct FirstStruct *)realloc(ClockEvents,sizeof (struct FirstStruct) * (num_ClockEvents+1));
 	if (ClockEvents == 0) {
 		printf ("can not allocate memory for add_first call\n");
 		num_ClockEvents = 0;
@@ -2086,7 +2086,7 @@ int JSparamIndex (char *name, char *type) {
 	if (jsnameindex >= MAXJSparamNames) {
 		/* oooh! not enough room at the table */
 		MAXJSparamNames += 100; /* arbitrary number */
-		JSparamnames = (CRjsnameStruct*)realloc (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
+		JSparamnames = (struct CRjsnameStruct*)realloc (JSparamnames, sizeof(*JSparamnames) * MAXJSparamNames);
 	}
 
 	if (len > MAXJSVARIABLELENGTH-2) len = MAXJSVARIABLELENGTH-2;	/* concatenate names to this length */
@@ -2140,7 +2140,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	if (!CRoutes_Initiated) {
 		/* allocate the CRoutes structure */
 		CRoutes_MAX = 25; /* arbitrary number; max 25 routes to start off with */
-		CRoutes = (CRStruct *)malloc (sizeof (*CRoutes) * CRoutes_MAX);
+		CRoutes = (struct CRStruct *)malloc (sizeof (*CRoutes) * CRoutes_MAX);
 
 		CRoutes[0].fromnode = 0;
 		CRoutes[0].fnptr = 0;
@@ -2284,7 +2284,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	if (CRoutes_Count >= (CRoutes_MAX-2)) {
 		//printf("WARNING: expanding routing table\n");
 		CRoutes_MAX += 50; /* arbitrary expansion number */
-		CRoutes =(CRStruct *) realloc (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
+		CRoutes =(struct CRStruct *) realloc (CRoutes, sizeof (*CRoutes) * CRoutes_MAX);
 	}
 
 	CRoutes_Count ++;
@@ -2524,19 +2524,19 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 					/* a series of Floats... */
-				case MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),3); break;}
-				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),1); break;}
-				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),4); break;}
-				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),2); break;}
-				case MFNODE: {getMFNodetype (strp,(Multi_Node *)(tn+tptr),(VRML_Box *)tn,CRoutes[route].extra); break;}
+				case MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),3); break;}
+				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),1); break;}
+				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),4); break;}
+				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),2); break;}
+				case MFNODE: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct VRML_Box *)tn,CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
-						 (jsval *)global_return_val,(Multi_String *)(tn+tptr)); 
+						 (jsval *)global_return_val,(struct Multi_String *)(tn+tptr)); 
 					break;
 				}
 
-				case MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),0); break;}
-				case MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (Multi_Vec3f *)(tn+tptr),5); break;}
+				case MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),0); break;}
+				case MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),5); break;}
 
 				default: {	printf("WARNING: unhandled from type %s\n", FIELD_TYPE_STRING(JSparamnames[fptr].type));
 				printf (" -- string from javascript is %s\n",strp);

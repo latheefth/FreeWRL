@@ -75,7 +75,7 @@ unsigned  _fw_instance=0;
 
 //These variables exsist for the device input libraries. Linux ONLY.
 //Added Nov 18/04 by M. Ward
-#ifndef AQUA
+#ifdef ALLDEV
 
   #ifdef do_open
     #undef do_open
@@ -122,7 +122,6 @@ unsigned  _fw_instance=0;
   int have_polhemuslib = -1;
   int connected_device = -1;
   int use_external_input = 1;
-
 #endif
 
 /* function prototypes */
@@ -345,7 +344,7 @@ int main (int argc, char **argv) {
 #endif
 
 //Added Nov 18/04 M. Ward
-#ifndef AQUA
+#ifdef ALLDEV
       //first a quick check did you want to use an external device for input control?
       if( use_external_input == 1 ) {
   	//now before we start forking threads and I get confused, lets check the status

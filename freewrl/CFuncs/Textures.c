@@ -514,7 +514,7 @@ void checkAndAllocTexMemTables(int *texture_num, int increment) {
 		prev_max_texture = max_texture;
 		max_texture+=increment;
 		isloaded = (unsigned char *)realloc(isloaded, sizeof(*isloaded) * max_texture);
-		loadparams = (loadTexParams *)realloc(loadparams, sizeof(*loadparams) * max_texture);
+		loadparams = (struct loadTexParams *)realloc(loadparams, sizeof(*loadparams) * max_texture);
 
 		/* printf ("zeroing from %d to %d\n",prev_max_texture,max_texture); */
 		for (count = prev_max_texture; count < (int)max_texture; count++) {
@@ -558,7 +558,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	char firstMPGb[] = {0x00, 0x00, 0x01, 0xb3};
 
 
-	int xx;
+	STRLEN xx;
 	*istemp=FALSE;	/* don't remove this file */
 
 	/* is this a PixelTexture? if so, we have the "file" in memory */
@@ -570,7 +570,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	filename = (char *)malloc(1000);
 	
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(loadparams[*texnum].parenturl,(STRLEN &)xx));
+	count = strlen(SvPV(loadparams[*texnum].parenturl,xx));
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
 	
 	if ((!filename) || (!mypath)) {
@@ -579,7 +579,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	}
 	
 	/* copy the parent path over */
-	strcpy (mypath,SvPV(loadparams[*texnum].parenturl,(STRLEN&)xx));
+	strcpy (mypath,SvPV(loadparams[*texnum].parenturl,xx));
 	
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *)rindex(mypath,'/');
@@ -591,7 +591,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < loadparams[*texnum].url.n) {
-		thisurl = SvPV(loadparams[*texnum].url.p[count],(STRLEN&)xx);
+		thisurl = SvPV(loadparams[*texnum].url.p[count],xx);
 	
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
@@ -746,10 +746,10 @@ void __reallyloadPixelTexture() {
 	unsigned char *texture;
 	unsigned char *tptr;
 	int tctr;
-	int xx;
+	STRLEN xx;
 	int count;
 
-	tptr = (unsigned char *)SvPV(loadparams[currentlyWorkingOn].parenturl,(STRLEN &)xx);
+	tptr = (unsigned char *)SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
 	while (isspace(*tptr))tptr++;
 	if (sscanf ((const char *)tptr, "%i%i%i",&wid,&hei,&depth)==3) {
 		if ((depth < 1) || (depth >4)) {
@@ -910,7 +910,7 @@ void __reallyloadImageTexture() {
 	infile = fopen(filename,"r");
 
 	if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
-#ifdef DOJPEG
+#ifndef ALLDEV 
 		/* it is not a png file - assume a jpeg file */
 		/* start from the beginning again */
 		rewind (infile);

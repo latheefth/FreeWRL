@@ -36,7 +36,7 @@ extern void Extru_check_normal(struct pt *facenormals,int this_face,int dire,str
 
 
 void make_text (struct VRML_Text *this_) {
-	struct VRML_PolyRep *rep_ = (VRML_PolyRep *)this_->_intern;
+	struct VRML_PolyRep *rep_ = (struct VRML_PolyRep *)this_->_intern;
         double spacing = 1.0;
         double size = 1.0;
 	unsigned int fsparams = 0;
@@ -76,7 +76,7 @@ void make_text (struct VRML_Text *this_) {
 		*/
 
 		struct VRML_FontStyle *fsp;
-		int xx;
+		STRLEN xx;
 		unsigned char *lang;
 		unsigned char *style;
 		struct Multi_String family;	 
@@ -86,12 +86,12 @@ void make_text (struct VRML_Text *this_) {
 		unsigned char *stmp;
 		
 		/* step 0 - is the FontStyle a proto? */ 
-		fsp = (VRML_FontStyle *)this_->fontStyle;
+		fsp = (struct VRML_FontStyle *)this_->fontStyle;
 		
 		/* step 0.5 - now that we know FontStyle points ok, go for
 		 * the other pointers */
-		lang = (unsigned char *)SvPV((fsp->language),(STRLEN&)xx);
-		style = (unsigned char *)SvPV((fsp->style),(STRLEN&)xx);
+		lang = (unsigned char *)SvPV((fsp->language),xx);
+		style = (unsigned char *)SvPV((fsp->style),xx);
 
 		family = fsp->family;	 
 		justify = fsp->justify;
@@ -123,7 +123,7 @@ void make_text (struct VRML_Text *this_) {
 
 		svptr = family.p;
 		for (tmp = 0; tmp < family.n; tmp++) {
-			stmp = (unsigned char *)SvPV(svptr[tmp],(STRLEN&)xx);
+			stmp = (unsigned char *)SvPV(svptr[tmp],xx);
 			if (strlen((const char *)stmp) == 0) {fsparams |=0x20; } 
 			else if (!strcmp((const char *)stmp,"SERIF")) { fsparams |= 0x20;}
 			else if(!strcmp((const char *)stmp,"SANS")) { fsparams |= 0x40;}
@@ -142,7 +142,7 @@ void make_text (struct VRML_Text *this_) {
 		}
 		
 		for (tmp = 0; tmp < tx; tmp++) {
-			stmp = (unsigned char *)SvPV(svptr[tmp],(STRLEN&)xx);
+			stmp = (unsigned char *)SvPV(svptr[tmp],xx);
 			if (strlen((const char *)stmp) == 0) {
 				if (tmp == 0) {fsparams |= 0x400;
 				} else {fsparams |= 0x2000;
@@ -190,7 +190,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	int cpv = ((this_->colorPerVertex));
 	struct SFColor *colors; 
 	int ncolors=0;
-	struct VRML_PolyRep *rep_ = (VRML_PolyRep *)this_->_intern;
+	struct VRML_PolyRep *rep_ = (struct VRML_PolyRep *)this_->_intern;
 	float creaseAngle = (this_->creaseAngle);
 	int npv = ((this_->normalPerVertex));
 	struct SFColor *normals;
@@ -314,7 +314,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 		faces = (nx-1) * (nz-1) * 2; /* we treat each triangle as a face = makes really nice normals */ 
 		
 		/* for each face, we can look in this structure and find the normal */
-		facenormals = (pt*)malloc(sizeof(*facenormals)*faces);
+		facenormals = (struct pt*)malloc(sizeof(*facenormals)*faces);
 		
 		/* for each point, tell us which faces it is in, first index is  the face count */
 		pointfaces = (int *)malloc(sizeof(*pointfaces)*nz*nx*POINT_FACES);
@@ -470,7 +470,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	struct SFColor *c1;
 	struct SFColor *points; 
 	struct SFVec2f *texCoords; 
-	struct VRML_PolyRep *rep_ = (VRML_PolyRep *)this_->_intern;
+	struct VRML_PolyRep *rep_ = (struct VRML_PolyRep *)this_->_intern;
 	struct SFColor *normals;
 	struct SFColor *colors;
 	
@@ -605,7 +605,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 		return;
 	}
 	
-	facenormals = (pt*)malloc(sizeof(*facenormals)*faces);
+	facenormals = (struct pt*)malloc(sizeof(*facenormals)*faces);
 	faceok = (int*)malloc(sizeof(int)*faces);
 	pointfaces = (int*)malloc(sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
 	
@@ -894,7 +894,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	struct SFVec2f *curve =((this_->crossSection).p);/* vector of 2D curve points	*/
 	struct SFRotation *orientation=((this_->orientation).p);/*vector of SCP rotations*/
 	
-	struct VRML_PolyRep *rep_=(VRML_PolyRep *)this_->_intern;/*internal rep, we want to fill*/
+	struct VRML_PolyRep *rep_=(struct VRML_PolyRep *)this_->_intern;/*internal rep, we want to fill*/
 	
 	/* the next variables will point at members of *rep		*/
 	int   *cindex;				/* field containing indices into
@@ -993,7 +993,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		int tmp1, temp_indx;
 		int increment, currentlocn;
 	
-		crossSection     = (SFVec2f*)malloc(sizeof(crossSection)*nsec*2);
+		crossSection     = (struct SFVec2f*)malloc(sizeof(crossSection)*nsec*2);
 		if (!(crossSection)) freewrlDie ("can not malloc memory for Extrusion crossSection");
 	
 	
@@ -1130,7 +1130,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	/* have to make sure that if nctri is odd, that we increment by one	*/
 	
 	
-	facenormals = (pt *)malloc(sizeof(*facenormals)*(rep_->ntri+1)/2);
+	facenormals = (struct pt *)malloc(sizeof(*facenormals)*(rep_->ntri+1)/2);
 	
 	/* for each triangle vertex, tell me which face(s) it is in		*/
 	pointfaces = (int *)malloc(sizeof(*pointfaces)*POINT_FACES*3*rep_->ntri);

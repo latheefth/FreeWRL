@@ -968,7 +968,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	char *memptr;
 	int ty;
 	float fl[4];
-	int len;
+	STRLEN len;
 
 	/* variables for MFStrings */
 	struct Multi_String *MSptr;
@@ -977,7 +977,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	SV **bM;
 	int iM;
 	int lM;
-	int xx;
+	STRLEN xx;
 
 
 	memptr = 0;  /* get around a compiler warning */
@@ -1016,12 +1016,12 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 
 		case SFSTRING: { 
-				memptr = (char *)malloc(strlen(SvPV(data,(STRLEN&)len))+1);
+				memptr = (char *)malloc(strlen(SvPV(data,len))+1);
 				if (memptr == NULL) {
 					printf ("can not allocate memory for PROTO Interface decls\n");
 					return 0;
 				}
-				strcpy (memptr, SvPV(data,(STRLEN&)xx));
+				strcpy (memptr, SvPV(data,xx));
 				break; 
 			}
 		case SFROTATION:
@@ -1128,7 +1128,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	struct Multi_String *MSptr;	/* MFString pointer */
 	struct Multi_Node *MNptr;	/* MFNode pointer */
 	char *ptr;			/* used for building up return string */
-	int xx;
+	STRLEN xx;
 
 	switch (type) {
 		case EAI_SFBOOL: 	{
@@ -1200,10 +1200,10 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 			for (row=0; row<(*MSptr).n; row++) {
         	        	// printf ("String %d is %s\n",row,SvPV((*MSptr).p[row],xx));
-				if (strlen (SvPV((*MSptr).p[row],(STRLEN&)xx)) == 0) {
+				if (strlen (SvPV((*MSptr).p[row],xx)) == 0) {
 					sprintf (ptr, "\"XyZZtitndi\" "); // encode junk for Java side.
 				} else {
-					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],(STRLEN&)xx));
+					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],xx));
 				}
 				// printf ("buf now is %s\n",buf);
 				ptr = buf + strlen (buf);
@@ -1390,7 +1390,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
 			(*newp)->sv_flags = SVt_PV | SVf_POK;
 			(*newp)->sv_refcnt=1;
-			mypv = (xpv *)malloc(sizeof (struct xpv));
+			mypv = (struct xpv *)malloc(sizeof (struct xpv));
 			//printf ("just mallocd for mypv, it is %d and size %d\n",
 			//		mypv, sizeof (struct xpv));
 			(*newp)->sv_any = mypv;

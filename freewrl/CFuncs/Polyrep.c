@@ -844,11 +844,11 @@ void stream_polyrep(void *node,
 	newcindex = (int*)malloc (sizeof (int)*r->ntri*3);
 	if (!newcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
-	newpoints = (SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
+	newpoints = (struct SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
 	if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 
 	if ((nnormals) || (r->normal)) {
-		newnorms = (SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
+		newnorms = (struct SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
 		if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 	} else newnorms = 0;
 

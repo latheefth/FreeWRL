@@ -129,7 +129,7 @@ void JSMaxAlloc() {
 	int count;
 
 	JSMaxScript += 10;
-	ScriptControl = (CRscriptStruct*)realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
+	ScriptControl = (struct CRscriptStruct*)realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
 	scr_act = (int *)realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
 
 	if ((ScriptControl == NULL) || (scr_act == 0)) {

@@ -394,7 +394,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	int counter=0;
 	int char_count=0;
 	int est_tri=0;
-	int xx;
+	STRLEN xx;
 	
 
 	/* fsparam has the following bitmaps:
@@ -480,7 +480,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],(STRLEN&)xx);
+		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],xx);
 
 		for(i=0; i<strlen((const char *)str); i++) {
 			FW_Load_Char(str[i]);
@@ -510,7 +510,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	   double l;
 	   int counter = 0;
 	   for(row = 0; row < numrows; row++) {
-		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],(STRLEN&)xx);
+		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],xx);
 		l = FW_extent(counter,(int) strlen((const char *)str));
 		counter += strlen((const char *)str);
 		if(l > maxlen) {maxlen = l;}
@@ -537,7 +537,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	for(row = 0; row < numrows; row++) {
 	   	double rowlen;
 
-		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],(STRLEN&)xx);
+		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],xx);
 		if (TextVerbose) 
 				printf ("text2 row %d :%s:\n",row, str);
 	        pen_x = 0.0;

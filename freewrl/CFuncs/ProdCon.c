@@ -69,17 +69,19 @@ extern unsigned _fw_instance;
 #define DATA_LOCK_WAIT          pthread_cond_wait(&condition_cond, &condition_mutex);
 #define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); 
 
-//#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex); \
+/* for debugging.
+#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex); \
 					printf ("locked by %d\n",pthread_self());
 
-//#define DATA_LOCK_SIGNAL        printf ("signalling by %d\n",pthread_self()); \
+#define DATA_LOCK_SIGNAL        printf ("signalling by %d\n",pthread_self()); \
 					pthread_cond_signal(&condition_cond); \
 					printf ("signaled by %d\n",pthread_self());
 
-//#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); \
+#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); \
 					printf ("unlocked by %d\n",pthread_self());
-//#define DATA_LOCK_WAIT          printf ("waiting by %d\n",pthread_self()); \
+#define DATA_LOCK_WAIT          printf ("waiting by %d\n",pthread_self()); \
 					pthread_cond_wait(&condition_cond, &condition_mutex);
+*/
 
 
 /* for debugging
@@ -1043,7 +1045,7 @@ void __pt_doInline() {
 	char *filename;
 	struct Multi_String *inurl;
 	struct VRML_Inline *inl;
-	int xx;
+	STRLEN xx;
 	char *thisurl;
 	char *slashindex;
 	char firstBytes[4];
@@ -1052,7 +1054,7 @@ void __pt_doInline() {
 	filename = (char *)malloc(1000);
 
 	/* lets make up the path and save it, and make it the global path */
-	count = strlen(SvPV(inl->__parenturl,(STRLEN &)xx));
+	count = strlen(SvPV(inl->__parenturl,xx));
 	psp.path = (char *)malloc ((unsigned)(count+1));
 
 	if ((!filename) || (!psp.path)) {
@@ -1061,7 +1063,7 @@ void __pt_doInline() {
 	}
 	
 	/* copy the parent path over */
-	strcpy (psp.path,SvPV(inl->__parenturl,(STRLEN &)xx));
+	strcpy (psp.path,SvPV(inl->__parenturl,xx));
 
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *) rindex(psp.path, ((int) '/'));
@@ -1074,7 +1076,7 @@ void __pt_doInline() {
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
 	while (count < inurl->n) {
-		thisurl = SvPV(inurl->p[count],(STRLEN &)xx);
+		thisurl = SvPV(inurl->p[count],xx);
 
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
@@ -1322,7 +1324,7 @@ void __pt_EAI_GetType (){
 
 void __pt_EAI_GetValue (){
 	unsigned int 	count;
-	int len;
+	STRLEN len;
 	char *ctmp;
 
 	SV * retval;
@@ -1358,7 +1360,7 @@ void __pt_EAI_GetValue (){
 	//printf ("String is :%s: len %d \n",SvPV(retval,len),len);
 	
 	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval,(STRLEN &)len); // now, we have the length
+	ctmp = SvPV(retval,len); // now, we have the length
 	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
 	strcpy (psp.retstr,ctmp);
 	//printf ("GetValue, retstr will be :%s:\n",psp.retstr);
@@ -1370,7 +1372,7 @@ void __pt_EAI_GetValue (){
 
 void __pt_EAI_GetTypeName (){
 	unsigned int 	count;
-	int len;
+	STRLEN len;
 
 	SV * retval;
 	char *ctmp;
@@ -1397,7 +1399,7 @@ void __pt_EAI_GetTypeName (){
 	PUTBACK;
                                                                                     
 	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval, (STRLEN &)len); // now, we have the length
+	ctmp = SvPV(retval, len); // now, we have the length
 	psp.retstr =(char *) malloc (sizeof (char) * (len+5));
 	strcpy (psp.retstr,ctmp);
 	//printf ("GetTypeName, retstr will be :%s:\n",psp.retstr);

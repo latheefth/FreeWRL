@@ -420,7 +420,13 @@ extern struct pt r1, r2;		// in VRMLC.pm
 extern struct sCollisionInfo CollisionInfo;
 extern struct currayhit rh,rph,rhhyper;
 extern int smooth_normals;
+
+#ifdef ALLDEV
 extern "C" void xs_init(void); 
+#else
+extern void xs_init(void);
+#endif
+
 extern int navi_tos;
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);

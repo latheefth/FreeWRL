@@ -34,12 +34,13 @@
     #undef do_open
     #undef do_close
   #endif
+
+#ifdef ALLDEV
   //includes for the input device libraries
-  //#include "libmio.h"
-  //#include "libmread.h"
   #include "interface.h"
   #include <dlfcn.h>
   #include "dev_core.h"
+
 //these are externs for the device input libraries
   extern void* cyberlib; //this is for the cyberglove library( unused at this time Nov 18/04 )
   extern destroy_t* destroy_cyber; //this will destroy our copy of the library
@@ -66,6 +67,7 @@
   extern int have_polhemuslib;
   extern int connected_device;
   extern int use_external_input;
+#endif
 
   //added Nov 25/04 M. Ward
   extern void initializeScript(int num,int evIn);
@@ -317,9 +319,12 @@ void EventLoop() {
 	timeA = (double)timeA +  (double)xxf - TickTime;
 	#endif
 
+#ifdef ALLDEV
 	/* Viewer move viewpoint */
         if( use_external_input == -1 )
+#endif
  	  handle_tick();
+#ifdef ALLDEV
 	else {
 	  //check for data
 	  if( global_dev->IsData() ) {
@@ -457,6 +462,7 @@ void EventLoop() {
 	  }*/
 
 	}
+#endif
 
 	#ifdef PROFILE	
 	gettimeofday (&mytime,&tz);
@@ -1272,6 +1278,7 @@ void doQuit(void) {
 	char mystring[20];
 
 
+#ifdef ALLDEV
   //Added Nov 19/04 M. Ward
   //these functions check for the exsistance of the input libraries and shut them down and off 
   //if they are currently active.
@@ -1308,6 +1315,7 @@ void doQuit(void) {
 	Sound_toserver(mystring);
 	resetGeometry();
 	if (wantEAI) shutdown_EAI();
+#endif
 #endif
 	exit(0);
 }
