@@ -26,14 +26,16 @@ public  class EAIinThread implements Runnable {
     // from the FreeWRL Browser, and sends Replies back to the
     // browser thread.
   
-    public static PipedWriter EAItoBrowserStream = new PipedWriter();
-    private PrintWriter EAItoBrowserPrintWriter = new PrintWriter(EAItoBrowserStream);
+    private PrintWriter EAItoBrowserPrintWriter = null;
   
     // Initialization - get the socket and the FreeWLRSceneInterfaces thread
-    public EAIinThread (Socket s, Applet d, Browser me) {
+    public EAIinThread (Socket s, Applet d, 
+		PrintWriter pwtoBrowserjava,
+		Browser me) {
       sock = s;  
       FreeWLRSceneInterface=d;
       mybrowser=me;
+      EAItoBrowserPrintWriter = pwtoBrowserjava;
     }
      
     public void run() {
@@ -44,17 +46,16 @@ public  class EAIinThread implements Runnable {
       String	EVentreply;
       String	REreply;
       String	Stemp;
-  
+ 
       try {
         EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
         // wait for FreeWRL to send us the opening sequence...
-	System.out.println("EAI: waiting for FreeWRL...");
-	System.out.println ("EAI: FreeWRL returned: ");
-        EAItoBrowserPrintWriter.println (EAIin.readLine());
+	Stemp = EAIin.readLine();
+        EAItoBrowserPrintWriter.println (Stemp);
       } catch (IOException e) {
         System.out.print ("error reiniting data input stream");
       }
-  
+ 
       // Now, this is the loop that loops to end all loops....
   
       try {
@@ -133,10 +134,10 @@ public  class EAIinThread implements Runnable {
           }
         }
 		if (debug) System.out.println ("EAIinThread closing stream");
-		EAItoBrowserStream.close();
+		//JAS EAItoBrowserPipe.close();
 		mybrowser.close();
       } catch (IOException e) {
-          System.out.print ("error reiniting data input stream\n");
+          //System.out.print ("error reiniting data input stream\n");
       }
     }
 }
