@@ -19,6 +19,7 @@ WriteMakefile(
 			  'VERSION_FROM' => "PluginGlue.pm", # finds $VERSION
 			  'PREREQ_PM' => {},	# e.g., Module::Name => 1.1
 			  'LIBS' => [''],	# e.g., '-lm'
+dynamic_lib => { 'OTHERLDFLAGS' => $VRML_CONFIG{LDFLAGS}, 'LDDLFLAGS' => $VRML_CONFIG{LDDLFLAGS} },
 #'DEFINE' => "",	# e.g., '-DHAVE_SOMETHING'
 			  'INC' => "-ICFuncs"
 			 );
@@ -80,6 +81,17 @@ OBJECT+=$(CFUNCS_SRC:%c=%o)
 };
 
 	return ($post_const);
+}
+sub MY::dynamic_lib {
+"ARMAYBE = :
+OTHERLDFLAGS =  -dynamic -bundle -L/usr/local/lib -L/Library/Perl/darwin/CORE/ -lperl
+INST_DYNAMIC_DEP =
+
+\$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
+	\$\(RM_F\) \$\@
+	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOADLIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
+	\$\(CHMOD\) \$\(PERM_RWX\) \$\@
+"
 }
 
 sub MY::c_o {
