@@ -311,8 +311,11 @@ int get_touched_flag (int fptr, int actualscript) {
                	strtouched = JS_GetStringBytes(strval);
                	//printf ("and get of actual property %d returns %s\n",retval,strtouched);
 
+		// this can be undefined, as the associated route is created if there is a DEF
+		// node in the parameter list, and the function does not touch this node/field.
+		// if this is the case, just ignore it.
 		if (strcmp("undefined",strtouched)==0) {
-			printf ("abnormal return here\n");
+			//printf ("abnormal return here\n");
 			return FALSE;
 		}
 
@@ -1120,8 +1123,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 						if (!JS_ValueToNumber((JSContext *)JSglobs[actualscript].cx, 
 							global_return_val,&tval)) tval=0.0;
 
-						printf ("SFTime conversion numbers %f from string %s\n",tval,strp);
-						printf ("copying to %x offset %x len %d\n",tn, tptr,len);
+						//printf ("SFTime conversion numbers %f from string %s\n",tval,strp);
+						//printf ("copying to %x offset %x len %d\n",tn, tptr,len);
 						memcpy ((void *)tn+tptr, (void *)&tval,len);
 						break;
 				}
