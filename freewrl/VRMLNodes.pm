@@ -851,11 +851,12 @@ Text => new VRML::NodeType ("Text",
 	 __rendersub => [SFInt32, 0],   # Function ptr hack
 	}, {
 	Initialize => sub {
-		my($t,$f) = @_;
-		my $a = eval 'require VRML::Text; VRML::Text::get_rendptr();';
-		if($@) {die("Warning: text loading error: '$@'\n");}
-		$f->{__rendersub} = $a;
-		return ();
+		print "Text, initialize\n";
+#JAS		my($t,$f) = @_;
+#JAS		my $a = eval 'require VRML::Text; VRML::Text::get_rendptr();';
+#JAS		if($@) {die("Warning: text loading error: '$@'\n");}
+#JAS		$f->{__rendersub} = $a;
+#JAS		return ();
 	}
 	}
 ),
