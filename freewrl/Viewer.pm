@@ -121,13 +121,8 @@ sub togl {
 package VRML::Viewer::None;
 @VRML::Viewer::None::ISA=VRML::Viewer;
 
-sub new {
-	my($type, $loc, $ori) = @_;
-	my $this = VRML::Viewer->new();
-	$this->{Pos} = $loc;
-	$this->{Quat} = new_vrmlrot VRML::Quaternion(@$ori);
-	return $this;
-}
+sub handle {}
+
 
 package VRML::Viewer::Walk;
 @VRML::Viewer::Walk::ISA=VRML::Viewer;
