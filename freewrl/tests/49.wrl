@@ -223,5 +223,5 @@ ROUTE sTi.fraction_changed TO sF.set_fraction
 ROUTE sTr.value_changed TO tT.set_translation
 ROUTE sF.value_changed TO sM.set_transparency
 ROUTE sTi.fraction_changed TO t.setwords
-ROUTE t.out TO tS.whichChoice
-ROUTE t.out2 TO cpS.whichChoice
+ROUTE t.out TO tS.set_whichChoice
+ROUTE t.out2 TO cpS.set_whichChoice
