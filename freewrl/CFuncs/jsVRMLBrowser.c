@@ -12,8 +12,7 @@
 
 #include "jsVRMLBrowser.h"
 
-float debug_float = 0.0;
-char debug_string[100];
+char FPSstring[10];
 
 JSBool
 VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
@@ -89,10 +88,9 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, js
 {
 	JSString *_str;
 
-	sprintf (debug_string,"%f",debug_float);
-	_str = JS_NewString(context,debug_string,strlen(debug_string));
+	sprintf (FPSstring,"%6.2f",BrowserFPS);
+	_str = JS_NewString(context,FPSstring,strlen(FPSstring));
 	*rval = STRING_TO_JSVAL(_str);
-	debug_float += 1.339393;
 	return JS_TRUE;
 }
 
