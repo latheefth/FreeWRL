@@ -416,7 +416,7 @@ int JSaddGlobalECMANativeProperty(int num, char *name) {
 
 	memset(buffer, 0, STRING);
 	sprintf(buffer, "_%s_touched", name);
-	_val = INT_TO_JSVAL(1);
+	_val = INT_TO_JSVAL(0);
 	if (!JS_SetProperty(_context, _globalObj, buffer, &_val)) {
 		fprintf(stderr,
 				"JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
