@@ -225,6 +225,7 @@ my $protono;
  Anchor		children
  Collision	children
  GeoLocation	children
+ InlineLoadControl children
 
 );
 
@@ -311,7 +312,7 @@ my $protono;
 						 repeatT => [SFBool, 1, field],
 						 duration_changed => [SFTime, -1, eventOut],
 						 isActive => [SFBool, 0, eventOut],
-						 __locfile => [MFString, [], field],
+						 #JAS __locfile => [MFString, [], field],
 						 # initial texture number
 						 __texture0_ => [SFInt32, 0, field],
 						 # last texture number
@@ -772,18 +773,6 @@ my $protono;
 					  ),
 
 
-	VisibilitySensor =>
-	new VRML::NodeType("VisibilitySensor",
-					   {
-						center => [SFVec3f, [0, 0, 0], exposedField],
-						enabled => [SFBool, 1, exposedField],
-						size => [SFVec3f, [0, 0, 0], exposedField],
-						enterTime => [SFTime, -1, eventOut],
-						exitTime => [SFTime, -1, eventOut],
-						isActive => [SFBool, 0, eventOut]
-					   }
-					  ),
-
 	ProximitySensor =>
 	new VRML::NodeType("ProximitySensor",
 					   {
@@ -1018,7 +1007,7 @@ my $protono;
 						zSpacing => [SFString, "1.0", field]
 					}
 				),
-#XXX
+
 	GeoLOD =>
 	new VRML::NodeType("GeoLOD",
 					{
@@ -1036,7 +1025,7 @@ my $protono;
 					}
 				),
 
-#XXX
+
 	GeoMetadata=>
 	new VRML::NodeType("GeoMetadata",
 					{
@@ -1045,7 +1034,7 @@ my $protono;
 						url => [MFString,[],exposedField],
 					}
 				),
-#XXX
+
 	GeoPositionInterpolator=>
 	new VRML::NodeType("GeoPositionInterpolator",
 					{
@@ -1059,7 +1048,7 @@ my $protono;
 					}
 				),
 
-#XXX
+
 	GeoTouchSensor=>
 	new VRML::NodeType("GeoTouchSensor",
 					{
@@ -1126,6 +1115,150 @@ my $protono;
 						__geoCoords => [SFVec3f,[0, 0, 0], field],
 						__geoSystem => [SFInt32,0,field],
 						
+					}
+					),
+
+
+
+	# Unimplemented as yet...
+
+
+	VisibilitySensor =>
+	new VRML::NodeType("VisibilitySensor",
+					   {
+						center => [SFVec3f, [0, 0, 0], exposedField],
+						enabled => [SFBool, 1, exposedField],
+						size => [SFVec3f, [0, 0, 0], exposedField],
+						enterTime => [SFTime, -1, eventOut],
+						exitTime => [SFTime, -1, eventOut],
+						isActive => [SFBool, 0, eventOut]
+					   }
+					  ),
+
+
+	Contour2D =>
+	new VRML::NodeType("Contour2D",
+					{
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+					}
+					),
+
+	CoordinateDeformer =>
+	new VRML::NodeType("CoordinateDeformer",
+					{
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						controlPoint =>[MFVec3f,[],exposedField],
+						inputCoord => [MFNode,[],exposedField],
+						inputTransform => [MFNode,[],exposedField],
+						outputCoord => [MFNode,[],exposedField],
+						weight => [MFFloat,[],exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+						uDimension => [SFInt32,0,field],
+						uKnot => [MFFloat,[],field],
+						uOrder => [SFInt32,2,field],
+						vDimension => [SFInt32,0,field],
+						vOrder => [SFInt32,2,field],
+						wDimension => [SFInt32,0,field],
+						wKnot => [MFFloat,[],field],
+						wOrder =>[SFInt32,2,field],
+					}
+					),
+
+
+	InlineLoadControl =>
+	new VRML::NodeType("InlineLoadControl",
+					{
+						load =>[SFBool,TRUE,exposedField],
+						url => [MFString,[],exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+						children => [MFNode, [], eventOut],
+						__loadstatus =>[SFInt32,0,field],
+						__parenturl =>[SFString,"",field],
+					}
+					),
+
+	NurbsCurve =>
+	new VRML::NodeType("NurbsCurve",
+					{
+						controlPoint =>[MFVec3f,[],exposedField],
+						weight => [MFFloat,[],exposedField],
+						tessellation => [SFInt32,0,exposedField],
+						knot => [MFFloat,[],field],
+						order => [SFInt32,3,field],
+					}
+					),
+
+	NurbsCurve2D =>
+	new VRML::NodeType("NurbsCurve2D",
+					{
+						controlPoint =>[MFVec2f,[],exposedField],
+						weight => [MFFloat,[],exposedField],
+						tessellation => [SFInt32,0,exposedField],
+						knot => [MFFloat,[],field],
+						order => [SFInt32,3,field],
+					}
+					),
+
+	NurbsGroup =>
+	new VRML::NodeType("NurbsGroup",
+					{
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						tessellationScale => [SFFloat,1.0,exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+					}
+					),
+
+	NurbsPositionInterpolator =>
+	new VRML::NodeType("NurbsPositionInterpolator",
+					{
+						
+						set_fraction => [SFFloat,undef,eventIn],
+						dimension => [SFInt32,0,exposedField],
+						keyValue => [MFVec3f,[],exposedField],
+						keyWeight => [MFFloat,[],exposedField],
+						knot => [MFFloat,[],exposedField],
+						order => [SFInt32,[],exposedField],
+						value_changed => [SFVec3f,undef,eventOut],
+					}
+					),
+
+	NurbsSurface =>
+	new VRML::NodeType("NurbsSurface",
+					{
+						controlPoint =>[MFVec3f,[],exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						uTessellation => [SFInt32,0,exposedField],
+						vTessellation => [SFInt32,0,exposedField],
+						weight => [MFFloat,[],exposedField],
+						ccw => [SFBool,1,field],
+
+						knot => [MFFloat,[],field],
+						order => [SFInt32,3,field],
+					}
+					),
+	NurbsTextureSurface =>
+	new VRML::NodeType("NurbsTextureSurface",
+					{
+					}
+					),
+
+	PolyLine2D =>
+	new VRML::NodeType("Polyline2D",
+					{
+					}
+					),
+	TrimmedSurface =>
+	new VRML::NodeType("TrimmedSurface",
+					{
 					}
 					),
 

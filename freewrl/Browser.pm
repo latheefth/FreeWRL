@@ -36,7 +36,7 @@ require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
 require 'VRML/Events.pm';
 require 'VRML/Config.pm';
-require 'VRML/X3DParser.pm';
+#JAS require 'VRML/X3DParser.pm';
 
 
 if ($VRML::ENV{AS_PLUGIN}) { require 'VRML/PluginGlue.pm'; }
@@ -298,6 +298,7 @@ sub create_common {
 	# call Clayton's X3D parser, if this is an X3D file.
 	# if not, then just call the VRML parser
         if ($type == 1)  {
+		eval('require VRML/X3DParser;');
 		X3D::Parser::parse($scene, $string);
         } else {
 		VRML::Parser::parse($scene, $string);

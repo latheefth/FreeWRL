@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.130  2004/06/21 13:12:58  crc_canada
+# pre-1.07 changes.
+#
 # Revision 1.129  2004/06/10 20:05:52  crc_canada
 # Extrusion (with concave endcaps) bug fixed; some javascript changes.
 #
@@ -89,6 +92,9 @@ Box => '
 	float y = $f(size,1)/2;
 	float z = $f(size,2)/2;
 
+	/* test for <0 of sides */
+	if ((x < 0) || (y < 0) || (z < 0)) return;
+
 	if (this_->_ichange != this_->_change) {
 		// have to regen the shape
 
@@ -151,7 +157,7 @@ Cylinder => '
 	extern GLfloat cylendtex[];		// in CFuncs/statics.c
 	extern GLfloat cylsidetex[];		// in CFuncs/statics.c
 
-	if(h <= 0 && r <= 0) {return;}
+	if ((h < 0) || (r < 0)) {return;}
 
 	if (this_->_ichange != this_->_change) {
 		// have to regen the shape
@@ -232,7 +238,7 @@ Cone => '
 	extern float tribottex[];		// in CFuncs/statics.c
 	extern float trisidtex[];		// in CFuncs/statics.c
 
-	if(h <= 0 && r <= 0) {return;}
+	if ((h < 0) || (r < 0)) {return;}
 
 	if (this_->_ichange != this_->_change) {
 		// have to regen the shape
@@ -1304,8 +1310,58 @@ Billboard => (join '','
 			struct VRML_Box *p = $f(__children,i);
 			struct VRML_Virt *v = *(struct VRML_Virt **)p;
 			if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
-			/* Hmm - how much time does this consume? */
-			/* Not that much. */
+			if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
+				render_node(p);
+			}
+		}
+		if($i(has_light)) {
+			glPopAttrib();
+		}
+		if(verbose) {printf("RENDER INLINE END %d\n",this_);}
+
+		curlight = savedlight;
+	',
+	InlineLoadControl => '
+		int nc = $f_n(children); 
+		int i;
+		int savedlight = curlight;
+		struct VRML_Inline *inl;
+
+		if(verbose) {printf("RENDER INLINE START %d (%d)\n",this_, nc);}
+
+		/* lets see if we still have to load this one... */
+		if (($f(__loadstatus)==0) && ($f(load))) {
+			/* treat this as an inline; copy params over */
+			inl->url = this_->url;
+			inl->__children = this_->children;
+			inl->__parenturl = this_->__parenturl;
+			inl->__loadstatus = this_->__loadstatus;
+			loadInline(inl);
+			this_->url = inl->url;
+			this_->children = inl->__children;
+			this_->__parenturl = inl->__parenturl;
+			this_->__loadstatus = inl->__loadstatus;
+		} else if (!($f(load)) && ($f(__loadstatus) != 0)) {
+			printf ("InlineLoadControl, removing children\n");
+			this_->children.n = 0;
+			free (this_->children.p);
+			this_->__loadstatus = 0;
+		}
+
+		if($i(has_light)) {
+			glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
+			for(i=0; i<nc; i++) {
+				struct VRML_Box *p = $f(children,i);
+				struct VRML_Virt *v = *(struct VRML_Virt **)p;
+				if(v->rend == DirectionalLight_Rend) {
+					render_node(p);
+				}
+			}
+		}
+		for(i=0; i<nc; i++) {
+			struct VRML_Box *p = $f(children,i);
+			struct VRML_Virt *v = *(struct VRML_Virt **)p;
+			if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
 			if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
 				render_node(p);
 			}
@@ -1658,6 +1714,7 @@ $ExtraMem{Anchor} = $ExtraMem{Group};
 $ExtraMem{Collision} = $ExtraMem{Group};
 $ExtraMem{GeoLocation} = $ExtraMem{Group};
 $ExtraMem{Inline} = $ExtraMem{Group};
+$ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 
 
 #######################################################################
@@ -1703,6 +1760,7 @@ $ChangedC{Billboard} = $ChangedC{Group};
 $ChangedC{Anchor} = $ChangedC{Group};
 $ChangedC{Collision} = $ChangedC{Group};
 $ChangedC{GeoLocation} = $ChangedC{Group};
+$ChangedC{InlineLoadControl} = $ChangedC{Group};
 
 
 #######################################################################
