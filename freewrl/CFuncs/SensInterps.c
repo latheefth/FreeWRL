@@ -399,7 +399,7 @@ void do_Oint4 (void *node) {
 	kvin = ((px->keyValue).n);
 	kVs = ((px->keyValue).p);
 
-if (SEVerbose) printf ("starting do_Oint4\n");
+	if (SEVerbose) printf ("starting do_Oint4\n");
 
 	mark_event ((unsigned int) px, offsetof (struct VRML_OrientationInterpolator, value_changed));
 
@@ -429,7 +429,19 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 		/* are either the starting or ending angles zero? */
 		stzero = APPROX(kVs[counter-1].r[3],0.0);
 		endzero = APPROX(kVs[counter].r[3],0.0);
-
+		
+		if (SEVerbose) {
+			printf ("counter %d interval %f\n",counter,interval);
+			printf ("angles %f %f %f %f, %f %f %f %f\n",
+				kVs[counter-1].r[0],
+				kVs[counter-1].r[1],
+				kVs[counter-1].r[2],
+				kVs[counter-1].r[3],
+				kVs[counter].r[0],
+				kVs[counter].r[1],
+				kVs[counter].r[2],
+				kVs[counter].r[3]);
+		}
 
 		/* are there any -1s in there? */
 		testangle = 0.0;
@@ -455,13 +467,21 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 		}
 		oldangle = kVs[counter-1].r[3];
 		testangle = newangle-oldangle;
+		//printf ("newangle %f oldangle %f testangle %f\n",
+		//		newangle,oldangle, testangle);
 					
+		/* make it so we smoothly transition */
 		if (fabs(testangle) > PI) {
-			if (testangle>0.0) {
-				oldangle += PI*2;
+			if (fabs(testangle) > (PI*2)) {
+				if (testangle>0.0) { oldangle += PI*4;
+				} else { newangle += PI*4; }
 			} else {
-				newangle += PI*2;
+				if (testangle>0.0) { oldangle += PI*2;
+				} else { newangle += PI*2; }
 			}
+			//printf ("NOW newangle %f oldangle %f testangle %f\n",
+				//	newangle,oldangle, testangle);
+			
 		}
 
 		/* ok, now, some people write rotations like 0 0 1 0, 1 0 0 0.3
