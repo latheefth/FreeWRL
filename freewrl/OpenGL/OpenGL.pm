@@ -30,6 +30,9 @@
 		GLX_RED_SIZE
 		GLX_RGBA
 		GL_AMBIENT
+		GL_BACK
+		GL_BACK_LEFT
+		GL_BACK_RIGHT
 		GL_BLEND
 		GL_COLOR_BUFFER_BIT
 		GL_CULL_FACE
@@ -40,6 +43,7 @@
 		GL_FLAT
 		GL_FRONT_AND_BACK
 		GL_LEQUAL
+                GL_LEFT
 		GL_LIGHT0
 		GL_LIGHT1
 		GL_LIGHT2
@@ -92,6 +96,7 @@
 		glClearColor
 		glDepthFunc
 		glDisable
+		glDrawBuffer
 		glEnable
 		glGetDoublev
 		glGetIntegerv
@@ -147,6 +152,9 @@ sub GLX_RED_SIZE () {8}
 sub GLX_RGBA () {4}
 sub GL_AMBIENT () {0x1200}
 sub GL_AMBIENT_AND_DIFFUSE () {0x1602}
+sub GL_BACK () {0x0405}
+sub GL_BACK_LEFT () {0x0402}
+sub GL_BACK_RIGHT () {0x0403}
 sub GL_BLEND () {0x0BE2}
 sub GL_BLEND_COLOR_EXT () {0x8005}
 sub GL_BLEND_DST () {0x0BE0}
@@ -161,6 +169,7 @@ sub GL_DIFFUSE () {0x1201}
 sub GL_FALSE () {0}
 sub GL_FLAT () {0x1D00}
 sub GL_FRONT_AND_BACK () {0x0408}
+sub GL_LEFT () {0x0406}
 sub GL_LEQUAL () {0x0203}
 sub GL_LIGHT0 () {0x4000}
 sub GL_LIGHT1 () {0x4001}
@@ -220,9 +229,10 @@ sub StructureNotifyMask () {(1<<17)}
                 'parent'=> 0,
                 'mask'  => StructureNotifyMask,
 		'fs'	=> 0,
+		'shutter' => 0,
 		'wintitle' => "",
 		'cmap' => 1,
-                'attributes'=> [GLX_RGBA],
+                'attributes'=> [ GLX_RGBA, GL_TRUE],
         );
 sub glpOpenWindow {
         # default values
@@ -235,7 +245,7 @@ sub glpOpenWindow {
                 $p{$k} = $a{$k};
         }
         glpcOpenWindow($p{x},$p{y},$p{width},$p{height},
-                       $p{parent},$p{fs},$p{'mask'},$p{wintitle},
+                       $p{parent},$p{fs},$p{shutter},$p{'mask'},$p{wintitle},
 			$p{'cmap'}, @{$p{attributes}});
 }
 1;

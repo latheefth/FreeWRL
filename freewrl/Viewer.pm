@@ -50,7 +50,6 @@ require 'VRML/Quaternion.pm';
 sub new {
 
 	my($type,$old) = @_;
-
 	my $this = bless {
 	# For our viewpoint
 		Pos => [0,0,10],
@@ -63,7 +62,6 @@ sub new {
 		AntiQuat => new VRML::Quaternion(1,0,0,0),
 		Navi => undef,
 	}, $type;
-
 	if($old) {
 		$this->{Pos} = $old->{Pos};
 		$this->{Quat} = $old->{Quat};
@@ -75,7 +73,6 @@ sub new {
                 $this->{Navi} = VRML::Scene->new_node("NavigationInfo",
                                 VRML::Nodes->{NavigationInfo}{Defaults});
         }
-
 	$this->resolve_pos();
 	return $this;
 }
@@ -115,6 +112,24 @@ sub bind_navi_info {
 
 sub togl {
 	my($this) = @_;
+        my($x) = 0;        
+        my($angle) = 0;
+# correction for fieldofview 
+# 18.0: builtin fieldOfView of human eye 
+# 45.0: default fieldOfView of VRML97 viewpoint 
+        my($correction) = 18.0/45.0;        
+        if ($this->{buffer}==&VRML::OpenGL::GL_BACK_LEFT)
+	  {
+            $x=$this->{eyehalf};
+            $angle=$this->{eyehalfangle}*$correction;
+          }
+        elsif ($this->{buffer}==&VRML::OpenGL::GL_BACK_RIGHT) 
+          {
+            $x=-$this->{eyehalf};
+            $angle=-$this->{eyehalfangle}*$correction;
+          }                        
+	VRML::OpenGL::glTranslatef($x,0,0);
+	VRML::OpenGL::glRotatef($angle, 0,1,0);
 	$this->{Quat}->togl();
 	VRML::OpenGL::glTranslatef(map {-$_} @{$this->{Pos}});
 	VRML::OpenGL::glTranslatef(@{$this->{AntiPos}});
@@ -124,8 +139,13 @@ sub togl {
 package VRML::Viewer::None;
 @VRML::Viewer::None::ISA=VRML::Viewer;
 
-sub handle {}
-
+sub new {
+	my($type, $loc, $ori) = @_;
+	my $this = VRML::Viewer->new();
+	$this->{Pos} = $loc;
+	$this->{Quat} = new_vrmlrot VRML::Quaternion(@$ori);
+	return $this;
+}
 
 package VRML::Viewer::Walk;
 @VRML::Viewer::Walk::ISA=VRML::Viewer;
@@ -324,13 +344,16 @@ sub handle_tick {
 	my($this, $time) = @_;
 
 
-	# my $chk_file_date = stat($in_file)->mtime;
-	# following uncommented as time on file only change
-	# once per second - should change this... 
+# my $chk_file_date = stat($in_file)->mtime;
+# following uncommented as time on file only change
+# once per second - should change this... 
+
+#JAS if ($in_file_date != $chk_file_date) {
+	# $in_file_date = $chk_file_date;
+	# print "file $in_file updated at $in_file_date\n";
 
 	sysopen ($inf, $in_file, O_RDONLY) or 
-		return;
-
+		die "Error reading external sensor input file $in_file\n";
 	$inc = sysread ($inf, $string, 100);
 	close $inf;
 	# printf "String2 length is $inc is $string\n";
@@ -342,6 +365,11 @@ sub handle_tick {
 			substr ($string,35,9), substr ($string,44,9),
 			substr ($string,53,9));
 
+#			my $tr = join ', ',@{$this->{Pos}};
+#			my $rot = join ', ',@{$this->{Quat}->to_vrmlrot()};
+#			print "Fly Viewpoint: [$tr], [$rot]\n";
+#print "this's quat is ",$this->{Quat}->as_str,"\n";
+#JAS}
                 VRML::OpenGL::set_render_frame();
 
 	}
@@ -363,6 +391,7 @@ sub resolve_pos {
 	$this->{Origin} = [ map {$this->{Pos}[$_] - $d * $z->[$_]} 0..2 ];
 	$this->{Dist} = $d;
 }
+
 
 # Mev: PRESS, DRAG
 sub handle {

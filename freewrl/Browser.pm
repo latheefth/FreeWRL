@@ -70,7 +70,11 @@ sub new {
 	my($type,$pars) = @_;
 	my $this = bless {
 		Verbose => delete $pars->{Verbose},
-		BE => new VRML::GLBackEnd($pars->{FullScreen}, @{$pars->{BackEnd} or []}),
+		BE => new VRML::GLBackEnd($pars->{FullScreen}, 
+                                          $pars->{Shutter}, 
+                                          $pars->{EyeDist}, 
+                                          $pars->{ScreenDist}, 
+                                          @{$pars->{BackEnd} or []}),
 		EV => new VRML::EventMachine(),
 	}, $type;
 	return $this;
@@ -561,7 +565,7 @@ sub get_timestamp {
 			if ($ticks != $start) { 
 				$FPS = 25/($ticks-$start);
 			}
-			# print "Fps: ",$FPS,"\n";
+			print "Fps: ",$FPS,"\n";
 			pmeasures();
 			$start = $ticks;
 		}

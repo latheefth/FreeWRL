@@ -29,15 +29,13 @@ use strict vars;
 my $cursortype = 0;  # pointer cursor
 my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
-
-###
+####
 #
 # set fast rendering - don't do smooth shading
 
 sub set_fast {
 	glShadeModel(&GL_FLAT);
 }
-
 
 ####
 #
@@ -81,13 +79,14 @@ $VRML::verbose = 1;
 }
 
 sub new {
-	my($type,$fullscreen,%pars) = @_;
+	my($type,$fullscreen,$shutter,$eyedist,$screendist,%pars) = @_;
 	my $this = bless {}, $type;
 
 	my($w,$h) = (300,300);
         my $x = 0; 
         my $y = 0; 
 	my $mytitle = "FreeWRL";
+        my $pi = atan2(1,1) * 4;
 
 	if(my $g = $pars{Geometry}) 
 	  {
@@ -98,6 +97,15 @@ sub new {
 	  }
 
 	$this->{W} = $w; $this->{H} = $h;
+        if ($shutter) 
+          {
+          @{$this->{bufferarray}} = (&GL_BACK_LEFT, &GL_BACK_RIGHT);
+          }
+        else
+          {
+          @{$this->{bufferarray}} = (&GL_BACK);
+          }
+
         my @db = &GLX_DOUBLEBUFFER;
 
         if($VRML::offline) {$x = -1; @db=()}
@@ -110,27 +118,26 @@ sub new {
 
  
         print "STARTING OPENGL\n" if $VRML::verbose;
-        glpOpenWindow(attributes=>[&GLX_RGBA, @db,
-				   &GLX_RED_SIZE,1,
-				   &GLX_GREEN_SIZE,1,
-				   &GLX_BLUE_SIZE,1,
-				   &GLX_DEPTH_SIZE,1,
-# Alpha size?
-				   ],
+        glpOpenWindow(attributes=>[],
+#                      attributes=>[&GLX_RGBA, @db,
+#				   &GLX_RED_SIZE,1,
+#				   &GLX_GREEN_SIZE,1,
+#				   &GLX_BLUE_SIZE,1,
+#				   &GLX_DEPTH_SIZE,1,
+## Alpha size?
+#				   ],
 		      mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
 			       ButtonMotionMask | ButtonReleaseMask |
 			       ExposureMask | StructureNotifyMask |
 			       PointerMotionMask),
-		      width => $w,height => $h, fs => $fullscreen,
+		      width => $w,height => $h, shutter=>$shutter,fs => $fullscreen,
 		      "x" => $x,
 		      "y" => $y,
 		      wintitle => $mytitle);
 
 
-
-	
-	glShadeModel(&GL_SMOOTH);
         glClearColor(0,0,0,1);
+        glShadeModel (&GL_SMOOTH);
 	glDepthFunc(&GL_LEQUAL);
         glEnable(&GL_DEPTH_TEST);
 	glEnable(&GL_BLEND);
@@ -181,6 +188,10 @@ sub new {
           }
 	$this->{Viewer} = VRML::Viewer::Examine->new;
 
+        $this->{Viewer}->{eyehalf}=$eyedist/2.0;
+        $this->{Viewer}->{eyehalfangle}=atan2($eyedist/2.0,$screendist)*
+                                        360.0/(2.0*$pi);
+                                 
 	return $this;
 }
 
@@ -224,7 +235,6 @@ sub update_scene {
 	} else {
 		VRML::OpenGL::BackEndSleep();
 	}
-	
 
 }
 
@@ -665,8 +675,8 @@ sub setup_viewpoint {
 
 sub render {
 	my($this) = @_;
-
 	my($node,$viewpoint) = @{$this}{Root, Viewpoint};
+	my($i);
 	$node = $node->{CNode};
 	$viewpoint = $viewpoint->{CNode};
 
@@ -675,42 +685,48 @@ sub render {
 	    print "Render: root $node\n";
 	  }
 
-	# turn lights off, and clear buffer bits
-	VRML::OpenGL::BackEndRender1();
+        foreach $i (@{$this->{bufferarray}})
+          {
+            $this->{Viewer}->{buffer}=$i;
+	    glDrawBuffer($this->{Viewer}->{buffer});
+    
+	    # turn lights off, and clear buffer bits
+	    VRML::OpenGL::BackEndRender1();
 
-	my $pick;
-	# 1. Set up projection
-	$this->setup_projection();
+	    my $pick;
+	    # 1. Set up projection
+	    $this->setup_projection();
 
-	# 2. Headlight
-	if($this->{Viewer}{Navi}{RFields}{headlight}) 
-	  {
-	    VRML::OpenGL::BackEndHeadlightOn();
+	    # 2. Headlight
+	    if($this->{Viewer}{Navi}{RFields}{headlight}) 
+	      {
+	        VRML::OpenGL::BackEndHeadlightOn();
+	      }
+	    				
+	    # 3. Viewpoint
+	    $this->setup_viewpoint($node);
+
+	    # Other lights
+
+	    VRML::VRMLFunc::render_hier($node,	# Node                 
+	     			        0,		# reverse_trans        
+	    			        0,		# render view point    
+	    			        0,		# render geoms         
+	    			        1,		# render lights        
+	    			        0,		# render sensitive
+				        0, 		# render blend
+				        0);		# what view point      
+
+	    # 4. Nodes (not the blended ones)
+	    VRML::VRMLFunc::render_hier($node,	# Node                 
+				        0,		# reverse_trans        
+				        0,		# render view point    
+				        1,		# render geoms         
+				        0,		# render lights        
+				        0,		# render sensitive     
+				        0,		# render blend         
+				        0);		# what view point      
 	  }
-					
-	# 3. Viewpoint
-	$this->setup_viewpoint($node);
-
-        # Other lights
-
-     	VRML::VRMLFunc::render_hier($node,	# Node                 
-				    0,		# reverse_trans        
-				    0,		# render view point    
-				    0,		# render geoms         
-				    1,		# render lights        
-				    0,		# render sensitive         
-				    0, 		# render blend
-				    0);		# what view point      
-
-	# 4. Nodes (not the blended ones)
-	VRML::VRMLFunc::render_hier($node,	# Node                 
-				    0,		# reverse_trans        
-				    0,		# render view point    
-				    1,		# render geoms         
-				    0,		# render lights        
-				    0,		# render sensitive     
-				    0,		# render blend         
-				    0);		# what view point      
 
 	glXSwapBuffers();
 

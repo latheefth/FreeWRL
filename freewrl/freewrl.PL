@@ -246,12 +246,12 @@ so that relative links will still work.
 
 =item C<-best>
 
-Depreciated. 
+Depreciated
 
 =item C<-fast>
 
 Enables the fastest rendering in exchange for poorer picture quality.
-As of 0.29, it also renders in line-mode.
+This is overrides any C<-best> options seen on the command line.
 
 =item C<-fullscreen>
 
@@ -313,6 +313,24 @@ Specify base name for the snapshot files. Default is
 
 Specify base name for the sequence temporary files. Default is
 ~/freewrl_tmp.
+
+=item C<-shutter>
+
+Forces FreeWRL to start in shutterglas stereo mode via GLX_STEREO in
+attributs of glXChooseVisual. This needs software and hardware like
+XIG DX Platiuum Xserver on a Linux PC with 3DRelevator shutterglasses or
+IRIX on a SGI Indigo2 Impact with crystal eyes shutterglasses.
+On some SGI machines, you need to switch to a stereo capable visual 
+as root with setmon/xsetmon and then restart the X Server.
+
+=item C<-eyedist> I<number>
+
+Distance between the eyes of the viewer in shutter mode, default 0.06
+
+=item C<-screendist> I<number>
+
+Distance between screen and the eyes of the viewer in shutter mode, 
+default 0.8
 
 =item C<-ppm>
 
@@ -431,6 +449,9 @@ BEGIN {
 		"seq"=>\$seq,
                 "seqb=s"=>\$seqname_opt,
                 "seqtmp=s"=>\$seqtmp_opt,
+		"shutter" => \$shutter,
+                "eyedist=f"=>\$eyedist_opt,
+                "screendist=f"=>\$screendist_opt,
                 "snapb=s"=>\$snapname_opt,
 		"ppm"=>\$nogif,
 		"ps"=>\$VRML::DO_PERL,
@@ -529,7 +550,39 @@ else
 	$fullscreen = 0;
 }
 
-$b = new VRML::Browser({FullScreen => $fullscreen, BackEnd => [Geometry => $geometry]}); # By default creates front- and back-ends.
+if ($shutter)
+{
+        $shutter = 1;
+}
+else
+{
+        $shutter = 0;
+}
+
+
+if ($eyedist_opt)
+{
+        $eyedist = $eyedist_opt;
+}
+else
+{
+        $eyedist = 0.06;
+}
+
+if ($screendist_opt)
+{
+        $screendist = $screendist_opt;
+}
+else
+{
+        $screendist = 0.8;
+}
+
+$b = new VRML::Browser({ FullScreen => $fullscreen, Shutter => $shutter,
+                         EyeDist => $eyedist, ScreenDist => $screendist,
+                         BackEnd => [Geometry => $geometry]
+                       });
+                        # By default creates front- and back-ends.
 
 $be = $b->get_backend;
 
