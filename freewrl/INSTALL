@@ -80,17 +80,7 @@ Notes:	All files are available here:
 
 1.2) Mesa 3DFX hardware accelleration.
 
-	NOTE: DO THIS IF YOU WANT AND HAVE A 3DFX CARD ONLY!!!
-
-	NOTE: I want my hw-accellerated window to come up
-	on another monitor (for my cave and HMD)
-
-	1) Follow the directions in:
-
-		http://linux.3dfx.com/open_source.htm
-
-	2) rebuild mesa so that hardware accel. is used.
-	test it with the demo programs.
+	XFree86 now includes hardware accelleration. 
 
 	You may wish to set the following environment
 	variables (see the mesa/docs/README.3DFX)
@@ -352,6 +342,9 @@ http://www.crc.ca/FreeWRL/download/joystickxxx.
 
 #
 # $Log$
+# Revision 1.5  2001/03/28 02:38:28  crc_canada
+# Some install simplifications.
+#
 # Revision 1.4  2000/11/03 20:11:29  crc_canada
 # add text about speeding up 3dfx cards
 #
