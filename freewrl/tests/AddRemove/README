@@ -1,0 +1,30 @@
+The EAI classes are a "work in progress"; and are just getting
+rebuilt.
+
+
+October 13, 2000 - John.Stewart@crc.ca
+
+
+Things to watch out for:
+
+1) sometimes the appletviewer does not shutdown correctly.
+
+ps -aux | grep jdk 
+
+to find out if one is running, and
+kill "pid" (the number of the process) to stop it.
+
+2) the appletviewer now ignores the CLASSPATH. Sheesh. Right
+now, the vrml/* classes are within the current working directory;
+even symbolic links don't work.
+
+So, copy all files (and directories) from the 
+<freewrl builddir>/java/classes/* to here.
+
+You should then have a "vrml" directory here, and then the
+standalone script should work.
+
+3) verify all paths in the script "standalone", to run it with
+the appletviewer. It assumes that both freewrl and the appletviewer
+are installed and in your path.
+
