@@ -231,8 +231,8 @@ sub rectChanged
 	my ($this) = @_;
 	my $customClass = CustomClass->alloc->init;
 	$customClass->setView($this->{CONTEXT}->view);
-	my $xcoor = $customClass->getWidth;
-	my $ycoor = $customClass->getHeight;
+	my $ycoor = $customClass->getWidth;
+	my $xcoor = $customClass->getHeight;
 	$this->{BE}->updateCoords($xcoor, $ycoor);
 	$this->{BE}->finish_event;
 }
