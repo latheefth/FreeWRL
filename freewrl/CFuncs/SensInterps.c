@@ -555,6 +555,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 
 	/* are we not enabled */
 	if (!node) return;
+
 	if (!node->enabled) {
 		if (node->isActive) {
 			node->isActive=0;
@@ -590,6 +591,11 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 
 
 	if(node->isActive == 1) {
+		/* set time field */
+		node->time = TickTime;
+		mark_event ((unsigned int) node, 
+				offsetof(struct VRML_TimeSensor, time));
+
 		/* calculate what fraction we should be */
  		myTime = (TickTime - node->startTime) / myDuration;
 
