@@ -1693,6 +1693,13 @@ Recommended tool:
 </xsl:template>
 
 
+<!-- JAS ****** head:  comment the head tag, recurse ****** -->
+<xsl:template match="head">
+  <xsl:text># [head]</xsl:text><!-- <xsl:value-of select="."/><xsl:text> </xsl:text> -->
+<xsl:apply-templates/>
+</xsl:template>
+
+
 <!-- ****** Header:  comment the Header tag, recurse ****** -->
 <xsl:template match="Header">
   <xsl:text># [Header]</xsl:text><!-- <xsl:value-of select="."/><xsl:text> </xsl:text> -->
