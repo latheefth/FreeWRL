@@ -59,7 +59,7 @@ PROTO Wheel [
 	 ]
 	}
 	ROUTE TIMER.fraction_changed TO ORI.set_fraction
-	ROUTE ORI.value_changed TO CONE.rotation
+	ROUTE ORI.value_changed TO CONE.set_rotation
 }
 
 
