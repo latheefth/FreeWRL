@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.11  2000/08/31 23:00:00  rcoscali
+# Add depth 2 support (2 channels/color components) which isMINANCE_ALPHAre (wi
+#
 # Revision 1.10  2000/08/30 00:04:18  rcoscali
 # Comment out a glDisable(GL_LIGHTING) (uncommented by mistake ??)
 # Fixed a problem in cone rendering (order of the vertexes)i
@@ -1589,7 +1592,7 @@ Billboard => (join '','
 			return;
 		}
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
-		/* glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE); */
+		/*glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);*/
 		if($f(appearance)) {
 			render_node($f(appearance));
 		} else {
