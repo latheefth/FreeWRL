@@ -1,17 +1,6 @@
 	<TITLE>FreeWRL - Install</TITLE>
-
-<P>&#35;Copyright (C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart, CRC Canada.  
-
-<BR>&#35;DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-
-<BR>&#35;See the GNU Library General Public License (file COPYING in the distribution)
-
-<BR>&#35;for conditions of use and redistribution, EXCEPT on the files  
-
-<BR>&#35;which belong under the mozilla public license. 
-
 <H2>
-Install Introduction
+Introduction
 </H2>
 The complexity of the install depends on what packages you have installed
 with your system, and what packages may have been installed later.
@@ -23,11 +12,13 @@ Installs for the impatient
 
 Either grab a pre-packaged version of FreeWRL (in rpm format), or grab
 the source for FreeWRL and the SoundEngine, and try:
-<P>gunzip FreeWRL-version-tar.gz
-<P>untar FreeWRL-version.tar
-<p>cd FreeWRL-version
-<p>perl Makefile.PL
-<p>make install
+<P><LIST>
+<LI>gunzip FreeWRL-version-tar.gz
+<LI>untar FreeWRL-version.tar
+<LI>cd FreeWRL-version
+<LI>perl Makefile.PL
+<LI>make install
+</LIST>
 <p>
 For the sound engine, gunzip it, untar it, cd into the directory, and
 "make install".
@@ -39,8 +30,7 @@ Installs for everybody else
 
 
 <P>
-<B>Red Hat 8.0 and MacOS-X</B> will be the build platforms
-for FreeWRL 0.38 and beyond.
+<B>Linux and MacOS-X</B> are the build platforms for FreeWRL 0.38 and beyond.
 <P>
 <B>Mac OS-X users:</B> Congradulations! You now can compile and run FreeWRL. We have 
 put specific install directions
@@ -50,27 +40,6 @@ put specific install directions
 of MIT has
 put specific install directions
 <A HREF="http://web.mit.edu/freewrl_v0.35/README.config">here</A>.
-<P>
-For people with older versions of Linux, we have also tested the FreeWRL 0.29 build on brand new installs of:
-<P>
-<LIST>
-<LI><B>SuSe 7.1</B> FTP'd on March 30-31 2001
-<LI><B>TurboLinux</B> Workstation 4.0.5.SMC Tues Oct 19, 1999
-<LI><B>Mandrake 7.2</B> from ISO CD images
-<LI><B>Redhat 7.1 and 7.2</B> 
-</LIST>
-<P>Others have tested FreeWRL on:
-<LIST>
-<LI><B>SGI Onyx II</B>
-<LI><B>FreeBSD</B>
-</LIST>
-<P>
-Detailed install notes can be found in this file (INSTALL.html) in the FreeWRL 0.29
-release; most of what is in there should help with installing FreeWRL 0.32 and beyond
-on these platforms.
-<P>
-<P>
-<P>
 <P>
 <P>This install is divided up into the following sections:<P> 
 <LIST>
@@ -103,17 +72,6 @@ You can also access the cvs repository. The way to do it is explained at:
 <P>
 OpenGL is a "standard" on all distributions.
 <P>
-Some OpenGL implementations are better than others, though. The two references used are the SGI OpenGL
-implementation, and Mesa from
-<A HREF="http://www.mesa3d.org">http://www.mesa3d.org</A>.
-<P>
-Text nodes now <B>really</B> use the OpenGL tesselator; you may experience character dropouts (VooDoo3 cards),
-or even core dumps (older GeForce drivers), if your OpenGL drivers do not use the latest OpenGL.
-<P>
-If you fall into this category, there are various options available to you, the simplest is
-to either ignore the errors, or install Mesa as indicated above.
-<P>
-<P>
 <H4>
 2.0 Java Install.
 </H4>
@@ -121,12 +79,7 @@ to either ignore the errors, or install Mesa as indicated above.
 The java compiler, javac must be in your path. the command "which javac" will tell you
 if you have this installed.
 <P>
-<B>RedHat 8.0</B> - get and install the jdkgcj-0.2.3-1.i386.rpm rpm package off of disc 3 in the RedHat set.
-<p>
-<B>RedHat 7.2</B> needed Suns Java 1.2 or above installed. The open-source Java equivalent, Kaffe, is not
-quite up to the job yet. With Kaffe, you will get Java compile errors, so for now, please use
-Suns Java 1.2 or above.
-<P>
+If you do not have java on your system, or it is not on your Linux distribution CDs in RPM format, 
 Java can be found at
 <A HREF="http://www.blackdown.org">http://www.blackdown.org</A>.
 <p>
@@ -142,38 +95,15 @@ Java can be found at
 file has good paths for the libraries and includes. 
 Note particularly the possible defines in this file.
 <P>
-I have included various configuration files to show examples of what
-can be done. Of particular interest are <B>vrml.conf.rh7.2</B> and
-<B>vrml.conf.localmesa</B>. You <B>will</B> wish to replace vrml.conf with one of these files.
-<P>
-If you are running on <B>Irix</B> copy vrml.conf.irix over vrml.conf, <B>and</B>
-remove the Plugin directory; Perl and Netscape are compiled differently, so
-at this point in time you can not use FreeWRL and Netscape under Irix.
-<P>
-One additional  <B>Irix</B>  note: if your version of "make" is not gnumake, you
-will need to install it, and use the following script to "make" freewrl. (this 
-is on the bug list...)
-<p>
-$ for i in * ; do (cd $i && gmake) ; done
-<P>$ gmake
-
-<p>
-FreeType version 2 has been in distributions for well over a year; FreeWRL now uses
+FreeType version 2 has been in distributions for years; FreeWRL now uses
 it. Check that you have the library installed; the command "ldconfig -p | grep freetype"
 will print the path, if it is installed. 
 If you have an older distribution, you can get a new version of FreeType from
 <A HREF="http://www.freetype.org">http://www.freetype.org</A>.
 <P>
-If you need them, the fonts that freewrl uses in a file called freewrl-fonts, available on
-<A HREF="/en/html/FreeWRL/downloads/downloads">http://www.crc.ca/en/html/FreeWRL/downloads/downloads</A>.
-Untar this file, and point the FREETYPE_FONT_PATH to this directory.
+<LI>You might need to Install Perl Modules; if you get errors when building 
+FreeWRL, make sure you have Perl modules like:
 <P>
-<B>NOTE:</B> some systems seem to have placed the FreeType include files properly, others have
-the include files spread all over the place. for <B>RedHat 7.2</B>, make sure you
-have a look at the FreeType section of vrml.conf.rh7.2.
-<P>
-<LI>Install Perl Modules; Irix will need all of these, Red Hat will
-only need the ones indicated; <B>RedHat 8.0</b> does not need any.<BR>    
 
 <P>Digest-MD5-2.09
 <BR>HTML-Parser-2.25        
@@ -181,8 +111,6 @@ only need the ones indicated; <B>RedHat 8.0</b> does not need any.<BR>
 <BR>URI-1.04
 <BR>libnet-1.0607
 <BR>libwww-perl-5.47
-<BR>Image-Base-1.07	<B> Needed for RedHat 7.2</B>
-
 </P>
 
 <P>Installing these modules is a no-brainer; just untar     
@@ -192,15 +120,11 @@ each module as root, then go into the directory, and
 <BR>make install
 </P>
 
-Note that libwww-perl will most likely ask you if you want to reconfigure - I always just select the default.
-<P>
 <LI>ImageMagick is required for some conversions of graphics
 files. The "convert" utility is used; this <B>should</B> now be
 installed with any graphical Linux distribution. If you
 can't find it, you can always download it from
 <A HREF="http://www.imagemagick.org">http://www.imagemagick.org</A>
- or 
-<A HREF="http://freeware.sgi.com">http://freeware.sgi.com/</A>
 
 <P>
 <LI>Make the Make file
@@ -212,123 +136,31 @@ can't find it, you can always download it from
 <BR>make install (you have to be root of course)
 </P>
 <P>
-<LI>Experimental SAI interface
-<P>
-<B>NOTE:</B> You only need to do this if you wish to debug the SAI code.
-<P> - mknod.javapipej p
-<BR> - mknod.javapipep p</P>
-
 <LI>Run the numbered tests.
 
 <P>
 There are quite a few tests in the "tests" directory.
 <P>Run all of the numbered files (and any others that you want!) in the tests
 directory. Note that some use javascript, so you will be testing javascript, too.</P>
-
-
 </OL>
 <h4>
-4.0 Installing Java support
-</H4>
+<P>4.0 Getting it all to work with Netscape/Mozilla/Konqueror, etc.
+</h4>
 
-<P><B>4.1)</B> Javascript:</P>
-<P>
-In the basic install, you should have installed the java support to allow some of the
-test programs in the tests directory to work. (eg, 7.wrl, 8.wrl, and 10.wrl)
-<P>
-If these programs don't run, then go back and make FreeWRL it so that it does work.
-<P><B>4.2)</B> EAIcode:</P>
-<P>
-<B>NOTE:</B> This is in active development, so may not work. 
-<P>
-The EAI classes have been gathered into the Java archive vrml.jar. A java.policy
-file is used to handle EAI code access to the local filesystem and sockets.
-<P>
-<LIST>
-<LI>cd into the tests/AddRemove directory in the build tree.
-<LI>Read the README file in there to see what the latest commands are
-<LI>Send a case of beer to the developers, for their outstanding work.
-</LIST>
-
-<P><B>4.2)</B> SAIcode:</P>
-<p>
-<B>NOTE:</B> This is in active development, so may not work. 
-<P>
-<LIST>
-<LI>cd into the tests/SAIClick directory in the build tree.
-<LI>Read the README file in there to see what the latest commands are
-</LIST>
-
-
-<P><B>5.0 Getting it all to work with Netscape/Mozilla.</B></P>
-
+<B>Mozilla/Netscape:</b>
 If FreeWRL was built correctly, then the Netscape/Mozilla Plugin was
 installed in the browser plugins directory. Stop and start your 
 browser, and enter "about:plugins" in the url entry box. You should
 see the FreeWRL plugin listed.</P>
 <P>
-<P><B>6.0 X3D compatibility.</B></P>
+<B>Konqueror:</b> invoke the "settings" dropdown menu, then go and click on
+"netscape plugins", and import the plugins. (check the build directory in
+vrml.conf to determine exactly where the npfreewrl.so file is)
+<p>
+<P><B>5.0 X3D compatibility.</B></P>
 
-<P><B>6.1)</B> Go to the x3d directory, and follow the
+<P><B>5.1)</B> Go to the x3d directory, and follow the
 
 <A HREF="x3d/readme.html">instructions</A>.</P>
 <P>
-<P><B>7.0 Getting it to work with external sensors.</B></P>
-<P>
-<B>7.1)</B> CRC's "Flying Chair".
-<P>
-This chair can be seen in the "links" section. The code to 
-run this chair is freely available, at:
-<A HREF="http://sourceforge.net/projects/mvip/">
-http://sourceforge.net/projects/mvip/</A>
-<P>
-
-<B>7.2)</B> Thrustmaster style Joystick 
-<P>
-The 2-D joystick interface is available at: 
-<A HREF="/html/FreeWRL/downloads/joystick/Joystick-1.0.tar.gz">http://www.crc.ca/FreeWRL/download/joystick/Joystick-1.0.tar.gz</A>, and the 3D joystick
-interface is available as part of the chair code, as outlined above.
-
-<P><B>7.3)</B> Data Glove.</P>
-<P>
-This interface is being actively worked on.
-<P>
-<P><B>6.4)</B> Spaceball 3D positioning mouse.</P>
-<P>
-This interface is being actively worked on.
-<P>
-<P><B>7.4)</B> Touchscreens.</P>
-<P>
-One of our FreeWRL users has made a very interesting touchscreen
-interface to FreeWRL. This code will be incorporated into FreeWRL
-when it is complete.
-<P>
-<P><B>7.5)</B> Polhemus/Virtual Research goggles with position sensor.</P>
-This works very well with the "Flying Chair" mentioned above, but if you 
-wish to run this alone, without joystick (and chair!), here are the
-directions:
-<P><B>7.5.1)</B> Polhemus Position Sensor.</P>  
-
-<P> - Untar and compile the code in the Polhemus 1.0. tarfile. 
-<BR>- run minicom (with modem in it strings set to null) and see if you can get any input.  
-<BR> - align the Fastrak. I use the A0 command, as found in      the manual, to do the allignment. (&quot;Enhanced Allignment Procedure, pg 48a of my manual-Sept 1998)</P>        
-
-<P>eg:
-<BR>(in minicom)
-<BR>A0
-<BR>P
-<BR>(now, move the sensor 24&quot; in positive X axis)
-<BR>P
-<BR>(now, move the sensor 24&quot; in positive Y axis)
-<BR>P
-<BR>Exit minicom</P>
-
-
-<P> - run the program Polhemus/termite to get the polhemus interface   code working. Note - headset should be pointed at where you want &quot;front&quot; to be.</P>
-
-
-<P><B>7.5.2)</B> Virtual Research goggles
-<P> An option has been added to FreeWRL to run in full screen mode just for these goggles. Start FreeWRL with the "-fullscreen" option; eg:
-<P>
-freewrl tests/1.wrl -best -fullscreen -geometry 640x480
 
