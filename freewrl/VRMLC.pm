@@ -26,6 +26,12 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.119  2003/10/07 14:58:01  sald1
+# sald1 - cylindersensor node implemented, get_hyperhit function modified
+#
+# Revision 1.119  2003/10/07 22:50:54  sald1
+# CylinderSensor node implemented
+#
 # Revision 1.118  2003/10/01 16:56:54  crc_canada
 # More GeoVRML changes.
 #
@@ -427,7 +433,7 @@
 #
 # Revision 1.10  2000/09/03 20:17:50  rcoscali
 # Made some test for blending
-# Tests are displayed with 38 & 39.wrlð
+# Tests are displayed with 38 & 39.wrl
 #
 # Revision 1.9  2000/09/02 23:54:39  rcoscali
 # Fixed the core dump for 27.wrl and 28.wrl
@@ -2148,13 +2154,13 @@ CODE:
 	hypersensitive = ptr;
 	hyperhit = 0;
 
-# get the hyperhit - eg, a planesensor, and SAVE the results for later. 
-# right now the results are returned to Perl, and also saved for later
-# use by direct C code. JAS
+# get the hyperhit and rayhit - eg, a planesensor, and SAVE the results  
+# for later. Right now the results are returned to Perl, and also saved 
+# for later use by direct C code. JAS
 int
 get_hyperhit()
 CODE:
-	double x1,y1,z1,x2,y2,z2;
+	double x1,y1,z1,x2,y2,z2,x3,y3,z3;
 	GLdouble projMatrix[16];
 
 	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
@@ -2162,17 +2168,20 @@ CODE:
 		projMatrix, viewport, &x1, &y1, &z1);
 	gluUnProject(r2.x, r2.y, r2.z, rhhyper.modelMatrix,
 		projMatrix, viewport, &x2, &y2, &z2);
-
-	/* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f\n",
-		x1,y1,z1,x2,y2,z2); */
-
+	gluUnProject(hp.x, hp.y, hp.z, rh.modelMatrix,
+		projMatrix,viewport, &x3, &y3, &z3);
+		
+	/* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
+		x1,y1,z1,x2,y2,z2,x3,y3,z3); */
+	
 	/* and save this globally */
 	hyp_save_posn.c[0] = x1; hyp_save_posn.c[1] = y1; hyp_save_posn.c[2] = z1;
 	hyp_save_norm.c[0] = x2; hyp_save_norm.c[1] = y2; hyp_save_norm.c[2] = z2;
+	ray_save_posn.c[0] = x3; ray_save_posn.c[1] = y3; ray_save_posn.c[2] = z3;
+	
 	RETVAL=1;
 OUTPUT:
 	RETVAL
-
 
 void
 set_viewer_delta(x,y,z)
