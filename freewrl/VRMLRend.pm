@@ -20,8 +20,8 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.64  2002/07/11 16:22:29  crc_canada
-# ImageTextures now read in by C rather than Perl
+# Revision 1.65  2002/07/15 15:38:41  crc_canada
+# enable sharing of textures, if they have the same url
 #
 # Revision 1.63  2002/07/09 16:13:59  crc_canada
 # Text nodes now in main module, seperate module removed
@@ -941,11 +941,11 @@ ImageTexture => '
 	this_->_myshape = last_visited_shape; 
 
 	/* save the reference globally */
-	last_bound_texture = this_->__texture;
+	last_bound_texture = this_->__texture_;
 	
-	printf ("ImageTexture, binding to texture %d name %s\n",last_bound_texture,filename);
-
-	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
+	/* and, bind to the texture */
+	bind_image (filename,this_->__texture_,this_->repeatS,this_->repeatT,this_->__istemporary_,
+		this_->__isloaded_);
 ',
 
 PixelTexture => '
@@ -956,9 +956,9 @@ PixelTexture => '
 	this_->_myshape = last_visited_shape; 
 
 	/* save the reference globally */
-	last_bound_texture = this_->__texture;
+	last_bound_texture = this_->__texture_;
 
-	glBindTexture (GL_TEXTURE_2D, this_->__texture);
+	glBindTexture (GL_TEXTURE_2D, this_->__texture_);
 	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
@@ -1155,34 +1155,33 @@ Background => '
 
  		if (frtlen) {
 			bind_image (frtptr,BackTextures[FRONTTEX],
-				0,0,this_->__istemporary_front);
+				0,0,this_->__istemporary_front,this_->__isloaded_front);
 		}
 
  		if (bcklen) {
 			bind_image (bckptr,BackTextures[BACKTEX],
-				0,0,this_->__istemporary_back);
+				0,0,this_->__istemporary_back,this_->__isloaded_back);
 		}
 
  		if (rtlen) {
 			bind_image (rtptr,BackTextures[RIGHTTEX],
-				0,0,this_->__istemporary_right);
+				0,0,this_->__istemporary_right,this_->__isloaded_right);
 		}
 
  		if (toplen) {
 			bind_image (topptr,BackTextures[TOPTEX],
-				0,0,this_->__istemporary_top);
+				0,0,this_->__istemporary_top,this_->__isloaded_top);
 		}
 
  		if (botlen) {
 			bind_image (botptr,BackTextures[BOTTEX],
-				0,0,this_->__istemporary_bottom);
+				0,0,this_->__istemporary_bottom,this_->__isloaded_bottom);
 		}
 
 
  		if (lftlen) {
-			filename = SvPV((this_->__data_left),PL_na);
 			bind_image (filename,BackTextures[LEFTTEX],
-				0,0,this_->__istemporary_left);
+				0,0,this_->__istemporary_left,this_->__isloaded_left);
 		}
 
 	}
