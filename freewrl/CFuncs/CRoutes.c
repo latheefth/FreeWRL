@@ -227,14 +227,14 @@ void initializeScript(int num,int evIn) {
 	CRnodeStruct *to_ptr = NULL;
 
 
-	printf ("initializeScript script, table element %d evin %d\n",num,evIn);
+	// printf ("initializeScript script, table element %d evin %d\n",num,evIn);
 
 	/* is this an event in? If so, num is a routing table entry */
 	if (evIn) {
 	    for (counter = 0; counter < CRoutes[num].tonode_count; counter++) {
 		to_ptr = &(CRoutes[num].tonodes[counter]);
 		tn = (int) to_ptr->node;
-		printf ("initializeScript, tn %d\n",tn);
+		// printf ("initializeScript, tn %d\n",tn);
 
 		if (!(ScriptControl[tn]._initialized)) {
 			switch (ScriptControl[tn].thisScriptType) {
@@ -244,7 +244,11 @@ void initializeScript(int num,int evIn) {
 					break;
 				}
 				case CLASSSCRIPT: {
-					printf ("initialize this CLASS script!\n");
+					//printf ("have to initialize this CLASS script!\n");
+					//this is done later, so that we don't have thread
+					//conflicts, because perl calls this, and the javaclass
+					//invocation might call perl, and that causes a thread
+					//deadlock. So, we delay initialization until later.
 					break;
 				  }
 				default: {
@@ -267,7 +271,11 @@ void initializeScript(int num,int evIn) {
 					break;
 				}
 				case CLASSSCRIPT: {
-					printf ("have to initialize this CLASS script!\n");
+					//printf ("have to initialize this CLASS script!\n");
+					//this is done later, so that we don't have thread
+					//conflicts, because perl calls this, and the javaclass
+					//invocation might call perl, and that causes a thread
+					//deadlock. So, we delay initialization until later.
 					break;
 				  }
 				default: {
@@ -1851,13 +1859,11 @@ Register a new script for future routing
 ********************************************************************/
 
 void CRoutes_js_new (int num, int scriptType) {
-	printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl);
+	//printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl);
 
 	/* record whether this is a javascript, class invocation, ... */
 	ScriptControl[num].thisScriptType = scriptType;
 
-	printf ("past cs step 1\n");
-	
 	/* if it is a script (class or javascript), make sure we know that it is not
 	 * initialized yet; because of threading, we have to wait until
 	 * the creating (perl) function is finished, otherwise a 
@@ -1866,9 +1872,8 @@ void CRoutes_js_new (int num, int scriptType) {
 	 */
 
 	ScriptControl[num]._initialized = FALSE;
-printf ("past cs step 2\n");
 	if (num > max_script_found) max_script_found = num;
-	printf ("returning from CRoutes_js_new\n");
+	//printf ("returning from CRoutes_js_new\n");
 
 }
 
@@ -1913,13 +1918,13 @@ int JSparamIndex (char *name, char *type) {
 	int ty;
 	int ctr;
 
-	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
-	printf ("start of JSparamIndex, lengths name %d, type %d\n",
-			strlen(name),strlen(type));
+	//printf ("start of JSparamIndex, name %s, type %s\n",name,type);
+	//printf ("start of JSparamIndex, lengths name %d, type %d\n",
+	//		strlen(name),strlen(type));
 
 	ty = convert_typetoInt(type);
 
-	printf ("JSParamIndex, type %d, %s\n",ty,type);
+	//printf ("JSParamIndex, type %d, %s\n",ty,type);
 	len = strlen(name);
 
 	/* is this a duplicate name and type? types have to be same,
@@ -1949,7 +1954,7 @@ int JSparamIndex (char *name, char *type) {
 	strncpy (JSparamnames[jsnameindex].name,name,len);
 	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
-	printf ("JSparamNameIndex, returning %d\n",jsnameindex);
+	//printf ("JSparamNameIndex, returning %d\n",jsnameindex);
 	return jsnameindex;
 }
 
@@ -2417,7 +2422,7 @@ void gatherClassEventOuts (int script) {
 
 	/* is this class initialized? */
 	if (!(ScriptControl[script]._initialized)) {
-		printf ("initializing script %d in gatherClassEventOuts\n",script);
+		//printf ("initializing script %d in gatherClassEventOuts\n",script);
 		initJavaClass(script);
 		ScriptControl[script]._initialized=TRUE;
 	}
@@ -2552,7 +2557,7 @@ void sendJClassEventIn(int num, int fromoffset) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	printf ("sendJClassEventIn, num %d fromoffset %d\n",num,fromoffset);
+	//printf ("sendJClassEventIn, num %d fromoffset %d\n",num,fromoffset);
 
 	fn = (int) CRoutes[num].fromnode + (int) CRoutes[num].fnptr;
 	len = CRoutes[num].len;
@@ -2564,7 +2569,7 @@ void sendJClassEventIn(int num, int fromoffset) {
 		
 		/* is this class initialized? */
 		if (!(ScriptControl[tn]._initialized)) {
-			printf ("initializing script %d in sendJClassEventIn\n",tn);
+			//printf ("initializing script %d in sendJClassEventIn\n",tn);
 			initJavaClass(tn);
 			ScriptControl[tn]._initialized=TRUE;
 		}
@@ -2629,7 +2634,7 @@ void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	//JAS if (JSVerbose) 
+	if (JSVerbose) 
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d\n",num);
 
 	/* script value: 1: this is a from script route
