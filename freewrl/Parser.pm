@@ -383,8 +383,9 @@ sub parse {
 				 if $VRML::verbose::parse;
 		} else {
 			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2]);
-                        print "storing type 2, $f, (",VRML::Node::dump_name($f{$f}), ")\n"  
-				 if $VRML::verbose::parse;
+				print "storing type 2, $f, (",
+					VRML::NodeIntern::dump_name($f{$f}), ")\n"
+						if $VRML::verbose::parse;
 		}
 	}
 	print "END\n"

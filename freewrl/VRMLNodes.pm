@@ -46,7 +46,7 @@ sub register_vp {
 	# print "Node::register_vp $scene $node\n";
 	push @vpn, $node;
 	push @vps, $scene;
-        # print "VRML::Node::register_vp, viewpoint is ",$node->{Fields}{description},"\n";
+        # print "VRML::NodeIntern::register_vp, viewpoint is ",$node->{Fields}{description},"\n";
          #         print "ref t ", ref $node,"\n";
          #         print "ref t backend ", ref $node->{BackEnd},"\n";
          #         print "t backend ", $node->{BackEnd},"\n";

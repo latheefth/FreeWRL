@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.17  2002/05/22 21:47:52  ayla
+#
+# Broke Scene.pm into files containing constituent packages for sanity's sake.
+#
 # Revision 1.16  2002/05/01 15:12:24  crc_canada
 # add __texture field to store OpenGLs bound texture number
 #
@@ -136,7 +140,7 @@ sub copy {
 	if(ref $value eq "ARRAY") {
 		return [map {copy("",$_)} @$value]
 	}
-	if(ref $value eq "VRML::Node") {
+	if(ref $value eq "VRML::NodeIntern") {
 		return $value;
 	}
 	if(ref $value eq "VRML::DEF") {

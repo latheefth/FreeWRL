@@ -398,7 +398,7 @@ sub api__getFieldInfo {
 
 	my ($k, $t);
 
-	# print "api__getFieldInfor for node ",VRML::Node::dump_name($node),"\n";
+	# print "api__getFieldInfor for node ",VRML::NodeIntern::dump_name($node),"\n";
 
 	# print "getFieldInfo, type is ",$node->{Type},"\n";
 	# print "getFieldInfo, FieldKinds is ",$node->{Type}{FieldKinds},"\n";
@@ -659,8 +659,8 @@ sub front_end_child_reserve {
 	my ($child,$real) = @_;
 	$RP{$child} = $real;
 	# print "front_end_child_reserve, reserving for child $child ", ref $child, 
-	# 	VRML::Node::dump_name($child),  " real $real ", ref $real, 
-	# 	VRML::Node::dump_name($real), "\n";
+	# 	VRML::NodeIntern::dump_name($child),  " real $real ", ref $real, 
+	# 	VRML::NodeIntern::dump_name($real), "\n";
 
 }
 
