@@ -6,10 +6,6 @@ where x is the test number.
 
 Notes:
 
-14:	This should fail - may work soon when convex polygons
-	work.
-
-
 1.wrl:	A cone.
 
 2.wrl:	A bunch of rotated rectangles.
@@ -90,8 +86,27 @@ Notes:
 
 34.wrl: The noodle drain with a the original texture mapped on it. 
 
+35.wrl:	Texture and Texturetransform tests on 4 shapes. Repeating
+	turned off.
+
+36.wrl: Same as above, but with image repeating not turned on.
+
+37.wrl:	Same as 36.wrl, but with textures rotated.
+
+38.wrl:	Texture Blending example. 
+
+39.wrl:	Texture Blending Example. This one shows a FreeWRL problem;
+	read the Info node in the wrl file for a full explanation.
+
+40.wrl:	Large IndexFaceSet example - concave.
+
 AddRemove:	
 	Java applet with EAI add/remove button. Run the script "standalone"
+	in the directory - check paths for everything, as it is dependent
+	on these, or run it from within netscape.
+
+Tiny3D:
+	Java applet with EAI to create a scene. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
 	on these, or run it from within netscape.
 
