@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.144  2005/01/06 14:29:01  crc_canada
+# IFS with color nodes and no appearance now rendered.
+#
 # Revision 1.143  2005/01/05 21:40:57  crc_canada
 # Spheres of negative radius not displayed.
 #
@@ -1433,6 +1436,10 @@ Billboard => (join '','
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
                        	glDisable (GL_LIGHTING);
        	                glColor3f(1.0,1.0,1.0);
+
+			/* tell the rendering passes that this is just "normal" */
+			last_texture_depth = 0;
+			last_transparency = 1.0;
                 }
 
 
