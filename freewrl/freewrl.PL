@@ -245,7 +245,17 @@ Prints out the current FreeWRL version.
 Forces FreeWRL to run in fullscreen mode.  Note that if your graphics drivers
 have an alternate way to enable fullscreen rendering it may be best to use that
 way instead. The fullscreen flag will not enable hardware acceleration if it has
-not already been enabled.
+not already been enabled. (see also --big option)
+
+=item C<--big>
+
+Forces FreeWRL to run in 800x600 mode.   See also --fullscreen option
+
+=item C<--nostatus>
+
+Starts FreeWRL without the on-screen status bar. See the "." key definition
+for how to toggle this status bar display when running.
+
 
 =item C<--plugin> I<PIDstring>
 
