@@ -482,12 +482,14 @@ sub removeChild {
 sub save_snapshot {
 				# Get snapshot
   my ($this) = @_ ;
+
+				# $s2 = ($h, $w, $rgbdata)
   my $s2 = $this->snapshot();
 				# Save it
   $main::snapcnt++ ;
   return if $main::snapcnt > $main::maximg ;
   my $outname = sprintf("$main::snapname.%04d.ppm",$main::snapcnt);
-  my $cmd = "$VRML::Browser::CONVERT -flip -size  $s2->[0]x$s2->[1] rgb:- $outname";
+  my $cmd = "$VRML::Browser::CONVERT -depth 8 -flip -size  $s2->[0]x$s2->[1] rgb:- $outname";
   print "Saving snapshot : Command is '$cmd'\n";
 
   if (open CONV, "|$cmd") {
