@@ -14,7 +14,11 @@
 #include "Collision.h"
 #include "SensInterps.h"
 
+#ifndef __APPLE__
 #include <dirent.h>
+#else
+#include "/usr/include/dirent.h"
+#endif
 
 /* snapshot stuff */
 int snapRawCount=0;
@@ -50,8 +54,10 @@ void saveSnapSequence() {
 	int xx;
 
 	/* make up base names - these may be command line parameters */
-	if (snapseqB == NULL)  myseqb  = "freewrl.seq";
-	if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
+        if (snapseqB == NULL)  myseqb  = "freewrl.seq";
+        else myseqb = snapseqB;
+        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
+        else mytmp = seqtmp;
 
 	snapGoodCount++;
 
@@ -91,12 +97,24 @@ void Snapshot () {
 	char *mytmp, *mysnapb;
 
 	/* make up base names - these may be command line parameters */
-	if (snapsequence) { if (snapseqB == NULL)  mysnapb  = "freewrl.seq";
-	} else { 	    if (snapsnapB == NULL) mysnapb = "freewrl.snap"; }
 
-	if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
+	if (snapsequence) {
+                if (snapseqB == NULL)
+                        mysnapb  = "freewrl.seq";
+                else
+                        mysnapb = snapseqB;
+        } else {
+                if (snapsnapB == NULL)
+                        mysnapb = "freewrl.snap";
+                else
+                        mysnapb = snapsnapB;
+        }
 
-	/* does the directory exist? */
+
+        if (seqtmp == NULL)    mytmp   = "freewrl_tmp";
+        else mytmp = seqtmp;
+
+	/*does the directory exist? */
 	if ((mydir = opendir(mytmp)) == NULL) {
 		mkdir (mytmp,0755);
 		if ((mydir = opendir(mytmp)) == NULL) {

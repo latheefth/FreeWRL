@@ -32,6 +32,23 @@ Cursor arrowc;
 Cursor sensorc;
 Cursor curcursor;
 #endif
+#ifdef AQUA
+#include <OpenGL.h>
+CGLContextObj aqglobalContext;
+#include <pthread.h>
+pthread_t mythread;
+char* threadmsg;
+#define KeyPress        2
+#define KeyRelease      3
+#define ButtonPress     4
+#define ButtonRelease   5
+#define MotionNotify    6
+#define MapNotify       19
+#define SCURSE 1
+#define ACURSE 0
+int ccurse = ACURSE;
+int ocurse = ACURSE;
+#endif
 
 #include "headers.h"
 
@@ -188,7 +205,11 @@ void EventLoop() {
 		/* do we need to re-define cursor style? 	*/
 		/* do we need to send an isOver event?		*/
 		if (CursorOverSensitive) {
+#ifndef AQUA
 			cursor= sensorc;
+#else
+		ccurse = SCURSE;
+#endif
 
 			/* is this a new node that we are now over? 
 			   don't change the node pointer if we are clicked down */
@@ -200,8 +221,19 @@ void EventLoop() {
 
 		} else {
 			/* hold off on cursor change if dragging a sensor */
-			if (lastPressedOver!=0) { cursor = sensorc; 
-			} else { cursor = arrowc; }
+			if (lastPressedOver!=0) { 
+#ifndef AQUA
+				cursor = sensorc; 
+#else	
+				ccurse = SCURSE;
+#endif
+			} else { 
+#ifndef AQUA
+				cursor = arrowc; 
+#else
+				ccurse = ACURSE;
+#endif
+			}
 
 			/* were we over a sensitive node? */
 			if (oldCOS) {
@@ -211,10 +243,17 @@ void EventLoop() {
 		}
 
 		/* do we have to change cursor? */
+#ifndef AQUA
 		if (cursor != curcursor) {
 			curcursor = cursor;
 			XDefineCursor (dpy, win, cursor);
 		}
+#else
+                if (ccurse != ocurse) {
+                        ocurse = ccurse;
+                        setAquaCursor(ccurse);
+                }
+#endif
 	}
 
 	/* handle snapshots */
@@ -346,6 +385,7 @@ void handle_Xevents() {
 				break;
 		}
 	}
+#endif
 }
 
 /* get setup for rendering. */
@@ -410,8 +450,12 @@ void render() {
 		render_hier((void *)rootNode, VF_Geom);
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 	}
-
+#ifndef AQUA
 	glXSwapBuffers(dpy,win);
+#else
+	CGLError err = CGLFlushDrawable(aqglobalContext);
+	updateContext();
+#endif
 	glPrintError("XEvents::render");
 }
 
@@ -647,7 +691,6 @@ void glPrintError(char *str) {
         while((err = glGetError()) != GL_NO_ERROR)
                 fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
         }
-#endif
 
 /* go to the next viewpoint */
 void Next_ViewPoint() { 
@@ -659,3 +702,108 @@ void Next_ViewPoint() {
 		send_bind_to(VIEWPOINT,(void *)viewpointnodes[currboundvpno],1);
 	}
 }
+
+#ifdef AQUA
+void initGL() {
+        aqglobalContext = CGLGetCurrentContext();
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+}
+
+int getOffset() {
+        return offsetof(struct VRML_Group, children);
+}
+
+void setCurXY(int cx, int cy) {
+        currentX = cx;
+        currentY = cy;
+}
+
+void setLastMouseEvent(int etype) {
+        lastMouseEvent = etype;
+}
+
+void setBrowserURL(char* file) {
+        int count;
+        count = strlen(file);
+        //printf("got to setBrowser file: %s, count %d\n", file, count);
+        if (BrowserURL != NULL) {
+                printf("freeing browser URL\n");
+                myfree (BrowserURL);
+        }
+        BrowserURL = mymalloc (count + 1);
+        strcpy(BrowserURL, file);
+}
+
+void initFreewrl() {
+        threadmsg = "event loop";
+        pthread_create(&mythread, NULL, (void *) aqDisplayThread, (void*) threadmsg);
+        initializePerlThread("/usr/bin/perl");
+        while (!isPerlinitialized()) {
+                usleep(50);
+        }
+        initializeTextureThread();
+        while (!isTextureinitialized()) {
+                usleep(50);
+        }
+
+        int tmp = 0;
+        perlParse(FROMURL, BrowserURL, TRUE, FALSE, rootNode, offsetof(struct VRML_Group, children), &tmp);
+}
+
+void aqDisplayThread() {
+        glpOpenGLInitialize();
+        new_tessellation();
+        while (1) {
+                EventLoop();
+        }
+}
+
+void setButDown(int button, int value) {
+        ButDown[button] = value;
+}
+
+void setScreenDim(int wi, int he) {
+        screenWidth = wi;
+        screenHeight = he;
+        if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
+        else screenRatio =  screenWidth;
+}
+
+void setSnapSeq() {
+        snapsequence = TRUE;
+}
+
+void setSeqFile(char* file) {
+        int count;
+        count = strlen(file);
+        if (count > 500) count = 500;
+        snapseqB = malloc (count+1);
+        strcpy(snapseqB, file);
+        printf("snapseqB is %s\n", snapseqB);
+}
+
+void setSnapFile(char* file) {
+        int count;
+        count = strlen(file);
+        if (count > 500) count = 500;
+        snapsnapB = malloc(count + 1);
+        strcpy(snapsnapB, file);
+        printf("snapsnapB is %s\n", snapsnapB);
+}
+
+void setMaxImages(int max) {
+        if (max <=0)
+                max = 100;
+        maxSnapImages = max;
+}
+void setSeqTemp(char* file) {
+        int count;
+        count = strlen(file);
+        if (count > 500) count = 500;
+        seqtmp = malloc(count + 1);
+        strcpy(seqtmp, file);
+        printf("seqtmp is %s\n", seqtmp);
+}
+#endif
+

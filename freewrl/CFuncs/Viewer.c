@@ -14,6 +14,13 @@
 #include "headers.h"
 #include "Structs.h"
 #include "Viewer.h"
+#ifdef AQUA
+#define KeyPress        2
+#define KeyRelease      3
+#define ButtonPress     4
+#define ButtonRelease   5
+#define MotionNotify    6
+#endif
 
 static int viewer_type = NONE;
 static int viewer_initialized = FALSE;
