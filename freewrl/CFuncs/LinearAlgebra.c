@@ -79,12 +79,15 @@ GLdouble det3x3(GLdouble* data)
 
 struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b)
 {
+    struct pt tmp; //JAS
+
     if(r != a) { /*protect from self-assignments */
 	r->x = b[0]*a->x +b[4]*a->y +b[8]*a->z +b[12];
 	r->y = b[1]*a->x +b[5]*a->y +b[9]*a->z +b[13];
 	r->z = b[2]*a->x +b[6]*a->y +b[10]*a->z +b[14];
     } else {
-	struct pt tmp = {a->x,a->y,a->z};
+	//JAS was  - struct pt tmp = {a->x,a->y,a->z};
+	tmp.x = a->x; tmp.y = a->y; tmp.z = a->z;
 	r->x = b[0]*tmp.x +b[4]*tmp.y +b[8]*tmp.z +b[12];
 	r->y = b[1]*tmp.x +b[5]*tmp.y +b[9]*tmp.z +b[13];
 	r->z = b[2]*tmp.x +b[6]*tmp.y +b[10]*tmp.z +b[14];
@@ -94,12 +97,14 @@ struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b)
 
 float* transformf(float* r, const float* a, const GLdouble* b)
 {
+    float tmp[3];  //JAS
+
     if(r != a) { /*protect from self-assignments */
 	r[0] = b[0]*a[0] +b[4]*a[1] +b[8]*a[2] +b[12];
 	r[1] = b[1]*a[0] +b[5]*a[1] +b[9]*a[2] +b[13];
 	r[2] = b[2]*a[0] +b[6]*a[1] +b[10]*a[2] +b[14];
     } else {
-	float tmp[3] = {a[0],a[1],a[2]};
+	tmp[0] =a[0]; tmp[1] = a[1]; tmp[2] = a[2]; //JAS
 	r[0] = b[0]*tmp[0] +b[4]*tmp[1] +b[8]*tmp[2] +b[12];
 	r[1] = b[1]*tmp[0] +b[5]*tmp[1] +b[9]*tmp[2] +b[13];
 	r[2] = b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2] +b[14];
@@ -109,12 +114,15 @@ float* transformf(float* r, const float* a, const GLdouble* b)
 /*transform point, but ignores translation.*/
 struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b)
 {
+    struct pt tmp;
+
     if(r != a) { /*protect from self-assignments */
 	r->x = b[0]*a->x +b[4]*a->y +b[8]*a->z;
 	r->y = b[1]*a->x +b[5]*a->y +b[9]*a->z;
 	r->z = b[2]*a->x +b[6]*a->y +b[10]*a->z;
     } else {
-	struct pt tmp = {a->x,a->y,a->z};
+	//JAS struct pt tmp = {a->x,a->y,a->z};
+	tmp.x = a->x; tmp.y = a->y; tmp.z = a->z;
 	r->x = b[0]*tmp.x +b[4]*tmp.y +b[8]*tmp.z;
 	r->y = b[1]*tmp.x +b[5]*tmp.y +b[9]*tmp.z;
 	r->z = b[2]*tmp.x +b[6]*tmp.y +b[10]*tmp.z;
