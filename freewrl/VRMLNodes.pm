@@ -1116,40 +1116,37 @@ Sound => new VRML::NodeType("Sound",
 
 	Transform => new VRML::NodeType ("Transform",
 									 {
-									  translation => [SFVec3f, [0,0,0]],
+									  addChildren => [MFNode, [], eventIn],
+									  removeChildren => [MFNode, [], eventIn],
+									  center => [SFVec3f, [0,0,0]],
+									  children => [MFNode, []],
 									  rotation => [SFRotation, [0,0,1,0]],
 									  scale => [SFVec3f, [1,1,1]],
 									  scaleOrientation => [SFRotation, [0,0,1,0]],
-									  children => [MFNode, []],
-									  center => [SFVec3f, [0,0,0]],
+									  translation => [SFVec3f, [0,0,0]],
 									  bboxCenter => [SFVec3f, [0,0,0]],
 									  bboxSize => [SFVec3f, [-1,-1,-1]],
-									  addChildren => [MFNode, [], eventIn],
-									  removeChildren => [MFNode, [], eventIn],
 									 },
 									 {
-									  addChildren => sub
-									  {
+									  addChildren => sub {
 										  return addChildren_GroupingNodes(@_);
 									  },
 
-									  removeChildren => sub
-									  {
+									  removeChildren => sub {
 										  return removeChildren_GroupingNodes(@_);
 									  },
 
- EventsProcessed => sub
- {
-#my($node,$fields,$time) = @_;
-##my $ac = $fields->{addChildren};
-#print("Transform:EventsProcessed $node $fields\n");
-##$node->{BackEnd}->update_scene($time);
-##add_MFNode($t,"children",$ac->[0], 1);
-##$node->receive_event("addChildren", $ac, $time);
-    return ();
- }
- },
- ),
+									  EventsProcessed => sub {
+										  #my($node,$fields,$time) = @_;
+										  ##my $ac = $fields->{addChildren};
+										  #print("Transform:EventsProcessed $node $fields\n");
+										  ##$node->{BackEnd}->update_scene($time);
+										  ##add_MFNode($t,"children",$ac->[0], 1);
+										  ##$node->receive_event("addChildren", $ac, $time);
+										  return ();
+									  }
+									 },
+									),
 
 TextureTransform => new VRML::NodeType ("TextureTransform",
 	{center => [SFVec2f, [0,0]],
@@ -1159,23 +1156,22 @@ TextureTransform => new VRML::NodeType ("TextureTransform",
 	}
 ),
 
-# Complete 
+# Complete
 	Group => new VRML::NodeType("Group",
 								{
+								 addChildren => [MFNode, [], eventIn],
+								 removeChildren => [MFNode, [], eventIn],
 								 children => [MFNode, []],
 								 bboxCenter => [SFVec3f, [0,0,0]],
 								 bboxSize => [SFVec3f, [-1,-1,-1]],
-								 addChildren => [MFNode, [], eventIn],
-								 removeChildren => [MFNode, [], eventIn],
 								},
 								{
-								 # these were copied from Transform...
 								 addChildren => sub {
-									return addChildren_GroupingNodes(@_);
+									 return addChildren_GroupingNodes(@_);
 								 },
 
 								 removeChildren => sub {
-									return removeChildren_GroupingNodes(@_);
+									 return removeChildren_GroupingNodes(@_);
 								 },
 
 								 EventsProcessed => sub {
@@ -1186,24 +1182,47 @@ TextureTransform => new VRML::NodeType ("TextureTransform",
 								}
 							   ),
 
-Anchor => new VRML::NodeType("Anchor",
-	{
-	children => [MFNode, []],
-	url => [MFString, []],
-	description => [SFString, ""],
-	parameter => [MFString, []],
-	bboxCenter => [SFVec3f, [0,0,0]],
-	bboxSize => [SFVec3f, [-1,-1,-1]],
-	}
-),
+	Anchor => new VRML::NodeType("Anchor",
+								 {
+								  addChildren => [MFNode, [], eventIn],
+								  removeChildren => [MFNode, [], eventIn],
+								  children => [MFNode, []],
+								  description => [SFString, ""],
+								  parameter => [MFString, []],
+								  url => [MFString, []],
+								  bboxCenter => [SFVec3f, [0,0,0]],
+								  bboxSize => [SFVec3f, [-1,-1,-1]],
+								 },
+								 {
+								  addChildren => sub {
+									  return addChildren_GroupingNodes(@_);
+								  },
 
-Billboard => new VRML::NodeType("Billboard",
-	{children => [MFNode, []],
-	 axisOfRotation => [SFVec3f, [0,1,0]],
-	 bboxCenter => [SFVec3f, [0,0,0]],
-	 bboxSize => [SFVec3f, [-1,-1,-1]],
-	}
-),
+								  removeChildren => sub {
+									  return removeChildren_GroupingNodes(@_);
+								  }
+								 }
+								),
+
+	Billboard => new VRML::NodeType("Billboard",
+									{
+									 addChildren => [MFNode, [], eventIn],
+									 removeChildren => [MFNode, [], eventIn],
+									 axisOfRotation => [SFVec3f, [0,1,0]],
+									 children => [MFNode, []],
+									 bboxCenter => [SFVec3f, [0,0,0]],
+									 bboxSize => [SFVec3f, [-1,-1,-1]],
+									},
+									{
+									 addChildren => sub {
+										 return addChildren_GroupingNodes(@_);
+									 },
+
+									 removeChildren => sub {
+										 return removeChildren_GroupingNodes(@_);
+									 }
+									}
+								   ),
 
 # Complete
 WorldInfo => new VRML::NodeType("WorldInfo",
@@ -1944,16 +1963,16 @@ SpotLight => new VRML::NodeType("DirectionalLight",
 	}
 ),
 
-Fog => new VRML::NodeType("Fog",
-	{
-	color => [SFColor, 1.0, 1.0, 1.0],
-	fogType => [SFString, "LINEAR"],
-	visibilityRange => [SFFloat, 0.0],
-	set_bind => [SFBool, undef, eventIn],
-	bindTime => [SFTime, undef, eventOut],
-	isBound => [SFBool, undef, eventOut],
-	},
-),
+	Fog => new VRML::NodeType("Fog",
+							  {
+							   color => [SFColor, [1.0,1.0,1.0]],
+							   fogType => [SFString, "LINEAR"],
+							   visibilityRange => [SFFloat, 0.0],
+							   set_bind => [SFBool, undef, eventIn],
+							   isBound => [SFBool, undef, eventOut],
+							   #bindTime => [SFTime, undef, eventOut], - not in spec
+							  }
+							 ),
 
 Background => new VRML::NodeType("Background",
 	{
@@ -2298,64 +2317,63 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 									}
 								   ),
 
-	Inline =>
-	new VRML::NodeType("Inline",
-					   {
-						bboxSize => [SFVec3f, [-1,-1,-1]],
-						bboxCenter => [SFVec3f, [0,0,0]],
-						url => [MFString, []]
-					   },
-					   {
-						Initialize =>
-						sub {
-							my($t, $f, $time, $scene) = @_;
-							# XXXXXX!!
-							#print "VRMLNode::Inline\n\tt $t\n\tf $f\n\ttime $time\n\tscene $scene\n";
+	Inline => new VRML::NodeType("Inline",
+								 {
+								  bboxSize => [SFVec3f, [-1,-1,-1]],
+								  bboxCenter => [SFVec3f, [0,0,0]],
+								  url => [MFString, []]
+								 },
+								 {
+								  Initialize =>
+								  sub {
+									  my($t, $f, $time, $scene) = @_;
+									  # XXXXXX!!
+									  #print "VRMLNode::Inline\n\tt $t\n\tf $f\n\ttime $time\n\tscene $scene\n";
 
-							my ($text, $url);
-							my $purl = $scene->get_url();
-							my $wurl = $scene->get_world_url;
-							my $urls = $f->{url};
-							$p = $scene->new_proto("__proto".$protono++);
+									  my ($text, $url);
+									  my $purl = $scene->get_url();
+									  my $wurl = $scene->get_world_url;
+									  my $urls = $f->{url};
+									  $p = $scene->new_proto("__proto".$protono++);
 
-							my $valid = 0;
+									  my $valid = 0;
 
-						URL:
-							for $u (@$urls) {
-								if (defined $wurl) {
-									($text, $url) = VRML::URL::get_relative($wurl, $u);
-								} else {
-									($text, $url) = VRML::URL::get_relative($purl, $u);
-								}
+								  URL:
+									  for $u (@$urls) {
+										  if (defined $wurl) {
+											  ($text, $url) = VRML::URL::get_relative($wurl, $u);
+										  } else {
+											  ($text, $url) = VRML::URL::get_relative($purl, $u);
+										  }
 
-								if (!$text) {
-									warn "Warning: could not retrieve $u";
-									next URL;
-								}
+										  if (!$text) {
+											  warn "Warning: could not retrieve $u";
+											  next URL;
+										  }
 
-								$p->set_url($url);
-								VRML::Parser::parse($p, $text);
-								if (!defined $p) {
-									die("Inline not found");
-								}
+										  $p->set_url($url);
+										  VRML::Parser::parse($p, $text);
+										  if (!defined $p) {
+											  die("Inline not found");
+										  }
 
-								$t->{ProtoExp} = $p;
-								$t->{ProtoExp}->set_parentnode($t);
-								$t->{ProtoExp}->make_executable();
-								$t->{ProtoExp}{IsInline} = 1;
-								$t->{IsProto} = 1;
+										  $t->{ProtoExp} = $p;
+										  $t->{ProtoExp}->set_parentnode($t);
+										  $t->{ProtoExp}->make_executable();
+										  $t->{ProtoExp}{IsInline} = 1;
+										  $t->{IsProto} = 1;
 
-								$valid = 1;
+										  $valid = 1;
 
-							}	# for $u (@$urls)
+									  }	# for $u (@$urls)
 
-							if (!$valid) {
-								die "Unable to loacte a valid url";
-							}
-							return ();
-						}
-					   }
-					  ),
+									  if (!$valid) {
+										  die "Unable to loacte a valid url";
+									  }
+									  return ();
+								  }
+								 }
+								),
 
 );
 
