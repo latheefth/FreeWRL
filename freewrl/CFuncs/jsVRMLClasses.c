@@ -1448,7 +1448,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 
-		printf ("SFNodeGetProperty, getting the property for %s\n",ptr->handle);
+		//printf ("SFNodeGetProperty, getting the property for %s\n",ptr->handle);
 		doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle);
 
 		if (!JS_GetProperty(cx, globalObj, _buff, &_rval)) {
@@ -1478,6 +1478,7 @@ JSBool
 SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	JSObject *globalObj;
+	jsval testval;
 	JSString *_idStr, *_valStr;
 	BrowserNative *brow;
 	SFNodeNative *ptr;
@@ -1544,12 +1545,14 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		val_len = strlen(ptr->handle) + 1;
 		sprintf(_buff, "%.*s_%.*s", val_len, ptr->handle, id_len, _id_c);
 
+
 		if (!JS_SetProperty(cx, globalObj, _buff, vp)) {
 			fprintf(stderr,
 					"JS_SetProperty failed for \"%s\" in SFNodeSetProperty.\n",
 					_buff);
 			return JS_FALSE;
 		}
+
 		doPerlCallMethodVA(brow->sv_js, "jspSFNodeSetProperty", "ss", _id_c, ptr->handle);
 		free(_buff);
 	}
