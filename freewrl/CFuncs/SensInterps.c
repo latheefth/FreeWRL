@@ -483,6 +483,19 @@ void do_GeoOint (void *node) {
 	struct VRML_GeoPositionInterpolator *px;
 }
 
+
+
+/* fired at start of event loop for every Collision */
+void do_CollisionTick(struct VRML_Collision *cx) {
+        if (cx->__hit == 3) {
+                /* printf ("COLLISION at %f\n",TickTime); */
+                cx->collideTime = TickTime;
+                mark_event ((unsigned int) cx, offsetof(struct VRML_Collision, collideTime));
+        }
+}
+
+
+
 /* Audio AudioClip sensor code */
 void do_AudioTick(struct VRML_AudioClip *node) {
 	int 	oldstatus;	
@@ -1015,7 +1028,7 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
 		/* set isActive false */
 		node->isActive=0;
 		mark_event ((unsigned int) node, 
-			offsetof (struct VRML_SphereSensor, isActive));
+			offsetof (struct VRML_CylinderSensor, isActive));
 		/* save auto offset of rotation */
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
