@@ -17,6 +17,7 @@
 
 #include <math.h>
 #include "LinearAlgebra.h" /* FreeWRL math */
+#include "quaternion.h" /* more math */
 
 #ifndef __jsUtils_h__
 #include "jsUtils.h"
@@ -329,7 +330,6 @@ SFRotationSetAxis(JSContext *cx,
 				  jsval *argv,
 				  jsval *rval);
 
-/* not implemented */
 JSBool
 SFRotationSlerp(JSContext *cx,
 				JSObject *obj,

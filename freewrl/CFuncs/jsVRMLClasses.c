@@ -1192,7 +1192,7 @@ SFNodeAssign(JSContext *cx, JSObject *obj,
 	jsval _rval;
 	JSString *strval;
 	char *strtouched;
-	unsigned int toptr;
+	/* unsigned int toptr; */
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed for obj in SFNodeAssign.\n");
@@ -1219,9 +1219,9 @@ SFNodeAssign(JSContext *cx, JSObject *obj,
 			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
 	}
 
-	//printf ("SFNodeAssign calling SFNodeNativeAssign\n");
+	/* printf ("SFNodeAssign calling SFNodeNativeAssign\n"); */
 	if (strncmp("NODE",fptr->handle,4) == 0) {
-		//printf ("SFNodeAssign, handle is a NODE\n");
+		/* printf ("SFNodeAssign, handle is a NODE\n"); */
 		/* try to get the node backend now */
 
 		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
@@ -1301,7 +1301,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 
 		vrmlstring_len = strlen(_vrmlstr) + 1;
 		handle_len = strlen(NULL_HANDLE) + 1;
-		//printf ("SFNodeConstr, argc==1, vrmlstr = %s\n",_vrmlstr);
+		/* printf ("SFNodeConstr, argc==1, vrmlstr = %s\n",_vrmlstr); */
 
 		if ((ptr = SFNodeNativeNew(vrmlstring_len, handle_len)) == NULL) {
 			fprintf(stderr, "SFNodeNativeNew failed in SFNodeConstr.\n");
@@ -1344,7 +1344,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 		vrmlstring_len = strlen(_vrmlstr) + 1;
 		handle_len = strlen(_handle) + 1;
 
-		//printf ("SFNodeConstr, argc==2, vrmlstr = %s\n",_vrmlstr);
+		/* printf ("SFNodeConstr, argc==2, vrmlstr = %s\n",_vrmlstr); */
 		if ((ptr = SFNodeNativeNew(vrmlstring_len, handle_len)) == NULL) {
 			fprintf(stderr, "SFNodeNativeNew failed in SFNodeConstr.\n");
 			return JS_FALSE;
@@ -1449,7 +1449,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		}
 
 		printf ("SFNodeGetProperty, getting the property for %s\n",ptr->handle);
-		//doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle);
+		/* doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle); */
 
 		if (!JS_GetProperty(cx, globalObj, _buff, &_rval)) {
 			fprintf(stderr,
@@ -1798,40 +1798,78 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 JSBool
 SFRotationSlerp(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	JSObject *_slerpObj, *_retObj, *_proto;
-	SFRotationNative *_rot1, *_rot2;
-	jsdouble d;
+	JSObject *_destObj, *_retObj, *_proto;
+	SFRotationNative *_rot, *_dest, *_ret;
+	Quaternion _quat, _quat_dest, _quat_ret;
+	jsdouble t;
 
-	if (!JS_ConvertArguments(cx, argc, argv, "o d", &_slerpObj, &d)) {
+	if (!JS_ConvertArguments(cx, argc, argv, "o d", &_destObj, &t)) {
 		fprintf(stderr, "JS_ConvertArguments failed in SFRotationSlerp.\n");
 		return JS_FALSE;
 	}
-	if (!JS_InstanceOf(cx, _slerpObj, &SFRotationClass, argv)) {
+	if (!JS_InstanceOf(cx, _destObj, &SFRotationClass, argv)) {
 		fprintf(stderr, "JS_InstanceOf failed in SFRotationSlerp.\n");
 		return JS_FALSE;
 	}
-	if ((_proto = JS_GetPrototype(cx, _slerpObj)) == NULL) {
-		fprintf(stderr, "JS_GetPrototype failed in SFRotationSlerp.\n");
-		return JS_FALSE;
-	}
 
-	if ((_retObj = JS_ConstructObject(cx, &SFRotationClass, _proto, NULL)) == NULL) {
-		fprintf(stderr, "JS_ConstructObject failed in SFRotationSlerp.\n");
-		return JS_FALSE;
-	}
-	*rval = OBJECT_TO_JSVAL(_retObj);
+	/*
+	 * From Annex C, C.6.7.4:
+	 *
+	 * For t = 0, return object's rotation.
+	 * For t = 1, return 1st argument.
+	 * For 0 < t < 1, compute slerp.
+	 */
+	if (APPROX(t, 0)) {
+		*rval = OBJECT_TO_JSVAL(obj);
+	} else if (APPROX(t, 1)) {
+		*rval = OBJECT_TO_JSVAL(_destObj);
+	} else {
+		if ((_proto = JS_GetPrototype(cx, _destObj)) == NULL) {
+			fprintf(stderr, "JS_GetPrototype failed in SFRotationSlerp.\n");
+			return JS_FALSE;
+		}
 
-	if ((_rot1 = JS_GetPrivate(cx, obj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed for obj in SFRotationSlerp.\n");
-		return JS_FALSE;
-	}
+		if ((_retObj = JS_ConstructObject(cx, &SFRotationClass, _proto, NULL)) == NULL) {
+			fprintf(stderr, "JS_ConstructObject failed in SFRotationSlerp.\n");
+			return JS_FALSE;
+		}
+		/* root the object */
+		*rval = OBJECT_TO_JSVAL(_retObj);
 
-	if ((_rot2 = JS_GetPrivate(cx, _slerpObj)) == NULL) {
-		fprintf(stderr, "JS_GetPrivate failed for _slerpObj in SFRotationSlerp.\n");
-		return JS_FALSE;
-	}
+		if ((_rot = JS_GetPrivate(cx, obj)) == NULL) {
+			fprintf(stderr, "JS_GetPrivate failed for obj in SFRotationSlerp.\n");
+			return JS_FALSE;
+		}
 
-	fprintf(stderr, "SFRotation's slerp function does nothing!\n");
+		if ((_dest = JS_GetPrivate(cx, _destObj)) == NULL) {
+			fprintf(stderr, "JS_GetPrivate failed for _destObj in SFRotationSlerp.\n");
+			return JS_FALSE;
+		}
+
+		if ((_ret = JS_GetPrivate(cx, _retObj)) == NULL) {
+			fprintf(stderr, "JS_GetPrivate failed for _retObj in SFRotationSlerp.\n");
+			return JS_FALSE;
+		}
+
+		vrmlrot_to_quaternion(&_quat,
+							  (_rot->v).r[0],
+							  (_rot->v).r[1],
+							  (_rot->v).r[2],
+							  (_rot->v).r[3]);
+
+		vrmlrot_to_quaternion(&_quat_dest,
+							  (_dest->v).r[0],
+							  (_dest->v).r[1],
+							  (_dest->v).r[2],
+							  (_dest->v).r[3]);
+
+		slerp(&_quat_ret, &_quat, &_quat_dest, t);
+		quaternion_to_vrmlrot(&_quat_ret,
+							  (double *) &(_ret->v).r[0],
+							  (double *) &(_ret->v).r[1],
+							  (double *) &(_ret->v).r[2],
+							  (double *) &(_ret->v).r[3]);
+	}
 
 	return JS_TRUE;
 }
