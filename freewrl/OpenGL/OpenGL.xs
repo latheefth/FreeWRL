@@ -55,10 +55,6 @@ Cursor sensorc;
 int	render_frame = 5;	/* do we render, or do we sleep? */
 int	now_mapped = 1;		/* are we on screen, or minimized? */
 
-/* Tesselator Object - have one here for use by all */
-GLUtriangulatorObj	*triang;
-
-
 #define OPENGL_NOVIRT
 #include "OpenGL.m"
 
@@ -188,52 +184,6 @@ static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
     return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
 }
 
-/***************************************************************************/
-/* routines for the tesselation callbacks */
-static void FW_beg(GLenum e) {
-	glBegin(e);
-}
-
-static void FW_end() {
-	glEnd();
-}
-
-static void FW_ver(void *p) {
-	GLdouble *dp = p;
-	glVertex3f(dp[0],dp[1],dp[2]);
-}
-
-static void FW_err(GLenum e) {
-	printf("FreeWRL Text error %d: '%s'\n",e,gluErrorString(e));
-}
-
-void FW_GLU_TESS_COMBINE (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
-	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
-	printf("FW_GLU_TESS_COMBINE\n");
-	nv[0] = c[0];
-	nv[1] = c[1];
-	nv[2] = c[2];
-	*out = nv; 
-}
-
-
-/* These are not used in FreeWRL - yet. 
-static void FW_GLU_TESS_BEGIN() { printf("FW_GLU_TESS_BEGIN\n");}
-static void FW_GLU_TESS_BEGIN_DATA() { printf("FW_GLU_TESS_BEGIN_DATA\n");}
-static void FW_GLU_TESS_EDGE_FLAG() { printf("FW_GLU_TESS_EDGE_FLAG\n");}
-static void FW_GLU_TESS_EDGE_FLAG_DATA() { printf("FW_GLU_TESS_EDGE_FLAG_DATA\n");}
-static void FW_GLU_TESS_VERTEX() { printf("FW_GLU_TESS_VERTEX\n");}
-static void FW_GLU_TESS_VERTEX_DATA() { printf("FW_GLU_TESS_VERTEX_DATA\n");}
-static void FW_GLU_TESS_END() { printf("FW_GLU_TESS_END\n");}
-static void FW_GLU_TESS_END_DATA() { printf("FW_GLU_TESS_END_DATA\n");}
-static void FW_GLU_TESS_COMBINE_DATA() { printf("FW_GLU_TESS_COMBINE_DATA\n");}
-static void FW_GLU_TESS_ERROR() { printf("FW_TESS_ERROR\n");}
-static void FW_GLU_TESS_ERROR_DATA() { printf("FW_GLU_TESS_ERROR_DATA\n");}
-*/
-
-
-
-
 
 /***************************************************************************/
 MODULE = VRML::OpenGL		PACKAGE = VRML::OpenGL
@@ -283,22 +233,6 @@ dec_render_frame()
 	if (render_frame > 0) render_frame--;
 	}
 	
-
-
-
-# Give the Triangulator object back to FreeWRL so that others can use it 
-void *
-get_triangulator()
-	CODE:
-	{
-		RETVAL = (void *)triang;
-	}
-OUTPUT:
-	RETVAL
-
-
-
-
 # cursor stuff JAS
 void
 arrow_cursor()
@@ -507,33 +441,6 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	    /* what is the hardware 3d accel? */
 	    strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
 	    /* printf ("%s\n",renderer); */
-
-
-	    /* now, get a tesselator up and ready for action */
-	    /* register tesselation callbacks for OpenGL calls */
-	    triang = gluNewTess();
-
-	    /* Unused right now.
-	    gluTessCallback(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
-	    gluTessCallback(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
-	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
-	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
-	    gluTessCallback(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
-	    gluTessCallback(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
-	    gluTessCallback(triang, GLU_TESS_END,FW_GLU_TESS_END);
-	    gluTessCallback(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
-	    gluTessCallback(triang, GLU_TESS_COMBINE_DATA,FW_GLU_TESS_COMBINE_DATA);
-	    gluTessCallback(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
-	    gluTessCallback(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
-	    */
-
-	    gluTessCallback(triang, GLU_TESS_COMBINE,FW_GLU_TESS_COMBINE);
-	    gluTessCallback(triang, GLU_BEGIN, FW_beg);
-	    gluTessCallback(triang, GLU_VERTEX, FW_ver);
-	    gluTessCallback(triang, GLU_END, FW_end);
-	    gluTessCallback(triang, GLU_ERROR, FW_err);
-
-
 
 	    /* and make it so that we render 1 frame, at least */
 	    render_frame = 5;
