@@ -26,8 +26,8 @@
 #  Test indexedlineset
 #
 # $Log$
-# Revision 1.126  2003/11/26 19:38:32  crc_canada
-# command line file name for c back end
+# Revision 1.127  2003/11/27 14:50:51  crc_canada
+# copy libjs.so over to /usr/local/lib and general cleanup
 #
 # Revision 1.125  2003/11/26 16:31:06  crc_canada
 # First pass at threading.
@@ -2225,31 +2225,6 @@ CODE:
 OUTPUT:
 	RETVAL
 
-#JAS #*****************************************************************************
-#JAS #
-#JAS # signal to the Perl browser that Perl action is required. 
-#JAS #
-#JAS int 
-#JAS BrowserAction()
-#JAS CODE:
-#JAS 	RETVAL = BrowserAction;
-#JAS OUTPUT:
-#JAS 	RETVAL
-#JAS 
-#JAS #*****************************************************************************
-#JAS #
-#JAS # return the action to the Browser
-#JAS #
-#JAS void
-#JAS getAnchorBrowserAction(x)
-#JAS 	char * x
-#JAS CODE:
-#JAS 	BrowserAction = FALSE;
-#JAS 	x = BrowserActionString;
-#JAS OUTPUT:
-#JAS 	x
-#JAS 
-
 #*****************************************************************************
 # return a C pointer to a func for the interpolator functions. Used in CRoutes
 # to enable event propagation to call the correct interpolator
@@ -2414,41 +2389,6 @@ set_root(rn)
 CODE:
 	rootNode = rn;
 
-#JAS void
-#JAS do_set_eyehalf(eyehalf, eyehalfangle)
-#JAS 	double eyehalf
-#JAS 	double eyehalfangle
-#JAS CODE:
-#JAS 	set_eyehalf(&Viewer, eyehalf, eyehalfangle);
-#JAS 
-#JAS - two temporary fns
-#JASvoid
-#JASset_win_ptr(ptr)
-#JAS	unsigned ptr
-#JAS	CODE:
-#JAS	set_Win_Ptr(ptr);
-#JAS
-#JASvoid
-#JASset_dpy_ptr (ptr)
-#JAS	unsigned ptr
-#JAS	CODE:
-#JAS	set_Display_Ptr(ptr);
-#JAS 
-#JAS void
-#JAS setStereoView()
-#JAS 	CODE:
-#JAS 	XEventStereo();
-
-
-int
-use_keys()
-
-#JAS void
-#JAS set_viewer_type(type)
-#JAS 	int type
-
-#********************************************************************************
-
 #********************************************************************************
 # Send a bind/unbind to this node
 
@@ -2471,12 +2411,6 @@ CODE:
 	add_first(clocktype,node);
 
 #********************************************************************************
-
-#JAS void
-#JAS XXEventLoop()
-#JAS CODE:
-#JAS 	EventLoop();
-#JAS 
 
 # save the specific FreeWRL version number from the Config files.
 void

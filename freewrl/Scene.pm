@@ -941,8 +941,6 @@ sub make_backend {
 
 		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 
-		#JAS $be->set_root($bn) unless $this->{IsInline};
-
 		#print "Scene, done NOT PROTO ",VRML::NodeIntern::dump_name($this)," $be $parentbe\n";
  		$be->set_vp_sub(
  			sub {

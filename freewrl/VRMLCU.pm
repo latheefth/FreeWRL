@@ -61,9 +61,6 @@ sub set_field_be {
 	#}
 
 	if(!defined ($o=$VRML::CNodes{$type}{Offs}{$field})) {
-		#JAS don't die; sometimes listeners try to change while other changes happen
-		#JAS (eg, addChild, removeChild...)
-
 		print "Field $field undefined for $type in C\n" if $VRML::verbose::warn;
 		return;
 	}

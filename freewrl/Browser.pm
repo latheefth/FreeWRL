@@ -418,8 +418,6 @@ sub createVrmlFromURL {
 
 	# stage 1a - get the URL....
 	$url = ($url || $file);
-	#JAS my $wurl = $this->{Scene}->get_world_url();
-	#JAS my $wurl="./";
 	my $wurl = $url;
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
@@ -438,7 +436,6 @@ sub createVrmlFromURL {
 	}
 
 	# Stage 2 - load the string in....
-	#JAS return $this->create_common($url,$wurl,$t);
 	return $this->create_common($url,$wurl,$t);
 }
 
@@ -790,8 +787,7 @@ sub EAI_CreateVrmlFromString {
 
 sub EAI_CreateVrmlFromURL {
 	my ($string) = @_;
-print "EAI_CreateVrmlFromURL, string $string\n";
-$globalBrowser->{URL} = $string;
+	$globalBrowser->{URL} = $string;
 
 	my $rv = createVrmlFromURL ($globalBrowser,$string, $string);
 

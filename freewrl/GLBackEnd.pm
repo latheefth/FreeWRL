@@ -36,15 +36,6 @@ my $becollision = 1;	# collision detection turned on or off - 1 = on.
 
 ####
 #
-# set fast rendering - don't do smooth shading
-
-sub set_fast {
-	#JAS glShadeModel(&GL_FLAT);
-}
-
-
-####
-#
 # Take a snapshot of the world. Returns array ref, 
 # first member: width, second: height and third is a raw string
 # of RGB values. You can use e.g. rawtoppm to convert this
