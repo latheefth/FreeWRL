@@ -16,7 +16,10 @@
  *
  */
 
-#include "XSUB.h"
+#include <EXTERN.h>
+#include <perl.h>
+#include <XSUB.h>
+
 
 #ifndef __jsUtils_h__
 #include "jsUtils.h" /* misc helper C functions and globals */
@@ -87,7 +90,7 @@ void
 doPerlCallMethod(SV *sv, const char *methodName)
 {
 	int count = 0;
-
+ #define PERL_NO_GET_CONTEXT
 	dSP;
 	ENTER;
 	SAVETMPS;
