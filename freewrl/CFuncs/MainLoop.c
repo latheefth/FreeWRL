@@ -672,6 +672,7 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	void (*myp)(unsigned *);
 
 	//printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);
+
 	if (strncmp("TouchSensor",type,10) == 0) { myp =  (void *)do_TouchSensor;
 	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = (void *)do_GeoTouchSensor;
 	} else if (strncmp("PlaneSensor",type,10) == 0) { myp = (void *)do_PlaneSensor;
@@ -685,9 +686,13 @@ void setSensitive(void *ptr,int datanode,char *type) {
 		return;
 	}
 
-	/* mark this node as sensitive. */
+	/* mark THIS node as sensitive. */
 	p = ptr;
 	p->_sens = TRUE;
+
+	/* and tell the rendering pass that there is a sensitive node down
+	 * this branch */
+	update_renderFlag(p,VF_Sensitive);
 
 	/* record this sensor event for clicking purposes */
 	SensorEvents = realloc(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));

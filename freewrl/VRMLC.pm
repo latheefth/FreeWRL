@@ -26,6 +26,11 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.153  2004/09/15 18:34:40  crc_canada
+# Sensitive rendering pass now only traverses branches that have
+# sensitive nodes in it. Speeds up (on my machine) tests/33.wrl from
+# 14.71fps to 17.4fps.
+#
 # Revision 1.152  2004/09/08 18:58:58  crc_canada
 # More Frustum culling work.
 #
@@ -586,7 +591,8 @@ sub gen_struct {
 	# /* Store actual point etc. later */
        my $s = "struct VRML_$name {\n" .
                " /***/ struct VRML_Virt *v;\n"         	.
-               " /*s*/ int _sens; \n"                  	.
+               " /*s*/ int _renderFlags; /*sensitive, etc */ \n"                  	.
+               " /*s*/ int _sens; /*THIS is sensitive */ \n"                  	.
                " /*t*/ int _hit; \n"                   	.
                " /*a*/ int _change; \n"                	.
 	       " /*n*/ int _dlchange; \n"              	.
@@ -1194,7 +1200,7 @@ void render_node(void *node) {
 	 * that child... further in future: could just calculate
 	 * transforms myself..
 	 */
-	if(render_sensitive && p->_sens) 
+	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
 	  {
 	    if (verbose) printf ("rs 5\n");
 	    srg = render_geom;
@@ -1230,7 +1236,7 @@ void render_node(void *node) {
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
         }
 
-	if(render_sensitive && p->_sens) 
+	if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
 	  {
 	    if (verbose) printf ("rs 9\n");
 	    render_geom = srg;
@@ -1287,6 +1293,11 @@ void add_parent(void *node_, void *parent_) {
 	struct VRML_Box *parent = parent_;
 	if(!node) return;
 	//printf ("adding node %d to parent %d\n",node_, parent_);
+	//printf ("child has flags %d, parent %d\n",node->_renderFlags,
+	//parent->_renderFlags);
+
+	parent->_renderFlags = parent->_renderFlags |
+		node->_renderFlags;
 
 	node->_nparents ++;
 	if(node->_nparents > node->_nparalloc) {
@@ -1403,7 +1414,8 @@ CODE:
 	struct VRML_Box *p = ptr;
 	/* printf("Alloc: %d %d -> %d\n", siz, virt, ptr);  */
 	*(struct VRML_Virt **)ptr = (struct VRML_Virt *)virt;
-	p->_sens = p->_hit = 0;
+	p->_renderFlags = p->_hit = 0;
+	p->_sens = FALSE;
 	p->_intern = 0;
 	p->_change = 153;
 	p->_dlchange = 0;

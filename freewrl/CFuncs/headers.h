@@ -248,6 +248,7 @@ void gatherScriptEventOuts(int script, int ignore);
 void getMFNodetype (char *strp, struct Multi_Node *ch, int ar);
 
 void update_node(void *ptr);
+void update_renderFlag(void *ptr, int flag);
 
 extern int CRVerbose, JSVerbose;
 
@@ -484,7 +485,7 @@ void lodChild (struct VRML_LOD *this_);
 void inlinelodChild (struct VRML_InlineLoadControl *this_);
 void collisionChild(struct VRML_Collision *this_);
 
-extern int curlight,verbose,render_blend,render_geom,render_collision;
+extern int render_sensitive,render_vp,render_light,render_proximity,curlight,verbose,render_blend,render_geom,render_collision;
 
 
 
