@@ -18,10 +18,14 @@ public class EventOut extends vrml.external.Node {
 // public String ScriptType; // non zero indicates sending to a javascript
 
 
-  // Get the type of this EventOut (specified in FieldTypes.java)
-//  public int           getType() {
-//    return EventType;
-//  }
+  //Get the type of this EventOut (specified in FieldTypes.java)
+  //public int           getType() {
+  //  return EventType;
+  //}
+
+   public int getIntType() {
+	return EventType;
+   }
 
   // Mechanism for setting up an observer for this field.
   // The EventOutObserver's callback gets called when the
