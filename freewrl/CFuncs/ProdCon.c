@@ -129,7 +129,7 @@ void __pt_doStringUrl (void);
 void __pt_doPerlCallMethodVA(void);
 void __pt_EAI_GetNode (void);
 void __pt_EAI_GetType (void);
-void __pt_EAI_replaceWorld (void);
+//JAS void __pt_EAI_replaceWorld (void);
 void __pt_EAI_Route (void);
 
 /* Bindables */
@@ -426,28 +426,28 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	return (retval);
 }
 
-/* interface for replacing worlds from EAI */
-void EAI_replaceWorld(char *inputstring) {
-	int complete;
-
-	PSP_LOCK
-	DATA_LOCK
-	psp.comp = &complete;
-	psp.type = EAIREPWORLD;
-	psp.ptr = rootNode;
-	psp.ofs = offsetof(struct VRML_Group, children);
-	psp.path = NULL;
-	psp.bind = FALSE; /* should we issue a set_bind? */
-	/* copy over the command */
-	psp.inp = malloc (strlen(inputstring)+2);
-	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
-	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
-	PSP_UNLOCK
-}
-
+//JAS/* interface for replacing worlds from EAI */
+//JASvoid EAI_replaceWorld(char *inputstring) {
+//JAS	int complete;
+//JAS
+//JAS	PSP_LOCK
+//JAS	DATA_LOCK
+//JAS	psp.comp = &complete;
+//JAS	psp.type = EAIREPWORLD;
+//JAS	psp.ptr = rootNode;
+//JAS	psp.ofs = offsetof(struct VRML_Group, children);
+//JAS	psp.path = NULL;
+//JAS	psp.bind = FALSE; /* should we issue a set_bind? */
+//JAS	/* copy over the command */
+//JAS	psp.inp = malloc (strlen(inputstring)+2);
+//JAS	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
+//JAS	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
+//JAS	DATA_LOCK_SIGNAL
+//JAS	DATA_UNLOCK
+//JAS	while (complete!=1) usleep(10);
+//JAS	PSP_UNLOCK
+//JAS}
+//JAS
 
 /****************************************************************************/
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
@@ -458,7 +458,6 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	if (returnifbusy) {
 		if (PerlParsing) return (FALSE);
 	}
-
 	PSP_LOCK
 	DATA_LOCK
 	/* copy the data over; malloc and copy input string */
@@ -540,17 +539,6 @@ void _perlThread(void *perlpath) {
 
 		/* Now, possibly this is the first VRML file to
 		   add. Check to see if maybe we have a ptr of 0. */
-
-		/* unused code JAS - rootnode is set by CFrontEnd/freewrl.c,
-		   or equiv. in OS X.
-		printf ("check ofs, %d %d\n",psp.ptr, psp.ofs);
-		if ((psp.ptr==0) && (psp.ofs==offsetof(
-			struct VRML_Group, children))) {
-			psp.ptr=rootNode;
-		}
-		printf ("check ofs now, %d %d %d\n",psp.ptr, psp.ofs, offsetof(
-                        struct VRML_Group, children));
-		*/
 	}
 
 	/* now, loop here forever, waiting for instructions and obeying them */
@@ -615,11 +603,11 @@ void _perlThread(void *perlpath) {
 			break;
 			}
 
-		case EAIREPWORLD: {
-			/* EAI sending in a new world */
-			__pt_EAI_replaceWorld();
-			break;
-			}
+//JAS		case EAIREPWORLD: {
+//JAS			/* EAI sending in a new world */
+//JAS			__pt_EAI_replaceWorld();
+//JAS			break;
+//JAS			}
 
 		default: {
 			printf ("produceTask - invalid type!\n");
@@ -653,7 +641,6 @@ void addToNode (unsigned rc, unsigned newNode) {
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
 	newlen=1;
-
 	newmal = malloc ((oldlen+newlen)*sizeof(unsigned int));
 	if (newmal == 0) {
 		printf ("cant malloc memory for addChildren");
@@ -1091,20 +1078,21 @@ void __pt_EAI_GetType (){
 	LEAVE;
 }
 
-void __pt_EAI_replaceWorld () {
-	int count;
-
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-	PUTBACK;
-		count = call_pv("EAI_replaceWorld", G_ARRAY);
-	SPAGAIN ;
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
+//JASvoid __pt_EAI_replaceWorld () {
+//JAS	int count;
+//JAS
+//JAS	printf ("ProdCon, _pt_EAI_replaceWorld, fieldname %s\n",psp.fieldname);
+//JAS//	dSP;
+//JAS//	ENTER;
+//JAS//	SAVETMPS;
+//JAS//	PUSHMARK(SP);
+//JAS//	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+//JAS//	PUTBACK;
+//JAS//		count = call_pv("VRML::Browser::EAI_replaceWorld", G_ARRAY);
+//JAS//	SPAGAIN ;
+//JAS//	PUTBACK;
+//JAS//	FREETMPS;
+//JAS//	LEAVE;
+//JAS}
 
 /****************************** END OF EAI **********************************/

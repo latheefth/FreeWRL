@@ -148,21 +148,21 @@ sub new {
 	
 }
 
-# is this node a new "replaceWorld'd" node, and does it need to be put on the stack?
-sub replaceWorld_Bindable {
-    my ($this, $node) = @_;
-
-    # Check if it is bindable and first -> bind to it later..
-
-    if ($VRML::Nodes::bindable{$node->{TypeName}}) {
-		# this should never happen...
-		if (!defined $this->{Bindable}{$node->{TypeName}}) {
-			$this->{Bindable}{$node->{TypeName}} = $node;
-		}
-
-		push @{$this->{Bindables}{$node->{TypeName}}}, $node;
-    }
-}
+#JAS# is this node a new "replaceWorld'd" node, and does it need to be put on the stack?
+#JASsub replaceWorld_Bindable {
+#JAS    my ($this, $node) = @_;
+#JAS
+#JAS    # Check if it is bindable and first -> bind to it later..
+#JAS
+#JAS    if ($VRML::Nodes::bindable{$node->{TypeName}}) {
+#JAS		# this should never happen...
+#JAS		if (!defined $this->{Bindable}{$node->{TypeName}}) {
+#JAS			$this->{Bindable}{$node->{TypeName}} = $node;
+#JAS		}
+#JAS
+#JAS		push @{$this->{Bindables}{$node->{TypeName}}}, $node;
+#JAS    }
+#JAS}
 
 	
 sub set_url {

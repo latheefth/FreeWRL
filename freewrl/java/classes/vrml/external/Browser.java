@@ -258,11 +258,11 @@ public class Browser implements BrowserInterface
 	int count;
 
         for (count=0; count<nodes.length; count++) {
-		SysString = SysString + " " + nodes[count];
+		SysString = SysString + " " + nodes[count].nodeptr;
 	}
 
         synchronized (FreeWRLToken) {
-          EAIoutSender.send ("" + queryno + "RW" + SysString);
+          EAIoutSender.send ("" + queryno + "P" + SysString);
           retval = getVRMLreply(queryno);
           queryno += 1;
         }

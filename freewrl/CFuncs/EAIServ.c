@@ -90,6 +90,7 @@ void EAI_parse_commands (char *stptr);
 unsigned int EAI_SendEvent(char *bufptr);
 void handle_Listener (void);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
+void EAI_RW(char *str);
 
 void EAI_send_string(char *str, int lfd){
 	unsigned int n;
@@ -191,6 +192,42 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	return TRUE;
 }
 
+/* EAI, replaceWorld. */
+void EAI_RW(char *str) {
+
+	unsigned oldlen, newNode;
+	struct VRML_Group *rn;
+	struct Multi_Node *par;
+
+	int i,j,k;
+
+	rn = (struct VRML_Group *) rootNode;
+	par = &(rn->children);
+
+	if (EAIVerbose) printf ("EAIRW, rootNode is %d\n",rootNode);
+
+	/* oldlen = what was there in the first place */
+	oldlen = par->n;
+
+	if (EAIVerbose) printf ("oldRoot has %d nodes\n",oldlen);
+
+	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
+	par->n = 1;
+
+	/* go through the string, and send the nodes into the rootnode */
+	/* first, remove the command, and get to the beginning of node */
+	while ((*str != ' ') && (strlen(str) > 0)) str++;
+	while (isspace(*str)) str++;
+	while (strlen(str) > 0) {
+		i = sscanf (str, "%u",&newNode);
+		if (i>0) addToNode ((unsigned) rootNode + offsetof (struct 
+					VRML_Group, children), newNode);
+
+		while (isdigit(*str)) str++;
+		while (isspace(*str)) str++;
+	}
+}
+
 /* the user has pressed the "q" key */
 void shutdown_EAI() {
 	
@@ -232,8 +269,6 @@ void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 		FD_SET((*listenfd), &rfds);
 	
 		retval = select((*listenfd)+1, &rfds, NULL, NULL, &tv);
-printf ("readEAIsocket, retval %d\n",retval);
-	
 		if (retval) {
 			retval = read ((*listenfd), &buffer2[(*bfct)],EAIREADSIZE);
 
@@ -243,7 +278,7 @@ printf ("readEAIsocket, retval %d\n",retval);
 				(*listenfd) = -1;
 			}
 
-			//if (EAIVerbose) 
+			if (EAIVerbose) 
 				printf ("read in from socket %d , max %d",retval,EAIREADSIZE);
 
 			(*bfct) += retval;
@@ -273,6 +308,7 @@ void handle_EAI () {
 
 	/* make this into a C string */
 	buffer2[bufcount2] = 0;
+	//printf ("buffer is :%s:\n",buffer2);
 
 	/* any command read in? */
 	if (bufcount2 > 1) 
@@ -480,7 +516,8 @@ void EAI_parse_commands (char *bufptr) {
 				}
 			case REPLACEWORLD:  {
 				if (EAIVerbose) printf ("REPLACEWORLD %s \n",bufptr);
-				EAI_replaceWorld(bufptr);
+				EAI_RW(bufptr);
+				sprintf (buf,"RE\n%d\n0",count);
 				break;
 				}
 			case ADDROUTE:  

@@ -268,24 +268,24 @@ sub setDescription {
 	print "Set description: $desc\n"; ## may do more later
 } # Read the spec: 4.12.10.8 ;)
 
-sub replaceWorld {
-	# make a new scene, this is very similar to load_string, found
-	# in this file.
-
-	my ($this, $string) = @_;
-	my @newnodes = ();
-	my $n;
-
-	print "replaceWorld, string is $string\n";
-
-	# lets go and create the new node array from the nodes as sent in.
-	for $n (split(' ',$string)) {
-		print "looking at element $n " , VRML::Handles::get($n), "\n";
-		@newnodes = (@newnodes,VRML::Handles::get($n));
-	}
-
-	$this->{Scene}->topnodes(\@newnodes);
-}
+#JASsub replaceWorld {
+#JAS	# make a new scene, this is very similar to load_string, found
+#JAS	# in this file.
+#JAS
+#JAS	my ($this, $string) = @_;
+#JAS	my @newnodes = ();
+#JAS	my $n;
+#JAS
+#JAS	print "replaceWorld, string is $string\n";
+#JAS
+#JAS	# lets go and create the new node array from the nodes as sent in.
+#JAS	for $n (split(' ',$string)) {
+#JAS		print "looking at element $n " , VRML::Handles::get($n), "\n";
+#JAS		@newnodes = (@newnodes,VRML::Handles::get($n));
+#JAS	}
+#JAS
+#JAS	$this->{Scene}->topnodes(\@newnodes);
+#JAS}
 
 sub loadURL { print "Can't do loadURL yet\n"; }
 
@@ -620,12 +620,12 @@ sub EAI_CreateVrmlFromURL {
 	return %retval;
 }
 
-sub EAI_replaceWorld {
-	my ($string) = @_;
-
-	print "BROWSER: replace world with $string\n";
-	replaceWorld ($globalBrowser,$string);
-}
+#JAS sub EAI_replaceWorld {
+#JAS 	my ($string) = @_;
+#JAS 
+#JAS 	print "BROWSER: replace world with $string\n";
+#JAS 	replaceWorld ($globalBrowser,$string);
+#JAS }
 
 
 #######################################################
