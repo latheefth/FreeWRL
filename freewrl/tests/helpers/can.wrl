@@ -9,7 +9,8 @@ Group {
 			appearance Appearance {
 				material Material { }
 				texture ImageTexture {
-					url "cantop.jpg"
+					#url "cantop.jpg"
+					url "cantop.png"
 				}
 			}
 			geometry Cylinder {
@@ -23,7 +24,8 @@ Group {
 			appearance Appearance {
 				material Material { }
 				texture ImageTexture {
-					url "canbot.jpg"
+					#url "canbot.jpg"
+					url "canbot.png"
 				}
 			}
 			geometry Cylinder {
@@ -37,7 +39,8 @@ Group {
 			appearance Appearance {
 				material Material { }
 				texture ImageTexture {
-					url "canlabel.jpg"
+					#url "canlabel.jpg"
+					url "canlabel.png"
 				}
 			}
 			geometry Cylinder {
