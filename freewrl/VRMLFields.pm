@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.40  2004/08/25 14:56:18  crc_canada
+# handle ISO extended characters within SFString
+#
 # Revision 1.39  2004/07/16 13:17:50  crc_canada
 # SFString as a Java .class script field entry.
 #
@@ -561,7 +564,8 @@ package VRML::Field::SFString;
 # Ayla... This is closer to the VRML97 specification,
 # which allows anything but unescaped " or \ in SFStrings.
 
-$Chars = qr/(?:[\x00-\x21\x23-\x5b\x5d-\x7f]*|\x5c\x22|\x5c{2}[^\x22])*/o;
+#$Chars = qr/(?:[\x00-\x21\x23-\x5b\x5d-\x7f]*|\x5c\x22|\x5c{2}[^\x22])*/o;
+$Chars = qr/(?:[\x00-\x21\x23-\x5b\x5d-\xffff]*|\x5c\x22|\x5c{2}[^\x22])*/o;
 
 sub init { return ""; }
 
@@ -573,6 +577,7 @@ sub parse {
 	## cleanup ms-dos/windows end of line chars
 	$str =~ s///g;
 	$str =~ s/\\(.)/$1/g;
+	#print "sfstring str is $str\n";
 	return $str;
 }
 
