@@ -235,7 +235,11 @@ togl(Quaternion *quat)
 	if (quat->w > 1) {
 		normalize(quat);
 	}
-	glRotated(2 * (acos(quat->w) / PI * 180), quat->x, quat->y, quat->z);
+	/* Invert around Y axis  - does this work on all cases? We want to face 180 degrees
+	   to what the quat says. */
+	//printf ("togl: setting rotation %f %f %f %f\n",2 * (acos(quat->w) / PI * 180),quat->x, -quat->y, quat->z);
+
+	glRotated(2 * (acos(quat->w) / PI * 180), quat->x, -quat->y, quat->z);
 }
 
 void
@@ -247,6 +251,27 @@ set(Quaternion *ret, const Quaternion *quat)
 	ret->z = quat->z;
 }
 
+/* unused - JAS.
+double abssq(Quaternion *quat) {
+	return (quat->w * quat->w) +
+	       (quat->x * quat->x) +
+	       (quat->y * quat->y) +
+	       (quat->z * quat->z);
+}
+
+void
+quat_invert (Quaternion *quat) {
+	double absq;
+
+	absq = abssq(quat);
+
+	quat->w *=  1/absq;
+	quat->x *= -1/absq;
+	quat->y *= -1/absq;
+	quat->z *= -1/absq;
+}
+*/
+	
 /*
  * Code from www.gamasutra.com/features/19980703/quaternions_01.htm,
  * Listing 5.
