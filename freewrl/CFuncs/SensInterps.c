@@ -68,7 +68,7 @@ void do_active_inactive (
 				if (!(loop)) {
 					if (speed != 0) {
 					    if (tick >= (*startt + 
-							abs(myDuration/speed))) {
+							fabs(myDuration/speed))) {
 						/* printf ("stopping case x\n"); */
 						*act = 0;
 						*stopt = tick;
@@ -415,10 +415,6 @@ void do_AudioTick(struct VRML_AudioClip *node, double tick,int *doevent) {
 		}
         	SetAudioActive (node->__sourceNumber,node->isActive);
 	}
-
-	if(node->isActive == 1) {
-		/* VRML::OpenGL::set_render_frame(); */
-	}
 }
 
 
@@ -461,26 +457,107 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick, int *doActeve
 
 
 	if(node->isActive == 1) {
-			/* calculate what fraction we should be */
-	 		myTime = (tick - node->startTime) / myDuration;
+		/* calculate what fraction we should be */
+ 		myTime = (tick - node->startTime) / myDuration;
 
-			if (node->loop) {
-				frac = myTime - (int) myTime;
-			} else {
-				frac = (myTime > 1 ? 1 : myTime);
-			}
+		if (node->loop) {
+			frac = myTime - (int) myTime;
+		} else {
+			frac = (myTime > 1 ? 1 : myTime);
+		}
 
-			/* cycleTime events once at start, and once every loop. */
-			if (frac < node->__ctflag) {
-				*doCtevent = 1;
-                               	/* push @e, [$t, cycleTime, $tick]; */
-			}
-			node->__ctflag = frac;
+		/* cycleTime events once at start, and once every loop. */
+		if (frac < node->__ctflag) {
+			*doCtevent = 1;
+			/* push @e, [$t, cycleTime, $tick]; */
+		}
+		node->__ctflag = frac;
 	
-			/* time  and fraction_changed events */
-			*doTsevent = 1;
-			*retfrac = frac;
-			/* push @e, [$t, "time", $tick];
-			push @e, [$t, fraction_changed, $frac]; */
+		/* time  and fraction_changed events */
+		*doTsevent = 1;
+		*retfrac = frac;
+		/* push @e, [$t, "time", $tick];
+		push @e, [$t, fraction_changed, $frac]; */
 	}
 }
+
+
+
+
+
+/* Audio MovieTexture code */
+void do_MovieTextureTick(struct VRML_MovieTexture *node, double tick,int *doevent) {
+	int 	oldstatus;	
+	float 	frac;		/* which texture to display */
+	int 	highest,lowest;	/* selector variables		*/
+	double myDuration;
+	double myTime;
+	float 	speed;
+	float	duration;
+
+	/* assume no event from this node */
+	*doevent = 0;
+
+	/* can we possibly have started yet? */
+	if(tick < node->startTime) {
+		return;
+	}
+
+	oldstatus = node->isActive;
+	highest = node->__texture1_;
+	lowest = node->__texture0_;
+	duration = (highest - lowest)/30.0;
+	speed = node->speed;
+
+
+	/* call common time sensor routine */
+	do_active_inactive (
+		&node->isActive, &node->__inittime, &node->startTime,
+		&node->stopTime,tick,node->loop,duration,speed);
+	
+
+	/* what we do now depends on whether we are active or not */
+	if (oldstatus != node->isActive) {
+		/* push @e, [$t, "isActive", node->{isActive}]; */
+		*doevent = 1;
+	}
+
+	if(node->isActive == 1) {
+		frac = node->__ctex;
+
+		/* sanity check - avoids divide by zero problems below */
+		if (lowest >= highest) {
+			lowest = highest-1;
+		}	
+		/* calculate what fraction we should be */
+ 		myTime = (tick - node->startTime) * speed/duration;
+
+		frac = myTime - truncf((float)myTime);
+	
+		/* negative speed? */
+		if (speed < 0) {
+			frac = 1+frac; /* frac will be *negative* */
+		} else if (speed == 0) {
+			frac = 0;
+		}
+	
+		/* frac will tell us what texture frame we should apply... */
+		frac = truncf(frac*(highest-lowest+1)+lowest);
+	
+		/* verify parameters */
+		if (frac < lowest){ 
+			frac = lowest;
+		}
+		if (frac > highest){ 
+			frac = highest;
+		}
+	
+		if (node->__ctex != frac) {
+			node->__ctex = frac;
+
+			/* force a change to re-render this node */
+			update_node(node);
+		}
+	}
+}
+
