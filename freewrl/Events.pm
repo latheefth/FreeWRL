@@ -353,7 +353,7 @@ sub resolve_node_cnode {
 			$to_count = 1;
 			$tonode_str = "$outptr:$outoffset";
 		}
-		print "got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
+		# print "got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
 	} elsif ($proto_node->{TypeName} =~ /script/i) { ## needed ???
 		$outptr = $scenenum;
 		$outoffset = VRML::VRMLFunc::paramIndex($proto_field, $proto_node->{Type}{FieldTypes}{$proto_field});
@@ -366,7 +366,7 @@ sub resolve_node_cnode {
 			$to_count = 1;
 			$tonode_str = "$outptr:$outoffset";
 			}
-			print "PROTO: got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
+			# print "PROTO: got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
 	} else {
 		if (!defined $node->{BackNode}) {
 			# check if this node resides within a Javascript invocation...
