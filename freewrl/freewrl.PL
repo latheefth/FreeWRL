@@ -262,6 +262,12 @@ have an alternate way to enable fullscreen rendering it may be best to use that
 way instead. The fullscreen flag will not enable hardware acceleration if it has
 not already been enabled. 
 
+=item C<-netscape> I<PIDstring> 
+
+Tells FreeWRL that it is running within Netscape, and thus to get all
+URLs from Netscape, use Netscape for EAI, not to handle the "q" key,
+and to use the PID as the window title for swallowing into netscape.
+
 =item C<-geo[metry]> I<geom>
 
 Set the initial window geometry with the usual X window format string.
@@ -434,7 +440,6 @@ BEGIN {
         $main::seqtmp = "$ENV{HOME}/freewrl_tmp" ;
         $main::seqname = "freewrl.seq" ;
         $main::snapname = "freewrl.snap" ;
-        ## $VRML::ENV{FREEWRL_FONTS} = "/home/etienne/prog/vrml2/FreeWRL/FreeWRL/fonts";
 	use Getopt::Long;
 
 	GetOptions(
@@ -445,6 +450,7 @@ BEGIN {
 		"fast" => \$fast, 
 		"fullscreen" => \$fullscreen,
 		"geometry=s" => \$geometry,
+		"netscape=s" => \$VRML::ENV{NETSCAPE},
 		"lwp!" => \$VRML::ENV{FREEWRL_NO_LWP},
 		"save=s" => \$VRML::ENV{FREEWRL_SAVE},
 		"fontdir=s" => \$VRML::ENV{FREEWRL_FONTS},
@@ -482,7 +488,7 @@ BEGIN {
 	## I (Etienne) prefer having verbose output in the source dir (where
 	## I'm likely to be testing) 
         ## warn "Use blib failed" if $@;
-	warn "Use blib succeeded" unless $@;
+	#warn "Use blib succeeded" unless $@;
 
 	if ($server){		# Behave as server : print pid and shut up
 	  $| = $sig_reload = 1;
@@ -558,6 +564,11 @@ if($fast) {
 }
 
 $b->load_file($ARGV[0],$url);
+
+# lets handle a normal term...
+$SIG{TERM} = sub { $be->close_screen(); exit; };
+$SIG{QUIT} = sub { $be->close_screen();  exit;};
+
 
 $SIG{USR1} = sub { 
     $b->load_file($ARGV[0],$url); 
