@@ -29,20 +29,9 @@ EAI "funnies":
 - package up the eai code in a .zip package, and find out where to
   put it in Netscape's CLASSPATH for Netscape work.
 
-- Must get that joystick running... :-)
-
-- EAI should fork sockets to allow for multiple instances on
-  one platform. (In progress)
-
 - Netscape gives applet security probs when trying to open up
   the EAI socket connection when running the applet off of a 
   remote machine.
-
-- make add/remove mfnode OO'd in Nodes.pm; not functional
-  as it currently. (should help javascript)
-
-- in shared worlds Vnet; why does gesture code not work?
-
 
 ***
 
@@ -57,6 +46,8 @@ Stuff to do, easy ones first, more intricate ones later.
 
 - smooth normals
 
+- normalPerVertex code
+
 - normals as arguments
 
 - smoother truetype: actually do bezier points..
@@ -64,8 +55,6 @@ Stuff to do, easy ones first, more intricate ones later.
 - proper reaction to sensor disabling while active
 
 - text justification 
-
-- nonconvex polygons.
 
 - proper VisibilitySensor
 
