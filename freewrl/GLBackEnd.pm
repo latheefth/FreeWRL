@@ -33,23 +33,6 @@ my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
 my $becollision = 1;	# collision detection turned on or off - 1 = on.
 
-####
-#
-# Take a snapshot of the world. Returns array ref, 
-# first member: width, second: height and third is a raw string
-# of RGB values. You can use e.g. rawtoppm to convert this
-
-sub snapshot {
-	my($this) = @_;
-	my($w,$h) = @{$this}{qw/W H/};
-	my $n = 3*$w*$h;
-	my $str = pack("C$n");
-	glPixelStorei(&GL_UNPACK_ALIGNMENT,1);
-	glPixelStorei(&GL_PACK_ALIGNMENT,1);
-	glReadPixels(0,0,$w,$h,&GL_RGB,&GL_UNSIGNED_BYTE, $str);
-	return [$w,$h,$str];
-}
-
 ###############################################################
 #
 # Private functions, used by other browser modules below
@@ -99,17 +82,6 @@ sub setEyeDist {
 								   atan2($eyedist/2.0,$screendist)*360.0/(2.0*$pi)
 								  );
 }
-
-#JAS # SD - adding call to shut down Open GL screen
-#JAS 
-#JAS # Set the sub used to go forwards/backwards in VP list
-#JAS sub set_vp_sub {
-#JAS 	$_[0]{VPSub} = $_[1];
-#JAS }
-#JAS
-#JASsub quitpressed {
-#JAS	return delete $_[0]{QuitPressed};
-#JAS}
 
 sub updateCoords {
 	my ($this, $xcoor, $ycoor) = @_;

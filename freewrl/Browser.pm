@@ -146,12 +146,6 @@ sub setSnapFile
 	$main::snapname = $file;
 }
 
-sub setMaxImg
-{
-	my ($this, $maxNum) = @_;
-	$main::maximg = $maxNum;
-}
-
 sub setShutter
 {
 	my ($this, $shutter) = @_;
@@ -345,6 +339,7 @@ sub prepare {
 	$this->{Scene}->init_events($this->{EV}, $this->{BE});
 	
 	# display this one
+
 	$this->{BE}->set_root($bn); # should eventually be removed
 	VRML::VRMLFunc::set_root($bn->{CNode});
 	
@@ -568,103 +563,6 @@ sub convertX3D {
 
 	return $string;
 }
-
-#######################################################################
-sub save_snapshot {
-				# Get snapshot
-  my ($this) = @_ ;
-  my $s2 = $globalBrowser->{BE}->snapshot();
-				# Save it
-  $main::snapcnt++ ;
-  return if $main::snapcnt > $main::maximg ;
-  my $outname = sprintf("$main::snapname.%04d.ppm",$main::snapcnt);
-  my $cmd = "$VRML::Browser::CONVERT -depth 8 -flip -size  $s2->[0]x$s2->[1] rgb:- $outname";
-  print "Saving snapshot : Command is '$cmd'\n";
-
-  if (open CONV, "|$cmd") {
-    print CONV $s2->[2] ;
-    close CONV ;
-  } else {
-    print STDERR "Can't open pipe for saving image\n";
-    $main::snapcnt-- ;
-  }
-}
-
-
-
-
-## Eventually convert a sequence of saved raw images. 
-##
-## Uses variables :
-##
-## @main::saved : list of images, with size and seq
-##                number. @main::saved is reset. 
-##
-## $main::convtompg : If true, save as mpg rather than a single gif file.
-##
-## $main::seqname :
-sub convert_raw_sequence   {
-
-	return unless @main::saved ;
-
-	my $cmd ;
-	my $outfile;
-
-	if (! $main::convtompg){
-		$outfile = "$main::seqname.mpg";
-	} else {
-		$outfile = "$main::seqname.gif";
-	}	
-
-	my $sz = join " ",
-		map {"-flip -size $_->[1]x$_->[2] rgb:$_->[0]"} @main::saved ;
-	$cmd = "$VRML::Browser::CONVERT -depth 8 ".
-			" -delay 70 $sz $outfile";
-
-	# Fork so that system call won't hang browser
-	my $p = fork (); 
-	if (!defined($p)){
-		print STDERR "could not fork to convert image sequence\n";
-	} elsif ($p == 0) {
-		my $nok = system $cmd;
-			print STDERR "convert successful. unlinking raw images\n";
-			map {unlink $_->[0]} @main::saved;
-			@main::saved = ();	# Prevent END from trying again
-			exit 0;
-	}			
-				# Parent process #####################
-	@main::saved = ();
-	$main::saving = 0;
-	$main::seqcnt = 0;
-}  # End of conversion of raw images
-
-## If freewrl exits while saving, convert whatever has been saved
-END { 
-  print "Please wait while sequence is converted\n" if @main::saved ;
-  convert_raw_sequence() 
-}
-
-sub Snapshot {
-# Sequence saving ##########################
-	if ($main::seq) {
-		$main::saving = ! $main::saving ;
-		print "Saving ",$main::saving ? "on" : "off","\n" ;
-
-		# At end of sequence, convert raw
-		# images to a gif or ppm's
-		if (! $main::saving) {
-			VRML::Browser::convert_raw_sequence();
-		} else {                                # Start new sequence
-			@main::saved = ();      # Reset list of images
-			$main::seqcnt = 0;
-		}
-	# Single image
-	} else {
-		print "Saving snapshot\n";
-		VRML::Browser::save_snapshot($globalBrowser);
-	}
-}
-
 
 ################
 # EAI Perl functions.

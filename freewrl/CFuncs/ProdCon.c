@@ -516,7 +516,7 @@ void _perlThread(void *perlpath) {
 		__pt_setPath(perlpath);
 
 		/* pass in the source directory path in case make install not called */
-		/* printf ("sending in path %s\n",BUILDDIR); */
+		/* printf ("sending in path %s\n",BUILDDIR);  */
 		__pt_setPath(BUILDDIR);
 
 
@@ -529,10 +529,17 @@ void _perlThread(void *perlpath) {
 
 		/* Now, possibly this is the first VRML file to
 		   add. Check to see if maybe we have a ptr of 0. */
+
+		/* unused code JAS - rootnode is set by CFrontEnd/freewrl.c,
+		   or equiv. in OS X.
+		printf ("check ofs, %d %d\n",psp.ptr, psp.ofs);
 		if ((psp.ptr==0) && (psp.ofs==offsetof(
 			struct VRML_Group, children))) {
 			psp.ptr=rootNode;
 		}
+		printf ("check ofs now, %d %d %d\n",psp.ptr, psp.ofs, offsetof(
+                        struct VRML_Group, children));
+		*/
 	}
 
 	/* now, loop here forever, waiting for instructions and obeying them */
@@ -902,7 +909,7 @@ void __pt_doStringUrl () {
 			retval = _pt_CreateVrml("URL",psp.inp,myretarr);
 		}
 	} 
-	
+
        	/* now that we have the VRML/X3D file, load it into the scene.
        	   myretarr contains node number/memory location pairs; thus the count
        	   by two. */

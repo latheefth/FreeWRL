@@ -5,7 +5,7 @@
 PFLAGS = -c -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts` 
 
 # for making the freewrl opts file
-FWFLAGS = -c -D_REENTRANT 
+FWFLAGS = -c -D_REENTRANT
 
 FRFLAGS = -c -DFWVER=\"\$(FWVER)\" -DPERLPATH=\"\$(PPATH)\" \
 		 -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
@@ -23,18 +23,7 @@ perlxsi:
 
 fwopts: 
 	$(CC) $(INC) $(FWFLAGS) fwopts.c
-#
-#cc -o freewrl \
-#	-L../blib/arch/auto/VRML/VRMLFunc \
-#	-L/usr/freeware/lib32 \
-#	-L../JS/js/src/IRIX6.5_OPT.OBJ \
-#	perlxsi.o fwopts.o freewrl.o `perl -MExtUtils::Embed -e ldopts`  \
-#	-lFreeWRLFunc\
-#	-lGL -lGLU -lXext -lX11 -lpng -lpthread -ljs\
-#
-#
-#
-#
+
 freewrl: perlxsi fwopts
 	$(CC) $(INC) $(FRFLAGS) freewrl.c \
 	-L/usr/people/luigi/freewrl/FreeWRL-1.04.3/blib 

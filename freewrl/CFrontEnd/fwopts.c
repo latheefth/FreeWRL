@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
+extern int screenWidth, screenHeight;
+
 #ifdef AQUA
 
 #include <gl.h>
@@ -143,9 +145,6 @@ void setGeometry (char *gstring);
 
 static int xPos = 0;
 static int yPos = 0;
-static int Wwidth = 450;
-static int Wheight = 300;
-
 void openMainWindow (unsigned *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
@@ -173,6 +172,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 
 	int items=0; // jas
 	   
+
 	//JAS if(items>NUM_ARG+1){
 	//JAS 	len=(items-NUM_ARG+1)* sizeof(int);
 	//JAS 	attributes = (int *)malloc(len*sizeof(int));
@@ -236,7 +236,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	if(!pwin){pwin=RootWindow(dpy, vi->screen);}
 		
 
-	if (Wwidth>=0) {
+	if (screenWidth>=0) {
 		XTextProperty textpro;
 		if (fullscreen == 1) {
 			win = XCreateWindow(dpy, pwin, 
@@ -253,7 +253,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 			
 		} else {
 			win = XCreateWindow(dpy, pwin, 
-				xPos, yPos, Wwidth, Wheight, 0, vi->depth, InputOutput, 
+				xPos, yPos, screenWidth, screenHeight, 0, vi->depth, InputOutput, 
 				vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
 
 			/* create window and icon name */
@@ -397,7 +397,5 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 
 void setGeometry (char *gstring) {
 	int c;
-
-printf ("setGeometry, string %s\n",gstring);
-	c = sscanf(gstring,"%dx%d+%d+%d",&Wwidth,&Wheight,&xPos,&yPos);
+	c = sscanf(gstring,"%dx%d+%d+%d",&screenWidth,&screenHeight,&xPos,&yPos);
 }

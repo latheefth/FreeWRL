@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <headers.h>
 #include <getopt.h>
+#include <Snapshot.h>
 
 #ifdef AQUA
 
@@ -38,25 +39,12 @@ Display *Disp;
 Window Win;
 GLXContext globalContext;
 
-//testing...
-void boot_DynaLoader (void *cv);
-//void (*myp)(unsigned* cv);
-void do_TimeSensorTick(void *node);
-
-
 int wantEAI=FALSE;		/* enable EAI? */
 
 /* threading variables for event loop */
 static pthread_t *loopthread;
 char *threadmsg = "eventloop";
 pthread_t thread1;
-
-/* trying to force this guy to find boot_DynaLoader to help SGI one
-   pass linking for perlxsi.c */
-        //myp =  (void *)boot_DynaLoader;
-//        myp =  (void *)do_TouchSensor;
-
-
 
 
 /* for plugin running - these are read from the command line */
@@ -77,39 +65,40 @@ int main (int argc, char **argv) {
 	char *filename;
 	char *pwd;
 
-//void (*myp)(void *);
-//myp = (void *)do_TimeSensorTick;
-//myp = (void *)boot_DynaLoader;
-
 #ifndef IRIX
+
+	/* set the screen width and height before getting into arguments */
+	screenWidth = 450; screenHeight=300;
 
 	/* parse command line arguments */
 	while (1) {
 		int this_option_optind = optind ? optind : 1;
 		int option_index = 0;
 		static struct option long_options[] = {
-			{"version", 0, 0, 'v'},
-			{"fullscreen", 0, 0, 'x'},
 			{"eai", 0, 0, 'e'},
 			{"fast", 0, 0, 'f'},
+			{"geometry", 1, 0, 'g'},
+			{"help", 0, 0, 'h'},
 			{"plugin", 1, 0, 'i'},
 			{"fd", 1, 0, 'j'},
 			{"instance", 1, 0, 'k'},
-			{"geometry", 1, 0, 'g'},
+			{"version", 0, 0, 'v'},
+
+			{"seq", 0, 0, 'l'},
+			{"seqb",1, 0, 'm'},
+			{"snapb", 1, 0, 'n'},
+			{"seqtmp", 1, 0, 'o'},
+			{"gif", 0, 0, 'p'},
+			{"maximg", 1, 0, 'q'},
+
 			{"parent", 1, 0, 'x'},
-			{"seq", 0, 0, 'x'},
-			{"seqb",1, 0, 'x'},
-			{"snapb", 1, 0, 'x'},
-			{"seqtmp", 1, 0, 'x'},
 			{"shutter", 0, 0, 'x'},
 			{"eyedist", 1, 0, 'x'},
+			{"fullscreen", 0, 0, 'x'},
 			{"screendist", 1, 0, 'x'},
-			{"gif", 0, 0, 'x'},
-			{"maximg", 1, 0, 'x'},
 			{"server", 1, 0, 'x'},
 			{"sig", 1, 0, 'x'},
 			{"ps", 1, 0, 'x'},
-			{"help", 0, 0, 'h'},
 			{0, 0, 0, 0}
 		};
 
@@ -139,7 +128,6 @@ int main (int argc, char **argv) {
 				break;
 
 			case 'g':
-				printf ("Geometry selected, with arg: %s\n",optarg);
 				setGeometry(optarg);
 				break;
 
@@ -152,6 +140,36 @@ int main (int argc, char **argv) {
 			case 'j': sscanf (optarg,"%d",&_fw_FD); break;
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
 			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
+
+
+			/* Snapshot stuff */
+			case 'l': snapsequence = TRUE; break;
+			case 'p': snapGif = TRUE; break;
+			case 'q': sscanf (optarg,"%d",&maxSnapImages); 
+				  if (maxSnapImages <=0) {
+					printf ("FreeWRL: Commandline -maximg %s invalid\n",optarg);
+					maxSnapImages = 100;
+				  }
+				  break;
+
+			case 'm': 
+				  count = strlen(argv[optind]);
+				  if (count > 500) count = 500;
+				  snapseqB = malloc (count+1);
+                		  strcpy (snapseqB,argv[optind]);
+				  break;
+			case 'n':
+				  count = strlen(argv[optind]);
+				  if (count > 500) count = 500;
+				  snapsnapB = malloc (count+1);
+                		  strcpy (snapsnapB,argv[optind]);
+				  break;
+			case 'o':
+				  count = strlen(argv[optind]);
+				  if (count > 500) count = 500;
+				  seqtmp = malloc (count+1);
+                		  strcpy (seqtmp,argv[optind]);
+				  break;
 
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */

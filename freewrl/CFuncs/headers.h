@@ -381,5 +381,6 @@ void EAI_replaceWorld(char *inputstring);
 void render_hier(void *p, int rwhat);
 void handle_EAI(void);
 
+extern int screenWidth, screenHeight;
 
 #endif /* __HEADERS_H__ */

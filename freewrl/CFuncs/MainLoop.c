@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "Bindable.h"
+#include "Snapshot.h"
 
 #include "OpenGL_Utils.h"
 #include "Viewer.h"
@@ -35,7 +36,6 @@ Cursor curcursor;
 #include "headers.h"
 
 void Next_ViewPoint(void);		// switch to next viewpoint - 
-void Snapshot(void);			// get a snapshot
 void setup_viewpoint(void);
 void get_collisionoffset(double *x, double *y, double *z);
 
@@ -51,9 +51,6 @@ int num_SensorEvents = 0;
 
 /* Viewport data */
 GLint viewPort[10];
-
-
-
 
 /* screen width and height. */
 int screenWidth=1;
@@ -212,6 +209,11 @@ void EventLoop() {
 			curcursor = cursor;
 			XDefineCursor (dpy, win, cursor);
 		}
+	}
+
+	/* handle snapshots */
+	if (doSnapshot) {
+		Snapshot();
 	}
 
 	/* handle ROUTES - at least the ones not generated in do_first() */
@@ -500,7 +502,7 @@ void do_keyPress(const char kp, int type) {
 			case 'c': {be_collision = !be_collision; break; }
 			case '?': {system ("xterm -e man freewrl &"); break;}
 			case 'v': {Next_ViewPoint(); break;}
-			case 's': {Snapshot(); break;}
+			case 's': {setSnapshot(); break;}
 			default: {handle_key(kp);}
 
 		}
@@ -650,9 +652,4 @@ void Next_ViewPoint() {
 		if (currboundvpno>=totviewpointnodes) currboundvpno=0;
 		send_bind_to(VIEWPOINT,(void *)viewpointnodes[currboundvpno],1);
 	}
-}
-
-
-void Snapshot () {
-	printf ("Mainloop, snapshot\n");
 }
