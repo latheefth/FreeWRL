@@ -225,22 +225,7 @@ sub load_string {
 		$type=0;
 	}
 	if ($type == 1)  {
-		# x3d - convert this to VRML.
-
-  		eval 'require XML::LibXSLT';
-  		eval 'require XML::LibXML';
-
-  		my $parser = XML::LibXML->new();
-  		my $xslt = XML::LibXSLT->new();
-
-  		my $source = $parser->parse_string($string);
-  		my $style_doc = $parser->parse_file($VRML::Browser::X3DTOVRMLXSL);
-
-  		my $stylesheet = $xslt->parse_stylesheet($style_doc);
-
-  		my $results = $stylesheet->transform($source);
-
-   		$string = $stylesheet->output_string($results);
+               $string = convertX3D($string);
 	}
 	VRML::Parser::parse($this->{Scene},$string);
 }
@@ -570,6 +555,44 @@ sub api__updateRouting {
 
 sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
 
+
+
+#######################################################################
+#
+# X3D Conversion routines.
+#
+#######################################################################
+sub convertX3D {
+	my ($string) = @_;
+
+	# x3d - convert this to VRML.
+        my $lgname = $ENV{LOGNAME};
+        my $tempfile_name = "/tmp/freewrl_xmlConversionFile__";
+        my $tempfile1 = join '', $tempfile_name,$lgname, ,".in";
+        my $tempfile2 = join '', $tempfile_name,$lgname, ,".out";
+
+	# write string to a file for conversion (inefficient, but...)
+	open(fileOUT, ">$tempfile1") or warn("Can't open xml conversion file for writing: $!");
+	print fileOUT "$string\n";
+	close(fileOUT);
+
+	# do the conversion
+	my $cmd = "$VRML::Browser::XSLTPROC -o $tempfile2 $VRML::Browser::X3DTOVRMLXSL $tempfile1";
+        my $status = system ($cmd);
+        warn "X3D conversion problem: $?"
+                        unless $status == 0;
+
+	# read the VRML in.
+	$string = `cat $tempfile2`;  
+
+	# remove the two temporary files
+	unlink ($tempfile1);
+	unlink ($tempfile2);
+
+	return $string;
+}
+
+#######################################################################
 sub save_snapshot {
 				# Get snapshot
   my ($this) = @_ ;
