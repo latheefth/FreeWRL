@@ -229,6 +229,28 @@ raise_me_please()
 #endif
 	}
 
+# send a pointer to the Display variable.
+unsigned
+return_win_ptr()
+	CODE:
+	RETVAL = (unsigned *)win;
+       printf ("win in OpenGL is %d\n",win);
+
+
+	OUTPUT:
+	RETVAL
+
+	
+# send a pointer to the Display variable.
+unsigned
+return_dpy_ptr()
+	CODE:
+	RETVAL = (unsigned *)dpy;
+       printf ("dpy in OpenGL is %d\n",dpy);
+
+
+	OUTPUT:
+	RETVAL
 
 	
 # cursor stuff JAS
