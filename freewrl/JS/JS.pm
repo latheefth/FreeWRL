@@ -103,7 +103,12 @@ sub new {
 					$this->cleanupDie("addECMANativeProperty failed in VRML::JS::new");
 				}
 			} else {
-				$constr = $this->constrString($type, 0);
+				if ($type =~ /SFNode/) {
+					$value = $node->{RFields}{$_};
+					$constr = $this->constrString($type, $value);
+				} else {
+					$constr = $this->constrString($type, 0);
+				}
 				if (!addAssignProperty($this->{JSContext}, $this->{JSGlobal}, $_, $constr)) {
 					$this->cleanupDie("addAssignProperty failed in VRML::JS::new");
 				}
@@ -237,7 +242,8 @@ sub sendeventsproc {
 				   "eventsProcessed()", $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::sendeventproc");
 	}
-	$this->gatherSentEvents();
+
+	return $this->gatherSentEvents();
 }
 
 sub gatherSentEvents {
