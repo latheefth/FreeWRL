@@ -1583,8 +1583,8 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
     if(z1 < 0) z1 = 0;
     if(z2 >= zdim) z2 = zdim-1;
     if(z1 >= z2) return zero; // outside
-    
-    
+    //printf ("coll, xdim %d, zdim %d\n",xdim, zdim);
+   
     if(!pr.cindex || !pr.coord)
 	printf("ZERO PTR! WE ARE DOOMED!\n");
 
@@ -1596,18 +1596,37 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
 	}
     pr.coord = newc;
 
-    for(z = z1; z < z2; z++) 
-	for(x = x1; x < x2; x++) {
+    /* changed to go to (z2-1) and (x2-1) from z2 and x2 - Apr 04 - JAS */
+    for(z = z1; z < (z2-1); z++) 
+	for(x = x1; x < (x2-1); x++) {
 	    int i;
 	    struct pt pd;
+		//printf ("z %d z1 %d z2 %d x %d x1 %d x2 %d\n",z,z1,z2,x,x1,x2);
+		//printf ("ntri %d\n",pr.ntri);
+
+		//printf ("x %d z %d; x+(xdim-1)*z = %d\n",x,z,x+(xdim-1)*z);
 
 	    for(i = 0; i < 3; i++) {
-		tris[i].x = pr.coord[3*pr.cindex[(2*(x+(xdim-1)*z)+0)*3+i] + 0];
-		tris[i].y = pr.coord[3*pr.cindex[(2*(x+(xdim-1)*z)+0)*3+i] + 1];
-		tris[i].z = pr.coord[3*pr.cindex[(2*(x+(xdim-1)*z)+0)*3+i] + 2];
-		tris[3+i].x = pr.coord[3*pr.cindex[(2*(x+(xdim-1)*z)+1)*3+i] + 0];
-		tris[3+i].y = pr.coord[3*pr.cindex[(2*(x+(xdim-1)*z)+1)*3+i] + 1];
-		tris[3+i].z = pr.coord[3*pr.cindex[(2*(x+(xdim-1)*z)+1)*3+i] + 2];
+		    /*
+		    printf ("i %d cindex %d\n",
+				    (2*(x+(xdim-1)*z)+0)*3+i,
+				    pr.cindex[(2*(x+(xdim-1)*z)+0)*3+i]);
+
+		printf ("using coords %d %d %d %d %d %d\n",
+		3*(2*(x+(xdim-1)*z)+0)+i + 0,
+		3*(2*(x+(xdim-1)*z)+0)+i + 1,
+		3*(2*(x+(xdim-1)*z)+0)+i + 2,
+		3*(2*(x+(xdim-1)*z)+1)+i + 0,
+		3*(2*(x+(xdim-1)*z)+1)+i + 1,
+		3*(2*(x+(xdim-1)*z)+1)+i + 2);
+		*/
+
+		tris[i].x = pr.coord[3*(2*(x+(xdim-1)*z)+0)+i + 0];
+		tris[i].y = pr.coord[3*(2*(x+(xdim-1)*z)+0)+i + 1];
+		tris[i].z = pr.coord[3*(2*(x+(xdim-1)*z)+0)+i + 2];
+		tris[3+i].x = pr.coord[3*(2*(x+(xdim-1)*z)+1)+i + 0];
+		tris[3+i].y = pr.coord[3*(2*(x+(xdim-1)*z)+1)+i + 1];
+		tris[3+i].z = pr.coord[3*(2*(x+(xdim-1)*z)+1)+i + 2];
 	    }
 
 	    for(i = 0; i < 2; i++) { //repeat for both triangles 
