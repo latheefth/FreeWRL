@@ -27,6 +27,9 @@
 
 #define UNUSED(v) ((void) v)
 
+#define BOOL_STRING(b) (b ? "TRUE" : "FALSE")
+
+
 #ifdef M_PI
 #define PI M_PI
 #else
