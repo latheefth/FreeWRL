@@ -85,21 +85,33 @@ static JSClass globalClass = {
 	JS_FinalizeStub
 };
 
+/*
+ * See perldoc perlapi, perlcall, perlembed, perlguts for how this all
+ * works.
+ */
 void
 doPerlCallMethod(SV *sv, const char *methodName)
 {
 	int count = 0;
+	SV *retSV;
+
  #define PERL_NO_GET_CONTEXT
-	dSP;
+
+	dSP; /* local copy of stack pointer (don't leave home without it) */
 	ENTER;
 	SAVETMPS;
-	PUSHMARK(sp);
-	XPUSHs(sv);
+	PUSHMARK(SP); /* keep track of the stack pointer */
+	XPUSHs(sv); /* push package ref to the stack */
 	PUTBACK;
-	count = perl_call_method(methodName, G_SCALAR);
-	if (count && verbose) {
-		printf("perl_call_method returned %.1g in doPerlCallMethod.\n", POPn);
+	count = call_method(methodName, G_SCALAR);
+
+	SPAGAIN; /* refresh local copy of the stack pointer */
+	
+	if (count > 1) {
+		fprintf(stderr,
+				"doPerlCallMethod: call_method returned in list context - shouldn't happen here!\n");
 	}
+
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
@@ -118,7 +130,7 @@ doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
 	dSP;
 	ENTER;
 	SAVETMPS;
-	PUSHMARK(sp);
+	PUSHMARK(SP);
 	XPUSHs(sv);
 
 	va_start(ap, format); /* point to first element after format*/
@@ -142,15 +154,20 @@ doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
 	va_end(ap);
 
 	PUTBACK;
-	count = perl_call_method(methodName, G_SCALAR);
-	if (count && verbose) {
-		printf("perl_call_method returned %.1g in doPerlCallMethod.\n", POPn);
+	count = call_method(methodName, G_SCALAR);
+
+	SPAGAIN;
+	
+
+if (count > 1) {
+		fprintf(stderr,
+				"doPerlCallMethodVA: call_method returned in list context - shouldn't happen here!\n");
 	}
+
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
 }
-
 
 
 void *
@@ -163,10 +180,12 @@ SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len)
 	}
 	ptr->vrmlstring = (char *) malloc(vrmlstring_len * sizeof(char));
 	if (ptr->vrmlstring == NULL) {
+		fprintf(stderr, "malloc failed in SFNodeNativeNew.\n");
 		return NULL;
 	}
 	ptr->handle = (char *) malloc(handle_len * sizeof(char));
 	if (ptr->handle == NULL) {
+		fprintf(stderr, "malloc failed in SFNodeNativeNew.\n");
 		return NULL;
 	}
 	ptr->touched = 0;
@@ -203,9 +222,12 @@ SFNodeNativeAssign(void *top, void *fromp)
 
 	from_vrmlstring_len = strlen(from->vrmlstring) + 1;
 	from_handle_len = strlen(from->handle) + 1;
+
 	if (from_vrmlstring_len > to_vrmlstring_len) {
-		to->vrmlstring = (char *) realloc(to->vrmlstring, from_vrmlstring_len * sizeof(char));
+		to->vrmlstring = (char *) realloc(to->vrmlstring,
+										  from_vrmlstring_len * sizeof(char));
 		if (to->vrmlstring == NULL) {
+			fprintf(stderr, "realloc failed in SFNodeNativeAssign.\n");
 			return JS_FALSE;
 		}
 	}
@@ -213,8 +235,10 @@ SFNodeNativeAssign(void *top, void *fromp)
 	memmove(to->vrmlstring, from->vrmlstring, from_vrmlstring_len);
 
 	if (from_handle_len > to_handle_len) {
-		to->handle = (char *) realloc(to->handle, from_handle_len * sizeof(char));
+		to->handle = (char *) realloc(to->handle,
+									  from_handle_len * sizeof(char));
 		if (to->handle == NULL) {
+			fprintf(stderr, "realloc failed in SFNodeNativeAssign.\n");
 			return JS_FALSE;
 		}
 	}
@@ -437,7 +461,6 @@ SFVec2fNativeSet(void *p, SV *sv)
 	SV **b;
 	int i;
 	SFVec2fNative *ptr = p;
-	ptr->touched = 0;
 
 	if (verbose) {
 		printf("SFVec2fNativeSet\n");
@@ -459,12 +482,8 @@ SFVec2fNativeSet(void *p, SV *sv)
 			}
 			(ptr->v).c[i] = SvNV(*b);
 		}
-		if (verbose) {
-			printf("\tvec3f values: (%.1g, %.1g)\n",
-				   (ptr->v).c[0],
-				   (ptr->v).c[1]);
-		}
 	}
+	ptr->touched = 0;
 }
 
 
@@ -506,7 +525,6 @@ SFVec3fNativeSet(void *p, SV *sv)
 	SV **b;
 	int i;
 	SFVec3fNative *ptr = p;
-	ptr->touched = 0;
 
 	if (verbose) {
 		printf("SFVec3fNativeSet\n");
@@ -529,13 +547,8 @@ SFVec3fNativeSet(void *p, SV *sv)
 			}
 			(ptr->v).c[i] = SvNV(*b);
 		}
-		if (verbose) {
-			printf("\tvec3f values: (%.1g, %.1g, %.1g)\n",
-				   (ptr->v).c[0],
-				   (ptr->v).c[1],
-				   (ptr->v).c[2]);
-		}
 	}
+	ptr->touched = 0;
 }
 
 
@@ -760,7 +773,6 @@ OUTPUT:
 RETVAL
 cx
 obj
-sv
 
 
 JSBool
@@ -805,7 +817,6 @@ OUTPUT:
 RETVAL
 cx
 obj
-sv
 
 
 JSBool
@@ -850,7 +861,6 @@ OUTPUT:
 RETVAL
 cx
 obj
-sv
 
 
 JSBool
@@ -895,7 +905,6 @@ OUTPUT:
 RETVAL
 cx
 obj
-sv
 
 
 JSBool
@@ -940,7 +949,6 @@ OUTPUT:
 RETVAL
 cx
 obj
-sv
 
 
 JSBool
