@@ -110,6 +110,10 @@ Notes:
 
 45.wrl:	PixelTexture test.
 
+Synth:
+	A 3D representation of a music synthesizer. Uses other programs
+	to help drive an external synthesizer.
+
 AddRemove:	
 	Java applet with EAI add/remove button. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
