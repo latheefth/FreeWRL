@@ -259,84 +259,95 @@ sub init_image {
     my($name, $urlname, $t, $f, $scene, $flip) = @_;
 
     my $purl = $t->{PURL} = $scene->get_url;
+	my $wurl = $scene->get_world_url;
+
     my $urls = $f->{$urlname};
-    if($#{$urls} == -1) {
-	goto NO_TEXTURE;
+    if ($#{$urls} == -1) {
+		goto NO_TEXTURE;
     }
 
-    URL: for $u (@$urls) {
-	next unless $u =~ /\.(\w*)$/;
-	my $suffix = $1;
-	my $file;
+ URL: for $u (@$urls) {
+		next unless $u =~ /\.(\w*)$/;
+		my $suffix = $1;
+		my $file;
+		
+		if (defined $wurl) {
+			$file = VRML::URL::get_relative($wurl, $u, 1);
+		} else {
+			$file = VRML::URL::get_relative($purl, $u, 1);
+		}
 
-	$file = VRML::URL::get_relative($purl, $u, 1);
+		# Required due to changes in VRML::URL::get_relative in URL.pm:
+		if (!$file) {
+			warn "Could not retrieve $u";
+			next URL;
+		}
 
-	# Required due to changes in VRML::URL::get_relative in URL.pm:
-	if (!$file) {
-	    warn "Could not retrieve $u";
-	    next URL;
-	}
+		print "VRML::Nodes::init_image got: $file\n"
+			if $VRML::verbose;
 
-	my ($hei,$wi,$dep,$dat);
-	my $tempfile = $file;
+		my ($hei,$wi,$dep,$dat);
+		my $tempfile = $file;
 
-	if ($@) { die("Cannot open image textures: '$@'"); }
+		if ($@) {
+			die("Cannot open image textures: '$@'");
+		}
 
-	$dat = "";
-	if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
-	    # Lets convert to a png, and go from there...
-	    # Use Imagemagick to do the conversion, and flipping.
-	    # XXX - Do I need a flip because of a "Box" problem? 
+		$dat = "";
+		if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
+			# Lets convert to a png, and go from there...
+			# Use Imagemagick to do the conversion, and flipping.
+			# XXX - Do I need a flip because of a "Box" problem? 
 	
-	    # Simply make a default user specific file by
-	    # attaching the username (LOGNAME from environment).
+			# Simply make a default user specific file by
+			# attaching the username (LOGNAME from environment).
 
-	    my $lgname = $ENV{LOGNAME};
-	    my $tempfile_name = "/tmp/freewrl_";
-	    $tempfile = join '', $tempfile_name,$lgname,".png";
+			my $lgname = $ENV{LOGNAME};
+			my $tempfile_name = "/tmp/freewrl_";
+			$tempfile = join '', $tempfile_name,$lgname,".png";
 	
-	    my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
-	    my $status = system ($cmd);
-	    warn "$image conversion problem: '$cmd' returns $?"
-		unless $status == 0;
+			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
+			my $status = system ($cmd);
+			warn "$image conversion problem: '$cmd' returns $?"
+				unless $status == 0;
 	
-	    eval 'require VRML::PNG';
-	    if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-		warn("Couldn't read texture file $tempfile");
-		next URL;
-	    }
-	    # remove temporary file
-	    my $cmd = "rm $tempfile";
+			eval 'require VRML::PNG';
+			if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
+				warn("Couldn't read texture file $tempfile");
+				next URL;
+			}
+			# remove temporary file
+			my $cmd = "rm $tempfile";
             my $status = system ($cmd);
             die "$image conversion problem: '$cmd' returns $?"
                 unless $status == 0;
 
 
 
-	} elsif ($suffix =~ /png/i) {
-	    eval 'require VRML::PNG';
-	    eval 'require VRML::JPEG';
-	    if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-		warn("Couldn't read texture file $tempfile");
-		next URL;
-	    }
-	} elsif ($suffix =~ /jpg/i) {
-	    eval 'require VRML::JPEG';
-	    if (!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
-		warn("Couldn't read texture file $tempfile");
-		next URL;
-	    }
-	}
+		} elsif ($suffix =~ /png/i) {
+			eval 'require VRML::PNG';
+			eval 'require VRML::JPEG';
+			if (!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
+				warn("Couldn't read texture file $tempfile");
+				next URL;
+			}
+		} elsif ($suffix =~ /jpg/i) {
+			eval 'require VRML::JPEG';
+			if (!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
+				warn("Couldn't read texture file $tempfile");
+				next URL;
+			}
+		}
 
-	$f->{__depth.$name} = $dep;
-	$f->{__x.$name} = $wi;
-	$f->{__y.$name} = $hei;
-	$f->{__data.$name} = $dat;
-	$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
-	return;
-    } # for $u (@$urls) 
+		$f->{__depth.$name} = $dep;
+		$f->{__x.$name} = $wi;
+		$f->{__y.$name} = $hei;
+		$f->{__data.$name} = $dat;
+		$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+		return;
+    }							# for $u (@$urls) 
 
-    NO_TEXTURE:
+ NO_TEXTURE:
     $f->{__depth.$name} = 0;
     $f->{__x.$name} = 0;
     $f->{__y.$name} = 0;
@@ -352,8 +363,8 @@ sub init_pixel_image {
     my($imagename, $t, $f, $scene) = @_;
     my $sfimage = $f->{$imagename};
     if (!defined $sfimage) {
-	goto NO_PIXEL_TEXTURE;
-    } 
+		goto NO_PIXEL_TEXTURE;
+    }
 
     $f->{__depth} = $sfimage->[2];
     $f->{__x} = $sfimage->[0];
@@ -361,15 +372,15 @@ sub init_pixel_image {
     $f->{__data} = $sfimage->[3];
     $f->{__texture} = VRML::OpenGL::glGenTexture();
     return;
-   
-    NO_PIXEL_TEXTURE:
+
+ NO_PIXEL_TEXTURE:
     $f->{__depth} = 0;
     $f->{__x} = 0;
     $f->{__y} = 0;
-    $f->{__data} = ""; 
-    return;  
-} 
-  
+    $f->{__data} = "";
+    return;
+}
+
 
 
 # MPEG picture image
@@ -378,87 +389,99 @@ sub init_movie_image {
     # print "init_movie_image, name $name, urlname $urlname t $t f $f flip $flip\n";
 
     my $purl = $t->{PURL} = $scene->get_url;
+	my $wurl = $scene->get_world_url;
     my $urls = $f->{$urlname};
-    if($#{$urls} == -1) {
-	goto NO_TEXTURE;
+    if ($#{$urls} == -1) {
+		goto NO_TEXTURE;
     }
 
-    URL: for $u (@$urls) {
-	next unless $u =~ /\.(\w*)$/;
-	my $suffix = $1;
-	my $file;
+ URL: for $u (@$urls) {
+		next unless $u =~ /\.(\w*)$/;
+		my $suffix = $1;
+		my $file;
 
-	$file = VRML::URL::get_relative($purl, $u, 1);
+		if (defined $wurl) {
+			$file = VRML::URL::get_relative($wurl, $u, 1);
+		} else {
+			$file = VRML::URL::get_relative($purl, $u, 1);
+		}
 
-	# Required due to changes in VRML::URL::get_relative in URL.pm:
-	if (!$file) { warn "Could not retrieve $u"; next URL; }
+		# Required due to changes in VRML::URL::get_relative in URL.pm:
+		if (!$file) {
+			warn "Could not retrieve $u"; next URL;
+		}
 
-	my ($hei,$wi,$dep,$dat);
-	my $tempfile = $file;
-	$dat = "";
+		print "VRML::Nodes::init_movie_image got: $file\n"
+			if $VRML::verbose;
 
-	if ($@) { die("Cannot open image textures: '$@'"); }
+		my ($hei,$wi,$dep,$dat);
+		my $tempfile = $file;
+		$dat = "";
 
-	# Use Imagemagick to do the conversion, and flipping.
+		if ($@) {
+			die("Cannot open image textures: '$@'");
+		}
+
+		# Use Imagemagick to do the conversion, and flipping.
 	
-	# Simply make a default user specific file by
-	# attaching the username (LOGNAME from environment).
+		# Simply make a default user specific file by
+		# attaching the username (LOGNAME from environment).
 
-	my $lgname = $ENV{LOGNAME};
-	my $tempfile_name = "/tmp/freewrl_mpeg_";
-	$png_tempfile = join '', $tempfile_name,$lgname,".png";
-	$mpg_tempfile = join '', $tempfile_name,$lgname,"%04d";
-	my $tempfile_rm = join '', $tempfile_name,$lgname,"*.tga";
+		my $lgname = $ENV{LOGNAME};
+		my $tempfile_name = "/tmp/freewrl_mpeg_";
+		$png_tempfile = join '', $tempfile_name,$lgname,".png";
+		$mpg_tempfile = join '', $tempfile_name,$lgname,"%04d";
+		my $tempfile_rm = join '', $tempfile_name,$lgname,"*.tga";
 
 
-	# Step 1 - decode the input file.
-	my $cmd = "$VRML::Browser::MPEG2DEC -q -b $file -o2 $mpg_tempfile";
-	my $status = system ($cmd);
-	warn "$image conversion problem: '$cmd' returns $?"
-		unless $status == 0;
-	
-	# Step 2 - get list of the files there.
-	my @file_list = `ls -c1 $tempfile_rm | sort`;
-
-	# Step 3 - read each file in.
-	eval 'require VRML::PNG';
-	my $num=0;
-
-	my @tex_num_array = ();
-	my @data_array = ();
-	foreach (@file_list) {
-
-		$_ =~ s/\s+$//; # trailing new line....
-		my $cmd = "$VRML::Browser::CONVERT $_ $png_tempfile";
-
+		# Step 1 - decode the input file.
+		my $cmd = "$VRML::Browser::MPEG2DEC -q -b $file -o2 $mpg_tempfile";
 		my $status = system ($cmd);
 		warn "$image conversion problem: '$cmd' returns $?"
 			unless $status == 0;
 	
-		if (!VRML::PNG::read_file($png_tempfile,$dat,$dep,$hei,$wi,$flip)) {
-			warn("Couldn't read texture file $png_tempfile");
+		# Step 2 - get list of the files there.
+		my @file_list = `ls -c1 $tempfile_rm | sort`;
+
+		# Step 3 - read each file in.
+		eval 'require VRML::PNG';
+		my $num=0;
+
+		my @tex_num_array = ();
+		my @data_array = ();
+		foreach (@file_list) {
+
+			$_ =~ s/\s+$//;		# trailing new line....
+			my $cmd = "$VRML::Browser::CONVERT $_ $png_tempfile";
+
+			my $status = system ($cmd);
+			warn "$image conversion problem: '$cmd' returns $?"
+				unless $status == 0;
+	
+			if (!VRML::PNG::read_file($png_tempfile,$dat,$dep,$hei,$wi,$flip)) {
+				warn("Couldn't read texture file $png_tempfile");
+			}
+
+
+			push @data_array, $dat;
+			push @tex_num_array, VRML::OpenGL::glGenTexture();
+			$num += 1;
 		}
+		$f->{__depth} = $dep;
+		$f->{__x} = $wi;
+		$f->{__y} = $hei;
+		$f->{__texture} = \@tex_num_array;
+		$f->{__data} = \@data_array;
 
-
-		push @data_array, $dat;
-		push @tex_num_array, VRML::OpenGL::glGenTexture();
-		$num += 1;
-	}
-	$f->{__depth} = $dep;
-	$f->{__x} = $wi;
-	$f->{__y} = $hei;
-	$f->{__texture} = \@tex_num_array;
-	$f->{__data} = \@data_array;
-
-	# Step 4. remove temporary files
-	my $cmd = "rm $png_tmpfile $tempfile_rm";
+		# Step 4. remove temporary files
+		my $cmd = "rm $png_tmpfile $tempfile_rm";
         my $status = system ($cmd);
         die "$image conversion problem: '$cmd' returns $?"
-                unless $status == 0;
-	return;
-    } # for $u (@$urls) 
+			unless $status == 0;
+		return;
+    }							# for $u (@$urls) 
 
-    NO_TEXTURE:
+ NO_TEXTURE:
     my @tex_num_array = ();
     my @data_array = ();
 
@@ -1935,199 +1958,227 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 #  - fields, eventins and outs parsed in Parse.pm by special switch :(
 # JAS took out perl script, because it is not standard.
 
-Script => new VRML::NodeType("Script",
-	{url => [MFString, []],
-	 directOutput => [SFBool, 0, ""], # not exposedfields
-	 mustEvaluate => [SFBool, 0, ""]
-	},
-	{
-		Initialize => sub {
+	Script =>
+	new VRML::NodeType("Script",
+					   {
+						url => [MFString, []],
+						directOutput => [SFBool, 0, ""], # not exposedfields
+						mustEvaluate => [SFBool, 0, ""]
+					   },
+					   {
+						Initialize =>
+						sub {
 
-#JAS $VRML::verbose::script = 1;
+							#JAS $VRML::verbose::script = 1;
 
-			my($t,$f,$time,$scene) = @_;
-			print "ScriptInit $_[0] $_[1]!!\n" if $VRML::verbose::script;
-			print "Parsing script\n" if $VRML::verbose::script;
-			my $h;
-			my $Browser = $scene->get_browser();
-			for(@{$f->{url}}) {
-				# is this already made???
-				if (defined  $t->{J}) {
-					last;
-				}
+							my($t,$f,$time,$scene) = @_;
+							print "ScriptInit $_[0] $_[1]!!\n" if $VRML::verbose::script;
+							print "Parsing script\n" if $VRML::verbose::script;
+							my $h;
+							my $Browser = $scene->get_browser();
+							for (@{$f->{url}}) {
+								# is this already made???
+								if (defined  $t->{J}) {
+									last;
+								}
 
-				my $str = $_;
-				print "TRY $str\n" if $VRML::verbose::script;
-##  				if(s/^perl_tjl_xxx://) {
-##  					check_perl_script();
-##  					$h = eval "({$_})";
-##  					if($@) {
-##  						die "Inv script '$@'"
-##  					}
-##  					last;
-##  				} elsif(s/^perl(_tjl_xxx1)?://) {
-				if(s/^perl(_tjl_xxx1)?://) {
-				  {  
-				    print "XXX1 script\n" if $VRML::verbose::script;
-				    check_perl_script();
+								my $str = $_;
+								print "TRY $str\n" if $VRML::verbose::script;
+								##  				if(s/^perl_tjl_xxx://) {
+								##  					check_perl_script();
+								##  					$h = eval "({$_})";
+								##  					if($@) {
+								##  						die "Inv script '$@'"
+								##  					}
+								##  					last;
+								##  				} elsif(s/^perl(_tjl_xxx1)?://) {
+								if (s/^perl(_tjl_xxx1)?://) {
+									{  
+										print "XXX1 script\n" if $VRML::verbose::script;
+										check_perl_script();
 
-				    # See about RFields in file ARCHITECTURE and in 
-				    # Scene.pm's VRML::FieldHash package
-				    my $u = $t->{Fields};
+										# See about RFields in file ARCHITECTURE and in 
+										# Scene.pm's VRML::FieldHash package
+										my $u = $t->{Fields};
 
-				    my $t = $t->{RFields};
+										my $t = $t->{RFields};
 
-					## Failed attempt ... 
-					##  my $decl = 
-					##  join "",
-					##		map {"my *$_ = \\\$t->{$_}; "} script_variables ($u);
-					## print "decl = $decl\n";
-					## eval qq{$decl \$h = eval "({$_})"};
+										## Failed attempt ... 
+										##  my $decl = 
+										##  join "",
+										##		map {"my *$_ = \\\$t->{$_}; "} script_variables ($u);
+										## print "decl = $decl\n";
+										## eval qq{$decl \$h = eval "({$_})"};
 
-					## fields of vrml node will appear as scalar
-					## variables in the script. In fact, they are
-					## scalars tied to the corresponding key/values of
-					## $h.
+										## fields of vrml node will appear as scalar
+										## variables in the script. In fact, they are
+										## scalars tied to the corresponding key/values of
+										## $h.
 
 								# This string ties scalars
-					my $tie = 
-					  join "", map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
-				        ## print "tie = $tie\n";
-					## $h = eval "$tie ({$_})";
-					$h = eval "({$_})";
+										my $tie = 
+											join "", map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
+										## print "tie = $tie\n";
+										## $h = eval "$tie ({$_})";
+										$h = eval "({$_})";
 								# Wrap up each sub in the script node
-					foreach (keys %$h) {
-					  my $tmp = $h->{$_};
-					  my $src = join ("\n",
-									  "sub {",
-									  "  $tie",
-									  "  \&\$tmp (\@_)",
-									  "}");
-					  ## print "---- src ----$src\n--------------",
-					  $h->{$_} = eval $src ;
-					}
+										foreach (keys %$h) {
+											my $tmp = $h->{$_};
+											my $src = join ("\n",
+															"sub {",
+															"  $tie",
+															"  \&\$tmp (\@_)",
+															"}");
+											## print "---- src ----$src\n--------------",
+											$h->{$_} = eval $src ;
+										}
 
-					## $h = eval "({$_})";
+										## $h = eval "({$_})";
 					
-				    
-				    if ($VRML::verbose::script) {
-				      print "Evaled: $h\n",
-				      "-- h = $h --\n",
-				      (map {"$_ => $h->{$_}\n"} keys %$h),
-				      "-- u = $u --\n",
-				      (map {"$_ => $u->{$_}\n"} keys %$u),
-				      "-- t = $t --\n",
-				      (map {"$_ => $t->{$_}\n"} keys %$t);
-				    }
-				    if($@) {
-				      die "Invalid script '$@'"
-				    }
-				  }
-				  last;
-				} elsif(/\.class$/) {
-#	$VRML::verbose::js = 1;	#RCS
-#EG				if(/\.class$/) {
-					$t->{PURL} = $scene->get_url;
-					if(!defined $VRML::J) {
-						eval('require "VRML/VRMLJava.pm"');
-						if($@) {die $@;}
-						$VRML::J = 
-							VRML::JavaCom->new($scene->get_browser);
-					}
-					$VRML::J->newscript($t->{PURL},$_,$t);
-					$t->{J} = $VRML::J;
-					last;
-				} elsif(/\.js/) {
-#RCS					die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
-				  # New js url handling
-					my $purl = $t->{PURL} = $scene->get_url;
-					print "JS url: purl = $purl\n";
-				  	my $file = VRML::URL::get_relative($purl, $_, 1);
-					print "JS url: file = $file\n";
-					open (SCRIPT_CODE, "< $file") || die("Couldn't retrieve javascript url $_ !");
-					my $code ="";
-					while (<SCRIPT_CODE>) { $code.=$_; };
-					close(SCRIPT_CODE);
-					print "JS url: code = $code\n";
-					eval('require VRML::JS;');
-					if($@) {die $@}
-					$t->{J} = VRML::JS->new($code,$t,$Browser);
-					last;
-				} elsif(s/^(java|vrml)script://) {
-					eval('require VRML::JS;');
-					if($@) {die $@}
-					$t->{J} = VRML::JS->new($_,$t,$Browser);
-					last;
-				} else {
-					warn("unknown script: $_");
-				}
-			}
 
-#EG  			if(!defined $t->{J}) {
-#EG  			  die "Didn't find a valid java script";
-#EG  			}
+										if ($VRML::verbose::script) {
+											print "Evaled: $h\n",
+												"-- h = $h --\n",
+													(map {"$_ => $h->{$_}\n"} keys %$h),
+														"-- u = $u --\n",
+															(map {"$_ => $u->{$_}\n"} keys %$u),
+																"-- t = $t --\n",
+																	(map {"$_ => $t->{$_}\n"} keys %$t);
+										}
+										if ($@) {
+											die "Invalid script '$@'"
+										}
+									}
+									last;
+								} elsif (/\.class$/) {
+									#	$VRML::verbose::js = 1;	#RCS
+									#EG				if(/\.class$/) {
+									my $wurl = $scene->get_world_url;
+									$t->{PURL} = $scene->get_url;
+									if (!defined $VRML::J) {
+										eval('require "VRML/VRMLJava.pm"');
+										if ($@) {
+											die $@;
+										}
+										$VRML::J =
+											VRML::JavaCom->new($scene->get_browser);
+									}
+									if (defined $wurl) {
+										$VRML::J->newscript($wurl,$_,$t);
+									} else {
+										$VRML::J->newscript($t->{PURL},$_,$t);
+									}
+
+									$t->{J} = $VRML::J;
+									last;
+								} elsif (/\.js/) {
+									#RCS die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
+									# New js url handling
+									my $purl = $t->{PURL} = $scene->get_url;
+									my $wurl = $scene->get_world_url;
+									print "JS url: purl = $purl\n";
+									my $file;
+
+									if (defined $wurl) {
+										$file =
+											VRML::URL::get_relative($wurl, $_, 1);
+									} else {
+										$file =
+											VRML::URL::get_relative($purl, $_, 1);
+									}
+
+									print "JS url: file = $file\n";
+									open (SCRIPT_CODE, "< $file") || die("Couldn't retrieve javascript url $_ !");
+									my $code ="";
+									while (<SCRIPT_CODE>) {
+										$code.=$_;
+									}
+									;
+									close(SCRIPT_CODE);
+									print "JS url: code = $code\n";
+									eval('require VRML::JS;');
+									if ($@) {
+										die $@;
+									}
+									$t->{J} = VRML::JS->new($code,$t,$Browser);
+									last;
+								} elsif (s/^(java|vrml)script://) {
+									eval('require VRML::JS;');
+									if ($@) {
+										die $@;
+									}
+									$t->{J} = VRML::JS->new($_,$t,$Browser);
+									last;
+								} else {
+									warn("unknown script: $_");
+								}
+							}
+
+							#EG  			if(!defined $t->{J}) {
+							#EG  			  die "Didn't find a valid java script";
+							#EG  			}
 
 			
-			if(!defined $h and !defined $t->{J}) {
-				die "Didn't find a valid perl(_tjl_xxx)? or java script";
-			}
-			print "GOT EVS: ",(join ',',keys %$h),"\n" 
-				if $VRML::verbose::script;
-			$t->{ScriptScript} = $h;
-			my $s;
-			if(($s = $t->{ScriptScript}{"initialize"})) {
-				print "CALL $s\n if $VRML::verbose::script"
-				 if $VRML::verbose::script;
-				##EG show_stack (5);
-				##EG return &{$s}();
-				perl_script_output (1);
-				my @res = &{$s}();
-				perl_script_output (0);
-				return @res ;
+							if (!defined $h and !defined $t->{J}) {
+								die "Didn't find a valid perl(_tjl_xxx)? or java script";
+							}
+							print "GOT EVS: ",(join ',',keys %$h),"\n" 
+								if $VRML::verbose::script;
+							$t->{ScriptScript} = $h;
+							my $s;
+							if (($s = $t->{ScriptScript}{"initialize"})) {
+								print "CALL $s\n if $VRML::verbose::script"
+									if $VRML::verbose::script;
+								##EG show_stack (5);
+								##EG return &{$s}();
+								perl_script_output (1);
+								my @res = &{$s}();
+								perl_script_output (0);
+								return @res ;
 
-			} elsif($t->{J}) {
+							} elsif ($t->{J}) {
 
-#EG			if($t->{J}) {
-				return $t->{J}->initialize($scene, $t);
-			}
-			return ();
-		},
-		url => sub {
-			print "ScriptURL $_[0] $_[1]!!\n" if $VRML::verbose::script;
-			die "URL setting not enabled";
-		},
-		__any__ => sub {
-			my($t,$f,$v,$time,$ev) = @_;
-			print "ScriptANY $_[0] $_[1] $_[2] $_[3] $_[4]!!\n"
-				if $VRML::verbose::script;
-			my $s;
-			if(($s = $t->{ScriptScript}{$ev})) {
-				print "CALL $s\n"
-				 if $VRML::verbose::script;
-				##EG show_stack (5);
-				##EG return &{$s}();
-				perl_script_output (1);
-				my @res = &{$s}();
-				perl_script_output (0);
-				return @res ;
-			} elsif($t->{J}) {
+								#EG			if($t->{J}) {
+								return $t->{J}->initialize($scene, $t);
+							}
+							return ();
+						},
+						url => sub {
+							print "ScriptURL $_[0] $_[1]!!\n" if $VRML::verbose::script;
+							die "URL setting not enabled";
+						},
+						__any__ => sub {
+							my($t,$f,$v,$time,$ev) = @_;
+							print "ScriptANY $_[0] $_[1] $_[2] $_[3] $_[4]!!\n"
+								if $VRML::verbose::script;
+							my $s;
+							if (($s = $t->{ScriptScript}{$ev})) {
+								print "CALL $s\n"
+									if $VRML::verbose::script;
+								##EG show_stack (5);
+								##EG return &{$s}();
+								perl_script_output (1);
+								my @res = &{$s}();
+								perl_script_output (0);
+								return @res ;
+							} elsif ($t->{J}) {
 
-#EG			if($t->{J}) {
-				return $t->{J}->sendevent($t, $ev, $v, $time);
-			}
-			return ();
-		},
-		EventsProcessed => sub {
-			my($t,$f) = @_;
-			print "ScriptEP $_[0] $_[1]!!\n"
-				if $VRML::verbose::script;
-			if($t->{J}) {
-				return $t->{J}->sendeventsproc($t);
-			}
-			return ();
-		},
-	}
-),
+								#EG			if($t->{J}) {
+								return $t->{J}->sendevent($t, $ev, $v, $time);
+							}
+							return ();
+						},
+						EventsProcessed => sub {
+							my($t,$f) = @_;
+							print "ScriptEP $_[0] $_[1]!!\n"
+								if $VRML::verbose::script;
+							if ($t->{J}) {
+								return $t->{J}->sendeventsproc($t);
+							}
+							return ();
+						},
+					   }
+					  ),
 
  # XXX Well, at least it will display children now... JAS.
  Collision => new VRML::NodeType("Collision",
