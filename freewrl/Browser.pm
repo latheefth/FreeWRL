@@ -68,11 +68,13 @@ use POSIX;
 
 sub new {
 	my($type, $pars) = @_;
+
 	my $this = bless {
 			  Verbose => delete $pars->{Verbose},
 			  BE => new VRML::GLBackEnd($pars->{FullScreen}, 
 						    $pars->{Shutter}, 
 						    $pars->{EyeDist}, 
+						    $pars->{Parent}, 
 						    $pars->{ScreenDist}, 
 						    @{$pars->{BackEnd} or []}),
 			  EV => new VRML::EventMachine(),
