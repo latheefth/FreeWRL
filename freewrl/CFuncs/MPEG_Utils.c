@@ -6745,8 +6745,6 @@ pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
   buffer = (unsigned char *) *buf_ptr;
   
   if (length > 0) {
-	  printf ("len %d going to copy %d %d len %d\n",
-			  	length,(unsigned char *) buf_start, buffer, (unsigned int) (length*4));
 	  //  a known problem - can overwrite - JAS
 	  //
 	  if (buf_start != buffer) {
