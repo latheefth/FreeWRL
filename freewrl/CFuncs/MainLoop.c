@@ -436,7 +436,7 @@ void render() {
 		}
 
 		// Correct Viewpoint, only needed when in stereo mode.
-		if (count > 0) setup_viewpoint(FALSE);
+		if (maxbuffers > 1) setup_viewpoint(FALSE);
 
 		// Other lights
 		glPrintError("XEvents::render, before render_hier");

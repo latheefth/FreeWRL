@@ -131,6 +131,7 @@ int  default_attributes3[] =
 #endif
 
 
+int	shutter = 0; /* stereo shutter glasses */
 
 // Function prototypes
 #ifndef AQUA
@@ -145,7 +146,6 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
 	int	pw = 0; 
-	int	shutter = 0;
 	long	event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
 				ButtonMotionMask | ButtonReleaseMask |
 				ExposureMask | StructureNotifyMask |
@@ -416,4 +416,9 @@ void resetGeometry() {
 		XFlush(dpy);
 
 #endif
+}
+
+/* handle setting shutter from parameters */
+void setShutter (void) {
+	shutter = 1;
 }

@@ -805,11 +805,21 @@ void __pt_loadInitialGroup() {
 	call_pv("load_file_intro", G_ARRAY);
 }
 
+/* Shutter glasses, stereo mode configure  Mufti@rus*/
+float eyedist = 0.06;	
+float screendist = 0.8;	
+
+void setEyeDist (char *optArg) {
+	sscanf(optArg,"%f",&eyedist);
+}
+
+void setScreenDist (char *optArg) {
+	sscanf(optArg,"%f",&screendist);
+}
+/* end of Shutter glasses, stereo mode configure */
+
 
 void __pt_openBrowser() {
-	float eyedist = 10.0;	// have to really allow this to be passed in
-	float screendist = 10.0;	// have to really allow this to be passed in
-	int stereo = FALSE;
 	
 	dSP;
 	ENTER;
@@ -820,7 +830,7 @@ void __pt_openBrowser() {
 	set_eyehalf( eyedist/2.0,
 		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
 
-	if (stereo) 
+	if (shutter) 
 		XEventStereo();
 
 	

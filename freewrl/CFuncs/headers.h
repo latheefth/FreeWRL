@@ -353,6 +353,13 @@ extern void setPluginPipe(char *optarg);
 extern void setPluginFD(char *optarg);
 extern void setPluginInstance(char *optarg);
 
+/* shutter glasses, stereo view  from Mufti@rus */
+extern void setShutter (void);
+extern int shutter;
+extern void setScreenDist (char *optArg);
+extern void setStereoParameter (char *optArg);
+extern void setEyeDist (char *optArg);
+
 extern int isPerlinitialized(void);
 extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
 extern int display_status;		// toggle status bar - defined in VRMLC.pm

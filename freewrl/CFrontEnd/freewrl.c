@@ -97,12 +97,14 @@ int main (int argc, char **argv) {
 			{"seqtmp", 1, 0, 'o'},
 			{"gif", 0, 0, 'p'},
 			{"maximg", 1, 0, 'q'},
+			{"shutter", 0, 0, 'u'},
+			{"eyedist", 1, 0, 'y'},
+			{"fullscreen", 0, 0, 'c'},
+			{"stereoparameter", 1, 0, 't'},
+			{"screendist", 1, 0, 'r'},
+
 
 			{"parent", 1, 0, 'x'},
-			{"shutter", 0, 0, 'x'},
-			{"eyedist", 1, 0, 'x'},
-			{"fullscreen", 0, 0, 'r'},
-			{"screendist", 1, 0, 'x'},
 			{"server", 1, 0, 'x'},
 			{"sig", 1, 0, 'x'},
 			{"ps", 1, 0, 'x'},
@@ -195,6 +197,20 @@ int main (int argc, char **argv) {
 				display_status = 0;
 				break;
 
+				/* Shutter patches from Mufti @rus */
+			case 'r':
+				setScreenDist(optarg);
+				break;
+			case 't':
+				setStereoParameter(optarg);
+				break;
+			case 'u':
+				setShutter();
+				XEventStereo();
+				break;
+			case 'y':
+				setEyeDist(optarg);
+				break;
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */
 				break;

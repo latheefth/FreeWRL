@@ -64,10 +64,11 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 		viewer->speed = 1.0;
 /* 		Dist = 10.0; */
 		viewer->Dist = 10.0;
+/*
 		viewer->eyehalf = 0.0;
 		viewer->eyehalfangle = 0.0;
 		viewer->buffer = 0;
-
+*/
 		viewer->walk = &viewer_walk;
 		viewer->examine = &viewer_examine;
 		viewer->fly = &viewer_fly;
@@ -701,24 +702,23 @@ xy2qua(Quaternion *ret, const double x, const double y)
 /* 	return $qua; */
 }
 
+float stereoParameter = 0.4;
+
+void setStereoParameter (char *optArg) {
+	sscanf(optArg,"%f",&stereoParameter);
+}
+
 void
 set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehalfangle, const double fieldofview)
 {
-      double x = 0.0, correction, angle = 0.0;
+      double x = 0.0, angle = 0.0;
 
-      /*
-	   * correction for fieldofview
-       * 18.0: builtin fieldOfView of human eye
-       * 45.0: default fieldOfView of VRML97 viewpoint
-       */
-
-      correction = 18.0 / fieldofview;
       if (buffer == GL_BACK_LEFT) {
               x = eyehalf;
-              angle = eyehalfangle * correction;
+              angle = eyehalfangle * stereoParameter;
       } else if (buffer == GL_BACK_RIGHT) {
               x = -eyehalf;
-              angle = -eyehalfangle * correction;
+              angle = -eyehalfangle * stereoParameter;
       }
       glTranslated(x, 0.0, 0.0);
       glRotated(angle, 0.0, 1.0, 0.0);
