@@ -119,7 +119,8 @@ void Extru_ST_map(
         int end,
 	float *Vals,
 	int nsec,
-        struct VRML_PolyRep *this_Extru);
+        struct VRML_PolyRep *this_Extru,
+	int tcoordsize);
 
 /* from the PNG examples */
 unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
@@ -156,7 +157,12 @@ extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
 
 /* do we have to do textures?? */
-#define HAVETODOTEXTURES  (glIsEnabled(GL_TEXTURE_2D))
+//#define HAVETODOTEXTURES  (glIsEnabled(GL_TEXTURE_2D))
+// Rendering order changes created problems, so we assume textures all the
+// time
+
+#define HAVETODOTEXTURES 1
+#define BEHAVETODOTEXTURES  (glIsEnabled(GL_TEXTURE_2D))
 
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
