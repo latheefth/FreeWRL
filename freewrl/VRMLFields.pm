@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.3  2000/08/13 14:26:46  rcoscali
+# Add a js constructor for SFImage (need some work to do)
+# Fixed default SFImage JS statement
+#
 # Revision 1.2  2000/08/07 08:28:35  rcoscali
 # Removed reference to Image::Xpm (not usefull anymore for PixelTexture)
 #
@@ -1067,8 +1071,19 @@ sub cfunc {
 EOF
 }
 
+sub js_ctor {
+  return <<EOF;
+    function SFImage (x, y, d, data) {
+      this.x = x
+      this.y = y
+      this.d = d
+      this.data = data
+    }
+EOF
+}
+
 sub js_default {
-	return 'new SFImage(0,0,0,"","")'
+  return "new SFImage(0,0,0,\"\")";
 }
 
 1;
