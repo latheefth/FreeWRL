@@ -95,7 +95,7 @@ sub new {
 	  ) = @_;
 	my $this = bless {}, $type;
 
-	my($w,$h) = (300, 300);
+	my($w,$h) = (450, 300);
 	my $x = 0;
 	my $y = 0;
 	my $wintitle;
