@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.45  2005/02/07 20:25:43  crc_canada
+# SFImage parse - parse an SFImage, new parsing terminal symbols include
+# those found when parsing a PROTO decl. Eg, "field" is now left alone.
+#
 # Revision 1.44  2005/01/28 14:55:34  crc_canada
 # Javascript SFImage works; Texture parsing changed to speed it up; and Cylinder side texcoords fixed.
 #
@@ -946,20 +950,46 @@ VRML::Error->import;
 
 sub init { return [0, 0, 0]; }
 
+# parse all possible numbers up to a }, watching that one does not parse
+# in the first couple of characters of "field" or "eventIn" as might happen
+# in a PROTO def in VRML.
+
 sub parse {
-  my($type,$p) = @_;
+	my($type,$p) = @_;
 
-# define SFImage as being a range of "numbers" separated by spaces, tabs, newlines, etc.
-# this will end at what hopefully is the trailing brace.
+	$SFHEXmageChars = qr~[a-fA-FxX\d]+~;
+	$SFImageChars = qr~[,+\- \n\t\s\d]+~;
+	my $retstr = "";
 
-$SFImageChars = qr~[a-fA-FxX+\- \n\t\s\d]+~;
+	my $keepmatching = 1;
 
-# now, get the image data
-$_[2] =~ /\G\s*($SFImageChars)\s*/gc
-	or parsefail ($_[2], " problem finding SFImage");
-  return $1;
+	while ($keepmatching == 1){
+		# match numbers, spaces, newlines, etc.
+	
+		# Match. If we did not get anything, just return what we have.
+		$_[2] =~ /\G\s*($SFImageChars)\s*/gc 
+			or return $retstr;
+
+		# we did get something, append it to what we already have.
+		$retstr = $retstr.$1;
+	
+		# now, is this in the middle of a hex char?
+		$_[2] =~ /\G\s*([xX])\s*/gc;
+	
+		# could we possbly be at a hex number? If so, match hex digits. 
+		if (($1 eq "x")|($1 eq "X")) {
+			$retstr = $retstr.$1;
+			$_[2] =~ /\G\s*($SFHEXmageChars)\s*/gc;
+			#print " in X, just matched $1\n";
+			$retstr = $retstr.$1;
+		} else {
+			# most likely we got to a "field" or something else that looks hexidecimalish
+			#print "did not match an x\n";
+			$keepmatching = 3;
+		}
+	} 
+  return $retstr;
 }
-
 
 sub ctype {return "SV *$_[1]"}
 sub calloc {"$_[1] = newSVpv(\"\",0);"}
