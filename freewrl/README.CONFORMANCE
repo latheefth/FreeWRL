@@ -1,0 +1,126 @@
+I am slowly going through Michael Kass' VRML Test Suite;
+
+http://xsun.sdct.itl.nist.gov/~mkass/vts/html/vrml.html
+
+Lack of an entry only indicates that the tests have not
+been run yet.
+
+John Stewart.
+
+2000/12/15:	Decided to start documenting results here.
+
+
+
+Node Groups
+===========
+
+Appearance
+
+	Appearance
+	FontStyle
+	ImageTexture
+	Material
+	MovieTexture
+	PixelTexture
+	TextureTransform
+
+Bindable_Nodes
+
+	Background
+	Fog
+	NavigationInfo
+	Viewpoint
+
+Geometric_Properties
+
+	Color
+	Coordinate
+	Normal
+	TextureCoordinate
+
+Geometry
+	Box
+	Cone
+	Cylinder
+	ElevationGrid
+	Extrusion
+	IndexedFaceSet
+		1:	ok
+		2:	ok
+		3:	ok
+		4:	ok
+		5:	ok
+		6:	ok
+		7:	ok
+		8:	error: Too large normal index -- help?
+		9:	same
+		10:	same
+		11:
+		12:
+		13:
+		14:
+		15:
+		16:
+		17:
+		18:
+		19:
+		20:
+		21:
+	IndexedLineSet
+	PointSet
+	Shape
+	Sphere
+	Text
+
+Grouping_Nodes
+
+	Anchor
+	Billboard
+	Collision
+	Group
+	Transform
+
+Interpolators
+
+	ColorInterpolator
+	CoordinateInterpolator
+	NormalInterpolator
+	OrientationInterpolator
+	PositionInterpolator
+	ScalarInterpolator
+
+Lights
+
+	DirectionalLight
+	PointLight
+	SpotLight
+
+Misc
+
+
+	EXTERNPROTO
+	PROTO
+	Script_ECMAScript
+	Script_java
+	WorldInfo
+
+Sensors
+
+	CylinderSensor
+	PlaneSensor
+	ProximitySensor
+	SphereSensor
+	TimeSensor
+	TouchSensor
+	VisibilitySensor
+
+Sounds
+
+	AudioClip
+	Sound
+
+Special_Groups
+
+	Inline
+	LOD
+	Switch
