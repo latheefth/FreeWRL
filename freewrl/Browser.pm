@@ -264,17 +264,17 @@ sub tick {
 	my($this) = @_;
 	my $time = get_timestamp();
 
-	
+
 	#handle app/os events.
-	$this->{BE}->handle_events($time);	
+	$this->{BE}->handle_events($time);
 
 	#update viewer position (first draft)
 	$this->{BE}->{Viewer}->handle_tick($time);
-	
+
 	#setup projection.
 	#activate proximity sensors.
 	$this->{BE}->render_pre();
-	
+
 	$this->{EV}->propagate_events($time,$this->{BE},
 		$this->{Scene});
 
@@ -359,20 +359,22 @@ sub replaceWorld {
 sub createVrmlFromString {
 	my ($this, $string) = @_;
 
-	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING");
+	my $scene = VRML::Scene->new($this->{EV}, "FROM A STRING");
+	$scene->set_world_url($this->{Scene}->get_world_url());
+
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
-	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
+	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
 	# print "CVS - ret is $ret\n";
 	# debugging scene graph call: 
 	#print "dump createVrmlFromString commented out\n";
-	$scene->dump(0)if $VRML::verbose::scenegraph;
+	$scene->dump(0) if $VRML::verbose::scenegraph;
 
 	return $ret;
 }
 
 sub createVrmlFromURL {
-	my ($this,$file,$url) = @_;
+	my ($this, $file, $url) = @_;
 
 	# stage 1a - get the URL....
 	$url = ($url || $file);
@@ -447,18 +449,18 @@ sub api_endUpdate { print "no endupdate yet\n"; exit(1) }
 sub api_getNode {
 	$_[0]->{Scene}->getNode($_[1]);
 }
-sub api__sendEvent { 
-	my($this,$node,$field,$val) = @_;
-	$this->{EV}->send_event_to($node,$field,$val);
+sub api__sendEvent {
+	my($this, $node, $field, $val) = @_;
+	$this->{EV}->send_event_to($node, $field, $val);
 }
 
-sub api__registerListener { 
+sub api__registerListener {
 	my($this, $node, $field, $sub) = @_;
 	$this->{EV}->register_listener($node, $field, $sub);
 }
 
 sub api__getFieldInfo {
-	my($this,$node,$field) = @_;
+	my($this, $node, $field) = @_;
 
 	my ($k, $t);
 
@@ -480,7 +482,8 @@ sub api__getFieldInfo {
 
 	# print "gestures try is ", $node->{FieldType}{gestures},"\n";
 	# if (exists $node->{Type}) {
-		($k,$t) = ($node->{Type}{FieldKinds}{$field},$node->{Type}{FieldTypes}{$field});
+		($k,$t) = ($node->{Type}{FieldKinds}{$field},
+				   $node->{Type}{FieldTypes}{$field});
 	# } else {
 	# 	($k,$t) = ($node->{FieldKinds}{$field},$node->{FieldTypes}{$field});
 	# }

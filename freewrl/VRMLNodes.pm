@@ -2324,8 +2324,6 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 
 						URL:
 							for $u (@$urls) {
-								##($text, $url) = VRML::URL::get_relative($purl, $u);
-		
 								if (defined $wurl) {
 									($text, $url) = VRML::URL::get_relative($wurl, $u);
 								} else {
