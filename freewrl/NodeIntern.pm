@@ -276,7 +276,7 @@ sub new {
     } else {
 	# REGULAR
 	$this->{Type} = $t;
-	print "\tnew Node of type $ntype is regular, type is ", $this->{Type},"\n"
+	print "\tnew Node of type $ntype is regular, type is ", %{$this->{Type}},"\n"
 			 if $VRML::verbose::nodec;
     }
     $this->do_defaults();
@@ -305,13 +305,13 @@ sub new_script {
 # Fill in nonexisting field values by the default values.
 # XXX Maybe should copy?
 sub do_defaults {
-    my ($this) = @_;
+	my ($this) = @_;
 
-    for (keys %{$this->{Type}{Defaults}}) {
-	if (!exists $this->{Fields}{$_}) {
-	    $this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
+	for (keys %{$this->{Type}{Defaults}}) {
+		if (!exists $this->{Fields}{$_}) {
+			$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
+		}
 	}
-    }
 }
 
 sub as_string {
@@ -477,22 +477,28 @@ sub copy {
 
 sub iterate_nodes {
     my ($this, $sub, $parent) = @_;
+	my $ft;
     print "VRML::NodeIntern::iterate_nodes\n" if $VRML::verbose::scene;
     &$sub($this, $parent);
 
-    for (keys %{$this->{Fields}}) {
-	if ($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
-	    print "\tField type SFNode\n" if $VRML::verbose::scene;
-	    $this->{Fields}{$_}->iterate_nodes($sub, $this);
-	} elsif ($this->{Type}{FieldTypes}{$_} =~ /MFNode$/) {
-	    print "\tField type MFNode\n" if $VRML::verbose::scene;
-	    my $ref = $this->{RFields}{$_};
-	    for (@$ref) {
-		print "\titerate_nodes 3 going down... $_\n" if $VRML::verbose::scene;
-		$_->iterate_nodes($sub, $this);
-	    }
-	} else {}
-    }
+	for (keys %{$this->{Fields}}) {
+		$ft = $this->{Type}{FieldTypes}{$_};
+		if ($ft =~ /SFNode$/) {
+			print "\tField type SFNode\n" if $VRML::verbose::scene;
+			if (!defined $this->{Fields}{$_}) {
+				$this->{Fields}{$_} = "NULL";
+			}
+			$this->{Fields}{$_}->iterate_nodes($sub, $this);
+		} elsif ($ft =~ /MFNode$/) {
+			print "\tField type MFNode\n" if $VRML::verbose::scene;
+			my $ref = $this->{RFields}{$_};
+			for (@$ref) {
+				print "\titerate_nodes 3 going down... $_\n" if $VRML::verbose::scene;
+				$_->iterate_nodes($sub, $this);
+			}
+		} else {
+		}
+	}
 }
 
 sub make_executable {
