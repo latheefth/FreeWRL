@@ -26,6 +26,13 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.98  2003/07/07 19:08:20  ayla
+#
+# Billboard calculation uses ModelView matrix again, which hopefully fixes
+# Billboard node problems once and for all.
+# Fixed function get_timestamp() in VRMLC.pm and removed time as argument to a
+# number of Viewer functions since TickTime is a global.
+#
 # Revision 1.97  2003/07/03 20:01:20  ayla
 # Added include for new header file.
 #
@@ -2290,26 +2297,23 @@ CODE:
 	set_viewer_type(type);
 
 void
-do_handle_key(time, key)
-	double time
+do_handle_key(key)
 	char key
 CODE:
-	handle_key(&Viewer, time, key);
+	handle_key(&Viewer, TickTime, key);
 
 
 void
-do_handle_keyrelease(time, key)
-	double time
+do_handle_keyrelease(key)
 	char key
 CODE:
-	handle_keyrelease(&Viewer, time, key);
+	handle_keyrelease(&Viewer, TickTime, key);
 
 
 void
-do_handle_tick(time)
-	double time
+do_handle_tick()
 CODE:
-	handle_tick(&Viewer, time);
+	handle_tick(&Viewer, TickTime);
 
 
 void
@@ -2407,8 +2411,9 @@ CODE:
 	} else {
 		loop_count++;
 	}
-		
-
+	RETVAL = TickTime;
+OUTPUT:
+	RETVAL
 
 
 

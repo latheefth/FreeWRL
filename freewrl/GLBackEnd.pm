@@ -257,7 +257,7 @@ sub event {
 	# JAS - uncomment this to see all events, even mouse movenemts
 	# print "EVENT $this $type $args[0] $args[1] $args[2]\n";
 
-	##print "VRML::GLBackEnd::event: $time, $type, [ ", join(", ", @args)," ]\n";
+	#print "VRML::GLBackEnd::event: $time, $type, [ ", join(", ", @args)," ]\n";
 
 	if ($type == &MotionNotify) {
 
@@ -332,7 +332,7 @@ sub event {
 		undef $this->{BUT};
 
     } elsif ($type == &KeyPress) {
-		# print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
+		#print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
 		my $key = lc $args[0];
 
 		if ($key eq "e") {
@@ -411,11 +411,11 @@ sub event {
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.4, 0.5);
 			}
 		} else {
-			VRML::VRMLFunc::do_handle_key($time, $args[0]);
+			VRML::VRMLFunc::do_handle_key($args[0]);
 		}
 	} elsif ($type == &KeyRelease) {
 		if (VRML::VRMLFunc::use_keys()) {
-			VRML::VRMLFunc::do_handle_keyrelease($time, $args[0]);
+			VRML::VRMLFunc::do_handle_keyrelease($args[0]);
 		}
     }
 }

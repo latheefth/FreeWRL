@@ -521,13 +521,12 @@ sub tick {
 	my($this) = @_;
 	my $time = VRML::VRMLFunc::get_timestamp();
 
-
 	#handle app/os events.
 	$this->{BE}->handle_events($time);
 
 	#update viewer position (first draft)
 	#AK - #$this->{BE}->{Viewer}->handle_tick($time);
-	VRML::VRMLFunc::do_handle_tick($time);
+	VRML::VRMLFunc::do_handle_tick();
 
 	#setup projection.
 	#activate proximity sensors.
