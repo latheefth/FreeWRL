@@ -312,7 +312,9 @@ my $protono;
 						 repeatT => [SFBool, 1, field],
 						 duration_changed => [SFTime, -1, eventOut],
 						 isActive => [SFBool, 0, eventOut],
-						 #JAS __locfile => [MFString, [], field],
+						 
+						 # has the URL changed???
+						 __oldurl => [MFString, [""], field],
 						 # initial texture number
 						 __texture0_ => [SFInt32, 0, field],
 						 # last texture number

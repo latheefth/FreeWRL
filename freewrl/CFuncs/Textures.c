@@ -157,6 +157,17 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 
 /* load in a texture, if possible */
 void loadImageTexture (struct VRML_ImageTexture *node) {
+	if (node->_ichange != node->_change) {
+		node->_ichange = node->_change;
+		// is this an initial load, or a reload?
+		if (node->__texture > 0) {
+			//printf ("loadImageTexture, this is a reload!\n");
+			isloaded[node->__texture] = NOTLOADED;
+			loadparams[node->__texture].filename="uninitialized file";
+			loadparams[node->__texture].depth = 0;
+		}
+	}
+	
 	bind_image(IMAGETEXTURE, node->__parenturl, 
 		node->url, 
 		&node->__texture,node->repeatS,node->repeatT);
@@ -165,6 +176,16 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 /* load in a texture, if possible */
 void loadPixelTexture (struct VRML_PixelTexture *node) {
 	struct Multi_String mynull;
+	if (node->_ichange != node->_change) {
+		node->_ichange = node->_change;
+		// is this an initial load, or a reload?
+		if (node->__texture > 0) {
+			//printf ("loadImageTexture, this is a reload!\n");
+			isloaded[node->__texture] = NOTLOADED;
+			loadparams[node->__texture].filename="uninitialized file";
+			loadparams[node->__texture].depth = 0;
+		}
+	}
 	bind_image(PIXELTEXTURE, node->image, 
 		mynull, 
 		&node->__texture,node->repeatS,node->repeatT);
@@ -175,8 +196,30 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 	int firsttex;
 	/* when the data is "unsquished", this texture becomes invalid,
 		and the new texture ranges are placed */
-
 	firsttex = node->__texture0_;
+
+	if (node->_ichange != node->_change) {
+		node->_change = node->_ichange;
+		// did the URL's change? we can't test for _change here, because
+		// movie running will change it, so we look at the urls.
+		if ((node->url.p) != (node->__oldurl.p)) {
+			// we have a node change - is this an initial load, or
+			// a reload?
+			if (firsttex > 0) {
+				// we have changed the url - reload it all.
+				isloaded[firsttex] = NOTLOADED;
+				loadparams[firsttex].filename="uninitialized file";
+				loadparams[firsttex].depth = 0;
+				node->__texture0_ = 0;
+				node->__texture1_ = 0;
+				node->__ctex = 0;
+				node->__inittime = 0;
+				node->__sourceNumber = -1;
+			}
+			node->__oldurl.p = node->url.p;
+		}
+	}
+
 	bind_image(MOVIETEXTURE, node->__parenturl, 
 		node->url, 
 		&node->__texture0_,node->repeatS,node->repeatT);

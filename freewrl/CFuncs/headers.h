@@ -311,10 +311,11 @@ void CRoutes_free(void);
 void mark_script(int num);
 void propagate_events(void);
 void sendScriptEventIn(int num);
-void add_first(char *clocktype,unsigned int node);
+void add_first(char *clocktype,void * node);
 void do_first(void);
 void process_eventsProcessed(void);
 
+void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
 
 
 extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */

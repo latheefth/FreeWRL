@@ -713,7 +713,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 	int len, elemCount;
 	int MultiElement;
-	char myBuffer[2000];
+	char myBuffer[6000];
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
 		friggin do it! ;-) */
@@ -803,13 +803,8 @@ unsigned int EAI_SendEvent (char *ptr) {
 		   break;
 		}
 		case EAI_MFSTRING: {
-			if (EAIVerbose) {
-				printf ("EAI_MFSTRING, string is %s\nxxx\n",ptr);
-				printf ("EAI_MFSTRING, have to fix this code. JohnS\n");
-			}
-//xxx			getEAI_MFStringtype ((JSContext *) ScriptControl[actualscript].cx,
-//xxx							 global_return_val,memptr); 
-			len=0;
+			// myBuffer will have a full SV structure now, and len will
+			// be -1.
 			break;
 		}
 
@@ -827,11 +822,12 @@ unsigned int EAI_SendEvent (char *ptr) {
 	}
 
 	/* if we had an error on conversion */
-	if (len <= 0)
+	if (len == 0)
 	{
 		//EAIVerbose = 0;
 		return FALSE;
 	}
+
 
 	if (scripttype) {
 	    /* this is a Javascript route, so... */
@@ -863,27 +859,31 @@ unsigned int EAI_SendEvent (char *ptr) {
 	    }
 	    mark_script((int)nodeptr);
 	} else {
-	    /* AD I think here is the rigth place to use this function,
-	       but I cannot see his rigth application
-	     */
-	    /*
-	    getCLASSMultNumType (myBuffer, sizeof(float)*len,
-	    (struct Multi_Vec3f *) memptr, MFFLOAT, FALSE);
-	     */
-
-	    /* now, do the memory copy */
-	    memcpy ((void *)memptr, (void *)myBuffer,len);
+		/* now, do the memory copy */
+		/* if we have a positive len, then, do a straight copy */
+		if (len > 0) {
+			memcpy ((void *)memptr, (void *)myBuffer,len);
+		} else {
+			/* if len < 0, it is "wierd". See ScanValtoBuffer
+			 * for accurate return values. */
+			if (len == -1) {
+				//printf ("EAI_MFSTRING copy over \n");
+				getEAI_MFStringtype ((struct Multi_String *)myBuffer,
+							(struct Multi_String *)memptr);
+			}
+		}
 	    
-	    /* if this is a geometry, make it re-render.
-	       Some nodes (PROTO interface params w/o IS's) 
-	       will have an offset of zero, and are thus not
-	       "real" nodes, only memory locations
-	     */
 	    
-	    if (offset > 0) update_node ((void *)nodeptr);
+		/* if this is a geometry, make it re-render.
+		   Some nodes (PROTO interface params w/o IS's) 
+		   will have an offset of zero, and are thus not
+		   "real" nodes, only memory locations
+		*/
 	    
-	    /* if anything uses this for routing, tell it that it has changed */
-	    mark_event (nodeptr,offset);
+		if (offset > 0) update_node ((void *)nodeptr);
+	    
+		/* if anything uses this for routing, tell it that it has changed */
+		mark_event (nodeptr,offset);
 	}
 	//EAIVerbose = 0;
 	return TRUE;
@@ -1344,7 +1344,78 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		  break;
 	    }
 
-	    case MFSTRING: 
+	    case MFSTRING: {
+		int count;
+		SV ** newp;
+		struct xpv *mypv;
+		struct Multi_String *strptr;
+		int thisele, thissize, maxele;	// used for reading in MFStrings
+
+
+		// return a Multi_String.
+		//  struct Multi_String { int n; SV * *p; };
+		//  buf will look like:
+		//  2  0;9:wordg.png  1;12:My"wordg.png
+		//  where 2 = max elements; 0;9 is element 0, 9 chars long...
+		
+				   
+		strptr = (struct Multi_String *)memptr;
+		
+		// scan to start of element count, and read it in.
+		while (*buf==' ') buf++;
+		sscanf (buf,"%d",&maxele);
+		while (*buf!=' ') buf++; 
+
+		// make (and initialize) this MFString internal representation.
+		strptr->n = maxele;
+		//printf ("mallocing strptr->p, size %d\n",sizeof(strptr->p));
+		strptr->p = malloc (maxele * sizeof(strptr->p));
+		newp = strptr->p;
+
+		// scan through EAI string, extract strings, etc, etc.
+		do {
+			// scan to start of element number
+
+			/* make the new SV */
+			*newp = malloc (sizeof (struct STRUCT_SV));
+			(*newp)->sv_flags = SVt_PV | SVf_POK;
+			(*newp)->sv_refcnt=1;
+			mypv = malloc(sizeof (struct xpv));
+			//printf ("just mallocd for mypv, it is %d and size %d\n",
+			//		mypv, sizeof (struct xpv));
+			(*newp)->sv_any = mypv;
+
+			while (*buf==' ') buf++;
+			sscanf (buf,"%d;%d",&thisele,&thissize);
+			//printf ("this element %d has size %d\n",thisele,thissize);
+			
+			//mypv = (struct xpv *) newp + (thisele*sizeof(newp)); 
+
+			// scan to start of string
+			while (*buf!=':') buf++; buf++;
+			
+			// fill in the SV values...copy the string over...
+			(*mypv).xpv_pv = malloc (thissize+2);
+			strncpy((*mypv).xpv_pv ,buf,thissize);
+			(*mypv).xpv_pv[thissize] = '\0'; // null terminate
+			(*mypv).xpv_cur = thissize-1;    // size without term
+			(*mypv).xpv_len = thissize;      // size with termination
+
+			// increment buf by string size.
+			buf += thissize;
+
+			// scan to next start of string, or end of line
+			while (*buf==' ') buf++;
+
+			// point to next SV to fill
+			newp++;
+		} while (((int)*buf)>=32);
+		//len = maxele*sizeof(struct Multi_String);
+		// return -1 to indicate that this is "wierd".
+		len = -1;
+
+		break;
+	   }
 	  default: {
 		printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
 		printf ("complain to the FreeWRL team.\n");

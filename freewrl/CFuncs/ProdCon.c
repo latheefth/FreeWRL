@@ -1080,7 +1080,7 @@ void __pt_doStringUrl () {
        			addToNode(psp.ptr+psp.ofs, (unsigned)(myretarr[count]));
 
 			/* tell the child that it has a new parent! */
-			add_parent(myretarr[count],psp.ptr);
+			add_parent((void *)myretarr[count],(void *)psp.ptr);
        		}
 
 		/* tell the node that we have changed */

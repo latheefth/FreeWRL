@@ -41,7 +41,7 @@
 
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
-void AddRemoveChildren (struct VRML_Box *parent, struct Multi_Vec3f *tn, int *nodelist, int len, int ar);
+void AddRemoveChildren (struct VRML_Box *parent, struct Multi_Node *tn, int *nodelist, int len, int ar);
 void markScriptResults(int tn, int tptr, int route, int tonode);
 void initializeScript(int num,int evIn);
 
@@ -186,7 +186,7 @@ jsval global_return_val;
 
 /* ClockTick structure for processing all of the initevents - eg, TimeSensors */
 struct FirstStruct {
-	unsigned int	tonode;
+	void *	tonode;
 	void (*interpptr)(unsigned *);
 };
 
@@ -224,7 +224,7 @@ void markScriptResults(int tn, int tptr, int route, int tonode) {
 
 /* call initialize on this script. called for script eventins and eventouts */
 void initializeScript(int num,int evIn) {
-	jsval *retval;
+	jsval retval;
 	int counter, tn;
 	CRnodeStruct *to_ptr = NULL;
 
@@ -317,7 +317,7 @@ int get_touched_flag (int fptr, int actualscript) {
 	JSContext *mycx;
 
 	// used for finding touched flag in multi nodes
-	jsval *vp;
+	jsval vp;
 	jsval tval;
 	jsint jlen;
 	jsval _length_val;
@@ -502,22 +502,22 @@ int get_touched_flag (int fptr, int actualscript) {
 				//printf ("first element %d is %d\n",count,vp);
 				switch (JSparamnames[fptr].type) {
 				  case MFCOLOR: {
-					if (!(SFColorTouched( mycx, vp, 0, 0, &tval))) 
+					if (!(SFColorTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
 						printf ("cant get touched for MFColor/MFVec3f\n");
 				     	break;
 					}
 				  case MFROTATION: {
-					if (!(SFRotationTouched( mycx, vp, 0, 0, &tval))) 
+					if (!(SFRotationTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
 						printf ("cant get touched for MFRotation\n");
 				     	break;
 					}
 				  case MFNODE: {
-					if (!(SFNodeTouched( mycx, vp, 0, 0, &tval))) 
+					if (!(SFNodeTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
 						printf ("cant get touched for MFNode\n");
 				     	break;
 					}
 				  case MFVEC2F: {
-					if (!(SFVec2fTouched( mycx, vp, 0, 0, &tval))) 
+					if (!(SFVec2fTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
 						printf ("cant get touched for MFVec2f\n");
 				     	break;
 					}
@@ -707,8 +707,8 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		for (count = 0; count <oldlen; count ++) {
 			//printf ("copying over element %d\n",count);
 			*newp = *oldp;
-			newp+= sizeof (to->p);
-			oldp+= sizeof (to->p);	
+			newp++;
+			oldp++;	
 		}
 		
 		// zero new entries
@@ -725,6 +725,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 			strcpy((*mypv).xpv_pv ,"");
 			(*mypv).xpv_cur = 0;
 			(*mypv).xpv_len = 1;
+			newp ++;
 		}
 		free (svptr);
 		svptr = to->p;
@@ -799,11 +800,15 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /************************************************************************/
 
 void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, int ar) {
-	unsigned int newptr;
+	unsigned long int newptr;
 	int newlen;
 	char *cptr;
 	void *newmal;
-	unsigned int *tmpptr;
+	unsigned long int *tmpptr;
+
+	// is this 64 bit compatible? - unsure right now.
+	if (sizeof(void *) != sizeof (unsigned int)) 
+		printf ("getMFNodetype - unverified that this works on 64 bit machines\n");
 
 	if (CRVerbose) {
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
@@ -827,7 +832,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 	cptr = strp; /* reset this pointer to the first number */
 
 	/* create the list to send to the AddRemoveChildren function */
-	newmal = malloc (newlen*sizeof(unsigned int));
+	newmal = malloc (newlen*sizeof(void *));
 	tmpptr = newmal;
 	
 	if (newmal == 0) {
@@ -841,7 +846,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 		/* skip past this number */
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 		while (*cptr == ' ') cptr++; /* skip spaces */
-		tmpptr = (void *) ((int)tmpptr + sizeof (unsigned int));
+		tmpptr = (void *) ((int)tmpptr + sizeof (void *));
 	}
 
 	/* now, perform the add/remove */
@@ -861,16 +866,16 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 
 void AddRemoveChildren (
 		struct VRML_Box *parent,
-		struct Multi_Vec3f *tn, 
+		struct Multi_Node *tn, 
 		int *nodelist, 
 		int len, 
 		int ar) {
 	int oldlen;
 	void *newmal;
 	int num_removed;
-	int *remchild;
-	int *remptr;
-	int *tmpptr;
+	long int *remchild;
+	long int *remptr;
+	long int *tmpptr;
 
 	int counter, c2;
 
@@ -891,7 +896,7 @@ void AddRemoveChildren (
 		/* first, set children to 0, in case render thread comes through here */
 		tn->n = 0;
 
-		newmal = malloc ((oldlen+len)*sizeof(unsigned int));
+		newmal = malloc ((oldlen+len)*sizeof(void *));
 	
 		if (newmal == 0) {
 			printf ("cant malloc memory for addChildren");
@@ -899,19 +904,19 @@ void AddRemoveChildren (
 		}
 	
 		/* copy the old stuff over */
-		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(unsigned int));
+		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
 	
 		/* set up the C structures for this new MFNode addition */
 		free (tn->p);
 		tn->p = newmal;
 	
 		/* copy the new stuff over */
-		newmal = (void *) ((int) newmal + sizeof (unsigned int) * oldlen);
-		memcpy(newmal,nodelist,sizeof(unsigned int) * len);
+		newmal = (void *) ((int) newmal + sizeof (void *) * oldlen);
+		memcpy(newmal,nodelist,sizeof(void *) * len);
 
 		/* tell each node in the nodelist that it has a new parent */
 		for (counter = 0; counter < len; counter++) {
-			add_parent(nodelist[counter],parent);
+			add_parent((void *)nodelist[counter],(void *)parent);
 		}
 
 		/* and, set the new length */
@@ -940,9 +945,9 @@ void AddRemoveChildren (
 		//printf ("end of finding, num_removed is %d\n",num_removed);
 
 		if (num_removed > 0) {
-			newmal = malloc ((oldlen-num_removed)*sizeof(unsigned int));
+			newmal = malloc ((oldlen-num_removed)*sizeof(void *));
 			tmpptr = newmal;
-			remptr = (int *)tn->p;
+			remptr = (long int *)tn->p;
 			if (newmal == 0) {
 				printf ("cant malloc memory for removeChildren");
 				return;
@@ -952,7 +957,7 @@ void AddRemoveChildren (
 			for (counter = 0; counter < tn->n; counter ++) {
 				if (*remptr != 0) {
 					*tmpptr = *remptr;
-					remove_parent(*remptr,tn);
+					remove_parent((void *)*remptr,(void *)tn);
 					tmpptr ++;
 				}
 				remptr ++;
@@ -1157,6 +1162,126 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 }
 
 
+/****************************************************************/
+/* a EAI client is returning a MFString type; add this to the C	*/
+/* children field						*/
+/****************************************************************/
+void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
+	int oldlen, newlen;
+	jsval _v;
+	int i;
+	char *valStr, *OldvalStr;
+	SV **oldsvptr;
+	SV **newsvptr;
+	SV **newp, **oldp;
+	int myv;
+	int count;
+	struct xpv *mypv;
+
+	/* oldlen = what was there in the first place */
+	// should be ok verifySVtype(from);
+	verifySVtype(to);
+	
+	oldlen = to->n;
+	oldsvptr = to->p;
+	newlen= from->n;
+	newsvptr = from->p;
+
+	//printf ("old len %d new len %d\n",oldlen, newlen);
+
+	// if we have to expand size of SV...
+	if (newlen > oldlen) {
+
+		//printf ("have to expand...\n");
+		oldp = to->p; // same as oldsvptr, assigned above
+		to->n = newlen;
+		to->p = malloc(newlen * sizeof(to->p));
+		newp = to->p; 
+		//printf ("newp is %d, size %d\n",newp, newlen * sizeof(to->p));
+
+		// copy old values over
+		for (count = 0; count <oldlen; count ++) {
+			*newp = *oldp;
+			newp++;
+			oldp++;	
+		}
+		
+		// zero new entries
+		for (count = oldlen; count < newlen; count ++) {
+			//printf ("zeroing %d\n",count);
+			/* make the new SV */
+			*newp = malloc (sizeof (struct STRUCT_SV));
+			(*newp)->sv_flags = SVt_PV | SVf_POK;
+			(*newp)->sv_refcnt=1;
+			mypv = malloc(sizeof (struct xpv));
+			(*newp)->sv_any = mypv;
+
+			/* now, make it point to a blank string */
+			(*mypv).xpv_pv = malloc (2);
+			strcpy((*mypv).xpv_pv ,"");
+			(*mypv).xpv_cur = 0;
+			(*mypv).xpv_len = 1;
+			newp++;
+		}
+		free (oldsvptr);
+		oldsvptr = to->p;
+	}
+	/*
+	printf ("verifying structure here\n");
+	for (i=0; i<(to->n); i++) {
+		printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
+				(oldsvptr[i])->sv_flags,
+				 SvPVX(oldsvptr[i]), SvCUR(oldsvptr[i]), SvLEN(oldsvptr[i]));
+	}
+	for (i=0; i<(from->n); i++) {
+		printf ("NEW indx %d flag %x string :%s: len1 %d len2 %d\n",i,
+				(newsvptr[i])->sv_flags,
+				 SvPVX(newsvptr[i]), SvCUR(newsvptr[i]), SvLEN(newsvptr[i]));
+	}
+	printf ("done\n");
+	*/
+
+
+	for (i = 0; i < newlen; i++) {
+		// get the old string pointer
+		OldvalStr = SvPVX(oldsvptr[i]);
+		//printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr));
+
+		valStr = SvPVX(newsvptr[i]);
+
+		//printf ("new string %d is %s len %d\n",i,valStr,strlen(valStr));
+
+		// if the strings are different...
+		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
+			// now Perl core dumps since this is the wrong thread, so lets do this 
+			// ourselves: sv_setpv(oldsvptr[i],valStr);
+
+			// get a pointer to the xpv to modify
+			mypv = SvANY(oldsvptr[i]);
+
+			// free the old string
+			free (mypv->xpv_pv); 
+
+			// malloc a new string, of correct len for terminator
+			mypv->xpv_pv = malloc (strlen(valStr)+2);
+
+			// copy string over
+			strcpy (mypv->xpv_pv, valStr);
+
+			// and tell us that it is now longer
+			mypv->xpv_len = strlen(valStr)+1;
+			mypv->xpv_cur = strlen(valStr)+0;
+		}
+	}
+	/*
+	printf ("\n new structure: %d %d\n",oldsvptr,newlen);
+	for (i=0; i<newlen; i++) {
+		printf ("indx %d string :%s: len1 %d len2 %d\n",i,
+				//mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
+				 SvPVX(oldsvptr[i]), SvCUR(oldsvptr[i]), SvLEN(oldsvptr[i]));
+	}
+	*/
+}
 /****************************************************************/
 /* sets a SFVec3f and SFColor in a script 			*/
 /* sets a SFRotation and SFVec2fin a script 			*/
@@ -1636,8 +1761,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	      fp = (float *)pptr;
 	      sprintf (sline,"%f %f %f",*fp,
 		       *(fp+elementlen),
-		       *(fp+(elementlen*2)),
-		       *(fp+(elementlen*3)));
+		       *(fp+(elementlen*2)));
 	      if (x < ((len/elementlen)-1)) {
 		  strcat(sline,",");
 	      }
@@ -1725,8 +1849,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  sprintf (sline,"%f %f %f %f",*fp,
 		   *(fp+elementlen),
 		   *(fp+(elementlen*2)),
-		   *(fp+(elementlen*3)),
-		   *(fp+(elementlen*4)));
+		   *(fp+(elementlen*3)));
 	  sprintf (sline,"%f",*fp);
 	  if (x < ((len/elementlen)-1)) {
 	      strcat(sline,",");
@@ -1832,7 +1955,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 /* These events must be run first during the event loop, as they start an event cascade. 
    Regsister them with add_first, then call them during the event loop with do_first.    */
 
-void add_first(char *clocktype,unsigned int node) {
+void add_first(char *clocktype,void * node) {
 	void (*myp)(unsigned *);
 
 	if (strncmp("TimeSensor",clocktype,10) == 0) { myp =  (void *)do_TimeSensorTick;
