@@ -79,14 +79,14 @@ sub add_route {
 
 sub add_is_out {
 	my($this,$pn, $pf, $cn, $cf) = @_;
-print "Event.pm : add_is_out - this $this pn $pn pf $pf cn $cn cf $cf\n";
+	# print "Event.pm : add_is_out - this $this pn $pn pf $pf cn $cn cf $cf\n";
 	$this->{PIsN}{$pn} = $pn;
 	$this->{CIs}{$cn}{$cf} = [$pn,$pf];
 }
 
 sub add_is_in {
 	my($this,$pn, $pf, $cn, $cf) = @_;
-print "Event.pm : add_is_in - this $this pn $pn pf $pf cn $cn cf $cf\n";
+	# print "Event.pm : add_is_in - this $this pn $pn pf $pf cn $cn cf $cf\n";
 	$this->{PIsN}{$pn} = $pn;
 	push @{$this->{PIs}{$pn}{$pf}}, [$cn,$cf];
 }
