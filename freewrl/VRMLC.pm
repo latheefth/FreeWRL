@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.95  2003/06/19 20:48:01  crc_canada
+# FPS calculations now performed in C.
+#
 # Revision 1.94  2003/06/16 17:06:42  crc_canada
 # save Browser URL and Version to C.
 #
@@ -1115,6 +1118,9 @@ sub gen {
 #include "GL/gl.h"
 #endif
 
+/* for time tick calculations */
+#include <sys/time.h>
+
 struct pt {GLdouble x,y,z;};
 struct orient {GLdouble x,y,z,a;};
 
@@ -1309,8 +1315,10 @@ double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 GLdouble fieldofview = 45;
 
 
-/* current time */
+/* current time and other time related stuff */
 double TickTime;
+double BrowserStartTime; 	/* start of calculating FPS 	*/
+double BrowserFPS = 0.0;	/* calculated FPS		*/
 
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
@@ -2379,12 +2387,28 @@ CODE:
 
 #********************************************************************************
 
-# tell the backend what the current time is
-void
-setTick(timestamp)
-	double timestamp
+double
+get_timestamp()
 CODE:
-	TickTime = timestamp;
+	static int loop_count = 0;
+
+	struct timeval mytime;
+	struct timezone tz; /* unused see man gettimeofday */
+	gettimeofday (&mytime,&tz);
+	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+
+	/* First time through */
+	if (loop_count == 0) BrowserStartTime = TickTime;
+
+	if (loop_count == 25) {
+		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
+		BrowserStartTime = TickTime; 
+		loop_count = 1;
+	} else {
+		loop_count++;
+	}
+		
+
 
 
 
