@@ -266,53 +266,34 @@ sub event {
   my $but;
   
   # JAS - uncomment this to see all events, even mouse movenemts
-  print "EVENT $this $type $args[0] $args[1] $args[2]\n";
+  # print "EVENT $this $type $args[0] $args[1] $args[2]\n";
 
   if($type == &MotionNotify) 
     {
 
-      # We should fix the mask, not do this if.... XXXX
-  #JAS    if ($args[0] > 0) 
-#JAS	{
-	  my $but;
-	  # print "MOT!\n";
-	  if($args[0] & (&Button1Mask)) 
-	    {
-	      $but = 1;
-	    }
-	  elsif ($args[0] & (&Button2Mask))
-	    {
-	      $but = 2;
-	    }
-	  elsif ($args[0] & (&Button3Mask))
-	    {
-	      $but = 3;
-	    }
-	  # print "BUT: $but\n";
-	  $this->{MX} = $args[1]; $this->{MY} = $args[2];
-	  $this->{BUT} = $but;
-	  $this->{SENSMOVE} = 1;
-	  push @{$this->{BUTEV}}, [MOVE, undef, $args[1], $args[2]];
-	  undef $this->{EDone} if ($but > 0);
-#JAS	}
-#JAS      else
-	if ($args[0] <= 0) {
-	  print "Motion without button press - fix mask\n";
+	my $but;
+	# print "MOT!\n";
+	if($args[0] & (&Button1Mask)) {
+	    $but = 1;
+	} elsif ($args[0] & (&Button2Mask)) {
+	    $but = 2;
+	} elsif ($args[0] & (&Button3Mask)) {
+	    $but = 3;
 	}
-    }
-  elsif($type == &ButtonPress) 
-    {
+	# print "BUT: $but\n";
+ 	$this->{MX} = $args[1]; $this->{MY} = $args[2];
+	$this->{BUT} = $but;
+	$this->{SENSMOVE} = 1;
+	push @{$this->{BUTEV}}, [MOVE, undef, $args[1], $args[2]];
+	undef $this->{EDone} if ($but > 0);
+
+    } elsif($type == &ButtonPress) {
       # print "BP!\n";
-      if($args[0] == (&Button1)) 
-	{
+      if($args[0] == (&Button1)) {
 	  $but = 1;
-	}
-      elsif($args[0] == (&Button2)) 
-	{
+	} elsif($args[0] == (&Button2)) {
 	  $but = 2;
-	} 
-      elsif ($args[0] == (&Button3)) 
-	{
+	} elsif ($args[0] == (&Button3)) {
 	  $but = 3;
 	}
       $this->{MX} = $args[1]; $this->{MY} = $args[2];
@@ -328,20 +309,14 @@ sub event {
       $this->{BUT} = $but;
       $this->{SENSBUT} = $but;
       undef $this->{EDone};
-    }
-  elsif($type == &ButtonRelease) 
-    {
+
+    } elsif($type == &ButtonRelease) {
       # print "BR\n";
-      if($args[0] == (&Button1)) 
-	{
+      if($args[0] == (&Button1)) {
 	  $but = 1;
-	} 
-      elsif($args[0] == (&Button2)) 
-	{
+	} elsif($args[0] == (&Button2)) {
 	  $but = 2;
-	}
-      elsif ($args[0] == (&Button3)) 
-	{
+	} elsif ($args[0] == (&Button3)) {
 	  $but = 3;
 	}
       push @{$this->{BUTEV}}, [RELEASE, $but, $args[1], $args[2]];
@@ -349,42 +324,28 @@ sub event {
       $this->{Viewer}->handle("RELEASE",$but,0,0);
       $this->{SENSBUTREL} = $but;
       undef $this->{BUT};
-    }
-  elsif($type == &KeyPress) 
-    {
+
+    } elsif($type == &KeyPress) {
       # print "KEY: $args[0] $args[1] $args[2] $args[3]\n";
-      if((lc $args[0]) eq "e") 
-	{
+      if((lc $args[0]) eq "e") {
 	  $this->{Viewer} = VRML::Viewer::Examine->new($this->{Viewer});
-	} 
-      elsif((lc $args[0]) eq "w") 
-	{
+	} elsif((lc $args[0]) eq "w") {
 	  $this->{Viewer} = VRML::Viewer::Walk->new($this->{Viewer});
-	} 
-      elsif((lc $args[0]) eq "d") 
-	{
+	} elsif((lc $args[0]) eq "d") {
 	  $this->{Viewer} = VRML::Viewer::Fly->new($this->{Viewer});
-	}
-      elsif((lc $args[0]) eq "f") 
-	{
+	} elsif((lc $args[0]) eq "f") {
 	  $this->{Viewer} = VRML::Viewer::ExFly->new($this->{Viewer});
-	}
-      elsif((lc $args[0]) eq "h") 
-	{
+	} elsif((lc $args[0]) eq "h") {
 	  if($this->{Viewer}{Navi}{RFields}{headlight}) 
 	    {
 	      #print "headlight going off...\n";
 	      $this->{Viewer}{Navi}{RFields}{headlight}=0;
-	    }
-	  else
-	    {
+	    } else {
 	      #print "headlight going on...\n";
 	      $this->{Viewer}{Navi}{RFields}{headlight}=1;
 	    }
 
-	}
-      elsif((lc $args[0]) eq "/") 
-	{
+	} elsif((lc $args[0]) eq "/") {
 	  # the following 3 lines commented out for
 	  # Etienne's changes. JAS
 	  # my $tr = join ', ',@{$this->{Viewer}{Pos}};
@@ -402,9 +363,7 @@ sub event {
 		) ;
 
 	  # Sequence / Single Image saving ###########
-	}
-      elsif((lc $args[0]) eq "s") 
-	{
+	} elsif((lc $args[0]) eq "s") {
 	  
 	  # Sequence saving ##########################
 	  if ($main::seq) 
@@ -414,83 +373,53 @@ sub event {
 	      
 	      # At end of sequence, convert raw
 	      # images to a gif or ppm's 
-	      if (! $main::saving) 
-		{
+	      if (! $main::saving) {
 		  VRML::Browser::convert_raw_sequence();
-		}
-	      else
-		{	# Start new sequence
+		} else {	# Start new sequence
 		  @main::saved = (); # Reset list of images
 		  $main::seqcnt = 0;
 		}
 	      # Single image
-	    }
-	  else
-	    {
+	    } else {
 	      print "Saving snapshot\n";
 	      VRML::Browser::save_snapshot($this);
 	    }
-	}
-      elsif((lc $args[0]) eq "q") 
-	{
+	} elsif((lc $args[0]) eq "q") {
 	  $this->{QuitPressed} = 1;
 	  
-	}
-      elsif((lc $args[0]) eq "v") 
-	{
+	} elsif((lc $args[0]) eq "v") {
 	  # print "NEXT VP\n";
-	  if($this->{VPSub}) 
-	    {
+	  if($this->{VPSub}) {
 	      $this->{VPSub}->(1);
-	    }
-	  else 
-	    {
+	    } else {
 	      die("No VPSUB");
 	    }
-	}
-      elsif((lc $args[0]) eq "b") 
-	{
+	} elsif((lc $args[0]) eq "b") {
 	  print "PREV VP\n";
-	  if($this->{VPSub}) 
-	    {
+	  if($this->{VPSub}) {
 	      $this->{VPSub}->(-1)
-	      }
-	  else
-	    {
+	      } else {
 	      die("No VPSUB");
 	    }
-	} elsif(!$this->{Viewer}->use_keys) 
-	  {
-	    if((lc $args[0]) eq "k") 
-	      {
+	} elsif(!$this->{Viewer}->use_keys) {
+	    if((lc $args[0]) eq "k") {
 		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 		$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
-	      }
-	    elsif((lc $args[0]) eq "j") 
-	      {
+	      } elsif((lc $args[0]) eq "j") {
 		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 		$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
-	      }
-	    elsif((lc $args[0]) eq "l") 
-	      {
+	      } elsif((lc $args[0]) eq "l") {
 		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 		$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
-	      }
-	    elsif((lc $args[0]) eq "h") 
-	      {
+	      } elsif((lc $args[0]) eq "h") {
 		$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
 		$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
 	      }
-	  }
-      else 
-	{
+	  } else {
 	  $this->{Viewer}->handle_key($time,$args[0]);
 	}
-    }
-  elsif($type == &KeyRelease) 
-    {
-      if($this->{Viewer}->use_keys) 
-	{
+    } elsif($type == &KeyRelease) {
+      if($this->{Viewer}->use_keys) {
 	  $this->{Viewer}->handle_keyrelease($time,$args[0]);
 	}
     }
@@ -502,13 +431,10 @@ sub finish_event {
 	return if $this->{EDone};
 	my $x = $this->{MX} / $this->{W}; my $y = $this->{MY} / $this->{H};
 	my $but = $this->{BUT};
-	if($but == 1 or $but == 3) 
-	  {
+	if($but == 1 or $but == 3) {
 	    $this->{Viewer}->handle("DRAG", $but, $x, $y);
 	    # print "FE: $but $x $y\n";
-	  }
-	elsif($but == 2)
-	  {
+	  } elsif($but == 2) {
 	    $this->{MCLICK} = 1;
 	    $this->{MCLICKO} = 1;
 	    $this->{MOX} = $this->{MX}; $this->{MOY} = $this->{MY}
@@ -801,7 +727,7 @@ sub render {
 	    for(@{$this->{BUTEV}}) 
 	      {
 		print "BUTEV: $_->[0]\n" 
-		  ; #JAS if $VRML::verbose::glsens;
+		  if $VRML::verbose::glsens;
 	
 		# loop through all the "Sensor" nodes.	
 		for(@{$this->{Sens}})
@@ -892,7 +818,7 @@ sub render {
 			my $rout = $this->{SensR}{$p};
 			
 			print "HIT: $p, $x $y $z\n"
-			  ; #JAS if $VRML::verbose::glsens;
+			  if $VRML::verbose::glsens;
 			
 			$pos = [$x,$y,$z];
 			my $nor = [$nx,$ny,$nz];
@@ -904,7 +830,8 @@ sub render {
 			
 			if($_->[0] eq "PRESS") 
 			  {
-			    print "PRESS ,0,1,$pos,$nor\n";
+			    print "PRESS ,0,1,$pos,$nor\n" 
+				if $VRML::verbose::glsens;
 			    $rout->("PRESS",0,1,$pos,$nor);
 			    $this->{MOUSEGRABBED} = $p;
 			  }
@@ -924,7 +851,7 @@ sub render {
 		    
 		    if(defined $this->{MOUSOVER} and $this->{MOUSOVER} != $p and defined($this->{SensC}{$this->{MOUSOVER}})) 
 		      {	
-			print "in final MOUSOVER code\n";
+			# print "in final MOUSOVER code\n";
 			my $rout = $this->{SensR}{$this->{MOUSOVER}};
 			$rout->("",1,0,undef,undef);
 		      }
