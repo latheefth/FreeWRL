@@ -142,9 +142,8 @@ can be done. Of particular interest are <B>vrml.conf.rh7.2</B> and
 <B>vrml.conf.localmesa</B>. You <B>will</B> wish to replace vrml.conf with one of these files.
 <P>
 If you are running on <B>Irix</B> copy vrml.conf.irix over vrml.conf, <B>and</B>
-copy Plugin/netscape/Makefile.irix over Plugin/netscape/Makefile.
-You should also verify that you are using GNU-Make; if not, you can get it from
-the SGI freeware site mentioned above.
+remove the Plugin directory; Perl and Netscape are compiled differently, so
+at this point in time you can not use FreeWRL and Netscape under Irix.
 <P>
 One additional  <B>Irix</B>  note: if your version of "make" is not gnumake, you
 will need to install it, and use the following script to "make" freewrl. (this 
