@@ -1,34 +1,55 @@
+use ExtUtils::MakeMaker;
 
-# Simple Makefile.PL for making the CFuncs.
+# See lib/ExtUtils/MakeMaker.pm for details of how to influence
+# the contents of the Makefile that is written.
 
-# All we really need to do is to get the Perl include directory and compile...
+WriteMakefile(
+    'NAME'              => "VRML::CFuncs",
+    'CCFLAGS'		=> "-Wall",
+    'DEFINE'		=> "",
+    'INC'		=> "",
+    'LIBS'		=> ""
+);
 
-	open MAKEFILE, ">Makefile";
-	
-	print MAKEFILE "INCLUDE = ";
-	foreach (@{INC}) {
-		print MAKEFILE "-I$_ ";
-	}
-	print MAKEFILE "\n";
-
-        print MAKEFILE '
+sub MY::post_initialize {
+    return q /
 LIBDIR  = 
+    /;
+}
 
+sub MY::c_o {
+    q /
+%.o: %.c
+	$(CCCMD) -I$(PERL_INC) $(CCFLAGS) -o $@ $(LIBDIR) $< $(LIBS)
+    /;
+}
 
-COMPILERFLAGS = -Wall
-CC = gcc
-CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
-LIBRARIES = 
+## Override all this stuff
+## (see perldoc ExtUtils::MakeMaker and ExtUtils::MM_Unix)
 
-all:  NormalCalcs.o Polyrep.o Tess.o Textures.o
+sub MY::dynamic { "" }
+sub MY::dynamic_bs { "" }
+sub MY::dynamic_lib { "" }
+sub MY::install { "" }
+sub MY::static { "" }
+sub MY::static_lib { "" }
+sub MY::test { "" }
+sub MY::top_targets { "" }
+sub MY::xs_c { "" }
+sub MY::xs_cpp { "" }
+sub MY::xs_o { "" }
 
-clean:
-	rm NormalCalcs.o Polyrep.o Tess.o Textures.o
+## C_FILES and O_FILES are generated automatically by MakeMaker
 
-NormalCalcs.o: NormalCalcs.c
-	$(CC) $(CFLAGS) -c -o $@ $(LIBDIR) $< $(LIBRARIES)
+sub MY::postamble {
+    return q /
 
-Polyrep.o: Polyrep.c
-	$(CC) $(CFLAGS) -c -o $@ $(LIBDIR) $< $(LIBRARIES)
+vpath %.c
 
-';
+all :: ${O_FILES}
+
+clean ::
+	rm ${O_FILES}
+
+    /;
+}

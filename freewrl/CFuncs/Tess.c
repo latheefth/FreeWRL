@@ -24,9 +24,10 @@
  * number of triangles in global_tess_polyrep after tessellation.
  */
 
-#include "CORE/EXTERN.h"
-#include "CORE/perl.h"
-#include "CORE/XSUB.h"
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+
 #include <math.h>
 
 #include <GL/gl.h>
