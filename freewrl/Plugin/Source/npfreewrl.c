@@ -1,4 +1,6 @@
 /*******************************************************************************
+ * $Id$
+ *
  * FreeWRL Netscape Plugin, Copyright (c) 2001 CRC Canada, based on
  *
  * Simple LiveConnect Sample Plugin
@@ -11,21 +13,28 @@
  ******************************************************************************/
 
 
-#include <stdio.h>
-#include "npapi.h"
 #include <sys/types.h>
 #include <signal.h>
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
+#include "npapi.h"
+#include "nputils.h"
+#include "FreeWRL.h"
 
 #define IMPLEMENT_FreeWRL
 #define NPDEBUG
-#include "FreeWRL.h"
 #define REPARENT_LOOPS 50
 #define GIVEUP 4000
 
+#define FWRL 0
+#define NP   1
+
+#define _DEBUG 1
 
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
@@ -37,50 +46,72 @@
 
 typedef struct _PluginInstance
 {
-	NPWindow*		fWindow;
-	uint16			fMode;
-	Window window;
-	Display *display;
-	uint32 x, y;
-	uint32 width, height;
-	Widget netscape_widget;
-	XtIntervalId		swallowtimer;
-	Window 			victim;
-	int			fullsize;	/* window to swallow = win area */
-	Widget 			resizewatch;
-	int			resizeEvent;
-	int			child_pid;
-	char 			*fname;
-	int			count; 		/* try to swallow count	*/
+	NPWindow*	fWindow;
+	uint16		fMode;
+	Window		window;
+	Display		*display;
+	uint32		x, y;
+	uint32		width, height;
+	Widget		netscapeWidget;
+	XtIntervalId	swallowTimer;
+	Window 		victim;
+	int		fullsize;  /* window to swallow = win area */
+	Widget 		resizeWatch;
+	int		resizeEvent;
+	int		childPID;
+	char 		*fName;
+	int		count; 	/* try to swallow count	*/
+	int		fd[2];	/* socket file descriptors (via socketpair) */
+	int		fwrlAlive;
+	/* url request data (NPN_GetURLNotify, NPP_URLNotify) */
 } PluginInstance;
 
-int abortflag;
+typedef void (* Sigfunc) (int);
 
-void resizeCB (Widget, PluginInstance *, XEvent *, Boolean *);
-void DisplayJavaMessage(NPP instance, char* msg, int len);
-void Redraw(Widget w, XtPointer closure, XEvent *event);
-void abortswallow(int );
-void abortswallowX(Widget, XtPointer , XEvent *);
-void do_swallow (PluginInstance * );
-void swallow_check(PluginInstance *);
-int run_child (const char *,int ,int );
+static int abortFlag;
+static int np_fd;
 
+#if _DEBUG
+    static FILE *log;
+#endif
+
+/* Private plugin functions: */
+static void resizeCB (Widget, PluginInstance *, XEvent *, Boolean *);
+static void DisplayJavaMessage(NPP instance, char* msg, int len);
+static void Redraw(Widget w, XtPointer closure, XEvent *event);
+static void abortSwallowX(Widget, XtPointer , XEvent *);
+static void do_swallow (PluginInstance * );
+static void swallow_check(PluginInstance *);
+static int run_child (NPP, const char *, int, int, int[]);
+static void signalHandler(int);
+static int freewrlReceive(int);
+static int init_socket(int, Boolean);
+
+Sigfunc signal(int, Sigfunc func);
 
 void resizeCB (Widget w, PluginInstance * data, XEvent * event, Boolean * cont) {
   Arg args[2];
   Widget temp;
 
-
   /* This will be "netscapeEmbed", go to "drawingArea" */
-  temp = data->netscape_widget;
+  temp = data->netscapeWidget;
   while(strcmp(XtName(temp),"drawingArea")) {
     temp = XtParent(temp);
   }
 
-  if (data->fullsize ==FALSE) {
-    fprintf (stderr,"resizeCB, !!! fullsize is FALSE\n");
-    XReparentWindow (data->display, data->victim, XtWindow (data->resizewatch), 0, 0);    XSync (data->display, FALSE);
+  if (data->fullsize == FALSE) {
+#if _DEBUG
+    fprintf(log, "Calling resizeCB with data->fullsize == FALSE.\n");
+#endif
+
+    fprintf(stderr,"resizeCB, !!! fullsize is FALSE\n");
+    XReparentWindow(data->display, data->victim, XtWindow (data->resizeWatch), 0, 0);
+    XSync(data->display, FALSE);
   } else {
+#if _DEBUG
+    fprintf(log, "Calling resizeCB with data->fullsize == TRUE.\n");
+#endif
+
     XtSetArg (args[0], XtNwidth, (XtArgVal) &(data->width));
     XtSetArg (args[1], XtNheight, (XtArgVal) &(data->height));
     XtGetValues(temp,args,2);
@@ -93,14 +124,17 @@ void resizeCB (Widget w, PluginInstance * data, XEvent * event, Boolean * cont) 
 
 void do_swallow (PluginInstance * This) {
   /*add a timer*/
-  This->swallowtimer = XtAppAddTimeOut(XtDisplayToApplicationContext
+#if _DEBUG
+    fprintf(log, "Calling do_swallow.\n");
+#endif
+  This->swallowTimer = XtAppAddTimeOut(XtDisplayToApplicationContext
 	(This->display), 333, (XtTimerCallbackProc) swallow_check, 
 	(XtPointer)This);
 }
 
 
 void swallow_check (PluginInstance * This)
-    {
+{
     Arg args[2];
     Widget temp;
     int i, k, l, j, m, FoundIt = FALSE;
@@ -121,10 +155,14 @@ void swallow_check (PluginInstance * This)
     XWMHints *leader_change;
     char FreeWRLName[30];
 
-    This->swallowtimer = -1;
-    sprintf (FreeWRLName,"fw%d",This->child_pid);
+#if _DEBUG
+    fprintf(log, "Calling swallow_check.\n");
+#endif
 
-    if ((This->count < GIVEUP) && (abortflag == 0)) {
+    This->swallowTimer = -1;
+    sprintf (FreeWRLName,"fw%d",This->childPID);
+
+    if ((This->count < GIVEUP) && (abortFlag == 0)) {
         This->count++;
 
         if (children != (Window *) NULL)
@@ -132,7 +170,7 @@ void swallow_check (PluginInstance * This)
     
         /* find the number of children on the root window */
         if (0 != XQueryTree (This->display, RootWindowOfScreen (XtScreen 
-    		(This->netscape_widget)), &root,
+    		(This->netscapeWidget)), &root,
                     &parent, &children, &number_of_kids)) 
     
         /* go through the children, and see if one matches our FreeWRL win */
@@ -223,12 +261,12 @@ void swallow_check (PluginInstance * This)
 	    if (This->fullsize!=TRUE)
               fprintf (stderr,"Surprise!!! This is not fullsize! \n");
 
-            This->resizewatch = temp;
+            This->resizeWatch = temp;
             This->resizeEvent = TRUE;
 
 	    /* when netscape is resized, the "form" will be resized, and */
 	    /* we'll get a notification via this event handler		 */
-            XtAddEventHandler (This->resizewatch, StructureNotifyMask, 
+            XtAddEventHandler (This->resizeWatch, StructureNotifyMask, 
     		False, (XtEventHandler) resizeCB, (XtPointer) This);
 
 	    /* make it the right size for us; redundant if fullsize */
@@ -265,7 +303,7 @@ void swallow_check (PluginInstance * This)
     
             XSync (This->display, FALSE);
             XWithdrawWindow (This->display, This->victim, XScreenNumberOfScreen 
-    		(XtScreen (This->netscape_widget)));
+    		(XtScreen (This->netscapeWidget)));
 
             XSync (This->display, FALSE);
 
@@ -293,7 +331,7 @@ void swallow_check (PluginInstance * This)
             if (subsubchildren != (Window *) NULL)
               XFree (subsubchildren);
           } else {
-            This->swallowtimer = XtAppAddTimeOut (XtDisplayToApplicationContext 
+            This->swallowTimer = XtAppAddTimeOut (XtDisplayToApplicationContext 
     		(This->display), 333, (XtTimerCallbackProc) swallow_check, 
     		(XtPointer) This);
        }
@@ -303,46 +341,84 @@ void swallow_check (PluginInstance * This)
     }
 }
 
-int run_child (const char *filename,int width,int height) {
-  int childPID;
-  int parentPID;
-  int number;
-  int i,j;
-  char    geom[20];
-  char    fname[256];
-  char    childname[30];
-  char    *paramline[15];         /* parameter line */
+int run_child (NPP instance, const char *filename, int width, int height, int fd[]) {
+    int  childPID;
+    int  parentPID;
+    int  number;
+    int  i,j;
+    char geom[20];
+    char fName[256];
+    char childname[30];
+    char child_fd[256];
+    char instanceStr[256];
+    char *paramline[15]; /* parameter line */
 
-  parentPID = getpid();
-  childPID = fork ();
-  if (childPID == -1) {
-      fprintf(stderr,"FreeWRL: Fork for plugin failed: %s\n", strerror (errno));
-      childPID = 0;
-  } else if (childPID == 0) {
-    pid_t mine = getpid();
-    if  (setpgid(mine,mine) < 0)
-      fprintf(stderr,"FreeWRL child group set failed\n");
-    else {
-      /* freewrl cachefile -geom wwxhh -best -netscape PID */
-      paramline[0] = "nice";
-      paramline[1] = "freewrl";
-      paramline[2] = fname;
-      paramline[3] = "-geom";
-      paramline[4] = geom;
-      paramline[5] = "-best";
-      paramline[6] = "-netscape";
-      paramline[7] = childname;
-      paramline[8] = NULL;
-      sprintf (fname,"%s",filename);
-      sprintf (geom,"%dx%d",width, height);
-      sprintf (childname,"fw%d",mine);
-      execvp (paramline[0], (char* const *) paramline);
+#if _DEBUG
+    fprintf(log, "Calling run_child.\n");
+#endif
+
+    parentPID = getpid();
+    childPID = fork ();
+    if (childPID == -1) {
+#if _DEBUG
+	fprintf(log,"FreeWRL: Fork for plugin failed: %s\n", strerror (errno));
+#else
+	fprintf(stderr,"FreeWRL: Fork for plugin failed: %s\n", strerror (errno));
+#endif
+	childPID = 0;
+    } else if (childPID == 0) {
+	pid_t mine = getpid();
+	if (setpgid(mine,mine) < 0)
+#if _DEBUG
+	    fprintf(log,"FreeWRL child group set failed\n");
+#else
+	    fprintf(stderr,"FreeWRL child group set failed\n");
+#endif
+
+	else {
+	    if (close(fd[NP]) < 0) /* close unused file desc. */
+	    {
+		perror("Call to close in child in run_child failed");
+		return(NPERR_GENERIC_ERROR);
+	    }
+
+	    /* freewrl cachefile -geom wwxhh -best -netscape PID */
+	    paramline[0] = "nice";
+	    paramline[1] = "freewrl";
+	    paramline[2] = fName;
+	    paramline[3] = "-geom";
+	    paramline[4] = geom;
+	    paramline[5] = "-best";
+	    paramline[6] = "-netscape";
+	    paramline[7] = childname;
+	    paramline[8] = "-fd";
+	    paramline[9] = child_fd;
+	    paramline[10] = "-instance";
+	    paramline[11] = instanceStr;
+	    paramline[12] = NULL;
+
+	    sprintf(fName,"%s",filename);
+	    sprintf(geom,"%dx%d",width, height);
+	    sprintf(childname,"fw%d",mine);
+	    sprintf(child_fd, "%d", fd[FWRL]);
+	    sprintf(instanceStr, "%u", instance);
+
+	    execvp(paramline[0], (char* const *) paramline);
+	}
+#if _DEBUG
+	fprintf(log,"FreeWRL Plugin: Couldn\'t run FreeWRL.\n");
+#else
+	fprintf(stderr,"FreeWRL Plugin: Couldn\'t run FreeWRL.\n");
+#endif
+    } else {
+	if (close(fd[FWRL]) < 0) /* close unused file desc. */
+	{
+	    perror("Call to close in parent in run_child failed");
+	    return(NPERR_GENERIC_ERROR);
+	}
+	return(childPID);
     }
-    fprintf(stderr,"FreeWRL Plugin: Couldnt run FreeWRL \n");
-  } else {
-    return(childPID);
-  }
-  return(-1); /*keep compiler happy*/
+    return(NPERR_NO_ERROR);
 }
 
 char*
@@ -383,19 +459,19 @@ NPP_Initialize(void)
 }
 
 /*
-** We'll keep a global execution environment around to make our life
-** simpler.
-*/
+ ** We'll keep a global execution environment around to make our life
+ ** simpler.
+ */
 JRIEnv* env;
 
 /*
-** NPP_GetJavaClass is called during initialization to ask your plugin
-** what its associated Java class is. If you don't have one, just return
-** NULL. Otherwise, use the javah-generated "use_" function to both
-** initialize your class and return it. If you can't find your class, an
-** error will be signalled by "use_" and will cause the Navigator to
-** complain to the user.
-*/
+ ** NPP_GetJavaClass is called during initialization to ask your plugin
+ ** what its associated Java class is. If you don't have one, just return
+ ** NULL. Otherwise, use the javah-generated "use_" function to both
+ ** initialize your class and return it. If you can't find your class, an
+ ** error will be signalled by "use_" and will cause the Navigator to
+ ** complain to the user.
+ */
 jref
 NPP_GetJavaClass(void)
 {
@@ -404,24 +480,24 @@ NPP_GetJavaClass(void)
 	if (env == NULL)
 		return NULL;		/* Java disabled */
 
-    myClass = use_FreeWRL(env);
+	myClass = use_FreeWRL(env);
 
 	if (myClass == NULL) {
 		/*
-		** If our class doesn't exist (the user hasn't installed it) then
-		** don't allow any of the Java stuff to happen.
-		*/
+		 ** If our class doesn't exist (the user hasn't installed it) then
+		 ** don't allow any of the Java stuff to happen.
+		 */
 		env = NULL;
 	}
 	return myClass;
 }
 
 /*
-** NPP_Shutdown is called when your DLL is being unloaded to do any
-** DLL-specific shut-down. You should be a good citizen and declare that
-** you're not using your java class any more. This allows java to unload
-** it, freeing up memory.
-*/
+ ** NPP_Shutdown is called when your DLL is being unloaded to do any
+ ** DLL-specific shut-down. You should be a good citizen and declare that
+ ** you're not using your java class any more. This allows java to unload
+ ** it, freeing up memory.
+ */
 void
 NPP_Shutdown(void)
 {
@@ -430,11 +506,11 @@ NPP_Shutdown(void)
 }
 
 /*
-** This function is a utility routine that calls back into Java to print
-** messages to the Java Console and to stdout (via the native method,
-** native_FreeWRL_printToStdout, defined below).  Sure, it's not a very
-** interesting use of Java, but it gets the point across.
-*/
+ ** This function is a utility routine that calls back into Java to print
+ ** messages to the Java Console and to stdout (via the native method,
+ ** native_FreeWRL_printToStdout, defined below).  Sure, it's not a very
+ ** interesting use of Java, but it gets the point across.
+ */
 void
 DisplayJavaMessage(NPP instance, char* msg, int len)
 {
@@ -448,19 +524,19 @@ DisplayJavaMessage(NPP instance, char* msg, int len)
 	if (len == -1) 
 		len = strlen(msg);
 
-	/*
+   /*
     ** Use the JRI (see jri.h) to create a Java string from the input
     ** message:
     */
 	str = JRI_NewStringUTF(env, msg, len);
 
-	/*
+   /*
     ** Use the NPN_GetJavaPeer operation to get the Java instance that
     ** corresponds to our plug-in (an instance of the FreeWRL class):
     */
 	javaPeer = NPN_GetJavaPeer(instance);
 	
-	/*
+   /*
     ** Finally, call our plug-in's big "feature" -- the 'doit' method,
     ** passing the execution environment, the object, and the java
     ** string:
@@ -469,9 +545,9 @@ DisplayJavaMessage(NPP instance, char* msg, int len)
 }
 
 /*
-** NPP_New is called when your plugin is instantiated (i.e. when an EMBED
-** tag appears on a page).
-*/
+ ** NPP_New is called when your plugin is instantiated (i.e. when an EMBED
+ ** tag appears on a page).
+ */
 NPError 
 NPP_New(NPMIMEType pluginType,
 	NPP instance,
@@ -484,6 +560,7 @@ NPP_New(NPMIMEType pluginType,
 	NPError result = NPERR_NO_ERROR;
 	PluginInstance* This;
 	char factString[60];
+	int io_flags;
 
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
@@ -498,35 +575,76 @@ NPP_New(NPMIMEType pluginType,
 	This->fWindow = NULL;
 	This->fMode = mode;
 	This->window = 0;
-	This->netscape_widget = NULL;
-	This->swallowtimer = -1;
+	This->netscapeWidget = NULL;
+	This->swallowTimer = -1;
 	This->victim = 0;
 	This->fullsize = FALSE;
 	This->resizeEvent = FALSE;
-	This->child_pid = -1;
-	This->fname = NULL;
+	This->childPID = -1;
+	This->fName = NULL;
 	This->count = 0;
+	This->fwrlAlive = FALSE;
+
+	/* For debugging puposes: */
+#if _DEBUG
+	log = fopen("np_log", "w+");
+	fprintf(log, "\nStarting plugin log.\n");
+	fprintf(log, "I'm instance %u in process %d!\n", instance, getpid());
+#endif
+
+	/*
+	 * Assume plugin and FreeWRL child process run on the same machine.
+	 * For this reason, datagram (UDP) sockets are probably safe.
+	 */
+	if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, This->fd) < 0)
+	{
+	    perror("Call to socketpair failed");
+	    return(NPERR_GENERIC_ERROR);
+	}
+
+#if _DEBUG
+	fprintf(log, "Socketpair descriptors: %d, %d.\n", This->fd[FWRL], This->fd[NP]);
+#endif
+	np_fd = This->fd[NP];
+
+	if (signal(SIGIO, signalHandler) == SIG_ERR) {
+	    return(NPERR_GENERIC_ERROR);
+	}
+
+	if (signal(SIGBUS, signalHandler) == SIG_ERR) {
+	    return(NPERR_GENERIC_ERROR);
+	}
+
+	/* Prepare sockets ... */
+	if ( (result = init_socket(This->fd[FWRL], FALSE)) != NPERR_NO_ERROR) {
+	    return(result);
+	}
+
+	if ( (result = init_socket(This->fd[NP], TRUE)) != NPERR_NO_ERROR) {
+	    return(result);
+	}
 
 	/* Show off some of that Java functionality: */
 	if (env) {
 		jint v;
 
 		/*
-		** Call the DisplayJavaMessage utility function to cause Java to
-		** write to the console and to stdout:
-		*/
+ 		 ** Call the DisplayJavaMessage utility function to cause Java to
+		 ** write to the console and to stdout:
+		 */
 		DisplayJavaMessage(instance, "Hello world from npsimple!", -1); 
 
 		/*
-		** Also test out that fancy factorial method. It's a static
-		** method, so we'll need to use the class object in order to call
-		** it:
-		*/
+		 ** Also test out that fancy factorial method. It's a static
+		 ** method, so we'll need to use the class object in order to call
+		 ** it:
+		 */
 		v = FreeWRL_fact(env, class_FreeWRL(env), 10);
 		sprintf(factString, "my favorite function returned %d\n", v);
 		DisplayJavaMessage( instance, factString, -1 );
 	}
-	return result;
+
+	return(result);
 }
 
 
@@ -535,35 +653,48 @@ NPP_Destroy (NPP instance, NPSavedData ** save) {
   PluginInstance *This;
 
   if (instance == NULL)
-    return NPERR_INVALID_INSTANCE_ERROR;
+    return(NPERR_INVALID_INSTANCE_ERROR);
 
   This = (PluginInstance *) instance->pdata;
+
+#if _DEBUG
+  fprintf(log, "Calling NPP_Destroy.\n");
+#endif
 
   DisplayJavaMessage(instance, "Calling NPP_Destroy.", -1);
 
   if (This != NULL) {
-    if (This->swallowtimer!= -1 ) 
-      XtRemoveTimeOut(This->swallowtimer);   
+    if (This->swallowTimer!= -1 ) 
+      XtRemoveTimeOut(This->swallowTimer);   
 
     if (This->resizeEvent) {
-      XtRemoveEventHandler (This->resizewatch, StructureNotifyMask, False, 
+      XtRemoveEventHandler (This->resizeWatch, StructureNotifyMask, False, 
 		(XtEventHandler) resizeCB, (XtPointer) This);
     }
 
     /*kill child*/
-    if (This->child_pid != -1) {
-      kill(This->child_pid*-1,SIGQUIT);
+    if (This->childPID != -1) {
+      kill(This->childPID*-1,SIGQUIT);
     }
 
-    if (This->fname != NULL) {
-      free(This->fname);
+    if (This->fName != NULL) {
+      free(This->fName);
     }
 
-		
+    if (This->fwrlAlive) {
+	This->fwrlAlive = FALSE;
+    }
+
+    close(This->fd[NP]);
+#if _DEBUG
+    fprintf(log, "\nClosing plugin log.\n");
+    fclose(log);
+#endif
+
     NPN_MemFree (instance->pdata);
     instance->pdata = NULL;
   }
-  return NPERR_NO_ERROR;
+  return(NPERR_NO_ERROR);
 }
 
 
@@ -597,18 +728,18 @@ NPP_SetWindow (NPP instance, NPWindow * window) {
 
     /* initialize */
     This->window = (Window) window->window;
-    This->netscape_widget = XtWindowToWidget (This->display, This->window);
+    This->netscapeWidget = XtWindowToWidget (This->display, This->window);
 
     /* add an event handler for the "starting freewrl" window, on exposure */
-    XtAddEventHandler(This->netscape_widget, ExposureMask, FALSE, 
+    XtAddEventHandler(This->netscapeWidget, ExposureMask, FALSE, 
 		(XtEventHandler)Redraw, This);
 
     /* this one is the click to abort 
-	XtAddEventHandler(This->netscape_widget, ButtonPress, FALSE, 
-		(XtEventHandler)abortswallowX, This); */
+	XtAddEventHandler(This->netscapeWidget, ButtonPress, FALSE, 
+		(XtEventHandler)abortSwallowX, This); */
 
     /* put a simple "starting FreeWRL" on the screen */
-    Redraw(This->netscape_widget, (XtPointer)This, NULL);
+    Redraw(This->netscapeWidget, (XtPointer)This, NULL);
   }
   return NPERR_NO_ERROR;
 }
@@ -628,12 +759,24 @@ NPP_NewStream(NPP instance,
 
 	This = (PluginInstance*) instance->pdata;
 
+#if _DEBUG
+	fprintf(log, "Calling NPP_NewStream.\n");
+#endif
+
+	if (stream->url == NULL) {
+#if _DEBUG
+	    fprintf(log, "Error - stream url is null!\n");
+#endif
+	    return(NPERR_NO_DATA);
+	}
+
 	DisplayJavaMessage(instance, "Calling NPP_NewStream.", -1); 
 
-	/* Lets tell netscape to save this to a file */
-	*stype=NP_ASFILEONLY;
+	/* Lets tell netscape to save this to a file. */
+	*stype = NP_ASFILEONLY;
+	seekable = FALSE;
 
-	return NPERR_NO_ERROR;
+	return(NPERR_NO_ERROR);
 }
 
 
@@ -648,9 +791,11 @@ NPP_NewStream(NPP instance,
  *	still called but can safely be ignored using this strategy.
  */
 
-int32 STREAMBUFSIZE = 0X0FFFFFFF; /* If we are reading from a file in NPAsFile
-								   * mode so we can take any size stream in our
-								   * write call (since we ignore it) */
+int32 STREAMBUFSIZE = 0X0FFFFFFF; /*
+                                   * If we are reading from a file in NP_ASFILE
+                                   * mode so we can take any size stream in our
+				   * write call (since we ignore it)
+				   */
 
 int32 
 NPP_WriteReady(NPP instance, NPStream *stream)
@@ -676,7 +821,7 @@ NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
 
 	DisplayJavaMessage(instance, (char*)buffer, len); 
 
-	return len;		/* The number of bytes accepted */
+	return len; /* The number of bytes accepted. */
 }
 
 
@@ -689,99 +834,79 @@ NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 		return NPERR_INVALID_INSTANCE_ERROR;
 	This = (PluginInstance*) instance->pdata;
 
+#if _DEBUG
+	    fprintf(log, "Calling NPP_DestroyStream with NPError %d.\n", reason);
+#endif
+
 	DisplayJavaMessage(instance, "Calling NPP_DestroyStream.", -1); 
 
 	return NPERR_NO_ERROR;
 }
 
 
-void  NPP_StreamAsFile (NPP instance, NPStream * stream, const char *fname)
-    {
+void
+NPP_StreamAsFile (NPP instance, NPStream * stream, const char *fname)
+{
+    size_t bytes = 0;
     PluginInstance *This;
+
     if (instance != NULL)
         This = (PluginInstance *) instance->pdata;
 
-    /*ready to roll*/
-    /*but wait until we have a window before we do the bizz*/
+#if _DEBUG
+    fprintf(log, "Calling NPP_StreamAsFile.\n");
+#endif
 
-    abortflag=0;
+    /*
+     * Ready to roll...
+     * Wait until we have a window before we do the bizz.
+     */
 
-    if (This->netscape_widget != NULL) {
-	This->child_pid = run_child (fname,
-			This->width,This->height);
-	if (This->child_pid == -1)
-		fprintf(stderr,"Attempt to run FreeWRL failed\n");
-			
-	else {
-		setpgid(This->child_pid,This->child_pid);
-		do_swallow (This); /* swallowtimer will be set away from -1*/
+    abortFlag=0;
+
+    if (!This->fwrlAlive) {
+	if (This->netscapeWidget != NULL) {
+	    This->childPID = run_child (instance, fname,
+			    This->width,This->height, This->fd);
+	    if (This->childPID == -1)
+#if _DEBUG
+		fprintf(log,"Attempt to run FreeWRL failed.\n");
+#else
+		fprintf(stderr,"Attempt to run FreeWRL failed.\n");
+#endif
+
+	    else {
+		setpgid(This->childPID,This->childPID);
+		do_swallow (This); /* swallowTimer will be set away from -1*/
+		This->fwrlAlive = TRUE; /* freewrl is now loaded */
+	    }
+	} else {
+	    This->swallowTimer = -2; /*inform setwindow to run it instead*/
+	    This->fName = (char *) malloc((strlen(fname) +1) *sizeof(char *));
+	    strcpy(This->fName,fname);
 	}
     } else {
-	This->swallowtimer = -2; /*inform setwindow to run it instead*/
-	This->fname = (char *) malloc((strlen(fname) +1) *sizeof(char *));
-	strcpy(This->fname,fname);
+	if (fname == NULL) {
+#if _DEBUG
+	    fprintf(log, "Error - file could not be retrieved!\n");
+	    /* Try sending an empty string! */
+	    if (write(This->fd[NP], "", 1) < 0) {
+		perror("Call to write failed"); 
+	    }
+#endif
+	}
+	else {
+	    bytes = (strlen(fname) + 1) * sizeof(const char *);
+#if _DEBUG
+	    fprintf(log, "Writing to socket %d %s, a url of %u bytes.\n",
+						This->fd[NP], fname, bytes);
+#endif
+	    if (write(This->fd[NP], fname, bytes) < 0) {
+		perror("Call to write failed"); 
+	    }
+	}
     }
-  }
-
-
-void 
-NPP_StreamAsFileSAVE(NPP instance, NPStream *stream, const char* fname)
-{
-	PluginInstance* This;
-
-	int	child;
-	pid_t	mypid;
-	char	filename[256];
-	char	geom[20];
-	char	PIDstring[20];
-	char	eot[] = "\0";
-
-	char 	*paramline[15]; 	/* parameter line */
-
-	/* freewrl cachefile -geom wwxhh -best -netscape PID */
-	paramline[0] = "nice";
-	paramline[1] = "freewrl";
-	paramline[2] = filename;
-	paramline[3] = "-geom";
-	paramline[4] = geom;
-	paramline[5] = "-best";
-	paramline[6] = "-netscape";
-	paramline[7] = PIDstring;
-	paramline[8] = NULL;
-
-	if (instance != NULL)
-		This = (PluginInstance*) instance->pdata;
-	
-	sprintf (filename,"%s",fname);
-	sprintf (geom,"%dx%d",This->width, This->height);
-	sprintf (PIDstring,"%d",mypid);
-
-	child = fork();
-	if (child == -1) {
-		fprintf (stderr, "FreeWRL Plugin: Fork failed: %s\n",
-			strerror(errno));
-		child = 0;
-	} else if (child == 0) {
-                mypid = getpid();
-                if  (setpgid(mypid,mypid) < 0)
-                        fprintf(stderr,"child group set failed\n");
-                else {
-			This->swallowtimer = 
-				XtAppAddTimeOut(XtDisplayToApplicationContext(This->display), 3000, 
-				(XtTimerCallbackProc) swallow_check, (XtPointer)This);
-
-			DisplayJavaMessage(instance, 
-				"Calling NPP_StreamAsFile.", -1); 
-			/* execvp (paramline[0], (char* const *) paramline); */
-		}
-
-
-		/* now, down here is where we should be getting the window... */
-		/* should never get here... */
-        	fprintf(stderr,"FreeWRL Plugin failed to execvp freewrl\n");
-        } 
 }
-
 
 void 
 NPP_Print(NPP instance, NPPrint* printInfo)
@@ -885,6 +1010,10 @@ Redraw(Widget w, XtPointer closure, XEvent *event)
 	XGCValues gcv;
 	const char* text = "Starting FreeWRL";
 
+#if _DEBUG
+	fprintf(log, "Calling Redraw.\n");
+#endif
+
 	XtVaGetValues(w, XtNbackground, &gcv.background,
 				  XtNforeground, &gcv.foreground, 0);
 	gc = XCreateGC(This->display, This->window, 
@@ -897,3 +1026,156 @@ Redraw(Widget w, XtPointer closure, XEvent *event)
 				text, strlen(text));
 }
 
+Sigfunc
+signal(int signo, Sigfunc func)
+{
+    struct sigaction action, old_action;
+
+    action.sa_handler = func;
+    /*
+     * Initialize action's signal set as empty set
+     * (see man page sigsetops(3)).
+     */
+    sigemptyset(&action.sa_mask);
+
+    action.sa_flags = 0; /* Is this a good idea??? */
+
+    /* Add option flags for handling signal: */
+    action.sa_flags |= SA_NOCLDSTOP;
+    action.sa_flags |= SA_NOCLDWAIT;
+
+    if (sigaction(signo, &action, &old_action) < 0) {
+	perror("Call to sigaction failed");
+	return(SIG_ERR);
+    }
+    /* Return the old action for the signal or SIG_ERR. */
+     return(old_action.sa_handler);
+}
+
+void
+signalHandler(int signo)
+{
+#if _DEBUG
+    fprintf(log, "Signal %d caught from signalHandler!\n", signo);
+#endif
+    if (signo == SIGIO) {
+	/* freewrlReceive(tempInstancePtr, np_fd); */
+	freewrlReceive(np_fd);
+    }
+    /* else if (signo == SIGBUS) { */
+    /* Should handle all except the uncatchable ones. */
+    else {
+#if _DEBUG
+	fprintf(log, "\nClosing plugin log.\n");
+	fclose(log);
+#endif
+	exit(1);
+    }
+}
+
+int freewrlReceive(int fd)
+{
+    sigset_t newmask, oldmask;
+
+    ssize_t result = 0;
+
+    urlRequest request;
+    size_t request_size = 0;
+
+    bzero(request.url, FILENAME_MAX);
+    request.instance = 0;
+    request.notifyCode = 0; /* not currently used */
+
+    request_size = sizeof(request);
+
+    /*
+     * The signal handling code is based on the work of
+     * W. Richard Stevens from Unix Network Programming,
+     * Networking APIs: Sockets and XTI.
+     */
+
+    /* Init. the signal sets as empty sets. */
+    if (sigemptyset(&newmask) < 0) {
+	perror("Call to sigemptyset with arg newmask failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+    
+    if (sigemptyset(&oldmask) < 0) {
+	perror("Call to sigemptyset with arg oldmask failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+
+    if (sigaddset(&newmask, SIGIO) < 0) {
+	perror("Call to sigaddset failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+
+    /* Code to block SIGIO while saving the old signal set. */
+    if (sigprocmask(SIG_BLOCK, &newmask, &oldmask) < 0) {
+	perror("Call to sigprocmask failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+    
+    if ( (result = read(fd, (urlRequest *) &request, request_size)) < 0) {
+	/* If blocked or interrupted, be silent. */
+    	if (errno != EINTR && errno != EAGAIN) {
+	    perror("Call to read failed");
+    	}
+	return(NPERR_GENERIC_ERROR);
+    }
+#if _DEBUG
+    else if (result == 0) {
+	fprintf(log, "Call to read in freewrlReceive returned 0!\n");
+    }
+#endif
+    else {
+#if _DEBUG
+	fprintf(log, "Received message on socket %d from FreeWRL: %s\n", fd, request.url);
+#endif
+
+	if ( (result = NPN_GetURL(request.instance, request.url, NULL)) != NPERR_NO_ERROR) {
+	    /* Change to stderr eventually! */
+#if _DEBUG
+	    fprintf(log, "Error - call to NPN_GetURL returned %d!\n", result);
+#endif
+	}
+    }
+
+    /* Restore old signal set, which unblocks SIGIO. */
+    if (sigprocmask(SIG_SETMASK, &oldmask, NULL) < 0) {
+	perror("Call to sigprocmask failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+
+    return(NPERR_NO_ERROR);
+}
+
+int
+init_socket(int fd, Boolean nonblock)
+{
+    int io_flags;
+
+    if (fcntl(fd, F_SETOWN, getpid()) < 0) {
+	perror("Call to fcntl with command F_SETOWN failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+
+    if ( (io_flags = fcntl(fd, F_GETFL, 0)) < 0 ) {
+	perror("Call to fcntl with command F_GETFL failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+
+    /*
+     * O_ASYNC is specific to BSD and Linux.
+     * Use ioctl with FIOASYNC for others.
+     */
+    io_flags |= O_ASYNC;
+
+    if (nonblock) { io_flags |= O_NONBLOCK; }
+
+    if ( (io_flags = fcntl(fd, F_SETFL, io_flags)) < 0 ) {
+	perror("Call to fcntl with command F_SETFL failed");
+	return(NPERR_GENERIC_ERROR);
+    }
+    return(NPERR_NO_ERROR);
+}
