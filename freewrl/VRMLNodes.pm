@@ -1143,7 +1143,7 @@ Sound => new VRML::NodeType("Sound",
  {
      my($node,$fields,$value,$time) = @_;
      print("Transform:removeChildren\n");
-     print ("node $node, values ",(join " ", @$value),"\n");
+     print ("node $node, values ",(join " ", @{$value}),"\n");
      my %toremove = map { $_ => 1 } @{$value};
      my @nchild = grep { !$toremove{$_} }  @{$node->{Fields}{children}};
      $node->{RFields}{children} = \@nchild;
@@ -1194,7 +1194,7 @@ TextureTransform => new VRML::NodeType ("TextureTransform",
 								 removeChildren => sub {
 									 my ($node, $fields, $value, $time) = @_;
 									 print("Group: removeChildren\n");
-									 print ("node $node, values ",(join " ", @$value),"\n");
+									 print ("node $node, values ",(join " ", @{$value}),"\n");
 									 my %toremove = map { $_ => 1 } @{$value};
 									 my @nchild =
 										 grep { !$toremove{$_} } @{$node->{Fields}{children}};
@@ -2283,35 +2283,56 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 		   }
 		  ),
 
- Collision => new VRML::NodeType("Collision",
- {
-	children => [MFNode, []],
-	collide => [SFBool, 1],
-	bboxCenter => [SFVec3f, [0,0,0]],
-	bboxSize => [SFVec3f, [-1,-1,-1]],
-	proxy => [SFNode, NULL],
-	collideTime => [SFTime,undef,eventOut],
-#return info for collisions
-         __hit => [SFInt32, 0], #bit 0 : collision or not, bit 1: changed from previous of not.
- },
-	{
-	 ClockTick => sub {
-	 	my($t,$f,$tick) = @_;
-		return if !$t->{BackEnd};
-		my $hit;
+	Collision => new VRML::NodeType("Collision",
+									{
+									 addChildren => [MFNode, [], eventIn],
+									 removeChildren => [MFNode, [], eventIn],
+									 children => [MFNode, []],
+									 collide => [SFBool, 1],
+									 bboxCenter => [SFVec3f, [0,0,0]],
+									 bboxSize => [SFVec3f, [-1,-1,-1]],
+									 proxy => [SFNode, NULL],
+									 collideTime => [SFTime,undef,eventOut],
+									 #return info for collisions
+									 __hit => [SFInt32, 0], #bit 0 : collision or not, bit 1: changed from previous of not.
+									},
+									{
+									 addChildren => sub {
+										 print("Collision: addChildren\n");
+										 my ($node, $fields, $value, $time) = @_;
+										 print ("node $node, value $value\n");
+										 push @{$node->{Fields}{children}}, @{$value};
+										 $node->{RFields}{children} = $node->{Fields}{children};
+										 return ();
+									 },
 
-		VRML::VRMLFunc::get_collision_info($t->{BackNode}->{CNode},$hit);
+									 removeChildren => sub {
+										 my ($node, $fields, $value, $time) = @_;
+										 print("Collision: removeChildren\n");
+										 print ("node $node, values ",(join " ", @{$value}),"\n");
+										 my %toremove = map { $_ => 1 } @{$value};
+										 my @nchild =
+											 grep { !$toremove{$_} } @{$node->{Fields}{children}};
+										 $node->{RFields}{children} = \@nchild;
+										 return ();
+									 },
 
-		if($hit == 3 ) { #collision occured and state changed
-		    if($VRML::verbose::collision) {
-			print "COLLISION: $t, time=$tick\n";
-		    }
-		    $f->{collideTime} = $tick;
-		} 
-	 }
-	}
+									 ClockTick => sub {
+										 my($t,$f,$tick) = @_;
+										 return if !$t->{BackEnd};
+										 my $hit;
 
- ),
+										 VRML::VRMLFunc::get_collision_info($t->{BackNode}->{CNode},$hit);
+
+										 if ($hit == 3 ) { #collision occured and state changed
+											 if ($VRML::verbose::collision) {
+												 print "COLLISION: $t, time=$tick\n";
+											 }
+											 $f->{collideTime} = $tick;
+										 }
+									 }
+									}
+								   ),
 
 	Inline =>
 	new VRML::NodeType("Inline",
