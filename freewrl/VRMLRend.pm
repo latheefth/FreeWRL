@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.97  2003/04/15 16:47:47  crc_canada
+# reworked Shape so that explicit geometry was called only when required.
+#
 # Revision 1.96  2003/04/09 18:23:27  crc_canada
 # IndexedLineSet color field bounds checking - if less colours than expected,
 # don't go into never-never land.
@@ -2090,13 +2093,18 @@ Billboard => (join '','
 		GLenum glError;
 
 
+
 		if(!(this_->geometry)) { return; }
 
-		if(render_collision) {
+		if((render_collision) || (render_sensitive)) {
 			/* only need to forward the call to the child */
 			render_node((this_->geometry));
 			return; 
 		}
+
+
+		/* JAS - if not collision, and render_geom is not set, no need to go further */
+		if (!render_geom) return;
 
 		/* Display lists used here. The name of the game is to use the
 		display list for everything, except for sensitive nodes. */
@@ -2106,51 +2114,45 @@ Billboard => (join '','
 
 		/* a texture flag... */
 		last_bound_texture = 0;
-	
 
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
-		/* if we are rendering the geometry, see if we have a disp. list */
-		if ((render_geom) && (!render_sensitive)) { 
 
-			if(this_->_dlist) {
-				if(this_->_dlchange == this_->_change) {
-					glCallList(this_->_dlist); 
-					glPopAttrib();
-					return;
-				} else {
-					glDeleteLists(this_->_dlist,1);
-				}
+		if(this_->_dlist) {
+			if(this_->_dlchange == this_->_change) {
+				glCallList(this_->_dlist); 
+				glPopAttrib();
+				return;
+			} else {
+				glDeleteLists(this_->_dlist,1);
 			}
-			this_->_dlist = glGenLists(1);
-			this_->_dlchange = this_->_change;
-			glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+		}
+		this_->_dlist = glGenLists(1);
+		this_->_dlchange = this_->_change;
+		glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
 
-			/* is there an associated appearance node? */	
-        	        if($f(appearance)) {
-	                        render_node($f(appearance));
-        	        } else {
-				if (render_geom) {
-	                            /* no material, so just colour the following shape */
-                        	    /* Spec says to disable lighting and set coloUr to 1,1,1 */
-                        	    glDisable (GL_LIGHTING);
-        	                    glColor3f(1.0,1.0,1.0);
-				}
-	                }
-			if (last_bound_texture != 0) {
-				/* we had a texture */
-				glEnable (GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D,last_bound_texture);
+		/* is there an associated appearance node? */	
+       	        if($f(appearance)) {
+                        render_node($f(appearance));
+       	        } else {
+			if (render_geom) {
+                            /* no material, so just colour the following shape */
+                       	    /* Spec says to disable lighting and set coloUr to 1,1,1 */
+                       	    glDisable (GL_LIGHTING);
+       	                    glColor3f(1.0,1.0,1.0);
 			}
+                }
+		if (last_bound_texture != 0) {
+			/* we had a texture */
+			glEnable (GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D,last_bound_texture);
 		}
 
 		/* Now, do the geometry */
 		render_node((this_->geometry));
 
 		
-		if ((render_geom) && (!render_sensitive)) {
-			if (this_->_dlchange == this_->_change) {
-				glEndList();
-			}
+		if (this_->_dlchange == this_->_change) {
+			glEndList();
 		}
 		last_visited_shape = 0;
 		glPopAttrib();
