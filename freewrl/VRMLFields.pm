@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.5  2000/11/29 18:45:19  crc_canada
+# Format changes, and trying to get more SAI node types working.
+#
 # Revision 1.4  2000/11/15 13:51:25  crc_canada
 # First attempt to work again on SAI
 #
@@ -47,6 +50,7 @@
 	SFImage
 /;
 
+###########################################################
 package VRML::Field;
 VRML::Error->import();
 
@@ -88,6 +92,8 @@ sub copy {
 
 sub as_string {"VRML::Field - can't print this!"}
 
+
+###########################################################
 package VRML::Field::SFFloat;
 @ISA=VRML::Field;
 VRML::Error->import();
@@ -106,10 +112,12 @@ sub print {print $_[1]}
 sub ctype {"float $_[1]"}
 sub cfunc {"$_[1] = SvNV($_[2]);\n"}
 
+
+# JAVA SAI stuff...
+
 sub jdata {"float v;"}
 sub jalloc {""}
 sub jset {return {""=>"v = 0;", "float val" => "v=val;"}}
-sub jeaiset {return "float val"}
 sub jset_str { '
 	s = s.trim();
 	v = new Float(s).floatValue();
@@ -121,12 +129,19 @@ sub jclonearg {"v"}
 sub toj {$_[1]}
 sub fromj {$_[1]}
 
+
+# end of JAVA SAI stuff...
+
+
+###########################################################
 package VRML::Field::SFTime;
 @ISA=VRML::Field::SFFloat;
 
+
+# JAVA SAI stuff...
+
 sub jdata {"double v;"}
 sub jset {return {""=>"v = 0;", "double val" => "v=val;"}}
-sub jeaiset {return "double val"}
 sub jset_str { '
 	s = s.trim();
 	v = new Double(s).doubleValue();
@@ -134,6 +149,10 @@ sub jset_str { '
 sub jget {return {double => "return v;"}}
 sub jstr {"return new Double(v).toString();"}
 
+# end of JAVA SAI stuff...
+
+
+###########################################################
 package VRML::Field::SFInt32;
 @ISA=VRML::Field;
 VRML::Error->import;
@@ -151,12 +170,12 @@ sub as_string {$_[1]}
 sub ctype {return "int $_[1]"}
 sub cfunc {return "$_[1] = SvIV($_[2]);\n"}
 
-# The java interface
+# JAVA SAI stuff...
 
 sub jdata {"int v;"}
 sub jalloc {""}
 sub jset {return {""=>"v = 0;", "int val" => "v=val;"}}
-sub jeaiset {return "int val"}
+# JAS sub jeaiset {return "int val"}
 sub jset_str { '
 	s = s.trim();
 	v = new Integer(s).intValue();
@@ -168,7 +187,10 @@ sub jclonearg {"v"}
 sub toj {$_[1]}
 sub fromj {$_[1]}
 
-########
+# end of JAVA SAI stuff...
+
+
+###########################################################
 package VRML::Field::SFColor;
 @ISA=VRML::Field;
 VRML::Error->import;
@@ -224,7 +246,7 @@ sub cfunc {
 	"
 }
 
-# java
+# JAVA SAI stuff...
 
 sub jdata {"float red,green,blue;"}
 sub jalloc {""}
@@ -232,7 +254,7 @@ sub jset {return {"" => "red=0; green=0; blue=0;",
 	"float colors[]" => "red = colors[0]; green=colors[1]; blue=colors[2];",
 	"float r,float g,float b" => "red=r; green=g; blue=b;"
 }}
-sub jeaiset { return "float colors[]" }
+# JAS sub jeaiset { return "float colors[]" }
 sub jset_str {"
    	StringTokenizer tok = new StringTokenizer(s);
 	red = 	new Float(tok.nextToken()).floatValue();
@@ -251,6 +273,8 @@ sub jclonearg {"red,green,blue"}
 sub jsimpleget {return {red => float, green => float, blue => float}}
 sub toj {join ' ',@{$_[1]}}
 sub fromj {[split ' ',$_[1]]}
+
+# end of JAVA SAI stuff...
 
 # javascript
 
@@ -284,6 +308,8 @@ sub js_default {
 	return "new SFColor(0,0,0)"
 }
 
+
+###########################################################
 package VRML::Field::SFVec3f;
 @ISA=VRML::Field::SFColor;
 sub cstruct {return ""}
@@ -319,6 +345,8 @@ sub vec_cross {
 	"
 }
 
+
+###########################################################
 package VRML::Field::SFVec2f;
 @ISA=VRML::Field;
 VRML::Error->import();
@@ -371,13 +399,16 @@ sub cfunc {
 	"
 }
 
+
+# JAVA SAI stuff...
+
 sub jdata {"float x,y;"}
 sub jalloc {""}
 sub jset {return {"" => "x=0; y=0;",
 	"float coords[]" => "x = colors[0]; y=colors[1];",
 	"float x2,float y2" => "x=x2; y=y2;"
 }}
-sub jeaiset { "float coords[]" }
+# JAS sub jeaiset { "float coords[]" }
 sub jset_str {"
    	StringTokenizer tok = new StringTokenizer(s);
 	x = 	new Float(tok.nextToken()).floatValue();
@@ -397,6 +428,11 @@ sub toj {join ' ',@{$_[1]}}
 sub fromj {[split ' ',$_[1]]}
 
 
+# end of JAVA SAI stuff...
+
+
+
+###########################################################
 package VRML::Field::SFRotation;
 @ISA=VRML::Field;
 VRML::Error->import();
@@ -591,7 +627,40 @@ return ["",qq~
 sub js_default {
 	return "new SFRotation(0,0,1,0)"
 }
+# JAVA SAI stuff...
 
+sub jdata {"float myx,myy,myz,angle;"}
+sub jalloc {""}
+sub jset {return {"" => "myx=0; myy=0; myz=1; angle=0;",
+	"float rot[]" => "myx = rot[0]; myy=rot[1]; myz=rot[2];angle=rot[3];",
+	"float r,float g,float b,float a" => "myx=r; myy=g; myz=b;angle=a;"
+}}
+sub jset_str {"
+   	StringTokenizer tok = new StringTokenizer(s);
+	myx = 	new Float(tok.nextToken()).floatValue();
+	myy =	new Float(tok.nextToken()).floatValue();
+	myz =	new Float(tok.nextToken()).floatValue();
+	angle =	new Float(tok.nextToken()).floatValue();
+	"
+}
+sub jget {return {"void" => ["float rot[]",
+	"rot[0] = myx; rot[1] = myy; rot[2] = myz; rot[3] = angle;"]}
+}
+sub jcopy {"myx = f.getRed(); myy = f.getGreen(); myz = f.getBlue();",
+		"angle=getAngle();"}
+sub jstr {'return Float.toString(myx) + " " + 
+	Float.toString(myy) + " " + Float.toString(myz) + " " +
+	Float.toString(angle);'}
+sub jclonearg {"myx,myy,myz,angle"}
+
+sub jsimpleget {return {myx => float, myy => float, 
+		myz => float, angle => float}}
+sub toj {join ' ',@{$_[1]}}
+sub fromj {[split ' ',$_[1]]}
+
+# end of JAVA SAI stuff...
+
+###########################################################
 package VRML::Field::SFBool;
 @ISA=VRML::Field;
 
@@ -609,12 +678,14 @@ sub print {print ($_[1] ? TRUE : FALSE)}
 sub as_string {($_[1] ? TRUE : FALSE)}
 
 # The java interface
+
+# JAVA SAI stuff...
+
 sub jdata {"boolean v;"}
 sub jalloc {""}
 sub jset {return {"" => "v = false;",
 	"boolean value" => "v = value;",
 }}
-sub jeaiset { "boolean value" }
 sub jset_str { q~
    	s = s.trim();
 	if(s.equals("1")) {v = true;}
@@ -630,6 +701,11 @@ sub fromj {return $_[1]}
 
 sub js_default {return "false"}
 
+
+# end of JAVA SAI stuff...
+
+
+###########################################################
 package VRML::Field::SFString;
 @ISA=VRML::Field;
 
@@ -655,10 +731,32 @@ sub cfunc {"sv_setsv($_[1],$_[2]);"}
 sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}
 
+# JAVA SAI stuff...
+
+sub jalloc {""}
+sub jcopy {"v = f.getValue();"}
+sub jdata {"String v;"}
+sub jclonearg {"v"}
+#sub jset {return {""=>"v = \"\";", "String val" => "v=val;"}}
+sub jset {}
+sub jset_str { '
+	v = new String(v);
+'}
+sub jget {return {String => "return v;"}}
+sub jstr {"return String(v);"}
+
+# end of JAVA SAI stuff...
+
+
+###########################################################
 package VRML::Field::MFString;
 @ISA=VRML::Field::Multi;
 
+
+
 # XXX Should be optimized heavily! Other MFs are ok.
+
+###########################################################
 package VRML::Field::MFFloat;
 @ISA=VRML::Field::Multi;
 
@@ -687,6 +785,8 @@ sub parse {
 	}
 }
 
+
+###########################################################
 package VRML::Field::MFVec3f;
 @ISA=VRML::Field::Multi;
 
@@ -709,15 +809,23 @@ sub parse {
 	}
 }
 
+
+###########################################################
 package VRML::Field::MFNode;
 @ISA=VRML::Field::Multi;
 
+
+###########################################################
 package VRML::Field::MFColor;
 @ISA=VRML::Field::Multi;
 
+
+###########################################################
 package VRML::Field::MFVec2f;
 @ISA=VRML::Field::Multi;
 
+
+###########################################################
 package VRML::Field::MFInt32;
 @ISA=VRML::Field::Multi;
 
@@ -746,9 +854,13 @@ sub parse {
 	}
 }
 
+
+###########################################################
 package VRML::Field::MFRotation;
 @ISA=VRML::Field::Multi;
 
+
+###########################################################
 package VRML::Field::Multi;
 @ISA=VRML::Field;
 
@@ -890,6 +1002,8 @@ sub js_default {
 	return "new $type()";
 }
 
+
+###########################################################
 package VRML::Field::SFNode;
 
 sub copy { return $_[1] }
@@ -917,6 +1031,8 @@ sub js_default { 'new SFNode("","NULL")' }
 ## Remi Cohen-Scali
 ##
 
+
+###########################################################
 package VRML::Field::SFImage;
 @ISA=VRML::Field;
 VRML::Error->import;
