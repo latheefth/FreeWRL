@@ -39,7 +39,8 @@ int get_touched_flag(int fptr, int actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eleperinex);
 void setMultiElementtype(int num);
 void Multimemcpy(void *tn, void *fn, int len);
-unsigned int CRoutes_Register(unsigned int from, int fromoffset, unsigned int to, int tooffset, int length, void *intptr, int scrdir);
+unsigned int CRoutes_Register(unsigned int from, int fromoffset, 
+	unsigned int to, int tooffset, int length, void *intptr, int scrdir, int extra);
 void mark_script(int num);
 void zero_scripts(void);
 void propagate_events(void);
@@ -151,6 +152,7 @@ struct CRStruct {
 	int	len;
 	void	(*interpptr)(void *);
 	int	scr_direction;	/* if non-zero indicates script in/out */
+	int	extra;		/* used to pass a parameter (eg, 1 = addChildren..) */
 };
 
 /* Routing table */
@@ -918,7 +920,7 @@ Register a route in the routing table.
 
 unsigned int CRoutes_Register (unsigned int from, int fromoffset, 
 			unsigned int to, int tooffset,
-			int length, void *intptr, int scrdir) {
+			int length, void *intptr, int scrdir, int extra) {
 
 	int insert_here;
 	int shifter;
@@ -982,6 +984,7 @@ unsigned int CRoutes_Register (unsigned int from, int fromoffset,
 	CRoutes[insert_here].tnptr = tooffset;	
 	CRoutes[insert_here].interpptr = intptr;
 	CRoutes[insert_here].scr_direction = scrdir;
+	CRoutes[insert_here].extra = extra;
 
 	/* record that we have one more route, with upper limit checking... */
 	if (CRoutes_Count >= (MAXROUTES-2)) {
@@ -1220,7 +1223,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				case MFFLOAT: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,1); break;}
 				case MFROTATION: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,4); break;}
 				case MFVEC2F: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,2); break;}
-				case MFNODE: {getMFNodetype (strp,tn+tptr,1); break;}
+				case MFNODE: {getMFNodetype (strp,tn+tptr,CRoutes[route].extra); break;}
 				case MFSTRING: {
 						getMFStringtype (JSglobs[actualscript].cx,
 									global_return_val,tn+tptr); 
