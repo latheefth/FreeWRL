@@ -1,257 +1,5818 @@
-#VRML V2.0 utf8 
-Switch {
-choice
-  [
-  Shape {
-    appearance Appearance {
-      material Material { diffuseColor 1.0 0.0 0.0 }
-        }
-        geometry PointSet {
-      coord DEF allpoints Coordinate {
-        point [
-            0.333548  0.0632862  -0.662062 ,
-          -0.0942663  -0.985753   -0.69329 ,
-           -0.864876   -1.40235  -0.513217 ,
-            -1.99271   -1.05156  -0.103801 ,
-            -2.39136  -0.019229   0.159568 ,
-            -1.88752    1.08473   0.124115 ,
-            -1.02657    1.41865  -0.102229 ,
-            -0.18152    1.12567    -0.4014 ,
-            0.243498  0.0297933   0.451852 ,
-          -0.0170884  -0.806829   0.444709 ,
-            -0.76361   -1.17113    0.61611 ,
-            -1.48963  -0.836859   0.884169 ,
-            -1.72962 -0.0250922    1.03949 ,
-            -1.34086   0.713657   0.991273 ,
-           -0.759417   0.921596   0.843346 ,
-           -0.189312   0.754351   0.664946 ,
-          -0.0733776  -0.126451   0.807734 ,
-           -0.228188  -0.559307   0.800543 ,
-           -0.796493  -0.778692   0.949952 ,
-            -1.15909  -0.569092     1.0832 ,
-            -1.28978  -0.152599    1.15811 ,
-              -1.157   0.258569    1.15665 ,
-           -0.792854   0.492845    1.06827 ,
-           -0.375628   0.430477   0.937189 ,
-           -0.460948  -0.152008    1.00824 ,
-           -0.666192  -0.369804     1.0478 ,
-            -0.88849  -0.163177    1.12984 ,
-           -0.662738  0.0576918    1.08202 ,
-           -0.669859  -0.153476    1.07058 ,
-            0.576392  -0.133802  -0.683475 ,
-             1.03878 -0.0919184  -0.901358 ,
-             1.55754 -0.0551654   -1.12858 ,
-             2.22001 -0.0230757   -1.43379 ,
-             2.39836  0.0010042   -1.53628 ,
-            0.534436   0.053734  -0.725375 ,
-             1.02873   0.105639   -0.94477 ,
-             1.52572   0.130084    -1.1786 ,
-             2.18395   0.194082   -1.45725 ,
-             2.47032   0.208895   -1.59243 ,
-            0.580413   0.248366  -0.648194 ,
-             1.06369   0.282502  -0.864904 ,
-             1.54678   0.310096   -1.08504 ,
-             2.22966   0.369216    -1.3774 ,
-             2.41717   0.372438   -1.48624 ,
-          ]
-          }
-          }
-        }
-    
-  ]
-  }
-  Shape {
-   appearance	 Appearance {
-      material Material { diffuseColor	 0.6 0.6 0.6 	}  
-   }
-   geometry IndexedFaceSet {
-      solid FALSE
-      coord USE allpoints
-      coordIndex [
-			 0,    1,    9,    8,    -1,
-			 1,    2,   10,    9,    -1,
-			 2,    3,   11,   10,    -1,
-			 3,    4,   12,   11,    -1,
-			 4,    5,   13,   12,    -1,
-			 5,    6,   14,   13,    -1,
-			 6,    7,   15,   14,    -1,
-			 8,    9,   17,   16,    -1,
-			 9,   10,   18,   17,    -1,
-			 10,   11,   19,   18,    -1,
-			 11,   12,   20,   19,    -1,
-			 12,   13,   21,   20,    -1,
-			 13,   14,   22,   21,    -1,
-			 14,   15,   23,   22,    -1,
-			 7,    0,     8,   15,    -1,    
-			 15,   8,    16,   23,    -1,    
-			 16,  17,  24,     -1,
-			 17,  25,  24,     -1,
-			 17,  18,  25,     -1,
-			 17,  18,  25,     -1,
-			 18,  19,  25,     -1,
-			 19,  26,  25,     -1,
-			 19,  20,  26,     -1,
-			 20,  21,  26,     -1,
-			 21,  27,  26,     -1,
-			 21,  22,  27,     -1,
-			 22,  23,  27,     -1,
-			 23,  24,  27,     -1,
-			 23,  16,  24,     -1,
-			 24,  25,  28,     -1,
-			 25,  26,  28,     -1,
-			 26,  27,  28,     -1,
-			 27,  24,  28,     -1
-	  ]
-   }
-}
-Shape {
-   appearance	 Appearance {
-      material Material { diffuseColor	 0.8 0.8 0.1 	}  
-   }
-   geometry IndexedFaceSet {
-      solid FALSE
-      coord USE allpoints
-      coordIndex [
-   		 29  , 34  , 35  , 30  , -1  , 
-   		 30  , 35  , 36  , 31  , -1  , 
-			 31  , 36  , 37  , 32  , -1  , 
-			 32  , 37  , 38  , 33  , -1  , 
-			 34  , 39  , 40  , 35  , -1  , 
-			 35  , 40  , 41  , 36  , -1  , 
-			 36  , 41  , 42  , 37  , -1  , 
-			 37  , 42  , 43  , 38  , -1  , 
-	  ]
-   }
-}
+#VRML V2.0 utf8
+
+# one heck of a lot of semi-transparent cones.
+
+# shows node sorting, and duplicate rendering passes for
+# transparent shapes.
+
+Viewpoint { position 0 0 15 }
 
 
-Switch {
-choice
-  [
-  Shape {
-    appearance Appearance {
-      material Material { diffuseColor 1.0 0.0 0.0 }
-        }
-        geometry PointSet {
-      coord DEF allpoints2 Coordinate {
-        point [
-            0.333548  0.0632862  -0.662062 ,
-          -0.0942663  -0.985753   -0.69329 ,
-           -0.864876   -1.40235  -0.513217 ,
-            -1.99271   -1.05156  -0.103801 ,
-            -2.39136  -0.019229   0.159568 ,
-            -1.88752    1.08473   0.124115 ,
-            -1.02657    1.41865  -0.102229 ,
-            -0.18152    1.12567    -0.4014 ,
-            0.243498  0.0297933   0.451852 ,
-          -0.0170884  -0.806829   0.444709 ,
-            -0.76361   -1.17113    0.61611 ,
-            -1.48963  -0.836859   0.884169 ,
-            -1.72962 -0.0250922    1.03949 ,
-            -1.34086   0.713657   0.991273 ,
-           -0.759417   0.921596   0.843346 ,
-           -0.189312   0.754351   0.664946 ,
-          -0.0733776  -0.126451   0.807734 ,
-           -0.228188  -0.559307   0.800543 ,
-           -0.796493  -0.778692   0.949952 ,
-            -1.15909  -0.569092     1.0832 ,
-            -1.28978  -0.152599    1.15811 ,
-              -1.157   0.258569    1.15665 ,
-           -0.792854   0.492845    1.06827 ,
-           -0.375628   0.430477   0.937189 ,
-           -0.460948  -0.152008    1.00824 ,
-           -0.666192  -0.369804     1.0478 ,
-            -0.88849  -0.163177    1.12984 ,
-           -0.662738  0.0576918    1.08202 ,
-           -0.669859  -0.153476    1.07058 ,
-            0.576392  -0.133802  -0.683475 ,
-             1.03878 -0.0919184  -0.901358 ,
-             1.55754 -0.0551654   -1.12858 ,
-             2.22001 -0.0230757   -1.43379 ,
-             2.39836  0.0010042   -1.53628 ,
-            0.534436   0.053734  -0.725375 ,
-             1.02873   0.105639   -0.94477 ,
-             1.52572   0.130084    -1.1786 ,
-             2.18395   0.194082   -1.45725 ,
-             2.47032   0.208895   -1.59243 ,
-            0.580413   0.248366  -0.648194 ,
-             1.06369   0.282502  -0.864904 ,
-             1.54678   0.310096   -1.08504 ,
-             2.22966   0.369216    -1.3774 ,
-             2.41717   0.372438   -1.48624 ,
-          ]
-          }
-          }
-        }
-    
-  ]
-  }
-  Transform {
-    translation   -4.397    1.391   -3.165
-      children [  
-  Shape {
-   appearance	 Appearance {
-      material Material { diffuseColor	 0.6 0.6 0.6 	}  
-   }
-   geometry IndexedFaceSet {
-      solid FALSE
-      coord USE allpoints2
-      coordIndex [
-			 0,    1,    9,    8,    -1,
-			 1,    2,   10,    9,    -1,
-			 2,    3,   11,   10,    -1,
-			 3,    4,   12,   11,    -1,
-			 4,    5,   13,   12,    -1,
-			 5,    6,   14,   13,    -1,
-			 6,    7,   15,   14,    -1,
-			 8,    9,   17,   16,    -1,
-			 9,   10,   18,   17,    -1,
-			 10,   11,   19,   18,    -1,
-			 11,   12,   20,   19,    -1,
-			 12,   13,   21,   20,    -1,
-			 13,   14,   22,   21,    -1,
-			 14,   15,   23,   22,    -1,
-			 7,    0,     8,   15,    -1,    
-			 15,   8,    16,   23,    -1,    
-			 16,  17,  24,     -1,
-			 17,  25,  24,     -1,
-			 17,  18,  25,     -1,
-			 17,  18,  25,     -1,
-			 18,  19,  25,     -1,
-			 19,  26,  25,     -1,
-			 19,  20,  26,     -1,
-			 20,  21,  26,     -1,
-			 21,  27,  26,     -1,
-			 21,  22,  27,     -1,
-			 22,  23,  27,     -1,
-			 23,  24,  27,     -1,
-			 23,  16,  24,     -1,
-			 24,  25,  28,     -1,
-			 25,  26,  28,     -1,
-			 26,  27,  28,     -1,
-			 27,  24,  28,     -1
-	  ]
-   }
+Transform { translation -5 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
 }
-
-Shape {
-   appearance	 Appearance {
-      material Material { diffuseColor	 0.8 0.8 0.1 	}  
-   }
-   geometry IndexedFaceSet {
-      solid FALSE
-      coord USE allpoints2
-      coordIndex [
-   		 29  , 34  , 35  , 30  , -1  , 
-   		 30  , 35  , 36  , 31  , -1  , 
-			 31  , 36  , 37  , 32  , -1  , 
-			 32  , 37  , 38  , 33  , -1  , 
-			 34  , 39  , 40  , 35  , -1  , 
-			 35  , 40  , 41  , 36  , -1  , 
-			 36  , 41  , 42  , 37  , -1  , 
-			 37  , 42  , 43  , 38  , -1  , 
-	  ]
-   }
 }
-] 
+Transform { translation -5 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -5 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.000000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -4 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.100000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -3 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.200000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -2 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.300000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation -1 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.400000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 0 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.500000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 1 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.600000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 2 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.700000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 3 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.800000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 4 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 0.900000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.100000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.100000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.100000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.100000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.100000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.100000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.200000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.200000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.200000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.200000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.200000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.200000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.300000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.300000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.300000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.300000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.300000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.300000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.400000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.400000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.400000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.400000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.400000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 -1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.400000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 0 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.500000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 0 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.500000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 0 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.500000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 0 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.500000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 0 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.500000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 0 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.500000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 1 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.600000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 1 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.600000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 1 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.600000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 1 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.600000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 1 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.600000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 1 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.600000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 2 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.700000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 2 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.700000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 2 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.700000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 2 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.700000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 2 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.700000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 2 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.700000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 3 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.800000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 3 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.800000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 3 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.800000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 3 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.800000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 3 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.800000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 3 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.800000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 4 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.900000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 4 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.900000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 4 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.900000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 4 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.900000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 4 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.900000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 4 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 0.900000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 5 0 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 1.000000 0.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 5 1 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 1.000000 0.200000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 5 2 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 1.000000 0.400000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 5 3 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 1.000000 0.600000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 5 4 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 1.000000 0.800000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
+}
+Transform { translation 5 5 5 children  DEF SHAPE Shape { appearance Appearance {
+	material Material {
+	diffuseColor 1.000000 1.000000 1.000000
+transparency 0.25 }
+	}
+ geometry Cone {height 0.4 bottomRadius 0.2}
+}
 }

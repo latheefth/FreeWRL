@@ -293,6 +293,7 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 				_tmp_vpStr[j++] = _buff[i];
 			}
 		}
+		printf ("new unquoted string %s\n",_tmp_vpStr);
 
 		_vpStr = JS_NewStringCopyZ(cx, _tmp_vpStr);
 		*vp = STRING_TO_JSVAL(_vpStr);
@@ -570,15 +571,21 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 		_vp_c = JS_GetStringBytes(_vpStr);
 
 		len = strlen(_vp_c);
+
+		
 		/* len + 3 for '\0' and "..." */
 		if ((_new_vp_c = (char *) malloc((len + 3) * sizeof(char))) == NULL) {
 			fprintf(stderr, "malloc failed in setECMANative.\n");
 			return JS_FALSE;
 		}
-		len += 3;
+		//JAS - do NOT prepend/append double quotes to this string
+		//JAS - only for the null terminator
+		//JAS len += 3;
+		len += 1;
 
 		memset(_new_vp_c, 0, len);
-		sprintf(_new_vp_c, "\"%.*s\"", len, _vp_c);
+		//JAS sprintf(_new_vp_c, "\"%.*s\"", len, _vp_c);
+		sprintf(_new_vp_c, "%.*s", len, _vp_c);
 		_newVpStr = JS_NewStringCopyZ(context, _new_vp_c);
 		*vp = STRING_TO_JSVAL(_newVpStr);
 

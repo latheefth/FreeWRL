@@ -114,6 +114,7 @@ char *getLibVersion() {
 
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
+	int doEvents;
 
 
 	#ifndef AQUA
@@ -153,6 +154,10 @@ void EventLoop() {
 		loop_count++;
 	}
 
+	/* should we do events, or maybe Perl is parsing? */
+	doEvents = (!isPerlParsing()) && isPerlinitialized();
+	//doEvents = TRUE;
+
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {
 		doBrowserAction ();
@@ -169,7 +174,7 @@ void EventLoop() {
 	render_pre();
 
 	/* first events (clock ticks, etc) */
-	do_first ();
+	if (doEvents) do_first ();
 	
 	/* actual rendering */
 	render();
@@ -263,14 +268,16 @@ void EventLoop() {
 		Snapshot();
 	}
 
-	/* handle ROUTES - at least the ones not generated in do_first() */
-	propagate_events();
+	if (doEvents) {
+		/* handle ROUTES - at least the ones not generated in do_first() */
+		propagate_events();
 
-	/* Javascript events processed */
-	process_eventsProcessed();
+		/* Javascript events processed */
+		process_eventsProcessed();
 
-	/* EAI */
-	handle_EAI();
+		/* EAI */
+		handle_EAI();
+	}
 }	
 
 

@@ -519,8 +519,14 @@ void render_Background (struct VRML_Background *node) {
 		if(node->skyColor.n == 1) {
 			estq += 40;
 		} else {
-			estq += (node->skyColor.n-1) * 20;
-			if (node->skyAngle.p[node->skyColor.n-2] < (PI-0.01)) estq += 20;
+			estq += (node->skyColor.n-1) * 20 + 20;
+			// attempt to find exact estimate, fails if no skyAngle, so
+			// simply changed above line to add 20 automatically.
+			//if ((node->skyColor.n >2) &&
+			//	(node->skyAngle.n > node->skyColor.n-2)) {
+			//	if (node->skyAngle.p[node->skyColor.n-2] < (PI-0.01)) 
+			//		estq += 20;
+			//}
 		}
 	
 		if(node->groundColor.n == 1) estq += 40;
@@ -541,7 +547,6 @@ void render_Background (struct VRML_Background *node) {
 			c1 = &node->skyColor.p[0];
 			va1 = 0;
 			va2 = PI/2; 
-			/* glColor3d(c1->c[0], c1->c[1], c1->c[2]); */
 	
 			for(v=0; v<2; v++) {
 				for(h=0; h<hdiv; h++) {
@@ -563,13 +568,20 @@ void render_Background (struct VRML_Background *node) {
 			va1 = 0;
 			/* this gets around a compiler warning - we really DO want last values of this from following
 			   for loop */
-			c1 = &node->skyColor.p[0]; va2= node->skyAngle.p[0]; c2=c1;
+			c1 = &node->skyColor.p[0]; 
+			if (node->skyAngle.n>0) {
+				va2= node->skyAngle.p[0]; 
+			} else {
+				va2 = PI/2;
+			}
+			c2=c1;
 
 
 			for(v=0; v<(node->skyColor.n-1); v++) {
 				c1 = &node->skyColor.p[v];
 				c2 = &node->skyColor.p[v+1];
-				va2 = node->skyAngle.p[v];
+				if (node->skyAngle.n>0) { va2 = node->skyAngle.p[v];}
+				else { va2 = PI/2; }
 				
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;

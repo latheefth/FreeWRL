@@ -126,6 +126,13 @@ VrmlBrowserAddRoute(JSContext *cx,
 
 
 JSBool
+VrmlBrowserPrint(JSContext *cx,
+					   JSObject *obj,
+					   uintN argc,
+					   jsval *argv,
+					   jsval *rval);
+
+JSBool
 VrmlBrowserDeleteRoute(JSContext *cx,
 					   JSObject *obj,
 					   uintN argc,
@@ -161,6 +168,7 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"createVrmlFromURL", VrmlBrowserCreateVrmlFromURL, 0},
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
+	{"print", VrmlBrowserPrint, 0},
 	{0}
 };
 

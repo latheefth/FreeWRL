@@ -94,7 +94,7 @@ int JSVerbose = 0;
 
 int JSMaxScript = 0;
 
-char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false;";
+char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false; function print(x) {Browser.print(x)} ";
 
 /* housekeeping routines */
 void JScleanup(int num);

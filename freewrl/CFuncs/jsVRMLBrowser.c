@@ -417,6 +417,27 @@ VrmlBrowserAddRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, 
 
 
 JSBool
+VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{	int count;
+	JSString *_str;
+	char *_id_c;
+
+	jsval _rval = INT_TO_JSVAL(0);
+	printf ("FreeWRL:javascript: ");
+	for (count=0; count < argc; count++) {
+		if (JSVAL_IS_STRING(argv[count])) {
+			_str = JSVAL_TO_STRING(argv[count]);
+			_id_c = JS_GetStringBytes(_str);
+			printf (_id_c);
+		} else {
+	//		printf ("unknown arg type %d\n",count);
+		}
+	}
+	printf ("\n");
+	*rval = _rval;
+	return JS_TRUE;
+}
+JSBool
 VrmlBrowserDeleteRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	jsval _rval = INT_TO_JSVAL(0);

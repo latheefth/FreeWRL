@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.38  2004/05/27 15:22:04  crc_canada
+# javascripting problems fixed.
+#
 # Revision 1.37  2004/05/20 19:01:34  crc_canada
 # pre4 files.
 #
@@ -209,7 +212,11 @@ sub copy {
 	my($type, $value) = @_;
 
 	if (!ref $value) {
-		return $value
+		return $value 
+	} elsif (ref $value eq "VRML::USE") {
+		#$value = $value->real_node(); return $value;
+		my $ret = $value->copy();
+		return $ret;
 	} elsif (ref $value eq "ARRAY") {
 		return [map {copy("",$_)} @$value]
 	} elsif (ref $value eq "VRML::NodeIntern") {
@@ -221,6 +228,8 @@ sub copy {
 		my $ret = bless { map {copy("",$_)} %$value }, "VRML::DEF";
 		return $ret;
 	} else {
+		print "going to die;\n";
+		print "copy ", ref $value, "\n";
 		die("Can't copy this");
 	}
 }

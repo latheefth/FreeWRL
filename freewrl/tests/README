@@ -84,7 +84,8 @@ Notes:
 
 32.wrl: Contains 30.wrl and 31.wrl.
 
-33.wrl: Contains two copies 30.wrl, translated.
+33.wrl: A "big" transparent set of Cones. Shows sorting of nodes,
+	and rendering of transparency.
 
 34.wrl: The noodle drain with a the original texture mapped on it. 
 

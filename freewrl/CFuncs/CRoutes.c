@@ -301,7 +301,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// now construct the varable name; it might have a prefix as found above.
 
-	//printf ("before constructor, fullname is %s\n",fullname);
+	//printf ("get_touched_flag, before constructor, fullname is %s\n",fullname);
 	strcat (fullname,myname);
 	touched_function = FALSE;
 	touched_Multi = FALSE;
@@ -318,6 +318,7 @@ int get_touched_flag (int fptr, int actualscript) {
 		break;
 		}
 	case MFCOLOR: case MFROTATION: case MFNODE: case MFVEC2F: {
+		strcpy (tmethod,"__touched_flag");
 		touched_Multi = TRUE;
 		complex_name = TRUE;
 		break;
@@ -390,15 +391,39 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// Multi types, go through each element, and find the touched flag. grep for
 	// touched in CFuncs/jsVRMLClasses.c to see what we are really trying to find.
+	// We can also look at the base node; it *may* have a touched flag.
+	
 	if (touched_Multi) {
 		
 		touched = 0;
+
+		// lets try the MF touched flag. If this is 0, then go
+		// through each element.
+		if (!JS_GetProperty(mycx, (JSObject *) interpobj, "__touched_flag", &_length_val)) {
+				fprintf(stderr, "JS_GetProperty failed for \"__touched_flag\" in here.\n");
+				            return JS_FALSE;
+            	}
+
+
+		jlen = JSVAL_TO_INT(_length_val);
+		if (jlen>0) {
+			// yeah! We don't have to go through each element!
+			// set it to "0" for next time.
+			v = INT_TO_JSVAL(0);
+			JS_SetProperty (mycx, (JSObject *)  interpobj,
+					"__touched_flag", &v);
+			return TRUE;
+		}
+
+
 		if (!JS_GetProperty(mycx, (JSObject *) interpobj, "length", &_length_val)) {
 				fprintf(stderr, "JS_GetProperty failed for \"length\" in here.\n");
 				            return JS_FALSE;
             	}
 		jlen = JSVAL_TO_INT(_length_val);
 		//printf ("length of object %d is %d\n",interpobj,jlen);
+
+		
 
 		// go through each element of the MF* and look for the touched flag.
 		for (count = 0; count < jlen; count ++) {		    
