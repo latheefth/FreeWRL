@@ -15,26 +15,18 @@
 \endfoot\hline
 \endlastfoot
 
-
-
-
-
-
 Appearance & 1. \AppA & \Passed \\\cline{2-3}
  & 2. \AppB & \Passed \\\cline{2-3}
  & 3. \AppC & \Undet \\\cline{2-3}
- & 4. \AppDa & \Passed \\
- & \AppDb & \\\cline{2-3}
+ & 4. \AppD & \Passed \\\cline{2-3}
  & 5. \AppE & \Passed \\\cline{2-3}
  & 6. \AppF & \Passed \\\cline{2-3}
  & 7. \AppG & \Passed \\\cline{2-3}
  & 8. \AppH & \Failed \\\cline{2-3}
  & 9. \AppI & \Passed \\\cline{2-3}
- & 10. \AppJa & \Passed \\
- & \AppJb & \\\cline{2-3}
- & 11. \AppKa & \Failed \\
- & \AppKb & \\\cline{2-3}
- & 12. \AppL & \Failed \\
+ & 10. \AppJ & \Passed \\\cline{2-3}
+ & 11. \AppK & \Failed \\\cline{2-3}
+ & 12. \AppL & \Failed \\\hline
 %% \resetTestCase
 FontStyle & 1. \FSA & \Failed \\\cline{2-3}
  & 2. \FSB & \Failed \\\cline{2-3}
@@ -79,15 +71,15 @@ ImageTexture & 1. \ITA & \Passed \\\cline{2-3}
  & 24. \ITXa & \Failed \\
  & \ITXb & \\\cline{2-3}
  & 25. \ITY & \Passed \\\cline{2-3}
- & 26. \ITZ & \Passed \\\cline{2-3}
+ & 26. \ITZ & \Failed \\\cline{2-3}
  & 27. \ITAA & \Passed \\\cline{2-3}
- & 28. \ITAB & \Passed \\\cline{2-3}
+ & 28. \ITAB & \Failed \\\cline{2-3}
  & 29. \ITAC & \Passed \\\cline{2-3}
- & 30. \ITAD & \Passed \\\cline{2-3}
- & 31. \ITAE & \Passed \\\cline{2-3}
+ & 30. \ITAD & \Undet \\\cline{2-3}
+ & 31. \ITAE & \Undet \\\cline{2-3}
  & 32. \ITAF & \Passed \\\cline{2-3}
- & 33. \ITAG & \Passed \\\cline{2-3}
- & 34. \ITAH & \Passed \\\hline
+ & 33. \ITAG & \Undet \\\cline{2-3}
+ & 34. \ITAH & \Undet \\\hline
 %% \resetTestCase
 Material & 1. \MatA & \Passed \\\cline{2-3}
  & 2. \MatB & \Passed \\\cline{2-3}
@@ -103,19 +95,20 @@ Material & 1. \MatA & \Passed \\\cline{2-3}
  & \MatIb & \\\cline{2-3}
  & 10. \MatJa & \Failed \\
  & \MatJb & \\\cline{2-3}
- & 11. \MatKa & \Passed \\
+ & 11. \MatKa & \Failed \\
  & \MatKb & \\\cline{2-3}
- & 12. \MatL & \Passed \\\cline{2-3}
+ & 12. \MatL & \Undet \\\cline{2-3}
  & 13. \MatMa & \Passed \\
  & \MatMb & \\\cline{2-3}
- & 14. \MatNa & \Failed \\
+ & 14. \MatNa & \Passed \\
  & \MatNb & \\\cline{2-3}
  & 15. \MatOa & \Passed \\
  & \MatOb & \\\cline{2-3}
- & 16. \MatPa & \Failed \\
+ & 16. \MatPa & \Passed \\
  & \MatPb & \\\cline{2-3}
- & 17. \MatQa & \Failed \\
+ & 17. \MatQa & \Passed \\
  & \MatQb & \\\cline{2-3}
+%% stopped here (03/06/2002)
  & 18. \MatRa & \Failed \\
  & \MatRb & \\\cline{2-3}
  & 19. \MatSa & \Failed \\
@@ -173,13 +166,6 @@ Transform & 2. \TTBa & \Failed \\
 
 \subsection{Appearance Test Cases}
 
-%% \subsubsection{\AppA}
-%% Test file: material.wrl.
-%% 
-%% \subsubsection{\AppB}
-%% \label{sec:imagetexture}
-%% Test file: imagetexture.wrl, JPEG ImageTexture: vts.jpg.
-
 \setcounter{subsubsection}{2}
 %% The next subsubsection should be test case 3:
 
@@ -195,7 +181,7 @@ greyscalecolor.jpg.\newline
 The color set in the Color node does not get applied.
 
 \setcounter{subsubsection}{10}
-\subsubsection{\AppKa\AppKb}
+\subsubsection{\AppK}
 \label{sec:unlit-rgb-texture}
 Test file: unlit\_rgb\_texture\_alpha.wrl, ImageTexture:
 rgb\_alpha.png.\newline
@@ -242,52 +228,105 @@ FreeWRL crashes as both plug-in and stand-alone application.
 
 \subsection{ImageTexture Test Cases}
 
+\setcounter{subsubsection}{11}
+%% The next subsubsection should be test case 12:
+\subsubsection{\ITL}
+\label{sec:extrusion}
+Test file: Extrusion.wrl, ImageTexture: vts.jpg.\newline
+The ImageTexture does not get applied to the Extrusion correctly.
+
+\subsubsection{\ITM}
+\label{sec:text}
+Test file: Text.wrl, ImageTexture: text.jpg.\newline
+The Text node string is not rendered properly and the ImageTexture does not
+get applied.
+
+\setcounter{subsubsection}{18}
+\subsubsection{\ITS}
+Test file: ExtrusionPNG.wrl, ImageTexture: vts.png.\newline
+The results are similar to section~\ref{sec:extrusion}.
+
+\subsubsection{\ITT}
+Test file: TextPNG.wrl, ImageTexture: text.png\newline
+The results are similar to section~\ref{sec:text}.
+
 \setcounter{subsubsection}{21}
-%% The next subsubsection should be test case 22:
 \subsubsection{\ITVa\ITVb}
 \label{sec:png-complex-greyscale}
 Test file: complex\_greyscale\_alpha.wrl, ImageTexture: greyscale\_trans.png.\newline
 The ImageTexture does not get applied to the Extrusion correctly.
 
-\subsubsection{\ITWa\ITWb}
-Test file: rgb\_alpha\_png.wrl, ImageTexture: 8bcolrtp.png.\newline
-The colours look a little washed-out.
-
+\setcounter{subsubsection}{23}
 \subsubsection{\ITXa\ITXb}
+\label{sec:complex-rgb-alpha}
 Test file: complex\_rgb\_alpha.wrl, ImageTexture: rgb\_alpha.png.\newline
 The results are similar to section~\ref{sec:png-complex-greyscale}.
 
+\setcounter{subsubsection}{25}
+\subsubsection{\ITZ}
+\label{sec:greyscale-jpg-Color}
+Test file: greyscale\_jpg\_Color.wrl, ImageTexture: greyscalecolor.jpg.\newline
+The Color node's color field does not get applied to the IndexedFaceSet.
+
+\setcounter{subsubsection}{27}
+\subsubsection{\ITAB}
+Test file: greyscale\_png\_Color.wrl, ImageTexture: greyscalecolor.png.\newline
+The results are similar to section~\ref{sec:greyscale-jpg-Color}.
+
+\setcounter{subsubsection}{27}
+\subsubsection{\ITAD}
+\label{sec:repeatS}
+Test file: repeatS.wrl, ImageTexture: vts.jpg.\newline
+There is a noticeable colour difference between the sections of the primitive
+geometries that does not appear to match the expected result.
+
+\subsubsection{\ITAE}
+Test file: repeatT.wrl, ImageTexture: vts.jpg.\newline
+The results are similar to section~\ref{sec:repeatS}.
+
+\setcounter{subsubsection}{32}
+\subsubsection{\ITAG}
+Test file: repeatS\_png.wrl, ImageTexture: vts.png\newline
+The results are similar to section~\ref{sec:repeatS}.
+
+\subsubsection{\ITAH}
+Test file: repeatT\_png.wrl, ImageTexture: vts.png\newline
+The results are similar to section~\ref{sec:repeatS}.
+
 \subsection{Material Test Cases}
 
-\setcounter{subsubsection}{7}
+\setcounter{subsubsection}{6}
 \subsubsection{\MatGa\MatGb}
 \label{sec:pref-colour}
-Test file: texture\_first\_primitives.wrl.\newline
+Test file: texture\_first\_primitives.wrl, ImageTexture: vts.jpg.\newline
 The texture colour does not supersede the blue diffuseColor field defined
 in the Material node for all four primitive types.
 See bug 444973.
 
 \subsubsection{\MatHa\MatHb}
-Test file: texture\_first\_complex.wrl.\newline
+Test file: texture\_first\_complex.wrl, ImageTexture: vts.jpg.\newline
 The results are similar to section~\ref{sec:pref-colour}.
+The image texture also is applied to the extrusion incorrectly.
 
 \subsubsection{\MatIa\MatIb}
-Test file: texture\_over\_color\_complex.wrl.\newline
+Test file: texture\_over\_color\_complex.wrl, ImageTexture: vts.jpg.\newline
 The results are similar to section~\ref{sec:pref-colour}.
 
 \subsubsection{\MatJa\MatJb}
-Test file: allgeoms\_diffusecolor\_texture.wrl.\newline
+Test file: allgeoms\_diffusecolor\_texture.wrl, ImageTexture:
+greyscalecolor.jpg.\newline
 Improper texture mapping to the extrusion geometry.
 
-\setcounter{subsubsection}{13}
-\subsubsection{\MatNa\MatNb}
-Test file: pointset\_color\_first.wrl.\newline
-FreeWRL crashes as both plug-in and stand-alone application.
+\subsubsection{\MatKa\MatKb}
+Test file: complex\_color\_first\_texture.wrl, ImageTexture:
+greyscalecolor.jpg.\newline
+The Material node's blue diffuseColor field is preferred over the complex
+Geometries red color fields.
 
-\setcounter{subsubsection}{15}
-\subsubsection{\MatPa\MatPb}
-Test file: indexedlineset\_color\_first.wrl.\newline
-Some of the lines in the geometry are not entirely rendered.
+\subsubsection{\MatL}
+Test file: complex\_color\_first.wrl.\newline
+It appears that the applied colour is a blending of the Material node's
+blue diffuseColor fields and the complex Geometries' red color fields.
 
 \setcounter{subsubsection}{23}
 \subsubsection{\MatRa\MatRb}
