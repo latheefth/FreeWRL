@@ -233,7 +233,8 @@ sub handle_tick {
 	if(!defined $this->{Velocity}) {$this->{Velocity} = [0,0,0]}
 	if(!defined $this->{AVelocity}) {$this->{AVelocity} = [0,0,0]}
 	if($lasttime == -1) {$lasttime = $time;}
-# First, get all the keypresses since the last time
+
+	# First, get all the keypresses since the last time
 	my %ps;
 	for(keys %{$this->{Down}}) {
 		$ps{$_} += $this->{Down}{$_};
@@ -252,9 +253,14 @@ sub handle_tick {
 	my $v = $this->{Velocity};
 	my $ind = 0;
 	my $dt = $time-$lasttime;
+
+	# has anything changed? if so, then re-render.
+	my $changed = 0;
+
 	for(@$v) {$_ *= 0.06 ** ($dt);
 		$_ += $dt * $aadd[$ind++] * 14.5;
 		if(abs($_) > 9.0) {$_ /= abs($_)/9.0}
+		$changed += $_;
 	}
 	my $nv = $this->{Quat}->invert->rotate(
 		[map {$_ * $dt} @{$this->{Velocity}}]
@@ -268,17 +274,18 @@ sub handle_tick {
 		$_ += $dt * $radd[$ind++] * 0.1;
 		if(abs($_) > 0.8) {$_ /= abs($_)/0.8;}
 		$sq += $_*$_;
+		$changed += $_;
 	}
+
 	my $nq = new VRML::Quaternion(1,@$av);
 	$nq->normalize_this;
 	$this->{Quat} = $nq->multiply($this->{Quat});
 
-	# print "HANDLE_TICK($dt): @aadd | @{$this->{Velocity}} | @$nv\n";
+	# print "HANDLE_TICK($dt): @aadd | @{$this->{Velocity}} | @$nv | @$av\n";
 
     	# any movement? if so, lets render it.
-	if ((abs($this->{Velocity}[0]) > 0.000001) ||
-	    (abs($this->{Velocity}[1]) > 0.000001) ||
-	    (abs($this->{Velocity}[2]) > 0.000001)) {
+	if (abs($changed) > 0.000001) {
+		print "moving\n";
         	VRML::OpenGL::set_render_frame();
     	}
 
