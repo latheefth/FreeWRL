@@ -1,8 +1,11 @@
+#
+# $Id$
+#
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
-
+#
 # Parser.pm -- implement a VRML parser
 #  
 
@@ -45,12 +48,15 @@ $cre = qr{[^\"\n]};		# " Regexp for not dquote, not \n char
 #        ) 
 # XXX This is correct but might be too slow...
 # $Float = q~[+-]?(?:[0-9]+\.?|[0-9]*\.[0-9]+)(?:[eE][+-]?[0-9]+)?~
-
-$Float = q~[\deE+\-\.]+~;
+###$Float = q~[\deE+\-\.]+~;
+### Defer to regex compiler:
+$Float = qr~[\deE+\-\.]+~;
 
 # ([+\-]?(([0-9]+)|(0[xX][0-9a-fA-F]+))) 
 
-$Integer = q~[\da-fA-FxX+\-]+~;
+###$Integer = q~[\da-fA-FxX+\-]+~;
+### Defer to regex compiler:
+$Integer = qr~[\da-fA-FxX+\-]+~;
 
 sub parsefail {
 	my $p = pos $_[0];
@@ -58,7 +64,6 @@ sub parsefail {
 	my $textb = substr($_[0],$p-$n,$n);
 	my $texta = substr($_[0],$p,50);
 	die ("PARSE ERROR: '$textb' XXX '$texta', in $_[1] because $_[2]");
-	# print "PARSE ERROR: '$textb' XXX '$texta', in $_[1] because $_[2]\n";
 	# exit (1);
 }
 
@@ -81,45 +86,17 @@ sub parse {
   ## $VRML::verbose::parse = 1;
         my($scene, $text) = @_;
 	# XXX marijn: this sorta works for deleting comments
+	### Remove comments while ignoring anything between "":
 	print "Deleting comments\n" if $VRML::verbose::parse;
+
 	my $po = pos($text);
 	$po = 0 unless defined $po;
 
 	my $t2 = substr ($text, $po);
 	my $l2 = length ($t2);
-	## (etienne) FIX ME : Tentative comment-removing fix. Must do
-	## something better. Especially, the
-	## VRML::Field::SFString->parse($scene,$text) has been commented.
-	###$t2 =~ s{^($cre*?($qre($cre|\\\")*$qre)*?$cre*?)#[^\n]*$}{$1}omg; #"
-        ###substr ($text, $po, $l2, $t2); 
 
-	### (ayla) Is this better?
-	$t2 =~ s/#+[^\n]*//g;
+	$t2 =~ s/(\".*\")|(#+[^\n]*)/$1?$1:""/eg;
         substr ($text, $po, $l2, $t2); 
-
-        ## pos($text) should not have changed
-        ## pos ($text) = $po if defined $po; # Just in case
-
-#	open AA, ">uncommented.wrl" ;
-#	print AA $text ;
-#	close AA;
-#  	while($text =~ /\G([#\"])/gsc ) { # "cperl-mode trick
-#  		my $npo = pos $text;
-#  		print "found $1 at position $npo\n" if $VRML::verbose::parse;
-#  		(pos $text)--;
-#  		if ( $1 eq "#" ) {
-#  			print "Identified $1 as a comment, deleting!\n" if $VRML::verbose::parse;
-#  			# Marijns code:  $text =~ s/#.*$//m;
-#  			# Remi's fix:
-#  			$text =~ s/\G.*$//m;
-#  		      } else {
-#  			print "Identified as a string, skipping!\n" if $VRML::verbose::parse;
-#  			VRML::Field::SFString->parse($scene,$text);
-#  		}
-#  		$mpo = pos $text;
-#  		print "Searching from position $mpo\n" if $VRML::verbose::parse;
-#  	}
-#	(pos $text) = $po;
 
 	my @a;
 	while($text !~ /\G\s*$/gsc) {
