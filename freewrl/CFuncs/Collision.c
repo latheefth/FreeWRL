@@ -27,6 +27,9 @@
 /*usefull pretty much everywhere*/
 static const struct pt zero = {0,0,0};
 
+/* JAS - make return val global, not local for polyrep-disp */
+struct pt res ={0,0,0};
+
 /*a constructor */
 #define make_pt(p,xc,yc,zc) { p.x = (xc); p.y = (yc); p.z = (zc); }
 
@@ -1373,30 +1376,37 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags) {
     float* newc;
     struct pt* normals; 
-    struct pt res ={0,0,0};
     int i;
+    int maxc;
     
 
+    maxc = 0; // highest cindex, used to point into newc structure.
+
+    for(i = 0; i < pr.ntri*3; i++) {
+	if (pr.cindex[i] > maxc) {maxc = pr.cindex[i];}
+    }
+
     /*transform all points to viewer space */
-    newc = (float*)malloc(pr.ntri*9*sizeof(float));
+    // orig - JAS newc = (float*)malloc((pr.ntri)*9*sizeof(float));
+    newc = (float*)malloc(maxc*9*sizeof(float));
     for(i = 0; i < pr.ntri*3; i++) {
 	transformf(&newc[pr.cindex[i]*3],&pr.coord[pr.cindex[i]*3],mat);
-    }
+   }
+
     pr.coord = newc; /*remember, coords are only replaced in our local copy of PolyRep */
 
     /*pre-calculate face normals */
-    normals = (struct pt*)malloc(pr.ntri*sizeof(struct pt));
+    normals = (struct pt*)malloc((pr.ntri)*sizeof(struct pt));
     for(i = 0; i < pr.ntri; i++) {
 	polynormalf(&normals[i],&pr.coord[pr.cindex[i*3]*3],&pr.coord[pr.cindex[i*3+1]*3],&pr.coord[pr.cindex[i*3+2]*3]);
     }
-    
     res = polyrep_disp_rec(y1,y2,ystep,r,&pr,normals,res,flags);
 
-
     /*free! */
-    free(newc);
     free(normals);
-    
+    free(newc);
+    pr.coord = 0;
+
     return res;
     
 }
@@ -1462,12 +1472,19 @@ struct pt planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, 
 
 struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags, struct pt n) {
     float* newc;
-    struct pt res ={0,0,0};
     int i;
+    int maxc;
     
 
+    maxc = 0; // highest cindex, used to point into newc structure.
+
+    for(i = 0; i < pr.ntri*3; i++) {
+	if (pr.cindex[i] > maxc) {maxc = pr.cindex[i];}
+    }
+
     /*transform all points to viewer space */
-    newc = (float*)malloc(pr.ntri*9*sizeof(float));
+    newc = (float*)malloc(maxc*9*sizeof(float));
+
     for(i = 0; i < pr.ntri*3; i++) {
 	transformf(&newc[pr.cindex[i]*3],&pr.coord[pr.cindex[i]*3],mat);
     }
