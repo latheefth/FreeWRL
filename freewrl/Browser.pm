@@ -674,7 +674,7 @@ sub front_end_child_get {
 	my ($handle) = @_;
 	# print "front_end_child_get looking for $handle ",ref $handle,"\n";
         if(!exists $RP{$handle}) {
-                print "front_end_child_get Nonexistent parent for child !\n";
+                # print "front_end_child_get Nonexistent parent for child !\n";
                 return $handle;
         }
 	# print "front_end_child_get, returning for $handle ", $RP{$handle},"\n";

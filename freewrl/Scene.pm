@@ -315,24 +315,24 @@ sub new {
 		$this->{IsProto} = 1;
 		$this->{Type} = $scene->get_proto($this->{TypeName});
 		print "new Node of type $ntype is a proto, type is ",$this->{Type},"\n"
-			;#JAS if $VRML::verbose::nodec;
+			if $VRML::verbose::nodec;
 
 		# so, $this->{Type} has the scene declaration for the proto
 		# (see sub newp in Scene.pm)
-		my $ptr = $this->{Type};
-		print "	lets see, the newp definition of $ptr is: \n";
-		print "		parent:", $ptr->{Parent},"\n";
-		print "		Name:", $ptr->{Name},"\n";
-		print "		Parameters: ";
-		for (keys %{$ptr->{Pars}}) {
-		  print " $_";
-		}
-		print "\n";
-		print "		FieldKinds: ";
-		for (keys %{$ptr->{FieldKinds}}) {
-		  print ", $_ ", $ptr->{FieldKinds}{$_};
-		}
-		print "\n";
+		# my $ptr = $this->{Type};
+		# print "	lets see, the newp definition of $ptr is: \n";
+		# print "		parent:", $ptr->{Parent},"\n";
+		# print "		Name:", $ptr->{Name},"\n";
+		# print "		Parameters: ";
+		# for (keys %{$ptr->{Pars}}) {
+		#   print " $_";
+		# }
+		# print "\n";
+		# print "		FieldKinds: ";
+		# for (keys %{$ptr->{FieldKinds}}) {
+		#   print ", $_ ", $ptr->{FieldKinds}{$_};
+		# }
+		# print "\n";
 
 	} else {
 		# REGULAR
@@ -348,7 +348,7 @@ sub new {
 # and there is no way of this being a proto.
 sub new_script {
 	my($type, $scene, $stype, $fields, $eventmodel) = @_;
-	print "new Node (new_script): $stype->{Name}\n" ;#JAS if $VRML::verbose::nodec;
+	print "new Node (new_script): $stype->{Name}\n" if $VRML::verbose::nodec;
 	my %rf;
 	my $this = bless {
 		TypeName => $stype->{Name},
@@ -835,7 +835,7 @@ sub newp {
 
 	my ($type,$pars,$parent,$name) = @_;
 
-	print "Scene:newp: \n	type $type \n	pars $pars \n	parent $parent \n	name $name\n";
+	# print "Scene:newp: \n	type $type \n	pars $pars \n	parent $parent \n	name $name\n";
 	my $this = $type->new;
 	$this->{Pars} = $pars;
 	$this->{Name} = $name;
@@ -863,7 +863,7 @@ sub newp {
 			exit (1);
 		}
 	}
-	print "Scene:newp finished, returning $this\n";
+	# print "Scene:newp finished, returning $this\n";
 	return $this;
 }
 
@@ -1066,9 +1066,9 @@ sub new_proto {
         #       print "parameter $_\n";
         #}
 
-	print "NEW_PROTO $this $name\n" ;#JAS if $VRML::verbose::scene;
+	print "NEW_PROTO $this $name\n" if $VRML::verbose::scene;
 	my $p = $this->{Protos}{$name} = (ref $this)->newp($pars,$this,$name);
-	print "Scene:new_proto, returning $p \n";#JAS if $VRML::verbose::scene;
+	print "Scene:new_proto, returning $p \n" if $VRML::verbose::scene;
 	return $p;
 }
 
@@ -1241,11 +1241,11 @@ sub get_copy {
 	$new->{EventModel} = $this->{EventModel};
 	if (defined $this->{Routes}) {
 		$new->{Routes} = $this->{Routes};
-	 print "Scene.pm: GET_COPY: ROUTE ", 
-	 	$new->{Routes}[0][0] , " ", 
-	 	$new->{Routes}[0][1] , " ",
-	 	$new->{Routes}[0][2] , " ",
-	 	$new->{Routes}[0][3] , " from $this to new scene: $new\n";
+	 # print "Scene.pm: GET_COPY: ROUTE ", 
+	 #	$new->{Routes}[0][0] , " ", 
+	 #	$new->{Routes}[0][1] , " ",
+	 #	$new->{Routes}[0][2] , " ",
+	 #	$new->{Routes}[0][3] , " from $this to new scene: $new\n";
 	}
 
 	return $new;
