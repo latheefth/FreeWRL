@@ -13,8 +13,6 @@
 
 - Implement Sound Nodes.
 
-- Pointsets are not visible when hw accel; verify OpenGL calls.
-
 - Full Conformance.
 
 
