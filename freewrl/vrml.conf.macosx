@@ -1,37 +1,21 @@
 # Default VRML Configuration.
 # You will probably need to edit at least these variables
 # to inform the compiler where the libraries are on your system.
-
 %VRML_CONFIG = (
-
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/lib -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lXxf86vm -L/Freewrl/jpeg-6b -ljpeg -L/usr/local/lib -lpng -lz -lfreetype',
     FREEWRL_INC => '-I/usr/include/sys/ -I/usr/X11R6/include -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config',
-
 # Javascript lib & include (relative to the JS/ directory)
-    JS_LIBS => '-Ljs/src/Darwin5.2.2_OPT.OBJ -ljs',
-    JS_INC => '-Ijs/src/Darwin5.2.2_OPT.OBJ -Ijs/src -Ijs/',
-
+    JS_LIBS => '-Ljs/src/Darwin6.0_OPT.OBJ -ljs',
+    JS_INC => '-Ijs/src/Darwin6.0_OPT.OBJ -Ijs/src -Ijs/',
 # Saxon location - required for x3d running.
     SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
-
 # Netscape installation
-# 
 # If Netscape is not installed, leave NETSCAPE_INST empty e.g.
  NETSCAPE_INST => '',
-#
-# NETSCAPE_CLASSES is where vrml.jar (needed for EAI applets) 
-# will be installed to.
-# NETSCAPE_PLUGINS is used to determine where the plugin will
-# be installed if this is your browser.
-#    NETSCAPE_INST => '/usr/lib/netscape',
-#    NETSCAPE_CLASSES => '/usr/lib/netscape/java/classes',
-#    NETSCAPE_PLUGINS => '/usr/lib/netscape/plugins',
-
 # Java installation (Sun's Java 2 SDK Standard Edition 1.3.1)
 # If Java is not installed, leave JAVA_INST empty e.g.
- JAVA_INST => ''
-#    JAVA_INST => '/usr/java/jdk1.3.1',
-#    JAVA_INC => '-I/usr/java/jdk1.3.1/include -I/usr/java/jdk1.3.1/include/linux'
-
+ JAVA_INST => '',
+# LD flags
+	'LDDLFLAGS' =>  '-twolevel_namespace -undefined error -dynamic -bundle -L/usr/local/lib -L/Library/Perl/darwin/CORE/ -lperl',
 );
