@@ -32,7 +32,12 @@ void do_texture(int depth, int x, int y, unsigned char *ptr, GLint Sgl_rep_or_cl
 	int rx,ry,sx,sy;
 	int ct;
 
-	//printf ("do_texture; depth %d x %d y %d\n",depth,x,y);
+	if (global_texSize==0) {
+		/* called in OSX from the command line, so this is not set yet */
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &global_texSize);
+	}
+
+	//printf ("do_texture; depth %d x %d y %d max %d\n",depth,x,y,global_texSize);
 	
 	/* save this to determine whether we need to do material node
 	  within appearance or not */
