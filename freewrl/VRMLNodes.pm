@@ -282,10 +282,15 @@ sub init_image {
 			}
 		} elsif ($suffix =~ /png/i) {
 			eval 'require VRML::PNG';
+			eval 'require VRML::JPEG';
 			#print "Reading png file '$tempfile'\n";
 			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
 			  next;
 			  # die("Couldn't read texture file");
+			}
+			# $dat: data input/output
+			if(!VRML::JPEG::flip_image($dep,$hei,$wi,$dat)) {
+			  next;
 			}
 		} elsif ($suffix =~ /jpg/i) {
 			eval 'require VRML::JPEG';
@@ -294,8 +299,11 @@ sub init_image {
 			  next;
 			  # die("Couldn't read texture file");
 			}
+			# $dat: data input/output
+			if(!VRML::JPEG::flip_image($dep,$hei,$wi,$dat)) {
+			  next;
+			}
 		}
-
 
 		$f->{__depth.$name} = $dep;
 		$f->{__x.$name} = $wi;

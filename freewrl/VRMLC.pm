@@ -28,6 +28,11 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.7  2000/08/31 07:59:52  rcoscali
+# Terminate fix of image loading
+# Add flip_image routine in JPEG.xs
+# Handle it in VRMLNodes & take care of depth in VRMLC.pm
+#
 # Revision 1.6  2000/08/30 00:04:19  rcoscali
 # Comment out a glDisable(GL_LIGHTING) (uncommented by mistake ??)
 # Fixed a problem in cone rendering (order of the vertexes)i
@@ -945,14 +950,13 @@ static struct VRML_Virt virt_${n} = { ".
 				glEnable(GL_TEXTURE_2D);
 
 				if(rx != \$f(__x$1) || ry != \$f(__y$1)) {
-                                        fprintf( stderr, "Warning ! The texture coordinates you specified are not power of two !\\nThe image will be scaled & colors will be distorded !\\n" );
 					/* We have to scale: tex dim have to be power of 2 */
 					dest = malloc(\$f(__depth$1) * rx * ry);
 					printf("Scaling %d %d to %d %d\\n",
 					 	\$f(__x$1), \$f(__y$1) ,
 					 	rx, ry);
 					gluScaleImage(
-					     (\$f(__depth$1)==1 ? GL_LUMINANCE : GL_RGB),
+					     (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA)),
 					     \$f(__x$1), \$f(__y$1),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -1032,7 +1036,7 @@ static struct VRML_Virt virt_${n} = { ".
 					     \$f(__depth$1),  
 					     rx, ry,
 					     0,
-					     ((\$f(__depth$1))==1 ? GL_LUMINANCE : GL_RGB),
+					     (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA)),
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);

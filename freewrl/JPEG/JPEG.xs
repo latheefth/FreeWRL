@@ -174,13 +174,13 @@ for(;;) {
    * In this example, we need to make an output work buffer of the right size.
    */ 
   /* JSAMPLEs per row in output buffer */
-  SvGROW(sv, cinfo.output_width*cinfo.output_height*cinfo.output_components);
-  SvCUR_set(sv, cinfo.output_width*cinfo.output_height*cinfo.output_components);
-  dep = cinfo.output_components;
+  SvGROW(sv, cinfo.output_width*cinfo.output_height*cinfo.out_color_components);
+  SvCUR_set(sv, cinfo.output_width*cinfo.output_height*cinfo.out_color_components);
+  dep = cinfo.out_color_components;
   hei = cinfo.output_height;
   wi = cinfo.output_width;
-  /*printf("Reading: w=%d h=%d d=%d\n",cinfo.output_width, cinfo.output_height, cinfo.output_components); */
-  row_stride = cinfo.output_width * cinfo.output_components;
+  /*printf("Reading: w=%d h=%d d=%d\n",cinfo.output_width, cinfo.output_height, cinfo.out_color_components); */
+  row_stride = cinfo.output_width * cinfo.out_color_components;
   /* Make a one-row-high sample array that will go away when done with image */
   buffer = (*cinfo.mem->alloc_sarray)
 		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
@@ -190,6 +190,7 @@ for(;;) {
    * loop counter, so that we don't have to keep track ourselves.
    */
   ptr = SvPV(sv,PL_na);
+  printf( "VRML::JPEG::read_file -- quantize = %d\n",cinfo.quantize_colors ); 
   while (cinfo.output_scanline < cinfo.output_height) {
     /* jpeg_read_scanlines expects an array of pointers to scanlines.
      * Here the array is only one element long, but you could ask for
@@ -225,3 +226,50 @@ OUTPUT:
 	dep
 	hei
 	wi
+
+
+int
+flip_image(dep,hei,wi, datio)
+	int dep
+	int hei
+	int wi
+        SV* datio
+CODE:
+        while ( 1 ) {
+          unsigned char* ptrin = SvPV( datio, PL_na );
+          unsigned char* ptrout =(unsigned char*)NULL;
+          unsigned char* ptr; 
+          int xi, yi, xv, yv, d;
+          unsigned long size = hei*wi*dep * sizeof(unsigned char); 
+
+          /*
+          printf( "JPEG::flip_image -- LEN = %d\n", SvCUR(datio)); 
+          printf( "JPEG::flip_image -- SIZE = %d\n", size);
+          */
+          ptr = ptrout =(unsigned char*)malloc( size );
+          if ( (unsigned char*)NULL == ptrout )
+            {
+              croak( "Not enough memory\n" );
+              RETVAL = 0;
+              break; 
+            }
+          /*
+          printf( "JPEG::flip_image -- ptrin = 0x%lx    ptrout = 0x%lx\n", ptrin, ptrout );
+          */
+          for ( yi = hei -1; yi >= 0; yi-- ) 
+            for ( xi = 0; xi < wi; xi++ )
+              for ( d = 0; d < dep; d++ )
+                *ptr++= *((unsigned char *)((unsigned long)ptrin+((yi*wi+xi)*dep+d)));
+          /*
+          printf( "JPEG::flip_image -- 3\n" );
+          */
+          sv_setpvn( datio, ptrout, size );
+          RETVAL = size;
+          /*
+          printf( "JPEG::flip_image -- RETVAL = %d\n", RETVAL);
+          */
+          break;
+        }
+OUTPUT:
+        RETVAL
+        datio
