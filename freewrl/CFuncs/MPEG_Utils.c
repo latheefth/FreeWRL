@@ -70,18 +70,12 @@
 #define NO_SANITY_CHECKS
 extern const int zigzag_direct[];
 
-/* initial texture number, as passed in to mpg_main */
-GLuint initial_texture_number;
-
-/* the upper most texture number */
-GLuint latest_texture_number;
-
-/* current texture number */
-GLuint texture_count;
-
-/* repeat flags passed in, but because they are used "further in",
- * we make them global, to save ... */
-int mt_repeatS, mt_repeatT;
+/* global return values */
+int *frameCount;
+int *ySize;
+int *xSize;
+int *pictureDepth;
+char *dataPointer;
 
 /* Decoding table for macroblock_address_increment */
 mb_addr_inc_entry     mb_addr_inc[2048];
@@ -1262,13 +1256,15 @@ ExecuteTexture(vid_stream)
   unsigned int r, g, b;
   unsigned int i,j;
   int hsize;
+  int tmpvv;
+  int blockSize;
+  char *tmpptr;
 
   /* v_size = height, h_size = width (vertical, horizontal) */
   GLubyte Image[vid_stream->v_size][vid_stream->h_size][3];
 
   /* if the hsize is a power of 2. */
   hsize = vid_stream->mb_width * 16;
-  //printf ("horiz size %d re-calculated %d\n",vid_stream->h_size,hsize);
 
   for (i=0; i<vid_stream->v_size; i++) {
 	  p = (unsigned int *) vid_stream->current->display + i*hsize;
@@ -1284,27 +1280,18 @@ ExecuteTexture(vid_stream)
 	}
   }
 
+  /* store this frame for later binding in the correct thread */
+	*xSize= vid_stream->h_size; 
+	*ySize = vid_stream->v_size;
 
+  	blockSize = sizeof(GLubyte) * 3 * vid_stream->v_size * vid_stream->h_size;
 
+        dataPointer = realloc(dataPointer,blockSize * (*frameCount));
+	tmpptr = dataPointer + (blockSize * ((*frameCount)-1));
 
+        memcpy (tmpptr, Image, blockSize);
+	(*frameCount)++;
 
-
-  /* first time through, we use the texture number passed in.
-     Second (and subsequent) times, we generate a texture number,
-     that eventually gets returned to the caller. FreeWRL then
-     takes the initial (passed in) and final (from here) and
-     generates a texture number between (and inclusive of) these
-     numbers */
-
-  if (texture_count == 0) {
-	glBindTexture (GL_TEXTURE_2D, initial_texture_number);
-  } else {
-  	glGenTextures(1, &latest_texture_number);
-  	glBindTexture(GL_TEXTURE_2D,latest_texture_number);
-  }
-printf ("MPEG_Utils, fix do_texture call\n");
-  //JASdo_texture(3,vid_stream->h_size,vid_stream->v_size,Image, mt_repeatS,mt_repeatT,GL_LINEAR);
-  texture_count++;
 }
 /* Bit masks used by bit i/o operations. */
 unsigned int nBitMask[] = { 0x00000000, 0x80000000, 0xc0000000, 0xe0000000,
@@ -7270,6 +7257,8 @@ int ReadPacket(packetID, vid_stream)
     pos += 1;
   }
   /* Read all the headers, now make room for packet */
+printf ("buf_ptr %x\n",*buf_ptr);
+printf ("length_ptr %x\n",length_ptr);
   if (*bs_ptr + *max_length < *buf_ptr+ packetLength/4 + *length_ptr) {
      /* Brown - get rid of Ansi C complaints */
     if (*max_length - *length_ptr < (int) packetLength/4) {
@@ -7422,31 +7411,28 @@ FILE *mpegfile;
  */
 
 
-int mpg_main(init_tex, fname, repeatS, repeatT)
-	GLuint init_tex;
-	char * fname;
-	int repeatS;
-	int repeatT;
-{
+void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,int *ptr) {
 
   mpeg_VidStream *theStream;
   int ppm_width = -1,  ppm_height = -1, ppm_modulus = -1;
 
-  texture_count = 0;
-  theStream = NULL;
-  if (repeatS) { mt_repeatS = GL_REPEAT; } else { mt_repeatS = GL_CLAMP; }
-  if (repeatT) { mt_repeatT = GL_REPEAT; } else { mt_repeatT = GL_CLAMP; }
+  /* save pointers */
+  frameCount = fc;
+  *frameCount = 1;
+  ySize = y;
+  xSize = x;
+  *depth = 3;  /* always this depth... */
+  dataPointer = NULL;
 
-  /* save the texture numbers; we'll sanity check these later */
-  latest_texture_number = 0;
-  initial_texture_number = init_tex;
+  theStream = NULL;
 
   fflush(stdout);
   mpegfile=fopen(fname, "r");
 
   if (mpegfile == NULL) {
     printf("Could not open MovieTexture file %s\n", fname);
-    return initial_texture_number;
+    *frameCount = 0;
+    return;
   }
 
   init_tables();
@@ -7502,5 +7488,6 @@ int mpg_main(init_tex, fname, repeatS, repeatT)
     r_2_pix_alloc = NULL; g_2_pix_alloc= NULL;b_2_pix_alloc = NULL;
     
       fclose(mpegfile);
-  return latest_texture_number;
+	*ptr =  dataPointer;
+	*fc = (*frameCount)--;
 }

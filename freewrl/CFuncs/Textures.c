@@ -30,6 +30,7 @@ struct loadTexParams {
 	int depth; 
 	int x; 
 	int y; 
+	int frames;		/* 1 unless video stream */
 	unsigned char *texdata; 
 	GLint Src; 
 	GLint Trc; 
@@ -43,6 +44,7 @@ struct loadTexParams {
 #define NEEDSBINDING	2
 #define LOADED		3	
 #define INVALID		4
+#define UNSQUASHED	5
 
 /* supported image types */
 #define IMAGETEXTURE	0
@@ -90,6 +92,11 @@ void store_tex_info(
 		GLint Sgl_rep_or_clamp, 
 		GLint Tgl_rep_or_clamp, 
 		GLint Image);
+	
+void __reallyloadPixelTexture();
+void __reallyloadImageTexture();
+void __reallyloadMovieTexture();
+void do_possible_multitexture(int texno);
 
 
 
@@ -124,9 +131,39 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 
 /* load in a texture, if possible */
 void loadMovieTexture (struct VRML_MovieTexture *node) {
+	int isl;
+	int origtex, firsttex,lasttex;
+	/* when the data is "unsquished", this texture becomes invalid,
+		and the new texture ranges are placed */
+
+	firsttex = node->__texture0_;
 	bind_image(MOVIETEXTURE, node->__parenturl, 
 		node->url, 
 		&node->__texture0_,node->repeatS,node->repeatT);
+
+	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
+	if (isloaded[firsttex] == UNSQUASHED) {
+		if (TexVerbose) 
+			printf ("movie texture now unsquished, first and last textures %d %d ctex %d\n",
+			loadparams[firsttex].x, loadparams[firsttex].y,
+			node->__ctex);
+
+		/* copy over the first and last texture numbers */
+		node->__texture0_ = loadparams[firsttex].x;
+		node->__texture1_ = loadparams[firsttex].y;
+
+		/* which frame to start with? */
+		if (node->speed>=0) node->__ctex = node->__texture0_;
+		else node->__ctex = node->__texture1_;
+
+		/* set this inactive... SensInterps will set active */
+		node->isActive = 0;
+
+		/* make an event for the inittime */
+		node->__inittime = TickTime;
+	}
+			
+		
 }
 
 
@@ -141,6 +178,7 @@ void store_tex_info(
 		GLint Tgl_rep_or_clamp, 
 		GLint Image) {
 
+		loadparams[texno].frames=1;
 		loadparams[texno].depth = depth;
 		loadparams[texno].x = x;
 		loadparams[texno].y = y;
@@ -150,9 +188,69 @@ void store_tex_info(
 		loadparams[texno].Image = Image;
 }
 
+/* do we do 1 texture, or is this a series of textures, requiring final binding
+   by this thread? */
+
+void do_possible_multitexture(int texno) {
+	int st,ed;
+	int *texnums;
+	int imageDatasize;
+	int framecount;
+	GLubyte *imageptr;
+
+	if (loadparams[texno].frames > 1) {
+		/* save the NUMBER of frames to copy. (numbered 0 to xxx[].frames-1) */
+		framecount = loadparams[texno].frames;
+
+		/* ok, a series of textures - eg, an mpeg file - needs unsquishing */
+		texnums = malloc (sizeof(GLuint) * framecount);
+		glGenTextures(framecount,texnums);
+
+		/* this is the size of each image frame */
+		imageDatasize = sizeof (GLbyte) * loadparams[texno].x *
+                                loadparams[texno].y * loadparams[texno].depth;
+
+		/* and, get a pointer to the whole, unsquished, image data */
+		imageptr = loadparams[texno].texdata;
+
+		for (st = 0; st < framecount; st++){
+			/* make new table entries for these new textures */
+			checkAndAllocTexMemTables(&(texnums[st]),16);
+
+			/* copy most of the elements over from the base, verbatim */
+			memcpy (&loadparams[texnums[st]], &loadparams[texno], sizeof (struct loadTexParams));
+
+			/* elements that are different from the "standard" */
+			loadparams[texnums[st]].texdata = malloc (imageDatasize);
+			loadparams[texnums[st]].texture_num = &texnums[st];
+			loadparams[texnums[st]].frames=1;
+
+			/* copy the segment out of the squished data to this pure frame */
+			memcpy(loadparams[texnums[st]].texdata, imageptr, imageDatasize);
+			new_do_texture(texnums[st]);
+
+			/* and, lets look at the next frame in the squished data */
+			imageptr += imageDatasize;
+			
+		}
+		/* we have unsquished this whole image; lets tell the caller this */
+		isloaded[texno] = UNSQUASHED;
+		loadparams[texno].x = texnums[0];
+		loadparams[texno].y = texnums[framecount-1];
+		free (loadparams[texno].texdata);
+	} else {
+		new_do_texture(texno);
+		isloaded[texno] = LOADED;
+	}
+}
+
+
+/* make this data into a OpenGL texture */
+
 void new_do_texture(int texno) {
 	int rx,ry,sx,sy;
 	int depth,x,y;
+
 	glBindTexture (GL_TEXTURE_2D, *loadparams[texno].texture_num);
 
 	if (global_texSize==0) {
@@ -211,7 +309,9 @@ void new_do_texture(int texno) {
 	}
 }
 
-/* bind the image, 
+/**********************************************************************************
+
+ bind the image, 
 
 	itype 	tells us whether it is a PixelTexture, ImageTexture or MovieTexture.
 
@@ -223,45 +323,26 @@ void new_do_texture(int texno) {
 	texture_num	the OpenGL texture identifier
 
 	repeatS, repeatT VRML fields
-*/
+************************************************************************************/
 
 void bind_image(int itype, SV *parenturl, struct Multi_String url, 
 		GLuint *texture_num, int repeatS, int repeatT) {
 
 	/* temp variable */
 	int count;
-	int prev_max_texture;
-
 
 	/* yield for a bit */
 	sched_yield();
 
 	/* is this the first call for this texture? */
 	if (*texture_num==0) {
-		if (itype==MOVIETEXTURE) {
-			printf ("MovieTexture, returning\n");
-			return;
-		}
 		glGenTextures(1,texture_num);
 		if (TexVerbose) printf ("just genned texture %d\n",*texture_num);
 	}
 
-	/* do we have enough room to save the isloaded flag for this texture? */
-	if ((int)(*texture_num)>=(max_texture-2)) {
-		REGENLOCK
-		/* printf ("bind_image, must allocate a bunch more space for flags\n"); */
-		prev_max_texture = max_texture;
-		max_texture+=16;
-		isloaded = realloc(isloaded, sizeof(*isloaded) * max_texture);
-		loadparams = realloc(loadparams, sizeof(*loadparams) * max_texture);
-
-		/* printf ("zeroing from %d to %d\n",prev_max_texture,max_texture); */
-		for (count = prev_max_texture; count < (int)max_texture; count++) {
-			isloaded[count] = NOTLOADED;
-			loadparams[count].filename="uninitialized file";
-		}
-		REGENUNLOCK
-	}
+	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,
+	   make them larger, by 16 */
+	checkAndAllocTexMemTables(texture_num, 16);
 	
 	/* have we already processed this one before? */
 	if (isloaded[*texture_num] == LOADED) {
@@ -270,17 +351,17 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	}
 
 	/* is this one bad? */
-	if (isloaded[*texture_num] == INVALID) {
-		return;
-	}
+	if (isloaded[*texture_num] == INVALID) { return; }
+
+	/* is this one an unsquished movie texture? */
+	if (isloaded[*texture_num] == UNSQUASHED) { return; }
 
 	/* is this one read in, but requiring final manipulation
 	 * by THIS thread? */
 	if (isloaded[*texture_num] == NEEDSBINDING) {
 		if (TexVerbose) printf ("tex %d needs binding, name %s\n",*texture_num,
 				loadparams[*texture_num].filename);
-		new_do_texture(*texture_num);
-		isloaded[*texture_num] = LOADED;
+		do_possible_multitexture(*texture_num);
 		if (TexVerbose) printf ("tex %d now loaded\n",*texture_num);
 		return;
 	}
@@ -311,6 +392,32 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	}
         T_LOCK_SIGNAL
         TUNLOCK
+
+}
+
+/* check to see if we have enough memory for internal Texture tables */
+/* we should lock, unless we are already locked- MPG decoding happens when locked */
+void checkAndAllocTexMemTables(int *texture_num, int increment) {
+	int count;
+	int prev_max_texture;
+
+	/* do we have enough room to save the isloaded flag for this texture? */
+	if ((int)(*texture_num)>=(max_texture-2)) {
+		REGENLOCK
+		/* printf ("bind_image, must allocate a bunch more space for flags\n"); */
+		prev_max_texture = max_texture;
+		max_texture+=increment;
+		isloaded = realloc(isloaded, sizeof(*isloaded) * max_texture);
+		loadparams = realloc(loadparams, sizeof(*loadparams) * max_texture);
+
+		/* printf ("zeroing from %d to %d\n",prev_max_texture,max_texture); */
+		for (count = prev_max_texture; count < (int)max_texture; count++) {
+			isloaded[count] = NOTLOADED;
+			loadparams[count].filename="uninitialized file";
+		}
+		REGENUNLOCK
+	}
+
 
 }
 
@@ -476,39 +583,8 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 
 void _textureThread(void) {
 
-	char *filename; 
-	FILE *infile;  
-	GLuint texture_num; 
-	int repeatS; 
-	int repeatT; 
 	int remove;
 
-	unsigned char *image_data = 0;
-
-	/* PixelTexture variables */
-	unsigned hei,wid,depth;
-	long inval;
-	unsigned char *texture;
-	unsigned char *tptr;
-	int tctr;
-	int xx;
-	
-	/* png reading variables */
-	int rc;
-	unsigned long image_width = 0;
-	unsigned long image_height = 0;
-	unsigned long image_rowbytes = 0;
-	int image_channels = 0;
-	double display_exponent = 0.0;
-
-	/* jpeg variables */
-	struct jpeg_decompress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-	JDIMENSION nrows;
-	JSAMPROW row = 0;
-	JSAMPROW rowptr[1];
-	unsigned rowcount, columncount;
-	int dp;
 
 	/* temps */
 	int count;
@@ -529,188 +605,23 @@ void _textureThread(void) {
 
 		if (findTextureFile(loadparams[currentlyWorkingOn].texture_num,
 			loadparams[currentlyWorkingOn].type,&remove)) {
-			filename = loadparams[currentlyWorkingOn].filename;
-			texture_num = *loadparams[currentlyWorkingOn].texture_num;
-			repeatS = loadparams[currentlyWorkingOn].repeatS;
-			repeatT = loadparams[currentlyWorkingOn].repeatT;
 	
 			/* is this a pixeltexture? */
 			if (loadparams[currentlyWorkingOn].type==PIXELTEXTURE) {
-				tptr = SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
-				while (isspace(*tptr))tptr++;
-				if (sscanf (tptr, "%i%i%i",&wid,&hei,&depth)==3) {
-					if ((depth < 1) || (depth >4)) {
-						printf ("PixelTexture, depth %d out of range, assuming 1\n",depth);
-						depth = 1;
-					}
-					/* skip past the depth, width */
-					while (!isspace(*tptr))tptr++;
-					while (isspace(*tptr))tptr++;
-					while (!isspace(*tptr))tptr++;
-					while (isspace(*tptr))tptr++;
-	
-					/* have header ok, now read in all values */
-					count = 0; tctr = 0;
-		
-					texture = malloc (wid*hei*4);
-		
-		
-					while (count < (int)(wid*hei)) {
-						inval = -9999;
-						/* skip TO the number */
-						while (!isspace(*tptr))tptr++;
-						while (isspace(*tptr))tptr++;
-						if (sscanf (tptr,"%lx",&inval) != 1) {
-							printf("PixelTexture: expected %d pixels, got %d\n",wid*hei,count);
-							isloaded[texture_num] = INVALID;
-							break;
-						}
-
-						switch (depth) {
-							case 1: {
-								   texture[tctr++] = inval & 0xff;
-								   break;
-							   }
-							case 2: {
-								   texture[tctr++] = inval & 0x00ff;
-								   texture[tctr++] = (inval>>8) & 0xff;
-								   break;
-							   }
-							case 3: {
-								   texture[tctr++] = (inval>>16) & 0xff; //R
-								   texture[tctr++] = (inval>>8) & 0xff;	 //G
-								   texture[tctr++] = (inval>>0) & 0xff; //B
-								   break;
-							   }
-							case 4: {
-								   texture[tctr++] = (inval>>24) & 0xff; //A
-								   texture[tctr++] = (inval>>16) & 0xff; //R
-								   texture[tctr++] = (inval>>8) & 0xff;	 //G
-								   texture[tctr++] = (inval>>0) & 0xff; //B
-								   break;
-							   }
-						}
-		
-						count ++;
-					}
-		
-					if (count == (int)(wid*hei)) {
-						store_tex_info(currentlyWorkingOn,
-							(int)depth,(int)wid,(int)hei,texture,
-							((repeatS)) ? GL_REPEAT : GL_CLAMP, 
-							((repeatT)) ? GL_REPEAT : GL_CLAMP,
-							GL_NEAREST);
-					}
-				} else {
-					printf ("PixelTexture, invalid height, width, or depth\n");
-					isloaded[texture_num] = INVALID;
-				}
-		
-		
-			} else{ 
-			infile = fopen(filename,"r");
-			if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
-		
-				/* it is not a png file - assume a jpeg file */
-				/* start from the beginning again */
-				rewind (infile);
-				
-				/* see http://www.the-labs.com/JPEG/libjpeg.html for details */
-				
-				/* Select recommended processing options for quick-and-dirty output. */
-				cinfo.two_pass_quantize = FALSE;
-				cinfo.dither_mode = JDITHER_ORDERED;
-				cinfo.desired_number_of_colors = 216;
-				cinfo.dct_method = JDCT_FASTEST;
-				cinfo.do_fancy_upsampling = FALSE;
-		
-				cinfo.err = jpeg_std_error(&jerr);
-				jpeg_create_decompress(&cinfo);
-		
-				/* Specify data source for decompression */
-				jpeg_stdio_src(&cinfo, infile);
-		
-				/* Read file header, set default decompression parameters */
-				(void) jpeg_read_header(&cinfo, TRUE);
-		
-				/* Start decompressor */
-				(void) jpeg_start_decompress(&cinfo);
-		
-		
-		
-				row = malloc(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
-				rowptr[0] = row;
-				image_data = malloc(cinfo.output_width * sizeof (JSAMPLE) * cinfo.output_height * cinfo.output_components);
-				/* Process data */
-				for (rowcount = 0; rowcount < cinfo.output_height; rowcount++) {
-					nrows = jpeg_read_scanlines(&cinfo, rowptr, 1);
-					/* yield for a bit */
-					sched_yield();
-		
-		
-					for (columncount = 0; columncount < cinfo.output_width; columncount++) {
-						for(dp=0; dp<cinfo.output_components; dp++) {
-							image_data[(cinfo.output_height-rowcount-1)
-									*cinfo.output_width*cinfo.output_components
-							       		+ columncount* cinfo.output_components	+dp]
-								= row[columncount*cinfo.output_components + dp];
-						}
-					}
-				}
-					
-		
-				if (jpeg_finish_decompress(&cinfo) != TRUE) {
-					printf("warning: jpeg_finish_decompress error\n");
-					isloaded[texture_num] = INVALID;
-				}
-				jpeg_destroy_decompress(&cinfo);
-				free(row);
-		
-				store_tex_info( currentlyWorkingOn, 
-					cinfo.output_components, (int)cinfo.output_width,
-					(int)cinfo.output_height,image_data,
-					((repeatS)) ? GL_REPEAT : GL_CLAMP, 
-					((repeatT)) ? GL_REPEAT : GL_CLAMP,
-					GL_LINEAR);
+				__reallyloadPixelTexture();
+			} else if (loadparams[currentlyWorkingOn].type==MOVIETEXTURE) {
+				__reallyloadMovieTexture();
 			} else { 
-				if (rc != 0) {
-				isloaded[texture_num] = INVALID;
-				switch (rc) {
-					case 1:
-						printf("[%s] is not a PNG file: incorrect signature\n", filename);
-						break;
-					case 2:
-						printf("[%s] has bad IHDR (libpng longjmp)\n", filename);
-						break;
-					case 4:
-						printf("insufficient memory\n");
-						break;
-					default:
-						printf("unknown readpng_init() error\n");
-						break;
-					}
-				} else {
-					image_data = readpng_get_image(display_exponent, &image_channels,
-							&image_rowbytes);
-		
-					store_tex_info (currentlyWorkingOn, image_channels, 
-						(int)image_width, (int)image_height,
-						image_data,
-						((repeatS)) ? GL_REPEAT : GL_CLAMP, 
-						((repeatT)) ? GL_REPEAT : GL_CLAMP,
-						GL_LINEAR);
-				}
-				readpng_cleanup (FALSE);
+				__reallyloadImageTexture();
 			}
-			}
-			if (loadparams[currentlyWorkingOn].type != PIXELTEXTURE) fclose (infile);
-	
+
 			/* check to see if there was an error */
-			if (isloaded[texture_num]!=INVALID) isloaded[texture_num] = NEEDSBINDING;
-		
+			if (isloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID) 
+				isloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
+
 			/* is this a temporary file? */
 			if (remove == 1) {
-				unlink (filename);
+				unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
 			if (TexVerbose) printf ("duplicate file, currentlyWorkingOn %d texnum %s\n",
@@ -725,4 +636,239 @@ void _textureThread(void) {
 		REGENUNLOCK
 		TUNLOCK
 	}
+}
+
+
+/********************************************************************************/
+/* load specific types of textures						*/
+/********************************************************************************/
+void __reallyloadPixelTexture() {
+	/* PixelTexture variables */
+	unsigned hei,wid,depth;
+	long inval;
+	unsigned char *texture;
+	unsigned char *tptr;
+	int tctr;
+	int xx;
+	int count;
+
+	tptr = SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
+	while (isspace(*tptr))tptr++;
+	if (sscanf (tptr, "%i%i%i",&wid,&hei,&depth)==3) {
+		if ((depth < 1) || (depth >4)) {
+			printf ("PixelTexture, depth %d out of range, assuming 1\n",depth);
+			depth = 1;
+		}
+		/* skip past the depth, width */
+		while (!isspace(*tptr))tptr++;
+		while (isspace(*tptr))tptr++;
+		while (!isspace(*tptr))tptr++;
+		while (isspace(*tptr))tptr++;
+	
+		/* have header ok, now read in all values */
+		count = 0; tctr = 0;
+		
+		texture = malloc (wid*hei*4);
+		
+		
+		while (count < (int)(wid*hei)) {
+			inval = -9999;
+			/* skip TO the number */
+			while (!isspace(*tptr))tptr++;
+			while (isspace(*tptr))tptr++;
+			if (sscanf (tptr,"%lx",&inval) != 1) {
+				printf("PixelTexture: expected %d pixels, got %d\n",wid*hei,count);
+				isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+				break;
+			}
+
+			switch (depth) {
+				case 1: {
+					   texture[tctr++] = inval & 0xff;
+					   break;
+				   }
+				case 2: {
+					   texture[tctr++] = inval & 0x00ff;
+					   texture[tctr++] = (inval>>8) & 0xff;
+					   break;
+				   }
+				case 3: {
+					   texture[tctr++] = (inval>>16) & 0xff; //R
+					   texture[tctr++] = (inval>>8) & 0xff;	 //G
+					   texture[tctr++] = (inval>>0) & 0xff; //B
+					   break;
+				   }
+				case 4: {
+					   texture[tctr++] = (inval>>24) & 0xff; //A
+					   texture[tctr++] = (inval>>16) & 0xff; //R
+					   texture[tctr++] = (inval>>8) & 0xff;	 //G
+					   texture[tctr++] = (inval>>0) & 0xff; //B
+					   break;
+				   }
+			}
+		
+			count ++;
+		}
+		
+		if (count == (int)(wid*hei)) {
+			store_tex_info(currentlyWorkingOn,
+				(int)depth,(int)wid,(int)hei,texture,
+				((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP, 
+				((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
+				GL_NEAREST);
+		}
+	} else {
+		printf ("PixelTexture, invalid height, width, or depth\n");
+		isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+	}
+}
+		
+	
+void __reallyloadImageTexture() {	
+	FILE *infile;  
+	char *filename; 
+	GLuint texture_num; 
+	unsigned char *image_data = 0;
+
+	/* png reading variables */
+	int rc;
+	unsigned long image_width = 0;
+	unsigned long image_height = 0;
+	unsigned long image_rowbytes = 0;
+	int image_channels = 0;
+	double display_exponent = 0.0;
+
+	/* jpeg variables */
+	struct jpeg_decompress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+	JDIMENSION nrows;
+	JSAMPROW row = 0;
+	JSAMPROW rowptr[1];
+	unsigned rowcount, columncount;
+	int dp;
+
+
+	filename = loadparams[currentlyWorkingOn].filename;
+	infile = fopen(filename,"r");
+	if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
+
+		/* it is not a png file - assume a jpeg file */
+		/* start from the beginning again */
+		rewind (infile);
+		
+		/* see http://www.the-labs.com/JPEG/libjpeg.html for details */
+		
+		/* Select recommended processing options for quick-and-dirty output. */
+		cinfo.two_pass_quantize = FALSE;
+		cinfo.dither_mode = JDITHER_ORDERED;
+		cinfo.desired_number_of_colors = 216;
+		cinfo.dct_method = JDCT_FASTEST;
+		cinfo.do_fancy_upsampling = FALSE;
+
+		cinfo.err = jpeg_std_error(&jerr);
+		jpeg_create_decompress(&cinfo);
+
+		/* Specify data source for decompression */
+		jpeg_stdio_src(&cinfo, infile);
+
+		/* Read file header, set default decompression parameters */
+		(void) jpeg_read_header(&cinfo, TRUE);
+
+		/* Start decompressor */
+		(void) jpeg_start_decompress(&cinfo);
+
+
+
+		row = malloc(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
+		rowptr[0] = row;
+		image_data = malloc(cinfo.output_width * sizeof (JSAMPLE) * cinfo.output_height * cinfo.output_components);
+		/* Process data */
+		for (rowcount = 0; rowcount < cinfo.output_height; rowcount++) {
+			nrows = jpeg_read_scanlines(&cinfo, rowptr, 1);
+			/* yield for a bit */
+			sched_yield();
+
+
+			for (columncount = 0; columncount < cinfo.output_width; columncount++) {
+				for(dp=0; dp<cinfo.output_components; dp++) {
+					image_data[(cinfo.output_height-rowcount-1)
+							*cinfo.output_width*cinfo.output_components
+					       		+ columncount* cinfo.output_components	+dp]
+						= row[columncount*cinfo.output_components + dp];
+				}
+			}
+		}
+			
+
+		if (jpeg_finish_decompress(&cinfo) != TRUE) {
+			printf("warning: jpeg_finish_decompress error\n");
+			isloaded[texture_num] = INVALID;
+		}
+		jpeg_destroy_decompress(&cinfo);
+		free(row);
+
+		store_tex_info( currentlyWorkingOn, 
+			cinfo.output_components, (int)cinfo.output_width,
+			(int)cinfo.output_height,image_data,
+			((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP, 
+			((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
+			GL_LINEAR);
+	} else { 
+		if (rc != 0) {
+		isloaded[texture_num] = INVALID;
+		switch (rc) {
+			case 1:
+				printf("[%s] is not a PNG file: incorrect signature\n", filename);
+				break;
+			case 2:
+				printf("[%s] has bad IHDR (libpng longjmp)\n", filename);
+				break;
+			case 4:
+				printf("insufficient memory\n");
+				break;
+			default:
+				printf("unknown readpng_init() error\n");
+				break;
+			}
+		} else {
+			image_data = readpng_get_image(display_exponent, &image_channels,
+					&image_rowbytes);
+
+			store_tex_info (currentlyWorkingOn, image_channels, 
+				(int)image_width, (int)image_height,
+				image_data,
+				((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP, 
+				((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
+				GL_LINEAR);
+		}
+		readpng_cleanup (FALSE);
+	}
+	fclose (infile);
+}
+
+
+void __reallyloadMovieTexture () {
+	int x,y,depth,frameCount;
+	int ptr;
+int j;
+	int firstTex;
+	
+	firstTex = *loadparams[currentlyWorkingOn].texture_num;
+	ptr=NULL;
+
+	/* now, generate a new first texture */
+	mpg_main(loadparams[currentlyWorkingOn].filename,
+		&x,&y,&depth,&frameCount,&ptr);
+
+	if (TexVerbose) printf ("ireallyloadmv frame count is %d depth %d ptr %d\n",frameCount,depth,ptr);
+
+	/* store the "generic" data */
+	store_tex_info(currentlyWorkingOn,
+		(int)depth,(int)x,(int)x,ptr,
+		((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP,
+		((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
+		GL_NEAREST);
+
+	/* now, for the mpeg specific data */
+	loadparams[currentlyWorkingOn].frames = frameCount;
 }

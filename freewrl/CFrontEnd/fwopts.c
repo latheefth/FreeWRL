@@ -152,7 +152,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 				ExposureMask | StructureNotifyMask |
 				PointerMotionMask;
  
-	char	*wintitle =  "FW Via C directly";
+	char	*wintitle =  "FreeWRL VRML/X3D Browser";
 
 
 #ifndef AQUA 
