@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.28  2001/05/16 16:00:47  crc_canada
+# check for degenerate triangles in render_ray_polyrep, and skip it if one is found.
+#
 # Revision 1.27  2001/04/27 16:49:43  crc_canada
 # Working display lists for Shape nodes
 #
@@ -506,6 +509,14 @@ ElevationGrid => '
 		/* Flat */
 		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
 		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
+
+
+		/* in C always check if you got the mem you wanted...  >;->		*/
+  		if(!(cindex && coord && colindex && rep_->normal && rep_->norindex )) {
+			die("Not enough memory for ElevationGrid node triangles... ;(");
+		} 
+ 
+
 		/* Prepare the coordinates */
 		for(x=0; x<nx; x++) {
 		 for(z=0; z<nz; z++) {
@@ -622,13 +633,14 @@ IndexedFaceSet => '
 
         /* texture coords */
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
-	/*
+
+	/*	
         printf("\n\ntexCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
 	for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
 		texCoords[i].c[0], texCoords[i].c[1] ); 
         printf("NtexCoordIndex = %d\n", tcin);
-	*/
+	*/	
 
 	/* IndexedFaceSet coords and normals */
 	$fv(coord, points, get3, &npoints);
@@ -650,14 +662,17 @@ IndexedFaceSet => '
 	}
 	*/
 
+
         if(tcin == 0 && ntexCoords != 0 && ntexCoords != npoints) {
            die("Invalid number of texture coordinates");
         }
+
+	/* wander through to see how much memory needs allocating */
 	for(i=0; i<cin; i++) {
 		if($f(coordIndex,i) == -1) {
 			if(nvert < 3) {
 				die("Too few vertices in indexedfaceset poly");
-			}
+			} 
                         if(tcin > 0 && $f(texCoordIndex,i) != -1) {
                                 die("Mismatch texCoordIndex: coordIndex[%d] = -1 => expect texCoordIndex[%d] = -1 (but is %d)\\n", i, i, $f(texCoordIndex,i));
                         }
@@ -668,12 +683,19 @@ IndexedFaceSet => '
 		}
 	}
 	if(nvert>2) {ntri += nvert-2;}
+
+	/* printf ("IFS - nvert %d ntri %d\n",nvert,ntri); */
 	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 	colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
 	tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
 	norindex = rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
 	rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
 	rep_->ntri = ntri;
+
+	/* in C always check if you got the mem you wanted...  >;->		*/
+  	if(!(cindex && colindex && tcindex && norindex && rep_->normal )) {
+		die("Not enough memory for IndexFaceSet node triangles... ;(");
+	} 
 
 
 
@@ -698,7 +720,7 @@ IndexedFaceSet => '
 		int triind = 0;
 		curpoly = 0;
 		for(i=0; i<cin; i++) {
-			/*printf ("count is %d Coord index is %d\n",i,$f(coordIndex,i)); */
+			/* printf ("count is %d Coord index is %d\n",i,$f(coordIndex,i));  */
 
 			if($f(coordIndex,i) == -1) {
 				initind=-1; lastind=-1;
@@ -803,13 +825,6 @@ IndexedFaceSet => '
 						c1 = &(points[initind]);
 						c2 = &(points[lastind]); 
 						c3 = &(points[$f(coordIndex,i)]);
-						/*
-						printf ("using points : \n\t%f %f %f, \n\t%f %f %f, \n\t%f %f %f\n",
-						c1->c[0], c1->c[1], c1->c[2],
-						c2->c[0], c2->c[1], c2->c[2], 
-						c3->c[0], c3->c[1], c3->c[2]); 
-						*/
-
 						a[0] = c2->c[0] - c1->c[0];
 						a[1] = c2->c[1] - c1->c[1];
 						a[2] = c2->c[2] - c1->c[2];
@@ -1692,11 +1707,13 @@ void render_polyrep(void *node,
 	int pt;
 	int pti;
 	int hasc;
+
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
 
-	/*	
+
+	/*
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 			p->_change, r->_change, r->ntri);
 	printf ("\tnpoints %d ncolors %d nnormals %d\n",
@@ -1704,12 +1721,41 @@ void render_polyrep(void *node,
 	printf("\tntexcoords = %d    texcoords = 0x%lx\n",
 			ntexcoords, texcoords);
 	*/
+
 	
 	/* Do we have any colours?	*/
 	hasc = (ncolors || r->color);
 	if(hasc) {
 		glEnable(GL_COLOR_MATERIAL);
 	}
+
+        for(i=0; i<r->ntri*3; i+=3) {
+                int ind = r->cindex[i];
+                GLfloat a1,b1,c1 = 0.0;
+                GLfloat a2,b2,c2 = 0.0;
+                GLfloat a3,b3,c3 = 0.0;
+		GLfloat x1,x2,x3 = 0.0;
+
+                if(points) {
+                        a1=points[ind].c[0];b1=points[ind].c[1];c1=points[ind].c[2];
+			ind = r->cindex[i+1];
+                        a2=points[ind].c[0];b2=points[ind].c[1];c2=points[ind].c[2];
+			ind = r->cindex[i+2];
+                        a3=points[ind].c[0];b3=points[ind].c[1];c3=points[ind].c[2];
+
+                } else if(r->coord) {
+                        a1=r->coord[3*ind+0]; b1=r->coord[3*ind+1]; c1= r->coord[3*ind+2];
+			ind = r->cindex[i+1];
+                        a2=r->coord[3*ind+0]; b2=r->coord[3*ind+1]; c2= r->coord[3*ind+2];
+			ind = r->cindex[i+2];
+                        a3=r->coord[3*ind+0]; b3=r->coord[3*ind+1]; c3= r->coord[3*ind+2];
+                }
+	}
+
+
+
+
+
 
 	glBegin(GL_TRIANGLES);
 	for(i=0; i<r->ntri*3; i++) {
@@ -1718,13 +1764,11 @@ void render_polyrep(void *node,
 		int tci = i;
 		int ind = r->cindex[i];
 		GLfloat color[4];
+		GLfloat a,b,c = 0.0;
 
-		
-		/*
-		printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
-		printf ("rp, r->norindex %d  r->colindex %d, r->tcindex %d\n",r->norindex,  r->colindex, r->tcindex);
-		*/
-	
+		/* printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
+		printf ("rp, r->norindex %d  r->colindex %d, r->tcindex %d\n",
+			r->norindex,  r->colindex, r->tcindex); */
 
 		/* get normals and colors, if any	*/
 		if(r->norindex) {nori = r->norindex[i];}
@@ -1744,10 +1788,6 @@ void render_polyrep(void *node,
 				warn("Too large normal index -- help??");
 			}
 			glNormal3fv(normals[nori].c);
-/*
-printf ("Normal  #%d = [%.5f, %.5f, %.5f]\n",nori,normals[nori].c[0],
-				normals[nori].c[1], normals[nori].c[2]);
-*/
 		} else if(r->normal) {
 			glNormal3fv(r->normal+3*nori);
 		}
@@ -1793,10 +1833,12 @@ printf ("Normal  #%d = [%.5f, %.5f, %.5f]\n",nori,normals[nori].c[0],
 
 		/* Coordinate points	*/
 		if(points) {
-		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] );  */
+		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",
+			  ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] ); */
 			glVertex3fv(points[ind].c);
 		} else if(r->coord) {	
-		  	/* printf("Render (r->coord) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]);  */
+		  	/* printf("Render (r->coord) vertex #%d = [%.5f, %.5f, %.5f]\n",
+			  ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]); */
 			glVertex3fv(r->coord+3*ind);
 		}
 	}
@@ -1838,9 +1880,11 @@ void render_ray_polyrep(void *node,
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
-/*	printf("Render polyrepray %d '%s' (%d %d): %d\n",node,v->name, 
+	/*
+	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 		p->_change, r->_change, r->ntri);
- */
+	*/
+	
 	for(i=0; i<r->ntri; i++) {
 		float len;
 		for(pt = 0; pt<3; pt++) {
@@ -1864,53 +1908,64 @@ void render_ray_polyrep(void *node,
 		v1len = sqrt(VECSQ(v1)); VECSCALE(v1, 1/v1len);
 		v2len = sqrt(VECSQ(v2)); VECSCALE(v2, 1/v2len);
 		v12pt = VECPT(v1,v2);
-		/* v3 is our normal to the surface */
-		VECCP(v1,v2,v3);
-		v3len = sqrt(VECSQ(v3)); VECSCALE(v3, 1/v3len);
-		pt1 = VECPT(t_r1,v3);
-		pt2 = VECPT(t_r2,v3);
-		pt3 = v3.x * point[0][0] + v3.y * point[0][1] + 
-			v3.z * point[0][2]; 
-		/* Now we have (1-r)pt1 + r pt2 - pt3 = 0
-		 * r * (pt1 - pt2) = pt1 - pt3
-		 */
-		 tmp1 = pt1-pt2;
-		 if(!APPROX(tmp1,0)) {
-		 	float ra, rb;
-			float k,l;
-			struct pt p0h;
-		 	tmp2 = (pt1-pt3) / (pt1-pt2);
-			hitpoint.x = MRATX(tmp2);
-			hitpoint.y = MRATY(tmp2);
-			hitpoint.z = MRATZ(tmp2);
-			/* Now we want to see if we are in the triangle */
-			/* Projections to the two triangle sides */
-			p0h.x = hitpoint.x - point[0][0];
-			p0h.y = hitpoint.y - point[0][1];
-			p0h.z = hitpoint.z - point[0][2];
-			ra = VECPT(v1, p0h);
-			if(ra < 0) {continue;}
-			rb = VECPT(v2, p0h);
-			if(rb < 0) {continue;}
-			/* Now, the condition for the point to
-			 * be inside 
-			 * (ka + lb = p)
-			 * (k + l b.a = p.a)
-			 * (k b.a + l = p.b)
-			 * (k - (b.a)**2 k = p.a - (b.a)*p.b)
-			 * k = (p.a - (b.a)*(p.b)) / (1-(b.a)**2)
+
+		/* if we have a degenerate triangle, we can't compute a normal, so skip */
+		if ((fabs(v1len) > 0.00001) && (fabs(v2len) > 0.00001)) {
+
+			/* v3 is our normal to the surface */
+			VECCP(v1,v2,v3);
+			v3len = sqrt(VECSQ(v3)); VECSCALE(v3, 1/v3len);
+	
+			pt1 = VECPT(t_r1,v3);
+			pt2 = VECPT(t_r2,v3);
+			pt3 = v3.x * point[0][0] + v3.y * point[0][1] + 
+				v3.z * point[0][2]; 
+			/* Now we have (1-r)pt1 + r pt2 - pt3 = 0
+			 * r * (pt1 - pt2) = pt1 - pt3
 			 */
-			 k = (ra - v12pt * rb) / (1-v12pt*v12pt);
-			 l = (rb - v12pt * ra) / (1-v12pt*v12pt);
-			 k /= v1len; l /= v2len;
-			 if(k+l > 1 || k < 0 || l < 0) {
-			 	continue;
+			 tmp1 = pt1-pt2;
+			 if(!APPROX(tmp1,0)) {
+			 	float ra, rb;
+				float k,l;
+				struct pt p0h;
+			 	tmp2 = (pt1-pt3) / (pt1-pt2);
+				hitpoint.x = MRATX(tmp2);
+				hitpoint.y = MRATY(tmp2);
+				hitpoint.z = MRATZ(tmp2);
+				/* Now we want to see if we are in the triangle */
+				/* Projections to the two triangle sides */
+				p0h.x = hitpoint.x - point[0][0];
+				p0h.y = hitpoint.y - point[0][1];
+				p0h.z = hitpoint.z - point[0][2];
+				ra = VECPT(v1, p0h);
+				if(ra < 0) {continue;}
+				rb = VECPT(v2, p0h);
+				if(rb < 0) {continue;}
+				/* Now, the condition for the point to
+				 * be inside 
+				 * (ka + lb = p)
+				 * (k + l b.a = p.a)
+				 * (k b.a + l = p.b)
+				 * (k - (b.a)**2 k = p.a - (b.a)*p.b)
+				 * k = (p.a - (b.a)*(p.b)) / (1-(b.a)**2)
+				 */
+				 k = (ra - v12pt * rb) / (1-v12pt*v12pt);
+				 l = (rb - v12pt * ra) / (1-v12pt*v12pt);
+				 k /= v1len; l /= v2len;
+				 if(k+l > 1 || k < 0 || l < 0) {
+				 	continue;
+				 }
+				 HIT(tmp2, hitpoint.x,hitpoint.y,hitpoint.z,
+				 	v3.x,v3.y,v3.z, -1,-1, "polyrep");
 			 }
-			 HIT(tmp2, hitpoint.x,hitpoint.y,hitpoint.z,
-			 	v3.x,v3.y,v3.z, -1,-1, "polyrep");
-		 }
+		/*
+		} else {
+			printf ("render_ray_polyrep, skipping degenerate triangle\n");
+		*/
+		}
 
 #ifdef FOOEIFJOESFIJESF
+		printf ("in FOOEIFJOESFIJESF\n");
 		/* But maybe easier: calc. (ray1->p1) x ray,
 		 * (ray1->p2) x ray and (ray1->p3) x ray 
 		 * and dot products of these. if sum > -180, ok.
@@ -1951,7 +2006,16 @@ void regen_polyrep(void *node)
 	p = node;
 	/* printf("Regen polyrep %d '%s'\n",node,v->name); */
 	if(!p->_intern) {
+
+		if (!(p->_intern)) free (p->_intern);
+
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
+
+		/* in C always check if you got the mem you wanted...  >;->		*/
+		if (!(p->_intern)) {
+			die("Not enough memory to regen_polyrep... ;(");
+		} 
+ 
 		r = p->_intern;
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
@@ -1967,9 +2031,7 @@ void regen_polyrep(void *node)
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->normal);
-	/* printf ("calling mkpolyrep\n"); */
 	v->mkpolyrep(node);
-	/* printf ("done regen_polyrep\n"); */
 }
 
 /* Assuming that norindexes set and that cindex is set */
