@@ -15,7 +15,7 @@ public float[]       getValue() {
     StringTokenizer tokens;
 
     if (command != null) {
-      rep = Browser.SendEventOut (outNode, command);
+      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
 
       tokens = new StringTokenizer (rep);
     } else {

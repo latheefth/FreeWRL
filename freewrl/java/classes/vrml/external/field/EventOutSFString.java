@@ -11,7 +11,7 @@ public class EventOutSFString extends EventOut {
 
     if (command != null) {
       String rep;
-      rep = Browser.SendEventOut (outNode, command);
+      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
       if (rep.length() > 2) {
         // remove quotes at the beginning and end
         rep = rep.substring (1,rep.length()-1);

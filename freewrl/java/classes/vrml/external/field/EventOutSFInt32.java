@@ -9,8 +9,7 @@ public class EventOutSFInt32 extends EventOut {
 
   public int           getValue() {
      String rep;
-
-     rep = Browser.SendEventOut (outNode, command);
+      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
      return Integer.valueOf(rep).intValue();
   }
 }
