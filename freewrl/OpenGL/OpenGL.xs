@@ -1,8 +1,8 @@
 /* OpenGL.xs - perl calling OpenGL C functions. Trying to reduce this to zero, JAS */
 
-#include <EXTERN.h>
-#include <perl.h>
-#include <XSUB.h>
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
 
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -59,7 +59,7 @@ int	now_mapped = 1;		/* are we on screen, or minimized? */
 #include "OpenGL.m"
 
 static OpenGLVTab vtab;
-extern OpenGLVTab *OpenGLVPtr;
+OpenGLVTab *OpenGLVPtr;
 
 
 
@@ -111,11 +111,6 @@ int  default_attributes3[] =
    GLX_RGBA,               GL_TRUE,
    0
    };
-
-
-
-
-
 
 
 
@@ -293,6 +288,10 @@ BackEndHeadlightOn()
             glLightfv(GL_LIGHT0,GL_SPECULAR, s);
 	}
 
+
+
+
+	
 #define NUM_ARG 9
 
 void
@@ -312,146 +311,174 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 		XColor  black; 
 		Cursor  cursor;
 		Pixmap  cursor_pixmap; 
-	    XEvent event;
-	    Window pwin=(Window)pw;
-	    int *attributes = default_attributes3;
-	    int number;
+	    	XEvent event;
+	    	Window pwin=(Window)pw;
+	    	int *attributes = default_attributes3;
+	    	int number;
 		int len=0;
 		XTextProperty windowName;
-
+		int NotRunningAsPlugin = 0;
+		int tomozilla;
 	   
-	    if(items>NUM_ARG+1){
-	       len=(items-NUM_ARG+1)* sizeof(int);
-	       attributes = (int *)malloc(len*sizeof(int));
-	       for(i=0;i<(items-NUM_ARG+1);i++) {
-	          attributes[i]=SvIV(ST(i+NUM_ARG+1));
-	       }
-	    }
+	if(items>NUM_ARG+1){
+		len=(items-NUM_ARG+1)* sizeof(int);
+		attributes = (int *)malloc(len*sizeof(int));
+		for(i=0;i<(items-NUM_ARG+1);i++) {
+			attributes[i]=SvIV(ST(i+NUM_ARG+1));
+		}
+	}
 	    
 
-	    /* get a connection */
-	    dpy = XOpenDisplay(0);
-	    if (!dpy) { fprintf(stderr, "No display!\n");exit(-1);}
+	NotRunningAsPlugin = strncmp ("pipe:",wintitle,5);
 
-	    screen = DefaultScreen(dpy);
+	//JAS if (NotRunningAsPlugin) {
+	//JAS 	printf ("NOT Running as plugin %d\n",NotRunningAsPlugin);
+	//JAS } else {
+	//JAS 	printf ("Running as plugin %d\n",NotRunningAsPlugin);
+	//JAS }
 
-	    if (ihaveXF86V4) {
-	      XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
 
-	      bestMode = 0;
+	/* get a connection */
+	dpy = XOpenDisplay(0);
+	if (!dpy) { fprintf(stderr, "No display!\n");exit(-1);}
+
+	screen = DefaultScreen(dpy);
+
+	if (ihaveXF86V4) {
+		XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
+
+		bestMode = 0;
 	
-	      for (i=0; i < modeNum; i++) {
-		if ((modes[i]->hdisplay == w) && (modes[i]->vdisplay==h)) {
-			bestMode = i;
+		for (i=0; i < modeNum; i++) {
+			if ((modes[i]->hdisplay == w) && (modes[i]->vdisplay==h)) {
+				bestMode = i;
+			}
 		}
-	      }
-	      original_display = *modes[0];
-	    }
+		original_display = *modes[0];
+	}
 
-	    vi = find_best_visual(shutter,attributes,len);
-	    if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
+	vi = find_best_visual(shutter,attributes,len);
+	if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
 
-	    if ((shutter) && (quadbuff_stereo_mode==0)) { 
-	       fprintf(stderr, "Warning: No quadbuffer stereo visual found !");
-	       fprintf(stderr, "On SGI IRIX systems read 'man setmon' or 'man xsetmon'\n");
-	    }
+	if ((shutter) && (quadbuff_stereo_mode==0)) { 
+		fprintf(stderr, "Warning: No quadbuffer stereo visual found !");
+		fprintf(stderr, "On SGI IRIX systems read 'man setmon' or 'man xsetmon'\n");
+	}
 
-	    /* create a GLX context */
-	    cx = glXCreateContext(dpy, vi, 0, GL_TRUE);
-	    if(!cx){fprintf(stderr, "No context!\n");exit(-1);}
+	/* create a GLX context */
+	cx = glXCreateContext(dpy, vi, 0, GL_TRUE);
+	if(!cx){fprintf(stderr, "No context!\n");exit(-1);}
 
-	    /* create a color map */
-	    cmap = XCreateColormap(dpy, RootWindow(dpy, vi->screen),
+	/* create a color map */
+	cmap = XCreateColormap(dpy, RootWindow(dpy, vi->screen),
 				   vi->visual, AllocNone);
 
-	    /* create a window */
-	    swa.colormap = cmap;
-	    swa.border_pixel = 0;
-	    swa.event_mask = event_mask;
+	/* create a window */
+	swa.colormap = cmap;
+	swa.border_pixel = 0;
+	swa.event_mask = event_mask;
 
-	    if ((fullscreen == 1) && (ihaveXF86V4))
-	    {
-	    	XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
-	    	XF86VidModeSetViewPort(dpy, screen, 0, 0);
-	    	dpyWidth = modes[bestMode]->hdisplay;
-	    	dpyHeight = modes[bestMode]->vdisplay;
-	    	swa.override_redirect = True;
-	    }
-
-	    XFree(modes);
-
-	    if(!pwin){pwin=RootWindow(dpy, vi->screen);}
-		
-	    if (x>=0) {
-			XTextProperty textpro;
-		    if (fullscreen == 1) {
-		    	win = XCreateWindow(dpy, pwin, 
-									0, 0, dpyWidth, dpyHeight,
-									0, vi->depth, InputOutput, vi->visual,
-									CWBorderPixel| CWOverrideRedirect |
-									CWColormap | CWEventMask, &swa);
-				cursor_pixmap = XCreatePixmap(dpy, win ,1, 1, 1);
-				black.pixel = WhitePixel(dpy, DefaultScreen(dpy));
-				XQueryColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), &black);
-				cursor = XCreatePixmapCursor(dpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
-				XDefineCursor(dpy, win, cursor);
-			
-		    } else {
-				win = XCreateWindow(dpy, pwin, x, y, w, h, 0, vi->depth, InputOutput, vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
-
-				/* create window and icon name */
-				if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
-					fprintf(stderr,
-							"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
-							wintitle);
-				} 
-				if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
-					fprintf(stderr,
-							"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
-							wintitle);
-				}
-				XSetWMName(dpy, win, &windowName);
-				XSetWMIconName(dpy, win, &windowName);
-			}
-			glXMakeCurrent(dpy, win, cx);
-			glFlush();
-		    XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
-		    if(!win) {
-				fprintf(stderr, "No Window\n");
-				exit(-1);
-		    }
-		    XMapWindow(dpy, win);
-		    if (event_mask & StructureNotifyMask) {
-				XIfEvent(dpy, &event, WaitForNotify, (char*)win);
-		    }
-	    } else { 
-		    die("NO PBUFFER EXTENSION\n");
-	    }
-	    /* clear the buffer */
-	    glClearColor(0,0,0,1);
-
-	    /* Create Cursors */
-	    if (fullscreen == 1) {
-			arrowc = cursor;
-			sensorc = cursor;
-	    } else {
-	    	arrowc = XCreateFontCursor (dpy, XC_left_ptr);
-	    	sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
-	    }
-
-	    /* connect the context to the window */
-	    if(!glXMakeCurrent(dpy, win, cx)) {
-	        fprintf(stderr, "Non current\n");
-	        exit(-1);
-	    }
-	
-	    /* what is the hardware 3d accel? */
-	    strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
-	    /* printf ("%s\n",renderer); */
-
-	    /* and make it so that we render 1 frame, at least */
-	    render_frame = 5;
+	if ((fullscreen == 1) && (ihaveXF86V4)) {
+		XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
+		XF86VidModeSetViewPort(dpy, screen, 0, 0);
+		dpyWidth = modes[bestMode]->hdisplay;
+		dpyHeight = modes[bestMode]->vdisplay;
+		swa.override_redirect = True;
 	}
+
+	XFree(modes);
+
+	if(!pwin){pwin=RootWindow(dpy, vi->screen);}
+		
+
+	if (x>=0) {
+		XTextProperty textpro;
+		if (fullscreen == 1) {
+			win = XCreateWindow(dpy, pwin, 
+				0, 0, dpyWidth, dpyHeight,
+				0, vi->depth, InputOutput, vi->visual,
+				CWBorderPixel| CWOverrideRedirect |
+				CWColormap | CWEventMask, &swa);
+
+			cursor_pixmap = XCreatePixmap(dpy, win ,1, 1, 1);
+			black.pixel = WhitePixel(dpy, DefaultScreen(dpy));
+			XQueryColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), &black);
+			cursor = XCreatePixmapCursor(dpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
+			XDefineCursor(dpy, win, cursor);
+			
+		} else {
+			win = XCreateWindow(dpy, pwin, 
+				x, y, w, h, 0, vi->depth, InputOutput, 
+				vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
+
+			/* create window and icon name */
+			if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
+				fprintf(stderr,
+					"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
+					wintitle);
+			} 
+			if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
+				fprintf(stderr,
+					"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
+					wintitle);
+			}
+			XSetWMName(dpy, win, &windowName);
+			XSetWMIconName(dpy, win, &windowName);
+		}
+
+		glXMakeCurrent(dpy, win, cx);
+		glFlush();
+		if(!win) {
+			fprintf(stderr, "No Window\n");
+			exit(-1);
+		}
+
+
+		XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
+		if (NotRunningAsPlugin) {
+			// just map us to the display
+			XMapWindow(dpy, win);
+		} else {
+			// send the window id back to the plugin parent
+			sscanf (wintitle,"pipe:%d",&tomozilla);
+			//JAS printf ("mozilla pipe is %d\n",tomozilla);
+			write (tomozilla,&win,4);
+			close (tomozilla);
+		}
+
+
+		if (event_mask & StructureNotifyMask) {
+			XIfEvent(dpy, &event, WaitForNotify, (char*)win);
+		}
+	} else { 
+		die("NO PBUFFER EXTENSION\n");
+	}
+
+	/* clear the buffer */
+	glClearColor(0,0,0,1);
+
+	/* Create Cursors */
+	if (fullscreen == 1) {
+		arrowc = cursor;
+		sensorc = cursor;
+	} else {
+		arrowc = XCreateFontCursor (dpy, XC_left_ptr);
+		sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
+	}
+
+	/* connect the context to the window */
+	if(!glXMakeCurrent(dpy, win, cx)) {
+		fprintf(stderr, "Non current\n");
+		exit(-1);
+	}
+
+	/* what is the hardware 3d accel? */
+	strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
+	/* printf ("%s\n",renderer); */
+
+	/* and make it so that we render 1 frame, at least */
+	render_frame = 5;
+}
 
 
 void
