@@ -18,9 +18,6 @@
 
 #include <X11/keysym.h>
 
-
-#define NUM_ARG 8
-
 Display *dpy;
 XVisualInfo *vi;
 Colormap cmap;
@@ -33,6 +30,7 @@ char renderer[256];	/* what device are we using? */
 int screen;
 int modeNum;
 int bestMode;
+int quadbuff_stereo_mode;
 Window winDummy;
 unsigned int borderDummy;
 int glwinx, glwiny;
@@ -63,14 +61,118 @@ int	now_mapped = 1;		/* are we on screen, or minimized? */
 static OpenGLVTab vtab;
 OpenGLVTab *OpenGLVPtr;
 
-static int default_attributes[] = { GLX_RGBA, /*GLX_DOUBLEBUFFER,*/  None };
+/*
+static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRUE, None };
+*/
+
+/* 
+   from similar code in white_dune 8-)
+   test for best visual you can get 
+   with best attribut list
+   with maximal possible colorsize
+   with maximal possible depth
+ */
+
+int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
+
+int  default_attributes0[] = 
+   {
+   GLX_DEPTH_SIZE,         16,
+   GLX_RED_SIZE,           8,
+   GLX_DOUBLEBUFFER,       GL_TRUE,
+#ifdef GLX_STEREO
+   GLX_STEREO,             GL_TRUE,
+#endif
+   GLX_RGBA,               GL_TRUE,
+   0
+   };
+
+int  default_attributes1[] = 
+   {
+   GLX_DEPTH_SIZE,         16,
+   GLX_RED_SIZE,           8,
+   GLX_DOUBLEBUFFER,       GL_TRUE,
+   GLX_RGBA,               GL_TRUE,
+   0
+   };
+
+int  default_attributes2[] = 
+   {
+   GLX_DEPTH_SIZE,         16,
+   GLX_RED_SIZE,           8,
+   GLX_RGBA,               GL_TRUE,
+   0
+   };
+
+int  default_attributes3[] = 
+   {
+   GLX_RGBA,               GL_TRUE,
+   0
+   };
+
+XVisualInfo *find_best_visual(int shutter,int *attributes,int len) {
+   XVisualInfo *vi=NULL;
+   int attrib;
+   int startattrib=0;
+   int *attrib_mem=malloc(len*sizeof(int)+sizeof(default_attributes0));
+
+   quadbuff_stereo_mode=0;
+   if (!shutter)
+      startattrib=1;
+   else
+      {
+#     ifdef STEREOCOMMAND
+      system(STEREOCOMMAND);             
+#     endif
+      }
+   for (attrib=startattrib;attrib<2;attrib++) {
+      int idepth;
+      for (idepth=0;idepth<sizeof(legal_depth_list)/sizeof(int);idepth++) {
+         int redsize;
+         for (redsize=8;redsize>=4;redsize--) {
+            int i;
+            int* attribs_pointer=default_attributes0;
+            int  attribs_size=sizeof(default_attributes0)/sizeof(int);
+            if (attrib==1) {
+               attribs_pointer=default_attributes1;
+               attribs_size=sizeof(default_attributes1)/sizeof(int);
+            }
+            if (attrib==2) {
+               attribs_pointer=default_attributes2;
+               attribs_size=sizeof(default_attributes2)/sizeof(int);
+            }
+            if (attrib==3) {
+               attribs_pointer=default_attributes3;
+               attribs_size=sizeof(default_attributes3)/sizeof(int);
+            }
+            attribs_pointer[1]=legal_depth_list[idepth];
+            if ((attrib==0) || (attrib==1))
+               attribs_pointer[3]=redsize;
+    	    
+            for (i=0;i<len;i++)
+               attrib_mem[i]=attributes[i];
+            for (i=0;i<attribs_size;i++)
+               attrib_mem[i+len]=attribs_pointer[i];
+            
+      	    /* get an appropriate visual */
+            vi = glXChooseVisual(dpy, screen, attrib_mem);
+            if (vi) {
+               if (attrib==0) {
+                  quadbuff_stereo_mode=1;
+               }
+            free(attrib_mem);
+            return vi;
+            }
+         }
+      }
+   }
+   free(attrib_mem);
+   return(NULL);
+}
+
 static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
     return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
 }
-/* Mesa hack */
-#undef CALLBACK
-#define CALLBACK GLvoid
-
 
 MODULE = VRML::OpenGL		PACKAGE = VRML::OpenGL
 PROTOTYPES: DISABLE
@@ -161,14 +263,17 @@ BackEndHeadlightOn()
             glLightfv(GL_LIGHT0,GL_SPECULAR, s);
 	}
 
+#define NUM_ARG 9
+
 void
-glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
+glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	int	x
 	int	y
 	int	w
 	int	h
 	int	pw
 	int	fullscreen
+	int	shutter
 	long	event_mask
 	char	*wintitle
 
@@ -179,18 +284,19 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 		Pixmap  cursor_pixmap; 
 	    XEvent event;
 	    Window pwin=(Window)pw;
-	    int *attributes = default_attributes;
-
+	    int *attributes = default_attributes3;
 	    int number;
+            int len=0;
 
-	    if(items>NUM_ARG){
-	        int i;
-	        attributes = (int *)malloc((items-NUM_ARG+1)* sizeof(int));
-	        for(i=NUM_ARG;i<items;i++) {
-	            attributes[i-NUM_ARG]=SvIV(ST(i));
-	        }
-	        attributes[items-NUM_ARG]=None;
+	   
+	    if(items>NUM_ARG+1){
+	       len=(items-NUM_ARG+1)* sizeof(int);
+	       attributes = (int *)malloc(len*sizeof(int));
+	       for(i=0;i<(items-NUM_ARG+1);i++) {
+	          attributes[i]=SvIV(ST(i+NUM_ARG+1));
+	       }
 	    }
+	    
 
 	    /* get a connection */
 	    dpy = XOpenDisplay(0);
@@ -211,9 +317,13 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	      original_display = *modes[0];
 	    }
 
-	    /* get an appropriate visual */
-	    vi = glXChooseVisual(dpy, screen, attributes);
+	    vi = find_best_visual(shutter,attributes,len);
 	    if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
+
+	    if ((shutter) && (quadbuff_stereo_mode==0)) { 
+	       fprintf(stderr, "Warning: No quadbuffer stereo visual found !");
+	       fprintf(stderr, "On SGI IRIX systems read 'man setmon' or 'man xsetmon'\n");
+	    }
 
 	    /* create a GLX context */
 	    cx = glXCreateContext(dpy, vi, 0, GL_TRUE);
@@ -301,7 +411,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	    }
 	
 	    /* what is the hardware 3d accel? */
-	    strncpy (renderer, (char *) glGetString(GL_RENDERER), 250);
+	    strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
 	    /* printf ("%s\n",renderer); */
 
 
@@ -472,6 +582,7 @@ glupPickMatrix(x,y,width,height,vp1,vp2,vp3,vp4)
 		gluPickMatrix(x,y,width,height,vp);
 	}
 
+
 void
 glPolygonOffsetEXT(factor,bias)
 	GLfloat factor
@@ -486,6 +597,8 @@ glPolygonOffsetEXT(factor,bias)
 		#endif
 */
 	}
+
+
 
 void
 glPolygonMode(face,mode)
@@ -562,6 +675,9 @@ void
 glDepthFunc(func)
 	GLenum	func
 
+void
+glDrawBuffer(mode)
+	GLenum	mode 
 
 void
 glMatrixMode(mode)
@@ -666,15 +782,12 @@ glSelectBuffer(size,buffer)
 	   glSelectBuffer(size,(GLuint *)buffer);
 	}
 
-
 void
 gluPerspective(fovy,aspect,zNear,zFar)
 	GLdouble	fovy
 	GLdouble	aspect
 	GLdouble	zNear
 	GLdouble	zFar
-
-# We have scanned up to here for unused functions. JAS.
 
 #GLint
 #gluProject(objx,objy,objz,modelMatrix,projMatrix,viewport,winx,winy,winz)
@@ -727,7 +840,7 @@ gluPerspective(fovy,aspect,zNear,zFar)
 #	{
 #	   gluScaleImage(format,widthin,heightin,typein,(void *)datain,widthout,heightout,typeout,(void *)dataout);
 #	}
-
+#
 #GLint
 #gluBuild1DMipmaps(target,components,width,format,type,data)
 #	GLenum	target
@@ -753,6 +866,43 @@ gluPerspective(fovy,aspect,zNear,zFar)
 #	CODE:
 #	{
 #	   gluBuild2DMipmaps(target,components,width,height,format,type,(void *)data);
+#	}
+#
+#GLUquadricObj*
+#gluNewQuadric()
+#
+#void
+#gluQuadricCallback(qobj,which,fn)
+#	char *	qobj
+#	GLenum	which
+#	char *	fn
+#	CODE:
+#	{
+#	   gluQuadricCallback((GLUquadricObj *)qobj,which,(CALLBACK *)fn);
+#	}
+#
+#GLUnurbsObj*
+#gluNewNurbsRenderer()
+#
+#GLUtriangulatorObj*
+#gluNewTess()
+#
+#void
+#gluTessCallback(tobj,which,fn)
+#	char *	tobj
+#	GLenum	which
+#	char *	fn
+#	CODE:
+#	{
+#	   gluTessCallback((GLUtriangulatorObj *)tobj,which,(CALLBACK *)fn);
+#	}
+#
+#void
+#gluDeleteTess(tobj)
+#	char *	tobj
+#	CODE:
+#	{
+#	   gluDeleteTess((GLUtriangulatorObj *)tobj);
 #	}
 #
 #void
@@ -794,6 +944,16 @@ gluPerspective(fovy,aspect,zNear,zFar)
 #gluGetString(name)
 #	GLenum	name
 #
+#XVisualInfo*
+#glXChooseVisual(dpy,screen,attribList)
+#	char *	dpy
+#	int	screen
+#	char *	attribList
+#	CODE:
+#	{
+#	   glXChooseVisual((Display *)dpy,screen,(int *)attribList);
+#	}
+
 void
 glXDestroyContext()
 	CODE:
@@ -810,6 +970,94 @@ glXDestroyContext()
 	     glXDestroyContext((Display *)dpy,cx);
 	  }
 	}
+
+#Bool
+#glXMakeCurrent(dpy,drawable,ctx)
+#	char *	dpy
+#	GLXDrawable	drawable
+#	GLXContext	ctx
+#	CODE:
+#	{
+#	   glXMakeCurrent((Display *)dpy,drawable,ctx);
+#	}
+#
+#GLXPixmap
+#glXCreateGLXPixmap(dpy,visual,pixmap)
+#	char *	dpy
+#	char *	visual
+#	Pixmap	pixmap
+#	CODE:
+#	{
+#	   glXCreateGLXPixmap((Display *)dpy,(XVisualInfo *)visual,pixmap);
+#	}
+#
+#void
+#glXDestroyGLXPixmap(dpy,pixmap)
+#	char *	dpy
+#	GLXPixmap	pixmap
+#	CODE:
+#	{
+#	   glXDestroyGLXPixmap((Display *)dpy,pixmap);
+#	}
+#
+#Bool
+#glXQueryExtension(dpy,errorb,event)
+#	char *	dpy
+#	char *	errorb
+#	char *	event
+#	CODE:
+#	{
+#	   glXQueryExtension((Display *)dpy,(int *)errorb,(int *)event);
+#	}
+#
+#Bool
+#glXQueryVersion(dpy,maj,min)
+#	char *	dpy
+#	char *	maj
+#	char *	min
+#	CODE:
+#	{
+#	   glXQueryVersion((Display *)dpy,(int *)maj,(int *)min);
+#	}
+#
+#Bool
+#glXIsDirect(dpy,ctx)
+#	char *	dpy
+#	GLXContext	ctx
+#	CODE:
+#	{
+#	   glXIsDirect((Display *)dpy,ctx);
+#	}
+#
+#int
+#glXGetConfig(dpy,visual,attrib,value)
+#	char *	dpy
+#	char *	visual
+#	int	attrib
+#	char *	value
+#	CODE:
+#	{
+#	   glXGetConfig((Display *)dpy,(XVisualInfo *)visual,attrib,(int *)value);
+#	}
+#
+#GLXContext
+#glXGetCurrentContext()
+#
+#GLXDrawable
+#glXGetCurrentDrawable()
+#
+#void
+#glXWaitGL()
+#
+#void
+#glXWaitX()
+#
+#void
+#glXUseXFont(font,first,count,list)
+#	Font	font
+#	int	first
+#	int	count
+#	int	list
 
 BOOT:
  {
