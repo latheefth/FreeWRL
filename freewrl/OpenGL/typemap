@@ -33,5 +33,6 @@ GLXContext	T_PTR
 Bool	T_INT
 GLUtriangulatorObj *	T_PTR
 GLUnurbsObj *	T_PTR
+GLuint *	T_PTR
 GLUquadricObj *	T_PTR
 const GLubyte *  T_PTR
