@@ -91,7 +91,7 @@ void IFS_face_normals (
 	struct SFColor *points,
 	struct VRML_IndexedFaceSet *this_IFS) {
 
-	int tmp_a, tmp_b, tmp_c;
+	int tmp_a, tmp_c;
 	int i;
 	int facectr;
 	int pt_1, pt_2, pt_3;
@@ -219,8 +219,6 @@ void IFS_check_normal (
 	struct SFColor *points, int base,
 	struct VRML_IndexedFaceSet *this_IFS) {
 
-	int facectr;
-	float AC, BC;
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
 
@@ -264,6 +262,76 @@ void IFS_check_normal (
 	*/
 }
 
+/********************************************************************
+ *
+ * ElevationGrid Triangle
+ *
+ */
+void Elev_Tri (
+	int vertex_ind,
+	int this_face,
+	int A,
+	int D,
+	int E,
+	int NONORMALS,
+	struct VRML_PolyRep *this_Elev,
+	struct pt *facenormals,
+	int *pointfaces) {
+
+struct SFColor *c1,*c2,*c3;
+float a[3]; float b[3];
+int tmp;
+
+	this_Elev->cindex[vertex_ind] = A;
+	this_Elev->cindex[vertex_ind+1] = D;
+	this_Elev->cindex[vertex_ind+2] = E;
+
+	//printf ("Triangle %d %d %d\n",A,D,E);
+	if (NONORMALS) {
+		/* calculate normal for this triangle */
+                c1 = (struct SFColor *) &this_Elev->coord[3*A];
+                c2 = (struct SFColor *) &this_Elev->coord[3*D];
+                c3 = (struct SFColor *) &this_Elev->coord[3*E];
+
+		//printf ("calc norms for \n%f %f %f\n%f %f %f\n%f %f %f\n",
+		//c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
+		//c3->c[0],c3->c[1],c3->c[2]);
+
+		a[0] = c2->c[0] - c1->c[0];
+		a[1] = c2->c[1] - c1->c[1];
+		a[2] = c2->c[2] - c1->c[2];
+		b[0] = c3->c[0] - c1->c[0];
+		b[1] = c3->c[1] - c1->c[1];
+		b[2] = c3->c[2] - c1->c[2];
+
+		facenormals[this_face].x = a[1]*b[2] - b[1]*a[2];
+		facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
+		facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
+
+		//printf ("facenormal for %d is %f %f %f\n",this_face, facenormals[this_face].x,
+		//	facenormals[this_face].y, facenormals[this_face].z);
+
+		/* add this face to the faces for this point */
+		tmp = A * POINT_FACES;
+		if (pointfaces[tmp] < (POINT_FACES-1)) {
+			pointfaces[tmp]++;
+			pointfaces[tmp+ pointfaces[tmp]] = this_face;
+		}
+		tmp = D * POINT_FACES;
+		if (pointfaces[tmp] < (POINT_FACES-1)) {
+			pointfaces[tmp]++;
+			pointfaces[tmp+ pointfaces[tmp]] = this_face;
+		}
+		tmp = E * POINT_FACES;
+		if (pointfaces[tmp] < (POINT_FACES-1)) {
+			pointfaces[tmp]++;
+			pointfaces[tmp+ pointfaces[tmp]] = this_face;
+		}
+	}
+	
+}
+
+
 /*********************************************************************
  *
  * render_polyrep : render one of the internal polygonal representations
@@ -304,14 +372,14 @@ void render_polyrep(void *node,
 	r = p->_intern;
 
 	/*	
-	printf ("rp, p is %x r is %x r-norm is %x\n",p,r,r->normal);
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 			p->_change, r->_change, r->ntri);
 	printf ("\tnpoints %d ncolors %d nnormals %d\n",
 			npoints,ncolors,nnormals);
 	printf("\tntexcoords = %d    texcoords = 0x%lx\n",
 			ntexcoords, texcoords);
-	*/	
+	*/
+		
 
 	/* do we need to generate default texture mapping? */
 	if (glIsEnabled(GL_TEXTURE_2D) && (ntexcoords == 0) && (!r->tcoord)) {
@@ -384,10 +452,10 @@ void render_polyrep(void *node,
 		int tci = i;
 		int ind = r->cindex[i];
 
-		/* printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3);   */
+		//printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
 
 		/* get normals and colors, if any	*/
-		if(r->norindex) {nori = r->norindex[i];}
+		if(r->norindex) { nori = r->norindex[i];}
 		else nori = ind;
 
 		if(r->colindex) {
@@ -404,14 +472,17 @@ void render_polyrep(void *node,
 		if(nnormals) {
 			if(nori >= nnormals) {
 				/* this should be caught before here JAS */
-				warn("Too large normal index -- help??");
+				warn("Too large normal index %d nnormals %d-- help??",nori, nnormals);
 			}
+			//printf ("nnormals, nori %d ",nori);
+			//fwnorprint (normals[nori].c);
+
 			glNormal3fv(normals[nori].c);
 		} else if(r->normal) {
-			/*
-			printf ("r->normal nori %d ",nori);
-			fwnorprint(r->normal+3*nori);
-			*/
+			
+			//printf ("r->normal nori %d ",nori);
+			//fwnorprint(r->normal+3*nori);
+			
 			glNormal3fv(r->normal+3*nori);
 		}
 
@@ -431,24 +502,19 @@ void render_polyrep(void *node,
 		/* Coordinate points	*/
 		if(points) {
 			XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
-			/*
-			printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
-			*/
+			//printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
 		} else if(r->coord) {	
 			XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
-			/* 
-			printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
-			*/
-			 
+			//printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
 		}
 
 		/* Textures	*/
 		if (glIsEnabled(GL_TEXTURE_2D)) {
 		    if(texcoords && ntexcoords) {
-			// printf ("tc1 %f %f\n",texcoords[tci].c[0],texcoords[tci].c[1]); 
+			//printf ("tc1 %f %f\n",texcoords[tci].c[0],texcoords[tci].c[1]); 
 		  	glTexCoord2fv(texcoords[tci].c);
 		    } else if (r->tcoord) {
-			// printf ("tc2 %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
+			//printf ("tc2 %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 		  	glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 		    } else {
 			/* default textures */
