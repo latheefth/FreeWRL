@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.9  2000/09/02 23:54:39  rcoscali
+# Fixed the core dump for 27.wrl and 28.wrl
+#
 # Revision 1.8  2000/08/31 22:49:23  rcoscali
 # Add depth 2 support (2 channels/color components) which isMINANCE_ALPHAre (wi
 #
@@ -1733,10 +1736,10 @@ void render_polyrep(void *node,
 	p = node;
 	r = p->_intern;
 
-/*
+/* */
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, p->_change, r->_change, r->ntri);
 	printf("         ntexcoords = %d    texcoords = 0x%lx\n",ntexcoords, texcoords);
- */
+ /* */
 	hasc = (ncolors || r->color);
 	if(hasc) {
 		glEnable(GL_COLOR_MATERIAL);
@@ -1770,9 +1773,9 @@ void render_polyrep(void *node,
 			}
 		}
 		prevcolor = coli;
-		if(texcoords) {
-		  	/*printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] );*/
-			/*fflush(stdout);*/
+		if(texcoords && ntexcoords) {
+		  	printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] );
+			fflush(stdout);
 		  	glTexCoord2fv(texcoords[tci].c);
 		} /* TODO RCS: Complete use of texCoordIndex */
 		if(points) {
