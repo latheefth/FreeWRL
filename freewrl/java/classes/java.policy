@@ -2,5 +2,8 @@
 grant codeBase "file:${freewrl.lib.dir}/vrml.jar" {
 	permission java.security.AllPermission;
 };
+grant {
+	permission java.net.SocketPermission "127.0.0.1:", "connect,accept,resolve";
+};
 
 
