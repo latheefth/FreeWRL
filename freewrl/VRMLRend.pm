@@ -20,6 +20,12 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.51  2002/02/05 20:32:53  crc_canada
+# Aubery Jaffers lighting changes.
+#
+# Added support code for nodes not currently being supported; gets
+# around parsing problems.
+#
 # Revision 1.50  2002/01/23 21:07:56  crc_canada
 # textureTransform problems fixed (they were not being zeroed), but efficiency
 # may be better handled.
@@ -326,7 +332,6 @@ Cylinder => '
 		if($f(side)) {
 				/* if(!nomode) {
 				glPushAttrib(GL_LIGHTING);
-				# glShadeModel(GL_SMOOTH);
 				} */
 			glBegin(GL_QUADS);
 			START_TRIG1
@@ -502,10 +507,6 @@ Sphere => 'int vdiv = vert_div;
 		INIT_TRIG1(vdiv) 
 		INIT_TRIG2(hdiv)
 		glPushMatrix();
-        if (0) { /* Just tweaking around */
-		       /* glPushAttrib(GL_LIGHTING); This does what? */
-			   /* glShadeModel(GL_SMOOTH); This makes a smoother shading */
-		}
 		glScalef($f(radius), $f(radius), $f(radius));
 		glBegin(GL_QUAD_STRIP);
 		START_TRIG1
@@ -1020,7 +1021,25 @@ PixelTexture => ('
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_NEAREST);
 '),
+
+# Fog node ... Nothing here
+Fog => ' ',
      
+# MovieTexture ... Nothing here
+MovieTexture => ' ',
+
+# Sound ... Nothing here
+Sound => ' ',
+
+# AudioClip .... Nothing here
+AudioClip => ' ',
+
+# CylinderSensor .... Nothing here
+CylinderCensor => ' ',
+
+
+
+
 
 # GLBackend is using 200000 as distance - we use 100000 for background
 # XXX Should just make depth test always fail.
@@ -1538,9 +1557,12 @@ DirectionalLight => '
 			vec[3] = 1;
 			glLightfv(light, GL_DIFFUSE, vec);
 			glLightfv(light, GL_SPECULAR, vec);
-			vec[0] *= $f(ambientIntensity);
-			vec[1] *= $f(ambientIntensity);
-			vec[2] *= $f(ambientIntensity);
+
+			/* Aubrey Jaffer */
+			vec[0] = $f(color,0) * $f(ambientIntensity);
+			vec[1] = $f(color,1) * $f(ambientIntensity);
+			vec[2] = $f(color,2) * $f(ambientIntensity);
+
 			glLightfv(light, GL_AMBIENT, vec);
 		}
 	}
@@ -1993,9 +2015,12 @@ $ChildC{Collision} = $ChildC{Group};  ## JAS
 				vec[3] = 1;
 				glLightfv(light, GL_DIFFUSE, vec);
 				glLightfv(light, GL_SPECULAR, vec);
-				vec[0] *= $f(ambientIntensity);
-				vec[1] *= $f(ambientIntensity);
-				vec[2] *= $f(ambientIntensity);
+
+				/* Aubrey Jaffer */
+				vec[0] = $f(color,0) * $f(ambientIntensity);
+				vec[1] = $f(color,1) * $f(ambientIntensity);
+				vec[2] = $f(color,2) * $f(ambientIntensity);
+
 				glLightfv(light, GL_AMBIENT, vec);
 
 				/* XXX */
@@ -2034,9 +2059,12 @@ $ChildC{Collision} = $ChildC{Group};  ## JAS
 				vec[3] = 1;
 				glLightfv(light, GL_DIFFUSE, vec);
 				glLightfv(light, GL_SPECULAR, vec);
-				vec[0] *= $f(ambientIntensity);
-				vec[1] *= $f(ambientIntensity);
-				vec[2] *= $f(ambientIntensity);
+
+				/* Aubrey Jaffer */
+				vec[0] = $f(color,0) * $f(ambientIntensity);
+				vec[1] = $f(color,1) * $f(ambientIntensity);
+				vec[2] = $f(color,2) * $f(ambientIntensity);
+
 				glLightfv(light, GL_AMBIENT, vec);
 
 				/* XXX */
