@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.149  2004/08/06 15:46:23  crc_canada
+# if a fontStyle is a PROTO, expand the proto in NodeIntern.pm (used to
+# segfault!)
+#
 # Revision 1.148  2004/07/21 19:04:00  crc_canada
 # working on EXTERNPROTOS
 #
@@ -399,10 +403,8 @@ GeoElevationGrid => ( '
 '),
 
 ElevationGrid => ( '
-		printf ("ELEV VRMLC before render_ray_polyrep\n");
 		$mk_polyrep();
 		render_ray_polyrep(this_, 0, NULL);
-		printf ("ELEV VRMLC after render_ray_polyrep\n");
 '),
 
 Text => ( '

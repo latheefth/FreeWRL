@@ -361,6 +361,7 @@ void catch_SIGSEGV() {
 	fprintf (stderr,"FreeWRL got a SIGSEGV - can you please mail the file(s) to\n");
 	fprintf (stderr,"freewrl-04@rogers.com with a valid subject line. Thanks.\n");
     fflush(NULL);
+    exit(1);
 }
 
 void catch_SIGALRM(int sig)

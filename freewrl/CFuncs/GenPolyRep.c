@@ -62,15 +62,26 @@ void make_text (struct VRML_Text *this_) {
 			bit: 17-31	spare
 		*/
 
-		struct VRML_FontStyle *fsp = (this_->fontStyle);
+		struct VRML_FontStyle *fsp;
 		int xx;
-		unsigned char *lang = SvPV((fsp->language),xx);
-		unsigned char *style = SvPV((fsp->style),xx);
-		struct Multi_String family = fsp->family;	 
-		struct Multi_String justify = fsp->justify;
+		unsigned char *lang;
+		unsigned char *style;
+		struct Multi_String family;	 
+		struct Multi_String justify;
 		int tmp; int tx;
 		SV **svptr;
 		unsigned char *stmp;
+		
+		/* step 0 - is the FontStyle a proto? */ 
+		fsp = this_->fontStyle;
+		
+		/* step 0.5 - now that we know FontStyle points ok, go for
+		 * the other pointers */
+		lang = SvPV((fsp->language),xx);
+		style = SvPV((fsp->style),xx);
+
+		family = fsp->family;	 
+		justify = fsp->justify;
 
 
 		/* Step 1 - record the spacing and size, for direct use */
