@@ -539,7 +539,7 @@ sub tick {
 	$this->{BE}->render();
 
 	#handle EAI.
-	VRML::VRMLFunc::handle_EAI();
+	VRML::VRMLFunc::do_handle_EAI();
 }
 
 my $FPS = 0;
