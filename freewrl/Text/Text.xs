@@ -43,7 +43,7 @@ int	font_opened[num_fonts];		/* is this font opened   */
 #define 	MAX_GLYPHS	2048
 int		num_glyphs;
 FT_Glyph	glyphs[MAX_GLYPHS];
-int		cur_glyph = 0;
+int		cur_glyph;
 int		verbose = 0;
 
 
@@ -128,8 +128,6 @@ FW_make_fontname (int num, char *name) {
 			default: printf ("dont know how to handle font id %x\n",num);
 		}
 	}
-	
-	printf ("FW_make_fontname made %s\n",thisfontname);
 }
 
 
@@ -288,16 +286,15 @@ FW_draw_character (int myff, FT_Glyph glyph, float size) {
 
 	if (glyph->format == ft_glyph_format_outline) {
 		FW_draw_outline (myff, (FT_OutlineGlyph) glyph,size);
+
+		/* old type1 fonts, lets scale the pen movement appropriately */
+		if (font_face[myff]->units_per_EM == 1000) 
+			size = size * 1.7;
+		pen.x +=  size * (glyph->advance.x >> 10);
 	} else {
-		printf ("FW_draw_character; glyphformat  -- need outline\n"); 
+		printf ("FW_draw_character; glyphformat  -- need outline for %s %s\n",
+			font_face[myff]->family_name,font_face[myff]->style_name); 
 	}
-
-	/* old type1 fonts, lets scale the pen movement appropriately */
-	if (font_face[myff]->units_per_EM == 1000) 
-		/* size = size * 2.048; */
-		size = size * 1.7;
-
-	pen.x +=  size * (glyph->advance.x >> 10);
 }
 
 
@@ -344,8 +341,13 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 	*/
 
 	/* have we done any rendering yet */
+
+	if (verbose) printf ("entering FW_Render_text initialized %d\n",initialized);
+
+	pen.x = 0; pen.y = 0;
+	cur_glyph = 0;
+
 	if (!initialized) {
-		printf (" have to initialize\n");
 		if(err = FT_Init_FreeType(&library))
 		  die("FreeWRL FreeType Initialize error %d\n",err);
 		initialized = TRUE;
@@ -353,7 +355,6 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 
 	/* is this font opened */
 	myff = (fsparam >> 3) & 0x1F;
-	printf ("my ff is %x, from %x\n",myff,fsparam);
 	if (myff <4) {
 		/* we dont yet allow externally specified fonts, so one of
 		   the font style bits HAS to be set */	
@@ -365,7 +366,6 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 		FW_make_fontname(myff,thisfontname);
 		if (!FW_init_face(myff,thisfontname)) {
 			/* tell this to render as fw internal font */
-			printf ("going to render this as an internal font\n");
 			FW_make_fontname (0,thisfontname);
 			FW_init_face(myff,thisfontname);
 		}
@@ -422,7 +422,8 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 		}
 		counter += strlen(str);
 		pen.y -= 1.0;  /* row increment */
-   }
+   	}
+	if (verbose) printf ("exiting FW_Render_text\n");
 }
 
 
@@ -450,6 +451,7 @@ CODE:
 	{
 	int len;
 
+	if (verbose) printf ("open_font called\n");
 	/* copy over font paths */
 	if (strlen(sys_path) < fp_len) {
 		strcpy (sys_fp,sys_path);
@@ -478,7 +480,6 @@ CODE:
 		font_opened[len] = FALSE;
 	}
 
-	pen.x = 0; pen.y = 0;
 	}
 
 
