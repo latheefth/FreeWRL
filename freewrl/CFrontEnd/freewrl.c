@@ -295,11 +295,9 @@ int main (int argc, char **argv) {
 	}
 #endif
 
-printf ("freewrl.c - here1\n");
    /* create the display thread. */
         pthread_create (&thread1, NULL, (void *(*)(void *))&displayThread, (void *)threadmsg);
 
-printf ("freewrl.c - here2\n");
 #ifndef AQUA
         /* create the Perl parser thread */
         initializePerlThread(PERLPATH);
@@ -310,7 +308,6 @@ printf ("freewrl.c - here2\n");
         initializeTextureThread();
         while (!isTextureinitialized()) {usleep(50);}
 
-printf ("freewrl.c - here3\n");
         /* get the Netscape Browser name, if we are pluggind */
         NetscapeName[0] = (char)NULL;
         if (RUNNINGASPLUGIN) {

@@ -56,7 +56,7 @@ NETSCAPE_CLASS_DIR=$VRML::Config::vrml_config{NETSCAPE_CLASSES}
 					qq{\t\$(JAVAC) \$(JFLAGS) \$\<\n},
 					qq{vrml.jar: \$(CLASSES)\n},
 					qq{\t\$(JAR) cf \$\@ \`find vrml -name \*.class\`\n},
-                                        #JASqq{install ::},
+                                        qq{install ::},
                                         #JASqq{\tcd classes && \$(MAKE) install\n}
                                    );
         }

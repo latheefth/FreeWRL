@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.167  2005/04/05 19:41:39  crc_canada
+# some make problems fixed; this time back on Linux.
+#
 # Revision 1.166  2005/03/22 15:15:44  crc_canada
 # more compile bugs; binary files were dinked in last upload.
 #
@@ -1192,6 +1195,7 @@ void render_node(void *node) {
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
+verbose=1;
 
 	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
@@ -1361,6 +1365,7 @@ void render_node(void *node) {
 	    printf("==============\n");
 	  }
 	  #endif
+verbose=0;
 
 }
 
