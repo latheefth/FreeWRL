@@ -218,7 +218,21 @@ public class Browser implements BrowserInterface
     // Replace the current world with the passed array of nodes
     public void          replaceWorld(Node[] nodes)
          throws IllegalArgumentException {
-         throw new IllegalArgumentException ("replaceWorld Not Implemented");
+
+ 	String SysString = "";
+	String retval;
+	int count;
+
+        for (count=0; count<nodes.length; count++) {
+		SysString = SysString + " " + nodes[count];
+	}
+
+        synchronized (FreeWRLToken) {
+          EAIoutSender.send ("" + queryno + "\nRW" + SysString);
+          retval = getVRMLreply(queryno);
+          queryno += 1;
+        }
+
     } 
   
   
@@ -245,7 +259,7 @@ public class Browser implements BrowserInterface
     public Node[]        createVrmlFromString(String vrmlSyntax) 
 			throws InvalidVrmlException {
 
-      Node[]  x = {new Node()};
+      Node[]  x = new Node[2000];
       StringTokenizer tokens;
       String retval;
       String temp;
@@ -256,15 +270,23 @@ public class Browser implements BrowserInterface
         retval = getVRMLreply(queryno);
 
         tokens = new StringTokenizer (retval);
+	x = new Node[tokens.countTokens()];
         count = 0;
 
+	// Lets go through the output, and temporarily store it
+	// XXX - is there a better way? ie, using a vector?
         while (tokens.hasMoreTokens()) {
           x[count] = new Node();
           x[count].NodeName = tokens.nextToken();
           count ++;
+	  if (count == 2000) {
+		count = 1999;
+		System.out.println ("Browser:createVrmlFromString - warning, tied to 2000 nodes");
+	  }
         }
         queryno += 1;
       }
+
       return x;
     }
   
@@ -279,7 +301,7 @@ public class Browser implements BrowserInterface
 
       EventInMFNode		Evin;
       String retval;
-      Node[]  x = {new Node()};
+      Node[]  x = new Node[1];
       StringTokenizer tokens;
       int count;
 
@@ -291,7 +313,7 @@ public class Browser implements BrowserInterface
 
          tokens = new StringTokenizer (retval);
          count = 0;
- 	x = new Node[tokens.countTokens()];
+ 	 x = new Node[tokens.countTokens()];
 
          while (tokens.hasMoreTokens()) {
            x[count] = new Node();
