@@ -2061,17 +2061,22 @@ void Cone_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Cone */
 			};
 		if(h <= 0 && r <= 0) {return;}
 		INIT_TRIG1(div)
+
 		if(((this_->bottom))) {
+            		/* printf ("Cone : bottom\n"); */
 			glBegin(GL_POLYGON);
 			glNormal3f(0,-1,0);
 			START_TRIG1
-			for(i=div-1; i>=0; i--) {
-				TC(0.5+0.5*-SIN1,0.5+0.5*COS1);
-				glVertex3f(r*-SIN1,-h,r*COS1);
+			for(i=0; i<div; i++) {
+				TC(0.5+0.5*SIN1,0.5+0.5*COS1);
+				glVertex3f(r*SIN1,(float)-h,r*COS1);
 				UP_TRIG1
 			}
 			glEnd();
-		}
+		} else {
+			/* printf ("Cone : NO bottom\n"); */
+		} 
+
 		if(((this_->side))) {
 			double ml = sqrt(h*h + r * r);
 			double mlh = h / ml;
@@ -2082,15 +2087,19 @@ void Cone_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Cone */
 				float lsin = SIN1;
 				float lcos = COS1;
 				UP_TRIG1;
-				glNormal3f(mlh*lsin,mlr,-mlh*lcos);
-				TC((i+0.5)/df,1);
-				glVertex3f(0,h,0);
-				glNormal3f(mlh*SIN1,mlr,-mlh*COS1);
-				TC((i+1)/df,0);
-				glVertex3f(r*SIN1,-h,-r*COS1);
-				glNormal3f(mlh*lsin,mlr,-mlh*lcos);
-				TC(i/df,0);
-				glVertex3f(r*lsin,-h,-r*lcos);
+
+				glNormal3d(mlh*lsin, mlr, -mlh*lcos);
+				glTexCoord2f(1.0-((float)i/df), 0.0);
+				glVertex3f(r*lsin, (float)-h, -r*lcos);
+
+				glNormal3d(mlh*SIN1, mlr, -mlh*COS1);
+				glTexCoord2f(1.0-((i+1.0)/df), 0.0);
+				glVertex3f(r*SIN1, (float)-h, -r*COS1);
+
+				glNormal3d(mlh*lsin, mlr, -mlh*lcos);
+				glTexCoord2f(1.0-((i+0.5)/df), 1.0);
+				glVertex3f(0.0, (float)h, 0.0);
+
 			}
 			glEnd();
 		}
@@ -2398,13 +2407,13 @@ void Sphere_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Sphere */
 			UP_TRIG1
 			vsin2 = SIN1;
 			vcos2 = COS1;
-            /* printf("t_sa=%8.2g t_ca=%8.2g\n", t_sa, t_ca); */
+             printf("t_sa=%8.2g t_ca=%8.2g\n", t_sa, t_ca);
 			START_TRIG2
 			for(h=0; h<=hdiv; h++) {
 				float hsin1 = SIN2;
 				float hcos1 = COS2;
 				UP_TRIG2
-                /* printf("t2_sa=%8.2g t2_ca=%8.2g\n", t2_sa, t2_ca); */
+                printf("t2_sa=%8.2g t2_ca=%8.2g\n", t2_sa, t2_ca); 
 
 /* Round a tex coord just barely greater than 1 to 1 : Since we are 
    counting modulo 1, we do not want 1 to become zero spuriously.
@@ -2412,11 +2421,12 @@ void Sphere_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Sphere */
 /* We really want something more rigorous here */
 #define MY_EPS 0.000001
 #define MOD_1(x) ( (x)<=1 ? (x) : (x<=1.0+MY_EPS)? 1.0 : (x)-1.0 )
+
 /* That s the normal vector to the sphere *at the current point* */ 
 #define NORM_C1 	vsin2 * hcos1, vcos2, vsin2 * hsin1
 #define TEX_C1		MOD_1(h / hf), 2.0 * (1.0 - (v + 1.0) / vf)
 #define VERT_C1		vsin2 * hcos1, vcos2, vsin2 * hsin1
-/* printf("%d(1): normal1 [%2.7f, %2.7f, %2.7f] \t tex [%2.7f, %2.7f] \t vertex [%2.7f, %2.7f, %2.7f]\n",v, NORM_C1, TEX_C1, VERT_C1 );*/
+printf("%d(1): normal1 [%2.7f, %2.7f, %2.7f] \t tex [%2.7f, %2.7f] \t vertex [%2.7f, %2.7f, %2.7f]\n",v, NORM_C1, TEX_C1, VERT_C1 );
 
 				glNormal3f(NORM_C1);
 				glTexCoord2f(TEX_C1);
@@ -2425,7 +2435,7 @@ void Sphere_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Sphere */
 #define NORM_C2 	vsin1 * hcos1, vcos1, vsin1 * hsin1
 #define TEX_C2		MOD_1(h / hf), 2.0 * (1.0 - v/vf)
 #define VERT_C2		vsin1 * hcos1, vcos1, vsin1 * hsin1
-/* printf("%d(2): normal2 [%2.7f, %2.7f, %2.7f] \t tex [%2.7f, %2.7f] \t vertex [%2.7f, %2.7f, %2.7f]\n\n", h, NORM_C2, TEX_C2, VERT_C2 ); */
+printf("%d(2): normal2 [%2.7f, %2.7f, %2.7f] \t tex [%2.7f, %2.7f] \t vertex [%2.7f, %2.7f, %2.7f]\n\n", h, NORM_C2, TEX_C2, VERT_C2 );
 
 				glNormal3f(NORM_C2); 
 				glTexCoord2f(TEX_C2);
