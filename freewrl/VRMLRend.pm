@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.79  2002/10/10 18:31:40  crc_canada
+# sound node work AND
+# added X3DMATERIALPROPERTY definition, to change the way materials work with textures
+#
 # Revision 1.78  2002/09/24 18:19:29  crc_canada
 # Fixed compile problem on Irix.
 #
@@ -933,15 +937,19 @@ Material =>  '
 
 		/* for shape display list redrawing */
 		this_->_myshape = last_visited_shape; 
-
+#ifndef X3DMATERIALPROPERTY
 		/* We have to keep track of whether to reset diffuseColor if using
 		   textures; no texture or greyscale, we use the diffuseColor, if
 		   RGB we set diffuseColor to be grey */
 		if (last_texture_depth >1) {
 			dcol[0]=0.8, dcol[1]=0.8, dcol[2]=0.8;
 		} else {
+#endif
+
 			for (i=0; i<3;i++){ dcol[i] = $f(diffuseColor,i); }
+#ifndef X3DMATERIALPROPERTY
 		}
+#endif
 		dcol[3] = 1.0;
 
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
@@ -1091,11 +1099,112 @@ Fog => '
  ',
 
 
-# Sound ... Nothing here
-Sound => ' ',
+Sound => ' 
+/*
+	direction => [SFVec3f, [0, 0, 1]],
+	intensity => [SFFloat, 1.0],
+	location => [SFVec3f, [0,0,0]],
+	maxBack => [SFFloat, 10],
+	maxFront => [SFFloat, 10],
+	minBack => [SFFloat, 1],
+	minFront => [SFFloat, 1],
+	priority => [SFFloat, 0],
+	source => [SFNode, NULL],
+	spatialize => [SFBool,1, ""]	# not exposedfield
+*/
 
-# AudioClip .... Nothing here
-AudioClip => ' ',
+	GLdouble mod[16];
+	GLdouble proj[16];
+	struct pt vec, direction, location, elipse;
+	double len; 
+	double angle;
+	float midmin, midmax;
+	float amp;
+
+	float radius;
+
+	direction.x = $f(direction,0);
+	direction.y = $f(direction,1);
+	direction.z = $f(direction,2);
+
+	location.x = $f(location,0); 
+	location.y = $f(location,1); 
+	location.z = $f(location,2);
+
+	midmin = (this_->minFront - this_->minBack) / 2.0;
+	midmax = (this_->maxFront - this_->maxBack) / 2.0;
+
+ 
+	glPushMatrix();
+
+	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+
+	// add in the local offset
+	vec.x -= location.x; vec.y -= location.y; vec.z -= location.z;
+
+	len = sqrt(VECSQ(vec)); 
+
+	// elipse calculations.
+	elipse.x = vec.x * sin(direction.x);
+	elipse.y = vec.y * sin(direction.y);
+	elipse.z = vec.z * sin(direction.z);
+
+	//printf ("Soundx len*elipse +midmin = %f %f %f \n",len*elipse.x,len*elipse.y, len*elipse.z);
+	amp = 0.0;
+	// is this within the maxFront maxBack?
+
+	if (((elipse.y >= -this_->maxBack)  && (elipse.y <= this_->maxFront)) ||
+	    ((elipse.y >= -this_->maxBack)  && (elipse.y <= this_->maxFront)) ||
+	    ((elipse.y >= -this_->maxBack)  && (elipse.y <= this_->maxFront))) {
+		printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
+		-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
+		elipse.x, elipse.y, elipse.z); 
+	}
+	
+
+	glPopMatrix();
+
+
+	if ($f(source)) {
+		render_node($f(source));
+	}
+
+',
+
+AudioClip => '
+	// register an audioclip
+	static int init = FALSE;
+	float pitch,stime, sttime;
+	int loop;
+	unsigned char *filename = SvPV((this_->__localFileName),PL_na);
+
+	//printf ("AudioClip rend for clip %d\n",this_->__sourceNumber);
+
+	if (!init) { 
+		printf ("initializing SoundEngine\n");
+		init = TRUE;
+		SoundEngineInit();
+	}
+	if (!SoundSourceRegistered(this_->__sourceNumber)) {
+		printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
+			this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
+			filename);
+
+		pitch = this_->pitch;
+		stime = this_->startTime;
+		sttime = this_->stopTime;
+		loop = this_->loop;
+
+		SoundSourceInit (this_->__sourceNumber, this_->loop,
+			(float) pitch,(float) stime, (float) sttime, filename);
+	}
+
+	
+ ',
+
+
 
 # CylinderSensor .... Nothing here
 CylinderCensor => ' ',
@@ -1500,15 +1609,6 @@ Transform => (join '','
 	*/
 '),
 
-##JAS Collision=> ('
-##JAS printf ("Start of Collision - dont think this is needed...JAS \n");
-##JAS 
-##JAS 	glPushMatrix();
-##JAS 	$start_list();
-##JAS 	$end_list();
-##JAS '),
-
-# Simplistic...
 Billboard => '
 	GLdouble mod[16];
 	GLdouble proj[16];
@@ -1641,9 +1741,6 @@ NavigationInfo => '
 
 # Finish rendering
 %FinC = (
-##JAS Collision => (join '','
-##JAS 	glPopMatrix();
-##JAS '),
 Transform => (join '','
         
 	if(!render_vp) {
@@ -1785,8 +1882,10 @@ Billboard => (join '','
 				glMatrixMode(GL_MODELVIEW);
 		    	}
 			render_node($f(texture));
+#ifndef X3DMATERIALPROPERTY
 		} else {
 			last_texture_depth = 0;
+#endif
 		}
 
 
@@ -1938,7 +2037,6 @@ Billboard => (join '','
 $ChildC{Transform} = $ChildC{Group};
 $ChildC{Billboard} = $ChildC{Group};
 $ChildC{Anchor} = $ChildC{Group};
-#$ChildC{Collision} = $ChildC{Group};  ## JAS 
 
 #######################################################################
 #######################################################################
@@ -2189,12 +2287,6 @@ ProximitySensor => q~
 
 		/* Now, the intersection of the planes, obviously cp */
 		VECCP(nor1,nor2,ins);
-/* don t know why this is here JAS
-
-		if(APPROX(VECSQ(ins),0)) {
-			printf ("Should die here: Proximitysensor problem!\n");
-		}
-*/
 
 		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len);
 
@@ -2768,7 +2860,6 @@ Extrusion => q~
 	       
 ~,
 
-#Extrusion => '',
 Text => q~
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
@@ -2788,6 +2879,14 @@ Text => q~
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
 	       int change;
+
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+
 
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
