@@ -21,7 +21,7 @@ import vrml.external.FreeWRLEAI.EAIAsyncThread;
 import vrml.external.exception.InvalidNodeException;
 import vrml.external.exception.InvalidVrmlException;
 import vrml.external.BrowserGlobals;
-import netscape.security.*;
+//JAS - no longer using Netscape import netscape.security.*;
 
 public class Browser implements BrowserInterface
 
@@ -127,11 +127,11 @@ public class Browser implements BrowserInterface
 	EAISocket = null;
 
 	//enable privleges
-	try {
-		PrivilegeManager.enablePrivilege ("UniversalConnect");
-	} catch (Throwable e) {
-		System.out.println("EAI: not using Netscape");
-	}
+	//JAS try {
+	//JAS 	PrivilegeManager.enablePrivilege ("UniversalConnect");
+	//JAS } catch (Throwable e) {
+	//JAS 	System.out.println("EAI: not using Netscape");
+	//JAS }
 	
 	try {
 		EAISocket = new ServerSocket(2000);
