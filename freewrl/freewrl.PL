@@ -339,6 +339,10 @@ Reload the URL given on the command line upon recept of a SIGUSR1 signal.
 
 Allow perl scripts in vrml files. Make sure your perl scripts are secure.
 
+=item C<-psout> I<file>
+
+Print statements within perl scripts will -by default- go to I<file>.
+
 =item I<debugcode>
 
 Various strings here turn on debugging for various parts of the browser.
@@ -443,6 +447,7 @@ BEGIN {
                 "snapb=s"=>\$snapname_opt,
 		"ppm"=>\$nogif,
 		"ps"=>\$VRML::DO_PERL,
+		"psout=s"=>\$VRML::script_out_file,
 		"maximg=i"=>\$maximg,
 		"help" => \$usage,
 		"usage" => \$usage,

@@ -80,6 +80,69 @@ EOF
  	}
  }
 
+## perl_script_output ( $on )
+##
+## If a script output file has been specified with the "-psout" option, and
+##   If $on is true,  then
+##     the filehandle corresponding to the script output file is selected.
+##   If $on is false, then
+##     the previously selected filehandle is selected.
+##
+## The following VRML:: variables are used
+BEGIN { 
+								# Script output file name (set with -psout)
+  $VRML::script_out_file = "" unless
+	defined $VRML::script_out_file ;
+  $VRML::script_out_open = 0;	# True if output file is open
+								# True if script output file is
+								# currently selected
+  $VRML::script_out_selected = 0 ;
+  $VRML::LAST_HANDLE = 0 ;		# Filehandle in use before script call
+}
+
+sub perl_script_output {
+
+  my $on = shift ;
+  my $v = 0 ;					# Local verbose option
+
+  if ($VRML::script_out_file) {
+								# Eventually open the file
+    if (!$VRML::script_out_open) {
+      open VRML_SCRIPT_OUT, ">$VRML::script_out_file"
+		or die "Can't open script output file '$VRML::script_out_file'\n";
+      $VRML::script_out_open = 1;
+      print "Opened script output file '$VRML::script_out_file'\n" if $v;
+    }
+    
+    if ($on) {					# select script output filehandle
+      if (!$VRML::script_out_selected){
+		$VRML::LAST_HANDLE = select VRML_SCRIPT_OUT;
+		$VRML::script_out_selected = 1;
+		print $VRML::LAST_HANDLE "VRML_SCRIPT_OUT selected\n" if $v;
+      } else {
+		print $VRML::LAST_HANDLE "VRML_SCRIPT_OUT already selected\n" if $v;
+      }
+    } else {					# select previous output filehandle
+      select $VRML::LAST_HANDLE;
+      $VRML::script_out_selected = 0;
+      print "Selected previous filehandle '$VRML::LAST_HANDLE'\n" if $v;
+    }
+  } else {
+    print "No script output file specified\n" if $v;
+  }
+}
+sub show_stack {
+  my $n = @_ ? shift : 1 ;
+  print "Context is ", wantarray() ? "ARRAY" : "SCALAR" , "\n";
+  for $i (2..$n+1) {
+	my @a = caller ($i);
+	if (@a) {
+	  $a[1] =~ s{^.*/}{};
+	  print "package $a[0], file $a[1]:$a[2], sub $a[3], wantarray $a[5]\n" ;
+	}
+  }
+}
+
 sub add_MFNode {
 	my ($node, $field, $child, $flag) = @_;
 	# $node  - node to add child to.
@@ -1507,7 +1570,13 @@ Script => new VRML::NodeType("Script",
 			if(($s = $t->{ScriptScript}{"initialize"})) {
 				print "CALL $s\n if $VRML::verbose::script"
 				 if $VRML::verbose::script;
-				return &{$s}();
+				##EG show_stack (5);
+				##EG return &{$s}();
+				perl_script_output (1);
+				my @res = &{$s}();
+				perl_script_output (0);
+				return @res ;
+
 			} elsif($t->{J}) {
 
 #EG			if($t->{J}) {
@@ -1527,7 +1596,12 @@ Script => new VRML::NodeType("Script",
 			if(($s = $t->{ScriptScript}{$ev})) {
 				print "CALL $s\n"
 				 if $VRML::verbose::script;
-				return &{$s}();
+				##EG show_stack (5);
+				##EG return &{$s}();
+				perl_script_output (1);
+				my @res = &{$s}();
+				perl_script_output (0);
+				return @res ;
 			} elsif($t->{J}) {
 
 #EG			if($t->{J}) {
