@@ -23,6 +23,12 @@ use strict vars;
 #
 # Public backend API
 
+# The cursor changes over sensitive nodes. 0 is the "normal"
+# cursor.
+
+my $cursortype = 0;  # pointer cursor
+my $curcursor = 99;  # the last cursor change - force the cursor on startup
+
 ####
 #
 # Set rendering accuracy vs speed tradeoff
@@ -316,9 +322,13 @@ sub event {
       if($but == 1 or $but == 3) 
 	{
 	  # print "BPRESS $but $x $y\n";
-	  $this->{Viewer}->handle("PRESS",$but,$x,$y,
+
+	  # If this is not on a sensitive node....
+	  if ($cursortype == 0) {
+	      $this->{Viewer}->handle("PRESS",$but,$x,$y,
 				  $args[5] & &ShiftMask,
 				  $args[5] & &ControlMask);
+	  }
 	}
       push @{$this->{BUTEV}}, [PRESS, $but, $args[1], $args[2]];
       $this->{BUT} = $but;
@@ -336,7 +346,10 @@ sub event {
 	}
       push @{$this->{BUTEV}}, [RELEASE, $but, $args[1], $args[2]];
       $this->finish_event;
-      $this->{Viewer}->handle("RELEASE",$but,0,0);
+      if ($cursortype == 0) {  #ie, it is not a sensitive node being released
+	$this->{Viewer}->handle("RELEASE",$but,0,0);
+      }
+
       $this->{SENSBUTREL} = $but;
       undef $this->{BUT};
 
@@ -449,14 +462,17 @@ sub finish_event {
 	return if $this->{EDone};
 	my $x = $this->{MX} / $this->{W}; my $y = $this->{MY} / $this->{H};
 	my $but = $this->{BUT};
-	if($but == 1 or $but == 3) {
+	if(($but == 1 or $but == 3) and $cursortype==0) {
 	    $this->{Viewer}->handle("DRAG", $but, $x, $y);
 	    # print "FE: $but $x $y\n";
-	  } elsif($but == 2) {
+	} elsif($but == 2) {
 	    $this->{MCLICK} = 1;
 	    $this->{MCLICKO} = 1;
 	    $this->{MOX} = $this->{MX}; $this->{MOY} = $this->{MY}
-	  }
+	} 
+	#	else {
+	#		print "finish-event - hah! this was a drag!\n";
+	#	}
 	$this->{EDone} = 1;
 }
 
@@ -645,9 +661,6 @@ sub setup_viewpoint {
 
 
 # Given root node of scene, render it all
-
-my $cursortype = 0;  # pointer cursor
-my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
 sub render {
 	my($this) = @_;
