@@ -91,6 +91,9 @@ if(ncolors) {
 	}
 }
 
+/* just to make sure, we set tcindex to NULL first */
+tcindex = 0;
+
 if (HAVETODOTEXTURES) {
 	/* so, we now have to worry about textures. */
 	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
@@ -250,6 +253,10 @@ if (ncolors) {
 /* if we have texcoords, we need the texture coord index */
 if (ntexcoords) {
 	for (x=0; x<ntri; x++) {
+		//printf ("elev tcindex was %d %d %d now is %d %d %d\n",
+		//	tcindex[x*3+0],tcindex[x*3+1],tcindex[x*3+2],
+		//	rep_->cindex[x*3+0],rep_->cindex[x*3+1],
+		//	rep_->cindex[x*3+2]);
 		tcindex[x*3+0] = rep_->cindex[x*3+0];
 		tcindex[x*3+1] = rep_->cindex[x*3+1];
 		tcindex[x*3+2] = rep_->cindex[x*3+2];
