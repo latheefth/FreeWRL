@@ -18,6 +18,8 @@
 #define TRUE 1
 #endif
 
+#define UNUSED(v) ((void) v)
+
 #ifdef M_PI
 #define PI M_PI
 #else

@@ -70,6 +70,8 @@
 #include <string.h>
 #endif
 
+#include <netinet/in.h>
+
 #define NO_SANITY_CHECKS
 extern const int zigzag_direct[];
 
@@ -430,6 +432,7 @@ unsigned short int dct_coeff_first[256] =
     }
 
 
+
 
 /*
  *--------------------------------------------------------------
@@ -523,7 +526,7 @@ init_mb_type_P()
 
   mb_type_P[0].mb_quant = mb_type_P[0].mb_motion_forward 
     = mb_type_P[0].mb_motion_backward = mb_type_P[0].mb_pattern 
-      = mb_type_P[0].mb_intra = ERROR;
+      = mb_type_P[0].mb_intra = (unsigned int) ERROR;
   mb_type_P[0].num_bits = 0;
 
   ASSIGN2(1, 2, 1, 0, 0, 0, 1, 6, mb_type_P)
@@ -562,7 +565,7 @@ init_mb_type_B()
 
   mb_type_B[0].mb_quant = mb_type_B[0].mb_motion_forward 
     = mb_type_B[0].mb_motion_backward = mb_type_B[0].mb_pattern 
-      = mb_type_B[0].mb_intra = ERROR;
+      = mb_type_B[0].mb_intra = (unsigned int) ERROR;
   mb_type_B[0].num_bits = 0;
 
   ASSIGN2(1, 2, 1, 0, 0, 0, 1, 6, mb_type_B);
@@ -1262,7 +1265,7 @@ ExecuteTexture(vid_stream)
 {
   unsigned int *p;
   unsigned int r, g, b;
-  int i,j;
+  unsigned int i,j;
   int hsize;
 
   /* v_size = height, h_size = width (vertical, horizontal) */
@@ -2180,32 +2183,34 @@ static void ProcessSkippedBFrameMBlocks();
 */
 
 const int zigzag[64][2] = {
-  0, 0, 1, 0, 0, 1, 0, 2, 1, 1, 2, 0, 3, 0, 2, 1, 1, 2, 0, 3, 0, 4, 1, 3,
-  2, 2, 3, 1, 4, 0, 5, 0, 4, 1, 3, 2, 2, 3, 1, 4, 0, 5, 0, 6, 1, 5, 2, 4,
-  3, 3, 4, 2, 5, 1, 6, 0, 7, 0, 6, 1, 5, 2, 4, 3, 3, 4, 2, 5, 1, 6, 0, 7,
-  1, 7, 2, 6, 3, 5, 4, 4, 5, 3, 6, 2, 7, 1, 7, 2, 6, 3, 5, 4, 4, 5, 3, 6,
-  2, 7, 3, 7, 4, 6, 5, 5, 6, 4, 7, 3, 7, 4, 6, 5, 5, 6, 4, 7, 5, 7, 6, 6,
-  7, 5, 7, 6, 6, 7, 7, 7};
+	{0, 0}, {1, 0}, {0, 1}, {0, 2}, {1, 1}, {2, 0}, {3, 0}, {2, 1},
+	{1, 2}, {0, 3}, {0, 4}, {1, 3}, {2, 2}, {3, 1}, {4, 0}, {5, 0},
+	{4, 1}, {3, 2}, {2, 3}, {1, 4}, {0, 5}, {0, 6}, {1, 5}, {2, 4},
+	{3, 3}, {4, 2}, {5, 1}, {6, 0}, {7, 0}, {6, 1}, {5, 2}, {4, 3},
+	{3, 4}, {2, 5}, {1, 6}, {0, 7}, {1, 7}, {2, 6}, {3, 5}, {4, 4},
+	{5, 3}, {6, 2}, {7, 1}, {7, 2}, {6, 3}, {5, 4}, {4, 5}, {3, 6},
+	{2, 7}, {3, 7}, {4, 6}, {5, 5}, {6, 4}, {7, 3}, {7, 4}, {6, 5},
+	{5, 6}, {4, 7}, {5, 7}, {6, 6}, {7, 5}, {7, 6}, {6, 7}, {7, 7}};
 /* Array mapping zigzag to array pointer offset. */
 
 const int zigzag_direct[64] = {
-  0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12,
-  19, 26, 33, 40, 48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35,
-  42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51,
-58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63};
+	0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12,
+	19, 26, 33, 40, 48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35,
+	42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51,
+	58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63};
 /* Set up array for fast conversion from row/column coordinates to
    zig zag order.
 */
 
 const int scan[8][8] = {
-  {0, 1, 5, 6, 14, 15, 27, 28},
-  {2, 4, 7, 13, 16, 26, 29, 42},
-  {3, 8, 12, 17, 25, 30, 41, 43},
-  {9, 11, 18, 24, 31, 40, 44, 53},
-  {10, 19, 23, 32, 39, 45, 52, 54},
-  {20, 22, 33, 38, 46, 51, 55, 60},
-  {21, 34, 37, 47, 50, 56, 59, 61},
-{35, 36, 48, 49, 57, 58, 62, 63}};
+	{0, 1, 5, 6, 14, 15, 27, 28},
+	{2, 4, 7, 13, 16, 26, 29, 42},
+	{3, 8, 12, 17, 25, 30, 41, 43},
+	{9, 11, 18, 24, 31, 40, 44, 53},
+	{10, 19, 23, 32, 39, 45, 52, 54},
+	{20, 22, 33, 38, 46, 51, 55, 60},
+	{21, 34, 37, 47, 50, 56, 59, 61},
+	{35, 36, 48, 49, 57, 58, 62, 63}};
 /* Initialize P and B skip flags. */
 
 static int No_P_Flag = FALSE;
@@ -7307,7 +7312,7 @@ int ReadPacket(packetID, vid_stream)
     }
     if (1 != ntohl(1)) {
       unsigned int *mark = *buf_ptr+*length_ptr;
-      int i;
+      unsigned int i;
       
       for (i=0; i < ((packetDataLength+
 			 vid_stream->num_left)&0xfffffffc); i+=4) {
