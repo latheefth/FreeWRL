@@ -422,6 +422,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 use Carp;
 $SIG{__DIE__} = sub {print Carp::longmess(@_);die;};
 
+use VRML::Config;
+
 BEGIN {
 
 	# use VRML::Browser;
@@ -461,6 +463,7 @@ BEGIN {
 		"ps"=>\$VRML::DO_PERL,
 		"psout=s"=>\$VRML::script_out_file,
 		"maximg=i"=>\$maximg,
+		"version" =>\$version,
 		"help" => \$usage,
 		"usage" => \$usage,
 		"server"=> \$server,
@@ -481,6 +484,12 @@ BEGIN {
 	$seqtmp = $seqtmp_opt if defined $seqtmp_opt ;
 
 	exec ("perldoc -t $0 | cat") if $usage ;
+
+	# version option from Etienne 
+	if (defined $version) {
+		print "$VRML::Config{VERSION}\n";
+		exit;
+	}
 
 	if($log) {
 		open STDOUT, ">$log" || die("Can't redirect stdout to $log: $!");
