@@ -11,6 +11,7 @@ WARNINGS => "off",
 DEBUG => "off",
 BOUNDS_CHECK => "off",
 LIBCHECK_INST => "",
+BROWSER => "mozilla",
 
 
 ############################################################################
