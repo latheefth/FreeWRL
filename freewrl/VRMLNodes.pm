@@ -356,29 +356,24 @@ sub init_pixel_image {
     # now, $sfimage contains the "image" field of the node.
 
     if (!defined $sfimage) {
-	#    	$f->{__depth} = 0;
-	#    	$f->{__x} = 0;
-	#    	$f->{__y} = 0;
+	$f->{__depth} = 0;
+	$f->{__x} = 0;
+	$f->{__y} = 0;
 	$f->{___istemporary} = 0;
 	$f->{___texture} = 0;
 	$f->{__locfile} = "";
     } else {
-
-	# the following will parse off the x,y,depth. If we *REALLY* need
-	# to store it locally, we can. For now, we don't bother storing
-	# this, but let the C function read in and use this information. JAS
-
-	#	  $sfimage =~ /\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
-	#	    or parsefail($_[2], "didn't match width/height/depth of SFImage");
+	$sfimage =~ /\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
+	    or parsefail($_[2], "didn't match width/height/depth of SFImage");
 
 	# should we just store the string here, or should we put it to a file?
 	# Some of these textures are large - in the order of a meg. For now,
 	# they are written to a file, which allows handling equivalent to
 	# what happens for other images.
 
-	#    	$f->{__depth} = $3;
-	#    	$f->{__x} = $2;
-	#	$f->{__y} = $1;
+	$f->{__depth} = $3;
+	$f->{__x} = $1;
+	$f->{__y} = $2;
 	$f->{__istemporary} = 1;
     	$f->{__texture} = VRML::OpenGL::glGenTexture();
 
@@ -612,11 +607,12 @@ PixelTexture => new VRML::NodeType("PixelTexture",
         repeatS => [SFBool, 1, "field"],	# VRML repeatS field
         repeatT => [SFBool, 1, "field"],	# VRML repeatT field
         __texture => [SFInt32,0,"field"], 	# OpenGL texture number
-#        __depth => [SFInt32, 1, "field"],
-        __istemporary =>[SFInt32,0,"field"],	# if we have to remove this after processing
-#        __x => [SFInt32,0, "field"],
-#        __y => [SFInt32,0, "field"],
-        __locfile => [SFString, "", "field"],
+        __depth => [SFInt32, 1, "field"],	# depth, from PixelTexture
+        __istemporary =>[SFInt32,0,"field"],	# if we have to remove the data file after processing
+        __x => [SFInt32,0, "field"],		# x size, from PixelTexture
+        __y => [SFInt32,0, "field"],		# y size, from PixelTexture
+        __locfile => [SFString, "", "field"],	# the name that the PixelTexture data (ascii) is
+						# stored in to allow C functions to parse it.
        },{
        Initialize => sub { 
                my($t,$f,$time,$scene) = @_;
