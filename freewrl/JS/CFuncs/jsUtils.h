@@ -28,8 +28,6 @@
 #define STRING 512
 #define SMALLSTRING 128
 
-#define BROWMAGIC 12345
-
 #define FNAME_STUB "file"
 #define LINENO_STUB 0
 

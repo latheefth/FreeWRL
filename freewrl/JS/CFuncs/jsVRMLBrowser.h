@@ -17,6 +17,7 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
+#define BROWMAGIC 12345
 
 static JSBool
 doVRMLRoute(JSContext *context,
@@ -35,76 +36,74 @@ VrmlBrowserInit(JSContext *context,
 
 JSBool
 VrmlBrowserGetVersion(JSContext *cx,
-				  JSObject *obj,
-				  uintN argc,
-				  jsval *argv,
-				  jsval *rval);
+					  JSObject *obj,
+					  uintN argc,
+					  jsval *argv,
+					  jsval *rval);
 
 
 JSBool
 VrmlBrowserCreateVrmlFromString(JSContext *cx,
-							JSObject *obj,
-							uintN argc,
-							jsval *argv,
-							jsval *rval);
+								JSObject *obj,
+								uintN argc,
+								jsval *argv,
+								jsval *rval);
 
 
-#if FALSE
-/* JSBool */
-/* VrmlBrowserSetDescription(JSContext *cx, */
-/* 					  JSObject *obj, */
-/* 					  uintN argc, */
-/* 					  jsval *argv, */
-/* 					  jsval *rval); */
-#endif
+JSBool
+VrmlBrowserSetDescription(JSContext *cx,
+						  JSObject *obj,
+						  uintN argc,
+						  jsval *argv,
+						  jsval *rval);
 
 		
 JSBool
 VrmlBrowserGetName(JSContext *cx,
-			   JSObject *obj,
-			   uintN argc,
-			   jsval *argv,
-			   jsval *rval);
+				   JSObject *obj,
+				   uintN argc,
+				   jsval *argv,
+				   jsval *rval);
 
 	
 JSBool
 VrmlBrowserAddRoute(JSContext *cx,
-				JSObject *obj,
-				uintN argc,
-				jsval *argv,
-				jsval *rval);
+					JSObject *obj,
+					uintN argc,
+					jsval *argv,
+					jsval *rval);
 
 
 JSBool
 VrmlBrowserDeleteRoute(JSContext *cx,
-				   JSObject *obj,
-				   uintN argc,
-				   jsval *argv,
-				   jsval *rval);
+					   JSObject *obj,
+					   uintN argc,
+					   jsval *argv,
+					   jsval *rval);
 
 	
 JSBool
 VrmlBrowserCreateVrmlFromURL(JSContext *cx,
-						 JSObject *obj,
-						 uintN argc,
-						 jsval *argv,
-						 jsval *rval);
+							 JSObject *obj,
+							 uintN argc,
+							 jsval *argv,
+							 jsval *rval);
 
 
 JSBool
 VrmlBrowserLoadURL(JSContext *cx,
-			   JSObject *obj,
-			   uintN argc,
-			   jsval *argv,
-			   jsval *rval);
-
-
-JSBool
-VrmlBrowserGetWorldURL(JSContext *cx,
 				   JSObject *obj,
 				   uintN argc,
 				   jsval *argv,
 				   jsval *rval);
+
+
+JSBool
+VrmlBrowserGetWorldURL(JSContext *cx,
+					   JSObject *obj,
+					   uintN argc,
+					   jsval *argv,
+					   jsval *rval);
 
 
 #if FALSE		
@@ -135,15 +134,6 @@ VrmlBrowserGetCurrentFrameRate(JSContext *cx,
 						   jsval *rval);
 
 
-#if FALSE		
-/* JSBool */
-/* VrmlBrowserSetDescription(JSContext *cx, */
-/* 					  JSObject *obj, */
-/* 					  uintN argc, */
-/* 					  jsval *argv, */
-/* 					  jsval *rval); */
-#endif /* FALSE */
-
 
 
 static JSClass Browser = {
@@ -169,7 +159,7 @@ static JSFunctionSpec (BrowserFunctions)[] = {
 	{"getWorldURL", VrmlBrowserGetWorldURL, 0},
 	{"addRoute", VrmlBrowserAddRoute, 0},
 	{"deleteRoute", VrmlBrowserDeleteRoute, 0},
-/* 	{"setDescription", VrmlBrowserSetDescription, 0}, */
+	{"setDescription", VrmlBrowserSetDescription, 0},
 /* 	{"loadURL", VrmlBrowserLoadURL, 0}, */
 /* 	{"replaceWorld", VrmlBrowserReplaceWorld, 0}, */
 /* 	{"getCurrentSpeed", VrmlBrowserGetCurrentSpeed, 0}, */

@@ -1,3 +1,16 @@
+/*
+ * Copyright (C) 1998 Tuomas J. Lukka, 2002 John Stewart, Ayla Khan CRC Canada
+ * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ * See the GNU Library General Public License
+ * (file COPYING in the distribution) for conditions of use and
+ * redistribution, EXCEPT on the files which belong under the
+ * Mozilla public license.
+ * 
+ * $Id$
+ * 
+ *
+ */
+
 #ifndef __jsNative_h__
 #define __jsNative_h__
 
@@ -14,6 +27,12 @@ typedef struct _BrowserNative {
 	int magic; /* does this really do anything ??? */
 	SV *sv_js;
 } BrowserNative;
+
+typedef struct _SFNodeNative {
+	int touched;
+	char *vrmlstring;
+	char *handle;
+} SFNodeNative;
 
 typedef struct _SFRotationNative {
 	int touched;
@@ -65,6 +84,15 @@ addAssignProperty(void *cx,
 				  char *name,
 				  char *str);
 
+
+extern void *
+SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len);
+
+extern void
+SFNodeNativeDelete(void *p);
+
+extern JSBool
+SFNodeNativeAssign(void *top, void *fromp);
 
 extern void *
 SFRotationNativeNew(void);
