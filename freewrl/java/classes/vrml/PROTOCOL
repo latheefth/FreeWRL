@@ -28,7 +28,7 @@ SENDEVENT
 __id__
 __reqid
 fieldName
-value 
+value
 timestamp
 
 EVENTSPROCESSED

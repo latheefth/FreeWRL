@@ -5,8 +5,8 @@
 # for conditions of use and redistribution.
 
 Transform {
-translation -2 0 0 
-children 
+translation -2 0 0
+children
 Shape {
 	appearance Appearance {material Material { diffuseColor 0.8 0 0}}
 	geometry Box { }
@@ -14,8 +14,8 @@ Shape {
 }
 
 Transform {
-translation 0.2 0 0 
-children 
+translation 0.2 0 0
+children
 Shape {
 	appearance Appearance {material Material { diffuseColor 0 0.8 0}}
 	geometry Sphere { }
@@ -23,8 +23,8 @@ Shape {
 }
 
 Transform {
-translation 2 0 0 
-children 
+translation 2 0 0
+children
 Shape {
 	appearance Appearance {material Material { diffuseColor 0 0 0.8}}
 	geometry Cone { }

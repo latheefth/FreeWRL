@@ -17,13 +17,13 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
 
 /**
-* DebugBreakHook must be subclassed to respond when a debug break is 
+* DebugBreakHook must be subclassed to respond when a debug break is
 * requested
 *
 * @author  John Bandhauer

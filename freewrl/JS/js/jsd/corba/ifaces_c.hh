@@ -164,12 +164,12 @@ class StringReciever: public virtual CORBA_Object
 	}
 	static StringReciever_ptr _bind(const char *object_name = NULL,
 		const char *host_name = NULL,
-		const CORBA::BindOptions* opt = NULL); 
+		const CORBA::BindOptions* opt = NULL);
 
 	virtual void recieveString(const char * arg0);
-	
+
 	virtual void bounce(CORBA::Long arg0);
-	
+
 	inline friend NCistream& operator>>(NCistream& strm, StringReciever_ptr& obj) {
 		CORBA::Object_var _obj(obj);
 		_obj = CORBA::Object::_read(strm, StringReciever::_desc());
@@ -252,13 +252,13 @@ class TestInterface: public virtual CORBA_Object
 	}
 	static TestInterface_ptr _bind(const char *object_name = NULL,
 		const char *host_name = NULL,
-		const CORBA::BindOptions* opt = NULL); 
+		const CORBA::BindOptions* opt = NULL);
 
 	virtual char * getFirstAppInList();
-	
+
 	virtual void getAppNames(StringReciever_ptr arg0);
-	
-	
+
+
 	class sequence_of_Thing
 	{
 	    public:
@@ -317,8 +317,8 @@ class TestInterface: public virtual CORBA_Object
 		CORBA::Boolean	_release_flag;
 		CORBA::Long	_ref_count;
 	};
-	
-	
+
+
 	typedef sequence_of_Thing *sequence_of_Thing_ptr;
 	class sequence_of_Thing_var
 	{
@@ -355,7 +355,7 @@ class TestInterface: public virtual CORBA_Object
 #endif
 		operator const sequence_of_Thing& () const { return *_ptr; }
 		operator sequence_of_Thing& () { return *_ptr; }
-		inline friend NCostream& operator<<(NCostream& strm, 
+		inline friend NCostream& operator<<(NCostream& strm,
 				const sequence_of_Thing_var& var) {
 			if ( var._ptr == (sequence_of_Thing *)NULL) {
 				throw CORBA::BAD_PARAM();
@@ -374,15 +374,15 @@ class TestInterface: public virtual CORBA_Object
 	    private:
 		sequence_of_Thing *_ptr;
 	};
-	
-	
-	
-	
+
+
+
+
 	virtual sequence_of_Thing * getThings();
-	
+
 	virtual void callBounce(StringReciever_ptr arg0,
 			CORBA::Long arg1);
-	
+
 	inline friend NCistream& operator>>(NCistream& strm, TestInterface_ptr& obj) {
 		CORBA::Object_var _obj(obj);
 		_obj = CORBA::Object::_read(strm, TestInterface::_desc());
@@ -465,9 +465,9 @@ class ISourceTextProvider: public virtual CORBA_Object
 	}
 	static ISourceTextProvider_ptr _bind(const char *object_name = NULL,
 		const char *host_name = NULL,
-		const CORBA::BindOptions* opt = NULL); 
+		const CORBA::BindOptions* opt = NULL);
 
-	
+
 	class sequence_of_string
 	{
 	    public:
@@ -585,7 +585,7 @@ class ISourceTextProvider: public virtual CORBA_Object
 		void release_on_copy(CORBA::Boolean val) {_rel_flag = val;}
 		CORBA::Boolean release_on_copy() const {return _rel_flag;}
 	};
-	
+
 	typedef sequence_of_string *sequence_of_string_ptr;
 	class sequence_of_string_var
 	{
@@ -625,7 +625,7 @@ class ISourceTextProvider: public virtual CORBA_Object
 #endif
 		operator const sequence_of_string& () const { return *_ptr; }
 		operator sequence_of_string &() { return *_ptr; }
-		inline friend NCostream& operator<<(NCostream& strm, 
+		inline friend NCostream& operator<<(NCostream& strm,
 				const sequence_of_string_var& var) {
 			if ( var._ptr == (sequence_of_string *)NULL) {
 				throw CORBA::BAD_PARAM();
@@ -644,26 +644,26 @@ class ISourceTextProvider: public virtual CORBA_Object
 	    private:
 		sequence_of_string *_ptr;
 	};
-	
-	
-	
-	
+
+
+
+
 	virtual sequence_of_string * getAllPages();
-	
+
 	virtual void refreshAllPages();
-	
+
 	virtual CORBA::Boolean hasPage(const char * arg0);
-	
+
 	virtual CORBA::Boolean loadPage(const char * arg0);
-	
+
 	virtual void refreshPage(const char * arg0);
-	
+
 	virtual char * getPageText(const char * arg0);
-	
+
 	virtual CORBA::Long getPageStatus(const char * arg0);
-	
+
 	virtual CORBA::Long getPageAlterCount(const char * arg0);
-	
+
 	inline friend NCistream& operator>>(NCistream& strm, ISourceTextProvider_ptr& obj) {
 		CORBA::Object_var _obj(obj);
 		_obj = CORBA::Object::_read(strm, ISourceTextProvider::_desc());
@@ -847,7 +847,7 @@ class sequence_of_IScriptSection_var
 #endif
 	operator const sequence_of_IScriptSection& () const { return *_ptr; }
 	operator sequence_of_IScriptSection& () { return *_ptr; }
-	inline friend NCostream& operator<<(NCostream& strm, 
+	inline friend NCostream& operator<<(NCostream& strm,
 			const sequence_of_IScriptSection_var& var) {
 		if ( var._ptr == (sequence_of_IScriptSection *)NULL) {
 			throw CORBA::BAD_PARAM();
@@ -1189,14 +1189,14 @@ class IJSErrorReporter: public virtual CORBA_Object
 	}
 	static IJSErrorReporter_ptr _bind(const char *object_name = NULL,
 		const char *host_name = NULL,
-		const CORBA::BindOptions* opt = NULL); 
+		const CORBA::BindOptions* opt = NULL);
 
 	virtual CORBA::Long reportError(const char * arg0,
 			const char * arg1,
 			CORBA::Long arg2,
 			const char * arg3,
 			CORBA::Long arg4);
-	
+
 	inline friend NCistream& operator>>(NCistream& strm, IJSErrorReporter_ptr& obj) {
 		CORBA::Object_var _obj(obj);
 		_obj = CORBA::Object::_read(strm, IJSErrorReporter::_desc());
@@ -1279,12 +1279,12 @@ class IScriptHook: public virtual CORBA_Object
 	}
 	static IScriptHook_ptr _bind(const char *object_name = NULL,
 		const char *host_name = NULL,
-		const CORBA::BindOptions* opt = NULL); 
+		const CORBA::BindOptions* opt = NULL);
 
 	virtual void justLoadedScript(const IScript& arg0);
-	
+
 	virtual void aboutToUnloadScript(const IScript& arg0);
-	
+
 	inline friend NCistream& operator>>(NCistream& strm, IScriptHook_ptr& obj) {
 		CORBA::Object_var _obj(obj);
 		_obj = CORBA::Object::_read(strm, IScriptHook::_desc());
@@ -1484,7 +1484,7 @@ class sequence_of_IJSStackFrameInfo_var
 #endif
 	operator const sequence_of_IJSStackFrameInfo& () const { return *_ptr; }
 	operator sequence_of_IJSStackFrameInfo& () { return *_ptr; }
-	inline friend NCostream& operator<<(NCostream& strm, 
+	inline friend NCostream& operator<<(NCostream& strm,
 			const sequence_of_IJSStackFrameInfo_var& var) {
 		if ( var._ptr == (sequence_of_IJSStackFrameInfo *)NULL) {
 			throw CORBA::BAD_PARAM();
@@ -1658,11 +1658,11 @@ class IJSExecutionHook: public virtual CORBA_Object
 	}
 	static IJSExecutionHook_ptr _bind(const char *object_name = NULL,
 		const char *host_name = NULL,
-		const CORBA::BindOptions* opt = NULL); 
+		const CORBA::BindOptions* opt = NULL);
 
 	virtual void aboutToExecute(const IJSThreadState& arg0,
 			const IJSPC& arg1);
-	
+
 	inline friend NCistream& operator>>(NCistream& strm, IJSExecutionHook_ptr& obj) {
 		CORBA::Object_var _obj(obj);
 		_obj = CORBA::Object::_read(strm, IJSExecutionHook::_desc());
@@ -1834,70 +1834,70 @@ class IDebugController: public virtual CORBA_Object
 	}
 	static IDebugController_ptr _bind(const char *object_name = NULL,
 		const char *host_name = NULL,
-		const CORBA::BindOptions* opt = NULL); 
+		const CORBA::BindOptions* opt = NULL);
 
 	virtual CORBA::Long getMajorVersion();
-	
+
 	virtual CORBA::Long getMinorVersion();
-	
+
 	virtual IJSErrorReporter_ptr setErrorReporter(IJSErrorReporter_ptr arg0);
-	
+
 	virtual IJSErrorReporter_ptr getErrorReporter();
-	
+
 	virtual IScriptHook_ptr setScriptHook(IScriptHook_ptr arg0);
-	
+
 	virtual IScriptHook_ptr getScriptHook();
-	
+
 	virtual IJSPC * getClosestPC(const IScript& arg0,
 			CORBA::Long arg1);
-	
+
 	virtual IJSSourceLocation * getSourceLocation(const IJSPC& arg0);
-	
+
 	virtual IJSExecutionHook_ptr setInterruptHook(IJSExecutionHook_ptr arg0);
-	
+
 	virtual IJSExecutionHook_ptr getInterruptHook();
-	
+
 	virtual IJSExecutionHook_ptr setDebugBreakHook(IJSExecutionHook_ptr arg0);
-	
+
 	virtual IJSExecutionHook_ptr getDebugBreakHook();
-	
+
 	virtual IJSExecutionHook_ptr setInstructionHook(IJSExecutionHook_ptr arg0,
 			const IJSPC& arg1);
-	
+
 	virtual IJSExecutionHook_ptr getInstructionHook(const IJSPC& arg0);
-	
+
 	virtual void setThreadContinueState(CORBA::Long arg0,
 			CORBA::Long arg1);
-	
+
 	virtual void setThreadReturnValue(CORBA::Long arg0,
 			const char * arg1);
-	
+
 	virtual void sendInterrupt();
-	
+
 	virtual void sendInterruptStepInto(CORBA::Long arg0);
-	
+
 	virtual void sendInterruptStepOver(CORBA::Long arg0);
-	
+
 	virtual void sendInterruptStepOut(CORBA::Long arg0);
-	
+
 	virtual void reinstateStepper(CORBA::Long arg0);
-	
+
 	virtual IExecResult * executeScriptInStackFrame(CORBA::Long arg0,
 			const IJSStackFrameInfo& arg1,
 			const char * arg2,
 			const char * arg3,
 			CORBA::Long arg4);
-	
+
 	virtual CORBA::Boolean isRunningHook(CORBA::Long arg0);
-	
+
 	virtual CORBA::Boolean isWaitingForResume(CORBA::Long arg0);
-	
+
 	virtual void leaveThreadSuspended(CORBA::Long arg0);
-	
+
 	virtual void resumeThread(CORBA::Long arg0);
-	
+
 	virtual void iterateScripts(IScriptHook_ptr arg0);
-	
+
 	inline friend NCistream& operator>>(NCistream& strm, IDebugController_ptr& obj) {
 		CORBA::Object_var _obj(obj);
 		_obj = CORBA::Object::_read(strm, IDebugController::_desc());

@@ -123,7 +123,7 @@ sub initScriptFields {
 				$constr = $this->constrString($type, 0);
 			}
 
-			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum}, 
+			if (!VRML::VRMLFunc::addGlobalAssignProperty($this->{ScriptNum},
 								   $field, $constr)) {
 				$this->cleanupDie("VRML::VRMLFunc::addGlobalAssignProperty failed in initScriptFields");
 			}
@@ -139,7 +139,7 @@ sub initScriptFields {
 											 $field)) {
 				$this->cleanupDie("VRML::VRMLFunc::addGlobalECMANativeProperty failed in initScriptFields");
 			}
-			if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
+			if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
 						   "$field=".$ftype->as_string($value, 1), $rstr, $v)) {
 				$this->cleanupDie("VRML::VRMLFunc::jsrunScript failed in initScriptFields");
 			}
@@ -181,7 +181,7 @@ sub initSFNodeFields {
 		if ($fkind eq "eventIn") { ## correct???
 			if ($type !~ /$ECMAScriptNative/) {
 				$constr = $this->constrString($type, 0);
-				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum}, 
+				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum},
 									   $nodeName, $_, $constr)) {
 					$this->cleanupDie("VRML::VRMLFunc::addSFNodeProperty failed in initSFNodeFields");
 				}
@@ -197,7 +197,7 @@ sub initSFNodeFields {
 				} else {
 					$constr = $this->constrString($type, 0);
 				}
-				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum}, 
+				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum},
 									   $nodeName, $_, $constr)) {
 					$this->cleanupDie("VRML::VRMLFunc::addSFNodeProperty failed in initSFNodeFields");
 				}
@@ -210,7 +210,7 @@ sub initSFNodeFields {
 			if ($type !~ /$ECMAScriptNative/) {
 				$constr = $this->constrString($type, $value);
 
-				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum}, 
+				if (!VRML::VRMLFunc::addSFNodeProperty($this->{ScriptNum},
 									   $nodeName, $_, $constr)) {
 					$this->cleanupDie("VRML::VRMLFunc::addSFNodeProperty failed in initSFNodeFields");
 				}
@@ -421,7 +421,7 @@ sub jspBrowserSetDescription {
 	$this->{Browser}->setDescription($desc);
 }
 
-# create vrml, send it back to javascript interpreter. works with CRoutes JAS 
+# create vrml, send it back to javascript interpreter. works with CRoutes JAS
 sub jspBrowserCreateVrmlFromString {
 	my ($this, $str) = @_;
 	my ($rval, $rs);
@@ -439,7 +439,7 @@ sub jspBrowserCreateVrmlFromString {
 
 	# get a list of nodes, eg VRML::NodeIntern=HASH(xxx);
         my @nodes = map(VRML::Handles::get($_), @handles);
-	
+
 	# and, combine the two together; VRML text and node CNode.
         my $constr = $this->constrString(MFNode, \@nodes);
 
@@ -578,13 +578,13 @@ sub getProperty {
 }
 
 # assign a value to a node that is stored in VRML-space; this is an assign,
-# NOT a route. eg: 
+# NOT a route. eg:
 # DEF Fertig Transform {}
 # SCRIPT xx field SFNode node USE Fertig
 # .... node.addChildren(newSFNode);
-# 
+#
 # this is called from CFuncs/jsVRMLClasses.c
-# 
+#
 # we do this in Perl, because we don't have the field offset handy in C, as we
 # would have with a ROUTE.
 
@@ -632,7 +632,7 @@ sub jspSFNodeSetProperty {
 
 		$outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{children};
 	        foreach $mych (@{$val}) {
-			#print "sendevto ",$node->{BackNode}{CNode}, 
+			#print "sendevto ",$node->{BackNode}{CNode},
 			#	" field $actualField child $mych, BN ", $mych,"\n";
 			VRML::VRMLFunc::jsManipulateChild(
 				$node->{BackNode}{CNode}+$outoffset,
@@ -645,8 +645,8 @@ sub jspSFNodeSetProperty {
 	}
 }
 
-# get info for a node in Perl space, save it (via a running script) for 
-# JavaScript/C to get a hold of 
+# get info for a node in Perl space, save it (via a running script) for
+# JavaScript/C to get a hold of
 sub jspSFNodeGetProperty {
 	my ($this, $prop, $handle) = @_;
 	my $realele; my $fieldname; my $direction;
@@ -664,7 +664,7 @@ sub jspSFNodeGetProperty {
 	($node, $prop, $direction) =
 		VRML::Browser::EAI_LocateNode ($handle, $prop, "eventIn");
 
-		#print "EAI_LocateNode returns node $node, prop $prop, direction $direction\n"; 
+		#print "EAI_LocateNode returns node $node, prop $prop, direction $direction\n";
 
 	my $type = $node->{Type}{FieldTypes}{$prop};
 	my $ftype = "VRML::Field::$type";
@@ -673,9 +673,9 @@ sub jspSFNodeGetProperty {
 
 	$levnode = $node->{Fields}{$prop};
 	$script = "NODE"."$handle"."_$prop";
-	
+
 	# my $key;
-	
+
 	#print "node is ",VRML::NodeIntern::dump_name($node),", $node\n";
 	# foreach $key (keys(%{$node->{Fields}})) {
 		#	 		print "node ",
@@ -688,7 +688,7 @@ sub jspSFNodeGetProperty {
 			my $value;
 			$value = $node->{Fields}{$prop};
 			$script = $script."=\"".$ftype->as_string($value, 1)."\"";
-				   
+
 		}
 		#print "script is:$script\n";
 	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},

@@ -27,7 +27,7 @@ public class ConstSFFloat extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Float");
 		f = Float.parseFloat(in.readLine());
     }

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -394,7 +394,7 @@ static int cvt_s(SprintfState *ss, const char *s, int width, int prec,
 
 /*
 ** BiuldArgArray stands for Numbered Argument list Sprintf
-** for example,  
+** for example,
 **	fmp = "%4$i, %2$d, %3s, %1d";
 ** the number must start from 1, and no gap among them
 */
@@ -405,7 +405,7 @@ static struct NumArgState* BuildArgArray( const char *fmt, va_list ap, int* rv, 
     const char* p;
     char  c;
     struct NumArgState* nas;
-    
+
 
     /*
     ** set the l10n_debug flag
@@ -467,7 +467,7 @@ static struct NumArgState* BuildArgArray( const char *fmt, va_list ap, int* rv, 
 	return NULL;
     }
 
-    
+
     if( number > NAS_DEFAULT_NUM ){
 	nas = (struct NumArgState*)malloc( number * sizeof( struct NumArgState ) );
 	if( !nas ){
@@ -1037,7 +1037,7 @@ static int FuncStuff(SprintfState *ss, const char *sp, JSUint32 len)
     return 0;
 }
 
-JS_PUBLIC_API(JSUint32) JS_sxprintf(JSStuffFunc func, void *arg, 
+JS_PUBLIC_API(JSUint32) JS_sxprintf(JSStuffFunc func, void *arg,
                                  const char *fmt, ...)
 {
     va_list ap;
@@ -1049,7 +1049,7 @@ JS_PUBLIC_API(JSUint32) JS_sxprintf(JSStuffFunc func, void *arg,
     return rv;
 }
 
-JS_PUBLIC_API(JSUint32) JS_vsxprintf(JSStuffFunc func, void *arg, 
+JS_PUBLIC_API(JSUint32) JS_vsxprintf(JSStuffFunc func, void *arg,
                                   const char *fmt, va_list ap)
 {
     SprintfState ss;

@@ -25,7 +25,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#ifdef AQUA 
+#ifdef AQUA
 #include <gl.h>
 #include <glu.h>
 #include <glext.h>

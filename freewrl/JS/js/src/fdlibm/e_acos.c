@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,20 +39,20 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
 
 /* __ieee754_acos(x)
- * Method :                  
+ * Method :
  *	acos(x)  = pi/2 - asin(x)
  *	acos(-x) = pi/2 + asin(x)
  * For |x|<=0.5
  *	acos(x) = pi/2 - (x + x*x^2*R(x^2))	(see asin.c)
  * For x>0.5
  * 	acos(x) = pi/2 - (pi/2 - 2asin(sqrt((1-x)/2)))
- *		= 2asin(sqrt((1-x)/2))  
+ *		= 2asin(sqrt((1-x)/2))
  *		= 2s + 2s*z*R(z) 	...z=(1-x)/2, s=sqrt(z)
  *		= 2f + (2c + 2s*z*R(z))
  *     where f=hi part of s, and c = (z-f*f)/(s+f) is the correction term
@@ -71,9 +71,9 @@
 #include "fdlibm.h"
 
 #ifdef __STDC__
-static const double 
+static const double
 #else
-static double 
+static double
 #endif
 one=  1.00000000000000000000e+00, /* 0x3FF00000, 0x00000000 */
 pi =  3.14159265358979311600e+00, /* 0x400921FB, 0x54442D18 */

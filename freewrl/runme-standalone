@@ -27,7 +27,7 @@ setenv dir "/usr/people/luigi/freewrl/FreeWRL-1.04.5"
 # then, we set up the environment variable to allow dynamic library loading...
 #
 # This first version prepends new paths to the shell variable LD_LIBRARY_PATH
-# 
+#
 #setenv LD_LIBRARY_PATH $dir/blib/arch/auto/VRML/JS:$dir/blib/arch/auto/VRML/VRMLFunc:$LD_LIBRARY_PATH
 #
 # this one just overwrited the LD_LIBRARY_PATH

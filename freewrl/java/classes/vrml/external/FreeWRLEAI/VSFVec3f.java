@@ -1,15 +1,15 @@
 // copyright (c) 1997,1998 stephen f. white
-// 
+//
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2, or (at your option)
 // any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; see the file COPYING.  If not, write to
 // the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -105,11 +105,11 @@ public class VSFVec3f extends VField
 
 	delta_x = (double) (values[0] - v.values[0]);
 	/* axis shifted 180 degrees with standard.  Therefore need to invert the parameters */
-	delta_z = (double) (v.values[2] - values[2]); 
+	delta_z = (double) (v.values[2] - values[2]);
 	angle = Math.atan2(delta_z, delta_x);  /* returns the angle whose tangent is z/x */
 	return(angle);
 
     }
-	
+
 
 }

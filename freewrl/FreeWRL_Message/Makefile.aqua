@@ -1,13 +1,13 @@
 #INCLUDE = -I/usr/X11R6/include/
 #LIBS  = -L. -L/usr/X11R6/lib -L/usr/local/lib
 
-COMPILERFLAGS = -Wall 
+COMPILERFLAGS = -Wall
 DEFINES = -DAQUA
 CC = gcc
 CFLAGS = $(COMPILERFLAGS) $(DEFINES) $(INCLUDE)
 SVROBJ = FreeWRL_Message.o
 
-all: main 
+all: main
 
 main: $(SVROBJ)
 	$(CC) $(SVROBJ) $(CFLAGS) -o FreeWRL_Message $(LIBS) $(LIBRARIES)

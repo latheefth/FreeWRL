@@ -9,7 +9,7 @@
 # and at each timestep ask each node able to produce events
 # whether it wants to right now.
 #
-# Then we propagate the events along the routes. 
+# Then we propagate the events along the routes.
 
 package VRML::EventMachine;
 
@@ -47,7 +47,7 @@ sub print {
 # a PROTO interface declaration may have a variable that is referenced in Routes,
 # but is never IS'd.  EAI uses things like this. We REQUIRE memory in order to route
 # to,from; so tell Events where we are going to store it.
-# 
+#
 # eg:
 #
 #	PROTO VNetInfo [ exposedField  SFFloat   brightness   0.5 ] { Group {} }
@@ -65,7 +65,7 @@ sub ExtraMemory {
 
 	my $memptr;
 	my $value;
-	
+
 	#print "ExtraMemory: wanting field $field for node ",VRML::NodeIntern::dump_name($node),"\n";
 	#foreach (keys%{$node}) {print "	node key $_\n";}
 	#foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
@@ -74,7 +74,7 @@ sub ExtraMemory {
 	my $type = $node->{Scene}{Pars}{$field}[1];
 
 	# test to see if this is a valid type
-	if ($type eq "") { return (0, 0, 0);}	
+	if ($type eq "") { return (0, 0, 0);}
 
 	my $clen = VRML::VRMLFunc::getClen("VRML::Field::$type"->clength($type));
 
@@ -242,7 +242,7 @@ sub resolve_node_cnode {
 	# eventIns (see VRML97 node reference)
 	# these things have set_xxx and xxx... if we have one of these...
 	#print "node TypeName is ",$node->{TypeName},"\n";
-	
+
 	if (($node->{TypeName} eq "Extrusion") ||
 	    ($node->{TypeName} eq "ElevationGrid") ||
 	    ($node->{TypeName} eq "GeoElevationGrid") ||
@@ -287,7 +287,7 @@ sub resolve_node_cnode {
 	} else {
 		if (!defined $node->{BackNode}{CNode}) {
 			# check if this node resides within a Javascript invocation...
-			# if so, we have to ensure the equivalence of nodes between 
+			# if so, we have to ensure the equivalence of nodes between
 			# the C structures and the Javascript invocation.
 			# check out tests/8.wrl in the FreeWRL source distribution for
 			# a script with a DEF'd node in it's parameter declarations.
@@ -395,7 +395,7 @@ sub getSceneNode {
 	} else {
 		#print "getSceneNode, $fromNode is NOT part of scene ",
 		#VRML::NodeIntern::dump_name($scene),"\n";
-		
+
 		$tmp = VRML::Handles::return_EAI_name($fromNode);
 		#print "tmp now $tmp ref ",ref $tmp,"\n";
 		#print "tmp as a name is ",VRML::NodeIntern::dump_name($tmp),"\n";
@@ -411,7 +411,7 @@ sub getSceneNode {
 
 	if (defined $node->{IsProto}) {
 		#print "getSceneNode - this is a PROTO\n";
-		$node = $node->{ProtoExp}{Nodes}[0]->real_node(); 
+		$node = $node->{ProtoExp}{Nodes}[0]->real_node();
 	} else {
 		#print "getSceneNode - this is NOT a PROTO\n";
 	}
@@ -461,7 +461,7 @@ sub add_route {
 	# get the FROM node/field
 	my $node;
 	$node = getSceneNode($scene,$fromNode);
-	($fromNode, $eventOut, $direction) = 
+	($fromNode, $eventOut, $direction) =
 		VRML::Browser::EAI_LocateNode($node, $eventOut, "eventOut");
 
 	# FROM NODE step 2.
@@ -472,7 +472,7 @@ sub add_route {
 	# TO NODE
 	# get the TO node/field
 	$node = getSceneNode($scene,$toNode);
-	($toNode, $eventIn, $direction) = 
+	($toNode, $eventIn, $direction) =
 		VRML::Browser::EAI_LocateNode($node, $eventIn, "eventIn");
 
 	my ($to_count, $tonode_str, $tc, $ok, $intptr) = $this->resolve_node_cnode($scene, $toNode, $eventIn, "eventIn");
@@ -481,7 +481,7 @@ sub add_route {
 	if ($eventIn eq "addChildren") {
 		$extraparam = 1;
 	}
-		
+
 	if ($ok == 0) {return 1;} # error message already printed
 
 	$scrpt = $fc + $tc;

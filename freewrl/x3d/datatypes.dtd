@@ -204,7 +204,7 @@
 <!ATTLIST %appinfo;
           source     %URIref;      #IMPLIED
           %appinfoAttrs;>
-          
+
 <!-- <!ELEMENT %documentation; ANY>   too restrictive -->
 <!ELEMENT %documentation; (#PCDATA) >   <!-- MODIFICATION!! -->
 

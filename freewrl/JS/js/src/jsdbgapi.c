@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -352,7 +352,7 @@ js_watch_set(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
                              vp, wp->closure);
             if (ok) {
                 /*
-                 * Create pseudo-frame for call to setter so that any 
+                 * Create pseudo-frame for call to setter so that any
                  * stack-walking security code in the setter will correctly
                  * identify the guilty party.
                  */
@@ -902,7 +902,7 @@ JS_GetPropertyDesc(JSContext *cx, JSObject *obj, JSScopeProperty *sprop,
         }
         cx->throwing = JS_FALSE;
     }
-    
+
     if (!js_GetProperty(cx, obj, sprop->id, &pd->value)) {
         if (!cx->throwing) {
             pd->flags = JSPD_ERROR;
@@ -914,14 +914,14 @@ JS_GetPropertyDesc(JSContext *cx, JSObject *obj, JSScopeProperty *sprop,
     } else {
         pd->flags = 0;
     }
-    
+
     cx->throwing = wasThrowing;
     if (wasThrowing) {
         cx->exception = lastException;
         if (JSVAL_IS_GCTHING(lastException))
             js_RemoveRoot(cx->runtime, &lastException);
     }
-    
+
     getter = sprop->getter;
     pd->flags |= ((sprop->attrs & JSPROP_ENUMERATE) ? JSPD_ENUMERATE : 0)
               | ((sprop->attrs & JSPROP_READONLY)  ? JSPD_READONLY  : 0)

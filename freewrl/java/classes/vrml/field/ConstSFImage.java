@@ -56,15 +56,15 @@ public class ConstSFImage extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Image");
 		width = Integer.parseInt(in.readLine());
-        	height = Integer.parseInt(in.readLine()); 
+        	height = Integer.parseInt(in.readLine());
         	components = Integer.parseInt(in.readLine());
         	pixels = new byte[height*width*components];
 	//System.out.println ("JavaClass -- fix method to read in pixels");
         	// pixels = String.getBytes(pst);
-		
+
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {

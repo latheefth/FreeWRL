@@ -32,7 +32,7 @@ void streamThisChannel(int source, int bytesToStream, int offset) {
 		//printf ("file not opened yet\n");
 		rewind_to_beginning(wavfile);
 	}
-	
+
 	if (wavfile->bytes_remaining <= 0) {
 		//printf ("EOF input, lets reset and re-read\n");
 	       if (loop[source] == 1) {
@@ -45,7 +45,7 @@ void streamThisChannel(int source, int bytesToStream, int offset) {
 
 	//printf ("bytes remaining %ld\n",wavfile->bytes_remaining);
 
-	// Are we reaching the end of the file? Lets calculate the 
+	// Are we reaching the end of the file? Lets calculate the
 	// size of the WAV file read we are going to do, and adjust
 	// where we are in the read of the WAV file. Note that for
 	// really short files, this works, too!
@@ -67,13 +67,13 @@ void streamThisChannel(int source, int bytesToStream, int offset) {
 	// read and write here.
 	if ((readSize) > 0) {
 		//printf ("reading/writing %d bytes\n",readSize);
-		fread(wavfile->data,readSize,1,wavfile->fd);	
+		fread(wavfile->data,readSize,1,wavfile->fd);
 		addToCombiningBuffer(source,readSize,offset);
 	}
 
 	// do we need to read some more?
 	if (readSize < bytesToStream) {
-		streamThisChannel(source, bytesToStream-readSize, 
+		streamThisChannel(source, bytesToStream-readSize,
 				offset+readSize);
 	}
 }
@@ -94,7 +94,7 @@ void streamMoreData(int bytesToStream) {
 				streamThisChannel(count,bytesToStream,0);
 			}
 
-			// Now, did we loose this source? lets decrement the 
+			// Now, did we loose this source? lets decrement the
 			// amplitude, until we get either to zero, or another
 			// AMPL command.
 

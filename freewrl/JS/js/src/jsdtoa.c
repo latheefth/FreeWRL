@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -1067,7 +1067,7 @@ static void InitDtoa(void)
 void js_FinishDtoa(void)
 {
 #ifdef JS_THREADSAFE
-    if (initialized == JS_TRUE) 
+    if (initialized == JS_TRUE)
     {
         PR_DestroyLock(freelist_lock);
         PR_DestroyLock(p5s_lock);
@@ -1843,7 +1843,7 @@ static int32 quorem(Bigint *b, Bigint *S)
 
 /* Always emits at least one digit. */
 /* If biasUp is set, then rounding in modes 2 and 3 will round away from zero
- * when the number is exactly halfway between two representable values.  For example, 
+ * when the number is exactly halfway between two representable values.  For example,
  * rounding 2.5 to zero digits after the decimal point will return 3 and not 2.
  * 2.49 will still round to 2, and 2.51 will still round to 3. */
 /* bufsize should be at least 20 for modes 0 and 1.  For the other modes,
@@ -2554,7 +2554,7 @@ JS_dtostr(char *buffer, size_t bufferSize, JSDToStrMode mode, int precision, dou
             } while (numEnd != p);
             *numEnd = '\0';
         }
-        
+
         if (exponentialNotation) {
             /* Insert a decimal point if more than one significand digit */
             if (nDigits != 1) {
@@ -2624,7 +2624,7 @@ divrem(Bigint *b, uint32 divisor)
         ULong dividend = remainder << 16 | a >> 16;
         ULong quotientHi = dividend / divisor;
         ULong quotientLo;
-        
+
         remainder = dividend - quotientHi*divisor;
         JS_ASSERT(quotientHi <= 0xFFFF && remainder < divisor);
         dividend = remainder << 16 | (a & 0xFFFF);
@@ -2712,18 +2712,18 @@ JS_dtobasestr(int base, double d)
             *pInt++ = *q;
             *q-- = ch;
         }
-        
+
         df = d - di;
         if (df != 0.0) {
             /* We have a fraction. */
             int32 e, bbits, s2, done;
             Bigint *b, *s, *mlo, *mhi;
-            
+
             *p++ = '.';
             b = d2b(df, &e, &bbits);
             JS_ASSERT(e < 0);
             /* At this point df = b * 2^e.  e must be less than zero because 0 < df < 1. */
-            
+
             s2 = -(int32)(word0(d) >> Exp_shift1 & Exp_mask>>Exp_shift1);
 #ifndef Sudden_Underflow
             if (!s2)

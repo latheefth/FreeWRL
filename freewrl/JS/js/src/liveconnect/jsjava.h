@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -31,14 +31,14 @@
  * the provisions above, a recipient may use your version of this
  * file under either the NPL or the GPL.
  */
- 
+
 /*
  * This file is part of the Java-vendor-neutral implementation of LiveConnect
  *
  * Publicly exported functions for JavaScript <==> Java communication.
  *
  */
- 
+
 #ifndef _JSJAVA_H
 #define _JSJAVA_H
 
@@ -87,7 +87,7 @@ typedef struct JSJCallbacks {
        function.)  This callback is only invoked when Java spontaneously calls
        into JavaScript, i.e. it is not called when JS calls into Java which
        calls back into JS.
-       
+
        This callback can be used to create a JSContext lazily, or obtain
        one from a pool of available JSContexts.  The implementation of this
        callback can call JSJ_SetDefaultJSContextForJavaThread() to avoid any
@@ -105,7 +105,7 @@ typedef struct JSJCallbacks {
        be associated with one Java thread at a time.) */
     JSJavaThreadState * (*map_js_context_to_jsj_thread)(JSContext *cx,
                                                         char **errp);
-                                                        
+
     /* This callback implements netscape.javascript.JSObject.getWindow(),
        a method named for its behavior in the browser environment, where it
        returns the JS "Window" object corresponding to the HTML window that an
@@ -113,11 +113,11 @@ typedef struct JSJCallbacks {
        hold of a JS object that has not been explicitly passed to it. */
     JSObject *          (*map_java_object_to_js_object)(JNIEnv *jEnv, void *pJavaObject,
                                                         char **errp);
-        
+
     /* An interim callback function until the LiveConnect security story is
        straightened out.  This function pointer can be set to NULL. */
     JSPrincipals *      (*get_JSPrincipals_from_java_caller)(JNIEnv *jEnv, JSContext *pJSContext, void **pNSIPrincipaArray, int numPrincipals, void *pNSISecurityContext);
-    
+
     /* The following two callbacks sandwich any JS evaluation performed
        from Java.   They may be used to implement concurrency constraints, e.g.
        by suspending the current thread until some condition is met.  In the
@@ -143,7 +143,7 @@ typedef struct JSJCallbacks {
        VM side before calling nsILiveconnect apis. This saves on a round trip request. */
     jobject             (*get_java_wrapper)(JNIEnv *jEnv, jint jsobject);
 
-    /* This allows liveconnect to unwrap a wrapped JSObject that is passed from java to js. 
+    /* This allows liveconnect to unwrap a wrapped JSObject that is passed from java to js.
        This happens when Java code is passing back to JS an object that it got from JS. */
     jint                (*unwrap_java_wrapper)(JNIEnv *jEnv, jobject java_wrapper);
 
@@ -182,13 +182,13 @@ typedef struct JavaPackageDef {
     const char *        name;   /* e.g. "java.lang" */
     const char *        path;   /* e.g. "java/lang", or NULL for default */
     int                 flags;  /* PKG_USER, PKG_SYSTEM, etc. */
-    int                 access; /* JSPROP_READONLY or 0 */            
+    int                 access; /* JSPROP_READONLY or 0 */
 } JavaPackageDef;
 
 /*===========================================================================*/
 
 /* The following two convenience functions present a complete, but simplified
-   LiveConnect API which is designed to handle the special case of a single 
+   LiveConnect API which is designed to handle the special case of a single
    Java-VM, with single-threaded operation, and the use of only one JSContext.
    The full API is in the section below. */
 
@@ -245,7 +245,7 @@ JSJ_ConnectToJavaVM(SystemJavaVM *java_vm, void* initargs);
 JS_EXPORT_API(JSBool)
 JSJ_InitJSContext(JSContext *cx, JSObject *global_obj,
                   JavaPackageDef *predefined_packages);
-   
+
 /* This function returns a structure that encapsulates the Java and JavaScript
    execution environment for the current native thread.  It is intended to
    be called from the embedder's implementation of JSJCallback's
@@ -271,7 +271,7 @@ JSJ_DetachCurrentThreadFromJava(JSJavaThreadState *jsj_env);
 
    If this function has not been called for a thread and a crossing is made
    into JavaScript from Java, the map_jsj_thread_to_js_context() callback will
-   be invoked to determine the JSContext for the thread.  The purpose of the 
+   be invoked to determine the JSContext for the thread.  The purpose of the
    function is to improve performance by avoiding the expense of the callback.
 */
 JS_EXPORT_API(JSContext *)

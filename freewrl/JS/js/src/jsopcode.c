@@ -105,7 +105,7 @@ static ptrdiff_t
 GetJumpOffset(jsbytecode *pc, jsbytecode *pc2)
 {
     uint32 type;
-    
+
     type = (js_CodeSpec[*pc].format & JOF_TYPEMASK);
     if (JOF_TYPE_IS_EXTENDED_JUMP(type))
         return GET_JUMPX_OFFSET(pc2);

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -67,19 +67,19 @@ class nsILiveconnect : public nsISupports {
 public:
 	NS_DEFINE_STATIC_IID_ACCESSOR(NS_ILIVECONNECT_IID)
 	NS_DEFINE_STATIC_CID_ACCESSOR(NS_CLIVECONNECT_CID)
-	
+
     /**
      * get member of a Native JSObject for a given name.
      *
      * @param obj        - A Native JS Object.
      * @param name       - Name of a member.
-     * @param pjobj      - return parameter as a java object representing 
+     * @param pjobj      - return parameter as a java object representing
      *                     the member. If it is a basic data type it is converted to
      *                     a corresponding java type. If it is a NJSObject, then it is
      *                     wrapped up as java wrapper netscape.javascript.JSObject.
      */
     NS_IMETHOD
-    GetMember(JNIEnv *jEnv, jsobject jsobj, const jchar *name, jsize length, void* principalsArray[], 
+    GetMember(JNIEnv *jEnv, jsobject jsobj, const jchar *name, jsize length, void* principalsArray[],
               int numPrincipals, nsISupports *securitySupports, jobject *pjobj) = 0;
 
     /**
@@ -87,11 +87,11 @@ public:
      *
      * @param obj        - A Native JS Object.
      * @param slot      - Index of a member.
-     * @param pjobj      - return parameter as a java object representing 
-     *                     the member. 
+     * @param pjobj      - return parameter as a java object representing
+     *                     the member.
      */
     NS_IMETHOD
-    GetSlot(JNIEnv *jEnv, jsobject jsobj, jint slot, void* principalsArray[], 
+    GetSlot(JNIEnv *jEnv, jsobject jsobj, jint slot, void* principalsArray[],
             int numPrincipals, nsISupports *securitySupports, jobject *pjobj) = 0;
 
     /**
@@ -104,7 +104,7 @@ public:
      *                     then a internal mapping is consulted to convert to a NJSObject.
      */
     NS_IMETHOD
-    SetMember(JNIEnv *jEnv, jsobject jsobj, const jchar* name, jsize length, jobject jobj, void* principalsArray[], 
+    SetMember(JNIEnv *jEnv, jsobject jsobj, const jchar* name, jsize length, jobject jobj, void* principalsArray[],
               int numPrincipals, nsISupports *securitySupports) = 0;
 
     /**
@@ -117,7 +117,7 @@ public:
      *                     then a internal mapping is consulted to convert to a NJSObject.
      */
     NS_IMETHOD
-    SetSlot(JNIEnv *jEnv, jsobject jsobj, jint slot, jobject jobj, void* principalsArray[], 
+    SetSlot(JNIEnv *jEnv, jsobject jsobj, jint slot, jobject jobj, void* principalsArray[],
             int numPrincipals, nsISupports *securitySupports) = 0;
 
     /**
@@ -127,11 +127,11 @@ public:
      * @param name       - Name of a member.
      */
     NS_IMETHOD
-    RemoveMember(JNIEnv *jEnv, jsobject jsobj, const jchar* name, jsize length,  void* principalsArray[], 
+    RemoveMember(JNIEnv *jEnv, jsobject jsobj, const jchar* name, jsize length,  void* principalsArray[],
                  int numPrincipals, nsISupports *securitySupports) = 0;
 
     /**
-     * call a method of Native JSObject. 
+     * call a method of Native JSObject.
      *
      * @param obj        - A Native JS Object.
      * @param name       - Name of a method.
@@ -139,7 +139,7 @@ public:
      * @param pjobj      - return value.
      */
     NS_IMETHOD
-    Call(JNIEnv *jEnv, jsobject jsobj, const jchar* name, jsize length, jobjectArray jobjArr,  void* principalsArray[], 
+    Call(JNIEnv *jEnv, jsobject jsobj, const jchar* name, jsize length, jobjectArray jobjArr,  void* principalsArray[],
          int numPrincipals, nsISupports *securitySupports, jobject *pjobj) = 0;
 
     /**
@@ -151,21 +151,21 @@ public:
      * @param script             - Script to be executed.
      * @param pjobj              - return value.
      */
-    NS_IMETHOD	
-    Eval(JNIEnv *jEnv, jsobject obj, const jchar *script, jsize length, void* principalsArray[], 
+    NS_IMETHOD
+    Eval(JNIEnv *jEnv, jsobject obj, const jchar *script, jsize length, void* principalsArray[],
          int numPrincipals, nsISupports *securitySupports, jobject *pjobj) = 0;
 
     /**
      * Get the window object for a plugin instance.
      *
-     * @param pJavaObject        - Either a jobject or a pointer to a plugin instance 
+     * @param pJavaObject        - Either a jobject or a pointer to a plugin instance
      *                             representing the java object.
-     * @param pjobj              - return value. This is a native js object 
-     *                             representing the window object of a frame 
+     * @param pjobj              - return value. This is a native js object
+     *                             representing the window object of a frame
      *                             in which a applet/bean resides.
      */
     NS_IMETHOD
-    GetWindow(JNIEnv *jEnv, void *pJavaObject, void* principalsArray[], 
+    GetWindow(JNIEnv *jEnv, void *pJavaObject, void* principalsArray[],
               int numPrincipals, nsISupports *securitySupports, jsobject *pobj) = 0;
 
     /**

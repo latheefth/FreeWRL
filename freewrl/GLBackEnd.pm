@@ -60,7 +60,7 @@ sub new {
 	my $wintitle;
 	my $pi = atan2(1,1) * 4;
 	if (my $g = $pars{Geometry}) {
-	    $g =~ /^(\d+)x(\d+)(?:([+-]\d+)([+-]\d+))?$/ 
+	    $g =~ /^(\d+)x(\d+)(?:([+-]\d+)([+-]\d+))?$/
 			or die("Invalid geometry string '$g' given to GLBackend");
 	    ($w, $h, $x, $y) = ($1, $2, $3, $4);
 	    # print "GEOMETRY: $w $h $x $y\n";
@@ -84,7 +84,7 @@ sub set_root { $_[0]{Root} = $_[1] }
 
 sub finish_event {
 	my($this) = @_;
-	
+
 	return if $this->{EDone};
 	my $x = $this->{MX} / $this->{W};
 	my $y = $this->{MY} / $this->{H};
@@ -104,7 +104,7 @@ sub finish_event {
 
 sub new_node {
 	my($this,$type,$fields) = @_;
-	
+
 	my $node = {
 		Type => $type,
 		CNode => VRML::CU::alloc_struct_be($type),

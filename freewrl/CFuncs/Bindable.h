@@ -18,7 +18,7 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 
 #include <math.h>
 
-#ifdef AQUA 
+#ifdef AQUA
 #include <gl.h>
 #include <glu.h>
 #include <glext.h>
@@ -50,7 +50,7 @@ extern int currboundvpno;
 
 extern int viewpoint_tos;
 extern unsigned int viewpoint_stack[];
- 
+
 void
 reset_upvector(void);
 

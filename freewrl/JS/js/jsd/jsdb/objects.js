@@ -36,7 +36,7 @@ function callMe()
     var A = new f2_ctor(1);
     debugger;
     var b = new f2_ctor(5);
-}    
+}
 
 function foo(a,b,c,d,e,f)
 {
@@ -45,7 +45,7 @@ function foo(a,b,c,d,e,f)
     var i;
     var j;
     debugger;
-}    
+}
 
 A = new f2_ctor(0);
 AA = new f2_ctor(100);

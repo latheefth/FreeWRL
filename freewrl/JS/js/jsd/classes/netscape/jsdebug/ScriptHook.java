@@ -17,20 +17,20 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
 
 /**
-* ScriptHook must be subclassed to respond to loading and 
+* ScriptHook must be subclassed to respond to loading and
 * unloading of scripts
 *
 * @author  John Bandhauer
 * @version 1.0
 * @since   1.0
 */
-public class ScriptHook extends Hook 
+public class ScriptHook extends Hook
 {
     /**
      * Create a ScriptHook for current the current VM.
@@ -41,7 +41,7 @@ public class ScriptHook extends Hook
      * Override this method to respond when a new script is
      * loaded into the VM.
      *
-     * @param script a script object created by the controller to 
+     * @param script a script object created by the controller to
      * represent this script. This exact same object will be used
      * in all further references to the script.
      */

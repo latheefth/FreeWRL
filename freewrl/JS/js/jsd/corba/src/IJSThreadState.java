@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public final class IJSThreadState
@@ -65,5 +65,5 @@ public final class IJSThreadState
     public int                  status;
     public int                  jsdthreadstate;
     public int                  id;  // used for referencing this object
-}    
+}
 

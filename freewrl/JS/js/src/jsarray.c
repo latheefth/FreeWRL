@@ -133,7 +133,7 @@ ValueIsLength(JSContext *cx, jsval v, jsuint *lengthp)
         *lengthp = (jsuint) i;
         return JS_TRUE;
     }
-    
+
     if (!js_ValueToNumber(cx, v, &d)) {
         JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL,
                          JSMSG_BAD_ARRAY_LENGTH);
@@ -693,7 +693,7 @@ HeapSortHelper(HSortArgs *qa, int lo, int hi)
 }
 
 JSBool
-js_HeapSort(void *vec, size_t nel, size_t elsize, JSComparator cmp, void *arg) 
+js_HeapSort(void *vec, size_t nel, size_t elsize, JSComparator cmp, void *arg)
 {
     void *pivot;
     HSortArgs qa;

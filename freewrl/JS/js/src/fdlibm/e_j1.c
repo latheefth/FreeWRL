@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
@@ -64,16 +64,16 @@
  * 	   (To avoid cancellation, use
  *		sin(x) +- cos(x) = -cos(2x)/(sin(x) -+ cos(x))
  * 	    to compute the worse one.)
- *	   
+ *
  *	3 Special cases
  *		j1(nan)= nan
  *		j1(0) = 0
  *		j1(inf) = 0
- *		
+ *
  * Method -- y1(x):
- *	1. screen out x<=0 cases: y1(0)=-inf, y1(x<0)=NaN 
+ *	1. screen out x<=0 cases: y1(0)=-inf, y1(x<0)=NaN
  *	2. For x<2.
- *	   Since 
+ *	   Since
  *		y1(x) = 2/pi*(j1(x)*(ln(x/2)+Euler)-1/x-x/2+5/64*x^3-...)
  *	   therefore y1(x)-2/pi*j1(x)*ln(x)-1/x is an odd function.
  *	   We use the following function to approximate y1,
@@ -98,9 +98,9 @@ static double pone(), qone();
 #endif
 
 #ifdef __STDC__
-static const double 
+static const double
 #else
-static double 
+static double
 #endif
 really_big    = 1e300,
 one	= 1.0,
@@ -120,9 +120,9 @@ s05  =  1.23542274426137913908e-11; /* 0x3DAB2ACF, 0xCFB97ED8 */
 static double zero    = 0.0;
 
 #ifdef __STDC__
-	double __ieee754_j1(double x) 
+	double __ieee754_j1(double x)
 #else
-	double __ieee754_j1(x) 
+	double __ieee754_j1(x)
 	double x;
 #endif
 {
@@ -191,9 +191,9 @@ static double V0[5] = {
 };
 
 #ifdef __STDC__
-	double __ieee754_y1(double x) 
+	double __ieee754_y1(double x)
 #else
-	double __ieee754_y1(x) 
+	double __ieee754_y1(x)
 	double x;
 #endif
 {
@@ -206,7 +206,7 @@ static double V0[5] = {
         ix = 0x7fffffff&hx;
         lx = __LO(un);
     /* if Y1(NaN) is NaN, Y1(-inf) is NaN, Y1(inf) is 0 */
-	if(ix>=0x7ff00000) return  one/(x+x*x); 
+	if(ix>=0x7ff00000) return  one/(x+x*x);
         if((ix|lx)==0) return -one/zero;
         if(hx<0) return zero/zero;
         if(ix >= 0x40000000) {  /* |x| >= 2.0 */
@@ -236,10 +236,10 @@ static double V0[5] = {
                     z = invsqrtpi*(u*ss+v*cc)/fd_sqrt(x);
                 }
                 return z;
-        } 
+        }
         if(ix<=0x3c900000) {    /* x < 2**-54 */
             return(-tpi/x);
-        } 
+        }
         z = x*x;
         u = U0[0]+z*(U0[1]+z*(U0[2]+z*(U0[3]+z*U0[4])));
         v = one+z*(V0[0]+z*(V0[1]+z*(V0[2]+z*(V0[3]+z*V0[4]))));
@@ -378,7 +378,7 @@ static double ps2[5] = {
         s = one+z*(q[0]+z*(q[1]+z*(q[2]+z*(q[3]+z*q[4]))));
         return one+ r/s;
 }
-		
+
 
 /* For x >= 8, the asymptotic expansions of qone is
  *	3/8 s - 105/1024 s^3 - ..., where s = 1/x.

@@ -6,7 +6,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
-package VRML::NodeType; 
+package VRML::NodeType;
 
 #########################################################
 # The routines below implement the browser object interface.
@@ -37,7 +37,7 @@ EOF
 ##     the previously selected filehandle is selected.
 ##
 ## The following VRML:: variables are used
-BEGIN { 
+BEGIN {
 								# Script output file name (set with -psout)
   $VRML::script_out_file = "" unless
 	defined $VRML::script_out_file ;
@@ -231,7 +231,7 @@ my $protono;
 	TextureCoordinate
 	/;
 
-# nodes that are just ignored for now. 
+# nodes that are just ignored for now.
 %VRML::Nodes::skipthese = map {($_=>1)} qw/
 	X3D
 	Metadata
@@ -365,7 +365,7 @@ my $protono;
 						pauseTime => [SFTime,0,exposedField],
 						isActive => [SFTime,0,eventOut],
 						isPaused => [SFTime,0,eventOut],
-						 
+
 						 # has the URL changed???
 						 __oldurl => [MFString, [""], field],
 						 # initial texture number
@@ -568,7 +568,7 @@ my $protono;
 						url => [MFString, [], exposedField],
 						duration_changed => [SFTime, -1, eventOut],
 						isActive => [SFBool, 0, eventOut],
-						
+
 						pauseTime => [SFTime,0,exposedField],
 						resumeTime => [SFTime,0,exposedField],
 						elapsedTime => [SFTime,0,eventOut],
@@ -860,7 +860,7 @@ my $protono;
 						isActive => [SFBool, 0, eventOut],
 						isOver => [SFBool, 0, eventOut],
 						description => [SFString, "", field],
-						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],	
+						rotation_changed => [SFRotation, [0, 0, 1, 0], eventOut],
 						trackPoint_changed => [SFVec3f, [0, 0, 0], eventOut],
 						# where we are at a press...
 						_origPoint => [SFVec3f, [0, 0, 0], field],
@@ -957,7 +957,7 @@ my $protono;
 						__points =>[SFInt32,0,field],
 						__colours =>[SFInt32,0,field],
 						__quadcount => [SFInt32,0,field],
-						
+
 						(map {(
 							   $_.Url => [MFString, [], exposedField],
 							   # OpenGL texture number
@@ -1220,7 +1220,7 @@ my $protono;
 						# "compiled" versions of strings above
 						__geoCoords => [SFVec3f,[0, 0, 0], field],
 						__geoSystem => [SFInt32,0,field],
-						
+
 					}
 					),
 
@@ -1326,7 +1326,7 @@ my $protono;
 	NurbsPositionInterpolator =>
 	new VRML::NodeType("NurbsPositionInterpolator",
 					{
-						
+
 						set_fraction => [SFFloat,undef,eventIn],
 						dimension => [SFInt32,0,exposedField],
 						keyValue => [MFVec3f,[],exposedField],

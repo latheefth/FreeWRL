@@ -59,7 +59,7 @@ echo stripping lines from idl which were added to correctly order declarations
 echo.
 copy ifaces.idl ifaces_original.idl
 REM
-REM since we currenly have 2 of these, we can avoid the copy 
+REM since we currenly have 2 of these, we can avoid the copy
 REM
 gawk -v pat="struct bogus0" -v lines=3 -f ..\src\cutlines.awk < ifaces.idl > temp.idl
 gawk -v pat="struct bogus1" -v lines=3 -f ..\src\cutlines.awk < temp.idl > ifaces.idl

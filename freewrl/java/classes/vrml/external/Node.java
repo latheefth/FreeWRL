@@ -52,7 +52,7 @@ public class Node {
       StringTokenizer tokens;
 
   // Return the type that is asked for. To determine the
-  // subclass, look at the string. 
+  // subclass, look at the string.
 
     String st = Browser.SendEventType(NodeName, name, "eventIn");
 
@@ -66,25 +66,25 @@ public class Node {
     //	" NDS " + NDS + " NewDT " + NewDT + " ScrTyp" + ScrT);
 
     // check out the return values specified in CFuncs/EAIServ.c
-    if(NewDT.equals("p")) { ret = new EventInMFString(); 
-    } else if(NewDT.equals("k")) { ret = new EventInSFImage(); 
-    } else if(NewDT.equals("e")) { ret = new EventInSFTime(); 
-    } else if(NewDT.equals("c")) { ret = new EventInSFColor(); 
-    } else if(NewDT.equals("l")) { ret = new EventInMFColor(); 
-    } else if(NewDT.equals("d")) { ret = new EventInSFFloat(); 
-    } else if(NewDT.equals("m")) { ret = new EventInMFFloat(); 
-    } else if(NewDT.equals("o")) { ret = new EventInMFInt32(); 
-    } else if(NewDT.equals("h")) { ret = new EventInSFNode(); 
-    } else if(NewDT.equals("r")) { ret = new EventInMFRotation(); 
-    } else if(NewDT.equals("s")) { ret = new EventInMFVec2f(); 
-    } else if(NewDT.equals("j")) { ret = new EventInSFVec2f(); 
-    } else if(NewDT.equals("l")) { ret = new EventInMFVec3f(); 
-    } else if(NewDT.equals("q")) { ret = new EventInMFNode(); 
-    } else if(NewDT.equals("i")) { ret = new EventInSFRotation(); 
-    } else if(NewDT.equals("g")) { ret = new EventInSFString(); 
-    } else if(NewDT.equals("b")) { ret = new EventInSFBool(); 
-    } else if(NewDT.equals("f")) { ret = new EventInSFInt32(); 
-    } else if(NewDT.equals("u")) { ret = new EventInSFVec3f(); 
+    if(NewDT.equals("p")) { ret = new EventInMFString();
+    } else if(NewDT.equals("k")) { ret = new EventInSFImage();
+    } else if(NewDT.equals("e")) { ret = new EventInSFTime();
+    } else if(NewDT.equals("c")) { ret = new EventInSFColor();
+    } else if(NewDT.equals("l")) { ret = new EventInMFColor();
+    } else if(NewDT.equals("d")) { ret = new EventInSFFloat();
+    } else if(NewDT.equals("m")) { ret = new EventInMFFloat();
+    } else if(NewDT.equals("o")) { ret = new EventInMFInt32();
+    } else if(NewDT.equals("h")) { ret = new EventInSFNode();
+    } else if(NewDT.equals("r")) { ret = new EventInMFRotation();
+    } else if(NewDT.equals("s")) { ret = new EventInMFVec2f();
+    } else if(NewDT.equals("j")) { ret = new EventInSFVec2f();
+    } else if(NewDT.equals("l")) { ret = new EventInMFVec3f();
+    } else if(NewDT.equals("q")) { ret = new EventInMFNode();
+    } else if(NewDT.equals("i")) { ret = new EventInSFRotation();
+    } else if(NewDT.equals("g")) { ret = new EventInSFString();
+    } else if(NewDT.equals("b")) { ret = new EventInSFBool();
+    } else if(NewDT.equals("f")) { ret = new EventInSFInt32();
+    } else if(NewDT.equals("u")) { ret = new EventInSFVec3f();
     } else {
     	// Return default
 
@@ -118,25 +118,25 @@ public class Node {
     //	" NDS " + NDS + " NewDT " + NewDT + " ScrTyp" + ScrT);
 
     // check out the return values specified in CFuncs/EAIServ.c
-    if(NewDT.equals("p")) { ret = new EventOutMFString(); 
-    } else if(NewDT.equals("k")) { ret = new EventOutSFImage(); 
-    } else if(NewDT.equals("e")) { ret = new EventOutSFTime(); 
-    } else if(NewDT.equals("c")) { ret = new EventOutSFColor(); 
-    } else if(NewDT.equals("l")) { ret = new EventOutMFColor(); 
-    } else if(NewDT.equals("d")) { ret = new EventOutSFFloat(); 
-    } else if(NewDT.equals("m")) { ret = new EventOutMFFloat(); 
-    } else if(NewDT.equals("o")) { ret = new EventOutMFInt32(); 
-    } else if(NewDT.equals("h")) { ret = new EventOutSFNode(); 
-    } else if(NewDT.equals("r")) { ret = new EventOutMFRotation(); 
-    } else if(NewDT.equals("s")) { ret = new EventOutMFVec2f(); 
-    } else if(NewDT.equals("j")) { ret = new EventOutSFVec2f(); 
-    } else if(NewDT.equals("l")) { ret = new EventOutMFVec3f(); 
-    } else if(NewDT.equals("q")) { ret = new EventOutMFNode(); 
-    } else if(NewDT.equals("i")) { ret = new EventOutSFRotation(); 
-    } else if(NewDT.equals("g")) { ret = new EventOutSFString(); 
-    } else if(NewDT.equals("b")) { ret = new EventOutSFBool(); 
-    } else if(NewDT.equals("f")) { ret = new EventOutSFInt32(); 
-    } else if(NewDT.equals("u")) { ret = new EventOutSFVec3f(); 
+    if(NewDT.equals("p")) { ret = new EventOutMFString();
+    } else if(NewDT.equals("k")) { ret = new EventOutSFImage();
+    } else if(NewDT.equals("e")) { ret = new EventOutSFTime();
+    } else if(NewDT.equals("c")) { ret = new EventOutSFColor();
+    } else if(NewDT.equals("l")) { ret = new EventOutMFColor();
+    } else if(NewDT.equals("d")) { ret = new EventOutSFFloat();
+    } else if(NewDT.equals("m")) { ret = new EventOutMFFloat();
+    } else if(NewDT.equals("o")) { ret = new EventOutMFInt32();
+    } else if(NewDT.equals("h")) { ret = new EventOutSFNode();
+    } else if(NewDT.equals("r")) { ret = new EventOutMFRotation();
+    } else if(NewDT.equals("s")) { ret = new EventOutMFVec2f();
+    } else if(NewDT.equals("j")) { ret = new EventOutSFVec2f();
+    } else if(NewDT.equals("l")) { ret = new EventOutMFVec3f();
+    } else if(NewDT.equals("q")) { ret = new EventOutMFNode();
+    } else if(NewDT.equals("i")) { ret = new EventOutSFRotation();
+    } else if(NewDT.equals("g")) { ret = new EventOutSFString();
+    } else if(NewDT.equals("b")) { ret = new EventOutSFBool();
+    } else if(NewDT.equals("f")) { ret = new EventOutSFInt32();
+    } else if(NewDT.equals("u")) { ret = new EventOutSFVec3f();
     } else {
 	throw new InvalidEventOutException();
     }

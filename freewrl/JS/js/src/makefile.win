@@ -16,7 +16,7 @@
 #// Copyright (C) 1998 Netscape Communications Corporation. All
 #// Rights Reserved.
 #//
-#// Contributor(s): 
+#// Contributor(s):
 #//
 #// Alternatively, the contents of this file may be used under the
 #// terms of the GNU Public License (the "GPL"), in which case the
@@ -78,7 +78,7 @@ LLIBS=$(LIBNSPR) $(FDLIBM_LIBRARY)
 LCFLAGS= $(LCFLAGS) -DEXPORT_JS_API
 
 #//------------------------------------------------------------------------
-#// 
+#//
 #// Define the files necessary to build the target (ie. OBJS)
 #//
 #//------------------------------------------------------------------------
@@ -187,7 +187,7 @@ $(FDLIBM_LIBRARY):
     @echo +++ make: %MAKE_ARGS% in $(MAKEDIR)\$@
 	@cd fdlibm
 	@$(NMAKE) -f makefile.win %%MAKE_ARGS%%
-    @cd $(MAKEDIR) 
+    @cd $(MAKEDIR)
 !endif
 
 libs:: $(DLL)

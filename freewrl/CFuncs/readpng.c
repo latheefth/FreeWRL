@@ -191,7 +191,7 @@ uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
         //JAS - flip rows around row_pointers[i] = image_data + i*rowbytes;
         row_pointers[i] = image_data + (height-i-1)*rowbytes;
     }
-    
+
 
     /* now we can go ahead and just read the whole image */
 

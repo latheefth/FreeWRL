@@ -17,12 +17,12 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public interface IScriptHook extends org.omg.CORBA.Object
 {
     public void justLoadedScript(IScript script);
     public void aboutToUnloadScript(IScript script);
-}    
+}
 

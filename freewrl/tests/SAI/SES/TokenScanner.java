@@ -14,7 +14,7 @@ public class TokenScanner {
   public String nextToken () {
     int start = _pos;
     try {
-      while ((_pos < _message.length()) && (_message.charAt(_pos) != ' ')) 
+      while ((_pos < _message.length()) && (_message.charAt(_pos) != ' '))
 	{ _pos++; }
       _pos++;
       return _message.substring(start, _pos-1);

@@ -22,7 +22,7 @@ GLfloat last_color[] = {0.0,0.0,0.0};
 
 /* How many faces are in this IndexedFaceSet?			*/
 
-int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {	
+int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 	/* lets see how many faces we have */
 	int pointctr=0;
 	int max_points_per_face = 0;
@@ -38,21 +38,21 @@ int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 			}
 
 			faces++;
-			if (pointctr > max_points_per_face) 
+			if (pointctr > max_points_per_face)
 				max_points_per_face = pointctr;
-			if (pointctr < min_points_per_face) 
+			if (pointctr < min_points_per_face)
 				min_points_per_face = pointctr;
 			pointctr = 0;
 		} else pointctr++;
 	}
 
-		
+
 	/*
 	printf ("this structure has %d faces\n",faces);
 	printf ("	max points per face %d\n",max_points_per_face);
 	printf ("	min points per face %d\n\n",min_points_per_face);
 	*/
-	
+
 	if (faces < 1) {
 		printf("an IndexedFaceSet with no faces found\n");
 		return (0);
@@ -60,7 +60,7 @@ int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 	return faces;
 }
 
-
+
 /* Generate the normals for each face of an IndexedFaceSet	*/
 /* create two datastructures:					*/
 /* 	- face normals; given a face, tell me the normal	*/
@@ -70,7 +70,7 @@ void IFS_face_normals (
 	struct pt *facenormals,
 	int *faceok,
 	int *pointfaces,
-	int faces, 
+	int faces,
 	int npoints,
 	int cin,
 	struct SFColor *points,
@@ -109,14 +109,14 @@ void IFS_face_normals (
 				if (this_IFS->coordIndex.p[tmp_a] != -1) tmp_a++;
 			} else {
 				/* check to see that the coordIndex does not point to a
-				   point that is outside the range of our point array */	
+				   point that is outside the range of our point array */
 				checkpoint = tmp_a;
 				while (checkpoint < cin) {
 					if (this_IFS->coordIndex.p[checkpoint] == -1) {
 						checkpoint = cin; // stop the scan
 					} else {
 						//printf ("verifying %d for face %d\n",this_IFS->coordIndex.p[checkpoint],i);
-						if ((this_IFS->coordIndex.p[checkpoint] < 0) || 
+						if ((this_IFS->coordIndex.p[checkpoint] < 0) ||
 						    (this_IFS->coordIndex.p[checkpoint] >= npoints)) {
 							printf ("IndexedFaceSet face %d has a point out of range,",i);
 							printf (" point is %d, should be between 0 and %d\n",
@@ -128,12 +128,12 @@ void IFS_face_normals (
 				}
 			}
 		}
-				
+
 		/* face has passed checks so far... */
 		if (faceok[i]) {
 			/* check for degenerate triangles -- if found, try to select another point */
 			tmp_c = FALSE;
-			pt_1 = tmp_a; 
+			pt_1 = tmp_a;
 			if (ccw) {
 				//printf ("IFS face normals CCW\n");
 				pt_2 = tmp_a+1; pt_3 = tmp_a+2;
@@ -141,39 +141,39 @@ void IFS_face_normals (
 				//printf ("IFS face normals *NOT* CCW\n");
 				pt_3 = tmp_a+1; pt_2 = tmp_a+2;
 			}
-	
-			do {	
+
+			do {
 				/* first three coords give us the normal */
 				c1 = &(points[this_IFS->coordIndex.p[pt_1]]);
-				c2 = &(points[this_IFS->coordIndex.p[pt_2]]); 
+				c2 = &(points[this_IFS->coordIndex.p[pt_2]]);
 				c3 = &(points[this_IFS->coordIndex.p[pt_3]]);
-	
+
 				a[0] = c2->c[0] - c1->c[0];
 				a[1] = c2->c[1] - c1->c[1];
 				a[2] = c2->c[2] - c1->c[2];
 				b[0] = c3->c[0] - c1->c[0];
 				b[1] = c3->c[1] - c1->c[1];
 				b[2] = c3->c[2] - c1->c[2];
-		
+
 				facenormals[i].x = a[1]*b[2] - b[1]*a[2];
 				facenormals[i].y = -(a[0]*b[2] - b[0]*a[2]);
 				facenormals[i].z = a[0]*b[1] - b[0]*a[1];
-		
-				//printf ("vector length is %f\n",calc_vector_length (facenormals[i])); 
-		
+
+				//printf ("vector length is %f\n",calc_vector_length (facenormals[i]));
+
 				if (fabs(calc_vector_length (facenormals[i])) < 0.00001) {
 					AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
 					BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
 					/* printf ("AC %f ",AC);
 					printf ("BC %f \n",BC); */
-		
+
 					/* we have 3 points, a, b, c */
 					/* we also have 3 vectors, AB, AC, BC */
 					/* find out which one looks the closest one to skip out */
 					/* either we move both 2nd and 3rd points, or just the 3rd */
 					if (fabs(AC) < fabs(BC)) { pt_2++; }
 					pt_3++;
-		
+
 					/* skip forward to the next couple of points - if possible */
 					/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
 					tmp_a ++;
@@ -183,7 +183,7 @@ void IFS_face_normals (
 						if (fabs(calc_vector_length (facenormals[i])) < 0.0000001) {
 							/* we would have a divide by zero in normalize_vector, so... */
 							facenormals[i].z = 1.0;
-	
+
 							// Mark this face to be bad
 							faceok[i] = FALSE;
 						}
@@ -193,11 +193,11 @@ void IFS_face_normals (
 					tmp_c = TRUE;
 					tmp_a +=3;
 				}
-	
+
 			} while (!tmp_c);
-		
+
 			normalize_vector(&facenormals[i]);
-				
+
 			/*printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
 				c1->c[0],c1->c[1],c1->c[2],
 				c2->c[0],c2->c[1],c2->c[2],
@@ -205,7 +205,7 @@ void IFS_face_normals (
 			printf ("normal %f %f %f\n\n",facenormals[i].x,
 				facenormals[i].y,facenormals[i].z);
 			*/
-				
+
 		}
 
 		/* skip forward to next ifs - we have the normal - but check for bad Points!*/
@@ -219,13 +219,13 @@ void IFS_face_normals (
 	}
 
 
-	/* now, go through each face, and make a point-face list 
-	   so that I can give it a point later, and I will know which face(s) 
+	/* now, go through each face, and make a point-face list
+	   so that I can give it a point later, and I will know which face(s)
 	   it belong to that point */
 
 	/* printf ("\nnow generating point-face list\n");  */
 	for (i=0; i<npoints; i++) { pointfaces[i*POINT_FACES]=0; }
-	facectr=0; 
+	facectr=0;
 	for(i=0; i<cin; i++) {
 		tmp_a=this_IFS->coordIndex.p[i];
 		/* printf ("pointfaces, coord %d coordIndex %d face %d\n",i,tmp_a,facectr); */
@@ -254,14 +254,14 @@ void IFS_face_normals (
 }
 
 
-
+
 /* Tesselated faces MAY have the wrong normal calculated. re-calculate after tesselation	*/
 
 void Extru_check_normal (
 	struct pt *facenormals,
-	int this_face, 
+	int this_face,
 	int direction,
-	struct VRML_PolyRep  *rep_, 
+	struct VRML_PolyRep  *rep_,
 	int ccw) {
 
 	/* only use this after tesselator as we get coord indexes from global var */
@@ -315,27 +315,27 @@ void Extru_check_normal (
 
 void IFS_check_normal (
 	struct pt *facenormals,
-	int this_face, 
+	int this_face,
 	struct SFColor *points, int base,
 	struct VRML_IndexedFaceSet *this_IFS, int ccw) {
 
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
 
-		
-	//printf ("IFS_check_normal, base %d points %d %d %d\n",base, 
+
+	//printf ("IFS_check_normal, base %d points %d %d %d\n",base,
 	//	global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
 	//printf ("normal was %f %f %f\n\n",facenormals[this_face].x,
 	//	facenormals[this_face].y,facenormals[this_face].z);
-		
-	
+
+
 	/* first three coords give us the normal */
 	c1 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[0]]]);
 	if (ccw) {
-		c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]); 
+		c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]);
 		c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
 	} else {
-		c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]); 
+		c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]);
 		c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
 	}
 
@@ -350,15 +350,15 @@ void IFS_check_normal (
 	facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
 	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
 
-	//printf ("vector length is %f\n",calc_vector_length (facenormals[this_face])); 
+	//printf ("vector length is %f\n",calc_vector_length (facenormals[this_face]));
 
 	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
 		//printf ("warning: Tesselated surface has invalid normal - if this is an IndexedFaceSet, check coordinates of ALL faces\n");
 	} else {
 
 		normalize_vector(&facenormals[this_face]);
-	
-		
+
+
 		//printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
 		//	c1->c[0],c1->c[1],c1->c[2],
 		//	c2->c[0],c2->c[1],c2->c[2],
@@ -366,9 +366,9 @@ void IFS_check_normal (
 		//printf ("normal %f %f %f\n\n",facenormals[this_face].x,
 		//	facenormals[this_face].y,facenormals[this_face].z);
 	}
-	
+
 }
-
+
 
 void add_to_face (
 	int point,
@@ -386,7 +386,7 @@ void add_to_face (
 		pointfaces[point+ pointfaces[point]] = face;
 	}
 }
-	
+
 /********************************************************************
  *
  * ElevationGrid Triangle
@@ -416,7 +416,7 @@ void Elev_Tri (
 		D = E;
 		E = tmp;
 	}
-		
+
 
 	this_Elev->cindex[vertex_ind] = A;
 	this_Elev->cindex[vertex_ind+1] = D;
@@ -432,7 +432,7 @@ void Elev_Tri (
 		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
 		c3->c[0],c3->c[1],c3->c[2]);
 	*/
-	
+
 
 	if (NONORMALS) {
 		/* calculate normal for this triangle */
@@ -459,7 +459,7 @@ void Elev_Tri (
 
 		/*
 		printf ("facenormals index %d is %f %f %f\n",this_face, facenormals[this_face].x,
-				facenormals[this_face].y, facenormals[this_face].z); 
+				facenormals[this_face].y, facenormals[this_face].z);
 		*/
 
 		/* add this face to the faces for this point */
@@ -468,12 +468,12 @@ void Elev_Tri (
 		add_to_face (E*POINT_FACES,this_face,pointfaces);
 	}
 }
-
+
 
 
 /***********************************************************************8
  *
- * Extrusion Texture Mapping 	
+ * Extrusion Texture Mapping
  *
  ***********************************************************************/
 
@@ -496,7 +496,7 @@ void Extru_tex(
 	if (vertex_ind+2 >= tcindexsize) {
 		printf ("INTERNAL ERROR: Extru_tex, bounds check %d >= %d\n",vertex_ind+2,tcindexsize);
 	}
-	
+
 	/* generate textures in a clockwise manner, reverse the triangle */
 	if (!(ccw)) { j = B; B = C; C = j; }
 
@@ -505,7 +505,7 @@ void Extru_tex(
 	this_Elev->tcindex[vertex_ind+1] =tci_ct+B;
 	this_Elev->tcindex[vertex_ind+2] =tci_ct+C;
 
-	/*	
+	/*
 	c1 = (struct SFColor *) &this_Elev->coord[3*A];
 	c2 = (struct SFColor *) &this_Elev->coord[3*C];
 	c3 = (struct SFColor *) &this_Elev->coord[3*B];
@@ -518,7 +518,7 @@ void Extru_tex(
 			this_Elev->tcindex[vertex_ind],this_Elev->tcindex[vertex_ind+1],
 			this_Elev->tcindex[vertex_ind+2]);
 	*/
-	
+
 }
 
 
@@ -538,7 +538,7 @@ void Extru_ST_map(
 	int tcoordsize) {
 
 	int x;
-	GLfloat minS = 9999.9; 
+	GLfloat minS = 9999.9;
 	GLfloat maxS = -9999.9;
 	GLfloat minT = 9999.9;
 	GLfloat maxT = -9999.9;
@@ -576,7 +576,7 @@ void Extru_ST_map(
 
 	for(x=start; x<end; x++) {
 		int tci, ci;
-		
+
 		/*
 		printf ("Extru_ST_Map: triangle has tex vertices:%d %d %d ",
 			this_Extru->tcindex[triind_start*3],
@@ -594,7 +594,7 @@ void Extru_ST_map(
 		ci = this_Extru->cindex[triind_start*3];
 		Point_Zero = tci;
 
-		if ((tci*3+2) >= tcoordsize) { 
+		if ((tci*3+2) >= tcoordsize) {
 			printf ("INTERNAL ERROR: Extru_ST_map(1), index %d greater than %d \n",(tci*3+2),tcoordsize);
 			return;
 		}
@@ -613,7 +613,7 @@ void Extru_ST_map(
 		tci = this_Extru->tcindex[triind_start*3+1];
 		ci = this_Extru->cindex[triind_start*3+1];
 
-		if ((tci*3+2) >= tcoordsize) { 
+		if ((tci*3+2) >= tcoordsize) {
 			printf ("INTERNAL ERROR: Extru_ST_map(2), index %d greater than %d \n",(tci*3+2),tcoordsize);
 			return;
 		}
@@ -632,7 +632,7 @@ void Extru_ST_map(
 		tci = this_Extru->tcindex[triind_start*3+2];
 		ci = this_Extru->cindex[triind_start*3+2];
 
-		if ((tci*3+2) >= tcoordsize) { 
+		if ((tci*3+2) >= tcoordsize) {
 			printf ("INTERNAL ERROR: Extru_ST_map(3), index %d greater than %d \n",(tci*3+2),tcoordsize);
 			return;
 		}
@@ -650,13 +650,13 @@ void Extru_ST_map(
 	}
 }
 
-
+
 
 void do_glColor3fv(struct SFRotation *dest, GLfloat *param) {
 	int i;
 
 	/* parameter checks */
-	for (i=0; i<3; i++) { 
+	for (i=0; i<3; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
 			param[i] = 0.5;
 		}
@@ -693,7 +693,7 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 
 
 
-void render_polyrep(void *node, 
+void render_polyrep(void *node,
 	int npoints, struct SFColor *points,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
@@ -723,21 +723,21 @@ void render_polyrep(void *node,
 
 	// printing.
 	/*
-	{int i,j; 
-		for(i=0; i<r->ntri*3; i++) { 
-			printf ("i %d cindex %d ",i,r->cindex[i]); 
+	{int i,j;
+		for(i=0; i<r->ntri*3; i++) {
+			printf ("i %d cindex %d ",i,r->cindex[i]);
 			printf (" coords %f %f %f\n",
 					r->coord[3*r->cindex[i]+0],
 					r->coord[3*r->cindex[i]+1],
 					r->coord[3*r->cindex[i]+2]
 			       );
 		}
-	
+
 	}
 	*/
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
-	if(r->color) { 
+	if(r->color) {
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
@@ -747,7 +747,7 @@ void render_polyrep(void *node,
 	}
 
 	// clockwise or not?
-	if (!r->ccw) { 
+	if (!r->ccw) {
 		glFrontFace(GL_CW);
 	}
 
@@ -774,7 +774,7 @@ void render_polyrep(void *node,
 	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->coord);
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
 
-	// put things back to the way they were; 
+	// put things back to the way they were;
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
 	if (r->color) {
 		glDisable(GL_COLOR_MATERIAL);
@@ -787,15 +787,15 @@ void render_polyrep(void *node,
 }
 
 /********************************************************************
-* 
+*
 * stream_polyrep
-* 
+*
 *  convert a polyrep into a structure format that displays very
-*  well, especially on fast graphics hardware 
+*  well, especially on fast graphics hardware
 *
 *********************************************************************/
 
-void stream_polyrep(void *node, 
+void stream_polyrep(void *node,
 	int npoints, struct SFColor *points,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
@@ -872,7 +872,7 @@ void stream_polyrep(void *node,
 	/* do we need to generate default texture mapping? */
 	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
 		/* use Mufti's initialization scheme for minVals and maxVals; */
-		for (j=0; j<3; j++) {    
+		for (j=0; j<3; j++) {
 			if (points) {
 				minVals[j] = points[r->cindex[0]].c[j];
 				maxVals[j] = points[r->cindex[0]].c[j];
@@ -888,15 +888,15 @@ void stream_polyrep(void *node,
 		      if(points) {
 			    if (minVals[j] > points[ind].c[j]) minVals[j] = points[ind].c[j];
 			    if (maxVals[j] < points[ind].c[j]) maxVals[j] = points[ind].c[j];
-		      } else if(r->coord) {	
+		      } else if(r->coord) {
 			    if (minVals[j] >  r->coord[3*ind+j]) minVals[j] =  r->coord[3*ind+j];
 			    if (maxVals[j] <  r->coord[3*ind+j]) maxVals[j] =  r->coord[3*ind+j];
 		      }
-		  } 
+		  }
 		}
 
 		/* find the S,T mapping. */
-		Xsize = maxVals[0]-minVals[0]; 
+		Xsize = maxVals[0]-minVals[0];
 		Ysize = maxVals[1]-minVals[1];
 		Zsize = maxVals[2]-minVals[2];
 
@@ -930,7 +930,7 @@ void stream_polyrep(void *node,
 		/* new cindex, this should just be a 1.... ntri*3 linear string */
 		newcindex[i] = i;
 
-		if (stream_poly_verbose) printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
+		if (stream_poly_verbose) printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3);
 
 		/* get normals and colors, if any	*/
 		if(r->norindex) { nori = r->norindex[i];}
@@ -943,8 +943,8 @@ void stream_polyrep(void *node,
 
 		/* get texture coordinates, if any	*/
 		if (FORCETEXTURES && r->tcindex) {
-			tci = r->tcindex[i]; 
-			if (stream_poly_verbose) 
+			tci = r->tcindex[i];
+			if (stream_poly_verbose)
 				printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
 
@@ -965,12 +965,12 @@ void stream_polyrep(void *node,
 				printf ("r->normal nori %d ",nori);
 				fwnorprint(r->normal+3*nori);
 			}
-			
+
 			do_glNormal3fv(&newnorms[i], r->normal+3*nori);
 		}
 
 		if(hasc) {
-			if(ncolors) { 
+			if(ncolors) {
 				/* ColorMaterial -> these set Material too */
 				/* bounds check colors[] here */
 				if (coli >= ncolors) {
@@ -978,34 +978,34 @@ void stream_polyrep(void *node,
 					coli = 0;
 				}
 				if (stream_poly_verbose) {
-					printf ("coloUr ncolors %d, coli %d",ncolors,coli); 
-					fwnorprint(colors[coli].c); 
+					printf ("coloUr ncolors %d, coli %d",ncolors,coli);
+					fwnorprint(colors[coli].c);
 					printf ("\n");
 				}
 				do_glColor3fv(&newcolors[i],colors[coli].c);
 			} else if(r->color) {
 				if (stream_poly_verbose) {
-					printf ("coloUr"); 
-					fwnorprint(r->color+3*coli); 
-					printf ("\n"); 
+					printf ("coloUr");
+					fwnorprint(r->color+3*coli);
+					printf ("\n");
 				}
 				do_glColor3fv(&newcolors[i],r->color+3*coli);
-			} 
+			}
 		}
 
 
 		/* Coordinate points	*/
 		if(points) {
 			memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
-			//XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
-			if (stream_poly_verbose) 
+			//XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];
+			if (stream_poly_verbose)
 				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
-		} else if(r->coord) {	
+		} else if(r->coord) {
 			memcpy (&newpoints[i].c[0], &r->coord[3*ind], sizeof(struct SFColor));
-			//XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
-			if (stream_poly_verbose) 
-				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",i,  
+			//XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2];
+			if (stream_poly_verbose)
+				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 		}
 
@@ -1016,7 +1016,7 @@ void stream_polyrep(void *node,
 			// did we run out of tex coords? Hanim-Nancy does this...
 			if (tci < ntexcoords) {
 			    if (stream_poly_verbose) {
-				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]); 
+				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]);
 			    }
 			    memcpy(&newtc[i*2],texcoords[tci].c,sizeof(float)*2);
 		  	    //glTexCoord2fv(texcoords[tci].c);
@@ -1035,24 +1035,24 @@ void stream_polyrep(void *node,
 		  		newtc[i*2] = r->tcoord[3*tci+0]; newtc[i*2+1] =  r->tcoord[3*tci+2];
 
 			} else {
-				if (stream_poly_verbose) 
+				if (stream_poly_verbose)
 					printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 		  		newtc[i*2] = r->tcoord[3*ind+0]; newtc[i*2+1] = r->tcoord[3*ind+2];
 			}
 		    } else {
 			/* default textures */
-			/* we want the S values to range from 0..1, and the 
+			/* we want the S values to range from 0..1, and the
 			   T values to range from 0...S/T */
-			
+
 			newtc[i*2]   = (newpoints[i].c[Sindex] - minVals[Sindex])/Ssize;
 			newtc[i*2+1] = (newpoints[i].c[Tindex] - minVals[Tindex])/Ssize;
 		    }
 		}
 
 		/* calculate maxextents */
-		if (fabs(newpoints[i].c[0]) > (p->_extent[0])) p->_extent[0] = fabs(newpoints[i].c[0]); 
-		if (fabs(newpoints[i].c[1]) > (p->_extent[1])) p->_extent[1] = fabs(newpoints[i].c[1]); 
-		if (fabs(newpoints[i].c[2]) > (p->_extent[2])) p->_extent[2] = fabs(newpoints[i].c[2]); 
+		if (fabs(newpoints[i].c[0]) > (p->_extent[0])) p->_extent[0] = fabs(newpoints[i].c[0]);
+		if (fabs(newpoints[i].c[1]) > (p->_extent[1])) p->_extent[1] = fabs(newpoints[i].c[1]);
+		if (fabs(newpoints[i].c[2]) > (p->_extent[2])) p->_extent[2] = fabs(newpoints[i].c[2]);
 	}
 
 	/* free the old, and make the new current. */
@@ -1076,7 +1076,7 @@ void stream_polyrep(void *node,
 	if (stream_poly_verbose)
 		printf ("end render_polyrep\n\n");
 }
-
+
 /*********************************************************************
  *
  * render_ray_polyrep : get intersections of a ray with one of the
@@ -1109,10 +1109,10 @@ void render_ray_polyrep(void *node,
 
 	UNUSED(npoints);
 	/*
-	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,v->name, 
+	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,v->name,
 		p->_change, r->_change, r->ntri);
 	*/
-	
+
 	for(i=0; i<r->ntri; i++) {
 		for(pt = 0; pt<3; pt++) {
 			int ind = r->cindex[i*3+pt];
@@ -1140,17 +1140,17 @@ void render_ray_polyrep(void *node,
 		if (fabs(v12pt-1.0) < 0.00001) continue;
 
 		/* if we have a degenerate triangle, we can't compute a normal, so skip */
-		
+
 		if ((fabs(v1len) > 0.00001) && (fabs(v2len) > 0.00001)) {
 
 			/* v3 is our normal to the surface */
 			VECCP(v1,v2,v3);
 			v3len = sqrt(VECSQ(v3)); VECSCALE(v3, 1/v3len);
-	
+
 			pt1 = VECPT(t_r1,v3);
 			pt2 = VECPT(t_r2,v3);
-			pt3 = v3.x * point[0][0] + v3.y * point[0][1] + 
-				v3.z * point[0][2]; 
+			pt3 = v3.x * point[0][0] + v3.y * point[0][1] +
+				v3.z * point[0][2];
 			/* Now we have (1-r)pt1 + r pt2 - pt3 = 0
 			 * r * (pt1 - pt2) = pt1 - pt3
 			 */
@@ -1174,7 +1174,7 @@ void render_ray_polyrep(void *node,
 				rb = VECPT(v2, p0h);
 				if(rb < 0) {continue;}
 				/* Now, the condition for the point to
-				 * be inside 
+				 * be inside
 				 * (ka + lb = p)
 				 * (k + l b.a = p.a)
 				 * (k b.a + l = p.b)
@@ -1187,13 +1187,13 @@ void render_ray_polyrep(void *node,
 				 if(k+l > 1 || k < 0 || l < 0) {
 				 	continue;
 				 }
-				 rayhit(((float)(tmp2)), 
-					((float)(hitpoint.x)), 
-					((float)(hitpoint.y)), 
+				 rayhit(((float)(tmp2)),
+					((float)(hitpoint.x)),
+					((float)(hitpoint.y)),
 					((float)(hitpoint.z)),
-				 	((float)(v3.x)), 
-					((float)(v3.y)), 
-					((float)(v3.z)), 
+				 	((float)(v3.x)),
+					((float)(v3.y)),
+					((float)(v3.z)),
 					((float)-1),((float)-1), "polyrep");
 			 }
 		/*
@@ -1203,8 +1203,8 @@ void render_ray_polyrep(void *node,
 		}
 	}
 }
-
-void regen_polyrep(void *node) 
+
+void regen_polyrep(void *node)
 {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
@@ -1219,13 +1219,13 @@ void regen_polyrep(void *node)
 		/* in C always check if you got the mem you wanted...  >;->		*/
 		if (!(p->_intern)) {
 			freewrlDie("Not enough memory to regen_polyrep... ;(");
-		} 
- 
+		}
+
 		r = (struct VRML_PolyRep *)p->_intern;
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0; r->tcoord = 0;
-		r->tcindex = 0;  
+		r->tcindex = 0;
 	}
 	r = (struct VRML_PolyRep *)p->_intern;
 	r->_change = p->_change;

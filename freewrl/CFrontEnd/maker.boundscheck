@@ -1,5 +1,5 @@
 #parameter 1 should be the path to where the VRML perl files are located
-# at compile time. Used in case an rpm goes onto a system that has a 
+# at compile time. Used in case an rpm goes onto a system that has a
 # different perl version than the one built.
 #echo $1
 
@@ -7,7 +7,7 @@ perl -MExtUtils::Embed -e xsinit -- -o perlxsi.c
 
 gcc -c perlxsi.c  \
 	-fbounds-checking \
-	-I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts` 
+	-I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
 
 gcc -c freewrl.c \
 	-fbounds-checking \

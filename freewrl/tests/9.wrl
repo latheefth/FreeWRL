@@ -9,7 +9,7 @@ Shape {geometry Box { }
 appearance Appearance { material Material { diffuseColor 0.8 0 0.8} } }
 
 Transform {
-translation 2 0 0 
+translation 2 0 0
 children [
 	Shape {geometry Sphere { }
 	appearance Appearance { material Material { diffuseColor 0.8 0 0} } }

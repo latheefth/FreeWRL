@@ -6,7 +6,7 @@
 # Notes (John Stewart)
 #
 #	- the "-save" option or the "s" key starts/stops
-#	
+#
 #	- the subdir seqs must exist
 #
 #	- run it with ./Sequencer seqs/*  (for instance)
@@ -16,7 +16,7 @@
 #
 #
 # How shameful! should write size by hand!
-w=640          
+w=640
 h=480
 for i in $* ; do
   j=`dirname $i`/`basename $i .$w.$h.raw`;

@@ -10,7 +10,7 @@
  * Steven Baker - look at http://sjbaker.org/steve/omniv/frustcull.html
  *
  * Thanks Steve!
- * 
+ *
  */
 
 #include "EXTERN.h"
@@ -41,8 +41,8 @@ static int PlaneInCheck(
 	float extent, 		// "spread" of the extent in this direction
 	float lineDist		// offset of vector
 		);
-  
-/* take the measurements of a geometry (eg, box), and save it. Note 
+
+/* take the measurements of a geometry (eg, box), and save it. Note
  * that what is given is a Shape, the values get pushed up to the
  * Geometries grouping node parent. */
 
@@ -56,14 +56,14 @@ void setExtent(float x, float y, float z, struct VRML_Box *me) {
 	for (c=0; c<(me->_nparents); c++) {
 		//printf ("parent %d of %d is %d\n",c,me,me->_parents[c]);
 		shapeParent = (struct VRML_Box *)me->_parents[c];
-		//printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents); 
+		//printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents);
 		//printf ("parent %d of %d is %d\n",c,shapeParent,shapeParent->_parents[c]);
 
 		for (d=0; d<(shapeParent->_nparents); d++) {
 			geomParent = (struct VRML_Box *)shapeParent->_parents[d];
-			if (x > geomParent->_extent[0]) geomParent->_extent[0] = x; 
-			if (y > geomParent->_extent[1]) geomParent->_extent[1] = y; 
-			if (z > geomParent->_extent[2]) geomParent->_extent[2] = z; 
+			if (x > geomParent->_extent[0]) geomParent->_extent[0] = x;
+			if (y > geomParent->_extent[1]) geomParent->_extent[1] = y;
+			if (z > geomParent->_extent[2]) geomParent->_extent[2] = z;
 		}
 	}
 	//printf ("setExtent, for %f %f %f, node %d\n",x,y,z,me);
@@ -84,12 +84,12 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 
 	/* calculate the maximum of the current position, and add the previous extent */
 	x =fabs(x)+me->_extent[0];y=fabs(y)+me->_extent[1];z=fabs(z)+me->_extent[2];
-	
+
 	for (i=0; i<(me->_nparents); i++) {
 		parent = (struct VRML_Box *)me->_parents[i];
-		if (x > parent->_extent[0]) parent->_extent[0] = x; 
-		if (y > parent->_extent[1]) parent->_extent[1] = y; 
-		if (z > parent->_extent[2]) parent->_extent[2] = z; 
+		if (x > parent->_extent[0]) parent->_extent[0] = x;
+		if (y > parent->_extent[1]) parent->_extent[1] = y;
+		if (z > parent->_extent[2]) parent->_extent[2] = z;
 	//	printf ("propextent, me %d my parent %d is %d ext %4.2f %4.2f %4.2f\n",me,i,parent, parent->_extent[0],parent->_extent[1],parent->_extent[2]);
 	}
 #endif
@@ -101,16 +101,16 @@ void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
 	x = xDists.c[0];
 	y = xDists.c[1];
 	z = xDists.c[2];
-return;	
+return;
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
 	if (PIV == 0) return;
 
 	/* calculate distance to this box from the Frustum */
 
-	
+
 	/* show a bounding box around each grouping node */
 	glPushAttrib(GL_ENABLE_BIT);
-	glEnable(GL_COLOR_MATERIAL); 
+	glEnable(GL_COLOR_MATERIAL);
 	glDisable(GL_CULL_FACE);
 
 	if (PIV >= 2) {
@@ -157,18 +157,18 @@ return;
 	glVertex3f(-x, -y, -z);
 	glEnd();
 
-	glDisable(GL_COLOR_MATERIAL); 
+	glDisable(GL_COLOR_MATERIAL);
 	glPopAttrib();
 #endif
 }
-	
+
 /* set the "static" frustum variables. Changes only when window params change.
  *
  * A Frustum is a truncated pyramid. It is used to test as to whether another
  * cube intersects with it; if so, the other cube is "visible"; if not, the
  * other cube does not need to be rendered.
  *
- * With fast GPU's, a few extra triangles is not a worry, but matimatical 
+ * With fast GPU's, a few extra triangles is not a worry, but matimatical
  * calculations on the main cpu are, so we use a Cone for Frustum testing, not
  * a 6 sided truncated pyramid.
  *
@@ -214,7 +214,7 @@ void calculateFrustumCone () {
  *     ----------------
  *     |              /
  *     |             /
- *     |            / 
+ *     |            /
  *     |           /
  *     |          /
  *     |         /
@@ -273,13 +273,13 @@ static int PlaneInCheck(
 	if ((A<C) && (D<B)) {
 		//printf ("BOTH POINTS OK\n");
 		return 2;
-	} 
+	}
 
 
-	if ((D<A) || (C>B)) { 
+	if ((D<A) || (C>B)) {
 		//printf ("POINTS OUTSIDE\n");
 		return 0;
-	} 
+	}
 
 	//printf ("POSSBLE\n");
 	return 1;
@@ -311,7 +311,7 @@ int PointInView(struct VRML_Transform *nod) {
 	//printf ("\nxDist %f yDist %f dist approx %f\n",xDist,yDist,modelMatrix[14]);
 
 	// get the extent from the VRML Struct passed in
-	ex_X=nod->_extent[0]; 
+	ex_X=nod->_extent[0];
 	ex_Y=nod->_extent[1];
 	ex_Z=nod->_extent[2];
 	//printf ("extent %f %f %f\n",nod->_extent[0], nod->_extent[1],nod->_extent[2]);

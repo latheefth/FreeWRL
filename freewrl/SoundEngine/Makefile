@@ -7,7 +7,7 @@ CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
 LIBRARIES = -lm
 SVROBJ = main.o wavmaker.o mixer.o
 
-all: main 
+all: main
 
 main: $(SVROBJ)
 	$(CC) $(SVROBJ) $(CFLAGS) -o FreeWRL_SoundServer $(LIBS) $(LIBRARIES)

@@ -5,7 +5,7 @@
  */
 
 #ifndef __pluginUtils_h__
-#define __pluginUtils_h__ 
+#define __pluginUtils_h__
 
 #include <errno.h>
 #include <signal.h>

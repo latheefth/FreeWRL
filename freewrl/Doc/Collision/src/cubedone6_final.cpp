@@ -62,7 +62,7 @@ void drawbox(struct pt p0, struct pt i, struct pt j, struct pt k) {
 	  {4,5,1,7},
 	  {4,7,2,6}
      };
-     
+
      VECADD(p[1],i);
      VECADD(p[2],j);
      VECADD(p[3],k);
@@ -70,7 +70,7 @@ void drawbox(struct pt p0, struct pt i, struct pt j, struct pt k) {
      VECADD(p[5],k); VECADD(p[5],i); //p[6]= k+i
      VECADD(p[6],j); VECADD(p[6],k); //p[5]= j+k
      VECADD(p[7],i); VECADD(p[7],j); //p[7]= i+j
-     
+
      veccross(&n[0],j,i);
      veccross(&n[1],k,j);
      veccross(&n[2],i,k);
@@ -92,7 +92,7 @@ void drawbox(struct pt p0, struct pt i, struct pt j, struct pt k) {
 
 
 void init(void)
-{    
+{
 
      glClearColor (0.0, 0.0, 0.0, 0.0);
      glShadeModel(GL_FLAT);
@@ -161,7 +161,7 @@ void init(void)
      glMatrixMode(GL_MODELVIEW);
      glLoadIdentity();
      glTranslatef(0.0, 0.0, -3.6);
-     
+
 }
 
 void displayhandles(void) {
@@ -172,7 +172,7 @@ void displayhandles(void) {
 	  glVertex3dv(&pts[activepts[i]].x);
 	  printf("#%d:(%f,%f,%f)\n",activepts[i],pts[activepts[i]].x,pts[activepts[i]].y,pts[activepts[i]].z);
      }
-     //extra points 
+     //extra points
      //debugfocus
      if(debugpt > 0 && debugpt < debugpts.size()) {
 	  glPointSize(6.0);
@@ -189,7 +189,7 @@ void displayhandles(void) {
      for(int i=0; i < pts.size(); i++) {
 	  glVertex3dv(&pts[i].x);
      }
-     printf("\n");	
+     printf("\n");
      glEnd();
 
      /*draw axis oriented pointers*/
@@ -208,11 +208,11 @@ void displayhandles(void) {
 	  glColor3f(0,0,.5);
 	  glVertex3dv(&pts[activepts[i]].x);
 	  glVertex3f(pts[activepts[i]].x,pts[activepts[i]].y,0);
-     
+
      }
      glEnd();
-     
-     
+
+
 }
 
 void displayaxis(void) {
@@ -229,7 +229,7 @@ void displayaxis(void) {
      glColor3f(0,0,1);
      glVertex3f(0,0,0);
      glVertex3f(0,0,1);
-     
+
      glEnd();
 
 }
@@ -262,8 +262,8 @@ void display(void)
      debugsurface = 0;
 
 
-     
-     
+
+
      VECDIFF(pts[1],pts[0],iv);
      VECDIFF(pts[2],pts[0],jv);
      VECDIFF(pts[3],pts[0],kv);
@@ -288,9 +288,9 @@ void display(void)
      glVertex3d(0,0,0);
      glVertex3dv(&pts[5].x);
      glEnd();
-*/     
+*/
 
-     //descending line 
+     //descending line
      glBegin(GL_LINES);
      glColor3f(.5,.5,.5);
      glVertex3dv(&pts[pts.size()-1].x);
@@ -305,7 +305,7 @@ void display(void)
      gluCylinder(qo,r,r,pts[pts.size()-1].y - pts[pts.size()-2].y,16,1);
      glPopMatrix();
 
-     
+
 
      glBegin(GL_LINES);
      glColor3f(.0,.7,.7);
@@ -314,9 +314,9 @@ void display(void)
      glEnd();
 */
 
-     
 
-     
+
+
      /*draw box*/
      glPolygonMode(GL_FRONT,GL_LINE);
      drawbox(pts[0],iv,jv,kv);
@@ -337,7 +337,7 @@ void display(void)
 //     glColor3f(.4,.4,.4);
      glVertex3d(pts[1].x+pts[4].x,pts[1].y+pts[4].y,pts[1].z+pts[4].z);
      glEnd();
-*/     
+*/
 
      /* draw cylinder */
      glPushMatrix();
@@ -356,7 +356,7 @@ void display(void)
 //     glColor3f(.4,.4,.4);
      glVertex3dv(&pts[1].x);
      glEnd();
-     
+
 */
      displayhandles();
      displayaxis();
@@ -420,7 +420,7 @@ void keyboard (unsigned char key, int x, int y)
 	  glGetDoublev(GL_MODELVIEW_MATRIX,postmat);
 	  memcpy(premat,ident,sizeof(ident));
      }
-     
+
 
      switch (key) {
      case '=':
@@ -476,7 +476,7 @@ void keyboard (unsigned char key, int x, int y)
      case 27:
 	  exit(0);
 	  break;
-	  
+
      case '*':
 	  glLoadMatrixd(premat);
 	  glScalef(sqrt(2.),sqrt(2.),sqrt(2.));
@@ -548,11 +548,11 @@ void keyboard (unsigned char key, int x, int y)
 	  glRotatef(rspeed,0,0,1);
 	  glMultMatrixd(postmat);
 	  break;
-	  
-	  
 
 
-	  
+
+
+
 
      default:
 	  break;
@@ -562,7 +562,7 @@ void keyboard (unsigned char key, int x, int y)
 
 
 void mouse (int button, int state, int x, int y){
-	
+
      static int ox,oy;
      static double scale = 0.01;
 
@@ -572,10 +572,10 @@ void mouse (int button, int state, int x, int y){
 
      if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 	  ox = x;
-	  oy = y;	
+	  oy = y;
      }
      if(button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-	  
+
 	  for(vector<int>::iterator i = activepts.begin(); i != activepts.end(); i++) {
 	       switch( slide ) {
 	       case pxy:
@@ -591,7 +591,7 @@ void mouse (int button, int state, int x, int y){
 		    pts[*i].x += (y-oy) *scale;
 		    break;
 	       }
-	       
+
 	  }
 	  glutPostRedisplay();
      }
@@ -611,5 +611,5 @@ int main(int argc, char** argv)
      glutKeyboardFunc(keyboard);
      glutMouseFunc(mouse);
      glutMainLoop();
-     return 0; 
+     return 0;
 }

@@ -40,7 +40,7 @@ Group {
 				solid FALSE
 				coord USE BK
 				coordIndex [
-					0, 1, 2, 3, -1			
+					0, 1, 2, 3, -1
 				]
 				texCoord TextureCoordinate {
 					point [

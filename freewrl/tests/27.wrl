@@ -38,7 +38,7 @@ Group {
       }
     },
     Transform {
-      translation 8 0 0 
+      translation 8 0 0
       children [
         DEF touchBall Transform {
           children [
@@ -51,7 +51,7 @@ Group {
                 texture ImageTexture { url [ "helpers/star.jpg"] }
               }
               geometry Sphere {}
-            }    
+            }
           ]
         }
       ]
@@ -62,7 +62,7 @@ Group {
     DEF ball_pos PositionInterpolator {
       key [ 0, .1, .2, .3, .4, .46, .5, .54, .6, .7, .8, .9, 1 ]
       keyValue [ 0 0 0, 0 -.196 0, 0 -.784 0, 0 -1.764 0, 0 -3.136 0,
-               0 -4.14 0, 0 -4.8 0, 0 -4.14 0, 
+               0 -4.14 0, 0 -4.8 0, 0 -4.14 0,
                0 -3.136 0, 0 -1.764 0, 0 -.784 0, 0 -.196 0, 0 0 0 ]
     },
     DEF ball_deform PositionInterpolator {
@@ -76,7 +76,7 @@ Group {
   ]
   ROUTE TOUCH.touchTime TO TIME.set_startTime
 
-  #wire the timer into the interpolators 
+  #wire the timer into the interpolators
   ROUTE TIME.fraction_changed TO ball_pos.set_fraction
   ROUTE TIME.fraction_changed TO ball_deform.set_fraction
 

@@ -13,7 +13,7 @@
  * Copyright (c) 2002 Pearson Education, Inc.
  * Example 90: Reading Output From A Command, p99
  */
- 
+
 import vrml.*;
 import vrml.field.*;
 import vrml.node.*;
@@ -22,7 +22,7 @@ import java.io.InputStream;
 public class RunCommand extends Script {
 	private static final boolean DEBUG = false;
 	private SFString commandLine; // command passed from Script Node
-	
+
 	static {
 		if (DEBUG) System.err.println("Java loading RunCommand class.");
 	}

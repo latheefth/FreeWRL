@@ -2,11 +2,11 @@
 WorldInfo {
 	title "Alpha blend test 1"
 	info [
-		"This is a test for alpha blending 3D objects. The blending feature is not         
-		 well handled as it depends on the order the objects are described in the wrl file 
+		"This is a test for alpha blending 3D objects. The blending feature is not
+		 well handled as it depends on the order the objects are described in the wrl file
 		 This test is the better case possible because the background is always drawn first
-		 and no objects can be behind. The draw order is so always the good one.           
-		 Try the next test to see a more complex 3D blended scene.                         
+		 and no objects can be behind. The draw order is so always the good one.
+		 Try the next test to see a more complex 3D blended scene.
 		                                                    Remi Cohen-Scali               "
 	]
 },
@@ -26,7 +26,7 @@ Group {
                 	          0.70 0.50 0.00
                 	          1.00 0.00 0.00 ]
 		groundAngle     [ 1.07 1.45 1.52 1.57 ]
-		groundColor     [ 0.8 0.9 0.8, 
+		groundColor     [ 0.8 0.9 0.8,
 				  0.6 0.7 0.6,
 				  0.4 0.5 0.4,
 				  0.3 0.6 0.3,
@@ -38,11 +38,11 @@ Group {
 		}
 		geometry IndexedFaceSet {
 			coord Coordinate {
-				point [ 
-					-2.0 0.0 0.0, 
+				point [
+					-2.0 0.0 0.0,
 					2.0 0.0 0.0
-				 	2.0 3.0 0.0,  
-					-2.0 3.0 0.0 
+				 	2.0 3.0 0.0,
+					-2.0 3.0 0.0
 				]
 			}
 			coordIndex [3, 2, 1, 0]

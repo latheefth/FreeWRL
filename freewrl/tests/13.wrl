@@ -6,7 +6,7 @@
 
 # first example of points, lines and faces.
 # This is the test of default indexed face set texture mapping, from
-# the spec. 
+# the spec.
 
 Shape {
 	appearance Appearance {
@@ -42,7 +42,7 @@ Shape {
 			2, 6, 7, 3, -1,
 		# left
 			3, 7, 4, 0,
-		
+
 		]
 		}
-}		
+}

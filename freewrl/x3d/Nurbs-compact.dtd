@@ -5,11 +5,11 @@
 		These X3D native nodes will correspond to forthcoming
 		VRML ExternProto declarations.
 
- 		Elements in this tagset are enabled by setting the 
-		NurbsProfile entity to "INCLUDE" at the top of an 
+ 		Elements in this tagset are enabled by setting the
+		NurbsProfile entity to "INCLUDE" at the top of an
 		X3D scene file, as shown in several examples such as
-		examples/Nurbs/newNurbsScene.xml.  This flag then 
-		triggers inclusion of the Nurbs tags in the 
+		examples/Nurbs/newNurbsScene.xml.  This flag then
+		triggers inclusion of the Nurbs tags in the
 		x3d-compromise.dtd tagset.  Thus the Nurbs.dtd
 		demonstrates X3D extensibility for profiles.
 
@@ -23,7 +23,7 @@
  Reference:	Nurbs Extension for VRML 97 proposal
  		http://www.blaxxun.com/developer/contact/3d/nurbs/overview.html
 		http://www.blaxxun.com/support/developerguide/developer/contact/3d/nurbs/spec/nurbsproposal.html
-		
+
  Issues:	- why isn't a complete set of prototype implementations available?
  		- nodeTypeHints need to be checked, proposal and examples inconsistent
  		- what are NurbsCurve2ILS and NurbsSurface2ILS? Utility prototypes?
@@ -57,8 +57,8 @@
 
 <!ELEMENT Contour2D ( %ChildrenNodes; | %WildcardNodes; )* >
 <!ATTLIST Contour2D
-	bboxCenter	%SFVec3f;	"0 0 0"	
-	bboxSize	%SFVec3f;	"-1 -1 -1"	
+	bboxCenter	%SFVec3f;	"0 0 0"
+	bboxSize	%SFVec3f;	"-1 -1 -1"
 	nodeTypeHint	NMTOKEN 	#FIXED	"Group"
 	DEF		ID		#IMPLIED
 	USE		IDREF		#IMPLIED>
@@ -90,12 +90,12 @@
 	wOrder		%SFInt32;	"2"
 	controlPoint	%MFVec3f;	#IMPLIED
 	weight		%MFFloat;	#IMPLIED
-	bboxCenter	%SFVec3f;	"0 0 0"	
-	bboxSize	%SFVec3f;	"-1 -1 -1"	
+	bboxCenter	%SFVec3f;	"0 0 0"
+	bboxSize	%SFVec3f;	"-1 -1 -1"
 	nodeTypeHint	NMTOKEN 	#FIXED	"Group"
 	DEF		ID		#IMPLIED
 	USE		IDREF		#IMPLIED>
-	
+
 <!ELEMENT NurbsCurve EMPTY >
 <!ATTLIST NurbsCurve
 	knot		%MFFloat;	#IMPLIED
@@ -121,8 +121,8 @@
 <!ELEMENT NurbsGroup ( %ChildrenNodes; | %WildcardNodes; )* >
 <!ATTLIST NurbsGroup
 	tessellationScale	%SFFloat;	"1.0"
-	bboxCenter		%SFVec3f;	"0 0 0"	
-	bboxSize		%SFVec3f;	"-1 -1 -1"	
+	bboxCenter		%SFVec3f;	"0 0 0"
+	bboxSize		%SFVec3f;	"-1 -1 -1"
 	nodeTypeHint		NMTOKEN 	#FIXED	"Group"
 	DEF			ID		#IMPLIED
 	USE			IDREF		#IMPLIED>

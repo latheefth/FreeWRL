@@ -123,7 +123,7 @@ js_LockGCThing(JSContext *cx, void *thing);
 extern JSBool
 js_UnlockGCThing(JSContext *cx, void *thing);
 
-extern JSBool 
+extern JSBool
 js_IsAboutToBeFinalized(JSContext *cx, void *thing);
 
 extern void

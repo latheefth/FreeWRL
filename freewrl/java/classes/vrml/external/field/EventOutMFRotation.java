@@ -25,7 +25,7 @@ public class EventOutMFRotation extends EventOutMField {
 
     System.out.println ("DEBUG: EventOutMFRotation getValue - rep = " + rep);
 
-    // ok, so now we have some VRML text in the String rep... 
+    // ok, so now we have some VRML text in the String rep...
     // XXX - maybe we can split this up on matching []'s???????
 
     x[0].NodeName = rep;
@@ -33,11 +33,11 @@ public class EventOutMFRotation extends EventOutMField {
     return x;
   }
 
-    
+
   public Node          get1Value(int index) {
     Node all[] = getValue();
 
-    return all[index]; 
+    return all[index];
   }
 }
 

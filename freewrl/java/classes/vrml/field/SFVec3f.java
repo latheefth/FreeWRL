@@ -80,7 +80,7 @@ public class SFVec3f extends Field {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Vec3f");
 		x = Float.parseFloat(in.readLine());
 	        y = Float.parseFloat(in.readLine());

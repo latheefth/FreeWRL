@@ -18,12 +18,12 @@ EXPORT_CLASSES_BASE_DIR = $(NJSE)\..\..\jsdj\dist\classes
 
 !IF "$(BUILD_OPT)" != ""
 OBJ = Release
-CC_FLAGS = /DNDEBUG 
+CC_FLAGS = /DNDEBUG
 !ELSE
 OBJ = Debug
-CC_FLAGS = /DDEBUG 
+CC_FLAGS = /DDEBUG
 LINK_FLAGS = /DEBUG
-!ENDIF 
+!ENDIF
 
 QUIET=@
 
@@ -78,7 +78,7 @@ dlls :
     $(QUIET)nmake -f js.mak CFG="js - Win32 Release"
 !ELSE
     $(QUIET)nmake -f js.mak CFG="js - Win32 Debug"
-!ENDIF 
+!ENDIF
     $(QUIET)cd ..\jsd\javawrap
     $(QUIET)cd ..
     $(QUIET)nmake -f jsd.mak JSD_THREADSAFE=1 $(OPT)
@@ -137,7 +137,7 @@ deep_clean: clean
     $(QUIET)nmake -f js.mak CFG="js - Win32 Release" clean
 !ELSE
     $(QUIET)nmake -f js.mak CFG="js - Win32 Debug" clean
-!ENDIF 
+!ENDIF
     $(QUIET)cd ..\jsd\javawrap
     $(QUIET)cd ..
     $(QUIET)nmake -f jsd.mak clean

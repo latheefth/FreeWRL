@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
@@ -39,9 +39,9 @@ import netscape.security.ForbiddenTargetException;
 * This class is meant to be a singleton and has a private constructor.
 * Call the static <code>getDebugController()</code> to get this object.
 * <p>
-* Note that all functions use netscape.security.PrivilegeManager to verify 
-* that the caller has the "Debugger" privilege. The exception 
-* netscape.security.ForbiddenTargetException will be throw if this is 
+* Note that all functions use netscape.security.PrivilegeManager to verify
+* that the caller has the "Debugger" privilege. The exception
+* netscape.security.ForbiddenTargetException will be throw if this is
 * not enabled.
 *
 * @author  John Bandhauer
@@ -68,7 +68,7 @@ public final class DebugController {
      * <p>
      * @return the singleton DebugController
      */
-    public static synchronized DebugController getDebugController() 
+    public static synchronized DebugController getDebugController()
         throws ForbiddenTargetException
     {
         try {
@@ -94,8 +94,8 @@ public final class DebugController {
     /**
      * Request notification of Script loading events.
      * <p>
-     * Whenever a Script is loaded into or unloaded from the VM 
-     * the appropriate method of  the ScriptHook argument will be called. 
+     * Whenever a Script is loaded into or unloaded from the VM
+     * the appropriate method of  the ScriptHook argument will be called.
      * Callers are responsible for chaining hooks if chaining is required.
      *
      * @param h new script hook
@@ -123,20 +123,20 @@ public final class DebugController {
     }
 
     /**
-     * Set a hook at the given program counter value.  
+     * Set a hook at the given program counter value.
      * <p>
-     * When a thread reaches that instruction, a ThreadState 
-     * object will be created and the appropriate method 
+     * When a thread reaches that instruction, a ThreadState
+     * object will be created and the appropriate method
      * of the hook object will be called. Callers are responsible
      * for chaining hooks if chaining is required.
-     * 
+     *
      * @param pc pc at which hook should be set
      * @param h new hook for this pc
      * @return the previous hook object (null if none)
      */
     public synchronized InstructionHook setInstructionHook(
         PC pc,
-        InstructionHook h) 
+        InstructionHook h)
         throws ForbiddenTargetException
     {
         PrivilegeManager.checkPrivilegeEnabled("Debugger");
@@ -179,13 +179,13 @@ public final class DebugController {
     /**
      * Set the hook at to be called when interrupts occur.
      * <p>
-     * The next instruction which starts to execute after 
-     * <code>sendInterrupt()</code> has been called will 
-     * trigger a call to this hook. A ThreadState 
-     * object will be created and the appropriate method 
+     * The next instruction which starts to execute after
+     * <code>sendInterrupt()</code> has been called will
+     * trigger a call to this hook. A ThreadState
+     * object will be created and the appropriate method
      * of the hook object will be called. Callers are responsible
      * for chaining hooks if chaining is required.
-     * 
+     *
      * @param h new hook
      * @return the previous hook object (null if none)
      * @see netscape.jsdebug.DebugController#sendInterrupt
@@ -212,7 +212,7 @@ public final class DebugController {
     }
 
     /**
-     * Cause the interrupt hook to be called when the next 
+     * Cause the interrupt hook to be called when the next
      * JavaScript instruction starts to execute.
      * <p>
      * The interrupt is self clearing
@@ -234,11 +234,11 @@ public final class DebugController {
      * Set the hook at to be called when a <i>debug break</i> is requested
      * <p>
      * Set the hook to be called when <i>JSErrorReporter.DEBUG</i> is returned
-     * by the <i>error reporter</i> hook. When that happens a ThreadState 
-     * object will be created and the appropriate method 
+     * by the <i>error reporter</i> hook. When that happens a ThreadState
+     * object will be created and the appropriate method
      * of the hook object will be called. Callers are responsible
      * for chaining hooks if chaining is required.
-     * 
+     *
      * @param h new hook
      * @return the previous hook object (null if none)
      * @see netscape.jsdebug.DebugController#setErrorReporter
@@ -272,15 +272,15 @@ public final class DebugController {
      * instance of the underlying JavaScript Debugger context.
      * <p>
      * This would not normally be useful in java. Some of the other classes
-     * in this package need this. It remains public mostly for historical 
+     * in this package need this. It remains public mostly for historical
      * reasons. It serves as a check to see that the native classes have been
-     * loaded and the built-in native JavaScript Debugger support has been 
+     * loaded and the built-in native JavaScript Debugger support has been
      * initialized. This DebugController is not valid (or useful) when it is
      * in a state where this native context equals 0.
      *
      * @return the native context (0 if none)
      */
-    public int getNativeContext() 
+    public int getNativeContext()
         throws ForbiddenTargetException
     {
         PrivilegeManager.checkPrivilegeEnabled("Debugger");
@@ -295,20 +295,20 @@ public final class DebugController {
     /**
      * Execute a string as a JavaScript script within a stack frame
      * <p>
-     * This method can be used to execute arbitrary sets of statements on a 
+     * This method can be used to execute arbitrary sets of statements on a
      * stopped thread. It is useful for inspecting and modifying data.
      * <p>
-     * This method can only be called while the JavaScript thread is stopped 
-     * - i.e. as part of the code responding to a hook. Thgis method 
-     * <b>must</b> be called on the same thread as was executing when the 
+     * This method can only be called while the JavaScript thread is stopped
+     * - i.e. as part of the code responding to a hook. Thgis method
+     * <b>must</b> be called on the same thread as was executing when the
      * hook was called.
      * <p>
-     * If an error occurs while execuing this code, then the error 
+     * If an error occurs while execuing this code, then the error
      * reporter hook will be called if present.
-     * 
+     *
      * @param frame the frame context in which to evaluate this script
      * @param text the script text
-     * @param filename where to tell the JavaScript engine this code came 
+     * @param filename where to tell the JavaScript engine this code came
      * from (it is usually best to make this the same as the filename of
      * code represented by the frame)
      * @param lineno the line number to pass to JS ( >=1 )

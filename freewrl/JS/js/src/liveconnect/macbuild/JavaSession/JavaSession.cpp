@@ -4,9 +4,9 @@
 
 /*
 	JavaSession.cpp
-	
+
 	Uses MRJ to open a Java VM.
-	
+
 	by Patrick C. Beard.
  */
 

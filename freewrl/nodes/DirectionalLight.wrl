@@ -44,7 +44,7 @@ Transform {
 						diffuseColor 0.5 0.5 0.5
 					}}
 				}
-				
+
 			]
 		}
 		DEF L2 DirectionalLight {

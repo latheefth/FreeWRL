@@ -11,13 +11,13 @@ JSDJAVAPROJ = jsdjava
 !IF "$(BUILD_OPT)" != ""
 OPT = BUILD_OPT=1
 OBJ = Release
-CC_FLAGS = /DNDEBUG 
+CC_FLAGS = /DNDEBUG
 !ELSE
-OPT = 
+OPT =
 OBJ = Debug
-CC_FLAGS = /DDEBUG 
+CC_FLAGS = /DDEBUG
 LINK_FLAGS = /DEBUG
-!ENDIF 
+!ENDIF
 
 QUIET=@
 
@@ -30,7 +30,7 @@ CFLAGS = /nologo /MDd /W3 /Gm /GX /Zi /Od\
          /I $(JSDJAVA)\
          /DJSDEBUGGER_JAVA_UI\
          /DJSD_STANDALONE_JAVA_VM\
-!ENDIF 
+!ENDIF
          /DJSD_LOWLEVEL_SOURCE\
          /DJSFILE\
          $(CC_FLAGS)\
@@ -63,7 +63,7 @@ dlls :
     $(QUIET)nmake -f js.mak CFG="js - Win32 Release"
 !ELSE
     $(QUIET)nmake -f js.mak CFG="js - Win32 Debug"
-!ENDIF 
+!ENDIF
     $(QUIET)cd ..\jsd
     $(QUIET)nmake -f jsd.mak JSD_THREADSAFE=1 $(OPT)
     $(QUIET)cd java
@@ -104,7 +104,7 @@ deep_clean: clean
     $(QUIET)nmake -f js.mak CFG="js - Win32 Release" clean
 !ELSE
     $(QUIET)nmake -f js.mak CFG="js - Win32 Debug" clean
-!ENDIF 
+!ENDIF
     $(QUIET)cd ..\jsd
     $(QUIET)nmake -f jsd.mak clean
     $(QUIET)cd java

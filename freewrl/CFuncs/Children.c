@@ -51,7 +51,7 @@ static void VerboseEnd (char *whoami) {
 }
 
 /* sort children - use bubble sort with early exit flag */
-void sortChildren (struct Multi_Node ch) { 
+void sortChildren (struct Multi_Node ch) {
 	int i,j;
 	int nc;
 	int noswitch;
@@ -102,7 +102,7 @@ void dirlightChildren(struct Multi_Node ch) {
 		struct VRML_Box *p = (struct VRML_Box *)ch.p[i];
 		struct VRML_Virt *v = *(struct VRML_Virt **)p;
 
-		if(v->rend == DirectionalLight_Rend) 
+		if(v->rend == DirectionalLight_Rend)
 			render_node(p);
 	}
 }
@@ -123,24 +123,24 @@ void normalChildren(struct Multi_Node ch) {
 		}
 	}
 }
-  
+
 /********************************************************************
  * now, nodes called from VRMLFunc.[c,xs] during rendering process
  * *****************************************************************/
 void groupingChild (struct VRML_Group *this_) {
-	int nc = ((this_->children).n); 
+	int nc = ((this_->children).n);
 	int savedlight = curlight;
 
 	if(ChildVerbose) VerboseStart ("GROUP", (struct VRML_Box *)this_, nc);
 
 	/* should we go down here? */
 	//printf ("Group, rb %x VF_B %x, flags %x\n",render_blend, VF_Blend, this_->_renderFlags);
-	if (render_blend == VF_Blend) 
+	if (render_blend == VF_Blend)
 		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
 			if(ChildVerbose) VerboseEnd ("GROUP");
 			return;
 		}
-	if (render_proximity == VF_Proximity) 
+	if (render_proximity == VF_Proximity)
 		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity)  {
 			if(ChildVerbose) VerboseEnd ("GROUP");
 			return;
@@ -148,16 +148,16 @@ void groupingChild (struct VRML_Group *this_) {
 
 	/* do we have to sort this node? */
 	if ((nc > 2 && render_blend)) sortChildren(this_->children);
-	
+
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(this_->children);
-	
+
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		//if (ChildVerbose) 
+		//if (ChildVerbose)
 		//	printf ("GroupingChild, this is %d, extent %f %f %f\n",
 		//	this_, this_->_extent[0], this_->_extent[1],
 		//	this_->_extent[2]);
@@ -172,7 +172,7 @@ void groupingChild (struct VRML_Group *this_) {
 
 	/* did we have that directionalLight? */
 	if((this_->has_light)) glPopAttrib();
-	
+
 	if(ChildVerbose) VerboseEnd ("GROUP");
 
 	curlight = savedlight;
@@ -180,7 +180,7 @@ void groupingChild (struct VRML_Group *this_) {
 
 
 void billboardChild (struct VRML_Billboard *this_) {
-	int nc = (this_->children).n; 
+	int nc = (this_->children).n;
 	int savedlight = curlight;
 
 	if(ChildVerbose) printf("RENDER BILLBOARD START %d (%d)\n",this_, nc);
@@ -195,7 +195,7 @@ void billboardChild (struct VRML_Billboard *this_) {
 	normalChildren(this_->children);
 
 	if (render_geom && (!render_blend)) {
-		if (ChildVerbose) 
+		if (ChildVerbose)
 			printf ("BillboardChild, this is %d, extent %f %f %f\n",
 			this_, this_->_extent[0], this_->_extent[1],
 			this_->_extent[2]);
@@ -207,13 +207,13 @@ void billboardChild (struct VRML_Billboard *this_) {
 
 	/* did we have that directionalLight? */
 	if((this_->has_light)) glPopAttrib();
-	
+
 	if(ChildVerbose) printf("RENDER BILLBOARD END %d\n",this_);
 
 	curlight = savedlight;
 }
 void transformChild (struct VRML_Transform *this_) {
-	int nc = (this_->children).n; 
+	int nc = (this_->children).n;
 	int savedlight = curlight;
 
 	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct VRML_Box *)this_, nc);
@@ -221,12 +221,12 @@ void transformChild (struct VRML_Transform *this_) {
 	/* should we go down here? */
 	//printf("transformChild %d render_blend %x renderFlags %x\n",
 	//		this_, render_blend, this_->_renderFlags);
-	if (render_blend == VF_Blend) 
+	if (render_blend == VF_Blend)
 		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
 			if(ChildVerbose) VerboseEnd ("TRANSFORM");
 			return;
 		}
-	if (render_proximity == VF_Proximity) 
+	if (render_proximity == VF_Proximity)
 		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity) {
 			if(ChildVerbose) VerboseEnd ("TRANSFORM");
 			return;
@@ -276,13 +276,13 @@ void transformChild (struct VRML_Transform *this_) {
 
 	/* did we have that directionalLight? */
 	if((this_->has_light)) glPopAttrib();
-	
+
 	if(ChildVerbose) VerboseEnd ("TRANSFORM");
 
 	curlight = savedlight;
 }
 void anchorChild (struct VRML_Anchor *this_) {
-	int nc = (this_->children).n; 
+	int nc = (this_->children).n;
 	int savedlight = curlight;
 
 	if(ChildVerbose) printf("RENDER ANCHOR START %d (%d)\n",this_, nc);
@@ -308,13 +308,13 @@ void anchorChild (struct VRML_Anchor *this_) {
 
 	/* did we have that directionalLight? */
 	if((this_->has_light)) glPopAttrib();
-	
+
 	if(ChildVerbose) printf("RENDER ANCHOR END %d\n",this_);
 
 	curlight = savedlight;
 }
 void geolocationChild (struct VRML_GeoLocation *this_) {
-	int nc = (this_->children).n; 
+	int nc = (this_->children).n;
 	int savedlight = curlight;
 
 	if(ChildVerbose) printf("RENDER GEOLOCATION START %d (%d)\n",this_, nc);
@@ -340,7 +340,7 @@ void geolocationChild (struct VRML_GeoLocation *this_) {
 
 	/* did we have that directionalLight? */
 	if((this_->has_light)) glPopAttrib();
-	
+
 	if(ChildVerbose) printf("RENDER GEOLOCATION END %d\n",this_);
 
 	curlight = savedlight;
@@ -348,7 +348,7 @@ void geolocationChild (struct VRML_GeoLocation *this_) {
 
 
 void inlineChild (struct VRML_Inline *this_) {
-	int nc = (this_->__children).n; 
+	int nc = (this_->__children).n;
 	int savedlight = curlight;
 
 	if(ChildVerbose) {printf("RENDER INLINE START %d (%d)\n",this_, nc);}
@@ -385,7 +385,7 @@ void inlineChild (struct VRML_Inline *this_) {
 
 
 void inlinelodChild (struct VRML_InlineLoadControl *this_) {
-	int nc = (this_->children).n; 
+	int nc = (this_->children).n;
 	int savedlight = curlight;
 	struct VRML_Inline *inl;
 
@@ -398,9 +398,9 @@ void inlinelodChild (struct VRML_InlineLoadControl *this_) {
 		inl->__children = this_->children;
 		inl->__parenturl = this_->__parenturl;
 		inl->__loadstatus = this_->__loadstatus;
-		
+
 		loadInline(inl);
-		
+
 		this_->url = inl->url;
 		this_->children = inl->__children;
 		this_->__parenturl = inl->__parenturl;
@@ -482,9 +482,9 @@ void lodChild (struct VRML_LOD *this_) {
 
 
 void collisionChild(struct VRML_Collision *this_) {
-	int nc = (this_->children).n; 
+	int nc = (this_->children).n;
 	int i;
-	
+
 	if(render_collision) {
 		if((this_->collide) && !(this_->proxy)) {
 			struct sCollisionInfo OldCollisionInfo = CollisionInfo;
@@ -493,7 +493,7 @@ void collisionChild(struct VRML_Collision *this_) {
 				if(ChildVerbose) {printf("RENDER COLLISION %d CHILD %d\n",this_, p);}
 				render_node(p);
 			}
-			if((!APPROX(CollisionInfo.Offset.x, 
+			if((!APPROX(CollisionInfo.Offset.x,
 					OldCollisionInfo.Offset.x)) ||
 			   (!APPROX(CollisionInfo.Offset.y,
 				   OldCollisionInfo.Offset.y)) ||
@@ -510,7 +510,7 @@ void collisionChild(struct VRML_Collision *this_) {
 				this_->__hit = (this_->__hit & 1) ? 2 : 0;
 
 		}
-        	        if(this_->proxy) 
+        	        if(this_->proxy)
                         render_node(this_->proxy);
 
 	} else { /*standard group behaviour*/
@@ -539,7 +539,7 @@ void collisionChild(struct VRML_Collision *this_) {
 
 		/* did we have that directionalLight? */
 		if((this_->has_light)) glPopAttrib();
-	
+
 		if(ChildVerbose) {printf("RENDER COLLISIONCHILD END %d\n",this_);}
 		curlight = savedlight;
 	}

@@ -16,10 +16,10 @@ public class ConstMFFloat extends ConstMField {
     }
 
     public ConstMFFloat(int size, float[] f) {
-        for (int i = 0; i < size; i++)	
+        for (int i = 0; i < size; i++)
             __vect.addElement(new ConstSFFloat(f[i]));
     }
-	
+
     public void getValue(float[] f) {
         __updateRead();
         int size = __vect.size();

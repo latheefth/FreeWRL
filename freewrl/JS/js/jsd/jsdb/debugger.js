@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 /*
@@ -854,8 +854,8 @@ function JSDValueProto()
 
     this.toString = function()
     {
-        return this.flagString() + 
-               " : " + 
+        return this.flagString() +
+               " : " +
                this.GetValueString();
     }
 
@@ -908,10 +908,10 @@ function JSDPropertyProto()
 
     this.toString = function()
     {
-        return this.flagString() + 
-               " : " + 
+        return this.flagString() +
+               " : " +
                this.GetPropertyName().toString() +
-               " : " + 
+               " : " +
                this.GetPropertyValue().toString();
     }
     this.flags = null;
@@ -931,7 +931,7 @@ function JSDPropertyProto()
         }
         return this.flags;
     }
-}    
+}
 
 function JSDProperty(handle)
 {
@@ -948,13 +948,13 @@ function locals()
 {
     _localsOrArgs(true);
     return "";
-}        
+}
 
 function args()
 {
     _localsOrArgs(false);
     return "";
-}        
+}
 
 function _localsOrArgs(loc)
 {
@@ -973,7 +973,7 @@ function _localsOrArgs(loc)
                 for(var i = 0; i < props.length; i++)
                 {
                     var prop = props[i];
-                    var doit = loc ? 
+                    var doit = loc ?
                             prop.GetPropertyFlags() & jsd.JSDPD_VARIABLE :
                             prop.GetPropertyFlags() & jsd.JSDPD_ARGUMENT ;
                     if(doit)

@@ -7,19 +7,22 @@
 # $Id$
 #
 # Name:        VRMLRend.c
-# Description: 
+# Description:
 #              Fills Hash Variables with "C" Code. They are used by VRMLC.pm
 #              to write the C functions-source to render different nodes.
-#              
+#
 #              Certain Abbreviation are used, some are substituted in the
-#              writing process in get_rendfunc() [VRMLC.pm]. 
+#              writing process in get_rendfunc() [VRMLC.pm].
 #              Others are "C-#defines".
-#              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm] 
-#  
+#              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
+#
 #              Hashes filled in this file:
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.148  2005/03/21 13:39:04  crc_canada
+# change permissions, remove whitespace on file names, etc.
+#
 # Revision 1.147  2005/03/01 15:16:56  crc_canada
 # 1.11 pre2 first files checked in; some bugs, internal X3D parsing start, etc.
 #
@@ -157,7 +160,7 @@ Box => '
 
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible) 
+		// malloc memory (if possible)
 		if (!this_->__points) this_->__points = (int) malloc (sizeof(struct SFColor)*(24));
 		if (!this_->__points) {
 			printf ("can not malloc memory for box points\n");
@@ -186,13 +189,13 @@ Box => '
 		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
 	}
 
-											
+
 	if(!$f(solid)) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
-	
-	// Draw it; assume VERTEX and NORMALS already defined. 
+
+	// Draw it; assume VERTEX and NORMALS already defined.
 	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
@@ -231,7 +234,7 @@ Cylinder => '
 
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible) 
+		// malloc memory (if possible)
 		if (!this_->__points) this_->__points = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
 		if (!this_->__normals) this_->__normals = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
 		if ((!this_->__normals) || (!this_->__points)) {
@@ -258,12 +261,12 @@ Cylinder => '
 		pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
 		pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
 	}
-											
+
 	if(!$f(solid)) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
-	
+
 
 	// Display the shape
 	if (HAVETODOTEXTURES) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -303,7 +306,7 @@ Cone => '
 	#define  CONEDIV 20
 
 	float h = $f(height)/2;
-	float r = $f(bottomRadius); 
+	float r = $f(bottomRadius);
 	float angle;
 	int i;
 	struct SFColor *pt;			// bottom points
@@ -322,13 +325,13 @@ Cone => '
 		// have to regen the shape
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible) 
+		// malloc memory (if possible)
 		if (!this_->__botpoints) this_->__botpoints = (int) malloc (sizeof(struct SFColor)*(CONEDIV+3));
 		if (!this_->__sidepoints) this_->__sidepoints = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
 		if (!this_->__normals) this_->__normals = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
 		if ((!this_->__normals) || (!this_->__botpoints) || (!this_->__sidepoints)) {
-			printf ("failure mallocing more memory for Cone rendering\n"); 
-			return; 
+			printf ("failure mallocing more memory for Cone rendering\n");
+			return;
 		}
 
 		// generate the vertexes for the triangles; top point first. (note: top point no longer used)
@@ -341,7 +344,7 @@ Cone => '
 		}
 		// and throw another point that is centre of bottom
 		pt[CONEDIV+1].c[0] = 0.0; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0;
-		
+
 		// and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...
 		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
 
@@ -360,15 +363,15 @@ Cone => '
 
 		// wrap bottom point around once again... ie, final right point = initial left point
 		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
-			
+
 		// Side Normals - note, normals for faces doubled - see malloc above
 		// this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...
 		norm = (struct SFColor *)this_->__normals;
 		for (i=0; i<=CONEDIV; i++) {
-			// top point 
+			// top point
 			angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
 			norm[i*3+0].c[0] = sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = cos(angle);
-			//left point 
+			//left point
 			angle = PI * 2 * (i+0) / (float) (CONEDIV);
 			norm[i*3+1].c[0] = sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = cos(angle);
 			// right point
@@ -377,12 +380,12 @@ Cone => '
 		}
 	}
 
-											
+
 	if(!$f(solid)) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
-	
+
 
 	// OK - we have vertex data, so lets just render it.
 	// Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.
@@ -408,7 +411,7 @@ Cone => '
 	}
 	// set things back to normal - Textures and ColoUrs disabled.
 	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	
+
 
 	if(!$f(solid)) { glPopAttrib(); }
 ',
@@ -426,7 +429,7 @@ Sphere => '
 	#define SIN2 t2_sa
 	#define COS2 t2_ca
 
-	// make the divisions 20; dont change this, because statics.c values 
+	// make the divisions 20; dont change this, because statics.c values
 	// will then need recaculating.
 	#define SPHDIV 20
 
@@ -453,9 +456,9 @@ Sphere => '
 
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible) 
+		// malloc memory (if possible)
 		// 2 vertexes per points. (+1, to loop around and close structure)
-		if (!this_->__points) this_->__points = 
+		if (!this_->__points) this_->__points =
 		(int) malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
 		if (!this_->__points) {
 			printf ("can not malloc memory in Sphere\n");
@@ -464,7 +467,7 @@ Sphere => '
 		pts = (struct SFColor *) this_->__points;
 		count = 0;
 
-		INIT_TRIG1(SPHDIV) 
+		INIT_TRIG1(SPHDIV)
 		INIT_TRIG2(SPHDIV)
 
 		START_TRIG1
@@ -490,12 +493,12 @@ Sphere => '
 			}
 		}
 	}
-											
+
 	if(!$f(solid)) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
-	
+
 
 	// Display the shape
 	if (HAVETODOTEXTURES) {
@@ -533,7 +536,7 @@ IndexedFaceSet => '
 			glDisable(GL_CULL_FACE);
 
 		}
-		render_polyrep(this_, 
+		render_polyrep(this_,
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
@@ -586,7 +589,7 @@ LineSet => '
 
 		if (ncolor != 0) {
 			glDisable (GL_LIGHTING);
-			glEnable(GL_COLOR_MATERIAL); 
+			glEnable(GL_COLOR_MATERIAL);
 		} else {
 			glNormal3f(0.0, 0.0, 1.0);
 		}
@@ -602,7 +605,7 @@ LineSet => '
 		//}
 		//p = (int *)this_->__points;
 
-	
+
 		/* go through the vertex count array and verify that all is good. */
 		for (vtc = 0; vtc < nvertexc; vtc++) {
 			/* save the pointer to the vertex array for the GL call */
@@ -656,7 +659,7 @@ glPopAttrib();
 				glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
 				ncoc++;
 			}
-			
+
 			/* now, lets go and get ready for the next vertexCount */
 			vertexC++;
 			glEnd();
@@ -674,9 +677,9 @@ glPopAttrib();
 	//	glMultiDrawElements(GL_LINE_STRIP,(this_->vertexCount).p,GL_FLOAT,
 	//			this_->__points,(this_->vertexCount).n);
 	//}
-glDisable(GL_COLOR_MATERIAL); 
+glDisable(GL_COLOR_MATERIAL);
 glPopAttrib();
-		
+
 ',
 IndexedLineSet => '
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -701,7 +704,7 @@ IndexedLineSet => '
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
                 glPushAttrib(GL_ENABLE_BIT);
-		glEnable(GL_COLOR_MATERIAL); 
+		glEnable(GL_COLOR_MATERIAL);
                 glDisable(GL_CULL_FACE);
 
 		if(ncolors && !cpv) {
@@ -717,7 +720,7 @@ IndexedLineSet => '
 		glBegin(GL_LINE_STRIP);
 		for(i=0; i<cin; i++) {
 			ind = $f(coordIndex,i);
-			if(verbose) printf("Line: %d %d\n",i,ind); 
+			if(verbose) printf("Line: %d %d\n",i,ind);
 
 			if(ind==-1) {
 				glEnd();
@@ -767,7 +770,7 @@ IndexedLineSet => '
 			}
 		}
 		glEnd();
-		glDisable(GL_COLOR_MATERIAL); 
+		glDisable(GL_COLOR_MATERIAL);
                 glPopAttrib();
 ',
 
@@ -780,7 +783,7 @@ PointSet => '
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	int i; 
+	int i;
 	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
 
@@ -826,7 +829,7 @@ GeoElevationGrid => '
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_, 
+		render_polyrep(this_,
 			0, NULL,
 			ncolors, colors,
 			nnormals, normals,
@@ -852,7 +855,7 @@ ElevationGrid =>  '
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_, 
+		render_polyrep(this_,
 			0, NULL,
 			ncolors, colors,
 			nnormals, normals,
@@ -941,12 +944,12 @@ Material =>  '
 		}
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
-		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); } 
+		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); }
 		scol[3] = trans;
 		//scol[3] = 1.0;
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
-		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); } 
+		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); }
 		ecol[3] = trans;
 		//ecol[3] = 1.0;
 
@@ -1000,7 +1003,7 @@ MovieTexture => '
 
 
 
-Sound => ' 
+Sound => '
 /* node fields...
 	direction => [SFVec3f, [0, 0, 1]],
 	intensity => [SFFloat, 1.0],
@@ -1017,7 +1020,7 @@ Sound => '
 	GLdouble mod[16];
 	GLdouble proj[16];
 	struct pt vec, direction, location;
-	double len; 
+	double len;
 	double angle;
 	float midmin, midmax;
 	float amp;
@@ -1044,15 +1047,15 @@ Sound => '
 		direction.x = $f(direction,0);
 		direction.y = $f(direction,1);
 		direction.z = $f(direction,2);
-	
-		location.x = $f(location,0); 
-		location.y = $f(location,1); 
+
+		location.x = $f(location,0);
+		location.y = $f(location,1);
 		location.z = $f(location,2);
-	
+
 		midmin = (this_->minFront - this_->minBack) / 2.0;
 		midmax = (this_->maxFront - this_->maxBack) / 2.0;
-	
-	 
+
+
 		glPushMatrix();
 
 		/*
@@ -1063,36 +1066,36 @@ Sound => '
 		directions.
 		*/
 
-		glTranslatef (location.x + midmax*direction.x, 
-				location.y + midmax*direction.y, 
+		glTranslatef (location.x + midmax*direction.x,
+				location.y + midmax*direction.y,
 				location.z + midmax * direction.z);
 
 		/* make the ellipse a circle by scaling...
 		glScalef (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
 		- scaling needs work - we need direction information, and parameter work. */
 
-		if ((fabs(this_->minFront - this_->minBack) > 0.5) || 
+		if ((fabs(this_->minFront - this_->minBack) > 0.5) ||
 			(fabs(this_->maxFront - this_->maxBack) > 0.5)) {
 			if (!soundWarned) {
 				printf ("FreeWRL:Sound: Warning - minBack and maxBack ignored in this version\n");
 				soundWarned = TRUE;
 			}
-		} 
+		}
 
-		
-	
+
+
 		fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 		gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
 			mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 		//printf ("mod %lf %lf %lf proj %lf %lf %lf\n",
 		//mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);
-	
-		len = sqrt(VECSQ(vec)); 
+
+		len = sqrt(VECSQ(vec));
 		//printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
 		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
 
-		
+
 		// pan left/right. full left = 0; full right = 1.
 		if (len < 0.001) angle = 0;
 		else {
@@ -1108,8 +1111,8 @@ Sound => '
 			// this range, but if we divide it by less, then
 			// the sound goes "hard over" to left or right for
 			// a bit.
-			angle = angle / 1.5; 
-		
+			angle = angle / 1.5;
+
 			// now scale to 0 to 1
 			angle = angle + 0.5;
 
@@ -1118,14 +1121,14 @@ Sound => '
 			if (angle < 0.0) angle = 0.0;
 			//printf ("angle: %f\n",angle);
 		}
-		
-	
+
+
 		amp = 0.0;
 		/* is this within the maxFront maxBack? */
 
 		/* this code needs rework JAS */
 		if (len < this_->maxFront) {
-	
+
 			/* note: using vecs, length is always positive - need to work in direction
 			vector */
 			if (len < 0.0) {
@@ -1165,7 +1168,7 @@ AudioClip => '
 
 	/* printf ("_change %d _ichange %d\n",this_->_change, this_->_ichange);  */
 
-	if (!SoundEngineStarted) { 
+	if (!SoundEngineStarted) {
 		/* printf ("AudioClip: initializing SoundEngine\n"); */
 		SoundEngineStarted = TRUE;
 		SoundEngineInit();
@@ -1175,20 +1178,20 @@ AudioClip => '
 #endif
 
 	if (!SoundSourceRegistered(this_->__sourceNumber)) {
-		
+
 		 /* printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
 			this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
 			filename);
 		*/
-		
-		
+
+
 
 		pitch = this_->pitch;
 		stime = this_->startTime;
 		sttime = this_->stopTime;
 		loop = this_->loop;
 
-		AC_LastDuration[this_->__sourceNumber] = 
+		AC_LastDuration[this_->__sourceNumber] =
 			SoundSourceInit (this_->__sourceNumber, this_->loop,
 			(float) pitch,(float) stime, (float) sttime, (char *)filename);
 		/* printf ("globalDuration source %d %f\n",
@@ -1197,7 +1200,7 @@ AudioClip => '
 		if (filename) free (filename);
 	}
 
-	
+
  ',
 
 DirectionalLight => '
@@ -1248,8 +1251,8 @@ DirectionalLight => '
 %PrepC = (
 # this creates the Struct values required to allow backend to fill the C values out
 ColorInterpolator => 'UNUSED(this_); /* compiler warning */',
-PositionInterpolator => 'UNUSED(this_); /* compiler warning */',  
-GeoPositionInterpolator => 'UNUSED(this_); /* compiler warning */',  
+PositionInterpolator => 'UNUSED(this_); /* compiler warning */',
+GeoPositionInterpolator => 'UNUSED(this_); /* compiler warning */',
 ScalarInterpolator => 'UNUSED(this_); /* compiler warning */',
 OrientationInterpolator => 'UNUSED(this_); /* compiler warning */',
 NormalInterpolator => 'UNUSED(this_); /* compiler warning */',
@@ -1290,7 +1293,7 @@ Transform => '
          * so we do nothing here in that case -ncoder */
 
 	 /* we recalculate distance on last pass, or close to it, and only
-	 once per event-loop tick. we can do it on the last pass - the 
+	 once per event-loop tick. we can do it on the last pass - the
 	 render_sensitive pass, but when mouse is clicked (eg, moving in
 	 examine mode, sensitive node code is not rendered. So, we choose
 	 the second-last pass. ;-) */
@@ -1317,11 +1320,11 @@ Transform => '
 
 
 		/* TRANSLATION */
-		if (this_->__do_trans) 
+		if (this_->__do_trans)
 			glTranslatef(this_->translation.c[0],this_->translation.c[1],this_->translation.c[2]);
 
 		/* CENTER */
-		if (this_->__do_center) 
+		if (this_->__do_center)
 			glTranslatef(this_->center.c[0],this_->center.c[1],this_->center.c[2]);
 
 		/* ROTATION */
@@ -1340,17 +1343,17 @@ Transform => '
 
 
 		/* SCALE */
-		if (this_->__do_scale) 
+		if (this_->__do_scale)
 			glScalef(this_->scale.c[0],this_->scale.c[1],this_->scale.c[2]);
 
 		/* REVERSE SCALE ORIENTATION */
-		if (this_->__do_scaleO) 
+		if (this_->__do_scaleO)
 			glRotatef(-my_scaleO, this_->scaleOrientation.r[0],
 				this_->scaleOrientation.r[1],this_->scaleOrientation.r[2]);
 
 		/* REVERSE CENTER */
-		if (this_->__do_center) 
-			glTranslatef(-this_->center.c[0],-this_->center.c[1],-this_->center.c[2]);	
+		if (this_->__do_center)
+			glTranslatef(-this_->center.c[0],-this_->center.c[1],-this_->center.c[2]);
 
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
@@ -1359,7 +1362,7 @@ Transform => '
 			//printf ("ppv %d\n",this_->PIV);
 
 	       }
-        } 
+        }
 ',
 Billboard => '
 	struct pt vpos, ax, cp, cp2, arcp;
@@ -1447,7 +1450,7 @@ GeoLocation => (join '','
 	'),
 
 Transform => (join '','
-        
+
 	if(!render_vp) {
             //glPopMatrix();
 	    fwXformPop(this_);
@@ -1469,7 +1472,7 @@ Transform => (join '','
 		);
 		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
 		);
-		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"} 
+		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"}
 			0..2),'
 		);
             }
@@ -1538,7 +1541,7 @@ Billboard => (join '','
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
                        	glDisable (GL_LIGHTING);
 			glColor3f(1.0,1.0,1.0);
-		} 
+		}
 	',
 	Shape => '
 		int trans;
@@ -1548,17 +1551,17 @@ Billboard => (join '','
 		if(!(this_->geometry)) { return; }
 
 		/* do we need to do some distance calculations? */
-		if (((!render_vp) && render_light)) { 
+		if (((!render_vp) && render_light)) {
 			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 			this_->_dist = modelMatrix[14];
-			//printf ("getDist - recalculating distance, it is %f for %d\n", 
+			//printf ("getDist - recalculating distance, it is %f for %d\n",
 			//	this_->_dist,this_);
 		}
 
 		if((render_collision) || (render_sensitive)) {
 			/* only need to forward the call to the child */
 			render_node((this_->geometry));
-			return; 
+			return;
 		}
 
 
@@ -1574,7 +1577,7 @@ Billboard => (join '','
 
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
 
-		/* is there an associated appearance node? */	
+		/* is there an associated appearance node? */
        	        if($f(appearance)) {
                         render_node($f(appearance));
        	        } else {
@@ -1602,7 +1605,7 @@ Billboard => (join '','
 
 		should_rend = FALSE;
 		/* now, are we rendering blended nodes? */
-		if (render_blend) { 
+		if (render_blend) {
 			if (have_transparency!=trans) {
 					should_rend = TRUE;
 			}
@@ -1668,11 +1671,11 @@ Billboard => (join '','
 				vec[3] = 1;
 				glLightfv(light, GL_POSITION, vec);
 
-				glLightf(light, GL_CONSTANT_ATTENUATION, 
+				glLightf(light, GL_CONSTANT_ATTENUATION,
 					$f(attenuation,0));
-				glLightf(light, GL_LINEAR_ATTENUATION, 
+				glLightf(light, GL_LINEAR_ATTENUATION,
 					$f(attenuation,1));
-				glLightf(light, GL_QUADRATIC_ATTENUATION, 
+				glLightf(light, GL_QUADRATIC_ATTENUATION,
 					$f(attenuation,2));
 
 
@@ -1712,11 +1715,11 @@ Billboard => (join '','
 				vec[3] = 1;
 				glLightfv(light, GL_POSITION, vec);
 
-				glLightf(light, GL_CONSTANT_ATTENUATION, 
+				glLightf(light, GL_CONSTANT_ATTENUATION,
 					$f(attenuation,0));
-				glLightf(light, GL_LINEAR_ATTENUATION, 
+				glLightf(light, GL_LINEAR_ATTENUATION,
 					$f(attenuation,1));
-				glLightf(light, GL_QUADRATIC_ATTENUATION, 
+				glLightf(light, GL_QUADRATIC_ATTENUATION,
 					$f(attenuation,2));
 
 
@@ -1767,12 +1770,12 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 # ChangedC - when the fields change, the following code is run before
 # rendering for caching the data.
 #
-# 	
+#
 
 %ChangedC = (
 	Group => '
 		int i;
-		int nc = $f_n(children); 
+		int nc = $f_n(children);
 		struct VRML_Box *p;
 		struct VRML_Virt *v;
 
@@ -1788,7 +1791,7 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 	',
 	Inline => '
 		int i;
-		int nc = $f_n(__children); 
+		int nc = $f_n(__children);
 		struct VRML_Box *p;
 		struct VRML_Virt *v;
 
@@ -1815,9 +1818,9 @@ $ChangedC{InlineLoadControl} = $ChangedC{Group};
 
 #######################################################################
 #
-# ProximityC = following code is run to let proximity sensors send their 
-# events. This is done in the rendering pass, because the position of 
-# of the object relative to the viewer is available via the 
+# ProximityC = following code is run to let proximity sensors send their
+# events. This is done in the rendering pass, because the position of
+# of the object relative to the viewer is available via the
 # modelview transformation matrix.
 #
 
@@ -1835,7 +1838,7 @@ ProximitySensor => q~
 	static const struct pt zpvec = {0,0,0.05};
 	static const struct pt orig = {0,0,0};
 	struct pt t_zvec, t_yvec, t_orig;
-	GLdouble modelMatrix[16]; 
+	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
 
 	if(!$f(enabled)) return;
@@ -1843,8 +1846,8 @@ ProximitySensor => q~
 	//printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
 
-	/* transforms viewers coordinate space into sensors coordinate space. 
-	 * this gives the orientation of the viewer relative to the sensor.   
+	/* transforms viewers coordinate space into sensors coordinate space.
+	 * this gives the orientation of the viewer relative to the sensor.
 	 */
 	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
@@ -1880,13 +1883,13 @@ ProximitySensor => q~
 	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
 
 	if(verbose) printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",
-		t_orig.x, t_orig.y, t_orig.z, 
-		t_zvec.x, t_zvec.y, t_zvec.z, 
+		t_orig.x, t_orig.y, t_orig.z,
+		t_zvec.x, t_zvec.y, t_zvec.z,
 		t_yvec.x, t_yvec.y, t_yvec.z,
-		dr1r2.x, dr1r2.y, dr1r2.z, 
+		dr1r2.x, dr1r2.y, dr1r2.z,
 		dr2r3.x, dr2r3.y, dr2r3.z
 		);
-	
+
 	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) {
 		printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :("
 		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3),
@@ -1947,7 +1950,7 @@ ProximitySensor => q~
 
 #######################################################################
 #
-# CollisionC = following code is run to do collision detection 
+# CollisionC = following code is run to do collision detection
 #
 # In collision nodes:
 #    if enabled:
@@ -1959,7 +1962,7 @@ ProximitySensor => q~
 #       does nothing.
 #
 # In normal nodes:
-#    uses gl modelview matrix to determine distance from viewer and 
+#    uses gl modelview matrix to determine distance from viewer and
 # angle from viewer. ...
 #
 #
@@ -1979,15 +1982,15 @@ ProximitySensor => q~
 #	       /*           |                               */
 #	       /*           |                               */
 #	       /*           x,z=0                           */
-	       
+
 
 %CollisionC = (
 Sphere => q~
 	       struct pt t_orig; /*transformed origin*/
-	       struct pt p_orig; /*projected transformed origin */ 
+	       struct pt p_orig; /*projected transformed origin */
 	       struct pt n_orig; /*normal(unit length) transformed origin */
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 	       GLdouble dist2;
 	       struct pt delta = {0,0,0};
 	       GLdouble radius;
@@ -2024,7 +2027,7 @@ Sphere => q~
 	       /*clip with cylinder */
 	       if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
 		   return;
-	       } 
+	       }
 	       /*clip with bottom plane */
 	       if(t_orig.y + radius < abottom) {
 		   return;
@@ -2032,8 +2035,8 @@ Sphere => q~
 	       /*clip with top plane */
 	       if(t_orig.y-radius > atop) {
 		   return;
-	       } 
-	       
+	       }
+
 	       /* project onto (y x t_orig) plane */
 	       p_orig.x = sqrt(dist2);
 	       p_orig.y = t_orig.y;
@@ -2047,12 +2050,12 @@ Sphere => q~
 
 	       /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
 	       /* these 5 cases correspond to the 5 vornoi regions of the cylinder */
-	       if(p_orig.y > atop) { 
-		   
-		   if(p_orig.x < awidth) { 
+	       if(p_orig.y > atop) {
+
+		   if(p_orig.x < awidth) {
 		       if(verbose) printf(" /* over, we push down. */ \n");
 		       delta.y = (p_orig.y - radius) - (atop);
-		   } else { 
+		   } else {
 		       struct pt d2s;
 		       GLdouble ratio;
 		       if(verbose) printf(" /* over side */ \n");
@@ -2061,14 +2064,14 @@ Sphere => q~
 		       d2s.x = p_orig.x - awidth;
 		       d2s.y = p_orig.y - (atop);
 		       d2s.z = 0;
-		       
+
 		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
-		       
+
 		       if(ratio >= 0) {
 			   /* no collision */
 			   return;
 		       }
-	       
+
 		       /* distance vector from corner to surface of sphere, (do the math) */
 		       VECSCALE(d2s, ratio );
 
@@ -2078,10 +2081,10 @@ Sphere => q~
 		       delta.z = d2s.x* n_orig.z;
 		   }
 	       } else if(p_orig.y < abottom) {
-		   if(p_orig.x < awidth) { 
+		   if(p_orig.x < awidth) {
 		       if(verbose) printf(" /* under, we push up. */ \n");
 		       delta.y = (p_orig.y + radius) -abottom;
-		   } else { 
+		   } else {
 		       struct pt d2s;
 		       GLdouble ratio;
 		       if(verbose) printf(" /* under side */ \n");
@@ -2090,14 +2093,14 @@ Sphere => q~
 		       d2s.x = p_orig.x - awidth;
 		       d2s.y = p_orig.y - abottom;
 		       d2s.z = 0;
-		       
+
 		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
-		       
+
 		       if(ratio >= 0) {
 			   /* no collision */
 			   return;
 		       }
-	       
+
 		       /* distance vector from corner to surface of sphere, (do the math) */
 		       VECSCALE(d2s, ratio );
 
@@ -2109,7 +2112,7 @@ Sphere => q~
 
 	       } else {
 		   if(verbose) printf(" /* side */ \n");
-		   
+
 		   /* push to side */
 		   delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
 		   delta.z = ((p_orig.x - radius)- awidth) * n_orig.z;
@@ -2119,13 +2122,13 @@ Sphere => q~
 	       transform3x3(&delta,&delta,upvecmat);
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (delta.x != 0. || delta.y != 0. || delta.z != 0.)) 
+	       if(verbose_collision && (delta.x != 0. || delta.y != 0. || delta.z != 0.))
 	           printf("COLLISION_SPH: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z,
 			  p_orig.x, n_orig.x, n_orig.z
 			  );
-	       
+
 
 	       ~,
 Box => q~
@@ -2136,8 +2139,8 @@ Box => q~
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 	       struct pt iv = {0,0,0};
 	       struct pt jv = {0,0,0};
 	       struct pt kv = {0,0,0};
@@ -2157,7 +2160,7 @@ Box => q~
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	       
+
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
 	       matmultiply(modelMatrix,upvecmat,modelMatrix);
@@ -2169,8 +2172,8 @@ Box => q~
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
 	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*$f(size,0),scale*$f(size,1),scale*$f(size,2))) return;
-	            
-	       
+
+
 
 	       /* get transformed box edges and position */
 	       transform(&ov,&ov,modelMatrix);
@@ -2180,25 +2183,25 @@ Box => q~
 
 
 	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.)) 
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
 			  ov.x, ov.y, ov.z,
 			  delta.x, delta.y, delta.z
 			  );
-	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.)) 
+	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
 	           printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
 			  jv.x, jv.y, jv.z,
 			  kv.x, kv.y, kv.z
 			  );
-	       
-	       
+
+
 	       ~,
 
 Cone => q~
@@ -2210,10 +2213,10 @@ Cone => q~
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
 		float h = $f(height)/2;
-		float r = $f(bottomRadius); 
+		float r = $f(bottomRadius);
 
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 	       struct pt iv = {0,0,0};
 	       struct pt jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
@@ -2221,9 +2224,9 @@ Cone => q~
 
 	       struct pt delta;
 	       struct pt tupv = {0,1,0};
-	      
+
 	       iv.y = h; jv.y = -h;
- 
+
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
@@ -2245,25 +2248,25 @@ Cone => q~
 	       transform(&jv,&jv,modelMatrix);
 
 	       delta = cone_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.)) 
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_CON: (%f %f %f) (%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
 			  delta.x, delta.y, delta.z
 			  );
-	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.)) 
+	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
 	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
 			  iv.x, iv.y, iv.z,
 			  jv.x, jv.y, jv.z,
-			  scale*r							       
+			  scale*r
 			  );
-	       
-	       
+
+
 	       ~,
 
 Cylinder => q~
@@ -2275,10 +2278,10 @@ Cylinder => q~
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
 		float h = $f(height)/2;
-		float r = $f(radius); 
+		float r = $f(radius);
 
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 	       struct pt iv = {0,0,0};
 	       struct pt jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
@@ -2286,7 +2289,7 @@ Cylinder => q~
 
 	       struct pt tupv = {0,1,0};
 	       struct pt delta;
-	       
+
 
 		iv.y = h;
 		jv.y = -h;
@@ -2305,8 +2308,8 @@ Cylinder => q~
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
 	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
-	            
-	       
+
+
 
 	       /* get transformed box edges and position */
 	       transform(&iv,&iv,modelMatrix);
@@ -2314,25 +2317,25 @@ Cylinder => q~
 
 
 	       delta = cylinder_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.)) 
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_CYL: (%f %f %f) (%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
 			  delta.x, delta.y, delta.z
 			  );
-	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.)) 
+	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
 	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
 			  iv.x, iv.y, iv.z,
 			  jv.x, jv.y, jv.z,
-			  scale*r							       
+			  scale*r
 			  );
-	       
-	       
+
+
 	       ~,
 
 
@@ -2341,8 +2344,8 @@ IndexedFaceSet => q~
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 	       struct SFColor *points=0; int npoints;
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
@@ -2393,17 +2396,17 @@ IndexedFaceSet => q~
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
 /*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
-	            
-	
+
+
 /*	       printf("npoints=%d\n",npoints);
 	       for(i = 0; i < npoints; i++) {
 		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
 	       }*/
 	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
 	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
@@ -2412,9 +2415,9 @@ IndexedFaceSet => q~
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
-		   
+
 	       }
-	       
+
 ~,
 
 Extrusion => q~
@@ -2424,8 +2427,8 @@ Extrusion => q~
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
@@ -2463,16 +2466,16 @@ Extrusion => q~
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
 /*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
-	            
+
 /*	       printf("ntri=%d\n",pr.ntri);
 	       for(i = 0; i < pr.ntri; i++) {
 		   printf("cindex[%d]=%d\n",i,pr.cindex[i]);
 	       }*/
 	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
 	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
@@ -2481,9 +2484,9 @@ Extrusion => q~
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
-		   
+
 	       }
-	       
+
 ~,
 
 Text => q~
@@ -2491,8 +2494,8 @@ Text => q~
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
@@ -2502,7 +2505,7 @@ Text => q~
 			which made collision calcs fail, which moved the Viewpoint...
 			so, if there is no need to calculate normals..., why do it? */
 	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,-1}; 
+	       struct pt delta = {0,0,-1};
 	       struct VRML_PolyRep pr;
 	       int change = 0;
 
@@ -2534,12 +2537,12 @@ Text => q~
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 /*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
-	            
+
 	       delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); /*delta used as zero*/
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
 	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
@@ -2547,9 +2550,9 @@ Text => q~
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
-		   
+
 	       }
-	       
+
 ~,
 
 GeoElevationGrid => q~
@@ -2557,8 +2560,8 @@ GeoElevationGrid => q~
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
@@ -2600,14 +2603,14 @@ GeoElevationGrid => q~
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 /*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
-	            
+
 
 	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,$f(xDimension),$f(zDimension),xSpacing,zSpacing,
 				modelMatrix,flags);
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
 	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
@@ -2615,7 +2618,7 @@ GeoElevationGrid => q~
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
-		   
+
 	       }
 ~,
 
@@ -2624,8 +2627,8 @@ ElevationGrid => q~
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16]; 
-	       GLdouble upvecmat[16]; 
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
 
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
@@ -2660,13 +2663,13 @@ ElevationGrid => q~
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 /*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
-	            
+
 
 	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,$f(xDimension),$f(zDimension),$f(xSpacing),$f(zSpacing),modelMatrix,flags);
-	       
+
 	       vecscale(&delta,&delta,-1);
 	       transform3x3(&delta,&delta,upvecmat);
-	       
+
 	       accumulate_disp(&CollisionInfo,delta);
 
 	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
@@ -2674,9 +2677,9 @@ ElevationGrid => q~
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
-		   
+
 	       }
-	       
+
 ~,
 
 );

@@ -17,10 +17,10 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 
 IGNORE_MANIFEST=1
-# 
+#
 #//------------------------------------------------------------------------
 #//
 #// Makefile to build the JavaScriptDebug tree
@@ -31,7 +31,7 @@ DEPTH = ..\..\..
 JAVA_SOURCEPATH=$(DEPTH)\js\jsd\classes
 
 #//------------------------------------------------------------------------
-#// 
+#//
 #// Define the files necessary to build the target (ie. OBJS)
 #//
 #//------------------------------------------------------------------------
@@ -39,12 +39,12 @@ include <$(DEPTH)\config\config.mak>
 
 all::
 
-MODULE=java 
-JJSD=netscape/jsdebug 
-JDIRS=$(JJSD) 
-JAR_JSD=jsd10.jar 
-JAR_JSD_CLASSES=$(JJSD) 
-JARS=$(JAR_JSD) 
+MODULE=java
+JJSD=netscape/jsdebug
+JDIRS=$(JJSD)
+JAR_JSD=jsd10.jar
+JAR_JSD_CLASSES=$(JJSD)
+JARS=$(JAR_JSD)
 
 include <$(DEPTH)\config\rules.mak>
 

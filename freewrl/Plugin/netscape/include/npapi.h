@@ -28,7 +28,7 @@
 /*----------------------------------------------------------------------*/
 /*                   Definition of Basic Types                          */
 /*----------------------------------------------------------------------*/
- 
+
 #ifndef _UINT16
 typedef unsigned short uint16;
 #endif
@@ -167,7 +167,7 @@ typedef enum {
 #endif /* XP_UNIX */
 
 
-typedef struct _NPWindow 
+typedef struct _NPWindow
 {
     void*	window;		/* Platform specific window handle */
     uint32	x;		/* Position of top left corner relative */
@@ -212,7 +212,7 @@ typedef struct _NPPrint
 /*
  *  Mac-specific structures and definitions.
  */
- 
+
 #include <Quickdraw.h>
 #include <Events.h>
 
@@ -320,7 +320,7 @@ char*			NPP_GetMIMEDescription(void);
 NPError			NPP_GetValue(void *instance,
 				     NPPVariable variable,
 				     void *value);
-									 
+
 #endif /* XP_UNIX */
 NPError               	NPP_Initialize(void);
 void                  	NPP_Shutdown(void);
@@ -328,8 +328,8 @@ NPError     NP_LOADDS	NPP_New(NPMIMEType pluginType,
 				NPP instance,
 				uint16 mode,
 				int16 argc,
-				char* argn[], 
-				char* argv[], 
+				char* argn[],
+				char* argv[],
 				NPSavedData* saved);
 
 NPError     NP_LOADDS	NPP_Destroy(NPP instance,
@@ -384,7 +384,7 @@ void                 	NPP_URLNotify(NPP instance,
 /*
  * NPN_* functions are provided by the navigator and called by the plugin.
  */
- 
+
 #ifdef XP_UNIX
 NPError		NPN_GetValue(NPP instance,
 			     NPNVariable variable,

@@ -29,7 +29,7 @@ public class Tiny3D extends Applet {
   Scrollbar colr;
   Scrollbar colg;
   Scrollbar colb;
-  
+
   // Browser we're using
   Browser browser;
   // Root of the scene graph (to which we add our clumps)
@@ -38,7 +38,7 @@ public class Tiny3D extends Applet {
   // Array of the transform hierarchies we've added to the scene
   Vector clumps;
   int topIndex;
-  
+
   // Current clump we're editing
   TinyClump curClump = null;
 
@@ -91,7 +91,7 @@ public class Tiny3D extends Applet {
     //
     // Get handle to root of the scene graph
     //
-    
+
     try {
       root = browser.getNode("ROOT");
     }
@@ -292,7 +292,7 @@ public class Tiny3D extends Applet {
 	return true;
       }
     return super.handleEvent(event);
-  }    
+  }
 
   public boolean action(Event event, Object what) {
     if (event.target instanceof Button)
@@ -325,7 +325,7 @@ public class Tiny3D extends Applet {
 
 	// Add clump to the scene graph
 	try {
-	  EventInMFNode addChildren = 
+	  EventInMFNode addChildren =
 	    (EventInMFNode) root.getEventIn("addChildren");
 	  addChildren.setValue(curClump.transArray);
 	}
@@ -333,7 +333,7 @@ public class Tiny3D extends Applet {
 	  System.out.println("PROBLEMS!: " + e);
 	}
       }
-   
+
     // All other actions ignored.
     return true;
   }

@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -55,7 +55,7 @@ void JSD_ASSERT_VALID_STACK_FRAME(JSDStackFrameInfo* jsdframe)
 }
 #endif
 
-static JSDStackFrameInfo* 
+static JSDStackFrameInfo*
 _addNewFrame(JSDContext*        jsdc,
              JSDThreadState*    jsdthreadstate,
              JSScript*          script,
@@ -73,7 +73,7 @@ _addNewFrame(JSDContext*        jsdc,
         if (!jsdscript || !JSD_IS_DEBUG_ENABLED(jsdc, jsdscript))
             return NULL;
     }
-    
+
     jsdframe = (JSDStackFrameInfo*) calloc(1, sizeof(JSDStackFrameInfo));
     if( ! jsdframe )
         return NULL;
@@ -128,9 +128,9 @@ jsd_NewThreadState(JSDContext* jsdc, JSContext *cx )
             ((jsdc->flags & JSD_INCLUDE_NATIVE_FRAMES) ||
              !JS_IsNativeFrame(cx, fp)))
         {
-            
+
             if (!_addNewFrame( jsdc, jsdthreadstate, script, pc, fp ) &&
-                jsdthreadstate->stackDepth == 0) 
+                jsdthreadstate->stackDepth == 0)
             {
                 /*
                  * if we failed to create the first frame, fail the entire
@@ -140,7 +140,7 @@ jsd_NewThreadState(JSDContext* jsdc, JSContext *cx )
             }
         }
     }
-    
+
     /* if there is no stack, then this threadstate can not be constructed */
     if( 0 == jsdthreadstate->stackDepth )
     {
@@ -218,9 +218,9 @@ jsd_GetJSContext (JSDContext* jsdc, JSDThreadState* jsdthreadstate)
 
     return cx;
 }
-    
+
 JSDStackFrameInfo*
-jsd_GetCallingStackFrame(JSDContext* jsdc, 
+jsd_GetCallingStackFrame(JSDContext* jsdc,
                          JSDThreadState* jsdthreadstate,
                          JSDStackFrameInfo* jsdframe)
 {
@@ -238,7 +238,7 @@ jsd_GetCallingStackFrame(JSDContext* jsdc,
 }
 
 JSDScript*
-jsd_GetScriptForStackFrame(JSDContext* jsdc, 
+jsd_GetScriptForStackFrame(JSDContext* jsdc,
                            JSDThreadState* jsdthreadstate,
                            JSDStackFrameInfo* jsdframe)
 {
@@ -255,7 +255,7 @@ jsd_GetScriptForStackFrame(JSDContext* jsdc,
 }
 
 jsuword
-jsd_GetPCForStackFrame(JSDContext* jsdc, 
+jsd_GetPCForStackFrame(JSDContext* jsdc,
                        JSDThreadState* jsdthreadstate,
                        JSDStackFrameInfo* jsdframe)
 {
@@ -272,7 +272,7 @@ jsd_GetPCForStackFrame(JSDContext* jsdc,
 }
 
 JSDValue*
-jsd_GetCallObjectForStackFrame(JSDContext* jsdc, 
+jsd_GetCallObjectForStackFrame(JSDContext* jsdc,
                                JSDThreadState* jsdthreadstate,
                                JSDStackFrameInfo* jsdframe)
 {
@@ -283,9 +283,9 @@ jsd_GetCallObjectForStackFrame(JSDContext* jsdc,
 
     if( jsd_IsValidFrameInThreadState(jsdc, jsdthreadstate, jsdframe) )
     {
-        obj = JS_GetFrameCallObject(jsdthreadstate->context, jsdframe->fp); 
-        if(obj)                                                             
-            jsdval = JSD_NewValue(jsdc, OBJECT_TO_JSVAL(obj));              
+        obj = JS_GetFrameCallObject(jsdthreadstate->context, jsdframe->fp);
+        if(obj)
+            jsdval = JSD_NewValue(jsdc, OBJECT_TO_JSVAL(obj));
     }
 
     JSD_UNLOCK_THREADSTATES(jsdc);
@@ -294,7 +294,7 @@ jsd_GetCallObjectForStackFrame(JSDContext* jsdc,
 }
 
 JSDValue*
-jsd_GetScopeChainForStackFrame(JSDContext* jsdc, 
+jsd_GetScopeChainForStackFrame(JSDContext* jsdc,
                                JSDThreadState* jsdthreadstate,
                                JSDStackFrameInfo* jsdframe)
 {
@@ -305,9 +305,9 @@ jsd_GetScopeChainForStackFrame(JSDContext* jsdc,
 
     if( jsd_IsValidFrameInThreadState(jsdc, jsdthreadstate, jsdframe) )
     {
-        obj = JS_GetFrameScopeChain(jsdthreadstate->context, jsdframe->fp); 
-        if(obj)                                                             
-            jsdval = JSD_NewValue(jsdc, OBJECT_TO_JSVAL(obj));              
+        obj = JS_GetFrameScopeChain(jsdthreadstate->context, jsdframe->fp);
+        if(obj)
+            jsdval = JSD_NewValue(jsdc, OBJECT_TO_JSVAL(obj));
     }
 
     JSD_UNLOCK_THREADSTATES(jsdc);
@@ -316,7 +316,7 @@ jsd_GetScopeChainForStackFrame(JSDContext* jsdc,
 }
 
 JSDValue*
-jsd_GetThisForStackFrame(JSDContext* jsdc, 
+jsd_GetThisForStackFrame(JSDContext* jsdc,
                          JSDThreadState* jsdthreadstate,
                          JSDStackFrameInfo* jsdframe)
 {
@@ -336,14 +336,14 @@ jsd_GetThisForStackFrame(JSDContext* jsdc,
 }
 
 const char*
-jsd_GetNameForStackFrame(JSDContext* jsdc, 
+jsd_GetNameForStackFrame(JSDContext* jsdc,
                          JSDThreadState* jsdthreadstate,
                          JSDStackFrameInfo* jsdframe)
 {
     const char *rv = NULL;
-    
+
     JSD_LOCK_THREADSTATES(jsdc);
-    
+
     if( jsd_IsValidFrameInThreadState(jsdc, jsdthreadstate, jsdframe) )
     {
         JSFunction *fun = JS_GetFrameFunction (jsdthreadstate->context,
@@ -351,18 +351,18 @@ jsd_GetNameForStackFrame(JSDContext* jsdc,
         if (fun)
             rv = JS_GetFunctionName (fun);
     }
-    
+
     JSD_UNLOCK_THREADSTATES(jsdc);
     return rv;
 }
 
 JSBool
-jsd_IsStackFrameNative(JSDContext* jsdc, 
+jsd_IsStackFrameNative(JSDContext* jsdc,
                        JSDThreadState* jsdthreadstate,
                        JSDStackFrameInfo* jsdframe)
 {
     JSBool rv;
-    
+
     JSD_LOCK_THREADSTATES(jsdc);
 
     if( jsd_IsValidFrameInThreadState(jsdc, jsdthreadstate, jsdframe) )
@@ -379,7 +379,7 @@ jsd_IsStackFrameNative(JSDContext* jsdc,
 }
 
 JSBool
-jsd_IsStackFrameDebugger(JSDContext* jsdc, 
+jsd_IsStackFrameDebugger(JSDContext* jsdc,
                          JSDThreadState* jsdthreadstate,
                          JSDStackFrameInfo* jsdframe)
 {
@@ -396,7 +396,7 @@ jsd_IsStackFrameDebugger(JSDContext* jsdc,
 }
 
 JSBool
-jsd_IsStackFrameConstructing(JSDContext* jsdc, 
+jsd_IsStackFrameConstructing(JSDContext* jsdc,
                              JSDThreadState* jsdthreadstate,
                              JSDStackFrameInfo* jsdframe)
 {
@@ -413,7 +413,7 @@ jsd_IsStackFrameConstructing(JSDContext* jsdc,
 }
 
 JSBool
-jsd_EvaluateUCScriptInStackFrame(JSDContext* jsdc, 
+jsd_EvaluateUCScriptInStackFrame(JSDContext* jsdc,
                                  JSDThreadState* jsdthreadstate,
                                  JSDStackFrameInfo* jsdframe,
                                  const jschar *bytes, uintN length,
@@ -441,7 +441,7 @@ jsd_EvaluateUCScriptInStackFrame(JSDContext* jsdc,
         exceptionState = JS_SaveExceptionState(cx);
     JS_ClearPendingException(cx);
     jsd_StartingEvalUsingFilename(jsdc, filename);
-    retval = JS_EvaluateUCInStackFrame(cx, jsdframe->fp, bytes, length, 
+    retval = JS_EvaluateUCInStackFrame(cx, jsdframe->fp, bytes, length,
                                        filename, lineno, rval);
     jsd_FinishedEvalUsingFilename(jsdc, filename);
     if (eatExceptions)
@@ -451,7 +451,7 @@ jsd_EvaluateUCScriptInStackFrame(JSDContext* jsdc,
 }
 
 JSBool
-jsd_EvaluateScriptInStackFrame(JSDContext* jsdc, 
+jsd_EvaluateScriptInStackFrame(JSDContext* jsdc,
                                JSDThreadState* jsdthreadstate,
                                JSDStackFrameInfo* jsdframe,
                                const char *bytes, uintN length,
@@ -489,7 +489,7 @@ jsd_EvaluateScriptInStackFrame(JSDContext* jsdc,
 }
 
 JSString*
-jsd_ValToStringInStackFrame(JSDContext* jsdc, 
+jsd_ValToStringInStackFrame(JSDContext* jsdc,
                             JSDThreadState* jsdthreadstate,
                             JSDStackFrameInfo* jsdframe,
                             jsval val)
@@ -517,7 +517,7 @@ jsd_ValToStringInStackFrame(JSDContext* jsdc,
 }
 
 JSBool
-jsd_IsValidThreadState(JSDContext*        jsdc, 
+jsd_IsValidThreadState(JSDContext*        jsdc,
                        JSDThreadState*    jsdthreadstate)
 {
     JSDThreadState *cur;
@@ -526,16 +526,16 @@ jsd_IsValidThreadState(JSDContext*        jsdc,
 
     for( cur = (JSDThreadState*)jsdc->threadsStates.next;
          cur != (JSDThreadState*)&jsdc->threadsStates;
-         cur = (JSDThreadState*)cur->links.next ) 
+         cur = (JSDThreadState*)cur->links.next )
     {
         if( cur == jsdthreadstate )
             return JS_TRUE;
     }
     return JS_FALSE;
-}    
+}
 
 JSBool
-jsd_IsValidFrameInThreadState(JSDContext*        jsdc, 
+jsd_IsValidFrameInThreadState(JSDContext*        jsdc,
                               JSDThreadState*    jsdthreadstate,
                               JSDStackFrameInfo* jsdframe)
 {
@@ -548,7 +548,7 @@ jsd_IsValidFrameInThreadState(JSDContext*        jsdc,
 
     JSD_ASSERT_VALID_THREAD_STATE(jsdthreadstate);
     JSD_ASSERT_VALID_STACK_FRAME(jsdframe);
-    
+
     return JS_TRUE;
 }
 
@@ -562,7 +562,7 @@ _getContextForThreadState(JSDContext* jsdc, JSDThreadState* jsdthreadstate)
     if( valid )
         return jsdthreadstate->context;
     return NULL;
-}        
+}
 
 JSDValue*
 jsd_GetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate)
@@ -576,10 +576,10 @@ jsd_GetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate)
     if(JS_GetPendingException(cx, &val))
         return jsd_NewValue(jsdc, val);
     return NULL;
-}        
+}
 
 JSBool
-jsd_SetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate, 
+jsd_SetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate,
                  JSDValue* jsdval)
 {
     JSContext* cx;

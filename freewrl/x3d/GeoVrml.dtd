@@ -4,11 +4,11 @@
  Description:	Define the GeoVrml tag and attribute profile for X3D.
 		These X3D native nodes correspond to VRML ExternProto declarations.
 
- 		Elements in this tagset are enabled by setting the 
-		GeoVrmlProfile entity to "INCLUDE" at the top of an 
+ 		Elements in this tagset are enabled by setting the
+		GeoVrmlProfile entity to "INCLUDE" at the top of an
 		X3D scene file, as shown in several examples such as
-		examples/GeoVrml/newGeoVrmlScene.xml.  This flag then 
-		triggers inclusion of the GeoVrml tags in the 
+		examples/GeoVrml/newGeoVrmlScene.xml.  This flag then
+		triggers inclusion of the GeoVrml tags in the
 		x3d-compromise.dtd tagset.  Thus the GeoVrml.dtd
 		demonstrates X3D extensibility for profiles.
 
@@ -16,7 +16,7 @@
 
  Authors:	Martin Reddy and GeoVrml Working Group for GeoVrml specifications
 		Don Brutzman produced XML encoding for X3D
- 
+
  Reference:	GeoVrml 1.0 Specification, http://www.geovrml.org/1.0
 
  Address:	http://www.web3D.org/TaskGroups/x3d/translation/GeoVrml.dtd
@@ -88,7 +88,7 @@
 	nodeTypeHint	NMTOKEN 	#FIXED	"ElevationGrid"
 	DEF		ID		#IMPLIED
 	USE		IDREF		#IMPLIED>
-	
+
 <!-- Inline may contain nodes once url is loaded.         -->
 <!-- This permits external access - open technical issue. -->
 <!-- Will be ( %SceneNodes; ) in x3d-compact.dtd form.    -->
@@ -96,13 +96,13 @@
 <!ELEMENT GeoInline (children)? >
 <!ATTLIST GeoInline
 	url		%MFString;	#IMPLIED
-	load		%SFBool;	"true"	
-	bboxCenter	%SFVec3d;	"0 0 0"	
-	bboxSize	%SFVec3d;	"-1 -1 -1"	
+	load		%SFBool;	"true"
+	bboxCenter	%SFVec3d;	"0 0 0"
+	bboxSize	%SFVec3d;	"-1 -1 -1"
 	nodeTypeHint	NMTOKEN 	#FIXED	"Inline"
 	DEF		ID		#IMPLIED
 	USE		IDREF		#IMPLIED>
-	
+
 <!ELEMENT GeoLocation (
 	((GeoOrigin, children?) | (children, GeoOrigin?))?
 ) >
@@ -155,7 +155,7 @@
 	nodeTypeHint	NMTOKEN 	#FIXED	"WorldInfo"
 	DEF		ID		#IMPLIED
 	USE		IDREF		#IMPLIED>
-	
+
 <!ELEMENT GeoOrigin EMPTY >
 <!ATTLIST GeoOrigin
 	geoSystem	%GeoSystemType;
@@ -178,7 +178,7 @@
 	USE		IDREF	#IMPLIED>
 
 <!ELEMENT GeoTouchSensor ( GeoOrigin? ) >
-<!ATTLIST GeoTouchSensor	
+<!ATTLIST GeoTouchSensor
 	geoSystem	%GeoSystemType;
 	enabled		%SFBool;	"true"
 	hitNormal	%SFVec3f;	#IMPLIED

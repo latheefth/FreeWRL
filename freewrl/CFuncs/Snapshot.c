@@ -133,14 +133,14 @@ void Snapshot () {
 	glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
 	glPixelStorei (GL_PACK_ALIGNMENT, 1);
 	glReadPixels (0,0,screenWidth,screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
-	
+
 	/* save this snapshot */
 	snapRawCount ++;
 	if (snapRawCount > maxSnapImages) {
 		free (buffer);
 		return;
 	}
-	
+
 	/* save the file */
 	sprintf (thisRawFile,"%s/%s.%04d.rgb",mytmp,mysnapb,snapRawCount);
 	tmpfile = fopen(thisRawFile,"w");
@@ -149,14 +149,14 @@ void Snapshot () {
 		free (buffer);
 		return;
 	}
-	
+
 	if (fwrite(buffer, 1, screenHeight*screenWidth*3, tmpfile) <= 0) {
 		printf ("error writing snapshot to %s, aborting snapshot\n",thisRawFile);
 		free (buffer);
 		return;
 	}
 	fclose (tmpfile);
-	
+
 	//convert -size 450x300 -depth 8 -flip /tmp/snappedfile.rgb out.png works.
 
 	free (buffer);

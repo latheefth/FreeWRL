@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
@@ -35,34 +35,34 @@ public interface JSErrorReporter
 
     /**
     * returned by <code>reportError()</code> to indicate that the error
-    * should be passed along to the error reporter that would have been 
+    * should be passed along to the error reporter that would have been
     * called had the debugger not been running
     */
     public static final int PASS_ALONG = 0;
     /**
-    * returned by <code>reportError()</code> to indicate that the 
+    * returned by <code>reportError()</code> to indicate that the
     * normal error reporter should not be called and that the JavaScript
     * engine should do whatever it would normally do after calling the
     * error reporter.
     */
     public static final int RETURN     = 1;
     /**
-    * returned by <code>reportError()</code> to indicate that the 
-    * 'debug break' hook should be called to allow the debugger to 
+    * returned by <code>reportError()</code> to indicate that the
+    * 'debug break' hook should be called to allow the debugger to
     * investigate the state of the process when the error occured
     */
     public static final int DEBUG      = 2;
 
     /**
     * This hook is called when a JavaScript error (compile or runtime) occurs
-    * <p> 
-    * One of the codes above should be returned to tell the engine how to 
+    * <p>
+    * One of the codes above should be returned to tell the engine how to
     * proceed.
     * @param msg error message passed through from the JavaScript engine
     * @param filename filename (or url) of the code with the error
     * @param lineno line number where error was detected
     * @param linebuf a copy of the line where the error was detected
-    * @param tokenOffset the offset into <i>linebuf</i> where the error 
+    * @param tokenOffset the offset into <i>linebuf</i> where the error
     * was detected
     * @returns one of the codes above
     */
@@ -71,4 +71,4 @@ public interface JSErrorReporter
                             int    lineno,
                             String linebuf,
                             int    tokenOffset );
-}    
+}

@@ -9,16 +9,16 @@
 
 package VRML::JavaClass;
 
-#debug 
+#debug
 $VRML::verbose::javaclass = 1;
- 
+
 sub new {
 	my ($this, $node,$scriptInvocationNumber, $url) = @_;
 
 	#printf ("new javaclass, this $this, node $node, scri $scriptInvocationNumber, url $url\n");
 	$this->{ScriptNum} = $scriptInvocationNumber;  # we go by this script number
 
-	
+
 	#foreach $key (keys(%{$node->{Fields}{enabled}})) {print "key of node Fields enabled is $key\n";}
 	#foreach $key (keys(%{$node->{Type}})) {print "key of nodeType is $key\n";}
 	#print "value is ",$node->{Type}{FieldKinds}{enabled},"\n";
@@ -26,7 +26,7 @@ sub new {
 
 	# get a nice, short name - strip off the NODE from ref NODEXX, and append
 	# zero (node pointer - signifies a script, not memory locn)
-	# - returns, "15:0", for instance. 
+	# - returns, "15:0", for instance.
 	my $id = VRML::Browser::EAI_GetNode($node).":0";
 
 	#print "newjavaclass, node is now $id\n";

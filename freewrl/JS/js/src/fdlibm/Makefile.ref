@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -32,47 +32,47 @@
 # file under either the NPL or the GPL.
 
 #
-#  @(#)Makefile 1.4 95/01/18 
-# 
+#  @(#)Makefile 1.4 95/01/18
+#
 #  ====================================================
 #  Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
-# 
+#
 #  Developed at SunSoft, a Sun Microsystems, Inc. business.
 #  Permission to use, copy, modify, and distribute this
-#  software is freely granted, provided that this notice 
+#  software is freely granted, provided that this notice
 #  is preserved.
 #  ====================================================
-# 
-# 
+#
+#
 
 #
 # There are two options in making libm at fdlibm compile time:
 #       _IEEE_LIBM      --- IEEE libm; smaller, and somewhat faster
-#       _MULTI_LIBM     --- Support multi-standard at runtime by 
-#                           imposing wrapper functions defined in 
+#       _MULTI_LIBM     --- Support multi-standard at runtime by
+#                           imposing wrapper functions defined in
 #                           fdlibm.h:
 #                               _IEEE_MODE      -- IEEE
 #                               _XOPEN_MODE     -- X/OPEN
 #                               _POSIX_MODE     -- POSIX/ANSI
 #                               _SVID3_MODE     -- SVID
 #
-# Here is how to set up CFLAGS to create the desired libm at 
+# Here is how to set up CFLAGS to create the desired libm at
 # compile time:
 #
 #       CFLAGS = -D_IEEE_LIBM           ... IEEE libm (recommended)
 #       CFLAGS = -D_SVID3_MODE  ... Multi-standard supported
-#                                           libm with SVID as the 
+#                                           libm with SVID as the
 #                                           default standard
 #       CFLAGS = -D_XOPEN_MODE  ... Multi-standard supported
-#                                           libm with XOPEN as the 
+#                                           libm with XOPEN as the
 #                                           default standard
 #       CFLAGS = -D_POSIX_MODE  ... Multi-standard supported
-#                                           libm with POSIX as the 
+#                                           libm with POSIX as the
 #                                           default standard
 #       CFLAGS =                        ... Multi-standard supported
-#                                           libm with IEEE as the 
+#                                           libm with IEEE as the
 #                                           default standard
-# 
+#
 # NOTE: if scalb's second arguement is an int, then one must
 # define _SCALB_INT in CFLAGS. The default prototype of scalb
 # is double scalb(double, double)
@@ -135,7 +135,7 @@ define MAKE_OBJDIR
 if test ! -d $(@D); then rm -rf $(@D); mkdir -p $(@D); fi
 endef
 
-all: $(LIBRARY) 
+all: $(LIBRARY)
 
 export:
 
@@ -171,7 +171,7 @@ $(LIBRARY): $(FDLIBM_OBJS)
 endif
 endif
 
-libfdm.a : $(FDLIBM_OBJS) 
+libfdm.a : $(FDLIBM_OBJS)
 	$(AR) cru $(OBJDIR)/libfdm.a $(FDLIBM_OBJS)
 	$(RANLIB) $(OBJDIR)/libfdm.a
 

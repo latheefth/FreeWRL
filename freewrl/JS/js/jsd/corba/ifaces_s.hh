@@ -27,28 +27,28 @@ class _sk_StringReciever : public StringReciever
 	// The following operations need to be implemented by the server.
 	virtual void recieveString(const char * arg0) = 0;
 	virtual void bounce(CORBA::Long arg0) = 0;
-	
+
 	// Skeleton Operations implemented automatically
-	
+
 	static void _recieveString(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _bounce(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 };
 template <class T>
 class _tie_StringReciever : public StringReciever
 {
     public:
-	_tie_StringReciever(T& t, const char *obj_name=(char*)NULL) : 
-			StringReciever(obj_name), 
+	_tie_StringReciever(T& t, const char *obj_name=(char*)NULL) :
+			StringReciever(obj_name),
 			_ref(t) {
 		_object_name(obj_name);
 	}
@@ -85,40 +85,40 @@ class _sk_TestInterface : public TestInterface
 	virtual TestInterface::sequence_of_Thing * getThings() = 0;
 	virtual void callBounce(StringReciever_ptr arg0,
 			CORBA::Long arg1) = 0;
-	
+
 	// Skeleton Operations implemented automatically
-	
+
 	static void _getFirstAppInList(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getAppNames(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getThings(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _callBounce(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 };
 template <class T>
 class _tie_TestInterface : public TestInterface
 {
     public:
-	_tie_TestInterface(T& t, const char *obj_name=(char*)NULL) : 
-			TestInterface(obj_name), 
+	_tie_TestInterface(T& t, const char *obj_name=(char*)NULL) :
+			TestInterface(obj_name),
 			_ref(t) {
 		_object_name(obj_name);
 	}
@@ -166,64 +166,64 @@ class _sk_ISourceTextProvider : public ISourceTextProvider
 	virtual char * getPageText(const char * arg0) = 0;
 	virtual CORBA::Long getPageStatus(const char * arg0) = 0;
 	virtual CORBA::Long getPageAlterCount(const char * arg0) = 0;
-	
+
 	// Skeleton Operations implemented automatically
-	
+
 	static void _getAllPages(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _refreshAllPages(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _hasPage(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _loadPage(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _refreshPage(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getPageText(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getPageStatus(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getPageAlterCount(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 };
 template <class T>
 class _tie_ISourceTextProvider : public ISourceTextProvider
 {
     public:
-	_tie_ISourceTextProvider(T& t, const char *obj_name=(char*)NULL) : 
-			ISourceTextProvider(obj_name), 
+	_tie_ISourceTextProvider(T& t, const char *obj_name=(char*)NULL) :
+			ISourceTextProvider(obj_name),
 			_ref(t) {
 		_object_name(obj_name);
 	}
@@ -282,22 +282,22 @@ class _sk_IJSErrorReporter : public IJSErrorReporter
 			CORBA::Long arg2,
 			const char * arg3,
 			CORBA::Long arg4) = 0;
-	
+
 	// Skeleton Operations implemented automatically
-	
+
 	static void _reportError(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 };
 template <class T>
 class _tie_IJSErrorReporter : public IJSErrorReporter
 {
     public:
-	_tie_IJSErrorReporter(T& t, const char *obj_name=(char*)NULL) : 
-			IJSErrorReporter(obj_name), 
+	_tie_IJSErrorReporter(T& t, const char *obj_name=(char*)NULL) :
+			IJSErrorReporter(obj_name),
 			_ref(t) {
 		_object_name(obj_name);
 	}
@@ -335,28 +335,28 @@ class _sk_IScriptHook : public IScriptHook
 	// The following operations need to be implemented by the server.
 	virtual void justLoadedScript(const IScript& arg0) = 0;
 	virtual void aboutToUnloadScript(const IScript& arg0) = 0;
-	
+
 	// Skeleton Operations implemented automatically
-	
+
 	static void _justLoadedScript(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _aboutToUnloadScript(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 };
 template <class T>
 class _tie_IScriptHook : public IScriptHook
 {
     public:
-	_tie_IScriptHook(T& t, const char *obj_name=(char*)NULL) : 
-			IScriptHook(obj_name), 
+	_tie_IScriptHook(T& t, const char *obj_name=(char*)NULL) :
+			IScriptHook(obj_name),
 			_ref(t) {
 		_object_name(obj_name);
 	}
@@ -390,22 +390,22 @@ class _sk_IJSExecutionHook : public IJSExecutionHook
 	// The following operations need to be implemented by the server.
 	virtual void aboutToExecute(const IJSThreadState& arg0,
 			const IJSPC& arg1) = 0;
-	
+
 	// Skeleton Operations implemented automatically
-	
+
 	static void _aboutToExecute(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 };
 template <class T>
 class _tie_IJSExecutionHook : public IJSExecutionHook
 {
     public:
-	_tie_IJSExecutionHook(T& t, const char *obj_name=(char*)NULL) : 
-			IJSExecutionHook(obj_name), 
+	_tie_IJSExecutionHook(T& t, const char *obj_name=(char*)NULL) :
+			IJSExecutionHook(obj_name),
 			_ref(t) {
 		_object_name(obj_name);
 	}
@@ -470,178 +470,178 @@ class _sk_IDebugController : public IDebugController
 	virtual void leaveThreadSuspended(CORBA::Long arg0) = 0;
 	virtual void resumeThread(CORBA::Long arg0) = 0;
 	virtual void iterateScripts(IScriptHook_ptr arg0) = 0;
-	
+
 	// Skeleton Operations implemented automatically
-	
+
 	static void _getMajorVersion(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getMinorVersion(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _setErrorReporter(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getErrorReporter(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _setScriptHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getScriptHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getClosestPC(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getSourceLocation(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _setInterruptHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getInterruptHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _setDebugBreakHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getDebugBreakHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _setInstructionHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _getInstructionHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _setThreadContinueState(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _setThreadReturnValue(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _sendInterrupt(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _sendInterruptStepInto(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _sendInterruptStepOver(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _sendInterruptStepOut(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _reinstateStepper(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _executeScriptInStackFrame(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _isRunningHook(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _isWaitingForResume(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _leaveThreadSuspended(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _resumeThread(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 	static void _iterateScripts(void *obj,
 			CORBA::MarshalStream &strm,
 			CORBA::Principal_ptr principal,
 			const char *oper,
 			void *priv_data);
-	
+
 };
 template <class T>
 class _tie_IDebugController : public IDebugController
 {
     public:
-	_tie_IDebugController(T& t, const char *obj_name=(char*)NULL) : 
-			IDebugController(obj_name), 
+	_tie_IDebugController(T& t, const char *obj_name=(char*)NULL) :
+			IDebugController(obj_name),
 			_ref(t) {
 		_object_name(obj_name);
 	}

@@ -159,7 +159,7 @@ js_ConcatStrings(JSContext *cx, JSString *left, JSString *right)
         s = (jschar *) JS_realloc(cx, ls, (ln + rn + 1) * sizeof(jschar));
         if (!s)
             return NULL;
- 
+
         /* Take care: right could depend on left! */
         lrdist = (size_t)(rs - ls);
         if (lrdist < ln)

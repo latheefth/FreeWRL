@@ -45,7 +45,7 @@ public class AddRoute extends Applet {
     // Get the browser
     browser = Browser.getBrowser(this);
     // Get root node of the scene
-    try 
+    try
 	{ root = browser.getNode("ROOT"); }
     catch (InvalidNodeException e) {
 	System.out.println ("caught " + e);
@@ -56,7 +56,7 @@ public class AddRoute extends Applet {
 
     addChildren = (EventInMFNode) root.getEventIn("addChildren");
     removeChildren = (EventInMFNode) root.getEventIn("removeChildren");
-    
+
 
     // Instantiate a lovely shape
     Shape = browser.createVrmlFromString(
@@ -107,19 +107,19 @@ public class AddRoute extends Applet {
 		} else if (b == removeButton) {
 			removeChildren.setValue(Shape);
 		} else if (b == addRButton) {
-			try { 
-				browser.addRoute (Clock[0], "fraction_changed", ColumnPath[0], 
+			try {
+				browser.addRoute (Clock[0], "fraction_changed", ColumnPath[0],
 					"set_fraction");
-				browser.addRoute (ColumnPath[0], "value_changed", Shape[0], 
+				browser.addRoute (ColumnPath[0], "value_changed", Shape[0],
 					"set_rotation");
 			} catch (IllegalArgumentException e) {
 				System.out.println ("caught " + e);
 			}
 		} else if (b == removeRButton) {
-			try { 
-				browser.deleteRoute (Clock[0], "fraction_changed", ColumnPath[0], 
+			try {
+				browser.deleteRoute (Clock[0], "fraction_changed", ColumnPath[0],
 					"set_fraction");
-				browser.deleteRoute (ColumnPath[0], "value_changed", Shape[0], 
+				browser.deleteRoute (ColumnPath[0], "value_changed", Shape[0],
 					"set_rotation");
 			} catch (IllegalArgumentException e) {
 				System.out.println ("caught " + e);

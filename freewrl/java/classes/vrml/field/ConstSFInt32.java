@@ -27,7 +27,7 @@ public class ConstSFInt32 extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Int32");
 		value = Integer.parseInt(in.readLine());
     }

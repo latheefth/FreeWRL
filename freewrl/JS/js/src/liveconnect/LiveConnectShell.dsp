@@ -7,21 +7,21 @@
 CFG=LiveConnectShell - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "LiveConnectShell.mak".
-!MESSAGE 
+!MESSAGE
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "LiveConnectShell.mak" CFG="LiveConnectShell - Win32 Debug"
-!MESSAGE 
+!MESSAGE
 !MESSAGE Possible choices for configuration are:
-!MESSAGE 
+!MESSAGE
 !MESSAGE "LiveConnectShell - Win32 Release" (based on\
  "Win32 (x86) Console Application")
 !MESSAGE "LiveConnectShell - Win32 Debug" (based on\
  "Win32 (x86) Console Application")
-!MESSAGE 
+!MESSAGE
 
 # Begin Project
 # PROP Scc_ProjName ""
@@ -88,7 +88,7 @@ PostBuild_Desc=Copy DLL(s) to build directory
 PostBuild_Cmds=COPY ..\Debug\js32.dll .\Debug
 # End Special Build Tool
 
-!ENDIF 
+!ENDIF
 
 # Begin Target
 
@@ -113,7 +113,7 @@ SOURCE=.\jsj_simpleapi.c
 # ADD CPP /I ".."
 # SUBTRACT CPP /I "."
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 # End Target

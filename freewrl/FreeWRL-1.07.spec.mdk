@@ -1,6 +1,6 @@
 Summary: A vrml viewer
 Name: freewrl
-Version: 1.06 
+Version: 1.06
 Release: 1mdk
 Copyright: GPL
 Group: Applications/Multimedia
@@ -18,7 +18,7 @@ platform is Linux; used by FreeWRL users. A Windows port is not yet started, but
 
 %build
 perl Makefile.PL
-make 
+make
 
 %install
 make install

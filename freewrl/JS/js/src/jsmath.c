@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -127,7 +127,7 @@ math_asin(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 #ifdef XP_MAC
     if (x == 0)
         return js_NewNumberValue(cx, x, rval);
-#endif    
+#endif
     z = fd_asin(x);
     return js_NewNumberValue(cx, z, rval);
 }
@@ -142,7 +142,7 @@ math_atan(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 #ifdef XP_MAC
     if (x == 0)
         return js_NewNumberValue(cx, x, rval);
-#endif    
+#endif
     z = fd_atan(x);
     return js_NewNumberValue(cx, z, rval);
 }
@@ -460,7 +460,7 @@ JSObject *
 js_InitMathClass(JSContext *cx, JSObject *obj)
 {
     JSObject *Math;
-    
+
     Math = JS_DefineObject(cx, obj, "Math", &math_class, NULL, 0);
     if (!Math)
         return NULL;

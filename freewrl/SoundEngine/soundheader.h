@@ -19,7 +19,7 @@
 #include <math.h>
 
 #define  UNKNOWNFILE 0
-#define  WAVFILE 3 
+#define  WAVFILE 3
 #define	 MPGFILE 1
 #define  MP3FILE 2
 
@@ -29,13 +29,13 @@
 #define MAXSOURCES 50
 #define BUFSIZE  512
 #define MAXBUFSIZE 8192
-#define NUMBUFS 2 
+#define NUMBUFS 2
 
 
 /* number of fragments */
-#define N_FRAGMENTS 	48 
+#define N_FRAGMENTS 	48
 /* a buffersize of 2^8 = 256 bytes */
-#define FRAG_SIZE 	8 
+#define FRAG_SIZE 	8
 
 
 #define FormatID 'fmt '   /* chunkID for Format Chunk. NOTE: There is a space at the end of this ID. */
@@ -73,7 +73,7 @@ typedef struct {
 	int	dataptr;	// where in the data field we are
 	int	wavdataoffset;	// this is the offset from start of file to wave data
 	float	pitch;		// pitch multiplier
-	long int bytes_remaining;	// how many bytes until EOF is reached - used in 
+	long int bytes_remaining;	// how many bytes until EOF is reached - used in
 					// playing the file
 					//
 	int ampl;               // Gain of this sound
@@ -97,7 +97,7 @@ extern int readSize;
 extern int dspFile;
 extern float fps;
 void closeDSP();
-SNDFILE *initiateWAVSound (SNDFILE *wavfile,int mynum); 
+SNDFILE *initiateWAVSound (SNDFILE *wavfile,int mynum);
 void playWavFragment ();
 void initiateDSP ();
 void rewind_to_beginning (SNDFILE *wavfile);

@@ -36,7 +36,7 @@ require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
 require 'VRML/Events.pm';
 require 'VRML/Config.pm';
-#JAS require 'VRML/X3DParser.pm';
+require 'VRML/X3DParser.pm';
 
 package VRML::Browser;
 use File::Basename;
@@ -90,7 +90,7 @@ sub getEV {return $globalBrowser->{EV};}
 # read in text, unzip if required.
 sub getTextFromFile {
 	my ($file,$parentURL) = @_;
-	
+
 	# read in data from a file; the file name has been verified
 	# to exist before here by "C" functions (or, it is the name
 	# of a file in the Browser cache). Read it in, and return
@@ -110,7 +110,7 @@ sub prepare {
 	$this->{Scene}->make_executable();
 	my $bn = $this->{Scene}->make_backend($this->{BE});
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	
+
 	# display this one
 
 	VRML::NodeIntern::dump_name($bn), ", ",
@@ -234,13 +234,13 @@ sub create_common {
 	# if not, then just call the VRML parser
 	# JAS ----- USE the old one for now; fields not quite correct.
         if ($type == 1)  {
-		if (!eval('require VRML::X3DParser')) {
-			VRML::VRMLFunc::ConsoleMessage (
-				"FreeWRL can not load the X3DParser perl module".
-				"\n - this is going to fail");
-		} else {
+	#	if (!eval('require VRML::X3DParser')) {
+	#		VRML::VRMLFunc::ConsoleMessage (
+	#			"FreeWRL can not load the X3DParser perl module".
+	#			"\n - this is going to fail");
+	#	} else {
 			X3D::Parser::parse($scene, $string);
-		}
+	#	}
         } else {
 		# remove comments, etc:
 		$string = VRML::VRMLFunc::sanitizeInput($string);
@@ -252,7 +252,7 @@ sub create_common {
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
 	$scene->dump(0) if $VRML::verbose::scenegraph;
-	
+
 
 	return $ret;
 }
@@ -302,9 +302,9 @@ sub EAI_Route {
 ################
 # EAI Perl functions.
 
-# EAI_GetNode returns "UNDEFINED" for undefined node, or it returns the 
+# EAI_GetNode returns "UNDEFINED" for undefined node, or it returns the
 # number of the node so that when the node is manipulated, it can be
-# referenced as NODE42. 
+# referenced as NODE42.
 #
 # It does this because, until a specific field is requested, we can't
 # use the generic subroutines that are put in place for routing in Events.pm
@@ -315,7 +315,7 @@ sub EAI_GetNode {
 	my ($nodetoget) = @_;
 
 	#print "\n\nEAI_GetNode, getting $nodetoget\n";
-	# now we change the node into a DEF name.	
+	# now we change the node into a DEF name.
 	my $node = VRML::Handles::return_def_name($nodetoget);
 
 	#print "step 1, node is $node, ref ",ref $node,"\n";
@@ -342,7 +342,7 @@ sub EAI_GetViewpoint {
 	my ($nodetoget) = @_;
 
 	#print "\n\nEAI_GetViewpoint, getting $nodetoget\n";
-	# now we change the node into a DEF name.	
+	# now we change the node into a DEF name.
 	my $node = VRML::Handles::return_def_name($nodetoget);
 
 	#print "step 1, node is $node, ref ",ref $node,"\n";
@@ -367,7 +367,7 @@ sub EAI_GetViewpoint {
 	my $bn = 0;
 	if (exists $node->{BackNode}{CNode}) {
 		$bn = $node->{BackNode}{CNode};
-	} else { 
+	} else {
 		$bn = 0;
 	}
 
@@ -440,7 +440,7 @@ sub EAI_GetValue {
 				$id = VRML::Handles::reserve($val);
 				if (exists $val->{BackNode}{CNode}) {
 					$bn = $val->{BackNode}{CNode};
-				} else { 
+				} else {
 					$bn = 0;
 				}
 
@@ -461,7 +461,7 @@ sub EAI_GetValue {
 			my $id = VRML::Handles::reserve($fval);
 			if (exists $fval->{BackNode}{CNode}) {
 				$bn = $fval->{BackNode}{CNode};
-			} else { 
+			} else {
 				$bn = 0;
 			}
 
@@ -519,7 +519,7 @@ sub EAI_LocateNode {
 	#print "BROWSER::EAI_LocateNode fieldname $fieldname, evin: ",
 	#$realele->{Type}{EventIns}{$fieldname}," kinds ",
 		#$realele->{Type}{FieldKinds}{$fieldname},"\n";
-	
+
 		#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
 	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
 	#print "\n\n\n";
@@ -529,8 +529,8 @@ sub EAI_LocateNode {
 		#print "BROWSER:EAI - field $fieldname exists in node, it is ",
 		#	$realele->{Fields}{$fieldname},"\n";
 		return ($realele, $fieldname, $direction);
-	} 
-	
+	}
+
 	#print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
 
 	# try and see if this is a PROTO expansion.
@@ -545,7 +545,7 @@ sub EAI_LocateNode {
 		$realele = $testnode;
 	}
 
-	my $ms = $realele->{Scene};		
+	my $ms = $realele->{Scene};
 	my ($xele, $sc, $in, $rn, $rf);
 
 	# try to find this node/field within this scene.
@@ -594,22 +594,22 @@ sub EAI_GetType {
 
 
 	# pass in the nodenum, fieldname, and direction, and get a real
-	# nodepointer, fieldname and direction back again. 
-	($realele, $fieldname, $direction) = 
+	# nodepointer, fieldname and direction back again.
+	($realele, $fieldname, $direction) =
 		EAI_LocateNode($nn, $fn, $direct);
 
 		#print "EAI_GetType, locateNode returns $realele, $fieldname, $direction\n";
 
 	# get info from FreeWRL internals.
 	if ($direction =~/eventIn/i) {
-        	($to_count, $tonode_str, $type, $ok, $intptr, $fieldtype) = 
-				$globalBrowser->{EV}->resolve_node_cnode($globalBrowser->{Scene}, 
+        	($to_count, $tonode_str, $type, $ok, $intptr, $fieldtype) =
+				$globalBrowser->{EV}->resolve_node_cnode($globalBrowser->{Scene},
 					$realele, $fieldname, $direction);
 
 		$datalen = 0; # we either know the length (eg, SFInt32), or if MF, it is the eventOut that
 #		print "Browser.pm, tonodestr: $tonode_str\n";
 			      # determines the exact length.
-		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
+		($outptr, $outoffset) = split(/:/,$tonode_str,2);
 	} else {
 		($outptr, $outoffset, $type, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
         		$globalBrowser->{Scene}, $realele, $fieldname, $direction);
@@ -618,7 +618,7 @@ sub EAI_GetType {
 
 	#print "Browser, type $type, fieldtype $fieldtype, offset $outoffset\n";
 
-	# return node pointer, offset, data length, type 
+	# return node pointer, offset, data length, type
 	# - see the EAI C code (EAIServ.c) for definitions.
 	$retft = 97; 	#SFUNKNOWN
 	if ($fieldtype eq "SFBool") {$retft = 98;}
@@ -641,7 +641,7 @@ sub EAI_GetType {
 	elsif ($fieldtype eq "MFRotation") {$retft = 114;}
 	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
 	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
-		
+
 	#print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
 	my $scalaroutptr = $outptr;
 
@@ -651,7 +651,7 @@ sub EAI_GetType {
 		print "FreeWRL:EAI: could not find field '$fn' of ";
 		print "internal node 'NODE$nn'\n";
 	}
-	return ($scalaroutptr, $outoffset, $datalen, $retft, $type); 
+	return ($scalaroutptr, $outoffset, $datalen, $retft, $type);
 }
 
 # EAI_CreateVrmlFromString - parse commands, and return a string of (node-number backnode) pairs.
@@ -730,7 +730,7 @@ sub EAI_CreateVrmlFromURL {
 sub save_EAI_info {
 	my ($scene, $node, $rn, $in) = @_;
 
-	#print "Browser::save_EAI_info, scene ", VRML::NodeIntern::dump_name ($scene), 
+	#print "Browser::save_EAI_info, scene ", VRML::NodeIntern::dump_name ($scene),
 	#	" node:",VRML::NodeIntern::dump_name($node), " real $rn  ISN $in\n";
 
 	push @EAIinfo, [$scene,$in,$node,$rn];
@@ -745,7 +745,7 @@ sub JSRoute {
 
 	# print "JSRouting, from $fn, fromField $ff, to $tn, toField $tf\n";
 
-	# check to see if any of these are simply CNode pointers; if so, 
+	# check to see if any of these are simply CNode pointers; if so,
 	# try to make them into a NODE(cnode), and re-do the checks
 	my $nfn = VRML::Handles::check($fn);
 	my $ntn = VRML::Handles::check($tn);
@@ -761,7 +761,7 @@ sub JSRoute {
 		$tn = "NODE".$tn;
 		$ntn = VRML::Handles::check($tn);
 	}
-	
+
 	if (($nfn==0) || ($ntn==0)) {
 		print "jspBrowserAddRoute, can not find either of $nfn, $ntn\n";
 		return;
@@ -787,8 +787,8 @@ my %EAINAMES = ();
 
 # keep a list of DEFined names and their real names around. Because
 # a name can be used more than once, (eg, DEF MX ..... USE MX .... DEF MX
-# USE MX...) we need to keep track of unique identifers. 
-# 
+# USE MX...) we need to keep track of unique identifers.
+#
 # ALSO: for EAI, we need a way of keeping def names global, as EAI requires
 # us to be able to get to Nodes in one scene from another.
 
@@ -796,15 +796,15 @@ my %EAINAMES = ();
 sub EAI_reserve {
 	my ($name, $realnode) = @_;
 	$EAINAMES{$name} = $realnode;
-	print "reserving EAINAME $name ", 
+	print "reserving EAINAME $name ",
 		ref $name, "is real $realnode\n\t",
-		VRML::NodeIntern::dump_name($realnode),"\n\t", 
+		VRML::NodeIntern::dump_name($realnode),"\n\t",
 		"ref ", ref $realnode,"\n" if $handles_debug;
 }
 sub return_EAI_name {
 	my ($name) = @_;
 	if (!exists $EAINAMES{$name}) {
-	
+
 		print "return_EAI_name, looking for $name , it is not a EAI, returning $name\n" if $handles_debug;
 		#print "return_EAI_name - Name $name does not exist!\n";
 		return $name;
@@ -822,15 +822,15 @@ sub return_EAI_name {
 sub def_reserve {
 	my ($name, $realnode) = @_;
 	$DEFNAMES{$name} = $realnode;
-	print "reserving DEFNAME $name ", 
-		ref $name, "is real $realnode, 
+	print "reserving DEFNAME $name ",
+		ref $name, "is real $realnode,
 		ref ", ref $realnode,"\n" if $handles_debug;
 
 }
 sub return_def_name {
 	my ($name) = @_;
 	if (!exists $DEFNAMES{$name}) {
-	
+
 		print "return_def_name, looking for $name , it is not a def, returning $name\n" if $handles_debug;
 		print "return_def_name - Name $name does not exist!\n" if $handles_debug;
 		return $name;

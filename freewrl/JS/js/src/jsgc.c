@@ -563,7 +563,7 @@ js_LockGCThing(JSContext *cx, void *thing)
             /* Objects may require "deep locking", i.e., rooting by value. */
             if (lockbits == 0) {
                 if (!rt->gcLocksHash) {
-                    rt->gcLocksHash = 
+                    rt->gcLocksHash =
                         JS_NewDHashTable(JS_DHashGetStubOps(), NULL,
                                          sizeof(JSGCLockHashEntry),
                                          GC_ROOTS_SIZE);
@@ -571,7 +571,7 @@ js_LockGCThing(JSContext *cx, void *thing)
                         goto outofmem;
                 } else {
 #ifdef DEBUG
-                    JSDHashEntryHdr *hdr = 
+                    JSDHashEntryHdr *hdr =
                         JS_DHashTableOperate(rt->gcLocksHash, thing,
                                              JS_DHASH_LOOKUP);
                     JS_ASSERT(JS_DHASH_ENTRY_IS_FREE(hdr));

@@ -48,7 +48,7 @@ public class ConstSFVec3f extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Vec3f");
 		x = Float.parseFloat(in.readLine());
 	        y = Float.parseFloat(in.readLine());

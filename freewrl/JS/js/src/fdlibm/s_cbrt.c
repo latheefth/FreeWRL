@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  *
@@ -51,9 +51,9 @@
  * Return cube root of x
  */
 #ifdef __STDC__
-static const unsigned 
+static const unsigned
 #else
-static unsigned 
+static unsigned
 #endif
 	B1 = 715094163, /* B1 = (682-0.03306235651)*2**20 */
 	B2 = 696219795; /* B2 = (664-0.03306235651)*2**20 */
@@ -70,9 +70,9 @@ F =  1.60714285714285720630e+00, /* 45/28     = 0x3FF9B6DB, 0x6DB6DB6E */
 G =  3.57142857142857150787e-01; /* 5/14      = 0x3FD6DB6D, 0xB6DB6DB7 */
 
 #ifdef __STDC__
-	double fd_cbrt(double x) 
+	double fd_cbrt(double x)
 #else
-	double fd_cbrt(x) 
+	double fd_cbrt(x)
 	double x;
 #endif
 {
@@ -106,9 +106,9 @@ G =  3.57142857142857150787e-01; /* 5/14      = 0x3FD6DB6D, 0xB6DB6DB7 */
     /* new cbrt to 23 bits, may be implemented in single precision */
 	r=t*t/x;
 	s=C+r*t;
-	t*=G+F/(s+E+D/s);	
+	t*=G+F/(s+E+D/s);
 
-    /* chopped to 20 bits and make it larger than cbrt(x) */ 
+    /* chopped to 20 bits and make it larger than cbrt(x) */
         u.d = t;
 	__LO(u)=0; __HI(u)+=0x00000001;
         t = u.d;

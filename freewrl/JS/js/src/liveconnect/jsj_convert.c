@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -75,7 +75,7 @@ convert_js_obj_to_JSObject_wrapper(JSContext *cx, JNIEnv *jEnv, JSObject *js_obj
 {
     if (!njJSObject) {
         if (java_value)
-            JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+            JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                                 JSJMSG_CANT_LOAD_JSOBJECT);
         return JS_FALSE;
     }
@@ -88,7 +88,7 @@ convert_js_obj_to_JSObject_wrapper(JSContext *cx, JNIEnv *jEnv, JSObject *js_obj
 
     *java_value = jsj_WrapJSObject(cx, jEnv, js_obj);
 
-    return (*java_value != NULL);   
+    return (*java_value != NULL);
 }
 
 /* Copy an array from JS to Java;  Create a new Java array and populate its
@@ -153,7 +153,7 @@ jsj_ConvertJSStringToJavaString(JSContext *cx, JNIEnv *jEnv, JSString *js_str)
 }
 
 /*
- * Convert a JS value to an instance of java.lang.Object or one of its subclasses, 
+ * Convert a JS value to an instance of java.lang.Object or one of its subclasses,
  * performing any necessary type coercion.  If non-trivial coercion is required,
  * the cost value is incremented.  If the java_value pass-by-reference argument
  * is non-NULL, the resulting Java value is stored there.
@@ -166,7 +166,7 @@ jsj_ConvertJSValueToJavaObject(JSContext *cx, JNIEnv *jEnv, jsval v, JavaSignatu
 {
     JSString *jsstr;
     jclass target_java_class;
-    
+
     JS_ASSERT(IS_REFERENCE_TYPE(signature->type));
 
     /* Initialize to default case, in which no new Java object is
@@ -176,55 +176,55 @@ jsj_ConvertJSValueToJavaObject(JSContext *cx, JNIEnv *jEnv, jsval v, JavaSignatu
 
     /* Get the Java type of the target value */
     target_java_class = signature->java_class;
-    
+
     if (JSVAL_IS_OBJECT(v)) {
         JSObject *js_obj = JSVAL_TO_OBJECT(v);
-        
+
         /* JS null is always assignable to a Java object */
         if (!js_obj) {
             if (java_value)
                 *java_value = NULL;
             return JS_TRUE;
         }
-        
+
         if (JS_InstanceOf(cx, js_obj, &JavaObject_class, 0) ||
             JS_InstanceOf(cx, js_obj, &JavaArray_class, 0)) {
-            
+
             /* The source value is a Java object wrapped inside a JavaScript
                object.  Unwrap the JS object and return the original Java
                object if it's class makes it assignment-compatible with the
                target class using Java's assignability rules. */
             JavaObjectWrapper *java_wrapper = JS_GetPrivate(cx, js_obj);
             jobject java_obj = java_wrapper->java_obj;
-            
+
             if ((*jEnv)->IsInstanceOf(jEnv, java_obj, target_java_class)) {
                 if (java_value)
                     *java_value = java_obj;
                 return JS_TRUE;
             }
-            
+
             /* Fall through, to attempt conversion to a Java string */
-            
+
         } else if (JS_InstanceOf(cx, js_obj, &JavaClass_class, 0)) {
             /* We're dealing with the reflection of a Java class */
             JavaClassDescriptor *java_class_descriptor = JS_GetPrivate(cx, js_obj);
-            
+
             /* Check if target type is java.lang.Class class */
             if ((*jEnv)->IsAssignableFrom(jEnv, jlClass, target_java_class)) {
                 if (java_value)
                     *java_value = java_class_descriptor->java_class;
                 return JS_TRUE;
             }
-            
+
             /* Check if target type is netscape.javascript.JSObject wrapper class */
             if (convert_js_obj_to_JSObject_wrapper(cx, jEnv, js_obj, signature, cost, java_value)) {
                 if (java_value && *java_value)
                     *is_local_refp = JS_TRUE;
                 return JS_TRUE;
             }
-            
+
             /* Fall through, to attempt conversion to a Java string */
-            
+
         } else if (JS_InstanceOf(cx, js_obj, &JavaMember_class, 0)) {
 
             if (!JS_ConvertValue(cx, v, JSTYPE_OBJECT, &v))
@@ -251,10 +251,10 @@ jsj_ConvertJSValueToJavaObject(JSContext *cx, JNIEnv *jEnv, jsval v, JavaSignatu
                     *is_local_refp = JS_TRUE;
                 return JS_TRUE;
             }
-            
+
             /* Fall through, to attempt conversion to a Java string */
         }
-        
+
     } else if (JSVAL_IS_NUMBER(v)) {
         /* JS numbers, integral or not, can be converted to instances of java.lang.Double */
         if ((*jEnv)->IsAssignableFrom(jEnv, jlDouble, target_java_class)) {
@@ -275,7 +275,7 @@ jsj_ConvertJSValueToJavaObject(JSContext *cx, JNIEnv *jEnv, jsval v, JavaSignatu
             return JS_TRUE;
         }
         /* Fall through, to attempt conversion to a java.lang.String ... */
-        
+
     } else if (JSVAL_IS_BOOLEAN(v)) {
         /* JS boolean values can be converted to instances of java.lang.Boolean */
         if ((*jEnv)->IsAssignableFrom(jEnv, jlBoolean, target_java_class)) {
@@ -288,7 +288,7 @@ jsj_ConvertJSValueToJavaObject(JSContext *cx, JNIEnv *jEnv, jsval v, JavaSignatu
                 if (*java_value) {
                     *is_local_refp = JS_TRUE;
                 } else {
-                    jsj_UnexpectedJavaError(cx, jEnv, "Couldn't construct instance " 
+                    jsj_UnexpectedJavaError(cx, jEnv, "Couldn't construct instance "
                         "of java.lang.Boolean");
                     return JS_FALSE;
                 }
@@ -298,12 +298,12 @@ jsj_ConvertJSValueToJavaObject(JSContext *cx, JNIEnv *jEnv, jsval v, JavaSignatu
         }
         /* Fall through, to attempt conversion to a java.lang.String ... */
     }
-    
+
     /* If the source JS type is either a string or undefined, or if no conversion
        is possible from a number, boolean or JS object, see if the target type is
        java.lang.String */
     if ((*jEnv)->IsAssignableFrom(jEnv, jlString, target_java_class)) {
-        
+
         /* Convert to JS string, if necessary, and then to a Java Unicode string */
         jsstr = JS_ValueToString(cx, v);
         if (jsstr) {
@@ -319,7 +319,7 @@ jsj_ConvertJSValueToJavaObject(JSContext *cx, JNIEnv *jEnv, jsval v, JavaSignatu
             return JS_TRUE;
         }
     }
-    
+
 conversion_error:
     return JS_FALSE;
 }
@@ -517,7 +517,7 @@ static jdouble jlong_to_jdouble(jlong lvalue)
  * precision, e.g. the source value is "4.2" but the destination type is byte.
  * If conversion is not possible and java_value is non-NULL, the JS error
  * reporter is called with an appropriate message.
- */  
+ */
 JSBool
 jsj_ConvertJSValueToJavaValue(JSContext *cx, JNIEnv *jEnv, jsval v_arg,
                               JavaSignature *signature,
@@ -530,8 +530,8 @@ jsj_ConvertJSValueToJavaValue(JSContext *cx, JNIEnv *jEnv, jsval v_arg,
     /* Initialize to default case, in which no new Java object is
        synthesized to perform the conversion and, therefore, no JNI local
        references are being held. */
-    *is_local_refp = JS_FALSE;   
-    
+    *is_local_refp = JS_FALSE;
+
     type = signature->type;
     v = v_arg;
     switch (type) {
@@ -574,7 +574,7 @@ jsj_ConvertJSValueToJavaValue(JSContext *cx, JNIEnv *jEnv, jsval v_arg,
         JSVAL_TO_INTEGRAL_JVALUE(long, j, jlong, v, java_value);
 #endif
         break;
-    
+
     case JAVA_SIGNATURE_FLOAT:
         if (!JSVAL_IS_NUMBER(v)) {
             if (!JS_ConvertValue(cx, v, JSTYPE_NUMBER, &v))
@@ -637,9 +637,9 @@ conversion_error:
             jsval_string = JS_GetStringBytes(jsstr);
         if (!jsval_string)
             jsval_string = "";
-        
+
         class_name = jsj_ConvertJavaSignatureToHRString(cx, signature);
-        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                              JSJMSG_CANT_CONVERT_JS, jsval_string,
                              class_name);
 
@@ -693,7 +693,7 @@ jsj_ConvertJavaObjectToJSString(JSContext *cx,
     jstring java_str;
     jmethodID toString;
     jclass java_class;
-    
+
     /* Create a Java string, unless java_obj is already a java.lang.String */
     if ((*jEnv)->IsInstanceOf(jEnv, java_obj, jlString)) {
 
@@ -704,7 +704,7 @@ jsj_ConvertJavaObjectToJSString(JSContext *cx,
         *vp = STRING_TO_JSVAL(js_str);
         return JS_TRUE;
     }
-    
+
     java_class = class_descriptor->java_class;
     toString = (*jEnv)->GetMethodID(jEnv, java_class, "toString",
         "()Ljava/lang/String;");
@@ -719,7 +719,7 @@ jsj_ConvertJavaObjectToJSString(JSContext *cx,
         jsj_ReportJavaError(cx, jEnv, "toString() method failed");
         return JS_FALSE;
     }
-    
+
     /* Extract Unicode from java.lang.String instance and convert to JS string */
     js_str = jsj_ConvertJavaStringToJSString(cx, jEnv, java_str);
     if (!js_str) {
@@ -786,7 +786,7 @@ jsj_ConvertJavaObjectToJSBoolean(JSContext *cx, JNIEnv *jEnv,
     jboolean b;
     jmethodID booleanValue;
     jclass java_class;
-    
+
     /* Null converts to false. */
     if (!java_obj) {
         *vp = JSVAL_FALSE;
@@ -918,7 +918,7 @@ jsj_ConvertJavaValueToJSValue(JSContext *cx, JNIEnv *jEnv,
 
     case JAVA_SIGNATURE_LONG:
         return JS_NewDoubleValue(cx, jlong_to_jdouble(java_value->j), vp);
-  
+
     case JAVA_SIGNATURE_FLOAT:
         return JS_NewDoubleValue(cx, java_value->f, vp);
 
@@ -928,7 +928,7 @@ jsj_ConvertJavaValueToJSValue(JSContext *cx, JNIEnv *jEnv,
     case JAVA_SIGNATURE_UNKNOWN:
         JS_ASSERT(0);
         return JS_FALSE;
-        
+
     /* Non-primitive (reference) type */
     default:
         JS_ASSERT(IS_REFERENCE_TYPE(signature->type));

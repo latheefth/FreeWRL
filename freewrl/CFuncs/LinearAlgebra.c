@@ -23,7 +23,7 @@ void veccross(struct pt *c, struct pt a, struct pt b)
 
 float veclength( struct pt p )
 {
-    return sqrt(p.x*p.x + p.y*p.y + p.z*p.z); 
+    return sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
 }
 
 
@@ -41,7 +41,7 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
     length_b = calc_vector_length(b);
 
     //printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);
-	
+
     /* if (scalar == 0) */
     if (APPROX(scalar, 0)) {
 		return M_PI/2;
@@ -51,7 +51,7 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
 	printf("Divide by 0 in calc_angle_between_two_vectors():  No can do! \n");
 	return 0;
     }
-	
+
     temp = scalar /(length_a * length_b);
     // printf("temp: %f", temp);
 
@@ -77,7 +77,7 @@ GLdouble vecnormal(struct pt*r, struct pt* v)
 
 /*will add functions here as needed. */
 
-GLdouble det3x3(GLdouble* data) 
+GLdouble det3x3(GLdouble* data)
 {
     return -data[1]*data[10]*data[4] +data[0]*data[10]*data[5] -data[2]*data[5]*data[8] +data[1]*data[6]*data[8] +data[2]*data[4]*data[9] -data[0]*data[6]*data[9];
 }
@@ -161,7 +161,7 @@ double vecdot(struct pt* a, struct pt* b)
   double i = (p2.x * x21 + p2.z * z21) /
   ( x21*x21 + z21*z21 );
   return max(min(i,imax),imin);
-     
+
   }*/
 
 double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct pt p1, struct pt p2) {
@@ -184,7 +184,7 @@ double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct p
 	imax = imin;
 	imin = tmp;
     }
-	  
+
     /*clamp constraints to segment*/
     if(imin < 0) imin = 0;
     if(imax > 1) imax = 1;
@@ -195,7 +195,7 @@ double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct p
     if(i < imin) i = imin;
     if(i > imax) i = imax;
     return i;
-     
+
 }
 
 struct pt* vecadd(struct pt* r, struct pt* v, struct pt* v2)
@@ -216,8 +216,8 @@ struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2)
 
 /*i,j,n will form an orthogonal vector space */
 void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
-    //optimal axis finding algorithm. the solution isn't unique. 
-    // each of these three calculations doesn't work (or works poorly) 
+    //optimal axis finding algorithm. the solution isn't unique.
+    // each of these three calculations doesn't work (or works poorly)
     // in certain distinct cases. (gives zero vectors when two axes are 0)
     // selecting the calculations according to smallest axis avoids this problem.
     // (the two remaining axis are thus far from zero, if n is normal)
@@ -251,7 +251,7 @@ void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
 
 GLdouble* matinverse(GLdouble* res, GLdouble* m)
 {
-    double Deta;	
+    double Deta;
     GLdouble mcpy[16];
 
     if(res == m) {
@@ -339,7 +339,7 @@ GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz)
 {
     r[0] = r[5] = r[10] = r[15] = 1;
     r[1] = r[2] = r[3] = r[4] =
-	r[6] = r[7] = r[8] = r[9] = 
+	r[6] = r[7] = r[8] = r[9] =
 	r[11] = 0;
     r[12] = dx;
     r[13] = dy;

@@ -12,7 +12,7 @@
 
 /* what Browser are we running under? Mozilla? Opera?*/
 char NetscapeName[MAXNETSCAPENAMELEN];
-                                                                                
+
 
 static int PluginSocketVerbose = 0; // CHECK DIRECTORY IN PLUGINPRINT
 static FILE * tty = NULL;
@@ -61,9 +61,9 @@ int waitForData(int sock) {
 		tv.tv_usec = 100;
 		FD_ZERO(&rfds);
 		FD_SET((sock), &rfds);
-	
+
 		retval = select((sock)+1, &rfds, NULL, NULL, &tv);
-		
+
 
 		if (retval) {
 			pluginprint ("waitForData returns TRUE\n","");
@@ -130,9 +130,9 @@ requestUrlfromPlugin(int sockDesc,
 	linecount = 0;
 	linelen = fread (buf,1,2000,infile);
 	//pluginprint ("verify read, read in %d characters\n",linelen);
-	while ((linelen > 0) && (linecount < 5)){	
+	while ((linelen > 0) && (linecount < 5)){
 	//	pluginprint ("verify read, read in %d characters\n",linelen);
-		
+
 		/* did we find a "404 file not found" message? */
 		/* some, all??? will eventually return a 404 html text in
 		   place of whatever you requested */

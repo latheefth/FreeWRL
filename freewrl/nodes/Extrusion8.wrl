@@ -13,26 +13,26 @@
 # z vector for all SCPs) it turns the crosssection around.
 #
 # If we use the VECCP of FreeWRL-0.14 and follow the rule of the specs:
-# 
+#
 #|The Z-axis is determined as follows:
 #|
-#|    d.For all points other than the first or last: Take the following cross-product: 
+#|    d.For all points other than the first or last: Take the following cross-product:
 #|
 #|      Z = (spine[i+1] - spine[i]) × (spine[i-1] - spine[i])
 #
 # we have   ( 0 0 -1 ) × ( 0 -1 0 ) = ( -1 0 0 ) which is computes correctly
 #	but as you can see, the crosssection in the second figure is turned
-#	around in respect to the first.        
+#	around in respect to the first.
 
 
 #first line of figures
 #
 Transform  {
-  translation 0 0 0 
+  translation 0 0 0
   children [
-  
+
     Transform  {
-    translation 0 0 0 
+    translation 0 0 0
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.8 0.4 0.7 } }
@@ -40,8 +40,8 @@ Transform  {
 		convex FALSE
 		beginCap TRUE
 		endCap FALSE
-		crossSection [ 1 1, 1 -1, -1 -1, -1 1, 
-			-0.8 1, 0 0 , 0.8 1 , 1 1] 
+		crossSection [ 1 1, 1 -1, -1 -1, -1 1,
+			-0.8 1, 0 0 , 0.8 1 , 1 1]
                 solid FALSE
               	spine [0 0 0, 0 1 0]
 	}
@@ -50,13 +50,13 @@ Transform  {
     }
 
     Transform  {
-    translation 0 0 -4 
+    translation 0 0 -4
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.85 0.6 0.3 }}
         geometry Extrusion {
-		crossSection [ 	1 1, 1 -1, -1 -1, -1 1, 
-			-0.8 1, 0 0 , 0.8 1 , 1 1] 
+		crossSection [ 	1 1, 1 -1, -1 -1, -1 1,
+			-0.8 1, 0 0 , 0.8 1 , 1 1]
                 solid FALSE
 		convex FALSE
 		spine [ 0 -2 0, 0 0 0 , 0 0 -2]
@@ -64,7 +64,7 @@ Transform  {
       }
      ]
     }
-    
+
   ]
 }
 

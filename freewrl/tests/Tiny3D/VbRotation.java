@@ -22,7 +22,7 @@ public class VbRotation {
 
   public VbRotation setValue(VbVec3f axis, float radians) {
     VbVec3f q = new VbVec3f(axis);
-    
+
     q.normalize();
     q.multBy((float) Math.sin(radians / 2.0f));
 
@@ -56,13 +56,13 @@ public class VbRotation {
   VbRotation times(VbRotation q2) {
     VbRotation q = new VbRotation(q2.quat[3] * quat[0] + q2.quat[0] * quat[3] +
 				  q2.quat[1] * quat[2] - q2.quat[2] * quat[1],
-				  
+
 				  q2.quat[3] * quat[1] + q2.quat[1] * quat[3] +
 				  q2.quat[2] * quat[0] - q2.quat[0] * quat[2],
-				  
+
 				  q2.quat[3] * quat[2] + q2.quat[2] * quat[3] +
 				  q2.quat[0] * quat[1] - q2.quat[1] * quat[0],
-				  
+
 				  q2.quat[3] * quat[3] - q2.quat[0] * quat[0] -
 				  q2.quat[1] * quat[1] - q2.quat[2] * quat[2]);
     q.normalize();

@@ -17,7 +17,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the

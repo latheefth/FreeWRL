@@ -87,7 +87,7 @@ sub gather_defs {
 
 	$this->{Node}->gather_defs($parentnode);
 }
-	
+
 sub dump {
 	my ($this, $level) = @_;
 	my $lp = $level*2+2;

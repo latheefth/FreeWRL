@@ -9,7 +9,7 @@
 
 ConsoleMessage.c - when running in a plugin, there is no way
 any longer to get the console messages to come up - eg, no
-way to say "Syntax error in X3D file". 
+way to say "Syntax error in X3D file".
 
 Old netscapes used to have a console.
 
@@ -87,7 +87,7 @@ int ConsoleMessage(char *fmt, ...) {
 			format[j] = fmt[j];			/* finish writing specifier		 */
 			format[j + 1] = '\0';			/* don't forget NULL terminator */
 			fmt += j + 1;
-			
+
 			switch (format[j]) {			 /* cases for all specifiers		 */
 			case 'd':
 			case 'i':						/* many use identical actions	 */
@@ -131,12 +131,12 @@ int ConsoleMessage(char *fmt, ...) {
 	printf("Invalid format specifier in printf().\n");
 			}
 		}
-	if ((strlen(tempbuf) + strlen(FWbuffer)) < 
+	if ((strlen(tempbuf) + strlen(FWbuffer)) <
 		(STRING_LENGTH) -10) {
 		strcat (FWbuffer,tempbuf);
 	}
 	}
-	
+
 	va_end(ap);				/* clean up				 */
 
 #ifdef AQUA

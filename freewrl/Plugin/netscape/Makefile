@@ -24,12 +24,12 @@
 # XP_UNIX	This needs to get defined for npapi.h on unix platforms.
 # PLUGIN_TRACE	Enable this define to get debug prints whenever the plugin
 #		api gets control.
-#		
+#
 # WARNING: Motif libraries are built static into the navigator and cannot
 #          be accessed from the plugin.
-#          
 #
-# 
+#
+#
 
 ## Change as required for your installation or override either on the
 ## command line or through the Perl module Makefile.PL scripts.
@@ -59,7 +59,7 @@ OSNAME:=linux
 DEBUG:=0
 ifeq (${DEBUG},1)
     PLUGIN_DEFINES+=-D_DEBUG
-##PLUGIN_DEFINES+=-DPLUGIN_TRACE 
+##PLUGIN_DEFINES+=-DPLUGIN_TRACE
 endif
 
 INC:=\

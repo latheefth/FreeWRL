@@ -10,11 +10,11 @@
 # first line of figures
 #
 Transform  {
-  translation 0 0 0 
+  translation 0 0 0
   children [
-  
+
     Transform  {
-    translation 0 0 0 
+    translation 0 0 0
      children [
       Shape {
 	appearance Appearance {material Material { diffuseColor 0.4 0.6 0.7} }
@@ -22,18 +22,18 @@ Transform  {
 		xDimension 3
 		zDimension 3
 		height [
-		   0 0 0 
+		   0 0 0
 		   0 1 0
 		   0 0 0
 		]
 		solid FALSE
 	}
-      }     
+      }
      ]
     }
 
     Transform  {
-    translation 0 0 -4 
+    translation 0 0 -4
      children [
       Shape {
 	appearance Appearance {material Material { diffuseColor 0.4 0.6 0.7} }
@@ -41,13 +41,13 @@ Transform  {
 		xDimension 3
 		zDimension 3
 		height [
-		   0 0.5 1 
+		   0 0.5 1
 		   1 0   1
 		   1 0.5 0
 		]
 		solid FALSE
 	}
-      }     
+      }
      ]
     }
   ]

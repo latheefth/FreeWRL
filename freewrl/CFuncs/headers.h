@@ -34,7 +34,7 @@ extern CGLContextObj aqglobalContext;
 #ifndef FALSE
 #define FALSE 0
 #endif
- 	 
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -354,7 +354,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 
 //printf is defined by perl; causes segfault in threaded freewrl
 #ifdef printf
-#undef printf 
+#undef printf
 #endif
 #ifdef die
 #undef die
@@ -503,16 +503,16 @@ extern int render_sensitive,render_vp,render_light,render_proximity,curlight,ver
 
 /* Java CLASS invocation */
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
-int initJavaClass(int scriptno); 
+int initJavaClass(int scriptno);
 
 char *EAI_GetTypeName (unsigned int uretval);
 char *EAI_GetValue (unsigned int uretval,
 		        char *ctmp, char *dtmp);
-void setCLASStype (int num); 
+void setCLASStype (int num);
 void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
-void processClassEvents(int scriptno, int startEntry, int endEntry); 
+void processClassEvents(int scriptno, int startEntry, int endEntry);
 char *processThisClassEvent (unsigned int fn, int startEntry, int endEntry, char *buf);
-int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen); 
+int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen);
 void getCLASSMultNumType (char *buf, int bufSize,
 	struct Multi_Vec3f *tn,
 	struct VRML_Box *parent,

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -363,7 +363,7 @@ use(JSContext *cx, JSObject *obj, int argc, jsval *argv, const char* t){
 static JSBool
 checkError(JSContext *cx)
 {
-    if(SvTRUE(GvSV(PL_errgv))){ 
+    if(SvTRUE(GvSV(PL_errgv))){
         JS_ReportError(cx, "perl eval failed: %s",
             SvPV(GvSV(PL_errgv), PL_na));
         /* clear error status. there should be a way to do this faster */
@@ -524,7 +524,7 @@ PVGetRef(JSContext *cx, JSObject *obj)
 }
 
 static JSBool
-PVCallStub (JSContext *cx, JSObject *obj, uintN argc, 
+PVCallStub (JSContext *cx, JSObject *obj, uintN argc,
             jsval *argv, jsval *rval) {
     JSFunction *fun;
     int i, cnt;
@@ -605,14 +605,14 @@ PVCallStub (JSContext *cx, JSObject *obj, uintN argc,
     first. *rval contains the result.
 */
 /* __PH__
-    ...but. PVGetproperty now firstly looks for method in given 
-    object package. If such method if found, then is returned 
+    ...but. PVGetproperty now firstly looks for method in given
+    object package. If such method if found, then is returned
     universal method stub. Sideeffect of this behavior is, that
     method are looked first before properties of the same name.
 
-    Second problem is security. In this way any perl method could 
-    be called. We pay security leak for this. May be we could 
-    support some Perl exporting process (via some package global 
+    Second problem is security. In this way any perl method could
+    be called. We pay security leak for this. May be we could
+    support some Perl exporting process (via some package global
     array).
 */
 static JSBool
@@ -870,10 +870,10 @@ PVFinalize (JSContext *cx, JSObject *obj)
 
     if ( obj ) {
         sv = PVGetRef(cx, obj);
-        
+
         /* SV *sv = PVGetRef(cx, obj);
            if ( SvROK(sv) ) sv = SvRV( sv ); _PH_ test*/
-        
+
         /* TODO: GC */
         if(sv && SvREFCNT(sv) > 0){
             /*fprintf(stderr, "Finilization: %d references left", SvREFCNT(sv));*/
@@ -929,13 +929,13 @@ JSVALToSV(JSContext *cx, JSObject *obj, jsval v, SV** sv)
                 if(JS_IsArrayObject(cx, object)){
                     *sv = sv_newmortal();
                     sv_setref_pv(*sv, "JS::Object", (void*)object);
-                    sv_magic(SvRV(*sv), sv_2mortal(newSViv((IV)cx)), 
+                    sv_magic(SvRV(*sv), sv_2mortal(newSViv((IV)cx)),
                              '~', NULL, 0);
                     /* printf("===> JSVALToSV: ARRAY\n); */
                 }else{
                     *sv = sv_newmortal();
                     sv_setref_pv(*sv, "JS::Object", (void*)object);
-                    sv_magic(SvRV(*sv), sv_2mortal(newSViv((IV)cx)), 
+                    sv_magic(SvRV(*sv), sv_2mortal(newSViv((IV)cx)),
                              '~', NULL, 0);
                     //printf("===> JSVALToSV: JS OBJECT\n");
                 }
@@ -996,7 +996,7 @@ SVToJSVAL(JSContext *cx, JSObject *obj, SV *ref, jsval *rval) {
           *rval = JSVAL_VOID;
           return JS_FALSE;
           }*/
-        
+
         /* printf("---> SVToJSVAL returning object\n"); */
         name = "Perl Value";
         /* __PH__ */
@@ -1004,18 +1004,18 @@ SVToJSVAL(JSContext *cx, JSObject *obj, SV *ref, jsval *rval) {
 
         if (SvTYPE(sv) == SVt_PVAV)
             prototype = JS_NewArrayObject(cx, 0, NULL);
-        else 
+        else
             prototype = NULL;
 
         perlValue = JS_DefineObject(cx, obj, "PerlValue",
-                                    &perlValueClass, prototype, 
+                                    &perlValueClass, prototype,
                                     JSPROP_ENUMERATE);
         JS_SetPrivate(cx, perlValue, ref);
         JS_DefineFunctions(cx, perlValue, perlValueMethods);
         JS_DefineProperty(cx, perlValue, "type",
                           name?STRING_TO_JSVAL(JS_NewStringCopyZ(cx, name)):JSVAL_VOID,
                           NULL, NULL, JSPROP_PERMANENT|JSPROP_READONLY);
-        *rval = OBJECT_TO_JSVAL(perlValue); 
+        *rval = OBJECT_TO_JSVAL(perlValue);
     } else
     if(SvIOK(sv)){
         *rval = INT_TO_JSVAL(SvIV(sv));

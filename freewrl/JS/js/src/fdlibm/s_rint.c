@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
@@ -59,7 +59,7 @@
 #ifdef __STDC__
 static const double
 #else
-static double 
+static double
 #endif
 TWO52[2]={
   4.50359962737049600000e+15, /* 0x43300000, 0x00000000 */
@@ -84,7 +84,7 @@ TWO52[2]={
 	i1 =  __LO(u);
 	j0 = ((i0>>20)&0x7ff)-0x3ff;
 	if(j0<20) {
-	    if(j0<0) { 	
+	    if(j0<0) {
 		if(((i0&0x7fffffff)|i1)==0) return x;
 		i1 |= (i0&0x0fffff);
 		i0 &= 0xfffe0000;

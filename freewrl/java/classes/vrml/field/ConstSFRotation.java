@@ -36,7 +36,7 @@ public class ConstSFRotation extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Rotation");
 		axisX = Float.parseFloat(in.readLine());
 	        axisY = Float.parseFloat(in.readLine());

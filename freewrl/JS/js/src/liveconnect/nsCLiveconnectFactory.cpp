@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -63,7 +63,7 @@ NSGetFactory(nsISupports* serviceMgr,
              const char *aContractID,
              nsIFactory **aFactory)
 {
-    
+
     if (!aClass.Equals(kCLiveconnectCID)) {
         return NS_ERROR_FACTORY_NOT_LOADED;     // XXX right error?
     }
@@ -94,22 +94,22 @@ JSJ_RegisterLiveConnectFactory()
 }
 
 ////////////////////////////////////////////////////////////////////////////
-// from nsISupports 
+// from nsISupports
 
 NS_METHOD
-nsCLiveconnectFactory::QueryInterface(const nsIID& aIID, void** aInstancePtr) 
+nsCLiveconnectFactory::QueryInterface(const nsIID& aIID, void** aInstancePtr)
 {
-    PR_ASSERT(NULL != aInstancePtr); 
+    PR_ASSERT(NULL != aInstancePtr);
     if (NULL == aInstancePtr) {
-        return NS_ERROR_NULL_POINTER; 
-    } 
+        return NS_ERROR_NULL_POINTER;
+    }
     if (aIID.Equals(kIFactoryIID) ||
         aIID.Equals(kISupportsIID)) {
-        *aInstancePtr = (void*) this; 
-        AddRef(); 
-        return NS_OK; 
+        *aInstancePtr = (void*) this;
+        AddRef();
+        return NS_OK;
     }
-    return NS_NOINTERFACE; 
+    return NS_NOINTERFACE;
 }
 
 NS_IMPL_ADDREF(nsCLiveconnectFactory)
@@ -132,7 +132,7 @@ nsCLiveconnectFactory::CreateInstance(nsISupports *aOuter, REFNSIID aIID, void *
 	nsCLiveconnect* liveconnect = new nsCLiveconnect(aOuter);
 	if (liveconnect == NULL)
 		return NS_ERROR_OUT_OF_MEMORY;
-		
+
 	nsresult result = liveconnect->AggregatedQueryInterface(aIID, aResult);
 	if (NS_FAILED(result))
 		delete liveconnect;

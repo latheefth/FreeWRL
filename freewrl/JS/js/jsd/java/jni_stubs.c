@@ -17,23 +17,23 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
-/*                                                                          
-* This supplies non-functional stubs for a couple of JNI functions we need  
-* in order to link LiveConnect                                              
-*/                                                                          
+/*
+* This supplies non-functional stubs for a couple of JNI functions we need
+* in order to link LiveConnect
+*/
 
 #include "jni.h"
 
 jint JNICALL JNI_GetDefaultJavaVMInitArgs(void * ignored)
 {
     return 0;
-}    
+}
 
 jint JNICALL JNI_CreateJavaVM(JavaVM ** vm, JNIEnv ** env, void * ignored)
 {
     return 0;
-}    
+}
 

@@ -8,7 +8,7 @@
 !IF "$(CFG)" == ""
 CFG=jsshell - Win32 Debug
 !MESSAGE No configuration specified.  Defaulting to jsshell - Win32 Debug.
-!ENDIF 
+!ENDIF
 
 !IF "$(CFG)" != "js - Win32 Release" && "$(CFG)" != "js - Win32 Debug" &&\
  "$(CFG)" != "jsshell - Win32 Release" && "$(CFG)" != "jsshell - Win32 Debug" &&\
@@ -16,26 +16,26 @@ CFG=jsshell - Win32 Debug
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE on this makefile
 !MESSAGE by defining the macro CFG on the command line.  For example:
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "js.mak" CFG="jsshell - Win32 Debug"
-!MESSAGE 
+!MESSAGE
 !MESSAGE Possible choices for configuration are:
-!MESSAGE 
+!MESSAGE
 !MESSAGE "js - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "js - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "jsshell - Win32 Release" (based on "Win32 (x86) Console Application")
 !MESSAGE "jsshell - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE "fdlibm - Win32 Release" (based on "Win32 (x86) Static Library")
 !MESSAGE "fdlibm - Win32 Debug" (based on "Win32 (x86) Static Library")
-!MESSAGE 
+!MESSAGE
 !ERROR An invalid configuration is specified.
-!ENDIF 
+!ENDIF
 
 !IF "$(OS)" == "Windows_NT"
 NULL=
-!ELSE 
+!ELSE
 NULL=nul
-!ENDIF 
+!ENDIF
 ################################################################################
 # Begin Project
 # PROP Target_Last_Scanned "jsshell - Win32 Debug"
@@ -57,7 +57,7 @@ INTDIR=.\Release
 
 ALL : "fdlibm - Win32 Release" "$(OUTDIR)\js32.dll"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\jsapi.obj"
 	-@erase "$(INTDIR)\jsarena.obj"
 	-@erase "$(INTDIR)\jsarray.obj"
@@ -103,41 +103,41 @@ CPP=cl.exe
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "_WINDOWS" /D "WIN32" /D "XP_PC" /D "JSFILE" /D "EXPORT_JS_API" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "_WINDOWS" /D "WIN32" /D\
  "XP_PC" /D "JSFILE" /D "EXPORT_JS_API" /Fp"$(INTDIR)/js.pch" /YX\
- /Fo"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /c
 CPP_OBJS=.\Release/
 CPP_SBRS=.\.
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 MTL=mktyplib.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /win32
 # ADD MTL /nologo /D "NDEBUG" /win32
-MTL_PROJ=/nologo /D "NDEBUG" /win32 
+MTL_PROJ=/nologo /D "NDEBUG" /win32
 RSC=rc.exe
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/js.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/js.bsc"
 BSC32_SBRS= \
-	
+
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"Release/js32.dll"
@@ -146,7 +146,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:windows /dll /incremental:no\
  /pdb:"$(OUTDIR)/js32.pdb" /machine:I386 /out:"$(OUTDIR)/js32.dll"\
- /implib:"$(OUTDIR)/js32.lib" 
+ /implib:"$(OUTDIR)/js32.lib"
 LINK32_OBJS= \
 	"$(INTDIR)\jsapi.obj" \
 	"$(INTDIR)\jsarena.obj" \
@@ -205,7 +205,7 @@ INTDIR=.\Debug
 
 ALL : "fdlibm - Win32 Debug" "$(OUTDIR)\js32.dll"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\jsapi.obj"
 	-@erase "$(INTDIR)\jsarena.obj"
 	-@erase "$(INTDIR)\jsarray.obj"
@@ -255,41 +255,41 @@ CPP=cl.exe
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "DEBUG" /D "_WINDOWS" /D "WIN32" /D "XP_PC" /D "JSFILE" /D "EXPORT_JS_API" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "DEBUG" /D "_WINDOWS"\
  /D "WIN32" /D "XP_PC" /D "JSFILE" /D "EXPORT_JS_API" /Fp"$(INTDIR)/js.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c
 CPP_OBJS=.\Debug/
 CPP_SBRS=.\.
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 MTL=mktyplib.exe
 # ADD BASE MTL /nologo /D "_DEBUG" /win32
 # ADD MTL /nologo /D "_DEBUG" /win32
-MTL_PROJ=/nologo /D "_DEBUG" /win32 
+MTL_PROJ=/nologo /D "_DEBUG" /win32
 RSC=rc.exe
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/js.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/js.bsc"
 BSC32_SBRS= \
-	
+
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"Debug/js32.dll"
@@ -298,7 +298,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:windows /dll /incremental:yes\
  /pdb:"$(OUTDIR)/js32.pdb" /debug /machine:I386 /out:"$(OUTDIR)/js32.dll"\
- /implib:"$(OUTDIR)/js32.lib" 
+ /implib:"$(OUTDIR)/js32.lib"
 LINK32_OBJS= \
 	"$(INTDIR)\jsapi.obj" \
 	"$(INTDIR)\jsarena.obj" \
@@ -357,7 +357,7 @@ INTDIR=.\Release
 
 ALL : "js - Win32 Release" "$(OUTDIR)\jsshell.exe"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\js.obj"
 	-@erase "$(OUTDIR)\jsshell.exe"
 
@@ -368,27 +368,27 @@ CPP=cl.exe
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /YX /c
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "_CONSOLE" /D "WIN32" /D "XP_PC" /D "JSFILE" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "_CONSOLE" /D "WIN32" /D\
- "XP_PC" /D "JSFILE" /Fp"$(INTDIR)/jsshell.pch" /YX /Fo"$(INTDIR)/" /c 
+ "XP_PC" /D "JSFILE" /Fp"$(INTDIR)/jsshell.pch" /YX /Fo"$(INTDIR)/" /c
 CPP_OBJS=.\Release/
 CPP_SBRS=.\.
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 RSC=rc.exe
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -396,16 +396,16 @@ RSC=rc.exe
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/jsshell.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/jsshell.bsc"
 BSC32_SBRS= \
-	
+
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:console /incremental:no\
- /pdb:"$(OUTDIR)/jsshell.pdb" /machine:I386 /out:"$(OUTDIR)/jsshell.exe" 
+ /pdb:"$(OUTDIR)/jsshell.pdb" /machine:I386 /out:"$(OUTDIR)/jsshell.exe"
 LINK32_OBJS= \
 	"$(INTDIR)\js.obj" \
 	"$(OUTDIR)\js32.lib"
@@ -432,7 +432,7 @@ INTDIR=.\Debug
 
 ALL : "js - Win32 Debug" "$(OUTDIR)\jsshell.exe"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\js.obj"
 	-@erase "$(INTDIR)\vc40.idb"
 	-@erase "$(INTDIR)\vc40.pdb"
@@ -448,27 +448,27 @@ CPP=cl.exe
 # ADD CPP /nologo /MDd /W3 /Gm /GX /Zi /Od /D "_CONSOLE" /D "_DEBUG" /D "WIN32" /D "XP_PC" /D "JSFILE" /D "DEBUG" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /D "_CONSOLE" /D "_DEBUG" /D "WIN32"\
  /D "XP_PC" /D "JSFILE" /D "DEBUG" /Fp"$(INTDIR)/jsshell.pch" /YX\
- /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c 
+ /Fo"$(INTDIR)/" /Fd"$(INTDIR)/" /c
 CPP_OBJS=.\Debug/
 CPP_SBRS=.\.
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 RSC=rc.exe
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -476,16 +476,16 @@ RSC=rc.exe
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/jsshell.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/jsshell.bsc"
 BSC32_SBRS= \
-	
+
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386
 LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
  advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
  odbccp32.lib /nologo /subsystem:console /incremental:yes\
- /pdb:"$(OUTDIR)/jsshell.pdb" /debug /machine:I386 /out:"$(OUTDIR)/jsshell.exe" 
+ /pdb:"$(OUTDIR)/jsshell.pdb" /debug /machine:I386 /out:"$(OUTDIR)/jsshell.exe"
 LINK32_OBJS= \
 	"$(INTDIR)\js.obj" \
 	"$(OUTDIR)\js32.lib"
@@ -512,7 +512,7 @@ INTDIR=.\Release
 
 ALL : "$(OUTDIR)\fdlibm.lib"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\e_atan2.obj"
 	-@erase "$(INTDIR)\e_pow.obj"
 	-@erase "$(INTDIR)\e_sqrt.obj"
@@ -537,38 +537,38 @@ CPP=cl.exe
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_IEEE_LIBM" /YX /c
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "_IEEE_LIBM" /D "XP_PC" /I .\ /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c 
+ "_IEEE_LIBM" /D "XP_PC" /I .\ /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c
 CPP_OBJS=.\Release/
 CPP_SBRS=.\.
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc"
 BSC32_SBRS= \
-	
+
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib" 
+LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib"
 LIB32_OBJS= \
 	"$(INTDIR)\e_atan2.obj" \
 	"$(INTDIR)\e_pow.obj" \
@@ -608,7 +608,7 @@ INTDIR=.\Debug
 
 ALL : "$(OUTDIR)\fdlibm.lib"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\e_atan2.obj"
 	-@erase "$(INTDIR)\e_pow.obj"
 	-@erase "$(INTDIR)\e_sqrt.obj"
@@ -633,38 +633,38 @@ CPP=cl.exe
 # ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /MDd /W3 /GX /Z7 /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_IEEE_LIBM" /YX /c
 CPP_PROJ=/nologo /MDd /W3 /GX /Z7 /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D\
- "_IEEE_LIBM" /D "XP_PC" -I .\ /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c 
+ "_IEEE_LIBM" /D "XP_PC" -I .\ /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c
 CPP_OBJS=.\Debug/
 CPP_SBRS=.\.
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc"
 BSC32_SBRS= \
-	
+
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib" 
+LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib"
 LIB32_OBJS= \
 	"$(INTDIR)\e_atan2.obj" \
 	"$(INTDIR)\e_pow.obj" \
@@ -687,7 +687,7 @@ LIB32_OBJS= \
   $(LIB32_FLAGS) $(DEF_FLAGS) $(LIB32_OBJS)
 <<
 
-!ENDIF 
+!ENDIF
 
 ################################################################################
 # Begin Target
@@ -699,7 +699,7 @@ LIB32_OBJS= \
 
 !ELSEIF  "$(CFG)" == "js - Win32 Debug"
 
-!ENDIF 
+!ENDIF
 
 ################################################################################
 # Begin Source File
@@ -750,12 +750,12 @@ DEP_CPP_JSAPI=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSAPI=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsapi.obj" : $(SOURCE) $(DEP_CPP_JSAPI) "$(INTDIR)"
 
@@ -804,17 +804,17 @@ DEP_CPP_JSAPI=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSAPI=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsapi.obj" : $(SOURCE) $(DEP_CPP_JSAPI) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -836,10 +836,10 @@ DEP_CPP_JSARE=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSARE=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsarena.obj" : $(SOURCE) $(DEP_CPP_JSARE) "$(INTDIR)"
 
@@ -858,15 +858,15 @@ DEP_CPP_JSARE=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSARE=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsarena.obj" : $(SOURCE) $(DEP_CPP_JSARE) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -906,12 +906,12 @@ DEP_CPP_JSARR=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSARR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsarray.obj" : $(SOURCE) $(DEP_CPP_JSARR) "$(INTDIR)"
 
@@ -948,17 +948,17 @@ DEP_CPP_JSARR=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSARR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsarray.obj" : $(SOURCE) $(DEP_CPP_JSARR) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -999,12 +999,12 @@ DEP_CPP_JSATO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSATO=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsatom.obj" : $(SOURCE) $(DEP_CPP_JSATO) "$(INTDIR)"
 
@@ -1042,17 +1042,17 @@ DEP_CPP_JSATO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSATO=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsatom.obj" : $(SOURCE) $(DEP_CPP_JSATO) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1092,12 +1092,12 @@ DEP_CPP_JSBOO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSBOO=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsbool.obj" : $(SOURCE) $(DEP_CPP_JSBOO) "$(INTDIR)"
 
@@ -1134,17 +1134,17 @@ DEP_CPP_JSBOO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSBOO=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsbool.obj" : $(SOURCE) $(DEP_CPP_JSBOO) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1188,12 +1188,12 @@ DEP_CPP_JSCNT=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSCNT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jscntxt.obj" : $(SOURCE) $(DEP_CPP_JSCNT) "$(INTDIR)"
 
@@ -1234,17 +1234,17 @@ DEP_CPP_JSCNT=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSCNT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jscntxt.obj" : $(SOURCE) $(DEP_CPP_JSCNT) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1286,12 +1286,12 @@ DEP_CPP_JSDAT=\
 	".\jsutil.h"\
 	".\prmjtime.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDAT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsdate.obj" : $(SOURCE) $(DEP_CPP_JSDAT) "$(INTDIR)"
 
@@ -1330,17 +1330,17 @@ DEP_CPP_JSDAT=\
 	".\jsutil.h"\
 	".\prmjtime.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDAT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsdate.obj" : $(SOURCE) $(DEP_CPP_JSDAT) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1382,12 +1382,12 @@ DEP_CPP_JSDBG=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDBG=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsdbgapi.obj" : $(SOURCE) $(DEP_CPP_JSDBG) "$(INTDIR)"
 
@@ -1426,17 +1426,17 @@ DEP_CPP_JSDBG=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDBG=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsdbgapi.obj" : $(SOURCE) $(DEP_CPP_JSDBG) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1457,10 +1457,10 @@ DEP_CPP_JSDHA=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDHA=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsdhash.obj" : $(SOURCE) $(DEP_CPP_JSDHA) "$(INTDIR)"
 
@@ -1478,15 +1478,15 @@ DEP_CPP_JSDHA=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDHA=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsdhash.obj" : $(SOURCE) $(DEP_CPP_JSDHA) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1508,11 +1508,11 @@ DEP_CPP_JSDTO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDTO=\
 	".\jsautocfg.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsdtoa.obj" : $(SOURCE) $(DEP_CPP_JSDTO) "$(INTDIR)"
 
@@ -1531,16 +1531,16 @@ DEP_CPP_JSDTO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSDTO=\
 	".\jsautocfg.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsdtoa.obj" : $(SOURCE) $(DEP_CPP_JSDTO) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1586,12 +1586,12 @@ DEP_CPP_JSEMI=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSEMI=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsemit.obj" : $(SOURCE) $(DEP_CPP_JSEMI) "$(INTDIR)"
 
@@ -1634,17 +1634,17 @@ DEP_CPP_JSEMI=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSEMI=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsemit.obj" : $(SOURCE) $(DEP_CPP_JSEMI) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1684,12 +1684,12 @@ DEP_CPP_JSEXN=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSEXN=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsexn.obj" : $(SOURCE) $(DEP_CPP_JSEXN) "$(INTDIR)"
 
@@ -1726,17 +1726,17 @@ DEP_CPP_JSEXN=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSEXN=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsexn.obj" : $(SOURCE) $(DEP_CPP_JSEXN) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1782,12 +1782,12 @@ DEP_CPP_JSFUN=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSFUN=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsfun.obj" : $(SOURCE) $(DEP_CPP_JSFUN) "$(INTDIR)"
 
@@ -1830,17 +1830,17 @@ DEP_CPP_JSFUN=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSFUN=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsfun.obj" : $(SOURCE) $(DEP_CPP_JSFUN) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1881,12 +1881,12 @@ DEP_CPP_JSGC_=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSGC_=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsgc.obj" : $(SOURCE) $(DEP_CPP_JSGC_) "$(INTDIR)"
 
@@ -1924,17 +1924,17 @@ DEP_CPP_JSGC_=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSGC_=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsgc.obj" : $(SOURCE) $(DEP_CPP_JSGC_) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -1955,10 +1955,10 @@ DEP_CPP_JSHAS=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSHAS=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jshash.obj" : $(SOURCE) $(DEP_CPP_JSHAS) "$(INTDIR)"
 
@@ -1976,15 +1976,15 @@ DEP_CPP_JSHAS=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSHAS=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jshash.obj" : $(SOURCE) $(DEP_CPP_JSHAS) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2030,12 +2030,12 @@ DEP_CPP_JSINT=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSINT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsinterp.obj" : $(SOURCE) $(DEP_CPP_JSINT) "$(INTDIR)"
 
@@ -2078,17 +2078,17 @@ DEP_CPP_JSINT=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSINT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsinterp.obj" : $(SOURCE) $(DEP_CPP_JSINT) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2125,14 +2125,14 @@ DEP_CPP_JSLOC=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSLOC=\
 	".\jsautocfg.h"\
 	".\pratom.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
 	".\prthread.h"\
-	
+
 
 "$(INTDIR)\jslock.obj" : $(SOURCE) $(DEP_CPP_JSLOC) "$(INTDIR)"
 
@@ -2166,19 +2166,19 @@ DEP_CPP_JSLOC=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSLOC=\
 	".\jsautocfg.h"\
 	".\pratom.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
 	".\prthread.h"\
-	
+
 
 "$(INTDIR)\jslock.obj" : $(SOURCE) $(DEP_CPP_JSLOC) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2195,10 +2195,10 @@ DEP_CPP_JSLOG=\
 	".\jsotypes.h"\
 	".\jstypes.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSLOG=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jslog2.obj" : $(SOURCE) $(DEP_CPP_JSLOG) "$(INTDIR)"
 
@@ -2212,15 +2212,15 @@ DEP_CPP_JSLOG=\
 	".\jsotypes.h"\
 	".\jstypes.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSLOG=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jslog2.obj" : $(SOURCE) $(DEP_CPP_JSLOG) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2237,10 +2237,10 @@ DEP_CPP_JSLON=\
 	".\jsotypes.h"\
 	".\jstypes.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSLON=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jslong.obj" : $(SOURCE) $(DEP_CPP_JSLON) "$(INTDIR)"
 
@@ -2254,15 +2254,15 @@ DEP_CPP_JSLON=\
 	".\jsotypes.h"\
 	".\jstypes.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSLON=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jslong.obj" : $(SOURCE) $(DEP_CPP_JSLON) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2302,12 +2302,12 @@ DEP_CPP_JSMAT=\
 	".\jstypes.h"\
 	".\prmjtime.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSMAT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsmath.obj" : $(SOURCE) $(DEP_CPP_JSMAT) "$(INTDIR)"
 
@@ -2344,17 +2344,17 @@ DEP_CPP_JSMAT=\
 	".\jstypes.h"\
 	".\prmjtime.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSMAT=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsmath.obj" : $(SOURCE) $(DEP_CPP_JSMAT) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2396,12 +2396,12 @@ DEP_CPP_JSNUM=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSNUM=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsnum.obj" : $(SOURCE) $(DEP_CPP_JSNUM) "$(INTDIR)"
 
@@ -2440,17 +2440,17 @@ DEP_CPP_JSNUM=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSNUM=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsnum.obj" : $(SOURCE) $(DEP_CPP_JSNUM) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2496,12 +2496,12 @@ DEP_CPP_JSOBJ=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSOBJ=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsobj.obj" : $(SOURCE) $(DEP_CPP_JSOBJ) "$(INTDIR)"
 
@@ -2544,17 +2544,17 @@ DEP_CPP_JSOBJ=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSOBJ=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsobj.obj" : $(SOURCE) $(DEP_CPP_JSOBJ) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2600,12 +2600,12 @@ DEP_CPP_JSOPC=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSOPC=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsopcode.obj" : $(SOURCE) $(DEP_CPP_JSOPC) "$(INTDIR)"
 
@@ -2648,17 +2648,17 @@ DEP_CPP_JSOPC=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSOPC=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsopcode.obj" : $(SOURCE) $(DEP_CPP_JSOPC) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2703,12 +2703,12 @@ DEP_CPP_JSPAR=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSPAR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsparse.obj" : $(SOURCE) $(DEP_CPP_JSPAR) "$(INTDIR)"
 
@@ -2750,17 +2750,17 @@ DEP_CPP_JSPAR=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSPAR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsparse.obj" : $(SOURCE) $(DEP_CPP_JSPAR) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2779,10 +2779,10 @@ DEP_CPP_JSPRF=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSPRF=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsprf.obj" : $(SOURCE) $(DEP_CPP_JSPRF) "$(INTDIR)"
 
@@ -2798,15 +2798,15 @@ DEP_CPP_JSPRF=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSPRF=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsprf.obj" : $(SOURCE) $(DEP_CPP_JSPRF) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2849,12 +2849,12 @@ DEP_CPP_JSREG=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSREG=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsregexp.obj" : $(SOURCE) $(DEP_CPP_JSREG) "$(INTDIR)"
 
@@ -2894,17 +2894,17 @@ DEP_CPP_JSREG=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSREG=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsregexp.obj" : $(SOURCE) $(DEP_CPP_JSREG) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -2948,12 +2948,12 @@ DEP_CPP_JSSCA=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSCA=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsscan.obj" : $(SOURCE) $(DEP_CPP_JSSCA) "$(INTDIR)"
 
@@ -2994,17 +2994,17 @@ DEP_CPP_JSSCA=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSCA=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsscan.obj" : $(SOURCE) $(DEP_CPP_JSSCA) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3042,12 +3042,12 @@ DEP_CPP_JSSCO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSCO=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsscope.obj" : $(SOURCE) $(DEP_CPP_JSSCO) "$(INTDIR)"
 
@@ -3082,17 +3082,17 @@ DEP_CPP_JSSCO=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSCO=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsscope.obj" : $(SOURCE) $(DEP_CPP_JSSCO) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3138,12 +3138,12 @@ DEP_CPP_JSSCR=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSCR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsscript.obj" : $(SOURCE) $(DEP_CPP_JSSCR) "$(INTDIR)"
 
@@ -3186,17 +3186,17 @@ DEP_CPP_JSSCR=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSCR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsscript.obj" : $(SOURCE) $(DEP_CPP_JSSCR) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3239,12 +3239,12 @@ DEP_CPP_JSSTR=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSTR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsstr.obj" : $(SOURCE) $(DEP_CPP_JSSTR) "$(INTDIR)"
 
@@ -3284,17 +3284,17 @@ DEP_CPP_JSSTR=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSSTR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsstr.obj" : $(SOURCE) $(DEP_CPP_JSSTR) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3312,10 +3312,10 @@ DEP_CPP_JSUTI=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSUTI=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsutil.obj" : $(SOURCE) $(DEP_CPP_JSUTI) "$(INTDIR)"
 
@@ -3330,15 +3330,15 @@ DEP_CPP_JSUTI=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSUTI=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\jsutil.obj" : $(SOURCE) $(DEP_CPP_JSUTI) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3377,12 +3377,12 @@ DEP_CPP_JSXDR=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSXDR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsxdrapi.obj" : $(SOURCE) $(DEP_CPP_JSXDR) "$(INTDIR)"
 
@@ -3418,17 +3418,17 @@ DEP_CPP_JSXDR=\
 	".\jsutil.h"\
 	".\jsxdrapi.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JSXDR=\
 	".\jsautocfg.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\jsxdrapi.obj" : $(SOURCE) $(DEP_CPP_JSXDR) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3449,10 +3449,10 @@ DEP_CPP_PRMJT=\
 	".\prmjtime.h"\
 	{$(INCLUDE)}"\sys\TIMEB.H"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_PRMJT=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\prmjtime.obj" : $(SOURCE) $(DEP_CPP_PRMJT) "$(INTDIR)"
 
@@ -3470,15 +3470,15 @@ DEP_CPP_PRMJT=\
 	".\prmjtime.h"\
 	{$(INCLUDE)}"\sys\TIMEB.H"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_PRMJT=\
 	".\jsautocfg.h"\
-	
+
 
 "$(INTDIR)\prmjtime.obj" : $(SOURCE) $(DEP_CPP_PRMJT) "$(INTDIR)"
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3488,15 +3488,15 @@ NODEP_CPP_PRMJT=\
 
 !IF  "$(CFG)" == "js - Win32 Debug"
 
-"fdlibm - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="fdlibm - Win32 Debug" 
+"fdlibm - Win32 Debug" :
+   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="fdlibm - Win32 Debug"
 
 !ELSEIF  "$(CFG)" == "js - Win32 Release"
 
-"fdlibm - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="fdlibm - Win32 Release" 
+"fdlibm - Win32 Release" :
+   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="fdlibm - Win32 Release"
 
-!ENDIF 
+!ENDIF
 
 # End Project Dependency
 # End Target
@@ -3510,7 +3510,7 @@ NODEP_CPP_PRMJT=\
 
 !ELSEIF  "$(CFG)" == "jsshell - Win32 Debug"
 
-!ENDIF 
+!ENDIF
 
 ################################################################################
 # Begin Source File
@@ -3553,7 +3553,7 @@ DEP_CPP_JS_C42=\
 	".\jstypes.h"\
 	".\jsutil.h"\
 	{$(INCLUDE)}"\sys\types.h"\
-	
+
 NODEP_CPP_JS_C42=\
 	".\jsautocfg.h"\
 	".\jsdb.h"\
@@ -3563,7 +3563,7 @@ NODEP_CPP_JS_C42=\
 	".\jsperl.h"\
 	".\prcvar.h"\
 	".\prlock.h"\
-	
+
 
 "$(INTDIR)\js.obj" : $(SOURCE) $(DEP_CPP_JS_C42) "$(INTDIR)"
 
@@ -3576,15 +3576,15 @@ NODEP_CPP_JS_C42=\
 
 !IF  "$(CFG)" == "jsshell - Win32 Release"
 
-"js - Win32 Release" : 
-   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="js - Win32 Release" 
+"js - Win32 Release" :
+   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="js - Win32 Release"
 
 !ELSEIF  "$(CFG)" == "jsshell - Win32 Debug"
 
-"js - Win32 Debug" : 
-   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="js - Win32 Debug" 
+"js - Win32 Debug" :
+   $(MAKE) /$(MAKEFLAGS) /F ".\js.mak" CFG="js - Win32 Debug"
 
-!ENDIF 
+!ENDIF
 
 # End Project Dependency
 # End Target
@@ -3598,7 +3598,7 @@ NODEP_CPP_JS_C42=\
 
 !ELSEIF  "$(CFG)" == "fdlibm - Win32 Debug"
 
-!ENDIF 
+!ENDIF
 
 ################################################################################
 # Begin Source File
@@ -3609,7 +3609,7 @@ SOURCE=.\fdlibm\w_atan2.c
 
 DEP_CPP_W_ATA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_atan2.obj" : $(SOURCE) $(DEP_CPP_W_ATA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3619,13 +3619,13 @@ DEP_CPP_W_ATA=\
 
 DEP_CPP_W_ATA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_atan2.obj" : $(SOURCE) $(DEP_CPP_W_ATA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3637,7 +3637,7 @@ SOURCE=.\fdlibm\s_copysign.c
 
 DEP_CPP_S_COP=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_copysign.obj" : $(SOURCE) $(DEP_CPP_S_COP) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3647,13 +3647,13 @@ DEP_CPP_S_COP=\
 
 DEP_CPP_S_COP=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_copysign.obj" : $(SOURCE) $(DEP_CPP_S_COP) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3665,7 +3665,7 @@ SOURCE=.\fdlibm\w_pow.c
 
 DEP_CPP_W_POW=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_pow.obj" : $(SOURCE) $(DEP_CPP_W_POW) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3675,13 +3675,13 @@ DEP_CPP_W_POW=\
 
 DEP_CPP_W_POW=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_pow.obj" : $(SOURCE) $(DEP_CPP_W_POW) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3693,7 +3693,7 @@ SOURCE=.\fdlibm\e_pow.c
 
 DEP_CPP_E_POW=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_pow.obj" : $(SOURCE) $(DEP_CPP_E_POW) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3703,13 +3703,13 @@ DEP_CPP_E_POW=\
 
 DEP_CPP_E_POW=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_pow.obj" : $(SOURCE) $(DEP_CPP_E_POW) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3721,7 +3721,7 @@ SOURCE=.\fdlibm\k_standard.c
 
 DEP_CPP_K_STA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\k_standard.obj" : $(SOURCE) $(DEP_CPP_K_STA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3731,13 +3731,13 @@ DEP_CPP_K_STA=\
 
 DEP_CPP_K_STA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\k_standard.obj" : $(SOURCE) $(DEP_CPP_K_STA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3749,7 +3749,7 @@ SOURCE=.\fdlibm\e_atan2.c
 
 DEP_CPP_E_ATA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_atan2.obj" : $(SOURCE) $(DEP_CPP_E_ATA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3759,13 +3759,13 @@ DEP_CPP_E_ATA=\
 
 DEP_CPP_E_ATA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_atan2.obj" : $(SOURCE) $(DEP_CPP_E_ATA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3777,7 +3777,7 @@ SOURCE=.\fdlibm\s_isnan.c
 
 DEP_CPP_S_ISN=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_isnan.obj" : $(SOURCE) $(DEP_CPP_S_ISN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3787,13 +3787,13 @@ DEP_CPP_S_ISN=\
 
 DEP_CPP_S_ISN=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_isnan.obj" : $(SOURCE) $(DEP_CPP_S_ISN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3805,7 +3805,7 @@ SOURCE=.\fdlibm\s_fabs.c
 
 DEP_CPP_S_FAB=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_fabs.obj" : $(SOURCE) $(DEP_CPP_S_FAB) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3815,13 +3815,13 @@ DEP_CPP_S_FAB=\
 
 DEP_CPP_S_FAB=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_fabs.obj" : $(SOURCE) $(DEP_CPP_S_FAB) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3833,7 +3833,7 @@ SOURCE=.\fdlibm\w_sqrt.c
 
 DEP_CPP_W_SQR=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_sqrt.obj" : $(SOURCE) $(DEP_CPP_W_SQR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3843,13 +3843,13 @@ DEP_CPP_W_SQR=\
 
 DEP_CPP_W_SQR=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_sqrt.obj" : $(SOURCE) $(DEP_CPP_W_SQR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3861,7 +3861,7 @@ SOURCE=.\fdlibm\s_scalbn.c
 
 DEP_CPP_S_SCA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_scalbn.obj" : $(SOURCE) $(DEP_CPP_S_SCA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3871,13 +3871,13 @@ DEP_CPP_S_SCA=\
 
 DEP_CPP_S_SCA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_scalbn.obj" : $(SOURCE) $(DEP_CPP_S_SCA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3889,7 +3889,7 @@ SOURCE=.\fdlibm\e_sqrt.c
 
 DEP_CPP_E_SQR=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_sqrt.obj" : $(SOURCE) $(DEP_CPP_E_SQR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3899,13 +3899,13 @@ DEP_CPP_E_SQR=\
 
 DEP_CPP_E_SQR=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_sqrt.obj" : $(SOURCE) $(DEP_CPP_E_SQR) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3917,7 +3917,7 @@ SOURCE=.\fdlibm\s_rint.c
 
 DEP_CPP_S_RIN=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_rint.obj" : $(SOURCE) $(DEP_CPP_S_RIN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3927,13 +3927,13 @@ DEP_CPP_S_RIN=\
 
 DEP_CPP_S_RIN=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_rint.obj" : $(SOURCE) $(DEP_CPP_S_RIN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3945,7 +3945,7 @@ SOURCE=.\fdlibm\s_atan.c
 
 DEP_CPP_S_ATA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_atan.obj" : $(SOURCE) $(DEP_CPP_S_ATA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3955,13 +3955,13 @@ DEP_CPP_S_ATA=\
 
 DEP_CPP_S_ATA=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_atan.obj" : $(SOURCE) $(DEP_CPP_S_ATA) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -3973,7 +3973,7 @@ SOURCE=.\fdlibm\s_finite.c
 
 DEP_CPP_S_FIN=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_finite.obj" : $(SOURCE) $(DEP_CPP_S_FIN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -3983,13 +3983,13 @@ DEP_CPP_S_FIN=\
 
 DEP_CPP_S_FIN=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_finite.obj" : $(SOURCE) $(DEP_CPP_S_FIN) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -4001,7 +4001,7 @@ SOURCE=.\fdlibm\s_matherr.c
 
 DEP_CPP_S_MAT=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_matherr.obj" : $(SOURCE) $(DEP_CPP_S_MAT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
@@ -4011,13 +4011,13 @@ DEP_CPP_S_MAT=\
 
 DEP_CPP_S_MAT=\
 	".\fdlibm\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_matherr.obj" : $(SOURCE) $(DEP_CPP_S_MAT) "$(INTDIR)"
    $(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 # End Target

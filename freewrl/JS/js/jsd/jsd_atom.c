@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -44,7 +44,7 @@
 /* #define TEST_ATOMS 1 */
 
 #ifdef TEST_ATOMS
-static void 
+static void
 _testAtoms(JSDContext*jsdc)
 {
     JSDAtom* atom0 = jsd_AddAtom(jsdc, "foo");
@@ -64,8 +64,8 @@ _testAtoms(JSDContext*jsdc)
     jsd_DropAtom(jsdc, atom2);
     jsd_DropAtom(jsdc, atom3);
     jsd_DropAtom(jsdc, atom4);
-}        
-#endif    
+}
+#endif
 
 JS_STATIC_DLL_CALLBACK(intN)
 _atom_smasher(JSHashEntry *he, intN i, void *arg)
@@ -85,13 +85,13 @@ JS_STATIC_DLL_CALLBACK(intN)
 _compareAtomKeys(const void *v1, const void *v2)
 {
     return 0 == strcmp((const char*)v1, (const char*)v2);
-}        
+}
 
 JS_STATIC_DLL_CALLBACK(intN)
 _compareAtoms(const void *v1, const void *v2)
 {
     return 0 == strcmp(((JSDAtom*)v1)->str, ((JSDAtom*)v2)->str);
-}        
+}
 
 
 JSBool
@@ -102,7 +102,7 @@ jsd_CreateAtomTable(JSDContext* jsdc)
                                   NULL, NULL);
 #ifdef TEST_ATOMS
     _testAtoms(jsdc);
-#endif    
+#endif
     return (JSBool) jsdc->atoms;
 }
 
@@ -129,7 +129,7 @@ jsd_AddAtom(JSDContext* jsdc, const char* str)
     }
 
     JSD_LOCK_ATOMS(jsdc);
-    
+
     atom = (JSDAtom*) JS_HashTableLookup(jsdc->atoms, str);
 
     if( atom )
@@ -152,7 +152,7 @@ jsd_AddAtom(JSDContext* jsdc, const char* str)
 
     JSD_UNLOCK_ATOMS(jsdc);
     return atom;
-}        
+}
 
 JSDAtom*
 jsd_CloneAtom(JSDContext* jsdc, JSDAtom* atom)
@@ -161,7 +161,7 @@ jsd_CloneAtom(JSDContext* jsdc, JSDAtom* atom)
     atom->refcount++;
     JSD_UNLOCK_ATOMS(jsdc);
     return atom;
-}        
+}
 
 void
 jsd_DropAtom(JSDContext* jsdc, JSDAtom* atom)
@@ -174,5 +174,5 @@ jsd_DropAtom(JSDContext* jsdc, JSDAtom* atom)
         free(atom);
     }
     JSD_UNLOCK_ATOMS(jsdc);
-}        
+}
 

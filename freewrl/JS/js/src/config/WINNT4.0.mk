@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -57,12 +57,12 @@ WIN_CFLAGS = /nologo /W3 /Fp$(OBJDIR)/js.pch
 # MSVC compiler options for debug builds linked to MSVCRTD.DLL
 # /MDd     - link with MSVCRTD.LIB (Dynamically-linked, multi-threaded, debug C-runtime)
 # /Od      - minimal optimization
-WIN_IDG_CFLAGS = /MDd /Od /Z7 
+WIN_IDG_CFLAGS = /MDd /Od /Z7
 
 # MSVC compiler options for debug builds linked to MSVCRT.DLL
 # /MD      - link with MSVCRT.LIB (Dynamically-linked, multi-threaded, debug C-runtime)
 # /Od      - minimal optimization
-WIN_DEBUG_CFLAGS = /MD /Od /Z7 
+WIN_DEBUG_CFLAGS = /MD /Od /Z7
 
 # MSVC compiler options for release (optimized) builds
 # /MD      - link with MSVCRT.LIB (Dynamically-linked, multi-threaded, C-runtime)

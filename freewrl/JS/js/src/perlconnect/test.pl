@@ -17,7 +17,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -75,7 +75,7 @@ sub new {
     $class = ref $class || $class;
     my $self = { property => shift };
     bless $self, $class;
-    return $self;    
+    return $self;
 }
 
 sub getObj {
@@ -107,11 +107,11 @@ sub getHash {
 package main;
 use JS;
 
-BEGIN { 
-    $| = 1; print "1..12\n"; 
+BEGIN {
+    $| = 1; print "1..12\n";
 }
 
-END 
+END
   { print "not ok 1\n" unless $loaded; }
 
 $loaded = 1;
@@ -158,7 +158,7 @@ tie %hash, 'JS::Object', $jsval;
 print $hash{prop} == 11  ? "ok $testc\n" : "not ok $testc\n"; #6
 
 ############################################################
-#set js propertry 
+#set js propertry
 $testc++;
 $hash{prop2} = 2;
 $jsval = $cx->eval('foo.prop2;');
@@ -175,7 +175,7 @@ print ((($#arr == 1) && ($arr[1] == 1)) ? "ok $testc\n" : "not ok $testc\n");#8
 ############################################################
 # object delegation test
 $testc++;
-$cx->createObject(new Proxy("init_value"), "perlobj", 
+$cx->createObject(new Proxy("init_value"), "perlobj",
 		  { getObj   => \&Proxy::getObj,
 		    getValue => \&Proxy::getValue,
 		    getArray => \&Proxy::getArray,

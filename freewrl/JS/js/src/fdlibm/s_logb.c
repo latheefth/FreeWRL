@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
@@ -68,7 +68,7 @@
 	if((ix|lx)==0) return -1.0/fd_fabs(x);
 	if(ix>=0x7ff00000) return x*x;
 	if((ix>>=20)==0) 			/* IEEE 754 logb */
-		return -1022.0; 
+		return -1022.0;
 	else
-		return (double) (ix-1023); 
+		return (double) (ix-1023);
 }

@@ -39,21 +39,21 @@ public class synth extends Applet implements EventOutObserver {
     browser = Browser.getBrowser(this);
 
     // Get root node of the scene
-    try { 
+    try {
 	for (int i=0; i<12; i++) {
-	  Note = browser.getNode("Note" + (i+1)); 
+	  Note = browser.getNode("Note" + (i+1));
 	  touchNotes[i] = (EventOutSFTime) Note.getEventOut("touchTime");
           touchNotes[i].advise (this, "Note" + (i+1));
 	}
 	for (int i=0; i<4; i++) {
-	  Note = browser.getNode("Oct" + (i+1)); 
+	  Note = browser.getNode("Oct" + (i+1));
 	  touchOctaves[i] = (EventOutSFTime) Note.getEventOut("touchTime");
           touchOctaves[i].advise (this, "Oct" + (i+1));
 	}
-	Note = browser.getNode("Play"); 
+	Note = browser.getNode("Play");
 	touchPlay = (EventOutSFTime) Note.getEventOut("touchTime");
         touchPlay.advise (this, "Play");
-	Note = browser.getNode("Record"); 
+	Note = browser.getNode("Record");
 	touchRecord = (EventOutSFTime) Note.getEventOut("touchTime");
         touchRecord.advise (this, "Record");
     } catch (InvalidNodeException e) {
@@ -67,7 +67,7 @@ public class synth extends Applet implements EventOutObserver {
     } catch (UnknownHostException e) {
       System.out.println ("synth: can't get local host???");
     }
- 
+
     try {
       MIDIsocket = new DatagramSocket();
     } catch (IOException e) {
@@ -104,7 +104,7 @@ public class synth extends Applet implements EventOutObserver {
     System.out.println ("Play clicked");
     System.out.println ("Note " + Recording);
     String names = "@head { $tempo 100 $time_sig 4/4 } @body { @channel 1 bass { /l2" +
-	Recording + 
+	Recording +
 	" } }";
     SendToMidi(names);
   }
@@ -124,8 +124,8 @@ public class synth extends Applet implements EventOutObserver {
     System.out.println ("Note " + note);
     if (DoRecording) Recording = Recording + noteString(note) +(Octave+3) + " ";
     String thisnote = "@head { $tempo 100 $time_sig 4/4 } @body { @channel 1 bass { /l2" +
-	noteString(note) + 
-	(Octave+3) + 
+	noteString(note) +
+	(Octave+3) +
 	" } }";
     SendToMidi (thisnote);
   }
@@ -149,7 +149,7 @@ public class synth extends Applet implements EventOutObserver {
   }
 
   private void SendToMidi (String midlines) {
-    int strlen = midlines.length();	
+    int strlen = midlines.length();
     try {
       byte buf[] = new byte[strlen];
       buf = midlines.getBytes();
@@ -168,5 +168,5 @@ public class synth extends Applet implements EventOutObserver {
     System.out.println ("start of main");
     synth thissynth = new synth();
     thissynth.start_up();
-  }  
+  }
 }

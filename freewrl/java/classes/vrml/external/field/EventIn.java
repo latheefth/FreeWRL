@@ -13,7 +13,7 @@ public class EventIn extends vrml.external.Node {
 // public String nodeptr; //pointer to start of FreeWRL structure in memory
 // public String offset;  //offset of actual field in memory from base.
 // public String datasize; // how long this data really is
-// public String datatype; 
+// public String datatype;
 // public String ScriptType; // non zero means that this eventIn is to a javascript
 
 

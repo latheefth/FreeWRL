@@ -7,7 +7,7 @@
 # Chain of boxes
 
 DEF TS TimeSensor {
-	loop TRUE 
+	loop TRUE
 }
 
 DEF GR Transform {

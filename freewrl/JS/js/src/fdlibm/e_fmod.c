@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,12 +39,12 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
 
-/* 
+/*
  * __ieee754_fmod(x,y)
  * Return x mod y in exact arithmetic
  * Method: shift and subtract
@@ -84,7 +84,7 @@ static double one = 1.0, Zero[] = {0.0, -0.0,};
 	    return (x*y)/(x*y);
 	if(hx<=hy) {
 	    if((hx<hy)||(lx<ly)) return x;	/* |x|<|y| return x */
-	    if(lx==ly) 
+	    if(lx==ly)
 		return Zero[(unsigned)sx>>31];	/* |x|=|y| return x*0*/
 	}
 
@@ -107,7 +107,7 @@ static double one = 1.0, Zero[] = {0.0, -0.0,};
 	} else iy = (hy>>20)-1023;
 
     /* set up {hx,lx}, {hy,ly} and align y to x */
-	if(ix >= -1022) 
+	if(ix >= -1022)
 	    hx = 0x00100000|(0x000fffff&hx);
 	else {		/* subnormal x, shift x to normal */
 	    n = -1022-ix;
@@ -119,7 +119,7 @@ static double one = 1.0, Zero[] = {0.0, -0.0,};
 		lx = 0;
 	    }
 	}
-	if(iy >= -1022) 
+	if(iy >= -1022)
 	    hy = 0x00100000|(0x000fffff&hy);
 	else {		/* subnormal y, shift y to normal */
 	    n = -1022-iy;
@@ -148,7 +148,7 @@ static double one = 1.0, Zero[] = {0.0, -0.0,};
 
     /* convert back to floating value and restore the sign */
 	if((hx|lx)==0) 			/* return sign(x)*0 */
-	    return Zero[(unsigned)sx>>31];	
+	    return Zero[(unsigned)sx>>31];
 	while(hx<0x00100000) {		/* normalize x */
 	    hx = hx+hx+(lx>>31); lx = lx+lx;
 	    iy -= 1;

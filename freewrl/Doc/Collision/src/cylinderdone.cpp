@@ -13,8 +13,8 @@
 
 
 /*false constructor, for personal ease*/
-struct pt pt(double ax=0., double ay=0., double az=0.)	
-{	
+struct pt pt(double ax=0., double ay=0., double az=0.)
+{
     struct pt tmp = {ax,ay,az};
     return tmp;
 }
@@ -47,7 +47,7 @@ bool perspective = true;
 
 
 void init(void)
-{    
+{
 
     glClearColor (0.0, 0.0, 0.0, 0.0);
     glShadeModel(GL_FLAT);
@@ -69,7 +69,7 @@ void init(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0.0, 0.0, -3.6);
-     
+
 }
 
 void displayhandles(void) {
@@ -80,7 +80,7 @@ void displayhandles(void) {
 	glVertex3dv(&pts[activepts[i]].x);
 	printf("#%d:(%f,%f,%f)\n",activepts[i],pts[activepts[i]].x,pts[activepts[i]].y,pts[activepts[i]].z);
     }
-    //extra points 
+    //extra points
     //debugfocus
     if(debugpt > 0 && debugpt < debugpts.size()) {
 	glPointSize(6.0);
@@ -89,9 +89,9 @@ void displayhandles(void) {
 	glPointSize(4.0);
     }
     for(int i=0; i < debugpts.size(); i++) {
-	if(i < debugcolors.size()) 
+	if(i < debugcolors.size())
 	    glColor3f(debugcolors[i]& (1<<0) ? 1.:.4,debugcolors[i]&(1<<1)? 1.:.4,debugcolors[i]&(1<<2)? 1.:.4);
-	else 
+	else
 	    glColor3f(1.,0,0);
 	glVertex3dv(&debugpts[i].x);
     }
@@ -100,7 +100,7 @@ void displayhandles(void) {
     for(int i=0; i < pts.size(); i++) {
 	glVertex3dv(&pts[i].x);
     }
-    printf("\n");	
+    printf("\n");
     glEnd();
 
     /*draw axis oriented pointers*/
@@ -119,11 +119,11 @@ void displayhandles(void) {
 	glColor3f(0,0,.5);
 	glVertex3dv(&pts[activepts[i]].x);
 	glVertex3f(pts[activepts[i]].x,pts[activepts[i]].y,0);
-     
+
     }
     glEnd();
-     
-     
+
+
 }
 
 void displayaxis(void) {
@@ -140,7 +140,7 @@ void displayaxis(void) {
     glColor3f(0,0,1);
     glVertex3f(0,0,0);
     glVertex3f(0,0,1);
-     
+
     glEnd();
 
 }
@@ -160,8 +160,8 @@ void display(void)
     debugptsinfo.clear();
     debugsurface = 0;
 
-     
-     
+
+
     struct pt tmp;
     struct pt i,j;
     struct pt n;
@@ -184,7 +184,7 @@ void display(void)
     struct pt disp;
     disp = cylinder_disp(-1,1,-1,r,pts[0],pts[1],bradius);
     printf("disp = (%f,%f,%f)\n",disp.x,disp.y,disp.z);
-    
+
 
     /* draw cylinder */
     glPushMatrix();
@@ -213,17 +213,17 @@ void display(void)
 
     gluCylinder(qo,bradius,bradius,sqrt(vecdot(&n,&n)),16,1);
     glPopMatrix();
-     
-	
+
+
 
     displayhandles();
     displayaxis();
 
-/*  draw transparent result 
+/*  draw transparent result
     glEnable(GL_BLEND);
 //     glDisable(GL_DEPTH_TEST);
 glBlendFunc(GL_SRC_ALPHA,GL_ONE);
-     
+
 
 glDisable(GL_BLEND);
 //     glEnable(GL_DEPTH_TEST);
@@ -268,7 +268,7 @@ void keyboard (unsigned char key, int x, int y)
 	glGetDoublev(GL_MODELVIEW_MATRIX,postmat);
 	memcpy(premat,ident,sizeof(ident));
     }
-     
+
 
     switch (key) {
     case '=':
@@ -324,7 +324,7 @@ void keyboard (unsigned char key, int x, int y)
     case 27:
 	exit(0);
 	break;
-	  
+
     case '*':
 	glLoadMatrixd(premat);
 	glScalef(sqrt(2.),sqrt(2.),sqrt(2.));
@@ -396,11 +396,11 @@ void keyboard (unsigned char key, int x, int y)
 	glRotatef(rspeed,0,0,1);
 	glMultMatrixd(postmat);
 	break;
-	  
-	  
 
 
-	  
+
+
+
 
     default:
 	break;
@@ -410,7 +410,7 @@ void keyboard (unsigned char key, int x, int y)
 
 
 void mouse (int button, int state, int x, int y){
-	
+
     static int ox,oy;
     static double scale = 0.01;
 
@@ -420,10 +420,10 @@ void mouse (int button, int state, int x, int y){
 
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 	ox = x;
-	oy = y;	
+	oy = y;
     }
     if(button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
-	  
+
 	for(vector<int>::iterator i = activepts.begin(); i != activepts.end(); i++) {
 	    switch( slide ) {
 	    case pxy:
@@ -439,7 +439,7 @@ void mouse (int button, int state, int x, int y){
 		pts[*i].x += (y-oy) *scale;
 		break;
 	    }
-	       
+
 	}
 	glutPostRedisplay();
     }
@@ -459,5 +459,5 @@ int main(int argc, char** argv)
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
     glutMainLoop();
-    return 0; 
+    return 0;
 }

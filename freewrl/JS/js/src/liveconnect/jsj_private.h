@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -50,7 +50,7 @@
  * JavaScript <==> Java communication.
  *
  */
- 
+
 
 #ifndef _JSJAVA_PVT_H
 #define _JSJAVA_PVT_H
@@ -408,7 +408,7 @@ jsj_ConvertJavaObjectToJSBoolean(JSContext *cx, JNIEnv *jEnv,
                                  jobject java_obj, jsval *vp);
 extern JSJavaThreadState *
 jsj_enter_js(JNIEnv *jEnv, void* java_applet_obj, jobject java_wrapper_obj,
-         JSContext **cxp, JSObject **js_objp, JSErrorReporter *old_error_reporterp, 
+         JSContext **cxp, JSObject **js_objp, JSErrorReporter *old_error_reporterp,
          void **pNSIPrincipaArray, int numPrincipals, void *pNSISecurityContext);
 
 extern JSBool
@@ -497,7 +497,7 @@ jsj_GetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
 extern JSBool
 jsj_SetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
                       jobject java_obj, jsval js_val);
-extern JSBool 
+extern JSBool
 jsj_ReflectJavaFields(JSContext *cx, JNIEnv *jEnv,
                       JavaClassDescriptor *class_descriptor,
                       JSBool reflect_only_static_fields);
@@ -514,14 +514,14 @@ jsj_JavaStaticMethodWrapper(JSContext *cx, JSObject *obj,
 JS_EXTERN_API(JSBool)
 jsj_JavaConstructorWrapper(JSContext *cx, JSObject *obj,
                            uintN argc, jsval *argv, jsval *vp);
-extern JSBool 
+extern JSBool
 jsj_ReflectJavaMethods(JSContext *cx, JNIEnv *jEnv,
                        JavaClassDescriptor *class_descriptor,
                        JSBool reflect_only_static_methods);
 
 extern JavaMemberDescriptor *
 jsj_ResolveExplicitMethod(JSContext *cx, JNIEnv *jEnv,
-			  JavaClassDescriptor *class_descriptor, 
+			  JavaClassDescriptor *class_descriptor,
 			  jsid method_name_id,
 			  JSBool is_static);
 extern void
@@ -574,13 +574,13 @@ extern JSBool
 jsj_GetJavaArrayElement(JSContext *cx, JNIEnv *jEnv, jarray java_array,
                         jsize index, JavaSignature *array_component_signature,
                         jsval *vp);
-   
-extern JSBool     
+
+extern JSBool
 jsj_SetJavaArrayElement(JSContext *cx, JNIEnv *jEnv, jarray java_array,
                         jsize index, JavaSignature *array_component_signature,
                         jsval js_val);
 
-/********************* JavaScript object reflection ************************/                        
+/********************* JavaScript object reflection ************************/
 extern jobject
 jsj_WrapJSObject(JSContext *cx, JNIEnv *jEnv, JSObject *js_obj);
 
@@ -673,7 +673,7 @@ enum JSJErrNum {
 };
 
 #ifdef __cplusplus
-} 
+}
 /* end extern "C" */
 #endif
 

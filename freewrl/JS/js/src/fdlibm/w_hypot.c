@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
@@ -64,7 +64,7 @@
 	double z;
 	z = __ieee754_hypot(x,y);
 	if(_LIB_VERSION == _IEEE_) return z;
-	if((!fd_finite(z))&&fd_finite(x)&&fd_finite(y)) { 
+	if((!fd_finite(z))&&fd_finite(x)&&fd_finite(y)) {
         int err;
 	    return __kernel_standard(x,y,4,&err); /* hypot overflow */
     } else

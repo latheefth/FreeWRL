@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 //
@@ -31,5 +31,5 @@
 public final class bogus1
 {
     public IJSStackFrameInfo[] bogus;
-}    
+}
 

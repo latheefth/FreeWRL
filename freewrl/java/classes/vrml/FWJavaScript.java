@@ -18,10 +18,10 @@ public final class FWJavaScript {
 	static Socket sock;		// communication socket with FreeWRL
 	static BufferedReader  EAIin;
 	static PrintWriter EAIout;
-	
 
 
-    
+
+
 
     public static void add_touched(Field f) {
 	touched.put(f, Boolean.TRUE);
@@ -50,7 +50,7 @@ public final class FWJavaScript {
 	EAIout.flush();
     }
 
-    public static void main (String argv[]) 
+    public static void main (String argv[])
 	throws ClassNotFoundException,
 	       NoSuchMethodException,
 	       InstantiationException,
@@ -67,7 +67,7 @@ public final class FWJavaScript {
   	// Create a socket here for an EAI/CLASS server on localhost
 	sock = null;
 
-	counter = 1;	
+	counter = 1;
 	while (sock == null) {
 		try {
 			//System.out.println ("      ....FWJavaScript trying socket " + argv[0]);
@@ -102,7 +102,7 @@ public final class FWJavaScript {
 
 			// did FreeWRL leave us?
 			if (cmd == null) {
-				//System.out.println ("have null string  exiting...\n"); 
+				//System.out.println ("have null string  exiting...\n");
 				System.exit(1);
 			}
 
@@ -116,7 +116,7 @@ public final class FWJavaScript {
 				String url = EAIin.readLine();
 				reqid = EAIin.readLine();
 				//System.out.println("NEWSCRIPT: "+url);
-				FWJavaScriptClassLoader classloader = 
+				FWJavaScriptClassLoader classloader =
 				    new FWJavaScriptClassLoader(url);
 				String classname
 				    = url.substring(url.lastIndexOf('/')+1);
@@ -159,13 +159,13 @@ public final class FWJavaScript {
 				//		+ " field " + fname + " type " + ftype + " reqid "
 				//		+ reqid);
 
-				ConstField fval = 
+				ConstField fval =
 				    FWCreateField.createConstField(ftype);
 				fval.__fromPerl(EAIin);
-				double timestamp = 
+				double timestamp =
 				    Double.parseDouble(EAIin.readLine());
 				Event ev = new Event(
-					fname, 
+					fname,
 					timestamp,
 					fval
 				);
@@ -179,7 +179,7 @@ public final class FWJavaScript {
 		}
 	}
 
-    public static String getFieldType(BaseNode node, String fieldname, 
+    public static String getFieldType(BaseNode node, String fieldname,
 				      String kind)
     {
 	String str;
@@ -219,7 +219,7 @@ public final class FWJavaScript {
     }
 
 
-    public static BaseNode[] createVrmlFromString(String vrmlSyntax) 
+    public static BaseNode[] createVrmlFromString(String vrmlSyntax)
 	throws InvalidVRMLSyntaxException
     {
 	try {
@@ -237,9 +237,9 @@ public final class FWJavaScript {
 
 	    Node[] nodes = new Node[number];
 
-	    // remember, nodes have a frontend:backend; one is known in Perl, the  
+	    // remember, nodes have a frontend:backend; one is known in Perl, the
 	    //System.out.println ("Java: Create, reading in " + number + " nodes");
-	    // other is the C pointer to memory. 
+	    // other is the C pointer to memory.
 	    for (int i = 0; i < number; i++)
 		nodes[i] = new Node(""+EAIin.readLine()+":"+EAIin.readLine());
 	    //System.out.println ("returning from Java Create");

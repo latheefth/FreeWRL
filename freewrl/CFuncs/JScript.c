@@ -70,9 +70,9 @@ Javascript C language binding.
  *     JSHasInstanceOp hasInstance;
  *     prword spare[2];
  * };
- * 
+ *
  * global JSClass  - populated by stubs
- * 
+ *
  */
 
 static JSRuntime *runtime;
@@ -162,26 +162,26 @@ void JSInit(int num, SV *script) {
 
 	runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
 	if (!runtime) freewrlDie("JS_NewRuntime failed");
-	
+
 	if (JSVerbose) printf("\tJS runtime created,\n");
-	
-	
+
+
 	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
 	if (!_context) freewrlDie("JS_NewContext failed");
-	
+
 	if (JSVerbose) printf("\tJS context created,\n");
-	
-	
+
+
 	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
 	if (!_globalObj) freewrlDie("JS_NewObject failed");
-	
+
 	if (JSVerbose) printf("\tJS global object created,\n");
-	
+
 
 	/* gets JS standard classes */
-	if (!JS_InitStandardClasses(_context, _globalObj)) 
+	if (!JS_InitStandardClasses(_context, _globalObj))
 		freewrlDie("JS_InitStandardClasses failed");
-	
+
 	if (JSVerbose) printf("\tJS standard classes initialized,\n");
 
 
@@ -190,10 +190,10 @@ void JSInit(int num, SV *script) {
 	//} else {
 	//	reportWarningsOff();
 	//}
-	
+
 	JS_SetErrorReporter(_context, errorReporter);
 	if (JSVerbose) printf("\tJS errror reporter set,\n");
-	
+
 	br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
 	br->sv_js = newSVsv(script); /* new duplicate of sv_js */
 	br->magic = BROWMAGIC; /* needed ??? */
@@ -203,20 +203,20 @@ void JSInit(int num, SV *script) {
 	ScriptControl[num].glob = (unsigned int) _globalObj;
 	ScriptControl[num].brow = (unsigned int) br;
 
-	
-	if (!loadVrmlClasses(_context, _globalObj)) 
-		freewrlDie("loadVrmlClasses failed");
-	
-	if (JSVerbose) printf("\tVRML classes loaded,\n");
-	
 
-	if (!VrmlBrowserInit(_context, _globalObj, br)) 
+	if (!loadVrmlClasses(_context, _globalObj))
+		freewrlDie("loadVrmlClasses failed");
+
+	if (JSVerbose) printf("\tVRML classes loaded,\n");
+
+
+	if (!VrmlBrowserInit(_context, _globalObj, br))
 		freewrlDie("VrmlBrowserInit failed");
-	
+
 	if (JSVerbose) printf("\tVRML Browser interface loaded,\n");
 
 	/* now, run initial scripts */
-	if (!ActualrunScript(num,DefaultScriptMethods,&rval)) 
+	if (!ActualrunScript(num,DefaultScriptMethods,&rval))
 		cleanupDie(num,"runScript failed in VRML::newJS DefaultScriptMethods");
 
 	/* send this data over to the routing table functions. */
@@ -236,10 +236,10 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 
-	if (JSVerbose) 
+	if (JSVerbose)
 		printf("ActualrunScript script %d cx %x \"%s\", \n",
 			   num, (unsigned int) _context, script);
-	
+
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
@@ -295,14 +295,14 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  	char *strp;
  	JSContext *_context;
  	JSObject *_globalObj;
- 
+
  	/* get context and global object for this script */
  	_context = (JSContext *) ScriptControl[num].cx;
  	_globalObj = (JSObject *)ScriptControl[num].glob;
- 
+
 	if (JSVerbose)
  		printf ("start of JSGetProperty, cx %d script %s\n",(int)_context,script);
- 
+
  	if (!JS_GetProperty(_context, _globalObj, script, &rval)) {
  		printf("JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
  		return JS_FALSE;
@@ -314,7 +314,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  	if (JSVerbose) {
  		printf("JSGetProperty strp=:%s:\n", strp);
  	}
- 
+
  	return JS_TRUE;
  }
 

@@ -19,8 +19,8 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-The collision algorithm used is a static interference test. 
-This test also returns the direction and displacement needed to eliminate the intersection. 
+The collision algorithm used is a static interference test.
+This test also returns the direction and displacement needed to eliminate the intersection.
 In the case of displacements in the direction of the normal of the contact plane, It roughly calulates the geometric
 intersection of the avatar and the half-prism of the polygon on the contact plane (polygon extendend to infinity in it's backface).
 In the other case the displacements are made in the direction of the closest point (polyrep disp algo.)
@@ -39,13 +39,13 @@ But a cylinder the height of ``step'' is still present for stepping.
 It is not neccessarily in contact with the sphere. This causes a few stange behaviours.
 
 \subsection{The basic piece of the puzzle : the polygon-cylinder intersection algorithm}
-The algorithm roughly uses calculates the geometric intersection of the cylinder and 
+The algorithm roughly uses calculates the geometric intersection of the cylinder and
 the polygon half-prism. By polygon half-prism I mean the space traversed by the
 polygon it were sweeped in the oposite direction of it's normal.
 
 It gets the points of the intersection, and minimises the projection of these points
 on the normal vector. (takes the farthest point from the triangle's plane)
-\begin{figure}[htb]	
+\begin{figure}[htb]
 \centering
 	\includegraphics[angle=0,width=0.5\textwidth]{triangle_disp_points_triangle_plan}
 	\label{figure:tridispplan}
@@ -58,7 +58,7 @@ This one is used in the IndexedFaceSet and Extrusion tests.
 
 The algorithm calculates the closest point of the polygon to the origin.
 It then returns a vector in the direction of the closest point.
-It's size is the difference between the distance to the closest point and the sphere radius. 
+It's size is the difference between the distance to the closest point and the sphere radius.
 (The displacement needed to put the point back on the surface)
 
 \subsection{Stepping : the polygon-cylinder intersection algorithm}
@@ -69,8 +69,8 @@ It should be used more consitently. The way it is right now creates a few ugly j
 \subsection{Box displacement}
 
 The algorithm uses the polygon-cylinder intersection algorithm on the faces frontfacing the avatar.
-It then takes the minimum. This works flawlessly. 
-\begin{figure}[htb]	
+It then takes the minimum. This works flawlessly.
+\begin{figure}[htb]
 %\centering
 	\subfigure[Delta z-.8361 ] {
 		\includegraphics[angle=0,width=0.5\textwidth]{box_disp_side_1}
@@ -89,17 +89,17 @@ It then takes the minimum. This works flawlessly.
 \end{figure}
 \emph{(fig \ref{figure:boxdisp})}
 
-The stepping code can bring stange stuff, though. 
+The stepping code can bring stange stuff, though.
 
 \subsection{Cone and cylinder}
 
-This algorithm uses a hack. 
+This algorithm uses a hack.
 It assumes the contact point will be on the plane passing through the origin and the cone/cylinder's axis.
 Most of the time, this is the case, but not always. Still, the method gives excellent results.
 
 The idea is to use a degenerated version of the polygon-cylinder algorithm, for lines and points.
 The intersection tests are done on the lines of the surface that are on the forementionned plane.
-\begin{figure}[htb]	
+\begin{figure}[htb]
 %\centering
 	\subfigure[] {
 		\includegraphics[angle=0,width=0.5\textwidth]{cone_disp}
@@ -120,7 +120,7 @@ with a different normal than the side.
 \subsection{Polyreps : IndexedFaceSets and Extrusions}
 
 The algorithm uses the sphere intersection code. It is applied recursively to correct cases of concavity and coplanar sufaces.
-\begin{figure}[htb]	
+\begin{figure}[htb]
 %\centering
 	\subfigure[One polygon's displacement changes the intersection case of the other.] {
 		\includegraphics[angle=0,width=0.5\textwidth]{polydisp_concave_arrow}
@@ -136,10 +136,10 @@ The algorithm uses the sphere intersection code. It is applied recursively to co
 \emph{(fig \ref{figure:polydisp})}
 
 For doublesided polyreps, it reverses the normal when the poly is backfacing. One exception: after one
-pass, either we are frontfacing or backfacing. This way, one pass won't ambigusly choose to 
+pass, either we are frontfacing or backfacing. This way, one pass won't ambigusly choose to
 go on a different side of a surface then previous calculations.
 
-Stepping value is calculated simultaneously. The stepping result is used, unless 
+Stepping value is calculated simultaneously. The stepping result is used, unless
 the sphere intersects with the polyrep. The normal displacement code has priority.
 
 \subsection{Polyreps : Text}
@@ -152,7 +152,7 @@ instead of the minimum, because the faces are coplanar. \emph{(fig \ref{figure:p
 \subsection{Polyreps : ElevationGrid}
 
 This algorithm uses the pregenerated points in the polyrep structure instead of recalculating them.
-It does optimization to only check the quads inside a probable region. 
+It does optimization to only check the quads inside a probable region.
 The optimization depends on the special organisation of the triangles in the polyrep structure.
 If the genpolyrep function changes, this code must be changed too.
 

@@ -49,7 +49,7 @@ public class CreateTest extends Applet {
 			    " nodes long (expected 1)! Aborting...\n");
 	  return;
 	}
-    
+
       Node[] appearance = browser.createVrmlFromString("Appearance {}");
       output.append("Done\n");
       if (appearance.length != 1)
@@ -58,7 +58,7 @@ public class CreateTest extends Applet {
 			    " nodes long (expected 1)! Aborting...\n");
 	  return;
 	}
-    
+
       Node[] geometry = browser.createVrmlFromString("Sphere {}");
       output.append("Done\n");
       if (geometry.length != 1)
@@ -67,7 +67,7 @@ public class CreateTest extends Applet {
 			    " nodes long (expected 1)! Aborting...\n");
 	  return;
 	}
-    
+
       Node[] material = browser.createVrmlFromString("Material {}");
       output.append("Done\n");
       if (material.length != 1)
@@ -96,7 +96,7 @@ public class CreateTest extends Applet {
       // Add the geometry to the shape
       nodeIn = (EventInSFNode) shape[0].getEventIn("set_geometry");
       nodeIn.setValue(geometry[0]);
-    
+
       // Add the shape to the transform
       EventInMFNode nodesIn =
 	(EventInMFNode) scene[1].getEventIn("addChildren");

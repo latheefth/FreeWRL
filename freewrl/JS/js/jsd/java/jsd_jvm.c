@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Copyright (c) 1997 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -46,9 +46,9 @@
  * redistribute the Software for such purposes.
  */
 
-/*                        
+/*
 * Code to start a Java VM (*some* code from the JRE)
-*/                        
+*/
 
 #include "jsdj.h"
 

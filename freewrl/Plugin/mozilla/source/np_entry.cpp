@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -37,7 +37,7 @@
 
 //////////////////////////////////////////////////////////////
 //
-// Main plugin entry point implementation -- exports from the 
+// Main plugin entry point implementation -- exports from the
 // plugin library
 //
 
@@ -47,7 +47,7 @@
 
 #include "npplat.h"
 
-#endif // ! defined _npplat_h_ 
+#endif // ! defined _npplat_h_
 
 NPNetscapeFuncs NPNFuncs;
 
@@ -63,7 +63,7 @@ static NPError fillPluginFunctionTable(NPPluginFuncs* aNPPFuncs)
     return NPERR_INVALID_FUNCTABLE_ERROR;
 
   // Set up the plugin function table that Netscape will use to
-  // call us. Netscape needs to know about our version and size   
+  // call us. Netscape needs to know about our version and size
   // and have a UniversalProcPointer for every function we implement.
 
   aNPPFuncs->version       = (NP_VERSION_MAJOR << 8) | NP_VERSION_MINOR;
@@ -77,8 +77,8 @@ static NPError fillPluginFunctionTable(NPPluginFuncs* aNPPFuncs)
   aNPPFuncs->writeready    = NewNPP_WriteReadyProc(Private_WriteReady);
   aNPPFuncs->write         = NewNPP_WriteProc(Private_Write);
   aNPPFuncs->print         = NewNPP_PrintProc(Private_Print);
-  aNPPFuncs->event         = NewNPP_HandleEventProc(Private_HandleEvent);	
-  aNPPFuncs->urlnotify     = NewNPP_URLNotifyProc(Private_URLNotify);			
+  aNPPFuncs->event         = NewNPP_HandleEventProc(Private_HandleEvent);
+  aNPPFuncs->urlnotify     = NewNPP_URLNotifyProc(Private_URLNotify);
   aNPPFuncs->getvalue      = NewNPP_GetValueProc(Private_GetValue);
   aNPPFuncs->setvalue      = NewNPP_SetValueProc(Private_SetValue);
 #else
@@ -245,7 +245,7 @@ void SetUpQD(void)
   Boolean hasCFM = BitTst(&response, 31-gestaltCFMPresent);
 
   if (hasCFM) {
-    // GetProcessInformation takes a process serial number and 
+    // GetProcessInformation takes a process serial number and
     // will give us back the name and FSSpec of the application.
     // See the Process Manager in IM.
     infoRec.processInfoLength = sizeof(ProcessInfoRec);
@@ -259,14 +259,14 @@ void SetUpQD(void)
   }
 	else
     // If no CFM installed, assume it must be a 68K app.
-    result = -1;		
+    result = -1;
 
   if (result == noErr) {
     // Now that we know the app name and FSSpec, we can call GetDiskFragment
     // to get a connID to use in a subsequent call to FindSymbol (it will also
-    // return the address of ³main² in app, which we ignore).  If GetDiskFragment 
+    // return the address of ³main² in app, which we ignore).  If GetDiskFragment
     // returns an error, we assume the app must be 68K.
-    Ptr mainAddr; 	
+    Ptr mainAddr;
     result =  GetDiskFragment(infoRec.processAppSpec, 0L, 0L, infoRec.processName,
                               kReferenceCFrag, &connID, (Ptr*)&mainAddr, errName);
   }
@@ -316,7 +316,7 @@ NPError main(NPNetscapeFuncs* aNPNFuncs, NPPluginFuncs* aNPPFuncs, NPP_ShutdownU
   *aUnloadUpp = NewNPP_ShutdownProc(Private_Shutdown);
   SetUpQD();
   rv = Private_Initialize();
-	
+
   return rv;
 }
 #endif //XP_MAC

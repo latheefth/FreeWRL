@@ -1,7 +1,7 @@
 package vrml;
 
 
-public class Event implements Cloneable 
+public class Event implements Cloneable
 {
    String name;
    double timestamp;
@@ -12,10 +12,10 @@ public class Event implements Cloneable
 	timestamp = timestamp2;
 	value = value2;
    }
-   
- 
+
+
   // Spec
-   
+
    public String getName() { return name; }
    public double getTimeStamp() { return timestamp; }
    public ConstField getValue() { return value; }

@@ -1,5 +1,5 @@
 ********************************
- Filename:      README.config  
+ Filename:      README.config
  Software:      FreeWRL
  Locker:        freewrl_v0.35
 
@@ -8,32 +8,32 @@ Last Updated:	11/8/2002 alexp
 ********************************
 
 VOLUMES IN LOCKER:
- 
+
         Volume                  Mounted at       Replicated?
         -------                 ----------       -----------
         sw.freewrl_v0.35        top level        No
 
 LINKS TO VOLUMES/LOCKERS:
- 
+
         None; a number of helper binaries and libs are installed in the locker
 
 CHANGES FOR ATHENA:
- 
-	Just a shared wrapper script that sets some required environment 
+
+	Just a shared wrapper script that sets some required environment
         variables- notably PERL5LIB, which allows it to find extra Perl
         modules. We build "in place", with separate copies of the Sun and
-        Linux releases, below 
+        Linux releases, below
         /mit/freewrl_v0.35/distrib/$ATHENA_SYS/FreeWRL-0.35. The extra
-        Perl modules are put below 
+        Perl modules are put below
         /mit/freewrl_v0.35/distrib/sun4x_58/perl-mods
 
 PROGRAMS IN LOCKER:
- 
+
 	FreeWRL VRML97 viewer- with Java and xml functionality included
 
 STARTUP SCRIPT:
- 
-    DESCRIPTION 
+
+    DESCRIPTION
         The freewrl startup script is written as a wrapper program which
 	parses arguments and then invokes the author's Perl launch script,
         in /mit/freewrl_v0.35/distrib/$ATHENA_SYS/FreeWRL-0.35.
@@ -43,12 +43,12 @@ MAINTENANCE NOTES:
 Building FreeWRL is a big job. Detailed notes are below. It's easier on Linux
 since that's the primary build platform. It appears to not have been tested
 by the authors on Sun since many little problems prevent a successful build.
-On Sun, we need to link against a number of libraries in /usr/athena/lib; 
-Java is also needed (1.4.0_01 was used during the build and 
+On Sun, we need to link against a number of libraries in /usr/athena/lib;
+Java is also needed (1.4.0_01 was used during the build and
 "add -f java_v1.4.0_01" was used to put it on the path. gcc was used to
 compile, and gmake (as opposed to make) is required for a successful
-build. The Sun version needs to have "convert" from the ImageMagick 
-distribution installed. Fortunetely, a suitable Solaris binary release (5.5.1) 
+build. The Sun version needs to have "convert" from the ImageMagick
+distribution installed. Fortunetely, a suitable Solaris binary release (5.5.1)
 was found on the Net.
 
 The Linux version seems to work OK with the default libGL.so in the Athena
@@ -71,9 +71,9 @@ libnet-1.0607.tar,gz
 libwww-perl-5.47.tar.gz
 Image-Base-1.07.tar.gz
 
-Untar these in a temp location;  setenv PERL5LIB to: 
+Untar these in a temp location;  setenv PERL5LIB to:
 
-/mit/freewrl_v0.35/distrib/sun4x_58/perl-mods/lib/site_perl/5.6.1:/mit/freewrl_v0.35/distrib/sun4x_58/perl-mods/lib/site_perl/5.6.1/sun4-solaris. 
+/mit/freewrl_v0.35/distrib/sun4x_58/perl-mods/lib/site_perl/5.6.1:/mit/freewrl_v0.35/distrib/sun4x_58/perl-mods/lib/site_perl/5.6.1/sun4-solaris.
 
 For each untarred Perl module, run, from the top level directory:
 
@@ -83,7 +83,7 @@ gmake install
 
 in same order as above.
 
-Put in /mit/freewrl_v0.35/arch/sun4x_58, "convert" and "libMagick-5.5.1.so", 
+Put in /mit/freewrl_v0.35/arch/sun4x_58, "convert" and "libMagick-5.5.1.so",
 used by convert, from ImageMagick-sparc-sun-solaris2.9.tar.gz obtained from
 the net.
 
@@ -144,7 +144,7 @@ to avoid compilation errors.
 Edit ../FreeWRL-0.35/JS/Makefile, adding to CCFLAGS:
 
 -I/afs/athena.mit.edu/software/freewrl_v0.35/distrib/sun4x_58/FreeWRL-0.35/JS/js
-to avoid compilation errors. 
+to avoid compilation errors.
 
 Edit ../FreeWRL-0.35/Plugin/netscape/Makefile, adding to link flags (after
 "-shared" near bottom): "-mimpure-text", and changing "OSNAME:=linux" to
@@ -198,7 +198,7 @@ Install libxslt-1.0.10-1.i386.rpm and libxslt-devel-1.0.10-1.i386.rpm from
 FreeWRL site; move the libraries and includes from installed location to
 /mit/freewrl_v0.35/lib and /mit/freewrl_v0.35/lib (these are platform-
 dependent, use AFS @sys links). libxml2-2.4.13-1.i386.rpm and
-libxml2-devel-2.4.13-1.i386.rpm are not necessary because these files are 
+libxml2-devel-2.4.13-1.i386.rpm are not necessary because these files are
 in /usr/athena/lib, /usr/athena/include (also in RedHat 7.3 release). Files
 ending in .la have installation locations that need editing- also files
 xsltConf.sh and possibly libxslt.pc, although they probably don't get used.
@@ -210,7 +210,7 @@ Includes go in /mit/freewrl_v0.35/include/libexslt
 /mit/freewrl_v0.35/include/libxml/ -> /usr/athena/include/libxml2/libxml
 is needed for compilation of libxml2 dependent Perl code.
 
-Before building Perl stuff, setenv LD_LIBRARY_PATH to 
+Before building Perl stuff, setenv LD_LIBRARY_PATH to
 /usr/athena/lib:/mit/freewrl_v0.35/lib. Install in a temporary location:
 
 XML-NamespaceSupport-1.08.tar.gz
@@ -224,7 +224,7 @@ perl Makefile.PL PREFIX=/afs/athena/software/freewrl_v0.35/distrib/i386_linux24/
 make
 make install
 
-Note that the first 2 are not the same as those give in FreeWRL x3d docs- 
+Note that the first 2 are not the same as those give in FreeWRL x3d docs-
 those won't work right (missing dependencies). SAX-Base is not used.
 
 There will be a problem building XML-LibXML-1.31: it reports "libxml2
@@ -239,15 +239,15 @@ lxml2-2.4.25-sol8-sparc-local
 lxslt-1.0.21-sol8-sparc-local
 
 by running, as root, pkgadd -d <file>. Move these below /mit/freewrl_v0.35
-analogously to Linux. libexslt, libxslt subdirectories go below 
-/mit/freewrl_v0.35/include; the actual libxml includes go below 
+analogously to Linux. libexslt, libxslt subdirectories go below
+/mit/freewrl_v0.35/include; the actual libxml includes go below
 /mit/freewrl_v0.35/include/libxml; they may need to be moved up a level
 or two from below libxml2.
 
 Install XML-NamespaceSupport-1.08, XML-SAX-0.11 as for Linux. XML-LibXML-1.3
 will fail, complaining about "libxml2 not found" in spite of fact that it's
-there. To get around this, comment out the test clause for this in 
-Makefile.PL (starting at line with "if (!have_library("xml2")) {". This 
+there. To get around this, comment out the test clause for this in
+Makefile.PL (starting at line with "if (!have_library("xml2")) {". This
 will allow build and install to proceed. Then install XML-LibXSLT-1.31.
 
 File ../FreeWRL-0.35/tests/helpers/vts.jpg needed by the xml demo was
@@ -255,5 +255,5 @@ missing. It was located on the Web with Google and copied in.
 
 
 
- 
+
 

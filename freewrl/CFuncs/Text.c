@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright(C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart. CRC Canada.
  * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
  * distribution) for details.
@@ -47,7 +47,7 @@
 /* #include "../OpenGL/OpenGL.m"
 
 D_OPENGL;
-*/ 
+*/
 
 #include <stdio.h>
 
@@ -107,7 +107,7 @@ int contour_started;
 FT_Vector last_point;
 int FW_Vertex;
 
-/* flag to determine if we need to call the open_font call */ 
+/* flag to determine if we need to call the open_font call */
 int started = FALSE;
 
 /* function prototypes */
@@ -148,7 +148,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 	gluTessVertex(global_tessobj,v2,&FW_RIA[FW_RIA_indx]);
 
 	if (TextVerbose) {
-		printf ("FW_NewVertexPoint %f %f %f index %d\n", 
+		printf ("FW_NewVertexPoint %f %f %f index %d\n",
 				FW_rep_->coord[FW_pointctr*3+0],
 				FW_rep_->coord[FW_pointctr*3+1],
 				FW_rep_->coord[FW_pointctr*3+2],
@@ -161,7 +161,7 @@ void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 		coordmaxsize+=800;
 		FW_rep_->coord = (float *)realloc(FW_rep_->coord, sizeof(*(FW_rep_->coord))*coordmaxsize*3);
 
-		if (!(FW_rep_->coord)) { 
+		if (!(FW_rep_->coord)) {
 			outOfMemory ("realloc failed - out of memory \n");
 		}
 	}
@@ -181,7 +181,7 @@ int FW_moveto (FT_Vector* to, void* user) {
 
 	last_point.x = to->x; last_point.y = to->y;
 
-	if (TextVerbose) 
+	if (TextVerbose)
 		printf ("FW_moveto tox %ld toy %ld\n",to->x, to->y);
 
     return 0;
@@ -291,7 +291,7 @@ int FW_init_face() {
 				YRES	/* vert device resolution	*/
 				);
 
-		if (err) { 
+		if (err) {
 			printf ("FreeWRL - FreeType, can not set char size for font %s\n",thisfontname);
 			return FALSE;
 		} else {
@@ -314,7 +314,7 @@ double FW_extent (int start, int length) {
 
 
 
-/* Load a character, a maximum of MAX_GLYPHS are here. Note that no 
+/* Load a character, a maximum of MAX_GLYPHS are here. Note that no
    line formatting is done here; this is just for pre-calculating
    extents, etc.
 
@@ -360,7 +360,7 @@ void FW_draw_outline (FT_OutlineGlyph oglyph) {
 	/* gluTessEndPolygon(global_tessobj); */
 	gluEndPolygon(global_tessobj);
 
-	if (retval != FT_Err_Ok) printf ("FT_Outline_Decompose, error %d\n",retval);	
+	if (retval != FT_Err_Ok) printf ("FT_Outline_Decompose, error %d\n",retval);
 }
 
 
@@ -372,7 +372,7 @@ void FW_draw_character (FT_Glyph glyph) {
 		pen_x +=  (glyph->advance.x >> 10);
 	} else {
 		printf ("FW_draw_character; glyphformat  -- need outline for %s %s\n",
-			font_face[myff]->family_name,font_face[myff]->style_name); 
+			font_face[myff]->family_name,font_face[myff]->style_name);
 	}
 	if (TextVerbose) printf ("done character\n");
 }
@@ -384,7 +384,7 @@ void FW_draw_character (FT_Glyph glyph) {
    Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
    eg, for placing text on the screen from within FreeWRL itself */
 
-void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length, 
+void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length,
 		double maxext, double spacing, double mysize, unsigned int fsparam,
 		struct VRML_PolyRep *rp) {
 	//unsigned char *str = "xx"; // string pointer- initialization gets around compiler warning
@@ -397,10 +397,10 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	int est_tri=0;
 	STRLEN xx;
 	float angletan;
-	
+
 
 	/* fsparam has the following bitmaps:
-	
+
 			bit:	0	horizontal  (boolean)
 			bit:	1	leftToRight (boolean)
 			bit:	2	topToBottom (boolean)
@@ -409,7 +409,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 			bit:	4	ITALIC	    (boolean)
 			  (family)
 			bit:	5	SERIF
-			bit:	6	SANS	
+			bit:	6	SANS
 			bit:	7	TYPEWRITER
 			bit:	8 	indicates exact font pointer (future use)
 			  (Justify - major)
@@ -537,7 +537,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	}
 
 
-	
+
 	if(maxext > 0) {
 	   double maxlen = 0;
 	   double l;
@@ -571,7 +571,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	   	double rowlen;
 
 		if (directstring == 0) str = (unsigned char *)SvPV(ptr[row],xx);
-		if (TextVerbose) 
+		if (TextVerbose)
 				printf ("text2 row %d :%s:\n",row, str);
 	        pen_x = 0.0;
 		rshrink = 0.0;
@@ -625,7 +625,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 					/* not invalid... JAS */
 					FW_rep_->cindex[indx_count] = FW_rep_->cindex[indx_count-1];
 					if (indx_count < (cindexmaxsize-1)) indx_count ++;
-				} else {	
+				} else {
 					/* printf ("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],indx_count); */
 					/* printf ("filling up cindex; index %d now points to %d\n",indx_count,global_IFS_Coords[x]); */
 					FW_rep_->cindex[indx_count++] = global_IFS_Coords[x];
@@ -673,7 +673,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 			/* I can't find a standard as to how to map textures to text JAS */
 			for (i=0; i<(unsigned int)FW_pointctr; i++) {
 				FW_rep_->tcoord[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
-				FW_rep_->tcoord[i*3+1] = 0.0; 
+				FW_rep_->tcoord[i*3+1] = 0.0;
 				FW_rep_->tcoord[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
 			}
 
@@ -691,7 +691,7 @@ open_font() {
 	int len;
 	int err;
 
-	if (TextVerbose) 
+	if (TextVerbose)
 		printf ("open_font called\n");
 
 
@@ -701,7 +701,7 @@ open_font() {
 	FW_outline_interface.cubic_to = (FT_Outline_CubicTo_Func)FW_cubicto;
 	FW_outline_interface.shift = 0;
 	FW_outline_interface.delta = 0;
-	
+
 
 
 	/* lets initialize some things */

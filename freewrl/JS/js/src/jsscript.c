@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -832,7 +832,7 @@ js_CallNewScriptHook(JSContext *cx, JSScript *script, JSFunction *fun)
          * XXX and others within the engine.  See bug 40757 for discussion.
          */
         JSStackFrame dummy;
-        
+
         memset(&dummy, 0, sizeof dummy);
         dummy.down = cx->fp;
         dummy.script = script;

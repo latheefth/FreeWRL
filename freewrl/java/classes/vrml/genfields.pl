@@ -62,14 +62,14 @@ my %fromPerl = (
 			myline = in.readLine();
 			// direct from perl, will be 0 or 1, from a route, TRUE, FALSE
 			value = (myline.equals("TRUE") || myline.equals("1"));
-			//System.out.println ("reading in a boolean value is " + value 
+			//System.out.println ("reading in a boolean value is " + value
 		          //      + " for string " + myline);
 		',
-	
+
 	"Color"  => '
 	//System.out.println ("fromPerl, Color");
 		red = Float.parseFloat(in.readLine());
-        	green = Float.parseFloat(in.readLine()); 
+        	green = Float.parseFloat(in.readLine());
         	blue = Float.parseFloat(in.readLine());',
 	"Float"  => '
 	//System.out.println ("fromPerl, Float");
@@ -77,7 +77,7 @@ my %fromPerl = (
 	"Image"  => '
 	//System.out.println ("fromPerl, Image");
 		width = Integer.parseInt(in.readLine());
-        	height = Integer.parseInt(in.readLine()); 
+        	height = Integer.parseInt(in.readLine());
         	components = Integer.parseInt(in.readLine());
         	pixels = new byte[height*width*components];
 	//System.out.println ("JavaClass -- fix method to read in pixels");
@@ -141,7 +141,7 @@ sub sf_constructor
 {
 	my ($class, $ft, @values) = @_;
 	my $params = join(", ", @values);
-	my $init = join("\n        ", 
+	my $init = join("\n        ",
 					map { @_ = split " ",$_; "this.$_[1] = $_[1];" } @values);
 	# fields
 	for (@values) {
@@ -176,7 +176,7 @@ EOF
 		if ($ft =~ /$multival/) {
 			my $i = -1;
 			my $body = join("\n        ",
-							map { $i++; split " ",$_; "values[$i] = $_[1];"} 
+							map { $i++; split " ",$_; "values[$i] = $_[1];"}
 							@values);
 			@_ = split " ",$values[0];
 			print O <<EOF;
@@ -209,10 +209,10 @@ sub sf_setvalue
 	my ($ft, @values) = @_;
 
 	my $body = join("\n        ",
-					map { split " ",$_; "this.$_[1] = $_[1];"} 
+					map { split " ",$_; "this.$_[1] = $_[1];"}
 					@values);
 	my $params = join(", ", @values);
-	
+
 	print O <<EOF;
 
     public void setValue($params) {
@@ -225,7 +225,7 @@ EOF
 	if ($ft =~ /$multival/) {
 		my $i = -1;
 		$body = join("\n        ",
-					 map { $i++; split " ",$_; "this.$_[1] = values[$i];"} 
+					 map { $i++; split " ",$_; "this.$_[1] = values[$i];"}
 					 @values);
 		@_ = split " ",$values[0];
 	print O <<EOF;
@@ -239,9 +239,9 @@ EOF
 
 	# set methods with (Const)SF$ft
 	$body = join("\n        ",
-				 map { split " ",$_; "$_[1] = sf$ft.$_[1];"} 
+				 map { split " ",$_; "$_[1] = sf$ft.$_[1];"}
 				 @values);
-	
+
 	print O <<EOF;
 
     public void setValue(ConstSF$ft sf$ft) {
@@ -312,7 +312,7 @@ sub mf_constructor
     }
 
     public $class(int size, $valtype\[] $valname) {
-        for (int i = 0; i < size; $incr)	
+        for (int i = 0; i < size; $incr)
             __vect.addElement(new ConstSF$ft($constrargs));
     }
 EOF
@@ -351,7 +351,7 @@ sub	mf_getvalue
 	}
 
 	print O <<EOF;
-	
+
     public void getValue($valtype\[] $valname) {
         __updateRead();
         int size = __vect.size();$tmpdecl
@@ -425,7 +425,7 @@ EOF
 
 
 	for $method ("set1Value", "addValue", "insertValue") {
-		my $namelist   = join(", ", 
+		my $namelist   = join(", ",
 							  map { @_ = split " ", $_; $_[1] } @values);
 		my $sfnamelist = join(", ",
 							  map { @_ = split " ", $_; "sf$ft.$_[1]" }
@@ -433,7 +433,7 @@ EOF
         my $intindex = $method eq "addValue" ? "" : "int index, ";
 		my $index = $method eq "addValue" ? "" : "index, ";
         my $params = join(", ", @values);
-        
+
 		print O <<EOF;
 
     public void $method(${intindex}$params) {
@@ -452,7 +452,7 @@ EOF
 	}
 }
 
-sub mf_stringfuncs 
+sub mf_stringfuncs
 {
     my ($ft) = @_;
 

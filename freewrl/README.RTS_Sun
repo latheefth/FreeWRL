@@ -5,7 +5,7 @@ Version  00: 17.02.2004
 Revision 01: 10.03.2004
 Revision 02: 21.06.2004 (for FreeWRL-1.07-pre5)
 
-This document shows the procedure to compile and install the freewrl and his 
+This document shows the procedure to compile and install the freewrl and his
 dependent packages using gcc-3.3.2 and GNU Make version 3.75 (called as gmake).
 ***Please, do not use the make utility of the OS.***
 
@@ -14,7 +14,7 @@ Packages needed:
 Included in the OS (but normally, not installed by default):
 OpenGL
 perl (version > 5.8)
-java SDK 1.4.1 (take care, some Solaris come with 1.1 preinstalled, then you 
+java SDK 1.4.1 (take care, some Solaris come with 1.1 preinstalled, then you
                 must upgrade)
 
 Public Domain (must be compiled and installed):
@@ -47,7 +47,7 @@ and includes files for the complete package. Example: suppose you want
 /usr/local as prefix, then the final executable will be at /usr/local/bin, the
 libs at /usr/local/lib and the includes at /usr/local/include.
 
-For documentation purposes, lets assume that the prefix is notated with the 
+For documentation purposes, lets assume that the prefix is notated with the
 $PREFIX enviroment variable. Then:
 
 setenv PREFIX /usr/local
@@ -58,7 +58,7 @@ Step 1: Compilation of individual packages:
 
 -expat-1.95.7:
 Uncompress expat: gtar xvzf expat-1.95.7.tar.gz
-This command creates a directory expat-1.95.7, cd into that directory, 
+This command creates a directory expat-1.95.7, cd into that directory,
 then:
 
 setenv GNUMAKE gmake
@@ -71,7 +71,7 @@ gmake install
 -freetype-2.1.5:
 
 Uncompress freetype: gtar xvzf freetype-2.1.5.tar.gz
-This command creates a directory freetype-2.1.5, cd into that directory, 
+This command creates a directory freetype-2.1.5, cd into that directory,
 then:
 
 setenv GNUMAKE gmake
@@ -197,9 +197,9 @@ This will install the rest of the packages in $PREFIX/bin $PREFIX/lib etc.
 ********
  NOTE 1
 ********
-Some perl implementations creates in this step a Makefile with a fixed gcc 
+Some perl implementations creates in this step a Makefile with a fixed gcc
 compiler that could be a version lower than 3.3. If you look at the Makefile,
-search the definition of the CC variable. If this definitions is different that 
+search the definition of the CC variable. If this definitions is different that
 this one:
 
 CC = gcc
@@ -209,14 +209,14 @@ the rigth version). If this is the case, you must run the following line:
 
 perl Makefile.PL PPREFIX=$PREFIX PREFIX=$PREFIX CC=gcc LD=gcc
 
-This will use you gcc defined in the path. To make sure over the gcc version 
+This will use you gcc defined in the path. To make sure over the gcc version
 use:
 
 gcc -v
 
 ********
 
-Now, you can test the instalation. Before that, you must set (or modify) 2 
+Now, you can test the instalation. Before that, you must set (or modify) 2
 environment variables:
 
 LD_LIBRARY_PATH:

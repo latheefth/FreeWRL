@@ -17,12 +17,12 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
-/*                                     
-* JNI natives to reflect JSD into Java 
-*/                                     
+/*
+* JNI natives to reflect JSD into Java
+*/
 
 #include "jsdj.h"
 /* this can be included for type checking, but otherwise is not needed */

@@ -26,17 +26,17 @@ require Exporter;
 ## Bug 424524:
 ## It was reported that there was some difficulty parsing VRML words when the
 ## character > occurred at the end of a word.
-## 
+##
 ## The problem lay in the usage of the Perl assertion \b to designate a word
 ## boundary : \b is the position between \w and \W, either \W\w at the beginning
 ## of a word or \w\W at the end. Characters such as >, while legal in VRML97,
 ## are not included in \w, causing the truncation of the word.
-## 
-## This bug was fixed by including the possibility of a premature word boundary: 
+##
+## This bug was fixed by including the possibility of a premature word boundary:
 
 $Word = qr|[^\x30-\x39\x0-\x20\x22\x23\x27\x2b\x2c\x2d\x2e\x5b\x5c\x5d\x7b\x7d\x7f][^\x0-\x20\x22\x23\x27\x2c\x2e\x5b\x5c\x5d\x7b\x7d\x7f]*(?:\b[^\x0-\x20\x22\x23\x27\x2c\x2e\x5b\x5c\x5d\x7b\x7d\x7f])?|;
 
-$qre = qr{(?<!\\)\"};		# " Regexp for unquoted double quote  
+$qre = qr{(?<!\\)\"};		# " Regexp for unquoted double quote
 $cre = qr{[^\"\n]};		# " Regexp for not dquote, not \n char
 
 $Float = qr~[\deE+\-\.]+~;
@@ -193,7 +193,7 @@ sub parse_interfacedecl {
 		} elsif($_[3] =~ /\G\s*(field|exposedField)\s+
 			  ($Word)\s+($Word)/ogsxc) {
 			  if($1 eq "exposedField" and !$exposed) {
-			  	parsefail($_[3], "interface", 
+			  	parsefail($_[3], "interface",
 					   "exposedFields not allowed here");
 			  }
 			my($ft, $t, $n) = ($1, $2, $3);
@@ -426,7 +426,7 @@ sub parse {
 		# 	Storing values... SFInt32 for node VNetInfo, f port
 		#       storing type 2, port, (8888)
 
-		print "Storing values... $ft for node $nt, f $f\n" 
+		print "Storing values... $ft for node $nt, f $f\n"
 			 if $VRML::verbose::parse;
 
 		if($_[2] =~ /\G\s*IS\s+($Word)/gsc) {
@@ -480,11 +480,11 @@ sub print {
 		print "DEF $this->{Fields}{id} ";
 		$this->{Type}{Fields}{node}->print($this->{Fields}{node});
 		return;
-	} 
+	}
 	if($this->{Type}{Name} eq "USE") {
 		print "USE $this->{Fields}{id} ";
 		return;
-	} 
+	}
 	print "$this->{Type}{Name} {";
 	for(keys %{$this->{Fields}}) {
 		print "$_ ";

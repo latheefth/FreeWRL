@@ -1,6 +1,6 @@
 /*********************************************************************
  *
- * FreeWRL SoundServer engine 
+ * FreeWRL SoundServer engine
  *
  *  Copyright (C) 2002 John Stewart, CRC Canada.
  *  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
@@ -8,7 +8,7 @@
  *  for conditions of use and redistribution.
  *
  *
- * 
+ *
  * Wav decoding data came from data sheets at:
  * http://www.borg.com/~jglatt/tech/wave.htm
  *
@@ -39,7 +39,7 @@ FWSNDMSG msg;	// incoming message
 float fps = 30.0;		// initial value...
 int currentSource = -1;
 
-char cp2[310];    // hold the current filename, in case of errors 
+char cp2[310];    // hold the current filename, in case of errors
 
 int S_Server_IPC = -1;
 int xx;
@@ -79,7 +79,7 @@ void rewind_to_beginning (SNDFILE *wavfile) {
 			if (wavfile->bytes_remaining <= 0) {
 				printf ("Error in getting wavfile DataChunk\n");
 				wavfile->fd = NULL;
-				return; 
+				return;
 			}
 		}
 	}
@@ -120,7 +120,7 @@ int querySoundType(SNDFILE *me) {
 		printf ("SoundEngine:not a RIFF file\n\t%s\n",cp2);
 		return -1;
 	}
-	
+
 	br = chunk (&me->data[me->dataptr],"WAVE",BUFSIZE);
 	// a WAVE file
 	if (br < 0) {
@@ -141,7 +141,7 @@ int querySoundType(SNDFILE *me) {
 	// copy over format header information
 	memcpy (&me->FormatChunk, &me->data[me->dataptr], sizeof (fmtChnk));
 
-	
+
 	/*
 	printf ("fmt chunkid %c%c%c%c\n",me->FormatChunk.chunkID[0],
 		me->FormatChunk.chunkID[1],me->FormatChunk.chunkID[2],me->FormatChunk.chunkID[3]);
@@ -162,7 +162,7 @@ int querySoundType(SNDFILE *me) {
 
 	// pass over the fmt chunk - note the chunkSize does not include all. see spec.
 	me->dataptr += 8 + me->FormatChunk.chunkSize;
-	
+
 
 	br = chunk (&me->data[me->dataptr],"data",BUFSIZE);
 	// have data
@@ -196,13 +196,13 @@ int querySoundType(SNDFILE *me) {
 }
 
 // Open and initiate sound file
-	
+
 SNDFILE *openSound (char *path,int soundNo) {
 
 	SNDFILE *mysound;
-       
+
 	mysound	= (SNDFILE *) malloc (sizeof(SNDFILE)); // This is the return value
-	
+
 	if (!mysound) return NULL;	// memory allocation error
 
 	mysound->fd = fopen(path,"r");
@@ -250,7 +250,7 @@ toclnt(char *message_to_send) {
 	(void) strcpy(msg.msg, message_to_send);
 	//printf ("SoundEngine - sending back %s\n",msg.msg);
 
-	while((xx=msgsnd(msq_toclnt, &msg,strlen(msg.msg)+1,IPC_NOWAIT)) != 0);	
+	while((xx=msgsnd(msq_toclnt, &msg,strlen(msg.msg)+1,IPC_NOWAIT)) != 0);
 	if (xx) {   /* Send to client */
 		printf ("SoundEngineServer - error sending ready msg\n");
 		exit(1);
@@ -265,7 +265,7 @@ int fromclnt () {
 
 // Go through, and act on the message -it is stored in the global "msg" struct
 void process_command () {
-	float x,y,z; // temporary variables 
+	float x,y,z; // temporary variables
 	int a,b,cp2len;   // temporary variables
 	int myloop;
 	int mysource;
@@ -279,17 +279,17 @@ void process_command () {
 
 	if (strncmp ("REGS",msg.msg,4) == 0) {
 		// a REGISTER message
-		a=5; b=0; 
+		a=5; b=0;
 		//printf ("REGS matched len %d, first start %c %c %c %c\n",strlen(msg.msg),
 		//		msg.msg[a],msg.msg[a+1], msg.msg[a+2], msg.msg[a+3]);
-		
+
 		// start SOX conversion...
 		cp[0]='\0';
 		strcpy(cp,"/usr/bin/sox");
 		strcat(cp," ");
 		b = strlen(cp);
 		cp2len=0; // keep the original file name around for a bit.
-		
+
 		// copy over the url name; skip past the REGS: at beginning.
 		while ((a<strlen(msg.msg)-1) && (b<300) && (msg.msg[a]>' ')) {
 			cp[b]=msg.msg[a];
@@ -297,10 +297,10 @@ void process_command () {
 			b++; a++; cp2len++;
 		}
 		cp[b]='\0'; cp2[cp2len]='\0';
-		
+
 		// get rest of parameters
 		//printf ("getting rest of parameters from %s\n",&msg.msg[a]);
-		sscanf (&msg.msg[a], " %d %d %f %f %f",&mysource,&myloop,&x,&y,&z); 
+		sscanf (&msg.msg[a], " %d %d %f %f %f",&mysource,&myloop,&x,&y,&z);
 
 		// do the pitch
 		strcat (cp, " -r ");
@@ -328,8 +328,8 @@ void process_command () {
 		// make the new, converted file name, then later, open it
 		strcpy (cp,"/tmp/sound");
 		strcat (cp,st);
-	
-		//printf ("registering source %d loop %d x %f y %f z %f name %s \n",mysource,myloop,x,y,z,cp);	
+
+		//printf ("registering source %d loop %d x %f y %f z %f name %s \n",mysource,myloop,x,y,z,cp);
 
 		if (mysource > current_max) current_max = mysource;
 
@@ -355,10 +355,10 @@ void process_command () {
 		}
 		sprintf (cp, "REGS %d %f",mysource,(float)duration);
 		toclnt(cp);			/* Tell client we're ready */
-		
+
 	} else if (strncmp ("AMPL",msg.msg,4) == 0) {
 		// set amplitude for this sound source
-		
+
 //	printf ("%s\n",msg.msg);
 		/* format is command, source#, amplitude, balance, Framerate */
 
@@ -404,7 +404,7 @@ int main(int argc,char **argv) {
 		sndfile[xx] = NULL;
 	}
 
-	// open the DSP 
+	// open the DSP
 	initiateDSP();
 
 	//printf ("Server - getting the client IPC from argv %s\n", argv[0]);
@@ -417,7 +417,7 @@ int main(int argc,char **argv) {
 		printf ("SoundServer: no Client_IPC on command line\n");
 		//printf ("a='%s', msg='%s', dud='%d'.\n", argv[0],msg.msg,dud);
 		exit(1);
-	}	
+	}
 
 	// get message queues
 	if ((msq_fromclnt = msgget(S_Server_IPC,0666)) < 0) {
@@ -440,7 +440,7 @@ int main(int argc,char **argv) {
 			// gets here if the client exited
 			exit (0);
 		}
-		
+
 		//printf ("server, from FreeWRL=%x message='%s'\n",xx,msg.msg);
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
@@ -462,7 +462,7 @@ int main(int argc,char **argv) {
  * please ensure that this reflects that code. */
 #include <sys/types.h>
 #include <sys/wait.h>
-#ifndef TRUE 
+#ifndef TRUE
 	#define TRUE 1
 #endif
 #ifndef FALSE
@@ -509,13 +509,13 @@ int freewrlSystem (char *sysline) {
 			if (count >= MAXEXECPARAMS) return -1; // never...
 		}
 	}
-	
+
 //	 printf ("finished while loop, count %d\n",count);
 //	{ int xx;
 //		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 //			printf ("item %d is :%s:\n",xx,paramline[xx]);
 //	}}
-	
+
 
 	/* is the last string "&"? if so, we don't need to wait around */
 	if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
@@ -525,7 +525,7 @@ int freewrlSystem (char *sysline) {
 
 	if (count > 0) {
 		switch (childProcess=fork()) {
-			case -1: 
+			case -1:
 				perror ("fork"); exit(1);
 
 			case 0: {
@@ -533,13 +533,13 @@ int freewrlSystem (char *sysline) {
 
 			/* child process */
 			//printf ("child execing, pid %d %d\n",childProcess, getpid());
-		 	Xrv = execl(paramline[0], 
+		 	Xrv = execl(paramline[0],
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
 				paramline[6],paramline[7]);
 			//printf ("child finished execing\n");
 			exit (Xrv);
-			} 
+			}
 			default: {
 			/* parent process */
 			//printf ("parent waiting for child %d\n",childProcess);

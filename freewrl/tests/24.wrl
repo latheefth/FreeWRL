@@ -89,7 +89,7 @@ DEF HUD Transform {
          ]
       }
    ]
-}  
+}
 
 ROUTE SENSOR.orientation_changed TO HUD.set_rotation
 ROUTE SENSOR.position_changed TO HUD.set_translation

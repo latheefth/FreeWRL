@@ -31,7 +31,7 @@ PROTO Segment [
     exposedField    MFNode      children          [ ]
     exposedField    SFNode      coord             NULL
     exposedField    MFNode      displacers        [ ]
-    exposedField    SFFloat     mass              0 
+    exposedField    SFFloat     mass              0
     exposedField    MFFloat     momentsOfInertia  [ 0 0 0 0 0 0 0 0 0 ]
     exposedField    SFString    name              ""
     eventIn         MFNode      addChildren
@@ -78,7 +78,7 @@ PROTO Humanoid [
         children IS viewpoints
       }
       Group {
-        children IS humanoidBody 
+        children IS humanoidBody
       }
     ]
   }
@@ -904,7 +904,7 @@ DEF Humanoid Humanoid {
 			  -0.0158 1.4 0.00512, -0.0577 1.4 -0.0266, -0.0382 1.55 -0.0474, -0.0105 1.55 -0.0204,
 			  -0.0373 1.4 -0.0593, -0.0357 1.54 -0.0685, -0.0132 1.41 -0.0824, -0.0105 1.54 -0.1 ]
 		      }
-		      
+
 		      coordIndex [ 6, 5, 2, -1, 6, 2, 3, -1, 5, 4, 1, -1, 5, 1, 2, -1, 4, 7, 0, -1, 4, 0, 1, -1,
 			11, 10, 9, -1, 11, 9, 8, -1, 10, 13, 12, -1, 10, 12, 9, -1, 13, 15, 14, -1, 13, 14, 12, -1,
 			6, 3, 11, -1, 6, 11, 8, -1, 7, 14, 15, -1, 7, 15, 0, -1, 2, 10, 11, -1, 2, 11, 3, -1,

@@ -18,7 +18,7 @@
 #
 # Why so elaborate code generation?
 #  - makes it easy to change structs later
-#  - makes it very easy to add fast implementations for new proto'ed 
+#  - makes it very easy to add fast implementations for new proto'ed
 #    node types
 #
 #
@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.164  2005/03/21 13:39:04  crc_canada
+# change permissions, remove whitespace on file names, etc.
+#
 # Revision 1.163  2005/01/28 14:55:26  crc_canada
 # Javascript SFImage works; Texture parsing changed to speed it up; and Cylinder side texcoords fixed.
 #
@@ -130,7 +133,7 @@ require 'VRMLRend.pm';
 #
 # Constants
 #  VRMLFunc constants, shared amongs the Perl and C code.
-# 
+#
 
 %Constants = (
 	      VF_Viewpoint     => 0x0001,
@@ -160,10 +163,10 @@ require 'VRMLRend.pm';
 #   Y = Y - sin(alpha) * (1-cos(theta))
 #   X = sin(alpha) * sin(theta)
 #
-#  
+#
 # How to find out the orientation from two vectors (we are allowed
 # to assume no negative scales)
-#  1. Y -> Y' -> around any vector on the plane midway between the 
+#  1. Y -> Y' -> around any vector on the plane midway between the
 #                two vectors
 #     Z -> Z' -> around any vector ""
 #
@@ -257,27 +260,27 @@ Box => '
 #	((1-r)t_r1.z + r t_r2.z)**2
 # ) == radius
 # Therefore,
-# radius ** 2 == ... ** 2 
-# and 
-# radius ** 2 = 
+# radius ** 2 == ... ** 2
+# and
+# radius ** 2 =
 # 	(1-r)**2 * (t_r1.x**2 + t_r1.y**2 + t_r1.z**2) +
 #       2*(r*(1-r)) * (t_r1.x*t_r2.x + t_r1.y*t_r2.y + t_r1.z*t_r2.z) +
 #       r**2 (t_r2.x**2 ...)
 # Let's name tr1sq, tr2sq, tr1tr2 and then we have
 # radius ** 2 =  (1-r)**2 * tr1sq + 2 * r * (1-r) tr1tr2 + r**2 tr2sq
 # = (tr1sq - 2*tr1tr2 + tr2sq) r**2 + 2 * r * (tr1tr2 - tr1sq) + tr1sq
-# 
+#
 # I.e.
-# 
-# (tr1sq - 2*tr1tr2 + tr2sq) r**2 + 2 * r * (tr1tr2 - tr1sq) + 
+#
+# (tr1sq - 2*tr1tr2 + tr2sq) r**2 + 2 * r * (tr1tr2 - tr1sq) +
 #	(tr1sq - radius**2) == 0
 #
 # I.e. second degree eq. a r**2 + b r + c == 0 where
 #  a = tr1sq - 2*tr1tr2 + tr2sq
 #  b = 2*(tr1tr2 - tr1sq)
 #  c = (tr1sq-radius**2)
-# 
-# 
+#
+#
 Sphere => '
 	float r = $f(radius);
 	/* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
@@ -296,7 +299,7 @@ Sphere => '
 	c = tr1sq - r*r;
 
 	disc = b*b - 4*a*c; /* The discriminant */
-	
+
 	if(disc > 0) { /* HITS */
 		float q ;
 		float sol1 ;
@@ -396,12 +399,12 @@ Cone => '
 	float b = 2*(dx*t_r1.x + dz*t_r1.z) +
 		2*r*r*dy/(2*h)*(0.5-t_r1.y/(2*h));
 	float tmp = (0.5-t_r1.y/(2*h));
-	float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z 
+	float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z
 		- r*r*tmp*tmp;
 	float und;
 	b /= a; c /= a;
 	und = b*b - 4*c;
-	/* 
+	/*
 	printf("CONSOL0: (%f %f %f) (%f %f %f)\\n",
 		t_r1.x, t_r1.y, t_r1.z, t_r2.x, t_r2.y, t_r2.z);
 	printf("CONSOL: (%f %f %f) (%f) (%f %f) (%f)\\n",
@@ -466,7 +469,7 @@ IndexedFaceSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_, 
+		render_ray_polyrep(this_,
 			npoints, points
 		);
 ',
@@ -501,11 +504,11 @@ IndexedFaceSet => '
 
 %Get3C = (
 Coordinate => '
-	*n = $f_n(point); 
+	*n = $f_n(point);
 	return $f(point);
 ',
 Color => '
-	*n = $f_n(color); 
+	*n = $f_n(color);
 	return $f(color);
 ',
 Normal => '
@@ -637,7 +640,7 @@ sub gen_struct {
 	       "	int PIV; /* points in view */ \n" .
                " /*d*/ void *_intern; \n"              	.
                " /***/\n";
-	
+
 	my $o = "
 void *
 get_${name}_offsets(p)
@@ -687,7 +690,7 @@ sub get_offsf {
 	#print "and ctp $ctp\n";
 	#print "and ct $ct\n";
 	#print "c $c\n\n";
-	
+
 	# ifwe dont have to do anything, then we dont bother with the ctype field.
 	# this gets rid of some compiler warnings.
 
@@ -698,7 +701,7 @@ sub get_offsf {
 
 	return "
 
-void 
+void
 set_offs_$f(ptr,offs,sv_)
 	void *ptr
 	int offs
@@ -709,7 +712,7 @@ CODE:
 	$c
 
 
-void 
+void
 alloc_offs_$f(ptr,offs)
 	void *ptr
 	int offs
@@ -751,7 +754,7 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
 		$c =~ s/\$fv\(([^)]*)\)/fvirt($n,split ',',$1)/ge;
 		$c =~ s/\$fv_null\(([^)]*)\)/fvirt_null($n,split ',',$1)/ge;
-		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern || 
+		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern ||
 			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
 				regen_polyrep(this_);/g;
 		if($_ eq "Get3") {
@@ -784,7 +787,7 @@ sub gen_constants_pm_header {
     my @k = keys %Constants;
 
     return "\@EXPORT = qw( @k );\n";
-    
+
 }
 
 sub gen_constants_pm_body {
@@ -826,7 +829,7 @@ sub gen {
 	}
         push @str, "\n/* and now the structs for the nodetypes */ \n";
 	for(@NodeTypes) {
-		my $no = $VRML::Nodes{$_}; 
+		my $no = $VRML::Nodes{$_};
 		my($str, $offs, $perl) = gen_struct($_, $no);
 
 		push @str, $str;
@@ -863,7 +866,7 @@ struct orient {GLdouble x,y,z,a;};
 
 struct VRML_Virt {
 	void (*prep)(void *);
-	void (*rend)(void *); 
+	void (*rend)(void *);
 	void (*children)(void *);
 	void (*fin)(void *);
 	void (*rendray)(void *);
@@ -915,7 +918,7 @@ struct sNaviInfo {
 	print STRUCTS '
 #endif /* ifndef */
 ';
-	
+
 
 	open CST, ">CFuncs/constants.h";
 	print CST  &gen_constants_c();
@@ -1084,13 +1087,13 @@ int rootNode=0;	// scene graph root node
 /*******************************************************************************/
 
 /* Sub, rather than big macro... */
-void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz, 
+void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 float tx,float ty, char *descr)  {
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
 
 	/* Real rat-testing */
-	if(verbose) 
+	if(verbose)
 		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
 		descr, rat,cx,cy,cz,nx,ny,nz,
 		t_r1.x, t_r1.y, t_r1.z,
@@ -1157,7 +1160,7 @@ void Group_Child(void *nod_);
 	print XS <<'ENDHERE'
 
 /*********************************************************************
- * Code here again comes almost verbatim from VRMLC.pm 
+ * Code here again comes almost verbatim from VRMLC.pm
  */
 
 /*********************************************************************
@@ -1178,7 +1181,7 @@ void render_node(void *node) {
 	char* stage = "";
 	#endif
 
-	if(verbose) 
+	if(verbose)
 		printf("\nRender_node %u\n",(unsigned int) node);
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
@@ -1187,16 +1190,16 @@ void render_node(void *node) {
 	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   v->name, 
-		   v->prep, 
-		   v->rend, 
-		   v->children, 
-		   v->fin, 
+		   v->name,
+		   v->prep,
+		   v->rend,
+		   v->children,
+		   v->fin,
 		   v->rendray,
 		   hypersensitive);
 	    printf("Render_state geom %d light %d sens %d\n",
-		   render_geom, 
-		   render_light, 
+		   render_geom,
+		   render_light,
 		   render_sensitive);
 	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
 	}
@@ -1204,7 +1207,7 @@ void render_node(void *node) {
         /* we found viewpoint on render_vp pass, stop exploring tree.. */
         if(render_vp && found_vp) return;
 
-	if(p->_change != p->_ichange && v->changed) 
+	if(p->_change != p->_ichange && v->changed)
 	  {
 	    if (verbose) printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
 	    v->changed(node);
@@ -1214,11 +1217,11 @@ void render_node(void *node) {
 	    #endif
 	  }
 
-	if(v->prep) 
+	if(v->prep)
 	  {
 	    if (verbose) printf ("rs 2\n");
 	    v->prep(node);
-	    if(render_sensitive && !hypersensitive) 
+	    if(render_sensitive && !hypersensitive)
 	      {
 		upd_ray();
 	      }
@@ -1227,7 +1230,7 @@ void render_node(void *node) {
 	    #endif
 	  }
 
-	if(render_proximity && v->proximity) 
+	if(render_proximity && v->proximity)
 	{
 	    if (verbose) printf ("rs 2a\n");
 	    v->proximity(node);
@@ -1236,7 +1239,7 @@ void render_node(void *node) {
 	    #endif
 	}
 
-	if(render_collision && v->collision) 
+	if(render_collision && v->collision)
 	{
 	    if (verbose) printf ("rs 2b\n");
 	    v->collision(node);
@@ -1245,7 +1248,7 @@ void render_node(void *node) {
 	    #endif
 	}
 
-	if(render_geom && !render_sensitive && v->rend) 
+	if(render_geom && !render_sensitive && v->rend)
 	  {
 	    if (verbose) printf ("rs 3\n");
 	    v->rend(node);
@@ -1253,7 +1256,7 @@ void render_node(void *node) {
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
 	    #endif
 	  }
-	if(render_light && v->light) 
+	if(render_light && v->light)
 	  {
 	    if (verbose) printf ("rs 4\n");
 	    v->light(node);
@@ -1261,12 +1264,12 @@ void render_node(void *node) {
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_light";
 	    #endif
 	  }
-	/* Future optimization: when doing VP/Lights, do only 
+	/* Future optimization: when doing VP/Lights, do only
 	 * that child... further in future: could just calculate
 	 * transforms myself..
 	 */
-	//if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
-	if(render_sensitive && p->_sens) 
+	//if(render_sensitive && (p->_renderFlags & VF_Sensitive))
+	if(render_sensitive && p->_sens)
 	  {
 	    if (verbose) printf ("rs 5\n");
 	    srg = render_geom;
@@ -1284,7 +1287,7 @@ void render_node(void *node) {
 	    #endif
 
 	  }
-	if(render_geom && render_sensitive && !hypersensitive && v->rendray) 
+	if(render_geom && render_sensitive && !hypersensitive && v->rendray)
 	  {
 	    if (verbose) printf ("rs 6\n");
 	    v->rendray(node);
@@ -1292,7 +1295,7 @@ void render_node(void *node) {
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
 	    #endif
 	  }
-        
+
 
         if((render_sensitive) && (hypersensitive == node)) {
             if (verbose) printf ("rs 7\n");
@@ -1308,8 +1311,8 @@ void render_node(void *node) {
 	    #endif
         }
 
-	//if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
-	if(render_sensitive && p->_sens) 
+	//if(render_sensitive && (p->_renderFlags & VF_Sensitive))
+	if(render_sensitive && p->_sens)
 	  {
 	    if (verbose) printf ("rs 9\n");
 	    render_geom = srg;
@@ -1318,12 +1321,12 @@ void render_node(void *node) {
 	    /* HP */
 	      rph = srh;
 	  }
-	if(v->fin) 
+	if(v->fin)
 	  {
 	    if (verbose) printf ("rs A\n");
 	    v->fin(node);
-	    if(render_sensitive && v == &virt_Transform) 
-	      { 
+	    if(render_sensitive && v == &virt_Transform)
+	      {
 		upd_ray();
 	      }
 	    #ifdef GLERRORS
@@ -1337,16 +1340,16 @@ void render_node(void *node) {
 	  {
 	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   v->name, 
-		   v->prep, 
-		   v->rend, 
-		   v->children, 
-		   v->fin, 
+		   v->name,
+		   v->prep,
+		   v->rend,
+		   v->children,
+		   v->fin,
 		   v->rendray,
 		   hypersensitive);
 	    printf("Render_state geom %d light %d sens %d\n",
-		   render_geom, 
-		   render_light, 
+		   render_geom,
+		   render_light,
 		   render_sensitive);
 	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
 	    printf("==============\n");
@@ -1382,7 +1385,7 @@ void add_parent(void *node_, void *parent_) {
 		if (node->_parents == NULL)  {
 			node->_parents = (void **)malloc(sizeof(node->_parents[0])* node->_nparalloc) ;
 		} else {
-		node->_parents = 
+		node->_parents =
 			(void **)realloc(node->_parents, sizeof(node->_parents[0])*
 							node->_nparalloc) ;
 		}
@@ -1465,12 +1468,12 @@ render_hier(void *p, int rwhat)
 			//sched_yield();
 		}
 	*/
-		
+
 		if (display_status) {
 			render_status();
 		}
 	}
-	
+
 
 	#ifdef render_pre_profile
 	if (render_geom) {
@@ -1598,7 +1601,7 @@ render_verbose(i)
 CODE:
 	verbose=i;
 
-void 
+void
 render_verbose_collision(i)
 	int i;
 CODE:
@@ -1653,13 +1656,13 @@ OUTPUT:
 # some, eg MultiVec3f have a value of -1, and this is just passed back again.
 # (this is handled by the routing code; it's more time consuming)
 # others, eg ints, have a value from VRMLFields.pm of 1, and return the
-# platform dependent size. 
+# platform dependent size.
 
 int
 getClen(x)
 	int x
 CODE:
-	switch (x) {	
+	switch (x) {
 		case 1:	RETVAL = sizeof (int);
 			break;
 		case 2:	RETVAL = sizeof (float);
@@ -1689,7 +1692,7 @@ int
 do_newJavaClass(scriptInvocationNumber,nodeURLstr,node)
 	int scriptInvocationNumber
 	char *nodeURLstr
-	char *node 
+	char *node
 CODE:
 	RETVAL = (int) newJavaClass(scriptInvocationNumber,nodeURLstr,node);
 OUTPUT:
@@ -1781,7 +1784,7 @@ CODE:
 	RETVAL = newSVpv(lastReadFile, strlen(lastReadFile));
 OUTPUT:
 	RETVAL
-	
+
 
 #****************JAVASCRIPT FUNCTIONS*********************************
 

@@ -1,6 +1,6 @@
-my @classes = qw(SFBool SFColor SFFloat SFImage SFInt32 SFNode 
-		 SFRotation SFString SFTime SFVec2f SFVec3f 
-		 MFColor MFFloat MFInt32 MFNode 
+my @classes = qw(SFBool SFColor SFFloat SFImage SFInt32 SFNode
+		 SFRotation SFString SFTime SFVec2f SFVec3f
+		 MFColor MFFloat MFInt32 MFNode
 		 MFRotation MFString MFTime MFVec2f MFVec3f);
 
 open O, ">FWCreateField.java";

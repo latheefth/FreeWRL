@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
@@ -32,9 +32,9 @@ import netscape.security.ForbiddenTargetException;
 * This class is meant to be a singleton and has a private constructor.
 * Call the static <code>getSourceTextProvider()</code> to get this object.
 * <p>
-* Note that all functions use netscape.security.PrivilegeManager to verify 
-* that the caller has the "Debugger" privilege. The exception 
-* netscape.security.ForbiddenTargetException will be throw if this is 
+* Note that all functions use netscape.security.PrivilegeManager to verify
+* that the caller has the "Debugger" privilege. The exception
+* netscape.security.ForbiddenTargetException will be throw if this is
 * not enabled.
 *
 * @author  John Bandhauer
@@ -50,7 +50,7 @@ public final class JSSourceTextProvider extends SourceTextProvider
         _sourceTextVector = new Vector();
         _nativeContext    = nativeContext;
     }
-    
+
 
     /**
      * Get the SourceTextProvider object for the current VM.
@@ -88,7 +88,7 @@ public final class JSSourceTextProvider extends SourceTextProvider
             for (int i = 0; i < _sourceTextVector.size(); i++)
             {
                 SourceTextItem src = (SourceTextItem) _sourceTextVector.elementAt(i);
-            
+
                 if( src.getURL().equals(url) )
                     return src;
             }
@@ -97,7 +97,7 @@ public final class JSSourceTextProvider extends SourceTextProvider
     }
 
     /**
-    * Return the vector of SourceTextItems. 
+    * Return the vector of SourceTextItems.
     * <p>
     * This is NOT a copy. nor is it necessarily current
     */
@@ -123,7 +123,7 @@ public final class JSSourceTextProvider extends SourceTextProvider
     private native SourceTextItem   loadSourceTextItem0( String url );
 
     /**
-    * Refresh the vector to reflect any changes made in the 
+    * Refresh the vector to reflect any changes made in the
     * underlying native system
     */
     public synchronized native void refreshSourceTextVector();
@@ -131,4 +131,4 @@ public final class JSSourceTextProvider extends SourceTextProvider
     private static SourceTextProvider   _sourceTextProvider = null;
     private Vector                      _sourceTextVector;
     private long                        _nativeContext;
-}    
+}

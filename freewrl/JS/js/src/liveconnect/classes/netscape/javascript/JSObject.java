@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -35,7 +35,7 @@
 /* more doc todo:
  *  threads
  *  gc
- *  
+ *
  *
  */
 
@@ -104,7 +104,7 @@ public final class JSObject {
     }
 
     /**
-     * Retrieves a named member of a JavaScript object. 
+     * Retrieves a named member of a JavaScript object.
      * Equivalent to "this.<i>name</i>" in JavaScript.
      */
     public native Object	getMember(String name);
@@ -117,13 +117,13 @@ public final class JSObject {
     public native Object	getSlot(int index);
 
     /**
-     * Sets a named member of a JavaScript object. 
+     * Sets a named member of a JavaScript object.
      * Equivalent to "this.<i>name</i> = <i>value</i>" in JavaScript.
      */
     public native void 		setMember(String name, Object value);
 
     /**
-     * Sets an indexed member of a JavaScript object. 
+     * Sets an indexed member of a JavaScript object.
      * Equivalent to "this[<i>index</i>] = <i>value</i>" in JavaScript.
      */
 //    public void 		setMember(int index, Object value) {
@@ -143,7 +143,7 @@ public final class JSObject {
     public native Object	call(String methodName, Object args[]);
 
     /**
-     * Evaluates a JavaScript expression. The expression is a string 
+     * Evaluates a JavaScript expression. The expression is a string
      * of JavaScript source code which will be evaluated in the context
      * given by "this".
      */

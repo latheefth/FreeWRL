@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -213,7 +213,7 @@ extern JSD_PUBLIC_API(void)
 JSD_SetContextFlags (JSDContext* jsdc, uint32 flags);
 
 extern JSD_PUBLIC_API(uint32)
-JSD_GetContextFlags (JSDContext* jsdc);     
+JSD_GetContextFlags (JSDContext* jsdc);
 
 /*
 * Notify JSD that this JSContext is 'in use'. This allows JSD to hook the
@@ -407,7 +407,7 @@ JSD_GetScriptHook(JSDContext* jsdc, JSD_ScriptHookProc* hook, void** callerdata)
 
 /*
 * Get a 'Program Counter' value for a given line. This represents the location
-* of the first bit of executable code for this line of source. This 'pc' should 
+* of the first bit of executable code for this line of source. This 'pc' should
 * be considered an opaque handle.
 * 0 is returned for invalid scripts, or lines that lie outside the script.
 * If no code is on the given line, then the returned pc represents the first
@@ -981,7 +981,7 @@ JSD_GetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate);
 * *** new for version 1.1 ****
 */
 extern JSD_PUBLIC_API(JSBool)
-JSD_SetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate, 
+JSD_SetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate,
                  JSDValue* jsdval);
 
 /***************************************************************************/
@@ -1249,7 +1249,7 @@ JSD_GetCountOfProperties(JSDContext* jsdc, JSDValue* jsdval);
 extern JSD_PUBLIC_API(JSDProperty*)
 JSD_IterateProperties(JSDContext* jsdc, JSDValue* jsdval, JSDProperty **iterp);
 
-/* 
+/*
 * Get the JSDProperty for the property of this JSDVal with this name.
 * NOTE: must eventually release by calling JSD_DropProperty (if not NULL)
 * *** new for version 1.1 ****

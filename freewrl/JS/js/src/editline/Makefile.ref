@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -101,7 +101,7 @@ define MAKE_OBJDIR
 if test ! -d $(@D); then rm -rf $(@D); mkdir $(@D); fi
 endef
 
-all: $(LIBRARY) 
+all: $(LIBRARY)
 
 export:
 
@@ -121,7 +121,7 @@ $(LIBRARY): $(EDITLINE_OBJS)
 	$(AR) rv $@ $?
 	$(RANLIB) $@
 
-#libedit.a : $(EDITLINE_OBJS) 
+#libedit.a : $(EDITLINE_OBJS)
 #	$(AR) cru $(OBJDIR)/libedit.a $(EDITLINE_OBJS)
 #	$(RANLIB) $(OBJDIR)/libedit.a
 

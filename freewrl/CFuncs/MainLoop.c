@@ -53,11 +53,11 @@ int ocurse = ACURSE;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 #include "headers.h"
 
-void Next_ViewPoint(void);		// switch to next viewpoint - 
+void Next_ViewPoint(void);		// switch to next viewpoint -
 void setup_viewpoint(int doBinding);
 void get_collisionoffset(double *x, double *y, double *z);
 
-/* Sensor table. When clicked, we get back from rayHit the fromnode, 
+/* Sensor table. When clicked, we get back from rayHit the fromnode,
 	have to look up type and data in order to properly handle it */
 struct SensStruct {
 	void *fromnode;
@@ -154,12 +154,12 @@ void EventLoop() {
 		lastTime = TickTime;
 		#ifdef PROFILE
 		printf ("time setup for debugging\n");
-		timeA = timeB = timeC = timeD = timeE = timeF =0.0; 
+		timeA = timeB = timeC = timeD = timeE = timeF =0.0;
 		#endif
 	} else {
-		// rate limit ourselves to about 65fps. 
-		//waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0; 
-		waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0; 
+		// rate limit ourselves to about 65fps.
+		//waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0;
+		waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
 		lastTime = TickTime;
 		if (waittime.tv_usec < 0.0) {
 			waittime.tv_usec = -waittime.tv_usec;
@@ -170,7 +170,7 @@ void EventLoop() {
 	if (loop_count == 25) {
 
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
-		update_status(); // tell status bar to refresh, if it is displayed 
+		update_status(); // tell status bar to refresh, if it is displayed
 		//printf ("fps %f\n",BrowserFPS);
 
 		#ifdef PROFILE
@@ -183,7 +183,7 @@ void EventLoop() {
 				//timeC/oxf*100.0, timeD/oxf*100.0,
 				//timeE/oxf*100.0,timeF/oxf*100.0);
 		#endif
-		BrowserStartTime = TickTime; 
+		BrowserStartTime = TickTime;
 		loop_count = 1;
 	} else {
 		loop_count++;
@@ -210,7 +210,7 @@ void EventLoop() {
 
 	/* Handle X events */
 	handle_Xevents();
-	
+
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
@@ -220,7 +220,7 @@ void EventLoop() {
 	/* Viewer move viewpoint */
 	handle_tick();
 
-	#ifdef PROFILE	
+	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
 	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
@@ -229,7 +229,7 @@ void EventLoop() {
 
 	/* setup Projection and activate ProximitySensors */
 	render_pre();
-	
+
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -241,7 +241,7 @@ void EventLoop() {
 	/* first events (clock ticks, etc) if we have other things to do, yield */
 	if (doEvents) do_first (); else sched_yield();
 
-	#ifdef PROFILE	
+	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
 	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
@@ -251,7 +251,7 @@ void EventLoop() {
 	/* actual rendering */
 	render();
 
-	
+
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -299,7 +299,7 @@ void EventLoop() {
 		ccurse = SCURSE;
 #endif
 
-			/* is this a new node that we are now over? 
+			/* is this a new node that we are now over?
 			   don't change the node pointer if we are clicked down */
 			if ((!lastPressedOver) && (CursorOverSensitive != oldCOS)) {
 				sendSensorEvents(oldCOS,MapNotify,FALSE);
@@ -309,15 +309,15 @@ void EventLoop() {
 
 		} else {
 			/* hold off on cursor change if dragging a sensor */
-			if (lastPressedOver!=0) { 
+			if (lastPressedOver!=0) {
 #ifndef AQUA
-				cursor = sensorc; 
-#else	
+				cursor = sensorc;
+#else
 				ccurse = SCURSE;
 #endif
-			} else { 
+			} else {
 #ifndef AQUA
-				cursor = arrowc; 
+				cursor = arrowc;
 #else
 				ccurse = ACURSE;
 #endif
@@ -360,7 +360,7 @@ void EventLoop() {
 		handle_EAI();
 
 	}
-	/* any new scripts in here, that maybe are not initialized yet? 
+	/* any new scripts in here, that maybe are not initialized yet?
 	 * If they had some events already, they'll already be initialized;
 	 * but don't do this if perl is parsing, because script init might
 	 * reference VRML constructs NOT found yet */
@@ -372,7 +372,7 @@ void EventLoop() {
 		    myMaxScript = max_script_found;
 		}
 	}
-	
+
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -380,13 +380,13 @@ void EventLoop() {
 	timeF = (double)timeF +  (double)xxf - oxf;
 	#endif
 
-}	
+}
 
 
-	
+
 void handle_Xevents() {
 #ifndef AQUA
-	
+
 	XEvent event, nextevent;
 	char buf[10];
 	KeySym ks;
@@ -410,28 +410,28 @@ void handle_Xevents() {
 				   case XK_Right: ks = XK_l; break;
 				   case XK_Up: ks = XK_p; break;
 				   case XK_Down: ks = XK_semicolon; break;
-				   case XK_KP_0: 
+				   case XK_KP_0:
 				   case XK_KP_Insert:
 					ks = XK_a; break;
-				   case XK_KP_Decimal: 
+				   case XK_KP_Decimal:
 				   case XK_KP_Delete:
 					ks = XK_z; break;
 				   case XK_KP_7:
 				   case XK_KP_Home:
 					 ks = XK_7; break;
-				   case XK_KP_9: 
+				   case XK_KP_9:
 				   case XK_KP_Page_Up:
 					ks = XK_9; break;
-				   case XK_KP_8: 
+				   case XK_KP_8:
 				   case XK_KP_Up:
 					ks = XK_k; break;
-				   case XK_KP_2: 
+				   case XK_KP_2:
 				   case XK_KP_Down:
 					ks = XK_8; break;
-				   case XK_KP_4: 
+				   case XK_KP_4:
 				   case XK_KP_Left:
 					ks = XK_u; break;
-				   case XK_KP_6: 
+				   case XK_KP_6:
 				   case XK_KP_Right:
 					ks = XK_o; break;
 				   case XK_Num_Lock: ks = XK_h; break;
@@ -450,7 +450,7 @@ void handle_Xevents() {
 
 				/* if we are Not over a sensitive node, and we do NOT
 				   already have a button down from a sensitive node... */
-				if ((!CursorOverSensitive) && 
+				if ((!CursorOverSensitive) &&
 						(!lastPressedOver))  {
 					NavigationMode=ButDown[1] || ButDown[3];
 					handle (event.type,event.xbutton.button,
@@ -516,7 +516,7 @@ void render_pre() {
 	/* 4. Collisions */
 	if (be_collision == 1) {
 		render_collisions();
-		setup_viewpoint(FALSE); // update viewer position after collision, to 
+		setup_viewpoint(FALSE); // update viewer position after collision, to
 				   // give accurate info to Proximity sensors.
 	}
 
@@ -542,7 +542,7 @@ void render() {
 
 	//gettimeofday (&mytime,&tz);
 	//aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-	
+
 		set_buffer((unsigned)bufferarray[count]);		// in Viewer.c
 		glDrawBuffer((unsigned)bufferarray[count]);
 
@@ -574,7 +574,7 @@ void render() {
 		render_hier((void *)rootNode, VF_Geom);
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 
-		// 5. Blended Nodes 
+		// 5. Blended Nodes
 
 	//gettimeofday (&mytime,&tz);
 	//dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
@@ -656,7 +656,7 @@ void setup_viewpoint(int doBinding) {
 
 	render_flag = VF_Viewpoint;
 
-	if (doBinding & (!isPerlParsing())) { 
+	if (doBinding & (!isPerlParsing())) {
 		/* top of mainloop, we can tell the renderer to sort children */
 		//render_flag = VF_Viewpoint | VF_SortChildren;
 		render_flag = VF_Viewpoint;
@@ -678,7 +678,7 @@ void setup_viewpoint(int doBinding) {
 			}
 		}
 	}
-	
+
         fwMatrixMode(GL_MODELVIEW); // this should be assumed , here for safety.
         fwLoadIdentity();
 
@@ -813,7 +813,7 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	SensorEvents[num_SensorEvents].fromnode = ptr;
 	SensorEvents[num_SensorEvents].datanode = datanode;
 	SensorEvents[num_SensorEvents].interpptr = (void *)myp;
-	
+
 	num_SensorEvents++;
 }
 
@@ -826,8 +826,8 @@ void sendSensorEvents(int COS,int ev, int status) {
 	if (!COS) return;
 
 	for (count = 0; count < num_SensorEvents; count++) {
-		if ((int) SensorEvents[count].fromnode == COS) { 
-	
+		if ((int) SensorEvents[count].fromnode == COS) {
+
 			/* should we set/use hypersensitive mode? */
 			if (ev==ButtonPress) {
 				hypersensitive = SensorEvents[count].fromnode;
@@ -835,7 +835,7 @@ void sendSensorEvents(int COS,int ev, int status) {
 			} else if (ev==ButtonRelease) {
 				hypersensitive = 0;
 				hyperhit = 0;
-			} else if (ev==MotionNotify) {	
+			} else if (ev==MotionNotify) {
 				get_hyperhit();
 			}
 
@@ -861,10 +861,10 @@ void get_hyperhit() {
 		projMatrix, viewport, &x2, &y2, &z2);
 	gluUnProject(hp.x, hp.y, hp.z, rh.modelMatrix,
 		projMatrix,viewport, &x3, &y3, &z3);
-		
+
 	//printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
 	//	x1,y1,z1,x2,y2,z2,x3,y3,z3);
-	
+
 	/* and save this globally */
 	hyp_save_posn.c[0] = x1; hyp_save_posn.c[1] = y1; hyp_save_posn.c[2] = z1;
 	hyp_save_norm.c[0] = x2; hyp_save_norm.c[1] = y2; hyp_save_norm.c[2] = z2;
@@ -893,7 +893,7 @@ void glPrintError(char *str) {
         }
 
 /* go to the next viewpoint */
-void Next_ViewPoint() { 
+void Next_ViewPoint() {
 	if (totviewpointnodes>=2) {
 		/* whew, we have other vp nodes */
 		send_bind_to(VIEWPOINT,(void *)viewpointnodes[currboundvpno],0);

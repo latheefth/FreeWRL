@@ -16,9 +16,9 @@ The "main" program for FreeWRL is:
 The "parsing" thread for FreeWRL is:
 	perlParse. Perl can only run in one thread; all activities
 	that require Perl have to interface with this thread. All
-	VRML/X3D syntax is sent to this thread, and output nodes 
+	VRML/X3D syntax is sent to this thread, and output nodes
 	are returned. Note that hard memory addresses, and internal
-	"handles" are returned. The "handles" are for sending 
+	"handles" are returned. The "handles" are for sending
 	future commands to the perlParse routine; mainly used for
 	EAI commands.
 
@@ -27,7 +27,7 @@ The "parsing" thread for FreeWRL is:
 
 The "Scene Graph" is displayed by:
 	the "displayThread()". Created in CFrontEnd/freewrl.c; this
-	thread continuously goes through the scene graph and draws 
+	thread continuously goes through the scene graph and draws
 	it.
 
 Textures are loaded by:
@@ -63,7 +63,7 @@ struct VRML_Group {
 	int has_light; };
 
 Some of these fields are not used; some are "standard" amongst all nodes.
-The one of interest is the "struct Multi_Node children"; Multi_Node 
+The one of interest is the "struct Multi_Node children"; Multi_Node
 consists of 2 fields; a field count, and a pointer to a list of nodes.
 
 struct Multi_Node { int n; void * *p; };
@@ -71,7 +71,7 @@ struct Multi_Node { int n; void * *p; };
 is the definition.
 
 eg, if "n" is 2, then "p" will point to 2 sequential memory locations that
-contain the memory address of each child. 
+contain the memory address of each child.
 
 
 

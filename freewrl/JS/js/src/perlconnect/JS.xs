@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -67,7 +67,7 @@
 static JSBool
 checkError(JSContext *cx)
 {
-    if(SvTRUE(GvSV(PL_errgv))){ 
+    if(SvTRUE(GvSV(PL_errgv))){
         JS_ReportError(cx, "perl eval failed: %s",
             SvPV(GvSV(PL_errgv), PL_na));
         /* clear error status. there should be a way to do this faster */
@@ -78,7 +78,7 @@ checkError(JSContext *cx)
 }
 
 static void
-clearException(JSContext *cx) 
+clearException(JSContext *cx)
 {
     if (JS_IsExceptionPending(cx)) {
         JS_ClearPendingException(cx);
@@ -198,7 +198,7 @@ PCB_ErrorReporter(JSContext *cx, const char *message, JSErrorReport *report)
 
 /* functions for callback list handling */
 static PerlCallbackItem*
-PCB_AddCallback(PerlObjectItem* object, char *name, 
+PCB_AddCallback(PerlObjectItem* object, char *name,
                 SV* perl_proc, int param_num) {
     PerlCallbackItem *cbk;
 
@@ -266,7 +266,7 @@ PCB_FindCallback(PerlObjectItem *obj, const char *name) {
 
 /* deletion functions */
 
-static void 
+static void
 PCB_FreeCallbackItem(PerlCallbackItem *callback) {
     free(callback->name);
     /* we have to decrease ref. count to proc */
@@ -274,7 +274,7 @@ PCB_FreeCallbackItem(PerlCallbackItem *callback) {
     free(callback);
 }
 
-static void 
+static void
 PCB_FreeObjectItem(PerlObjectItem *object) {
     PerlCallbackItem *cbkitem, *next;
     JSClass *class;
@@ -292,7 +292,7 @@ PCB_FreeObjectItem(PerlObjectItem *object) {
     free(object);
 }
 
-static void 
+static void
 PCB_FreeContextItem(JSContext *cx) {
     JSContextItem *cxitem, *aux;
     PerlObjectItem *objitem, *next;
@@ -309,7 +309,7 @@ PCB_FreeContextItem(JSContext *cx) {
     if (cxitem->errorReporter) {
         SvREFCNT_dec(cxitem->errorReporter);
     }
-    
+
     if ( context_list == cxitem ) {
         context_list = cxitem->next;
     } else {
@@ -367,7 +367,7 @@ PCB_GetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *rval) {
     PUTBACK;
 
     /* cnt = perl_call_sv(proc_sv, 0); */
-    cnt = perl_call_sv((SV*)GvCV(gv), G_ARRAY);    
+    cnt = perl_call_sv((SV*)GvCV(gv), G_ARRAY);
 
     SPAGAIN;
     /* adjust stack for use of ST macro (see perlcall) */
@@ -433,7 +433,7 @@ PCB_SetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *rval) {
     PUTBACK;
 
     cnt = perl_call_sv(proc_sv, G_ARRAY);
-    
+
     SPAGAIN;
     /* adjust stack for use of ST macro (see perlcall) */
     SP -= cnt;
@@ -461,24 +461,24 @@ PCB_SetProperty(JSContext *cx, JSObject *obj, jsval name, jsval *rval) {
     return(JS_TRUE);
 }
 
-/* helper functions */ 
-/* JSClass pointer is disposed by 
-   JS engine during context cleanup _PH_ 
+/* helper functions */
+/* JSClass pointer is disposed by
+   JS engine during context cleanup _PH_
 */
 void
 PCB_FinalizeStub(JSContext *cx, JSObject *obj) {
 }
 
-static JSClass* 
-PCB_NewStdJSClass(char *name) {	
+static JSClass*
+PCB_NewStdJSClass(char *name) {
     JSClass *class;
 
     class = (JSClass*)calloc(1, sizeof(JSClass));
     class->name = name;
     class->flags = JSCLASS_HAS_PRIVATE;
     class->addProperty = JS_PropertyStub;
-    class->delProperty = JS_PropertyStub;  
-    class->getProperty = PCB_GetProperty;  
+    class->delProperty = JS_PropertyStub;
+    class->getProperty = PCB_GetProperty;
     class->setProperty = PCB_SetProperty;
     class->enumerate = JS_EnumerateStub;
     class->resolve = JS_ResolveStub;
@@ -489,7 +489,7 @@ PCB_NewStdJSClass(char *name) {
 }
 
 static JSBool
-PCB_UniversalStub (JSContext *cx, JSObject *obj, uintN argc, 
+PCB_UniversalStub (JSContext *cx, JSObject *obj, uintN argc,
                    jsval *argv, jsval *rval) {
     JSFunction *fun;
     PerlObjectItem *po;
@@ -625,7 +625,7 @@ JS_NewContext(rt, stacksize)
         cxitem->next = context_list;
         context_list = cxitem;
         /* __PH__ set the error reporter */
-        JS_SetErrorReporter(cx, PCB_ErrorReporter); 
+        JS_SetErrorReporter(cx, PCB_ErrorReporter);
         obj = JS_NewObject(cx, &global_class, NULL, NULL);
         JS_SetGlobalObject(cx, obj);
         JS_InitStandardClasses(cx, obj);
@@ -667,18 +667,18 @@ JS_eval(cx, bytes, ...)
         jsval rval;
         if (items > 2) { filename = SvPV(ST(2), PL_na); };
         /* Call on the global object */
-        if(!JS_EvaluateScript(cx, JS_GetGlobalObject(cx), 
-                              bytes, strlen(bytes), 
-                              filename ? filename : "Perl", 
+        if(!JS_EvaluateScript(cx, JS_GetGlobalObject(cx),
+                              bytes, strlen(bytes),
+                              filename ? filename : "Perl",
                               0, &rval)){
             cxitem = PCB_FindContextItem(cx);
             if (!cxitem || cxitem->dieFromErrors)
                 croak("JS script evaluation failed");
-       
+
             clearException(cx);
             XSRETURN_UNDEF;
-        } 
-        RETVAL = rval; 
+        }
+        RETVAL = rval;
     }
     clearException(cx);
     OUTPUT:
@@ -697,7 +697,7 @@ JS_exec_(cx, script)
         jsval rval;
         handle = (JSScript*)SvIV(*hv_fetch((HV*)SvRV(script), "_script", 7, 0));
         /* Call on the global object */
-        if(!JS_ExecuteScript(cx, JS_GetGlobalObject(cx), 
+        if(!JS_ExecuteScript(cx, JS_GetGlobalObject(cx),
                              handle, &rval)) {
             cxitem = PCB_FindContextItem(cx);
             if (!cxitem || cxitem->dieFromErrors)
@@ -739,7 +739,7 @@ JS_unsetErrorReporter(cx)
     CODE:
     cxitem = PCB_FindContextItem(cx);
     if ( cxitem ) {
-        if ( cxitem->errorReporter ) 
+        if ( cxitem->errorReporter )
             SvREFCNT_dec(cxitem->errorReporter);
         cxitem->errorReporter = NULL;
     }
@@ -752,14 +752,14 @@ JS_hasException(cx)
     OUTPUT:
     RETVAL
 
-void 
+void
 JS_reportError(cx, msg)
     JSContext *cx
     char *msg
     CODE:
     JS_ReportError(cx, msg);
 
-void 
+void
 JS_errorFromPrivate(cx, msg, ex)
      JSContext *cx
      char *msg
@@ -783,14 +783,14 @@ JS_setDieFromErrors(cx, value)
 
 void
 JS_createObject(cx, object, name,  methods)
-    JSContext *cx 
+    JSContext *cx
     SV *object
     char *name
     SV *methods
     PREINIT:
     JSObject *jso;
     HV *m_hash;
-    I32 len;	
+    I32 len;
     HE *he;
     int i;
     PerlObjectItem *po;
@@ -804,9 +804,9 @@ JS_createObject(cx, object, name,  methods)
     object_class = PCB_NewStdJSClass(name);
     //jso = JS_NewObject(cx, object_class, NULL, 0);
 
-    jso = JS_DefineObject(cx, JS_GetGlobalObject(cx), name, 
-                          object_class, NULL, 
-                          JSPROP_ENUMERATE | JSPROP_READONLY | 
+    jso = JS_DefineObject(cx, JS_GetGlobalObject(cx), name,
+                          object_class, NULL,
+                          JSPROP_ENUMERATE | JSPROP_READONLY |
                           JSPROP_PERMANENT);
 
 
@@ -822,8 +822,8 @@ JS_createObject(cx, object, name,  methods)
     /* HERE _PH_ */
     pcbitem = po->vector;
     while ( pcbitem ) {
-        if (! JS_DefineFunction(cx, jso, pcbitem->name, 
-                                PCB_UniversalStub, 0, 0)) 
+        if (! JS_DefineFunction(cx, jso, pcbitem->name,
+                                PCB_UniversalStub, 0, 0))
             croak("Unable create JS function");
         pcbitem = pcbitem->next;
     }
@@ -940,7 +940,7 @@ JS_DELETE(obj, key)
             cx = (JSContext *)SvIV(magic->mg_obj);
         } else {
             warn("Tied object has no magic\n");
-        }      
+        }
         JS_DeleteProperty(cx, obj, key);
     }
 
@@ -1000,9 +1000,9 @@ JS_compileScript(object, cx, bytes, ...)
     {
         if (items > 2) { filename = SvPV(ST(2), PL_na); };
         /* Call on the global object */
-        if(!(RETVAL = (int)JS_CompileScript(cx, JS_GetGlobalObject(cx), 
-                                       bytes, strlen(bytes), 
-                                       filename ? filename : "Perl", 
+        if(!(RETVAL = (int)JS_CompileScript(cx, JS_GetGlobalObject(cx),
+                                       bytes, strlen(bytes),
+                                       filename ? filename : "Perl",
                                        0)))
             {
                 cxitem = PCB_FindContextItem(cx);
@@ -1014,7 +1014,7 @@ JS_compileScript(object, cx, bytes, ...)
     OUTPUT:
     RETVAL
 
-int 
+int
 JS_rootScript(object, cx, name)
     SV *object
     JSContext *cx
@@ -1031,7 +1031,7 @@ JS_rootScript(object, cx, name)
     OUTPUT:
     RETVAL
 
-void 
+void
 JS_destroyScript(object, cx)
     SV *object
     JSContext *cx

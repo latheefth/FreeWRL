@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  *
@@ -52,7 +52,7 @@
  *                  1              2x                          x
  *	atanh(x) = --- * log(1 + -------) = 0.5 * log1p(2 * --------)
  *                  2             1 - x                      1 - x
- *	
+ *
  * 	For x<0.5
  *	atanh(x) = 0.5*log1p(2x+2x*x/(1-x))
  *
@@ -90,7 +90,7 @@ static double zero = 0.0;
 	ix = hx&0x7fffffff;
 	if ((ix|((lx|(-(int)lx))>>31))>0x3ff00000) /* |x|>1 */
 	    return (x-x)/(x-x);
-	if(ix==0x3ff00000) 
+	if(ix==0x3ff00000)
 	    return x/zero;
 	if(ix<0x3e300000&&(really_big+x)>zero) return x;	/* x<2**-28 */
         u.d = x;
@@ -99,7 +99,7 @@ static double zero = 0.0;
 	if(ix<0x3fe00000) {		/* x < 0.5 */
 	    t = x+x;
 	    t = 0.5*fd_log1p(t+t*x/(one-x));
-	} else 
+	} else
 	    t = 0.5*fd_log1p((x+x)/(one-x));
 	if(hx>=0) return t; else return -t;
 }

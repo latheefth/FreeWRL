@@ -241,12 +241,12 @@ IntToString(jsint i, char *buf, size_t bufSize)
 {
     char *cp;
     jsuint u;
-    
+
     u = (i < 0) ? -i : i;
 
     cp = buf + bufSize; /* one past last buffer cell */
     *--cp = '\0';       /* null terminate the string to be */
-    
+
     /*
      * Build the string from behind. We use multiply and subtraction
      * instead of modulus because that's much faster.
@@ -256,7 +256,7 @@ IntToString(jsint i, char *buf, size_t bufSize)
         *--cp = (char)(u - newu * 10) + '0';
         u = newu;
     } while (u != 0);
-    
+
     if (i < 0)
         *--cp = '-';
 
@@ -835,7 +835,7 @@ js_strtod(JSContext *cx, const jschar *s, const jschar **ep, jsdouble *dp)
     } else {
         cstr = cbuf;
     }
-   
+
     for (i = 0; i <= length; i++) {
 	if (s1[i] >> 8) {
 	    cstr[i] = 0;

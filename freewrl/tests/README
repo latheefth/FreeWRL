@@ -8,7 +8,7 @@ Notes:
 
 1.wrl:	A cone.
 
-1.xml:  X3D box with texture mapped. 
+1.xml:  X3D box with texture mapped.
 
 2.wrl:	A bunch of rotated rectangles.
 
@@ -41,7 +41,7 @@ Notes:
 
 15.wrl:	Circular arc.
 
-16.wrl:	Flying blimp pulling a coke can. 
+16.wrl:	Flying blimp pulling a coke can.
 
 	This is a world to test the headlight toggle ("h" key).
 
@@ -50,18 +50,18 @@ Notes:
 
 18.wrl:	different viewpoints. hit the "v" key to change.
 
-19.wrl:	A Simple "tinman" avatar. 
+19.wrl:	A Simple "tinman" avatar.
 
 20.wrl:	A cone with a bookcase texture superimposed over it.
 
-21.wrl: A bookcase. 
+21.wrl: A bookcase.
 
-22.wrl: A finger. click on any joint. 
+22.wrl: A finger. click on any joint.
 
-23.wrl: 
+23.wrl:
 
 24.wrl: HUD simple display. Bottom cube stays put when you
-	navigate. from 
+	navigate. from
 		http://www.vapourtech.com/vrmlguide/workshop/hud/
 
 25.wrl: Background binding - click on the objects to change them.
@@ -87,7 +87,7 @@ Notes:
 33.wrl: A "big" transparent set of Cones. Shows sorting of nodes,
 	and rendering of transparency.
 
-34.wrl: The noodle drain with a the original texture mapped on it. 
+34.wrl: The noodle drain with a the original texture mapped on it.
 
 35.wrl:	Texture and Texturetransform tests on 4 shapes. Repeating
 	turned off.
@@ -96,7 +96,7 @@ Notes:
 
 37.wrl:	Same as 36.wrl, but with textures rotated.
 
-38.wrl:	Texture Blending example. 
+38.wrl:	Texture Blending example.
 
 39.wrl:	Texture Blending Example. This one shows a FreeWRL problem;
 	read the Info node in the wrl file for a full explanation.
@@ -125,10 +125,10 @@ Synth:
 	A 3D representation of a music synthesizer. Uses other programs
 	to help drive an external synthesizer.
 
-AddRemove:	
+AddRemove:
 	Java applet with EAI add/remove button. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
-	on these, or run it from within netscape. Also, read the "README" 
+	on these, or run it from within netscape. Also, read the "README"
 	in the directory.
 
 AddRoute:
@@ -138,19 +138,19 @@ AddRoute:
 Tiny3D:
 	Java applet with EAI to create a scene. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
-	on these, or run it from within netscape. Also, read the "README" 
+	on these, or run it from within netscape. Also, read the "README"
 	in the directory.
 
 Tic-Tac-Toe:
-	Java applet with EAI code to play tic-tac-toe. Run the script 
+	Java applet with EAI code to play tic-tac-toe. Run the script
 	in the directory - check paths for everything, as it is dependent
-	on these, or run it from within netscape. Also, read the "README" 
+	on these, or run it from within netscape. Also, read the "README"
 	in the directory.
 
 CreateTest:
-	Java applet with EAI. Run the script 
+	Java applet with EAI. Run the script
 	in the directory - check paths for everything, as it is dependent
-	on these, or run it from within netscape. Also, read the "README" 
+	on these, or run it from within netscape. Also, read the "README"
 	in the directory.
 
 SAIColor:
@@ -164,6 +164,6 @@ SAITic-Tac-Toe:
 	in the directory.
 
 
-helpers:	
+helpers:
 	Misc. directory of included files for the above tests.
 

@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -39,13 +39,13 @@
  * JavaScript Debugging support - Locking and threading support
  */
 
-/*                                                                           
-* ifdef JSD_USE_NSPR_LOCKS then you musat build and run against NSPR2.       
-* Otherwise, there are stubs that can be filled in with your own locking     
-* code. Also, note that these stubs include a jsd_CurrentThread()            
-* implementation that only works on Win32 - this is needed for the inprocess 
-* Java-based debugger.                                                       
-*/                                                                           
+/*
+* ifdef JSD_USE_NSPR_LOCKS then you musat build and run against NSPR2.
+* Otherwise, there are stubs that can be filled in with your own locking
+* code. Also, note that these stubs include a jsd_CurrentThread()
+* implementation that only works on Win32 - this is needed for the inprocess
+* Java-based debugger.
+*/
 
 #include "jsd.h"
 
@@ -70,10 +70,10 @@ struct JSDStaticLock
 #endif
 };
 
-/* 
+/*
  * This exists to wrap non-NSPR theads (e.g. Java threads) in NSPR wrappers.
  * XXX We ignore the memory leak issue.
- * It is claimed that future versions of NSPR will automatically wrap on 
+ * It is claimed that future versions of NSPR will automatically wrap on
  * the call to PR_GetCurrentThread.
  *
  * XXX We ignore the memory leak issue - i.e. we never call PR_DetachThread.
@@ -105,7 +105,7 @@ void ASSERT_VALID_LOCK(JSDStaticLock* lock)
     JS_ASSERT(lock->count >= 0);
     JS_ASSERT((! lock->count && ! lock->owner) || (lock->count && lock->owner));
     JS_ASSERT(lock->sig == (uint16) JSD_LOCK_SIG);
-}    
+}
 #else
 #define ASSERT_VALID_LOCK(x) ((void)0)
 #endif
@@ -115,7 +115,7 @@ jsd_CreateLock()
 {
     JSDStaticLock* lock;
 
-    if( ! (lock = calloc(1, sizeof(JSDStaticLock))) || 
+    if( ! (lock = calloc(1, sizeof(JSDStaticLock))) ||
         ! (lock->lock = PR_NewLock()) )
     {
         if(lock)
@@ -128,7 +128,7 @@ jsd_CreateLock()
     if(lock) lock->sig = (uint16) JSD_LOCK_SIG;
 #endif
     return lock;
-}    
+}
 
 void
 jsd_Lock(JSDStaticLock* lock)
@@ -149,7 +149,7 @@ jsd_Lock(JSDStaticLock* lock)
         lock->owner = me;
     }
     ASSERT_VALID_LOCK(lock);
-}    
+}
 
 void
 jsd_Unlock(JSDStaticLock* lock)
@@ -170,7 +170,7 @@ jsd_Unlock(JSDStaticLock* lock)
         PR_Unlock(lock->lock);
     }
     ASSERT_VALID_LOCK(lock);
-}    
+}
 
 #ifdef DEBUG
 JSBool
@@ -180,7 +180,7 @@ jsd_IsLocked(JSDStaticLock* lock)
     ASSERT_VALID_LOCK(lock);
     _CURRENT_THREAD(me);
     return lock->owner == me ? JS_TRUE : JS_FALSE;
-}    
+}
 #endif /* DEBUG */
 
 void*
@@ -189,53 +189,53 @@ jsd_CurrentThread()
     void* me;
     _CURRENT_THREAD(me);
     return me;
-}    
+}
 
 
 #else  /* ! JSD_USE_NSPR_LOCKS */
 
-#ifdef WIN32    
+#ifdef WIN32
 #pragma message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 #pragma message("!! you are compiling the stubbed version of jsd_lock.c !!")
 #pragma message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 #endif
 
 /*
- * NOTE: 'Real' versions of these locks must be reentrant in the sense that 
- * they support nested calls to lock and unlock. 
+ * NOTE: 'Real' versions of these locks must be reentrant in the sense that
+ * they support nested calls to lock and unlock.
  */
 
 void*
 jsd_CreateLock()
 {
     return (void*)1;
-}    
+}
 
 void
 jsd_Lock(void* lock)
 {
-}    
+}
 
 void
 jsd_Unlock(void* lock)
 {
-}    
+}
 
 #ifdef DEBUG
 JSBool
 jsd_IsLocked(void* lock)
 {
     return JS_TRUE;
-}    
+}
 #endif /* DEBUG */
 
-/* 
- * This Windows only thread id code is here to allow the Java-based 
- * JSDebugger to work with the single threaded js.c shell (even without 
+/*
+ * This Windows only thread id code is here to allow the Java-based
+ * JSDebugger to work with the single threaded js.c shell (even without
  * real locking and threading support).
  */
 
-#ifdef WIN32    
+#ifdef WIN32
 /* bogus (but good enough) declaration*/
 extern void* __stdcall GetCurrentThreadId(void);
 #endif
@@ -243,12 +243,12 @@ extern void* __stdcall GetCurrentThreadId(void);
 void*
 jsd_CurrentThread()
 {
-#ifdef WIN32    
+#ifdef WIN32
     return GetCurrentThreadId();
 #else
     return (void*)1;
 #endif
-}    
+}
 
 #endif /* JSD_USE_NSPR_LOCKS */
 

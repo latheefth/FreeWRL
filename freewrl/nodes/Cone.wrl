@@ -34,7 +34,7 @@ Transform {
 	translation -0.6 0 0
 	children [
 		Shape {
-			geometry Cone { bottomRadius 0.3 height 4 
+			geometry Cone { bottomRadius 0.3 height 4
 				bottom FALSE }
 			appearance Appearance {material Material {diffuseColor 0.4 0 0.4}}
 		}
@@ -46,7 +46,7 @@ Transform {
 	translation 0.6 0 0
 	children [
 		Shape {
-			geometry Cone { bottomRadius 0.3 height 4 
+			geometry Cone { bottomRadius 0.3 height 4
 				side FALSE }
 			appearance Appearance {material Material {diffuseColor 0.4 0 0.4}}
 		}

@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
@@ -50,7 +50,7 @@ public abstract class SourceLocation {
      * Get the first PC associated with a given SourceLocation.
      * This is the place to set a breakpoint at that location.
      *
-     * @returns pc object or null if there is no code corresponding 
+     * @returns pc object or null if there is no code corresponding
      * to this source location.
      */
     public abstract PC getPC();

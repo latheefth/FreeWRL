@@ -8,7 +8,7 @@
 
 /* put a string on the console. This is fork'd by FreeWRL for error messages,
  * because when running within an HTML browser, error messages to the command
- * line get lost. 
+ * line get lost.
  */
 
 
@@ -61,13 +61,13 @@ int main(int argc, char **argv) {
 	}
 
 	/* Create the application shell widget */
-	top = XtVaAppInitialize(&app_context, "XViewfile", NULL, 0, &argc, argv, NULL, 
+	top = XtVaAppInitialize(&app_context, "XViewfile", NULL, 0, &argc, argv, NULL,
 		XtNtitle,WINTITLE,
 		XtNiconName,MINTITLE,
 		NULL);
 
 	/* Create a box to hold everything */
-	mainBox = XtVaCreateManagedWidget("mainBox", boxWidgetClass, top, 
+	mainBox = XtVaCreateManagedWidget("mainBox", boxWidgetClass, top,
 			NULL);
 
 	/* Create a read only, scrollable text widget, to display the text */
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 	//	printf(
 	//	"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
 	//	wintitle);
-	//} 
+	//}
 
 	/* Tie in the callbacks */
 	XtAddCallback(dismissButton,XtNcallback, dismiss_proc, NULL);

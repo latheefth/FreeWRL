@@ -9,7 +9,7 @@ class MobyProtocol {
 	for (int i = 0; i < 4; i++) {
 	  lengthStr += (char)is.read();
 	}
-      } catch (IOException e) { 
+      } catch (IOException e) {
 	System.err.println ("##AnimationServer: reading length error!");
 	return null;
       }
@@ -20,7 +20,7 @@ class MobyProtocol {
 	    message += (char)is.read();
 	  }
 	  return message;
-	} catch (IOException e) { 
+	} catch (IOException e) {
 	  System.err.println ("##AnimationServer: reading message error!");
 	  return null;
 	}

@@ -46,7 +46,7 @@ public class SFInt32 extends Field {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Int32");
 		value = Integer.parseInt(in.readLine());
     }

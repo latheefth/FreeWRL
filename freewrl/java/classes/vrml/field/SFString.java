@@ -46,7 +46,7 @@ public class SFString extends Field {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, String");
 		s = in.readLine();
     }

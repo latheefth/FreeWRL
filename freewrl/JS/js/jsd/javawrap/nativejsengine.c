@@ -119,7 +119,7 @@ _jamSourceIntoJSD(JSContext *cx, const char* src, int len, const char* filename)
     clazz_self = (*env)->GetObjectClass(env, contextObject);
     ASSERT_RETURN_VOID(clazz_self);
 
-    fid = (*env)->GetFieldID(env, clazz_self, "_runtime", 
+    fid = (*env)->GetFieldID(env, clazz_self, "_runtime",
                              "Lcom/netscape/nativejsengine/JSRuntime;");
     ASSERT_RETURN_VOID(fid);
 
@@ -143,7 +143,7 @@ _jamSourceIntoJSD(JSContext *cx, const char* src, int len, const char* filename)
         JSD_AddFullSourceText(jsdc, src, len, filename);
     }
 }
-#endif   
+#endif
 
 static JSBool
 _loadSingleFile(JSContext *cx, JSObject *obj, const char* filename)
@@ -181,21 +181,21 @@ _loadSingleFile(JSContext *cx, JSObject *obj, const char* filename)
 
 #ifdef JSDEBUGGER
     _jamSourceIntoJSD(cx, buf, file_len, filename);
-#endif   
+#endif
 
     JS_EvaluateScript(cx, obj, buf, file_len, filename, 1, &result);
 
     free(buf);
     return JS_TRUE;
-}    
-                
+}
+
 
 static void _sendPrintStringToJava(JNIEnv* env, jobject contextObject,
                                    jmethodID mid, const char* str)
 {
     if(! str)
         return;
-    (*env)->CallObjectMethod(env, contextObject, mid, 
+    (*env)->CallObjectMethod(env, contextObject, mid,
                              (*env)->NewStringUTF(env, str));
 }
 
@@ -297,7 +297,7 @@ my_ErrorReporter(JSContext *cx, const char *message, JSErrorReport *report)
     clazz = (*env)->GetObjectClass(env, info->contextObject);
     ASSERT_RETURN_VOID(clazz);
 
-    mid  = (*env)->GetMethodID(env, clazz, "_reportError", 
+    mid  = (*env)->GetMethodID(env, clazz, "_reportError",
             "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;I)V");
     ASSERT_RETURN_VOID(mid);
 
@@ -319,7 +319,7 @@ my_ErrorReporter(JSContext *cx, const char *message, JSErrorReport *report)
         }
     }
 
-    (*env)->CallObjectMethod(env, info->contextObject, mid, 
+    (*env)->CallObjectMethod(env, info->contextObject, mid,
                              msg, filename, lineno, lineBuf, offset);
 
 }
@@ -402,11 +402,11 @@ JNIEXPORT void JNICALL Java_com_netscape_nativejsengine_JSRuntime__1exit
     ASSERT_RETURN_VOID(rt);
 
 
-    /* 
+    /*
     * Can't kill runtime if it holds any contexts
-    *  
-    * However, JSD may make it's own context(s), so don't ASSERT 
-    */ 
+    *
+    * However, JSD may make it's own context(s), so don't ASSERT
+    */
     CHECK_RETURN_VOID(!JS_ContextIterator(rt, &iterp));
 
     printf("runtime = %d\n", (int)rt);
@@ -442,7 +442,7 @@ JNIEXPORT jboolean JNICALL Java_com_netscape_nativejsengine_JSContext__1init
     clazz_self = (*env)->GetObjectClass(env, self);
     ASSERT_RETURN_VALUE(clazz_self, JNI_FALSE);
 
-    fid = (*env)->GetFieldID(env, clazz_self, "_runtime", 
+    fid = (*env)->GetFieldID(env, clazz_self, "_runtime",
                              "Lcom/netscape/nativejsengine/JSRuntime;");
     ASSERT_RETURN_VALUE(fid, JNI_FALSE);
 
@@ -454,7 +454,7 @@ JNIEXPORT jboolean JNICALL Java_com_netscape_nativejsengine_JSContext__1init
 
     mid  = (*env)->GetMethodID(env, clazz, "getNativeRuntime", "()J");
     ASSERT_RETURN_VALUE(mid, JNI_FALSE);
-    
+
     rt = (JSRuntime *) (*env)->CallObjectMethod(env, rtObject, mid);
     ASSERT_RETURN_VALUE(rt, JNI_FALSE);
 
@@ -479,7 +479,7 @@ JNIEXPORT jboolean JNICALL Java_com_netscape_nativejsengine_JSContext__1init
 
     info = (ContextInfo*) malloc(sizeof(ContextInfo));
     ASSERT_RETURN_VALUE(info, JNI_FALSE);
-    
+
     info->env = env;
     info->contextObject = self;
 
@@ -565,15 +565,15 @@ JNIEXPORT void JNICALL Java_com_netscape_nativejsengine_JSContext__1eval
     ASSERT_RETURN_VOID(glob);
 
     len = (*env)->GetStringUTFLength(env, str);
-    Cstr = (*env)->GetStringUTFChars(env, str, &isCopy); 
+    Cstr = (*env)->GetStringUTFChars(env, str, &isCopy);
     Cfilename = (*env)->GetStringUTFChars(env, filename, &isCopy);
 
 #ifdef JSDEBUGGER
-    /*                                                           
-    * XXX this just overwrites any previous source for this url! 
-    */                                                           
+    /*
+    * XXX this just overwrites any previous source for this url!
+    */
     _jamSourceIntoJSD(cx, Cstr, len, Cfilename);
-#endif   
+#endif
 
     JS_EvaluateScript(cx, glob, Cstr, len, Cfilename, lineno, &rval);
 
@@ -604,7 +604,7 @@ JNIEXPORT void JNICALL Java_com_netscape_nativejsengine_JSContext__1load
 
     cx = (JSContext *) (*env)->GetLongField(env, self, fid);
     ASSERT_RETURN_VOID(cx);
-    
+
     glob = JS_GetGlobalObject(cx);
     ASSERT_RETURN_VOID(glob);
 

@@ -8,12 +8,12 @@ JSDPROJ = jsd
 
 !IF "$(BUILD_OPT)" != ""
 OBJ = Release
-CC_FLAGS = /DNDEBUG 
+CC_FLAGS = /DNDEBUG
 !ELSE
 OBJ = Debug
-CC_FLAGS = /DDEBUG 
+CC_FLAGS = /DDEBUG
 LINK_FLAGS = /DEBUG
-!ENDIF 
+!ENDIF
 
 QUIET=@
 
@@ -29,7 +29,7 @@ CFLAGS = /nologo /MDd /W3 /Gm /GX /Zi /Od\
          /I $(JSDJAVA)\jre\
          /I $(JSDJAVA)\jre\win32\
          /DJSD_STANDALONE_JAVA_VM\
-!ENDIF 
+!ENDIF
          $(CC_FLAGS)\
          /c /Fp$(OBJ)\$(PROJ).pch /Fd$(OBJ)\$(PROJ).pdb /YX -Fo$@ $<
 
@@ -43,14 +43,14 @@ CPP=cl.exe
 LINK32=link.exe
 
 all: $(OBJ) $(OBJ)\$(PROJ).dll
-     
+
 
 $(OBJ)\$(PROJ).dll:         \
 !IF "$(JSD_STANDALONE_JAVA_VM)" != ""
         $(OBJ)\jsd_jvm.obj  \
         $(OBJ)\jre.obj      \
         $(OBJ)\jre_md.obj   \
-!ENDIF 
+!ENDIF
         $(OBJ)\jsdjava.obj  \
         $(OBJ)\jsd_jntv.obj
   $(QUIET)$(LINK32) $(LFLAGS) $** $(LLIBS)

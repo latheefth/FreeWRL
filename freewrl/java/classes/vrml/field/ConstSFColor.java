@@ -48,10 +48,10 @@ public class ConstSFColor extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Color");
 		red = Float.parseFloat(in.readLine());
-        	green = Float.parseFloat(in.readLine()); 
+        	green = Float.parseFloat(in.readLine());
         	blue = Float.parseFloat(in.readLine());
     }
 

@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -32,7 +32,7 @@
 # file under either the NPL or the GPL.
 
 
-# 
+#
 
 #//------------------------------------------------------------------------
 #//
@@ -45,7 +45,7 @@ DEPTH = ..\..\..\..
 JAVA_SOURCEPATH=$(DEPTH)\js\src\liveconnect\classes
 
 #//------------------------------------------------------------------------
-#// 
+#//
 #// Define the files necessary to build the target (ie. OBJS)
 #//
 #//------------------------------------------------------------------------
@@ -58,18 +58,18 @@ JMOZ =  \
 
 all::
 
-MODULE=java 
+MODULE=java
 JMODS=netscape/javascript
 !ifdef JAVA_OR_NSJVM
-JDIRS=$(JMODS) 
-JAR_JSJ_CLASSES=$(JMODS) 
+JDIRS=$(JMODS)
+JAR_JSJ_CLASSES=$(JMODS)
 JAR_NAME = jsj10.jar
 !endif
 
 include <$(DEPTH)\config\rules.mak>
 
 !ifdef JAVA_OR_NSJVM
-libs:: 
+libs::
 	cd $(JAVA_DESTPATH)
 	@echo +++ building/updating $(JAR_NAME)
 	-for %i in ($(JAR_JSJ_CLASSES:/=\)) do @$(ZIP_PROG) $(ZIP_FLAGS) $(JAR_NAME) %i\*.class

@@ -29,5 +29,5 @@ all: $(GEN)
 $(GEN) :
     @mkdir $(GEN)
 
-clean: 
+clean:
     @if exist $(HEADER_FILE) @del $(HEADER_FILE) > NUL

@@ -2,16 +2,16 @@
 WorldInfo {
 	title "Alpha blend test 2"
 	info [
-		"This file build misc translucent objects                            			       
-		 The object are listed in reverse Z-order to achieve the blend effect			       
-		 Try to 'look back' the scene and the blend effect will vanish                                 
-		 because in that case the closest object is drawn first and the farest                         
-		 last. The Z-buffer so tell that the last one is 'hidden' by the first one.		       
-		 Objects:										       
-		   The first object is a cone with a translucent texture (a window with colored glass).	       
-		   The second is the same translucent window map on a square surface.                          
-		   The third one is another square surface with another translucent image (kind of mountain ?) 
-		   The fourth (farest) is a not translucent sphere, which is seen across others.	       
+		"This file build misc translucent objects
+		 The object are listed in reverse Z-order to achieve the blend effect
+		 Try to 'look back' the scene and the blend effect will vanish
+		 because in that case the closest object is drawn first and the farest
+		 last. The Z-buffer so tell that the last one is 'hidden' by the first one.
+		 Objects:
+		   The first object is a cone with a translucent texture (a window with colored glass).
+		   The second is the same translucent window map on a square surface.
+		   The third one is another square surface with another translucent image (kind of mountain ?)
+		   The fourth (farest) is a not translucent sphere, which is seen across others.
 		                                                    Remi Cohen-Scali			      "
 	]
 },
@@ -31,7 +31,7 @@ Group {
                 	          0.70 0.50 0.00
                 	          1.00 0.00 0.00 ]
 		groundAngle     [ 1.07 1.45 1.52 1.57 ]
-		groundColor     [ 0.8 0.9 0.8, 
+		groundColor     [ 0.8 0.9 0.8,
 				  0.6 0.7 0.6,
 				  0.4 0.5 0.4,
 				  0.3 0.6 0.3,
@@ -60,11 +60,11 @@ Group {
 				}
 				geometry IndexedFaceSet {
 					coord Coordinate {
-						point [ 
-							-2.0 -1.5 0.0, 
+						point [
+							-2.0 -1.5 0.0,
 							2.0  -1.5 0.0
-						 	2.0  1.5 0.0,  
-							-2.0 1.5  0.0 
+						 	2.0  1.5 0.0,
+							-2.0 1.5  0.0
 						]
 					}
 					coordIndex [3, 2, 1, 0]
@@ -87,11 +87,11 @@ Group {
 		}
 		geometry IndexedFaceSet {
 			coord Coordinate {
-				point [ 
-					-2.0 -1.5 0.0, 
+				point [
+					-2.0 -1.5 0.0,
 					2.0  -1.5 0.0
-				 	2.0  1.5 0.0,  
-					-2.0 1.5  0.0 
+				 	2.0  1.5 0.0,
+					-2.0 1.5  0.0
 				]
 			}
 			coordIndex [3, 2, 1, 0]

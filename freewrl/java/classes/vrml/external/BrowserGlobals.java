@@ -3,7 +3,7 @@ import vrml.external.field.*;
 import vrml.external.FreeWRLEAI.*;
 public class BrowserGlobals
 {
-    
+
 
 // Events. EVno is the "highest +1" registered event number...
 // EVarray corresponds to the events returned by FreeWRL  to our

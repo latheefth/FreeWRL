@@ -17,11 +17,11 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public final class IJSStackFrameInfo
 {
     public IJSPC pc;
     public int   jsdframe;
-}    
+}

@@ -63,14 +63,14 @@ sub dump {
 		VRML::NodeIntern::dump_name($this),"\t", $this->{URL},"\n\n";
 	foreach (keys %{$this}) {
 		print $padded,"$_\t";
-		
+
 		# lets do something special for Routes
 		if ("Routes" eq $_) {
        		 for (values %{$this->{$_}}) {
                 	my ($fnam, $ff, $tnam, $tf) = @{$_};
                 	print "$padded    Route from $fnam field $ff to $tnam field $tf\n";
         	 }
-					
+
 		} elsif ("DEF" eq $_) {
 		  my $nk;
 		  foreach $nk (keys %{$this->{$_}}) {
@@ -108,7 +108,7 @@ sub dump {
 			$_->dump($level+1);
 		}
 	}
-	
+
 	if (defined $this->{SubScenes}) {
 		print "\n$padded(SubScenes of ",VRML::NodeIntern::dump_name($this),")\n";
 		my $sk;
@@ -117,10 +117,10 @@ sub dump {
 			$sk->dump($level+1);
 		}
 	}
-	
+
 	print "$level END OF SCENE DUMP for ",VRML::NodeIntern::dump_name($this),"\n\n";
 }
-		
+
 
 
 
@@ -145,7 +145,7 @@ sub new {
 	print "VRML::Scene::new: ", VRML::Debug::toString(\@_), "\n"
 		if $VRML::verbose::scene;
 	return $this;
-	
+
 }
 
 sub set_url {
@@ -163,7 +163,7 @@ sub newp {
     # actually creates a new prototype.
     #
     # parameters:
-	
+
     # type: probably always VRML::Scene
     # pars: not yet decoded. prints as HASH(0x83e45f0)
     # look below for its usage in extracting fields.
@@ -229,8 +229,8 @@ sub newextp {
 	    $parentURL = VRML::VRMLFunc::GetBrowserFullPath();
 	    $this->{WorldURL} = $parentURL;
 	  }
-    
-    
+
+
     # Extract the field types
     $this->{FieldTypes} = {map {$_ => $this->{Pars}{$_}[1]} keys %{$this->{Pars}}};
     $this->{FieldKinds} = {map {$_ => $this->{Pars}{$_}[0]} keys %{$this->{Pars}}};
@@ -513,7 +513,7 @@ sub new_externproto {
 		if $VRML::verbose::scene;
 
 	# pass in url to allow finding of files relative to url.
-	my $p = $this->{Protos}{$name} = (ref $this)->newextp($pars, $this, $name, 
+	my $p = $this->{Protos}{$name} = (ref $this)->newextp($pars, $this, $name,
 			$url,$this->{URL});
 	return $p;
 }
@@ -859,7 +859,7 @@ sub set_parentnode {
 
 			print "MENID  ref node ", ref $node,"\n" if $VRML::verbose::scene;
 			return unless (ref $node eq "VRML::NodeIntern");
-			
+
 			for (keys %{$node->{Fields}}) {
 				print "MENIDF $_\n" if $VRML::verbose::scene;
 
@@ -892,7 +892,7 @@ sub set_parentnode {
 				 $this->{DEF}{$node->{Name}} = $DEF{$node->{Name}};
 			 }
 		 });
-	
+
 
 		# Step 4) Update all USEs
 		# it is supposed to make a DEF ref into a NodeIntern...
@@ -975,7 +975,7 @@ sub make_backend {
 		print "VRML::Scene::make_be: PROTO ",
 			VRML::NodeIntern::dump_name($this),
 					", Nodes ", VRML::Debug::toString($this->{Nodes}),
-						" $be $parentbe\n" 
+						" $be $parentbe\n"
 				if $VRML::verbose::be;
 
 		#print "   has node $#{$this->{Nodes}}\n";
@@ -1006,10 +1006,10 @@ sub make_backend {
 				#did not work for def'd scenes: $wn = $wn->real_node();
 			}
 			# print "now is ",VRML::NodeIntern::dump_name($wn),", ref ",ref $wn," type ",$wn->{TypeName},"\n";
-			if (!($VISIBLE{$wn->{TypeName}})) { 
+			if (!($VISIBLE{$wn->{TypeName}})) {
 				# print "this is invisible\n"; foreach (keys %{$wn}) {print "   has key $_\n";}
 				$wn->make_backend($be, $parentbe);
-			}			
+			}
 			$nc++;
 		}
 	} else {
@@ -1045,22 +1045,22 @@ sub setup_routing {
 		 if $VRML::verbose::scene;
 
 		 return unless "VRML::NodeIntern" eq ref $_[0];
-		 print "\t\tITNO: $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n" 
+		 print "\t\tITNO: $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n"
 			 if $VRML::verbose::scene;
 		 if ($VRML::Nodes::initevents{$_[0]->{TypeName}}) {
-			 print "\tITNO:is member of initevents\n" 
+			 print "\tITNO:is member of initevents\n"
 				if $VRML::verbose::scene;
 
-				  
-			# is this a proto expansion SFNode field? 
+
+			# is this a proto expansion SFNode field?
 			# if so, the backnode->{CNode} will need to be created
 			if (!defined $_[0]->{BackNode}) {
 				#print "backnode not defined\n";
-				
-				$_[0]->{BackNode} = 
+
+				$_[0]->{BackNode} =
 					VRML::NodeIntern::make_backend($_[0], $be);
 			}
-			
+
 			VRML::VRMLFunc::add_first($_[0]->{TypeName}, $_[0]->{BackNode}->{CNode});
 		 } else {
 			 if ($_[0]->{ProtoExp}) {
@@ -1090,7 +1090,7 @@ sub setup_routing {
 			 }
 		 }
 
-		# Anchors, etc. 
+		# Anchors, etc.
 		 if ($VRML::Nodes::sensitive{$_[0]->{TypeName}}) {
 			my $n = $_->real_node();
 			VRML::VRMLFunc::set_sensitive ($_[0]->{BackNode}{CNode},$n->{BackNode}{CNode},$n->{TypeName});

@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 #  Steve Zellers (zellers@apple.com)
 #
@@ -42,7 +42,7 @@
 CC = cc
 CCC = g++
 CFLAGS +=  -Wall -Wno-format
-OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE 
+OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_BSD_SOURCE -DPOSIX_SOURCE
 -DRHAPSODY
 
 RANLIB = ranlib

@@ -21,7 +21,7 @@ NavigationInfo {
 Transform {
 	children [
 		Shape {
-			appearance Appearance { 
+			appearance Appearance {
 				material DEF SphereColor Material {
 					diffuseColor 0 0 1 # I like blue
 				}

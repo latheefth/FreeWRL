@@ -27,7 +27,7 @@ public class ConstSFString extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, String");
 		s = in.readLine();
     }

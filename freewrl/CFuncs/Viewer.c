@@ -68,7 +68,7 @@ void viewer_default() {
 		atan2(eyedist/2.0,screendist)*360.0/(2.0*3.1415926));
 
 #ifndef AQUA
-	if (shutter) 
+	if (shutter)
 		XEventStereo();
 #endif
 }
@@ -80,7 +80,7 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 	viewer_type = type;
 
 	/* if we are brand new, set up our defaults */
-	if (!viewer_initialized) {	
+	if (!viewer_initialized) {
 		viewer_initialized = TRUE;
 
 		(viewer->Pos).x = 0;
@@ -182,7 +182,7 @@ set_viewer_type(const int type)
 
 int
 use_keys()
-{ 	
+{
 	if (viewer_type == FLY) {
 		return TRUE;
 	}
@@ -192,7 +192,7 @@ use_keys()
 
 void
 resolve_pos(VRML_Viewer *viewer)
-{ 
+{
 	/* my($this) = @_; */
 	struct pt rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
@@ -208,7 +208,7 @@ resolve_pos(VRML_Viewer *viewer)
 		dist = VECPT(viewer->Pos, rot);
 
 		/*
-		 * Fix the rotation point to be 10m in front of the user (dist = 10.0)  
+		 * Fix the rotation point to be 10m in front of the user (dist = 10.0)
 		 * or, try for the origin. Preferential treatment would be to choose
 		 * the shape within the center of the viewpoint. This information is
 		 * found in the matrix, and is used for collision calculations - we
@@ -231,7 +231,7 @@ void
 viewer_togl(double fieldofview)
 {
 
-	/* GLdouble modelMatrix[16]; 
+	/* GLdouble modelMatrix[16];
 
         fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	printf ("Viewer_togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
@@ -327,7 +327,7 @@ handle_examine(const int mev, const unsigned int button, float x, float y)
 				inverse(&q_i, &(examine->SQuat));
 				multiply(&arc, &q, &q_i);
 
-		
+
 				/* $this->{Quat} = $arc->multiply($this->{OQuat}); */
 				multiply(&(Viewer.Quat), &arc, &(examine->OQuat));
 			}
@@ -348,7 +348,7 @@ handle_examine(const int mev, const unsigned int button, float x, float y)
 void handle(const int mev, const unsigned int button, const float x, const float y)
 {
 
-	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
+	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n",
 	   VIEWER_STRING(viewer_type), mev, button, x, y);  */
 
 	if (button == 2) {
@@ -435,7 +435,7 @@ handle_tick_walk()
 	VRML_Viewer_Walk *walk = Viewer.walk;
 	Quaternion q, nq;
 	struct pt p;
-	
+
 	p.x = 0.15 * walk->XD;
 	p.y = 0.15 * walk->YD;
 	p.z = 0.15 * walk->ZD;
@@ -452,7 +452,7 @@ handle_tick_walk()
 
 	normalize(&nq);
 	multiply(&(Viewer.Quat), &nq, &q);
-    
+
 	/* info passed to Collision routines */
 	/* VRML::VRMLFunc::set_viewer_delta($this->{XD},
 	 * $this->{YD},$this->{ZD}); #interresting idea, but not quite.
@@ -491,7 +491,7 @@ handle_tick_exfly()
 	/*
 	 * my $chk_file_date = stat($in_file)->mtime;
 	 * following uncommented as time on file only change
-	 * once per second - should change this... 
+	 * once per second - should change this...
      *
 	 * $in_file_date = $chk_file_date;
 	 */
@@ -542,12 +542,12 @@ handle_tick_exfly()
 //Added Dec 15/04 M. Ward
 /**********************************************
 *Name: handle_tick_exin
-*Function: this is a direct access function to let me change the viewer position directly 
+*Function: this is a direct access function to let me change the viewer position directly
 * with data from the external inputs(the ascension or polhemus at least)
 *I/O: takes a pointer to a list of data, returns nothing
 *************************************************/
 
-/*JAS 
+/*JAS
 void handle_tick_exin ( float *data ) {
 
   viewer_type = EXFLY;
@@ -629,7 +629,7 @@ handle_tick_fly()
 			return;
 		}
 	}
-	
+
 	/* first, get all the keypresses since the last time */
 	for (i = 0; i < KEYS_HANDLED; i++) {
 		(ps[i]).hit += (fly->Down[i]).hit;
@@ -678,7 +678,7 @@ handle_tick_fly()
 		changed += fly->AVelocity[i];
 	//printf ("avel %d %f\n",i,fly->AVelocity[i]);
 	}
-	
+
 	nq.x = fly->AVelocity[0];
 	nq.y = fly->AVelocity[1];
 	nq.z = fly->AVelocity[2];
@@ -803,9 +803,9 @@ bind_viewpoint (struct VRML_Viewpoint *vp) {
 	/*printf ("bind_viewpoint, setting Viewer to %f %f %f orient %f %f %f %f\n",vp->position.c[0],vp->position.c[1],
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
-	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); 
+	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView);
 	*/
-	
+
 
 	Viewer.Pos.x = vp->position.c[0];
 	Viewer.Pos.y = vp->position.c[1];
@@ -834,7 +834,7 @@ bind_geoviewpoint (struct VRML_GeoViewpoint *vp) {
 	vp->position.c[2],vp->orientation.r[0],vp->orientation.r[1],vp->orientation.r[2],
 	vp->orientation.r[3]);
 	printf ("	node %d fieldOfView %f\n",vp,vp->fieldOfView); */
-	
+
 
 	Viewer.Pos.x = vp->__position.c[0];
 	Viewer.Pos.y = vp->__position.c[1];

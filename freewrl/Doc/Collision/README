@@ -17,10 +17,10 @@ In the tex/ directory :
 This is the latex source and images of the two pdf files.
 Run make here to generate pdfs.
 
-tex/crc_stage.pdf : 
-My intern report. In french. Very draft form. 
+tex/crc_stage.pdf :
+My intern report. In french. Very draft form.
 (It wasn't due till the week after).
 
-tex/algo.pdf : 
-General view of the workings of the algorithm. 
+tex/algo.pdf :
+General view of the workings of the algorithm.
 Uses some of the same images as crc_stage.tex.

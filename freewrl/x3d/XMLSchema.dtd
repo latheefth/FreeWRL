@@ -124,7 +124,7 @@
 <!-- Note the xmlns declaration is NOT in the Schema for Schemas,
      because at the Infoset level where schemas operate,
      xmlns(:prefix) is NOT an attribute! -->
- 
+
 <!-- The id attribute here and below is for use in external references
      from non-schemas using simple fragment identifiers.
      It is NOT used for schema-to-schema reference, internal or
@@ -168,7 +168,7 @@
           id    ID           #IMPLIED
           %simpleContentAttrs;>
 
-<!-- restriction should use the simple branch from part2, not the 
+<!-- restriction should use the simple branch from part2, not the
      one defined above; extension should have no particle  -->
 
 <!ELEMENT %extension; (%particleAndAttrs;)>
@@ -208,7 +208,7 @@
 <!-- default and fixed are mutually exclusive -->
 
 <!ELEMENT %group; ((%annotation;)?,(%mgs;)?)>
-<!ATTLIST %group; 
+<!ATTLIST %group;
           name        %NCName;               #IMPLIED
           ref         %QName;                #IMPLIED
           minOccurs   %nonNegativeInteger;   #IMPLIED

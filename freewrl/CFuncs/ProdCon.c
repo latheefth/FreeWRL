@@ -67,7 +67,7 @@ extern unsigned _fw_instance;
 #define DATA_LOCK       	pthread_mutex_lock(&condition_mutex);
 #define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);
 #define DATA_LOCK_WAIT          pthread_cond_wait(&condition_cond, &condition_mutex);
-#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); 
+#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex);
 
 /* for debugging.
 #define DATA_LOCK       	pthread_mutex_lock(&condition_mutex); \
@@ -126,9 +126,9 @@ struct PSStruct {
 
 
 void _perlThread (void *perlpath);
-void __pt_loadInitialGroup(void); 
-void __pt_setPath(char *perlpath); 
-void __pt_openBrowser(void); 
+void __pt_loadInitialGroup(void);
+void __pt_setPath(char *perlpath);
+void __pt_openBrowser(void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
 unsigned int __pt_getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
@@ -189,7 +189,7 @@ void initializePerlThread(char *perlpath) {
 	strcpy (myPerlInstallDir, perlpath);
 
 	/* create consumer thread and set the "read only" flag indicating this */
-        //M. Ward Dec 8/04 - ICAC the typecast here is for a pointer to a function that 
+        //M. Ward Dec 8/04 - ICAC the typecast here is for a pointer to a function that
 	//returns a pointer to a void and takes a pointer to a void as a parameter
 	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_perlThread, (void *) perlpath);
 }
@@ -239,7 +239,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	char tempname[1000];
 	char sysline[1000];
 
-	/* are we running under netscape? if so, ask the browser, and 
+	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
 	if (RUNNINGASPLUGIN && (strcmp(BrowserURL,fname)!=0)) {
 		retName = requestUrlfromPlugin(_fw_FD,_fw_instance,fname);
@@ -249,9 +249,9 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 		strcpy (fname,retName);
 	}
 
-	/* if not, do we need to invoke lwp to get the file, or 
+	/* if not, do we need to invoke lwp to get the file, or
 	   is it just local? if we are running as a plugin, this should
-	   be a local file by now 
+	   be a local file by now
 	 */
 	if (checkNetworkFile(fname)) {
 		// Is this an Anchor? if so, lets just assume we can
@@ -287,7 +287,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	if (ok) {
 		if (fread(firstBytes,1,4,fp)!=4) ok = FALSE;
 		fclose (fp);
-	} 
+	}
 	return (ok);
 }
 
@@ -321,7 +321,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	strcat(filename,thisurl);
 
 	/* and, return in the ptr filename, the filename created... */
-	//printf ("makeAbsoluteFileName, just made :%s:\n",filename); 
+	//printf ("makeAbsoluteFileName, just made :%s:\n",filename);
 }
 
 
@@ -336,7 +336,7 @@ void loadInline(struct VRML_Inline *node) {
 	/* first, are we busy? */
 	if (PerlParsing) return;
 
-	perlParse(INLINE,(char *)node, FALSE, FALSE, 
+	perlParse(INLINE,(char *)node, FALSE, FALSE,
 		(unsigned) node,
 		offsetof (struct VRML_Inline, __children),
 		&node->__loadstatus,FALSE);
@@ -457,7 +457,7 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	int *nodetype,
 	int *scripttype) {
 	int complete;
-	
+
 	//printf ("EAI_GetType starting\n");
 	PSP_LOCK
 	DATA_LOCK
@@ -490,7 +490,7 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 	int complete;
 	char *retstr;
-	
+
 	//printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname);
 	PSP_LOCK
 	DATA_LOCK
@@ -521,7 +521,7 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 char* EAI_GetTypeName(unsigned int nodenum) {
 	int complete;
 	char *retstr;
-	
+
 	//printf ("EAI_GetTypeName starting node %d \n",nodenum);
 	PSP_LOCK
 	DATA_LOCK
@@ -584,7 +584,7 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	} else {
 		psp.type = FROMSTRING;
 	}
-				
+
 	psp.comp = &complete;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
@@ -608,7 +608,7 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 /* interface for replacing worlds from EAI */
 void EAI_readNewWorld(char *inputstring) {
     int complete;
-    
+
     PSP_LOCK
     DATA_LOCK
     psp.comp = &complete;
@@ -630,7 +630,7 @@ void EAI_readNewWorld(char *inputstring) {
 
 /****************************************************************************/
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-			unsigned ptr, unsigned ofs,int *complete, 
+			unsigned ptr, unsigned ofs,int *complete,
 			int zeroBind) {
 
 	/* do we want to return if the parsing thread is busy, or do
@@ -655,13 +655,13 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 	if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n");}
 	memcpy (psp.inp,inp,strlen(inp)+1);
-	
+
 	DATA_LOCK_SIGNAL
 	DATA_UNLOCK
 	PSP_UNLOCK
 	return (TRUE);
 }
-	
+
 
 void _perlThread(void *perlpath) {
         char *commandline[] = {"", NULL};
@@ -688,7 +688,7 @@ void _perlThread(void *perlpath) {
 			commandline[1] = builddir;
 
 			if ((tempfp = fopen(commandline[1],"r")) != NULL) {
-	
+
 				/* printf ("opened %s\n",commandline[1]);  */
 				fclose(tempfp);
 			} else {
@@ -734,15 +734,15 @@ void _perlThread(void *perlpath) {
 		DATA_LOCK_WAIT
 		PerlParsing=TRUE;
 
-		/* have to handle these types of commands: 
+		/* have to handle these types of commands:
 			FROMSTRING 	create vrml from string
 			FROMURL		create vrml from url
 			INLINE		convert an inline into code, and load it.
-			CALLMETHOD	Javascript... 	
-			EAIGETNODE      EAI getNode     
+			CALLMETHOD	Javascript...
+			EAIGETNODE      EAI getNode
 			EAIGETVIEWPOINT get a Viewpoint CNode
-			EAIGETTYPE	EAI getType	
-			EAIGETVALUE	EAI getValue - in a string.	
+			EAIGETTYPE	EAI getType
+			EAIGETVALUE	EAI getValue - in a string.
 			EAIROUTE	EAI add/delete route
 			EAIREPWORLD     EAI replace world */
 
@@ -754,8 +754,8 @@ void _perlThread(void *perlpath) {
 		switch (psp.type) {
 
 		case FROMSTRING:
-		case FROMURL:	{ 
-			/* is this a Create from URL or string, or a successful INLINE? */	
+		case FROMURL:	{
+			/* is this a Create from URL or string, or a successful INLINE? */
 			__pt_doStringUrl();
 			break;
 			}
@@ -849,7 +849,7 @@ void addToNode (unsigned rc, unsigned newNode) {
 		printf ("cant malloc memory for addChildren");
 		return;
 	}
-	
+
 	/* copy the old stuff over */
 	if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(unsigned int));
 
@@ -907,7 +907,7 @@ void getAllBindables() {
  *
  * See perldoc perlapi, perlcall, perlembed, perlguts for how this all
  * works.
- * 
+ *
  *****************************************************************************/
 
 /****************************************************************************
@@ -1009,8 +1009,8 @@ void __pt_loadInitialGroup() {
 }
 
 /* Shutter glasses, stereo mode configure  Mufti@rus*/
-float eyedist = 0.06;	
-float screendist = 0.8;	
+float eyedist = 0.06;
+float screendist = 0.8;
 
 void setEyeDist (char *optArg) {
 	sscanf(optArg,"%f",&eyedist);
@@ -1023,13 +1023,13 @@ void setScreenDist (char *optArg) {
 
 
 void __pt_openBrowser() {
-	
+
 	dSP;
 	ENTER;
 	SAVETMPS;
 
 	viewer_default();
-	
+
 	PUSHMARK(SP);
 	XPUSHs(sv_2mortal(newSViv(1000))); // left in as an example
 	XPUSHs(sv_2mortal(newSViv(2000)));
@@ -1060,13 +1060,13 @@ void __pt_doInline() {
 	if ((!filename) || (!psp.path)) {
 		outOfMemory ("perl thread can not malloc for filename\n");
 	}
-	
+
 	/* copy the parent path over */
 	strcpy (psp.path,SvPV(inl->__parenturl,xx));
 
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *) rindex(psp.path, ((int) '/'));
-	if (slashindex != NULL) { 
+	if (slashindex != NULL) {
 		slashindex ++; /* leave the slash there */
 		*slashindex = 0;
 	} else {psp.path[0] = 0;}
@@ -1116,10 +1116,10 @@ void __pt_doStringUrl () {
 
 	if (psp.type==FROMSTRING) {
        		retval = _pt_CreateVrml("String",psp.inp,(unsigned int *)myretarr);
-		
+
 	} else {
 		retval = _pt_CreateVrml("URL",psp.inp,(unsigned int *)myretarr);
-	} 
+	}
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {
@@ -1129,9 +1129,9 @@ void __pt_doStringUrl () {
 			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
 			psp.retarr[count] = myretarr[count];
 		}
-		psp.retarrsize = retval;	
-	}	
-	
+		psp.retarrsize = retval;
+	}
+
 	/* get the Bindables from this latest VRML/X3D file */
 	if (retval > 0) getAllBindables();
 
@@ -1196,7 +1196,7 @@ __pt_doPerlCallMethodVA() {
 	count = call_method(psp.fieldname, G_SCALAR);
 
 	SPAGAIN;
-	
+
 
 if (count > 1) {
 	fprintf(stderr,
@@ -1234,7 +1234,7 @@ void __pt_EAI_GetNode () {
 
 	/* return value in psp.jparamcount */
 	psp.jparamcount = POPi;
-	 
+
 	//printf ("The node is %x\n", psp.jparamcount) ;
 	PUTBACK;
 	FREETMPS;
@@ -1262,7 +1262,7 @@ void __pt_EAI_GetViewpoint () {
 
 	/* return value in psp.jparamcount */
 	psp.jparamcount = POPi;
-	 
+
 	//printf ("The node is %x\n", psp.jparamcount) ;
 	PUTBACK;
 	FREETMPS;
@@ -1312,7 +1312,7 @@ void __pt_EAI_GetType (){
 		psp.Etype[1] = 0;
 	} else {
 		/* pop values off stack in reverse of perl return order */
-		psp.Etype[4] = POPi; psp.Etype[3] = POPi; psp.Etype[2] = POPi; 
+		psp.Etype[4] = POPi; psp.Etype[3] = POPi; psp.Etype[2] = POPi;
 		psp.Etype[1] = POPi; psp.Etype[0] = POPi;
 	}
 
@@ -1343,21 +1343,21 @@ void __pt_EAI_GetValue (){
 
 	//printf ("GetValue return; count %d\n",count);
 	if (count != 1) {
-		psp.sv=NULL;	
+		psp.sv=NULL;
 	} else {
 		/* pop values off stack in reverse of perl return order */
 		retval = POPs;
-	} 
+	}
 
 	PUTBACK;
 	//printf ("EAI_GetValue retval %d\n", retval) ;
-                                                                                    
+
 	//if (SvOK(retval)) {printf ("retval is an SV\n"); }
 	//else {printf ("retval is NOT an SV\n"); return;}
 	/* now, decode this SV */
 	//printf ("SVtype is %x\n",SvTYPE(retval));
 	//printf ("String is :%s: len %d \n",SvPV(retval,len),len);
-	
+
 	/* make a copy of the return string - caller has to free it after use */
 	ctmp = SvPV(retval,len); // now, we have the length
 	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
@@ -1389,14 +1389,14 @@ void __pt_EAI_GetTypeName (){
 
 	//printf ("GetTypeName return; count %d\n",count);
 	if (count != 1) {
-		psp.sv=NULL;	
+		psp.sv=NULL;
 	} else {
 		/* pop values off stack in reverse of perl return order */
 		retval = POPs;
-	} 
+	}
 
 	PUTBACK;
-                                                                                    
+
 	/* make a copy of the return string - caller has to free it after use */
 	ctmp = SvPV(retval, len); // now, we have the length
 	psp.retstr =(char *) malloc (sizeof (char) * (len+5));

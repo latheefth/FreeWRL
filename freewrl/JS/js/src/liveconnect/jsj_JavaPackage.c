@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -74,10 +74,10 @@ define_JavaPackage(JSContext *cx, JSObject *parent_obj,
     JavaPackage_Private *package;
 
     package_obj = JS_DefineObject(cx, parent_obj, obj_name, &JavaPackage_class, 0, JSPROP_PERMANENT | access);
-    
+
     if (!package_obj)
         return NULL;
-    
+
     /* Attach private, native data to the JS object */
     package = (JavaPackage_Private *)JS_malloc(cx, sizeof(JavaPackage_Private));
     JS_SetPrivate(cx, package_obj, (void *)package);
@@ -110,11 +110,11 @@ JavaPackage_setProperty(JSContext *cx, JSObject *obj, jsval slot, jsval *vp)
 {
     JavaPackage_Private *package = JS_GetPrivate(cx, obj);
     if (!package) {
-        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                                 JSJMSG_BAD_ADD_TO_PACKAGE);
         return JS_FALSE;
     }
-    JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+    JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                                 JSJMSG_DONT_ADD_TO_PACKAGE);
     return JS_FALSE;
 }
@@ -138,7 +138,7 @@ JavaPackage_resolve(JSContext *cx, JSObject *obj, jsval id)
     /* Painful hack for pre_define_java_packages() */
     if (quiet_resolve_failure)
         return JS_FALSE;
-                
+
     package = (JavaPackage_Private *)JS_GetPrivate(cx, obj);
     if (!package)
         return JS_TRUE;
@@ -189,7 +189,7 @@ JavaPackage_resolve(JSContext *cx, JSObject *obj, jsval id)
           using the current classloader.  This means that the first time you
           refer to java.lang.System in a js context, there will be an attempt
           to search for [[DOCBASE]]/java.class on the server.
-    
+
         A solution is to explicitly tell jsjava the names of all the (local)
         packages on the CLASSPATH.  (Not implemented yet.)
 
@@ -230,11 +230,11 @@ JavaPackage_resolve(JSContext *cx, JSObject *obj, jsval id)
                     for (cp = msg; *cp != '\0'; cp++)
                         if (*cp == '/')
                             *cp = '.';
-                    JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+                    JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                                 JSJMSG_MISSING_PACKAGE, msg);
                     free((char*)msg);
                 }
-                               
+
                 ok = JS_FALSE;
                 goto out;
             }
@@ -244,13 +244,13 @@ JavaPackage_resolve(JSContext *cx, JSObject *obj, jsval id)
             ok = JS_FALSE;
             goto out;
         }
-        
+
 #ifdef DEBUG
         /* printf("JavaPackage \'%s\' created\n", newPath); */
 #endif
 
     }
-    
+
 out:
     free(newPath);
     jsj_ExitJava(jsj_env);
@@ -347,7 +347,7 @@ standard_java_packages[] = {
     {"java",                NULL,   PKG_USER,   0},
     {"java.applet",         NULL,   PKG_USER,   JSPROP_READONLY},
     {"java.awt",            NULL,   PKG_USER,   JSPROP_READONLY},
-    {"java.awt.datatransfer",                       
+    {"java.awt.datatransfer",
                             NULL,   PKG_SYSTEM, JSPROP_READONLY},
     {"java.awt.event",      NULL,   PKG_SYSTEM, JSPROP_READONLY},
     {"java.awt.image",      NULL,   PKG_SYSTEM, JSPROP_READONLY},
@@ -442,7 +442,7 @@ pre_define_java_packages(JSContext *cx, JSObject *global_obj,
             jsval v;
 
             if (!simple_name) {
-                JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+                JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                         JSJMSG_DOUBLE_SHIPPING, package_name);
                 goto error;
             }
@@ -465,7 +465,7 @@ pre_define_java_packages(JSContext *cx, JSObject *global_obj,
                                package_def->name);
                 goto error;
             }
-            
+
             if (package_def->path) {
                 path = strdup(package_def->path);
                 if (!path)
@@ -489,7 +489,7 @@ pre_define_java_packages(JSContext *cx, JSObject *global_obj,
                                             package_def->access);
             if (!parent_obj)
                 goto error;
- 
+
             free(path);
             break;
         }
@@ -538,6 +538,6 @@ jsj_init_JavaPackage(JSContext *cx, JSObject *global_obj,
         return JS_FALSE;
     if (!pre_define_java_packages(cx, global_obj, additional_predefined_packages))
         return JS_FALSE;
-    
+
     return JS_TRUE;
 }

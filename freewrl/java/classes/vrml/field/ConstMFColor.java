@@ -16,7 +16,7 @@ public class ConstMFColor extends ConstMField {
     }
 
     public ConstMFColor(int size, float[] colors) {
-        for (int i = 0; i < size; i += 3)	
+        for (int i = 0; i < size; i += 3)
             __vect.addElement(new ConstSFColor(colors[i], colors[i+1], colors[i+2]));
     }
 
@@ -24,7 +24,7 @@ public class ConstMFColor extends ConstMField {
         for (int i = 0; i < colors.length; i++)
             __vect.addElement(new ConstSFColor(colors[i][0], colors[i][1], colors[i][2]));
     }
-	
+
     public void getValue(float[] colors) {
         __updateRead();
         int size = __vect.size();

@@ -248,14 +248,14 @@ my_GetErrorMessage(void *userRef, const char *locale, const uintN errorNumber);
 #undef EDITLINE
 #endif
 
-#ifdef EDITLINE 
+#ifdef EDITLINE
 extern char     *readline(const char *prompt);
 extern void     add_history(char *line);
 #endif
 
 static JSBool
 GetLine(JSContext *cx, char *bufp, FILE *file, const char *prompt) {
-#ifdef EDITLINE 
+#ifdef EDITLINE
     /*
      * Use readline only if file is stdin, because there's no way to specify
      * another handle.  Are other filehandles interactive?
@@ -1010,7 +1010,7 @@ Disassemble(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
                 SHOW_FLAG(GETTER);
                 SHOW_FLAG(BOUND_METHOD);
                 SHOW_FLAG(HEAVYWEIGHT);
-                
+
 #undef SHOW_FLAG
                 putchar('\n');
             }

@@ -16,10 +16,10 @@ public class MFTime extends MField {
     }
 
     public MFTime(int size, double[] value) {
-        for (int i = 0; i < size; i++)	
+        for (int i = 0; i < size; i++)
             __vect.addElement(new ConstSFTime(value[i]));
     }
-	
+
     public void getValue(double[] value) {
         __updateRead();
         int size = __vect.size();

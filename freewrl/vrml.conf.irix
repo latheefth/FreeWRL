@@ -69,11 +69,11 @@ LIB_DIR => "/usr/lib",
 
 ############################################################################
 # Netscape/Mozilla  installation
-# 
+#
 # If Netscape is not installed, leave NETSCAPE_INST empty e.g.
 # NETSCAPE_INST => ''
 #
-# NETSCAPE_CLASSES is where vrml.jar (needed for EAI applets) 
+# NETSCAPE_CLASSES is where vrml.jar (needed for EAI applets)
 # will be installed to.
 # NETSCAPE_PLUGINS is used to determine where the plugin will
 # be installed if this is your browser.
@@ -93,7 +93,7 @@ NETSCAPE_INST => '',
     JAVA_INC => '-I/usr/java/j2sdk1.4.0/include -I/usr/java/j2sdk1.4.0/include/linux',
 
 ############################################################################
-# LDFLAGS.  Set linker flags here. 
+# LDFLAGS.  Set linker flags here.
 
     LDFLAGS => '-shared -L/usr/local/lib',
 

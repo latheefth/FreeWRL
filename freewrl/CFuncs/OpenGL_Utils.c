@@ -60,7 +60,7 @@ glpOpenGLInitialize()
      * JAS   nodes.
 	 */
 
-	glEnable(GL_BLEND); 
+	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -85,7 +85,7 @@ BackEndClearBuffer()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void 
+void
 BackEndLightsOff()
 {
 	glDisable(GL_LIGHT1); /* Put them all off first (except headlight)*/
@@ -97,7 +97,7 @@ BackEndLightsOff()
 	glDisable(GL_LIGHT7);
 }
 
-void 
+void
 BackEndHeadlightOff()
 {
 	glDisable(GL_LIGHT0); /* headlight off (or other, if no headlight) */
@@ -136,7 +136,7 @@ void fwLoadIdentity () {
 }
 
 
-void fwMatrixMode (int mode) { 
+void fwMatrixMode (int mode) {
 	if (myMat != mode) {
 		//printf ("fwMatrixMode ");
 		//if (mode == GL_PROJECTION) printf ("GL_PROJECTION\n");
@@ -147,7 +147,7 @@ void fwMatrixMode (int mode) {
 		glMatrixMode(mode);
 	}
 }
-	
+
 #ifdef DEBUGCACHEMATRIX
 void pmat (double *mat) {
 	int i;

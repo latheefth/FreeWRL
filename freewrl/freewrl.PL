@@ -3,7 +3,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 #
-# Based on files from PDL and Perl 
+# Based on files from PDL and Perl
 
 use Config;
 use File::Basename qw(&basename &dirname);
@@ -114,7 +114,7 @@ Go to the previous viewpoint in the scene
 =item /
 
 Print out the position and orientation of the current viewpoint
-in the current Viewpoint node's local coordinate system. 
+in the current Viewpoint node's local coordinate system.
 
 You can add the view you currently see in the window by creating a new
 Viewpoint node (in the same coordinate system as the one you used to
@@ -138,7 +138,7 @@ Toggle collision detection on or off.
 
 =item q
 
-Quit the browser 
+Quit the browser
 
 =back
 
@@ -155,14 +155,14 @@ keymappings: those from the game Descent, and a mapping using the
 keypad.
 
 All motion is controlled
-by 12 keys, two for each of your 6 degrees of freedom (3 translations, 
+by 12 keys, two for each of your 6 degrees of freedom (3 translations,
 3 rotations).
 
 The keymap in this mode is
 
 =over 4
 
-=item '8'/'k' and 'Keypad Down'/'Keypad Up' 
+=item '8'/'k' and 'Keypad Down'/'Keypad Up'
 
 rotation down/up
 
@@ -180,7 +180,7 @@ rotation about the Z axis
 
 
 
-=item 'a'/'z' and 'Keypad 0'/'Keypad .' 
+=item 'a'/'z' and 'Keypad 0'/'Keypad .'
 
 translation forwards/backwards
 
@@ -205,7 +205,7 @@ one with full freedom of motion currently.
 
 =head2 Fly - External Sensor input
 
-This mode is entered via the "f" key. It takes input from the file F</tmp/inpdev>: 
+This mode is entered via the "f" key. It takes input from the file F</tmp/inpdev>:
 this file contains x,y,z and Quaternion-based rotation information, and puts the viewpoint there.
 
 It is possible to force this mode in a NavigationInfo mode by making type "EXFLY".
@@ -218,12 +218,12 @@ always goes through the same point but you can rotate the object and
 translate yourself closer and farther away.
 
 Currently, dragging with mouse button 1 pressed
-rotates the scene and dragging up or down mouse button 3 pressed 
+rotates the scene and dragging up or down mouse button 3 pressed
 translates you towards and away from the scene. There are no other controls.
 
 The center around which you rotate is determined by taking the initial
-position and orientation of the viewpoint given in the VRML file. 
-A ray is cast along your line of view and the closest that ray comes 
+position and orientation of the viewpoint given in the VRML file.
+A ray is cast along your line of view and the closest that ray comes
 to the origin of the local coordinate system is defined as the origin
 of the rotations.
 
@@ -263,7 +263,7 @@ Sends the sequence of characters following to FreeWRL for processing once the
 
 =item C<--linewidth> I<width>
 
-Sets the line width for IndexedLineSets. 
+Sets the line width for IndexedLineSets.
 
 
 =item C<--plugin> I<PIDstring>
@@ -305,7 +305,7 @@ Forces FreeWRL to start in shutterglas stereo mode via GLX_STEREO in
 attributs of glXChooseVisual. This needs software and hardware like
 XIG DX Platiuum Xserver on a Linux PC with 3DRelevator shutterglasses or
 IRIX on a SGI Indigo2 Impact with crystal eyes shutterglasses.
-On some SGI machines, you need to switch to a stereo capable visual 
+On some SGI machines, you need to switch to a stereo capable visual
 as root with setmon/xsetmon and then restart the X Server.
 
 =item C<--eyedist> I<number>
@@ -314,7 +314,7 @@ Distance between the eyes of the viewer in shutter mode, default 0.06
 
 =item C<--screendist> I<number>
 
-Distance between screen and the eyes of the viewer in shutter mode, 
+Distance between screen and the eyes of the viewer in shutter mode,
 default 0.8
 
 =item C<--gif>
@@ -337,7 +337,7 @@ the EAI libraries.
 
 FreeWRL will behave as a server : it spawns a child browser, prints
 its PID on STDOUT and exits. The child then reloads the url given on
-the command line upon receipt of a SIGUSR1 signal. 
+the command line upon receipt of a SIGUSR1 signal.
 
 =item C<--sig>
 

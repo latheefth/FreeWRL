@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 1995 The Regents of the University of California.
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice and the following
  * two paragraphs appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -22,17 +22,17 @@
 /*
  * Portions of this software Copyright (c) 1995 Brown University.
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice and the
  * following two paragraphs appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF BROWN
  * UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * BROWN UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS"
@@ -46,14 +46,14 @@ void outOfMemory(char *message);
 
 
 
-#ifndef AQUA 
+#ifndef AQUA
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
 #endif
 #include <assert.h>
 
-#ifdef AQUA 
+#ifdef AQUA
 #include <gl.h>
 #include <glu.h>
 #include <glext.h>
@@ -98,7 +98,7 @@ motion_vectors_entry  motion_vectors[2048];
 
 /* Decoding table for coded_block_pattern */
 
-coded_block_pattern_entry coded_block_pattern[512] = 
+coded_block_pattern_entry coded_block_pattern[512] =
 { {(unsigned int)ERROR, 0}, {(unsigned int)ERROR, 0}, {39, 9}, {27, 9}, {59, 9}, {55, 9}, {47, 9}, {31, 9},
     {58, 8}, {58, 8}, {54, 8}, {54, 8}, {46, 8}, {46, 8}, {30, 8}, {30, 8},
     {57, 8}, {57, 8}, {53, 8}, {53, 8}, {45, 8}, {45, 8}, {29, 8}, {29, 8},
@@ -108,68 +108,68 @@ coded_block_pattern_entry coded_block_pattern[512] =
     {41, 8}, {41, 8}, {21, 8}, {21, 8}, {49, 8}, {49, 8}, {13, 8}, {13, 8},
     {35, 8}, {35, 8}, {19, 8}, {19, 8}, {11, 8}, {11, 8}, {7, 8}, {7, 8},
     {34, 7}, {34, 7}, {34, 7}, {34, 7}, {18, 7}, {18, 7}, {18, 7}, {18, 7},
-    {10, 7}, {10, 7}, {10, 7}, {10, 7}, {6, 7}, {6, 7}, {6, 7}, {6, 7}, 
-    {33, 7}, {33, 7}, {33, 7}, {33, 7}, {17, 7}, {17, 7}, {17, 7}, {17, 7}, 
-    {9, 7}, {9, 7}, {9, 7}, {9, 7}, {5, 7}, {5, 7}, {5, 7}, {5, 7}, 
-    {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6}, 
-    {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6}, 
-    {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6}, 
-    {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6}, 
+    {10, 7}, {10, 7}, {10, 7}, {10, 7}, {6, 7}, {6, 7}, {6, 7}, {6, 7},
+    {33, 7}, {33, 7}, {33, 7}, {33, 7}, {17, 7}, {17, 7}, {17, 7}, {17, 7},
+    {9, 7}, {9, 7}, {9, 7}, {9, 7}, {5, 7}, {5, 7}, {5, 7}, {5, 7},
+    {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6}, {63, 6},
+    {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6}, {3, 6},
+    {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6}, {36, 6},
+    {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6}, {24, 6},
     {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5},
     {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5}, {62, 5},
-    {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, 
-    {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, 
-    {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, 
-    {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, 
-    {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, 
-    {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, 
-    {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, 
-    {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, 
-    {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, 
-    {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, 
-    {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, 
-    {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, 
-    {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, 
-    {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, 
-    {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, 
-    {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, 
-    {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, 
-    {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, 
-    {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, 
-    {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, 
-    {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, 
-    {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, 
-    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, 
-    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, 
-    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, 
-    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, 
-    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, 
-    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, 
-    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, 
-    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, 
-    {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, 
-    {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, 
-    {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, 
+    {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5},
+    {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5}, {2, 5},
+    {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5},
+    {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5}, {61, 5},
+    {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5},
+    {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5}, {1, 5},
+    {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5},
+    {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5}, {56, 5},
+    {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5},
+    {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5}, {52, 5},
+    {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5},
+    {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5}, {44, 5},
+    {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5},
+    {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5}, {28, 5},
+    {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5},
+    {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5}, {40, 5},
+    {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5},
+    {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5}, {20, 5},
+    {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5},
+    {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5}, {48, 5},
+    {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5},
+    {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5}, {12, 5},
+    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4},
+    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4},
+    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4},
+    {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4}, {32, 4},
+    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4},
+    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4},
+    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4},
+    {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4}, {16, 4},
+    {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4},
+    {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4},
+    {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4},
     {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4}, {8, 4},
     {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4},
-    {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, 
-    {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, 
     {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4},
-    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, 
-    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, 
-    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, 
-    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, 
-    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, 
-    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, 
-    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, 
+    {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4},
+    {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4}, {4, 4},
+    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3},
+    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3},
+    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3},
+    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3},
+    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3},
+    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3},
+    {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3},
     {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}, {60, 3}
 };
 
 /* Decoding tables for dct_dc_size_luminance */
 dct_dc_size_entry dct_dc_size_luminance[32] =
-{   {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, 
-    {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, 
-    {0, 3}, {0, 3}, {0, 3}, {0, 3}, {3, 3}, {3, 3}, {3, 3}, {3, 3}, 
+{   {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2},
+    {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2},
+    {0, 3}, {0, 3}, {0, 3}, {0, 3}, {3, 3}, {3, 3}, {3, 3}, {3, 3},
     {4, 3}, {4, 3}, {4, 3}, {4, 3}, {5, 4}, {5, 4}, {6, 5}, {(unsigned int)ERROR, 0}
 };
 
@@ -180,16 +180,16 @@ dct_dc_size_entry dct_dc_size_luminance1[16] =
 
 /* Decoding table for dct_dc_size_chrominance */
 dct_dc_size_entry dct_dc_size_chrominance[32] =
-{   {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, 
-    {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, 
-    {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, 
+{   {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2},
+    {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2},
+    {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2},
     {3, 3}, {3, 3}, {3, 3}, {3, 3}, {4, 4}, {4, 4}, {5, 5}, {(unsigned int)ERROR, 0}
 };
 
 dct_dc_size_entry dct_dc_size_chrominance1[32] =
-{   {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, 
-    {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, 
-    {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7}, 
+{   {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6},
+    {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6}, {6, 6},
+    {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7}, {7, 7},
     {8, 8}, {8, 8}, {8, 8}, {8, 8}, {9, 9}, {9, 9}, {10, 10}, {11, 10}
 };
 
@@ -197,224 +197,224 @@ dct_dc_size_entry dct_dc_size_chrominance1[32] =
 
 unsigned short int dct_coeff_tbl_0[256] =
 {
-0xffff, 0xffff, 0xffff, 0xffff, 
-0xffff, 0xffff, 0xffff, 0xffff, 
-0xffff, 0xffff, 0xffff, 0xffff, 
-0xffff, 0xffff, 0xffff, 0xffff, 
-0x052f, 0x051f, 0x050f, 0x04ff, 
-0x183f, 0x402f, 0x3c2f, 0x382f, 
-0x342f, 0x302f, 0x2c2f, 0x7c1f, 
-0x781f, 0x741f, 0x701f, 0x6c1f, 
-0x028e, 0x028e, 0x027e, 0x027e, 
-0x026e, 0x026e, 0x025e, 0x025e, 
-0x024e, 0x024e, 0x023e, 0x023e, 
-0x022e, 0x022e, 0x021e, 0x021e, 
-0x020e, 0x020e, 0x04ee, 0x04ee, 
-0x04de, 0x04de, 0x04ce, 0x04ce, 
-0x04be, 0x04be, 0x04ae, 0x04ae, 
-0x049e, 0x049e, 0x048e, 0x048e, 
-0x01fd, 0x01fd, 0x01fd, 0x01fd, 
-0x01ed, 0x01ed, 0x01ed, 0x01ed, 
-0x01dd, 0x01dd, 0x01dd, 0x01dd, 
-0x01cd, 0x01cd, 0x01cd, 0x01cd, 
-0x01bd, 0x01bd, 0x01bd, 0x01bd, 
-0x01ad, 0x01ad, 0x01ad, 0x01ad, 
-0x019d, 0x019d, 0x019d, 0x019d, 
-0x018d, 0x018d, 0x018d, 0x018d, 
-0x017d, 0x017d, 0x017d, 0x017d, 
-0x016d, 0x016d, 0x016d, 0x016d, 
-0x015d, 0x015d, 0x015d, 0x015d, 
-0x014d, 0x014d, 0x014d, 0x014d, 
-0x013d, 0x013d, 0x013d, 0x013d, 
-0x012d, 0x012d, 0x012d, 0x012d, 
-0x011d, 0x011d, 0x011d, 0x011d, 
-0x010d, 0x010d, 0x010d, 0x010d, 
-0x282c, 0x282c, 0x282c, 0x282c, 
-0x282c, 0x282c, 0x282c, 0x282c, 
-0x242c, 0x242c, 0x242c, 0x242c, 
-0x242c, 0x242c, 0x242c, 0x242c, 
-0x143c, 0x143c, 0x143c, 0x143c, 
-0x143c, 0x143c, 0x143c, 0x143c, 
-0x0c4c, 0x0c4c, 0x0c4c, 0x0c4c, 
-0x0c4c, 0x0c4c, 0x0c4c, 0x0c4c, 
-0x085c, 0x085c, 0x085c, 0x085c, 
-0x085c, 0x085c, 0x085c, 0x085c, 
-0x047c, 0x047c, 0x047c, 0x047c, 
-0x047c, 0x047c, 0x047c, 0x047c, 
-0x046c, 0x046c, 0x046c, 0x046c, 
-0x046c, 0x046c, 0x046c, 0x046c, 
-0x00fc, 0x00fc, 0x00fc, 0x00fc, 
-0x00fc, 0x00fc, 0x00fc, 0x00fc, 
-0x00ec, 0x00ec, 0x00ec, 0x00ec, 
-0x00ec, 0x00ec, 0x00ec, 0x00ec, 
-0x00dc, 0x00dc, 0x00dc, 0x00dc, 
-0x00dc, 0x00dc, 0x00dc, 0x00dc, 
-0x00cc, 0x00cc, 0x00cc, 0x00cc, 
-0x00cc, 0x00cc, 0x00cc, 0x00cc, 
-0x681c, 0x681c, 0x681c, 0x681c, 
-0x681c, 0x681c, 0x681c, 0x681c, 
-0x641c, 0x641c, 0x641c, 0x641c, 
-0x641c, 0x641c, 0x641c, 0x641c, 
-0x601c, 0x601c, 0x601c, 0x601c, 
-0x601c, 0x601c, 0x601c, 0x601c, 
-0x5c1c, 0x5c1c, 0x5c1c, 0x5c1c, 
-0x5c1c, 0x5c1c, 0x5c1c, 0x5c1c, 
-0x581c, 0x581c, 0x581c, 0x581c, 
-0x581c, 0x581c, 0x581c, 0x581c, 
+0xffff, 0xffff, 0xffff, 0xffff,
+0xffff, 0xffff, 0xffff, 0xffff,
+0xffff, 0xffff, 0xffff, 0xffff,
+0xffff, 0xffff, 0xffff, 0xffff,
+0x052f, 0x051f, 0x050f, 0x04ff,
+0x183f, 0x402f, 0x3c2f, 0x382f,
+0x342f, 0x302f, 0x2c2f, 0x7c1f,
+0x781f, 0x741f, 0x701f, 0x6c1f,
+0x028e, 0x028e, 0x027e, 0x027e,
+0x026e, 0x026e, 0x025e, 0x025e,
+0x024e, 0x024e, 0x023e, 0x023e,
+0x022e, 0x022e, 0x021e, 0x021e,
+0x020e, 0x020e, 0x04ee, 0x04ee,
+0x04de, 0x04de, 0x04ce, 0x04ce,
+0x04be, 0x04be, 0x04ae, 0x04ae,
+0x049e, 0x049e, 0x048e, 0x048e,
+0x01fd, 0x01fd, 0x01fd, 0x01fd,
+0x01ed, 0x01ed, 0x01ed, 0x01ed,
+0x01dd, 0x01dd, 0x01dd, 0x01dd,
+0x01cd, 0x01cd, 0x01cd, 0x01cd,
+0x01bd, 0x01bd, 0x01bd, 0x01bd,
+0x01ad, 0x01ad, 0x01ad, 0x01ad,
+0x019d, 0x019d, 0x019d, 0x019d,
+0x018d, 0x018d, 0x018d, 0x018d,
+0x017d, 0x017d, 0x017d, 0x017d,
+0x016d, 0x016d, 0x016d, 0x016d,
+0x015d, 0x015d, 0x015d, 0x015d,
+0x014d, 0x014d, 0x014d, 0x014d,
+0x013d, 0x013d, 0x013d, 0x013d,
+0x012d, 0x012d, 0x012d, 0x012d,
+0x011d, 0x011d, 0x011d, 0x011d,
+0x010d, 0x010d, 0x010d, 0x010d,
+0x282c, 0x282c, 0x282c, 0x282c,
+0x282c, 0x282c, 0x282c, 0x282c,
+0x242c, 0x242c, 0x242c, 0x242c,
+0x242c, 0x242c, 0x242c, 0x242c,
+0x143c, 0x143c, 0x143c, 0x143c,
+0x143c, 0x143c, 0x143c, 0x143c,
+0x0c4c, 0x0c4c, 0x0c4c, 0x0c4c,
+0x0c4c, 0x0c4c, 0x0c4c, 0x0c4c,
+0x085c, 0x085c, 0x085c, 0x085c,
+0x085c, 0x085c, 0x085c, 0x085c,
+0x047c, 0x047c, 0x047c, 0x047c,
+0x047c, 0x047c, 0x047c, 0x047c,
+0x046c, 0x046c, 0x046c, 0x046c,
+0x046c, 0x046c, 0x046c, 0x046c,
+0x00fc, 0x00fc, 0x00fc, 0x00fc,
+0x00fc, 0x00fc, 0x00fc, 0x00fc,
+0x00ec, 0x00ec, 0x00ec, 0x00ec,
+0x00ec, 0x00ec, 0x00ec, 0x00ec,
+0x00dc, 0x00dc, 0x00dc, 0x00dc,
+0x00dc, 0x00dc, 0x00dc, 0x00dc,
+0x00cc, 0x00cc, 0x00cc, 0x00cc,
+0x00cc, 0x00cc, 0x00cc, 0x00cc,
+0x681c, 0x681c, 0x681c, 0x681c,
+0x681c, 0x681c, 0x681c, 0x681c,
+0x641c, 0x641c, 0x641c, 0x641c,
+0x641c, 0x641c, 0x641c, 0x641c,
+0x601c, 0x601c, 0x601c, 0x601c,
+0x601c, 0x601c, 0x601c, 0x601c,
+0x5c1c, 0x5c1c, 0x5c1c, 0x5c1c,
+0x5c1c, 0x5c1c, 0x5c1c, 0x5c1c,
+0x581c, 0x581c, 0x581c, 0x581c,
+0x581c, 0x581c, 0x581c, 0x581c,
 };
 
-unsigned short int dct_coeff_tbl_1[16] = 
+unsigned short int dct_coeff_tbl_1[16] =
 {
-0x00bb, 0x202b, 0x103b, 0x00ab, 
-0x084b, 0x1c2b, 0x541b, 0x501b, 
-0x009b, 0x4c1b, 0x481b, 0x045b, 
-0x0c3b, 0x008b, 0x182b, 0x441b, 
+0x00bb, 0x202b, 0x103b, 0x00ab,
+0x084b, 0x1c2b, 0x541b, 0x501b,
+0x009b, 0x4c1b, 0x481b, 0x045b,
+0x0c3b, 0x008b, 0x182b, 0x441b,
 };
 
 unsigned short int dct_coeff_tbl_2[4] =
 {
-0x4019, 0x1429, 0x0079, 0x0839, 
+0x4019, 0x1429, 0x0079, 0x0839,
 };
 
-unsigned short int dct_coeff_tbl_3[4] = 
+unsigned short int dct_coeff_tbl_3[4] =
 {
-0x0449, 0x3c19, 0x3819, 0x1029, 
+0x0449, 0x3c19, 0x3819, 0x1029,
 };
 
-unsigned short int dct_coeff_next[256] = 
+unsigned short int dct_coeff_next[256] =
 {
-0xffff, 0xffff, 0xffff, 0xffff, 
-0xf7d5, 0xf7d5, 0xf7d5, 0xf7d5, 
-0x0826, 0x0826, 0x2416, 0x2416, 
-0x0046, 0x0046, 0x2016, 0x2016, 
-0x1c15, 0x1c15, 0x1c15, 0x1c15, 
-0x1815, 0x1815, 0x1815, 0x1815, 
-0x0425, 0x0425, 0x0425, 0x0425, 
-0x1415, 0x1415, 0x1415, 0x1415, 
-0x3417, 0x0067, 0x3017, 0x2c17, 
-0x0c27, 0x0437, 0x0057, 0x2817, 
-0x0034, 0x0034, 0x0034, 0x0034, 
-0x0034, 0x0034, 0x0034, 0x0034, 
-0x1014, 0x1014, 0x1014, 0x1014, 
-0x1014, 0x1014, 0x1014, 0x1014, 
-0x0c14, 0x0c14, 0x0c14, 0x0c14, 
-0x0c14, 0x0c14, 0x0c14, 0x0c14, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
-0x0011, 0x0011, 0x0011, 0x0011, 
+0xffff, 0xffff, 0xffff, 0xffff,
+0xf7d5, 0xf7d5, 0xf7d5, 0xf7d5,
+0x0826, 0x0826, 0x2416, 0x2416,
+0x0046, 0x0046, 0x2016, 0x2016,
+0x1c15, 0x1c15, 0x1c15, 0x1c15,
+0x1815, 0x1815, 0x1815, 0x1815,
+0x0425, 0x0425, 0x0425, 0x0425,
+0x1415, 0x1415, 0x1415, 0x1415,
+0x3417, 0x0067, 0x3017, 0x2c17,
+0x0c27, 0x0437, 0x0057, 0x2817,
+0x0034, 0x0034, 0x0034, 0x0034,
+0x0034, 0x0034, 0x0034, 0x0034,
+0x1014, 0x1014, 0x1014, 0x1014,
+0x1014, 0x1014, 0x1014, 0x1014,
+0x0c14, 0x0c14, 0x0c14, 0x0c14,
+0x0c14, 0x0c14, 0x0c14, 0x0c14,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0xfbe1, 0xfbe1, 0xfbe1, 0xfbe1,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
+0x0011, 0x0011, 0x0011, 0x0011,
 };
 
-unsigned short int dct_coeff_first[256] = 
+unsigned short int dct_coeff_first[256] =
 {
-0xffff, 0xffff, 0xffff, 0xffff, 
-0xf7d5, 0xf7d5, 0xf7d5, 0xf7d5, 
-0x0826, 0x0826, 0x2416, 0x2416, 
-0x0046, 0x0046, 0x2016, 0x2016, 
-0x1c15, 0x1c15, 0x1c15, 0x1c15, 
-0x1815, 0x1815, 0x1815, 0x1815, 
-0x0425, 0x0425, 0x0425, 0x0425, 
-0x1415, 0x1415, 0x1415, 0x1415, 
-0x3417, 0x0067, 0x3017, 0x2c17, 
-0x0c27, 0x0437, 0x0057, 0x2817, 
-0x0034, 0x0034, 0x0034, 0x0034, 
-0x0034, 0x0034, 0x0034, 0x0034, 
-0x1014, 0x1014, 0x1014, 0x1014, 
-0x1014, 0x1014, 0x1014, 0x1014, 
-0x0c14, 0x0c14, 0x0c14, 0x0c14, 
-0x0c14, 0x0c14, 0x0c14, 0x0c14, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0023, 0x0023, 0x0023, 0x0023, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0813, 0x0813, 0x0813, 0x0813, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0412, 0x0412, 0x0412, 0x0412, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
-0x0010, 0x0010, 0x0010, 0x0010, 
+0xffff, 0xffff, 0xffff, 0xffff,
+0xf7d5, 0xf7d5, 0xf7d5, 0xf7d5,
+0x0826, 0x0826, 0x2416, 0x2416,
+0x0046, 0x0046, 0x2016, 0x2016,
+0x1c15, 0x1c15, 0x1c15, 0x1c15,
+0x1815, 0x1815, 0x1815, 0x1815,
+0x0425, 0x0425, 0x0425, 0x0425,
+0x1415, 0x1415, 0x1415, 0x1415,
+0x3417, 0x0067, 0x3017, 0x2c17,
+0x0c27, 0x0437, 0x0057, 0x2817,
+0x0034, 0x0034, 0x0034, 0x0034,
+0x0034, 0x0034, 0x0034, 0x0034,
+0x1014, 0x1014, 0x1014, 0x1014,
+0x1014, 0x1014, 0x1014, 0x1014,
+0x0c14, 0x0c14, 0x0c14, 0x0c14,
+0x0c14, 0x0c14, 0x0c14, 0x0c14,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0023, 0x0023, 0x0023, 0x0023,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0813, 0x0813, 0x0813, 0x0813,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0412, 0x0412, 0x0412, 0x0412,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
+0x0010, 0x0010, 0x0010, 0x0010,
 };
 
 /* Macro for filling up the decoding table for mb_addr_inc */
@@ -429,7 +429,7 @@ unsigned short int dct_coeff_first[256] =
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -495,9 +495,9 @@ init_mb_addr_inc()
     mb_type[i].mb_intra = intra; \
     mb_type[i].num_bits = num; \
   }
-	 
 
-
+
+
 /*
  *--------------------------------------------------------------
  *
@@ -520,8 +520,8 @@ init_mb_type_P()
 {
   int i;
 
-  mb_type_P[0].mb_quant = mb_type_P[0].mb_motion_forward 
-    = mb_type_P[0].mb_motion_backward = mb_type_P[0].mb_pattern 
+  mb_type_P[0].mb_quant = mb_type_P[0].mb_motion_forward
+    = mb_type_P[0].mb_motion_backward = mb_type_P[0].mb_pattern
       = mb_type_P[0].mb_intra = (unsigned int) ERROR;
   mb_type_P[0].num_bits = 0;
 
@@ -536,7 +536,7 @@ init_mb_type_P()
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -559,8 +559,8 @@ init_mb_type_B()
 {
   int i;
 
-  mb_type_B[0].mb_quant = mb_type_B[0].mb_motion_forward 
-    = mb_type_B[0].mb_motion_backward = mb_type_B[0].mb_pattern 
+  mb_type_B[0].mb_quant = mb_type_B[0].mb_motion_forward
+    = mb_type_B[0].mb_motion_backward = mb_type_B[0].mb_pattern
       = mb_type_B[0].mb_intra = (unsigned int) ERROR;
   mb_type_B[0].num_bits = 0;
 
@@ -593,14 +593,14 @@ init_mb_type_B()
   }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
  * init_motion_vectors --
  *
  *	Initialize the VLC decoding table for the various motion
- *      vectors, including motion_horizontal_forward_code, 
+ *      vectors, including motion_horizontal_forward_code,
  *      motion_vertical_forward_code, motion_horizontal_backward_code,
  *      and motion_vertical_backward_code.
  *
@@ -637,7 +637,7 @@ init_motion_vectors()
 
 extern void init_pre_idct();
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -651,11 +651,11 @@ extern void init_pre_idct();
  *	All the decoding tables will be filled accordingly.
  *
  * Side effects:
- *	The corresponding global array for each decoding table 
+ *	The corresponding global array for each decoding table
  *      will be filled.
  *
  *--------------------------------------------------------------
- */    
+ */
 void
 init_tables()
 {
@@ -675,7 +675,7 @@ init_tables()
 }
 
 #if OLDCODE
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -687,14 +687,14 @@ init_tables()
  *      dct_dc_size_luminance.
  *
  * Results:
- *	The decoded value for dct_dc_size_luminance or ERROR for 
+ *	The decoded value for dct_dc_size_luminance or ERROR for
  *      unbound values will be placed in the location specified.
  *
  * Side effects:
  *	Bit stream is irreversibly parsed.
  *
  *--------------------------------------------------------------
- */        
+ */
 void
 decodeDCTDCSizeLum(value)
 unsigned int *value;
@@ -702,7 +702,7 @@ unsigned int *value;
   unsigned int index;
 
   show_bits5(index);
-  
+
   if (index < 31) {
   	*value = dct_dc_size_luminance[index].value;
   	flush_bits(dct_dc_size_luminance[index].num_bits);
@@ -717,7 +717,7 @@ unsigned int *value;
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -736,15 +736,15 @@ unsigned int *value;
  *	Bit stream is irreversibly parsed.
  *
  *--------------------------------------------------------------
- */    
-void    
+ */
+void
 decodeDCTDCSizeChrom(value)
 unsigned int *value;
 {
   unsigned int index;
 
   show_bits5(index);
-  
+
   if (index < 31) {
   	*value = dct_dc_size_chrominance[index].value;
   	flush_bits(dct_dc_size_chrominance[index].num_bits);
@@ -758,7 +758,7 @@ unsigned int *value;
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -768,26 +768,26 @@ unsigned int *value;
  *      locations where the results of decoding: run and level, are to
  *      be placed and also the type of DCT coefficients, either
  *      dct_coeff_first or dct_coeff_next, are being passed as argument.
- *      
+ *
  *      The decoder first examines the next 8 bits in the input stream,
  *      and perform according to the following cases:
- *      
+ *
  *      '0000 0000' - examine 8 more bits (i.e. 16 bits total) and
  *                    perform a table lookup on dct_coeff_tbl_0.
  *                    One more bit is then examined to determine the sign
  *                    of level.
  *
- *      '0000 0001' - examine 4 more bits (i.e. 12 bits total) and 
+ *      '0000 0001' - examine 4 more bits (i.e. 12 bits total) and
  *                    perform a table lookup on dct_coeff_tbl_1.
  *                    One more bit is then examined to determine the sign
  *                    of level.
- *      
+ *
  *      '0000 0010' - examine 2 more bits (i.e. 10 bits total) and
  *                    perform a table lookup on dct_coeff_tbl_2.
  *                    One more bit is then examined to determine the sign
  *                    of level.
  *
- *      '0000 0011' - examine 2 more bits (i.e. 10 bits total) and 
+ *      '0000 0011' - examine 2 more bits (i.e. 10 bits total) and
  *                    perform a table lookup on dct_coeff_tbl_3.
  *                    One more bit is then examined to determine the sign
  *                    of level.
@@ -795,10 +795,10 @@ unsigned int *value;
  *      otherwise   - perform a table lookup on dct_coeff_tbl. If the
  *                    value of run is not ESCAPE, extract one more bit
  *                    to determine the sign of level; otherwise 6 more
- *                    bits will be extracted to obtain the actual value 
+ *                    bits will be extracted to obtain the actual value
  *                    of run , and then 8 or 16 bits to get the value of level.
- *                    
- *      
+ *
+ *
  *
  * Results:
  *	The decoded values of run and level or ERROR for unbound values
@@ -811,7 +811,7 @@ unsigned int *value;
  */
 static void
 decodeDCTCoeff(dct_coeff_tbl, run, level)
-unsigned short int *dct_coeff_tbl;                                       
+unsigned short int *dct_coeff_tbl;
 unsigned int *run;
 int *level;
 {
@@ -885,12 +885,12 @@ int *level;
     }
   }
   else {
-    if (index == 2) { 
+    if (index == 2) {
       /* show_bits10(index); */
       index = next32bits >> 22;
       value = dct_coeff_tbl_2[index & 3];
     }
-    else if (index == 3) { 
+    else if (index == 3) {
       /* show_bits10(index); */
       index = next32bits >> 22;
       value = dct_coeff_tbl_3[index & 3];
@@ -943,7 +943,7 @@ int *level;
  *	Bit stream is irreversibly parsed.
  *
  *--------------------------------------------------------------
- */        
+ */
 void
 decodeDCTCoeffFirst(run, level)
 unsigned int *run;
@@ -973,8 +973,8 @@ int *level;
  *	Bit stream is irreversibly parsed.
  *
  *--------------------------------------------------------------
- */ 
-void       
+ */
+void
 decodeDCTCoeffNext(run, level)
 unsigned int *run;
 int *level;
@@ -1020,7 +1020,7 @@ static long *r_2_pix_alloc=NULL;
 static long *g_2_pix_alloc=NULL;
 static long *b_2_pix_alloc=NULL;
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1053,7 +1053,7 @@ InitColorDither(int thirty2)
     int CR, CB, i;
 
     if (L_tab==NULL)
-       L_tab = (int *)malloc(256*sizeof(int)); 
+       L_tab = (int *)malloc(256*sizeof(int));
     if (Cr_r_tab==NULL)
        Cr_r_tab = (int *)malloc(256*sizeof(int));
     if (Cr_g_tab==NULL)
@@ -1065,9 +1065,9 @@ InitColorDither(int thirty2)
 
     if (r_2_pix_alloc==NULL)
        r_2_pix_alloc = (long *)malloc(768*sizeof(long));
-    if (g_2_pix_alloc==NULL) 
+    if (g_2_pix_alloc==NULL)
        g_2_pix_alloc = (long *)malloc(768*sizeof(long));
-    if (b_2_pix_alloc==NULL) 
+    if (b_2_pix_alloc==NULL)
        b_2_pix_alloc = (long *)malloc(768*sizeof(long));
 
     if (L_tab == NULL ||
@@ -1088,11 +1088,11 @@ InitColorDither(int thirty2)
       CB -= 128; CR -= 128;
       Cr_r_tab[i] = (int) (0.419/0.299) * CR;
       Cr_g_tab[i] = - (int)(0.299/0.419) * CR;
-      Cb_g_tab[i] = - (int)(0.114/0.331) * CB; 
+      Cb_g_tab[i] = - (int)(0.114/0.331) * CB;
       Cb_b_tab[i] = (int)(0.587/0.331) * CB;
     }
 
-    /* 
+    /*
      * Set up entries 0-255 in rgb-to-pixel value tables.
      */
     for (i = 0; i < 256; i++) {
@@ -1105,7 +1105,7 @@ InitColorDither(int thirty2)
       /*
        * If we have 16-bit output depth, then we double the value
        * in the top word. This means that we can write out both
-       * pixels in the pixel doubling mode with one op. It is 
+       * pixels in the pixel doubling mode with one op. It is
        * harmless in the normal case as storing a 32-bit value
        * through a short pointer will lose the top bits anyway.
        * A similar optimisation for Alpha for 64 bit has been
@@ -1132,7 +1132,7 @@ InitColorDither(int thirty2)
 
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1235,7 +1235,7 @@ unsigned char pixel[256];
 extern char *strrchr();
 #define PPM_BITS 8
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1272,19 +1272,19 @@ ExecuteTexture(
   for (i=0; i<vid_stream->v_size; i++) {
 	  p = (unsigned int *) vid_stream->current->display + i*hsize;
 	  for (j=0; j<vid_stream->h_size; j++){
-		  
+
     		r = *p & 0xff;
     		g = (*p >> PPM_BITS) & 0xff;
     		b = (*p >> (2*PPM_BITS)) & 0xff;
-    		Image [vid_stream->v_size-i-1][j][0]=r; 
-    		Image [vid_stream->v_size-i-1][j][1]=g; 
-    		Image [vid_stream->v_size-i-1][j][2]=b; 
+    		Image [vid_stream->v_size-i-1][j][0]=r;
+    		Image [vid_stream->v_size-i-1][j][1]=g;
+    		Image [vid_stream->v_size-i-1][j][2]=b;
 		p++;
 	}
   }
 
   /* store this frame for later binding in the correct thread */
-	*xSize= vid_stream->h_size; 
+	*xSize= vid_stream->h_size;
 	*ySize = vid_stream->v_size;
 
   	blockSize = sizeof(GLubyte) * 3 * vid_stream->v_size * vid_stream->h_size;
@@ -1305,7 +1305,7 @@ unsigned int nBitMask[] = { 0x00000000, 0x80000000, 0xc0000000, 0xe0000000,
 				0xffffff00, 0xffffff80, 0xffffffc0, 0xffffffe0,
 				0xfffffff0, 0xfffffff8, 0xfffffffc, 0xfffffffe};
 
-unsigned int bitMask[] = {  0xffffffff, 0x7fffffff, 0x3fffffff, 0x1fffffff, 
+unsigned int bitMask[] = {  0xffffffff, 0x7fffffff, 0x3fffffff, 0x1fffffff,
 			    0x0fffffff, 0x07ffffff, 0x03ffffff, 0x01ffffff,
 			    0x00ffffff, 0x007fffff, 0x003fffff, 0x001fffff,
 			    0x000fffff, 0x0007ffff, 0x0003ffff, 0x0001ffff,
@@ -1314,16 +1314,16 @@ unsigned int bitMask[] = {  0xffffffff, 0x7fffffff, 0x3fffffff, 0x1fffffff,
 			    0x000000ff, 0x0000007f, 0x0000003f, 0x0000001f,
 			    0x0000000f, 0x00000007, 0x00000003, 0x00000001};
 
-unsigned int rBitMask[] = { 0xffffffff, 0xfffffffe, 0xfffffffc, 0xfffffff8, 
-			    0xfffffff0, 0xffffffe0, 0xffffffc0, 0xffffff80, 
-			    0xffffff00, 0xfffffe00, 0xfffffc00, 0xfffff800, 
-			    0xfffff000, 0xffffe000, 0xffffc000, 0xffff8000, 
-			    0xffff0000, 0xfffe0000, 0xfffc0000, 0xfff80000, 
-			    0xfff00000, 0xffe00000, 0xffc00000, 0xff800000, 
-			    0xff000000, 0xfe000000, 0xfc000000, 0xf8000000, 
+unsigned int rBitMask[] = { 0xffffffff, 0xfffffffe, 0xfffffffc, 0xfffffff8,
+			    0xfffffff0, 0xffffffe0, 0xffffffc0, 0xffffff80,
+			    0xffffff00, 0xfffffe00, 0xfffffc00, 0xfffff800,
+			    0xfffff000, 0xffffe000, 0xffffc000, 0xffff8000,
+			    0xffff0000, 0xfffe0000, 0xfffc0000, 0xfff80000,
+			    0xfff00000, 0xffe00000, 0xffc00000, 0xff800000,
+			    0xff000000, 0xfe000000, 0xfc000000, 0xf8000000,
 			    0xf0000000, 0xe0000000, 0xc0000000, 0x80000000};
 
-unsigned int bitTest[] = {  0x80000000, 0x40000000, 0x20000000, 0x10000000, 
+unsigned int bitTest[] = {  0x80000000, 0x40000000, 0x20000000, 0x10000000,
 			    0x08000000, 0x04000000, 0x02000000, 0x01000000,
 			    0x00800000, 0x00400000, 0x00200000, 0x00100000,
 			    0x00080000, 0x00040000, 0x00020000, 0x00010000,
@@ -1332,27 +1332,27 @@ unsigned int bitTest[] = {  0x80000000, 0x40000000, 0x20000000, 0x10000000,
 			    0x00000080, 0x00000040, 0x00000020, 0x00000010,
 			    0x00000008, 0x00000004, 0x00000002, 0x00000001};
 
-
+
 /*
  *--------------------------------------------------------------
  *
  * correct_underflow --
  *
- *	Called when buffer does not have sufficient data to 
+ *	Called when buffer does not have sufficient data to
  *      satisfy request for bits.
  *      Calls get_more_data, an application specific routine
  *      required to fill the buffer with more data.
  *
  * Results:
  *      None really.
- *  
+ *
  * Side effects:
  *	buf_length and buffer fields may be changed.
  *
  *--------------------------------------------------------------
  */
 
-void 
+void
 correct_underflow(
    mpeg_VidStream *vid_stream )
 {
@@ -1379,7 +1379,7 @@ correct_underflow(
 
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1415,7 +1415,7 @@ mpeg_VidStream *vid_stream )
   show_bitsn(num, stream);
 
   /* Compare bit stream and mask. Set return value toTRUE if equal, FALSE if
-     differs. 
+     differs.
   */
 
   if (mask == stream) {
@@ -1426,15 +1426,15 @@ mpeg_VidStream *vid_stream )
   return ret_value;
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
  * get_ext_data --
  *
  *	Assumes that bit stream is at begining of extension
- *      data. Parses off extension data into dynamically 
- *      allocated space until start code is hit. 
+ *      data. Parses off extension data into dynamically
+ *      allocated space until start code is hit.
  *
  * Results:
  *	Pointer to dynamically allocated memory containing
@@ -1493,7 +1493,7 @@ char *get_ext_data (
   return dataPtr;
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1549,7 +1549,7 @@ int next_start_code(
 
     /* If insufficient data exists, correct underflow. */
 
-    
+
     if (vid_stream->buf_length < 4) {
       correct_underflow(vid_stream);
     }
@@ -1589,7 +1589,7 @@ int next_start_code(
     if (state == 3) {
 
       /* Set buffer pointer back and reset length & bit offsets so
-       * next bytes will be beginning of start code. 
+       * next bytes will be beginning of start code.
        */
 
       vid_stream->bit_offset = vid_stream->bit_offset - 24;
@@ -1621,13 +1621,13 @@ int next_start_code(
   return STREAM_UNDERFLOW;
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
  * get_extra_bit_info --
  *
- *	Parses off extra bit info stream into dynamically 
+ *	Parses off extra bit info stream into dynamically
  *      allocated memory. Extra bit info is indicated by
  *      a flag bit set to 1, followed by 8 bits of data.
  *      This continues until the flag bit is zero. Assumes
@@ -1705,7 +1705,7 @@ extern int dcprec;
 
 #define Sign(num) ((num > 0) ? 1 : ((num == 0) ? 0 : -1))
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1713,15 +1713,15 @@ extern int dcprec;
  *
  *    Parse values for block structure from bitstream.
  *      n is an indication of the position of the block within
- *      the macroblock (i.e. 0-5) and indicates the type of 
+ *      the macroblock (i.e. 0-5) and indicates the type of
  *      block (i.e. luminance or chrominance). Reconstructs
- *      coefficients from values parsed and puts in 
+ *      coefficients from values parsed and puts in
  *      block.dct_recon array in vid stream structure.
  *      sparseFlag is set when the block contains only one
  *      coeffictient and is used by the IDCT.
  *
  * Results:
- *    
+ *
  *
  * Side effects:
  *      Bit stream irreversibly parsed.
@@ -1751,7 +1751,7 @@ ParseReconBlock(
 
   Block *blockPtr = &vid_stream->block;
   int coeffCount=0;
-  
+
   if (vid_stream->buf_length < 100)
     correct_underflow(vid_stream);
 
@@ -1785,7 +1785,7 @@ ParseReconBlock(
 
     reconptr = DCT_recon[0];
 
-    /* 
+    /*
      * Hand coded version of memset that's a little faster...
      * Old call:
      *    memset((char *) DCT_recon, 0, 64*sizeof(short int));
@@ -1794,7 +1794,7 @@ ParseReconBlock(
       int *p;
       p = (int *) reconptr;
 
-      p[0] = p[1] = p[2] = p[3] = p[4] = p[5] = p[6] = p[7] = p[8] = p[9] = 
+      p[0] = p[1] = p[2] = p[3] = p[4] = p[5] = p[6] = p[7] = p[8] = p[9] =
       p[10] = p[11] = p[12] = p[13] = p[14] = p[15] = p[16] = p[17] = p[18] =
       p[19] = p[20] = p[21] = p[22] = p[23] = p[24] = p[25] = p[26] = p[27] =
       p[28] = p[29] = p[30] = p[31] = 0;
@@ -1863,7 +1863,7 @@ ParseReconBlock(
         }
 
       } else { /* n = 4 or 5 */
-    
+
     /*
      * Get the chrominance bits.  This code has been hand optimized to
      * as described above
@@ -1883,7 +1883,7 @@ ParseReconBlock(
           flushed = dct_dc_size_chrominance1[index].num_bits;
         }
         next16bits &= bitMask[16+flushed];
-    
+
         if (size != 0) {
           flushed += size;
           diff = next16bits >> (16-flushed);
@@ -1894,7 +1894,7 @@ ParseReconBlock(
           diff = 0;
         }
         flush_bits(flushed);
-    
+
       /* We test 5 first; a result of the mixup of Cr and Cb */
         if (n == 5) {
           coeff = diff << 3;
@@ -1917,19 +1917,19 @@ ParseReconBlock(
           DCT_dc_cb_past = coeff;
         }
       }
-      
+
       *reconptr = coeff;
-      i = 0; 
+      i = 0;
       pos = 0;
       coeffCount = (coeff != 0);
-    
+
       if (vid_stream->picture.code_type != 4) {
-    
+
         qscale = vid_stream->slice.quant_scale;
         iqmatrixptr = vid_stream->intra_quant_matrix[0];
-    
+
         while(1) {
-      
+
           DECODE_DCT_COEFF_NEXT(run, level);
 
           if (run >= END_OF_BLOCK) break;
@@ -1939,12 +1939,12 @@ ParseReconBlock(
 
           /* quantizes and oddifies each coefficient */
           if (level < 0) {
-            coeff = ((level<<1) * qscale * 
-                     ((int) (iqmatrixptr[pos]))) / 16; 
+            coeff = ((level<<1) * qscale *
+                     ((int) (iqmatrixptr[pos]))) / 16;
             coeff += (1 - (coeff & 1));
           } else {
-            coeff = ((level<<1) * qscale * 
-                     ((int) (*(iqmatrixptr+pos)))) >> 4; 
+            coeff = ((level<<1) * qscale *
+                     ((int) (*(iqmatrixptr+pos)))) >> 4;
             coeff -= (1 - (coeff & 1));
           }
           reconptr[pos] = coeff;
@@ -1956,10 +1956,10 @@ ParseReconBlock(
 		goto end;
       }
     } else { /* non-intra-coded macroblock */
-      
+
       niqmatrixptr = vid_stream->non_intra_quant_matrix[0];
       qscale = vid_stream->slice.quant_scale;
-      
+
       DECODE_DCT_COEFF_FIRST(run, level);
       i = run;
 
@@ -1967,12 +1967,12 @@ ParseReconBlock(
 
         /* quantizes and oddifies each coefficient */
       if (level < 0) {
-        coeff = (((level<<1) - 1) * qscale * 
-                 ((int) (niqmatrixptr[pos]))) / 16; 
+        coeff = (((level<<1) - 1) * qscale *
+                 ((int) (niqmatrixptr[pos]))) / 16;
 	if ((coeff & 1) == 0) {coeff = coeff + 1;}
       } else {
-        coeff = (((level<<1) + 1) * qscale * 
-                 ((int) (*(niqmatrixptr+pos)))) >> 4; 
+        coeff = (((level<<1) + 1) * qscale *
+                 ((int) (*(niqmatrixptr+pos)))) >> 4;
 	coeff = (coeff-1) | 1; /* equivalent to: if ((coeff&1)==0) coeff = coeff - 1; */
       }
 
@@ -1982,9 +1982,9 @@ ParseReconBlock(
       }
 
       if (vid_stream->picture.code_type != 4) {
-    
+
         while(1) {
-      
+
           DECODE_DCT_COEFF_NEXT(run, level);
 
           if (run >= END_OF_BLOCK) {
@@ -1994,12 +1994,12 @@ ParseReconBlock(
           i = i+run+1;
           pos = zigzag_direct[i];
           if (level < 0) {
-            coeff = (((level<<1) - 1) * qscale * 
-                     ((int) (niqmatrixptr[pos]))) / 16; 
+            coeff = (((level<<1) - 1) * qscale *
+                     ((int) (niqmatrixptr[pos]))) / 16;
             if ((coeff & 1) == 0) {coeff = coeff + 1;}
           } else {
-            coeff = (((level<<1) + 1) * qscale * 
-                     ((int) (*(niqmatrixptr+pos)))) >> 4; 
+            coeff = (((level<<1) + 1) * qscale *
+                     ((int) (*(niqmatrixptr+pos)))) >> 4;
             coeff = (coeff-1) | 1; /* equivalent to: if ((coeff&1)==0) coeff = coeff - 1; */
           }
           reconptr[pos] = coeff;
@@ -2011,7 +2011,7 @@ ParseReconBlock(
         goto end;
       } /* end if (vid_stream->picture.code_type != 4) */
     }
-    
+
   end:
 
     if (coeffCount == 1) {
@@ -2045,13 +2045,13 @@ ParseReconBlock(
   bitBuffer = temp_bitBuffer;
 #endif
 }
-    
-#undef DCT_recon 
-#undef DCT_dc_y_past 
-#undef DCT_dc_cr_past 
-#undef DCT_dc_cb_past 
 
-
+#undef DCT_recon
+#undef DCT_dc_y_past
+#undef DCT_dc_cr_past
+#undef DCT_dc_cb_past
+
+
 /*
  *--------------------------------------------------------------
  *
@@ -2215,7 +2215,7 @@ static int No_B_Flag = FALSE;
 static unsigned char cropTbl[NUM_CROP_ENTRIES];
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2240,7 +2240,7 @@ ReadSysClock()
   return (tv.tv_sec + tv.tv_usec / 1000000.0);
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2281,7 +2281,7 @@ InitCrop()
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2363,10 +2363,10 @@ mpg_NewVidStream(
   }
 
   /* Create buffer. */
-  
+
 
   newstream->buf_start = (unsigned int *) malloc(buffer_len * 4);
-  
+
   /*
    * Set max_buf_length to one less than actual length to deal with messy
    * data without proper seq. end codes.
@@ -2391,7 +2391,7 @@ mpg_NewVidStream(
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2453,7 +2453,7 @@ Destroympeg_VidStream(
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2492,7 +2492,7 @@ NewPictImage( mpeg_VidStream *vid_stream )
     temp_sz = vid_stream->matched_depth >> 3;
     if(!temp_sz) temp_sz = 1;
     if(temp_sz == 3) temp_sz = 4;
-    factor = 1; 
+    factor = 1;
 
     newimage->display = (unsigned char *) malloc(width * height * temp_sz *
                                                             factor * factor);
@@ -2500,9 +2500,9 @@ NewPictImage( mpeg_VidStream *vid_stream )
   newimage->luminance = (unsigned char *) malloc(width * height);
   newimage->Cr = (unsigned char *) malloc(width * height / 4);
   newimage->Cb = (unsigned char *) malloc(width * height / 4);
-  
+
   /* Reset locked flag. */
-  
+
   newimage->locked = 0;
 
   /* Return pointer to new structure. */
@@ -2511,7 +2511,7 @@ NewPictImage( mpeg_VidStream *vid_stream )
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2546,7 +2546,7 @@ DestroyPictImage(
   free(apictimage);
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2683,7 +2683,7 @@ mpegVidRsrc(
     flush_bits32;
     next_start_code(vid_stream);
     goto done;
-    
+
   default:
 
     /* Check for slice start code. */
@@ -2756,7 +2756,7 @@ done:
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -2902,7 +2902,7 @@ ParseSeqHead(
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -3007,7 +3007,7 @@ ParseGOP(
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -3061,7 +3061,7 @@ ParsePicture(
 
   /* If P or B type frame... */
 
-  if ((vid_stream->picture.code_type == P_TYPE) || 
+  if ((vid_stream->picture.code_type == P_TYPE) ||
       (vid_stream->picture.code_type == B_TYPE)) {
 
     /* Parse off forward vector full pixel flag. */
@@ -3158,7 +3158,7 @@ ParsePicture(
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -3229,7 +3229,7 @@ ParseSlice(
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -3259,15 +3259,15 @@ ParseMacroBlock(
   int mask, i, recon_right_for, recon_down_for, recon_right_back,
       recon_down_back;
   int zero_block_flag;
-  int mb_quant = 0, mb_motion_forw = 0, mb_motion_back = 0, 
+  int mb_quant = 0, mb_motion_forw = 0, mb_motion_back = 0,
       mb_pattern = 0;
 
   /*
    * Parse off macroblock address increment and add to macroblock address.
    */
   do {
-    unsigned int ind;				       
-    show_bits11(ind);				       
+    unsigned int ind;
+    show_bits11(ind);
     DecodeMBAddrInc(addr_incr);
     if (mb_addr_inc[ind].num_bits==0) {
       addr_incr = 1;
@@ -3413,9 +3413,9 @@ ParseMacroBlock(
       vid_stream->mblock.recon_right_back_prev = 0;
       vid_stream->mblock.recon_down_back_prev = 0;
     } else {
-      
+
       /* If no forw vectors, current vectors equal prev. vectors. */
-      
+
       if (!mb_motion_forw) {
 	recon_right_for = vid_stream->mblock.recon_right_for_prev;
 	recon_down_for = vid_stream->mblock.recon_down_for_prev;
@@ -3423,13 +3423,13 @@ ParseMacroBlock(
       /*
        * Otherwise compute forw. vectors. Reset prev vectors to new values.
        */
-      
+
       else {
 	ComputeForwVector(&recon_right_for, &recon_down_for, vid_stream);
       }
-      
+
       /* If no back vectors, set back vectors to prev back vectors. */
-      
+
       if (!mb_motion_back) {
         recon_right_back = vid_stream->mblock.recon_right_back_prev;
         recon_down_back = vid_stream->mblock.recon_down_back_prev;
@@ -3451,7 +3451,7 @@ ParseMacroBlock(
   }
 
       for (mask = 32, i = 0; i < 6; mask >>= 1, i++) {
-	
+
 	/* If block exists... */
 	if ((vid_stream->mblock.mb_intra) || (vid_stream->mblock.cbp & mask)) {
 	  zero_block_flag = 0;
@@ -3459,7 +3459,7 @@ ParseMacroBlock(
 	} else {
 	  zero_block_flag = 1;
 	}
-	
+
 	/* If macroblock is intra coded... */
 	if (vid_stream->mblock.mb_intra) {
 	  ReconIMBlock(vid_stream, i);
@@ -3488,7 +3488,7 @@ ParseMacroBlock(
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -3635,7 +3635,7 @@ ReconIMBlock(
 }
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -3655,7 +3655,7 @@ ReconIMBlock(
 static void
 ReconPMBlock(
   mpeg_VidStream *vid_stream,
-  int bnum, 
+  int bnum,
   int recon_right_for,
   int recon_down_for,
   int zflag)
@@ -3768,16 +3768,16 @@ ReconPMBlock(
 
   /* For each pixel in block... */
     index = dest + (row * row_size) + col;
-    rindex1 = past + (row + vid_stream->down_for) * row_size 
+    rindex1 = past + (row + vid_stream->down_for) * row_size
 	      + col + vid_stream->right_for;
-    
+
     blockvals = &(vid_stream->block.dct_recon[0][0]);
-    
+
     /*
      * Calculate predictive pixel value based on motion vectors and copy to
      * dest plane.
      */
-    
+
     if ((!vid_stream->down_half_for) && (!vid_stream->right_half_for)) {
       unsigned char *cm = cropTbl + MAX_NEG_CROP;
       if (!zflag)
@@ -3792,7 +3792,7 @@ ReconPMBlock(
           index[7] = cm[(int) rindex1[7] + (int) blockvals[7]];
           index += row_size;
           rindex1 += row_size;
-      
+
           index[0] = cm[(int) rindex1[0] + (int) blockvals[8]];
           index[1] = cm[(int) rindex1[1] + (int) blockvals[9]];
           index[2] = cm[(int) rindex1[2] + (int) blockvals[10]];
@@ -3819,7 +3819,7 @@ ReconPMBlock(
             index[7] = rindex1[7];
             index += row_size;
             rindex1 += row_size;
-            
+
             index[0] = rindex1[0];
             index[1] = rindex1[1];
             index[2] = rindex1[2];
@@ -3843,7 +3843,7 @@ ReconPMBlock(
             dest[3] = src[3];
             dest += row_size;
             src += row_size;
-            
+
             dest[0] = src[0];
             dest[1] = src[1];
             dest[2] = src[2];
@@ -3861,7 +3861,7 @@ ReconPMBlock(
             dest[1] = src[1];
             dest += row_size;
             src += row_size;
-            
+
             dest[0] = src[0];
             dest[1] = src[1];
             dest += row_size;
@@ -3871,11 +3871,11 @@ ReconPMBlock(
       }
     } else {
       unsigned char *cm = cropTbl + MAX_NEG_CROP;
-      rindex2 = rindex1 + vid_stream->right_half_for 
+      rindex2 = rindex1 + vid_stream->right_half_for
 		+ (vid_stream->down_half_for * row_size);
 
       /* if one of the two is zero, then quality makes no difference */
-        
+
         if (!zflag) {
           for (rr = 0; rr < 4; rr++) {
             index[0] = cm[((int) (rindex1[0] + rindex2[0] + 1) >> 1) + blockvals[0]];
@@ -3889,7 +3889,7 @@ ReconPMBlock(
             index += row_size;
             rindex1 += row_size;
             rindex2 += row_size;
-        
+
             index[0] = cm[((int) (rindex1[0] + rindex2[0] + 1) >> 1) + blockvals[8]];
             index[1] = cm[((int) (rindex1[1] + rindex2[1] + 1) >> 1) + blockvals[9]];
             index[2] = cm[((int) (rindex1[2] + rindex2[2] + 1) >> 1) + blockvals[10]];
@@ -3922,7 +3922,7 @@ ReconPMBlock(
     }
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -4071,7 +4071,7 @@ ReconBMBlock(
 	  index[7] = cm[(int) rindex1[7] + (int) blockvals[7]];
 	  index += row_size;
 	  rindex1 += row_size;
-	  
+
 	  index[0] = cm[(int) rindex1[0] + (int) blockvals[8]];
 	  index[1] = cm[(int) rindex1[1] + (int) blockvals[9]];
 	  index[2] = cm[(int) rindex1[2] + (int) blockvals[10]];
@@ -4098,7 +4098,7 @@ ReconBMBlock(
 	    index[7] = rindex1[7];
 	    index += row_size;
 	    rindex1 += row_size;
-	    
+
 	    index[0] = rindex1[0];
 	    index[1] = rindex1[1];
 	    index[2] = rindex1[2];
@@ -4122,7 +4122,7 @@ ReconBMBlock(
 	    dest[3] = src[3];
 	    dest += row_size;
 	    src += row_size;
-	    
+
 	    dest[0] = src[0];
 	    dest[1] = src[1];
 	    dest[2] = src[2];
@@ -4140,7 +4140,7 @@ ReconBMBlock(
 	    dest[1] = src[1];
 	    dest += row_size;
 	    src += row_size;
-	    
+
 	    dest[0] = src[0];
 	    dest[1] = src[1];
 	    dest += row_size;
@@ -4164,7 +4164,7 @@ ReconBMBlock(
             index += row_size;
             rindex1 += row_size;
             rindex2 += row_size;
-        
+
             index[0] = cm[((int) (rindex1[0] + rindex2[0] + 1) >> 1) + blockvals[8]];
             index[1] = cm[((int) (rindex1[1] + rindex2[1] + 1) >> 1) + blockvals[9]];
             index[2] = cm[((int) (rindex1[2] + rindex2[2] + 1) >> 1) + blockvals[10]];
@@ -4196,7 +4196,7 @@ ReconBMBlock(
     }
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -4439,7 +4439,7 @@ ReconBiMBlock(
   }
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -4563,7 +4563,7 @@ ProcessSkippedPFrameMBlocks(
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -4629,60 +4629,60 @@ ProcessSkippedBFrameMBlocks(
 
 
   /* If only one motion vector, do display copy, else do full
-     calculation. 
+     calculation.
   */
 
   /* Calculate motion vectors. */
-  
+
   if (vid_stream->mblock.bpict_past_forw) {
     right_for = recon_right_for >> 1;
     down_for = recon_down_for >> 1;
     right_half_for = recon_right_for & 0x1;
     down_half_for = recon_down_for & 0x1;
-    
+
     recon_right_for /= 2;
     recon_down_for /= 2;
     c_right_for = recon_right_for >> 1;
     c_down_for = recon_down_for >> 1;
     c_right_half_for = recon_right_for & 0x1;
     c_down_half_for = recon_down_for & 0x1;
-    
+
   }
   if (vid_stream->mblock.bpict_past_back) {
     right_back = recon_right_back >> 1;
     down_back = recon_down_back >> 1;
     right_half_back = recon_right_back & 0x1;
     down_half_back = recon_down_back & 0x1;
-    
+
     recon_right_back /= 2;
     recon_down_back /= 2;
     c_right_back = recon_right_back >> 1;
     c_down_back = recon_down_back >> 1;
     c_right_half_back = recon_right_back & 0x1;
     c_down_half_back = recon_down_back & 0x1;
-    
+
   }
   /* For each skipped macroblock, do... */
-  
+
   for (addr = vid_stream->mblock.past_mb_addr + 1;
        addr < vid_stream->mblock.mb_address; addr++) {
-    
+
     /* Calculate macroblock row and col. */
-    
+
     mb_row = addr / vid_stream->mb_width;
     mb_col = addr % vid_stream->mb_width;
-    
+
     /* Calculate upper left pixel row,col for luminance plane. */
-    
+
     row = mb_row << 4;
     col = mb_col << 4;
     crow = row / 2;
     ccol = col / 2;
-    
+
     /* If forward predicted, calculate prediction values. */
-    
+
     if (vid_stream->mblock.bpict_past_forw) {
-      
+
       ReconSkippedBlock(vid_stream->past->luminance, forw_lum,
 			row, col, row_size, right_for, down_for,
 			right_half_for, down_half_for, 16);
@@ -4694,7 +4694,7 @@ ProcessSkippedBFrameMBlocks(
 			c_right_for, c_down_for, c_right_half_for, c_down_half_for, 8);
     }
     /* If back predicted, calculate prediction values. */
-    
+
     if (vid_stream->mblock.bpict_past_back) {
       ReconSkippedBlock(vid_stream->future->luminance, back_lum,
 			row, col, row_size, right_back, down_back,
@@ -4710,14 +4710,14 @@ ProcessSkippedBFrameMBlocks(
     }
     if (vid_stream->mblock.bpict_past_forw &&
 	!vid_stream->mblock.bpict_past_back) {
-      
+
       int *dest, *dest1;
       int *src, *src1;
       dest = (int *)(vid_stream->current->luminance + (row * row_size) + col);
       src = (int *)forw_lum;
-      
+
       for (rr = 0; rr < 16; rr++) {
-	
+
 	/* memcpy(dest, forw_lum+(rr<<4), 16);  */
 	dest[0] = src[0];
 	dest[1] = src[1];
@@ -4726,24 +4726,24 @@ ProcessSkippedBFrameMBlocks(
 	dest += row_incr;
 	src += 4;
       }
-      
+
       dest = (int *)(vid_stream->current->Cr + (crow * half_row) + ccol);
       dest1 = (int *)(vid_stream->current->Cb + (crow * half_row) + ccol);
       src = (int *)forw_cr;
       src1 = (int *)forw_cb;
-      
+
       for (rr = 0; rr < 8; rr++) {
 	/*
 	 * memcpy(dest, forw_cr+(rr<<3), 8); memcpy(dest1, forw_cb+(rr<<3),
 	 * 8);
 	 */
-	
+
 	dest[0] = src[0];
 	dest[1] = src[1];
-	
+
 	dest1[0] = src1[0];
 	dest1[1] = src1[1];
-	
+
 	dest += half_row_incr;
 	dest1 += half_row_incr;
 	src += 2;
@@ -4751,12 +4751,12 @@ ProcessSkippedBFrameMBlocks(
       }
     } else if (vid_stream->mblock.bpict_past_back &&
 	       !vid_stream->mblock.bpict_past_forw) {
-      
+
       int *src, *src1;
       int *dest, *dest1;
       dest = (int *)(vid_stream->current->luminance + (row * row_size) + col);
       src = (int *)back_lum;
-      
+
       for (rr = 0; rr < 16; rr++) {
 	dest[0] = src[0];
 	dest[1] = src[1];
@@ -4765,38 +4765,38 @@ ProcessSkippedBFrameMBlocks(
 	dest += row_incr;
 	src += 4;
       }
-      
-      
+
+
       dest = (int *)(vid_stream->current->Cr + (crow * half_row) + ccol);
       dest1 = (int *)(vid_stream->current->Cb + (crow * half_row) + ccol);
       src = (int *)back_cr;
       src1 = (int *)back_cb;
-      
+
       for (rr = 0; rr < 8; rr++) {
 	/*
 	 * memcpy(dest, back_cr+(rr<<3), 8); memcpy(dest1, back_cb+(rr<<3),
 	 * 8);
 	 */
-	
+
 	dest[0] = src[0];
 	dest[1] = src[1];
-	
+
 	dest1[0] = src1[0];
 	dest1[1] = src1[1];
-	
+
 	dest += half_row_incr;
 	dest1 += half_row_incr;
 	src += 2;
 	src1 += 2;
       }
     } else {
-      
+
       unsigned char *src1, *src2, *src1a, *src2a;
       unsigned char *dest, *dest1;
       dest = vid_stream->current->luminance + (row * row_size) + col;
       src1 = forw_lum;
       src2 = back_lum;
-      
+
       for (rr = 0; rr < 16; rr++) {
         dest[0] = (int) (src1[0] + src2[0]) >> 1;
         dest[1] = (int) (src1[1] + src2[1]) >> 1;
@@ -4818,15 +4818,15 @@ ProcessSkippedBFrameMBlocks(
         src1 += 16;
         src2 += 16;
       }
-      
-      
+
+
       dest = vid_stream->current->Cr + (crow * half_row) + ccol;
       dest1 = vid_stream->current->Cb + (crow * half_row) + ccol;
       src1 = forw_cr;
       src2 = back_cr;
       src1a = forw_cb;
       src2a = back_cb;
-      
+
       for (rr = 0; rr < 8; rr++) {
         dest[0] = (int) (src1[0] + src2[0]) >> 1;
         dest[1] = (int) (src1[1] + src2[1]) >> 1;
@@ -4839,7 +4839,7 @@ ProcessSkippedBFrameMBlocks(
         dest += half_row;
         src1 += 8;
         src2 += 8;
-	
+
         dest1[0] = (int) (src1a[0] + src2a[0]) >> 1;
         dest1[1] = (int) (src1a[1] + src2a[1]) >> 1;
         dest1[2] = (int) (src1a[2] + src2a[2]) >> 1;
@@ -4853,14 +4853,14 @@ ProcessSkippedBFrameMBlocks(
         src2a += 8;
       }
     }
-    
+
   }
 }
 
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -5035,7 +5035,7 @@ ReconSkippedBlock(
 
 
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -5063,11 +5063,11 @@ DoPictureDisplay(
   if (No_B_Flag && (vid_stream->picture.code_type == B_TYPE)) return;
 
   /* Convert to colormap space and dither. */
- Color32DitherImage(vid_stream->current->luminance, 
+ Color32DitherImage(vid_stream->current->luminance,
 		vid_stream->current->Cr,
-		vid_stream->current->Cb, 
+		vid_stream->current->Cb,
 		vid_stream->current->display,
-		vid_stream->mb_height * 16, 
+		vid_stream->mb_height * 16,
 		vid_stream->mb_width * 16);
 
 
@@ -5099,7 +5099,7 @@ DoPictureDisplay(
 
 
 #define GLOBAL			/* a function referenced thru EXTERNs */
-  
+
 /* We assume that right shift corresponds to signed division by 2 with
  * rounding towards minus infinity.  This is correct for typical "arithmetic
  * shift" instructions that shift in copies of the sign bit.  But some
@@ -5109,7 +5109,7 @@ DoPictureDisplay(
  * It is only applied with constant shift counts.  SHIFT_TEMPS must be
  * included in the variables of any routine using RIGHT_SHIFT.
  */
-  
+
 #ifdef RIGHT_SHIFT_IS_UNSIGNED
 #define SHIFT_TEMPS	int shift_temp;
 #define RIGHT_SHIFT(x,shft)  \
@@ -5216,13 +5216,13 @@ DoPictureDisplay(
 
 #define MULTIPLY(var,const)  ((var) * (const))
 
-#define SPARSE_SCALE_FACTOR  8 
+#define SPARSE_SCALE_FACTOR  8
 
 /* Precomputed idct value arrays. */
 
 static DCTELEM PreIDCT[64][64];
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -5249,7 +5249,7 @@ init_pre_idct() {
   }
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -5287,7 +5287,7 @@ j_rev_dct_sparse (
 
 
   /* If DC Coefficient. */
-  
+
   if (pos == 0) {
     dp = (int *)data;
     v = *data;
@@ -5317,7 +5317,7 @@ j_rev_dct_sparse (
 
     return;
   }
-  
+
   /* Some other coefficient. */
 
 #ifdef SPARSE_AC
@@ -5373,7 +5373,7 @@ j_rev_dct_sparse (
 
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -5400,7 +5400,7 @@ j_rev_dct (
   register DCTELEM *dataptr;
   int rowctr;
   SHIFT_TEMPS
-   
+
   /* Pass 1: process rows. */
   /* Note results are scaled up by sqrt(8) compared to a true IDCT; */
   /* furthermore, we scale the results by 2**PASS1_BITS. */
@@ -5426,13 +5426,13 @@ j_rev_dct (
 	  /* Compute a 32 bit value to assign. */
 	  DCTELEM dcval = (DCTELEM) (d0 << PASS1_BITS);
 	  register int v = (dcval & 0xffff) | (dcval << 16);
-	  
+
 	  idataptr[0] = v;
 	  idataptr[1] = v;
 	  idataptr[2] = v;
 	  idataptr[3] = v;
       }
-      
+
       dataptr += DCTSIZE;	/* advance pointer to next row */
       continue;
     }
@@ -5637,8 +5637,8 @@ j_rev_dct (
 		    z3 = d7 + d3;
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(z3 + z4, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
@@ -5646,10 +5646,10 @@ j_rev_dct (
 		    z2 = MULTIPLY(z2, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX(1.961570560));
 		    z4 = MULTIPLY(z4, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 += z2 + z3;
@@ -5659,18 +5659,18 @@ j_rev_dct (
 		    z2 = d5 + d3;
 		    z3 = d7 + d3;
 		    z5 = MULTIPLY(z3 + d5, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    z1 = MULTIPLY(d7, - FIX(0.899976223));
 		    z2 = MULTIPLY(z2, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX(1.961570560));
 		    z4 = MULTIPLY(d5, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 += z2 + z3;
@@ -5682,18 +5682,18 @@ j_rev_dct (
 		    z1 = d7 + d1;
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(d7 + z4, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
 		    z1 = MULTIPLY(z1, - FIX(0.899976223));
 		    z2 = MULTIPLY(d5, - FIX(2.562915447));
 		    z3 = MULTIPLY(d7, - FIX(1.961570560));
 		    z4 = MULTIPLY(z4, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 = z2 + z3;
@@ -5708,10 +5708,10 @@ j_rev_dct (
 		    z3 = MULTIPLY(d7, - FIX(1.961570560));
 		    z2 = MULTIPLY(d5, - FIX(2.562915447));
 		    z4 = MULTIPLY(d5, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z3;
 		    tmp1 += z4;
 		    tmp2 = z2 + z3;
@@ -5725,18 +5725,18 @@ j_rev_dct (
 		    z1 = d7 + d1;
 		    z3 = d7 + d3;
 		    z5 = MULTIPLY(z3 + d1, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
 		    z1 = MULTIPLY(z1, - FIX(0.899976223));
 		    z2 = MULTIPLY(d3, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX(1.961570560));
 		    z4 = MULTIPLY(d1, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 = z2 + z4;
 		    tmp2 += z2 + z3;
@@ -5745,13 +5745,13 @@ j_rev_dct (
 		    /* d1 == 0, d3 != 0, d5 == 0, d7 != 0 */
 		    z3 = d7 + d3;
 		    z5 = MULTIPLY(z3, FIX(1.175875602));
-		    
+
 		    tmp0 = MULTIPLY(d7, - FIX2(0.601344887));
 		    tmp2 = MULTIPLY(d3, FIX(0.509795579));
 		    z1 = MULTIPLY(d7, - FIX(0.899976223));
 		    z2 = MULTIPLY(d3, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX2(0.785694958));
-		    
+
 		    tmp0 += z3;
 		    tmp1 = z2 + z5;
 		    tmp2 += z3;
@@ -5790,7 +5790,7 @@ j_rev_dct (
 		    z2 = d5 + d3;
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(d3 + z4, FIX(1.175875602));
-		    
+
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
@@ -5798,10 +5798,10 @@ j_rev_dct (
 		    z2 = MULTIPLY(z2, - FIX(2.562915447));
 		    z3 = MULTIPLY(d3, - FIX(1.961570560));
 		    z4 = MULTIPLY(z4, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 = z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 += z2 + z3;
@@ -5810,13 +5810,13 @@ j_rev_dct (
 		    /* d1 == 0, d3 != 0, d5 != 0, d7 == 0 */
 		    z2 = d5 + d3;
 		    z5 = MULTIPLY(z2, FIX(1.175875602));
-		    
+
 		    tmp1 = MULTIPLY(d5, FIX2(1.662939225));
 		    tmp2 = MULTIPLY(d3, FIX2(1.111140466));
 		    z2 = MULTIPLY(z2, - FIX2(1.387039845));
 		    z3 = MULTIPLY(d3, - FIX(1.961570560));
 		    z4 = MULTIPLY(d5, - FIX(0.390180644));
-		    
+
 		    tmp0 = z3 + z5;
 		    tmp1 += z2;
 		    tmp2 += z2;
@@ -5827,13 +5827,13 @@ j_rev_dct (
 		    /* d1 != 0, d3 == 0, d5 != 0, d7 == 0 */
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(z4, FIX(1.175875602));
-		    
+
 		    tmp1 = MULTIPLY(d5, - FIX2(0.509795578));
 		    tmp3 = MULTIPLY(d1, FIX2(0.601344887));
 		    z1 = MULTIPLY(d1, - FIX(0.899976223));
 		    z2 = MULTIPLY(d5, - FIX(2.562915447));
 		    z4 = MULTIPLY(z4, FIX2(0.785694958));
-		    
+
 		    tmp0 = z1 + z5;
 		    tmp1 += z4;
 		    tmp2 = z2 + z5;
@@ -5858,7 +5858,7 @@ j_rev_dct (
 		    z2 = MULTIPLY(d3, - FIX(2.172734803));
 		    z4 = MULTIPLY(z5, FIX(0.785694958));
 		    z5 = MULTIPLY(z5, FIX(1.175875602));
-		    
+
 		    tmp0 = z1 - z4;
 		    tmp1 = z2 + z4;
 		    tmp2 += z5;
@@ -6114,8 +6114,8 @@ j_rev_dct (
 		    z3 = d7 + d3;
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(z3 + z4, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
@@ -6123,10 +6123,10 @@ j_rev_dct (
 		    z2 = MULTIPLY(z2, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX(1.961570560));
 		    z4 = MULTIPLY(z4, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 += z2 + z3;
@@ -6136,18 +6136,18 @@ j_rev_dct (
 		    z2 = d5 + d3;
 		    z3 = d7 + d3;
 		    z5 = MULTIPLY(z3 + d5, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    z1 = MULTIPLY(d7, - FIX(0.899976223));
 		    z2 = MULTIPLY(z2, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX(1.961570560));
 		    z4 = MULTIPLY(d5, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 += z2 + z3;
@@ -6159,18 +6159,18 @@ j_rev_dct (
 		    z1 = d7 + d1;
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(d7 + z4, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
 		    z1 = MULTIPLY(z1, - FIX(0.899976223));
 		    z2 = MULTIPLY(d5, - FIX(2.562915447));
 		    z3 = MULTIPLY(d7, - FIX(1.961570560));
 		    z4 = MULTIPLY(z4, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 = z2 + z3;
@@ -6179,16 +6179,16 @@ j_rev_dct (
 		    /* d1 == 0, d3 == 0, d5 != 0, d7 != 0 */
 		    z5 = MULTIPLY(d5 + d7, FIX(1.175875602));
 
-		    tmp0 = MULTIPLY(d7, - FIX2(0.601344887)); 
+		    tmp0 = MULTIPLY(d7, - FIX2(0.601344887));
 		    tmp1 = MULTIPLY(d5, - FIX2(0.509795578));
 		    z1 = MULTIPLY(d7, - FIX(0.899976223));
 		    z3 = MULTIPLY(d7, - FIX(1.961570560));
 		    z2 = MULTIPLY(d5, - FIX(2.562915447));
 		    z4 = MULTIPLY(d5, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z3;
 		    tmp1 += z4;
 		    tmp2 = z2 + z3;
@@ -6202,18 +6202,18 @@ j_rev_dct (
 		    z1 = d7 + d1;
 		    z3 = d7 + d3;
 		    z5 = MULTIPLY(z3 + d1, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, FIX(0.298631336)); 
+
+		    tmp0 = MULTIPLY(d7, FIX(0.298631336));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
 		    z1 = MULTIPLY(z1, - FIX(0.899976223));
 		    z2 = MULTIPLY(d3, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX(1.961570560));
 		    z4 = MULTIPLY(d1, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 += z1 + z3;
 		    tmp1 = z2 + z4;
 		    tmp2 += z2 + z3;
@@ -6222,13 +6222,13 @@ j_rev_dct (
 		    /* d1 == 0, d3 != 0, d5 == 0, d7 != 0 */
 		    z3 = d7 + d3;
 		    z5 = MULTIPLY(z3, FIX(1.175875602));
-		    
-		    tmp0 = MULTIPLY(d7, - FIX2(0.601344887)); 
+
+		    tmp0 = MULTIPLY(d7, - FIX2(0.601344887));
 		    z1 = MULTIPLY(d7, - FIX(0.899976223));
 		    tmp2 = MULTIPLY(d3, FIX(0.509795579));
 		    z2 = MULTIPLY(d3, - FIX(2.562915447));
 		    z3 = MULTIPLY(z3, - FIX2(0.785694958));
-		    
+
 		    tmp0 += z3;
 		    tmp1 = z2 + z5;
 		    tmp2 += z3;
@@ -6240,7 +6240,7 @@ j_rev_dct (
 		    z1 = d7 + d1;
 		    z5 = MULTIPLY(z1, FIX(1.175875602));
 
-		    tmp0 = MULTIPLY(d7, - FIX2(1.662939224)); 
+		    tmp0 = MULTIPLY(d7, - FIX2(1.662939224));
 		    tmp3 = MULTIPLY(d1, FIX2(1.111140466));
 		    z1 = MULTIPLY(z1, FIX2(0.275899379));
 		    z3 = MULTIPLY(d7, - FIX(1.961570560));
@@ -6267,7 +6267,7 @@ j_rev_dct (
 		    z2 = d5 + d3;
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(d3 + z4, FIX(1.175875602));
-		    
+
 		    tmp1 = MULTIPLY(d5, FIX(2.053119869));
 		    tmp2 = MULTIPLY(d3, FIX(3.072711026));
 		    tmp3 = MULTIPLY(d1, FIX(1.501321110));
@@ -6275,10 +6275,10 @@ j_rev_dct (
 		    z2 = MULTIPLY(z2, - FIX(2.562915447));
 		    z3 = MULTIPLY(d3, - FIX(1.961570560));
 		    z4 = MULTIPLY(z4, - FIX(0.390180644));
-		    
+
 		    z3 += z5;
 		    z4 += z5;
-		    
+
 		    tmp0 = z1 + z3;
 		    tmp1 += z2 + z4;
 		    tmp2 += z2 + z3;
@@ -6293,7 +6293,7 @@ j_rev_dct (
 		    z2 = MULTIPLY(z2, - FIX2(1.387039845));
 		    z3 = MULTIPLY(d3, - FIX(1.961570560));
 		    z4 = MULTIPLY(d5, - FIX(0.390180644));
-		    
+
 		    tmp0 = z3 + z5;
 		    tmp1 += z2;
 		    tmp2 += z2;
@@ -6304,13 +6304,13 @@ j_rev_dct (
 		    /* d1 != 0, d3 == 0, d5 != 0, d7 == 0 */
 		    z4 = d5 + d1;
 		    z5 = MULTIPLY(z4, FIX(1.175875602));
-		    
+
 		    tmp1 = MULTIPLY(d5, - FIX2(0.509795578));
 		    tmp3 = MULTIPLY(d1, FIX2(0.601344887));
 		    z1 = MULTIPLY(d1, - FIX(0.899976223));
 		    z2 = MULTIPLY(d5, - FIX(2.562915447));
 		    z4 = MULTIPLY(z4, FIX2(0.785694958));
-		    
+
 		    tmp0 = z1 + z5;
 		    tmp1 += z4;
 		    tmp2 = z2 + z5;
@@ -6335,7 +6335,7 @@ j_rev_dct (
 		    z2 = MULTIPLY(d3, - FIX(2.172734803));
 		    z4 = MULTIPLY(z5, FIX(0.785694958));
 		    z5 = MULTIPLY(z5, FIX(1.175875602));
-		    
+
 		    tmp0 = z1 - z4;
 		    tmp1 = z2 + z4;
 		    tmp2 += z5;
@@ -6380,12 +6380,12 @@ j_rev_dct (
 					   CONST_BITS+PASS1_BITS+3);
     dataptr[DCTSIZE*4] = (DCTELEM) DESCALE(tmp13 - tmp0,
 					   CONST_BITS+PASS1_BITS+3);
-    
+
     dataptr++;			/* advance pointer to next column */
   }
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -6480,7 +6480,7 @@ j_rev_dct (
     *recon_down_ptr = *recon_down_ptr << 1;				\
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -6499,7 +6499,7 @@ j_rev_dct (
  *--------------------------------------------------------------
  */
 
-void 
+void
 ComputeForwVector(
      int *recon_right_for_ptr,
      int *recon_down_for_ptr,
@@ -6513,15 +6513,15 @@ ComputeForwVector(
   mblock = &(the_stream->mblock);
 
   ComputeVector(recon_right_for_ptr, recon_down_for_ptr,
-		mblock->recon_right_for_prev, 
+		mblock->recon_right_for_prev,
 		mblock->recon_down_for_prev,
 		(int) picture->forw_f,
 		picture->full_pel_forw_vector,
 		mblock->motion_h_forw_code, mblock->motion_v_forw_code,
-		mblock->motion_h_forw_r, mblock->motion_v_forw_r); 
+		mblock->motion_h_forw_r, mblock->motion_v_forw_r);
 }
 
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -6540,7 +6540,7 @@ ComputeForwVector(
  *--------------------------------------------------------------
  */
 
-void 
+void
 ComputeBackVector(
      int *recon_right_back_ptr,
      int *recon_down_back_ptr,
@@ -6553,12 +6553,12 @@ ComputeBackVector(
   mblock = &(the_stream->mblock);
 
   ComputeVector(recon_right_back_ptr, recon_down_back_ptr,
-		mblock->recon_right_back_prev, 
+		mblock->recon_right_back_prev,
 		mblock->recon_down_back_prev,
-		(int) picture->back_f, 
+		(int) picture->back_f,
 		picture->full_pel_back_vector,
 		mblock->motion_h_back_code, mblock->motion_v_back_code,
-		mblock->motion_h_back_r, mblock->motion_v_back_r); 
+		mblock->motion_h_back_r, mblock->motion_v_back_r);
 
 }
 
@@ -6570,9 +6570,9 @@ ComputeBackVector(
 #define PACKET_START_CODE_MASK      ((unsigned int)0xffffff00)
 #define PACKET_START_CODE_PREFIX    ((unsigned int)0x00000100)
 #define ISO_11172_END_CODE          ((unsigned int)0x000001b9)
-  
+
 #define PACK_HEADER_SIZE 8
-  
+
 #define STD_AUDIO_STREAM_ID ((unsigned char) 0xb8)
 #define STD_VIDEO_STREAM_ID ((unsigned char) 0xb9)
 #define MIN_STREAM_ID_ID    ((unsigned char) 0xbc)
@@ -6580,14 +6580,14 @@ ComputeBackVector(
 #define PRIVATE_STREAM_1_ID ((unsigned char) 0xbd)
 #define PADDING_STREAM_ID   ((unsigned char) 0xbe)
 #define PRIVATE_STREAM_2_ID ((unsigned char) 0xbf)
-  
+
 #define STD_SYSTEM_CLOCK_FREQ (unsigned long)90000
 #define MUX_RATE_SCALE_FACTOR 50
 #define MAX_STREAMS 8
 #define NOT_PACKET_ID       ((unsigned char) 0xff)
 #define KILL_BUFFER         ((unsigned char) 0xfe)
-  
-
+
+
 /*
  *--------------------------------------------------------------
  *
@@ -6605,11 +6605,11 @@ ComputeBackVector(
  *
  *--------------------------------------------------------------
  */
-int 
+int
 get_more_data(
       mpeg_VidStream *vid_stream)
 {
-  unsigned int **bs_ptr=&vid_stream->buf_start; 
+  unsigned int **bs_ptr=&vid_stream->buf_start;
   int *max_length=&vid_stream->max_buf_length;
   int *length_ptr=&vid_stream->buf_length;
   unsigned int **buf_ptr=&vid_stream->buffer;
@@ -6617,7 +6617,7 @@ get_more_data(
   unsigned char byte;
   unsigned int *mark;
   int sys_layer= vid_stream->sys_layer;
-  
+
   if (sys_layer == 0) {
     return pure_get_more_data(*bs_ptr,
 			      *max_length,
@@ -6653,7 +6653,7 @@ get_more_data(
       vid_stream->sys_layer = 0;
       **bs_ptr = data;
       *length_ptr = 1;
-      result = pure_get_more_data(*bs_ptr, *max_length, 
+      result = pure_get_more_data(*bs_ptr, *max_length,
 				 length_ptr, buf_ptr, vid_stream);
       *buf_ptr = *bs_ptr;
       return result;
@@ -6693,7 +6693,7 @@ get_more_data(
   return result;
 }
 
-
+
 /*
  *-------------------------------------------------------------
  *
@@ -6703,7 +6703,7 @@ get_more_data(
  *
  *-------------------------------------------------------------
  */
-void 
+void
   clear_data_stream(
      mpeg_VidStream *vid_stream)
 {
@@ -6732,7 +6732,7 @@ void
  *--------------------------------------------------------------
  */
 
-int 
+int
 pure_get_more_data(
      unsigned int *buf_start,
      int max_length,
@@ -6740,18 +6740,18 @@ pure_get_more_data(
      unsigned int **buf_ptr,
      mpeg_VidStream *vid_stream)
 {
-  
+
   int length, num_read, i;
   unsigned int request;
   unsigned char *buffer, *mark;
   unsigned int *lmark;
   int swap=vid_stream->swap;
-  
+
   if (vid_stream->EOF_flag) return 0;
-  
+
   length = *length_ptr;
   buffer = (unsigned char *) *buf_ptr;
-  
+
   if (length > 0) {
 	  //  a known problem - can overwrite - JAS
 	  //
@@ -6764,21 +6764,21 @@ pure_get_more_data(
     mark = (unsigned char *) buf_start;
     length = 0;
   }
-  
+
   request = (max_length-length)*4;
-  
-  
+
+
   num_read = fread(mark, 1, request, vid_stream->input);
-  
+
   /* Paulo Villegas - 26/1/1993: Correction for 4-byte alignment */
   {
     int num_read_rounded;
     unsigned char *index;
-    
+
     num_read_rounded = 4*(num_read/4);
-    
+
     /* this can happen only if num_read<request; i.e. end of file reached */
-    if ( num_read_rounded < num_read ) { 
+    if ( num_read_rounded < num_read ) {
  	  num_read_rounded = 4*( num_read/4+1 );
 
  	    /* fill in with zeros */
@@ -6788,39 +6788,39 @@ pure_get_more_data(
  	  num_read = num_read_rounded;
     }
   }
-  
+
   if (num_read < 0) {
     return -1;
   } else if (num_read == 0) {
     *buf_ptr = buf_start;
-    
+
     /* Make 32 bits after end equal to 0 and 32
      * bits after that equal to seq end code
      * in order to prevent messy data from infinite
      * recursion.
      */
-    
+
     *(buf_start + length) = 0x0;
     *(buf_start + length+1) = SEQ_END_CODE;
-    
+
     vid_stream->EOF_flag = 1;
     return 0;
   }
-  
+
   lmark = (unsigned int *) mark;
-  
+
   num_read = num_read/4;
-  
+
   if (swap) {
     for (i = 0; i < num_read; i++) {
       *lmark = htonl(*lmark);
       lmark++;
     }
   }
-  
+
   *buf_ptr = buf_start;
   *length_ptr = length + num_read;
-  
+
   return 1;
 }
 
@@ -6844,7 +6844,7 @@ pure_get_more_data(
  */
 int read_sys(
      mpeg_VidStream *vid_stream,
-     unsigned int start)  
+     unsigned int start)
      /* start is either a start code or 0 to indicate continued parsing */
 {
   unsigned int startCode;
@@ -6854,7 +6854,7 @@ int read_sys(
   unsigned long muxRate;
   /* Statistics */
   int match;
-  
+
   if (!start) {
     errorCode = ReadStartCode(&startCode,vid_stream);
     if (vid_stream->EOF_flag) return 0;
@@ -6866,7 +6866,7 @@ int read_sys(
     errorCode = 0;
     startCode = start;
   }
-  
+
   while (1) {
     match=FALSE;
     if (startCode == PACK_START_CODE) {
@@ -6902,9 +6902,9 @@ int read_sys(
       packetID = startCode & 0xff;
       PacketReply = ReadPacket(packetID, vid_stream);
       switch (PacketReply) {
-      case 2: 
+      case 2:
         return 1;
-      case 1: 
+      case 1:
         return 0;
       default: /* do nothing */
         break;
@@ -6918,7 +6918,7 @@ int read_sys(
         break;
       }
     }
-    
+
     if (startCode == ISO_11172_END_CODE) {
       match = TRUE;
       if (vid_stream->Parse_done) {
@@ -6941,7 +6941,7 @@ int read_sys(
   }
 }
 
-
+
 /*
  *-----------------------------------------------------------
  *
@@ -6959,10 +6959,10 @@ int ReadStartCode(
      mpeg_VidStream *vid_stream)
 {
   int numRead;
-  
+
   numRead = fread((unsigned char *)startCode, 1, 4, vid_stream->input);
   *startCode = htonl(*startCode);
-  
+
   if (numRead < 4) {
     vid_stream->EOF_flag = 1;
     return 1;
@@ -6980,7 +6980,7 @@ int ReadStartCode(
   return 0;
 }
 
-
+
 /*
  *-----------------------------------------------------------
  *
@@ -7027,7 +7027,7 @@ int find_start_code(
 
 
 
-
+
 /*
  *-----------------------------------------------------------------
  *
@@ -7049,21 +7049,21 @@ int ReadPackHeader(
   unsigned long systemClockRef;
   unsigned char systemClockRefHiBit;
   int errorCode;
-  
+
   numRead = fread(inputBuffer, 1, PACK_HEADER_SIZE, vid_stream->input);
   if (numRead < PACK_HEADER_SIZE) {
     vid_stream->EOF_flag = 1;
     return 1;
   }
   ReadTimeStamp(inputBuffer, &systemClockRefHiBit, &systemClockRef);
-  errorCode = MakeFloatClockTime(systemClockRefHiBit, systemClockRef, 
+  errorCode = MakeFloatClockTime(systemClockRefHiBit, systemClockRef,
 				 systemClockTime);
   ReadRate(&inputBuffer[5], muxRate);
   *muxRate *= MUX_RATE_SCALE_FACTOR;
   return 0;
 }
 
-
+
 /*
  *------------------------------------------------------------------
  *
@@ -7078,14 +7078,14 @@ int ReadPackHeader(
  */
 int ReadSystemHeader(
    mpeg_VidStream *vid_stream)
-{ 
+{
   unsigned char *inputBuffer = NULL;
   int numRead;
   int pos;
   unsigned short headerSize;
   unsigned char streamID;
-  
-  numRead = fread((char *)&headerSize, 1, 2, vid_stream->input); 
+
+  numRead = fread((char *)&headerSize, 1, 2, vid_stream->input);
   headerSize = ntohs(headerSize);
   if (numRead != 2) {
     vid_stream->EOF_flag = 1;
@@ -7096,28 +7096,28 @@ int ReadSystemHeader(
     return 1;
   }
   inputBuffer[headerSize]=0;
-  numRead = fread(inputBuffer, 1, headerSize, vid_stream->input); 
+  numRead = fread(inputBuffer, 1, headerSize, vid_stream->input);
   /* Brown - get rid of Ansi C complaints */
   if (numRead < (int) headerSize) {
     vid_stream->EOF_flag = 1;
     return 1;
   }
-  
+
   pos = 6;
   while ((inputBuffer[pos] & 0x80) == 0x80) {
     streamID = inputBuffer[pos];
     switch (streamID) {
-    case STD_VIDEO_STREAM_ID: 
+    case STD_VIDEO_STREAM_ID:
       break;
-    case STD_AUDIO_STREAM_ID: 
+    case STD_AUDIO_STREAM_ID:
       break;
-    case RESERVED_STREAM_ID: 
+    case RESERVED_STREAM_ID:
       break;
-    case PADDING_STREAM_ID: 
+    case PADDING_STREAM_ID:
       break;
-    case PRIVATE_STREAM_1_ID: 
+    case PRIVATE_STREAM_1_ID:
       break;
-    case PRIVATE_STREAM_2_ID: 
+    case PRIVATE_STREAM_2_ID:
       break;
     default:
       if (streamID < MIN_STREAM_ID_ID) {
@@ -7149,7 +7149,7 @@ int ReadSystemHeader(
   return 0;
 }
 
-
+
 /*
  *-----------------------------------------------------------------
  *
@@ -7160,16 +7160,16 @@ int ReadSystemHeader(
  *
  *  Results:
  *      Changes the value of *length_ptr to be the new length (plus old)
- *      If the buffer is too small, can change *bs_ptr, *max_length, and 
+ *      If the buffer is too small, can change *bs_ptr, *max_length, and
  *      buf_ptr to be correct for a newly allocated buffer.
  *
- *  State:  
+ *  State:
  *      The buffer is in ints, but the packets can be an arbitrary number
  *      of bytes, so leftover bytes are kept in the mpeg_VidStream variable and
  *      are added on the next call.
  *
  *-----------------------------------------------------------------
- */   
+ */
 #ifdef __STDC__
 int ReadPacket(unsigned char packetID, mpeg_VidStream *vid_stream)
 #else
@@ -7183,7 +7183,7 @@ int ReadPacket(
 	1 - error
 	2 - got video packet into buffer
 	*/
-{   
+{
   unsigned int **bs_ptr=&vid_stream->buf_start;
   int *max_length = &vid_stream->max_buf_length;
   int *length_ptr=&vid_stream->buf_length;
@@ -7216,7 +7216,7 @@ int ReadPacket(
     vid_stream->leftover_bytes=0;
     return 0;
   }
-  
+
   ioBytes = fread(&packetLength, 1, 2, vid_stream->input);
   packetLength = htons(packetLength);
   if (ioBytes < 2) {
@@ -7254,7 +7254,7 @@ int ReadPacket(
     pos += 2;
     fread(&nextByte,1,1,vid_stream->input);
     fread(&nextByte,1,1,vid_stream->input);
-  } 
+  }
   if ((nextByte >> 4) == 0x02) {
     scratch[0] = nextByte;                      /* jim */
     fread(&scratch[1],1,4,vid_stream->input);   /* jim */
@@ -7266,7 +7266,7 @@ int ReadPacket(
     fread(&scratch[1],1,9,vid_stream->input);   /* jim */
     fread(&nextByte,1,1,vid_stream->input);
     pos += 10;
-  } 
+  }
   else {
     fread(&nextByte,1,1,vid_stream->input);
     pos += 1;
@@ -7275,8 +7275,8 @@ int ReadPacket(
   if (*bs_ptr + *max_length < *buf_ptr+ packetLength/4 + *length_ptr) {
      /* Brown - get rid of Ansi C complaints */
     if (*max_length - *length_ptr < (int) packetLength/4) {
-      /* Buffer too small for a packet (plus whats there), 
-	   * time to enlarge it! 
+      /* Buffer too small for a packet (plus whats there),
+	   * time to enlarge it!
 	   */
       unsigned int *old = *bs_ptr;
       *max_length = *length_ptr + packetLength/2;
@@ -7310,7 +7310,7 @@ int ReadPacket(
     if (1 != ntohl(1)) {
       unsigned int *mark = *buf_ptr+*length_ptr;
       unsigned int i;
-      
+
       for (i=0; i < ((packetDataLength+
 			 vid_stream->num_left)&0xfffffffc); i+=4) {
         *mark=ntohl(*mark);
@@ -7323,7 +7323,7 @@ int ReadPacket(
     vid_stream->leftover_bytes = *(*buf_ptr + *length_ptr);
     return 2;
   }
-  else if (packetID == vid_stream->gAudioStreamID) { 
+  else if (packetID == vid_stream->gAudioStreamID) {
     packetBuffer = (unsigned char *)(*buf_ptr + *length_ptr + 1);
     fread(packetBuffer, 1, packetDataLength - 1, vid_stream->input);
   }
@@ -7332,7 +7332,7 @@ int ReadPacket(
     packetBuffer = (unsigned char *)(*buf_ptr + *length_ptr + 1);
     fread(packetBuffer, 1, packetDataLength - 1, vid_stream->input);
   }
-  return 0; 
+  return 0;
 }
 
 
@@ -7340,16 +7340,16 @@ int ReadPacket(
  * The remaining procedures are formatting utility procedures.
  */
 void ReadTimeStamp(
-     unsigned char *inputBuffer, 
+     unsigned char *inputBuffer,
      unsigned char *hiBit,
      unsigned long *low4Bytes)
 {
   *hiBit = ((unsigned long)inputBuffer[0] >> 3) & 0x01;
-  *low4Bytes = (((unsigned long)inputBuffer[0] >> 1) & 0x03) << 30; 
-  *low4Bytes |= (unsigned long)inputBuffer[1] << 22; 
-  *low4Bytes |= ((unsigned long)inputBuffer[2] >> 1) << 15; 
-  *low4Bytes |= (unsigned long)inputBuffer[3] << 7; 
-  *low4Bytes |= ((unsigned long)inputBuffer[4]) >> 1; 
+  *low4Bytes = (((unsigned long)inputBuffer[0] >> 1) & 0x03) << 30;
+  *low4Bytes |= (unsigned long)inputBuffer[1] << 22;
+  *low4Bytes |= ((unsigned long)inputBuffer[2] >> 1) << 15;
+  *low4Bytes |= (unsigned long)inputBuffer[3] << 7;
+  *low4Bytes |= ((unsigned long)inputBuffer[4]) >> 1;
 }
 
 void ReadSTD(
@@ -7358,7 +7358,7 @@ unsigned char *stdBufferScale,
 unsigned long *stdBufferSize)
 {
   /* Brown - get rid of ANSI C complaints */
-  *stdBufferScale = ((int)(inputBuffer[0] & 0x20) >> 5); 
+  *stdBufferScale = ((int)(inputBuffer[0] & 0x20) >> 5);
   *stdBufferSize = ((unsigned long)inputBuffer[0] & 0x1f) << 8;
   *stdBufferSize |= (unsigned long)inputBuffer[1];
 }
@@ -7390,7 +7390,7 @@ int MakeFloatClockTime(
     *floatClockTime = 0.0;
     return 1;
   }
-  *floatClockTime 
+  *floatClockTime
     = (double)hiBit*FLOAT_0x10000*FLOAT_0x10000 + (double)low4Bytes;
   *floatClockTime /= (double)STD_SYSTEM_CLOCK_FREQ;
   return 0;
@@ -7470,7 +7470,7 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
 	      printf ("theStream != NULL, destroying, part1\n");
 	      Destroympeg_VidStream(theStream);
       }
-    } 
+    }
 
   /* Start time for each movie - do after windows are mapped */
      if (theStream != NULL) theStream->realTimeStart = ReadSysClock();
@@ -7478,13 +7478,13 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
          while (theStream->film_has_ended == FALSE) {
              mpegVidRsrc(0, theStream, 0);
          }
-       } 
+       }
   if (L_tab!=NULL)
        free((int *)L_tab);
     if (Cr_r_tab!=NULL)
        free ((int *)Cr_r_tab);
     if (Cr_g_tab!=NULL)
-       free ((int *)Cr_g_tab); 
+       free ((int *)Cr_g_tab);
     if (Cb_g_tab!=NULL)
        free ((int *)Cb_g_tab);
     if (Cb_b_tab!=NULL)
@@ -7492,18 +7492,18 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
 
     if (r_2_pix_alloc!=NULL)
        free ((long *) r_2_pix_alloc);
-    if (g_2_pix_alloc!=NULL) 
+    if (g_2_pix_alloc!=NULL)
        free ((long *) g_2_pix_alloc);
-    if (b_2_pix_alloc!=NULL) 
+    if (b_2_pix_alloc!=NULL)
        free ((long *) b_2_pix_alloc);
 
     /* zero these in case we have another mpg file to do */
     L_tab = NULL; Cr_r_tab = NULL; Cr_g_tab = NULL; Cb_g_tab = NULL;Cb_b_tab = NULL;
     r_2_pix_alloc = NULL; g_2_pix_alloc= NULL;b_2_pix_alloc = NULL;
-    
+
       fclose(mpegfile);
 	*ptr =  dataPointer;
-	
+
 	/* take 1 from the frame count */
 	*frameCount = (*frameCount) -1;
 

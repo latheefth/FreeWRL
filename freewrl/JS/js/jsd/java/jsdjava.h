@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 /*
@@ -29,7 +29,7 @@
 
 /* Get jstypes.h included first. After that we can use PR macros for doing
 *  this extern "C" stuff!
-*/ 
+*/
 #ifdef __cplusplus
 extern "C"
 {
@@ -104,7 +104,7 @@ extern JSDJ_PUBLIC_API(void)
 JSDJ_DestroyContext(JSDJContext* jsdjc);
 
 extern JSDJ_PUBLIC_API(void)
-JSDJ_SetUserCallbacks(JSDJContext* jsdjc, JSDJ_UserCallbacks* callbacks, 
+JSDJ_SetUserCallbacks(JSDJContext* jsdjc, JSDJ_UserCallbacks* callbacks,
                       void* user);
 
 extern JSDJ_PUBLIC_API(void)

@@ -18,10 +18,10 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #	Michael Ang <mang@subcarrier.org>
 #       Kevin Buhr <buhr@stat.wisc.edu>
-#	
+#
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -105,9 +105,9 @@ endif
 #
 #	Server-related changes :
 #
-ifdef NES40 
-DEFINES += -DNES40 
-endif 
+ifdef NES40
+DEFINES += -DNES40
+endif
 
 #
 # Line editing support.
@@ -331,7 +331,7 @@ endif
 ifeq ($(OS_ARCH),QNX)
 ifneq ($(OS_TARGET),NTO)
 	@cp $(JSMATH_PRELINK) $@
-else	
+else
 	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
 endif
 else

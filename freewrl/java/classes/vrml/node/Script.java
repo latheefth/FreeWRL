@@ -1,4 +1,4 @@
-package vrml.node; 
+package vrml.node;
 import java.util.Hashtable;
 import vrml.*;
 //
@@ -8,13 +8,13 @@ import vrml.*;
 // script.
 //
 public abstract class Script extends BaseNode
-{ 
-    public Script() { 
+{
+    public Script() {
     }
-    
+
     // This method is called before any event is generated
     public void initialize() { }
-    
+
     // Get a Field by name.
     //   Throws an InvalidFieldException if fieldName isn't a valid
     //   field name for a node of this type.
@@ -33,7 +33,7 @@ public abstract class Script extends BaseNode
 	FWJavaScript.readField(this, fieldName, fval);
 	return fval;
    }
-    
+
     // Get an EventOut by name.
     //   Throws an InvalidEventOutException if eventOutName isn't a valid
     //   eventOut name for a node of this type.
@@ -52,7 +52,7 @@ public abstract class Script extends BaseNode
 	fval.bind_to(new FWJavaScriptBinding(this, eventOutName, false));
 	return fval;
     }
-    
+
     // Get an EventIn by name.
     //   Throws an InvalidEventInException if eventInName isn't a valid
     //   eventIn name for a node of this type.
@@ -71,8 +71,8 @@ public abstract class Script extends BaseNode
 	fval.bind_to(new FWJavaScriptBinding(this, eventInName, false));
 	return fval;
     }
-    
-    // processEvents() is called automatically when the script receives 
+
+    // processEvents() is called automatically when the script receives
     //   some set of events. It shall not be called directly except by its subclass.
     //   count indicates the number of events delivered.
     // Trevor John Thompson has submitted the following code.
@@ -81,12 +81,12 @@ public abstract class Script extends BaseNode
         for (int i = 0; i < count && i < events.length; ++i) {
             processEvent(events[i]);
         }
-    } 
-    
-    // processEvent() is called automatically when the script receives 
-    // an event. 
+    }
+
+    // processEvent() is called automatically when the script receives
+    // an event.
     public void processEvent(Event event) { }
-    
+
     // eventsProcessed() is called after every invocation of processEvents().
     public void eventsProcessed() { }
 

@@ -5,7 +5,7 @@
  for conditions of use and redistribution.
 
 
- This is the SoundEngine code for FreeWRL. 
+ This is the SoundEngine code for FreeWRL.
 
  Some of this stuff came from files from "wavplay"  - see information below
 
@@ -66,7 +66,7 @@ void Sound_toserver (char *message) {
 
 
 
-void SoundEngineInit () { 
+void SoundEngineInit () {
 	int x;
 	char buf[200];
 
@@ -91,7 +91,7 @@ void SoundEngineInit () {
 	for (x=0; x<MAXSOUNDS; x++) SReg[x]=FALSE;
 
 	/* printf ("Client, thus queue key is %d\n",my_ipc_key); */
-	
+
 	/* message queue for client/server comms */
 #ifndef __APPLE__
 	if ( (msq_toserver = msgget(my_ipc_key,IPC_CREAT|0666)) < 0 ) {
@@ -157,11 +157,11 @@ void SoundEngineInit () {
 	/* printf ("Client: - server pid %d\n",S_Server_PID); */
 
 	/* if FreeWRL actually gets to the exit stage... :-) */
-	atexit(SoundEngineDestroy);	
+	atexit(SoundEngineDestroy);
 
 	/* wait for the message queue to initialize. */
 	waitformessage();
-	
+
 #ifdef __APPLE__
 	if ((server_pipe_fd = open (serverpipe, O_WRONLY | O_NONBLOCK)) < 0) {
 		perror("Open error\n");
@@ -198,7 +198,7 @@ void waitformessage () {
 	 		xx = read (client_pipe_fd, &msg, sizeof(msg));
 			if (xx <= 1)
 				xx = 0;
-#endif	
+#endif
 			/* printf ("Client waiting... xx is %d\n",xx); */
 			usleep(1000);
 		} while (!xx);
@@ -211,7 +211,7 @@ void waitformessage () {
 				return;	/* connect OK */
 			}
 		} else	{
-			while ((PID=waitpid(-1,&proc_status,WNOHANG)) == -1 
+			while ((PID=waitpid(-1,&proc_status,WNOHANG)) == -1
 				&& errno==EINTR );
 			if ( PID > 0 ) {
 				printf("FreeWRL:SoundServer process ID %ld terminated: %d",
@@ -263,7 +263,7 @@ float SoundSourceInit (int num, int loop, float pitch, float start_time, float s
 	float duration;
 	int returnednum;
 
-	
+
 	SReg[num] = TRUE;
 	if (url == NULL) {
 		printf ("SoundSourceInit - no file to source \n");

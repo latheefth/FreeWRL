@@ -62,10 +62,10 @@ void do_active_inactive (
 
 	if (*act == 1) {   /* active - should we stop? */
 		if (SEVerbose) printf ("is active tick %f startt %f stopt %f\n",
-				TickTime, *startt, *stopt); 
+				TickTime, *startt, *stopt);
 
 		if (TickTime > *stopt) {
-			if (*startt >= *stopt) { 
+			if (*startt >= *stopt) {
 				/* cases 1 and 2 */
 				if (!(loop)) {
 					/* printf ("case 1 and 2, not loop md %f sp %f fabs %f\n",
@@ -73,7 +73,7 @@ void do_active_inactive (
 					*/
 					/* if (speed != 0) */
 					if (! APPROX(speed, 0)) {
-					    if (TickTime >= (*startt + 
+					    if (TickTime >= (*startt +
 							fabs(myDuration/speed))) {
 						if (SEVerbose) printf ("stopping case x\n");
 						*act = 0;
@@ -114,12 +114,12 @@ void do_active_inactive (
 						*act = 1;
 					}
 				} else if (*startt >= *stopt) {
-					if (*startt > *inittime) { 
+					if (*startt > *inittime) {
 						/* ie, we have an event */
 						 /* if (SEVerbose) printf ("case 1 here\n"); */
 						/*
-						we should be running 
-						VRML standards, table 4.2 case 1 
+						we should be running
+						VRML standards, table 4.2 case 1
 						*/
 						*startt = TickTime;
 						*act = 1;
@@ -127,7 +127,7 @@ void do_active_inactive (
 				}
 			} else {
 				/* if (SEVerbose) printf ("case 3 here\n"); */
-				/* we should be running -  
+				/* we should be running -
 				VRML standards, table 4.2 cases 1 and 2 and 3 */
 				*startt = TickTime;
 				*act = 1;
@@ -206,14 +206,14 @@ void do_OintCoord(void *node) {
 	int kpkv; /* keys per key value */
 	int indx;
 	int myKey;
-	
+
 	if (!node) return;
 	px = (struct VRML_CoordinateInterpolator *) node;
 
 
-	if (SEVerbose) 
+	if (SEVerbose)
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
-	
+
 	mark_event ((unsigned int) px, offsetof (struct VRML_CoordinateInterpolator, value_changed));
 
 	kin = px->key.n;
@@ -223,9 +223,9 @@ void do_OintCoord(void *node) {
 
 	/* do we need to (re)allocate the value changed array? */
 	if (kpkv != px->value_changed.n) {
-		if (SEVerbose) 
+		if (SEVerbose)
 		    printf ("refactor valuechanged array. n %d sizeof p %d\n",
-			kpkv,sizeof (struct SFColor) * kpkv); 
+			kpkv,sizeof (struct SFColor) * kpkv);
 		if (px->value_changed.n != 0) {
 			free (px->value_changed.p);
 		}
@@ -244,14 +244,14 @@ void do_OintCoord(void *node) {
 			valchanged[indx].c[0] = 0.0;
 			valchanged[indx].c[1] = 0.0;
 			valchanged[indx].c[2] = 0.0;
-		}		
+		}
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
 
 
 	if (SEVerbose) {
-		printf ("debugging, kpkv %d, px->value_changed.n %d\n", kpkv, px->value_changed.n);	
+		printf ("debugging, kpkv %d, px->value_changed.n %d\n", kpkv, px->value_changed.n);
 		printf ("CoordinateInterpolator, kpkv %d\n",kpkv);
 	}
 
@@ -259,7 +259,7 @@ void do_OintCoord(void *node) {
 	if (px->set_fraction <= px->key.p[0]) {
 		if (SEVerbose) printf ("COINT out1\n");
 		for (indx = 0; indx < kpkv; indx++) {
-			memcpy ((void *)&valchanged[indx], 
+			memcpy ((void *)&valchanged[indx],
 				(void *)&kVs[indx], sizeof (struct SFColor));
 			/* JAS valchanged[indx].c[0] = kVs[indx].c[0]; */
 			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
@@ -269,8 +269,8 @@ void do_OintCoord(void *node) {
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
 		if (SEVerbose) printf ("COINT out2\n");
 		for (indx = 0; indx < kpkv; indx++) {
-			memcpy ((void *)&valchanged[indx], 
-				(void *)&kVs[kvin-kpkv+indx], 
+			memcpy ((void *)&valchanged[indx],
+				(void *)&kVs[kvin-kpkv+indx],
 				sizeof (struct SFColor));
 		}
 		if (SEVerbose) printf ("COINT out2 finished\n");
@@ -359,10 +359,10 @@ void do_Oint3 (void *node) {
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, 
+		memcpy ((void *)&px->value_changed,
 				(void *)&kVs[0], sizeof (struct SFColor));
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed, 
+		memcpy ((void *)&px->value_changed,
 				(void *)&kVs[kvin-1], sizeof (struct SFColor));
 	} else {
 		/* have to go through and find the key before */
@@ -371,7 +371,7 @@ void do_Oint3 (void *node) {
 			px->value_changed.c[tmp] =
 				(px->set_fraction - px->key.p[counter-1]) /
 				(px->key.p[counter] - px->key.p[counter-1]) *
-				(kVs[counter].c[tmp] - 
+				(kVs[counter].c[tmp] -
 					kVs[counter-1].c[tmp]) +
 				kVs[counter-1].c[tmp];
 		}
@@ -403,7 +403,7 @@ void do_Oint4 (void *node) {
 	kvin = ((px->keyValue).n);
 	kVs = ((px->keyValue).p);
 
-	if (SEVerbose) 
+	if (SEVerbose)
 		printf ("starting do_Oint4; keyValue count %d and key count %d\n",
 				kvin, kin);
 
@@ -423,10 +423,10 @@ void do_Oint4 (void *node) {
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, 
+		memcpy ((void *)&px->value_changed,
 				(void *)&kVs[0], sizeof (struct SFRotation));
 	} else if (px->set_fraction >= ((px->key).p[kin-1])) {
-		memcpy ((void *)&px->value_changed, 
+		memcpy ((void *)&px->value_changed,
 				(void *)&kVs[kvin-1], sizeof (struct SFRotation));
 	} else {
 		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
@@ -436,7 +436,7 @@ void do_Oint4 (void *node) {
 		/* are either the starting or ending angles zero? */
 		stzero = APPROX(kVs[counter-1].r[3],0.0);
 		endzero = APPROX(kVs[counter].r[3],0.0);
-		
+
 		if (SEVerbose) {
 			printf ("counter %d interval %f\n",counter,interval);
 			printf ("angles %f %f %f %f, %f %f %f %f\n",
@@ -476,7 +476,7 @@ void do_Oint4 (void *node) {
 		testangle = newangle-oldangle;
 		//printf ("newangle %f oldangle %f testangle %f\n",
 		//		newangle,oldangle, testangle);
-					
+
 		/* make it so we smoothly transition */
 		if (fabs(testangle) > PI) {
 			if (fabs(testangle) > (PI*2)) {
@@ -488,7 +488,7 @@ void do_Oint4 (void *node) {
 			}
 			//printf ("NOW newangle %f oldangle %f testangle %f\n",
 				//	newangle,oldangle, testangle);
-			
+
 		}
 
 		/* ok, now, some people write rotations like 0 0 1 0, 1 0 0 0.3
@@ -562,7 +562,7 @@ void do_CollisionTick( void *ptr) {
 //void do_AudioTick(struct VRML_AudioClip *node) {
 void do_AudioTick(void *ptr) {
 	struct VRML_AudioClip *node = (struct VRML_AudioClip *)ptr;
-	int 	oldstatus;	
+	int 	oldstatus;
 
 	/* can we possibly have started yet? */
 	if (!node) return;
@@ -589,14 +589,14 @@ void do_AudioTick(void *ptr) {
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,(float)(return_Duration(node->__sourceNumber)),
 		((float)node->pitch));
-	
+
 
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
 		mark_event ((unsigned int) node, offsetof(struct VRML_AudioClip, isActive));
 		/* tell SoundEngine that this source has changed.  */
 	        if (!SoundEngineStarted) {
-        	        if (SEVerbose) printf ("SetAudioActive: initializing SoundEngine\n"); 
+        	        if (SEVerbose) printf ("SetAudioActive: initializing SoundEngine\n");
                 	SoundEngineStarted = TRUE;
                 	SoundEngineInit();
 		}
@@ -653,7 +653,7 @@ void do_TimeSensorTick ( void *ptr) {
 	if(node->isActive == 1) {
 		/* set time field */
 		node->time = TickTime;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 				offsetof(struct VRML_TimeSensor, time));
 
 		/* calculate what fraction we should be */
@@ -675,7 +675,7 @@ void do_TimeSensorTick ( void *ptr) {
 			mark_event ((unsigned int) node, offsetof(struct VRML_TimeSensor, cycleTime));
 		}
 		node->__ctflag = frac;
-	
+
 		/* time  and fraction_changed events */
 		/* push @e, [$t, "time", $TickTime];
 		push @e, [$t, fraction_changed, $frac]; */
@@ -706,7 +706,7 @@ void do_ProximitySensorTick( void *ptr) {
 			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, isActive));
 			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, enterTime));
 		}
-			
+
 		/* now, has anything changed? */
 		if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
 			if (SEVerbose) printf ("PROX - position changed!!! \n");
@@ -730,14 +730,14 @@ void do_ProximitySensorTick( void *ptr) {
 		}
 	}
 	node->__hit=FALSE;
-}	
+}
 
 
 /* Audio MovieTexture code */
 //void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 void do_MovieTextureTick( void *ptr) {
 	struct VRML_MovieTexture *node = (struct VRML_MovieTexture *)ptr;
-	int 	oldstatus;	
+	int 	oldstatus;
 	float 	frac;		/* which texture to display */
 	int 	highest,lowest;	/* selector variables		*/
 	/* double myDuration; */
@@ -764,7 +764,7 @@ void do_MovieTextureTick( void *ptr) {
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,(float)duration,(float)speed);
-	
+
 
 	/* what we do now depends on whether we are active or not */
 	if (oldstatus != node->isActive) {
@@ -778,13 +778,13 @@ void do_MovieTextureTick( void *ptr) {
 		/* sanity check - avoids divide by zero problems below */
 		if (lowest >= highest) {
 			lowest = highest-1;
-		}	
+		}
 		/* calculate what fraction we should be */
  		myTime = (TickTime - node->startTime) * speed/duration;
 
 		tmpTrunc = (int) myTime;
 		frac = myTime - (float)tmpTrunc;
-	
+
 		/* negative speed? */
 		if (speed < 0) {
 			frac = 1+frac; /* frac will be *negative* */
@@ -792,20 +792,20 @@ void do_MovieTextureTick( void *ptr) {
 		} else if (APPROX(speed, 0)) {
 			frac = 0;
 		}
-	
+
 		/* frac will tell us what texture frame we should apply... */
 		/* code changed by Alberto Dubuc to compile on Solaris 8 */
 		tmpTrunc = (int) (frac*(highest-lowest+1)+lowest);
 		frac = (float) tmpTrunc;
-	
+
 		/* verify parameters */
-		if (frac < lowest){ 
+		if (frac < lowest){
 			frac = lowest;
 		}
-		if (frac > highest){ 
+		if (frac > highest){
 			frac = highest;
 		}
-	
+
 		/* if (node->__ctex != frac) */
 		if (! APPROX(node->__ctex, frac)) {
 			node->__ctex = (int)frac;
@@ -848,7 +848,7 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 	/* isOver state */
 	if (over != node->isOver) {
 		node->isOver = over;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_TouchSensor, isOver));
 	}
 
@@ -858,16 +858,16 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 		/* button presses */
 		if (ev == ButtonPress) {
 			node->isActive=1;
-			mark_event ((unsigned int) node, 
+			mark_event ((unsigned int) node,
 				offsetof (struct VRML_TouchSensor, isActive));
 
 			node->touchTime = TickTime;
 			mark_event((unsigned int) node,
 				offsetof (struct VRML_TouchSensor, touchTime));
 
-		} else if (ev == ButtonRelease) { 
+		} else if (ev == ButtonRelease) {
 			node->isActive=0;
-			mark_event ((unsigned int) node, 
+			mark_event ((unsigned int) node,
 				offsetof (struct VRML_TouchSensor, isActive));
 		}
 
@@ -906,7 +906,7 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 
 		/* set isActive true */
 		node->isActive=1;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_PlaneSensor, isActive));
 
 	} else if ((ev==MotionNotify) && (node->isActive==1)) {
@@ -946,9 +946,9 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 		node->translation_changed.c[0] = tr.c[0];
 		node->translation_changed.c[1] = tr.c[1];
 		node->translation_changed.c[2] = tr.c[2];
-		
+
 		if (SEVerbose) printf ("TRC %f %f %f\n",node->translation_changed.c[0],
-			node->translation_changed.c[1],node->translation_changed.c[2]);	
+			node->translation_changed.c[1],node->translation_changed.c[2]);
 
 		/* and send this event */
 		mark_event ((unsigned int) node,
@@ -959,7 +959,7 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_PlaneSensor, isActive));
 
 		/* autoOffset? */
@@ -979,7 +979,7 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 void do_Anchor ( void *ptr, int ev, int over) {
 	struct VRML_Anchor *node = (struct VRML_Anchor *)ptr;
 	UNUSED(over);
-	
+
 	if (!node) return;
 	if (ev==ButtonPress) {
 		/* no parameters in url field? */
@@ -992,12 +992,12 @@ void do_Anchor ( void *ptr, int ev, int over) {
 
 //void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
 void do_CylinderSensor ( void *ptr, int ev, int over) {
-	struct VRML_CylinderSensor *node = (struct VRML_CylinderSensor *)ptr;	
+	struct VRML_CylinderSensor *node = (struct VRML_CylinderSensor *)ptr;
 	float rot, radius, ang, length;
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
 	GLdouble modelMatrix[16];
-        
+
 	UNUSED(over);
 
 	if (!node) return;
@@ -1006,17 +1006,17 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 		/* record the current position from the saved position */
     		memcpy ((void *) &node->_origPoint,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
-			
+
 		/* set isActive true */
 		node->isActive=1;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_CylinderSensor, isActive));
-	
+
     		/* record the current Radius */
-		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] + 
+		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] +
 				ray_save_posn.c[1] * ray_save_posn.c[1] +
 				ray_save_posn.c[2] * ray_save_posn.c[2];
-		
+
         	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
      		/*
      		printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
@@ -1025,57 +1025,57 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
                		modelMatrix[2],  modelMatrix[6],  modelMatrix[10],  modelMatrix[14],
                		modelMatrix[3],  modelMatrix[7],  modelMatrix[11],  modelMatrix[15]);
 		*/
-		
+
 		/* find the bearing vector in the local coordinate system */
         	pos = neg = 0.0;
 		temp =  modelMatrix[1] * modelMatrix[6] * modelMatrix[8];
-        	if(temp >= 0.0) pos += temp; else neg += temp;       
+        	if(temp >= 0.0) pos += temp; else neg += temp;
 		temp = -modelMatrix[2] * modelMatrix[5] * modelMatrix[8];
-        	if(temp >= 0.0) pos += temp; else neg += temp; 
+        	if(temp >= 0.0) pos += temp; else neg += temp;
 		temp = -modelMatrix[0] * modelMatrix[6] * modelMatrix[9];
-        	if(temp >= 0.0) pos += temp; else neg += temp;    
+        	if(temp >= 0.0) pos += temp; else neg += temp;
 		temp =  modelMatrix[2] * modelMatrix[4] * modelMatrix[9];
-		if(temp >= 0.0) pos += temp; else neg += temp;         	
+		if(temp >= 0.0) pos += temp; else neg += temp;
 		temp =  modelMatrix[0] * modelMatrix[5] * modelMatrix[10];
-		if(temp >= 0.0) pos += temp; else neg += temp;     
+		if(temp >= 0.0) pos += temp; else neg += temp;
 		temp = -modelMatrix[1] * modelMatrix[4] * modelMatrix[10];
-       	 	if(temp >= 0.0) pos += temp; else neg += temp;    	
+       	 	if(temp >= 0.0) pos += temp; else neg += temp;
 		det = pos + neg;
         	det = 1.0 / det;
-        
+
 		bv.w = 0;/* set to 0 to ensure vector is normalised correctly */
         	bv.x = (modelMatrix[4] * modelMatrix[9] - modelMatrix[5] * modelMatrix[8]) * det;
         	bv.y = -(modelMatrix[0] * modelMatrix[9] - modelMatrix[1] * modelMatrix[8]) * det;
         	bv.z = (modelMatrix[0] * modelMatrix[5] - modelMatrix[1] * modelMatrix[4]) * det;
-		
+
 		normalize(&bv);
 		ang = acos(bv.y);
         	if (ang > (M_PI/2)) { ang = M_PI - ang; }
-        
-        	if (ang < node->diskAngle) { 	
+
+        	if (ang < node->diskAngle) {
 			node->_dlchange=1;
-        	} else {  
+        	} else {
 			node->_dlchange=0;
         	}
 
-	} else if (ev==MotionNotify) {		
-		
+	} else if (ev==MotionNotify) {
+
 		memcpy ((void *) &node->trackPoint_changed,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
-			
-		mark_event ((unsigned int) node, 
+
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_CylinderSensor, trackPoint_changed));
-		
+
 		dir1.w=0;
   		dir1.x=ray_save_posn.c[0];
   		dir1.y=0;
   		dir1.z=ray_save_posn.c[2];
-	
+
         	if (node->_dlchange) {
             		radius = 1.0;
 		} else {
 			/* get the radius */
-            		radius = (dir1.x * dir1.x + dir1.y * dir1.y + dir1.z * dir1.z); 
+            		radius = (dir1.x * dir1.x + dir1.y * dir1.y + dir1.z * dir1.z);
 		}
 
         	normalize(&dir1);
@@ -1085,21 +1085,21 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
   		dir2.z=node->_origPoint.c[2];
 
 		normalize(&dir2);
-       
+
     		tempV.w = 0;
     		tempV.x = dir2.y * dir1.z - dir2.z * dir1.y;
     		tempV.y = dir2.z * dir1.x - dir2.x * dir1.z;
     		tempV.z = dir2.x * dir1.y - dir2.y * dir1.x;
 		normalize(&tempV);
-        
+
         	length = tempV.x * tempV.x + tempV.y * tempV.y + tempV.z * tempV.z;
         	if (APPROX(length,0.0)) { return; }
-        
+
 		/* Find the angle of the dot product */
         	rot = radius * acos((dir1.x*dir2.x+dir1.y*dir2.y+dir1.z*dir2.z)) ;
-        
+
 		if (APPROX(tempV.y,-1.0)) rot = -rot;
-  
+
         	if (node->autoOffset) {
             	rot = node->offset + rot;
 		}
@@ -1116,21 +1116,21 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 		node->rotation_changed.r[2] = 0;
 		node->rotation_changed.r[3] = rot;
 
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_CylinderSensor, rotation_changed));
-	
+
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_CylinderSensor, isActive));
 		/* save auto offset of rotation */
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
 				(void *) &node->rotation_changed.r[3],
 				sizeof (float));
-				
-		mark_event ((unsigned int) node, 
+
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_CylinderSensor, rotation_changed));
 		}
 	}
@@ -1157,19 +1157,19 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 			(void *) &ray_save_posn,sizeof(struct SFColor));
 
 		/* record the current Radius */
-		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] + 
+		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] +
 			ray_save_posn.c[1] * ray_save_posn.c[1] +
 			ray_save_posn.c[2] * ray_save_posn.c[2];
-	
+
 		/* set isActive true */
 		node->isActive=1;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_SphereSensor, isActive));
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event ((unsigned int) node, 
+		mark_event ((unsigned int) node,
 			offsetof (struct VRML_SphereSensor, isActive));
 
 		if (node->autoOffset) {
@@ -1180,11 +1180,11 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 	} else if (ev==MotionNotify) {
 		/* 1. get the point on the plane */
 
-		tr1sq = hyp_save_posn.c[0] * hyp_save_posn.c[0] + 
+		tr1sq = hyp_save_posn.c[0] * hyp_save_posn.c[0] +
 			hyp_save_posn.c[1] * hyp_save_posn.c[1] +
                         hyp_save_posn.c[2] * hyp_save_posn.c[2];
-		
-		tr2sq = hyp_save_norm.c[0] * hyp_save_norm.c[0] + 
+
+		tr2sq = hyp_save_norm.c[0] * hyp_save_norm.c[0] +
 			hyp_save_norm.c[1] * hyp_save_norm.c[1] +
                         hyp_save_norm.c[2] * hyp_save_norm.c[2];
 
@@ -1216,19 +1216,19 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 			}
 
 			for (tmp = 0; tmp < 3; tmp++) {
-				arr.c[tmp] = hyp_save_posn.c[tmp] + 
+				arr.c[tmp] = hyp_save_posn.c[tmp] +
 					sol * (hyp_save_norm.c[tmp] - hyp_save_posn.c[tmp]);
 			}
 
 			/* Ok, now we have the two vectors _origPoint
-			and arr, find out the rotation to take 
+			and arr, find out the rotation to take
 			one to the other. */
 
-			cp.c[0] = arr.c[1] * node->_origPoint.c[2] - 
+			cp.c[0] = arr.c[1] * node->_origPoint.c[2] -
 				node->_origPoint.c[1] * arr.c[2];
-			cp.c[1] = arr.c[2] * node->_origPoint.c[0] - 
+			cp.c[1] = arr.c[2] * node->_origPoint.c[0] -
 				node->_origPoint.c[2] * arr.c[0];
-			cp.c[2] = arr.c[0] * node->_origPoint.c[1] - 
+			cp.c[2] = arr.c[0] * node->_origPoint.c[1] -
 				node->_origPoint.c[0] * arr.c[1];
 
 			dot.c[0] = arr.c[0] * node->_origPoint.c[0];
@@ -1236,15 +1236,15 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 			dot.c[2] = arr.c[2] * node->_origPoint.c[2];
 
 			cl = cp.c[0]*cp.c[0] + cp.c[1]*cp.c[1] + cp.c[2]*cp.c[2];
-			an = atan2(cl,  dot.c[0]*dot.c[0] + dot.c[1]*dot.c[1] + 
+			an = atan2(cl,  dot.c[0]*dot.c[0] + dot.c[1]*dot.c[1] +
 						dot.c[2]*dot.c[2]);
 
 			for (tmp=0; tmp<3;tmp++) {
 				cp.c[tmp] = cp.c[tmp]/cl;
 			}
-			memcpy ((void *)&node->trackPoint_changed, 
+			memcpy ((void *)&node->trackPoint_changed,
 				(void *)&arr, sizeof (struct SFColor));
-			mark_event ((unsigned int) node, 
+			mark_event ((unsigned int) node,
 				offsetof (struct VRML_SphereSensor, trackPoint_changed));
 
 			vrmlrot_to_quaternion(&q, cp.c[0], cp.c[1], cp.c[2], -an);
@@ -1262,7 +1262,7 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 			node->rotation_changed.r[2] = s3;
 			node->rotation_changed.r[3] = s4;
 
-			mark_event ((unsigned int) node, 
+			mark_event ((unsigned int) node,
 				offsetof (struct VRML_SphereSensor, rotation_changed));
 		}
 	}
@@ -1281,34 +1281,34 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	SoundSourceNumber++;
 
 	filename = (char*)malloc(1000);
-	
+
 	/* lets make up the path and save it, and make it the global path */
 	count = strlen(SvPV(node->__parenturl,xx));
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
-	
+
 	if ((!filename) || (!mypath)) {
 		outOfMemory ("locateAudioSource:can not malloc for filename\n");
 	}
-	
+
 	/* copy the parent path over */
 	strcpy (mypath,SvPV(node->__parenturl,xx));
-	
+
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *)rindex(mypath,'/');
-	if (slashindex != NULL) { 
+	if (slashindex != NULL) {
 		slashindex ++; /* leave the slash on */
-		*slashindex = 0; 
+		*slashindex = 0;
 	 } else {mypath[0] = 0;}
 
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < (node->url).n) {
 		thisurl = SvPV((node->url).p[count],xx);
-	
+
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
 
-		/* put the path and the file name together */	
+		/* put the path and the file name together */
 		makeAbsoluteFileName(filename,mypath,thisurl);
 
 		if (fileExists(filename,firstBytes,TRUE)) { break; }
@@ -1319,8 +1319,8 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 		printf ("Audio: could not find audio file\n");
 		free (filename);
 		node->__sourceNumber = BADAUDIOSOURCE;
-	} else { 
-		/* save local file in the structure, so that it can 
+	} else {
+		/* save local file in the structure, so that it can
 		   be initialized later */
 		node->__localFileName = (int) filename;
 	}

@@ -78,14 +78,14 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 		//If the trace of the matrix is equal to zero then identify
 		//which major diagonal element has the greatest value.
 		//Depending on this, calculate the following:
-		
-		if ((MAT00>MAT11)&&(MAT00>MAT22))  {// Column 0: 
+
+		if ((MAT00>MAT11)&&(MAT00>MAT22))  {// Column 0:
 			S  = sqrt( 1.0 + MAT00 - MAT11 - MAT22 ) * 2;
 			X = 0.25 * S;
 			Y = (MAT01 + MAT10) / S;
 			Z = (MAT02 + MAT20) / S;
 			W = (MAT21 - MAT12) / S;
-		} else if ( MAT11>MAT22 ) {// Column 1: 
+		} else if ( MAT11>MAT22 ) {// Column 1:
 			S  = sqrt( 1.0 + MAT11 - MAT00 - MAT22) * 2;
 			X = (MAT01 + MAT10) / S;
 			Y = 0.25 * S;
@@ -120,7 +120,7 @@ quaternion_to_matrix (float *mat, Quaternion *q) {
 	sqx = q->x*q->x;
 	sqy = q->y*q->y;
 	sqz = q->z*q->z;
-	
+
 	/* scale */
 	MAT00 =  sqx - sqy - sqz + sqw; // since sqw + sqx + sqy + sqz =1
 	MAT11 = -sqx + sqy - sqz + sqw;
@@ -232,8 +232,8 @@ inverse(Quaternion *ret, const Quaternion *quat)
 
 	/* unit quaternion, so take conjugate */
 	normalize(ret);
- 	//printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n", 
- 	//	   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z); 
+ 	//printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n",
+ 	//	   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z);
 }
 
 double
@@ -309,7 +309,7 @@ rotation(struct pt *ret, const Quaternion *quat, const struct pt *v)
 	ret->x = q_r2.x;
 	ret->y = q_r2.y;
 	ret->z = q_r2.z;
- 	//printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z); 
+ 	//printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z);
 }
 
 
@@ -354,7 +354,7 @@ quat_invert (Quaternion *quat) {
 	quat->z *= -1/absq;
 }
 */
-	
+
 /*
  * Code from www.gamasutra.com/features/19980703/quaternions_01.htm,
  * Listing 5.

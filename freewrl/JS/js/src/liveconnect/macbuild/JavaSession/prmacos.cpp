@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -37,7 +37,7 @@
 
 	Mac OS Support functions for LiveConnect. Provides standard JNI JavaVM creation
 	functions, and strdup.
-	
+
 	by Patrick C. Beard.
  */
 
@@ -103,7 +103,7 @@ jint JNICALL JNI_CreateJavaVM(JavaVM** outVM, JNIEnv ** outEnv, void* args)
 			theSession = new JavaSession();
 		if (theSession == NULL)
 			throw(OSStatusException(memFullErr));
-		
+
 		// set up the classpath if any.
 		JDK1_1InitArgs* initArgs = (JDK1_1InitArgs*)args;
 		char* classpath = initArgs->classpath;
@@ -116,12 +116,12 @@ jint JNICALL JNI_CreateJavaVM(JavaVM** outVM, JNIEnv ** outEnv, void* args)
 			classpath = colon + 1;
 			colon = ::strchr(classpath, ':');
 		}
-		
+
 		// Make sure that the JavaSession is torn down at the end of execution.
 		// If the user chooses "Quit" from the file menu, this guarantees
 		// the shutdown will happen.
 		atexit(&shutdownJava);
-		
+
 		JNIEnv* env = theSession->getEnv();
 		JavaVM* javaVM = NULL;
 		result = env->GetJavaVM(&javaVM);

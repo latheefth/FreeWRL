@@ -1952,7 +1952,7 @@ js_ChangeNativePropertyAttrs(JSContext *cx, JSObject *obj,
                              JSPropertyOp getter, JSPropertyOp setter)
 {
     JSScope *scope;
-    
+
     JS_LOCK_OBJ(cx, obj);
     scope = js_GetMutableScope(cx, obj);
     if (!scope) {
@@ -3102,7 +3102,7 @@ js_CheckAccess(JSContext *cx, JSObject *obj, jsid id, JSAccessMode mode,
     OBJ_DROP_PROPERTY(cx, pobj, prop);
     return ok;
 }
- 
+
 #ifdef JS_THREADSAFE
 void
 js_DropProperty(JSContext *cx, JSObject *obj, JSProperty *prop)

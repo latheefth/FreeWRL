@@ -6,28 +6,28 @@
 !IF "$(CFG)" == ""
 CFG=fdlibm - Win32 Debug
 !MESSAGE No configuration specified.  Defaulting to fdlibm - Win32 Debug.
-!ENDIF 
+!ENDIF
 
 !IF "$(CFG)" != "fdlibm - Win32 Release" && "$(CFG)" != "fdlibm - Win32 Debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE on this makefile
 !MESSAGE by defining the macro CFG on the command line.  For example:
-!MESSAGE 
+!MESSAGE
 !MESSAGE NMAKE /f "fdlibm.mak" CFG="fdlibm - Win32 Debug"
-!MESSAGE 
+!MESSAGE
 !MESSAGE Possible choices for configuration are:
-!MESSAGE 
+!MESSAGE
 !MESSAGE "fdlibm - Win32 Release" (based on "Win32 (x86) Static Library")
 !MESSAGE "fdlibm - Win32 Debug" (based on "Win32 (x86) Static Library")
-!MESSAGE 
+!MESSAGE
 !ERROR An invalid configuration is specified.
-!ENDIF 
+!ENDIF
 
 !IF "$(OS)" == "Windows_NT"
 NULL=
-!ELSE 
+!ELSE
 NULL=nul
-!ENDIF 
+!ENDIF
 ################################################################################
 # Begin Project
 CPP=cl.exe
@@ -49,7 +49,7 @@ INTDIR=.\fdlibm__
 
 ALL : "$(OUTDIR)\fdlibm.lib"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\e_acos.obj"
 	-@erase "$(INTDIR)\e_acosh.obj"
 	-@erase "$(INTDIR)\e_asin.obj"
@@ -138,19 +138,19 @@ CLEAN :
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /ML /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS"\
- /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c 
+ /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c
 CPP_OBJS=.\fdlibm__/
 CPP_SBRS=.\.
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc"
 BSC32_SBRS= \
-	
+
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib" 
+LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib"
 LIB32_OBJS= \
 	"$(INTDIR)\e_acos.obj" \
 	"$(INTDIR)\e_acosh.obj" \
@@ -255,7 +255,7 @@ INTDIR=.\fdlibm_0
 
 ALL : "$(OUTDIR)\fdlibm.lib"
 
-CLEAN : 
+CLEAN :
 	-@erase "$(INTDIR)\e_acos.obj"
 	-@erase "$(INTDIR)\e_acosh.obj"
 	-@erase "$(INTDIR)\e_asin.obj"
@@ -344,19 +344,19 @@ CLEAN :
 # ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
 # ADD CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /c
 CPP_PROJ=/nologo /MLd /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS"\
- /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c 
+ /Fp"$(INTDIR)/fdlibm.pch" /YX /Fo"$(INTDIR)/" /c
 CPP_OBJS=.\fdlibm_0/
 CPP_SBRS=.\.
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)/fdlibm.bsc"
 BSC32_SBRS= \
-	
+
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
-LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib" 
+LIB32_FLAGS=/nologo /out:"$(OUTDIR)/fdlibm.lib"
 LIB32_OBJS= \
 	"$(INTDIR)\e_acos.obj" \
 	"$(INTDIR)\e_acosh.obj" \
@@ -444,25 +444,25 @@ LIB32_OBJS= \
   $(LIB32_FLAGS) $(DEF_FLAGS) $(LIB32_OBJS)
 <<
 
-!ENDIF 
+!ENDIF
 
 .c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 .cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
+   $(CPP) $(CPP_PROJ) $<
 
 ################################################################################
 # Begin Target
@@ -474,7 +474,7 @@ LIB32_OBJS= \
 
 !ELSEIF  "$(CFG)" == "fdlibm - Win32 Debug"
 
-!ENDIF 
+!ENDIF
 
 ################################################################################
 # Begin Source File
@@ -482,7 +482,7 @@ LIB32_OBJS= \
 SOURCE=.\w_sqrt.c
 DEP_CPP_W_SQR=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_sqrt.obj" : $(SOURCE) $(DEP_CPP_W_SQR) "$(INTDIR)"
 
@@ -494,7 +494,7 @@ DEP_CPP_W_SQR=\
 SOURCE=.\e_acosh.c
 DEP_CPP_E_ACO=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_acosh.obj" : $(SOURCE) $(DEP_CPP_E_ACO) "$(INTDIR)"
 
@@ -506,7 +506,7 @@ DEP_CPP_E_ACO=\
 SOURCE=.\e_asin.c
 DEP_CPP_E_ASI=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_asin.obj" : $(SOURCE) $(DEP_CPP_E_ASI) "$(INTDIR)"
 
@@ -518,7 +518,7 @@ DEP_CPP_E_ASI=\
 SOURCE=.\e_atan2.c
 DEP_CPP_E_ATA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_atan2.obj" : $(SOURCE) $(DEP_CPP_E_ATA) "$(INTDIR)"
 
@@ -530,7 +530,7 @@ DEP_CPP_E_ATA=\
 SOURCE=.\e_atanh.c
 DEP_CPP_E_ATAN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_atanh.obj" : $(SOURCE) $(DEP_CPP_E_ATAN) "$(INTDIR)"
 
@@ -542,7 +542,7 @@ DEP_CPP_E_ATAN=\
 SOURCE=.\e_cosh.c
 DEP_CPP_E_COS=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_cosh.obj" : $(SOURCE) $(DEP_CPP_E_COS) "$(INTDIR)"
 
@@ -554,7 +554,7 @@ DEP_CPP_E_COS=\
 SOURCE=.\e_exp.c
 DEP_CPP_E_EXP=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_exp.obj" : $(SOURCE) $(DEP_CPP_E_EXP) "$(INTDIR)"
 
@@ -566,7 +566,7 @@ DEP_CPP_E_EXP=\
 SOURCE=.\e_fmod.c
 DEP_CPP_E_FMO=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_fmod.obj" : $(SOURCE) $(DEP_CPP_E_FMO) "$(INTDIR)"
 
@@ -578,7 +578,7 @@ DEP_CPP_E_FMO=\
 SOURCE=.\e_gamma.c
 DEP_CPP_E_GAM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_gamma.obj" : $(SOURCE) $(DEP_CPP_E_GAM) "$(INTDIR)"
 
@@ -590,7 +590,7 @@ DEP_CPP_E_GAM=\
 SOURCE=.\e_gamma_r.c
 DEP_CPP_E_GAMM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_gamma_r.obj" : $(SOURCE) $(DEP_CPP_E_GAMM) "$(INTDIR)"
 
@@ -602,7 +602,7 @@ DEP_CPP_E_GAMM=\
 SOURCE=.\e_hypot.c
 DEP_CPP_E_HYP=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_hypot.obj" : $(SOURCE) $(DEP_CPP_E_HYP) "$(INTDIR)"
 
@@ -614,7 +614,7 @@ DEP_CPP_E_HYP=\
 SOURCE=.\e_j0.c
 DEP_CPP_E_J0_=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_j0.obj" : $(SOURCE) $(DEP_CPP_E_J0_) "$(INTDIR)"
 
@@ -626,7 +626,7 @@ DEP_CPP_E_J0_=\
 SOURCE=.\e_j1.c
 DEP_CPP_E_J1_=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_j1.obj" : $(SOURCE) $(DEP_CPP_E_J1_) "$(INTDIR)"
 
@@ -638,7 +638,7 @@ DEP_CPP_E_J1_=\
 SOURCE=.\e_jn.c
 DEP_CPP_E_JN_=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_jn.obj" : $(SOURCE) $(DEP_CPP_E_JN_) "$(INTDIR)"
 
@@ -650,7 +650,7 @@ DEP_CPP_E_JN_=\
 SOURCE=.\e_lgamma.c
 DEP_CPP_E_LGA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_lgamma.obj" : $(SOURCE) $(DEP_CPP_E_LGA) "$(INTDIR)"
 
@@ -662,7 +662,7 @@ DEP_CPP_E_LGA=\
 SOURCE=.\e_lgamma_r.c
 DEP_CPP_E_LGAM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_lgamma_r.obj" : $(SOURCE) $(DEP_CPP_E_LGAM) "$(INTDIR)"
 
@@ -674,7 +674,7 @@ DEP_CPP_E_LGAM=\
 SOURCE=.\e_log.c
 DEP_CPP_E_LOG=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_log.obj" : $(SOURCE) $(DEP_CPP_E_LOG) "$(INTDIR)"
 
@@ -686,7 +686,7 @@ DEP_CPP_E_LOG=\
 SOURCE=.\e_log10.c
 DEP_CPP_E_LOG1=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_log10.obj" : $(SOURCE) $(DEP_CPP_E_LOG1) "$(INTDIR)"
 
@@ -698,7 +698,7 @@ DEP_CPP_E_LOG1=\
 SOURCE=.\e_pow.c
 DEP_CPP_E_POW=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_pow.obj" : $(SOURCE) $(DEP_CPP_E_POW) "$(INTDIR)"
 
@@ -710,7 +710,7 @@ DEP_CPP_E_POW=\
 SOURCE=.\e_rem_pio2.c
 DEP_CPP_E_REM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_rem_pio2.obj" : $(SOURCE) $(DEP_CPP_E_REM) "$(INTDIR)"
 
@@ -722,7 +722,7 @@ DEP_CPP_E_REM=\
 SOURCE=.\e_remainder.c
 DEP_CPP_E_REMA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_remainder.obj" : $(SOURCE) $(DEP_CPP_E_REMA) "$(INTDIR)"
 
@@ -734,7 +734,7 @@ DEP_CPP_E_REMA=\
 SOURCE=.\e_scalb.c
 DEP_CPP_E_SCA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_scalb.obj" : $(SOURCE) $(DEP_CPP_E_SCA) "$(INTDIR)"
 
@@ -746,7 +746,7 @@ DEP_CPP_E_SCA=\
 SOURCE=.\e_sinh.c
 DEP_CPP_E_SIN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_sinh.obj" : $(SOURCE) $(DEP_CPP_E_SIN) "$(INTDIR)"
 
@@ -758,7 +758,7 @@ DEP_CPP_E_SIN=\
 SOURCE=.\e_sqrt.c
 DEP_CPP_E_SQR=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_sqrt.obj" : $(SOURCE) $(DEP_CPP_E_SQR) "$(INTDIR)"
 
@@ -773,7 +773,7 @@ SOURCE=.\fdlibm.h
 
 !ELSEIF  "$(CFG)" == "fdlibm - Win32 Debug"
 
-!ENDIF 
+!ENDIF
 
 # End Source File
 ################################################################################
@@ -782,7 +782,7 @@ SOURCE=.\fdlibm.h
 SOURCE=.\k_cos.c
 DEP_CPP_K_COS=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\k_cos.obj" : $(SOURCE) $(DEP_CPP_K_COS) "$(INTDIR)"
 
@@ -794,7 +794,7 @@ DEP_CPP_K_COS=\
 SOURCE=.\k_rem_pio2.c
 DEP_CPP_K_REM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\k_rem_pio2.obj" : $(SOURCE) $(DEP_CPP_K_REM) "$(INTDIR)"
 
@@ -806,7 +806,7 @@ DEP_CPP_K_REM=\
 SOURCE=.\k_sin.c
 DEP_CPP_K_SIN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\k_sin.obj" : $(SOURCE) $(DEP_CPP_K_SIN) "$(INTDIR)"
 
@@ -818,7 +818,7 @@ DEP_CPP_K_SIN=\
 SOURCE=.\k_standard.c
 DEP_CPP_K_STA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\k_standard.obj" : $(SOURCE) $(DEP_CPP_K_STA) "$(INTDIR)"
 
@@ -830,7 +830,7 @@ DEP_CPP_K_STA=\
 SOURCE=.\k_tan.c
 DEP_CPP_K_TAN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\k_tan.obj" : $(SOURCE) $(DEP_CPP_K_TAN) "$(INTDIR)"
 
@@ -842,7 +842,7 @@ DEP_CPP_K_TAN=\
 SOURCE=.\s_asinh.c
 DEP_CPP_S_ASI=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_asinh.obj" : $(SOURCE) $(DEP_CPP_S_ASI) "$(INTDIR)"
 
@@ -854,7 +854,7 @@ DEP_CPP_S_ASI=\
 SOURCE=.\s_atan.c
 DEP_CPP_S_ATA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_atan.obj" : $(SOURCE) $(DEP_CPP_S_ATA) "$(INTDIR)"
 
@@ -866,7 +866,7 @@ DEP_CPP_S_ATA=\
 SOURCE=.\s_cbrt.c
 DEP_CPP_S_CBR=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_cbrt.obj" : $(SOURCE) $(DEP_CPP_S_CBR) "$(INTDIR)"
 
@@ -878,7 +878,7 @@ DEP_CPP_S_CBR=\
 SOURCE=.\s_ceil.c
 DEP_CPP_S_CEI=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_ceil.obj" : $(SOURCE) $(DEP_CPP_S_CEI) "$(INTDIR)"
 
@@ -890,7 +890,7 @@ DEP_CPP_S_CEI=\
 SOURCE=.\s_copysign.c
 DEP_CPP_S_COP=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_copysign.obj" : $(SOURCE) $(DEP_CPP_S_COP) "$(INTDIR)"
 
@@ -902,7 +902,7 @@ DEP_CPP_S_COP=\
 SOURCE=.\s_cos.c
 DEP_CPP_S_COS=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_cos.obj" : $(SOURCE) $(DEP_CPP_S_COS) "$(INTDIR)"
 
@@ -914,7 +914,7 @@ DEP_CPP_S_COS=\
 SOURCE=.\s_erf.c
 DEP_CPP_S_ERF=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_erf.obj" : $(SOURCE) $(DEP_CPP_S_ERF) "$(INTDIR)"
 
@@ -926,7 +926,7 @@ DEP_CPP_S_ERF=\
 SOURCE=.\s_expm1.c
 DEP_CPP_S_EXP=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_expm1.obj" : $(SOURCE) $(DEP_CPP_S_EXP) "$(INTDIR)"
 
@@ -938,7 +938,7 @@ DEP_CPP_S_EXP=\
 SOURCE=.\s_fabs.c
 DEP_CPP_S_FAB=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_fabs.obj" : $(SOURCE) $(DEP_CPP_S_FAB) "$(INTDIR)"
 
@@ -950,7 +950,7 @@ DEP_CPP_S_FAB=\
 SOURCE=.\s_finite.c
 DEP_CPP_S_FIN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_finite.obj" : $(SOURCE) $(DEP_CPP_S_FIN) "$(INTDIR)"
 
@@ -962,7 +962,7 @@ DEP_CPP_S_FIN=\
 SOURCE=.\s_floor.c
 DEP_CPP_S_FLO=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_floor.obj" : $(SOURCE) $(DEP_CPP_S_FLO) "$(INTDIR)"
 
@@ -974,7 +974,7 @@ DEP_CPP_S_FLO=\
 SOURCE=.\s_frexp.c
 DEP_CPP_S_FRE=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_frexp.obj" : $(SOURCE) $(DEP_CPP_S_FRE) "$(INTDIR)"
 
@@ -986,7 +986,7 @@ DEP_CPP_S_FRE=\
 SOURCE=.\s_ilogb.c
 DEP_CPP_S_ILO=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_ilogb.obj" : $(SOURCE) $(DEP_CPP_S_ILO) "$(INTDIR)"
 
@@ -998,7 +998,7 @@ DEP_CPP_S_ILO=\
 SOURCE=.\s_isnan.c
 DEP_CPP_S_ISN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_isnan.obj" : $(SOURCE) $(DEP_CPP_S_ISN) "$(INTDIR)"
 
@@ -1010,7 +1010,7 @@ DEP_CPP_S_ISN=\
 SOURCE=.\s_ldexp.c
 DEP_CPP_S_LDE=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_ldexp.obj" : $(SOURCE) $(DEP_CPP_S_LDE) "$(INTDIR)"
 
@@ -1022,7 +1022,7 @@ DEP_CPP_S_LDE=\
 SOURCE=.\s_lib_version.c
 DEP_CPP_S_LIB=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_lib_version.obj" : $(SOURCE) $(DEP_CPP_S_LIB) "$(INTDIR)"
 
@@ -1034,7 +1034,7 @@ DEP_CPP_S_LIB=\
 SOURCE=.\s_log1p.c
 DEP_CPP_S_LOG=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_log1p.obj" : $(SOURCE) $(DEP_CPP_S_LOG) "$(INTDIR)"
 
@@ -1046,7 +1046,7 @@ DEP_CPP_S_LOG=\
 SOURCE=.\s_logb.c
 DEP_CPP_S_LOGB=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_logb.obj" : $(SOURCE) $(DEP_CPP_S_LOGB) "$(INTDIR)"
 
@@ -1058,7 +1058,7 @@ DEP_CPP_S_LOGB=\
 SOURCE=.\s_matherr.c
 DEP_CPP_S_MAT=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_matherr.obj" : $(SOURCE) $(DEP_CPP_S_MAT) "$(INTDIR)"
 
@@ -1070,7 +1070,7 @@ DEP_CPP_S_MAT=\
 SOURCE=.\s_modf.c
 DEP_CPP_S_MOD=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_modf.obj" : $(SOURCE) $(DEP_CPP_S_MOD) "$(INTDIR)"
 
@@ -1082,7 +1082,7 @@ DEP_CPP_S_MOD=\
 SOURCE=.\s_nextafter.c
 DEP_CPP_S_NEX=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_nextafter.obj" : $(SOURCE) $(DEP_CPP_S_NEX) "$(INTDIR)"
 
@@ -1094,7 +1094,7 @@ DEP_CPP_S_NEX=\
 SOURCE=.\s_rint.c
 DEP_CPP_S_RIN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_rint.obj" : $(SOURCE) $(DEP_CPP_S_RIN) "$(INTDIR)"
 
@@ -1106,7 +1106,7 @@ DEP_CPP_S_RIN=\
 SOURCE=.\s_scalbn.c
 DEP_CPP_S_SCA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_scalbn.obj" : $(SOURCE) $(DEP_CPP_S_SCA) "$(INTDIR)"
 
@@ -1118,7 +1118,7 @@ DEP_CPP_S_SCA=\
 SOURCE=.\s_signgam.c
 DEP_CPP_S_SIG=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_signgam.obj" : $(SOURCE) $(DEP_CPP_S_SIG) "$(INTDIR)"
 
@@ -1130,7 +1130,7 @@ DEP_CPP_S_SIG=\
 SOURCE=.\s_significand.c
 DEP_CPP_S_SIGN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_significand.obj" : $(SOURCE) $(DEP_CPP_S_SIGN) "$(INTDIR)"
 
@@ -1142,7 +1142,7 @@ DEP_CPP_S_SIGN=\
 SOURCE=.\s_sin.c
 DEP_CPP_S_SIN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_sin.obj" : $(SOURCE) $(DEP_CPP_S_SIN) "$(INTDIR)"
 
@@ -1154,7 +1154,7 @@ DEP_CPP_S_SIN=\
 SOURCE=.\s_tan.c
 DEP_CPP_S_TAN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_tan.obj" : $(SOURCE) $(DEP_CPP_S_TAN) "$(INTDIR)"
 
@@ -1166,7 +1166,7 @@ DEP_CPP_S_TAN=\
 SOURCE=.\s_tanh.c
 DEP_CPP_S_TANH=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\s_tanh.obj" : $(SOURCE) $(DEP_CPP_S_TANH) "$(INTDIR)"
 
@@ -1178,7 +1178,7 @@ DEP_CPP_S_TANH=\
 SOURCE=.\w_acos.c
 DEP_CPP_W_ACO=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_acos.obj" : $(SOURCE) $(DEP_CPP_W_ACO) "$(INTDIR)"
 
@@ -1190,7 +1190,7 @@ DEP_CPP_W_ACO=\
 SOURCE=.\w_acosh.c
 DEP_CPP_W_ACOS=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_acosh.obj" : $(SOURCE) $(DEP_CPP_W_ACOS) "$(INTDIR)"
 
@@ -1202,7 +1202,7 @@ DEP_CPP_W_ACOS=\
 SOURCE=.\w_asin.c
 DEP_CPP_W_ASI=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_asin.obj" : $(SOURCE) $(DEP_CPP_W_ASI) "$(INTDIR)"
 
@@ -1214,7 +1214,7 @@ DEP_CPP_W_ASI=\
 SOURCE=.\w_atan2.c
 DEP_CPP_W_ATA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_atan2.obj" : $(SOURCE) $(DEP_CPP_W_ATA) "$(INTDIR)"
 
@@ -1226,7 +1226,7 @@ DEP_CPP_W_ATA=\
 SOURCE=.\w_atanh.c
 DEP_CPP_W_ATAN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_atanh.obj" : $(SOURCE) $(DEP_CPP_W_ATAN) "$(INTDIR)"
 
@@ -1238,7 +1238,7 @@ DEP_CPP_W_ATAN=\
 SOURCE=.\w_cosh.c
 DEP_CPP_W_COS=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_cosh.obj" : $(SOURCE) $(DEP_CPP_W_COS) "$(INTDIR)"
 
@@ -1250,7 +1250,7 @@ DEP_CPP_W_COS=\
 SOURCE=.\w_exp.c
 DEP_CPP_W_EXP=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_exp.obj" : $(SOURCE) $(DEP_CPP_W_EXP) "$(INTDIR)"
 
@@ -1262,7 +1262,7 @@ DEP_CPP_W_EXP=\
 SOURCE=.\w_fmod.c
 DEP_CPP_W_FMO=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_fmod.obj" : $(SOURCE) $(DEP_CPP_W_FMO) "$(INTDIR)"
 
@@ -1274,7 +1274,7 @@ DEP_CPP_W_FMO=\
 SOURCE=.\w_gamma.c
 DEP_CPP_W_GAM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_gamma.obj" : $(SOURCE) $(DEP_CPP_W_GAM) "$(INTDIR)"
 
@@ -1286,7 +1286,7 @@ DEP_CPP_W_GAM=\
 SOURCE=.\w_gamma_r.c
 DEP_CPP_W_GAMM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_gamma_r.obj" : $(SOURCE) $(DEP_CPP_W_GAMM) "$(INTDIR)"
 
@@ -1298,7 +1298,7 @@ DEP_CPP_W_GAMM=\
 SOURCE=.\w_hypot.c
 DEP_CPP_W_HYP=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_hypot.obj" : $(SOURCE) $(DEP_CPP_W_HYP) "$(INTDIR)"
 
@@ -1310,7 +1310,7 @@ DEP_CPP_W_HYP=\
 SOURCE=.\w_j0.c
 DEP_CPP_W_J0_=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_j0.obj" : $(SOURCE) $(DEP_CPP_W_J0_) "$(INTDIR)"
 
@@ -1322,7 +1322,7 @@ DEP_CPP_W_J0_=\
 SOURCE=.\w_j1.c
 DEP_CPP_W_J1_=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_j1.obj" : $(SOURCE) $(DEP_CPP_W_J1_) "$(INTDIR)"
 
@@ -1334,7 +1334,7 @@ DEP_CPP_W_J1_=\
 SOURCE=.\w_jn.c
 DEP_CPP_W_JN_=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_jn.obj" : $(SOURCE) $(DEP_CPP_W_JN_) "$(INTDIR)"
 
@@ -1346,7 +1346,7 @@ DEP_CPP_W_JN_=\
 SOURCE=.\w_lgamma.c
 DEP_CPP_W_LGA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_lgamma.obj" : $(SOURCE) $(DEP_CPP_W_LGA) "$(INTDIR)"
 
@@ -1358,7 +1358,7 @@ DEP_CPP_W_LGA=\
 SOURCE=.\w_lgamma_r.c
 DEP_CPP_W_LGAM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_lgamma_r.obj" : $(SOURCE) $(DEP_CPP_W_LGAM) "$(INTDIR)"
 
@@ -1370,7 +1370,7 @@ DEP_CPP_W_LGAM=\
 SOURCE=.\w_log.c
 DEP_CPP_W_LOG=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_log.obj" : $(SOURCE) $(DEP_CPP_W_LOG) "$(INTDIR)"
 
@@ -1382,7 +1382,7 @@ DEP_CPP_W_LOG=\
 SOURCE=.\w_log10.c
 DEP_CPP_W_LOG1=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_log10.obj" : $(SOURCE) $(DEP_CPP_W_LOG1) "$(INTDIR)"
 
@@ -1394,7 +1394,7 @@ DEP_CPP_W_LOG1=\
 SOURCE=.\w_pow.c
 DEP_CPP_W_POW=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_pow.obj" : $(SOURCE) $(DEP_CPP_W_POW) "$(INTDIR)"
 
@@ -1406,7 +1406,7 @@ DEP_CPP_W_POW=\
 SOURCE=.\w_remainder.c
 DEP_CPP_W_REM=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_remainder.obj" : $(SOURCE) $(DEP_CPP_W_REM) "$(INTDIR)"
 
@@ -1418,7 +1418,7 @@ DEP_CPP_W_REM=\
 SOURCE=.\w_scalb.c
 DEP_CPP_W_SCA=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_scalb.obj" : $(SOURCE) $(DEP_CPP_W_SCA) "$(INTDIR)"
 
@@ -1430,7 +1430,7 @@ DEP_CPP_W_SCA=\
 SOURCE=.\w_sinh.c
 DEP_CPP_W_SIN=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\w_sinh.obj" : $(SOURCE) $(DEP_CPP_W_SIN) "$(INTDIR)"
 
@@ -1442,7 +1442,7 @@ DEP_CPP_W_SIN=\
 SOURCE=.\e_acos.c
 DEP_CPP_E_ACOS=\
 	".\fdlibm.h"\
-	
+
 
 "$(INTDIR)\e_acos.obj" : $(SOURCE) $(DEP_CPP_E_ACOS) "$(INTDIR)"
 

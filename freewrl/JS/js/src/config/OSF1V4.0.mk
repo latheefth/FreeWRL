@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -55,13 +55,13 @@ RANLIB = echo
 MKSHLIB = $(LD) -shared -taso -all -expect_unresolved "*"
 
 #
-#  _DGUX_SOURCE is needed to turn on a lot of stuff in the headers if 
+#  _DGUX_SOURCE is needed to turn on a lot of stuff in the headers if
 #      you're not using DG's compiler.  It shouldn't hurt if you are.
 #
 #  _POSIX4A_DRAFT10_SOURCE is needed to pick up localtime_r, used in
 #      prtime.c
 #
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -DDGUX -D_DGUX_SOURCE -D_POSIX4A_DRAFT10_SOURCE -DOSF1 -DHAVE_LOCALTIME_R
-OS_LIBS = -lsocket -lnsl 
+OS_LIBS = -lsocket -lnsl
 
 NOSUCHFILE = /no-such-file

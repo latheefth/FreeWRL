@@ -237,7 +237,7 @@ int main (int argc, char **argv) {
 			case 'g':
 				setGeometry(optarg);
 				break;
-			
+
 			case 'c':
 				fullscreen = 1;
 #ifndef XF86V4
@@ -253,7 +253,7 @@ int main (int argc, char **argv) {
 				printf ("   type \"man freewrl\" to view man pages\n\n");
 				break;
 
-			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); break; 
+			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); break;
 			case 'j': sscanf (optarg,"%d",&_fw_FD); break;
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
 			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
@@ -266,14 +266,14 @@ int main (int argc, char **argv) {
 			/* Snapshot stuff */
 			case 'l': snapsequence = TRUE; break;
 			case 'p': snapGif = TRUE; break;
-			case 'q': sscanf (optarg,"%d",&maxSnapImages); 
+			case 'q': sscanf (optarg,"%d",&maxSnapImages);
 				  if (maxSnapImages <=0) {
 					printf ("FreeWRL: Commandline -maximg %s invalid\n",optarg);
 					maxSnapImages = 100;
 				  }
 				  break;
 
-			case 'm': 
+			case 'm':
 				  count = strlen(argv[optind]);
 				  if (count > 500) count = 500;
 				  snapseqB = (char *)malloc (count+1);
@@ -315,7 +315,7 @@ int main (int argc, char **argv) {
 				break;
 
 				/* initial string of keypresses once main url is loaded */
-			case 'K':	
+			case 'K':
 				keypress_string=optarg;
 				break;
 			default:
@@ -329,7 +329,7 @@ int main (int argc, char **argv) {
 #ifndef AQUA
 	if (optind < argc) {
 		if (optind != (argc-1)) {
-			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n", 
+			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n",
 				argv[optind]);
 		}
 
@@ -364,7 +364,7 @@ int main (int argc, char **argv) {
 	    //As this library is unused these are commented out, add them back in if you
 	    //want to enable the cyberglove
 	    //glove = create_cyber();
-	    //if( glove != NULL ) {	
+	    //if( glove != NULL ) {
   	      //have_cyberlib = 1;
 	      //clear the interal data structures of the library
 	      //memset( &glove->info, 0, sizeof( space->info ) );
@@ -446,7 +446,7 @@ int main (int argc, char **argv) {
 	  }
         }
 
-	//this section actually tries to connect to the input device, and verify if it's 
+	//this section actually tries to connect to the input device, and verify if it's
 	//active and able to provide data
 	//Arbitrarily I've decided that the order of prefrence for the devices is:
 	// The Ascension, followed by the polhemus, then the joystick, then the spaceball
@@ -491,7 +491,7 @@ int main (int argc, char **argv) {
 	  }
 	}
 	if( ( have_joylib ) && ( connected_device == -1 ) ) {
-	  printf("Looking for Joystick..\n\r");	
+	  printf("Looking for Joystick..\n\r");
 	  //have the library auto-search for the device
 	  //if a value other than zero was returned we found something
 	  if( (joy->info.filep = joy->FindDev( &Manager )) != 0 ) {
@@ -532,28 +532,28 @@ int main (int argc, char **argv) {
 #endif
    /* create the display thread. */
         pthread_create (&thread1, NULL, (void *(*)(void *))&displayThread, (void *)threadmsg);
-                                                                                                          
+
 #ifndef AQUA
         /* create the Perl parser thread */
         initializePerlThread(PERLPATH);
 #endif
         while (!isPerlinitialized()) {usleep(50);}
-                                                                                                          
+
         /* create the Texture parser thread */
         initializeTextureThread();
         while (!isTextureinitialized()) {usleep(50);}
-                                                                                                          
+
         /* get the Netscape Browser name, if we are pluggind */
         NetscapeName[0] = (char)NULL;
         if (RUNNINGASPLUGIN) {
                 if (read(_fw_FD, NetscapeName,MAXNETSCAPENAMELEN) < 0) {
                 }
         }
-                                                                                                          
-                                                                                                          
+
+
         /* create the initial scene, from the file passed in
         and place it as a child of the rootNode. */
-                                                                                                          
+
         filename = (char *)malloc(1000 * sizeof (char));
         pwd = (char *)malloc(1000 * sizeof (char));
         getcwd(pwd,1000);
@@ -564,9 +564,9 @@ int main (int argc, char **argv) {
                 strcpy (filename,argv[optind]);
                 BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
                 strcpy(BrowserFullPath,pwd);
-                                                                                                          
+
         } else {
-                                                                                                          
+
                 makeAbsoluteFileName(filename, pwd, argv[optind]);
                 BrowserFullPath = (char *)malloc ((strlen(filename)+1) * sizeof(char));
                 strcpy (BrowserFullPath,filename);
@@ -629,11 +629,11 @@ void catch_SIGSEGV() {
 void catch_SIGALRM(int sig)
 {
     signal(SIGALRM, SIG_IGN);
-    
+
     /* stuffs to do on alarm */
     //fprintf(stderr,"An alarm signal just arrived ...IT WAS IGNORED!\n");
     /* end of alarm actions */
-    
+
     alarm(0);
     signal(SIGALRM, catch_SIGALRM);
 }

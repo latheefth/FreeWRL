@@ -7,12 +7,12 @@
 //    it creates a Transform node with createXX, then prints it out, and
 //    gets a field and prints that out.
 //    Next it creates a node with a PROTO and an instance in it, where the
-//    PROTO is based on a script node.  Then it tries to get access to an 
+//    PROTO is based on a script node.  Then it tries to get access to an
 //    eventOut of that PROTO and print that out.
 //
 //	Tested Browsers:
 //		Cosmo
-//					 
+//
 
 import vrml.*;
 import vrml.node.*;
@@ -60,7 +60,7 @@ public class test15 extends Script
         System.out.println("For some reason this often needs to be reloaded at the start");
         }
         initialized = true;
-        
+
 	}
 	catch (Exception exc)
 		{
@@ -78,13 +78,13 @@ public class test15 extends Script
     String fieldstring;
     Node[] newVrml = null;
 
-		// check for event type 
+		// check for event type
         if (e.getName().equals("set_enabled") && ((ConstSFBool) e.getValue()).getValue())
         {
         System.out.println("\nCreateTest: test "+testStep);
             // create VRML
             switch (testStep)	{
-                case 0: 
+                case 0:
 					testStep++;
                         try {
 
@@ -93,7 +93,7 @@ public class test15 extends Script
 							"translation 0 -4 0 \n"+
 							"} \n";
 						fieldstring = "translation_changed";
-				
+
 						System.out.println("CreateTest:  about to create VRML, string =\n\n"+vrmlString);
 						newVrml = (Node []) browser.createVrmlFromString(vrmlString);
 
@@ -134,7 +134,7 @@ public class test15 extends Script
 		}
 				break;
 
-					
+
                 case 1:
                     testStep++;
                     try {
@@ -144,9 +144,9 @@ public class test15 extends Script
 							"DEF FROB  Foo { foo \"Fred\" } \n";
 //							"field MFString foo \"blah\" \n"+
 //							"url \"vrmlscript: function initialize() { foo_changed = foo; }\" \n"+
-							
+
 						// send VRML to message event of uiItem node
-				
+
 						System.out.println("CreateTest:  about to create VRML, string =\n\n"+vrmlString);
 						newVrml = (Node []) browser.createVrmlFromString(vrmlString);
 
@@ -189,16 +189,16 @@ public class test15 extends Script
 		break;
 
 
-                case 2: 
+                case 2:
                     testStep++;
                     try {
 
 						vrmlString = "PROTO Foo [ exposedField MFNode children [] ]\n"+
 							"{ Group { children IS children } } \n" +
 							"DEF FROB  Foo { children [ Box { size .1 .1 .1 } ] } \n";
-							
+
 						// send VRML to message event of uiItem node
-				
+
 						System.out.println("CreateTest:  about to create VRML, string =\n\n"+vrmlString);
 						newVrml = (Node []) browser.createVrmlFromString(vrmlString);
 
@@ -244,9 +244,9 @@ public class test15 extends Script
 							"field MFString foo \"blah\" \n"+
 							"url \"vrmlscript: function initialize() { foo_changed = foo; }\" \n"+
 							"} ";
-							
+
 						// send VRML to message event of uiItem node
-				
+
 						System.out.println("CreateTest:  about to create VRML, string =\n\n"+vrmlString);
 						newVrml = (Node []) browser.createVrmlFromString(vrmlString);
 
@@ -284,9 +284,9 @@ public class test15 extends Script
 								", Message "+exc.getMessage());
 		}
 					break;
-					
 
-					case 4: 
+
+					case 4:
                         testStep++;
                         try {
 
@@ -294,9 +294,9 @@ public class test15 extends Script
 							"field MFString foo \"blah\" \n"+
 							"url \"vrmlscript: function initialize() { foo_changed = foo; }\" \n"+
 							"} ] } ";
-							
+
 						// send VRML to message event of uiItem node
-				
+
 						System.out.println("CreateTest:  about to create VRML, string =\n\n"+vrmlString);
 						newVrml = (Node []) browser.createVrmlFromString(vrmlString);
 
@@ -339,7 +339,7 @@ public class test15 extends Script
 								}
 							}
 						}
-					} 
+					}
          catch (Exception exc) {
 			System.out.println("CreateTest: Exception in processEvent");
 				System.out.println("  Exception "+exc.toString()+

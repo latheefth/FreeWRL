@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -40,12 +40,12 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
 
-/* 
+/*
  * wrapper pow(x,y) return x**y
  */
 
@@ -67,12 +67,12 @@
 	z=__ieee754_pow(x,y);
 	if(_LIB_VERSION == _IEEE_|| fd_isnan(y)) return z;
 	if(fd_isnan(x)) {
-	    if(y==0.0) 
+	    if(y==0.0)
 	        return __kernel_standard(x,y,42,&err); /* pow(NaN,0.0) */
-	    else 
+	    else
 		return z;
 	}
-	if(x==0.0){ 
+	if(x==0.0){
 	    if(y==0.0)
 	        return __kernel_standard(x,y,20,&err); /* pow(0.0,0.0) */
 	    if(fd_finite(y)&&y<0.0)
@@ -83,10 +83,10 @@
 	    if(fd_finite(x)&&fd_finite(y)) {
 	        if(fd_isnan(z))
 	            return __kernel_standard(x,y,24,&err); /* pow neg**non-int */
-	        else 
+	        else
 	            return __kernel_standard(x,y,21,&err); /* pow overflow */
 	    }
-	} 
+	}
 	if(z==0.0&&fd_finite(x)&&fd_finite(y))
 	    return __kernel_standard(x,y,22,&err); /* pow underflow */
 	return z;

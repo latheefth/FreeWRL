@@ -21,10 +21,10 @@ class JavaSession {
 public:
 	JavaSession();
 	~JavaSession();
-	
+
 	JNIEnv* getEnv();
 	jclass getClass(const char* className);
-	
+
 	void addClassPath(const char* jarFilePath);
 
 private:

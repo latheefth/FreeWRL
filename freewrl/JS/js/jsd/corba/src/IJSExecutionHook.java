@@ -17,10 +17,10 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public interface IJSExecutionHook extends org.omg.CORBA.Object
 {
     public void aboutToExecute(IJSThreadState debug, IJSPC pc);
-}    
+}

@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public interface IJSErrorReporter extends org.omg.CORBA.Object
@@ -32,5 +32,5 @@ public interface IJSErrorReporter extends org.omg.CORBA.Object
                             int    lineno,
                             String linebuf,
                             int    tokenOffset );
-}    
+}
 

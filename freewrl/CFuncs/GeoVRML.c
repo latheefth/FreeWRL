@@ -151,11 +151,11 @@ void render_GeoLocation (struct VRML_GeoLocation *node) {
 	if (node->geoOrigin) render_node(node->geoOrigin);
 
 	if (GeoVerbose) printf ("GeoLocating to %f %f %f\n",
-			(double)node->__geoCoords.c[0]-GeoOrig[0], 
+			(double)node->__geoCoords.c[0]-GeoOrig[0],
 			(double)node->__geoCoords.c[1]-GeoOrig[1],
 			(double)node->__geoCoords.c[2]-GeoOrig[2]);
 
-	glTranslated ((double)node->__geoCoords.c[0]-GeoOrig[0], 
+	glTranslated ((double)node->__geoCoords.c[0]-GeoOrig[0],
 			(double)node->__geoCoords.c[1]-GeoOrig[1],
 			(double)node->__geoCoords.c[2]-GeoOrig[2]);
 	//fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);

@@ -12,7 +12,7 @@ extern double GeoOrig[3];               // last GeoOrigin parsed in lat/long/elv
 /* geoSystem field is encoded as:
  *
  * mask : 0xf00000	reference frame, eg, GD, GC, UTM
- * mask : 0x0ff000	UTM zone number  
+ * mask : 0x0ff000	UTM zone number
  * mask : 0x000f00	UTM "S" field
  * mask : 0x0000ff	ellipsoid.
  */

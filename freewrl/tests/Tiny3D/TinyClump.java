@@ -74,7 +74,7 @@ public class TinyClump extends Object implements EventOutObserver {
       // Put together the hierarchy
       transform = transArray[0];
       material = matArray[0];
-      EventInSFNode nodeIn = 
+      EventInSFNode nodeIn =
 	(EventInSFNode) shapeArray[0].getEventIn("appearance");
       nodeIn.setValue(appArray[0]);
       nodeIn = (EventInSFNode) appArray[0].getEventIn("material");
@@ -96,7 +96,7 @@ public class TinyClump extends Object implements EventOutObserver {
       scale_changed = (EventOutSFVec3f) transform.getEventOut("scale");
       translation_changed =
 	(EventOutSFVec3f) transform.getEventOut("translation");
-      diffuseColor_changed = 
+      diffuseColor_changed =
 	(EventOutSFColor) material.getEventOut("diffuseColor");
       touchTime_changed =
 	(EventOutSFTime) sensArray[0].getEventOut("touchTime");

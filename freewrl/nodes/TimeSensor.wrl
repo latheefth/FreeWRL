@@ -7,7 +7,7 @@
 
 PROTO Show [
 	field SFVec3f loc 0 0 0
-	eventIn SFFloat set_fraction 
+	eventIn SFFloat set_fraction
 	eventOut SFTime startTime
 ] {
 	Transform {
@@ -19,7 +19,7 @@ PROTO Show [
 					touchTime IS startTime
 				}
 				Shape { geometry Box { size 0.4 0.4 0.4}
-				 appearance Appearance { material 
+				 appearance Appearance { material
 				 	Material { } } }
 			]
 		}
@@ -74,8 +74,8 @@ ROUTE TS5.fraction_changed TO S5.set_fraction
 DEF TS6 TimeSensor {
 	loop TRUE
 	cycleInterval 2
-	startTime 2 
-	stopTime 3 
+	startTime 2
+	stopTime 3
 }
 DEF S6 Show {loc 2 -1 0}
 ROUTE TS6.fraction_changed TO S6.set_fraction

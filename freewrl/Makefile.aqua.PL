@@ -57,7 +57,7 @@ if(defined $vrml_conf_file) {
 #JAS for(keys %VRML_CONFIG) {
 #JAS 	if(!exists($VRML_CONFIG_DIST{$_})) {
 #JAS 		die("Invalid key '$_' found in user supplied file '$vrml_conf_file'.
-#JAS This key may no longer be in use, or someone may have garbled the 'vrml.conf' 
+#JAS This key may no longer be in use, or someone may have garbled the 'vrml.conf'
 #JAS file in the distribution. Please correct and try again");
 #JAS 	}
 #JAS }
@@ -108,11 +108,11 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 }
 
 # check for the following items to be defined in vrml.conf:
-if (!defined $VRML_CONFIG{BROWSER}) { 
+if (!defined $VRML_CONFIG{BROWSER}) {
 	print "no Browser defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{WGET}) { 
+if (!defined $VRML_CONFIG{WGET}) {
 	print "no WGET defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{ASCIITERM}) { 
+if (!defined $VRML_CONFIG{ASCIITERM}) {
 	print "no ASCIITERM defined in vrml.conf, exiting...\n"; exit (1); }
 if (!defined $VRML_CONFIG{CONVERT}) {
 	print "no CONVERT defined in vrml.conf, exiting...\n"; exit (1); }

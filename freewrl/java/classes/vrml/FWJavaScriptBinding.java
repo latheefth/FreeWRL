@@ -7,7 +7,7 @@ public class FWJavaScriptBinding {
     String fieldName;
     String lastUpdate;
     boolean doUpdateRead;
-    
+
     public FWJavaScriptBinding(BaseNode n, String f) {
 	this(n,f,true);
     }

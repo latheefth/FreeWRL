@@ -7,7 +7,7 @@ document.
 The EAI and CLASS invocation structure are similar, with
 the exception of how routing works. One is a script, the
 EAI is handled in a non-script way, which makes it simpler.
- 
+
 Work is progressing on how to make both EAI and CLASS
 use the same routines for sending/receiving data.
 
@@ -39,7 +39,7 @@ file) for node definitions.
 So, say, EAI sends in an MFFloat containing 20 floats. This
 is converted into binary into memory.  Then common routines
 take the old pointer, if it has a value of 20, then a copy
-happens; if not, it sets tn->n to 0, copys the memory to 
+happens; if not, it sets tn->n to 0, copys the memory to
 tn->p, then sets tn->n to 20.
 
 ROUTING
@@ -58,7 +58,7 @@ eg, a copy of a float would be:
 	memcpy (tonode+offset, fromnode+offset, sizeof(float)).
 
 When a node is copied to, it is updated with "update_node(p)" which
-tells the renderer that it has changed. (useful for re-generating 
+tells the renderer that it has changed. (useful for re-generating
 shapes, etc)
 	eg: update_node(tonode);
 

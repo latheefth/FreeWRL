@@ -9,7 +9,7 @@
 #
 # This is the object behind the "RFields" hash member of
 # the object VRML::NodeIntern. It allows you to send an event by
-# simply saying "$node->{RFields}{xyz} = [3,4,5]" for which 
+# simply saying "$node->{RFields}{xyz} = [3,4,5]" for which
 # calls the STORE method here which then queues the event.
 #
 # XXX This needs to be separated into eventins and eventouts --

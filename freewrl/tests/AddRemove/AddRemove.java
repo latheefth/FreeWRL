@@ -42,7 +42,7 @@ System.out.println ("buttons added");
     browser = Browser.getBrowser(this);
 
     // Get root node of the scene
-    try 
+    try
 	{ root = browser.getNode("ROOT"); }
     catch (InvalidNodeException e) {
 	System.out.println ("caught " + e);
@@ -51,7 +51,7 @@ System.out.println ("buttons added");
     // Instantiate (get handle to) the EventIn objects
     addChildren = (EventInMFNode) root.getEventIn("addChildren");
     removeChildren = (EventInMFNode) root.getEventIn("removeChildren");
-    
+
     // Instantiate a lovely blue ball
     shape = browser.createVrmlFromString("Shape {\n" +
 					 "  appearance Appearance {\n" +
@@ -62,7 +62,7 @@ System.out.println ("buttons added");
 					 "  geometry Sphere {}\n" +
 					 "}\n");
   }
-  
+
   // Main Program
   // Event Handler for the Java Buttons
 

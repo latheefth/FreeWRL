@@ -10,11 +10,11 @@
  *
  * In the NPP_Initialize routine, a pipe is created and sent as the window
  * title to FreeWRL. FreeWRL (OpenGL/OpenGL.xs) looks at this "wintitle",
- * and if it starts with "pipe:", then treats the number following as 
+ * and if it starts with "pipe:", then treats the number following as
  * a pipe id to send the window id back through. The pipe is then closed.
  *
  * The Plugin uses this window id to rehost the window.
- * 
+ *
  * John Stewart, Alya Khan, Sarah Dumoulin - CRC Canada 2002.
  *
  ******************************************************************************/
@@ -113,7 +113,7 @@ static void print_here (char * xx) {
 
 	fprintf(tty, "plug-in: %s\n", xx);
 	fflush(tty);
-		    
+
 	//printf ("plugin: %s\n",xx);
 }
 
@@ -187,7 +187,7 @@ int freewrlReceive(int fd) {
 		print_here("Call to sigemptyset with arg newmask failed");
 		return(NPERR_GENERIC_ERROR);
 	}
-    
+
 	if (sigemptyset(&oldmask) < 0) {
 		print_here("Call to sigemptyset with arg oldmask failed");
 		return(NPERR_GENERIC_ERROR);
@@ -203,7 +203,7 @@ int freewrlReceive(int fd) {
 		print_here("Call to sigprocmask failed");
 		return(NPERR_GENERIC_ERROR);
 	}
-    
+
 	/* If blocked or interrupted, be silent. */
 	if (read(fd, (urlRequest *) &request, request_size) < 0) {
 		if (errno != EINTR && errno != EAGAIN) {
@@ -235,26 +235,26 @@ int freewrlReceive(int fd) {
 			/* request.notifyCode must be 1 */
 			sprintf (debs,"NPN_GetStream...\n");
 			print_here(debs);
-			
-			NPStream* stream; 
+
+			NPStream* stream;
     			NPError err = NPERR_NO_ERROR;
-			char* myData = "<HTML><B>This is a message from my plug-in!</b></html>"; 
-			int32 myLength = strlen(myData) + 1; 
-			//err = NPN_NewStream(request.instance, "text/html", "_blank", &stream); 
-			err = NPN_NewStream(request.instance, 
+			char* myData = "<HTML><B>This is a message from my plug-in!</b></html>";
+			int32 myLength = strlen(myData) + 1;
+			//err = NPN_NewStream(request.instance, "text/html", "_blank", &stream);
+			err = NPN_NewStream(request.instance,
 					"text/html",
 					"_AnchorFailsinFreeWRL",
-					//request.url, 
-					&stream); 
+					//request.url,
+					&stream);
 			print_here ("NewStream made\n");
-			
-			err = NPN_Write(request.instance, 
-					stream, 
-					myLength, 
-					myData); 
+
+			err = NPN_Write(request.instance,
+					stream,
+					myLength,
+					myData);
 			print_here ("NPN_Write made\n");
-			//err = NPN_DestroyStream(request.instance, 
-			//		stream, 
+			//err = NPN_DestroyStream(request.instance,
+			//		stream,
 			//		NPRES_DONE);
 			//print_here ("NPN_DestroyStream doen\n");
 		}
@@ -342,18 +342,18 @@ void Run (NPP instance) {
 			FW_Plugin->childPID = 0;
 		} else if (FW_Plugin->childPID == 0) {
 			pid_t mine = getpid();
-			if (setpgid(mine,mine) < 0) { 
+			if (setpgid(mine,mine) < 0) {
 				sprintf (debs,"\tFreeWRL child group set failed");
 				print_here (debs);
 			} else {
-				// Nice FreeWRL to a lower priority 
+				// Nice FreeWRL to a lower priority
 				paramline[0] = "nice";
 				paramline[1] = "freewrl";
 
 				// We have the file name, so include it
 				paramline[2] = FW_Plugin->fName;
 
-				// Pass in the pipe number so FreeWRL can return the 
+				// Pass in the pipe number so FreeWRL can return the
 				// window id
 				paramline[3] = "--plugin";
 				paramline[4] = pipetome;
@@ -386,7 +386,7 @@ void Run (NPP instance) {
 						paramline[4],paramline[5],paramline[6],paramline[7],
 						paramline[8],paramline[9],paramline[10]);
 
-				print_here (debs);	
+				print_here (debs);
 			    	execvp(paramline[0], (char* const *) paramline);
 			}
 
@@ -395,7 +395,7 @@ void Run (NPP instance) {
 		} else {
 		    	// return error
 		}
-	}		
+	}
 
 	print_here ("after FW_Plugin->freewrl_running call - waiting on pipe");
 
@@ -412,17 +412,17 @@ void Run (NPP instance) {
 	//reparent the window
 	XFlush(FW_Plugin->display);
 	XSync (FW_Plugin->display, FALSE);
-	XReparentWindow(FW_Plugin->display, 
+	XReparentWindow(FW_Plugin->display,
 			FW_Plugin->fwwindow,
 			FW_Plugin->mozwindow,
 			0,0);
 	print_here ("after reparent/n");
-		
+
 	XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
 			FW_Plugin->width, FW_Plugin->height);
-		
+
 	print_here ("after resize/n");
-		
+
 	XMapWindow(FW_Plugin->display,FW_Plugin->fwwindow);
 	print_here ("after mapwindow/n");
 
@@ -543,27 +543,27 @@ NPP_Shutdown(void)
 //JAS DisplayJavaMessage(NPP instance, char* msg, int len)
 //JAS {
 //JAS 	jref str, javaPeer;
-//JAS 
+//JAS
 //JAS 	if (!env) {
 //JAS 		/* Java failed to initialize, so do nothing. */
 //JAS 		return;
 //JAS 	}
-//JAS 
-//JAS 	if (len == -1) 
+//JAS
+//JAS 	if (len == -1)
 //JAS 		len = strlen(msg);
-//JAS 
+//JAS
 //JAS 	/*
 //JAS     ** Use the JRI (see jri.h) to create a Java string from the input
 //JAS     ** message:
 //JAS     */
 //JAS 	str = JRI_NewStringUTF(env, msg, len);
-//JAS 
+//JAS
 //JAS 	/*
 //JAS     ** Use the NPN_GetJavaPeer operation to get the Java instance that
 //JAS     ** corresponds to our plug-in (an instance of the Simple class):
 //JAS     */
 //JAS 	javaPeer = NPN_GetJavaPeer(instance);
-//JAS 	
+//JAS
 //JAS 	/*
 //JAS     ** Finally, call our plug-in's big "feature" -- the 'doit' method,
 //JAS     ** passing the execution environment, the object, and the java
@@ -576,13 +576,13 @@ NPP_Shutdown(void)
 ** NPP_New is called when your plugin is instantiated (i.e. when an EMBED
 ** tag appears on a page).
 */
-NPError 
-NPP_New(NPMIMEType pluginType, 
-		NPP instance, 
-		uint16 mode, 
+NPError
+NPP_New(NPMIMEType pluginType,
+		NPP instance,
+		uint16 mode,
 		int16 argc,
-		char* argn[], 
-		char* argv[], 
+		char* argn[],
+		char* argv[],
 		NPSavedData* saved) {
 
 	NPError result = NPERR_NO_ERROR;
@@ -602,9 +602,9 @@ NPP_New(NPMIMEType pluginType,
 
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
-		
+
 	instance->pdata = NPN_MemAlloc(sizeof(FW_PluginInstance));
-	
+
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
 	print_here ("after memalloc");
@@ -642,14 +642,14 @@ NPP_New(NPMIMEType pluginType,
 	if (signal(SIGBUS, signalHandler) == SIG_ERR) return (NPERR_GENERIC_ERROR);
 
 	// prepare communication sockets
-	if ((err=init_socket(FW_Plugin->fd[FWRL], FALSE))!=NPERR_NO_ERROR) return (err);	
-	if ((err=init_socket(FW_Plugin->fd[NP], TRUE))!=NPERR_NO_ERROR) return (err);	
+	if ((err=init_socket(FW_Plugin->fd[FWRL], FALSE))!=NPERR_NO_ERROR) return (err);
+	if ((err=init_socket(FW_Plugin->fd[NP], TRUE))!=NPERR_NO_ERROR) return (err);
 
 	return (err);
 }
 
 
-NPError 
+NPError
 NPP_Destroy(NPP instance, NPSavedData** save)
 {
 	FW_PluginInstance* FW_Plugin;
@@ -675,19 +675,19 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 
 
 		if (FW_Plugin->childPID >0) {
-	
+
 			sprintf (debs,"killing command kill %d",FW_Plugin->childPID);
 			print_here(debs);
 			//JAS kill(FW_Plugin->childPID*-1, SIGQUIT);
 			kill(FW_Plugin->childPID, SIGQUIT);
 			waitpid(FW_Plugin->childPID, &status, 0);
 		}
-	
+
 		// Close file descriptors
 		//if (FW_Plugin->fd[NP]) {
 		//	close (FW_Plugin->fd[NP]);
 		//}
-	
+
 		// debugging code
 		//if (tty) fclose(tty);
 
@@ -702,7 +702,7 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 	return NPERR_NO_ERROR;
 }
 
-NPError 
+NPError
 NPP_SetWindow(NPP instance, NPWindow *browser_window)
 {
 	NPError result = NPERR_NO_ERROR;
@@ -710,7 +710,7 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 	int X_err;
 	int count;
 
-//JAS	DisplayJavaMessage(instance, "Calling NPP_SetWindow.", -1); 
+//JAS	DisplayJavaMessage(instance, "Calling NPP_SetWindow.", -1);
 
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
@@ -754,7 +754,7 @@ print_here (debs);
 			FW_Plugin->width, FW_Plugin->height);
 		print_here (debs);
 		// lets unmap before resizing
-		
+
 		XResizeWindow(FW_Plugin->display, FW_Plugin->fwwindow,
 			FW_Plugin->width, FW_Plugin->height);
 
@@ -765,16 +765,16 @@ print_here (debs);
 }
 
 
-NPError 
+NPError
 NPP_NewStream(NPP instance,
 	      NPMIMEType type,
-	      NPStream *stream, 
+	      NPStream *stream,
 	      NPBool seekable,
 	      uint16 *stype)
 {
 	FW_PluginInstance* FW_Plugin;
 
-	
+
 	sprintf (debs,"NPP_NewStream, instance %d",instance);
 	print_here(debs);
 	if (instance == NULL)
@@ -782,12 +782,12 @@ NPP_NewStream(NPP instance,
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-//JAS	DisplayJavaMessage(instance, "Calling NPP_NewStream.", -1); 
-	
+//JAS	DisplayJavaMessage(instance, "Calling NPP_NewStream.", -1);
+
 	if (stream->url == NULL) {
 		return(NPERR_NO_DATA);
 	}
-		 
+
 	/* Lets tell netscape to save this to a file. */
 	*stype = NP_ASFILEONLY;
 	seekable = FALSE;
@@ -812,7 +812,7 @@ int32 STREAMBUFSIZE = 0X0FFFFFFF; /* If we are reading from a file in NPAsFile
 								   * mode so we can take any size stream in our
 								   * write call (since we ignore it) */
 
-int32 
+int32
 NPP_WriteReady(NPP instance, NPStream *stream)
 {
 	FW_PluginInstance* FW_Plugin;
@@ -820,14 +820,14 @@ NPP_WriteReady(NPP instance, NPStream *stream)
 		FW_Plugin = (FW_PluginInstance*) instance->pdata;
 print_here("NPP_WriteReady");
 
-	//JAS DisplayJavaMessage(instance, "Calling NPP_WriteReady.", -1); 
+	//JAS DisplayJavaMessage(instance, "Calling NPP_WriteReady.", -1);
 
 	/* Number of bytes ready to accept in NPP_Write() */
 	return STREAMBUFSIZE;
 }
 
 
-int32 
+int32
 NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
 {
 	if (instance != NULL)
@@ -836,13 +836,13 @@ NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
 	}
 print_here("NPP_Write");
 
-	//JAS DisplayJavaMessage(instance, (char*)buffer, len); 
+	//JAS DisplayJavaMessage(instance, (char*)buffer, len);
 
 	return len;		/* The number of bytes accepted */
 }
 
 
-NPError 
+NPError
 NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 {
 	FW_PluginInstance* FW_Plugin;
@@ -851,17 +851,17 @@ NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 		return NPERR_INVALID_INSTANCE_ERROR;
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-	//JAS DisplayJavaMessage(instance, "Calling NPP_DestroyStream.", -1); 
+	//JAS DisplayJavaMessage(instance, "Calling NPP_DestroyStream.", -1);
 
 	return NPERR_NO_ERROR;
 }
 
 
-void 
+void
 NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 {
 	int bytes;
-	
+
 	FW_PluginInstance* FW_Plugin;
 	if (instance != NULL) {
 		FW_Plugin = (FW_PluginInstance*) instance->pdata;
@@ -902,21 +902,21 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 		}
 	}
 
-	//JAS DisplayJavaMessage(instance, "Calling NPP_StreamAsFile.", -1); 
+	//JAS DisplayJavaMessage(instance, "Calling NPP_StreamAsFile.", -1);
 }
 
 
-void 
+void
 NPP_Print(NPP instance, NPPrint* printInfo)
 {
-	//JAS DisplayJavaMessage(instance, "Calling NPP_Print.", -1); 
+	//JAS DisplayJavaMessage(instance, "Calling NPP_Print.", -1);
 
 	if(printInfo == NULL)
 		return;
 
 	if (instance != NULL) {
 		FW_PluginInstance* FW_Plugin = (FW_PluginInstance*) instance->pdata;
-	
+
 		if (printInfo->mode == NP_FULL) {
 		    /*
 		     * PLUGIN DEVELOPERS:
@@ -939,7 +939,7 @@ NPP_Print(NPP instance, NPPrint* printInfo)
 				printInfo->print.fullPrint.platformPrint;
 			NPBool printOne =
 				printInfo->print.fullPrint.printOne;
-			
+
 			/* Do the default*/
 			printInfo->print.fullPrint.pluginPrinted = FALSE;
 		}
@@ -979,8 +979,8 @@ NPP_Print(NPP instance, NPPrint* printInfo)
 
 /*******************************************************************************
 // NPP_URLNotify:
-// Notifies the instance of the completion of a URL request. 
-// 
+// Notifies the instance of the completion of a URL request.
+//
 // NPP_URLNotify is called when Netscape completes a NPN_GetURLNotify or
 // NPN_PostURLNotify request, to inform the plug-in that the request,
 // identified by url, has completed for the reason specified by reason. The most
@@ -989,11 +989,11 @@ NPP_Print(NPP instance, NPPrint* printInfo)
 // indicating that the request was halted due to a user action (for example,
 // clicking the "Stop" button), and NPRES_NETWORK_ERR, indicating that the
 // request could not be completed (for example, because the URL could not be
-// found). The complete list of reason codes is found in npapi.h. 
-// 
+// found). The complete list of reason codes is found in npapi.h.
+//
 // The parameter notifyData is the same plug-in-private value passed as an
 // argument to the corresponding NPN_GetURLNotify or NPN_PostURLNotify
-// call, and can be used by your plug-in to uniquely identify the request. 
+// call, and can be used by your plug-in to uniquely identify the request.
  ******************************************************************************/
 
 //void

@@ -11,7 +11,7 @@
 
 
 #include <math.h>
-#ifdef AQUA 
+#ifdef AQUA
 #include <gl.h>
 #else
 #include <GL/gl.h>
@@ -30,7 +30,7 @@
 #define VECCP(a,b,c) {(c).x = (a).y*(b).z-(b).y*(a).z; (c).y = -((a).x*(b).z-(b).x*(a).z); (c).z = (a).x*(b).y-(b).x*(a).y;}
 #define VECSCALE(a,c) {(a).x *= c; (a).y *= c; (a).z *= c;}
 
-/*special case ; used in Extrusion.GenPolyRep and ElevationGrid.GenPolyRep: 
+/*special case ; used in Extrusion.GenPolyRep and ElevationGrid.GenPolyRep:
  *	Calc diff vec from 2 coordvecs which must be in the same field 	*/
 #define VEC_FROM_COORDDIFF(f,a,g,b,v) {\
 	(v).x= (f)[(a)*3]-(g)[(b)*3];	\
@@ -98,7 +98,7 @@
 	(c).z= m[2][0]*___x + m[2][1]*___y + m[2][2]*___z; \
 }
 
-	
+
 /* next define rotates vector c with rotation vector r and angle */
 /*  after section 5.8 of the VRML`97 spec			 */
 
@@ -133,7 +133,7 @@
 
 */
 /* next define abbreviates VECROTATE with use of the SFRotation struct	*/
-#define VECRROTATE(ro,c) VECROTATE((ro).r[0],(ro).r[1],(ro).r[2],(ro).r[3],c)	
+#define VECRROTATE(ro,c) VECROTATE((ro).r[0],(ro).r[1],(ro).r[2],(ro).r[3],c)
 
 
 #define calc_vector_length(pt) veclength(pt)
@@ -160,7 +160,7 @@ GLdouble det3x3(GLdouble* data);
 struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b);
 float* transformf(float* r, const float* a, const GLdouble* b);
 
-/*only transforms using the rotation component. 
+/*only transforms using the rotation component.
   Usefull for transforming normals, and optimizing when you know there's no translation */
 struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b);
 

@@ -4,11 +4,11 @@
  Description:	Define the H-Anim tag and attribute profile for X3D.
 		These X3D native nodes correspond to VRML ExternProto declarations.
 
- 		Elements in this tagset are enabled by setting the 
-		H-AnimProfile entity to "INCLUDE" at the top of an 
+ 		Elements in this tagset are enabled by setting the
+		H-AnimProfile entity to "INCLUDE" at the top of an
 		X3D scene file, as shown in several examples such as
-		examples/HumanoidAnimation/Nancy.xml.  This flag then 
-		triggers inclusion of the HumanoidAnimation tags in the 
+		examples/HumanoidAnimation/Nancy.xml.  This flag then
+		triggers inclusion of the HumanoidAnimation tags in the
 		x3d-compromise.dtd tagset.  Thus the HumanoidAnimation.dtd
 		demonstrates X3D extensibility for profiles.
 

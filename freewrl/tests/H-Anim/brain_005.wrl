@@ -25,8 +25,8 @@ VRML 97 Brain Geometry Copyright:
 				the animations with ivview (pretty much the same thing, but ivview
 				seemed to be less prone to crashing)...
 		The original Brain was designed by Len in 3D Studio and I converted it
-				to inventor, made it articulated and more recently to VRML 97...  
-				The conversion to VRML 97 was relatively simple (since the hard part 
+				to inventor, made it articulated and more recently to VRML 97...
+				The conversion to VRML 97 was relatively simple (since the hard part
 				before was getting the joint angles in the right spots)...
 		Copyright 1995 Matthew T. Beitler & Len Maxwell
 		ALL RIGHTS RESERVED
@@ -39,7 +39,7 @@ VRML 97 Author homepage:
 HANIM 1.1 Compliant Modification Date:
 		July 15, 1998 (HANIM 1.1)
 VRML 2.0 Creation Date:
-		October 11, 1997 
+		October 11, 1997
 VRML 97 Original URL:
 		http://www.asel.udel.edu/~beitler/vrml/human/brain/005/brain_005.wrl
 Other HANIM Models by eMpTy:
@@ -83,7 +83,7 @@ PROTO Humanoid [
 				children IS viewpoints
 			}
 			Group {
-				children IS humanoidBody 
+				children IS humanoidBody
 			}
 		]
 	}
@@ -101,14 +101,14 @@ PROTO Joint [
 	exposedField MFFloat    stiffness          [1 1 1]
 	exposedField SFVec3f    translation        0 0 0
 	exposedField MFFloat    ulimit             []
-] 
-{ 
+]
+{
 	Transform {
 		translation IS translation
 		rotation IS rotation
-		scale IS scale 
+		scale IS scale
 		scaleOrientation IS scaleOrientation
-		center IS center 
+		center IS center
 		children IS children
 	}
 }
@@ -117,11 +117,11 @@ PROTO Segment [
 	exposedField    SFVec3f     centerOfMass   0 0 0
 	exposedField    MFNode      children       []
 	exposedField    SFString    name           ""
-	exposedField    SFFloat     mass           0 
+	exposedField    SFFloat     mass           0
 	field           SFVec3f     bboxCenter     0 0 0
 	field           SFVec3f     bboxSize       -1 -1 -1
-] 
-{ 
+]
+{
 	Transform {
 		children IS children
 		bboxCenter IS bboxCenter
@@ -133,11 +133,11 @@ PROTO Site [
 	eventIn         MFNode      addChildren
 	eventIn         MFNode      removeChildren
 	exposedField    MFNode      children       []
-	exposedField    SFString    name           "" 
+	exposedField    SFString    name           ""
 	exposedField    SFRotation  rotation       0 0 1 0
 	exposedField    SFVec3f     translation    0 0 0
 ]
-{ 
+{
 	Transform {
 		addChildren IS addChildren
 		removeChildren IS removeChildren
@@ -6025,7 +6025,7 @@ Transform {
       scaleOrientation	1.3644e-07 -1 -4.82631e-06  0.0228817
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -6035,7 +6035,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -6057,7 +6057,7 @@ Transform {
       scaleOrientation	1.3644e-07 -1 -4.82631e-06  0.0228817
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -6067,7 +6067,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -6107,7 +6107,7 @@ Transform {
       scaleOrientation	0 0 1  0
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -6117,7 +6117,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -6139,7 +6139,7 @@ Transform {
       scaleOrientation	0 0 1  0
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -6149,7 +6149,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -8673,7 +8673,7 @@ Transform {
 										}     # hanim_l_ankle Joint END
 									]
 								}     # hanim_l_knee Joint END
-							] 
+							]
 						}     # hanim_l_hip Joint END
 
 						DEF hanim_r_hip Joint {
@@ -8705,7 +8705,7 @@ Transform {
 
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -8715,7 +8715,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -8740,7 +8740,7 @@ Transform {
 
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -8750,7 +8750,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -8790,7 +8790,7 @@ Transform {
       scaleOrientation	0 0 1  0
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -8800,7 +8800,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -8823,7 +8823,7 @@ Transform {
       scaleOrientation	0 0 1  0
       children [
         Shape {
-	  appearance	
+	  appearance
             Appearance {
 	      material
                 DEF WHITE Material {
@@ -8833,7 +8833,7 @@ Transform {
                   transparency	0
                 }
 	      }
-	  geometry	
+	  geometry
             Sphere {
 	      radius	10
 	    }
@@ -20405,12 +20405,12 @@ Transform {
   ]
 }
 											]
-										} 
+										}
 									]
 								}     # hanim_l_upperarm Segment END
 
 								DEF hanim_l_elbow Joint {
-									name "l_elbow" 
+									name "l_elbow"
 									llimit [-2.6136306 0 0]
 									ulimit [0 0 0]
 									center 0.330829 0.659917 -0.205641
@@ -28210,7 +28210,7 @@ Transform {
 												LOD {
 													range [ 10 ]
 													level [
-														DEF hanim_skull_high Group { 
+														DEF hanim_skull_high Group {
 															bboxCenter  0.0172562 1.31201 -0.218836
 															bboxSize    1.64367 0.921147 0.917579
 															children [
@@ -56774,7 +56774,7 @@ Transform {
 }
 															]
 														}
-														DEF hanim_skull_medium Group { 
+														DEF hanim_skull_medium Group {
 															bboxCenter  0.0172562 1.31201 -0.218836
 															bboxSize    1.64367 0.921147 0.917579
 															children [
@@ -59484,11 +59484,11 @@ DEF hanim_l_pupil_high Transform {
 		Transform {
                   translation       -145.466 157.023 45.4843
 		  scale     0.0308944 0.0308944 0.0308942
-		  children [ 
+		  children [
                     Shape {
-		      appearance      
+		      appearance
                         Appearance {
-		          material      
+		          material
                             Material {
          		      ambientIntensity    0.25
         		      diffuseColor        0.138667 0.138667 0.138667
@@ -59498,7 +59498,7 @@ DEF hanim_l_pupil_high Transform {
        		              transparency        0
        		            }
       		        }
-    		    geometry 
+    		    geometry
                       Sphere {
    		        radius        100
 		      }
@@ -59542,11 +59542,11 @@ DEF hanim_r_pupil_high Transform {
 		Transform {
                   translation       -206.466 157.023 45.4843
                   scale     0.0308944 0.0308944 0.0308942
-		  children [ 
+		  children [
                     Shape {
-		      appearance      
+		      appearance
                         Appearance {
-		          material      
+		          material
                             Material {
          		      ambientIntensity    0.25
         		      diffuseColor        0.138667 0.138667 0.138667
@@ -59556,7 +59556,7 @@ DEF hanim_r_pupil_high Transform {
        		              transparency        0
        		            }
       		        }
-    		    geometry 
+    		    geometry
                       Sphere {
    		        radius        100
 		      }
@@ -60151,12 +60151,12 @@ Transform {
 				USE hanim_tailbase,
 				USE hanim_l_hip, USE hanim_l_knee, USE hanim_l_ankle,
 				USE hanim_r_hip, USE hanim_r_knee, USE hanim_r_ankle,
-			USE hanim_vl5, 
+			USE hanim_vl5,
 				USE hanim_vc7, USE hanim_skullbase,
 				USE hanim_l_shoulder, USE hanim_l_elbow, USE hanim_l_wrist,
 				USE hanim_r_shoulder, USE hanim_r_elbow, USE hanim_r_wrist
 	]
-	segments [	
+	segments [
 		USE hanim_tail,
 		USE hanim_l_upperleg, USE hanim_l_lowerleg	, USE hanim_l_hindfoot,
 		USE hanim_r_upperleg	, USE hanim_r_lowerleg	, USE hanim_r_hindfoot,
@@ -60222,7 +60222,7 @@ Transform {
 			description "Left View"
 			jump TRUE
 		}
-		DEF RightView Viewpoint 
+		DEF RightView Viewpoint
 		{
 			position 2.600 0.900 0.000
 			orientation 0 1.0 0.0 1.57

@@ -1,24 +1,24 @@
-! 
+!
 ! The contents of this file are subject to the Netscape Public
 ! License Version 1.1 (the "License"); you may not use this file
 ! except in compliance with the License. You may obtain a copy of
 ! the License at http://www.mozilla.org/NPL/
-! 
+!
 ! Software distributed under the License is distributed on an "AS
 ! IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
 ! implied. See the License for the specific language governing
 ! rights and limitations under the License.
-! 
+!
 ! The Original Code is Mozilla Communicator client code, released
 ! March 31, 1998.
-! 
+!
 ! The Initial Developer of the Original Code is Netscape
 ! Communications Corporation. Portions created by Netscape are
 ! Copyright (C) 1998-1999 Netscape Communications Corporation. All
 ! Rights Reserved.
-! 
+!
 ! Contributor(s):
-! 
+!
 ! Alternatively, the contents of this file may be used under the
 ! terms of the GNU Public License (the "GPL"), in which case the
 ! provisions of the GPL are applicable instead of those above.
@@ -29,10 +29,10 @@
 ! and other provisions required by the GPL.  If you do not delete
 ! the provisions above, a recipient may use your version of this
 ! file under either the NPL or the GPL.
-! 
+!
 
 !
-!  atomic compare-and-swap routines for V8 sparc 
+!  atomic compare-and-swap routines for V8 sparc
 !  and for V8+ (ultrasparc)
 !
 !
@@ -45,7 +45,7 @@
 !
 !  Perform the sequence *a = b atomically with respect to previous value
 !  of a (a0). If *a==a0 then assign *a to b, all in one atomic operation.
-!  Returns 1 if assignment happened, and 0 otherwise.	
+!  Returns 1 if assignment happened, and 0 otherwise.
 !
 !  usage : old_val = compare_and_swap(address, oldval, newval)
 !
@@ -59,12 +59,12 @@
 !
 !  So, the registers used are:
 !     %o0  [input]   - the address of the value to increment
-!     %o1  [input]   - the old value to compare with	
+!     %o1  [input]   - the old value to compare with
 !     %o2  [input]   - the new value to set for [%o0]
 !     %o3  [local]   - work register
 !  -----------------------
 #ifndef ULTRA_SPARC
-!  v8	
+!  v8
 
         ENTRY(compare_and_swap)         ! standard assembler/ELF prologue
 
@@ -82,7 +82,7 @@ l1:	cmp %o3,-1                      ! busy?
 	mov 0,%o0                       ! return false
 l2:	retl
 	mov 1,%o0                       ! return true
-	
+
 	SET_SIZE(compare_and_swap)      ! standard assembler/ELF epilogue
 
 !
@@ -103,7 +103,7 @@ l2:	retl
         mov 0,%o0                       ! return false
 m1:	retl
 	nop
-		
+
 	SET_SIZE(compare_and_swap)      ! standard assembler/ELF epilogue
 
 !

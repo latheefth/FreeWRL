@@ -48,7 +48,7 @@ void receive_command(int scriptno);
 int JavaClassVerbose = 0;
 
 /* input ClassBuffer */
-int bufcount; 
+int bufcount;
 int bufsize;
 char *ClassBuffer;
 int eid = 0; /* event id */
@@ -71,7 +71,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
         if (scriptInvocationNumber >= JSMaxScript)  {
                 JSMaxAlloc();
         }
-		                                                                                                       
+
 
 
 	/* register this script.... */
@@ -89,7 +89,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 		nodeID[18] = '\0';
 	}
 	strcpy(ScriptControl[scriptInvocationNumber].NodeID,nodeID);
-			
+
 
 	/* we have a url; have to make it into a real url for Java.  */
 	/* **** NOTE: WE CAN USE A ProdCon.c ROUTINE FOR THIS CHECK */
@@ -111,7 +111,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 		}
 
 		/* now, strip off the wrl filename, and place our name here */
-		ri = (char *)rindex((char *)newURL,(int) '/'); 
+		ri = (char *)rindex((char *)newURL,(int) '/');
 		*ri = '\0';
 
 		strcat (newURL,"/");
@@ -132,7 +132,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 }
 
 int initJavaClass(int scriptno) {
-	
+
 	ClassBuffer[0] = '\0';
 	bufcount = 0;
 
@@ -152,7 +152,7 @@ void sendCLASSEvent(int fn, int scriptno, char *fieldname, int type, int len) {
 
 	//printf ("sending ClassEvent from %d to script %d, node %s, field %d, type %d len %d\n",
 	//		fn, scriptno, ScriptControl[scriptno].NodeID, fieldname, type, len);
-	
+
 	eid++;
 	sprintf (mytype, "%d",type);
 	EAI_Convert_mem_to_ASCII(eid,mytype,
@@ -231,14 +231,14 @@ void send_double (double dval, int scriptno) {
 /* convert an integer to a type, and send it */
 void send_type (int node, int offset, int len, int scriptno) {
 	char localchar[300];
-	
+
 	node = node - (int)'a'; /* no longer "ascii" based... */
 
 	//printf ("send_type, type now is %d\n",node);
 	localchar[0] = '\0';
 	//sprintf (localchar, "%s %d",FIELD_TYPE_STRING(node), offset);
 	sprintf (localchar, "%d %d %d",node, offset, len);
-	
+
 	if (JavaClassVerbose) printf ("TO JAVA :%s:\n",localchar);
 	EAI_send_string(localchar,ScriptControl[scriptno].listen_fd);
 }
@@ -324,12 +324,12 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  	char *myenv;
  	int lenenv;
  	char myc[100];
- 
- 
- 	if (JavaClassVerbose) 
+
+
+ 	if (JavaClassVerbose)
  		printf ("JavaClass:perlpath: %s, builddir %s\n",myPerlInstallDir, BUILDDIR);
  	commandline[0] = '\0';
- 
+
  	/* get the CLASSPATH, if one exists */
  	myenv = getenv ("CLASSPATH");
  	if (myenv == NULL) {
@@ -337,7 +337,7 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  	} else {
  		lenenv = strlen(myenv);
  	}
- 
+
  	/* find the vrml.jar and the java.policy files */
  	/* look in the perl path first */
  	libdir = myPerlInstallDir; /* assume it is installed... */
@@ -345,10 +345,10 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  	strncpy (javaPolicy,myPerlInstallDir,MURLLEN-20);
  	strcat (vrmlJar,"/vrml.jar");
  	strcat (javaPolicy,"/java.policy");
- 
+
  	vJfile = fopen (vrmlJar,"r");
  	jPfile = fopen (javaPolicy,"r");
- 
+
  	/* did we find the vrml.jar file? */
  	if (!vJfile) {
  		strncpy (vrmlJar,BUILDDIR,MURLLEN-20);
@@ -359,11 +359,11 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  			commandline[0] = '\0';
  			return;
  		}
- 
+
  		libdir = BUILDDIR;
  	}
  	fclose (vJfile);
- 
+
  	/* did we find the java.policy file? */
  	if (!jPfile) {
  		strncpy (javaPolicy,BUILDDIR,MURLLEN-20);
@@ -376,21 +376,21 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  		}
  	}
  	fclose (jPfile);
- 
+
  	/* ok, we have found the jar and policy files... */
  	if (JavaClassVerbose)
  		printf ("JavaClass:found %s and %s\n",vrmlJar,javaPolicy);
- 
+
  	/* expect to make a line like:
- 		java -Dfreewrl.lib.dir=/usr/lib/perl5/site_perl/5.8.0/i586-linux-thread-multi/VRML 
- 		  -Djava.security.policy=/usr/lib/perl5/site_perl/5.8.0/i586-linux-thread-multi/VRML/java.policy 
- 		  -classpath /usr/lib/perl5/site_perl/5.8.0/i586-linux-thread-multi/VRML/vrml.jar 
+ 		java -Dfreewrl.lib.dir=/usr/lib/perl5/site_perl/5.8.0/i586-linux-thread-multi/VRML
+ 		  -Djava.security.policy=/usr/lib/perl5/site_perl/5.8.0/i586-linux-thread-multi/VRML/java.policy
+ 		  -classpath /usr/lib/perl5/site_perl/5.8.0/i586-linux-thread-multi/VRML/vrml.jar
  		  vrml.FWJavaScript
  	*/
- 
+
  	/* basic string checking - bounds checking of commandline length */
  	if ((lenenv + strlen(vrmlJar) + strlen(javaPolicy) + strlen (myPerlInstallDir)) > (MURLLEN - 100)) {
- 
+
  		printf ("we have a memory problem with MURLLEN...\n");
  		commandline[0] = '\0';
  		return;
@@ -401,19 +401,19 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  	strcat (commandline,libdir);
  	strcat (commandline, " -Djava.security.policy=");
  	strcat (commandline, javaPolicy);
- 
+
  	/* classpath, if one exists */
  	strcat (commandline, " -classpath ");
- 	strcat (commandline, vrmlJar); 
+ 	strcat (commandline, vrmlJar);
  	if (lenenv > 0) {
  		strcat (commandline,":");
  		strcat (commandline, myenv);
  	}
- 
+
  	/* and, the command to run */
  	sprintf (myc, " vrml.FWJavaScript %d &",scriptno+EAIBASESOCKET);
  	strcat (commandline, myc);
- 	
+
  	if (JavaClassVerbose) printf ("JavaClass:command line %s\n",commandline);
 }
 
@@ -443,19 +443,19 @@ void receive_command(int scriptno) {
 			receive_string(scriptno);
 			ptr = ClassBuffer;
 		}
-	
-	
+
+
 		//printf ("JavaClass:RC while loop, bufcount %d, buf :%s:\n",bufcount,ptr);
-	
+
 		if (strncmp(ptr,FN,strlen(FN)) == 0) {
 			//printf ("JavaClass:receive_command, FINISHED\n");
 			ptr += strlen(FN) +1;
 			finished_found = TRUE;
 		} else if (strncmp (ptr,GF,strlen(GF)) == 0) {
 			//printf ("JavaClass:receive_command, GETFIELD\n");
-	
+
 			ptr += strlen(GF) +1;
-	
+
 			// get the node id number - equiv of sscanf.
 			uretval=0;
 			while ((*ptr>='0') && (*ptr<='9')) {
@@ -463,28 +463,28 @@ void receive_command(int scriptno) {
 				ptr++;
 			}
 			//printf ("JavaClass:node is NODE%d\n",uretval);
-	
+
 			/* get the field name */
 			while (*ptr != ' ') {ptr++;} ptr++;
 			tmp=0;
 			while (*ptr!=' '){ctmp[tmp]=*ptr;tmp++;ptr++;}
 			ctmp[tmp] = '\0';
-			
+
 			/* get the field type */
 			tmp=0; ptr++;
 			while (*ptr >' '){dtmp[tmp]=*ptr;tmp++;ptr++;}
 			dtmp[tmp] = '\0';
-		
+
 			EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd,&scripttype);
 			//printf ("GT returns %d %d %d %d\n",ra, rb,rc,rd);
 			// send the type offset, and length
-			send_type(rd,rb,rc,scriptno); 
+			send_type(rd,rb,rc,scriptno);
 			//printf ("JavaClass:done GETFIELD\n");
-			
+
 		} else if (strncmp(ptr,RF,strlen(RF)) == 0) {
 			//printf ("JavaClass:receive_command, READFIELD\n");
 			ptr += strlen(RF) +1;
-	
+
 			// get the node id number - equivalent of sscanf
 			uretval=0;
 			while ((*ptr>='0') && (*ptr<='9')) {
@@ -492,7 +492,7 @@ void receive_command(int scriptno) {
 				ptr++;
 			}
 			//printf ("JavaClass:node is NODE%d\n",uretval);
-	
+
 			/* get the field name */
 			while (*ptr >' ') {ptr++;} ptr++;
 			tmp=0;
@@ -534,7 +534,7 @@ void receive_command(int scriptno) {
 		} else if (strncmp(ptr,GT,strlen(GT)) == 0) {
 			//printf ("JavaClass:receive_command, GETTYPENAME\n");
 			ptr += strlen(GT) +1;
-	
+
 			// get the node id number - equivalent of sscanf
 			uretval=0;
 			while ((*ptr>='0') && (*ptr<='9')) {
@@ -544,21 +544,21 @@ void receive_command(int scriptno) {
 			retstr = EAI_GetTypeName(uretval);
 			send_string (retstr ,scriptno);
 			free (retstr);
-	
+
 		} else if (strncmp(ptr,CV,strlen(CV)) == 0) {
 			//printf ("JavaClass:receive_command, CREATEVRML\n");
 			//printf ("string here is %s\n",ptr);
 			EOT = strstr(ptr,"\nEOT\n");
 			// if we do not have a full string yet, we have to do this...
 			while (EOT == NULL) {
-				ClassBuffer = read_EAI_socket(ClassBuffer,&bufcount, &bufsize, 
+				ClassBuffer = read_EAI_socket(ClassBuffer,&bufcount, &bufsize,
 						&(ScriptControl[scriptno].listen_fd));
 				EOT = strstr(ClassBuffer,"\nEOT\n");
 			}
-	
+
 			*EOT = 0; // take off the EOT marker
 			ptr = ClassBuffer; // in case it was realloc'd
-	
+
 			// do the conversion
 			ptr += strlen(CV) + 1;
 			ra = EAI_CreateVrml("String",ptr,(unsigned int*)nodarr,100);

@@ -1,6 +1,6 @@
 // Specification of the External Interface for a VRML applet browser.
 // FreeWRL Viewer Interface - bypass netscape and go directly
-// to the viewer. 
+// to the viewer.
 
 package vrml.external;
 
@@ -47,7 +47,7 @@ public class Browser implements BrowserInterface
     		PrintWriter EAIinThreadtoBrowser;
     		PipedWriter EAIinThreadtoBrowserPipe = null;
 
-		// 
+		//
     		static BufferedReader BrowserfromEAI = null;
     		PipedReader BrowserfromEAIPipe = null;
 
@@ -60,7 +60,7 @@ public class Browser implements BrowserInterface
     Socket	EAISocket;
     Socket		sock;
     static PrintWriter         EAIout;
-    
+
 
     // The following pipe listens for replies to events sent to
     // the FreeWRL VRML viewer via the EAI port.
@@ -68,32 +68,32 @@ public class Browser implements BrowserInterface
 
     private String              reply = "";
 
-    
+
     // Query Number as sent to the FreeWRL Browser.
     static int   queryno = 1;
-    
-    
+
+
     // Sending to FreeWRL needs to synchronize on an object;
     static Object FreeWRLToken = new Object();
-    
+
 
     // Interface methods.
     public int get_Browser_EVtype (int event)
       {
-	//System.out.println ("get_Browser_EVtype is returning " + 
-	//	BrowserGlobals.EVtype[event] + 
+	//System.out.println ("get_Browser_EVtype is returning " +
+	//	BrowserGlobals.EVtype[event] +
 	//	" for event " + event);
         return BrowserGlobals.EVtype[event];
       }
 
     public EventOutObserver get_Browser_EVObserver (int eventno)
       {
-	// System.out.println ("get_Browser_EVObserver is returning " +  
+	// System.out.println ("get_Browser_EVObserver is returning " +
 	// 	BrowserGlobals.EVObserver[eventno]);
         return BrowserGlobals.EVObserver[eventno];
       }
 
-    public void Browser_RL_Async_send (String EVentreply, int eventno) 
+    public void Browser_RL_Async_send (String EVentreply, int eventno)
       {
         int EVcounter;
         for (EVcounter=0; EVcounter<BrowserGlobals.EVno; EVcounter++) {
@@ -121,7 +121,7 @@ public class Browser implements BrowserInterface
 	//JAS 	System.out.println("EAI: not using Netscape");
 	//JAS }
 
-	counter = 1;	
+	counter = 1;
 	while (EAISocket == null) {
 		try {
 			EAISocket = new Socket("localhost",9877);
@@ -152,10 +152,10 @@ public class Browser implements BrowserInterface
         }
 
 	EAIinThreadtoBrowser = new PrintWriter(EAIinThreadtoBrowserPipe);
-	BrowserfromEAI = new BufferedReader (BrowserfromEAIPipe);	
+	BrowserfromEAI = new BufferedReader (BrowserfromEAIPipe);
 
   	// Start the readfrom FREEWRL thread...
-   	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, 
+   	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet,
 		EAIinThreadtoBrowser, this));
         FreeWRLThread.start();
 
@@ -166,7 +166,7 @@ public class Browser implements BrowserInterface
 	RL_Async = new EAIAsyncThread();
 	RL_Async.start();
 
-  
+
 	//====================================================================
 	// create the EAIoutThread - send data to FreeWRL.
 	try {
@@ -186,14 +186,14 @@ public class Browser implements BrowserInterface
   	// Browser is "gotten", and is started.
   	return;
     }
-  
+
     // construct an instance of the Browser class
     // If frameName is NULL, current frame is assumed.
     public Browser(Applet pApplet, String frameName, int index) {
       System.out.println ("Browser2 Not Implemented");
-  
+
     }
-  
+
   // Get the browser name
   public static String getName() {
       String retval;
@@ -214,7 +214,7 @@ public class Browser implements BrowserInterface
        }
       return retval;
      }
-  
+
     // Get the current velocity of the bound viewpoint in meters/sec,
     public float         getCurrentSpeed() {
        String retval;
@@ -225,7 +225,7 @@ public class Browser implements BrowserInterface
        }
       return Float.valueOf(retval).floatValue();
     }
-  
+
     // Get the current frame rate of the browser, or 0.0 if not available
     public float         getCurrentFrameRate() {
     String retval;
@@ -236,7 +236,7 @@ public class Browser implements BrowserInterface
     }
     return Float.valueOf(retval).floatValue();
     }
-  
+
     // Get the URL for the root of the current world, or an empty string
     // if not available
     public String        getWorldURL() {
@@ -248,7 +248,7 @@ public class Browser implements BrowserInterface
        }
       return retval;
     }
-  
+
     // Replace the current world with the passed array of nodes
     public void          replaceWorld(Node[] nodes)
          throws IllegalArgumentException {
@@ -267,30 +267,30 @@ public class Browser implements BrowserInterface
           queryno += 1;
         }
 
-    } 
-  
-  
+    }
+
+
     // Load the given URL with the passed parameters (as described
     // in the Anchor node)
     public void          loadURL(String[] url, String[] parameter) {
       System.out.println ("EAI: loadURL Not Implemented");
-  
+
       return;
     }
-  
-  
+
+
     // Set the description of the current world in a browser-specific
     // manner. To clear the description, pass an empty string as argument
     public void          setDescription(String description) {
       System.out.println ("EAI: setDescription Not Implemented");
-  
+
       return;
     }
-  
-  
+
+
     // Parse STRING into a VRML scene and return the list of root
     // nodes for the resulting scene
-    public Node[]        createVrmlFromString(String vrmlSyntax) 
+    public Node[]        createVrmlFromString(String vrmlSyntax)
 			throws InvalidVrmlException {
 
       Node[]  x = new Node[100];
@@ -335,9 +335,9 @@ public class Browser implements BrowserInterface
       }
       return x;
     }
-  
-  
-  
+
+
+
     // Tells the browser to load a VRML scene from the passed URL or
     // URLs. After the scene is loaded, an event is sent to the MFNode
     // eventIn in node NODE named by the EVENT argument
@@ -381,8 +381,8 @@ public class Browser implements BrowserInterface
       Evin = (EventInMFNode) node.getEventIn(event);
       Evin.setValue(x);
     }
-  
-  
+
+
     // Add and delete, respectively, a route between the specified eventOut
     // and eventIn of the given nodes
     public void          addRoute(Node fromNode, String fromEventOut,
@@ -398,10 +398,10 @@ public class Browser implements BrowserInterface
        }
       return;
     }
-  
-  
+
+
     public void          deleteRoute(Node fromNode, String fromEventOut,
-                                     Node toNode, String toEventIn) 
+                                     Node toNode, String toEventIn)
 			 throws IllegalArgumentException {
       String retval;
 
@@ -413,52 +413,52 @@ public class Browser implements BrowserInterface
        }
       return;
     }
-  
+
     // begin and end an update cycle
-    public void          beginUpdate() {} 
-    public void          endUpdate() {} 
-  
+    public void          beginUpdate() {}
+    public void          endUpdate() {}
+
     // called after the scene is loaded, before the first event is processed
     public void initialize() {
       System.out.println ("EAI: Initialize Not Implemented");
-  
+
     }
-    
-  
+
+
     // called just before the scene is unloaded
     public void shutdown() {
       System.out.println ("EAI: Shutdown Not Implemented");
-  
+
     }
-  
+
     // return an instance of the Browser class
     // This returns the first embedded plugin in the current frame.
     static public Browser getBrowser(Applet pApplet) {
       return (new Browser(pApplet));
     }
-  
+
     // return an instance of the Browser class
     // If frameName is NULL, current frame is assumed.
     static public Browser getBrowser(Applet pApplet, String frameName, int index) {
       // We don't have frames and indexes yet...
       Browser x = getBrowser(pApplet);
       System.out.println ("EAI: getBrowser possibly Not Implemented");
-  
+
       return x;
     }
-  
-  
+
+
     // Get a DEFed node by name. Nodes given names in the root scene
     // graph must be made available to this method. DEFed nodes in inlines,
     // as well as DEFed nodes returned from createVrmlFromString/URL, may
     // or may not be made available to this method, depending on the
     // browser's implementation
-  
+
     public Node getNode (String NodeName) throws InvalidNodeException
       {
       Node temp;
 
-      temp = new Node();  
+      temp = new Node();
 
       synchronized (FreeWRLToken) {
         EAIoutSender.send ("" + queryno + "A " + NodeName + "\n");
@@ -481,7 +481,7 @@ public class Browser implements BrowserInterface
 	public static void SendChildEvent (String parent, String offset, String FieldName, String Child) {
 		String retval;
 
-		// System.out.println ("SendChildEvent: sending to " + parent + " ofs:" + 
+		// System.out.println ("SendChildEvent: sending to " + parent + " ofs:" +
 		//	offset + " field " + FieldName + " child: " + Child);
 
 		synchronized (FreeWRLToken) {
@@ -495,11 +495,11 @@ public class Browser implements BrowserInterface
 
 	// Most events don't need us to wait around for it.
 	public static void newSendEvent (Node node, String Value) {
-	
+
 		//System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + NodePtr +
 		//	" Offset " + Offset);
 		synchronized (FreeWRLToken) {
-			EAIoutSender.send ("" + queryno + "D" + node.datatype + " " + 
+			EAIoutSender.send ("" + queryno + "D" + node.datatype + " " +
 				node.nodeptr + " " + node.offset + " " +node.ScriptType + " " + Value + "\n");
 			queryno += 1;
 		}
@@ -532,7 +532,7 @@ public class Browser implements BrowserInterface
        synchronized (FreeWRLToken) {
          EAIoutSender.send ("" + queryno + "E " + nodeptr + " " + offset + " " + datatype +
  		" " + datasize + "\n");
- 
+
          retval = getVRMLreply(queryno);
          queryno += 1;
       }
@@ -550,31 +550,31 @@ public class Browser implements BrowserInterface
 
          EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
  		" " + datasize + "\n");
- 
+
          BrowserGlobals.EVarray [BrowserGlobals.EVno] =  queryno;
-         BrowserGlobals.EVtype [BrowserGlobals.EVno] = EventType;     
+         BrowserGlobals.EVtype [BrowserGlobals.EVno] = EventType;
          BrowserGlobals.EVObject[BrowserGlobals.EVno] = userData;
          BrowserGlobals.EVObserver[BrowserGlobals.EVno] = f;
 
          BrowserGlobals.EVno += 1;
-       
-         getVRMLreply(queryno); 
+
+         getVRMLreply(queryno);
          queryno += 1;
        }
     }
 
-    protected synchronized static String getVRMLreply (int queryno) 
+    protected synchronized static String getVRMLreply (int queryno)
       {
-  
-        String req = "0"; 
+
+        String req = "0";
         String rep = "";
-  
+
 
  	// This waits for the correct event toe be returned. Note that
 	// sendevents dont wait, so there is the possibility that
 	// we will have to while away a bit of time waiting...
- 
- 	while (queryno != Integer.parseInt(req)) { 
+
+ 	while (queryno != Integer.parseInt(req)) {
            try {
              req = BrowserfromEAI.readLine();
            } catch (IOException ie) {
@@ -583,20 +583,20 @@ public class Browser implements BrowserInterface
 	   }
 
            if (queryno != Integer.parseInt(req)) {
-             System.out.println ("EAI: getVRMLreply - REPLIES MIXED UP!!! Expecting " 
-                + queryno + 
+             System.out.println ("EAI: getVRMLreply - REPLIES MIXED UP!!! Expecting "
+                + queryno +
    	     " got " + req);
            }
-       
+
            try {
-                 rep = BrowserfromEAI.readLine(); 
+                 rep = BrowserfromEAI.readLine();
            } catch (IOException ie) { System.out.println ("EAI: getVRMLreply failed"); return null; }
-	
+
 
          }
 
-        return rep; 
-      }  
+        return rep;
+      }
 	public void close() {
 		System.out.println("EAI: closing socket");
 		//JAS try {
@@ -604,7 +604,7 @@ public class Browser implements BrowserInterface
 			//JAS EAIoutSender.stopThread();
 			//JAS EAISocket.close();
 			//JAS EAIfromFreeWRLStream.close();
-  
+
 		//JAS } catch (IOException e) {
 		//JAS }
 	}

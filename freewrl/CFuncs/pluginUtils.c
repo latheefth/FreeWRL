@@ -4,7 +4,7 @@
  *  See the GNU Library General Public License (file COPYING in the distribution)
  *  for conditions of use and redistribution.
  **********************************************************************/
-                                                                                                                       
+
 #include "headers.h"
 #include "Bindable.h"
 #include "PluginSocket.h"
@@ -71,7 +71,7 @@ int freewrlSystem (char *sysline) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
 	}}
 	*/
-	
+
 
 	if (haveXmessage) {
 		waitForChild = FALSE;
@@ -85,7 +85,7 @@ int freewrlSystem (char *sysline) {
 
 	if (count > 0) {
 		switch (childProcess=fork()) {
-			case -1: 
+			case -1:
 				perror ("fork"); exit(1);
 
 			case 0: {
@@ -93,13 +93,13 @@ int freewrlSystem (char *sysline) {
 
 			/* child process */
 			//printf ("child execing, pid %d %d\n",childProcess, getpid());
-		 	Xrv = execl(paramline[0], 
+		 	Xrv = execl(paramline[0],
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
 				paramline[6],paramline[7]);
 			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
 			exit (Xrv);
-			} 
+			}
 			default: {
 			/* parent process */
 			//printf ("parent waiting for child %d\n",childProcess);
@@ -141,34 +141,34 @@ void doBrowserAction () {
 	char firstBytes[4];
 	char sysline[1000];
 
-	
+
 	struct Multi_String Anchor_url;
 	//struct Multi_String { int n; SV * *p; };
-	
+
 	Anchor_url = AnchorsAnchor->url;
-	
-	if (!RUNNINGASPLUGIN) 
+
+	if (!RUNNINGASPLUGIN)
 		printf ("FreeWRL::Anchor: going to \"%s\"\n",
 			SvPV(AnchorsAnchor->description,xx));
 
 	filename = (char *)malloc(1000);
-	
+
 	/* lets make up the path and save it, and make it the global path */
 	count = strlen(SvPV(AnchorsAnchor->__parenturl,xx));
 	mypath = (char *)malloc ((sizeof(char)* count)+1);
-	
+
 	if ((!filename) || (!mypath)) {
 		outOfMemory("Anchor can not malloc for filename\n");
 	}
-	
+
 	/* copy the parent path over */
 	strcpy (mypath,SvPV(AnchorsAnchor->__parenturl,xx));
-	
+
 	/* and strip off the file name, leaving any path */
 	slashindex = (char *)rindex(mypath,'/');
-	if (slashindex != NULL) { 
+	if (slashindex != NULL) {
 		slashindex ++; /* leave the slash on */
-		*slashindex = 0; 
+		*slashindex = 0;
 	 } else {mypath[0] = 0;}
 
 	//printf ("Anchor, url so far is %s\n",mypath);
@@ -178,10 +178,10 @@ void doBrowserAction () {
 	while (count < Anchor_url.n) {
 		thisurl = SvPV(Anchor_url.p[count],xx);
 
-		// is this a local Viewpoint? 
+		// is this a local Viewpoint?
 		if (thisurl[0] == '#') {
 			localNode = EAI_GetViewpoint(&thisurl[1]);
-			tableIndex = -1; 
+			tableIndex = -1;
 
 			for (flen=0; flen<totviewpointnodes;flen++) {
 				if (localNode == viewpointnodes[flen]) {
@@ -205,11 +205,11 @@ void doBrowserAction () {
 			free (filename);
 			return;
 		}
-	
+
 		/* check to make sure we don't overflow */
 		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
 
-		/* put the path and the file name together */	
+		/* put the path and the file name together */
 		makeAbsoluteFileName(filename,mypath,thisurl);
 
 		/* if this is a html page, just assume it's ok. If
@@ -221,7 +221,7 @@ void doBrowserAction () {
 		if (fileExists(filename,firstBytes,FALSE)) { break; }
 		count ++;
 	}
-	
+
 	// did we locate that file?
 	if (count == Anchor_url.n) {
 		if (count > 0) {
@@ -232,9 +232,9 @@ void doBrowserAction () {
 	}
 	//printf ("we were successful at locating :%s:\n",filename);
 
-	//which browser are we running under? if we are running as a 
+	//which browser are we running under? if we are running as a
 	//plugin, we'll have some of this information already.
-	
+
 	if (checkIfX3DVRMLFile(filename)) {
 		Anchor_ReplaceWorld (filename);
 	} else {

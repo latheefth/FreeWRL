@@ -18,7 +18,7 @@ public class Train {
 
     float[] normalColor;
     float[] funnyColor;
-    
+
     SFRotation vrmlRotation;
     SFVec3f vrmlPosition;
     SFColor vrmlColor;
@@ -41,7 +41,7 @@ public class Train {
     }
 
     private final float calculateZPos (float xPos) {
-	if (direction == 1) 
+	if (direction == 1)
 	    return 5;
 	float absX = Math.abs( xPos );
 	if ( absX > 30) return -5;
@@ -76,7 +76,7 @@ public class Train {
 	vrmlPosition.setValue(position);
 	vrmlRotation.setValue(0, 1, 0, calculateAngle (xPos));
     }
-    
+
     private static int counter;
     private final float[] directionColor () {
 	if (counter == 5) {
@@ -84,7 +84,7 @@ public class Train {
 	    return funnyColor;
 	} else
 	    counter ++;
-	
+
 	return normalColor;
     }
 
@@ -94,11 +94,11 @@ public class Train {
 		if (Math.random() > .5) {
 		    activate();
 		} else {
-		    setPosition(STARTING_POS); 
+		    setPosition(STARTING_POS);
 		    vrmlColor.setValue(directionColor());
 		}
 	    } else
-		setPosition(linpos + movement); 
+		setPosition(linpos + movement);
 	} else {
 	    if (Math.random() < movement / 100)
 		activate();

@@ -11,7 +11,7 @@
 
 #include <math.h>
 
-#ifdef AQUA 
+#ifdef AQUA
 #include <gl.h>
 #include <glu.h>
 #include <glext.h>
@@ -60,7 +60,7 @@ Different nodes produce eventins/eventouts...
 		CylinderSensor
 		VisibilitySensor
 		ProximitySensor
-	
+
 	EventIn/EventOuts:
 		ScalarInterpolator
 		OrientationInterpolator
@@ -73,13 +73,13 @@ Different nodes produce eventins/eventouts...
 		Viewpoint
 		NavigationInfo
 		Collision
-	
+
 	EventIns only:
 		Almost everything else...
 
 
 	Nodes with ClockTicks:
-		MovieTexture, AudioClip, TimeSensor, 
+		MovieTexture, AudioClip, TimeSensor,
 		ProximitySensor, Collision, ...?
 
 	Nodes that have the EventsProcessed method:
@@ -89,7 +89,7 @@ Different nodes produce eventins/eventouts...
 		.... ??
 
 
-	
+
 
 	So, in the event loop, (Events.pm, right now), the call to
 
@@ -99,15 +99,15 @@ Different nodes produce eventins/eventouts...
 	generating a series of events.
 
 		push @ne,$_->events_processed($timestamp,$be);
-	
+
 	goes through the list of routes, copies the source event to
 	the destination, and if the node is one of the EventIn/EventOut
 	style, it then re-tells the routing table to do another route.
 	The table is gone through until all events are done with.
-	
-		 
 
-	--------------------------------------------------------------------------	
+
+
+	--------------------------------------------------------------------------
 	C Routes are stored in a table with the following entries:
 		Fromnode 	- the node that created an event address
 		actual ptr	- pointer to the exact field within the address
@@ -134,7 +134,7 @@ Different nodes produce eventins/eventouts...
 		4) scripts that have eventOuts have the eventOut values copied over
 		   and acted upon by the routine "gatherScriptEventOuts".
 
-		
+
 ******************************************/
 struct CRjsnameStruct {
 	int	type;
@@ -200,7 +200,7 @@ int num_ClockEvents = 0;
 /* tell this node now needs to redraw  - but only if it is not a script to
    script route - see CRoutes_Register here, and check for the malloc in that code.
    You should see that the offset is zero, while in real nodes, the offset of user
-   accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of 
+   accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of
    the node types, eg, VRML_IndexedFaceSet  the first offset is for VRML_Virt :=)
 */
 void markScriptResults(int tn, int tptr, int route, int tonode) {
@@ -325,7 +325,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	mycx = (JSContext *) ScriptControl[actualscript].cx;
 	myname = JSparamnames[fptr].name;
-	if (JSVerbose) 
+	if (JSVerbose)
 		printf ("\nget_touched_flag, name %s script %d context %#x \n",myname,
 				actualscript,mycx);
 
@@ -343,13 +343,13 @@ int get_touched_flag (int fptr, int actualscript) {
 
 
 	// if this is a complex name (ie, it is like a field of a field) then get the
-	// first part. 
+	// first part.
 	if (complex_name) {
 		// get first part, and convert it into a handle name.
 		locindex = 0;
 		while (*myname!='.') {
 			tmethod[locindex] = *myname;
-			locindex++; 
+			locindex++;
 			myname++;
 		}
 		tmethod[locindex] = 0;
@@ -381,7 +381,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	/* Multi types */
 	switch (JSparamnames[fptr].type) {
-	case SFIMAGE: 
+	case SFIMAGE:
 	case MFFLOAT: case MFTIME: case MFINT32: case MFSTRING: {
 		strcpy (tmethod,"__touched_flag");
 		complex_name = TRUE;
@@ -393,7 +393,7 @@ int get_touched_flag (int fptr, int actualscript) {
 		complex_name = TRUE;
 		break;
 		}
-	
+
 	/* ECMAScriptNative types */
 	case SFBOOL: case SFFLOAT: case SFTIME: case SFINT32: case SFSTRING: {
 		if (complex_name) strcpy (tmethod,"_touched");
@@ -438,11 +438,11 @@ int get_touched_flag (int fptr, int actualscript) {
 	}
 
 
-	// Now, for the Touched (and thus the return) value 
+	// Now, for the Touched (and thus the return) value
 	if (touched_function) {
 		//printf ("Function, have to run script\n");
-	
-		if (!ActualrunScript(actualscript, tmethod ,&retval)) 
+
+		if (!ActualrunScript(actualscript, tmethod ,&retval))
 			printf ("failed to get touched, line %s\n",tmethod);
 
 		if (JSVAL_IS_INT(retval)) {
@@ -457,14 +457,14 @@ int get_touched_flag (int fptr, int actualscript) {
 	// if not (ie, this is a standard, simple, name, use the object as before
 	if (complex_name) {
 		interpobj = retval;
-	}	
+	}
 
 	// Multi types, go through each element, and find the touched flag. grep for
 	// touched in CFuncs/jsVRMLClasses.c to see what we are really trying to find.
 	// We can also look at the base node; it *may* have a touched flag.
-	
+
 	if (touched_Multi) {
-		
+
 		touched = 0;
 
 		// lets try the MF touched flag. If this is 0, then go
@@ -493,32 +493,32 @@ int get_touched_flag (int fptr, int actualscript) {
 		jlen = JSVAL_TO_INT(_length_val);
 		//printf ("length of object %d is %d\n",interpobj,jlen);
 
-		
+
 
 		// go through each element of the MF* and look for the touched flag.
-		for (count = 0; count < jlen; count ++) {		    
+		for (count = 0; count < jlen; count ++) {
 			if (!JS_GetElement(mycx, (JSObject *) interpobj,
 				count, &vp)) { printf ("cant get element %d\n",count);
 			} else {
 				//printf ("first element %d is %d\n",count,vp);
 				switch (JSparamnames[fptr].type) {
 				  case MFCOLOR: {
-					if (!(SFColorTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
+					if (!(SFColorTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFColor/MFVec3f\n");
 				     	break;
 					}
 				  case MFROTATION: {
-					if (!(SFRotationTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
+					if (!(SFRotationTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFRotation\n");
 				     	break;
 					}
 				  case MFNODE: {
-					if (!(SFNodeTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
+					if (!(SFNodeTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFNode\n");
 				     	break;
 					}
 				  case MFVEC2F: {
-					if (!(SFVec2fTouched( mycx, (JSObject *)vp, 0, 0, &tval))) 
+					if (!(SFVec2fTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFVec2f\n");
 				     	break;
 					}
@@ -594,12 +594,12 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, unsigne
 	}
 
 	/* set property */
-	if (!ActualrunScript(tonode, scriptline ,&retval)) 
+	if (!ActualrunScript(tonode, scriptline ,&retval))
 		printf ("failed to set parameter, line %s\n",scriptline);
 
 	/* ECMAScriptNative SF nodes require a touched=0 */
 	sprintf (scriptline,"___tmp_arg_%s__touched=0", JSparamnames[toname].name);
-	if (!ActualrunScript(tonode, scriptline ,&retval)) 
+	if (!ActualrunScript(tonode, scriptline ,&retval))
 		printf ("failed to set parameter, line %s\n",scriptline);
 
 
@@ -621,7 +621,7 @@ void setECMAtype (int num) {
 
 	fn = (int) CRoutes[num].fromnode + (int) CRoutes[num].fnptr;
 	len = CRoutes[num].len;
-	
+
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
@@ -683,12 +683,12 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 	/* oldlen = what was there in the first place */
 	verifySVtype(to);
-	
+
 	oldlen = to->n;
 	svptr = to->p;
 	newlen=0;
 
-	if (!JS_ValueToObject(cx, (jsval) from, &obj)) 
+	if (!JS_ValueToObject(cx, (jsval) from, &obj))
 		printf ("JS_ValueToObject failed in getMFStringtype\n");
 
 	if (!JS_GetProperty(cx, obj, "length", &_v)) {
@@ -702,16 +702,16 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		oldp = to->p; // same as svptr, assigned above
 		to->n = newlen;
 		to->p = (SV**)malloc(newlen * sizeof(to->p));
-		newp = to->p; 
+		newp = to->p;
 
 		// copy old values over
 		for (count = 0; count <oldlen; count ++) {
 			//printf ("copying over element %d\n",count);
 			*newp = *oldp;
 			newp++;
-			oldp++;	
+			oldp++;
 		}
-		
+
 		// zero new entries
 		for (count = oldlen; count < newlen; count ++) {
 			/* make the new SV */
@@ -758,14 +758,14 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 		// if the strings are different...
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			// now Perl core dumps since this is the wrong thread, so lets do this 
+			// now Perl core dumps since this is the wrong thread, so lets do this
 			// ourselves: sv_setpv(svptr[i],valStr);
 
 			// get a pointer to the xpv to modify
 			mypv = (struct xpv *)SvANY(svptr[i]);
 
 			// free the old string
-			free (mypv->xpv_pv); 
+			free (mypv->xpv_pv);
 
 			// malloc a new string, of correct len for terminator
 			mypv->xpv_pv =(char *) malloc (strlen(valStr)+2);
@@ -808,12 +808,12 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 	unsigned long int *tmpptr;
 
 	// is this 64 bit compatible? - unsure right now.
-	if (sizeof(void *) != sizeof (unsigned int)) 
+	if (sizeof(void *) != sizeof (unsigned int))
 		printf ("getMFNodetype - unverified that this works on 64 bit machines\n");
 
 	if (CRVerbose) {
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
-		printf ("getMFNodetype, parent %d has %d nodes currently\n",(int)tn,tn->n); 
+		printf ("getMFNodetype, parent %d has %d nodes currently\n",(int)tn,tn->n);
 	}
 
 	newlen=0;
@@ -835,13 +835,13 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 	/* create the list to send to the AddRemoveChildren function */
 	newmal = malloc (newlen*sizeof(void *));
 	tmpptr = (unsigned long int *)newmal;
-	
+
 	if (newmal == 0) {
 		printf ("cant malloc memory for addChildren");
 		return;
 	}
-	
-	
+
+
 	/* scan through the string again, and get the node numbers. */
 	while (sscanf (cptr,"%d", (int *)tmpptr) == 1) {
 		/* skip past this number */
@@ -867,9 +867,9 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 
 void AddRemoveChildren (
 		struct VRML_Box *parent,
-		struct Multi_Node *tn, 
-		int *nodelist, 
-		int len, 
+		struct Multi_Node *tn,
+		int *nodelist,
+		int len,
 		int ar) {
 	int oldlen;
 	void *newmal;
@@ -890,27 +890,27 @@ void AddRemoveChildren (
 
 	oldlen = tn->n;
 	//printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);
-	
+
 	if (ar != 0) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
-	
+
 		/* first, set children to 0, in case render thread comes through here */
 		tn->n = 0;
 
 		newmal = malloc ((oldlen+len)*sizeof(void *));
-	
+
 		if (newmal == 0) {
 			printf ("cant malloc memory for addChildren");
 			return;
 		}
-	
+
 		/* copy the old stuff over */
 		if (oldlen > 0) memcpy (newmal,tn->p,oldlen*sizeof(void *));
-	
+
 		/* set up the C structures for this new MFNode addition */
 		free (tn->p);
 		tn->p = &newmal;
-	
+
 		/* copy the new stuff over */
 		newmal = (void *) ((int) newmal + sizeof (void *) * oldlen);
 		memcpy(newmal,nodelist,sizeof(void *) * len);
@@ -972,8 +972,8 @@ void AddRemoveChildren (
 		}
 	}
 }
-	
-		
+
+
 /****************************************************************/
 /* a CLASS is returning a Multi-number type; copy this from 	*/
 /* the CLASS to the data structure within the freewrl C side	*/
@@ -985,7 +985,7 @@ void AddRemoveChildren (
 /* to make this multi-purpose.					*/
 /* eletype switches depending on:				*/
 /* what the sub clen does in VRMLFields.pm;			*/
-/*  "String" {return -13;} 					*/      
+/*  "String" {return -13;} 					*/
 /*  "Float" {return -14;}        				*/
 /*  "Rotation" {return -15;}     				*/
 /*  "Int32" {return -16;}        				*/
@@ -995,7 +995,7 @@ void AddRemoveChildren (
 /*  "Node" {return -10;}         				*/
 /****************************************************************/
 
-void getCLASSMultNumType (char *buf, int bufSize, 
+void getCLASSMultNumType (char *buf, int bufSize,
 			  struct Multi_Vec3f *tn,
 			  struct VRML_Box *parent,
 			  int eletype, int addChild) {
@@ -1004,7 +1004,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 
 
 
-	
+
 	/* get size of each element, used for mallocing memory */
 	switch (eletype) {
 	  case -13: elesize = sizeof (char); break;	/* string   */
@@ -1014,10 +1014,10 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	  case -15: elesize = sizeof(float)*4; break;	/* Rotation */
 	  case -16: elesize = sizeof(int); break;	/* Integer  */
 
-	  /*  
+	  /*
 	  case SFVEC3F:
 	  case SFCOLOR:
-	  */  
+	  */
 	  case -1:
 	  case -17:
 	    elesize = sizeof(float)*3;
@@ -1028,15 +1028,15 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	}
 
 	len = bufSize / elesize;  /* convert Bytes into whatever */
-	
-	if (CRVerbose) 
+
+	if (CRVerbose)
 		printf("getCLASSMultNumType: bufSize:%d, eletype:%d, allocated: %d, elesize: %d.\n",
 	       bufSize,eletype, tn->n, elesize);
-								       	
+
 	/* now, we either replace the whole data, or we add or remove it if
 	 * this is a Node type. (eg, add/remove child) */
 
-	if (eletype != -10) {	
+	if (eletype != -10) {
 		/* do we have to realloc memory? */
 		if (len != tn->n) {
 			/* yep... */
@@ -1049,10 +1049,10 @@ void getCLASSMultNumType (char *buf, int bufSize,
 				return;
 			}
 		}
-	
+
 		/* copy memory over */
 		memcpy (tn->p, buf, bufSize);
-	
+
 		/* and, tell the scene graph how many elements there are in here */
 		tn->n = len;
 	} else {
@@ -1157,7 +1157,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 			   return;
 			}
 		}
-		
+
 	}
 	tn->n = len;
 }
@@ -1182,7 +1182,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 	/* oldlen = what was there in the first place */
 	// should be ok verifySVtype(from);
 	verifySVtype(to);
-	
+
 	oldlen = to->n;
 	oldsvptr = to->p;
 	newlen= from->n;
@@ -1197,16 +1197,16 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 		oldp = to->p; // same as oldsvptr, assigned above
 		to->n = newlen;
 		to->p =(SV **) malloc(newlen * sizeof(to->p));
-		newp = to->p; 
+		newp = to->p;
 		//printf ("newp is %d, size %d\n",newp, newlen * sizeof(to->p));
 
 		// copy old values over
 		for (count = 0; count <oldlen; count ++) {
 			*newp = *oldp;
 			newp++;
-			oldp++;	
+			oldp++;
 		}
-		
+
 		// zero new entries
 		for (count = oldlen; count < newlen; count ++) {
 			//printf ("zeroing %d\n",count);
@@ -1254,14 +1254,14 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 
 		// if the strings are different...
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			// now Perl core dumps since this is the wrong thread, so lets do this 
+			// now Perl core dumps since this is the wrong thread, so lets do this
 			// ourselves: sv_setpv(oldsvptr[i],valStr);
 
 			// get a pointer to the xpv to modify
 			mypv = (struct xpv *)SvANY(oldsvptr[i]);
 
 			// free the old string
-			free (mypv->xpv_pv); 
+			free (mypv->xpv_pv);
 
 			// malloc a new string, of correct len for terminator
 			mypv->xpv_pv = (char *)malloc (strlen(valStr)+2);
@@ -1298,7 +1298,7 @@ void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dat
 
 	char scriptline[100];
 	jsval retval;
-	SFVec3fNative *_privPtr; 
+	SFVec3fNative *_privPtr;
 
 	JSContext *_context;
 	JSObject *_globalObj, *_sfvec3fObj;
@@ -1314,15 +1314,15 @@ void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dat
 
 	if (CRVerbose) printf ("script %d line %s\n",tonode, scriptline);
 
-	if (!JS_GetProperty(_context,_globalObj,scriptline,&retval)) 
+	if (!JS_GetProperty(_context,_globalObj,scriptline,&retval))
 		printf ("JS_GetProperty failed in jsSFVec3fSet.\n");
 
-	if (!JSVAL_IS_OBJECT(retval)) 
+	if (!JSVAL_IS_OBJECT(retval))
 		printf ("jsSFVec3fSet - not an object\n");
 
 	_sfvec3fObj = JSVAL_TO_OBJECT(retval);
 
-	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(_context, _sfvec3fObj)) == NULL) 
+	if ((_privPtr = (SFVec3fNative *)JS_GetPrivate(_context, _sfvec3fObj)) == NULL)
 		printf("JS_GetPrivate failed in jsSFVec3fSet.\n");
 
 	/* copy over the data from the perl/C VRML side into the script. */
@@ -1332,7 +1332,7 @@ void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dat
 
 	/* now, runscript to tell it that it has been touched */
 	sprintf (scriptline,"__tmp_arg_%s.__touched()", JSparamnames[tnfield].name);
-	if (!ActualrunScript(tonode, scriptline ,&retval)) 
+	if (!ActualrunScript(tonode, scriptline ,&retval))
 		printf ("failed to set parameter, line %s\n",scriptline);
 
 	/* and run the function */
@@ -1354,10 +1354,10 @@ void setMultiElementtype (int num) {
 	JSContext *_context;
 	JSObject *_globalObj;
 
-	fn = (int) CRoutes[num].fromnode; 
+	fn = (int) CRoutes[num].fromnode;
 	fptr = (int) CRoutes[num].fnptr;
 	len = CRoutes[num].len;
-	
+
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
@@ -1400,11 +1400,11 @@ void setMFElementtype (int num) {
 
 	if (CRVerbose) printf("------------BEGIN setMFElementtype ---------------\n");
 
-	fn = (int) CRoutes[num].fromnode; 
+	fn = (int) CRoutes[num].fromnode;
 	fptr = (int) CRoutes[num].fnptr;
 	pptr = fn + fptr;
 	len = CRoutes[num].len;
-	
+
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
@@ -1441,7 +1441,7 @@ void setMFElementtype (int num) {
 					      }
 					      break;
 				      }
-			case MFFLOAT: {		
+			case MFFLOAT: {
 					      strcat (scriptline, "new MFFloat(");
 					      elementlen = sizeof (float);
 					      for (x=0; x<(len/elementlen); x++) {
@@ -1470,7 +1470,7 @@ void setMFElementtype (int num) {
 					      break;
 				      }
 			case SFIMAGE:	/* JAS - SFIMAGES are SFStrings in Perl, but an MFInt in Java */
-			case MFINT32: {	
+			case MFINT32: {
 					      strcat (scriptline, "new MFInt32(");
 					      elementlen = sizeof (int);
 					      for (x=0; x<(len/elementlen); x++) {
@@ -1484,7 +1484,7 @@ void setMFElementtype (int num) {
 					      }
 					      break;
 				      }
-			case MFSTRING:{	
+			case MFSTRING:{
 					      strcat (scriptline, "new MFString(");
 					      elementlen = sizeof (float);
 					      printf ("ScriptAssign, MFString probably broken\n");
@@ -1499,7 +1499,7 @@ void setMFElementtype (int num) {
 					      }
 					      break;
 				      }
-			case MFNODE:  {	
+			case MFNODE:  {
 					      strcat (scriptline, "new MFNode(");
 					      elementlen = sizeof (int);
 					      for (x=0; x<(len/elementlen); x++) {
@@ -1535,14 +1535,14 @@ void setMFElementtype (int num) {
 					 strcat (scriptline,"(");
 				 }
 		}
-		
+
 		/* convert these values to a jsval type */
 		strcat (scriptline,"))");
 		if (CRVerbose) printf("ScriptLine: %s\n",scriptline);
-		
+
 		if (!ActualrunScript(tn,scriptline,&retval))
 			printf ("AR failed in setxx\n");
-		
+
 
 	}
 	if (CRVerbose) printf("------------END setMFElementtype ---------------\n");
@@ -1552,7 +1552,7 @@ void setMFElementtype (int num) {
 /*--------------------------------------------------------------------------*/
 /*
  struct fchain
- 
+
  This struct is used to create a temporary dinamyc chain of floats.
  */
 /*--------------------------------------------------------------------------*/
@@ -1607,10 +1607,10 @@ float  *readMFFloatString(char *input, int *eQty, int type)
     /* find the element size and data type */
     switch (type) {
 	case MFNODE:
-	case SFNODE:	
+	case SFNODE:
 		dataSize = sizeof (int);
 		dataType = 1; // see later
-		break; 
+		break;
 	case MFINT32:
 		dataSize = sizeof(int);
 		dataType = 2; // see later
@@ -1629,10 +1629,10 @@ float  *readMFFloatString(char *input, int *eQty, int type)
     count = token - input;
     if(count > 0) {
 	tptr  = (char *)malloc(count + 2);
-	
+
 	strncpy(tptr,input,(count));
 	tptr[count] = 0;
-	
+
 	if (CRVerbose) printf("Token : ---#%s#---\n",tptr);
 	token = strtok(tptr,theSpc);
 
@@ -1642,7 +1642,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 	    theChainHd = (struct fchain *)malloc(sizeof(struct fchain));
 	    theChainHd->next = NULL;
 	    actual = theChainHd;
-	    
+
 	    while(NULL != token)
 	    {
 		switch (dataType) {
@@ -1654,7 +1654,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 			default:	actual->fcontent = atof(token);
 		}
 		if (CRVerbose) printf("Token is: #%s#-, val: %f\n",token,actual->fcontent);
-		
+
 		token = strtok(NULL,theSpc);
 		if(NULL != token)
 		{
@@ -1668,14 +1668,14 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 		    actual->next = NULL;
 		}
 	    }
-	    
+
 	    /* did we actually find any values? */
 	    if(count > 0)
 	    {
 		/* malloc the return data location */
 		retVal = (float *)malloc(dataSize*count);
 		retValPtr = (char *)retVal;
-		
+
 		actual = theChainHd;
 		/* copy each "element" over to the final location */
 		switch (dataType) {
@@ -1685,7 +1685,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 			default:memcpy ((void *)retValPtr,(void *)(&actual->fcontent), dataSize);
 		}
 		retValPtr += dataSize;
-		i = 0;		
+		i = 0;
 		if (CRVerbose) printf("Token val: %f, i: %d, ptr:%x, count %d\n",retVal[i],i,actual,count);
 		actual = actual->next;
 		free(theChainHd);
@@ -1701,13 +1701,13 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 		    }
 		    retValPtr += dataSize;
 		    i++;
-		    if (CRVerbose) printf("Token val: %f, i: %d, ptr:%x\n",retVal[i],i,actual);		    		    
+		    if (CRVerbose) printf("Token val: %f, i: %d, ptr:%x\n",retVal[i],i,actual);
 		    actual = actual->next;
 		    free(tmpPtr);
 		}
 	    }
 	}
-	
+
 	free(tptr);
     }
     else
@@ -1718,12 +1718,12 @@ float  *readMFFloatString(char *input, int *eQty, int type)
     CRVerbose = 0;
     *eQty = count;
     return retVal;
-} 
+}
 
 /*--------------------------------------------------------------------------*/
 
 void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
-    
+
     int tn, tptr;
     char scriptline[2000];
     char sline[100];
@@ -1738,7 +1738,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     JSObject *_globalObj;
 
     if (CRVerbose) printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
-	
+
     tn   = num;
     tptr = offset;
 
@@ -1772,7 +1772,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFFLOAT: {		
+      case MFFLOAT: {
 	  strcat (scriptline, "new MFFloat(");
 	  elementlen = sizeof (float);
 	  for (x=0; x<(len/elementlen); x++) {
@@ -1801,7 +1801,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFINT32: {	
+      case MFINT32: {
 	  strcat (scriptline, "new MFInt32(");
 	  elementlen = sizeof (int);
 	  for (x=0; x<(len/elementlen); x++) {
@@ -1815,7 +1815,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFSTRING:{	
+      case MFSTRING:{
 	  strcat (scriptline, "new MFString(");
 	  elementlen = sizeof (float);
 	  printf ("ScriptAssign, MFString probably broken\n");
@@ -1830,7 +1830,7 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  }
 	  break;
       }
-      case MFNODE:  {	
+      case MFNODE:  {
 	  strcat (scriptline, "new MFNode(");
 	  elementlen = sizeof (int);
 	  for (x=0; x<(len/elementlen); x++) {
@@ -1866,18 +1866,18 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
 	  strcat (scriptline,"(");
       }
     }
-		
+
     /* convert these values to a jsval type */
     strcat (scriptline,"))");
-		
+
     if (CRVerbose) printf("ScriptLine: %s\n",scriptline);
 
-    
+
     if (!ActualrunScript(tn,scriptline,&retval))
       printf ("AR failed in setxx\n");
-    
+
     if (CRVerbose) printf("------------END set_EAI_MFElementtype ---------------\n");
-    CRVerbose = 0; 
+    CRVerbose = 0;
 }
 
 
@@ -1891,17 +1891,17 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 	//printf ("Multimemcpy, copying structures %d %d type %d\n",tn,fn,multitype);
 
-	/* copy a complex (eg, a MF* node) node from one to the other 
-	   the following types are currently found in VRMLNodes.pm - 
+	/* copy a complex (eg, a MF* node) node from one to the other
+	   the following types are currently found in VRMLNodes.pm -
 
 		 -1  is a Multi_Color or MultiVec3F
-		 -10 is a Multi_Node 
-		 -12 is a SFImage 
-		 -13 is a Multi_String 
-		 -14 is a Multi_Float 
-		 -15 is a Multi_Rotation 
-		 -16 is a Multi_Int32 
-		 -18 is a Multi_Vec2f 
+		 -10 is a Multi_Node
+		 -12 is a SFImage
+		 -13 is a Multi_String
+		 -14 is a Multi_Float
+		 -15 is a Multi_Rotation
+		 -16 is a Multi_Int32
+		 -18 is a Multi_Vec2f
 	*/
 
 	/* Multi_XXX nodes always consist of a count then a pointer - see
@@ -1954,7 +1954,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 
 
-/* These events must be run first during the event loop, as they start an event cascade. 
+/* These events must be run first during the event loop, as they start an event cascade.
    Regsister them with add_first, then call them during the event loop with do_first.    */
 
 void add_first(char *clocktype,void * node) {
@@ -2007,7 +2007,7 @@ void CRoutes_js_new (int num, int scriptType) {
 
 	/* if it is a script (class or javascript), make sure we know that it is not
 	 * initialized yet; because of threading, we have to wait until
-	 * the creating (perl) function is finished, otherwise a 
+	 * the creating (perl) function is finished, otherwise a
 	 * potential deadlock situation occurs, if the initialize
 	 * tries to get something via perl...
 	 */
@@ -2049,7 +2049,7 @@ int convert_typetoInt (char *type) {
 
 /********************************************************************
 
-JSparamIndex. 
+JSparamIndex.
 
 stores ascii names with types (see code for type equivalences).
 
@@ -2074,14 +2074,14 @@ int JSparamIndex (char *name, char *type) {
 	*/
 	for (ctr=0; ctr<=jsnameindex; ctr++) {
 		if (ty==JSparamnames[ctr].type) {
-			if ((strlen(JSparamnames[ctr].name) == len) && 
+			if ((strlen(JSparamnames[ctr].name) == len) &&
 				(strncmp(name,JSparamnames[ctr].name,len)==0)) {
 				return ctr;
 			}
 		}
 	}
-	
-	/* nope, not duplicate */		
+
+	/* nope, not duplicate */
 
 	jsnameindex ++;
 
@@ -2102,7 +2102,7 @@ int JSparamIndex (char *name, char *type) {
 
 /********************************************************************
 
-CRoutes_Register. 
+CRoutes_Register.
 
 Register a route in the routing table.
 
@@ -2164,7 +2164,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		scripts_active = TRUE;
 	}
 
-	if (CRVerbose) 
+	if (CRVerbose)
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
 				from, fromoffset, to_count, tonode_str, length, (unsigned)intptr);
 
@@ -2173,18 +2173,18 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	/* go through the routing list, finding where to put it */
 	while (from > CRoutes[insert_here].fromnode) {
 		if (CRVerbose) printf ("comparing %u to %u\n",from, CRoutes[insert_here].fromnode);
-		insert_here++; 
+		insert_here++;
 	}
 
 	/* hmmm - do we have a route from this node already? If so, go
 	   through and put the offsets in order */
 	while ((from == CRoutes[insert_here].fromnode) &&
-		(fromoffset > CRoutes[insert_here].fnptr)) { 
+		(fromoffset > CRoutes[insert_here].fnptr)) {
 		if (CRVerbose) printf ("same fromnode, different offset\n");
 		insert_here++;
 	}
 
-	/* Quick check to verify that we don't have a duplicate route here 
+	/* Quick check to verify that we don't have a duplicate route here
 	   OR to delete a route... */
 	if ((CRoutes[insert_here-1].fromnode==from) &&
 		(CRoutes[insert_here-1].fnptr==(unsigned)fromoffset) &&
@@ -2196,25 +2196,25 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		if ((ton == (CRoutes[insert_here-1].tonodes)->node) &&
 			(toof == (CRoutes[insert_here-1].tonodes)->foffset)) {
 			/* this IS a duplicate, now, what to do? */
-			
+
 			/* is this an add? */
 			if (adrem == 1) {
 				if (CRVerbose)
-					printf ("definite duplicate, returning\n"); 
+					printf ("definite duplicate, returning\n");
 				return;
 			} else {
 				/* this is a remove */
 				for (shifter = CRoutes_Count-1; shifter > insert_here-1; shifter--) {
 				if (CRVerbose) printf ("copying from %d to %d\n",shifter, shifter-1);
-					memcpy ((void *)&CRoutes[shifter-1], 
-						(void *)&CRoutes[shifter], 
+					memcpy ((void *)&CRoutes[shifter-1],
+						(void *)&CRoutes[shifter],
 						sizeof (struct CRStruct));
 				}
 				CRoutes_Count --;
 				if (CRVerbose) {
 					printf ("routing table now %d\n",CRoutes_Count);
 					for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-						printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr, 
+						printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr,
 							(int)CRoutes[shifter].interpptr);
 					}
 				}
@@ -2295,7 +2295,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	if (CRVerbose) {
 		printf ("routing table now %d\n",CRoutes_Count);
 		for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-			printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr, 
+			printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr,
 				(int)CRoutes[shifter].interpptr);
 		}
 	}
@@ -2335,7 +2335,7 @@ void mark_event (unsigned int from, unsigned int totalptr) {
 	   out if we have at least one route from this node */
 	while (from > CRoutes[findit].fromnode) findit ++;
 
-	/* while we have an eventOut from this NODE/OFFSET, mark it as 
+	/* while we have an eventOut from this NODE/OFFSET, mark it as
 	   active. If no event from this NODE/OFFSET, ignore it */
 	while ((from == CRoutes[findit].fromnode) &&
 		(totalptr != CRoutes[findit].fnptr)) findit ++;
@@ -2348,14 +2348,14 @@ void mark_event (unsigned int from, unsigned int totalptr) {
 
 	/* if we did, signal it to the CEvents loop  - maybe more than one ROUTE,
 	   eg, a time sensor goes to multiple interpolators */
-	while ((from == CRoutes[findit].fromnode) && 
+	while ((from == CRoutes[findit].fromnode) &&
 		(totalptr == CRoutes[findit].fnptr)) {
-		if (CRVerbose) 
+		if (CRVerbose)
 			printf ("found event at %d\n",findit);
 		CRoutes[findit].act=TRUE;
 		findit ++;
 	}
-	if (CRVerbose) 
+	if (CRVerbose)
 		printf ("done mark_event\n");
 }
 
@@ -2368,14 +2368,14 @@ zero_scripts - reset all script indicators
 ********************************************************************/
 void mark_script (int num) {
 
-	if (CRVerbose) printf ("mark_script - script %d has been invoked\n",num); 
+	if (CRVerbose) printf ("mark_script - script %d has been invoked\n",num);
 	scr_act[num]= TRUE;
 	scripts_active = TRUE;
 }
 
 /******************************************************************
 
-saveSFImage - a PixelTexture is being sent back from a script, save it! 
+saveSFImage - a PixelTexture is being sent back from a script, save it!
 	It comes back as a string; have to put it in as a SV.
 
 *********************************************************************/
@@ -2403,7 +2403,7 @@ void saveSFImage (struct VRML_PixelTexture *node, char *str) {
 	strncpy((*mypv).xpv_pv ,str,thissize+1);
 	(*mypv).xpv_cur = thissize-1;    // size without term
 	(*mypv).xpv_len = thissize;      // size with termination
-	
+
 	/* switcheroo, image now is this new SV */
 	oldSV = node->image;
 	node->image = newSV;
@@ -2434,7 +2434,7 @@ FIXME XXXXX =  can we do this without the string conversions?
 ********************************************************************/
 
 void gatherScriptEventOuts(int actualscript, int ignore) {
-	int route;	
+	int route;
 	int fn, tn, fptr, tptr;
 	unsigned len;
 	float fl[0];	/* return float values */
@@ -2456,7 +2456,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	if (!CRoutes_Initiated) return;
 
 	/* this script initialized yet? */
-	//JAS - events are running already if (!isPerlParsing()) 
+	//JAS - events are running already if (!isPerlParsing())
 	initializeScript(actualscript, FALSE);
 
 	/* routing table is ordered, so we can walk up to this script */
@@ -2472,14 +2472,14 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 			/* printf ("different from, have to get value\n"); */
 			fromalready=FALSE;
 		}
-		
+
 		fptr = CRoutes[route].fnptr;
 		fn = CRoutes[route].fromnode;
 		len = CRoutes[route].len;
 
-		if (CRVerbose) 
+		if (CRVerbose)
 			printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
-				JSparamnames[fptr].type, len);	
+				JSparamnames[fptr].type, len);
 
 		/* in Ayla's Perl code, the following happened:
 			MF* - run __touched_flag
@@ -2493,7 +2493,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
-			if (CRVerbose) 
+			if (CRVerbose)
 				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			touched_flag = get_touched_flag(fptr,actualscript);
 
@@ -2502,7 +2502,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
 			        strp = JS_GetStringBytes(strval);
 
-				if (JSVerbose) 
+				if (JSVerbose)
 					printf ("retval string is %s\n",strp);
 			}
 		}
@@ -2522,19 +2522,19 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 				switch (JSparamnames[fptr].type) {
 				case SFBOOL:	{	/* SFBool */
-					//printf ("we have a boolean, copy value over string is %s\n",strp); 
+					//printf ("we have a boolean, copy value over string is %s\n",strp);
 					if (strncmp(strp,"true",4)==0) {
 						ival = 1;
 					} else {
 						/* printf ("ASSUMED TO BE FALSE\n"); */
 						ival = 0;
-					}	
+					}
 					memcpy ((void *)(tn+tptr), (void *)&ival,len);
 					break;
 				}
 
 				case SFTIME: {
-					if (!JS_ValueToNumber((JSContext *)ScriptControl[actualscript].cx, 
+					if (!JS_ValueToNumber((JSContext *)ScriptControl[actualscript].cx,
 										  global_return_val,&tval)) tval=0.0;
 
 					//printf ("SFTime conversion numbers %f from string %s\n",tval,strp);
@@ -2589,7 +2589,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				case MFNODE: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct VRML_Box *)tn,CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
-						 (jsval *)global_return_val,(struct Multi_String *)(tn+tptr)); 
+						 (jsval *)global_return_val,(struct Multi_String *)(tn+tptr));
 					break;
 				}
 
@@ -2610,7 +2610,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 //	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
 }
 
-/* start getting events from a Class script. IF the script is not 
+/* start getting events from a Class script. IF the script is not
  * initialized, do it. This will happen once only */
 
 void gatherClassEventOuts (int script) {
@@ -2632,23 +2632,23 @@ void gatherClassEventOuts (int script) {
 	while (CRoutes[endEntry].fromnode == (unsigned)script) endEntry++;
 	//printf ("routing table entries to scan between: %d and %d\n",
 	//		startEntry, endEntry);
-	
+
 	/* now, process received commands... */
 	processClassEvents(script,startEntry,endEntry);
 }
 
 
-/* this is from a Class receive SENDEVENT; a class is returning a 
+/* this is from a Class receive SENDEVENT; a class is returning a
  * variable. We need access to routing structure to actually send the
  * values along.
  */
 
-char *processThisClassEvent (unsigned int fn, 
+char *processThisClassEvent (unsigned int fn,
 		int startEntry, int endEntry, char *buf) {
 	int ctr;
 	char fieldName[MAXJSVARIABLELENGTH];
 	char membuffer[2000];
-	int thislen; 
+	int thislen;
 	int entry;
 
 	int tn, tptr, len;
@@ -2658,7 +2658,7 @@ char *processThisClassEvent (unsigned int fn,
 	int fieldType, fieldOffs, fieldLen;
 	 unsigned int memptr;
 
-	if (CRVerbose) 
+	if (CRVerbose)
 		printf ("processThisClassEvent, starting at %d ending at %d\nstring %s\n",
 				startEntry, endEntry, buf);
 
@@ -2674,9 +2674,9 @@ char *processThisClassEvent (unsigned int fn,
 	while (*buf >= ' ') buf++; if (*buf>'\0') *buf++;
 
 	/* find the JSparam name index. */
-	/* note that this does not match types, so if 2 scripts 
+	/* note that this does not match types, so if 2 scripts
 	 * with same name but different types exist... we might have
-	 * to add another field to JSparamnames; one with the 
+	 * to add another field to JSparamnames; one with the
 	 * scriptnumber in it. */
 
 	entry = -1;
@@ -2717,13 +2717,13 @@ char *processThisClassEvent (unsigned int fn,
 				to_ptr = &(CRoutes[ctr].tonodes[to_counter]);
 				tn = (int) to_ptr->node;
 				tptr = (int) to_ptr->foffset;
-	
+
 				if (CRVerbose)
 					printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
 						tn, tptr, len, CRoutes[ctr].len);
-				
+
 				memptr = tn+tptr;
-		
+
 				if (CRoutes[ctr].len < 0) {
 				    /* this is a MF*node type - the extra field should be 1 for add */
 				    getCLASSMultNumType (membuffer, len,
@@ -2734,7 +2734,7 @@ char *processThisClassEvent (unsigned int fn,
 					/* simple copy */
 					memcpy ((void *)memptr, membuffer,len);
 				}
-	
+
 				/* tell the routing table that this CLASS script did something */
 				markScriptResults(tn, tptr, ctr,to_ptr->node);
 			}
@@ -2759,12 +2759,12 @@ void sendJClassEventIn(int num, int fromoffset) {
 
 	fn = (int) CRoutes[num].fromnode + (int) CRoutes[num].fnptr;
 	len = CRoutes[num].len;
-	
+
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
 		tptr = (int) to_ptr->foffset;
-		
+
 		/* is this class initialized? */
 		if (!(ScriptControl[tn]._initialized)) {
 			//printf ("initializing script %d in sendJClassEventIn\n",tn);
@@ -2774,8 +2774,8 @@ void sendJClassEventIn(int num, int fromoffset) {
 
 
 		sendCLASSEvent(fn, tn, JSparamnames[tptr].name,
-			JSparamnames[tptr].type,len); 
-			
+			JSparamnames[tptr].type,len);
+
 	}
 }
 
@@ -2796,7 +2796,7 @@ void sendJScriptEventIn (int num, int fromoffset) {
 	/* see comments in gatherScriptEventOuts to see exact formats */
 
 	switch (JSparamnames[fromoffset].type) {
-	case SFBOOL:	
+	case SFBOOL:
 	case SFFLOAT:
 	case SFTIME:
 	case SFINT32:
@@ -2805,7 +2805,7 @@ void sendJScriptEventIn (int num, int fromoffset) {
 		setECMAtype(num);
 		break;
 		}
-	case SFCOLOR: 
+	case SFCOLOR:
 	case SFVEC2F:
 	case SFROTATION: {
 		setMultiElementtype(num);
@@ -2823,7 +2823,7 @@ void sendJScriptEventIn (int num, int fromoffset) {
 		break;
 		}
 	default : {
-		printf("WARNING: sendScriptEventIn type %s not handled yet\n", 
+		printf("WARNING: sendScriptEventIn type %s not handled yet\n",
 			FIELD_TYPE_STRING(JSparamnames[fromoffset].type));
 		}
 	}
@@ -2833,7 +2833,7 @@ void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	if (JSVerbose) 
+	if (JSVerbose)
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d\n",num);
 
 	/* script value: 1: this is a from script route
@@ -2888,7 +2888,7 @@ void propagate_events() {
 	/* int mvcompCount, mvcompSize; */
 	/* struct Multi_Vec3f *mv3fptr; */
 
-	if (CRVerbose) 
+	if (CRVerbose)
 		printf ("\npropagate_events start\n");
 
 	do {
@@ -2949,12 +2949,12 @@ void propagate_events() {
 							/* copy over this "extra" data, EAI "advise" calls need this */
 							CRoutesExtra = CRoutes[counter].extra;
 							CRoutes[counter].interpptr((void *)(to_ptr->node));
-						} else {	
+						} else {
 							/* just an eventIn node. signal to the reciever to update */
 							mark_event(to_ptr->node, to_ptr->foffset);
 
 							/* make sure that this is pointing to a real node,
-							 * not to a block of memory created by 
+							 * not to a block of memory created by
 							 * EAI - extra memory - if it has an offset of
 							 * zero, it is most certainly made. */
 							if ((to_ptr->foffset) != 0)

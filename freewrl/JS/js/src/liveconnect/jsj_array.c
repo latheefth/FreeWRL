@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -31,7 +31,7 @@
  * the provisions above, a recipient may use your version of this
  * file under either the NPL or the GPL.
  */
- 
+
 /*
  * This file is part of the Java-vendor-neutral implementation of LiveConnect
  *
@@ -90,7 +90,7 @@ jsj_GetJavaArrayElement(JSContext *cx, JNIEnv *jEnv, jarray java_array, jsize in
     case JAVA_SIGNATURE_LONG:
         GET_ELEMENT_FROM_PRIMITIVE_JAVA_ARRAY(Long,j);
         break;
-  
+
     case JAVA_SIGNATURE_FLOAT:
         GET_ELEMENT_FROM_PRIMITIVE_JAVA_ARRAY(Float,f);
         break;
@@ -169,7 +169,7 @@ jsj_SetJavaArrayElement(JSContext *cx, JNIEnv *jEnv, jarray java_array, jsize in
     case JAVA_SIGNATURE_LONG:
         SET_ELEMENT_FROM_PRIMITIVE_JAVA_ARRAY(Long,j);
         break;
-  
+
     case JAVA_SIGNATURE_FLOAT:
         SET_ELEMENT_FROM_PRIMITIVE_JAVA_ARRAY(Float,f);
         break;

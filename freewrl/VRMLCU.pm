@@ -84,7 +84,7 @@ sub set_field_be {
 		if $VRML::verbose::be;
 
 	&{"VRML::VRMLFunc::set_offs_$ft"}(
-		$node, $o, 
+		$node, $o,
 		$value
 	);
 }

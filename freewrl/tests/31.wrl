@@ -1,4 +1,4 @@
-#VRML V2.0 utf8 
+#VRML V2.0 utf8
 Group {
     children [
     Transform {
@@ -145,7 +145,7 @@ Group {
       10 ,
       11 ,
       ]
-      
+
       }
       }
       ]

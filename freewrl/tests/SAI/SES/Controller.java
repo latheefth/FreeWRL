@@ -1,5 +1,5 @@
 // This class implements a controller for the "SES.wrl" -scene
- 
+
 import vrml.*;
 import vrml.field.*;
 import vrml.node.*;
@@ -7,7 +7,7 @@ import vrml.node.*;
 
 
 public class Controller extends Script {
-  private MFNode ltrTrains; // loks moving from left to right 
+  private MFNode ltrTrains; // loks moving from left to right
   private MFNode rtlTrains; // loks moving from right to left
   private SFColor collisionOut;
 
@@ -26,7 +26,7 @@ public class Controller extends Script {
   private double lastTickTime = 0;
   private double ticksPerSecond = 0; // ticks from simulator per second
 
-  private String toggle[] = 
+  private String toggle[] =
     {"toggle0", "toggle1", "toggle2", "toggle3", "toggle4", "toggle5" };
   private String[] activateLL;
   private String[] activateLR;
@@ -46,7 +46,7 @@ public class Controller extends Script {
     SFColor[] ltrColors = new SFColor[3];
     for (int i = 0; i < 3; i++){
       ltrColors[i] = (SFColor) getEventOut("toggleColor" + i);
-    } 
+    }
     ltrCtrl = new RailwayCtrl (ltrTrains, 1, comm, ltrColors);
     int lTrains = ltrTrains.getSize();
     activateLL = new String[lTrains];
@@ -57,7 +57,7 @@ public class Controller extends Script {
     SFColor[] rtlColors = new SFColor[3];
     for (int i = 0; i < 3; i++){
       rtlColors[i] = (SFColor) getEventOut("toggleColor" + (i+3));
-    } 
+    }
     rtlCtrl = new RailwayCtrl (rtlTrains, -1, comm, rtlColors);
     int rTrains = rtlTrains.getSize();
     activateLR = new String[rTrains];
@@ -92,9 +92,9 @@ public class Controller extends Script {
       lastTicks = simTick;
       start = true;
     }
-    
+
     if (start && (simTick > 0) && e.getName().equals("timeStep") ) {
-      
+
       now = ((ConstSFTime)e.getValue()).getValue();
       calculateSimSpeed (simTick);
       ltrCtrl.moveTrains( ltrSignal.getState(), now, ticksPerSecond );
@@ -102,9 +102,9 @@ public class Controller extends Script {
       testForCrash ();
       return;
     }
-      
+
     int number = ltrCtrl.train.length;
-      
+
     for (int i = 0; i < number; i++) {
       if (e.getName().equals(activateLL[i])) {
 	ltrCtrl.train[i].activate();
@@ -143,7 +143,7 @@ public class Controller extends Script {
     int n = ltrCtrl.train.length;
     int m = rtlCtrl.train.length;
     boolean alreadyCollision = collision;
-    
+
     collision = false;
     for (int i=0; i < n; i++) {
       float[] pos1 = ltrCtrl.train[i].position;
@@ -163,9 +163,9 @@ public class Controller extends Script {
 	collisionOut.setValue((float)0, (float)1, (float)0);
   }
 
-  
 
-  private void calculateSimSpeed (int simTicks) 
+
+  private void calculateSimSpeed (int simTicks)
   {
     double time = now - lastTickTime;
     if (time < .2 )
@@ -173,14 +173,14 @@ public class Controller extends Script {
 
     double newTicksPerSecond = (double)(simTicks - lastTicks) / time;
     //ticksPerSecond = .75 * newTicksPerSecond + .25 * ticksPerSecond;
-    ticksPerSecond = newTicksPerSecond; 
+    ticksPerSecond = newTicksPerSecond;
     if (ticksPerSecond < .2 && simTicks <= lastTicks)
       ticksPerSecond = 0;
     lastTickTime = now;
     lastTicks = simTicks;
     //System.err.println("speed [tps]: " + ticksPerSecond);
   }
-      
+
 
   private void reset ()
   {

@@ -24,7 +24,7 @@ Other machines.
 	  - try moving these directories from the 5.6.1 path to 5.6.0.
 	  - or, uncomment the "push" line in freewrl.PL and re-make.
 
-	
+
 	We are always interested in hearing of ways of getting FreeWRL
 	running on different machines; please email John Stewart
 	at freewrl-04@rogers.com with any suggestions.

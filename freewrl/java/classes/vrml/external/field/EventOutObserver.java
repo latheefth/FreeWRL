@@ -7,5 +7,5 @@ import vrml.external.Browser;
 
 public interface EventOutObserver {
   void callback(EventOut value, double timeStamp, Object userData) ;
- 
+
 }

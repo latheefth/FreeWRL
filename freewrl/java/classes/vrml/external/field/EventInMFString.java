@@ -23,7 +23,7 @@ public class EventInMFString extends EventIn {
 		// the total size of this array.
 		System.out.println ("Warning - EventInMFString - set1Value might not work");
 		Browser.newSendEvent (this, ""+index+1 +" "+
-				+index+";" + value.length() + 
+				+index+";" + value.length() +
 					":" + value + " ");
 	}
 }

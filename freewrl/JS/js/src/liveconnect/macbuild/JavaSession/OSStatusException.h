@@ -4,9 +4,9 @@
 
 /*
 	OSStatusException.h
-	
+
 	MacOS OSStatus exception.
-	
+
 	by Patrick C. Beard.
  */
 

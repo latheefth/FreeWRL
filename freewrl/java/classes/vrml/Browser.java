@@ -1,7 +1,7 @@
 package vrml;
 import java.util.Hashtable;
 
-public class Browser 
+public class Browser
 {
     Browser() {}
    public String toString() {return "";}   // This overrides a method in Object
@@ -19,12 +19,12 @@ public class Browser
    // public String getWorldURL();
    // public void replaceWorld(BaseNode[] nodes);
 
-    public BaseNode[] createVrmlFromString(String vrmlSyntax) 
+    public BaseNode[] createVrmlFromString(String vrmlSyntax)
 	throws InvalidVRMLSyntaxException
     {
 	return FWJavaScript.createVrmlFromString(vrmlSyntax);
     }
-   //   
+   //
 
    // public void createVrmlFromURL(String[] url, BaseNode node, String event)
    //   throws InvalidVRMLSyntaxException;

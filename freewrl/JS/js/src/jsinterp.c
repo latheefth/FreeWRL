@@ -109,7 +109,7 @@ js_DisablePropertyCache(JSContext *cx)
 {
     JS_ASSERT(!cx->runtime->propertyCache.disabled);
     cx->runtime->propertyCache.disabled = JS_TRUE;
-}        
+}
 
 void
 js_EnablePropertyCache(JSContext *cx)

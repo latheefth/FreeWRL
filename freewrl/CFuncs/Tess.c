@@ -47,8 +47,8 @@ typedef GLvoid (*_GLUfuncptr)(GLvoid);
 #include "Structs.h"
 #include "headers.h"
 
-  
-GLUtriangulatorObj *global_tessobj;	
+
+GLUtriangulatorObj *global_tessobj;
 struct VRML_PolyRep *global_tess_polyrep=NULL;
 int global_IFS_Coords[TESS_MAX_COORDS];
 int global_IFS_Coord_count=0;
@@ -57,16 +57,16 @@ int global_IFS_Coord_count=0;
 	by OpenGL automatically, if the Polygon is specified	*/
 
 void FW_tess_begin(GLenum e) {
-               //printf(" FW_tess_begin   e = %s\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN")); 
+               //printf(" FW_tess_begin   e = %s\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN"));
 		/* we only should get GL_TRIANGLES as type, because
 		we defined  the edge_flag callback		*/
 		/* check, if the structure is there		*/
-	if(e!=GL_TRIANGLES) 
+	if(e!=GL_TRIANGLES)
 		freewrlDie("Something went wrong while tessellating!");
 }
 
 void FW_tess_end(void) {
-	//printf("FW_tess_end: Tesselation done.\n"); 
+	//printf("FW_tess_end: Tesselation done.\n");
 	/* nothing to do	*/
 }
 
@@ -83,7 +83,7 @@ void FW_IFS_tess_vertex(void *p) {
 		/* printf ("FW_IFS_tess_vertex, too many coordinates in this face, change TESS_MAX_COORDS\n"); */
 		/*
 		global_IFS_Coord_count++;
-		global_IFS_Coords[global_IFS_Coord_count] = 
+		global_IFS_Coords[global_IFS_Coord_count] =
 			global_IFS_Coords[global_IFS_Coord_count-1];
 		*/
 	} else {
@@ -118,7 +118,7 @@ void FW_tess_combine_data (GLdouble c[3], GLfloat *d[4], GLfloat w[4], void **ou
 	nv[0] = c[0];
 	nv[1] = c[1];
 	nv[2] = c[2];
-	*out = nv; 
+	*out = nv;
 }
 
 
@@ -133,9 +133,9 @@ void verify_global_IFS_Coords(int max) {
 		if ((global_IFS_Coords[count] < 0) ||
 			(global_IFS_Coords[count] >= max)) {
 
-			if (count == 0) { 
+			if (count == 0) {
 				global_IFS_Coords[count] = 0;
-			} else { 
+			} else {
 				global_IFS_Coords[count] = global_IFS_Coords[count-1];
 			}
 
@@ -150,18 +150,18 @@ void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	nv[0] = c[0];
 	nv[1] = c[1];
 	nv[2] = c[2];
-	*out = nv; 
+	*out = nv;
 }
 
 
 /* next function has to be called once, after an OpenGL context is made
 	and before tessellation is started			*/
-	
+
 void new_tessellation(void) {
 	global_tessobj=gluNewTess();
 	if(!global_tessobj)
 		freewrlDie("Got no memory for Tessellation Object!");
-		
+
 	/* register the CallBackfunctions				*/
 	gluTessCallback(global_tessobj,GLU_BEGIN,(_GLUfuncptr)FW_tess_begin);
 	gluTessCallback(global_tessobj,GLU_EDGE_FLAG,(_GLUfuncptr)FW_tess_edgeflag);
@@ -191,7 +191,7 @@ void new_tessellation(void) {
 /* next function should be called once at the end, but where?	*/
 void destruct_tessellation(void) {
 	gluDeleteTess(global_tessobj);
-	printf("Tessellation Object deleted!\n"); 
+	printf("Tessellation Object deleted!\n");
 }
 
 

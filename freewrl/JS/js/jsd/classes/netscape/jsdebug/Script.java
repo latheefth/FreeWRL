@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
@@ -42,7 +42,7 @@ public final class Script
     public boolean  isValid()           {return 0 != _nativePtr;}
 
     /**
-    * Get the PC of the first executable code on or after the given 
+    * Get the PC of the first executable code on or after the given
     * line in this script. returns null if none
     */
     public native JSPC      getClosestPC(int line);
@@ -83,4 +83,4 @@ public final class Script
     private int     _baseLineNumber;
     private int     _lineExtent;
     private int     _nativePtr;     // used internally
-}    
+}

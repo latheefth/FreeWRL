@@ -29,7 +29,7 @@ float global_linewidth = 1.0;
 #include <GL/glext.h>
 #endif
 
-#ifndef AQUA 
+#ifndef AQUA
 #include <X11/cursorfont.h>
 #ifdef XF86V4
 #include <X11/extensions/xf86vmode.h>
@@ -59,7 +59,7 @@ int glwinx, glwiny;
 int i;
 int dpyWidth, dpyHeight;
 
-#ifndef AQUA 
+#ifndef AQUA
 #ifdef XF86V4
 XF86VidModeModeInfo **modes;
 int oldx, oldy;
@@ -72,7 +72,7 @@ int oldx, oldy;
 #endif
 #endif
 
-#ifndef AQUA 
+#ifndef AQUA
 Cursor arrowc;
 Cursor sensorc;
 #endif
@@ -87,9 +87,9 @@ Cursor sensorc;
 static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRUE, None };
 */
 
-/* 
+/*
    from similar code in white_dune 8-)
-   test for best visual you can get 
+   test for best visual you can get
    with best attribut list
    with maximal possible colorsize
    with maximal possible depth
@@ -97,8 +97,8 @@ static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRU
 
 int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
 
-#ifndef AQUA 
-int  default_attributes0[] = 
+#ifndef AQUA
+int  default_attributes0[] =
    {
    GLX_DEPTH_SIZE,         24,		// JAS
    GLX_RED_SIZE,           8,
@@ -110,7 +110,7 @@ int  default_attributes0[] =
    0
    };
 
-int  default_attributes1[] = 
+int  default_attributes1[] =
    {
    GLX_DEPTH_SIZE,         16,
    GLX_RED_SIZE,           8,
@@ -119,7 +119,7 @@ int  default_attributes1[] =
    0
    };
 
-int  default_attributes2[] = 
+int  default_attributes2[] =
    {
    GLX_DEPTH_SIZE,         16,
    GLX_RED_SIZE,           8,
@@ -127,7 +127,7 @@ int  default_attributes2[] =
    0
    };
 
-int  default_attributes3[] = 
+int  default_attributes3[] =
    {
    GLX_RGBA,               GL_TRUE,
    0
@@ -149,18 +149,18 @@ static int yPos = 0;
 void openMainWindow (Display *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
-	int	pw = 0; 
+	int	pw = 0;
 	long	event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
 				ButtonMotionMask | ButtonReleaseMask |
 				ExposureMask | StructureNotifyMask |
 				PointerMotionMask;
- 
+
 	char	*wintitle =  "FreeWRL VRML/X3D Browser";
 
 
-	XColor  black; 
+	XColor  black;
 	Cursor  cursor;
-	Pixmap  cursor_pixmap; 
+	Pixmap  cursor_pixmap;
     	XEvent event;
     	Window pwin=(Window)pw;
     	int *attributes = default_attributes3;
@@ -169,7 +169,7 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	XTextProperty windowName;
 
 	int items=0; // jas
-	   
+
 	//JAS if(items>NUM_ARG+1){
 	//JAS 	len=(items-NUM_ARG+1)* sizeof(int);
 	//JAS 	attributes = (int *)malloc(len*sizeof(int));
@@ -177,7 +177,7 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	//JAS 		attributes[i]=SvIV(ST(i+NUM_ARG+1));
 	//JAS 	}
 	//JAS }
-	    
+
 
 	/* get a connection */
 	dpy = XOpenDisplay(0);
@@ -187,7 +187,7 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	screen = DefaultScreen(dpy);
 #ifdef XF86V4
 	 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
- 
+
  		bestMode = 0;
  		for (i=0; i < modeNum; i++) {
  			if ((modes[i]->hdisplay == screenWidth) && (modes[i]->vdisplay==screenHeight)) {
@@ -206,7 +206,7 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	vi = find_best_visual(shutter,attributes,len);
 	if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
 
-	if ((shutter) && (quadbuff_stereo_mode==0)) { 
+	if ((shutter) && (quadbuff_stereo_mode==0)) {
 		fprintf(stderr, "Warning: No quadbuffer stereo visual found !");
 		fprintf(stderr, "On SGI IRIX systems read 'man setmon' or 'man xsetmon'\n");
 	}
@@ -237,12 +237,12 @@ void openMainWindow (Display *Disp, unsigned *Win,
 #endif
 
 	if(!pwin){pwin=RootWindow(dpy, vi->screen);}
-		
+
 
 	if (screenWidth>=0) {
 		XTextProperty textpro;
 		if (fullscreen == 1) {
-			win = XCreateWindow(dpy, pwin, 
+			win = XCreateWindow(dpy, pwin,
 				0, 0, dpyWidth, dpyHeight,
 				0, vi->depth, InputOutput, vi->visual,
 				CWBorderPixel| CWOverrideRedirect |
@@ -253,10 +253,10 @@ void openMainWindow (Display *Disp, unsigned *Win,
 			XQueryColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), &black);
 			cursor = XCreatePixmapCursor(dpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
 			XDefineCursor(dpy, win, cursor);
-			
+
 		} else {
-			win = XCreateWindow(dpy, pwin, 
-				xPos, yPos, screenWidth, screenHeight, 0, vi->depth, InputOutput, 
+			win = XCreateWindow(dpy, pwin,
+				xPos, yPos, screenWidth, screenHeight, 0, vi->depth, InputOutput,
 				vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
 
 			/* create window and icon name */
@@ -264,7 +264,7 @@ void openMainWindow (Display *Disp, unsigned *Win,
 				fprintf(stderr,
 					"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
 					wintitle);
-			} 
+			}
 			XSetWMName(dpy, win, &windowName);
 			XSetWMIconName(dpy, win, &windowName);
 		}
@@ -292,7 +292,7 @@ void openMainWindow (Display *Disp, unsigned *Win,
 		//JAS }
 		// Alberto Dubuc:
 		XMoveWindow(dpy,win,xPos,yPos);
-	} else { 
+	} else {
 		printf ("NO PBUFFER EXTENSION\n");
 		exit(1);
 	}
@@ -354,7 +354,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    else
       {
 #     ifdef STEREOCOMMAND
-      system(STEREOCOMMAND);             
+      system(STEREOCOMMAND);
 #     endif
       }
    for (attrib=startattrib;attrib<2;attrib++) {
@@ -380,12 +380,12 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
             attribs_pointer[1]=legal_depth_list[idepth];
             if ((attrib==0) || (attrib==1))
                attribs_pointer[3]=redsize;
-    	    
+
             for (i=0;i<len;i++)
                attrib_mem[i]=attributes[i];
             for (i=0;i<attribs_size;i++)
                attrib_mem[i+len]=attribs_pointer[i];
-            
+
       	    /* get an appropriate visual */
             vi = glXChooseVisual(dpy, screen, attrib_mem);
             if (vi) {

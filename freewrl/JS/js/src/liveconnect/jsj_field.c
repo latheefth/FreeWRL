@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -31,7 +31,7 @@
  * the provisions above, a recipient may use your version of this
  * file under either the NPL or the GPL.
  */
- 
+
 /*
  * This file is part of the Java-vendor-neutral implementation of LiveConnect
  *
@@ -53,7 +53,7 @@
 static JSBool
 add_java_field_to_class_descriptor(JSContext *cx,
                                    JNIEnv *jEnv,
-                                   JavaClassDescriptor *class_descriptor, 
+                                   JavaClassDescriptor *class_descriptor,
                                    jstring field_name_jstr,
                                    jobject java_field,  /* a java.lang.reflect.Field */
                                    jint modifiers)
@@ -68,7 +68,7 @@ add_java_field_to_class_descriptor(JSContext *cx,
     const char *field_name = NULL;
     JavaSignature *signature = NULL;
     JavaFieldSpec *field_spec = NULL;
-        
+
     is_static_field = modifiers & ACC_STATIC;
     if (is_static_field) {
         member_descriptor = jsj_GetJavaStaticMemberDescriptor(cx, jEnv, class_descriptor, field_name_jstr);
@@ -77,7 +77,7 @@ add_java_field_to_class_descriptor(JSContext *cx,
     }
     if (!member_descriptor)
         goto error;
-    
+
     field_spec = (JavaFieldSpec*)JS_malloc(cx, sizeof(JavaFieldSpec));
     if (!field_spec)
         goto error;
@@ -92,7 +92,7 @@ add_java_field_to_class_descriptor(JSContext *cx,
                                 " java.lang.reflect.Field.getType()");
         goto error;
     }
-    
+
     signature = jsj_GetJavaClassDescriptor(cx, jEnv, fieldType);
     (*jEnv)->DeleteLocalRef(jEnv, fieldType);
     if (!signature)
@@ -122,9 +122,9 @@ add_java_field_to_class_descriptor(JSContext *cx,
        goto error;
     }
     field_spec->fieldID = fieldID;
-    
+
     JS_free(cx, (char*)sig_cstr);
-    
+
     member_descriptor->field = field_spec;
 
     /* Success */
@@ -162,7 +162,7 @@ jsj_DestroyFieldSpec(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field)
  *
  * Returns JS_TRUE on success. Otherwise, returns JS_FALSE and reports an error.
  */
-JSBool 
+JSBool
 jsj_ReflectJavaFields(JSContext *cx, JNIEnv *jEnv, JavaClassDescriptor *class_descriptor,
                       JSBool reflect_only_static_fields)
 {
@@ -189,7 +189,7 @@ jsj_ReflectJavaFields(JSContext *cx, JNIEnv *jEnv, JavaClassDescriptor *class_de
     /* Iterate over the class fields */
     num_fields = (*jEnv)->GetArrayLength(jEnv, joFieldArray);
     for (i = 0; i < num_fields; i++) {
-       
+
         /* Get the i'th reflected field */
         java_field = (*jEnv)->GetObjectArrayElement(jEnv, joFieldArray, i);
         if (!java_field) {
@@ -222,7 +222,7 @@ jsj_ReflectJavaFields(JSContext *cx, JNIEnv *jEnv, JavaClassDescriptor *class_de
                                     "java.lang.reflect.Field.getName()");
             return JS_FALSE;
         }
-        
+
         /* Add a JavaFieldSpec object to the JavaClassDescriptor */
         ok = add_java_field_to_class_descriptor(cx, jEnv, class_descriptor, field_name_jstr,
                                                 java_field, modifiers);
@@ -302,7 +302,7 @@ jsj_GetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
     case JAVA_SIGNATURE_LONG:
         GET_JAVA_FIELD(Long,j);
         break;
-  
+
     case JAVA_SIGNATURE_FLOAT:
         GET_JAVA_FIELD(Float,f);
         break;
@@ -310,12 +310,12 @@ jsj_GetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
     case JAVA_SIGNATURE_DOUBLE:
         GET_JAVA_FIELD(Double,d);
         break;
-     
+
     case JAVA_SIGNATURE_UNKNOWN:
     case JAVA_SIGNATURE_VOID:
         JS_ASSERT(0);        /* Unknown java type signature */
         return JS_FALSE;
-        
+
     /* Non-primitive (reference) type */
     default:
         JS_ASSERT(IS_REFERENCE_TYPE(field_type));
@@ -324,7 +324,7 @@ jsj_GetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
         (*jEnv)->DeleteLocalRef(jEnv, java_value.l);
         return success;
     }
-    
+
 #undef GET_JAVA_FIELD
 
     return jsj_ConvertJavaValueToJSValue(cx, jEnv, signature, &java_value, vp);
@@ -387,7 +387,7 @@ jsj_SetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
     case JAVA_SIGNATURE_LONG:
         SET_JAVA_FIELD(Long,j);
         break;
-  
+
     case JAVA_SIGNATURE_FLOAT:
         SET_JAVA_FIELD(Float,f);
         break;
@@ -395,7 +395,7 @@ jsj_SetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
     case JAVA_SIGNATURE_DOUBLE:
         SET_JAVA_FIELD(Double,d);
         break;
-        
+
     /* Non-primitive (reference) type */
     default:
         JS_ASSERT(IS_REFERENCE_TYPE(field_type));
@@ -411,6 +411,6 @@ jsj_SetJavaFieldValue(JSContext *cx, JNIEnv *jEnv, JavaFieldSpec *field_spec,
     }
 
 #undef SET_JAVA_FIELD
-    
+
     return JS_TRUE;
 }

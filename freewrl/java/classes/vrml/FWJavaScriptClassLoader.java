@@ -13,7 +13,7 @@ import java.security.cert.Certificate;
 public final class FWJavaScriptClassLoader extends SecureClassLoader {
     URL baseURL;
     CodeSource myCodeSource;
-    
+
 
     /**
      * @param url base url for loading classes.

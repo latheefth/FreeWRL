@@ -204,7 +204,7 @@ LIBS:=\
       -lpthread\
       -ldl\
       -lm\
-      -lc   
+      -lc
 
 ifeq ($(strip ${OSNAME}),linux)
 

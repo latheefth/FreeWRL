@@ -7,7 +7,7 @@
 	  texture	DEF _0 ImageTexture {
 	    url	"helpers/stripes.jpg"
 	    	    repeatS	TRUE
-	   	    repeatT     TRUE	
+	   	    repeatT     TRUE
 	  }
 
 	  textureTransform	TextureTransform {

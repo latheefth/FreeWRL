@@ -58,7 +58,7 @@ public class TicTacToeEAI extends Applet implements EventOutObserver {
       checkDelayIn = (EventInSFTime) node.getEventIn("set_startTime");
       checkDelayOut = (EventOutSFBool) node.getEventOut("isActive");
       checkDelayOut.advise(this, "checkForWin");
-      
+
       node = browser.getNode("nextDelay");
       nextDelayIn = (EventInSFTime) node.getEventIn("set_startTime");
       nextDelayOut = (EventOutSFBool) node.getEventOut("isActive");
@@ -257,7 +257,7 @@ public class TicTacToeEAI extends Applet implements EventOutObserver {
      */
     int bestMove(int white, int black) {
 	int bestmove = -1;
-	
+
       loop:
 	for (int i = 0 ; i < 9 ; i++) {
 	    int mw = moves[i];

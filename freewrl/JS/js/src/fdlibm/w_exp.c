@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,12 +39,12 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
 
-/* 
+/*
  * wrapper exp(x)
  */
 
@@ -77,7 +77,7 @@ u_threshold= -7.45133219101941108420e+02;  /* 0xc0874910, 0xD52D3051 */
 	        return __kernel_standard(x,x,6,&err); /* exp overflow */
 	    else if(x<u_threshold)
 	        return __kernel_standard(x,x,7,&err); /* exp underflow */
-	} 
+	}
 	return z;
 #endif
 }

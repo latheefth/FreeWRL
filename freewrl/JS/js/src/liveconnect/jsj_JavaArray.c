@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -58,7 +58,7 @@ try_convert_to_jsint(JSContext *cx, jsval idval)
 {
     const jschar *cp;
     JSString *jsstr;
-    
+
     jsstr = JS_ValueToString(cx, idval);
     if (!jsstr)
         return idval;
@@ -100,9 +100,9 @@ access_java_array_element(JSContext *cx,
     JavaObjectWrapper *java_wrapper;
     jsize array_length, index;
     JavaSignature *array_component_signature;
-    
+
     /* printf("In JavaArray_getProperty\n"); */
-    
+
     java_wrapper = JS_GetPrivate(cx, obj);
     if (!java_wrapper) {
         const char *property_name;
@@ -114,13 +114,13 @@ access_java_array_element(JSContext *cx,
                 return JS_TRUE;
             }
         }
-        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                                 JSJMSG_BAD_OP_JARRAY);
         return JS_FALSE;
     }
     class_descriptor = java_wrapper->class_descriptor;
     java_array = java_wrapper->java_obj;
-    
+
     JS_ASSERT(class_descriptor->type == JAVA_SIGNATURE_ARRAY);
 
     JS_IdToValue(cx, id, &idval);
@@ -136,15 +136,15 @@ access_java_array_element(JSContext *cx,
          */
         if (JSVAL_IS_STRING(idval)) {
             const char *member_name;
-            
+
             member_name = JS_GetStringBytes(JSVAL_TO_STRING(idval));
-            
+
             if (do_assignment) {
                 JSVersion version = JS_GetVersion(cx);
 
                 if (!JSVERSION_IS_ECMA(version)) {
- 
-                    JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+
+                    JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                         JSJMSG_CANT_WRITE_JARRAY, member_name);
                     return JS_FALSE;
                 } else {
@@ -161,17 +161,17 @@ access_java_array_element(JSContext *cx,
                         *vp = INT_TO_JSVAL(array_length);
                     return JS_TRUE;
                 }
-                
+
                 /* Check to see if we're reflecting a Java array method */
                 return JavaObject_getPropertyById(cx, obj, id, vp);
             }
         }
 
-        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                             JSJMSG_BAD_INDEX_EXPR);
         return JS_FALSE;
     }
-    
+
     index = JSVAL_TO_INT(idval);
 
 #if 0
@@ -224,7 +224,7 @@ JavaArray_setPropertyById(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
     JNIEnv *jEnv;
     JSJavaThreadState *jsj_env;
     JSBool result;
-    
+
     jsj_env = jsj_EnterJava(cx, &jEnv);
     if (!jEnv)
         return JS_FALSE;
@@ -305,9 +305,9 @@ JavaArray_deleteProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
     JSVersion version = JS_GetVersion(cx);
 
     *vp = JSVAL_FALSE;
-    
+
     if (!JSVERSION_IS_ECMA(version)) {
-        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                             JSJMSG_JARRAY_PROP_DELETE);
         return JS_FALSE;
     } else {
@@ -341,7 +341,7 @@ JavaArray_newEnumerate(JSContext *cx, JSObject *obj, JSIterateOp enum_op,
             *idp = INT_TO_JSVAL(0);
         return JS_TRUE;
     }
-        
+
     /* Get the Java per-thread environment pointer for this JSContext */
     jsj_env = jsj_EnterJava(cx, &jEnv);
     if (!jEnv)
@@ -361,7 +361,7 @@ JavaArray_newEnumerate(JSContext *cx, JSObject *obj, JSIterateOp enum_op,
             *idp = INT_TO_JSVAL(array_length);
 	jsj_ExitJava(jsj_env);
         return JS_TRUE;
-        
+
     case JSENUMERATE_NEXT:
         index = JSVAL_TO_INT(*statep);
         if (index < array_length) {
@@ -391,12 +391,12 @@ JavaArray_checkAccess(JSContext *cx, JSObject *obj, jsid id,
 {
     switch (mode) {
     case JSACC_WATCH:
-        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                             JSJMSG_JARRAY_PROP_WATCH);
         return JS_FALSE;
 
     case JSACC_IMPORT:
-        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL, 
+        JS_ReportErrorNumber(cx, jsj_GetErrorMessage, NULL,
                                             JSJMSG_JARRAY_PROP_EXPORT);
         return JS_FALSE;
 
@@ -464,11 +464,11 @@ extern JS_IMPORT_DATA(JSObjectOps) js_ObjectOps;
 JSBool
 jsj_init_JavaArray(JSContext *cx, JSObject *global_obj)
 {
-    if (!JS_InitClass(cx, global_obj, 
+    if (!JS_InitClass(cx, global_obj,
         0, &JavaArray_class, 0, 0,
         0, 0, 0, 0))
         return JS_FALSE;
-    
+
     return JS_TRUE;
 }
 

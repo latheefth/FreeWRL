@@ -94,7 +94,7 @@
  * that order; and to finish the fork, we'd add a node labeled Z with the path
  * X->Z, if it doesn't exist.  This could lead to lots of extra nodes, and to
  * O(n^2) growth when deleting lots of properties.
- * 
+ *
  * Rather, for O(1) growth all around, we should share the path X->Y->Z among
  * scopes having those three properties added in that order, and among scopes
  * having only X->Z where Y was deleted.  All such scopes have a lastProp that
@@ -220,7 +220,7 @@ struct JSScope {
 
 #define OBJ_SCOPE(obj)                  ((JSScope *)(obj)->map)
 
-#define SCOPE_MIDDLE_DELETE_TAG         ((jsuword)1) 
+#define SCOPE_MIDDLE_DELETE_TAG         ((jsuword)1)
 #define SCOPE_LAST_PROP_WORD(scope)     ((jsuword)(scope)->lastProp)
 
 #define SCOPE_LAST_PROP(scope)                                                \

@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
@@ -32,7 +32,7 @@ package netscape.jsdebug;
 public final class JSThreadState extends ThreadStateBase
 {
     /**
-     * <B><font color="red">Not Implemented.</font></B> 
+     * <B><font color="red">Not Implemented.</font></B>
      * Always throws <code>InternalError("unimplemented")</code>
      */
     public static ThreadStateBase getThreadState(Thread t)
@@ -54,7 +54,7 @@ public final class JSThreadState extends ThreadStateBase
         throws InvalidInfoException;
 
     /**
-     * <B><font color="red">Not Implemented.</font></B> 
+     * <B><font color="red">Not Implemented.</font></B>
      * Always throws <code>InternalError("unimplemented")</code>
      */
     public Thread getThread()
@@ -63,7 +63,7 @@ public final class JSThreadState extends ThreadStateBase
     }
 
     /**
-     * <B><font color="red">Not Implemented.</font></B> 
+     * <B><font color="red">Not Implemented.</font></B>
      * Always throws <code>InternalError("unimplemented")</code>
      */
     public void leaveSuspended()
@@ -72,7 +72,7 @@ public final class JSThreadState extends ThreadStateBase
     }
 
     /**
-     * <B><font color="red">Not Implemented.</font></B> 
+     * <B><font color="red">Not Implemented.</font></B>
      * Always throws <code>InternalError("unimplemented")</code>
      */
     protected void resume0()

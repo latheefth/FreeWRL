@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.47  2005/03/21 13:39:04  crc_canada
+# change permissions, remove whitespace on file names, etc.
+#
 # Revision 1.46  2005/02/10 14:50:25  crc_canada
 # LineSet implemented.
 #
@@ -219,14 +222,14 @@ VRML::Error->import();
 sub es {
 	$p = (pos $_[1]) - 20;
 	return substr $_[1],$p,40;
-	
+
 }
 
 # The C type interface for the field type, encapsulated
 # By encapsulating things well enough, we'll be able to completely
 # change the interface later, e.g. to fit together with javascript etc.
 sub ctype ($) {die "VRML::Field::ctype - abstract function called"}
-sub clength ($) {0} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength ($) {0} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub calloc ($$) {""}
 sub cassign ($$) {"$_[1] = $_[2];/*cassign*/"}
 sub cfree ($) {if($_[0]->calloc) {return "free($_[1]);"} return ""}
@@ -239,7 +242,7 @@ sub copy {
 	my($type, $value) = @_;
 
 	if (!ref $value) {
-		return $value 
+		return $value
 	} elsif (ref $value eq "VRML::USE") {
 		#$value = $value->real_node(); return $value;
 		my $ret = $value->copy();
@@ -273,7 +276,7 @@ sub init { return 0.0; }
 
 sub parse {
 	my($type,$p,$s,$n) = @_;
-	$_[2] =~ /\G\s*($Float)/ogcs or 
+	$_[2] =~ /\G\s*($Float)/ogcs or
 		parsefail($_[2], "didn't match SFFloat");
 	return $1;
 }
@@ -283,7 +286,7 @@ sub as_string { return sprintf("%.4g", $_[1]); }
 sub print {print $_[1]}
 
 sub ctype {"float $_[1]"}
-sub clength {2} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength {2} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cfunc {"$_[1] = SvNV($_[2]); /*aa*/\n"}
 
 
@@ -304,7 +307,7 @@ sub init { return 0; }
 
 sub parse {
 	my($type,$p,$s,$n) = @_;
-	$_[2] =~ /\G\s*($Integer)\b/ogsc 
+	$_[2] =~ /\G\s*($Integer)\b/ogsc
 		or parsefail($_[2],"not proper SFInt32");
 	return $1;
 }
@@ -313,7 +316,7 @@ sub print {print " $_[1] "}
 sub as_string {$_[1]}
 
 sub ctype {return "int $_[1]"}
-sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cfunc {return "$_[1] = SvIV($_[2]);/*bb*/\n"}
 
 
@@ -342,7 +345,7 @@ sub as_string {join ' ',@{$_[1]}}
 sub cstruct {return "struct SFColor {
 	float c[3]; };"}
 sub ctype {return "struct SFColor $_[1]"}
-sub clength {5} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength {5} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cget {return "($_[1].c[$_[2]])"}
 
 sub cfunc {
@@ -389,14 +392,14 @@ sub vec_normalize { "{double xx = sqrt(".(join '+',map {"$_[1].c[$_]*$_[1].c[$_]
 
 sub vec_cross {
 	"
-		$_[3].c[0] = 
-			$_[1].c[1] * $_[2].c[2] - 
+		$_[3].c[0] =
+			$_[1].c[1] * $_[2].c[2] -
 			$_[2].c[1] * $_[1].c[2];
-		$_[3].c[1] = 
-			$_[1].c[2] * $_[2].c[0] - 
+		$_[3].c[1] =
+			$_[1].c[2] * $_[2].c[0] -
 			$_[2].c[2] * $_[1].c[0];
-		$_[3].c[2] = 
-			$_[1].c[0] * $_[2].c[1] - 
+		$_[3].c[2] =
+			$_[1].c[0] * $_[2].c[1] -
 			$_[2].c[0] * $_[1].c[1];
 	"
 }
@@ -423,7 +426,7 @@ sub as_string {join ' ',@{$_[1]}}
 sub cstruct {return "struct SFVec2f {
 	float c[2]; };"}
 sub ctype {return "struct SFVec2f $_[1]"}
-sub clength {6} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength {6} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cget {return "($_[1].c[$_[2]])"}
 
 sub cfunc {
@@ -515,7 +518,7 @@ sub rot_multvec {
 }
 
 sub ctype {return "struct SFRotation $_[1]"}
-sub clength {4} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength {4} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cget {return "($_[1].r[$_[2]])"}
 
 sub cfunc {
@@ -562,7 +565,7 @@ sub parse {
 }
 
 sub ctype {return "int $_[1]"}
-sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub cget {return "($_[1])"}
 sub cfunc {return "$_[1] = SvIV($_[2]);/*ff*/\n"}
 
@@ -610,7 +613,7 @@ sub cfunc {"sv_setsv($_[1],$_[2]);/*gg*/"}
 sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}
 
-sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm. 
+sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm.
 
 ###########################################################
 package VRML::Field::MFString;
@@ -638,7 +641,7 @@ sub parse {
 		# while($_[2] !~ /\G\s*,?\s*\]\s*/gsc) {
 		# 	$_[2] =~ /\G\s*,\s*/gsc; # Eat comma if it is there...
 		# 	my $v =  $stype->parse($p,$_[2],$_[3]);
-		# 	push @a, $v if defined $v; 
+		# 	push @a, $v if defined $v;
 		# }
 		return \@a;
 	} else {
@@ -654,7 +657,7 @@ sub parse {
 package VRML::Field::MFVec3f;
 @ISA=VRML::Field::Multi;
 
-sub parse { 
+sub parse {
 	my($type,$p) = @_;
 	my $pos = pos $_[2];
 	if($_[2] =~ /\G\s*\[\s*/gsc) {
@@ -707,7 +710,7 @@ sub parse {
 		# while($_[2] !~ /\G\s*,?\s*\]\s*/gsc) {
 		# 	$_[2] =~ /\G\s*,\s*/gsc; # Eat comma if it is there...
 		# 	my $v =  $stype->parse($p,$_[2],$_[3]);
-		# 	push @a, $v if defined $v; 
+		# 	push @a, $v if defined $v;
 		# }
 		return \@a;
 	} else {
@@ -825,7 +828,7 @@ sub cfunc {
 		$baseType = "struct $baseType";
 	}
 
-	
+
 	my $cm = $r->calloc("$_[1].p[iM]");
 	my $su = $r->cfunc("($_[1].p[iM])","(*bM)");
 	return "{
@@ -879,7 +882,7 @@ sub parse {
 			# print "POS1: ",(pos $_[2]),"\n";
 			my $v =  $stype->parse($p,$_[2],$_[3]);
 			# print "POS2: ",(pos $_[2]),"\n";
-			push @a, $v if defined $v; 
+			push @a, $v if defined $v;
 		}
 		return \@a;
 	} else {
@@ -968,18 +971,18 @@ sub parse {
 
 	while ($keepmatching == 1){
 		# match numbers, spaces, newlines, etc.
-	
+
 		# Match. If we did not get anything, just return what we have.
-		$_[2] =~ /\G\s*($SFImageChars)\s*/gc 
+		$_[2] =~ /\G\s*($SFImageChars)\s*/gc
 			or return $retstr;
 
 		# we did get something, append it to what we already have.
 		$retstr = $retstr.$1;
-	
+
 		# now, is this in the middle of a hex char?
 		$_[2] =~ /\G\s*([xX])\s*/gc;
-	
-		# could we possbly be at a hex number? If so, match hex digits. 
+
+		# could we possbly be at a hex number? If so, match hex digits.
 		if (($1 eq "x")|($1 eq "X")) {
 			$retstr = $retstr.$1;
 			$_[2] =~ /\G\s*($SFHEXmageChars)\s*/gc;
@@ -991,7 +994,7 @@ sub parse {
 			#print "did not match an x\n";
 			$keepmatching = 3;
 		}
-	} 
+	}
   return $retstr;
 }
 

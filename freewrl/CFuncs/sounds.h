@@ -16,7 +16,7 @@
 
 #include <math.h>
 
-#ifdef AQUA 
+#ifdef AQUA
 #include <gl.h>
 #include <glu.h>
 #include <glext.h>
@@ -24,7 +24,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glx.h>
-#endif 
+#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>

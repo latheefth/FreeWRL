@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright(C) 2004 John Stewart. CRC Canada.
  * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
  * distribution) for details.
@@ -54,7 +54,7 @@ char * readInputString(char *fn, char *parent) {
 		ConsoleMessage (tempname);
 		strcpy (buffer,"\n");
 		return buffer;
-	} 
+	}
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
 			((unsigned char) firstbytes[1] == 0x8b)) {
@@ -90,7 +90,7 @@ char * readInputString(char *fn, char *parent) {
 		justread = fread (&buffer[bufcount],1,READSIZE,infile);
 		bufcount += justread;
 		//printf ("just read in %d bytes\n",justread);
-	
+
 		if ((bufsize - bufcount) < READSIZE) {
 			//printf ("HAVE TO REALLOC INPUT MEMORY\n");
 			bufsize += READSIZE;
@@ -145,7 +145,7 @@ char *sanitizeInputString (char *buffer) {
 
 	return (buffer);
 }
-		
+
 
 void VRMLPreParse(char *buffer) {
 	int cptr;
@@ -156,7 +156,7 @@ void VRMLPreParse(char *buffer) {
 	cptr = 0;
 	inquotes = FALSE;
 	maxptr = strlen(buffer);
-	
+
 
 	/* go through the memory */
 	while (cptr < maxptr) {

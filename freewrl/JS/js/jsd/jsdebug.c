@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -116,7 +116,7 @@ JSD_PUBLIC_API(void)
 JSD_ClearAllProfileData(JSDContext *jsdc)
 {
     JSD_ASSERT_VALID_CONTEXT(jsdc);
-    jsd_ClearAllProfileData(jsdc);    
+    jsd_ClearAllProfileData(jsdc);
 }
 
 JSD_PUBLIC_API(void)
@@ -132,7 +132,7 @@ JSD_GetContextFlags(JSDContext *jsdc)
     JSD_ASSERT_VALID_CONTEXT(jsdc);
     return jsdc->flags;
 }
-    
+
 JSD_PUBLIC_API(JSDContext*)
 JSD_JSDContextForJSContext(JSContext* context)
 {
@@ -169,7 +169,7 @@ JSD_GetScriptFlags(JSDContext *jsdc, JSDScript *script)
     JSD_ASSERT_VALID_CONTEXT(jsdc);
     return jsd_GetScriptFlags(jsdc, script);
 }
-    
+
 JSD_PUBLIC_API(void)
 JSD_SetScriptFlags(JSDContext *jsdc, JSDScript *script, uint32 flags)
 {
@@ -190,7 +190,7 @@ JSD_GetScriptMaxRecurseDepth(JSDContext* jsdc, JSDScript *script)
     JSD_ASSERT_VALID_CONTEXT(jsdc);
     return jsd_GetScriptMaxRecurseDepth(jsdc, script);
 }
-    
+
 
 JSD_PUBLIC_API(jsdouble)
 JSD_GetScriptMinExecutionTime(JSDContext* jsdc, JSDScript *script)
@@ -198,7 +198,7 @@ JSD_GetScriptMinExecutionTime(JSDContext* jsdc, JSDScript *script)
     JSD_ASSERT_VALID_CONTEXT(jsdc);
     return jsd_GetScriptMinExecutionTime(jsdc, script);
 }
-    
+
 JSD_PUBLIC_API(jsdouble)
 JSD_GetScriptMaxExecutionTime(JSDContext* jsdc, JSDScript *script)
 {
@@ -245,7 +245,7 @@ JSD_GetScriptPrivate(JSDScript *jsdscript)
     JSD_ASSERT_VALID_SCRIPT(jsdscript);
     return jsd_GetScriptPrivate (jsdscript);
 }
-    
+
 
 JSD_PUBLIC_API(JSBool)
 JSD_IsActiveScript(JSDContext* jsdc, JSDScript *jsdscript)

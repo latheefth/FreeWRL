@@ -413,7 +413,7 @@ MakeDay(jsdouble year, jsdouble month, jsdouble date)
 /**
  * end of ECMA 'support' functions
  */
-
+
 /*
  * Other Support routines and definitions
  */
@@ -496,7 +496,7 @@ date_msecFromDate(jsdouble year, jsdouble mon, jsdouble mday, jsdouble hour,
     result = MakeDate(day, msec_time);
     return result;
 }
-
+
 /*
  * See ECMA 15.9.4.[3-10];
  */
@@ -1771,7 +1771,7 @@ date_valueOf(JSContext *cx, JSObject *obj, uintN argc, jsval *argv,
 #define date_valueOf date_getTime
 #endif
 
-
+
 /*
  * creation and destruction
  */

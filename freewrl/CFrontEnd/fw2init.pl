@@ -39,7 +39,7 @@ sub open_browser {
 
 	# By default creates front- and back-ends.
 	$be = $b->{BE};
-	
+
 	# fonts
 	my $testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/fonts";
 	if (-e "$testpath/Baubodi.ttf") {

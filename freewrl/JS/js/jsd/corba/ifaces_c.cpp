@@ -83,7 +83,7 @@ StringReciever *StringReciever::_bind(const char *_object_name,
 {
 	StringReciever *_impl;
 	CORBA::Object *_obj = _implementation(
-				"StringReciever", 
+				"StringReciever",
 				_object_name,
 				_host_name);
 	if (!_obj) {
@@ -219,7 +219,7 @@ TestInterface *TestInterface::_bind(const char *_object_name,
 {
 	TestInterface *_impl;
 	CORBA::Object *_obj = _implementation(
-				"TestInterface", 
+				"TestInterface",
 				_object_name,
 				_host_name);
 	if (!_obj) {
@@ -543,7 +543,7 @@ ISourceTextProvider *ISourceTextProvider::_bind(const char *_object_name,
 {
 	ISourceTextProvider *_impl;
 	CORBA::Object *_obj = _implementation(
-				"ISourceTextProvider", 
+				"ISourceTextProvider",
 				_object_name,
 				_host_name);
 	if (!_obj) {
@@ -571,7 +571,7 @@ NCistream& operator>>(NCistream& strm,  ISourceTextProvider::sequence_of_string&
 	CORBA::ULong t_count;
 	strm >> t_count;
 	if (t_count > seq._count) {
-		if (seq._num_allocated < t_count) { 
+		if (seq._num_allocated < t_count) {
 			if (seq.release_on_copy())
 				ISourceTextProvider::sequence_of_string::freebuf_elems(seq._buffer, seq._num_allocated);
 			seq._buffer = ISourceTextProvider::sequence_of_string::allocbuf(t_count);
@@ -617,7 +617,7 @@ ISourceTextProvider::sequence_of_string::sequence_of_string(CORBA::ULong max)
 		_buffer = allocbuf(max);
 	else
 		_buffer = (char **)NULL;
-	release_on_copy(1); 
+	release_on_copy(1);
 	_ref_count =1;
 }
 
@@ -1238,7 +1238,7 @@ IJSErrorReporter *IJSErrorReporter::_bind(const char *_object_name,
 {
 	IJSErrorReporter *_impl;
 	CORBA::Object *_obj = _implementation(
-				"IJSErrorReporter", 
+				"IJSErrorReporter",
 				_object_name,
 				_host_name);
 	if (!_obj) {
@@ -1368,7 +1368,7 @@ IScriptHook *IScriptHook::_bind(const char *_object_name,
 {
 	IScriptHook *_impl;
 	CORBA::Object *_obj = _implementation(
-				"IScriptHook", 
+				"IScriptHook",
 				_object_name,
 				_host_name);
 	if (!_obj) {
@@ -1738,7 +1738,7 @@ IJSExecutionHook *IJSExecutionHook::_bind(const char *_object_name,
 {
 	IJSExecutionHook *_impl;
 	CORBA::Object *_obj = _implementation(
-				"IJSExecutionHook", 
+				"IJSExecutionHook",
 				_object_name,
 				_host_name);
 	if (!_obj) {
@@ -1913,7 +1913,7 @@ IDebugController *IDebugController::_bind(const char *_object_name,
 {
 	IDebugController *_impl;
 	CORBA::Object *_obj = _implementation(
-				"IDebugController", 
+				"IDebugController",
 				_object_name,
 				_host_name);
 	if (!_obj) {

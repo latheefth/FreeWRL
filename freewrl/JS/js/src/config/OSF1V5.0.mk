@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -59,6 +59,6 @@ MKSHLIB = $(LD) -shared -all -expect_unresolved "*"
 #      prtime.c
 #
 OS_CFLAGS = -DXP_UNIX -DSVR4 -DSYSV -D_POSIX4A_DRAFT10_SOURCE -DOSF1 -DHAVE_LOCALTIME_R
-OS_LIBS = -lsocket -lnsl 
+OS_LIBS = -lsocket -lnsl
 
 NOSUCHFILE = /no-such-file

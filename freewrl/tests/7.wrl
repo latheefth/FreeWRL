@@ -8,10 +8,10 @@
 
 PROTO FullRound [
 	field SFTime cycleInterval 6
-	eventOut SFRotation value_changed 
+	eventOut SFRotation value_changed
 	field SFVec3f axis 1 0 0
 ] {
-	DEF TIMER TimeSensor 
+	DEF TIMER TimeSensor
 	  {cycleInterval IS cycleInterval
 	   startTime 0 stopTime -1 enabled TRUE loop TRUE}
 	DEF ORI ScalarInterpolator {
@@ -52,7 +52,7 @@ PROTO Wheel [
 	 	DEF CONE Transform {
 			translation IS transl
 			children [
-			DEF C1 
+			DEF C1
 			Transform {
 			translation 0 0.5 0
 			children [
@@ -108,7 +108,7 @@ PROTO Wheel [
 	 ]
 	}
 	DEF FR1 FullRound { cycleInterval IS speed1 }
-	DEF FR2 FullRound { cycleInterval IS speed2 
+	DEF FR2 FullRound { cycleInterval IS speed2
 				 axis 0 0 1}
 	ROUTE FR1.value_changed TO CONE.set_rotation
 	ROUTE FR2.value_changed TO WHOLE.set_rotation
@@ -117,7 +117,7 @@ PROTO Wheel [
 
 Transform {
 	translation 0 0 1
-	children Wheel { 
+	children Wheel {
 		# color 0.8 0 0
 		# color2 1 0.7 1
 		color 0.8 0 0
@@ -129,8 +129,8 @@ Transform {
 Transform {
 	translation 0 0 -1
 	rotation 1 0 0 3.141593
-	children Wheel { 
-		# color 0.5 1 1 
+	children Wheel {
+		# color 0.5 1 1
 		# color2 0 0 0.8
 		color 0 0 0.8
 		color2 0 0 0.8
@@ -140,7 +140,7 @@ Transform {
 # Transform {
 # 	translation 0 0 0
 # 	rotation 1 0 0 3.141593
-# 	children Wheel { 
+# 	children Wheel {
 # 		color 0.1 1 0.1
 # 		speed1 20 speed2 40
 # 		transl 0 2.3 0

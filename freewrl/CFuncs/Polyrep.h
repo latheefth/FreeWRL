@@ -11,7 +11,7 @@
 #include "XSUB.h"
 
 #include <math.h>
- 
+
 #ifdef AQUA
 #include <gl.h>
 #include <glu.h>
@@ -22,8 +22,8 @@
 #include <GL/glx.h>
 #endif
 
-#include "Structs.h" 
-#include "headers.h"  
+#include "Structs.h"
+#include "headers.h"
 #include "LinearAlgebra.h"
 
 
@@ -45,7 +45,7 @@ void
 IFS_face_normals(struct pt *facenormals,
 				 int *faceok,
 				 int *pointfaces,
-				 int faces, 
+				 int faces,
 				 int npoints,
 				 int cin,
 				 struct SFColor *points,
@@ -54,7 +54,7 @@ IFS_face_normals(struct pt *facenormals,
 
 void
 IFS_check_normal(struct pt *facenormals,
-				 int this_face, 
+				 int this_face,
 				 struct SFColor *points,
 				 int base,
 				 struct VRML_IndexedFaceSet *this_IFS,
@@ -89,7 +89,7 @@ Extru_tex(int vertex_ind,
 
 void
 Extru_ST_map(int triind_start,
-			 int start, 
+			 int start,
 			 int end,
 			 float *Vals,
 			 int nsec,

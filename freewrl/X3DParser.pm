@@ -36,9 +36,9 @@ my $protoTableRef = \%X3DProtos;
 
 # parse prototypes here. Look past this section for non-prototype
 # parsing.
-# 
+#
 # A prototype consists of:
-#	
+#
 #		---  parseX3DProtoDeclare parses: ---
 #    <ProtoDeclare name='MyProto'>
 #
@@ -46,7 +46,7 @@ my $protoTableRef = \%X3DProtos;
 #      <ProtoInterface>
 #
 #		---  parseProtoInterfaceField parses: ---
-#        <field name='leg' type='SFColor' value='.8 .4 .7' 
+#        <field name='leg' type='SFColor' value='.8 .4 .7'
 #               accessType='initializeOnly'/>
 #      </ProtoInterface>
 #      <ProtoBody>
@@ -85,7 +85,7 @@ sub printX3DPRotoDeclares {
 }
 
 
-#find the correct ProtoDefine in an ExternProto file. This is called from getX3DExternProtoBody - 
+#find the correct ProtoDefine in an ExternProto file. This is called from getX3DExternProtoBody -
 # ie, we want to get the correct ProtoBody for the correct proto!
 sub findProtoDefine {
 	my ($proto, $name) = @_;
@@ -96,7 +96,7 @@ sub findProtoDefine {
 	my $arele = 0; #the first element will be the name of this proto
 	my $nele = $#$proto;
 	my $bnub;
-	
+
 	#print "parseProtoInterface  for proto $name- we were passede in $proto\n";
 
 	if (ref $proto ne "ARRAY") {
@@ -130,7 +130,7 @@ sub findProtoDefine {
 
 				while ($are <= $nel) {
 					my $arel = $hk->[$are];
-	
+
 					if ($arel eq "ProtoInterface") {
 						#print "found ProtoInterface\n";
 						$are++;
@@ -142,12 +142,12 @@ sub findProtoDefine {
 						#print "found proto body\n";
 						$are++;
 						return $hk->[$are];
-						
+
 					}
 
 					$are++;
 				}
-				
+
 			}
 
 
@@ -176,7 +176,7 @@ sub getX3DExternProtoBody {
 	my $protoname;
 	my $success;
 
-	
+
 	# lets split this url up into individual strings.
 	$rawurl = "[".$rawurl."]";
 
@@ -194,7 +194,7 @@ sub getX3DExternProtoBody {
 	    $parentURL = VRML::VRMLFunc::GetBrowserFullPath();
 #JAS	    $this->{WorldURL} = $parentURL;
 #JAS	  }
-#JAS    
+#JAS
 	for (@{$url}) {
 #print "working on $_\n";
 
@@ -324,7 +324,7 @@ sub parseProtoInterface {
 	my $arele = 0; #the first element will be the name of this proto
 	my $nele = $#$proto;
 	my $bnub;
-	
+
 	#print "parseProtoInterface  for proto $name- we were passede in $proto\n";
 
 	if (ref $proto ne "ARRAY") {
@@ -354,8 +354,8 @@ sub parseProtoInterface {
 		# lets just make sure we did not get any non-garbage stuff here.
 		} else {
 			$bnub =~ s/\s+//g;
-			
-			# skip past "empty" elements in tree. 
+
+			# skip past "empty" elements in tree.
 			if ($bnub ne "0") {
 				if ($bnub ne "") {
 					print "ProtoInterface: skip this :$bnub: \n";
@@ -377,7 +377,7 @@ sub parseX3DExternProtoDeclare {
 
 	#print "parseX3DExternProtoDeclare call\n"; print Dumper ($proto), "\n\n";
 
-	# go through the tree structure for the ExternProtoDeclare. 
+	# go through the tree structure for the ExternProtoDeclare.
 	while ($arele <= $nele ){
 		$bnub = $proto->[$arele];
 		#print "Declare: $bnub, ref ",ref $bnub," element $arele\n";
@@ -402,8 +402,8 @@ sub parseX3DExternProtoDeclare {
 			parseProtoInterfaceField($protoName,$proto->[$arele]);
 		} else {
 			$bnub =~ s/\s+//g;
-			
-			# skip past "empty" elements in tree. 
+
+			# skip past "empty" elements in tree.
 			if ($bnub ne "0") {
 				if ($bnub ne "") {
 					print "ExternProtoDeclare: skip this :$bnub: \n";
@@ -427,7 +427,7 @@ sub parseX3DProtoDeclare {
 	my $protoName = "";
 
 
-	# go through the tree structure for the ProtoDeclare. 
+	# go through the tree structure for the ProtoDeclare.
 	while ($arele <= $nele ){
 		$bnub = $proto->[$arele];
 		#print "Declare: $bnub, ref ",ref $bnub," element $arele\n";
@@ -453,15 +453,15 @@ sub parseX3DProtoDeclare {
 		# did we find a ProtoBody? If so, just save this.
 		} elsif ($bnub eq "ProtoBody") {
 			$arele++;
-		
+
 			# save the array that contains the proto code
 			$X3DProtos{$protoName}{ProtoBody} = $proto->[$arele];
-				
+
 		# lets just make sure we did not get any non-garbage stuff here.
 		} else {
 			$bnub =~ s/\s+//g;
-			
-			# skip past "empty" elements in tree. 
+
+			# skip past "empty" elements in tree.
 			if ($bnub ne "0") {
 				if ($bnub ne "") {
 					print "ProtoDeclare: skip this :$bnub: \n";
@@ -487,7 +487,7 @@ sub parseX3DProtoInstance {
 
 
 	#print "protoInstance call\n"; print Dumper ($proto), "\n\n";
-	# go through the tree structure for the ProtoInstance. 
+	# go through the tree structure for the ProtoInstance.
 	while ($arele <= $nele ){
 		$bnub = $proto->[$arele];
 		#print "Instance: $bnub, ref ",ref $bnub," element $arele\n";
@@ -517,7 +517,7 @@ sub parseX3DProtoInstance {
 			if (ref $fieldValueArr ne "ARRAY") {
 				VRML::VRMLFunc::ConsoleMessage ("ProtoInstance, expected an array for FieldValue params, got ".ref $fieldValueArr);
 			} else {
-				
+
 
 				# ok, the first value should be our name/value hash.
 				my $hash = $fieldValueArr->[0];
@@ -536,7 +536,7 @@ sub parseX3DProtoInstance {
 							$value = $hk;
 						} else {
 							VRML::VRMLFunc::ConsoleMessage ("ProtoInstance, expected a fieldValue key of name or value got $key");
-							
+
 						}
         				}
 
@@ -552,8 +552,8 @@ sub parseX3DProtoInstance {
 		# lets just make sure we did not get any non-garbage stuff here.
 		} else {
 			$bnub =~ s/\s+//g;
-			
-			# skip past "empty" elements in tree. 
+
+			# skip past "empty" elements in tree.
 			if ($bnub ne "0") {
 				if ($bnub ne "") {
 					print "ProtoInstance: skip this :$bnub: \n";
@@ -573,7 +573,7 @@ sub parseX3DProtoInstance {
 		my $doc = "";
 		$retval = parse_X3DStatement("Group",$doc,$protoFields);
 	} else {
-		# copy each of the fields over, for the parse. If the field 
+		# copy each of the fields over, for the parse. If the field
 		# exists in the ProtoInstance, use it; if not, use the field/value
 		# in the ProtoDeclare.
 		my $oldkeyptr = $protoRef->{ProtoInterface}->{field};
@@ -583,7 +583,7 @@ sub parseX3DProtoInstance {
 				if (!exists $fvref->{$oldkey}->{$oldkeyname}) {
 					#print "new ildkeyname $oldkeyname\n";
 					$fieldValueHash{$oldkey}{$oldkeyname} = $kkk->{$oldkeyname};
-				} 
+				}
 				#else {print "$oldkey $oldkeyname in ProtoInstance\n";}
 			}
 
@@ -615,7 +615,7 @@ sub parseX3DProtoInstance {
 
                 return $X3DScene->new_def($defname, $retval, $LocalDEF);
 	}
-	return $retval; 
+	return $retval;
 }
 #PROTOTYPES - PROTOTYPES - PROTOTYPES - PROTOTYPES - PROTOTYPES
 
@@ -638,7 +638,7 @@ sub parseX3DScript {
 
 
 	#print "parseX3DScript call\n"; print Dumper ($proto), "\n\n";
-	# go through the tree structure for the ScriptInstance. 
+	# go through the tree structure for the ScriptInstance.
 	while ($arele <= $nele ){
 		$bnub = $proto->[$arele];
 		#print "Instance: $bnub, ref ",ref $bnub," element $arele\n";
@@ -679,7 +679,7 @@ sub parseX3DScript {
 			if (ref $fieldValueArr ne "ARRAY") {
 				VRML::VRMLFunc::ConsoleMessage ("ScriptInstance, expected an array for Field params, got ".ref $fieldValueArr);
 			} else {
-				
+
 
 				# ok, the first value should be our name/value hash.
 				my $hash = $fieldValueArr->[0];
@@ -704,7 +704,7 @@ sub parseX3DScript {
 							$accessType = $hk;
 						} else {
 							VRML::VRMLFunc::ConsoleMessage ("ScriptInstance, expected  name, type or accessType. got $key");
-							
+
 						}
         				}
 					# save this value
@@ -718,7 +718,7 @@ sub parseX3DScript {
 		## Is this the node-node matching?.
 		} elsif ($bnub eq "IS") {
 			print "Found the IS...\n";
-			$arele +=1;	
+			$arele +=1;
 			my $isstuff = $proto->[$arele];
 			print "parseX3DScript call\n"; print Dumper ($isstuff), "\n\n";
 
@@ -726,7 +726,7 @@ sub parseX3DScript {
 		} else {
 			# strip off any starting whitespace.
 			$bnub =~ s/^\s+//g;
-			
+
 			# is this the script itself?
 			my $first = substr ($bnub,0,11);
 			if (($first eq "ecmascript:") ||
@@ -737,8 +737,8 @@ sub parseX3DScript {
 			} else {
 
 				$bnub =~ s/\s+//g;
-				
-				# skip past "empty" elements in tree. 
+
+				# skip past "empty" elements in tree.
 				if ($bnub ne "0") {
 					if ($bnub ne "") {
 						print "ScriptInstance: skip this :$bnub: \n";
@@ -759,7 +759,7 @@ sub parseX3DScript {
 #JAS		my $doc = "";
 #JAS		$retval = parse_X3DStatement("Group",$doc,$protoFields);
 #JAS	} else {
-#JAS		# copy each of the fields over, for the parse. If the field 
+#JAS		# copy each of the fields over, for the parse. If the field
 #JAS		# exists in the ScriptInstance, use it; if not, use the field/value
 #JAS		# in the ScriptDeclare.
 #JAS		my $oldkeyptr = $protoRef->{ScriptInterface}->{field};
@@ -769,7 +769,7 @@ sub parseX3DScript {
 #JAS				if (!exists $fvref->{$oldkey}->{$oldkeyname}) {
 #JAS					#print "new ildkeyname $oldkeyname\n";
 #JAS					$fieldValueHash{$oldkey}{$oldkeyname} = $kkk->{$oldkeyname};
-#JAS				} 
+#JAS				}
 #JAS				#else {print "$oldkey $oldkeyname in ScriptInstance\n";}
 #JAS			}
 #JAS
@@ -796,8 +796,8 @@ sub parseX3DScript {
 	my @arr;
 	# print "ScriptBody ",$X3DProtos{$LocalDEF}{ScriptBody},"\n";
 	push @arr, "[\"".$X3DProtos{$LocalDEF}{ScriptBody}."\"]";
-	#$xf{url}->[1] = "url"; 
-	#$xf{url}->[0] = "MFString"; 
+	#$xf{url}->[1] = "url";
+	#$xf{url}->[0] = "MFString";
 	#$xf{url}->[2] = "VRML::Field::MFString"->parse($X3DScene,@arr);
 	#foreach my $fieldName (keys (%{$X3DProtos{$LocalDEF}{ScriptInterface}{field}})) {
 	#	my $localHash = $X3DProtos{$LocalDEF}{ScriptInterface}{field}{$fieldName};
@@ -810,10 +810,14 @@ sub parseX3DScript {
 	#		print "so, for here, we have 0 ",$xf{$fieldName}->[0],", 1 ",$xf{$fieldName}->[1],", 2 ",$xf{$fieldName}->[2],"\n";
 	#	}
 #
-#	}	
+#	}
 
 	# new_node knows that "Script" is different. see parse_interfacedecl for VRML.
 	$retval = $X3DScene->new_node("X3DScript",$protoTableRef->{$LocalDEF});
+
+	$retval->{scriptInvocationNumber} = 0; ##JAS!
+	VRML::NodeIntern::startScript($retval);
+
 #JAS	}
 #JAS
 	# did we have a local DEF in here?
@@ -828,7 +832,7 @@ sub parseX3DScript {
 
                 $retval = $X3DScene->new_def($defname, $retval, $LocalDEF);
 	}
-	return $retval; 
+	return $retval;
 }
 #SCRIPTS - SCRIPTS - SCRIPTS - SCRIPTS
 
@@ -847,9 +851,9 @@ sub parse {
 
 	$X3DScene = $scene;
 	$eventMachine = VRML::Browser::getEV();
-	
+
 	print "entering x3d parser\n*****************\n" if $X3D::verbose;
-	
+
 	# Parse the text into an XML tree style document.
 	my $p = XML::Parser->new( Style => 'Tree' );
 	my $doc = $p->parse($text);
@@ -881,13 +885,13 @@ sub parse {
 	PARSE_EXIT:
 
 	$X3DScene->topnodes(\@RetArr);
-	#JASif ($X3D::parse::verbose)  {
+	if ($X3D::parse::verbose)  {
 		printX3DPRotoDeclares ($protoTableRef,"");
-	#JAS}
+	}
 }
 
 
-# is this node ok? is it a Valid X3D Node, or is it a header node? 
+# is this node ok? is it a Valid X3D Node, or is it a header node?
 sub verifyX3DNodeExists {
 	my ($node) = @_;
 	print "verifyX3DNodeExists - looking for $node\n" if $X3D::parse::verbose;
@@ -898,7 +902,7 @@ sub verifyX3DNodeExists {
 
 		# the "Scene" node gets tranlated to "Group", so let this one through.
 		if ($node eq "Scene") {return 1;}
-	
+
 
 		#PROTOTYPES
 
@@ -906,7 +910,7 @@ sub verifyX3DNodeExists {
 		if ($node eq "ProtoDeclare") { return 1; }
 		if ($node eq "ProtoInstance") { return 1; }
 		if ($node eq "IS") { return 1;}
-	
+
 		#PROTOTYPES
 
 		# fall through case - lets see if this is just the X3D node.
@@ -945,8 +949,9 @@ sub parseRoute {
 		}
 
 		# now, add the ROUTE.
-        	$eventMachine->add_route($X3DScene, 1, $arel->{fromNode}, $arel->{fromField}, 
-			$arel->{toNode}, $arel->{toField});
+		my $frh = VRML::Handles::return_def_name($arel->{fromNode});
+		my $trh = VRML::Handles::return_def_name($arel->{toNode});
+        	$X3DScene->new_route($frh, $arel->{fromField}, $trh, $arel->{toField});
 	}
 }
 
@@ -983,7 +988,7 @@ sub parseIS {
 			print "connect is $ar\n";
 
 			# find the nodeField and protoField keys
-			my $nF = ""; 
+			my $nF = "";
 			my $pF = "";
 			foreach my $iskey (keys (%{$ar})) {
 				print "key $iskey is ",$ar->{$iskey},"\n";
@@ -1016,12 +1021,12 @@ sub parseIS {
 	printX3DPRotoDeclares ($protoTableRef,"");
 #JAS - add this here.yy
 				return;
-			} 
+			}
 			$fieldref->{$nF} = parseSimpleField ($parentNode,$nF,$isVarVal);
 		}else {
 			$bnub =~ s/\s+//g;
-			
-			# skip past "empty" elements in tree. 
+
+			# skip past "empty" elements in tree.
 			if ($bnub ne "0") {
 				if ($bnub ne "") {
 					print "IS: Huh? (ele $arele NEXT NODE :$bnub: of ", $parentNode,"\n";
@@ -1052,13 +1057,13 @@ sub parseX3DNodeField {
 
 	# some nodes have same fields as VRML97, but different name.
 	if (($parentNode eq "LOD") && ($field eq "children")) {
-		$field = level; # VRML97, children 
+		$field = level; # VRML97, children
 	}
 	if (($parentNode eq "Switch") && ($field eq "children")) {
-		$field = choice; # VRML97, children 
+		$field = choice; # VRML97, children
 	}
 
-				
+
 	my $ft = $no->{FieldTypes}{$field};
 	print "FT: $ft\n" if $X3D::verbose;
 	if(!defined $ft) {
@@ -1067,14 +1072,14 @@ sub parseX3DNodeField {
 		foreach (keys % {$no->{FieldTypes}}) {
 			if (index($_,"_") !=0) {$mt = $mt . "$_ ";}
 		}
-		VRML::VRMLFunc::ConsoleMessage($mt);	
+		VRML::VRMLFunc::ConsoleMessage($mt);
 		goto PARSE_EXIT;
 	}
-	
+
 
 	if ($ft eq "MFNode") {
 		#print "have a MFNode\n";
-		if (ref $fieldref->{$field} eq "ARRAY") { 
+		if (ref $fieldref->{$field} eq "ARRAY") {
 		#print "fieldfield already defined and is an ARRAY\n";
 
 		# find out what index the next element should be.
@@ -1083,19 +1088,19 @@ sub parseX3DNodeField {
 		my $retval = parse_X3DStatement($nextNodeName, $bnub,$protoFields);
 		#print "element return value is $retval ref ",
 		#	ref $retval,"\n";
-						
+
 		# we had a return value. Things like ProtoDeclares
 		# will return an undefined value - we dont want
 		# these as children (or whatever)
 		if (defined $retval) {
 			$fieldref->{$field}->[$nextele] = $retval;
 		}
-					
+
 	} else {
 		#print "new fieldfield\n";
 		$fieldref->{$field} = [parse_X3DStatement($nextNodeName, $bnub,$protoFields)];
 	}
-	
+
 	} elsif ($ft eq "SFNode") {
 		#print "new SFNode field\n";
 		$fieldref->{$field} = parse_X3DStatement($nextNodeName, $bnub,$protoFields);
@@ -1126,7 +1131,7 @@ sub parse_X3DStatement {
 	my $nextNodeName;
 
 	my $LocalDEF = "";
-	
+
 	#print "start of parse_X3DStatement, protofields $protoFields\n";
 	#foreach my $key (keys (%{$protoFields})) {print "field $key\n";}
 
@@ -1147,7 +1152,7 @@ sub parse_X3DStatement {
 
 
 	my $no = $VRML::Nodes{$parentNode};
-	
+
 	# is this an "X3D" node? if so, make it into a group, but ignore parameters.
 	my $x3dinitnode = 0;
 
@@ -1185,10 +1190,10 @@ sub parse_X3DStatement {
 			} elsif ($nextNodeName eq "ExternProtoDeclare") {
 				parseX3DExternProtoDeclare($bnub);
 			} elsif ($nextNodeName eq "Script") {
-				return parseX3DScript($bnub);
-			} elsif (verifyX3DNodeExists($nextNodeName)) { 
+				parseX3DScript($bnub);
+			} elsif (verifyX3DNodeExists($nextNodeName)) {
 				parseX3DNodeField($parentNode,$nextNodeName,\%field,$bnub,$protoFields);
-			}	
+			}
 
 		# is this a simple field of the node?
 		} elsif (ref $bnub eq "HASH") {
@@ -1199,12 +1204,12 @@ sub parse_X3DStatement {
 			}
 
 
-			# copy any keys over to the parent for later parsing. 
+			# copy any keys over to the parent for later parsing.
 			my $key;
 			foreach $key (keys(%{$bnub})) {
-				print "$key of $parentNode is ",$bnub->{$key},"\n" 
+				print "$key of $parentNode is ",$bnub->{$key},"\n"
 					if $X3D::verbose;
-				
+
 				# is this possibly stuff like 'profile' that can be found in the
 				# X3D header? if so, just skip it.
 
@@ -1223,8 +1228,8 @@ sub parse_X3DStatement {
 					print "USE $dn\n" if $X3D::verbose;
 					return $X3DScene->new_use($dn);
 				} elsif ($x3dinitnode == 0) {
-					if (!(exists $VRML::Nodes{$parentNode}->{FieldTypes}{$key})) { 
-						print "X3DParse: Error: field $key does NOT exist in $parentNode\n"; 
+					if (!(exists $VRML::Nodes{$parentNode}->{FieldTypes}{$key})) {
+						print "X3DParse: Error: field $key does NOT exist in $parentNode\n";
 					} else {
 						# parse the simple field, and save the results.
 						$field{$key}=parseSimpleField($parentNode,$key,$bnub->{$key});
@@ -1236,8 +1241,8 @@ sub parse_X3DStatement {
 		# else is this just junk, or a new Node type?
 		}else {
 			$bnub =~ s/\s+//g;
-			
-			# skip past "empty" elements in tree. 
+
+			# skip past "empty" elements in tree.
 			if ($bnub ne "0") {
 				if ($bnub ne "") {
 					#print "(ele $arele) NEXT NODE :$bnub: of ", $parentNode,"\n";
@@ -1247,7 +1252,7 @@ sub parse_X3DStatement {
 			}
 		}
 		$arele++;
-		
+
 	}
 
 	#print "parse_X3DStatement, returning from $parentNode  field is \n";
@@ -1288,20 +1293,20 @@ sub getChildType {
 	}
 	#foreach (keys %{$no->{FieldTypes}}){print"possible fields $_\n";}
 	#
-	#print "getChildType, parent $pn nextNodeName $nnn - lets find the field\n"; 
+	#print "getChildType, parent $pn nextNodeName $nnn - lets find the field\n";
 
 	# generic matchings - if we have an, eg LineSet, tell the caller that it is a geometry field
 	# note that cases where there is a 1 to 1 mapping with just the first letter changed is
 	# handled below. eg; "Color" node is returned as a "color" field.
 
-	if ($VRML::Nodes::geometry{$nnn}) { return "geometry"; } 
-	if ($VRML::Nodes::texture{$nnn}) { return "texture"; } 
-	if ($VRML::Nodes::coord{$nnn}) { return "coord"; } 
-	if ($VRML::Nodes::tcoord{$nnn}) { return "texCoord"; } 
-  
+	if ($VRML::Nodes::geometry{$nnn}) { return "geometry"; }
+	if ($VRML::Nodes::texture{$nnn}) { return "texture"; }
+	if ($VRML::Nodes::coord{$nnn}) { return "coord"; }
+	if ($VRML::Nodes::tcoord{$nnn}) { return "texCoord"; }
+
 	# now, see if we can tell by making the first character of the nodename lowercase...
 	my $testfield = lcfirst ($nnn);
-	
+
 	if (defined ($no->{FieldTypes}{$testfield})) {
 		#print "we found $testfield\n";
 		$st = $testfield;
@@ -1346,8 +1351,8 @@ sub parseSimpleField {
 	}
 	elsif ($first eq "MF") { $value = "[".$value."]";}
 	elsif ($ft eq "SFString") { $value = "\"".$value."\""; }
-	elsif ($ft eq "SFBool") { 
-		if ($value eq "false") {$value="FALSE";} 
+	elsif ($ft eq "SFBool") {
+		if ($value eq "false") {$value="FALSE";}
 		if ($value eq "true") {$value="TRUE";}
 	}
 	return "VRML::Field::$ft"->parse($X3DScene,$value);

@@ -16,7 +16,7 @@ public class ConstMFVec3f extends ConstMField {
     }
 
     public ConstMFVec3f(int size, float[] vec3fs) {
-        for (int i = 0; i < size; i += 3)	
+        for (int i = 0; i < size; i += 3)
             __vect.addElement(new ConstSFVec3f(vec3fs[i], vec3fs[i+1], vec3fs[i+2]));
     }
 
@@ -24,7 +24,7 @@ public class ConstMFVec3f extends ConstMField {
         for (int i = 0; i < vec3fs.length; i++)
             __vect.addElement(new ConstSFVec3f(vec3fs[i][0], vec3fs[i][1], vec3fs[i][2]));
     }
-	
+
     public void getValue(float[] vec3fs) {
         __updateRead();
         int size = __vect.size();

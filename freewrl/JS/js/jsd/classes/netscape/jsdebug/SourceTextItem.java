@@ -17,20 +17,20 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
 
 /**
-* This class is used to represent a file or url which contains 
+* This class is used to represent a file or url which contains
 * JavaScript source text. The actual JavaScript source may be intermixed
-* with other text (as in an html file) or raw. The debugger uses this 
-* interface to access the source. The file of the actual source need 
+* with other text (as in an html file) or raw. The debugger uses this
+* interface to access the source. The file of the actual source need
 * not physially exist anywhere; i.e. the underlying engine might synthesize
 * it as needed.
 * <p>
-* The <i>url</i> of this class is immutable -- it represents a key in 
+* The <i>url</i> of this class is immutable -- it represents a key in
 * collections of these objects
 *
 * @author  John Bandhauer
@@ -58,13 +58,13 @@ public class SourceTextItem
     */
     public static final int ABORTED = 3;
     /**
-    * This object may contain partial text, but loading failed (or the 
-    * underlying debugger support was unable to capture it; e.g. 
+    * This object may contain partial text, but loading failed (or the
+    * underlying debugger support was unable to capture it; e.g.
     * not enough memory...)
     */
     public static final int FAILED  = 4;
     /**
-    * This object contains no text because the debugger has signaled that 
+    * This object contains no text because the debugger has signaled that
     * the text is no longer needed
     */
     public static final int CLEARED = 5;
@@ -94,12 +94,12 @@ public class SourceTextItem
         _status = status;
         _dirty  = true;
     }
-    
+
     public String   getURL()    {return _url;   }
     public String   getText()   {return _text;  }
     public int      getStatus() {return _status;}
     public boolean  getDirty()  {return _dirty; }
-    
+
     public void     setText(String text)    {_text = text;}
     public void     setStatus(int status)   {_status = status;}
     public void     setDirty(boolean b)     {_dirty = b; }
@@ -108,4 +108,4 @@ public class SourceTextItem
     private String  _text;
     private int     _status;
     private boolean _dirty;
-}    
+}

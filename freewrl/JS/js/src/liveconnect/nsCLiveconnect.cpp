@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -97,7 +97,7 @@ public:
                 {
                     mContextStack->Push(cx);
                     // Leave the reference to the mContextStack to
-                    // indicate that we need to pop it in our dtor.                                               
+                    // indicate that we need to pop it in our dtor.
                 }
             }
         }
@@ -154,13 +154,13 @@ nsCLiveconnect::AggregatedQueryInterface(const nsIID& aIID, void** aInstancePtr)
  * @param jEnv       - JNIEnv on which the call is being made.
  * @param obj        - A Native JS Object.
  * @param name       - Name of a member.
- * @param pjobj      - return parameter as a java object representing 
+ * @param pjobj      - return parameter as a java object representing
  *                     the member. If it is a basic data type it is converted to
  *                     a corresponding java type. If it is a NJSObject, then it is
  *                     wrapped up as java wrapper netscape.javascript.JSObject.
  */
-NS_METHOD	
-nsCLiveconnect::GetMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length, void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::GetMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length, void* principalsArray[],
                      int numPrincipals, nsISupports *securitySupports, jobject *pjobj)
 {
     if(jEnv == NULL || obj == 0)
@@ -189,7 +189,7 @@ nsCLiveconnect::GetMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize l
         member = NULL;
         goto done;
     }
-    
+
     if (!JS_GetUCProperty(cx, js_obj, name, length, &js_val))
         goto done;
 
@@ -199,7 +199,7 @@ nsCLiveconnect::GetMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize l
 done:
     if (!jsj_exit_js(cx, jsj_env, saved_state))
         return NS_ERROR_FAILURE;
-    
+
     *pjobj = member;
 
     return NS_OK;
@@ -212,11 +212,11 @@ done:
  * @param jEnv       - JNIEnv on which the call is being made.
  * @param obj        - A Native JS Object.
  * @param index      - Index of a member.
- * @param pjobj      - return parameter as a java object representing 
- *                     the member. 
+ * @param pjobj      - return parameter as a java object representing
+ *                     the member.
  */
-NS_METHOD	
-nsCLiveconnect::GetSlot(JNIEnv *jEnv, jsobject obj, jint slot, void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::GetSlot(JNIEnv *jEnv, jsobject obj, jint slot, void* principalsArray[],
                      int numPrincipals, nsISupports *securitySupports,  jobject *pjobj)
 {
     if(jEnv == NULL || obj == 0)
@@ -239,7 +239,7 @@ nsCLiveconnect::GetSlot(JNIEnv *jEnv, jsobject obj, jint slot, void* principalsA
        return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     // =-= sudu: check to see if slot can be passed in as is.
     //           Should it be converted to a jsint?
     if (!JS_GetElement(cx, js_obj, slot, &js_val))
@@ -251,7 +251,7 @@ nsCLiveconnect::GetSlot(JNIEnv *jEnv, jsobject obj, jint slot, void* principalsA
 done:
     if (!jsj_exit_js(cx, jsj_env, saved_state))
        return NS_ERROR_FAILURE;
-    
+
     *pjobj = member;
     return NS_OK;
 }
@@ -266,8 +266,8 @@ done:
  *                     using standard JNI calls but if it is a wrapper to a JSObject
  *                     then a internal mapping is consulted to convert to a NJSObject.
  */
-NS_METHOD	
-nsCLiveconnect::SetMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length, jobject java_obj, void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::SetMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length, jobject java_obj, void* principalsArray[],
                      int numPrincipals, nsISupports *securitySupports)
 {
     if(jEnv == NULL || obj == 0)
@@ -287,7 +287,7 @@ nsCLiveconnect::SetMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize l
         return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     if (!name) {
         JS_ReportError(cx, "illegal null member name");
         goto done;
@@ -314,8 +314,8 @@ done:
  *                     using standard JNI calls but if it is a wrapper to a JSObject
  *                     then a internal mapping is consulted to convert to a NJSObject.
  */
-NS_METHOD	
-nsCLiveconnect::SetSlot(JNIEnv *jEnv, jsobject obj, jint slot, jobject java_obj,  void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::SetSlot(JNIEnv *jEnv, jsobject obj, jint slot, jobject java_obj,  void* principalsArray[],
                      int numPrincipals, nsISupports *securitySupports)
 {
     if(jEnv == NULL || obj == 0)
@@ -335,7 +335,7 @@ nsCLiveconnect::SetSlot(JNIEnv *jEnv, jsobject obj, jint slot, jobject java_obj,
         return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     if (!jsj_ConvertJavaObjectToJSValue(cx, jEnv, java_obj, &js_val))
         goto done;
     JS_SetElement(cx, js_obj, slot, &js_val);
@@ -353,8 +353,8 @@ done:
  * @param obj        - A Native JS Object.
  * @param name       - Name of a member.
  */
-NS_METHOD	
-nsCLiveconnect::RemoveMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length,  void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::RemoveMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length,  void* principalsArray[],
                              int numPrincipals, nsISupports *securitySupports)
 {
     if(jEnv == NULL || obj == 0)
@@ -374,7 +374,7 @@ nsCLiveconnect::RemoveMember(JNIEnv *jEnv, jsobject obj, const jchar *name, jsiz
         return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     if (!name) {
         JS_ReportError(cx, "illegal null member name");
         goto done;
@@ -389,7 +389,7 @@ done:
 
 
 /**
- * call a method of Native JSObject. 
+ * call a method of Native JSObject.
  *
  * @param jEnv       - JNIEnv on which the call is being made.
  * @param obj        - A Native JS Object.
@@ -397,8 +397,8 @@ done:
  * @param jobjArr    - Array of jobjects representing parameters of method being caled.
  * @param pjobj      - return value.
  */
-NS_METHOD	
-nsCLiveconnect::Call(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length, jobjectArray java_args, void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::Call(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length, jobjectArray java_args, void* principalsArray[],
                      int numPrincipals, nsISupports *securitySupports, jobject *pjobj)
 {
     if(jEnv == NULL || obj == 0)
@@ -426,7 +426,7 @@ nsCLiveconnect::Call(JNIEnv *jEnv, jsobject obj, const jchar *name, jsize length
         return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     result = NULL;
     if (!name) {
         JS_ReportError(cx, "illegal null JavaScript function name");
@@ -470,14 +470,14 @@ cleanup_argv:
 done:
     if (!jsj_exit_js(cx, jsj_env, saved_state))
         return NS_ERROR_FAILURE;
-    
+
     *pjobj = result;
 
     return NS_OK;
 }
 
-NS_METHOD	
-nsCLiveconnect::Eval(JNIEnv *jEnv, jsobject obj, const jchar *script, jsize length, void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::Eval(JNIEnv *jEnv, jsobject obj, const jchar *script, jsize length, void* principalsArray[],
                      int numPrincipals, nsISupports *securitySupports, jobject *pjobj)
 {
     if(jEnv == NULL || obj == 0)
@@ -503,7 +503,7 @@ nsCLiveconnect::Eval(JNIEnv *jEnv, jsobject obj, const jchar *script, jsize leng
        return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     result = NULL;
     if (!script) {
         JS_ReportError(cx, "illegal null string eval argument");
@@ -532,7 +532,7 @@ done:
         JSPRINCIPALS_DROP(cx, principals);
     if (!jsj_exit_js(cx, jsj_env, saved_state))
        return NS_ERROR_FAILURE;
-    
+
     *pjobj = result;
     return NS_OK;
 }
@@ -542,14 +542,14 @@ done:
  * Get the window object for a plugin instance.
  *
  * @param jEnv               - JNIEnv on which the call is being made.
- * @param pJavaObject        - Either a jobject or a pointer to a plugin instance 
+ * @param pJavaObject        - Either a jobject or a pointer to a plugin instance
  *                             representing the java object.
- * @param pjobj              - return value. This is a native js object 
- *                             representing the window object of a frame 
+ * @param pjobj              - return value. This is a native js object
+ *                             representing the window object of a frame
  *                             in which a applet/bean resides.
  */
-NS_METHOD	
-nsCLiveconnect::GetWindow(JNIEnv *jEnv, void *pJavaObject,  void* principalsArray[], 
+NS_METHOD
+nsCLiveconnect::GetWindow(JNIEnv *jEnv, void *pJavaObject,  void* principalsArray[],
                      int numPrincipals, nsISupports *securitySupports, jsobject *pobj)
 {
     if(jEnv == NULL || JSJ_callbacks == NULL)
@@ -572,7 +572,7 @@ nsCLiveconnect::GetWindow(JNIEnv *jEnv, void *pJavaObject,  void* principalsArra
        return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     err_msg = NULL;
     js_obj = JSJ_callbacks->map_java_object_to_js_object(jEnv, mJavaClient, &err_msg);
     if (!js_obj) {
@@ -612,7 +612,7 @@ done:
  * @param jEnv       - JNIEnv on which the call is being made.
  * @param obj        - A Native JS Object.
  */
-NS_METHOD	
+NS_METHOD
 nsCLiveconnect::FinalizeJSObject(JNIEnv *jEnv, jsobject obj)
 {
     if(jEnv == NULL || obj == 0)
@@ -621,7 +621,7 @@ nsCLiveconnect::FinalizeJSObject(JNIEnv *jEnv, jsobject obj)
     }
 
     JSObjectHandle    *handle         = (JSObjectHandle *)obj;
-    
+
     if (!handle)
         return NS_ERROR_NULL_POINTER;
     JS_RemoveRootRT(handle->rt, &handle->js_obj);
@@ -630,7 +630,7 @@ nsCLiveconnect::FinalizeJSObject(JNIEnv *jEnv, jsobject obj)
 }
 
 
-NS_METHOD	
+NS_METHOD
 nsCLiveconnect::ToString(JNIEnv *jEnv, jsobject obj, jstring *pjstring)
 {
     if(jEnv == NULL || obj == 0)
@@ -651,7 +651,7 @@ nsCLiveconnect::ToString(JNIEnv *jEnv, jsobject obj, jstring *pjstring)
        return NS_ERROR_FAILURE;
 
     AutoPushJSContext autopush(cx);
-    
+
     result = NULL;
     jsstr = JS_ValueToString(cx, OBJECT_TO_JSVAL(js_obj));
     if (jsstr)
@@ -661,7 +661,7 @@ nsCLiveconnect::ToString(JNIEnv *jEnv, jsobject obj, jstring *pjstring)
 
     if (!jsj_exit_js(cx, jsj_env, saved_state))
         return NS_ERROR_FAILURE;
-    *pjstring = result;     
+    *pjstring = result;
     return NS_OK;
 }
 

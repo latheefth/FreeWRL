@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 1995 The Regents of the University of California.
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice and the following
  * two paragraphs appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -22,17 +22,17 @@
 /*
  * Portions of this software Copyright (c) 1995 Brown University.
  * All rights reserved.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice and the
  * following two paragraphs appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL BROWN UNIVERSITY BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF BROWN
  * UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * BROWN UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS"
@@ -136,7 +136,7 @@ typedef struct pict {
 					    pixel values flag.              */
   unsigned int forw_r_size;              /* Used for vector decoding.       */
   unsigned int forw_f;                   /* Used for vector decoding.       */
-  int full_pel_back_vector;          /* Back vectors specified in full 
+  int full_pel_back_vector;          /* Back vectors specified in full
 					    pixel values flag.              */
   unsigned int back_r_size;              /* Used in decoding.               */
   unsigned int back_f;                   /* Used in decoding.               */
@@ -200,7 +200,7 @@ typedef struct vid_stream {
   int const_param_flag;                    /* Contrained parameter flag. */
   unsigned char intra_quant_matrix[8][8];      /* Quantization matrix for
 						  intracoded frames.         */
-  unsigned char non_intra_quant_matrix[8][8];  /* Quanitization matrix for 
+  unsigned char non_intra_quant_matrix[8][8];  /* Quanitization matrix for
 						  non intracoded frames.     */
   char *ext_data;                              /* Extension data.            */
   char *user_data;                             /* User data.                 */
@@ -249,7 +249,7 @@ typedef struct vid_stream {
   PictImage *ring[RING_BUF_SIZE];              /* Ring buffer of frames.     */
   /* x,y size of PPM output file */
   int ppm_width, ppm_height, ppm_modulus;
-} mpeg_VidStream;   
+} mpeg_VidStream;
 
 
 /* Declaration of global display pointer. */
@@ -264,10 +264,10 @@ typedef struct vid_stream {
 #define DCTSIZE		8	/* The basic DCT block is 8x8 samples */
 #define DCTSIZE2	64	/* DCTSIZE squared; # of elements in a block */
 
-  
+
 typedef short DCTELEM;
 typedef DCTELEM DCTBLOCK[DCTSIZE2];
- 
+
 #ifdef __STDC__
 # define	P(s) s
 #include <stdlib.h>	/* used by almost all modules */
@@ -746,7 +746,7 @@ extern int *cb_values;
 #define END_OF_BLOCK 62
 #define ESCAPE 61
 
-/* Structure for an entry in the decoding table of 
+/* Structure for an entry in the decoding table of
  * macroblock_address_increment */
 typedef struct {
   int value;       /* value for macroblock_address_increment */
@@ -779,7 +779,7 @@ extern coded_block_pattern_entry coded_block_pattern[512];
 /* Structure for an entry in the decoding table of motion vectors */
 typedef struct {
   int code;              /* value for motion_horizontal_forward_code,
-			  * motion_vertical_forward_code, 
+			  * motion_vertical_forward_code,
 			  * motion_horizontal_backward_code, or
 			  * motion_vertical_backward_code.
 			  */
@@ -951,7 +951,7 @@ typedef struct {
 #define DecodeDCTCoeffFirst(runval, levelval)         \
 {                                                     \
   DecodeDCTCoeff(dct_coeff_first, runval, levelval);  \
-}          
+}
 
 #define DecodeDCTCoeffNext(runval, levelval)          \
 {                                                     \

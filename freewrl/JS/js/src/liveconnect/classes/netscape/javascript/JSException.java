@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -90,7 +90,7 @@ class JSException extends RuntimeException {
 
     /**
      * Constructs a JSException with a wrapped JavaScript exception object.
-     * This constructor needs to be public so that Java users can throw 
+     * This constructor needs to be public so that Java users can throw
      * exceptions to JS cleanly.
      */
     private JSException(int wrappedExceptionType, Object wrappedException) {
@@ -98,7 +98,7 @@ class JSException extends RuntimeException {
 	this.wrappedExceptionType = wrappedExceptionType;
 	this.wrappedException = wrappedException;
     }
-    
+
     /**
      * Constructs a JSException with a detail message and all the
      * other info that usually comes with a JavaScript error.

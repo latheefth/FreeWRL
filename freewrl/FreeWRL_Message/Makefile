@@ -8,7 +8,7 @@ CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
 LIBRARIES = -lXaw
 SVROBJ = FreeWRL_Message.o
 
-all: main 
+all: main
 
 main: $(SVROBJ)
 	$(CC) $(SVROBJ) $(CFLAGS) -o FreeWRL_Message $(LIBS) $(LIBRARIES)

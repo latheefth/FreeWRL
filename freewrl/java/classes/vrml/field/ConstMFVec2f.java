@@ -16,7 +16,7 @@ public class ConstMFVec2f extends ConstMField {
     }
 
     public ConstMFVec2f(int size, float[] vec2fs) {
-        for (int i = 0; i < size; i += 2)	
+        for (int i = 0; i < size; i += 2)
             __vect.addElement(new ConstSFVec2f(vec2fs[i], vec2fs[i+1]));
     }
 
@@ -24,7 +24,7 @@ public class ConstMFVec2f extends ConstMField {
         for (int i = 0; i < vec2fs.length; i++)
             __vect.addElement(new ConstSFVec2f(vec2fs[i][0], vec2fs[i][1]));
     }
-	
+
     public void getValue(float[] vec2fs) {
         __updateRead();
         int size = __vect.size();

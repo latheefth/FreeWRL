@@ -1,9 +1,9 @@
-# NO WARRANTY! Copyright(C) 1998 Tuomas J. Lukka. 
+# NO WARRANTY! Copyright(C) 1998 Tuomas J. Lukka.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
-# for conditions of use and redistribution, EXCEPT on the files                 
-# which belong under the mozilla public license.                                
-                                                                                
+# for conditions of use and redistribution, EXCEPT on the files
+# which belong under the mozilla public license.
+
 use blib;
 require 'VRML/JS.pm';
 
@@ -19,9 +19,9 @@ $cx2 = VRML::JS::newcontext($glo2,$t2);
 
 print "GLO: $glo\n";
 
-sub rs {my $rs; my $res = VRML::JS::runscript($cx,$glo,$_[0],$rs); 
+sub rs {my $rs; my $res = VRML::JS::runscript($cx,$glo,$_[0],$rs);
 	print "FROM '$_[0]' GOT '$res' AND '$rs'\n"}
-sub rs2 {my $rs; my $res = VRML::JS::runscript($cx2,$glo2,$_[0],$rs); 
+sub rs2 {my $rs; my $res = VRML::JS::runscript($cx2,$glo2,$_[0],$rs);
 	print "FROM CTX 2 '$_[0]' GOT '$res' AND '$rs'\n"}
 
 rs "2+2";

@@ -1,8 +1,8 @@
-#VRML V2.0 utf8 
-# ml_drainer.wrl , created by vrml_scene.m on 12-Dec-1998 21:46:05 
+#VRML V2.0 utf8
+# ml_drainer.wrl , created by vrml_scene.m on 12-Dec-1998 21:46:05
 Background {
 skyAngle [0 0.5 1.0 1.5 2.0 2.5]
-  skyColor [0.8 0.8 0.8 
+  skyColor [0.8 0.8 0.8
   0.8 0.8 0.8
   0.8 0.8 0.8
   0.8 0.8 0.8
@@ -11,8 +11,8 @@ skyAngle [0 0.5 1.0 1.5 2.0 2.5]
   0.8 0.8 0.8]
   }
 #  Viewpoint {
-#  position   -5.575  -12.322   13.874 
-#    orientation    -0.977   -0.208   -0.035    3.439 
+#  position   -5.575  -12.322   13.874
+#    orientation    -0.977   -0.208   -0.035    3.439
 #  }
   Switch {
 choice
@@ -72,7 +72,7 @@ choice
           }
           }
         }
-    
+
   ]
   }Group {
     children [
@@ -220,18 +220,18 @@ choice
       10 ,
       11 ,
       ]
-      
+
       }
       }
       ]
   }
-  #VRML V2.0 utf8 
+  #VRML V2.0 utf8
 
 # Append this to a VRML 2.0 file which defines a coord node called "allpoints".
 
 Shape {
    appearance	 Appearance {
-      material Material { diffuseColor	 0.6 0.6 0.6 	}  
+      material Material { diffuseColor	 0.6 0.6 0.6 	}
    }
    geometry IndexedFaceSet {
       solid FALSE
@@ -253,8 +253,8 @@ Shape {
 			 13,   14,   22,   21,    -1,
 			 14,   15,   23,   22,    -1,
 			 # Concentric 4-edged 'faces' (indices jump)
-			 7,    0,     8,   15,    -1,    
-			 15,   8,    16,   23,    -1,    
+			 7,    0,     8,   15,    -1,
+			 15,   8,    16,   23,    -1,
 			 # Concentric 3-edged faces
 			 16,  17,  24,     -1,
 			 17,  25,  24,     -1,
@@ -279,21 +279,21 @@ Shape {
 }
 Shape {
    appearance	 Appearance {
-      material Material { diffuseColor	 0.8 0.8 0.1 	}  
+      material Material { diffuseColor	 0.8 0.8 0.1 	}
    }
    geometry IndexedFaceSet {
       solid FALSE
       coord USE allpoints
       coordIndex [
-			 # Handle 
-   		 29  , 34  , 35  , 30  , -1  , 
-   		 30  , 35  , 36  , 31  , -1  , 
-			 31  , 36  , 37  , 32  , -1  , 
-			 32  , 37  , 38  , 33  , -1  , 
-			 34  , 39  , 40  , 35  , -1  , 
-			 35  , 40  , 41  , 36  , -1  , 
-			 36  , 41  , 42  , 37  , -1  , 
-			 37  , 42  , 43  , 38  , -1  , 
+			 # Handle
+   		 29  , 34  , 35  , 30  , -1  ,
+   		 30  , 35  , 36  , 31  , -1  ,
+			 31  , 36  , 37  , 32  , -1  ,
+			 32  , 37  , 38  , 33  , -1  ,
+			 34  , 39  , 40  , 35  , -1  ,
+			 35  , 40  , 41  , 36  , -1  ,
+			 36  , 41  , 42  , 37  , -1  ,
+			 37  , 42  , 43  , 38  , -1  ,
 	  ]
    }
 }

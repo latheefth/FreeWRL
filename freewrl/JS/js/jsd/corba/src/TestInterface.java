@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public interface TestInterface extends org.omg.CORBA.Object
@@ -27,4 +27,4 @@ public interface TestInterface extends org.omg.CORBA.Object
     public Thing[] getThings();
     public void   callBounce( StringReciever sr, int count );
 }
- 
+

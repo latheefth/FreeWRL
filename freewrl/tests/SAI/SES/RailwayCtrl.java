@@ -15,7 +15,7 @@ public class RailwayCtrl {
   private int    direction; // +1 for left to right, -1 for right to left
   private double lastMove = -1;  // time of last movement
 
-  private CommClient comm = null; 
+  private CommClient comm = null;
 
   private int       number;
   private float[]   position;
@@ -24,15 +24,15 @@ public class RailwayCtrl {
   public static final float STARTING_POS   = -73;
   public static final float ENDING_POS     =  73;
   public static final float TRAIN_DISTANCE =  18;
-  public static final float SENSOR_POS[]   = { (float) -48, 
-						(float) -21.5, 
+  public static final float SENSOR_POS[]   = { (float) -48,
+						(float) -21.5,
 						(float)  21.5    };
   public static final float SIGNAL_POS     = -22;
 
-  public RailwayCtrl ( MFNode t, 
-		       int dir, 
+  public RailwayCtrl ( MFNode t,
+		       int dir,
 		       CommClient communicator,
-		       SFColor[]  colors) { 
+		       SFColor[]  colors) {
     direction = dir;
     comm = communicator;
     sensorColors = colors;
@@ -49,8 +49,8 @@ public class RailwayCtrl {
   public void continueMoving () {
     lastMove = -1;
   }
-  
-  public final 
+
+  public final
   void moveTrains (int signalState, double now, double ticksPerSec )
   {
     if (lastMove < 0 || now < lastMove) {
@@ -67,28 +67,28 @@ public class RailwayCtrl {
 	float mm = movement;
 	if (train[i].isActive) {
 	    for (int j=0; j<number; j++)
-		if (train[j].isActive && (i != j) && 
-		    trainInFront (train[i].linpos, train[i].linpos+mm, 
+		if (train[j].isActive && (i != j) &&
+		    trainInFront (train[i].linpos, train[i].linpos+mm,
 				  train[j].linpos)) {
 		    mm /= 2;
-		    if (trainInFront (train[i].linpos, train[i].linpos+mm, 
+		    if (trainInFront (train[i].linpos, train[i].linpos+mm,
 				      train[j].linpos))
 			mm = 0;
 	    }
-	    
-	    if (mm > 0 && atSignal (train[i].linpos, train[i].linpos+mm, 
+
+	    if (mm > 0 && atSignal (train[i].linpos, train[i].linpos+mm,
 				    SIGNAL_POS)) {
 		if (signalState != 2) {
 		    mm /= 2;
-		    if (atSignal (train[i].linpos, train[i].linpos+mm, 
+		    if (atSignal (train[i].linpos, train[i].linpos+mm,
 				  SIGNAL_POS))
 			mm = 0;
 		}
 	    }
-	    
+
 	    for (int j = 0; j < 3; j++)
-		if (atContakt(train[i].linpos, train[i].linpos+mm, 
-			      SENSOR_POS[j]) ) 
+		if (atContakt(train[i].linpos, train[i].linpos+mm,
+			      SENSOR_POS[j]) )
 		    comm.sensorActivated (direction, j);
 	}
 	train[i].moveTrain(signalState, mm);
@@ -96,33 +96,33 @@ public class RailwayCtrl {
   }
 
 
-  private static final boolean atContakt ( float oldTrainPos, 
-					   float trainPos, 
-					   float contaktPos ){ 
+  private static final boolean atContakt ( float oldTrainPos,
+					   float trainPos,
+					   float contaktPos ){
     return inRange (oldTrainPos, trainPos, contaktPos, (float)0, (float)0);
   }
-  
-  private static final boolean atSignal ( float oldTrainPos, 
-					  float trainPos, 
+
+  private static final boolean atSignal ( float oldTrainPos,
+					  float trainPos,
 					  float signalPos ){
     // range of 4m to .5m befor the signal will be relevant to train
     return inRange (oldTrainPos, trainPos, signalPos, (float)-4, (float)-.5);
   }
 
-  private static final boolean trainInFront (float oldThisPos, 
-					     float thisPos, 
+  private static final boolean trainInFront (float oldThisPos,
+					     float thisPos,
 					     float otherPos ){
     if (otherPos == STARTING_POS)
       return false;
     // move not nearer than 9m to the other train
-    return inRange (oldThisPos, thisPos, otherPos, 
+    return inRange (oldThisPos, thisPos, otherPos,
                     - TRAIN_DISTANCE, (float)0);
   }
 
-  private static final boolean inRange (float oldTestPos, 
-					float testPos, 
-					float otherPos, 
-					float beginning, 
+  private static final boolean inRange (float oldTestPos,
+					float testPos,
+					float otherPos,
+					float beginning,
 					float end) {
     return (oldTestPos <= otherPos + end) && (testPos >= otherPos + beginning);
   }
@@ -177,7 +177,7 @@ public class RailwayCtrl {
       else
 	comm.sensorDefect(direction, i);
   }
-    
+
 
 
   public void toggleSensorState (int i) {
@@ -200,7 +200,7 @@ public class RailwayCtrl {
   final public void reset ()
   {
     for (int i = 0; i < number; i++ ) {
-      if (train[i].isActive) 
+      if (train[i].isActive)
 	train[i].activate ();
     }
   }

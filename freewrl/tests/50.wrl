@@ -13,7 +13,7 @@ Group {
 	# rotating cylinder
 		DEF Column Transform {
 			#rotation 0.0 0.0 0.0 1.54
-			children 
+			children
 				Transform {
 				rotation 1.0 0.0 0.0 1.54
 				children [

@@ -22,7 +22,7 @@ public class EventOutSFVec2f extends EventOut {
 
 		fvals[0]=Float.valueOf(tokens.nextToken()).floatValue();
 		fvals[1]=Float.valueOf(tokens.nextToken()).floatValue();
-    
+
 		return fvals;
 	}
 }

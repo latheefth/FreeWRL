@@ -17,11 +17,11 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public final class IScriptSection
 {
     public int base;
     public int extent;
-}    
+}

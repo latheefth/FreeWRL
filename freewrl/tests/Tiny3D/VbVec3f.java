@@ -19,7 +19,7 @@ public class VbVec3f {
   }
 
   public float length() {
-    return (float) Math.sqrt(vec[0] * vec[0] + 
+    return (float) Math.sqrt(vec[0] * vec[0] +
 			     vec[1] * vec[1] +
 			     vec[2] * vec[2]);
   }
@@ -32,7 +32,7 @@ public class VbVec3f {
     }
 
     else setValue(0.0f, 0.0f, 0.0f);
-  }    
+  }
 
   public void setValue(float x, float y, float z) {
     vec[0] = x; vec[1] = y; vec[2] = z;

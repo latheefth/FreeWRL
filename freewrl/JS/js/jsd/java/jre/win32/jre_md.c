@@ -283,7 +283,7 @@ JRE_CreateJavaVM(void *handle, JavaVM **vmp, JNIEnv **envp, void *vmargs)
 * WinMain(HINSTANCE inst, HINSTANCE prevInst, LPSTR cmdLine, int cmdShow)
 * {
 *     __declspec(dllimport) char **__initenv;
-* 
+*
 *     __initenv = _environ;
 *     exit(main(__argc, __argv));
 * }

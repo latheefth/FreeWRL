@@ -27,7 +27,7 @@ sub MY::post_constants {
     my $constants ="";
     if ($VRML::Config::vrml_config{JAVA_INST}) {
 	my $class_re = qr/^.*\.java\z/;
-	my $source = findFiles("vrml", $class_re,"\\\n"); 
+	my $source = findFiles("vrml", $class_re,"\\\n");
 	$constants .= qq{
 JAVAC=javac
 JAR=jar

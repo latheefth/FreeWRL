@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,15 +39,15 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
 
-/* 
+/*
  * scalbn (double x, int n)
- * scalbn(x,n) returns x* 2**n  computed by  exponent  
- * manipulation rather than by actually performing an 
+ * scalbn(x,n) returns x* 2**n  computed by  exponent
+ * manipulation rather than by actually performing an
  * exponentiation or a multiplication.
  */
 
@@ -81,11 +81,11 @@ tiny   = 1.0e-300;
 	    x *= two54;
             u.d = x;
 	    hx = __HI(u);
-	    k = ((hx&0x7ff00000)>>20) - 54; 
+	    k = ((hx&0x7ff00000)>>20) - 54;
             if (n< -50000) return tiny*x; 	/*underflow*/
 	    }
         if (k==0x7ff) return x+x;		/* NaN or Inf */
-        k = k+n; 
+        k = k+n;
         if (k >  0x7fe) return really_big*fd_copysign(really_big,x); /* overflow  */
         if (k > 0) 				/* normal result */
 	    {u.d = x; __HI(u) = (hx&0x800fffff)|(k<<20); x = u.d; return x;}

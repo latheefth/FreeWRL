@@ -16,10 +16,10 @@ public class ConstMFNode extends ConstMField {
     }
 
     public ConstMFNode(int size, BaseNode[] node) {
-        for (int i = 0; i < size; i++)	
+        for (int i = 0; i < size; i++)
             __vect.addElement(new ConstSFNode(node[i]));
     }
-	
+
     public void getValue(BaseNode[] node) {
         __updateRead();
         int size = __vect.size();

@@ -17,7 +17,7 @@
 # Copyright (C) 1999 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -65,7 +65,7 @@ else{
 
 sub find_ExtUtils{
 	if($notfound){
-		if($File::Find::dir =~ /ExtUtils/){	
+		if($File::Find::dir =~ /ExtUtils/){
 			my $path = cwd;
 			$xsubpp = $path . "/xsubpp";
 			$typemap = $path . "/typemap";

@@ -5,7 +5,7 @@
 # for conditions of use and redistribution.
 
 
-DEF TIMER TimeSensor 
+DEF TIMER TimeSensor
   {cycleInterval 6 startTime 0 stopTime -1 enabled TRUE loop TRUE}
 DEF ORI OrientationInterpolator {
 	key [ 0 0.25 0.5 0.75 1]
@@ -26,7 +26,7 @@ children [
 Shape {
 	geometry Box { size 4.5 4.5 20 }
 	appearance Appearance { material Material { diffuseColor 0.8 0.4 0.4} }
-} 
+}
 
 DEF WHOLE Transform {
 	translation 0 0 10

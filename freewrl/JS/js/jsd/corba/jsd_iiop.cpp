@@ -17,11 +17,11 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 /*
- * jsd_iiop.cpp   
+ * jsd_iiop.cpp
  *
  * iiop interface to allow access to server backend from client frontend.
  *
@@ -29,9 +29,9 @@
  * 8/06/97
  *
  */
- 
+
 #ifndef SERVER_BUILD
-    #error jsd_iiop.cpp is for LiveWire only  
+    #error jsd_iiop.cpp is for LiveWire only
 #endif
 
 #include "jsdebug.h"
@@ -83,11 +83,11 @@ static void _write_to_logfile(const char* str)
 #endif
 
     char* buf = PR_smprintf("thread: \"%0x\" msg: \"%s\"\n", threadid, str);
-    fwrite(buf, sizeof(char), strlen(buf), logfile);        
+    fwrite(buf, sizeof(char), strlen(buf), logfile);
     fflush(logfile);
     free(buf);
     PR_ExitMonitor(mon);
-}    
+}
 
 // #define TRACE(msg) log_error(LOG_VERBOSE, "jsd_iiop", NULL, NULL, "TRACE: %s", msg)
 #define TRACE(msg) _write_to_logfile(msg)
@@ -101,7 +101,7 @@ static void _write_to_logfile(const char* str)
 
 static void _deferedFree(void* ptr)
 {
-// it is important that this number be high enough -- no recursive or 
+// it is important that this number be high enough -- no recursive or
 // huge thread count usage of this function!
 #define DEFERED_FREE_PTR_COUNT 50
     static void* cache[DEFERED_FREE_PTR_COUNT];
@@ -131,7 +131,7 @@ static void _deferedFree(void* ptr)
         current = 0;
 
     PR_ExitMonitor(mon);
-}    
+}
 
 
 
@@ -146,20 +146,20 @@ PR_EXTERN(int)
 ssjsdebugInit(pblock *pb, Session *sn, Request *rq);
 
 PR_EXTERN(PRUintn)
-ssjsdErrorReporter( JSDContext*     jsdc, 
+ssjsdErrorReporter( JSDContext*     jsdc,
                     JSContext*      cx,
-                    const char*     message, 
+                    const char*     message,
                     JSErrorReport*  report,
                     void*           callerdata );
 
 PR_EXTERN(void)
-ssjsdScriptHookProc( JSDContext* jsdc, 
+ssjsdScriptHookProc( JSDContext* jsdc,
                      JSDScript*  jsdscript,
                      JSBool      creating,
                      void*       callerdata );
 
 PR_EXTERN(PRUintn)
-ssjsdExecutionHookProc( JSDContext*     jsdc, 
+ssjsdExecutionHookProc( JSDContext*     jsdc,
                         JSDThreadState* jsdthreadstate,
                         PRUintn         type,
                         void*           callerdata );
@@ -309,29 +309,29 @@ private:
 
     inline void _initPC(IJSPC& pc, const IScript& script, CORBA::Long offset)
     {
-        pc.script = script; 
+        pc.script = script;
         pc.offset = offset;
     }
-    inline void _initSourceLocation(IJSSourceLocation& sl, 
+    inline void _initSourceLocation(IJSSourceLocation& sl,
                                     const IJSPC& pc,
                                     CORBA::Long line)
     {
         sl.pc = pc;
-        sl.line = line; 
+        sl.line = line;
     }
     inline void _initStackFrameInfo(IJSStackFrameInfo& sf, const IJSPC& pc,
                                     CORBA::Long jsdframe)
     {
-        sf.pc = pc; 
+        sf.pc = pc;
         sf.jsdframe = jsdframe;
     }
 
     IJSExecutionHook_ptr _findInstructionHook(const IJSPC& pc);
-    PRBool               _addInstructionHook(const IJSPC& pc, 
+    PRBool               _addInstructionHook(const IJSPC& pc,
                                              IJSExecutionHook_ptr hook);
     IJSExecutionHook_ptr _removeInstructionHook(const IJSPC& pc);
-    PRBool               _initInstructionHookTable();    
-    void                 _freeInstructionHookTable();    
+    PRBool               _initInstructionHookTable();
+    void                 _freeInstructionHookTable();
 
     inline void    _lock()   {PR_EnterMonitor(_monitor);}
     inline void    _unlock() {PR_ExitMonitor(_monitor);}
@@ -362,12 +362,12 @@ class ThreadState
 private:
     // only our static can construct one of us
     ThreadState();  // not implemented
-    ThreadState(PRThread* currentThread);      
+    ThreadState(PRThread* currentThread);
     ~ThreadState();
 public:
     static ThreadState* getThreadStateForCurrentThread(void);
     static ThreadState* findThreadStateForCurrentThread(void);
-        
+
     void    callHook(DebugController*               controller,
                      IJSExecutionHook*              hook,
                      sequence_of_IJSStackFrameInfo& stack,
@@ -430,7 +430,7 @@ private:
 
     static ThreadState* _findThreadState(PRThread* currentThread);
     static ThreadState* _createThreadState(PRThread* currentThread);
-    
+
 private:
     // private instance methods
 
@@ -489,7 +489,7 @@ public:
     static void  static_destroy(PREvent* e);
 private:
     ThreadState* _ts;
-}; 
+};
 
 /**************************/
 
@@ -572,7 +572,7 @@ public:
     {
         STOP,
         CONTINUE_SEND_INTERRUPT,
-        CONTINUE_DONE          
+        CONTINUE_DONE
     };
 
     StepHandler();  // not implemented
@@ -652,9 +652,9 @@ private:
 /***************************************************************************/
 
 PR_IMPLEMENT(PRUintn)
-ssjsdErrorReporter( JSDContext*     jsdc, 
+ssjsdErrorReporter( JSDContext*     jsdc,
                     JSContext*      cx,
-                    const char*     message, 
+                    const char*     message,
                     JSErrorReport*  report,
                     void*           callerdata )
 {
@@ -663,7 +663,7 @@ ssjsdErrorReporter( JSDContext*     jsdc,
 }
 
 PR_IMPLEMENT(void)
-ssjsdScriptHookProc( JSDContext* jsdc, 
+ssjsdScriptHookProc( JSDContext* jsdc,
                      JSDScript*  jsdscript,
                      JSBool      creating,
                      void*       callerdata )
@@ -673,7 +673,7 @@ ssjsdScriptHookProc( JSDContext* jsdc,
 }
 
 PR_IMPLEMENT(PRUintn)
-ssjsdExecutionHookProc( JSDContext*     jsdc, 
+ssjsdExecutionHookProc( JSDContext*     jsdc,
                         JSDThreadState* jsdthreadstate,
                         PRUintn         type,
                         void*           callerdata )
@@ -708,8 +708,8 @@ DebugController::DebugController(const char* name)
         _stepHandler(NULL),
         _oldStepHandler(NULL)
 {
-    // do nothing    
-}    
+    // do nothing
+}
 
 void
 DebugController::init(JSDContext* jsdc)
@@ -720,7 +720,7 @@ DebugController::init(JSDContext* jsdc)
     JSD_SetScriptHook(_jsdc, ssjsdScriptHookProc, this);
     JSD_SetDebugBreakHook(_jsdc, ssjsdExecutionHookProc, this );
     _initInstructionHookTable();
-}    
+}
 
 DebugController::~DebugController()
 {
@@ -733,9 +733,9 @@ DebugController::~DebugController()
     }
     if(_monitor)
         PR_DestroyMonitor(_monitor);
-}    
+}
 
-IJSErrorReporter_ptr 
+IJSErrorReporter_ptr
 DebugController::setErrorReporter(IJSErrorReporter_ptr arg0)
 {
     TRACE("DebugController::setErrorReporter called");
@@ -748,18 +748,18 @@ DebugController::setErrorReporter(IJSErrorReporter_ptr arg0)
     // no need to release the old hook, because returning it here
     // will cause a release call.
     return old;
-}    
+}
 
-IJSErrorReporter_ptr 
+IJSErrorReporter_ptr
 DebugController::getErrorReporter()
 {
     TRACE("DebugController::getErrorReporter called");
     if( _errorReporter )
         return _errorReporter->_duplicate(_errorReporter);
-    return NULL;    
-}    
+    return NULL;
+}
 
-IScriptHook_ptr 
+IScriptHook_ptr
 DebugController::setScriptHook(IScriptHook_ptr arg0)
 {
     TRACE("DebugController::setScriptHook called");
@@ -772,18 +772,18 @@ DebugController::setScriptHook(IScriptHook_ptr arg0)
     // no need to release the old hook, because returning it here
     // will cause a release call.
     return old;
-}    
+}
 
-IScriptHook_ptr 
+IScriptHook_ptr
 DebugController::getScriptHook()
 {
     TRACE("DebugController::getScriptHook called");
     if( _scriptHook )
         return _scriptHook->_duplicate(_scriptHook);
     return NULL;
-}    
+}
 
-IJSExecutionHook_ptr 
+IJSExecutionHook_ptr
 DebugController::setInterruptHook(IJSExecutionHook_ptr arg0)
 {
     TRACE("DebugController::setInterruptHook called");
@@ -798,7 +798,7 @@ DebugController::setInterruptHook(IJSExecutionHook_ptr arg0)
     return old;
 }
 
-IJSExecutionHook_ptr 
+IJSExecutionHook_ptr
 DebugController::getInterruptHook()
 {
     TRACE("DebugController::getInterruptHook called");
@@ -807,7 +807,7 @@ DebugController::getInterruptHook()
     return NULL;
 }
 
-IJSExecutionHook_ptr 
+IJSExecutionHook_ptr
 DebugController::setDebugBreakHook(IJSExecutionHook_ptr arg0)
 {
     TRACE("DebugController::setDebugBreakHook called");
@@ -822,7 +822,7 @@ DebugController::setDebugBreakHook(IJSExecutionHook_ptr arg0)
     return old;
 }
 
-IJSExecutionHook_ptr 
+IJSExecutionHook_ptr
 DebugController::getDebugBreakHook()
 {
     TRACE("DebugController::getDebugBreakHook called");
@@ -832,7 +832,7 @@ DebugController::getDebugBreakHook()
 }
 
 
-IJSExecutionHook_ptr 
+IJSExecutionHook_ptr
 DebugController::setInstructionHook(IJSExecutionHook_ptr arg0,
                                     const IJSPC& arg1)
 {
@@ -852,7 +852,7 @@ DebugController::setInstructionHook(IJSExecutionHook_ptr arg0,
     return oldHook;
 }
 
-IJSExecutionHook_ptr 
+IJSExecutionHook_ptr
 DebugController::getInstructionHook(const IJSPC& arg0)
 {
     TRACE("DebugController::getInstructionHook() called");
@@ -872,7 +872,7 @@ DebugController::getClosestPC(const IScript& arg0, CORBA::Long arg1)
     return pc;
 }
 
-IJSSourceLocation * 
+IJSSourceLocation *
 DebugController::getSourceLocation(const IJSPC& arg0)
 {
     TRACE("DebugController::getSourceLocation() called");
@@ -882,13 +882,13 @@ DebugController::getSourceLocation(const IJSPC& arg0)
 
     IJSPC pc;
     _initPC(pc, arg0.script, (CORBA::Long) offset);
-    
+
     IJSSourceLocation* loc = new IJSSourceLocation();
     _initSourceLocation(*loc, pc, (CORBA::Long)line);
     return loc;
-} 
+}
 
-void 
+void
 DebugController::setThreadContinueState(CORBA::Long arg0, CORBA::Long arg1)
 {
     TRACE("DebugController::setThreadContinueState() called");
@@ -896,15 +896,15 @@ DebugController::setThreadContinueState(CORBA::Long arg0, CORBA::Long arg1)
     state->getJSThreadState().continueState = arg1;
 }
 
-void 
+void
 DebugController::setThreadReturnValue(CORBA::Long arg0, const char * arg1)
 {
     TRACE("DebugController::setThreadReturnValue() called");
     ThreadState* state = (ThreadState*)arg0;
     state->getJSThreadState().returnValue = arg1;
 }
- 
-void 
+
+void
 DebugController::sendInterrupt()
 {
     TRACE("DebugController::sendInterrupt() called");
@@ -918,7 +918,7 @@ void DebugController::sendInterruptStepInto(CORBA::Long arg0)
     _clearStepHandler(PR_FALSE);
     _stepHandler = new StepInto(_jsdc, (ThreadState*) arg0);
     JSD_SetInterruptHook(_jsdc, ssjsdExecutionHookProc, this );
-}    
+}
 
 void DebugController::sendInterruptStepOver(CORBA::Long arg0)
 {
@@ -926,7 +926,7 @@ void DebugController::sendInterruptStepOver(CORBA::Long arg0)
     _clearStepHandler(PR_FALSE);
     _stepHandler = new StepOver(_jsdc, (ThreadState*) arg0);
     JSD_SetInterruptHook(_jsdc, ssjsdExecutionHookProc, this );
-}    
+}
 
 void DebugController::sendInterruptStepOut(CORBA::Long arg0)
 {
@@ -940,7 +940,7 @@ void DebugController::reinstateStepper(CORBA::Long arg0)
 {
     TRACE("DebugController::reinstateStepper() called");
     _reinstateStepHandler();
-}    
+}
 
 IExecResult *
 DebugController::executeScriptInStackFrame(CORBA::Long arg0,
@@ -963,7 +963,7 @@ DebugController::executeScriptInStackFrame(CORBA::Long arg0,
 }
 
 
-CORBA::Boolean 
+CORBA::Boolean
 DebugController::isRunningHook(CORBA::Long arg0)
 {
     TRACE("DebugController::isRunningHook() called");
@@ -971,7 +971,7 @@ DebugController::isRunningHook(CORBA::Long arg0)
     return state->isRunningHook();
 }
 
-CORBA::Boolean 
+CORBA::Boolean
 DebugController::isWaitingForResume(CORBA::Long arg0)
 {
     TRACE("DebugController::isWaitingForResume() called");
@@ -985,7 +985,7 @@ DebugController::leaveThreadSuspended(CORBA::Long arg0)
     TRACE("DebugController::leaveThreadSuspended() called");
     ThreadState* state = (ThreadState*) arg0;
     state->leaveThreadSuspended();
-}    
+}
 
 void
 DebugController::resumeThread(CORBA::Long arg0)
@@ -993,9 +993,9 @@ DebugController::resumeThread(CORBA::Long arg0)
     TRACE("DebugController::resumeThread() called");
     ThreadState* state = (ThreadState*) arg0;
     state->resumeThread();
-}    
+}
 
-void 
+void
 DebugController::iterateScripts(IScriptHook_ptr arg0)
 {
     IScript script;
@@ -1014,16 +1014,16 @@ DebugController::iterateScripts(IScriptHook_ptr arg0)
         }
         catch(...)
         {
-            // eat it...        
+            // eat it...
         }
     }
     JSD_UnlockScriptSubsystem(_jsdc);
-}    
+}
 
 
 /**************************************/
 
-void 
+void
 DebugController::_initScript(IScript& s, CORBA::Long jsdscript, PRBool alive)
 {
     s.url     = JSD_GetScriptFilename(_jsdc, (JSDScript*)jsdscript);
@@ -1098,7 +1098,7 @@ DebugController::_initScript(IScript& s, CORBA::Long jsdscript, PRBool alive)
     {
         PRUintn baseBefore = s.base;
         if(alive)
-            JSDLW_ProcessedToRawLineNumber(_jsdc, (JSDScript*)jsdscript, 
+            JSDLW_ProcessedToRawLineNumber(_jsdc, (JSDScript*)jsdscript,
                                            s.base, &baseBefore );
         // no sections added, add the whole thing as a single section
         IScriptSection* sections = new IScriptSection[1];
@@ -1108,7 +1108,7 @@ DebugController::_initScript(IScript& s, CORBA::Long jsdscript, PRBool alive)
     }
 }
 
-int 
+int
 DebugController::_callErrorReporter(const char* msg, JSErrorReport* report)
 {
     if( ! _errorReporter )
@@ -1162,12 +1162,12 @@ DebugController::_callErrorReporter(const char* msg, JSErrorReport* report)
     }
     catch(...)
     {
-        // eat it...        
+        // eat it...
     }
     return retval;
 }
 
-void    
+void
 DebugController::_callScriptHook(JSDScript* jsdscript, JSBool creating)
 {
     if( ! _scriptHook )
@@ -1177,7 +1177,7 @@ DebugController::_callScriptHook(JSDScript* jsdscript, JSBool creating)
     // while doing eval on that thread (which is what must be happening if
     // we have the thread stopped, yet have reaced this hook)
     //
-    // This seemed to be causing deadlocks in calling back to the debugger 
+    // This seemed to be causing deadlocks in calling back to the debugger
     // under some circumstances
 
     ThreadState* ts = ThreadState::findThreadStateForCurrentThread();
@@ -1186,7 +1186,7 @@ DebugController::_callScriptHook(JSDScript* jsdscript, JSBool creating)
 
     IScript script;
     _initScript(script, (long) jsdscript, creating);
-    
+
     try
     {
         if( creating )
@@ -1204,11 +1204,11 @@ DebugController::_callScriptHook(JSDScript* jsdscript, JSBool creating)
     }
     catch(...)
     {
-        // eat it...        
+        // eat it...
     }
-}    
+}
 
-int     
+int
 DebugController::_callExecutionHook(JSDThreadState* jsdthreadstate, PRUintn type)
 {
     IJSExecutionHook_ptr hook = NULL;
@@ -1219,7 +1219,7 @@ DebugController::_callExecutionHook(JSDThreadState* jsdthreadstate, PRUintn type
                 JSD_GetScriptForStackFrame(_jsdc, jsdthreadstate,jsdframeTop),
                 PR_TRUE );
     IJSPC pcTop;
-    _initPC(pcTop, scriptTop, (CORBA::Long) 
+    _initPC(pcTop, scriptTop, (CORBA::Long)
             JSD_GetPCForStackFrame(_jsdc, jsdthreadstate, jsdframeTop));
 
     switch(type)
@@ -1246,17 +1246,17 @@ DebugController::_callExecutionHook(JSDThreadState* jsdthreadstate, PRUintn type
         }
         else
         {
-            JSD_ClearInterruptHook(_jsdc); 
+            JSD_ClearInterruptHook(_jsdc);
         }
         break;
-    case JSD_HOOK_BREAKPOINT:        
+    case JSD_HOOK_BREAKPOINT:
         _clearStepHandler(PR_TRUE);
-        JSD_ClearInterruptHook(_jsdc); 
+        JSD_ClearInterruptHook(_jsdc);
         hook = _findInstructionHook(pcTop);
         break;
     case JSD_HOOK_DEBUG_REQUESTED:
         _clearStepHandler(PR_FALSE);
-        JSD_ClearInterruptHook(_jsdc); 
+        JSD_ClearInterruptHook(_jsdc);
         hook = _debugBreakHook;
         break;
     default:
@@ -1281,7 +1281,7 @@ DebugController::_callExecutionHook(JSDThreadState* jsdthreadstate, PRUintn type
                     JSD_GetScriptForStackFrame(_jsdc, jsdthreadstate,jsdframe),
                     PR_TRUE);
         IJSPC pc;
-        _initPC(pc, script, (CORBA::Long) 
+        _initPC(pc, script, (CORBA::Long)
                 JSD_GetPCForStackFrame(_jsdc, jsdthreadstate, jsdframe));
 
         _initStackFrameInfo(frames[--i], pc, (CORBA::Long) jsdframe);
@@ -1307,9 +1307,9 @@ DebugController::_callExecutionHook(JSDThreadState* jsdthreadstate, PRUintn type
     state->callHook(this, hook, stack, &pcTop, jsdthreadstate);
 
     return state->getJSThreadState().continueState;
-}    
+}
 
-JSDScript*     
+JSDScript*
 DebugController::_findScriptAt(const char* filename, int lineno)
 {
     JSDScript* script;
@@ -1334,7 +1334,7 @@ DebugController::_findScriptAt(const char* filename, int lineno)
         }
     }
     return best_script;
-}    
+}
 
 /**************************/
 
@@ -1346,13 +1346,13 @@ _hash_root(const void *key)
 PR_STATIC_CALLBACK(PRIntn)
 _hash_key_comparer(const void *v1, const void *v2)
 {
-    if( ( ((HookKey*)v1)->pc.script.jsdscript == 
+    if( ( ((HookKey*)v1)->pc.script.jsdscript ==
           ((HookKey*)v2)->pc.script.jsdscript ) &&
-        ( ((HookKey*)v1)->pc.offset == 
+        ( ((HookKey*)v1)->pc.offset ==
           ((HookKey*)v2)->pc.offset ) )
         return 1;
     return 0;
-}    
+}
 
 PR_STATIC_CALLBACK(PRIntn)
 _hash_entry_zapper(PRHashEntry *he, PRIntn i, void *arg)
@@ -1364,24 +1364,24 @@ _hash_entry_zapper(PRHashEntry *he, PRIntn i, void *arg)
     he->key   = NULL;
     return HT_ENUMERATE_NEXT;
 }
-    
-IJSExecutionHook_ptr 
+
+IJSExecutionHook_ptr
 DebugController::_findInstructionHook(const IJSPC& pc)
 {
-    IJSExecutionHook_ptr hook = NULL; 
+    IJSExecutionHook_ptr hook = NULL;
     if( _instructionHookTable )
     {
         _lock();
         HookKey key(pc);
-        hook = (IJSExecutionHook_ptr) 
+        hook = (IJSExecutionHook_ptr)
                 PR_HashTableLookup(_instructionHookTable, &key);
         _unlock();
     }
     return hook;
-}    
+}
 
-PRBool               
-DebugController::_addInstructionHook(const IJSPC& pc, 
+PRBool
+DebugController::_addInstructionHook(const IJSPC& pc,
                                      IJSExecutionHook_ptr hook)
 {
     PRBool retval = PR_FALSE;
@@ -1391,7 +1391,7 @@ DebugController::_addInstructionHook(const IJSPC& pc,
         _lock();
         retval = PR_HashTableAdd(_instructionHookTable,key,hook)?PR_TRUE:PR_FALSE;
         _unlock();
-        JSD_SetExecutionHook(_jsdc, (JSDScript*)pc.script.jsdscript, pc.offset, 
+        JSD_SetExecutionHook(_jsdc, (JSDScript*)pc.script.jsdscript, pc.offset,
                              ssjsdExecutionHookProc, this);
     }
     return retval;
@@ -1402,7 +1402,7 @@ DebugController::_removeInstructionHook(const IJSPC& pc)
 {
     JSD_ClearExecutionHook(_jsdc, (JSDScript*)pc.script.jsdscript, pc.offset );
 
-    IJSExecutionHook_ptr hook = NULL; 
+    IJSExecutionHook_ptr hook = NULL;
     if( _instructionHookTable )
     {
         HookKey key(pc);
@@ -1418,9 +1418,9 @@ DebugController::_removeInstructionHook(const IJSPC& pc)
         _unlock();
     }
     return hook;
-}    
+}
 
-PRBool               
+PRBool
 DebugController::_initInstructionHookTable()
 {
     _instructionHookTable = PR_NewHashTable( 256, _hash_root,
@@ -1430,7 +1430,7 @@ DebugController::_initInstructionHookTable()
     return _instructionHookTable ? PR_TRUE : PR_FALSE;
 }
 
-void                 
+void
 DebugController::_freeInstructionHookTable()
 {
     if( _instructionHookTable )
@@ -1439,9 +1439,9 @@ DebugController::_freeInstructionHookTable()
         PR_HashTableDestroy(_instructionHookTable);
     }
     _instructionHookTable = NULL;
-}    
+}
 
-void 
+void
 DebugController::_clearStepHandler(PRBool canReinstate)
 {
     if( canReinstate )
@@ -1452,7 +1452,7 @@ DebugController::_clearStepHandler(PRBool canReinstate)
                 delete _oldStepHandler;
             _oldStepHandler = _stepHandler;
             _stepHandler = NULL;
-            JSD_ClearInterruptHook(_jsdc); 
+            JSD_ClearInterruptHook(_jsdc);
         }
     }
     else
@@ -1461,7 +1461,7 @@ DebugController::_clearStepHandler(PRBool canReinstate)
         {
             delete _stepHandler;
             _stepHandler = NULL;
-            JSD_ClearInterruptHook(_jsdc); 
+            JSD_ClearInterruptHook(_jsdc);
         }
         if( _oldStepHandler )
         {
@@ -1480,7 +1480,7 @@ DebugController::_reinstateStepHandler()
         _oldStepHandler = NULL;
         JSD_SetInterruptHook(_jsdc, ssjsdExecutionHookProc, this );
     }
-}    
+}
 
 /**************************/
 
@@ -1511,7 +1511,7 @@ ThreadState::ThreadState(PRThread* currentThread)
         _suicideMessageRecieved(PR_FALSE),
         _execResult()
 {
-    // do nothing...   
+    // do nothing...
 }
 
 ThreadState::~ThreadState()
@@ -1519,7 +1519,7 @@ ThreadState::~ThreadState()
     if( _mainEventQueue )
         PR_DestroyEventQueue(_mainEventQueue);
     _removeIndexForThread(_currentThread);
-}    
+}
 
 PRHashNumber
 ThreadState::_hash_root(const void *key)
@@ -1528,7 +1528,7 @@ ThreadState::_hash_root(const void *key)
     return num >> 2;
 }
 
-PRBool 
+PRBool
 ThreadState::_prepThread2IndexTable()
 {
     if(_thread2IndexTable)
@@ -1547,7 +1547,7 @@ ThreadState::_prepThread2IndexTable()
     return _thread2IndexTable ? PR_TRUE : PR_FALSE;
 }
 
-PRBool 
+PRBool
 ThreadState::_findIndexForThread(PRThread* thread, PRUintn* index)
 {
     PRUintn indexPlusOne;
@@ -1570,7 +1570,7 @@ ThreadState::_findIndexForThread(PRThread* thread, PRUintn* index)
     return PR_FALSE;
 }
 
-PRBool 
+PRBool
 ThreadState::_setIndexForThread(PRThread* thread, PRUintn index)
 {
     PRBool retval;
@@ -1588,13 +1588,13 @@ ThreadState::_setIndexForThread(PRThread* thread, PRUintn index)
     return retval;
 }
 
-PRBool 
+PRBool
 ThreadState::_removeIndexForThread(PRThread* thread)
 {
     PRBool retval;
 
     PR_ASSERT(thread);
-    
+
     if( ! _prepThread2IndexTable() )
         return PR_FALSE;
 
@@ -1607,13 +1607,13 @@ ThreadState::_removeIndexForThread(PRThread* thread)
 
 /**************************/
 
-ThreadState* 
+ThreadState*
 ThreadState::findThreadStateForCurrentThread(void)
 {
     return _findThreadState(PR_GetCurrentThread());
 }
 
-ThreadState* 
+ThreadState*
 ThreadState::getThreadStateForCurrentThread(void)
 {
     PRThread* currentThread = PR_GetCurrentThread();
@@ -1621,9 +1621,9 @@ ThreadState::getThreadStateForCurrentThread(void)
     if(! ts)
         ts = _createThreadState(currentThread);
     return ts;
-}    
+}
 
-ThreadState* 
+ThreadState*
 ThreadState::_findThreadState(PRThread* currentThread)
 {
     PRUintn index;
@@ -1635,7 +1635,7 @@ ThreadState::_findThreadState(PRThread* currentThread)
     return NULL;
 }
 
-ThreadState* 
+ThreadState*
 ThreadState::_createThreadState(PRThread* currentThread)
 {
     PRUintn index;
@@ -1653,13 +1653,13 @@ ThreadState::_createThreadState(PRThread* currentThread)
 
     if( PR_FAILURE == PR_SetThreadPrivate(index, ts) )
         return NULL;
-    
+
     return ts;
 }
 
 /**************************/
 
-PRBool 
+PRBool
 ThreadState::_initEventQueues(void)
 {
     char name[64];
@@ -1680,9 +1680,9 @@ ThreadState::_initEventQueues(void)
     _lock();
     if( PR_CreateThread(PR_USER_THREAD,
                         _otherThreadProc,
-                        this, 
-                        PR_PRIORITY_NORMAL, 
-                        PR_GLOBAL_THREAD, 
+                        this,
+                        PR_PRIORITY_NORMAL,
+                        PR_GLOBAL_THREAD,
                         PR_UNJOINABLE_THREAD,
                         0) )
     {
@@ -1694,9 +1694,9 @@ ThreadState::_initEventQueues(void)
     _unlock();
 
     return NULL == _hookCallerEventQueue ? PR_FALSE : PR_TRUE;
-}    
+}
 
-void 
+void
 ThreadState::_otherThreadProc(void* arg)
 {
     char name[64];
@@ -1725,16 +1725,16 @@ ThreadState::_otherThreadProc(void* arg)
             }
         }
 
-        // delete our queue        
+        // delete our queue
         PR_DestroyEventQueue(self->_hookCallerEventQueue);
         self->_hookCallerEventQueue = NULL;
         // delete our self!
         delete self;
     }
     // return here ends this 'other' thread
-}    
+}
 
-void 
+void
 ThreadState::_callbackForPRThreadDeath(void *arg)
 {
     ThreadState* self = (ThreadState*)arg;
@@ -1749,7 +1749,7 @@ ThreadState::_callbackForPRThreadDeath(void *arg)
         // otherwise, just delete it.
         delete self;
     }
-}    
+}
 
 /**************************/
 
@@ -1802,9 +1802,9 @@ ThreadState::callHook(DebugController*               controller,
             PR_HandleEvent(e);
         }
     }
-}    
+}
 
-PRBool  
+PRBool
 ThreadState::isRunningHook(void)
 {
     return _isRunningHook;
@@ -1823,7 +1823,7 @@ PRBool  ThreadState::isWaitingForResume(void)
 //      _actualCallToHookIsHappening
 //
 
-void    
+void
 ThreadState::leaveThreadSuspended(void)
 {
     _lock();
@@ -1831,7 +1831,7 @@ ThreadState::leaveThreadSuspended(void)
     _unlock();
 }
 
-void    
+void
 ThreadState::resumeThread()
 {
     _lock();
@@ -1850,16 +1850,16 @@ void
 ThreadState::eventSaysSuicide(void)
 {
     _suicideMessageRecieved = PR_TRUE;
-}    
+}
 void
 ThreadState::eventSaysResume(void)
 {
     PR_ASSERT(_isRunningHook);
     _isRunningHook = PR_FALSE;
-}    
+}
 
 // called on 'other' thread...
-void 
+void
 ThreadState::eventSaysCallHook(void)
 {
     PR_ASSERT(_isRunningHook);
@@ -1873,7 +1873,7 @@ ThreadState::eventSaysCallHook(void)
     }
     catch(...)
     {
-        // eat it...        
+        // eat it...
         _jsts.continueState = JSD_HOOK_RETURN_CONTINUE;
     }
 
@@ -1885,7 +1885,7 @@ ThreadState::eventSaysCallHook(void)
         e->post(_mainEventQueue);
     }
     _unlock();
-}    
+}
 
 /***************************************************************************/
 /***************************************************************************/
@@ -1905,9 +1905,9 @@ JSDResumeEvent::post(PREventQueue* queue)
 //    PR_ENTER_EVENT_QUEUE_MONITOR(queue);
     PR_PostEvent(queue, this);
 //    PR_EXIT_EVENT_QUEUE_MONITOR(queue);
-}    
+}
 
-void* 
+void*
 JSDResumeEvent::static_handle(PREvent* e)
 {
     JSDResumeEvent* self = (JSDResumeEvent*) e;
@@ -1915,7 +1915,7 @@ JSDResumeEvent::static_handle(PREvent* e)
     PR_ASSERT(self->_ts);
     self->_ts->eventSaysResume();
     return NULL;
-}    
+}
 
 void
 JSDResumeEvent::static_destroy(PREvent* e)
@@ -1923,13 +1923,13 @@ JSDResumeEvent::static_destroy(PREvent* e)
     JSDResumeEvent* self = (JSDResumeEvent*) e;
     PR_ASSERT(self);
     delete self;
-}    
+}
 
 /***************************************************************************/
 
 JSDSuicideEvent::JSDSuicideEvent(ThreadState* ts)
     :   _ts(ts)
-    
+
 {
     PR_ASSERT(_ts);
     PR_InitEvent(this, NULL, static_handle, static_destroy);
@@ -1942,9 +1942,9 @@ JSDSuicideEvent::post(PREventQueue* queue)
 //    PR_ENTER_EVENT_QUEUE_MONITOR(queue);
     PR_PostEvent(queue, this);
 //    PR_EXIT_EVENT_QUEUE_MONITOR(queue);
-}    
+}
 
-void* 
+void*
 JSDSuicideEvent::static_handle(PREvent* e)
 {
     JSDSuicideEvent* self = (JSDSuicideEvent*) e;
@@ -1952,7 +1952,7 @@ JSDSuicideEvent::static_handle(PREvent* e)
     PR_ASSERT(self->_ts);
     self->_ts->eventSaysSuicide();
     return NULL;
-}    
+}
 
 void
 JSDSuicideEvent::static_destroy(PREvent* e)
@@ -1960,7 +1960,7 @@ JSDSuicideEvent::static_destroy(PREvent* e)
     JSDSuicideEvent* self = (JSDSuicideEvent*) e;
     PR_ASSERT(self);
     delete self;
-}    
+}
 
 /***************************************************************************/
 
@@ -1971,7 +1971,7 @@ JSDCallHookEvent::JSDCallHookEvent(ThreadState* ts)
     PR_InitEvent(this, NULL, static_handle, static_destroy);
 }
 
-void 
+void
 JSDCallHookEvent::post(PREventQueue* queue)
 {
     PR_ASSERT(queue);
@@ -1980,7 +1980,7 @@ JSDCallHookEvent::post(PREventQueue* queue)
 //    PR_EXIT_EVENT_QUEUE_MONITOR(queue);
 }
 
-void* 
+void*
 JSDCallHookEvent::static_handle(PREvent* e)
 {
     JSDCallHookEvent* self = (JSDCallHookEvent*) e;
@@ -1990,7 +1990,7 @@ JSDCallHookEvent::static_handle(PREvent* e)
     return NULL;
 }
 
-void  
+void
 JSDCallHookEvent::static_destroy(PREvent* e)
 {
     JSDCallHookEvent* self = (JSDCallHookEvent*) e;
@@ -2034,26 +2034,26 @@ JSDExecuteEvent::postSynchronous(PREventQueue* queue)
     PR_ASSERT(queue);
     IExecResult* result = (IExecResult*) PR_PostSynchronousEvent(queue, this);
     return result;
-}    
+}
 
-void* 
+void*
 JSDExecuteEvent::static_handle(PREvent* e)
 {
     JSDExecuteEvent* self = (JSDExecuteEvent*) e;
     PR_ASSERT(self);
     PR_ASSERT(self->_ts);
-    return self->_handle();    
+    return self->_handle();
 }
 
-void  
+void
 JSDExecuteEvent::static_destroy(PREvent* e)
 {
     JSDExecuteEvent* self = (JSDExecuteEvent*) e;
     PR_ASSERT(self);
     delete self;
-}    
+}
 
-void* 
+void*
 JSDExecuteEvent::_handle()
 {
     const IJSThreadState& jsts = _ts->getJSThreadState();
@@ -2069,9 +2069,9 @@ JSDExecuteEvent::_handle()
     _ts->getExecResult() = (const IExecResult&) IExecResult();
 
     _ts->setRunningEval(PR_TRUE);
-    success = JSD_EvaluateScriptInStackFrame(_jsdc, jsdthreadstate, jsdframe, 
+    success = JSD_EvaluateScriptInStackFrame(_jsdc, jsdthreadstate, jsdframe,
                                              _text, strlen(_text),
-                                             _filename, _lineno, 
+                                             _filename, _lineno,
                                              &rval);
     _ts->setRunningEval(PR_FALSE);
 
@@ -2091,9 +2091,9 @@ JSDExecuteEvent::_handle()
         }
     }
     result->result = str;
-    
+
     return result;
-}    
+}
 
 
 /***************************************************************************/
@@ -2130,7 +2130,7 @@ CallChain::~CallChain()
         delete (char*) _chain;
 }
 
-CallChain::CompareResult 
+CallChain::CompareResult
 CallChain::compare(const CallChain& other)
 {
     if( this == &other )
@@ -2156,7 +2156,7 @@ CallChain::compare(const CallChain& other)
 /***************************************************************************/
 
 StepHandler::StepHandler(JSDContext* jsdc, ThreadState* state, PRBool buildCallChain)
-    :   _jsdc(jsdc), 
+    :   _jsdc(jsdc),
         topScriptInitial(NULL),
         topPCInitial(0),
         topLineInitial(0),
@@ -2184,13 +2184,13 @@ StepHandler::StepHandler(JSDContext* jsdc, ThreadState* state, PRBool buildCallC
         _callChain = new CallChain( _jsdc, jsdthreadstate );
         PR_ASSERT(_callChain);
     }
-}    
+}
 
 StepHandler::~StepHandler()
 {
     if( _callChain )
         delete  _callChain;
-}    
+}
 
 /***************************************************************************/
 
@@ -2200,7 +2200,7 @@ StepInto::StepInto(JSDContext* jsdc, ThreadState* state)
     // do nothing
 }
 
-StepHandler::StepResult 
+StepHandler::StepResult
 StepInto::step(JSDThreadState* jsdthreadstate)
 {
     JSDStackFrameInfo* topFrame  = _topFrame(jsdthreadstate);
@@ -2211,7 +2211,7 @@ StepInto::step(JSDThreadState* jsdthreadstate)
         return STOP;
 
     //
-    // NOTE: This little dance is necessary because line numbers for PCs 
+    // NOTE: This little dance is necessary because line numbers for PCs
     // are not always acending. e,g, in:
     //
     //  for(i=0;i<count;i++)
@@ -2245,7 +2245,7 @@ StepOver::StepOver(JSDContext* jsdc, ThreadState* state)
     // do nothing
 }
 
-StepHandler::StepResult 
+StepHandler::StepResult
 StepOver::step(JSDThreadState* jsdthreadstate)
 {
     switch( _callChain->compare( CallChain(_jsdc, jsdthreadstate) ) )
@@ -2287,7 +2287,7 @@ StepOut::StepOut(JSDContext* jsdc, ThreadState* state)
     // do nothing
 }
 
-StepHandler::StepResult 
+StepHandler::StepResult
 StepOut::step(JSDThreadState* jsdthreadstate)
 {
     switch( _callChain->compare( CallChain(_jsdc, jsdthreadstate) ) )
@@ -2304,7 +2304,7 @@ StepOut::step(JSDThreadState* jsdthreadstate)
             PR_ASSERT(0);   // illegal value!
             return STOP;
     }
-}    
+}
 
 /***************************************************************************/
 /***************************************************************************/
@@ -2315,27 +2315,27 @@ SourceTextProvider::SourceTextProvider(const char* name)
 
 {
     // do nothing
-}    
+}
 
 SourceTextProvider::SourceTextProvider(const char* name, JSDContext* jsdc)
     :   _sk_ISourceTextProvider(name),
         _jsdc(NULL)
 {
     init(jsdc);
-}    
+}
 
 void
 SourceTextProvider::init(JSDContext* jsdc)
 {
     _jsdc = jsdc;
     _forcePreLoad();
-}    
+}
 
 SourceTextProvider::~SourceTextProvider()
 {
-}    
+}
 
-ISourceTextProvider::sequence_of_string * 
+ISourceTextProvider::sequence_of_string *
 SourceTextProvider::getAllPages()
 {
     TRACE("SourceTextProvider::getAllPages() called");
@@ -2361,7 +2361,7 @@ SourceTextProvider::getAllPages()
             const char* url;
             if( NULL == (url = JSD_GetSourceURL(_jsdc, jsdsrc)) )
                 continue;
-            
+
             pp[i++] = strdup(url);
         }
         seq = new ISourceTextProvider::sequence_of_string(i, i, pp, 1);
@@ -2372,7 +2372,7 @@ SourceTextProvider::getAllPages()
     return seq;
 }
 
-void 
+void
 SourceTextProvider::refreshAllPages()
 {
     TRACE("SourceTextProvider::refreshAllPages() called");
@@ -2382,32 +2382,32 @@ SourceTextProvider::refreshAllPages()
 //    JSD_DestroyAllSources(_jsdc);
     _forcePreLoad();
     _unlock();
-}    
+}
 
-CORBA::Boolean 
+CORBA::Boolean
 SourceTextProvider::hasPage(const char * arg0)
 {
     TRACE("SourceTextProvider::hasPage() called");
     return JSD_FindSourceForURL(_jsdc, arg0) ? 1 : 0;
-        
-}    
 
-CORBA::Boolean 
+}
+
+CORBA::Boolean
 SourceTextProvider::loadPage(const char * arg0)
 {
     TRACE("SourceTextProvider::loadPage() called");
     // not implemented...
-    return 0;    
-}    
+    return 0;
+}
 
-void 
+void
 SourceTextProvider::refreshPage(const char * arg0)
 {
     TRACE("SourceTextProvider::refreshPage() called");
     // not implemented...
-}    
+}
 
-char * 
+char *
 SourceTextProvider::getPageText(const char * arg0)
 {
     TRACE("SourceTextProvider::getPageText() called");
@@ -2427,7 +2427,7 @@ SourceTextProvider::getPageText(const char * arg0)
 
     if( jsdsrc )
     {
-        if( JSD_GetSourceText(_jsdc, jsdsrc, &const_text, &len) && 
+        if( JSD_GetSourceText(_jsdc, jsdsrc, &const_text, &len) &&
             const_text && len )
         {
             text = (char*) malloc((len+1)*sizeof(char));
@@ -2443,9 +2443,9 @@ SourceTextProvider::getPageText(const char * arg0)
     _unlock();
 
     return text;
-}    
+}
 
-CORBA::Long 
+CORBA::Long
 SourceTextProvider::getPageStatus(const char * arg0)
 {
     TRACE("SourceTextProvider::getPageStatus() called");
@@ -2458,9 +2458,9 @@ SourceTextProvider::getPageStatus(const char * arg0)
         status = JSD_GetSourceStatus(_jsdc, jsdsrc);
     _unlock();
     return (CORBA::Long) status;
-}    
+}
 
-CORBA::Long 
+CORBA::Long
 SourceTextProvider::getPageAlterCount(const char * arg0)
 {
     TRACE("SourceTextProvider::getPageAlterCount() called");
@@ -2473,9 +2473,9 @@ SourceTextProvider::getPageAlterCount(const char * arg0)
         altercount = JSD_GetSourceAlterCount(_jsdc, jsdsrc);
     _unlock();
     return (CORBA::Long) altercount;
-}    
+}
 
-void 
+void
 SourceTextProvider::_forcePreLoad()
 {
     LWDBGApp* app;
@@ -2495,11 +2495,11 @@ SourceTextProvider::_forcePreLoad()
         }
     }
     _unlock();
-}    
+}
 
 /***************************************************************************/
 
-char * 
+char *
 TestInterface_impl::getFirstAppInList()
 {
     static char buf[1024];
@@ -2510,15 +2510,15 @@ TestInterface_impl::getFirstAppInList()
     app = LWDBG_EnumerateApps(&iter);
     if( app )
         return ((char*) LWDBG_GetURI(app)) + 1;
-    return NULL;        
+    return NULL;
 }
 
-void 
+void
 TestInterface_impl::getAppNames(StringReciever_ptr sr)
 {
     LWDBGApp* iter = NULL;
     LWDBGApp* app;
-    
+
     while( NULL != (app = LWDBG_EnumerateApps(&iter)) )
     {
         char* name = ((char*) LWDBG_GetURI(app)) + 1;
@@ -2542,7 +2542,7 @@ InitThing(Thing& t, const char* s, int i)
     t.i = i;
 }
 
-TestInterface::sequence_of_Thing * 
+TestInterface::sequence_of_Thing *
 TestInterface_impl::getThings()
 {
     Thing* p = new Thing[3];
@@ -2550,9 +2550,9 @@ TestInterface_impl::getThings()
     InitThing(p[1],"one" ,1);
     InitThing(p[2],"two" ,2);
     return new TestInterface::sequence_of_Thing(3, 3, p, 1);
-}    
+}
 
-void 
+void
 TestInterface_impl::callBounce(StringReciever_ptr arg0, CORBA::Long arg1)
 {
         try
@@ -2563,7 +2563,7 @@ TestInterface_impl::callBounce(StringReciever_ptr arg0, CORBA::Long arg1)
         {
             // eat it and bail...
         }
-}    
+}
 
 
 /***************************************************************************/
@@ -2586,78 +2586,78 @@ _WAIReturnType2String( WAIReturnType_t t )
         case WAISPINonameservice: return "WAISPINonameservice";
         default:                  return "unknown error code";
     }
-}    
+}
 
 // PR_STATIC_CALLBACK(void)
 // ssjsdTestThreadProc(void* arg)
 // {
 //     CORBA::ORB_var orb;
 //     CORBA::BOA_var boa;
-// 
+//
 //     int zero = 0;
 //     orb = CORBA::ORB_init(zero,NULL);
 //     boa = orb->BOA_init(zero,NULL);
-// 
+//
 //     boa->obj_is_ready(&_test);
 //     WAIReturnType_t reg = registerObject(_hostname, "test", &_test );
-// 
-//     log_error(LOG_VERBOSE, "ssjsdTestThreadProc", NULL, NULL, 
-//               "registration of _test %s", 
+//
+//     log_error(LOG_VERBOSE, "ssjsdTestThreadProc", NULL, NULL,
+//               "registration of _test %s",
 //               _WAIReturnType2String(reg) );
-// 
+//
 //     boa->impl_is_ready();
-// }    
-// 
+// }
+//
 // PR_STATIC_CALLBACK(void)
 // ssjsdDebugControllerThreadProc(void* arg)
 // {
 //     CORBA::ORB_var orb;
 //     CORBA::BOA_var boa;
-// 
+//
 //     int zero = 0;
 //     orb = CORBA::ORB_init(zero,NULL);
 //     boa = orb->BOA_init(zero,NULL);
-// 
+//
 //     _controller.init(_jsdc);
 //     boa->obj_is_ready(&_controller);
 //     WAIReturnType_t reg = registerObject(_hostname, "JSDebugController", &_controller );
-// 
-//     log_error(LOG_VERBOSE, "ssjsdDebugControllerThreadProc", NULL, NULL, 
-//           "registration of DebugController %s", 
+//
+//     log_error(LOG_VERBOSE, "ssjsdDebugControllerThreadProc", NULL, NULL,
+//           "registration of DebugController %s",
 //           _WAIReturnType2String(reg) );
-// 
+//
 //     boa->impl_is_ready();
-// }    
-// 
+// }
+//
 // PR_STATIC_CALLBACK(void)
 // ssjsdSourceTextProviderThreadProc(void* arg)
 // {
 //     CORBA::ORB_var orb;
 //     CORBA::BOA_var boa;
-// 
+//
 //     int zero = 0;
 //     orb = CORBA::ORB_init(zero,NULL);
 //     boa = orb->BOA_init(zero,NULL);
-// 
+//
 //     _stp.init(_jsdc);
 //     boa->obj_is_ready(&_stp);
 //     WAIReturnType_t reg = registerObject(_hostname, "JSSourceTextProvider", &_stp );
-// 
-//     log_error(LOG_VERBOSE, "ssjsdSourceTextProviderThreadProc", NULL, NULL, 
-//           "registration of SourceTextProvider %s", 
+//
+//     log_error(LOG_VERBOSE, "ssjsdSourceTextProviderThreadProc", NULL, NULL,
+//           "registration of SourceTextProvider %s",
 //           _WAIReturnType2String(reg) );
 //     boa->impl_is_ready();
-// }    
-// 
+// }
+//
 // static PRThread*            _TestThread;
 // static PRThread*            _DebugControllerThread;
 // static PRThread*            _SourceTextProviderThread;
-// 
+//
 // static void
 // _exportRemotedObjectsOnSeperateThreads()
 // {
 //     ///////////////////////////
-// 
+//
 //     _TestThread =
 //         PR_CreateThread( PR_USER_THREAD,
 //                          ssjsdTestThreadProc,
@@ -2666,13 +2666,13 @@ _WAIReturnType2String( WAIReturnType_t t )
 //                          PR_GLOBAL_THREAD,
 //                          PR_UNJOINABLE_THREAD,
 //                          0 );
-// 
-//     log_error(LOG_VERBOSE, "ssjsdebugInit", sn, rq, 
-//             "create test thread %s", 
+//
+//     log_error(LOG_VERBOSE, "ssjsdebugInit", sn, rq,
+//             "create test thread %s",
 //             _TestThread == NULL ? "failed" : "succeeded" );
-// 
+//
 //     ///////////////////////////
-// 
+//
 //     _DebugControllerThread =
 //         PR_CreateThread( PR_USER_THREAD,
 //                          ssjsdDebugControllerThreadProc,
@@ -2681,14 +2681,14 @@ _WAIReturnType2String( WAIReturnType_t t )
 //                          PR_GLOBAL_THREAD,
 //                          PR_UNJOINABLE_THREAD,
 //                          0 );
-// 
-//     log_error(LOG_VERBOSE, "ssjsdebugInit", sn, rq, 
-//             "create debug controller thread %s", 
+//
+//     log_error(LOG_VERBOSE, "ssjsdebugInit", sn, rq,
+//             "create debug controller thread %s",
 //             _DebugControllerThread == NULL ? "failed" : "succeeded" );
-// 
-// 
+//
+//
 //     ///////////////////////////
-// 
+//
 //     _SourceTextProviderThread =
 //         PR_CreateThread( PR_USER_THREAD,
 //                          ssjsdSourceTextProviderThreadProc,
@@ -2697,11 +2697,11 @@ _WAIReturnType2String( WAIReturnType_t t )
 //                          PR_GLOBAL_THREAD,
 //                          PR_UNJOINABLE_THREAD,
 //                          0 );
-// 
-//     log_error(LOG_VERBOSE, "ssjsdebugInit", sn, rq, 
-//             "create text provider thread %s", 
+//
+//     log_error(LOG_VERBOSE, "ssjsdebugInit", sn, rq,
+//             "create text provider thread %s",
 //             _SourceTextProviderThread == NULL ? "failed" : "succeeded" );
-// }    
+// }
 
 
 static PRBool
@@ -2709,12 +2709,12 @@ _registerOb(const char *name, CORBA::Object_ptr obj)
 {
     WAIReturnType_t reg = registerObject(_hostname, name, obj);
 
-    log_error(LOG_VERBOSE, "ssjsdebugInit", NULL, NULL, 
-              "registration of %s returned %s", 
+    log_error(LOG_VERBOSE, "ssjsdebugInit", NULL, NULL,
+              "registration of %s returned %s",
               name, _WAIReturnType2String(reg));
 
    return WAISPISuccess == reg ? PR_TRUE : PR_FALSE;
-}    
+}
 
 static void
 _exportRemotedObjectsOnThisThread()
@@ -2754,17 +2754,17 @@ ssjsdebugInit(pblock *pb, Session *sn, Request *rq)
     JSD_SetUserCallbacks(LWDBG_GetTaskState(), NULL, NULL);
     _jsdc = JSD_DebuggerOn();
 
-    log_error(LOG_VERBOSE, "ssjsdebugInit", NULL, NULL, 
+    log_error(LOG_VERBOSE, "ssjsdebugInit", NULL, NULL,
               "starting with iiop, JSD_DebuggerOn() %s", _jsdc == NULL ? "failed" : "succeeded" );
 
     if(_jsdc)
     {
         _hostname = http_uri2url("","");
 
-        log_error(LOG_VERBOSE, "ssjsdebugInit", NULL, NULL, 
+        log_error(LOG_VERBOSE, "ssjsdebugInit", NULL, NULL,
               "hostname = %s", _hostname );
 
         _exportRemotedObjectsOnThisThread();
     }
     return REQ_PROCEED;
-}    
+}

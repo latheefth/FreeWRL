@@ -3,7 +3,7 @@
 # Now, create 3 Buttons and wire together with a Script
 Transform {
   translation -3 0 0
-  children DEF B1 Group { 
+  children DEF B1 Group {
     children [
     DEF B1TOS TouchSensor {}
     DEF B1Toggle Script {
@@ -33,7 +33,7 @@ Transform {
   ROUTE B1TOS.touchTime TO B1Toggle.touch
   ROUTE B1Toggle.which_changed TO B1SW.set_whichChoice
 }
-DEF B2  Group { 
+DEF B2  Group {
     children [
     DEF B2TOS TouchSensor {}
     DEF B2Toggle Script {
@@ -64,7 +64,7 @@ ROUTE B2TOS.touchTime TO B2Toggle.touch
 ROUTE B2Toggle.which_changed TO B2SW.set_whichChoice
 Transform {
   translation 3 0 0
-  children DEF B3  Group { 
+  children DEF B3  Group {
     children [
     DEF B3TOS TouchSensor {}
     DEF B3Toggle Script {

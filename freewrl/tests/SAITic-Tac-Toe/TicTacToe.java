@@ -203,7 +203,7 @@ public class TicTacToe extends Script {
      */
     int bestMove(int white, int black) {
 	int bestmove = -1;
-	
+
       loop:
 	for (int i = 0 ; i < 9 ; i++) {
 	    int mw = moves[i];

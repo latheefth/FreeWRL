@@ -22,24 +22,24 @@ Transform {
 }
 }
 
-Show { 
-	loc -1 0 0 
+Show {
+	loc -1 0 0
 	material Material { diffuseColor 0.8 0 0 }
 }
 
-Show { 
-	loc 0 0 0 
+Show {
+	loc 0 0 0
 	material Material { diffuseColor 0 0.8 0 }
 }
 
-Show { 
-	loc 1 0 0 
+Show {
+	loc 1 0 0
 	material Material { diffuseColor 0 0 0.8 }
 }
 
 # Default
-Show { 
-	loc 2 0 0 
+Show {
+	loc 2 0 0
 	material Material { }
 }
 

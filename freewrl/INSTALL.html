@@ -26,7 +26,7 @@ Installs for everybody else
 <P>
 <B>Linux and MacOS-X</B> are the build platforms for FreeWRL 0.38 and beyond.
 <P>
-<B>Mac OS-X users:</B> Congradulations! You now can compile and run FreeWRL. We have 
+<B>Mac OS-X users:</B> Congradulations! You now can compile and run FreeWRL. We have
 put specific install directions
 <A HREF="INSTALL-OSX.html">here</A>.
 <P>
@@ -39,7 +39,7 @@ the source code, and has added two README's to the top level directory.
 (files README.RTS_Sun and README.SunCompilation)
 
 <P>
-<P>This install is divided up into the following sections:<P> 
+<P>This install is divided up into the following sections:<P>
 <LIST>
 <LI>Building FreeWRL to run &quot;standalone&quot;, without Netscape.
 <LI>Installing Java support.
@@ -57,7 +57,7 @@ Building FreeWRL as a standalone executable
 This is the place to start. Once it runs, you can configure more options for FreeWRL to use, like Netscape Plugin functionality.
 <P>
 <P>
-You can get FreeWRL from: 
+You can get FreeWRL from:
 <A HREF="http://sourceforge.net/projects/freewrl/">http://sourceforge.net/projects/freewrl/</A>
 <P>
 You can also access the cvs repository. The way to do it is explained at:
@@ -100,12 +100,12 @@ OpenGL is a "standard" on all distributions.
 The java compiler, javac must be in your path. the command "which javac" will tell you
 if you have this installed.
 <P>
-<p> 
+<p>
 Java must be version 1.4 or later; the command "java -version" should show which version
 you have. If you have the wrong version, then compile errors will happen, as some features
 of Java Version 1.4 and above are used.
 <p>
-If you do not have java on your system, or it is not on your Linux distribution CDs in RPM format, 
+If you do not have java on your system, or it is not on your Linux distribution CDs in RPM format,
 Java can be found at
 <A HREF="http://www.blackdown.org">http://www.blackdown.org</A>.
 <p>
@@ -117,13 +117,13 @@ Java can be found at
 
 <LI>Grab the latest FreeWRL tar file, and untar it.
 <P>
-<LI>Verify that the <B>vrml.conf</B> 
-file has good paths for the libraries and includes. 
+<LI>Verify that the <B>vrml.conf</B>
+file has good paths for the libraries and includes.
 Note particularly the possible defines in this file.
 <P>
 FreeType version 2 has been in distributions for years; FreeWRL now uses
 it. Check that you have the library installed; the command "ldconfig -p | grep freetype"
-will print the path, if it is installed. 
+will print the path, if it is installed.
 If you have an older distribution, you can get a new version of FreeType from
 <A HREF="http://www.freetype.org">http://www.freetype.org</A>.
 <P>
@@ -131,12 +131,12 @@ If you have an older distribution, you can get a new version of FreeType from
 path for FreeType2 header files. eg, for Slackware 8.1, you may wish to add -I/usr/X11R6/include/freetype2
 and -I/usr/X11R6/include/freetype2/freetype to this line.
 <P>
-<LI>You might need to Install Perl Modules; if you get errors when building 
+<LI>You might need to Install Perl Modules; if you get errors when building
 FreeWRL, make sure you have the modules requested. (FreeWRL is slowly becoming
 module independent, but...)
 <P>
-<P>Installing these modules is a no-brainer; just untar     
-each module as root, then go into the directory, and 
+<P>Installing these modules is a no-brainer; just untar
+each module as root, then go into the directory, and
 <BR>perl Makefile.PL
 <BR>make
 <BR>make install
@@ -175,7 +175,7 @@ directory. Note that some use javascript, so you will be testing javascript, too
 
 <B>Mozilla/Netscape:</b>
 If FreeWRL was built correctly, then the Netscape/Mozilla Plugin was
-installed in the browser plugins directory. Stop and start your 
+installed in the browser plugins directory. Stop and start your
 browser, and enter "about:plugins" in the url entry box. You should
 see the FreeWRL plugin listed.</P>
 <P>

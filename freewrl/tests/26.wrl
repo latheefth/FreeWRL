@@ -19,7 +19,7 @@ Group {
 			bottomUrl "helpers/bottom.gif"
 			rightUrl "helpers/right.gif"
 			frontUrl "helpers/front.gif"
-			
+
 		}
 
 		# Alternate backgrounds

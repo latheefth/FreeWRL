@@ -20,10 +20,10 @@ children [
 	DEF TS TouchSensor { }
 	DEF ORIG Shape {
 	 appearance Appearance {material Material { diffuseColor 0.8 0 0 } }
-	 geometry IS node 
+	 geometry IS node
 	}
 	]
-	} 
+	}
 
 	Transform {
 		translation 2 0 0
@@ -41,7 +41,7 @@ children [
 			}
 		]
 	}
-	Transform {	
+	Transform {
 		translation 3.5 0 0
 		rotation 1 1 0 0.7
 		scale 0.8 0.8 0.8
@@ -68,7 +68,7 @@ children [
 }
 
 Transform {
-scale 0.4 0.4 0.4 
+scale 0.4 0.4 0.4
 children [
 Testtouch { node Sphere { } }
 Transform { translation 0 2.5 0 children [
@@ -81,16 +81,16 @@ Transform { translation 0 -5.0 0 children [
 	Testtouch { node Cone { } }
 ]}
 Transform { translation 0 5.0 0 children [
-	Testtouch { node IndexedFaceSet { 
+	Testtouch { node IndexedFaceSet {
 		coord Coordinate {
 			point [-1 -1 0 1 -1 0 -1 1 0]
 		}
 		coordIndex [ 0 1 2 -1]
-		solid FALSE 
+		solid FALSE
 	} }
 ]}
 Transform { translation 0 6.0 0 children [
-	Testtouch { node ElevationGrid { 
+	Testtouch { node ElevationGrid {
 		height [
 			0 0 0
 			0 0.5 0
@@ -100,7 +100,7 @@ Transform { translation 0 6.0 0 children [
 		zDimension 3
 		xSpacing 0.5
 		zSpacing 0.5
-		solid FALSE 
+		solid FALSE
 	} }
 ]}
 ]

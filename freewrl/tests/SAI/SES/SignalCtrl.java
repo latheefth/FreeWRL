@@ -1,6 +1,6 @@
-// This class implements a controller for a Signal 
-// specified in  "Signal.wrl" 
- 
+// This class implements a controller for a Signal
+// specified in  "Signal.wrl"
+
 import vrml.*;
 import vrml.field.*;
 import vrml.node.*;
@@ -12,13 +12,13 @@ public class SignalCtrl {
   private int    state = 0;
 
   public SignalCtrl (SFNode signal)
-  { 
+  {
       Node node = (Node) signal.getValue();
       setPanel1 = (SFFloat) node.getEventIn("setPanel1");
       setPanel2 = (SFFloat) node.getEventIn("setPanel2");
   }
 
-  public void setState (int newState, double time) 
+  public void setState (int newState, double time)
   {
     state = newState;
     switch (newState) {

@@ -22,14 +22,14 @@ int write_synth (char *midi_data) {
   strncat (midi_data,"\n");
 printf ("going to write %s to midi-port\n",midi_data);
   ofd = fopen ("/tmp/synth.mg", "w");
-  fputs (midi_data,ofd); 
+  fputs (midi_data,ofd);
   fclose (ofd);
 
 printf ("catting data\n");
   system ("cat /tmp/synth.mg");
 
 printf ("converting to midi\n");
-  system ("cd /tmp; midge -v synth.mg"); 
+  system ("cd /tmp; midge -v synth.mg");
   system ("playmidi /tmp/synth.mid");
 
 }
@@ -50,7 +50,7 @@ int sock_init (addr)
     in_name = (struct sockaddr_in *) addr;
     in_name->sin_family = AF_INET;
     in_name->sin_port = htons(PORT);
-      
+
     in_name->sin_addr.s_addr = INADDR_ANY;
     return (sd);
   }

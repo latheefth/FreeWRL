@@ -17,7 +17,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 
 #
 # see usage...
@@ -27,7 +27,7 @@ BEGIN {
     skiplines_left = 0
     if( 0 == lines || 0 == pat )
     {
-# show usage...        
+# show usage...
         print "\n"
         print "strips some lines when first line contains pattern\n"
         print "\tusage -v pat=\"pattern\" -v lines=3"

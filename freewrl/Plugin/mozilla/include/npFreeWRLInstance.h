@@ -17,7 +17,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -25,7 +25,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -39,7 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 // based on plugin.h
-// from mozilla plugin sdk 
+// from mozilla plugin sdk
 
 #ifndef _npFreeWRL_h_
 #define _npFreeWRL_h_
@@ -72,55 +72,55 @@ public:
 	npFreeWRLInstance(NPP instance);
 	npFreeWRLInstance();
 	virtual ~npFreeWRLInstance();
-	
+
 	virtual NPBool init(NPWindow *aWindow);
 	virtual NPBool isInitialized();
 	virtual void shut();
 
     virtual NPError SetWindow(NPWindow *pNPWindow);
-    
+
 
     virtual NPError NewStream(NPMIMEType type,
                               NPStream *stream,
                               NPBool seekable,
                               uint16 *stype);
-    
+
 
     virtual NPError DestroyStream(NPStream *stream,
                                   NPError reason);
-    
+
 
     virtual void StreamAsFile(NPStream *stream,
                               const char *fname);
-    
+
 
     virtual int32 WriteReady(NPStream *stream);
-    
+
 
     virtual int32 Write(NPStream *stream,
                         int32 offset,
                         int32 len,
                         void *buffer);
-    
+
 
     virtual void Print(NPPrint *printInfo);
-    
+
 
     virtual uint16 HandleEvent(void *event);
-    
+
 
     virtual void URLNotify(const char *url,
                            NPReason reason,
                            void *notifyData);
-    
+
 
     virtual NPError GetValue(NPPVariable variable,
                              void *value);
-    
+
 
     virtual NPError SetValue(NPNVariable variable,
                              void *value);
-    
+
 #ifdef XP_UNIX
 
     NPError resize(void);

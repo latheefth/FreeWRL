@@ -15,7 +15,7 @@
 #// Copyright (C) 1998 Netscape Communications Corporation. All
 #// Rights Reserved.
 #//
-#// Contributor(s): 
+#// Contributor(s):
 
 #//------------------------------------------------------------------------
 #//
@@ -63,7 +63,7 @@ LLIBS=	$(LIBNSPR) 										\
 		$(NULL)
 
 #//------------------------------------------------------------------------
-#// 
+#//
 #// Define the files necessary to build the target (ie. OBJS)
 #//
 #//------------------------------------------------------------------------

@@ -5,17 +5,17 @@
 # for conditions of use and redistribution.
 #
 # Test for Extrusion node.
-# We want to test figures with a lot of intersecting polygons :) 
+# We want to test figures with a lot of intersecting polygons :)
 
 
 # first line of figures, just an rotation
 #
 Transform  {
-  translation -4 0 0 
+  translation -4 0 0
   children [
-  
+
     Transform  {
-    translation 0 0 0 
+    translation 0 0 0
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.4 0.4 0.7 } }
@@ -23,7 +23,7 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1 ] 
+		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1 ]
                 solid FALSE
               	spine [0 0 0, 0 0 0]
 		orientation [ 0 1 0 0, 0 0 1 0.7853]
@@ -33,7 +33,7 @@ Transform  {
     }
 
     Transform  {
-    translation 0 0 -4 
+    translation 0 0 -4
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.4 0.4 0.7 } }
@@ -41,7 +41,7 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1] 
+		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1]
                 solid FALSE
               	spine [0 0 0, 0 0 0, 0 0 0 ]
 		orientation [ 0 1 0 0, 0 0 1 0.7853, 0 0 1 1.5708]
@@ -50,7 +50,7 @@ Transform  {
      ]
     }
     Transform  {
-    translation 0 0 -8 
+    translation 0 0 -8
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.4 0.4 0.7 } }
@@ -58,10 +58,10 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1] 
+		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1]
                 solid FALSE
               	spine [0 0 0, 0 0 0, 0 0 0, 0 0 0 ]
-		orientation [ 0 1 0 0, 0 0 1 0.7853, 0 0 1 1.5708, 
+		orientation [ 0 1 0 0, 0 0 1 0.7853, 0 0 1 1.5708,
 			0 0 1 2.3562]
 	}
       }
@@ -69,7 +69,7 @@ Transform  {
     }
 
     Transform  {
-    translation 0 0 -12 
+    translation 0 0 -12
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.4 0.4 0.7 } }
@@ -77,7 +77,7 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1] 
+		crossSection [ 1 1,  1.5 0, 1 -1, -1 -1 , -1 1 , 1 1]
                 solid FALSE
               	spine [0 0 0, 0 0 0, 0 0 0 , 0 0 0, 0 0 0]
 		orientation [ 0 1 0 0, 0 0 1 0.7853, 0 0 1 1.5708,
@@ -86,18 +86,18 @@ Transform  {
       }
      ]
     }
-    
+
   ]
 }
 
 # second line of figures preparing some nice zick-zacks
 #
 Transform  {
-  translation 0 0 0 
+  translation 0 0 0
   children [
-  
+
     Transform  {
-    translation 0 0 0 
+    translation 0 0 0
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.8 0.4 0.7 } }
@@ -105,7 +105,7 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ -1 0,  1 0 ] 
+		crossSection [ -1 0,  1 0 ]
                 solid FALSE
               	spine [0 0 0, 0 0 0]
 		orientation [ 0 1 0 0, 0 0 1 0.7853]
@@ -115,7 +115,7 @@ Transform  {
     }
 
     Transform  {
-    translation 0 0 -4 
+    translation 0 0 -4
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.85 0.45 0.75 } }
@@ -123,7 +123,7 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ -1 1, 1 1,  -1 0,  1 0] 
+		crossSection [ -1 1, 1 1,  -1 0,  1 0]
                 solid FALSE
               	spine [0 0 0, 0 0 0, 0 0 0 ]
 		orientation [ 0 1 0 0, 0 0 1 0.7853, 0 0 1 1.5708]
@@ -132,7 +132,7 @@ Transform  {
      ]
     }
     Transform  {
-    translation 0 0 -8 
+    translation 0 0 -8
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.9 0.5 0.8 } }
@@ -140,10 +140,10 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ -1 1, 1 1, -1 0,  1 0 , -1 -1, 1 -1] 
+		crossSection [ -1 1, 1 1, -1 0,  1 0 , -1 -1, 1 -1]
                 solid FALSE
               	spine [0 0 0, 0 0 0, 0 0 0, 0 0 0 ]
-		orientation [ 0 1 0 0, 0  0 1 0.7853, 0 0 1 1.5708, 
+		orientation [ 0 1 0 0, 0  0 1 0.7853, 0 0 1 1.5708,
 			0 1 0 2.3562]
 	}
       }
@@ -151,7 +151,7 @@ Transform  {
     }
 
     Transform  {
-    translation 0 0 -12 
+    translation 0 0 -12
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.95 0.55 0.85 } }
@@ -159,7 +159,7 @@ Transform  {
 		convex FALSE
 		beginCap FALSE
 		endCap FALSE
-		crossSection [ -1 1, 1 1, -1 0,  1 0 , -1 -1, 1 -1,-1 -2,1 -2] 
+		crossSection [ -1 1, 1 1, -1 0,  1 0 , -1 -1, 1 -1,-1 -2,1 -2]
                 solid FALSE
               	spine [0 0 0, 0 0 0, 0 0 0 , 0 0 0, 0 0 0]
 		orientation [ 0 1 0 0, 0 0 1 0.7853, 0 0 1 1.5708,
@@ -168,19 +168,19 @@ Transform  {
       }
      ]
     }
-    
+
   ]
 }
 
 
-# third line of figures: test cap tessellation 
+# third line of figures: test cap tessellation
 #
 Transform  {
-  translation 4 0 0 
+  translation 4 0 0
   children [
-  
+
     Transform  {
-    translation 0 0 0 
+    translation 0 0 0
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.8 0.4 0.7 } }
@@ -188,8 +188,8 @@ Transform  {
 		convex FALSE
 		beginCap TRUE
 		endCap FALSE
-		crossSection [ 1 1, 1 -1, -1 -1, -1 1, 
-			-0.8 1, 0 0 , 0.8 1 ] 
+		crossSection [ 1 1, 1 -1, -1 -1, -1 1,
+			-0.8 1, 0 0 , 0.8 1 ]
                 solid FALSE
               	spine [0 0 0, 0 1 0]
 	}
@@ -198,7 +198,7 @@ Transform  {
     }
 
     Transform  {
-    translation 0 0 -4 
+    translation 0 0 -4
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.75 0.4 0.8 } }
@@ -206,8 +206,8 @@ Transform  {
 		convex FALSE
 		beginCap TRUE
 		endCap TRUE
-		crossSection [ 1 1, 1 -1, -1 -1, -1 1, 
-			-0.8 1, 0 0 , 0.8 1 , 1 1] 
+		crossSection [ 1 1, 1 -1, -1 -1, -1 1,
+			-0.8 1, 0 0 , 0.8 1 , 1 1]
                 solid FALSE
               	spine [0 0 0, 0 1 0]
 	}
@@ -216,22 +216,22 @@ Transform  {
     }
 
     Transform  {
-    translation 0 0 -12 
+    translation 0 0 -12
      children [
       Shape {
         appearance Appearance { material Material { diffuseColor 0.85 0.6 0.3 }}
         geometry Extrusion {
-		crossSection [ 	1 1, 1 -1, -1 -1, -1 1, 
-			-0.8 1, 0 0 , 0.8 1 , 1 1] 
+		crossSection [ 	1 1, 1 -1, -1 -1, -1 1,
+			-0.8 1, 0 0 , 0.8 1 , 1 1]
                 solid FALSE
 		convex FALSE
 		spine [ 0 -1 0, 0 0 0 , 0 0 -1]
-#		spine [ 
+#		spine [
 #			0 -2  0, 0 -2  0, 0 -2  0,
 #			0  2  0, 0  2  0, 0  2  0, 0  2  0, 0  2  0,
 #			0  2 -4, 0  2 -4, 0  2 -4, 0  2 -4, 0  2 -4,
 #		]
-#		orientation [ 
+#		orientation [
 #                  1 0 0 0, 1 0 0 -.3927, 1 0 0 -0.7853,
 #                  1 0 0 .7853, 1 0 0 .3927, 1 0 0 0, 1 0 0 -.3927, 1 0 0 -.7853,
 #                  1 0 0 .7853, 1 0 0 .3927, 1 0 0 0, 1 0 0 -.3927, 1 0 0 -.7853,
@@ -240,6 +240,6 @@ Transform  {
       }
      ]
     }
-    
+
   ]
 }

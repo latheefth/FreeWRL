@@ -46,7 +46,7 @@ public class SFFloat extends Field {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Float");
 		f = Float.parseFloat(in.readLine());
     }

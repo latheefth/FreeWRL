@@ -18,7 +18,7 @@
 # editor:
 #	http://www.web3d.org/TaskGroups/x3d/translation/README.X3D-Edit.txt
 #
-# DTD version plans:		
+# DTD version plans:
 #	increment by .1 when each of the following is complete:
 #	- initial well-defined DTD                                     0.5
 #	- all nodes available in test scene and checked in DTD         0.6
@@ -93,12 +93,12 @@
 <!ENTITY % FontStyleNodeExtensions  "" >
 <!ENTITY % GeometryNodeExtensions  "" >
 <!ENTITY % GroupingNodeExtensions  "" >
-<!ENTITY % InterpolatorNodeExtensions  "" > 
+<!ENTITY % InterpolatorNodeExtensions  "" >
 <!ENTITY % LightNodeExtensions  "" >
 <!ENTITY % MaterialNodeExtensions  "" >
 <!ENTITY % NormalNodeExtensions  "" >
-<!ENTITY % ScriptNodeExtensions  "" > 
-<!ENTITY % SensorNodeExtensions  "" > 
+<!ENTITY % ScriptNodeExtensions  "" >
+<!ENTITY % SensorNodeExtensions  "" >
 <!ENTITY % ShapeNodeExtensions  "" >
 <!ENTITY % SoundNodeExtensions  "" >
 
@@ -373,7 +373,7 @@
 
 <![%DisJavaVrmlProfile;[
 
-<!ENTITY % DisJavaVrmlDTD PUBLIC 
+<!ENTITY % DisJavaVrmlDTD PUBLIC
 	"http://www.web3D.org/TaskGroups/x3d/translation/DisJavaVrml-compact.dtd"
 	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/DisJavaVrml-compact.dtd">
 
@@ -391,7 +391,7 @@
 
 <!ELEMENT rootNode ( %ChildrenNodes; | %WildcardNodes; )* >
 
-<!ENTITY % GeoVrmlDTD PUBLIC 
+<!ENTITY % GeoVrmlDTD PUBLIC
 	"http://www.web3D.org/TaskGroups/x3d/translation/GeoVrml-compact.dtd"
 	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/GeoVrml-compact.dtd">
 
@@ -406,7 +406,7 @@
 <!-- wrapper tag -->
 <!ELEMENT humanoidBody ( %ChildrenNodes; | %WildcardNodes; )* >
 
-<!ENTITY % HAnimDTD PUBLIC 
+<!ENTITY % HAnimDTD PUBLIC
 	"http://www.web3D.org/TaskGroups/x3d/translation/HumanoidAnimation-compact.dtd"
 	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/HumanoidAnimation-compact.dtd">
 
@@ -418,7 +418,7 @@
 
 <![%NurbsProfile;[
 
-<!ENTITY % NurbsDTD PUBLIC 
+<!ENTITY % NurbsDTD PUBLIC
 	"http://www.web3D.org/TaskGroups/x3d/translation/Nurbs-compact.dtd"
 	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/Nurbs-compact.dtd">
 
@@ -434,7 +434,7 @@
 <!-- isOver, touchTime added to Anchor to match multiple interface with TouchSensorNodeType -->
 
 <!ELEMENT Anchor ( %ChildrenNodes; | %WildcardNodes; )* >
-<!ATTLIST Anchor 
+<!ATTLIST Anchor
 	description %SFString; #IMPLIED
 	parameter   %MFString; #IMPLIED
 	url         %MFString; #IMPLIED
@@ -442,18 +442,18 @@
 	bboxSize    %SFVec3f;  "-1 -1 -1"
 	isOver      %SFBool;   #IMPLIED
 	touchTime   %SFTime;   #IMPLIED
-	DEF         ID         #IMPLIED 
+	DEF         ID         #IMPLIED
 	USE         IDREF      #IMPLIED >
 ]]>
 
 <![%CoreProfile;[
 
-<!ELEMENT Anchor ( %ChildrenNodes; | %WildcardNodes; )* > 
-<!ATTLIST Anchor 
+<!ELEMENT Anchor ( %ChildrenNodes; | %WildcardNodes; )* >
+<!ATTLIST Anchor
 	url         %MFString; #IMPLIED
 	bboxCenter  %SFVec3f;  "0 0 0"
 	bboxSize    %SFVec3f;  "-1 -1 -1"
-	DEF         ID         #IMPLIED 
+	DEF         ID         #IMPLIED
 	USE         IDREF      #IMPLIED >
 ]]>
 
@@ -483,7 +483,7 @@
 <!ELEMENT Appearance (
    ((%MaterialNodes;), (%TextureNodes;)?  )
  | ((%TextureNodes;),  (%MaterialNodes;)? )
-)? > 
+)? >
 ]]>
 
 <!ATTLIST Appearance
@@ -523,7 +523,7 @@
 	bind        %SFBool;   "false"
 	bindTime    %SFTime;   "-1"
 	isBound     %SFBool;   "false"
-	DEF         ID         #IMPLIED 
+	DEF         ID         #IMPLIED
 	USE         IDREF      #IMPLIED >
 ]]>
 
@@ -537,7 +537,7 @@
 	bind        %SFBool;   "false"
 	bindTime    %SFTime;   "-1"
 	isBound     %SFBool;   "false"
-	DEF         ID         #IMPLIED 
+	DEF         ID         #IMPLIED
 	USE         IDREF      #IMPLIED >
 ]]>
 
@@ -548,13 +548,13 @@
 	axisOfRotation %SFVec3f; "0 1 0"
 	bboxCenter     %SFVec3f; "0 0 0"
 	bboxSize       %SFVec3f; "-1 -1 -1"
-	DEF            ID        #IMPLIED 
+	DEF            ID        #IMPLIED
 	USE            IDREF     #IMPLIED>
 
 <!ELEMENT Box EMPTY>
 <!ATTLIST Box
 	size %SFVec3f; "2 2 2"
-	DEF  ID        #IMPLIED 
+	DEF  ID        #IMPLIED
 	USE  IDREF     #IMPLIED>
 ]]>
 
@@ -566,7 +566,7 @@
 	bboxCenter  %SFVec3f; "0 0 0"
 	bboxSize    %SFVec3f; "-1 -1 -1"
 	collideTime %SFTime;  "0.0"
-	DEF         ID        #IMPLIED 
+	DEF         ID        #IMPLIED
 	USE         IDREF     #IMPLIED >
 ]]>
 
@@ -604,7 +604,7 @@
 ]]>
 
 <!ELEMENT Coordinate EMPTY >
-<!ATTLIST Coordinate 
+<!ATTLIST Coordinate
 	point        %MFVec3f; #IMPLIED
 	DEF          ID        #IMPLIED
 	USE          IDREF     #IMPLIED>
@@ -621,7 +621,7 @@
 <![%BaseLineProfile;[
 
 <!ELEMENT Cylinder EMPTY>
-<!ATTLIST Cylinder 
+<!ATTLIST Cylinder
 	bottom   %SFBool; "true"
 	height   %SFFloat; "2"
 	radius   %SFFloat; "1"
@@ -638,7 +638,7 @@
 	maxAngle   %SFFloat;    "-1"
 	minAngle   %SFFloat;    "0"
 	offset     %SFFloat;    "0"
-	isActive   %SFBool;     "false"	
+	isActive   %SFBool;     "false"
 	rotation   %SFRotation; "0 0 1 0"
 	trackPoint %SFVec3f;    "0 0 0"
 	DEF        ID           #IMPLIED
@@ -788,7 +788,7 @@
 <!ELEMENT Header ( #PCDATA | meta )* >
 
 <!ELEMENT ImageTexture EMPTY >
-<!ATTLIST ImageTexture 
+<!ATTLIST ImageTexture
 	url     %MFString; #IMPLIED
 	repeatS %SFBool; "true"
 	repeatT %SFBool; "true"
@@ -941,7 +941,7 @@
 <!-- This permits external access - open technical issue. -->
 
 <!ELEMENT Inline ( %SceneNodes; ) >
-<!ATTLIST Inline 
+<!ATTLIST Inline
 	url         %MFString; #IMPLIED
 	bboxCenter  %SFVec3f;  "0 0 0"
 	bboxSize    %SFVec3f;  "-1 -1 -1"
@@ -949,7 +949,7 @@
 	USE         IDREF      #IMPLIED>
 
 <!ELEMENT KeySensor EMPTY >
-<!ATTLIST KeySensor 
+<!ATTLIST KeySensor
 	keyPress		%SFInt32;	#IMPLIED
 	keyRelease		%SFInt32;	#IMPLIED
 	actionKeyPress		%SFInt32;	#IMPLIED
@@ -1018,7 +1018,7 @@
   >
 
 <!-- generic metadata information, matches HTML usage, made attribute 'name' required -->
-<!ELEMENT meta EMPTY>  
+<!ELEMENT meta EMPTY>
 <!ATTLIST meta
   %i18n;
   http-equiv  CDATA          #IMPLIED
@@ -1101,7 +1101,7 @@
 <![%BaseLineProfile;[
 
 <!ELEMENT PixelTexture EMPTY >
-<!ATTLIST PixelTexture 
+<!ATTLIST PixelTexture
 	image   %SFImage; "0 0 0"
 	repeatS %SFBool;  "true"
 	repeatT %SFBool;  "true"
@@ -1109,7 +1109,7 @@
 	USE     IDREF     #IMPLIED>
 
 <!ELEMENT PlaneSensor EMPTY >
-<!ATTLIST PlaneSensor 
+<!ATTLIST PlaneSensor
 	autoOffset  %SFBool;  "true"
 	enabled     %SFBool;  "true"
 	maxPosition %SFVec2f; "-1 -1"
@@ -1294,7 +1294,7 @@
 	USE    IDREF     #IMPLIED>
 
 <!ELEMENT SphereSensor EMPTY >
-<!ATTLIST SphereSensor 
+<!ATTLIST SphereSensor
 	autoOffset %SFBool;     "true"
 	enabled    %SFBool;     "true"
 	offset     %SFRotation; "0 1 0 0"
@@ -1322,7 +1322,7 @@
 <!-- StringSensor:  convert \r and \b to integer values -->
 
 <!ELEMENT StringSensor EMPTY >
-<!ATTLIST StringSensor 
+<!ATTLIST StringSensor
 	enteredText		%SFString;	#IMPLIED
 	finalText		%SFString;	#IMPLIED
 	terminationText		%SFString;	"\r"
@@ -1408,7 +1408,7 @@
 ]]>
 
 <!ELEMENT Transform ( %ChildrenNodes; | %WildcardNodes; )* >
-<!ATTLIST Transform 
+<!ATTLIST Transform
 	center           %SFVec3f;    "0 0 0"
 	rotation         %SFRotation; "0 0 1 0"
 	scale            %SFVec3f;    "1 1 1"
@@ -1416,7 +1416,7 @@
 	translation      %SFVec3f;    "0 0 0"
 	bboxCenter       %SFVec3f;    "0 0 0"
 	bboxSize         %SFVec3f;    "-1 -1 -1"
-	DEF              ID           #IMPLIED 
+	DEF              ID           #IMPLIED
 	USE              IDREF        #IMPLIED >
 
 <!--	Note that USE node does not provide any type checking of content nodes.
@@ -1445,7 +1445,7 @@
 <![%BaseLineProfile;[
 
 <!ELEMENT VisibilitySensor EMPTY >
-<!ATTLIST VisibilitySensor 
+<!ATTLIST VisibilitySensor
 	center    %SFVec3f; "0 0 0"
 	enabled   %SFBool;  "true"
 	size      %SFVec3f; "0 0 0"
@@ -1457,14 +1457,14 @@
 ]]>
 
 <!ELEMENT WorldInfo EMPTY >
-<!ATTLIST WorldInfo 
+<!ATTLIST WorldInfo
 	info  %MFString; #IMPLIED
 	title %SFString; #IMPLIED
 	DEF ID       #IMPLIED
 	USE IDREF    #IMPLIED>
 
 <!ELEMENT X3D    ( Header? , Scene ) >
-<!ATTLIST X3D 
+<!ATTLIST X3D
 	profileForContainedScene %profileNames; #IMPLIED>
 
 
@@ -1544,7 +1544,7 @@ No followup effort has yet tried to compose the various multitexture proposals.
 <!ELEMENT MultiTextureTree ( RenderOp ) >
 <!ATTLIST MultiTextureTree
 	DEF ID       #IMPLIED
-	USE IDREF    #IMPLIED>   
+	USE IDREF    #IMPLIED>
 
 -->
 
@@ -1581,7 +1581,7 @@ Appearance {
 <!ELEMENT MultiTextureAppearance
 	(((%MaterialNodes;), ((%TextureNodes;) | (%TextureTransformNodes;))*) |
 	 (((%TextureNodes;) | (%TextureTransformNodes;))+,
-          (%MaterialNodes;), 
+          (%MaterialNodes;),
           ((%TextureNodes;) | (%TextureTransformNodes;))*)
 	)? >
 <!ATTLIST MultiTextureAppearance

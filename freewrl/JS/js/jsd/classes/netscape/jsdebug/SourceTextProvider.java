@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
@@ -34,18 +34,18 @@ import netscape.security.ForbiddenTargetException;
 */
 public abstract class SourceTextProvider
 {
-    public static SourceTextProvider getSourceTextProvider()  throws Exception 
+    public static SourceTextProvider getSourceTextProvider()  throws Exception
     {
         return null;
     }
     /**
-    * Return the vector of SourceTextItems. 
+    * Return the vector of SourceTextItems.
     * <p>
     * This is not liekly to be a copy. nor is it necessarily current
     */
     public abstract Vector           getSourceTextVector() throws ForbiddenTargetException;
     /**
-    * Refresh the vector by whatever means to reflect any changes made in the 
+    * Refresh the vector by whatever means to reflect any changes made in the
     * underlying native system
     */
     public abstract void             refreshSourceTextVector();
@@ -59,4 +59,4 @@ public abstract class SourceTextProvider
     * <B>This is not guaranteed to be implemented</B>
     */
     public abstract SourceTextItem   loadSourceTextItem( String url ) throws ForbiddenTargetException;
-}    
+}

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -190,7 +190,7 @@ pascal void __JSTerminate()
   // clean up the sleepQ entry
   if (gSleepQEntryInstalled)
     SleepQRemove(&gSleepQEntry);
-  
+
 	__NSTerminate();
 }
 #endif /* XP_MACOSX */
@@ -464,7 +464,7 @@ PRMJ_FormatTime(char *buf, int buflen, char *fmt, PRMJTime *prtm)
      * years.  Might still make sense to use this, but find the range of years
      * for which valid tz information exists, and map (per ECMA hint) from the
      * given year into that range.
-     
+
      * N.B. This hasn't been tested with anything that actually _uses_
      * tm_gmtoff; zero might be the wrong thing to set it to if you really need
      * to format a time.  This fix is for jsdate.c, which only uses

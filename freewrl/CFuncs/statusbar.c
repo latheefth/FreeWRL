@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright(C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart. CRC Canada.
  * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
  * distribution) for details.
@@ -26,7 +26,7 @@
 
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
-#ifdef AQUA 
+#ifdef AQUA
 #define HELPER "(command-? help)"
 #else
 #define HELPER "(? help)"
@@ -106,14 +106,14 @@ void render_status () {
 		vplen = strlen (vpname);
 	}
 	if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
-		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s", 
+		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s",
 			"(Loading...)", BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 
 		// let the other threads run, too
 		sched_yield();
-		
-	} else { 
-		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s", 
+
+	} else {
+		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s",
 		vpname, BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 	}
 
@@ -183,7 +183,7 @@ void render_status () {
 
 void statusbar_position () {
 	glMatrixMode(GL_PROJECTION_MATRIX);
-	glLoadIdentity();	
+	glLoadIdentity();
 	return;
 
 }

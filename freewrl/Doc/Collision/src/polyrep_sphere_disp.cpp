@@ -53,7 +53,7 @@ bool perspective = true;
 
 
 void init(void)
-{    
+{
 
     glClearColor (0.0, 0.0, 0.0, 0.0);
     glShadeModel(GL_FLAT);
@@ -78,7 +78,7 @@ void init(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0.0, 0.0, -3.6);
-     
+
 }
 
 void displayhandles(void) {
@@ -89,7 +89,7 @@ void displayhandles(void) {
 	glVertex3dv(&pts[activepts[i]].x);
 	printf("#%d:(%f,%f,%f)\n",activepts[i],pts[activepts[i]].x,pts[activepts[i]].y,pts[activepts[i]].z);
     }
-    //extra points 
+    //extra points
     //debugfocus
     if(debugpt > 0 && debugpt < debugpts.size()) {
 	glPointSize(6.0);
@@ -98,9 +98,9 @@ void displayhandles(void) {
 	glPointSize(4.0);
     }
     for(int i=0; i < debugpts.size(); i++) {
-	if(i < debugcolors.size()) 
+	if(i < debugcolors.size())
 	    glColor3f(debugcolors[i]& (1<<0) ? 1.:.4,debugcolors[i]&(1<<1)? 1.:.4,debugcolors[i]&(1<<2)? 1.:.4);
-	else 
+	else
 	    glColor3f(1.,0,0);
 	glVertex3dv(&debugpts[i].x);
     }
@@ -109,7 +109,7 @@ void displayhandles(void) {
     for(int i=0; i < pts.size(); i++) {
 	glVertex3dv(&pts[i].x);
     }
-    printf("\n");	
+    printf("\n");
     glEnd();
 
     /*draw axis oriented pointers*/
@@ -128,11 +128,11 @@ void displayhandles(void) {
 	glColor3f(0,0,.5);
 	glVertex3dv(&pts[activepts[i]].x);
 	glVertex3f(pts[activepts[i]].x,pts[activepts[i]].y,0);
-     
+
     }
     glEnd();
-     
-     
+
+
 }
 
 void displayaxis(void) {
@@ -149,7 +149,7 @@ void displayaxis(void) {
     glColor3f(0,0,1);
     glVertex3f(0,0,0);
     glVertex3f(0,0,1);
-     
+
     glEnd();
 
 }
@@ -179,8 +179,8 @@ VRML_PolyRep makepolyrep(struct pt p1, struct pt p2, struct pt p3, struct pt p4,
     memcpy(colindex,colindext,sizeof(colindex));
     memcpy(color,colort,sizeof(color));
     return pr;
-    
-} 
+
+}
 
 /*
 VRML_PolyRep makepolyrep() {
@@ -220,7 +220,7 @@ float clamp(float f) {
 void display_polyrep(VRML_PolyRep pr) {
     glBegin(GL_TRIANGLES);
     for(int i = 0; i < pr.ntri*3; i++) {
-	if(pr.colindex && pr.color) 
+	if(pr.colindex && pr.color)
 	    glColor4f(pr.color[pr.colindex[i]*3],pr.color[pr.colindex[i]*3+1],pr.color[pr.colindex[i]*3+2],0.5);
 	else
 	    glColor4f(clamp(pr.coord[pr.cindex[i]*3]),
@@ -502,7 +502,7 @@ void keyboard (unsigned char key, int x, int y)
 	glGetDoublev(GL_MODELVIEW_MATRIX,postmat);
 	memcpy(premat,ident,sizeof(ident));
     }
-     
+
 
     switch (key) {
     case '=':
@@ -568,7 +568,7 @@ void keyboard (unsigned char key, int x, int y)
     case 27:
 	exit(0);
 	break;
-	  
+
     case '*':
 	glLoadMatrixd(premat);
 	glScalef(sqrt(2.),sqrt(2.),sqrt(2.));
@@ -640,11 +640,11 @@ void keyboard (unsigned char key, int x, int y)
 	glRotatef(rspeed,0,0,1);
 	glMultMatrixd(postmat);
 	break;
-	  
-	  
 
 
-	  
+
+
+
 
     default:
 	break;
@@ -654,9 +654,9 @@ void keyboard (unsigned char key, int x, int y)
 
 
 void mouse (int button, int state, int x, int y){
-	
+
     static int ox,oy;
-    static double scale = 0.01;	
+    static double scale = 0.01;
     static double rscale = 0.01;
 
     y = -y;
@@ -665,11 +665,11 @@ void mouse (int button, int state, int x, int y){
 
     if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 	ox = x;
-	oy = y;	
+	oy = y;
     }
     if(button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
 	GLdouble mat[16];
-	  
+
 	if(rotcenter < pts.size() && slide == rot) {
 	    GLdouble matr[16];
 	    GLdouble matt1[16] = {1,0,0,0,0,1,0,0,0,0,1,0,pts[rotcenter].x,pts[rotcenter].y,pts[rotcenter].z };
@@ -698,7 +698,7 @@ void mouse (int button, int state, int x, int y){
 		transform(&pts[*i],&pts[*i],mat);
 		break;
 	    }
-	       
+
 	}
 	glutPostRedisplay();
     }
@@ -721,5 +721,5 @@ int main(int argc, char** argv)
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
     glutMainLoop();
-    return 0; 
+    return 0;
 }

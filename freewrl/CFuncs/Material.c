@@ -19,7 +19,7 @@ Material.c - only do material settings that "matter"
 
 #include <math.h>
 
-#ifdef AQUA 
+#ifdef AQUA
 #include <gl.h>
 #include <glu.h>
 #include <glext.h>
@@ -58,7 +58,7 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	GLfloat *myfloats;
 	int i,diff;
 
-	for (i=0; i<4; i++) { 
+	for (i=0; i<4; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
 			//printf ("do_glMaterialfv, pname %d idx %d val %f out of range\n",
 			//		pname,i,param[i]);
@@ -99,9 +99,9 @@ int verify_rotate(GLfloat *params) {
 int verify_translate(GLfloat *params) {
 	/* no translation? */
 
-	if ((fabs(params[0]) < 0.001) && 
-		(fabs(params[1]) < 0.001) && 
-		(fabs(params[2]) < 0.001))  return FALSE;  
+	if ((fabs(params[0]) < 0.001) &&
+		(fabs(params[1]) < 0.001) &&
+		(fabs(params[2]) < 0.001))  return FALSE;
 	return TRUE;
 }
 
@@ -109,9 +109,9 @@ int verify_translate(GLfloat *params) {
 int verify_scale(GLfloat *params) {
 	/* no translation? */
 
-	if ((fabs(params[0]-1.0) < 0.001) && 
-		(fabs(params[1]-1.0) < 0.001) && 
-		(fabs(params[2]-1.0) < 0.001))  return FALSE;  
+	if ((fabs(params[0]-1.0) < 0.001) &&
+		(fabs(params[1]-1.0) < 0.001) &&
+		(fabs(params[2]-1.0) < 0.001))  return FALSE;
 
 	return TRUE;
 }

@@ -509,7 +509,7 @@ js_ReportCompileErrorNumber(JSContext *cx, JSTokenStream *ts,
     JS_ASSERT(!ts || ts->linebuf.limit < ts->linebuf.base + JS_LINE_LIMIT);
     onError = cx->errorReporter;
     if (onError) {
-        /* 
+        /*
          * We are typically called with non-null ts and null cg from jsparse.c.
          * We can be called with null ts from the regexp compilation functions.
          * The code generator (jsemit.c) may pass null ts and non-null cg.
@@ -552,7 +552,7 @@ js_ReportCompileErrorNumber(JSContext *cx, JSTokenStream *ts,
          * as the non-top-level "load", "eval", or "compile" native function
          * returns false, the top-level reporter will eventually receive the
          * uncaught exception report.
-         * 
+         *
          * XXX it'd probably be best if there was only one call to this
          * function, but there seem to be two error reporter call points.
          */
@@ -971,8 +971,8 @@ retry:
     }
 
     switch (c) {
-      case '\n': 
-        c = TOK_EOL; 
+      case '\n':
+        c = TOK_EOL;
         break;
 
       case ';': c = TOK_SEMI; break;

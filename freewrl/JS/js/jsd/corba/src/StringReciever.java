@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public interface StringReciever extends org.omg.CORBA.Object
@@ -25,4 +25,4 @@ public interface StringReciever extends org.omg.CORBA.Object
     public void recieveString(String s);
     public void bounce(int count);
 }
- 
+

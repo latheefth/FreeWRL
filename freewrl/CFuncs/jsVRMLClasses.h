@@ -5,9 +5,9 @@
  * (file COPYING in the distribution) for conditions of use and
  * redistribution, EXCEPT on the files which belong under the
  * Mozilla public license.
- * 
+ *
  * $Id$
- * 
+ *
  * Complex VRML nodes as Javascript classes.
  *
  */
@@ -182,7 +182,7 @@ SFColorTouched(JSContext *cx,
 			   jsval *argv,
 			   jsval *rval);
 
-JSBool 
+JSBool
 SFColorConstr(JSContext *cx,
 			  JSObject *obj,
 			  uintN argc,
@@ -228,14 +228,14 @@ SFImageTouched(JSContext *cx,
 			   jsval *argv,
 			   jsval *rval);
 
-JSBool 
+JSBool
 SFImageConstr(JSContext *cx,
 			  JSObject *obj,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
 
-void 
+void
 SFImageFinalize(JSContext *cx,
 				JSObject *obj);
 
@@ -362,24 +362,24 @@ SFRotationTouched(JSContext *cx,
 				  jsval *argv,
 				  jsval *rval);
 
-JSBool 
+JSBool
 SFRotationConstr(JSContext *cx,
 				 JSObject *obj,
 				 uintN argc,
 				 jsval *argv,
 				 jsval *rval);
 
-void 
+void
 SFRotationFinalize(JSContext *cx,
 				   JSObject *obj);
 
-JSBool 
+JSBool
 SFRotationGetProperty(JSContext *cx,
 					  JSObject *obj,
 					  jsval id,
 					  jsval *vp);
 
-JSBool 
+JSBool
 SFRotationSetProperty(JSContext *cx,
 					  JSObject *obj,
 					  jsval id,
@@ -475,13 +475,13 @@ void
 SFVec2fFinalize(JSContext *cx,
 				JSObject *obj);
 
-JSBool 
+JSBool
 SFVec2fGetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 SFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -584,13 +584,13 @@ void
 SFVec3fFinalize(JSContext *cx,
 				JSObject *obj);
 
-JSBool 
+JSBool
 SFVec3fGetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 SFVec3fSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -625,13 +625,13 @@ MFColorAddProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFColorGetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFColorSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -666,13 +666,13 @@ MFFloatAddProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFFloatGetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFFloatSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -707,13 +707,13 @@ MFInt32AddProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFInt32GetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFInt32SetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -748,13 +748,13 @@ MFNodeAddProperty(JSContext *cx,
 				  jsval id,
 				  jsval *vp);
 
-JSBool 
+JSBool
 MFNodeGetProperty(JSContext *cx,
 				  JSObject *obj,
 				  jsval id,
 				  jsval *vp);
 
-JSBool 
+JSBool
 MFNodeSetProperty(JSContext *cx,
 				  JSObject *obj,
 				  jsval id,
@@ -783,13 +783,13 @@ MFRotationConstr(JSContext *cx,
 				 jsval *argv,
 				 jsval *rval);
 
-JSBool 
+JSBool
 MFRotationGetProperty(JSContext *cx,
 					  JSObject *obj,
 					  jsval id,
 					  jsval *vp);
 
-JSBool 
+JSBool
 MFRotationSetProperty(JSContext *cx,
 					  JSObject *obj,
 					  jsval id,
@@ -824,13 +824,13 @@ MFStringConstr(JSContext *cx,
 			   jsval *argv,
 			   jsval *rval);
 
-JSBool 
+JSBool
 MFStringGetProperty(JSContext *cx,
 					JSObject *obj,
 					jsval id,
 					jsval *vp);
 
-JSBool 
+JSBool
 MFStringSetProperty(JSContext *cx,
 					JSObject *obj,
 					jsval id,
@@ -872,13 +872,13 @@ MFTimeAddProperty(JSContext *cx,
 				  jsval id,
 				  jsval *vp);
 
-JSBool 
+JSBool
 MFTimeGetProperty(JSContext *cx,
 				  JSObject *obj,
 				  jsval id,
 				  jsval *vp);
 
-JSBool 
+JSBool
 MFTimeSetProperty(JSContext *cx,
 				  JSObject *obj,
 				  jsval id,
@@ -913,13 +913,13 @@ MFVec2fAddProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFVec2fGetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -954,13 +954,13 @@ MFVec3fAddProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFVec3fGetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 MFVec3fSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -1003,13 +1003,13 @@ VrmlMatrixAddProperty(JSContext *cx,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 VrmlMatrixGetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
 				   jsval *vp);
 
-JSBool 
+JSBool
 VrmlMatrixSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,

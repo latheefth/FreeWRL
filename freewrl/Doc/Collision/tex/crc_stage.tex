@@ -39,28 +39,28 @@
 \begin{abstract}
 Ce document porte sur le travail effectu\'e par Nicolas Coderre durant son stage au Centre de Recherche sur les Communications (CRC).
 Il traite de l'impl\'ementation de d\'etection et r\'eponse aux collision dans l'environnement 3D du logiciel FreeWRL.
-L'approche pr\'esent\'ee est celle de la d\'etection d'intersection d'objects 3D, dans une sc\'ene statique. 
-Il sera surtout question des probl\`emes reli\'es \`a la r\'eponse au situation de collision, c'est \`a dire 
+L'approche pr\'esent\'ee est celle de la d\'etection d'intersection d'objects 3D, dans une sc\'ene statique.
+Il sera surtout question des probl\`emes reli\'es \`a la r\'eponse au situation de collision, c'est \`a dire
 le choix du d\'eplacement qui corrige la situation d'intersection.
 \end{abstract}
 
 \section{Introduction}
-Je suis un étudant maintenant au début de sa troisième année au Baccalauréat en Informatique. 
-Ce stage est mon deuxième, 
+Je suis un étudant maintenant au début de sa troisième année au Baccalauréat en Informatique.
+Ce stage est mon deuxième,
 il a été effecutée au Centre de Recherches sur les Communications (CRC), à Ottawa.
 
 Le CRC est une agence d'industrie Canada, dont le mandat est de développer l'expertise du canada
 dans le dommaine des télécommunications.
 
 \section{Le projet}
-FreeWRL un browser VRML est un projet qui à initialement été concu par -------, en 19--. 
+FreeWRL un browser VRML est un projet qui à initialement été concu par -------, en 19--.
 Distribué sous la licence GPL, le logiciel à été eventuellement pris en charge
 par John A. Stewart, mon superviseur. Il  sagissait alors d'un moyen rapide
 de rendre vie à son projet de monde virtuels partagées, puisqu'il n'avait qu'à rajouter
 le code réseau pour créer un prototype fonctionnel de sa recherche.
 
-Cependant, FreeWRL, quoique fonctionnel, était loin d'être complet. 
-M. Stewart travaille donc depuis quelque temps à rendre FreeWRL conformes 
+Cependant, FreeWRL, quoique fonctionnel, était loin d'être complet.
+M. Stewart travaille donc depuis quelque temps à rendre FreeWRL conformes
 aux spécifications VRML. (NIST url here)
 
 \section{Mandat}
@@ -71,8 +71,8 @@ De plus, les portes qui étaient sensés s'ouvrir au contact de l'usagé étaitent i
 
 \section{Problématique}
 Une myriade de methode de detection de collisions existent. Nul ne peut vraiment faire
-un monde virtuel interactif sans gestion des collisions. 
-Certaines methodes sont approximative, donc simple et rapides. 
+un monde virtuel interactif sans gestion des collisions.
+Certaines methodes sont approximative, donc simple et rapides.
 Dautres sont exaustives et complexes, tres lourdes, mais assez precises
 pour etres utilisées dans des simulations physiques.
 
@@ -82,34 +82,34 @@ pour etres utilisées dans des simulations physiques.
 À première vue, la spécification VRML semblait peu volubile à ce sujet.
 Nulle-par n'ai-je vu mentionnée si l'avatar devait être représenté, pour
 les collisions, comme une boite, une sphère, un cylindre, ou autre.
-Cependant, dans un fichier VRML, trois valeurs peuvent êtres spécifiées 
+Cependant, dans un fichier VRML, trois valeurs peuvent êtres spécifiées
 pour décrire l'avatar. Ces dernières sont la largeur, la hauteur, et
 la hauteur maximale d'une marche.
 
 De ceci, j'en ai déduit que le cylindre représentait plus adéquatement
 la forme de l'avatar. Une sphère ne semblait pas adéquate, puisque la
-hauteur n'était pas nécessairement égal à la largeur. 
+hauteur n'était pas nécessairement égal à la largeur.
 Une boite aurait causé des problèmes lors de rotations dans des espaces
 restreints. (Pensez à un coridor la largeur de l'avatar. Il deviens
 impossible de tourner car les diagonales sont plus longues que la
 largeur du corridor)
 Les formes simples qui semblaient correspondre étaient donc l'ellipsoïde,
-et le cylindre. 
-Quoi que algorithmiquement, l'ellipsoïde est plus simple à traiter, 
+et le cylindre.
+Quoi que algorithmiquement, l'ellipsoïde est plus simple à traiter,
 mathématiquement, cette forme géométrique dépassait mes compétences mathématiques.
 
 Il restait donc le cylindre.
 
-Il est a noter, que plus tard, en fouillant d'avantage la spécification VRML, j'ai 
+Il est a noter, que plus tard, en fouillant d'avantage la spécification VRML, j'ai
 découvert des précisions sur la forme à utiliser. (Les précisions étaient sous
 la rubrique de l'élément syntaxique ``NaviInfo'' plustôt que ``Collision'')
 la largeur représentait la distance minimal entre le point de vue et les objets de
 la scène, et la hauteur représentait uniquement la distance que devait être tenu
-le point de vue au dessus du sol. 
+le point de vue au dessus du sol.
 Ce qui veut dire que selon les spécifications, la forme de l'avatar était plustôt celle
 d'une demi-sphère, avec un cylindre en dessous. Mais, il aurait été possible d'uniquement
 utiliser la sphère, et un truc algorithmique pour maintenir la
-hauteur de l'avatar et s'occuper des marches trop hautes. 
+hauteur de l'avatar et s'occuper des marches trop hautes.
 Cette dernière idée aurait surement été plus simple à implémenter que le cylindre.
 
 \subsection{Le problème de base : intersection d'un cylindre et d'un triangle}
@@ -126,8 +126,8 @@ Je me suis arraché les cheveux.
 Le problème représente la recherche d'un minimum de fonction non-continue en quatre dimensions.
 
 Il fallait trouver une simplification quelquepart. J'ai donc décider de limiter le déplacement
-dans la direction de la normale du plan. 
-\begin{figure}[htb]	
+dans la direction de la normale du plan.
+\begin{figure}[htb]
 %\centering
 	\subfigure[Diff\'erence entre d\'eplacement minimal, et d\'eplacement normal] {
 		\includegraphics[angle=0,width=0.5\textwidth]{triangle_disp_normal_vs_min}
@@ -146,7 +146,7 @@ dans la direction de la normale du plan.
 \end{figure}
 \emph{(fig \ref{figure:tridisp})}
 
-En effet, dans la majorité des cas, ceci donne la même réponse. 
+En effet, dans la majorité des cas, ceci donne la même réponse.
 \emph{(fig \ref{figure:tridisp:b},\ref{figure:tridisp:c})}
 
 Maintenant, le problème deviens trouver point le plus eloigne de la surface du cylindre dans
@@ -155,8 +155,8 @@ le plan du triangle.
 Ce qui représente maintenant une fonction en deux dimensions. Malheureusement, cette
 fonciton est non-continue, ce qui nous empêche de dériver pour trouver le maximum.
 Nous devons donc trouver les points important, calculer leur hauteur, et prendre le
-maximum. 
-\begin{figure}[htb]	
+maximum.
+\begin{figure}[htb]
 \centering
 	\includegraphics[angle=0,width=0.7\textwidth]{triangle_disp_points_triangle_plan}
 	\label{figure:tridispplan}
@@ -166,7 +166,7 @@ maximum.
 
 L'approche est belle, car elle correspond grossièrement à trouver les points formant
 les sommets de l'intersection entre le cylindre et un prisme du triangle.
-\begin{figure}[htb]	
+\begin{figure}[htb]
 %\centering
 	\subfigure[] {
 		\includegraphics[angle=0,width=0.5\textwidth]{triangle_disp_points_1}
@@ -189,7 +189,7 @@ les sommets de l'intersection entre le cylindre et un prisme du triangle.
 \end{figure}
 \emph{(fig \ref{figure:tridisppts})}
 
-Malheureusement, elle est très fastidieuse, car il y a beaucoups de situations 
+Malheureusement, elle est très fastidieuse, car il y a beaucoups de situations
 particulières à traiter. Surtout celles ou la normale au plan est aligné sur les axes.
 Beaucoups d'équations donne des divisions par zéro dans ces cas, et il faut trouver
 des façons alternatives de trouver nos points caractéristiques
@@ -198,7 +198,7 @@ des façons alternatives de trouver nos points caractéristiques
 
 Il aurait été possible d'écrire un seul algorithme général pour des polyèdres
 quelquonques. Cependant, l'architecture VRML est construite de façon telle qui
-est souvent préférable de considérer la primitive haut niveau, que de tout 
+est souvent préférable de considérer la primitive haut niveau, que de tout
 considérer comme un tas de triangles.
 
 De plus, construire un algorithme spécifique pour la boite était une façon pratique
@@ -211,7 +211,7 @@ Mais il est aussi facile de généraliser l'algorithme, ce que j'ai fait par souci
 
 On remarque qu'il suffit de prendre le résultat mimimum, pour obtenir le déplacement mimimum
 hors de la boite, et un déplacement normal à la surface de contact.
-\begin{figure}[htb]	
+\begin{figure}[htb]
 %\centering
 	\subfigure[D\'eplacement z-.8361 ] {
 		\includegraphics[angle=0,width=0.5\textwidth]{box_disp_side_1}
@@ -233,12 +233,12 @@ hors de la boite, et un déplacement normal à la surface de contact.
 
 \subsection{Cas spéciaux : intersection d'un cylindre et du cone et cylindre}
 
-Le cone et le cylindre possèdent des surfaces courbes, et 
-ne sont pas immédiatement disponibles en triangles. 
+Le cone et le cylindre possèdent des surfaces courbes, et
+ne sont pas immédiatement disponibles en triangles.
 J'ai donc décidé d'utiliser une méthode simplifiée pour arriver à mes fins.
 
 Le but de l'exercice est de trouver la surface contenant le point de contact, et de déplacer
-l'avatar dans une direction normale à cette surface. 
+l'avatar dans une direction normale à cette surface.
 J'ai donc pris comme hypothèse que le point de contact allait se trouver sur le
 plan qui passe par l'axe du cone/cylindre, et par l'origine de l'avatar.
 Cette hypothèse est éronnée, mais elle donne un résultat satisfesant.
@@ -247,7 +247,7 @@ Le problème se réduisait donc à sensiblement la même chose qu'avec la boite,
 mais utilisant des segmets et de points au lieu de triangles.
 L'algorithme d'intersection du cylindre avec un segment/point est une version simplifiée
 de celui du triangle.
-\begin{figure}[htb]	
+\begin{figure}[htb]
 %\centering
 	\subfigure[] {
 		\includegraphics[angle=0,width=0.5\textwidth]{cone_disp}
@@ -269,7 +269,7 @@ que j'ai développé l'agorithme d'intersection de triangle.
 
 Dans le cas d'un cylindre et d'une sphère, il se trouve que le déplacement minimal
 est toujours dans la direction de la normale de la surface de la sphère, qui se trouve
-à être toujours un vecteur entre l'origine du cercle, et du point le plus proche du centre 
+à être toujours un vecteur entre l'origine du cercle, et du point le plus proche du centre
 de la sphère.
 
 Circulez, aucun défi ici.
@@ -279,7 +279,7 @@ Que peut-on construire de beau avec uniquement des formes primitives? Pas grand 
 La spécification VRML permet donc la construction de formes plus excentriques.
 Ceux-ci sont: les ensemble de faces (IndexedFaceSet), les extrusions (Extrusion), les
 grilles d'élévation (ElevationGrid), et le texte.
-\begin{figure}[htb]	
+\begin{figure}[htb]
 %\centering
 	\subfigure[IndexedFaceSet] {
 		\includegraphics[angle=0,width=0.5\textwidth]{IndexedFaceSet}
@@ -298,34 +298,34 @@ grilles d'élévation (ElevationGrid), et le texte.
 \end{figure}
 \emph{(fig \ref{figure:polyrep})}
 
-Ce sont les ensembles de faces qui sont les plus généraux, et qui peuvent être utilisés 
+Ce sont les ensembles de faces qui sont les plus généraux, et qui peuvent être utilisés
 pour générer les autres constructions. Il sont simplement une liste de points, et une
-liste de triangles dont les sommets correspondent aux points. 
-Nous allons donc nous attarder à celui-ci. Les autres sont de simples 
+liste de triangles dont les sommets correspondent aux points.
+Nous allons donc nous attarder à celui-ci. Les autres sont de simples
 spécialisations ou optimisations de cet algorthme.
 
 \subsubsection{Tentative 1}
 Ma première tentative était d'utiliser le même mécanisme que celui empolyé pour la boite.
-C'est-à-dire, parmis les faces orientés dans la direction de l'avatar, 
+C'est-à-dire, parmis les faces orientés dans la direction de l'avatar,
 appliquer l'algorithme de déplacement de triangle, et prendre le résultat minimum.
 
 Il y avait deux probl\`emes avec cette approche. Le plus gros probl\`eme \'etait les
-formes concaves.  
+formes concaves.
 Dans le cas ou le cylindre serait en contact avec deux faces qui font face l'une \`a l'autre,
-le d\'eplacement produit par une face pourrait ne pas aider, ou m\^eme empirer la 
+le d\'eplacement produit par une face pourrait ne pas aider, ou m\^eme empirer la
 situation d'intersection de l'autre. \emph{(fig \ref{figure:polydisp:concave})}
 
 Un autre cas probl\`eme se pr\'esentait lorsque deux faces se retrouvent paralleles.
-Dans ce cas, il est clair que le d\'eplacement minimum est le mauvais choix. 
+Dans ce cas, il est clair que le d\'eplacement minimum est le mauvais choix.
 L'autre polygone reste donc en situation d'intersection. \emph{(fig \ref{figure:polydisp:parallel})}
-\begin{figure}[htb]	
+\begin{figure}[htb]
 %\centering
 	\subfigure[On voit ici le polygone fonc\'e n'\'etait pas en situation d'intersection, mais
 			\'a cause du vecteur de d\'eplacement de l'autre, il est maintenant en conflit.] {
 		\includegraphics[angle=0,width=0.5\textwidth]{polydisp_concave_arrow}
 		\label{figure:polydisp:concave}
 	}
-	\subfigure[Le choix du d\'eplacement minimal est incorrect. 
+	\subfigure[Le choix du d\'eplacement minimal est incorrect.
 			Ici, il faudrait choisir le vecteur de d\'eplacement maximal] {
 		\includegraphics[angle=0,width=0.5\textwidth]{polydisp_parallel_arrow}
 		\label{figure:polydisp:parallel}
@@ -339,26 +339,26 @@ L'autre polygone reste donc en situation d'intersection. \emph{(fig \ref{figure:
 Il existait une solution simple au probl\`eme. Il suffisait d'appeler l'algorithme de fa\,con r\'ecursive,
 jusqu'\`a ce que l'intersection soit r\'esolue.
 
-A ce point le syst\`eme fonctionnait. Et il a rest\'e un bon moment de cette fa\,con. 
+A ce point le syst\`eme fonctionnait. Et il a rest\'e un bon moment de cette fa\,con.
 Il n'\'etait pas parfait, cependant. L'algorithme souffrait de gros probl\`emes de continuit\'e.
 Le d\'eplacement obtenu pour une certaine situation \'etait souvent tr\`es diff\'erent du
-d\'eplacement obtenu pour une autre situation semblable, tr\`es rapproch\'ee. 
+d\'eplacement obtenu pour une autre situation semblable, tr\`es rapproch\'ee.
 De fa\,con plus concr\`ete, lorsque l'avatar glissait sur l'objet, le r\'esultat etait tr\`es \'erratique.
 
-Le probl\`eme originait du fait que dans toutes les situations d'ambiguit\'ees, le d\'eplacement 
-calcul\'e que retournait chaque polygone pointait dans de diff\'erentes directions, car ils etaient paralelles \`a leurs normales. 
+Le probl\`eme originait du fait que dans toutes les situations d'ambiguit\'ees, le d\'eplacement
+calcul\'e que retournait chaque polygone pointait dans de diff\'erentes directions, car ils etaient paralelles \`a leurs normales.
 Il n'y avait aucune fa\,con \'evidentre de combiner graduellement les vecteurs de d\'eplacement de chaque polygone
 pour ``adoucir'' l'algorithme. (j'en ai pas trouv\'e).
 
 \subsubsection{Tentative 3}
-Tout n'etait pas perdu!  Il se trouvait que si on changait l'algorithme de deplacement de triangle pour retourner un 
-d\'eplacement dans la direction de l'avatar, plustot que dans la normal du plan du triangle, 
+Tout n'etait pas perdu!  Il se trouvait que si on changait l'algorithme de deplacement de triangle pour retourner un
+d\'eplacement dans la direction de l'avatar, plustot que dans la normal du plan du triangle,
 le probl\`eme de continuit\'e disparrait. Cepandant, \`a cause de la contrainte du temps, je n'ai pu qu'impl\'ementer
 l'algorithme avec un avatar de forme sph\'erique (J'ai donc rajouter un petit truc pour maintenir l'avatar \`a une
 certaine distance du sol)
 
 Il se trouve que r\'esoudre le probl\`eme de cette fa\,con correspond \'a trouver le point le plus proche de l'avatar,
-et de deplacer l'avatar dans la direction oppos\'ee. 
+et de deplacer l'avatar dans la direction oppos\'ee.
 De plus, pour une sph\`ere, c'est toujours dans cette direction que l'on retrouve la distance minimale.
 On pourrait donc dire que avec un avatar sph\'erique, cette m\'ethode donne un r\'esultat meilleur qu'un d\'eplacement
 dans le sens de la normal du plan de contact.

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -61,8 +61,8 @@ public:
      * @param context            - Security context.
      * @param pjobj              - return value.
      */
-    NS_IMETHOD	
-    Eval(JNIEnv *jEnv, jsobject obj, const jchar *script, jsize length, void **pNSIPrincipaArray, 
+    NS_IMETHOD
+    Eval(JNIEnv *jEnv, jsobject obj, const jchar *script, jsize length, void **pNSIPrincipaArray,
          int numPrincipals, void *pNSISecurityContext, jobject *pjobj) = 0;
 };
 

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -33,7 +33,7 @@
  */
 
 /* The convenience functions below present a complete, but simplified
-   LiveConnect API which is designed to handle the special case of a single 
+   LiveConnect API which is designed to handle the special case of a single
    Java-VM, single-threaded operation, and use of only one JSContext. */
 
 #include "jsjava.h"
@@ -104,10 +104,10 @@ default_create_java_vm(SystemJavaVM* *jvm, JNIEnv* *initialEnv, void* initargs)
     }
 
     err = JNI_CreateJavaVM((JavaVM**)jvm, initialEnv, &vm_args);
-    
+
     if (full_classpath)
         JS_smprintf_free(full_classpath);
-    
+
     return err == 0;
 }
 

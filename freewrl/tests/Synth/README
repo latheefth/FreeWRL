@@ -5,7 +5,7 @@ The Scene has 12 notes, (one octave), and 4 purple "octave selector"
 cones. The red sphere is the record button, and the yellow sphere
 is the play button.
 
-run the midi_control.c program (no make file yet, just 
+run the midi_control.c program (no make file yet, just
 gcc midi_control.c, and run the a.out program).
 
 Run the script synth.

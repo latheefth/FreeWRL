@@ -1,16 +1,16 @@
 // copyright (c) 1997,1998 stephen f. white
 // Modified for use with EAI and FreeWRL. John Stewart CRC Canada 1999
-// 
+//
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; either version 2, or (at your option)
 // any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; see the file COPYING.  If not, write to
 // the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -97,7 +97,7 @@ public class EAIAsyncThread extends Thread {
       //System.out.println ("EAIAsyncThread.callback - value " + msg.value +
 	//		" EventType " + msg.EventNumber );
 
-      if (BrowserGlobals.EVtype[msg.EventNumber]==18) {        
+      if (BrowserGlobals.EVtype[msg.EventNumber]==18) {
 	me = new EventOutSFVec3f();
       } else if (BrowserGlobals.EVtype[msg.EventNumber]==12) {
         me = new EventOutSFRotation();
@@ -107,7 +107,7 @@ public class EAIAsyncThread extends Thread {
         me = new EventOutSFTime();
       } else if (BrowserGlobals.EVtype[msg.EventNumber]==1) {
         me = new EventOutSFBool();
-  
+
       // These are not yet properly handled...
       //  public final static int SFIMAGE      = 2;
       //  public final static int SFTIME       = 3;
@@ -127,14 +127,14 @@ public class EAIAsyncThread extends Thread {
 
 
       } else {
-	System.out.println (" EAIASyncThread: handling something funny here, " + 
+	System.out.println (" EAIASyncThread: handling something funny here, " +
 		BrowserGlobals.EVtype[msg.EventNumber]);
         me = new EventOut();
       }
       me.RLreturn = msg.value;
 
       if (BrowserGlobals.EVObserver[msg.EventNumber] != null) {
-      	BrowserGlobals.EVObserver[msg.EventNumber].callback (me, 
+      	BrowserGlobals.EVObserver[msg.EventNumber].callback (me,
 		(double) 0.0, BrowserGlobals.EVObject[msg.EventNumber]);
       } else {
 		System.out.println ("WARNING - EAIAsyncThread.callback - thread callback null, discarding");

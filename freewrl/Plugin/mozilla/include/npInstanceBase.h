@@ -17,7 +17,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -25,7 +25,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -106,11 +106,11 @@ typedef struct _PlatformInfo
 typedef struct _npCreateData
 {
   NPP instance;
-  NPMIMEType type; 
-  uint16 mode; 
-  int16 argc; 
-  char **argn; 
-  char **argv; 
+  NPMIMEType type;
+  uint16 mode;
+  int16 argc;
+  char **argn;
+  char **argv;
   NPSavedData *saved;
 } npCreateData;
 
@@ -123,7 +123,7 @@ public:
     virtual void shut() = 0;
     virtual NPBool isInitialized() = 0;
 
-    // implement all or part of those methods in the derived 
+    // implement all or part of those methods in the derived
     // class as needed
     virtual NPError SetWindow(NPWindow *pNPWindow) { return NPERR_NO_ERROR; }
 

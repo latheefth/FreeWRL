@@ -18,7 +18,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -53,7 +53,7 @@ CPU_ARCH = x86
 OS_CFLAGS+= -DX86_LINUX
 
 ifeq (gcc, $(CC))
-# if using gcc on x86, check version for opt bug 
+# if using gcc on x86, check version for opt bug
 # (http://bugzilla.mozilla.org/show_bug.cgi?id=24892)
 GCC_VERSION := $(shell gcc -v 2>&1 | grep version | awk '{ print $$3 }')
 GCC_LIST:=$(sort 2.91.66 $(GCC_VERSION) )

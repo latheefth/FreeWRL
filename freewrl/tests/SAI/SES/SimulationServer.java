@@ -11,7 +11,7 @@ class SimulationServer {
     private long startTime;
 
     private AnimationServerThread fromSim, fromAnim;
-  
+
     private ServerSocket animServerSocket = null;
     private Socket animClientSocket = null;
 
@@ -105,7 +105,7 @@ class SimulationServer {
 		if (counters[1][0] == 0)
 		    state = OUT2;
 		break;
-		
+
 	    case OUT1:
 		if (counters[1][0] == 0 && counters[0][0] != 0)
 		    state = GO1;
@@ -175,7 +175,7 @@ class SimulationServer {
 	    }
 	}
     }
-	
+
 
     public void initSensors() {
 	for (int dir = 0; dir < 2; dir++) {
@@ -186,7 +186,7 @@ class SimulationServer {
 	    }
 	}
     }
-		
+
     public void handleMessages() {
 	try {
 	    while (animIS.available() > 3) {
@@ -207,10 +207,10 @@ class SimulationServer {
 //  				       +(inverse == 1 ? !value : value));
 		}
 	    }
-	} catch (IOException e) { 
-	    e.printStackTrace(); 
+	} catch (IOException e) {
+	    e.printStackTrace();
 	}
-    }	    
+    }
 
 
     public static void main(String[] args) {

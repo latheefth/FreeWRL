@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
@@ -53,8 +53,8 @@
  *	__ieee754_rem_pio2	... argument reduction routine
  *
  * Method.
- *      Let S,C and T denote the sin, cos and tan respectively on 
- *	[-PI/4, +PI/4]. Reduce the argument x to y1+y2 = x-k*pi/2 
+ *      Let S,C and T denote the sin, cos and tan respectively on
+ *	[-PI/4, +PI/4]. Reduce the argument x to y1+y2 = x-k*pi/2
  *	in [-pi/4 , +pi/4], and let n = k mod 4.
  *	We have
  *
@@ -72,7 +72,7 @@
  *      trig(NaN)    is that NaN;
  *
  * Accuracy:
- *	TRIG(x) returns trig(x) nearly rounded 
+ *	TRIG(x) returns trig(x) nearly rounded
  */
 
 #include "fdlibm.h"

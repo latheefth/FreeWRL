@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -69,48 +69,48 @@ static struct Hnetscape_jsdebug_DebugController* controller = 0;
 static JHandle*
 _constructInteger(ExecEnv *ee, long i)
 {
-    return (JHandle*) 
+    return (JHandle*)
         execute_java_constructor(ee, "java/lang/Integer", 0, "(I)", i);
 }
 
 static JHandle*
 _putHash(ExecEnv *ee, JHandle* tbl, JHandle* key, JHandle* ob)
 {
-    return (JHandle*) 
-        execute_java_dynamic_method( 
+    return (JHandle*)
+        execute_java_dynamic_method(
             ee, tbl, "put",
-            "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", 
+            "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
             key, ob );
 }
 
 static JHandle*
 _getHash(ExecEnv *ee, JHandle* tbl, JHandle* key)
 {
-    return (JHandle*) 
-        execute_java_dynamic_method( 
+    return (JHandle*)
+        execute_java_dynamic_method(
             ee, tbl, "get",
-            "(Ljava/lang/Object;)Ljava/lang/Object;", 
+            "(Ljava/lang/Object;)Ljava/lang/Object;",
             key );
 }
 
 static JHandle*
 _removeHash(ExecEnv *ee, JHandle* tbl, JHandle* key)
 {
-    return (JHandle*) 
-        execute_java_dynamic_method( 
+    return (JHandle*)
+        execute_java_dynamic_method(
             ee, tbl, "remove",
-            "(Ljava/lang/Object;)Ljava/lang/Object;", 
+            "(Ljava/lang/Object;)Ljava/lang/Object;",
             key );
 }
 
 struct Hnetscape_jsdebug_JSStackFrameInfo*
-_constructJSStackFrameInfo( ExecEnv* ee, JSDStackFrameInfo* jsdframe, 
+_constructJSStackFrameInfo( ExecEnv* ee, JSDStackFrameInfo* jsdframe,
                             struct Hnetscape_jsdebug_JSThreadState* threadState )
 {
     struct Hnetscape_jsdebug_JSStackFrameInfo* frame;
 
     frame = (struct Hnetscape_jsdebug_JSStackFrameInfo*)
-        execute_java_constructor( ee, "netscape/jsdebug/JSStackFrameInfo", 0, 
+        execute_java_constructor( ee, "netscape/jsdebug/JSStackFrameInfo", 0,
                                   "(Lnetscape/jsdebug/JSThreadState;)",
                                   threadState );
     if( ! frame )
@@ -128,7 +128,7 @@ _constructJSPC( ExecEnv* ee, struct Hnetscape_jsdebug_Script* script, long pc )
     struct Hnetscape_jsdebug_JSPC * pcOb;
 
     pcOb = (struct Hnetscape_jsdebug_JSPC *)
-        execute_java_constructor( ee, "netscape/jsdebug/JSPC", 0, 
+        execute_java_constructor( ee, "netscape/jsdebug/JSPC", 0,
                                   "(Lnetscape/jsdebug/Script;I)",
                                   script, pc );
     if( ! pcOb )
@@ -150,7 +150,7 @@ _scriptObFromJSDScriptPtr( ExecEnv* ee, JSDScript* jsdscript )
 /***************************************************************************/
 
 void PR_CALLBACK
-_scriptHook( JSDContext* jsdc, 
+_scriptHook( JSDContext* jsdc,
              JSDScript*  jsdscript,
              JSBool      creating,
              void*       callerdata )
@@ -197,7 +197,7 @@ _scriptHook( JSDContext* jsdc,
         {
             execute_java_dynamic_method( ee,(JHandle*)unhand(controller)->scriptHook,
                                          "justLoadedScript",
-                                         "(Lnetscape/jsdebug/Script;)V", 
+                                         "(Lnetscape/jsdebug/Script;)V",
                                          script );
         }
     }
@@ -220,7 +220,7 @@ _scriptHook( JSDContext* jsdc,
         {
             execute_java_dynamic_method( ee,(JHandle*)unhand(controller)->scriptHook,
                                          "aboutToUnloadScript",
-                                         "(Lnetscape/jsdebug/Script;)V", 
+                                         "(Lnetscape/jsdebug/Script;)V",
                                          script );
         }
         /* set the Script as invalid */
@@ -232,7 +232,7 @@ _scriptHook( JSDContext* jsdc,
 
 /***************************************************************************/
 PRUintn PR_CALLBACK
-_executionHook( JSDContext*     jsdc, 
+_executionHook( JSDContext*     jsdc,
                 JSDThreadState* jsdstate,
                 PRUintn         type,
                 void*           callerdata )
@@ -297,14 +297,14 @@ _executionHook( JSDContext*     jsdc,
         JHandle* hook;
 
         /* clear the JSD level hook (must reset on next sendInterrupt0()*/
-        JSD_ClearInterruptHook(context); 
+        JSD_ClearInterruptHook(context);
 
         hook = (JHandle*) unhand(controller)->interruptHook;
         if( ! hook )
             return JSD_HOOK_RETURN_HOOK_ERROR;
 
         /* call the hook */
-        execute_java_dynamic_method( 
+        execute_java_dynamic_method(
             ee, hook, "aboutToExecute",
             "(Lnetscape/jsdebug/ThreadStateBase;Lnetscape/jsdebug/PC;)V",
             threadState, pcOb );
@@ -318,7 +318,7 @@ _executionHook( JSDContext*     jsdc,
             return JSD_HOOK_RETURN_HOOK_ERROR;
 
         /* call the hook */
-        execute_java_dynamic_method( 
+        execute_java_dynamic_method(
             ee, hook, "aboutToExecute",
             "(Lnetscape/jsdebug/ThreadStateBase;Lnetscape/jsdebug/PC;)V",
             threadState, pcOb );
@@ -328,7 +328,7 @@ _executionHook( JSDContext*     jsdc,
         JHandle* hook;
 
         hook = (JHandle*)
-                execute_java_dynamic_method( 
+                execute_java_dynamic_method(
                         ee,(JHandle*)controller,
                         "getInstructionHook0",
                         "(Lnetscape/jsdebug/PC;)Lnetscape/jsdebug/InstructionHook;",
@@ -337,13 +337,13 @@ _executionHook( JSDContext*     jsdc,
             return JSD_HOOK_RETURN_HOOK_ERROR;
 
         /* call the hook */
-        execute_java_dynamic_method( 
+        execute_java_dynamic_method(
             ee, hook, "aboutToExecute",
             "(Lnetscape/jsdebug/ThreadStateBase;)V",
             threadState );
     }
 
-    if( netscape_jsdebug_JSThreadState_DEBUG_STATE_THROW == 
+    if( netscape_jsdebug_JSThreadState_DEBUG_STATE_THROW ==
         unhand(threadState)->continueState )
         return JSD_HOOK_RETURN_ABORT;
 
@@ -351,9 +351,9 @@ _executionHook( JSDContext*     jsdc,
 }
 
 PRUintn PR_CALLBACK
-_errorReporter( JSDContext*     jsdc, 
+_errorReporter( JSDContext*     jsdc,
                 JSContext*      cx,
-                const char*     message, 
+                const char*     message,
                 JSErrorReport*  report,
                 void*           callerdata )
 {
@@ -383,10 +383,10 @@ _errorReporter( JSDContext*     jsdc,
     if( report && report->linebuf && report->tokenptr )
         tokenOffset = report->tokenptr - report->linebuf;
 
-    return (int) 
-        execute_java_dynamic_method( 
+    return (int)
+        execute_java_dynamic_method(
                 ee, reporter, "reportError",
-                "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;I)I", 
+                "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;I)I",
                 msg,
                 filename,
                 lineno,
@@ -494,7 +494,7 @@ struct Hjava_lang_String *netscape_jsdebug_DebugController_executeScriptInStackF
 
     srclen = strlen(srcC);
 
-    success = JSD_EvaluateScriptInStackFrame(context, jsdthreadstate, jsdframe, 
+    success = JSD_EvaluateScriptInStackFrame(context, jsdthreadstate, jsdframe,
                                              srcC, srclen,
                                              filenameC, lineno, &rval);
 
@@ -516,7 +516,7 @@ struct Hjava_lang_String *netscape_jsdebug_DebugController_executeScriptInStackF
 
     /* XXXbe should use JS_GetStringChars and preserve Unicode. */
     return makeJavaString((char*)JS_GetStringBytes(jsstr), JS_GetStringLength(jsstr));
-}    
+}
 
 long netscape_jsdebug_DebugController_getNativeMajorVersion(struct Hnetscape_jsdebug_DebugController* self)
 {
@@ -556,7 +556,7 @@ struct Hnetscape_jsdebug_JSPC *netscape_jsdebug_Script_getClosestPC(struct Hnets
 long netscape_jsdebug_JSThreadState_countStackFrames(struct Hnetscape_jsdebug_JSThreadState * self)
 {
     JSDThreadState* jsdstate;
-        
+
     if( ! context || ! controller )
         return 0;
 
@@ -572,7 +572,7 @@ struct Hnetscape_jsdebug_StackFrameInfo *netscape_jsdebug_JSThreadState_getCurre
 {
     JSDThreadState* jsdstate;
     JSDStackFrameInfo* jsdframe;
-        
+
     if( ! context || ! controller )
         return NULL;
 
@@ -696,7 +696,7 @@ struct Hnetscape_jsdebug_SourceLocation *netscape_jsdebug_JSPC_getSourceLocation
         return NULL;
 
     return (struct Hnetscape_jsdebug_SourceLocation *)
-        execute_java_constructor( ee, "netscape/jsdebug/JSSourceLocation", 0, 
+        execute_java_constructor( ee, "netscape/jsdebug/JSSourceLocation", 0,
                                   "(Lnetscape/jsdebug/JSPC;I)",
                                   newPCOb, line );
 }
@@ -707,7 +707,7 @@ struct Hnetscape_jsdebug_SourceLocation *netscape_jsdebug_JSPC_getSourceLocation
 struct Hnetscape_jsdebug_SourceTextItem *netscape_jsdebug_JSSourceTextProvider_loadSourceTextItem0(struct Hnetscape_jsdebug_JSSourceTextProvider * self,struct Hjava_lang_String * url)
 {
     /* this should attempt to load the source for the indicated URL */
-    return NULL;    
+    return NULL;
 }
 
 void netscape_jsdebug_JSSourceTextProvider_refreshSourceTextVector(struct Hnetscape_jsdebug_JSSourceTextProvider * self)
@@ -751,7 +751,7 @@ void netscape_jsdebug_JSSourceTextProvider_refreshSourceTextVector(struct Hnetsc
             execute_java_dynamic_method( ee, (JHandle*)self, "findSourceTextItem0",
                       "(Ljava/lang/String;)Lnetscape/jsdebug/SourceTextItem;",
                       urlOb );
-                      
+
         if( ! itemOb )
         {
             /* if not found then generate new item */
@@ -767,11 +767,11 @@ void netscape_jsdebug_JSSourceTextProvider_refreshSourceTextVector(struct Hnetsc
             textOb = makeJavaString((char*)str, length);
 
             itemOb = (JHandle*)
-                execute_java_constructor(ee, "netscape/jsdebug/SourceTextItem",0,  
+                execute_java_constructor(ee, "netscape/jsdebug/SourceTextItem",0,
                      "(Ljava/lang/String;Ljava/lang/String;I)",
                      urlOb, textOb, status );
         }
-        else if( JSD_IsSourceDirty(context, item) && 
+        else if( JSD_IsSourceDirty(context, item) &&
                  JSD_SOURCE_CLEARED != status )
         {
             /* if found and dirty then update */
@@ -785,15 +785,15 @@ void netscape_jsdebug_JSSourceTextProvider_refreshSourceTextVector(struct Hnetsc
                 length = 0;
             }
             textOb = makeJavaString((char*)str, length);
-            execute_java_dynamic_method(ee, itemOb, "setText", 
+            execute_java_dynamic_method(ee, itemOb, "setText",
                                         "(Ljava/lang/String;)V", textOb);
-            execute_java_dynamic_method(ee, itemOb, "setStatus", 
+            execute_java_dynamic_method(ee, itemOb, "setStatus",
                                         "(I)V", status );
             execute_java_dynamic_method(ee, itemOb, "setDirty", "(Z)V", 1 );
         }
 
         /* we have our copy; clear the native cached text */
-        if( JSD_SOURCE_INITED  != status && 
+        if( JSD_SOURCE_INITED  != status &&
             JSD_SOURCE_PARTIAL != status &&
             JSD_SOURCE_CLEARED != status )
         {
@@ -805,7 +805,7 @@ void netscape_jsdebug_JSSourceTextProvider_refreshSourceTextVector(struct Hnetsc
 
         /* add the item to the vector */
         if( itemOb )
-            execute_java_dynamic_method(ee, vec, "addElement", 
+            execute_java_dynamic_method(ee, vec, "addElement",
                                         "(Ljava/lang/Object;)V", itemOb );
     }
     /* unlock the native subsystem */
@@ -814,7 +814,7 @@ void netscape_jsdebug_JSSourceTextProvider_refreshSourceTextVector(struct Hnetsc
     /* set main vector to our new vector */
 
     unhand(self)->_sourceTextVector = (struct Hnetscape_util_Vector*) vec;
-}    
+}
 
 
 #endif

@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public final class Thing
@@ -25,4 +25,4 @@ public final class Thing
     public String s;
     public int    i;
 }
- 
+

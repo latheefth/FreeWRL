@@ -21,7 +21,7 @@ const CORBA::TypeInfo _sk_StringReciever::_skel_info(
 		"StringReciever",
 		(CORBA::ULong)2,
 		_StringReciever_methods);
-_sk_StringReciever::_sk_StringReciever(const char *object_name) : 
+_sk_StringReciever::_sk_StringReciever(const char *object_name) :
 	StringReciever(object_name)
 {
 	_object_name(object_name);
@@ -77,7 +77,7 @@ const CORBA::TypeInfo _sk_TestInterface::_skel_info(
 		"TestInterface",
 		(CORBA::ULong)4,
 		_TestInterface_methods);
-_sk_TestInterface::_sk_TestInterface(const char *object_name) : 
+_sk_TestInterface::_sk_TestInterface(const char *object_name) :
 	TestInterface(object_name)
 {
 	_object_name(object_name);
@@ -173,7 +173,7 @@ const CORBA::TypeInfo _sk_ISourceTextProvider::_skel_info(
 		"ISourceTextProvider",
 		(CORBA::ULong)8,
 		_ISourceTextProvider_methods);
-_sk_ISourceTextProvider::_sk_ISourceTextProvider(const char *object_name) : 
+_sk_ISourceTextProvider::_sk_ISourceTextProvider(const char *object_name) :
 	ISourceTextProvider(object_name)
 {
 	_object_name(object_name);
@@ -339,7 +339,7 @@ const CORBA::TypeInfo _sk_IJSErrorReporter::_skel_info(
 		"IJSErrorReporter",
 		(CORBA::ULong)1,
 		_IJSErrorReporter_methods);
-_sk_IJSErrorReporter::_sk_IJSErrorReporter(const char *object_name) : 
+_sk_IJSErrorReporter::_sk_IJSErrorReporter(const char *object_name) :
 	IJSErrorReporter(object_name)
 {
 	_object_name(object_name);
@@ -387,7 +387,7 @@ const CORBA::TypeInfo _sk_IScriptHook::_skel_info(
 		"IScriptHook",
 		(CORBA::ULong)2,
 		_IScriptHook_methods);
-_sk_IScriptHook::_sk_IScriptHook(const char *object_name) : 
+_sk_IScriptHook::_sk_IScriptHook(const char *object_name) :
 	IScriptHook(object_name)
 {
 	_object_name(object_name);
@@ -440,7 +440,7 @@ const CORBA::TypeInfo _sk_IJSExecutionHook::_skel_info(
 		"IJSExecutionHook",
 		(CORBA::ULong)1,
 		_IJSExecutionHook_methods);
-_sk_IJSExecutionHook::_sk_IJSExecutionHook(const char *object_name) : 
+_sk_IJSExecutionHook::_sk_IJSExecutionHook(const char *object_name) :
 	IJSExecutionHook(object_name)
 {
 	_object_name(object_name);
@@ -503,7 +503,7 @@ const CORBA::TypeInfo _sk_IDebugController::_skel_info(
 		"IDebugController",
 		(CORBA::ULong)27,
 		_IDebugController_methods);
-_sk_IDebugController::_sk_IDebugController(const char *object_name) : 
+_sk_IDebugController::_sk_IDebugController(const char *object_name) :
 	IDebugController(object_name)
 {
 	_object_name(object_name);

@@ -17,15 +17,15 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 package netscape.jsdebug;
 
-/*  
+/*
 *  jband - 03/19/97
 *
-*  This is an 'abstracted version of netscape.debug.ThreadState 
+*  This is an 'abstracted version of netscape.debug.ThreadState
 *
 *  The methods that were 'native' there are 'abstract' here.
 *  Changed 'private' data to 'protected' (though native access is immune)
@@ -60,7 +60,7 @@ public abstract class ThreadStateBase {
     protected ThreadStateBase previous;
 
     /**
-     * <B><font color="red">Not Implemented.</font></B> 
+     * <B><font color="red">Not Implemented.</font></B>
      * Always throws <code>InternalError("unimplemented")</code>
      */
     public static ThreadStateBase getThreadState(Thread t)
@@ -105,7 +105,7 @@ public abstract class ThreadStateBase {
     public final static int THR_STATUS_SUSPENDED	= 0x07;
     public final static int THR_STATUS_BREAK		= 0x08;
 
-    /** 
+    /**
      * Get the state of the thread at the time it entered debug mode.
      * This can't be modified directly.
      */
@@ -113,12 +113,12 @@ public abstract class ThreadStateBase {
         return status;
     }
 
-    /** 
+    /**
      * Get the count of the stackframes
      */
     public abstract int countStackFrames()
         throws InvalidInfoException;
-    /** 
+    /**
      * Get the 'top' stackframe; i.e. the one with the current instruction
      */
     public abstract StackFrameInfo getCurrentFrame()
@@ -230,9 +230,9 @@ public abstract class ThreadStateBase {
         return returnValue;
     }
 
-    /** 
+    /**
      * If the thread was stopped while in the process of throwing an
-     * exception, this call returns that exception.  
+     * exception, this call returns that exception.
      * This is only relevant if the continue state is THROW, and it
      * throws an IllegalStateException otherwise.
      */

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -156,7 +156,7 @@ extern char	*getenv();
 extern char	*tgetstr();
 extern int	tgetent();
 #endif	/* defined(USE_TERMCAP) */
-
+
 /*
 **  TTY input/output functions.
 */
@@ -296,7 +296,7 @@ TTYinfo()
 	TTYrows = SCREEN_ROWS;
     }
 }
-
+
 
 STATIC void
 reposition()
@@ -510,7 +510,7 @@ toggle_meta_mode()
     rl_meta_chars = ! rl_meta_chars;
     return redisplay();
 }
-
+
 
 STATIC CHAR *
 next_hist()
@@ -1047,7 +1047,7 @@ add_history(p)
 #endif	/* defined(UNIQUE_HISTORY) */
     hist_add((CHAR *)p);
 }
-
+
 
 STATIC STATUS
 beg_line()

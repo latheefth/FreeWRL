@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,19 +39,19 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
 
 /* __ieee754_hypot(x,y)
  *
- * Method :                  
- *	If (assume round-to-nearest) z=x*x+y*y 
- *	has error less than sqrt(2)/2 ulp, than 
+ * Method :
+ *	If (assume round-to-nearest) z=x*x+y*y
+ *	has error less than sqrt(2)/2 ulp, than
  *	sqrt(z) has error less than 1 ulp (exercise).
  *
- *	So, compute sqrt(x*x+y*y) with some care as 
+ *	So, compute sqrt(x*x+y*y) with some care as
  *	follows to get the error below 1 ulp:
  *
  *	Assume x>y>0;
@@ -61,10 +61,10 @@
  *	where x1 = x with lower 32 bits cleared, x2 = x-x1; else
  *	2. if x <= 2y use
  *		t1*y1+((x-y)*(x-y)+(t1*y2+t2*y))
- *	where t1 = 2x with lower 32 bits cleared, t2 = 2x-t1, 
+ *	where t1 = 2x with lower 32 bits cleared, t2 = 2x-t1,
  *	y1= y with lower 32 bits chopped, y2 = y-y1.
- *		
- *	NOTE: scaling may be necessary if some argument is too 
+ *
+ *	NOTE: scaling may be necessary if some argument is too
  *	      large or too tiny
  *
  * Special cases:
@@ -72,8 +72,8 @@
  *	hypot(x,y) is NAN if x or y is NAN.
  *
  * Accuracy:
- * 	hypot(x,y) returns sqrt(x^2+y^2) with error less 
- * 	than 1 ulps (units in the last place) 
+ * 	hypot(x,y) returns sqrt(x^2+y^2) with error less
+ * 	than 1 ulps (units in the last place)
  */
 
 #include "fdlibm.h"
@@ -88,7 +88,7 @@
         fd_twoints ux, uy;
 	double a=x,b=y,t1,t2,y1,y2,w;
 	int j,k,ha,hb;
-        
+
         ux.d = x; uy.d = y;
 	ha = __HI(ux)&0x7fffffff;	/* high word of  x */
 	hb = __HI(uy)&0x7fffffff;	/* high word of  y */
@@ -115,7 +115,7 @@
            a = ux.d; b = uy.d;
 	}
 	if(hb < 0x20b00000) {	/* b < 2**-500 */
-	    if(hb <= 0x000fffff) {	/* subnormal b or 0 */	
+	    if(hb <= 0x000fffff) {	/* subnormal b or 0 */
                 uy.d = b;
 		if((hb|(__LO(uy)))==0) return a;
 		t1=0;

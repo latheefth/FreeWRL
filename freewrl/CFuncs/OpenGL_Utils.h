@@ -13,7 +13,7 @@
  *
  */
 
-#ifdef AQUA 
+#ifdef AQUA
 
 #include <gl.h>
 #include <glu.h>
@@ -49,10 +49,10 @@ glpOpenGLInitialize(void);
 void
 BackEndClearBuffer(void);
 
-void 
+void
 BackEndLightsOff(void);
 
-void 
+void
 BackEndHeadlightOff(void);
 
 void

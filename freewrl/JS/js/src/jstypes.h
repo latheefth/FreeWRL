@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -125,7 +125,7 @@
 #define JS_DLL_CALLBACK
 #define JS_STATIC_DLL_CALLBACK(__x) static __x
 
-#elif defined(XP_OS2_VACPP) 
+#elif defined(XP_OS2_VACPP)
 #define JS_EXTERN_API(__type) extern __type
 #define JS_EXPORT_API(__type) __type
 #define JS_EXTERN_DATA(__type) extern __type
@@ -250,7 +250,7 @@ JS_BEGIN_EXTERN_C
 **              JSInt8
 ** DESCRIPTION:
 **  The int8 types are known to be 8 bits each. There is no type that
-**      is equivalent to a plain "char". 
+**      is equivalent to a plain "char".
 ************************************************************************/
 #if JS_BYTES_PER_BYTE == 1
 typedef unsigned char JSUint8;
@@ -263,7 +263,7 @@ typedef signed char JSInt8;
 ** TYPES:       JSUint16
 **              JSInt16
 ** DESCRIPTION:
-**  The int16 types are known to be 16 bits each. 
+**  The int16 types are known to be 16 bits each.
 ************************************************************************/
 #if JS_BYTES_PER_SHORT == 2
 typedef unsigned short JSUint16;
@@ -276,7 +276,7 @@ typedef short JSInt16;
 ** TYPES:       JSUint32
 **              JSInt32
 ** DESCRIPTION:
-**  The int32 types are known to be 32 bits each. 
+**  The int32 types are known to be 32 bits each.
 ************************************************************************/
 #if JS_BYTES_PER_INT == 4
 typedef unsigned int JSUint32;
@@ -334,7 +334,7 @@ typedef JSInt64 JSUint64;
 **  The JSIntn types are most appropriate for automatic variables. They are
 **      guaranteed to be at least 16 bits, though various architectures may
 **      define them to be wider (e.g., 32 or even 64 bits). These types are
-**      never valid for fields of a structure. 
+**      never valid for fields of a structure.
 ************************************************************************/
 #if JS_BYTES_PER_INT >= 2
 typedef int JSIntn;
@@ -346,14 +346,14 @@ typedef unsigned int JSUintn;
 /************************************************************************
 ** TYPES:       JSFloat64
 ** DESCRIPTION:
-**  NSPR's floating point type is always 64 bits. 
+**  NSPR's floating point type is always 64 bits.
 ************************************************************************/
 typedef double          JSFloat64;
 
 /************************************************************************
 ** TYPES:       JSSize
 ** DESCRIPTION:
-**  A type for representing the size of objects. 
+**  A type for representing the size of objects.
 ************************************************************************/
 typedef size_t JSSize;
 
@@ -361,7 +361,7 @@ typedef size_t JSSize;
 ** TYPES:       JSPtrDiff
 ** DESCRIPTION:
 **  A type for pointer difference. Variables of this type are suitable
-**      for storing a pointer or pointer sutraction. 
+**      for storing a pointer or pointer sutraction.
 ************************************************************************/
 typedef ptrdiff_t JSPtrdiff;
 
@@ -369,7 +369,7 @@ typedef ptrdiff_t JSPtrdiff;
 ** TYPES:       JSUptrdiff
 ** DESCRIPTION:
 **  A type for pointer difference. Variables of this type are suitable
-**      for storing a pointer or pointer sutraction. 
+**      for storing a pointer or pointer sutraction.
 ************************************************************************/
 typedef unsigned long JSUptrdiff;
 
@@ -379,7 +379,7 @@ typedef unsigned long JSUptrdiff;
 **  Use JSBool for variables and parameter types. Use JS_FALSE and JS_TRUE
 **      for clarity of target type in assignments and actual arguments. Use
 **      'if (bool)', 'while (!bool)', '(bool) ? x : y' etc., to test booleans
-**      juast as you would C int-valued conditions. 
+**      juast as you would C int-valued conditions.
 ************************************************************************/
 typedef JSIntn JSBool;
 #define JS_TRUE (JSIntn)1

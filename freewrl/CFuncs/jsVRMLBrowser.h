@@ -5,9 +5,9 @@
  * (file COPYING in the distribution) for conditions of use and
  * redistribution, EXCEPT on the files which belong under the
  * Mozilla public license.
- * 
+ *
  * $Id$
- * 
+ *
  */
 
 

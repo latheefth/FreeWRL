@@ -5,7 +5,7 @@ public abstract class Field implements Cloneable
 {
     FWJavaScriptBinding __binding = null;
     String offset = "0 -1 0"; // type, offset of -1, length of zero
-    
+
     public Object clone() {
 	try {
 	    Field f = (Field) super.clone();
@@ -31,10 +31,10 @@ public abstract class Field implements Cloneable
 
     public abstract void __fromPerl(BufferedReader in) throws IOException;
     public abstract void __toPerl(PrintWriter out) throws IOException;
-	
+
     public void setOffset(String offs) { this.offset = offs; } //JAS2
     public String getOffset() { return this.offset; } //JAS2
-    
+
 
 }
 

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  *
@@ -68,7 +68,7 @@
 
 static double zero = 0.0;	/* used as const */
 
-/* 
+/*
  * Standard conformance (non-IEEE) on exception cases.
  * Mapping:
  *	1 -- acos(|x|>1)
@@ -93,7 +93,7 @@ static double zero = 0.0;	/* used as const */
  *	20-- pow(0.0,0.0)
  *	21-- pow(x,y) overflow
  *	22-- pow(x,y) underflow
- *	23-- pow(0,negative) 
+ *	23-- pow(0,negative)
  *	24-- pow(neg,non-integral)
  *	25-- sinh(finite) overflow
  *	26-- sqrt(negative)
@@ -124,7 +124,7 @@ static double zero = 0.0;	/* used as const */
 #endif
 {
 	struct exception exc;
-#ifndef HUGE_VAL	/* this is the only routine that uses HUGE_VAL */ 
+#ifndef HUGE_VAL	/* this is the only routine that uses HUGE_VAL */
 #define HUGE_VAL inf
 	double inf = 0.0;
         fd_twoints u;
@@ -486,7 +486,7 @@ static double zero = 0.0;	/* used as const */
 		/* 0**neg */
 		exc.type = DOMAIN;
 		exc.name = "pow";
-		if (_LIB_VERSION == _SVID_) 
+		if (_LIB_VERSION == _SVID_)
 		  exc.retval = zero;
 		else
 		  exc.retval = -HUGE_VAL;
@@ -503,11 +503,11 @@ static double zero = 0.0;	/* used as const */
 		/* neg**non-integral */
 		exc.type = DOMAIN;
 		exc.name = "pow";
-		if (_LIB_VERSION == _SVID_) 
+		if (_LIB_VERSION == _SVID_)
 		    exc.retval = zero;
-		else 
+		else
 		    exc.retval = zero/zero;	/* X/Open allow NaN */
-		if (_LIB_VERSION == _POSIX_) 
+		if (_LIB_VERSION == _POSIX_)
 		   *err = EDOM;
 		else if (!fd_matherr(&exc)) {
 		  if (_LIB_VERSION == _SVID_) {
@@ -655,7 +655,7 @@ static double zero = 0.0;	/* used as const */
                                 (void) WRITE2(": TLOSS error\n", 14);
                         }
                         *err = ERANGE;
-                }        
+                }
 		break;
 	    case 35:
 		/* y0(x>X_TLOSS) */
@@ -670,7 +670,7 @@ static double zero = 0.0;	/* used as const */
                                 (void) WRITE2(": TLOSS error\n", 14);
                         }
                         *err = ERANGE;
-                }        
+                }
 		break;
 	    case 36:
 		/* j1(|x|>X_TLOSS) */
@@ -685,7 +685,7 @@ static double zero = 0.0;	/* used as const */
                                 (void) WRITE2(": TLOSS error\n", 14);
                         }
                         *err = ERANGE;
-                }        
+                }
 		break;
 	    case 37:
 		/* y1(x>X_TLOSS) */
@@ -700,7 +700,7 @@ static double zero = 0.0;	/* used as const */
                                 (void) WRITE2(": TLOSS error\n", 14);
                         }
                         *err = ERANGE;
-                }        
+                }
 		break;
 	    case 38:
 		/* jn(|x|>X_TLOSS) */
@@ -715,7 +715,7 @@ static double zero = 0.0;	/* used as const */
                                 (void) WRITE2(": TLOSS error\n", 14);
                         }
                         *err = ERANGE;
-                }        
+                }
 		break;
 	    case 39:
 		/* yn(x>X_TLOSS) */
@@ -730,7 +730,7 @@ static double zero = 0.0;	/* used as const */
                                 (void) WRITE2(": TLOSS error\n", 14);
                         }
                         *err = ERANGE;
-                }        
+                }
 		break;
 	    case 40:
 		/* gamma(finite) overflow */
@@ -776,5 +776,5 @@ static double zero = 0.0;	/* used as const */
 		}
 		break;
 	}
-	return exc.retval; 
+	return exc.retval;
 }

@@ -38,7 +38,7 @@ void playWavFragment() {
 	//SNDFILE *wavfile, int source) {
 	audio_buf_info leftover;
 	int mydata;			// DSP buffer size... used to keep data flowing
-	
+
 	// Only write if there is the need to write data. - dont want
 	// to buffer too much; want sound to be responsive but smooth
 	// -- this call tells us how much room there is.
@@ -46,11 +46,11 @@ void playWavFragment() {
 
 	// Find out how much data was processed by the sound card since the
 	// last write. First time through we assume that the sound card
-	// buffer is flushed, and that we have to write data.	
-	
+	// buffer is flushed, and that we have to write data.
+
 	//printf ("start of playWavFragment source %d\n",source);
 	//
-	
+
 	// is the dspFile open? Maybe it failed on open??
 	if (dspFile == -1) {
 		//printf ("dsp not open\n");
@@ -61,7 +61,7 @@ void playWavFragment() {
 		// first time through
 		//printf ("first time through\n");
 		DSPplaying =  0;
-		mydata = 0; 
+		mydata = 0;
 		readSize = 0;
 		bytesPerCycle = MAXBUFSIZE/2; // make an assumption.
 	} else {
@@ -81,7 +81,7 @@ void playWavFragment() {
 	}
 	//printf ("md %d, bps %d rate %f bytes/sec\n",mydata, bytesPerCycle, fps*bytesPerCycle);
 
-	// Should we read and write? 
+	// Should we read and write?
 	if (mydata <= (bytesPerCycle*2)) {
 		initializeCombiningBuffer();
 		//printf ("icb, smd %d\n",bytesPerCycle);
@@ -116,8 +116,8 @@ void initiateDSP() {
 	int i;
 	audio_buf_info leftover;
 
-	if ( (dspFile = open("/dev/dsp",O_WRONLY|O_NONBLOCK)) 
-	//if ( (dspFile = open("/dev/dsp",O_NDELAY)) 
+	if ( (dspFile = open("/dev/dsp",O_WRONLY|O_NONBLOCK))
+	//if ( (dspFile = open("/dev/dsp",O_NDELAY))
                                    == -1 ) {
 		printf ("FreeWRL::SoundEngine::open /dev/dsp problem (is something else using it?)\n");
 		dspFile=-1;
@@ -140,7 +140,7 @@ void initiateDSP() {
 	}
 	soundcardBufferEmptySize = leftover.bytes;
 	//printf ("can write a possible amount of %d bytes\n",leftover.bytes);
-	
+
 	// set for 16 bit samples.
 	if (ioctl(dspFile,SNDCTL_DSP_SETFMT,&SystemBPSample)<0) {
 		printf ("unable to set DSP bit size to %d\n",SystemBPSample);
@@ -184,7 +184,7 @@ void addToCombiningBuffer(int source,int readSize, int offset) {
 
 
 	//printf ("afer start, offset = %d readSize %d \n", offset,readSize);
-	
+
 	ampl = 100 - (sndfile[source]->ampl);
 	if (ampl < 1) ampl = 1;	// stops divide by zero errors
 
@@ -236,7 +236,7 @@ void addToCombiningBuffer(int source,int readSize, int offset) {
 			}
 			break;
 		}
-				
+
 		default: {
 			 printf ("woops, addToStreaming not for this type\n");
 		}

@@ -1,24 +1,24 @@
-/* 
+/*
  * The contents of this file are subject to the Netscape Public
  * License Version 1.1 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of
  * the License at http://www.mozilla.org/NPL/
- * 
+ *
  * Software distributed under the License is distributed on an "AS
  * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
  * implied. See the License for the specific language governing
  * rights and limitations under the License.
- * 
+ *
  * The Original Code is Mozilla Communicator client code, released
  * March 31, 1998.
- * 
+ *
  * The Initial Developer of the Original Code is Netscape
  * Communications Corporation. Portions created by Netscape are
  * Copyright (C) 1998-1999 Netscape Communications Corporation. All
  * Rights Reserved.
- * 
+ *
  * Contributor(s):
- * 
+ *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
  * provisions of the GPL are applicable instead of those above.
@@ -70,11 +70,11 @@ jsj_CreateJavaMember(JSContext *cx, jsval method_val, jsval field_val)
 {
     JavaMethodOrFieldValue *member_val;
     JSObject *JavaMember_obj;
-    
+
     member_val = (JavaMethodOrFieldValue *)JS_malloc(cx, sizeof(*member_val));
     if (!member_val)
         return NULL;
-    
+
     JavaMember_obj = JS_NewObject(cx, &JavaMember_class, 0, 0);
     if (!JavaMember_obj) {
         JS_free(cx, member_val);
@@ -110,14 +110,14 @@ JS_STATIC_DLL_CALLBACK(JSBool)
 JavaMember_convert(JSContext *cx, JSObject *obj, JSType type, jsval *vp)
 {
     JavaMethodOrFieldValue *member_val;
-        
+
     member_val = JS_GetPrivate(cx, obj);
     if (!member_val) {
         if (type == JSTYPE_OBJECT) {
             *vp = OBJECT_TO_JSVAL(obj);
             return JS_TRUE;
         }
-        
+
         JS_ReportError(cx, "illegal operation on JavaObject prototype object");
         return JS_FALSE;
     }
@@ -156,7 +156,7 @@ JavaMember_Call(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rv
 JSClass JavaMember_class = {
     "JavaMember", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, 
+    JS_EnumerateStub, JS_ResolveStub,
     JavaMember_convert, JavaMember_finalize,
 
     NULL, /* getObjectOps */
@@ -172,7 +172,7 @@ JSClass JavaMember_class = {
 JSBool
 jsj_init_JavaMember(JSContext *cx, JSObject *global_obj)
 {
-    if (!JS_InitClass(cx, global_obj, 
+    if (!JS_InitClass(cx, global_obj,
         0, &JavaMember_class, 0, 0,
         0, 0,
         0, 0))

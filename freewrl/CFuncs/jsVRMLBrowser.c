@@ -5,9 +5,9 @@
  * (file COPYING in the distribution) for conditions of use and
  * redistribution, EXCEPT on the files which belong under the
  * Mozilla public license.
- * 
+ *
  * $Id$
- * 
+ *
  */
 
 #include "jsVRMLBrowser.h"
@@ -30,7 +30,7 @@ VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 	/* why not JS_InitClass ??? */
 	obj = JS_DefineObject(context,
 						  globalObj,
-						  "Browser", 
+						  "Browser",
 						  &Browser,
 						  NULL,
 						  JSPROP_ENUMERATE | JSPROP_PERMANENT);
@@ -145,7 +145,7 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 		printf("JS_GetPrivate failed in VrmlBrowserReplaceWorld.\n");
 		return JS_FALSE;
 	}
-	
+
 	if (brow->magic != BROWMAGIC) {
 		printf("Wrong browser magic!\n");
 		return JS_FALSE;
@@ -204,7 +204,7 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 				"JS_GetPrivate failed in VrmlBrowserLoadURL.\n");
 		return JS_FALSE;
 	}
-	
+
 	if (brow->magic != BROWMAGIC) {
 		fprintf(stderr, "Wrong browser magic!\n");
 		return JS_FALSE;
@@ -297,7 +297,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromString.\n");
 		return JS_FALSE;
 	}
-	
+
 	if (brow->magic != BROWMAGIC) {
 		fprintf(stderr, "Wrong browser magic!\n");
 		return JS_FALSE;
@@ -348,7 +348,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromURL.\n");
 		return JS_FALSE;
 	}
-	
+
 	if (brow->magic != BROWMAGIC) {
 		fprintf(stderr, "Wrong browser magic!\n");
 		return JS_FALSE;

@@ -16,10 +16,10 @@ public class MFInt32 extends MField {
     }
 
     public MFInt32(int size, int[] value) {
-        for (int i = 0; i < size; i++)	
+        for (int i = 0; i < size; i++)
             __vect.addElement(new ConstSFInt32(value[i]));
     }
-	
+
     public void getValue(int[] value) {
         __updateRead();
         int size = __vect.size();

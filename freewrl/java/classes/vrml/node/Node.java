@@ -1,4 +1,4 @@
-package vrml.node; 
+package vrml.node;
 import java.util.Hashtable;
 import vrml.Field;
 import vrml.ConstField;
@@ -8,9 +8,9 @@ import vrml.*;
 
 //
 // This is the general Node class
-// 
+//
 public class Node extends BaseNode
-{ 
+{
     public Node(String id) {
 	super(id);
     }
@@ -36,7 +36,7 @@ public class Node extends BaseNode
 	fval.bind_to(new FWJavaScriptBinding(this, eventInName));
 	return fval;
     }
-    
+
     // Get an EventOut by name. Return value is read-only.
     //   Throws an InvalidEventOutException if eventOutName isn't a valid
     //   eventOut name for a node of this type.
@@ -55,8 +55,8 @@ public class Node extends BaseNode
 	fval.bind_to(new FWJavaScriptBinding(this, eventOutName));
 	return fval;
     }
-    
-    // Get an exposed field by name. 
+
+    // Get an exposed field by name.
     //   Throws an InvalidExposedFieldException if exposedFieldName isn't a valid
     //   exposedField name for a node of this type.
     public final Field getExposedField(String exposedFieldName) {

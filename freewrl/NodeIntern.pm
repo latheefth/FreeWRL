@@ -131,13 +131,13 @@ sub dump {
 				my ($fnam, $ff, $tnam, $tf) = @$_;
 				print "$padded    Route from $fnam field $ff to $tnam field $tf\n";
 			}
-					
+
 		} elsif ("BackNode" eq $_) {
 			print "BN: ";
 			foreach my $bnub (keys %{ $this->{$_}}) {
 				print "$bnub, ",$this->{BackNode}{$bnub}," ";
 			}
-					
+
 		} elsif ("ARRAY" eq ref $this->{$_}) {
 			print "(array) ";
 			foreach (@{$this->{$_}}) {
@@ -174,7 +174,7 @@ sub dump {
 				# first level of an array...
 
 				foreach (@{$this->{Fields}{$fld}}) {
-					if (ref $_ ne "") { 
+					if (ref $_ ne "") {
 						if (ref $_ eq "ARRAY") {
 							# two dimensional array
 							my $ae;
@@ -206,7 +206,7 @@ sub dump {
 
 ###############################################################################
 #
-# Initialize Scripting interfaces. 
+# Initialize Scripting interfaces.
 
 my $scriptInvocationNumber = 0;		# keep track of script invocations - scripts in protos i
 					# have same TypeName but different runtime environments.
@@ -238,7 +238,7 @@ sub startScript {
 		}
 
 		my $str = $_;
-		print "TRY $str\n" 
+		print "TRY $str\n"
 			if $VRML::verbose::script;
 
 		if (s/^perl(_tjl_xxx1)?://) {
@@ -569,7 +569,7 @@ sub make_executable {
 
 		if ($ref and $ref ne "ARRAY") {
 			print "EFIELDT: SFReference\n" if $VRML::verbose::scene;
-			
+
 			$this->{Fields}{$field}->make_executable($scene, $this, $field)
 				if ($ref !~ /USE$/); # VRML::USE::make_executable does nothing
 		} elsif ($this->{Type}{FieldTypes}{$field} =~ /^MF/) {
@@ -591,7 +591,7 @@ sub make_executable {
     if ($this->{IsProto} && !$this->{ProtoExp}) {
 		print "COPYING $this->{Type} $this->{TypeName}\n"
 			if $VRML::verbose::scene;
-	
+
 		$this->{ProtoExp} = $this->{Type}->get_copy(); ## a scene
 		$this->{ProtoExp}->set_parentnode($this, $scene);
 		$this->{ProtoExp}->make_executable();
@@ -620,7 +620,7 @@ sub set_backend_fields {
 		print "SBEF: ",dump_name($this)," $_ '",
 			("ARRAY" eq ref $v ? (join ', ', @$v) : $v), "' \n"
 				if $VRML::verbose::be;
-	
+
 		if ($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
 			print "SBEF: SFNODE\n" if $VRML::verbose::be;
 			$f{$_} = $v->make_backend($be);
@@ -653,14 +653,14 @@ sub set_backend_fields {
 		#print "WSDT make_backend, have type of ",$this->{TypeName}," for $this\n";
 
 		# if this is a Text node, check the attached fontStyle. If the fontStyle
-		# is a proto, copy it over. We have to do this for Text nodes here, 
+		# is a proto, copy it over. We have to do this for Text nodes here,
 		# because fontStyle is handled in C in the same routines as Text, and we
-		# can handle protos here easier than within C code. 
+		# can handle protos here easier than within C code.
 		if ("Text" eq $this->{TypeName}) {
 			#print "have a Text node - is the FontStyle a proto? \n";
 			#foreach (keys %{$this->{Fields}}) { print "Text key $_\n"; }
 
-			 # does the fontStyle node exist? 
+			 # does the fontStyle node exist?
 			 if (NULL ne  $this->{Fields}{fontStyle}) {
 
 				# it exists - is it a PROTO?
@@ -672,8 +672,8 @@ sub set_backend_fields {
 					# $pexp should hold the first node of the Proto Expansion,
 					# which should be a Group node. So, get the first child
 					# of the Group node - this had better be the fontStyle.
-					
-					my $fsnode = $pexp->{Fields}{children}[0]; 
+
+					my $fsnode = $pexp->{Fields}{children}[0];
 
 					#print "pexp is $pexp, ",dump_name($pexp),"\n";
 					#print "fsnode is ",dump_name($fsnode),"\n";

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -197,7 +197,7 @@ compute_java_class_signature(JSContext *cx, JNIEnv *jEnv, JavaSignature *signatu
 
     if (is_java_array_class(jEnv, java_class)) {
         jclass component_class;
-        
+
         signature->type = JAVA_SIGNATURE_ARRAY;
 
         component_class = get_java_array_component_class(cx, jEnv, java_class);
@@ -329,7 +329,7 @@ static void
 destroy_class_member_descriptors(JSContext *cx, JNIEnv *jEnv, JavaMemberDescriptor *member_descriptor)
 {
     JavaMemberDescriptor *next_member;
-    
+
     while (member_descriptor) {
         next_member = member_descriptor->next;
         destroy_java_member_descriptor(cx, jEnv, member_descriptor);
@@ -536,7 +536,7 @@ reflect_java_methods_and_fields(JSContext *cx,
             goto done;
         class_descriptor->instance_members_reflected = REFLECT_IN_PROGRESS;
     }
-    
+
     if (!jsj_ReflectJavaMethods(cx, jEnv, class_descriptor, reflect_statics_only))
         goto error;
     if (!jsj_ReflectJavaFields(cx, jEnv, class_descriptor, reflect_statics_only))
@@ -608,7 +608,7 @@ jsj_LookupJavaStaticMemberDescriptorById(JSContext *cx,
 
 JavaMemberDescriptor *
 jsj_GetJavaStaticMemberDescriptor(JSContext *cx,
-                                  JNIEnv *jEnv, 
+                                  JNIEnv *jEnv,
                                   JavaClassDescriptor *class_descriptor,
                                   jstring member_name_jstr)
 {
@@ -692,7 +692,7 @@ jsj_LookupJavaMemberDescriptorById(JSContext *cx, JNIEnv *jEnv,
 
 JavaMemberDescriptor *
 jsj_GetJavaMemberDescriptor(JSContext *cx,
-                            JNIEnv *jEnv, 
+                            JNIEnv *jEnv,
                             JavaClassDescriptor *class_descriptor,
                             jstring member_name_jstr)
 {
@@ -747,6 +747,6 @@ jsj_InitJavaClassReflectionsTable()
             return JS_FALSE;
 #endif
     }
-    
+
     return JS_TRUE;
 }

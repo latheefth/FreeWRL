@@ -1,6 +1,6 @@
 #VRML V2.0 utf8
 PROTO Button [
-    exposedField SFNode geom NULL 
+    exposedField SFNode geom NULL
     eventOut SFInt32 state_changed ]
 {
   Group { children [

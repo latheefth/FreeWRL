@@ -1,19 +1,19 @@
 #VRML V2.0 utf8
-#Watch the Java console for this one, 
+#Watch the Java console for this one,
 #FAIL: Cosmo PC: Can't read some of the fields it should be able to read
 #FAIL: WorldView - doesn't put all strings in the console so don't know if creation worked
 
 Viewpoint {
-    position 0 0 3 
+    position 0 0 3
     }
 
 
 
 PROTO CreateTest [
-    eventIn SFBool   set_enabled  
-    field SFBool   enabled            FALSE 
-    eventOut SFBool   enabled_changed 
-] 
+    eventIn SFBool   set_enabled
+    field SFBool   enabled            FALSE
+    eventOut SFBool   enabled_changed
+]
 {
   Group { children [
 

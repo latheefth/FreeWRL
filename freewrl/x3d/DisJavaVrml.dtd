@@ -4,16 +4,16 @@
  Description:	Define the DIS-Java-VRML tag and attribute profile for X3D.
 		These X3D native nodes correspond to VRML ExternProto declarations.
 
- 		Elements in this tagset are enabled by setting the 
-		DIS-Java-VRMLProfile entity to "INCLUDE" at the top of an 
-		X3D scene file, as shown in several examples.  This flag then 
-		triggers inclusion of the DIS-Java-VRML tags in the 
+ 		Elements in this tagset are enabled by setting the
+		DIS-Java-VRMLProfile entity to "INCLUDE" at the top of an
+		X3D scene file, as shown in several examples.  This flag then
+		triggers inclusion of the DIS-Java-VRML tags in the
 		x3d-compromise.dtd tagset.
 
  Status:	Supports the following Protocol Data Units (PDUs):
  		- EspduTransform (Entity State, Collision, Detonation, Fire)
  		- ReceiverPdu, SignalPdu, Transmitter
- 
+
  		Testing results satisfactory.  Compact form also needed.
 
  Authors:	Don Brutzman and Dave Laflam
@@ -33,7 +33,7 @@
 
 
 <!ELEMENT EspduTransform (children)? >
-<!ATTLIST EspduTransform 
+<!ATTLIST EspduTransform
 
 	marking 	 		%SFString;	#IMPLIED
 
@@ -94,13 +94,13 @@
 	traceJava   			%SFBool;	"false"
 
 	nodeTypeHint			NMTOKEN		#FIXED	"Transform"
-	DEF   				ID		#IMPLIED 
+	DEF   				ID		#IMPLIED
 	USE             		IDREF		#IMPLIED >
 
 <!-- also included in EspduTransform:  CollisionPdu DetonatePdu FirePdu -->
 
 <!ELEMENT ReceiverPdu EMPTY >
-<!ATTLIST ReceiverPdu 
+<!ATTLIST ReceiverPdu
 
 	whichGeometry			%SFInt32;	#IMPLIED
 
@@ -130,12 +130,12 @@
 
 	traceJava			%SFBool;	"false"
 	nodeTypeHint			NMTOKEN		#FIXED	"Switch"
-	DEF   				ID		#IMPLIED 
+	DEF   				ID		#IMPLIED
 	USE             		IDREF		#IMPLIED >
 
 
 <!ELEMENT SignalPdu EMPTY >
-<!ATTLIST SignalPdu 
+<!ATTLIST SignalPdu
 
 	whichGeometry			%SFInt32;	#IMPLIED
 
@@ -175,12 +175,12 @@
 
 	traceJava			%SFBool;	"false"
 	nodeTypeHint			NMTOKEN		#FIXED	"Switch"
-	DEF   				ID		#IMPLIED 
+	DEF   				ID		#IMPLIED
 	USE             		IDREF		#IMPLIED >
 
 
 <!ELEMENT TransmitterPdu EMPTY >
-<!ATTLIST TransmitterPdu 
+<!ATTLIST TransmitterPdu
 
 	whichGeometry			%SFInt32;	#IMPLIED
 
@@ -226,6 +226,6 @@
 
 	traceJava			%SFBool;	"false"
 	nodeTypeHint			NMTOKEN		#FIXED	"Switch"
-	DEF   				ID		#IMPLIED 
+	DEF   				ID		#IMPLIED
 	USE             		IDREF		#IMPLIED >
 

@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -31,7 +31,7 @@
  * the provisions above, a recipient may use your version of this
  * file under either the NPL or the GPL.
  */
- 
+
 /*
  * This is a copy of the NSPR hash-table library, but it has been slightly
  * modified to allow an additional argument to be passed into the hash

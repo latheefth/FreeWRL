@@ -27,15 +27,15 @@ public class ConstSFBool extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 			String myline;
 		//System.out.println ("fromPerl, Bool");
 			myline = in.readLine();
 			// direct from perl, will be 0 or 1, from a route, TRUE, FALSE
 			value = (myline.equals("TRUE") || myline.equals("1"));
-			//System.out.println ("reading in a boolean value is " + value 
+			//System.out.println ("reading in a boolean value is " + value
 		          //      + " for string " + myline);
-		
+
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {

@@ -20,5 +20,5 @@ Transform { children mytest1 { size 0.5 }}
 
 Transform {
   translation 2 0 0
-  children mytest2 { } 
+  children mytest2 { }
 }

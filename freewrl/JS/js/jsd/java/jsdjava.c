@@ -17,12 +17,12 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
-/*                                          
-* Public functions to reflect JSD into Java 
-*/                                          
+/*
+* Public functions to reflect JSD into Java
+*/
 
 #include "jsdj.h"
 
@@ -53,15 +53,15 @@ JSDJ_DestroyContext(JSDJContext* jsdjc)
 }
 
 JSDJ_PUBLIC_API(void)
-JSDJ_SetUserCallbacks(JSDJContext* jsdjc, JSDJ_UserCallbacks* callbacks, 
+JSDJ_SetUserCallbacks(JSDJContext* jsdjc, JSDJ_UserCallbacks* callbacks,
                       void* user)
 {
     JSDJ_ASSERT_VALID_CONTEXT(jsdjc);
     JS_ASSERT(!callbacks ||
-              (callbacks->size > 0 && 
+              (callbacks->size > 0 &&
                callbacks->size <= sizeof(JSDJ_UserCallbacks)));
     jsdj_SetUserCallbacks(jsdjc, callbacks, user);
-}        
+}
 
 JSDJ_PUBLIC_API(void)
 JSDJ_SetJNIEnvForCurrentThread(JSDJContext* jsdjc, JNIEnv* env)

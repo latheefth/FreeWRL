@@ -12,7 +12,7 @@ DEF GR Group {
 
 
 DEF TS TimeSensor {
-	loop TRUE 
+	loop TRUE
 }
 
 DEF CRS Script {
@@ -22,7 +22,7 @@ DEF CRS Script {
 		Transform {
 			translation 3 0 0
 			children [
-				Shape { 
+				Shape {
 					appearance Appearance {
 						material Material {
 						}
@@ -31,7 +31,7 @@ DEF CRS Script {
 				}
 			]
 		}
-		Shape { 
+		Shape {
 			appearance Appearance {
 				material Material {
 				}
@@ -43,7 +43,7 @@ DEF CRS Script {
 		Transform {
 			translation 3 0 0
 			children [
-				Shape { 
+				Shape {
 					appearance Appearance {
 						material Material {
 						}
@@ -52,7 +52,7 @@ DEF CRS Script {
 				}
 			]
 		}
-		Shape { 
+		Shape {
 			appearance Appearance {
 				material Material {
 				}

@@ -8,7 +8,7 @@ Things to watch out for:
 
 1) sometimes the appletviewer does not shutdown correctly.
 
-ps -aux | grep jdk 
+ps -aux | grep jdk
 
 to find out if one is running, and
 kill "pid" (the number of the process) to stop it.

@@ -10,7 +10,7 @@ public class CommClient {
   private boolean _run = true;
   private boolean _clientFound = false;
 
-  protected DataInputStream is = null;  
+  protected DataInputStream is = null;
   protected PrintStream os = null;
   protected Socket clientSocket = null;
 
@@ -30,7 +30,7 @@ public class CommClient {
   private final static int BOUNCING_TIME_LIMIT = 130;
   private final static int BOUNCING_PERIOD     = 35;
 
-  public CommClient () 
+  public CommClient ()
   {
     establish ();
   }
@@ -45,7 +45,7 @@ public class CommClient {
       System.out.println("Could not listen on port: " + 4445 + ", " + e);
       _clientFound = false;
       return;
-    } 
+    }
 
     System.out.println ("SESAnim-Client OK!");
     try {
@@ -59,20 +59,20 @@ public class CommClient {
       _clientFound = false;
       e.printStackTrace();
     }
-    
+
   }
 
 
 
-  private final void sendSensor ( int direction, 
-				  int sensor, 
-				  boolean value, 
+  private final void sendSensor ( int direction,
+				  int sensor,
+				  boolean value,
 				  boolean cValue )
   {
     if (_clientFound) {
-      String message = "sensor V " + sensorName (direction, sensor) + 
+      String message = "sensor V " + sensorName (direction, sensor) +
 	" " + String.valueOf (value) + " " + _time;
-      String cMessage = "sensor CV " + sensorName (direction, sensor) + 
+      String cMessage = "sensor CV " + sensorName (direction, sensor) +
 	" " + String.valueOf (cValue) + " " + _time;
 
       if (Math.random() < .5 ) {
@@ -153,7 +153,7 @@ public class CommClient {
   }
 
 
-  public final int readLtRSignal () { 
+  public final int readLtRSignal () {
     return _ltrSignalState;
   }
 
@@ -161,7 +161,7 @@ public class CommClient {
     return _rtlSignalState;
   }
 
-  public final void toggleLtRSignal () { 
+  public final void toggleLtRSignal () {
       _ltrSignalState = _ltrSignalState == 2 ? 0 : 2;
   }
 
@@ -186,8 +186,8 @@ public class CommClient {
     return false;
   }
 
-  
-  public void close () 
+
+  public void close ()
   {
     if (_clientFound) {
       //System.err.println ("closing Communication");
@@ -204,7 +204,7 @@ public class CommClient {
 
 
 
-  protected void update () 
+  protected void update ()
   {
     if (_clientFound)
       {
@@ -212,13 +212,13 @@ public class CommClient {
 	try {
 	  while (is.available() > 3) {
 	    input = MobyProtocol.readMobyMessage (is);
-	    
+
 	    try {
 	    TokenScanner tokenScanner = new TokenScanner (input);
 	    String keyword = tokenScanner.nextToken ();
 	    if (keyword.equals("time")) {
 	      _time = Integer.parseInt(tokenScanner.nextToken());
-	      //System.err.println ("SimTime " + ((float) _time/100) + " sec"); 
+	      //System.err.println ("SimTime " + ((float) _time/100) + " sec");
 	    }
 	    else if (keyword.equals("signal")) {
 	      String direction = tokenScanner.nextToken ();
@@ -230,28 +230,28 @@ public class CommClient {
 		newState = 1;
 	      else if (value.equals ("Go"))
 		newState = 2;
-	      
+
 	      if (direction.equals ("1"))
 		_ltrSignalState = newState;
 	      else if (direction.equals ("2"))
 		_rtlSignalState = newState;
 
 	      _time = Integer.parseInt(tokenScanner.nextToken());
-	    } 
+	    }
 	    else if (keyword.equals("sendAck")) {
 	      MobyProtocol.printMobyMessage(os, "ack");
-	    } 
+	    }
 	    else if (keyword.equals("trainSpeed")) {
 	      _trainSpeed = Integer.parseInt(tokenScanner.nextToken());
-	    } 
+	    }
 	    else if (keyword.equals("restart")) {
 	      _reset = true;
-	    } 
+	    }
 	    else if (keyword.equals("quit")) {
 	      close ();
 	      return;
-	    } 
-	    } catch (NumberFormatException e) { 
+	    }
+	    } catch (NumberFormatException e) {
 	      System.err.println ("#number format error!");
 	    }
 	  } // while available
@@ -279,5 +279,5 @@ public class CommClient {
 
 
 }
- 
+
 

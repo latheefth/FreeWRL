@@ -166,7 +166,7 @@ struct pt get_poly_disp(double y1, double y2, double ystep, double r, struct pt*
 /*feed a poly, and radius of a sphere, it returns the displacement in the direction of the
   normal of the poly that is needed for them not to intersect any more.*/
 struct pt get_poly_normal_disp_with_sphere(double r, struct pt* p, int num, struct pt n);
-/*feed a poly, and radius of a sphere, it returns the minimum displacement and 
+/*feed a poly, and radius of a sphere, it returns the minimum displacement and
   the direction that is needed for them not to intersect any more.*/
 struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct pt n);
 
@@ -174,7 +174,7 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
   normal that is needed for them not to intersect any more.*/
 struct pt get_line_normal_disp(double y1, double y2, double r, struct pt p1, struct pt p2, struct pt n);
 
-/*feed a line and a normal, and stats of a cylinder, it returns the vertical displacement 
+/*feed a line and a normal, and stats of a cylinder, it returns the vertical displacement
   that is needed for them not to intersect any more.*/
 struct pt get_line_step_disp(double y1, double y2, double r, struct pt p1, struct pt p2, struct pt n);
 
@@ -202,8 +202,8 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct pt pcente
 /*gives false positives. */
 int fast_ycylinder_cone_intersect(double y1, double y2, double r,struct pt pcenter, double halfheight, double baseradius);
 
-/* fast test to see if a sphere intersects a y-cylinder. 
-   specify sphere center, and a point on it's surface 
+/* fast test to see if a sphere intersects a y-cylinder.
+   specify sphere center, and a point on it's surface
   gives false positives. */
 int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct pt pcenter, struct pt psurface);
 
@@ -219,15 +219,15 @@ struct pt cylinder_disp(double y1, double y2, double ydisp, double r, struct pt 
 /*uses sphere displacement, and a cylinder for stepping */
 struct pt polyrep_disp(double y1, double y2, double ydisp, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags);
 
-/*displacement when the polyrep structure is all in the same plane 
+/*displacement when the polyrep structure is all in the same plane
   if normal is zero, it will be calculated form the first triangle*/
 struct pt planar_polyrep_disp(double y1, double y2, double ydisp, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags, struct pt n);
 
-struct pt elevationgrid_disp( double y1, double y2, double ydisp, double r, struct VRML_PolyRep pr, 
+struct pt elevationgrid_disp( double y1, double y2, double ydisp, double r, struct VRML_PolyRep pr,
 			      int xdim, int zdim, double xs, double zs, GLdouble* mat, prflags flags);
 
-/* functions VERY usefull for debugging purposes 
-   Use these inside FreeWRL to export a scene to 
+/* functions VERY usefull for debugging purposes
+   Use these inside FreeWRL to export a scene to
    the debugging programs. */
 #ifdef DEBUG_SCENE_EXPORT
 void printpolyrep(struct VRML_PolyRep pr, int npoints);

@@ -27,7 +27,7 @@ unsigned int fog_stack[MAX_STACK];
 unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
 
-void saveBGVert (struct VRML_Background *node, 
+void saveBGVert (struct VRML_Background *node,
 		int *vertexno, float *col, double dist,
 		double x, double y, double z) ;
 
@@ -46,7 +46,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 	unsigned int xx;
 
 	if (node->avatarSize.n<2) {
-		printf ("set_naviinfo, avatarSize smaller than expected\n");	
+		printf ("set_naviinfo, avatarSize smaller than expected\n");
 	} else {
         	naviinfo.width = node->avatarSize.p[0];
         	naviinfo.height = node->avatarSize.p[1];
@@ -59,7 +59,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 	svptr = node->type.p;
 
 	/* assume "NONE" is set */
-	for (i=0; i<6; i++) Viewer.oktypes[i] = FALSE; 
+	for (i=0; i<6; i++) Viewer.oktypes[i] = FALSE;
 
 
 	/* now, find the ones that are ok */
@@ -110,7 +110,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	char * nameptr;
 	unsigned int len;
 
-	//printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); 
+	//printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value);
 
 	if (nodetype == BACKGROUND) {
 		bg = (struct VRML_Background *) node;
@@ -189,7 +189,7 @@ void bind_node (void *node, unsigned int setBindofst,
 	/* setup some variables */
 	setBindptr = (unsigned int *) ((unsigned int) node + setBindofst);
 	isBoundptr = (unsigned int *) ((unsigned int) node + isboundofst);
-	oldstacktop = stack + *tos;  
+	oldstacktop = stack + *tos;
 
 	//printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
 	/* we either have a setBind of 1, which is a push, or 0, which
@@ -219,8 +219,8 @@ void bind_node (void *node, unsigned int setBindofst,
 		*newstacktop = (unsigned int) node;
 		update_node((void *) *newstacktop);
 
-		/* was there another DIFFERENT node at the top of the stack? 
-		   have to check for a different one, as if we are binding to the current 
+		/* was there another DIFFERENT node at the top of the stack?
+		   have to check for a different one, as if we are binding to the current
 		   Viewpoint, then we do NOT want to unbind it, if we do then the current
 		   top of stack Viewpoint is unbound! */
 
@@ -229,7 +229,7 @@ void bind_node (void *node, unsigned int setBindofst,
 			oldboundptr = (unsigned int *) (*oldstacktop + isboundofst);
 			*oldboundptr = 0;
 			 //printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
-	
+
 			/* tell the possible parents of this change */
 			update_node((void *) *oldstacktop);
 		}
@@ -259,7 +259,7 @@ void bind_node (void *node, unsigned int setBindofst,
 			/* stack is not empty */
 			newstacktop = stack + *tos;
 			//printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);
-		
+
 			/* set the popped value of isBound to true */
 			isBoundptr = (unsigned int *) (*newstacktop + isboundofst);
 			*isBoundptr = 1;
@@ -306,7 +306,7 @@ void render_Fog (struct VRML_Fog *node) {
 	fog_colour[2] = node->color.c[2];
 	fog_colour[3] = 1.0;
 
-	fogptr = SvPV((node->fogType),foglen); 
+	fogptr = SvPV((node->fogType),foglen);
 	glPushMatrix();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
@@ -378,7 +378,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	if(!node->isBound) return;
 
 	/* stop rendering when we hit A viewpoint or THE viewpoint???
-	   shouldnt we check for what_vp???? 
+	   shouldnt we check for what_vp????
            maybe only one viewpoint is in the tree at a time? -  ncoder*/
 
 	found_vp = 1; /* We found the viewpoint */
@@ -394,7 +394,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 					SvPV(node->position,yy));
 		}
 
-		geoSystemCompile (&node->geoSystem, &node->__geoSystem, 
+		geoSystemCompile (&node->geoSystem, &node->__geoSystem,
 			SvPV(node->description,xx));
 
 		node->_dlchange = node->_change;
@@ -411,7 +411,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
                         GeoOrig[1] - node->__position.c[1],
                         GeoOrig[2] - node->__position.c[2]);
 
-        /* printf ("GeoViewing at %f %f %f\n", 
+        /* printf ("GeoViewing at %f %f %f\n",
         		GeoOrig[0] - node->__position.c[0],
                         GeoOrig[1] - node->__position.c[1],
                         GeoOrig[2] - node->__position.c[2]); */
@@ -518,11 +518,11 @@ void render_Background (struct VRML_Background *node) {
 	if (node->_change != node->_ichange) {
 		/* we have to re-calculate display arrays */
 		node->_ichange = node->_change;
-		
+
 		/* do we have an old background to destroy? */
 		if (node->__points != 0) free ((void *)node->__points);
 		if (node->__colours != 0) free ((void *)node->__colours);
-	
+
 		/* calculate how many quads are required */
 		estq=0; actq=0;
 		if(node->skyColor.n == 1) {
@@ -533,11 +533,11 @@ void render_Background (struct VRML_Background *node) {
 			// simply changed above line to add 20 automatically.
 			//if ((node->skyColor.n >2) &&
 			//	(node->skyAngle.n > node->skyColor.n-2)) {
-			//	if (node->skyAngle.p[node->skyColor.n-2] < (PI-0.01)) 
+			//	if (node->skyAngle.p[node->skyColor.n-2] < (PI-0.01))
 			//		estq += 20;
 			//}
 		}
-	
+
 		if(node->groundColor.n == 1) estq += 40;
 		else if (node->groundColor.n>0) estq += (node->groundColor.n-1) * 20;
 
@@ -550,12 +550,12 @@ void render_Background (struct VRML_Background *node) {
 		if ((node->__points == 0) || (node->__colours == 0)) {
 			outOfMemory("malloc failure in background\n");
 		}
-	
+
 		if(node->skyColor.n == 1) {
 			c1 = &node->skyColor.p[0];
 			va1 = 0;
-			va2 = PI/2; 
-	
+			va2 = PI/2;
+
 			for(v=0; v<2; v++) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
@@ -576,9 +576,9 @@ void render_Background (struct VRML_Background *node) {
 			va1 = 0;
 			/* this gets around a compiler warning - we really DO want last values of this from following
 			   for loop */
-			c1 = &node->skyColor.p[0]; 
+			c1 = &node->skyColor.p[0];
 			if (node->skyAngle.n>0) {
-				va2= node->skyAngle.p[0]; 
+				va2= node->skyAngle.p[0];
 			} else {
 				va2 = PI/2;
 			}
@@ -590,40 +590,40 @@ void render_Background (struct VRML_Background *node) {
 				c2 = &node->skyColor.p[v+1];
 				if (node->skyAngle.n>0) { va2 = node->skyAngle.p[v];}
 				else { va2 = PI/2; }
-				
+
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
-					saveBGVert(node,&actq,&c2->c[0],20000.0,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,
 					  sin(va2)*cos(ha1), cos(va2), sin(va2) * sin(ha1));
-					saveBGVert(node,&actq,&c2->c[0],20000.0,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,
 					  sin(va2)*cos(ha2), cos(va2), sin(va2) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],20000.0,	
+					saveBGVert(node,&actq,&c1->c[0],20000.0,
 					  sin(va1)*cos(ha2), cos(va1), sin(va1) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],20000.0,	
+					saveBGVert(node,&actq,&c1->c[0],20000.0,
 					  sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 				}
 				va1 = va2;
 			}
-	
+
 			/* now, the spec states: "If the last skyAngle is less than pi, then the
 			  colour band between the last skyAngle and the nadir is clamped to the last skyColor." */
 			if (va2 < (PI-0.01)) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
-					saveBGVert(node,&actq,&c2->c[0],20000.0,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,
 					  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
-					saveBGVert(node,&actq,&c2->c[0],20000.0,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,
 					  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
-					saveBGVert(node,&actq,&c2->c[0],20000.0,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,
 					  sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
-					saveBGVert(node,&actq,&c2->c[0],20000.0,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,
 					  sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				}
 			}
 		}
-	
+
 		/* Do the ground, if there is anything  to do. */
 		if (node->groundColor.n>0) {
 			if(node->groundColor.n == 1) {
@@ -631,14 +631,14 @@ void render_Background (struct VRML_Background *node) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
-	
-					saveBGVert(node,&actq,&c1->c[0],12500.0,	
+
+					saveBGVert(node,&actq,&c1->c[0],12500.0,
 					  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
-					saveBGVert(node,&actq,&c1->c[0],12500.0,	
+					saveBGVert(node,&actq,&c1->c[0],12500.0,
 					  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],12500.0,	
+					saveBGVert(node,&actq,&c1->c[0],12500.0,
 					  sin(PI/2) * cos(ha2), cos(PI/2), sin(PI/2) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],12500.0,	
+					saveBGVert(node,&actq,&c1->c[0],12500.0,
 					  sin(PI/2) * cos(ha1), cos(PI/2), sin(PI/2) * sin(ha1));
 				}
 			} else {
@@ -647,25 +647,25 @@ void render_Background (struct VRML_Background *node) {
 					c1 = &node->groundColor.p[v];
 					c2 = &node->groundColor.p[v+1];
 					va2 = PI - node->groundAngle.p[v];
-			
+
 					for(h=0; h<hdiv; h++) {
 						ha1 = h * PI*2 / hdiv;
 						ha2 = (h+1) * PI*2 / hdiv;
-	
-						saveBGVert(node,&actq,&c1->c[0],12500.0,	
+
+						saveBGVert(node,&actq,&c1->c[0],12500.0,
 						  sin(va1)*cos(ha1), cos(va1), sin(va1)*sin(ha1));
-						saveBGVert(node,&actq,&c1->c[0],12500.0,	
+						saveBGVert(node,&actq,&c1->c[0],12500.0,
 						  sin(va1)*cos(ha2), cos(va1), sin(va1)*sin(ha2));
-						saveBGVert(node,&actq,&c2->c[0],12500.0,	
+						saveBGVert(node,&actq,&c2->c[0],12500.0,
 						  sin(va2)*cos(ha2), cos(va2), sin(va2)*sin(ha2));
-						saveBGVert(node,&actq,&c2->c[0],12500.0,	
+						saveBGVert(node,&actq,&c2->c[0],12500.0,
 						  sin(va2) * cos(ha1), cos(va2), sin(va2)*sin(ha1));
 					}
 					va1 = va2;
 				}
 			}
 		}
-	
+
 		/* We have guessed at the quad count; lets make sure
 		 * we record what we have. */
 		if (actq > node->__quadcount) {
@@ -693,11 +693,11 @@ void render_Background (struct VRML_Background *node) {
 
 
 	/* now, for the textures, if they exist */
-	if (((node->backUrl).n>0) || 
-			((node->frontUrl).n>0) || 
-			((node->leftUrl).n>0) || 
-			((node->rightUrl).n>0) || 
-			((node->topUrl).n>0) || 
+	if (((node->backUrl).n>0) ||
+			((node->frontUrl).n>0) ||
+			((node->leftUrl).n>0) ||
+			((node->rightUrl).n>0) ||
+			((node->topUrl).n>0) ||
 			((node->bottomUrl).n>0)) {
 
         	glEnable(GL_TEXTURE_2D);
@@ -716,12 +716,12 @@ void render_Background (struct VRML_Background *node) {
 }
 
 /* save a Background vertex into the __points and __colours arrays */
-void saveBGVert (struct VRML_Background *node, 
+void saveBGVert (struct VRML_Background *node,
 		int *vertexno, float *col, double dist,
 		double x, double y, double z) {
-		
+
 		float *pt;
-		
+
 		/* first, save the colour */
 		pt = (float *) node->__colours;
 
@@ -732,6 +732,6 @@ void saveBGVert (struct VRML_Background *node,
 		pt[*vertexno*3+0] = (float)x*dist;
 		pt[*vertexno*3+1] = (float)y*dist;
 		pt[*vertexno*3+2] = (float)z*dist;
-		
+
 		(*vertexno)++;
 }

@@ -6,12 +6,12 @@ JSPROJ = js32
 
 !IF "$(BUILD_OPT)" != ""
 OBJ = Release
-CC_FLAGS = /DNDEBUG 
+CC_FLAGS = /DNDEBUG
 !ELSE
 OBJ = Debug
-CC_FLAGS = /DDEBUG 
+CC_FLAGS = /DDEBUG
 LINK_FLAGS = /DEBUG
-!ENDIF 
+!ENDIF
 
 QUIET=@
 
@@ -22,7 +22,7 @@ CFLAGS = /nologo /MDd /W3 /Gm /GX /Zi /Od\
          /DJSDEBUGGER\
 !IF "$(JSD_THREADSAFE)" != ""
          /DJSD_THREADSAFE\
-!ENDIF 
+!ENDIF
          /DEXPORT_JSD_API\
          $(CC_FLAGS)\
          /c /Fp$(OBJ)\$(PROJ).pch /Fd$(OBJ)\$(PROJ).pdb /YX -Fo$@ $<
@@ -31,13 +31,13 @@ LFLAGS = /nologo /subsystem:console /DLL /incremental:no /machine:I386 \
          $(LINK_FLAGS) /pdb:$(OBJ)\$(PROJ).pdb -out:$(OBJ)\$(PROJ).dll
 
 LLIBS = kernel32.lib advapi32.lib $(JS)\$(OBJ)\$(JSPROJ).lib
-# unused... user32.lib gdi32.lib winspool.lib comdlg32.lib shell32.lib                                    
+# unused... user32.lib gdi32.lib winspool.lib comdlg32.lib shell32.lib
 
 CPP=cl.exe
 LINK32=link.exe
 
 all: $(OBJ) $(OBJ)\$(PROJ).dll
-     
+
 
 $(OBJ)\$(PROJ).dll:         \
         $(OBJ)\jsdebug.obj  \
@@ -50,7 +50,7 @@ $(OBJ)\$(PROJ).dll:         \
         $(OBJ)\jsd_step.obj \
         $(OBJ)\jsd_text.obj \
         $(OBJ)\jsd_lock.obj \
-        $(OBJ)\jsd_val.obj 
+        $(OBJ)\jsd_val.obj
   $(QUIET)$(LINK32) $(LFLAGS) $** $(LLIBS)
 
 {$(JSD)}.c{$(OBJ)}.obj :

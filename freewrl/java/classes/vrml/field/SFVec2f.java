@@ -68,7 +68,7 @@ public class SFVec2f extends Field {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Vec2f");
 		x = Float.parseFloat(in.readLine());
         	y = Float.parseFloat(in.readLine());

@@ -355,7 +355,7 @@ while ($ARGV[0] =~ /^-/) {
 sub subst {
     local ($replacement);
     local ($sym) = @_;
-    
+
     $replacement = substr($sym,0,2) eq "pr" ? "js" : "JS";
     $replacement .= substr($sym, 2);
     return $replacement;
@@ -424,13 +424,13 @@ sub convert_declarations {
     $line =~ s/PR_PUBLIC_API/JS_EXPORT_API/g;
     $line =~ s/PR_PUBLIC_DATA/JS_EXPORT_DATA/g;
     return $line;
-}    
+}
 
 sub convert_long_long_macros {
     ($line) = @_;
     $line =~ s/\b(LL_)/JSLL_/g;
     return $line;
-}    
+}
 
 sub convert_asserts {
     ($line) = @_;
@@ -448,10 +448,10 @@ while ($#ARGV >= 0) {
 	$outfile =~ s/^pr/js/;
 	$outfile =~ s/^pl/js/;
     }
-    
+
     if ($outdir) {
 	$outfile = $outdir . '/' . $outfile;
-    }	
+    }
 
     if ($infile eq $outfile) {
 	die "Error: refuse to overwrite $outfile, use -outdir option."
@@ -461,7 +461,7 @@ while ($#ARGV >= 0) {
 
     while (<INFILE>) {
 	$line = $_;
-	
+
 	#Get rid of #include "prlog.h"
 	&convert_includes($line);
 
@@ -470,7 +470,7 @@ while ($#ARGV >= 0) {
 
 	# Convert from PR_MALLOC to malloc, etc.
 	&convert_mallocs($line);
-	
+
 	# Convert from PR_ASSERT to JS_ASSERT
 #	&convert_asserts($line);
 
@@ -479,7 +479,7 @@ while ($#ARGV >= 0) {
 
 	# Change LL_* macros to JSLL_*
 	&convert_long_long_macros($line);
-	
+
 	print OUTFILE $line;
     }
 }

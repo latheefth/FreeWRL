@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -43,11 +43,11 @@
 #include "npInstanceBase.h"
 
 
-// here the plugin creates a plugin instance object which 
-// will be associated with this newly created NPP instance and 
+// here the plugin creates a plugin instance object which
+// will be associated with this newly created NPP instance and
 // will do all the neccessary job
 NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16 mode, int16 argc, char* argn[], char* argv[], NPSavedData* saved)
-{   
+{
   if(instance == NULL)
     return NPERR_INVALID_INSTANCE_ERROR;
 
@@ -56,13 +56,13 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16 mode, int16 argc, ch
   // create a new plugin instance object
   // initialization will be done when the associated window is ready
   npCreateData ds;
-  
+
   ds.instance = instance;
-  ds.type     = pluginType; 
-  ds.mode     = mode; 
-  ds.argc     = argc; 
-  ds.argn     = argn; 
-  ds.argv     = argv; 
+  ds.type     = pluginType;
+  ds.mode     = mode;
+  ds.argc     = argc;
+  ds.argn     = argn;
+  ds.argv     = argv;
   ds.saved    = saved;
 
   npInstanceBase * plugin = NS_NewPluginInstance(&ds);
@@ -94,7 +94,7 @@ NPError NPP_Destroy (NPP instance, NPSavedData** save)
 // is about to be destroyed so we can do some gui specific
 // initialization and shutdown
 NPError NPP_SetWindow (NPP instance, NPWindow* pNPWindow)
-{    
+{
   if(instance == NULL)
     return NPERR_INVALID_INSTANCE_ERROR;
 
@@ -105,11 +105,11 @@ NPError NPP_SetWindow (NPP instance, NPWindow* pNPWindow)
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
 
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return NPERR_GENERIC_ERROR;
 
   // window just created
-  if(!plugin->isInitialized() && (pNPWindow->window != NULL)) { 
+  if(!plugin->isInitialized() && (pNPWindow->window != NULL)) {
     if(!plugin->init(pNPWindow)) {
       NS_DestroyPluginInstance(plugin);
       return NPERR_MODULE_LOAD_FAILED_ERROR;
@@ -137,7 +137,7 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
     return NPERR_INVALID_INSTANCE_ERROR;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return NPERR_GENERIC_ERROR;
 
   NPError rv = plugin->NewStream(type, stream, seekable, stype);
@@ -150,7 +150,7 @@ int32 NPP_WriteReady (NPP instance, NPStream *stream)
     return 0x0fffffff;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return 0x0fffffff;
 
   int32 rv = plugin->WriteReady(stream);
@@ -158,12 +158,12 @@ int32 NPP_WriteReady (NPP instance, NPStream *stream)
 }
 
 int32 NPP_Write (NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
-{   
+{
   if(instance == NULL)
     return len;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return len;
 
   int32 rv = plugin->Write(stream, offset, len, buffer);
@@ -176,7 +176,7 @@ NPError NPP_DestroyStream (NPP instance, NPStream *stream, NPError reason)
     return NPERR_INVALID_INSTANCE_ERROR;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return NPERR_GENERIC_ERROR;
 
   NPError rv = plugin->DestroyStream(stream, reason);
@@ -189,7 +189,7 @@ void NPP_StreamAsFile (NPP instance, NPStream* stream, const char* fname)
     return;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return;
 
   plugin->StreamAsFile(stream, fname);
@@ -201,7 +201,7 @@ void NPP_Print (NPP instance, NPPrint* printInfo)
     return;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return;
 
   plugin->Print(printInfo);
@@ -213,7 +213,7 @@ void NPP_URLNotify(NPP instance, const char* url, NPReason reason, void* notifyD
     return;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return;
 
   plugin->URLNotify(url, reason, notifyData);
@@ -225,7 +225,7 @@ NPError	NPP_GetValue(NPP instance, NPPVariable variable, void *value)
     return NPERR_INVALID_INSTANCE_ERROR;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return NPERR_GENERIC_ERROR;
 
   NPError rv = plugin->GetValue(variable, value);
@@ -238,7 +238,7 @@ NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value)
     return NPERR_INVALID_INSTANCE_ERROR;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return NPERR_GENERIC_ERROR;
 
   NPError rv = plugin->SetValue(variable, value);
@@ -251,7 +251,7 @@ int16	NPP_HandleEvent(NPP instance, void* event)
     return 0;
 
   npInstanceBase * plugin = (npInstanceBase *)instance->pdata;
-  if(plugin == NULL) 
+  if(plugin == NULL)
     return 0;
 
   uint16 rv = plugin->HandleEvent(event);
@@ -276,7 +276,7 @@ jref NPP_GetJavaClass (void)
 NPError	Private_New(NPMIMEType pluginType, NPP instance, uint16 mode, int16 argc, char* argn[], char* argv[], NPSavedData* saved)
 {
   NPError rv = NPP_New(pluginType, instance, mode, argc, argn, argv, saved);
-  return rv;	
+  return rv;
 }
 
 NPError Private_Destroy(NPP instance, NPSavedData** save)

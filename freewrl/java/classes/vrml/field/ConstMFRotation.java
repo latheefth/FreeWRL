@@ -16,7 +16,7 @@ public class ConstMFRotation extends ConstMField {
     }
 
     public ConstMFRotation(int size, float[] rotations) {
-        for (int i = 0; i < size; i += 4)	
+        for (int i = 0; i < size; i += 4)
             __vect.addElement(new ConstSFRotation(rotations[i], rotations[i+1], rotations[i+2], rotations[i+3]));
     }
 
@@ -24,7 +24,7 @@ public class ConstMFRotation extends ConstMField {
         for (int i = 0; i < rotations.length; i++)
             __vect.addElement(new ConstSFRotation(rotations[i][0], rotations[i][1], rotations[i][2], rotations[i][3]));
     }
-	
+
     public void getValue(float[] rotations) {
         __updateRead();
         int size = __vect.size();

@@ -27,7 +27,7 @@ public class ConstSFTime extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Time");
 		value = Double.parseDouble(in.readLine());
     }

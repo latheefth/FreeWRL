@@ -17,7 +17,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -25,7 +25,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -136,7 +136,7 @@ npFreeWRLInstance::init(NPWindow *pNPWindow)
 #if _DEBUG
     std::cerr << "npFreeWRLInstance init!" << endl;
 #endif // _DEBUG
-    
+
     if (pNPWindow == NULL || pNPWindow->window == NULL) {
         return FALSE;
     }
@@ -154,7 +154,7 @@ npFreeWRLInstance::init(NPWindow *pNPWindow)
               << " under Unix!" << endl;
 #endif // _DEBUG
 
-        
+
     mPlatform.window = (XID) pNPWindow->window;
     mPlatform.display = ((NPSetWindowCallbackStruct *) pNPWindow->ws_info)->display;
     mPlatform.x = pNPWindow->x;
@@ -163,10 +163,10 @@ npFreeWRLInstance::init(NPWindow *pNPWindow)
     mPlatform.height = pNPWindow->height;
 
     mPlatform.widget = XtWindowToWidget(mPlatform.display, mPlatform.window);
-        
+
 
     if (mPlatform.widget) {
-        
+
         // event masks from X11/X.h
         XtAddEventHandler(mPlatform.widget,
                           ExposureMask,
@@ -233,7 +233,7 @@ npFreeWRLInstance::init(NPWindow *pNPWindow)
         std::cerr << "setIOOptions failed." << endl;
         return FALSE;
     }
-	
+
     mInitialized = TRUE;
     return TRUE;
 }
@@ -250,11 +250,11 @@ npFreeWRLInstance::shut()
     if (kill(freeWRLPid, SIGUSR2) < 0) {
         printCError("kill failed", errno);
     }
-    
+
     if (waitpid(freeWRLPid, &status, options) < 0) {
         printCError("waitpid failed", errno);
     }
-    
+
 #if _DEBUG
     printWaitpidStatus(status);
 #endif // _DEBUG
@@ -263,7 +263,7 @@ npFreeWRLInstance::shut()
         XtUnmanageChild(mPlatform.appWidget);
         XtDestroyWidget(mPlatform.appWidget);
     }
- 
+
     mInitialized = FALSE;
     mFreeWRLAlive = FALSE;
 }
@@ -323,9 +323,9 @@ npFreeWRLInstance::getVersion(char **aVersion)
     if (version)
         strcpy(version, ua);
 }
- 
+
 void
-npFreeWRLInstance::showVersion() 
+npFreeWRLInstance::showVersion()
 {}
 
 #ifdef XP_UNIX
@@ -376,7 +376,7 @@ substructHandler(Widget widget,
 #endif // _DEBUG
     UNUSED(widget);
     UNUSED(dispatchContinue);
-    
+
     npFreeWRLInstance *pInstance = (npFreeWRLInstance *) data;
     PlatformInfo *pInfo = (PlatformInfo *) pInstance->getPlatformInfo();
 
@@ -441,7 +441,7 @@ npFreeWRLInstance::SetWindow(NPWindow* pNPWindow)
                   << " ) under Unix!" << endl;
 #endif // _DEBUG
 
-        
+
         if (mPlatform.window != (XID) pNPWindow->window) {
             mPlatform.window =
                 (XID) pNPWindow->window;
@@ -551,7 +551,7 @@ npFreeWRLInstance::DestroyStream(NPStream* stream, NPError reason)
 
     UNUSED(stream);
     UNUSED(reason);
-    
+
     return NPERR_NO_ERROR;
 }
 
@@ -649,7 +649,7 @@ npFreeWRLInstance::runFreeWRL(const char *fileName)
         for (int i = 0; i < 15; i++) { std::cerr << " " << cmdLineStr[i] << " "; }
         std::cerr << endl;
 #endif // _DEBUG
-            
+
         // execute 'nice', which in turn runs FreeWRL
         if (execvp(cmdLineStr[0], cmdLineStr) < 0) {
             printCError("execvp failed", errno);
@@ -697,7 +697,7 @@ npFreeWRLInstance::StreamAsFile(NPStream* stream, const char *fileName)
         if (fileName) {
             bytes = (strlen(fileName) + 1) * sizeof(char);
             if (send(socketDesc, fileName, bytes, 0) < 0) {
-                printCError("send failed", errno); 
+                printCError("send failed", errno);
             }
         } else {
             std::cerr << "File could not be found in npFreeWRLInstance::StreamAsFile."
@@ -734,12 +734,12 @@ npFreeWRLInstance::Write(NPStream* stream, int32 offset, int32 len, void* buffer
 void
 npFreeWRLInstance::Print(NPPrint* printInfo)
 {
-     // from npshell.c in the default plugin sample:  
+     // from npshell.c in the default plugin sample:
     if (printInfo == NULL) {
         std::cerr << "npFreeWRLInstance Print, null printInfo!" << endl;
         return;
     }
- 
+
     if (printInfo->mode == NP_FULL) {
         std::cerr << "npFreeWRLInstance Print, NP_FULL mode!" << endl;
         /*
@@ -757,7 +757,7 @@ npFreeWRLInstance::Print(NPPrint* printInfo)
 //             &(printInfo->print.embedPrint.window);
 //         void* platformPrint =
 //             printInfo->print.embedPrint.platformPrint;
-        
+
     }
 }
 
@@ -765,7 +765,7 @@ uint16
 npFreeWRLInstance::HandleEvent(void* event)
 {
     UNUSED(event);
-    return NPERR_NO_ERROR; 
+    return NPERR_NO_ERROR;
 }
 
 void
@@ -1003,7 +1003,7 @@ signal(int signo, __sighandler_t func)
     memset(&old_action, 0, sizeof(old_action));
     sigemptyset(&action.sa_mask);
 
-    // don't bother with SIGCHLD or zombies 
+    // don't bother with SIGCHLD or zombies
     action.sa_flags = SA_NOCLDSTOP | SA_RESTART | SA_ONSTACK;
     action.sa_handler = func;
 
@@ -1012,7 +1012,7 @@ signal(int signo, __sighandler_t func)
         return SIG_ERR;
     }
     // Return the old signal handler or SIG_ERR.
-    return old_action.sa_handler;    
+    return old_action.sa_handler;
 
 #else // no other platforms supported at the moment
     return NULL;

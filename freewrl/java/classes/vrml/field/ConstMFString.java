@@ -16,10 +16,10 @@ public class ConstMFString extends ConstMField {
     }
 
     public ConstMFString(int size, String[] s) {
-        for (int i = 0; i < size; i++)	
+        for (int i = 0; i < size; i++)
             __vect.addElement(new ConstSFString(s[i]));
     }
-	
+
     public void getValue(String[] s) {
         __updateRead();
         int size = __vect.size();

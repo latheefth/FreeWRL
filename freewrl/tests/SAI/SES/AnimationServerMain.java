@@ -9,7 +9,7 @@ class AnimationServerMain {
     private int animPort = 4445;
 
     private AnimationServerThread fromSim, fromAnim;
-  
+
     private ServerSocket simServerSocket = null;
     private ServerSocket animServerSocket = null;
     private Socket simClientSocket = null;
@@ -43,21 +43,21 @@ class AnimationServerMain {
 
 	System.out.println ("Client OK! ...reading from connections...");
 
-	fromSim = new 
+	fromSim = new
 	  AnimationServerThread (this, simIS, animOS, "from Sim: ");
-	fromAnim = new 
+	fromAnim = new
 	  AnimationServerThread (this, animIS, simOS, "from Anim: ");
 	fromSim.start();
 	fromAnim.start();
-    }	    
+    }
 
- 
+
   private ServerSocket setupServer (int port) {
         ServerSocket s = null;
 	try {
 	  s = new ServerSocket(port);
 	} catch (IOException e) {
-	  System.out.println("Could not listen on port: " + port 
+	  System.out.println("Could not listen on port: " + port
 			     + ", " + e);
 	  System.exit(1);
 	}
@@ -74,7 +74,7 @@ class AnimationServerMain {
         }
 	return c;
   }
-   
+
   private DataInputStream openIS (Socket c) {
         DataInputStream is = null;
         try {
@@ -112,7 +112,7 @@ class AnimationServerMain {
         }
   }
 
-   
+
     public void sayBye (AnimationServerThread t) {
       if (t == fromSim) {
 	fromSim = null;
@@ -147,4 +147,4 @@ class AnimationServerMain {
     }
 
 }
- 
+

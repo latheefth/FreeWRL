@@ -17,19 +17,19 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
-/*                        
-* Public headers for JSDB 
-*/                        
+/*
+* Public headers for JSDB
+*/
 
 #ifndef jsdb_h___
 #define jsdb_h___
 
 /* Get jstypes.h included first. After that we can use PR macros for doing
 *  this extern "C" stuff!
-*/ 
+*/
 #ifdef __cplusplus
 extern "C"
 {

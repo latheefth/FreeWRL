@@ -27,7 +27,7 @@ public class ConstSFNode extends ConstField {
     }
 
     public void __fromPerl(BufferedReader in)  throws IOException {
-        
+
 	//System.out.println ("fromPerl, Node");
 		node = new vrml.node.Node(in.readLine());
     }

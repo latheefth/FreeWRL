@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -39,7 +39,7 @@
  *
  * Developed at SunSoft, a Sun Microsystems, Inc. business.
  * Permission to use, copy, modify, and distribute this
- * software is freely granted, provided that this notice 
+ * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
  */
@@ -48,7 +48,7 @@
  * wrapper jn(int n, double x), yn(int n, double x)
  * floating point Bessel's function of the 1st and 2nd kind
  * of order n
- *          
+ *
  * Special cases:
  *	y0(0)=y1(0)=yn(n,0) = -inf with division by zero signal;
  *	y0(-ve)=y1(-ve)=yn(n,-ve) are NaN with invalid signal.
@@ -67,7 +67,7 @@
  *	yn(n,x) is similar in all respects, except
  *	that forward recursion is used for all
  *	values of n>1.
- *	
+ *
  */
 
 #include "fdlibm.h"

@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -43,12 +43,12 @@
 
 /***************************************************************************/
 
-/* XXX not 'static' because of old Mac CodeWarrior bug */ 
+/* XXX not 'static' because of old Mac CodeWarrior bug */
 JSCList _jsd_context_list = JS_INIT_STATIC_CLIST(&_jsd_context_list);
 
 /* these are used to connect JSD_SetUserCallbacks() with JSD_DebuggerOn() */
 static JSD_UserCallbacks _callbacks;
-static void*             _user = NULL; 
+static void*             _user = NULL;
 static JSRuntime*        _jsrt = NULL;
 
 #ifdef JSD_HAS_DANGEROUS_THREAD
@@ -81,11 +81,11 @@ _validateUserCallbacks(JSD_UserCallbacks* callbacks)
 {
     return !callbacks ||
            (callbacks->size && callbacks->size <= sizeof(JSD_UserCallbacks));
-}    
+}
 
 static JSDContext*
-_newJSDContext(JSRuntime*         jsrt, 
-               JSD_UserCallbacks* callbacks, 
+_newJSDContext(JSRuntime*         jsrt,
+               JSD_UserCallbacks* callbacks,
                void*              user)
 {
     JSDContext* jsdc = NULL;
@@ -109,7 +109,7 @@ _newJSDContext(JSRuntime*         jsrt,
 
     if( callbacks )
         memcpy(&jsdc->userCallbacks, callbacks, callbacks->size);
-    
+
     jsdc->user = user;
 
 #ifdef JSD_HAS_DANGEROUS_THREAD
@@ -174,7 +174,7 @@ _destroyJSDContext(JSDContext* jsdc)
     jsdc->inited = JS_FALSE;
 
     /*
-    * We should free jsdc here, but we let it leak in case there are any 
+    * We should free jsdc here, but we let it leak in case there are any
     * asynchronous hooks calling into the system using it as a handle
     *
     * XXX we also leak the locks
@@ -185,8 +185,8 @@ _destroyJSDContext(JSDContext* jsdc)
 /***************************************************************************/
 
 JSDContext*
-jsd_DebuggerOnForUser(JSRuntime*         jsrt, 
-                      JSD_UserCallbacks* callbacks, 
+jsd_DebuggerOnForUser(JSRuntime*         jsrt,
+                      JSD_UserCallbacks* callbacks,
                       void*              user)
 {
     JSDContext* jsdc;
@@ -242,7 +242,7 @@ jsd_DebuggerOff(JSDContext* jsdc)
     jsd_DestroyScriptManager(jsdc);
     JSD_UnlockScriptSubsystem(jsdc);
     jsd_DestroyAllSources(jsdc);
-    
+
     _destroyJSDContext(jsdc);
 
     if( jsdc->userCallbacks.setContext )
@@ -283,7 +283,7 @@ void
 jsd_ClearAllProfileData(JSDContext* jsdc)
 {
     JSDScript *current;
-    
+
     JSD_LOCK_SCRIPTS(jsdc);
     current = (JSDScript *)jsdc->scripts.next;
     while (current != (JSDScript *)&jsdc->scripts)
@@ -315,7 +315,7 @@ jsd_JSDContextForJSContext(JSContext* context)
     }
     JSD_UNLOCK();
     return jsdc;
-}    
+}
 
 JS_STATIC_DLL_CALLBACK(JSBool)
 jsd_DebugErrorHook(JSContext *cx, const char *message,
@@ -324,7 +324,7 @@ jsd_DebugErrorHook(JSContext *cx, const char *message,
     JSDContext* jsdc = (JSDContext*) closure;
     JSD_ErrorReporter errorReporter;
     void*             errorReporterData;
-    
+
     if( ! jsdc )
     {
         JS_ASSERT(0);
@@ -377,8 +377,8 @@ jsd_DebugErrorHook(JSContext *cx, const char *message,
 }
 
 JSBool
-jsd_SetErrorReporter(JSDContext*       jsdc, 
-                     JSD_ErrorReporter reporter, 
+jsd_SetErrorReporter(JSDContext*       jsdc,
+                     JSD_ErrorReporter reporter,
                      void*             callerdata)
 {
     JSD_LOCK();
@@ -389,8 +389,8 @@ jsd_SetErrorReporter(JSDContext*       jsdc,
 }
 
 JSBool
-jsd_GetErrorReporter(JSDContext*        jsdc, 
-                     JSD_ErrorReporter* reporter, 
+jsd_GetErrorReporter(JSDContext*        jsdc,
+                     JSD_ErrorReporter* reporter,
                      void**             callerdata)
 {
     JSD_LOCK();

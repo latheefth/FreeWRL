@@ -17,7 +17,7 @@
 # Copyright (C) 1998 Netscape Communications Corporation. All
 # Rights Reserved.
 #
-# Contributor(s): 
+# Contributor(s):
 #
 # Alternatively, the contents of this file may be used under the
 # terms of the GNU Public License (the "GPL"), in which case the
@@ -49,7 +49,7 @@ MODULE		= java
 JMODS		= netscape/javascript netscape/javascript/adapters
 
 #
-# JDIRS is dependant on JAVA_DESTPATH in config/rules.m[a]k. 
+# JDIRS is dependant on JAVA_DESTPATH in config/rules.m[a]k.
 # Be sure to touch that directory if you add a new directory to
 # JDIRS, or else it will not build. FIXME
 #

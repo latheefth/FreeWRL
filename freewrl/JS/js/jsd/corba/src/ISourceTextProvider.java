@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public interface ISourceTextProvider extends org.omg.CORBA.Object
@@ -38,4 +38,4 @@ public interface ISourceTextProvider extends org.omg.CORBA.Object
     public String   getPageText(String url);
     public int      getPageStatus(String url);
     public int      getPageAlterCount(String url);
-}    
+}

@@ -4,14 +4,14 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
-PROTO note [ 	field SFFloat size 1.0 
+PROTO note [ 	field SFFloat size 1.0
 		field SFColor color 0.9 0.9 0.9 ]
 {
   Transform {
 	translation 2 0 0
 	children [
-	  Shape { geometry Cylinder { height IS size radius 0.2} 
-	  appearance Appearance { material  Material { diffuseColor IS color } } 
+	  Shape { geometry Cylinder { height IS size radius 0.2}
+	  appearance Appearance { material  Material { diffuseColor IS color } }
 	  } ] }
 }
 

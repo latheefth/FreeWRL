@@ -18,7 +18,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the
  * terms of the GNU Public License (the "GPL"), in which case the
@@ -31,7 +31,7 @@
  * the provisions above, a recipient may use your version of this
  * file under either the NPL or the GPL.
  */
- 
+
 /*
  * This file is part of the Java-vendor-neutral implementation of LiveConnect
  *
@@ -68,7 +68,7 @@ report_java_initialization_error(JNIEnv *jEnv, const char *js_error_msg)
         (*jEnv)->ExceptionClear(jEnv);
     }
 
-    if (java_error_msg) { 
+    if (java_error_msg) {
         error_msg = JS_smprintf("initialization error: %s (%s)\n",
                                 js_error_msg, java_error_msg);
         free((void*)java_error_msg);
@@ -272,7 +272,7 @@ init_java_VM_reflection(JSJavaVM *jsjava_vm, JNIEnv *jEnv)
 
     LOAD_METHOD(java.lang.reflect.Constructor,  getParameterTypes,  "()[Ljava/lang/Class;",     jlrConstructor);
     LOAD_METHOD(java.lang.reflect.Constructor,  getModifiers,       "()I",                      jlrConstructor);
-    
+
     LOAD_METHOD(java.lang.reflect.Field,    getName,            "()Ljava/lang/String;",         jlrField);
     LOAD_METHOD(java.lang.reflect.Field,    getType,            "()Ljava/lang/Class;",          jlrField);
     LOAD_METHOD(java.lang.reflect.Field,    getModifiers,       "()I",                          jlrField);
@@ -286,18 +286,18 @@ init_java_VM_reflection(JSJavaVM *jsjava_vm, JNIEnv *jEnv)
     LOAD_METHOD(java.lang.Double,           doubleValue,        "()D",                          jlDouble);
 
     LOAD_METHOD(java.lang.Boolean,          booleanValue,       "()Z",                          jlBoolean);
-    
+
     LOAD_STATIC_METHOD(java.lang.System,    identityHashCode,   "(Ljava/lang/Object;)I",        jlSystem);
 
     LOAD_CONSTRUCTOR(java.lang.Boolean,     Boolean,            "(Z)V",                         jlBoolean);
     LOAD_CONSTRUCTOR(java.lang.Double,      Double,             "(D)V",                         jlDouble);
 
     LOAD_FIELD_OBJ(java.lang.Void,          TYPE,               "Ljava/lang/Class;",            jlVoid);
-  
+
     return JS_TRUE;
 }
 
-#if defined(XP_MAC) || !defined(OJI) 
+#if defined(XP_MAC) || !defined(OJI)
 
 /**
  * Workaround for the fact that MRJ loads a different instance of the shared library.
@@ -321,7 +321,7 @@ JSObject_RegisterNativeMethods(JNIEnv* jEnv)
         {"removeMember", "(Ljava/lang/String;)V", (void*)&Java_netscape_javascript_JSObject_removeMember},
         {"call", "(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;", (void*)&Java_netscape_javascript_JSObject_call},
         {"eval", "(Ljava/lang/String;)Ljava/lang/Object;", (void*)&Java_netscape_javascript_JSObject_eval},
-        
+
         {"toString", "()Ljava/lang/String;", (void*)&Java_netscape_javascript_JSObject_toString},
         {"getWindow", "(Ljava/applet/Applet;)Lnetscape/javascript/JSObject;", (void*)&Java_netscape_javascript_JSObject_getWindow},
         {"finalize", "()V", (void*)&Java_netscape_javascript_JSObject_finalize},
@@ -350,7 +350,7 @@ init_netscape_java_classes(JSJavaVM *jsjava_vm, JNIEnv *jEnv)
     LOAD_CLASS(netscape/javascript/JSException, njJSException);
     LOAD_CLASS(netscape/javascript/JSUtil,      njJSUtil);
 
-#if defined(XP_MAC) || !defined(OJI) 
+#if defined(XP_MAC) || !defined(OJI)
     JSObject_RegisterNativeMethods(jEnv);
 #endif
 
@@ -364,20 +364,20 @@ init_netscape_java_classes(JSJavaVM *jsjava_vm, JNIEnv *jEnv)
 
     /* Load second constructor for wrapping JS exception objects inside JSExceptions */
     _LOAD_METHOD(netscape.javascript.JSException,<init>,
-                 JSException_wrap, "(ILjava/lang/Object;)V",        
+                 JSException_wrap, "(ILjava/lang/Object;)V",
                  njJSException, JS_FALSE);
 
 #ifndef OJI
-    LOAD_FIELDID(netscape.javascript.JSObject,  
+    LOAD_FIELDID(netscape.javascript.JSObject,
                                             internal,           "I",                            njJSObject);
 #endif
-    LOAD_FIELDID(netscape.javascript.JSException,  
+    LOAD_FIELDID(netscape.javascript.JSException,
                                             lineno,             "I",                            njJSException);
-    LOAD_FIELDID(netscape.javascript.JSException,  
+    LOAD_FIELDID(netscape.javascript.JSException,
                                             tokenIndex,         "I",                            njJSException);
-    LOAD_FIELDID(netscape.javascript.JSException,  
+    LOAD_FIELDID(netscape.javascript.JSException,
                                             source,             "Ljava/lang/String;",           njJSException);
-    LOAD_FIELDID(netscape.javascript.JSException,  
+    LOAD_FIELDID(netscape.javascript.JSException,
                                             filename,           "Ljava/lang/String;",           njJSException);
     LOAD_FIELDID(netscape.javascript.JSException, wrappedExceptionType, "I",
                  njJSException);
@@ -455,7 +455,7 @@ JSJ_ConnectToJavaVM(SystemJavaVM *java_vm_arg, void* initargs)
     } else {
         jsjava_vm->init_args = initargs;
     }
-       
+
 #ifdef JSJ_THREADSAFE
     if (jsjava_vm_list == NULL) {
         thread_list_monitor =
@@ -488,7 +488,7 @@ jsj_ConnectToJavaVM(JSJavaVM *jsjava_vm)
         /* Remember that we created the VM so that we know to destroy it later */
         jsjava_vm->jsj_created_java_vm = JS_TRUE;
     }
-    
+
     if (!jsjava_vm->jsj_inited_java_vm) {
         /*
          * JVM initialization for netscape.javascript.JSObject is performed
@@ -501,7 +501,7 @@ jsj_ConnectToJavaVM(JSJavaVM *jsjava_vm)
 
         /* Load the Java classes, and the method and field descriptors required for
            Java reflection. */
-        if (!init_java_VM_reflection(jsjava_vm, jsjava_vm->main_thread_env) || 
+        if (!init_java_VM_reflection(jsjava_vm, jsjava_vm->main_thread_env) ||
             !jsj_InitJavaObjReflectionsTable()) {
             jsj_LogError("LiveConnect was unable to reflect one or more components of the Java runtime.\nGo to http://bugzilla.mozilla.org/show_bug.cgi?id=5369 for details.\n");
             /* This function crashes when called from here.
@@ -510,7 +510,7 @@ jsj_ConnectToJavaVM(JSJavaVM *jsjava_vm)
                JSJ_DisconnectFromJavaVM(jsjava_vm); */
             return JS_FALSE;
         }
-        
+
         jsjava_vm->jsj_inited_java_vm = JS_TRUE;
     }
 
@@ -543,10 +543,10 @@ JSJ_InitJSContext(JSContext *cx, JSObject *global_obj,
     /* Initialize the JavaScript classes used for reflection */
     if (!jsj_init_JavaObject(cx, global_obj))
         return JS_FALSE;
-    
+
 /*    if (!jsj_init_JavaMember(cx, global_obj))
         return JS_FALSE; */
-    
+
     if (!jsj_init_JavaPackage(cx, global_obj, predefined_packages))
         return JS_FALSE;
 
@@ -558,7 +558,7 @@ JSJ_InitJSContext(JSContext *cx, JSObject *global_obj,
 
     if (!jsj_init_JavaMember(cx, global_obj))
         return JS_FALSE;
-    
+
     return JS_TRUE;
 }
 
@@ -590,7 +590,7 @@ JSJ_DisconnectFromJavaVM(JSJavaVM *jsjava_vm)
         jsj_DiscardJavaObjReflections(jEnv);
         jsj_DiscardJavaClassReflections(jEnv);
 
-        if (jsjava_vm->jsj_created_java_vm) { 
+        if (jsjava_vm->jsj_created_java_vm) {
             (void)JSJ_callbacks->destroy_java_vm(java_vm, jEnv);
         } else {
             UNLOAD_CLASS(java/lang/Object,                jlObject);
@@ -626,7 +626,7 @@ JSJ_DisconnectFromJavaVM(JSJavaVM *jsjava_vm)
         thread_list_monitor = NULL;
     }
 #endif	/* JSJ_THREADSAFE */
-    
+
     free(jsjava_vm);
 }
 
@@ -684,7 +684,7 @@ find_jsjava_thread(JNIEnv *jEnv)
         jsj_env->next = thread_list;
         thread_list = jsj_env;
     }
-    
+
 #ifdef JSJ_THREADSAFE
     PR_ExitMonitor(thread_list_monitor);
 #endif
@@ -698,7 +698,7 @@ JSJ_AttachCurrentThreadToJava(JSJavaVM *jsjava_vm, const char *name, JNIEnv **ja
     JNIEnv *jEnv;
     SystemJavaVM *java_vm;
     JSJavaThreadState *jsj_env;
-    
+
     /* Make sure we're fully connected to the Java VM */
     if (!jsj_ConnectToJavaVM(jsjava_vm))
         return NULL;
@@ -707,7 +707,7 @@ JSJ_AttachCurrentThreadToJava(JSJavaVM *jsjava_vm, const char *name, JNIEnv **ja
     java_vm = jsjava_vm->java_vm;
     if (JSJ_callbacks && JSJ_callbacks->attach_current_thread)
         jEnv = JSJ_callbacks->attach_current_thread(java_vm);
-    if (jEnv == NULL) 
+    if (jEnv == NULL)
         return NULL;
 
     /* If we found an existing thread state, just return it. */
@@ -739,7 +739,7 @@ map_java_vm_to_jsjava_vm(SystemJavaVM *java_vm)
 /*
  * Unfortunately, there's no standard means to associate any private data with
  * a JNI thread environment, so we need to use the Java environment pointer as
- * the key in a lookup table that maps it to a JSJavaThreadState structure, 
+ * the key in a lookup table that maps it to a JSJavaThreadState structure,
  * where we store all our per-thread private data.  If no existing thread state
  * is found, a new one is created.
  *
@@ -847,7 +847,7 @@ JSJ_DetachCurrentThreadFromJava(JSJavaThreadState *jsj_env)
     return JS_TRUE;
 }
 
-/* Utility routine to wrap a Java object inside a JS object, having a 
+/* Utility routine to wrap a Java object inside a JS object, having a
    a result type of either JavaObject or JavaArray. */
 JSBool
 JSJ_ConvertJavaObjectToJSValue(JSContext *cx, jobject java_obj, jsval *vp)
@@ -855,7 +855,7 @@ JSJ_ConvertJavaObjectToJSValue(JSContext *cx, jobject java_obj, jsval *vp)
     JNIEnv *jEnv;
     JSBool result;
     JSJavaThreadState *jsj_env;
-            
+
     /* Get the Java per-thread environment pointer for this JSContext */
     jsj_env = jsj_EnterJava(cx, &jEnv);
     if (!jEnv)

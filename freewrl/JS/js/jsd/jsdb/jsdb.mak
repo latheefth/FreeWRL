@@ -11,7 +11,7 @@ CC_FLAGS = /DNDEBUG
 OBJ = Debug
 CC_FLAGS = /DDEBUG
 LINK_FLAGS = /DEBUG
-!ENDIF 
+!ENDIF
 
 CFLAGS = /nologo /MDd /W3 /Gm /GX /Zi /Od\
          /I $(JSSRC)\
@@ -42,7 +42,7 @@ HEADERS =   $(JSDB)\jsdb.h      \
 
 OBJECTS =   $(OBJ)\js.obj       \
             $(OBJ)\jsdb.obj     \
-            $(OBJ)\jsdrefl.obj  
+            $(OBJ)\jsdrefl.obj
 
 
 $(OBJECTS) : $(HEADERS)
@@ -81,7 +81,7 @@ dlls : $(OBJ)\js32.dll $(OBJ)\jsd.dll
 $(OBJ)\debugger.js: *.js
     @echo Copying *.js
     @copy *.js  $(OBJ) >NUL
-    
+
 clean:
     @echo Deleting built files
     @del $(OBJ)\*.pch >NUL

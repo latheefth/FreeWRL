@@ -23,7 +23,7 @@ PROTO Arr [
 				}
 			}
 			geometry Cylinder {
-				radius 0.02 
+				radius 0.02
 				height 1
 			}
 		}
@@ -45,7 +45,7 @@ PROTO Arr [
 
 
 Transform {
-scale 3 3 3 
+scale 3 3 3
 translation -1.5 -1.5 -1.5
 children [
 
@@ -56,12 +56,12 @@ children [
 	 children Arr {color 0 1 0}
 	}
 	Transform {
-	 translation 0 0 0.5 
+	 translation 0 0 0.5
 	 rotation 1 0 0 1.6
 	 children Arr {color 0 0 1}
 	}
 	Transform {
-	 translation 0.5 0 0 
+	 translation 0.5 0 0
 	 rotation 0 0 1 -1.6
 	 children Arr {color 1 0 0}
 	}

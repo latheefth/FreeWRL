@@ -28,7 +28,7 @@ children [
 ROUTE S.rotation_changed TO T.rotation
 
 Transform {
-	 translation 2.4 0 0 
+	 translation 2.4 0 0
 children [
 	DEF S2 SphereSensor { }
 	DEF T2 Transform {
@@ -45,7 +45,7 @@ children [
 ROUTE S2.rotation_changed TO T2.rotation
 
 Transform {
-	 translation 0 2.4 0 
+	 translation 0 2.4 0
 children [
 	DEF S3 SphereSensor { }
 	DEF T3 Transform {

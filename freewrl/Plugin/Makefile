@@ -21,10 +21,10 @@
 # XP_UNIX	This needs to get defined for npapi.h on unix platforms.
 # PLUGIN_TRACE	Enable this define to get debug prints whenever the plugin
 #		api gets control.
-#		
+#
 # WARNING: Motif libraries are built static into the navigator and cannot
 #          be accessed from the plugin.
-#          
+#
 
 # PLUGIN_DEFINES= -DXP_UNIX -DPLUGIN_TRACE
 PLUGIN_DEFINES= -DXP_UNIX -Inetscape/include
@@ -33,7 +33,7 @@ CC= gcc
 OPTIMIZER= -g
 CFLAGS=  $(OPTIMIZER) $(PLUGIN_DEFINES) -I../CFuncs -I/usr/include
 
-SRC= netscape/source/npfreewrl.c netscape/source/common/npunix.c 
+SRC= netscape/source/npfreewrl.c netscape/source/common/npunix.c
 OBJ= npfreewrl.o npunix.o
 
 SHAREDTARGET=npfreewrl.so
@@ -68,15 +68,15 @@ clean:
 #	cp freewrl $(BINDIR)
 #	cp fw2init.pl $(BINDIR)
 #
-#perlxsi: 
+#perlxsi:
 #	perl -MExtUtils::Embed -e xsinit -- -o perlxsi.c;
 #	$(CC) $(INC) $(PFLAGS) perlxsi.c
 #
-#fwopts: 
+#fwopts:
 #	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
 #
 #freewrl: perlxsi fwopts
-#	$(CC) $(INC) $(FRFLAGS) $(DEFINE) freewrl.c 
+#	$(CC) $(INC) $(FRFLAGS) $(DEFINE) freewrl.c
 #
 #	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
 #	perlxsi.o freewrl.o fwopts.o \

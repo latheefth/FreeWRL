@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 /*
@@ -120,7 +120,7 @@ jsdb_ExecHookHandler(JSDContext*     jsdc,
 
         if((answer == JSD_HOOK_RETURN_RET_WITH_VAL ||
             answer == JSD_HOOK_RETURN_THROW_WITH_VAL) &&
-           !jsdb_EvalReturnExpression(data, rval))          
+           !jsdb_EvalReturnExpression(data, rval))
         {
             goto label_bail;
         }
@@ -333,7 +333,7 @@ static JSClass debugger_global_class = {
     "debugger_global", 0,
     JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,
     JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   JS_FinalizeStub,
-    JSCLASS_NO_OPTIONAL_MEMBERS    
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 /***************************************************************************/

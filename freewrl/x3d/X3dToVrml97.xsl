@@ -760,8 +760,8 @@ Recommended tool:
     <xsl:when test="local-name()='proxy'"><!-- ignore, handled a few steps down --></xsl:when>
     <xsl:when test="(local-name()='USE' and @node)">
       <!-- don't forget the bloody wrapper tags!  children handled separately.  this section will need to be generalized for compact tagset form, or else have USE preclude wrapper-tag ignoring. -->
-      <xsl:if test="local-name(..)='appearance' or local-name(..)='choice' or local-name(..)='color' or local-name(..)='coord' or 
-		local-name(..)='fontStyle' or local-name(..)='geometry' or local-name(..)='level' or local-name(..)='material' or local-name(..)='normal' or 
+      <xsl:if test="local-name(..)='appearance' or local-name(..)='choice' or local-name(..)='color' or local-name(..)='coord' or
+		local-name(..)='fontStyle' or local-name(..)='geometry' or local-name(..)='level' or local-name(..)='material' or local-name(..)='normal' or
 		local-name(..)='source' or local-name(..)='texCoord' or local-name(..)='texture' or local-name(..)='textureTransform' or local-name(..)='sites'">
 	<xsl:call-template name="print-indent"><xsl:with-param name="indent" select="$indent"/></xsl:call-template>
 	<xsl:value-of select="local-name(..)"/><xsl:text> </xsl:text><!-- output wrapper tag (except for children tag) -->
@@ -1122,8 +1122,8 @@ Recommended tool:
   </xsl:if>
   <!-- if not a USE or proxy, then add node close } -->
   <xsl:if test="not(@USE) and not(local-name()='USE') and not(local-name()='proxy') and
-  	not(local-name(..)='GeoLOD'   and local-name()='rootNode') and 
-  	not(local-name(..)='Segment'  and local-name()='displacers') and 
+  	not(local-name(..)='GeoLOD'   and local-name()='rootNode') and
+  	not(local-name(..)='Segment'  and local-name()='displacers') and
   	not(local-name(..)='Humanoid' and local-name()='humanoidBody')">
     <!-- <xsl:text># local-name()=</xsl:text><xsl:value-of select="local-name()"/><xsl:text>&#10;</xsl:text> -->
     <xsl:call-template name="print-indent"><xsl:with-param name="indent" select="$indent"/></xsl:call-template>
@@ -1558,7 +1558,7 @@ Recommended tool:
           <xsl:otherwise>
             <xsl:value-of select="local-name()"/>
             <!-- <xsl:text> ### inputString sent: &quot;</xsl:text><xsl:value-of select="concat(normalize-space(translate(.,'&quot;',' ')),' ')"/><xsl:text>&quot;&#10;</xsl:text> -->
-            <xsl:text> [</xsl:text>            
+            <xsl:text> [</xsl:text>
             <xsl:call-template name="wrap-quotes-around-tokens">
               <xsl:with-param name="inputString" select="concat(normalize-space(translate(.,'&quot;',' ')),' ')"/>
             </xsl:call-template>
@@ -1801,7 +1801,7 @@ Recommended tool:
 			($EPnodeType='Rotations') or ($EPnodeType='Times')  or ($EPnodeType='Vector2FloatArray') or ($EPnodeType='Vector3FloatArray')" />
     <xsl:variable name="DisJavaVrmlBooleanTypes"
 		select="(($nodeName='EspduTransform'	or $nodeName2='EspduTransform'  or
-		          $nodeName='ReceiverPdu'	or $nodeName2='ReceiverPdu'	or 
+		          $nodeName='ReceiverPdu'	or $nodeName2='ReceiverPdu'	or
 		          $nodeName='SignalPdu'		or $nodeName2='SignalPdu'	or
 		          $nodeName='TransmitterPdu'	or $nodeName2='TransmitterPdu') and
       				     ($fieldName='traceJava' or $fieldName='rtpHeaderExpected'))" />
@@ -2032,7 +2032,7 @@ Recommended tool:
     <xsl:when test="@value and local-name(..)='Script' and ../@DEF and ancestor::*[local-name()='ProtoDeclare']/field[@name=$fieldName and contains(@IS,concat($DEFname, '.', $fieldName))]">
        <xsl:text> ### XSL-translation warning:  initialization values not allowed for IS declarations, ignoring initial value </xsl:text><xsl:value-of select="@value" />
     </xsl:when>
-    <!-- properly declared Script field with corresponding IS in prototype declaration - no action required --> 
+    <!-- properly declared Script field with corresponding IS in prototype declaration - no action required -->
     <xsl:when test="local-name(..)='Script' and ../@DEF and ancestor::*[local-name()='ProtoDeclare']/field[@name=$fieldName and contains(@IS,concat($DEFname, '.', $fieldName))]"></xsl:when>
     <!-- no initial value for ExternProtoDeclare fields -->
     <xsl:when test="@value and local-name(..)='ExternProtoDeclare'"><xsl:text> ### XSL-translation warning:  initialization values not allowed inside EXTERNPROTO field declarations, ignoring initial value </xsl:text><xsl:value-of select="@value" /></xsl:when>
@@ -2238,8 +2238,8 @@ Recommended tool:
                               local-name(..)='ProtoInstance' or
                               local-name(..)] |
                      choice[local-name(..)='Switch'] |
-                     color[local-name(..)='ElevationGrid'    or 
-                           local-name(..)='GeoElevationGrid' or 
+                     color[local-name(..)='ElevationGrid'    or
+                           local-name(..)='GeoElevationGrid' or
                            local-name(..)='IndexedFaceSet'   or
                            local-name(..)='IndexedLineSet'   or
                            local-name(..)='PointSet'] |

@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -64,7 +64,7 @@ jsd_InterruptHandler(JSContext *cx, JSScript *script, jsbytecode *pc, jsval *rva
 
     if (!hook)
         return JSTRAP_CONTINUE;
-    
+
     JSD_LOCK_SCRIPTS(jsdc);
     jsdscript = jsd_FindJSDScript(jsdc, script);
     JSD_UNLOCK_SCRIPTS(jsdc);
@@ -157,7 +157,7 @@ jsd_CallExecutionHook(JSDContext* jsdc,
                       void* hookData,
                       jsval* rval)
 {
-    uintN hookanswer = JSD_HOOK_THROW == type ? 
+    uintN hookanswer = JSD_HOOK_THROW == type ?
                             JSD_HOOK_RETURN_CONTINUE_THROW :
                             JSD_HOOK_RETURN_CONTINUE;
     JSDThreadState* jsdthreadstate;
@@ -199,7 +199,7 @@ jsd_CallCallHook (JSDContext* jsdc,
 {
     JSBool hookanswer;
     JSDThreadState*  jsdthreadstate;
-    
+
     hookanswer = JS_FALSE;
     if(hook && NULL != (jsdthreadstate = jsd_NewThreadState(jsdc, cx)))
     {

@@ -17,7 +17,7 @@
  * Copyright (C) 1998 Netscape Communications Corporation. All
  * Rights Reserved.
  *
- * Contributor(s): 
+ * Contributor(s):
  */
 
 public interface IDebugController extends org.omg.CORBA.Object
@@ -30,7 +30,7 @@ public interface IDebugController extends org.omg.CORBA.Object
 
     public IScriptHook      setScriptHook(IScriptHook h);
     public IScriptHook      getScriptHook();
-    
+
     public IJSPC            getClosestPC(IScript script, int line);
 
     public IJSSourceLocation getSourceLocation(IJSPC pc);
@@ -68,5 +68,5 @@ public interface IDebugController extends org.omg.CORBA.Object
     public void resumeThread(int threadID);
 
     public void iterateScripts(IScriptHook h);
-}    
+}
 

@@ -14,7 +14,7 @@
  *
  * The Original Code is mozilla.org code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
  * Portions created by the Initial Developer are Copyright (C) 1998
  * the Initial Developer. All Rights Reserved.
@@ -22,7 +22,7 @@
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -131,7 +131,7 @@ typedef struct JSDProfileData       JSDProfileData;
 /* Our structures */
 
 /*
-* XXX What I'm calling a JSDContext is really more of a JSDTaskState. 
+* XXX What I'm calling a JSDContext is really more of a JSDTaskState.
 */
 
 struct JSDContext
@@ -680,17 +680,17 @@ jsd_GetScopeChainForStackFrame(JSDContext* jsdc,
                                JSDStackFrameInfo* jsdframe);
 
 extern JSBool
-jsd_IsStackFrameNative(JSDContext* jsdc, 
+jsd_IsStackFrameNative(JSDContext* jsdc,
                        JSDThreadState* jsdthreadstate,
                        JSDStackFrameInfo* jsdframe);
 
 extern JSBool
-jsd_IsStackFrameDebugger(JSDContext* jsdc, 
+jsd_IsStackFrameDebugger(JSDContext* jsdc,
                          JSDThreadState* jsdthreadstate,
                          JSDStackFrameInfo* jsdframe);
 
 extern JSBool
-jsd_IsStackFrameConstructing(JSDContext* jsdc, 
+jsd_IsStackFrameConstructing(JSDContext* jsdc,
                              JSDThreadState* jsdthreadstate,
                              JSDStackFrameInfo* jsdframe);
 
@@ -700,7 +700,7 @@ jsd_GetThisForStackFrame(JSDContext* jsdc,
                          JSDStackFrameInfo* jsdframe);
 
 extern const char*
-jsd_GetNameForStackFrame(JSDContext* jsdc, 
+jsd_GetNameForStackFrame(JSDContext* jsdc,
                          JSDThreadState* jsdthreadstate,
                          JSDStackFrameInfo* jsdframe);
 
@@ -745,7 +745,7 @@ extern JSDValue*
 jsd_GetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate);
 
 extern JSBool
-jsd_SetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate, 
+jsd_SetException(JSDContext* jsdc, JSDThreadState* jsdthreadstate,
                  JSDValue* jsdval);
 
 /***************************************************************************/
