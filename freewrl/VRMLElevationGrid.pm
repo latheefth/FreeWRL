@@ -29,6 +29,7 @@ float creaseAngle = $f(creaseAngle);
 int npv = $f(normalPerVertex);
 struct SFColor *normals;
 int nnormals = 0;
+int ccw = $f(ccw);
 
 void *texcoords;
 int ntexcoords = 0;
@@ -177,13 +178,13 @@ for(z=0; z<nz-1; z++) {
 
 		/* first triangle: */
 		Elev_Tri(vertex_ind,this_face,A,D,E,(nnormals==0), 
-			rep_,facenormals,pointfaces);
+			rep_,facenormals,pointfaces,ccw);
 		vertex_ind += 3;
 		this_face++;
 
 		/* second triangle: */
 		Elev_Tri(vertex_ind,this_face,C,B,F,(nnormals==0),
-			rep_,facenormals,pointfaces);
+			rep_,facenormals,pointfaces,ccw);
 		vertex_ind += 3;
 		this_face++;
 	}
