@@ -159,7 +159,7 @@ void BoundingBox(struct SFColor bbc,struct SFColor bbs) {
  *
  * Used for speeding up large worlds. */
 
-void calculateFrustum () {
+void calculateFrustumCone () {
 
 #ifdef BOUNDINGBOX
 	printf ("calculateFrustum\n");
@@ -171,6 +171,10 @@ void calculateFrustum () {
 	printf ("screenHeight %d\n",screenHeight);
 
 	frustumConeAngle = fieldofview;
+	printf ("frust axis %f %f %f\n",
+			0.0, 0.0, 0.0);
+	printf ("Frust vertex %f %f %f\n",
+			0.0,0.0,0.0);
 #endif
 }
 

@@ -153,6 +153,8 @@ void JSInit(int num, SV *script) {
 	BrowserNative *br; 	/* these are set here */
 
 	if (JSVerbose) printf("init: script %d\n",num);
+printf ("JSINIT for %d\n",num);
+
 
 	/* more scripts than we can handle right now? */
 	if (num >= JSMaxScript)  {

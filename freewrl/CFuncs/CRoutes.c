@@ -226,11 +226,16 @@ void initializeScript(int num,int evIn) {
 	int counter, tn;
 	CRnodeStruct *to_ptr = NULL;
 
+
+	printf ("initializeScript script, table element %d evin %d\n",num,evIn);
+
 	/* is this an event in? If so, num is a routing table entry */
 	if (evIn) {
 	    for (counter = 0; counter < CRoutes[num].tonode_count; counter++) {
 		to_ptr = &(CRoutes[num].tonodes[counter]);
 		tn = (int) to_ptr->node;
+		printf ("initializeScript, tn %d\n",tn);
+
 		if (!(ScriptControl[tn]._initialized)) {
 			switch (ScriptControl[tn].thisScriptType) {
 				case JAVASCRIPT: {
@@ -1846,10 +1851,13 @@ Register a new script for future routing
 ********************************************************************/
 
 void CRoutes_js_new (int num, int scriptType) {
+	printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl);
 
 	/* record whether this is a javascript, class invocation, ... */
 	ScriptControl[num].thisScriptType = scriptType;
 
+	printf ("past cs step 1\n");
+	
 	/* if it is a script (class or javascript), make sure we know that it is not
 	 * initialized yet; because of threading, we have to wait until
 	 * the creating (perl) function is finished, otherwise a 
@@ -1858,8 +1866,10 @@ void CRoutes_js_new (int num, int scriptType) {
 	 */
 
 	ScriptControl[num]._initialized = FALSE;
-
+printf ("past cs step 2\n");
 	if (num > max_script_found) max_script_found = num;
+	printf ("returning from CRoutes_js_new\n");
+
 }
 
 int convert_typetoInt (char *type) {
@@ -1903,12 +1913,13 @@ int JSparamIndex (char *name, char *type) {
 	int ty;
 	int ctr;
 
-	//printf ("start of JSparamIndex, name %s, type %s\n",name,type);
-	//printf ("start of JSparamIndex, lengths name %d, type %d\n",
-	//		strlen(name),strlen(type));
+	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
+	printf ("start of JSparamIndex, lengths name %d, type %d\n",
+			strlen(name),strlen(type));
 
 	ty = convert_typetoInt(type);
 
+	printf ("JSParamIndex, type %d, %s\n",ty,type);
 	len = strlen(name);
 
 	/* is this a duplicate name and type? types have to be same,
@@ -1938,7 +1949,7 @@ int JSparamIndex (char *name, char *type) {
 	strncpy (JSparamnames[jsnameindex].name,name,len);
 	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
-	//printf ("JSparamNameIndex, returning %d\n",jsnameindex);
+	printf ("JSparamNameIndex, returning %d\n",jsnameindex);
 	return jsnameindex;
 }
 
@@ -2249,7 +2260,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 	/* this script initialized yet? */
 	//JAS - events are running already if (!isPerlParsing()) 
-		initializeScript(actualscript, FALSE);
+	initializeScript(actualscript, FALSE);
 
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
@@ -2404,6 +2415,14 @@ void gatherClassEventOuts (int script) {
 	int startEntry;
 	int endEntry;
 
+	/* is this class initialized? */
+	if (!(ScriptControl[script]._initialized)) {
+		printf ("initializing script %d in gatherClassEventOuts\n",script);
+		initJavaClass(script);
+		ScriptControl[script]._initialized=TRUE;
+	}
+
+
 	/* routing table is ordered, so we can walk up to this script */
 	startEntry=1;
 	while (CRoutes[startEntry].fromnode<(unsigned)script) startEntry++;
@@ -2533,6 +2552,8 @@ void sendJClassEventIn(int num, int fromoffset) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
+	printf ("sendJClassEventIn, num %d fromoffset %d\n",num,fromoffset);
+
 	fn = (int) CRoutes[num].fromnode + (int) CRoutes[num].fnptr;
 	len = CRoutes[num].len;
 	
@@ -2540,6 +2561,14 @@ void sendJClassEventIn(int num, int fromoffset) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
 		tptr = (int) to_ptr->foffset;
+		
+		/* is this class initialized? */
+		if (!(ScriptControl[tn]._initialized)) {
+			printf ("initializing script %d in sendJClassEventIn\n",tn);
+			initJavaClass(tn);
+			ScriptControl[tn]._initialized=TRUE;
+		}
+
 
 		sendCLASSEvent(fn, tn, JSparamnames[tptr].name,
 			JSparamnames[tptr].type,len); 
@@ -2600,7 +2629,7 @@ void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	if (JSVerbose) 
+	//JAS if (JSVerbose) 
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d\n",num);
 
 	/* script value: 1: this is a from script route
@@ -2616,6 +2645,7 @@ void sendScriptEventIn(int num) {
 			mark_script((int)(to_ptr->node));
 			switch (ScriptControl[to_ptr->node].thisScriptType) {
 				case CLASSSCRIPT: {
+					//sendJClassEventIn(to_ptr->node, to_ptr->foffset);
 					sendJClassEventIn(num, to_ptr->foffset);
 					break;
 				}

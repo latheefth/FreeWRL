@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.147  2004/07/16 13:17:50  crc_canada
+# SFString as a Java .class script field entry.
+#
 # Revision 1.146  2004/07/12 13:30:36  crc_canada
 # more steps to getting frustum culling working.
 #
@@ -85,7 +88,6 @@ require 'VRMLRend.pm';
 	      VF_Blend         => 0x0010,
 	      VF_Proximity     => 0x0020,
 	      VF_Collision     => 0x0040,
-	      
 );
 
 

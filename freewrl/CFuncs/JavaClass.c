@@ -62,6 +62,15 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 	char newURL [MURLLEN];
 	char *ri;
 
+	if (JavaClassVerbose)
+		printf ("newJavaClass, number %d url %s nodeID %s MaxScript %d\n",
+				scriptInvocationNumber, nodeURLstr, nodeID,JSMaxScript);
+	        /* more scripts than we can handle right now? */
+        if (scriptInvocationNumber >= JSMaxScript)  {
+                JSMaxAlloc();
+        }
+		                                                                                                       
+
 
 	/* register this script.... */
 	CRoutes_js_new(scriptInvocationNumber, CLASSSCRIPT);
@@ -69,6 +78,9 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 	/* make sure we tell the EAI socket code that this is not opened yet */
 	ScriptControl[scriptInvocationNumber].listen_fd = -1;
 	ScriptControl[scriptInvocationNumber].send_fd = -1;
+
+	if (JavaClassVerbose)
+		printf ("newJavaClass, past ScriptControl...\n");
 
 	if (strlen(nodeID)>19) {
 		printf ("warning, copy problem in newJavaClass\n");

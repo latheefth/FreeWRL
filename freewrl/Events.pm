@@ -380,7 +380,8 @@ sub resolve_node_cnode {
 				$fieldtype = $node->{Type}{FieldTypes}{$field};
 			}
 			if ($il == 0) {
-				print "add_route, dont handle $eventOut types in C yet\n";
+				print "add_route, dont handle ",
+					$node->{Type}{FieldTypes}{$field}, " types in C yet\n";
 				return (0,0,0,0,0);
 			}
 		}

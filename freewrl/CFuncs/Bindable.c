@@ -419,7 +419,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
 		fieldofview = a1/3.1415926536*180;
 	}
-	calculateFrustum();
+	calculateFrustumCone();
 	//printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
 }
 
@@ -452,7 +452,7 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
 		fieldofview = a1/3.1415926536*180;
 	}
-	calculateFrustum();
+	calculateFrustumCone();
 	//printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
 }
 

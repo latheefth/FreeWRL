@@ -446,12 +446,12 @@ extern void setMaxImages(int max);
 extern void setButDown(int button, int value);
 extern void setBrowserURL(char *str);
 extern void setCurXY(int x, int y);
-extern void setScreenDim(int w, int h);
 extern void setLastMouseEvent(int etype);
 extern void initFreewrl();
 extern void setSeqTemp(char* file);
 extern void aqDisplayThread();
 #endif
+extern void setScreenDim(int w, int h);
 
 extern char *getLibVersion();
 extern void doQuit(void);
@@ -466,7 +466,8 @@ char * sanitizeInputString(char *instr);
 void BoundingBox(struct SFColor bbc,struct SFColor bbs);
 void setExtent (float x, float y, float z, struct VRML_Box *this_);
 void propagateExtent (float x, float y, float z, struct VRML_Box *this_);
-void calculateFrustum(void);
+void calculateFrustumCone(void);
+extern double nearPlane, farPlane, screenRatio;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 void groupingChild (struct VRML_Group *this_);
