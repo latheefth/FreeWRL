@@ -108,14 +108,66 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$BUILD_OPT = 1;
 }
 
-my $browser = "mozilla";
-if (defined $VRML_CONFIG{BROWSER}) {
-	print "Browser in vrml.conf is ",$VRML_CONFIG{BROWSER},"\n";
-	$browser = $VRML_CONFIG{BROWSER};
-}
-push @ccflags, " -DBROWSER=\\\"$browser\\\" ";
+# get the "system" commands in. 
+my $browser = "NONE";
+my $wget = "NONE";
+my $asciiterm = "NONE";
+my $convert = "NONE";
+my $unzip = "NONE";
+my $javainterp = "NONE";
 
-print "ccflags is now ",@ccflags,"\n\n";
+if (defined $VRML_CONFIG{BROWSER}) {
+	#print "Browser in vrml.conf is ",$VRML_CONFIG{BROWSER},"\n";
+	$browser = $VRML_CONFIG{BROWSER};
+} else {
+	print "no Browser defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{WGET}) {
+	#print "WGET in vrml.conf is ",$VRML_CONFIG{WGET},"\n";
+
+	$wget = $VRML_CONFIG{WGET};
+} else {
+	print "no WGET defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{ASCIITERM}) {
+	#print "ASCIITERM in vrml.conf is ",$VRML_CONFIG{ASCIITERM},"\n";
+	$asciiterm = $VRML_CONFIG{ASCIITERM};
+} else {
+	print "no ASCIITERM defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{CONVERT}) {
+	#print "CONVERT in vrml.conf is ",$VRML_CONFIG{CONVERT},"\n";
+	$convert = $VRML_CONFIG{CONVERT};
+} else {
+	print "no CONVERT defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{UNZIP}) {
+	#print "UNZIP in vrml.conf is ",$VRML_CONFIG{UNZIP},"\n";
+	$unzip = $VRML_CONFIG{UNZIP};
+} else {
+	print "no UNZIP defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{JAVA}) {
+	#print "JAVA in vrml.conf is ",$VRML_CONFIG{JAVA},"\n";
+	$javainterp = $VRML_CONFIG{JAVA};
+} else {
+	print "no JAVA defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+
+push @ccflags, " -DBROWSER=\\\"$browser\\\" ";
+push @ccflags, " -DWGET=\\\"$wget\\\" ";
+push @ccflags, " -DASCIITERM=\\\"$asciiterm\\\" ";
+push @ccflags, " -DCONVERT=\\\"$convert\\\" ";
+push @ccflags, " -DUNZIP=\\\"$unzip\\\" ";
+push @ccflags, " -DJAVA=\\\"$javainterp\\\" ";
+
+#print "ccflags is now ",@ccflags,"\n\n";
 
 if ($VRML_CONFIG{WARNINGS} eq "low") {
 	push @ccflags, $warnings_low;
@@ -179,11 +231,9 @@ for (keys %VRML_CONFIG) {
 }
 
 print OUT ");\n\n";
-chomp ($myconv = `which convert`);
 chomp ($myxsltproc = `which xsltproc`);
 chomp ($pwd = getcwd());
 chomp ($java = `which java`);
-print OUT qq(\$VRML::Browser::CONVERT = "$myconv";\n);
 print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_BUILDDIR} = "$pwd";\n\n);
 print OUT "1;\n";
