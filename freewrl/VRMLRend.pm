@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.110  2003/06/24 15:36:57  crc_canada
+# Viewpoints now rendered in correct location (PrepC not RendC)
+#
 # Revision 1.109  2003/05/17 05:54:30  ayla
 #
 # Changes needed to support the port of Viewer and Quaternion Perl code to C - pass 1.
@@ -410,9 +413,7 @@
 %RendC = (
 
 #Bindable nodes in seperate file now
-Viewpoint => '
-	if (!render_vp) return;
-	render_Viewpoint ((struct VRML_Viewpoint*) this_);',
+#Viewpoint => ' ',
 
 NavigationInfo => 'render_NavigationInfo ((struct VRML_NavigationInfo *) this_);',
 Fog => '
@@ -1443,6 +1444,10 @@ TouchSensor => '',
 PlaneSensor => '',
 VisibilitySensor => '',
 
+Viewpoint => '
+	/* Viewpoint is in the PrepC side of things, as it is rendered before other nodes */
+	if (!render_vp) return;
+	render_Viewpoint ((struct VRML_Viewpoint*) this_);',
 
 Transform => '
 
