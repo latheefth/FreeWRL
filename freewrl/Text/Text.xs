@@ -8,18 +8,16 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#define XCOORD(outline,i) ((outline).points[i].x)
-#define YCOORD(outline,i) ((outline).points[i].y)
-
 #define XRES 96
 #define YRES 96
 #define PPI 72
 #define PIXELSIZE 1
 #define POINTSIZE 50
 
-/* XXX Find out why *1.7... */
-/* #define OUT2GL(a,i) (size * (0.0 +(a))/(1.7*(font_face[i]->ascender + font_face[i]->descender)) /PPI*XRES/64.0) */
-#define OUT2GL(a,i) (size * (0.0 +(a))/(1.0*(font_face[i]->ascender + font_face[i]->descender)) /PPI*XRES/8.0)
+/* 
+#define OUT2GL(a,i) (size * (0.0 +a) / ((1.0*(font_face[i]->ascender + font_face[i]->descender)) / PPI*XRES))
+*/
+#define OUT2GL(a,i) (size * (0.0 +a) / ((1.0*(font_face[i]->height)) / PPI*XRES))
 
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -99,18 +97,37 @@ static void FW_err(GLenum e) {
 FW_make_fontname (int num, char *name) {
 	int i;
 
+printf ("FW_make_fontname %x\n",num);
+/*
+                        bit:    0       BOLD        (boolean)
+                        bit:    1       ITALIC      (boolean)
+                        bit:    2       SERIF
+                        bit:    3       SANS
+                        bit:    4       TYPEWRITER
+*/
+
 	if (num == 0) {
 		strcpy (thisfontname,fw_fp);
 		strcat (thisfontname,"/baklava.ttf");
 	} else {
 		strcpy (thisfontname,sys_fp);
-		
-		if (!(num & 0x10)) strcat (thisfontname,"/SERIF");
-		else if (!(num & 0x20)) strcat (thisfontname,"/SANS");
-		else if (!(num & 0x40)) strcat (thisfontname,"/TYPEWRITER");
+	
+	if ((num & 0x01)) printf ("bit 1 set\n");
+	if ((num & 0x02)) printf ("bit 2 set\n");
+	if ((num & 0x04)) printf ("bit 4 set\n");
+	if ((num & 0x08)) printf ("bit 8 set\n");
+	if ((num & 0x10)) printf ("bit 10 set\n");
+	
+		if ((num & 0x04)) strcat (thisfontname,"/Serifa");
+		else if ((num & 0x08)) strcat (thisfontname,"/SANS");
+		else if ((num & 0x10)) strcat (thisfontname,"/TYPEWRITER");
 
-		if (!(num & 0x04)) strcat (thisfontname,"b");
-		if (!(num & 0x08)) strcat (thisfontname,"i");
+		switch (num & 0x03) {
+		case 0:	strcat (thisfontname,"n"); break; /* normal */
+		case 1: strcat (thisfontname,"b"); break; /* bold */
+		case 2: strcat (thisfontname,"i"); break; /* italic */
+		case 3: strcat (thisfontname,"i"); break; /* bold italic */
+		}
 
 		strcat (thisfontname,".ttf");
 	}
@@ -134,8 +151,8 @@ int FW_init_face(int num, char *name) {
 		err = FT_Set_Char_Size (font_face[num],	/* handle to face object 	*/
 				0,	/* char width in 1/64th of points */
 				16*64,	/* char height in 1/64th of points */
-				300,	/* horiz device resolution	*/
-				300	/* vert device resolution	*/
+				XRES,	/* horiz device resolution	*/
+				YRES	/* vert device resolution	*/
 				);
 
 		if (err) { 
@@ -145,7 +162,12 @@ int FW_init_face(int num, char *name) {
 			font_opened[num] = TRUE;
 		}
 	}
-	return FALSE;
+
+	printf ("EM %d\n",font_face[num]->units_per_EM ) ;
+	if (font_face[num]->units_per_EM != 2048) 
+		printf ("Warning - old type - will display too small (%s %s)\n",
+			font_face[num]->family_name,name);
+	return TRUE;
 }
 
 /* calculate extent of a range of characters */
@@ -202,6 +224,10 @@ void FW_draw_outline (int myff, FT_OutlineGlyph oglyph, float size) {
 	GLdouble *vnew;
 
 
+	/* lets do the stuff to equate truetype and type1 fonts */
+	if (font_face[myff]->units_per_EM != 1000) 
+		size = size * font_face[myff]->units_per_EM/1000.0;
+
 	gluBeginPolygon(triang);
 	if (verbose) printf("Contours: %d\n",oglyph->outline.contours);
 
@@ -220,8 +246,9 @@ void FW_draw_outline (int myff, FT_OutlineGlyph oglyph, float size) {
 		   		point ++) {
 
 
-			float x = OUT2GL(XCOORD(oglyph->outline,point)+xorig,myff);
-			float y = (0.0 + OUT2GL(YCOORD(oglyph->outline,point),myff) + yorig);
+
+			float x = OUT2GL(oglyph->outline.points[point].x+xorig,myff);
+			float y = (0.0 + OUT2GL(oglyph->outline.points[point].y,myff) + yorig);
 
 			flag = oglyph->outline.tags[point];
 			v[0] = x; v[1] = y; v[2] = 0;
@@ -238,8 +265,8 @@ void FW_draw_outline (int myff, FT_OutlineGlyph oglyph, float size) {
 			}
 			if (verbose)
 				 printf("OX, OY: %f, %f, X,Y: %f,%f FLAG %d\n",
-						XCOORD(oglyph->outline,point)+0.0,
-						YCOORD(oglyph->outline,point)+0.0,x,y,flag);
+						oglyph->outline.points[point].x+0.0,
+						oglyph->outline.points[point].y+0.0,x,y,flag);
 			if(flag) {
 				gluTessVertex(triang,v2,v2);
 			} else {
@@ -345,6 +372,7 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 		FW_make_fontname(myff,thisfontname);
 		if (!FW_init_face(myff,thisfontname)) {
 			/* tell this to render as fw internal font */
+			printf ("going to render this as an internal font\n");
 			FW_make_fontname (0,thisfontname);
 			FW_init_face(myff,thisfontname);
 		}
@@ -352,9 +380,6 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 
 	glNormal3f(0,0,-1);
 	glEnable(GL_LIGHTING);
-
-	printf ("here1\n");
-
 
 	/* load all of the characters first... */
 	for (row=0; row<n; row++) {
