@@ -12,7 +12,11 @@ DEBUG => "off",
 BOUNDS_CHECK => "off",
 LIBCHECK_INST => "",
 BROWSER => "mozilla",
-
+WGET => "/usr/bin/wget",
+ASCIITERM => "/usr/X11R6/bin/rxvt",
+CONVERT => "/usr/bin/convert",
+UNZIP => "/bin/gunzip",
+JAVA => "/usr/bin/java",
 
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype

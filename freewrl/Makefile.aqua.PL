@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "1.04.5";
+$VERSION = "V1.10-pre1";
 
 BEGIN {
  eval "use 5.004";
@@ -23,6 +23,14 @@ use Cwd qw(getcwd chdir);
 @ARGV = map {
 	if(/^CONF=(.*)$/) {
 		$vrml_conf_file = $1; ();
+	} else {
+		$_
+	}
+} @ARGV;
+
+@ARGV = map {
+	if(/^PPREFIX=(.*)$/) {
+		$PPREFIX = $1; ();
 	} else {
 		$_
 	}
@@ -64,7 +72,7 @@ print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.
 ## Handle platform-specific compile options for the Javascript engine
 ## and others specific to FreeWRL.
 
-my $sitearchjsdir = "\$(SITEARCHEXP)/auto/VRML/JS";
+my $sitearchjsdir = "\$(INSTALLPRIVLIB)/auto/VRML/JS";
 
 my $jsdir = "js/src";
 my $jsobjdir;
@@ -86,6 +94,8 @@ if ($VRML_CONFIG{PLATFORM} =~ /irix/i) {
 	$jsobjdir = "$jsdir/IRIX6.5";
 } elsif ($VRML_CONFIG{PLATFORM} =~ /macosx/i) {
 	$jsobjdir = "$jsdir/Darwin_All";
+} elsif ($VRML_CONFIG{PLATFORM} =~ /sunos/i) {
+	$jsobjdir = "$jsdir/SunOS5.8";
 } else { ## linux used by default
 	$jsobjdir = "$jsdir/Linux_All";
 }
@@ -97,6 +107,67 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$jsobjdir .= "_OPT.OBJ";
 	$BUILD_OPT = 1;
 }
+
+# get the "system" commands in. 
+my $browser = "NONE";
+my $wget = "NONE";
+my $asciiterm = "NONE";
+my $convert = "NONE";
+my $unzip = "NONE";
+my $javainterp = "NONE";
+
+if (defined $VRML_CONFIG{BROWSER}) {
+	#print "Browser in vrml.conf is ",$VRML_CONFIG{BROWSER},"\n";
+	$browser = $VRML_CONFIG{BROWSER};
+} else {
+	print "no Browser defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{WGET}) {
+	#print "WGET in vrml.conf is ",$VRML_CONFIG{WGET},"\n";
+
+	$wget = $VRML_CONFIG{WGET};
+} else {
+	print "no WGET defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{ASCIITERM}) {
+	#print "ASCIITERM in vrml.conf is ",$VRML_CONFIG{ASCIITERM},"\n";
+	$asciiterm = $VRML_CONFIG{ASCIITERM};
+} else {
+	print "no ASCIITERM defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{CONVERT}) {
+	#print "CONVERT in vrml.conf is ",$VRML_CONFIG{CONVERT},"\n";
+	$convert = $VRML_CONFIG{CONVERT};
+} else {
+	print "no CONVERT defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{UNZIP}) {
+	#print "UNZIP in vrml.conf is ",$VRML_CONFIG{UNZIP},"\n";
+	$unzip = $VRML_CONFIG{UNZIP};
+} else {
+	print "no UNZIP defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+if (defined $VRML_CONFIG{JAVA}) {
+	#print "JAVA in vrml.conf is ",$VRML_CONFIG{JAVA},"\n";
+	$javainterp = $VRML_CONFIG{JAVA};
+} else {
+	print "no JAVA defined in vrml.conf, exiting...\n";
+	exit (1);
+}
+
+push @ccflags, " -DBROWSER=\\\"$browser\\\" ";
+push @ccflags, " -DWGET=\\\"$wget\\\" ";
+push @ccflags, " -DASCIITERM=\\\"$asciiterm\\\" ";
+push @ccflags, " -DCONVERT=\\\"$convert\\\" ";
+push @ccflags, " -DUNZIP=\\\"$unzip\\\" ";
+push @ccflags, " -DJAVA=\\\"$javainterp\\\" ";
+
+#print "ccflags is now ",@ccflags,"\n\n";
 
 if ($VRML_CONFIG{WARNINGS} eq "low") {
 	push @ccflags, $warnings_low;
@@ -111,9 +182,10 @@ if ($VRML_CONFIG{WARNINGS} eq "high") {
 }
 
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
+	print "MAKING WITH BOUNDSCHECKING ENABLED\n";
 	push @inc, "-fbounds-checking";
 	push @ldflags, "-L$VRML_CONFIG{LIBCHECK_INST}";
-	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}", "-lcheck";
+	push @libs, "-L$VRML_CONFIG{LIBCHECK_INST}";
 }
 
 push @inc, $VRML_CONFIG{FREEWRL_INC},
@@ -159,11 +231,9 @@ for (keys %VRML_CONFIG) {
 }
 
 print OUT ");\n\n";
-chomp ($myconv = `which convert`);
 chomp ($myxsltproc = `which xsltproc`);
 chomp ($pwd = getcwd());
 chomp ($java = `which java`);
-print OUT qq(\$VRML::Browser::CONVERT = "$myconv";\n);
 print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_BUILDDIR} = "$pwd";\n\n);
 print OUT "1;\n";
@@ -240,7 +310,7 @@ WriteMakefile(
 	sub const_loadlibs {
 		my $loadlibs = shift->SUPER::const_loadlibs(@_);
 		$loadlibs =~ s/(LD_RUN_PATH\s*=.*)$/$1:$VRML::Config::vrml_config{LIBJS_INST}/m;
-print "Makefile.PL - loadlibs $loadlibs\n";
+		# print "Makefile.PL - loadlibs $loadlibs\n";
 		return $loadlibs;
 	}
 
@@ -282,13 +352,14 @@ INST_DYNAMIC_DEP =
 
 	sub postamble {
 		my @postamble;
-		my $VRMLINSTDIR   = "\$(SITEARCHEXP)/VRML";
+		my $VRMLINSTDIR   = "\$(INSTALLPRIVLIB)/VRML";
 		my $FRONTEND      = "\$(dir)/CFrontEnd";
 		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
 		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
 		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
 		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
 		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
+		my $MYDEFS 	  = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
 
 		## Add extra make instructions that don't quite fit into the
@@ -302,11 +373,14 @@ INST_DYNAMIC_DEP =
 			 ));
 
 		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
+		my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
+		my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
+		# print "x1 is $x1\n";
 			push(@postamble, join(
 				  "\n",
 				  qq{\# --- Mozilla/Netscape Plugin:\n},
 				  qq{install ::},
-				  qq{\t\@cd Plugin && \$(MAKE) install\n}
+				  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"$x1\"\n}
 				 ));
 		}
 
@@ -330,23 +404,39 @@ INST_DYNAMIC_DEP =
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
 				));
+		if ($VRML_CONFIG{PLATFORM} =~ /LINUX/i) {
+			push(@postamble, join(
+				qq{\t/sbin/ldconfig\n}
+			));
+		}
+
 
 		# make the C Front End.
+		my $def2;
+		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION) ";
 
-		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(SITEARCHEXP)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION)";
-		my $def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\"";
+		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
+			print "COMPILING WITH BOUNDSCHECKING\n";
+			$def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
+			print "line is $def2\n";
+		} else {
+			$def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
+		}
+
+		my $def = $def1.$def2;
+		print "my def is $def\n";
 
 		push (@postamble, join("\n",
 			  qq{\n\# --- FreeWRL C Front End:},
 			  qq{all ::},
-			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def2 $def1 \n},
+			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylb\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def \n},
 			  qq{install ::},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def1 $def2\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def\n},
 			  qq{clean ::},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
 			  qq{realclean ::},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def1 $def2\n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
 			  qq{distclean :: realclean\n}
 			 ));
 
