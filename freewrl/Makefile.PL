@@ -94,7 +94,7 @@ my @jslibs;
 
 if ($VRML_CONFIG{PLATFORM} =~ /irix/i) {
 	$jsobjdir = "$jsdir/IRIX6.5";
-} elsif ($VRML_CONFIG{PLATFORM} =~ /macosx/i) {
+} elsif ($OS eq "Darwin") {
 	$jsobjdir = "$jsdir/Darwin_All";
 } elsif ($VRML_CONFIG{PLATFORM} =~ /sunos/i) {
 	$jsobjdir = "$jsdir/SunOS5.8";
@@ -204,16 +204,12 @@ print OUT "#define FWVER \"",$VERSION,"\"\n";
 print OUT "#define XMESSAGE \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_Message\"\n";
 print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
 
-# Path to installed fw2init.pl
-#print OUT "#define FW2INITPL \"",$LIB_DIR,"/fw2init.pl\"\n";
-
 # lets just dump out some standard defines, from the vrml.conf file.
-my @dumpToVRMLCONF = ("SOUND_ENGINE",
+my @dumpToVRMLCONF = (
+#	"SOUND_ENGINE",
 	"BROWSER",
 	"SOUNDCONV",
 	"ASCIITERM",
-#	"PLATFORM",
-#	"NETSCAPE_PLUGINS",
 	"UNZIP",
 	"WGET",
 	"CONVERT",
@@ -412,7 +408,7 @@ INST_DYNAMIC_DEP =
 				qq{\# copy copy the initialization file over\n},
 				qq{\tcp CFrontEnd/fw2init.pl $VRMLINSTDIR\n},
 				));
-		if ($VRML::Config::vrml_config{PLATFORM} eq "LINUX") {
+		if ($OS eq "Linux") {
 			push(@postamble, join(
 				"\n",
 				qq{# make the libFreeWRLFunc shared library active\n},
@@ -514,7 +510,7 @@ INST_DYNAMIC_DEP =
 			  qq{all::},
 			));
 
-		if ($VRML::Config::vrml_config{PLATFORM} eq "LINUX") {
+		if ($OS eq "Linux") {
 			push(@postamble, join(
 				"\n",
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
