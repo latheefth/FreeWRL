@@ -178,6 +178,8 @@
 #define HIT rayhit
 
 
+/* POLYREP stuff */
+#define POINT_FACES	16 /* give me a point, and it is in up to xx faces */
 
 /* Function Prototypes */
 
@@ -193,3 +195,5 @@ void regen_polyrep(void *node) ;
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 float tx,float ty, char *descr) ;
 
+float calc_vector_length( struct pt p );
+void normalize_vector(struct pt *vec);
