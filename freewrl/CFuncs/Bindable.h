@@ -61,7 +61,7 @@ bind_node(void *node,
 		  unsigned int setBindofst,
 		  int isboundofst,
 		  int *tos,
-		  int *stack);
+		  unsigned int *stack);
 
 void
 render_Fog(struct VRML_Fog *node);

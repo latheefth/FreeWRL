@@ -369,7 +369,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
 =cut
+print "\nFreeWRL Error....\n";
 print "this should not happen - you are running the freewrl manpage pod,\n";
 print "not the freewrl executable. On Unix, make sure that you are running\n";
-print "/usr/bin/freewrl\n";
+print "the installed freewrl executable, or the CFrontEnd/freewrl in the build directory.\n";
+print "\n\n";
 !NO!SUBS!

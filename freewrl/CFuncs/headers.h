@@ -327,8 +327,6 @@ extern struct pt hp;			// in VRMLC.pm
 extern void *hypersensitive; 		// in VRMLC.pm
 extern int hyperhit;			// in VRMLC.pm
 extern struct pt r1, r2;		// in VRMLC.pm
-extern BrowserAction;			// in VRMLC.pm
-extern char *BrowserActionString;	// in VRMLC.pm
 extern struct sCollisionInfo CollisionInfo;
 extern struct currayhit rh,rph,rhhyper;
 extern int smooth_normals;

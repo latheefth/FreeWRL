@@ -24,8 +24,10 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
-#include <GL/glext.h>
+#endif
 
+#ifdef LINUX
+#include <GL/glext.h>
 #endif
 
 

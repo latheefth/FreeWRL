@@ -43,7 +43,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 	SV **svptr;
 	int i;
 	char *typeptr;
-	int xx;
+	unsigned int xx;
 
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");	
@@ -108,7 +108,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	struct VRML_Viewpoint *vp;
 	struct VRML_GeoViewpoint *gvp;
 	char * nameptr;
-	int len;
+	unsigned int len;
 
 	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); */
 
@@ -178,7 +178,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 /* Do binding for node and stack - works for all bindable nodes */
 
 void bind_node (void *node, unsigned int setBindofst,
-			int isboundofst, int *tos, int *stack) {
+			int isboundofst, int *tos, unsigned int *stack) {
 
 	unsigned int *oldstacktop;
 	unsigned int *newstacktop;
@@ -282,7 +282,7 @@ void render_Fog (struct VRML_Fog *node) {
 	GLdouble sx, sy, sz;
 	/* int frtlen; */
 	GLfloat fog_colour [4];
-	int foglen;
+	unsigned int foglen;
 	char *fogptr;
 
 
@@ -356,7 +356,7 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	double a1;
 	char *posnstring;
-	int xx;
+	unsigned int xx;
 
 	//printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
@@ -516,8 +516,8 @@ void render_Background (struct VRML_Background *node) {
 		node->_ichange = node->_change;
 		
 		/* do we have an old background to destroy? */
-		if (node->__points != 0) free (node->__points);
-		if (node->__colours != 0) free (node->__colours);
+		if (node->__points != 0) free ((void *)node->__points);
+		if (node->__colours != 0) free ((void *)node->__colours);
 	
 		/* calculate how many quads are required */
 		estq=0; actq=0;
@@ -535,8 +535,8 @@ void render_Background (struct VRML_Background *node) {
 		node->__quadcount = estq * 4;
 
 		/* now, malloc space for new arrays  - 3 points per vertex, 4 per quad. */
-		node->__points = malloc (sizeof (GLfloat) * estq * 3 * 4);
-		node->__colours = malloc (sizeof (GLfloat) * estq * 3 * 4);
+		node->__points = (int) malloc (sizeof (GLfloat) * estq * 3 * 4);
+		node->__colours = (int) malloc (sizeof (GLfloat) * estq * 3 * 4);
 		if ((node->__points == 0) || (node->__colours == 0)) {
 			printf ("malloc failure in background\n");
 			exit(1);

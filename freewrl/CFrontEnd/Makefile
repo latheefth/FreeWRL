@@ -28,7 +28,7 @@ fwopts:
 
 freewrl: perlxsi fwopts
 	$(CC) $(INC) $(FRFLAGS) freewrl.c
-	$(CC) $(LIBS) -o freewrl \
+	$(CC) -L../blib/arch/auto/VRML/VRMLFunc $(LIBS) -o freewrl \
 	-lpthread -lFreeWRLFunc \
 	perlxsi.o freewrl.o fwopts.o \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts`

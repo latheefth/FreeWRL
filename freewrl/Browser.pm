@@ -36,7 +36,6 @@ require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
 require 'VRML/Events.pm';
 require 'VRML/Config.pm';
-require 'VRML/URL.pm';
 
 if ($VRML::ENV{AS_PLUGIN}) { require 'VRML/PluginGlue.pm'; }
 

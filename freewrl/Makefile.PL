@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "1.05-pre1";
+$VERSION = "1.04.1";
 
 BEGIN {
  eval "use 5.004";
@@ -58,6 +58,9 @@ file in the distribution. Please correct and try again");
 
 
 $VRML_CONFIG{VERSION} = $VERSION;
+
+
+print "Make, version $VERSION, cc $CC, make $MAKE\n";
 
 
 print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.\n";
@@ -125,7 +128,13 @@ push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
 
 # Path to SoundServer binary
 push @inc, " -DSOUNDSERVERBINARY=\\\"$VRML_CONFIG{BIN_DIR}/FreeWRL_SoundServer\\\" ";
-print "INC now is ",@inc,"\n";
+
+# Path to installed fw2init.pl
+push @inc, " -DFW2INITPL=\\\"$VRML_CONFIG{BIN_DIR}/fw2init.pl\\\" ";
+
+# push build directory, for running standalone
+my $bdir = getcwd();
+push @inc, " -DBUILDDIR=\\\"$bdir\\\" ";
 
 
 $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
@@ -330,6 +339,7 @@ INST_DYNAMIC_DEP =
 		push (@postamble, join("\n",
 			  qq{\n\# --- FreeWRL C Front End:},
 			  qq{all ::},
+			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def2 $def1 \n},
 			  qq{install ::},
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def1 $def2\n},

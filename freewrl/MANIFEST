@@ -16,17 +16,9 @@ MANIFEST			This file
 MANIFEST.SKIP
 Makefile.PL
 NodeIntern.pm
-OpenGL/.cvsignore
-OpenGL/Makefile.PL
-OpenGL/OpenGL.m
-OpenGL/OpenGL.pm
-OpenGL/OpenGL.vf
-OpenGL/OpenGL.xs
-OpenGL/typemap
 Parser.pm
 Scene.pm
 Text/.cvsignore
-URL.pm
 USE.pm
 VRMLC.pm
 VRMLCU.pm

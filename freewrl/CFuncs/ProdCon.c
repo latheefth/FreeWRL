@@ -462,6 +462,7 @@ void _perlThread(void *perlpath) {
 	int retarr[1000];
 	char *filename;
         char *commandline[] = {"", NULL};
+	char *builddir;
 	struct Multi_String *inurl;
 	struct VRML_Inline *inl;
 	int xx;
@@ -469,25 +470,56 @@ void _perlThread(void *perlpath) {
 	char *slashindex;
 	char firstBytes[4];
 
+	int tempfp; /* for tring to locate the fw2init.pl file */
+
 	/* is the browser started yet? */
 	if (!browserRunning) {
 
-		commandline[1] = "/usr/bin/fw2init.pl";
+		commandline[1] = FW2INITPL;
+
+		/* find out where the fw2init.pl file is */
+		if ((tempfp = open(commandline[1],"r")) >= 0) {
+			/* printf ("opened %s %d\n",commandline[1],tempfp); */
+			close(tempfp);
+		} else {
+			/* printf ("error opening %s\n",commandline[1]);  */
+			xx = strlen (BUILDDIR) + strlen ("./CFrontEnd/fw2init.pl") + 10;
+			builddir = malloc (sizeof(char) * xx);
+			strcpy (builddir, BUILDDIR);
+			strcat (builddir, "/CFrontEnd/fw2init.pl");
+			commandline[1] = builddir;
+
+			if ((tempfp = open(commandline[1],"r")) >= 0) {
+	
+				/* printf ("opened %s\n",commandline[1]);  */
+				close(tempfp);
+			} else {
+				printf ("can not locate the fw2init.pl file, tried:\n");
+				printf ("    %s\n    and\n    %s\nexiting...\n",
+				FW2INITPL,builddir);
+				exit(1);
+			}
+		}
 
 		/* initialize stuff for prel interpreter */
 		my_perl = perl_alloc();
 		perl_construct (my_perl);
 		if (perl_parse(my_perl, xs_init, 2, commandline, NULL)) {
-			printf ("freewrl can not find its initialization script %s\n",commandline[1]);
-			exit (1);
+			printf ("freewrl can not parse initialization script %s, exiting...\n",
+				commandline[1]);
+			exit(1);
 		}
-
-		/* printf ("opening browser\n"); */
-		__pt_openBrowser();
-
 		/* pass in the compiled perl path */
 		/* printf ("sending in path %s\n",perlpath); */
 		__pt_setPath(perlpath);
+
+		/* pass in the source directory path in case make install not called */
+		/* printf ("sending in path %s\n",BUILDDIR); */
+		__pt_setPath(BUILDDIR);
+
+
+		/* printf ("opening browser\n"); */
+		__pt_openBrowser();
 
 		/* printf ("loading in initial Group{} \n"); */
 		__pt_loadInitialGroup();

@@ -1474,7 +1474,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 						/* printf ("ASSUMED TO BE FALSE\n"); */
 						ival = 0;
 					}	
-					memcpy ((void *)tn+tptr, (void *)&ival,len);
+					memcpy ((void *)(tn+tptr), (void *)&ival,len);
 					break;
 				}
 
@@ -1484,58 +1484,58 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 					//printf ("SFTime conversion numbers %f from string %s\n",tval,strp);
 					//printf ("copying to %#x offset %#x len %d\n",tn, tptr,len);
-					memcpy ((void *)tn+tptr, (void *)&tval,len);
+					memcpy ((void *)(tn+tptr), (void *)&tval,len);
 					break;
 				}
 				case SFNODE:
 				case SFINT32: {
 					sscanf (strp,"%d",&ival);
 					//printf ("SFInt, SFNode conversion number %d\n",ival);
-					memcpy ((void *)tn+tptr, (void *)&ival,len);
+					memcpy ((void *)((tn+tptr)), (void *)&ival,len);
 					break;
 				}
 				case SFFLOAT: {
 					sscanf (strp,"%f",&fl);
-					memcpy ((void *)tn+tptr, (void *)&fl,len);
+					memcpy ((void *)(tn+tptr), (void *)&fl,len);
 					break;
 				}
 
 				case SFVEC2F: {	/* SFVec2f */
 					sscanf (strp,"%f %f",&fl[0],&fl[1]);
 					//printf ("conversion numbers %f %f\n",fl[0],fl[1]);
-					memcpy ((void *)tn+tptr, (void *)fl,len);
+					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
 				}
 
 				case SFCOLOR: {	/* SFColor */
 					sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
 					//printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]);
-					memcpy ((void *)tn+tptr, (void *)fl,len);
+					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
 				}
 
 				case SFROTATION: {
 					sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
 					//printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]);
-					memcpy ((void *)tn+tptr, (void *)fl,len);
+					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
 				}
 
 
 					/* a series of Floats... */
-				case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,3); break;}
-				case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,1); break;}
-				case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,4); break;}
-				case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,2); break;}
-				case MFNODE: {getMFNodetype (strp,tn+tptr,CRoutes[route].extra); break;}
+				case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),3); break;}
+				case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),1); break;}
+				case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),4); break;}
+				case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),2); break;}
+				case MFNODE: {getMFNodetype (strp,(tn+tptr),CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
-									 global_return_val,tn+tptr); 
+									 global_return_val,(tn+tptr)); 
 					break;
 				}
 
-				case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,0); break;}
-				case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,5); break;}
+				case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),0); break;}
+				case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),5); break;}
 
 				default: {	printf("WARNING: unhandled from type %s\n", FIELD_TYPE_STRING(JSparamnames[fptr].type));
 				printf (" -- string from javascript is %s\n",strp);

@@ -9,7 +9,7 @@
 package VRML::GLBackEnd;
 
 use VRML::VRMLFunc;
-require 'VRML/VRMLCU.pm';
+require "VRML/VRMLCU.pm";
 
 if($VRML::verbose::rend) {
 	VRML::VRMLFunc::render_verbose(1);

@@ -2,10 +2,9 @@ use Carp;
 $SIG{__DIE__} = sub {print Carp::longmess(@_);die;};
 
 # this allows us to get config information; eg, version et al.
-require DynaLoader;
-use VRML::Config;
-
-use VRML::Browser;
+eval ('require DynaLoader;');
+eval ('use VRML::Config;');
+eval ('use VRML::Browser;');
 
 
 my $b;
@@ -27,6 +26,10 @@ sub setINCPath {
 
 sub open_browser {
 	my ($q, $s) = @_;
+
+	require DynaLoader;
+	require "VRML/Config.pm";
+	require "VRML/Browser.pm";
 
 	$b = new VRML::Browser({
                                                 CocoaContext => undef,

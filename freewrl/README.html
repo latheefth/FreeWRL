@@ -1,25 +1,36 @@
 <TITLE>FreeWRL - README</TITLE>
 
-<H3>README</H3>
+<H3>FreeWRL README</H3>
 
-<P>&#35; Copyright (C) 1998 Tuomas J. Lukka, 1999-2001,John Stewart CRC Canada.
-<BR>&#35; DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
-<BR>&#35; See the GNU Library General Public License (file COPYING in the distribution)
-<BR>&#35; for conditions of use and redistribution, EXCEPT on the files 
-<BR>&#35; which belong under the mozilla public license.</P>
-
-                  
 <P>
 See the file 
 <A HREF="INSTALL.html ">./INSTALL.html</A>
-for how to compile this program.
+for how to compile and install this program.
 
+<P>
+If you want to run this program <B>without installing,</b> you HAVE to set the
+LD_LIBRARY_PATH variable so that freewrl can find the shared libs. Try:
+<p>
+setenv LD_LIBRARY_PATH /home/luigi/FreeWRL-1.04.1/JS/js/src/Linux_All_OPT.OBJ/:/home/luigi/FreeWRL-1.04.1/blib/arch/auto/VRML/VRMLFunc/
+<p>
+Of course, change the paths to suit your build directory. The syntax above
+assumes using csh or equivalent for your shell.
+<p>
+It should be noted that the freewrl executable file is in the directory
+"CFrontEnd". ie, the freewrl executable, using the paths above, is:
+<p>
+/home/luigi/FreeWRL-1.04.1/CFrontEnd/freewrl
+<p>
+and, of course, when building (see the INSTALL.html file), you should "make",
+not "make install".
+
+<p>
 <P>For updates, see the FreeWRL homepage, currently at 
 <A HREF="http://www.crc.ca/FreeWRL/">http://www.crc.ca/FreeWRL/</A></P>
 
 <P>After installation, try:
-
-<BR>./freewrl tests/1.wrl</P>
+<P>
+<BR>freewrl tests/1.wrl</P>
 
 <P>This should open a new window with a view of the VRML world in question.</P>
 
