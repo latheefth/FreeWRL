@@ -1,31 +1,33 @@
-EAI code, as it stood, was prone to errors, because
-socket forking did not happen, and waiting around
-for the "Server" to appear did not work.
+REVISED October 1, 2000.  
+
+John Stewart.
 
 
-So, we make it such that:
+The EAI classes are a "work in progress"; and are just getting
+rebuilt.
 
-1) the server listens on port 2000 for incoming
-connections. 
 
-2) the server replies with a sub port number, then closes
-that "waiting" socket.
+September 28, 2000 - John.Stewart@crc.ca
 
-3) the server then opens the sub port number for
-actual eai transfers.
 
-4) when the server detects an open and a close
-of that socket, it deems itself to have been
-"used and discarded", and exits.
+Things to watch out for:
 
-5) the client waits around, trying to get 
-something out of the servers port 2000. When it
-does, it closes the initial socket, and opens
-the real EAI socket on the port given to it by
-the server.
+1) sometimes the appletviewer does not shutdown correctly.
 
-6) when the client is finished, it closes the socket,
-and the server picks this up.
+ps -aux | grep jdk 
 
+to find out if one is running, and
+kill "pid" (the number of the process) to stop it.
+
+
+2) add children sometimes does not work. Work with Tiny3D, and
+you will see the problem; children are added, but, the 
+definition of a Transform node is changed, to forever have those
+children...
+
+
+3) the appletviewer now ignores the CLASSPATH. Sheesh. Right
+now, the vrml/* classes are within the current working directory;
+even symbolic links don't work.
 
 
