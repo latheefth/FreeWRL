@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.14  2000/11/07 14:51:36  crc_canada
+# Better glGenTexture initialization
+#
 # Revision 1.13  2000/11/03 21:51:36  crc_canada
 # texture pbjects for increased speed
 #
@@ -957,6 +960,10 @@ static struct VRML_Virt virt_${n} = { ".
 				unsigned char *ptr = SvPV(\$f(__data$1),PL_na);
 				void do_texture();
 
+				if(!this_->_texture) {
+					glGenTextures(1,&this_->_texture);
+				}
+
 				printf ("repeatS = %s   repeatT = %s\\n", \$f(repeatS$1) ? 
 				"GL_REPEAT" : "GL_CLAMP", \$f(repeatT$1) ? "GL_REPEAT" : "GL_CLAMP" );
 printf ("binding to texture %d\n",this_->_texture);
@@ -980,10 +987,13 @@ printf ("binding to texture %d\n",this_->_texture);
 				unsigned char *ptr = SvPV(\$f(__data$1),PL_na);
 				void do_texture();
 
+				if(!this_->_texture) {
+					glGenTextures(1,&this_->_texture);
+				}
+
 				printf ("repeatS = %s   repeatT = %s\\n", \$f(repeatS$1) ? 
 				"GL_REPEAT" : "GL_CLAMP", \$f(repeatT$1) ? "GL_REPEAT" : "GL_CLAMP" );
 	
-printf ("binding to texture %d\n",this_->_texture);
         	                glBindTexture (GL_TEXTURE_2D, this_->_texture);
 				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr, \$f(repeatS$1));
 				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
@@ -1008,9 +1018,6 @@ printf ("binding to texture %d\n",this_->_texture);
 		$c =~ s/\$start(_|)list\(\)/
 		        if(!this_->_dlist) {
 				this_->_dlist = glGenLists(1);
-			}
-			if(!this_->_texture) {
-				glGenTextures(1,&this_->_texture);
 			}/g;
 		$c =~ s/\$end(_|)list\(\)/
 			glEndList()
@@ -1018,9 +1025,6 @@ printf ("binding to texture %d\n",this_->_texture);
 		$c =~ s/\$start(_|)list2\(\)/
 		        if(!this_->_dl2ist) {
 				this_->_dl2ist = glGenLists(1);
-			}
-			if(!this_->_texture) {
-				glGenTextures(1,&this_->_texture);
 			}
 			if(this_->_dl2change != this_->_change) {
 				glNewList(this_->_dl2ist,GL_COMPILE_AND_EXECUTE);
