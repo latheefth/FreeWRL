@@ -51,13 +51,13 @@ int freewrlSystem (char *sysline) {
 	} else {
 		/* split the command off of internbuf, for execing. */
 		while (internbuf != NULL) {
-			printf ("looping, count is %d\n",count);
+			//printf ("looping, count is %d\n",count);
 			paramline[count] = internbuf;
 			internbuf = strchr(internbuf,' ');
 			if (internbuf != NULL) {
 				//printf ("more strings here! :%s:\n",internbuf);
 				*internbuf = '\0';
-				printf ("param %d is :%s:\n",count,paramline[count]);
+				//printf ("param %d is :%s:\n",count,paramline[count]);
 				internbuf++;
 				count ++;
 				if (count >= MAXEXECPARAMS) return -1; // never...
@@ -65,7 +65,7 @@ int freewrlSystem (char *sysline) {
 		}
 	}
 	/*
-	printf ("finished while loop, count %d\n",count);
+	//printf ("finished while loop, count %d\n",count);
 	{ int xx;
 		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
