@@ -126,9 +126,9 @@ requestUrlfromPlugin(int sockDesc,
 
 	linecount = 0;
 	linelen = fread (buf,1,2000,infile);
-	pluginprint ("verify read, read in %d characters\n",linelen);
+	//pluginprint ("verify read, read in %d characters\n",linelen);
 	while ((linelen > 0) && (linecount < 5)){	
-		pluginprint ("verify read, read in %d characters\n",linelen);
+	//	pluginprint ("verify read, read in %d characters\n",linelen);
 		
 		/* did we find a "404 file not found" message? */
 		/* some, all??? will eventually return a 404 html text in
