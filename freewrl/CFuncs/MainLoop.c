@@ -11,6 +11,7 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include "Bindable.h"
 
 #include "OpenGL_Utils.h"
 #include "Viewer.h"
@@ -656,8 +657,15 @@ void glPrintError(char *str) {
         }
 #endif
 
+/* go to the next viewpoint */
 void Next_ViewPoint() { 
-	printf ("MAinloop, nextvp\n");
+	if (totviewpointnodes>=2) {
+		/* whew, we have other vp nodes */
+		send_bind_to(VIEWPOINT,viewpointnodes[currboundvpno],0);
+		currboundvpno++;
+		if (currboundvpno>=totviewpointnodes) currboundvpno=0;
+		send_bind_to(VIEWPOINT,viewpointnodes[currboundvpno],1);
+	}
 }
 
 

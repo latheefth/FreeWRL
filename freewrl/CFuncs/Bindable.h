@@ -46,6 +46,7 @@ extern int *backgroundnodes;
 extern int *navnodes;
 extern int *viewpointnodes;
 extern int totfognodes, totbacknodes, totnavnodes, totviewpointnodes;
+extern int currboundvpno;
 void
 reset_upvector(void);
 

@@ -72,6 +72,7 @@ int totfognodes = 0;
 int totbacknodes = 0;
 int totnavnodes = 0;
 int totviewpointnodes = 0;
+int currboundvpno=0;
 
 /* keep track of the producer thread made */
 pthread_t PCthread = NULL;
