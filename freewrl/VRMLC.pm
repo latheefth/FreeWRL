@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.83  2003/05/08 17:30:02  crc_canada
+# Missed declaration of saved hitpoint
+#
 # Revision 1.82  2003/05/01 18:49:19  ayla
 #
 # Use viewer position and orientation from Viewer.pm for calculations in
@@ -1267,6 +1270,8 @@ double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 /* Viewpoint Field of View */
 GLdouble fieldofview = 45;
 
+/* used to save rayhit and hyperhit for later use by C functions */
+struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 struct currayhit {
 void *node; /* What node hit at that distance? */
@@ -1738,41 +1743,30 @@ CODE:
 	hypersensitive = ptr;
 	hyperhit = 0;
 
+# get the hyperhit - eg, a planesensor, and SAVE the results for later. 
+# right now the results are returned to Perl, and also saved for later
+# use by direct C code. JAS
 int
-get_hyperhit(x1,y1,z1,x2,y2,z2)
-	double x1
-	double y1
-	double z1
-	double x2
-	double y2
-	double z2
+get_hyperhit()
 CODE:
+	double x1,y1,z1,x2,y2,z2;
 	GLdouble projMatrix[16];
-	/*
-	if(hyperhit) {
-		x1 = hyper_r1.x;
-		y1 = hyper_r1.y;
-		z1 = hyper_r1.z;
-		x2 = hyper_r2.x;
-		y2 = hyper_r2.y;
-		z2 = hyper_r2.z;
-		RETVAL=1;
-	} else RETVAL = 0;
-	*/
+
 	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(r1.x, r1.y, r1.z, rhhyper.modelMatrix,
 		projMatrix, viewport, &x1, &y1, &z1);
 	gluUnProject(r2.x, r2.y, r2.z, rhhyper.modelMatrix,
 		projMatrix, viewport, &x2, &y2, &z2);
+
+	/* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f\n",
+		x1,y1,z1,x2,y2,z2); */
+
+	/* and save this globally */
+	hyp_save_posn.c[0] = x1; hyp_save_posn.c[1] = y1; hyp_save_posn.c[2] = z1;
+	hyp_save_norm.c[0] = x2; hyp_save_norm.c[1] = y2; hyp_save_norm.c[2] = z2;
 	RETVAL=1;
 OUTPUT:
 	RETVAL
-	x1
-	y1
-	z1
-	x2
-	y2
-	z2
 	
 void
 get_collisionoffset(x,y,z)
@@ -1981,35 +1975,24 @@ CODE:
 		if(verbose) printf("ViewerUpvector = (%f,%f,%f)\n",ViewerUpvector);
 	}
 
-
+# get the current rayhit. Save the rayhit for later use by Cfunctions, eg, PlaneSensor
 void *
-get_rayhit(x,y,z,nx,ny,nz,tx,ty)
-	double x
-	double y
-	double z
-	double nx
-	double ny
-	double nz
-	double tx
-	double ty
+get_rayhit()
 CODE:
+	double x,y,z;
+
 	if(hpdist >= 0) {
 		gluUnProject(hp.x,hp.y,hp.z,rh.modelMatrix,rh.projMatrix,viewport,&x,&y,&z);
+
+		/* and save this globally */
+		ray_save_posn.c[0] = x; ray_save_posn.c[1] = y; ray_save_posn.c[2] = z;
+
 		RETVAL = rh.node;
 	} else {
 		RETVAL=0;
 	}
 OUTPUT:
 	RETVAL
-	x
-	y
-	z
-	nx
-	ny
-	nz
-	tx
-	ty
-
 
 #********************************************************************************
 #* Interpolators in C code. Color,Position Interpolators are 3 values 		*
@@ -2044,10 +2027,8 @@ get_Coord_value_changed(node,x,y,z,indx)
 	int indx
 CODE:
 	struct VRML_CoordinateInterpolator *px = node;
-	do_OintCoord(px,indx);
-	x = px->_this_value.c[0];
-	y = px->_this_value.c[1];
-	z = px->_this_value.c[2];
+	do_OintCoord(px);
+	x = 0.0; y = 0.0; z = 0.0; /* this is for non-c routes ;_0 */
 OUTPUT:
 	x
 	y
@@ -2076,6 +2057,137 @@ OUTPUT:
 	z
 	o
 
+
+
+#*****************************************************************************
+# return a C pointer to a func for the interpolator functions. Used in CRoutes
+# to enable event propagation to call the correct interpolator
+#
+unsigned int
+InterpPointer(x)
+	char *x
+CODE:
+	void *pt;
+	void do_Oint4(void *x);
+
+	/* XXX still to do; Fog, Background, Viewpoint, NavigationInfo, Collision */
+
+	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
+		pt = do_Oint4;
+		RETVAL = pt;
+	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
+		pt = do_OintScalar;
+		RETVAL = pt;
+	} else if (strncmp("ColorInterpolator",x,strlen("ColorInterpolator"))==0) {
+		pt = do_Oint3;
+		RETVAL = pt;
+	} else if (strncmp("PositionInterpolator",x,strlen("PositionInterpolator"))==0) {
+		pt = do_Oint3;
+		RETVAL = pt;
+	} else if (strncmp("CoordinateInterpolator",x,strlen("CoordinateInterpolator"))==0) {
+		pt = do_OintCoord;
+		RETVAL = pt;
+	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
+		pt = do_OintCoord;
+		RETVAL = pt;
+	} else {
+		RETVAL = 0;
+	}
+OUTPUT:
+	RETVAL
+
+
+#*******************************************************************************
+# return lengths if C types - used for Routing C to C structures. Platform
+# dependent sizes...
+# These have to match the clength subs in VRMLFields.pm
+# the value of zero (0) is used in VRMLFields.pm to indicate a "don't know".
+# some, eg MultiVec3f have a value of -1, and this is just passed back again.
+# (this is handled by the routing code; it's more time consuming)
+# others, eg ints, have a value from VRMLFields.pm of 1, and return the
+# platform dependent size. 
+
+int
+getClen(x)
+	int x
+CODE:
+	switch (x) {	
+		case 1:	RETVAL = sizeof (int);
+			break;
+		case 2:	RETVAL = sizeof (float);
+			break;
+		case 3:	RETVAL = sizeof (double);
+			break;
+		case 4:	RETVAL = sizeof (struct SFRotation);
+			break;
+		case 5: RETVAL = sizeof (struct SFColor);
+			break;
+		case 6: RETVAL = sizeof (struct SFVec2f);
+			break;
+		default:	RETVAL = x;
+	}
+OUTPUT:
+	RETVAL
+
+
+#********************************************************************************
+#
+# register a route that can go via C, rather than perl.
+
+void
+do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr)
+	void *from
+	int fromoffset
+	void *to
+	int tooffset
+	int len
+	void *intptr
+CODE:
+	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr);
+
+
+#********************************************************************************
+# do the events, and events, and events, until no more events triggered
+
+void
+do_propagate_events()
+CODE:
+	propagate_events();
+
+#********************************************************************************
+#Mouse events at beginning of event loop - Sensors.
+#
+# params - x		- pointer to type string; 
+#	 - pt		- pointer to data structure (CNode) for this invocation
+#	 - typ		- mouse action, eg "DRAG" (string! yeeech!)
+#	 - tick		- time 
+#	 - over 	- isOver
+void
+handle_mouse_sensitive(x,pt,typ,tick,over)
+	char *x
+	void *pt
+	char *typ
+	double tick
+	int over
+CODE:
+	if (strncmp("TouchSensor",x,strlen("TouchSensor"))==0) {
+		do_TouchSensor (pt,typ,tick,over);
+		
+	} else if (strncmp("PlaneSensor",x,strlen("PlaneSensor"))==0) {
+		do_PlaneSensor (pt,typ,tick,over);
+
+	} else if (strncmp("CylinderSensor",x,strlen("CylinderSensor"))==0) {
+		do_CylinderSensor (pt,typ,tick,over);
+
+	} else if (strncmp("SphereSensor",x,strlen("SphereSensor"))==0) {
+		do_SphereSensor (pt,typ,tick,over);
+
+	} else { printf ("do_handle_events, unknown %s\n",x);}
+	
+	
+
+
+
 #********************************************************************************
 #* Interpolators in C code. ScalarInterpolator returns 1 value	 		*
 #* called only during the "events_processed" side of the Event loop		*
@@ -2092,57 +2204,25 @@ OUTPUT:
 
 #********************************************************************************
 void
-AudioClockTick(node,tick,evtodo,activestate)
+AudioClockTick(node,tick)
 	void *node
 	double tick
-	int evtodo
-	int activestate
 CODE:
-	struct VRML_AudioClip *px = node;
-	do_AudioTick(px,tick,&evtodo);
-	activestate = px->isActive;
-OUTPUT:
-	evtodo
-	activestate
+	do_AudioTick(node,tick);
 
 void
-MovieTextureClockTick(node,tick,evtodo,activestate)
+MovieTextureClockTick(node,tick)
 	void *node
 	double tick
-	int evtodo
-	int activestate
 CODE:
-	struct VRML_MovieTexture *px = node;
-	do_MovieTextureTick(px,tick,&evtodo);
-	activestate = px->isActive;
-OUTPUT:
-	evtodo
-	activestate
+	do_MovieTextureTick(node,tick);
 
 void 
-TimeSensorClockTick(node,tick,doac,astate,doct,dofrac,retfrac)
+TimeSensorClockTick(node,tick)
 	void *node
 	double tick
-	int doac
-	int astate
-	int doct
-	int dofrac
-	double retfrac
 CODE:
-	struct VRML_TimeSensor *px = node;
-	/* doac signals a change in activestate; (state is in astate var) 
-	   doct signals a cycletimer event  (no variable; just pushes 1)
-	   dofrac signals 
-	*/
-
-	do_TimeSensorTick(px,tick,&doac,&doct,&dofrac,&retfrac);
-	astate = px->isActive;
-OUTPUT:
-	doac
-	astate
-	doct
-	dofrac
-	retfrac
+	do_TimeSensorTick(node,tick);
 
 
 #********************************************************************************
