@@ -1247,7 +1247,16 @@ my $protono;
 						 scaleOrientation => [SFRotation, [0, 0, 1, 0], exposedField],
 						 translation => [SFVec3f, [0, 0, 0], exposedField],
 						 bboxCenter => [SFVec3f, [0, 0, 0], field],
-						 bboxSize => [SFVec3f, [-1, -1, -1], field]
+						 bboxSize => [SFVec3f, [-1, -1, -1], field],
+
+						 # fields for reducing redundant calls
+						 __do_center => [SFInt32, 0, field],
+						 __do_trans => [SFInt32, 0, field],
+						 __do_rotation => [SFInt32, 0, field],
+						 __do_scaleO => [SFInt32, 0, field],
+						 __do_scale => [SFInt32, 0, field],
+
+
 						},
 						{
 						 addChildren => sub {
