@@ -428,10 +428,12 @@ sub shut {
 
 sub tick {
 	my($this) = @_;
-	my $time = VRML::VRMLFunc::get_timestamp();
-
 	#handle app/os events.
-	$this->{BE}->handle_events($time);
+	
+	# set timestamp in C
+	VRML::VRMLFunc::timestamp();
+
+	$this->{BE}->handle_events();
 
 	#update viewer position (first draft)
 	VRML::VRMLFunc::do_handle_tick();
@@ -440,7 +442,7 @@ sub tick {
 	#activate proximity sensors.
 	$this->{BE}->render_pre();
 
-	$this->{EV}->propagate_events($time, $this->{BE}, $this->{Scene});
+	$this->{EV}->propagate_events($this->{BE}, $this->{Scene});
 
 	#do actual screen writing
 	$this->{BE}->render();

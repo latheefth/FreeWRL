@@ -482,7 +482,7 @@ sub register_listener {
 
 # get_firstevent returns [$node, fieldName, value]
 sub propagate_events {
-	my($this, $timestamp, $be, $scene) = @_;
+	my($this, $be, $scene) = @_;
 	my @e;
 	my @ne;
 	my $fk;
@@ -499,7 +499,8 @@ sub propagate_events {
 		# rewriting on GLBackEnd.pm for Sensitive nodes.
 
 		print "MEV node ", VRML::Debug::toString($_), " type $_->[0]->{TypeName}\n"
-			if $VRML::verbose::events;
+			;#JAS if $VRML::verbose::events;
+
 		my $nd = $_->[0];
 		VRML::VRMLFunc::handle_mouse_sensitive($nd->{Type}{Name},
 				$nd->{BackNode}{CNode},

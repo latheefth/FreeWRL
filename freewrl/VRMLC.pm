@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.121  2003/10/09 16:03:46  crc_canada
+# removed references to "timestamp" in perl code - not required as all timestamp stuff happens in C
+#
 # Revision 1.120  2003/10/09 15:30:35  crc_canada
 # more moving code to C and cleaning up compile warnings.
 #
@@ -2629,8 +2632,8 @@ CODE:
 
 #********************************************************************************
 
-double
-get_timestamp()
+void
+timestamp()
 CODE:
 	static int loop_count = 0;
 	struct timeval waittime;
@@ -2664,9 +2667,6 @@ CODE:
 	} else {
 		loop_count++;
 	}
-	RETVAL = TickTime;
-OUTPUT:
-	RETVAL
 
 
 # save the specific FreeWRL version number from the Config files.

@@ -219,7 +219,7 @@ sub quitpressed {
 
 # process xevents in browser's event loop
 sub handle_events {
-	my($this, $time) = @_;
+	my($this) = @_;
 	
 	if (!(defined $this->{CONTEXT})) {
 		while (XPending()) {
@@ -230,7 +230,7 @@ sub handle_events {
 				$this->{W} = $e[1];
 				$this->{H} = $e[2];
 			}
-			$this->event($time, @e);
+			$this->event(@e);
 		}
 		$this->finish_event();
 	}
@@ -250,14 +250,14 @@ sub set_root { $_[0]{Root} = $_[1] }
 #event: Handles external sensory events (keys, mouse, etc)
 sub event {
 	my $w;
-	my($this, $time, $type, @args) = @_;
+	my($this, $type, @args) = @_;
 	my $code;
 	my $but;
 
 	# JAS - uncomment this to see all events, even mouse movenemts
 	# print "EVENT $this $type $args[0] $args[1] $args[2]\n";
 
-	#print "VRML::GLBackEnd::event: $time, $type, [ ", join(", ", @args)," ]\n";
+	#print "VRML::GLBackEnd::event: $type, [ ", join(", ", @args)," ]\n";
 
 	if ($type == &MotionNotify) {
 
