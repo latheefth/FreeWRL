@@ -104,6 +104,10 @@ sub new {
 	# for x3d conversions. 
 	$XSLTpath = $pars->{XSLTpath};
 
+	# save browser version
+	VRML::VRMLFunc::SaveVersion($VRML::Config{VERSION});
+
+
 	return $this;
 }
 
@@ -251,6 +255,8 @@ sub load_file_intro {
 
 	# save this for getworldurl calls...
 	$this->{URL} = $url;
+
+	VRML::VRMLFunc::SaveURL($url);
 
 	$this->clear_scene();
 	$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
@@ -562,8 +568,7 @@ sub set_next_vp {
 
 # The routines below implement the browser object interface.
 
-sub getName { return VRML::NodeType::getName(); }
-sub getVersion { return $VRML::Config{VERSION}; }
+#sub getVersion { return $VRML::Config{VERSION}; }
 sub getCurrentSpeed { return 0.0; } # legal
 sub getCurrentFrameRate { return $FPS; }
 
@@ -573,10 +578,10 @@ sub setDescription {
 	print "Set description: $desc\n"; ## may do more later
 } # Read the spec: 4.12.10.8 ;)
 
-sub getWorldURL {
-	my ($this) = @_;
-	return $this->{URL};
-}
+#sub getWorldURL {
+#	my ($this) = @_;
+#	return $this->{URL};
+#}
 
 sub replaceWorld {
 	# make a new scene, this is very similar to load_string, found

@@ -193,11 +193,15 @@ void JSInit(int num, SV *script) {
 	CRoutes_js_new (num,(unsigned int)_context, (unsigned int)_globalObj,
 		(unsigned int)br);
 	
-	/* and run the initialize function */
-	if (!ActualrunScript(num, "initialize()",&rval)) {
-		cleanupDie("runScript failed in VRML::JS::initialize",_context);
-	}
-	gatherScriptEventOuts (num,FALSE);
+
+	//JAS printf ("calling javascript Initialize\n");
+	//JAS /* and run the initialize function */
+	//JAS if (!ActualrunScript(num, "initialize()",&rval)) {
+	//JAS 	cleanupDie("runScript failed in VRML::JS::initialize",_context);
+	//JAS }
+
+	//JAS printf ("Now gathering events, with param now eq TRUE\n");
+	//JAS gatherScriptEventOuts (num,TRUE);
 
 
 	if (JSVerbose) printf("\tVRML browser initialized\n");

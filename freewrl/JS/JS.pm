@@ -90,6 +90,11 @@ sub new {
 
 		$this->initScriptFields($node, $_);
 	}
+
+	if (!VRML::VRMLFunc::jsrunScript($number, "initialize()", $rs, $rval)) {
+		cleanupDie("VRML::VRMLFunc::jsrunScript initialize failed in VRML::JS");
+	}
+
 	# Ignore all events we may have sent while building
 	#JAS $this->gatherSentEvents(1);
 
@@ -366,112 +371,43 @@ sub getNodeCNode {
 	}
 }
 
-#JASsub jspBrowserGetName {
-#JAS	my ($this) = @_;
-#JAS	my ($rval, $rs);
-#JAS
-#JAS	print "VRML::JS::jspBrowserGetName\n"
-#JAS	 	if $VRML::verbose::js;
-#JAS	my $n = $this->{Browser}->getName();
-#JAS	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
-#JAS				   "$browserRetval"."=\"$n\"", $rs, $rval)) {
-#JAS		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetName");
-#JAS	}
-#JAS}
-#JAS
-#JASsub jspBrowserGetVersion {
-#JAS	my ($this) = @_;
-#JAS	my ($rval, $rs);
-#JAS
-#JAS	print "VRML::JS::jspBrowserGetVersion\n"
-#JAS		if $VRML::verbose::js;
-#JAS	my $n = $this->{Browser}->getVersion();
-#JAS
-#JAS	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
-#JAS				   "$browserRetval"."=\"$n\"", $rs, $rval)) {
-#JAS		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetVersion");
-#JAS	}
-#JAS}
-#JAS
-#JASsub jspBrowserGetCurrentSpeed {
-#JAS	my ($this) = @_;
-#JAS	my ($rval, $rs);
-#JAS
-#JAS	print "VRML::JS::jspBrowserGetCurrentSpeed\n"
-#JAS		if $VRML::verbose::js;
-#JAS	my $n = $this->{Browser}->getCurrentSpeed();
-#JAS
-#JAS	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
-#JAS				   "$browserRetval"."=$n", $rs, $rval)) {
-#JAS		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetCurrentSpeed");
-#JAS	}
-#JAS}
-#JAS
-#JASsub jspBrowserGetCurrentFrameRate {
-#JAS	my ($this) = @_;
-#JAS	my ($rval, $rs);
-#JAS
-#JAS	print "VRML::JS::jspBrowserGetCurrentFrameRate\n"
-#JAS		if $VRML::verbose::js;
-#JAS	my $n = $this->{Browser}->getCurrentFrameRate();
-#JAS
-#JAS	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
-#JAS				   "$browserRetval"."=$n", $rs, $rval)) {
-#JAS		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetCurrentFrameRate");
-#JAS	}
-#JAS}
-#JAS
-#JASsub jspBrowserGetWorldURL {
-#JAS	my ($this) = @_;
-#JAS	my ($rval, $rs);
-#JAS
-#JAS	print "VRML::JS::jspBrowserGetWorldURL\n"
-#JAS		if $VRML::verbose::js;
-#JAS	my $n = $this->{Browser}->getWorldURL();
-#JAS
-#JAS	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, 
-#JAS				   "$browserRetval"."=\"$n\"", $rs, $rval)) {
-#JAS		cleanupDie("VRML::VRMLFunc::jsrunScript failed in VRML::JS::jspBrowserGetWorldURL");
-#JAS	}
-#JAS}
-#JAS
-#JASsub jspBrowserReplaceWorld {
-#JAS	my ($this, $handles) = @_;
-#JAS
-#JAS	print "VRML::JS::jspBrowserReplaceWorld $handles\n"
-#JAS		if $VRML::verbose::js;
-#JAS
-#JAS	$this->{Browser}->replaceWorld($handles);
-#JAS}
-#JAS
-#JASsub jspBrowserLoadURL {
-#JAS	my ($this, $url, $parameter) = @_;
-#JAS
-#JAS	print "VRML::JS::jspBrowserLoadURL $url, $parameter\n"
-#JAS		if $VRML::verbose::js;
-#JAS
-#JAS	## VRML::Browser::loadURL not implemented yet
-#JAS	$this->{Browser}->loadURL($url, $handles);
-#JAS}
-#JAS
-#JASsub jspBrowserSetDescription {
-#JAS	my ($this, $desc) = @_;
-#JAS	$desc = join(" ", split(" ", $desc));
-#JAS
-#JAS	## see VRML97, section 4.12.10.8
-#JAS	if (!$this->{Node}{Type}{Defaults}{"mustEvaluate"}) {
-#JAS		warn "VRML::JS::jspBrowserSetDescription: mustEvaluate for ",
-#JAS			$this->{Node}{TypeName},
-#JAS				" (", VRML::NodeIntern::dump_name($this->{Node}),
-#JAS					") must be set to TRUE to call setDescription($desc)";
-#JAS		return;
-#JAS	}
-#JAS
-#JAS	print "VRML::JS::jspBrowserSetDescription: $desc\n"
-#JAS		if $VRML::verbose::js;
-#JAS
-#JAS	$this->{Browser}->setDescription($desc);
-#JAS}
+sub jspBrowserReplaceWorld {
+	my ($this, $handles) = @_;
+
+	print "VRML::JS::jspBrowserReplaceWorld $handles\n"
+	;#JAS 	if $VRML::verbose::js;
+
+	$this->{Browser}->replaceWorld($handles);
+}
+
+sub jspBrowserLoadURL {
+	my ($this, $url, $parameter) = @_;
+
+	print "VRML::JS::jspBrowserLoadURL $url, $parameter\n"
+	;#JAS 	if $VRML::verbose::js;
+
+	## VRML::Browser::loadURL not implemented yet
+	$this->{Browser}->loadURL($url, $handles);
+}
+
+sub jspBrowserSetDescription {
+	my ($this, $desc) = @_;
+	$desc = join(" ", split(" ", $desc));
+
+	## see VRML97, section 4.12.10.8
+	if (!$this->{Node}{Type}{Defaults}{"mustEvaluate"}) {
+		warn "VRML::JS::jspBrowserSetDescription: mustEvaluate for ",
+			$this->{Node}{TypeName},
+				" (", VRML::NodeIntern::dump_name($this->{Node}),
+					") must be set to TRUE to call setDescription($desc)";
+		return;
+	}
+
+	print "VRML::JS::jspBrowserSetDescription: $desc\n"
+	;#JAS 	if $VRML::verbose::js;
+
+	$this->{Browser}->setDescription($desc);
+}
 
 # create vrml, send it back to javascript interpreter. works with CRoutes JAS 
 sub jspBrowserCreateVrmlFromString {
@@ -479,7 +415,7 @@ sub jspBrowserCreateVrmlFromString {
 	my ($rval, $rs);
 	my @handles;
 	print "VRML::JS::jspBrowserCreateVrmlFromString: \"$str\"\n"
-	 	if $VRML::verbose::js;
+	 ;#JAS 	if $VRML::verbose::js;
 
 	my $h = $this->{Browser}->createVrmlFromString($str);
 	push @handles, split(" ", $h);
@@ -500,7 +436,7 @@ sub jspBrowserCreateVrmlFromURL {
 
 	print "VRML::JS::jspBrowserCreateVrmlFromURL: ",
 		VRML::Debug::toString(\@_), "\n"
-				if $VRML::verbose::js;
+	;#JAS 			if $VRML::verbose::js;
 
 	my $scene = $this->{Browser}{Scene};
 	my $root = $scene->{RootNode};

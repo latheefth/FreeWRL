@@ -17,6 +17,8 @@
 #include "jsUtils.h"
 #include "jsNative.h"
 
+extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
+
 #define BROWMAGIC 12345
 
 static JSBool

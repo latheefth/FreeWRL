@@ -93,7 +93,7 @@
 			else if (!strcmp(stmp,"SERIF")) { fsparams |= 0x20;}
 			else if(!strcmp(stmp,"SANS")) { fsparams |= 0x40;}
 			else if (!strcmp(stmp,"TYPEWRITER")) { fsparams |= 0x80;}
-			else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
+			//else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
 		}
 
 		svptr = justify.p;
@@ -117,7 +117,7 @@
 			else if(!strcmp(stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
 			else if (!strcmp(stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
 			else if (!strcmp(stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
-			else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
+			//else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
 		}
 	} else {
 		/* send in defaults */

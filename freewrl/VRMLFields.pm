@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.34  2003/06/12 19:08:56  crc_canada
+# more work on getting javascript routing into C
+#
 # Revision 1.33  2003/06/02 18:21:40  crc_canada
 # more work on CRoutes for Scripting
 #
@@ -727,10 +730,25 @@ sub ctype {
 	return "struct Multi_$r $_[1]";
 }
 sub clength {
+	#for C routes. Keep in sync with getClen in VRMLC.pm.
+	#clengths that are negative signal that something more than just a straight
+	#copy for javascripting is required. Other than the fact that numbers are
+	#negative, there is no symbolism placed on their values.
+
 	my $r = (ref $_[0] or $_[0]);
 	$r =~ s/VRML::Field::MF//;
-	if ($r eq "Vec3f") {return -1;} # signal that a -1 is a Multi_Vec3f for CRoutes
-	if ($r eq "Node") {return -10;} # signal that a -10 is a Multi_Node for CRoutes
+	# these negative ones are returned in other places...
+	# -11 = SFNode
+	# -12 = SFImage
+
+	if ($r eq "String") {return -13;}	# signal that a clength -13 is a Multi_String for CRoutes
+	if ($r eq "Float") {return -14;}	# signal that a clength -14 is a Multi_Float for CRoutes
+	if ($r eq "Rotation") {return -15;}	# signal that a clength -15 is a Multi_Rotation for CRoutes
+	if ($r eq "Int32") {return -16;}	# signal that a clength -16 is a Multi_Int32 for CRoutes
+	if ($r eq "Color") {return -17;}	# signal that a clength -1  is a Multi_Color for CRoutes
+	if ($r eq "Vec2f") {return -18;}	# signal that a clength -18 is a Multi_Vec2f for CRoutes
+	if ($r eq "Vec3f") {return -1;} 	# signal that a clength -1  is a Multi_Vec3f for CRoutes
+	if ($r eq "Node") {return -10;} 	# signal that a clength -10 is a Multi_Node for CRoutes
 
 	print "clength struct not handled Multi_$r $_[1]\n";
 	return 0;
@@ -887,9 +905,7 @@ sub cget {if(!defined $_[2]) {return "$_[1]"}
 sub as_string {
 	$_[1]->as_string();
 }
-sub clength {
-        return -11; # 
-}
+sub clength {-11} #for C routes. Keep in sync with getClen in VRMLC.pm.
 
 
 ##
@@ -929,9 +945,7 @@ sub cfunc {"sv_setsv($_[1],$_[2]);"}
 sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}
 
-sub clength {
-        return -12; # signal that a -12 is a SFImage for CRoutes
-}
+sub clength {-12}; # signal that a -12 is a SFImage for CRoutes #for C routes. Keep in sync with getClen in VRMLC.pm.
 
 
 

@@ -73,8 +73,6 @@ return $vps[$vpno];}
 #########################################################
 # The routines below implement the browser object interface.
 
-sub getName { return "FreeWRL VRML Browser" }
-
 # EG Die unless perl scripts are enabled
 sub check_perl_script {
  	if(!$VRML::DO_PERL) {
