@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.87  2003/01/29 15:47:26  crc_canada
+# AudioClip/Sound work.
+#
 # Revision 1.86  2003/01/24 18:01:23  crc_canada
 # Update Sound distance algorithm. Not perfect, but works a bit...
 #
@@ -1234,7 +1237,7 @@ AudioClip => '
 	int loop;
 	unsigned char *filename = SvPV((this_->__localFileName),PL_na);
 
-	//printf ("AudioClip rend for clip %d\n",this_->__sourceNumber);
+	//printf ("AudioClip rend for clip %d change %d\n",this_->__sourceNumber,this_->_ichange);
 
 	// tell Sound that this is an audioclip
 	sound_from_audioclip = TRUE;
