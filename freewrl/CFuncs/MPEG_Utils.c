@@ -1285,7 +1285,6 @@ ExecuteTexture(vid_stream)
 	*ySize = vid_stream->v_size;
 
   	blockSize = sizeof(GLubyte) * 3 * vid_stream->v_size * vid_stream->h_size;
-
         dataPointer = realloc(dataPointer,blockSize * (*frameCount));
 	tmpptr = dataPointer + (blockSize * ((*frameCount)-1));
 
@@ -7257,8 +7256,6 @@ int ReadPacket(packetID, vid_stream)
     pos += 1;
   }
   /* Read all the headers, now make room for packet */
-printf ("buf_ptr %x\n",*buf_ptr);
-printf ("length_ptr %x\n",length_ptr);
   if (*bs_ptr + *max_length < *buf_ptr+ packetLength/4 + *length_ptr) {
      /* Brown - get rid of Ansi C complaints */
     if (*max_length - *length_ptr < (int) packetLength/4) {
@@ -7489,5 +7486,10 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,int *ptr) {
     
       fclose(mpegfile);
 	*ptr =  (int)dataPointer;
-	*fc = (*frameCount)--;
+	
+	/* take 1 from the frame count */
+	*frameCount = (*frameCount) -1;
+
+	/* tell the calling program what the frame count is */
+	*fc = *frameCount;
 }

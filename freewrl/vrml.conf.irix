@@ -63,21 +63,9 @@ LIB_DIR => "/usr/lib",
 #	 -lXxf86vm
 # to the FREEWRL_LIBS line
 
-#    FREEWRL_LIBS => '-L/usr/lib -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg',
-#    FREEWRL_DEFINE => '-DXP_UNIX -D_GNU_SOURCE',
-#    FREEWRL_INC => '-I/usr/X11R6/include/ -I/usr/include/freetype2 -I/usr/include/freetype2/freetype',
-
-
-
     FREEWRL_LIBS => '-L/usr/freeware/lib32 -L/usr/lib32 -lGL -lGLU -lXext -lX11 -lfreetype -lpng -lz -ljpeg',
     FREEWRL_INC => '-DIRIX -I/usr/freeware/include -I/usr/include/X11 -I/usr/local/include/freetype',
-   FREEWRL_DEFINE => '-DSTEREOCOMMAND="\"/usr/gfx/setmon -n 1024x768_96s\""',
-
-
-
-############################################################################
-# Saxon location - required for x3d running.
-    SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
+    FREEWRL_DEFINE => '-DSTEREOCOMMAND="\"/usr/gfx/setmon -n 1024x768_96s\""',
 
 ############################################################################
 # Netscape/Mozilla  installation
@@ -108,4 +96,10 @@ NETSCAPE_INST => '',
 # LDFLAGS.  Set linker flags here. 
 
     LDFLAGS => '-shared -L/usr/local/lib',
+
+############################################################################
+# SoundEngine - do we want to build the sound engine?
+# if so, make this non-null.
+
+	SOUND_ENGINE => '',
 );

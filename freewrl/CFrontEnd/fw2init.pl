@@ -18,10 +18,11 @@ my $be;
 # (and thus, the path in the rpm or equiv) onto the perl internal path.
 sub setINCPath {
 	my ($INCpath) = @_;
-
 	$INCpath =~ s/\/VRML$//;
+	my $inc2path = "$INCpath/blib/lib";
 
 	push (@INC,$INCpath);
+	push (@INC,$inc2path);
 	#foreach (@INC) { print "incline $_\n";}
 	#print "setIncpath, $INCpath\n";
 }

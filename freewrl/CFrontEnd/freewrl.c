@@ -38,12 +38,26 @@ Display *Disp;
 Window Win;
 GLXContext globalContext;
 
+//testing...
+void boot_DynaLoader (void *cv);
+//void (*myp)(unsigned* cv);
+void do_TimeSensorTick(void *node);
+
+
 int wantEAI=FALSE;		/* enable EAI? */
 
 /* threading variables for event loop */
 static pthread_t *loopthread;
 char *threadmsg = "eventloop";
 pthread_t thread1;
+
+/* trying to force this guy to find boot_DynaLoader to help SGI one
+   pass linking for perlxsi.c */
+        //myp =  (void *)boot_DynaLoader;
+//        myp =  (void *)do_TouchSensor;
+
+
+
 
 /* for plugin running - these are read from the command line */
 int _fw_pipe=0;
@@ -62,6 +76,10 @@ int main (int argc, char **argv) {
 	int tmp;
 	char *filename;
 	char *pwd;
+
+//void (*myp)(void *);
+//myp = (void *)do_TimeSensorTick;
+//myp = (void *)boot_DynaLoader;
 
 #ifndef IRIX
 
@@ -142,7 +160,6 @@ int main (int argc, char **argv) {
 	}
 
 #endif
-printf ("freewrl.c - argc %d\n",argc);
 	if (optind < argc) {
 		if (optind != (argc-1)) {
 			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n", 

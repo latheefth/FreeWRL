@@ -23,13 +23,27 @@ perlxsi:
 
 fwopts: 
 	$(CC) $(INC) $(FWFLAGS) fwopts.c
-
+#
+#cc -o freewrl \
+#	-L../blib/arch/auto/VRML/VRMLFunc \
+#	-L/usr/freeware/lib32 \
+#	-L../JS/js/src/IRIX6.5_OPT.OBJ \
+#	perlxsi.o fwopts.o freewrl.o `perl -MExtUtils::Embed -e ldopts`  \
+#	-lFreeWRLFunc\
+#	-lGL -lGLU -lXext -lX11 -lpng -lpthread -ljs\
+#
+#
+#
+#
 freewrl: perlxsi fwopts
-	$(CC) $(INC) $(FRFLAGS) freewrl.c
-	$(CC) -L../blib/arch/auto/VRML/VRMLFunc $(LIBS) -o freewrl \
-	-lpthread -lFreeWRLFunc \
+	$(CC) $(INC) $(FRFLAGS) freewrl.c \
+	-L/usr/people/luigi/freewrl/FreeWRL-1.04.3/blib 
+
+	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
 	perlxsi.o freewrl.o fwopts.o \
-	`perl -MExtUtils::Embed -e ccopts -e ldopts`
+	`perl -MExtUtils::Embed -e ccopts -e ldopts` \
+	$(LIBS) \
+	-lpthread -lFreeWRLFunc \
 
 clean:
 	rm *o; rm perlxsi*; rm freewrl;

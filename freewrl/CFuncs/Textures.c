@@ -21,6 +21,7 @@ void checkAndAllocTexMemTables(int *texture_num, int increment);
 struct loadTexParams {
 	/* data sent in to texture parsing thread */
 	unsigned *texture_num;
+	GLuint genned_texture;
 	unsigned repeatS;
 	unsigned repeatT;
 	SV *parenturl;
@@ -75,6 +76,8 @@ int TexVerbose=0;
 
 /* is the texture thread up and running yet? */
 int TextureThreadInitialized = FALSE;
+
+static int next_texture  = 1;
 
 /* are we currently active? */
 int TextureParsing = FALSE;
@@ -223,6 +226,7 @@ void do_possible_multitexture(int texno) {
 	int imageDatasize;
 	int framecount;
 	GLubyte *imageptr;
+	int c;
 
 	if (loadparams[texno].frames > 1) {
 		/* save the NUMBER of frames to copy. (numbered 0 to xxx[].frames-1) */
@@ -232,10 +236,15 @@ void do_possible_multitexture(int texno) {
 		texnums = malloc (sizeof(GLuint) * framecount);
 		glGenTextures(framecount,texnums);
 
+		/* Irix returns "wierd" numbers; this appears to work
+		   across all platforms */
+		for (c=0; c<framecount; c++) { 
+			texnums[c] = c+next_texture;
+		}
+
 		/* this is the size of each image frame */
 		imageDatasize = sizeof (GLbyte) * loadparams[texno].x *
                                 loadparams[texno].y * loadparams[texno].depth;
-printf ("ids is %d %d %d\n",loadparams[texno].x,loadparams[texno].y,loadparams[texno].depth);
 
 		/* and, get a pointer to the whole, unsquished, image data */
 		imageptr = loadparams[texno].texdata;
@@ -245,6 +254,7 @@ printf ("ids is %d %d %d\n",loadparams[texno].x,loadparams[texno].y,loadparams[t
 			checkAndAllocTexMemTables(&(texnums[st]),16);
 
 			/* copy most of the elements over from the base, verbatim */
+
 			memcpy (&loadparams[texnums[st]], &loadparams[texno], sizeof (struct loadTexParams));
 
 			/* elements that are different from the "standard" */
@@ -254,6 +264,7 @@ printf ("ids is %d %d %d\n",loadparams[texno].x,loadparams[texno].y,loadparams[t
 
 			/* copy the segment out of the squished data to this pure frame */
 			memcpy(loadparams[texnums[st]].texdata, imageptr, imageDatasize);
+
 			new_do_texture(texnums[st]);
 
 			/* and, lets look at the next frame in the squished data */
@@ -363,7 +374,15 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 	/* is this the first call for this texture? */
 	if (*texture_num==0) {
-		glGenTextures(1,texture_num);
+		*texture_num = next_texture;
+		next_texture ++;
+
+		/* check to see if "isloaded" and "loadparams" is ok 
+			size-wise. if not,
+			make them larger, by 16 */
+		checkAndAllocTexMemTables(texture_num, 16);
+	
+		glGenTextures(1,&loadparams[*texture_num].genned_texture);
 		if (TexVerbose) printf ("just genned texture %d\n",*texture_num);
 	}
 
@@ -373,7 +392,10 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	
 	/* have we already processed this one before? */
 	if (isloaded[*texture_num] == LOADED) {
+		//printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
+
 		glBindTexture (GL_TEXTURE_2D, *texture_num);
+
 		return;
 	}
 
@@ -876,8 +898,10 @@ int j;
 	ptr=NULL;
 
 	/* now, generate a new first texture */
+
 	mpg_main(loadparams[currentlyWorkingOn].filename,
 		&x,&y,&depth,&frameCount,&ptr);
+
 
 	if (TexVerbose) printf ("ireallyloadmv frame count is %d depth %d ptr %d\n",frameCount,depth,ptr);
 
