@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.10  2000/08/30 00:04:18  rcoscali
+# Comment out a glDisable(GL_LIGHTING) (uncommented by mistake ??)
+# Fixed a problem in cone rendering (order of the vertexes)i
+#
 # Revision 1.9  2000/08/07 01:24:45  rcoscali
 # Removed a glShadeModel(mooth) forgotten after a test
 #
@@ -209,7 +213,7 @@ Cylinder => '
 
 				glNormal3f(lsin, 0.0, lcos);
 				TC(1.0-((float)i/df), 0.0);
-				glVertex3f(r*lsin, (float)-h, r*lcos);
+				glVertex3f((float)r*lsin, (float)-h, (float)r*lcos);
 
 
 			}
@@ -261,17 +265,17 @@ Cone => '
 				float lcos = COS1;
 				UP_TRIG1;
 
-				glNormal3d(mlh*SIN1, mlr, mlh*COS1);
+				glNormal3f(mlh*lsin, mlr, -mlh*lcos);
+				glTexCoord2f(1.0-((i+0.5)/df), 1.0);
+				glVertex3f(0.0, (float)h, 0.0);
+
+				glNormal3f(mlh*SIN1, mlr, mlh*COS1);
 				TC(1.0-((i+1.0)/df), 0.0);
 				glVertex3f(r*SIN1, (float)-h, r*COS1);
 
-				glNormal3d(mlh*lsin, mlr, mlh*lcos);
+				glNormal3f(mlh*lsin, mlr, mlh*lcos);
 				TC(1.0-((float)i/df), 0.0);
 				glVertex3f(r*lsin, (float)-h, r*lcos);
-
-				glNormal3d(mlh*lsin, mlr, -mlh*lcos);
-				glTexCoord2f(1.0-((i+0.5)/df), 1.0);
-				glVertex3f(0.0, (float)h, 0.0);
 
 			}
 			glEnd();

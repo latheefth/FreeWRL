@@ -28,6 +28,10 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.6  2000/08/30 00:04:19  rcoscali
+# Comment out a glDisable(GL_LIGHTING) (uncommented by mistake ??)
+# Fixed a problem in cone rendering (order of the vertexes)i
+#
 # Revision 1.5  2000/08/13 14:27:55  rcoscali
 # Fixed a trace
 #
@@ -1017,7 +1021,9 @@ static struct VRML_Virt virt_${n} = { ".
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, \$f(repeatS$1) ? GL_REPEAT : GL_CLAMP );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, \$f(repeatT$1) ? GL_REPEAT : GL_CLAMP );
 
+/*
 				glDisable(GL_LIGHTING);
+*/
 				glEnable(GL_TEXTURE_2D);
 				glColor3f(1.0,1.0,1.0);
 
