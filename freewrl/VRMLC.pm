@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.90  2003/06/02 18:21:16  crc_canada
+# more work on CRoutes for Scripting
+#
 # Revision 1.89  2003/05/28 14:54:15  crc_canada
 # Javascript interface moved mainly to C code in CFuncs dir.
 #
@@ -1439,6 +1442,7 @@ doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
 	PUSHMARK(SP);
 	XPUSHs(sv);
 
+	//printf ("doPerlCallMethodVA, method %s format %s\n",methodName,format);
 	va_start(ap, format); /* point to first element after format*/
 	while(*p) {
 		switch (*p++) {
@@ -2184,6 +2188,8 @@ CODE:
 		case 5: RETVAL = sizeof (struct SFColor);
 			break;
 		case 6: RETVAL = sizeof (struct SFVec2f);
+			break;
+		case -11: RETVAL = sizeof (unsigned int);
 			break;
 		default:	RETVAL = x;
 	}

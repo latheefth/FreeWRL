@@ -201,6 +201,8 @@ sub newp {
 
     for (keys %{$this->{FieldKinds}}) {
 		$k = $this->{FieldKinds}{$_};
+		print "creating EventIn/Out for firlf $_ node $this kind $k\n";
+
 		if ($k eq "exposedField") {
 			$this->{EventIns}{$_} = $_;
 			$this->{EventOuts}{$_} = $_;
@@ -967,60 +969,7 @@ sub setup_routing {
 	# any routes to add?
 	for (values %{$this->{Routes}}) {
 		next if ($_->[4]);
-
-		$tmp = VRML::Handles::get($_->[0]);
-		if (ref $tmp eq "VRML::NodeIntern") {
-			$fromNode = $tmp;
-		} else {
-			$fromNode = $this->getNode($tmp);
-			if (!defined $fromNode) {
-				warn("DEF node $tmp is not defined");
-				next;
-			}
-		}
-
-		$tmp = VRML::Handles::get($_->[2]);
-		if (ref $tmp eq "VRML::NodeIntern") {
-			$toNode = $tmp;
-		} else {
-			$toNode = $this->getNode($tmp);
-			if (!defined $toNode) {
-				warn("DEF node $tmp is not defined");
-				next;
-			}
-		}
-
-		## exposedFields and eventOuts with some error checking
-		$eventOut = $_->[1];
-		if ($eventOut =~ /($VRML::Error::Word+)_changed$/) {
-			$tmp = $1;
-			if ($fromNode->{Type}{EventOuts}{$tmp} and
-				$fromNode->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
-				$eventOut = $tmp;
-			}
-		}
-
-		if (!$fromNode->{Type}{EventOuts}{$eventOut}) {
-			warn("Invalid eventOut $eventOut in route for $fromNode->{TypeName}");
-			next;
-		}
-
-		## exposedFields and eventIns with some error checking
-		$eventIn = $_->[3];
-		if ($eventIn =~ /^set_($VRML::Error::Word+)/) {
-			$tmp = $1;
-			if ($toNode->{Type}{EventIns}{$tmp} and
-				$toNode->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
-				$eventIn = $tmp;
-			}
-		}
-
-		if (!$toNode->{Type}{EventIns}{$eventIn}) {
-			warn("Invalid eventIn $eventIn in route for $toNode->{TypeName}");
-			next;
-		}
-
-		$_->[4] = $eventmodel->add_route($fromNode, $eventOut, $toNode, $eventIn);
+		$_->[4] = $eventmodel->add_route($this, $_->[0], $_->[1], $_->[2], $_->[3]);
 	}
 
 	# Any routes to delete? Maybe from the EAI...

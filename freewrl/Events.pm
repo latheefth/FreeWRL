@@ -207,6 +207,191 @@ sub verify_script_started {
 	}
 }
 
+# Nodes get stored in many ways, depending on whether it is a PROTO, normal
+# node, etc, etc. This tries to find a backend (CNode, or script) for a node.
+
+# node = the node pointer; whatever we can get
+# field = the field name, eg, "clicked"
+# direction = "eventOut" or "eventIn".
+
+# returns node, field, script, ok
+
+sub resolve_node_cnode {
+	my ($scene, $node, $field, $direction) = @_;
+
+	# return values.
+	my $outptr = 0;
+	my $outoffset = 0;
+	my $scrpt = 0; 
+	my $il = 0;
+	my $ok = 0;
+
+	#print "start of resolve_node_cnode, node $node, field $field,  direction $direction\n";
+
+	my $tmp = VRML::Handles::get($node);
+	if (ref $tmp eq "VRML::NodeIntern") {
+		$node = $tmp;
+	} else {
+		$node = $scene->getNode($tmp);
+		if (!defined $node) {
+			warn("DEF node $tmp is not defined");
+			return (0,0,0,0,0);
+		}
+	}
+	#print "handle got $node\n";
+
+	#addChildren really is Children
+	if (($field eq "addChildren") || ($field eq "removeChildren")) {
+		$field = "children";
+	}
+
+	# ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
+	# eventIns (see VRML97 node reference)
+	# these things have set_xxx and xxx... if we have one of these...
+	if ($field =~ /^set_($VRML::Error::Word+)/) {
+		my $tmp = $1;
+		#print "found a set ...\n";
+		#print "one ",$node->{Type}{EventIns}{$tmp},"\n";
+		#print "two ",$node->{Type}{FieldKinds}{$tmp},"\n";
+
+		if ($node->{Type}{EventIns}{$tmp} and
+			$node->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
+			$field = $tmp;
+		}
+	}
+	if ($field =~ /($VRML::Error::Word+)_changed$/) {
+		$tmp = $1;
+		#print "found a changed...\n";
+		#print "one ",$node->{Type}{EventOuts}{$tmp},"\n";
+		#print "two ",$node->{Type}{FieldKinds}{$tmp},"\n";
+
+		if ($node->{Type}{EventOuts}{$tmp} and
+			$node->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
+			$field = $tmp;
+		}
+	}
+	#print "event now is  $field\n";
+
+
+
+	if (!defined $node->{BackNode}) {
+		if ($node->{TypeName} =~/^__script__/) {
+			$outptr = substr($node->{TypeName},10,100);
+			$outoffset = VRML::VRMLFunc::paramIndex($field,
+				$node->{Type}{FieldTypes}{$field});
+
+			verify_script_started($node,$outptr);
+			if ($direction eq "eventOut") {
+				$scrpt = 1;
+			} else {
+				$scrpt = 2;
+			}
+
+			#print "got a script, outptr $outptr, offset $outoffset, scrpt $scrpt\n";
+
+		} else {
+			print "add_route, from $field - no backend node\n";
+			return (0,0,0,0);
+		}
+	} else {
+		if (!defined ($outptr=$node->{BackNode}{CNode})) {
+			# are there backend CNodes made for both from and to nodes?
+			print "add_route, from $field - no backend CNode node\n";
+			return (0,0,0,0);
+		}
+
+		# are there offsets for these eventins and eventouts?
+		if(!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
+			print "add_route, event $field offset not defined\n";
+			return (0,0,0,0);
+		}
+	}
+
+	# ok, we have node and field, lets find either field length, or interpolator
+	if ($direction eq "eventOut") {
+		# do we handle this type of data within C yet?
+		$il=VRML::VRMLFunc::getClen(
+			"VRML::Field::$node->{Type}{FieldTypes}{$field}"->clength($field));
+		if ($il==0) {
+			print "add_route, dont handle $eventOut types in C yet\n";
+			return (0,0,0,0);
+		}
+	} else {
+		# is this an interpolator that is handled by C yet?
+		$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
+	}
+
+	return ($outptr, $outoffset, $scrpt, 1,$il);
+
+# code from Scene.pm
+
+#JAS		$tmp = VRML::Handles::get($_->[0]);
+#JAS		print "From now is $tmp\n";
+#JAS		if (ref $tmp eq "VRML::NodeIntern") {
+#JAS			$fromNode = $tmp;
+#JAS		} else {
+#JAS			$fromNode = $this->getNode($tmp);
+#JAS			if (!defined $fromNode) {
+#JAS				warn("DEF node $tmp is not defined");
+#JAS				next;
+#JAS			}
+#JAS		}
+#JAS		print "fromnode $fromNode\n";
+#JAS		foreach (keys %{$fromNode}) {print "fromnode key: $_\n";}
+#JAS
+#JAS		$tmp = VRML::Handles::get($_->[2]);
+#JAS		if (ref $tmp eq "VRML::NodeIntern") {
+#JAS			$toNode = $tmp;
+#JAS		} else {
+#JAS			$toNode = $this->getNode($tmp);
+#JAS			if (!defined $toNode) {
+#JAS				warn("DEF node $tmp is not defined");
+#JAS				next;
+#JAS			}
+#JAS		}
+#JAS
+#JAS		## exposedFields and eventOuts with some error checking
+#JAS		$eventOut = $_->[1];
+#JAS		print "Scene routing, eventout $eventOut\n";
+#JAS		if ($eventOut =~ /($VRML::Error::Word+)_changed$/) {
+#JAS			print "Scene routing, _changed found, d1 is $1\n";
+#JAS			$tmp = $1;
+#JAS			print "evo ",$fromNode->{Type}{EventOuts}{$tmp},",fk ",$fromNode->{Type}{FieldKinds}{$tmp},"\n";
+#JAS			
+#JAS			foreach (keys %{$fromNode->{Type}}) { print "node type $_\n";}
+#JAS			foreach (keys %{$fromNode->{Type}{EventOuts}}) { print "node type EV $_\n";}
+#JAS			if ($fromNode->{Type}{EventOuts}{$tmp} and
+#JAS				$fromNode->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
+#JAS				$eventOut = $tmp;
+#JAS			}
+#JAS		}
+#JAS		print "Scene routing, eventout now is  $eventOut\n";
+#JAS
+#JAS		if (!$fromNode->{Type}{EventOuts}{$eventOut}) {
+#JAS			warn("Invalid eventOut $eventOut in route for $fromNode->{TypeName}");
+#JAS			next;
+#JAS		}
+#JAS
+#JAS		## exposedFields and eventIns with some error checking
+#JAS		$eventIn = $_->[3];
+#JAS		if ($eventIn =~ /^set_($VRML::Error::Word+)/) {
+#JAS			$tmp = $1;
+#JAS			if ($toNode->{Type}{EventIns}{$tmp} and
+#JAS				$toNode->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
+#JAS				$eventIn = $tmp;
+#JAS			}
+#JAS		}
+#JAS
+#JAS		if (!$toNode->{Type}{EventIns}{$eventIn}) {
+#JAS			warn("Invalid eventIn $eventIn in route for $toNode->{TypeName}");
+#JAS			next;
+#JAS		}
+
+# end of code from scene.pm
+
+}
+
+
 ################################################################################
 # add_route
 #
@@ -227,7 +412,7 @@ sub verify_script_started {
 #
 
 sub add_route {
-	my($this, $fromNode, $eventOut, $toNode, $eventIn) = @_;
+	my($this, $scene, $fromNode, $eventOut, $toNode, $eventIn) = @_;
 
 	my $outoffset;
 	my $inoffset;
@@ -235,98 +420,20 @@ sub add_route {
 	my $inptr;
 	my $datalen;
 	my $scrpt = 0;
+	my $fc = 0; my $tc = 0; #from and to script nodes.
+
+	#print "\nstart of add_route, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
 
 	# FROM NODE
-	if (!defined $fromNode->{BackNode}) {
-		if ($fromNode->{TypeName} =~/^__script__/) {
-			$outptr = substr($fromNode->{TypeName},10,100);
-			$outoffset = VRML::VRMLFunc::paramIndex($eventOut,
-				$fromNode->{Type}{FieldTypes}{$eventOut});
-
-			verify_script_started($fromNode,$outptr);
-			$scrpt = $scrpt + 1;
-
-		} else {
-			print "add_route, from $eventOut - no backend node\n";
-			#foreach (keys %$fromNode) {
-			#	print "	key $_\n";
-			#}
-			return 1;
-		}
-	} else {
-		if (!defined ($outptr=$fromNode->{BackNode}{CNode})) {
-			# are there backend CNodes made for both from and to nodes?
-			print "add_route, from $eventOut - no backend CNode node\n";
-			return 1;
-		}
-
-		# are there offsets for these eventins and eventouts?
-		if(!defined ($outoffset=$VRML::CNodes{$fromNode->{TypeName}}{Offs}{$eventOut})) {
-			print "add_route, eventout $eventOut offset not defined\n";
-			return 1;
-		}
-	}
+	my ($outptr,$outoffset,$fc,$ok,$datalen) = resolve_node_cnode ($scene,$fromNode,$eventOut,"eventOut");
+	if ($ok == 0) {return 1;} # error message already printed
 
 
 	# TO NODE
-	#addChildren really is Children
-	if (($eventIn eq "addChildren") || ($eventIn eq "removeChildren")) {
-		$eventIn = "children";
-	}
+	my ($inptr,$inoffset,$tc,$ok,$intptr) = resolve_node_cnode ($scene,$toNode,$eventIn,"eventIn");
+	if ($ok == 0) {return 1;} # error message already printed
 
-	## ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
-	## eventIns (see VRML97 node reference)
-	## these things have set_xxx and xxx... if we have one of these...
-	if ($eventIn =~ /^set_($VRML::Error::Word+)/) {
-		$tmp = $1;
-		if ($toNode->{Type}{EventIns}{$eventIn} and
-			$toNode->{Type}{FieldKinds}{$tmp} eq "field") {
-			$eventIn = $tmp;
-		}
-	}
-
-	if (!defined $toNode->{BackNode}) {
-		if ($toNode->{TypeName} =~/^__script__/) {
-			$inptr = substr($toNode->{TypeName},10,100);
-			$inoffset = VRML::VRMLFunc::paramIndex($eventIn,
-				$toNode->{Type}{FieldTypes}{$eventIn});
-
-			verify_script_started($toNode,$inptr);
-			$scrpt = $scrpt + 2;
-
-		} else {
-			print "add_route, to $eventin - no backend node\n";
-			#foreach (keys %$toNode) {
-			#	print "	key $_\n";
-			#}
-			return 1;
-		}
-	} else {
-		if (!defined ($inptr=$toNode->{BackNode}{CNode})) {
-			print "add_route, to $eventin - no backend CNode node\n";
-			return 1;
-		}
-		if(!defined ($inoffset=$VRML::CNodes{$toNode->{TypeName}}{Offs}{$eventIn})) {
-			print "add_route, eventin $eventIn offset not defined\n";
-			return 1;
-		}
-	}
-
-
-
-
-	# length of the field
-	$datalen=VRML::VRMLFunc::getClen(
-		"VRML::Field::$fromNode->{Type}{FieldTypes}{$eventOut}"->clength($eventOut));
-
-	# do we handle this type of data within C yet?
-	if ($datalen==0) {
-		print "add_route, dont handle $eventOut types in C yet\n";
-		return 1;
-	}
-
-	# is this an interpolator that is handled by C yet?
-	$intptr = VRML::VRMLFunc::InterpPointer($toNode->{Type}{Name});
+	$scrpt = $fc + $tc;
 
 	# print "add_route, outptr $outptr, ofst $outoffset, inptr $inptr, ofst $inoffset len $datalen interp $intptr sc $scrpt\n";
 	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,

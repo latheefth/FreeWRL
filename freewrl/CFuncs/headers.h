@@ -258,6 +258,8 @@ extern char * BrowserActionString;
 /* Scripting Routing interfaces */
 void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int brow);
 void gatherScriptEventOuts(int script, int ignore);
+void getMFNodetype (char *strp, struct Multi_Node *ch);
+
 
 extern int CRVerbose, JSVerbose;
 
