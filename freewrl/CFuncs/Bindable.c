@@ -187,7 +187,6 @@ void bind_node (void *node, unsigned int setBindofst,
 	isBoundptr = (unsigned int) node + isboundofst;
 	oldstacktop = stack + *tos;  
 
-
 	//printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
@@ -230,6 +229,9 @@ void bind_node (void *node, unsigned int setBindofst,
 		}
 	} else {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
+
+		/* anything on stack? */
+		if (*tos <= -1) return;   /* too many pops */
 
 		/* isBound mimics setBind */
 		*isBoundptr = 0;

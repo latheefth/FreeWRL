@@ -1066,6 +1066,29 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 	const char *token = " ";
 	CRnodeStruct *to_ptr = NULL;
 	unsigned int to_counter;
+	char *mptr;
+	char buf[20];
+
+
+
+	/* is this a script to script route??? */
+	if (scrdir == SCRIPT_TO_SCRIPT) {
+		// printf ("wwwwwoooowwww!!! script to script!! length %d\n",length);
+		if (length > 0) {
+			mptr = malloc (sizeof(char)*length);
+			sprintf (buf,"%d:0",mptr);
+			// printf ("script to script, memory is %d, string %s\n",mptr,buf);
+			CRoutes_Register (from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
+			CRoutes_Register ((unsigned int *)mptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
+			return;
+		} else {
+			// XXXX
+			printf ("CRoutes_Register, can't handle script to script with MF* nodes yet\n");
+			return;
+		}
+
+		
+	}
 
 	/* first time through, create minimum and maximum for insertion sorts */
 	if (!CRoutes_Initiated) {
@@ -1127,8 +1150,6 @@ CRoutes_Register(unsigned int from, int fromoffset, unsigned int to_count, char 
 	CRoutes[insert_here].fromnode = from;
 	CRoutes[insert_here].fnptr = fromoffset;
 	CRoutes[insert_here].act = FALSE;
-/* 	CRoutes[insert_here].tonode = to; */
-/* 	CRoutes[insert_here].tnptr = tooffset;	 */
 	CRoutes[insert_here].tonode_count = 0;
 	CRoutes[insert_here].tonodes = NULL;
 	CRoutes[insert_here].len = length;
@@ -1334,7 +1355,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
-			if (CRVerbose) printf ("Not found yet, getting touched flag\n");
+			if (CRVerbose) printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			touched_flag = get_touched_flag(fptr,actualscript);
 
 			if (touched_flag) {
@@ -1362,7 +1383,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 				switch (JSparamnames[fptr].type) {
 				case SFBOOL:	{	/* SFBool */
-					/* printf ("we have a boolean, copy value over string is %s\n",strp); */
+					//printf ("we have a boolean, copy value over string is %s\n",strp); 
 					if (strncmp(strp,"true",4)==0) {
 						ival = 1;
 					} else {
@@ -1437,9 +1458,20 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				}
 				}
 
-				/* tell this node now needs to redraw */
-				update_node(tn);
-				//mark_event (tn,tptr);
+				/* tell this node now needs to redraw  - but only if it is not a script to
+				   script route - see CRoutes_Register here, and check for the malloc in that code.
+				   You should see that the offset is zero, while in real nodes, the offset of user
+				   accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of 
+				   the node types, eg, VRML_IndexedFaceSet  the first offset is for VRML_Virt :=)
+				*/
+				if (tptr != 0) {
+					//printf ("can update this node %d %d\n",tn,tptr);
+					update_node(tn);
+				} else {
+					//printf ("skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag);
+				}
+
+
 				mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
 
 				/* run an interpolator, if one is attached. */
@@ -1453,6 +1485,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 		}
 		route++;
 	}
+	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
 }
 
 /********************************************************************
@@ -1554,10 +1587,11 @@ void propagate_events() {
 				}
 				if (CRVerbose)
 					/* printf("propagate_events: counter %d to_counter %u from %#x off %#x to %#x off %#x oint %#x\n", */
-					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u\n",
+					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u dir %d\n",
 						   counter, to_counter, BOOL_STRING(CRoutes[counter].act),
 						   CRoutes[counter].fromnode, CRoutes[counter].fnptr,
-						   to_ptr->node, to_ptr->foffset, CRoutes[counter].interpptr);
+						   to_ptr->node, to_ptr->foffset, CRoutes[counter].interpptr,
+							CRoutes[counter].direction_flag);
 
 				if (CRoutes[counter].act == TRUE) {
 					if (CRVerbose)
