@@ -32,9 +32,6 @@ our @EXPORT = qw{
 
 bootstrap VRML::JS $VERSION;
 
-## Debug:
-##$VRML::verbose::js = 1;
-
 if ($VRML::verbose::js) {
 	setVerbose(1);
 }
@@ -329,13 +326,13 @@ sub getProperty {
 
 	if ($type =~ /^SFNode$/) {
 		# runScript($this->{JSContext},$this->{JSGlobal}, "$prop.__id",$rs);
-		if (runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.__id", $rs, $rval)) {
+		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.__id", $rs, $rval)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
 		return VRML::Handles::get($rs);
 	} elsif ($type =~ /^MFNode$/) {
 		# my $l = runScript($this->{JSContext},$this->{JSGlobal}, "$prop.length",$rs);
-		if (runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rs, $l)) {
+		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rs, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
 		}
 		print "\trunScript returned length $l, $rs\n" if $VRML::verbose::js;
