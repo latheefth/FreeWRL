@@ -13,7 +13,7 @@ $VERSION = "0.26";
 
 BEGIN{
  eval "use 5.004";
- warn "VRML::Browser requires Perl v5.6.0 or later -- go to http://www.perl.com"
+ warn "VRML::Browser requires Perl v5.0.4 or later -- go to http://www.perl.com"
   if $@;
 }
 
@@ -71,7 +71,9 @@ for(keys %VRML_CONFIG) {
 print OUT "VERSION => \"$VERSION\"\n";
 print OUT ");\n";
 chomp ($a = `which convert`);
+chomp ($pwd = `pwd`);
 print OUT qq(\$VRML::Browser::CONVERT = "$a";\n);
+print OUT qq(\$VRML::ENV{FREEWRL_FONTS} = "$pwd/fonts";\n);
 print OUT "1;\n";
 close OUT;
 
@@ -79,6 +81,7 @@ print "Note that 'convert' cannot be found\n" unless $a ;
 
 use ExtUtils::MakeMaker;
 WriteMakefile(
+      ## OPTIMIZE => "-g",
 	NAME => "VRML::VRMLFunc",
 	DISTNAME => "FreeWRL",
 	dist => {

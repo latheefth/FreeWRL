@@ -427,7 +427,7 @@ BEGIN {
         $main::seqtmp = "$ENV{HOME}/freewrl_tmp" ;
         $main::seqname = "freewrl.seq" ;
         $main::snapname = "freewrl.snap" ;
-
+        ## $VRML::ENV{FREEWRL_FONTS} = "/home/etienne/prog/vrml2/FreeWRL/FreeWRL/fonts";
 	use Getopt::Long;
 
 	GetOptions(
@@ -439,7 +439,7 @@ BEGIN {
 		"geometry=s" => \$geometry,
 		"lwp!" => \$VRML::ENV{FREEWRL_NO_LWP},
 		"save=s" => \$VRML::ENV{FREEWRL_SAVE},
-		"fontdir=s" => \$VRML::ENV{FREEWRL_FONTDIR},
+		"fontdir=s" => \$VRML::ENV{FREEWRL_FONTS},
 		"log=s" => \$log,
 		"seq"=>\$seq,
                 "seqb=s"=>\$seqname_opt,
