@@ -161,7 +161,7 @@ sub script_variables {
   my $fields = shift ;
   
   my @res = grep { ! /mustEvaluate|directOutput/ } sort keys %$fields ;
-  map {print "$_ has value ", Dumper ($fields->{$_}) } @res ;
+  ## map {print "$_ has value ", Dumper ($fields->{$_}) } @res ;
   @res;
 }
 
@@ -175,7 +175,6 @@ use Exporter ;
 require Tie::Scalar;
 
 sub TIESCALAR {
-  print "tiescalar : ",join (",", @_),"\n";
   my $class = shift;
   my $self = shift;
   bless $self;
@@ -1560,7 +1559,6 @@ Script => new VRML::NodeType("Script",
 		Initialize => sub {
 
 #JAS $VRML::verbose::script = 1;
- $VRML::verbose::script = 1;
 
 			my($t,$f,$time,$scene) = @_;
 			print "ScriptInit $_[0] $_[1]!!\n" if $VRML::verbose::script;
@@ -1609,7 +1607,7 @@ Script => new VRML::NodeType("Script",
 								# This string ties scalars
 					my $tie = 
 					  join "", map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
-					print "tie = $tie\n";
+				        ## print "tie = $tie\n";
 					## $h = eval "$tie ({$_})";
 					$h = eval "({$_})";
 								# Wrap up each sub in the script node
@@ -1620,7 +1618,7 @@ Script => new VRML::NodeType("Script",
 									  "  $tie",
 									  "  \&\$tmp (\@_)",
 									  "}");
-					  print "---- src ----$src\n--------------",
+					  ## print "---- src ----$src\n--------------",
 					  $h->{$_} = eval $src ;
 					}
 
