@@ -521,8 +521,9 @@ sub get_timestamp {
 		$ind++;;
 		if($ind == 25) {
 			$ind = 0;
-			if ($ticks != $start) 
+			if ($ticks != $start) { 
 				$FPS = 25/($ticks-$start);
+			}
 			# print "Fps: ",$FPS,"\n";
 			pmeasures();
 			$start = $ticks;
