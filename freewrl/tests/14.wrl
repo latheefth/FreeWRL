@@ -7,10 +7,14 @@
 # first example of points, lines and faces.
 # this is a lightning bolt. "VRML Sourcebook v2.0", figure 13.13
 
-Shape {
+Group {
+	children Transform {
+		translation -3.0 -5.0 -10.0
+		rotation 1 1 0 0.4
+children Shape {
 	appearance Appearance {
 	material Material {
-		diffuseColor 1.0 1.0 1.0
+		diffuseColor 1.0 1.0 0.0
 	}
 	}
 
@@ -54,3 +58,5 @@ Shape {
 		convex FALSE
 		}
 }		
+}
+}
