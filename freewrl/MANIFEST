@@ -3,8 +3,11 @@ Browser.pm
 COPYING				License
 CREDITS
 Config.pm
+DEF.pm
 Events.pm
+FieldHash.pm
 GLBackEnd.pm
+IS.pm
 JPEG/.cvsignore
 JPEG/JPEG.pm
 JPEG/JPEG.xs
@@ -154,6 +157,7 @@ MANIFEST			This file
 MANIFEST.SKIP
 Makefile.PL
 NODES.txt
+NodeIntern.pm
 OpenGL/.cvsignore
 OpenGL/Makefile.PL
 OpenGL/OpenGL.m
@@ -171,6 +175,7 @@ Text/Makefile.PL
 Text/Text.pm
 Text/Text.xs
 URL.pm
+USE.pm
 VRML.h
 VRMLC.pm
 VRMLCU.pm
