@@ -167,10 +167,6 @@ extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
 
 /* do we have to do textures?? */
-//#define HAVETODOTEXTURES  (glIsEnabled(GL_TEXTURE_2D))
-// Rendering order changes created problems, so we assume textures all the
-// time
-
 #define HAVETODOTEXTURES glIsEnabled(GL_TEXTURE_2D)
 
 /* appearance does material depending on last texture depth */
