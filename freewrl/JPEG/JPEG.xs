@@ -1,8 +1,16 @@
-/* Modified from the libjpeg example 
+/*
+ * $Id$
+ *
+ * Modified from the libjpeg example 
  * Modifications Copyright(C) 1998 Tuomas J. Lukka
  * DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  * See the license (the file COPYING in the FreeWRL
  * distribution) for details.
+ *
+ * $Log$
+ * Revision 1.4  2000/09/02 23:57:51  rcoscali
+ * Implement the flipping of image directly in reading routine to avoid overhead of flipping after read. Flip occurs if a flip param is given to 1. It does not occur if 0.
+ *
  */
 
 #include "EXTERN.h"
@@ -108,12 +116,13 @@ MODULE = VRML::JPEG	PACKAGE = VRML::JPEG
 PROTOTYPES: ENABLE
 
 int
-read_file(filename,sv,dep,hei,wi)
+read_file(filename,sv,dep,hei,wi,flip)
 	char *filename
 	SV *sv
 	int dep
 	int hei
 	int wi
+	int flip
 CODE:
 for(;;) {
   /* This struct contains the JPEG decompression parameters and pointers to
@@ -190,7 +199,7 @@ for(;;) {
    * loop counter, so that we don't have to keep track ourselves.
    */
   ptr = SvPV(sv,PL_na);
-  printf( "VRML::JPEG::read_file -- quantize = %d\n",cinfo.quantize_colors ); 
+  ptr += ((flip != 0) ? row_stride * (cinfo.output_height -1) : 0);
   while (cinfo.output_scanline < cinfo.output_height) {
     /* jpeg_read_scanlines expects an array of pointers to scanlines.
      * Here the array is only one element long, but you could ask for
@@ -199,7 +208,8 @@ for(;;) {
     (void) jpeg_read_scanlines(&cinfo, buffer, 1);
     /* Assume put_scanline_someplace wants a pointer and sample count. */
     /* put_scanline_someplace(buffer[0], row_stride); */
-    memcpy(ptr, buffer[0], row_stride); ptr += row_stride;
+    memcpy(ptr, buffer[0], row_stride); 
+    ptr += row_stride * ((flip != 0) ? -1 : 1);
   }
   /* Step 7: Finish decompression */
   (void) jpeg_finish_decompress(&cinfo);
@@ -228,6 +238,13 @@ OUTPUT:
 	wi
 
 
+
+#
+# This one is not use anymore
+# It flip (change Y axis way) an image which pixels are passed 
+# as parameters in datio.
+# It is still here because perhaps will be usefull ... ?
+#
 int
 flip_image(dep,hei,wi, datio)
 	int dep
@@ -235,6 +252,12 @@ flip_image(dep,hei,wi, datio)
 	int wi
         SV* datio
 CODE:
+	/*
+	 * This one is not use anymore
+	 * It flip (change Y axis way) an image which pixels are passed 
+	 * as parameters in datio.
+	 * It is still here because perhaps will be usefull ... ?
+	 */
         while ( 1 ) {
           unsigned char* ptrin = SvPV( datio, PL_na );
           unsigned char* ptrout =(unsigned char*)NULL;
