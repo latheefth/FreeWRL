@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
 <TITLE>freewrl -- run the FreeWRL VRML97 browser on the command line</TITLE>
-<LINK REV="made" HREF="mailto:prospector@porky.devel.redhat.com">
+<LINK REV="made" HREF="mailto:bhcompile@daffy.perf.redhat.com">
 </HEAD>
 
 <BODY>
@@ -26,7 +26,6 @@
 
 	<LI><A HREF="#options">OPTIONS</A></LI>
 	<LI><A HREF="#using freewrl with netscape">USING FREEWRL WITH NETSCAPE</A></LI>
-	<LI><A HREF="#using freewrl with mozilla">USING FREEWRL WITH MOZILLA</A></LI>
 	<LI><A HREF="#author">AUTHOR</A></LI>
 </UL>
 <!-- INDEX END -->
@@ -113,34 +112,35 @@ or turn.
 For translation in the x-y plane press mouse button 3 and drag.</P>
 <P>
 <H2><A NAME="fly  keyboard mode">Fly - keyboard mode</A></H2>
-<P>This mode is fun if you have ever played the game Descent
-using the keyboard (definitely worth doing ;).</P>
+<P>This mode allows translation/rotations in all planes. There are two
+keymappings: those from the game Descent, and a mapping using the
+keypad.</P>
 <P>There is currently no mouse control, rather, all motion is controlled
 by 12 keys, two for each of your 6 degrees of freedom (3 translations, 
 3 rotations).</P>
 <P>The default keymap in this mode is</P>
 <DL>
-<DT><STRONG><A NAME="item_%278%27%2F%27k%27">'8'/'k'</A></STRONG><BR>
+<DT><STRONG><A NAME="item_%278%27%2F%27k%27_and_%27Keypad_Down%27%2F%27Keypa">'8'/'k' and 'Keypad Down'/'Keypad Up'</A></STRONG><BR>
 <DD>
 rotation down/up
 <P></P>
-<DT><STRONG><A NAME="item_%27u%27%2F%27o%27">'u'/'o'</A></STRONG><BR>
+<DT><STRONG><A NAME="item_%27u%27%2F%27o%27_and_%27Keypad_Left%27%2F%27Keypa">'u'/'o' and 'Keypad Left'/'Keypad Right'</A></STRONG><BR>
 <DD>
 rotation left/right
 <P></P>
-<DT><STRONG><A NAME="item_%277%27%2F%279%27">'7'/'9'</A></STRONG><BR>
+<DT><STRONG><A NAME="item_%277%27%2F%279%27_and_%27Keypad_7%27%2F%27Keypad_9">'7'/'9' and 'Keypad 7'/'Keypad 9'</A></STRONG><BR>
 <DD>
 rotation about the Z axis
 <P></P>
-<DT><STRONG><A NAME="item_%27a%27%2F%27z%27">'a'/'z'</A></STRONG><BR>
+<DT><STRONG><A NAME="item_%27a%27%2F%27z%27_and_%27Keypad_0%27%2F%27Keypad_%">'a'/'z' and 'Keypad 0'/'Keypad .'</A></STRONG><BR>
 <DD>
 translation forwards/backwards
 <P></P>
-<DT><STRONG><A NAME="item_%27j%27%2F%27l%27">'j'/'l'</A></STRONG><BR>
+<DT><STRONG><A NAME="item_%27j%27%2F%27l%27_and_%27Arrow_left%27%2F%27Arrow_">'j'/'l' and 'Arrow left'/'Arrow right'</A></STRONG><BR>
 <DD>
 translation left/right
 <P></P>
-<DT><STRONG><A NAME="item_%27p%27%2F%27%3B%27">'p'/';'</A></STRONG><BR>
+<DT><STRONG><A NAME="item_%27p%27%2F%27%3B%27_and_%27Arrow_up%27%2F%27Arrow_">'p'/';' and 'Arrow up'/'Arrow down'</A></STRONG><BR>
 <DD>
 translation up/down
 <P></P></DL>
@@ -202,13 +202,16 @@ have an alternate way to enable fullscreen rendering it may be best to use that
 way instead. The fullscreen flag will not enable hardware acceleration if it has
 not already been enabled.
 <P></P>
-<DT><STRONG><A NAME="item_%2Dnetscape_PIDstring"><CODE>-netscape</CODE> <EM>PIDstring</EM></A></STRONG><BR>
+<DT><STRONG><A NAME="item_%2Dplugin_PIDstring"><CODE>-plugin</CODE> <EM>PIDstring</EM></A></STRONG><BR>
 <DD>
-Tells FreeWRL that it is running within Netscape, and thus to get all
-URLs from Netscape, use Netscape for EAI, not to handle the ``q'' key,
-and to use the PID as the window title for swallowing into netscape.
+Tells FreeWRL that it is running within a web browser, and thus to get all URLs
+from the browser, use the browser for EAI, not to handle the ``q'' key, pass the
+XID (see X11 header file X.h) of the parent window, and to use the PID as the
+window title.
 <P></P>
 <DT><STRONG><A NAME="item_%2Dgeo%5Bmetry%5D_geom"><CODE>-geo[metry]</CODE> <EM>geom</EM></A></STRONG><BR>
+<DD>
+<DT><STRONG><A NAME="item_%2Dparent_xid"><CODE>-parent</CODE> <EM>xid</EM></A></STRONG><BR>
 <DD>
 Set the initial window geometry with the usual X window format string.
 <P></P>
@@ -286,7 +289,7 @@ to avoid filling up disk.
 <DT><STRONG><A NAME="item_%2Deai_host%3Aport"><CODE>-eai</CODE> <EM>host:port</EM></A></STRONG><BR>
 <DD>
 The browser will try to connect to the socket at <EM>host:port</EM> to obtain
-an EAI connection. This option is mostly for internal use by 
+an EAI connection. This option is mostly for internal use by
 the EAI libraries.
 <P></P>
 <DT><STRONG><A NAME="item_%2Dserver"><CODE>-server</CODE></A></STRONG><BR>
@@ -317,29 +320,15 @@ in the distribution for the codes.
 <HR>
 <H1><A NAME="using freewrl with netscape">USING FREEWRL WITH NETSCAPE</A></H1>
 <P>If Netscape is installed, and the entries in vrml.conf are correct, the
-FreeWRL plug-in will be installed in Netscape's system plug-ins folder.
-If you go to Netscape's Help menu and select the About Plug-ins, 
-there should be entries for FreeWRL with Mime Type x-world/x-vrml and model/vrml.</P>
+FreeWRL plug-in will be installed in Netscape's system plugins folder.
+If you go to Netscape's Help menu and select the About Plug-ins,
+there should be an entry for FreeWRL with Mime Type x-world/x-vrml.</P>
 <P>
-<HR>
-<H1><A NAME="using freewrl with mozilla">USING FREEWRL WITH MOZILLA</A></H1>
-<P>A plug-in for the Mozilla 1.0 browser has been added that is partially working:</P>
-<LIST>
-<LI> resizing the Mozilla window does not resize the world rendered by FreeWRL
-<LI> I/O between FreeWRL and the plug-in is not functional
-</LIST>
-<P>To make and install, go to the Plugin/mozilla directory:</P>
-<DT><STRONG><CODE>make</CODE></STRONG>: compile the plug-in shared library</DT>
-<DT><STRONG><CODE>make install</CODE></STRONG>: compile and copy the plug-in shared
-library to the directory specified either in <CODE>vrml.conf</CODE> or by default to
-<CODE>/usr/lib/mozilla-1.0.0/plugins</CODE></DT>
-<DD>
-<P>Eventually installation will be incorporated into FreeWRL's installation scripts.</P>
 <HR>
 <H1><A NAME="author">AUTHOR</A></H1>
 <P>Project started by Tuomas J. Lukka, continued by John Stewart.</P>
-<P>Please send bug reports to <CODE>john.stewart@crc.ca</CODE> 
-including the word ``freewrl'' 
+<P>Please send bug reports to <CODE>john.stewart --at--  crc.ca</CODE>
+including the word ``freewrl''
 on the subject line will make sure that I'll notice it. Also,
 see the FreeWRL home page at <CODE>http://www.crc.ca/FreeWRL</CODE>.</P>
 <P>There is absolutely no warranty, express or implied for this software.
