@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "0.32";
+$VERSION = "0.33";
 
 BEGIN {
  eval "use 5.004";
@@ -119,7 +119,9 @@ WriteMakefile(
 		   'URI'          => "1.04",
 		   'Image::Base'  => "1.07",
 		   'LWP'          => "5.47",
-		 }
+		 },
+   LIBS => $VRML_CONFIG{OPENGL_LIBS},
+   OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o',
 );
 
 sub MY::postamble {
