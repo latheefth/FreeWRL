@@ -326,6 +326,7 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	// Set Line Width from the command line parameter
 	// for GL_LINES and GL_LINE_STRIP and switch their anti-aliasing
 	glLineWidth (global_linewidth);
+	glPointSize(global_linewidth);
 	glEnable(GL_LINE_SMOOTH);
 
 	// return Display and window
