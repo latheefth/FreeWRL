@@ -233,6 +233,60 @@ sub rectChanged
 # End of Aqua interface functions
 
 
+##############################################################
+#
+# Much of the VRML content is gzipped -- we have to recognize
+# it in the run.
+
+use IO::File;
+use Fcntl;
+my $temp_dir = -d '/tmp' ? '/tmp' : $ENV{TMP} || $ENV{TEMP};
+my $base_name = sprintf("%s/freewrl-%d-%d-00000", $temp_dir, $$, time());
+
+sub temp_file {
+	my $fh = undef;
+	my $count = 0;
+	until (defined($fh) || $count > 100) {
+		$base_name =~ s/-(\d+)$/"-" . (1 + $1)/e;
+		$fh = IO::File->new($base_name, O_WRONLY|O_EXCL|O_CREAT,0644)
+	}
+	if (defined($fh)) {
+		undef $fh;
+		unlink $base_name;
+		return $base_name;
+	} else {
+		die("Couldn't make temp file");
+	}
+}
+
+sub is_gzip {
+	if($_[0] =~ /^\037\213/) {
+		# warn "GZIPPED content -- trying to ungzip\n";
+		return 1;
+	}
+	return 0;
+}
+
+sub ungzip_file {
+	my($file) = @_;
+	if($file !~ /^[-\w~\.,\/]+$/) {
+	 warn("Suspicious file name '$file' -- not gunzipping");
+	 return $file;
+	}
+	open URLFOO,"<$file";
+	my $a;
+	read URLFOO, $a, 10;
+	if(is_gzip($a)) {
+		print "Seems to be gzipped - ungzipping\n" if $VRML::verbose::url;
+		my $f = temp_file();
+		system("gunzip <$file >$f") == 0
+		 or die("Gunzip failed: $?");
+		return $f;
+	} else {
+		return $file;
+	}
+	close URLFOO;
+}
 
 sub getTextFromFile {
 	my ($file) = @_;
@@ -241,43 +295,49 @@ sub getTextFromFile {
 	# to exist before here by "C" functions (or, it is the name
 	# of a file in the Browser cache). Read it in, and return
 
-	# print "Browser:getTextFromFile, file $_\n";
+	my $nfile = ungzip_file($file);
 
-	open (INPUT, "<$file");
+	# print "Browser:getTextFromFile, file $nfile\n";
+
+	open (INPUT, "<$nfile");
 	my @lines = (<INPUT>);
 	close (INPUT); 
 
 	my $text = "@lines";
 	# print "Browser:getTextFromFile, got $text\n";
+	if ($nfile ne $file) {
+		# unlink this temporary file
+		unlink $nfile;
+	}
 
 	return $text;
 }
 
 # actually load the file and parse it.
-sub load_string {
-	my($this,$string,$file) = @_;
-
-	my $type = 0;
-
-	#print "load_string, string is $string\nload_string file is $file\n";
-	# type is 0 for VRML v2, 1 for xml
-
-	if ($string =~ /^#VRML V2.0/s) {
-		$type = 0;
-	} elsif($string =~ /^#VRML V1.0/s) {
-			print "VRML V1.0, I only know V2.0";
-			return;
-	} elsif ($string =~/^<\?xml version/s) {
-		$type = 1;
-	} else {
-		#warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
-		$type = 0;
-	}
-	if ($type == 1)  {
-               $string = convertX3D($string);
-	}
-	VRML::Parser::parse($this->{Scene},$string);
-}
+#JASsub load_string {
+#JAS	my($this,$string,$file) = @_;
+#JAS
+#JAS	my $type = 0;
+#JAS
+#JAS	#print "load_string, string is $string\nload_string file is $file\n";
+#JAS	# type is 0 for VRML v2, 1 for xml
+#JAS
+#JAS	if ($string =~ /^#VRML V2.0/s) {
+#JAS		$type = 0;
+#JAS	} elsif($string =~ /^#VRML V1.0/s) {
+#JAS			print "VRML V1.0, I only know V2.0";
+#JAS			return;
+#JAS	} elsif ($string =~/^<\?xml version/s) {
+#JAS		$type = 1;
+#JAS	} else {
+#JAS		#warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
+#JAS		$type = 0;
+#JAS	}
+#JAS	if ($type == 1)  {
+#JAS               $string = convertX3D($string);
+#JAS	}
+#JAS	VRML::Parser::parse($this->{Scene},$string);
+#JAS}
 
 sub prepare {
 	my($this) = @_;
@@ -298,10 +358,6 @@ sub prepare {
 
 sub shut {
 	my($this) = @_;
-
-#JAS	if ($VRML::ENV{AS_PLUGIN}) {
-#JAS		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
-#JAS	}
 
 	if ($this->{JSCleanup}) {
 		&{$this->{JSCleanup}}();
@@ -405,6 +461,27 @@ sub create_common {
 
 	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
 	$scene->set_browser($this);
+
+	# is this an X3D string?
+        my $type = 0;
+        # type is 0 for VRML v2, 1 for xml
+
+        if ($string =~ /^#VRML V2.0/s) {
+                $type = 0;
+        } elsif($string =~ /^#VRML V1.0/s) {
+                        print "VRML V1.0, I only know V2.0";
+                        return;
+        } elsif ($string =~/^<\?xml version/s) {
+                $type = 1;
+        } else {
+                #warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
+                $type = 0;
+        }
+        if ($type == 1)  {
+               $string = convertX3D($string);
+        }
+
+	# end of X3D conversion.
 
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
