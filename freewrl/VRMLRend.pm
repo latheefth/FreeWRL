@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.29  2001/05/11 15:00:11  crc_canada
+# Cone Normals now correct
+#
 # Revision 1.28  2001/05/04 19:51:32  crc_canada
 # some extraneous debugging code removed.
 #
@@ -287,8 +290,45 @@ Cylinder => '
 		}
 ',
 
+
 Cone => '
+/*==================================================================
+May 10th 2001, Alain Gagnon.
+This block of code was fixed from the original because of normals.  
+ y axis
+ ^
+ |                                           
+ |       /|\             /|                     
+ |      / | \          /  |                   
+ |     /  |  \ml     /hyp |                  
+ |    / hreal \    /      |htwo
+ |   /    |   T\ /G        |
+ |   -----+----- ---------+    
+ |
+ |  |__r__|         rtwo
+ +--------------------------->x axis
+ |
+To understand these variables is to understand this code.
+	r     : the radius of the cone bottom 
+	hreal : the actual height of the cone
+	h     : hreal/2
+        ml    : the hypothenuse on the cone side
+	 
+	hyp   : a unit vector (length = 1) which is perpendicular to
+		ml.  Is is a normal for a given triangle making up 
+		the cone side.
+	htwo  : the height of the hyp vector
+	rtwo  : a radius tha yields the start point of each normal
+		vector.
+	div   : the number of triangles that make up the cone surface
+	d_div : div * 2
+
+	theta : the angle located at T. 
+	gamma : the angle located at G. 
+===================================================================*/
+
 		int div = horiz_div;
+		int d_div = div * 2;
 		float df = div;
 		float h = $f(height)/2;
 		float r = $f(bottomRadius); 
@@ -301,16 +341,24 @@ Cone => '
 		this_->_myshape = last_visited_shape;
 
 		if(h <= 0 && r <= 0) {return;}
-		INIT_TRIG1(div)
+
+		/* The angular distance of each step in the rotations that create  */
+		/* the bottom and the sides of the cone is halved.                 */
+		/* This permits the correct direction of the normals at the top of */
+		/* the cone.  Otherwise, the normals would be slighlty off.        */
+		INIT_TRIG1(d_div)
 
 		if($f(bottom)) {
             		/* printf ("Cone : bottom\n"); */
 			glBegin(GL_POLYGON);
 			glNormal3f(0,-1,0);
 			START_TRIG1
-			for(i=0; i<div; i++) {
-				TC(0.5+0.5*SIN1,0.5+0.5*COS1);
-				glVertex3f(r*SIN1,(float)-h,r*COS1);
+			for(i=0; i<d_div; i++) {
+				if (!(i % 2))
+				{
+					TC(0.5+0.5*SIN1,0.5+0.5*COS1);
+					glVertex3f(r*SIN1,(float)-h,r*COS1);
+				}
 				UP_TRIG1
 			}
 			glEnd();
@@ -319,31 +367,47 @@ Cone => '
 		} 
 
 		if($f(side)) {
-			double ml = sqrt(h*h + r * r);
+			double hreal = $f(height);
+			double ml = sqrt(hreal*hreal + r * r);
 			double mlh = h / ml;
 			double mlr = r / ml;
+			
+			/*This code is a bug fix for the normals*/
+
+			/* use atan(hreal/r) to get the angle for the bottom corner */
+			double theta = atan(hreal / r);    
+
+			/* calculate the vertical angle for the normal vector*/
+                        double gamma = ( PI/2 ) - theta;  
+
+			/* find the dimensions */
+			double htwo  =  sin(gamma);
+			double rtwo  =  cos(gamma);
+                        
 			glBegin(GL_TRIANGLES);
 			START_TRIG1
+
 			for(i=0; i<div; i++) {
 				float lsin = SIN1;
 				float lcos = COS1;
-				UP_TRIG1;
 
-printf ("A point %d norm %f %f %f vertex %f %f %f\n",
-i,mlh*lsin, mlr, -mlh*lcos,0.0, (float)h, 0.0);
-				glNormal3f(mlh*lsin, mlr, -mlh*lcos);
+				/* perform an angular displacement */	
+				UP_TRIG1;  
+
+				/* place the top point and normal */
+				glNormal3f(rtwo*SIN1, htwo, rtwo*COS1);
 				glTexCoord2f(1.0-((i+0.5)/df), 1.0);
 				glVertex3f(0.0, (float)h, 0.0);
 
-printf ("A point %d norm %f %f %f vertex %f %f %f\n",
-i,mlh*SIN1, mlr, mlh*COS1,r*SIN1, (float)-h, r*COS1);
-				glNormal3f(mlh*SIN1, mlr, mlh*COS1);
+				/* perform another angular displacement */
+				UP_TRIG1;
+
+				/* place the bottom points and normals */
+				glNormal3f(rtwo*SIN1, htwo, rtwo*COS1);
 				TC(1.0-((i+1.0)/df), 0.0);
 				glVertex3f(r*SIN1, (float)-h, r*COS1);
 
-printf ("A point %d norm %f %f %f vertex %f %f %f\n",
-i,mlh*lsin, mlr, mlh*lcos,r*lsin, (float)-h, r*lcos);
-				glNormal3f(mlh*lsin, mlr, mlh*lcos);
+				glNormal3f(rtwo*lsin, htwo, rtwo*lcos);
 				TC(1.0-((float)i/df), 0.0);
 				glVertex3f(r*lsin, (float)-h, r*lcos);
 
@@ -351,7 +415,6 @@ i,mlh*lsin, mlr, mlh*lcos,r*lsin, (float)-h, r*lcos);
 			glEnd();
 		}
 ',
-
 Sphere => 'int vdiv = vert_div;
 		int hdiv = horiz_div;
 	   	float vf = vert_div;
