@@ -519,7 +519,7 @@ sub shut {
 
 sub tick {
 	my($this) = @_;
-	my $time = get_timestamp();
+	my $time = VRML::VRMLFunc::get_timestamp();
 
 
 	#handle app/os events.
@@ -890,65 +890,6 @@ END {
 #########################################################3
 #
 # Private stuff
-
-{
-	my $ind = 0; 
-	#JAS - RH7.1 Perl does not have this routine defined off of the
-	# CD. Every system that I have seen (SGI, Sun Linux) returns 100 for
-	# the CLK_TCK, so I am just substituting this value here. IT only 
-	# affects the FPS, from what I can see.
-	#my $start = (POSIX::times())[0] / &POSIX::CLK_TCK;
-
-	# BUG FIX: Tobias Hintze <th@hbs-solutions.de> found that the fps
-	# calc could divide by zero on fast machines, thus the need for 
-	# the check now.
-
-	my $start = (POSIX::times())[0] / 100;
-	my $add = time() - $start; $start += $add;
-	sub get_timestamp {
-		my $ticks = (POSIX::times())[0] / 100; # Get clock ticks
-		$ticks += $add;
-		if (!$_[0]) {
-			$ind++;;
-			if ($ind == 25) {
-				$ind = 0;
-				if ($ticks != $start) { 
-					$FPS = 25/($ticks-$start);
-				}
-				#print "Fps: ",$FPS,"\n";
-				pmeasures();
-				$start = $ticks;
-			}
-		}
-		return $ticks;
-	}
-
-	{
-		my %h; my $cur; my $curt;
-		sub tmeasure_single {
-			my($name) = @_;
-			my $t = get_timestamp(1);
-			if (defined $cur) {
-				$h{$cur} += $t - $curt;
-			}
-			$cur = $name;
-			$curt = $t;
-		}
-		sub pmeasures {
-			return;
-			my $s = 0;
-			for (values %h) {
-				$s += $_;
-			}
-			print "TIMES NOW:\n";
-			for (sort keys %h) {
-				printf "$_\t%3.3f\n",$h{$_}/$s;
-			}
-		}
-	}
-}
-
-
 
 # No other nice place to put this so it's here...
 # For explanation, see the file ARCHITECTURE
