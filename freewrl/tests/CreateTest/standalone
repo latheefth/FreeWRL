@@ -1,2 +1,4 @@
-nice freewrl null.wrl -eai localhost:2000 -best &
-appletviewer create-test.html 
+EAI=../../java/classes
+
+freewrl -eai localhost:2000 null.wrl -best &
+appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" create-test.html
