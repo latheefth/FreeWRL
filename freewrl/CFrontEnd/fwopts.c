@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 extern int screenWidth, screenHeight;
+int fullscreen;
 
 #ifndef AQUA
 
@@ -57,12 +58,10 @@ int dpyWidth, dpyHeight;
 #ifndef AQUA 
 #ifdef XF86V4
 XF86VidModeModeInfo **modes;
-XF86VidModeModeInfo original_display;
-int ihaveXF86V4=TRUE;
+int oldx, oldy;
 #else
 
 /* fudge calls for compiler - gosh, perl is certainly fun. */
-//int ihaveXF86V4=FALSE;
 //struct fudge { int hdisplay; int vdisplay;};
 //struct fudge **modes;
 //struct fudge original_display;
@@ -146,7 +145,6 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
 	int	pw = 0; 
-	int	fullscreen = 0;
 	int	shutter = 0;
 	long	event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
 				ButtonMotionMask | ButtonReleaseMask |
@@ -168,7 +166,6 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 
 	int items=0; // jas
 	   
-
 	//JAS if(items>NUM_ARG+1){
 	//JAS 	len=(items-NUM_ARG+1)* sizeof(int);
 	//JAS 	attributes = (int *)malloc(len*sizeof(int));
@@ -183,19 +180,22 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	if (!dpy) { fprintf(stderr, "No display!\n");exit(-1);}
 
 	screen = DefaultScreen(dpy);
-
-	//JAS if (ihaveXF86V4) {
-	//JAS 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
-//JAS 
-//JAS 		bestMode = 0;
-//JAS 	
-//JAS 		for (i=0; i < modeNum; i++) {
-//JAS 			if ((modes[i]->hdisplay == w) && (modes[i]->vdisplay==h)) {
-//JAS 				bestMode = i;
-//JAS 			}
-//JAS 		}
-//JAS 		original_display = *modes[0];
-//JAS 	}
+#ifdef XF86V4
+	 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
+ 
+ 		bestMode = 0;
+ 		for (i=0; i < modeNum; i++) {
+ 			if ((modes[i]->hdisplay == screenWidth) && (modes[i]->vdisplay==screenHeight)) {
+ 				bestMode = i;
+ 			}
+ 		}
+		/* There is no mode equivalent to the geometry specified */
+		if (!bestMode) {
+			fullscreen = 0;
+			printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", screenWidth, screenHeight);
+		}
+		XF86VidModeGetViewPort(dpy, DefaultScreen(dpy), &oldx, &oldy);
+#endif
 
 	vi = find_best_visual(shutter,attributes,len);
 	if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
@@ -218,16 +218,17 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	swa.colormap = cmap;
 	swa.border_pixel = 0;
 	swa.event_mask = event_mask;
+#ifdef XF86V4
+	if (fullscreen == 1) {
+	 	XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
+	 	XF86VidModeSetViewPort(dpy, screen, 0, 0);
+	 	dpyWidth = modes[bestMode]->hdisplay;
+	 	dpyHeight = modes[bestMode]->vdisplay;
+	 	swa.override_redirect = True;
+	}
 
-	//JAS if ((fullscreen == 1) && (ihaveXF86V4)) {
-	//JAS 	XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
-	//JAS 	XF86VidModeSetViewPort(dpy, screen, 0, 0);
-	//JAS 	dpyWidth = modes[bestMode]->hdisplay;
-	//JAS 	dpyHeight = modes[bestMode]->vdisplay;
-	//JAS 	swa.override_redirect = True;
-	//JAS }
-
-	//JAS XFree(modes);
+	XFree(modes);
+#endif
 
 	if(!pwin){pwin=RootWindow(dpy, vi->screen);}
 		
@@ -394,4 +395,25 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 void setGeometry (char *gstring) {
 	int c;
 	c = sscanf(gstring,"%dx%d+%d+%d",&screenWidth,&screenHeight,&xPos,&yPos);
+}
+
+void resetGeometry() {
+#ifdef XF86V4
+		XF86VidModeModeInfo info;
+		int oldMode;
+
+	 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
+ 		oldMode = 0;
+
+ 		for (i=0; i < modeNum; i++) {
+ 			if ((modes[i]->hdisplay == oldx) && (modes[i]->vdisplay==oldy)) {
+ 				oldMode = i;
+ 			}
+ 		}
+
+	 	XF86VidModeSwitchToMode(dpy, screen, modes[oldMode]);
+	 	XF86VidModeSetViewPort(dpy, screen, 0, 0);
+		XFlush(dpy);
+
+#endif
 }
