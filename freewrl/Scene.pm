@@ -670,7 +670,7 @@ sub make_backend {
 	}
 	if($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
 		print "NODE: makebe NOT\n"
-			 if $VRML::verbose::be;
+			; #JAS if $VRML::verbose::be;
 		return ();
 	}
 	if($this->{IsProto}) {
@@ -1224,6 +1224,10 @@ sub set_parentnode {
 
 # XXX This routine is too static - should be split and executed
 # as the scene graph grows/shrinks.
+
+# JAS XXX - I don't think that TouchSensors (maybe TimeSensors??) are 
+# cought by this "sends" stuff....
+
 {
 my %sends = map {($_=>1)} qw/
 	TouchSensor TimeSensor
@@ -1277,6 +1281,11 @@ sub make_executable {
 
 	# Step 5) Collect all prototyped nodes from here
 	# so we can call their events
+	# JAS XXX I think that this is just BS, as Sensors, SubScenes are
+	# not found anywhere else, and the ref is VRML::Scene in here...
+	# Still, until I make sure that TouchSensors are ok from within
+	# PROTOS...
+
 	$this->iterate_nodes(sub {
 		return unless ref $_[0] eq "VRML::Node";
 		push @{$this->{SubScenes}}, $_[0]
@@ -1395,10 +1404,12 @@ sub setup_routing {
 				print "REALNODE: $n $n->{TypeName}\n"
 					if $VRML::verbose::scene;
 				if($VRML::Nodes::siblingsensitive{$n->{TypeName}}) {
-					print "Scene.pm:SES: $n $n->{TypeName}\n" if $VRML::verbose::scene;
+					print "Scene.pm:SES: $n $n->{TypeName}", 
+						" bn ", $_[0],"\n" 
+						;#JAS if $VRML::verbose::scene;
 					$be->set_sensitive(
 						$_[0]->{BackNode},
-						sub { # JAS print "Scene.pm:SES sub\n";
+						sub { print "Scene.pm:SES sub\n";
 							$eventmodel->
 							    handle_touched($n,
 							    		@_);
