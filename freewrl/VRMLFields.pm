@@ -1,11 +1,20 @@
+#
+# $Id$
+#
 # Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
-
+#
 # Field types, parsing and printing, Perl, C and Java.
-
+#
 # SFNode is in Parse.pm
+#
+# $Log$
+# Revision 1.2  2000/08/07 08:28:35  rcoscali
+# Removed reference to Image::Xpm (not usefull anymore for PixelTexture)
+#
+#
 
 # XXX Decide what's the forward assertion..
 
@@ -885,7 +894,6 @@ sub js_default { 'new SFNode("","NULL")' }
 
 package VRML::Field::SFImage;
 @ISA=VRML::Field;
-use Image::Xpm;
 VRML::Error->import;
 
 sub parse {
