@@ -396,6 +396,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	int char_count=0;
 	int est_tri=0;
 	STRLEN xx;
+	float angletan;
 	
 
 	/* fsparam has the following bitmaps:
@@ -427,8 +428,32 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 
 	/* z distance for text - only the status bar has anything other than 0.0 */
 	if (directstring) {
-		TextZdist = -0.2; // this is good for fov of 45
-		TextZdist = -1000.0 / (fieldofview * fieldofview);
+#ifdef CALCAULATEANGLETAN
+		/* convert fieldofview into radians */
+		angletan = fieldofview / 360.0 * PI * 2;
+
+		/* take half of the angle; */
+		angletan = angletan / 2.0;
+
+		/* find the tan of it; */
+		angletan = tanf (angletan);
+
+
+		/* and, divide the "general" text size by it */
+		TextZdist = -0.010/angletan;
+		//printf ("fov %f tzd %f \n",(float) fieldofview, (float) TextZdist);
+#else
+		/* the equation should be simple, but it did not work. Lets try the following: */
+		if (fieldofview < 12.0) {
+			TextZdist = -12.0;
+		} else if (fieldofview < 46.0) {
+			TextZdist = -0.2;
+		} else if (fieldofview  < 120.0) {
+			TextZdist = +2.0;
+		} else {
+			TextZdist = + 2.88;
+		}
+#endif
 	} else {
 		TextZdist = 0.0;
 	}
