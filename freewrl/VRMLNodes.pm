@@ -456,6 +456,82 @@ sub removeChildren_GroupingNodes {
 }
 
 
+# pass in a scene, and an MFString of urls, returns a local name to the file.
+sub getFileFromUrls {
+	my ($scene, $urls, $node) = @_;
+
+	my $purl = $scene->get_url();
+	if ($node) {
+		$node->{PURL} = $purl;
+	}
+	my $wurl = $scene->get_world_url();
+	my $file;
+	my $suffix;
+	my $u;
+
+	for $u (@{$urls}) {
+		next unless $u =~ /\.(\w*)$/;
+		$suffix = $1;
+		
+		if (defined $wurl) {
+			$file = VRML::URL::get_relative($wurl, $u, 1);
+		} else {
+			$file = VRML::URL::get_relative($purl, $u, 1);
+		}
+
+		if ($file) {
+			last;
+		} else {
+			warn("Could not retrieve $u");
+		}
+	}
+	print "VRML::Nodes::getFileFromUrls got: $file, $suffix\n"
+		if $VRML::verbose;
+	return (wantarray ? ($file, $suffix) : $file);
+}
+
+sub getTextFromURLs {
+	my ($scene, $url, $node) = @_;
+
+	my $purl = $scene->get_url();
+	if ($node) {
+		$node->{PURL} = $purl;
+	}
+	my $wurl = $scene->get_world_url();
+	my $text;
+	my $actual_url;
+
+	if (ref $url eq "ARRAY") {
+		for my $u (@{$url}) {
+			if (defined $wurl) {
+				($text, $actual_url) = VRML::URL::get_relative($wurl, $u);
+			} else {
+				($text, $actual_url) = VRML::URL::get_relative($purl, $u);
+			}
+
+			if ($text) {
+				last;
+			} else {
+				warn("Could not retrieve $u from ".VRML::Debug::toString($url));
+			}
+		}
+	} else {
+		if (defined $wurl) {
+			($text, $actual_url) = VRML::URL::get_relative($wurl, $url);
+		} else {
+			($text, $actual_url) = VRML::URL::get_relative($purl, $url);
+		}
+
+		if (!$text) {
+			warn("Could not retrieve $u from $url");
+		}
+	}
+
+	print "VRML::Nodes::getTextFromUrls got: $text, $actual_url\n"
+		if $VRML::verbose;
+	return (wantarray ? ($text, $actual_url) : $text);
+}
+
 ########################################################################
 #
 # Image loading.
@@ -463,32 +539,6 @@ sub removeChildren_GroupingNodes {
 
 my %image_same_url = ();
 
-
-
-# pass in a scene, and an MFString of urls, returns a local name to the file.
-sub getURLfromMFString {
-	my ($scene,$urls) = @_;
-
-    	my $purl = $t->{PURL} = $scene->get_url;
-	my $wurl = $scene->get_world_url;
-	my $file;
-	my $suffix;
- 
-	URL: for $u (@$urls) {
-		next unless $u =~ /\.(\w*)$/;
-		$suffix = $1;
-		
-		if (defined $wurl) { $file = VRML::URL::get_relative($wurl, $u, 1);
-		} else { $file = VRML::URL::get_relative($purl, $u, 1); }
-
-		# Required due to changes in VRML::URL::get_relative in URL.pm:
-		if (!$file) { warn "Could not retrieve $u"; next URL; }
-
-	}
-	print "VRML::Nodes::getURLfromMFString got: $file Suffix: $suffix\n"
-			if $VRML::verbose;
-	return ($file,$suffix);
-}
 
 
 # picture image
@@ -500,7 +550,7 @@ sub init_image {
 
 	my $file;
 	my $suffix;
-	($file,$suffix)  = getURLfromMFString($scene,$urls);
+	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
 
 	my ($hei,$wi,$dep);
 	my $tempfile = $file;
@@ -558,39 +608,39 @@ sub init_pixel_image {
     # now, $sfimage contains the "image" field of the node.
 
     if (!defined $sfimage) {
-	$f->{__depth} = 0;
-	$f->{__x} = 0;
-	$f->{__y} = 0;
-	$f->{___istemporary} = 0;
-	$f->{___texture} = 0;
-	$f->{__locfile} = "";
+		$f->{__depth} = 0;
+		$f->{__x} = 0;
+		$f->{__y} = 0;
+		$f->{___istemporary} = 0;
+		$f->{___texture} = 0;
+		$f->{__locfile} = "";
     } else {
-	$sfimage =~ /\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
-	    or parsefail($_[2], "didn't match width/height/depth of SFImage");
+		$sfimage =~ /\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
+			or parsefail($_[2], "didn't match width/height/depth of SFImage");
 
-	# should we just store the string here, or should we put it to a file?
-	# Some of these textures are large - in the order of a meg. For now,
-	# they are written to a file, which allows handling equivalent to
-	# what happens for other images.
+		# should we just store the string here, or should we put it to a file?
+		# Some of these textures are large - in the order of a meg. For now,
+		# they are written to a file, which allows handling equivalent to
+		# what happens for other images.
 
-	$f->{__depth} = $3;
-	$f->{__x} = $1;
-	$f->{__y} = $2;
-	$f->{__istemporary} = 1;
-    	$f->{__texture} = VRML::OpenGL::glGenTexture();
+		$f->{__depth} = $3;
+		$f->{__x} = $1;
+		$f->{__y} = $2;
+		$f->{__istemporary} = 1;
+		$f->{__texture} = VRML::OpenGL::glGenTexture();
 
-	my $lgname = $ENV{LOGNAME};
-	my $tempfile_name = "/tmp/freewrl_";
-	my $tempfile = join '', $tempfile_name,$lgname,
+		my $lgname = $ENV{LOGNAME};
+		my $tempfile_name = "/tmp/freewrl_";
+		my $tempfile = join '', $tempfile_name,$lgname,
 			$f->{__texture},".pixtex";
 
-    	$f->{__locfile} = $tempfile;
+		$f->{__locfile} = $tempfile;
 	
-	# write ascii pixeltexture data to file
-	my $fh;
-	open ($fh, "> $tempfile");
-	print $fh $sfimage;
-	close ($fh);
+		# write ascii pixeltexture data to file
+		my $fh;
+		open ($fh, "> $tempfile");
+		print $fh $sfimage;
+		close ($fh);
 
     }
     return;
@@ -603,14 +653,12 @@ sub init_movie_image {
 	my($name, $urlname, $t, $f, $scene) = @_;
 	# print "init_movie_image, name $name, urlname $urlname t $t f $f \n";
 
-	my $purl = $t->{PURL} = $scene->get_url;
-	my $wurl = $scene->get_world_url;
 	my $urls = $f->{$urlname};
 	if ($#{$urls} == -1) { goto NO_TEXTURE; }
 
 	my $file;
 	my $suffix;
-	($file,$suffix)  = getURLfromMFString($scene,$urls);
+	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
 
 	my $init_tex = VRML::OpenGL::glGenTexture();
 	$f->{__texture0_} = $init_tex;
@@ -633,14 +681,12 @@ sub init_sound {
 	my($name, $urlname, $t, $f, $scene) = @_;
 	#print "init_sound_image, name $name, urlname $urlname t $t f $f \n";
 
-	my $purl = $t->{PURL} = $scene->get_url;
-	my $wurl = $scene->get_world_url;
 	my $urls = $f->{$urlname};
 	if ($#{$urls} == -1) { goto NO_TEXTURE; }
 
 	my $file;
 	my $suffix;
-	($file,$suffix)  = getURLfromMFString($scene,$urls);
+	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
 
 	$f->{__localFileName} = $file;
 
@@ -2289,7 +2335,7 @@ my $protono;
 					   {
 						Initialize => sub {
 							#JAS $VRML::verbose::script = 1;
-							my($t,$f,$time,$scene) = @_;
+							my($t, $f, $time, $scene) = @_;
 
 							print "ScriptInit t ",
 								VRML::NodeIntern::dump_name($t),
@@ -2381,8 +2427,8 @@ my $protono;
 									last;
 								} elsif (/\.js/) {
 									# New js url handling
-									my $purl = $t->{PURL} = $scene->get_url;
-									my $wurl = $scene->get_world_url;
+									my $purl = $t->{PURL} = $scene->get_url();
+									my $wurl = $scene->get_world_url();
 									my $file;
 
 									if (defined $wurl) {
@@ -2402,6 +2448,7 @@ my $protono;
 										$code .= $_;
 									}
 									close(SCRIPT_CODE);
+
 									print "JS url: code = $code\n"
 										if $VRML::verbose::script;
 									eval('require VRML::JS;');
@@ -2418,7 +2465,7 @@ my $protono;
 									$t->{J} = VRML::JS->new($_, $t, $Browser);
 									last;
 								} else {
-									warn("unknown script: $_");
+									warn("Unknown script: $_");
 								}
 							}
 
@@ -2536,15 +2583,13 @@ my $protono;
 					   {
 						Initialize => sub {
 							my($t, $f, $time, $scene) = @_;
-							# XXXXXX!!
-							#print "VRMLNode::Inline\n\tt $t\n\tf $f\n\ttime $time\n\tscene $scene\n";
-
-							my ($text, $url);
-							my $purl = $scene->get_url();
-							my $wurl = $scene->get_world_url;
 							my $urls = $f->{url};
-							$p = $scene->new_proto("__proto".$protono++);
+							my $proto;
 
+							my $p = $scene->new_proto("__proto".$protono++);
+							my ($text, $url);
+							my $purl = $t->{PURL} = $scene->get_url();
+							my $wurl = $scene->get_world_url();
 							my $valid = 0;
 
 						URL:
@@ -2556,7 +2601,7 @@ my $protono;
 								}
 
 								if (!$text) {
-									warn "Warning: could not retrieve $u";
+									warn("Warning: could not retrieve $u");
 									next URL;
 								}
 
@@ -2576,8 +2621,9 @@ my $protono;
 							} # for $u (@$urls)
 
 							if (!$valid) {
-								die "Unable to loacte a valid url";
+								die("Unable to locate a valid url");
 							}
+
 							return ();
 						}
 					   }

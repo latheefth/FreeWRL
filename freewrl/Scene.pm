@@ -196,6 +196,7 @@ sub newp {
 
     $this->{EventModel} = $parent->{EventModel};
     $this->{Defaults} = {map {$_ => $this->{Pars}{$_}[2]} keys %{$this->{Pars}}};
+	$this->{WorldURL} = $this->get_world_url();
 
 	my $k;
 
@@ -222,7 +223,6 @@ sub newextp {
     # XXX marijn: code copied from newp()
 
     my $this = $type->new();
-
     $this->{Pars} = $pars;
     $this->{Name} = $name;
     $this->{Parent} = $parent;
@@ -247,68 +247,67 @@ sub newextp {
 			die("$k is an invalid kind of field or event from in $name");
 		}
     }
-    # XXX marijn: fix this: only first url currently used
-    if (ref $url) {
-		$url = $url->[0];
-    }
+
+	$this->{WorldURL} = $this->get_world_url();
 
     print("EXTERNPROTO with URL: $url\n") if $VRML::verbose::parse;
-    my ($protourl, $protoname) = split(/\#/, $url,2);
-    # marijn: set the url for this proto
-    $this->set_url($protourl);
+	my ($string, $protourl, $protoname, $brow, $po);
+	my $success = 0;
 
-    # XXX marijn: code copied from Browser->load_file()
-    my $string = VRML::URL::get_relative($parent->{URL}, $protourl);
+	for (@{$url}) {
+		($protourl, $protoname) = split(/#/, $_, 2);
+		$string = VRML::NodeType::getTextFromURLs($this, $protourl);
 
-    # Required due to changes in VRML::URL::get_relative in URL.pm:
-	## die or simply return?
-	die "File $protourl was not found" if (!$string);
+		next if (!$string);
 
-    # convert from X3D if required.
-    if ($string =~/^<\?xml version/s) {
-        my $brow = $this->get_browser();
-        $string = $brow->convertX3D($string);
-    }
+		# marijn: set the url for this proto
+		$this->set_url($protourl);
 
-	unless ($string =~ /^#VRML V2.0/s) {
-		die("Sorry, this file is according to VRML V1.0, I only know V2.0")
-			if ($string =~ /^#VRML V1.0/);
-		warn("File $protourl doesn't start with the '#VRML V2.0' header line");
+		# convert from X3D if required.
+		if ($string =~/^<\?xml version/s) {
+			$brow = $this->get_browser();
+			$string = $brow->convertX3D($string);
+		}
+
+		unless ($string =~ /^#VRML V2.0/s) {
+			die("Sorry, this file is according to VRML V1.0, I only know V2.0")
+				if ($string =~ /^#VRML V1.0/);
+			warn("File $protourl doesn't start with the '#VRML V2.0' header line");
+		}
+
+		# XXX marijn: code copied from Browser->parse()
+		$po = pos $string;
+		while ($string =~ /([\#\"])/gsc) {
+			(pos $string)--;
+			if ($1 eq "#") {
+				$string =~ s/#.*$//m;
+			} else {
+				VRML::Field::SFString->parse($this, $string);
+			}
+		}
+		(pos $string) = $po;
+
+		# marijn: end of copying, now locate right PROTO
+		while ($string =~ /[\s,^](PROTO\s+)($VRML::Parser::Word)/gsc ) {
+			if (!$protoname) {
+				$protoname = $2;
+			}
+
+			if ($2 eq $protoname) {
+				(pos $string) -= ((length $1) + (length $2));
+				VRML::Parser::parse_statement($this, $string);
+				$success = 1;
+				last;
+			}
+		}
+		last if ($success);
 	}
 
-	# XXX marijn: code copied from Browser->parse()
-	my $po = pos $string;
-    while ($string =~ /([#\"])/gsc) {
-		(pos $string)--;
-		if ($1 eq "#") {
-			$string =~ s/#.*$//m;		
-		} else {
-			VRML::Field::SFString->parse($this, $string);
-		}
-    }
-    (pos $string) = $po;
+	VRML::Error::parsefail("no PROTO found", VRML::Debug::toString($url))
+		if (!$success);
 
-    # marijn: end of copying, now locate right PROTO
-    my $succes = 0;
-    while ($string =~ /[\s,^](PROTO\s+)($VRML::Parser::Word)/gsc ) {
-		if (!$protoname) {
-			$protoname = $2;
-		}
-
-		if ($2 eq $protoname) {
-			(pos $string) -= ((length $1) + (length $2));
-			VRML::Parser::parse_statement($this, $string);
-			$succes = 1;
-			last;
-		}
-    }
-
-	VRML::Error::parsefail("no PROTO found", "$url") if (!$succes);
-
-    # marijn: now create an instance of the PROTO, with all fields ISsed.
-    # XXX marijn: What about FieldTypes/FieldKinds?
-
-    my %fields = map {$_ => $this->new_is($_)} keys %{$this->{Pars}};
+    # marijn: now create an instance of the PROTO, with all fields IS'd.
+    my %fields = map { $_ => $this->new_is($_) } keys %{$this->{Pars}};
     my $n = $this->new_node($protoname, \%fields);
     my @node = ($n);
 
