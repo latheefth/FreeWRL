@@ -156,84 +156,85 @@ sub resolve_node_cnode {
 
 #JAS - IsProto now cleanly handled in getNodeCnode and associated calls.
 
-#JAS	# is this an IS?
-#JAS	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
-#JAS		print "VRML::EventMachine::resolve_node_cnode:ISPROTO\n";
-#JAS		$is_proto = 1;
-#JAS		push @is, @{$this->{IS}{$node}{$field}};
-#JAS
-#JAS		if ($direction =~ /eventIn/) {
-#JAS			while (@is) {
-#JAS				$f = shift @is;
-#JAS				$proto_node = $f->[0];
-#JAS				$proto_field = $f->[1];
-#JAS
-#JAS				next if ($proto_node->{TypeName} =~ /script/i);
-#JAS
-#JAS				## see VRML::Field::SFNode::parse for why this is necessary
-#JAS				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
-#JAS					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
-#JAS						$proto_field = $1;
-#JAS					}
-#JAS					if (!defined ($outoffset =
-#JAS								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
-#JAS						print "No offset for $proto_field.\n";
-#JAS						$outptr = undef;
-#JAS					} else {
-#JAS						#print "$proto_node->{TypeName} ",
-#JAS						#	VRML::NodeIntern::dump_name($proto_node),
-#JAS						#			" CNode: $outptr, $proto_field eventIn: $outoffset.\n";
-#JAS						push @tonodes, "$outptr:$outoffset";
-#JAS						$to_count++;
-#JAS					}
-#JAS				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
-#JAS					push @is, @{$this->{IS}{$proto_node}{$field}};
-#JAS					next;
-#JAS				} else {
-#JAS					print "No CNode for $proto_node->{TypeName} ",
-#JAS						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
-#JAS				}
-#JAS			}
-#JAS			$tonode_str = join(" ", @tonodes);
-#JAS		} else { # XXX PROTO multiple eventOuts not handled yet
-#JAS			while (@is) {
-#JAS				$f = shift @is;
-#JAS				$proto_node = $f->[0];
-#JAS				$proto_field = $f->[1];
-#JAS
-#JAS				next if ($proto_node->{TypeName} =~ /script/i);
-#JAS
-#JAS				## see VRML::Field::SFNode::parse for why this is necessary
-#JAS				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
-#JAS					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
-#JAS						$proto_field = $1;
-#JAS					}
-#JAS					if (!defined ($outoffset =
-#JAS								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
-#JAS						print "No offset for $proto_field.\n";
-#JAS						$outptr = undef;
-#JAS					} else {
-#JAS						#print "$proto_node->{TypeName} ",
-#JAS						#	VRML::NodeIntern::dump_name($proto_node),
-#JAS						#			" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
-#JAS						last;
-#JAS					}
-#JAS				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
-#JAS					push @is, @{$this->{IS}{$proto_node}{$field}};
-#JAS					next;
-#JAS				} else {
-#JAS					print "No CNode for $proto_node->{TypeName} ",
-#JAS						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
-#JAS				}
-#JAS			}
-#JAS			if (! ($outptr || $offset) &&
-#JAS				! $proto_node->{TypeName} =~ /script/i) {
-#JAS				print "Failed to find CNode info for PROTO $node->{TypeName} ",
-#JAS					VRML::NodeIntern::dump_name($node), " in IS hash.\n";
-#JAS				return (0,0,0,0,0);
-#JAS			}
-#JAS		}
-#JAS	}
+	# is this an IS?
+	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
+		#print "VRML::EventMachine::resolve_node_cnode:ISPROTO\n";
+		$is_proto = 1;
+		push @is, @{$this->{IS}{$node}{$field}};
+
+		if ($direction =~ /eventIn/) {
+			while (@is) {
+				$f = shift @is;
+				$proto_node = $f->[0];
+				$proto_field = $f->[1];
+
+				next if ($proto_node->{TypeName} =~ /script/i);
+
+				## see VRML::Field::SFNode::parse for why this is necessary
+				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
+						$proto_field = $1;
+					}
+					if (!defined ($outoffset =
+								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+						print "No offset for $proto_field.\n";
+						$outptr = undef;
+					} else {
+						#print "$proto_node->{TypeName} ",
+						#	VRML::NodeIntern::dump_name($proto_node),
+						#			" CNode: $outptr, $proto_field eventIn: $outoffset.\n";
+						push @tonodes, "$outptr:$outoffset";
+						$to_count++;
+					}
+				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
+					push @is, @{$this->{IS}{$proto_node}{$field}};
+					next;
+				} else {
+					print "No CNode for $proto_node->{TypeName} ",
+						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
+				}
+			}
+			$tonode_str = join(" ", @tonodes);
+		} else { # XXX PROTO multiple eventOuts not handled yet
+			while (@is) {
+				$f = shift @is;
+				$proto_node = $f->[0];
+				$proto_field = $f->[1];
+
+				next if ($proto_node->{TypeName} =~ /script/i);
+
+				## see VRML::Field::SFNode::parse for why this is necessary
+				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
+						$proto_field = $1;
+					}
+					if (!defined ($outoffset =
+								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+						print "No offset for $proto_field.\n";
+						$outptr = undef;
+					} else {
+						#print "$proto_node->{TypeName} ",
+						#	VRML::NodeIntern::dump_name($proto_node),
+						#			" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
+						last;
+					}
+				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
+					push @is, @{$this->{IS}{$proto_node}{$field}};
+					next;
+				} else {
+					print "No CNode for $proto_node->{TypeName} ",
+						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
+				}
+			}
+			if (! ($outptr || $offset) &&
+				! $proto_node->{TypeName} =~ /script/i) {
+				print "Failed to find CNode info for PROTO $node->{TypeName} ",
+					VRML::NodeIntern::dump_name($node), " in IS hash.\n";
+				return (0,0,0,0,0);
+			}
+		}
+	}
+#JAS#JAS
 
 
 	#addChildren really is Children
