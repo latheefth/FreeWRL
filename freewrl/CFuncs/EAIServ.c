@@ -439,8 +439,20 @@ void EAI_parse_commands (char *bufptr) {
 	
 					ra = EAI_CreateVrml("String",bufptr,nodarr,200);
 				} else {
-					if (EAIVerbose) printf ("CREATEVU %s\n",bufptr);
-					ra = EAI_CreateVrml("URL",bufptr,nodarr,200);
+					/* sanitize this string - remove leading
+					 * and trailing garbage */
+					ra = 0; rb = 0;
+					while ((ra < strlen(bufptr)) &&
+							(bufptr[ra] <= ' '))
+						ra++;
+					while (bufptr[ra] > ' ') {
+						ctmp[rb] = bufptr[ra];
+						rb ++; ra++;
+					}
+					ctmp[rb] = 0;
+
+					if (EAIVerbose) printf ("CREATEVU %s\n",ctmp);
+					ra = EAI_CreateVrml("URL",ctmp,nodarr,200);
 				}
 	
 				sprintf (buf,"RE\n%d\n",count);

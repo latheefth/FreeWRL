@@ -406,8 +406,13 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 
 	PSP_LOCK
 	DATA_LOCK
+	if (strncmp(tp,"URL",2) ==  0) {
+			psp.type= FROMURL;
+	} else {
+		psp.type = FROMSTRING;
+	}
+				
 	psp.comp = &complete;
-	psp.type = FROMSTRING;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
