@@ -132,6 +132,12 @@ sub dump {
 				print "$padded    Route from $fnam field $ff to $tnam field $tf\n";
 			}
 					
+		} elsif ("BackNode" eq $_) {
+			print "BN: ";
+			foreach my $bnub (keys %{ $this->{$_}}) {
+				print "$bnub, ",$this->{BackNode}{$bnub}," ";
+			}
+					
 		} elsif ("ARRAY" eq ref $this->{$_}) {
 			print "(array) ";
 			foreach (@{$this->{$_}}) {

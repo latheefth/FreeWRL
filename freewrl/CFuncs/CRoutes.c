@@ -2196,7 +2196,8 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 			
 			/* is this an add? */
 			if (adrem == 1) {
-				/* printf ("definite duplicate, returning\n"); */
+				if (CRVerbose)
+					printf ("definite duplicate, returning\n"); 
 				return;
 			} else {
 				/* this is a remove */

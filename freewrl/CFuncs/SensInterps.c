@@ -825,13 +825,6 @@ void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
 
 	/* TouchSensor - handle only a PRESS or RELEASE - should handle hitPoint,hitNormal */
 
-	/* $f->{isOver} = $over;
-	$f->{hitPoint_changed} = $pos;
-	$f->{hitNormal_changed} = $norm;
-	$f->{isActive} = 1;
-	$f->{touchTime} = $time;
-	*/
-
 	/* if not enabled, do nothing */
 	if (!node) return;
 	if (!node->enabled) return;

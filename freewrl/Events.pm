@@ -66,10 +66,10 @@ sub ExtraMemory {
 	my $memptr;
 	my $value;
 	
-	#print "ExtraMemory: wanting field $field for node ",VRML::NodeIntern::dump_name($node),"\n";
-	#foreach (keys%{$node}) {print "	node key $_\n";}
-	#foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
-	#foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
+	print "ExtraMemory: wanting field $field for node ",VRML::NodeIntern::dump_name($node),"\n";
+	foreach (keys%{$node}) {print "	node key $_\n";}
+	foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
+	foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
 
 	my $type = $node->{Scene}{Pars}{$field}[1];
 
@@ -90,7 +90,7 @@ sub ExtraMemory {
 		$ExtraMem{"$node$field"} = $memptr;
 	}
 
-	#print "Events.pm: ExtraMemory: field $field Clength $clen  type $type value $value address $memptr\n";
+	print "Events.pm: ExtraMemory: field $field Clength $clen  type $type value $value address $memptr\n";
 	return ($memptr ,$type,$clen);
 }
 
@@ -107,6 +107,9 @@ sub ExtraMemory {
 # direction = "eventOut" or "eventIn".
 
 # returns node, field, script, ok
+
+###
+# this needs some cleaning up!
 
 sub resolve_node_cnode {
 	my ($this, $scene, $node, $field, $direction) = @_;
@@ -150,84 +153,87 @@ sub resolve_node_cnode {
 
 	my $f;
 	my @is;
-	# is this an IS?
-	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
-		#print "VRML::EventMachine::resolve_node_cnode:ISPROTO\n";
-		$is_proto = 1;
-		push @is, @{$this->{IS}{$node}{$field}};
 
-		if ($direction =~ /eventIn/) {
-			while (@is) {
-				$f = shift @is;
-				$proto_node = $f->[0];
-				$proto_field = $f->[1];
+#JAS - IsProto now cleanly handled in getNodeCnode and associated calls.
 
-				next if ($proto_node->{TypeName} =~ /script/i);
-
-				## see VRML::Field::SFNode::parse for why this is necessary
-				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
-					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
-						$proto_field = $1;
-					}
-					if (!defined ($outoffset =
-								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
-						print "No offset for $proto_field.\n";
-						$outptr = undef;
-					} else {
-						#print "$proto_node->{TypeName} ",
-						#	VRML::NodeIntern::dump_name($proto_node),
-						#			" CNode: $outptr, $proto_field eventIn: $outoffset.\n";
-						push @tonodes, "$outptr:$outoffset";
-						$to_count++;
-					}
-				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
-					push @is, @{$this->{IS}{$proto_node}{$field}};
-					next;
-				} else {
-					print "No CNode for $proto_node->{TypeName} ",
-						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
-				}
-			}
-			$tonode_str = join(" ", @tonodes);
-		} else { # XXX PROTO multiple eventOuts not handled yet
-			while (@is) {
-				$f = shift @is;
-				$proto_node = $f->[0];
-				$proto_field = $f->[1];
-
-				next if ($proto_node->{TypeName} =~ /script/i);
-
-				## see VRML::Field::SFNode::parse for why this is necessary
-				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
-					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
-						$proto_field = $1;
-					}
-					if (!defined ($outoffset =
-								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
-						print "No offset for $proto_field.\n";
-						$outptr = undef;
-					} else {
-						#print "$proto_node->{TypeName} ",
-						#	VRML::NodeIntern::dump_name($proto_node),
-						#			" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
-						last;
-					}
-				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
-					push @is, @{$this->{IS}{$proto_node}{$field}};
-					next;
-				} else {
-					print "No CNode for $proto_node->{TypeName} ",
-						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
-				}
-			}
-			if (! ($outptr || $offset) &&
-				! $proto_node->{TypeName} =~ /script/i) {
-				print "Failed to find CNode info for PROTO $node->{TypeName} ",
-					VRML::NodeIntern::dump_name($node), " in IS hash.\n";
-				return (0,0,0,0,0);
-			}
-		}
-	}
+#JAS	# is this an IS?
+#JAS	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
+#JAS		print "VRML::EventMachine::resolve_node_cnode:ISPROTO\n";
+#JAS		$is_proto = 1;
+#JAS		push @is, @{$this->{IS}{$node}{$field}};
+#JAS
+#JAS		if ($direction =~ /eventIn/) {
+#JAS			while (@is) {
+#JAS				$f = shift @is;
+#JAS				$proto_node = $f->[0];
+#JAS				$proto_field = $f->[1];
+#JAS
+#JAS				next if ($proto_node->{TypeName} =~ /script/i);
+#JAS
+#JAS				## see VRML::Field::SFNode::parse for why this is necessary
+#JAS				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+#JAS					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
+#JAS						$proto_field = $1;
+#JAS					}
+#JAS					if (!defined ($outoffset =
+#JAS								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+#JAS						print "No offset for $proto_field.\n";
+#JAS						$outptr = undef;
+#JAS					} else {
+#JAS						#print "$proto_node->{TypeName} ",
+#JAS						#	VRML::NodeIntern::dump_name($proto_node),
+#JAS						#			" CNode: $outptr, $proto_field eventIn: $outoffset.\n";
+#JAS						push @tonodes, "$outptr:$outoffset";
+#JAS						$to_count++;
+#JAS					}
+#JAS				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
+#JAS					push @is, @{$this->{IS}{$proto_node}{$field}};
+#JAS					next;
+#JAS				} else {
+#JAS					print "No CNode for $proto_node->{TypeName} ",
+#JAS						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
+#JAS				}
+#JAS			}
+#JAS			$tonode_str = join(" ", @tonodes);
+#JAS		} else { # XXX PROTO multiple eventOuts not handled yet
+#JAS			while (@is) {
+#JAS				$f = shift @is;
+#JAS				$proto_node = $f->[0];
+#JAS				$proto_field = $f->[1];
+#JAS
+#JAS				next if ($proto_node->{TypeName} =~ /script/i);
+#JAS
+#JAS				## see VRML::Field::SFNode::parse for why this is necessary
+#JAS				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+#JAS					if ($proto_field =~ /^[0-9]+($VRML::Error::Word)$/) {
+#JAS						$proto_field = $1;
+#JAS					}
+#JAS					if (!defined ($outoffset =
+#JAS								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+#JAS						print "No offset for $proto_field.\n";
+#JAS						$outptr = undef;
+#JAS					} else {
+#JAS						#print "$proto_node->{TypeName} ",
+#JAS						#	VRML::NodeIntern::dump_name($proto_node),
+#JAS						#			" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
+#JAS						last;
+#JAS					}
+#JAS				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
+#JAS					push @is, @{$this->{IS}{$proto_node}{$field}};
+#JAS					next;
+#JAS				} else {
+#JAS					print "No CNode for $proto_node->{TypeName} ",
+#JAS						VRML::NodeIntern::dump_name($proto_node), " from IS hash.\n";
+#JAS				}
+#JAS			}
+#JAS			if (! ($outptr || $offset) &&
+#JAS				! $proto_node->{TypeName} =~ /script/i) {
+#JAS				print "Failed to find CNode info for PROTO $node->{TypeName} ",
+#JAS					VRML::NodeIntern::dump_name($node), " in IS hash.\n";
+#JAS				return (0,0,0,0,0);
+#JAS			}
+#JAS		}
+#JAS	}
 
 
 	#addChildren really is Children
@@ -235,28 +241,28 @@ sub resolve_node_cnode {
 		$field = "children";
 	}
 
-	# Protos, when expanded, still have the same script number. We need to make
-	# sure that a script within a proto is uniquely identified by the scene
-	# proto expansion; otherwise routing will cross-pollinate .
-
-	if (defined $node->{ProtoExp}) {
-		#print "this is a protoexp, I am ",VRML::NodeIntern::dump_name($scene), 
-		#		" ProtoExp ",VRML::NodeIntern::dump_name($node->{ProtoExp}),"\n";
-		$node = $node->real_node();
-		#print "ProtoExp node now is $node->{TypeName} ", VRML::NodeIntern::dump_name($node), "\n";
-
-		my $testnode = $node->{Fields}{children}[0];
-		if (ref $testnode eq "VRML::DEF") {$testnode = $testnode->node();}
-
-		#print "my testnode is ", VRML::NodeIntern::dump_name($testnode),"\n";
-		#print "FN $fieldname\n";
-		#foreach (keys%{$testnode->{Fields}}) {print "	node key $_\n";}
-
-		if (defined {$testnode->{Fields}{$fieldname}}) {
-			#print "field exists1! making testnode realnode\n";
-			$node = $testnode;
-		}
-	}
+#JAS	# Protos, when expanded, still have the same script number. We need to make
+#JAS	# sure that a script within a proto is uniquely identified by the scene
+#JAS	# proto expansion; otherwise routing will cross-pollinate .
+#JAS
+#JAS	if (defined $node->{ProtoExp}) {
+#JAS		#print "this is a protoexp, I am ",VRML::NodeIntern::dump_name($scene), 
+#JAS		#		" ProtoExp ",VRML::NodeIntern::dump_name($node->{ProtoExp}),"\n";
+#JAS		$node = $node->real_node();
+#JAS		#print "ProtoExp node now is $node->{TypeName} ", VRML::NodeIntern::dump_name($node), "\n";
+#JAS
+#JAS		my $testnode = $node->{Fields}{children}[0];
+#JAS		if (ref $testnode eq "VRML::DEF") {$testnode = $testnode->node();}
+#JAS
+#JAS		#print "my testnode is ", VRML::NodeIntern::dump_name($testnode),"\n";
+#JAS		#print "FN $fieldname\n";
+#JAS		#foreach (keys%{$testnode->{Fields}}) {print "	node key $_\n";}
+#JAS
+#JAS		if (defined {$testnode->{Fields}{$fieldname}}) {
+#JAS			#print "field exists1! making testnode realnode\n";
+#JAS			$node = $testnode;
+#JAS		}
+#JAS	}
 
 	# ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
 	# eventIns (see VRML97 node reference)
@@ -400,6 +406,44 @@ sub resolve_node_cnode {
 	}
 }
 
+# does a node exist in the scenes DEF nodes??? If so, return it, if not,
+# try to get it in other ways.
+sub getSceneNode {
+	my($scene, $fromNode) = @_;
+	my $node;
+	#print "getSceneNode, scene $scene, node $fromNode\n";
+
+	# Is this a DEF'd node within the scene?
+	if (exists $scene->{DEF}{$fromNode}) {
+		#print "getSceneNode, $fromNode is part of scene ",
+		#VRML::NodeIntern::dump_name($scene),"\n";
+		$node = $scene->{DEF}{$fromNode}{Node};
+	} else {
+		#print "getSceneNode, $fromNode is NOT part of scene ",
+		#VRML::NodeIntern::dump_name($scene),"\n";
+		
+		$tmp = VRML::Handles::return_EAI_name($fromNode);
+		#print "tmp now $tmp ref ",ref $tmp,"\n";
+		#print "tmp as a name is ",VRML::NodeIntern::dump_name($tmp),"\n";
+	        if (ref $tmp eq "VRML::NodeIntern") {
+	                $node = $tmp;
+	        } else {
+	                $node = $scene->getNode($tmp);
+	                if (!defined $node) {
+	                        warn("DEF node $tmp is not defined");
+			}
+		}
+	}
+
+	if (defined $node->{IsProto}) {
+		#print "getSceneNode - this is a PROTO\n";
+		$node = $node->{ProtoExp}{Nodes}[0]->real_node(); 
+	} else {
+		#print "getSceneNode - this is NOT a PROTO\n";
+	}
+	#print "getSceneNode, returning $node, ",VRML::NodeIntern::dump_name($node),"\n";
+	return $node;
+}
 
 ################################################################################
 # add_route
@@ -435,15 +479,31 @@ sub add_route {
 	my $extraparam = 0;
 	my $fc = 0; my $tc = 0; #from and to script nodes.
 
-	# print "\nstart of add_route, $add_rem, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
+	#print "\nstart of add_route, $add_rem, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
 
-	# FROM NODE
+	# Use the Browser::EAI_LocateNode to get the "real", unPROTO'd
+	# nodes.
+
+	# get the FROM node/field
+	my $node;
+	$node = getSceneNode($scene,$fromNode);
+	($fromNode, $eventOut, $direction) = 
+		VRML::Browser::EAI_LocateNode($node, $eventOut, "eventOut");
+
+	# FROM NODE step 2.
 	my ($outptr, $outoffset, $fc, $ok, $datalen) = $this->resolve_node_cnode($scene, $fromNode, $eventOut, "eventOut");
 	if ($ok == 0) {return 1;} # error message already printed
 
 
 	# TO NODE
+	# get the TO node/field
+	$node = getSceneNode($scene,$toNode);
+	($toNode, $eventIn, $direction) = 
+		VRML::Browser::EAI_LocateNode($node, $eventIn, "eventIn");
+
 	my ($to_count, $tonode_str, $tc, $ok, $intptr) = $this->resolve_node_cnode($scene, $toNode, $eventIn, "eventIn");
+
+
 	if ($eventIn eq "addChildren") {
 		$extraparam = 1;
 	}

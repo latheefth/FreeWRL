@@ -3672,7 +3672,7 @@ JSBool
 MFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
-	printf ("start of MFNODETOSTRING, obj %d\n",obj);
+	//printf ("start of MFNODETOSTRING, obj %d\n",obj);
 	return doMFToString(cx, obj, "MFNode", rval);
 }
 
@@ -3970,7 +3970,7 @@ JSBool
 MFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
-	printf ("CALLED MFVec3fToString\n");
+	//printf ("CALLED MFVec3fToString\n");
 	return doMFToString(cx, obj, "MFVec3f", rval);
 }
 

@@ -250,7 +250,7 @@ sub create_common {
 	$scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
-	$scene->dump(0) if $VRML::verbose::scenegraph;
+	$scene->dump(0)  if $VRML::verbose::scenegraph;
 	
 
 	return $ret;
@@ -498,7 +498,15 @@ sub EAI_LocateNode {
 
 	#print "BROWSER:EAI_LocateNode params, $nodenum, $fieldname, $direction\n";
 
-	my $realele = VRML::Handles::get("NODE$nodenum");
+	# is "nodenum" an object passed in from Events.pm, or an integer
+	# number passed in from the EAI code?
+	if ("VRML::NodeIntern" ne ref $nodenum) {
+		$realele = VRML::Handles::get("NODE$nodenum");
+	} else {
+		$realele = $nodenum;
+	}
+
+	#print "BROWSER:EAI_LocateNode, now $realele\n";
 
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
@@ -506,10 +514,10 @@ sub EAI_LocateNode {
 	#print "BROWSER::EAI_LocateNode evin:",$realele->{Type}{EventIns};
 
 	#print "BROWSER::EAI_LocateNode fieldname $fieldname, evin: ",
-	#	$realele->{Type}{EventIns}{$fieldname}," kinds ",
-	#	$realele->{Type}{FieldKinds}{$fieldname},"\n";
+	#$realele->{Type}{EventIns}{$fieldname}," kinds ",
+		#$realele->{Type}{FieldKinds}{$fieldname},"\n";
 	
-	#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
+		#foreach (%{$realele->{Type}{Pars}}) {print "   .... ",@{$_}, " \n";}
 	#print "Trying pars directly: ",@{$realele->{Type}{Pars}{$fieldname}} ,"\n";
 	#print "\n\n\n";
 	#print "BROWSER::EAI_LocateNode now $fieldname\n";
@@ -765,11 +773,12 @@ sub JSRoute {
 # For explanation, see the file ARCHITECTURE
 package VRML::Handles;
 
+my $handles_debug = 0;
+
 {
 my %S = ();
 my %DEFNAMES = ();
- my %EAINAMES = ();
-
+my %EAINAMES = ();
 
 # keep a list of DEFined names and their real names around. Because
 # a name can be used more than once, (eg, DEF MX ..... USE MX .... DEF MX
@@ -782,18 +791,21 @@ my %DEFNAMES = ();
 sub EAI_reserve {
 	my ($name, $realnode) = @_;
 	$EAINAMES{$name} = $realnode;
-	#print "reserving EAINAME $name ", ref $name, "is real $realnode, ref ", ref $realnode,"\n";
+	print "reserving EAINAME $name ", 
+		ref $name, "is real $realnode\n\t",
+		VRML::NodeIntern::dump_name($realnode),"\n\t", 
+		"ref ", ref $realnode,"\n" if $handles_debug;
 }
 sub return_EAI_name {
 	my ($name) = @_;
 	if (!exists $EAINAMES{$name}) {
 	
-		#print "return_EAI_name, looking for $name , it is not a EAI, returning $name\n";
-		#print "return_EAI_name - Name $name does not exist!\n";
+		print "return_EAI_name, looking for $name , it is not a EAI, returning $name\n" if $handles_debug;
+		print "return_EAI_name - Name $name does not exist!\n";
 		return $name;
 	}
-	#print "return_EAI_name, looking for $name , it IS a EAI, returning ",
-	#	$EAINAMES{$name},"\n";
+	print "return_EAI_name, looking for $name , it IS a EAI, returning ",
+		$EAINAMES{$name},"\n" if $handles_debug;
 
 	return $EAINAMES{$name};
 }
@@ -805,19 +817,21 @@ sub return_EAI_name {
 sub def_reserve {
 	my ($name, $realnode) = @_;
 	$DEFNAMES{$name} = $realnode;
-	#print "reserving DEFNAME $name ", ref $name, "is real $realnode, ref ", ref $realnode,"\n";
+	print "reserving DEFNAME $name ", 
+		ref $name, "is real $realnode, 
+		ref ", ref $realnode,"\n" if $handles_debug;
 
 }
 sub return_def_name {
 	my ($name) = @_;
 	if (!exists $DEFNAMES{$name}) {
 	
-		#print "return_def_name, looking for $name , it is not a def, returning $name\n";
-		#print "return_def_name - Name $name does not exist!\n";
+		print "return_def_name, looking for $name , it is not a def, returning $name\n" if $handles_debug;
+		print "return_def_name - Name $name does not exist!\n" if $handles_debug;
 		return $name;
 	}
-	#print "return_def_name, looking for $name , it IS a def, returning ",
-	#	$DEFNAMES{$name},"\n";
+	print "return_def_name, looking for $name , it IS a def, returning ",
+		$DEFNAMES{$name},"\n" if $handles_debug;
 
 	return $DEFNAMES{$name};
 }
@@ -826,7 +840,7 @@ sub return_def_name {
 
 sub CNodeLinkreserve {
 	my($str,$object) = @_;
-	#print "Handle::CNodeLinkreserve, reserving $str for object $object type ", ref($object), "\n";
+	print "Handle::CNodeLinkreserve, reserving $str for object $object type ", ref($object), "\n" if $handles_debug;
 
 	if(!defined $S{$str}) {
 		$S{$str} = [$object, 0];
@@ -837,7 +851,7 @@ sub CNodeLinkreserve {
 sub reserve {
 	my($object) = @_;
 	my $str = VRML::NodeIntern::dump_name($object);
-	#print "Handle::reserve, reserving $str for object $object type ", ref($object), "\n";
+	print "Handle::reserve, reserving $str for object $object type ", ref($object), "\n" if $handles_debug;
 
 	if(!defined $S{$str}) {
 		$S{$str} = [$object, 0];
@@ -855,14 +869,14 @@ sub release {
 
 sub get {
 	my($handle) = @_;
-	#print "Handle::get, looking for $handle\n";
+	print "Handle::get, looking for $handle\n" if $handles_debug;
 	return NULL if $handle eq "NULL";
 
 	if(!exists $S{$handle}) {
-		#print "handle $handle does not exist\n";
+		print "handle $handle does not exist\n" if $handles_debug;
 		return $handle;
 	}
-	#print "returning ", $S{$handle}[0],"\n";
+	print "returning ", $S{$handle}[0],"\n" if $handles_debug;
 	return $S{$handle}[0];
 }
 sub check {

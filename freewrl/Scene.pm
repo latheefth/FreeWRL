@@ -77,7 +77,7 @@ sub dump {
 			print "(key $nk ";
 			my $sk;
 			foreach $sk (keys %{$this->{$_}{$nk}}) {
-				print "sk $sk ";
+				print "sk $sk : ",$this->{$_}{$nk}{$sk},"; ";
 			}
 			print ") ";
 		  }
@@ -170,6 +170,7 @@ sub newp {
     # parent:which invocationo of scene this is in.  SCENE_2
     # name: VRML name, eg, dirigible
 
+    #print "newp, type $type, name $name\n";
     my $this = $type->new();
 
     $this->{Pars} = $pars;
@@ -615,6 +616,8 @@ sub mkbe_and_array {
 ## used for DEF'd nodes
 sub getNode {
 	my ($this, $name) = @_;
+	#print "Scene::getNode, looking for $name in $this\n";
+
 	my $n = $this->{DEF}->{VRML::Handles::return_def_name($name)};
 	if (!defined $n) {
 		#warn("Node $name is not defined");

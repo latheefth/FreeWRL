@@ -499,12 +499,14 @@ sub jspSFNodeConstr {
 
         my $h = $this->{Browser}->createVrmlFromString($str);
 	my ($handle, $stuff) = split (" ",$h);
-	print "jspSFNodeConstr, first handle is $handle\n";
+	print "jspSFNodeConstr, first handle is $handle\n"
+		if $VRML::verbose::js;
 
         my $constr = $this->constrString(SFNode, VRML::Handles::get($handle));
         my $script = "__ret"."=$constr";
 
-	print "jspSFNodeConstr, script is $script\n";
+	print "jspSFNodeConstr, script is $script\n"
+		if $VRML::verbose::js;
 
 	if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, $script, $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspBrowserCreateVrmlFromString");
