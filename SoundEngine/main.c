@@ -24,13 +24,12 @@ key_t IPCKey;
 int msq_fromclnt;
 int msq_toclnt;
 
-int current_loudest = 0;	// current loudest sound to play
+int current_max = -1;		// the maximum source number recieved so far.
+int current_loudest = -1;	// current loudest sound to play
 
 int registered[MAXSOURCES];	// is source registered? (boolean)
+int active[MAXSOURCES];		// is source active? (boolean)
 int loop[MAXSOURCES];		// is this sound looped? (boolean)
-float pitch[MAXSOURCES];	// pitch of 1 = standard playback
-float startt[MAXSOURCES];	// start time
-float stopt[MAXSOURCES];	// stop time
 float ampl[MAXSOURCES];		// Gain of this sound
 char *names[MAXSOURCES];	// name of url for this file
 SNDFILE *sndfile[MAXSOURCES];	// structure containing sound file info
@@ -61,6 +60,22 @@ unsigned char* data;
 // Sound file handling routines
 //
 //
+
+// if the sndfile is open, rewind and set bytes_remaining
+void rewind_to_beginning (SNDFILE *wavfile) {
+	if (wavfile != NULL) {
+		if (wavfile->fd != NULL) {
+			wavfile->bytes_remaining = wavfile->DataChunk.chunkSize;
+			fseek (wavfile->fd, wavfile->wavdataoffset, SEEK_SET);
+		//} else {
+		//	printf ("Wavfile not opened yet, just returning\n");
+		}
+	//} else {
+	//	printf ("SNDfile not initialized yet\n");
+	}
+}
+
+
 
 // find a chunk start.
 int chunk (char *buf, char *find, int len) {
@@ -96,7 +111,7 @@ void playSound (int indexno) {
 		selectWavParameters(sndfile[currentSource]);
 	}
 
-	playWavFragment(sndfile[currentSource]);
+	playWavFragment(sndfile[currentSource],currentSource);
 }
 
 // Decode what kind of file this is - skip through the headers,
@@ -232,12 +247,14 @@ void
 toclnt(char *message_to_send) {
 	msg.mtype= 1;
 	(void) strcpy(msg.msg, message_to_send);
+	//printf ("SoundEngine - sending back %s\n",msg.msg);
 
 	while((xx=msgsnd(msq_toclnt, &msg,strlen(msg.msg)+1,IPC_NOWAIT)) != 0);	
 	if (xx) {   /* Send to client */
 		printf ("SoundEngineServer - error sending ready msg\n");
 		exit(1);
 	}
+	//printf ("SoundEngine - sendT back %s\n",msg.msg);
 }
 
 int fromclnt () {
@@ -250,13 +267,14 @@ void process_command () {
 	float x,y,z; // temporary variables 
 	int a,b,c;   // temporary variables
 	char cp[310];    // temporary variable
+	double duration;
 
 	//printf ("processing %s\n",msg.msg);
 
 	if (strncmp ("REGS",msg.msg,4) == 0) {
 		// a REGISTER message
 		a=5; b=0; 
-		//printf ("register matched len %d, first start %c %c %c %c\n",strlen(msg.msg),
+		//printf ("REGS matched len %d, first start %c %c %c %c\n",strlen(msg.msg),
 		//		msg.msg[a],msg.msg[a+1], msg.msg[a+2], msg.msg[a+3]);
 		
 		
@@ -272,8 +290,11 @@ void process_command () {
 	
 		//printf ("registering source %d loop %d x %f y %f z %f name %s \n",a,b,x,y,z,cp);	
 
+		if (a > current_max) current_max = a;
+
 		// Can we open this sound file?
 
+		//printf ("REGS opening sound\n");
 		sndfile[a] = openSound(cp);
 
 		if (sndfile[a] == NULL) {
@@ -282,16 +303,18 @@ void process_command () {
 			// Copy over all of the temporary data to the correct place.
 			registered[a] = 1;     // is source registered? (boolean)
 			loop[a] = b;           // is this sound looped? (boolean)
-			pitch[a] = x;          // pitch of 1 = standard playback
-			startt[a] = y;         // start time
-			stopt[a] = z;          // stop time
+			sndfile[a]->pitch = x;          // pitch of 1 = standard playback
 			ampl[a] = 0.0;         // Gain of this sound
 			names[a] = malloc(strlen(cp)+2);
 			for (c=0; c<=strlen(cp); c++) {
 				names[a][c] = cp[c];
 			}
 		}
-		//printf ("REGS finished\n");
+
+		duration = (double) sndfile[a]->DataChunk.chunkSize / (double) sndfile[a]->FormatChunk.dwAvgBytesPerSec;
+
+		sprintf (cp, "REGS %d %f",a,(float)duration);
+		toclnt(cp);			/* Tell client we're ready */
 		
 	} else if (strncmp ("AMPL",msg.msg,4) == 0) {
 		// set amplitude for this sound source
@@ -303,8 +326,9 @@ void process_command () {
 
 		// Go through sounds, and find one with maximum gain to play.
 		x = 0.0;
-		for (b=0; b<MAXSOURCES; b++) {
-			if (registered[b] == 1) {
+		current_loudest = -1;
+		for (b=0; b<=current_max; b++) {
+			if ((registered[b] == 1) && (active[b] == 1)) {
 				if (ampl[b] > x) {
 					current_loudest = b; // the one with highest gain
 					x = ampl[b];
@@ -312,12 +336,25 @@ void process_command () {
 			}
 		}
 
-		// Now that we have found the loudest, play it
-		if (ampl[current_loudest] > 0.01) {
-			setMixerGain(ampl[current_loudest]);
-			playSound (current_loudest);
+		//printf ("AMPL recieved, current_loudest %d\n",current_loudest);
+		// Now that (if) we have found the loudest, play it
+		if (current_loudest >= 0) {
+			if (ampl[current_loudest] > 0.01) {
+				setMixerGain(ampl[current_loudest]);
+				playSound (current_loudest);
+			}
 		}
-
+	} else if (strncmp ("ACTV",msg.msg,4) == 0) {
+		// set this source to be active
+		sscanf (msg.msg,"ACTV %d %d",&a,&b);
+		if ((a>=0) && (a<MAXSOURCES)) {
+			active[a]=b;
+			if (b==1) {
+				// sound is becoming active
+				rewind_to_beginning (sndfile[a]);
+			}
+		}
+		//printf ("ACTV parsing, active%d now is %d from message %s\n",a,b,msg.msg);
 
 	} else {
 		printf ("SoundEngine - unknown message recieved\n");
@@ -335,11 +372,12 @@ int main(int argc,char **argv) {
 	// initiate tables
 	for (xx=0; xx<MAXSOURCES; xx++) {
 		registered[xx] = 0;
+		active[xx] = 0;
+		sndfile[xx] = NULL;
 	}
 
 
-	//printf ("Server - getting the client IPC from argv %s\n",
-	//		argv[0]);
+	//printf ("Server - getting the client IPC from argv %s\n", argv[0]);
 
 	if (!strncmp("INIT",argv[0],4)) {
 		sscanf (argv[0],"%s%d",msg.msg,&S_Server_IPC);
@@ -370,7 +408,7 @@ int main(int argc,char **argv) {
 			exit (0);
 		}
 		
-		//printf ("server, %d message %s\n",xx,msg.msg);
+		//printf ("server, got fromclnt %d message %s\n",xx,msg.msg);
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
 	closeMixer();
