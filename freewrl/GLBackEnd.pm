@@ -39,11 +39,14 @@ my $curcursor = 99;  # the last cursor change - force the cursor on startup
 sub set_best {
 	glShadeModel(&GL_SMOOTH);
 	VRML::VRMLFunc::set_divs(20,20);
+	VRML::VRMLFunc::set_smooth_normals(1);
+	
 }
 sub set_fast {
 	glShadeModel(&GL_FLAT);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	VRML::VRMLFunc::set_divs(8,8);
+	VRML::VRMLFunc::set_smooth_normals(0);
 }
 
 ####
