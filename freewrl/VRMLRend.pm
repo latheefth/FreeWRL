@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.7  2000/08/07 00:28:44  rcoscali
+# Removed debug macros and traces for sphere
+#
 # Revision 1.6  2000/08/06 22:55:17  rcoscali
 # Ok ! All is like it should be for 0.26
 # I tag the release as A_0_26
@@ -287,6 +290,7 @@ Sphere => 'int vdiv = vert_div;
 		       /* glPushAttrib(GL_LIGHTING); This does what? */
 			   /* glShadeModel(GL_SMOOTH); This makes a smoother shading */
 		}
+glShadeModel(GL_SMOOTH);
 		glScalef($f(radius), $f(radius), $f(radius));
 		glBegin(GL_QUAD_STRIP);
 		START_TRIG1
@@ -296,39 +300,28 @@ Sphere => 'int vdiv = vert_div;
 			UP_TRIG1
 			vsin2 = SIN1;
 			vcos2 = COS1;
-             printf("t_sa=%8.2g t_ca=%8.2g\n", t_sa, t_ca);
 			START_TRIG2
 			for(h=0; h<=hdiv; h++) {
 				float hsin1 = SIN2;
 				float hcos1 = COS2;
 				UP_TRIG2
-                printf("t2_sa=%8.2g t2_ca=%8.2g\n", t2_sa, t2_ca); 
-
-/* Round a tex coord just barely greater than 1 to 1 : Since we are 
-   counting modulo 1, we do not want 1 to become zero spuriously.
-*/
+/* 
+ * Round a tex coord just barely greater than 1 to 1 : Since we are 
+ * counting modulo 1, we do not want 1 to become zero spuriously.
+ */
 /* We really want something more rigorous here */
 #define MY_EPS 0.000001
 #define MOD_1(x) ( (x)<=1 ? (x) : ((x)<=(1.0+MY_EPS))? 1.0 : (x)-1.0 )
 
-/* That s the normal vector to the sphere *at the current point* */ 
-#define NORM_C1 	vsin2 * hcos1, vcos2, vsin2 * hsin1
-#define TEX_C1		MOD_1(h / hf), 2.0 * ((v + 1.0) / vf)
-#define VERT_C1		vsin2 * hcos1, vcos2, vsin2 * hsin1
-printf("%d(1): normal1 [%2.7f, %2.7f, %2.7f] \\t tex [%2.7f, %2.7f] \\t vertex [%2.7f, %2.7f, %2.7f]\\n",v, NORM_C1, TEX_C1, VERT_C1 );
+				glNormal3f(vsin2 * hcos1, vcos2, vsin2 * hsin1);
+				TC(MOD_1(h / hf), 2.0 * ((v + 1.0) / vf));
+				glVertex3f(vsin2 * hcos1, vcos2, vsin2 * hsin1);
 
-				glNormal3f(NORM_C1);
-				glTexCoord2f(TEX_C1);
-				glVertex3f(VERT_C1);
-
-#define NORM_C2 	vsin1 * hcos1, vcos1, vsin1 * hsin1
-#define TEX_C2		MOD_1(h / hf), 2.0 * (v/vf)
-#define VERT_C2		vsin1 * hcos1, vcos1, vsin1 * hsin1
-printf("%d(2): normal2 [%2.7f, %2.7f, %2.7f] \\t tex [%2.7f, %2.7f] \\t vertex [%2.7f, %2.7f, %2.7f]\\n\\n", h, NORM_C2, TEX_C2, VERT_C2 );
-
-				glNormal3f(NORM_C2); 
-				glTexCoord2f(TEX_C2);
-				glVertex3f(VERT_C2); 
+				glNormal3f(vsin1 * hcos1, vcos1, vsin1 * hsin1); 
+				TC(MOD_1(h / hf), 2.0 * (v/vf));
+				glVertex3f(vsin1 * hcos1, vcos1, vsin1 * hsin1); 
+#undef MOD_1
+#undef MY_EPS
 			}
 		}
 		glEnd();
