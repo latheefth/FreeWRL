@@ -367,6 +367,8 @@ static double ps2[5] = {
         fd_twoints un;
 	double z,r,s;
         int ix;
+
+	p = 0; q = 0; //JAS - compiler warnings
         un.d = x;
         ix = 0x7fffffff&__HI(un);
         if(ix>=0x40200000)     {p = pr8; q= ps8;}
@@ -505,6 +507,8 @@ static double qs2[6] = {
         fd_twoints un;
 	double  s,r,z;
 	int ix;
+
+	p = 0; q = 0; //JAS compiler warnings.
         un.d = x;
 	ix = 0x7fffffff&__HI(un);
 	if(ix>=0x40200000)     {p = qr8; q= qs8;}

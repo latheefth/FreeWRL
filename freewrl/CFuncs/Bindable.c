@@ -64,7 +64,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 
 	/* now, find the ones that are ok */
 	for (i = 0; i < node->type.n; i++) {
-		// get the string pointer
+		/*  get the string pointer */
 		typeptr = SvPV(svptr[i],xx);
 
 		if (strncmp(typeptr,"WALK",strlen("WALK")) == 0) {
@@ -92,7 +92,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 			Viewer.oktypes[WALK] = TRUE;
 			Viewer.oktypes[EXFLY] = TRUE;
 			Viewer.oktypes[FLY] = TRUE;
-			if (i==0) set_viewer_type (WALK); // just choose one
+			if (i==0) set_viewer_type (WALK); /*  just choose one */
 		}
 	}
 }
@@ -110,7 +110,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	char * nameptr;
 	unsigned int len;
 
-	//printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value);
+	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); */
 
 	if (nodetype == BACKGROUND) {
 		bg = (struct VRML_Background *) node;
@@ -191,7 +191,7 @@ void bind_node (void *node, unsigned int setBindofst,
 	isBoundptr = (unsigned int *) ((unsigned int) node + isboundofst);
 	oldstacktop = stack + *tos;
 
-	//printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
+	/* printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr); */
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
 	   is not a new push or pop */
@@ -228,7 +228,7 @@ void bind_node (void *node, unsigned int setBindofst,
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = (unsigned int *) (*oldstacktop + isboundofst);
 			*oldboundptr = 0;
-			 //printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
+			 /* printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop); */
 
 			/* tell the possible parents of this change */
 			update_node((void *) *oldstacktop);
@@ -247,10 +247,10 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		mark_event ((unsigned int) node, (unsigned int) isboundofst);
 
-		//printf ("old TOS is %d, we are %d\n",*oldstacktop, node);
+		/* printf ("old TOS is %d, we are %d\n",*oldstacktop, node); */
 		if ((unsigned int) node != *oldstacktop) return;
 
-		//printf ("ok, we were TOS, setting %d to 0\n",node);
+		/* printf ("ok, we were TOS, setting %d to 0\n",node); */
 
 
 		*tos = *tos - 1;
@@ -258,7 +258,7 @@ void bind_node (void *node, unsigned int setBindofst,
 		if (*tos >= 0) {
 			/* stack is not empty */
 			newstacktop = stack + *tos;
-			//printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);
+			/* printf ("   .... and we had a stack value; binding node %d\n",*newstacktop); */
 
 			/* set the popped value of isBound to true */
 			isBoundptr = (unsigned int *) (*newstacktop + isboundofst);
@@ -284,8 +284,8 @@ void render_Fog (struct VRML_Fog *node) {
 	char *fogptr;
 
 
-	//printf ("render_Fog, node %d isBound %d color %f %f %f set_bind %d\n",
-		//node, node->isBound, node->color.c[0],node->color.c[1],node->color.c[2],node->set_bind);
+	/* printf ("render_Fog, node %d isBound %d color %f %f %f set_bind %d\n",
+	node, node->isBound, node->color.c[0],node->color.c[1],node->color.c[2],node->set_bind); */
 
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
@@ -364,7 +364,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	unsigned int xx, yy;
 
 
-	//printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	/* printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind); */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		/* up_vector is reset after a bind */
@@ -385,7 +385,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 
 	/* is the position "compiled" yet? */
 	if (node->_change != node->_dlchange) {
-		//printf ("have to recompile position...\n");
+		/* printf ("have to recompile position...\n"); */
 		posnstring = SvPV(node->position,xx);
 		if (sscanf (SvPV(node->position,xx),"%f %f %f",&node->__position.c[0],
 			&node->__position.c[1], &node->__position.c[2]) != 3) {
@@ -427,7 +427,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 		fieldofview = a1/3.1415926536*180;
 	}
 	calculateFrustumCone();
-	//printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
+	/* printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
 void render_Viewpoint (struct VRML_Viewpoint *node) {
@@ -460,7 +460,7 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 		fieldofview = a1/3.1415926536*180;
 	}
 	calculateFrustumCone();
-	//printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView);
+	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
 void render_Background (struct VRML_Background *node) {
@@ -479,7 +479,7 @@ void render_Background (struct VRML_Background *node) {
 	int estq;
 	int actq;
 
-	 //printf ("RBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+	 /* printf ("RBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind); */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		bind_node (node,offsetof (struct VRML_Background,set_bind),
@@ -529,13 +529,14 @@ void render_Background (struct VRML_Background *node) {
 			estq += 40;
 		} else {
 			estq += (node->skyColor.n-1) * 20 + 20;
-			// attempt to find exact estimate, fails if no skyAngle, so
-			// simply changed above line to add 20 automatically.
-			//if ((node->skyColor.n >2) &&
-			//	(node->skyAngle.n > node->skyColor.n-2)) {
-			//	if (node->skyAngle.p[node->skyColor.n-2] < (PI-0.01))
-			//		estq += 20;
-			//}
+			/* attempt to find exact estimate, fails if no skyAngle, so
+			 simply changed above line to add 20 automatically.
+			if ((node->skyColor.n >2) &&
+				(node->skyAngle.n > node->skyColor.n-2)) {
+				if (node->skyAngle.p[node->skyColor.n-2] < (PI-0.01))
+					estq += 20;
+			}
+			*/
 		}
 
 		if(node->groundColor.n == 1) estq += 40;

@@ -223,7 +223,7 @@ resolve_pos(VRML_Viewer *viewer)
 		(examine->Origin).y = (viewer->Pos).y - viewer->Dist * rot.y;
 		(examine->Origin).z = (viewer->Pos).z - viewer->Dist * rot.z;
 
-		// printf ("examine origin = %f %f %f\n",examine->Origin.x,examine->Origin.y,examine->Origin.z);
+		/* printf ("examine origin = %f %f %f\n",examine->Origin.x,examine->Origin.y,examine->Origin.z);*/
 	}
 }
 
@@ -539,31 +539,6 @@ handle_tick_exfly()
 }
 
 
-//Added Dec 15/04 M. Ward
-/**********************************************
-*Name: handle_tick_exin
-*Function: this is a direct access function to let me change the viewer position directly
-* with data from the external inputs(the ascension or polhemus at least)
-*I/O: takes a pointer to a list of data, returns nothing
-*************************************************/
-
-/*JAS
-void handle_tick_exin ( float *data ) {
-
-  viewer_type = EXFLY;
-
-  (Viewer.Pos).x = data[0];
-  (Viewer.Pos).y = data[1];
-  (Viewer.Pos).z = data[2];
-  //quaternion data
-  (Viewer.Quat).w = data[3];
-  (Viewer.Quat).x = data[4];
-  (Viewer.Quat).y = data[5];
-  (Viewer.Quat).z = data[6];
-
-}
-*/
-
 void
 set_action(char *key)
 {
@@ -638,7 +613,7 @@ handle_tick_fly()
 	for (i = 0; i < KEYS_HANDLED; i++) {
 		(ps[i]).hit += (fly->WasDown[i]).hit;
 		(fly->WasDown[i]).hit = 0;
-	} //JAS - MW lost this one.
+	} 
 
 	memset(translate, 0, sizeof(int) * COORD_SYS);
 	memset(rotate, 0, sizeof(int) * COORD_SYS);
@@ -659,7 +634,7 @@ handle_tick_fly()
 			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
 		}
 		changed += fly->Velocity[i];
-	//printf ("vel %d %f\n",i,fly->Velocity[i]);
+	/* printf ("vel %d %f\n",i,fly->Velocity[i]); */
 	}
 
 	v.x = fly->Velocity[0] * time_diff;
@@ -676,7 +651,7 @@ handle_tick_fly()
 			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
 		}
 		changed += fly->AVelocity[i];
-	//printf ("avel %d %f\n",i,fly->AVelocity[i]);
+	/* printf ("avel %d %f\n",i,fly->AVelocity[i]); */
 	}
 
 	nq.x = fly->AVelocity[0];
@@ -686,9 +661,6 @@ handle_tick_fly()
 
 	set(&q_v, &(Viewer.Quat));
 	multiply(&(Viewer.Quat), &nq, &q_v);
-
-    //JAS - MW added one here. }
-
 }
 
 void

@@ -858,6 +858,8 @@ static double ulp(double x)
     register Long L;
     double a;
 
+	a = 0.0; /* JAS - compile warnings */
+
     L = (word0(x) & Exp_mask) - (P-1)*Exp_msk1;
 #ifndef Sudden_Underflow
     if (L > 0) {
@@ -893,6 +895,8 @@ static double b2d(Bigint *a, int32 *e)
 #define set_d0(x) set_word0(d, x)
 #define set_d1(x) set_word1(d, x)
 
+
+	d = 0.0; /* JAS compile warnings */
     xa0 = a->x;
     xa = xa0 + a->wds;
     y = *--xa;
@@ -1094,6 +1098,7 @@ JS_strtod(CONST char *s00, char **se, int *err)
     if (!initialized) InitDtoa();
 #endif
 
+ rv0 = 0.0; /* JAS compile warnings */
     *err = 0;
 
 	bb = bd = bs = delta = NULL;
@@ -1898,6 +1903,7 @@ JS_dtoa(double d, int mode, JSBool biasUp, int ndigits,
     double d2, ds, eps;
     char *s;
 
+	mlo = 0; /* JAS compile warnings */
 #ifdef JS_THREADSAFE
     if (!initialized) InitDtoa();
 #endif

@@ -98,6 +98,7 @@ static double zero  =  0.00000000000000000000e+00;
     /* J(-n,x) = (-1)^n * J(n, x), J(n, -x) = (-1)^n * J(n, x)
      * Thus, J(-n,x) = J(n,-x)
      */
+	temp = 0.0; //JAS  compiler warnings
         u.d = x;
 	hx = __HI(u);
 	ix = 0x7fffffff&hx;
@@ -258,6 +259,7 @@ static double zero  =  0.00000000000000000000e+00;
 	int sign;
 	double a, b, temp;
 
+	temp = 0.0; //JAS compiler warnings
         u.d = x;
 	hx = __HI(u);
 	ix = 0x7fffffff&hx;

@@ -140,6 +140,7 @@ static double zero = 0.0;
 	int k,hx,hu,ax;
         fd_twoints un;
 
+	c = 0.0; f = 0.0; hu = 0; /* JAS compile warnings */
         un.d = x;
 	hx = __HI(un);		/* high word of x */
 	ax = hx&0x7fffffff;
@@ -192,8 +193,9 @@ static double zero = 0.0;
 	}
 	hfsq=0.5*f*f;
 	if(hu==0) {	/* |f| < 2**-20 */
-	    if(f==zero) if(k==0) return zero;
+	    if(f==zero) {if(k==0) return zero;
 			else {c += k*ln2_lo; return k*ln2_hi+c;}
+			}
 	    R = hfsq*(1.0-0.66666666666666666*f);
 	    if(k==0) return f-R; else
 	    	     return k*ln2_hi-((R-(k*ln2_lo+c))-f);

@@ -1,8 +1,8 @@
 /* headers for EAI and java CLASS invocation */
 
-#define MAXEAIHOSTNAME	255		// length of hostname on command line
-#define EAIREADSIZE	2048		// maximum we are allowed to read in from socket
-#define EAIBASESOCKET   9877		// socket number to start at
+#define MAXEAIHOSTNAME	255		/* length of hostname on command line */
+#define EAIREADSIZE	2048		/* maximum we are allowed to read in from socket */
+#define EAIBASESOCKET   9877		/* socket number to start at */
 
 
 /* these are commands accepted from the EAI client */

@@ -62,25 +62,14 @@ do_Oint3(void *node);
 void
 do_Oint4(void *node);
 
-//void do_CollisionTick(struct VRML_Collision *cx);
-//void do_AudioTick(struct VRML_AudioClip *node);
-//void do_TimeSensorTick(struct VRML_TimeSensor *node);
-//void do_ProximitySensorTick(struct VRML_ProximitySensor *node);
-//void do_MovieTextureTick(struct VRML_MovieTexture *node);
 void do_CollisionTick(void *ptr);
 void do_AudioTick(void *ptr);
 void do_TimeSensorTick(void *ptr);
 void do_ProximitySensorTick(void *ptr);
 void do_MovieTextureTick(void *ptr);
 
-//void do_Anchor(struct VRML_Anchor *node, int typ, int over);
 void do_Anchor( void *ptr, int typ, int over);
-//void do_TouchSensor(struct VRML_TouchSensor *px, int typ, int over);
 void do_TouchSensor( void *ptr, int typ, int over);
-//void do_GeoTouchSensor(struct VRML_GeoTouchSensor *px, int typ, int over);
-//void do_PlaneSensor(struct VRML_PlaneSensor *px, int typ, int over);
-//void do_CylinderSensor(struct VRML_CylinderSensor *px, int typ, int over);
-//void do_SphereSensor(struct VRML_SphereSensor *px, int typ, int over);
 void do_GeoTouchSensor(void *ptr, int typ, int over);
 void do_PlaneSensor(void *ptr, int typ, int over);
 void do_CylinderSensor(void *ptr, int typ, int over);

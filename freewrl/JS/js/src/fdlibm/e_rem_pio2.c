@@ -125,6 +125,8 @@ pio2_3t =  8.47842766036889956997e-32; /* 0x397B839A, 0x252049C1 */
 	double tx[3];
 	int e0,i,j,nx,n,ix,hx;
 
+
+	z = 0.0; //JAS - compiler warnings.
         u.d = x;
 	hx = __HI(u);		/* high word of x */
 	ix = hx&0x7fffffff;

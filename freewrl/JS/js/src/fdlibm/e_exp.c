@@ -144,6 +144,7 @@ P5   =  4.13813679705723846039e-08; /* 0x3E663769, 0x72BEA4D0 */
 	int k, xsb;
 	unsigned hx;
 
+	hi = 0.0; lo = 0.0; k = 0.0; // JAS - compiler warnings.
         u.d = x;
 	hx  = __HI(u);	/* high word of x */
 	xsb = (hx>>31)&1;		/* sign bit of x */

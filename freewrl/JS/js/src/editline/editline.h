@@ -128,3 +128,9 @@ extern int	strlen();
 extern int	strncmp();
 #endif	/* !defined(HAVE_STDLIB) */
 
+// JAS - get rid of compile warnings.
+#include <sys/types.h>
+#include <unistd.h>
+
+
+

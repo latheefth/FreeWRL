@@ -11,7 +11,7 @@
 
 #include "Structs.h"
 
-// from the vrml.conf file...
+/* from the vrml.conf file... */
 #include "vrmlconf.h"
 
 #include "LinearAlgebra.h"
@@ -341,7 +341,7 @@ void render_polyrep(void *node,
         int ntexcoords, struct SFVec2f *texcoords);
 
 
-extern int CRoutesExtra;		// let EAI see param of routing table - Listener data.
+extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
 
 unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 
@@ -352,7 +352,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define	PERLSCRIPT	3
 #define SHADERSCRIPT	4
 
-//printf is defined by perl; causes segfault in threaded freewrl
+/* printf is defined by perl; causes segfault in threaded freewrl */
 #ifdef printf
 #undef printf
 #endif
@@ -408,15 +408,15 @@ extern void setStereoParameter (char *optArg);
 extern void setEyeDist (char *optArg);
 
 extern int isPerlinitialized(void);
-extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; // defined in VRMLC.pm
-extern char *lastReadFile; 		// name last file read in
-extern int display_status;		// toggle status bar - defined in VRMLC.pm
-extern int be_collision;		// toggle collision detection - defined in VRMLC.pm
-extern double hpdist;			// in VRMLC.pm
-extern struct pt hp;			// in VRMLC.pm
-extern void *hypersensitive; 		// in VRMLC.pm
-extern int hyperhit;			// in VRMLC.pm
-extern struct pt r1, r2;		// in VRMLC.pm
+extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; /* defined in VRMLC.pm */
+extern char *lastReadFile; 		/* name last file read in */
+extern int display_status;		/* toggle status bar - defined in VRMLC.pm */
+extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */
+extern double hpdist;			/* in VRMLC.pm */
+extern struct pt hp;			/* in VRMLC.pm */
+extern void *hypersensitive; 		/* in VRMLC.pm */
+extern int hyperhit;			/* in VRMLC.pm */
+extern struct pt r1, r2;		/* in VRMLC.pm */
 extern struct sCollisionInfo CollisionInfo;
 extern struct currayhit rh,rph,rhhyper;
 extern int smooth_normals;
@@ -532,12 +532,11 @@ void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (unsigned rc, unsigned newNode);
-//added M. Ward Dec 13/04
+/* added M. Ward Dec 13/04 */
 void make_text(struct VRML_Text *this_ );
 void make_elevationgrid(struct VRML_ElevationGrid *this_);
 void make_extrusion(struct VRML_Extrusion *this_);
 void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
-//void mark_event (unsigned int from, unsigned int totalptr);
 
 
 

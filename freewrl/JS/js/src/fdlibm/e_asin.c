@@ -109,6 +109,7 @@ qS4 =  7.70381505559019352791e-02; /* 0x3FB3B8C5, 0xB12E9282 */
         fd_twoints u;
 	double w,t,p,q,c,r,s;
 	int hx,ix;
+	t = 0.0; //JAS - compiler warning.
         u.d = x;
 	hx = __HI(u);
         x = u.d;

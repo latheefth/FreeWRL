@@ -134,6 +134,7 @@ static	double	one	= 1.0, tiny=1.0e-300;
 	unsigned r,t1,s1,ix1,q1;
 	int ix0,s0,q,m,t,i;
 
+	z = 0.0; //JAS - compiler warnings
         u.d = x;
 	ix0 = __HI(u);			/* high word of x */
 	ix1 = __LO(u);		/* low word of x */

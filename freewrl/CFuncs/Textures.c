@@ -126,7 +126,7 @@ int isTextureinitialized() {
 
 /* statusbar uses this to tell user that we are still loading */
 int isTextureParsing() {
-	//return currentlyWorkingOn>=0;
+	/* return currentlyWorkingOn>=0; */
 	if (TexVerbose) printf ("call to isTextureParsing, returning %d\n",textureInProcess > 0);
 	return textureInProcess >0;
 }
@@ -189,14 +189,14 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 /* load in a texture, if possible */
 void loadImageTexture (struct VRML_ImageTexture *node) {
 	if (node->_ichange != node->_change) {
-		// force a node reload - make it a new texture. Don't change
-		// the parameters for the original number, because if this
-		// texture is shared, then ALL references will change! so,
-		// we just accept that the current texture parameters have to
-		// be left behind.
+		/* force a node reload - make it a new texture. Don't change
+		 the parameters for the original number, because if this
+		 texture is shared, then ALL references will change! so,
+		 we just accept that the current texture parameters have to
+		 be left behind. */
 		node->_ichange = node->_change;
-		freeTexture(&(node->__texture)); // this will cause bind_image to create a
-				     // new "slot" for this texture
+		freeTexture(&(node->__texture)); /* this will cause bind_image to create a
+				     	 new "slot" for this texture */
 	}
 
 	bind_image(IMAGETEXTURE, node->__parenturl,
@@ -208,14 +208,14 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 void loadPixelTexture (struct VRML_PixelTexture *node) {
 	struct Multi_String mynull;
 	if (node->_ichange != node->_change) {
-		// force a node reload - make it a new texture. Don't change
-		// the parameters for the original number, because if this
-		// texture is shared, then ALL references will change! so,
-		// we just accept that the current texture parameters have to
-		// be left behind.
+		/* force a node reload - make it a new texture. Don't change
+		 the parameters for the original number, because if this
+		 texture is shared, then ALL references will change! so,
+		 we just accept that the current texture parameters have to
+		 be left behind. */
 		node->_ichange = node->_change;
-		freeTexture(&(node->__texture)); // this will cause bind_image to create a
-				     // new "slot" for this texture
+		freeTexture(&(node->__texture)); /* this will cause bind_image to create a
+				     		 new "slot" for this texture */
 	}
 	bind_image(PIXELTEXTURE, node->image,
 		mynull,
@@ -236,18 +236,18 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 
 	if (node->_ichange != node->_change) {
 		node->_change = node->_ichange;
-		// did the URL's change? we can't test for _change here, because
-		// movie running will change it, so we look at the urls.
+		/*  did the URL's change? we can't test for _change here, because
+		   movie running will change it, so we look at the urls. */
 		if ((node->url.p) != (node->__oldurl.p)) {
-			// we have a node change - is this an initial load, or
-			// a reload?
+			/*  we have a node change - is this an initial load, or
+			 a reload? */
 			if (firsttex > 0) {
-				// we have changed the url - reload it all.
+				/*  we have changed the url - reload it all. */
 				isloaded[firsttex] = NOTLOADED;
 				loadparams[firsttex].filename="uninitialized file";
 				loadparams[firsttex].depth = 0;
-				freeTexture(&(node->__texture0_)); // this will cause bind_image to create a
-				freeTexture(&(node->__texture1_)); // this will cause bind_image to create a
+				freeTexture(&(node->__texture0_)); /* this will cause bind_image to create a */
+				freeTexture(&(node->__texture1_)); /* this will cause bind_image to create a */
 				node->__ctex = 0;
 				node->__inittime = 0;
 				node->__sourceNumber = -1;
@@ -509,7 +509,8 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	}
 
 	/* is this one bad? */
-	if (isloaded[*texture_num] == INVALID) { //freeTexture(texture_num);
+	if (isloaded[*texture_num] == INVALID) { 
+				/* freeTexture(texture_num); */
 				textureInProcess = -1;
 				return; }
 
@@ -624,21 +625,21 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		int a,b,c;
 		char *name;
 
-		//printf ("findTextureFile, going to get name \n");
+		/* printf ("findTextureFile, going to get name \n"); */
 		name = SvPV(loadparams[*texnum].parenturl,xx);
 		filename = (char *)malloc(100);
 
-		//printf ("in find, name %s strlen %d\n",name,strlen(name));
+		/* printf ("in find, name %s strlen %d\n",name,strlen(name)); */
 		/* make up a checksum name */
 		b = 0;
 		c = strlen(name);
-		if (c > 3000) c = 3000; // lets hope this is unique in 3000 characters
+		if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
 		for (a=0; a<c; a++) {
 			b =  b + (int) (name[a] & 0xff);
 		}
 
 		sprintf (filename,"PixelTexture_%d_%d",c,b);
-		//printf ("temp name is %s\n",filename);
+		/* printf ("temp name is %s\n",filename); */
 	} else {
 
 		/* lets make up the path and save it, and make it the global path */
@@ -712,7 +713,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 			*/
 
 			freeTexture(texnum);
-			//isloaded[*texnum]=INVALID;
+			/* isloaded[*texnum]=INVALID; */
 			loadparams[*texnum].filename="Duplicate Filename";
 
 			free (filename);
@@ -833,13 +834,13 @@ void __reallyloadPixelTexture() {
 	if ((SvFLAGS(loadparams[currentlyWorkingOn].parenturl) & SVf_POK) == 0) {
 		printf ("this one is going to fail\n");
 		freeTexture(loadparams[currentlyWorkingOn].texture_num);
-		//isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+		/* isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
 		return;
 	}
 
 	/* ok - we have a valid Perl pointer, go for it. */
 	tptr = (unsigned char *)SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
-	//printf ("PixelTextures, string now is %s\n",tptr);
+	/* printf ("PixelTextures, string now is %s\n",tptr); */
 
 	while (isspace(*tptr))tptr++;
 	ok = TRUE;
@@ -867,7 +868,7 @@ void __reallyloadPixelTexture() {
 			if (tptr == endptr) {
 				printf("PixelTexture: expected %d pixels, got %d\n",(int)(wid*hei),count);
 				freeTexture(loadparams[currentlyWorkingOn].texture_num);
-				//isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+				/* isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
 				break;
 			} else { tptr = endptr; }
 
@@ -882,16 +883,16 @@ void __reallyloadPixelTexture() {
 					   break;
 				   }
 				case 3: {
-					   texture[tctr++] = (inval>>16) & 0xff; //R
-					   texture[tctr++] = (inval>>8) & 0xff;	 //G
-					   texture[tctr++] = (inval>>0) & 0xff; //B
+					   texture[tctr++] = (inval>>16) & 0xff; /*R*/
+					   texture[tctr++] = (inval>>8) & 0xff;	 /*G*/
+					   texture[tctr++] = (inval>>0) & 0xff; /*B*/
 					   break;
 				   }
 				case 4: {
-					   texture[tctr++] = (inval>>24) & 0xff; //A
-					   texture[tctr++] = (inval>>16) & 0xff; //R
-					   texture[tctr++] = (inval>>8) & 0xff;	 //G
-					   texture[tctr++] = (inval>>0) & 0xff; //B
+					   texture[tctr++] = (inval>>24) & 0xff; /*A*/
+					   texture[tctr++] = (inval>>16) & 0xff; /*R*/
+					   texture[tctr++] = (inval>>8) & 0xff;	 /*G*/
+					   texture[tctr++] = (inval>>0) & 0xff; /*B*/
 					   break;
 				   }
 			}
@@ -909,7 +910,7 @@ void __reallyloadPixelTexture() {
 	} else {
 		printf ("PixelTexture, invalid height, width, or depth\n");
 		freeTexture(loadparams[currentlyWorkingOn].texture_num);
-		//isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID;
+		/*isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
 	}
 
 	if (TexVerbose) printf ("end of reallyloadPixelTextures\n");
@@ -961,7 +962,7 @@ my_error_exit (j_common_ptr cinfo)
 
  	/* Always display the message. */
   	/* We could postpone this until after returning, if we chose. */
-  	//JAS (*cinfo->err->output_message) (cinfo);
+  	/* JAS (*cinfo->err->output_message) (cinfo); */
 
  	/* Return control to the setjmp point */
   	longjmp(myerr->setjmp_buffer, 1);
@@ -1020,7 +1021,7 @@ void __reallyloadImageTexture() {
 			jpeg_destroy_compress((j_compress_ptr)&cinfo);
 			fclose (infile);
 			freeTexture(&texture_num);
-			//isloaded[texture_num] = INVALID;
+			/* isloaded[texture_num] = INVALID; */
 			return;
 		}
 
@@ -1031,7 +1032,7 @@ void __reallyloadImageTexture() {
 		jpeg_stdio_src(&cinfo, infile);
 
 		/* Read file header, set default decompression parameters */
-		//(void) jpeg_read_header(&cinfo, TRUE);
+		/* (void) jpeg_read_header(&cinfo, TRUE); */
 		tempInt = jpeg_read_header(&cinfo, TRUE);
 
 
@@ -1063,7 +1064,7 @@ void __reallyloadImageTexture() {
 
 		if (jpeg_finish_decompress(&cinfo) != TRUE) {
 			printf("warning: jpeg_finish_decompress error\n");
-			//isloaded[texture_num] = INVALID;
+			/* isloaded[texture_num] = INVALID; */
 			freeTexture(&texture_num);
 		}
 		jpeg_destroy_decompress(&cinfo);
@@ -1078,7 +1079,7 @@ void __reallyloadImageTexture() {
 	} else {
 		if (rc != 0) {
 		freeTexture(&texture_num);
-		//isloaded[texture_num] = INVALID;
+		/* isloaded[texture_num] = INVALID; */
 		switch (rc) {
 			case 1:
 				printf("[%s] is not a PNG file: incorrect signature\n", filename);

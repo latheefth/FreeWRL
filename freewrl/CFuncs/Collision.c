@@ -102,8 +102,8 @@ int intersect_segment_with_line_on_yplane(struct pt* pk, struct pt p1, struct pt
 
     /* if(q2.x == 0 && q2.z == 0.) */
     if(APPROX(q2.x, 0) && APPROX(q2.z, 0)) {
-	//degenerate case.
-	//it fits our objective to simply specify a random line.
+	/* degenerate case.
+	it fits our objective to simply specify a random line. */
 	q2.x = 1;
 	q2.y = 0;
 	q2.z = 0;
@@ -248,7 +248,7 @@ int perpendicular_line_passing_inside_poly(struct pt a,struct pt* p, int num) {
     struct pt epsilon; /* computationnal trick to handle points directly on plane. displace them. */
     /* if(vecnormal(&n,&a) == 0) */
     if(APPROX(vecnormal(&n,&a), 0)) {
-	//happens when polygon plane passes through origin
+	/* happens when polygon plane passes through origin */
 	return 0;
     }
     make_orthogonal_vector_space(&i,&j,n);
@@ -311,7 +311,7 @@ int getk_intersect_segment_with_ycylinder(double* k1, double* k2, double r, stru
     if(*k1 >= 0. && *k1 <= 1.) res++;
     if(*k2 >= 0. && *k2 <= 1.) res++;
     if(res == 1 && (*k1 < 0. || *k1 > 1.)) swap(*k1,*k2);
-//    if(res == 2 && sqrdelta == 0.) res = 1;
+/*    if(res == 2 && sqrdelta == 0.) res = 1; */
 
     return res;
 }
@@ -368,7 +368,7 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,ppoly[i],ppoly[(i+1)%num]);
 	    switch(nsect) {
 	    case 2:
-		if(fabs(k1-k2) < FLOAT_TOLERANCE) // segment touches edge of circle. we want to ignore this.
+		if(fabs(k1-k2) < FLOAT_TOLERANCE) /* segment touches edge of circle. we want to ignore this. */
 		    break;
 		DEBUGPTSPRINT("intersect_segment_cap(%f)_2= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k2);
@@ -388,7 +388,7 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,dessect[0],dessect[1]);
 	    switch(nsect) {
 	    case 2:
-		if(fabs(k1-k2) < FLOAT_TOLERANCE) // segment touches edge of circle. we want to ignore this.
+		if(fabs(k1-k2) < FLOAT_TOLERANCE) /* segment touches edge of circle. we want to ignore this. */
 		    break;
 		DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_2= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k2);
@@ -406,7 +406,7 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 }
 
 
-//yes, global. for speed optimizations.
+/* yes, global. for speed optimizations. */
 
 double get_poly_mindisp;
 
@@ -746,7 +746,7 @@ struct pt get_poly_min_disp_with_sphere(double r, struct pt* p, int num, struct 
 	}
     }
     if(get_poly_mindisp <= r*r) {
-	// scale result to length of missing distance.
+	/*  scale result to length of missing distance. */
 	double rl;
 	rl = veclength(result);
 	/* if(rl != 0.) */
@@ -802,7 +802,7 @@ int helper_line_clip_cap(struct pt* clippedpoly, int clippedpolynum, struct pt p
 	nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,ppoly[0],ppoly[1]);
 	switch(nsect) {
 	case 2:
-	    if(fabs(k1-k2) < FLOAT_TOLERANCE) // segment touches edge of circle. we want to ignore this.
+	    if(fabs(k1-k2) < FLOAT_TOLERANCE) /* segment touches edge of circle. we want to ignore this. */
 		break;
 	    clippedpoly[clippedpolynum++] = weighted_sum(ppoly[0],ppoly[1],k2);
 	case 1:
@@ -1019,7 +1019,7 @@ struct pt get_point_disp(double y1, double y2, double ystep, double r, struct pt
 	nsect = getk_intersect_line_with_ycylinder(&k1, &k2, r, p1, n);
 	if(nsect != 0) {
 	    /*sect = p1 + k2 n*/
-	    if(k2 >= 0) return zero; //wrong direction. we are out.
+	    if(k2 >= 0) return zero; /* wrong direction. we are out. */
 	    vecscale(&result,&n,k2);
 	    cp = result;
 	    VECADD(cp,p1);
@@ -1060,10 +1060,10 @@ struct pt box_disp(double y1, double y2, double ystep, double r,struct pt p0, st
     VECADD(p[1],i);
     VECADD(p[2],j);
     VECADD(p[3],k);
-    VECADD(p[4],i); VECADD(p[4],j); VECADD(p[4],k); //p[4]= i+j+k
-    VECADD(p[5],k); VECADD(p[5],i); //p[6]= k+i
-    VECADD(p[6],j); VECADD(p[6],k); //p[5]= j+k
-    VECADD(p[7],i); VECADD(p[7],j); //p[7]= i+j
+    VECADD(p[4],i); VECADD(p[4],j); VECADD(p[4],k); /*p[4]= i+j+k */
+    VECADD(p[5],k); VECADD(p[5],i); /*p[6]= k+i */
+    VECADD(p[6],j); VECADD(p[6],k); /*p[5]= j+k */
+    VECADD(p[7],i); VECADD(p[7],j); /*p[7]= i+j */
 
     /*compute normals, in case of perfectly orthogonal box, a shortcut exists*/
     veccross(&n[0],j,i);

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.165  2005/03/22 13:25:24  crc_canada
+# compile warnings reduced.
+#
 # Revision 1.164  2005/03/21 13:39:04  crc_canada
 # change permissions, remove whitespace on file names, etc.
 #
@@ -734,7 +737,7 @@ CODE:
 
 sub get_rendfunc {
 	my($n) = @_;
-	print "RENDF $n ";
+	#JAS print "RENDF $n ";
 	# XXX
 	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light Get3 Get2
 		Changed Proximity Collision/;
@@ -746,7 +749,7 @@ static struct VRML_Virt virt_${n} = { ".
 	for(@f) {
 		my $c =${$_."C"}{$n};
 		next if !defined $c;
-		print "$_ (",length($c),") ";
+		#JAS print "$_ (",length($c),") ";
 		# Substitute field gets
 
 		$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
@@ -769,7 +772,7 @@ static struct VRML_Virt virt_${n} = { ".
 			{$c}
 			}";
 	}
-	print "\n";
+	#JAS print "\n";
 	return ($f,$v);
 }
 

@@ -57,7 +57,7 @@ void sortChildren (struct Multi_Node ch) {
 	int noswitch;
 	struct VRML_Box *a, *b, *c;
 
-	//printf ("have to sort %d, nc %d\n",this_, nc);
+	/* printf ("have to sort %d, nc %d\n",this_, nc); */
 	/* simple, inefficient bubble sort */
 	/* this is a fast sort when nodes are already sorted;
 	   may wish to go and "QuickSort" or so on, when nodes
@@ -65,17 +65,17 @@ void sortChildren (struct Multi_Node ch) {
 	   have to be totally reversed) */
 
 	nc = ch.n;
-	//printf ("sortChildren, have %d children\n",nc);
+	/* printf ("sortChildren, have %d children\n",nc); */
 
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
-			//printf ("comparing %d %d\n",i,j);
+			/* printf ("comparing %d %d\n",i,j); */
 			a = (struct VRML_Box *)ch.p[j-1];
 			b = (struct VRML_Box *)ch.p[j];
 
 			if (a->_dist > b->_dist) {
-				//printf ("have to switch %d %d\n",i,j);
+				/* printf ("have to switch %d %d\n",i,j); */
 				c = a;
 				ch.p[j-1] = b;
 				ch.p[j] = c;
@@ -87,10 +87,10 @@ void sortChildren (struct Multi_Node ch) {
 			break;
 		}
 	}
-	//for(i=0; i<nc; i++) {
-	//	b = ch.p[i]);
-	//	printf ("child %d %d %f\n",i,b,b->_dist);
-	//}
+	/* for(i=0; i<nc; i++) {
+		b = ch.p[i]);
+		printf ("child %d %d %f\n",i,b,b->_dist);
+	} */
 }
 
 /* this grouping node has a DirectionalLight for a child, render this first */
@@ -117,8 +117,8 @@ void normalChildren(struct Multi_Node ch) {
 		/* Hmm - how much time does this consume? */
 		/* Not that much. */
 		if(v->rend != DirectionalLight_Rend) {
-//		printf ("normalchildren, child %d, piv %d\n",p,p->PIV);
-//			if ((p->PIV) > 0)
+		/* printf ("normalchildren, child %d, piv %d\n",p,p->PIV); */
+/*			if ((p->PIV) > 0) */
 				render_node(p);
 		}
 	}
@@ -134,7 +134,7 @@ void groupingChild (struct VRML_Group *this_) {
 	if(ChildVerbose) VerboseStart ("GROUP", (struct VRML_Box *)this_, nc);
 
 	/* should we go down here? */
-	//printf ("Group, rb %x VF_B %x, flags %x\n",render_blend, VF_Blend, this_->_renderFlags);
+	/* printf ("Group, rb %x VF_B %x, flags %x\n",render_blend, VF_Blend, this_->_renderFlags); */
 	if (render_blend == VF_Blend)
 		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
 			if(ChildVerbose) VerboseEnd ("GROUP");
@@ -157,10 +157,10 @@ void groupingChild (struct VRML_Group *this_) {
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		//if (ChildVerbose)
-		//	printf ("GroupingChild, this is %d, extent %f %f %f\n",
-		//	this_, this_->_extent[0], this_->_extent[1],
-		//	this_->_extent[2]);
+		if (ChildVerbose)
+			printf ("GroupingChild, this is %d, extent %f %f %f\n",
+			this_, this_->_extent[0], this_->_extent[1],
+			this_->_extent[2]);
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
@@ -219,8 +219,8 @@ void transformChild (struct VRML_Transform *this_) {
 	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct VRML_Box *)this_, nc);
 
 	/* should we go down here? */
-	//printf("transformChild %d render_blend %x renderFlags %x\n",
-	//		this_, render_blend, this_->_renderFlags);
+	/* printf("transformChild %d render_blend %x renderFlags %x\n",
+			this_, render_blend, this_->_renderFlags); */
 	if (render_blend == VF_Blend)
 		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
 			if(ChildVerbose) VerboseEnd ("TRANSFORM");
@@ -245,8 +245,8 @@ void transformChild (struct VRML_Transform *this_) {
 
 	/* now, just render the non-directionalLight children */
 
-	//printf ("Transform %d, flags %d, render_sensitive %d\n",
-	//		this_,this_->_renderFlags,render_sensitive);
+	/* printf ("Transform %d, flags %d, render_sensitive %d\n",
+			this_,this_->_renderFlags,render_sensitive); */
 
 	normalChildren(this_->children);
 #ifdef BOUNDINGBOX
@@ -254,10 +254,10 @@ void transformChild (struct VRML_Transform *this_) {
 #endif
 
 	if (render_geom && (!render_blend)) {
-		//if (ChildVerbose)
-		//	printf ("TransformChild, this is %d, extent %f %f %f\n",
-		//	this_, this_->_extent[0], this_->_extent[1],
-		//	this_->_extent[2]);
+		if (ChildVerbose)
+			printf ("TransformChild, this is %d, extent %f %f %f\n",
+			this_, this_->_extent[0], this_->_extent[1],
+			this_->_extent[2]);
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
@@ -297,9 +297,9 @@ void anchorChild (struct VRML_Anchor *this_) {
 	normalChildren(this_->children);
 
 	if (render_geom && (!render_blend)) {
-		//printf ("anchorChild, this is %d, extent %f %f %f\n",
-		//this_, this_->_extent[0], this_->_extent[1],
-		//this_->_extent[2]);
+		/* printf ("anchorChild, this is %d, extent %f %f %f\n",
+		this_, this_->_extent[0], this_->_extent[1],
+		this_->_extent[2]); */
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
@@ -329,13 +329,13 @@ void geolocationChild (struct VRML_GeoLocation *this_) {
 	normalChildren(this_->children);
 
 	if (render_geom && (!render_blend)) {
-		//printf ("geoLocationChild, this is %d, extent %f %f %f\n",
-		//this_, this_->_extent[0], this_->_extent[1],
-		//this_->_extent[2]);
-		//this_->bboxSize.c[0] = this_->_extent[0];
-		//this_->bboxSize.c[1] = this_->_extent[1];
-		//this_->bboxSize.c[2] = this_->_extent[2];
-		//BoundingBox(this_->bboxCenter,this_->bboxSize);
+		/* printf ("geoLocationChild, this is %d, extent %f %f %f\n", 
+		this_, this_->_extent[0], this_->_extent[1],
+		this_->_extent[2]); */
+		/*this_->bboxSize.c[0] = this_->_extent[0];
+		this_->bboxSize.c[1] = this_->_extent[1];
+		this_->bboxSize.c[2] = this_->_extent[2];
+		BoundingBox(this_->bboxCenter,this_->bboxSize); */
 	}
 
 	/* did we have that directionalLight? */
@@ -366,9 +366,9 @@ void inlineChild (struct VRML_Inline *this_) {
 	normalChildren(this_->__children);
 
 	if (render_geom && (!render_blend)) {
-		//printf ("inlineChild, this is %d, extent %f %f %f\n",
-		//this_, this_->_extent[0], this_->_extent[1],
-		//this_->_extent[2]);
+		/* printf ("inlineChild, this is %d, extent %f %f %f\n",
+		this_, this_->_extent[0], this_->_extent[1],
+		this_->_extent[2]); */
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
@@ -422,9 +422,9 @@ void inlinelodChild (struct VRML_InlineLoadControl *this_) {
 	normalChildren(this_->children);
 
 	if (render_geom && (!render_blend)) {
-		//printf ("inlineLODChild, this is %d, extent %f %f %f\n",
-		//this_, this_->_extent[0], this_->_extent[1],
-		//this_->_extent[2]);
+		/* printf ("inlineLODChild, this is %d, extent %f %f %f\n",
+		this_, this_->_extent[0], this_->_extent[1],
+		this_->_extent[2]); */
 		this_->bboxSize.c[0] = this_->_extent[0];
 		this_->bboxSize.c[1] = this_->_extent[1];
 		this_->bboxSize.c[2] = this_->_extent[2];
@@ -458,7 +458,7 @@ void lodChild (struct VRML_LOD *this_) {
 	/* calculate which one to display - only do this once per eventloop. */
 	if (render_geom && (!render_blend)) {
 		fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-		//printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]);
+		/* printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]); */
 		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 		gluUnProject(0,0,0,mod,proj,viewport,
 			&vec.x,&vec.y,&vec.z);
@@ -499,10 +499,10 @@ void collisionChild(struct VRML_Collision *this_) {
 				   OldCollisionInfo.Offset.y)) ||
 			   (!APPROX(CollisionInfo.Offset.z,
 				    OldCollisionInfo.Offset.z))) {
-			// old code was:
-			//if(CollisionInfo.Offset.x != OldCollisionInfo.Offset.x ||
-			 //  CollisionInfo.Offset.y != OldCollisionInfo.Offset.y ||
-			  // CollisionInfo.Offset.z != OldCollisionInfo.Offset.z) {
+			/* old code was:
+			if(CollisionInfo.Offset.x != OldCollisionInfo.Offset.x ||
+			   CollisionInfo.Offset.y != OldCollisionInfo.Offset.y ||
+			   CollisionInfo.Offset.z != OldCollisionInfo.Offset.z) { */
 				/*collision occured
 				 * bit 0 gives collision, bit 1 gives change */
 				this_->__hit = (this_->__hit & 1) ? 1 : 3;
@@ -528,9 +528,9 @@ void collisionChild(struct VRML_Collision *this_) {
 		normalChildren(this_->children);
 
 		if (render_geom && (!render_blend)) {
-			//printf ("collisionChild, this is %d, extent %f %f %f\n",
-			//this_, this_->_extent[0], this_->_extent[1],
-			//this_->_extent[2]);
+			/* printf ("collisionChild, this is %d, extent %f %f %f\n",
+			this_, this_->_extent[0], this_->_extent[1],
+			this_->_extent[2]); */
 			this_->bboxSize.c[0] = this_->_extent[0];
 			this_->bboxSize.c[1] = this_->_extent[1];
 			this_->bboxSize.c[2] = this_->_extent[2];
@@ -558,13 +558,12 @@ void update_renderFlag(void *ptr, int flag) {
 	int i;
 
 	/* send notification up the chain */
-	//printf ("start of update_RenderFlag for %d parents %d\n",p,
-	//		p->_nparents);
+	/* printf ("start of update_RenderFlag for %d parents %d\n",p, p->_nparents); */
 	p->_renderFlags = p->_renderFlags | flag;
 
 	for (i = 0; i < p->_nparents; i++) {
-		//printf ("node %d has %d for a parent\n",p,p->_parents[i]);
+		/* printf ("node %d has %d for a parent\n",p,p->_parents[i]); */
 		update_renderFlag(p->_parents[i],flag);
 	}
-	//printf ("finished update_RenderFlag for %d\n",p);
+	/* printf ("finished update_RenderFlag for %d\n",p); */
 }

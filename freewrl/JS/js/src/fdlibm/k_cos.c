@@ -105,6 +105,7 @@ C6  = -1.13596475577881948265e-11; /* 0xBDA8FAE9, 0xBE8838D4 */
 	double a,hz,z,r,qx;
 	int ix;
         u.d = x;
+	qx = 0.0; //JAS - compiler warning.
 	ix = __HI(u)&0x7fffffff;	/* ix = |x|'s high word*/
 	if(ix<0x3e400000) {			/* if x < 2**27 */
 	    if(((int)x)==0) return one;		/* generate inexact */

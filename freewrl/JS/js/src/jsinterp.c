@@ -1202,6 +1202,9 @@ js_Interpret(JSContext *cx, jsval *result)
     JSPropertyOp getter, setter;
 #endif
 
+
+	sp = 0; /* JAS compile warnings */
+	id = 0; /* JAS compile warnings */
     *result = JSVAL_VOID;
     rt = cx->runtime;
 

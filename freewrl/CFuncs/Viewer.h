@@ -149,7 +149,7 @@ typedef struct viewer {
 	double eyehalf;
 	double eyehalfangle;
 	unsigned int buffer;
-	int oktypes[6];		//boolean for types being acceptable.
+	int oktypes[6];		/* boolean for types being acceptable. */
 	VRML_Viewer_Walk *walk;
 	VRML_Viewer_Examine *examine;
 	VRML_Viewer_Fly *fly;
@@ -229,9 +229,6 @@ handle_tick_exfly();
 void
 handle_tick_fly();
 
-//Added M. Ward Dec 15/04
-void handle_tick_exin( float *data );
-
 void
 set_action(char *key);
 
@@ -250,7 +247,7 @@ bind_viewpoint(struct VRML_Viewpoint *node);
 void
 bind_geoviewpoint(struct VRML_GeoViewpoint *node);
 
-extern VRML_Viewer Viewer; //in VRMLC.pm
+extern VRML_Viewer Viewer; /* in VRMLC.pm */
 
 void viewer_default(void);
 

@@ -5,8 +5,8 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-extern int GeoSys;      		// which GeoSystem is parsed from the last GeoOrigin
-extern double GeoOrig[3];               // last GeoOrigin parsed in lat/long/elvation format
+extern int GeoSys;      		/* which GeoSystem is parsed from the last GeoOrigin */
+extern double GeoOrig[3];               /* last GeoOrigin parsed in lat/long/elvation format */
 
 
 /* geoSystem field is encoded as:
