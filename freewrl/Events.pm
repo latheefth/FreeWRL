@@ -214,8 +214,13 @@ sub propagate_events {
 						print "Events.pm:while:ARRAYVAL: @{$e->[2]}\n";
 					}
 				}
-				# don't send same event again
-				next if($sent{$e->[0]}{$e->[1]}++);
+				#AK The following line of code causes problems when a node
+				#AK ($e->[0]) needs to have more than one event processed
+				#AK for a given EventsProcessed. This causes problems with
+				#AK Script nodes in particular since they may have any
+				#AK number of event types.
+				#AK # don't send same event again
+				#AK next if($sent{$e->[0]}{$e->[1]}++);
 
 				# now send it! JAS.
 				my $sub;
