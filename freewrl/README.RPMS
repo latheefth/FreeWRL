@@ -28,7 +28,13 @@ for us, ok? :-)
 	look in /usr/lib/perl5/site_perl/5.6.1/i386-linux/VRML
 	and /usr/lib/perl5/site_perl/5.6.1/i386-linux/auto/VRML.
 
-	if your machine still has perl 5.6.0; try moving these
-	directories from the 5.6.1 path to 5.6.0.
+	if your machine still has perl 5.6.0; either:
+	  - try moving these directories from the 5.6.1 path to 5.6.0.
+	  - or, uncomment the "push" line in freewrl.PL and re-make.
+
+	
+	We are always interested in hearing of ways of getting FreeWRL
+	running on different machines; please email John Stewart
+	at freewrl-1@rogers.com with any suggestions.
 
 
