@@ -160,7 +160,7 @@ void IFS_face_normals (
 		
 				//printf ("vector length is %f\n",calc_vector_length (facenormals[i])); 
 		
-				if (fabs(calc_vector_length (facenormals[i])) < 0.0001) {
+				if (fabs(calc_vector_length (facenormals[i])) < 0.00001) {
 					AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
 					BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
 					/* printf ("AC %f ",AC);
