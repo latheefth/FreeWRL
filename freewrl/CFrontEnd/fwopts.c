@@ -41,7 +41,6 @@ XVisualInfo *vi;
 	Window win;
 	GLXContext cx;
 #endif
-unsigned int width, height;
 char renderer[256];	/* what device are we using? */
 int screen;
 int modeNum;
@@ -49,7 +48,6 @@ int bestMode;
 int quadbuff_stereo_mode;
 unsigned int borderDummy;
 int glwinx, glwiny;
-unsigned int glwinwidth, glwinheight, glwindepth;
 int i;
 int dpyWidth, dpyHeight;
 
@@ -136,15 +134,16 @@ int  default_attributes3[] =
 
 // Function prototypes
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
+void setGeometry (char *gstring);
 
+static int xPos = 0;
+static int yPos = 0;
+static int Wwidth = 300;
+static int Wheight = 200;
 
 void openMainWindow (unsigned *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
-	int	x = 10;
-	int	y = 10;
-	int	w = 300;
-	int	h = 200;
 	int	pw = 0; 
 	int	fullscreen = 0;
 	int	shutter = 0;
@@ -243,7 +242,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	if(!pwin){pwin=RootWindow(dpy, vi->screen);}
 		
 
-	if (x>=0) {
+	if (Wwidth>=0) {
 		XTextProperty textpro;
 		if (fullscreen == 1) {
 			win = XCreateWindow(dpy, pwin, 
@@ -260,7 +259,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 			
 		} else {
 			win = XCreateWindow(dpy, pwin, 
-				x, y, w, h, 0, vi->depth, InputOutput, 
+				xPos, yPos, Wwidth, Wheight, 0, vi->depth, InputOutput, 
 				vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
 
 			/* create window and icon name */
@@ -399,4 +398,12 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    }
    free(attrib_mem);
    return(NULL);
+}
+
+
+void setGeometry (char *gstring) {
+	int c;
+
+printf ("setGeometry, string %s\n",gstring);
+	c = sscanf(gstring,"%dx%d+%d+%d",&Wwidth,&Wheight,&xPos,&yPos);
 }

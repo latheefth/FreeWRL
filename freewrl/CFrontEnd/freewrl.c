@@ -52,6 +52,7 @@ extern void new_tessellation(void);
 extern char *BrowserURL;
 extern produceTask(unsigned a,char *b,unsigned ptr, unsigned ofs);
 extern PerlInterpreter *my_perl;
+extern void setGeometry (char *optarg);
 
 int main (int argc, char **argv) {
 	int retval;
@@ -67,7 +68,7 @@ int main (int argc, char **argv) {
 			{"version", 0, 0, 'x'},
 			{"fullscreen", 0, 0, 'x'},
 			{"plugin", 1, 0, 'x'},
-			{"geometry", 1, 0, 'x'},
+			{"geometry", 1, 0, 'g'},
 			{"parent", 1, 0, 'x'},
 			{"seq", 0, 0, 'x'},
 			{"seqb",1, 0, 'x'},
@@ -106,6 +107,11 @@ int main (int argc, char **argv) {
 			case 'h':
 				printf ("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
 				printf ("   type \"man freewrl\" to view man pages\n\n");
+				break;
+
+			case 'g':
+				printf ("Geometry selected, with arg: %s\n",optarg);
+				setGeometry(optarg);
 				break;
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */
