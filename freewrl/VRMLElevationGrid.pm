@@ -71,6 +71,9 @@ $fv_null(texCoord, texcoords, get2, &ntexcoords);
 /* Render_Polyrep will use this number of triangles */
 rep_->ntri = ntri;
 
+/* ccw or not? */
+rep_->ccw = 1;
+
 if(nf != nx * nz) {
 	die("Elevationgrid: too many / too few: %d %d %d\\n",
 		nf, nx, nz);

@@ -64,12 +64,6 @@ int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 	printf ("	min points per face %d\n\n",min_points_per_face);
 	*/
 	
-
-	/* bounds check  XXX should free all mallocd memory */	
-	if (min_points_per_face < 3) { 
-		printf ("have an IFS with a face with too few vertex\n"); 
-		return(0);
-	}
 	if (faces < 1) {
 		printf("an IndexedFaceSet with no faces found\n");
 		return (0);
@@ -85,6 +79,7 @@ int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 
 void IFS_face_normals (
 	struct pt *facenormals,
+	int *faceok,
 	int *pointfaces,
 	int faces, 
 	int npoints,
@@ -102,76 +97,105 @@ void IFS_face_normals (
 	float a[3]; float b[3];
 
 	tmp_a = 0;
+
+
+	// Assume each face is ok for now
 	for(i=0; i<faces; i++) {
-		/* check for degenerate triangles -- if found, try to select another point */
-		tmp_c = FALSE;
-		pt_1 = tmp_a; 
-		if (ccw) {
-			pt_2 = tmp_a+1; pt_3 = tmp_a+2;
+		faceok[i] = TRUE;
+	}
+
+	// calculate normals for each face
+	for(i=0; i<faces; i++) {
+		if (tmp_a >= cin-2) {
+			printf ("last face in IFS has not enough vertexes\n");
+			faceok[i] = FALSE;
 		} else {
-			pt_3 = tmp_a+1; pt_2 = tmp_a+2;
-		}
-
-		do {	
-			/* first three coords give us the normal */
-			c1 = &(points[this_IFS->coordIndex.p[pt_1]]);
-			c2 = &(points[this_IFS->coordIndex.p[pt_2]]); 
-			c3 = &(points[this_IFS->coordIndex.p[pt_3]]);
-
-			a[0] = c2->c[0] - c1->c[0];
-			a[1] = c2->c[1] - c1->c[1];
-			a[2] = c2->c[2] - c1->c[2];
-			b[0] = c3->c[0] - c1->c[0];
-			b[1] = c3->c[1] - c1->c[1];
-			b[2] = c3->c[2] - c1->c[2];
-
-			facenormals[i].x = a[1]*b[2] - b[1]*a[2];
-			facenormals[i].y = -(a[0]*b[2] - b[0]*a[2]);
-			facenormals[i].z = a[0]*b[1] - b[0]*a[1];
-
-			/* printf ("vector length is %f\n",calc_vector_length (facenormals[i])); */
-
-			if (fabs(calc_vector_length (facenormals[i])) < 0.0001) {
-				AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
-				BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
-				/* printf ("AC %f ",AC);
-				printf ("BC %f \n",BC); */
-
-				/* we have 3 points, a, b, c */
-				/* we also have 3 vectors, AB, AC, BC */
-				/* find out which one looks the closest one to skip out */
-				/* either we move both 2nd and 3rd points, or just the 3rd */
-				if (fabs(AC) < fabs(BC)) { pt_2++; }
-				pt_3++;
-
-				/* skip forward to the next couple of points - if possible */
-				/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
-				tmp_a ++;
-				if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
-					/* printf ("possible degenerate triangle, but no more points\n"); */
-					/* put values in there so normals will work out */
-					if (fabs(calc_vector_length (facenormals[i])) < 0.0000001) {
-						/* we would have a divide by zero in normalize_vector, so... */
-						facenormals[i].z = 1.0;
-					}
-					tmp_c = TRUE;  tmp_a +=2;
-				}
+			/* does this face have at least 3 vertexes? */
+			if ((this_IFS->coordIndex.p[tmp_a] == -1) ||
+			    (this_IFS->coordIndex.p[tmp_a+1] == -1) ||
+			    (this_IFS->coordIndex.p[tmp_a+2] == -1)) {
+				printf ("have a face with two or less vertexes\n");
+				faceok[i] = FALSE;
 			} else {
-				tmp_c = TRUE;
-				tmp_a +=3;
+	
+				
+				/* check for degenerate triangles -- if found, try to select another point */
+				tmp_c = FALSE;
+				pt_1 = tmp_a; 
+				if (ccw) {
+					//printf ("IFS face normals CCW\n");
+					pt_2 = tmp_a+1; pt_3 = tmp_a+2;
+				} else {
+					//printf ("IFS face normals *NOT* CCW\n");
+					pt_3 = tmp_a+1; pt_2 = tmp_a+2;
+				}
+		
+				do {	
+					/* first three coords give us the normal */
+					c1 = &(points[this_IFS->coordIndex.p[pt_1]]);
+					c2 = &(points[this_IFS->coordIndex.p[pt_2]]); 
+					c3 = &(points[this_IFS->coordIndex.p[pt_3]]);
+		
+					a[0] = c2->c[0] - c1->c[0];
+					a[1] = c2->c[1] - c1->c[1];
+					a[2] = c2->c[2] - c1->c[2];
+					b[0] = c3->c[0] - c1->c[0];
+					b[1] = c3->c[1] - c1->c[1];
+					b[2] = c3->c[2] - c1->c[2];
+		
+					facenormals[i].x = a[1]*b[2] - b[1]*a[2];
+					facenormals[i].y = -(a[0]*b[2] - b[0]*a[2]);
+					facenormals[i].z = a[0]*b[1] - b[0]*a[1];
+		
+					//printf ("vector length is %f\n",calc_vector_length (facenormals[i])); 
+		
+					if (fabs(calc_vector_length (facenormals[i])) < 0.0001) {
+						AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
+						BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
+						/* printf ("AC %f ",AC);
+						printf ("BC %f \n",BC); */
+		
+						/* we have 3 points, a, b, c */
+						/* we also have 3 vectors, AB, AC, BC */
+						/* find out which one looks the closest one to skip out */
+						/* either we move both 2nd and 3rd points, or just the 3rd */
+						if (fabs(AC) < fabs(BC)) { pt_2++; }
+						pt_3++;
+		
+						/* skip forward to the next couple of points - if possible */
+						/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
+						tmp_a ++;
+						if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
+							/* printf ("possible degenerate triangle, but no more points\n"); */
+							/* put values in there so normals will work out */
+							if (fabs(calc_vector_length (facenormals[i])) < 0.0000001) {
+								/* we would have a divide by zero in normalize_vector, so... */
+								facenormals[i].z = 1.0;
+		
+								// Mark this face to be bad
+								faceok[i] = FALSE;
+							}
+							tmp_c = TRUE;  tmp_a +=2;
+						}
+					} else {
+						tmp_c = TRUE;
+						tmp_a +=3;
+					}
+		
+				} while (!tmp_c);
+		
+				normalize_vector(&facenormals[i]);
+				
+				/*printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+					c1->c[0],c1->c[1],c1->c[2],
+					c2->c[0],c2->c[1],c2->c[2],
+					c3->c[0],c3->c[1],c3->c[2]);
+				printf ("normal %f %f %f\n\n",facenormals[i].x,
+					facenormals[i].y,facenormals[i].z);
+				*/
+				
 			}
-
-		} while (!tmp_c);
-
-		normalize_vector(&facenormals[i]);
-		/*
-		printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
-			c1->c[0],c1->c[1],c1->c[2],
-			c2->c[0],c2->c[1],c2->c[2],
-			c3->c[0],c3->c[1],c3->c[2]);
-		printf ("normal %f %f %f\n\n",facenormals[i].x,
-			facenormals[i].y,facenormals[i].z);
-		*/
+		}
 
 		/* skip forward to next ifs - we have the normal */
 		if (i<faces-1) {
@@ -195,8 +219,12 @@ void IFS_face_normals (
 		if (tmp_a == -1) {
 			facectr++;
 		} else {
-			tmp_a*=POINT_FACES;
-			add_to_face (tmp_a,facectr,pointfaces);
+			if (faceok[facectr]) {
+				tmp_a*=POINT_FACES;
+				add_to_face (tmp_a,facectr,pointfaces);
+			} else {
+			//	printf ("skipping add_to_face for invalid face %d\n",facectr);
+			}
 		}
 	}
 
@@ -278,21 +306,27 @@ void IFS_check_normal (
 	struct pt *facenormals,
 	int this_face, 
 	struct SFColor *points, int base,
-	struct VRML_IndexedFaceSet *this_IFS) {
+	struct VRML_IndexedFaceSet *this_IFS, int ccw) {
 
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
 
-	/*	
-	printf ("IFS_check_normal, base %d points %d %d %d\n",base, global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
-	printf ("normal was %f %f %f\n\n",facenormals[this_face].x,
-		facenormals[this_face].y,facenormals[this_face].z);
-	*/	
+		
+	//printf ("IFS_check_normal, base %d points %d %d %d\n",base, 
+	//	global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
+	//printf ("normal was %f %f %f\n\n",facenormals[this_face].x,
+	//	facenormals[this_face].y,facenormals[this_face].z);
+		
 	
 	/* first three coords give us the normal */
 	c1 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[0]]]);
-	c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]); 
-	c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
+	if (ccw) {
+		c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]); 
+		c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
+	} else {
+		c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]); 
+		c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
+	}
 
 	a[0] = c2->c[0] - c1->c[0];
 	a[1] = c2->c[1] - c1->c[1];
@@ -308,19 +342,20 @@ void IFS_check_normal (
 	//printf ("vector length is %f\n",calc_vector_length (facenormals[this_face])); 
 
 	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
-		printf ("warning: Tesselated surface has invalid normal - if this is an IndexedFaceSet, check coordinates of ALL faces\n");
-	}
+		//printf ("warning: Tesselated surface has invalid normal - if this is an IndexedFaceSet, check coordinates of ALL faces\n");
+	} else {
 
-	normalize_vector(&facenormals[this_face]);
+		normalize_vector(&facenormals[this_face]);
 	
-	/*	
-	printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
-		c1->c[0],c1->c[1],c1->c[2],
-		c2->c[0],c2->c[1],c2->c[2],
-		c3->c[0],c3->c[1],c3->c[2]);
-	printf ("normal %f %f %f\n\n",facenormals[this_face].x,
-		facenormals[this_face].y,facenormals[this_face].z);
-	*/
+		
+		//printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+		//	c1->c[0],c1->c[1],c1->c[2],
+		//	c2->c[0],c2->c[1],c2->c[2],
+		//	c3->c[0],c3->c[1],c3->c[2]);
+		//printf ("normal %f %f %f\n\n",facenormals[this_face].x,
+		//	facenormals[this_face].y,facenormals[this_face].z);
+	}
+	
 }
 
 
@@ -727,6 +762,13 @@ void render_polyrep(void *node,
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 		glEnable(GL_COLOR_MATERIAL);
+	}
+
+	// clockwise or not?
+	if (r->ccw) { 
+		glFrontFace(GL_CCW);
+	} else {
+		glFrontFace(GL_CW);
 	}
 
 	glBegin(GL_TRIANGLES);

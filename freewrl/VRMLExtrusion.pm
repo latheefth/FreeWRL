@@ -256,6 +256,8 @@ if(!$f(convex)) {
 /************************************************************************
  * prepare for filling *rep
  */
+
+rep_->ccw = 1;
  
 rep_->ntri = ntri + nctri;	/* Thats the no. of triangles representing
 				the whole Extrusion Shape.		*/
