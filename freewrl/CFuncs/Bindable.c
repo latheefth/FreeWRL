@@ -43,7 +43,8 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
         	naviinfo.height = node->avatarSize.p[1];
         	naviinfo.step = node->avatarSize.p[2];
 	}
-	set_headlight(&Viewer,node->headlight);
+        Viewer.headlight = node->headlight;
+        Viewer.speed = node->speed;
 }
 
 
