@@ -883,6 +883,7 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 	struct SFColor dee, arr, cp, dot;
 	float deelen, aay, bee, cee, und, sol, cl, an;
 	Quaternion q, q2, q_r;
+	double s1,s2,s3,s4;
 
 	UNUSED(over);
 
@@ -980,35 +981,25 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 			for (tmp=0; tmp<3;tmp++) {
 				cp.c[tmp] = cp.c[tmp]/cl;
 			}
-
 			memcpy ((void *)&node->trackPoint_changed, 
 				(void *)&arr, sizeof (struct SFColor));
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_SphereSensor, trackPoint_changed));
 
-/* 			# print "QNEW: @cp, $an (R: $r)\n"; */
-/* 			my $q = */
-/* 				VRML::Quaternion->new_vrmlrot(@cp, -$an); */
 			vrmlrot_to_quaternion(&q, cp.c[0], cp.c[1], cp.c[2], -an);
-
-/* 			# print "QNEW2: @$of\n"; */
-/* 			my $q2 = */
-/* 				VRML::Quaternion->new_vrmlrot(@$of); */
 			vrmlrot_to_quaternion(&q2,
 								  (node->offset).r[0],
 								  (node->offset).r[1],
 								  (node->offset).r[2],
 								  (node->offset).r[3]);
-
-/* 			$f->{rotation_changed} = */
-/* 				$q->multiply($q2)->to_vrmlrot(); */
-
 			multiply(&q_r, &q, &q2);
-			quaternion_to_vrmlrot(&q_r,
-								  (double *) &((node->rotation_changed).r[0]),
-								  (double *) &((node->rotation_changed).r[1]),
-								  (double *) &((node->rotation_changed).r[2]),
-								  (double *) &((node->rotation_changed).r[3]));
+
+			/* calculate VRML rotation; note we have pointers to doubles, but rotation is float */
+			quaternion_to_vrmlrot(&q_r,&s1,&s2,&s3,&s4);
+			node->rotation_changed.r[0] = s1;
+			node->rotation_changed.r[1] = s2;
+			node->rotation_changed.r[2] = s3;
+			node->rotation_changed.r[3] = s4;
 
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_SphereSensor, rotation_changed));
