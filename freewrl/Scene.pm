@@ -40,7 +40,8 @@ sub TIEHASH {
 	bless \$node, $type;
 }
 
-{my %DEREF = map {($_=>1)} qw/VRML::IS/;
+{
+my %DEREF = map {($_=>1)} qw/VRML::IS/;
 my %REALN = map {($_=>1)} qw/VRML::DEF VRML::USE/;
 sub FETCH {
 	my ($this, $k) = @_;
@@ -206,14 +207,14 @@ sub new {
 	my ($type, $name, $node) = @_;
 	my $this = bless {
 		Name => $name,
-		Node => $node,		
+		Node => $node
 	}, $type;
 	return $this;
 }
 
 sub copy {
 	my ($this, $node) = @_;
-	(ref $this)->new($this->{Name}, $this->{Node}->copy($node));
+	return (ref $this)->new($this->{Name}, $this->{Node}->copy($node));
 }
 
 sub make_executable {
@@ -228,30 +229,8 @@ sub make_backend {
 		VRML::Node::dump_name($this->{Node}), " ", ref $this->{Node},"\n" 
 		if $VRML::verbose::be;
 
-	# original code - use for now!
+	# use the node's make_backend
 	return $this->{Node}->make_backend($be, $parentbe);
-
-	if (0) {
-	# never reached
-	## print "DEF::make_backend $_[0] $_[0][0] ", VRML::Node::dump_name($_[0][1]),
-		## " ", ref $_[0][1],"\n";
-	## print "\$_[0][1]->{DEFBackEnd}: $_[0][1]->{DEFBackEnd} vs.\n";
-	## print "\$_[0][1]->make_backend(\$_[1],\$_[2]): $ret_val\n";
-	
-	# never reached
-	## my $retval = {};
-	## my $ref = \$_[0];
-	## my $ref2 = \$_[0][1];
-	## bless $retval, ref $_[0][1];
-
-	## print "my ref is $$ref ,",ref $$ref,", ref of d0 is ", $_[0]," , ",ref $_[0],"\n";
-	## print "my ref is $$ref2 ,",ref $$ref2,", ref of d01 is ", $_[0][1]," , ",ref $_[0][1],"\n";
-
-	#return  $$ref2->make_backend($_[1], $_[2]);
-
-	#$retval = $$ref2->make_backend($_[1], $_[2]);
-	#return $retval;
-	}
 }
 
 sub iterate_nodes {
@@ -265,7 +244,7 @@ sub name {
 	return $this->{Name};
 }
 
-sub def {
+sub node {
 	my ($this) = @_;
 	return $this->{Node};
 }
@@ -313,7 +292,7 @@ sub dump {
 	my $padded = pack("A$lp","$level ");
 
 	print $padded,"VRML::DEF, name is ", $this->{Name}," def is ",
-		VRML::Node::dump_name($this->def),"\n";
+		VRML::Node::dump_name($this->node),"\n";
 	my $real =  $this->get_ref();
 	$real->dump($level+1);
 }
@@ -334,77 +313,75 @@ sub new {
 }
 
 sub copy {
-	my ($this) = @_;
-	(ref $this)->new($this->{DEFName}, $this->{DEFNode});
+    my ($this) = @_;
+    (ref $this)->new($this->{DEFName}, $this->{DEFNode});
 }
 
 ## null procedure
 sub make_executable {}
 
 sub set_used {
-	my ($this, $node) = @_;
-	$this->{DEFNode} = $node;
+    my ($this, $name, $node) = @_;
+    $this->{DEFName} = $name;
+    $this->{DEFNode} = $node;
 }
 
 sub make_backend {
-	my ($this, $be, $parentbe) = @_;
-	print "USE::make_backend $this $this->{DEFName} ",
-		VRML::Node::dump_name($this->{DEFNode}), "\n" 
-		if $VRML::verbose::be;
+    my ($this, $be, $parentbe) = @_;
+    print "USE::make_backend $this $this->{DEFName} ",
+	VRML::Node::dump_name($this->{DEFNode}), "\n" 
+	    if $VRML::verbose::be;
 
-	## original code - use for now!
+    if ($this->{DEFNode}{BackNode}) {
+	print "Using $this->{DEFName}'s BackNode.\n"
+	    if $VRML::verbose::be;
+	return $this->{DEFNode}{BackNode};
+    } else {
+	print "No BackNode associated with $this->{DEFNode}{TypeName}.\n"
+	    if $VRML::verbose::be;
+	## original code
 	return $this->{DEFNode}->make_backend($be, $parentbe);
-	
-	if (0) {
-	## never reached
-	## print "ref $_[0] ", ref $_[0], ref $_[0][0], ref $_[0][1],"\n";
-	## print "USE::make_backend, looking at ", $_[0][1],"\n";
-	## foreach (keys %{$_[0][1]}) {
-		## print "\t$_, $_[0][1]->{$_}\n";
-	##}
-
-	## return $_[0][1]{DEFBackEnd};				
-	}
+    }
 }
 
 sub iterate_nodes {
-	my ($this, $sub, $parent) = @_;
-	&$sub($this, $parent);
+    my ($this, $sub, $parent) = @_;
+    &$sub($this, $parent);
 }
 
 sub name {
-	my ($this) = @_;
-	return $this->{DEFName};
+    my ($this) = @_;
+    return $this->{DEFName};
 }
 
 sub real_node { 
-	my ($this, $obj) = @_;
-	# ok - the following conventions/params are here...
-	#
-	# appearance DEF Grey Appearance 
-	#	{ material Material 
-	#		{ emissiveColor .2 .2 .2 specularColor 1.0 0 0 } 
-	#	}
-	#
-	# $_ is the "name" of the DEF... eg, "appearance".
-	# $this is a "use" hash, defined and blessed. It contains...
-	# $this->{DEFName} name. In this case, "Grey".
-	# $this->{DEFNode} the node for the definition. 
-	# $this->{Scene} the original scene for the definition,
-	#	which doesn't appear anywhere in this package at the moment.
+    my ($this, $obj) = @_;
+    # ok - the following conventions/params are here...
+    #
+    # appearance DEF Grey Appearance 
+    #	{ material Material 
+    #		{ emissiveColor .2 .2 .2 specularColor 1.0 0 0 } 
+    #	}
+    #
+    # $_ is the "name" of the DEF... eg, "appearance".
+    # $this is a "use" hash, defined and blessed. It contains...
+    # $this->{DEFName} name. In this case, "Grey".
+    # $this->{DEFNode} the node for the definition. 
+    # $this->{Scene} the original scene for the definition,
+    #	which doesn't appear anywhere in this package at the moment.
 
-	# print "(a)in real_node $_ in VRML::USE, ", $_[0], $_[0]->as_string(),"\n";
-	# print "(Name)                       ", $_[0][0], "\n";
-	# print "(Node)                       ", $_[0][1], "\n";
-	# print "ref of Node is               ", ref($_[0][1]), "\n";
+    # print "(a)in real_node $_ in VRML::USE, ", $_[0], $_[0]->as_string(),"\n";
+    # print "(Name)                       ", $_[0][0], "\n";
+    # print "(Node)                       ", $_[0][1], "\n";
+    # print "ref of Node is               ", ref($_[0][1]), "\n";
 
-	return $this->{DEFNode}->real_node($obj); 
+    return $this->{DEFNode}->real_node($obj); 
 }
 
 
 sub get_ref {
-	my ($this) = @_;
-	return $this->{DEFNode};
+    my ($this) = @_;
+    return $this->{DEFNode};
 }
 
 sub initialize {()}
@@ -629,6 +606,12 @@ sub new {
 		Fields => $fields,
 		EventModel => $eventmodel,
 		Scene => $scene,
+		BackNode => undef,
+		BackEnd => undef,
+		RFields => undef,
+		IsProto => undef,
+		IsDEF => 0,
+		Type => undef
     }, $type;
     tie %rf, VRML::FieldHash, $this;
     $this->{RFields} = \%rf;
@@ -638,8 +621,9 @@ sub new {
 	$this->{IsProto} = 1;
 	$this->{Type} = $scene->get_proto($this->{TypeName});
 	print "new Node ", VRML::Node::dump_name($this), 
-	    "of type $ntype is a proto, type is ",VRML::Node::dump_name($this->{Type}),"\n"
-		 if $VRML::verbose::nodec;
+	    "of type $ntype is a proto, type is ",
+	    	VRML::Node::dump_name($this->{Type}),"\n"
+		 		if $VRML::verbose::nodec;
     } else {
 	# REGULAR
 	$this->{Type} = $t;
@@ -828,7 +812,7 @@ sub copy {
 	$new->{Fields}{$_} = ccopy($v, $scene);
     }
     $new->{Scene} = $scene;
-    return bless $new,ref $this;
+    return bless $new, ref $this;
 }
 
 sub iterate_nodes {
@@ -950,9 +934,9 @@ sub set_backend_fields {
     for (@fields) {
 	my $v = $this->{RFields}{$_};
 	print "SBEF: ",VRML::Node::dump_name($this)," $_ '",
-	    ("ARRAY" eq ref $v ? (join ' ,',@$v) : $v), "' \n"
+	    ("ARRAY" eq ref $v ? (join ', ', @$v) : $v), "' \n"
 		if $VRML::verbose::be && $_ ne "__data";
-
+	
 	if ($this->{Type}{FieldTypes}{$_} =~ /SFNode$/) {
 	    print "SBEF: SFNODE\n" if $VRML::verbose::be;
 	    $f{$_} = $v->make_backend($be);
@@ -1150,6 +1134,12 @@ sub new {
 	my $this = bless {
 		EventModel => $eventmodel,
 		URL => $url,
+		Routes => undef,
+		DelRoutes => undef,
+		RootNode => undef,
+		Nodes => undef,
+		SubScenes => undef,
+		DEF => undef
 	}, $type;
 	print "Newscene $this, $eventmodel, $url\n" 
 		if $VRML::verbose::scene;
@@ -1441,9 +1431,9 @@ sub new_def {
 
 sub new_use {
 	my ($this, $name) = @_;
-	# print "new_use for $name required\n";
-	## return VRML::USE->new($name, VRML::Handles::get($this->{TmpDef}{$name}));
-	return VRML::USE->new($name, VRML::Handles::get($this->{DEF}{$name}));
+    
+	return VRML::USE->new($name,
+		(VRML::Handles::get($this->{DEF}{$name}))->{Node});
 }
 
 sub new_is {
@@ -1805,23 +1795,24 @@ sub make_executable {
 		});
 	}
 
-	# Step 3) Gather all 'DEF' statements
+
+	# Step 3) Gather all 'DEF' statements and update
 	my %DEF;
 	$this->iterate_nodes(sub {
 		return unless (ref $_[0] eq "VRML::DEF");
 		print "FOUND DEF ($this, $_[0]) ", $_[0]->name,"\n" 
 			if $VRML::verbose::scene;
-		$DEF{$_[0]->name} = $_[0]->def;
+		$DEF{$_[0]->name} = $_[0];
 	});
+	
 
-	# Step 4) Set all USEs
+	# Step 4) Update all USEs
 	$this->iterate_nodes(sub {
 		return unless ref $_[0] eq "VRML::USE";
 		print "FOUND USE ($this, $_[0]) ", $_[0]->name,"\n"
 			if $VRML::verbose::scene;
-		$_[0]->set_used($DEF{$_[0]->name});
+		$_[0]->set_used($_[0]->name, $DEF{$_[0]->name}{Node});
 	});
-	$this->{DEF} = \%DEF;
 
 
 	# Step 5) Collect all prototyped nodes from here
@@ -1838,6 +1829,10 @@ sub make_executable {
 		push @{$this->{Sensors}}, $this
 			if $sends{$this};
 	});
+
+	## Update scene's stored hash of DEFs
+	$this->{DEF} = \%DEF;
+
 }
 }
 
@@ -1854,7 +1849,7 @@ sub make_backend {
 		if $VRML::verbose::be;
 
 
-	if ($this->{BackNode}) {return $this->{BackNode}}
+	if ($this->{BackNode}) { return $this->{BackNode} }
 
 	my $bn;
 	if ($this->{Parent}) {
@@ -1880,8 +1875,7 @@ sub make_backend {
  				$b->set_next_vp();
  				# print "vp_sub, $b $vn $vs";
  				# print "GOING TO VP: '$vn->{Fields}{description}'\n";
- 				$vs->{EventModel}->send_event_to(
- 					$vn, set_bind, 1);
+ 				$vs->{EventModel}->send_event_to($vn, set_bind, 1);
  			}
  		);	
 	}
@@ -1911,8 +1905,8 @@ sub setup_routing {
 		if $VRML::verbose::scene;
 	    $eventmodel->add_first($_[0]);
 	} else {
-	    if ($_[0]{ProtoExp}) {
-		$_[0]{ProtoExp}->setup_routing($eventmodel, $be);
+	    if ($_[0]->{ProtoExp}) {
+		$_[0]->{ProtoExp}->setup_routing($eventmodel, $be);
 	    }
 	}
 	# Look at child nodes
@@ -1927,7 +1921,7 @@ sub setup_routing {
 	#	}
 	# }
 	if ($c = $VRML::Nodes::children{$_[0]->{TypeName}}) {
-	    my $ref = $_[0]{RFields}{$c};
+	    my $ref = $_[0]->{RFields}{$c};
 	    print "CHILDFIELD: GOT @$ref FOR CHILDREN\n"
 		if $VRML::verbose::scene;
 	    for (@$ref) {
@@ -1947,7 +1941,7 @@ sub setup_routing {
 	    }
 	}
 
-	if ($VRML::Nodes::sensitive{$_[0]{TypeName}}) {
+	if ($VRML::Nodes::sensitive{$_[0]->{TypeName}}) {
 	    $be->set_sensitive($_[0]->{BackNode}, sub {},);
 	}
     });
@@ -1960,7 +1954,7 @@ sub setup_routing {
     if (exists $this->{Routes}) {
 	for (@{$this->{Routes}}) {
 	    my ($fn, $ff, $tn, $tf) = @$_;
-    
+	    
 	    # Now, map the DEF names into a node name. Note, EAI will send in
 	    # the node, ROUTES in one VRML file will use DEFs.
 
@@ -1970,7 +1964,7 @@ sub setup_routing {
 		    exit (1);
 		}
 
-		$fn = $this->{DEF}{$fn}
+		$fn = $this->{DEF}{$fn}{Node}
 	    # } else {
 	    # 	print "ROUTE: $fn must be from EAI\n";
 	    }
@@ -1981,7 +1975,7 @@ sub setup_routing {
 		    exit (1);
 		}
 
-		$tn = $this->{DEF}{$tn}
+		$tn = $this->{DEF}{$tn}{Node}
 		# } else {
 		# 	print "ROUTE: $tn must be from EAI\n";
 		}
@@ -1994,30 +1988,30 @@ sub setup_routing {
 	    for (@{$this->{DelRoutes}}) {
 		my ($fn, $ff, $tn, $tf) = @$_;
 		print "Scene.pm - route remove from $fn field $ff to $tn field $tf scene $this\n";
-		
+
 		# Now, map the DEF names into a node name. Note, EAI will send in
 		# the node, ROUTES in one VRML file will use DEFs.
 
 		if ("VRML::Node" ne ref $fn) {
-			if (!exists $this->{DEF}{$fn}) {
-				print "Routed node name '$fn' not found ($fn, $ff, $tn, $tf)\n";
-				exit (1);
-			}
-			$fn = $this->{DEF}{$fn}
+		    if (!exists $this->{DEF}{$fn}) {
+			print "Routed node name '$fn' not found ($fn, $ff, $tn, $tf)\n";
+			exit (1);
+		    }
+		    $fn = $this->{DEF}{$fn}
 		} else {
-			print "ROUTE: $fn must be from EAI\n";
+		    print "ROUTE: $fn must be from EAI\n";
 		}
 
 		if ("VRML::Node" ne ref $tn) {
-			if (!exists $this->{DEF}{$tn}) {
-				print "Routed node name '$tn' not found ($tn, $ff, $tn, $tf)\n";
-				exit (1);
-			}
-			$tn = $this->{DEF}{$tn}
+		    if (!exists $this->{DEF}{$tn}) {
+			print "Routed node name '$tn' not found ($tn, $ff, $tn, $tf)\n";
+			exit (1);
+		    }
+		    $tn = $this->{DEF}{$tn}
 		} else {
-			print "ROUTE: $tn must be from EAI\n";
+		    print "ROUTE: $tn must be from EAI\n";
 		}
-			
+
 		$eventmodel->delete_route($fn, $ff, $tn, $tf);
 	    }
 	    # ok, its processed; we don't want this route deleted from the events more than once
