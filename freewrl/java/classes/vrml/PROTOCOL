@@ -1,14 +1,15 @@
+This is the java CLASS protocol; invoked from CFuncs/JavaClass.c. When
+events are run, the java class can request/send info, until a finish
+event is sent.
+
+The protocol below is in flux, best to check the exact code in the
+CFuncs/JavaClass file.
+
+One last note - work is progressing on making EAI and CLASS use most
+of the same functions.
+
 # The protocol between the script processor and the rest of the browser:
 # WARNING:  The protocol is work in progress and may change at any time.
-
-The protocol is binary.  Strings are send in Java's DataOutput.writeUTF
-format, i.e. with two bytes in network order encoding the length followed
-by the raw UTF stream, e.g.:
-"\000\005Hello"
-
-Most types are sent in network order in the Java's DataOutput format. 
-Exceptions are currently floats and doubles as perl can't pack them in
-compatible format.
 
 # Format of a request 1 thing per line:
 

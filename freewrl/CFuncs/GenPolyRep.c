@@ -205,26 +205,23 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 		ab,cd;	/* help vectors	for testing intersection */
 	int E,F;	/* third point to be used for the triangles*/
 		
-	
-	
-	
 	if(this_->color) {
 			  if(!(*(struct VRML_Virt **)(this_->color))-> get3) {
-			  	die("NULL METHOD ElevationGrid color  get3");
+			  	freewrlDie("NULL METHOD ElevationGrid color  get3");
 			  }
 			   colors =  ((*(struct VRML_Virt **)(this_->color))-> get3(this_->color,
 			     &ncolors)) ;
 			};
 	if(this_->normal) {
 			  if(!(*(struct VRML_Virt **)(this_->normal))-> get3) {
-			  	die("NULL METHOD ElevationGrid normal  get3");
+			  	freewrlDie("NULL METHOD ElevationGrid normal  get3");
 			  }
 			   normals =  ((*(struct VRML_Virt **)(this_->normal))-> get3(this_->normal,
 			     &nnormals)) ;
 			};
 	if(this_->texCoord) {
 			  if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
-			  	die("NULL METHOD ElevationGrid texCoord  get2");
+			  	freewrlDie("NULL METHOD ElevationGrid texCoord  get2");
 			  }
 			   texcoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> get2(this_->texCoord,
 			     &ntexcoords)) ;
@@ -236,29 +233,30 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	/* ccw or not? */
 	rep_->ccw = 1;
 	
+	printf ("nf %d nx %d nz %d\n",nf, nx, nz);
+
 	if(nf != nx * nz) {
-		die("Elevationgrid: too many / too few: %d %d %d\n",
-			nf, nx, nz);
+		freewrlDie("Elevationgrid: x,y vs. height: incorrect count:\n");
 	}
 	
 	
 	if(ncolors) {
 		if(!cpv && ncolors < (nx-1) * (nz-1)) {
-			die("Elevationgrid: too few colors");
+			freewrlDie("Elevationgrid: too few colors");
 		}
 		if(cpv && ncolors < nx*nz) {
-			die("Elevationgrid: 2too few colors");
+			freewrlDie("Elevationgrid: 2too few colors");
 		}
 		colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
 		if (!(colindex)) { 
-			die("Not enough memory for ElevationGrid node color index ");
+			freewrlDie("Not enough memory for ElevationGrid node color index ");
 		}
 	}
 	
 	if (HAVETODOTEXTURES) {
 		/* so, we now have to worry about textures. */
 		tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
-		if (!(tcoord)) die ("Not enough memory ElevGrid Tcoords");
+		if (!(tcoord)) freewrlDie ("Not enough memory ElevGrid Tcoords");
 	
 		rep_->tcindex = 0; // we will generate our own mapping
 		/* do we have to generate a default texture map?? */
@@ -277,14 +275,14 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	coord = rep_->coord = malloc(sizeof(*(rep_->coord))*nx*nz*3);
 	rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);	
 	if(!(cindex && coord && rep_->norindex)) {
-		die("Not enough memory for ElevationGrid node triangles... ;(");
+		freewrlDie("Not enough memory for ElevationGrid node triangles... ;(");
 	} 
 	
 	/* we are calculating Normals */
 	if (nnormals == 0) {
 		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri*3);
 		if (!(rep_->normal)) {
-			die("Not enough memory for ElevationGrid node normals");
+			freewrlDie("Not enough memory for ElevationGrid node normals");
 		}
 	}
 	
@@ -304,7 +302,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 		for (tmp=0; tmp<nz*nx; tmp++) { pointfaces[tmp*POINT_FACES]=0; }
 	
 		if (!(pointfaces && facenormals)) {
-			die("Not enough memory for ElevationGrid node normal point calcs... ");
+			freewrlDie("Not enough memory for ElevationGrid node normal point calcs... ");
 		}
 	}
 	
@@ -499,28 +497,28 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	/* texture coords IndexedFaceSet coords colors and normals */
 	if(this_->texCoord) {
 			  if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
-			  	die("NULL METHOD IndexedFaceSet texCoord  get2");
+			  	freewrlDie("NULL METHOD IndexedFaceSet texCoord  get2");
 			  }
 			   texCoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> get2(this_->texCoord,
 			     &ntexCoords)) ;
 			};
 	if(this_->coord) {
 			  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
-			  	die("NULL METHOD IndexedFaceSet coord  get3");
+			  	freewrlDie("NULL METHOD IndexedFaceSet coord  get3");
 			  }
 			   points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
 			     &npoints)) ;}
-	 	  else { (die("NULL FIELD IndexedFaceSet coord "));};
+	 	  else { (freewrlDie("NULL FIELD IndexedFaceSet coord "));};
 	if(this_->normal) {
 			  if(!(*(struct VRML_Virt **)(this_->normal))-> get3) {
-			  	die("NULL METHOD IndexedFaceSet normal  get3");
+			  	freewrlDie("NULL METHOD IndexedFaceSet normal  get3");
 			  }
 			   normals =  ((*(struct VRML_Virt **)(this_->normal))-> get3(this_->normal,
 			     &nnormals)) ;
 			}; 
 	if(this_->color) {
 			  if(!(*(struct VRML_Virt **)(this_->color))-> get3) {
-			  	die("NULL METHOD IndexedFaceSet color  get3");
+			  	freewrlDie("NULL METHOD IndexedFaceSet color  get3");
 			  }
 			   colors =  ((*(struct VRML_Virt **)(this_->color))-> get3(this_->color,
 			     &ncolors)) ;
@@ -593,7 +591,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	if(!(faceok && pointfaces && facenormals )) {
-		die("Not enough memory for IndexedFaceSet internals... ;(");
+		freewrlDie("Not enough memory for IndexedFaceSet internals... ;(");
 	} 
 	
 	/* generate the face-normals table, so for each face, we know the normal 
@@ -651,11 +649,11 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	if(!(cindex && colindex && norindex && rep_->normal )) {
-		die("Not enough memory for IndexFaceSet node triangles... ;(");
+		freewrlDie("Not enough memory for IndexFaceSet node triangles... ;(");
 	} 
 	
 	if (!(tcindex) && HAVETODOTEXTURES && ntexCoords) {
-		die("Not enough memory for IndexFaceSet textures... ;(");
+		freewrlDie("Not enough memory for IndexFaceSet textures... ;(");
 	} 
 	
 	
@@ -984,7 +982,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		int increment, currentlocn;
 	
 		crossSection     = malloc(sizeof(crossSection)*nsec*2);
-		if (!(crossSection)) die ("can not malloc memory for Extrusion crossSection");
+		if (!(crossSection)) freewrlDie ("can not malloc memory for Extrusion crossSection");
 	
 	
 		currentlocn = 0;
@@ -1043,7 +1041,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 	if(((this_->beginCap))||((this_->endCap))) {
 		if(tubular?nsec<4:nsec<3) {
-			die("Only two real vertices in crossSection. Caps not possible!");
+			freewrlDie("Only two real vertices in crossSection. Caps not possible!");
 		}
 	
 		if(Extru_Verbose && circular && tubular) {
@@ -1085,7 +1083,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 		if(nctri<1) {
 			/* no triangle left :(	*/
-			die("All in crossSection points colinear. Caps not possible!");
+			freewrlDie("All in crossSection points colinear. Caps not possible!");
 	 	}
 	 
 		/* so we have calculated nctri for one cap, but we might have two*/
@@ -1135,7 +1133,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	 
 	/* in C always check if you got the mem you wanted...  >;->		*/
 	  if(!(pointfaces && defaultface && facenormals && cindex && coord && normal && norindex && SCP )) {
-		die("Not enough memory for Extrusion node triangles... ;(");
+		freewrlDie("Not enough memory for Extrusion node triangles... ;(");
 	} 
 	
 	if (HAVETODOTEXTURES) { /* texture mapping "stuff" */
@@ -1158,7 +1156,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		endVals = malloc(sizeof(float) * 2 * (nsec+1)*100);
 	
 		if (!(tcoord && tcindex && beginVals && endVals)) 
-			die ("Not enough memory Extrusion Tcoords");
+			freewrlDie ("Not enough memory Extrusion Tcoords");
 	}
 	
 	/* Normal Generation Code */
@@ -1820,7 +1818,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		int endpoint;
 	
 		tess_vs=malloc(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
-		if (!(tess_vs)) die ("Extrusion - no memory for tesselated end caps");
+		if (!(tess_vs)) freewrlDie ("Extrusion - no memory for tesselated end caps");
 	
 		/* if not tubular, we need one more triangle */
 		if (tubular) endpoint = nsec-1-ncolinear_at_end;

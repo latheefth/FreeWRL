@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.37  2004/05/20 19:01:34  crc_canada
+# pre4 files.
+#
 # Revision 1.36  2003/12/04 18:33:57  crc_canada
 # Basic threading ok
 #
@@ -317,13 +320,13 @@ sub cfunc {
 			/* die(\"Help! SFColor without being ref\"); */
 		} else {
 			if(SvTYPE(SvRV($_[2])) != SVt_PVAV) {
-				die(\"Help! SFColor without being arrayref\");
+				freewrlDie(\"Help! SFColor without being arrayref\");
 			}
 			a = (AV *) SvRV($_[2]);
 			for(i=0; i<3; i++) {
 				b = av_fetch(a, i, 1); /* LVal for easiness */
 				if(!b) {
-					die(\"Help: SFColor b == 0\");
+					freewrlDie(\"Help: SFColor b == 0\");
 				}
 				$_[1].c[i] = SvNV(*b);
 			}
@@ -397,13 +400,13 @@ sub cfunc {
 			/* die(\"Help! SFVec2f without being ref\"); */
 		} else {
 			if(SvTYPE(SvRV($_[2])) != SVt_PVAV) {
-				die(\"Help! SFVec2f without being arrayref\");
+				freewrlDie(\"Help! SFVec2f without being arrayref\");
 			}
 			a = (AV *) SvRV($_[2]);
 			for(i=0; i<2; i++) {
 				b = av_fetch(a, i, 1); /* LVal for easiness */
 				if(!b) {
-					die(\"Help: SFColor b == 0\");
+					freewrlDie(\"Help: SFColor b == 0\");
 				}
 				$_[1].c[i] = SvNV(*b);
 			}
@@ -493,13 +496,13 @@ sub cfunc {
 			/* die(\"Help! SFRotation without being ref\"); */
 		} else {
 			if(SvTYPE(SvRV($_[2])) != SVt_PVAV) {
-				die(\"Help! SFRotation without being arrayref\");
+				freewrlDie(\"Help! SFRotation without being arrayref\");
 			}
 			a = (AV *) SvRV($_[2]);
 			for(i=0; i<4; i++) {
 				b = av_fetch(a, i, 1); /* LVal for easiness */
 				if(!b) {
-					die(\"Help: SFColor b == 0\");
+					freewrlDie(\"Help: SFColor b == 0\");
 				}
 				$_[1].r[i] = SvNV(*b);
 			}
@@ -773,7 +776,7 @@ sub cfunc {
 			/* die(\"Help! Multi without being ref\"); */
 		} else {
 			if(SvTYPE(SvRV($_[2])) != SVt_PVAV) {
-				die(\"Help! Multi without being arrayref\");
+				freewrlDie(\"Help! Multi without being arrayref\");
 			}
 			aM = (AV *) SvRV($_[2]);
 			lM = av_len(aM)+1;
@@ -784,7 +787,7 @@ sub cfunc {
 			for(iM=0; iM<lM; iM++) {
 				bM = av_fetch(aM, iM, 1); /* LVal for easiness */
 				if(!bM) {
-					die(\"Help: Multi $r bM == 0\");
+					freewrlDie(\"Help: Multi $r bM == 0\");
 				}
 				$cm
 				$su

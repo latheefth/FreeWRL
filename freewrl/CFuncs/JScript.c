@@ -121,7 +121,7 @@ void JScleanup (int num) {
 
 void cleanupDie(int num, char *msg) {
 	JScleanup(num);
-	die(msg);
+	freewrlDie(msg);
 }
 
 void JSMaxAlloc() {
@@ -161,26 +161,26 @@ void JSInit(int num, SV *script) {
 
 
 	runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
-	if (!runtime) die("JS_NewRuntime failed");
+	if (!runtime) freewrlDie("JS_NewRuntime failed");
 	
 	if (JSVerbose) printf("\tJS runtime created,\n");
 	
 	
 	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
-	if (!_context) die("JS_NewContext failed");
+	if (!_context) freewrlDie("JS_NewContext failed");
 	
 	if (JSVerbose) printf("\tJS context created,\n");
 	
 	
 	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
-	if (!_globalObj) die("JS_NewObject failed");
+	if (!_globalObj) freewrlDie("JS_NewObject failed");
 	
 	if (JSVerbose) printf("\tJS global object created,\n");
 	
 
 	/* gets JS standard classes */
 	if (!JS_InitStandardClasses(_context, _globalObj)) 
-		die("JS_InitStandardClasses failed");
+		freewrlDie("JS_InitStandardClasses failed");
 	
 	if (JSVerbose) printf("\tJS standard classes initialized,\n");
 
@@ -205,13 +205,13 @@ void JSInit(int num, SV *script) {
 
 	
 	if (!loadVrmlClasses(_context, _globalObj)) 
-		die("loadVrmlClasses failed");
+		freewrlDie("loadVrmlClasses failed");
 	
 	if (JSVerbose) printf("\tVRML classes loaded,\n");
 	
 
 	if (!VrmlBrowserInit(_context, _globalObj, br)) 
-		die("VrmlBrowserInit failed");
+		freewrlDie("VrmlBrowserInit failed");
 	
 	if (JSVerbose) printf("\tVRML Browser interface loaded,\n");
 

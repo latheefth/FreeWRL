@@ -336,3 +336,14 @@ void catch_SIGSEGV() {
 	        fflush(NULL);
 }
 
+/* funnel all print statements through here - this allows us to
+ * eventually put errors/messages on a window
+ * */
+
+/* stop all of FreeWRL, terrible error! */
+void freewrlDie (const char *format) {
+	printf ("\nFreeWRL: Catastrophic error:\n");
+	printf (format);
+	printf ("\n");
+	doQuit();
+}

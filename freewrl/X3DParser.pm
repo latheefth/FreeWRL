@@ -84,7 +84,7 @@ use XML::Parser;
 use Data::Dumper;
 
 require 'VRML/VRMLNodes.pm';
-require 'VRML/X3DFields.pm';
+#JAS require 'VRML/X3DFields.pm';
 #require 'VRML/Parser.pm';
 
 use vars qw/$Word $qre $cre/;

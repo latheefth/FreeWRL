@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.141  2004/05/20 19:01:32  crc_canada
+# pre4 files.
+#
 # Revision 1.140  2004/05/06 14:37:21  crc_canada
 # more .class changes.
 #
@@ -381,8 +384,10 @@ GeoElevationGrid => ( '
 '),
 
 ElevationGrid => ( '
+		printf ("ELEV VRMLC before render_ray_polyrep\n");
 		$mk_polyrep();
 		render_ray_polyrep(this_, 0, NULL);
+		printf ("ELEV VRMLC after render_ray_polyrep\n");
 '),
 
 Text => ( '
@@ -502,11 +507,11 @@ sub fvirt {
 	if($ret) {$ret = "$ret = ";}
 	return "if(this_->$f) {
 		  if(!(*(struct VRML_Virt **)(this_->$f))->$v) {
-		  	die(\"NULL METHOD $t $f $v\");
+		  	freewrlDie(\"NULL METHOD $t $f $v\");
 		  }
 		  $ret ((*(struct VRML_Virt **)(this_->$f))->$v(this_->$f,
 		    ".(join ',',@a).")) ;}
- 	  else { (die(\"NULL FIELD $t $f $a\"));}";
+ 	  else { (freewrlDie(\"NULL FIELD $t $f $a\"));}";
 }
 
 sub fvirt_null {
@@ -519,7 +524,7 @@ sub fvirt_null {
 	if($ret) {$ret = "$ret = ";}
 	return "if(this_->$f) {
 		  if(!(*(struct VRML_Virt **)(this_->$f))->$v) {
-		  	die(\"NULL METHOD $t $f $v\");
+		  	freewrlDie(\"NULL METHOD $t $f $v\");
 		  }
 		  $ret ((*(struct VRML_Virt **)(this_->$f))->$v(this_->$f,
 		    ".(join ',',@a).")) ;
@@ -532,7 +537,7 @@ sub fgetfnvirt_n {
 	if($ret) {$ret = "$ret = ";}
 	return "if($n) {
 	         if(!(*(struct VRML_Virt **)n)->$v) {
-		  	die(\"NULL METHOD $n $ret $v\");
+		  	freewrlDie(\"NULL METHOD $n $ret $v\");
 		 }
 		 $ret ((*(struct VRML_Virt **)($n))->$v($n,
 		    ".(join ',',@a).")) ;}
@@ -1466,7 +1471,7 @@ render_geom(p)
 CODE:
 	struct VRML_Virt *v;
 	if(!p) {
-		die("Render_geom null!??");
+		freewrlDie("Render_geom null!??");
 	}
 	v = *(struct VRML_Virt **)p;
 	v->rend(p);

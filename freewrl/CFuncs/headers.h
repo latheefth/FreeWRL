@@ -342,7 +342,10 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 
 //printf is defined by perl; causes segfault in threaded freewrl
 #ifdef printf
-#undef printf
+#undef printf 
+#endif
+#ifdef die
+#undef die
 #endif
 
 
@@ -451,6 +454,7 @@ extern void doBrowserAction ();
 
 extern char *myPerlInstallDir;
 
+extern void freewrlDie (const char *format);
 
 /* Java CLASS invocation */
 int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);

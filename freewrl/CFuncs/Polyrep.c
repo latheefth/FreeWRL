@@ -1193,14 +1193,13 @@ void regen_polyrep(void *node)
 	v = *(struct VRML_Virt **)node;
 
 	p = node;
-	/* printf("Regen polyrep %d '%s'\n",node,v->name); */
 	if(!p->_intern) {
 
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
 
 		/* in C always check if you got the mem you wanted...  >;->		*/
 		if (!(p->_intern)) {
-			die("Not enough memory to regen_polyrep... ;(");
+			freewrlDie("Not enough memory to regen_polyrep... ;(");
 		} 
  
 		r = p->_intern;

@@ -58,7 +58,7 @@ void FW_tess_begin(GLenum e) {
 		we defined  the edge_flag callback		*/
 		/* check, if the structure is there		*/
 	if(e!=GL_TRIANGLES) 
-		die("Something went wrong while tessellating!");
+		freewrlDie("Something went wrong while tessellating!");
 }
 
 void FW_tess_end(void) {
@@ -154,7 +154,7 @@ void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 void new_tessellation(void) {
 	global_tessobj=gluNewTess();
 	if(!global_tessobj)
-		die("Got no memory for Tessellation Object!");
+		freewrlDie("Got no memory for Tessellation Object!");
 		
 	/* register the CallBackfunctions				*/
 	gluTessCallback(global_tessobj,GLU_BEGIN,FW_tess_begin);
