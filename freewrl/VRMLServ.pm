@@ -10,6 +10,10 @@
 
 #
 # $Log$
+# Revision 1.3  2000/09/22 13:55:24  crc_canada
+# Fixed bugs where EAI would hang if appletviewer opened after freewrl. Also
+# making changes in EAI code - all new java files in vrml/external needed.
+#
 # Revision 1.2  2000/08/05 11:56:56  rcoscali
 # Add CVS keywords
 #
@@ -20,16 +24,20 @@ use FileHandle;
 use IO::Socket;
 use strict;
 
-my $EAIport = "";
+# EAIhost and EAIport are passed in to freewrl as command line parameters.
+my $EAIhost = "";
+my $EAIport = 0;
+
+# EAIrecount  is used for when a connection is requested, but is not
+# opened. This is a retry counter.
+my $EAIrecount = 0;
 
 sub new {
-	my($type,$browser,$eai) = @_;
+	my($type,$browser) = @_;
 	my $this = bless {
 		B => $browser,
 	}, $type;
 	$browser->add_periodic(sub {$this->poll});
-	print "new - eai is $eai\n";
-	$EAIport = $eai;
 	return $this;
 }
 
@@ -58,37 +66,35 @@ sub connect {
 	$addr =~ /^(.*):(.*)$/ or 
 		die  "Invalid EAI adress '$addr'";
 	
-	my ($remote, $port) = ($1,$2);
+	($EAIhost, $EAIport) = ($1,$2);
 
+	print ("FreeWRL: connect: remote $EAIhost  port $EAIport\n");
 	my $sock;
-	my $portincr = 0;
-
-	while ((!$sock) && ($portincr < 30)) {
-		# JAS print "Trying socket open on port  2000 + $portincr \n";
-		$sock = IO::Socket::INET->new(
-			Proto => "tcp",
-			PeerAddr => $remote,
-			PeerPort => $port
-		);
-		$portincr = $portincr + 1;
-	}
-	
+	$sock = IO::Socket::INET->new(
+		Proto => "tcp",
+		PeerAddr => $EAIhost,
+		PeerPort => $EAIport
+	);
 
 	# is socket open? If not, wait.....
 	if (!$sock) { 
-		# print "socket not opened yet...\n";
+		print "FreeWRL: Connect: socket not opened yet...\n";
 		return;
 	}
 
+	$this->doconnect($sock);
+}
 
-	$EAIport = $addr;	
+sub doconnect {
+	my($this,$sock) = @_;
+
 	$sock->autoflush(1);
 	$sock->setvbuf("",&_IONBF,0);
-	$sock->print("FreeWRL EAI Client 0.21\n");
+	$sock->print("FreeWRL EAI Client 0.27\n");
 	my $x;
 	$sock->sysread($x,20); 
 	chomp $x;
-	if("FreeWRL EAI Serv0.21" ne $x) {
+	if("FreeWRL EAI Serv0.27" ne $x) {
 		warn("EAI Version Mismatch! got $x");
 	}
 	push @{$this->{Conn}}, $sock;
@@ -102,10 +108,30 @@ sub poll {
 
 	# if the socket is not open yet, try it, once again...
 	if (!defined $this->{Conn}) {
-		# print "socket not opened yet ",$EAIport, " ", length($EAIport),"\n";
-		if (length($EAIport)>0) {
-			$this->connect($EAIport);
+		# print "FreeWRL: Poll: socket not opened yet for host $EAIhost port $EAIport\n";
+		# lets just try again in a while...
+		if ($EAIrecount < 100) {
+			$EAIrecount +=1;
+			return;
 		}
+
+		# woops! While is up! lets try connecting again.
+        	my $sock;
+       		 $sock = IO::Socket::INET->new(
+       		         Proto => "tcp",
+       		         PeerAddr => $EAIhost,
+       		         PeerPort => $EAIport
+       		 );
+
+       		 # is socket open? If not, wait.....
+    		    if (!$sock) {
+			 $EAIrecount = 0;
+       		         #print "FreeWRL: Poll: socket not opened yet...\n";
+       		 } else {
+			print "FreeWRL: Poll: Socket finally opened!!! \n";
+        		$this->doconnect($sock);
+		}
+
 	}
 
 	if (defined $this->{Conn}) {
