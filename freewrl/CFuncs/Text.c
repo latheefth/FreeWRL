@@ -43,15 +43,6 @@ D_OPENGL;
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-int dumbvar;
-
-/* spline calculations */
-#define CONIC_STEPS	4
-#define	DELTA  (float) 1.0/CONIC_STEPS
-#define DELTA2 (float) DELTA * DELTA
-#define DELTA3 (float) DELTA * DELTA * DELTA
-
-
 /* initialize the library with this variable */
 FT_Library library; /* handle to library */
 
@@ -175,14 +166,17 @@ int FW_lineto ( FT_Vector* to, void* user) {
 
 int FW_conicto ( FT_Vector* control, FT_Vector* to, void* user) {
 
-	/* Ok, we could make some really pretty characters, but
-	   that would take up global_tessobjles, something that is bad for
-	   speed. This shortcut seems to work quite well */
+	FT_Vector ncontrol;
 
+	// Bezier curve calculations
+	
 	if (TextVerbose)
 		printf ("FW_conicto\n");
 
-	FW_lineto (control,user);
+	ncontrol.x =(int) ((float) 0.25*last_point.x + 0.5*control->x + 0.25*to->x),
+	ncontrol.y =(int) ((float) 0.25*last_point.y + 0.5*control->y + 0.25*to->y),
+
+	FW_lineto (&ncontrol,user);
 	FW_lineto (to,user);
 
 	return 0;
