@@ -613,8 +613,12 @@ void catch_SIGQUIT() {
     doQuit();
 }
 
+static int CaughtSEGV = FALSE;
 void catch_SIGSEGV() {
-	ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-04@rogers.com with a valid subject line. Thanks.\n");
+	if (!CaughtSEGV) {
+		ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-04@rogers.com with a valid subject line. Thanks.\n");
+		CaughtSEGV = TRUE;
+	}
     exit(1);
 }
 
