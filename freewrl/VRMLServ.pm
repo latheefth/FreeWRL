@@ -10,6 +10,9 @@
 
 #
 # $Log$
+# Revision 1.13  2001/10/24 14:47:03  crc_canada
+# removed extra debug prints
+#
 # Revision 1.12  2001/10/24 14:15:02  crc_canada
 # Additions for EAI functionality
 #
@@ -341,7 +344,7 @@ sub handle_input {
                                 $field = "children";
 
                                 # if this is a MFnode, we don't want the VRML CODE
-				if ("ARRAY" eq ref $node->{Fields}{$field}) { print "and, it is an ARRAY\n";}
+				# if ("ARRAY" eq ref $node->{Fields}{$field}) { print "and, it is an ARRAY\n";}
 
 
 				# print " node->{Fields}{$field} = ", $node->{Fields}{$field}, "\n";
