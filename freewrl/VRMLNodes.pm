@@ -257,7 +257,8 @@ sub init_image {
 
 		if($@) {die("Cannot open image textures: '$@'")}
 
-                if(!($suffix  =~ /png/i)) {
+		$dat = "";
+                if(!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
 			# lets convert to a png, and go from there...
 			# use Imagemagick to do the conversion, and flipping.
 			# XXX - do I need a flip because of a "Box" problem? 
@@ -273,13 +274,26 @@ sub init_image {
 			die "$image conversion problem: '$cmd' returns $?"
 				unless $status == 0;
 	
-		}
-		eval 'require VRML::PNG';
-		#print "Reading png file '$tempfile'\n";
-		$dat = "";
-		if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
-			next;
-			# die("Couldn't read texture file");
+			eval 'require VRML::PNG';
+			#print "Reading $suffix file converted to png file '$tempfile'\n";
+			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
+			  next;
+			  # die("Couldn't read texture file");
+			}
+		} elsif ($suffix =~ /png/i) {
+			eval 'require VRML::PNG';
+			#print "Reading png file '$tempfile'\n";
+			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
+			  next;
+			  # die("Couldn't read texture file");
+			}
+		} elsif ($suffix =~ /jpg/i) {
+			eval 'require VRML::JPEG';
+			#print "Reading jpg file '$tempfile'\n";
+			if(!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
+			  next;
+			  # die("Couldn't read texture file");
+			}
 		}
 
 
