@@ -7,7 +7,7 @@ WriteMakefile(
     'NAME'              => "VRML::CFuncs",
     'CCFLAGS'		=> "",
     'DEFINE'		=> "",
-    'INC'               => $VRML_CONFIG{FREETYPE_INC},
+    'INC'               => $VRML_CONFIG{FREEWRL_INC},
     'LIBS'		=> ""
 );
 
