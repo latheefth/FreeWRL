@@ -264,6 +264,10 @@ package VRML::Field::SFNode;
 use vars qw/$Word/;
 VRML::Error->import;
 
+
+my %DEFNAMES = ();
+my $LASTDEF = 1;
+
 sub parse {
 	my($type,$scene) = @_;
 	$_[2] =~ /\G\s*/gsc;
@@ -280,12 +284,18 @@ sub parse {
 		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
 			"DEF must be followed by a defname");
 
-		my $defname = $1;
+		# store this as a sequence number, because multiple DEFS of the same name
+		# must be unique. (see the spec)
+		$DEFNAMES{$1} = "DEF$LASTDEF";
+		$LASTDEF++;
+		my $defname = $DEFNAMES{$1};
+		# my $defname = $1;
 		print "DEF $defname\n"
 			if $VRML::verbose::parse;
 
+
 		my $node = VRML::Field::SFNode->parse($scene,$_[2]);
-		print "DEF - node is $node \n" if  $VRML::verbose::parse;
+		#print "DEF - node is $node \n" if  $VRML::verbose::parse;
 
 		# print "creating scene->new_def for $defname, $node\n";
                 return $scene->new_def($defname, $node);
@@ -295,7 +305,14 @@ sub parse {
 	if($nt eq "USE") {
 		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
 			"USE must be followed by a defname");
-		my $dn = $1;
+
+		# is is already DEF'd???
+        	if(!defined $DEFNAMES{$1}) {
+			print "USE name $1 not DEFined yet\n";
+			exit(1);
+		}
+
+		my $dn = $DEFNAMES{$1};
 		print "USE $dn\n"
 			if $VRML::verbose::parse;
 		return $scene->new_use($dn);
