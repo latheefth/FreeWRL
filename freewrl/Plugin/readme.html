@@ -4,14 +4,14 @@
 <TITLE>FreeWRL Plugin</TITLE>
 </HEAD>
 <BODY>
-<!-- Updated: Nov. 16, 2001 by Ayla Khan -->
+	<!-- Updated: April 2, 2004 from Ayla Khan's document - JAS -->
 
 <H1>What does the Plugin do?</H1>
 <P>
-This plugin replaces XSwallow. It handles the following:
+It handles the following:
 <OL>
-<LI>Integration with Netscape, including all of the quit and destroy functionality.
-<LI>URL Retrieval via Netscape - this gives us caching and proxy access.
+<LI>Integration with Mozilla, including all of the quit and destroy functionality.
+<LI>URL Retrieval via Mozilla - this gives us caching and proxy access.
 <LI>Java EAI integration.
 </OL>
 
@@ -19,11 +19,11 @@ This plugin replaces XSwallow. It handles the following:
 
 <OL>
 <LI> Compile and install FreeWRL
-<LI> Exit all running Netscape windows on your box
+<LI> Exit all running  Browser windows on your box
 </OL>
 <H3>Testing the software:</H3>
 <OL>
-<LI> Startup netscape.
+	<LI> Startup Mozilla. (Other browsers - check your documentation)
 <LI> In the "Locations" window, type "about:plugins". You will see what plugins
 are installed; you should see the FreeWRL plugin listed.
 <LI> Open a VRML file; eg, get the file over http or open the "tests/1.wrl" file,
@@ -46,7 +46,8 @@ box in the "Handled By" section.
 	
 <H3>Further Notes:</H3>
 <OL>
-<LI> EAI now works with Netscape. The EAI tests contain unsigned jar files that
+<LI> EAI now works with Netscape (verifying for working with Mozilla, etc). 
+The EAI tests contain unsigned jar files that
 contain the applet classes.  The EAI archive vrml.jar is also unsigned. 
 If you want to try these tests, you will have to deal with the Netscape Java Security
 dialog.
@@ -56,7 +57,7 @@ looked in for your Operating System, please email us.
 </OL>
 <I>The FreeWRL Plugin uses a template by Netscape, and some window rehosting code from XSwallow.
 <P>
-Copyright (c) John Stewart, Ayla Khan CRC Canada, 2002.</I>
+Copyright (c) John Stewart, Ayla Khan CRC Canada, 2002, 2004.</I>
 
 
 </BODY>
