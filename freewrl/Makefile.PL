@@ -250,7 +250,7 @@ WriteMakefile(
 	sub const_loadlibs {
 		my $loadlibs = shift->SUPER::const_loadlibs(@_);
 		$loadlibs =~ s/(LD_RUN_PATH\s*=.*)$/$1:$VRML::Config::vrml_config{LIBJS_INST}/m;
-print "Makefile.PL - loadlibs $loadlibs\n";
+		# print "Makefile.PL - loadlibs $loadlibs\n";
 		return $loadlibs;
 	}
 
@@ -315,7 +315,7 @@ INST_DYNAMIC_DEP =
 		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
 		my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
 		my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
-		print "x1 is $x1\n";
+		# print "x1 is $x1\n";
 			push(@postamble, join(
 				  "\n",
 				  qq{\# --- Mozilla/Netscape Plugin:\n},

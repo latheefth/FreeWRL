@@ -7,19 +7,23 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 import java.util.PropertyPermission;
 import java.security.*;
+import java.security.cert.Certificate;
+
 
 public final class FWJavaScriptClassLoader extends SecureClassLoader {
     URL baseURL;
     CodeSource myCodeSource;
     
+
     /**
      * @param url base url for loading classes.
      */
     public FWJavaScriptClassLoader(String url) {
 	System.out.println ("new FWJavaScriptClassLoader - url is " + url);
 	try {
-	    baseURL = new URL(url);
-	    myCodeSource = new CodeSource(baseURL, null);
+	    baseURL = new java.net.URL(url);
+
+	    myCodeSource = new CodeSource(baseURL, (Certificate[]) null);
 	} catch (MalformedURLException ex) {
 	    throw new InternalError("Script URL malformed: "+url);
 	}
