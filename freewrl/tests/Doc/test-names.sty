@@ -5,25 +5,21 @@
 %% and letters need to be used instead of numbers.
 
 %% Appearance: Appearance test cases
-\newcommand{\AppA}{Material Field}
-\newcommand{\AppB}{ImageTexture Applied To Texture Field}
-\newcommand{\AppC}{PixelTexture Applied To Texture Field}
-\newcommand{\AppDa}{Default Color, Opacity For Unlit, Uncolored,~}
-\newcommand{\AppDb}{Untextured Geometry}
-\newcommand{\AppE}{PointSet, IndexedLineSet With Default Color}
-\newcommand{\AppF}{Default Color For Unlit, Untextured Geometry}
-\newcommand{\AppGa}{ImageTexture Applied To Unlit,~}
-\newcommand{\AppGb}{Uncolored Geometry}
-\newcommand{\AppHa}{Color, Greyscale ImageTexture Applied~}
-\newcommand{\AppHb}{To Unlit IndexedFaceSet}
-\newcommand{\AppIa}{Intensity, Greyscale ImageTexture Applied~}
-\newcommand{\AppIb}{To Unlit IndexedFaceSet}
-\newcommand{\AppJa}{Color Precedence Of Color ImageTexture Over~}
-\newcommand{\AppJb}{Color Node}
+\newcommand{\AppA}{Material field of an Appearance node.}
+\newcommand{\AppB}{Apply ImageTexture to the texture field.}
+\newcommand{\AppC}{Apply PixelTexture to the texture field.}
+\newcommand{\AppDa}{Default color, opacity for unlit, uncolored, untextured Geometry.}
+\newcommand{\AppDb}{}
+\newcommand{\AppE}{Default coloring of PointSet and IndexedLineSet.}
+\newcommand{\AppF}{Color node with unlit and untextured Geometry.}
+\newcommand{\AppG}{Texture color with unlit, uncolored Geometry.}
+\newcommand{\AppH}{Color node blending with greyscale texture for unlit Geometry.}
+\newcommand{\AppI}{Intensity coloring with a greyscale texture for unlit Geometry.}
+\newcommand{\AppJa}{Preference of texture color over Geometry Color node in~}
+\newcommand{\AppJb}{unlit Geometry.}
 \newcommand{\AppKa}{Color Transparent ImageTexture Applied To~}
 \newcommand{\AppKb}{Unlit Geometry}
-\newcommand{\AppLa}{Greyscale Transparent ImageTexture~}
-\newcommand{\AppLb}{Applied To Unlit Geometry}
+\newcommand{\AppL}{Greyscale texture transparency in unlit world.}
 
 %% Appearance: FontStyle test cases
 \newcommand{\FSA}{FontStyle With Default Values}
@@ -196,6 +192,29 @@
 %% Bindable Nodes: NavigationInfo test cases
 
 %% Bindable Nodes: Viewpoint test cases
+
+%% Geometric Properties: Color test cases
+\newcommand{\ColrA}{Single color applied to IndexedFaceSet faces.}
+\newcommand{\ColrB}{Single color applied to IndexedLineSet polylines.}
+\newcommand{\ColrC}{Single color applied to PointSet geometry.}
+\newcommand{\ColrD}{Single color applied to ElevationGrid faces.}
+\newcommand{\ColrE}{Single color applied to IndexedFaceSet vertices.}
+\newcommand{\ColrF}{Single color applied to IndexedLineSet vertices.}
+\newcommand{\ColrG}{Single color applied to ElevationGrid vertices.}
+\newcommand{\ColrH}{Multiple colors applied to IndexedFaceSet faces.}
+\newcommand{\ColrI}{Multiple colors applied to IndexedLineSet polylines.}
+\newcommand{\ColrJ}{Multiple colors applied to PointSet geometry.}
+\newcommand{\ColrK}{Multiple colors applied to ElevationGrid faces.}
+\newcommand{\ColrL}{Multiple colors applied to IndexedFaceSet vertices.}
+\newcommand{\ColrM}{Multiple colors applied to IndexedLineSet vertices.}
+\newcommand{\ColrN}{Multiple colors applied to ElevationGrid vertices.}
+\newcommand{\ColrO}{IndexedFaceSet color vs. Material diffuseColor.}
+\newcommand{\ColrP}{IndexedLineSet color vs. Material emissiveColor.}
+\newcommand{\ColrQ}{PointSet color vs. Material emissiveColor.}
+\newcommand{\ColrR}{ElevationGrid color vs. Material diffuseColor.}
+\newcommand{\ColrS}{IndexedFaceSet color vs. Material texture.}
+\newcommand{\ColrT}{ElevationGrid color vs. Material texture.}
+\newcommand{\ColrU}{Minimum 15000 colors per color node.}
 
 %% Special Groups: Inline test cases
 \newcommand{\InlA}{Single Url Item}

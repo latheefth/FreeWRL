@@ -2,6 +2,7 @@
 
 %% TeX packages:
 \usepackage{times,pifont,longtable,ulem,test-names}
+\usepackage[dvips]{color}
 
 %% Margins
 \setlength{\topmargin}{0mm}
@@ -14,12 +15,23 @@
 \setlength{\textwidth}{158mm}
 \setlength{\textheight}{206mm}
 
+%% user-defined colours
+\definecolor{aqua}{rgb}{0.29,0.83,0.78}
+\definecolor{boring}{rgb}{0.56,0.54,0.60}
+\definecolor{cranberry}{rgb}{0.84,0.24,0.37}
+\definecolor{royal}{rgb}{0.47,0.53,0.86}
+
 %% Counters
 \newcounter{testCaseCtr}
 
 %% New Commands
-\newcommand{\testCase}{\arabic{testCaseCtr}.~ \stepcounter{testCaseCtr}}
-\newcommand{\resetTestCase}{\setcounter{testCaseCtr}{1}}
+%% \newcommand{\testCase}{\arabic{testCaseCtr}.~ \stepcounter{testCaseCtr}}
+%% \newcommand{\resetTestCase}{\setcounter{testCaseCtr}{1}}
+
+\newcommand{\Passed}{{\bfseries\textcolor{aqua}{Passed}}}
+\newcommand{\Failed}{{\bfseries\textcolor{cranberry}{Failed}}}
+\newcommand{\Undet}{{\bfseries\textcolor{boring}{Undet.}}}
+\newcommand{\url}[1]{{\bfseries\textcolor{royal}{#1}}}
 
 %% give \emph default behaviour
 \normalem

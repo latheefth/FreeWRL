@@ -2,7 +2,6 @@
 
 \section{Special Groups Test Cases}
 \subsection{Summary}
-\resetTestCase
 
 \begin{center}
 \setlongtables
@@ -18,18 +17,18 @@
 \endfoot
 \hline
 \endlastfoot
-Inline & \testCase \InlA & Passed \\\cline{2-3}
-& \testCase \InlB & Passed \\\cline{2-3}
-& \testCase \InlC & Passed \\\cline{2-3}
-& \testCase \InlD & Passed \\\cline{2-3}
-& \testCase \InlE & Passed \\\hline
+Inline & 1. \InlA & \Passed \\\cline{2-3}
+& 2. \InlB & \Passed \\\cline{2-3}
+& 3. \InlC & \Passed \\\cline{2-3}
+& 4. \InlD & \Passed \\\cline{2-3}
+& 5. \InlE & \Passed \\\hline
 \multicolumn{3}{|c|}{\textbf{Beyond minimum conformance requirements:
 bounding boxes.}} \\\hline
-& \testCase \InlF & Failed \\\hline
-\resetTestCase
+& 6. \InlF & \Failed \\\hline
+%% \resetTestCase
 LOD & & \\\cline{2-3}
 & & \\\hline
-\resetTestCase
+%% \resetTestCase
 Switch & & \\\cline{2-3}
 & & \\
 \end{longtable}
@@ -37,21 +36,7 @@ Switch & & \\\cline{2-3}
 
 \subsection{Inline Test Cases}
 
-\subsubsection{\InlA}
-Test file: single-url.wrl.
-
-\subsubsection{\InlB}
-Test file: nested-inline.wrl.
-
-\subsubsection{\InlC}
-Test file: invalid-url.wrl.
-See bug 435578.
-
-\subsubsection{\InlD}
-Test file: absolute-url.wrl.
-
-\subsubsection{\InlE}
-Test file: relative-url.wrl.
+\setcounter{subsubsection}{5}
 
 \subsubsection{\InlF}
 Test file: test-bboxsizesame.wrl.\newline
