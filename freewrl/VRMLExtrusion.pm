@@ -413,7 +413,7 @@ if(SCP[0].next==nspi) {
  		VECCP(spp1,spm1,SCP[1].z);
 		if (Extru_Verbose) {
 		printf ("just calculated z for spi 0\n");
-		printf("SCP[0].y=[%lf,%lf,%lf], SCP[1].z=[%lf,%lf,%lf]\n",
+		printf("SCP[0].y=[%f,%f,%f], SCP[1].z=[%f,%f,%f]\n",
 			SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
 			SCP[1].z.x,SCP[1].z.y,SCP[1].z.z);
 		}
@@ -461,10 +461,10 @@ if(SCP[0].next==nspi) {
 		SCP[nspi-1].z=SCP[SCP[nspi-1].prev].z; 
 	
 		if (Extru_Verbose) {	
-		printf("SCP[0].y=[%lf,%lf,%lf], SCP[0].z=[%lf,%lf,%lf]\n",
+		printf("SCP[0].y=[%f,%f,%f], SCP[0].z=[%f,%f,%f]\n",
 			SCP[0].y.x,SCP[0].y.y,SCP[0].y.z,
 			SCP[0].z.x,SCP[0].z.y,SCP[0].z.z);
-		printf("SCP[1].y=[%lf,%lf,%lf], SCP[1].z=[%lf,%lf,%lf]\n",
+		printf("SCP[1].y=[%f,%f,%f], SCP[1].z=[%f,%f,%f]\n",
 			SCP[1].y.x,SCP[1].y.y,SCP[1].y.z,
 			SCP[1].z.x,SCP[1].z.y,SCP[1].z.z);
 		}
@@ -544,7 +544,7 @@ if(pos_of_last_zvalue==-1) {
 		/* normalize the non trivial vector */	
 		spylen=1/sqrt(VECSQ(spp1)); VECSCALE(spp1,spylen);
 		if(Extru_Verbose)
-			printf("Reference vector along spine=[%lf,%lf,%lf]\n",
+			printf("Reference vector along spine=[%f,%f,%f]\n",
 				spp1.x,spp1.y,spp1.z);
 
 
@@ -609,7 +609,7 @@ if(pos_of_last_zvalue==-1) {
  
 if(Extru_Verbose) {
 	for(spi=0;spi<nspi;spi++) {
-		printf("SCP[%d].y=[%lf,%lf,%lf], SCP[%d].z=[%lf,%lf,%lf]\n",
+		printf("SCP[%d].y=[%f,%f,%f], SCP[%d].z=[%f,%f,%f]\n",
 			spi,SCP[spi].y.x,SCP[spi].y.y,SCP[spi].y.z,
 			spi,SCP[spi].z.x,SCP[spi].z.y,SCP[spi].z.z);
 	}
@@ -801,7 +801,7 @@ for(x=0; x<nsec-1; x++) {
   	VEC_FROM_COORDDIFF(coord,D,coord,C,cd);
 	/* ca=-ac */
 	if(Extru_Verbose) {
-		printf("ab=[%lf,%lf,%lf],cd=[%lf,%lf,%lf]\n",
+		printf("ab=[%f,%f,%f],cd=[%f,%f,%f]\n",
 			ab.x,ab.y,ab.z,cd.x,cd.y,cd.z);
 		printf("Orig: %d %d  [%f %f %f] [%f %f %f] (%d, %d, %d) \n",
 				D, C,
@@ -829,13 +829,13 @@ for(x=0; x<nsec-1; x++) {
 			} 
 		}
 	} /* else */
-	if(Extru_Verbose) printf("u=%lf, r=%lf\n",u,r);
+	if(Extru_Verbose) printf("u=%f, r=%f\n",u,r);
 	if(u>=0 && u<=1 && r>=0 && r<=1 
 		&& (-ac.x)+u*ab.x==r*cd.x
 		&& (-ac.y)+u*ab.y==r*cd.y
 		&& (-ac.z)+u*ab.z==r*cd.z ) {
 		
-		if(Extru_Verbose) printf("Intersection found at P=[%lf,%lf,%lf]!\n",
+		if(Extru_Verbose) printf("Intersection found at P=[%f,%f,%f]!\n",
 			coord[A*3]+u*ab.x,
 			coord[A*3+1]+u*ab.y,
 			coord[A*3+2]+u*ab.y
