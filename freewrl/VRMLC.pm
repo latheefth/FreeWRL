@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.18  2000/12/07 19:11:18  crc_canada
+# IndexedFaceSet texture mapping
+#
 # Revision 1.17  2000/11/16 18:45:05  crc_canada
 # Bug in do_textures; was not setting GL_CLAMP correctly, boolean test added
 #
@@ -571,26 +574,44 @@ IndexedFaceSet => '
 	int nvert = 0;
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
-	struct SFColor *points; int npoints;
-	struct SFColor *normals; int nnormals=0;
+	struct SFColor *points; 
+	int npoints;
+	struct SFColor *normals; 
+	int nnormals=0;
 	struct VRML_PolyRep *rep_ = this_->_intern;
 	int *cindex;
 	int *colindex;
         int *tcindex;
         /* texture coord index */
 	int tcin = $f_n(texCoordIndex);
-        struct SFVec2f *texCoords; int ntexCoords = 0;
+        struct SFVec2f *texCoords; 
+	int ntexCoords = 0;
 
         /* texture coords */
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
-/*        printf("texCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);*/
-	/* for (i=0; i<ntexCoords; i++)
+	/*
+        printf("\n\ntexCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
+	for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
-		texCoords[i].c[0], texCoords[i].c[1] ); */
-/*        printf("NtexCoordIndex = %d\n", tcin);*/
+		texCoords[i].c[0], texCoords[i].c[1] ); 
+        printf("NtexCoordIndex = %d\n", tcin);
+	*/
 
+	/* IndexedFaceSet coords */
 	$fv(coord, points, get3, &npoints);
 	$fv_null(normal, normals, get3, &nnormals);
+	/*
+	printf ("points = %lx \n",npoints);
+	for (i=0; i<npoints; i++)
+	  printf ("\t point #%d = [%.5f %.5f %.5f]\n", i,
+		points[i].c[0], points[i].c[1], points[i].c[2]);
+	
+	printf ("normals = %lx\n",nnormals);
+	for (i=0; i<nnormals; i++)
+	  printf ("\t normal #%d = [%.5f %.5f %.5f]\n", i,
+		normals[i].c[0], normals[i].c[1], normals[i].c[2]);
+	*/
+
 	
         if(tcin == 0 && ntexCoords != 0 && ntexCoords != npoints) {
            die("Invalid number of texture coordinates");
@@ -637,6 +658,8 @@ IndexedFaceSet => '
 		int triind = 0;
 		curpoly = 0;
 		for(i=0; i<cin; i++) {
+			/* printf ("Coord index is %d\n",$f(coordIndex,i)); */
+
 			if($f(coordIndex,i) == -1) {
 				initind=-1;
 				lastind=-1;
@@ -645,28 +668,42 @@ IndexedFaceSet => '
 				curpoly ++;
 			} else {
 				if(initind == -1) {
+					/* printf ("initind == -1\n"); */
 					initind = $f(coordIndex,i);
 					if(tcin) inittcind = $f(texCoordIndex,i);
 				} else if(lastind == -1) {
+					/* printf ("lastind == -1\n"); */
 					lastind = $f(coordIndex,i);
 					if(tcin) lasttcind = $f(texCoordIndex,i);
 				} else {
 					cindex[triind*3+0] = initind;
 					cindex[triind*3+1] = lastind;
 					cindex[triind*3+2] = $f(coordIndex,i);
+
 					if(cpv) {
+						/* printf ("cpv, %d %d %d\n",initind,lastind,
+							$f(coordIndex,i)); */
 						colindex[triind*3+0] = initind;
 						colindex[triind*3+1] = lastind;
 						colindex[triind*3+2] = $f(coordIndex,i);
 					} else {
+						/* printf ("cpv, %d %d %d\n",
+							curpoly, curpoly, curpoly); */
 						colindex[triind*3+0] = curpoly;
 						colindex[triind*3+1] = curpoly;
 						colindex[triind*3+2] = curpoly;
 					}
+
 					if(rep_->normal) {
+						/* printf ("Normal\n"); */
 						c1 = &(points[initind]);
 						c2 = &(points[lastind]); 
 						c3 = &(points[$f(coordIndex,i)]);
+						/* printf ("using points : \n\t%f %f %f, \n\t%f %f %f, \n\t%f %f %f\n",
+						c1->c[0], c1->c[1], c1->c[2],
+						c2->c[0], c2->c[1], c2->c[2], 
+						c3->c[0], c3->c[1], c3->c[2]); */
+
 						a[0] = c2->c[0] - c1->c[0];
 						a[1] = c2->c[1] - c1->c[1];
 						a[2] = c2->c[2] - c1->c[2];
@@ -683,20 +720,23 @@ IndexedFaceSet => '
 						rep_->norindex[triind*3+1] = triind;
 						rep_->norindex[triind*3+2] = triind;
 					}
+
                                         if(tcin && ntexCoords) {
-/* printf("tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords); */
-                                                /* TODO: This mode is still a little obscur to me ... ? */
+						/* printf("tcin && ntexCoords = %d && %d\\n", 								tcin, ntexCoords);  */
                                                 tcindex[triind*3+0] = inittcind;
                                                 tcindex[triind*3+1] = lasttcind;
                                                 tcindex[triind*3+2] = $f(texCoordIndex,i);
+						/* printf ("tcoords are %d %d %d\n",inittcind, 
+							lasttcind, $f(texCoordIndex,i)); */
                                         } else if (!tcin && ntexCoords) {
-/* printf("! tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords); */
+						/* printf("! tcin && ntexCoords = %d && %d\\n", tcin, ntexCoords);  */
                                                 /* Use coord index */
                                                 tcindex[triind*3+0] = cindex[triind*3+0];
                                                 tcindex[triind*3+1] = cindex[triind*3+1];
                                                 tcindex[triind*3+2] = cindex[triind*3+2];
                                         }
 					lastind = $f(coordIndex,i);
+					lasttcind = $f(coordIndex,i);
 					triind++;
 				}
 			}
@@ -704,9 +744,11 @@ IndexedFaceSet => '
 	}
         /* Got neither tex index nor tex coords: fallback to default mapping */
         if(! tcin && ! ntexCoords) {
-           /* Map S axe on X plane and T axe on Y plane */
+           /* Map S axis on X plane and T axis on Y plane */
            GLfloat sgenparams[] = {1.0, 0.0, 0.0, 0.0};
            GLfloat tgenparams[] = {0.0, 1.0, 0.0, 0.0};
+	   /* printf ("no tex coords, go back to default mapping\n"); */
+
            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
            glTexGenfv(GL_S, GL_OBJECT_PLANE, sgenparams);
            glEnable(GL_TEXTURE_GEN_S);
@@ -973,41 +1015,11 @@ static struct VRML_Virt virt_${n} = { ".
 					glGenTextures(1,&this_->_texture);
 				}
 
-				printf ("repeatS = %s   repeatT = %s\\n", \$f(repeatS$1) ? 
-				"GL_REPEAT" : "GL_CLAMP", \$f(repeatT$1) ? "GL_REPEAT" : "GL_CLAMP" );
                         	glBindTexture (GL_TEXTURE_2D, this_->_texture);
 				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
 					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
 					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP);
 
-				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
-				this_->_dlchange = this_->_change;
-			} else {
-				glCallList(this_->_dlist); return;
-			}
-			glEnable(GL_LIGHTING);
-			glColor3f(1.0,1.0,1.0);
-			glEnable(GL_TEXTURE_2D);
-                       	glBindTexture (GL_TEXTURE_2D, this_->_texture);
-		     }
-			~g;
-		$c =~ s~\$ptex2d\(([^)]*)\)~
-		  {
-			if(this_->_dlchange != this_->_change) {
-				unsigned char *ptr = SvPV(\$f(__data$1),PL_na);
-				void do_texture();
-
-				if(!this_->_texture) {
-					glGenTextures(1,&this_->_texture);
-				}
-
-				printf ("repeatS = %s   repeatT = %s\\n", \$f(repeatS$1) ? 
-				"GL_REPEAT" : "GL_CLAMP", \$f(repeatT$1) ? "GL_REPEAT" : "GL_CLAMP" );
-	
-        	                glBindTexture (GL_TEXTURE_2D, this_->_texture);
-				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
-					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
-					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP);
 				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
 				this_->_dlchange = this_->_change;
 			} else {
@@ -1044,9 +1056,6 @@ static struct VRML_Virt virt_${n} = { ".
 			} else {
 				glCallList(this_->_dl2ist); return;
 			}/g;
-		$c =~ s/\$end(_|)list2\(\)/
-			glEndList()
-			/g;
 		$c =~ s/\$ntyptest\(([^),]*),([^),]*)\)/
 				(((struct VRML_Box *)$1)->v == 	
 					& virt_$2)/g;
