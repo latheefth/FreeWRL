@@ -717,10 +717,10 @@ sub parseX3DScript {
 
 		## Is this the node-node matching?.
 		} elsif ($bnub eq "IS") {
-			print "Found the IS...\n";
+			#print "Found the IS...\n";
 			$arele +=1;
 			my $isstuff = $proto->[$arele];
-			print "parseX3DScript call\n"; print Dumper ($isstuff), "\n\n";
+			#print "parseX3DScript call\n"; print Dumper ($isstuff), "\n\n";
 
 		# lets just make sure we did not get any non-garbage stuff here.
 		} else {
@@ -985,13 +985,13 @@ sub parseIS {
 			$arele++;
 			# presumably, only one connect pair is possible here.
 			my $ar = $IS->[$arele]->[0];
-			print "connect is $ar\n";
+			#print "connect is $ar\n";
 
 			# find the nodeField and protoField keys
 			my $nF = "";
 			my $pF = "";
 			foreach my $iskey (keys (%{$ar})) {
-				print "key $iskey is ",$ar->{$iskey},"\n";
+				#print "key $iskey is ",$ar->{$iskey},"\n";
 				if ($iskey eq "nodeField") {
 					$nF = $ar->{$iskey};
 				} elsif ($iskey eq "protoField") {
@@ -1007,22 +1007,24 @@ sub parseIS {
 			my $isVar = $protoFields->{$pF};
 			my $isVarVal = $isVar->{value};
 			my $isVarType = $isVar->{type};
-			print "isVar is $isVar, type $isVarType, val $isVarVal\n";
+			my $isAccessType = $isVar->{accessType};
+			#print "isVar is $isVar, type $isVarType, val $isVarVal\n";
 
 			# lets find out what we expected here
         		my $no = $VRML::Nodes{$parentNode};
 			my $ft = $no->{FieldTypes}{$nF};
-			print "field type of node $parentNode is $ft\n";
+			#print "field type of node $parentNode is $ft\n";
 
 			# do field types match?
 			if ($ft ne $isVarType) {
 				print "IS, node mismatch; $nF is $ft, $pF is $isVarType\n";
-#JAS - add this here.yy
-	printX3DPRotoDeclares ($protoTableRef,"");
-#JAS - add this here.yy
 				return;
 			}
-			$fieldref->{$nF} = parseSimpleField ($parentNode,$nF,$isVarVal);
+
+			# lets try this - we dont need a value for an outputOnly variable.
+			if ($isAccessType ne "outputOnly") {
+				$fieldref->{$nF} = parseSimpleField ($parentNode,$nF,$isVarVal);
+			}
 		}else {
 			$bnub =~ s/\s+//g;
 
@@ -1317,7 +1319,7 @@ sub getChildType {
 
 	if ($X3D::parse::verbose) {
 		if ($st eq "children") {
-			print "getChildType for node $pn, field $nnn, returning $st\n";
+			#print "getChildType for node $pn, field $nnn, returning $st\n";
 		}
 	}
 	return $st;
@@ -1326,7 +1328,7 @@ sub getChildType {
 # parse the field values of a node - eg, parse the size field of a Box node.
 sub parseSimpleField {
 	my ($pn,$field,$value) = @_;
-        #print "parseSimpleField field $field, node $pn, value $value \n";
+        print "parseSimpleField field $field, node $pn, value $value \n";
 
         my $no = $VRML::Nodes{$pn};
 
