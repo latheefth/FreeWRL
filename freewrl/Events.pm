@@ -499,7 +499,7 @@ sub propagate_events {
 		# rewriting on GLBackEnd.pm for Sensitive nodes.
 
 		print "MEV node ", VRML::Debug::toString($_), " type $_->[0]->{TypeName}\n"
-			;#JAS if $VRML::verbose::events;
+			if $VRML::verbose::events;
 
 		my $nd = $_->[0];
 		VRML::VRMLFunc::handle_mouse_sensitive($nd->{Type}{Name},
@@ -541,7 +541,7 @@ sub send_set_bind_to {
 
 sub handle_touched {
 	my($this, $node, $but, $move, $over) = @_;
-	print "Events.pm: HTOUCH: node $node, but $but, move $move, over $over \n";
+	#print "Events.pm: HTOUCH: node $node, but $but, move $move, over $over \n";
 	push @{$this->{MouseSensitive}}, [ $node, $but, $move, $over];
 }
 
