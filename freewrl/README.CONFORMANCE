@@ -52,10 +52,10 @@ Geometry
 		5:	ok
 		6:	ok
 		7:	ok
-		8:	error: Too large normal index -- help?
-		9:	same
-		10:	same
-		11:
+		8:	ok
+		9:	ok
+		10:	ok - although we draw triangles differently.
+		11:	ok
 		12:
 		13:
 		14:
