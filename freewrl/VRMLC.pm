@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.101  2003/07/15 14:04:08  crc_canada
+# Viewer selection work
+#
 # Revision 1.100  2003/07/09 18:30:34  crc_canada
 # removeChildren now possible for a normal ROUTE.
 #
@@ -2246,12 +2249,6 @@ CODE:
 
 #********************************************************************************
 # Viewer functions implemented in C replacing viewer Perl module
-
-void
-do_viewer_init(type)
-	int type
-CODE:
-	viewer_init(&Viewer, type);
 
 void
 do_print_viewer()

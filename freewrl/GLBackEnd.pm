@@ -185,7 +185,7 @@ sub new {
 	if ($VRML::offline) {
 		$this->doconfig($w,$h);
 	}
-	VRML::VRMLFunc::do_viewer_init(EXAMINE);
+	VRML::VRMLFunc::set_viewer_type(EXAMINE);
 
 	VRML::VRMLFunc::do_set_eyehalf(
 								   $eyedist/2.0,
