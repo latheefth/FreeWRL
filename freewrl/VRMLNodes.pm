@@ -245,7 +245,7 @@ sub removeChild {
 
 	# print "VRMLNodes.pm:removeChild: checking for child $child in node $node\n";
 	foreach $item (@{$node->{Fields}{"children"}}) {
-		print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
+		# print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
 		if (!($item eq $child)) {
 			push @av, $item;
 		} else {
