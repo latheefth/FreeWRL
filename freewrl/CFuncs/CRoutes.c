@@ -1157,7 +1157,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 				case SFROTATION: {
 						sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-						printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]);
+						//printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]);
 						memcpy ((void *)tn+tptr, (void *)fl,len);
 						break;
 				}
