@@ -43,11 +43,11 @@ PROTO ToggleSphere [
 		  "perl:
 		   touch_function => sub {
 		   
-                      print \"colors is $colors\\n\";
 		      $state++;
 		      $state %= @$colors ;
 		      # Set the eventOut 'col'
 		      $col = $colors->[$state];
+	 	      print qq(color is ) . join(',',@$col) . chr(10);
 		      [];
 		  },
 		  initialize      => sub {
