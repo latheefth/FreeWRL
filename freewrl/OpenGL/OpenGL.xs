@@ -79,7 +79,7 @@ int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
 
 int  default_attributes0[] = 
    {
-   GLX_DEPTH_SIZE,         16,
+   GLX_DEPTH_SIZE,         24,		// JAS
    GLX_RED_SIZE,           8,
    GLX_DOUBLEBUFFER,       GL_TRUE,
 #ifdef GLX_STEREO
@@ -473,8 +473,11 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	}
 
 	/* what is the hardware 3d accel? */
-	strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
-	/* printf ("%s\n",renderer); */
+	//strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
+	//printf ("%s\n",renderer); 
+
+	//glXGetConfig (dpy, vi, GLX_DEPTH_SIZE, &number);
+	//printf ("GLX depth size %d\n",number);
 
 	/* and make it so that we render 1 frame, at least */
 	render_frame = 5;
