@@ -1,0 +1,10 @@
+#VRML V2.0 utf8
+## test Script nodes and SFNode constructor in JS engine
+
+Script {
+	  field SFNode newNode NULL
+	  url "javascript:
+			function initialize() {
+				 newNode = new SFNode('Shape { appearance Appearance { material Material {}	} geometry Cone {} }');
+			} "
+}
