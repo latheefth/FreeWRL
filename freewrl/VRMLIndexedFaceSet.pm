@@ -296,13 +296,16 @@ for (this_face=0; this_face<faces; this_face++) {
 			gluEndPolygon(global_tessobj); 
 		
 			/* Tesselated faces may have a different normal than calculated previously */
+			/* bounds check, once again */
+
+			verify_global_IFS_Coords(cin);
+
 			IFS_check_normal (facenormals,this_face,points, this_coord, this_,ccw); 
 		}
 	
 	
 		/* now store this information for the whole of the polyrep */
 		for (i=0; i<global_IFS_Coord_count; i++) {
-
 			/* Triangle Coordinate */
 			cindex [vert_ind] = $f(coordIndex,this_coord+global_IFS_Coords[i]);
 	
@@ -384,7 +387,8 @@ for (this_face=0; this_face<faces; this_face++) {
 					//printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]);
 				}
 			}
-			// increment index, but check for baaad errors.	
+			
+			/* increment index, but check for baaad errors.	 */
 			if (vert_ind < (ntri*3-1)) vert_ind++;
 		}
 
