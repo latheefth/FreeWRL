@@ -381,6 +381,7 @@ sub add_route {
 	my $inptr;
 	my $datalen;
 	my $scrpt = 0;
+	my $extraparam = 0;
 	my $fc = 0; my $tc = 0; #from and to script nodes.
 
 	# print "\nstart of add_route, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
@@ -392,13 +393,17 @@ sub add_route {
 
 	# TO NODE
 	my ($inptr,$inoffset,$tc,$ok,$intptr) = $this->resolve_node_cnode ($scene,$toNode,$eventIn,"eventIn");
+	if ($eventIn eq "addChildren") {
+		$extraparam = 1;
+	}
+		
 	if ($ok == 0) {return 1;} # error message already printed
 
 	$scrpt = $fc + $tc;
 
 	#print "add_route, outptr $outptr, ofst $outoffset, inptr $inptr, ofst $inoffset len $datalen interp $intptr sc $scrpt\n";
 	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,
-		$intptr, $scrpt);
+		$intptr, $scrpt,$extraparam);
 }
 
 ## needs to be tested with more than just the EAI AddRoute test and to have CRoutes added to it.
