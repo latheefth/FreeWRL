@@ -155,6 +155,21 @@ SFNodeSetProperty(JSContext *cx,
 				  jsval id,
 				  jsval *vp);
 
+/* not implemented */
+JSBool
+SFColorGetHSV(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+/* not implemented */
+JSBool
+SFColorSetHSV(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
 
 JSBool
 SFColorToString(JSContext *cx,
@@ -248,11 +263,78 @@ SFImageSetProperty(JSContext *cx,
 
 
 JSBool
+SFVec2fAdd(JSContext *cx,
+		   JSObject *obj,
+		   uintN argc,
+		   jsval *argv,
+		   jsval *rval);
+
+JSBool
+SFVec2fDivide(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec2fDot(JSContext *cx,
+		   JSObject *obj,
+		   uintN argc,
+		   jsval *argv,
+		   jsval *rval);
+
+JSBool
+SFVec2fLength(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec2fMultiply(JSContext *cx,
+				JSObject *obj,
+				uintN argc,
+				jsval *argv,
+				jsval *rval);
+
+JSBool
+SFVec2fNegate(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec2fNormalize(JSContext *cx,
+				 JSObject *obj,
+				 uintN argc,
+				 jsval *argv,
+				 jsval *rval);
+
+JSBool
+SFVec2fSubtract(JSContext *cx,
+				JSObject *obj,
+				uintN argc,
+				jsval *argv,
+				jsval *rval);
+
+JSBool
 SFVec2fToString(JSContext *cx,
 				JSObject *obj,
 				uintN argc,
 				jsval *argv,
 				jsval *rval);
+
+JSBool
+SFVec2fConstr(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec2fFinalize(JSContext *cx,
+				JSObject *obj);
 
 JSBool
 SFVec2fAssign(JSContext *cx,
@@ -268,52 +350,6 @@ SFVec2fTouched(JSContext *cx,
 			   jsval *argv,
 			   jsval *rval);
 
-JSBool
-SFVec2fSubtract(JSContext *cx,
-				JSObject *obj,
-				uintN argc,
-				jsval *argv,
-				jsval *rval);
-
-JSBool
-SFVec2fNormalize(JSContext *cx,
-				 JSObject *obj,
-				 uintN argc,
-				 jsval *argv,
-				 jsval *rval);
-
-JSBool
-SFVec2fAdd(JSContext *cx,
-		   JSObject *obj,
-		   uintN argc,
-		   jsval *argv,
-		   jsval *rval);
-
-JSBool
-SFVec2fLength(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec2fNegate(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec2fConstr(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec2fFinalize(JSContext *cx,
-				JSObject *obj);
-
 JSBool 
 SFVec2fGetProperty(JSContext *cx,
 				   JSObject *obj,
@@ -328,11 +364,85 @@ SFVec2fSetProperty(JSContext *cx,
 
 
 JSBool
+SFVec3fAdd(JSContext *cx,
+		   JSObject *obj,
+		   uintN argc,
+		   jsval *argv,
+		   jsval *rval);
+
+JSBool
+SFVec3fCross(JSContext *cx,
+			 JSObject *obj,
+			 uintN argc,
+			 jsval *argv,
+			 jsval *rval);
+
+JSBool
+SFVec3fDivide(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec3fDot(JSContext *cx,
+		   JSObject *obj,
+		   uintN argc,
+		   jsval *argv,
+		   jsval *rval);
+
+JSBool
+SFVec3fLength(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec3fMultiply(JSContext *cx,
+				JSObject *obj,
+				uintN argc,
+				jsval *argv,
+				jsval *rval);
+
+JSBool
+SFVec3fNegate(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec3fNormalize(JSContext *cx,
+				 JSObject *obj,
+				 uintN argc,
+				 jsval *argv,
+				 jsval *rval);
+
+JSBool
+SFVec3fSubtract(JSContext *cx,
+				JSObject *obj,
+				uintN argc,
+				jsval *argv,
+				jsval *rval);
+
+JSBool
 SFVec3fToString(JSContext *cx,
 				JSObject *obj,
 				uintN argc,
 				jsval *argv,
 				jsval *rval);
+
+JSBool
+SFVec3fConstr(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+SFVec3fFinalize(JSContext *cx,
+				JSObject *obj);
 
 JSBool
 SFVec3fAssign(JSContext *cx,
@@ -348,59 +458,6 @@ SFVec3fTouched(JSContext *cx,
 			   jsval *argv,
 			   jsval *rval);
 
-JSBool
-SFVec3fSubtract(JSContext *cx,
-				JSObject *obj,
-				uintN argc,
-				jsval *argv,
-				jsval *rval);
-
-JSBool
-SFVec3fNormalize(JSContext *cx,
-				 JSObject *obj,
-				 uintN argc,
-				 jsval *argv,
-				 jsval *rval);
-
-JSBool
-SFVec3fAdd(JSContext *cx,
-		   JSObject *obj,
-		   uintN argc,
-		   jsval *argv,
-		   jsval *rval);
-
-JSBool
-SFVec3fLength(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fCross(JSContext *cx,
-			 JSObject *obj,
-			 uintN argc,
-			 jsval *argv,
-			 jsval *rval);
-
-JSBool
-SFVec3fNegate(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fConstr(JSContext *cx,
-			  JSObject *obj,
-			  uintN argc,
-			  jsval *argv,
-			  jsval *rval);
-
-JSBool
-SFVec3fFinalize(JSContext *cx,
-				JSObject *obj);
-
 JSBool 
 SFVec3fGetProperty(JSContext *cx,
 				   JSObject *obj,
@@ -415,11 +472,66 @@ SFVec3fSetProperty(JSContext *cx,
 
 
 JSBool
+SFRotationGetAxis(JSContext *cx,
+				  JSObject *obj,
+				  uintN argc,
+				  jsval *argv,
+				  jsval *rval);
+
+/* not implemented */
+JSBool
+SFRotationInverse(JSContext *cx,
+				  JSObject *obj,
+				  uintN argc,
+				  jsval *argv,
+				  jsval *rval);
+
+/* not implemented */
+JSBool
+SFRotationMultiply(JSContext *cx,
+				   JSObject *obj,
+				   uintN argc,
+				   jsval *argv,
+				   jsval *rval);
+JSBool
+SFRotationMultVec(JSContext *cx,
+				  JSObject *obj,
+				  uintN argc,
+				  jsval *argv,
+				  jsval *rval);
+
+JSBool
+SFRotationSetAxis(JSContext *cx,
+				  JSObject *obj,
+				  uintN argc,
+				  jsval *argv,
+				  jsval *rval);
+
+/* not implemented */
+JSBool
+SFRotationSlerp(JSContext *cx,
+				JSObject *obj,
+				uintN argc,
+				jsval *argv,
+				jsval *rval);
+
+JSBool
 SFRotationToString(JSContext *cx,
 				   JSObject *obj,
 				   uintN argc,
 				   jsval *argv,
 				   jsval *rval);
+
+JSBool 
+SFRotationConstr(JSContext *cx,
+				 JSObject *obj,
+				 uintN argc,
+				 jsval *argv,
+				 jsval *rval);
+
+JSBool 
+SFRotationFinalize(JSContext *cx,
+				   JSObject *obj);
 
 JSBool
 SFRotationAssign(JSContext *cx,
@@ -434,31 +546,6 @@ SFRotationTouched(JSContext *cx,
 				  uintN argc,
 				  jsval *argv,
 				  jsval *rval);
-
-JSBool
-SFRotationMultVec(JSContext *cx,
-				  JSObject *obj,
-				  uintN argc,
-				  jsval *argv,
-				  jsval *rval);
-
-JSBool
-SFRotationInverse(JSContext *cx,
-				  JSObject *obj,
-				  uintN argc,
-				  jsval *argv,
-				  jsval *rval);
-
-JSBool 
-SFRotationConstr(JSContext *cx,
-				 JSObject *obj,
-				 uintN argc,
-				 jsval *argv,
-				 jsval *rval);
-
-JSBool 
-SFRotationFinalize(JSContext *cx,
-				   JSObject *obj);
 
 JSBool 
 SFRotationGetProperty(JSContext *cx,
@@ -837,8 +924,8 @@ static JSPropertySpec (SFNodeProperties)[] = {
 };
 
 static JSFunctionSpec (SFNodeFunctions)[] = {
-	{"assign", SFNodeAssign, 0},
 /* 	{"toString", SFNodeToString, 0}, */
+	{"assign", SFNodeAssign, 0},
 	{"__touched", SFNodeTouched, 0},
 	{0}
 };
@@ -868,11 +955,15 @@ static JSPropertySpec (SFRotationProperties)[] = {
 };
 
 static JSFunctionSpec (SFRotationFunctions)[] = {
-	{"assign", SFRotationAssign, 0},
-	{"toString", SFRotationToString, 0},
-	{"__touched", SFRotationTouched, 0},
-	{"multVec", SFRotationMultVec, 0},
+	{"getAxis", SFRotationGetAxis, 0},
 	{"inverse", SFRotationInverse, 0},
+	{"multiply", SFRotationMultiply, 0},
+	{"multVec", SFRotationMultVec, 0},
+	{"setAxis", SFRotationSetAxis, 0},
+	{"slerp", SFRotationSlerp, 0},
+	{"toString", SFRotationToString, 0},
+	{"assign", SFRotationAssign, 0},
+	{"__touched", SFRotationTouched, 0},
 	{0}
 };
 
@@ -900,14 +991,16 @@ static JSPropertySpec (SFColorProperties)[] = {
 };
 
 static JSFunctionSpec (SFColorFunctions)[] = {
-	{"assign", SFColorAssign, 0},
+	{"getHSV", SFColorGetHSV, 0},
+	{"setHSV", SFColorSetHSV, 0},
 	{"toString", SFColorToString, 0},
+	{"assign", SFColorAssign, 0},
 	{"__touched", SFColorTouched, 0},
 	{0}
 };
 
-static JSObject *proto_SFImage;
 
+static JSObject *proto_SFImage;
 
 static JSClass SFImageClass = {
 	"SFImage",
@@ -931,14 +1024,51 @@ static JSPropertySpec (SFImageProperties)[] = {
 };
 
 static JSFunctionSpec (SFImageFunctions)[] = {
-	{"assign", SFImageAssign, 0},
 	{"toString", SFImageToString, 0},
+	{"assign", SFImageAssign, 0},
 	{"__touched", SFImageTouched, 0},
 	{0}
 };
 
 
-JSObject *proto_SFVec3f;
+static JSObject *proto_SFVec2f;
+
+static JSClass SFVec2fClass = {
+	"SFVec2f",
+	JSCLASS_HAS_PRIVATE,
+	JS_PropertyStub,
+	JS_PropertyStub,
+	SFVec2fGetProperty,
+	SFVec2fSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	SFVec2fFinalize
+};
+
+static JSPropertySpec (SFVec2fProperties)[] = {
+	{"x", 0, JSPROP_ENUMERATE},
+	{"y", 1, JSPROP_ENUMERATE},
+	{0}
+};
+
+static JSFunctionSpec (SFVec2fFunctions)[] = {
+	{"add", SFVec2fAdd, 0},
+	{"divide", SFVec2fDivide, 0},
+	{"dot", SFVec2fDot, 0},
+	{"length", SFVec2fLength, 0},
+	{"multiply", SFVec2fMultiply, 0},
+	{"negate", SFVec2fNegate, 0},
+	{"normalize", SFVec2fNormalize, 0},
+	{"subtract", SFVec2fSubtract, 0},
+	{"toString", SFVec2fToString, 0},
+	{"assign", SFVec2fAssign, 0},
+	{"__touched", SFVec2fTouched, 0},
+	{0}
+};
+
+
+static JSObject *proto_SFVec3f;
 
 static JSClass SFVec3fClass = {
 	"SFVec3f",
@@ -961,48 +1091,18 @@ static JSPropertySpec (SFVec3fProperties)[] = {
 };
 
 static JSFunctionSpec (SFVec3fFunctions)[] = {
-	{"assign", SFVec3fAssign, 0},
-	{"toString", SFVec3fToString, 0},
-	{"__touched", SFVec3fTouched, 0},
-	{"subtract", SFVec3fSubtract, 0},
-	{"normalize", SFVec3fNormalize, 0},
 	{"add", SFVec3fAdd, 0},
-	{"length", SFVec3fLength, 0},
 	{"cross", SFVec3fCross, 0},
+	{"divide", SFVec3fDivide, 0},
+	{"dot", SFVec3fDot, 0},
+	{"length", SFVec3fLength, 0},
+	{"multiply", SFVec3fMultiply, 0},
 	{"negate", SFVec3fNegate, 0},
-	{0}
-};
-
-JSObject *proto_SFVec2f;
-
-static JSClass SFVec2fClass = {
-	"SFVec2f",
-	JSCLASS_HAS_PRIVATE,
-	JS_PropertyStub,
-	JS_PropertyStub,
-	SFVec2fGetProperty,
-	SFVec2fSetProperty,
-	JS_EnumerateStub,
-	JS_ResolveStub,
-	JS_ConvertStub,
-	SFVec2fFinalize
-};
-
-static JSPropertySpec (SFVec2fProperties)[] = {
-	{"x", 0, JSPROP_ENUMERATE},
-	{"y", 1, JSPROP_ENUMERATE},
-	{0}
-};
-
-static JSFunctionSpec (SFVec2fFunctions)[] = {
-	{"assign", SFVec2fAssign, 0},
-	{"toString", SFVec2fToString, 0},
-	{"__touched", SFVec2fTouched, 0},
-	{"subtract", SFVec2fSubtract, 0},
-	{"normalize", SFVec2fNormalize, 0},
-	{"add", SFVec2fAdd, 0},
-	{"length", SFVec2fLength, 0},
-	{"negate", SFVec2fNegate, 0},
+	{"normalize", SFVec3fNormalize, 0},
+	{"subtract", SFVec3fSubtract, 0},
+	{"toString", SFVec3fToString, 0},
+	{"assign", SFVec3fAssign, 0},
+	{"__touched", SFVec3fTouched, 0},
 	{0}
 };
 
@@ -1023,6 +1123,7 @@ static JSClass MFTimeClass = {
 };
 
 static JSFunctionSpec (MFTimeFunctions)[] = {
+/* 	{"toString", MFTimeToString, 0}, */
 	{"assign", MFTimeAssign, 0},
 	{0}
 };
@@ -1044,6 +1145,7 @@ static JSClass MFBoolClass = {
 };
 
 static JSFunctionSpec (MFBoolFunctions)[] = {
+/* 	{"toString", MFBoolToString, 0}, */
 	{"assign", MFBoolAssign, 0},
 	{0}
 };
@@ -1065,6 +1167,7 @@ static JSClass MFFloatClass = {
 };
 
 static JSFunctionSpec (MFFloatFunctions)[] = {
+/* 	{"toString", MFFloatToString, 0}, */
 	{"assign", MFFloatAssign, 0},
 	{0}
 };
@@ -1086,6 +1189,7 @@ static JSClass MFInt32Class = {
 };
 
 static JSFunctionSpec (MFInt32Functions)[] = {
+/* 	{"toString", MFInt32ToString, 0}, */
 	{"assign", MFInt32Assign, 0},
 	{0}
 };
@@ -1129,6 +1233,7 @@ static JSClass MFNodeClass = {
 };
 
 static JSFunctionSpec (MFNodeFunctions)[] = {
+/* 	{"toString", MFNodeToString, 0}, */
 	{"assign", MFNodeAssign, 0},
 	{0}
 };
@@ -1150,6 +1255,7 @@ static JSClass MFRotationClass = {
 };
 
 static JSFunctionSpec (MFRotationFunctions)[] = {
+/* 	{"toString", MFRotationToString, 0}, */
 	{"assign", MFRotationAssign, 0},
 	{0}
 };
@@ -1171,6 +1277,7 @@ static JSClass MFVec2fClass = {
 };
 
 static JSFunctionSpec (MFVec2fFunctions)[] = {
+/* 	{"toString", MFVec2fToString, 0}, */
 	{"assign", MFVec2fAssign, 0},
 	{0}
 };
@@ -1192,6 +1299,7 @@ static JSClass MFVec3fClass = {
 };
 
 static JSFunctionSpec (MFVec3fFunctions)[] = {
+/* 	{"toString", MFVec3fToString, 0}, */
 	{"assign", MFVec3fAssign, 0},
 	{0}
 };
@@ -1213,6 +1321,7 @@ static JSClass MFColorClass = {
 };
 
 static JSFunctionSpec (MFColorFunctions)[] = {
+/* 	{"toString", MFColorToString, 0}, */
 	{"assign", MFColorAssign, 0},
 	{0}
 };
