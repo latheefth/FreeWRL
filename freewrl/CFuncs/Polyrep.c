@@ -823,8 +823,9 @@ void stream_polyrep(void *node,
 	struct SFColor *newcolors;
 	float *newtc;
 
-	int stream_poly_verbose = 0;
+	int stream_poly_verbose = 1;
 
+	if (stream_poly_verbose) printf ("\nstart stream_polyrep\n");
 
 	v = *(struct VRML_Virt **)node;
 	p = node;
@@ -854,13 +855,17 @@ void stream_polyrep(void *node,
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 
-	/* do we need to generate default texture mapping? */
-	if (HAVETODOTEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
-
+	if (HAVETODOTEXTURES) {
+		printf ("newtc has ntri %d\n",r->ntri);
 		/* newtc is indexed as 2 floats per vertex */
 		newtc = malloc (sizeof (float)*2*r->ntri*3);
 		if (!newtc) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
+	}
 
+
+
+	/* do we need to generate default texture mapping? */
+	if (HAVETODOTEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
 		/* use Mufti's initialization scheme for minVals and maxVals; */
 		for (j=0; j<3; j++) {    
 			if (points) {
@@ -1012,7 +1017,7 @@ void stream_polyrep(void *node,
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
 				if (stream_poly_verbose) 
-					printf ("tc2a %f %f\n", r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
+					printf ("tc2a i %d %f %f\n", i,r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
 		  		newtc[i*2] = r->tcoord[3*tci+0]; newtc[i*2+1] =  r->tcoord[3*tci+2];
 			} else {
 				if (stream_poly_verbose) 
@@ -1088,12 +1093,11 @@ void render_ray_polyrep(void *node,
 	for(i=0; i<r->ntri; i++) {
 		for(pt = 0; pt<3; pt++) {
 			int ind = r->cindex[i*3+pt];
-			if(points) {
-				point[pt] = (points[ind].c);
-			} else if(r->coord) {
+			if (r->coord) {
 				point[pt] = (r->coord+3*ind);
+			} else if (points) {
+				point[pt] = (points[ind].c);
 			}
-
 		}
 		/* First we need to project our point to the surface */
 		/* Poss. 1: */
