@@ -53,7 +53,7 @@ VrmlBrowserGetName(JSContext *context, JSObject *obj, uintN argc, jsval *argv, j
 {
 	JSString *_str;
 
-	_str = JS_NewString(context,BrowserName,strlen(BrowserName));
+	_str = JS_NewString(context,BrowserName,strlen(BrowserName)+1);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -65,7 +65,7 @@ VrmlBrowserGetVersion(JSContext *context, JSObject *obj, uintN argc, jsval *argv
 {
 	JSString *_str;
 
-	_str = JS_NewString(context,BrowserVersion,strlen(BrowserVersion));
+	_str = JS_NewString(context,BrowserVersion,strlen(BrowserVersion)+1);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -77,7 +77,7 @@ VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval 
 	JSString *_str;
 
 	/* 0.0 is a valid return for this one. */
-	_str = JS_NewString(context,"0.0",strlen("0.0"));
+	_str = JS_NewString(context,"0.0",strlen("0.0")+1);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
@@ -89,8 +89,9 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj, uintN argc, js
 	JSString *_str;
 
 	sprintf (FPSstring,"%6.2f",BrowserFPS);
-	_str = JS_NewString(context,FPSstring,strlen(FPSstring));
+	_str = JS_NewString(context,FPSstring,strlen(FPSstring)+1);
 	*rval = STRING_TO_JSVAL(_str);
+	printf ("fps from freewrl %s rval ptr %d val %d\n",FPSstring,rval,*rval);
 	return JS_TRUE;
 }
 
@@ -101,7 +102,7 @@ VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj,
 {
 	JSString *_str;
 
-	_str = JS_NewString(context,BrowserURL,strlen(BrowserURL));
+	_str = JS_NewString(context,BrowserURL,strlen(BrowserURL)+1);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }
