@@ -121,7 +121,7 @@ WriteMakefile(
 		   'LWP'          => "5.47",
 		 },
    LIBS => $VRML_CONFIG{OPENGL_LIBS},
-   OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o',
+   OBJECT => 'VRMLFunc.o CFuncs/Polyrep.o CFuncs/NormalCalcs.o CFuncs/Tess.o CFuncs/Textures.o CFuncs/LinearAlgebra.o',
 );
 
 sub MY::postamble {

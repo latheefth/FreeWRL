@@ -18,63 +18,10 @@
 
 #include "Structs.h"
 #include "headers.h"
+#include "LinearAlgebra.h"
 
 extern int smooth_normals;
 
-
-float calc_vector_length( struct pt p )
-{
-	return sqrt(p.x*p.x + p.y*p.y + p.z*p.z); 
-}
-
-
-
-float calc_vector_scalar_product(struct pt a, struct pt b)
-{
-	return (a.x*b.x) + (a.y*b.y) + (a.z*b.z);
-}
-
-
-
-float calc_angle_between_two_vectors(struct pt a, struct pt b)
-{
-	float length_a, length_b, scalar, temp;
-	scalar = calc_vector_scalar_product(a,b);
-	length_a = calc_vector_length(a);
-	length_b = calc_vector_length(b);
-
-	/*printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);*/
-	
-	if (scalar == 0){
-		return PI/2;	
-	}
-
-	if ( (length_a <= 0)  || (length_b <= 0)){
-		printf("Divide by 0 in calc_angle_between_two_vectors():  No can do! \n");
-		return 0;
-	}
-	
-	temp = scalar /(length_a * length_b);
-	/*printf("temp: %f", temp);*/
-
-	/*acos() appears to be unable to handle 1 and -1  */
-	if ((temp >= 1) || (temp <= -1)){
-		return 0;
-	}
-	return acos(temp);
-}
-
-
-void normalize_vector(struct pt *vec)
-{
-	float vector_length;
-
-	vector_length = calc_vector_length(*vec);
-	
-	vec->x = vec->x / vector_length;
-	vec->y = vec->y / vector_length;
-	vec->z = vec->z / vector_length;
-}
 
 void fwnorprint (float *norm) {
 		printf ("normals %f %f %f\n",norm[0],norm[1],norm[2]);

@@ -1925,6 +1925,8 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 	 	WhenBound => sub {
 			my($t) = @_;
 			$t->{BackEnd}->bind_navi_info($t);
+
+			VRML::VRMLFunc::set_naviinfo($t->{Fields}{avatarSize}[0],$t->{Fields}{avatarSize}[1],$t->{Fields}{avatarSize}[2]);
 		},
 	},
 ),

@@ -18,6 +18,7 @@
 
 #include "Structs.h" 
 #include "headers.h"  
+#include "LinearAlgebra.h"
 
 
 /* transformed ray */
@@ -26,19 +27,6 @@ extern struct pt t_r2;
 extern struct pt t_r3;
 
 
-/* texture S,T mapping calcs */
-GLfloat minVals[3];
-GLfloat maxVals[3];
-GLfloat Xsize, Zsize;
-GLfloat Ssize, Tsize;
-int Sindex, Tindex;
-
-
-void add_to_face ( int point, int face, int *pointfaces);
-
-
-
-
 /* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
 /* 								*/
 

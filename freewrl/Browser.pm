@@ -248,12 +248,15 @@ sub tick {
 	#update viewer position (first draft)
 	$this->{BE}->{Viewer}->handle_tick($time);
 	
+	#setup projection.
+	#activate proximity sensors.
+	$this->{BE}->render_pre();
 	
 	$this->{EV}->propagate_events($time,$this->{BE},
 		$this->{Scene});
 
 	#do actual screen writing
-	$this->{BE}->update_scene($time);
+	$this->{BE}->render();
 
 	for(@{$this->{Periodic}}) {
 		&$_();

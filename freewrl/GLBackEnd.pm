@@ -249,17 +249,6 @@ sub handle_events {
 	
 }
 
-sub update_scene {
-	my($this,$time) = @_;
-
-	if (VRML::OpenGL::get_render_frame() > 0) {
-		$this->render();
-	} else {
-		VRML::OpenGL::BackEndSleep();
-	}
-
-}
-
 sub set_root { $_[0]{Root} = $_[1] }
 
 sub bind_viewpoint {
@@ -614,15 +603,7 @@ sub get_proximitysensor_stuff {
 
 	VRML::VRMLFunc::get_proximitysensor_vecs($node->{CNode},$hit,$x1,$y1,$z1,$x2,$y2,$z2,$q2);
 
-# either this is stupid, or useless... (ncoder)
-#	if($hit or !$hit)
-#	  {
-	    return [$hit, [$x1, $y1, $z1], [$x2, $y2, $z2, $q2]];
-#	  }
-#	else
-#	  {
-#	    return [$hit];
-#	  }
+	return [$hit, [$x1, $y1, $z1], [$x2, $y2, $z2, $q2]];
 }
 
 sub setup_projection {
@@ -671,11 +652,7 @@ sub setup_viewpoint {
 
 
 	VRML::VRMLFunc::render_hier($node, 	# Node
-				    1, 		# render view point
-				    0, 		# render geoms
-				    0, 		# render lights
-				    0,		# render sensitive
-				    0, 		# render blend
+				    &VF_Viewpoint,# render view point
 				    $viewpoint);# what view point      
 
 #	 my $mod = pack ("d16",0,0,0,0,0,0,0,0,0,0,0,0);
@@ -686,6 +663,54 @@ sub setup_viewpoint {
 }
 
 
+# this is ugly, setup_projection() and setup_viewpoint() are called twice...
+# must fix.
+sub render_pre {
+    my ($this) = @_;
+    my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
+    $node = $node->{CNode};
+
+    if( VRML::OpenGL::get_render_frame() == 0) {
+        VRML::OpenGL::BackEndSleep();
+        return;
+    }
+
+    # 1. Set up projection
+    $this->setup_projection();
+
+    # 2. Headlight 
+    glLoadIdentity();
+
+    if($this->{Viewer}{Navi}{RFields}{headlight}) {
+	VRML::OpenGL::BackEndHeadlightOn();
+    }
+
+
+    # 3. Viewpoint
+    $this->setup_viewpoint($node);
+
+    VRML::VRMLFunc::render_hier($node,  # Node
+				&VF_Proximity, 
+				0); # what view point
+
+}
+
+sub render_collisions {
+    my ($this) = @_;
+    my ($node,$viewpoint) = @{$this}{Root, Viewpoint};
+    $node = $node->{CNode};
+
+    VRML::VRMLFunc::set_collisionoffset(0,0,0);
+    
+    VRML::VRMLFunc::render_hier($node,  # Node
+				&VF_Collision, 
+				0); # what view point
+
+    my($x,$y,$z);
+    VRML::VRMLFunc::get_collisionoffset($x,$y,$z);
+#    print "$x,$y,$z";
+    
+}
 # Given root node of scene, render it all
 
 sub render {
@@ -695,6 +720,13 @@ sub render {
     $node = $node->{CNode};
     $viewpoint = $viewpoint->{CNode};
 	
+    if( VRML::OpenGL::get_render_frame() == 0) {
+        VRML::OpenGL::BackEndSleep();
+        return;
+    }
+
+    VRML::OpenGL::dec_render_frame();
+
     print "Render: root $node\n" if ($VRML::verbose::be);
 
     foreach $i (@{$this->{bufferarray}}) {
@@ -702,40 +734,57 @@ sub render {
 	glDrawBuffer($this->{Viewer}->{buffer});
 
 	# turn lights off, and clear buffer bits
-	VRML::OpenGL::BackEndRender1();
+	VRML::OpenGL::BackEndClearBuffer();
+	VRML::OpenGL::BackEndLightsOff();
+	# turn light #0 off only if it is not a headlight.
+	if(! $this->{Viewer}{Navi}{RFields}{headlight}) {
+	    VRML::OpenGL::BackEndHeadlightOff();
+	}
 
-	my $pick;
-	# 1. Set up projection
+	# this should be already done.
+	# i don't know why screen goes dark if this isn't here.
 	$this->setup_projection();
 
-	# 2. Headlight
-	if($this->{Viewer}{Navi}{RFields}{headlight}) {
-	    glLoadIdentity();
-	    VRML::OpenGL::BackEndHeadlightOn();
-	}
-				
-	# 3. Viewpoint
+	# 3. Viewpoint, maybe a simple correction here would be best.
+	#  (viewpoint already set from render_pre
+	$this->setup_viewpoint($node);
+
+    
+    
+	#ajust for collisions
+	VRML::VRMLFunc::set_collisionoffset(0,0,0);
+	
+	VRML::VRMLFunc::render_hier($node,  # Node
+				    &VF_Collision, 
+				    0); # what view point
+	my($x,$y,$z);
+	VRML::VRMLFunc::get_collisionoffset($x,$y,$z);
+
+	my $nv = $this->{Viewer}->{Quat}->invert->rotate([$x,$y,$z]);
+	for(0..2) {$this->{Viewer}->{Pos}[$_] += $nv->[$_]}
+
+#	print "$x,$y,$z => $nv->[0],$nv->[1],$nv->[2]\n";
+
+
+	# this should be already done.
+	# i don't know why screen goes dark if this isn't here.
+	$this->setup_projection();
+
+	# 3. Viewpoint, maybe a simple correction here would be best.
+	#  (viewpoint already set from render_pre
 	$this->setup_viewpoint($node);
 
 	# Other lights
 
 	VRML::VRMLFunc::render_hier($node,  # Node
-	    			        0,  # render view point
-	    			        0,  # render geoms
-	    			        1,  # render lights
-	    			        0,  # render sensitive
-				        0,  # render blend
-				        0); # what view point
+				    &VF_Lights,  # render lights
+				    0); # what view point
 
 	# 4. Nodes (not the blended ones)
 
 	VRML::VRMLFunc::render_hier($node,	# Node
-				        0,      # render view point
-				        1,      # render geoms
-				        0,      # render lights
-				        0,      # render sensitive
-				        0,      # render blend
-				        0);     # what view point
+				    &VF_Geom,      # render geoms
+				    0);     # what view point
     }
 
     glXSwapBuffers();
@@ -790,12 +839,8 @@ sub render {
 	    $this->setup_viewpoint($node);
 		
 	    VRML::VRMLFunc::render_hier($node,	# Node
-					  0,	# render view point
-					  0,	# render geoms
-					  0,	# render lights
-					  1,	# render sensitive
-					  0,	# render blend
-					  0);	# what view point
+					&VF_Sensitive,	# render sensitive
+					0);	# what view point
 
 	    # print "SENS_BR: $b\n" if $VRML::verbose::glsens;
 	    my($x,$y,$z,$nx,$ny,$nz,$tx,$ty);

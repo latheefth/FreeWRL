@@ -276,6 +276,14 @@ get_render_frame()
 	OUTPUT:
 	RETVAL
 
+void 
+dec_render_frame()
+	CODE:
+	{
+	if (render_frame > 0) render_frame--;
+	}
+	
+
 
 
 # Give the Triangulator object back to FreeWRL so that others can use it 
@@ -309,20 +317,30 @@ sensor_cursor()
 
 # GL Render loop C functions
 void
-BackEndRender1()
+BackEndClearBuffer()
 	CODE:
 	{
-	if (render_frame > 0) render_frame--;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
-        glDisable(GL_LIGHT0); /* Put them all off first */
-        glDisable(GL_LIGHT1);
+void 
+BackEndLightsOff()
+	CODE:
+	{
+        glDisable(GL_LIGHT1); /* Put them all off first (except headlight)*/
         glDisable(GL_LIGHT2);
         glDisable(GL_LIGHT3);
         glDisable(GL_LIGHT4);
         glDisable(GL_LIGHT5);
         glDisable(GL_LIGHT6);
         glDisable(GL_LIGHT7);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+void 
+BackEndHeadlightOff()
+	CODE:
+	{
+	glDisable(GL_LIGHT0); /* headlight off (or other, if no headlight) */
 	}
 
 

@@ -20,6 +20,20 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.59  2002/06/17 14:41:45  ncoder
+# Added sphere collision detection (more to come)
+# -This included adding rendering passes,
+# -Changed the render_node parameter passing method (now using flags).
+# -Other details I forgot.
+#
+# Added C file LinearAlgebra.h/.c
+# -Contains matrix/vector calculations.
+# -Some were moved from headers.h, others from random places. a few new ones.
+#
+# Bugs pending:
+# -Temprorary unefficient state : to much redraws of the viewpoint and perspective.
+# -Proximity sensors out of sync when collision active.
+#
 # Revision 1.58  2002/06/17 12:30:28  crc_canada
 # Material properties for greyscale textures and RGB textures should be ok now
 #
@@ -1517,126 +1531,6 @@ Background => '
 	glPopAttrib();
 ',
 
-ProximitySensor => q~
-	/* Viewer pos = t_r2 */
-	double cx,cy,cz;
-	double len;
-	struct pt dr1r2;
-	struct pt dr2r3;
-	struct pt vec;
-	struct pt nor1,nor2;
-	struct pt ins;
-	static const struct pt yvec = {0,0.05,0};
-	static const struct pt zvec = {0,0,-0.05};
-	static const struct pt zpvec = {0,0,0.05};
-	static const struct pt orig = {0,0,0};
-	struct pt t_zvec, t_yvec, t_orig;
-	GLdouble modelMatrix[16]; 
-	GLdouble projMatrix[16];
-
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
-		&t_orig.x,&t_orig.y,&t_orig.z);
-	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
-		&t_zvec.x,&t_zvec.y,&t_zvec.z);
-	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
-		&t_yvec.x,&t_yvec.y,&t_yvec.z);
-
-	cx = t_orig.x - $f(center,0);
-	cy = t_orig.y - $f(center,1);
-	cz = t_orig.z - $f(center,2);
-
-	if(!$f(enabled)) return;
-	if($f(size,0) == 0 || $f(size,1) == 0 || $f(size,2) == 0) return;
-
-	if(fabs(cx) > $f(size,0)/2 ||
-	   fabs(cy) > $f(size,1)/2 ||
-	   fabs(cz) > $f(size,2)/2) return;
-
-	/* Ok, we now have to compute... */
-	$f(__hit) = 1;
-
-	/* Position */
-	$f(__t1,0) = t_orig.x;
-	$f(__t1,1) = t_orig.y;
-	$f(__t1,2) = t_orig.z;
-
-	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */
-	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */
-
-	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len);
-	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
-
-	if(verbose) printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",
-		t_orig.x, t_orig.y, t_orig.z, 
-		t_zvec.x, t_zvec.y, t_zvec.z, 
-		t_yvec.x, t_yvec.y, t_yvec.z,
-		dr1r2.x, dr1r2.y, dr1r2.z, 
-		dr2r3.x, dr2r3.y, dr2r3.z
-		);
-	
-	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) {
-		printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :("
-		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3),
-		  	dr1r2.x,dr1r2.y,dr1r2.z,
-		  	dr2r3.x,dr2r3.y,dr2r3.z
-			);
-		return;
-	}
-
-
-	if(APPROX(dr1r2.z,1.0)) {
-		/* rotation */
-		$f(__t2,0) = 0;
-		$f(__t2,1) = 0;
-		$f(__t2,2) = 1;
-		$f(__t2,3) = atan2(-dr2r3.x,dr2r3.y);
-	} else if(APPROX(dr2r3.y,1.0)) {
-		/* rotation */
-		$f(__t2,0) = 0;
-		$f(__t2,1) = 1;
-		$f(__t2,2) = 0;
-		$f(__t2,3) = atan2(dr1r2.x,dr1r2.z);
-	} else {
-		/* Get the normal vectors of the possible rotation planes */
-		nor1 = dr1r2;
-		nor1.z -= 1.0;
-		nor2 = dr2r3;
-		nor2.y -= 1.0;
-
-		/* Now, the intersection of the planes, obviously cp */
-		VECCP(nor1,nor2,ins);
-/* don t know why this is here JAS
-
-		if(APPROX(VECSQ(ins),0)) {
-			printf ("Should die here: Proximitysensor problem!\n");
-		}
-*/
-
-		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len);
-
-		/* the angle */
-		VECCP(dr1r2,ins, nor1);
-		VECCP(zpvec, ins, nor2);
-		len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len);
-		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len);
-		VECCP(nor1,nor2,ins);
-
-		$f(__t2,3) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2));
-
-		/* rotation  - should normalize sometime... */
-		$f(__t2,0) = ins.x;
-		$f(__t2,1) = ins.y;
-		$f(__t2,2) = ins.z;
-	}
-	if(verbose) printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",
-		nor1.x, nor1.y, nor1.z,
-		nor2.x, nor2.y, nor2.z,
-		ins.x, ins.y, ins.z
-	);
-~,
-
 
 DirectionalLight => '
 	/* NOTE: This is called by the Group Children code
@@ -2243,3 +2137,322 @@ $ChangedC{Billboard} = $ChangedC{Group};
 $ChangedC{Anchor} = $ChangedC{Group};
 $ChangedC{Collision} = $ChangedC{Group};
 
+
+#######################################################################
+#
+# ProximityC = following code is run to let proximity sensors send their 
+# events. This is done in the rendering pass, because the position of 
+# of the object relative to the viewer is available via the 
+# modelview transformation matrix.
+#
+
+%ProximityC = (
+ProximitySensor => q~
+	/* Viewer pos = t_r2 */
+	double cx,cy,cz;
+	double len;
+	struct pt dr1r2;
+	struct pt dr2r3;
+	struct pt vec;
+	struct pt nor1,nor2;
+	struct pt ins;
+	static const struct pt yvec = {0,0.05,0};
+	static const struct pt zvec = {0,0,-0.05};
+	static const struct pt zpvec = {0,0,0.05};
+	static const struct pt orig = {0,0,0};
+	struct pt t_zvec, t_yvec, t_orig;
+	GLdouble modelMatrix[16]; 
+	GLdouble projMatrix[16];
+
+	/* transforms viewers coordinate space into sensors coordinate space. 
+	 * this gives the orientation of the viewer relative to the sensor.   
+	 */
+	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
+		&t_orig.x,&t_orig.y,&t_orig.z);
+	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
+		&t_zvec.x,&t_zvec.y,&t_zvec.z);
+	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
+		&t_yvec.x,&t_yvec.y,&t_yvec.z);
+
+	cx = t_orig.x - $f(center,0);
+	cy = t_orig.y - $f(center,1);
+	cz = t_orig.z - $f(center,2);
+
+	if(!$f(enabled)) return;
+	if($f(size,0) == 0 || $f(size,1) == 0 || $f(size,2) == 0) return;
+
+	if(fabs(cx) > $f(size,0)/2 ||
+	   fabs(cy) > $f(size,1)/2 ||
+	   fabs(cz) > $f(size,2)/2) return;
+
+	/* Ok, we now have to compute... */
+	$f(__hit) = 1;
+
+	/* Position */
+	$f(__t1,0) = t_orig.x;
+	$f(__t1,1) = t_orig.y;
+	$f(__t1,2) = t_orig.z;
+
+	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */
+	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */
+
+	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len);
+	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
+
+	if(verbose) printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",
+		t_orig.x, t_orig.y, t_orig.z, 
+		t_zvec.x, t_zvec.y, t_zvec.z, 
+		t_yvec.x, t_yvec.y, t_yvec.z,
+		dr1r2.x, dr1r2.y, dr1r2.z, 
+		dr2r3.x, dr2r3.y, dr2r3.z
+		);
+	
+	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) {
+		printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :("
+		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3),
+		  	dr1r2.x,dr1r2.y,dr1r2.z,
+		  	dr2r3.x,dr2r3.y,dr2r3.z
+			);
+		return;
+	}
+
+
+	if(APPROX(dr1r2.z,1.0)) {
+		/* rotation */
+		$f(__t2,0) = 0;
+		$f(__t2,1) = 0;
+		$f(__t2,2) = 1;
+		$f(__t2,3) = atan2(-dr2r3.x,dr2r3.y);
+	} else if(APPROX(dr2r3.y,1.0)) {
+		/* rotation */
+		$f(__t2,0) = 0;
+		$f(__t2,1) = 1;
+		$f(__t2,2) = 0;
+		$f(__t2,3) = atan2(dr1r2.x,dr1r2.z);
+	} else {
+		/* Get the normal vectors of the possible rotation planes */
+		nor1 = dr1r2;
+		nor1.z -= 1.0;
+		nor2 = dr2r3;
+		nor2.y -= 1.0;
+
+		/* Now, the intersection of the planes, obviously cp */
+		VECCP(nor1,nor2,ins);
+/* don t know why this is here JAS
+
+		if(APPROX(VECSQ(ins),0)) {
+			printf ("Should die here: Proximitysensor problem!\n");
+		}
+*/
+
+		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len);
+
+		/* the angle */
+		VECCP(dr1r2,ins, nor1);
+		VECCP(zpvec, ins, nor2);
+		len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len);
+		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len);
+		VECCP(nor1,nor2,ins);
+
+		$f(__t2,3) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2));
+
+		/* rotation  - should normalize sometime... */
+		$f(__t2,0) = ins.x;
+		$f(__t2,1) = ins.y;
+		$f(__t2,2) = ins.z;
+	}
+	if(verbose) printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",
+		nor1.x, nor1.y, nor1.z,
+		nor2.x, nor2.y, nor2.z,
+		ins.x, ins.y, ins.z
+	);
+~,
+
+
+);
+
+#######################################################################
+#
+# ProximityC = following code is run to do collision detection 
+#
+# In collision nodes:
+#    if enabled:
+#       if no proxy:
+#           passes rendering to its children
+#       else (proxy)
+#           passes rendering to its proxy
+#    else
+#       does nothing.
+#
+# In normal nodes:
+#    uses gl modelview matrix to determine distance from viewer and 
+# angle from viewer. ...
+#
+#
+#	       /* the shape of the avatar is a cylinder */
+#	       /*                                           */
+#	       /*           |                               */
+#	       /*           |                               */
+#	       /*           |--|                            */
+#	       /*           | width                         */
+#	       /*        ---|---       -                    */
+#	       /*        |     |       |                    */
+#	       /*    ----|() ()| - --- | ---- y=0           */
+#	       /*        |  \  | |     |                    */
+#	       /*     -  | \ / | |head | height             */
+#	       /*    step|     | |     |                    */
+#	       /*     -  |--|--| -     -                    */
+#	       /*           |                               */
+#	       /*           |                               */
+#	       /*           x,z=0                           */
+	       
+
+%CollisionC = (
+Sphere => q~
+	       struct pt t_orig; /*transformed origin*/
+	       struct pt p_orig; /*projected transformed origin */ 
+	       struct pt n_orig; /*normal(unit length) transformed origin */
+	       GLdouble modelMatrix[16]; 
+	       GLdouble dist2;
+	       struct pt tmppt;
+	       struct pt delta = {0,0,0};
+	       GLdouble radius;
+	       GLdouble tmp;
+
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+
+	       struct pt dir;
+
+	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       radius = pow(det3x3(modelMatrix),1./3.) * $f(radius);
+
+	       /* squared distance to center of sphere (on the y plane)*/
+	       dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
+
+	       /* easy tests. clip as if sphere was a box */
+	       /*clip with cylinder */
+	       if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
+		   return;
+	       } 
+	       /*clip with bottom plane */
+	       if(t_orig.y + radius < abottom) {
+		   return;
+	       }
+	       /*clip with top plane */
+	       if(t_orig.y-radius > atop) {
+		   return;
+	       } 
+	       
+	       /* project onto (y x t_orig) plane */
+	       p_orig.x = sqrt(dist2);
+	       p_orig.y = t_orig.y;
+	       p_orig.z = 0;
+	       /* we need this to unproject rapidly */
+	       /* n_orig is t_orig.y projected on the y plane, then normalized. */
+	       n_orig.x = t_orig.x;
+	       n_orig.y = 0.0;
+	       n_orig.z = t_orig.z;
+	       VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
+
+	       /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
+	       /* these 5 cases correspond to the 5 vornoi regions of the cylinder */
+	       if(p_orig.y > atop) { 
+		   
+		   if(p_orig.x < awidth) { 
+		       if(verbose) printf(" /* over, we push down. */ \n");
+		       delta.y = (p_orig.y - radius) - (atop);
+		   } else { 
+		       struct pt d2s;
+		       GLdouble ratio;
+		       if(verbose) printf(" /* over side */ \n");
+
+		       /* distance vector from corner to center of sphere*/
+		       d2s.x = p_orig.x - awidth;
+		       d2s.y = p_orig.y - (atop);
+		       d2s.z = 0;
+		       
+		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+		       
+		       if(ratio >= 0) {
+			   /* no collision */
+			   return;
+		       }
+	       
+		       /* distance vector from corner to surface of sphere, (do the math) */
+		       VECSCALE(d2s, ratio );
+
+		       /* unproject, this is the fastest way */
+		       delta.y = d2s.y;
+		       delta.x = d2s.x* n_orig.x;
+		       delta.z = d2s.x* n_orig.z;
+		   }
+	       } else if(p_orig.y < abottom) {
+		   if(p_orig.x < awidth) { 
+		       if(verbose) printf(" /* under, we push up. */ \n");
+		       delta.y = (p_orig.y + radius) -abottom;
+		   } else { 
+		       struct pt d2s;
+		       GLdouble ratio;
+		       if(verbose) printf(" /* under side */ \n");
+
+		       /* distance vector from corner to center of sphere*/
+		       d2s.x = p_orig.x - awidth;
+		       d2s.y = p_orig.y - abottom;
+		       d2s.z = 0;
+		       
+		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+		       
+		       if(ratio >= 0) {
+			   /* no collision */
+			   return;
+		       }
+	       
+		       /* distance vector from corner to surface of sphere, (do the math) */
+		       VECSCALE(d2s, ratio );
+
+		       /* unproject, this is the fastest way */
+		       delta.y = d2s.y;
+		       delta.x = d2s.x* n_orig.x;
+		       delta.z = d2s.x* n_orig.z;
+		   }
+
+	       } else {
+		   if(verbose) printf(" /* side */ \n");
+		   
+		   /* push to side */
+		   delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
+		   delta.z = ((p_orig.x - radius)- awidth) * n_orig.z;
+	       }
+
+
+	       VECADD(CollisionOffset,delta);
+
+	       if(verbose) printf("COLLISION_INT: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
+				      t_orig.x, t_orig.y, t_orig.z,
+				      delta.x, delta.y, delta.z,
+				      p_orig.x, n_orig.x, n_orig.z
+				      );
+	       
+
+	       ~,
+
+Shape => '
+
+/*		printf("Shape\n");*/
+	',
+
+
+
+);
+
+
+1;
