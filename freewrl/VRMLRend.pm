@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.6  2000/08/06 22:55:17  rcoscali
+# Ok ! All is like it should be for 0.26
+# I tag the release as A_0_26
+#
 # Revision 1.5  2000/08/06 20:44:46  rcoscali
 # Cone OK ... Now doing sphere ...
 #
@@ -305,22 +309,22 @@ Sphere => 'int vdiv = vert_div;
 */
 /* We really want something more rigorous here */
 #define MY_EPS 0.000001
-#define MOD_1(x) ( (x)<=1 ? (x) : (x<=1.0+MY_EPS)? 1.0 : (x)-1.0 )
+#define MOD_1(x) ( (x)<=1 ? (x) : ((x)<=(1.0+MY_EPS))? 1.0 : (x)-1.0 )
 
 /* That s the normal vector to the sphere *at the current point* */ 
 #define NORM_C1 	vsin2 * hcos1, vcos2, vsin2 * hsin1
-#define TEX_C1		MOD_1(h / hf), 2.0 * (1.0 - (v + 1.0) / vf)
+#define TEX_C1		MOD_1(h / hf), 2.0 * ((v + 1.0) / vf)
 #define VERT_C1		vsin2 * hcos1, vcos2, vsin2 * hsin1
-printf("%d(1): normal1 [%2.7f, %2.7f, %2.7f] \t tex [%2.7f, %2.7f] \t vertex [%2.7f, %2.7f, %2.7f]\\n",v, NORM_C1, TEX_C1, VERT_C1 );
+printf("%d(1): normal1 [%2.7f, %2.7f, %2.7f] \\t tex [%2.7f, %2.7f] \\t vertex [%2.7f, %2.7f, %2.7f]\\n",v, NORM_C1, TEX_C1, VERT_C1 );
 
 				glNormal3f(NORM_C1);
 				glTexCoord2f(TEX_C1);
 				glVertex3f(VERT_C1);
 
 #define NORM_C2 	vsin1 * hcos1, vcos1, vsin1 * hsin1
-#define TEX_C2		MOD_1(h / hf), 2.0 * (1.0 - v/vf)
+#define TEX_C2		MOD_1(h / hf), 2.0 * (v/vf)
 #define VERT_C2		vsin1 * hcos1, vcos1, vsin1 * hsin1
-printf("%d(2): normal2 [%2.7f, %2.7f, %2.7f] \t tex [%2.7f, %2.7f] \t vertex [%2.7f, %2.7f, %2.7f]\\n\\n", h, NORM_C2, TEX_C2, VERT_C2 );
+printf("%d(2): normal2 [%2.7f, %2.7f, %2.7f] \\t tex [%2.7f, %2.7f] \\t vertex [%2.7f, %2.7f, %2.7f]\\n\\n", h, NORM_C2, TEX_C2, VERT_C2 );
 
 				glNormal3f(NORM_C2); 
 				glTexCoord2f(TEX_C2);
