@@ -10,3 +10,4 @@ void updateContext();
 float getWidth();
 float getHeight();
 void  setAquaCursor(int ctype);
+void sendCM(char* mes);
