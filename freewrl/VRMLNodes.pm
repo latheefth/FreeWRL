@@ -248,8 +248,8 @@ sub removeChild {
 		# print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
 		if (!($item eq $child)) {
 			push @av, $item;
-		} else {
-			print "VRMLNode::removeChild: child $child found\n";
+		#} else {
+		#	print "VRMLNode::removeChild: child $child found\n";
 		}
 	}
 	# print "VRMLNodes.pm:removeChild: array now is @av\n";
