@@ -118,6 +118,8 @@ Notes:
 
 48.wrl: PlaneSensor. Drag the buttons on the cube...
 
+49.wrl: Text test.
+
 Synth:
 	A 3D representation of a music synthesizer. Uses other programs
 	to help drive an external synthesizer.
