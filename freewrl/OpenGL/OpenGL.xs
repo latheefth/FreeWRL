@@ -453,6 +453,11 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	/* glXGetConfig (dpy, vi, GLX_DEPTH_SIZE, &number); */
 	   /* printf ("GLX depth size %d\n",number); */
 #endif
+
+
+	// For Vertex arrays - we always assume these are enabled.
+	glEnableClientState (GL_VERTEX_ARRAY);
+	glEnableClientState (GL_NORMAL_ARRAY);
 }
 
 void

@@ -823,7 +823,7 @@ void stream_polyrep(void *node,
 	struct SFColor *newcolors;
 	float *newtc;
 
-	int stream_poly_verbose = 1;
+	int stream_poly_verbose = 0;
 
 	if (stream_poly_verbose) printf ("\nstart stream_polyrep\n");
 
