@@ -20,6 +20,14 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.71  2002/07/31 20:56:53  ncoder
+# Added:
+#     Support for "collide" boolean field in collision nodes
+#     Support for proxy nodes.
+# 	Collide time envents launched
+#
+# Small improvement in ProximitySensors
+#
 # Revision 1.70  2002/07/30 18:12:14  ncoder
 # Added collision support for extrusions
 # Polyrep disp. still flakey, i'll need to do corrections.
@@ -1837,12 +1845,67 @@ Billboard => (join '','
 		last_visited_shape = 0;
 		glPopAttrib();
 	',
+	Collision => '
+		int nc = $f_n(children); 
+		int i;
+		if(render_collision) {
+			if($f(collide) && !$f(proxy)) {
+				struct pt OldCollisionOffset = CollisionOffset;
+				for(i=0; i<nc; i++) {
+					void *p = $f(children,i);
+					if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
+					render_node(p);
+				}
+				if(CollisionOffset.x != OldCollisionOffset.x ||
+				   CollisionOffset.y != OldCollisionOffset.y ||
+				   CollisionOffset.z != OldCollisionOffset.z) {
+					/*collision occured
+					 * bit 0 gives collision, bit 1 gives change */
+					this_->__hit = (this_->__hit & 1) ? 1 : 3;
+				} else
+					this_->__hit = (this_->__hit & 1) ? 2 : 0;
+
+			}
+        	        if($f(proxy)) 
+	                        render_node($f(proxy));
+
+		} else { /*standard group behaviour*/
+			int savedlight = curlight;
+			struct VRML_Virt virt_DirectionalLight;
+
+			if(verbose) {printf("RENDER GROUP START %d (%d)\n",this_, nc);}
+			if($i(has_light)) {
+				glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
+				for(i=0; i<nc; i++) {
+					void *p = $f(children,i);
+					if($ntyptest(p,DirectionalLight)) {
+						render_node(p);
+					}
+				}
+			}
+			for(i=0; i<nc; i++) {
+				void *p = $f(children,i);
+				if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
+				/* Hmm - how much time does this consume? */
+				/* Not that much. */
+				if(!$i(has_light) || !$ntyptest(p,DirectionalLight)) {
+					render_node(p);
+				}
+			}
+			if($i(has_light)) {
+				glPopAttrib();
+			}
+			if(verbose) {printf("RENDER GROUP END %d\n",this_);}
+	
+			curlight = savedlight;
+		}
+	',
 );
 
 $ChildC{Transform} = $ChildC{Group};
 $ChildC{Billboard} = $ChildC{Group};
 $ChildC{Anchor} = $ChildC{Group};
-$ChildC{Collision} = $ChildC{Group};  ## JAS 
+#$ChildC{Collision} = $ChildC{Group};  ## JAS 
 
 #######################################################################
 #######################################################################
@@ -2389,7 +2452,6 @@ Cone => q~
 	       /* get transformed box edges and position */
 	       transform(&iv,&iv,modelMatrix);
 	       transform(&jv,&jv,modelMatrix);
-
 
 	       delta = cone_disp(abottom,atop,awidth,jv,iv,scale*r);
 	       

@@ -26,6 +26,14 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.62  2002/07/31 20:56:53  ncoder
+# Added:
+#     Support for "collide" boolean field in collision nodes
+#     Support for proxy nodes.
+# 	Collide time envents launched
+#
+# Small improvement in ProximitySensors
+#
 # Revision 1.61  2002/07/30 14:03:35  crc_canada
 # MovieTexture repeatS and repeatT flags passed correctly now
 #
@@ -1146,7 +1154,6 @@ struct pt CollisionOffset = {0,0,0};
 /* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
 struct pt ViewerDelta = {0,0,0}; 
 
-
 /*dimentions of viewer (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
@@ -1233,6 +1240,9 @@ void update_node(void *ptr) {
 		update_node(p->_parents[i]);
 	}
 }
+
+/*explicit declaration. Needed for Collision_Child*/
+void Group_Child(void *nod_);
 
 /*********************************************************************
  * Code here is generated from the hashes in VRMLC.pm and VRMLRend.pm
@@ -1781,6 +1791,17 @@ OUTPUT:
 	y2
 	z2
 	q2
+
+void 
+get_collision_info(node,hit)
+	void *node
+	int hit
+CODE:
+	struct VRML_Collision *cx = node;
+	hit = cx->__hit;
+OUTPUT:
+	hit
+
 
 void
 set_vpdist(dist)

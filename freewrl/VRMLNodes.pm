@@ -1777,37 +1777,39 @@ ProximitySensor => new VRML::NodeType("ProximitySensor",
 	 	my($t,$f,$tick) = @_;
 		return if !$f->{enabled};
 		return if !$t->{BackEnd};
-		# Ugly - should abstract
-		my $r = $t->{BackEnd}->get_proximitysensor_stuff($t->{BackNode});
+		my($hit, $x1, $y1, $z1, $x2, $y2, $z2, $q2);
+
+		VRML::VRMLFunc::get_proximitysensor_vecs($t->{BackNode}->{CNode},$hit,$x1,$y1,$z1,$x2,$y2,$z2,$q2);
+
 		if($VRML::verbose::prox) {
 			print "PROX: $r->[0] ($r->[1][0] $r->[1][1] $r->[1][2]) ($r->[2][0] $r->[2][1] $r->[2][2] $r->[2][3])\n";
 		}
-		if($r->[0]) {
+		if($hit) {
 			if(!$f->{isActive})  {
 				# print "PROX - initial defaults\n";
 				$f->{isActive} = 1;
 				$f->{enterTime} = $tick;
-				$f->{position_changed} = $r->[1];
-				$f->{orientation_changed} = $r->[2];
+				$f->{position_changed} = ($x1,$y1,$z1);
+				$f->{orientation_changed} = ($x2,$y2,$z2,$q2);
 			}
 			
 			# now, has anything changed?
 			my $ch = 0;
-			if (($r->[1][0] != $f->{position_changed}[0]) ||
-			     ($r->[1][1] != $f->{position_changed}[1]) ||
-                             ($r->[1][2] != $f->{position_changed}[2])) {
+			if (($x1 != $f->{position_changed}[0]) ||
+			     ($y1 != $f->{position_changed}[1]) ||
+                             ($z1 != $f->{position_changed}[2])) {
 				# print "PROX - position changed!!! \n";
-				$f->{position_changed} = $r->[1];
+				$f->{position_changed} = ($x1,$y1,$z1);
 				$ch = 1;
 			}
-			if (($r->[2][0] != $f->{orientation_changed}[0]) ||
-			     ($r->[2][1] != $f->{orientation_changed}[1]) ||
-			     ($r->[2][2] != $f->{orientation_changed}[2]) ||
-                             ($r->[2][3] != $f->{orientation_changed}[3])) {
+			if (($x2 != $f->{orientation_changed}[0]) ||
+			     ($y2 != $f->{orientation_changed}[1]) ||
+			     ($z2 != $f->{orientation_changed}[2]) ||
+                             ($q2 != $f->{orientation_changed}[3])) {
 				#print "PROX - orientation changed!!! ";
 				#print $r->[2][0]," ", $r->[2][1], " ",$r->[2][2]," ",$r->[2][3],"\n";
 				
-				$f->{orientation_changed} = $r->[2];
+				$f->{orientation_changed} = ($x2,$y2,$z2,$q2);
 				$ch = 1;
 			}
 #			return if !$ch;
@@ -2190,7 +2192,6 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 					   }
 					  ),
 
- # XXX Well, at least it will display children now... JAS.
  Collision => new VRML::NodeType("Collision",
  {
 	children => [MFNode, []],
@@ -2199,8 +2200,26 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 	bboxSize => [SFVec3f, [-1,-1,-1]],
 	proxy => [SFNode, NULL],
 	collideTime => [SFTime,undef,eventOut],
-	
- }
+#return info for collisions
+         __hit => [SFInt32, 0], #bit 0 : collision or not, bit 1: changed from previous of not.
+ },
+	{
+	 ClockTick => sub {
+	 	my($t,$f,$tick) = @_;
+		return if !$t->{BackEnd};
+		my $hit;
+
+		VRML::VRMLFunc::get_collision_info($t->{BackNode}->{CNode},$hit);
+
+		if($hit == 3 ) { #collision occured and state changed
+		    if($VRML::verbose::collision) {
+			print "COLLISION: $t, time=$tick\n";
+		    }
+		    $f->{collideTime} = $tick;
+		} 
+	 }
+	}
+
  ),
 
 	Inline =>
@@ -2269,3 +2288,4 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 
 
 1;
+

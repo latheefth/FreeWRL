@@ -557,15 +557,6 @@ sub delete_node {
 	VRML::CU::free_struct_be($node->{CNode}, $node->{Type});
 }
 
-sub get_proximitysensor_stuff {
-	my($this,$node) = @_;
-	my($hit, $x1, $y1, $z1, $x2, $y2, $z2, $q2);
-
-	VRML::VRMLFunc::get_proximitysensor_vecs($node->{CNode},$hit,$x1,$y1,$z1,$x2,$y2,$z2,$q2);
-
-	return [$hit, [$x1, $y1, $z1], [$x2, $y2, $z2, $q2]];
-}
-
 sub setup_projection {
 	my($this,$pick,$x,$y) = @_;
 	my $i = pack ("i",0);
