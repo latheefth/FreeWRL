@@ -201,8 +201,6 @@ sub newp {
 
     for (keys %{$this->{FieldKinds}}) {
 		$k = $this->{FieldKinds}{$_};
-		print "creating EventIn/Out for firlf $_ node $this kind $k\n";
-
 		if ($k eq "exposedField") {
 			$this->{EventIns}{$_} = $_;
 			$this->{EventOuts}{$_} = $_;
@@ -332,8 +330,10 @@ my $cnt;
 sub new_node {
 	my ($this, $type, $fields) = @_;
 	if ($type eq "Script") {
+		# print "new script node, cnt $cnt ";
 		# Special handling for Script which has an interface.
 		my $t = "__script__".$cnt++;
+		# print " name is $t ";
 		my %f = (
 				 url => [MFString, [], exposedField],
 				 directOutput => [SFBool, 0, field],
@@ -349,6 +349,7 @@ sub new_node {
 		my $type = VRML::NodeType->new($t, \%f, $VRML::Nodes{Script}{Actions});
 		my $node = VRML::NodeIntern->new_script($this, $type, {}, $this->{EventModel});
 		VRML::Handles::reserve($node);
+		# print "handle is $node, ",VRML::NodeIntern::dump_name($node),"\n";
 		return $node;
 	}
 
@@ -776,17 +777,17 @@ sub set_parentnode {
 					if $VRML::verbose::scene;
 
 			$this->iterate_nodes(sub {
-									 my ($node) = @_;
+			my ($node) = @_;
 
-									 print "MENID  ref node ", ref $node,"\n" if $VRML::verbose::scene;
-									 return unless (ref $node eq "VRML::NodeIntern");
+			print "MENID  ref node ", ref $node,"\n" if $VRML::verbose::scene;
+			return unless (ref $node eq "VRML::NodeIntern");
 			
-									 for (keys %{$node->{Fields}}) {
-										 print "MENIDF $_\n" if $VRML::verbose::scene;
+			for (keys %{$node->{Fields}}) {
+				print "MENIDF $_\n" if $VRML::verbose::scene;
 
-										 next unless (ref $node->{Fields}{$_} eq "VRML::IS");
-										 print "MENIDFSET $_\n" if $VRML::verbose::scene;
-										 $node->{Fields}{$_}->set_ref(
+				next unless (ref $node->{Fields}{$_} eq "VRML::IS");
+				print "MENIDFSET $_\n" if $VRML::verbose::scene;
+				$node->{Fields}{$_}->set_ref(
 \$this->{NodeParent}{Fields}{$this->{NodeParent}{Fields}{$node->{Fields}{$_}{Name}}}
 																	 );
 									 }
@@ -850,6 +851,24 @@ sub set_parentnode {
 #
 ############################################################
 
+# nodes within protos that need a backend simply for data storage; these
+# nodes display. (only first node in PROTO can display)
+
+my %VISIBLE = map {($_=>1)} qw/
+	Box
+	Cone
+	Sphere
+	IndexedFaceSet
+	ElevationGrid
+	Extrusion
+	IndexedLineSet
+	Background
+	PointLight
+	Fog
+	DirectionalLight
+	SpotLight
+        /;
+
 
 sub make_backend {
 	my ($this, $be, $parentbe) = @_;
@@ -862,19 +881,51 @@ sub make_backend {
 
 	my $bn;
 	if ($this->{Parent}) {
-		# I am a PROTO -- only my first node renders anything...
+		# I am a PROTO -- only my first node renders anything, but other nodes
+		# need the CNode to be there for data storage (eg, scripts, interpolators...)
+
 		print "\tScene: I'm a PROTO ",VRML::NodeIntern::dump_name($this),
 			" $be $parentbe\n"
 				if $VRML::verbose::be;
+
+		# print "   has node $#{$this->{Nodes}}\n";
+
+		# this is the first node; make it no matter what kind it is.
+		# print "going to make this, no matter what: ",$this->{Nodes}[0]->{TypeName},"\n";
 		$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
+
+
+		# other nodes; make them as long as they are not visible
+		my $nc; my $tn; my $wn;
+
+		$nc = 1;	# already did first node...
+		my $tn = $#{$this->{Nodes}};
+
+		while ($nc <= $tn) {
+			$wn = $this->{Nodes}[$nc];
+			# print "working on node ",VRML::NodeIntern::dump_name($wn)," ref ",ref $wn,"\n";
+			if (ref $wn eq "VRML::DEF") {
+
+ 				$wn = $wn->{Node};
+				#did not work for def'd scenes: $wn = $wn->real_node();
+			}
+			# print "now is ",VRML::NodeIntern::dump_name($wn),", ref ",ref $wn," type ",$wn->{TypeName},"\n";
+			if (!($VISIBLE{$wn->{TypeName}})) { 
+				# print "this is invisible\n"; foreach (keys %{$wn}) {print "   has key $_\n";}
+				$wn->make_backend($be, $parentbe);
+			}			
+			$nc++;
+		}
+		
 	} else {
-		print "\tScene: I'm not PROTO $this $be $parentbe ($this->{IsInline})\n"
+		print "\tScene: I'm not PROTO ",VRML::NodeIntern::dump_name($this), " $be $parentbe ($this->{IsInline})\n"
 			if $VRML::verbose::be;
 
 		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 
 		$be->set_root($bn) unless $this->{IsInline};
 
+		#print "Scene, done NOT PROTO ",VRML::NodeIntern::dump_name($this)," $be $parentbe\n";
  		$be->set_vp_sub(
  			sub {
 				print "set_vp_sub start\n";
@@ -912,7 +963,7 @@ sub setup_routing {
 		my ($package, $filename, $line) = caller;
 		print "VRML::Scene::setup_routing: ",
 			VRML::Debug::toString($this),
-					", event model = $eventmodel, back end = $be from $package, $line\n";
+					", event model = $eventmodel, back end = $be from $package, $line";
 	}
 
     $this->iterate_nodes(sub {
@@ -928,7 +979,7 @@ sub setup_routing {
 			 $eventmodel->add_first($_[0]);
 		 } else {
 			 if ($_[0]->{ProtoExp}) {
-				 # print "VRML::Scene::setup routing, this is a proto, calling protoexp setup_routing\n";
+				 #print "VRML::Scene::setup_routing, this $this is a proto, calling protoexp setup_routing\n";
 				 $_[0]->{ProtoExp}->setup_routing($eventmodel, $be);
 			 }
 		 }
@@ -969,6 +1020,7 @@ sub setup_routing {
 	# any routes to add?
 	for (values %{$this->{Routes}}) {
 		next if ($_->[4]);
+		#print "setup_routing calling add_route, ",VRML::Debug::toString($this),"\n";
 		$_->[4] = $eventmodel->add_route($this, $_->[0], $_->[1], $_->[2], $_->[3]);
 	}
 
