@@ -653,7 +653,7 @@ sub get_copy {
 
 	my $key;
 	foreach $key (keys(%{$this->{Protos}})) {
-		print "$key, $this->{Protos}{$key}\n";
+		#print "Scene.pm::get_copy: $key, $this->{Protos}{$key}\n";
 		# try shallow copy first
 		$new->{Protos}{$key} = $this->{Protos}{$key};
 	}
