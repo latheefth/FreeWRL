@@ -146,7 +146,8 @@ sub get_absolute {
 
     if (!$key) { $key = ":$url"; }
 
-    if ($VRML::URL::savedUrls{$key}{$urlKeyList[1]}) {
+    ## TODO : Save modification date of file and check for changes
+    if ($VRML::URL::savedUrls{$key}{$urlKeyList[1]} && !$main::sig_reload) {
 	return $VRML::URL::savedUrls{$key}{$urlKeyList[1]};
     }
 
