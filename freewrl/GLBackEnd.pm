@@ -29,6 +29,9 @@ use strict vars;
 my $cursortype = 0;  # pointer cursor
 my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
+
+my $triangulator = 0;	# OpenGL Triangulator
+
 ####
 #
 # set fast rendering - don't do smooth shading
@@ -36,6 +39,17 @@ my $curcursor = 99;  # the last cursor change - force the cursor on startup
 sub set_fast {
 	glShadeModel(&GL_FLAT);
 }
+
+
+####
+#
+# let others use our triangulator
+
+sub get_BE_triangulator {
+	return $triangulator;
+}
+
+
 
 ####
 #
@@ -135,6 +149,9 @@ sub new {
 		      "y" => $y,
 		      wintitle => $mytitle);
 
+	# The Tesselator should have been started, and registered. Get a 
+	#   handle to it.
+	$triangulator = get_triangulator();
 
         glClearColor(0,0,0,1);
         glShadeModel (&GL_SMOOTH);
