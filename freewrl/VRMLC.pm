@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.22  2001/02/16 18:31:52  crc_canada
+# Cleaned up pixeltextures in do_texture routine
+#
 # Revision 1.21  2000/12/20 17:28:14  crc_canada
 # more IndexedFaceSet work - normals this time
 #
@@ -1095,6 +1098,37 @@ static struct VRML_Virt virt_${n} = { ".
 		next if !defined $c;
 		print "$_ (",length($c),") ";
 		# Substitute field gets
+
+		# ptex2d and tex2d are identical, except for a parameter
+		# to the do_texture.
+		$c =~ s~\$ptex2d\(([^)]*)\)~
+		  {
+			if(this_->_dlchange != this_->_change) {
+				unsigned char *ptr = SvPV(\$f(__data$1),PL_na);
+				void do_texture();
+
+				if(!this_->_texture) {
+					glGenTextures(1,&this_->_texture);
+				}
+
+                        	glBindTexture (GL_TEXTURE_2D, this_->_texture);
+				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
+					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
+					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP,
+					GL_NEAREST);
+
+				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
+				this_->_dlchange = this_->_change;
+			} else {
+				glCallList(this_->_dlist); return;
+			}
+			glEnable(GL_LIGHTING);
+			glColor3f(1.0,1.0,1.0);
+			glEnable(GL_TEXTURE_2D);
+                       	glBindTexture (GL_TEXTURE_2D, this_->_texture);
+		     }
+			~g;
+
 		$c =~ s~\$tex2d\(([^)]*)\)~
 		  {
 			if(this_->_dlchange != this_->_change) {
@@ -1108,7 +1142,8 @@ static struct VRML_Virt virt_${n} = { ".
                         	glBindTexture (GL_TEXTURE_2D, this_->_texture);
 				(void) do_texture (\$f(__depth$1), \$f(__x$1), \$f(__y$1), ptr,
 					\$f(repeatS$1) ? GL_REPEAT : GL_CLAMP, 
-					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP);
+					\$f(repeatT$1) ? GL_REPEAT : GL_CLAMP,
+					GL_LINEAR);
 
 				glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
 				this_->_dlchange = this_->_change;
@@ -1121,6 +1156,7 @@ static struct VRML_Virt virt_${n} = { ".
                        	glBindTexture (GL_TEXTURE_2D, this_->_texture);
 		     }
 			~g;
+
 		$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
 		$c =~ s/\$i\(([^)]*)\)/(this_->$1)/g;
 		$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
@@ -2127,18 +2163,21 @@ void remove_parent(void *node_, void *parent_) {
  * General Texture objects
  */
 
-void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp)
+void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	int x,y,depth;
 	GLint Sgl_rep_or_clamp;
 	GLint Tgl_rep_or_clamp;
+	GLint Image;
 	unsigned char *ptr;
 {
 
 	int rx,ry,sx,sy;
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+	/* Image should be GL_LINEAR for pictures, GL_NEAREST for pixelTs */
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, Image );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, Image );
 
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Sgl_rep_or_clamp);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Tgl_rep_or_clamp);
@@ -2388,6 +2427,8 @@ CODE:
 	y2 = px->__t2.r[1];
 	z2 = px->__t2.r[2];
 	q2 = px->__t2.r[3];
+	printf ("get_proximitysensor_vecs, x %f y %f z %f, x2 %f y2 %f z2 %f q2 %f\n",
+			x1,y1,z1,x2,y2,z2,q2); 
 OUTPUT:
 	hit
 	x1
