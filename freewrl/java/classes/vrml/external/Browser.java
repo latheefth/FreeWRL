@@ -75,13 +75,13 @@ public class Browser implements BrowserInterface
     // Interface methods.
     public int get_Browser_EVtype (int event)
       {
-	System.out.println ("get_Browser_EVtype is returning " + EVtype[event]);
+	// System.out.println ("get_Browser_EVtype is returning " + EVtype[event]);
         return EVtype[event];
       }
 
     public EventOutObserver get_Browser_EVObserver (int eventno)
       {
-	System.out.println ("get_Browser_EVObserver is returning " +  EVObserver[eventno]);
+	// System.out.println ("get_Browser_EVObserver is returning " +  EVObserver[eventno]);
         return EVObserver[eventno];
       }
 
@@ -93,7 +93,7 @@ public class Browser implements BrowserInterface
             break;
           }
         }
-	System.out.println ("get_Browser_EV_short_reply is returning " + EVshortreply[EVcounter]);
+	// System.out.println ("get_Browser_EV_short_reply is returning " + EVshortreply[EVcounter]);
         return EVshortreply[EVcounter];
 
       }
@@ -106,14 +106,12 @@ public class Browser implements BrowserInterface
             break;
           }
         }
-	System.out.println ("Browser_RL_Async_send sending " + EVentreply + " to number " + EVcounter);
+	// System.out.println ("Browser_RL_Async_send sending " + EVentreply + " to number " + EVcounter);
         RL_Async.send(EVentreply, EVcounter);
       }
 
     // Associates this instance with the first embedded plugin in the current frame.
     public Browser(Applet pApplet) {
-
-System.out.println ("Browser: Starting Browser applet");
 
   	// Create a socket here for an EAI server on localhost
 	int incrport = -1;
@@ -143,12 +141,10 @@ System.out.println ("Browser: Starting Browser applet");
   	} catch (IOException e) {
   	  System.out.print ("Browser: error creating sub-scoket in FreeWrl Javascript\n");
   	}
- System.out.println ("Browser: starting EAIinThread"); 
   	// Start the readfrom FREEWRL thread...
    	FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet, this));
            FreeWRLThread.start();
   
- System.out.println ("Browser: starting EAIinThread done"); 
   	// Open the pipe for EAI replies to be sent to us...
         try {
           EAIfromFreeWRLStream = new PipedInputStream (EAIinThread.EAItoBrowserStream);
@@ -157,8 +153,6 @@ System.out.println ("Browser: Starting Browser applet");
           System.out.println (ie);
         }
   
- System.out.println ("Browser: Waiting for FreeWRL to send us something...");
- 
   	// Wait for the FreeWRL browser to send us something...
         try {
           System.out.println (EAIfromFreeWRLInputStream.readLine());
@@ -173,20 +167,16 @@ System.out.println ("Browser: Starting Browser applet");
 		System.out.print ("error on reiniting output stream");
 	}
   	// Browser is "gotten", and is started.
-System.out.println ("Browser: Browser is found; starting EAIoutThread");
 
   	// Start the SendTo FREEWRL thread...
 	EAIoutSender = new EAIoutThread(EAIout);
         EAIoutSender.start();
-
-System.out.println ("Browser: EAIoutThread started; workin on EAIAsyncThread");
 
 	// Start the thread that allows Registered Listenered
 	// updates to come in.
 	RL_Async = new EAIAsyncThread();
 	RL_Async.start();
 
-System.out.println ("Browser: all done; returning");	
   	return;
     }
   
@@ -412,39 +402,6 @@ System.out.println ("Browser: all done; returning");
   // Send Event to the VRML Browser. Note the different methods, depending
   // on the parameters.
   //
-
-//REDO  public static void SendEvent (String NodeName, String FieldName, VSFVec3f Value)
-//REDO    {
-//REDO      float vals[];
-//REDO      Float f0;
-//REDO      Float f1;
-//REDO      Float f2;
-
-//REDO      vals = Value.getValue();
-//REDO      f0 = new Float(vals[0]); f1 = new Float(vals[1]); 
-//REDO      f2 = new Float(vals[2]);
-//REDO      SendEvent (NodeName, FieldName, (String) f0.toString() + 
-//REDO	" " + f1.toString() + " " + f2.toString());
-//REDO      return;
-//REDO    }
-
-//REDO  public static void SendEvent (String NodeName, String FieldName, VSFRotation Value)
-//REDO    {
-//REDO      float vals[];
-//REDO      Float f0;
-//REDO      Float f1;
-//REDO      Float f2;
-//REDO      Float f3;
-
-//REDO      vals = Value.getValue();
-//REDO      f0 = new Float(vals[0]); f1 = new Float(vals[1]); 
-//REDO      f2 = new Float(vals[2]); f3 = new Float(vals[3]);
-//REDO      SendEvent (NodeName, FieldName, (String) f0.toString() + 
-//REDO	" " + f1.toString() + " " + f2.toString() + " " + f3.toString());
-//REDO      return;
-//REDO    }
-
-
   // SendChildEvent waits for confirmation that child is added/removed to MFNode array.
   // This gets around the problem of sending two adds in succession, and having
   // the second overwrite the first.
@@ -456,7 +413,12 @@ System.out.println ("Browser: all done; returning");
         EAIoutSender.send ("" + queryno + "\nSC " + NodeName + " " + 
            FieldName + "\n" + Value + "\n");
         retval = getVRMLreply(queryno);
-	System.out.println ("Browser, got " + retval);
+        queryno += 1;
+	
+        // Now, tell FreeWRL to update routes
+        EAIoutSender.send ("" + queryno + "\nUR " + NodeName + " " + 
+           FieldName + "\n" + Value + "\n");
+        retval = getVRMLreply(queryno);
         queryno += 1;
       }
       return;
@@ -519,10 +481,6 @@ System.out.println ("Browser: all done; returning");
   public static void RegisterListener (EventOutObserver f, Object userData,
 			String outNode, String command,  int EventType)
     {
-System.out.println ("RegisterListener, sending "
-+ queryno + "\nRL " + outNode +
-                " " + command + " " + queryno + "\n");
-
        synchronized (FreeWRLToken) {
          EAIoutSender.send ("" + queryno + "\nRL " + outNode + 
  		" " + command + " " + queryno + "\n");
@@ -531,11 +489,6 @@ System.out.println ("RegisterListener, sending "
          EVtype [EVno] = EventType;     
          EVObject[EVno] = userData;
          EVObserver[EVno] = f;
-
-System.out.println ("RegisterListener: Evarray " + EVarray[EVno] +
-" EVtype " + EVtype[EVno] + 
-" EVObject " + EVObject[EVno] +
-" EBObserver " + EVObserver[EVno]);
 
 	 // Is this a short, consise answer type? 
 	 // (see field/FieldTypes.java for more info)
@@ -568,7 +521,6 @@ System.out.println ("RegisterListener: Evarray " + EVarray[EVno] +
        
          getVRMLreply(queryno); 
          queryno += 1;
-System.out.println ("RegisterListener - returning");
        }
     }
 
