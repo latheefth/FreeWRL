@@ -372,6 +372,43 @@ sub EAI_GetNode {
 	return $id;
 }
 
+sub EAI_GetViewpoint {
+	my ($nodetoget) = @_;
+
+	#print "\n\nEAI_GetViewpoint, getting $nodetoget\n";
+	# now we change the node into a DEF name.	
+	my $node = VRML::Handles::return_def_name($nodetoget);
+
+	#print "step 1, node is $node, ref ",ref $node,"\n";
+
+	# then change the DEF name into a VRML node pointer.
+	$node = VRML::Handles::return_EAI_name($node);
+
+	#print "step 2, node is $node, ref ",ref $node,"\n";
+
+	if (ref $node eq "") {
+		print "Viewpoint $nodetoget is not defined\n";
+		return 0;
+	}
+
+	if ($node->{TypeName} ne "Viewpoint") {
+		print "Expected $nodetoget to be Viewpoint, is ",
+			$node->{TypeName},"\n";
+		return 0;
+	}
+
+	#ok, we have a Viewpoint node...
+	my $bn = 0;
+	if (exists $node->{BackNode}{CNode}) {
+		$bn = $node->{BackNode}{CNode};
+	} else { 
+		$bn = 0;
+	}
+
+	#print "node number is $bn\n";
+	return $bn;
+}
+
 # get the value for a node; NOT used for EAI, only for .class (and other scripts)
 # node is called EAI_... because it "fits" in with the other nodes.
 

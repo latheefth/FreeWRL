@@ -136,6 +136,7 @@ void __pt_doInline(void);
 void __pt_doStringUrl (void);
 void __pt_doPerlCallMethodVA(void);
 void __pt_EAI_GetNode (void);
+void __pt_EAI_GetViewpoint (void);
 void __pt_EAI_GetType (void);
 void __pt_EAI_GetTypeName (void);
 void __pt_EAI_GetValue (void);
@@ -221,7 +222,8 @@ int checkNetworkFile(char *fn) {
 /* WARNING! WARNING! the first parameter may be overwritten IF we are running
    within a Browser, so make sure it is large, like 1000 bytes. 	   */
 
-int fileExists(char *fname, char *firstBytes) {
+/* parameter "GetIt" used as FALSE in Anchor */
+int fileExists(char *fname, char *firstBytes, int GetIt) {
 	FILE *fp;
 	int ok;
 	char *retName;
@@ -244,6 +246,13 @@ int fileExists(char *fname, char *firstBytes) {
 	   be a local file by now 
 	 */
 	if (checkNetworkFile(fname)) {
+		// Is this an Anchor? if so, lets just assume we can
+		// get it
+		if (!GetIt) {
+			//printf ("Assuming Anchor mode, returning TRUE\n");
+			return (TRUE);
+		}
+
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 		sprintf (sysline,"wget %s -O %s\n",fname,tempname);
 		printf ("\nFreeWRL will try to use wget to get %s\n",fname);
@@ -373,6 +382,29 @@ unsigned int EAI_GetNode(char *nname) {
 	DATA_LOCK
 	psp.comp = &complete;
 	psp.type = EAIGETNODE;
+	psp.ptr = (unsigned)NULL;
+	psp.ofs = (unsigned)NULL;
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	psp.fieldname = nname;
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) usleep(10);
+	retval = psp.jparamcount;
+	PSP_UNLOCK
+	return (retval);
+}
+
+/* interface for getting a Viewpoint CNode */
+unsigned int EAI_GetViewpoint(char *nname) {
+	int complete;
+	int retval;
+
+	PSP_LOCK
+	DATA_LOCK
+	psp.comp = &complete;
+	psp.type = EAIGETVIEWPOINT;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
@@ -675,6 +707,7 @@ void _perlThread(void *perlpath) {
 			INLINE		convert an inline into code, and load it.
 			CALLMETHOD	Javascript... 	
 			EAIGETNODE      EAI getNode     
+			EAIGETVIEWPOINT get a Viewpoint CNode
 			EAIGETTYPE	EAI getType	
 			EAIGETVALUE	EAI getValue - in a string.	
 			EAIROUTE	EAI add/delete route
@@ -709,6 +742,12 @@ void _perlThread(void *perlpath) {
 		case EAIGETNODE: {
 			/* EAI wants info from a node */
 			__pt_EAI_GetNode();
+			break;
+			}
+
+		case EAIGETVIEWPOINT: {
+			/* EAI wants info from a node */
+			__pt_EAI_GetViewpoint();
 			break;
 			}
 
@@ -1013,7 +1052,7 @@ void __pt_doInline() {
 		/* we work in absolute filenames... */
 		makeAbsoluteFileName(filename,psp.path,thisurl);
 
-		if (fileExists(filename,firstBytes)) {
+		if (fileExists(filename,firstBytes,TRUE)) {
 			break;
 		}
 		count ++;
@@ -1158,11 +1197,36 @@ void __pt_EAI_GetNode () {
 
 	/* return value in psp.jparamcount */
 	psp.jparamcount = POPi;
+	 
+	//printf ("The node is %x\n", psp.jparamcount) ;
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
 
-	/* 
-		printf ("The node is %x\n", noderef) ;
-	*/
+/* get Viewpoint CNode; send in a character string, get a memory ptr */
+void __pt_EAI_GetViewpoint () {
+	int count;
 
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	//this is for integers XPUSHs(sv_2mortal(newSViv(nname)));
+	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+
+
+	PUTBACK;
+	count = call_pv("VRML::Browser::EAI_GetViewpoint", G_SCALAR);
+	SPAGAIN ;
+
+	if (count != 1)
+		printf ("EAI_getViewpoint, node returns %d\n",count);
+
+	/* return value in psp.jparamcount */
+	psp.jparamcount = POPi;
+	 
+	//printf ("The node is %x\n", psp.jparamcount) ;
 	PUTBACK;
 	FREETMPS;
 	LEAVE;

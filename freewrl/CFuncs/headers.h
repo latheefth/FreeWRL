@@ -187,8 +187,7 @@ extern struct sNaviInfo naviinfo;
 
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
-extern struct Multi_String Anchor_url;
-
+extern struct VRML_Anchor *AnchorsAnchor;
 
 /* Scripting Routing interfaces */
 
@@ -288,6 +287,7 @@ void JSMaxAlloc(void);
 void cleanupDie(int num, char *msg);
 void shutdown_EAI(void);
 unsigned int EAI_GetNode(char *str);
+unsigned int EAI_GetViewpoint(char *str);
 void EAI_GetType (unsigned int uretval,
         char *ctmp, char *dtmp,
         int *ra, int *rb,
@@ -368,6 +368,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define EAIROUTE	9   /* EAI add/del route */
 #define EAIGETVALUE	10  /* get a value of a node */
 #define EAIGETTYPENAME	11  /* get the type name for a  node */
+#define EAIGETVIEWPOINT	12  /* get a Viewpoint BackEnd CNode */
 
 
 
@@ -418,7 +419,7 @@ extern void xs_init(void);
 extern int navi_tos;
 extern void initializeTextureThread(void);
 extern int isTextureinitialized(void);
-extern int fileExists(char *fname, char *firstBytes);
+extern int fileExists(char *fname, char *firstBytes, int GetIt);
 extern int checkNetworkFile(char *fn);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,

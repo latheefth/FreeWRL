@@ -599,7 +599,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		/* put the path and the file name together */	
 		makeAbsoluteFileName(filename,mypath,thisurl);
 
-		if (fileExists(filename,firstBytes)) { break; }
+		if (fileExists(filename,firstBytes,TRUE)) { break; }
 		count ++;
 	}
 	
