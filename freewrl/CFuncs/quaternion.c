@@ -157,19 +157,18 @@ conjugate(Quaternion *quat)
 void
 inverse(Quaternion *ret, const Quaternion *quat)
 {
-	double n = norm(quat);
+/* 	double n = norm(quat); */
 
-	ret->w = quat->w;
-	ret->x = quat->x;
-	ret->y = quat->y;
-	ret->z = quat->z;
+	set(ret, quat);
 	conjugate(ret);
 
 	/* unit quaternion, so take conjugate */
-	if (APPROX(n, 1)) {
-		return;
-	}
+/* 	if (APPROX(n, 1)) { */
+/* 		return; */
+/* 	} */
 	normalize(ret);
+/* 	printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n", */
+/* 		   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z); */
 }
 
 double
@@ -211,7 +210,8 @@ multiply(Quaternion *ret, const Quaternion *q1, const Quaternion *q2)
 	ret->w = (q1->w * q2->w) - (q1->x * q2->x) - (q1->y * q2->y) - (q1->z * q2->z);
 	ret->x = (q1->w * q2->x) + (q1->x * q2->w) + (q1->y * q2->z) - (q1->z * q2->y);
 	ret->y = (q1->w * q2->y) + (q1->y * q2->w) - (q1->x * q2->z) + (q1->z * q2->x);
-	ret->y = (q1->w * q2->z) + (q1->z * q2->w) + (q1->x * q2->y) - (q1->y * q2->x);
+	ret->z = (q1->w * q2->z) + (q1->z * q2->w) + (q1->x * q2->y) - (q1->y * q2->x);
+/* 	printf("Quaternion multiply: ret = {%f, %f, %f, %f}, q1 = {%f, %f, %f, %f}, q2 = {%f, %f, %f, %f}\n", ret->w, ret->x, ret->y, ret->z, q1->w, q1->x, q1->y, q1->z, q2->w, q2->x, q2->y, q2->z); */
 }
 
 void
@@ -240,6 +240,7 @@ rotation(struct pt *ret, const Quaternion *quat, const struct pt *v)
 	ret->x = q_r2.x;
 	ret->y = q_r2.y;
 	ret->z = q_r2.z;
+/* 	printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z); */
 }
 
 
@@ -259,6 +260,7 @@ togl(Quaternion *quat)
 void
 set(Quaternion *ret, const Quaternion *quat)
 {
+	ret->w = quat->w;
 	ret->x = quat->x;
 	ret->y = quat->y;
 	ret->z = quat->z;
