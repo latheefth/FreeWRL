@@ -161,6 +161,10 @@ int jsnameindex = -1;
 
 int CRVerbose = 0;
 
+/* global return value for getting the value of a variable within Javascript */
+jsval global_return_val;
+
+
 #define SFUNKNOWN 0
 #define SFBOOL 	1
 #define SFCOLOR 2
@@ -181,6 +185,170 @@ int CRVerbose = 0;
 #define MFNODE	17
 #define MFROTATION 18
 #define MFVEC2F	19
+
+/****************************************************************************/
+/*									    */
+/* get_touched_flag - see if this variable (can be a sub-field; see tests   */
+/* 8.wrl for the DEF PI PositionInterpolator). return true if variable is   */
+/* touched, and pointer to touched value is in global variable              */
+/* global_return_val							    */
+/*                                                                          */
+/****************************************************************************/
+
+int get_touched_flag (int fptr, int actualscript) {
+	char fullname[100];
+	char tmethod[100];
+	jsval v, retval, retval2;
+	jsval interpobj;
+	int tn;
+        JSString *strval; /* strings */
+	char *strtouched;
+	int intval;
+	int touched_function;
+
+
+	int index, locindex;
+	int len;
+	int complex_name; /* a name with a period in it */
+	char *myname;
+
+	if (JSVerbose) printf ("\nget_touched_flag, name %s script %d context %x \n",JSparamnames[fptr].name,
+				actualscript,JSglobs[actualscript].cx);
+
+	myname = JSparamnames[fptr].name;
+	len = strlen(myname);
+	index = 0;
+	interpobj = JSglobs[actualscript].glob;
+	complex_name = (strstr(myname,".") != NULL);
+	fullname[0] = 0;
+
+
+	// if this is a complex name (ie, it is like a field of a field) then get the
+	// first part. 
+	if (complex_name) {
+		// get first part, and convert it into a handle name.
+		locindex = 0;
+		while (*myname!='.') {
+			tmethod[locindex] = *myname;
+			locindex++; 
+			myname++;
+		}
+		tmethod[locindex] = 0;
+		myname++;
+
+		//printf ("getting intermediate value by using %s\n",tmethod);
+		 if (!JS_GetProperty(JSglobs[actualscript].cx, interpobj,tmethod,&retval)) {
+			printf ("cant get property for name %s\n",tmethod);
+			return FALSE;
+		} else {
+               		strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
+                	strtouched = JS_GetStringBytes(strval);
+                	//printf ("interpobj %d and getproperty returns %s\n",retval,strtouched);
+		}
+		strcpy (fullname,strtouched);
+		strcat (fullname,"_");
+	}
+
+	// now construct the varable name; it might have a prefix as found above.
+
+	//printf ("before constructor, fullname is %s\n",fullname);
+	strcat (fullname,myname);
+	touched_function = FALSE;
+
+	// Find out the method of getting the touched flag from this variable type
+
+	switch (JSparamnames[fptr].type) {
+	case MFBOOL: case MFFLOAT: case MFTIME: case MFINT32: case MFSTRING: case MFCOLOR:
+	case MFROTATION: case MFNODE: case MFVEC2F: {
+		if (complex_name)  strcpy (tmethod,"__touched_flag");
+		else  sprintf (tmethod, "_%s__touched_flag",fullname);
+		break;
+		}
+	
+	case SFBOOL: case SFFLOAT: case SFTIME: case SFINT32: case SFSTRING: {
+		if (complex_name) strcpy (tmethod,"_touched");
+		else sprintf (tmethod, "_%s_touched",fullname);
+		break;
+		}
+
+	case SFCOLOR:
+	case SFNODE: case SFROTATION: case SFVEC2F: {
+		if (complex_name) strcpy (tmethod,"__touched()");
+		else sprintf (tmethod, "%s.__touched()",fullname);
+		touched_function = TRUE;
+		break;
+		}
+	default: {
+		printf ("WARNING, this type (%d) not handled yet\n",
+			JSparamnames[fptr].type);
+		return FALSE;
+		}
+	}
+
+	// get the property value, if we can
+	//printf ("getting property for fullname %s\n",fullname);
+	if (!JS_GetProperty(JSglobs[actualscript].cx, interpobj ,fullname,&retval)) {
+               	printf ("cant get property for %s\n",fullname);
+		return FALSE;
+        } else {
+       	        strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
+               	strtouched = JS_GetStringBytes(strval);
+               	//printf ("and get of actual property %d returns %s\n",retval,strtouched);
+
+		if (strcmp("undefined",strtouched)==0) {
+			//printf ("abnormal return here\n");
+			return FALSE;
+		}
+
+		// Save this value for later parsing
+		global_return_val = retval;
+	}
+
+
+	// Now, for the Touched (and thus the return) value 
+	if (touched_function) {
+		// printf ("Function, have to run script\n");
+	
+		if (!ActualrunScript(actualscript, tmethod ,&retval)) 
+			printf ("failed to get touched, line %s\n",tmethod);
+       	        //strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
+               	//strtouched = JS_GetStringBytes(strval);
+               	//printf ("and get touched of function %d returns %s\n",retval,strtouched);
+		if (JSVAL_IS_INT(retval)) {
+			intval = JSVAL_TO_INT(retval);
+			return (intval!=0);
+		}
+		return FALSE; // should never get here
+	}
+
+
+	// now, if this is a complex name, we get property relative to what was before;
+	// if not (ie, this is a standard, simple, name, use the object as before
+	if (complex_name) {
+		interpobj = retval;
+	}	
+
+	if (!JS_GetProperty(JSglobs[actualscript].cx, interpobj ,tmethod,&retval2)) {
+               	printf ("cant get property for %s\n",tmethod);
+		return FALSE;
+        } else {
+       	        //strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval2);
+               	 //strtouched = JS_GetStringBytes(strval);
+               	 //printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
+
+		if (JSVAL_IS_INT(retval2)) {
+			intval = JSVAL_TO_INT(retval2);
+		}
+
+		// set it to 0 now.
+		v = INT_TO_JSVAL(0);
+		JS_SetProperty (JSglobs[actualscript].cx, interpobj, tmethod, &v);
+
+		return (intval!=0);
+
+	}
+	return FALSE; // should never get here
+}
 
 /* sets a SFBool, SFFloat, SFTime, SFIint32, SFString in a script */
 void setECMAtype (int num) {
@@ -628,7 +796,8 @@ unsigned int CRoutes_Register (unsigned int from, int fromoffset,
 	} else {
 		CRoutes_Count ++;
 	}
-	if (CRVerbose) for (shifter = 1; shifter < (CRoutes_Count-1); shifter ++) {
+	if (CRVerbose) 
+		for (shifter = 1; shifter < (CRoutes_Count-1); shifter ++) {
 			printf ("Route indx %d is (%x %x) to (%x %x) len %d\n",
 			shifter, CRoutes[shifter].fromnode,
 			CRoutes[shifter].fnptr, CRoutes[shifter].tonode,
@@ -651,7 +820,8 @@ void mark_event (unsigned int from, unsigned int totalptr) {
 
 	findit = 1;
 
-	if (CRVerbose) printf ("mark_event, from %x fromoffset %x\n",from,totalptr);
+	if (CRVerbose) 
+		printf ("mark_event, from %x fromoffset %x\n",from,totalptr);
 
 	/* events in the routing table are sorted by fromnode. Find
 	   out if we have at least one route from this node */
@@ -663,18 +833,21 @@ void mark_event (unsigned int from, unsigned int totalptr) {
 		(totalptr != CRoutes[findit].fnptr)) findit ++;
 
 	/* did we find the exact entry? */
-	if (CRVerbose) printf ("ep, (%x %x) (%x %x) at %d \n",from,CRoutes[findit].fromnode,
-		totalptr,CRoutes[findit].fnptr,findit);
+	if (CRVerbose) 	
+		printf ("ep, (%x %x) (%x %x) at %d \n",from,CRoutes[findit].fromnode,
+			totalptr,CRoutes[findit].fnptr,findit);
 
 	/* if we did, signal it to the CEvents loop  - maybe more than one ROUTE,
 	   eg, a time sensor goes to multiple interpolators */
 	while ((from == CRoutes[findit].fromnode) && 
 		(totalptr == CRoutes[findit].fnptr)) {
-		if (CRVerbose) printf ("found it at %d\n",findit);
+		if (CRVerbose) 
+			printf ("found it at %d\n",findit);
 		CRoutes[findit].act=TRUE;
 		findit ++;
 	}
-	if (CRVerbose) printf ("done mark_event\n");
+	if (CRVerbose) 
+		printf ("done mark_event\n");
 }
 
 
@@ -728,6 +901,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	int fromalready;	 /* we have already got the from value string */
 
 	fromalready=FALSE; 
+	int touched_flag;
 
 
 	/* go through all routes, looking for this script as an eventOut */
@@ -750,8 +924,12 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 		}
 		
 		fptr = CRoutes[route].fnptr;
+		fn = CRoutes[route].fromnode;
 		len = CRoutes[route].len;
-	
+
+		if (CRVerbose) printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
+				JSparamnames[fptr].type, len);	
+
 		/* in Ayla's Perl code, the following happened:
 			MF* - run __touched_flag
 
@@ -764,91 +942,25 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
-			switch (JSparamnames[fptr].type) {
-			case MFBOOL:
-			case MFFLOAT:
-			case MFTIME:
-			case MFINT32:
-			case MFSTRING: {
-				sprintf (scriptline,"_%s__touched_flag",JSparamnames[fptr].name);
-				if (!ActualrunScript(actualscript, scriptline ,&touched))
-					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-				
-				sprintf (scriptline,"_%s__touched_flag=0",JSparamnames[fptr].name);
-				if (!ActualrunScript(actualscript, scriptline ,&retval)) 
-					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-				
-				break;
-				}
-			
-			case SFBOOL:
-			case SFFLOAT:
-			case SFTIME:
-			case SFINT32:
-			//JAS case SFNODE:
-			case SFSTRING: {
-				sprintf (scriptline,"_%s_touched",JSparamnames[fptr].name);
-				if (!ActualrunScript(actualscript, scriptline ,&touched)) 
-					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-				
-				sprintf (scriptline,"_%s_touched=0",JSparamnames[fptr].name);
-				if (!ActualrunScript(actualscript, scriptline ,&retval)) 
-					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-				
-				break;
-				}
+			touched_flag = get_touched_flag(fptr,actualscript);
 
-			case MFCOLOR:
-			case MFROTATION: 
-			case MFNODE:
-			case MFVEC2F: {
-				sprintf (scriptline,"%s.__touched_flag",JSparamnames[fptr].name);
-				if (!ActualrunScript(actualscript, scriptline ,&touched)) 
-					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-
-				sprintf (scriptline,"%s.__touched_flag=0",JSparamnames[fptr].name);
-				if (!ActualrunScript(actualscript, scriptline ,&retval)) 
-					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-
-				break;
-				}	
-
-			case SFNODE:
-			case SFCOLOR: 
-			case SFROTATION:
-			case SFVEC2F: {
-				sprintf (scriptline,"%s.__touched()",JSparamnames[fptr].name);
-				if (!ActualrunScript(actualscript, scriptline ,&touched)) 
-					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
-				break;
-				}
-			default: {
-				printf ("WARNING, this type (%d) not handled yet\n",
-					JSparamnames[fptr].type);
-				}
-			}
-
-			strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, touched);
-			strtouched = JS_GetStringBytes(strval);
-			if (JSVerbose) 
-				printf ("touched string is %s\n",strtouched);
-			if (*strtouched!='0') {
+			if (touched_flag) {
 				/* we did, so get the value */
-				if (!ActualrunScript(actualscript, JSparamnames[fptr].name ,&retval)) {
-					printf ("WARNING: Failed to get value, line %s\n",scriptline);
-				}
-				strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
+				strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, global_return_val);
 			        strp = JS_GetStringBytes(strval);
+
 				if (JSVerbose) 
 					printf ("retval string is %s\n",strp);
 			}
 		}
 
 
-		if (*strtouched!='0') {
+		if (touched_flag) {
 			/* get some easy to use pointers */
 			tn = (int) CRoutes[route].tonode;
 			tptr = (int) CRoutes[route].tnptr;
+
+			if (JSVerbose) printf ("VALUE CHANGED! copy value and update %d\n",tn);
 
 			/* eventOuts go to VRML data structures */
 
@@ -866,8 +978,11 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 					}
 
 				case SFTIME: {
-						sscanf (strp,"%f",&tval);
-						//printf ("SFTime conversion numbers %f\n",tval);
+						if (!JS_ValueToNumber((JSContext *)JSglobs[actualscript].cx, 
+							global_return_val,&tval)) tval=0.0;
+
+						printf ("SFTime conversion numbers %f from string %s\n",tval,strp);
+						printf ("copying to %x offset %x len %d\n",tn, tptr,len);
 						memcpy ((void *)tn+tptr, (void *)&tval,len);
 						break;
 				}
@@ -900,7 +1015,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 				case SFROTATION: {
 						sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-						//printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]);
+						printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]);
 						memcpy ((void *)tn+tptr, (void *)fl,len);
 						break;
 				}
@@ -939,7 +1054,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 			}
 
 			/* tell this node now needs to redraw */
-			update_node(CRoutes[route].tonode);
+			update_node(tn);
+			//mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
 		} 
 		route++;
 	}
