@@ -76,7 +76,6 @@ chomp ($a = `which convert`);
 chomp ($pwd = getcwd());
 chomp ($java = `which java`);
 print OUT qq(\$VRML::Browser::CONVERT = "$a";\n);
-print OUT qq(\$VRML::ENV{FREETYPE_FONT_PATH} = "$VRML_CONFIG{FREETYPE_FONT_PATH}";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_FONTS} = "$pwd/fonts";\n);
 print OUT qq(\$VRML::Browser::X3DTOVRMLXSL = "$pwd/x3d/X3dToVrml97.xsl";\n);
 print OUT "1;\n";
@@ -130,7 +129,7 @@ sub MY::postamble {
 q{
 # --- VRML::VRMLFunc:
 
-VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExtrusion.pm
+VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExtrusion.pm 
 	$(PERL) VRMLC.pm
 });
 
