@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.136  2004/03/29 20:39:54  crc_canada
+# Compile for IRIX
+#
 # Revision 1.135  2004/03/29 19:14:14  crc_canada
 # Irix compilation fixes
 #
@@ -2045,7 +2048,7 @@ do_newJavaClass(scriptInvocationNumber,nodestr,node)
 	int node
 CODE:
 	printf ("do_newJavaClass, script %d, node %s\n",scriptInvocationNumber,nodestr);
-	RETVAL = (int) newJavaClass(scriptInvocationNumber,nodestr,node);
+	RETVAL = (int) newJavaClass(scriptInvocationNumber,nodestr,(int *)node);
 OUTPUT:
 	RETVAL
 

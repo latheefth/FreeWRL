@@ -67,6 +67,7 @@ int main (int argc, char **argv) {
 	char *filename;
 	char *pwd;
 
+#ifndef IRIX
 #ifndef AQUA
 	/* first, get the FreeWRL shared lib, and verify the version. */
 	if (strcmp(FWVER,getLibVersion())) {
@@ -74,12 +75,14 @@ int main (int argc, char **argv) {
 		exit(1);
 	}
 #endif
-#ifndef IRIX
+#endif
+
 #ifndef AQUA
 	/* set the screen width and height before getting into arguments */
 	screenWidth = 450; screenHeight=300;
 	fullscreen = 0;
 
+#ifndef IRIX
 	/* install the signal handler for SIGQUIT */
 	signal (SIGQUIT, catch_SIGQUIT);
 

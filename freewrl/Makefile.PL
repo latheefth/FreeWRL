@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "1.06";
+$VERSION = "V1.06";
 
 BEGIN {
  eval "use 5.004";
@@ -213,7 +213,7 @@ WriteMakefile(
 							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
 							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
 							 },
-			  VERSION => $VERSION,
+			  #JAS VERSION => $VERSION,
 			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
 			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
 			  EXE_FILES => ['freewrl'],
@@ -340,7 +340,7 @@ INST_DYNAMIC_DEP =
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
 				));
-		if (!($VRML_CONFIG{PLATFORM} =~ /sunos/i)) {
+		if ($VRML_CONFIG{PLATFORM} =~ /LINUX/i) {
 			push(@postamble, join(
 				qq{\t/sbin/ldconfig\n}
 			));
