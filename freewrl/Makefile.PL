@@ -72,10 +72,12 @@ for(keys %VRML_CONFIG) {
 }
 print OUT "VERSION => \"$VERSION\"\n";
 print OUT ");\n";
-chomp ($a = `which convert`);
+chomp ($myconv = `which convert`);
+chomp ($myxsltproc = `which xsltproc`);
 chomp ($pwd = getcwd());
 chomp ($java = `which java`);
-print OUT qq(\$VRML::Browser::CONVERT = "$a";\n);
+print OUT qq(\$VRML::Browser::CONVERT = "$myconv";\n);
+print OUT qq(\$VRML::Browser::XSLTPROC = "$myxsltproc";\n);
 print OUT qq(\$VRML::ENV{FREEWRL_FONTS} = "$pwd/fonts";\n);
 print OUT qq(\$VRML::Browser::X3DTOVRMLXSL = "$pwd/x3d/X3dToVrml97.xsl";\n);
 print OUT "1;\n";
