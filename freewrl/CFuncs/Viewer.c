@@ -100,6 +100,12 @@ get_headlight(VRML_Viewer *viewer)
 	return(viewer->headlight);
 }
 
+void 
+set_headlight(VRML_Viewer *viewer, int val)
+{
+	viewer->headlight = val;
+}
+
 void
 toggle_headlight(VRML_Viewer *viewer)
 {
