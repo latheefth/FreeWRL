@@ -72,12 +72,12 @@ VrmlBrowserGetName(JSContext *context, JSObject *obj,
 
 	doPerlCallMethod(brow->sv_js, "jspBrowserGetName");
 
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+	if (!JS_GetProperty(context, obj, BROWSER_RETVAL,  &_rval)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetName.\n");
 		return JS_FALSE;
 	}
-	
 	*rval = _rval;
+	
 	return JS_TRUE;
 }
 
@@ -107,11 +107,12 @@ VrmlBrowserGetVersion(JSContext *context, JSObject *obj,
 
 	doPerlCallMethod(brow->sv_js, "jspBrowserGetVersion");
 
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+	if (!JS_GetProperty(context, obj, BROWSER_RETVAL,  &_rval)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetVersion.\n");
 		return JS_FALSE;
 	}
 	*rval = _rval;
+
 	return JS_TRUE;
 }
 
@@ -141,11 +142,12 @@ VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj,
 
 	doPerlCallMethod(brow->sv_js, "jspBrowserGetCurrentSpeed");
 
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+	if (!JS_GetProperty(context, obj, BROWSER_RETVAL,  &_rval)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetCurrentSpeed.\n");
 		return JS_FALSE;
 	}
 	*rval = _rval;
+
 	return JS_TRUE;
 }
 
@@ -175,11 +177,12 @@ VrmlBrowserGetCurrentFrameRate(JSContext *context, JSObject *obj,
 
 	doPerlCallMethod(brow->sv_js, "jspBrowserGetCurrentFrameRate");
 
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+	if (!JS_GetProperty(context, obj, BROWSER_RETVAL,  &_rval)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetCurrentFrameRate.\n");
 		return JS_FALSE;
 	}
 	*rval = _rval;
+
 	return JS_TRUE;
 }
 
@@ -209,12 +212,12 @@ VrmlBrowserGetWorldURL(JSContext *context, JSObject *obj,
 
 	doPerlCallMethod(brow->sv_js, "jspBrowserGetWorldURL");
 
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+	if (!JS_GetProperty(context, obj, BROWSER_RETVAL,  &_rval)) {
 		fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetWorldURL.\n");
 		return JS_FALSE;
 	}
-
 	*rval = _rval;
+
 	return JS_TRUE;
 }
 
@@ -273,8 +276,8 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 				_c_args);
 		return JS_FALSE;
 	}
-
 	*rval = _rval;
+
 	return JS_TRUE;
 }
 
@@ -338,8 +341,8 @@ VrmlBrowserLoadURL(JSContext *context, JSObject *obj,
 				_c_args);
 		return JS_FALSE;
 	}
-
 	*rval = _rval;
+
 	return JS_TRUE;
 }
 
@@ -385,6 +388,9 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 	BrowserNative *brow;
 	char *_c, *_c_args = "SFString vrmlSyntax", *_c_format = "s";
 
+JSString *_valStr;
+char *_val_c;
+
 	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
 		fprintf(stderr,
 				"JS_GetPrivate failed in VrmlBrowserCreateVrmlFromString.\n");
@@ -411,12 +417,17 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 		return JS_FALSE;
 	}
 
-	if (!JS_GetProperty(context, obj, "__bret",  &_rval)) {
+	if (!JS_GetProperty(context, obj, BROWSER_RETVAL,  &_rval)) {
 		fprintf(stderr,
 				"JS_GetProperty failed in VrmlBrowserCreateVrmlFromString.\n");
 		return JS_FALSE;
 	}
 	*rval = _rval;
+
+_valStr = JS_ValueToString(context, *rval);
+_val_c = JS_GetStringBytes(_valStr);
+printf("VrmlBrowserCreateVrmlFromString: obj = %u, %s = %s\n", (unsigned int) obj, BROWSER_RETVAL, _val_c);
+
 	return JS_TRUE;
 }
 
@@ -488,6 +499,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 		return JS_FALSE;
 	}
 	*rval = _rval;
+
 	return JS_TRUE;
 }
 
