@@ -63,10 +63,20 @@ sub dump {
                 	print "$padded    Route from $fnam field $ff to $tnam field $tf\n";
         	 }
 					
+		} elsif ("DEF" eq $_) {
+		  my $nk;
+		  foreach $nk (keys %{$this->{$_}}) {
+			print "(key $nk ";
+			my $sk;
+			foreach $sk (keys %{$this->{$_}{$nk}}) {
+				print "sk $sk ";
+			}
+			print ") ";
+		  }
 		} elsif ("ARRAY" eq ref $this->{$_}) {
 			print "(array) ";
 			foreach (@{$this->{$_}}) {
-				print VRML::NodeIntern::dump_name($_);
+				print VRML::NodeIntern::dump_name($_->real_node());
 				print " ";
 			}
 		} elsif ("HASH" eq ref $this->{$_}) {
@@ -148,21 +158,6 @@ sub replaceWorld_Bindable {
 
 
 	
-#JAS sub register_vps {
-#JAS 	my ($this, $browser) = @_;
-#JAS 
-#JAS     my $np = $this->{Bindables}{Viewpoint};
-#JAS 
-#JAS 	my $c = 0;
-#JAS 	while ($c <= $#$np) {
-#JAS        print "register_vps for $this ", $np->[$c]->real_node(),"
-#JAS                   viewpoint $c is ", $np->[$c]{Fields}{description},"\n";
-#JAS 		$browser->register_vp($this, $np->[$c]->real_node());
-#JAS 		$c++;
-#JAS 	}
-#JAS }
-
-
 sub set_url {
     my ($this, $url) = @_;
     $this->{URL} = $url;
@@ -380,7 +375,8 @@ sub new_node {
 
 sub new_route {
 	my $this = shift;
-	print "NEW_ROUTE $_[0][0] $_[0][1] $_[0][2] $_[0][3], this is $this\n" 
+	print "NEW_ROUTE for ", VRML::NodeIntern::dump_name($this),
+			" $_[0][0] $_[0][1] $_[0][2] $_[0][3], ref ff ",ref $_[0][0],"\n" 
 		if $VRML::verbose::scene;
 	push @{$this->{Routes}}, $_[0];
 }
@@ -449,6 +445,10 @@ sub new_externproto {
 
 sub topnodes {
 	my ($this, $nodes) = @_;
+	# print "making topnodes for ", VRML::NodeIntern::dump_name($this), " nodes ",
+	# 	$nodes,"\n";
+	# 	foreach (@{$nodes}) { print "	node ",VRML::NodeIntern::dump_name($_),"\n";}
+ 
 	$this->{Nodes} = $nodes;
 	$this->{RootNode} = $this->new_node("Group",{children => $nodes});
 }
@@ -527,14 +527,15 @@ sub mkbe_and_array {
   # copy over any generic scene DEFs. Proto specific DEFS below
   # note that the DEFS are part of a Scene object. Routes are attached
   # to a node.
-  # for (keys %{$this->{Scene}{DEF}}) { print "mkbe_and_array, going to copy over $_\n"; }
+  # for (keys %{$this->{Scene}{DEF}}) { print "mkbe_and_array, going to copy DEF over $_\n"; }
 
   if (defined $this->{Scene}{DEF}) {
 	%{$parentscene->{DEF}} = (%{$parentscene->{DEF}},%{$this->{Scene}{DEF}});
   }
 
 
-  # for (keys %{$parentscene->{DEF}}) { print "mkbe_and_array, parentscene has  $_\n"; }
+  # for (keys %{$parentscene->{DEF}}) { print "mkbe_and_array, DEF parentscene ",
+# 			VRML::NodeIntern::dump_name($parentscene), " has  $_\n"; }
 
 
   # Now, should we return the "RootNode" if it exists (which is a Group node)
@@ -544,39 +545,71 @@ sub mkbe_and_array {
 
   my $c;
   my $q = "";
-  my $lastindex = $#{$_[0]{Nodes}};
-  # print "mkbe_and_array, Scene $this, parent $parentscene number of nodes: $lastindex\n";
+  my $lastindex = $#{$this->{Nodes}};
+  # print "mkbe_and_array, Scene ",VRML::NodeIntern::dump_name($this)
+# 		, " Nodes field ", $this->{Nodes},
+# 		, " number of nodes: $lastindex\n";
+
+# foreach (@{$this->{Nodes}}) {
+#                                 print "	element of Nodes: ";
+#					print "(def) ",VRML::NodeIntern::dump_name($_),"\n";
+#                        }
+#
+#print "\n\n";
+ 
   my $curindex = 0;
   while ($curindex <= $lastindex) {
   	  # PROTOS screw us up; the following line worked, but then
   	  # PROTO information was not available. So, store the PROTO
   	  # node definition, BUT generate the real node!
 
-  	  $c = $_[0]{Nodes}[$curindex];
+  	  $c = $this->{Nodes}[$curindex];
+#print "mkbe, dollarc now is $c\n";
+
   	  if ("ARRAY" eq ref $c) {
 		$c = @{$c};
 	  } elsif ("VRML::DEF" eq ref ($c)) {
-	 	# print "mkbe - this is a def!\n";
+#	 	print "mkbe - this is a def!\n";
 	      $c = $c->real_node(1);
 	  }
 
-	  # print "	mkbe_and_array; index $curindex, c $c, ref ", ref $c,"\n";
+
+
+
+#	  print "	mkbe_and_array; index $curindex, c ",
+#		VRML::NodeIntern::dump_name($c)," ref ", ref $c,"\n";
 	  # lets make backend here, while we are having fun...
 	  if (!defined $c->{BackNode}) {
-		my $rn = c;
+		
+#	  	print "	mkbe_and_array; BackNode NOT defined for $curindex, c ",
+#			VRML::NodeIntern::dump_name($c)," ref ", ref $c,"\n";
+		my $rn = $c;
 		if (defined $c->{IsProto}) {
-			$rn = $c->real_node();
-	       		$rn->{BackNode} = VRML::NodeIntern::make_backend($rn, $be);
-	    		VRML::Handles::reserve($rn);
+#			print "	mkbe_and_array, this is a proto\n";
+			my $sf;
+			foreach $sf (@{$c->{ProtoExp}{Nodes}}) {
+#				print "\n\nmkbe protoexp loop, $sf\n";
+#				print "	mkbe_and_array, my sf now is ",
+#					VRML::NodeIntern::dump_name($sf),"\n";
+
+				if ("VRML::DEF" eq ref $sf) {$sf = $sf->node();}
+	       			$sf->{BackNode} = VRML::NodeIntern::make_backend($sf, $be);
+				my $id = VRML::Handles::reserve($sf);
+				$q = "$q $id";
+#				print "eol q is $q\n\n";
+				
+			}
 		} else {
+#			print "	mkbe_and_array, this is NOT a proto\n";
 	       		$c->{BackNode} = VRML::NodeIntern::make_backend($c, $be);
 		}
-	  # } else {
-	# 	print "BackNode already defined\n";
+	   } else {
+#	 	print "BackNode already defined\n";
+		my $id = VRML::Handles::reserve($c);
+		$q = "$q $id";
 	  }
 
 	my $id = VRML::Handles::reserve($c);
-
 	$q = "$q $id";
 	$curindex++;
   }
@@ -584,10 +617,31 @@ sub mkbe_and_array {
   # any Routes in there??? PROTO Routes handled below.
   if (defined $this->{Routes}) {
 	    $c->{SceneRoutes} = $this->{Routes};
+	    print "thisroutes found, is ",@{$this->{Routes}},"\n";
   }
 
 
   # gather any DEFS. Protos will have new DEF nodes (expanded nodes)
+  if (defined $this->{DEF}) {
+	print "\nmkbe_and_array: Gathering defs of ",VRML::NodeIntern::dump_name($this),
+			" parentscene ",VRML::NodeIntern::dump_name($parentscene),"\n";
+
+       %{$parentscene->{DEF}} = (%{$parentscene->{DEF}},%{$this->{DEF}});
+
+	foreach ($this->{DEF}) {
+		print "	Gathering, found ";
+		foreach (keys %{$_}) {print "key $_ ";}
+		print "\n";
+		$parentscene->{DEF} = $_;
+	}
+	print "parentscene DEFS is now \n";
+	foreach ($parentscene->{DEF}) {
+		foreach (keys %{$_}) {
+			print $_;
+		}
+	}
+	print "\nfinished $this defs\n";
+  }
   if (defined $this->{Nodes}) {
 	# print "\nmkbe_and_array: Gathering defs for Nodes of ",VRML::NodeIntern::dump_name($this),")\n";
 	foreach (@{$this->{Nodes}}) {
@@ -634,7 +688,7 @@ sub getNode {
 
 sub as_string {
 	my ($this) = @_;
-	print "Scene::as_string, nodes are ", @{$this->{Nodes}},"\n";
+	# print "Scene::as_string, nodes are ", @{$this->{Nodes}},"\n";
 	join "\n ($this) ",map {$_->as_string} @{$this->{Nodes}};
 }
 
@@ -660,6 +714,9 @@ sub get_copy {
 	 #	$new->{Routes}[0][3] , " from $this to new scene: $new\n";
 	}
 
+
+	# print "get_copy, copied ",VRML::NodeIntern::dump_name($this)," as ",
+	# 	VRML::NodeIntern::dump_name($new),"\n";
 	return $new;
 }
 
@@ -793,17 +850,17 @@ sub set_parentnode {
 			print "VRML::Scene::make_executable NodeParent\n"
 				if $VRML::verbose::scene;
 			$this->iterate_nodes(sub {
-									 print "MENID\n" if $VRML::verbose::scene;
-									 return unless (ref $this eq "VRML::NodeIntern");
+			 	print "MENID  ref this ", ref $this,"\n" if $VRML::verbose::scene;
+				 return unless (ref $this eq "VRML::NodeIntern");
 			
-									 for (keys %{$this->{Fields}}) {
-										 print "MENIDF $_\n" if $VRML::verbose::scene;
-										 next unless ((ref $this->{Fields}->{$_}) eq "VRML::IS");
-										 print "MENIDFSET $_\n" if $VRML::verbose::scene;
-										 $this->{Fields}->{$_}->set_ref(
-																		\$this->{NodeParent}->{Fields}->{$this->{Fields}->{$_}->name});
-									 }
-								 });
+				 for (keys %{$this->{Fields}}) {
+					 print "MENIDF $_\n" if $VRML::verbose::scene;
+					 next unless ((ref $this->{Fields}->{$_}) eq "VRML::IS");
+					 print "MENIDFSET $_\n" if $VRML::verbose::scene;
+					 $this->{Fields}->{$_}->set_ref(
+						\$this->{NodeParent}->{Fields}->{$this->{Fields}->{$_}->name});
+						 }
+					 });
 		}
 
 
@@ -907,20 +964,28 @@ sub make_backend {
 sub setup_routing {
     my ($this, $eventmodel, $be) = @_;
 
-    print "VRML::Scene::setup_routing $this $eventmodel $be\n"
+    print "VRML::Scene::setup_routing BEGIN this ", VRML::NodeIntern::dump_name($this),
+			" \n	eventmodel $eventmodel \n	be $be\n"
 		if $VRML::verbose::scene;
 
+	#my $nk;
+	#for $nk (keys %{$this}) { print "		has key $nk\n"; }
+	#if (exists $this->{DEF}) {
+	#	for $nk (keys %{$this->{DEF}}) { print "		DEF key $nk\n"}
+	#}
+
     $this->iterate_nodes(sub {
-		print "\tITNOREF: $_[0]\n" if $VRML::verbose::scene;
+		print "\tITNOREF: ",VRML::NodeIntern::dump_name($_[0]),"\n" if $VRML::verbose::scene;
 		return unless "VRML::NodeIntern" eq ref $_[0];
-		print "\tITNO: $_[0] $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n" 
+		print "\t\tITNO: $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n" 
 			if $VRML::verbose::scene;
 		if ($VRML::Nodes::initevents{$_[0]->{TypeName}}) {
-			print "\tITNO:FIRST $_[0]\n" 
+			print "\tITNO:is member of initevents\n" 
 			if $VRML::verbose::scene;
 			$eventmodel->add_first($_[0]);
 		} else {
 			if ($_[0]->{ProtoExp}) {
+			# print "VRML::Scene::setup routing, this is a proto, calling protoexp setup_routing\n";
 			$_[0]->{ProtoExp}->setup_routing($eventmodel, $be);
 			}
 		}
@@ -967,34 +1032,60 @@ sub setup_routing {
 
 	# any routes to add?
 	if (exists $this->{Routes}) {
-		for (@{$this->{Routes}}) {
-			my ($fn, $ff, $tn, $tf) = @$_;
+		print "setup_routing, have routes for this ",VRML::NodeIntern::dump_name($this),"\n"
+				if $VRML::verbose::scene;
 
+		for (@{$this->{Routes}}) {
+			my ($ofn, $ff, $otn, $tf) = @$_;
+
+			# EAI input needs to get the actual handle
+			my $fn = VRML::Handles::get($ofn);
+			my $tn = VRML::Handles::get($otn);
+
+			# print "setup_routing, route $fn, $ff, $tn, $tf\n";
 			# Now, map the DEF names into a node name. Note, EAI will send in
 			# the node, ROUTES in one VRML file will use DEFs.
 
 			if ("VRML::NodeIntern" ne ref $fn) {
+				if ( $VRML::verbose::scene) {
+				    print "setup_routing, $fn ne NodeIntern\n";
+				    my $nk;
+
+				    my $nd;
+				    foreach $nd (keys %{$this->{DEF}}) {
+					print "	setup_routing for ", VRML::NodeIntern::dump_name($this),"->DEF, key $nd\n";
+					my $nk;
+					foreach $nk (keys %{$this->{DEF}{$nd}}) {
+						print "		setup_routing subkey $nk\n";
+						print "			",$this->{DEF}{$nd}{Name}," , ",
+									VRML::NodeIntern::dump_name($this->{DEF}{$nd}{Node}),"\n";
+					}
+				    } 
+				}
 				if (!exists $this->{DEF}{$fn}) {
 					print "Routed node name '$fn' not found ($fn, $ff, $tn, $tf)\n";
-					exit (1);
+					next;
 				}
+			
+				$fn = $this->{DEF}{$fn}{Node};
 
-				$fn = $this->{DEF}{$fn}{Node}
-				# } else {
-				# 	print "ROUTE: $fn must be from EAI\n";
+			 } else {
+				 	print "setup_routing: $fn must be from EAI\n";
 			}
 
 			if ("VRML::NodeIntern" ne ref $tn) {
 				if (!exists $this->{DEF}{$tn}) {
 					print "Routed node name '$tn' not found ($tn, $ff, $tn, $tf)\n";
-					exit (1);
+					next;
 				}
 
-				$tn = $this->{DEF}{$tn}{Node}
-				# } else {
-				# 	print "ROUTE: $tn must be from EAI\n";
+				$tn = $this->{DEF}{$tn}{Node};
+			 } else {
+				 	print "setup_routing: $tn must be from EAI\n";
 			}
-			$eventmodel->add_route($fn, $ff, $tn, $tf);
+			# print "setup_routing, adding ",VRML::NodeIntern::dump_name($fn), " $ff ",
+			# 			VRML::NodeIntern::dump_name($tn), " $tf\n";
+			 $eventmodel->add_route($fn, $ff, $tn, $tf);
 		}
 	}
 
@@ -1010,7 +1101,7 @@ sub setup_routing {
 			if ("VRML::NodeIntern" ne ref $fn) {
 				if (!exists $this->{DEF}{$fn}) {
 					print "Routed node name '$fn' not found ($fn, $ff, $tn, $tf)\n";
-					exit (1);
+					next;
 				}
 				$fn = $this->{DEF}{$fn}
 			} else {
@@ -1020,7 +1111,7 @@ sub setup_routing {
 			if ("VRML::NodeIntern" ne ref $tn) {
 				if (!exists $this->{DEF}{$tn}) {
 					print "Routed node name '$tn' not found ($tn, $ff, $tn, $tf)\n";
-					exit (1);
+					next;
 				}
 				$tn = $this->{DEF}{$tn}
 			} else {
@@ -1044,7 +1135,7 @@ sub setup_routing {
 			$eventmodel->add_is_out($this->{NodeParent}, $isn, @$_);
 		}
 	}
-	print "VRML::Scene::setup_routing FINISHED $this $eventmodel $be\n"
+	print "VRML::Scene::setup_routing FINISHED for ",VRML::NodeIntern::dump_name($this),"\n"
 		if $VRML::verbose::scene;
 }
 
