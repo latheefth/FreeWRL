@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.86  2003/01/24 18:01:23  crc_canada
+# Update Sound distance algorithm. Not perfect, but works a bit...
+#
 # Revision 1.85  2003/01/07 19:00:39  crc_canada
 # more sound engine work
 #
@@ -1196,9 +1199,9 @@ Sound => '
 	
 		amp = 0.0;
 		// is this within the maxFront maxBack?
-		if (((vec.x >= -this_->maxBack)  && (vec.x <= this_->maxFront)) &&
-		    ((vec.y >= -this_->maxBack)  && (vec.y <= this_->maxFront)) &&
-		    ((vec.z >= -this_->maxBack)  && (vec.z <= this_->maxFront))) {
+
+		// this code needs rework JAS
+		if (len < this_->maxFront) {
 	
 			// note: using vecs, length is always positive - need to work in direction
 			// vector
