@@ -315,7 +315,7 @@ sub init_image {
 
 	if ($file eq "") {
 		# print "empty file\n";
-		return;
+		goto NO_TEXTURE;
 	}
 
         if(exists $image_same_url{$file}) {
@@ -330,14 +330,25 @@ sub init_image {
 	# save the texture number for later
 	$image_same_url{$file} = $f->{__texture.$name};
 
-	if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
+
+	# find out what kind of file it is...
+	my $lgname = $ENV{LOGNAME};
+	my $outfilename = "/tmp/freewrl_";
+	my $outfile = join '', $outfilename,$lgname, "_STDOUT";
+	my $cmd = "file $file > $outfile";
+
+	my $status = system ($cmd);
+	my $results = `cat $outfile`;
+	system ("rm $outfile");
+
+
+       if (!($results  =~ /\sPNG\simage/ || $results =~ /\sJPEG\simage/)) {
 		# Lets convert to a png, and go from there...
 		# Use Imagemagick to do the conversion, and flipping.
 	
 		# Simply make a default user specific file by
 		# attaching the username (LOGNAME from environment).
 
-		my $lgname = $ENV{LOGNAME};
 		my $tempfile_name = "/tmp/freewrl_";
 		$tempfile = join '', $tempfile_name,$lgname,
 			$f->{__texture.$name},".png";
