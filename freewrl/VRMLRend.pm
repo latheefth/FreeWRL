@@ -20,8 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
-# Revision 1.80  2002/10/16 15:36:17  crc_canada
-# more sound work...
+# Revision 1.81  2002/10/17 18:31:09  crc_canada
+# Sound node - have code in here to put a shape in for the max back/front to
+# allow me to glscalef it for ellipses, but the code is commented out, because
+# this must be released.
 #
 # Revision 1.79  2002/10/10 18:31:40  crc_canada
 # sound node work AND
@@ -1134,6 +1136,96 @@ Sound => '
 
 	char mystring[256];
 
+
+// put a shape here...
+//JAS
+//JAS	 float x = 0.5;
+//JAS	 float y = 0.5;
+//JAS	 float z = 0.5;
+//JAS
+//JAS	/* for shape display list redrawing */
+//JAS	this_->_myshape = last_visited_shape; 
+//JAS
+//JAS	 glPushAttrib(GL_LIGHTING);
+//JAS	glPushMatrix();
+//JASglTranslatef ($f(location,0),$f(location,1),$f(location,2));
+//JASglScalef (1.0,1.0,2.0);
+//JAS 
+//JAS	 glShadeModel(GL_FLAT);
+//JAS	 glBegin(GL_QUADS);
+//JAS
+//JAS		/* front side */
+//JAS		glNormal3f(0,0,1);
+//JAS		glTexCoord2f(1,1);
+//JAS		glVertex3f(x,y,z);
+//JAS		glTexCoord2f(0,1);
+//JAS		glVertex3f(-x,y,z);
+//JAS		glTexCoord2f(0,0);
+//JAS		glVertex3f(-x,-y,z);
+//JAS		glTexCoord2f(1,0);
+//JAS		glVertex3f(x,-y,z);
+//JAS
+//JAS		/* back side */
+//JAS		glNormal3f(0,0,-1);
+//JAS		glTexCoord2f(0,0);
+//JAS		glVertex3f(x,-y,-z);
+//JAS		glTexCoord2f(1,0);
+//JAS		glVertex3f(-x,-y,-z);
+//JAS		glTexCoord2f(1,1);
+//JAS		glVertex3f(-x,y,-z);
+//JAS		glTexCoord2f(0,1);
+//JAS		glVertex3f(x,y,-z);
+//JAS
+//JAS		/* top side */
+//JAS		glNormal3f(0,1,0);
+//JAS		glTexCoord2f(0,0);
+//JAS		glVertex3f(-x,y,z);
+//JAS		glTexCoord2f(1,0);
+//JAS		glVertex3f(x,y,z);
+//JAS		glTexCoord2f(1,1);
+//JAS		glVertex3f(x,y,-z);
+//JAS		glTexCoord2f(0,1);
+//JAS		glVertex3f(-x,y,-z);
+//JAS
+//JAS		/* down side */
+//JAS		glNormal3f(0,-1,0);
+//JAS		glTexCoord2f(0,0);
+//JAS		glVertex3f(-x,-y,-z);
+//JAS		glTexCoord2f(1,0);
+//JAS		glVertex3f(x,-y,-z);
+//JAS		glTexCoord2f(1,1);
+//JAS		glVertex3f(x,-y,z);
+//JAS		glTexCoord2f(0,1);
+//JAS		glVertex3f(-x,-y,z);
+//JAS
+//JAS		/* right side */
+//JAS		glNormal3f(1,0,0);
+//JAS		glTexCoord2f(0,0);
+//JAS		glVertex3f(x,-y,z);
+//JAS		glTexCoord2f(1,0);
+//JAS		glVertex3f(x,-y,-z);
+//JAS		glTexCoord2f(1,1);
+//JAS		glVertex3f(x,y,-z);
+//JAS		glTexCoord2f(0,1);
+//JAS		glVertex3f(x,y,z);
+//JAS
+//JAS		/* left side */
+//JAS		glNormal3f(-1,0,0);
+//JAS		glTexCoord2f(1,0);
+//JAS		glVertex3f(-x,-y,z);
+//JAS		glTexCoord2f(1,1);
+//JAS		glVertex3f(-x,y,z);
+//JAS		glTexCoord2f(0,1);
+//JAS		glVertex3f(-x,y,-z);
+//JAS		glTexCoord2f(0,0);
+//JAS		glVertex3f(-x,-y,-z);
+//JAS		glEnd();
+//JAS		glDepthMask(GL_TRUE);
+//JASglPopMatrix();
+//JAS	glPopAttrib();
+//JAS
+
+// end of put a shape here...
 	
 	// first - is there a node (any node!) attached here?
 	if (acp) {
@@ -1181,9 +1273,9 @@ Sound => '
 		if (((vec.x >= -this_->maxBack)  && (vec.x <= this_->maxFront)) &&
 		    ((vec.y >= -this_->maxBack)  && (vec.y <= this_->maxFront)) &&
 		    ((vec.z >= -this_->maxBack)  && (vec.z <= this_->maxFront))) {
-		//	printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
-		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
-		//	elipse.x, elipse.y, elipse.z); 
+			printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
+			-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
+			elipse.x, elipse.y, elipse.z); 
 	
 			// note: using vecs, length is always positive - need to work in direction
 			// vector
