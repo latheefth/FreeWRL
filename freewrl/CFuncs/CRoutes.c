@@ -259,18 +259,17 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// Find out the method of getting the touched flag from this variable type
 
+	/* Multi types */
 	switch (JSparamnames[fptr].type) {
 	case MFBOOL: case MFFLOAT: case MFTIME: case MFINT32: case MFCOLOR:
-	case MFROTATION: case MFNODE: case MFVEC2F: {
-		if (complex_name)  strcpy (tmethod,"__touched_flag");
-		else  sprintf (tmethod, "_%s__touched_flag",fullname);
-		break;
-		}
+	case MFROTATION: case MFNODE: case MFVEC2F: 
 	case MFSTRING: {
 		strcpy (tmethod,"__touched_flag");
+		complex_name = TRUE;
 		break;
 		}
 	
+	/* ECMAScriptNative types */
 	case SFBOOL: case SFFLOAT: case SFTIME: case SFINT32: case SFSTRING: {
 		if (complex_name) strcpy (tmethod,"_touched");
 		else sprintf (tmethod, "_%s_touched",fullname);
@@ -302,7 +301,7 @@ int get_touched_flag (int fptr, int actualscript) {
                	//printf ("and get of actual property %d returns %s\n",retval,strtouched);
 
 		if (strcmp("undefined",strtouched)==0) {
-			//printf ("abnormal return here\n");
+			printf ("abnormal return here\n");
 			return FALSE;
 		}
 
@@ -313,7 +312,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// Now, for the Touched (and thus the return) value 
 	if (touched_function) {
-		printf ("Function, have to run script\n");
+		//printf ("Function, have to run script\n");
 	
 		if (!ActualrunScript(actualscript, tmethod ,&retval)) 
 			printf ("failed to get touched, line %s\n",tmethod);
@@ -333,7 +332,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// now, if this is a complex name, we get property relative to what was before;
 	// if not (ie, this is a standard, simple, name, use the object as before
-	if ((complex_name) || (JSparamnames[fptr].type==MFSTRING)) {
+	if (complex_name) {
 		interpobj = retval;
 	}	
 
@@ -344,8 +343,8 @@ int get_touched_flag (int fptr, int actualscript) {
 		return FALSE;
         } else {
        	        //strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval2);
-               	// strtouched = JS_GetStringBytes(strval);
-               	// printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
+               	//strtouched = JS_GetStringBytes(strval);
+               	//printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
 
 		if (JSVAL_IS_INT(retval2)) {
 			intval = JSVAL_TO_INT(retval2);
@@ -580,39 +579,75 @@ void getMFNodetype (char *strp, struct Multi_Node *ch) {
 /* to make this multi-purpose.					*/
 /****************************************************************/
 
-void getMultiElementtype (char *strp, struct Multi_Vec3f *tn, int eleperinex) {
+void getMultiFloattype (JSContext *cx, struct Multi_Vec3f *tn, int eleperinex) {
 	float *fl;
+	float f2, f3, f4;
 	int shouldfind;
+	jsval mainElement, subElement;
+	int len, len2;
+	int i,j;
+	JSString *_tmpStr;
+	char *strp;
 
 	/* pass in a character string, a pointer to a Multi*float 
 	   structure, and an indication of the number of elements per index;
 	   eg, 3 = SFColor, 2 = SFVec2f, etc, etc */ 
 
-	shouldfind = tn->n * eleperinex;
-	fl = (float *) tn->p;
-
-	if (*strp == '[') {
-		strp++;
+	/* rough check of return value */
+	if (!JSVAL_IS_OBJECT(global_return_val)) {
+		if (JSVerbose) printf ("getMultiFloattype - did not get an object\n");
+		return;
 	}
-	while (*strp == ' ') strp++; /* skip spaces */
 
-	/* convert a series of numbers */
-	while (sscanf (strp,"%f",fl) == 1) {
-		if (JSVerbose) printf ("getMultiElementtype, read in %f left %d\n",fl,shouldfind);
-		fl ++;
-		shouldfind --;
-							
-		/* increment past this number */
-		while (isalnum(*strp) ||
-			(*strp == '.') ||
-			(*strp == ',') ||
-			(*strp == '-')) strp++;
-		while (*strp == ' ') strp++; /* skip spaces */
+	// printf ("getmultielementtypestart, tn %d %x dest has  %d\n",tn,tn,tn->n * eleperinex);
 
-		if ((shouldfind == 0) && (*strp != ']')) {
-			printf ("getMultiElementtype: string now is :%s: shouldfind %d\n",strp,shouldfind);
+	if (!JS_GetProperty(cx, global_return_val, "length", &mainElement)) {
+		printf ("JS_GetProperty failed for \"length\" in getMultiFloattype\n");
+		return;
+	}
+	len = JSVAL_TO_INT(mainElement);
+	// printf ("getmuiltie length of grv is %d\n",len);
+
+	/* do we have to realloc memory? */
+	if (len != tn->n) {
+		/* yep... */
+			// printf ("old pointer %d\n",tn->p);
+		if (tn->p != NULL) free (tn->p);
+		tn->p = malloc (sizeof(float)*eleperinex*len);
+		if (tn->p == NULL) {
+			printf ("can not malloc memory in getMultiFloattype\n");
 			return;
 		}
+		tn->n = len;
+	}
+
+	fl = (float *) tn->p;
+
+	/* go through each element of the main array. */
+	for (i = 0; i < len; i++) {
+		if (!JS_GetElement(cx, global_return_val, i, &mainElement)) {
+			printf ("JS_GetElement failed for %d in getMultiFloattype\n",i);
+			return;
+		}
+
+                _tmpStr = JS_ValueToString(cx, mainElement);
+		strp = JS_GetStringBytes(_tmpStr);
+                //printf ("sub element %d is %s as a string\n",i,strp);
+
+		switch (eleperinex) {
+		case 1: { sscanf(strp,"%f",fl); fl++; break;}
+		case 2: { sscanf (strp,"%f %f",fl,&f2);
+			fl++; *fl=f2; fl++; break;}
+		case 3: { sscanf (strp,"%f %f %f",fl,&f2,&f3);
+			fl++; *fl=f2; fl++; *fl=f3; fl++; break;}
+		case 4: { sscanf (strp,"%f %f %f %f",fl,&f2,&f3,&f4);
+			fl++; *fl=f2; fl++; *fl=f3; fl++; *fl=f4; fl++; break;}
+		default : {printf ("getMultiFloattype only handles types with 1-4 floats, you gave me %d\n",
+				eleperinex);
+			   return;
+			}
+		}
+		
 	}
 }
 
@@ -1110,10 +1145,10 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 				/* a series of Floats... */
-				case MFCOLOR: {getMultiElementtype (strp, tn+tptr,3); break;}
-				case MFFLOAT: {getMultiElementtype (strp, tn+tptr,1); break;}
-				case MFROTATION: {getMultiElementtype (strp, tn+tptr,4); break;}
-				case MFVEC2F: {getMultiElementtype (strp, tn+tptr,2); break;}
+				case MFCOLOR: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,3); break;}
+				case MFFLOAT: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,1); break;}
+				case MFROTATION: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,4); break;}
+				case MFVEC2F: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,2); break;}
 				case MFNODE: {getMFNodetype (strp,tn+tptr); break;}
 				case MFSTRING: {
 						getMFStringtype (JSglobs[actualscript].cx,
