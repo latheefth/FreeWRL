@@ -45,6 +45,11 @@ use POSIX;
 # threaded model requires config.
 use Config;
 
+# path for x3d conversion template
+
+my $XSLTpath = "";
+
+
 ###############################################
 #
 # Public functions
@@ -96,6 +101,8 @@ sub new {
 		#the parser thread
 		$this->{ParseThread} = threads->new(\&load_file_threaded, $this);
 	}
+	# for x3d conversions. 
+	$XSLTpath = $pars->{XSLTpath};
 
 	return $this;
 }
@@ -711,7 +718,8 @@ sub convertX3D {
 	close(fileOUT);
 
 	# do the conversion
-	my $cmd = "$VRML::Browser::XSLTPROC -o $tempfile2 $VRML::Browser::X3DTOVRMLXSL $tempfile1";
+	my $cmd = "$VRML::Browser::XSLTPROC -o $tempfile2 $XSLTpath $tempfile1";
+
         my $status = system ($cmd);
         warn "X3D conversion problem: $?"
                         unless $status == 0;
