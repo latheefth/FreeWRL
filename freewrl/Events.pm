@@ -267,9 +267,9 @@ sub resolve_node_cnode {
 						print "No offset for $proto_field.\n";
 						$outptr = undef;
 					} else {
-						print "$proto_node->{TypeName} ",
-							VRML::NodeIntern::dump_name($proto_node),
-									" CNode: $outptr, $proto_field eventIn: $outoffset.\n";
+						#print "$proto_node->{TypeName} ",
+						#	VRML::NodeIntern::dump_name($proto_node),
+						#			" CNode: $outptr, $proto_field eventIn: $outoffset.\n";
 						push @tonodes, "$outptr:$outoffset";
 						$to_count++;
 					}
@@ -301,9 +301,9 @@ sub resolve_node_cnode {
 						print "No offset for $proto_field.\n";
 						$outptr = undef;
 					} else {
-						print "$proto_node->{TypeName} ",
-							VRML::NodeIntern::dump_name($proto_node),
-									" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
+						#print "$proto_node->{TypeName} ",
+						#	VRML::NodeIntern::dump_name($proto_node),
+						#			" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
 						last;
 					}
 				} elsif ($field eq $proto_field) { # EXTERNPROTO handling
@@ -336,7 +336,7 @@ sub resolve_node_cnode {
 
 		## needed ???
 		$node = $node->real_node();
-		print "ProtoExp node now is $node->{TypeName} ", VRML::NodeIntern::dump_name($node), "\n";
+		# print "ProtoExp node now is $node->{TypeName} ", VRML::NodeIntern::dump_name($node), "\n";
 	}
 	if (!defined $SCENENUMBERS{$cs}) { $SCENENUMBERS{$cs} = $scenecount++; }
 	my $scenenum = $SCENENUMBERS{$cs};
