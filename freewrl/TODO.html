@@ -17,7 +17,7 @@ TODO wishlist for 0.29 release.
 This list simply outlines the wishes and status for the next release
 of FreeWRL.
 <P>
-Last Update: April 27, 2001
+Last Update: July 12, 2001
 <P>
 Additions/comments welcome.
 <P>
@@ -26,12 +26,8 @@ Additions/comments welcome.
 Children when using EAI. Figure out how not to get the invalid
 event with both addChildren methods enabled.
 <P>
-<LI><B>STARTED:</B> Netscape Plugin, to provide better functionality than XSwallow.
-<B>(It works, but needs to use Netscape's cache, and should have better Java integration)</B>
-<P>
-<LI><B>STARTED:</B> Fran Taylor sent in some great tips for getting FreeWRL to work 
-	better with Netscape. Implement and document these.
-<B>(Tied in to the work with Netscape Plugin, above)</B>
+<LI><B>ALMOST COMPLETE:</B> Netscape Plugin, to provide better functionality than XSwallow.
+<B>(It works, uses Netscape's cache, but should have better Java integration)</B>
 <P>
 <LI><B>DONE:</B>EAI CreateTest working (needs replaceworld EAI call)
 <P>
@@ -49,9 +45,9 @@ parameter) - see t4*wrl in luigi's home directory
 <LI><B>DONE: </B>Try GL_CULLing backgrounds and basic shapes. (COSMO on the SGI does this)
 this should double rendering speed for them.
 <P>
-<LI><B>E</B>xtrusion Textures not working reliably.
+<LI><B>E</B>xtrusion, ElevationGrid, and IndexedFaceSet  default textures not working reliably. (rewrite in progress)
 <P>
-<LI><B>I</B>ndexedFaceSets are not using all points correctly. (check out the lightning bolt
+<LI><B>ALMOST COMPLETE: I</B>ndexedFaceSets are not using all points correctly. (check out the lightning bolt
 example) (Kiwano.wrl, and ast.wrl)
 <P>
 <LI><B>D</B>EF and USE in createVrmlFromString examples (eg, Etiennes perl tests)
@@ -59,7 +55,7 @@ example) (Kiwano.wrl, and ast.wrl)
 <LI><B>M</B>ore SAI work.
 	- automatic creation of pipes.
 <P>
-<LI><B>H-</B>ANIM working.
+<LI><B>DONE: H-</B>ANIM working.
 	- Nancy "works", but:	
 		1) run mode, arms flail around.
 		2) face is not good. (IFS problem, again)
@@ -71,9 +67,9 @@ example) (Kiwano.wrl, and ast.wrl)
 works with all datatypes.
 <P>
 
-<LI><B>S</B>ensor nodes - dragging when on a sensor also causes navigation changes.
+<LI><B>DONE: S</B>ensor nodes - dragging when on a sensor also causes navigation changes.
 <P>
-<LI><N>C</B>ompile time options for non-Linux systems, and some code changes to help compile on
+<LI><B>DONE: C</B>ompile time options for non-Linux systems, and some code changes to help compile on
 other systems. (eg, IRIX changes from Mufti)
 <P>
 <LI><B>Javascript</B>errors when trying to run 
