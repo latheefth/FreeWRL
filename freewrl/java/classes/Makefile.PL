@@ -36,29 +36,11 @@ $source
 
 CLASSES=\$(SOURCE:.java=.class)
 
-JFLAGS=-classpath .:\$(NETSCAPE_CLASSPATH)
-};
-	if ($VRML_CONFIG{NETSCAPE_INST}) {
-	    my $class_re = qr/^.*\.java\z/;
-	    my $jar_re = qr/^.*\.jar\z/;
-	    my $source = findFiles("vrml", $class_re,"\\\n"); 
-	    my $netscape_classpath =
-		findFiles($VRML_CONFIG{NETSCAPE_INST}, $jar_re, ":");
-	    
-	    my $dir_re = qr/^classes\z/;
-	    my $netscape_class_dir =
-		findFiles($VRML_CONFIG{NETSCAPE_INST}, $dir_re, "");
-	    
-	    $constants .= qq{
-CLASSES=\$(SOURCE:.java=.class)
-NETSCAPE_CLASSPATH=$netscape_classpath
-NETSCAPE_CLASS_DIR=$netscape_class_dir
-
-JFLAGS=-classpath .:\$(NETSCAPE_CLASSPATH)
-};
-	} else {
-	    $constants .= qq{
 JFLAGS=-classpath .
+};
+	if ($VRML_CONFIG{NETSCAPE_CLASSES}) {
+	    $constants .= qq{
+NETSCAPE_CLASS_DIR=$VRML_CONFIG{NETSCAPE_CLASSES}
 };
 	}
     }
@@ -67,16 +49,20 @@ JFLAGS=-classpath .
 
 ## The non perl specific make rules
 sub MY::postamble {
-    q{
+    $_ = q{
 %.class: %.java
 	$(JAVAC) $(JFLAGS) $<
 
 vrml.jar: $(CLASSES)
 	$(JAR) cf $@ `find vrml -name \*.class`
+};
+    if ($VRML_CONFIG{NETSCAPE_CLASSES}) {
+        $_ .= q{
 
 install ::
 	cp vrml.jar $(NETSCAPE_CLASS_DIR)
 };
+    }
 }
 
 ## Helper subs:
