@@ -20,6 +20,7 @@ static VRML_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
 static VRML_Viewer_Examine viewer_examine = { { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
 static VRML_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
 
+static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
 static FILE *exfly_in_file;
 
@@ -76,6 +77,7 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 /* 	$this->resolve_pos(); */
 	resolve_pos(viewer);
 }
+
 
 unsigned int
 get_buffer(VRML_Viewer *viewer)
@@ -256,8 +258,6 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 	struct pt p = { 0, 0, viewer->Dist };
 	VRML_Viewer_Examine *examine = viewer->examine;
 
-	printf("Viewer handle_examine: %s, %u, %f, %f\n", mev, button, x, y);
-
 /* 	if($mev eq "PRESS" and $but == 1) { */
 	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
 		if (button == 1) {
@@ -278,6 +278,7 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 			/* 		if (!defined $this->{SQuat}) {  */
 			/* we have missed the press */
 			if (norm(&(examine->SQuat)) == 0) {
+				printf("Viewer handle_examine: mouse event DRAG - missed press\n");
 				/* 			$this->{SQuat} = $this->xy2qua($mx,$my); */
 				xy2qua(&(examine->SQuat), x, y);
 				/* 			$this->{OQuat} = $this->{Quat}; */
@@ -345,13 +346,11 @@ handle_key(VRML_Viewer *viewer, const double time, const char key)
 	if (viewer_type == FLY) {
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
-		/* printf("Viewer handle_key: key is %c, (int) key is %d, _key is %c, (int) _key is %d\n", key, (int) key, _key, (int) _key); */
 
 		for (i = 0; i < KEYS_HANDLED; i++) {
 			if ((fly->Down[i]).key  == _key) {
 				/* $this->{Down}{$key} = 1; */
 				(fly->Down[i]).hit = 1;
-				/* printf("Viewer found key %c, %d!\n", (fly->Down[i]).key, (fly->Down[i]).hit); */
 			}
 		}
 	}
@@ -371,14 +370,13 @@ handle_keyrelease(VRML_Viewer *viewer, const double time, const char key)
 	if (viewer_type == FLY) {
 		/* $key = lc $key; */
 		_key = (char) tolower((int) key);
-		/* printf("Viewer handle_keyrelease: key is %c, (int) key is %d, _key is %c, (int) _key is %d\n", key, (int) key, _key, (int) _key); */
+
 		for (i = 0; i < KEYS_HANDLED; i++) {
 			if ((fly->Down[i]).key  == _key) {
 				/* $this->{WasDown}{$key} += $this->{Down}{$key}; */
 				(fly->WasDown[i]).hit += (fly->Down[i]).hit;
 				/* delete $this->{Down}{$key}; */
 				(fly->Down[i]).hit = 0;
-				/* printf("Viewer found key %c, %d!\n", (fly->WasDown[i]).key, (fly->WasDown[i]).hit); */
 			}
 		}
 	}
@@ -436,7 +434,6 @@ handle_tick_walk(VRML_Viewer *viewer, const double time)
  	if ((fabs(walk->RD) > 0.000001) ||
 		(fabs(walk->YD) > 0.000001) ||
 		(fabs(walk->ZD) > 0.000001)) {
-		/* VRML::OpenGL::set_render_frame(); */
 		set_render_frame();
 	}
 }
@@ -547,10 +544,22 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 		(viewer->Quat).y =  atof((const char *) quat_y_str);
 		(viewer->Quat).z =  atof((const char *) quat_z_str);
 
-/* 		VRML::OpenGL::set_render_frame(); */
 		set_render_frame();
 	}
 }
+
+
+/* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ */
+
+/* package VRML::Viewer::Fly; # Modeled after Descent(tm) ;) */
+/* @VRML::Viewer::Fly::ISA=VRML::Viewer; */
+/* # */
+/* # Members: */
+/* #  Velocity - current velocity as 3-vector */
+/* #   */
+
+/* # Do nothing for the mouse */
+
 
 /* my %actions = ( */
 /* 	a => sub {$aadd[2] -= $_[0]}, */
@@ -568,31 +577,75 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 /* 	9 => sub {$radd[2] += $_[0]}, */
 /* ); */
 
+void
+set_action(char *key)
+{
+	switch(*key) {
+	case 'a':
+		translate[Z_AXIS] -= 1;
+		break;
+	case 'z':
+		translate[Z_AXIS] += 1;
+		break;
+	case 'j':
+		translate[X_AXIS] -= 1;
+		break;
+	case 'l':
+		translate[X_AXIS] += 1;
+		break;
+	case 'p':
+		translate[Y_AXIS] += 1;
+		break;
+	case ';':
+		translate[Y_AXIS] -= 1;
+		break;
+	case '8':
+		rotate[X_AXIS] += 1;
+		break;
+	case 'k':
+		rotate[X_AXIS] -= 1;
+		break;
+	case 'u':
+		rotate[Y_AXIS] -= 1;
+		break;
+	case 'o':
+		rotate[Y_AXIS] += 1;
+		break;
+	case '7':
+		rotate[Z_AXIS] -= 1;
+		break;
+	case '9':
+		rotate[Z_AXIS] += 1;
+		break;
+	default:
+		break;
+	}
+}
 
 void
 handle_tick_fly(VRML_Viewer *viewer, const double time)
 {
 /* 	my($this, $time) = @_; */
-	VRML_Viewer_Fly *fly = viewer->fly;
-/* 	my $v = $this->{Velocity}; */
-	struct pt _velocity = fly->Velocity;
-/* 	my $av = $this->{AVelocity}; */
-	struct pt _avelocity = fly->AVelocity;
-/* 	my $ind = 0; */
-	int i, _index = 0, aadd[3], radd[3];
-	Key ps[KEYS_HANDLED] = KEYMAP;
-/* 	my $changed = 0; */
-	double changed = 0, time_diff;
 
-/* 	if(!defined $this->{Velocity}) {$this->{Velocity} = [0,0,0]} */
-/* 	if(!defined $this->{AVelocity}) {$this->{AVelocity} = [0,0,0]} */
-/* 	if($lasttime == -1) {$lasttime = $time;} */
-	if (fly->lasttime == -1) {
+	VRML_Viewer_Fly *fly = viewer->fly;
+	Key ps[KEYS_HANDLED] = KEYMAP;
+	Quaternion q_i, q_v, nq = { 1, 0, 0, 0 };
+	struct pt nv, v;
+	double changed = 0, time_diff = -1;
+	int i;
+
+	if (fly->lasttime < 0) {
 		fly->lasttime = time;
+		return;
+	} else {
+		time_diff = time - fly->lasttime;
+		fly->lasttime = time;
+		if (APPROX(time_diff, 0)) {
+			return;
+		}
 	}
 	
 	/* first, get all the keypresses since the last time */
-/* 	my %ps; */
 /* 	for(keys %{$this->{Down}}) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		$ps{$_} += $this->{Down}{$_}; */
@@ -607,57 +660,83 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 	}
 
 /* 	undef @aadd; */
-	memset(aadd, 0, 3 * sizeof(int));
-
 /* 	undef @radd; */
-	memset(radd, 0, 3 * sizeof(int));
+	memset(translate, 0, sizeof(int) * COORD_SYS);
+	memset(rotate, 0, sizeof(int) * COORD_SYS);
 
 /* 	for(keys %ps) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		if(exists $actions{$_}) { */
 /* 			$actions{$_}->($ps{$_}?1:0); */
 /* 		}  */
+		if ((ps[i]).hit) {
+			set_action(&(ps[i]).key);
+		}
 	}
 
-/* 	my $dt = $time-$lasttime; */
-	time_diff = time - fly->lasttime;
-/* 	if($dt == 0) { return; } */
-	if (APPROX(time_diff, 0)) { return; }
-	
 	/* has anything changed? if so, then re-render */
-	
-/* 	for(@$v) {$_ *= 0.06 ** ($dt); */
+/* 	for(@$v) */
+	for (i = 0; i < COORD_SYS; i++) {
+/* 		$_ *= 0.06 ** ($dt); */
+		fly->Velocity[i] *= pow(0.06, time_diff);
+
 /* 		$_ += $dt * $aadd[$ind++] * 14.5; */
+		fly->Velocity[i] += time_diff * translate[i] * 14.5;
+
 /* 		if(abs($_) > 9.0) {$_ /= abs($_)/9.0} */
+		if (fabs(fly->Velocity[i]) >9.0) {
+			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
+		}
 /* 		$changed += $_; */
-/* 	} */
+		changed += fly->Velocity[i];
+	}
+
 /* 	my $nv = $this->{Quat}->invert->rotate( */
 /* 		[map {$_ * $dt} @{$this->{Velocity}}] */
 /* 	); */
-/* 	for(0..2) {$this->{Pos}[$_] += $nv->[$_]} */
+	v.x = fly->Velocity[0] * time_diff;
+	v.y = fly->Velocity[1] * time_diff;
+	v.z = fly->Velocity[2] * time_diff;
 
-/* 	$ind = 0; */
-/* 	my $sq; */
-/* 	for(@$av) {$_ *= 0.04 ** ($dt); */
+	inverse(&q_i, &(viewer->Quat));
+	rotation(&nv, &q_i, &v);
+
+/* 	for(0..2) {$this->{Pos}[$_] += $nv->[$_]} */
+	(viewer->Pos).x += nv.x;
+	(viewer->Pos).y += nv.y;
+	(viewer->Pos).z += nv.z;
+
+/* 	for(@$av) */
+	for (i = 0; i < COORD_SYS; i++) {
+/* 		$_ *= 0.04 ** ($dt); */
+		fly->AVelocity[i] *= pow(0.04, time_diff);
 /* 		$_ += $dt * $radd[$ind++] * 0.1; */
+		fly->AVelocity[i] += time_diff * rotate[i] * 0.1;
+
 /* 		if(abs($_) > 0.8) {$_ /= abs($_)/0.8;} */
+		if (fabs(fly->AVelocity[i]) > 0.8) {
+			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
+		}
 /* 		$sq += $_*$_; */
 /* 		$changed += $_; */
-/* 	} */
+		changed += fly->AVelocity[i];
+	}
 	
 /* 	my $nq = new VRML::Quaternion(1,@$av); */
+	nq.x = fly->AVelocity[0];
+	nq.y = fly->AVelocity[1];
+	nq.z = fly->AVelocity[2];
 /* 	$nq->normalize_this; */
+	normalize(&nq);
+
 /* 	$this->{Quat} = $nq->multiply($this->{Quat}); */
-	
+	set(&q_v, &(viewer->Quat));
+	multiply(&(viewer->Quat), &nq, &q_v);
+
 	/* any movement? if so, lets render it */
-/* 	if (abs($changed) > 0.000001) */
 	if (fabs(changed) > 0.000001) {
-/* 		VRML::OpenGL::set_render_frame(); */
 		set_render_frame();
 	}
-
-/* 	$lasttime = $time; */
-	fly->lasttime = time;
 }
 
 
@@ -682,19 +761,6 @@ handle_tick(VRML_Viewer *viewer, const double time)
 		break;
 	}
 }
-
-
-/* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ */
-
-/* package VRML::Viewer::Fly; # Modeled after Descent(tm) ;) */
-/* @VRML::Viewer::Fly::ISA=VRML::Viewer; */
-/* # */
-/* # Members: */
-/* #  Velocity - current velocity as 3-vector */
-/* #   */
-
-/* # Do nothing for the mouse */
-
 
 
 

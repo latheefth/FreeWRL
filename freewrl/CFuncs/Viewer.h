@@ -68,6 +68,11 @@
 /* ); */
 #define KEYMAP {{ 'a', 0 }, { 'z', 0 }, { 'j', 0 }, { 'l', 0 }, { 'p', 0 }, { ';', 0 }, { '8', 0 }, { 'k', 0 }, { 'u', 0 }, { 'o', 0 }, { '7', 0 }, { '9', 0 }}
 
+#define COORD_SYS 3
+#define X_AXIS 0
+#define Y_AXIS 1
+#define Z_AXIS 2
+
 #define STRING_SIZE 256
 
 #define IN_FILE "/tmp/inpdev"
@@ -113,8 +118,8 @@ typedef struct key {
 
 /* Modeled after Descent(tm) ;) */
 typedef struct viewer_fly {
-	struct pt Velocity;
-	struct pt AVelocity;
+	double Velocity[COORD_SYS];
+	double AVelocity[COORD_SYS];
 	Key Down[KEYS_HANDLED];
 	Key WasDown[KEYS_HANDLED];
 	double lasttime;
@@ -249,14 +254,21 @@ handle_tick_exfly(
 				  );
 
 void
+handle_tick_fly(
+				VRML_Viewer *viewer,
+				const double time
+				);
+
+void
+set_action(char *key);
+
+void
 set_stereo_offset(
 				  unsigned int buffer,
 				  const double eyehalf,
 				  const double eyehalfangle,
 				  double fieldofview
 				  );
-
-
 
 
 
