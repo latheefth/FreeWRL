@@ -11,6 +11,18 @@ What code in the distribution is not Tuomas's  (if I have left something
 out, contact me as soon as possible at john.stewart@crc.ca - I really
 want no-one to be left out accidentally) 
 
+- Joerg Scheurich aka MUFTI 
+
+	- IRIX compilation help.
+
+- Aubrey Jaffer
+
+	- some material/texture problems.
+
+- Jochen Hoenicke
+
+	- A lot of java class calling fixes. Danke Jochen! 
+
 -  Don Brutzman
 	- templates for x3d translation.
 
