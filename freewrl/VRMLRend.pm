@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.103  2003/05/02 05:41:31  ayla
+#
+# Fixed Billboard code for the case where axisOfRotation is [0, 0, 0] - the Billboard does't quite line up correctly, but it's an improvement over the previous implementation.
+#
 # Revision 1.102  2003/04/29 17:13:19  crc_canada
 # TimeSensor ClockTick code now in C
 #
@@ -1845,63 +1849,63 @@ Transform => '
         } 
 ',
 Billboard => '
-	GLdouble mod[16];
-	GLdouble proj[16];
-	struct pt vec, ax, cp, z = {0,0,1}, cp2, cp3, arcp;
+	struct pt vpos, ax, cp, cp2, arcp;
+	static const struct pt orig = {0, 0, 0};
+	static const struct pt xvec = {1.0, 0, 0};
+	static const struct pt yvec = {0, 1.0, 0};
+	static const struct pt zvec = {0, 0, 1.0};
 	int align;
-	double len; double len2;
-	double angle;
+	double len, len2, angle, angle2;
 	int sign;
 	ax.x = $f(axisOfRotation,0);
 	ax.y = $f(axisOfRotation,1);
 	ax.z = $f(axisOfRotation,2);
 	align = (APPROX(VECSQ(ax),0));
+
 	glPushMatrix();
 
-	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
-	gluUnProject(0,0,0,mod,proj,viewport,
-		&vec.x,&vec.y,&vec.z);
-	len = VECSQ(vec); if(APPROX(len,0)) {return;}
-	VECSCALE(vec,1/sqrt(len));
-	/* printf("Billboard: (%f %f %f) (%f %f %f)\n",vec.x,vec.y,vec.z,	
-		ax.x, ax.y, ax.z); */
-	if(!align) {
-		VECCP(ax,z,arcp);
-		VECCP(ax,arcp,cp3);
-		len = VECSQ(ax); VECSCALE(ax,1/sqrt(len));
-		VECCP(vec,ax,cp); /* cp is now 90deg to both vector and axis */
-		len = sqrt(VECSQ(cp)); 
-		if(APPROX(len,0)) {return;} /* Cant do a thing */
-		VECSCALE(cp, 1/len)
-		/* printf("Billboard: (%f %f %f) (%f %f %f)\n",cp.x,cp.y,cp.z,	
-			cp3.x, cp3.y, cp3.z); */
-		/* Now, find out angle between this and z axis */
-		VECCP(cp,z,cp2);
-		len2 = VECPT(cp,z); /* cos(angle) */
-		len = sqrt(VECSQ(cp2)); /* this is abs(sin(angle)) */
-		/* Now we need to find the sign first */
-		if(VECPT(cp, arcp)>0) sign=-1; else sign=1;
-		angle = atan2(len2,sign*len);
-		/* printf("Billboard: sin angle = %f, cos angle = %f\n, sign: %d,
-			atan2: %f\n", len, len2,sign,angle); */
-		glRotatef(angle/3.1415926536*180, ax.x,ax.y,ax.z);
-	} else {
-		/* cp is the axis of the first rotation... */
-		VECCP(z,vec,cp);
-        len = sqrt(VECSQ(cp));
-		if (APPROX(len, 0)) { return; }
-		VECSCALE(cp,1/len);
-		VECCP(z,cp,cp2);
-		angle = asin(VECPT(cp2,vec));
-		glRotatef(angle/3.1415926536*180, ax.x,ax.y,ax.z);
-		
-		/* XXXX */
-		/* die("Cant do 0 0 0 billboard"); */
+	vpos.x = ViewerPosition.x;
+	vpos.y = ViewerPosition.y;
+	vpos.z = ViewerPosition.z;
 
+	len = VECSQ(vpos);
+	if (APPROX(len, 0)) { return; }
+	VECSCALE(vpos, 1/sqrt(len));
+
+	if (align) {
+		ax.x = ViewerOrientation.x;
+		ax.y = ViewerOrientation.y;
+		ax.z = ViewerOrientation.z;
 	}
-',
 
+	VECCP(ax, zvec, arcp);
+	len = VECSQ(arcp);
+	if (APPROX(len, 0)) { return; }
+
+	len = VECSQ(ax);
+	if (APPROX(len, 0)) { return; }
+	VECSCALE(ax, 1/sqrt(len));
+
+	VECCP(vpos, ax, cp); /* cp is now 90deg to both vector and axis */
+	len = sqrt(VECSQ(cp));
+	if (APPROX(len, 0)) {
+		glRotatef(-ViewerOrientation.a/3.1415926536*180, ax.x, ax.y, ax.z);
+		return;
+	}
+	VECSCALE(cp, 1/len);
+
+	/* Now, find out angle between this and z axis */
+	VECCP(cp, zvec, cp2);
+
+	len2 = VECPT(cp, zvec); /* cos(angle) */
+	len = sqrt(VECSQ(cp2)); /* this is abs(sin(angle)) */
+
+	/* Now we need to find the sign first */
+	if (VECPT(cp, arcp) > 0) { sign = -1; } else { sign = 1; }
+	angle = atan2(len2, sign*len);
+
+	glRotatef(angle/3.1415926536*180, ax.x, ax.y, ax.z);
+',
 
 Viewpoint => (join '','
 	if(render_vp) {
