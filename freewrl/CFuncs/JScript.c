@@ -214,9 +214,9 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 	_globalObj = (JSObject *)JSglobs[num].glob;
 
 
-	if (JSVerbose) {
+	if (JSVerbose) 
 		printf("ActualrunScript script %d cx %x \"%s\", \n",num, _context, script);
-	}
+	
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
@@ -386,7 +386,7 @@ SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len)
 	SFNodeNative *ptr;
 	ptr = (SFNodeNative *) malloc(sizeof(*ptr));
 
-	printf ("SFNodeNativeNew; string len %d\n",vrmlstring_len);
+	//printf ("SFNodeNativeNew; string len %d handle_len %d\n",vrmlstring_len,handle_len);
 
 	if (ptr == NULL) {
 		return NULL;
@@ -421,6 +421,7 @@ SFNodeNativeDelete(void *p)
 	}
 }
 
+/* assign this internally to the Javascript engine environment */
 int
 SFNodeNativeAssign(void *top, void *fromp)
 {
@@ -429,7 +430,8 @@ SFNodeNativeAssign(void *top, void *fromp)
 	SFNodeNative *to = top;
 	SFNodeNative *from = fromp;
 
-	printf ("SFNodeNativeAssign, assigning from %s to %s\n",from->vrmlstring,to->vrmlstring);
+	//printf ("SFNodeNativeAssign, assigning from vrmlstring %s handle %s to vrmlstring %s handle %s\n",
+	//	from->vrmlstring,from->handle,to->vrmlstring,to->handle);
 
 	to->touched++;
 
@@ -438,6 +440,9 @@ SFNodeNativeAssign(void *top, void *fromp)
 
 	from_vrmlstring_len = strlen(from->vrmlstring) + 1;
 	from_handle_len = strlen(from->handle) + 1;
+
+	//printf ("lengths: %d %d, %d %d\n",from_handle_len,from_vrmlstring_len, to_handle_len,to_vrmlstring_len);
+
 
 	if (from_vrmlstring_len > to_vrmlstring_len) {
 		to->vrmlstring = (char *) realloc(to->vrmlstring,

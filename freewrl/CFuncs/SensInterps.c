@@ -157,6 +157,7 @@ void do_OintScalar (void *node) {
 	float *kVs;
 	int counter;
 
+	if (!node) return;
 	px = (struct VRML_ScalarInterpolator *) node;
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -202,6 +203,7 @@ void do_OintCoord(void *node) {
 	int indx;
 	int myKey;
 	
+	if (!node) return;
 	px = (struct VRML_CoordinateInterpolator *) node;
 
 
@@ -328,6 +330,7 @@ void do_Oint3 (void *node) {
 	int kin, kvin, counter, tmp;
 	struct SFColor *kVs;
 
+	if (!node) return;
 	px = (struct VRML_PositionInterpolator *) node;
 
 	mark_event ((unsigned int) px, offsetof (struct VRML_PositionInterpolator, value_changed));
@@ -389,6 +392,7 @@ void do_Oint4 (void *node) {
 	float newangle;		/* keyValue where we are moving to */
 	float interval;		/* where we are between 2 values */
 
+	if (!node) return;
 	px = (struct VRML_OrientationInterpolator *) node;
 	kin = ((px->key).n);
 	kvin = ((px->keyValue).n);
@@ -486,6 +490,7 @@ void do_AudioTick(struct VRML_AudioClip *node) {
 	int 	oldstatus;	
 
 	/* can we possibly have started yet? */
+	if (!node) return;
 	if(TickTime < node->startTime) {
 		return;
 	}
@@ -520,6 +525,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 	double frac;
 
 	/* are we not enabled */
+	if (!node) return;
 	if (!node->enabled) {
 		if (node->isActive) {
 			node->isActive=0;
@@ -588,6 +594,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {
 	
 	/* are we enabled? */
+	if (!node) return;
 	if (!node->enabled) return;
 
 	if (node->__hit) {
@@ -636,6 +643,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	float	duration;
 
 	/* can we possibly have started yet? */
+	if (!node) return;
 	if(TickTime < node->startTime) {
 		return;
 	}
@@ -711,6 +719,7 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, int over) {
 	*/
 
 	/* if not enabled, do nothing */
+	if (!node) return;
 	if (!node->enabled) return;
 
 	/* isOver state */
@@ -749,6 +758,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
 
 
 
+	if (!node) return;
 	len = strlen(ev);
 
 	if (len == strlen("PRESS")) {
@@ -833,6 +843,7 @@ void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
 	unsigned char *urlptr;
 	int counter;
 	
+	if (!node) return;
 	len = strlen(ev);
 	if (len == strlen("PRESS")) {
 		/* no parameters in url field? */
@@ -875,6 +886,7 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 	struct SFColor dee, arr, cp, dot;
 	float deelen, aay, bee, cee, und, sol, cl, an;
 
+	if (!node) return;
 	len = strlen(ev);
 
 	if (len == strlen("PRESS")) {

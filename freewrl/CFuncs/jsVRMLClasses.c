@@ -1147,6 +1147,7 @@ SFImageSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 
 
+/* returns the handle - either "NODExx" or (hopefully) a string rep of the pointer to the node in memory */
 JSBool
 SFNodeToString(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval)
@@ -1154,7 +1155,7 @@ SFNodeToString(JSContext *cx, JSObject *obj,
     JSString *_str;
     SFNodeNative *ptr;
 	char *_buff;
-	size_t vrmlstring_len = 0;
+	size_t handle_len = 0;
 
 	UNUSED(argc);
 	UNUSED(argv);
@@ -1163,15 +1164,15 @@ SFNodeToString(JSContext *cx, JSObject *obj,
 		return JS_FALSE;
 	}
 
-	vrmlstring_len = strlen(ptr->vrmlstring) + 1;
+	handle_len = strlen(ptr->handle) + 1;
 	if ((_buff = (char *)
-		 malloc(vrmlstring_len * sizeof(char))) == NULL) {
+		 malloc(handle_len * sizeof(char))) == NULL) {
 		fprintf(stderr, "malloc failed in SFNodeToString.\n");
 		return JS_FALSE;
 	}
 
-	memset(_buff, 0, vrmlstring_len);
-	sprintf(_buff, "%.*s", vrmlstring_len, ptr->vrmlstring);
+	memset(_buff, 0, handle_len);
+	sprintf(_buff, "%.*s", handle_len, ptr->handle);
 	_str = JS_NewStringCopyZ(cx, _buff);
     *rval = STRING_TO_JSVAL(_str);
 
@@ -1184,52 +1185,76 @@ JSBool
 SFNodeAssign(JSContext *cx, JSObject *obj,
 			 uintN argc, jsval *argv, jsval *rval)
 {
-    JSObject *_from_obj, *globalObj;
+	JSObject *_from_obj, *globalObj;
 	BrowserNative *brow;
-    SFNodeNative *fptr, *ptr;
-    char *_id_str;
+	SFNodeNative *fptr, *ptr;
+	char *_id_str;
+	jsval _rval;
+	JSString *strval;
+	char *strtouched;
+	unsigned int toptr;
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed for obj in SFNodeAssign.\n");
-        return JS_FALSE;
+	    return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, obj, &SFNodeClass, argv)) {
+	if (!JS_InstanceOf(cx, obj, &SFNodeClass, argv)) {
 		fprintf(stderr, "JS_InstanceOf failed for obj in SFNodeAssign.\n");
-        return JS_FALSE;
+	    return JS_FALSE;
 	}
 	if (!JS_ConvertArguments(cx, argc, argv, "o s", &_from_obj, &_id_str)) {
 		fprintf(stderr, "JS_ConvertArguments failed in SFNodeAssign.\n");
 		return JS_FALSE;
 	}
-    if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
+	if (!JS_InstanceOf(cx, _from_obj, &SFNodeClass, argv)) {
 		fprintf(stderr, "JS_InstanceOf failed for _from_obj in SFNodeAssign.\n");
-        return JS_FALSE;
-    }
+	    return JS_FALSE;
+	}
 	if ((fptr = JS_GetPrivate(cx, _from_obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed for _from_obj in SFNodeAssign.\n");
-        return JS_FALSE;
+	    return JS_FALSE;
 	}
 	if (JSVerbose) {
 		printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
 			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
 	}
 
-    if (!SFNodeNativeAssign(ptr, fptr)) {
-		fprintf(stderr, "SFNodeNativeAssign failed in SFNodeAssign.\n");
-        return JS_FALSE;
-	}
-	if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
-		fprintf(stderr, "JS_GetGlobalObject failed in SFNodeAssign.\n");
-		return JS_FALSE;
-	}
-	if (!getBrowser(cx, globalObj, &brow)) {
-		fprintf(stderr, "getBrowser failed in SFNodeConstr.\n");
-		return JS_FALSE;
-	}
-	doPerlCallMethodVA(brow->sv_js, "jspSFNodeAssign", "s", _id_str);
+	//printf ("SFNodeAssign calling SFNodeNativeAssign\n");
+	if (strncmp("NODE",fptr->handle,4) == 0) {
+		//printf ("SFNodeAssign, handle is a NODE\n");
+		/* try to get the node backend now */
 
-    *rval = OBJECT_TO_JSVAL(obj);
-    return JS_TRUE;
+		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
+			fprintf(stderr, "JS_GetGlobalObject failed in SFNodeAssign.\n");
+			return JS_FALSE;
+		}
+		if (!getBrowser(cx, globalObj, &brow)) {
+			fprintf(stderr, "getBrowser failed in SFNodeConstr.\n");
+			return JS_FALSE;
+		}
+
+		doPerlCallMethodVA(brow->sv_js, "getNodeCNode", "s", fptr->handle);
+	       if (!JS_GetProperty(cx, globalObj, "__ret",  &_rval)) {
+        	        fprintf(stderr, "JS_GetProperty failed in VrmlBrowserGetVersion.\n");
+        	        return JS_FALSE;
+        	}
+
+		strval = JS_ValueToString(cx, _rval);
+		strtouched = JS_GetStringBytes(strval);
+
+		if (fptr->handle) free (fptr->handle);
+		fptr->handle = malloc (strlen(strtouched)+1);
+		strncpy (fptr->handle,strtouched,strlen(strtouched));
+	}
+	
+	/* assign this internally */
+	if (!SFNodeNativeAssign(ptr, fptr)) {
+		fprintf(stderr, "SFNodeNativeAssign failed in SFNodeAssign.\n");
+	    return JS_FALSE;
+	}
+
+	*rval = OBJECT_TO_JSVAL(obj);
+	return JS_TRUE;
 }
 
 JSBool
@@ -1420,7 +1445,8 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 
-		doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle);
+		printf ("SFNodeGetProperty, getting the property for %s\n",ptr->handle);
+		//doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle);
 
 		if (!JS_GetProperty(cx, globalObj, _buff, &_rval)) {
 			fprintf(stderr,
@@ -1523,7 +1549,6 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 
-		doPerlCallMethodVA(brow->sv_js, "jspSFNodeSetProperty", "ss", _id_c, ptr->handle);
 		free(_buff);
 	}
 

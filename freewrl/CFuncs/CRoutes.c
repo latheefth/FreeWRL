@@ -221,6 +221,7 @@ void setECMAtype (int num) {
 				JSparamnames[tptr].name,dl);
 			break;
 		}
+		case SFNODE:
 		case SFINT32:	{ /* SFInt32 */
 			memcpy ((void *) &il,(void *)fn+fptr, len);
 			sprintf (scriptline,"__tmp_arg_%s=%d",
@@ -251,15 +252,13 @@ void setECMAtype (int num) {
 }
 
 
-
-
 /****************************************************************/
 /* a script is returning a MFNode type; add this to the C	*/
 /* children field						*/
 /****************************************************************/
 
-getMFNodetype (char *strp, struct Multi_Node *ch) {
-	int newptr;
+void getMFNodetype (char *strp, struct Multi_Node *ch) {
+	unsigned int newptr;
 	int oldlen, newlen;
 	char *cptr;
 	void *newmal;
@@ -419,7 +418,7 @@ void setMultiElementtype (int num) {
 	/* copy over the data from the perl/C VRML side into the script. */
 	memcpy ((void *) &_privPtr->v,(void *)fn+fptr, len);
 
-	// required?? JAS _privPtr->touched = 0;
+	_privPtr->touched = 0;
 
 
 	/* now, runscript to tell it that it has been touched */
@@ -584,7 +583,8 @@ unsigned int CRoutes_Register (unsigned int from, int fromoffset,
 		scripts_active = FALSE;
 	}
 
-	if (CRVerbose) printf ("CRoutes_Register from %x off %x to %x off %x len %d intptr %x \n",from, fromoffset,
+	if (CRVerbose) 
+		printf ("CRoutes_Register from %x off %x to %x off %x len %d intptr %x \n",from, fromoffset,
 		to,tooffset,length, intptr);
 
 	insert_here = 1;
@@ -737,7 +737,6 @@ void gatherScriptEventOuts(int script, int ignore) {
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
 	while (CRoutes[route].fromnode<script) route++;
-	
 	while (CRoutes[route].fromnode == script) {
 
 		/* is this the same from node/field as before? */
@@ -787,6 +786,7 @@ void gatherScriptEventOuts(int script, int ignore) {
 			case SFFLOAT:
 			case SFTIME:
 			case SFINT32:
+			//JAS case SFNODE:
 			case SFSTRING: {
 				sprintf (scriptline,"_%s_touched",JSparamnames[fptr].name);
 				if (!ActualrunScript(script, scriptline ,&touched)) 
@@ -801,8 +801,8 @@ void gatherScriptEventOuts(int script, int ignore) {
 
 			case MFCOLOR:
 			case MFROTATION: 
-			case MFVEC2F:
-			case MFNODE: {
+			case MFNODE:
+			case MFVEC2F: {
 				sprintf (scriptline,"%s.__touched_flag",JSparamnames[fptr].name);
 				if (!ActualrunScript(script, scriptline ,&touched)) 
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
@@ -814,8 +814,8 @@ void gatherScriptEventOuts(int script, int ignore) {
 				break;
 				}	
 
-			case SFCOLOR: 
 			case SFNODE:
+			case SFCOLOR: 
 			case SFROTATION:
 			case SFVEC2F: {
 				sprintf (scriptline,"%s.__touched()",JSparamnames[fptr].name);
@@ -831,7 +831,8 @@ void gatherScriptEventOuts(int script, int ignore) {
 
 			strval = JS_ValueToString((JSContext *)JSglobs[script].cx, touched);
 			strtouched = JS_GetStringBytes(strval);
-			if (JSVerbose ) printf ("touched string is %s\n",strtouched);
+			if (JSVerbose) 
+				printf ("touched string is %s\n",strtouched);
 			if (*strtouched!='0') {
 				/* we did, so get the value */
 				if (!ActualrunScript(script, JSparamnames[fptr].name ,&retval)) {
@@ -839,7 +840,8 @@ void gatherScriptEventOuts(int script, int ignore) {
 				}
 				strval = JS_ValueToString((JSContext *)JSglobs[script].cx, retval);
 			        strp = JS_GetStringBytes(strval);
-				if (JSVerbose) printf ("retval string is %s\n",strp);
+				if (JSVerbose) 
+					printf ("retval string is %s\n",strp);
 			}
 		}
 
@@ -870,9 +872,10 @@ void gatherScriptEventOuts(int script, int ignore) {
 						memcpy ((void *)tn+tptr, (void *)&tval,len);
 						break;
 				}
+				case SFNODE:
 				case SFINT32: {
 						sscanf (strp,"%d",&ival);
-						//printf ("SFTime conversion numbers %f\n",ival);
+						//printf ("SFInt, SFNode conversion number %d\n",ival);
 						memcpy ((void *)tn+tptr, (void *)&ival,len);
 						break;
 				}
@@ -970,6 +973,7 @@ void sendScriptEventIn(int num) {
 			case SFFLOAT:
 			case SFTIME:
 			case SFINT32:
+			case SFNODE:
 			case SFSTRING: {
 					setECMAtype(num);
 					break;
@@ -980,7 +984,6 @@ void sendScriptEventIn(int num) {
 					setMultiElementtype(num);
 					break;
 				}
-			case SFNODE:
 			case MFBOOL:
 			case MFCOLOR:
 			case MFFLOAT:
