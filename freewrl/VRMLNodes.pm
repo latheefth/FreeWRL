@@ -241,7 +241,7 @@ sub make_MFNode {
 
 
 sub init_image {
-	my($name, $urlname, $t, $f, $scene) = @_;
+	my($name, $urlname, $t, $f, $scene, $flip) = @_;
 	my $purl = $t->{PURL} = $scene->get_url;
 	my $urls = $f->{$urlname};
 	if($#{$urls} == -1) {
@@ -269,39 +269,28 @@ sub init_image {
 			my $tempfile_name = "/tmp/freewrl_";
 			$tempfile = join '', $tempfile_name,$lgname,".png";
 	
-			my $cmd = "$VRML::Browser::CONVERT -flip $file $tempfile";
+			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
 			my $status = system ($cmd);
 			die "$image conversion problem: '$cmd' returns $?"
 				unless $status == 0;
 	
 			eval 'require VRML::PNG';
-			#print "Reading $suffix file converted to png file '$tempfile'\n";
-			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
+			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
 			  next;
-			  # die("Couldn't read texture file");
+			  warn("Couldn't read texture file $tempfile");
 			}
 		} elsif ($suffix =~ /png/i) {
 			eval 'require VRML::PNG';
 			eval 'require VRML::JPEG';
-			#print "Reading png file '$tempfile'\n";
-			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
+			if(!VRML::PNG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
 			  next;
-			  # die("Couldn't read texture file");
-			}
-			# $dat: data input/output
-			if(!VRML::JPEG::flip_image($dep,$hei,$wi,$dat)) {
-			  next;
+			  warn("Couldn't read texture file $tempfile");
 			}
 		} elsif ($suffix =~ /jpg/i) {
 			eval 'require VRML::JPEG';
-			#print "Reading jpg file '$tempfile'\n";
-			if(!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi)) {
+			if(!VRML::JPEG::read_file($tempfile,$dat,$dep,$hei,$wi,$flip)) {
 			  next;
-			  # die("Couldn't read texture file");
-			}
-			# $dat: data input/output
-			if(!VRML::JPEG::flip_image($dep,$hei,$wi,$dat)) {
-			  next;
+			  warn("Couldn't read texture file $tempfile");
 			}
 		}
 
@@ -479,7 +468,7 @@ ImageTexture => new VRML::NodeType("ImageTexture",
 	},{
 	Initialize => sub {
 		my($t,$f,$time,$scene) = @_;
-		init_image("","url",$t,$f,$scene);
+		init_image("","url",$t,$f,$scene,1);
 		return ();
 	}
       }
@@ -1425,7 +1414,7 @@ Background => new VRML::NodeType("Background",
 	Initialize => sub {
 		my($t,$f,$time,$scene) = @_;
 		for(qw/back front top bottom left right/) {
-			init_image("_$_","${_}Url",$t,$f,$scene);
+			init_image("_$_","${_}Url",$t,$f,$scene,0);
 		}
 		return ();
 	}
