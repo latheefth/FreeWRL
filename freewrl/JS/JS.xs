@@ -2381,8 +2381,7 @@ cons_SFNode(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 		p = JS_GetStringBytes(str);
 		/* Hidden two-arg constructor: we construct it using
 		 * an id... */
-		if(verbose) printf("CONS_SFNODE: '%s'
-",p);
+		if(verbose) printf("CONS_SFNODE: '%s' ",p);
 		if(!JS_DefineProperty(cx,obj,"__id",argv[1],
 			NULL,NULL,JSPROP_PERMANENT)) {
 				die("SFNode defprop error");
@@ -2410,8 +2409,7 @@ setprop_SFNode(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	JS_SetProperty(cx, globalObj, "__node", &v);
 	JS_SetProperty(cx, globalObj, "__prop", &id);
 	JS_SetProperty(cx, globalObj, "__val", vp);
-	if(verbose) printf("SFNode setprop 
-");
+	if(verbose) printf("SFNode setprop ");
 		ENTER;
 		SAVETMPS;
 		PUSHMARK(sp);
@@ -2430,8 +2428,7 @@ setprop_SFNode(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 static JSBool
 getprop_SFNode(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
-	if(verbose) printf("SFNode getprop 
-");
+	if(verbose) printf("SFNode getprop ");
 	return JS_TRUE;
 }
 
