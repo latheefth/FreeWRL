@@ -786,6 +786,17 @@ void render_polyrep(void *node,
 
 	/* do we need to generate default texture mapping? */
 	if (HAVETODOTEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
+		/* use Mufti's initialization scheme for minVals and maxVals; */
+		for (j=0; j<3; j++) {    
+			if (points) {
+				minVals[j] = points[r->cindex[0]].c[j];
+				maxVals[j] = points[r->cindex[0]].c[j];
+			} else {
+				minVals[j] = r->coord[3*r->cindex[0]+j];
+				maxVals[j] = r->coord[3*r->cindex[0]+j];
+			}
+		}
+
 		for(i=0; i<r->ntri*3; i++) {
 		  int ind = r->cindex[i];
 		  for (j=0; j<3; j++) {
