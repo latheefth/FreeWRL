@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.95  2003/04/03 17:28:32  crc_canada
+# Viewpoint animated fieldOfViews now works
+#
 # Revision 1.94  2003/04/02 19:21:56  crc_canada
 # Material parameter checking - some systems would give a GLError if a parameter was out of
 # bounds
@@ -1873,20 +1876,17 @@ Viewpoint => (join '','
 		}
 
 
-		if(verbose) {
-			glGetIntegerv(GL_VIEWPORT, vp);
-			if(vp[2] > vp[3]) {
-				a1=0;
-				angle = $f(fieldOfView)/3.1415926536*180;
-			} else {
-				a1 = $f(fieldOfView);
-				a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
-				angle = a1/3.1415926536*180;
-			}
-			printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3],
-				a1, angle);
+		/* now, lets work on the Viewpoint fieldOfView */
+		glGetIntegerv(GL_VIEWPORT, vp);
+		if(vp[2] > vp[3]) {
+			a1=0;
+			fieldofview = $f(fieldOfView)/3.1415926536*180;
+		} else {
+			a1 = $f(fieldOfView);
+			a1 = atan2(sin(a1),vp[2]/((float)vp[3]) * cos(a1));
+			fieldofview = a1/3.1415926536*180;
 		}
-
+		/*printf("Vp: %d %d %d %d %f %f\n", vp[0], vp[1], vp[2], vp[3], a1, fieldofview);*/
 	}
 '),
 
