@@ -64,7 +64,7 @@ Transform {
               justify   "MIDDLE"
                 size            .8
             }
-            string      "0.34"
+            string      "Linux & OS X"
           }
         }}
         Transform {
