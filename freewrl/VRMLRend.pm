@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.8  2000/08/07 01:03:09  rcoscali
+# Fixed another little problem on texture of cone. It was mapped in the wrong way.
+#
 # Revision 1.7  2000/08/07 00:28:44  rcoscali
 # Removed debug macros and traces for sphere
 #
@@ -255,13 +258,13 @@ Cone => '
 				float lcos = COS1;
 				UP_TRIG1;
 
-				glNormal3d(mlh*lsin, mlr, -mlh*lcos);
-				glTexCoord2f(1.0-((float)i/df), 0.0);
-				glVertex3f(r*lsin, (float)-h, -r*lcos);
+				glNormal3d(mlh*SIN1, mlr, mlh*COS1);
+				TC(1.0-((i+1.0)/df), 0.0);
+				glVertex3f(r*SIN1, (float)-h, r*COS1);
 
-				glNormal3d(mlh*SIN1, mlr, -mlh*COS1);
-				glTexCoord2f(1.0-((i+1.0)/df), 0.0);
-				glVertex3f(r*SIN1, (float)-h, -r*COS1);
+				glNormal3d(mlh*lsin, mlr, mlh*lcos);
+				TC(1.0-((float)i/df), 0.0);
+				glVertex3f(r*lsin, (float)-h, r*lcos);
 
 				glNormal3d(mlh*lsin, mlr, -mlh*lcos);
 				glTexCoord2f(1.0-((i+0.5)/df), 1.0);
