@@ -171,9 +171,13 @@ struct pt* polynormalf(struct pt* r, float* p1, float* p2, float* p3);
 
 GLdouble* matrotate(GLdouble* Result, double Theta, double x, double y, double z);
 
+/*rotates dv back on iv*/
+double matrotate2v(GLdouble* res, struct pt iv/*original*/, struct pt dv/*result*/);
+
 GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz);
 
 GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n);
+
 
 #endif
 

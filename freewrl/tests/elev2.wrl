@@ -2,11 +2,16 @@
 # The VRML 2.0 Sourcebook
 # Copyright [1997] By
 # Andrea L. Ames, David R. Nadeau, and John L. Moreland
+NavigationInfo {
+   headlight FALSE
+   type ["WALK", "ANY"]
+   avatarSize [ 0.25,0.5,0.25 ]
+}
 Transform {
 	translation -5.0 0.0 -2.5
 	children Shape {
 		appearance Appearance {
-			material Material { diffuseColor 1.0 1.0 1.0 }
+			material Material { diffuseColor 1.0 1.0 1.0 emissiveColor 0.3 0.3 0.3}
 			texture ImageTexture { url "stone2.jpg" }
 			textureTransform TextureTransform {
 				scale 16.0 8.0

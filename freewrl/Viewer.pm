@@ -192,7 +192,7 @@ sub handle_tick {
     $this->{Quat} = $nq->multiply($this->{Quat});
     
     #info passed to Collision routines
-#    VRML::VRMLFunc::set_viewer_delta($this->{XD},$this->{YD},$this->{ZD}); interresting idea, but not quite.
+#    VRML::VRMLFunc::set_viewer_delta($this->{XD},$this->{YD},$this->{ZD}); #interresting idea, but not quite.
 
     # any movement? if so, lets render it.
     if ((abs($this->{RD}) > 0.000001) || 

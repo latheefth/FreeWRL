@@ -9,6 +9,7 @@
 #define swap(x,y) {double k = x; x = y; y = k; }
 #define FLOAT_TOLERANCE 0.00000001
 #define MAX_POLYREP_DISP_RECURSION_COUNT 10
+#define STEPUP_MAXINCLINE 0.9
 
 #ifdef DEBUGPTS
 #define DEBUGPTSPRINT(x,y,z) printf(x,y,z)
@@ -24,6 +25,8 @@ void accumulate_disp(struct sCollisionInfo* ci, struct pt add) {
     VECADD(ci->Offset,add);
     if(len2 > ci->Maximum2)
 	ci->Maximum2 = len2;
+//    if(add.x != 0. || add.y != 0 || add.z != 0) 
+//	printf("Count=%d, Offset=(%f,%f,%f), add=(%f,%f,%f), len2=%f\n",ci->Count,ci->Offset,add,len2);
 }
 
 double closest_point_of_segment_to_y_axis(struct pt p1, struct pt p2) {
@@ -76,6 +79,30 @@ int intersect_segment_with_line_on_yplane(struct pt* pk, struct pt p1, struct pt
 	return 0;
      
 }
+
+/*finds the intersection of the line pp1 + k n with a cylinder on the y axis.
+  returns the 0,1 or 2 values.
+ */
+int getk_intersect_line_with_ycylinder(double* k1, double* k2, double r, struct pt pp1, struct pt n) {
+    double b,a,sqrdelta,delta;
+    int res = 0;
+
+    /*solves (pp1+ k n) . (pp1 + k n) = r^2 */
+    a = 2*(n.x*n.x + n.z*n.z);
+    b = -2*(pp1.x*n.x + pp1.z*n.z);
+    delta = (4*((pp1.x*n.x + pp1.z*n.z)*(pp1.x*n.x + pp1.z*n.z)) - 
+	     4*((n.x*n.x + n.z*n.z))*((pp1.x*pp1.x + pp1.z*pp1.z - r*r)));
+    if(delta < 0.) return 0;
+    sqrdelta = sqrt(delta);
+
+    *k1 = (b+sqrdelta)/a;
+    if(sqrdelta == 0.) return 1;
+
+    *k2 = (b-sqrdelta)/a;
+    return 2;
+}
+
+
 
 /*projects a point on the surface of the cylinder, in the inverse direction of n. 
   returns TRUE if exists.
@@ -146,7 +173,7 @@ int getk_intersect_segment_with_ycylinder(double* k1, double* k2, double r, stru
     if(*k1 >= 0. && *k1 <= 1.) res++;
     if(*k2 >= 0. && *k2 <= 1.) res++;
     if(res == 1 && (*k1 < 0. || *k1 > 1.)) swap(*k1,*k2);
-    if(res == 2 && sqrdelta == 0.) res = 1;
+//    if(res == 2 && sqrdelta == 0.) res = 1;
 
     return res;
 }
@@ -158,45 +185,28 @@ struct pt weighted_sum(struct pt p1, struct pt p2, double k) {
     return ret;
 }
 
-/*finds the intersection of the line pp1 + k n with a cylinder on the y axis.
-  returns the 0,1 or 2 values.
- */
-int getk_intersect_line_with_ycylinder(double* k1, double* k2, double r, struct pt pp1, struct pt n) {
-    double b,a,sqrdelta,delta;
-    int res = 0;
-
-    /*solves (pp1+ k n) . (pp1 + k n) = r^2 */
-    a = 2*(n.x*n.x + n.z*n.z);
-    b = -2*(pp1.x*n.x + pp1.z*n.z);
-    delta = (4*((pp1.x*n.x + pp1.z*n.z)*(pp1.x*n.x + pp1.z*n.z)) - 
-	     4*((n.x*n.x + n.z*n.z))*((pp1.x*pp1.x + pp1.z*pp1.z - r*r)));
-    if(delta < 0.) return 0;
-    sqrdelta = sqrt(delta);
-
-    *k1 = (b+sqrdelta)/a;
-    if(sqrdelta == 0.) return 1;
-
-    *k2 = (b-sqrdelta)/a;
-    return 2;
-}
-
-
 
 /*used by get_poly_normal_disp to clip the polygon on the cylinder caps, called twice*/
-int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struct pt* p, int num, double r, struct pt n, double y)
+/*used by get_poly_step_disp to clip the polygon in the cylinder, by bypassing projection 
+  Code reuse please.
+ */
+
+int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struct pt* p, int num, double r, struct pt n, double y, int stepping)
 {
     struct pt* ppoly;
     int allin = 1;
     int i;
 
-    ppoly = (struct pt*) malloc(sizeof(struct pt) * num);
-
+    if(!stepping) {
+	ppoly = (struct pt*) malloc(sizeof(struct pt) * num);
  
-    /*sqush poly on cylinder cap plane.*/
-    for(i= 0; i < num; i++) {
-	ppoly[i] = project_on_yplane(p[i],n,y);
-    }
-
+	/*sqush poly on cylinder cap plane.*/
+	for(i= 0; i < num; i++) {
+	    ppoly[i] = project_on_yplane(p[i],n,y);
+	}
+    } else
+	ppoly = (struct pt*)p; /*const cast*/
+    
     /*find points of poly hitting cylinder cap*/
     for(i= 0; i < num; i++) {
 	if(ppoly[i].x*ppoly[i].x + ppoly[i].z*ppoly[i].z > r*r) {
@@ -219,6 +229,8 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,ppoly[i],ppoly[(i+1)%num]);
 	    switch(nsect) {
 	    case 2:
+		if(fabs(k1-k2) < FLOAT_TOLERANCE) // segment touches edge of circle. we want to ignore this.
+		    break;
 		DEBUGPTSPRINT("intersect_segment_cap(%f)_2= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(ppoly[i],ppoly[(i+1)%num],k2);
 	    case 1: 
@@ -237,6 +249,8 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	    nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,dessect[0],dessect[1]);
 	    switch(nsect) {
 	    case 2:
+		if(fabs(k1-k2) < FLOAT_TOLERANCE) // segment touches edge of circle. we want to ignore this.
+		    break;
 		DEBUGPTSPRINT("intersect_descending_segment_cap(%f)_2= %d\n",y,clippedpolynum);
 		clippedpoly[clippedpolynum++] = weighted_sum(dessect[0],dessect[1],k2);
 	    case 1: 
@@ -247,7 +261,7 @@ int helper_poly_clip_cap(struct pt* clippedpoly, int clippedpolynum, const struc
 	} 
     }
 
-    free(ppoly);
+    if(!stepping) free(ppoly);
 
     return clippedpolynum;
 }
@@ -265,6 +279,7 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
     struct pt* clippedpoly;
     int clippedpolynum = 0;
     static const struct pt zero = {0,0,0};
+//    int mindisp_clippedpolyi;
 
     get_poly_mindisp = 1E90;
     
@@ -293,8 +308,8 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
 
     /* clip polygon on top and bottom cap */
     if(n.y!= 0.) {
-	clippedpolynum = helper_poly_clip_cap(clippedpoly, clippedpolynum, p, num, r, n, y1);
-	clippedpolynum = helper_poly_clip_cap(clippedpoly, clippedpolynum, p, num, r, n, y2);
+	clippedpolynum = helper_poly_clip_cap(clippedpoly, clippedpolynum, p, num, r, n, y1, 0 /*stepping false*/);
+	clippedpolynum = helper_poly_clip_cap(clippedpoly, clippedpolynum, p, num, r, n, y2, 0 /*stepping false*/);
     }
 
     /*find intersections of poly with cylinder side*/
@@ -362,10 +377,20 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
     /*calculate farthest point from the "n" plane passing through the origin */
     for(i = 0; i < clippedpolynum; i++) {
 	double disp = vecdot(&clippedpoly[i],&n) - polydisp;
-	if(disp < get_poly_mindisp) get_poly_mindisp = disp;
+	if(disp < get_poly_mindisp) {
+	    get_poly_mindisp = disp;
+//	    mindisp_clippedpolyi = i;
+	}	
     }
     if(get_poly_mindisp <= 0.) {
-	vecscale(&result,&n,get_poly_mindisp);
+/*	if(clippedpoly[mindisp_clippedpolyi].y <= ystep && clippedpoly[mindisp_clippedpolyi].y > y1) {
+	    //stepping;
+	    result.x = 0;
+	    result.y = clippedpoly[mindisp_clippedpolyi].y - ystep;
+	    result.z = 0;
+	    get_poly_mindisp = result.y;
+	    } else*/
+	    vecscale(&result,&n,get_poly_mindisp);
     } else
 	result = zero;
 
@@ -375,16 +400,102 @@ struct pt get_poly_normal_disp(double y1, double y2, double r, struct pt* p, int
     return result;
 }
   
+struct pt get_poly_step_disp(double y1, double y2, double r, struct pt* p, int num, struct pt n) {
+    int i;
+    int allin = 1;
+    double dmax = -1E99;
+    double pmax = -1E99;
+    struct pt result;
+
+    struct pt* clippedpoly;
+    int clippedpolynum = 0;
+    static const struct pt zero = {0,0,0};
+//    int mindisp_clippedpolyi;
+
+    get_poly_mindisp = 1E90;
+    
+#ifdef DEBUGFACEMASK
+    printf("facemask = %d, debugsurface = %d\n",facemask,debugsurface);
+    if((facemask & (1 <<debugsurface++)) ) return zero;
+#endif
+
+    /*if normal not specified, calculate it */
+    if(n.x == 0 && n.y == 0 && n.z == 0) {
+	polynormal(&n,&p[0],&p[1],&p[2]);
+    }
+
+    /*get highest point (not nessesarily inside)*/
+    for(i = 0; i < num; i++) {
+	if(p[i].y > pmax)
+	    pmax = p[i].y;
+    }
+    if(((pmax > y2 || n.y < 0) && n.y < STEPUP_MAXINCLINE)) /*to high to step on and to steep to step on or facing downward*/
+	return zero;
+	
+
+    /*allocate data */
+    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (num*3+4));
+
+    clippedpolynum = helper_poly_clip_cap(clippedpoly, clippedpolynum, p, num, r, n, y1, 1 /*stepping true*/ );
+    
+#ifdef DEBUGPTS
+    for(i=0; i < clippedpolynum; i++) {
+	debugpts.push_back(clippedpoly[i]);
+    }
+#endif
+
+    /*get maximum*/
+    for(i = 0; i < clippedpolynum; i++) {
+	if(clippedpoly[i].y > dmax)
+	    dmax = clippedpoly[i].y;
+    }
+
+    /*free alloc'd data */
+    free(clippedpoly);
+
+    /*diplace only if displacement completely clears polygon*/
+    if(dmax > y2) 
+	return zero;
+    
+    get_poly_mindisp = y1-dmax;
+    
+    if(dmax > y1) {
+	result.x = 0;
+	result.y = get_poly_mindisp;
+	result.z = 0;
+	return result;
+    } else
+	return zero;
+
+}
+
+struct pt get_poly_disp(double y1, double y2, double ystep, double r, struct pt* p, int num, struct pt n) {
+    struct pt result;
+    result = get_poly_step_disp(y1,ystep,r,p,num,n);
+    if(result.y != 0.) 
+	return result;
+    else 
+	return get_poly_normal_disp(y1,y2,r,p,num,n);
+}
+
+
+
+
 /*used by get_line_normal_disp to clip the polygon on the cylinder caps, called twice*/
-int helper_line_clip_cap(struct pt* clippedpoly, int clippedpolynum, struct pt p1, struct pt p2, double r, struct pt n, double y)
+int helper_line_clip_cap(struct pt* clippedpoly, int clippedpolynum, struct pt p1, struct pt p2, double r, struct pt n, double y, int stepping)
 {
     struct pt ppoly[2];
     int allin = 1;
     int i;
 
-    /*sqush poly on cylinder cap plane.*/
-    ppoly[0] = project_on_yplane(p1,n,y);
-    ppoly[1] = project_on_yplane(p2,n,y);
+    if(!stepping) {
+	/*sqush poly on cylinder cap plane.*/
+	ppoly[0] = project_on_yplane(p1,n,y);
+	ppoly[1] = project_on_yplane(p2,n,y);
+    } else {
+	ppoly[0] = p1;
+	ppoly[1] = p2;
+    }
 
     /*find points of poly hitting cylinder cap*/
     for(i= 0; i < 2; i++) {
@@ -407,6 +518,8 @@ int helper_line_clip_cap(struct pt* clippedpoly, int clippedpolynum, struct pt p
 	nsect = getk_intersect_segment_with_ycylinder(&k1,&k2,r,ppoly[0],ppoly[1]);
 	switch(nsect) {
 	case 2:
+	    if(fabs(k1-k2) < FLOAT_TOLERANCE) // segment touches edge of circle. we want to ignore this.
+		break;
 	    clippedpoly[clippedpolynum++] = weighted_sum(ppoly[0],ppoly[1],k2);
 	case 1: 
 	    clippedpoly[clippedpolynum++] = weighted_sum(ppoly[0],ppoly[1],k1);
@@ -453,8 +566,8 @@ struct pt get_line_normal_disp(double y1, double y2, double r, struct pt p1, str
 
     /* clip line on top and bottom cap */
     if(n.y!= 0.) {
-	clippedpolynum = helper_line_clip_cap(clippedpoly, clippedpolynum, p1, p2, r, n, y1);
-	clippedpolynum = helper_line_clip_cap(clippedpoly, clippedpolynum, p1, p2, r, n, y2);
+	clippedpolynum = helper_line_clip_cap(clippedpoly, clippedpolynum, p1, p2, r, n, y1, 0);
+	clippedpolynum = helper_line_clip_cap(clippedpoly, clippedpolynum, p1, p2, r, n, y2, 0);
     }
 
     /*find intersections of line with cylinder side*/
@@ -475,24 +588,31 @@ struct pt get_line_normal_disp(double y1, double y2, double r, struct pt p1, str
 
 	} 
 	{ /*find intersections on cylinder of polygon points projected on surface */
-	    struct pt sect;
+	    struct pt sect[2];
 	    for(i = 0; i < num; i++) {
 		nsect = getk_intersect_line_with_ycylinder(&k1, &k2, r, p[i], n);
 		if(nsect == 0) continue;
 
 		/*sect = p[i] + k2 n*/
-		vecscale(&sect,&n,k2);
-		VECADD(sect,p[i]);
-		    
-		if(sect.y > y1 && sect.y < y2) {
-		    clippedpoly[clippedpolynum++] = sect;
-		}
+		vecscale(&sect[i],&n,k2);
+		VECADD(sect[i],p[i]);
+
+		if(sect[i].y > y1 && sect[i].y < y2) {
+		    clippedpoly[clippedpolynum++] = sect[i];
+		}	
 	    } 
+	    /*case where vertical line passes through cylinder, but no edges are inside */
+	    if( (n.y == 0.) && (
+	       (sect[0].y <= y1 && sect[1].y >= y2) ||
+	       (sect[1].y <= y1 && sect[0].y >= y2) )) {
+		sect[0].y = (y1+y2)/2;
+		    clippedpoly[clippedpolynum++] = sect[0];
+	    }
 	}
 
     }
 
-#ifdef DEBUGPTS_COMMENT
+#ifdef DEBUGPTS
     for(i=0; i < clippedpolynum; i++) {
 	debugpts.push_back(clippedpoly[i]);
     }
@@ -511,12 +631,87 @@ struct pt get_line_normal_disp(double y1, double y2, double r, struct pt p1, str
     return result;
 }
   
+struct pt get_line_step_disp(double y1, double y2, double r, struct pt p1, struct pt p2, struct pt n) {
+    int i;
+    int allin = 1;
+    double dmax = -1E99;
+    struct pt result;
+
+    struct pt* clippedpoly;
+    int clippedpolynum = 0;
+    static const struct pt zero = {0,0,0};
+//    int mindisp_clippedpolyi;
+
+    get_poly_mindisp = 1E90;
+    
+#ifdef DEBUGFACEMASK
+    printf("facemask = %d, debugsurface = %d\n",facemask,debugsurface);
+    if((facemask & (1 <<debugsurface++)) ) return zero;
+#endif
+
+    if((p1.y > y2 || p2.y > y2 || n.y < 0) && n.y < STEPUP_MAXINCLINE) /*to high to step on and to steep to step on or facing downwards*/
+	return zero;
+
+    /*allocate data */
+    clippedpoly = (struct pt*) malloc(sizeof(struct pt) * (10));
+
+    clippedpolynum = helper_line_clip_cap(clippedpoly, clippedpolynum, p1, p2, r, n, y1,1 );
+    
+#ifdef DEBUGPTS
+    for(i=0; i < clippedpolynum; i++) {
+	debugpts.push_back(clippedpoly[i]);
+    }
+#endif
+
+    /*get maximum*/
+    for(i = 0; i < clippedpolynum; i++) {
+	if(clippedpoly[i].y > dmax)
+	    dmax = clippedpoly[i].y;
+    }
+
+    /*free alloc'd data */
+    free(clippedpoly);
+
+    /*diplace only if displacement completely clears line*/
+    if(dmax > y2) 
+	return zero;
+    
+    get_poly_mindisp = y1-dmax;
+    
+    if(dmax > y1) {
+	result.x = 0;
+	result.y = get_poly_mindisp;
+	result.z = 0;
+	return result;
+    } else
+	return zero;
+
+}
+
+struct pt get_line_disp(double y1, double y2, double ystep, double r, struct pt p1, struct pt p2, struct pt n) {
+    struct pt result;
+    result = get_line_step_disp(y1,ystep,r,p1,p2,n);
+    if(result.y != 0.) 
+	return result;
+    else 
+	return get_line_normal_disp(y1,y2,r,p1,p2,n);
+}
 
 struct pt get_point_normal_disp(double y1, double y2, double r, struct pt p1, struct pt n) {
+    return get_point_disp(y1,y2,y1,r,p1,n);
+}
+
+struct pt get_point_disp(double y1, double y2, double ystep, double r, struct pt p1, struct pt n) {
     double y;
-    struct pt result;
+    struct pt result = {0,0,0};
     struct pt cp;
     static const struct pt zero = {0,0,0};
+
+    /*check if stepup.*/
+    if((p1.y <= ystep && p1.y > y1 && p1.x*p1.x + p1.z*p1.z < r*r) && (n.y > STEPUP_MAXINCLINE) /*to steep to step on*/) {
+	result.y = y1-p1.y;
+	return result;
+    }
 
     /*select relevant cap*/
     y = (n.y < 0.) ? y2 : y1;
@@ -524,7 +719,7 @@ struct pt get_point_normal_disp(double y1, double y2, double r, struct pt p1, st
     /*check if intersect cap*/
     if(n.y != 0) {
 	cp = project_on_yplane(p1,n,y);
-	if(cp.x*cp.x + cp.z*cp.z <= r*r) {
+	if(cp.x*cp.x + cp.z*cp.z < r*r) {
 	    VECDIFF(cp,p1,result);
 	    return result;
 	}
@@ -554,7 +749,7 @@ struct pt get_point_normal_disp(double y1, double y2, double r, struct pt p1, st
 }
   
 
-struct pt box_disp(double y1, double y2, double r,struct pt p0, struct pt i, struct pt j, struct pt k) {
+struct pt box_disp(double y1, double y2, double ystep, double r,struct pt p0, struct pt i, struct pt j, struct pt k) {
     struct pt p[8] = {p0,p0,p0,p0,p0,p0,p0,p0};
     struct pt n[6];
     struct pt mindispv = {0,0,0};
@@ -601,7 +796,7 @@ struct pt box_disp(double y1, double y2, double r,struct pt p0, struct pt i, str
 				 p[faces[ci][1]],
 				 p[faces[ci][2]],
 				 p[faces[ci][3]] };
-	    struct pt dispv = get_poly_normal_disp(y1,y2,r,pts,4,n[ci]);
+	    struct pt dispv = get_poly_disp(y1,y2,ystep,r,pts,4,n[ci]);
 	    double disp = vecdot(&dispv,&dispv);
 	       
 	    /*get minimal displacement*/
@@ -649,7 +844,7 @@ int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct pt pce
 
 /*algorithm is approximative */
 /*basically, it does collision with a triangle on a plane that passes through the origin.*/
-struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt top, double baseradius) {
+struct pt cone_disp(double y1, double y2, double ystep, double r, struct pt base, struct pt top, double baseradius) {
 
     struct pt i; //cone axis vector
     double h; //height of cone
@@ -659,6 +854,7 @@ struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt to
     struct pt normalbase; //collision normal of base (points downwards)
     struct pt normalside; //collision normal of side (points outside)
     struct pt normaltop; //collision normal of top (points up)
+    struct pt bn_normal; //bn, normalized;
     struct pt mindispv= {0,0,0};
     double mindisp = 1E99;
 
@@ -676,6 +872,7 @@ struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt to
 	struct pt tmpj;
 	vecnormal(&tmpn,&tmpn);
 	make_orthogonal_vector_space(&bn,&tmpj,tmpn);
+	bn_normal = bn;
     }
     vecscale(&side,&bn,baseradius);
     VECADD(side,base);
@@ -695,22 +892,28 @@ struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt to
 	struct pt dispv;
 	double disp;
 
-	dispv = get_line_normal_disp(y1,y2,r,top,side,normalside);
-	disp = vecdot(&dispv,&dispv);
-	if(disp < mindisp)
-	    mindispv = dispv, mindisp = disp;
+	if( vecdot(&normalside,&top) < 0. ) {
+	    dispv = get_line_disp(y1,y2,ystep,r,top,side,normalside);
+	    disp = vecdot(&dispv,&dispv);
+	    if(disp < mindisp)
+		mindispv = dispv, mindisp = disp;
+	}
 
-	dispv = get_line_normal_disp(y1,y2,r,base,side,normalbase);
-	disp = vecdot(&dispv,&dispv);
-	if(disp < mindisp)
-	    mindispv = dispv, mindisp = disp;
+	if( vecdot(&normalbase,&base) < 0. ) {
+	    dispv = get_line_disp(y1,y2,ystep,r,base,side,normalbase);
+	    disp = vecdot(&dispv,&dispv);
+	    if(disp < mindisp)
+		mindispv = dispv, mindisp = disp;
+	}
 
-	dispv = get_point_normal_disp(y1,y2,r,top,normaltop);
-	disp = vecdot(&dispv,&dispv);
-	/*i don't like "disp !=0." there should be a different condition for
-	 * non applicability.*/
-	if(disp != 0. && disp < mindisp) 
-	    mindispv = dispv, mindisp = disp;
+	if( vecdot(&normaltop,&top) < 0. ) {
+	    dispv = get_point_disp(y1,y2,ystep,r,top,normaltop);
+	    disp = vecdot(&dispv,&dispv);
+	    /*i don't like "disp !=0." there should be a different condition for
+	     * non applicability.*/
+	    if(disp != 0. && disp < mindisp) 
+		mindispv = dispv, mindisp = disp;
+	}
     }
 
     return mindispv;
@@ -719,7 +922,7 @@ struct pt cone_disp(double y1, double y2, double r, struct pt base, struct pt to
 
 /*algorithm is approximative */
 /*basically, it does collision with a rectangle on a plane that passes through the origin.*/
-struct pt cylinder_disp(double y1, double y2, double r, struct pt base, struct pt top, double baseradius) {
+struct pt cylinder_disp(double y1, double y2, double ystep, double r, struct pt base, struct pt top, double baseradius) {
 
     struct pt i; //cone axis vector
     double h; //height of cone
@@ -763,30 +966,36 @@ struct pt cylinder_disp(double y1, double y2, double r, struct pt base, struct p
 	struct pt dispv;
 	double disp;
 
-	dispv = get_line_normal_disp(y1,y2,r,sidetop,sidebase,normalside);
+	if( vecdot(&normalside,&sidetop) < 0. ) {
+	    dispv = get_line_disp(y1,y2,ystep,r,sidetop,sidebase,normalside);
 //	  printf("dispv_side (%f,%f,%f)\n",dispv.x,dispv.y,dispv.z);
-	disp = vecdot(&dispv,&dispv);
-	if(disp < mindisp)
-	    mindispv = dispv, mindisp = disp;
+	    disp = vecdot(&dispv,&dispv);
+	    if(disp < mindisp)
+		mindispv = dispv, mindisp = disp;
+	}
 
-	dispv = get_line_normal_disp(y1,y2,r,base,sidebase,normalbase);
+	if( vecdot(&normalbase,&base) < 0. ) {
+	    dispv = get_line_disp(y1,y2,ystep,r,base,sidebase,normalbase);
 //	  printf("dispv_base (%f,%f,%f)\n",dispv.x,dispv.y,dispv.z);
-	disp = vecdot(&dispv,&dispv);
-	if(disp < mindisp)
-	    mindispv = dispv, mindisp = disp;
+	    disp = vecdot(&dispv,&dispv);
+	    if(disp < mindisp)
+		mindispv = dispv, mindisp = disp;
+	}
 
-	dispv = get_line_normal_disp(y1,y2,r,top,sidetop,normaltop);
+	if( vecdot(&normaltop,&top) < 0. ) {
+	    dispv = get_line_disp(y1,y2,ystep,r,top,sidetop,normaltop);
 //	  printf("dispv_top (%f,%f,%f)\n",dispv.x,dispv.y,dispv.z);
-	disp = vecdot(&dispv,&dispv);
-	if( disp < mindisp) 
-	    mindispv = dispv, mindisp = disp;
+	    disp = vecdot(&dispv,&dispv);
+	    if( disp < mindisp) 
+		mindispv = dispv, mindisp = disp;
+	}
     }
 
     return mindispv;
 }
 
 
-struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* pr, struct pt* n, /*struct pt inv,*/ struct pt dispsum, prflags flags) {
+struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct VRML_PolyRep* pr, struct pt* n, /*struct pt inv,*/ struct pt dispsum, prflags flags) {
     struct pt p[3];
     double mindisp = 1E99;
     struct pt mindispv = {0,0,0};
@@ -826,12 +1035,12 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 	    
 //	    printf("frontfacing : %d\n",frontfacing);
 	    if(frontfacing) {
-		dispv = get_poly_normal_disp(y1,y2,r, p, 3, n[i]);
+		dispv = get_poly_disp(y1,y2,ystep,r, p, 3, n[i]);
 	    } else { /*can only be true in DoubleSided mode*/
 		struct pt ninv;
 		/*reverse polygon orientation, and do calculations*/
 		vecscale(&ninv,&n[i],-1);
-		dispv = get_poly_normal_disp(y1,y2,r, p, 3, ninv);
+		dispv = get_poly_disp(y1,y2,ystep,r, p, 3, ninv);
 	    }
 	    disp = -get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
 
@@ -880,7 +1089,7 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 	    }
 	}
 
-	return polyrep_disp_rec(y1, y2, r, pr, n, dispsum, flags);
+	return polyrep_disp_rec(y1, y2, ystep, r, pr, n, dispsum, flags);
     } else /*end condition satisfied */
     {
 #ifdef DEBUGPTS
@@ -893,7 +1102,7 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 }
 
 
-#ifdef DEBUGPTS
+#ifndef DEBUGPTS
 void printpolyrep(struct VRML_PolyRep pr, int npoints) {
     int i;
     printf("VRML_PolyRep makepolyrep() {\n");
@@ -928,7 +1137,7 @@ void printmatrix(GLdouble* mat) {
 
 
 
-struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags) {
+struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags) {
     float* newc;
     struct pt* normals; 
     struct pt res ={0,0,0};
@@ -949,7 +1158,7 @@ struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, G
     }
     
     
-    res = polyrep_disp_rec(y1,y2,r,&pr,normals,res,flags);
+    res = polyrep_disp_rec(y1,y2,ystep,r,&pr,normals,res,flags);
 
     
     /*free! */
@@ -965,7 +1174,7 @@ struct pt polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, G
   Used for text.
   planar_polyrep_disp computes the normal using the first polygon, if no normal is specified (if it is zero).
 */
-struct pt planar_polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* pr, struct pt n, struct pt dispsum, prflags flags) {
+struct pt planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, struct VRML_PolyRep* pr, struct pt n, struct pt dispsum, prflags flags) {
     struct pt p[3];
     double lmaxdisp = 0;
     struct pt maxdispv = {0,0,0};
@@ -998,7 +1207,7 @@ struct pt planar_polyrep_disp_rec(double y1, double y2, double r, struct VRML_Po
 	p[2].y = pr->coord[pr->cindex[i*3+2]*3+1]  +dispsum.y;
 	p[2].z = pr->coord[pr->cindex[i*3+2]*3+2]  +dispsum.z;
 	    
-	dispv = get_poly_normal_disp(y1,y2,r, p, 3, n);
+	dispv = get_poly_disp(y1,y2,ystep, r, p, 3, n);
 	disp = -get_poly_mindisp; /*global variable. was calculated inside poly_normal_disp already. */
 
 #ifdef DEBUGPTS
@@ -1027,7 +1236,7 @@ struct pt planar_polyrep_disp_rec(double y1, double y2, double r, struct VRML_Po
 }
 
 
-struct pt planar_polyrep_disp(double y1, double y2, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags, struct pt n) {
+struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags, struct pt n) {
     float* newc;
     struct pt res ={0,0,0};
     int i;
@@ -1045,7 +1254,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double r, struct VRML_PolyRe
 	polynormalf(&n,&pr.coord[pr.cindex[0]*3],&pr.coord[pr.cindex[1]*3],&pr.coord[pr.cindex[2]*3]);
     }
     
-    res = planar_polyrep_disp_rec(y1,y2,r,&pr,n,res,flags);
+    res = planar_polyrep_disp_rec(y1,y2,ystep,r,&pr,n,res,flags);
 
     
     /*free! */
@@ -1060,7 +1269,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double r, struct VRML_PolyRe
 
 
 
-struct pt elevationgrid_disp( double y1, double y2, double r, struct VRML_PolyRep pr, 
+struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, struct VRML_PolyRep pr, 
 			      int xdim, int zdim, double xs, double zs, GLdouble* mat, prflags flags) {
     struct pt orig;
     int x1,x2,z1,z2;
@@ -1132,7 +1341,7 @@ struct pt elevationgrid_disp( double y1, double y2, double r, struct VRML_PolyRe
 		if((flags & PR_DOUBLESIDED) || frontfacing) {
 		    if(!frontfacing) vecscale(&normal,&normal,-1);
 		    
-		    pd = get_poly_normal_disp(y1,y2,r, tris+(i*3), 3, normal);
+		    pd = get_poly_disp(y1,y2,ystep,r, tris+(i*3), 3, normal);
 		    if(pd.x != 0. || pd.y != 0. || pd.z != 0.) {
 			double l2;
 			if(frontfacing) {

@@ -1934,6 +1934,7 @@ Viewpoint => new VRML::NodeType("Viewpoint",
 
 		$t->{BackEnd}->bind_viewpoint($t,
 			($revealed?$t->{VP_Info}:undef));
+		VRML::VRMLFunc::reset_upvector();
 	},
 	WhenUnBound => sub {
 		my($t,$scene) = @_;

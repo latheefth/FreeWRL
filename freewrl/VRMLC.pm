@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.65  2002/08/14 17:43:34  ncoder
+# Stepping code
+#
 # Revision 1.64  2002/08/08 17:03:05  ncoder
 # Added Text collision
 # Added ElevationGrid collision
@@ -1063,6 +1066,7 @@ struct sNaviInfo {
         double height;
         double step;
 };
+
 ';
 
 
@@ -1164,8 +1168,11 @@ struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
 /* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
 struct pt ViewerDelta = {0,0,0}; 
 
-/*dimentions of viewer (for collision detection) */
+/*dimentions of viewer, and "up" vector (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
+
+/*for alignment of collision cylinder, and gravity (later). */
+struct pt ViewerUpvector = {0,0,0};
 
 /* These two points define a ray in window coordinates */
 
@@ -1706,6 +1713,13 @@ CODE:
 	naviinfo.height = height;
 	naviinfo.step = step;
 
+void
+reset_upvector()
+CODE:
+    ViewerUpvector.x = 0;
+    ViewerUpvector.y = 0;
+    ViewerUpvector.z = 0;
+
 int
 get_hits(ptr)
 	void *ptr
@@ -1781,6 +1795,19 @@ CODE:
 			if(verbose) printf("RAY HIT!\n");
 		}
 	}
+
+	/*get viewpoint result, only for upvector*/
+	if(render_vp && ViewerUpvector.x == 0 && ViewerUpvector.y == 0 && ViewerUpvector.z == 0) {
+ 		struct pt upvec = {0,1,0};
+		GLdouble modelMatrix[16];
+		/*store up vector for gravity and collision detection */
+		/*naviinfo.reset_upvec is set to 1 after a viewpoint change*/
+		glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		matinverse(modelMatrix,modelMatrix);
+		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
+		if(verbose) printf("ViewerUpvector = (%f,%f,%f)\n",ViewerUpvector);
+	}
+
 
 void *
 get_rayhit(x,y,z,nx,ny,nz,tx,ty)

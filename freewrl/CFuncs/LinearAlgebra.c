@@ -227,7 +227,13 @@ void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
 
 GLdouble* matinverse(GLdouble* res, GLdouble* m)
 {
-    double Deta;
+    double Deta;	
+    GLdouble mcpy[16];
+
+    if(res == m) {
+	memcpy(mcpy,m,sizeof(GLdouble)*16);
+	m = mcpy;
+    }
 
     Deta = det3x3(m);
 
@@ -346,6 +352,29 @@ GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n)
 
     return r;
 }
+
+/*puts dv back on iv*/
+double matrotate2v(GLdouble* res, struct pt iv/*original*/, struct pt dv/*result*/) {
+    struct pt cv;
+    double cvl,a;
+    static const GLdouble ident[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+
+    vecnormal(&dv,&dv);
+    vecnormal(&iv,&iv);
+
+    veccross(&cv,dv,iv); /*the axis of rotation*/
+    cvl = vecnormal(&cv,&cv);
+    if(cvl == 0) {
+	cv.z = 1;
+	}
+
+    a = atan2(cvl,vecdot(&dv,&iv)); /*the angle*/
+
+    matrotate(res,a,cv.x,cv.y,cv.z);
+    return a;
+}
+
+
 
 
 #ifdef COMMENT

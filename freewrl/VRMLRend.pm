@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.76  2002/08/14 17:43:34  ncoder
+# Stepping code
+#
 # Revision 1.75  2002/08/08 17:56:13  ncoder
 # small mistake corrected : forgot to enable doublesided mode when IndexFaceSets not solid.
 #
@@ -1594,7 +1597,6 @@ Viewpoint => (join '','
 		}
 
 
-
 		if(verbose) {
 			glGetIntegerv(GL_VIEWPORT, vp);
 			if(vp[2] > vp[3]) {
@@ -2256,6 +2258,7 @@ Sphere => q~
 	       struct pt p_orig; /*projected transformed origin */ 
 	       struct pt n_orig; /*normal(unit length) transformed origin */
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       GLdouble dist2;
 	       struct pt tmppt;
 	       struct pt delta = {0,0,0};
@@ -2264,13 +2267,21 @@ Sphere => q~
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
+	       struct pt tupv = {0,1,0};
 	       struct pt dir;
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
 	       t_orig.x = modelMatrix[12];
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
@@ -2375,6 +2386,7 @@ Sphere => q~
 	       }
 
 
+	       transform3x3(&delta,&delta,upvecmat);
 	       accumulate_disp(&CollisionInfo,delta);
 
 	       if(verbose_collision && (delta.x != 0. || delta.y != 0. || delta.z != 0.)) 
@@ -2390,10 +2402,12 @@ Box => q~
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       struct pt iv = {$f(size,0),0,0};
 	       struct pt jv = {0,$f(size,1),0};
 	       struct pt kv = {0,0,$f(size,2)};
@@ -2402,9 +2416,15 @@ Box => q~
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 
 	       struct pt delta;
+	       struct pt tupv = {0,1,0};
 	       
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
@@ -2421,11 +2441,11 @@ Box => q~
 	       transform3x3(&jv,&jv,modelMatrix);
 	       transform3x3(&kv,&kv,modelMatrix);
 
-	       
 
-	       delta = box_disp(abottom,atop,awidth,ov,iv,jv,kv);
+	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
 	       
 	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
 	       
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -2448,22 +2468,30 @@ Cone => q~
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
 		float h = $f(height)/2;
 		float r = $f(bottomRadius); 
 
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       struct pt iv = {0,h,0};
 	       struct pt jv = {0,-h,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 
 	       struct pt delta;
+	       struct pt tupv = {0,1,0};
 	       
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
@@ -2478,9 +2506,10 @@ Cone => q~
 	       transform(&iv,&iv,modelMatrix);
 	       transform(&jv,&jv,modelMatrix);
 
-	       delta = cone_disp(abottom,atop,awidth,jv,iv,scale*r);
+	       delta = cone_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
 	       
 	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
 	       
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -2503,22 +2532,30 @@ Cylinder => q~
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
 		float h = $f(height)/2;
 		float r = $f(radius); 
 
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       struct pt iv = {0,h,0};
 	       struct pt jv = {0,-h,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 
+	       struct pt tupv = {0,1,0};
 	       struct pt delta;
 	       
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
 
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
@@ -2534,9 +2571,10 @@ Cylinder => q~
 	       transform(&jv,&jv,modelMatrix);
 
 
-	       delta = cylinder_disp(abottom,atop,awidth,jv,iv,scale*r);
+	       delta = cylinder_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
 	       
 	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
 	       
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -2557,9 +2595,11 @@ Cylinder => q~
 
 IndexedFaceSet => q~
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       struct SFColor *points; int npoints;
 	       int i;
 
@@ -2567,6 +2607,7 @@ IndexedFaceSet => q~
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
+	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
 
 	       struct VRML_PolyRep pr;
@@ -2590,6 +2631,11 @@ IndexedFaceSet => q~
 
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
 	       t_orig.y = modelMatrix[13];
@@ -2603,13 +2649,15 @@ IndexedFaceSet => q~
 		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
 	       }*/
 	       pr.coord = (void*)points;
-	       delta = polyrep_disp(abottom,atop,awidth,pr,modelMatrix,flags);
+	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
 	       
 	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
 	       
 	       accumulate_disp(&CollisionInfo,delta);
 
 	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+/*		   printmatrix(modelMatrix);*/
 		   fprintf(stderr,"COLLISION_IFS: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
@@ -2623,9 +2671,11 @@ Extrusion => q~
 
 
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       struct SFColor *points; int npoints;
 	       int i;
 
@@ -2633,6 +2683,7 @@ Extrusion => q~
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
+	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
 
 	       struct VRML_PolyRep pr;
@@ -2653,6 +2704,11 @@ Extrusion => q~
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
 	       t_orig.y = modelMatrix[13];
@@ -2664,9 +2720,10 @@ Extrusion => q~
 	       for(i = 0; i < pr.ntri; i++) {
 		   printf("cindex[%d]=%d\n",i,pr.cindex[i]);
 	       }*/
-	       delta = polyrep_disp(abottom,atop,awidth,pr,modelMatrix,flags);
+	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
 	       
 	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
 	       
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -2683,15 +2740,18 @@ Extrusion => q~
 #Extrusion => '',
 Text => q~
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       int i;
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
+	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
 
 	       struct VRML_PolyRep pr;
@@ -2708,15 +2768,21 @@ Text => q~
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 /*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
 	            
-	       delta = planar_polyrep_disp(abottom,atop,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); /*delta used as zero*/
+	       delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); /*delta used as zero*/
 	       
 	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
 	       
 	       accumulate_disp(&CollisionInfo,delta);
 
@@ -2732,15 +2798,18 @@ Text => q~
 #Text => '',
 ElevationGrid => q~
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.height * 1./3; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = naviinfo.height * -2./3.; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16]; 
+	       GLdouble upvecmat[16]; 
 	       int i;
 
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
+	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
 
 	       struct VRML_PolyRep pr;
@@ -2760,6 +2829,11 @@ ElevationGrid => q~
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
 	       /* values for rapid test */
 	       t_orig.x = modelMatrix[12];
 	       t_orig.y = modelMatrix[13];
@@ -2767,9 +2841,10 @@ ElevationGrid => q~
 /*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
 	            
 
-	       delta = elevationgrid_disp(abottom,atop,awidth,pr,$f(xDimension),$f(zDimension),$f(xSpacing),$f(zSpacing),modelMatrix,flags);
+	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,$f(xDimension),$f(zDimension),$f(xSpacing),$f(zSpacing),modelMatrix,flags);
 	       
 	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
 	       
 	       accumulate_disp(&CollisionInfo,delta);
 
