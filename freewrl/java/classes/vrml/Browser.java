@@ -2,7 +2,7 @@ package vrml;
 
 public class Browser 
 {
-   private Browser() {}
+   Browser() {}
    public String toString() {return "";}   // This overrides a method in Object
 
    // Browser interface

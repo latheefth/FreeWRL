@@ -9,19 +9,7 @@ import vrml.*;
 //
 public abstract class Script extends BaseNode
 { 
-   Hashtable fields;
-   Hashtable fieldkinds;
-   Hashtable fieldtypes; 
-
-   public Script() { fields = new Hashtable(); fieldkinds = new Hashtable();
-   	fieldtypes = new Hashtable(); }
-   public void add_field(String kind, String type, String name, Field f) {
-   	fields.put(name,f);
-	fieldkinds.put(name,kind);
-	fieldtypes.put(name,type);
-   }
-   public String get_field_type(String name) {
-   	return (String)fieldtypes.get(name);
+   public Script() { 
    }
 
    // This method is called before any event is generated
@@ -31,7 +19,7 @@ public abstract class Script extends BaseNode
    //   Throws an InvalidFieldException if fieldName isn't a valid
    //   field name for a node of this type.
    protected final Field getField(String fieldName) {
-   	return (Field)fields.get(fieldName);
+       return FWJavaScript.getField(this, fieldName, "field");
    }
 
    // Get an EventOut by name.
@@ -39,14 +27,18 @@ public abstract class Script extends BaseNode
    //   eventOut name for a node of this type.
    // spec: protected
    public final Field getEventOut(String eventOutName) {
-	return (Field)fields.get(eventOutName);
+       return FWJavaScript.getField(this, eventOutName, "eventOut");
    }
 
    // Get an EventIn by name.
    //   Throws an InvalidEventInException if eventInName isn't a valid
    //   eventIn name for a node of this type.
    protected final Field getEventIn(String eventInName) {
-	return (Field)fields.get(eventInName);
+       try {
+	   return FWJavaScript.getField(this, eventInName, "eventIn");
+       } catch (InvalidFieldException ex) {
+	   throw new InvalidEventInException(ex.getMessage());
+       }
    }
 
    // processEvents() is called automatically when the script receives 
@@ -63,8 +55,6 @@ public abstract class Script extends BaseNode
 
    // shutdown() is called when this Script node is deleted.
    public void shutdown() { }
-
-   public String toString() { return ""; }   // This overrides a method in Object
 }
 
 

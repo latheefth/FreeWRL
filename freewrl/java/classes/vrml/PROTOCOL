@@ -1,5 +1,7 @@
 # The protocol between the script processor and the rest of the browser:
 
+# WARNING:  The protocol is work in progress and may change at any time.
+
 # Format of a request 1 thing per line:
 
 
@@ -8,24 +10,8 @@
 NEWSCRIPT
 __id__
 type
-(nfields)
-eventIn/eventOut/field
-fieldType1
-fieldName1
-fieldValue1  # field only
-...
-
-
-SETFIELD
-__id__
-fieldName
-value (all on one line)
 
 INITIALIZE
-__id__
-__reqid
-
-EVENTSPROCESSED
 __id__
 __reqid
 
@@ -36,9 +22,35 @@ fieldName
 value 
 timestamp
 
+EVENTSPROCESSED
+__id__
+__reqid
+
+# This is currently unused, the client has to ask for the current value.
+# Note that SENDEVENT does something similar.
+SETFIELD
+__id__
+fieldName
+value (all on one line)
+
 
 
 # Script can send
+
+# Ask if a field is present:
+GETFIELD
+__id__
+fieldName
+fieldKind (exposedField, field, eventIn, eventOut)
+# The server will immediately answer with
+fieldType (SF...)
+
+# Read value of a field
+READFIELD
+__id__
+fieldName
+# The server will immediately answer with
+value
 
 SENDEVENT
 __id__
@@ -48,16 +60,20 @@ value
 FINISHED
 __reqid
 
-# In the future, for Nodes (direct access):
-GETNODEID
-__id__
-fieldName
-GETNODEIDS
-__id__
-fieldName
-RELEASENODE
-__id__
 
--- expects a return of NODEID __id__ fieldName __id2__ or
- NODEIDS __id__ fieldName (number) __id2__ __id3__ ...
-- 
+###############################################################
+
+value format (regular expressions):
+
+SFBool:     1 or 0
+SFColor:    float float float
+SFFloat:    float
+SFImage:    <not specified yet>
+SFInt32:    int
+SFNode:     String "VRML::Node=(0x12345678)"
+SFRotation: float float float float
+SFString:   base64encoded UTF8 string (without whitespaces)
+SFTime:     double
+SFVec2f:    float float
+SFVec3f:    float float float
+MFxxx:      value,value,...,value  (where value encoded as in SFxxx)

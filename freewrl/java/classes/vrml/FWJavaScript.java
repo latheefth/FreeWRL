@@ -3,49 +3,56 @@ import java.lang.reflect.*;
 import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.Stack;
+import java.util.Enumeration;
 import vrml.*;
 import vrml.node.*;
 
 public final class FWJavaScript {
-	static Stack touched = new Stack();
-	static PrintWriter out;
-	static LineNumberReader in;
-	public static void add_touched(FWJavaScriptBinding b) {
-		System.err.println("add_touched\n");
-		touched.push(b);
+    static Hashtable touched = new Hashtable();
+    static PrintWriter out;
+    static LineNumberReader in;
+    static Browser theBrowser = new Browser();
+    static String reqid;
+    
+
+    public static void add_touched(Field f) {
+	touched.put(f, Boolean.TRUE);
+    }
+
+    public static void send_touched(String reqid) {
+	// System.err.println("send_touched\n");
+	Enumeration e = touched.keys();
+	while(e.hasMoreElements()) {
+	    // System.err.println("send_touched one\n");
+	    Field val = (Field) e.nextElement();
+	    FWJavaScriptBinding b = val.__binding;
+	    BaseNode n = b.node();
+	    String f = b.field();
+	    String nodeid = n._get_nodeid();
+	    out.println("SENDEVENT");
+	    out.println(nodeid);
+	    out.println(f);
+	    out.println(val.__toPerl());
 	}
-	public static void send_touched(String reqid) {
-		System.err.println("send_touched\n");
-		while(!touched.empty()) {
-			System.err.println("send_touched one\n");
-			FWJavaScriptBinding b = (FWJavaScriptBinding)touched.pop();
-			BaseNode n = b.node();
-			String f = b.field();
-			String nodeid = n._get_nodeid();
-			out.println("SENDEVENT");
-			out.println(nodeid);
-			out.println(f);
-			String v = ((Script)n).getEventOut(f).toString();
-			out.println(v);
-		}
-		out.println("FINISHED");
-		out.println(reqid);
-		out.flush();
-	}
-	public static void main (String argv[]) 
-  	  throws ClassNotFoundException,
-		NoSuchMethodException,
-		InstantiationException,
-		IllegalAccessException,
-		InvocationTargetException,
-		Exception,
-		Throwable
-	 {
-		out = new PrintWriter(new FileOutputStream(".javapipej"));
-		in = new LineNumberReader(
-			new InputStreamReader(
-			new FileInputStream(".javapipep")));
+	touched.clear();
+	out.println("FINISHED");
+	out.println(reqid);
+	out.flush();
+    }
+
+    public static void main (String argv[]) 
+	throws ClassNotFoundException,
+	       NoSuchMethodException,
+	       InstantiationException,
+	       IllegalAccessException,
+	       InvocationTargetException,
+	       Exception,
+	       Throwable
+    {
+	out = new PrintWriter(System.out);
+	//new PrintWriter(new FileOutputStream(".javapipej")));
+	in = new LineNumberReader(new InputStreamReader(System.in));
+	//new LineNumberReader(new InputStreamReader(new FileInputStream(".javapipep")));
 	 	Hashtable scripts = new Hashtable();
 		// String dirname = argv[0];
 		// out.println("FWJavaScript says: Hello World! dirname is " + dirname);
@@ -60,13 +67,13 @@ public final class FWJavaScript {
 		System.err.println("Got a line:'"+ver+"'");
 		// Stupid handshake - just make sure about protocol.
 		// Change this often between versions.
-		if(!ver.equals("TJL XXX PERL-JAVA 0.00")) {
+		if(!ver.equals("TJL XXX PERL-JAVA 0.01")) {
 			throw new Exception(
 				"Wrong script version '"+ver+"'!"
 			);
 		}
 		System.err.println("Sending a line:'"+ver+"'");
-		out.println("TJL XXX JAVA-PERL 0.00");
+		out.println("TJL XXX JAVA-PERL 0.01");
 		System.err.println("Sent a line:'"+ver+"'");
 		out.flush();
 		String dir = in.readLine().trim();
@@ -76,8 +83,8 @@ public final class FWJavaScript {
 		out.flush();
 		while(true) {
 			String cmd = in.readLine();
-			System.err.println("got ");
-			System.err.println("--- "+cmd);
+			//System.err.println("got ");
+			//System.err.println("--- "+cmd);
 			cmd = cmd.trim();
 			String nodeid =	in.readLine().trim();
 			if(cmd.equals("NEWSCRIPT")) {
@@ -91,73 +98,33 @@ public final class FWJavaScript {
 				s._set_nodeid(nodeid);
 				System.err.println("GOt instance");
 				scripts.put(nodeid,s);
-				int nfields = 
-					new Integer(in.readLine().trim()).intValue(); 
-				for(int i=0; i<nfields; i++) {
-					System.err.println("GOt fieldid");
-					String fkind = in.readLine().trim();
-					String ftype = in.readLine().trim();
-					String fname = in.readLine().trim();
-					vrml.Field fval = null;
-					String cname = "vrml.field."+ftype;
-					System.err.println("CONS FIELD "+cname);
-					Class[] tmp = new Class[1];
-					tmp[0] = Class.forName("java.lang.String");
-					Constructor cons = 
-						Class.forName(cname).
-						 getConstructor(tmp);
-					System.err.println("GOt fieldcons");
-					Object[] tmpo = new Object[1]; 
-					if(fkind.equals("field")) {
-						String fs = in.readLine().trim();
-						tmpo[0] = fs;
-					} else {
-						tmpo[0] = null;
-					}
-					try {
-						fval = (vrml.Field)cons.newInstance(tmpo);
-					} catch(InvocationTargetException e) {
-						throw e.getTargetException();
-					}
-					if(fkind.equals("eventOut")) {
-						fval.bind_to(new FWJavaScriptBinding(
-							s, fname));
-					}
-					s.add_field(fkind,ftype,fname,fval);
-				}
 			} else if(cmd.equals("SETFIELD")) {
 			} else if(cmd.equals("INITIALIZE")) {
 				Script s = (Script)scripts.get(nodeid);
-				String reqid = in.readLine().trim();
+				reqid = in.readLine().trim();
 				s.initialize();
 				send_touched(reqid);
 			} else if(cmd.equals("EVENTSPROCESSED")) {
 				Script s = (Script)scripts.get(nodeid);
-				String reqid = in.readLine().trim();
+				reqid = in.readLine().trim();
 				s.eventsProcessed();
 				send_touched(reqid);
 			} else if(cmd.equals("SENDEVENT")) {
 				Script s = (Script)scripts.get(nodeid);
-				String reqid = in.readLine().trim();
+				reqid = in.readLine().trim();
 				String fname = in.readLine().trim();
-				String ftype = "vrml.field.Const" +
-					s.get_field_type(fname);
+				String ftype = in.readLine().trim();
 				String fs = in.readLine().trim();
-				Class tmpc[] = new Class[1];
-				tmpc[0] = Class.forName("java.lang.String");
 				Constructor cons = 
-					Class.forName(ftype).
-					 getConstructor(tmpc);
+					Class.forName("vrml.field.Const"+ftype).
+					 getConstructor(new Class[0]);
 				ConstField fval;
-				Object[] tmpo = new Object[1]; 
-				tmpo[0] = fs;
 				try {
-				fval = (vrml.ConstField)cons.newInstance(
-					tmpo
-				) ;
+				    fval = (vrml.ConstField)cons.newInstance(new Object[0]);
 				} catch(InvocationTargetException e) {
-					throw e.getTargetException();
+				    throw e.getTargetException();
 				}
+				fval.__fromPerl(fs);
 				double timestamp = new 
 				    Double(in.readLine().trim()).doubleValue();
 				Event ev = new Event(
@@ -178,4 +145,78 @@ public final class FWJavaScript {
 		}
 		
 	}
+
+    public static Field getField(BaseNode node, 
+				 String fieldname, String type) {
+	try {
+	    System.err.println("FWJ: "+node._get_nodeid()+".getField("+fieldname+")");
+	    out.println("GETFIELD");
+	    out.println(node._get_nodeid());
+	    out.println(fieldname);
+	    out.println(type);
+	    out.flush();
+	    
+	    String ftype = in.readLine().trim();
+	    if (ftype.equals("ILLEGAL"))
+		throw new InvalidFieldException(""+node._get_nodeid()+": "
+						+type+" "+fieldname);
+	    
+	    String cname = "vrml.field."+ftype;
+	    System.err.println("CONS FIELD "+cname);
+	    Constructor cons = Class.forName(cname)
+		.getConstructor(new Class[0]);
+	    System.err.println("GOt fieldcons");
+	    Field fval;
+	    try {
+		fval = (vrml.Field)cons.newInstance(new Object[0]);
+	    } catch(Exception e) {
+		throw new InternalError("Can't create field: "+e);
+	    }
+	    fval.bind_to(new FWJavaScriptBinding(node, fieldname));
+	    return fval;
+	} catch (ClassNotFoundException e) {
+	    throw new NoClassDefFoundError(e.toString());
+	} catch (NoSuchMethodException e) {
+	    throw new NoSuchMethodError(e.toString());
+	} catch (IOException e) {
+	    throw new InternalError("Communication error: "+e);
+	}
+    }
+
+    public static ConstField getEventOut(BaseNode node, String fieldname) {
+	try {
+	    //System.err.println("FWJ: "+node+".getField("+fieldname+")");
+	    out.println("GETFIELD");
+	    out.println(node._get_nodeid());
+	    out.println(fieldname);
+	    out.println("eventOut");
+	    out.flush();
+	    
+	    String ftype = in.readLine().trim();
+	    if (ftype.equals("ILLEGAL"))
+		throw new InvalidEventOutException(""+node._get_nodeid()+": "
+						   +fieldname);
+	    
+	    String cname = "vrml.field.Const"+ftype;
+	    //System.err.println("CONS FIELD "+cname);
+	    Constructor cons = Class.forName(cname)
+		.getConstructor(new Class[0]);
+	    //System.err.println("GOt fieldcons");
+	    ConstField fval;
+	    try {
+		fval = (vrml.ConstField)cons.newInstance(new Object[0]);
+	    } catch(Exception e) {
+		throw new InternalError("Can't create field.");
+	    }
+	    fval.bind_to(new FWJavaScriptBinding(node, fieldname));
+	    return fval;
+	} catch (ClassNotFoundException e) {
+	    throw new NoClassDefFoundError(e.toString());
+	} catch (NoSuchMethodException e) {
+	    throw new NoSuchMethodError(e.toString());
+	} catch (IOException e) {
+	    throw new InternalError("Communication error: "+e);
+	}
+    }
 }
+
