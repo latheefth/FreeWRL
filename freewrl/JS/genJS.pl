@@ -204,7 +204,7 @@ browser_$_(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 		JS_SetProperty(cx,obj,buffer,argv+i);
 	}
 	if(verbose) printf("Calling method with sv %d (%s)\\n",brow->js_sv,
-		SvPV(brow->js_sv,na));
+		SvPV(brow->js_sv,PL_na));
 	{
 		dSP;
 		ENTER;
@@ -867,7 +867,6 @@ $field_funcs
 
 void load_classes(JSContext *cx, JSObject *globalObj, SV *jssv) {
 	int ok;
-	char *str = "new _Browserclass()";
 	jsval rval;
 	Browser_s *brow = malloc(sizeof(Browser_s));
 	JSObject *obj;
@@ -968,7 +967,7 @@ CODE:
     JSObject *globalObj = p; 
     jsval rval;
     int ok;
-    if(verbose) printf("Addasgn eval '%s'\\n",str);
+    if(verbose) printf("Addasgn eval %s\\n",str);
 	ok = JS_EvaluateScript(cx, globalObj, str, strlen(str),
 		"bar", 15, &rval);
 	if(!ok) { printf("SCRFAIL\\n"); die("Addasgn script fail"); }
