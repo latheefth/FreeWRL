@@ -23,6 +23,7 @@ int ntri = 0;
 int nvert = 0;
 int npoints = 0;
 int nnormals=0;
+int ncolors=0;
 int ntexCoords = 0;
 int vert_ind = 0;	
 int calc_normind = 0;
@@ -36,6 +37,7 @@ struct SFColor *points;
 struct SFVec2f *texCoords; 
 struct VRML_PolyRep *rep_ = this_->_intern;
 struct SFColor *normals;
+struct SFColor *colors;
 
 int *cindex;		/* Coordinate Index	*/
 int *colindex;		/* Color Index		*/
@@ -64,12 +66,12 @@ int this_face, this_coord, this_normal, this_normalindex;
 if($f(coordIndex,cin-1) == -1) { cin--; }
 	
 
-/* texture coords IndexedFaceSet coords and normals */
+/* texture coords IndexedFaceSet coords colors and normals */
 $fv_null(texCoord, texCoords, get2, &ntexCoords);
 $fv(coord, points, get3, &npoints);
 $fv_null(normal, normals, get3, &nnormals); 
+$fv_null(color, colors, get3, &ncolors); 
 
-	
 /************************************************************************
 Rules from the spec:
 
@@ -150,7 +152,6 @@ for(i=0; i<cin; i++) {
 			/* Rule F part 2 see above */
                                 printf ("IndexedFaceSet, Rule F, part 2: coordIndex[%d] = -1 => expect texCoordIndex[%d] = -1 (but is %d)\\n", i, i, $f(texCoordIndex,i));
 			ntexerrors = 1;
-			exit(1);
                         }
 		ntri += nvert-2;
 		nvert = 0;
@@ -160,7 +161,6 @@ for(i=0; i<cin; i++) {
 			printf ("IndexedFaceSet, Rule F, part 3: TexCoordIndex[%d] %d is greater than num texCoord (%d)\n",i, $f(texCoordIndex,i),
 				ntexCoords);
 			ntexerrors = 1;
-			exit(1);
 		}
 		nvert ++;
 	}
@@ -169,8 +169,6 @@ if(nvert>2) {ntri += nvert-2;}
 
 /* Tesselation MAY use more triangles; lets estimate how many more */
 if(!$f(convex)) { ntri =ntri*2; }
-
-
 
 cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
@@ -208,149 +206,106 @@ this_normal = 0;
 this_normalindex = 0;
 i = 0;
 for (this_face=0; this_face<faces; this_face++) {
-	int my_coord;			/* temp, used if not tesselating	*/
+	int relative_coord;		/* temp, used if not tesselating	*/
 	int initind, lastind;  		/* coord indexes 			*/
 	int initnori, lastnori;		/* normalIndex indexes			*/
-	int my_IFS_Coord_count = 0;
-	int my_IFS_normal_count = 0;
-	int my_normalindexes[cin*3];
 
 	global_IFS_Coord_count = 0;
+	relative_coord = 0;
 
-	/* printf ("working on face %d coord %d total coords %d coordIndex %d\n",
-		this_face,this_coord,cin,$f(coordIndex, this_coord)); */
+	//printf ("working on face %d coord %d total coords %d coordIndex %d\n",
+	//	this_face,this_coord,cin,$f(coordIndex, this_coord)); 
 
-	/* create the global_IFS_coords array, at least this time */
-	my_coord = this_coord;
-	initind  = $f(coordIndex, my_coord++);
-	lastind  = $f(coordIndex, my_coord++);
-	
-	/* keep track of normal indexes */
-	if (nnormals) { 
-		/* start off this face properly */
-		if (npv) {
-			/* Normals per Vertex */
-			if (norin) {
-				initnori = $f(normalIndex, this_normal++);
-				lastnori = $f(normalIndex, this_normal++);
-			} else {
-				initnori = this_normal++;
-				lastnori = this_normal++;
-			}
-		} else {
-			/* increment normal per face  works with or without normalIndex */
-			if (this_face > 0) this_normal++;
-			if (this_normal >= nnormals) {
-				printf ("Warning: not enough normals in this IFS\n");
-				this_normal = 0;
-			}
-		}
+	/* create the global_IFS_coords array, at least this time 	*/
+	/*								*/
+	/* What we do is to create a series of triangle vertex 		*/
+	/* relative to the current coord index, then use that		*/
+	/* to generate the actual coords further down. This helps	*/
+	/* to map normals, textures, etc when tesselated and the	*/
+	/*  *perVertex modes are set.					*/
+
+	/* If we have concave, tesselate! */
+	if (!$f(convex)) { 
+		gluBeginPolygon(global_tessobj); 
+	} else {
+		initind = relative_coord++;
+		lastind = relative_coord++;
 	}
+
+	i = $f(coordIndex, relative_coord + this_coord);
 
 	while (i != -1) {
-		/* take coordinates and make triangles out of them */
-		global_IFS_Coords[my_IFS_Coord_count++] = initind;
-		global_IFS_Coords[my_IFS_Coord_count++] = lastind;
-		global_IFS_Coords[my_IFS_Coord_count++] = $f(coordIndex,my_coord);
-		lastind = $f(coordIndex,my_coord++);
-
-		/* if we have a normal index, keep it in step with triangles */
-		if (nnormals) {
-			if (norin) {
-				/* we have a NormalIndex */
-				if (npv) {
-					my_normalindexes[my_IFS_normal_count++] = initnori;
-					my_normalindexes[my_IFS_normal_count++] = lastnori;
-					my_normalindexes[my_IFS_normal_count++] = $f(normalIndex,this_normal);
-					lastnori = $f(normalIndex,this_normal++);
-				} else {
-					my_normalindexes[my_IFS_normal_count++] = $f(normalIndex,this_normal);
-					my_normalindexes[my_IFS_normal_count++] = $f(normalIndex,this_normal);
-					my_normalindexes[my_IFS_normal_count++] = $f(normalIndex,this_normal);
-				}
-			} else {
-				/* no normalIndex */
-				if (npv) {
-					my_normalindexes[my_IFS_normal_count++] = initnori++;
-					my_normalindexes[my_IFS_normal_count++] = lastnori++;
-					my_normalindexes[my_IFS_normal_count++] = this_normal;
-					lastnori = this_normal++;
-				} else {
-					my_normalindexes[my_IFS_normal_count++] = this_normal;
-					my_normalindexes[my_IFS_normal_count++] = this_normal;
-					my_normalindexes[my_IFS_normal_count++] = this_normal;
-				}
-			}
-		}
-
-		if (my_coord == cin) {
-			i = -1;
-		} else {
-			i = $f(coordIndex, my_coord);
-		}
-	}
-
-
-	/* If we have concave, and we have more than 3 points, tesselate! */
-	if ((!$f(convex)) && (my_IFS_Coord_count >= 3)) {
-		gluBeginPolygon(global_tessobj);
-	
-		i = $f(coordIndex, this_coord);
-		while (i != -1) {
-			/* printf ("\nwhile, i is %d this_coord %d\n",i,this_coord); */
+		if (!$f(convex)) {
+			// printf ("\nwhile, i is %d this_coord %d rel coord %d\n",i,this_coord,relative_coord); 
 			c1 = &(points[i]);
 			tess_v[0] = c1->c[0];
 			tess_v[1] = c1->c[1];
 			tess_v[2] = c1->c[2];
-			tess_vs[this_coord] = i;
-	
-			/* printf ("  coord for i %d is %d\n",this_coord,$f(coordIndex, this_coord));
-			printf ("  vals are %f %f %f\n",tess_v[0],tess_v[1],tess_v[2]); */
-			gluTessVertex(global_tessobj,tess_v,&tess_vs[this_coord]);
-			this_coord ++;
-			if (this_coord == cin) { 
-				i = -1; 
-			} else {
-				i = $f(coordIndex, this_coord);
-			}
-				
+			tess_vs[relative_coord] = relative_coord;
+			gluTessVertex(global_tessobj,tess_v,&tess_vs[relative_coord++]);
+		} else {
+			/* take coordinates and make triangles out of them */
+			global_IFS_Coords[global_IFS_Coord_count++] = initind;
+			global_IFS_Coords[global_IFS_Coord_count++] = lastind;
+			global_IFS_Coords[global_IFS_Coord_count++] = relative_coord;
+			// printf ("triangle %d %d %d\n",initind,lastind,relative_coord);
+			lastind = relative_coord++;
 		}
-		gluEndPolygon(global_tessobj);
-	
-	
-		/* Tesselated faces may have a different normal than calculated previously */
-		IFS_check_normal (facenormals,this_face,points);
-	} else {
-		/* dont have to tesselate, so what we have is good */
-		this_coord = my_coord;
-		global_IFS_Coord_count = my_IFS_Coord_count;
+
+		if (relative_coord + this_coord == cin) { 
+			i = -1; 
+		} else {
+			i = $f(coordIndex, relative_coord + this_coord);
+		}
 	}
 
+	if (!$f(convex)) { 
+		gluEndPolygon(global_tessobj); 
+	
+		/* Tesselated faces may have a different normal than calculated previously */
+		IFS_check_normal (facenormals,this_face,points, this_coord, this_); 
+	}
+
+
+	/* now store this information for the whole of the polyrep */
 	for (i=0; i<global_IFS_Coord_count; i++) {
-		/* printf ("vertex  %d %d\n",vert_ind,global_IFS_Coords[i]); */
 
 		/* Triangle Coordinate */
-		cindex [vert_ind] = global_IFS_Coords[i];
+		cindex [vert_ind] = $f(coordIndex,this_coord+global_IFS_Coords[i]);
 
+		//printf ("vertex  %d  gic %d cindex %d\n",vert_ind,global_IFS_Coords[i],cindex[vert_ind]); 
 
 		/* Vertex Normal */
 		if(nnormals) {
-			norindex[vert_ind] = my_normalindexes[i]; 
-		} 
+			if (norin) {
+				/* we have a NormalIndex */
+				if (npv) {
+					norindex[vert_ind] = $f(normalIndex,this_coord+global_IFS_Coords[i]);
+					// printf ("norm1, index %d\n",norindex[vert_ind]);
+				} else {
+					norindex[vert_ind] = $f(normalIndex,this_face);
+					// printf ("norm2, index %d\n",norindex[vert_ind]);
+				}
+			} else {
+				/* no normalIndex  - use the coordIndex */
+				if (npv) {
+					norindex[vert_ind] = $f(coordIndex,this_coord+global_IFS_Coords[i]);
+					//printf ("norm3, index %d\n",norindex[vert_ind]);
+				} else {
+					norindex[vert_ind] = this_face;
+					//printf ("norm4, index %d\n",norindex[vert_ind]);
+				}
+			}
 
-		/* no normals, so use either pre-calculated ones 
-		   (if smooth normals) or calculate quickies here */
-		if (!nnormals) {
+		} else { 
 			if (fabs(creaseAngle) > 0.00001) {
 				/* normalize each vertex */
 				normalize_ifs_face (&rep_->normal[calc_normind*3],
-					facenormals, pointfaces, 
-					global_IFS_Coords[i], this_face, creaseAngle);
+					facenormals, pointfaces, cindex[vert_ind],
+					this_face, creaseAngle);
 				rep_->norindex[vert_ind] = calc_normind++;
 			} else {
-				/* printf ("normals for vertex %d face %d are %f %f %f\n",
-					vert_ind,this_face,facenormals[this_face].x,
-					facenormals[this_face].y,facenormals[this_face].z);*/
+				/* use the calculated normals */
 				rep_->normal[vert_ind*3+0]=facenormals[this_face].x;
 				rep_->normal[vert_ind*3+1]=facenormals[this_face].y;
 				rep_->normal[vert_ind*3+2]=facenormals[this_face].z;
@@ -358,22 +313,55 @@ for (this_face=0; this_face<faces; this_face++) {
 			}
 		}
 
+		/* Vertex Colours */
+		if(ncolors) {
+			if (colin) {
+				/* we have a colorIndex */
+				if (cpv) {
+					colindex[vert_ind] = $f(colorIndex,this_coord+global_IFS_Coords[i]);
+					//printf ("col1, index %d\n",colindex[vert_ind]);
+				} else {
+					colindex[vert_ind] = $f(colorIndex,this_face);
+					// printf ("col2, index %d\n",colindex[vert_ind]);
+				}
+			} else {
+				/* no colorIndex  - use the coordIndex */
+				if (cpv) {
+					colindex[vert_ind] = $f(coordIndex,this_coord+global_IFS_Coords[i]);
+					// printf ("col3, index %d\n",colindex[vert_ind]);
+				} else {
+					colindex[vert_ind] = this_face;
+					// printf ("col4, index %d\n",colindex[vert_ind]);
+				}
+			}
+		}
 
+
+		/* Texture Coordinates */
+		if (ntexCoords) {
+			if (tcin) {
+				tcindex[vert_ind] = $f(texCoordIndex,this_coord+global_IFS_Coords[i]);
+				//printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]);
+			} else {
+				/* no texCoordIndex, use the Coord Index */
+				tcindex[vert_ind] = $f(coordIndex,this_coord+global_IFS_Coords[i]);
+				//printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]);
+			}
+		}
 
 		vert_ind++;
 	}
 
-	/* skip past the -1 in the coords, if it is there */
-	if (this_coord != cin) this_coord++;
-
+	/* for the next face, we work from a new base */
+	this_coord += relative_coord;
+	if ($f(coordIndex,this_coord) == -1) {this_coord++;}
 }
 
 /* we have an accurate triangle count now... */
 rep_->ntri = vert_ind/3;
 
 free (tess_vs);
-if ((!nnormals) && (fabs(creaseAngle) > 0.00001)) {
-		free (facenormals); free (pointfaces);
-}
+free (facenormals); 
+free (pointfaces);
 
 ';
