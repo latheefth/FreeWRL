@@ -73,7 +73,7 @@ sub parse {
 	my $doc = $p->parse($text);
 
 	# dump this internal structure to the output, if required.
-	print Dumper ($doc), "\n\n" if $X3D::verbose::parse;
+	print Dumper ($doc), "\n\n";# if $X3D::verbose::parse;
 
 	# make an initial topnode of a Group type.
 	# we'll get the fields later, so for now, just send in blank hash.
@@ -117,13 +117,19 @@ sub parse_X3DStatement {
 	print "start parse_X3DStatement, array elements $nele node ",
 		$parentNode,", ref doc ",ref $doc,"\n" if $X3D::verbose::parse;
 
+	# is this a "Header" node? If so, just skip it.
+	if ($parentNode eq "Header") {
+		return;
+	}
+
 	# lets just make a "Scene" equate to a "Group"
 	if ($parentNode eq "Scene") {$parentNode = "Group"};
 
 	my $no = $VRML::Nodes{$parentNode};
 
 	if (!defined $no) {
-		print "Invalid node '$parentNode'\n";
+		print "Invalid X3D node '$parentNode'\n";
+		exit(1);
 	}
 	print "parse_X3DStatement, parentnode type $no\n" if $X3D::verbose::parse;
 
@@ -184,7 +190,20 @@ sub parse_X3DStatement {
 			if ($arele != 0) {
 				print "Invalid X3D Tree, found a misplaced HASH at element $arele\n";
 			}
-			parseSimpleFields ($parentNode, $bnub);
+
+
+			# copy any keys over to the parent for later parsing. 
+			my $key;
+			foreach $key (keys(%{$bnub})) {
+				print "$key of nodeType $parentNode ";
+				print "is ",$bnub->{$key},"\n";
+				my $value = "\"".$bnub->{$key}."\"";
+				#$field{$key} = "VRML::Field::SFString"->parse(
+					#	$X3DScene,$value);
+				$field{$key} = $bnub->{$key};
+			}
+
+
 
 		# else is this just junk, or a new Node type?
 		}else {
@@ -203,7 +222,8 @@ sub parse_X3DStatement {
 		
 	}
 
-	#print "parse_X3DStatement, returning from $parentNode  field is ",\%field,"\n";
+	#print "parse_X3DStatement, returning from $parentNode  field is \n";
+	#foreach (keys %{\%field}) {print "kss $_ value ",$field{$_},"\n";}
 	return $X3DScene->new_node($parentNode,\%field);
 }
 
@@ -256,9 +276,9 @@ sub getChildType {
 sub parseSimpleFields {
 	my ($me,$fieldVals) = @_;
 
-	#return; # do nothing for now.
+#	return; # do nothing for now.
 
-	print "start parseFields\n";
+	print "start parseFields for $me\n";
 	my $key;
 	foreach $key (keys(%{$fieldVals})) {
 		print "$key of nodeType ",$me->{Type}{Name}," is $key\n";
