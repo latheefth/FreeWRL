@@ -132,17 +132,6 @@ sub new {
 
 	print "Starting OpenGL\n" if $VRML::verbose;
 	glpOpenWindow(
-#attributes=>[&GLX_RGBA, @db,
-#&GLX_RED_SIZE,1,
-#&GLX_GREEN_SIZE,1,
-#&GLX_BLUE_SIZE,1,
-#&GLX_DEPTH_SIZE,1,
-## Alpha size?
-#],
-#mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
-#ButtonMotionMask | ButtonReleaseMask |
-#ExposureMask | StructureNotifyMask |
-#PointerMotionMask),
 				  attributes=>[],
 				  mask => (KeyPressMask | &KeyReleaseMask | ButtonPressMask |
 						   ButtonMotionMask | ButtonReleaseMask |
@@ -158,49 +147,9 @@ sub new {
 				  wintitle => $wintitle,
 				 );
 
-	glClearColor(0,0,0,1);
-	glShadeModel (&GL_SMOOTH);
-	glDepthFunc(&GL_LEQUAL);
-	glEnable(&GL_DEPTH_TEST);
-	glEnable(&GL_BLEND);
-	glBlendFunc(&GL_SRC_ALPHA,&GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(&GL_NORMALIZE);
-	glEnable(&GL_LIGHTING);
-	glEnable(&GL_LIGHT0);
-	glEnable(&GL_CULL_FACE);
-	glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
-	glLightModeli(&GL_LIGHT_MODEL_LOCAL_VIEWER, &GL_FALSE);
-	glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
+	# Initialize OpenGL functions/variables for our use.
+	glpOpenGLInitialize();
 
-	glEnable(&GL_POLYGON_OFFSET_EXT);
-	glPolygonOffsetEXT(0.0000000001,0.00002);
-
-	glPixelStorei(&GL_UNPACK_ALIGNMENT,1);
-	glPixelStorei(&GL_PACK_ALIGNMENT,1);
-
-	glMaterialf(&GL_FRONT_AND_BACK, &GL_SHININESS,
-				0.2 * 128);
-
-	# $this->reshape();
-
-	# Try to interface with Tk event loop?
-	if (defined &Tk::DoOneEvent) {
-	    my $gld = VRML::OpenGL::glpXConnectionNumber();
-	    # Create new mainwindow just for us.
-	    my $mw = MainWindow->new();
-	    $mw->iconify();
-	    my $fh = new FileHandle("<&=$gld\n") 
-			or die("Couldn't reopen GL filehandle");
-	    $mw->fileevent($fh,'readable',
-					   sub {
-						   # print "GLEV\n"; 
-						   $this->twiddle(1)
-					   });
-	    $this->{FileHandle} = $fh;
-	    $this->{MW} = $mw;
-	}
-
-	$this->{Interactive} = 1;
 	print "STARTED OPENGL\n" if $VRML::verbose;
 
 	if ($VRML::offline) {
