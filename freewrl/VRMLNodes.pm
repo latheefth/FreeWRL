@@ -200,28 +200,43 @@ package VRML::NodeType;
 
 # used by EAI to find out where that IS is when used in a proto.... we are 
 # sent the parent, so have to go through tree to find child.
+# send in a node and a field, returns actual node, if possible.
+
 
 sub find_transform {
+	# takes the top REAL node in the proto expansion, and the field,
+	# and goes through the structure trying to find a node that matches
+	# the IS_ALIAS for this. 
+
 	my ($browser, $node, $field) = @_;
 
-	my $ret = "";
-
-	# print "find_transform, looking for node $node field $field with br $browser\n";
-	$ret = VRML::Browser::api__find_IS_ALIAS($node,$field);
-
-	foreach $item (@{$node->{Fields}{"children"}}) {
-		# print "find_transform, child $item children is ",$item->{Fields}{children},"\n";
-		$ret = VRML::Browser::api__find_IS_ALIAS($item,$field);
-		if ("children" eq $ret) {return $item;}
-
-		if ("ARRAY" eq ref $item->{Fields}{children}) {
-			$ret = find_transform ($browser, $item, $field);
-		}
+	# print "\nfind_transform, looking at node $node field $field\n";
+	if (VRML::Browser::api__find_IS_ALIAS($node,$field) ne FALSE) {
+		# print "found it at the top , returning $node\n";
+		return $node;
 	}
 
-	return $ret;
-}
+	foreach $item (@{$node->{Fields}{"children"}}) {
+		# print "   find_transform, item  $item children is ",$item->{Fields}{children},"\n";
+		if (VRML::Browser::api__find_IS_ALIAS($item,$field) ne FALSE) {
+			# print "found it, returning $item\n";
+			return $item;
+		}
 
+		# print "    find_transform, checking $item for ARRAY as children\n";
+		if ("ARRAY" eq ref $item->{Fields}{children}) {
+			# print "    array, lets go looking\n";
+			my $ret = find_transform ($browser, $item, $field);
+			# print "    We are back from arraylooking, ret is $ret\n";
+			if (VRML::Browser::api__find_IS_ALIAS($ret,$field) ne FALSE) {
+			  # print "found it in array if, returning $item\n";
+			  return $ret;
+			}
+		}
+	}
+	# we'll drop this far if the field was never found.
+	return $node;
+}
 # JAS - used by EAI to see if this child is already present in field "children" of parent.
 sub checkChildPresent {
 	my ($node,$child) = @_;
@@ -705,32 +720,32 @@ Transform => new VRML::NodeType ("Transform",
 ### Added by Henri...
 # re-added by JAS - Nov 27, 2000
 #
-         addChildren => [MFNode, undef, eventIn],
+         addChildren => [MFNode, [], eventIn],
         },
         {
-            Initialize => sub
-            {
-                print("Transform:Initialize\n");
-                my($t,$f,$time,$scene) = @_;
-                $Scene = $scene;
-                return ();
-            },
+#            Initialize => sub
+#            {
+#                print("Transform:Initialize\n");
+#                my($t,$f,$time,$scene) = @_;
+#                $Scene = $scene;
+#                return ();
+#            },
             addChildren => sub
             {
-                print("Transform:addChildren\n");
-                my($node,$fields,$value,$time) = @_;
-                add_MFNode($node, "children", $value->[0], 1);
-                $node->{RFields}{children}=$node->{Fields}{children};
+#                print("Transform:addChildren\n");
+#                my($node,$fields,$value,$time) = @_;
+#                add_MFNode($node, "children", $value->[0], 1);
+#                $node->{RFields}{children}=$node->{Fields}{children};
                 return ();
             },
             EventsProcessed => sub
             {
-                my($node,$fields,$time) = @_;
-                #my $ac = $fields->{addChildren};
-                print("Transform:EventsProcessed\n");
-                #$node->{BackEnd}->update_scene($time);
-                #add_MFNode($t,"children",$ac->[0], 1);
-                #$node->receive_event("addChildren", $ac, $time);
+#                my($node,$fields,$time) = @_;
+#                #my $ac = $fields->{addChildren};
+#                print("Transform:EventsProcessed\n");
+#                #$node->{BackEnd}->update_scene($time);
+#                #add_MFNode($t,"children",$ac->[0], 1);
+#                #$node->receive_event("addChildren", $ac, $time);
                 return ();
             }
 
