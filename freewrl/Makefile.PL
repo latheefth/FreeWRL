@@ -313,11 +313,14 @@ INST_DYNAMIC_DEP =
 			 ));
 
 		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
+		my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
+		my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
+		print "x1 is $x1\n";
 			push(@postamble, join(
 				  "\n",
 				  qq{\# --- Mozilla/Netscape Plugin:\n},
 				  qq{install ::},
-				  qq{\t\@cd Plugin && \$(MAKE) install\n}
+				  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"$x1\"\n}
 				 ));
 		}
 
