@@ -7,6 +7,8 @@
 # Config system idea from PDL
 #
 
+system "perl VRMLC.pm";
+
 $VERSION = "0.26";
 
 BEGIN{
@@ -79,7 +81,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	NAME => "VRML::VRMLFunc",
 	DISTNAME => "FreeWRL",
- 	dist => {
+	dist => {
 		COMPRESS => 'gzip -9', SUFFIX => 'gz',
 	},
 	VERSION => $VERSION,
