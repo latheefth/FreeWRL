@@ -19,6 +19,7 @@ int nori = $f_n(orientation);		/* no. of given orientators
 					   which rotate the calculated SCPs =
 					   spine-aligned cross-section planes*/ 
 int nsca = $f_n(scale);			/* no. of scale parameters	*/
+
 struct SFColor *spine =$f(spine);	/* vector of spine vertices	*/
 struct SFVec2f *curve =$f(crossSection);/* vector of 2D curve points	*/
 struct SFRotation *orientation=$f(orientation);/*vector of SCP rotations*/
@@ -34,11 +35,17 @@ int   *cindex;				/* field containing indices into
 float *coord;				/* contains vertices building the
 					   triangles as x y z values	*/
 
+float *tcoord;				/* contains vertices building the
+					   textures as x y z values	*/
+
+//int   *tcindex;				/* field containing indicies into
+//					   the tcoord vector. 		*/
+
 int   *norindex; 			/* indices into *normal		*/
 float *normal; 				/* (filled in a different function)*/ 
 
 
-int ntri = 2 * (nspi-1) * (nsec-1);	/* no. of triangles to be used
+int ntri = 2 * (nspi-1) * (nsec-1); 	/* no. of triangles to be used
 					   to represent all, but the caps */
 int nctri=0;				/* no. of triangles for both caps*/
 int nctri_add=0;			/* max no. of add triangles for b.caps*/
@@ -58,8 +65,8 @@ int next_spi, prev_spi, help;
 int t,i;				/* another loop var		*/
 
 
-int closed = 0;				/* is spine  closed?		*/
-int curve_closed=0;			/* is the 2D curve closed?	*/
+int circular = 0;			/* is spine  closed?		*/
+int tubular=0;				/* is the 2D curve closed?	*/
 int spine_is_one_vertix;		/* only one real spine vertix	*/
 
 float spxlen,spylen,spzlen;		/* help vars for scaling	*/
@@ -77,38 +84,42 @@ struct SCP *SCP;			/* dyn. vector rep. the SCPs	*/
 
 struct pt spm1,spc,spp1,spcp,spy,spz,spoz,spx;	/* help vertix vars	*/
 
-struct VRML_Extrusion_Adj *adj; 	/* Holds the indexes of nodes	*/
-					/* that are adjacent for normals*/
-					/* calculations			*/
-
-int klm, kmem; 				/* help variables for normals */
-float crease_angle;
 
 
+/* variables for calculating smooth normals */
+int 	HAVETOSMOOTH;
+struct 	pt *facenormals = 0;
+int	*pointfaces = 0;
+int	*defaultface = 0;
+int 	faces;
+int	this_face = 0;			/* always counts up		*/
+int	tmp;
+int 	tmp_polygon;
+float point_normal[3];
+int 	calc_normind;
+float creaseAngle = $f(creaseAngle);
+int	ccw = $f(ccw);
+int	end_of_sides;			/* for triangle normal generation,
+					   keep track of where the sides end
+					   and caps begin		*/
 
-/*verbose = 1;*/
+//verbose = 1;
 
 if (verbose) printf ("VRMLExtrusion.pm start\n");
-
-/* Get the value of GL_SHADE_MODEL to see whether we have to potentially
-   calculate smooth normals. Only once per invocation of FreeWRL */
-
-initialize_smooth_normals();
-
 
 /* do we have a closed curve?						*/
 if(curve[0].c[0] == curve[nsec-1].c[0] &&
    curve[0].c[1] == curve[nsec-1].c[1])
-	curve_closed=1;
+	tubular=1;
 
 /* check if the spline is closed					*/
 
 if(spine[0].c[0] == spine[nspi-1].c[0] &&
    spine[0].c[1] == spine[nspi-1].c[1] &&
    spine[0].c[2] == spine[nspi-1].c[2]) 
-	closed = 1;
+	circular = 1;
 
-if (verbose) printf ("curve_closed %d closed %d\n",curve_closed, closed); 
+if (verbose) printf ("tubular %d circular %d\n",tubular, circular); 
  
 
 /************************************************************************
@@ -116,21 +127,21 @@ if (verbose) printf ("curve_closed %d closed %d\n",curve_closed, closed);
  */
 
 if($f(beginCap)||$f(endCap)) {
-	if(curve_closed?nsec<4:nsec<3) {
+	if(tubular?nsec<4:nsec<3) {
 		die("Only two real vertices in crossSection. Caps not possible!");
 	}
 
-	if(verbose && closed && curve_closed) {
+	if(verbose && circular && tubular) {
 		printf("Spine and crossSection-curve are closed - how strange! ;-)\n");
 		/* maybe we want to fly in this tunnel? Or it is semi 
 		   transparent somehow? It is possible to create
 		   nice figures if you rotate the cap planes... */
 	}
 
-	if(curve_closed)	nctri=nsec-3;
-	else			nctri=nsec-2;	
+	if(tubular)	nctri=nsec-2;
+	else		nctri=nsec-1;	
 
-	if (verbose) printf ("nsec = %d, ntri = %d\n",nsec, ntri);
+	if (verbose) printf ("nsec = %d, ntri = %d nctri = %d\n",nsec, ntri,nctri);
 
 		/* check if there are colinear points at the beginning of the curve*/
 	sec=0;
@@ -146,7 +157,7 @@ if($f(beginCap)||$f(endCap)) {
 	/* check if there are colinear points at the end of the curve
 		in line with the very first point, because we want to
 		draw the triangle to there.				*/
-	sec=curve_closed?(nsec-2):(nsec-1);
+	sec=tubular?(nsec-2):(nsec-1);
 	while(sec-2>=0 && 
 		APPROX(0,    (curve[sec  ].c[0]-curve[0].c[0])
 			    *(curve[sec-1].c[1]-curve[0].c[1])
@@ -155,11 +166,11 @@ if($f(beginCap)||$f(endCap)) {
 	     ) ncolinear_at_end++,sec--;
 
 	nctri-= ncolinear_at_begin+ncolinear_at_end;
+
 	if(nctri<1) {
 		/* no triangle left :(	*/
 		die("All in crossSection points colinear. Caps not possible!");
  	}
- 
  
 	/* so we have calculated nctri for one cap, but we might have two*/
 	nctri= (($f(beginCap))?nctri:0) + (($f(endCap))?nctri:0) ;
@@ -172,8 +183,6 @@ if(!$f(convex)) {
 	max_ncoord_add=(nspi-1)*(nsec-1) /* because of intersections	*/
 			+nctri;		/* because of cap tesselation	*/
 	nctri*=2;	/* we might need more trigs for the caps	*/
-
-	printf ("non-convex polygons, need more triangles, max_ncoord_add %d, nctri %d\n",max_ncoord_add, nctri);
 }
 
 /************************************************************************
@@ -185,31 +194,48 @@ rep_->ntri = ntri + nctri;	/* Thats the no. of triangles representing
 				
 /* Extrusions dont have texture coords, so setting this to 0 always	*/
 rep_->tcindex = 0;
-	
+
 /* get some memory							*/
 cindex  = rep_->cindex   = malloc(sizeof(*(rep_->cindex))*3*(rep_->ntri));
 coord   = rep_->coord    =
 		malloc(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
-normal  = rep_->normal   = malloc(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);    /*AG*/
-norindex= rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri)*3);  /*AG*/ 
+normal  = rep_->normal   = malloc(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);
+norindex= rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri));
 
- 
+/* face normals - one face per quad (ie, 2 triangles) 			*/
+/* have to make sure that if nctri is odd, that we increment by one	*/
+facenormals = malloc(sizeof(*facenormals)*(rep_->ntri+1)/2);
+
+/* for each triangle vertex, tell me which face(s) it is in		*/
+pointfaces = malloc(sizeof(*pointfaces)*POINT_FACES*3*rep_->ntri);
+
+/* for each triangle, it has a defaultface...				*/
+defaultface = malloc(sizeof(*defaultface)*rep_->ntri);
+
+
 /*memory for the SCPs. Only needed in this function. Freed later	*/
 SCP     = malloc(sizeof(struct SCP)*nspi);
-
-
-/*memory for the adjacency struct (used for normals)  			*/
-adj	= malloc( sizeof(struct VRML_Extrusion_Adj) * nsec * nspi );
-kmem = sizeof(struct VRML_Extrusion_Adj) * nsec * nspi;
-
-/*printf("\n  Block of %i allocated \n", kmem );*/
-
  
 /* in C always check if you got the mem you wanted...  >;->		*/
-  if(!(cindex && coord && normal && norindex && SCP && adj)) {
+  if(!(pointfaces && defaultface && facenormals && cindex && coord && normal && norindex && SCP )) {
 	die("Not enough memory for Extrusion node triangles... ;(");
 } 
- 
+
+if (HAVETODOTEXTURES) {
+//	/* so, we now have to worry about textures. */
+//	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*(nspi*nsec+max_ncoord_add)*3);
+	// tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(rep_->ntri));
+	//if (!(tcoord && tcindex)) die ("Not enough memory Extrusion Tcoords");
+	//if (!(tcoord)) die ("Not enough memory Extrusion Tcoords");
+}
+
+/* Normal Generation Code */
+initialize_smooth_normals();
+HAVETOSMOOTH = smooth_normals && (fabs(creaseAngle>0.0001));
+for (tmp = 0; tmp < 3*rep_->ntri; tmp++) {
+	pointfaces[tmp*POINT_FACES]=0;
+}
+
 
 /************************************************************************
  * calculate all SCPs 
@@ -321,8 +347,8 @@ if(SCP[0].next==nspi) {
  		}
 	}
  
- 	if(closed) {
-		if (verbose) printf ("we are closed\n");
+ 	if(circular) {
+		if (verbose) printf ("we are circular\n");
  		/* calc y for first SCP				*/
 		VEC_FROM_CDIFF(spine[SCP[0].next],spine[SCP[nspi-1].prev],SCP[0].y); 
  		/* the last is the same as the first */	
@@ -336,7 +362,7 @@ if(SCP[0].next==nspi) {
 		SCP[nspi-1].z=SCP[0].z;	
 		
  	} else {
-		if (verbose) printf ("we are not closed\n");
+		if (verbose) printf ("we are not circular\n");
 
  		/* calc y for first SCP				*/
 		VEC_FROM_CDIFF(spine[SCP[0].next],spine[0],SCP[0].y);
@@ -401,7 +427,7 @@ if(verbose) printf("pos_of_last_zvalue=%d\n",pos_of_last_zvalue);
  
 /* z axis flipping, if VECPT(SCP[i].z,SCP[i-1].z)<0 			*/
 /* we can do it here, because it is not needed in the all-colinear case	*/
-for(spi=(closed?2:1);spi<nspi;spi++) {
+for(spi=(circular?2:1);spi<nspi;spi++) {
 	if(VECPT(SCP[spi].z,SCP[spi-1].z)<0) {
 		VECSCALE(SCP[spi].z,-1);
 		if(verbose) 
@@ -422,7 +448,7 @@ if(pos_of_last_zvalue==-1) {
 		/* and rotate (0 0 1) and (0 1 0) to be the new y and z	*/
 		/* values for all SCPs					*/
 		/* I will choose roation about the x and z axis		*/
-		float alpha,gamma;	/* angles for the rotation	*/
+		double alpha,gamma;	/* angles for the rotation	*/
 		
 		/* search a non trivial vector along the spine */
 		for(spi=1;spi<nspi;spi++) {
@@ -438,13 +464,36 @@ if(pos_of_last_zvalue==-1) {
 				spp1.x,spp1.y,spp1.z);
 
 
-		if(!(APPROX(spp1.x,0) && APPROX(spp1.z,0))) {
-			/* at least one of x or z is not zero		*/
-
+		if(!(APPROX(spp1.x,0))) {
 			/* get the angle for the x axis rotation	*/
-			alpha=asin(spp1.z);
+			/* asin of 1.0000 seems to fail sometimes, so */
+			if (spp1.x >= 0.99999) { alpha = asin(0.9999);
+			} else if (spp1.x <= -0.99999) { alpha = asin(-0.9999);
+			} else alpha=asin((double)spp1.x);
+			if(APPROX(cos(alpha),0))
+				gamma=0;
+			else {
+				gamma=acos(spp1.y / cos(alpha) );
+				if(fabs(sin(gamma)-(-spp1.z/cos(alpha))
+					)>fabs(sin(gamma)))
+					gamma=-gamma;
+			}
 
+ 			if(verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
+
+			spy.y=-(cos(alpha)*(-sin(gamma)));
+			spy.z=cos(alpha)*cos(gamma);
+			spy.x=sin(alpha);
+			spz.y=-(sin(alpha)*sin(gamma));
+			spz.z=(-sin(alpha))*cos(gamma);
+			spz.x=cos(alpha);
+		} 
+		if(!(APPROX(spp1.z,0))) {
 			/* get the angle for the z axis rotation	*/
+			/* asin of 1.0000 seems to fail sometimes, so */
+			if (spp1.z >= 0.99999) { alpha = asin(0.9999);
+			} else if (spp1.z <= -0.99999) { alpha = asin(-0.9999);
+			} else alpha=asin((double)spp1.z);
 			if(APPROX(cos(alpha),0))
 				gamma=0;
 			else {
@@ -454,17 +503,16 @@ if(pos_of_last_zvalue==-1) {
 					gamma=-gamma;
 			}
 
-			/* do the rotation (zero values are already worked in)*/
- 			if(verbose)
-				printf("alpha=%f gamma=%f\n",alpha,gamma);
-			spy.x=cos(alpha)*(-sin(gamma));
-			spy.y=cos(alpha)*cos(gamma);
+ 			if(verbose) printf("alpha=%f gamma=%f\n",alpha,gamma);
+			spy.y=-(cos(alpha)*(-sin(gamma)));
+			spy.x=cos(alpha)*cos(gamma);
 			spy.z=sin(alpha);
-
-			spz.x=sin(alpha)*sin(gamma);
-			spz.y=(-sin(alpha))*cos(gamma);
+			spz.y=-(sin(alpha)*sin(gamma));
+			spz.x=(-sin(alpha))*cos(gamma);
 			spz.z=cos(alpha);
-		} /* if(!spine_is_one_vertix */
+		} 
+
+
 	} /* else */
  
 	/* apply new y and z values to all SCPs	*/
@@ -557,191 +605,11 @@ for(spi = 0; spi<nspi; spi++) {
 	    spx.z * point.x + spy.z * point.y + spz.z * point.z
 	    + $f(spine,spi).c[2];
 
-		/*
-		printf("Point    x: %lf    y: %lf    z: %lf  \n",
-			coord[(sec+spi*nsec)*3+0], 
-			coord[(sec+spi*nsec)*3+1], 
-			coord[(sec+spi*nsec)*3+2]  );
-		*/
-
-		/* Specify the relationship this point has with	      */
-		/* those around him.  This data is collected here     */
-		/* for calculating normals to obtain a smooth surface.*/
-		/*                                                           */
-		/* Imagine that you are looking at the side of an extrusion. */
-		/* Each point is surrounded by four quadrilaterals.          */
-		/* These are the names given to the neighbouring points.     */
-		/*                                                           */
-		/*         north_west_pt          north_pt       north_east_pt   */
-		/*                      *-----------*-----------*                */
-		/*                      |           |           |                */
-		/*                      |  4th quad | 1st quad  |                */
-		/*                      |           |           |                */
-		/*                      |           |           |                */
-		/*                      |           |           |                */
-		/*        west_pt       *-----------*-----------* east_pt  */
-		/*                      |           |           |                */
-		/*                      |  3rd quad | 2nd quad  |                */
-		/*                      |           |           |                */
-		/*                      |           |           |                */
-		/*                      |           |           |                */
-		/*                      *-----------*-----------*                */
-		/*         south_west_pt          south_pt       south_east_pt   */
-		/*                                                               */
-		/* I cannot recommend trying to modify this code -> I took *days**/
-		/* to get right.                                                 */
-
-		if(spi == 0){
-			if(closed){
-				adj[spi * nsec + sec].north_pt = (nspi-2) * nsec + sec;
-			}
-			else{
-				adj[spi * nsec + sec].north_pt = -1;
-			}
-		}
-		else {
-			adj[spi * nsec + sec].north_pt = (spi-1) * nsec + sec; 
-		}
-
-
-		/*  set south_pt  */
-		if(spi == nspi-1){
-			if(closed){
-				adj[spi * nsec + sec].south_pt = nsec + sec;
-			}
-			else{
-				adj[spi * nsec + sec].south_pt = -1;
-			}
-		}
-		else{
-				adj[spi * nsec + sec].south_pt = (spi+1) * nsec + sec ;
-		}
-
-
-		/*  set west_pt  */
-		if(sec == 0){
-			if(curve_closed){
-				adj[spi * nsec + sec].west_pt = spi * (nsec) + nsec -2;
-			}
-			else{
-				adj[spi * nsec + sec].west_pt =  -1;
-			}
-		}
-		else{
-			adj[spi * nsec + sec].west_pt = spi * nsec + sec -1;
-		}
-
-
-                /*  set east_pt  */
-                if(sec == nsec-1){
-                        if(curve_closed){
-                                adj[spi * nsec + sec].east_pt = spi * (nsec) + 1 ;
-                        }
-                        else{
-                                adj[spi * nsec + sec].east_pt =  -1;
-                        }
-                }
-                else{
-                        adj[spi * nsec + sec].east_pt = spi * nsec + sec + 1;
-                }
-
-
-		/* More data collection, this is again needed for smooth normals. */
-		
-		if( (adj[spi * nsec + sec].north_pt == -1) 
-		|| (adj[spi * nsec + sec].east_pt == -1 ) ) {
-			adj[spi * nsec + sec].north_east_pt = -1;
-		}
-		else if (curve_closed && (sec == nsec-1) && !closed){
-			adj[spi * nsec + sec].north_east_pt = (spi-1) * nsec + 1;
-		}
-		else if (curve_closed && closed && (sec == nsec-1) && !(spi == 0) ){
-			adj[spi * nsec + sec].north_east_pt = (spi-1) * nsec + 1;
-		}
-		else if (curve_closed && closed && (sec == nsec-1) && (spi == 0) ){
-			adj[spi * nsec + sec].north_east_pt = (nspi-2) * nsec + 1; 
-		}
-		else{
-			adj[spi * nsec + sec].north_east_pt = adj[spi * nsec + sec].north_pt + 1;
-		}
-
-		
-		if( (adj[spi * nsec + sec].east_pt == -1) 
-		|| (adj[spi * nsec + sec].south_pt == -1 ) ) {
-			adj[spi * nsec + sec].south_east_pt = -1;
-		}
-		else if (curve_closed && (sec == nsec-1) && !closed){
-			adj[spi * nsec + sec].south_east_pt = (spi+1) * nsec + 1;
-		}
-		else if (curve_closed && closed && (sec == nsec-1) && !(spi == nspi-1) ){
-			adj[spi * nsec + sec].south_east_pt = (spi+1) * nsec + 1; 
-		}
-		else if (curve_closed && closed && (sec == nsec-1) && (spi == nspi-1) ){
-			adj[spi * nsec + sec].south_east_pt = 1*nsec + 1; 
-		}
-		else {
-			adj[spi * nsec + sec].south_east_pt = adj[spi * nsec + sec].south_pt + 1;
-		}
-
-		
-		if( (adj[spi * nsec + sec].south_pt == -1) 
-		|| (adj[spi * nsec + sec].west_pt == -1 ) ) {
-			adj[spi * nsec + sec].south_west_pt = -1;
-		}
-		else if (curve_closed && (sec == 0) && !closed){
-			adj[spi * nsec + sec].south_west_pt = (spi+1) * nsec + nsec - 2;
-		}
-		else if (curve_closed && closed && (sec == 0) && !(spi == nspi-1) ){
-			adj[spi * nsec + sec].south_west_pt = (spi+1) * nsec + nsec - 2; 
-		}
-		else if (curve_closed && closed && (sec == 0) && (spi == nspi-1) ){
-			adj[spi * nsec + sec].south_west_pt = 1*nsec +nsec-2; 
-		}
-		else {
-			adj[spi * nsec + sec].south_west_pt = adj[spi * nsec + sec].south_pt - 1;
-		}
-
-
-		if( (adj[spi * nsec + sec].west_pt == -1) 
-		|| (adj[spi * nsec + sec].north_pt == -1 ) ) {
-			adj[spi * nsec + sec].north_west_pt = -1;
-		}
-		else if (curve_closed && (sec == 0) && !closed){
-			adj[spi * nsec + sec].north_west_pt = (spi-1) * nsec + nsec - 2;
-		}
-		else if (curve_closed && closed && (sec == 0) && !(spi == 0) ){
-			adj[spi * nsec + sec].north_west_pt = (spi-1) * nsec + nsec - 2; 
-		}
-		else if (curve_closed && closed && (sec == 0) && (spi == 0) ){
-			adj[spi * nsec + sec].north_west_pt = (nspi-2) * nsec + nsec -2; 
-		}
-		else {
-			adj[spi * nsec + sec].north_west_pt = adj[spi * nsec + sec].north_pt - 1;
-		}
-
-
 	} /* for(sec */
-
 } /* for(spi */
 ncoord=nsec*nspi;
-
-/**DEBUG CODE*****************************************************
-for(klm=0; klm < nspi*nsec; klm++ ){
-	printf("%i   south_pt: %i\n", klm, adj[klm].south_pt);
-	printf("%i   north_pt: %i\n", klm, adj[klm].north_pt);
-	printf("%i   east_pt: %i\n", klm, adj[klm].east_pt);
-	printf("%i   west_pt: %i\n", klm, adj[klm].west_pt);
-	printf("%i   north_east_pt: %i\n", klm, adj[klm].north_east_pt);
-	printf("%i   south_east_pt: %i\n", klm, adj[klm].south_east_pt);
-	printf("%i   south_west_pt: %i\n", klm, adj[klm].south_west_pt);
-	printf("%i   north_west_pt: %i\n", klm, adj[klm].north_west_pt);
-	printf("-----------------------------------------------\n");
-}
-printf("nsec: %i       nspi: %i \n", nsec, nspi);
-*/
-
-
-
+ 
+ 
 /* freeing SCP coordinates. not needed anymore.				*/
 if(SCP) free(SCP);
  
@@ -785,12 +653,33 @@ if(verbose) {
 }
 	
 for(x=0; x<nsec-1; x++) {
- for(z=0; z<nspi-1; z++) {
+  for(z=0; z<nspi-1; z++) {
   A=x+z*nsec;
   B=(x+1)+z*nsec;
   C=(x+1)+(z+1)*nsec; 
   D= x+(z+1)*nsec;
-  
+
+  /* if we are circular, check to see if this is the first tri, or the last */
+  /* the vertexes are identical, but for smooth normal calcs, make the    */
+  /* indexes the same, too                                                */
+
+  // printf ("x %d z %d nsec %d nspi %d\n",x,z,nsec,nspi);
+
+  if (tubular) {
+	if (x==(nsec-2)) {
+		B -=(x+1);
+		C -=(x+1);
+	}
+  }
+
+  if (circular) {
+	if (z==(nspi-2)) {
+		/* last row in column, assume z=nspi-2, subtract this off */
+		C -= (z+1)*nsec; 
+		D -= (z+1)*nsec;
+	}
+  }
+ 
   /* calculate the distance A-C and see, if it is smaller as B-D	*/
   VEC_FROM_COORDDIFF(coord,C,coord,A,ac);
   VEC_FROM_COORDDIFF(coord,D,coord,B,bd);
@@ -800,7 +689,6 @@ for(x=0; x<nsec-1; x++) {
   } else {
   	E=C; F=A;
   }
-
 
   /* if concave polygons are expected, we also expect intersecting ones
   	so we are testing, whether A-B and D-C intersect	*/
@@ -859,333 +747,185 @@ for(x=0; x<nsec-1; x++) {
 
   } 
 
-  
-  /* first triangle */
-  cindex[triind*3+0] = D; cindex[triind*3+1] = A; cindex[triind*3+2] = E;
-
-  /* smooth normals and flat normals use completely different indexing  */
-  /* schemes */
-  if(smooth_normals){
-  	norindex[triind*3+0] = D;	/**AG**/ 
-  	norindex[triind*3+1] = A; 
-  	norindex[triind*3+2] = E; 
-  	/*printf("triangle : %i  D: %i  A: %i  E: %i \n ", triind, D, A, E);*/
-  }
-  else {
-	norindex[triind*3+0] = triind;
-	norindex[triind*3+1] = triind;
-	norindex[triind*3+2] = triind;
-  }
+  // printf ("Triangle1 %d %d %d\n",D,A,E); 
+  /* first triangle  calculate pointfaces, etc, for this face */
+  Elev_Tri(triind*3, this_face, D,A,E, TRUE , rep_, facenormals, pointfaces,ccw);
+  defaultface[triind] = this_face;
   triind ++;
 
-  /* second triangle*/
-  cindex[triind*3+0] = B; cindex[triind*3+1] = C; cindex[triind*3+2] = F;
-
-  if(smooth_normals){
-  	norindex[triind*3+0] = B; 	/**AG**/
-  	norindex[triind*3+1] = C; 
-  	norindex[triind*3+2] = F; 
-	/*printf("triangle : %i  B: %i  C: %i  F: %i \n ", triind, B, C, F);*/
-  }
-  else {
-  	norindex[triind*3+0] = triind;
-  	norindex[triind*3+1] = triind;
-  	norindex[triind*3+2] = triind;
-  }
+  // printf ("Triangle2 %d %d %d\n",B,C,F);
+  /* second triangle - pointfaces, etc,for this face  */
+  Elev_Tri(triind*3, this_face, B, C, F, TRUE, rep_, facenormals, pointfaces,ccw);
+  defaultface[triind] = this_face;
   triind ++; 
+  this_face ++;
+
  }
 }
 
-/* for the caps */
-
-if(verbose) {
-	if($f(beginCap)) 
-		printf("Extrusion.GenPloyRep:We have a beginCap!\n"); 
-	if($f(endCap)) 
-		printf("Extrusion.GenPloyRep:We have a endCap!\n"); 
+/* do normal calculations for the sides, here */
+for (tmp=0; tmp<(triind*3); tmp++) {
+	if (HAVETOSMOOTH) {
+		normalize_ifs_face (&rep_->normal[tmp*3],
+			facenormals, pointfaces, cindex[tmp],
+			defaultface[tmp/3], creaseAngle);
+	} else {
+		rep_->normal[tmp*3+0] = facenormals[defaultface[tmp/3]].x;
+		rep_->normal[tmp*3+1] = facenormals[defaultface[tmp/3]].y;
+		rep_->normal[tmp*3+2] = facenormals[defaultface[tmp/3]].z;
+	}
+	rep_->norindex[tmp] = tmp;
 }
-	
-	
+/* keep track of where the sides end, triangle count-wise */
+end_of_sides = triind*3;
+
+
 if($f(convex)) {
+	int endpoint;
+
+	/* if not tubular, we need one more triangle */
+	if (tubular) endpoint = nsec-3-ncolinear_at_end;
+	else endpoint = nsec-2-ncolinear_at_end;
+
+
 	/* this is the simple case with convex polygons	*/
 	if($f(beginCap)) {
-		for(x=0+ncolinear_at_begin; x<nsec-3-ncolinear_at_end; x++) {
-			cindex[triind*3+0] = 0;
-			cindex[triind*3+1] = x+2;
-			cindex[triind*3+2] = x+1;
-
-			if(!smooth_normals){
-				norindex[triind*3+0] = triind;	/**AG**/
-				norindex[triind*3+1] = triind;
-				norindex[triind*3+2] = triind;
-			}
+		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
+  			Elev_Tri(triind*3, this_face, 0, x+2, x+1, TRUE , rep_, facenormals, pointfaces,ccw);
+  			defaultface[triind] = this_face;
 			triind ++;
 		}
-		if(!curve_closed) {	/* non closed need one triangle more	*/
-			cindex[triind*3+0] = 0;
-			cindex[triind*3+1] = x+2;
-			cindex[triind*3+2] = x+1;
-
-			if(!smooth_normals){
-				norindex[triind*3+0] = triind;	/**AG**/
-				norindex[triind*3+1] = triind;
-				norindex[triind*3+2] = triind;
-			}
-			triind ++;
- 		}
+		this_face++;
 	} /* if beginCap */
 	
 	if($f(endCap)) {
-		for(x=0+ncolinear_at_begin; x<nsec-3-ncolinear_at_end; x++) {
-			/* endCap not showing, because it is facing wrong way.	*/
-			/* try changing how triangles are drawn			*/
-			cindex[triind*3+2] = 0  +(nspi-1)*nsec;
-			cindex[triind*3+1] = x+2+(nspi-1)*nsec;
-			cindex[triind*3+0] = x+1+(nspi-1)*nsec;
-
-			if(!smooth_normals){
-				norindex[triind*3+0] = triind;	/**AG**/
-				norindex[triind*3+1] = triind;
-				norindex[triind*3+2] = triind;
-			}
+		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
+  			Elev_Tri(triind*3, this_face, 0  +(nspi-1)*nsec,
+				x+1+(nspi-1)*nsec,x+2+(nspi-1)*nsec,
+				TRUE , rep_, facenormals, pointfaces,ccw);
+  			defaultface[triind] = this_face;
 			triind ++;
 		}
-		if(!curve_closed) {	/* non closed needs one triangle more	*/
-			/* lets flip 0 and 2 around; endCaps were being drawn inside-out */
-			cindex[triind*3+0] = 0  +(nspi-1)*nsec;
-			cindex[triind*3+1] = x+2+(nspi-1)*nsec;
-			cindex[triind*3+2] = x+1+(nspi-1)*nsec;
-
-			if(!smooth_normals){
-				norindex[triind*3+0] = triind;	/**AG**/
-				norindex[triind*3+1] = triind;
-				norindex[triind*3+2] = triind;
-			}
-			triind ++;
- 		}
+		this_face++;
 	} /* if endCap */
 	
 } else 
     if($f(beginCap)||$f(endCap)) { 
 	/* polygons might be concave-> do tessellation			*/
 
-	GLdouble tess_v[3];		/*param.to gluTessVertex()*/
-	GLdouble *tess_vs;		/* pointer to space needed */
-	struct pt help_pt;		/* help vertix		*/
-	int ncoord_new=0;		/* # of coords added	*/
-	
+	/* give us some memory - this array will contain tessd triangle counts */
+	int *tess_vs;
+	struct SFColor *c1;
+	GLdouble tess_v[3]; 
+	int endpoint;
 
-    	if(verbose)printf("Extrusion.GenPolyRep: Trying to tessellate caps.\n");
+	tess_vs=malloc(sizeof(*(tess_vs)) * (nsec - 3 - ncolinear_at_end) * 3);
+	if (!(tess_vs)) die ("Extrusion - no memory for tesselated end caps");
 
-	tesselize_extrusion();
+	/* if not tubular, we need one more triangle */
+	if (tubular) endpoint = nsec-1-ncolinear_at_end;
+	else endpoint = nsec-ncolinear_at_end;
 
-	nctri=0;
-	tess_polyrep.ntri= nsec*2 ;	
-	tess_polyrep.alloc_tri= nsec*2 ;	
-				/* max number of resulting tris -
-				   2*nsec + caps */
 		
-					/* get memory	*/
-	tess_polyrep.cindex=malloc(
-			sizeof(*(tess_polyrep.cindex))*3*(tess_polyrep.ntri));
-	tess_polyrep.coord=malloc(
-			sizeof(*(tess_polyrep.coord))*9*(tess_polyrep.ntri));
-	tess_vs=malloc(sizeof(*(tess_vs))*9*(tess_polyrep.ntri));
-	if(!(tess_polyrep.cindex&&tess_polyrep.coord&&tess_vs))
-		die("Got no memory!\n");
-		
-		
-	if($f(beginCap)){	
-		tess_polyrep.ntri=0;	/* first triangle index to be filled*/
-		global_tess_polyrep=&tess_polyrep;
+	if($f(beginCap)) {
+		global_IFS_Coord_count = 0;
 		gluBeginPolygon(global_tessobj);
-		gluNextContour(global_tessobj,GLU_UNKNOWN);
-		help=curve_closed?nsec-1:nsec;
-		for(sec=0;sec<help;sec++) {
-			tess_v[0]=tess_vs[sec*3]  =coord[sec*3];
-			tess_v[1]=tess_vs[sec*3+1]=coord[sec*3+1];
-			tess_v[2]=tess_vs[sec*3+2]=coord[sec*3+2];
-			/* the third argument is the pointer, we get back*/
-			gluTessVertex(global_tessobj,tess_v,&tess_vs[sec*3]);
+
+		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
+                	c1 = (struct SFColor *) &rep_->coord[3*x];
+			tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
+			tess_vs[x] = x;
+			gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
 		}
 		gluEndPolygon(global_tessobj);
-		
-		
-if(verbose) {
-		for(t=0;t<tess_polyrep.ntri;t++) {
-		    for(i=0;i<3;i++) {
-	        	printf("coord[%dff]=%lf,%lf,%lf\n",
-			   tess_polyrep.cindex[t*3+i]*3,
-			   tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3],
-			   tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+1],
-			   tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+2]);
-		    }
-		}
-}
-		
-		ncoord_new=0;
-		for(t=0;t<tess_polyrep.ntri;t++) {
-		    for(i=0;i<3;i++) {
-			/* see if the needed coords are already there	*/
-			cindex[triind*3+i]=-1;
-			for(sec=0;sec<help;sec++) {
-				VEC_FROM_COORDDIFF(tess_polyrep.coord,tess_polyrep.cindex[t*3+i],coord,sec,help_pt);
-				if(APPROX(VECSQ(help_pt),0)) {
-		 			cindex[triind*3+i]=sec;
-					break;  
-		 		}
-			}
-			if(cindex[triind*3+i]==-1)
-			    for(sec=ncoord-ncoord_new;sec<ncoord;sec++) {
-				VEC_FROM_COORDDIFF(tess_polyrep.coord,tess_polyrep.cindex[t*3+i],coord,sec,help_pt);
-				if(APPROX(VECSQ(help_pt),0)) {
-		 			cindex[triind*3+i]=sec;
-					break;
-				}  
-			    }
 
-			if(cindex[triind*3+i]==-1) {
-			  /* we need to add a new coord   */
-			  coord[ncoord*3]  =
-			     tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3];
-			  coord[ncoord*3+1]=
-			     tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+1];
-			  coord[ncoord*3+2]=
-			     tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+2];
-			  cindex[triind*3+i]=ncoord;
-			  ncoord_add++;
-			  ncoord_new++;
-			  ncoord++;
-			}	
-			norindex[triind*3+i] = triind;
-		    }
-		    triind++; nctri++;
+		for (x=0; x<global_IFS_Coord_count; x+=3) {
+  			Elev_Tri(triind*3, this_face, global_IFS_Coords[x], 
+				global_IFS_Coords[x+2], global_IFS_Coords[x+1],
+				TRUE , rep_, facenormals, pointfaces,ccw);
+  			defaultface[triind] = this_face;
+			triind ++;
 		}
-	} /* if beginCap */
-	
-	
+		/* Tesselated faces may have a different normal than calculated previously */
+		Extru_check_normal (facenormals,this_face,-1.0,rep_,ccw);
+
+		this_face++;
+	}	
 	
 	if($f(endCap)){	
-		tess_polyrep.ntri=0;	/* first triangle index to be filled*/
-		global_tess_polyrep=&tess_polyrep;
+		global_IFS_Coord_count = 0;
 		gluBeginPolygon(global_tessobj);
-		gluNextContour(global_tessobj,GLU_UNKNOWN);
-		help=curve_closed?nsec-1:nsec;
-		for(sec=0;sec<help;sec++) {
-		      tess_v[0]=tess_vs[sec*3]  =coord[((nspi-1)*nsec+sec)*3];
-		      tess_v[1]=tess_vs[sec*3+1]=coord[((nspi-1)*nsec+sec)*3+1];
-		      tess_v[2]=tess_vs[sec*3+2]=coord[((nspi-1)*nsec+sec)*3+2];
-		      /* the third argument is the pointer, we get back*/
-		      gluTessVertex(global_tessobj,tess_v,&tess_vs[sec*3]);
+
+		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
+                	c1 = (struct SFColor *) &rep_->coord[3*(x+(nspi-1)*nsec)];
+			tess_v[0] = c1->c[0]; tess_v[1] = c1->c[1]; tess_v[2] = c1->c[2];
+			tess_vs[x] = x+(nspi-1)*nsec;
+			gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
 		}
+		if(!tubular) {	/* non closed need one triangle more	*/
+ 		}
 		gluEndPolygon(global_tessobj);
-		
-		
-		if(verbose) {
-		for(t=0;t<tess_polyrep.ntri;t++) {
-		    for(i=0;i<3;i++) {
-	        	printf("coord[%dff]=%lf,%lf,%lf\n",
-			   tess_polyrep.cindex[t*3+i]*3,
-			   tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3],
-			   tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+1],
-			   tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+2]);
-		    }
+
+		for (x=0; x<global_IFS_Coord_count; x+=3) {
+  			Elev_Tri(triind*3, this_face, global_IFS_Coords[x], 
+				global_IFS_Coords[x+1], global_IFS_Coords[x+2],
+				TRUE , rep_, facenormals, pointfaces,ccw);
+  			defaultface[triind] = this_face;
+			triind ++;
 		}
-		}
+		/* Tesselated faces may have a different normal than calculated previously */
+		Extru_check_normal (facenormals,this_face,1.0,rep_,ccw);
 
-		help=(curve_closed?nsec-1:nsec)+(nspi-1)*nsec;
-		ncoord_new=0;
-		for(t=0;t<tess_polyrep.ntri;t++) {
-		    for(i=0;i<3;i++) {
-			/* see if the needed coords are already there	*/
-			cindex[triind*3+i]=-1;
-			for(sec=(nspi-1)*nsec;sec<help;sec++) {
-				VEC_FROM_COORDDIFF(tess_polyrep.coord,tess_polyrep.cindex[t*3+i],coord,sec,help_pt);
+		this_face++;
+	}
 
-				/*printf("help_pt=[%lf,%lf,%lf]\n",help_pt.x,help_pt.y,help_pt.z); */
-				if(APPROX(VECSQ(help_pt),0)) {
+	/* get rid of mallocd memory  for tess */
+	free (tess_vs);
 
-					/*printf("vertex found at %d\n",sec); */
-		 			cindex[triind*3+i]=sec;
-					break;  
-		 		}
-			}
-			if(cindex[triind*3+i]==-1)
-			    for(sec=ncoord-ncoord_new;sec<ncoord;sec++) {
-				VEC_FROM_COORDDIFF(tess_polyrep.coord,tess_polyrep.cindex[t*3+i],coord,sec,help_pt);
-				if(APPROX(VECSQ(help_pt),0)) {
-
-					if (verbose) 
-					printf("vertex found at %d\n",sec);
-
- 
-		 			cindex[triind*3+i]=sec;
-					break;
-				}  
-			    }
-
-			if(cindex[triind*3+i]==-1) {
-			  /* we need to add a new coord   */
-			  coord[ncoord*3]  =
-			     tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3];
-			  coord[ncoord*3+1]=
-			     tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+1];
-			  coord[ncoord*3+2]=
-			     tess_polyrep.coord[tess_polyrep.cindex[t*3+i]*3+2];
-			  cindex[triind*3+i]=ncoord;
-			  ncoord_add++;
-			  ncoord_new++;
-			  ncoord++;
-			}	
-			norindex[triind*3+i] = triind;
-		    }
-		    triind++; nctri++;
-		}
-	} /* if endCap */	
-	
-	if(tess_polyrep.coord) free(tess_polyrep.coord);
-	if(tess_polyrep.cindex) free(tess_polyrep.cindex);
-	if(tess_vs) free(tess_vs);
-	
     } /* elseif */
- 
-
 } /* end of block */
 
-/* free memory we haven`t used	*/
-if(!$f(convex)) {
-	if(ncoord_add<max_ncoord_add)
-		realloc(coord,sizeof(*(rep_->coord))*(ncoord)*3);
-	if(triind<rep_->ntri) {
-		rep_->ntri=triind;
-		realloc(cindex,sizeof(*(rep_->cindex))*3*(rep_->ntri));
-		realloc(normal,sizeof(*(rep_->normal))*3*(rep_->ntri)*3);   /*AG*/
-		realloc(norindex,sizeof(*(rep_->norindex))*3*(rep_->ntri)*3); /*AG*/
-	}
+/* if we have tesselated, we MAY have fewer triangles than estimated, so... */
+rep_->ntri=triind;
+
+
+/* do normal calculations for the caps here note - no smoothing */
+for (tmp=end_of_sides; tmp<(triind*3); tmp++) {
+	rep_->normal[tmp*3+0] = facenormals[defaultface[tmp/3]].x;
+	rep_->normal[tmp*3+1] = facenormals[defaultface[tmp/3]].y;
+	rep_->normal[tmp*3+2] = facenormals[defaultface[tmp/3]].z;
+	rep_->norindex[tmp] = tmp;
 }
+
+/* do texture mapping calculations */
+if (HAVETODOTEXTURES) {
+	int x,z;
+	for(x=0; x<nsec; x++) {
+		for(z=0; z<nspi; z++) {
+//			tcoord[(z+x*nsec)*3+0] = (float) z/(nspi-1);
+//			tcoord[(z+x*nsec)*3+1] = 0;
+//			tcoord[(z+x*nsec)*3+2] = (float) x/(nsec-1);
+		}
+	}	
+
+}
+
+
+if (verbose) printf ("done, lets free\n");
+
+/* we no longer need to keep normal-generating memory around */
+free (defaultface);
+free (pointfaces);
+free (facenormals);
 
 
 if(verbose)
 	printf("Extrusion.GenPloyRep: triind=%d  ntri=%d nctri=%d "
 	"ncolinear_at_begin=%d ncolinear_at_end=%d\n",
 	triind,ntri,nctri,ncolinear_at_begin,ncolinear_at_end);
-
-	crease_angle = $f(creaseAngle);
-
-if (smooth_normals){
-	calc_poly_normals_extrusion(rep_, adj, nspi, nsec, ntri, nctri, crease_angle); 
-}
-else {
-	calc_poly_normals_flat(rep_);
-}
-
-
-if(adj) free(adj);  /**AG**/
-
-
+ 
 if(verbose) printf ("end VRMLExtrusion.pm\n");
-
-/*verbose = 0;*/
+//verbose = 0;
 
 /*****end of Member Extrusion	*/
 ';
