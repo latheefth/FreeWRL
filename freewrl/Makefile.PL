@@ -213,7 +213,7 @@ WriteMakefile(
 							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
 							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
 							 },
-			  #JAS VERSION => $VERSION,
+			  VERSION => $VERSION,
 			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
 			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
 			  EXE_FILES => ['freewrl'],
