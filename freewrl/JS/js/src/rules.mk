@@ -174,10 +174,12 @@ endif
 clean:
 	rm -rf $(OBJS)
 	@cd fdlibm; $(MAKE) -f Makefile.ref clean
+	@cd editline; $(MAKE) -f Makefile.ref clean
 
 clobber:
 	rm -rf $(OBJS) $(TARGETS) $(DEPENDENCIES)
 	@cd fdlibm; $(MAKE) -f Makefile.ref clobber
+	@cd editline; $(MAKE) -f Makefile.ref clobber
 
 depend:
 	gcc -MM $(CFLAGS) $(LIB_CFILES)
