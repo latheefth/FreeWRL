@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.46  2002/04/03 15:45:10  crc_canada
+# Smooth normals for Indexed Face Sets... initial try
+#
 # Revision 1.45  2002/02/05 20:31:20  crc_canada
 # Cleaned up way "smooth normals" were tagged in the code.
 #
@@ -538,12 +541,6 @@ IndexedFaceSet => '
 #
 #
 
-
-# In one sense, we could just plot the polygons here and be done
-# with it -- displaylists would speed it up.
-#
-# However, doing this in a device-independent fashion will help
-# us a *lot* in porting to some other 3D api.
 %GenPolyRepC = (
 # ElevationGrid = 2 triangles per each face.
 # No color or normal support yet
@@ -604,7 +601,6 @@ ElevationGrid => '
 		/* Flat */
 		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri*3);
 		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);	
-
 		adj     = malloc( sizeof(struct VRML_Extrusion_Adj) * nx * nz ); /*AG*/
 
 		/* in C always check if you got the mem you wanted...  >;->		*/
@@ -682,6 +678,7 @@ ElevationGrid => '
 		rep_->norindex[triind*3+0] = triind;
 		rep_->norindex[triind*3+1] = triind;
 		rep_->norindex[triind*3+2] = triind;
+		printf ("ElevationGrid, triind %d norindex %d %d %d\n",triind, triind*3,triind*3+1,triind*3+2);
 		  triind ++;
 		  /* 2: */
 		  cindex[triind*3+0] = C; cindex[triind*3+1] = B; cindex[triind*3+2] = F;
@@ -702,6 +699,7 @@ ElevationGrid => '
 		rep_->norindex[triind*3+0] = triind;
 		rep_->norindex[triind*3+1] = triind;
 		rep_->norindex[triind*3+2] = triind;
+		printf ("ElevationGrid2, triind %d norindex %d %d %d\n",triind, triind*3,triind*3+1,triind*3+2);
 		  triind ++; 
 		 }
 		}
@@ -810,6 +808,7 @@ IndexedFaceSet => '
 	int tcin = $f_n(texCoordIndex);
 	int colin = $f_n(colorIndex); 
 	int norin = $f_n(normalIndex);
+	float creaseAngle = $f(creaseAngle);
 
 	int curpoly;
 	int ntri = 0;
@@ -833,12 +832,30 @@ IndexedFaceSet => '
         int *tcindex;
 	int *norindex;
 
+	/* GENERIC POLYREP */
+
+	int faces=0;
+	int pointctr;
+	int facectr;
+	int max_points_per_face = 0;
+	int min_points_per_face = 99999;
+	int tmp_a, tmp_b, tmp_c;
+	int pt_1, pt_2, pt_3;
+	float AB, AC, BC;
+	struct pt *facenormals;
+	int	*pointfaces;
+
+	/* END OF GENERIC POLYREP */
+
+	/* if the last coordIndex == -1, ignore it */
+	if($f(coordIndex,cin-1) == -1) { cin--; }
+	
+
         /* texture coords */
 
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
 	
 	/*
-
         printf("\n\ntexCoords = %lx     ntexCoords = %d\n", texCoords, ntexCoords);
 	for (i=0; i<ntexCoords; i++)
            printf( "\\ttexCoord point #%d = [%.5f, %.5f]\\n", i, 
@@ -851,13 +868,12 @@ IndexedFaceSet => '
 	$fv(coord, points, get3, &npoints);
 	$fv_null(normal, normals, get3, &nnormals); 
 
-	/*	
+		
+	/*
 	printf ("points = %lx \n",npoints);
 	for (i=0; i<npoints; i++)
 	  printf ("\t point #%d = [%.5f %.5f %.5f]\n", i,
 		points[i].c[0], points[i].c[1], points[i].c[2]);
-	
-
 	printf ("normalIndex size (norin) %d\n",norin);
 	printf ("normals = (nnormals) %d\n",nnormals);
 	for (i=0; i<nnormals; i++) {
@@ -911,6 +927,187 @@ IndexedFaceSet => '
 	   	}
 	}
 
+	/* first complex face - are we running in fast or good mode... */
+	if (smooth_normals == -1) {
+		/* Needs to be initialized */
+		glGetIntegerv (GL_SHADE_MODEL, &smooth_normals);
+		smooth_normals = smooth_normals == GL_SMOOTH;
+	}
+	if (!smooth_normals){
+		creaseAngle = 0.0;  /* trick following code into doing things quick */
+	}
+
+	if ((!nnormals) && (fabs(creaseAngle) > 0.00001)) {
+
+		/* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
+		/* 								*/
+		/* create two datastructures:					*/
+		/* 	- face normals; given a face, tell me the normal	*/
+		/*	- point-face;   for each point, tell me the face(s)	*/
+
+	
+		/* lets see how many faces we have */
+		pointctr=0;
+		for(i=0; i<cin; i++) {
+			if(($f(coordIndex,i) == -1) || (i==cin-1)) {
+				if($f(coordIndex,i) != -1) {
+					pointctr++;
+				}
+	
+				faces++;
+				if (pointctr > max_points_per_face) 
+					max_points_per_face = pointctr;
+				if (pointctr < min_points_per_face) 
+					min_points_per_face = pointctr;
+				pointctr = 0;
+			} else pointctr++;
+		}
+	
+		/*	
+		printf ("this structure has %d faces\n",faces);
+		printf ("	max points per face %d\n",max_points_per_face);
+		printf ("	min points per face %d\n\n",min_points_per_face);
+		*/
+		
+
+		/* bounds check  XXX should free all mallocd memory */	
+		if (min_points_per_face < 3) { 
+			printf ("have an IFS with a face with too few vertex\n"); 
+			return;
+		}
+		if (faces < 1) {
+			printf("an IndexedFaceSet with no faces found\n");
+			return;
+		}
+	
+		/* generate the face-normals table */
+		facenormals = malloc(sizeof(*facenormals)*faces);
+		pointfaces = malloc(sizeof(*pointfaces)*npoints*16); /* save max 15 */
+
+		/* in C always check if you got the mem you wanted...  >;->		*/
+  		if(!(pointfaces && facenormals )) {
+			die("Not enough memory for IndexedFaceSet internals... ;(");
+		} 
+
+		tmp_a = 0;
+		for(i=0; i<faces; i++) {
+			/* check for degenerate triangles -- if found, try to select another point */
+			tmp_c = FALSE;
+			pt_1 = tmp_a; pt_2 = tmp_a+1; pt_3 = tmp_a+2;
+
+			do {	
+				/* first three coords give us the normal */
+				/* printf ("face %d, coords %d %d %d  at %d\n", i,
+					$f(coordIndex,pt_1), $f(coordIndex,pt_2), 
+					$f(coordIndex,pt_3), tmp_a); */
+				c1 = &(points[$f(coordIndex,pt_1)]);
+				c2 = &(points[$f(coordIndex,pt_2)]); 
+				c3 = &(points[$f(coordIndex,pt_3)]);
+
+				a[0] = c2->c[0] - c1->c[0];
+				a[1] = c2->c[1] - c1->c[1];
+				a[2] = c2->c[2] - c1->c[2];
+				b[0] = c3->c[0] - c1->c[0];
+				b[1] = c3->c[1] - c1->c[1];
+				b[2] = c3->c[2] - c1->c[2];
+
+				facenormals[i].x = a[1]*b[2] - b[1]*a[2];
+				facenormals[i].y = -(a[0]*b[2] - b[0]*a[2]);
+				facenormals[i].z = a[0]*b[1] - b[0]*a[1];
+
+				/* printf ("vector length is %f\n",calc_vector_length (facenormals[i])); */
+
+				if (fabs(calc_vector_length (facenormals[i])) < 0.0001) {
+					AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
+					BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
+					/* printf ("AC %f ",AC);
+					printf ("BC %f \n",BC); */
+
+					/* we have 3 points, a, b, c */
+					/* we also have 3 vectors, AB, AC, BC */
+					/* find out which one looks the closest one to skip out */
+					/* either we move both 2nd and 3rd points, or just the 3rd */
+					if (fabs(AC) < fabs(BC)) { pt_2++; }
+					pt_3++;
+
+					/* skip forward to the next couple of points - if possible */
+					/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
+					tmp_a ++;
+					if ((tmp_a >= cin-2) || ($f(coordIndex,tmp_a+2) == -1)) {
+						/* printf ("possible degenerate triangle, but no more points\n"); */
+						/* put values in there so normals will work out */
+						if (fabs(calc_vector_length (facenormals[i])) < 0.0000001) {
+							/* we would have a divide by zero in normalize_vector, so... */
+							facenormals[i].z = 1.0;
+						}
+						tmp_c = TRUE;  tmp_a +=2;
+					}
+				} else {
+					tmp_c = TRUE;
+					tmp_a +=3;
+				}
+
+			} while (!tmp_c);
+
+			normalize_vector(&facenormals[i]);
+			/*
+			printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+				c1->c[0],c1->c[1],c1->c[2],
+				c2->c[0],c2->c[1],c2->c[2],
+				c3->c[0],c3->c[1],c3->c[2]);
+			printf ("normal %f %f %f\n\n",facenormals[i].x,
+				facenormals[i].y,facenormals[i].z);
+			*/
+	
+			/* skip forward to next ifs - we have the normal */
+			if (i<faces-1) {
+				while ($f(coordIndex,tmp_a-1) != -1) {
+					tmp_a++;
+				}
+			}
+		}
+	
+	
+		/* now, go through each face, and make a point-face list 
+		   so that I can give it a point later, and I will know which face(s) 
+		   it belong to that point */
+
+		/* printf ("\nnow generating point-face list\n");  */
+		for (i=0; i<npoints; i++) { pointfaces[i*16]=0; }
+		facectr=0; 
+		for(i=0; i<cin; i++) {
+			tmp_a=$f(coordIndex,i);
+			/* printf ("pointfaces, coord %d coordIndex %d face %d\n",i,tmp_a,facectr); */
+			if (tmp_a == -1) {
+				facectr++;
+			} else {
+				tmp_a*=16;
+				/* is this point in too many faces? if not, record it */
+				if (pointfaces[tmp_a] < 15) {
+					pointfaces[tmp_a]++;
+					pointfaces[tmp_a+ pointfaces[tmp_a]] = facectr; 
+				}
+			}
+		}
+
+		/*
+		printf ("\ncheck \n");
+		for (i=0; i<npoints; i++) {
+			tmp_a = i*16;
+			printf ("point %d is in %d faces, these are:\n ",
+				i, pointfaces[tmp_a]);
+
+			for (tmp_b=0; tmp_b<pointfaces[tmp_a]; tmp_b++) {
+				printf ("%d ",pointfaces[tmp_a+tmp_b+1]);
+			}
+			printf ("\n");
+		}
+		printf ("done generic polyrep data structure building\n");
+		*/
+	
+		/* End of generating smooth normals for IFS */
+	}
+
 
 	/* wander through to see how much memory needs allocating */
 	for(i=0; i<cin; i++) {
@@ -944,7 +1141,15 @@ IndexedFaceSet => '
 	cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 	colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
 	norindex = rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
-	rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
+
+	/* if we calculate normals, we use a normal per point, NOT per triangle */ 
+	/* use a normal per triangle */
+	if (!nnormals) {  		/* 3 vertexes per triangle, and 3 points per tri */
+		rep_->normal = malloc(sizeof(*(rep_->normal))*3*3*ntri);
+	} else { 			/* dont do much, but get past check below */
+		rep_->normal = malloc(1);
+	}
+
 	rep_->ntri = ntri;
 
 	if (ntexerrors == 0)
@@ -981,7 +1186,10 @@ IndexedFaceSet => '
 		int lastnorind = -1;
 		
 		int triind = 0;
+		int calc_normind=0; /* if we calculate normals ourselves */
+
 		curpoly = 0;
+		
 		for(i=0; i<cin; i++) {
 			/* printf ("count is %d Coord index is %d\n",i,$f(coordIndex,i));  */
 
@@ -1083,26 +1291,49 @@ IndexedFaceSet => '
 						norindex[triind*3+2] = curpoly;
 						}
 					}
-					/* no normals, so calculate them */
+					/* no normals, so use either pre-calculated ones 
+					   (if smooth normals) or calculate quickies here */
 					if (!nnormals) {
-						c1 = &(points[initind]);
-						c2 = &(points[lastind]); 
-						c3 = &(points[$f(coordIndex,i)]);
-						a[0] = c2->c[0] - c1->c[0];
-						a[1] = c2->c[1] - c1->c[1];
-						a[2] = c2->c[2] - c1->c[2];
-						b[0] = c3->c[0] - c1->c[0];
-						b[1] = c3->c[1] - c1->c[1];
-						b[2] = c3->c[2] - c1->c[2];
-						rep_->normal[triind*3+0] =
-							a[1]*b[2] - b[1]*a[2];
-						rep_->normal[triind*3+1] =
-							-(a[0]*b[2] - b[0]*a[2]);
-						rep_->normal[triind*3+2] =
-							a[0]*b[1] - b[0]*a[1];
-						rep_->norindex[triind*3+0] = triind;
-						rep_->norindex[triind*3+1] = triind;
-						rep_->norindex[triind*3+2] = triind;
+						if (fabs(creaseAngle) > 0.00001) {
+							/* normalize each vertex */
+							normalize_ifs_face (&rep_->normal[calc_normind*3],
+								facenormals, pointfaces, initind,
+								curpoly, creaseAngle);
+							rep_->norindex[triind*3+0] = calc_normind;
+							calc_normind ++;
+	
+							normalize_ifs_face (&rep_->normal[calc_normind*3],
+								facenormals, pointfaces, lastind,
+								curpoly, creaseAngle);
+							rep_->norindex[triind*3+1] = calc_normind;
+							calc_normind ++;
+	
+							normalize_ifs_face (&rep_->normal[calc_normind*3],
+								facenormals, pointfaces, $f(coordIndex,i),
+								curpoly, creaseAngle);
+							rep_->norindex[triind*3+2] = calc_normind;
+							calc_normind ++;
+						} else {
+							/* calculate quickie normals */
+							c1 = &(points[initind]);
+							c2 = &(points[lastind]); 
+							c3 = &(points[$f(coordIndex,i)]);
+							a[0] = c2->c[0] - c1->c[0];
+							a[1] = c2->c[1] - c1->c[1];
+							a[2] = c2->c[2] - c1->c[2];
+							b[0] = c3->c[0] - c1->c[0];
+							b[1] = c3->c[1] - c1->c[1];
+							b[2] = c3->c[2] - c1->c[2];
+							rep_->normal[triind*3+0] =
+								a[1]*b[2] - b[1]*a[2];
+							rep_->normal[triind*3+1] =
+								-(a[0]*b[2] - b[0]*a[2]);
+							rep_->normal[triind*3+2] =
+								a[0]*b[1] - b[0]*a[1];
+							rep_->norindex[triind*3+0] = triind;
+							rep_->norindex[triind*3+1] = triind;
+							rep_->norindex[triind*3+2] = triind;
+						}
 					}
 
 
@@ -1130,6 +1361,10 @@ IndexedFaceSet => '
 				}
 			}
 		}
+
+	if ((!nnormals) && (fabs(creaseAngle) > 0.00001)) {
+			free (facenormals); free (pointfaces);
+	}
 	}
 if(!$f(convex)) {
 
@@ -1845,6 +2080,13 @@ int find_the_quadrant_of_this_triangle(struct VRML_PolyRep *rep,
 				int index_pt, int a_pt, int b_pt);
 void normalize_vector(struct pt *vec); 
 
+void normalize_ifs_face (float *point_normal,
+			 struct pt *facenormals,
+			 int *pointfaces,
+			int mypoint,
+			int curpoly,
+			float creaseAngle);
+
 void render_ray_polyrep(void *node,
 	int npoints, struct SFColor *points);
 	
@@ -1988,6 +2230,7 @@ void destruct_tessellation(void) {
  */
  
 
+
 void render_polyrep(void *node, 
 	int npoints, struct SFColor *points,
 	int ncolors, struct SFColor *colors,
@@ -2021,8 +2264,10 @@ void render_polyrep(void *node,
 	p = node;
 	r = p->_intern;
 
-
 	/*	
+	printf ("rp, p is %x r is %x r-norm is %x\n",p,r,r->normal);
+
+
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 			p->_change, r->_change, r->ntri);
 	printf ("\tnpoints %d ncolors %d nnormals %d\n",
@@ -2030,7 +2275,6 @@ void render_polyrep(void *node,
 	printf("\tntexcoords = %d    texcoords = 0x%lx\n",
 			ntexcoords, texcoords);
 	*/
-	
 
 	/* do we need to generate default texture mapping? */
 	if (glIsEnabled(GL_TEXTURE_2D) && (ntexcoords == 0) && (!r->tcoord)) {
@@ -2105,7 +2349,7 @@ void render_polyrep(void *node,
 		GLfloat color[4];
 		GLfloat a,b,c = 0.0;
 
-		/*  printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); */
+		/* printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3);  */
 
 		/* get normals and colors, if any	*/
 		if(r->norindex) {nori = r->norindex[i];}
@@ -2128,6 +2372,10 @@ void render_polyrep(void *node,
 			}
 			glNormal3fv(normals[nori].c);
 		} else if(r->normal) {
+			/*
+			printf ("r->normal nori %d ",nori);
+			fwnorprint(r->normal+3*nori);
+			*/
 			glNormal3fv(r->normal+3*nori);
 		}
 
@@ -2145,12 +2393,12 @@ void render_polyrep(void *node,
 		/* Coordinate points	*/
 		if(points) {
 			XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
-		  	/*
+			/*
 			printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
 			*/
 		} else if(r->coord) {	
 			XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
-		  	/*
+			/*
 			printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
 			*/
 		}
@@ -2187,6 +2435,7 @@ void render_polyrep(void *node,
 		glDisable(GL_COLOR_MATERIAL);
 	}
 }
+
 
 
 /*********************************************************************
@@ -2355,13 +2604,12 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep)
 		v2 = rep->coord+3*rep->cindex[i*3+1];
 		v3 = rep->coord+3*rep->cindex[i*3+2];
 		
-		/* 
+
 		printf ("cpnf %d using cindex %d %d %d\n",
 		i,rep->cindex[i*3],rep->cindex[i*3+1],rep->cindex[i*3+2]);
 		printf ("	v1 %f %f %f\n",v1[0],v1[1],v1[2]);
 		printf ("	v2 %f %f %f\n",v2[0],v2[1],v2[2]);
 		printf ("	v3 %f %f %f\n",v3[0],v3[1],v3[2]);
-		*/
 
 		a[0] = v2[0]-v1[0];
 		a[1] = v2[1]-v1[1];
@@ -2444,6 +2692,89 @@ void normalize_vector(struct pt *vec)
 	vec->z = vec->z / vector_length;
 }
 
+void fwnorprint (float *norm) {
+		printf ("normals %f %f %f\n",norm[0],norm[1],norm[2]);
+}
+
+void normalize_ifs_face (float *point_normal,	
+			 struct pt *facenormals,	
+			 int *pointfaces,		
+			int mypoint,
+			int curpoly,
+			float creaseAngle) {
+
+	/* IndexedFaceSet (and possibly sometime, others)
+	   normal generator 
+
+	  Passed in:
+		point_normal	- where to put the calculated normal
+		facenormals	- normals of each face of a polygon
+		pointfaces	- each point - which face(s) is it part of
+		mypoint		- which point are we looking at
+		curpoly		- which poly (face) we are working on
+		creaseAngle	- creaseAngle of polygon
+	*/
+	int tmp_a;
+	int tmp_b; 
+	int facecount;
+	float zz;
+	struct pt temp;
+
+	point_normal[0] = 0.0; point_normal[1] = 0.0; point_normal[2] = 0.0;
+
+	/*
+	printf ("normface poly %d point %d\n ",curpoly,mypoint);
+	printf ("this point is in %d faces, these are: ", pointfaces[mypoint*16]);
+
+	for (tmp_b=0; tmp_b<pointfaces[mypoint*16]; tmp_b++) {
+		printf ("%d ",pointfaces[mypoint*16+tmp_b+1]);
+	}
+	printf ("\n");
+	printf ("my normal is %f %f %f\n", facenormals[curpoly].x,
+		facenormals[curpoly].y,facenormals[curpoly].z);
+	*/
+
+	/* short cut for a point in only 1 face */
+	if (pointfaces[mypoint*16] == 1) {
+		point_normal[0]=facenormals[curpoly].x;
+		point_normal[1]=facenormals[curpoly].y;
+		point_normal[2]=facenormals[curpoly].z;
+		return;
+	}
+
+	/* ok, calculate normal */
+	facecount = 0;
+	for (tmp_b=0; tmp_b<pointfaces[mypoint*16]; tmp_b++) {
+		tmp_a = pointfaces[mypoint*16+tmp_b+1];
+		/* printf ("comparing myface %d to %d\n",curpoly,tmp_a); */
+	
+		if (curpoly == tmp_a) {
+			zz = 0.0;
+		} else {
+			zz = calc_angle_between_two_vectors(facenormals[curpoly],facenormals[tmp_a] );
+		}
+		/* printf ("angle between faces is %f, creaseAngle is %f\n",zz,creaseAngle); */
+
+		
+		if (zz <= creaseAngle) {
+			/* printf ("count this one in; adding %f %f %f\n",facenormals[tmp_a].x,facenormals[tmp_a].y,facenormals[tmp_a].z); */
+			point_normal[0] += facenormals[tmp_a].x;
+			point_normal[1] += facenormals[tmp_a].y;
+			point_normal[2] += facenormals[tmp_a].z;
+		/*
+		} else {
+			printf ("count this one out\n");
+		*/
+		}
+	}
+	temp.x = point_normal[0]; temp.y=point_normal[1]; temp.z=point_normal[2];	
+	normalize_vector(&temp); 
+	point_normal[0]=temp.x; point_normal[1]=temp.y; point_normal[2]=temp.z;
+
+	/* printf ("normalized vector is %f %f %f\n",point_normal[0],
+		point_normal[1], point_normal[2]); */
+}
+	
 
 /* This fuction returns a code that determines whether edges   */
 /* at this point need to smoothed over or not. This code is    */
