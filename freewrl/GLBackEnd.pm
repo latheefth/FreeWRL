@@ -392,6 +392,9 @@ sub event {
 			# print "help key pushed\n";
 			system ("xterm -e man freewrl &");
 
+		} elsif ($key eq ".") {
+			VRML::VRMLFunc::toggle_status_bar();
+
 		} elsif (!VRML::VRMLFunc::use_keys()) {
 			if ($key eq "k") {
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
