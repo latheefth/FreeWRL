@@ -2,20 +2,21 @@
 
 # Assume you are in root of FreeWRL directory.
 
-rm -r ../FreeWRL-1.01
-mkdir ../FreeWRL-1.01
+rm -r ../FreeWRL-1.02-pre1
+mkdir ../FreeWRL-1.02-pre1
 
-cp -r . ../FreeWRL-1.01
+cp -r . ../FreeWRL-1.02-pre1
 
 # now, trim off any fat you see 
 
-cd ../FreeWRL-1.01
+cd ../FreeWRL-1.02-pre1
 
 find . -name typescript -exec rm {} \;
 find . -name CVS -exec rm -r {} \;
 rm package*
 rm Viewer.pm
 rm Quaternion.pm
+rm VRMLServ.pm
 rm lastcvscheckin
 rm -r JS/js/Linux_All_DBG.OBJ
 rm freewrl
