@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.96  2003/04/09 18:23:27  crc_canada
+# IndexedLineSet color field bounds checking - if less colours than expected,
+# don't go into never-never land.
+#
 # Revision 1.95  2003/04/03 17:28:32  crc_canada
 # Viewpoint animated fieldOfViews now works
 #
@@ -762,9 +766,6 @@ IndexedLineSet => '
                 glPushAttrib(GL_ENABLE_BIT);
                 glDisable(GL_CULL_FACE);
 
-
-
-
 		if(ncolors && !cpv) {
 			if (verbose) printf("glColor3f(%f,%f,%f);\n",
 				  colors[plno].c[0],
@@ -779,6 +780,7 @@ IndexedLineSet => '
 		for(i=0; i<cin; i++) {
 			ind = $f(coordIndex,i);
 			if(verbose) printf("Line: %d %d\n",i,ind); 
+
 			if(ind==-1) {
 				glEnd();
 				plno++;
@@ -789,9 +791,16 @@ IndexedLineSet => '
 						if(colin) {
 							c = $f(colorIndex,c);
 						}
-					      glColor3f(colors[c].c[0],
-					        colors[c].c[1],
-					   	colors[c].c[2]);
+						if (c<ncolors) {
+						      glColor3f(colors[c].c[0],
+						        colors[c].c[1],
+						   	colors[c].c[2]);
+						} else {
+						      glColor3f(colors[0].c[0],
+					        	colors[0].c[1],
+						   	colors[0].c[2]);
+						}
+
 					}
 				}
 				glBegin(GL_LINE_STRIP);
@@ -801,9 +810,16 @@ IndexedLineSet => '
 					if(colin) {
 						c = $f(colorIndex,c);
 					}
-					glColor3f(colors[c].c[0],
-						  colors[c].c[1],
-						  colors[c].c[2]);
+					if (c<ncolors) {
+					      glColor3f(colors[c].c[0],
+					        colors[c].c[1],
+					   	colors[c].c[2]);
+					} else {
+					      glColor3f(colors[0].c[0],
+					        colors[0].c[1],
+					   	colors[0].c[2]);
+					}
+
 				}
 				glVertex3f(
 					points[ind].c[0],
