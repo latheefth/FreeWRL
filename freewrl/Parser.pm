@@ -162,42 +162,6 @@ sub parse_proto {
 	}
 	$pro->topnodes(\@a);
 
-	# debugging code for getting EAI information about Routes.
-	# print "parse_proto: scene $scene has the following protos: ", 
-
-	# my $k;
-	# foreach $k (keys %{$scene->{Protos}}) {
-	# print "$k ",ref $k, ",";
-	# for (@{$k->{Routes}}) {
-	#                my($fnam, $ff, $tnam, $tf) = @$_;
-	#                 print "parse_proto - routes in $k are from $fnam field $ff to $tnam field $tf\n";
-	#	}
-	
-	# }
-
-	# print "\n";
-	#if ($scene->{Routes}) {
-	#print "parse_proto: my scene $scene has the following routes:\n";
-	#for(@{$scene->{Routes}}) {
-	#               my($fnam, $ff, $tnam, $tf) = @$_;
-	#               print "parse_proto - routes from $fnam field $ff to $tnam field $tf\n";
-	#}
-	#} else {
-	#	print "parse_proto - no routes \n";
-	#}
-
-	# if ($pro->{Routes}) {
-	# print "parse_proto: the proto expansion $pro has the following routes:\n";
-	# for(@{$pro->{Routes}}) {
-        #         my($fnam, $ff, $tnam, $tf) = @$_;
-	# 		
-        #        print "parse_proto - routes from $fnam field $ff to $tnam field $tf\n";
-	# }
-	# } else {
-	# 	print "parse_proto - no routes \n";
-	# }
-
-
 	# Register viewpoints from this proto invocation
 	# $pro->register_vps($scene->get_browser());
 
@@ -332,7 +296,6 @@ sub parse {
 		VRML::Handles::def_reserve($1,"DEF$LASTDEF");
 		$LASTDEF++;
 		my $defname = VRML::Handles::return_def_name($1);
-		# my $defname = $1;
 		print "Parser.pm: DEF $1 as $defname\n"
 			if $VRML::verbose::parse;
 
@@ -340,9 +303,7 @@ sub parse {
 		my $node = VRML::Field::SFNode->parse($scene,$_[2]);
 		print "DEF - node is $node \n" if  $VRML::verbose::parse;
 
-		# print "creating scene->new_def for $defname, $node\n";
                 return $scene->new_def($defname, $node);
-		# print "back from scene->new_def\n";
 
 	} 
 	if($nt eq "USE") {
@@ -401,21 +362,29 @@ sub parse {
 			if $VRML::verbose::parse;
 		if(!defined $ft) {
 			print "Invalid field '$f' for node '$nt'\n";
+			print "Possible fields are: ";
+			foreach (keys % {$no->{FieldTypes}}) {
+				print "$_ ";
+			}
+			print "\n";
 			exit (1);
 		}
 
 		# the following lines return something like:
-		# 	Storing values... SFInt32 for node VNetInfo, f port^M
-		#       storing type 2, port, (8888)^M
+		# 	Storing values... SFInt32 for node VNetInfo, f port
+		#       storing type 2, port, (8888)
 
-		print "Storing values... $ft for node $nt, f $f\n" if $VRML::verbose::parse;
+		print "Storing values... $ft for node $nt, f $f\n" 
+			 if $VRML::verbose::parse;
 
 		if($_[2] =~ /\G\s*IS\s+($Word)/gsc) {
 			$f{$f} = $scene->new_is($1);
-                        print "storing type 1, $f, (@{$f{$f}})\n" if $VRML::verbose::parse;
+                        print "storing type 1, $f, (name @{$f{$f}})\n" 
+				 if $VRML::verbose::parse;
 		} else {
 			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2]);
-                        print "storing type 2, $f, ($f{$f})\n"  if $VRML::verbose::parse;
+                        print "storing type 2, $f, (",VRML::Node::dump_name($f{$f}), ")\n"  
+				 if $VRML::verbose::parse;
 		}
 	}
 	print "END\n"
