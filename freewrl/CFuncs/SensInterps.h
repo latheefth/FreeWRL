@@ -62,6 +62,7 @@ do_Oint3(void *node);
 void
 do_Oint4(void *node);
 
+void do_CollisionTick(struct VRML_Collision *cx);
 void
 do_AudioTick(struct VRML_AudioClip *node);
 

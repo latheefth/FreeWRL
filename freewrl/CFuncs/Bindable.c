@@ -36,7 +36,6 @@ void reset_upvector() {
 
 /* called when binding NavigationInfo nodes */
 void set_naviinfo(struct VRML_NavigationInfo *node) {
-	struct Multi_String *to;
 	SV **svptr;
 	int i;
 	char *typeptr;
@@ -145,7 +144,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 		/* up_vector is reset after a bind */
 		if (value==1) {
 			reset_upvector();
-			bind_viewpoint (vp);
+			bind_geoviewpoint (gvp);
 		}
 
 	} else if (strncmp("Fog",nodetype,strlen("Fog"))==0) {
@@ -183,8 +182,8 @@ void bind_node (void *node, unsigned int setBindofst,
 	unsigned int *oldboundptr;	/* previous nodes isBound */
 
 	/* setup some variables */
-	setBindptr = (unsigned int) node + setBindofst;
-	isBoundptr = (unsigned int) node + isboundofst;
+	setBindptr = (unsigned int *) ((unsigned int) node + setBindofst);
+	isBoundptr = (unsigned int *) ((unsigned int) node + isboundofst);
 	oldstacktop = stack + *tos;  
 
 	// printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
@@ -215,7 +214,7 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		/* save pointer to new top of stack */
 		*newstacktop = (unsigned int) node;
-		update_node(*newstacktop);
+		update_node((void *) *newstacktop);
 
 		/* was there another DIFFERENT node at the top of the stack? 
 		   have to check for a different one, as if we are binding to the current 
@@ -224,12 +223,12 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
-			oldboundptr = *oldstacktop + isboundofst;
+			oldboundptr = (unsigned int *) (*oldstacktop + isboundofst);
 			*oldboundptr = 0;
 			 // printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
 	
 			/* tell the possible parents of this change */
-			update_node(*oldstacktop);
+			update_node((void *) *oldstacktop);
 		}
 	} else {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
@@ -246,7 +245,7 @@ void bind_node (void *node, unsigned int setBindofst,
 		mark_event ((unsigned int) node, (unsigned int) isboundofst);
 
 		//printf ("old TOS is %d, we are %d\n",*oldstacktop, node);
-		if (node != *oldstacktop) return;
+		if ((unsigned int) node != *oldstacktop) return;
 
 		//printf ("ok, we were TOS, setting %d to 0\n",node);
 
@@ -259,11 +258,11 @@ void bind_node (void *node, unsigned int setBindofst,
 			//printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);
 		
 			/* set the popped value of isBound to true */
-			isBoundptr = *newstacktop + isboundofst;
+			isBoundptr = (unsigned int *) (*newstacktop + isboundofst);
 			*isBoundptr = 1;
 
 			/* tell the possible parents of this change */
-			update_node(*newstacktop);
+			update_node((void *) *newstacktop);
 			mark_event ((unsigned int) *newstacktop, (unsigned int) isboundofst);
 		}
 	}
@@ -326,8 +325,8 @@ void render_Fog (struct VRML_Fog *node) {
 
 	/* now do the foggy stuff */
 	glFogfv(GL_FOG_COLOR,fog_colour);
-	glFogf(GL_FOG_END,node->visibilityRange);
-	if (strncmp("LINEAR",fogptr,foglen)) {
+	glFogf(GL_FOG_END, ((float) node->visibilityRange));
+	if (strncmp("LINEAR",fogptr,(unsigned) foglen)) {
 		glFogi(GL_FOG_MODE, GL_EXP);
 	} else {
 		glFogi(GL_FOG_MODE, GL_LINEAR);
@@ -395,7 +394,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	}
 
 	/* perform GeoViewpoint translations */
-	glRotatef(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
+	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
 		node->orientation.r[2]);
         glTranslated (GeoOrig[0] - node->__position.c[0],
                         GeoOrig[1] - node->__position.c[1],
@@ -440,9 +439,9 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 	found_vp = 1; /* We found the viewpoint */
 
 	/* perform Viewpoint translations */
-	glRotatef(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
+	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
 		node->orientation.r[2]);
-	glTranslatef(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
+	glTranslated(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
 	/* now, lets work on the Viewpoint fieldOfView */
 	glGetIntegerv(GL_VIEWPORT, vp);
@@ -585,6 +584,10 @@ void render_Background (struct VRML_Background *node) {
 		}
 	} else {
 		va1 = 0;
+		/* this gets around a compiler warning - we really DO want last values of this from following
+		   for loop */
+		c1 = &node->skyColor.p[0]; va2= node->skyAngle.p[0];
+
 		for(v=0; v<(node->skyColor.n-1); v++) {
 			c1 = &node->skyColor.p[v];
 			c2 = &node->skyColor.p[v+1];
@@ -705,7 +708,7 @@ void render_Background (struct VRML_Background *node) {
 		/* go through each of the 6 possible sides */
 
 		if(node->__textureback>0) {
-			bind_image (bckptr,node->__textureback, 0,0,node->__istemporaryback);
+			bind_image (bckptr, (unsigned) node->__textureback, 0,0,node->__istemporaryback);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,0.0,1.0); 
 			glTexCoord2d(1.0, 0.0); glVertex3d(-sc, -sc, sc);
@@ -716,7 +719,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturefront>0) {
-			bind_image (frtptr,node->__texturefront, 0,0,node->__istemporaryfront);
+			bind_image (frtptr, (unsigned) node->__texturefront, 0,0,node->__istemporaryfront);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,0.0,-1.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,-sc);
@@ -727,7 +730,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturetop>0) {
-			bind_image (topptr,node->__texturetop, 0,0,node->__istemporarytop);
+			bind_image (topptr, (unsigned) node->__texturetop, 0,0,node->__istemporarytop);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,1.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
@@ -738,7 +741,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturebottom>0) {
-			bind_image (botptr,node->__texturebottom, 0,0,node->__istemporarybottom);
+			bind_image (botptr, (unsigned) node->__texturebottom, 0,0,node->__istemporarybottom);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,-(1.0),0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,-sc,-sc);
@@ -749,7 +752,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__textureright>0) {
-			bind_image (rtptr,node->__textureright, 0,0,node->__istemporaryright);
+			bind_image (rtptr, (unsigned) node->__textureright, 0,0,node->__istemporaryright);
 			glBegin(GL_QUADS);
 			glNormal3d(1.0,0.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
@@ -760,7 +763,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__textureleft>0) {
-			bind_image (lftptr,node->__textureleft, 0,0,node->__istemporaryleft);
+			bind_image (lftptr, (unsigned) node->__textureleft, 0,0,node->__istemporaryleft);
 			glBegin(GL_QUADS);
 			glNormal3d(-1.0,0.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(-sc,sc, -sc);

@@ -62,4 +62,7 @@ void
 render_Viewpoint(struct VRML_Viewpoint *node);
 
 void
+render_GeoViewpoint(struct VRML_GeoViewpoint *node);
+
+void
 render_Background(struct VRML_Background *node);

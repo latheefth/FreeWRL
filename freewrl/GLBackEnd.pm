@@ -395,20 +395,6 @@ sub event {
 		} elsif ($key eq ".") {
 			VRML::VRMLFunc::toggle_status_bar();
 
-		} elsif (!VRML::VRMLFunc::use_keys()) {
-			if ($key eq "k") {
-				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.4);
-			} elsif ($key eq "j") {
-				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.6);
-			} elsif ($key eq "l") {
-				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-				VRML::VRMLFunc::do_handle("DRAG", 1, 0.6, 0.5);
-			} elsif ($key eq "h") {
-				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
-				VRML::VRMLFunc::do_handle("DRAG", 1, 0.4, 0.5);
-			}
 		} else {
 			VRML::VRMLFunc::do_handle_key($args[0]);
 		}

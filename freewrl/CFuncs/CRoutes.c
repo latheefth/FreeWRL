@@ -28,6 +28,7 @@
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
+#include "SensInterps.h"
 
 #define FROM_SCRIPT 1
 #define TO_SCRIPT 2
@@ -219,6 +220,15 @@ int CRVerbose = 0;
 /* global return value for getting the value of a variable within Javascript */
 jsval global_return_val;
 
+/* ClockTick structure for processing all of the initevents - eg, TimeSensors */
+struct FirstStruct {
+	unsigned int	tonode;
+	void (*interpptr)(unsigned *);
+};
+
+/* ClockTick structure and counter */
+struct FirstStruct *ClockEvents = 0;
+int num_ClockEvents = 0;
 
 
 /****************************************************************************/
@@ -497,9 +507,9 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	svptr = to->p;
 	newlen=0;
 
-	if (!JS_ValueToObject(cx,from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
+	if (!JS_ValueToObject(cx, (jsval) from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
 
-	// printf ("getMFStringtype, object is %d\n",obj);
+	//printf ("getMFStringtype, object is %d\n",obj);
 	if (!JS_GetProperty(cx, obj, "length", &_v)) {
 		printf ("JS_GetProperty failed for \"length\" in getMFStringtype.\n");
         }
@@ -947,6 +957,45 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 	/* and do the copy of the data */
 	memcpy (toptr,fromptr,structlen * fromcount);
 }
+
+
+
+/* These events must be run first during the event loop, as they start an event cascade. 
+   Regsister them with add_first, then call them during the event loop with do_first.    */
+
+void add_first(char *clocktype,unsigned int node) {
+	void (*myp)(unsigned *);
+
+	if (strncmp("TimeSensor",clocktype,10) == 0) { myp =  do_TimeSensorTick;
+	} else if (strncmp("ProximitySensor",clocktype,10) == 0) { myp = do_ProximitySensorTick;
+	} else if (strncmp("Collision",clocktype,10) == 0) { myp = do_CollisionTick;
+	} else if (strncmp("MovieTexture",clocktype,10) == 0) { myp = do_MovieTextureTick;
+	} else if (strncmp("AudioClip",clocktype,10) == 0) { myp = do_AudioTick;
+
+	} else {
+		printf ("VRML::VRMLFunc::add_first, unhandled type %s\n",clocktype);
+		return;
+	}
+
+	ClockEvents = realloc(ClockEvents,sizeof (struct FirstStruct) * (num_ClockEvents+1));
+	if (ClockEvents == 0) {
+		printf ("can not allocate memory for add_first call\n");
+		num_ClockEvents = 0;
+	}
+
+	if (node == 0) {
+		printf ("error in add_first; somehow the node datastructure is zero for type %s\n",clocktype);
+		return;
+	}
+
+	/* now, put the function pointer and data pointer into the structure entry */
+	ClockEvents[num_ClockEvents].interpptr = myp;
+	ClockEvents[num_ClockEvents].tonode = node;
+
+	
+	num_ClockEvents++;
+}
+
 
 
 /*******************************************************************
@@ -1661,4 +1710,46 @@ void propagate_events() {
 	} while (havinterp==TRUE);
 
 	if (CRVerbose) printf ("done propagate_events\n\n");
+}
+
+
+
+/********************************************************************
+
+process_eventsProcessed()
+
+According to the spec, all scripts can have an eventsProcessed
+function - see section C.4.3 of the spec.
+
+********************************************************************/
+void process_eventsProcessed() {
+
+	int counter;
+	jsval retval;
+
+	for (counter = 0; counter <= max_script_found; counter++) {
+      		if (!ActualrunScript(counter, "eventsProcessed()" ,&retval))
+                	printf ("failed to run eventsProcessed for script %d\n",counter);
+	}
+}
+
+/*******************************************************************
+
+do_first()
+
+
+Call the sensor nodes to get the results of the clock ticks; this is
+the first thing in the event loop.
+
+********************************************************************/
+
+void do_first() {
+	int counter;
+
+	/* go through the array; add_first will NOT add a null pointer
+	   to either field, so we don't need to bounds check here */
+
+	for (counter =0; counter < num_ClockEvents; counter ++) {
+		ClockEvents[counter].interpptr(ClockEvents[counter].tonode);
+	}
 }

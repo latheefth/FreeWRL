@@ -994,7 +994,7 @@ sub setup_routing {
 		 if ($VRML::Nodes::initevents{$_[0]->{TypeName}}) {
 			 print "\tITNO:is member of initevents\n" 
 				 if $VRML::verbose::scene;
-			 $eventmodel->add_first($_[0]);
+			VRML::VRMLFunc::add_first($_[0]->{TypeName}, $_[0]->{BackNode}->{CNode});
 		 } else {
 			 if ($_[0]->{ProtoExp}) {
 				 #print "VRML::Scene::setup_routing, this $this is a proto, calling protoexp setup_routing\n";

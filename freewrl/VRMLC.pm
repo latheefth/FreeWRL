@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.120  2003/10/09 15:30:35  crc_canada
+# more moving code to C and cleaning up compile warnings.
+#
 # Revision 1.119  2003/10/07 14:58:01  sald1
 # sald1 - cylindersensor node implemented, get_hyperhit function modified
 #
@@ -2441,7 +2444,7 @@ do_CRoutes_js_new (num, cx, glob, brow)
 	void *glob
 	void *brow
 CODE:
-	CRoutes_js_new (num, cx, glob, brow);
+	CRoutes_js_new (num, (unsigned int) cx, (unsigned int) glob, (unsigned int) brow);
 
 
 #********************************************************************************
@@ -2565,6 +2568,26 @@ void
 do_propagate_events()
 CODE:
 	propagate_events();
+	process_eventsProcessed();  // go through all scripts, and do the eventsProcessed call
+
+
+#********************************************************************************
+# Register a timesensitive node so that it gets "fired" every event loop
+
+void
+add_first(clocktype,node)
+	char *clocktype
+	int node
+CODE:
+	add_first(clocktype,node);
+
+# temporary definition - do the clockticks for all nodes that have clock ticks
+void
+do_first()
+CODE:	
+	do_first();
+
+
 
 #********************************************************************************
 #Mouse events at beginning of event loop - Sensors.
@@ -2644,43 +2667,6 @@ CODE:
 	RETVAL = TickTime;
 OUTPUT:
 	RETVAL
-
-
-
-void
-AudioClockTick(node)
-	void *node
-CODE:
-	do_AudioTick(node);
-
-void
-MovieTextureClockTick(node)
-	void *node
-CODE:
-	do_MovieTextureTick(node);
-
-void 
-ProximitySensorClockTick(node)
-	void *node
-CODE:
-	do_ProximitySensorTick(node);
-
-void 
-TimeSensorClockTick(node)
-	void *node
-CODE:
-	do_TimeSensorTick(node);
-
-void
-CollisionClockTick(node)
-	void *node
-CODE:
-	struct VRML_Collision *cx = node;
-	if (cx->__hit == 3) {
-		/* printf ("COLLISION at %f\n",TickTime); */
-		cx->collideTime = TickTime;
-		mark_event ((unsigned int) node, offsetof(struct VRML_Collision, collideTime));
-	}
 
 
 # save the specific FreeWRL version number from the Config files.

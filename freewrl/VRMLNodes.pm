@@ -8,13 +8,10 @@
 
 # The event subs:
 #  Initialize($node,$fields,$time,$scene): called when node created in world
-#  EventsProcessed($node,$fields,$time): called when events have been received
-#					and processed by other routines 
+#
 #  field/eventname($node,$fields,$value,$time) 
 #	(if field/exposedField, the name, otherwise exact eventname)
 #		: called when eventIn received in that event.
-#  ClockTick($node,$fields,$time): called at each clocktick if exists 
-#	(only timesensor-type nodes)
 #
 # default field/eventname: $t->set_field(...,...), if event received,
 #  field is not set so that it can be ignored (e.g. TimeSensor)
@@ -528,21 +525,16 @@ my $protono;
  GeoViewpoint
 /;
 
+# initevents are used in event propagation as the "First" events to run.
+# check out add_first subroutine, and event propagation to see what happens.
+# all of these require the "ClockTick" method.
+
 %VRML::Nodes::initevents = map {($_,1)} qw/
  TimeSensor
- TouchSensor
- GeoTouchSensor
- PlaneSensor
- CylinderSensor
- SphereSensor
  ProximitySensor
- VisibilitySensor
- PixelTexture
  Collision
  MovieTexture
  AudioClip
- Sound
-
 /;
 
 # What are the transformation-hierarchy child nodes?
@@ -727,21 +719,6 @@ my $protono;
 								  $SoundMaterial = "unknown";
 								  return ();
 							  },
-							  startTime => sub {
-								  my($t,$f,$val) = @_;
-								  $f->{startTime} = $val;
-							  },
-							  # Ignore if less than startTime
-							  stopTime => sub {
-								  my($t,$f,$val) = @_;
-								  $f->{stopTime} = $val;
-							  },
-
-							ClockTick => sub {
-								my($t) = @_;
-								VRML::VRMLFunc::MovieTextureClockTick(
-									$t->{BackNode}->{CNode});
-							},
 							 }
 					   ),
 
@@ -959,12 +936,6 @@ my $protono;
 								$f->{stopTime} = $val;
 							},
 
-							ClockTick => sub {
-								my($t) = @_;
-
-								VRML::VRMLFunc::AudioClockTick(
-									$t->{BackNode}->{CNode});
-							},
 						   },
 					  ),
 
@@ -1184,14 +1155,6 @@ my $protono;
 						# cycleTimer flag.
 						__ctflag =>[SFTime, 10, exposedField]
 					   },
-					   {
-						ClockTick => sub {
-							my($t) = @_;
-
-							VRML::VRMLFunc::TimeSensorClockTick(
-								$t->{BackNode}->{CNode});
-						},
-					   }
 					  ),
 
 
@@ -1287,14 +1250,6 @@ my $protono;
 						__t1 => [SFVec3f, [10000000, 0, 0], exposedField],
 						__t2 => [SFRotation, [0, 1, 0, 0], exposedField]
 					   },
-					   {
-						ClockTick => sub {
-							my($t) = @_;
-
-							VRML::VRMLFunc::ProximitySensorClockTick(
-								$t->{BackNode}->{CNode});
-						},
-					   }
 					  ),
 
 
@@ -1446,15 +1401,6 @@ my $protono;
 							}
 							return ();
 						},
-						EventsProcessed => sub {
-							my($t,$f) = @_;
-							print "ScriptEP $_[0] $_[1]!!\n"
-								if $VRML::verbose::script;
-							if ($t->{J}) {
-								return $t->{J}->sendeventsproc($t);
-							}
-							return ();
-						},
 					   }
 					  ),
 
@@ -1474,14 +1420,6 @@ my $protono;
 						# bit 1: changed from previous of not
 						__hit => [SFInt32, 0, exposedField]
 					   },
-					   {
-						ClockTick => sub {
-							my($t) = @_;
-
-							VRML::VRMLFunc::CollisionClockTick(
-								$t->{BackNode}->{CNode});
-						}
-					   }
 					  ),
 
 	Inline =>

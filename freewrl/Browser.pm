@@ -588,40 +588,6 @@ sub deleteRoute {
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 }
 
-# EAI & Script node - these will go away after 1.01..
-
-sub api_beginUpdate { print "no beginupdate yet\n"; exit(1) }
-sub api_endUpdate { print "no endupdate yet\n"; exit(1) }
-
-sub api__sendEvent {
-	my($this, $node, $field, $val) = @_;
-	$this->{EV}->send_event_to($node, $field, $val);
-}
-
-sub api__registerListener {
-	my($this, $node, $field, $sub) = @_;
-	$this->{EV}->register_listener($node, $field, $sub);
-}
-
-sub api__getFieldInfo {
-	my($this, $node, $field) = @_;
-
-	my ($k, $t);
-
-	($k,$t) = ($node->{Type}{FieldKinds}{$field},
-			   $node->{Type}{FieldTypes}{$field});
-	
-	return($k,$t);
-}
-
-#JAS sub api__updateRouting {
-#JAS 	my ($this, $node, $field) = @_;
-#JAS 
-#JAS 	$this->{Scene}->update_routing($node, $field);
-	#JAS $this->prepare2();
-#JAS }
-
-
 #######################################################################
 #
 # X3D Conversion routines.

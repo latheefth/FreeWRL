@@ -443,7 +443,6 @@ sub as_string {
 
 
 sub real_node {
-    #AK - #my ($this, $proto) = @_;
     my ($this) = @_;
 
 	if ($VRML::verbose) {
@@ -453,13 +452,6 @@ sub real_node {
 			 " PROTO first node is ".VRML::Debug::toString($this->{ProtoExp}{Nodes}[0]) :
 			 ""), " from $package, $line\n";
 	}
-
-	#AK - #if (!$proto and defined $this->{IsProto}) {
-	#AK - #	VRML::Handles::front_end_child_reserve($this->{ProtoExp}{Nodes}[0]->real_node(), $this);
-	#AK - #	return $this->{ProtoExp}{Nodes}[0]->real_node();
-    #AK - #} else {
-	#AK - #	return $this;
-    #AK - #}
 
 	return $this->{ProtoExp}{Nodes}[0]->real_node() if ($this->{IsProto});
 
@@ -541,21 +533,6 @@ sub receive_event {
 sub get_global_scene {
     my ($this) = @_;
     return $this->{Scene}->get_scene();
-}
-
-sub events_processed {
-    my ($this, $timestamp, $be) = @_;
-    print "VRML::NodeIntern::events_processed $this $this->{TypeName} $timestamp $be\n"
-         if $VRML::verbose;
-
-    if ($this->{Type}{Actions}{EventsProcessed}) {
-		print "\tprocessed event action!\n" if $VRML::verbose;
-		return &{$this->{Type}{Actions}{EventsProcessed}}(
-			$this,
-			$this->{RFields},
-			$timestamp
-			);
-    }
 }
 
 # Copy a deeper struct

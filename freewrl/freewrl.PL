@@ -128,7 +128,7 @@ F<freewrl.snap.NNNN.ppm> and sequences to F<freewrl.seq.mpg>; see
 options "-gif", "-seqb" and "-snapb". While saving images, freewrl is
 slower.
 
-=item h
+=item h / NumLock
 
 Toggle the headlight on or off.
 

@@ -24,6 +24,9 @@
 #include "quaternion.h"
 #include "Viewer.h"
 
+#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
+
+
 extern VRML_Viewer Viewer; //in VRMLC.pm
 void statusbar_position (void);
 
@@ -150,6 +153,17 @@ void render_status () {
 	/* now that we have the text, go somewhere and render it */
 	glTranslated (0.0, -1.0, -3.0);
 	render_polyrep(&holder,0,NULL,0,NULL,0,NULL,0,NULL);
+
+	/* free the malloc'd memory; the string is now in a display list */
+        FREE_IF_NZ(rep_.cindex);
+        FREE_IF_NZ(rep_.coord);
+        FREE_IF_NZ(rep_.tcoord);
+        FREE_IF_NZ(rep_.colindex);
+        FREE_IF_NZ(rep_.color);
+        FREE_IF_NZ(rep_.norindex);
+        FREE_IF_NZ(rep_.normal);
+        FREE_IF_NZ(rep_.tcindex);
+
 
 	glEndList();
 	glPopMatrix();

@@ -254,4 +254,7 @@ increment_pos(VRML_Viewer *viewer,
 void
 bind_viewpoint(struct VRML_Viewpoint *node);
 
+void
+bind_geoviewpoint(struct VRML_GeoViewpoint *node);
+
 #endif /* __VIEWER_H_ */

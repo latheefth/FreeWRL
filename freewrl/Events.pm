@@ -42,21 +42,6 @@ sub print {
 	print "\nIS hash: ", VRML::Debug::toString($this->{IS}), "\n";
 }
 
-# XXX Softref
-sub add_first {
-	my($this,$node) = @_;
-	print "Events.pm: add_first ", VRML::NodeIntern::dump_name($node),"\n"
-		if $VRML::verbose::events;
-	$this->{First}{$node} = $node;
-
-}
-
-sub remove_first {
-	my($this,$node) = @_;
-	delete $this->{First}{$node};
-}
-
-
 #################################################################################
 #
 # a PROTO interface declaration may have a variable that is referenced in Routes,
@@ -503,11 +488,8 @@ sub propagate_events {
 	my $fk;
 	my %sent; # to prevent sending twice, always set bit here
 
-	for(values %{$this->{First}}) {
-		print "GETFIRST ", VRML::NodeIntern::dump_name($_), " $_\n" 
-			if $VRML::verbose::events;
-		push @e, $_->get_firstevent();
-	}
+	VRML::VRMLFunc::do_first();
+
 	for(@{$this->{MouseSensitive}}) {
 		# Mouse Sensitive nodes, eg, PlaneSensors, TouchSensors. Actual
 		# position, hyperhit, etc, now stored in C structures; only the
@@ -523,37 +505,10 @@ sub propagate_events {
 				$nd->{BackNode}{CNode},
 				$_->[1],$_->[3]);
 	}
-	my $n = scalar @e;
-	push @e, @{$this->{Queue}};
-
 	$this->{MouseSensitive} = [];
 
-	# CRoutes
+	# CRoutes and Javascript/ECMAScript eventsProcessed ();
 	VRML::VRMLFunc::do_propagate_events();
-
-	while(1) {
-		my %ep; # All nodes for which ep must be called
-		# Propagate our events as long as they last
-		$this->{Queue} = [];
-		@ne = ();
-
-		# Call eventsprocessed
-		#JAS - this happens only for Scripts, for now. Is it still required?
-		for (values %ep) {
-			push @ne,$_->events_processed($timestamp,$be);
-		}
-		last if(!@ne);
-		@e = (@ne,@{$this->{Queue}}); # Here we go again ;)
-		$this->{Queue} = [];
-	}
-}
-
-# This sends an event TO node - only used by JavaScript to add/remove children.
-sub send_event_to {
-	my ($this, $node, $field, $value) = @_;
-	my $mych;
-	
-	print "send_event_to depreciated $node, $field, @{$value} ",{@{$value}}->{CNode},"\n";
 }
 
 # This sends a bind/unbind event TO node
@@ -585,7 +540,7 @@ sub send_set_bind_to {
 
 sub handle_touched {
 	my($this, $node, $but, $move, $over) = @_;
-	#print "HTOUCH: node $node, but $but, move $move, over $over \n";
+	print "Events.pm: HTOUCH: node $node, but $but, move $move, over $over \n";
 	push @{$this->{MouseSensitive}}, [ $node, $but, $move, $over];
 }
 
