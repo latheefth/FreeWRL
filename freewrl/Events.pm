@@ -17,6 +17,8 @@ package VRML::EventMachine;
 # to save processing power, we only render when we need to.
 my $havevent = 0;
 
+my %SCENENUMBERS = ();
+my $scenecount = 0;
 
 sub new {
 	my($type) = @_;
@@ -24,6 +26,7 @@ sub new {
 		   First => {},
 		   Listen => undef,
 		   CIs => undef,
+		   NCIs => undef,
 		   PIs => undef,
 		   Queue => undef,
 		   Route => undef,
@@ -45,7 +48,7 @@ sub print {
 	print "ISs\nPI hash:\n",
 		VRML::Debug::toString($this->{PIs}),
 				"\nCI hash:\n",
-					VRML::Debug::toString($this->{CIs}), "\n";
+					VRML::Debug::toString($this->{NCIs}), "\n";
 }
 
 # XXX Softref
@@ -69,31 +72,22 @@ sub remove_first {
 sub verify_script_started {
 	my ($node,$number) = @_;
 
-#JAS	print "verify_script_started, $node, $number\n";
-#JAS	foreach (keys %$node) {
-#JAS	 	print "we have this key $_\n";
-#JAS	}
-#JAS
-#JAS	print "verify_script_started, $node\n";
-#JAS	foreach (keys %{$node->{Fields}}) {
-#JAS		print "we have this Fields key $_, type ",$node->{Fields}{$_},"\n";
-#JAS		#print "we have this Fields key $_, type ",$node->{Fields}{$_}{TypeName},"\n";
-#JAS	}
-
+	#print "verify_script_started, $node, $number\n";
 
 	print "ScriptInit t ",
 		VRML::NodeIntern::dump_name($node), "\n"
-			if $VRML::verbose::script;
+ 			if $VRML::verbose::script;
 
 	my $h;
 	my $Browser = $node->{Scene}->get_browser();
 
 	for (@{$node->{Fields}{url}}) {
 		# is this already made???
-		print "Working on $_\n" if $VRML::verbose::script;
+		print "Working on $_\n" 
+			if $VRML::verbose::script;
 		if (defined  $node->{J}) {
 			print "...{J} already defined, skipping\n"
-				if $VRML::verbose::script;
+ 				if $VRML::verbose::script;
 			last;
 		}
 
@@ -206,7 +200,8 @@ sub verify_script_started {
 		perl_script_output(0);
 	}
 }
-
+###############################################################################
+#
 # Nodes get stored in many ways, depending on whether it is a PROTO, normal
 # node, etc, etc. This tries to find a backend (CNode, or script) for a node.
 
@@ -217,7 +212,7 @@ sub verify_script_started {
 # returns node, field, script, ok
 
 sub resolve_node_cnode {
-	my ($scene, $node, $field, $direction) = @_;
+	my ($this,$scene, $node, $field, $direction) = @_;
 
 	# return values.
 	my $outptr = 0;
@@ -225,8 +220,10 @@ sub resolve_node_cnode {
 	my $scrpt = 0; 
 	my $il = 0;
 	my $ok = 0;
+	my $cs;
 
-	#print "start of resolve_node_cnode, node $node, field $field,  direction $direction\n";
+
+	#print "start of resolve_node_cnode, this $this node $node, field $field,  direction $direction\n";
 
 	my $tmp = VRML::Handles::get($node);
 	if (ref $tmp eq "VRML::NodeIntern") {
@@ -238,7 +235,37 @@ sub resolve_node_cnode {
 			return (0,0,0,0,0);
 		}
 	}
-	#print "handle got $node\n";
+	#print "handle got $node ",VRML::NodeIntern::dump_name($node),"\n";
+
+	# Protos, when expanded, still have the same script number. We need to make
+	# sure that a script within a proto is uniquely identified by the scene
+	# proto expansion; otherwise routing will cross-pollinate .
+	$cs = $scene;
+	if (defined $node->{ProtoExp}) {
+		#print "this is a protoexp, I am ",VRML::NodeIntern::dump_name($node->{Scene}), 
+		#		" ProtoExp ",VRML::NodeIntern::dump_name($node->{ProtoExp}),"\n";
+		$cs = $node->{ProtoExp};
+	}
+	if (!defined $SCENENUMBERS{$cs}) { $SCENENUMBERS{$cs} = $scenecount++; }
+	my $scenenum = $SCENENUMBERS{$cs};
+
+	#print "current scene number is $scenenum\n";
+
+	
+	# is this an IS?
+	if ($direction eq "eventOut") {
+		#print "checking eventOut for $this\n";
+		if (defined $this->{NCIs}{$node}{$field}) {
+			#print "got it!\n";
+			my $nn = $this->{NCIs}{$node}{$field}[0];
+			$field = $this->{NCIs}{$node}{$field}[1];
+			$node = $nn;
+		}	
+
+
+	} else {
+		#print "handle eventins properly here\n";
+	}
 
 	#addChildren really is Children
 	if (($field eq "addChildren") || ($field eq "removeChildren")) {
@@ -250,10 +277,6 @@ sub resolve_node_cnode {
 	# these things have set_xxx and xxx... if we have one of these...
 	if ($field =~ /^set_($VRML::Error::Word+)/) {
 		my $tmp = $1;
-		#print "found a set ...\n";
-		#print "one ",$node->{Type}{EventIns}{$tmp},"\n";
-		#print "two ",$node->{Type}{FieldKinds}{$tmp},"\n";
-
 		if ($node->{Type}{EventIns}{$tmp} and
 			$node->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
 			$field = $tmp;
@@ -261,39 +284,46 @@ sub resolve_node_cnode {
 	}
 	if ($field =~ /($VRML::Error::Word+)_changed$/) {
 		$tmp = $1;
-		#print "found a changed...\n";
-		#print "one ",$node->{Type}{EventOuts}{$tmp},"\n";
-		#print "two ",$node->{Type}{FieldKinds}{$tmp},"\n";
-
 		if ($node->{Type}{EventOuts}{$tmp} and
 			$node->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
 			$field = $tmp;
 		}
 	}
-	#print "event now is  $field\n";
+	#print "event now is ",VRML::NodeIntern::dump_name($node)," $field\n";
 
 
 
-	if (!defined $node->{BackNode}) {
-		if ($node->{TypeName} =~/^__script__/) {
-			$outptr = substr($node->{TypeName},10,100);
-			$outoffset = VRML::VRMLFunc::paramIndex($field,
-				$node->{Type}{FieldTypes}{$field});
+	if ($node->{TypeName} =~/^__script__/) {
+		$outptr = $scenenum; 
+		$outoffset = VRML::VRMLFunc::paramIndex($field,
+			$node->{Type}{FieldTypes}{$field});
 
-			verify_script_started($node,$outptr);
-			if ($direction eq "eventOut") {
-				$scrpt = 1;
-			} else {
-				$scrpt = 2;
-			}
+		verify_script_started($node,$outptr);
 
-			#print "got a script, outptr $outptr, offset $outoffset, scrpt $scrpt\n";
-
+		if ($direction eq "eventOut") {
+			$scrpt = 1;
 		} else {
-			print "add_route, from $field - no backend node\n";
-			return (0,0,0,0);
+			$scrpt = 2;
 		}
+
+		#print "got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
+
 	} else {
+		if (!defined $node->{BackNode}) {
+			# wierd placement sometimes "hides" nodes; look at PositionInterp in tests/8.wrl
+			my $brow = $scene->get_browser();
+			#print "No backend, but browser has ",$brow->{BE},"\n";
+
+			$node->make_backend($brow->{BE},$brow->{BE});
+
+			# now, do a final check - this should neve happen, though
+			if (!defined $node->{BackNode}) {
+				print "add_route, from $field - no backend node\n";
+				return (0,0,0,0);
+			}
+		}
+
+
 		if (!defined ($outptr=$node->{BackNode}{CNode})) {
 			# are there backend CNodes made for both from and to nodes?
 			print "add_route, from $field - no backend CNode node\n";
@@ -319,76 +349,10 @@ sub resolve_node_cnode {
 	} else {
 		# is this an interpolator that is handled by C yet?
 		$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
+		#print "interp pointer for ",$node->{Type}{Name}," is $il\n";
 	}
 
 	return ($outptr, $outoffset, $scrpt, 1,$il);
-
-# code from Scene.pm
-
-#JAS		$tmp = VRML::Handles::get($_->[0]);
-#JAS		print "From now is $tmp\n";
-#JAS		if (ref $tmp eq "VRML::NodeIntern") {
-#JAS			$fromNode = $tmp;
-#JAS		} else {
-#JAS			$fromNode = $this->getNode($tmp);
-#JAS			if (!defined $fromNode) {
-#JAS				warn("DEF node $tmp is not defined");
-#JAS				next;
-#JAS			}
-#JAS		}
-#JAS		print "fromnode $fromNode\n";
-#JAS		foreach (keys %{$fromNode}) {print "fromnode key: $_\n";}
-#JAS
-#JAS		$tmp = VRML::Handles::get($_->[2]);
-#JAS		if (ref $tmp eq "VRML::NodeIntern") {
-#JAS			$toNode = $tmp;
-#JAS		} else {
-#JAS			$toNode = $this->getNode($tmp);
-#JAS			if (!defined $toNode) {
-#JAS				warn("DEF node $tmp is not defined");
-#JAS				next;
-#JAS			}
-#JAS		}
-#JAS
-#JAS		## exposedFields and eventOuts with some error checking
-#JAS		$eventOut = $_->[1];
-#JAS		print "Scene routing, eventout $eventOut\n";
-#JAS		if ($eventOut =~ /($VRML::Error::Word+)_changed$/) {
-#JAS			print "Scene routing, _changed found, d1 is $1\n";
-#JAS			$tmp = $1;
-#JAS			print "evo ",$fromNode->{Type}{EventOuts}{$tmp},",fk ",$fromNode->{Type}{FieldKinds}{$tmp},"\n";
-#JAS			
-#JAS			foreach (keys %{$fromNode->{Type}}) { print "node type $_\n";}
-#JAS			foreach (keys %{$fromNode->{Type}{EventOuts}}) { print "node type EV $_\n";}
-#JAS			if ($fromNode->{Type}{EventOuts}{$tmp} and
-#JAS				$fromNode->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
-#JAS				$eventOut = $tmp;
-#JAS			}
-#JAS		}
-#JAS		print "Scene routing, eventout now is  $eventOut\n";
-#JAS
-#JAS		if (!$fromNode->{Type}{EventOuts}{$eventOut}) {
-#JAS			warn("Invalid eventOut $eventOut in route for $fromNode->{TypeName}");
-#JAS			next;
-#JAS		}
-#JAS
-#JAS		## exposedFields and eventIns with some error checking
-#JAS		$eventIn = $_->[3];
-#JAS		if ($eventIn =~ /^set_($VRML::Error::Word+)/) {
-#JAS			$tmp = $1;
-#JAS			if ($toNode->{Type}{EventIns}{$tmp} and
-#JAS				$toNode->{Type}{FieldKinds}{$tmp} =~ /^exposed/) {
-#JAS				$eventIn = $tmp;
-#JAS			}
-#JAS		}
-#JAS
-#JAS		if (!$toNode->{Type}{EventIns}{$eventIn}) {
-#JAS			warn("Invalid eventIn $eventIn in route for $toNode->{TypeName}");
-#JAS			next;
-#JAS		}
-
-# end of code from scene.pm
-
 }
 
 
@@ -425,12 +389,12 @@ sub add_route {
 	#print "\nstart of add_route, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
 
 	# FROM NODE
-	my ($outptr,$outoffset,$fc,$ok,$datalen) = resolve_node_cnode ($scene,$fromNode,$eventOut,"eventOut");
+	my ($outptr,$outoffset,$fc,$ok,$datalen) = $this->resolve_node_cnode ($scene,$fromNode,$eventOut,"eventOut");
 	if ($ok == 0) {return 1;} # error message already printed
 
 
 	# TO NODE
-	my ($inptr,$inoffset,$tc,$ok,$intptr) = resolve_node_cnode ($scene,$toNode,$eventIn,"eventIn");
+	my ($inptr,$inoffset,$tc,$ok,$intptr) = $this->resolve_node_cnode ($scene,$toNode,$eventIn,"eventIn");
 	if ($ok == 0) {return 1;} # error message already printed
 
 	$scrpt = $fc + $tc;
@@ -466,8 +430,12 @@ sub delete_route {
 
 sub add_is_out {
 	my($this, $pn, $pf, $cn, $cf) = @_;
+	#print "adding ",VRML::NodeIntern::dump_name($pn), "field $pf to this $this cn ",
+	#	VRML::NodeIntern::dump_name($cn), " cf $cf\n";
 
+	# CIs predates CRoutes; should be removed once CRoutes complete
 	$this->{CIs}{$cn}{$cf} = [$pn, $pf];
+	$this->{NCIs}{$pn}{$pf} = [$cn, $cf];
 }
 
 sub add_is_in {
