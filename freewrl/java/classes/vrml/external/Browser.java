@@ -21,6 +21,7 @@ import vrml.external.FreeWRLEAI.EAIAsyncThread;
 import vrml.external.exception.InvalidNodeException;
 import vrml.external.exception.InvalidVrmlException;
 import vrml.external.BrowserGlobals;
+import netscape.security.*;
 
 public class Browser implements BrowserInterface
 
@@ -35,13 +36,13 @@ public class Browser implements BrowserInterface
     // The following are used to send to/from the FreeWLR Browser...
     ServerSocket	EAISocket;
     Socket		sock;
-    static PrintStream         EAIout;
+    static PrintWriter         EAIout;
 
     // The following pipe listens for replies to events sent to
     // the FreeWRL VRML viewer via the EAI port.
 
-    private PipedInputStream EAIfromFreeWRLStream;
-    static DataInputStream EAIfromFreeWRLInputStream;
+    private PipedReader EAIfromFreeWRLStream;
+    static BufferedReader EAIfromFreeWRLInputStream;
 
     private String              reply = "";
 
@@ -101,6 +102,13 @@ public class Browser implements BrowserInterface
 	int incrport = -1;
 	EAISocket = null;
 
+	// enable privleges
+	try {
+		PrivilegeManager.enablePrivilege ("UniversalConnect");
+	} catch (Throwable e) {
+		System.out.println("caught exception; not using netscape");
+	}
+	
 	// This was an attempt to make multi-freewrls run on one machine...
 	// while ((EAISocket == null) && (incrport < 30))
   	// try {
@@ -131,25 +139,29 @@ public class Browser implements BrowserInterface
   
   	// Open the pipe for EAI replies to be sent to us...
         try {
-          EAIfromFreeWRLStream = new PipedInputStream (EAIinThread.EAItoBrowserStream);
-          EAIfromFreeWRLInputStream = new DataInputStream (EAIfromFreeWRLStream);	
+          EAIfromFreeWRLStream = new PipedReader (EAIinThread.EAItoBrowserStream);
         } catch (IOException ie) {
-          System.out.println (ie);
+          System.out.println ("caught error in new PipedReader: " + ie);
         }
-  
+		EAIfromFreeWRLInputStream = new BufferedReader (EAIfromFreeWRLStream);	
+		
+		System.out.println("waiting for thread...");
+
   	// Wait for the FreeWRL browser to send us something...
         try {
           System.out.println (EAIfromFreeWRLInputStream.readLine());
-        } catch (IOException ie) {System.out.println (ie);}
+        } catch (IOException ie) {System.out.println ("Browser: caught " + ie);}
   
+		System.out.println("got response from thread");
   	// Send the correct response...
 	try {
-		EAIout = new PrintStream (sock.getOutputStream());
+		EAIout = new PrintWriter (sock.getOutputStream());
 		EAIout.print ("FreeWRL EAI Serv0.27");
 		EAIout.flush ();
 	} catch (IOException e) {
 		System.out.print ("error on reiniting output stream");
 	}
+	// System.out.println("browser is gotten");
   	// Browser is "gotten", and is started.
 
   	// Start the SendTo FREEWRL thread...
@@ -544,7 +556,7 @@ public class Browser implements BrowserInterface
            try {
              req = Browser.EAIfromFreeWRLInputStream.readLine();
            } catch (IOException ie) {
-		System.out.println ("getVRMLreply: " + ie);
+		System.out.println ("Browser: caught " + ie);
 		return rep;
 	   }
 
@@ -556,13 +568,21 @@ public class Browser implements BrowserInterface
        
            try {
                  rep = Browser.EAIfromFreeWRLInputStream.readLine(); 
-           } catch (IOException ie) { System.out.println ("getVRMLreply failed");}
+           } catch (IOException ie) { System.out.println ("getVRMLreply failed"); return null; }
 	
 
          }
 
         return rep; 
-      }
-  
+      }  
+	public void close() {
+		System.out.println("closing socket");
+		try {
+			EAIoutSender.stopThread();
+			EAISocket.close();
+			EAIfromFreeWRLStream.close();
+		} catch (IOException e) {
+		}
+	}
 }
 

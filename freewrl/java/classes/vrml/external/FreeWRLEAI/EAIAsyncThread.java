@@ -54,13 +54,14 @@ public class EAIAsyncThread extends Thread {
 		// EAIMessages can come in even if sendEAIMessage() blocks
 		for(;;) {
 		    EAIAsyncMessage msg = EAIMessages.dequeue();
-		    if (msg == null) break;
 		    sendEAIMessage(msg);
+		    if (msg == null) break;
 		}
             } catch (InterruptedException e) {
                 running = false;
             }
 	}
+	System.out.println("EAIAsyncThread exiting");
     }
 
     // this is the main access point to this object -- it enqueues
@@ -80,6 +81,7 @@ public class EAIAsyncThread extends Thread {
 
     public synchronized void stopThread()
     {
+		System.out.println("stopping EAIAsyncThread");
 	running = false;
 	notify();
     }
@@ -88,7 +90,8 @@ public class EAIAsyncThread extends Thread {
 
     private void sendEAIMessage(EAIAsyncMessage msg)
     {
-
+		if (msg == null) { stopThread(); return; }
+		
       float[] fvals = new float[4];
       int count = 0;
       EventOut me;

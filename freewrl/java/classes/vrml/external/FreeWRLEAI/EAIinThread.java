@@ -13,20 +13,21 @@ import java.io.*;
 public  class EAIinThread implements Runnable {
   //class EAIinThread extends Thread {
   
-    DataInputStream	EAIin;
+    // DataInputStream	EAIin;
+    BufferedReader	EAIin;
     Socket		sock;
     Applet		FreeWLRSceneInterface;
     Browser		mybrowser;
 
-    boolean debug = false;
+    boolean debug = true;
   
     // The following are used to send from the event thread to the
     // browser thread. The event thread gets stuff from the EAI port
     // from the FreeWRL Browser, and sends Replies back to the
     // browser thread.
   
-    public static PipedOutputStream EAItoBrowserStream = new PipedOutputStream();
-    private PrintStream EAItoBrowserPrintStream = new PrintStream(EAItoBrowserStream);
+    public static PipedWriter EAItoBrowserStream = new PipedWriter();
+    private PrintWriter EAItoBrowserPrintWriter = new PrintWriter(EAItoBrowserStream);
   
     // Initialization - get the socket and the FreeWLRSceneInterfaces thread
     public EAIinThread (Socket s, Applet d, Browser me) {
@@ -45,12 +46,14 @@ public  class EAIinThread implements Runnable {
       String	Stemp;
   
       try {
-        EAIin = new DataInputStream( sock.getInputStream());
+        EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
         // wait for FreeWRL to send us the opening sequence...
-        EAItoBrowserPrintStream.println (EAIin.readLine());
+		System.out.println("waiting for FreeWRL");
+        EAItoBrowserPrintWriter.println (EAIin.readLine());
       } catch (IOException e) {
         System.out.print ("error reiniting data input stream");
       }
+	  System.out.println("got response from FreeWRL");
   
       // Now, this is the loop that loops to end all loops....
   
@@ -61,8 +64,8 @@ public  class EAIinThread implements Runnable {
         // EVs are events, and have two following lines.
   
         reply = EAIin.readLine();
-
-        while (true)  {
+		System.out.println("reply: \"" + reply + "\"");
+        while (reply != null)  {
           // Loop here, processing incoming events
 
     	  if (reply.equals("EV")) {
@@ -101,7 +104,7 @@ public  class EAIinThread implements Runnable {
           } else if (reply.equals("RE")) {
     
             // This is the integer reply to the command... number...
-            EAItoBrowserPrintStream.println(EAIin.readLine());
+            EAItoBrowserPrintWriter.println(EAIin.readLine());
     
             // ... and the boolean value of success or fail...
             REreply = EAIin.readLine();
@@ -114,12 +117,12 @@ public  class EAIinThread implements Runnable {
   
             if (reply.equals("RE") || reply.equals("EV")) {
               // send the previous line down the pipe...
-              EAItoBrowserPrintStream.println(REreply); 
-              EAItoBrowserPrintStream.flush();
+              EAItoBrowserPrintWriter.println(REreply); 
+              EAItoBrowserPrintWriter.flush();
             } else {
               // send the current line down the pipe, and read in the next line...
-              EAItoBrowserPrintStream.println(reply); 
-              EAItoBrowserPrintStream.flush();
+              EAItoBrowserPrintWriter.println(reply); 
+              EAItoBrowserPrintWriter.flush();
               reply = EAIin.readLine();
               if (debug) System.out.println ("EAIinThread 8 reply is " + reply);
             } 
@@ -129,7 +132,9 @@ public  class EAIinThread implements Runnable {
             if (debug) System.out.println ("EAIinThread 9 reply is " + reply);
           }
         }
-  
+		if (debug) System.out.println ("EAIinThread closing stream");
+		EAItoBrowserStream.close();
+		mybrowser.close();
       } catch (IOException e) {
           System.out.print ("error reiniting data input stream\n");
       }

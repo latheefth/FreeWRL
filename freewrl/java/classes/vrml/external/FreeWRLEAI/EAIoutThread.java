@@ -31,7 +31,7 @@ import java.io.*;
 //import java.util.Enumeration;
 
 public class EAIoutThread extends Thread {
-    private PrintStream			output;
+    private PrintWriter			output;
     private EAIoutQueue			transientEAIMessages = new EAIoutQueue();
     private EAIoutQueue			EAIMessages = new EAIoutQueue();
     private boolean			running;
@@ -40,7 +40,7 @@ public class EAIoutThread extends Thread {
     private static final long		TIMEOUT = 100;
     private WriterThreadObserver	observer;
 
-    public EAIoutThread(PrintStream output) {
+    public EAIoutThread(PrintWriter output) {
 	this.output = output;
     }
 
@@ -91,6 +91,7 @@ public class EAIoutThread extends Thread {
 
     private void sendEAIMessage(EAIMessage msg)
     {
+		if (msg == null) { stopThread(); return; }
 	    output.println(msg.mmm);
 	    output.flush();
     }
