@@ -446,6 +446,7 @@ extern void setSnapFile(char* file);
 extern void setMaxImages(int max);
 extern void setButDown(int button, int value);
 extern void setBrowserURL(char *str);
+extern void setFullPath(char *str);
 extern void setCurXY(int x, int y);
 extern void setLastMouseEvent(int etype);
 extern void initFreewrl();
