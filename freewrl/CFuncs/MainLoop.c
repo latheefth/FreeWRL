@@ -498,6 +498,7 @@ void render_collisions() {
 void setup_viewpoint(int doBinding) {
 	int i;
 	unsigned int *setBindPtr;
+	int render_flag;	/* is this a VF_Viewpoint, or a VF_Blend? */
 
 	/* first, go through, and see if any viewpoints require binding. */
 	/* some scripts just send a set_bind to a Viewpoint; if another  */
@@ -505,7 +506,15 @@ void setup_viewpoint(int doBinding) {
 	/* seen if we leave this to the rendering stage	(grep for 	 */
 	/* found_vp to see why	JAS					 */
 
+	/* also, we can sort nodes for proper blending here, using the	*/
+	/* doBinding flag also. JAS 					*/
+
+	render_flag = VF_Viewpoint;
+
 	if (doBinding & (!isPerlParsing())) { 
+		/* top of mainloop, we can tell the renderer to sort children */
+		render_flag = VF_Viewpoint | VF_Blend;
+
 		for (i=0; i<totviewpointnodes; i++) {
 			setBindPtr = (unsigned int *)(viewpointnodes[i]+
 				offsetof (struct VRML_Viewpoint, set_bind));
@@ -532,7 +541,7 @@ void setup_viewpoint(int doBinding) {
 
         viewer_togl(fieldofview);
 
-        render_hier((void *)rootNode, VF_Viewpoint);
+        render_hier((void *)rootNode, render_flag);
         glPrintError("XEvents::setup_viewpoint");
 }
 

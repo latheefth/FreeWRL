@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.127  2004/05/25 15:47:12  crc_canada
+# Node sorting.
+#
 # Revision 1.126  2003/12/22 18:49:01  crc_canada
 # replace URL.pm; now do via C or browser
 #
@@ -641,12 +644,6 @@ Material =>  '
 		float shin;
 		float amb;
 		float trans;
-		extern GLbyte cleartone[];		// in CFuncs/statics.c
-		extern GLbyte eighthtone[];		// in CFuncs/statics.c
-		extern GLbyte quartertone[];		// in CFuncs/statics.c
-		extern GLbyte halftone[];		// in CFuncs/statics.c
-		extern GLbyte threequartertone[];	// in CFuncs/statics.c
-		extern GLbyte seveneighthtone[];	// in CFuncs/statics.c
 
 #ifndef X3DMATERIALPROPERTY
 		/* We have to keep track of whether to reset diffuseColor if using
@@ -661,7 +658,13 @@ Material =>  '
 #ifndef X3DMATERIALPROPERTY
 		}
 #endif
-		dcol[3] = 1.0;
+
+		/* set the transparency here for the material */
+		trans = 1.0 - $f(transparency);
+		if ((trans<0.0) || (trans>1.0)) trans = 1.0;
+
+		dcol[3] = trans;
+
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
 		amb = $f(ambientIntensity);
@@ -670,27 +673,17 @@ Material =>  '
 		}
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
-		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); } scol[3] = 1.0;
+		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); } 
+		scol[3] = trans;
+		scol[3] = 1.0;
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
-		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); } ecol[3] = 1.0;
+		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); } 
+		ecol[3] = trans;
+		ecol[3] = 1.0;
+
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
 		glColor3f(ecol[0],ecol[1],ecol[2]);
-
-		if (fabs($f(transparency)) > 0.01) {
-			glEnable(GL_POLYGON_STIPPLE);
-			if (fabs($f(transparency)) < 0.13) {
-				glPolygonStipple (seveneighthtone);
-			} else if (fabs($f(transparency)) < 0.26) {
-				glPolygonStipple (threequartertone);
-			} else if (fabs($f(transparency)) < 0.51) {
-				glPolygonStipple (halftone);
-			} else if (fabs($f(transparency)) < 0.74) {
-				glPolygonStipple (quartertone);
-			} else if (fabs($f(transparency)) < 0.95) {
-				glPolygonStipple (eighthtone);
-			} else { glPolygonStipple (cleartone);}
-		}
 
 		shin = 128.0*$f(shininess);
 		do_shininess(shin);
@@ -872,8 +865,7 @@ AudioClip => '
 	/* tell Sound that this is an audioclip */
 	sound_from_audioclip = TRUE;
 
-	/* printf ("_change %d _dlchange %d _ichange %d\n",this_->_change,
-		this_->_dlchange, this_->_ichange);  */
+	/* printf ("_change %d _ichange %d\n",this_->_change, this_->_ichange);  */
 
 	if (!SoundEngineStarted) { 
 		/* printf ("AudioClip: initializing SoundEngine\n"); */
@@ -993,21 +985,28 @@ Transform => '
 	GLfloat my_rotation;
 	GLfloat my_scaleO;
 	GLdouble modelMatrix[16];
-
-
+	int	recalculate_dist;
+	      
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
+
+	recalculate_dist = FALSE;	/* no change in position */
+	/* WE NEED TO DETERMINE WHEN TO RECALC DISTANCE */
+	recalculate_dist = TRUE;	/* no change in position */
+
 	if(!render_vp) {
                 glPushMatrix();
 
 		/* might we have had a change to a previously ignored value? */
 		if (this_->_change != this_->_dlchange) {
+			//printf ("re-rendering for %d\n",this_);
 			this_->__do_center = verify_translate ((GLfloat *)this_->center.c);
 			this_->__do_trans = verify_translate ((GLfloat *)this_->translation.c);
 			this_->__do_scale = verify_scale ((GLfloat *)this_->scale.c);
 			this_->__do_rotation = verify_rotate ((GLfloat *)this_->rotation.r);
 			this_->__do_scaleO = verify_rotate ((GLfloat *)this_->scaleOrientation.r);
 			this_->_dlchange = this_->_change;
+			recalculate_dist = TRUE;
 		}
 
 
@@ -1047,6 +1046,15 @@ Transform => '
 		/* REVERSE CENTER */
 		if (this_->__do_center) 
 			glTranslatef(-this_->center.c[0],-this_->center.c[1],-this_->center.c[2]);	
+
+
+		/* did either we or the Viewpoint move since last time? */
+		if (recalculate_dist) {
+			/* get the transformed position of the Sphere, and the scale-corrected radius. */
+			glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+			this_->_dist = modelMatrix[14];
+	       }
+
 
         } 
 ',
@@ -1183,10 +1191,40 @@ Billboard => (join '','
 %ChildC = (
 	Group => '
 		int nc = $f_n(children); 
-		int i;
+		int i,j;
 		int savedlight = curlight;
+		struct VRML_Box *a, *b, *c;
+		int noswitch;
 
-		if(verbose) {printf("RENDER GROUP START %d (%d)\n",this_, nc);}
+		if(verbose) 
+			printf("RENDER GROUP START %d (%d)\n",this_, nc);
+
+		/* do we have to sort this node? */
+		if ((nc > 2 && render_blend)) {
+			//printf ("have to sort %d, nc %d\n",this_, nc);
+			/* simple, inefficient bubble sort */
+			for(i=0; i<nc; i++) {
+				noswitch = TRUE;
+				for (j=(nc-1); j>i; j--) {
+					//printf ("comparing %d %d\n",i,j);
+					a = ((this_->children).p[j-1]);
+					b = ((this_->children).p[j]);
+
+					if (a->_dist > b->_dist) {
+						//printf ("have to switch %d %d\n",i,j);
+						c = a;
+						(this_->children).p[j-1] = b;
+						(this_->children).p[j] = c;
+						noswitch = FALSE;
+					}
+				}
+				/* did we have a clean run? */
+				if (noswitch) {
+					break;
+				}
+			}
+		}
+
 		if($i(has_light)) {
 			glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
 			for(i=0; i<nc; i++) {
@@ -1197,6 +1235,7 @@ Billboard => (join '','
 				}
 			}
 		}
+
 		for(i=0; i<nc; i++) {
 			struct VRML_Box *p = $f(children,i);
 			struct VRML_Virt *v = *(struct VRML_Virt **)p;
@@ -1355,20 +1394,6 @@ Billboard => (join '','
 		last_bound_texture = 0;
 
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
-#ifdef DLIST
-		if(this_->_dlist) {
-			if(this_->_dlchange == this_->_change) {
-				glCallList(this_->_dlist); 
-				glPopAttrib();
-				return;
-			} else {
-				glDeleteLists(this_->_dlist,1);
-			}
-		}
-		this_->_dlist = glGenLists(1);
-		this_->_dlchange = this_->_change;
-		glNewList(this_->_dlist,GL_COMPILE_AND_EXECUTE);
-#endif
 
 		/* is there an associated appearance node? */	
        	        if($f(appearance)) {
@@ -1389,12 +1414,6 @@ Billboard => (join '','
 
 		/* Now, do the geometry */
 		render_node((this_->geometry));
-
-#ifdef DLIST		
-		if (this_->_dlchange == this_->_change) {
-			glEndList();
-		}
-#endif
 
 		glPopAttrib();
 	',
@@ -2050,9 +2069,8 @@ Cone => q~
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
+
 	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
-	            
-	       
 
 	       /* get transformed box edges and position */
 	       transform(&iv,&iv,modelMatrix);

@@ -26,8 +26,8 @@
 #  Test indexedlineset
 #
 # $Log$
-# Revision 1.141  2004/05/20 19:01:32  crc_canada
-# pre4 files.
+# Revision 1.142  2004/05/25 15:47:11  crc_canada
+# Node sorting.
 #
 # Revision 1.140  2004/05/06 14:37:21  crc_canada
 # more .class changes.
@@ -563,12 +563,13 @@ sub gen_struct {
                " /*s*/ int _sens; \n"                  	.
                " /*t*/ int _hit; \n"                   	.
                " /*a*/ int _change; \n"                	.
-               " /*n*/ int _dlchange; \n"              	.
+	       " /*n*/ int _dlchange; \n"              	.
                " /*d*/ GLuint _dlist; \n"              	.
 	       "       void **_parents; \n"	  	.
 	       "       int _nparents; \n"		.
 	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
+	       "       float _dist; /*sorting for blending */ \n".
                " /*d*/ void *_intern; \n"              	.
                " /***/\n";
 	
@@ -1304,13 +1305,15 @@ render_hier(void *p, int rwhat)
 	curlight = 0;
 	hpdist = -1;
 
+	//printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+
 	if (!p) {
 		/* we have no geometry yet, sleep for a tiny bit */
 		usleep(1000);
 		return;
 	}
 
-	/* verbose = 1; */
 	if (verbose)
   		printf("Render_hier node=%d what=%d\n", p, rwhat);
 
@@ -1377,6 +1380,7 @@ CODE:
         p->_nparents = 0;
         p->_nparalloc = 0;
 	p->_ichange = 0;
+	p->_dist = -10000.0; /* put unsorted nodes first in rendering */
 	RETVAL=ptr;
 OUTPUT:
 	RETVAL
