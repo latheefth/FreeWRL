@@ -5,6 +5,9 @@
 
 
 %VRML_CONFIG = (
+############################################################################
+# don't touch this!!!
+    PLATFORM => 'LINUX',
 
 # OpenGL (or Mesa) libraries, defines and includes (e.g. -I/usr/OpenGL...). 
     OPENGL_LIBS => '-L/usr/local/src/Mesa-4.0.1/src/.libs -L/usr/local/src/Mesa-4.0.1/si-glu/.libs -L/usr/X11R6/lib -lGL -lGLU -lXext -lX11 -lXxf86vm',
@@ -25,10 +28,6 @@
     FREETYPE_INC => '-I/usr/local/src/freetype2/include',
     FREETYPE_DEFINE => '',
     FREETYPE_FONT_PATH => '/usr/share/fonts/userfonts',
-
-# Javascript lib & include (relative to the JS/ directory)
-    JS_LIBS => '-Ljs/Linux_All_DBG.OBJ -ljs',
-    JS_INC => '-Ijs/Linux_All_DBG.OBJ -Ijs/',
 
 # Saxon location - required for x3d running.
     SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
