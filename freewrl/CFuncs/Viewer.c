@@ -55,6 +55,7 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 /* 		$this->{Navi} = VRML::Scene->new_node("NavigationInfo", */
 /* 							VRML::Nodes->{NavigationInfo}{Defaults}); */
 		/* speed & headlight are the only NavigationInfo fields used */
+		/* check out set_ViewerParams for what happens during a NavigationInfo bind */
 		viewer->headlight = TRUE;
 		viewer->speed = 1.0;
 /* 		Dist = 10.0; */
@@ -98,12 +99,6 @@ int
 get_headlight(VRML_Viewer *viewer)
 {
 	return(viewer->headlight);
-}
-
-void 
-set_headlight(VRML_Viewer *viewer, int val)
-{
-	viewer->headlight = val;
 }
 
 void
