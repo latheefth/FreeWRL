@@ -78,6 +78,19 @@ struct SCP *SCP;			/* dyn. vector rep. the SCPs	*/
 struct pt spm1,spc,spp1,spcp,spy,spz,spoz,spx;	/* help vertix vars	*/
 
 
+
+				/**AG**/
+struct VRML_Extrusion_Adj *adj; 	/* Holds the indexes of nodes	*/
+					/* that are adjacent for normals*/
+					/* calculations			*/
+
+int klm, kmem; 				/* help variables for normals */
+
+
+
+
+/*verbose = 1;*/
+
 if (verbose) printf ("VRMLExtrusion.pm start\n");
 
 /* do we have a closed curve?						*/
@@ -174,15 +187,23 @@ rep_->tcindex = 0;
 cindex  = rep_->cindex   = malloc(sizeof(*(rep_->cindex))*3*(rep_->ntri));
 coord   = rep_->coord    =
 		malloc(sizeof(*(rep_->coord))*(nspi*nsec+max_ncoord_add)*3);
-normal  = rep_->normal   = malloc(sizeof(*(rep_->normal))*3*(rep_->ntri));
-norindex= rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri));
+normal  = rep_->normal   = malloc(sizeof(*(rep_->normal))*3*(rep_->ntri)*3);    /*AG*/
+norindex= rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*(rep_->ntri)*3);  /*AG*/ 
 
  
 /*memory for the SCPs. Only needed in this function. Freed later	*/
 SCP     = malloc(sizeof(struct SCP)*nspi);
+
+
+/*memory for the adjacency struct (used for normals)  			*/
+adj	= malloc( sizeof(struct VRML_Extrusion_Adj) * nsec * nspi );
+kmem = sizeof(struct VRML_Extrusion_Adj) * nsec * nspi;
+
+/*printf("\n  Block of %i allocated \n", kmem );*/
+
  
 /* in C always check if you got the mem you wanted...  >;->		*/
-  if(!(cindex && coord && normal && norindex && SCP )) {
+  if(!(cindex && coord && normal && norindex && SCP && adj)) {
 	die("Not enough memory for Extrusion node triangles... ;(");
 } 
  
@@ -533,11 +554,195 @@ for(spi = 0; spi<nspi; spi++) {
 	    spx.z * point.x + spy.z * point.y + spz.z * point.z
 	    + $f(spine,spi).c[2];
 
+		/*
+		printf("Point    x: %lf    y: %lf    z: %lf  \n",
+			coord[(sec+spi*nsec)*3+0], 
+			coord[(sec+spi*nsec)*3+1], 
+			coord[(sec+spi*nsec)*3+2]  );
+		*/
+
+		/* Specify the relationship this point has with	      */
+		/* those around him.  This data is collected here     */
+		/* for calculating normals to obtain a smooth surface.*/
+		/*                                                           */
+		/* Imagine that you are looking at the side of an extrusion. */
+		/* Each point is surrounded by four quadrilaterals.          */
+		/* These are the names given to the neighbouring points.     */
+		/*                                                           */
+		/*         north_west_pt      prev_layer_pt      north_east_pt   */
+		/*                      *-----------*-----------*                */
+		/*                      |           |           |                */
+		/*                      |  4th quad | 1st quad  |                */
+		/*                      |           |           |                */
+		/*                      |           |           |                */
+		/*                      |           |           |                */
+		/*        prev_cross_pt *-----------*-----------* next_cross_pt  */
+		/*                      |           |           |                */
+		/*                      |  3rd quad | 2nd quad  |                */
+		/*                      |           |           |                */
+		/*                      |           |           |                */
+		/*                      |           |           |                */
+		/*                      *-----------*-----------*                */
+		/*         south_west_pt     next_layer_pt       south_east_pt   */
+		/*                                                               */
+		/* I cannot recommend trying to modify this code -> I took *days**/
+		/* to get right.                                                 */
+
+		if(spi == 0){
+			if(closed){
+				adj[spi * nsec + sec].prev_layer_pt = (nspi-2) * nsec + sec;
+			}
+			else{
+				adj[spi * nsec + sec].prev_layer_pt = -1;
+			}
+		}
+		else {
+			adj[spi * nsec + sec].prev_layer_pt = (spi-1) * nsec + sec; 
+		}
+
+
+		/*  set next_layer_pt  */
+		if(spi == nspi-1){
+			if(closed){
+				adj[spi * nsec + sec].next_layer_pt = nsec + sec;
+			}
+			else{
+				adj[spi * nsec + sec].next_layer_pt = -1;
+			}
+		}
+		else{
+				adj[spi * nsec + sec].next_layer_pt = (spi+1) * nsec + sec ;
+		}
+
+
+		/*  set prev_cross_pt  */
+		if(sec == 0){
+			if(curve_closed){
+				adj[spi * nsec + sec].prev_cross_pt = spi * (nsec) + nsec -2;
+			}
+			else{
+				adj[spi * nsec + sec].prev_cross_pt =  -1;
+			}
+		}
+		else{
+			adj[spi * nsec + sec].prev_cross_pt = spi * nsec + sec -1;
+		}
+
+
+                /*  set next_cross_pt  */
+                if(sec == nsec-1){
+                        if(curve_closed){
+                                adj[spi * nsec + sec].next_cross_pt = spi * (nsec) + 1 ;
+                        }
+                        else{
+                                adj[spi * nsec + sec].next_cross_pt =  -1;
+                        }
+                }
+                else{
+                        adj[spi * nsec + sec].next_cross_pt = spi * nsec + sec + 1;
+                }
+
+
+		/* More data collection, this is again needed for smooth normals. */
+		
+		if( (adj[spi * nsec + sec].prev_layer_pt == -1) 
+		|| (adj[spi * nsec + sec].next_cross_pt == -1 ) ) {
+			adj[spi * nsec + sec].north_east_pt = -1;
+		}
+		else if (curve_closed && (sec == nsec-1) && !closed){
+			adj[spi * nsec + sec].north_east_pt = (spi-1) * nsec + 1;
+		}
+		else if (curve_closed && closed && (sec == nsec-1) && !(spi == 0) ){
+			adj[spi * nsec + sec].north_east_pt = (spi-1) * nsec + 1;
+		}
+		else if (curve_closed && closed && (sec == nsec-1) && (spi == 0) ){
+			adj[spi * nsec + sec].north_east_pt = (nspi-2) * nsec + 1; 
+		}
+		else{
+			adj[spi * nsec + sec].north_east_pt = adj[spi * nsec + sec].prev_layer_pt + 1;
+		}
+
+		
+		if( (adj[spi * nsec + sec].next_cross_pt == -1) 
+		|| (adj[spi * nsec + sec].next_layer_pt == -1 ) ) {
+			adj[spi * nsec + sec].south_east_pt = -1;
+		}
+		else if (curve_closed && (sec == nsec-1) && !closed){
+			adj[spi * nsec + sec].south_east_pt = (spi+1) * nsec + 1;
+		}
+		else if (curve_closed && closed && (sec == nsec-1) && !(spi == nspi-1) ){
+			adj[spi * nsec + sec].south_east_pt = (spi+1) * nsec + 1; 
+		}
+		else if (curve_closed && closed && (sec == nsec-1) && (spi == nspi-1) ){
+			adj[spi * nsec + sec].south_east_pt = 1*nsec + 1; 
+		}
+		else {
+			adj[spi * nsec + sec].south_east_pt = adj[spi * nsec + sec].next_layer_pt + 1;
+		}
+
+		
+		if( (adj[spi * nsec + sec].next_layer_pt == -1) 
+		|| (adj[spi * nsec + sec].prev_cross_pt == -1 ) ) {
+			adj[spi * nsec + sec].south_west_pt = -1;
+		}
+		else if (curve_closed && (sec == 0) && !closed){
+			adj[spi * nsec + sec].south_west_pt = (spi+1) * nsec + nsec - 2;
+		}
+		else if (curve_closed && closed && (sec == 0) && !(spi == nspi-1) ){
+			adj[spi * nsec + sec].south_west_pt = (spi+1) * nsec + nsec - 2; 
+		}
+		else if (curve_closed && closed && (sec == 0) && (spi == nspi-1) ){
+			adj[spi * nsec + sec].south_west_pt = 1*nsec +nsec-2; 
+		}
+		else {
+			adj[spi * nsec + sec].south_west_pt = adj[spi * nsec + sec].next_layer_pt - 1;
+		}
+
+
+		if( (adj[spi * nsec + sec].prev_cross_pt == -1) 
+		|| (adj[spi * nsec + sec].prev_layer_pt == -1 ) ) {
+			adj[spi * nsec + sec].north_west_pt = -1;
+		}
+		else if (curve_closed && (sec == 0) && !closed){
+			adj[spi * nsec + sec].north_west_pt = (spi-1) * nsec + nsec - 2;
+		}
+		else if (curve_closed && closed && (sec == 0) && !(spi == 0) ){
+			adj[spi * nsec + sec].north_west_pt = (spi-1) * nsec + nsec - 2; 
+		}
+		else if (curve_closed && closed && (sec == 0) && (spi == 0) ){
+			adj[spi * nsec + sec].north_west_pt = (nspi-2) * nsec + nsec -2; 
+		}
+		else {
+			adj[spi * nsec + sec].north_west_pt = adj[spi * nsec + sec].prev_layer_pt - 1;
+		}
+
+
 	} /* for(sec */
+
 } /* for(spi */
 ncoord=nsec*nspi;
- 
- 
+
+
+
+
+/**DEBUG CODE******************************************************/
+/*
+for(klm=0; klm < nspi*nsec; klm++ ){
+	printf("%i   next_layer_pt: %i\n", klm, adj[klm].next_layer_pt);
+	printf("%i   prev_layer_pt: %i\n", klm, adj[klm].prev_layer_pt);
+	printf("%i   next_cross_pt: %i\n", klm, adj[klm].next_cross_pt);
+	printf("%i   prev_cross_pt: %i\n", klm, adj[klm].prev_cross_pt);
+	printf("%i   north_east_pt: %i\n", klm, adj[klm].north_east_pt);
+	printf("%i   south_east_pt: %i\n", klm, adj[klm].south_east_pt);
+	printf("%i   south_west_pt: %i\n", klm, adj[klm].south_west_pt);
+	printf("%i   north_west_pt: %i\n", klm, adj[klm].north_west_pt);
+	printf("-----------------------------------------------\n");
+}
+printf("nsec: %i       nspi: %i \n", nsec, nspi);
+*/
+
+
+
 /* freeing SCP coordinates. not needed anymore.				*/
 if(SCP) free(SCP);
  
@@ -658,13 +863,37 @@ for(x=0; x<nsec-1; x++) {
   
   /* first triangle */
   cindex[triind*3+0] = D; cindex[triind*3+1] = A; cindex[triind*3+2] = E;
-  norindex[triind*3+0] = triind; norindex[triind*3+1] = triind; norindex[triind*3+2] = triind;
 
+  /* smooth normals and flat normals use completely different indexing  */
+  /* schemes */
+  if(smooth_normals){
+  	norindex[triind*3+0] = D;	/**AG**/ 
+  	norindex[triind*3+1] = A; 
+  	norindex[triind*3+2] = E; 
+  	/*printf("triangle : %i  D: %i  A: %i  E: %i \n ", triind, D, A, E);*/
+  }
+  else {
+	norindex[triind*3+0] = triind;
+	norindex[triind*3+1] = triind;
+	norindex[triind*3+2] = triind;
+  }
   triind ++;
+
   /* second triangle*/
   cindex[triind*3+0] = B; cindex[triind*3+1] = C; cindex[triind*3+2] = F;
-  norindex[triind*3+0] = triind; norindex[triind*3+1] = triind; norindex[triind*3+2] = triind;
-     triind ++; 
+
+  if(smooth_normals){
+  	norindex[triind*3+0] = B; 	/**AG**/
+  	norindex[triind*3+1] = C; 
+  	norindex[triind*3+2] = F; 
+	/*printf("triangle : %i  B: %i  C: %i  F: %i \n ", triind, B, C, F);*/
+  }
+  else {
+  	norindex[triind*3+0] = triind;
+  	norindex[triind*3+1] = triind;
+  	norindex[triind*3+2] = triind;
+  }
+  triind ++; 
  }
 }
 
@@ -685,18 +914,24 @@ if($f(convex)) {
 			cindex[triind*3+0] = 0;
 			cindex[triind*3+1] = x+2;
 			cindex[triind*3+2] = x+1;
-			norindex[triind*3+0] = triind;
-			norindex[triind*3+1] = triind;
-			norindex[triind*3+2] = triind;
+
+			if(!smooth_normals){
+				norindex[triind*3+0] = triind;	/**AG**/
+				norindex[triind*3+1] = triind;
+				norindex[triind*3+2] = triind;
+			}
 			triind ++;
 		}
 		if(!curve_closed) {	/* non closed need one triangle more	*/
 			cindex[triind*3+0] = 0;
 			cindex[triind*3+1] = x+2;
 			cindex[triind*3+2] = x+1;
-			norindex[triind*3+0] = triind;
-			norindex[triind*3+1] = triind;
-			norindex[triind*3+2] = triind;
+
+			if(!smooth_normals){
+				norindex[triind*3+0] = triind;	/**AG**/
+				norindex[triind*3+1] = triind;
+				norindex[triind*3+2] = triind;
+			}
 			triind ++;
  		}
 	} /* if beginCap */
@@ -708,9 +943,12 @@ if($f(convex)) {
 			cindex[triind*3+2] = 0  +(nspi-1)*nsec;
 			cindex[triind*3+1] = x+2+(nspi-1)*nsec;
 			cindex[triind*3+0] = x+1+(nspi-1)*nsec;
-			norindex[triind*3+0] = triind;
-			norindex[triind*3+1] = triind;
-			norindex[triind*3+2] = triind;
+
+			if(!smooth_normals){
+				norindex[triind*3+0] = triind;	/**AG**/
+				norindex[triind*3+1] = triind;
+				norindex[triind*3+2] = triind;
+			}
 			triind ++;
 		}
 		if(!curve_closed) {	/* non closed needs one triangle more	*/
@@ -718,9 +956,12 @@ if($f(convex)) {
 			cindex[triind*3+0] = 0  +(nspi-1)*nsec;
 			cindex[triind*3+1] = x+2+(nspi-1)*nsec;
 			cindex[triind*3+2] = x+1+(nspi-1)*nsec;
-			norindex[triind*3+0] = triind;
-			norindex[triind*3+1] = triind;
-			norindex[triind*3+2] = triind;
+
+			if(!smooth_normals){
+				norindex[triind*3+0] = triind;	/**AG**/
+				norindex[triind*3+1] = triind;
+				norindex[triind*3+2] = triind;
+			}
 			triind ++;
  		}
 	} /* if endCap */
@@ -917,8 +1158,8 @@ if(!$f(convex)) {
 	if(triind<rep_->ntri) {
 		rep_->ntri=triind;
 		realloc(cindex,sizeof(*(rep_->cindex))*3*(rep_->ntri));
-		realloc(normal,sizeof(*(rep_->normal))*3*(rep_->ntri));
-		realloc(norindex,sizeof(*(rep_->norindex))*3*(rep_->ntri));
+		realloc(normal,sizeof(*(rep_->normal))*3*(rep_->ntri)*3);   /*AG*/
+		realloc(norindex,sizeof(*(rep_->norindex))*3*(rep_->ntri)*3); /*AG*/
 	}
 }
 
@@ -927,11 +1168,23 @@ if(verbose)
 	printf("Extrusion.GenPloyRep: triind=%d  ntri=%d nctri=%d "
 	"ncolinear_at_begin=%d ncolinear_at_end=%d\n",
 	triind,ntri,nctri,ncolinear_at_begin,ncolinear_at_end);
- 
- 
- calc_poly_normals_flat(rep_); 
+
+
+
+if (smooth_normals){
+	calc_poly_normals_extrusion(rep_, adj, nspi, nsec, ntri, nctri); 
+}
+else {
+	calc_poly_normals_flat(rep_);
+}
+
+
+if(adj) free(adj);  /**AG**/
+
 
 if(verbose) printf ("end VRMLExtrusion.pm\n");
+
+/*verbose = 0;*/
 
 /*****end of Member Extrusion	*/
 ';
