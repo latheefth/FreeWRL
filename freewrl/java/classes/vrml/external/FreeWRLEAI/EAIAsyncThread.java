@@ -51,11 +51,11 @@ public class EAIAsyncThread extends Thread {
 		// send all queued EAIMessages
 
 		// this is outside the synchronized block so that new
-		// EAIMessages can come in even if sendEAIMessage() blocks
+		// EAIMessages can come in even if sendEAIAsyncMessage() blocks
 		for(;;) {
 		    EAIAsyncMessage msg = EAIMessages.dequeue();
-		    sendEAIMessage(msg);
 		    if (msg == null) break;
+		    sendEAIAsyncMessage(msg);
 		}
             } catch (InterruptedException e) {
                 running = false;
@@ -86,12 +86,10 @@ public class EAIAsyncThread extends Thread {
 	notify();
     }
 
-    // sendEAIMessage() actually sends a EAIAsyncMessage (woohoo)
+    // sendEAIAsyncMessage() actually sends a EAIAsyncMessage (woohoo)
 
-    private void sendEAIMessage(EAIAsyncMessage msg)
+    private void sendEAIAsyncMessage(EAIAsyncMessage msg)
     {
-		if (msg == null) { stopThread(); return; }
-		
       float[] fvals = new float[4];
       int count = 0;
       EventOut me;
