@@ -16,6 +16,7 @@ public  class EAIinThread implements Runnable {
     DataInputStream	EAIin;
     Socket		sock;
     Applet		FreeWLRSceneInterface;
+    Browser		mybrowser;
 
     boolean debug = false;
   
@@ -28,9 +29,10 @@ public  class EAIinThread implements Runnable {
     private PrintStream EAItoBrowserPrintStream = new PrintStream(EAItoBrowserStream);
   
     // Initialization - get the socket and the FreeWLRSceneInterfaces thread
-    public EAIinThread (Socket s, Applet d) {
+    public EAIinThread (Socket s, Applet d, Browser me) {
       sock = s;  
       FreeWLRSceneInterface=d;
+      mybrowser=me;
     }
      
     public void run() {
@@ -39,7 +41,6 @@ public  class EAIinThread implements Runnable {
       String 	reply;
       String	EVentno;
       String	EVentreply;
-      int	EVcounter;
       String	REreply;
       String	Stemp;
   
@@ -68,25 +69,15 @@ public  class EAIinThread implements Runnable {
             EVentno = EAIin.readLine();
 	    if (debug) System.out.println ("EAIinThread 3 reply is " + EVentno);
  
-	    // Is the Event expecting one line, or MORE??? 
-    	    int temp = Integer.parseInt(EVentno);
-    	    for (EVcounter=0; EVcounter<BrowserGlobals.EVno; EVcounter++) {
-    	      if (BrowserGlobals.EVarray[EVcounter] == temp) {
-    	        break;
-    	      }
-    	    }
-	    if (debug)
-		System.out.println ("registered at " + EVcounter +
-			" type " + BrowserGlobals.EVtype[EVcounter]);
-
             EVentreply = EAIin.readLine();
             if (debug) System.out.println ("EAIinThread 4 reply is " + EVentreply);
    
 	    // Is this an event with only one line for a reply?	
 	    // if so, then, continue (waits can last for hours...)
-	    if (BrowserGlobals.EVshortreply[EVcounter]) { 
+            int eventno = Integer.parseInt(EVentno);
+	    if (mybrowser.get_Browser_EV_short_reply(eventno)) { 
               if (debug) System.out.println ("EAIinThread short reply is " + EVentreply);
-    	      BrowserGlobals.RL_Async.send(EVentreply,EVcounter);
+    	      mybrowser.Browser_RL_Async_send(EVentreply,eventno);
               reply = EAIin.readLine();
 	    } else {
 
@@ -104,7 +95,7 @@ public  class EAIinThread implements Runnable {
               if (debug) System.out.println ("EAIinThread 5.5; EVentno: " + 
 	  	EVentno + "  EventReply " + EVentreply + " reply " + reply);
 
-    	      BrowserGlobals.RL_Async.send(EVentreply,EVcounter);
+    	      mybrowser.Browser_RL_Async_send(EVentreply,eventno);
 	    }
     
           } else if (reply.equals("RE")) {
