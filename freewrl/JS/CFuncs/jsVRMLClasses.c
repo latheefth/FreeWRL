@@ -1367,14 +1367,22 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 JSBool 
 SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
+	JSObject *globalObj;
 	JSString *_str, *_idStr, *_valStr;
+	BrowserNative *brow;
 	SFNodeNative *ptr;
-	char *_id_c, *_val_c;
+	jsval _rval = 0;
+	char *_id_c, *_val_c, *_buff;
+	size_t id_len = 0, val_len = 0;
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		fprintf(stderr, "JS_GetPrivate failed in SFNodeGetProperty.\n");
 		return JS_FALSE;
 	}
+
+	_idStr = JS_ValueToString(cx, id);
+	_id_c = JS_GetStringBytes(_idStr);
+	id_len = strlen(_id_c) + 1;
 	
 	if (JSVAL_IS_INT(id)) {
 		switch (JSVAL_TO_INT(id)) {
@@ -1387,11 +1395,41 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			*vp = STRING_TO_JSVAL(_str);
 			break; 
 		}
-	}
+	} else if (JSVAL_IS_PRIMITIVE(*vp)) {
+		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
+			fprintf(stderr, "JS_GetGlobalObject failed in SFNodeSetProperty.\n");
+			return JS_FALSE;
+		}
 
-	/* debug */
-	_idStr = JS_ValueToString(cx, id);
-	_id_c = JS_GetStringBytes(_idStr);
+		if (!getBrowser(cx, globalObj, &brow)) {
+			fprintf(stderr, "getBrowser failed in SFNodeSetProperty.\n");
+			return JS_FALSE;
+		}
+
+		if ((_buff = (char *) malloc((id_len + STRING) * sizeof(char))) == NULL) {
+			fprintf(stderr, "malloc failed in SFNodeSetProperty.\n");
+			return JS_FALSE;
+		}
+		val_len = strlen(ptr->handle) + 1;
+		sprintf(_buff, "%.*s_%.*s", val_len, ptr->handle, id_len, _id_c);
+
+		if (!JS_SetProperty(cx, globalObj, _buff, vp)) {
+			fprintf(stderr,
+					"JS_SetProperty failed for \"%s\" in SFNodeGetProperty.\n",
+					_buff);
+			return JS_FALSE;
+		}
+
+		doPerlCallMethodVA(brow->sv_js, "jspSFNodeGetProperty", "ss", _id_c, ptr->handle);
+
+		if (!JS_GetProperty(cx, globalObj, _buff, &_rval)) {
+			fprintf(stderr,
+					"JS_GetProperty failed in SFNodeGetProperty.\n");
+			return JS_FALSE;
+		}
+		*vp = _rval;
+		free(_buff);
+	}
 
 	if (verbose &&
 		memcmp(_id_c, "toString", 8) != 0 &&
@@ -4879,6 +4917,14 @@ MFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 JSBool
 MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
+	/* unquote parts of vp string if necessary */
+	if (JSVAL_IS_STRING(*vp)) {
+		if (!doMFStringUnquote(cx, vp)) {
+			fprintf(stderr,
+				"doMFStringUnquote failed in MFStringAddProperty.\n");
+			return JS_FALSE;
+		}
+	}
 	if (verbose) {
 		printf("MFStringAddProperty: obj = %u\n", (unsigned int) obj);
 	}
@@ -4937,7 +4983,7 @@ MFStringSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	if (JSVAL_IS_STRING(*vp)) {
 		if (!doMFStringUnquote(cx, vp)) {
 			fprintf(stderr,
-				"doMFStringUnquote failed in MFStringAddProperty.\n");
+				"doMFStringUnquote failed in MFStringSetProperty.\n");
 			return JS_FALSE;
 		}
 	}

@@ -124,14 +124,14 @@ sub initScriptFields {
 			$constr = $this->constrString($type, 0);
 			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
 								   "$eventInArg"."$field", $constr)) {
-				$this->cleanupDie("addGlobalAssignProperty failed in VRML::JS::new");
+				$this->cleanupDie("addGlobalAssignProperty failed in initScriptFields");
 			}
 		}
 	} elsif ($fkind eq "eventOut") {
 		if ($type =~ /$ECMAScriptNative/) {
 			if (!addGlobalECMANativeProperty($this->{JSContext}, $this->{JSGlobal},
 											 $field)) {
-				$this->cleanupDie("addGlobalECMANativeProperty failed in VRML::JS::new");
+				$this->cleanupDie("addGlobalECMANativeProperty failed in initScriptFields");
 			}
 		} else {
 			if ($type eq "SFNode") {
@@ -146,7 +146,7 @@ sub initScriptFields {
 			}
 			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
 								   $field, $constr)) {
-				$this->cleanupDie("addGlobalAssignProperty failed in VRML::JS::new");
+				$this->cleanupDie("addGlobalAssignProperty failed in initScriptFields");
 			}
 		}
 	} elsif ($fkind eq "field") {
@@ -158,17 +158,17 @@ sub initScriptFields {
 		if ($type =~ /$ECMAScriptNative/) {
 			if (!addGlobalECMANativeProperty($this->{JSContext}, $this->{JSGlobal},
 											 $field)) {
-				$this->cleanupDie("addGlobalECMANativeProperty failed in VRML::JS::new");
+				$this->cleanupDie("addGlobalECMANativeProperty failed in initScriptFields");
 			}
 			if (!runScript($this->{JSContext}, $this->{JSGlobal},
 						   "$field=".$ftype->as_string($value, 1), $rstr, $v)) {
-				$this->cleanupDie("runScript failed in VRML::JS::new");
+				$this->cleanupDie("runScript failed in initScriptFields");
 			}
 		} else {
 			$constr = $this->constrString($type, $value);
 			if (!addGlobalAssignProperty($this->{JSContext}, $this->{JSGlobal},
 								   $field, $constr)) {
-				$this->cleanupDie("addGlobalAssignProperty failed in VRML::JS::new");
+				$this->cleanupDie("addGlobalAssignProperty failed in initScriptFields");
 			}
 			if ($type eq "SFNode") {
 				$this->initSFNodeFields($field, $value);
@@ -204,35 +204,35 @@ sub initSFNodeFields {
 				$constr = $this->constrString($type, 0);
 				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
 									   $nodeName, $_, $constr)) {
-					$this->cleanupDie("addSFNodeProperty failed in VRML::JS::new");
+					$this->cleanupDie("addSFNodeProperty failed in initSFNodeFields");
 				}
 			}
 		} elsif ($fkind eq "eventOut") {
+			$value = $node->{RFields}{$_};
+			print "\tJS field property $_, value ",
+				VRML::Debug::toString($value), "\n"
+						if $VRML::verbose::js;
 			if ($type !~ /$ECMAScriptNative/) {
 				if ($type eq "SFNode") {
-					$value = $node->{RFields}{$_};
-					print "\tJS field property $_, value ", VRML::Debug::toString($value), "\n"
-						if $VRML::verbose::js;
-
 					$constr = $this->constrString($type, $value);
 				} else {
 					$constr = $this->constrString($type, 0);
 				}
 				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
 									   $nodeName, $_, $constr)) {
-					$this->cleanupDie("addSFNodeProperty failed in VRML::JS::new");
+					$this->cleanupDie("addSFNodeProperty failed in initSFNodeFields");
 				}
 			}
 		} elsif ($fkind =~ /^(?:exposed)??[Ff]ield$/) {
 			$value = $node->{RFields}{$_};
-			print "\tJS field property $_, value ", VRML::Debug::toString($value), "\n"
-					 if $VRML::verbose::js;
-
+			print "\tJS field property $_, value ",
+				VRML::Debug::toString($value), "\n"
+						if $VRML::verbose::js;
 			if ($type !~ /$ECMAScriptNative/) {
 				$constr = $this->constrString($type, $value);
 				if (!addSFNodeProperty($this->{JSContext}, $this->{JSGlobal},
 									   $nodeName, $_, $constr)) {
-					$this->cleanupDie("addSFNodeProperty failed in VRML::JS::new");
+					$this->cleanupDie("addSFNodeProperty failed in initSFNodeFields");
 				}
 			}
 		} else {
@@ -544,6 +544,21 @@ sub addRemoveChildren {
 	}
 }
 
+sub jspSFNodeGetProperty {
+	my ($this, $prop, $handle) = @_;
+
+	$node = VRML::Handles::get($handle);
+	my $type = $node->{Type}{FieldTypes}{$prop};
+	my $ftype = "VRML::Field::$type";
+	my ($rs, $rval);
+
+	my $value = $node->{RFields}{$prop};
+	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				   "$handle"."_$prop=".$ftype->as_string($value, 1),
+				   $rs, $rval)) {
+		cleanupDie("runScript failed in VRML::JS::jspSFNodeGetProperty");
+	}
+}
 
 sub jspSFNodeSetProperty {
 	my ($this, $prop, $handle) = @_;
