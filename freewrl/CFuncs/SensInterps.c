@@ -391,6 +391,7 @@ void do_Oint4 (void *node) {
 	float oldangle;		/* keyValue where we are moving from */
 	float newangle;		/* keyValue where we are moving to */
 	float interval;		/* where we are between 2 values */
+	int stzero, endzero;	/* starting and/or ending angles zero? */
 
 	if (!node) return;
 	px = (struct VRML_OrientationInterpolator *) node;
@@ -417,21 +418,18 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 	if (px->set_fraction <= ((px->key).p[0])) {
 		memcpy ((void *)&px->value_changed, 
 				(void *)&kVs[0], sizeof (struct SFRotation));
-		 /* JAS px->value_changed.r[0] = kVs[0].r[0]; */
-		 /* JAS px->value_changed.r[1] = kVs[0].r[1]; */
-		 /* JAS px->value_changed.r[2] = kVs[0].r[2]; */
-		 /* JAS px->value_changed.r[3] = kVs[0].r[3]; */
 	} else if (px->set_fraction >= ((px->key).p[kin-1])) {
 		memcpy ((void *)&px->value_changed, 
 				(void *)&kVs[kvin-1], sizeof (struct SFRotation));
-		 /* JAS px->value_changed.r[0] = kVs[kvin-1].r[0]; */
-		 /* JAS px->value_changed.r[1] = kVs[kvin-1].r[1]; */
-		 /* JAS px->value_changed.r[2] = kVs[kvin-1].r[2]; */
-		 /* JAS px->value_changed.r[3] = kVs[kvin-1].r[3]; */
 	} else {
 		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
 		interval = (px->set_fraction - px->key.p[counter-1]) /
 				(px->key.p[counter] - px->key.p[counter-1]);
+
+		/* are either the starting or ending angles zero? */
+		stzero = APPROX(kVs[counter-1].r[3],0.0);
+		endzero = APPROX(kVs[counter].r[3],0.0);
+
 
 		/* are there any -1s in there? */
 		testangle = 0.0;
@@ -457,7 +455,6 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 		}
 		oldangle = kVs[counter-1].r[3];
 		testangle = newangle-oldangle;
-
 					
 		if (fabs(testangle) > PI) {
 			if (testangle>0.0) {
@@ -465,6 +462,30 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 			} else {
 				newangle += PI*2;
 			}
+		}
+
+		/* ok, now, some people write rotations like 0 0 1 0, 1 0 0 0.3
+		 * meaning that the first is "zero". We should not interpret
+		 * the axes between these, only the angles */
+
+		if (stzero || endzero) {
+			//printf ("have zero angle somewhere...\n");
+			if (stzero) {
+				/* starting angle zero, use the next axis */
+				for (tmp = 0; tmp <= 2; tmp++) {
+					px->value_changed.r[tmp] =
+						kVs[counter].r[tmp];
+				}
+			} else {
+				/* ending angle zero, use the first axis */
+				for (tmp = 0; tmp <= 2; tmp++) {
+					px->value_changed.r[tmp] =
+						kVs[counter-1].r[tmp];
+				}
+			}
+			//printf ("axis now %f %f %f\n",px->value_changed.r[0],
+			//		px->value_changed.r[1],
+			//		px->value_changed.r[2]);
 		}
 
 
