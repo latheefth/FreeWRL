@@ -27,21 +27,21 @@ sub print {
 	return unless $VRML::verbose::events;
 	print "DUMPING EVENTMODEL\nFIRST:\n";
 	for(values %{$this->{First}}) {
-		print "\t$_:\t$_->{TypeName}\n";
+		print "\t",VRML::Node::dump_name($_),":\t$_->{TypeName}\n";
 	}
 	print "ROUTES:\n";
 	for my $fn (keys %{$this->{Route}}) {
-		print "\t$fn $this->{Route}{$fn}{TypeName}\n";
+		print "\t",VRML::Node::dump_name($fn)," $this->{Route}{$fn}{TypeName}\n";
 		for my $ff (keys %{$this->{Route}{$fn}}) {
 			print "\t\t$ff\n";
 			for (@{$this->{Route}{$fn}{$ff}}) {
-				print "\t\t\t$_->[0]:\t$_->[0]{TypeName}\t$_->[1]\n";
+				print "\t\t\t",VRML::Node::dump_name($_->[0]),":\t$_->[0]{TypeName}\t$_->[1]\n";
 			}
 		}
 	}
 	print "ISS:\n";
 	for my $pn (keys %{$this->{PIs}}) {
-		print "\t$pn $this->{PIsN}{$pn}{TypeName}\n";
+		print "\t",VRML::Node::dump_name($pn)," $this->{PIsN}{$pn}{TypeName}\n";
 		for my $pf (keys %{$this->{PIs}{$pn}}) {
 			print "\t\t$pf\n";
 			for(@{$this->{PIs}{$pn}{$pf}}) {
@@ -74,7 +74,43 @@ sub add_route {
 	if(!defined $tf) {
 		die("Invalid tofield '$tf0' for ROUTE");
 	}
+
+	# is this route already here? If so, then don't bother adding it to
+	# the event loop, again. This situation can happen with the EAI,
+	# because we can add/delete nodes/routes in a pseudo random fashon.
+	# we don't want to loose the routes associated with a particular
+	# scene, but we don't want scene::new_route to be able to duplicate
+	# routes, either.
+
+	foreach (@{$this->{Route}{$fn}{$ff}}) {
+		# print "Events: add_route: route: ",@{$_},"\n";
+		my ($n, $f) = @{$_};
+		if ($n eq $tn) {
+			if ($f eq $tf) {
+				return;
+			}
+		} 
+	}
 	push @{$this->{Route}{$fn}{$ff}}, [$tn, $tf]
+}
+
+sub delete_route {
+	my($this,$fn, $ff0, $tn, $tf0) = @_;
+	print "DELETE_ROUTE $fn $ff $tn $tf\n"  if $VRML::verbose::events;
+	$ff = $fn->{Type}{EventOuts}{$ff0};
+	$tf = $tn->{Type}{EventIns}{$tf0};
+	print "delete_route: MAPPED: $ff, $tf\n" if $VRML::verbose::events;
+	if(!defined $ff) {
+		die("Invalid fromfield '$ff0' for ROUTE");
+	}
+	if(!defined $tf) {
+		die("Invalid tofield '$tf0' for ROUTE");
+	}
+	print "delete_route: current routes: \n";
+	foreach (@{$this->{Route}{$fn}{$ff}}) {
+		print "delete_route: route: ",@{$_},"\n";
+	}
+	pop @{$this->{Route}{$fn}{$ff}}, [$tn, $tf]
 }
 
 sub add_is_out {
@@ -165,7 +201,6 @@ sub propagate_events {
 						if(!defined $fk) {die("Fieldkind getting")}
 						if($fk eq "eventIn" or 
 						   $fk eq "exposedField") {
-print "Event.pm - this is an exposedField\n";
 							push @ne, 
 							    $_->[0]->receive_event($_->[1],
 								$e->[2], $timestamp);
@@ -184,7 +219,6 @@ print "Event.pm - this is an exposedField\n";
 					if(!defined $fk) {die("Fieldkind getting")}
 					if($fk eq "eventOut" or 
 					   $fk eq "exposedField") {
-print "Event.pm - this is an exposedField\n";
 						push @ne, [
 							$c->[0], $c->[1], $e->[2]
 						];
