@@ -254,7 +254,7 @@ sub gatherSentEvents {
 	my @a;
 	my ($rstr, $rnum, $runused, $propval);
 	print "VRML::JS::gatherSentEvents: ",
-		($ignore ? "events ignored":""), "\n"
+		($ignore ? "events ignored" : ""), "\n"
 			if $VRML::verbose::js;
 	for (@k) {
 		next if $_ eq "url";
@@ -267,8 +267,6 @@ sub gatherSentEvents {
 				if (!runScript($this->{JSContext}, $this->{JSGlobal},
 							   "$_.__touched_flag", $rstr, $rnum)) {
 					cleanupDie("runScript failed in VRML::JS::gatherSentEvents");
-				}
-				if ($type eq "MFNode") {
 				}
 				if (!runScript($this->{JSContext}, $this->{JSGlobal},
 							   "$_.__touched_flag=0", $rstr, $runused)) {
@@ -391,7 +389,7 @@ sub setProperty { # Assigns a value to a property.
 
 sub getProperty {
 	my ($this, $type, $prop) = @_;
-	my ($rs, $rval, $l);
+	my ($rstr, $rval, $l);
 
 	print "VRML::JS::getProperty: type=$type, property=$prop\n"
 		if $VRML::verbose::js;
@@ -399,46 +397,52 @@ sub getProperty {
 
 	if ($type =~ /^SFNode$/) {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop.__handle", $rs, $rval)) {
+					   "$prop.__handle", $rstr, $rval)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
-		return VRML::Handles::get($rs);
+		return VRML::Handles::get($rstr);
 	} elsif ($type =~ /$ECMAScriptNative/) {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "_${_}_touched=0; $prop", $rs, $rval)) {
+					   "_${_}_touched=0; $prop", $rstr, $rval)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
 		return $rval;
 	} elsif ($type =~ /^MFNode$/) {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal},
-					   "$prop.length", $rs, $l)) {
+					   "$prop.length", $rstr, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
 		}
 		print "\trunScript returned length=$l for MFNode\n" if $VRML::verbose::js;
 		my $fn = $prop;
 		my @res = map {
 			if (!runScript($this->{JSContext}, $this->{JSGlobal},
-						   "$fn"."[$_].__handle", $rs, $rval)) {
+						   "$fn"."[$_].__handle", $rstr, $rval)) {
 				cleanupDie("runScript failed in VRML::JS::getProperty");
 			}
-			VRML::Handles::get($rs);
+			## needed in case (for whatever reason) there is no SFNode at
+			## a given index
+			if ($rstr !~ /^undef/) {
+				VRML::Handles::get($rstr);
+			} else {
+				VRML::Handles::get("NULL");
+			}
 		} (0..$l-1);
 		return \@res;
 	} elsif ($type =~ /^MFString$/) {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rs, $l)) {
+		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rstr, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
 		print "\trunScript returned length=$l for MFString\n" if $VRML::verbose::js;
 		my $fn = $prop;
 		my @res = map {
-			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$fn"."[$_]", $rs, $rval)) {
+			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$fn"."[$_]", $rstr, $rval)) {
 				cleanupDie("runScript failed in VRML::JS::getProperty");
 			}
-			$rs;
+			$rstr;
 		} (0..$l-1);
 		return \@res;
 	} elsif ($type =~ /^MF/) {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rs, $l)) {
+		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rstr, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
 		print "\trunScript returned length=$l for $type\n" if $VRML::verbose::js;
@@ -446,11 +450,11 @@ sub getProperty {
 		my $st = $type;
 		$st =~ s/MF/SF/;
 		my @res = map {
-			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$fn"."[$_]", $rs, $rval)) {
+			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$fn"."[$_]", $rstr, $rval)) {
 				cleanupDie("runScript failed in VRML::JS::getProperty");
 			}
-			(pos $rs) = 0;
-			"VRML::Field::$st"-> parse(undef, $rs);
+			(pos $rstr) = 0;
+			"VRML::Field::$st"-> parse(undef, $rstr);
 		} (0..$l-1);
 		print "\tarray \@res: ( " if $VRML::verbose::js;
 		for (@res) {
@@ -465,11 +469,11 @@ sub getProperty {
 		print "\treference to \@ref: $r\n" if $VRML::verbose::js;
 		return $r;
 	} else {
-		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop", $rs, $rval)) {
+		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop", $rstr, $rval)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
-		(pos $rs) = 0;
-		return "VRML::Field::$type"->parse(undef, $rs);
+		(pos $rstr) = 0;
+		return "VRML::Field::$type"->parse(undef, $rstr);
 	}
 }
 
@@ -477,6 +481,7 @@ sub jspSFNodeSetProperty {
 	my ($this, $prop) = @_;
 	my ($handle, $node, $val, $vt, $actualField);
 	my $scene = $this->{Browser}{Scene};
+	my @av;
 
 	if (!runScript($this->{JSContext}, $this->{JSGlobal},
 				   "__node.__handle", $handle, $rval)) {
@@ -495,15 +500,36 @@ sub jspSFNodeSetProperty {
 	} else {
 		$actualField = $prop;
 	}
+
 	$vt = $node->{Type}{FieldTypes}{$actualField};
 	if (!defined $vt) {
 		cleanupDie("Invalid property $prop");
 	}
 	$val = $this->getProperty($vt, $prop);
 
-	print "VRML::JS::jspSFNodeSetProperty: setting $actualField=$val for $prop, $handle\n"
+	print "VRML::JS::jspSFNodeSetProperty: setting $actualField, $val",
+		(ref $val eq "ARRAY" ? "=[".join(", ", @{$val})."] " : " "),
+			"for $prop of $handle\n"
 		if $VRML::verbose::js;
 	$node->{RFields}{$actualField} = $val;
+
+	if ($actualField eq "removeChildren") {
+		if ($this->{Browser}->checkChildPresent($node, $val)) {
+			@av = $this->{Browser}->removeChild($node, $val);
+			$this->{Browser}->api__sendEvent($val, "children", \@av);
+		}
+	} elsif ($actualField eq "addChildren") {
+		$actualField = "children";
+		if (!($this->{Browser}->checkChildPresent($node, $val))) {
+			@av = @{$node->{RFields}{$actualField}};
+			if (ref $val eq "ARRAY") {
+				push @av, @{$val};
+			} else {
+				push @av, $val;
+			}
+			$this->{Browser}->api__sendEvent($node, $actualField, \@av);
+		}
+	}
 }
 
 sub jspSFNodeAssign {
