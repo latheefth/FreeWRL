@@ -36,7 +36,7 @@
 INSTALLNP:=/usr/lib/netscape/plugins
 LIBS:=
 
-CC=gcc
+#JAS CC=gcc
 OPTIMIZER:=-O2
 PLUGIN_DEFINES:=-DXP_UNIX
 
@@ -56,7 +56,7 @@ INC:=\
     -I.\
     -I./include
 
-CFLAGS=${OPTIMIZER} -fPIC -Wall ${PLUGIN_DEFINES} ${INC}
+CFLAGS=${OPTIMIZER} ${PLUGIN_DEFINES} ${INC}
 
 SRC:=\
     npfreewrl.c\
