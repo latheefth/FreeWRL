@@ -15,10 +15,13 @@ extern unsigned _fw_instance;
  * is take parameters and execl them, in specific formats, to stop
  * people (or, to try to stop) from typing malicious code. */
 int freewrlSystem (char *sysline) {
+
+#define MAXEXECPARAMS 10
+#define EXECBUFSIZE	2000
 	int ok;
 	char *params;
-	char *paramline[20];
-	char buf[2000];
+	char *paramline[MAXEXECPARAMS];
+	char buf[EXECBUFSIZE];
 	char *internbuf;
 	int count;
 	pid_t childProcess;
@@ -32,11 +35,11 @@ int freewrlSystem (char *sysline) {
 	internbuf = buf;
 
 	/* bounds check */
-	if (strlen(sysline)>=2000) return FALSE;
+	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
 	//printf ("freewrlSystem, have %s here\n",internbuf);
-	for (count=0; count<20; count++) paramline[count] = NULL;
+	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 
 	/* split the command off of internbuf, for execing. */
 	count = 0;
@@ -49,15 +52,16 @@ int freewrlSystem (char *sysline) {
 			//printf ("param %d is :%s:\n",count,paramline[count]);
 			internbuf++;
 			count ++;
+			if (count >= MAXEXECPARAMS) return -1; // never...
 		}
 	}
-	/*
+	
 	 printf ("finished while loop, count %d\n",count);
 	{ int xx;
-		for (xx=0; xx<20;xx++) {
+		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
 	}}
-	*/
+	
 
 	/* is the last string "&"? if so, we don't need to wait around */
 	if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {

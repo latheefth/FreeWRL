@@ -22,6 +22,8 @@
 #include <math.h>
 #include <stdio.h>
 
+int freewrlSystem (char *string);
+
 key_t IPCKey;
 int msq_fromclnt;
 int msq_toclnt;
@@ -289,7 +291,8 @@ void process_command () {
 		
 		// start SOX conversion...
 		cp[0]='\0';
-		strcpy(cp,"sox ");
+		strcpy(cp,"/usr/bin/sox");
+		strcat(cp," ");
 		b = strlen(cp);
 		cp2len=0; // keep the original file name around for a bit.
 		
@@ -316,17 +319,17 @@ void process_command () {
 		strcat (cp,pitch);
 
 		// finish the conversion line
-		strcat (cp," -c2 -w /tmp/sound");
+		strcat (cp,"-c2 -w /tmp/sound");
 		b = strlen(cp);
 
 		sprintf (st,"%d.wav",mysource);
 		//printf ("ST is %s\n cp is %s\n",st,cp);
 		strcat (cp,st);
 
-		strcat (cp, " 2>/tmp/FreeWRL_Errors");
+		//strcat (cp, " 2>/tmp/FreeWRL_Errors");
 
-		//printf ("going to system %s\n",cp);
-		system (cp);
+		printf ("going to system %s\n",cp);
+		freewrlSystem (cp);
 
 		// make the new, converted file name, then later, open it
 		strcpy (cp,"/tmp/sound");
@@ -456,3 +459,111 @@ int main(int argc,char **argv) {
 	//printf ("Server exiting normally\n");
 	exit(0);
 }
+
+/* get all system commands, and pass them through here. What we do
+ * is take parameters and execl them, in specific formats, to stop
+ * people (or, to try to stop) from typing malicious code. */
+
+/* this is just a direct copy of the code from ../CFuncs/pluginUtils.c;
+ * please ensure that this reflects that code. */
+#include <sys/types.h>
+#include <sys/wait.h>
+#ifndef TRUE 
+	#define TRUE 1
+#endif
+#ifndef FALSE
+	#define FALSE 0
+#endif
+
+int freewrlSystem (char *sysline) {
+
+#define MAXEXECPARAMS 10
+#define EXECBUFSIZE	2000
+	int ok;
+	char *paramline[MAXEXECPARAMS];
+	char buf[EXECBUFSIZE];
+	char *internbuf;
+	int count;
+	pid_t childProcess;
+	int pidStatus;
+
+	int waitForChild;
+
+	waitForChild = TRUE;
+
+	ok = FALSE;
+	internbuf = buf;
+
+	/* bounds check */
+	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
+	strcpy (buf,sysline);
+
+	//printf ("freewrlSystem, have %s here\n",internbuf);
+	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
+
+	/* split the command off of internbuf, for execing. */
+	count = 0;
+	while (internbuf != NULL) {
+		paramline[count] = internbuf;
+		internbuf = strchr(internbuf,' ');
+		if (internbuf != NULL) {
+			//printf ("more strings here! :%s:\n",internbuf);
+			*internbuf = '\0';
+			//printf ("param %d is :%s:\n",count,paramline[count]);
+			internbuf++;
+			count ++;
+			if (count >= MAXEXECPARAMS) return -1; // never...
+		}
+	}
+	
+//	 printf ("finished while loop, count %d\n",count);
+//	{ int xx;
+//		for (xx=0; xx<MAXEXECPARAMS;xx++) {
+//			printf ("item %d is :%s:\n",xx,paramline[xx]);
+//	}}
+	
+
+	/* is the last string "&"? if so, we don't need to wait around */
+	if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
+		waitForChild=FALSE;
+		paramline[count] = '\0'; // remove the ampersand.
+	}
+
+	if (count > 0) {
+		switch (childProcess=fork()) {
+			case -1: 
+				perror ("fork"); exit(1);
+
+			case 0: {
+			int Xrv;
+
+			/* child process */
+			//printf ("child execing, pid %d %d\n",childProcess, getpid());
+		 	Xrv = execl(paramline[0], 
+				paramline[0],paramline[1], paramline[2],
+				paramline[3],paramline[4],paramline[5],
+				paramline[6],paramline[7]);
+			//printf ("child finished execing\n");
+			exit (Xrv);
+			} 
+			default: {
+			/* parent process */
+			//printf ("parent waiting for child %d\n",childProcess);
+
+			/* do we have to wait around? */
+			if (!waitForChild) {
+				//printf ("do not have to wait around\n");
+				return 0;
+			}
+			waitpid (childProcess,&pidStatus,0);
+			//printf ("parent - child finished - pidStatus %d \n",
+			//		pidStatus);
+			}
+		}
+		return pidStatus;
+	} else {
+		printf ("System call failed :%s:\n",sysline);
+	}
+	return -1;
+}
+

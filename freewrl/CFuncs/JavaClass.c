@@ -271,7 +271,7 @@ int newClassConnection (int scriptno) {
 	if (strlen(commandline) <= 0) return FALSE;
 
 	/* invoke the java interpreter */
-	if ((system (commandline)) < 0) {
+	if ((freewrlSystem (commandline)) < 0) {
 		printf ("JavaClass:error calling %s\n",commandline);
 		return FALSE;
 	}
@@ -409,7 +409,7 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  	}
  
  	/* and, the command to run */
- 	sprintf (myc, " vrml.FWJavaScript %d &\n",scriptno+EAIBASESOCKET);
+ 	sprintf (myc, " vrml.FWJavaScript %d &",scriptno+EAIBASESOCKET);
  	strcat (commandline, myc);
  	
  	if (JavaClassVerbose) printf ("JavaClass:command line %s\n",commandline);
