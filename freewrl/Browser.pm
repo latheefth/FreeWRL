@@ -123,24 +123,58 @@ sub get_backend { return $_[0]{BE} }
 
 sub eventloop {
 	my($this) = @_;
-	my $imgcnt = 0;
+	## my $seqcnt = 0;
 	# print "eventloop ";
 	while(!$this->{BE}->quitpressed) {
 		$this->tick();
-                if( $main::save && $imgcnt++ ) # Skip 1st image, which may not be good
+				# Skip 1st image, which may not be good
+                if( $main::seq && $main::saving && ++$main::seqcnt )
                 {
-                    my $s2 = $this->{BE}->snapshot();
-                    my $fn = "seqs/seq" . sprintf("%04d",$imgcnt) . 
-                        ".$s2->[0].$s2->[1].raw" ;
-                    if( $imgcnt<100 && 
-                        open( O, ">$fn" ))
-                    {
-                        $imgcnt++ ;
-                        print O $s2->[2] ;
-                        close O ;
-                    }
-                }
-        }
+				# Too many images. Stop saving, do conversion
+		  if ($main::seqcnt > $main::maximg){
+		    print "Saving off : sequence too long (max is $main::maximg)\n" ;
+		    VRML::Browser::convert_raw_sequence();
+		    # @main::saved = (); # Reset list of images
+		    # $main::seqcnt = 1;
+		    # $main::saving = 0;
+
+		  } else {
+		    ## print " this : $this\n";
+		    ## print " BE   : $this->{BE}\n";
+		    my $s2 = $this->{BE}->snapshot();
+		    my $fn = "$main::seqtmp/$main::seqname" . 
+		      sprintf("%04d",$main::seqcnt) . 
+			".$s2->[0].$s2->[1].raw" ;
+
+				# Check temp dir
+		    if ( ! (-d $main::seqtmp) && ! mkdir($main::seqtmp,0755) ) {
+		      print (STDERR "Can't create $main::seqtmp,",
+			     " so can't save sequence\n");
+		      $main::seqcnt = 0;
+		      $main::saving = 0;
+		      print "Saving off : Can't save temp files\n";
+		    
+		      # Refuse to crush files. Maybe "convert" has not
+		      # finished its job. 
+		    } elsif (-f $fn) {
+		    
+		      print (STDERR "File '$fn' already exists.\n",
+			     "  Maybe previous sequence has not been converted\n".
+			     "  Maybe you should remove it by hand\n") ;
+		      $main::seqcnt = 0;
+		      $main::saving = 0;
+		      print "Saving off : Won't crush file\n";
+		      
+		    } elsif (open (O, ">$fn")){
+		      print O $s2->[2] ;
+		      close O ;
+		      push @main::saved, [$fn, $s2->[0], $s2->[1], $main::seqcnt]; 
+		    } else {
+		      print STDERR "Can't open '$fn' for writing\n";
+		    }
+		  }
+		}
+	      }
 }
 
 sub prepare {
@@ -384,8 +418,95 @@ sub api__unsetMFNode {
 	$this->api__sendEvent($node, $f, $node->{Fields}{$f});
 }
 
+## Get a snapshot from backend and save it
+##
+## Uses variables :
+##
+## $main::snapcnt
+## $main::maximg
+## $main::snapname
+sub save_snapshot {
+				# Get snapshot
+  my ($this) = @_ ;
+  my $s2 = $this->snapshot();
+				# Save it
+  $main::snapcnt++ ;
+  return if $main::snapcnt > $main::maximg ;
+  my $outname = sprintf("$main::snapname.%04d.ppm",$main::snapcnt);
+  my $cmd = "$VRML::Browser::CONVERT -flip -size  $s2->[0]x$s2->[1] rgb:- $outname";
+  print "Saving snapshot : Command is '$cmd'\n";
 
+  if (open CONV, "|$cmd") {
+    print CONV $s2->[2] ;
+    close CONV ;
+  } else {
+    print STDERR "Can't open pipe for saving image\n";
+    $main::snapcnt-- ;
+  }
+    
+}
 
+## Eventually convert a sequence of saved raw images. 
+##
+## Uses variables :
+##
+## @main::saved : list of images, with size and seq
+##                number. @main::saved is reset. 
+##
+## $main::nogif : If true, save many ppm rather than a single gif file.
+##
+## $main::seqname :
+sub convert_raw_sequence   {
+  
+  return unless @main::saved ;
+  my $cmd ;
+  # Convert to gif
+  if (! $main::nogif){
+    # size options for 'convert'
+    my $sz = join " ",
+    map {"-size $_->[1]x$_->[2] rgb:$_->[0]"} @main::saved ; 
+    $cmd = "$VRML::Browser::CONVERT -flip ". 
+      " -delay 35 $sz $main::seqname.gif";
+    
+  } else {	# Convert to ppm
+    $cmd = join ";\n",
+    map {"$VRML::Browser::CONVERT -flip ".
+	   "-size $_->[1]x$_->[2] rgb:$_->[0] ".
+	     "$main::seqtmp/$main::seqname.".sprintf("%04d",$_->[3]).".ppm"
+	   } @main::saved ;
+  }
+  print "$$ : cmd is : \n-------\n$cmd\n------\n";
+
+  # Fork so that system call won't hang browser
+  my $p = fork (); 
+  if (!defined($p)){
+    print STDERR "could not fork to convert image sequence\n";
+  } elsif ($p == 0) {
+    my $nok = system $cmd;
+    if ($nok) {
+      print STDERR "convert failed. keeping raw images\n";
+      @main::saved = ();	# Prevent END from trying again
+      exit 1;
+      
+      # If all seems ok, remove raw images
+    } else {
+      print STDERR "convert successful. unlinking raw images\n";
+      map {unlink $_->[0]} @main::saved;
+      @main::saved = ();	# Prevent END from trying again
+      exit 0;
+    }
+  }			
+				# Parent process #####################
+  @main::saved = ();
+  $main::saving = 0;
+  $main::seqcnt = 0;
+}  # End of conversion of raw images
+
+## If freewrl exits while saving, convert whatever has been saved
+END { 
+  print "Please wait while sequence is converted\n" if @main::saved ;
+  convert_raw_sequence() 
+}
 
 #########################################################3
 #
@@ -433,6 +554,7 @@ sub pmeasures {
 }
 }
 }
+
 
 
 # No other nice place to put this so it's here...

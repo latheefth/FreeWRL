@@ -40,6 +40,17 @@ static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
 MODULE = VRML::OpenGL		PACKAGE = VRML::OpenGL
 PROTOTYPES: DISABLE
 
+#
+# Raise the window
+#
+
+void
+raise_me_please()
+	CODE:
+        {
+	  XMapRaised(dpy, win); 
+	}
+
 
 void
 glpcOpenWindow(x,y,w,h,pw,event_mask, ...)

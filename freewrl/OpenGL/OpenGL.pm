@@ -8,6 +8,7 @@
 	require DynaLoader;
 	@ISA = qw(Exporter DynaLoader);
 	@EXPORT = qw(
+		raise_me_please
 		glpOpenWindow
 		glXSwapBuffers
 		XPending

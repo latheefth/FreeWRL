@@ -119,9 +119,11 @@ go to this viewpoint) with these values.
 
 =item s
 
-Start/stop a sequence of saved images. Subdirectory is 
-"seqs" in current directory. (see also "-seq" command line option,
-and file "Sequencer" in build directory)
+Save a snapshot or (with the "-seq" option) start/stop saving a
+sequence of images. By default, snapshots are saved to
+F<freewrl.snap.NNNN.ppm> and sequences to F<freewrl.seq.gif>; see
+options "-ppm", "-seqb" and "-snapb". While saving images, freewrl is
+slower.
 
 =item h
 
@@ -152,37 +154,37 @@ The default keymap in this mode is
 
 =over 4
 
-=item "8"/"k" 
+=item '8'/'k' 
 
 rotation down/up
 
 
 
-=item "u"/"o" 
+=item 'u'/'o' 
 
 rotation left/right
 
 
 
-=item "7"/"9"
+=item '7'/'9'
 
 rotation about the Z axis
 
 
 
-=item "a"/"z" 
+=item 'a'/'z' 
 
 translation forwards/backwards
 
 
 
-=item "j"/"l"
+=item 'j'/'l'
 
 translation left/right
 
 
 
-=item "p"/";"
+=item 'p'/';'
 
 translation up/down
 
@@ -289,14 +291,45 @@ names "s0", "s1" etc.
 
 =item C<-seq>
 
-Save a sequence of images in subdirectory ./seq. Useful if you want to create
-animated gifs. (look in file Sequencer for an example)
+The "s" key will start/stop saving a sequence of images rather than
+saving a single snapshot.
+
+=item C<-seqb> I<basename>
+
+Specify base name for the sequence file. Default is
+"freewrl.seq". Sets the "-seq" option.
+
+=item C<-snapb> I<basename>
+
+Specify base name for the snapshot files. Default is
+"freewrl.snap". Unsets the "-seq" option.
+
+=item C<-seqtmp> I<basename>
+
+Specify base name for the sequence temporary files. Default is
+~/freewrl_tmp.
+
+=item C<-ppm>
+
+In conjunction of "-seq" only, the sequence will be saved as lots of
+ppm files.
+
+=item C<-maximg>
+
+Maximum number of snapshots or images in the sequence. Default is 100
+to avoid filling up disk.
 
 =item C<-eai> I<host:port>
 
 The browser will try to connect to the socket at I<host:port> to obtain
 an EAI connection. This option is mostly for internal use by 
 the EAI libraries.
+
+=item C<-server>
+
+FreeWRL will behave as a server : it spawns a child browser, prints
+its PID on STDOUT and exits. The child then reloads the url given on
+the command line upon receival of a SIGUSR1 signal. 
 
 =item C<-sig>
 
@@ -371,9 +404,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 use Carp;
 $SIG{__DIE__} = sub {print Carp::longmess(@_);die;};
 
-BEGIN{
+BEGIN {
 
 	# use VRML::Browser;
+        $main::saving = 0;		# Currently saving?
+        $main::seqcnt = 0;		# Number of images in sequence
+        $main::snapcnt = 0;	        # Number of snapshots
+        @main::saved = ();		# List of [im name, ncols, nrows, im number]
+
+	           			# Options : seq, nogif, maximg
+        $main::seq =    0  ;
+        $main::nogif =  0  ;
+        $main::maximg = 100;
+        $main::seqtmp = "$ENV{HOME}/freewrl_tmp" ;
+        $main::seqname = "freewrl.seq" ;
+        $main::snapname = "freewrl.snap" ;
 
 	use Getopt::Long;
 
@@ -388,11 +433,26 @@ BEGIN{
 		"save=s" => \$VRML::ENV{FREEWRL_SAVE},
 		"fontdir=s" => \$VRML::ENV{FREEWRL_FONTDIR},
 		"log=s" => \$log,
-		"save"=>\$save,
+		"seq"=>\$seq,
+                "seqb=s"=>\$seqname_opt,
+                "seqtmp=s"=>\$seqtmp_opt,
+                "snapb=s"=>\$snapname_opt,
+		"ppm"=>\$nogif,
+		"maximg=i"=>\$maximg,
 		"help" => \$usage,
 		"usage" => \$usage,
+                "server"=> \$server,
 		"sig" => \$sig_reload,
 	);
+
+        if (defined $snapname_opt) { # Snapshot overrides sequence
+          $snapname = $snapname_opt;
+          $seq = 0;
+        } elsif (defined $seqname_opt) {
+          $seqname = $seqname_opt;
+          $seq = 1;
+        }
+        $seqtmp = $seqtmp_opt if defined $seqtmp_opt ;
 
 	exec ("perldoc -t $0 | cat") if $usage ;
 
@@ -400,14 +460,35 @@ BEGIN{
 		open STDOUT, ">$log" || die("Can't redirect stdout to $log: $!");
 		open STDERR, ">&STDOUT" || die("Can't redirect stderr to stdout: $!");
 	}
-	eval"use blib;"; warn "Use blib failed" if $@;
+	eval"use blib;"; 
+	## I (Etienne) prefer having verbose output in the source dir (where
+	## I'm likely to be testing) 
+        ## warn "Use blib failed" if $@;
+	warn "Use blib succeeded" unless $@;
+
+	if ($server){		# Behave as server : print pid and shut up
+	  $| = $sig_reload = 1;
+	  if ($pid = fork ()){
+	    print "$pid\n" ;
+	    if (!$log){
+               close STDOUT;
+	       close STDERR;
+            }
+	    exit 0;
+	  } else {
+	    if (!$log){
+               close STDOUT;
+	       close STDERR;
+            }
+	  }
+	}
+
 }
 
 my @verb = @ARGV[1..$#ARGV];
 
 sub verb {return !!grep {$_ eq $_[0] or $_ eq "all"} @verb}
 sub verbn {return !!grep {$_ eq $_[0]} @verb}
-
 
 
 # Turn these switches on if you are debugging
@@ -451,7 +532,10 @@ if($fast) {
 
 $b->load_file($ARGV[0],$url);
 
-$SIG{USR1} = sub { $b->load_file($ARGV[0],$url) } if $sig_reload;
+$SIG{USR1} = sub { 
+    $b->load_file($ARGV[0],$url); 
+    &VRML::OpenGL::raise_me_please ();
+} if $sig_reload;
 
 if($zpl) {VRML::VRMLFunc::set_vpdist($zpl)}
 

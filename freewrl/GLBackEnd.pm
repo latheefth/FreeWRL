@@ -341,9 +341,29 @@ sub event {
                               "   orientation $rot\n",
                               "}\n",
                                ) ;
+
+				# Sequence / Single Image saving ###########
                     } elsif((lc $args[0]) eq "s") {
-                    $main::save = ! $main::save ;
-                    print "Saving ",$main::save ? "on" : "off","\n" ;
+
+				# Sequence saving ##########################
+		      if ($main::seq) {	
+			$main::saving = ! $main::saving ;
+			print "Saving ",$main::saving ? "on" : "off","\n" ;
+
+			# At end of sequence, convert raw
+			# images to a gif or ppm's 
+			if (! $main::saving) {
+			  VRML::Browser::convert_raw_sequence();
+		      
+			} else {	# Start new sequence
+			  @main::saved = (); # Reset list of images
+			  $main::seqcnt = 0;
+			}
+				# Single image
+		      } else {
+			print "Saving snapshot\n";
+			VRML::Browser::save_snapshot($this);
+		      }
 
 		} elsif((lc $args[0]) eq "q") {
 			$this->{QuitPressed} = 1;
