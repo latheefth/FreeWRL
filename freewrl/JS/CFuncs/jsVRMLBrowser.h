@@ -19,7 +19,6 @@
 #endif /* __jsUtils_h__ */
 
 
-
 /*
  * for now, could try setting magic to pid since we only need one browser
  * per process -- but is it really needed ???

@@ -488,7 +488,6 @@ doVRMLRoute(JSContext *context, JSObject *obj, uintN argc, jsval *argv,
 			return JS_FALSE;
 		}
 
-
 		if (!JS_GetProperty(context, _obj[0], "__id", &(_v[0]))) {
 			fprintf(stderr,
 					"JS_GetProperty failed for arg 0 and \"__id\" in doVRMLRoute called from %s.\n",

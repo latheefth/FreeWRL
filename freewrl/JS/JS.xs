@@ -155,39 +155,6 @@ doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
 
 
 void *
-SFNodeNativeNew(size_t vrml_handle_length)
-{
-	SFNodeNative *ptr;
-	size_t string_size = (vrml_handle_length + 1) * sizeof(char *);
-	
-	ptr = malloc(sizeof(*ptr));
-	if (ptr == NULL) {
-		return NULL;
-	}
-	ptr->touched = 0;
-	ptr->vrml_handle = malloc(string_size);
-	if (ptr->vrml_handle == NULL) {
-		return NULL;
-	}
-	memset(ptr->vrml_handle, 0, string_size);
-	return ptr;
-}
-
-void
-SFNodeNativeDelete(void *p)
-{
-	SFNodeNative *ptr;
-	if (p != NULL) {
-		ptr = p;
-		if (ptr->vrml_handle != NULL) {
-			free(ptr->vrml_handle);
-		}
-		free(ptr);
-	}
-}
-
-
-void *
 SFColorNativeNew()
 {
 	SFColorNative *ptr;
@@ -227,17 +194,13 @@ SFColorNativeSet(void *p, SV *sv)
 	int i;
 
 	if (verbose) {
-		printf("SFColorNativeSet:\n");
+		printf("SFColorNativeSet\n");
 	}
 
 	if (!SvROK(sv)) {
 		(ptr->v).c[0] = 0;
 		(ptr->v).c[1] = 0;
 		(ptr->v).c[2] = 0;
-		if (verbose) {
-			printf("\thardcoded color values\n");
-		}
-
 	} else {
 		if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
 			fprintf(stderr, "SFColor without being arrayref in SFColorNativeSet.\n");
@@ -299,6 +262,8 @@ SFImageNativeSet(void *p, SV *sv)
 	AV *a;
 	SV **__data, **__x, **__y, **__depth, **__texture;
 	STRLEN pl_na;
+	size_t _len, _data_s;
+	char *c;
 
 	if (!SvROK(sv)) {
 		(ptr->v).__x = 0;
@@ -338,13 +303,26 @@ SFImageNativeSet(void *p, SV *sv)
 
 		/* Handle image data */
 		/* __data = av_fetch(a, 4, 1); */ /* LVal for easiness */
-		__data = av_fetch(a, 3, 1); /* ??? */ /* LVal for easiness */
+		__data = av_fetch(a, 3, 1); /* ??? */
 		if (!__data) {
 			fprintf(stderr, "SFImage __data is NULL in SFImageNativeSet.\n");
 			return;
 		}
-		/* XXX change to allow memory reallocation */
-		strcpy((ptr->v).__data, SvPV(*__data, pl_na));
+		c = SvPV(*__data, pl_na);
+		_len = strlen(c);
+		_data_s = sizeof((ptr->v).__data);
+		if (_len * sizeof(char) > _data_s) {
+			_data_s = (_len + 1) * sizeof(char);
+			if (((ptr->v).__data =
+				 (char *) realloc((ptr->v).__data, _data_s))
+				== NULL) {
+				fprintf(stderr,
+						"realloc failed in SFImageNativeSet.\n");
+				return;
+			}
+		}
+		memset((ptr->v).__data, 0, _len + 1);
+		memmove((ptr->v).__data, c, _len);
 
 		/* __texture */
 		__texture = av_fetch(a, 4, 1); /* ??? */ /* LVal for easiness */
@@ -356,6 +334,7 @@ SFImageNativeSet(void *p, SV *sv)
 	}
 	ptr->touched = 0;
 }
+
 
 
 void *
@@ -398,14 +377,9 @@ SFRotationNativeSet(void *p, SV *sv)
 	int i;
 
 	if (verbose) {
-		printf("SFRotationNativeSet:\n");
+		printf("SFRotationNativeSet\n");
 	}
-
 	if (!SvROK(sv)) {
-		if (verbose) {
-			printf("\thardcoded rotation values\n");
-		}
-
 		(ptr->v).r[0] = 0;
 		(ptr->v).r[1] = 1;
 		(ptr->v).r[2] = 0;
@@ -470,15 +444,12 @@ SFVec2fNativeSet(void *p, SV *sv)
 	ptr->touched = 0;
 
 	if (verbose) {
-		printf("SFVec2fNativeSet:\n");
+		printf("SFVec2fNativeSet\n");
 	}
 
 	if (!SvROK(sv)) {
 		(ptr->v).c[0] = 0;
 		(ptr->v).c[1] = 0;
-		if (verbose) {
-			printf("\thardcoded vec2f values\n");
-		}
 	} else if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
 			fprintf(stderr, "SFVec2f without being arrayref in SFVec2fNativeSet.\n");
 			return;
@@ -542,16 +513,13 @@ SFVec3fNativeSet(void *p, SV *sv)
 	ptr->touched = 0;
 
 	if (verbose) {
-		printf("SFVec3fNativeSet:\n");
+		printf("SFVec3fNativeSet\n");
 	}
 
 	if (!SvROK(sv)) {
 		(ptr->v).c[0] = 0;
 		(ptr->v).c[1] = 0;
 		(ptr->v).c[2] = 0;
-		if (verbose) {
-			printf("\thardcoded vec3f values\n");
-		}
 	} else if (SvTYPE(SvRV(sv)) != SVt_PVAV) {
 			fprintf(stderr, "SFVec3f without being arrayref in SFVec3fNativeSet.\n");
 			return;
@@ -589,6 +557,7 @@ CODE:
 }
 
 
+## worry about garbage collection here ???
 void
 init(context, global, brow, sv_js)
 	void *context
@@ -651,9 +620,8 @@ CODE:
 	}
 
 	br = (BrowserNative *) JS_malloc(context, sizeof(BrowserNative));
-	/* needed ??? */
 	br->sv_js = newSVsv(sv_js); /* new duplicate of sv_js */
-	br->magic = BROWMAGIC;
+	br->magic = BROWMAGIC; /* needed ??? */
 	brow = br;
 	
 	if (!loadVrmlClasses(cx, glob)) {
@@ -732,7 +700,7 @@ CODE:
 	strp = JS_GetStringBytes(strval);
 	sv_setpv(rstr, strp);
 	if (verbose) {
-		printf("strp = %s, ", strp);
+		printf("strp=\"%s\", ", strp);
 	}
 
 	if (!JS_ValueToNumber(context, rval, &dval)) {
@@ -741,7 +709,7 @@ CODE:
 		return;
 	}
 	if (verbose) {
-		printf("dval = %f\n", dval);
+		printf("dval=%f\n", dval);
 	}
 	sv_setnv(rnum, dval);
 	//cx = context;
@@ -755,6 +723,7 @@ cx
 obj
 rstr
 rnum
+
 
 
 JSBool
@@ -1009,21 +978,16 @@ CODE:
 		RETVAL = JS_FALSE;
 		return;
 	}
-	if (JSVAL_IS_OBJECT(_rval)) {
-		// printf("addAssignProperty: _rval = %ld\n", _rval);
-	}
 	if (!JS_DefineProperty(context, globalObj,
-						   name, _rval, getAssignProperty, setAssignProperty,
+						   /* name, _rval, getAssignProperty, setAssignProperty, */
+						   name, _rval, JS_PropertyStub, setAssignProperty,
 						   0 | JSPROP_PERMANENT)) {
-		/* JSPROP_ASSIGNHACK  -- deprecated!!! */
 		fprintf(stderr,
 				"JS_DefineProperty failed for \"%s\" in addAssignProperty.\n",
 				name);
 		RETVAL = JS_FALSE;
 		return;
 	}
-	//cx = context;
-	//glob = globalObj;
 	RETVAL = JS_TRUE;
 }
 OUTPUT:
@@ -1033,7 +997,7 @@ glob
 
 
 JSBool
-addTouchableProperty(cx, glob, name)
+addECMANativeProperty(cx, glob, name)
 	void *cx
 	void *glob
 	char *name
@@ -1047,7 +1011,7 @@ CODE:
 	context = cx;
 	globalObj = glob;
 	if (verbose) {
-		printf("AddTouchableProperty: name = \"%s\"\n", name);
+		printf("addECMANativeProperty: name = \"%s\"\n", name);
 	}
 
 	if (!JS_DefineProperty(context,
@@ -1055,10 +1019,10 @@ CODE:
 						   name,
 						   rval,
 						   NULL,
-						   setTouchable,
+						   setECMANative,
 						   0 | JSPROP_PERMANENT)) {
 		fprintf(stderr,
-				"JS_DefineProperty failed for \"%s\" in AddTouchableProperty.\n",
+				"JS_DefineProperty failed for \"%s\" in addECMANativeProperty.\n",
 				name);
 		RETVAL = JS_FALSE;
 		return;
@@ -1069,13 +1033,11 @@ CODE:
 	v = INT_TO_JSVAL(1);
 	if (!JS_SetProperty(context, globalObj, buffer, &v)) {
 		fprintf(stderr,
-				"JS_SetProperty failed for \"%s\" in AddTouchableProperty.\n",
+				"JS_SetProperty failed for \"%s\" in addECMANativeProperty.\n",
 				buffer);
 		RETVAL = JS_FALSE;
 		return;
 	}
-	//cx = context;
-	//glob = globalObj;
 	RETVAL = JS_TRUE;
 }
 OUTPUT:

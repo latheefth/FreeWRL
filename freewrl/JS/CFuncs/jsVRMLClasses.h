@@ -43,21 +43,28 @@
 #endif
 
 /*
- * The simple VRML field types are supported in perl (see JS.pm):
- * * SFBool, SFFloat, SFTime, SFInt32, SFString
+ * The following VRML field types don't need JS classes:
+ * (ECMAScript native datatypes, see JS.pm):
+ * * SFBool, SFFloat, SFTime, SFInt32, SFString (not really a native
+ * datatype, but not required to be an ECMAScript object...)
  *
  * VRML field types that are implemented here as Javascript classes
  * are:
  *
+ * * MFBool
+ * * MFInt32
+ * * MFFloat
+ * * MFTime
  * * SFColor, MFColor
  * * SFVec2f, MFVec2f -- untested!!!
  * * SFVec3f, MFVec3f
  * * SFRotation, MFRotation
- * * SFNode (special case - also implemented in perl (see JS.pm), MFNode
- * * SFImage -- untested!!!
+ * * SFImage -- totally untested!!!
+ * * MFString
+ * * SFNode (special case - must be supported perl (see JS.pm), MFNode
  *
- * These fields have struct types defined elsewhere (see Structs.h)
- * that are stored by Javascript classes as private data. 
+ * These (single value) fields have struct types defined elsewhere
+ * (see Structs.h) that are stored by Javascript classes as private data.
  *
  * Some of the computations for SFVec3f, SFRotation are now defined
  * elsewhere (see LinearAlgebra.h) to avoid duplication.
@@ -84,10 +91,10 @@ loadVrmlClasses(JSContext *context,
 				JSObject *globalObj);
 
 JSBool
-setTouchable(JSContext *cx,
-			 JSObject *obj,
-			 jsval id,
-			 jsval *vp);
+setECMANative(JSContext *cx,
+			  JSObject *obj,
+			  jsval id,
+			  jsval *vp);
 
 JSBool
 addAssignProperty(void *cx,
@@ -100,15 +107,15 @@ addAssignProperty(void *cx,
  * class.
  */
 extern JSBool
-addTouchableProperty(void *cx,
-					 void *glob,
-					 char *name);
+addECMANativeProperty(void *cx,
+					  void *glob,
+					  char *name);
 
-extern JSBool
-getAssignProperty(JSContext *context,
-				  JSObject *obj,
-				  jsval id,
-				  jsval *vp);
+/* JSBool */
+/* getAssignProperty(JSContext *context, */
+/* 				  JSObject *obj, */
+/* 				  jsval id, */
+/* 				  jsval *vp); */
 
 JSBool
 setAssignProperty(JSContext *context,
@@ -116,11 +123,8 @@ setAssignProperty(JSContext *context,
 				  jsval id,
 				  jsval *vp);
 
-extern void *
-SFNodeNativeNew(size_t vrml_handle_length);
 
-extern void
-SFNodeNativeDelete(void *p);
+
 
 JSBool
 SFNodeConstr(JSContext *cx,
@@ -138,14 +142,6 @@ SFNodeSetProperty(JSContext *cx,
 				  JSObject *obj,
 				  jsval id,
 				  jsval *vp);
-
-#if FALSE
-/* JSBool */
-/* SFNodeGetProperty(JSContext *cx, */
-/* 				  JSObject *obj, */
-/* 				  jsval id, */
-/* 				  jsval *vp); */
-#endif
 
 
 extern void *
@@ -525,6 +521,138 @@ SFRotationSetProperty(JSContext *cx,
 					  jsval id,
 					  jsval *vp);
 
+
+JSBool
+MFBoolConstr(JSContext *cx,
+			 JSObject *obj,
+			 uintN argc,
+			 jsval *argv,
+			 jsval *rval);
+
+JSBool
+MFBoolAssign(JSContext *cx,
+			 JSObject *obj,
+			 uintN argc,
+			 jsval *argv,
+			 jsval *rval);
+
+JSBool 
+MFBoolGetProperty(JSContext *cx,
+				  JSObject *obj,
+				  jsval id,
+				  jsval *vp);
+
+JSBool 
+MFBoolSetProperty(JSContext *cx,
+				  JSObject *obj,
+				  jsval id,
+				  jsval *vp);
+
+JSBool
+MFBoolAddProperty(JSContext *cx,
+				  JSObject *obj,
+				  jsval id,
+				  jsval *vp);
+
+
+JSBool
+MFFloatConstr(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+MFFloatAssign(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool 
+MFFloatGetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+JSBool 
+MFFloatSetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+JSBool
+MFFloatAddProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+
+JSBool
+MFTimeConstr(JSContext *cx,
+			 JSObject *obj,
+			 uintN argc,
+			 jsval *argv,
+			 jsval *rval);
+
+JSBool
+MFTimeAssign(JSContext *cx,
+			 JSObject *obj,
+			 uintN argc,
+			 jsval *argv,
+			 jsval *rval);
+
+JSBool 
+MFTimeGetProperty(JSContext *cx,
+				  JSObject *obj,
+				  jsval id,
+				  jsval *vp);
+
+JSBool 
+MFTimeSetProperty(JSContext *cx,
+				  JSObject *obj,
+				  jsval id,
+				  jsval *vp);
+
+JSBool
+MFTimeAddProperty(JSContext *cx,
+				  JSObject *obj,
+				  jsval id,
+				  jsval *vp);
+
+
+JSBool
+MFInt32Constr(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool
+MFInt32Assign(JSContext *cx,
+			  JSObject *obj,
+			  uintN argc,
+			  jsval *argv,
+			  jsval *rval);
+
+JSBool 
+MFInt32GetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+JSBool 
+MFInt32SetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+JSBool
+MFInt32AddProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
 JSBool
 MFColorConstr(JSContext *cx,
 			  JSObject *obj,
@@ -538,6 +666,12 @@ MFColorAssign(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+
+JSBool 
+MFColorGetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
 
 JSBool 
 MFColorSetProperty(JSContext *cx,
@@ -567,6 +701,12 @@ MFVec2fAssign(JSContext *cx,
 			  jsval *rval);
 
 JSBool 
+MFVec2fGetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
+
+JSBool 
 MFVec2fSetProperty(JSContext *cx,
 				   JSObject *obj,
 				   jsval id,
@@ -592,6 +732,12 @@ MFVec3fAssign(JSContext *cx,
 			  uintN argc,
 			  jsval *argv,
 			  jsval *rval);
+
+JSBool 
+MFVec3fGetProperty(JSContext *cx,
+				   JSObject *obj,
+				   jsval id,
+				   jsval *vp);
 
 JSBool 
 MFVec3fSetProperty(JSContext *cx,
@@ -621,6 +767,12 @@ MFRotationAssign(JSContext *cx,
 				 jsval *rval);
 
 JSBool 
+MFRotationGetProperty(JSContext *cx,
+					  JSObject *obj,
+					  jsval id,
+					  jsval *vp);
+
+JSBool 
 MFRotationSetProperty(JSContext *cx,
 					  JSObject *obj,
 					  jsval id,
@@ -646,6 +798,12 @@ MFNodeAssign(JSContext *cx,
 			 uintN argc,
 			 jsval *argv,
 			 jsval *rval);
+
+JSBool 
+MFNodeGetProperty(JSContext *cx,
+				  JSObject *obj,
+				  jsval id,
+				  jsval *vp);
 
 JSBool 
 MFNodeSetProperty(JSContext *cx,
@@ -676,6 +834,12 @@ MFStringAssign(JSContext *cx,
 			   jsval *rval);
 
 JSBool 
+MFStringGetProperty(JSContext *cx,
+					JSObject *obj,
+					jsval id,
+					jsval *vp);
+
+JSBool 
 MFStringSetProperty(JSContext *cx,
 					JSObject *obj,
 					jsval id,
@@ -687,7 +851,6 @@ MFStringAddProperty(JSContext *cx,
 					JSObject *obj,
 					jsval id,
 					jsval *vp);
-
 
 
 /*
@@ -711,6 +874,16 @@ static JSClass SFNodeClass = {
 };
 
 static JSFunctionSpec (SFNodeFunctions)[] = {{0}};
+
+/* static JSFunctionSpec (SFNodeFunctions)[] = { */
+/* 	{"toString", SFNodeToString, 0}, */
+/* 	{0} */
+/* }; */
+
+/* static JSPropertySpec (SFNodeProperties)[] = { */
+/* 	{"vrmlstring", 0, JSPROP_ENUMERATE}, */
+/* 	{0} */
+/* }; */
 
 JSObject *proto_SFRotation;
 
@@ -783,8 +956,8 @@ static JSClass SFImageClass = {
 	JSCLASS_HAS_PRIVATE,
 	JS_PropertyStub,
 	JS_PropertyStub,
-	JS_PropertyStub, /* getter */
-	JS_PropertyStub, /* setter */
+	SFImageGetProperty,
+	SFImageSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
@@ -877,6 +1050,90 @@ static JSFunctionSpec (SFVec2fFunctions)[] = {
 };
 
 
+static JSObject *proto_MFTime;
+
+static JSClass MFTimeClass = {
+	"MFTime",
+	JSCLASS_HAS_PRIVATE,
+	MFTimeAddProperty,
+	JS_PropertyStub,
+	MFTimeGetProperty,
+	MFTimeSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_FinalizeStub
+};
+
+static JSFunctionSpec (MFTimeFunctions)[] = {
+	{"assign", MFTimeAssign, 0},
+	{0}
+};
+
+
+static JSObject *proto_MFBool;
+
+static JSClass MFBoolClass = {
+	"MFBool",
+	JSCLASS_HAS_PRIVATE,
+	MFBoolAddProperty,
+	JS_PropertyStub,
+	MFBoolGetProperty,
+	MFBoolSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_FinalizeStub
+};
+
+static JSFunctionSpec (MFBoolFunctions)[] = {
+	{"assign", MFBoolAssign, 0},
+	{0}
+};
+
+
+static JSObject *proto_MFFloat;
+
+static JSClass MFFloatClass = {
+	"MFFloat",
+	JSCLASS_HAS_PRIVATE,
+	MFFloatAddProperty,
+	JS_PropertyStub,
+	MFFloatGetProperty,
+	MFFloatSetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_FinalizeStub
+};
+
+static JSFunctionSpec (MFFloatFunctions)[] = {
+	{"assign", MFFloatAssign, 0},
+	{0}
+};
+
+
+static JSObject *proto_MFInt32;
+
+static JSClass MFInt32Class = {
+	"MFInt32",
+	JSCLASS_HAS_PRIVATE,
+	MFInt32AddProperty,
+	JS_PropertyStub,
+	MFInt32GetProperty,
+	MFInt32SetProperty,
+	JS_EnumerateStub,
+	JS_ResolveStub,
+	JS_ConvertStub,
+	JS_FinalizeStub
+};
+
+static JSFunctionSpec (MFInt32Functions)[] = {
+	{"assign", MFInt32Assign, 0},
+	{0}
+};
+
+
 static JSObject *proto_MFString;
 
 static JSClass MFStringClass = {
@@ -884,7 +1141,7 @@ static JSClass MFStringClass = {
 	JSCLASS_HAS_PRIVATE,
 	MFStringAddProperty,
 	JS_PropertyStub,
-	JS_PropertyStub,
+	MFStringGetProperty,
 	MFStringSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -905,7 +1162,7 @@ static JSClass MFNodeClass = {
 	JSCLASS_HAS_PRIVATE,
 	MFNodeAddProperty,
 	JS_PropertyStub,
-	JS_PropertyStub,
+	MFNodeGetProperty,
 	MFNodeSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -926,7 +1183,7 @@ static JSClass MFRotationClass = {
 	JSCLASS_HAS_PRIVATE,
 	MFRotationAddProperty,
 	JS_PropertyStub,
-	JS_PropertyStub,
+	MFRotationGetProperty,
 	MFRotationSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -947,7 +1204,7 @@ static JSClass MFVec2fClass = {
 	JSCLASS_HAS_PRIVATE,
 	MFVec2fAddProperty,
 	JS_PropertyStub,
-	JS_PropertyStub,
+	MFVec2fGetProperty,
 	MFVec2fSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -968,7 +1225,7 @@ static JSClass MFVec3fClass = {
 	JSCLASS_HAS_PRIVATE,
 	MFVec3fAddProperty,
 	JS_PropertyStub,
-	JS_PropertyStub,
+	MFVec3fGetProperty,
 	MFVec3fSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -989,7 +1246,7 @@ static JSClass MFColorClass = {
 	JSCLASS_HAS_PRIVATE,
 	MFColorAddProperty,
 	JS_PropertyStub,
-	JS_PropertyStub,
+	MFColorGetProperty,
 	MFColorSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,

@@ -50,10 +50,6 @@ extern void
 doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...);
 
 
-typedef struct _SFNodeNative {
-	int touched;
-	char *vrml_handle;
-} SFNodeNative;
 
 typedef struct _SFRotationNative {
 	int touched;
