@@ -216,7 +216,7 @@ foreach (@dumpToVRMLCONF) {
 		print OUT "#define\t$_\t\t";
                 print OUT '"',$VRML_CONFIG{$_},'"';
  	} else {
- 		print OUT "undef";
+		print OUT "#define\t$_\t\t$_"."ISNOTDEFINED";
  	}
  	print OUT "\n";
 }

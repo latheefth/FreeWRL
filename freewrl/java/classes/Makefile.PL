@@ -48,22 +48,21 @@ NETSCAPE_CLASS_DIR=$VRML::Config::vrml_config{NETSCAPE_CLASSES}
 }
 
 ## The non perl specific make rules
-sub MY::postamble {
-    $_ = q{
-%.class: %.java
-	$(JAVAC) $(JFLAGS) $<
 
-vrml.jar: $(CLASSES)
-	$(JAR) cf $@ `find vrml -name \*.class`
-};
-    if ($VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
-        $_ .= q{
+        sub MY::postamble {
+                return join("\n",
+                                        qq{\# --- Java Archive\n},
+					qq{%.class: %.java\n},
+					qq{\t\$(JAVAC) \$(JFLAGS) \$\<\n},
+					qq{vrml.jar: \$(CLASSES)\n},
+					qq{\t\$(JAR) cf \$\@ \`find vrml -name \*.class\`\n},
+                                        qq{install ::},
+                                        qq{\tcd classes && \$(MAKE) install\n}
+                                   );
+        }
 
-install ::
-	cp vrml.jar $(NETSCAPE_CLASS_DIR)
-};
-    }
-}
+
+
 
 ## Helper subs:
 sub findFiles {
