@@ -44,8 +44,9 @@ GLfloat default_emission[] = {0.0,0.0,0.0,1.0};
 
 void do_shininess (float shininess) {
 	if ((shininess > 128.0) || (shininess < 0.0)) {
-		printf ("Shininess %f outside of bounds\n",shininess/128.0);
-		return;  /* bounds check */
+		//JAS printf ("Shininess %f outside of bounds\n",shininess/128.0);
+		//JAS return;  /* bounds check */
+		if (shininess>128.0){shininess = 128.0;}else{shininess=0.0;}
 	}
 
 	if (fabs(default_shininess - shininess) > 1.0) {
@@ -59,8 +60,10 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 
 	for (i=0; i<4; i++) { 
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
-			printf ("do_glMaterialfv, pname %d index %d out of range\n",pname,i);
-			return; /* bounds check error found, break out */
+			//printf ("do_glMaterialfv, pname %d idx %d val %f out of range\n",
+			//		pname,i,param[i]);
+			if (param[i]>1.0) {param[i]=1.0;} else {param[i]=0.0;}
+			//JAS return; /* bounds check error found, break out */
 		}
 	}
 
@@ -82,10 +85,7 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 		}
 	}
 
-
-	if (diff) {
-		glMaterialfv (face,pname,param);
-	}
+	if (diff) { glMaterialfv (face,pname,param); }
 }
 
 
@@ -93,7 +93,6 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 int verify_rotate(GLfloat *params) {
 	/* angle very close to zero? */
 	if (fabs(params[3]) < 0.001) return FALSE;
-
 	return TRUE;
 }
 
@@ -103,7 +102,6 @@ int verify_translate(GLfloat *params) {
 	if ((fabs(params[0]) < 0.001) && 
 		(fabs(params[1]) < 0.001) && 
 		(fabs(params[2]) < 0.001))  return FALSE;  
-
 	return TRUE;
 }
 
