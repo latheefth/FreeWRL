@@ -514,10 +514,17 @@ END {
 
 {
 my $ind = 0; 
-my $start = (POSIX::times())[0] / &POSIX::CLK_TCK;
+#JAS - RH7.1 Perl does not have this routine defined off of the
+# CD. Every system that I have seen (SGI, Sun Linux) returns 100 for
+# the CLK_TCK, so I am just substituting this value here. IT only 
+# affects the FPS, from what I can see.
+#my $start = (POSIX::times())[0] / &POSIX::CLK_TCK;
+
+
+my $start = (POSIX::times())[0] / 100;
 my $add = time() - $start; $start += $add;
 sub get_timestamp {
-	my $ticks = (POSIX::times())[0] / &POSIX::CLK_TCK; # Get clock ticks
+	my $ticks = (POSIX::times())[0] / 100; # Get clock ticks
 	$ticks += $add;
 	print "TICK: $ticks\n"
 		if $VRML::verbose;
