@@ -272,6 +272,8 @@ sub removeChild {
 
 sub init_image {
     my($name, $urlname, $t, $f, $scene, $flip) = @_;
+    # print "init_image, $name, $urlnamd $t $f $scene\n";
+
     my $purl = $t->{PURL} = $scene->get_url;
     my $urls = $f->{$urlname};
     if($#{$urls} == -1) {
@@ -346,6 +348,11 @@ sub init_image {
 	$f->{__x.$name} = $wi;
 	$f->{__y.$name} = $hei;
 	$f->{__data.$name} = $dat;
+	$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
+	# print "init_image, texture number ",$f->{__texture.$name},"\n";
+
+
+
 	return;
     } # for $u (@$urls) 
 
@@ -354,6 +361,7 @@ sub init_image {
     $f->{__x.$name} = 0;
     $f->{__y.$name} = 0;
     $f->{__data.$name} = "";
+    $f->{__texture.$name} = 0;
     return;
 }
 
@@ -371,6 +379,7 @@ sub init_pixel_image {
     $f->{__x} = $sfimage->[0];
     $f->{__y} = $sfimage->[1];
     $f->{__data} = $sfimage->[3];
+    $f->{__texture} = VRML::OpenGL::glGenTexture();
     return;
    
     NO_PIXEL_TEXTURE:
@@ -512,6 +521,7 @@ my $protono;
     __x => [SFInt32,0, "field"],
     __y => [SFInt32,0, "field"],
     __data => [SFString, "", "field"],
+    __texture => [SFInt32,0,"field"],
  },{
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
@@ -532,18 +542,11 @@ PixelTexture => new VRML::NodeType("PixelTexture",
         __x => [SFInt32,0, "field"],
         __y => [SFInt32,0, "field"],
         __data => [SFString, "", "field"],
+        __texture => [SFInt32,0,"field"],
        },{
        Initialize => sub { 
                my($t,$f,$time,$scene) = @_;
                init_pixel_image("image",$t,$f,$scene);
-               return ();
-       },
-       EventsProcessed => sub {
-	       print "PixelTexture::EventsProcessed";
-	       return ();
-       },
-       image => sub { 
-	       print "PixelTexture::image";
                return ();
        }
        }
@@ -1146,6 +1149,69 @@ CoordinateInterpolator => new VRML::NodeType("ColorInterpolator",
 ),
 
 
+
+NormalInterpolator => new VRML::NodeType("ColorInterpolator",
+	{key => [MFFloat, []],
+	 keyValue => [MFVec3f, []],
+	 set_fraction => [SFFloat, undef, in],
+	 value_changed => [MVVec3f, undef, out],
+	},
+    @x = 
+	{Initialize => sub {
+		my($t,$f) = @_;
+		# Can't do $f->{} = .. because that sends an event.
+		my $nkv = scalar(@{$f->{keyValue}}) / 
+				scalar(@{$f->{key}});
+		$t->{Fields}->{value_changed} = 
+		   ([@{$f->{keyValue}}[0..$nkv-1]] or []);
+		return ();
+		# XXX DON'T DO THIS!
+		# return [$t, value_changed, $f->{keyValue}[0]];
+	 },
+	 EventsProcessed => sub {
+		my($t, $f) = @_;
+		my $k = $f->{key};
+		my $kv = $f->{keyValue};
+		my $n = scalar(@{$f->{keyValue}});
+		my $nkv = scalar(@{$f->{keyValue}}) / 
+				scalar(@{$f->{key}});
+		# print "K,KV: $k, $kv->[0][0], $kv->[0][1], $kv->[0][2],
+		# 	$kv->[1][0], $kv->[1][1], $kv->[1][2]\n";
+		my $fr = $f->{set_fraction};
+		my $v;
+		if($f->{set_fraction} <= $k->[0]) {
+			$v = [@{$kv}[0..$nkv-1]];
+		} elsif($f->{set_fraction} >= $k->[-1]) {
+			$v = [@{$kv}[$n-$nkv .. $n-1]];
+		} else {
+			my $i;
+			for($i=1; $i<=$#$k; $i++) {
+				if($f->{set_fraction} < $k->[$i]) {
+					print "COLORX: $f->{set_fraction} $i $k->[$i] - $k->[$i-1]\n"
+						if $VRML::verbose::interp;
+					$v = [];
+					my $o = $i * $nkv;
+					for my $kn (0..$nkv-1) {
+						for(0..2) {
+							$v->[$kn][$_] 
+							 = ($f->{set_fraction} - $k->[$i-1]) /
+							     ($k->[$i] - $k->[$i-1]) *
+							     ($kv->[$o+$kn][$_] - $kv->[$o+$kn-$nkv][$_]) +
+							     $kv->[$o+$kn-$nkv][$_];
+						}
+					}
+					last
+				}
+			}
+		}
+		print "NormalI: NEW_VALUE $v ($k $kv $f->{set_fraction}, $k->[0] $k->[1] $k->[2] $kv->[0] $kv->[1] $kv->[2])\n"
+			if $VRML::verbose::interp;
+		return [$t, value_changed, $v];
+	}
+	}
+),
+
+
 TimeSensor => new VRML::NodeType("TimeSensor",
 	{cycleInterval => [SFTime, 1],
 	 enabled => [SFBool, 1],
@@ -1160,9 +1226,11 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 	{
 	 Initialize => sub {
 	 	my($t,$f) = @_;
+		# print "TS init\n";
 	 	return ();
 	 },
 	 EventsProcessed => sub {
+		# print "TS EV\n";
 	 	return ();
 	 },
 	 # 
@@ -1170,6 +1238,7 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 	 #
 	 startTime => sub {
 	 	my($t,$f,$val) = @_;
+		# print "TS ST\n";
 		if($t->{Priv}{active}) {
 		} else {
 			# $f->{startTime} = $val;
@@ -1177,6 +1246,7 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 	 },
 	 cycleInterval => sub {
 	 	my($t,$f,$val) = @_;
+		# print "TS CI\n";
 		if($t->{Priv}{active}) {
 		} else {
 			# $f->{cycleInterval} = $val;
@@ -1185,6 +1255,7 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 	 # Ignore if less than startTime
 	 stopTime => sub {
 	 	my($t,$f,$val) = @_;
+		# print "TS ST\n";
 		if($t->{Priv}{active} and $val < $f->{startTime}) {
 		} else {
 			# return $t->set_field(stopTime,$val);
@@ -1195,6 +1266,7 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 		my($t,$f,$tick) = @_;
 		my @e;
 		my $act = 0; 
+		# print "TS CT\n";
 		# XXX Not spec :(
 		if(!$f->{enabled}) {
 			if($f->{isActive}) {
@@ -1596,12 +1668,6 @@ Fog => new VRML::NodeType("Fog",
 	bindTime => [SFTime, undef, eventOut],
 	isBound => [SFBool, undef, eventOut],
 	},
-	{
-	Initialize => sub { 
-			print "Fog Initialize\n"; 
-			return();
-		}
-	}
 ),
 
 Background => new VRML::NodeType("Background",
@@ -1619,6 +1685,7 @@ Background => new VRML::NodeType("Background",
 		 __y_.$_ => [SFInt32,0],
 		 __data_.$_ => [SFString, ""],
 		 __depth_.$_ => [SFInt32, 1],
+		 __texture.$_ => [SFInt32,0],
 	 )} qw/back front top bottom left right/),
 	},
 	{
