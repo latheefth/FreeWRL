@@ -61,7 +61,7 @@ my $ccflags = q{-Wall\
 -Wmissing-declarations
 };
 
-my $inc = join(' ', $VRML_CONFIG{JS_INC}, q{-ICFuncs}, q{-I../CFuncs});
+my $inc = join(' ', $VRML_CONFIG{JS_INC}, $VRML_CONFIG{FREEWRL_INC}, q{-ICFuncs}, q{-I../CFuncs});
 my $libs = join(' ', $VRML_CONFIG{JS_LIBS}, q{-lm});
 
 ## OSNAME = linux, irix, ...
