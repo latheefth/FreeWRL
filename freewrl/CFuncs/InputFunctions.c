@@ -160,9 +160,10 @@ void VRMLPreParse(char *buffer) {
 
 		if ((!inquotes) & (buffer[cptr]=='#')) {
 			//printf ("comment starts at %d\n",cptr);
-			while ((buffer[cptr] >= ' ') || (buffer[cptr] == '\t')) {
+			while (((buffer[cptr]&0xff) >= ' ') || (buffer[cptr] == '\t')) {
 				buffer[cptr] = ' ';
 				cptr ++;
+				//printf ("char is %x\n",(buffer[cptr]&0xff));
 			}
 		}
 
