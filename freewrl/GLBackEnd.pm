@@ -265,7 +265,9 @@ sub event {
   my $code;
   my $but;
   
+  # JAS - uncomment this to see all events, even mouse movenemts
   # print "EVENT $this $type $args[0] $args[1] $args[2]\n";
+
   if($type == &MotionNotify) 
     {
 
@@ -540,7 +542,15 @@ sub set_fields {
       # 	$value = [map {$_->{CNode}} @$value];
       # }
       # print "set_fields, going through $_ for node $node fields is $fields\n";
-      
+      #JAS print "GLBackEnd.pm:set_fields, calling VRML::CU::set_field_be with ";
+      #JAS print $node->{CNode};
+      #JAS print ", ";
+      #JAS print $node->{Type};
+      #JAS print ", ";
+      #JAS print $_;
+      #JAS print ", ";
+      #JAS print $fields->{$_};
+      #JAS print "\n"; 
       VRML::CU::set_field_be($node->{CNode}, 
 			     $node->{Type}, $_, $fields->{$_});
     }
@@ -549,36 +559,38 @@ sub set_fields {
 sub set_sensitive {
 	my($this,$node,$sub) = @_;
 
-	print "\nBE SET SENS $node, $sub\n"
-	  if $VRML::verbose::glsens;
+	print "\nBE SET SENS Node: $node, Sub: $sub\n"
+	  ; #JAS :if $VRML::verbose::glsens;
 
         # is it already here???
-#JAS	my $match_idx = 0;
-#JAS        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
-#JAS		print "GLBackEnd:set_sensitive, comparing $node $sub",
-#JAS			$VRML::VRMLFunc::item->[0], 
-#JAS			$VRML::VRMLFunc::item->[1], "\n"
-#JAS;# JAS			if $VRML::verbose::glsens;
+#JAS Uncommented set_sensitive code
+print "GLBackEnd.pm - setsensitive print code\n";
+	my $match_idx = 0;
+        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
+		print "GLBackEnd:set_sensitive, comparing $node $sub",
+			$VRML::VRMLFunc::item->[0], 
+			$VRML::VRMLFunc::item->[1], "\n";
 
- #JAS               if ($VRML::VRMLFunc::item->[0] eq $node) {
-#JAS		  # maybe this node has a new sub???
-#JAS		  print "same nodes...replacing it\n";
-#JAS		  splice(@{ $this->{Sens} }, $match_idx, 1);
-#JAS		  last;
-#JAS		}
-#JAS	  	$match_idx++;
-#JAS        }
+          if ($VRML::VRMLFunc::item->[0] eq $node) {
+	  # maybe this node has a new sub???
+	  print "same nodes...replacing it\n";
+	  #JAS splice(@{ $this->{Sens} }, $match_idx, 1);
+	  #JAS last;
+	}
+  	$match_idx++;
+       }
 	
 	push @{$this->{Sens}}, [$node, $sub];
 	$this->{SensC}{$node->{CNode}} = $node;
 	$this->{SensR}{$node->{CNode}} = $sub;
 
-#JAS        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
-#JAS                print "GLBackEnd:set_sensitive, vrfy",
-#JAS                        $VRML::VRMLFunc::item->[0],
-#JAS                        $VRML::VRMLFunc::item->[1], "\n"
-#JAS	}
-#JASprint "\n";
+        foreach $VRML::VRMLFunc::item (@{$this->{Sens}}) {
+                print "GLBackEnd:set_sensitive, vrfy",
+                        $VRML::VRMLFunc::item->[0],
+                        $VRML::VRMLFunc::item->[1], "\n"
+	}
+print "GLBackEnd.pm - end of setsensitive print code\n";
+	print "\n";
 
 }
 
@@ -764,7 +776,7 @@ sub render {
 	# Do selection
 	if(@{$this->{Sens}}) 
 	  {
-	    # print "SENS: $this->{MOUSEGRABBED}\n";
+	    print "SENS: $this->{MOUSEGRABBED}\n";
 	    # my $b = delete $this->{SENSBUT};
 	    # my $sb = delete $this->{SENSBUTREL};
 	    # my $m = delete $this->{SENSMOVE};
@@ -783,12 +795,14 @@ sub render {
 	    for(@{$this->{BUTEV}}) 
 	      {
 		print "BUTEV: $_->[0]\n" 
-		  if $VRML::verbose::glsens;
+	;#JAS	  if $VRML::verbose::glsens;
 		
 		for(@{$this->{Sens}})
 		  {
 		    if ((defined $_->[0]) && (defined $_->[1])) 
-		      {
+		      { 
+			print "GLBackEnd.pm, going throuh Sens\n";
+
 		        VRML::VRMLFunc::zero_hits($_->[0]{CNode});
 			VRML::VRMLFunc::set_sensitive($_->[0]{CNode},1);
 		      }
