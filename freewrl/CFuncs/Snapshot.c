@@ -88,7 +88,6 @@ void Snapshot () {
 	GLvoid *buffer;
 	char sysline[2000];
 	FILE * tmpfile;
-	FILE * finalfile;
 	DIR *mydir;
 	char thisRawFile[2000];
 	char thisGoodFile[2000];

@@ -37,7 +37,7 @@ set_now_mapped(int val)
 void
 glpOpenGLInitialize()
 {
-	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f, ref = 0.1f;
+	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f;
         #ifdef AQUA
         CGLSetCurrentContext(aqglobalContext);
         aqglobalContext = CGLGetCurrentContext();
@@ -63,8 +63,6 @@ glpOpenGLInitialize()
 	glEnable(GL_BLEND); 
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glClear(GL_COLOR_BUFFER_BIT);
-	/* glAlphaFunc (GL_GREATER, (float)ref);
-	glEnable (GL_ALPHA_TEST); */
 
 	/* end of ALPHA test */
 	glEnable(GL_NORMALIZE);
@@ -129,53 +127,61 @@ static double PROJmat[16];
 static int sav = 0;
 static int tot = 0;
 
+void fwLoadIdentity () {
+	glLoadIdentity();
+	if (myMat == GL_PROJECTION) PROJmatOk=FALSE;
+	else if (myMat == GL_MODELVIEW) MODmatOk=FALSE;
 
-/* the Projection Matrix has changed... */
-void invalidateProjMatrix() {
-	PROJmatOk=FALSE;
+	else {printf ("fwLoad, unknown %d\n",myMat);}
 }
 
-void invalidateStack() {
-	MODmatOk=FALSE;
-}
 
 void fwMatrixMode (int mode) { 
 	if (myMat != mode) {
+		//printf ("fwMatrixMode ");
+		//if (mode == GL_PROJECTION) printf ("GL_PROJECTION\n");
+		//else if (mode == GL_MODELVIEW) printf ("GL_MODELVIEW\n");
+		//else {printf ("unknown %d\n",mode);}
+
 		myMat = mode;
 		glMatrixMode(mode);
 	}
 }
 	
 #ifdef CACHEMATRIX
-void pmat (double *mat) {
-	int i;
-	for (i=0; i<16; i++) {
-		printf ("%3.2f ",mat[i]);
-	}
-	printf ("\n");
-}
-
-void compare (char *where, double *a, double *b) {
-	int count;
-	double va, vb;
-
-	for (count = 0; count < 16; count++) {
-		va = a[count];
-		vb = b[count];
-		if (fabs(va-vb) > 0.001) {
-			printf ("%s difference at %d %lf %lf\n",
-					where,count,va,vb);
-		}
-
-	}
-}
+//void pmat (double *mat) {
+//	int i;
+//	for (i=0; i<16; i++) {
+//		printf ("%3.2f ",mat[i]);
+//	}
+//	printf ("\n");
+//}
+//
+//void compare (char *where, double *a, double *b) {
+//	int count;
+//	double va, vb;
+//
+//	for (count = 0; count < 16; count++) {
+//		va = a[count];
+//		vb = b[count];
+//		if (fabs(va-vb) > 0.001) {
+//			printf ("%s difference at %d %lf %lf\n",
+//					where,count,va,vb);
+//		}
+//
+//	}
+//}
 #endif
 
 void fwGetDoublev (int ty, double *mat) {
-	double TMPmat[16];
-
 #ifdef CACHEMATRIX
-	//printf ("glGetDoublev, type %d sav %d tot %d\n",ty,sav,tot);
+	//double TMPmat[16];
+
+	//printf ("glGetDoublev, type ");
+	//if (ty==GL_MODELVIEW_MATRIX) {printf ("MODELVIEW");}
+	//else if (ty == GL_PROJECTION_MATRIX) {printf ("PROJECTION\n");}
+	//else {printf ("UNKNOWN");}
+	//printf (" sav %d tot %d\n",sav,tot);
 	tot++;
 	if (ty == GL_MODELVIEW_MATRIX) {
 		if (!MODmatOk) {
@@ -184,9 +190,9 @@ void fwGetDoublev (int ty, double *mat) {
 		} else sav ++;
 
 		// debug memory calls
-		glGetDoublev(ty,TMPmat);
-		compare ("MODELVIEW", TMPmat, MODmat);
-		memcpy (MODmat,TMPmat, sizeof (MODmat));
+		//glGetDoublev(ty,TMPmat);
+		//compare ("MODELVIEW", TMPmat, MODmat);
+		//memcpy (MODmat,TMPmat, sizeof (MODmat));
 		// end of debug
 		
 		memcpy (mat, MODmat, sizeof (MODmat));
@@ -198,9 +204,9 @@ void fwGetDoublev (int ty, double *mat) {
 		} else sav ++;
 
 		// debug memory calls
-		glGetDoublev(ty,TMPmat);
-		compare ("PROJECTION", TMPmat, MODmat);
-		memcpy (MODmat,TMPmat, sizeof (MODmat));
+		//glGetDoublev(ty,TMPmat);
+		//compare ("PROJECTION", TMPmat, PROJmat);
+		//memcpy (PROJmat,TMPmat, sizeof (PROJmat));
 		// end of debug
 
 		memcpy (mat, PROJmat, sizeof (PROJmat));

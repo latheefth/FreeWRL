@@ -36,6 +36,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef UNUSED
+#define UNUSED(v) ((void) v)
+#endif
+
 #include "png.h"        /* libpng header; includes zlib.h */
 #include "readpng.h"    /* typedefs, common macros, public prototypes */
 
@@ -120,7 +124,7 @@ int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight)
 
 uch *readpng_get_image(double display_exponent, int *pChannels, ulg *pRowbytes)
 {
-    double  gamma;
+	UNUSED (display_exponent);
     png_uint_32  i, rowbytes;
     png_bytepp  row_pointers = NULL;
 

@@ -42,6 +42,8 @@
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void AddRemoveChildren (struct VRML_Box *parent, struct Multi_Vec3f *tn, int *nodelist, int len, int ar);
+void markScriptResults(int tn, int tptr, int route, int tonode);
+void initializeScript(int num,int evIn);
 
 /*****************************************
 C Routing Methodology:
@@ -330,7 +332,7 @@ int get_touched_flag (int fptr, int actualscript) {
 	/* should never get into this if */
 	if (ScriptControl[actualscript].thisScriptType != JAVASCRIPT) {
 		printf ("gettouched, not a javascript\n");
-		return;
+		return 0;
 	}
 
 	len = strlen(myname);
@@ -665,14 +667,12 @@ void verifySVtype(struct Multi_String *to) {
 /* children field						*/
 /****************************************************************/
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
-	int xx;
 	int oldlen, newlen;
 	jsval _v;
 	JSObject *obj;
 	int i;
 	char *valStr, *OldvalStr;
 	SV **svptr;
-	SV *tmpSV;
 	SV **newp, **oldp;
 	int myv;
 	int count;
@@ -993,10 +993,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 			  struct Multi_Vec3f *tn,
 			  struct VRML_Box *parent,
 			  int eletype, int addChild) {
-	float f2, f3, f4;
 	int len;
-	int i;
-	char *strp;
 	int elesize;
 
 
@@ -1309,8 +1306,7 @@ void setMFElementtype (int num) {
 						      fp = (float *)pptr;
 						      sprintf (sline,"%f %f %f",*fp,
 								      *(fp+elementlen),
-								      *(fp+(elementlen*2)),
-								      *(fp+(elementlen*3)));
+								      *(fp+(elementlen*2)));
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
 						      }
@@ -1397,8 +1393,7 @@ void setMFElementtype (int num) {
 						      sprintf (sline,"%f %f %f %f",*fp,
 								*(fp+elementlen),
 								*(fp+(elementlen*2)),
-								*(fp+(elementlen*3)),
-								*(fp+(elementlen*4)));
+								*(fp+(elementlen*3)));
 						      sprintf (sline,"%f",*fp);
 						      if (x < ((len/elementlen)-1)) {
 							      strcat(sline,",");
@@ -1600,7 +1595,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 
 /*--------------------------------------------------------------------------*/
 
-void set_EAI_MFElementtype (int num, int offset, void *pptr, int len) {
+void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     
     int tn, tptr;
     char scriptline[2000];
@@ -2275,7 +2270,6 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	int touched_flag=FALSE;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
-	jsval *retval;
 
 	UNUSED(ignore);
 
@@ -2473,10 +2467,9 @@ char *processThisClassEvent (unsigned int fn,
 	char fieldName[MAXJSVARIABLELENGTH];
 	char membuffer[2000];
 	int thislen; 
-	int thatlen;
 	int entry;
 
-	int tn, tptr, fptr, len;
+	int tn, tptr, len;
 	CRnodeStruct *to_ptr = NULL;
 	int to_counter;
 

@@ -19,6 +19,8 @@
 /********************************************************/
 
 static int JSVRMLClassesVerbose = 0;
+void _get4f(double *ret, double *mat, int row);
+void _set4f(double len, double *mat, int row);
 
 /* do a simple copy; from, to, and count */
 static JSBool _simplecopyElements (JSContext *cx, 
@@ -53,7 +55,7 @@ JSBool _standardMFAssign(JSContext *cx,
 
 	JSObject *_from_obj;
 	jsval val, myv;
-	int32 len, i;
+	int32 len;
 	char *_id_str;
 
 	if (!JS_InstanceOf(cx, obj, myClass, argv)) {
@@ -1707,7 +1709,6 @@ JSBool
 SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {
 	JSObject *globalObj;
-	jsval testval;
 	JSString *_idStr, *_valStr;
 	BrowserNative *brow;
 	SFNodeNative *ptr;
@@ -2440,7 +2441,9 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 
 	JSObject *_paramObj, *_proto, *_retObj;
 	SFVec2fNative *_vec1, *_vec2, *_retNative;
-	jsdouble d, d0, d1;
+	jsdouble d=0.0; 
+	jsdouble d0=0.0; 
+	jsdouble d1=0.0;
 	jsdouble *dp;
 	struct pt v1, v2;
 
@@ -2851,7 +2854,10 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 		   uintN argc, jsval *argv, jsval *rval, int op) {
 	JSObject *_paramObj, *_proto, *_retObj;
 	SFVec3fNative *_vec1, *_vec2, *_retNative;
-	jsdouble d, d0, d1, d2;
+	jsdouble d=0.0;
+	jsdouble d0=0.0;
+	jsdouble d1=0.0;
+	jsdouble d2=0.0;
 	jsdouble *dp;
 	struct pt v1, v2, ret;
 
@@ -3966,22 +3972,16 @@ void _set4f(double len, double *mat, int row) {
 JSBool
 VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
-	int i,c;
-	JSBool rv;
-    	JSObject *_from_obj;
+	int i;
     	JSObject *transObj, *rotObj, *scaleObj;
 	SFRotationNative *Rptr;
 	SFVec3fNative *Vptr;
 
-    	jsval val, myv;
-    	jsval _length_val;
     	Quaternion quat;
     	double matrix[16];
     	double qu[4];
 	double r0[4], r1[4], r2[4];
 	double l0,l1,l2;
-	int32 _length, _index;
-	jsdouble *dp;
 
 	/* some intermediate calculations */
 	_getmatrix(cx,obj,matrix);
@@ -4081,6 +4081,7 @@ VrmlMatrixgetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool
 VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
 	printf ("VrmlMatrixsetTransform\n");
 	return JS_TRUE;
 }
@@ -4089,6 +4090,7 @@ VrmlMatrixsetTransform(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, js
 JSBool
 VrmlMatrixinverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
 	printf ("VrmlMatrixinverse\n");
 	return JS_TRUE;
 }
@@ -4097,6 +4099,7 @@ VrmlMatrixinverse(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 JSBool
 VrmlMatrixtranspose(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
 	printf ("VrmlMatrixtranspose\n");
 	return JS_TRUE;
 }
@@ -4105,6 +4108,7 @@ VrmlMatrixtranspose(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 JSBool
 VrmlMatrixmultLeft(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
 	printf ("VrmlMatrixmultLeft\n");
 	return JS_TRUE;
 }
@@ -4113,6 +4117,7 @@ VrmlMatrixmultLeft(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval 
 JSBool
 VrmlMatrixmultRight(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
 	printf ("VrmlMatrixmultRight\n");
 	return JS_TRUE;
 }
@@ -4121,6 +4126,7 @@ VrmlMatrixmultRight(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval
 JSBool
 VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
 	printf ("VrmlMatrixmultVecMatrix\n");
 	return JS_TRUE;
 }
@@ -4129,6 +4135,7 @@ VrmlMatrixmultVecMatrix(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, j
 JSBool
 VrmlMatrixmultMatrixVec(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
+	UNUSED (cx); UNUSED (obj); UNUSED (argc); UNUSED (argv); UNUSED (rval);
 	printf ("VrmlMatrixmultMatrixVec\n");
 	return JS_TRUE;
 }
@@ -4145,9 +4152,7 @@ VrmlMatrixConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	jsdouble _d;
 	unsigned int i;
 	jsval v = INT_TO_JSVAL(16);
-	jsval thisnum;
 	jsdouble d, *dp;
-	jsval vp;
 
 	if ((argc != 16) && (argc != 0)) {
 		printf ("VrmlMatrixConstr - require either 16 or no values\n");

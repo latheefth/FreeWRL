@@ -129,7 +129,7 @@ void render_GeoOrigin (struct VRML_GeoOrigin *node) {
 
 void render_GeoLocation (struct VRML_GeoLocation *node) {
 	int xx;
-	GLdouble modelMatrix[16];
+	//GLdouble modelMatrix[16];
 
         /* is the position "compiled" yet? */
         if (node->_change != node->_dlchange) {

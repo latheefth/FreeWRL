@@ -13,6 +13,9 @@
 
 #ifndef __jsVRMLBrowser_h__
 #define __jsVRMLBrowser_h__
+#ifndef UNUSED
+#define UNUSED(v) ((void) v)
+#endif
 
 #include "jsUtils.h"
 #include "jsNative.h"

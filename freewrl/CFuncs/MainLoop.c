@@ -144,7 +144,6 @@ void EventLoop() {
 	struct timezone tz; /* unused see man gettimeofday */
 
 	//printf ("start of MainLoop\n");
-	invalidateStack();
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
@@ -505,7 +504,7 @@ void render_pre() {
 	/* 2. Headlight, initialized here where we have the modelview matrix to Identity.
 	FIXME: position of light sould actually be offset a little (towards the center)
 	when in stereo mode. */
-	glLoadIdentity();
+	fwLoadIdentity();
 
 	if (get_headlight()) BackEndHeadlightOn();
 
@@ -680,7 +679,7 @@ void setup_viewpoint(int doBinding) {
 	}
 	
         fwMatrixMode(GL_MODELVIEW); // this should be assumed , here for safety.
-        glLoadIdentity();
+        fwLoadIdentity();
 
         //Make viewpoint, adds offset in stereo mode.
         //FIXME: I think it also adds offset of left eye in mono mode.
@@ -695,10 +694,8 @@ void setup_viewpoint(int doBinding) {
 
 void setup_projection(int pick, int x, int y) {
 	fwMatrixMode(GL_PROJECTION);
-	invalidateProjMatrix();
-	
 	glViewport(0,0,screenWidth,screenHeight);
-	glLoadIdentity();
+	fwLoadIdentity();
 	if(pick) {
 		/* picking for mouse events */
 		glGetIntegerv(GL_VIEWPORT,viewPort2);
@@ -878,8 +875,8 @@ void XEventStereo() {
 
 /* if we had an opengl error... */
 void glPrintError(char *str) {
-        int err;
 #ifdef GLERRORS
+        int err;
         while((err = glGetError()) != GL_NO_ERROR)
                 fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
 

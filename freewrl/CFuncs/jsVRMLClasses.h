@@ -15,6 +15,10 @@
 #ifndef __jsVRMLClasses_h__
 #define  __jsVRMLClasses_h__
 
+#ifndef UNUSED
+#define UNUSED(v) ((void) v)
+#endif
+
 #include <math.h>
 #include "LinearAlgebra.h" /* FreeWRL math */
 #include "quaternion.h" /* more math */

@@ -493,9 +493,16 @@ void collisionChild(struct VRML_Collision *this_) {
 				if(ChildVerbose) {printf("RENDER COLLISION %d CHILD %d\n",this_, p);}
 				render_node(p);
 			}
-			if(CollisionInfo.Offset.x != OldCollisionInfo.Offset.x ||
-			   CollisionInfo.Offset.y != OldCollisionInfo.Offset.y ||
-			   CollisionInfo.Offset.z != OldCollisionInfo.Offset.z) {
+			if((!APPROX(CollisionInfo.Offset.x, 
+					OldCollisionInfo.Offset.x)) ||
+			   (!APPROX(CollisionInfo.Offset.y,
+				   OldCollisionInfo.Offset.y)) ||
+			   (!APPROX(CollisionInfo.Offset.z,
+				    OldCollisionInfo.Offset.z))) {
+			// old code was:
+			//if(CollisionInfo.Offset.x != OldCollisionInfo.Offset.x ||
+			 //  CollisionInfo.Offset.y != OldCollisionInfo.Offset.y ||
+			  // CollisionInfo.Offset.z != OldCollisionInfo.Offset.z) {
 				/*collision occured
 				 * bit 0 gives collision, bit 1 gives change */
 				this_->__hit = (this_->__hit & 1) ? 1 : 3;

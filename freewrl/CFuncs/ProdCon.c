@@ -122,7 +122,6 @@ struct PSStruct {
 
 
 
-void addToNode (unsigned rc, unsigned newNode);
 void _perlThread (void *perlpath);
 void __pt_loadInitialGroup(void); 
 void __pt_setPath(char *perlpath); 
@@ -142,6 +141,7 @@ void __pt_EAI_GetTypeName (void);
 void __pt_EAI_GetValue (void);
 //JAS void __pt_EAI_replaceWorld (void);
 void __pt_EAI_Route (void);
+void EAI_readNewWorld(char *inputstring);
 
 /* Bindables */
 int *fognodes;
@@ -431,7 +431,6 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 /* interface for getting node type parameters from EAI - mftype is for MF nodes.*/
 char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 	int complete;
-	int len;
 	char *retstr;
 	
 	//printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname);
@@ -462,7 +461,6 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 /* interface for getting node type parameters from EAI */
 char* EAI_GetTypeName(unsigned int nodenum) {
 	int complete;
-	int len;
 	char *retstr;
 	
 	//printf ("EAI_GetTypeName starting node %d \n",nodenum);
@@ -1039,7 +1037,6 @@ void __pt_doStringUrl () {
 	int count;
 	int retval;
 	int myretarr[2000];
-	char firstBytes[4];
 
 	if (psp.type==FROMSTRING) {
        		retval = _pt_CreateVrml("String",psp.inp,myretarr);

@@ -44,9 +44,10 @@ extern CGLContextObj aqglobalContext;
 #else
 #define PI 3.141592653589793
 #endif
-
-/* defines for raycasting: */
+/* return TRUE if numbers are very close */
 #define APPROX(a,b) (fabs(a-b)<0.00000001)
+/* defines for raycasting: */
+
 #define NORMAL_VECTOR_LENGTH_TOLERANCE 0.00001
 /* (test if the vector part of a rotation is normalized) */
 #define IS_ROTATION_VEC_NOT_NORMAL(rot)        ( \
@@ -514,6 +515,10 @@ void fwGetDoublev (int ty, double *mat);
 void fwMatrixMode (int mode);
 void fwXformPush(struct VRML_Transform *me);
 void fwXformPop(struct VRML_Transform *me);
-void invalidateStack(void);
-void invalidateProjMatrix(void);
+void fwLoadIdentity (void);
+void doBrowserAction (void);
+void add_parent(void *node_, void *parent_);
+void remove_parent(void *node_, void *parent_);
+void EAI_readNewWorld(char *inputstring);
+void addToNode (unsigned rc, unsigned newNode);
 #endif /* __HEADERS_H__ */

@@ -31,6 +31,14 @@ static VRML_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
 static FILE *exfly_in_file;
+void print_viewer(void);
+unsigned int get_buffer(void);
+int get_headlight(void);
+void toggle_headlight(void);
+void handle_tick_walk(void);
+void handle_tick_fly(void);
+void handle_tick_exfly(void);
+void handle_tick(void);
 
 void viewer_init (VRML_Viewer *viewer, int type) {
 	Quaternion q_i;
@@ -331,10 +339,10 @@ void handle(const int mev, const unsigned int button, const float x, const float
 	case NONE:
 		break;
 	case EXAMINE:
-		handle_examine(mev, button, x, y);
+		handle_examine(mev, button, ((float) x), ((float) y));
 		break;
 	case WALK:
-		handle_walk(mev, button, x, y);
+		handle_walk(mev, button, ((float) x), ((float) y));
 		break;
 	case EXFLY:
 		break;
@@ -712,6 +720,7 @@ void
 set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehalfangle, const double fieldofview)
 {
       double x = 0.0, angle = 0.0;
+      UNUSED (fieldofview);
 
       if (buffer == GL_BACK_LEFT) {
               x = eyehalf;

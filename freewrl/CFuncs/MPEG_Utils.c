@@ -1256,7 +1256,6 @@ ExecuteTexture(vid_stream)
   unsigned int r, g, b;
   unsigned int i,j;
   int hsize;
-  int tmpvv;
   int blockSize;
   char *tmpptr;
 

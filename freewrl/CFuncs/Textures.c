@@ -15,6 +15,9 @@
 #include <pthread.h>
 #include "Structs.h"
 #include "headers.h"
+#include <stdio.h>
+#include "readpng.h"
+
 void new_do_texture(int texno);
 void checkAndAllocTexMemTables(int *texture_num, int increment);
 
@@ -98,10 +101,13 @@ void store_tex_info(
 		GLint Tgl_rep_or_clamp, 
 		GLint Image);
 	
-void __reallyloadPixelTexture();
-void __reallyloadImageTexture();
-void __reallyloadMovieTexture();
+void __reallyloadPixelTexture(void);
+void __reallyloadImageTexture(void);
+void __reallyloadMovieTexture(void);
 void do_possible_multitexture(int texno);
+
+int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
+void readpng_cleanup(int free_image_data);
 
 
 
@@ -166,8 +172,7 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 
 /* load in a texture, if possible */
 void loadMovieTexture (struct VRML_MovieTexture *node) {
-	int isl;
-	int origtex, firsttex,lasttex;
+	int firsttex;
 	/* when the data is "unsquished", this texture becomes invalid,
 		and the new texture ranges are placed */
 
@@ -227,7 +232,7 @@ void store_tex_info(
    by this thread? */
 
 void do_possible_multitexture(int texno) {
-	int st,ed;
+	int st;
 	int *texnums;
 	int imageDatasize;
 	int framecount;
@@ -370,9 +375,6 @@ void new_do_texture(int texno) {
 
 void bind_image(int itype, SV *parenturl, struct Multi_String url, 
 		GLuint *texture_num, int repeatS, int repeatT) {
-
-	/* temp variable */
-	int count;
 
 	/* yield for a bit */
 	sched_yield();
@@ -637,10 +639,6 @@ void _textureThread(void) {
 
 	int remove;
 
-
-	/* temps */
-	int count;
-
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
 		TLOCK
@@ -902,7 +900,6 @@ void __reallyloadImageTexture() {
 void __reallyloadMovieTexture () {
 	int x,y,depth,frameCount;
 	int ptr;
-int j;
 	int firstTex;
 	
 	firstTex = *loadparams[currentlyWorkingOn].texture_num;

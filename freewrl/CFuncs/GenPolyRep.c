@@ -167,7 +167,6 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	int nz = (this_->zDimension);
 	float zs = (this_->zSpacing);
 	float *f = ((this_->height).p);
-	float a[3],b[3];
 	int *cindex; 
 	float *coord;
 	float *tcoord;
@@ -195,11 +194,8 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	int 	faces;
 	int	this_face = 0;
 	int	tmp;
-	int 	tmp_polygon;
-	float point_normal[3];
 	int 	calc_normind;
 	
-	int nquadpercol, nquadperrow, nquadcol, nquadrow;
 	
 	int A,B,C,D; /* should referr to the four vertices 
 			of the polygon	
@@ -212,8 +208,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 			 A----B
 	
 			*/
-	struct pt ac,bd,/* help vectors	*/
-		ab,cd;	/* help vectors	for testing intersection */
+	struct pt ac,bd;/* help vectors	*/
 	int E,F;	/* third point to be used for the triangles*/
 		
 	if(this_->color) {
@@ -447,7 +442,6 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	float creaseAngle = (this_->creaseAngle);
 	int ccw = ((this_->ccw));
 	
-	int curpoly;
 	int ntri = 0;
 	int nvert = 0;
 	int npoints = 0;
@@ -460,8 +454,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	/* flags for errors */
 	int ntexerrors = 0;
 	
-	float a[3]; float b[3];
-	struct SFColor *c1,*c2,*c3;
+	struct SFColor *c1;
 	struct SFColor *points; 
 	struct SFVec2f *texCoords; 
 	struct VRML_PolyRep *rep_ = this_->_intern;
@@ -474,10 +467,6 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	int *norindex;		/* Normals Index	*/
 	
 	int faces=0;
-	int pointctr;
-	int facectr;
-	int max_points_per_face = 0;
-	int min_points_per_face = 99999;
 	struct pt *facenormals; // normals for each face
 	int	*faceok;	// is this face ok? (ie, not degenerate triangles, etc)
 	int	*pointfaces;
@@ -486,8 +475,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	int *tess_vs;              /* pointer to space needed */
 	
 	
-	int i,j;	/* general purpose counters */
-	int tmp_a, tmp_b;
+	int i;				/* general purpose counters */
 	int this_face, this_coord, this_normal, this_normalindex;
 	
 	/* record ccw flag */
@@ -680,7 +668,6 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	for (this_face=0; this_face<faces; this_face++) {
 		int relative_coord;		/* temp, used if not tesselating	*/
 		int initind, lastind;  		/* coord indexes 			*/
-		int initnori, lastnori;		/* normalIndex indexes			*/
 	
 		global_IFS_Coord_count = 0;
 		relative_coord = 0;
@@ -887,7 +874,6 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	struct SFRotation *orientation=((this_->orientation).p);/*vector of SCP rotations*/
 	
 	struct VRML_PolyRep *rep_=this_->_intern;/*internal rep, we want to fill*/
-	struct VRML_PolyRep tess_polyrep;	/* rep for tessellating the caps*/
 	
 	/* the next variables will point at members of *rep		*/
 	int   *cindex;				/* field containing indices into
@@ -902,7 +888,6 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 	int	*tcindex;			/* field containing texture indices
 						   for the vertex. 		*/
-	int	tcindex_count = 0;		/* placement of tcindexes	*/
 	
 	int   *norindex; 			/* indices into *normal		*/
 	float *normal; 				/* (filled in a different function)*/ 
@@ -911,7 +896,6 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	int ntri = 0;			 	/* no. of triangles to be used
 						   to represent all, but the caps */
 	int nctri=0;				/* no. of triangles for both caps*/
-	int nctri_add=0;			/* max no. of add triangles for b.caps*/
 	int max_ncoord_add=0;			/* max no. of add coords	*/
 	int ncoord_add=0;			/* no. off added coords		*/
 	int ncoord=0;				/* no. of used coords		*/
@@ -924,8 +908,8 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 						are in one line at end of curve*/
 	
 	int spi,sec,triind,pos_of_last_zvalue;	/* help variables 		*/
-	int next_spi, prev_spi, help;
-	int t,i;				/* another loop var		*/
+	int next_spi, prev_spi;
+	int t;					/* another loop var		*/
 	
 	
 	int circular = 0;			/* is spine  closed?		*/
@@ -945,7 +929,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 	struct SCP *SCP;			/* dyn. vector rep. the SCPs	*/
 	
-	struct pt spm1,spc,spp1,spcp,spy,spz,spoz,spx;	/* help vertix vars	*/
+	struct pt spm1,spp1,spy,spz,spx;	/* help vertix vars	*/
 	
 	int	tci_ct;				/* Tex Gen index counter	*/
 	
@@ -954,12 +938,8 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	struct 	pt *facenormals = 0;
 	int	*pointfaces = 0;
 	int	*defaultface = 0;
-	int 	faces;
 	int	this_face = 0;			/* always counts up		*/
 	int	tmp;
-	int 	tmp_polygon;
-	float point_normal[3];
-	int 	calc_normind;
 	float creaseAngle = (this_->creaseAngle);
 	int	ccw = ((this_->ccw));
 	int	end_of_sides;			/* for triangle normal generation,
@@ -1038,9 +1018,9 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 	/* check if the spline is closed					*/
 	
-	if(spine[0].c[0] == spine[nspi-1].c[0] &&
-	   spine[0].c[1] == spine[nspi-1].c[1] &&
-	   spine[0].c[2] == spine[nspi-1].c[2]) 
+	if(APPROX(spine[0].c[0], spine[nspi-1].c[0]) &&
+	   APPROX(spine[0].c[1], spine[nspi-1].c[1]) &&
+	   APPROX(spine[0].c[2], spine[nspi-1].c[2])) 
 		circular = 1;
 	
 	if (Extru_Verbose) printf ("tubular %d circular %d\n",tubular, circular); 
@@ -1172,7 +1152,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 	/* Normal Generation Code */
 	initialize_smooth_normals();
-	HAVETOSMOOTH = smooth_normals && (fabs(creaseAngle>0.0001));
+	HAVETOSMOOTH = smooth_normals && (fabs(creaseAngle)>0.0001);
 	for (tmp = 0; tmp < 3*rep_->ntri; tmp++) {
 		pointfaces[tmp*POINT_FACES]=0;
 	}
@@ -1688,9 +1668,9 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		} /* else */
 		if(Extru_Verbose) printf("u=%f, r=%f\n",u,r);
 		if(u>=0 && u<=1 && r>=0 && r<=1 
-			&& (-ac.x)+u*ab.x==r*cd.x
-			&& (-ac.y)+u*ab.y==r*cd.y
-			&& (-ac.z)+u*ab.z==r*cd.z ) {
+			&& APPROX((-ac.x)+u*ab.x,r*cd.x)
+			&& APPROX((-ac.y)+u*ab.y,r*cd.y)
+			&& APPROX((-ac.z)+u*ab.z,r*cd.z)) {
 			
 			if(Extru_Verbose) printf("Intersection found at P=[%f,%f,%f]!\n",
 				coord[A*3]+u*ab.x,
@@ -1763,8 +1743,6 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	if(((this_->convex))) {
 		int endpoint;
 	
-	        int Sindex, Tindex = 0;
-	        GLfloat Ssize, Tsize = 0.0;
 		int triind_start; 	/* textures need 2 passes */
 	
 		/* if not tubular, we need one more triangle */

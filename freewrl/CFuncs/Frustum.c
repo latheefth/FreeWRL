@@ -286,7 +286,10 @@ static int PlaneInCheck(
 }
 
 int PointInView(struct VRML_Transform *nod) {
+#ifdef BOUNDINGBOX
 	GLdouble xx,yy,Distance,xDist,yDist,dd,ee,ff,ex_X,ex_Y,ex_Z;
+#endif
+
 	GLdouble modelMatrix[16];
 	int retval;
 	int xcount, pointok;

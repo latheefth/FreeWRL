@@ -11,6 +11,7 @@
  */
 
 #include "jsVRMLBrowser.h"
+#include "headers.h"
 
 char FPSstring[10];
 
@@ -141,20 +142,18 @@ VrmlBrowserReplaceWorld(JSContext *context, JSObject *obj,
 		*_c_format = "o";
 
 	if ((brow = JS_GetPrivate(context, obj)) == NULL) {
-		fprintf(stderr,
-				"JS_GetPrivate failed in VrmlBrowserReplaceWorld.\n");
+		printf("JS_GetPrivate failed in VrmlBrowserReplaceWorld.\n");
 		return JS_FALSE;
 	}
 	
 	if (brow->magic != BROWMAGIC) {
-		fprintf(stderr, "Wrong browser magic!\n");
+		printf("Wrong browser magic!\n");
 		return JS_FALSE;
 	}
 
 	if (JS_ConvertArguments(context, argc, argv, _c_format, &_obj)) {
 		if ((_cls = JS_GetClass(_obj)) == NULL) {
-			fprintf(stderr,
-					"JS_GetClass failed in VrmlBrowserReplaceWorld.\n");
+			printf("JS_GetClass failed in VrmlBrowserReplaceWorld.\n");
 			return JS_FALSE;
 		}
 
@@ -421,6 +420,7 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 {	int count;
 	JSString *_str;
 	char *_id_c;
+	UNUSED (context); UNUSED(obj);
 
 	jsval _rval = INT_TO_JSVAL(0);
 	//printf ("FreeWRL:javascript: ");

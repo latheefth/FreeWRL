@@ -128,7 +128,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 
         struct sockaddr_in      servaddr;
 
-	if ((EAIfailed) &&(socketincrement==0)) return;
+	if ((EAIfailed) &&(socketincrement==0)) return FALSE;
 
 	if ((*sockfd) < 0) {
 		// step 1  - create socket
@@ -230,7 +230,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 
 void EAI_RNewW(char *bufptr) {
 
-	unsigned oldlen, newNode;
+	unsigned oldlen;
 	struct   VRML_Group *rn;
 	struct   Multi_Node *par;
 	char     *pstr;
@@ -269,7 +269,7 @@ void EAI_RW(char *str) {
 	struct VRML_Group *rn;
 	struct Multi_Node *par;
 
-	int i,j,k;
+	int i;
 
 	rn = (struct VRML_Group *) rootNode;
 	par = &(rn->children);
@@ -1240,6 +1240,9 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	float *floatptr;
 	int len;
 
+	// pointers to cast memptr to
+	float *flmem;
+
 	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
 
 	if(EAIVerbose) printf("ScanValtoBuffer\n");
@@ -1273,25 +1276,23 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    }
 
 	    case SFVEC2F: {	/* SFVec2f */
-	    	sscanf (buf,"%f %f",(float*)memptr, (float*)(memptr+sizeof(float)));
+		flmem = (float *)memptr;
+	    	sscanf (buf,"%f %f",&flmem[0], &flmem[1]);
 		len = sizeof(float) * 2;
 	    	break;
 	    }
 
 	    case SFVEC3F:
 	    case SFCOLOR: {	/* SFColor */
-	    	sscanf (buf,"%f %f %f",(float *)memptr,
-		(float*)(memptr+sizeof(float)),
-		(float*)(memptr+(sizeof(float)*2)));
+		flmem = (float *)memptr;
+	    	sscanf (buf,"%f %f %f",&flmem[0],&flmem[1],&flmem[2]);
 		len = sizeof(float) * 3;
 	    	break;
 	    }
 
 	    case SFROTATION: {
-	    	sscanf (buf,"%f %f %f %f",(float *)memptr,
-		(float*)(memptr+sizeof(float)),
-		(float*)(memptr+(sizeof(float)*2)),
-		(float*)(memptr+(sizeof(float)*3)));
+		flmem = (float *)memptr;
+	    	sscanf (buf,"%f %f %f %f",&flmem[0],&flmem[1],&flmem[2],&flmem[3]);
 		len = sizeof(float) * 4;
 	    	break;
 	    }

@@ -365,7 +365,7 @@ void do_Oint3 (void *node) {
 				(void *)&kVs[kvin-1], sizeof (struct SFColor));
 	} else {
 		/* have to go through and find the key before */
-		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
+		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
 		for (tmp=0; tmp<3; tmp++) {
 			px->value_changed.c[tmp] =
 				(px->set_fraction - px->key.p[counter-1]) /
@@ -941,10 +941,6 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {
 
 
 void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
-	int urllen;
-	unsigned char *urlptr;
-	int counter;
-
 	UNUSED(over);
 	
 	if (!node) return;

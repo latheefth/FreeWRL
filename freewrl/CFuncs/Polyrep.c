@@ -666,7 +666,6 @@ void do_glColor3fv(struct SFRotation *dest, GLfloat *param) {
 
 
 void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
-	int i;
 	struct pt myp;
 
 	/* normalize all vectors; even if they are coded into a VRML file */
@@ -1180,8 +1179,14 @@ void render_ray_polyrep(void *node,
 				 if(k+l > 1 || k < 0 || l < 0) {
 				 	continue;
 				 }
-				 rayhit((float)(tmp2), (float)(hitpoint.x), (float)(hitpoint.y), (float)(hitpoint.z),
-				 	(float)(v3.x), (float)(v3.y), (float)(v3.z), (float)-1,(float)-1, "polyrep");
+				 rayhit(((float)(tmp2)), 
+					((float)(hitpoint.x)), 
+					((float)(hitpoint.y)), 
+					((float)(hitpoint.z)),
+				 	((float)(v3.x)), 
+					((float)(v3.y)), 
+					((float)(v3.z)), 
+					((float)-1),((float)-1), "polyrep");
 			 }
 		/*
 		} else {
