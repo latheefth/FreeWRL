@@ -76,7 +76,7 @@ appearance Appearance
   {
   texture ImageTexture
     {
-    url "texture.jpg"
+    url "helpers/texture.jpg"
       }
       }geometry IndexedFaceSet
     {

@@ -5,7 +5,7 @@
 	  material	NULL
 
 	  texture	DEF _0 ImageTexture {
-	    url	"stripes.jpg"
+	    url	"helpers/stripes.jpg"
 	    	    repeatS	TRUE
 	   	    repeatT     TRUE	
 	  }
