@@ -138,18 +138,18 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 
 	    screen = DefaultScreen(dpy);
 
-	    XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
+	    if (XF86V4) {
+	      XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
 
-	    bestMode = 0;
+	      bestMode = 0;
 	
-	    for (i=0; i < modeNum; i++)
-	    {
-		if ((modes[i]->hdisplay == w) && (modes[i]->vdisplay==h))
-		{
+	      for (i=0; i < modeNum; i++) {
+		if ((modes[i]->hdisplay == w) && (modes[i]->vdisplay==h)) {
 			bestMode = i;
 		}
+	      }
+	      original_display = *modes[0];
 	    }
-	   original_display = *modes[0];
 
 	    /* get an appropriate visual */
 	    vi = glXChooseVisual(dpy, screen, attributes);
@@ -168,7 +168,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	    swa.border_pixel = 0;
 	    swa.event_mask = event_mask;
 
-	    if (fullscreen == 1)
+	    if ((fullscreen == 1) && (XF86V4))
 	    {
 	    	XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
 	    	XF86VidModeSetViewPort(dpy, screen, 0, 0);
