@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.19  2000/12/13 14:40:21  crc_canada
+# Bug with texcoords field and Extrusions. (not being zeroed)
+#
 # Revision 1.18  2000/12/07 19:11:18  crc_canada
 # IndexedFaceSet texture mapping
 #
@@ -1592,10 +1595,12 @@ void render_polyrep(void *node,
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
-/*
+
+	/* 
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, p->_change, r->_change, r->ntri);
+	printf ("	npoints %d ncolors %d nnormals %d\n",points,colors,normals);
 	printf("         ntexcoords = %d    texcoords = 0x%lx\n",ntexcoords, texcoords);
-*/
+	*/
 
 	hasc = (ncolors || r->color);
 	if(hasc) {
@@ -1608,11 +1613,20 @@ void render_polyrep(void *node,
 		int tci = i;
 		int ind = r->cindex[i];
 		GLfloat color[4];
+
+		/*
+		printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
+		printf ("rp, r->norindex %d  r->colindex %d, r->tcindex %d\n",r->norindex,  r->colindex, r->tcindex);
+		*/
+
 		if(r->norindex) {nori = r->norindex[i];}
 		else nori = ind;
 		if(r->colindex) {coli = r->colindex[i];}
 		else coli = ind;
+		/* printf ("rp, going for the tcindex...\n"); */
+
 		if(r->tcindex) {tci = r->tcindex[i];}
+		/* printf ("here1 nori %d coli %d tci %d\n",nori,coli,tci); */
 		if(nnormals) {
 			if(nori >= nnormals) {
 				warn("Too large normal index -- help??");
@@ -1621,6 +1635,7 @@ void render_polyrep(void *node,
 		} else if(r->normal) {
 			glNormal3fv(r->normal+3*nori);
 		}
+		/* printf ("here2\n"); */
 		if(hasc && prevcolor != coli) {
 			if(ncolors) {
 				/* ColorMaterial -> these set Material too */
@@ -1630,17 +1645,18 @@ void render_polyrep(void *node,
 			}
 		}
 		prevcolor = coli;
+		/* printf ("here3\n"); */
 		if(texcoords && ntexcoords) {
 		  	/* printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] ); */
-			fflush(stdout);
+			/* fflush(stdout); */
 		  	glTexCoord2fv(texcoords[tci].c);
 		} /* TODO RCS: Complete use of texCoordIndex */
 		if(points) {
-		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] ); */
+		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] );  */
 			/*fflush(stdout);*/
 			glVertex3fv(points[ind].c);
-		} else if(r->coord) {
-		  	/* printf("Render (r->coord) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]); */
+		} else if(r->coord) {	
+		  	/* printf("Render (r->coord) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]);  */
 			/*fflush(stdout);*/
 			glVertex3fv(r->coord+3*ind);
 		}
@@ -1791,14 +1807,16 @@ void regen_polyrep(void *node)
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
 	v = *(struct VRML_Virt **)node;
+
 	p = node;
-	/*printf("Regen polyrep %d '%s'\n",node,v->name);*/
+	/* printf("Regen polyrep %d '%s'\n",node,v->name); */
 	if(!p->_intern) {
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
 		r = p->_intern;
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0;
+		r->tcindex = 0; 
 	}
 	r = p->_intern;
 	r->_change = p->_change;
@@ -1809,7 +1827,9 @@ void regen_polyrep(void *node)
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->normal);
+	/* printf ("calling mkpolyrep\n"); */
 	v->mkpolyrep(node);
+	/* printf ("done regen_polyrep\n"); */
 }
 
 /* Assuming that norindexes set */
@@ -1842,14 +1862,13 @@ void calc_poly_normals_flat(struct VRML_PolyRep *rep)
  * render_node : call the correct virtual functions to render the node
  * depending on what we are doing right now.
  */
-
 void render_node(void *node) {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
 	int srg;
 	int sch;
 	struct currayhit srh;
-	if(verbose) printf("Render_node %d\n",node);
+	if(verbose) printf("\nRender_node %d\n",node);
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
@@ -2038,7 +2057,6 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp)
 		if(ptr != dest) free(dest);
 	}
 }
-
 
 
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
