@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.147  2005/03/01 15:16:56  crc_canada
+# 1.11 pre2 first files checked in; some bugs, internal X3D parsing start, etc.
+#
 # Revision 1.146  2005/02/10 14:50:25  crc_canada
 # LineSet implemented.
 #
@@ -1145,10 +1148,6 @@ Sound => '
 			} else {
 				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,angle);
 			}
-			Sound_toserver(mystring);
-		} // from Matt Ward
-		else {
-			sprintf (mystring, "ALIVE");
 			Sound_toserver(mystring);
 		}
 		glPopMatrix();

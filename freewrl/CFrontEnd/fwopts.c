@@ -276,10 +276,10 @@ void openMainWindow (Display *Disp, unsigned *Win,
 			exit(-1);
 		}
 
-		XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
 		if (!RUNNINGASPLUGIN) {
 			/* just map us to the display */
 			XMapWindow(dpy, win);
+			XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
 		} else {
 			/* send the window id back to the plugin parent */
 			write (_fw_pipe,&win,4);

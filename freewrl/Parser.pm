@@ -39,25 +39,7 @@ $Word = qr|[^\x30-\x39\x0-\x20\x22\x23\x27\x2b\x2c\x2d\x2e\x5b\x5c\x5d\x7b\x7d\x
 $qre = qr{(?<!\\)\"};		# " Regexp for unquoted double quote  
 $cre = qr{[^\"\n]};		# " Regexp for not dquote, not \n char
 
-# Spec:
-# ([+/-]?(
-#         (
-#           ([0-9]+(\.)?)
-#          |([0-9]*\.[0-9]+)
-#         )
-#         ([eE][+\-]?[0-9]+)?
-#         )
-#        ) 
-# XXX This is correct but might be too slow...
-# $Float = q~[+-]?(?:[0-9]+\.?|[0-9]*\.[0-9]+)(?:[eE][+-]?[0-9]+)?~
-###$Float = q~[\deE+\-\.]+~;
-### Defer to regex compiler:
 $Float = qr~[\deE+\-\.]+~;
-
-# ([+\-]?(([0-9]+)|(0[xX][0-9a-fA-F]+))) 
-
-###$Integer = q~[\da-fA-FxX+\-]+~;
-### Defer to regex compiler:
 $Integer = qr~[\da-fA-FxX+\-]+~;
 
 sub parsefail {
@@ -67,7 +49,7 @@ sub parsefail {
 	my $texta = substr($_[0],$p,50);
 
 	VRML::VRMLFunc::ConsoleMessage ("PARSE ERROR: '$textb' XXX '$texta', $_[1] $_[2]\n");
-	exit (1);
+	goto PARSE_EXIT;
 }
 
 sub parsewarnstd {
@@ -87,19 +69,6 @@ VRML::Error->import;
 # Parse a whole file into $scene.
 sub parse {
 	my($scene, $text) = @_;
-	# XXX marijn: this sorta works for deleting comments
-#JAS - comments are now removed in C code.
-#JAS	### Remove comments while ignoring anything between "":
-#JAS	print "Deleting comments\n" if $VRML::verbose::parse;
-#JAS
-#JAS	my $po = pos($text);
-#JAS	$po = 0 unless defined $po;
-#JAS
-#JAS	my $t2 = substr ($text, $po);
-#JAS	my $l2 = length ($t2);
-#JAS
-#JAS	$t2 =~ s/(\x22$VRML::Field::SFString::Chars\x22)|([\x23]+[^\x0a-\x0d]*)/$1?$1:""/eg;
-#JAS	substr($text, $po, $l2, $t2);
 
 	my @a;
 	my ($n, $r);
@@ -110,6 +79,7 @@ sub parse {
 		if(defined $n) {push @a, $n}
 		# print "parsing statement, my n is $n array is ", scalar(@a), " long\n";
 	}
+	PARSE_EXIT:
 	$scene->topnodes(\@a);
 }
 
@@ -376,7 +346,7 @@ sub parse {
 		my $dn = VRML::Handles::return_def_name($vrmlname);
         	if(!defined $dn) {
 			VRML::VRMLFunc::ConsoleMessage( "USE name $vrmlname not DEFined yet\n");
-			exit(1);
+			goto PARSE_EXIT;
 		}
 
 		print "USE $dn\n"
@@ -449,7 +419,7 @@ sub parse {
 			$em = $em. "\n";
 
 			VRML::VRMLFunc::ConsoleMessage ($em);
-			exit(1);
+			goto PARSE_EXIT;
 		}
 
 		# the following lines return something like:

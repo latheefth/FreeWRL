@@ -454,9 +454,6 @@ void new_do_texture(int texno) {
 void bind_image(int itype, SV *parenturl, struct Multi_String url, 
 		GLuint *texture_num, int repeatS, int repeatT) {
 
-	/* yield for a bit */
-	sched_yield();
-
 	if (TexVerbose) printf ("bind_image, textureInProcess %d\n",textureInProcess);
 	if (textureInProcess > 0) {
 		sched_yield();
@@ -487,9 +484,11 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		checkAndAllocTexMemTables((int *)texture_num, 16);
 	
 		glGenTextures(1,&loadparams[*texture_num].genned_texture);
-		if (TexVerbose) printf ("just genned texture %d\n",*texture_num);
+		if (TexVerbose) 
+			printf ("just genned texture %d\n",*texture_num);
 	}
-	if (TexVerbose) printf ("bind_image, textureInProcess %d status %d\n",textureInProcess,isloaded[*texture_num]);
+	if (TexVerbose) 
+		printf ("bind_image, textureInProcess %d status %d\n",textureInProcess,isloaded[*texture_num]);
 
 
 	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,

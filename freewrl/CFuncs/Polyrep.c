@@ -7,6 +7,7 @@
 *********************************************************************/
 #include "Polyrep.h"
 
+#define FORCETEXTURES TRUE
 /* reset colors to defaults, if we have to */
 GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
 GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
@@ -490,6 +491,8 @@ void Extru_tex(
 	int j;
 
 	/* bounds check */
+printf ("Extru_tex, tcindexsize %d, vertex_ind %d\n",tcindexsize, vertex_ind);
+
 	if (vertex_ind+2 >= tcindexsize) {
 		printf ("INTERNAL ERROR: Extru_tex, bounds check %d >= %d\n",vertex_ind+2,tcindexsize);
 	}
@@ -858,7 +861,7 @@ void stream_polyrep(void *node,
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 
-	if (HAVETODOTEXTURES) {
+	if (FORCETEXTURES) {
 		/* newtc is indexed as 2 floats per vertex */
 		newtc = (float *) malloc (sizeof (float)*2*r->ntri*3);
 		if (!newtc) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
@@ -867,7 +870,7 @@ void stream_polyrep(void *node,
 
 
 	/* do we need to generate default texture mapping? */
-	if (HAVETODOTEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
+	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
 		/* use Mufti's initialization scheme for minVals and maxVals; */
 		for (j=0; j<3; j++) {    
 			if (points) {
@@ -939,9 +942,10 @@ void stream_polyrep(void *node,
 		else coli = ind;
 
 		/* get texture coordinates, if any	*/
-		if (HAVETODOTEXTURES && r->tcindex) {
+		if (FORCETEXTURES && r->tcindex) {
 			tci = r->tcindex[i]; 
-			if (stream_poly_verbose) printf ("have textures, and tcindex i %d tci %d\n",i,tci);
+			if (stream_poly_verbose) 
+				printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
 
 		/* get the normals, if there are any	*/
@@ -1007,7 +1011,7 @@ void stream_polyrep(void *node,
 
 
 		/* Textures	*/
-		if (HAVETODOTEXTURES) {
+		if (FORCETEXTURES) {
 		    if(texcoords && ntexcoords) {
 			// did we run out of tex coords? Hanim-Nancy does this...
 			if (tci < ntexcoords) {
@@ -1023,9 +1027,13 @@ void stream_polyrep(void *node,
 			}
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
-				if (stream_poly_verbose) 
+			    // did we run out of tex coords? Hanim-Nancy does this...
+				if (stream_poly_verbose) {
 					printf ("tc2a i %d %f %f\n", i,r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
+					printf ("tci = %d, indexing %d\n",tci, 3*tci+2);
+				}
 		  		newtc[i*2] = r->tcoord[3*tci+0]; newtc[i*2+1] =  r->tcoord[3*tci+2];
+
 			} else {
 				if (stream_poly_verbose) 
 					printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);

@@ -123,7 +123,6 @@ sub resolve_node_cnode {
 	my $scrpt = 0;
 	my $il = 0;
 	my $ok = 0;
-	#JAS my $cs;
 	my $proto_node;
 	my $proto_field;
 	my $is_proto;
@@ -153,8 +152,6 @@ sub resolve_node_cnode {
 
 	my $f;
 	my @is;
-
-#JAS - IsProto now cleanly handled in getNodeCnode and associated calls.
 
 	# is this an IS?
 	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
@@ -234,36 +231,12 @@ sub resolve_node_cnode {
 			}
 		}
 	}
-#JAS#JAS
 
 
 	#addChildren really is Children
 	if (($field eq "addChildren") || ($field eq "removeChildren")) {
 		$field = "children";
 	}
-
-#JAS	# Protos, when expanded, still have the same script number. We need to make
-#JAS	# sure that a script within a proto is uniquely identified by the scene
-#JAS	# proto expansion; otherwise routing will cross-pollinate .
-#JAS
-#JAS	if (defined $node->{ProtoExp}) {
-#JAS		#print "this is a protoexp, I am ",VRML::NodeIntern::dump_name($scene), 
-#JAS		#		" ProtoExp ",VRML::NodeIntern::dump_name($node->{ProtoExp}),"\n";
-#JAS		$node = $node->real_node();
-#JAS		#print "ProtoExp node now is $node->{TypeName} ", VRML::NodeIntern::dump_name($node), "\n";
-#JAS
-#JAS		my $testnode = $node->{Fields}{children}[0];
-#JAS		if (ref $testnode eq "VRML::DEF") {$testnode = $testnode->node();}
-#JAS
-#JAS		#print "my testnode is ", VRML::NodeIntern::dump_name($testnode),"\n";
-#JAS		#print "FN $fieldname\n";
-#JAS		#foreach (keys%{$testnode->{Fields}}) {print "	node key $_\n";}
-#JAS
-#JAS		if (defined {$testnode->{Fields}{$fieldname}}) {
-#JAS			#print "field exists1! making testnode realnode\n";
-#JAS			$node = $testnode;
-#JAS		}
-#JAS	}
 
 	# ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
 	# eventIns (see VRML97 node reference)

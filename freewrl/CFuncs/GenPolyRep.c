@@ -22,6 +22,10 @@
 #include "headers.h"
 #include "Structs.h"
 
+/* HAVETODOTEXTURES not accurate now that we thread, so, we force
+   texture coord generation */
+#define FORCETEXTURES TRUE
+
 //added M. Ward Dec 6/04
 extern void initialize_smooth_normals();
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct VRML_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
@@ -272,7 +276,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 		}
 	}
 	
-	if (HAVETODOTEXTURES) {
+	if (FORCETEXTURES) {
 		/* so, we now have to worry about textures. */
 		tcoord = rep_->tcoord = (float *)malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
 		if (!(tcoord)) freewrlDie ("Not enough memory ElevGrid Tcoords");
@@ -333,7 +337,7 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 			coord[(x+z*nx)*3+0] = x*xs;
 			coord[(x+z*nx)*3+1] = h;
 			coord[(x+z*nx)*3+2] = z*zs;
-			if (HAVETODOTEXTURES) {
+			if (FORCETEXTURES) {
 				tcoord[(x+z*nx)*3+1] = 0;
 				if (ntexcoords > 0) {
 					// TextureCoordinate passed in
@@ -660,7 +664,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	
 	
 	if (ntexerrors == 0) {
-		if ((ntexCoords) && (HAVETODOTEXTURES)) {
+		if ((ntexCoords) && (FORCETEXTURES)) {
 			tcindex = rep_->tcindex = (int*)malloc(sizeof(*(rep_->tcindex))*3*(ntri));
 		}
 	} else {
@@ -672,7 +676,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 		freewrlDie("Not enough memory for IndexFaceSet node triangles... ;(");
 	} 
 	
-	if (!(tcindex) && HAVETODOTEXTURES && ntexCoords) {
+	if (!(tcindex) && FORCETEXTURES && ntexCoords) {
 		freewrlDie("Not enough memory for IndexFaceSet textures... ;(");
 	} 
 	
@@ -837,7 +841,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 		
 		
 				/* Texture Coordinates */
-				if ((ntexCoords) && (HAVETODOTEXTURES)) {
+				if ((ntexCoords) && (FORCETEXTURES)) {
 					if (tcin) {
 						tcindex[vert_ind] = ((this_->texCoordIndex).p[this_coord+global_IFS_Coords[i]]);
 						//printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]);
@@ -870,7 +874,6 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	free (pointfaces);
 	
 }
-
 
 
 void make_extrusion(struct VRML_Extrusion *this_) {
@@ -1147,7 +1150,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 		freewrlDie("Not enough memory for Extrusion node triangles... ;(");
 	} 
 	
-	if (HAVETODOTEXTURES) { /* texture mapping "stuff" */
+	if (FORCETEXTURES) { /* texture mapping "stuff" */
 		/* so, we now have to worry about textures. */
 		/* XXX note - this over-estimates; realloc to be exact */
 	
@@ -1168,6 +1171,10 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 		if (!(tcoord && tcindex && beginVals && endVals)) 
 			freewrlDie ("Not enough memory Extrusion Tcoords");
+
+		memset((void *)tcindex,0,tcindexsize*sizeof(*(rep_->tcindex)));
+		//printf ("zeroing tcindex\n");
+		//{ int i; for (i=0; i<tcindexsize; i++) { tcindex[i]=0; } }
 	}
 	
 	/* Normal Generation Code */
@@ -1531,7 +1538,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 	
 		  /* texture mapping for caps - keep vals around */
-		  if (HAVETODOTEXTURES) {
+		  if (FORCETEXTURES) {
 		  	if (spi == 0) { /* begin cap vertices */
 				//printf ("begin cap vertecies index %d %d \n", sec*2+0, sec*2+1);
 	
@@ -1708,11 +1715,12 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	
 	  } 
 	
-	  // printf ("Triangle1 %d %d %d\n",D,A,E); 
+	   //printf ("tcindex %d\n",tcindex);
+	   //printf ("Triangle1 %d %d %d\n",D,A,E); 
 	  /* first triangle  calculate pointfaces, etc, for this face */
 	  Elev_Tri(triind*3, this_face, D,A,E, TRUE , rep_, facenormals, pointfaces,ccw);
 	
-	  if (HAVETODOTEXTURES) {
+	  if (FORCETEXTURES) {
 		tcindex[triind*3] = Dtex;
 		tcindex[triind*3+2] = Etex;
 		tcindex[triind*3+1] = Atex;
@@ -1721,17 +1729,17 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	  defaultface[triind] = this_face;
 	  triind++;
 	
-	  // printf ("Triangle2 %d %d %d\n",B,C,F);
+	   //printf ("Triangle2 %d %d %d\n",B,C,F);
 	  /* second triangle - pointfaces, etc,for this face  */
 	  Elev_Tri(triind*3, this_face, B, C, F, TRUE, rep_, facenormals, pointfaces,ccw);
 	
-	  if (HAVETODOTEXTURES) {
+	  if (FORCETEXTURES) {
 		tcindex[triind*3] = Btex;
 		tcindex[triind*3+1] = Ctex;
 		tcindex[triind*3+2] = Ftex;
 	  }
 	
-	  if ((HAVETODOTEXTURES) && ((triind*3+2) >= tcindexsize)) 
+	  if ((FORCETEXTURES) && ((triind*3+2) >= tcindexsize)) 
 		printf ("INTERNAL ERROR: Extrusion  - tcindex size too small!\n");
 	  defaultface[triind] = this_face;
 	  triind ++; 
@@ -1779,12 +1787,12 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 	  			Elev_Tri(triind*3, this_face, 0, x+2, x+1, TRUE , rep_, facenormals, pointfaces,ccw);
 	  			defaultface[triind] = this_face;
-				if (HAVETODOTEXTURES)
+				if (FORCETEXTURES)
 					Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw,tcindexsize);
 				triind ++;
 			}
 	
-			if(HAVETODOTEXTURES) {
+			if(FORCETEXTURES) {
 				Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
 					beginVals,nsec,rep_,tcoordsize);
 				tci_ct+=endpoint-(0+ncolinear_at_begin);
@@ -1801,14 +1809,14 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 					x+1+(nspi-1)*nsec,x+2+(nspi-1)*nsec,
 					TRUE , rep_, facenormals, pointfaces,ccw);
 	  			defaultface[triind] = this_face;
-				if (HAVETODOTEXTURES) 
+				if (FORCETEXTURES) 
 					Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec, 
 						x+1+(nspi-1)*nsec, 
 						x+2+(nspi-1)*nsec, rep_,ccw,tcindexsize);
 				triind ++;
 			}
 			this_face++;
-			if (HAVETODOTEXTURES) 
+			if (FORCETEXTURES) 
 				Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
 					endVals, nsec, rep_,tcoordsize);
 		} /* if endCap */
@@ -1911,7 +1919,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	}
 	
 	/* do texture mapping calculations for sides */
-	if (HAVETODOTEXTURES) {
+	if (FORCETEXTURES) {
 		/* range check - this should NEVER happen... */
 		if (tcoordsize <= ((nsec-1)+(nspi-1)*(nsec-1)*3+2)) {
 			printf ("INTERNAL ERROR: Extrusion side tcoord calcs nspi %d nsec %d tcoordsize %d\n",
@@ -1938,7 +1946,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	free (facenormals);
 	free (crossSection);
 	
-	if (HAVETODOTEXTURES) {
+	if (FORCETEXTURES) {
 		free (beginVals); 
 		free (endVals);
 	}

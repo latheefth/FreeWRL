@@ -390,10 +390,9 @@ INST_DYNAMIC_DEP =
 		# Copy fonts over, etc.
 		push(@postamble, join(
 				  "\n",
-				qq{\# copy fonts, x3d, libjs.so over\n},
+				qq{\# copy fonts, libjs.so over\n},
 				qq{install ::},
 				qq{\tcp -r fonts $VRMLINSTDIR\n},
-				qq{\tcp -r x3d $VRMLINSTDIR\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},

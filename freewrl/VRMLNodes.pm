@@ -114,37 +114,6 @@ sub script_variables {
   grep { ! /mustEvaluate|directOutput/ } sort keys %{shift()};
 }
 
-#JASpackage MTS ;			# My tied Scalar : Will be used to tie scalars
-#JAS				# to fields and eventIn for perl scripting.
-#JAS
-#JASuse Exporter ;
-#JAS@ISA = qw(Exporter);
-#JAS@EXPORT = qw( with ) ;
-#JAS
-#JASrequire Tie::Scalar;
-#JAS
-#JASsub TIESCALAR {
-#JAS  ### my $class = shift;
-#JAS  ## my $self = shift;
-#JAS  ## bless $self;
-#JAS  ### bless shift ;
-#JAS  bless $_[1];
-#JAS}
-#JAS
-#JASsub FETCH {
-#JAS  ## my $self = shift;
-#JAS  ## $$self ;
-#JAS  ### ${shift()};
-#JAS  ${$_[0]};
-#JAS}
-#JAS
-#JASsub STORE {
-#JAS  ## my $self = shift;
-#JAS  ## $$self = shift ;
-#JAS  ${$_[0]} = $_[1];
-#JAS}
-#JAS
-#JAS
 package VRML::NodeType;
 
 ########################################################################
@@ -197,6 +166,8 @@ my $protono;
 }
 
 
+
+
 %VRML::Nodes::bindable = map {($_,1)} qw/
  Viewpoint
  Background
@@ -204,6 +175,79 @@ my $protono;
  Fog
  GeoViewpoint
 /;
+
+%VRML::Nodes::visible = map {($_=>1)} qw/
+	Box
+	Cone
+	Sphere
+	IndexedFaceSet
+	ElevationGrid
+	GeoElevationGrid
+	Extrusion
+	IndexedLineSet
+	Background
+	PointLight
+	Fog
+	DirectionalLight
+	SpotLight
+        /;
+
+# nodes that are valid geometry fields.
+%VRML::Nodes::geometry = map {($_=>1)} qw/
+	Box
+	Cone
+	Sphere
+	Cylinder
+	IndexedFaceSet
+	ElevationGrid
+	GeoElevationGrid
+	Extrusion
+	IndexedLineSet
+	LineSet
+	PointSet
+	Text
+	IndexedTriangleFanSet
+	IndexedTriangleSet
+	IndexedTriangleStripSet
+	TriangleFanSet
+	TriangleSet
+	TriangleStripSet
+        /;
+
+
+# nodes that are valid texture fields.
+%VRML::Nodes::texture = map {($_=>1)} qw/
+	ImageTexture
+	PixelTexture
+	MovieTexture
+        /;
+
+# nodes that are valid coord fields.
+%VRML::Nodes::coord = map {($_=>1)} qw/
+	Coordinate
+	/;
+
+# nodes that are valid texcoord fields.
+%VRML::Nodes::tcoord = map {($_=>1)} qw/
+	TextureCoordinate
+	/;
+
+# nodes that are just ignored for now. 
+%VRML::Nodes::skipthese = map {($_=>1)} qw/
+	X3D
+	Metadata
+	MetadataString
+	MetadataFloat
+	MetadataSet
+	/;
+
+# fields of ROUTE statements in X3D:
+%VRML::Nodes::routefields = map{($_=>1)} qw/
+	toField
+	toNode
+	fromField
+	fromNode
+	/;
 
 # initevents are used in event propagation as the "First" events to run.
 # check out add_first subroutine, and event propagation to see what happens.

@@ -36,10 +36,10 @@ require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
 require 'VRML/Events.pm';
 require 'VRML/Config.pm';
-#JAS require 'VRML/X3DParser.pm';
+require 'VRML/X3DParser.pm';
 
 
-if ($VRML::ENV{AS_PLUGIN}) { require 'VRML/PluginGlue.pm'; }
+#JAS if ($VRML::ENV{AS_PLUGIN}) { require 'VRML/PluginGlue.pm'; }
 
 package VRML::Browser;
 use File::Basename;
@@ -91,6 +91,7 @@ sub new {
 
 # set_backend_fields may require this one, if an SFNode comes in....
 sub getBE { return $globalBrowser->{BE}; }
+sub getEV {return $globalBrowser->{EV};}
 
 # read in text, unzip if required.
 sub getTextFromFile {
@@ -240,17 +241,10 @@ sub create_common {
 	# JAS ----- USE the old one for now; fields not quite correct.
         if ($type == 1)  {
 		#JAS eval('require VRML/X3DParser;');
-		#JAS X3D::Parser::parse($scene, $string);
-		#JAS use the old NPS conversion stuff for now.
-		$string = convertX3D($string);
-		# remove comments, etc:
-		$string = VRML::VRMLFunc::sanitizeInput($string);
-
-		VRML::Parser::parse($scene, $string);
+		X3D::Parser::parse($scene, $string);
         } else {
 		# remove comments, etc:
 		$string = VRML::VRMLFunc::sanitizeInput($string);
-
 		VRML::Parser::parse($scene, $string);
 	}
 
@@ -258,7 +252,7 @@ sub create_common {
 	$scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
-	$scene->dump(0)  if $VRML::verbose::scenegraph;
+	$scene->dump(0) if $VRML::verbose::scenegraph;
 	
 
 	return $ret;

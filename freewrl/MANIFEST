@@ -28,15 +28,6 @@ VRMLNodes.pm
 VRMLRend.pm
 fonts/README
 freewrl.PL
-jt/.cvsignore
-jt/1.wrl
-jt/2.wrl
-jt/3.wrl
-jt/4.wrl
-jt/5.wrl
-jt/6.wrl
-jt/7.wrl
-jt/J1.java
 tests/1.wrl			Sample things
 tests/10.wrl
 tests/2.wrl

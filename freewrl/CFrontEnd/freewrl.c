@@ -608,12 +608,15 @@ void displayThread() {
 		resetGeometry();
 }
 
+static int CaughtSEGV = FALSE;
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */
 void catch_SIGQUIT() {
-    doQuit();
+	//ConsoleMessage ("FreeWRL got a sigquit signal");
+	// shut up any SIGSEGVs we might get now.
+	CaughtSEGV = TRUE;
+    	doQuit();
 }
 
-static int CaughtSEGV = FALSE;
 void catch_SIGSEGV() {
 	if (!CaughtSEGV) {
 		ConsoleMessage ("FreeWRL got a SIGSEGV - can you please mail the file(s) to\n freewrl-04@rogers.com with a valid subject line. Thanks.\n");

@@ -126,9 +126,6 @@ char *getLibVersion() {
 	return (FWVER);
 }
 
-/* SoundServer changes - Matt Ward */
-char mystring[20];
-
 /* Main eventloop for FreeWRL!!! */
 void EventLoop() {
 	int doEvents;
@@ -171,13 +168,10 @@ void EventLoop() {
 		}
 	}
 	if (loop_count == 25) {
+
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		update_status(); // tell status bar to refresh, if it is displayed 
 		//printf ("fps %f\n",BrowserFPS);
-		/* SoundServer - Matt Ward */
-		sprintf (mystring, "FPS %d",(int)BrowserFPS);
-		Sound_toserver(mystring);
-		
 
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;

@@ -2,14 +2,14 @@
 
 # Assume you are in root of FreeWRL directory.
 
-rm -r ../FreeWRL-1.11-pre1
-mkdir ../FreeWRL-1.11-pre1
+rm -r ../FreeWRL-1.11-pre2
+mkdir ../FreeWRL-1.11-pre2
 
-cp -r . ../FreeWRL-1.11-pre1
+cp -r . ../FreeWRL-1.11-pre2
 
 # now, trim off any fat you see 
 
-cd ../FreeWRL-1.11-pre1
+cd ../FreeWRL-1.11-pre2
 
 find . -name typescript -exec rm {} \;
 find . -name CVS -exec rm -r {} \;
@@ -23,6 +23,15 @@ rm lastcvscheckin
 rm -r JS/js/Linux_All_DBG.OBJ
 rm -r Plugin/mozilla
 rm -r nodes/
+rm -r speed/
+rm -r x3d/
+rm -r talk/
+rm -r seqs/
+rm -r avt/
+rm -r bt/
+rm -r jt/
+rm -r pt/
+rm -r perl-scripts/
 rm freewrl
 
 # cleanup Plugin directory

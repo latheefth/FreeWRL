@@ -277,13 +277,7 @@ void process_command () {
 
 	//printf ("processing %s\n",msg.msg);
 
-	if (strncmp ("FPS", msg.msg,3) == 0) {
-		// do nothing
-	} else if (strncmp("ALIVE",msg.msg,5) == 0) {
-		// do nothing
-	} else if (strncmp("PAN",msg.msg,3) == 0) {
-		// do nothing
-	} else if (strncmp ("REGS",msg.msg,4) == 0) {
+	if (strncmp ("REGS",msg.msg,4) == 0) {
 		// a REGISTER message
 		a=5; b=0; 
 		//printf ("REGS matched len %d, first start %c %c %c %c\n",strlen(msg.msg),
