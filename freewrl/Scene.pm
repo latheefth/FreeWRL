@@ -1389,14 +1389,14 @@ sub setup_routing {
 		$eventmodel->add_route($fn,$ff,$tn,$tf);
 	}
 	for my $isn (keys %{$this->{IS_ALIAS_IN}}) {
-		print "setup_routing: first IS_ALIAS_IN loop\n";
+		# print "setup_routing: first IS_ALIAS_IN loop\n";
 		for(@{$this->{IS_ALIAS_IN}{$isn}}) {
 			$eventmodel->add_is_in($this->{NodeParent},
 				$isn, @$_);
 		}
 	}
 	for my $isn (keys %{$this->{IS_ALIAS_OUT}}) {
-		print "setup_routing: first IS_ALIAS_OUT loop\n";
+		# print "setup_routing: first IS_ALIAS_OUT loop\n";
 		for(@{$this->{IS_ALIAS_OUT}{$isn}}) {
 			$eventmodel->add_is_out($this->{NodeParent},
 				$isn, @$_);
