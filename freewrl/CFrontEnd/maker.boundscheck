@@ -54,5 +54,7 @@ gcc -o freewrl \
 	../CFuncs/statics.o    \
 	../CFuncs/statusbar.o    \
 	../CFuncs/PluginSocket.o    \
-	-lcheck \
+	../CFuncs/Snapshot.o	\
+	../CFuncs/JavaClass.o	\
+	-lboundscheck \
 	`perl -MExtUtils::Embed -e ccopts -e ldopts`
