@@ -1292,16 +1292,14 @@ void locateAudioSource (struct VRML_AudioClip *node) {
  * of interest down the branch. Eg, Sensitive nodes - no sense going
  * through it all when rendering for sensitive nodes. */
 
-void update_renderFlag(void *ptr, int flag) {
-	struct VRML_Box *p = ptr;
-	int i;
-
-	/* send notification up the chain */
-	p->_renderFlags = p->_renderFlags | flag;
-
-	for (i = 0; i < p->_nparents; i++) {
-		update_renderFlag(p->_parents[i],flag);
-	}
-}
-
-/*explicit declaration. Needed for Collision_Child*/
+//void update_renderFlag(void *ptr, int flag) {
+//	struct VRML_Box *p = ptr;
+//	int i;
+//
+//	/* send notification up the chain */
+//	p->_renderFlags = p->_renderFlags | flag;
+//
+//	for (i = 0; i < p->_nparents; i++) {
+//		update_renderFlag(p->_parents[i],flag);
+//	}
+//}

@@ -700,7 +700,7 @@ void render_polyrep(void *node,
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
-	int polyrep_verbose = 1;
+	int polyrep_verbose = 0;
 
 	v = *(struct VRML_Virt **)node;
 	p = node;

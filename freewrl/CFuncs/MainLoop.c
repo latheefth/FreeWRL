@@ -98,6 +98,8 @@ double BrowserFPS = 0.0;	/* calculated FPS		*/
 /* used for initializing (sometimes!) javascript initialize() */
 int myMaxScript = -1;
 
+/* do we have some sensitive nodes in scene graph? */
+static int HaveSensitive = FALSE;
 
 /* Function protos */
 void do_keyPress(char kp, int type);
@@ -199,7 +201,7 @@ void EventLoop() {
 	render();
 
 	/* handle_mouse events if clicked on a sensitive node */
-	if (!NavigationMode) {
+	if (!NavigationMode && HaveSensitive) {
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint(FALSE);
 		render_hier((void *)rootNode,VF_Sensitive);
@@ -690,9 +692,12 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	p = ptr;
 	p->_sens = TRUE;
 
-	/* and tell the rendering pass that there is a sensitive node down
-	 * this branch */
-	update_renderFlag(p,VF_Sensitive);
+//	/* and tell the rendering pass that there is a sensitive node down
+//	 * this branch */
+//	update_renderFlag(p,VF_Sensitive);
+
+	/* tell mainloop that we have to do a sensitive pass now */
+	HaveSensitive = TRUE;
 
 	/* record this sensor event for clicking purposes */
 	SensorEvents = realloc(SensorEvents,sizeof (struct SensStruct) * (num_SensorEvents+1));

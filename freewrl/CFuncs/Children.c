@@ -31,21 +31,19 @@
 
 static int ChildVerbose = 0;
 static int VerboseIndent = 0;
-static int SensitiveLocal = FALSE; /* is there a sensitive node nearby? 
-				    a sensor attaches to siblings of a 
-				    transform/group; so we keep track of
-				    this so that we can render geometry of
-				    siblings */
+//static int SensitiveLocal = FALSE; /* is there a sensitive node nearby? 
+//				    a sensor attaches to siblings of a 
+//				    transform/group; so we keep track of
+//				    this so that we can render geometry of
+//				    siblings */
 
 static void VerboseStart (char *whoami, struct VRML_Box *me, int nc) {
 	int c;
 
 	for (c=0; c<VerboseIndent; c++) printf ("  ");
-	printf ("RENDER %s START %d nc %d renFlags %x sens %d\n",
-			whoami,me,nc,me->_renderFlags,me->_sens);
-	//printf ("RENDER %s START %d nc %d PIV %d ext %4.2f %4.2f %4.2f\n",
-	//		whoami,me,nc,me->PIV,me->_extent[0],me->_extent[1],
-	//		me->_extent[2]);
+	printf ("RENDER %s START %d nc %d PIV %d ext %4.2f %4.2f %4.2f\n",
+			whoami,me,nc,me->PIV,me->_extent[0],me->_extent[1],
+			me->_extent[2]);
 	VerboseIndent++;
 }
 
@@ -141,18 +139,18 @@ void groupingChild (struct VRML_Group *this_) {
 	if(ChildVerbose) VerboseStart ("GROUP", (struct VRML_Box *)this_, nc);
 
 	/* should we go down here? */
-	if (render_sensitive && (!SensitiveLocal)) {
-		if ((render_sensitive & this_->_renderFlags)== 0) {
-			if (ChildVerbose) VerboseEnd("GROUP");
-			return;
-		}
-		/* is this group/transform the actual SENsitive one,
-		 * or is it just on the path to it? */
-		if (this_->_sens) {
-			//printf ("turning Sensitive on for group %d\n",this_);
-			SensitiveLocal = TRUE;
-		}
-	}
+//	if (render_sensitive && (!SensitiveLocal)) {
+//		if ((render_sensitive & this_->_renderFlags)== 0) {
+//			if (ChildVerbose) VerboseEnd("GROUP");
+//			return;
+//		}
+//		/* is this group/transform the actual SENsitive one,
+//		 * or is it just on the path to it? */
+//		if (this_->_sens) {
+//			//printf ("turning Sensitive on for group %d\n",this_);
+//			SensitiveLocal = TRUE;
+//		}
+//	}
 	
 
 	/* do we have to sort this node? */
@@ -164,11 +162,11 @@ void groupingChild (struct VRML_Group *this_) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(this_->children);
 	
-	/* turn off "sensitive nearby" flag */
-	if (this_->_sens && render_sensitive) {
-		//printf ("turning Sensitive off for group %d\n",this_);
-		SensitiveLocal = FALSE;
-	}
+//	/* turn off "sensitive nearby" flag */
+//	if (this_->_sens && render_sensitive) {
+//		//printf ("turning Sensitive off for group %d\n",this_);
+//		SensitiveLocal = FALSE;
+//	}
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
@@ -233,19 +231,19 @@ void transformChild (struct VRML_Transform *this_) {
 
 	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct VRML_Box *)this_, nc);
 
-	/* should we go down here? */
-	if (render_sensitive && (!SensitiveLocal)) {
-		if ((render_sensitive & this_->_renderFlags)== 0) {
-			if (ChildVerbose) VerboseEnd("TRANSFORM");
-			return;
-		}
-		/* is this group/transform the actual SENsitive one,
-		 * or is it just on the path to it? */
-		if (this_->_sens) {
-			//printf ("turining sens on for xform %d\n",this_);
-			SensitiveLocal = TRUE;
-		}
-	}
+//	/* should we go down here? */
+//	if (render_sensitive && (!SensitiveLocal)) {
+//		if ((render_sensitive & this_->_renderFlags)== 0) {
+//			if (ChildVerbose) VerboseEnd("TRANSFORM");
+//			return;
+//		}
+//		/* is this group/transform the actual SENsitive one,
+//		 * or is it just on the path to it? */
+//		if (this_->_sens) {
+//			//printf ("turining sens on for xform %d\n",this_);
+//			SensitiveLocal = TRUE;
+//		}
+//	}
 	
 #ifdef BOUNDINGBOX
 	if (this_->PIV > 0) {
@@ -266,11 +264,11 @@ void transformChild (struct VRML_Transform *this_) {
 	}
 #endif
 
-	/* turn off "sensitive nearby" flag */
-	if (this_->_sens && render_sensitive) {
-		//printf ("turning Sensitive off for xform %d\n",this_);
-		SensitiveLocal = FALSE;
-	}
+//	/* turn off "sensitive nearby" flag */
+//	if (this_->_sens && render_sensitive) {
+//		//printf ("turning Sensitive off for xform %d\n",this_);
+//		SensitiveLocal = FALSE;
+//	}
 
 	if (render_geom && (!render_blend)) {
 		//if (ChildVerbose)
