@@ -452,10 +452,6 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 	/* glXGetConfig (dpy, vi, GLX_DEPTH_SIZE, &number); */
 	   /* printf ("GLX depth size %d\n",number); */
-
-	/* and make it so that we render 1 frame, at least */
-	/* render_frame = 5; */
-	set_render_frame();
 #endif
 }
 
@@ -494,9 +490,6 @@ glpXNextEvent(d=dpy)
 		char buf[10];
 		KeySym ks;
 		XNextEvent(d,&event);
-		/* must render now */
-		/* render_frame = 5; */
-		set_render_frame();
 		switch(event.type) {
 			case ConfigureNotify:
 				EXTEND(sp,3);
@@ -775,10 +768,6 @@ glPrintError(str)
 		fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString(err),str); 
 	}
 
-
-
-void
-set_render_frame()
 
 
 

@@ -430,13 +430,6 @@ handle_tick_walk(VRML_Viewer *viewer, const double time)
 	/* VRML::VRMLFunc::set_viewer_delta($this->{XD},
 	 * $this->{YD},$this->{ZD}); #interresting idea, but not quite.
 	 */
-
-	/* any movement? if so, lets render it. */
- 	if ((fabs(walk->RD) > 0.000001) ||
-		(fabs(walk->YD) > 0.000001) ||
-		(fabs(walk->ZD) > 0.000001)) {
-		set_render_frame();
-	}
 }
 
 
@@ -518,8 +511,6 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 		(viewer->Quat).x = q2;
 		(viewer->Quat).y = q3;
 		(viewer->Quat).z = q4;
-
-		set_render_frame();
 	}
 }
 
@@ -649,6 +640,7 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
 		}
 		changed += fly->Velocity[i];
+	printf ("vel %d %f\n",i,fly->Velocity[i]);
 	}
 
 	v.x = fly->Velocity[0] * time_diff;
@@ -665,6 +657,7 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
 		}
 		changed += fly->AVelocity[i];
+	printf ("avel %d %f\n",i,fly->AVelocity[i]);
 	}
 	
 	nq.x = fly->AVelocity[0];
@@ -674,11 +667,6 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 
 	set(&q_v, &(viewer->Quat));
 	multiply(&(viewer->Quat), &nq, &q_v);
-
-	/* any movement? if so, lets render it */
-	if (fabs(changed) > 0.000001) {
-		set_render_frame();
-	}
 }
 
 void

@@ -13,7 +13,6 @@
 
 #include "OpenGL_Utils.h"
 
-static int render_frame = 5;	/* do we render, or do we sleep? */
 static int now_mapped = 1;		/* are we on screen, or minimized? */
 
 
@@ -30,30 +29,6 @@ set_now_mapped(int val)
 	now_mapped = val;
 }
 
-
-/* should we render? */
-void
-set_render_frame()
-{
-	/* render a couple of frames to let events propagate */
-	render_frame = 5;
-}
-
-
-int
-get_render_frame()
-{
-	return (render_frame && now_mapped);
-}
-
-
-void 
-dec_render_frame()
-{
-	if (render_frame > 0) {
-		render_frame--;
-	}
-}
 
 void
 glpOpenGLInitialize()

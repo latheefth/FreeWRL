@@ -34,18 +34,6 @@ set_now_mapped(int val);
 
 
 void
-set_render_frame(void);
-
-
-int
-get_render_frame(void);
-
-
-void
-dec_render_frame(void);
-
-
-void
 glpOpenGLInitialize(void);
 
 

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.107  2003/07/31 17:07:30  crc_canada
+# delays (to restrict rendering speed) moved to C.
+#
 # Revision 1.106  2003/07/30 18:45:38  crc_canada
 # set_viewer_type call modified.
 #
@@ -1158,6 +1161,7 @@ sub gen {
 
 /* for time tick calculations */
 #include <sys/time.h>
+#include <sys/poll.h>
 
 struct pt {GLdouble x,y,z;};
 struct orient {GLdouble x,y,z,a;};
@@ -1350,8 +1354,10 @@ GLdouble fieldofview = 45;
 
 /* current time and other time related stuff */
 double TickTime;
+double lastTime;
 double BrowserStartTime; 	/* start of calculating FPS 	*/
 double BrowserFPS = 0.0;	/* calculated FPS		*/
+struct pollfd waittimer[1];	/* used to rate-limit freewrl	*/
 
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
@@ -2426,6 +2432,7 @@ double
 get_timestamp()
 CODE:
 	static int loop_count = 0;
+	double waittime;
 
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
@@ -2433,7 +2440,19 @@ CODE:
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
 
 	/* First time through */
-	if (loop_count == 0) BrowserStartTime = TickTime;
+	if (loop_count == 0) {
+		BrowserStartTime = TickTime;
+		lastTime = TickTime;
+	} else {
+		// rate limit ourselves to 120fps. 
+		waittime = TickTime - lastTime - 0.0084; 
+		lastTime = TickTime;
+		if (waittime < 0.0) {
+			waittime = 1000.0 * -waittime;
+			//printf ("waiting %d\n",(int)waittime);
+			poll (waittimer,0,(int)waittime); // sleep for so many milliseconds
+		}
+	}
 
 	if (loop_count == 25) {
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);

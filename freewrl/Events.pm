@@ -602,11 +602,6 @@ sub propagate_events {
 		@e = (@ne,@{$this->{Queue}}); # Here we go again ;)
 		$this->{Queue} = [];
 	}
-	# if we had an event, render the back end.
-	if ($havevent > 0) {
-		VRML::OpenGL::set_render_frame();
-		$havevent -= 1;
-	}
 }
 
 # This sends an event TO node - only used by JavaScript to add/remove children.
