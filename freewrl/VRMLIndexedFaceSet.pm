@@ -361,7 +361,10 @@ for (this_face=0; this_face<faces; this_face++) {
 
 	/* for the next face, we work from a new base */
 	this_coord += relative_coord;
-	if ($f(coordIndex,this_coord) == -1) {this_coord++;}
+
+	/* skip past the seperator, except if we are t the end */
+	if (this_coord < cin)
+		if ($f(coordIndex,this_coord) == -1) {this_coord++;}
 }
 
 /* we have an accurate triangle count now... */
