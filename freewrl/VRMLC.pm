@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.3  2000/08/07 02:41:01  rcoscali
+# Removed the comment of John (we discuss it and I think not usefull anymore in pixel tex code). Was image relevant.
+#
 # Revision 1.2  2000/08/06 19:48:37  rcoscali
 # Fixed Cylinder. Now attacking cone.
 #
@@ -1053,11 +1056,6 @@ static struct VRML_Virt virt_${n} = { ".
 					 	rx, ry);
 					gluScaleImage(
 					    (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==2 ? GL_LUMINANCE_ALPHA : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA ))),
-					     /* JAS - this
-						should probably be 
-						\$f(__depth$1),
-					     */
-
 					     \$f(__x$1), \$f(__y$1),
 					     GL_UNSIGNED_BYTE,
 					     ptr,
@@ -1126,9 +1124,6 @@ static struct VRML_Virt virt_${n} = { ".
 					     \$f(__depth$1),  
 					     rx, ry,
 					     0,
-                                             /* JAS should this be
-						((\$f(__depth$1))==1 ? GL_LUMINANCE : GL_RGB),
-					     */
 				      	     (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==2 ? GL_LUMINANCE_ALPHA : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA ))),
 
 
