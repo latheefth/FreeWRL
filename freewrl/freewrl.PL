@@ -455,8 +455,6 @@ BEGIN {
 		"sig" => \$sig_reload,
 	);
 
-        print "Perl scripting : $VRML::DO_PERL\n";
-
         if (defined $snapname_opt) { # Snapshot overrides sequence
           $snapname = $snapname_opt;
           $seq = 0;

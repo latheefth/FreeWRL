@@ -62,9 +62,6 @@ sub get_vp_scene {return $vps[$vpno];}
 
 sub getName { return "FreeWRL VRML Browser" }
 
-## use command line option
-##   BEGIN {$VRML::DO_PERL=1}
-
 sub check_perl_script {
  	if(!$VRML::DO_PERL) {
  		die <<EOF ;
@@ -80,6 +77,7 @@ EOF
  	}
  }
 
+## EG
 ## perl_script_output ( $on )
 ##
 ## If a script output file has been specified with the "-psout" option, and
@@ -105,7 +103,17 @@ sub perl_script_output {
   my $on = shift ;
   my $v = 0 ;					# Local verbose option
 
-  if ($VRML::script_out_file) {
+  if ($VRML::script_out_file) {	# If output is re-routed
+
+								# I've already opened the file ....
+    if ($VRML::script_out_open) {
+								# ... but has someone deleted it?
+	  if (! -f $VRML::script_out_file) {
+		print "Script output file disappeared! (no problem)\n" if $v;
+		close VRML_SCRIPT_OUT;
+		$VRML::script_out_open = 0;
+	  }
+	}
 								# Eventually open the file
     if (!$VRML::script_out_open) {
       open VRML_SCRIPT_OUT, ">$VRML::script_out_file"
@@ -117,6 +125,7 @@ sub perl_script_output {
     if ($on) {					# select script output filehandle
       if (!$VRML::script_out_selected){
 		$VRML::LAST_HANDLE = select VRML_SCRIPT_OUT;
+		$| = 1;
 		$VRML::script_out_selected = 1;
 		print $VRML::LAST_HANDLE "VRML_SCRIPT_OUT selected\n" if $v;
       } else {
@@ -131,9 +140,10 @@ sub perl_script_output {
     print "No script output file specified\n" if $v;
   }
 }
+
+## EG : Just a little debugging function
 sub show_stack {
   my $n = @_ ? shift : 1 ;
-  print "Context is ", wantarray() ? "ARRAY" : "SCALAR" , "\n";
   for $i (2..$n+1) {
 	my @a = caller ($i);
 	if (@a) {
