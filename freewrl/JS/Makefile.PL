@@ -49,7 +49,6 @@ use ExtUtils::MakeMaker;
 ## get rid of -W eventually
 my $ccflags = q{-Wall\
 -W\
--Wfloat-equal\
 -Wundef\
 -Wshadow\
 -Wpointer-arith\
