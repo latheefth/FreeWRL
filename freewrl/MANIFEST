@@ -26,7 +26,6 @@ OpenGL/OpenGL.vf
 OpenGL/OpenGL.xs
 OpenGL/typemap
 Parser.pm
-Quaternion.pm
 README				READ THIS FIRST
 Scene.pm
 Text/.cvsignore
@@ -40,7 +39,6 @@ VRMLJava.pm
 VRMLNodes.pm
 VRMLRend.pm
 VRMLServ.pm
-Viewer.pm
 fonts/README
 freewrl.PL
 java/classes/vrml/external/Node.class
