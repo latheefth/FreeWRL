@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.80  2003/04/29 17:12:43  crc_canada
+# TimeSensor ClockTick code now in C
+#
 # Revision 1.79  2003/04/28 19:40:25  crc_canada
 # AudioClip ClockTick now in C
 #
@@ -2046,6 +2049,32 @@ CODE:
 OUTPUT:
 	evtodo
 	activestate
+
+void 
+TimeSensorClockTick(node,tick,doac,astate,doct,dofrac,retfrac)
+	void *node
+	double tick
+	int doac
+	int astate
+	int doct
+	int dofrac
+	double retfrac
+CODE:
+	struct VRML_TimeSensor *px = node;
+	/* doac signals a change in activestate; (state is in astate var) 
+	   doct signals a cycletimer event  (no variable; just pushes 1)
+	   dofrac signals 
+	*/
+
+	do_TimeSensorTick(px,tick,&doac,&doct,&dofrac,&retfrac);
+	astate = px->isActive;
+OUTPUT:
+	doac
+	astate
+	doct
+	dofrac
+	retfrac
+
 
 #********************************************************************************
 void 

@@ -623,10 +623,10 @@ sub set_backend_fields {
 	#		OrientationInterpolator
 	#		CoordinateInterpolator
 	#		NormalInterpolator
+	#		TimeSensor
 
 	my %NOT = map {($_=>1)} qw/
 		WorldInfo
-		TimeSensor
 		TouchSensor
 		PlaneSensor
 		SphereSensor

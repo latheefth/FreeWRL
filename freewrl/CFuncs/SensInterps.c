@@ -420,3 +420,67 @@ void do_AudioTick(struct VRML_AudioClip *node, double tick,int *doevent) {
 		/* VRML::OpenGL::set_render_frame(); */
 	}
 }
+
+
+void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick, int *doActevent, 
+		int *doCtevent, int *doTsevent, double *retfrac) {
+	double myDuration;
+	int oldstatus;
+	double myTime;
+	double frac;
+
+	/* assume no event from this node */
+	*doActevent = 0;
+	*doCtevent = 0;
+	*doTsevent = 0;
+
+	/* can we possibly have started yet? */
+	if(tick < node->startTime) {
+		return;
+	}
+
+	oldstatus = node->isActive;
+	myDuration = node->cycleInterval;
+
+	/* call common time sensor routine */
+	do_active_inactive (
+		&node->isActive, &node->__inittime, &node->startTime,
+		&node->stopTime,tick,node->loop,1.0, 1.0);
+
+
+	/* now process if we have changed states */
+	if (oldstatus != node->isActive) {
+		if (node->isActive == 1) {
+			/* force code below to generate event */
+			node->__ctflag = 10.0;
+		}
+
+		/* push @e, [$t, "isActive", node->{isActive}]; */
+		*doActevent = 1;
+	}
+
+
+	if(node->isActive == 1) {
+			/* calculate what fraction we should be */
+	 		myTime = (tick - node->startTime) / myDuration;
+
+			if (node->loop) {
+				frac = myTime - (int) myTime;
+			} else {
+				frac = (myTime > 1 ? 1 : myTime);
+			}
+
+			/* cycleTime events once at start, and once every loop. */
+			if (frac < node->__ctflag) {
+				*doCtevent = 1;
+                               	/* push @e, [$t, cycleTime, $tick]; */
+			}
+			node->__ctflag = frac;
+	
+			/* time  and fraction_changed events */
+			*doTsevent = 1;
+			*retfrac = frac;
+			/* push @e, [$t, "time", $tick];
+			push @e, [$t, fraction_changed, $frac]; */
+	}
+}

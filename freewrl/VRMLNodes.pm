@@ -1557,8 +1557,8 @@ my $protono;
 						fraction_changed => [SFFloat, 0.0, eventOut],
 						isActive => [SFBool, 0, eventOut],
 						time => [SFTime, -1, eventOut],
-						# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
-						__type => [SFInt32, 2, exposedField],
+						 # time that we were initialized at
+						 __inittime => [SFTime, 0, field],
 						# cycleTimer flag.
 						__ctflag =>[SFTime, 0, exposedField]
 					   },
@@ -1610,20 +1610,34 @@ my $protono;
 
 						ClockTick => sub {
 							my($t,$f,$tick) = @_;
+							my $doac, $astate, $doct, $dofrac, $retfrac;
 							my @e;
-							my $act = 0; 
-							#print "TS CT\n";
 
 							# are we enabled? If not, make sure we are not marked active.
 							if (!$f->{enabled}) {
 								if ($f->{isActive}) {
+									$f->{isActive}=0;
 									push @e, [$t, "isActive", 0];
 								}
 								return @e;
 							}
 
-							# ok, we ARE enabled. Process
-							return ClockTick_TimeDepNodes (@_);
+							VRML::VRMLFunc::TimeSensorClockTick(
+								$t->{BackNode}->{CNode},$tick,
+								$doac,$astate,$doct,$dofrac,$retfrac);
+
+							if ($doac == 1) {
+								push @e, [$t, "isActive", $astate];
+							}
+							if ($doct == 1) {
+								push @e, [$t, cycleTime, $tick];
+							}
+
+							if ($dofrac == 1) {
+								push @e, [$t, "time", $tick];
+								push @e, [$t, fraction_changed, $retfrac]; 
+							}
+							return @e;
 						},
 					   }
 					  ),
