@@ -835,8 +835,7 @@ void setSeqTemp(char* file) {
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
-	if (fullscreen)
-		resetGeometry();
+	resetGeometry();
 	shutdown_EAI();
 	exit(0);
 }
