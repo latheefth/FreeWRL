@@ -216,22 +216,24 @@ void IFS_face_normals (
 void IFS_check_normal (
 	struct pt *facenormals,
 	int this_face, 
-	struct SFColor *points) {
+	struct SFColor *points, int base,
+	struct VRML_IndexedFaceSet *this_IFS) {
 
 	int facectr;
 	float AC, BC;
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
 
-
-	/* printf ("IFS_check_normal, points %d %d %d\n",global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
+	/*
+	printf ("IFS_check_normal, base %d points %d %d %d\n",base, global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
 	printf ("normal was %f %f %f\n\n",facenormals[this_face].x,
 		facenormals[this_face].y,facenormals[this_face].z);
 	*/
+	
 	/* first three coords give us the normal */
-	c1 = &(points[global_IFS_Coords[0]]);
-	c2 = &(points[global_IFS_Coords[1]]); 
-	c3 = &(points[global_IFS_Coords[2]]);
+	c1 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[0]]]);
+	c2 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[1]]]); 
+	c3 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[2]]]);
 
 	a[0] = c2->c[0] - c1->c[0];
 	a[1] = c2->c[1] - c1->c[1];
@@ -613,6 +615,7 @@ void regen_polyrep(void *node)
 	}
 	r = p->_intern;
 	r->_change = p->_change;
+
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);
@@ -621,6 +624,7 @@ void regen_polyrep(void *node)
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->normal);
+	FREE_IF_NZ(rep_->tcindex);
 	v->mkpolyrep(node);
 }
 
