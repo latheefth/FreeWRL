@@ -12,7 +12,6 @@ import java.applet.Applet;
 public class ToggleScript extends Script {
   SFInt32 which_changed;
   public void initialize() {
-    System.out.println("Foo!");
     which_changed  = (SFInt32) getEventOut("which_changed");
     which_changed.setValue(0);
   }
