@@ -707,16 +707,19 @@ sub render {
 	$this->setup_viewpoint($node) if @{$this->{bufferarray}} != 1;
 
 	# Other lights
+	glPrintError("GLBackEnd::render, before render_hier");
 
 	VRML::VRMLFunc::render_hier($node,  # Node
 				    &VF_Lights,  # render lights
 				    0); # what view point
+	glPrintError("GLBackEnd::render, VRML::VRMLFUNC::render_hier(VF_Lights)");
 
 	# 4. Nodes (not the blended ones)
 
 	VRML::VRMLFunc::render_hier($node,	# Node
 				    &VF_Geom,      # render geoms
 				    0);     # what view point
+	glPrintError("GLBackEnd::render, VRML::VRMLFUNC::render_hier(VF_Geom)");
     }
 
     glXSwapBuffers();

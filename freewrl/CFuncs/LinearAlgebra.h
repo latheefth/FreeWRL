@@ -158,6 +158,8 @@ double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct p
 
 struct pt* vecadd(struct pt* r, struct pt* v, struct pt* v2);
 
+struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2);
+
 void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n);
 
 GLdouble* Inverse(GLdouble* res, GLdouble* m);

@@ -26,6 +26,11 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.60  2002/07/29 20:07:39  ncoder
+# Removed lingering printmatrix debug code. (VRMLRend.pm)
+#
+# Other non significant code changes.
+#
 # Revision 1.59  2002/07/19 16:56:52  ncoder
 # added collision detection for
 # Boxes, cones, cylinders.
@@ -1135,6 +1140,10 @@ int cur_hits=0;
 /* Collision detection results */
 struct pt CollisionOffset = {0,0,0};
 
+/* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
+struct pt ViewerDelta = {0,0,0}; 
+
+
 /*dimentions of viewer (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 
@@ -1604,6 +1613,18 @@ CODE:
 	CollisionOffset.x = x;
 	CollisionOffset.y = y;
 	CollisionOffset.z = z;
+
+void
+set_viewer_delta(x,y,z)
+	double x
+	double y
+	double z
+CODE:
+	    /*prototype code, currently UNUSED */
+	ViewerDelta.x = x;
+	ViewerDelta.y = y;
+	ViewerDelta.z = z;
+
 
 void
 set_naviinfo(width,height,step)

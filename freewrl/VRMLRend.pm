@@ -20,6 +20,11 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.69  2002/07/29 20:07:39  ncoder
+# Removed lingering printmatrix debug code. (VRMLRend.pm)
+#
+# Other non significant code changes.
+#
 # Revision 1.68  2002/07/29 19:36:25  crc_canada
 # Background Textures now working with new style of texture reading.
 #
@@ -2501,8 +2506,6 @@ IndexedFaceSet => q~
 	       VECADD(CollisionOffset,delta);
 
 	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
-		   printf("\nref%d:\n",refnum);
-		   printmatrix(modelMatrix);
 		   fprintf(stderr,"COLLISION_IFS: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z

@@ -190,6 +190,9 @@ sub handle_tick {
     my $nq = new VRML::Quaternion(1-0.2*$this->{RD},0,0.2*$this->{RD},0);
     $nq->normalize_this;
     $this->{Quat} = $nq->multiply($this->{Quat});
+    
+    #info passed to Collision routines
+#    VRML::VRMLFunc::set_viewer_delta($this->{XD},$this->{YD},$this->{ZD}); interresting idea, but not quite.
 
     # any movement? if so, lets render it.
     if ((abs($this->{RD}) > 0.000001) || 
@@ -276,6 +279,7 @@ sub handle_tick {
 	my $v = $this->{Velocity};
 	my $ind = 0;
 	my $dt = $time-$lasttime;
+	if($dt == 0) { return; }
 
 	# has anything changed? if so, then re-render.
 	my $changed = 0;
@@ -304,11 +308,13 @@ sub handle_tick {
 	$nq->normalize_this;
 	$this->{Quat} = $nq->multiply($this->{Quat});
 
-	# print "HANDLE_TICK($dt): @aadd | @{$this->{Velocity}} | @$nv | @$av\n";
+	#print "HANDLE_TICK($dt): @aadd | @{$this->{Velocity}} | @$nv | @$av\n";
 
     	# any movement? if so, lets render it.
 	if (abs($changed) > 0.000001) {
         	VRML::OpenGL::set_render_frame();
+		
+
     	}
 
 
@@ -363,9 +369,11 @@ sub handle_tick {
 	close $inf;
 	# printf "String2 length is $inc is $string\n";
 	if (length($string)>0) {
+ 
 		$this->{Pos}[2] = substr ($string,0,8);
 		$this->{Pos}[0] = substr ($string,8,9);
 		$this->{Pos}[1] = substr ($string,17,9);
+
 		$this->{Quat} = new VRML::Quaternion(substr ($string,26,9), 
 			substr ($string,35,9), substr ($string,44,9),
 			substr ($string,53,9));
@@ -473,3 +481,5 @@ sub xy2qua {
 }
 
 1;
+
+

@@ -763,7 +763,7 @@ struct pt cylinder_disp(double y1, double y2, double r, struct pt base, struct p
 }
 
 
-struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* pr, struct pt* n, struct pt dispsum) {
+struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* pr, struct pt* n, /*struct pt inv,*/ struct pt dispsum) {
     struct pt p[3];
     double mindisp = 1E99;
     struct pt mindispv = {0,0,0};
@@ -772,12 +772,15 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
     static int recursion_count = 0;
     int nextrec = 0;
     int i;
+/*    struct pt tmpv;
+      struct pt tmpsum;*/
 
     for(i = 0; i < pr->ntri; i++) {
 	p[0].x = pr->coord[pr->cindex[i*3]*3]    +dispsum.x;
 	p[0].y = pr->coord[pr->cindex[i*3]*3+1]  +dispsum.y;
 	p[0].z = pr->coord[pr->cindex[i*3]*3+2]  +dispsum.z;
 
+	/*only use if normal facing avatar */
 	if(vecdot(&n[i],&p[0]) > 0) {
 	    p[1].x = pr->coord[pr->cindex[i*3+1]*3]    +dispsum.x;
 	    p[1].y = pr->coord[pr->cindex[i*3+1]*3+1]  +dispsum.y;
@@ -790,11 +793,20 @@ struct pt polyrep_disp_rec(double y1, double y2, double r, struct VRML_PolyRep* 
 	    disp = maxdisp; /*global variable. was calculated inside poly_normal_disp already. */
 
 #ifdef DEBUGPTS
-    printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
+	    printf("polyd: (%f,%f,%f) |%f|\n",dispv.x,dispv.y,dispv.z,disp);
 #endif
-	    
-	    
-	    if((disp > FLOAT_TOLERANCE) && (disp < mindisp)) {
+    
+	    /*keep result only if:
+	      displacement is positive
+	      displacement is smaller than minimum displacement up to date
+	      ----displacement is sane. ((disp-inv).disp > 0)  
+	        (displacemeent does not bring avatar back more distance than it came from in 
+		the direction of the normal)
+		interresting idea, but doesn't quite work.
+		needs refinement. will give headaches.----
+
+		vecadd(&tmpsum,&dispsum,&dispv);*/
+	    if((disp > FLOAT_TOLERANCE) && (disp < mindisp)/* && (vecdot(vecdiff(&tmpv,&inv,&tmpsum),&tmpsum) >= 0)*/) {
 		mindisp = disp;
 		mindispv = dispv;
 		nextrec = 1;
