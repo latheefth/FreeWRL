@@ -1450,7 +1450,7 @@ SFNodeTouched(JSContext *cx, JSObject *obj,
 	UNUSED(argc);
 	UNUSED(argv);
 
-	printf ("start of SFNodeTouched\n");
+	//printf ("start of SFNodeTouched\n");
 
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFNodeTouched.\n");
@@ -1459,10 +1459,10 @@ SFNodeTouched(JSContext *cx, JSObject *obj,
 
     t = ptr->touched;
 	ptr->touched = 0;
-//JAS    if (JSVRMLClassesVerbose) {
+    if (JSVRMLClassesVerbose) {
 		printf("SFNodeTouched: obj = %u, touched = %d\n",
 			   (unsigned int) obj, t);
-//JAS	}
+	}
     *rval = INT_TO_JSVAL(t);
     return JS_TRUE;
 }
@@ -1475,6 +1475,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 	BrowserNative *brow;
     SFNodeNative *ptr;
 	char *_vrmlstr, *_handle;
+	char *tmpptr, *xptr;
 	size_t vrmlstring_len = 0, handle_len = 0;
 	jsval _obj_val = OBJECT_TO_JSVAL(obj);
 	jsval _rval = 0;
@@ -1503,8 +1504,15 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 			printf( "JS_SetPrivate failed in SFNodeConstr.\n");
 			return JS_FALSE;
 		}
-		memset(ptr->vrmlstring, 0, vrmlstring_len);
-		memmove(ptr->vrmlstring, _vrmlstr, vrmlstring_len);
+
+		/* copy this over, making sure we dont get hit by threading or
+		 * memory problems */
+		tmpptr = malloc ((vrmlstring_len+1)*sizeof(char));
+		memmove(tmpptr, _vrmlstr, vrmlstring_len);
+		xptr = ptr->vrmlstring;
+		ptr->vrmlstring = tmpptr;
+		free (xptr);
+		
 
 		if ((globalObj = JS_GetGlobalObject(cx)) == NULL) {
 			printf( "JS_GetGlobalObject failed in SFNodeConstr.\n");
@@ -1532,15 +1540,24 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
         	}
 		_idStr = JS_ValueToString(cx, _rval);
 		_id_c = JS_GetStringBytes(_idStr);
-		printf ("RETURNED %s\n",_id_c);
+		//printf ("RETURNED %s\n",_id_c);
 		handle_len = strlen(_id_c) + 1;
-		memset(ptr->handle, 0, handle_len);
-		memmove(ptr->handle, _id_c, handle_len);
+		//printf ("pointer handle is %x\n",ptr->handle);
+
+		/* copy this over, making sure we dont get hit by threading or
+		 * memory problems */
+		tmpptr = malloc ((handle_len+1)*sizeof(char));
+		memmove(tmpptr, _id_c, handle_len);
+		xptr = ptr->handle;
+		ptr->handle = tmpptr;
+		free (xptr);
+		
+
 
 
 
 	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "s s",
-								   &_vrmlstr, &_handle)) {
+			   &_vrmlstr, &_handle)) {
 		vrmlstring_len = strlen(_vrmlstr) + 1;
 		handle_len = strlen(_handle) + 1;
 
@@ -1557,11 +1574,20 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 			printf( "JS_SetPrivate failed in SFNodeConstr.\n");
 			return JS_FALSE;
 		}
-		memset(ptr->vrmlstring, 0, vrmlstring_len);
-		memmove(ptr->vrmlstring, _vrmlstr, vrmlstring_len);
 
-		memset(ptr->handle, 0, handle_len);
-		memmove(ptr->handle, _handle, handle_len);
+		/* copy this over, making sure we dont get hit by threading or
+		 * memory problems */
+		tmpptr = malloc ((vrmlstring_len+1)*sizeof(char));
+		memmove(tmpptr, _vrmlstr, vrmlstring_len);
+		xptr = ptr->vrmlstring;
+		ptr->vrmlstring = tmpptr;
+		free (xptr);
+
+		tmpptr = malloc ((handle_len+1)*sizeof(char));
+		memmove(tmpptr, _handle, handle_len);
+		xptr = ptr->handle;
+		ptr->handle = tmpptr;
+		free (xptr);
 	} else {
 		printf(
 				"SFNodeConstr requires at least 1 string arg.\n");

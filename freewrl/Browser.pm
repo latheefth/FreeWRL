@@ -85,10 +85,12 @@ sub new {
 	# calling functions from C for EAI easier.
 
 	$globalBrowser = $this;
-
 	return $this;
 }
 
+
+# set_backend_fields may require this one, if an SFNode comes in....
+sub getBE { return $globalBrowser->{BE}; }
 
 ##############################################################
 #
@@ -309,6 +311,7 @@ sub create_common {
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
 	$scene->dump(0) if $VRML::verbose::scenegraph;
+	
 
 	return $ret;
 }

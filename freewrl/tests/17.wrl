@@ -16,7 +16,7 @@ Transform {
   children mytest1 { }
 }
 
-mytest1 { size 0.5 }
+Transform { children mytest1 { size 0.5 }}
 
 Transform {
   translation 2 0 0

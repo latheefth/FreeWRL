@@ -63,7 +63,8 @@ PROTO Wheel [
 }
 
 
-DEF WHEEL Wheel { 
+Transform { 
+	children DEF WHEEL Wheel {}
 }
 
 Transform {

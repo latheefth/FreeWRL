@@ -263,6 +263,8 @@ sub resolve_node_cnode {
 			$field = $1;
 		}
 	}
+	#print "events, here, isproto $is_proto, typename ",
+	#$node->{TypeName},"\n";
 
 	if (!$is_proto && $node->{TypeName} =~ /script/i) {
 		$outoffset = VRML::VRMLFunc::paramIndex($field, $node->{Type}{FieldTypes}{$field});
@@ -294,8 +296,7 @@ sub resolve_node_cnode {
 			}
 			# print "PROTO got a script: outptr $outptr, offset $outoffset, scenenum $scenenum\n";
 	} else {
-		#print "here, nothing fancy. node is $node\n";
-		if (!defined $node->{BackNode}) {
+		if (!defined $node->{BackNode}{CNode}) {
 			# check if this node resides within a Javascript invocation...
 			# if so, we have to ensure the equivalence of nodes between 
 			# the C structures and the Javascript invocation.

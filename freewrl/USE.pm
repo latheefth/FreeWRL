@@ -45,12 +45,11 @@ sub make_backend {
 		print "VRML::USE::make_backend: ", VRML::Debug::toString(\@_),
 			" from $package, $line\n";
 	}
-	$this->{DEFNode},"\n";
 
 	my $dn = $this->{DEFNode};
 
 	# this is a DEF here
-	if ($dn->{Node}{BackNode}) {
+	if ($dn->{Node}{BackNode}{CNode}) {
 		print "\tusing $this->{DEFName}{Node}'s BackNode.\n"
 			if $VRML::verbose::be;
 		return $this->{DEFNode}{Node}{BackNode};

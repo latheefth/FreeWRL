@@ -338,7 +338,6 @@ sub new {
     my ($type, $scene, $ntype, $fields, $eventmodel) = @_;
     my %rf;
     my $this = bless {
-					  BackEnd => undef,
 					  BackNode => undef,
 					  EventModel => $eventmodel,
 					  Fields => $fields,
@@ -454,12 +453,6 @@ sub real_node {
 	return $this;
 }
 
-#JAS # Get the outermost scene we are in
-#JAS sub get_global_scene {
-#JAS     my ($this) = @_;
-#JAS     return $this->{Scene}->get_scene();
-#JAS }
-
 # Copy a deeper struct
 sub ccopy {
     my ($v, $scene) = @_;
@@ -477,6 +470,7 @@ sub ccopy {
 sub copy {
     my ($this, $scene) = @_;
 
+    #print "NodeIntern:copy invoked\n";
 	my $new = bless {}, ref $this;
     $new->{Type} = $this->{Type};
     $new->{TypeName} = $this->{TypeName};
@@ -528,7 +522,7 @@ sub iterate_nodes {
 sub make_executable {
     my ($this, $scene) = @_;
     print "VRML::NodeIntern::make_executable: ", VRML::Debug::toString(\@_),
-		" $this->{TypeName}\n" if $VRML::verbose::scene;
+		" $this->{TypeName}\n"  if $VRML::verbose::scene;
 
     # loop through all the fields for this node type.
 
@@ -599,10 +593,17 @@ sub make_executable {
 
 sub set_backend_fields {
     my ($this, @fields) = @_;
-    my $be = $this->{BackEnd};
 
     if (!@fields) { @fields = keys %{$this->{Fields}} }
 
+    #print "at set_backend_fields of $this, ",
+    #VRML::NodeIntern::dump_name($this),"\n";
+    #my $key;
+    #foreach $key (keys(%{$this->{Scene}})) {print "node key $key\n";}
+    #foreach $key (keys(%{$this->{RFields}})) {print "node has RField $key\n";}
+    #foreach $key (keys(%{$this->{Fields}})) {print "node has Field $key\n";}
+
+    my $be = VRML::Browser::getBE();
     my %f;
     for (@fields) {
 		my $v = $this->{RFields}{$_};
@@ -623,7 +624,9 @@ sub set_backend_fields {
 			$f{$_} = $v;
 		}
     }
+
     $be->set_fields($this->{BackNode}, \%f);
+    #print "finished set_backend_fields\n";
 }
 
 
@@ -641,9 +644,10 @@ sub set_backend_fields {
 			my ($package, $filename, $line) = caller;
 			print "VRML::NodeIntern::make_backend: ", VRML::Debug::toString(\@_),
 				" $this->{TypeName} from $package, $line\n";
-		}
+			}
 
-		if (!defined $this->{BackNode}) {
+			if (!defined $this->{BackNode}{CNode}) {
+
 			if ($this->{TypeName} eq "WorldInfo") {
 				print "VRML::NodeIntern::make_backend NOT - ", $this->{TypeName},"\n"
 					if $VRML::verbose::be;
@@ -671,20 +675,17 @@ sub set_backend_fields {
 			my $ben = $be->new_node($this->{TypeName});
 
 			$this->{BackNode} = $ben;
-			$this->{BackEnd} = $be;
 			$this->set_backend_fields();
 
 			# is this a bindable node?
 			if ($VRML::Nodes::bindable{$this->{TypeName}}) {
-				if ($this->{BackEnd}) {
-					VRML::Browser::register_bind($this);
-				}
+				VRML::Browser::register_bind($this);
 			}
 		}
 		print "\tVRML::NodeIntern::make_backend finished ",
 			dump_name($this),
-					" $this->{TypeName}, ", %{$this->{BackNode}}, "\n"
-						if $VRML::verbose::be;
+			" $this->{TypeName}, ", %{$this->{BackNode}}, "\n"
+				if $VRML::verbose::be;
 
 		return $this->{BackNode};
 	}

@@ -326,8 +326,8 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 	*Win =  win;
 	*Cont = cx;
 
-printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
-		glGetString(GL_RENDERER));
+	//printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
+	//	glGetString(GL_RENDERER));
 }
 #endif
 

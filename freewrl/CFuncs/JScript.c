@@ -305,7 +305,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  		printf("JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
  		return JS_FALSE;
  	}
- 
+
  	strval = JS_ValueToString(_context, rval);
  	strp = JS_GetStringBytes(strval);
  	sv_setpv(rstr, strp);
