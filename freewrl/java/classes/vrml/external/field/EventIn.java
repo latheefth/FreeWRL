@@ -19,7 +19,10 @@ public class EventIn extends vrml.external.Node {
 
 
   // Get the type of this EventIn (specified in FieldTypes.java)
-//  public int           getType() {
-//  return EventType;
-//  }
+  //public int           getType() {
+  //return EventType;
+ // }
+	public int getIntType() {
+		return EventType;
+	}
 }
