@@ -75,7 +75,7 @@ vrml.jar: $(CLASSES)
 	$(JAR) cf $@ `find vrml -name \*.class`
 
 install ::
-	cp $(JAR_FILE) $(NETSCAPE_CLASS_DIR)
+	cp vrml.jar $(NETSCAPE_CLASS_DIR)
 };
 }
 
