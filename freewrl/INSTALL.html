@@ -16,6 +16,7 @@ the source for FreeWRL and try:
 <LI>gunzip FreeWRL-version-tar.gz
 <LI>untar FreeWRL-version.tar
 <LI>cd FreeWRL-version
+<li>vi vrml.conf and check that it looks ok for your system
 <LI>perl Makefile.PL
 <LI>make install
 </LIST>
@@ -157,7 +158,7 @@ can't find it, you can always download it from
 <P>make
 <BR>make install (you have to be root of course)
 <P>
-If you <B>do not<\b> want to install freewrl, you will have to set up
+If you <B>do not</b> want to install freewrl, you will have to set up
 the "LD_LIBRARY_PATH" correctly, to show freewrl where the libraries are.
 The file "runme-standalone" is one example of what to do.
 </P>
@@ -184,9 +185,10 @@ see the FreeWRL plugin listed.</P>
 vrml.conf to determine exactly where the npfreewrl.so file is)
 <p>
 <P><B>5.0 X3D compatibility.</B></P>
-
-<P><B>5.1)</B> Go to the x3d directory, and follow the
-
-<A HREF="x3d/readme.html">instructions</A>.</P>
+As of FreeWRL 1.11, X3D parsing is built in. It requires the "Expat" module,
+which is standard on all modern Linux distros. Without the Expat module, 
+freewrl will fail. 
+<p>
+If you require expat, find it here: http://sourceforge.net/projects/expat/
 <P>
 
