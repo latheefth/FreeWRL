@@ -35,7 +35,7 @@ Notes:
 
 13.wrl:	indexed face set test.
 
-14.wrl:	THIS TEST SHOULD FAIL - Concave Indexed Face Set not working yet.
+14.wrl:	indexed face set test (concave).
 
 15.wrl:	Circular arc.
 
@@ -52,7 +52,7 @@ Notes:
 
 20.wrl:	A cone with a bookcase texture superimposed over it.
 
-21.wrl: A bookcase. NOTE THAT THE TEXTURE IS NOT YET DISPLAYED - SOON!!!
+21.wrl: A bookcase. 
 
 22.wrl: A finger. click on any joint. 0.22 - ROTATIONS NOT CORRECT
 
@@ -109,6 +109,15 @@ Tiny3D:
 	Java applet with EAI to create a scene. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
 	on these, or run it from within netscape.
+
+SAIColor:
+	Script Authoring Interface example. Please read the README in
+	the directory.
+
+SAIClick:
+	Script Authoring Interface example. Please read the README in
+	the directory.
+
 
 helpers:	
 	Misc. directory of included files for the above tests.
