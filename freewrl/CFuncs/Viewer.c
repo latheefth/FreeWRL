@@ -552,6 +552,22 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 	}
 }
 
+/* my %actions = ( */
+/* 	a => sub {$aadd[2] -= $_[0]}, */
+/* 	z => sub {$aadd[2] += $_[0]}, */
+/* 	j => sub {$aadd[0] -= $_[0]}, */
+/* 	l => sub {$aadd[0] += $_[0]}, */
+/* 	p => sub {$aadd[1] += $_[0]}, */
+/* 	';' => sub {$aadd[1] -= $_[0]}, */
+
+/* 	8 => sub {$radd[0] += $_[0]}, */
+/* 	k => sub {$radd[0] -= $_[0]}, */
+/* 	u => sub {$radd[1] -= $_[0]}, */
+/* 	o => sub {$radd[1] += $_[0]}, */
+/* 	7 => sub {$radd[2] -= $_[0]}, */
+/* 	9 => sub {$radd[2] += $_[0]}, */
+/* ); */
+
 
 void
 handle_tick_fly(VRML_Viewer *viewer, const double time)
@@ -562,9 +578,11 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 	struct pt _velocity = fly->Velocity;
 /* 	my $av = $this->{AVelocity}; */
 	struct pt _avelocity = fly->AVelocity;
-	ps[KEYS_HANDLED] = KEYMAP;
-	int i;
-	double changed;
+/* 	my $ind = 0; */
+	int i, _index = 0, aadd[3], radd[3];
+	Key ps[KEYS_HANDLED] = KEYMAP;
+/* 	my $changed = 0; */
+	double changed = 0, time_diff;
 
 /* 	if(!defined $this->{Velocity}) {$this->{Velocity} = [0,0,0]} */
 /* 	if(!defined $this->{AVelocity}) {$this->{AVelocity} = [0,0,0]} */
@@ -578,18 +596,22 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 /* 	for(keys %{$this->{Down}}) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		$ps{$_} += $this->{Down}{$_}; */
-		ps[i] += (fly->Down[i])->hit;
+		(ps[i]).hit += (fly->Down[i]).hit;
 	}
 
 /* 	for(keys %{$this->{WasDown}}) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		$ps{$_} += delete $this->{WasDown}{$_}; */
-		ps[i] += (fly->WasDown[i])->hit;
+		(ps[i]).hit += (fly->WasDown[i]).hit;
 		(fly->WasDown[i]).hit = 0;
 	}
 
 /* 	undef @aadd; */
+	memset(aadd, 0, 3 * sizeof(int));
+
 /* 	undef @radd; */
+	memset(radd, 0, 3 * sizeof(int));
+
 /* 	for(keys %ps) */
 	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		if(exists $actions{$_}) { */
@@ -597,12 +619,12 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 /* 		}  */
 	}
 
-/* 	my $ind = 0; */
 /* 	my $dt = $time-$lasttime; */
+	time_diff = time - fly->lasttime;
 /* 	if($dt == 0) { return; } */
+	if (APPROX(time_diff, 0)) { return; }
 	
 	/* has anything changed? if so, then re-render */
-/* 	my $changed = 0; */
 	
 /* 	for(@$v) {$_ *= 0.06 ** ($dt); */
 /* 		$_ += $dt * $aadd[$ind++] * 14.5; */
