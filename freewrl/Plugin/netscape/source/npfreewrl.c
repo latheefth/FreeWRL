@@ -213,16 +213,51 @@ int freewrlReceive(int fd) {
 		print_here ("step 2, returning NPERR_GENERIC_ERROR");
 		return(NPERR_GENERIC_ERROR);
 	} else {
-		if ((rv = NPN_GetURL(request.instance, request.url, NULL))
-			!= NPERR_NO_ERROR) {
-			sprintf(debs, "Call to NPN_GetURL failed with error %d.\n", rv);
+		sprintf (debs, "notifyCode = %d url = %s\n",
+				request.notifyCode,
+				request.url);
+		print_here(debs);
+
+		/* is this a getUrl, or a "open new window for url" */
+		if (request.notifyCode == 0) {
+			/* get Url and return it to FreeWRL */
+			if ((rv = NPN_GetURL(request.instance, request.url, NULL))
+				!= NPERR_NO_ERROR) {
+				sprintf(debs, "Call to NPN_GetURL failed with error %d.\n", rv);
+				print_here(debs);
+				retval = NPERR_GENERIC_ERROR;
+			}
+			sprintf(debs, "Call to NPN_GetURL returned %d.\n", rv);
 			print_here(debs);
-			retval = NPERR_GENERIC_ERROR;
+			sprintf (debs, "step 2a, request.url %s\n",request.url);
+			print_here(debs);
+		} else {
+			/* request.notifyCode must be 1 */
+			sprintf (debs,"NPN_GetStream...\n");
+			print_here(debs);
+			
+			NPStream* stream; 
+    			NPError err = NPERR_NO_ERROR;
+			char* myData = "<HTML><B>This is a message from my plug-in!</b></html>"; 
+			int32 myLength = strlen(myData) + 1; 
+			//err = NPN_NewStream(request.instance, "text/html", "_blank", &stream); 
+			err = NPN_NewStream(request.instance, 
+					"text/html",
+					"_AnchorFailsinFreeWRL",
+					//request.url, 
+					&stream); 
+			print_here ("NewStream made\n");
+			
+			err = NPN_Write(request.instance, 
+					stream, 
+					myLength, 
+					myData); 
+			print_here ("NPN_Write made\n");
+			//err = NPN_DestroyStream(request.instance, 
+			//		stream, 
+			//		NPRES_DONE);
+			//print_here ("NPN_DestroyStream doen\n");
 		}
-		sprintf(debs, "Call to NPN_GetURL returned %d.\n", rv);
-		print_here(debs);
-		sprintf (debs, "step 2a, request.url %s\n",request.url);
-		print_here(debs);
 
 		/* now, put a status line on bottom of browser */
 		sprintf (debs, "FreeWRL loading: %s\n",request.url);

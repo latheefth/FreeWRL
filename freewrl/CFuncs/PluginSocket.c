@@ -90,7 +90,7 @@ requestUrlfromPlugin(int sockDesc,
 	pluginprint ("requestURL fromPlugin, getting %s\n",url);
 
 	request.instance = (void *) plugin_instance;
-	request.notifyCode = 0; /* not currently used */
+	request.notifyCode = 0; /* get a file  */
 
 	len = FILENAME_MAX * sizeof(char);
 	memset(request.url, 0, len);
@@ -146,4 +146,40 @@ requestUrlfromPlugin(int sockDesc,
 
 	/* we must be returning something here */
 	return return_url;
+}
+
+
+/* tell Netscape that a new window is required (eg, Anchor
+ * clicked and it is an HTML page */
+
+void requestNewWindowfromPlugin(int sockDesc,
+		   unsigned int plugin_instance,
+		   const char *url)
+{
+	size_t len = 0, ulen = 0, bytes = 0;
+	urlRequest request;
+	FILE  *infile;
+	int linecount;
+	int linelen;
+	char buf[2004];
+
+	pluginprint ("requestNewWindow fromPlugin, getting %s\n",url);
+
+	request.instance = (void *) plugin_instance;
+	request.notifyCode = 1; /* tell plugin that we want a new window */
+
+	len = FILENAME_MAX * sizeof(char);
+	memset(request.url, 0, len);
+	memset(return_url, 0, len);
+
+	ulen = strlen(url) + 1;
+	memmove(request.url, url, ulen);
+	bytes = sizeof(urlRequest);
+
+	pluginprint ("requestNewWindow fromPlugin, step 1\n","");
+
+	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
+		pluginprint ("write failed in requestUrlfromPlugin","");
+		return NULL;
+	}
 }

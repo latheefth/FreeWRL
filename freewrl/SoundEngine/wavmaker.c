@@ -49,6 +49,13 @@ void playWavFragment() {
 	// buffer is flushed, and that we have to write data.	
 	
 	//printf ("start of playWavFragment source %d\n",source);
+	//
+	
+	// is the dspFile open? Maybe it failed on open??
+	if (dspFile == -1) {
+		//printf ("dsp not open\n");
+		return;
+	}
 
 	if (DSPplaying != 0) {
 		// first time through
@@ -109,9 +116,10 @@ void initiateDSP() {
 	int i;
 	audio_buf_info leftover;
 
-	if ( (dspFile = open("/dev/dsp",O_WRONLY)) 
+	if ( (dspFile = open("/dev/dsp",O_WRONLY|O_NONBLOCK)) 
+	//if ( (dspFile = open("/dev/dsp",O_NDELAY)) 
                                    == -1 ) {
-		printf ("open /dev/dsp problem\n");
+		printf ("FreeWRL::SoundEngine::open /dev/dsp problem (is something else using it?)\n");
 		dspFile=-1;
 		return;
 	}

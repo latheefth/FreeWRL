@@ -11,6 +11,10 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.41  2004/12/07 15:05:26  crc_canada
+# Various changes; eat comma before SFColors for Rasmol; Anchor work,
+# and general configuration changes.
+#
 # Revision 1.40  2004/08/25 14:56:18  crc_canada
 # handle ISO extended characters within SFString
 #
@@ -305,6 +309,9 @@ sub init { return [0, 0, 0]; }
 
 sub parse {
 	my($type,$p) = @_;
+
+	# eat comma if one is there (thanks, rasmol, for invalid VRML...)
+	$_[2] =~ /\G\s*,\s*/gsc;
 
 	$_[2] =~ /\G\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)/ogsc
 	    or parsefail($_[2],"Didn't match SFColor");

@@ -7,6 +7,9 @@
                                                                                                                        
 #include "headers.h"
 #include "Bindable.h"
+#include "PluginSocket.h"
+
+extern unsigned _fw_instance;
 
 /* implement Anchor/Browser actions */
 
@@ -100,6 +103,12 @@ void doBrowserAction () {
 		/* put the path and the file name together */	
 		makeAbsoluteFileName(filename,mypath,thisurl);
 
+		/* if this is a html page, just assume it's ok. If
+		 * it is a VRML/X3D file, check to make sure it exists */
+
+		if (!checkIfX3DVRMLFile(filename)) { break; }
+
+		/* ok, it might be a file we load into our world. */
 		if (fileExists(filename,firstBytes,FALSE)) { break; }
 		count ++;
 	}
@@ -112,18 +121,21 @@ void doBrowserAction () {
 		free (filename);
 		return;
 	}
-	printf ("we were successful at locating :%s:\n",filename);
+	//printf ("we were successful at locating :%s:\n",filename);
 
 	//which browser are we running under? if we are running as a 
 	//plugin, we'll have some of this information already.
 	
-	if (RUNNINGASPLUGIN) {
-		printf ("Anchor, running as a plugin...\n");
+	if (checkIfX3DVRMLFile(filename)) {
+		Anchor_ReplaceWorld (filename);
 	} else {
-		if (checkIfX3DVRMLFile(filename)) {
-			Anchor_ReplaceWorld (filename);
-
-		} else {
+		// We should get the browser to get the new window,
+		// but this code seems to fail in mozilla. So, lets
+		// just open a new browser, and see what happens...
+		//if (RUNNINGASPLUGIN) {
+		//	printf ("Anchor, running as a plugin - load non-vrml file\n");
+		//	requestNewWindowfromPlugin(_fw_FD,_fw_instance,filename);
+		//} else {
 			//printf ("IS NOT a vrml/x3d file\n");
 			//printf ("Anchor: -DBROWSER is :%s:\n",BROWSER);
 			strcpy (sysline, BROWSER);
@@ -131,7 +143,7 @@ void doBrowserAction () {
 			strcat (sysline, filename);
 			strcat (sysline, " &");
 			system (sysline);
-		}
+		//}
 	}
 	free (filename);
 }

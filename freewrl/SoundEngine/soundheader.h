@@ -111,8 +111,5 @@ void adjustAmplitude(int source, int readSize);
 #define	THIRTYTWO	32
 
 #define UNINITWAV	-20000
-// Mixer proto defs
-void closeMixer();
-void setMixerGain(float mygain);
 
 

@@ -35,6 +35,10 @@ extern char NetscapeName[MAXNETSCAPENAMELEN];
 	                                                                                
 char *requestUrlfromPlugin(int sockDesc, unsigned int plugin_instance, const char *url);
 
+void requestNewWindowfromPlugin(int sockDesc,
+		                   unsigned int plugin_instance,
+				                      const char *url);
+
 int
 receiveUrl(int sockDesc, urlRequest *request);
 

@@ -7,21 +7,11 @@
  *******************************************************************/
 
 #include "soundheader.h"
-int mixerFile = -10; // -10 means "try me"
 
 /* record "global" parameters */
 long int MaxSPS = 0;
 int MaxAvgBytes = 0;
 int myBPS;
-
-void openMixer() {
-	mixerFile = open("/dev/mixer",O_WRONLY);
-}
-
-void closeMixer() {
-	close(mixerFile);
-	mixerFile = -1; // -10 means, "try me".
-}
 
 void streamThisChannel(int source, int bytesToStream, int offset) {
 	SNDFILE *wavfile;
