@@ -197,3 +197,14 @@ float tx,float ty, char *descr) ;
 
 float calc_vector_length( struct pt p );
 void normalize_vector(struct pt *vec);
+
+void fwnorprint (float *norm);
+
+
+/* Triangulator extern defs - look in CFuncs/Tess.c */
+extern struct VRML_PolyRep *global_tess_polyrep;
+extern GLUtriangulatorObj *global_tessobj;
+extern int global_IFS_Coords[];
+extern int global_IFS_Coord_count;
+
+
