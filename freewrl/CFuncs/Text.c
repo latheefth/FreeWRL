@@ -52,6 +52,8 @@ D_OPENGL;
 #include <stdio.h>
 
 #include <ft2build.h>
+#include <ftoutln.h>
+
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
@@ -83,9 +85,9 @@ char thisfontname[fp_name_len];
 float pen_x, pen_y;
 
 
-float x_size;		// size of chars from file
-float y_size;		// size of chars from file
-int   myff;		// which index into font_face are we using 
+float x_size;		/* size of chars from file */
+float y_size;		/* size of chars from file */
+int   myff;		/* which index into font_face are we using  */
 
 
 /* for keeping track of tesselated points */
@@ -106,11 +108,37 @@ int FW_Vertex;
 /* flag to determine if we need to call the open_font call */ 
 int started = FALSE;
 
+/* function prototypes */
+void FW_NewVertexPoint(float Vertex_x, float Vertex_y);
+int FW_moveto (FT_Vector* to, void* user);
+int FW_lineto(FT_Vector* to, void* user);
+int FW_conicto(FT_Vector* control, FT_Vector* to, void* user);
+int FW_cubicto(FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user);
+void FW_make_fontname (int num);
+int FW_init_face(void);
+float FW_extent (int start, int length);
+FT_Error FW_Load_Char(int idx);
+void FW_draw_outline(FT_OutlineGlyph oglyph);
+void FW_draw_character(FT_Glyph glyph);
+void FW_rendertext(int numrows,SV **p,
+				   int nl,
+				   float *length,
+				   float maxext,
+				   float spacing,
+				   float mysize,
+				   unsigned int fsparam,
+				   struct VRML_PolyRep *rp);
+int open_font(void);
+
+
 void FW_NewVertexPoint (float Vertex_x, float Vertex_y) {
 	GLdouble v2[3];
 
-	//printf ("FW_NewVertexPoint setting coord index %d %d %d\n",
-	//	FW_pointctr, FW_pointctr*3+2,FW_rep_->coord[FW_pointctr*3+2]);
+	UNUSED(Vertex_x);
+	UNUSED(Vertex_y);
+
+	/* printf ("FW_NewVertexPoint setting coord index %d %d %d\n", */
+	/* 	FW_pointctr, FW_pointctr*3+2,FW_rep_->coord[FW_pointctr*3+2]); */
 	FW_rep_->coord[FW_pointctr*3+0] = OUT2GL(last_point.x + pen_x);
 	FW_rep_->coord[FW_pointctr*3+1] = OUT2GL(last_point.y) + pen_y;
 	FW_rep_->coord[FW_pointctr*3+2] = 0.0;
@@ -147,8 +175,8 @@ void FW_NewVertexPoint (float Vertex_x, float Vertex_y) {
 
   }
 
-int FW_moveto ( FT_Vector* to, void* user) {
-
+int FW_moveto (FT_Vector* to, void* user) {
+	UNUSED(user);
 
 	/* Have we started a new line */
 	if (contour_started) {
@@ -166,17 +194,17 @@ int FW_moveto ( FT_Vector* to, void* user) {
     return 0;
 }
 
-int FW_lineto ( FT_Vector* to, void* user) {
-
+int FW_lineto (FT_Vector* to, void* user) {
+	UNUSED(user);
 
 	if ((last_point.x == to->x) && (last_point.y == to->y)) {
-		// printf ("FW_lineto, early return\n");
+		/* printf ("FW_lineto, early return\n"); */
 		return 0;
 	}
 
 	last_point.x = to->x; last_point.y = to->y;
 	if (TextVerbose) {
-		printf ("FW_lineto, going to %d %d\n",to->x, to->y);
+		printf ("FW_lineto, going to %ld %ld\n",to->x, to->y);
 	}
 
 	FW_NewVertexPoint(OUT2GL(last_point.x+pen_x), OUT2GL(last_point.y + pen_y));
@@ -185,18 +213,18 @@ int FW_lineto ( FT_Vector* to, void* user) {
 }
 
 
-int FW_conicto ( FT_Vector* control, FT_Vector* to, void* user) {
+int FW_conicto (FT_Vector* control, FT_Vector* to, void* user) {
 	FT_Vector ncontrol;
 
-	// Bezier curve calcs; fairly rough, but makes ok characters
+	/* Bezier curve calcs; fairly rough, but makes ok characters */
 
 	if (TextVerbose)
 		printf ("FW_conicto\n");
 	ncontrol.x =(int) ((float) 0.25*last_point.x + 0.5*control->x + 0.25*to->x),
 	ncontrol.y =(int) ((float) 0.25*last_point.y + 0.5*control->y + 0.25*to->y),
 
-	//printf ("Cubic points (%d %d) (%d %d) (%d %d)\n", last_point.x,last_point.y,
-	//	ncontrol.x, ncontrol.y, to->x,to->y);
+	/* printf ("Cubic points (%d %d) (%d %d) (%d %d)\n", last_point.x,last_point.y, */
+	/* 	ncontrol.x, ncontrol.y, to->x,to->y); */
 
 	FW_lineto (&ncontrol,user);
 	FW_lineto (to,user);
@@ -204,8 +232,8 @@ int FW_conicto ( FT_Vector* control, FT_Vector* to, void* user) {
 	return 0;
 }
 
-int FW_cubicto ( FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user) {
-	GLdouble *v2;
+int FW_cubicto (FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* user) {
+	/* GLdouble *v2; */
 
 	/* really ignore control points */
 	if (TextVerbose)
@@ -219,8 +247,8 @@ int FW_cubicto ( FT_Vector* control1, FT_Vector* control2, FT_Vector* to, void* 
 
 
 /* make up the font name */
-FW_make_fontname (int num) {
-	int i;
+void FW_make_fontname (int num) {
+	/* int i; */
 
 /*
                         bit:    0       BOLD        (boolean)
@@ -230,28 +258,28 @@ FW_make_fontname (int num) {
                         bit:    4       TYPEWRITER
 */
 
-strcpy (thisfontname, sys_fp);
-		switch (num) {
-			/* Serif, norm, bold, italic, bold italic */
-			case 0x04: strcat (thisfontname,"/Amrigon.ttf"); break;
-			case 0x05: strcat (thisfontname,"/Amrigob.ttf"); break;
-			case 0x06: strcat (thisfontname,"/Amrigoi.ttf"); break;
-			case 0x07: strcat (thisfontname,"/Amrigobi.ttf"); break;
+	strcpy (thisfontname, sys_fp);
+	switch (num) {
+		/* Serif, norm, bold, italic, bold italic */
+	case 0x04: strcat (thisfontname,"/Amrigon.ttf"); break;
+	case 0x05: strcat (thisfontname,"/Amrigob.ttf"); break;
+	case 0x06: strcat (thisfontname,"/Amrigoi.ttf"); break;
+	case 0x07: strcat (thisfontname,"/Amrigobi.ttf"); break;
 
-			/* Sans, norm, bold, italic, bold italic */
-			case 0x08: strcat (thisfontname,"/Baubodn.ttf"); break;
-			case 0x09: strcat (thisfontname,"/Baubodn.ttf"); break;
-			case 0x0a: strcat (thisfontname,"/Baubodi.ttf"); break;
-			case 0x0b: strcat (thisfontname,"/Baubodbi.ttf"); break;
+		/* Sans, norm, bold, italic, bold italic */
+	case 0x08: strcat (thisfontname,"/Baubodn.ttf"); break;
+	case 0x09: strcat (thisfontname,"/Baubodn.ttf"); break;
+	case 0x0a: strcat (thisfontname,"/Baubodi.ttf"); break;
+	case 0x0b: strcat (thisfontname,"/Baubodbi.ttf"); break;
 
-			/* Typewriter, norm, bold, italic, bold italic */
-			case 0x10: strcat (thisfontname,"/Futuran.ttf"); break;
-			case 0x11: strcat (thisfontname,"/Futurab.ttf"); break;
-			case 0x12: strcat (thisfontname,"/Futurabi.ttf"); break;
-			case 0x13: strcat (thisfontname,"/Futurabi.ttf"); break;
+		/* Typewriter, norm, bold, italic, bold italic */
+	case 0x10: strcat (thisfontname,"/Futuran.ttf"); break;
+	case 0x11: strcat (thisfontname,"/Futurab.ttf"); break;
+	case 0x12: strcat (thisfontname,"/Futurabi.ttf"); break;
+	case 0x13: strcat (thisfontname,"/Futurabi.ttf"); break;
 
-			default: printf ("dont know how to handle font id %x\n",num);
-		}
+	default: printf ("dont know how to handle font id %x\n",num);
+	}
 }
 
 
@@ -329,7 +357,7 @@ void FW_draw_outline (FT_OutlineGlyph oglyph) {
 	int thisptr;
 	int retval;
 
-	// JAS gluTessBeginPolygon(global_tessobj,NULL);
+	/* JAS gluTessBeginPolygon(global_tessobj,NULL); */
 	gluBeginPolygon(global_tessobj);
 	FW_Vertex = 0;
 
@@ -337,10 +365,10 @@ void FW_draw_outline (FT_OutlineGlyph oglyph) {
 	retval = FT_Outline_Decompose (&oglyph->outline, &FW_outline_interface, &thisptr);
 
 	if (contour_started) {
-		// glEnd();
+		/* glEnd(); */
 	}
 
-	//gluTessEndPolygon(global_tessobj);
+	/* gluTessEndPolygon(global_tessobj); */
 	gluEndPolygon(global_tessobj);
 
 	if (retval != FT_Err_Ok) printf ("FT_Outline_Decompose, error %d\n");	
@@ -348,7 +376,7 @@ void FW_draw_outline (FT_OutlineGlyph oglyph) {
 
 
 /* draw a glyph object */
-FW_draw_character (FT_Glyph glyph) {
+void FW_draw_character (FT_Glyph glyph) {
 
 	if (glyph->format == ft_glyph_format_outline) {
 		FW_draw_outline ((FT_OutlineGlyph) glyph);
@@ -368,12 +396,13 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 		float maxext, float spacing, float mysize, unsigned int fsparam,
 		struct VRML_PolyRep *rp) {
 	char *str;
-	int i,gindex,row;
-	int contour; int point;
-	int err;
+	int i/* ,gindex */,row;
+	/* int contour; */
+	/* int point; */
+	/* int err; */
 	float shrink = 0;
 	float rshrink = 0;
-	int flag;
+	/* int flag; */
 	int counter=0;
 	int char_count=0;
 	int est_tri=0;
@@ -431,8 +460,8 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 
 	pen_x = 0.0; pen_y = 0.0;
 	cur_glyph = 0;
-	x_size = mysize;		// global variable for size
-	y_size = mysize;		// global variable for size
+	x_size = mysize;		/* global variable for size */
+	y_size = mysize;		/* global variable for size */
 
 
 	/* is this font opened */
@@ -509,7 +538,7 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 
 	/* leftToRight */
 	if (LEFTTORIGHT) {
-		glRotatef (180,0,1,0);
+		glRotated(180.0,0.0,1.0,0.0);
 	}
 
 
@@ -525,8 +554,8 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 		if(row < nl && length[row]) {
 			rshrink = length[row] / OUT2GL(rowlen);
 		}
-		if(shrink) { glScalef(shrink,1,1); }
-		if(rshrink) { glScalef(rshrink,1,1); }
+		if(shrink) { glScaled(shrink,1.0,1.0); }
+		if(rshrink) { glScaled(rshrink,1.0,1.0); }
 
 
 		/* Justify, FIRST, BEGIN, MIDDLE and END */
@@ -536,14 +565,14 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 
 		/* END */
 		if ((fsparam & 0x1000) & (fsparam & 0x01)) {
-			//printf ("rowlen is %f\n",rowlen);
+			/* printf ("rowlen is %f\n",rowlen); */
 			pen_x = -rowlen;
 		}
 
 
 		for(i=0; i<strlen(str); i++) {
-			FT_UInt glyph_index;
-			int error;
+			/* FT_UInt glyph_index; */
+			/* int error; */
 			int x;
 
 			global_IFS_Coord_count = 0;
@@ -556,24 +585,24 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 			 * the rep structure */
 
 			for (x=0; x<global_IFS_Coord_count; x++) {
-				//printf ("copying %d\n",global_IFS_Coords[x]);
-				//
-				//did the tesselator give us back garbage?
+				/* printf ("copying %d\n",global_IFS_Coords[x]); */
+
+				/* did the tesselator give us back garbage? */
 
 				if ((global_IFS_Coords[x] >= cindexmaxsize) ||
 				   (indx_count >= cindexmaxsize) ||
 				   (global_IFS_Coords[x] < 0)) {
-					//if (TextVerbose) 
-					//printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n",
-					//	     global_IFS_Coords[x],indx_count,cindexmaxsize,global_IFS_Coord_count);
-					// just use last point - this sometimes happens when
-					// we have intersecting lines. Lets hope first point is
-					// not invalid... JAS
+					/* if (TextVerbose)  */
+					/* printf ("Tesselated index %d out of range; skipping indx_count, %d cindexmaxsize %d global_IFS_Coord_count %d\n", */
+					/* 	     global_IFS_Coords[x],indx_count,cindexmaxsize,global_IFS_Coord_count); */
+					/* just use last point - this sometimes happens when */
+					/* we have intersecting lines. Lets hope first point is */
+					/* not invalid... JAS */
 					FW_rep_->cindex[indx_count] = FW_rep_->cindex[indx_count-1];
 					if (indx_count < (cindexmaxsize-1)) indx_count ++;
 				} else {	
-					//printf ("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],indx_count);
-					//printf ("filling up cindex; index %d now points to %d\n",indx_count,global_IFS_Coords[x]);
+					/* printf ("global_ifs_coords is %d indx_count is %d \n",global_IFS_Coords[x],indx_count); */
+					/* printf ("filling up cindex; index %d now points to %d\n",indx_count,global_IFS_Coords[x]); */
 					FW_rep_->cindex[indx_count++] = global_IFS_Coords[x];
 				}
 			}
@@ -594,11 +623,11 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
 	FW_rep_->ntri=indx_count/3;
 
-	// if indx count is zero, DO NOT get rid of mallocd memory - creates a bug as pointers cant be null
+	/* if indx count is zero, DO NOT get rid of mallocd memory - creates a bug as pointers cant be null */
 	if (indx_count !=0) {
-		//realloc bug in linux - this causes the pointers to be eventually lost...
-		//realloc (FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*indx_count);
-		//realloc (FW_rep_->coord,sizeof(*(FW_rep_->coord))*FW_pointctr*3);
+		/* realloc bug in linux - this causes the pointers to be eventually lost... */
+		/* realloc (FW_rep_->cindex,sizeof(*(FW_rep_->cindex))*indx_count); */
+		/* realloc (FW_rep_->coord,sizeof(*(FW_rep_->coord))*FW_pointctr*3); */
 	}
 
 	/* now, generate normals */
@@ -656,6 +685,8 @@ open_font() {
 		font_opened[len] = FALSE;
 	}
 
-	if(err = FT_Init_FreeType(&library))
-		  die("FreeWRL FreeType Initialize error %d\n",err);
+	if ((err = FT_Init_FreeType(&library)))
+		  fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
+
+	return err;
 }

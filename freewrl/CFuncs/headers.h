@@ -158,10 +158,6 @@ extern GLint global_texSize;
 extern char sys_fp[fp_name_len];
 
 
-/* Sound stuff */
-float SoundSourceInit (int sourcenum, int loop, float pitch,
-			float start_time, float stop_time, char *url);
-
 extern float AC_LastDuration[];
 
 extern int SoundEngineStarted;
@@ -189,18 +185,9 @@ int verify_translate(GLfloat *params);
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 
 void mark_event (unsigned int from, unsigned int fromoffset);
-void do_OintScalar (void *px);
-void do_OintCoord(void *px);
-void do_Oint3 (void *px);
-void do_Oint4 (void *px);
 
 /* saved rayhit and hyperhit */
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
-
-void do_TouchSensor (struct VRML_TouchSensor *px, char *typ, int over);
-void do_SphereSensor (struct VRML_SphereSensor *px, char *typ, int over);
-void do_CylinderSensor (struct VRML_CylinderSensor *px, char *typ, int over);
-void do_PlaneSensor (struct VRML_PlaneSensor *px, char *typ, int over);
 
 
 /* bindable nodes */
