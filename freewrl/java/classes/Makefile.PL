@@ -36,7 +36,7 @@ $source
 
 CLASSES=\$(SOURCE:.java=.class)
 
-JFLAGS=-classpath .
+JFLAGS=-classpath .:$VRML_CONFIG{NETSCAPE_CLASSES}/java40.jar
 };
 	if ($VRML_CONFIG{NETSCAPE_CLASSES}) {
 	    $constants .= qq{
