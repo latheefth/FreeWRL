@@ -308,7 +308,7 @@ INST_DYNAMIC_DEP =
 		push(@postamble, join(
 				"\n",
 				qq{\# --- VRML::VRMLFunc:\n},
-				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm VRMLExtrusion.pm},
+				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm},
 				qq{\t\$(PERL) VRMLC.pm\n},
 			 ));
 
