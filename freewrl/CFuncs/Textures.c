@@ -127,9 +127,6 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	int rowcount, columncount, dp;
 
 	/* assume a jpeg file, unless shown otherwise */
-	int jpeg_file = 1;
-
-	int fnamelen;
 
 	/* temp variable */
 	int count;
@@ -157,24 +154,17 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	}
 	isloaded[texture_num] = 1;  // for next time...
 
-	/* determine whether it is a jpeg file, or a png file */
-	fnamelen = strlen(filename);
-	if (fnamelen >= 4) {
-		char last4[4];
-		last4[0] = tolower (filename[fnamelen-3]);
-		last4[1] = tolower (filename[fnamelen-2]);
-		last4[2] = tolower (filename[fnamelen-1]);
-		last4[3] = 0;
-		jpeg_file = (strcmp(last4,"png"));
-	}
-	
-
 	/* read in the file from the local file system */	
 	if (!(infile = fopen(filename, "rb"))) {
 		printf("can not open ImageTexture file [%s]\n", filename);
 	} else {
-		
-		if (jpeg_file) {
+		if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
+
+			/* it is not a png file - assume a jpeg file */
+			/* start from the beginning again */
+
+			rewind (infile);
+			
 			/* see http://www.the-labs.com/JPEG/libjpeg.html for details */
 			
 			/* Select recommended processing options for quick-and-dirty output. */
@@ -230,7 +220,8 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 
 			free(image_data);
 		} else {
-			if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
+			//JAS if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
+			if (rc != 0) {
 			switch (rc) {
 				case 1:
 					printf("[%s] is not a PNG file: incorrect signature\n", filename);
