@@ -826,6 +826,17 @@ void setBrowserURL(char* file) {
         strcpy(BrowserURL, file);
 }
 
+void setFullPath(char* file) {
+	int count;
+	count = strlen(file);
+	if (BrowserFullPath != NULL) {
+		free (BrowserFullPath);
+	}
+	BrowserFullPath = malloc ((strlen(file)+1) * sizeof (char));
+	strcpy(BrowserFullPath, file);
+}
+
+
 void initFreewrl() {
         threadmsg = "event loop";
         pthread_create(&mythread, NULL, (void *) aqDisplayThread, (void*) threadmsg);
@@ -896,8 +907,8 @@ void setSeqTemp(char* file) {
 void doQuit(void) {
 #ifndef AQUA
 	resetGeometry();
-#endif
 	if (wantEAI) shutdown_EAI();
+#endif
 	exit(0);
 }
 
