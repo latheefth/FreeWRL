@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.20  2000/12/18 21:16:56  crc_canada
+# IndexedFaceSet colorIndex and colorPerVertex now working correctly.
+#
 # Revision 1.19  2000/12/13 14:40:21  crc_canada
 # Bug with texcoords field and Extrusions. (not being zeroed)
 #
@@ -589,6 +592,7 @@ IndexedFaceSet => '
 	int tcin = $f_n(texCoordIndex);
         struct SFVec2f *texCoords; 
 	int ntexCoords = 0;
+	int colin = $f_n(colorIndex); 	/* colorIndex number 	*/
 
         /* texture coords */
         $fv_null(texCoord, texCoords, get2, &ntexCoords);
@@ -603,7 +607,7 @@ IndexedFaceSet => '
 	/* IndexedFaceSet coords */
 	$fv(coord, points, get3, &npoints);
 	$fv_null(normal, normals, get3, &nnormals);
-	/*
+	
 	printf ("points = %lx \n",npoints);
 	for (i=0; i<npoints; i++)
 	  printf ("\t point #%d = [%.5f %.5f %.5f]\n", i,
@@ -613,9 +617,7 @@ IndexedFaceSet => '
 	for (i=0; i<nnormals; i++)
 	  printf ("\t normal #%d = [%.5f %.5f %.5f]\n", i,
 		normals[i].c[0], normals[i].c[1], normals[i].c[2]);
-	*/
 
-	
         if(tcin == 0 && ntexCoords != 0 && ntexCoords != npoints) {
            die("Invalid number of texture coordinates");
         }
@@ -646,55 +648,86 @@ IndexedFaceSet => '
 		rep_->normal = NULL;
 		rep_->norindex = NULL;
 	}
-	/* color = NULL; coord = NULL; normal = NULL;
-		colindex = NULL; norindex = NULL; tcindex = NULL;
-	*/
 	if(!$f(convex)) {
                /* Begin a non-convex polygon */
                gluBeginPolygon( global_tessobj );
 
 	} /* else */ {  
+		/* coord indexes */
 		int initind=-1;
 		int lastind=-1;
+		/* texture coord indexes */
 		int inittcind=-1;
 		int lasttcind=-1;
+		/* color index indexes */
+		int initcolind=-1;
+		int lastcolind=-1;
+		
 		int triind = 0;
 		curpoly = 0;
 		for(i=0; i<cin; i++) {
-			/* printf ("Coord index is %d\n",$f(coordIndex,i)); */
+			printf ("count is %d Coord index is %d\n",i,$f(coordIndex,i));
 
 			if($f(coordIndex,i) == -1) {
 				initind=-1;
 				lastind=-1;
                                 inittcind = -1;
                                 lasttcind = -1;
+				initcolind=-1;
+				lastcolind=-1;
 				curpoly ++;
 			} else {
 				if(initind == -1) {
 					/* printf ("initind == -1\n"); */
 					initind = $f(coordIndex,i);
 					if(tcin) inittcind = $f(texCoordIndex,i);
+					if(colin) initcolind = $f(colorIndex,i);
 				} else if(lastind == -1) {
 					/* printf ("lastind == -1\n"); */
 					lastind = $f(coordIndex,i);
 					if(tcin) lasttcind = $f(texCoordIndex,i);
+					if(colin) lastcolind = $f(colorIndex,i);
 				} else {
 					cindex[triind*3+0] = initind;
 					cindex[triind*3+1] = lastind;
 					cindex[triind*3+2] = $f(coordIndex,i);
 
+					/* colorIndex bounds check */
+        				if (colin && cpv &&(colin <=i)) {
+						printf ("IFS - colorIndex too small\n");
+						colin = 0; 
+					} else if (colin && (colin<=curpoly)) {
+						printf ("IFS - colorIndex too small\n");
+						colin = 0; 
+					}
+
+
+					/* colour index */
 					if(cpv) {
-						/* printf ("cpv, %d %d %d\n",initind,lastind,
-							$f(coordIndex,i)); */
+						if (colin) {
+						colindex[triind*3+0] = initcolind;
+						colindex[triind*3+1] = lastcolind;
+						colindex[triind*3+2] = $f(colorIndex,i);
+						} else {
 						colindex[triind*3+0] = initind;
 						colindex[triind*3+1] = lastind;
 						colindex[triind*3+2] = $f(coordIndex,i);
+						}
 					} else {
 						/* printf ("cpv, %d %d %d\n",
 							curpoly, curpoly, curpoly); */
+						if (colin) {
+						colindex[triind*3+0] = 
+								$f(colorIndex,curpoly);
+						colindex[triind*3+1] = 
+								$f(colorIndex,curpoly);
+						colindex[triind*3+2] = 
+								$f(colorIndex,curpoly);
+						} else {
 						colindex[triind*3+0] = curpoly;
 						colindex[triind*3+1] = curpoly;
 						colindex[triind*3+2] = curpoly;
+						}
 					}
 
 					if(rep_->normal) {
@@ -1595,17 +1628,18 @@ void render_polyrep(void *node,
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
-
-	/* 
+	/*
 	printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, p->_change, r->_change, r->ntri);
 	printf ("	npoints %d ncolors %d nnormals %d\n",points,colors,normals);
 	printf("         ntexcoords = %d    texcoords = 0x%lx\n",ntexcoords, texcoords);
 	*/
 
+	/* Do we have any colours?	*/
 	hasc = (ncolors || r->color);
 	if(hasc) {
 		glEnable(GL_COLOR_MATERIAL);
 	}
+
 	glBegin(GL_TRIANGLES);
 	for(i=0; i<r->ntri*3; i++) {
 		int nori = i;
@@ -1614,19 +1648,25 @@ void render_polyrep(void *node,
 		int ind = r->cindex[i];
 		GLfloat color[4];
 
+		
 		/*
 		printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
 		printf ("rp, r->norindex %d  r->colindex %d, r->tcindex %d\n",r->norindex,  r->colindex, r->tcindex);
 		*/
+	
 
+		/* get normals and colors, if any	*/
 		if(r->norindex) {nori = r->norindex[i];}
 		else nori = ind;
-		if(r->colindex) {coli = r->colindex[i];}
+		if(r->colindex) {
+			coli = r->colindex[i];
+		}
 		else coli = ind;
-		/* printf ("rp, going for the tcindex...\n"); */
 
+		/* get texture coordinates, if any	*/
 		if(r->tcindex) {tci = r->tcindex[i];}
-		/* printf ("here1 nori %d coli %d tci %d\n",nori,coli,tci); */
+
+		/* get the normals, if there are any	*/
 		if(nnormals) {
 			if(nori >= nnormals) {
 				warn("Too large normal index -- help??");
@@ -1635,9 +1675,9 @@ void render_polyrep(void *node,
 		} else if(r->normal) {
 			glNormal3fv(r->normal+3*nori);
 		}
-		/* printf ("here2\n"); */
+
 		if(hasc && prevcolor != coli) {
-			if(ncolors) {
+			if(ncolors) { 
 				/* ColorMaterial -> these set Material too */
 				glColor3fv(colors[coli].c);
 			} else if(r->color) {
@@ -1645,12 +1685,16 @@ void render_polyrep(void *node,
 			}
 		}
 		prevcolor = coli;
-		/* printf ("here3\n"); */
+
+
+		/* Textures	*/
 		if(texcoords && ntexcoords) {
 		  	/* printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] ); */
 			/* fflush(stdout); */
 		  	glTexCoord2fv(texcoords[tci].c);
 		} /* TODO RCS: Complete use of texCoordIndex */
+
+		/* Coordinate points	*/
 		if(points) {
 		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] );  */
 			/*fflush(stdout);*/
@@ -1872,11 +1916,10 @@ void render_node(void *node) {
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
-	
 	if(verbose)
 	  {
 	    printf("=========================================NODE RENDERED===================================================\n");
-	    printf("Render_node_v %d (%s) %d %d %d %d RAY: %d HYP: %d\n",v,
+	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
 		   v->name, 
 		   v->prep, 
 		   v->rend, 
@@ -1893,12 +1936,14 @@ void render_node(void *node) {
 
 	if(p->_change != p->_ichange && v->changed) 
 	  {
+	    if (verbose) printf ("rs 1\n");
 	    v->changed(node);
 	    p->_ichange = p->_change;
 	  }
 
 	if(render_anything && v->prep) 
 	  {
+	    if (verbose) printf ("rs 2\n");
 	    v->prep(node);
 	    if(render_sensitive && !hypersensitive) 
 	      {
@@ -1907,10 +1952,12 @@ void render_node(void *node) {
 	  }
 	if(render_anything && render_geom && !render_sensitive && v->rend) 
 	  {
+	    if (verbose) printf ("rs 3\n");
 	    v->rend(node);
 	  }
 	if(render_anything && render_light && v->light) 
 	  {
+	    if (verbose) printf ("rs 4\n");
 	    v->light(node);
 	  }
 	/* Future optimization: when doing VP/Lights, do only 
@@ -1919,6 +1966,7 @@ void render_node(void *node) {
 	 */
 	if(render_anything && render_sensitive && p->_sens) 
 	  {
+	    if (verbose) printf ("rs 5\n");
 	    srg = render_geom;
 	    render_geom = 1;
 	    if(verbose) printf("CH1 %d: %d\n",node, cur_hits, p->_hit);
@@ -1932,19 +1980,23 @@ void render_node(void *node) {
 	  }
 	if(render_anything && render_geom && render_sensitive && !hypersensitive && v->rendray) 
 	  {
+	    if (verbose) printf ("rs 6\n");
 	    v->rendray(node);
 	  }
 	if(hypersensitive == node) 
 	  {
+	    if (verbose) printf ("rs 7\n");
 	    hyper_r1 = t_r1;
 	    hyper_r2 = t_r2;
 	    hyperhit = 1;
 	  }
 	if(render_anything && v->children) {
+	    if (verbose) printf ("rs 8\n");
 	  v->children(node);
 	}
 	if(render_anything && render_sensitive && p->_sens) 
 	  {
+	    if (verbose) printf ("rs 9\n");
 	    render_geom = srg;
 	    cur_hits = sch;
 	    if(verbose) printf("CH3: %d %d\n",cur_hits, p->_hit);
@@ -1953,12 +2005,14 @@ void render_node(void *node) {
 	  }
 	if(render_anything && v->fin) 
 	  {
+	    if (verbose) printf ("rs A\n");
 	    v->fin(node);
 	    if(render_sensitive && v == &virt_Transform) 
 	      { 
 		upd_ray();
 	      }
 	  }
+	if (verbose) printf("(end render_node)\n");
 }
 
 /*
