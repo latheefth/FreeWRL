@@ -37,15 +37,15 @@ DEF index3XForm Transform { center 0 2.0 0 children [ Transform { translation 0 
  ] }
 
 
-ROUTE index1Clicker.touchTime TO index1TimeSource.startTime
-ROUTE index1Clicker.touchTime TO index2TimeSource.startTime
-ROUTE index1Clicker.touchTime TO index3TimeSource.startTime
+ROUTE index1Clicker.touchTime TO index1TimeSource.set_startTime
+ROUTE index1Clicker.touchTime TO index2TimeSource.set_startTime
+ROUTE index1Clicker.touchTime TO index3TimeSource.set_startTime
 ROUTE index1TimeSource.fraction_changed TO index1Animation.set_fraction
-ROUTE index1Animation.value_changed TO index1XForm.rotation
-ROUTE index2Clicker.touchTime TO index2TimeSource.startTime
-ROUTE index2Clicker.touchTime TO index3TimeSource.startTime
+ROUTE index1Animation.value_changed TO index1XForm.set_rotation
+ROUTE index2Clicker.touchTime TO index2TimeSource.set_startTime
+ROUTE index2Clicker.touchTime TO index3TimeSource.set_startTime
 ROUTE index2TimeSource.fraction_changed TO index2Animation.set_fraction
-ROUTE index2Animation.value_changed TO index2XForm.rotation
-ROUTE index3Clicker.touchTime TO index3TimeSource.startTime
+ROUTE index2Animation.value_changed TO index2XForm.set_rotation
+ROUTE index3Clicker.touchTime TO index3TimeSource.set_startTime
 ROUTE index3TimeSource.fraction_changed TO index3Animation.set_fraction
-ROUTE index3Animation.value_changed TO index3XForm.rotation
+ROUTE index3Animation.value_changed TO index3XForm.set_rotation
