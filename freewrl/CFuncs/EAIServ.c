@@ -21,6 +21,10 @@
 #include "Viewer.h"
 #include <sys/time.h>
 
+#ifdef __APPLE__
+#include <sys/socket.h>
+#endif
+
 extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
 
 
