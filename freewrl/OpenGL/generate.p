@@ -8,6 +8,10 @@
 #
 # Bits based on Tk and ideas in there.
 #
+# this stops it running... JAS
+
+this is not to be run automatically.
+
 
 sub maybe {map {-e $_ ? $_ : ()} @_}
 @types = qw|X.h /usr/include/GL/gl.h /usr/include/GL/glx.h|;
@@ -26,7 +30,7 @@ push @types, maybe qw|/usr/include/GL/glxtokens.h|;
 push @dontfuncs, qw|glPolygonOffset glPushClientAttrib glPopClientAttrib
 	glIndexub glIndexubv glVertexPointer glNormalPointer glColorPointer
 	glIndexPointer glTexCoordPointer glEdgeFlagPointer glArrayElement
-	glDrawArrays glDrawElements glInterleavedArrays glGenTextures
+	glDrawArrays glDrawElements glInterleavedArrays 
 	glDeleteTextures glBindTexture glPrioritizeTextures glAreTexturesResident
 	glIsTexture glTexSubImage1D glTexSubImage2D glCopyTexImage1D
 	glCopyTexImage2D glCopyTexSubImage1D glCopyTexSubImage2D
