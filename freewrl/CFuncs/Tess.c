@@ -82,7 +82,7 @@ void FW_tess_error(GLenum e) {
 
 void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
-	printf("FW_tess_combine\n");
+	//printf("FW_tess_combine\n");
 	nv[0] = c[0];
 	nv[1] = c[1];
 	nv[2] = c[2];
