@@ -73,6 +73,7 @@ int main (int argc, char **argv) {
 #ifndef AQUA
 	/* set the screen width and height before getting into arguments */
 	screenWidth = 450; screenHeight=300;
+	fullscreen = 0;
 
 	/* parse command line arguments */
 	while (1) {
@@ -100,7 +101,7 @@ int main (int argc, char **argv) {
 			{"parent", 1, 0, 'x'},
 			{"shutter", 0, 0, 'x'},
 			{"eyedist", 1, 0, 'x'},
-			{"fullscreen", 0, 0, 'x'},
+			{"fullscreen", 0, 0, 'r'},
 			{"screendist", 1, 0, 'x'},
 			{"server", 1, 0, 'x'},
 			{"sig", 1, 0, 'x'},
@@ -135,6 +136,16 @@ int main (int argc, char **argv) {
 
 			case 'g':
 				setGeometry(optarg);
+				break;
+			
+			case 'r':
+				fullscreen = 1;
+#ifndef XF86V4
+				printf("\nFullscreen mode is only available for XFree86 version 4.\n");
+				printf("If you are running version 4, please add -DXF86V4 to your vrml.conf file\n");
+				printf("in the FREEWRL_DEFINES section, and add -lXxf86vm to the FREEWRL_LIBS section.\n");
+				fullscreen = 0;
+#endif
 				break;
 
 			case 'h':
@@ -261,4 +272,6 @@ void displayThread() {
 	while (1==1) {
 		EventLoop();
 	}
+	if (fullscreen)
+		resetGeometry();
 }
