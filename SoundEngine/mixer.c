@@ -10,9 +10,8 @@
 int mixerFile = -10; // -10 means "try me"
 
 
-int openMixer() {
+void openMixer() {
 	mixerFile = open("/dev/mixer",O_WRONLY);
-	return mixerFile;
 }
 
 
