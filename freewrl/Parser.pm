@@ -246,7 +246,11 @@ sub parse_route {
 		\s*($Word)\s*\.
 		\s*($Word)
 	/ogsxc or parsefail($_[1], "route statement");
-	$scene->new_route([$1,$2,$4,$5]);
+
+	# remember - we have our own internal names for these things...
+	my $rn = VRML::Field::SFNode::return_def_name($1);
+	my $trn = VRML::Field::SFNode::return_def_name($4);
+	$scene->new_route([$rn,$2,$trn,$5]);
 	if($3 !~ /TO\s+/) {
 		parsewarnstd($_[1],
 		   "lowercase or omission of TO");
@@ -268,6 +272,11 @@ VRML::Error->import;
 my %DEFNAMES = ();
 my $LASTDEF = 1;
 
+sub return_def_name {
+		my ($name) = @_;
+		return $DEFNAMES{$name};
+}
+
 sub parse {
 	my($type,$scene) = @_;
 	$_[2] =~ /\G\s*/gsc;
@@ -286,11 +295,12 @@ sub parse {
 
 		# store this as a sequence number, because multiple DEFS of the same name
 		# must be unique. (see the spec)
+		# if(defined $DEFNAMES{$1}) {print "duplicate DEF - $1\n";}
 		$DEFNAMES{$1} = "DEF$LASTDEF";
 		$LASTDEF++;
 		my $defname = $DEFNAMES{$1};
 		# my $defname = $1;
-		print "DEF $defname\n"
+		print "DEF $1 as $defname\n"
 			if $VRML::verbose::parse;
 
 
