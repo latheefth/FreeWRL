@@ -140,7 +140,7 @@ struct CRStruct {
 	int	act;
 	int	len;
 	void	(*interpptr)(void *);
-	int	script;
+	int	scr_direction;	/* if non-zero indicates script in/out */
 };
 
 /* Routing table */
@@ -343,6 +343,7 @@ void getMultiElementtype (char *strp, struct Multi_Vec3f *tn, int eleperinex) {
 
 	/* convert a series of numbers */
 	while (sscanf (strp,"%f",fl) == 1) {
+		if (JSVerbose) printf ("getMultiElementtype, read in %f left %d\n",fl,shouldfind);
 		fl ++;
 		shouldfind --;
 							
@@ -389,7 +390,7 @@ void setMultiElementtype (int num) {
 	len = CRoutes[num].len;
 	
 	if (CRVerbose) {
-		printf ("got a script event! index %d type %d\n",num,CRoutes[num].script);
+		printf ("got a script event! index %d type %d\n",num,CRoutes[num].scr_direction);
 		printf ("	from %x from ptr %x\n	to %x toptr %x\n",fn,fptr,tn,tptr);
 		printf ("	data length %d\n",len);
 		printf ("setMultiElementtype here tn %d tptr %d len %d\n",tn, tptr,len);
@@ -556,7 +557,7 @@ Register a route in the routing table.
 
 unsigned int CRoutes_Register (unsigned int from, int fromoffset, 
 			unsigned int to, int tooffset,
-			int length, void *intptr, int script) {
+			int length, void *intptr, int scrdir) {
 
 	int insert_here;
 	int shifter;
@@ -619,7 +620,7 @@ unsigned int CRoutes_Register (unsigned int from, int fromoffset,
 	CRoutes[insert_here].len = length;
 	CRoutes[insert_here].tnptr = tooffset;	
 	CRoutes[insert_here].interpptr = intptr;
-	CRoutes[insert_here].script = script;
+	CRoutes[insert_here].scr_direction = scrdir;
 
 	/* record that we have one more route, with upper limit checking... */
 	if (CRoutes_Count >= (MAXROUTES-2)) {
@@ -710,7 +711,7 @@ FIXME XXXXX =  can we do this without the string conversions?
 
 ********************************************************************/
 
-void gatherScriptEventOuts(int script, int ignore) {
+void gatherScriptEventOuts(int actualscript, int ignore) {
 	int route;	
 	char scriptline[100];
 	jsval retval;
@@ -736,9 +737,8 @@ void gatherScriptEventOuts(int script, int ignore) {
 
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
-	while (CRoutes[route].fromnode<script) route++;
-	while (CRoutes[route].fromnode == script) {
-
+	while (CRoutes[route].fromnode<actualscript) route++;
+	while (CRoutes[route].fromnode == actualscript) {
 		/* is this the same from node/field as before? */
 		if ((CRoutes[route].fromnode == CRoutes[route-1].fromnode) &&
 			(CRoutes[route].fnptr == CRoutes[route-1].fnptr) &&
@@ -749,7 +749,6 @@ void gatherScriptEventOuts(int script, int ignore) {
 			fromalready=FALSE;
 		}
 		
-		fn = CRoutes[route].fromnode;	
 		fptr = CRoutes[route].fnptr;
 		len = CRoutes[route].len;
 	
@@ -772,11 +771,11 @@ void gatherScriptEventOuts(int script, int ignore) {
 			case MFINT32:
 			case MFSTRING: {
 				sprintf (scriptline,"_%s__touched_flag",JSparamnames[fptr].name);
-				if (!ActualrunScript(script, scriptline ,&touched))
+				if (!ActualrunScript(actualscript, scriptline ,&touched))
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
 				
 				sprintf (scriptline,"_%s__touched_flag=0",JSparamnames[fptr].name);
-				if (!ActualrunScript(script, scriptline ,&retval)) 
+				if (!ActualrunScript(actualscript, scriptline ,&retval)) 
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
 				
 				break;
@@ -789,11 +788,11 @@ void gatherScriptEventOuts(int script, int ignore) {
 			//JAS case SFNODE:
 			case SFSTRING: {
 				sprintf (scriptline,"_%s_touched",JSparamnames[fptr].name);
-				if (!ActualrunScript(script, scriptline ,&touched)) 
+				if (!ActualrunScript(actualscript, scriptline ,&touched)) 
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
 				
 				sprintf (scriptline,"_%s_touched=0",JSparamnames[fptr].name);
-				if (!ActualrunScript(script, scriptline ,&retval)) 
+				if (!ActualrunScript(actualscript, scriptline ,&retval)) 
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
 				
 				break;
@@ -804,11 +803,11 @@ void gatherScriptEventOuts(int script, int ignore) {
 			case MFNODE:
 			case MFVEC2F: {
 				sprintf (scriptline,"%s.__touched_flag",JSparamnames[fptr].name);
-				if (!ActualrunScript(script, scriptline ,&touched)) 
+				if (!ActualrunScript(actualscript, scriptline ,&touched)) 
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
 
 				sprintf (scriptline,"%s.__touched_flag=0",JSparamnames[fptr].name);
-				if (!ActualrunScript(script, scriptline ,&retval)) 
+				if (!ActualrunScript(actualscript, scriptline ,&retval)) 
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
 
 				break;
@@ -819,7 +818,7 @@ void gatherScriptEventOuts(int script, int ignore) {
 			case SFROTATION:
 			case SFVEC2F: {
 				sprintf (scriptline,"%s.__touched()",JSparamnames[fptr].name);
-				if (!ActualrunScript(script, scriptline ,&touched)) 
+				if (!ActualrunScript(actualscript, scriptline ,&touched)) 
 					printf ("WARNING: failed to set parameter, line %s\n",scriptline);
 				break;
 				}
@@ -829,16 +828,16 @@ void gatherScriptEventOuts(int script, int ignore) {
 				}
 			}
 
-			strval = JS_ValueToString((JSContext *)JSglobs[script].cx, touched);
+			strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, touched);
 			strtouched = JS_GetStringBytes(strval);
 			if (JSVerbose) 
 				printf ("touched string is %s\n",strtouched);
 			if (*strtouched!='0') {
 				/* we did, so get the value */
-				if (!ActualrunScript(script, JSparamnames[fptr].name ,&retval)) {
+				if (!ActualrunScript(actualscript, JSparamnames[fptr].name ,&retval)) {
 					printf ("WARNING: Failed to get value, line %s\n",scriptline);
 				}
-				strval = JS_ValueToString((JSContext *)JSglobs[script].cx, retval);
+				strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
 			        strp = JS_GetStringBytes(strval);
 				if (JSVerbose) 
 					printf ("retval string is %s\n",strp);
@@ -959,7 +958,7 @@ void sendScriptEventIn(int num) {
 			 2: this is a to script route
 			 3: this is a from script to a script route */
 
-	if (CRoutes[num].script == 2) {
+	if (CRoutes[num].scr_direction == 2) {
 		/* get the value from the VRML structure, in order to propagate it to a script */
 
 		/* mark that this script has been active */
@@ -1000,7 +999,7 @@ void sendScriptEventIn(int num) {
 					JSparamnames[CRoutes[num].tnptr].type);}
 		}
 	} else {
-		printf ("WARNING: sendScriptEventIn, don't handle %d yet\n",CRoutes[num].script);
+		printf ("WARNING: sendScriptEventIn, don't handle %d yet\n",CRoutes[num].scr_direction);
 	}
 }
 
@@ -1041,9 +1040,10 @@ void propagate_events() {
 				/* we have this event found */
 				CRoutes[counter].act = FALSE;
 
-				if (CRoutes[counter].script != 0) {
+				if (CRoutes[counter].scr_direction != 0) {
 					/* scripts are a bit complex, so break this out */
 					sendScriptEventIn(counter);
+					//gatherScriptEventOuts (counter,TRUE);
 					if (scripts_active) havinterp = TRUE;
 				} else {
 
