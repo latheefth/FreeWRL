@@ -152,7 +152,9 @@ sub new {
 	# 0 - the object ref type (VRML::DEF)
 	# 1 - the name of the object
 	# 2 - the node of the object
+	# print "VRML::DEF, blessing ",$_[1], " and ",$_[2],"\n";
 	bless [$_[1],$_[2]],$_[0];
+
 }
 
 sub copy {
