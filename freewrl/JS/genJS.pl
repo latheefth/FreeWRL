@@ -270,6 +270,8 @@ cons_SFNode(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 	} else {
 		die("SFNode construction: invalid no of args");
 	}
+	/* should never get here, but compilers... */
+	return JS_FALSE;
 }
 
 #define meth_SFNode NULL
@@ -971,7 +973,7 @@ CODE:
 	ok = JS_EvaluateScript(cx, globalObj, str, strlen(str),
 		"bar", 15, &rval);
 	if(!ok) { printf("SCRFAIL\\n"); die("Addasgn script fail"); }
-    if(verbose) printf("Addasgn eval ok \\n",str);
+    if(verbose) printf("Addasgn eval ok \\n");
         JS_DefineProperty(cx, globalObj, name, rval,
                   NULL, NULL, 0 | JSPROP_ASSIGNHACK | JSPROP_PERMANENT ); /* */
 
