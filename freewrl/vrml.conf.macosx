@@ -5,6 +5,8 @@
 ############################################################################
 # don't touch this!!!
     PLATFORM => 'MACOSX',
+    BIN_DIR => "/usr/bin",
+    LIB_DIR => "/usr/lib",
 
 ############################################################################
 # Main defines for OpenGL, libjpeg, libpng, and freetype
