@@ -9,8 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "V1.11-pre2";
-
+$VERSION = "V1.11-pre1";
 
 BEGIN {
  eval "use 5.004";
@@ -55,16 +54,15 @@ if(defined $vrml_conf_file) {
  require $vrml_conf_file;
 }
 
-for(keys %VRML_CONFIG) {
-	if(!exists($VRML_CONFIG_DIST{$_})) {
-		die("Invalid key '$_' found in user supplied file '$vrml_conf_file'.
-This key may no longer be in use, or someone may have garbled the 'vrml.conf' 
-file in the distribution. Please correct and try again");
-	}
-}
+#JAS for(keys %VRML_CONFIG) {
+#JAS 	if(!exists($VRML_CONFIG_DIST{$_})) {
+#JAS 		die("Invalid key '$_' found in user supplied file '$vrml_conf_file'.
+#JAS This key may no longer be in use, or someone may have garbled the 'vrml.conf' 
+#JAS file in the distribution. Please correct and try again");
+#JAS 	}
+#JAS }
 
 %VRML_CONFIG = (%VRML_CONFIG_DIST, %VRML_CONFIG);
-
 
 $VRML_CONFIG{VERSION} = $VERSION;
 
@@ -109,55 +107,29 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$BUILD_OPT = 1;
 }
 
-# get the "system" commands in. 
-my $browser = "NONE";
-my $wget = "NONE";
-my $asciiterm = "NONE";
-my $convert = "NONE";
-my $unzip = "NONE";
-my $javainterp = "NONE";
-my $copier = "NONE";
-my $soundconv = "NONE";
+# check for the following items to be defined in vrml.conf:
+if (!defined $VRML_CONFIG{BROWSER}) { 
+	print "no Browser defined in vrml.conf, exiting...\n"; exit (1); }
+if (!defined $VRML_CONFIG{WGET}) { 
+	print "no WGET defined in vrml.conf, exiting...\n"; exit (1); }
+if (!defined $VRML_CONFIG{ASCIITERM}) { 
+	print "no ASCIITERM defined in vrml.conf, exiting...\n"; exit (1); }
+if (!defined $VRML_CONFIG{CONVERT}) {
+	print "no CONVERT defined in vrml.conf, exiting...\n"; exit (1); }
+if (!defined $VRML_CONFIG{UNZIP}) {
+	print "no UNZIP defined in vrml.conf, exiting...\n"; exit (1); }
+if (!defined $VRML_CONFIG{JAVA}) {
+	print "no JAVA defined in vrml.conf, exiting...\n"; exit (1); }
+if (!defined $VRML_CONFIG{COPIER}) {
+	print "no COPIER defined in vrml.conf, exiting...\n"; exit (1); }
+if (!defined $VRML_CONFIG{SOUNDCONV}) {
+	print "no SOUNDCONV defined in vrml.conf, exiting...\n"; exit (1); }
 
-if (defined $VRML_CONFIG{BROWSER}) { $browser = $VRML_CONFIG{BROWSER};
-} else { print "no Browser defined in vrml.conf, exiting...\n"; exit (1); }
-if (defined $VRML_CONFIG{WGET}) { $wget = $VRML_CONFIG{WGET};
-} else { print "no WGET defined in vrml.conf, exiting...\n"; exit (1); }
-if (defined $VRML_CONFIG{ASCIITERM}) { $asciiterm = $VRML_CONFIG{ASCIITERM};
-} else { print "no ASCIITERM defined in vrml.conf, exiting...\n"; exit (1); }
-if (defined $VRML_CONFIG{CONVERT}) { $convert = $VRML_CONFIG{CONVERT};
-} else { print "no CONVERT defined in vrml.conf, exiting...\n"; exit (1); }
-if (defined $VRML_CONFIG{UNZIP}) { $unzip = $VRML_CONFIG{UNZIP};
-} else { print "no UNZIP defined in vrml.conf, exiting...\n"; exit (1); }
-if (defined $VRML_CONFIG{JAVA}) { $javainterp = $VRML_CONFIG{JAVA};
-} else { print "no JAVA defined in vrml.conf, exiting...\n"; exit (1); }
-if (defined $VRML_CONFIG{COPIER}) { $copier = $VRML_CONFIG{COPIER};
-} else { print "no COPIER defined in vrml.conf, exiting...\n"; exit (1); }
-if (defined $VRML_CONFIG{SOUNDCONV}) { $soundconv = $VRML_CONFIG{SOUNDCONV};
-} else { print "no SOUNDCONV defined in vrml.conf, exiting...\n"; exit (1); }
 
-#push @ccflags, " -DBROWSER=\\\"$browser\\\" ";
-#push @ccflags, " -DWGET=\\\"$wget\\\" ";
-#push @ccflags, " -DASCIITERM=\\\"$asciiterm\\\" ";
-#push @ccflags, " -DCONVERT=\\\"$convert\\\" ";
-#push @ccflags, " -DUNZIP=\\\"$unzip\\\" ";
-#push @ccflags, " -DJAVA=\\\"$javainterp\\\" ";
-#push @ccflags, " -DCOPIER=\\\"$copier\\\" ";
-#push @ccflags, " -DSOUNDCONV=\\\"$soundconv\\\" ";
+if ($VRML_CONFIG{WARNINGS} eq "low") { push @ccflags, $warnings_low; }
+if ($VRML_CONFIG{WARNINGS} eq "medium") { push @ccflags, $warnings_low, $warnings_medium; }
 
-#print "ccflags is now ",@ccflags,"\n\n";
-
-if ($VRML_CONFIG{WARNINGS} eq "low") {
-	push @ccflags, $warnings_low;
-}
-
-if ($VRML_CONFIG{WARNINGS} eq "medium") {
-	push @ccflags, $warnings_low, $warnings_medium;
-}
-
-if ($VRML_CONFIG{WARNINGS} eq "high") {
-	push @ccflags, $warnings_low, $warnings_medium, $warnings_high;
-}
+if ($VRML_CONFIG{WARNINGS} eq "high") { push @ccflags, $warnings_low, $warnings_medium, $warnings_high; }
 
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 	print "MAKING WITH BOUNDSCHECKING ENABLED\n";
@@ -171,19 +143,7 @@ push @inc, $VRML_CONFIG{FREEWRL_INC},
 push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/", "-ljs";
 push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir", "-Lblib/arch/auto/VRML/VRMLFunc/";
 
-# Path to SoundServer binary
-push @inc, " -DSOUNDSERVERBINARY=\\\"$VRML_CONFIG{BIN_DIR}/FreeWRL_SoundServer\\\" ";
-
-# Path to installed fw2init.pl
-push @inc, " -DFW2INITPL=\\\"$VRML_CONFIG{BIN_DIR}/fw2init.pl\\\" ";
-
 # push build directory, for running standalone
-my $bdir = getcwd();
-push @inc, " -DBUILDDIR=\\\"$bdir\\\" ";
-
-#push Version to inc...
-push @inc, " -DFWVER=\\\"$VERSION\\\" ";
-
 
 $VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
@@ -191,6 +151,7 @@ $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 $VRML_CONFIG{LDFLAGS} = join(' ', @ldflags);
 $VRML_CONFIG{LIBJS_INST} = $sitearchjsdir;
 
+# write the Config.pm file.
 print STDERR "Writing Config.pm\n";
 open OUT, ">Config.pm" or die("Couldn't write to Config.pm");
 print OUT "# AUTOMATICALLY GENERATED BY TOP-LEVEL MAKEFILE.PL -- DO NOT EDIT\n\n\n";
@@ -217,23 +178,44 @@ print OUT qq(\$VRML::ENV{FREEWRL_BUILDDIR} = "$pwd";\n\n);
 print OUT "1;\n";
 close OUT;
 
-# lets write this stuff directly to a C header file.
+# print out the CFuncs/vrmlconf.c C header file.
 print STDERR "Writing CFuncs/vrmlconf.h\n";
 open OUT, ">CFuncs/vrmlconf.h" or die("Couldn't write to CFuncs/vrmlconf.h");
 print OUT "// AUTOMATICALLY GENERATED BY TOP-LEVEL MAKEFILE.PL -- DO NOT EDIT\n\n\n";
 
-for (keys %VRML_CONFIG) {
-	print OUT "#define\t$_\t\t";
-	if(defined $VRML_CONFIG{$_}) {
-		#print OUT '"',quotemeta($VRML_CONFIG{$_}),'"';
-                print OUT '"',$VRML_CONFIG{$_},'"';
-	} else {
-		print OUT "undef";
-	}
-	print OUT "\n";
-}
 
-print OUT "#define FREEWRL_BUILDDIR \"$pwd\"\n";
+# lets write some generated #defines.
+print OUT "#define BUILDDIR \"$pwd\"\n";
+#print OUT "#define FWVER \"",quotemeta($VERSION),"\"\n";
+print OUT "#define FWVER \"",$VERSION,"\"\n";
+print OUT "#define XMESSAGE \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_Message\"\n";
+print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
+
+# Path to installed fw2init.pl
+print OUT "#define FW2INITPL \"",$VRML_CONFIG{BIN_DIR},"/fw2init.pl\"\n";
+
+# lets just dump out some standard defines, from the vrml.conf file.
+my @dumpToVRMLCONF = ("SOUND_ENGINE",
+	"BROWSER",
+	"SOUNDCONV",
+	"ASCIITERM",
+#	"PLATFORM",
+#	"NETSCAPE_PLUGINS",
+	"UNZIP",
+	"WGET",
+	"CONVERT",
+	"COPIER",
+	"JAVA");
+
+foreach (@dumpToVRMLCONF) {
+	if (defined $VRML_CONFIG{$_}) {
+		print OUT "#define\t$_\t\t";
+                print OUT '"',$VRML_CONFIG{$_},'"';
+ 	} else {
+ 		print OUT "undef";
+ 	}
+ 	print OUT "\n";
+}
 close OUT;
 
 
@@ -267,20 +249,15 @@ WriteMakefile(
 							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
 							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
 							 },
-			  VERSION => $VERSION,
+							 #VERSION => $VERSION,
 			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
 			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
-			  SOUNDCONV => $VRML::Config::vrml_config{SOUNDCONV},
+			  #SOUNDCONV => $VRML::Config::vrml_config{SOUNDCONV},
 			  EXE_FILES => ['freewrl'],
 			  MAN1PODS => { freewrl => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
 			  PL_FILES => {'freewrl.PL' => 'freewrl'},
 			  PREREQ_PM => {
-#							'Digest::MD5' =>  "2.09",
 							'File::Basename' =>  "0", # any version will do
-#							'HTML::Parser' => "2.25",
-#							'MIME::Base64' => "2.11",
-#							'URI'          => "1.04",
-#							'LWP'          => "5.47",
 						   },
 			  LIBS => $VRML::Config::vrml_config{FREEWRL_LIBS},
 			  OBJECT => 'VRMLFunc.o',
@@ -336,6 +313,7 @@ INST_DYNAMIC_DEP =
 			  "\n",
 			  qq{\nFRONTEND=$dir/CFrontEnd},
 			  qq{\nSOUNDENGINE=$dir/SoundEngine},
+			  qq{\nCONSOLEMSG=$dir/FreeWRL_Message},
 			  qq{FRONTEND_DIR=$VRML::Config::vrml_config{BIN_DIR}},
 			  qq{LIB_DIR=$VRML::Config::vrml_config{LIB_DIR}},
 		 );
@@ -347,14 +325,16 @@ INST_DYNAMIC_DEP =
 
 	sub postamble {
 		my @postamble;
-		my $VRMLINSTDIR   = "\$(INSTALLPRIVLIB)/VRML";
+		#JAS my $VRMLINSTDIR   = "\$(INSTALLPRIVLIB)/VRML";
+		my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
 		my $FRONTEND      = "\$(dir)/CFrontEnd";
 		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
+		my $CONSOLEMSG   = "\$(dir)/FreeWRL_Message";
 		my $FRONTEND_DIR  = $VRML::Config::vrml_config{BIN_DIR};
 		my $LIB_DIR       = $VRML::Config::vrml_config{LIB_DIR};
 		my $MYINC         = $VRML::Config::vrml_config{FREEWRL_INC};
 		my $MYLIBS        = $VRML::Config::vrml_config{FREEWRL_LIBS};
-		my $MYDEFS 	  = $VRML::Config::vrml_config{FREEWRL_DEFINE};
+		#JAS my $MYDEFS 	  = $VRML::Config::vrml_config{FREEWRL_DEFINE};
 		my $MYLDFLAGS     = $VRML::Config::vrml_config{LDFLAGS};
 
 		## Add extra make instructions that don't quite fit into the
@@ -370,7 +350,6 @@ INST_DYNAMIC_DEP =
 		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
 		my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
 		my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
-		# print "x1 is $x1\n";
 			push(@postamble, join(
 				  "\n",
 				  qq{\# --- Mozilla/Netscape Plugin:\n},
@@ -391,9 +370,10 @@ INST_DYNAMIC_DEP =
 		# Copy fonts over, etc.
 		push(@postamble, join(
 				  "\n",
-				qq{\# copy fonts, libjs.so over\n},
+				qq{\# copy fonts, x3d, libjs.so over\n},
 				qq{install ::},
 				qq{\tcp -r fonts $VRMLINSTDIR\n},
+				qq{\tcp -r x3d $VRMLINSTDIR\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
@@ -407,18 +387,17 @@ INST_DYNAMIC_DEP =
 
 		# make the C Front End.
 		my $def2;
-		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) FWVER=\$(VERSION) SOUNDCONV=\$(SOUNDCONV)";
+		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) ";
 
 		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
 			print "COMPILING WITH BOUNDSCHECKING\n";
-			$def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
+			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
 			print "line is $def2\n";
 		} else {
-			$def2 = "INC=\"$MYINC\" DEFINE=\"$MYDEFS\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
+			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"\"";
 		}
 
 		my $def = $def1.$def2;
-		print "my def is $def\n";
 
 		push (@postamble, join("\n",
 			  qq{\n\# --- FreeWRL C Front End:},
@@ -449,6 +428,20 @@ INST_DYNAMIC_DEP =
 			  qq{distclean :: realclean $def \n}
 			 ));
 		}
+
+		# make the Console displayer.
+		push (@postamble, join("\n",
+			  qq{\n\# --- FreeWRL Message Console:},
+			  qq{all ::},
+			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
+			  qq{install ::},
+			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) install $def \n},
+			  qq{clean ::},
+			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
+			  qq{realclean ::},
+			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
+			  qq{distclean :: realclean $def \n}
+			 ));
 
 
 		push(@postamble, join(
