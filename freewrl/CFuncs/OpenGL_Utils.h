@@ -58,9 +58,11 @@ BackEndHeadlightOff(void);
 void
 BackEndHeadlightOn(void);
 
+#ifndef AQUA
 extern Display *dpy;
 extern Window win;
 extern void openMainWindow(Display *dpy, Window *win, GLXContext *glocx);
+#endif
 extern void glpOpenGLInitialize(void);
 
 #endif /* __OPENGL_UTILS_H_ */
