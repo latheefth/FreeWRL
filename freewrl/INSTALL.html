@@ -194,7 +194,7 @@ There are quite a few tests in the "tests" directory.
 
 </OL>
 <h4>
-Installing Java support
+3.0 Installing Java support
 </H4>
 
 <P><B>3.1)</B> Javascript:</P>
@@ -229,37 +229,11 @@ Installing Java support
 
 <P><B>4) Getting it all to work with Netscape.</B></P>
 
-<P><B>4.1)</B> get XSwallow, Build it according to the directions.</P>
+<P><B>4.1)</B> Go to the Plugin directory, and follow the
 
-<P><A HREF="http://www.csn.ul.ie/~caolan/docs/Xswallow.html">http://www.csn.ul.ie/~caolan/docs/Xswallow.html</A></P>
-
-<P><B>4.2)</B> I had to remove the .netscape/plugins and the .netscape/plugins.BAK files in the non - root accounts that I wished to use. Then, within netscape, the&quot;Edit&quot; &quot;Preferences&quot; &quot;Navigator&quot; Applications&quot; showed me using Embedded Vrml Plugin XSwallow Ver1.</P>
-
-<P><B>4.3)</B>point netscape to one of the test files on the local machine; eg, test/1.wrl in the distribution directory is fine.</P>
-
-<P><B>4.4)</B> to test EAI with netscape, open the html file in the tests/AddRemove directory.</P>
-
-<P><B>4.5)</B> Configuration files of importance:</P>
-
-
-<P>To get it to really swallow the file once it was working, I changed the line shown below in my ~/.netscape/xswallow.conf:</P>
-
- <P>x-world/x-vrml; vr, wrl; /usr/local/bin/dispatch-vrml-c<BR>
-              %s %u %w %h; &quot;FreeWRL&quot;; Embedded Vrml</P>
-
-<P>(all on one line)</P>
-
-<P>And, because some web pages serve up VRML files as MIME type world/vrml, I added the line:</P>
-
-<P>model/vrml; wrl; /usr/local/bin/dispatch-vrml-c  %s %u %w %h; &quot;FreeWRL&quot;; Embedded Vrml Model</P>
-
-<P>(again, all on one line)</P>
-
-<P>And, in /usr/local/bin/dispatch-vrml-c, I changed the stock XSwallow distribution to invoke FreeWRL as a vrml 2.0 format:</P>
-
-<P>exec /usr/local/src/VRML/freewrl-eailocalhost:2000 <BR>  &quot;$2&quot; 2&gt;/tmp/free.2 &gt;/tmp/free.1-best<BR><BR>(again, all on one line)</P>
-
-<P><B>5.0)</B> Getting it to work with external sensors.</P>
+<A HREF="Plugin/readme.html">instructions</A>.</P>
+<P>
+<P><B>5) Getting it to work with external sensors.</B></P>
 
 <P><B>5.1)</B> Joystick-It works!!! I have &quot;tied&quot; it to ground use only, though.</P>
 
