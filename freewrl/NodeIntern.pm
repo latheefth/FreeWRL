@@ -633,9 +633,6 @@ sub set_backend_fields {
 		CylinderSensor
 		VisibilitySensor
 	/;
-	#JAS: Collision
-	#JAS: NavigationInfo
-
 
 	#############################################################
 	#
