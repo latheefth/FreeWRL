@@ -1367,7 +1367,7 @@ correct_underflow(vid_stream)
     exit(1);
   }
   else if ((status == 0) && (vid_stream->buf_length < 1)) {
-      fprintf(stderr, "\nImproper or missing sequence end code.\n");
+      printf("\nImproper or missing sequence end code.\n");
     vid_stream->film_has_ended=TRUE;
       clear_data_stream(vid_stream);
     return;
@@ -1691,7 +1691,6 @@ mpeg_VidStream *vid_stream;
   }
 
   /* Reallocate buffer to free extra space. */
-
   dataPtr = (char *) realloc(dataPtr, marker);
 
   /* Return pointer to extra bit info buffer. */
@@ -1948,18 +1947,10 @@ ParseReconBlock(n, vid_stream)
                      ((int) (*(iqmatrixptr+pos)))) >> 4; 
             coeff -= (1 - (coeff & 1));
           }
-#ifdef QUANT_CHECK
-          printf ("coeff: %d\n", coeff);
-#endif
-
           reconptr[pos] = coeff;
           coeffCount++;
 
         }
-
-#ifdef QUANT_CHECK
-		printf ("\n");
-#endif
 
         flush_bits(2);
 		goto end;
@@ -2337,10 +2328,14 @@ mpg_NewVidStream(buffer_len)
 
   /* Initialize pointers to extension and user data. */
 
-  new->group.ext_data = new->group.user_data =
-    new->picture.extra_info = new->picture.user_data =
-    new->picture.ext_data = new->slice.extra_info =
-    new->ext_data = new->user_data = NULL;
+  new->group.ext_data = NULL;
+  new->group.user_data = NULL;
+  new->picture.extra_info = NULL;
+  new->picture.user_data = NULL;
+  new->picture.ext_data = NULL;
+  new->slice.extra_info = NULL;
+  new->ext_data = NULL;
+  new->user_data = NULL;
 
   /* Copy default intra matrix. */
 
@@ -2367,8 +2362,9 @@ mpg_NewVidStream(buffer_len)
 
   /* Create buffer. */
   
-  new->buf_start = (unsigned int *) malloc(buffer_len * 4);
 
+  new->buf_start = (unsigned int *) malloc(buffer_len * 4);
+  
   /*
    * Set max_buf_length to one less than actual length to deal with messy
    * data without proper seq. end codes.
@@ -2605,7 +2601,7 @@ mpegVidRsrc(time_stamp, vid_stream, first)
     next_start_code(vid_stream);  /* sets curBits */
     show_bits32(data);
     if (data != SEQ_START_CODE) {
-      fprintf(stderr, "This is not an MPEG video stream. (%x)\n",data);
+      printf("This is not an MPEG video stream. (%x)\n",data);
       Destroympeg_VidStream(vid_stream);
       return NULL;
     }
@@ -2639,6 +2635,7 @@ mpegVidRsrc(time_stamp, vid_stream, first)
 
     vid_stream->film_has_ended=TRUE;
     Destroympeg_VidStream(vid_stream);
+    vid_stream=NULL;
     goto done;
     break;
 
@@ -2840,22 +2837,6 @@ ParseSeqHead(vid_stream)
 
   get_bits10(data);
   vid_stream->vbv_buffer_size = data;
-
-#ifdef not_def
-  /* Lets not bother with this.  Only increases memory image */
-  if (data*1024>vid_stream->max_buf_length) {
-    unsigned int *newbuf;
-    int sz=1024*data+1;
-    /* If they actually want a bigger buffer than we default to,
-       let them have it! (if we can) */
-    newbuf = (unsigned int *) realloc(vid_stream->buf_start, (unsigned int) 4*sz);
-    if (newbuf!=(unsigned int *)NULL) {
-      vid_stream->max_buf_length=sz;
-      vid_stream->buffer=
-	  (vid_stream->buffer-vid_stream->buf_start)+newbuf;
-      vid_stream->buf_start=newbuf;
-    }}
-#endif
 
   /* Parse off contrained parameter flag. */
 
@@ -3334,7 +3315,7 @@ ParseMacroBlock(vid_stream)
 		  vid_stream->mblock.mb_intra);
     break;
   case D_TYPE:
-    fprintf(stderr, "ERROR:  MPEG-1 Streams with D-frames are not supported\n");
+    printf("ERROR:  MPEG-1 Streams with D-frames are not supported\n");
     exit(1);
   }
 
@@ -7209,7 +7190,7 @@ int ReadPacket(packetID, vid_stream)
   int byte_length;
   unsigned char scratch[10];
   /* Leftovers from previous video packets */
-  
+
   if (packetID == NOT_PACKET_ID) {
     /* Gross hack to handle unread bytes before end of stream */
     if (vid_stream->num_left != 0) {
@@ -7472,9 +7453,12 @@ int mpg_main(init_tex, fname)
     theStream->matched_depth = 24;
     if (mpegVidRsrc(0, theStream, 1)==NULL) {
        /* stream has already been destroyed */
-       fprintf(stderr, "Skipping movie \"%s\" - not an MPEG stream\n",
+       printf("Skipping movie \"%s\" - not an MPEG stream\n",
 	  fname);
-      if (theStream!=NULL) Destroympeg_VidStream(theStream);
+      if (theStream!=NULL) {
+	      printf ("theStream != NULL, destroying, part1\n");
+	      Destroympeg_VidStream(theStream);
+      }
       fclose(mpegfile);
     } 
 
@@ -7485,8 +7469,6 @@ int mpg_main(init_tex, fname)
              mpegVidRsrc(0, theStream, 0);
          }
        } 
-  if (theStream!=NULL) Destroympeg_VidStream(theStream);
-
   if (L_tab!=NULL)
        free((int *)L_tab);
     if (Cr_r_tab!=NULL)
