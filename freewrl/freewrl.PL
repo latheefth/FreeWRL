@@ -438,12 +438,15 @@ BEGIN {
                 "seqtmp=s"=>\$seqtmp_opt,
                 "snapb=s"=>\$snapname_opt,
 		"ppm"=>\$nogif,
+		"ps"=>\$VRML::DO_PERL,
 		"maximg=i"=>\$maximg,
 		"help" => \$usage,
 		"usage" => \$usage,
                 "server"=> \$server,
 		"sig" => \$sig_reload,
 	);
+
+        print "Perl scripting : $VRML::DO_PERL\n";
 
         if (defined $snapname_opt) { # Snapshot overrides sequence
           $snapname = $snapname_opt;

@@ -62,19 +62,23 @@ sub get_vp_scene {return $vps[$vpno];}
 
 sub getName { return "FreeWRL VRML Browser" }
 
-#JAS sub check_perl_script {
-#JAS 	if(!$VRML::DO_PERL) {
-#JAS 		die(q~Perl scripts are currently unsafe as they are
-#JAS trusted and run in the main interpreter. If you are sure of your
-#JAS code (i.e. you have written it or know the writer), set 
-#JAS the variable '$VRML::DO_PERL' to 1.
-#JAS 
-#JAS FreeWRL will soon be modified to be able to run untrusted Perl code
-#JAS in Safe compartments. Until that, Perl scripts are disabled by default
-#JAS now that the browser can get files from the internet.
-#JAS ~);
-#JAS 	}
-#JAS }
+## use command line option
+##   BEGIN {$VRML::DO_PERL=1}
+
+sub check_perl_script {
+ 	if(!$VRML::DO_PERL) {
+ 		die <<EOF ;
+
+Perl scripts are currently unsafe as they are trusted and run in the
+main interpreter. If you are sure of your code (i.e. you have written
+it or know the writer), use freewrl's "-ps" (perl scripts) option.
+
+FreeWRL should soon be modified to run untrusted Perl code in Safe
+compartments. Until that, Perl scripts are disabled by default.
+
+EOF
+ 	}
+ }
 
 sub add_MFNode {
 	my ($node, $field, $child, $flag) = @_;
@@ -1413,7 +1417,7 @@ Script => new VRML::NodeType("Script",
 			my($t,$f,$time,$scene) = @_;
 			print "ScriptInit $_[0] $_[1]!!\n" if $VRML::verbose::script;
 			print "Parsing script\n" if $VRML::verbose::script;
-#JAS			my $h;
+			my $h;
 			my $Browser = $scene->get_browser();
 			for(@{$f->{url}}) {
 				# is this already made???
@@ -1423,28 +1427,34 @@ Script => new VRML::NodeType("Script",
 
 				my $str = $_;
 				print "TRY $str\n" if $VRML::verbose::script;
-#JAS				if(s/^perl_tjl_xxx://) {
-#JAS					check_perl_script();
-#JAS					$h = eval "({$_})";
-#JAS					if($@) {
-#JAS						die "Inv script '$@'"
-#JAS					}
-#JAS					last;
-#JAS				} elsif(s/^perl_tjl_xxx1://) {
-#JAS					{
-#JAS					print "XXX1 script\n" if $VRML::verbose::script;
-#JAS					check_perl_script();
-#JAS					my $t = $t->{RFields};
-#JAS					$h = eval "({$_})";
-#JAS					print "Evaled: $h\n" if $VRML::verbose::script;
-#JAS					if($@) {
-#JAS						die "Inv script '$@'"
-#JAS					}
-#JAS					}
-#JAS					last;
-#JAS				} elsif(/\.class$/) {
+##  				if(s/^perl_tjl_xxx://) {
+##  					check_perl_script();
+##  					$h = eval "({$_})";
+##  					if($@) {
+##  						die "Inv script '$@'"
+##  					}
+##  					last;
+##  				} elsif(s/^perl(_tjl_xxx1)?://) {
+			        if(s/^perl(_tjl_xxx1)?://) {
+				  {  
+				    print "XXX1 script\n" if $VRML::verbose::script;
+				    check_perl_script();
+
+				    # See about RFields in file ARCHITECTURE and in 
+				    # Scene.pm's VRML::FieldHash package
+				    my $t = $t->{RFields};
+				    $h = eval "({$_})";
+				    print "Evaled: $h\n" if $VRML::verbose::script;
+				    print ("-- $h --\n",
+					   map {"$_ => $h->{$_}\n"} keys %$h);
+				    if($@) {
+				      die "Inv script '$@'"
+				    }
+				  }
+				  last;
+				} elsif(/\.class$/) {
 #	$VRML::verbose::js = 1;	#RCS
-				if(/\.class$/) {
+#EG				if(/\.class$/) {
 					$t->{PURL} = $scene->get_url;
 					if(!defined $VRML::J) {
 						eval('require "VRML/VRMLJava.pm"');
@@ -1482,25 +1492,25 @@ Script => new VRML::NodeType("Script",
 				}
 			}
 
-			if(!defined $t->{J}) {
-				die "Didn't find a valid java script";
-			}
+#EG  			if(!defined $t->{J}) {
+#EG  			  die "Didn't find a valid java script";
+#EG  			}
 
 			
-#JAS			if(!defined $h and !defined $t->{J}) {
-#JAS				die "Didn't find a valid perl_tjl_xxx(1) or java script";
-#JAS			}
-#JAS			print "GOT EVS: ",(join ',',keys %$h),"\n" 
-#JAS				if $VRML::verbose::script;
-#JAS			$t->{ScriptScript} = $h;
-#JAS			my $s;
-#JAS			if(($s = $t->{ScriptScript}{"initialize"})) {
-#JAS				print "CALL $s\n if $VRML::verbose::script"
-#JAS				 if $VRML::verbose::script;
-#JAS				return &{$s}();
-#JAS			} elsif($t->{J}) {
+			if(!defined $h and !defined $t->{J}) {
+				die "Didn't find a valid perl(_tjl_xxx)? or java script";
+			}
+			print "GOT EVS: ",(join ',',keys %$h),"\n" 
+				if $VRML::verbose::script;
+			$t->{ScriptScript} = $h;
+			my $s;
+			if(($s = $t->{ScriptScript}{"initialize"})) {
+				print "CALL $s\n if $VRML::verbose::script"
+				 if $VRML::verbose::script;
+				return &{$s}();
+			} elsif($t->{J}) {
 
-			if($t->{J}) {
+#EG			if($t->{J}) {
 				return $t->{J}->initialize($scene);
 			}
 			return ();
@@ -1514,13 +1524,13 @@ Script => new VRML::NodeType("Script",
 			print "ScriptANY $_[0] $_[1] $_[2] $_[3] $_[4]!!\n"
 				if $VRML::verbose::script;
 			my $s;
-#JAS			if(($s = $t->{ScriptScript}{$ev})) {
-#JAS				print "CALL $s\n"
-#JAS				 if $VRML::verbose::script;
-#JAS				return &{$s}();
-#JAS			} elsif($t->{J}) {
+			if(($s = $t->{ScriptScript}{$ev})) {
+				print "CALL $s\n"
+				 if $VRML::verbose::script;
+				return &{$s}();
+			} elsif($t->{J}) {
 
-			if($t->{J}) {
+#EG			if($t->{J}) {
 				return $t->{J}->sendevent($t, $ev, $v, $time);
 			}
 			return ();
