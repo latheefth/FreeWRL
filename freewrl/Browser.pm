@@ -122,8 +122,6 @@ sub prepare {
 	VRML::NodeIntern::dump_name($bn->{CNode}), ", ",
 	$this->{BE}->set_root($bn); # should eventually be removed
 	VRML::VRMLFunc::set_root($bn->{CNode});
-	
-	
 
 	$this->{EV}->print;
 }
@@ -206,11 +204,8 @@ sub setDescription {
 
 #createVrml common stuff
 sub create_common {
-	my ($this,$f1,$f2,$str) = @_;
+	my ($this,$f1,$f2,$string) = @_;
 	my $ret;
-
-	# remove comments, etc:
-	my $string = VRML::VRMLFunc::sanitizeInput($str);
 
 	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
 	$scene->set_browser($this);
@@ -240,8 +235,14 @@ sub create_common {
 		#JAS X3D::Parser::parse($scene, $string);
 		#JAS use the old NPS conversion stuff for now.
 		$string = convertX3D($string);
+		# remove comments, etc:
+		$string = VRML::VRMLFunc::sanitizeInput($string);
+
 		VRML::Parser::parse($scene, $string);
         } else {
+		# remove comments, etc:
+		$string = VRML::VRMLFunc::sanitizeInput($string);
+
 		VRML::Parser::parse($scene, $string);
 	}
 
