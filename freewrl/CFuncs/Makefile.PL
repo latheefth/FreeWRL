@@ -9,29 +9,12 @@ WriteMakefile(
 			  CCFLAGS => $VRML_CONFIG{FREEWRL_CCFLAGS},
 			  DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
 			  INC => $VRML_CONFIG{FREEWRL_INC},
-			  dynamic_lib => {
-							  OTHERLDFLAGS => $VRML_CONFIG{LDFLAGS},
-							  LDDLFLAGS => $VRML_CONFIG{LDDLFLAGS}
-							 },
 			  LIBS => $VRML_CONFIG{FREEWRL_LIBS}
 			 );
 
 sub MY::post_initialize { return qq{\nLIBDIR=\n}; }
 
-sub MY::dynamic_lib {
-"ARMAYBE = :
-OTHERLDFLAGS = $VRML_CONFIG{LDFLAGS} 
-INST_DYNAMIC_DEP =
-
-\$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)
-	\$\(RM_F\) \$\@
-	LD_RUN_PATH=\$\(LD_RUN_PATH\) \$\(LD\) \$\(LDFROM\) \$\(OTHERLDFLAGS\) -o \$\@ \$\(MYEXTLIB\) \$\(PERL_ARCHIVE\) \$\(LDLOAD LIBS\) \$\(PERL_ARCHIVE_AFTER\) \$\(EXPORT_LIST\)
-	\$\(CHMOD\) \$\(PERM_RWX\) \$\@
-"
-}
-
 sub MY::c_o {
-	##my $cxx_rule = qq{\t\$(CCCMD) -c \$< \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n};
 	my $cxx_rule = qq{\t\$(CCCMD) \$< \$(CCCDLFLAGS) -I\$(PERL_INC) \$(PASTHRU_DEFINE) \$(DEFINE) -o \$@\n};
 
 	my $c_o = join(
