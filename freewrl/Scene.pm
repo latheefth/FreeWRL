@@ -854,9 +854,6 @@ sub newextp {
 		 if($string =~ /^#VRML V1.0/) {
 			 print "Sorry, this file is according to VRML V1.0, I only know V2.0\n";
 			 exit(1);
-                } elsif ($string =~/^<\?xml version/s) {
-                                print "Sorry, xml encoding is not here yet\n";
-                                exit(1);
                 }
 
 		 warn("WARNING: file '$protourl' doesn't start with the '#VRML V2.0' header line");
