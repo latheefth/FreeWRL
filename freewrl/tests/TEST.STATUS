@@ -1,12 +1,16 @@
 #
 # This file is a resume of all tests
-# results for FreeWRL.
+# results expected for FreeWRL.
+# Please report any delta you could have
+# to the mailling list:
+#    freewrl@mars.dgrc.crc.ca
+# Please specify if you are not registered.
 #
 # $Id$
 #
 
-Tests			result		comment
-
+Tests		      | status	      | comments
+======================|===============|===================================================================================================================
  1.wrl			ok		
  2.wrl			ok		
  3.wrl			ok		
