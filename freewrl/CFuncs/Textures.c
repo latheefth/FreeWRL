@@ -37,7 +37,6 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 
 {
 
-	GLint texSize;
 	int rx,ry,sx,sy;
 	int ct;
 
@@ -54,9 +53,6 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Sgl_rep_or_clamp);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Tgl_rep_or_clamp);
 
-	/* find out the largest size that a texture can have. */
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
-
 	if((depth) && x && y) {
 		unsigned char *dest = ptr;
 		rx = 1; sx = x;
@@ -65,10 +61,10 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 		ry = 1; sy = y;
 		while(sy) {sy /= 2; ry *= 2;}
 		if(ry/2 == y) {ry /= 2;}
-		if(rx != x || ry != y || rx > texSize || ry > texSize) {
+		if(rx != x || ry != y || rx > global_texSize || ry > global_texSize) {
 			/* do we have texture limits??? */
-			if (rx > texSize) rx = texSize;
-			if (ry > texSize) ry = texSize;
+			if (rx > global_texSize) rx = global_texSize;
+			if (ry > global_texSize) ry = global_texSize;
 
 			/* We have to scale */
 			/* printf ("Do_Texture scaling from rx %d ry %d to x %d y %d\n",x,y,rx,ry);  */
@@ -93,12 +89,13 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 }
 
 
-void bind_image (filename, texture_num, repeatS, repeatT, remove) 
+void bind_image (filename, texture_num, repeatS, repeatT, remove, isloaded) 
 	char *filename;
 	GLuint texture_num;
 	int repeatS;
 	int repeatT;
 	int remove;
+	int isloaded;
 {
 	FILE *infile;
 	unsigned char *image_data = 0;
@@ -123,13 +120,19 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	JSAMPROW rowptr[1];
 	int rowcount, columncount, dp;
 
-
-	
-
 	/* assume a jpeg file, unless shown otherwise */
 	int jpeg_file = 1;
 
 	int fnamelen;
+
+
+	/* have we already processed this one before? */
+	if (isloaded == 1) {
+		//printf ("bind_image, simply reusing %d\n",texture_num);
+		glBindTexture (GL_TEXTURE_2D, texture_num);
+		return;
+	}
+
 
 	/* determine whether it is a jpeg file, or a png file */
 	fnamelen = strlen(filename);
@@ -151,7 +154,6 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 	} else {
 		
 		if (jpeg_file) {
-			printf ("a JPEG file\n");
 			/* see http://www.the-labs.com/JPEG/libjpeg.html for details */
 			
 			/* Select recommended processing options for quick-and-dirty output. */
@@ -176,24 +178,12 @@ void bind_image (filename, texture_num, repeatS, repeatT, remove)
 
 
 			row = malloc(cinfo.output_width * sizeof(JSAMPLE)*cinfo.output_components);
-			printf ("output width is %d height %d\n",cinfo.output_width,cinfo.output_height);
 			rowptr[0] = row;
 			image_data = malloc(cinfo.output_width * sizeof (JSAMPLE) * cinfo.output_height * cinfo.output_components);
-			printf ("passewd1\n");
-			
-
-			printf ("start3\n");
-			
 			/* Process data */
-			printf ("output_scanline %d height %d depth %d ccom %d\n",
-					cinfo.output_scanline,cinfo.output_height,cinfo.output_components,
-					cinfo.out_color_components);
-
-
 			for (rowcount = 0; rowcount < cinfo.output_height; rowcount++) {
 				nrows = jpeg_read_scanlines(&cinfo, rowptr, 1);
 
-				printf ("row starts %x %x %x \n",row[0],row[1],row[2]);
 				for (columncount = 0; columncount < cinfo.output_width; columncount++) {
 					for(dp=0; dp<cinfo.output_components; dp++) {
 						image_data[(cinfo.output_height-rowcount-1)
