@@ -68,10 +68,14 @@
 extern const int zigzag_direct[];
 
 /* initial texture number, as passed in to mpg_main */
-static GLuint initial_texture_number;
+GLuint initial_texture_number;
 
 /* the upper most texture number */
-static GLuint latest_texture_number;
+GLuint latest_texture_number;
+
+/* current texture number */
+GLuint texture_count;
+
 
 /* Decoding table for macroblock_address_increment */
 mb_addr_inc_entry     mb_addr_inc[2048];
@@ -1250,33 +1254,34 @@ ExecuteTexture(vid_stream)
   int n;
   unsigned int *p;
   unsigned int r, g, b;
-  static int texture_count = 0;
-  int height, width;
+  int i,j;
+  int hsize;
 
   /* v_size = height, h_size = width (vertical, horizontal) */
   GLubyte Image[vid_stream->v_size][vid_stream->h_size][3];
 
-  p = (unsigned int *) vid_stream->current->display;
-  n = vid_stream->h_size * vid_stream->v_size;
+  /* if the hsize is a power of 2. */
+  hsize = vid_stream->mb_width * 16;
+  //printf ("horiz size %d re-calculated %d\n",vid_stream->h_size,hsize);
 
-  height = 0; width = 0;
-  while (n > 0) {
-    r = *p & 0xff;
-    g = (*p >> PPM_BITS) & 0xff;
-    b = (*p >> (2*PPM_BITS)) & 0xff;
-
-    Image [vid_stream->v_size-height-1][width][0]=r; 
-    Image [vid_stream->v_size-height-1][width][1]=g; 
-    Image [vid_stream->v_size-height-1][width][2]=b; 
-    width++;
-    if (width == vid_stream->h_size) {
-	height++;
-	width = 0;
-    }
-
-    ++p;
-    --n;
+  for (i=0; i<vid_stream->v_size; i++) {
+	  p = (unsigned int *) vid_stream->current->display + i*hsize;
+	  for (j=0; j<vid_stream->h_size; j++){
+		  
+    		r = *p & 0xff;
+    		g = (*p >> PPM_BITS) & 0xff;
+    		b = (*p >> (2*PPM_BITS)) & 0xff;
+    		Image [vid_stream->v_size-i-1][j][0]=r; 
+    		Image [vid_stream->v_size-i-1][j][1]=g; 
+    		Image [vid_stream->v_size-i-1][j][2]=b; 
+		p++;
+	}
   }
+
+
+
+
+
 
   /* first time through, we use the texture number passed in.
      Second (and subsequent) times, we generate a texture number,
@@ -1364,7 +1369,6 @@ correct_underflow(vid_stream)
   if (status  < 0) {
       fprintf (stderr, "\n");
       perror("Unexpected read error.");
-    exit(1);
   }
   else if ((status == 0) && (vid_stream->buf_length < 1)) {
       printf("\nImproper or missing sequence end code.\n");
@@ -1519,6 +1523,7 @@ int next_start_code(vid_stream)
   int state;
   int byteoff;
   unsigned int data;
+
 
   /* If no current stream, return error. */
 
@@ -2581,6 +2586,7 @@ mpegVidRsrc(time_stamp, vid_stream, first)
 {
   unsigned int data;
   int i, status;
+int ioBytes;
 
   /* If vid_stream is null, create new mpeg_VidStream structure. */
 
@@ -2598,7 +2604,9 @@ mpegVidRsrc(time_stamp, vid_stream, first)
     vid_stream->num_left=0;
     vid_stream->leftover_bytes=0;
     vid_stream->Parse_done=FALSE;
+
     next_start_code(vid_stream);  /* sets curBits */
+
     show_bits32(data);
     if (data != SEQ_START_CODE) {
       printf("This is not an MPEG video stream. (%x)\n",data);
@@ -2614,7 +2622,6 @@ mpegVidRsrc(time_stamp, vid_stream, first)
   }
 
   /* Get next 32 bits (size of start codes). */
-
   show_bits32(data);
 
   /*
@@ -2640,7 +2647,6 @@ mpegVidRsrc(time_stamp, vid_stream, first)
     break;
 
   case SEQ_START_CODE:
-
     /* Sequence start code. Parse sequence header. */
 
     if (ParseSeqHead(vid_stream) != PARSE_OK)
@@ -2648,7 +2654,6 @@ mpegVidRsrc(time_stamp, vid_stream, first)
     goto done;
 
   case GOP_START_CODE:
-
     /* Group of Pictures start code. Parse gop header. */
 
     if (ParseGOP(vid_stream) != PARSE_OK)
@@ -2656,7 +2661,6 @@ mpegVidRsrc(time_stamp, vid_stream, first)
     goto done;
 
   case PICTURE_START_CODE:
-
     /* Picture start code. Parse picture header and first slice header. */
 
     status = ParsePicture(vid_stream, time_stamp);
@@ -7421,11 +7425,10 @@ int mpg_main(init_tex, fname)
 	char * fname;
 {
 
-  static mpeg_VidStream *theStream;
+  mpeg_VidStream *theStream;
   int ppm_width = -1,  ppm_height = -1, ppm_modulus = -1;
 
-
-  //JAS theStream = (mpeg_VidStream *) malloc(sizeof(mpeg_VidStream *));
+  texture_count = 0;
   theStream = NULL;
 
   /* save the texture numbers; we'll sanity check these later */
@@ -7434,6 +7437,7 @@ int mpg_main(init_tex, fname)
 
   fflush(stdout);
   mpegfile=fopen(fname, "r");
+
   if (mpegfile == NULL) {
     printf("Could not open MovieTexture file %s\n", fname);
     return initial_texture_number;
@@ -7451,6 +7455,7 @@ int mpg_main(init_tex, fname)
     theStream->input = mpegfile;
     theStream->filename = fname;
     theStream->matched_depth = 24;
+
     if (mpegVidRsrc(0, theStream, 1)==NULL) {
        /* stream has already been destroyed */
        printf("Skipping movie \"%s\" - not an MPEG stream\n",
@@ -7459,7 +7464,6 @@ int mpg_main(init_tex, fname)
 	      printf ("theStream != NULL, destroying, part1\n");
 	      Destroympeg_VidStream(theStream);
       }
-      fclose(mpegfile);
     } 
 
   /* Start time for each movie - do after windows are mapped */
@@ -7487,5 +7491,10 @@ int mpg_main(init_tex, fname)
     if (b_2_pix_alloc!=NULL) 
        free ((long *) b_2_pix_alloc);
 
+    /* zero these in case we have another mpg file to do */
+    L_tab = NULL; Cr_r_tab = NULL; Cr_g_tab = NULL; Cb_g_tab = NULL;Cb_b_tab = NULL;
+    r_2_pix_alloc = NULL; g_2_pix_alloc= NULL;b_2_pix_alloc = NULL;
+    
+      fclose(mpegfile);
   return latest_texture_number;
 }
