@@ -345,6 +345,14 @@ sub init_image {
 		warn("Couldn't read texture file $tempfile");
 		next URL;
 	    }
+	    # remove temporary file
+	    my $cmd = "rm $tmpfile";
+            my $status = system ($cmd);
+            die "$image conversion problem: '$cmd' returns $?"
+                unless $status == 0;
+
+
+
 	} elsif ($suffix =~ /png/i) {
 	    eval 'require VRML::PNG';
 	    eval 'require VRML::JPEG';
