@@ -3,7 +3,9 @@
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
-
+#
+# $Id$
+#
 # Name:        VRMLRend.c
 # Description: 
 #              Fills Hash Variables with "C" Code. They are used by VRMLC.pm
@@ -16,7 +18,12 @@
 #  
 #              Hashes filled in this file:
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
-
+#
+# $Log$
+# Revision 1.2  2000/08/04 22:54:41  rcoscali
+# Add a cvs header, mainly for test
+#
+#
 
 
 
