@@ -14,13 +14,7 @@
 #include <getopt.h>
 #include <Snapshot.h>
 
-#ifdef AQUA
-
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-
-#else
+#ifndef AQUA
 
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -35,9 +29,11 @@
 // display and win are opened here, then pointers passed to
 // freewrl. We just use these as unsigned, because we just
 // pass the pointers along; we do not care what type they are.
+#ifndef AQUA
 Display *Disp;
 Window Win;
 GLXContext globalContext;
+#endif
 
 int wantEAI=FALSE;		/* enable EAI? */
 
@@ -48,10 +44,11 @@ pthread_t thread1;
 
 
 /* for plugin running - these are read from the command line */
+#ifndef AQUA
 int _fw_pipe=0;
 int _fw_FD=0;
 unsigned  _fw_instance=0;
-
+#endif
 
 /* function prototypes */
 void displayThread();
@@ -65,14 +62,15 @@ int main (int argc, char **argv) {
 	char *filename;
 	char *pwd;
 
+#ifndef AQUA
 	/* first, get the FreeWRL shared lib, and verify the version. */
 	if (strcmp(FWVER,getLibVersion())) {
 		printf ("FreeWRL expected library version %s, got %s, exiting...\n",FWVER,getLibVersion());
 		exit(1);
 	}
-
+#endif
 #ifndef IRIX
-
+#ifndef AQUA
 	/* set the screen width and height before getting into arguments */
 	screenWidth = 450; screenHeight=300;
 
@@ -184,6 +182,8 @@ int main (int argc, char **argv) {
 	}
 
 #endif
+#endif
+#ifndef AQUA
 	if (optind < argc) {
 		if (optind != (argc-1)) {
 			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n", 
@@ -199,12 +199,14 @@ int main (int argc, char **argv) {
 		printf ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
 	}
-
+#endif
 	/* create the display thread. */
 	pthread_create (&thread1, NULL, (void *)&displayThread, (void *)threadmsg);
 
+#ifndef AQUA
 	/* create the Perl parser thread */
 	initializePerlThread(PERLPATH);
+#endif
 	while (!isPerlinitialized()) {usleep(50);}
 
 	/* create the Texture parser thread */
@@ -218,7 +220,9 @@ int main (int argc, char **argv) {
 	pwd = malloc(1000 * sizeof (char));
 	getcwd(pwd,1000);
 
+#ifndef AQUA
 	makeAbsoluteFileName(filename, pwd, argv[optind]);
+#endif
 
 	perlParse(FROMURL, filename,TRUE,FALSE,
 		rootNode, offsetof (struct VRML_Group, children),&tmp);
@@ -239,7 +243,9 @@ int main (int argc, char **argv) {
 /* handle all the displaying and event loop stuff. */
 void displayThread() {
 	int count;
+#ifndef AQUA
 	openMainWindow(Disp,&Win,&globalContext);
+#endif
 	glpOpenGLInitialize();
 	new_tessellation();
 
