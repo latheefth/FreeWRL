@@ -74,43 +74,21 @@ void FW_IFS_tess_vertex(void *p) {
 
 }
 
-void FW_Extrusion_tess_vertex(void *p) {
-	static int x=0;
-	GLdouble *dp=p;
-
-	if(global_tess_polyrep->ntri >= global_tess_polyrep->alloc_tri) {
-		die("Too many tesselated triangles!");
-	}
-
-	/* printf ("FW_tess_vertex, %f %f %f\n",dp[0],dp[1],dp[2]);*/
-	/* printf("FW_tess_vertex: A vertex is coming   x = %d   ntri = %d.\n", x, global_tess_polyrep->ntri); */
-	
-
-	global_tess_polyrep->coord[(global_tess_polyrep->ntri)*9+x*3]  =dp[0];
-	global_tess_polyrep->coord[(global_tess_polyrep->ntri)*9+x*3+1]=dp[1];
-	global_tess_polyrep->coord[(global_tess_polyrep->ntri)*9+x*3+2]=dp[2];
-	global_tess_polyrep->cindex[(global_tess_polyrep->ntri)*3+x]=
-					(global_tess_polyrep->ntri)*3+x;
-	if(x==2) {
-		x=0;
-		(global_tess_polyrep->ntri)++;
-	} else x++;
-
-
-}
-
 void FW_tess_error(GLenum e) {
 	/* printf("ERROR %d: >%s<\n",e,gluErrorString(e));*/
 }
 
-void tesselize_ifs() {
-	gluTessCallback(global_tessobj,GLU_VERTEX,FW_IFS_tess_vertex);
+
+
+void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
+	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
+	printf("FW_tess_combine\n");
+	nv[0] = c[0];
+	nv[1] = c[1];
+	nv[2] = c[2];
+	*out = nv; 
 }
 
-void tesselize_extrusion() {
-	gluTessCallback(global_tessobj,GLU_VERTEX,FW_Extrusion_tess_vertex);
-}
-	
 
 /* next function has to be called once, after an OpenGL context is made
 	and before tessellation is started			*/
@@ -126,6 +104,22 @@ void new_tessellation(void) {
 	gluTessCallback(global_tessobj,GLU_VERTEX,FW_IFS_tess_vertex);
 	gluTessCallback(global_tessobj,GLU_ERROR,FW_tess_error);
 	gluTessCallback(global_tessobj,GLU_END,FW_tess_end);
+	gluTessCallback(global_tessobj, GLU_TESS_COMBINE,FW_tess_combine);
+
+
+	    /* Unused right now.
+	    gluTessCallback(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
+	    gluTessCallback(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
+	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
+	    gluTessCallback(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
+	    gluTessCallback(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
+	    gluTessCallback(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
+	    gluTessCallback(triang, GLU_TESS_END,FW_GLU_TESS_END);
+	    gluTessCallback(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
+	    gluTessCallback(triang, tess_combine_DATA,FW_tess_combine_DATA);
+	    gluTessCallback(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
+	    gluTessCallback(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
+	    */
 }
 
 /* next function should be called once at the end, but where?	*/
