@@ -7,34 +7,27 @@
  */
 
 
-#ifdef AQUA 
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-#endif
-
-#include <unistd.h>
-#include <stdio.h>
-
-#ifndef AQUA 
-#include <X11/cursorfont.h>
-#ifdef XF86V4
-#include <X11/extensions/xf86vmode.h>
-#endif
-#include <X11/keysym.h>
-#endif
+#include "headers.h"
 
 
-#define OPENGL_NOVIRT
+int
+get_now_mapped(void);
 
 
 void
-set_render_frame();
+set_now_mapped(int val);
+
+
+void
+set_render_frame(void);
+
+
+int
+get_render_frame(void);
+
+
+void
+dec_render_frame(void);
 
 
 #endif /* __OPENGL_UTILS_H_ */

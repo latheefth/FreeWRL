@@ -4,10 +4,11 @@ use ExtUtils::MakeMaker;
 
 
 my $inc = join(" ", $VRML_CONFIG{FREEWRL_INC}, "-I../CFuncs");
-
+my $objs = "../CFuncs/OpenGL_Utils.o";
 
 WriteMakefile(
 			  NAME => 'VRML::OpenGL',
+##VERSION_FROM	=> 'OpenGL.pm', # finds $VERSION
 			  LIBS => $VRML_CONFIG{FREEWRL_LIBS},
 			  DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
 			  INC => $inc,
@@ -31,3 +32,7 @@ INST_DYNAMIC_DEP =
 "
 }
 
+
+sub MY::post_constants {
+	return qq{\nOBJECT+=$objs\n};
+}

@@ -4,29 +4,30 @@
 #include "perl.h"
 #include "XSUB.h"
 
+
+#ifdef AQUA 
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+#else
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#endif
+
+#include <unistd.h>
+#include <stdio.h>
+
 #include "OpenGL_Utils.h"
 
-/* #ifdef AQUA  */
-/* #include <gl.h> */
-/* #include <glu.h> */
-/* #include <glext.h> */
-/* #else */
-/* #include <GL/gl.h> */
-/* #include <GL/glx.h> */
-/* #include <GL/glu.h> */
-/* #include <GL/glext.h> */
-/* #endif */
-
-/* #include <unistd.h> */
-/* #include <stdio.h> */
-
-/* #ifndef AQUA  */
-/* #include <X11/cursorfont.h> */
-/* #ifdef XF86V4 */
-/* #include <X11/extensions/xf86vmode.h> */
-/* #endif */
-/* #include <X11/keysym.h> */
-/* #endif */
+#ifndef AQUA 
+#include <X11/cursorfont.h>
+#ifdef XF86V4
+#include <X11/extensions/xf86vmode.h>
+#endif
+#include <X11/keysym.h>
+#endif
 
 #ifndef AQUA
 Display *dpy;
@@ -70,16 +71,13 @@ Cursor arrowc;
 Cursor sensorc;
 #endif
 
-int	render_frame = 5;	/* do we render, or do we sleep? */
-int	now_mapped = 1;		/* are we on screen, or minimized? */
 
-/* #define OPENGL_NOVIRT */
+#define OPENGL_NOVIRT
 
 #include "OpenGL.m"
 
 static OpenGLVTab vtab;
 OpenGLVTab *OpenGLVPtr;
-
 
 
 /*
@@ -136,13 +134,6 @@ int  default_attributes3[] =
 
 
 /***************************************************************************/
-
-/* should we render? */
-void
-set_render_frame()
-{
-	render_frame = 5; /* render a couple of frames to let events propagate */
-}
 
 
 #ifndef AQUA 
@@ -222,6 +213,7 @@ static Bool WaitForNotify(Display *d, XEvent *e, char *arg)
 MODULE = VRML::OpenGL		PACKAGE = VRML::OpenGL
 PROTOTYPES: DISABLE
 
+
 #
 # Raise the window
 #
@@ -237,9 +229,6 @@ raise_me_please()
 #endif
 	}
 
-# should we render?
-void
-set_render_frame()
 
 void
 BackEndSleep()
@@ -248,21 +237,6 @@ BackEndSleep()
 	usleep(100);
 	}
 
-int
-get_render_frame()
-	CODE:
-	{
-		RETVAL = (render_frame && now_mapped);
-	}
-	OUTPUT:
-	RETVAL
-
-void 
-dec_render_frame()
-	CODE:
-	{
-	if (render_frame > 0) render_frame--;
-	}
 	
 # cursor stuff JAS
 void
@@ -517,7 +491,8 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	//printf ("GLX depth size %d\n",number);
 
 	/* and make it so that we render 1 frame, at least */
-	render_frame = 5;
+	/* render_frame = 5; */
+	set_render_frame();
 #endif
 }
 
@@ -588,7 +563,8 @@ glpXNextEvent(d=dpy)
 		KeySym ks;
 		XNextEvent(d,&event);
 		/* must render now */
-		render_frame = 5;
+		/* render_frame = 5; */
+		set_render_frame();
 		switch(event.type) {
 			case ConfigureNotify:
 				EXTEND(sp,3);
@@ -662,11 +638,13 @@ glpXNextEvent(d=dpy)
 			case Expose:
 				break;
 			case MapNotify:
-				now_mapped = 1;
+				/* now_mapped = 1; */
+				set_now_mapped(TRUE);
 				/* printf ("now mapped\n"); */
 				break;
 			case UnmapNotify:
-				now_mapped = 0;
+				/* now_mapped = 0; */
+				set_now_mapped(FALSE);
 				/* printf ("Now unmapped\n"); */
 				break;
 			default:
@@ -865,6 +843,10 @@ glPrintError(str)
 		fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString(err),str); 
 	}
 
+
+
+void
+set_render_frame()
 
 
 

@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.91  2003/06/06 20:22:49  ayla
+#
+# Migrating more OpenGL module code from XS to C.
+#
 # Revision 1.90  2003/06/02 18:21:16  crc_canada
 # more work on CRoutes for Scripting
 #
@@ -1190,6 +1194,7 @@ struct sNaviInfo {
 #include "CFuncs/headers.h"
 #include "CFuncs/constants.h"
 #include "CFuncs/Viewer.h"
+#include "CFuncs/OpenGL_Utils.h"
 
 #include "CFuncs/LinearAlgebra.h"
 #include "CFuncs/Collision.h"
@@ -2260,6 +2265,7 @@ CODE:
 
 #********************************************************************************
 # call viewer function viewer_togl
+
 void
 do_viewer_togl()
 CODE:
@@ -2281,7 +2287,7 @@ CODE:
 void
 do_handle_key(time, key)
 	double time
-	char *key
+	char key
 CODE:
 	handle_key(&Viewer, time, key);
 
@@ -2289,7 +2295,7 @@ CODE:
 void
 do_handle_keyrelease(time, key)
 	double time
-	char *key
+	char key
 CODE:
 	handle_keyrelease(&Viewer, time, key);
 
