@@ -74,11 +74,7 @@ sub STORE {
 	# }
 	$$v = $value;
 	if ($VRML::verbose::events) {
-		if ($k eq "__data") {
-			print "STORE, $node, $k, BINARY DATA\n";
-		} else { 
-			print "STORE, $node, $k, $value\n";
-		}
+		print "STORE, $node, $k, $value\n";
 	}
 
 	if (defined $node->{EventModel}){
