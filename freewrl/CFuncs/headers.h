@@ -157,6 +157,7 @@ extern double TickTime;
 /* Transform node optimizations */
 int verify_rotate(GLfloat *params);
 int verify_translate(GLfloat *params);
+int verify_scale(GLfloat *params);
 
 /* C routes */
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
@@ -256,7 +257,38 @@ struct CRjsStruct {
 	unsigned int	glob;	/* JSGlobals		*/
 	unsigned int	brow;	/* BrowserIntern	*/
 };
-void JSMaxAlloc();
+void JSMaxAlloc(void);
+void cleanupDie(int num, char *msg);
+void shutdown_EAI(void);
+unsigned int EAI_GetNode(char *str);
+void EAI_GetType (unsigned int uretval,
+        char *ctmp, char *dtmp,
+        int *ra, int *rb,
+        int *rc, int *rd, int *re);
+
+
+void setECMAtype(int num);
+int get_touched_flag(int fptr, int actualscript);
+void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
+void setMultiElementtype(int num);
+void Multimemcpy(void *tn, void *fn, int len);
+void CRoutes_Register(int adrem,        unsigned int from,
+                                 int fromoffset,
+                                 unsigned int to_count,
+                                 char *tonode_str,
+                                 int length,
+                                 void *intptr,
+                                 int scrdir,
+                                 int extra);
+void CRoutes_free(void);
+void mark_script(int num);
+void propagate_events(void);
+void sendScriptEventIn(int num);
+void add_first(char *clocktype,unsigned int node);
+void do_first(void);
+void process_eventsProcessed(void);
+
+
 
 extern struct CRjsStruct *JSglobs; /* Javascript invocation parameters */
 extern int *scr_act;    /* script active array - defined in CRoutes.c */
@@ -344,8 +376,10 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 void create_EAI(void);
 int EAI_CreateVrml(char *type, char *str, unsigned int *retarr, int retarrsize);
 void EAI_Route(char cmnd, char *tf);
+void EAI_replaceWorld(char *inputstring);
 
-
+void render_hier(void *p, int rwhat);
+void handle_EAI(void);
 
 
 #endif /* __HEADERS_H__ */

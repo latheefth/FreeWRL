@@ -260,9 +260,11 @@ void
 handle_examine(const int mev, const unsigned int button, float x, float y)
 {
 	Quaternion q, q_i, arc;
-	struct pt p = { 0, 0, Viewer.Dist };
+	struct pt p = { 0, 0, 0};
 	VRML_Viewer_Examine *examine = Viewer.examine;
 	double squat_norm;
+
+	p.z=Viewer.Dist;
 
 	if (mev == ButtonPress) {
 		if (button == 1) {
@@ -396,16 +398,20 @@ void
 handle_tick_walk()
 {
 	VRML_Viewer_Walk *walk = Viewer.walk;
-	Quaternion q = { (Viewer.Quat).w,
-					 (Viewer.Quat).x,
-					 (Viewer.Quat).y,
-					 (Viewer.Quat).z },
-		/* my $nq = new VRML::Quaternion(1-0.2*$this->{RD},0,0.2*$this->{RD},0); */
-		nq = { 1 - 0.2 * walk->RD,
-			   0,
-			   0.2 * walk->RD,
-			   0 };
-	struct pt p = { 0.15 * walk->XD, 0.15 * walk->YD, 0.15 * walk->ZD };
+	Quaternion q, nq;
+	struct pt p;
+	
+	p.x = 0.15 * walk->XD;
+	p.y = 0.15 * walk->YD;
+	p.z = 0.15 * walk->ZD;
+	q.w = (Viewer.Quat).w;
+	q.x = (Viewer.Quat).x;
+	q.y = (Viewer.Quat).y;
+	q.z = (Viewer.Quat).z;
+	nq.w = 1 - 0.2 * walk->RD;
+	nq.x = 0.0l;
+	nq.y = 0.2 * walk->RD;
+	nq.z = 0.0;
 
 	increment_pos(&p);
 

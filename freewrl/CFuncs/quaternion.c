@@ -212,8 +212,12 @@ scalar_multiply(Quaternion *quat, double s)
 void
 rotation(struct pt *ret, const Quaternion *quat, const struct pt *v)
 {
-	Quaternion q_v = {0, v->x, v->y, v->z}, q_i, q_r1, q_r2;
+	Quaternion q_v, q_i, q_r1, q_r2;
 
+	q_v.w = 0.0;
+	q_v.x = v->x;
+	q_v.y = v->y;
+	q_v.z = v->z;
 	inverse(&q_i, quat);
 	multiply(&q_r1, &q_v, &q_i);
 	multiply(&q_r2, quat, &q_r1);

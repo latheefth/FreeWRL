@@ -6,11 +6,11 @@
 #define __pluginSocket_h__
 
 
-#ifdef XP_UNIX
+#ifndef AQUA
 
 #include <unistd.h>
 
-#endif /* XP_UNIX */
+#endif /* AQUA */
 
 #include <fcntl.h>
 #include <sys/ioctl.h>

@@ -34,8 +34,10 @@ Cursor curcursor;
 
 #include "headers.h"
 
-void Next_ViewPoint();			// switch to next viewpoint - 
-void Snapshot();			// get a snapshot
+void Next_ViewPoint(void);		// switch to next viewpoint - 
+void Snapshot(void);			// get a snapshot
+void setup_viewpoint(void);
+void get_collisionoffset(double *x, double *y, double *z);
 
 /* Sensor table. When clicked, we get back from rayHit the fromnode, 
 	have to look up type and data in order to properly handle it */
@@ -119,7 +121,7 @@ void EventLoop() {
 		if (waittime.tv_usec < 0.0) {
 			waittime.tv_usec = -waittime.tv_usec;
 			//printf ("waiting %d\n",(int)waittime.tv_usec);
-			usleep(waittime.tv_usec);
+			usleep((unsigned)waittime.tv_usec);
 		}
 	}
 	if (loop_count == 25) {
@@ -154,7 +156,7 @@ void EventLoop() {
 	if (!NavigationMode) {
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint();
-		render_hier(rootNode,VF_Sensitive);
+		render_hier((void *)rootNode,VF_Sensitive);
 		CursorOverSensitive = rayHit();
 
 		/* did we have a click of button 1? */
@@ -281,7 +283,7 @@ void handle_Xevents() {
 				   default: break;
 				   }
 				buf[0]=(char)ks;buf[1]='\0';
-				do_keyPress(ks,event.type);
+				do_keyPress((char)ks,event.type);
 
 				break;
 			case ButtonPress:
@@ -297,8 +299,8 @@ void handle_Xevents() {
 						(!lastPressedOver))  {
 					NavigationMode=ButDown[1] || ButDown[3];
 					handle (event.type,event.xbutton.button,
-						(float)event.xbutton.x/(float)screenWidth,
-						(float)event.xbutton.y/(float)screenHeight);
+						(float) ((float)event.xbutton.x/screenWidth),
+						(float) ((float)event.xbutton.y/screenHeight));
 				}
                                 break;
                         case MotionNotify:
@@ -319,9 +321,9 @@ void handle_Xevents() {
 					while ((count < 5) && (!ButDown[count])) count++;
 					if (count == 5) return; // no buttons down???
 
-					handle (event.type,count,
-						(float)event.xbutton.x/(float)screenWidth,
-						(float)event.xbutton.y/(float)screenHeight);
+					handle (event.type,(unsigned)count,
+						(float)((float)event.xbutton.x/screenWidth),
+						(float)((float)event.xbutton.y/screenHeight));
 				}
 				break;
 			case Expose:
@@ -363,7 +365,7 @@ void render_pre() {
 	}
 
 	/* 5. render hierarchy - proximity */
-	render_hier(rootNode, VF_Proximity);
+	render_hier((void *)rootNode, VF_Proximity);
 
 	glPrintError("GLBackend::render_pre");
 }
@@ -374,8 +376,8 @@ void render() {
 
 
 	for (count = 0; count < maxbuffers; count++) {
-		set_buffer(bufferarray[count]);		// in Viewer.c
-		glDrawBuffer(bufferarray[count]);
+		set_buffer((unsigned)bufferarray[count]);		// in Viewer.c
+		glDrawBuffer((unsigned)bufferarray[count]);
 
 		// turn lights off, and clear buffer bits
 		BackEndClearBuffer();
@@ -392,12 +394,12 @@ void render() {
 		// Other lights
 		glPrintError("XEvents::render, before render_hier");
 
-		render_hier(rootNode, VF_Lights);
+		render_hier((void *)rootNode, VF_Lights);
 		glPrintError("XEvents::render, render_hier(VF_Lights)");
 
 		// 4. Nodes (not the blended ones)
 
-		render_hier(rootNode, VF_Geom);
+		render_hier((void *)rootNode, VF_Geom);
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 	}
 
@@ -416,7 +418,7 @@ get_collisionoffset(double *x, double *y, double *z)
 	if (CollisionInfo.Count == 0) {
 	    *x = *y = *z = 0;
 	} else {
-	    if (vecnormal(&res, &res) == 0.) {
+	    if (APPROX(vecnormal(&res, &res),0.0)) {
 			*x = *y = *z = 0;
 	    } else {
 			vecscale(&res, &res, sqrt(CollisionInfo.Maximum2));
@@ -435,7 +437,7 @@ void render_collisions() {
 	CollisionInfo.Count = 0;
 	CollisionInfo.Maximum2 = 0.;
 
-	render_hier(rootNode, VF_Collision);
+	render_hier((void *)rootNode, VF_Collision);
 	get_collisionoffset(&(v.x), &(v.y), &(v.z));
 	increment_pos(&v);
 }
@@ -449,7 +451,7 @@ void setup_viewpoint() {
 
         viewer_togl(fieldofview);
 
-        render_hier(rootNode, VF_Viewpoint);
+        render_hier((void *)rootNode, VF_Viewpoint);
         glPrintError("XEvents::setup_viewpoint");
 }
 
@@ -464,7 +466,8 @@ void setup_projection(int pick, int x, int y) {
 		/* picking for mouse events */
 		glGetIntegerv(GL_VIEWPORT,viewPort);
 		//gluPickMatrix(x,viewPort[3]-y,3,3,viewPort);
-		gluPickMatrix(x,viewPort[3]-y,100,100,viewPort);
+		gluPickMatrix((float)x,(float)viewPort[3]-y,
+			(float)100,(float)100,viewPort);
 	}
 
         /* bounds check */
@@ -478,7 +481,7 @@ void setup_projection(int pick, int x, int y) {
 }
 
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
-void do_keyPress(char kp, int type) {
+void do_keyPress(const char kp, int type) {
 	if (type == KeyPress) {
 		switch (kp) {
 			case 'e': { set_viewer_type (EXAMINE); break; }
@@ -528,12 +531,12 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	void (*myp)(unsigned *);
 
 	//printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);
-	if (strncmp("TouchSensor",type,10) == 0) { myp =  do_TouchSensor;
-	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = do_GeoTouchSensor;
-	} else if (strncmp("PlaneSensor",type,10) == 0) { myp = do_PlaneSensor;
-	} else if (strncmp("CylinderSensor",type,10) == 0) { myp = do_CylinderSensor;
-	} else if (strncmp("SphereSensor",type,10) == 0) { myp = do_SphereSensor;
-	} else if (strncmp("Anchor",type,10) == 0) { myp = do_Anchor;
+	if (strncmp("TouchSensor",type,10) == 0) { myp =  (void *)do_TouchSensor;
+	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = (void *)do_GeoTouchSensor;
+	} else if (strncmp("PlaneSensor",type,10) == 0) { myp = (void *)do_PlaneSensor;
+	} else if (strncmp("CylinderSensor",type,10) == 0) { myp = (void *)do_CylinderSensor;
+	} else if (strncmp("SphereSensor",type,10) == 0) { myp = (void *)do_SphereSensor;
+	} else if (strncmp("Anchor",type,10) == 0) { myp = (void *)do_Anchor;
 	} else if (strncmp("ProximitySensor",type,10) == 0) { return; /* its time sensive only */
 
 	} else {
@@ -560,7 +563,7 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	/* now, put the function pointer and data pointer into the structure entry */
 	SensorEvents[num_SensorEvents].fromnode = ptr;
 	SensorEvents[num_SensorEvents].datanode = datanode;
-	SensorEvents[num_SensorEvents].interpptr = myp;
+	SensorEvents[num_SensorEvents].interpptr = (void *)myp;
 	
 	num_SensorEvents++;
 }
@@ -569,13 +572,12 @@ void setSensitive(void *ptr,int datanode,char *type) {
 /* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
 void sendSensorEvents(int COS,int ev, int status) {
 	int count;
-	char *st;
 
 	/* printf ("sio, COS %d ev %d status %d\n",COS,ev,status); */
 	if (!COS) return;
 
 	for (count = 0; count < num_SensorEvents; count++) {
-		if (SensorEvents[count].fromnode == COS) { 
+		if ((int) SensorEvents[count].fromnode == COS) { 
 	
 			/* should we set/use hypersensitive mode? */
 			if (ev==ButtonPress) {
@@ -635,7 +637,7 @@ void XEventStereo() {
 void glPrintError(char *str) {
         int err;
         while((err = glGetError()) != GL_NO_ERROR)
-                fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString(err),str);
+                fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
         }
 #endif
 
@@ -643,10 +645,10 @@ void glPrintError(char *str) {
 void Next_ViewPoint() { 
 	if (totviewpointnodes>=2) {
 		/* whew, we have other vp nodes */
-		send_bind_to(VIEWPOINT,viewpointnodes[currboundvpno],0);
+		send_bind_to(VIEWPOINT,(void *)viewpointnodes[currboundvpno],0);
 		currboundvpno++;
 		if (currboundvpno>=totviewpointnodes) currboundvpno=0;
-		send_bind_to(VIEWPOINT,viewpointnodes[currboundvpno],1);
+		send_bind_to(VIEWPOINT,(void *)viewpointnodes[currboundvpno],1);
 	}
 }
 

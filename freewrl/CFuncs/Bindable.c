@@ -28,8 +28,8 @@ unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
 
 void saveBGVert (struct VRML_Background *node, 
-		int *vertexno, float *col, float dist,
-		float x, float y, float z) ;
+		int *vertexno, float *col, double dist,
+		double x, double y, double z) ;
 
 /* this is called after a Viewpoint or GeoViewpoint bind */
 void reset_upvector() {
@@ -330,7 +330,7 @@ void render_Fog (struct VRML_Fog *node) {
 
 	/* now do the foggy stuff */
 	glFogfv(GL_FOG_COLOR,fog_colour);
-	glFogf(GL_FOG_END, ((float) node->visibilityRange));
+	glFogf(GL_FOG_END, (float) (node->visibilityRange));
 	if (strncmp("LINEAR",fogptr,(unsigned) foglen)) {
 		glFogi(GL_FOG_MODE, GL_EXP);
 	} else {
@@ -356,7 +356,8 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	double a1;
 	char *posnstring;
-	unsigned int xx;
+	unsigned int xx, yy;
+
 
 	//printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
@@ -385,7 +386,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 			&node->__position.c[1], &node->__position.c[2]) != 3) {
 			printf ("GeoViewpoint - vp:%s: invalid position string: :%s:\n",
 					SvPV(node->description,xx),
-					SvPV(node->position,xx));
+					SvPV(node->position,yy));
 		}
 
 		geoSystemCompile (&node->geoSystem, &node->__geoSystem, 
@@ -535,8 +536,8 @@ void render_Background (struct VRML_Background *node) {
 		node->__quadcount = estq * 4;
 
 		/* now, malloc space for new arrays  - 3 points per vertex, 4 per quad. */
-		node->__points = (int) malloc (sizeof (GLfloat) * estq * 3 * 4);
-		node->__colours = (int) malloc (sizeof (GLfloat) * estq * 3 * 4);
+		node->__points = (int)malloc (sizeof (GLfloat) * estq * 3 * 4);
+		node->__colours = (int)malloc (sizeof (GLfloat) * estq * 3 * 4);
 		if ((node->__points == 0) || (node->__colours == 0)) {
 			printf ("malloc failure in background\n");
 			exit(1);
@@ -552,13 +553,13 @@ void render_Background (struct VRML_Background *node) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
-					saveBGVert (node,&actq,&c1->c[0],20000,
+					saveBGVert (node,&actq,&c1->c[0],20000.0,
 					  sin(va2)*cos(ha1), cos(va2), sin(va2)*sin(ha1));
-					saveBGVert (node,&actq,&c1->c[0],20000,
+					saveBGVert (node,&actq,&c1->c[0],20000.0,
 					  sin(va2)*cos(ha2), cos(va2), sin(va2)*sin(ha2));
-					saveBGVert (node,&actq,&c1->c[0],20000,
+					saveBGVert (node,&actq,&c1->c[0],20000.0,
 					  sin(va1)*cos(ha2), cos(va1), sin(va1)*sin(ha2));
-					saveBGVert (node,&actq,&c1->c[0],20000,
+					saveBGVert (node,&actq,&c1->c[0],20000.0,
 					  sin(va1)*cos(ha1), cos(va1), sin(va1) * sin(ha1));
 				}
 				va1 = va2;
@@ -568,7 +569,9 @@ void render_Background (struct VRML_Background *node) {
 			va1 = 0;
 			/* this gets around a compiler warning - we really DO want last values of this from following
 			   for loop */
-			c1 = &node->skyColor.p[0]; va2= node->skyAngle.p[0];
+			c1 = &node->skyColor.p[0]; va2= node->skyAngle.p[0]; c2=c1;
+
+
 			for(v=0; v<(node->skyColor.n-1); v++) {
 				c1 = &node->skyColor.p[v];
 				c2 = &node->skyColor.p[v+1];
@@ -577,13 +580,13 @@ void render_Background (struct VRML_Background *node) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
-					saveBGVert(node,&actq,&c2->c[0],20000,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,	
 					  sin(va2)*cos(ha1), cos(va2), sin(va2) * sin(ha1));
-					saveBGVert(node,&actq,&c2->c[0],20000,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,	
 					  sin(va2)*cos(ha2), cos(va2), sin(va2) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],20000,	
+					saveBGVert(node,&actq,&c1->c[0],20000.0,	
 					  sin(va1)*cos(ha2), cos(va1), sin(va1) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],20000,	
+					saveBGVert(node,&actq,&c1->c[0],20000.0,	
 					  sin(va1) * cos(ha1), cos(va1), sin(va1) * sin(ha1));
 				}
 				va1 = va2;
@@ -595,13 +598,13 @@ void render_Background (struct VRML_Background *node) {
 				for(h=0; h<hdiv; h++) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
-					saveBGVert(node,&actq,&c2->c[0],20000,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,	
 					  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
-					saveBGVert(node,&actq,&c2->c[0],20000,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,	
 					  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
-					saveBGVert(node,&actq,&c2->c[0],20000,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,	
 					  sin(va2) * cos(ha2), cos(va2), sin(va2) * sin(ha2));
-					saveBGVert(node,&actq,&c2->c[0],20000,	
+					saveBGVert(node,&actq,&c2->c[0],20000.0,	
 					  sin(va2) * cos(ha1), cos(va2), sin(va2) * sin(ha1));
 				}
 			}
@@ -615,13 +618,13 @@ void render_Background (struct VRML_Background *node) {
 					ha1 = h * PI*2 / hdiv;
 					ha2 = (h+1) * PI*2 / hdiv;
 	
-					saveBGVert(node,&actq,&c1->c[0],12500,	
+					saveBGVert(node,&actq,&c1->c[0],12500.0,	
 					  sin(PI) * cos(ha1), cos(PI), sin(PI) * sin(ha1));
-					saveBGVert(node,&actq,&c1->c[0],12500,	
+					saveBGVert(node,&actq,&c1->c[0],12500.0,	
 					  sin(PI) * cos(ha2), cos(PI), sin(PI) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],12500,	
+					saveBGVert(node,&actq,&c1->c[0],12500.0,	
 					  sin(PI/2) * cos(ha2), cos(PI/2), sin(PI/2) * sin(ha2));
-					saveBGVert(node,&actq,&c1->c[0],12500,	
+					saveBGVert(node,&actq,&c1->c[0],12500.0,	
 					  sin(PI/2) * cos(ha1), cos(PI/2), sin(PI/2) * sin(ha1));
 				}
 			} else {
@@ -635,13 +638,13 @@ void render_Background (struct VRML_Background *node) {
 						ha1 = h * PI*2 / hdiv;
 						ha2 = (h+1) * PI*2 / hdiv;
 	
-						saveBGVert(node,&actq,&c1->c[0],12500,	
+						saveBGVert(node,&actq,&c1->c[0],12500.0,	
 						  sin(va1)*cos(ha1), cos(va1), sin(va1)*sin(ha1));
-						saveBGVert(node,&actq,&c1->c[0],12500,	
+						saveBGVert(node,&actq,&c1->c[0],12500.0,	
 						  sin(va1)*cos(ha2), cos(va1), sin(va1)*sin(ha2));
-						saveBGVert(node,&actq,&c2->c[0],12500,	
+						saveBGVert(node,&actq,&c2->c[0],12500.0,	
 						  sin(va2)*cos(ha2), cos(va2), sin(va2)*sin(ha2));
-						saveBGVert(node,&actq,&c2->c[0],12500,	
+						saveBGVert(node,&actq,&c2->c[0],12500.0,	
 						  sin(va2) * cos(ha1), cos(va2), sin(va2)*sin(ha1));
 					}
 					va1 = va2;
@@ -672,9 +675,6 @@ void render_Background (struct VRML_Background *node) {
 			((node->rightUrl).n>0) || 
 			((node->topUrl).n>0) || 
 			((node->bottomUrl).n>0)) {
-        	GLfloat mat_emission[] = {1.0,1.0,1.0,1.0};
-       	 	GLfloat col_amb[] = {1.0, 1.0, 1.0, 1.0};
-       	 	GLfloat col_dif[] = {1.0, 1.0, 1.0, 1.0};
 
         	glEnable(GL_TEXTURE_2D);
         	glColor3d(1.0,1.0,1.0);
@@ -693,8 +693,8 @@ void render_Background (struct VRML_Background *node) {
 
 /* save a Background vertex into the __points and __colours arrays */
 void saveBGVert (struct VRML_Background *node, 
-		int *vertexno, float *col, float dist,
-		float x, float y, float z) {
+		int *vertexno, float *col, double dist,
+		double x, double y, double z) {
 		
 		float *pt;
 		
@@ -705,9 +705,9 @@ void saveBGVert (struct VRML_Background *node,
 
 		/* and, save the vertex info */
 		pt = (float *) node->__points;
-		pt[*vertexno*3+0] = x*dist;
-		pt[*vertexno*3+1] = y*dist;
-		pt[*vertexno*3+2] = z*dist;
+		pt[*vertexno*3+0] = (float)x*dist;
+		pt[*vertexno*3+1] = (float)y*dist;
+		pt[*vertexno*3+2] = (float)z*dist;
 		
 		(*vertexno)++;
 }

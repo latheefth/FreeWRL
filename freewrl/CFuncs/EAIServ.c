@@ -48,7 +48,8 @@
 #include "Viewer.h"
 #include <sys/time.h>
 
-#ifdef __APPLE__
+/* include socket.h for irix and apple */
+#ifndef LINUX
 #include <sys/socket.h>
 #endif
 
@@ -143,20 +144,9 @@ void EAI_parse_commands (char *stptr);
 unsigned int EAI_SendEvent(char *bufptr);
 void EAI_send_string (char *str);
 void connect_EAI(void);
-void handle_EAI(void);
-int EAI_GetNode(char *str);		// in VRMLC.pm
-void EAI_GetType (unsigned int uretval,
-	char *ctmp, char *dtmp,
-	int *ra, int *rb,
-	int *rc, int *rd, int *re);		// in VRMLC.pm
 void read_EAI_socket(void);
 void handle_Listener (void);
-void CRoutes_Register(int adrem, unsigned int from, unsigned int fromoffset,
-	int to_count, char *tonode_str, unsigned int length,
-	void *intptr, int scrdir, int extra);				// CFuncs/CRoutes.c
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
-void shutdown_EAI(void);
-
 
 void EAI_send_string(char *str){
 	unsigned int n;
@@ -533,7 +523,7 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
 
 				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (1,ra,rb, 1, EAIListenerArea, rc, &handle_Listener, 0, 
+				CRoutes_Register  (1,ra,(int)rb, 1, EAIListenerArea, (int) rc, &handle_Listener, 0, 
 					(count<<8)+ctmp[0]); // encode id and type here
 	
 				sprintf (buf,"RE\n%d\n0",count);
@@ -558,7 +548,7 @@ void EAI_parse_commands (char *bufptr) {
 			case ADDROUTE:  
 			case DELETEROUTE:  {
 				if (EAIVerbose) printf ("Add/Delete route %s\n",bufptr);
-				EAI_Route (command,bufptr);
+				EAI_Route ((char) command,bufptr);
 				sprintf (buf,"RE\n%d\n0",count);
 				break;
 				}
@@ -596,7 +586,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 	float fl[4];
 	double tval;
 	unsigned int memptr;
-	int convertnodetype;
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
 		friggin do it! ;-) */
@@ -637,7 +626,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 			if (strncmp(ptr," TRUE",5)== (unsigned int) 0) { ival = 1;
 			} else { ival = 0; }
 
-			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFBOOL,&ival,sizeof(int));
+			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFBOOL,&ival,sizeof(int));
 			else memcpy ((void *)memptr, (void *)&ival,sizeof(int));
 			break;
 		}
@@ -645,41 +634,41 @@ unsigned int EAI_SendEvent (char *ptr) {
 		case EAI_SFTIME: {
 			sscanf (ptr,"%lf",&tval);
 			//printf ("EAI_SFTime conversion numbers %f from string %s\n",tval,ptr);
-			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFTIME,&tval,sizeof(double));
+			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFTIME,&tval,sizeof(double));
 			else memcpy ((void *)memptr, (void *)&tval,sizeof(double));
 			break;
 		}
 		case EAI_SFNODE:
 		case EAI_SFINT32: {
 			sscanf (ptr,"%d",&ival);
-			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFINT32,&ival,sizeof(int));
+			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFINT32,&ival,sizeof(int));
 			else memcpy ((void *)memptr, (void *)&ival,sizeof(int));
 			break;
 		}
 		case EAI_SFFLOAT: {
 			sscanf (ptr,"%f",fl);
-			if (scripttype) set_one_ECMAtype(nodeptr,offset,SFFLOAT,&fl,sizeof(float));
+			if (scripttype) set_one_ECMAtype((int)nodeptr,(int)offset,SFFLOAT,&fl,sizeof(float));
 			else memcpy ((void *)memptr, (void *)fl,sizeof(float));
 			break;
 		}
 
 		case EAI_SFVEC2F: {	/* EAI_SFVec2f */
 			sscanf (ptr,"%f %f",&fl[0],&fl[1]);
-			if (scripttype) Set_one_MultiElementtype (nodeptr, offset, ptr, sizeof(float)*2);
+			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, ptr, sizeof(float)*2);
 			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*2);
 			break;
 		}
 		case EAI_SFVEC3F:
 		case EAI_SFCOLOR: {	/* EAI_SFColor */
 			sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-			if (scripttype) Set_one_MultiElementtype (nodeptr, offset, ptr, sizeof(float)*3);
+			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, ptr, sizeof(float)*3);
 			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
 			break;
 		}
 
 		case EAI_SFROTATION: {
 			sscanf (ptr,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-			if (scripttype) Set_one_MultiElementtype (nodeptr, offset, ptr, sizeof(float)*4);
+			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, ptr, sizeof(float)*4);
 			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*4);
 			break;
 		}
@@ -719,7 +708,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 	}
 
 	if (scripttype) {
-		mark_script(nodeptr);
+		mark_script((int)nodeptr);
 	} else {
 		/* if this is a geometry, make it re-render. Some nodes (PROTO interface params w/o IS's) 
 	   	   will have an offset of zero, and are thus not "real" nodes, only memory locations */

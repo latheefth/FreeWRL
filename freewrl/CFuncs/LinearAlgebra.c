@@ -381,7 +381,6 @@ GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n)
 double matrotate2v(GLdouble* res, struct pt iv/*original*/, struct pt dv/*result*/) {
     struct pt cv;
     double cvl,a;
-    static const GLdouble ident[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 
     vecnormal(&dv,&dv);
     vecnormal(&iv,&iv);

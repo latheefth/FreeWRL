@@ -7488,6 +7488,6 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,int *ptr) {
     r_2_pix_alloc = NULL; g_2_pix_alloc= NULL;b_2_pix_alloc = NULL;
     
       fclose(mpegfile);
-	*ptr =  dataPointer;
+	*ptr =  (int)dataPointer;
 	*fc = (*frameCount)--;
 }

@@ -12,12 +12,13 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef XP_UNIX
-
+#ifdef AQUA
 #include <unistd.h>
 #include <X11/X.h>
+#else
+#include <X11/X.h>
+#endif
 
-#endif /* XP_UNIX */
 
 #ifdef __cplusplus
 extern "C" {

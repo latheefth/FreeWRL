@@ -49,7 +49,7 @@ void do_shininess (float shininess) {
 	}
 
 	if (fabs(default_shininess - shininess) > 1.0) {
-		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, default_shininess);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, (float)default_shininess);
 	}
 }
 

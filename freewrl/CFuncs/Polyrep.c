@@ -822,6 +822,8 @@ void stream_polyrep(void *node,
 
 	int stream_poly_verbose = 0;
 
+	UNUSED (npoints);
+
 	if (stream_poly_verbose) printf ("\nstart stream_polyrep\n");
 
 	v = *(struct VRML_Virt **)node;
@@ -945,7 +947,7 @@ void stream_polyrep(void *node,
 				warn("Too large normal index %d nnormals %d-- help??",nori, nnormals);
 			}
 			if (stream_poly_verbose) {
-				printf ("nnormals at %d , nori %d ",&normals[nori].c,nori);
+				printf ("nnormals at %d , nori %d ",(int) &normals[nori].c,nori);
 				fwnorprint (normals[nori].c);
 			}
 
@@ -1033,9 +1035,9 @@ void stream_polyrep(void *node,
 
 	/* free the old, and make the new current. */
 	FREE_IF_NZ(r->coord);
-	r->coord = newpoints;
+	r->coord = (float *)newpoints;
 	FREE_IF_NZ(r->normal);
-	r->normal = newnorms;
+	r->normal = (float *)newnorms;
 	FREE_IF_NZ(r->cindex);
 	r->cindex = newcindex;
 	FREE_IF_NZ(r->tcoord);
@@ -1043,7 +1045,7 @@ void stream_polyrep(void *node,
 
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->colindex);
-	r->color = newcolors;
+	r->color = (float *)newcolors;
 
 	/* we dont require these indexes any more */
 	FREE_IF_NZ(r->norindex);
@@ -1081,6 +1083,9 @@ void render_ray_polyrep(void *node,
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
+
+
+	UNUSED(npoints);
 	/*
 	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 		p->_change, r->_change, r->ntri);
@@ -1160,8 +1165,8 @@ void render_ray_polyrep(void *node,
 				 if(k+l > 1 || k < 0 || l < 0) {
 				 	continue;
 				 }
-				 rayhit(tmp2, hitpoint.x, hitpoint.y, hitpoint.z,
-				 	v3.x, v3.y, v3.z, -1,-1, "polyrep");
+				 rayhit((float)(tmp2), (float)(hitpoint.x), (float)(hitpoint.y), (float)(hitpoint.z),
+				 	(float)(v3.x), (float)(v3.y), (float)(v3.z), (float)-1,(float)-1, "polyrep");
 			 }
 		/*
 		} else {

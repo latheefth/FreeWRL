@@ -12,6 +12,8 @@
 #include "Structs.h"
 #include "GeoVRML.h"
 
+#include "headers.h"
+
 int GeoVerbose = 0;
 
 int GeoSys     = GEO_GD + GEO_WE;	// which GeoSystem is parsed from the last GeoOrigin

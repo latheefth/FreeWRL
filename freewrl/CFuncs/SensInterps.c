@@ -178,7 +178,7 @@ void do_OintScalar (void *node) {
 		 px->value_changed = kVs[kvin-1];
 	} else {
 		/* have to go through and find the key before */
-		counter=find_key(kin,px->set_fraction,px->key.p);
+		counter=find_key(kin,(float)(px->set_fraction),px->key.p);
 		px->value_changed =
 			(px->set_fraction - px->key.p[counter-1]) /
 			(px->key.p[counter] - px->key.p[counter-1]) *
@@ -276,7 +276,7 @@ void do_OintCoord(void *node) {
 		/* have to go through and find the key before */
 		if (SEVerbose) printf ("indx=0, kin %d frac %f\n",kin,px->set_fraction);
 
-		myKey=find_key(kin,px->set_fraction,px->key.p);
+		myKey=find_key(kin,(float)(px->set_fraction),px->key.p);
 		if (SEVerbose) printf ("working on key %d\n",myKey);
 
 		/* find the fraction between the 2 values */
@@ -362,7 +362,7 @@ void do_Oint3 (void *node) {
 				(void *)&kVs[kvin-1], sizeof (struct SFColor));
 	} else {
 		/* have to go through and find the key before */
-		counter = find_key(kin,px->set_fraction,px->key.p);
+		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
 		for (tmp=0; tmp<3; tmp++) {
 			px->value_changed.c[tmp] =
 				(px->set_fraction - px->key.p[counter-1]) /
@@ -429,7 +429,7 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 		 /* JAS px->value_changed.r[2] = kVs[kvin-1].r[2]; */
 		 /* JAS px->value_changed.r[3] = kVs[kvin-1].r[3]; */
 	} else {
-		counter = find_key(kin,px->set_fraction,px->key.p);
+		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
 		interval = (px->set_fraction - px->key.p[counter-1]) /
 				(px->key.p[counter] - px->key.p[counter-1]);
 
@@ -491,6 +491,8 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 
 void do_GeoOint (void *node) {
 	struct VRML_GeoPositionInterpolator *px;
+	UNUSED(node);
+	UNUSED(px);
 }
 
 
@@ -527,8 +529,8 @@ void do_AudioTick(struct VRML_AudioClip *node) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,return_Duration(node->__sourceNumber),
-		node->pitch);
+		&node->stopTime,node->loop,(float)(return_Duration(node->__sourceNumber)),
+		((float)node->pitch));
 	
 
 	if (oldstatus != node->isActive) {
@@ -572,7 +574,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,node->cycleInterval, 1.0);
+		&node->stopTime,node->loop,(float)(node->cycleInterval), (float)1.0);
 
 
 	/* now process if we have changed states */
@@ -685,7 +687,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,duration,speed);
+		&node->stopTime,node->loop,(float)duration,(float)speed);
 	
 
 	/* what we do now depends on whether we are active or not */
@@ -742,6 +744,10 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 
 *****************************************************************************/
 void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, int ev, int over) {
+UNUSED(node);
+UNUSED(ev);
+UNUSED(over);
+
 };
 
 
@@ -911,7 +917,7 @@ void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
 
 
 void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
-	float rot, radius, ang, length, w, x, y, z;
+	float rot, radius, ang, length;
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
 	GLdouble modelMatrix[16];
@@ -1011,7 +1017,7 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
 		normalize(&tempV);
         
         	length = tempV.x * tempV.x + tempV.y * tempV.y + tempV.z * tempV.z;
-        	if (length == 0.0) { return; }
+        	if (APPROX(length,0.0)) { return; }
         
 		/* Find the angle of the dot product */
         	rot = radius * acos((dir1.x*dir2.x+dir1.y*dir2.y+dir1.z*dir2.z)) ;
@@ -1211,7 +1217,7 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	strcpy (mypath,SvPV(node->__parenturl,xx));
 	
 	/* and strip off the file name, leaving any path */
-	slashindex = rindex(mypath,'/');
+	slashindex = (char *)rindex(mypath,'/');
 	if (slashindex != NULL) { 
 		slashindex ++; /* leave the slash on */
 		*slashindex = 0; 

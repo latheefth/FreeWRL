@@ -15,6 +15,8 @@
 #include <pthread.h>
 #include "Structs.h"
 #include "headers.h"
+void new_do_texture(int texno);
+void checkAndAllocTexMemTables(int *texture_num, int increment);
 
 struct loadTexParams {
 	/* data sent in to texture parsing thread */
@@ -500,7 +502,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	strcpy (mypath,SvPV(loadparams[*texnum].parenturl,xx));
 	
 	/* and strip off the file name, leaving any path */
-	slashindex = rindex(mypath,'/');
+	slashindex = (char *)rindex(mypath,'/');
 	if (slashindex != NULL) { 
 		slashindex ++; /* leave the slash on */
 		*slashindex = 0; 
@@ -881,7 +883,7 @@ int j;
 
 	/* store the "generic" data */
 	store_tex_info(currentlyWorkingOn,
-		(int)depth,(int)x,(int)y,ptr,
+		(int)depth,(int)x,(int)y,(char *)ptr,
 		((loadparams[currentlyWorkingOn].repeatS)) ? GL_REPEAT : GL_CLAMP,
 		((loadparams[currentlyWorkingOn].repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_NEAREST);

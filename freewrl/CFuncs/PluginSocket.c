@@ -6,6 +6,16 @@
  */
 
 #include "PluginSocket.h"
+#ifdef F_SETSIG
+#define FSIGOK
+#endif
+
+
+char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
+
+/* Function Prototype */
+int createUDPSocket();
+
 
 int
 createUDPSocket()
@@ -30,14 +40,14 @@ setIOOptions(int sockDesc,
 	struct timespec ts;
     int signo = 0; /* int io_flags = 0; */
 	const int on = 1;
-
+#ifdef FSIGOK
 	ts.tv_sec = PLUGIN_TIMEOUT_SEC;
 	ts.tv_nsec = PLUGIN_TIMEOUT_NSEC;
 
 
 	if (nonblock) {
 		/* use signals */
-		#ifndef __APPLE__
+		#ifdef __APPLE__
 		if (fcntl(sockDesc, F_GETSIG, signo) < 0) {
 			perror("fcntl with command F_GETSIG failed");
 			return SOCKET_ERROR;
@@ -50,7 +60,6 @@ setIOOptions(int sockDesc,
 			}
 		}
 		#endif
-
 		/* F_SETOWN is specific to BSD and Linux. */
 		if (fcntl(sockDesc, F_SETOWN, (pid_t) pid) < 0) {
 			perror("fcntl with command F_SETOWN failed");
@@ -79,7 +88,7 @@ setIOOptions(int sockDesc,
 			return SOCKET_ERROR;
 		}
 	}
-
+#endif
     return NO_ERROR;
 }
 
@@ -88,9 +97,7 @@ requestUrlfromPlugin(int sockDesc,
 		   unsigned int plugin_instance,
 		   const char *url)
 {
-	int flags = 0;
 	size_t len = 0, ulen = 0, bytes = 0;
-	char return_url[FILENAME_MAX];
 	urlRequest request;
 
 	request.instance = (void *) plugin_instance;
@@ -217,7 +224,7 @@ pluginBind(struct sockaddr_in *addr)
 
 	addrLen = sizeof(struct sockaddr_in);
 
-    if (bind(sockDesc, (struct sockaddr *) addr, addrLen) < 0) {
+    if (bind(sockDesc, (struct sockaddr *) addr, (unsigned)addrLen) < 0) {
 		perror("bind failed");
 		return SOCKET_ERROR;
     }

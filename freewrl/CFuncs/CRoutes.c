@@ -34,52 +34,9 @@
 #define TO_SCRIPT 2
 #define SCRIPT_TO_SCRIPT 3
 
-/* scripting function protos PLACED HERE, not in headers.h,
-   because these are shared only between this and JScript.c,
-   and other modules dont require JavaScript headers */
-void
-cleanupDie(int num, char *msg);
 
-void
-setECMAtype(int num);
-
-void
-getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
-
-int
-get_touched_flag(int fptr, int actualscript);
-
-void
-getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
-
-void
-setMultiElementtype(int num);
-
-void
-Multimemcpy(void *tn, void *fn, int len);
-
-void
-CRoutes_Register(int adrem, 	unsigned int from,
-				 int fromoffset,
-				 unsigned int to_count,
-				 char *tonode_str,
-				 int length,
-				 void *intptr,
-				 int scrdir,
-				 int extra);
-
-void
-CRoutes_free(void);
-
-void
-mark_script(int num);
-
-void
-propagate_events(void);
-
-void
-sendScriptEventIn(int num);
-
+void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
+void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 
 /*****************************************
 C Routing Methodology:
@@ -566,7 +523,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	}
 
 	myv = INT_TO_JSVAL(1);
-	if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
+	if (!JS_SetProperty(cx, obj, "__touched_flag", (jsval *)&myv)) {
 		fprintf(stderr,
 			"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
 	}
@@ -592,7 +549,7 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 
 	if (CRVerbose) {
 		printf ("getMFNodetype, %s ar %d\n",strp,ar);
-		printf ("getMFNodetype, parent %d has %d nodes currently\n",par,par->n); 
+		printf ("getMFNodetype, parent %d has %d nodes currently\n",(int)par,par->n); 
 	}
 
 	/* oldlen = what was there in the first place */
@@ -635,11 +592,11 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 	
 		newmal = (void *) ((int) newmal + sizeof (unsigned int) * oldlen);
 	
-		while (sscanf (cptr,"%d", newmal) == 1) {
+		while (sscanf (cptr,"%d", (int *)newmal) == 1) {
 			/* skip past this number */
 			while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 			while (*cptr == ' ') cptr++; /* skip spaces */
-			newmal = (void *) ((int) (newmal + sizeof (unsigned int)));
+			newmal = (void *) ((int)newmal + sizeof (unsigned int));
 		}
 
 	} else {
@@ -654,7 +611,7 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 			while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 			while (*cptr == ' ') cptr++; /* skip spaces */
 
-			remptr = par->p;
+			remptr = (int *)par->p;
 			for (counter = 0; counter < par->n; counter ++) {
 				if (*remptr == remchild) {
 					*remptr = 0;  /* "0" can not be a valid memory address */
@@ -667,7 +624,7 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 		if (num_removed > 0) {
 			newmal = malloc ((oldlen-num_removed)*sizeof(unsigned int));
 			tmpptr = newmal;
-			remptr = par->p;
+			remptr = (int *)par->p;
 			if (newmal == 0) {
 				printf ("cant malloc memory for removeChildren");
 				return;
@@ -735,7 +692,7 @@ void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	//printf ("getmultielementtypestart, tn %d %#x dest has  %d size %d\n",tn,tn,eletype, elesize);
 
-	if (!JS_GetProperty(cx, global_return_val, "length", &mainElement)) {
+	if (!JS_GetProperty(cx, (JSObject *)global_return_val, "length", &mainElement)) {
 		printf ("JS_GetProperty failed for \"length\" in getMultNumType\n");
 		return;
 	}
@@ -747,7 +704,7 @@ void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		/* yep... */
 			// printf ("old pointer %d\n",tn->p);
 		if (tn->p != NULL) free (tn->p);
-		tn->p = malloc (elesize*len);
+		tn->p = malloc ((unsigned)(elesize*len));
 		if (tn->p == NULL) {
 			printf ("can not malloc memory in getMultNumType\n");
 			return;
@@ -762,7 +719,7 @@ void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* go through each element of the main array. */
 	for (i = 0; i < len; i++) {
-		if (!JS_GetElement(cx, global_return_val, i, &mainElement)) {
+		if (!JS_GetElement(cx, (JSObject *)global_return_val, i, &mainElement)) {
 			printf ("JS_GetElement failed for %d in getMultNumType\n",i);
 			return;
 		}
@@ -884,7 +841,7 @@ void setMultiElementtype (int num) {
 		_context = (JSContext *) JSglobs[tn].cx;
 		_globalObj = (JSObject *)JSglobs[tn].glob;
 		fn += fptr;
-		Set_one_MultiElementtype (tn, tptr, (void *)fn, len);
+		Set_one_MultiElementtype (tn, tptr, (void *)fn, (unsigned)len);
 	}
 }
 
@@ -967,11 +924,11 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 void add_first(char *clocktype,unsigned int node) {
 	void (*myp)(unsigned *);
 
-	if (strncmp("TimeSensor",clocktype,10) == 0) { myp =  do_TimeSensorTick;
-	} else if (strncmp("ProximitySensor",clocktype,10) == 0) { myp = do_ProximitySensorTick;
-	} else if (strncmp("Collision",clocktype,10) == 0) { myp = do_CollisionTick;
-	} else if (strncmp("MovieTexture",clocktype,10) == 0) { myp = do_MovieTextureTick;
-	} else if (strncmp("AudioClip",clocktype,10) == 0) { myp = do_AudioTick;
+	if (strncmp("TimeSensor",clocktype,10) == 0) { myp =  (void *)do_TimeSensorTick;
+	} else if (strncmp("ProximitySensor",clocktype,10) == 0) { myp = (void *)do_ProximitySensorTick;
+	} else if (strncmp("Collision",clocktype,10) == 0) { myp = (void *)do_CollisionTick;
+	} else if (strncmp("MovieTexture",clocktype,10) == 0) { myp = (void *)do_MovieTextureTick;
+	} else if (strncmp("AudioClip",clocktype,10) == 0) { myp = (void *)do_AudioTick;
 
 	} else {
 		printf ("VRML::VRMLFunc::add_first, unhandled type %s\n",clocktype);
@@ -1115,19 +1072,18 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	const char *token = " ";
 	CRnodeStruct *to_ptr = NULL;
 	unsigned int to_counter;
-	char *mptr;
+	char *chptr;
 	char buf[20];
-	int ton,toof;		/* used to help determine duplicate routes */
+	unsigned ton, toof;		/* used to help determine duplicate routes */
 
 	/* is this a script to script route??? */
 	if (scrdir == SCRIPT_TO_SCRIPT) {
+		chptr = malloc (sizeof (char) * length);
 		// printf ("wwwwwoooowwww!!! script to script!! length %d\n",length);
 		if (length > 0) {
-			mptr = malloc (sizeof(char)*length);
-			sprintf (buf,"%d:0",mptr);
-			// printf ("script to script, memory is %d, string %s\n",mptr,buf);
+			sprintf (buf,"%d:0",(int) chptr);
 			CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
-			CRoutes_Register (adrem, (unsigned int *)mptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
+			CRoutes_Register (adrem, (unsigned)chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
 			return;
 		} else {
 			// XXXX
@@ -1163,7 +1119,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 
 	if (CRVerbose) 
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
-				from, fromoffset, to_count, tonode_str, length, intptr);
+				from, fromoffset, to_count, tonode_str, length, (unsigned)intptr);
 
 	insert_here = 1;
 
@@ -1184,7 +1140,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	/* Quick check to verify that we don't have a duplicate route here 
 	   OR to delete a route... */
 	if ((CRoutes[insert_here-1].fromnode==from) &&
-		(CRoutes[insert_here-1].fnptr==fromoffset) &&
+		(CRoutes[insert_here-1].fnptr==(unsigned)fromoffset) &&
 		(CRoutes[insert_here-1].interpptr==intptr) &&
 		(CRoutes[insert_here-1].tonodes!=0)) {
 
@@ -1211,7 +1167,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 					printf ("routing table now %d\n",CRoutes_Count);
 					for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
 						printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr, 
-							CRoutes[shifter].interpptr);
+							(int)CRoutes[shifter].interpptr);
 					}
 				}
 
@@ -1292,7 +1248,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		printf ("routing table now %d\n",CRoutes_Count);
 		for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
 			printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr, 
-				CRoutes[shifter].interpptr);
+				(int)CRoutes[shifter].interpptr);
 		}
 	}
 
@@ -1391,10 +1347,10 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	/* jsval touched; */		/* was this really touched? */
 
         JSString *strval; /* strings */
-        char *strp;
+        char *strp = 0;
 	/* char *strtouched; */
 	int fromalready=FALSE;	 /* we have already got the from value string */
-	int touched_flag;
+	int touched_flag=FALSE;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
@@ -1407,8 +1363,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
-	while (CRoutes[route].fromnode<actualscript) route++;
-	while (CRoutes[route].fromnode == actualscript) {
+	while (CRoutes[route].fromnode<(unsigned)actualscript) route++;
+	while (CRoutes[route].fromnode == (unsigned)actualscript) {
 		/* is this the same from node/field as before? */
 		if ((CRoutes[route].fromnode == CRoutes[route-1].fromnode) &&
 			(CRoutes[route].fnptr == CRoutes[route-1].fnptr) &&
@@ -1495,7 +1451,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 					break;
 				}
 				case SFFLOAT: {
-					sscanf (strp,"%f",&fl);
+					sscanf (strp,"%f",&fl[0]);
 					memcpy ((void *)(tn+tptr), (void *)&fl,len);
 					break;
 				}
@@ -1523,19 +1479,19 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 					/* a series of Floats... */
-				case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),3); break;}
-				case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),1); break;}
-				case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),4); break;}
-				case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),2); break;}
-				case MFNODE: {getMFNodetype (strp,(tn+tptr),CRoutes[route].extra); break;}
+				case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),3); break;}
+				case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),1); break;}
+				case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),4); break;}
+				case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),2); break;}
+				case MFNODE: {getMFNodetype (strp,(void *)(tn+tptr),CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
-									 global_return_val,(tn+tptr)); 
+									 (jsval *)global_return_val,(void *)(tn+tptr)); 
 					break;
 				}
 
-				case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),0); break;}
-				case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (tn+tptr),5); break;}
+				case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),0); break;}
+				case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),5); break;}
 
 				default: {	printf("WARNING: unhandled from type %s\n", FIELD_TYPE_STRING(JSparamnames[fptr].type));
 				printf (" -- string from javascript is %s\n",strp);
@@ -1550,7 +1506,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				*/
 				if (tptr != 0) {
 					//printf ("can update this node %d %d\n",tn,tptr);
-					update_node(tn);
+					update_node((void *)tn);
 				} else {
 					//printf ("skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag);
 				}
@@ -1563,7 +1519,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 					/* this is an interpolator, call it */
 					CRoutesExtra = CRoutes[route].extra; // in case the interp requires it...
 					if (CRVerbose) printf ("script propagate_events. index %d is an interpolator\n",route);
-					CRoutes[route].interpptr(to_ptr->node);
+					CRoutes[route].interpptr((void *)(to_ptr->node));
 				}
 			}
 		}
@@ -1595,7 +1551,7 @@ void sendScriptEventIn(int num) {
 			/* get the value from the VRML structure, in order to propagate it to a script */
 
 			/* mark that this script has been active */
-			mark_script(to_ptr->node);
+			mark_script((int)(to_ptr->node));
 
 			/* set the parameter */
 			/* see comments in gatherScriptEventOuts to see exact formats */
@@ -1674,7 +1630,7 @@ void propagate_events() {
 					printf("propagate_events: counter %d to_counter %u act %s from %u off %u to %u off %u oint %u dir %d\n",
 						   counter, to_counter, BOOL_STRING(CRoutes[counter].act),
 						   CRoutes[counter].fromnode, CRoutes[counter].fnptr,
-						   to_ptr->node, to_ptr->foffset, CRoutes[counter].interpptr,
+						   to_ptr->node, to_ptr->foffset, (int)CRoutes[counter].interpptr,
 							CRoutes[counter].direction_flag);
 
 				if (CRoutes[counter].act == TRUE) {
@@ -1694,15 +1650,15 @@ void propagate_events() {
 						if (CRoutes[counter].len > 0) {
 						/* simple, fixed length copy */
 
-							memcpy(to_ptr->node + to_ptr->foffset,
-								   CRoutes[counter].fromnode + CRoutes[counter].fnptr,
-								   CRoutes[counter].len);
+							memcpy((void *)(to_ptr->node + to_ptr->foffset),
+								   (void *)(CRoutes[counter].fromnode + CRoutes[counter].fnptr),
+								   (unsigned)CRoutes[counter].len);
 						} else {
 							/* this is a Multi*node, do a specialized copy */
 
-							Multimemcpy (to_ptr->node + to_ptr->foffset,
-										 CRoutes[counter].fromnode + CRoutes[counter].fnptr,
-										 CRoutes[counter].len);
+							Multimemcpy ((void *)(to_ptr->node + to_ptr->foffset),
+								 (void *)(CRoutes[counter].fromnode + CRoutes[counter].fnptr),
+								 CRoutes[counter].len);
 						}
 
 						/* is this an interpolator? if so call the code to do it */
@@ -1714,11 +1670,11 @@ void propagate_events() {
 									   counter);
 							/* copy over this "extra" data, EAI "advise" calls need this */
 							CRoutesExtra = CRoutes[counter].extra;
-							CRoutes[counter].interpptr(to_ptr->node);
+							CRoutes[counter].interpptr((void *)(to_ptr->node));
 						} else {	
 							/* just an eventIn node. signal to the reciever to update */
 							mark_event(to_ptr->node, to_ptr->foffset);
-							update_node(to_ptr->node);
+							update_node((void *)to_ptr->node);
 						}
 					}
 				}
@@ -1785,7 +1741,7 @@ void do_first() {
 	   to either field, so we don't need to bounds check here */
 
 	for (counter =0; counter < num_ClockEvents; counter ++) {
-		ClockEvents[counter].interpptr(ClockEvents[counter].tonode);
+		ClockEvents[counter].interpptr((int *)(ClockEvents[counter].tonode));
 	}
 
 	/* now, propagate these events */

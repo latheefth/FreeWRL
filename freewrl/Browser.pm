@@ -50,7 +50,6 @@ use Config;
 # path for x3d conversion template
 
 my $XSLTpath = "$VRML::ENV{FREEWRL_BUILDDIR}/x3d/X3dToVrml97.xsl";
-print "my xsltpath $XSLTpath\n";
 my $globalBrowser = "";
 
 

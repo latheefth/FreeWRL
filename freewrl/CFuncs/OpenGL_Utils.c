@@ -37,7 +37,7 @@ glpOpenGLInitialize()
 
 	/* Configure OpenGL for our uses. */
 
-	glClearColor(red, green, blue, alpha);
+	glClearColor((float)red, (float)green, (float)blue, (float)alpha);
 	glShadeModel(GL_SMOOTH);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
@@ -50,7 +50,7 @@ glpOpenGLInitialize()
 
 	/* glEnable(GL_BLEND); */
 	/* glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); */
-	glAlphaFunc (GL_GREATER, ref);
+	glAlphaFunc (GL_GREATER, (float)ref);
 	glEnable (GL_ALPHA_TEST);
 
 	/* end of ALPHA test */
