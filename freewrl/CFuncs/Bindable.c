@@ -14,6 +14,7 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 #include "Bindable.h"
 #include "Viewer.h"
 
+extern VRML_Viewer Viewer; //in VRMLC.pm
 
 
 int background_tos = -1;
@@ -42,6 +43,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
         	naviinfo.height = node->avatarSize.p[1];
         	naviinfo.step = node->avatarSize.p[2];
 	}
+	set_headlight(&Viewer,node->headlight);
 }
 
 
@@ -270,7 +272,6 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 			offsetof (struct VRML_NavigationInfo,isBound),
 			&navi_tos,&navi_stack[0]);
 	}
-
 	if(!node->isBound) return;
 }
 
