@@ -167,6 +167,42 @@
 \newcommand{\TTHa}{Rotation Field Applied To ImageTexture Mapped}
 \newcommand{\TTHb}{To Complex Geometry}
 
+%% Bindable Nodes: Background test cases
+\newcommand{\BkgA}{Simple (Single) Binded Background Sending TRUE Events}
+\newcommand{\BkgB}{Simple (Single) Non Binded Background Sending FALSE Events}
+\newcommand{\BkgCa}{Sending FALSE Event To Background At Stack Top Will Bind}
+\newcommand{\BkgCb}{Next Background In Stack}
+\newcommand{\BkgDa}{Sending TRUE Event To Background Not At Stack Top Should}
+\newcommand{\BkgDb}{Force Active Background Out Of Stack Top}
+\newcommand{\BkgE}{Multiple Backgrounds Being Activated/Deactivated Dynamically}
+\newcommand{\BkgFa}{When Last Angle Is $ < \pi$ Last Should Clamp From Last Angle}
+\newcommand{\BkgFb}{To Nadir}
+\newcommand{\BkgGa}{When Last Angle Is $ < \frac{\pi}{2}$ Then Last Angle/Equator}
+\newcommand{\BkgGb}{Region Should Be Invisible}
+\newcommand{\BkgH}{}
+\newcommand{\BkgI}{}
+\newcommand{\BkgJ}{}
+\newcommand{\BkgK}{}
+\newcommand{\BkgL}{}
+\newcommand{\BkgM}{}
+\newcommand{\BkgN}{}
+\newcommand{\BkgO}{}
+\newcommand{\BkgP}{}
+\newcommand{\BkgQ}{}
+\newcommand{\BkgR}{}
+\newcommand{\BkgS}{}
+\newcommand{\BkgT}{}
+\newcommand{\BkgU}{}
+\newcommand{\BkgV}{}
+\newcommand{\BkgW}{}
+
+%% Bindable Nodes: Fog test cases
+\newcommand{\FogA}{Default Browser Behavior When No Fog Nodes Are Present}
+
+%% Bindable Nodes: NavigationInfo test cases
+
+%% Bindable Nodes: Viewpoint test cases
+
 %% Special Groups: Inline test cases
 \newcommand{\SpGrA}{Single Url Item}
 \newcommand{\SpGrB}{Inline Node Referencing Another Inline Node}
@@ -281,21 +317,21 @@ Material & \testCase \MatA & Passed \\\cline{2-3}
  & \testCase \MatC & Passed \\\cline{2-3}
  & \testCase \MatD & Passed \\\cline{2-3}
  & \testCase \MatE & Passed \\\cline{2-3}
- & \testCase \MatF & \\\cline{2-3}
- & \testCase \MatGa & \\
+ & \testCase \MatF & Passed \\\cline{2-3}
+ & \testCase \MatGa & Failed \\
  & \MatGb & \\\cline{2-3}
- & \testCase \MatHa & \\
+ & \testCase \MatHa & Failed \\
  & \MatHb & \\\cline{2-3}
- & \testCase \MatIa & \\
+ & \testCase \MatIa & Failed \\
  & \MatIb & \\\cline{2-3}
- & \testCase \MatJa & \\
+ & \testCase \MatJa & Failed \\
  & \MatJb & \\\cline{2-3}
- & \testCase \MatKa & \\
+ & \testCase \MatKa & Passed \\
  & \MatKb & \\\cline{2-3}
- & \testCase \MatL & \\\cline{2-3}
- & \testCase \MatMa & \\
+ & \testCase \MatL & Passed \\\cline{2-3}
+ & \testCase \MatMa & Passed \\
  & \MatMb & \\\cline{2-3}
- & \testCase \MatNa & \\
+ & \testCase \MatNa & Failed \\
  & \MatNb & \\\cline{2-3}
  & \testCase \MatOa & \\
  & \MatOb & \\\cline{2-3}
@@ -320,7 +356,7 @@ Material & \testCase \MatA & Passed \\\cline{2-3}
  & \testCase \MatAB & \\\cline{2-3}
  & \testCase \MatAC & \\\hline
 \resetTestCase
-MovieTexture & MovieTexture not supported. & \\\hline
+MovieTexture & \multicolumn{2}{|c|}{\textbf{MovieTexture not supported.}}\\\hline
 \resetTestCase
 PixelTexture & & \\\hline
 \resetTestCase
@@ -431,100 +467,27 @@ The results are similar to section~\ref{sec:unlit-rgb-texture}.
 \subsection{FontStyle Test Cases}
 
 \subsubsection{\FSA}
+\label{sec:fs-default}
 The VRML file is Appearance/FontStyle/default.wrl.
-FreeWRL crashes as both plug-in and stand-alone application:
-\begin{verbatim}
-PARSE ERROR: 'erial{}
-                }
-                geometry DEF MYTEXT Text{ string
-			    [' XXX '"This is line 
-                        fontStyle FontStyle {
-                        } 
-                ', in improper SFString because at
-/usr/lib/perl5/site_perl/i386-linux/VRM
-L/Parser.pm line 45.
-    VRML::Error::parsefail('^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-J^J^J^J^J^J^J^J^
-J^J^J^J^J^J^J^M^JViewpoint {^M^Jposition 0 0 ...', 'improper SFString')
-called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/VRMLFields.pm line 726
-    VRML::Field::SFString::parse('VRML::Field::SFString',
-'VRML::Scene=HASH(0x815a300)'
-, '^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-J^J^J^M^JViewpoint {^
-M^Jposition 0 0 ...', undef) called at 
-/usr/lib/perl5/site_perl/i386-linux/VRML/VRMLFields.pm line 972
-    VRML::Field::Multi::parse('VRML::Field::MFString',
-'VRML::Scene=HASH(0x815a300)', '
-^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-^M^JViewpoint {^M^J
-position 0 0 ...') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Parser.pm line 358
-    VRML::Field::SFNode::parse('VRML::Field::SFNode',
-'VRML::Scene=HASH(0x815a300)', '^
-J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-J^M^JViewpoint {^M^Jposition 0 0 ...') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Parser.pm line 291
-    VRML::Field::SFNode::parse('VRML::Field::SFNode',
-'VRML::Scene=HASH(0x815a300)', '^
-J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-J^M^JViewpoint {^M^Jposition 0 0 ...') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Parser.pm line 358
-    VRML::Field::SFNode::parse('VRML::Field::SFNode',
-'VRML::Scene=HASH(0x815a300)', '^
-J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-J^M^JViewpoint {^M^Jposition 0 0 ...', undef) called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/VRMLFields.pm line 978
-    VRML::Field::Multi::parse('VRML::Field::MFNode',
-'VRML::Scene=HASH(0x815a300)', '^J
-^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-J^M^JViewpoint {^M^Jpo
-sition 0 0 ...') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Parser.pm line 358
-    VRML::Field::SFNode::parse('VRML::Field::SFNode',
-'VRML::Scene=HASH(0x815a300)', '^
-J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
-J^J^M^JViewpoint {^M^Jp
-osition 0 0 ...') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Parser.pm line 149
-    VRML::Parser::parse_statement('VRML::Scene=HASH(0x815a300)',
-'^J^J^J^J^J^J^J^J^J^J^
-J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^M^JViewpoint
-{^M^Jposition 0 0 ...') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Parser.pm line 111
-    VRML::Parser::parse('VRML::Scene=HASH(0x815a300)',
-'#VRML V2.0 utf8^M^J#^M^J# NIST 
-VTS v1.0^M^J#^M^J# Module: Appearance ^M^J#...') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Browser.pm line 107
-    VRML::Browser::load_string('VRML::Browser=HASH(0x86b96dc)',
-'#VRML V2.0 utf8^M^J#^M
-^J# NIST VTS v1.0^M^J#^M^J# Module: Appearance ^M^J#...',
-'Appearance/FontStyle/default.wrl') called at
-/usr/lib/perl5/site_perl/i386-linux/VRML/Browser.pm line 99
-    VRML::Browser::load_file('VRML::Browser=HASH(0x86b96dc)',
-'Appearance/FontStyle/default.wrl', undef) called at
-/usr/bin/freewrl line 531
-
-Died at /usr/bin/freewrl line 391.
-\end{verbatim}
+The FreeWRL generated text does not resemble the expected result when FreeWRL is both 
+a stand-alone application and plug-in.
 
 \subsubsection{\FSB}
 \label{sec:3-families}
 The VRML file is family.wrl.\newline
-The FreeWRL generated text does not resemble the expected result when FreeWRL is both 
-a stand-alone application and plug-in.
+The results are similar to section~\ref{sec:fs-default}.
 
 \subsubsection{\FSC}
 The VRML file is next\_family.wrl.\newline
-The results are similar to section~\ref{sec:3-families}.
+The results are similar to section~\ref{sec:fs-default}.
 
 \subsubsection{\FSD}
 The VRML file is serif\_family.wrl.\newline
-The results are similar to section~\ref{sec:3-families}.
+The results are similar to section~\ref{sec:fs-default}.
 
 \subsubsection{\FSE}
 The VRML file is style.wrl.\newline
-The results are similar to section~\ref{sec:3-families}.
+The results are similar to section~\ref{sec:fs-default}.
 
 \subsubsection{\FSF}
 The VRML file is size\_spacing.wrl.\newline
@@ -535,18 +498,78 @@ The vertical text is rendered horizontally.
 The VRML file is driver.wrl.\newline
 FreeWRL crashes as both plug-in and stand-alone application:
 \begin{verbatim}
-Can't load '/usr/lib/perl5/site_perl/i386-linux/auto/VRML/JS/JS.so' 
-for module VRML::JS:
-/usr/lib/perl5/site_perl/i386-linux/auto/VRML/JS/JS.so:
-undefined symbol: JS_PropertyStub at
-/usr/lib/perl5/i386-linux/5.00502/DynaLoader.pm line 168.
- at (eval 22) line 1
-.
-.
-.
-Died at /usr/bin/freewrl line 391.
-        ...propagated at /usr/bin/freewrl line 391.
-        ...propagated at /usr/bin/freewrl line 391.
+FreeWRL NOTE: run with -best mode to get smooth shading
+PARSE ERROR: ' horizontal "TRUE"
+	
+	
+	directOutput TRUE
+	url' XXX ' "javascript: 
+	
+	
+	
+	function getFile (value,',
+in improper SFString because  at
+/usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Parser.pm line 66.
+	VRML::Error::parsefail('^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
+J^J^J^J^J^J^M^JViewpoint {^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...',
+'improper SFString')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/VRMLFields.pm
+line 752
+	VRML::Field::SFString::parse('VRML::Field::SFString',
+'VRML::Scene=HASH(0x81958dc)', '^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^
+J^J^M^JViewpoint {^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...', undef)
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/VRMLFields.pm
+line 1006
+	VRML::Field::Multi::parse('VRML::Field::MFString',
+'VRML::Scene=HASH(0x81958dc)',
+'^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^M^JViewpoint
+{^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Parser.pm
+line 229
+	VRML::Parser::parse_interfacedecl('VRML::Scene=HASH(0x81958dc)',
+0, 1, '^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^M^JViewpoint
+{^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...', 1, '{', '}')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Parser.pm
+line 262
+	VRML::Parser::parse_script('VRML::Scene=HASH(0x81958dc)',
+'^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^M^JViewpoint
+{^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Parser.pm
+line 333
+	VRML::Field::SFNode::parse('VRML::Field::SFNode',
+'VRML::Scene=HASH(0x81958dc)',
+'^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^M^JViewpoint
+{^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Parser.pm
+line 307
+	VRML::Field::SFNode::parse('VRML::Field::SFNode',
+'VRML::Scene=HASH(0x81958dc)',
+'^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^M^JViewpoint
+{^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Parser.pm
+line 141
+	VRML::Parser::parse_statement('VRML::Scene=HASH(0x81958dc)',
+'^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^J^M^JViewpoint
+{^M^J^Iposition 0 0 22^M^J}^M^J^M^J^M^JDE...')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Parser.pm
+line 103
+	VRML::Parser::parse('VRML::Scene=HASH(0x81958dc)',
+'#VRML V2.0 utf8^M^J#  ^M^J# Module:  Appearance^M^J# Node  :
+ FontStyl...')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Browser.pm
+line 113
+	VRML::Browser::load_string('VRML::Browser=HASH(0x861f088)',
+'#VRML V2.0 utf8^M^J#  ^M^J# Module:  Appearance^M^J# Node  : 
+FontStyl...',
+'driver.wrl')
+called at /usr/lib/perl5/site_perl/5.6.0/i386-linux/VRML/Browser.pm
+line 105
+	VRML::Browser::load_file('VRML::Browser=HASH(0x861f088)',
+'driver.wrl', undef)
+called at /usr/bin/freewrl line 541
+
+Died at /usr/bin/freewrl line 392.
+
 \end{verbatim}
 
 \subsection{ImageTexture Test Cases}
@@ -631,9 +654,23 @@ The background, which should be dark grey not black, is too dark to see the blac
 The VRML file is shininess\_complex.wrl.
 
 \subsubsection{\MatGa \MatGb}
+\label{sec:pref-colour}
+The VRML file is texture\_first\_primitives.wrl.\newline
+The texture colour does not supersede the blue diffuseColor field defined in the Material
+node for all four primitive types. 
+
 \subsubsection{\MatHa \MatHb}
+The VRML file is texture\_first\_complex.wrl.\newline
+The results are similar to section~\ref{sec:pref-colour}.
+
 \subsubsection{\MatIa \MatIb}
+The VRML file is texture\_over\_color\_complex.wrl.\newline
+The results are similar to section~\ref{sec:pref-colour}.
+
 \subsubsection{\MatJa \MatJb}
+The VRML file is allgeoms\_diffusecolor\_texture.wrl.\newline
+Improper texture mapping to the extrusion geometry.
+
 \subsubsection{\MatKa \MatKb}
 \subsubsection{\MatL}
 The VRML file is complex\_color\_first.wrl.
@@ -662,8 +699,8 @@ Died at /usr/bin/freewrl line 391.
 
 \subsubsection{\MatOa \MatOb}
 The VRML file is pointset.wrl.\newline
-The PointSet is not visible, rather the entire FreeWRL display is red in both the plug-in and
-the stand-alone application.
+The PointSet is not visible, rather the entire FreeWRL display is red in
+both the plug-in and the stand-alone application.
 
 \subsubsection{\MatPa \MatPb}
 The VRML file is indexedlineset\_color\_first.wrl.
@@ -711,19 +748,43 @@ MovieTexture is not supported. See bug 435228.
 \textbf{Bindable Node} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
 \hline
 \endlastfoot
-& & \\
-\cline{2-3}
+Background & \testCase \BkgA & Failed \\\cline{2-3}
+ & \testCase \BkgB & Failed \\\cline{2-3}
+ & \testCase \BkgCa & Failed \\
+ & \BkgCb & \\\cline{2-3}
+ & \testCase \BkgDa & Failed \\
+ & \BkgDb & \\\cline{2-3}
+ & \testCase \BkgE & Failed \\\cline{2-3}
+ & \testCase \BkgFa & Passed \\
+ & \BkgFb & \\\cline{2-3}
+ & \testCase \BkgGa & \\
+ & \BkgGb & \\\cline{2-3}
+ & & \\\hline
+\resetTestCase
+Fog & \testCase \FogA & Passed \\\cline{2-3}
+ & \multicolumn{2}{|c|}{\textbf{Fog not supported.}} \\\hline
+\resetTestCase
+NavigationInfo & & \\\cline{2-3}
+ & & \\\hline
+\resetTestCase
+Viewpoint & & \\\cline{2-3}
+ & & \\
 \end{longtable}
 \end{center}
 
 \subsection{Background Test Cases}
 \subsection{Fog Test Cases}
+Fog is not supported. See bug 435229.
+
+\subsubsection{\FogA}
+The VRML file is nofog.wrl.
+
 \subsection{NavigationInfo Test Cases}
 \section{Geometric Properties Test Cases}
 \resetTestCase
@@ -736,7 +797,7 @@ MovieTexture is not supported. See bug 435228.
 \textbf{Node Group} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
@@ -758,7 +819,7 @@ MovieTexture is not supported. See bug 435228.
 \textbf{Node Group} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
@@ -780,7 +841,7 @@ MovieTexture is not supported. See bug 435228.
 \textbf{Node Group} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
@@ -802,7 +863,7 @@ MovieTexture is not supported. See bug 435228.
 \textbf{Node Group} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
@@ -824,7 +885,7 @@ MovieTexture is not supported. See bug 435228.
 \textbf{Node Group} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
@@ -846,7 +907,7 @@ MovieTexture is not supported. See bug 435228.
 \textbf{Node Group} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
@@ -871,7 +932,7 @@ The VRML file is
 \textbf{Special Groups} & \textbf{Test Case} & \textbf{Result} \\
 \hline\hline
 \endhead
-\cline{2-3}
+%%\cline{2-3}
  & \multicolumn{2}{|r|}{\textsl{continued on the next page\ldots}} \\
 \hline
 \endfoot
@@ -882,7 +943,7 @@ Inline & \testCase \SpGrA & Passed \\\cline{2-3}
 & \testCase \SpGrC & Passed \\\cline{2-3}
 & \testCase \SpGrD & Passed \\\cline{2-3}
 & \testCase \SpGrE & Passed \\\hline
-\multicolumn{3}{|l|}{\textbf{Beyond minimum conformance requirements:
+\multicolumn{3}{|c|}{\textbf{Beyond minimum conformance requirements:
 bounding boxes.}} \\\hline
 & \testCase \SpGrF & Failed \\\hline
 \resetTestCase
