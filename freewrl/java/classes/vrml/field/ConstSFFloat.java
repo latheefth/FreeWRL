@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFFloat extends ConstField {
-    float f;
+     float f;
 
-    public ConstSFFloat() {
-    }
+    public ConstSFFloat() { }
+
     public ConstSFFloat(float f) {
-        this.f = f;
+	        this.f = f;
     }
 
     public float getValue() {
@@ -28,11 +28,13 @@ public class ConstSFFloat extends ConstField {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Float");
+	//System.out.println ("fromPerl, Float");
 		f = Float.parseFloat(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+f);
+        out.println(f);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

@@ -1625,6 +1625,8 @@ int JSparamIndex (char *name, char *type) {
 	int ctr;
 
 	//printf ("start of JSparamIndex, name %s, type %s\n",name,type);
+	//printf ("start of JSparamIndex, lengths name %d, type %d\n",
+	//		strlen(name),strlen(type));
 
 	ty = convert_typetoInt(type);
 
@@ -1725,7 +1727,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		scripts_active = TRUE;
 	}
 
-	if (CRVerbose) 
+//JAS	if (CRVerbose) 
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
 				from, fromoffset, to_count, tonode_str, length, (unsigned)intptr);
 
@@ -1889,7 +1891,6 @@ void mark_event (unsigned int from, unsigned int totalptr) {
 	findit = 1;
 
 	if (CRVerbose)
-		/* printf ("mark_event, from %#x fromoffset %#x\n",from,totalptr); */
 		printf ("\nmark_event, from %u fromoffset %u\n", from, totalptr);
 
 	/* events in the routing table are sorted by fromnode. Find
@@ -1946,18 +1947,14 @@ FIXME XXXXX =  can we do this without the string conversions?
 
 void gatherScriptEventOuts(int actualscript, int ignore) {
 	int route;	
-	/* char scriptline[100]; */
-	/* jsval retval; */
 	int fn, tn, fptr, tptr;
 	unsigned len;
 	float fl[0];	/* return float values */
 	double tval;
 	int ival;
-	/* jsval touched; */		/* was this really touched? */
 
         JSString *strval; /* strings */
         char *strp = 0;
-	/* char *strtouched; */
 	int fromalready=FALSE;	 /* we have already got the from value string */
 	int touched_flag=FALSE;
 	unsigned int to_counter;
@@ -2137,12 +2134,138 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
 }
 
+/* start getting events from a Class script. IF the script is not 
+ * initialized, do it. This will happen once only */
+
 void gatherClassEventOuts (int script) {
+	int startEntry;
+	int endEntry;
 	if (!(ScriptControl[script].initialized)) {
 		initJavaClass(script);
 		ScriptControl[script].initialized=TRUE;
 	}
+
+	/* routing table is ordered, so we can walk up to this script */
+	//printf ("debugging: routes for %s\n",
+	//		ScriptControl[script].NodeID);
+
+	startEntry=1;
+	while (CRoutes[startEntry].fromnode<(unsigned)script) startEntry++;
+	endEntry = startEntry;
+	while (CRoutes[endEntry].fromnode == (unsigned)script) endEntry++;
+
+	/* mark that this has given us some stuff... */
+	//mark_event (CRoutes[startEntry].fromnode,CRoutes[startEntry].fnptr);
+
+	//printf ("routing table entries to scan between: %d and %d\n",
+	//		startEntry, endEntry);
+	
+	/* now, process received commands... */
+	processClassEvents(script,startEntry,endEntry);
 }
+
+
+/* this is from a Class receive SENDEVENT; a class is returning a 
+ * variable. We need access to routing structure to actually send the
+ * values along.
+ */
+
+char *processThisClassEvent (unsigned int fn, 
+		int startEntry, int endEntry, char *buf) {
+	int ctr;
+	char fieldName[MAXJSVARIABLELENGTH];
+	char membuffer[MAXJSVARIABLELENGTH];
+	int thislen; 
+	int thatlen;
+	int entry;
+
+	int tn, tptr, fptr, len;
+	CRnodeStruct *to_ptr = NULL;
+	int to_counter;
+
+	int fieldType, fieldOffs, fieldLen;
+	 unsigned int memptr;
+
+	//if (CRVerbose) 
+		printf ("processThisClassEvent, starting at %d ending at %d\nstring %s\n",
+				startEntry, endEntry, buf);
+
+	/* copy over the fieldname */
+	ctr = 0;
+	while (*buf > ' ') { fieldName[ctr] = *buf; buf++; ctr++; }
+	fieldName[ctr]= '\0';
+	buf ++;
+	thislen = strlen(fieldName);
+
+	/* copy over the fieldOffset */
+	sscanf (buf, "%d %d %d",&fieldType, &fieldOffs, &fieldLen);
+	while (*buf >= ' ') buf++; if (*buf>'\0') *buf++;
+	//printf ("in  processThisClassEvent, have fieldType %d fieldName %s, fieldOffset %d fieldLen %d\n", fieldType, fieldName, fieldOffs, fieldLen);
+
+	/* find the JSparam name index. */
+	/* note that this does not match types, so if 2 scripts 
+	 * with same name but different types exist... we might have
+	 * to add another field to JSparamnames; one with the 
+	 * scriptnumber in it. */
+
+	entry = -1;
+	for (ctr=0; ctr<=jsnameindex; ctr++) {
+		if (strlen(JSparamnames[ctr].name) == thislen) {
+			if (strncmp (fieldName,JSparamnames[ctr].name,thislen)==0){
+				entry = ctr;
+			}
+		}
+	}
+
+	/* scan the ASCII string into memory */
+	len = ScanValtoString(fieldLen, fieldType, buf, membuffer);
+	if ((len > 0) && (fieldOffs>0) && (fn > 0)) {
+		printf ("doing direct copy here for tn, %d toffs,%d len %d\n",
+				fn,fieldOffs,len);
+	         memptr = fn+fieldOffs;
+		memcpy ((void*)memptr, membuffer,len);
+	}
+
+	/* do the copy of the value, if pointer and offset are non-zero */
+	
+	/* now, do any routing for this value */
+	if (entry == -1) {
+		printf ("routing: can not find %s in parameter table\n",
+				fieldName);
+		return (buf);
+	}
+
+	if (len == 0) {
+		/* some error occurred in conversion */
+		return (buf);
+	}
+
+	//printf ("found it in JSparamnames indx %d, type %d\n",entry,
+	//		JSparamnames[entry].type);
+
+	/* go through all routing table entries with this from script/node */
+	for (ctr = startEntry; ctr < endEntry; ctr++) {
+		//printf ("routing table entry, for index %d\n", ctr);
+		
+
+		/* now, for each entry, go through each destination */
+		for (to_counter = 0; to_counter < CRoutes[ctr].tonode_count; to_counter++) {
+			to_ptr = &(CRoutes[ctr].tonodes[to_counter]);
+			tn = (int) to_ptr->node;
+			tptr = (int) to_ptr->foffset;
+
+			//printf ("route, going to copy to %d:%d, len %d\n",
+			//		tn, tptr, len);
+			//
+			memptr = tn+tptr;
+	
+			memcpy ((void *)memptr, membuffer,len);
+		}
+	}
+	return buf;
+}
+
+
 
 /* sets a CLASS variable - routing into the .class file */
 void sendJClassEventIn(int num, int fromoffset) {

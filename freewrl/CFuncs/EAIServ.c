@@ -1153,3 +1153,75 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 //XXX	case EAI_MFVEC3F:	{handleptr = &handleEAI_MFVEC3F_Listener;break;}
 	}
 }
+
+
+
+/* take an ASCII string from the EAI or CLASS, and convert it into
+   a memory block */
+
+int ScanValtoString(int len, int type, char *buf, void *memptr) {
+	int xx;
+	
+printf ("Scanval, len %d, type %d\n",len,type);
+
+	switch (type) {
+	    case SFBOOL:	{	/* SFBool */
+	    	if (strncmp(buf,"true",4)==0) {
+	    		(int *)memptr = 1;
+	    	} else {
+	    		/* printf ("ASSUMED TO BE FALSE\n"); */
+	    		(int *)memptr = 0;
+	    	}	
+		printf("SFBool found!\n");
+	    	break;
+	    }
+
+	    case SFINT32: {
+	    	sscanf (buf,"%d",(int *)memptr);
+	    	break;
+	    }
+	    case SFFLOAT: {
+	    	sscanf (buf,"%f",(float *)memptr);
+	    	break;
+	    }
+
+	    case SFVEC2F: {	/* SFVec2f */
+	    	sscanf (buf,"%f %f",(float*)memptr, (float*)memptr+sizeof(float));
+	    	break;
+	    }
+
+	    case SFVEC3F:
+	    case SFCOLOR: {	/* SFColor */
+	    	sscanf (buf,"%f %f %f",(float *)memptr,
+			(float*)memptr+sizeof(float),
+			(float*)memptr+sizeof(float)*2,
+			(float*)memptr+sizeof(float)*3);
+	    	break;
+	    }
+
+	    case SFROTATION: {
+	    	sscanf (buf,"%f %f %f %f",(float *)memptr,
+			(float*)memptr+sizeof(float),
+			(float*)memptr+sizeof(float)*2,
+			(float*)memptr+sizeof(float)*3,
+			(float*)memptr+sizeof(float)*4);
+	    	break;
+	    }
+
+	    case SFTIME: 
+	    case SFNODE:
+	    case MFCOLOR: 
+	    case MFFLOAT: 
+	    case MFROTATION: 
+	    case MFVEC2F: 
+	    case MFNODE: 
+	    case MFSTRING: 
+	    case MFINT32:
+	    case MFTIME: 
+	    default: {	printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
+			     return (0);
+	    }
+	}
+	return (len);
+}
+

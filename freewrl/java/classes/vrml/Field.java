@@ -4,7 +4,7 @@ import java.io.*;
 public abstract class Field implements Cloneable
 {
     FWJavaScriptBinding __binding = null;
-    //int mftype = 0;	// this is NOT an MF* type field
+    String offset = "0 -1 0"; // type, offset of -1, length of zero
     
     public Object clone() {
 	try {
@@ -21,7 +21,6 @@ public abstract class Field implements Cloneable
     }
 
     public final void __updateRead() {
-	    System.out.println ("Field, updateRead starting");
 	if (__binding != null)
 	    __binding.updateRead(this);
     }
@@ -32,6 +31,11 @@ public abstract class Field implements Cloneable
 
     public abstract void __fromPerl(BufferedReader in) throws IOException;
     public abstract void __toPerl(PrintWriter out) throws IOException;
+	
+    public void setOffset(String offs) { this.offset = offs; } //JAS2
+    public String getOffset() { return this.offset; } //JAS2
+    
+
 }
 
 

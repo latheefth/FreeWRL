@@ -22,7 +22,13 @@ public abstract class Script extends BaseNode
 	String ftype = FWJavaScript.getFieldType(this, fieldName, "field");
 	if (ftype.equals("ILLEGAL"))
 	   throw new InvalidFieldException(_get_nodeid()+"."+fieldName);
-	Field fval = FWCreateField.createField(ftype);
+
+	/* split field type from field offset */
+	String sp[] = ftype.split (" ");
+	Field fval = FWCreateField.createField(sp[0]);
+	fval.setOffset(ftype);
+
+
 	/* read field only once, nobody except us may change it */
 	FWJavaScript.readField(this, fieldName, fval);
 	return fval;
@@ -37,7 +43,12 @@ public abstract class Script extends BaseNode
 	    .getFieldType(this, eventOutName, "eventOut");
 	if (ftype.equals("ILLEGAL"))
 	    throw new InvalidEventOutException(_get_nodeid()+"."+eventOutName);
-	Field fval = FWCreateField.createField(ftype);
+
+	/* split field type from field offset */
+	String sp[] = ftype.split (" ");
+	Field fval = FWCreateField.createField(sp[0]);
+	fval.setOffset(ftype);
+
 	fval.bind_to(new FWJavaScriptBinding(this, eventOutName, false));
 	return fval;
     }
@@ -50,7 +61,13 @@ public abstract class Script extends BaseNode
 	    .getFieldType(this, eventInName, "eventIn");
 	if (ftype.equals("ILLEGAL"))
 	   throw new InvalidEventOutException(_get_nodeid()+"."+eventInName);
-	Field fval = FWCreateField.createField(ftype);
+
+	/* split field type from field offset */
+	String sp[] = ftype.split (" ");
+
+	Field fval = FWCreateField.createField(sp[0]);
+	fval.setOffset(ftype);
+
 	fval.bind_to(new FWJavaScriptBinding(this, eventInName, false));
 	return fval;
     }

@@ -41,35 +41,24 @@ my %toString = (
 
 
 my %toPerl = (
-	"Bool"   => 'out.print (""+value);',
-	"Color"  => 'out.print(""+red);
-        out.print(""+green); 
-        out.print(""+blue);',
-	"Float"  => 'out.print(""+f);',
-	"Image"  => 'out.print(width);
-        out.print(height); 
-        out.print(components);
-        out.print(pixels);',
-	"Int32"  => 'out.print(value);',
-	"Node"   => 'out.print(node._get_nodeid());',
-	"Rotation"  => 'out.print(""+axisX);
-        out.print(""+axisY);
-        out.print(""+axisZ);
-        out.print(""+angle);',
-	"String" => 'out.print(s);',
-	"Time"   => 'out.print(""+value);',
-	"Vec2f"  => 'out.print(""+x);
-        out.print(""+y);',
-	"Vec3f"  => 'out.print(""+x);
-        out.print(""+y);
-        out.print(""+z);'
+	"Bool"   => 'out.println (value);',
+	"Color"  => 'out.println(red+ " "+green+" "+blue);',
+	"Float"  => 'out.println(f);',
+	"Image"  => 'out.println(width+" "+height+" "+components+" "+pixels);',
+	"Int32"  => 'out.println(value);',
+	"Node"   => 'out.println(node._get_nodeid());',
+	"Rotation"  => 'out.println(axisX+" "+axisY+" "+axisZ+" "+angle);',
+	"String" => 'out.println(s);',
+	"Time"   => 'out.println(value);',
+	"Vec2f"  => 'out.println(x + " " + y);',
+	"Vec3f"  => 'out.println(x + " " + y + " " + z);'
 	    );
 
 my %fromPerl = (
 	#"Bool"   => 'value = in.readBoolean();',
 	Bool => '
 			String myline;
-			System.out.println ("fromPerl, Bool");
+		//System.out.println ("fromPerl, Bool");
 			myline = in.readLine();
 			// direct from perl, will be 0 or 1, from a route, TRUE, FALSE
 			value = (myline.equals("TRUE") || myline.equals("1"));
@@ -78,46 +67,46 @@ my %fromPerl = (
 		',
 	
 	"Color"  => '
-		System.out.println ("fromPerl, Color");
+	//System.out.println ("fromPerl, Color");
 		red = Float.parseFloat(in.readLine());
         	green = Float.parseFloat(in.readLine()); 
         	blue = Float.parseFloat(in.readLine());',
 	"Float"  => '
-		System.out.println ("fromPerl, Float");
+	//System.out.println ("fromPerl, Float");
 		f = Float.parseFloat(in.readLine());',
 	"Image"  => '
-		System.out.println ("fromPerl, Image");
+	//System.out.println ("fromPerl, Image");
 		width = Integer.parseInt(in.readLine());
         	height = Integer.parseInt(in.readLine()); 
         	components = Integer.parseInt(in.readLine());
         	pixels = new byte[height*width*components];
-		System.out.println ("JavaClass -- fix method to read in pixels");
+	//System.out.println ("JavaClass -- fix method to read in pixels");
         	// pixels = String.getBytes(pst);
 		',
 	"Int32"  => '
-		System.out.println ("fromPerl, Int32");
+	//System.out.println ("fromPerl, Int32");
 		value = Integer.parseInt(in.readLine());',
 	"Node"   => '
-		System.out.println ("fromPerl, Node");
+	//System.out.println ("fromPerl, Node");
 		node = new vrml.node.Node(in.readLine());',
 	"Rotation"  => '
-		System.out.println ("fromPerl, Rotation");
+	//System.out.println ("fromPerl, Rotation");
 		axisX = Float.parseFloat(in.readLine());
 	        axisY = Float.parseFloat(in.readLine());
         	axisZ = Float.parseFloat(in.readLine());
         	angle = Float.parseFloat(in.readLine());',
 	"String" => '
-		System.out.println ("fromPerl, String");
+	//System.out.println ("fromPerl, String");
 		s = in.readLine();',
 	"Time"   => '
-		System.out.println ("fromPerl, Time");
+	//System.out.println ("fromPerl, Time");
 		value = Double.parseDouble(in.readLine());',
 	"Vec2f"  => '
-		System.out.println ("fromPerl, Vec2f");
+	//System.out.println ("fromPerl, Vec2f");
 		x = Float.parseFloat(in.readLine());
         	y = Float.parseFloat(in.readLine());',
 	"Vec3f"  => '
-		System.out.println ("fromPerl, Vec3f");
+	//System.out.println ("fromPerl, Vec3f");
 		x = Float.parseFloat(in.readLine());
 	        y = Float.parseFloat(in.readLine());
         	z = Float.parseFloat(in.readLine());'
@@ -156,16 +145,16 @@ sub sf_constructor
 					map { @_ = split " ",$_; "this.$_[1] = $_[1];" } @values);
 	# fields
 	for (@values) {
-		print O "    $_;\n";
+		print O "     $_;\n";
 	}
 
 	# constructor
 	print O <<EOF;
 
-    public $class() {
-    }
+    public $class() { }
+
     public $class($params) {
-        $init
+	        $init
     }
 EOF
 }
@@ -230,6 +219,7 @@ sub sf_setvalue
         $body
         __updateWrite();
     }
+
 EOF
 
 	if ($ft =~ /$multival/) {
@@ -265,6 +255,7 @@ EOF
         $body
         __updateWrite();
     }
+
 EOF
 }
 
@@ -285,6 +276,8 @@ sub sf_stringfuncs
     public void __toPerl(PrintWriter out)  throws IOException {
         $toPerl{$ft}
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 EOF
 }
 
@@ -478,7 +471,7 @@ sub mf_stringfuncs
     public void __fromPerl(BufferedReader in)  throws IOException {
         __vect.clear();
 	String lenline = in.readLine();
-	System.out.println ("__fromPerl, read in length as " + lenline);
+	//System.out.println ("__fromPerl, read in length as " + lenline);
         //int len = Integer.parseInt(in.readLine());
 	int len = Integer.parseInt(lenline);
         for (int i = 0; i < len; i++) {
@@ -495,6 +488,8 @@ sub mf_stringfuncs
         for (int i = 0; i < size; i++)
             ((ConstSF$ft) __vect.elementAt(i)).__toPerl(out);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 EOF
 }
 

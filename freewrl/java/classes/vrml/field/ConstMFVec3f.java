@@ -67,7 +67,7 @@ public class ConstMFVec3f extends ConstMField {
     public void __fromPerl(BufferedReader in)  throws IOException {
         __vect.clear();
 	String lenline = in.readLine();
-	System.out.println ("__fromPerl, read in length as " + lenline);
+	//System.out.println ("__fromPerl, read in length as " + lenline);
         //int len = Integer.parseInt(in.readLine());
 	int len = Integer.parseInt(lenline);
         for (int i = 0; i < len; i++) {
@@ -84,4 +84,6 @@ public class ConstMFVec3f extends ConstMField {
         for (int i = 0; i < size; i++)
             ((ConstSFVec3f) __vect.elementAt(i)).__toPerl(out);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

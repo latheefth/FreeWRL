@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFBool extends ConstField {
-    boolean value;
+     boolean value;
 
-    public ConstSFBool() {
-    }
+    public ConstSFBool() { }
+
     public ConstSFBool(boolean value) {
-        this.value = value;
+	        this.value = value;
     }
 
     public boolean getValue() {
@@ -29,7 +29,7 @@ public class ConstSFBool extends ConstField {
     public void __fromPerl(BufferedReader in)  throws IOException {
         
 			String myline;
-			System.out.println ("fromPerl, Bool");
+		//System.out.println ("fromPerl, Bool");
 			myline = in.readLine();
 			// direct from perl, will be 0 or 1, from a route, TRUE, FALSE
 			value = (myline.equals("TRUE") || myline.equals("1"));
@@ -39,6 +39,8 @@ public class ConstSFBool extends ConstField {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print (""+value);
+        out.println (value);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

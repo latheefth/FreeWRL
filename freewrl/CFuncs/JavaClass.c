@@ -33,7 +33,7 @@ as we can.
 #define FN "FINISHED"
 #define GF "GETFIELD"
 #define RF "READFIELD"
-#define SE "SENDEVENT"
+#define SE "JSENDEV"
 #define GT "GETTYPE"
 #define CV "CREATEVRML"
 
@@ -41,18 +41,20 @@ as we can.
 int newClassConnection (int scriptno);
 void makeJavaInvocation (char *commandline, int scriptno);
 void send_int (int node, int fd);
-void send_type (int node, int fd);
+void send_type (int node, int offset, int len, int fd);
 void receive_command(int scriptno);
 
-int JavaClassVerbose = 0;
+int JavaClassVerbose = 1;
 
 /* input ClassBuffer */
 int bufcount; 
 int bufsize;
 char *ClassBuffer;
 int eid = 0; /* event id */
+int startEntry, endEntry;
 
 int ClassVerbose = 1;
+
 
 void send_string (char *string, int fd) ;
 
@@ -133,19 +135,35 @@ int initJavaClass(int scriptno) {
 
 void sendCLASSEvent(int fn, int scriptno, char *fieldname, int type, int len) {
 	char mystring [100];
+	char mytype[10];
 
 	//printf ("sending ClassEvent from %d to script %d, node %s, field %d, type %d len %d\n",
 	//		fn, scriptno, ScriptControl[scriptno].NodeID, fieldname, type, len);
 	
 	eid++;
-	EAI_Convert_mem_to_ASCII(eid,FIELD_TYPE_STRING(type),
+	sprintf (mytype, "%d",type);
+	EAI_Convert_mem_to_ASCII(eid,mytype,
 			type+(int)EAI_SFUNKNOWN,(char *)fn,mystring);
+	printf ("mystring would be :%s:\n",mystring);
 
 	send_string("SENDEVENT", scriptno);
 	send_string(ScriptControl[scriptno].NodeID,scriptno);
 	send_string (fieldname, scriptno);
 	send_string(mystring,scriptno);
-	send_string ("1203330303.3",scriptno);  // this is the time
+	send_double (TickTime,scriptno);  // this is the time
+        receive_command(scriptno);
+}
+
+void processClassEvents(int scriptno, int startent, int endent) {
+	/* save routing table indexes for this script for  JSENDEV
+	 * in receive_command */
+	startEntry = startent;
+	endEntry = endent;
+
+        eid++;
+        send_string("EVENTSPROCESSED",scriptno);
+	send_string (ScriptControl[scriptno].NodeID,scriptno);
+	send_int ((int)eid,scriptno);
         receive_command(scriptno);
 }
 
@@ -168,7 +186,7 @@ int receive_string (int scriptno) {
 	}
 	ClassBuffer[bufcount]='\0';
 	//printf ("JavaClass:readEAIsocket, :%s: bufcount %d\n",ClassBuffer,bufcount);
-	printf ("FM JAVA:%s:\n",ClassBuffer);
+	if (JavaClassVerbose) printf ("FM JAVA:%s:\n",ClassBuffer);
 	return TRUE;
 }
 
@@ -179,7 +197,7 @@ void send_string (char *string, int scriptno) {
 
 	if (strlen(string) > 99) {printf ("JavaClass:send_string, too long: %s\n",string); return;}
 	strcpy (mystring, string);
-	printf ("TO JAVA :%s:\n",string);
+	if (JavaClassVerbose) printf ("TO JAVA :%s:\n",string);
 	EAI_send_string(mystring,ScriptControl[scriptno].listen_fd);
 }
 
@@ -187,19 +205,29 @@ void send_string (char *string, int scriptno) {
 void send_int (int node, int scriptno) {
 	char myintbuf[100];
 	sprintf (myintbuf,"%d",node);
-	printf ("TO JAVA :%s:\n",myintbuf);
+	if (JavaClassVerbose) printf ("TO JAVA :%s:\n",myintbuf);
+	EAI_send_string(myintbuf,ScriptControl[scriptno].listen_fd);
+}
+
+/* convert an integer to a string, and send it */
+void send_double (double dval, int scriptno) {
+	char myintbuf[100];
+	sprintf (myintbuf,"%lf",dval);
+	if (JavaClassVerbose) printf ("TO JAVA :%s:\n",myintbuf);
 	EAI_send_string(myintbuf,ScriptControl[scriptno].listen_fd);
 }
 /* convert an integer to a type, and send it */
-void send_type (int node, int scriptno) {
-	char localchar[30];
+void send_type (int node, int offset, int len, int scriptno) {
+	char localchar[300];
 	
 	node = node - (int)'a'; /* no longer "ascii" based... */
 
-	/* can not send in a const to EAI_send_string, so, copy it over */
 	//printf ("send_type, type now is %d\n",node);
-	strcpy(localchar,FIELD_TYPE_STRING(node));
-	printf ("TO JAVA :%s:\n",localchar);
+	localchar[0] = '\0';
+	//sprintf (localchar, "%s %d",FIELD_TYPE_STRING(node), offset);
+	sprintf (localchar, "%d %d %d",node, offset, len);
+	
+	if (JavaClassVerbose) printf ("TO JAVA :%s:\n",localchar);
 	EAI_send_string(localchar,ScriptControl[scriptno].listen_fd);
 }
 
@@ -270,7 +298,7 @@ int newClassConnection (int scriptno) {
 	bufcount = 0;
 
 	/* whew ! done. */
-printf ("JavaClass:newClassConnection finished\n");
+	//printf ("JavaClass:newClassConnection finished\n");
 	return TRUE;
 }
 
@@ -381,6 +409,7 @@ void makeJavaInvocation (char *commandline, int scriptno) {
 void receive_command(int scriptno) {
 	char ctmp[1000], dtmp[1000];
 	int uretval;
+	int nodeptr;
 	int ra, rb, rc, rd;
 	char *ptr;
 	int scripttype;
@@ -420,7 +449,7 @@ void receive_command(int scriptno) {
 				uretval = uretval*10 + (int) *ptr - (int) '0';
 				ptr++;
 			}
-			printf ("JavaClass:node is NODE%d\n",uretval);
+			//printf ("JavaClass:node is NODE%d\n",uretval);
 	
 			/* get the field name */
 			while (*ptr != ' ') {ptr++;} ptr++;
@@ -434,9 +463,10 @@ void receive_command(int scriptno) {
 			dtmp[tmp] = '\0';
 		
 			EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd,&scripttype);
-		
-			send_type(rd,scriptno); 
-			printf ("JavaClass:done GETFIELDTYPE\n");
+			printf ("GT returns %d %d %d %d\n",ra, rb,rc,rd);
+			// send the type offset, and length
+			send_type(rd,rb,rc,scriptno); 
+			//printf ("JavaClass:done GETFIELD\n");
 			
 		} else if (strncmp(ptr,RF,strlen(RF)) == 0) {
 			//printf ("JavaClass:receive_command, READFIELD\n");
@@ -466,7 +496,30 @@ void receive_command(int scriptno) {
 			free (retstr); // malloc'd in ProdCon
 
 		} else if (strncmp(ptr,SE,strlen(SE)) == 0) {
-			printf ("JavaClass:receive_command, SENDEVENT UNIMPLEMENTED\n");
+			printf ("JavaClass:receive_command, JSENDEV\n");
+
+			/* skip past the command */
+			ptr += strlen(SE) + 1;
+
+			/* this is the script name, or possibly another
+			 * field that is USEd. If the second case, then
+			 * we have a "direct out", and possibly this event
+			 * is not routed */
+
+			/* skip past the perl node number "xx:ddd" to the ptr */
+			printf ("string here is %s\n",ptr);
+			sscanf(ptr,"%d:%d",&uretval,&nodeptr);
+			while (*ptr >=' ') ptr++; /* now at the ptr */
+			ptr++;   /* skip the carriage return */
+			printf ("now string here is :%s\n",ptr);
+			printf ("JSENDEV, node ptr is %d\n",nodeptr);
+
+			/* process this event, then return */
+			ptr = processThisClassEvent (nodeptr,startEntry,endEntry,ptr);
+			printf ("after processThisClassEvent, string is :%s:\n",ptr);
+			printf ("BTW, offset of enabled is %d\n",
+					offsetof (struct VRML_TouchSensor, enabled));
+
 		} else if (strncmp(ptr,GT,strlen(GT)) == 0) {
 			//printf ("JavaClass:receive_command, GETTYPENAME\n");
 			ptr += strlen(GT) +1;

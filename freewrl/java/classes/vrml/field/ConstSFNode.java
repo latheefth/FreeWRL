@@ -8,12 +8,12 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFNode extends ConstField {
-    BaseNode node;
+     BaseNode node;
 
-    public ConstSFNode() {
-    }
+    public ConstSFNode() { }
+
     public ConstSFNode(BaseNode node) {
-        this.node = node;
+	        this.node = node;
     }
 
     public BaseNode getValue() {
@@ -28,11 +28,13 @@ public class ConstSFNode extends ConstField {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Node");
+	//System.out.println ("fromPerl, Node");
 		node = new vrml.node.Node(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(node._get_nodeid());
+        out.println(node._get_nodeid());
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

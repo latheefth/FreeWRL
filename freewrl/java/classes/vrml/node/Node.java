@@ -20,11 +20,19 @@ public class Node extends BaseNode
     //   Throws an InvalidEventInException if eventInName isn't a valid
     //   eventIn name for a node of this type.
     public final Field getEventIn(String eventInName) {
+
 	String ftype = FWJavaScript
 	    .getFieldType(this, eventInName, "eventIn");
 	if (ftype.equals("ILLEGAL"))
 	    throw new InvalidEventInException(_get_nodeid()+"."+eventInName);
-	Field fval = FWCreateField.createField(ftype);
+
+
+	/* split field type from field offset */
+	System.out.println ("eventIn: " + ftype);
+	String sp[] = ftype.split (" ");
+	// type is in sp[0]
+	Field fval = FWCreateField.createField(sp[0]);
+	fval.setOffset(ftype);
 	fval.bind_to(new FWJavaScriptBinding(this, eventInName));
 	return fval;
     }
@@ -35,9 +43,15 @@ public class Node extends BaseNode
     public final ConstField getEventOut(String eventOutName) {
 	String ftype = FWJavaScript
 	    .getFieldType(this, eventOutName, "eventOut");
+
 	if (ftype.equals("ILLEGAL"))
 	    throw new InvalidEventOutException(_get_nodeid()+"."+eventOutName);
-	ConstField fval = FWCreateField.createConstField(ftype);
+
+	/* split field type from field offset */
+	String sp[] = ftype.split (" ");
+
+	ConstField fval = FWCreateField.createConstField(sp[0]);
+	fval.setOffset(ftype);
 	fval.bind_to(new FWJavaScriptBinding(this, eventOutName));
 	return fval;
     }
@@ -51,7 +65,13 @@ public class Node extends BaseNode
 	if (ftype.equals("ILLEGAL"))
 	    throw new InvalidExposedFieldException(_get_nodeid()+"."
 						   +exposedFieldName);
-	Field fval = FWCreateField.createField(ftype);
+
+	/* split field type from field offset */
+	String sp[] = ftype.split (" ");
+
+	Field fval = FWCreateField.createField(sp[0]);
+	fval.setOffset(ftype);
+
 	fval.bind_to(new FWJavaScriptBinding(this, exposedFieldName));
 	return fval;
     }

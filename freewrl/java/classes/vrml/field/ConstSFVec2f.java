@@ -8,13 +8,13 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFVec2f extends ConstField {
-    float x;
-    float y;
+     float x;
+     float y;
 
-    public ConstSFVec2f() {
-    }
+    public ConstSFVec2f() { }
+
     public ConstSFVec2f(float x, float y) {
-        this.x = x;
+	        this.x = x;
         this.y = y;
     }
 
@@ -41,13 +41,14 @@ public class ConstSFVec2f extends ConstField {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Vec2f");
+	//System.out.println ("fromPerl, Vec2f");
 		x = Float.parseFloat(in.readLine());
         	y = Float.parseFloat(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+x);
-        out.print(""+y);
+        out.println(x + " " + y);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

@@ -1196,7 +1196,7 @@ void __pt_EAI_GetValue (){
 	count = call_pv("VRML::Browser::EAI_GetValue",G_EVAL|G_SCALAR);
 	SPAGAIN;
 
-	printf ("GetValue return; count %d\n",count);
+	//printf ("GetValue return; count %d\n",count);
 	if (count != 1) {
 		psp.sv=NULL;	
 	} else {
@@ -1207,12 +1207,11 @@ void __pt_EAI_GetValue (){
 	PUTBACK;
 	//printf ("EAI_GetValue retval %d\n", retval) ;
                                                                                     
-	if (SvOK(retval)) {printf ("retval is an SV\n"); }
-	else {printf ("retval is NOT an SV\n"); return;}
-	                                                                                    
+	//if (SvOK(retval)) {printf ("retval is an SV\n"); }
+	//else {printf ("retval is NOT an SV\n"); return;}
 	/* now, decode this SV */
-	printf ("SVtype is %x\n",SvTYPE(retval));
-	printf ("String is :%s: len %d \n",SvPV(retval,len),len);
+	//printf ("SVtype is %x\n",SvTYPE(retval));
+	//printf ("String is :%s: len %d \n",SvPV(retval,len),len);
 	
 	/* make a copy of the return string - caller has to free it after use */
 	ctmp = SvPV(retval, len); // now, we have the length

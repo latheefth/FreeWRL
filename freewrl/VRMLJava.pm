@@ -25,8 +25,9 @@ sub new {
 	#print "exactvalue is ",$node->{Fields}{enabled},"\n";
 
 	# get a nice, short name - strip off the NODE from ref NODEXX, and append
-	# the scriptinvocationnumber - returns, "15:0", for instance. 
-	my $id = VRML::Browser::EAI_GetNode($node).":".$scriptInvocationNumber;
+	# zero (node pointer - signifies a script, not memory locn)
+	# - returns, "15:0", for instance. 
+	my $id = VRML::Browser::EAI_GetNode($node).":0";
 
 	#print "newjavaclass, node is now $id\n";
 

@@ -324,7 +324,7 @@ sub create_common {
 	$scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
-	$scene->dump(0) if $VRML::verbose::scenegraph;
+	$scene->dump(0) ;#JAS if $VRML::verbose::scenegraph;
 
 	return $ret;
 }
@@ -451,65 +451,92 @@ sub EAI_GetNode {
 
 sub EAI_GetValue {
 	my ($nodenum, $fieldname) = @_;
+	my $fval;
+	my $typename;
 
 	#chop $fieldname;
 	#print "Browser.pm - EAI_GetValue on node $nodenum, field $fieldname\n";
 	my $realele = VRML::Handles::get("NODE$nodenum");
 
-	#my $key; foreach $key (keys(%{$realele})) {print "    node $key\n";}
-	#if ($realele->{IsProto}) {
-		#	print "this is a PROTO!";
-		#$realele = $realele->{ProtoExp};
-		#}
-
-	#if  $this->{ProtoExp}{Nodes}[0]->real_node() if ($this->{IsProto});
-
-	#print "Brwoser.pm - type ", $realele->{Type},"\n";
-	#print "Brwoser.pm - type ", $realele->{TypeName},"\n";
-	#print "Brwoser.pm - type ", $realele->{Type}{FieldTypes}{$fieldname},"\n";
-	#print "Brwoser.pm - type ", $realele->{Type}{FieldKinds}{$fieldname},"\n";
-	#my $key; foreach $key (keys(%{$realele->{Type}})) {print "    typekey $key\n";}
-	#my $key; foreach $key (keys(%{$realele->{Type}{FieldTypes}{$fieldname}})) {print "    fttypekey $key\n";}
-	#my $key; foreach $key (keys(%{$realele->{Type}{FieldKinds}{$fieldname}})) {print "    fktypekey $key\n";}
-
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
 
+	# is this maybe a parameter to a PROTO??
+	#print "GetValue - this is a ";
+	if (!(exists $realele->{Type}{FieldTypes}{$fieldname})) {
+		#print "parameter to a proto\n";
+		my $pv = $realele->{Scene}{Pars}{$fieldname};
+		my @xc = @{$pv};
+
+		$typename = $xc[1];
+		$fval = $realele->{Scene}{NodeParent}{Fields}{$fieldname};
+	} else {
+		#print "direct type\n";
+		my $nod = $realele->{Type}{FieldTypes}{$fieldname};
+		#print "working on node $realele, type $nod\n";
+		#print "field is ",$realele->{RFields}{$fieldname},"\n";
+		#print "it is: ", $realele->{Type}{FieldTypes}{$fieldname},"\n";
+
+
+		$fval = $realele->{RFields}{$fieldname};
+		$typename = $realele->{Type}{FieldTypes}{$fieldname};
+	}
+
+#	print "after step 1, typename $typename fval $fval",
+#			@{$fval},"\n";
+
 	# determine whether it is a MF or not. MF's have to return a count as first line.
-	if ("HASH" eq ref $realele->{Type}{FieldTypes}{$fieldname}) {
-		print "this is a HASH! \n";
-		my $d; foreach $d (keys(%{$realele->{Type}{FieldTypes}{$fieldname}})) {
-			print "hk $d\n";}
-	}
-	#print "Brwoser.pm - checking against type ", $realele->{Type}{FieldTypes}{$fieldname},"\n";
-	my $typename = $realele->{Type}{FieldTypes}{$fieldname};
 	my $mf = substr ($typename, 0, 2);
-	#print "Browsxx  typename $typename mf $mf\n";
-
-	#print "Browser.pm now node $realele, field :$fieldname:\n";
-	#print "exactvalue is ",$realele->{Fields}{$fieldname},"\n";
-	#print "exactvalue2 is ",$realele->{RFields}{$fieldname},"\n";
-
-	#my $key;
-	#foreach $key (keys(%{$realele})) {print "key $key\n";}
-	#foreach $key (keys(%{$realele->{Type}})) {
-		#	print "Field $key, ",$realele->{Type}{$key},"\n";}
-
+	my $nod = substr ($typename, 2, 10);
 	my $retval;
+print"typename $typename\n";
+
 	if ("MF" eq $mf) {
-		$retval = "1\n"; # add the number of elements here....
+		my $count = @{$fval};
+		$retval = "".$count."\n"; # add the number of elements here....
 	}
-	if ("ARRAY" eq ref $realele->{RFields}{$fieldname}) {
-		print "GetValue, this is an array\n";
-		#JAS $retval = "[";
-		foreach (@{$realele->{RFields}{$fieldname}}) {
-			$retval = $retval.$_."\n";
+	if ("ARRAY" eq ref $fval) {
+		# this can be an array - eg, an SFvec3f is an array.
+		#print "GetValue, this is an ARRAY\n";
+		my $val;
+		my $id;
+		my $bn;
+		foreach $val (@{$fval}) {
+			if ("Node" eq $nod) {
+				#print "have to convert $val into a NODE\n";
+				$id = VRML::Handles::reserve($val);
+				if (exists $val->{BackNode}{CNode}) {
+					$bn = $val->{BackNode}{CNode};
+				} else { 
+					$bn = 0;
+				}
+
+				#print "handle is $id\n";
+				$id =~ s/^NODE//;
+				$retval = $retval.$id.":".$bn."\n";
+			} else {
+				$retval = $retval.$val."\n";
+			}
 		}
-		#JAS $retval = $retval."]";
 		#JAS - remove the last cr
 		chop $retval;
 	} else {
-		$retval = "".$realele->{RFields}{$fieldname};
+		if ("Node" eq $nod) {
+				my $bn;
+				#print "have to convert $fval into a NODE\n";
+				my $id = VRML::Handles::reserve($fval);
+				if (exists $fval->{BackNode}{CNode}) {
+					$bn = $fval->{BackNode}{CNode};
+				} else { 
+					$bn = 0;
+				}
+
+				#print "handle is $id\n";
+				$id =~ s/^NODE//;
+				$retval = "".$id.":".$bn;
+		} else {
+			$retval = "".$fval;
+		}
 	}
 	#print "retval in Browser.pm is $retval\n";
 	return $retval;
@@ -555,7 +582,7 @@ sub EAI_GetType {
 
 	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{Type} , "\n";
 	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{TypeName} , "\n";
-	#	my $key; foreach $key (keys(%{$realele})) {print "realele key $key\n";}
+	#my $key; foreach $key (keys(%{$realele})) {print "realele key $key\n";}
 
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
@@ -571,13 +598,13 @@ sub EAI_GetType {
 	#print "\n\n\n";
 
 
-	#print "BROWSER::EAI_GetType now $fieldname\n";
+	print "BROWSER::EAI_GetType now $fieldname\n";
 
 	if (exists $realele->{Fields}{$fieldname}) {
 		#print "BROWSER:EAI - field $fieldname exists in node, it is ",
-		# 	$realele->{Fields}{$fieldname},"\n";
+		#	$realele->{Fields}{$fieldname},"\n";
 	} else {
-		# print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
+		 print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
 		my $ms = $realele->{Scene};		
 		my ($xele, $sc, $in, $rn, $rf);
 
@@ -589,7 +616,7 @@ sub EAI_GetType {
 				if ($fieldname eq $rf) {
 					$realele = $rn;
 					$fieldname = $in;
-					# print "realele now is $realele, field $fieldname\n";
+					 print "realele now is $realele, field $fieldname\n";
 					goto FOUNDIT;
 				}
 			}
@@ -604,19 +631,14 @@ sub EAI_GetType {
 
 	#print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
 
-	
-	
 	# get info from FreeWRL internals.
-	if ($direction eq "eventOut") {
-		($outptr, $outoffset, $type, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
-        		$globalBrowser->{Scene}, $realele, $fieldname, $direction);
-
-	} else {
+	if ($direction =~/eventIn/i) {
         	($to_count, $tonode_str, $type, $ok, $intptr, $fieldtype) = 
 				$globalBrowser->{EV}->resolve_node_cnode($globalBrowser->{Scene}, 
 					$realele, $fieldname, $direction);
 
 		$datalen = 0; # we either know the length (eg, SFInt32), or if MF, it is the eventOut that
+		#print "Browser.pm, tonodestr: $tonode_str\n";
 			      # determines the exact length.
 		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
 
@@ -627,9 +649,13 @@ sub EAI_GetType {
 		#" intptr:", $intptr,
 		#" fieldtype:", $fieldtype,
 		#"\n";
+	} else {
+		($outptr, $outoffset, $type, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
+        		$globalBrowser->{Scene}, $realele, $fieldname, $direction);
+
 	}
 
-	#print "Browser, type $type\n";
+	#print "Browser, type $type, fieldtype $fieldtype, offset $outoffset\n";
 
 	# return node pointer, offset, data length, type - see the EAI C code (EAIServ.c) for definitions.
 	$retft = 97; 	#SFUNKNOWN
@@ -654,7 +680,7 @@ sub EAI_GetType {
 	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
 	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
 		
-	#print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
+	print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
 	my $scalaroutptr = $outptr;
 	return ($scalaroutptr, $outoffset, $datalen, $retft, $type); 
 }

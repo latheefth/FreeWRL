@@ -461,6 +461,9 @@ char *EAI_GetValue (unsigned int uretval,
 		        char *ctmp, char *dtmp);
 void setCLASStype (int num); 
 void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
+void processClassEvents(int scriptno, int startEntry, int endEntry); 
+char *processThisClassEvent (unsigned int fn, int startEntry, int endEntry, char *buf);
+int ScanValtoString(int len, int type, char *buf, void *memptr); 
 
 
 #endif /* __HEADERS_H__ */

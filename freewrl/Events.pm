@@ -128,8 +128,8 @@ sub resolve_node_cnode {
 	my $fieldtype = "";
 	my $clen = 0;		# length of the data  - check out "sub clength"
 
-	#print "\nVRML::EventMachine::resolve_node_cnode: ",
-	#	VRML::Debug::toString(\@_), "\n" ;
+	print "\nVRML::EventMachine::resolve_node_cnode: ",
+		VRML::Debug::toString(\@_), "\n" ;
 
 	$tmp = VRML::Handles::get($node);
 	if (ref $tmp eq "VRML::NodeIntern") {
@@ -350,7 +350,16 @@ sub resolve_node_cnode {
 			$il = 0;
 		}
 	} else {
-		if ($direction =~ /eventOut/i) {
+		if ($direction =~ /eventIn/i) {
+			# is this an interpolator that is handled by C yet?
+			if ($is_proto) {
+				$il = VRML::VRMLFunc::InterpPointer($proto_node->{Type}{Name});
+				$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
+			} else {
+				$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
+				$fieldtype = $node->{Type}{FieldTypes}{$field};
+			}
+		} else {
 			# do we handle this type of data within C yet?
 			if ($is_proto) {
 				$il = VRML::VRMLFunc::getClen(
@@ -365,18 +374,8 @@ sub resolve_node_cnode {
 				print "add_route, dont handle $eventOut types in C yet\n";
 				return (0,0,0,0,0);
 			}
-		} else {
-			# is this an interpolator that is handled by C yet?
-			if ($is_proto) {
-				$il = VRML::VRMLFunc::InterpPointer($proto_node->{Type}{Name});
-				$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
-			} else {
-				$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
-				$fieldtype = $node->{Type}{FieldTypes}{$field};
-			}
 		}
 	}
-
 	if ($direction =~ /eventIn/i) {
 		return ($to_count, $tonode_str, $scrpt, 1, $il,$fieldtype);
 	} else {

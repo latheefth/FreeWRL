@@ -8,15 +8,15 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFRotation extends ConstField {
-    float axisX;
-    float axisY;
-    float axisZ;
-    float angle;
+     float axisX;
+     float axisY;
+     float axisZ;
+     float angle;
 
-    public ConstSFRotation() {
-    }
+    public ConstSFRotation() { }
+
     public ConstSFRotation(float axisX, float axisY, float axisZ, float angle) {
-        this.axisX = axisX;
+	        this.axisX = axisX;
         this.axisY = axisY;
         this.axisZ = axisZ;
         this.angle = angle;
@@ -37,7 +37,7 @@ public class ConstSFRotation extends ConstField {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Rotation");
+	//System.out.println ("fromPerl, Rotation");
 		axisX = Float.parseFloat(in.readLine());
 	        axisY = Float.parseFloat(in.readLine());
         	axisZ = Float.parseFloat(in.readLine());
@@ -45,9 +45,8 @@ public class ConstSFRotation extends ConstField {
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+axisX);
-        out.print(""+axisY);
-        out.print(""+axisZ);
-        out.print(""+angle);
+        out.println(axisX+" "+axisY+" "+axisZ+" "+angle);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }

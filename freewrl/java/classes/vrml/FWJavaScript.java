@@ -35,9 +35,11 @@ public final class FWJavaScript {
 	    Field val = (Field) e.nextElement();
 	    FWJavaScriptBinding b = val.__binding;
 	    BaseNode n = b.node();
-	    String f = b.field();
+	    String f = b.field() + " " + val.getOffset();
+	    System.out.println ("java, send_touched, offset of " +
+			    b.field() + " is " + val.getOffset());
 	    String nodeid = n._get_nodeid();
-	    EAIout.println("SENDEVENT");
+	    EAIout.println("JSENDEV");
 	    EAIout.println(nodeid);
 	    EAIout.println(f);
 	    val.__toPerl(EAIout);
@@ -99,12 +101,12 @@ public final class FWJavaScript {
 
 			// did FreeWRL leave us?
 			if (cmd == null) {
-				System.out.println ("have null string  exiting...\n"); 
+				//System.out.println ("have null string  exiting...\n"); 
 				System.exit(1);
 			}
 
-			System.out.println("FWJ got ");
-			System.out.println("--- "+cmd);
+			//System.out.println("FWJ got ");
+			//System.out.println("--- "+cmd);
 
 			nodeid =EAIin.readLine();
 			//System.out.println ("      ....FWJ, got nodeID " + nodeid);
@@ -152,9 +154,9 @@ public final class FWJavaScript {
 				reqid = EAIin.readLine(); // note reqid position, different than
 							// others, but we are using EAI functions.
 							// position does not matter...
-				//System.out.println ("      ....FWJ, got SENDEVENT, NodeID " + nodeid
-				//		+ " field " + fname + " type " + ftype + " reqid "
-				//		+ reqid);
+				System.out.println ("      ....FWJ, got SENDEVENT, NodeID " + nodeid
+						+ " field " + fname + " type " + ftype + " reqid "
+						+ reqid);
 
 				ConstField fval = 
 				    FWCreateField.createConstField(ftype);
@@ -179,10 +181,10 @@ public final class FWJavaScript {
     public static String getFieldType(BaseNode node, String fieldname, 
 				      String kind)
     {
+	String str;
 	try {
 	    EAIout.println("GETFIELD " + node._get_nodeid() + " " + fieldname + " " + kind);
 	    EAIout.flush();
-
 	    return EAIin.readLine();
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
@@ -191,8 +193,6 @@ public final class FWJavaScript {
 
     public static void readField(BaseNode node, String fieldName, Field fld) {
 	try {
-		//System.out.println ("start of readField for node " + node 
-		//		+ " fieldName " + fieldName + " fld " + fld);
 	    FWJavaScript.EAIout.println("READFIELD " + node._get_nodeid() + " " + fieldName);
 	    FWJavaScript.EAIout.flush();
 	    fld.__fromPerl(EAIin);
@@ -230,12 +230,19 @@ public final class FWJavaScript {
 	    int number = Integer.parseInt(intstring);
 	    if (number == -1)
 		throw new InvalidVRMLSyntaxException(EAIin.readLine());
+
+	    if (number == 0)
+		    return null;
+
 	    Node[] nodes = new Node[number];
 
 	    // remember, nodes have a frontend:backend; one is known in Perl, the  
+	    System.out.println ("Java: Create, reading in " + 
+			    number + " nodes");
 	    // other is the C pointer to memory. 
 	    for (int i = 0; i < number; i++)
 		nodes[i] = new Node(""+EAIin.readLine()+":"+EAIin.readLine());
+	    System.out.println ("returning from Java Create");
 	    return nodes;
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);

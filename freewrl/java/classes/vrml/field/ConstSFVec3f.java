@@ -8,14 +8,14 @@ import java.io.PrintWriter;
 import java.io.IOException;
 
 public class ConstSFVec3f extends ConstField {
-    float x;
-    float y;
-    float z;
+     float x;
+     float y;
+     float z;
 
-    public ConstSFVec3f() {
-    }
+    public ConstSFVec3f() { }
+
     public ConstSFVec3f(float x, float y, float z) {
-        this.x = x;
+	        this.x = x;
         this.y = y;
         this.z = z;
     }
@@ -49,15 +49,15 @@ public class ConstSFVec3f extends ConstField {
 
     public void __fromPerl(BufferedReader in)  throws IOException {
         
-		System.out.println ("fromPerl, Vec3f");
+	//System.out.println ("fromPerl, Vec3f");
 		x = Float.parseFloat(in.readLine());
 	        y = Float.parseFloat(in.readLine());
         	z = Float.parseFloat(in.readLine());
     }
 
     public void __toPerl(PrintWriter out)  throws IOException {
-        out.print(""+x);
-        out.print(""+y);
-        out.print(""+z);
+        out.println(x + " " + y + " " + z);
     }
+    //public void setOffset(String offs) { this.offset = offs; } //JAS2
+    //public String getOffset() { return this.offset; } //JAS2
 }
