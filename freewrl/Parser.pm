@@ -95,8 +95,8 @@ sub parse {
 	my $t2 = substr ($text, $po);
 	my $l2 = length ($t2);
 
-	$t2 =~ s/(\".*\")|(#+[^\n]*)/$1?$1:""/eg;
-        substr ($text, $po, $l2, $t2); 
+	$t2 =~ s/([\"\'].*[\"\'])|(#+[^\n]*)/$1?$1:""/eg;
+	substr($text, $po, $l2, $t2);
 
 	my @a;
 	while($text !~ /\G\s*$/gsc) {
@@ -187,16 +187,18 @@ sub parse_interfacedecl {
 	my($scene,$exposed,$fieldval,$s, $script,$open,$close) = @_;
 	$open = ($open || "\\[");
 	$close = ($close || "\\]");
-	print "OPCL: '$open' '$close'\n"
+	print "VRML::Parser::parse_interfacedecl: terminal symbols are '$open' '$close'\n"
 		 if $VRML::verbose::parse;
 	$_[3] =~ /\G\s*$open\s*/gsxc or parsefail($_[3], "interface declaration");
 	my %f;
 	while($_[3] !~ /\G\s*$close\s*/gsxc) {
-		print "PARSINT\n"
+		print "VRML::Parser::parse_interfacedecl: "
 		 	if $VRML::verbose::parse;
 		# Parse an interface statement
 		if($_[3] =~ /\G\s*(eventIn|eventOut)\s+
 			  ($Word)\s+($Word)\s+/ogsxc) {
+			print "$1 $2 $3\n"
+				if $VRML::verbose::parse;
 			$f{$3} = [$1,$2];
 			my $n = $3;
 			if($script and
@@ -209,10 +211,9 @@ sub parse_interfacedecl {
 			  	parsefail($_[3], "interface", 
 					   "exposedFields not allowed here");
 			  }
-			my($ft, $t, $n) = ($1,$2,$3);
-			print "parse, $n, $ft, $t, $fieldval\n" 
+			my($ft, $t, $n) = ($1, $2, $3);
+			print "$ft $t $n $fieldval\n"
 				if $VRML::verbose::parse;
-
 			$f{$n} = [$ft, $t];
 			if($fieldval) {
 				if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
@@ -226,13 +227,13 @@ sub parse_interfacedecl {
 			my $f = $1;
 			my $ft = $VRML::Nodes{Script}->{FieldTypes}{$1};
 			my $eft = ($f eq "url" ? "exposedField":"field");
-			print "SCRFIELD $f $ft $eft\n"
+			print "Script field $f $ft $eft\n"
 		 		if $VRML::verbose::parse;
 			if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
 				$f{$f} = [$ft, $f, $scene->new_is($1)];
 			} else {
 				$f{$f} = [$ft, $f, "VRML::Field::$ft"->parse($scene,$_[3])];
-				print "SCRF_PARIELD $f $ft $eft\n"
+				print "\tparsed $f $ft $eft\n"
 		 			if $VRML::verbose::parse;
 			}
 		} else {
@@ -307,7 +308,7 @@ sub parse {
 
                 return $scene->new_def($defname, $node);
 
-	} 
+	}
 	if($nt eq "USE") {
 		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
 			"USE must be followed by a defname");
@@ -381,8 +382,7 @@ sub parse {
 
 		if($_[2] =~ /\G\s*IS\s+($Word)/gsc) {
 			$f{$f} = $scene->new_is($1);
-                        print "storing type 1, $f, (name @{$f{$f}})\n" 
-				 if $VRML::verbose::parse;
+			print "storing type 1, $f, (name ", %{$f{$f}}, ")\n" if $VRML::verbose::parse;
 		} else {
 			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2]);
 				print "storing type 2, $f, (",
