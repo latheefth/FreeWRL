@@ -200,6 +200,7 @@ int get_touched_flag (int fptr, int actualscript) {
 	char tmethod[100];
 	jsval v, retval, retval2;
 	jsval interpobj;
+	jsval touchedobj;
 	int tn;
         JSString *strval; /* strings */
 	char *strtouched;
@@ -212,7 +213,8 @@ int get_touched_flag (int fptr, int actualscript) {
 	int complex_name; /* a name with a period in it */
 	char *myname;
 
-	if (JSVerbose) printf ("\nget_touched_flag, name %s script %d context %x \n",JSparamnames[fptr].name,
+	if (JSVerbose) 
+		printf ("\nget_touched_flag, name %s script %d context %x \n",JSparamnames[fptr].name,
 				actualscript,JSglobs[actualscript].cx);
 
 	myname = JSparamnames[fptr].name;
@@ -258,10 +260,14 @@ int get_touched_flag (int fptr, int actualscript) {
 	// Find out the method of getting the touched flag from this variable type
 
 	switch (JSparamnames[fptr].type) {
-	case MFBOOL: case MFFLOAT: case MFTIME: case MFINT32: case MFSTRING: case MFCOLOR:
+	case MFBOOL: case MFFLOAT: case MFTIME: case MFINT32: case MFCOLOR:
 	case MFROTATION: case MFNODE: case MFVEC2F: {
 		if (complex_name)  strcpy (tmethod,"__touched_flag");
 		else  sprintf (tmethod, "_%s__touched_flag",fullname);
+		break;
+		}
+	case MFSTRING: {
+		strcpy (tmethod,"__touched_flag");
 		break;
 		}
 	
@@ -307,13 +313,16 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// Now, for the Touched (and thus the return) value 
 	if (touched_function) {
-		// printf ("Function, have to run script\n");
+		printf ("Function, have to run script\n");
 	
 		if (!ActualrunScript(actualscript, tmethod ,&retval)) 
 			printf ("failed to get touched, line %s\n",tmethod);
+
        	        //strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval);
                	//strtouched = JS_GetStringBytes(strval);
                	//printf ("and get touched of function %d returns %s\n",retval,strtouched);
+
+
 		if (JSVAL_IS_INT(retval)) {
 			intval = JSVAL_TO_INT(retval);
 			return (intval!=0);
@@ -324,17 +333,19 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// now, if this is a complex name, we get property relative to what was before;
 	// if not (ie, this is a standard, simple, name, use the object as before
-	if (complex_name) {
+	if ((complex_name) || (JSparamnames[fptr].type==MFSTRING)) {
 		interpobj = retval;
 	}	
+
+	//printf ("using touched method %s on %d %d\n",tmethod,JSglobs[actualscript].cx,interpobj);
 
 	if (!JS_GetProperty(JSglobs[actualscript].cx, interpobj ,tmethod,&retval2)) {
                	printf ("cant get property for %s\n",tmethod);
 		return FALSE;
         } else {
        	        //strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval2);
-               	 //strtouched = JS_GetStringBytes(strval);
-               	 //printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
+               	// strtouched = JS_GetStringBytes(strval);
+               	// printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
 
 		if (JSVAL_IS_INT(retval2)) {
 			intval = JSVAL_TO_INT(retval2);
@@ -417,6 +428,82 @@ void setECMAtype (int num) {
 	if (!ActualrunScript(tn, scriptline ,&retval)) {
 		printf ("failed to set parameter, line %s\n",scriptline);
 	}
+}
+
+
+/****************************************************************/
+/* a script is returning a MFString type; add this to the C	*/
+/* children field						*/
+/****************************************************************/
+
+void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
+	unsigned int newptr;
+	int oldlen, newlen;
+	char *cptr;
+	void *newmal;
+	JSString *strval;
+
+	jsval _v;
+	JSObject *obj;
+	int i;
+	char *valStr, *OldvalStr;
+	SV **svptr;
+	int myv;
+
+
+
+	/* Multi_String def is struct Multi_String { int n; SV * *p; }; */
+
+	/* oldlen = what was there in the first place */
+	oldlen = to->n;
+	svptr = to->p;
+	newlen=0;
+
+	if (!JS_ValueToObject (cx,from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
+
+	//printf ("getMFStringtype, object is %d\n",obj);
+	if (!JS_GetProperty(cx, obj, "length", &_v)) {
+                printf ("JS_GetProperty failed for \"length\" in getMFStringtype for %s.\n");
+        }
+
+	newlen = JSVAL_TO_INT(_v);	
+
+	// printf ("new len %d old len %d\n",newlen,oldlen);
+
+	if (newlen > oldlen) {
+		printf ("MFString assignment, new string has more elements than old, cant do this yet\n");
+		newlen = oldlen;
+	}
+
+	for (i = 0; i < newlen; i++) {
+		// get the old string pointer
+		OldvalStr = SvPV(svptr[i],PL_na);
+		// printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr));
+
+		// get the new string pointer
+		if (!JS_GetElement(cx, obj, i, &_v)) {
+			fprintf(stderr,
+				"JS_GetElement failed for %d in getMFStringtype\n",i);
+			return;
+		}
+		strval = JS_ValueToString(cx, _v);
+		valStr = JS_GetStringBytes(strval);
+
+		//printf ("new string %d is %s\n",i,valStr);
+
+		// if the strings are different...
+		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
+			if (OldvalStr!=NULL) free(OldvalStr);
+			svptr[i]= newSVpvn(valStr,strlen(valStr));
+		}
+	}
+
+	myv = INT_TO_JSVAL(1);
+	if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
+		fprintf(stderr,
+			"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
+	}
+
 }
 
 
@@ -927,7 +1014,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 		fn = CRoutes[route].fromnode;
 		len = CRoutes[route].len;
 
-		if (CRVerbose) printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
+		if (CRVerbose) 
+			printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
 				JSparamnames[fptr].type, len);	
 
 		/* in Ayla's Perl code, the following happened:
@@ -1022,39 +1110,27 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 				/* a series of Floats... */
-				case MFCOLOR:
-					{
-						getMultiElementtype (strp, tn+tptr,3);
-						break;
-				}
-				case MFFLOAT:
-					{
-						getMultiElementtype (strp, tn+tptr,1);
-						break;
-				}
-				case MFROTATION:
-					{
-						getMultiElementtype (strp, tn+tptr,4);
-						break;
-				}
-				case MFVEC2F: 
-					{
-						getMultiElementtype (strp, tn+tptr,2);
-						break;
-				}
-
-				case MFNODE:
-					{	getMFNodetype (strp,tn+tptr);
+				case MFCOLOR: {getMultiElementtype (strp, tn+tptr,3); break;}
+				case MFFLOAT: {getMultiElementtype (strp, tn+tptr,1); break;}
+				case MFROTATION: {getMultiElementtype (strp, tn+tptr,4); break;}
+				case MFVEC2F: {getMultiElementtype (strp, tn+tptr,2); break;}
+				case MFNODE: {getMFNodetype (strp,tn+tptr); break;}
+				case MFSTRING: {
+						getMFStringtype (JSglobs[actualscript].cx,
+									global_return_val,tn+tptr); 
 						break;
 					}
+
 				case MFTIME:
 				case MFINT32:
 				default: {	printf ("WARNING: unhandled from type %d\n",JSparamnames[fptr].type);
+						printf (" -- string from javascript is %s\n",strp);
 					}
 			}
 
 			/* tell this node now needs to redraw */
 			update_node(tn);
+			mark_event (tn,tptr);
 			//mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
 		} 
 		route++;
