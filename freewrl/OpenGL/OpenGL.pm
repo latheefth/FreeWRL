@@ -107,6 +107,12 @@
 		get_triangulator
 		glGenTexture
 		glPrintError
+		arrow_cursor
+		sensor_cursor
+		BackEndClearBuffer
+		BackEndLightsOff
+		BackEndHeadlightOff
+		BackEndHeadlightOn
 	);
 	bootstrap VRML::OpenGL;
 

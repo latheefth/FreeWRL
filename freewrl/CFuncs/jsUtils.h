@@ -20,6 +20,8 @@
 #include "jsapi.h" /* JS compiler */
 #include "jsdbgapi.h" /* JS debugger */
 
+#include "headers.h"
+
 #ifndef FALSE
 #define FALSE 0
 #endif /* FALSE */
@@ -33,8 +35,6 @@
 
 #define BROWSER_SFNODE "__node"
 #define BROWSER_RETVAL "__ret"
-
-#define UNUSED(v) ((void) v)
 
 
 extern JSBool JSVerbose;

@@ -1,1 +1,2 @@
 float		T_FLOAT
+double *	T_PTR

@@ -280,5 +280,11 @@ set_stereo_offset(
 				  );
 
 
+void
+increment_pos(
+			  VRML_Viewer *viewer,
+			  struct pt *vec
+			  );
+
 
 #endif /* __VIEWER_H_ */

@@ -6,6 +6,21 @@
  *
  */
 
+#ifdef AQUA 
+
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+
+#else
+
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+
+#endif
+
 
 #include "headers.h"
 
@@ -29,5 +44,21 @@ get_render_frame(void);
 void
 dec_render_frame(void);
 
+
+void
+glpOpenGLInitialize(void);
+
+
+void
+BackEndClearBuffer(void);
+
+void 
+BackEndLightsOff(void);
+
+void 
+BackEndHeadlightOff(void);
+
+void
+BackEndHeadlightOn(void);
 
 #endif /* __OPENGL_UTILS_H_ */

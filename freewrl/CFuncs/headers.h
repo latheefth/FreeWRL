@@ -155,7 +155,9 @@ void DirectionalLight_Rend(void *nod_);
 
 
 
+#ifndef normalize_vector /* prototype also found in LinearAlgebra.h */
 void normalize_vector(struct pt *vec);
+#endif
 
 void normalize_ifs_face (float *point_normal,
                          struct pt *facenormals,

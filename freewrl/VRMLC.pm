@@ -26,6 +26,11 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.93  2003/06/13 21:45:37  ayla
+#
+# Migrating more code from Perl to C.
+# Removed UNUSED macro from jsUtils.h.
+#
 # Revision 1.92  2003/06/12 18:21:47  ayla
 #
 # Re-enabled '/' key function which is to print Viewer information.
@@ -1336,6 +1341,10 @@ float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
 /* is the sound engine started yet? */
 int SoundEngineStarted = FALSE;
 
+char *BrowserVersion = NULL;
+char *BrowserURL = NULL;
+char *BrowserName = "FreeWRL VRML/X3D Browser";
+
 
 /*************************JAVASCRIPT*********************************/
 #ifndef __jsUtils_h__
@@ -1783,8 +1792,85 @@ void remove_parent(void *node_, void *parent_) {
 	}
 }
 
-MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 
+void
+render_hier(void *p, int rwhat, void *wvp)
+{
+	struct pt upvec = {0,1,0};
+	GLdouble modelMatrix[16];
+
+	render_vp = rwhat & VF_Viewpoint;
+	found_vp = 0;
+	render_geom =  rwhat & VF_Geom;
+	render_light = rwhat & VF_Lights;
+	render_sensitive = rwhat & VF_Sensitive;
+	render_blend = rwhat & VF_Blend;
+	render_proximity = rwhat & VF_Proximity;
+	render_collision = rwhat & VF_Collision;
+	curlight = 0;
+	what_vp = wvp;
+	hpdist = -1;
+
+	if (!p) {
+		fprintf(stderr, "Render_hier: arg 1 is NULL\n");
+		return;
+	}
+
+	/* verbose = 1; */
+	if (verbose)
+  		printf("Render_hier node=%d what=%d what_vp=%d\n", p, rwhat, wvp);
+
+	if (render_sensitive) {
+		upd_ray();
+	}
+	render_node(p);
+
+	/* Get raycasting results */
+	if(render_sensitive) {
+		if(hpdist >= 0) {
+			if(verbose) printf("RAY HIT!\n");
+		}
+	}
+
+	/*get viewpoint result, only for upvector*/
+	if (render_vp &&
+		ViewerUpvector.x == 0 &&
+		ViewerUpvector.y == 0 &&
+		ViewerUpvector.z == 0) {
+
+		/* store up vector for gravity and collision detection */
+		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
+		glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		matinverse(modelMatrix,modelMatrix);
+		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
+
+		if (verbose) printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
+	}
+}
+
+
+void
+get_collisionoffset(double *x, double *y, double *z)
+{
+	struct pt res = CollisionInfo.Offset;
+
+	/* uses mean direction, with maximum distance */
+	if (CollisionInfo.Count == 0) {
+	    *x = *y = *z = 0;
+	} else {
+	    if (vecnormal(&res, &res) == 0.) {
+			*x = *y = *z = 0;
+	    } else {
+			vecscale(&res, &res, sqrt(CollisionInfo.Maximum2));
+			*x = res.x;
+			*y = res.y;
+			*z = res.z;
+	    }
+	}
+}
+
+
+MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 PROTOTYPES: ENABLE
 
 
@@ -1924,40 +2010,7 @@ CODE:
 	RETVAL=1;
 OUTPUT:
 	RETVAL
-	
-void
-get_collisionoffset(x,y,z)
-	double x
-	double y
-	double z
-CODE:
-	    /*uses mean direction, with maximum distance */
-	if(CollisionInfo.Count == 0) {
-	    x = y = z = 0;
-	} else {
-	    struct pt res = CollisionInfo.Offset;
-	    if(vecnormal(&res,&res) == 0.) {
-		x = y = z = 0;
-	    } else {
-		vecscale(&res,&res,sqrt(CollisionInfo.Maximum2));
-		x = res.x;
-		y = res.y;
-		z = res.z;
-	    }
-	}
-OUTPUT:
-	x
-	y
-	z
 
-void
-reset_collisionoffset()
-CODE:
-	CollisionInfo.Offset.x = 0;
-	CollisionInfo.Offset.y = 0;
-	CollisionInfo.Offset.z = 0;
-	CollisionInfo.Count = 0;
-	CollisionInfo.Maximum2 = 0.;
 
 void
 set_viewer_delta(x,y,z)
@@ -2018,7 +2071,7 @@ CODE:
 	struct VRML_Box *p = ptr;
 	p->_hit = 0;
 
-void 
+void
 render_verbose(i)
 	int i;
 CODE:
@@ -2029,6 +2082,21 @@ render_verbose_collision(i)
 	int i;
 CODE:
 	verbose_collision=i;
+
+
+void
+get_collisionoffset(x,y,z)
+	double *x
+	double *y
+	double *z
+
+
+void
+render_hier(p,rwhat,wvp)
+	void *p
+	int rwhat
+	void *wvp
+
 
 void
 render_geom(p)
@@ -2041,53 +2109,23 @@ CODE:
 	v = *(struct VRML_Virt **)p;
 	v->rend(p);
 
-void 
-render_hier(p,rwhat,wvp)
+
+void
+do_render_collisions(p)
 	void *p
-	int rwhat
-	void *wvp
+PREINIT:
+	struct pt v;
 CODE:
+	CollisionInfo.Offset.x = 0;
+	CollisionInfo.Offset.y = 0;
+	CollisionInfo.Offset.z = 0;
+	CollisionInfo.Count = 0;
+	CollisionInfo.Maximum2 = 0.;
 
-	render_vp = rwhat & VF_Viewpoint;
-        found_vp = 0;
-	render_geom =  rwhat & VF_Geom;
-	render_light = rwhat & VF_Lights;
-	render_sensitive = rwhat & VF_Sensitive;
-	render_blend = rwhat & VF_Blend;
-	render_proximity = rwhat & VF_Proximity;
-	render_collision = rwhat & VF_Collision;
-	curlight = 0;
-	what_vp = wvp;
-	hpdist = -1;
-	if(!p) {
-		die("Render_hier null!??");
-	}
-	//verbose = 1;
-	if(verbose)
-  		printf("Render_hier node=%d what=%d what_vp=%d\n", p, rwhat, wvp);
+	render_hier(p, VF_Collision, 0);
+	get_collisionoffset(&(v.x), &(v.y), &(v.z));
+	increment_pos(&Viewer, &v);
 
-	if(render_sensitive) 
-		upd_ray();
-	render_node(p);
-
-	/* Get raycasting results */
-	if(render_sensitive) {
-		if(hpdist >= 0) {
-			if(verbose) printf("RAY HIT!\n");
-		}
-	}
-
-	/*get viewpoint result, only for upvector*/
-	if(render_vp && ViewerUpvector.x == 0 && ViewerUpvector.y == 0 && ViewerUpvector.z == 0) {
- 		struct pt upvec = {0,1,0};
-		GLdouble modelMatrix[16];
-		/*store up vector for gravity and collision detection */
-		/*naviinfo.reset_upvec is set to 1 after a viewpoint change*/
-		glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-		matinverse(modelMatrix,modelMatrix);
-		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
-		if(verbose) printf("ViewerUpvector = (%f,%f,%f)\n",ViewerUpvector);
-	}
 
 # get the current rayhit. Save the rayhit for later use by Cfunctions, eg, PlaneSensor
 void *
@@ -2148,22 +2186,22 @@ CODE:
 
 	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
 		pt = do_Oint4;
-		RETVAL = pt;
+		RETVAL = (unsigned int) pt;
 	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
 		pt = do_OintScalar;
-		RETVAL = pt;
+		RETVAL = (unsigned int) pt;
 	} else if (strncmp("ColorInterpolator",x,strlen("ColorInterpolator"))==0) {
 		pt = do_Oint3;
-		RETVAL = pt;
+		RETVAL = (unsigned int) pt;
 	} else if (strncmp("PositionInterpolator",x,strlen("PositionInterpolator"))==0) {
 		pt = do_Oint3;
-		RETVAL = pt;
+		RETVAL = (unsigned int) pt;
 	} else if (strncmp("CoordinateInterpolator",x,strlen("CoordinateInterpolator"))==0) {
 		pt = do_OintCoord;
-		RETVAL = pt;
+		RETVAL = (unsigned int) pt;
 	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
 		pt = do_OintCoord;
-		RETVAL = pt;
+		RETVAL = (unsigned int) pt;
 	} else {
 		RETVAL = 0;
 	}

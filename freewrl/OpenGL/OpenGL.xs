@@ -5,16 +5,16 @@
 #include "XSUB.h"
 
 
-#ifdef AQUA 
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-#endif
+/* #ifdef AQUA  */
+/* #include <gl.h> */
+/* #include <glu.h> */
+/* #include <glext.h> */
+/* #else */
+/* #include <GL/gl.h> */
+/* #include <GL/glx.h> */
+/* #include <GL/glu.h> */
+/* #include <GL/glext.h> */
+/* #endif */
 
 #include <unistd.h>
 #include <stdio.h>
@@ -230,13 +230,6 @@ raise_me_please()
 	}
 
 
-void
-BackEndSleep()
-	CODE:
-	{
-	usleep(100);
-	}
-
 	
 # cursor stuff JAS
 void
@@ -257,52 +250,22 @@ sensor_cursor()
 #endif
 	}
 
-# GL Render loop C functions
+
+# GL Render loop C functions (see OpenGL_Utils.c)
 void
 BackEndClearBuffer()
-	CODE:
-	{
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
 
 void 
 BackEndLightsOff()
-	CODE:
-	{
-        glDisable(GL_LIGHT1); /* Put them all off first (except headlight)*/
-        glDisable(GL_LIGHT2);
-        glDisable(GL_LIGHT3);
-        glDisable(GL_LIGHT4);
-        glDisable(GL_LIGHT5);
-        glDisable(GL_LIGHT6);
-        glDisable(GL_LIGHT7);
-	}
 
 void 
 BackEndHeadlightOff()
-	CODE:
-	{
-	glDisable(GL_LIGHT0); /* headlight off (or other, if no headlight) */
-	}
-
 
 void
 BackEndHeadlightOn()
-	CODE:
-	{
-	    float pos[]={0.0, 0.0, 1.0, 0.0};
-	    float s[]={1.0,1.0,1.0,1.0};
-            glEnable(GL_LIGHT0);
-            glLightfv(GL_LIGHT0,GL_POSITION, pos);
-            glLightfv(GL_LIGHT0,GL_AMBIENT, s);
-            glLightfv(GL_LIGHT0,GL_DIFFUSE, s);
-            glLightfv(GL_LIGHT0,GL_SPECULAR, s);
-	}
 
 
 
-
-	
 #define NUM_ARG 9
 void
 glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
@@ -342,11 +305,11 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 	NotRunningAsPlugin = strncmp ("pipe:",wintitle,5);
 
-	//JAS if (NotRunningAsPlugin) {
-	//JAS 	printf ("NOT Running as plugin %d\n",NotRunningAsPlugin);
-	//JAS } else {
-	//JAS 	printf ("Running as plugin %d\n",NotRunningAsPlugin);
-	//JAS }
+	/* JAS if (NotRunningAsPlugin) { */
+	/* JAS 	printf ("NOT Running as plugin %d\n",NotRunningAsPlugin); */
+	/* JAS } else { */
+	/* JAS 	printf ("Running as plugin %d\n",NotRunningAsPlugin); */
+	/* JAS } */
 
 
 	/* get a connection */
@@ -447,12 +410,12 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 		XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
 		if (NotRunningAsPlugin) {
-			// just map us to the display
+			/* just map us to the display */
 			XMapWindow(dpy, win);
 		} else {
-			// send the window id back to the plugin parent
+			/* send the window id back to the plugin parent */
 			sscanf (wintitle,"pipe:%d",&tomozilla);
-			//JAS printf ("mozilla pipe is %d\n",tomozilla);
+			/* JAS printf ("mozilla pipe is %d\n",tomozilla); */
 			write (tomozilla,&win,4);
 			close (tomozilla);
 		}
@@ -484,11 +447,11 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	}
 
 	/* what is the hardware 3d accel? */
-	//strncpy (renderer, (char *)glGetString(GL_RENDERER), 250);
-	//printf ("%s\n",renderer); 
+	/* strncpy (renderer, (char *)glGetString(GL_RENDERER), 250); */
+	/* printf ("%s\n",renderer); */
 
-	//glXGetConfig (dpy, vi, GLX_DEPTH_SIZE, &number);
-	//printf ("GLX depth size %d\n",number);
+	/* glXGetConfig (dpy, vi, GLX_DEPTH_SIZE, &number); */
+	   /* printf ("GLX depth size %d\n",number); */
 
 	/* and make it so that we render 1 frame, at least */
 	/* render_frame = 5; */
@@ -498,39 +461,8 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 void
 glpOpenGLInitialize()
-	CODE:
 
-	{
-	// Configure OpenGL for our uses.
 
-	glClearColor(0,0,0,1);
-	glShadeModel (GL_SMOOTH);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
-
-	// JAS - ALPHA testing for textures - right now we just use 0/1 alpha
-	// JAS   channel for textures - true alpha blending can come when we sort
-	// JAS   nodes.
-	
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	glAlphaFunc (GL_GREATER, 0.1);
-	glEnable (GL_ALPHA_TEST);
-
-	// end of ALPHA test
-	glEnable(GL_NORMALIZE);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_CULL_FACE);
-
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-	glPixelStorei(GL_PACK_ALIGNMENT,1);
-
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.2 * 128);
-	}
 
 #ifndef AQUA 
 void
