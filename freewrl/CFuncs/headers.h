@@ -17,6 +17,9 @@
 #include <GL/glu.h>
 #else
 #include <glu.h>
+#include <CGLTypes.h>
+#include "aquaInt.h"
+extern CGLContextObj aqglobalContext;
 #endif
 
 /* number of tesselated coordinates allowed */
@@ -382,6 +385,24 @@ void render_hier(void *p, int rwhat);
 void handle_EAI(void);
 
 extern int screenWidth, screenHeight;
+
+/* SD AQUA FUNCTIONS */
+#ifdef AQUA
+extern int getOffset();
+extern void initGL();
+extern void setSnapSeq();
+extern void setSeqFile(char* file);
+extern void setSnapFile(char* file);
+extern void setMaxImages(int max);
+extern void setButDown(int button, int value);
+extern void setBrowserURL(char *str);
+extern void setCurXY(int x, int y);
+extern void setScreenDim(int w, int h);
+extern void setLastMouseEvent(int etype);
+extern void initFreewrl();
+extern void setSeqTemp(char* file);
+extern void aqDisplayThread();
+#endif
 
 extern char *getLibVersion();
 
