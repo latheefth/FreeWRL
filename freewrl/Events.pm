@@ -137,7 +137,6 @@ sub propagate_events {
 	my($this,$timestamp,$be,$scene) = @_;
 	my @e;
 	my @ne;
-	my @te;
 	my %sent; # to prevent sending twice, always set bit here
 	for(values %{$this->{First}}) {
 		# print "GETFIRST $_\n" if $VRML::verbose::events;
@@ -152,7 +151,6 @@ sub propagate_events {
 	}
 	my $n = scalar @e;
 	push @e, @{$this->{Queue}};
-	push @te, @{$this->{ToQueue}};
 	$this->{Mouse} = [];
 	print "GOT ",scalar(@e)," FIRSTEVENTS ($n n/q)\n" if $VRML::verbose::events;
 
@@ -164,9 +162,8 @@ sub propagate_events {
 	while(1) {
 		my %ep; # All nodes for which ep must be called
 		# Propagate our events as long as they last
-		while(@e || @te) {
+		while(@e || @{$this->{ToQueue}}) {
 			$this->{Queue} = [];
-			$this->{ToQueue} = [];
 			@ne = ();
 			for my $e (@e) {
 
@@ -187,26 +184,8 @@ sub propagate_events {
 				}
 
 				for(@{$this->{Route}{$e->[0]}{$e->[1]}}) {
-					push @ne, 
-					   $_->[0]->receive_event($_->[1],
-							$e->[2],$timestamp);
-
-					$ep{$_->[0]} = $_->[0];
-					# Was this event routed to someone
-					# who has children?
-					for(@{$this->{PIs}{$_->[0]}{$_->[1]}}) {
-						print "P_IS: send to $_\n"
-						 if $VRML::verbose::events;
-						my $fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
-						if(!defined $fk) {die("Fieldkind getting")}
-						if($fk eq "eventIn" or 
-						   $fk eq "exposedField") {
-							push @ne, 
-							    $_->[0]->receive_event($_->[1],
-								$e->[2], $timestamp);
-							$ep{$_->[0]} = $_->[0];
-						}
-					}
+					push @{$this->{ToQueue}},
+						[ $_->[0], $_->[1], $e->[2] ];
 				}
 				my $c;
 				# Was this eventOut a child of someone?
@@ -225,6 +204,8 @@ sub propagate_events {
 					}
 				}
 			}
+			my @te = @{$this->{ToQueue}};
+			$this->{ToQueue} = [];
 			for my $e (@te) {
 					push @ne, 
 					   $e->[0]->receive_event($e->[1],
@@ -240,15 +221,12 @@ sub propagate_events {
 						if(!defined $fk) {die("Fieldkind getting")}
 						if($fk eq "eventIn" or 
 						   $fk eq "exposedField") {
-							push @ne, 
-							    $_->[0]->receive_event($_->[1],
-								$e->[2], $timestamp);
-							$ep{$_->[0]} = $_->[0];
+							push @{$this->{ToQueue}},
+								[ $_->[0], $_->[1], $e->[2] ];
 						}
 					}
 			}
 			@e = (@ne,@{$this->{Queue}});
-			@te = @{$this->{ToQueue}};
 		}
 		$this->{Queue} = [];
 		@ne = ();
