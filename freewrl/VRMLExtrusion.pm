@@ -119,7 +119,8 @@ struct SFVec2f *crossSection;
 int Extru_Verbose = 0;
 
 
-if (Extru_Verbose) printf ("VRMLExtrusion.pm start\n");
+if (Extru_Verbose) 
+	printf ("VRMLExtrusion.pm start\n");
 
 /***********************************************************************
  *
@@ -132,7 +133,7 @@ crossSection     = malloc(sizeof(crossSection)*nsec*2);
 if (!(crossSection)) die ("can not malloc memory for Extrusion crossSection");
 
 if (nsec < 1) { 
-	printf ("Extrusion, crossSection too small\n");
+	printf ("INTERNAL ERROR: Extrusion, crossSection too small\n");
 } else {
 	int tmp1, temp_indx;
 	int increment, currentlocn;
@@ -175,7 +176,8 @@ if (nsec < 1) {
 ntri = 2 * (nspi-1) * (nsec-1);
 
 
-if (Extru_Verbose) printf ("so, we have ntri %d nspi %d nsec %d\n",ntri,nspi,nsec);
+if (Extru_Verbose) 
+	printf ("so, we have ntri %d nspi %d nsec %d\n",ntri,nspi,nsec);
 
 /* check if the spline is closed					*/
 
@@ -287,21 +289,18 @@ SCP     = malloc(sizeof(struct SCP)*nspi);
 } 
 
 if (HAVETODOTEXTURES) { /* texture mapping "stuff" */
-	int tc = 0;
-
-	if($f(beginCap)) tc += nsec*6; // each tri = 3 vertexes, approx one tri per 2 vertex
-	if($f(endCap)) tc += nsec*6;
-	
 	/* so, we now have to worry about textures. */
 	/* XXX note - this over-estimates; realloc to be exact */
 
-	tcoordsize = ((nsec+(nspi-1)*nsec)+tc)*3; /* size required for sides */
+	tcoordsize = (nctri + (ntri*2))*3;
 
-	if (Extru_Verbose) printf ("tcoordsize is %d\n",tcoordsize);
+	if (Extru_Verbose) 
+		printf ("tcoordsize is %d\n",tcoordsize);
 	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*tcoordsize);
 
 	tcindexsize = rep_->ntri*3;
-	if (Extru_Verbose) printf ("tcindexsize %d\n",tcindexsize);
+	if (Extru_Verbose) 
+		printf ("tcindexsize %d\n",tcindexsize);
 	tcindex  = rep_->tcindex   = malloc(sizeof(*(rep_->tcindex))*tcindexsize);
 
 	/* keep around cross section info for tex coord mapping */
@@ -859,7 +858,7 @@ for(x=0; x<nsec-1; x++) {
   tcindex[triind*3+1] = Ctex;
   tcindex[triind*3+2] = Ftex;
 
-  if ((triind*3+2) >= tcindexsize) printf ("Extrusion  - tcindex size too small!\n");
+  if ((triind*3+2) >= tcindexsize) printf ("INTERNAL ERROR: Extrusion  - tcindex size too small!\n");
   defaultface[triind] = this_face;
   triind ++; 
   this_face ++;
@@ -899,6 +898,8 @@ if($f(convex)) {
 	else endpoint = nsec-2-ncolinear_at_end;
 
 
+	//printf ("beginCap, starting at triind %d\n",triind);
+
 	/* this is the simple case with convex polygons	*/
 	if($f(beginCap)) {
 		triind_start = triind;
@@ -906,10 +907,12 @@ if($f(convex)) {
 		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
   			Elev_Tri(triind*3, this_face, 0, x+2, x+1, TRUE , rep_, facenormals, pointfaces,ccw);
   			defaultface[triind] = this_face;
-			Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw);
+			Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw,tcindexsize);
 			triind ++;
 		}
 
+		//printf ("INTERNAL calling Extru_ST_map(1), triind_start %d, begin %d end %d beginVals %d nsec %d tcsize%d\n",
+			//triind_start,0+ncolinear_at_begin,endpoint,beginVals,nsec,tcoordsize);
 		Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
 				beginVals,nsec,rep_,tcoordsize);
 		tci_ct+=endpoint-(0+ncolinear_at_begin);
@@ -927,10 +930,12 @@ if($f(convex)) {
   			defaultface[triind] = this_face;
 			Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec, 
 					x+1+(nspi-1)*nsec, 
-					x+2+(nspi-1)*nsec, rep_,ccw);
+					x+2+(nspi-1)*nsec, rep_,ccw,tcindexsize);
 			triind ++;
 		}
 		this_face++;
+		// printf ("INTERNAL calling Extru_ST_map(2), triind_start %d, begin %d end %d beginVals %d nsec %d tcsize%d\n",
+		//	triind_start,0+ncolinear_at_begin,endpoint,beginVals,nsec,tcoordsize);
 		Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
 				endVals, nsec, rep_,tcoordsize);
 	} /* if endCap */
@@ -1025,13 +1030,20 @@ for (tmp=end_of_sides; tmp<(triind*3); tmp++) {
 }
 
 /* do texture mapping calculations for sides */
+/* range check - this should NEVER happen... */
+if (tcoordsize <= ((nsec-1)+(nspi-1)*(nsec-1)*3+2)) {
+	printf ("INTERNAL ERROR: Extrusion side tcoord calcs nspi %d nsec %d tcoordsize %d\n",
+		nspi,nsec,tcoordsize);
+}
 for(sec=0; sec<nsec; sec++) {
 	for(spi=0; spi<nspi; spi++) {
-		//printf ("tcoord idx %d tcoordsize %d\n",(sec+spi*nsec)*3+2,tcoordsize);
-		//printf ("side texts sec %d spi %d placement %d\n",sec,spi,&tcoord[(sec+spi*nsec)*3]);
+		//printf ("tcoord idx %d %d %d tcoordsize %d ",
+		//(sec+spi*nsec)*3,(sec+spi*nsec)*3+1,(sec+spi*nsec)*3+2,tcoordsize);
+		//printf ("side texts sec %d spi %d\n",sec,spi);
 		tcoord[(sec+spi*nsec)*3+0] = (float) sec/(nsec-1);
 		tcoord[(sec+spi*nsec)*3+1] = 0;
 		tcoord[(sec+spi*nsec)*3+2] = (float) spi/(nspi-1);
+		//printf (" %f %f\n",tcoord[(sec+spi*nsec)*3+0],tcoord[(sec+spi*nsec)*3+2]);
 	}
 }	
 
@@ -1052,7 +1064,8 @@ if(Extru_Verbose)
 	"ncolinear_at_begin=%d ncolinear_at_end=%d\n",
 	triind,ntri,nctri,ncolinear_at_begin,ncolinear_at_end);
  
-if(Extru_Verbose) printf ("end VRMLExtrusion.pm\n");
+if(Extru_Verbose) 
+	printf ("end VRMLExtrusion.pm\n");
 
 /*****end of Member Extrusion	*/
 ';
