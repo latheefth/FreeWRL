@@ -127,6 +127,14 @@ If you are running on <B>Irix</B> copy vrml.conf.irix over vrml.conf, <B>and</B>
 copy Plugin/netscape/Makefile.irix over Plugin/netscape/Makefile.
 You should also verify that you are using GNU-Make; if not, you can get it from
 the SGI freeware site mentioned above.
+<P>
+One additional  <B>Irix</B>  note: if your version of "make" is not gnumake, you
+will need to install it, and use the following script to "make" freewrl. (this 
+is on the bug list...)
+<p>
+$ for i in * ; do (cd $i && gmake) ; done
+<P>$ gmake
+
 <p>
 FreeType version 2 has been in distributions for well over a year; FreeWRL now uses
 it. Check that you have the library installed; the command "ldconfig -p | grep freetype"
