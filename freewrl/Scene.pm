@@ -952,7 +952,7 @@ sub new_route {
 sub new_def {
 	my($this,$name,$node) = @_;
 
-	print "NEW DEF $name $node\n" if $VRML::verbose::scene;
+	#print "NEW DEF $name $node\n" ; #JAS if $VRML::verbose::scene;
 	my $def = VRML::DEF->new($name,$node);
 	$this->{TmpDef}{$name} = $def;
         VRML::Handles::reserve($def);
@@ -961,8 +961,8 @@ sub new_def {
 
 sub new_use {
 	my($this,$name) = @_;
-	# print "Scene.pm - new_use this is $this, name is  $name, ", $this->{TmpDef}{$name}, "\n";
-        # print "Scene.pm - new_use printed is ",$this->{TmpDef}{$name}->as_string(),"\n";
+	#print "Scene.pm - new_use this is $this, name is  $name, ", $this->{TmpDef}{$name}, "\n";
+        #print "Scene.pm - new_use printed is ",$this->{TmpDef}{$name}->as_string(),"\n";
 	return VRML::USE->new($name, VRML::Handles::get($this->{TmpDef}{$name}));
 }
 
@@ -1430,8 +1430,13 @@ sub setup_routing {
 	print "DEVINED NODES in $this: ",(join ',',keys %{$this->{DEF}}),"\n" if $VRML::verbose::scene;
 	for(@{$this->{Routes}}) {
 		my($fnam, $ff, $tnam, $tf) = @$_;
+		my $realname = VRML::Field::SFNode::return_def_name($fnam);
+		if($realname ne "") {
+			printf "Name probably already in internal format\n";
+			$realname = $_;
+		}
+			
 		my ($fn, $tn) = map {
-			print "LOOKING FOR $_ in $this\n" if $VRML::verbose::scene;
 			$this->{DEF}{$_} or
 			 die("Routed node name '$_' not found ($fnam, $ff, $tnam, $tf)!");
 		} ($fnam, $tnam);
