@@ -120,28 +120,20 @@ sub load_string {
 	if ($type == 3)  {
 		# x3d - convert this to VRML.
 
-		my $lgname = $ENV{LOGNAME};
-		my $tempfile_name = "/tmp/freewrl_xtov_";
-		my $tmpfile = join '',$tempfile_name,$lgname,".x3d";
-		my $newfile = join '',$tempfile_name,$lgname,".wrl";
-	
-		# write the current x3d string to a temp file	
-		open (MYTMP,"> $tmpfile") or die "could not open $tmpfile for writing: $!\n";
-		print MYTMP $string;
-		close (MYTMP);
-	
-		# run the xsl conversion program, saxon, on this temp file.	
-		my $cmd = "$VRML::Browser::JAVA -cp  $VRML::Browser::JCP com.icl.saxon.StyleSheet $tmpfile $VRML::Browser::X3DTOVRMLXSL > $newfile";
-		my $status = system ($cmd);
-		die "X3D conversion problem: '$cmd' returns $?" unless $status == 0;
-	
-		# and get the vrml string back again.	
-		$string = `cat $newfile`;
-		
-		# delete temporary files
-		my $cmd = "rm $newfile $tmpfile";
-		my $status = system ($cmd);
-		die "X3D conversion problem: '$cmd' returns $?" unless $status == 0;
+  		use XML::LibXSLT;
+  		use XML::LibXML;
+  
+  		my $parser = XML::LibXML->new();
+  		my $xslt = XML::LibXSLT->new();
+  
+  		my $source = $parser->parse_string($string);
+  		my $style_doc = $parser->parse_file($VRML::Browser::X3DTOVRMLXSL);
+  
+  		my $stylesheet = $xslt->parse_stylesheet($style_doc);
+  
+  		my $results = $stylesheet->transform($source);
+
+   		$string = $stylesheet->output_string($results);
 	}
 	VRML::Parser::parse($this->{Scene},$string);
         prepare ($this);

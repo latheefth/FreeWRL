@@ -850,6 +850,23 @@ sub newextp {
 	# Required due to changes in VRML::URL::get_relative in URL.pm:
 	if (!$string) { die "File $protourl was not found"; }
 
+        if ($string =~/^<\?xml version/s) {
+                use XML::LibXSLT;
+                use XML::LibXML;
+
+                my $parser = XML::LibXML->new();
+                my $xslt = XML::LibXSLT->new();
+
+                my $source = $parser->parse_string($string);
+                my $style_doc = $parser->parse_file($VRML::Browser::X3DTOVRMLXSL);
+
+                my $stylesheet = $xslt->parse_stylesheet($style_doc);
+
+                my $results = $stylesheet->transform($source);
+
+                $string = $stylesheet->output_string($results);
+        }
+
 	unless($string =~ /^#VRML V2.0/s) {
 		 if($string =~ /^#VRML V1.0/) {
 			 print "Sorry, this file is according to VRML V1.0, I only know V2.0\n";
