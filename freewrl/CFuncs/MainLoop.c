@@ -67,7 +67,7 @@ struct SensStruct *SensorEvents = 0;
 int num_SensorEvents = 0;
 
 /* Viewport data */
-GLint viewPort[10];
+GLint viewPort2[10];
 
 /* screen width and height. */
 int screenWidth=1;
@@ -516,10 +516,10 @@ void setup_projection(int pick, int x, int y) {
 	glLoadIdentity();
 	if(pick) {
 		/* picking for mouse events */
-		glGetIntegerv(GL_VIEWPORT,viewPort);
-		//gluPickMatrix(x,viewPort[3]-y,3,3,viewPort);
-		gluPickMatrix((float)x,(float)viewPort[3]-y,
-			(float)100,(float)100,viewPort);
+		glGetIntegerv(GL_VIEWPORT,viewPort2);
+		//gluPickMatrix(x,viewPort2[3]-y,3,3,viewPort2);
+		gluPickMatrix((float)x,(float)viewPort2[3]-y,
+			(float)100,(float)100,viewPort2);
 	}
 
         /* bounds check */

@@ -22,6 +22,7 @@ WriteMakefile(
 	  VERSION_FROM => "PluginGlue.pm", # finds $VERSION
 	  PREREQ_PM => {},		# e.g., Module::Name => 1.1
 	  LIBS => "",			# e.g., '-lm'
+	  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
 	  dynamic_lib => {
 		  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
 		  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}

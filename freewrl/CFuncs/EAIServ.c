@@ -73,9 +73,9 @@ fd_set rfds;
 struct timeval tv;
 
 /* EAI input buffer */
-char *buffer;
-int bufcount;				// pointer into buffer
-int bufsize;				// current size in bytes of input buffer 
+char *buffer2;
+int bufcount2;				// pointer into buffer
+int bufsize2;				// current size in bytes of input buffer 
 
 
 int EAIVerbose = 0;
@@ -172,10 +172,10 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	/* are we ok, and are we using this with EAI? */
 	if (((*listenfd) >=0) && (socketincrement==0)) {
 		/* allocate memory for input buffer */
-		bufcount = 0;
-		bufsize = 2 * EAIREADSIZE; // initial size
-		buffer = malloc(bufsize * sizeof (char));
-		if (buffer == 0) {
+		bufcount2 = 0;
+		bufsize2 = 2 * EAIREADSIZE; // initial size
+		buffer2 = malloc(bufsize2 * sizeof (char));
+		if (buffer2 == 0) {
 			printf ("can not malloc memory for input buffer in create_EAI\n");
 			return FALSE;
 		}
@@ -235,7 +235,7 @@ void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 printf ("readEAIsocket, retval %d\n",retval);
 	
 		if (retval) {
-			retval = read ((*listenfd), &buffer[(*bfct)],EAIREADSIZE);
+			retval = read ((*listenfd), &buffer2[(*bfct)],EAIREADSIZE);
 
 			if (retval == 0) {
 				// client disappeared
@@ -267,16 +267,16 @@ void handle_EAI () {
 		return;
 	}
 
-	bufcount = 0;
+	bufcount2 = 0;
 
-	read_EAI_socket(buffer,&bufcount, &bufsize, &listenfd);
+	read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
 
 	/* make this into a C string */
-	buffer[bufcount] = 0;
+	buffer2[bufcount2] = 0;
 
 	/* any command read in? */
-	if (bufcount > 1) 
-		EAI_parse_commands (buffer);
+	if (bufcount2 > 1) 
+		EAI_parse_commands (buffer2);
 }
 
 /******************************************************************************
@@ -392,11 +392,11 @@ void EAI_parse_commands (char *bufptr) {
 				if (command == CREATEVS) {
 					if (EAIVerbose) printf ("CREATEVS %s\n",bufptr);
 	
-					EOT = strstr(buffer,"\nEOT\n");
+					EOT = strstr(buffer2,"\nEOT\n");
 					// if we do not have a string yet, we have to do this...
 					while (EOT == NULL) {
-						read_EAI_socket(buffer,&bufcount, &bufsize, &listenfd);
-						EOT = strstr(buffer,"\nEOT\n");
+						read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
+						EOT = strstr(buffer2,"\nEOT\n");
 					}
 	
 					*EOT = 0; // take off the EOT marker
