@@ -40,6 +40,31 @@
 extern JSBool JSVerbose;
 static JSBool reportWarnings = JS_TRUE;
 
+int
+ActualrunScript(int num,
+				char *script,
+				jsval *rval);
+
+int
+JSrunScript(int num,
+			char *script,
+			SV *rstr,
+			SV *rnum);
+
+int
+JSaddGlobalAssignProperty(int num,
+						  char *name,
+						  char *str);
+
+int
+JSaddSFNodeProperty(int num,
+					char *nodeName,
+					char *name,
+					char *str);
+
+int
+JSaddGlobalECMANativeProperty(int num,
+							  char *name);
 
 void
 reportWarningsOn(void);

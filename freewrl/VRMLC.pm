@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.96  2003/06/20 07:12:24  ayla
+# Code cleanup and attempts to silence some C compile warnings.
+#
 # Revision 1.95  2003/06/19 20:48:01  crc_canada
 # FPS calculations now performed in C.
 #
@@ -1207,14 +1210,14 @@ struct sNaviInfo {
 #endif
 
 #include "OpenGL/OpenGL.m"
-#include "CFuncs/Structs.h"
 #include "CFuncs/headers.h"
-#include "CFuncs/constants.h"
 #include "CFuncs/Viewer.h"
 #include "CFuncs/OpenGL_Utils.h"
-
-#include "CFuncs/LinearAlgebra.h"
 #include "CFuncs/Collision.h"
+#include "CFuncs/Bindable.h"
+#include "CFuncs/Textures.h"
+#include "CFuncs/Polyrep.h"
+
 
 D_OPENGL;
 
@@ -1277,7 +1280,7 @@ int cur_hits=0;
 struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
 
 /* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
-struct pt ViewerDelta = {0,0,0}; 
+struct pt ViewerDelta = {0,0,0};
 
 /* dimentions of viewer, and "up" vector (for collision detection) */
 struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
@@ -1287,14 +1290,8 @@ struct pt ViewerUpvector = {0,0,0};
 
 VRML_Viewer Viewer;
 
-/* viewer position obtained from Viewer.pm */
-/* struct pt ViewerPosition = {0, 0, 10}; */
-/* viewer orientation (calculated from quaternion) obtained from Viewer.pm */
-/* struct orient ViewerOrientation = {0, 0, 1, 0}; */
-
 
 /* These two points define a ray in window coordinates */
-
 
 struct pt r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
 struct pt t_r1,t_r2,t_r3; /* transformed ray */
@@ -1355,7 +1352,6 @@ int SoundEngineStarted = FALSE;
 char *BrowserVersion = NULL;
 char *BrowserURL = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
-
 
 /*************************JAVASCRIPT*********************************/
 #ifndef __jsUtils_h__
@@ -2503,7 +2499,6 @@ OUTPUT:
 RETVAL
 rstr
 rnum
-
 
 
 int

@@ -2,7 +2,11 @@
 #define __HEADERS_H__
  	 
 #include "Structs.h"
- 	 
+
+#include "LinearAlgebra.h"
+#include "constants.h"
+
+
 #include <GL/glu.h>
 
 /* number of tesselated coordinates allowed */
@@ -92,13 +96,6 @@
 /* Function Prototypes */
 
 void render_node(void *node);
-void render_polyrep(void *node, 
-	int npoints, struct SFColor *points,
-	int ncolors, struct SFColor *colors,
-	int nnormals, struct SFColor *normals,
-	int ntexcoords, struct SFVec2f *texcoords
-	);
-void regen_polyrep(void *node) ;
 
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 float tx,float ty, char *descr) ;
@@ -106,45 +103,9 @@ float tx,float ty, char *descr) ;
 void fwnorprint (float *norm);
 
 
-void Elev_Tri (
-        int vertex_ind,
-        int this_face,
-        int A,
-        int D,
-        int E,
-        int NONORMALS,
-        struct VRML_PolyRep *this_Elev,
-        struct pt *facenormals,
-        int *pointfaces,
-	int ccw);
+/* not defined anywhere: */
+/* void Extru_init_tex_cap_vals(); */
 
-void Extru_check_normal (
-        struct pt *facenormals,
-        int this_face,
-        float direction,
-        struct VRML_PolyRep  *rep_,
-	int ccw);
-
-void Extru_tex(
-	int vertex_ind,
-	int tci_ct,
-	int A,
-	int B,
-	int C,
-	struct VRML_PolyRep *this_Elev,
-	int ccw,
-	int tcindexsize);
-
-void Extru_init_tex_cap_vals();
-
-void Extru_ST_map(
-        int triind_start,
-        int start, 
-        int end,
-	float *Vals,
-	int nsec,
-        struct VRML_PolyRep *this_Extru,
-	int tcoordsize);
 
 /* from the PNG examples */
 unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
@@ -154,20 +115,12 @@ unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 void DirectionalLight_Rend(void *nod_);
 
 
-
-#ifndef normalize_vector /* prototype also found in LinearAlgebra.h */
-void normalize_vector(struct pt *vec);
-#endif
-
 void normalize_ifs_face (float *point_normal,
                          struct pt *facenormals,
                          int *pointfaces,
                         int mypoint,
                         int curpoly,
                         float creaseAngle);
-
-void render_ray_polyrep(void *node,
-        int npoints, struct SFColor *points);
 
 
 void FW_rendertext(int n,SV **p,int nl, float *length, 
@@ -264,6 +217,7 @@ void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int br
 void gatherScriptEventOuts(int script, int ignore);
 void getMFNodetype (char *strp, struct Multi_Node *ch);
 
+void update_node(void *ptr);
 
 extern int CRVerbose, JSVerbose;
 

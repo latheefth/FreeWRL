@@ -41,8 +41,9 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
 
     //printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);
 	
-    if (scalar == 0){
-	return M_PI/2;	
+    /* if (scalar == 0) */
+    if (APPROX(scalar, 0)) {
+		return M_PI/2;
     }
 
     if ( (length_a <= 0)  || (length_b <= 0)){
@@ -66,7 +67,8 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
 GLdouble vecnormal(struct pt*r, struct pt* v)
 {
     GLdouble ret = sqrt(vecdot(v,v));
-    if(ret == 0.) return 0.;
+    /* if(ret == 0.) return 0.; */
+    if (APPROX(ret, 0)) return 0.;
     vecscale(r,v,1./ret);
     return ret;
 }
@@ -170,7 +172,10 @@ double closest_point_of_segment_to_y_axis_segment(double y1, double y2, struct p
     double x12 = (p1.x - p2.x);
     double z12 = (p1.z - p2.z);
     double q = ( x12*x12 + z12*z12 );
-    double i = ((q == 0.) ? 0 : (p1.x * x12 + p1.z * z12) / q);
+
+    /* double i = ((q == 0.) ? 0 : (p1.x * x12 + p1.z * z12) / q); */
+    double i = ((APPROX(q, 0)) ? 0 : (p1.x * x12 + p1.z * z12) / q);
+
     printf("imin=%f, imax=%f => ",imin,imax);
 
     if(imin > imax) {
@@ -382,8 +387,9 @@ double matrotate2v(GLdouble* res, struct pt iv/*original*/, struct pt dv/*result
 
     veccross(&cv,dv,iv); /*the axis of rotation*/
     cvl = vecnormal(&cv,&cv);
-    if(cvl == 0) {
-	cv.z = 1;
+    /* if(cvl == 0) { */
+    if(APPROX(cvl, 0)) {
+		cv.z = 1;
 	}
 
     a = atan2(cvl,vecdot(&dv,&iv)); /*the angle*/

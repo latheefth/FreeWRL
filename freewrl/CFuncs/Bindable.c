@@ -12,28 +12,9 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 ******************************************/
 
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
+#include "Bindable.h"
 
-#include <math.h>
 
-#ifdef AQUA 
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "Structs.h"
-#include "headers.h"
-#include "LinearAlgebra.h"
-
-/* Bind stack */
-#define MAX_STACK 20
 int background_tos = -1;
 int fog_tos = -1;
 int navi_tos = -1;
@@ -42,9 +23,6 @@ unsigned int background_stack[MAX_STACK];
 unsigned int fog_stack[MAX_STACK];
 unsigned int viewpoint_stack[MAX_STACK];
 unsigned int navi_stack[MAX_STACK];
-
-void bind_node (void *node, unsigned int setBindofst,
-			int isboundofst, int *tos, int *stack);
 
 
 /* this is called after a Viewpoint bind */
@@ -70,7 +48,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 
 
 /* send a set_bind event from Perl to this Bindable node */
-void send_bind_to (char *nodetype, void *node, int value) {
+void send_bind_to(char *nodetype, void *node, int value) {
 	struct VRML_Background *bg;
 	struct VRML_Fog *fg;
 	struct VRML_NavigationInfo *nv;
@@ -91,7 +69,7 @@ void send_bind_to (char *nodetype, void *node, int value) {
 			&viewpoint_tos,&viewpoint_stack[0]);
 
 		/* up_vector is reset after a bind */
-		if (value==1) reset_upvector;
+		if (value==1) reset_upvector();
 
 	} else if (strncmp("Fog",nodetype,strlen("Fog"))==0) {
 		fg = (struct VRML_Fog *) node;
@@ -139,7 +117,7 @@ void bind_node (void *node, unsigned int setBindofst,
 
 	/* isBound mimics setBind */
 	*isBoundptr = *setBindptr;
-	mark_event ((unsigned int) node, isboundofst);
+	mark_event ((unsigned int) node, (unsigned int) isboundofst);
 
 	if (*setBindptr == 1) {
 		/* PUSH THIS TO THE TOP OF THE STACK */
@@ -189,7 +167,7 @@ void render_Fog (struct VRML_Fog *node) {
 	GLdouble x,y,z;
 	GLdouble x1,y1,z1;
 	GLdouble sx, sy, sz;
-	int frtlen;
+	/* int frtlen; */
 	GLfloat fog_colour [4];
 	int foglen;
 	char *fogptr;
@@ -215,10 +193,10 @@ void render_Fog (struct VRML_Fog *node) {
 	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	glGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
-	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
-	glTranslatef(x,y,z);
+	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
+	glTranslated(x,y,z);
 
-	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
+	gluUnProject(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
 	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
 	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
@@ -227,7 +205,7 @@ void render_Fog (struct VRML_Fog *node) {
 	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 	/* Undo the translation and scale effects */
-	glScalef(sx,sy,sz);
+	glScaled(sx,sy,sz);
 
 
 	/* now do the foggy stuff */
@@ -259,13 +237,13 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 void render_Viewpoint (struct VRML_Viewpoint *node) {
 	GLint vp[10];
 	double a1;
-	double angle;
+	/* double angle; */
 	float rot[0];
 
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		/* up_vector is reset after a bind */
-		if (node->set_bind==1) reset_upvector;
+		if (node->set_bind==1) reset_upvector();
 
 		bind_node (node,offsetof (struct VRML_Viewpoint,set_bind),
 			offsetof (struct VRML_Viewpoint,isBound),
@@ -287,8 +265,8 @@ void render_Viewpoint (struct VRML_Viewpoint *node) {
 	rot[2] = node->orientation.r[1];
 	rot[3] = node->orientation.r[2];
 
-	glRotatef(rot[0],rot[1],rot[2],rot[3]);	
-	glTranslatef(node->position.c[0],node->position.c[1],
+	glRotated(rot[0],rot[1],rot[2],rot[3]);	
+	glTranslated(node->position.c[0],node->position.c[1],
 			node->position.c[2]); 
 
 	/* now, lets work on the Viewpoint fieldOfView */
@@ -307,8 +285,8 @@ void render_Background (struct VRML_Background *node) {
 	GLdouble mod[16];
 	GLdouble proj[16];
 	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
-	struct pt vec[4]; struct pt vec2[4]; struct pt vec3[4];
-	int i,j; int ind=0;
+	/* struct pt vec[4]; struct pt vec2[4]; struct pt vec3[4]; */
+	/* int i,j; int ind=0; */
 	GLdouble x,y,z;
 	GLdouble x1,y1,z1;
 	GLdouble sx, sy, sz;
@@ -316,8 +294,8 @@ void render_Background (struct VRML_Background *node) {
 	int hdiv = horiz_div;
 	int h,v;
 	double va1, va2, ha1, ha2;	/* JS - vert and horiz angles 	*/
-	double vatemp;		
-	GLuint mask;
+	/* double vatemp;	 */	
+	/* GLuint mask; */
 	GLfloat bk_emis[4];		/* background emissive colour	*/
 	float	sc;
 
@@ -351,12 +329,12 @@ void render_Background (struct VRML_Background *node) {
 	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
 	glGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
-	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
-	glTranslatef(x,y,z);
+	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
+	glTranslated(x,y,z);
 
 	glDisable (GL_LIGHTING);
 
-	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
+	gluUnProject(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
 	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
 	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
@@ -366,7 +344,7 @@ void render_Background (struct VRML_Background *node) {
 	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
 
 	/* Undo the translation and scale effects */
-	glScalef(sx,sy,sz);
+	glScaled(sx,sy,sz);
 
 
 	/* now, is this the same background as before??? */
@@ -414,17 +392,17 @@ void render_Background (struct VRML_Background *node) {
 		va2 = PI/2; 
 		bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
 		glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-		glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+		glColor3d(c1->c[0], c1->c[1], c1->c[2]);
 
 		for(v=0; v<2; v++) {
 			for(h=0; h<hdiv; h++) {
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
 
-				glVertex3f(sin(va2)*sc * cos(ha1), cos(va2)*sc, sin(va2) * sin(ha1)*sc);
-				glVertex3f(sin(va2)*sc * cos(ha2), cos(va2)*sc, sin(va2) * sin(ha2)*sc);
-				glVertex3f(sin(va1)*sc * cos(ha2), cos(va1)*sc, sin(va1) * sin(ha2)*sc);
-				glVertex3f(sin(va1)*sc * cos(ha1), cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+				glVertex3d(sin(va2)*sc * cos(ha1), cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				glVertex3d(sin(va2)*sc * cos(ha2), cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				glVertex3d(sin(va1)*sc * cos(ha2), cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+				glVertex3d(sin(va1)*sc * cos(ha1), cos(va1)*sc, sin(va1) * sin(ha1)*sc);
 			}
 			va1 = va2;
 			va2 = PI;
@@ -442,14 +420,14 @@ void render_Background (struct VRML_Background *node) {
 
 				bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
 				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-				glColor3f(c2->c[0], c2->c[1], c2->c[2]);
-				glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
-				glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				glColor3d(c2->c[0], c2->c[1], c2->c[2]);
+				glVertex3d(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				glVertex3d(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
 				bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
 				glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-				glColor3f(c1->c[0], c1->c[1], c1->c[2]);
-				glVertex3f(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
-				glVertex3f(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+				glColor3d(c1->c[0], c1->c[1], c1->c[2]);
+				glVertex3d(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+				glVertex3d(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
 			}
 			va1 = va2;
 		}
@@ -459,15 +437,15 @@ void render_Background (struct VRML_Background *node) {
 		if (va2 < (PI-0.01)) {
 			bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
 			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-			glColor3f(c2->c[0], c2->c[1], c2->c[2]);
+			glColor3d(c2->c[0], c2->c[1], c2->c[2]);
 			for(h=0; h<hdiv; h++) {
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
 	
-				glVertex3f(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
-				glVertex3f(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
-				glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
-				glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+				glVertex3d(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
+				glVertex3d(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
+				glVertex3d(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+				glVertex3d(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
 			}
 		}
 	}
@@ -483,15 +461,15 @@ void render_Background (struct VRML_Background *node) {
 			c1 = &node->groundColor.p[0];
 			bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
 			glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-			glColor3f(c1->c[0], c1->c[1], c1->c[2]);
+			glColor3d(c1->c[0], c1->c[1], c1->c[2]);
 			for(h=0; h<hdiv; h++) {
 				ha1 = h * PI*2 / hdiv;
 				ha2 = (h+1) * PI*2 / hdiv;
 
-				glVertex3f(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
-				glVertex3f(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
-				glVertex3f(sin(PI/2) * cos(ha2)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha2)*sc);
-				glVertex3f(sin(PI/2) * cos(ha1)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha1)*sc);
+				glVertex3d(sin(PI) * cos(ha1)*sc, cos(PI)*sc, sin(PI) * sin(ha1)*sc);
+				glVertex3d(sin(PI) * cos(ha2)*sc, cos(PI)*sc, sin(PI) * sin(ha2)*sc);
+				glVertex3d(sin(PI/2) * cos(ha2)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha2)*sc);
+				glVertex3d(sin(PI/2) * cos(ha1)*sc, cos(PI/2)*sc, sin(PI/2) * sin(ha1)*sc);
 			}
 		} else {
 			va1 = PI;
@@ -506,15 +484,15 @@ void render_Background (struct VRML_Background *node) {
 
 					bk_emis[0]=c1->c[0]; bk_emis[1]=c1->c[1]; bk_emis[2]=c1->c[2];
 					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-					glColor3f(c1->c[0], c1->c[1], c1->c[2]);
-					glVertex3f(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
-					glVertex3f(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
+					glColor3d(c1->c[0], c1->c[1], c1->c[2]);
+					glVertex3d(sin(va1) * cos(ha1)*sc, cos(va1)*sc, sin(va1) * sin(ha1)*sc);
+					glVertex3d(sin(va1) * cos(ha2)*sc, cos(va1)*sc, sin(va1) * sin(ha2)*sc);
 
 					bk_emis[0]=c2->c[0]; bk_emis[1]=c2->c[1]; bk_emis[2]=c2->c[2];
 					glMaterialfv(GL_FRONT,GL_EMISSION, bk_emis);
-					glColor3f(c2->c[0], c2->c[1], c2->c[2]);
-					glVertex3f(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
-					glVertex3f(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
+					glColor3d(c2->c[0], c2->c[1], c2->c[2]);
+					glVertex3d(sin(va2) * cos(ha2)*sc, cos(va2)*sc, sin(va2) * sin(ha2)*sc);
+					glVertex3d(sin(va2) * cos(ha1)*sc, cos(va2)*sc, sin(va2) * sin(ha1)*sc);
 				}
 				va1 = va2;
 			}
@@ -539,7 +517,7 @@ void render_Background (struct VRML_Background *node) {
 
         	glEnable (GL_LIGHTING);
         	glEnable(GL_TEXTURE_2D);
-        	glColor3f(1,1,1);
+        	glColor3d(1.0,1.0,1.0);
 
 		// JAS sc = 500.0; /* where to put the tex vertexes */
 		sc = 5000.0; /* where to put the tex vertexes */
@@ -553,66 +531,66 @@ void render_Background (struct VRML_Background *node) {
 		if(node->__textureback>0) {
 			bind_image (bckptr,node->__textureback, 0,0,node->__istemporaryback);
 			glBegin(GL_QUADS);
-			glNormal3f(0,0,1); 
-			glTexCoord2f(1, 0); glVertex3f(-sc, -sc, sc);
-			glTexCoord2f(1, 1); glVertex3f(-sc, sc, sc);
-			glTexCoord2f(0, 1); glVertex3f(sc, sc, sc);
-			glTexCoord2f(0, 0); glVertex3f(sc, -sc, sc);
+			glNormal3d(0.0,0.0,1.0); 
+			glTexCoord2d(1.0, 0.0); glVertex3d(-sc, -sc, sc);
+			glTexCoord2d(1.0, 1.0); glVertex3d(-sc, sc, sc);
+			glTexCoord2d(0.0, 1.0); glVertex3d(sc, sc, sc);
+			glTexCoord2d(0.0, 0.0); glVertex3d(sc, -sc, sc);
 			glEnd();
 		};
 
 		if(node->__texturefront>0) {
 			bind_image (frtptr,node->__texturefront, 0,0,node->__istemporaryfront);
 			glBegin(GL_QUADS);
-			glNormal3f(0,0,-1);
-			glTexCoord2f(1,1); glVertex3f(sc,sc,-sc);
-			glTexCoord2f(0,1); glVertex3f(-sc,sc,-sc);
-			glTexCoord2f(0,0); glVertex3f(-sc,-sc,-sc);
-			glTexCoord2f(1,0); glVertex3f(sc,-sc,-sc); 
+			glNormal3d(0.0,0.0,-1.0);
+			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,-sc);
+			glTexCoord2d(0.0,1.0); glVertex3d(-sc,sc,-sc);
+			glTexCoord2d(0.0,0.0); glVertex3d(-sc,-sc,-sc);
+			glTexCoord2d(1.0,0.0); glVertex3d(sc,-sc,-sc); 
 			glEnd();
 		};
 
 		if(node->__texturetop>0) {
 			bind_image (topptr,node->__texturetop, 0,0,node->__istemporarytop);
 			glBegin(GL_QUADS);
-			glNormal3f(0,1,0);
-			glTexCoord2f(1,1); glVertex3f(sc,sc,sc);
-			glTexCoord2f(0,1); glVertex3f(-sc,sc,sc);
-			glTexCoord2f(0,0); glVertex3f(-sc,sc,-sc);
-			glTexCoord2f(1,0); glVertex3f(sc,sc,-sc);
+			glNormal3d(0.0,1.0,0.0);
+			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
+			glTexCoord2d(0.0,1.0); glVertex3d(-sc,sc,sc);
+			glTexCoord2d(0.0,0.0); glVertex3d(-sc,sc,-sc);
+			glTexCoord2d(1.0,0.0); glVertex3d(sc,sc,-sc);
 			glEnd();
 		};
 
 		if(node->__texturebottom>0) {
 			bind_image (botptr,node->__texturebottom, 0,0,node->__istemporarybottom);
 			glBegin(GL_QUADS);
-			glNormal3f(0,-(1),0);
-			glTexCoord2f(1,1); glVertex3f(sc,-sc,-sc);
-			glTexCoord2f(0,1); glVertex3f(-sc,-sc,-sc);
-			glTexCoord2f(0,0); glVertex3f(-sc,-sc,sc);
-			glTexCoord2f(1,0); glVertex3f(sc,-sc,sc);
+			glNormal3d(0.0,-(1.0),0.0);
+			glTexCoord2d(1.0,1.0); glVertex3d(sc,-sc,-sc);
+			glTexCoord2d(0.0,1.0); glVertex3d(-sc,-sc,-sc);
+			glTexCoord2d(0.0,0.0); glVertex3d(-sc,-sc,sc);
+			glTexCoord2d(1.0,0.0); glVertex3d(sc,-sc,sc);
 			glEnd();
 		};
 
 		if(node->__textureright>0) {
 			bind_image (rtptr,node->__textureright, 0,0,node->__istemporaryright);
 			glBegin(GL_QUADS);
-			glNormal3f(1,0,0);
-			glTexCoord2f(1,1); glVertex3f(sc,sc,sc);
-			glTexCoord2f(0,1); glVertex3f(sc,sc,-sc);
-			glTexCoord2f(0,0); glVertex3f(sc,-sc,-sc);
-			glTexCoord2f(1,0); glVertex3f(sc,-sc,sc);
+			glNormal3d(1.0,0.0,0.0);
+			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
+			glTexCoord2d(0.0,1.0); glVertex3d(sc,sc,-sc);
+			glTexCoord2d(0.0,0.0); glVertex3d(sc,-sc,-sc);
+			glTexCoord2d(1.0,0.0); glVertex3d(sc,-sc,sc);
 			glEnd();
 		};
 
 		if(node->__textureleft>0) {
 			bind_image (lftptr,node->__textureleft, 0,0,node->__istemporaryleft);
 			glBegin(GL_QUADS);
-			glNormal3f(-1,0,0);
-			glTexCoord2f(1,1); glVertex3f(-sc,sc, -sc);
-			glTexCoord2f(0,1); glVertex3f(-sc,sc,  sc); 
-			glTexCoord2f(0,0); glVertex3f(-sc,-sc, sc);
-			glTexCoord2f(1,0); glVertex3f(-sc,-sc,-sc);
+			glNormal3d(-1.0,0.0,0.0);
+			glTexCoord2d(1.0,1.0); glVertex3d(-sc,sc, -sc);
+			glTexCoord2d(0.0,1.0); glVertex3d(-sc,sc,  sc); 
+			glTexCoord2d(0.0,0.0); glVertex3d(-sc,-sc, sc);
+			glTexCoord2d(1.0,0.0); glVertex3d(-sc,-sc,-sc);
 			glEnd();
 		 };
 	}

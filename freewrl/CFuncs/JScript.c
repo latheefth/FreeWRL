@@ -94,6 +94,7 @@ char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; 
 /* housekeeping routines */
 
 void JScleanup (int num) {
+	UNUSED(num);
 	//VRML::VRMLFunc::cleanupJS($this->{ScriptNum});
 //	BrowserNative *brow = br;
 //	JSContext *_context = cx;
@@ -219,7 +220,8 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 
 
 	if (JSVerbose) 
-		printf("ActualrunScript script %d cx %x \"%s\", \n",num, _context, script);
+		printf("ActualrunScript script %d cx %x \"%s\", \n",
+			   num, (unsigned int) _context, script);
 	
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
@@ -531,7 +533,9 @@ void
 SFImageNativeAssign(void *top, void *fromp)
 {
 	SFImageNative *to = top;
-	SFImageNative *from = fromp;
+	/* SFImageNative *from = fromp; */
+	UNUSED(fromp);
+
 	to->touched++;
 /* 	(to->v) = (from->v); */
 }

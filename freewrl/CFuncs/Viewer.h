@@ -27,9 +27,7 @@
 #include <GL/glx.h>
 #endif
 
-#include "Structs.h"
 #include "headers.h"
-#include "LinearAlgebra.h"
 #include "quaternion.h"
 #include "OpenGL_Utils.h"
 
@@ -137,7 +135,6 @@ typedef struct viewer {
 	struct pt AntiPos;
 	Quaternion Quat;
 	Quaternion AntiQuat;
-	/* struct VRML_NavigationInfo navi; */
 	int headlight;
 	double speed;
 	double Dist;
@@ -151,22 +148,18 @@ typedef struct viewer {
 
 
 void
-viewer_init(
-			VRML_Viewer *viewer,
-			int type
-			);
+viewer_init(VRML_Viewer *viewer,
+			int type);
 
 void
-print_viewpoint(VRML_Viewer *viewer);
+print_viewer(VRML_Viewer *viewer);
 
 unsigned int
 get_buffer(VRML_Viewer *viewer);
 
 void
-set_buffer(
-		   VRML_Viewer *viewer,
-		   const unsigned int buffer
-		   );
+set_buffer(VRML_Viewer *viewer,
+		   const unsigned int buffer);
 
 int
 get_headlight(VRML_Viewer *viewer);
@@ -178,11 +171,9 @@ int
 use_keys(void);
 
 void
-set_eyehalf(
-			VRML_Viewer *viewer,
+set_eyehalf(VRML_Viewer *viewer,
 			const double eyehalf,
-			const double eyehalfangle
-			);
+			const double eyehalfangle);
 
 void
 set_viewer_type(const int type);
@@ -191,100 +182,74 @@ void
 resolve_pos(VRML_Viewer *viewer);
 
 void
-xy2qua(
-	   Quaternion *ret,
+xy2qua(Quaternion *ret,
 	   const double x,
-	   const double y
-	   );
+	   const double y);
 
 void
-viewer_togl(
-			VRML_Viewer *viewer,
-			double fieldofview
-			);
+viewer_togl(VRML_Viewer *viewer,
+			double fieldofview);
 
 
-void handle(
-			VRML_Viewer *viewer,
+void handle(VRML_Viewer *viewer,
 			 const char *mev,
 			 const unsigned int button,
 			 const double x,
-			 const double y
-			);
+			 const double y);
 
 void
-handle_walk(
-			VRML_Viewer *viewer,
+handle_walk(VRML_Viewer *viewer,
 			const char *mev,
 			const unsigned int button,
 			const double x,
-			const double y
-			);
+			const double y);
 
 void
-handle_examine(
-			   VRML_Viewer *viewer,
+handle_examine(VRML_Viewer *viewer,
 			   const char *mev,
 			   const unsigned int button,
 			   const double x,
-			   const double y
-			   );
+			   const double y);
 
 void
-handle_key(
-		   VRML_Viewer *viewer,
+handle_key(VRML_Viewer *viewer,
 		   const double time,
-		   const char key
-		   );
+		   const char key);
 
 void
-handle_keyrelease(
-				  VRML_Viewer *viewer,
+handle_keyrelease(VRML_Viewer *viewer,
 				  const double time,
-				  const char key
-				  );
+				  const char key);
 
 void
-handle_tick(
-			VRML_Viewer *viewer,
-			const double time
-			);
+handle_tick(VRML_Viewer *viewer,
+			const double time);
 
 void
-handle_tick_walk(
-				 VRML_Viewer *viewer,
-				 const double time
-				 );
+handle_tick_walk(VRML_Viewer *viewer,
+				 const double time);
 
 void
-handle_tick_exfly(
-				  VRML_Viewer *viewer,
-				  const double time
-				  );
+handle_tick_exfly(VRML_Viewer *viewer,
+				  const double time);
 
 void
-handle_tick_fly(
-				VRML_Viewer *viewer,
-				const double time
-				);
+handle_tick_fly(VRML_Viewer *viewer,
+				const double time);
 
 void
 set_action(char *key);
 
 void
-set_stereo_offset(
-				  unsigned int buffer,
+set_stereo_offset(unsigned int buffer,
 				  const double eyehalf,
 				  const double eyehalfangle,
-				  double fieldofview
-				  );
+				  double fieldofview);
 
 
 void
-increment_pos(
-			  VRML_Viewer *viewer,
-			  struct pt *vec
-			  );
+increment_pos(VRML_Viewer *viewer,
+			  struct pt *vec);
 
 
 #endif /* __VIEWER_H_ */

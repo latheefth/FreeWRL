@@ -11,41 +11,22 @@
  */
 
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
+#include "Textures.h"
 
-#include <math.h>
-
-
-#ifdef AQUA 
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "Structs.h"
-#include "headers.h"
-
-#include "jpeglib.h"
 
 /* we keep track of which textures have been loaded, and which have not */
 static int max_texture = 0;
 static unsigned char  *isloaded;
 
 
-void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
-	int x,y,depth;
-	GLint Sgl_rep_or_clamp;
-	GLint Tgl_rep_or_clamp;
-	GLint Image;
-	unsigned char *ptr;
+/* void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image) */
+/* 	int x,y,depth; */
+/* 	GLint Sgl_rep_or_clamp; */
+/* 	GLint Tgl_rep_or_clamp; */
+/* 	GLint Image; */
+/* 	unsigned char *ptr; */
 
-
+void do_texture(int depth, int x, int y, unsigned char *ptr, GLint Sgl_rep_or_clamp, GLint Tgl_rep_or_clamp, GLint Image)
 {
 
 	int rx,ry,sx,sy;
@@ -102,12 +83,14 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	}
 }
 
-void bind_image (filename, texture_num, repeatS, repeatT, remove) 
-	char *filename;
-	GLuint texture_num;
-	int repeatS;
-	int repeatT;
-	int remove;
+/* void bind_image (filename, texture_num, repeatS, repeatT, remove)  */
+/* 	char *filename; */
+/* 	GLuint texture_num; */
+/* 	int repeatS; */
+/* 	int repeatT; */
+/* 	int remove; */
+
+void bind_image(char *filename, GLuint texture_num, int repeatS, int repeatT, int remove) 
 {
 	FILE *infile;
 	unsigned char *image_data = 0;

@@ -236,13 +236,13 @@ handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 /* 		$this->{ZD} = ($my - $this->{SY}) * $this->{Navi}{Fields}{speed}; */
 			walk->ZD = (y - walk->SY) * viewer->speed;
 /* 		$this->{RD} = ($mx - $this->{SX}) * 0.1; */
-			walk->RD = (x - walk->SX) * viewer->speed;
+			walk->RD = (x - walk->SX) * 0.1;
 /* 	} elsif($mev eq "DRAG" and $but == 3) { */
 		} else if (button == 3) {
 /* 		$this->{XD} = ($mx - $this->{SX}) * $this->{Navi}{Fields}{speed}; */
 			walk->XD = (x - walk->SX) * viewer->speed;
 /* 		$this->{YD} = -($my - $this->{SY}) * $this->{Navi}{Fields}{speed}; */
-			walk->YD = (y - walk->SY) * viewer->speed;
+			walk->YD = -(y - walk->SY) * viewer->speed;
 		}
 /* 	} elsif ($mev eq "RELEASE") { */
 	} else if (strncmp(mev, RELEASE, RELEASE_LEN) == 0) {
@@ -268,6 +268,7 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 	Quaternion q, q_i, arc;
 	struct pt p = { 0, 0, viewer->Dist };
 	VRML_Viewer_Examine *examine = viewer->examine;
+	double squat_norm;
 
 	/* printf("Viewer handle_examine: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); */
 
@@ -278,7 +279,7 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 	/* 		$this->{SQuat} = $this->xy2qua($mx,$my); */
 			xy2qua(&(examine->SQuat), x, y);
 	/* 		$this->{OQuat} = $this->{Quat}; */
-			examine->OQuat = viewer->Quat;
+			set(&(examine->OQuat), &(viewer->Quat));
 	/* 	} elsif($mev eq "PRESS" and $but == 3) { */
 		} else if (button == 3) {
 	/* 		$this->{SY} = $my; */
@@ -290,13 +291,14 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
 		if (button == 1) {
 			/* 		if (!defined $this->{SQuat}) {  */
+			squat_norm = norm(&(examine->SQuat));
 			/* we have missed the press */
-			if (norm(&(examine->SQuat)) == 0) {
+			if (APPROX(squat_norm, 0)) {
 				fprintf(stderr, "Viewer handle_examine: mouse event DRAG - missed press\n");
 				/* 			$this->{SQuat} = $this->xy2qua($mx,$my); */
 				xy2qua(&(examine->SQuat), x, y);
 				/* 			$this->{OQuat} = $this->{Quat}; */
-				examine->OQuat = viewer->Quat;
+				set(&(examine->OQuat), &(viewer->Quat));
 			} else {
 				/* 			my $q = $this->xy2qua($mx,$my); */
 				xy2qua(&q, x, y);
@@ -417,16 +419,16 @@ handle_tick_walk(VRML_Viewer *viewer, const double time)
 {
 /* 	my($this, $time) = @_; */
 	VRML_Viewer_Walk *walk = viewer->walk;
-	Quaternion q_i, q = { (viewer->Quat).w,
-						  (viewer->Quat).x,
-						  (viewer->Quat).y,
-						  (viewer->Quat).z },
+	Quaternion q = { (viewer->Quat).w,
+					 (viewer->Quat).x,
+					 (viewer->Quat).y,
+					 (viewer->Quat).z },
 		/* my $nq = new VRML::Quaternion(1-0.2*$this->{RD},0,0.2*$this->{RD},0); */
 		nq = { 1 - 0.2 * walk->RD,
 			   0,
 			   0.2 * walk->RD,
 			   0 };
-	struct pt nv, p = { 0.15 * walk->XD, 0.15 * walk->YD, 0.15 * walk->ZD };
+	struct pt p = { 0.15 * walk->XD, 0.15 * walk->YD, 0.15 * walk->ZD };
 
 	UNUSED(time);
 
@@ -643,8 +645,8 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 
 	VRML_Viewer_Fly *fly = viewer->fly;
 	Key ps[KEYS_HANDLED] = KEYMAP;
-	Quaternion q_i, q_v, nq = { 1, 0, 0, 0 };
-	struct pt nv, v;
+	Quaternion q_v, nq = { 1, 0, 0, 0 };
+	struct pt v;
 	double changed = 0, time_diff = -1;
 	int i;
 

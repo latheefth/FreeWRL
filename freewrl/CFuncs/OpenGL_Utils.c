@@ -58,7 +58,7 @@ dec_render_frame()
 void
 glpOpenGLInitialize()
 {
-	GLclampf red = 0.0, green = 0.0, blue = 0.0, alpha = 1.0, ref = 0.1;
+	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f, ref = 0.1f;
 
 	/* Configure OpenGL for our uses. */
 
@@ -90,7 +90,7 @@ glpOpenGLInitialize()
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
-	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, (float) 0.2 * 128);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, (float) (0.2 * 128));
 }
 
 void

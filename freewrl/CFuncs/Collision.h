@@ -9,8 +9,17 @@
 #define COLLISIONH
 
 
+#include <stdio.h>
 #include <math.h>
+#ifndef __APPLE__
+#include <malloc.h>
+#endif
+#if defined(__APPLE__)
+#include <sys/malloc.h>
+#endif
 
+#include "headers.h"
+#include "LinearAlgebra.h"
 #include "Structs.h"
 
 /* Collision detection results structure*/
@@ -30,6 +39,111 @@ typedef int prflags;
 /*uncomment this to enable the scene exporting functions */
 /*#define DEBUG_SCENE_EXPORT*/
 
+double
+closest_point_of_segment_to_y_axis(struct pt p1,
+								   struct pt p2);
+double
+closest_point_of_segment_to_origin(struct pt p1,
+								   struct pt p2);
+
+struct pt
+closest_point_of_plane_to_origin(struct pt b,
+								 struct pt n);
+
+int
+intersect_segment_with_line_on_yplane(struct pt* pk,
+									  struct pt p1,
+									  struct pt p2,
+									  struct pt q1,
+									  struct pt q2);
+
+int
+getk_intersect_line_with_ycylinder(double* k1,
+								   double* k2,
+								   double r,
+								   struct pt pp1,
+								   struct pt n);
+
+int
+project_on_cylindersurface(struct pt* res,
+						   struct pt p,
+						   struct pt n,
+						   double r);
+
+int
+getk_intersect_line_with_sphere(double* k1,
+								double* k2,
+								double r,
+								struct pt pp1,
+								struct pt n);
+
+int
+project_on_spheresurface(struct pt* res,
+						 struct pt p,
+						 struct pt n,
+						 double r);
+
+struct pt
+project_on_yplane(struct pt p1,
+				  struct pt n,
+				  double y);
+
+struct pt
+project_on_cylindersurface_plane(struct pt p,
+								 struct pt n,
+								 double r);
+
+int
+perpendicular_line_passing_inside_poly(struct pt a,
+									   struct pt* p,
+									   int num);
+
+int
+getk_intersect_segment_with_ycylinder(double* k1,
+									  double* k2,
+									  double r,
+									  struct pt pp1,
+									  struct pt pp2);
+
+int
+helper_poly_clip_cap(struct pt* clippedpoly,
+					 int clippedpolynum,
+					 const struct pt* p,
+					 int num,
+					 double r,
+					 struct pt n,
+					 double y,
+					 int stepping);
+
+struct pt
+polyrep_disp_rec(double y1,
+				 double y2,
+				 double ystep,
+				 double r,
+				 struct VRML_PolyRep* pr,
+				 struct pt* n,
+				 struct pt dispsum,
+				 prflags flags);
+
+struct pt
+planar_polyrep_disp_rec(double y1,
+						double y2,
+						double ystep,
+						double r,
+						struct VRML_PolyRep* pr,
+						struct pt n,
+						struct pt dispsum,
+						prflags flags);
+
+int
+helper_line_clip_cap(struct pt* clippedpoly,
+					 int clippedpolynum,
+					 struct pt p1,
+					 struct pt p2,
+					 double r,
+					 struct pt n,
+					 double y,
+					 int stepping);
 
 /*accumulator function, for displacements. */
 void accumulate_disp(struct sCollisionInfo* ci, struct pt add);

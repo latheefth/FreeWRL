@@ -6,31 +6,7 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-#include <math.h>
- 
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "Structs.h" 
-#include "headers.h"  
-#include "LinearAlgebra.h"
-
-
-/* transformed ray */
-extern struct pt t_r1;
-extern struct pt t_r2;
-extern struct pt t_r3;
+#include "Polyrep.h"
 
 /* reset colors to defaults, if we have to */
 GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
@@ -41,10 +17,8 @@ GLfloat emissiveColor[] = {0.0, 0.0, 0.0, 1.0};
 GLfloat last_color[] = {0.0,0.0,0.0};
 GLfloat last_normal[] = {0.0,0.0,0.0};
 
-void add_to_face ( int point, int face, int *pointfaces);
 
 /* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
-/* 								*/
 
 
 /* How many faces are in this IndexedFaceSet?			*/
@@ -489,7 +463,7 @@ void Extru_tex(
 	int ccw,
 	int tcindexsize) {
 
-	struct SFColor *c1,*c2,*c3;
+	/* struct SFColor *c1,*c2,*c3; */
 	int j;
 
 	/* bounds check */
@@ -561,8 +535,10 @@ void Extru_ST_map(
 	Trange = maxT - minT;
 
 	/* I hate divide by zeroes. :-) */
-	if (Srange == 0.0) Srange = 0.001;
-	if (Trange == 0.0) Trange = 0.001;
+	/* if (Srange == 0.0) Srange = 0.001; */
+	if (APPROX(Srange, 0.0)) Srange = 0.001;
+	/* if (Trange == 0.0) Trange = 0.001; */
+	if (APPROX(Trange, 0.0)) Trange = 0.001;
 
 	//printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange);
 

@@ -17,6 +17,7 @@
 #include <GL/gl.h>
 #endif
 #include "Structs.h"
+#include "headers.h"
 
 /*Fast macros */
 
@@ -142,9 +143,7 @@ float veclength( struct pt p );
 /* returns vector length, too */
 GLdouble vecnormal(struct pt*r, struct pt* v);
 
-#ifndef normalize_vector /* prototype also found in headers.h */
 #define normalize_vector(pt) vecnormal(pt,pt)
-#endif
 
 float calc_angle_between_two_vectors(struct pt a, struct pt b);
 

@@ -21,7 +21,6 @@
 #include <GL/glx.h>
 #endif
 
-#include "Structs.h"
 #include "headers.h"
 
 #include "jsapi.h"
@@ -32,8 +31,19 @@
 /* scripting function protos PLACED HERE, not in headers.h,
    because these are shared only between this and JScript.c,
    and other modules dont require JavaScript headers */
-int ActualrunScript(int num, char *script, jsval *rval);
 void cleanupDie(int num, char *msg);
+
+void setECMAtype(int num);
+void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
+int get_touched_flag(int fptr, int actualscript);
+void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eleperinex);
+void setMultiElementtype(int num);
+void Multimemcpy(void *tn, void *fn, int len);
+unsigned int CRoutes_Register(unsigned int from, int fromoffset, unsigned int to, int tooffset, int length, void *intptr, int scrdir);
+void mark_script(int num);
+void zero_scripts(void);
+void propagate_events(void);
+
 
 /*****************************************
 C Routing Methodology:
@@ -186,6 +196,7 @@ jsval global_return_val;
 #define MFROTATION 18
 #define MFVEC2F	19
 
+
 /****************************************************************************/
 /*									    */
 /* get_touched_flag - see if this variable (can be a sub-field; see tests   */
@@ -200,11 +211,11 @@ int get_touched_flag (int fptr, int actualscript) {
 	char tmethod[100];
 	jsval v, retval, retval2;
 	jsval interpobj;
-	jsval touchedobj;
-	int tn;
+	/* jsval touchedobj; */
+	/* int tn; */
         JSString *strval; /* strings */
 	char *strtouched;
-	int intval;
+	int intval = 0;
 	int touched_function;
 
 
@@ -239,7 +250,7 @@ int get_touched_flag (int fptr, int actualscript) {
 		myname++;
 
 		//printf ("getting intermediate value by using %s\n",tmethod);
-		 if (!JS_GetProperty(JSglobs[actualscript].cx, interpobj,tmethod,&retval)) {
+		 if (!JS_GetProperty((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj,tmethod,&retval)) {
 			printf ("cant get property for name %s\n",tmethod);
 			return FALSE;
 		} else {
@@ -292,7 +303,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	// get the property value, if we can
 	//printf ("getting property for fullname %s\n",fullname);
-	if (!JS_GetProperty(JSglobs[actualscript].cx, interpobj ,fullname,&retval)) {
+	if (!JS_GetProperty((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj ,fullname,&retval)) {
                	printf ("cant get property for %s\n",fullname);
 		return FALSE;
         } else {
@@ -338,7 +349,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	//printf ("using touched method %s on %d %d\n",tmethod,JSglobs[actualscript].cx,interpobj);
 
-	if (!JS_GetProperty(JSglobs[actualscript].cx, interpobj ,tmethod,&retval2)) {
+	if (!JS_GetProperty((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj ,tmethod,&retval2)) {
                	printf ("cant get property for %s\n",tmethod);
 		return FALSE;
         } else {
@@ -352,7 +363,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 		// set it to 0 now.
 		v = INT_TO_JSVAL(0);
-		JS_SetProperty (JSglobs[actualscript].cx, interpobj, tmethod, &v);
+		JS_SetProperty ((JSContext *) JSglobs[actualscript].cx, (JSObject *) interpobj, tmethod, &v);
 
 		return (intval!=0);
 
@@ -369,7 +380,7 @@ void setECMAtype (int num) {
 	float fl;
 	double dl;
 	int il;
-	int intval;
+	int intval = 0;
 
 	fn = (int) CRoutes[num].fromnode;
 	tn = (int) CRoutes[num].tonode;
@@ -436,10 +447,10 @@ void setECMAtype (int num) {
 /****************************************************************/
 
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
-	unsigned int newptr;
+	/* unsigned int newptr; */
 	int oldlen, newlen;
-	char *cptr;
-	void *newmal;
+	/* char *cptr; */
+	/* void *newmal; */
 	JSString *strval;
 
 	jsval _v;
@@ -458,11 +469,12 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	svptr = to->p;
 	newlen=0;
 
-	if (!JS_ValueToObject (cx,from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
+	if (!JS_ValueToObject(cx,*from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
 
 	//printf ("getMFStringtype, object is %d\n",obj);
 	if (!JS_GetProperty(cx, obj, "length", &_v)) {
-                printf ("JS_GetProperty failed for \"length\" in getMFStringtype for %s.\n");
+		/* printf ("JS_GetProperty failed for \"length\" in getMFStringtype for %s.\n"); */
+		printf ("JS_GetProperty failed for \"length\" in getMFStringtype.\n");
         }
 
 	newlen = JSVAL_TO_INT(_v);	
@@ -559,7 +571,7 @@ void getMFNodetype (char *strp, struct Multi_Node *ch) {
 	newmal += sizeof (unsigned int)*oldlen;
 	cptr = strp; /* reset this pointer to the first number */
 
-	while (sscanf (cptr,"%d",newmal) == 1) {
+	while (sscanf (cptr,"%d", newmal) == 1) {
 		/* skip past this number */
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 		while (*cptr == ' ') cptr++; /* skip spaces */
@@ -667,7 +679,7 @@ void setMultiElementtype (int num) {
 	int fn, tn, fptr, tptr;
 	int len;
 	jsval retval;
-	float fourl[4];
+	/* float fourl[4]; */
 	SFVec3fNative *_privPtr; 
 
 	JSContext *_context;
@@ -681,8 +693,8 @@ void setMultiElementtype (int num) {
 	
 	if (CRVerbose) {
 		printf ("got a script event! index %d type %d\n",num,CRoutes[num].scr_direction);
-		printf ("	from %x from ptr %x\n	to %x toptr %x\n",fn,fptr,tn,tptr);
-		printf ("	data length %d\n",len);
+		printf ("\tfrom %x from ptr %x\n\tto %x toptr %x\n",fn,fptr,tn,tptr);
+		printf ("\tdata length %d\n",len);
 		printf ("setMultiElementtype here tn %d tptr %d len %d\n",tn, tptr,len);
 	}
 	/* get context and global object for this script */
@@ -753,7 +765,10 @@ Register a new script for future routing
 ********************************************************************/
 
 void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int brow) {
-	jsval retval;
+	/* jsval retval; */
+	UNUSED(cx);
+	UNUSED(glob);
+	UNUSED(brow);
 
 	/* too many scripts? */
 	if (num >=MAXSCRIPTS) {
@@ -1008,23 +1023,24 @@ FIXME XXXXX =  can we do this without the string conversions?
 
 void gatherScriptEventOuts(int actualscript, int ignore) {
 	int route;	
-	char scriptline[100];
-	jsval retval;
+	/* char scriptline[100]; */
+	/* jsval retval; */
 	int fn, tn, fptr, tptr;
 	int len;
 	float fl[0];	/* return float values */
 	double tval;
 	int ival;
-	jsval touched;		/* was this really touched? */
+	/* jsval touched; */		/* was this really touched? */
 
         JSString *strval; /* strings */
         char *strp;
-	char *strtouched;
+	/* char *strtouched; */
 	int fromalready;	 /* we have already got the from value string */
 
 	fromalready=FALSE; 
 	int touched_flag;
 
+	UNUSED(ignore);
 
 	/* go through all routes, looking for this script as an eventOut */
 
@@ -1242,8 +1258,8 @@ in this case.
 void propagate_events() {
 	int counter;
 	int havinterp;
-	int mvcompCount, mvcompSize;
-	struct Multi_Vec3f *mv3fptr;
+	/* int mvcompCount, mvcompSize; */
+	/* struct Multi_Vec3f *mv3fptr; */
 
 
 	if (CRVerbose) printf ("\npropagate_events start\n");
