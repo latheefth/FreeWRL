@@ -63,6 +63,7 @@ sub parsefail {
 	my $n = ($p>=50 ? 50 : $p);
 	my $textb = substr($_[0],$p-$n,$n);
 	my $texta = substr($_[0],$p,50);
+
 	print ("PARSE ERROR: '$textb' XXX '$texta', $_[1] $_[2]\n");
 	exit (1);
 }
@@ -122,13 +123,13 @@ sub parse_statement { # string in $_[1]
 	my $p = pos $_[1];
 	print "POSN: $p\n"
 		if $VRML::verbose::parse;
-	if($_[1] =~ /\G\s*PROTO\b/gsc) {
-		(pos $_[1]) = $p;
-		parse_proto($scene,$_[1]);
-		return undef;
-	} elsif($_[1] =~ /\G\s*EXTERNPROTO\b/gsc) {
+	if($_[1] =~ /\G\s*EXTERNPROTO\b/gsc) {
 		(pos $_[1]) = $p;
 		parse_externproto($scene,$_[1]);
+		return undef;
+	} elsif($_[1] =~ /\G\s*PROTO\b/gsc) {
+		(pos $_[1]) = $p;
+		parse_proto($scene,$_[1]);
 		return undef;
 	} elsif($_[1] =~ /\G\s*ROUTE\b/gsc) {
 		(pos $_[1]) = $p;
@@ -153,6 +154,7 @@ sub parse_proto {
 	$_[1] =~ /\G\s*PROTO\s+($Word)\s*/ogsxc
 	 or parsefail($_[1], "proto statement");
 	my $name = $1;
+
 	my $int = parse_interfacedecl($scene,1,1,$_[1]);
 	$_[1] =~ /\G\s*{\s*/gsc or parsefail($_[1], "proto body start");
 	my $pro = $scene->new_proto($name, $int);
@@ -178,6 +180,7 @@ sub parse_externproto {
 	$_[1] =~ /\G\s*EXTERNPROTO\s+($Word)\s*/ogsxc
 	 or parsefail($_[1], "externproto statement");
 	my $name = $1;
+
 	my $int = parse_interfacedecl($scene,1,0,$_[1]);
 	my $str = VRML::Field::MFString->parse($scene,$_[1]);
 	my $pro = $scene->new_externproto($name, $int,$str);
@@ -329,6 +332,7 @@ sub parse {
 		return "NULL";
 	}
 	my $vrmlname;
+	my $p;
 
 	if($nt eq "DEF") {
 		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
@@ -371,19 +375,37 @@ sub parse {
 		return VRML::Parser::parse_script($scene,$_[2]);
 	}
 	my $proto;
+	$p = pos $_[2];
 
 	my $no = $VRML::Nodes{$nt};
-	if(!defined $no) {
+	## look in PROTOs that have already been processed
+	if (!defined $no) {
 		$no = $scene->get_proto($nt);
-		$proto=1;
 		print "PROTO? '$no'\n"
 			if $VRML::verbose::parse;
 	}
-	print "Match: '$1'\n"
-		if $VRML::verbose::parse;
-	if(!defined $no) {
+
+	## next, let's try looking for EXTERNPROTOs in the file
+	if (!defined $no) {
+		## return to the beginning
+		pos $_[2] = 0;
+		VRML::Parser::parse_externproto($scene, $_[2]);
+
+		## reset position and try looking for PROTO nodes again
+		pos $_[2] = $p;
+		$no = $scene->get_proto($nt);
+		print "PROTO? '$no'\n"
+			if $VRML::verbose::parse;
+	}
+
+	if (!defined $no) {
 		parsefail($_[2],"Invalid node '$nt'");
 	}
+
+	$proto=1;
+	print "Match: '$nt'\n"
+		if $VRML::verbose::parse;
+
 	$_[2] =~ /\G\s*{\s*/gsc or parsefail($_[2],"didn't match brace!\n");
 	my $isscript = ($nt eq "Script");
 	my %f;

@@ -143,7 +143,7 @@ sub new {
 					  Stack => undef,
 					  DEF => undef
 					 }, $type;
-	print "VRML::Scene::new $this, $eventmodel, $url, $worldurl\n"
+	print "VRML::Scene::new: ", VRML::Debug::toString(\@_), "\n"
 		if $VRML::verbose::scene;
 	return $this;
 	
@@ -247,7 +247,8 @@ sub newextp {
 		}
     }
 
-    print("EXTERNPROTO with URL: $url\n") if $VRML::verbose::parse;
+    print "EXTERNPROTO with URL: ", VRML::Debug::toString($url), "\n"
+		if $VRML::verbose::parse;
 	my ($string, $protourl, $protoname, $brow, $po);
 	my $success = 0;
 
