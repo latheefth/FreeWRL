@@ -69,6 +69,11 @@ my $jsdir = "js/src";
 my $jsobjdir;
 my $BUILD_OPT;
 
+my $warnings_high = qq{-Wunreachable-code -Wshadow -Wcast-align};
+my $warnings_medium = qq{-W -Wpointer-arith -Wconversion -Wbad-function-cast -Wcast-qual -Wfloat-equal};
+my $warnings_low = qq{-Wall -Wundef -Wsign-compare -Wmissing-prototypes -Wmissing-declarations};
+
+my @ccflags;
 my @inc;
 my @libs;
 my @ldflags;
@@ -93,6 +98,18 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$BUILD_OPT = 1;
 }
 
+if ($VRML_CONFIG{WARNINGS} eq "low") {
+	push @ccflags, $warnings_low;
+}
+
+if ($VRML_CONFIG{WARNINGS} eq "medium") {
+	push @ccflags, $warnings_low, $warnings_medium;
+}
+
+if ($VRML_CONFIG{WARNINGS} eq "high") {
+	push @ccflags, $warnings_low, $warnings_medium, $warnings_high;
+}
+
 if ($VRML_CONFIG{BOUNDS_CHECK} eq "on") {
 	push @inc, "-fbounds-checking";
 	push @ldflags, "-L$VRML_CONFIG{LIBCHECK_INST}";
@@ -104,10 +121,10 @@ push @inc, $VRML_CONFIG{FREEWRL_INC},
 push @libs, $VRML_CONFIG{FREEWRL_LIBS}, "-L../JS/$jsobjdir", "-LJS/$jsobjdir", "-ljs";
 push @ldflags, $VRML_CONFIG{LDFLAGS}, "-LJS/$jsobjdir";
 
+$VRML_CONFIG{FREEWRL_CCFLAGS} = join(' ', @ccflags);
 $VRML_CONFIG{FREEWRL_INC} = join(' ', @inc);
 $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 $VRML_CONFIG{LDFLAGS} = join(' ', @ldflags);
-
 
 print STDERR "Writing Config.pm\n";
 open OUT, ">Config.pm" or die("Couldn't write to Config.pm");

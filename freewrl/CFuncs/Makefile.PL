@@ -1,14 +1,12 @@
 use ExtUtils::MakeMaker;
 
+
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 
-## get rid of -W eventually
-my $ccflags = q{-Wall -W -Wundef -Wshadow -Wpointer-arith -Wconversion -Wbad-function-cast -Wcast-qual -Wsign-compare -Wmissing-prototypes -Wmissing-declarations};
-
 WriteMakefile(
 			  NAME => "VRML::CFuncs",
-			  CCFLAGS => $ccflags,
+			  CCFLAGS => $VRML_CONFIG{FREEWRL_CCFLAGS},
 			  DEFINE => $VRML_CONFIG{FREEWRL_DEFINE},
 			  INC => $VRML_CONFIG{FREEWRL_INC},
 			  dynamic_lib => {
