@@ -20,6 +20,11 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.53  2002/05/01 15:13:11  crc_canada
+# Fog support
+#
+# better texture binding
+#
 # Revision 1.52  2002/04/17 19:21:15  crc_canada
 # glErrors are no longer checked for and printed. Code is in there so at some
 # point in time, we can have a look at the problem again.
@@ -991,14 +996,14 @@ ImageTexture => ('
 		/* for shape display list redrawing */
 	this_->_myshape = last_visited_shape; 
 
-	if(!this_->_texture) {
-		glGenTextures(1,&this_->_texture);
-	}
+	/* printf ("ImageTexture, texture number is %d  this is %d %x\n",
+		this_->__texture,this_,this_); */
 
 	/* save the reference globally */
-	last_bound_texture = this_->_texture;
+	last_bound_texture = this_->__texture;
 
-	glBindTexture (GL_TEXTURE_2D, this_->_texture);
+	glBindTexture (GL_TEXTURE_2D, this_->__texture);
+	/* printf ("ImageTexture, binding to %d\n",this_->__texture); */
 	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
@@ -1012,14 +1017,10 @@ PixelTexture => ('
 		/* for shape display list redrawing */
 	this_->_myshape = last_visited_shape; 
 
-	if(!this_->_texture) {
-		glGenTextures(1,&this_->_texture);
-	}
-
 	/* save the reference globally */
-	last_bound_texture = this_->_texture;
+	last_bound_texture = this_->__texture;
 
-	glBindTexture (GL_TEXTURE_2D, this_->_texture);
+	glBindTexture (GL_TEXTURE_2D, this_->__texture);
 	do_texture ((this_->__depth), (this_->__x), (this_->__y), ptr,
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
@@ -1027,7 +1028,57 @@ PixelTexture => ('
 '),
 
 # Fog node ... Nothing here
-Fog => ' ',
+Fog => '
+	/* Fog node... */
+
+	GLdouble mod[16];
+	GLdouble proj[16];
+	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	GLdouble x,y,z;
+	GLdouble x1,y1,z1;
+	GLdouble sx, sy, sz;
+	int frtlen;
+	GLfloat fog_colour [4];
+
+	if(!((this_->isBound))) {return;}
+	if ($f(visibilityRange) <= 0.00001) return;
+
+	fog_colour[0] = $f(color,0);
+	fog_colour[1] = $f(color,1);
+	fog_colour[2] = $f(color,2);
+	fog_colour[3] = 1.0;
+
+	glPushMatrix();
+	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	/* Get origin */
+	gluUnProject(0,0,0,mod,proj,viewport,&x,&y,&z);
+	glTranslatef(x,y,z);
+
+	gluUnProject(0,0,0,mod,unit,viewport,&x,&y,&z);
+	/* Get scale */
+	gluProject(x+1,y,z,mod,unit,viewport,&x1,&y1,&z1);
+	sx = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	gluProject(x,y+1,z,mod,unit,viewport,&x1,&y1,&z1);
+	sy = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	gluProject(x,y,z+1,mod,unit,viewport,&x1,&y1,&z1);
+	sz = 1/sqrt( x1*x1 + y1*y1 + z1*z1*4 );
+	/* Undo the translation and scale effects */
+	glScalef(sx,sy,sz);
+
+
+	/* now do the foggy stuff */
+	glFogfv(GL_FOG_COLOR,fog_colour);
+	glFogf(GL_FOG_END,$f(visibilityRange));
+	if (strcmp("LINEAR",SvPV((this_->fogType),frtlen))) {
+		glFogi(GL_FOG_MODE, GL_EXP);
+	} else {
+		glFogi(GL_FOG_MODE, GL_LINEAR);
+	}
+	glEnable (GL_FOG);
+
+	glPopMatrix();
+ ',
      
 # MovieTexture ... Nothing here
 MovieTexture => ' ',
@@ -1072,11 +1123,6 @@ Background => '
 	GLfloat bk_emis[4];		/* background emissive colour	*/
 	float	sc;
 
-	/* only do background lighting, etc, once for textures */
-	/*
-	do_texture(int depth,int x,int y,unsigned char * ptr, 
-        	GLint Sgl_rep_or_clamp, GLint Tgl_rep_or_clamp,GLint Image);
-	*/
 
 	/* Background Texture Objects.... */
 	static int bcklen,frtlen,rtlen,lftlen,toplen,botlen;
@@ -1092,6 +1138,8 @@ Background => '
 	static GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};
 
 	if(!((this_->isBound))) {return;}
+	// if (glIsEnabled(GL_FOG)) {return;} //no need to do backgrounds then
+
 
 	bk_emis[3]=0.0; /* always zero for backgrounds */
 
@@ -1920,6 +1968,7 @@ Billboard => (join '','
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
 		/* if we are rendering the geometry, see if we have a disp. list */
 		if ((render_geom) && (!render_sensitive)) { 
+
 			if(this_->_dlist) {
 				if(this_->_dlchange == this_->_change) {
 					glCallList(this_->_dlist); 
@@ -1944,7 +1993,6 @@ Billboard => (join '','
         	                    glColor3f(1.0,1.0,1.0);
 				}
 	                }
-
 			if (last_bound_texture != 0) {
 				/* we had a texture */
 				glEnable (GL_TEXTURE_2D);
