@@ -136,9 +136,15 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 			case 5: {thistex = &node->__textureleft;   thisurl = node->leftUrl; break;}
 		}
 		if (thisurl.n != 0) {
-			/* we have an image for this face */
+			/* we have an image specified for this face */
+
 			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, thistex, 0, 0);
-			glDrawArrays (GL_QUADS, count*4,4);
+
+			/* if we do not have an image for this Background face yet, dont draw
+			 * the quads */
+
+			if (isloaded[*thistex] == LOADED)
+				glDrawArrays (GL_QUADS, count*4,4);
 		};
 	}
 }

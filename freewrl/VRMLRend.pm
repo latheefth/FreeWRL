@@ -20,6 +20,12 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.134  2004/08/06 18:36:55  crc_canada
+# textureTransform nodes now reset the parameters in Appearance after a
+# transform, instead of always before a texture is drawn. This fixes a
+# Background bug (last texturetransform was applied to background images)
+# and speeds up rendering of non-textureTransformed textures.
+#
 # Revision 1.133  2004/07/13 19:46:20  crc_canada
 # solid flag for simple shapes.
 #
@@ -1292,7 +1298,13 @@ Billboard => (join '','
 			/* is there a TextureTransform? if no texture, forget about it */
 		    	if($f(textureTransform))   {
 				render_node($f(textureTransform));
-			    } else {
+			}
+
+			/* now, render the texture */
+			render_node($f(texture));
+
+			/* undo the transform, if there was one */
+		    	if($f(textureTransform))   {
 				glMatrixMode(GL_TEXTURE);
 				glLoadIdentity();
 				glTranslatef(0, 0, 0);
@@ -1300,7 +1312,6 @@ Billboard => (join '','
 				glScalef(1,1,1);
 				glMatrixMode(GL_MODELVIEW);
 		    	}
-			render_node($f(texture));
 #ifndef X3DMATERIALPROPERTY
 		} else {
 			last_texture_depth = 0;
