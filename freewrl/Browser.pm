@@ -259,28 +259,38 @@ sub replaceWorld {
 	my @newnodes = ();
 	my $n;
 
+	print "replaceWorld, string is $string\n";
+
 	# lets go and create the new node array from the nodes as sent in.
 	for $n (split(' ',$string)) {
-		# print "looking at element $n " , VRML::Handles::get($n), "\n";
+		print "looking at element $n " , VRML::Handles::get($n), "\n";
 		@newnodes = (@newnodes,VRML::Handles::get($n));
 	}
 
         $this->clear_scene();
+print "1\n";
 
         $this->{Scene} = VRML::Scene->new($this->{EV},"from replaceWorld");
+print "2\n";
+
         $this->{Scene}->set_browser($this);
+print "3\n";
 	$this->{Scene}->topnodes(\@newnodes);
+print "4\n";
 
         prepare ($this);
+
+print "4.5\n";
 
 	# go through the Bindables...
 	for $n (@newnodes) {
 		$this->{Scene}->replaceWorld_Bindable($n);
 	}
+print "5\n";
 
         # and, take care of keeping the viewpoints active...
         $this->{Scene}->register_vps($this);
-
+print "6\n";
 }
 
 
