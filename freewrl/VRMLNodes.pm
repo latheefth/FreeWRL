@@ -295,20 +295,19 @@ sub init_image {
 			die("Cannot open image textures: '$@'");
 		}
 
-		$f->{__istemporary_.$name} = 0;
+		$f->{__istemporary.$name} = 0;
 
 	        if(exists $image_same_url{$file}) {
 			# we have already seen this image
-			$f->{__texture_.$name} = $image_same_url{$file};
-			$f->{__isloaded_.$name} = 1;
+			$f->{__texture.$name} = $image_same_url{$file};
 			return;
 		}
 
 
-		$f->{__texture_.$name} = VRML::OpenGL::glGenTexture();
+		$f->{__texture.$name} = VRML::OpenGL::glGenTexture();
 
 		# save the texture number for later
-		$image_same_url{$file} = $f->{__texture_.$name};
+		$image_same_url{$file} = $f->{__texture.$name};
 
 		if (!($suffix  =~ /png/i || $suffix =~ /jpg/i)) {
 			# Lets convert to a png, and go from there...
@@ -320,7 +319,7 @@ sub init_image {
 			my $lgname = $ENV{LOGNAME};
 			my $tempfile_name = "/tmp/freewrl_";
 			$tempfile = join '', $tempfile_name,$lgname,
-				$f->{__texture_.$name},".png";
+				$f->{__texture.$name},".png";
 
 			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
 			my $status = system ($cmd);
@@ -328,7 +327,7 @@ sub init_image {
 				unless $status == 0;
 
 			# tell bind_texture to remove this one
-			$f->{__istemporary_.$name} = 1;
+			$f->{__istemporary.$name} = 1;
 		}
 
 		$f->{__data.$name} = $tempfile; # store the name for later processing
@@ -340,8 +339,8 @@ sub init_image {
     $f->{__x.$name} = 0;
     $f->{__y.$name} = 0;
     $f->{__data.$name} = "";
-    $f->{__texture_.$name} = 0;
-    $f->{__istemporary_.$name} = 0;
+    $f->{__texture.$name} = 0;
+    $f->{__istemporary.$name} = 0;
     return;
 }
 
@@ -359,7 +358,7 @@ sub init_pixel_image {
     $f->{__x} = $sfimage->[0];
     $f->{__y} = $sfimage->[1];
     $f->{__data} = $sfimage->[3];
-    $f->{__texture_} = VRML::OpenGL::glGenTexture();
+    $f->{__texture} = VRML::OpenGL::glGenTexture();
     return;
 
  NO_PIXEL_TEXTURE:
@@ -404,14 +403,14 @@ sub init_movie_image {
 			if $VRML::verbose;
 
 		my $init_tex = VRML::OpenGL::glGenTexture();
-		$f->{__texture_}[0] = $init_tex;
-		$f->{__texture_}[1] =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file);
+		$f->{__texture0_} = $init_tex;
+		$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,$file);
 		$f->{__depth} = $dep;
 		$f->{__x} = $wi;
 		$f->{__y} = $hei;
 		$f->{__data} = ();
-		print "init_movie, first texture is ",$f->{__texture_}[0],"\n";
-		print "init_movie, last texture is ",$f->{__texture_}[1],"\n";
+		#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
+		#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
 
 		return;
     }							# for $u (@$urls) 
@@ -421,8 +420,8 @@ sub init_movie_image {
     $f->{__x} = 0;
     $f->{__y} = 0;
     $f->{__data} = ();
-    $f->{__texture_}[0] = 0;
-    $f->{__texture_}[1] = 0;
+    $f->{__texture0_} = 0;
+    $f->{__texture1_} = 0;
     return;
 }
 
@@ -557,9 +556,8 @@ my $protono;
     repeatS => [SFBool, 1, "field"],		# VRML repeatS field
     repeatT => [SFBool, 1, "field"],		# VRML repeatT field
     __data => [SFString, "", "field"],		# where on the local file system texture resides
-    __texture_ => [SFInt32,0,"field"],		# OpenGL texture number
-    __istemporary_ =>[SFInt32,0,"field"],	# if we have to remove this after processing
-    __isloaded_ =>[SFInt32,0,"field"],		# is this one already used...
+    __texture => [SFInt32,0,"field"],		# OpenGL texture number
+    __istemporary =>[SFInt32,0,"field"],	# if we have to remove this after processing
  },{
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
@@ -580,7 +578,7 @@ PixelTexture => new VRML::NodeType("PixelTexture",
         __x => [SFInt32,0, "field"],
         __y => [SFInt32,0, "field"],
         __data => [SFString, "", "field"],
-        __texture_ => [SFInt32,0,"field"],
+        __texture => [SFInt32,0,"field"],
        },{
        Initialize => sub { 
                my($t,$f,$time,$scene) = @_;
@@ -605,29 +603,40 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
         __x => [SFInt32,0, "field"],
         __y => [SFInt32,0, "field"],
         __data => [MFString, [], "field"],
-        __texture_ => [MFInt32,[], "field"], # a list of texture numbers 
+        __texture0_ => [SFInt32,0, "field"], # initial texture number 
+        __texture1_ => [SFInt32,0, "field"], # last texture number
 	__ctex => [SFInt32, 0, "field"],	# which texture number is used
-	__status => [SFInt32, 0, "field"],	# active = TRUE
+	__status => [SFInt32, 0, "field"],	# active = 1
+	__inittime => [SFInt32,0,"field"],	# time that we were initialized at
  },
 
 @x= {
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
 	init_movie_image("","url",$t,$f,$scene,1);
-	$f->{__ctex} = $f->{__texture_}[0];
-	$f->{cycleCount} = 0;
-	$f->{__status} = FALSE;
+
+	# which frame to start with?
+	if ($f->{speed} >= 0) {
+		$f->{__ctex} = $f->{__texture0_};
+	} else {
+		$f->{__ctex} = $f->{__texture1_};
+	}
+	$f->{__status} = 0;  # inactive
+	$f->{__inittime} = $time;
+
+	#print "mt init time is $time\n";
+	
 	return ();
     },
 	 startTime => sub {
 	 	my($t,$f,$val) = @_;
-		print "MT StartTime $val\n";
+		#print "MT StartTime $val\n";
 		$f->{startTime} = $val;
 	 },
 	 # Ignore if less than startTime
 	 stopTime => sub {
 	  	my($t,$f,$val) = @_;
-	 	print "MT StopTime $val\n";
+	 	#print "MT StopTime $val\n";
 		$f->{stopTime} = $val;
 	  },
 
@@ -642,10 +651,10 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 		my $act = 0; 
 		my @e;
 
-		my $frac = 0;
+		my $frac = $f->{__ctex};
 		my $time;
-		my $lowest = $f->{__texture_}[0];
-		my $highest = $f->{__texture_}[1];
+		my $lowest = $f->{__texture0_};
+		my $highest = $f->{__texture1_};
 
 		# sanity check - avoids divide by zero problems below
 		if ($lowest >= $highest) {
@@ -653,52 +662,85 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 		}	
 
 		my $duration = ($highest - $lowest)/30;
- 		$time = ($tick - $f->{startTime}) * $f->{speed} / $duration;
-		
-		if($f->{loop}) {
-			$frac = $time - int $time;
-		} else {
-			$frac = ($time > 1 ? 1 : $time);
-		}
 
-print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
-		$f->{__status},"\n"
-			if $VRML::verbose::tsens;
+		print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
+			$f->{__status}," initTime ",$f->{__inittime},"\n"
+				if $VRML::verbose::timesens;
 
-		# Now, is startTime ge stopTime?
-		if($f->{startTime} >= $f->{stopTime}) {
+		# what we do now depends on whether we are active or not
 
-			# if looping set, then just loop
-			if($f->{loop}) {
-				$act = 1;
-			} elsif ($f->{stopTime} > $tick) {
-				# we are running until stopTime is reached
-				$act = 1;
-			} elsif(($time - $frac -$duration) < 0) {
-				print "time $time frac $frac duration $duration ONELOOP\n";
-				#cycle once, as per the specs
-				$act = 1;
-			}
-		} else {
-			if($tick < $f->{stopTime}) {
-				if($f->{loop}) {
-					$act = 1;
-				} else {
-					if($f->{startTime} >= $tick) {
-						$act = 1;
+		if ($f->{__status} == 1) {   # active - should we stop?
+
+			if ($tick > $f->{stopTime}) {
+				if ($f->{startTime} >= $f->{stopTime}) { 
+					# cases 1 and 2
+					if (!($f->{loop})) {
+						if ($f->{speed} != 0) {
+						    if ($tick >= ($f->{startTime} + 
+								abs($duration/$f->{speed}))) {
+							#print "stopping case x\n";
+							$f->{__status} = 0;
+							$f->{stopTime} = $tick;
+						    }
+						}
+					} else {
+					#	print "stopping case y\n";
+					#	$f->{__status} = 0;
+					#	$f->{stopTime} = $tick;
 					}
+				} else {
+					#print "stopping case z\n";
+					$f->{__status} = 0;
+					$f->{stopTime} = $tick;
 				}
 			}
 		}
 
+		# immediately process start events; as per spec. 
+		if ($f->{__status} == 0) {   # active - should we start?
+			if ($tick >= $f->{startTime}) {
+				# We just might need to start running
 
-		if($act) {
-			# is this the first burst of activity? 
-			if ($f->{__status} == FALSE) {
-				print "first burst of activity\n";
-				$f->{startTime} = $time;
-				$f->{__status} = TRUE;
-			}	
+				if ($tick >= $f->{stopTime}) {
+					# lets look at the initial conditions; have not had a stoptime
+					# event (yet)
+
+					if ($f->{loop}) {
+						if ($f->{startTime} >= $f->{stopTime}) {
+							# VRML standards, table 4.2 case 2 
+							$f->{startTime} = $tick;
+							$f->{__status} = 1;
+							#print "case 2 here\n";
+						}
+					} elsif ($f->{startTime} >= $f->{stopTime}) {
+						if ($f->{startTime} > $f->{__inittime}) { #ie, we have an event
+							#print "case 1 here\n";
+							# we should be running 
+							# VRML standards, table 4.2 case 1 
+							$f->{startTime} = $tick;
+							$f->{__status} = 1;
+						}
+					}
+				} else {
+					#print "case 3 here\n";
+					# we should be running -  
+					# VRML standards, table 4.2 cases 1 and 2 and 3
+					$f->{startTime} = $tick;
+					$f->{__status} = 1;
+				}
+			}
+
+			# if we have gone active, make sure that the first image is displayed
+			if ($f->{__status} == 1) { $f->{__ctex} = -1; }
+
+		}
+	
+		if($f->{__status} == 1) {
+
+			# calculate what fraction we should be 
+	 		$time = ($tick - $f->{startTime}) * $f->{speed} / $duration;
+		
+			$frac = $time - int $time;
 
 			# negative speed?
 			if ($f->{speed} < 0) {
@@ -707,35 +749,25 @@ print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
 
 			elsif ($f->{speed} == 0) {
 				$frac = 0;
-				print "speed is 0 frac is $frac\n";
 			}
 
 			# frac will tell us what texture frame we should apply...
-			$frac = int ($frac*($highest+1)) + $lowest;
-		} else {
-			# inactive; were we running?
-			if ($f->{__status} == TRUE) {
-				if ($f->{stopTime} <= 0) {
-					if ($f->{speed} >=0) {
-						$frac = $f->{__texture_}[0];
-					} else {
-						$frac = $f->{__texture_}[1];
-					}
-				} else {
-					$frac = $f->{__ctex}; # just leave it where it was
-				}
-				$f->{__status} == FALSE;
-				$f->{stopTime} = $time;
-			}
+			$frac = int ($frac*($highest-$lowest+1) + $lowest);
 		}
 
 		# verify parameters
-		if ($frac < $lowest){ print "frac $frac lowest $lowest\n"; $frac = $lowest}
-		if ($frac > $highest){ print "frac $frac highest $highest\n";$frac = $highest}
+		if ($frac < $lowest){ 
+			print "frac $frac lowest $lowest\n"; 
+			$frac = $lowest
+		}
+		if ($frac > $highest){ 
+			print "frac $frac highest $highest\n";
+			$frac = $highest
+		}
 
 		if ($f->{__ctex} != $frac) {
 			$f->{__ctex} = $frac;
-			print "pushing image $frac of $lowest $highest\n";
+			#print "pushing image $frac of $lowest $highest\n";
 			push @e, [$t, "mytexfrac", $f->{__ctex}];
 			return @e;
 		}
@@ -1519,7 +1551,7 @@ TouchSensor => new VRML::NodeType("TouchSensor",
 	__mouse__ => sub {
 		my($t,$f,$time,$moved,$button,$over,$pos,$norm,$texc) = @_; 
 		print "MOUSE: over $over but $button moved $moved\n"
-			if $VRML::verbose::tsens;
+			if $VRML::verbose::timesens;
 		if($button ne "PRESS") {return}
 
 		#ok, we are here, and we have a button press.
@@ -1846,17 +1878,17 @@ Background => new VRML::NodeType("Background",
 	 bindTime => [SFTime, undef, eventOut],
 	 (map {(
 		 $_.Url => [MFString, []],
-		 __data_.$_ => [SFString, ""], 		# local or temp file name
-		 __texture_.$_ => [SFInt32,0],		# OpenGL texture number
-		 __istemporary_.$_ => [SFInt32,0],	# is this a temp file?
-		 __isloaded_.$_ => [SFInt32,0],
+		 __data.$_ => [SFString, ""], 		# local or temp file name
+		 __texture.$_ => [SFInt32,0],		# OpenGL texture number
+		 __istemporary.$_ => [SFInt32,0],	# is this a temp file?
 	 )} qw/back front top bottom left right/),
 	},
 	{
 	Initialize => sub {
 		my($t,$f,$time,$scene) = @_;
 		for(qw/back front top bottom left right/) {
-			init_image("_$_","${_}Url",$t,$f,$scene,0);
+			#init_image("_$_","${_}Url",$t,$f,$scene,0);
+			init_image("$_","${_}Url",$t,$f,$scene,0);
 		}
 		return ();
 	}
