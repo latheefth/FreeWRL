@@ -27,7 +27,7 @@ Group {
 					1, 5, 6, 2, -1,
 					2, 6, 7, 3, -1
 				]
-solid FALSE
+				solid FALSE
 			}
 		},
 		Shape {
