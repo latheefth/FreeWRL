@@ -101,6 +101,8 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	struct VRML_Fog *fg;
 	struct VRML_NavigationInfo *nv;
 	struct VRML_Viewpoint *vp;
+	char * nameptr;
+	int len;
 
 	// printf ("\nsend_bind_to, nodetype %s node %d value %d\n",nodetype,node,value);
 
@@ -115,6 +117,8 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	} else if (strncmp("Viewpoint",nodetype,strlen("Viewpoint"))==0) {
 		vp = (struct VRML_Viewpoint *) node;
 		vp->set_bind = value;
+		nameptr = SvPV(vp->description,len);
+		viewpoint_name_status (nameptr);
 
 		bind_node (node,offsetof (struct VRML_Viewpoint,set_bind),
 			offsetof (struct VRML_Viewpoint,isBound),

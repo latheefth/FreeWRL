@@ -120,14 +120,9 @@ float FW_extent (int start, int length);
 FT_Error FW_Load_Char(int idx);
 void FW_draw_outline(FT_OutlineGlyph oglyph);
 void FW_draw_character(FT_Glyph glyph);
-void FW_rendertext(int numrows,SV **p,
-				   int nl,
-				   float *length,
-				   float maxext,
-				   float spacing,
-				   float mysize,
-				   unsigned int fsparam,
-				   struct VRML_PolyRep *rp);
+void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *length,
+                float maxext, float spacing, float mysize, unsigned int fsparam,
+                struct VRML_PolyRep *rp) ;
 int open_font(void);
 
 
@@ -391,8 +386,11 @@ void FW_draw_character (FT_Glyph glyph) {
 
 
 
+/* take a text string, font spec, etc, and make it into an OpenGL Polyrep.
+   Note that the text comes EITHER from a SV (ie, from perl) or from a directstring,
+   eg, for placing text on the screen from within FreeWRL itself */
 
-void FW_rendertext(int numrows,SV **p,int nl, float *length, 
+void FW_rendertext(int numrows,SV **ptr,char *directstring, int nl, float *length, 
 		float maxext, float spacing, float mysize, unsigned int fsparam,
 		struct VRML_PolyRep *rp) {
 	char *str;
@@ -486,10 +484,13 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
         if (font_face[myff]->units_per_EM != 1000)
               x_size = x_size * font_face[myff]->units_per_EM/1000.0;
 
+	/* if we have a direct string, then we only have ONE, so initialize it here */
+	if (directstring != 0) str = directstring;
 
 	/* load all of the characters first... */
 	for (row=0; row<numrows; row++) {
-		str = SvPV(p[row],PL_na);
+		if (directstring == 0) str = SvPV(ptr[row],PL_na);
+
 		for(i=0; i<strlen(str); i++) {
 			FW_Load_Char(str[i]);
 			char_count++;
@@ -518,7 +519,7 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 	   double l;
 	   int counter = 0;
 	   for(row = 0; row < numrows; row++) {
-		str = SvPV(p[row],PL_na);
+		if (directstring == 0) str = SvPV(ptr[row],PL_na);
 		l = FW_extent(counter,strlen(str));
 		counter += strlen(str);
 		if(l > maxlen) {maxlen = l;}
@@ -545,7 +546,7 @@ void FW_rendertext(int numrows,SV **p,int nl, float *length,
 	for(row = 0; row < numrows; row++) {
 	   	float rowlen;
 
-	   	str = SvPV(p[row],PL_na);
+		if (directstring == 0) str = SvPV(ptr[row],PL_na);
 		if (TextVerbose) 
 				printf ("text2 row %d :%s:\n",row, str);
 	        pen_x = 0.0;

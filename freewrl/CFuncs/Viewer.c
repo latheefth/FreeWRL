@@ -130,6 +130,9 @@ set_viewer_type(const int type)
 
 	viewer_init(&Viewer,type);
 
+	/* tell the status bar what we are */
+	viewer_type_status (type);
+
 	switch(type) {
 	case NONE:
 	case EXAMINE:
