@@ -156,7 +156,9 @@ sub gather_defs { # print "VRML::IS::gather_defs called - null procedure\n";
 
 sub dump { 
 	my ($this,$level) = @_;
-	print "$level node $this is ",$this->name(),"\n";
+	my $lp = $level*2+2;
+	my $padded = pack("A$lp","$level ");
+	print "$padded node $this IS ",$this->name(),"\n";
 }
 
 ###################
@@ -172,7 +174,6 @@ sub new {
 	# 2 - the node of the object
 	# print "VRML::DEF, blessing ",$_[1], " and ",$_[2],"\n";
 	bless [$_[1],$_[2]],$_[0];
-
 }
 
 sub copy {
@@ -232,9 +233,10 @@ sub gather_defs {
 	
 sub dump {
 	my ($this, $level) = @_;
+	my $lp = $level*2+2;
+	my $padded = pack("A$lp","$level ");
 
-
-	print "VRML::DEF, name is ",$this->name(),"\n";
+	print $padded,"VRML::DEF, name is ",$this->name()," def is ",$this->def,"\n";
 	my $real =  $this->get_ref();
 	$real->dump($level+1);
 }
@@ -247,7 +249,7 @@ package VRML::USE;
  
 sub new {
 	my($objtype,$defname,$defdef) = @_;
-        my $arr = [$defname,$defdef];
+	my $arr = [$defname,$defdef];
 	bless $arr,$objtype;
 	return $arr;
 }
@@ -313,7 +315,9 @@ sub gather_defs {
 
 sub dump { 
 	my ($this,$level) = @_;
-	print "$level node VRML::USE, $this is ",$this->name(),"\n";
+	my $lp = $level*2+2;
+	my $padded = pack("A$lp","$level ");
+	print $padded,"$this, name is ",$this->name()," def is ",$this->[1],"\n";
 }
 
 
@@ -469,9 +473,7 @@ sub dump {
 	if (defined $this->{ProtoExp}) {
 		print "\n$padded(ProtoExp of ",dump_name($this),"\n";
 		$this->{ProtoExp}->dump($level+1);
-	}
-
-	if (defined $this->{Type}) {
+	} elsif (defined $this->{Type}) {
 		print "\n$padded(Type of ",dump_name($this),")\n";
 		if ("VRML::NodeType" ne ref $this->{Type}) {
 			$this->{Type}->dump($level+1);
@@ -1017,6 +1019,11 @@ sub dump {
 	if (defined $this->{RootNode}) {
 		print "\n$padded(RootNode of ",VRML::Node::dump_name($this),")\n";
  		$this->{RootNode}->dump($level+1);
+	} else {
+		print "\n$padded(Nodes of ",VRML::Node::dump_name($this),")\n";
+		for (@{$this->{Nodes}}) {
+			$_->dump($level+1);
+		}
 	}
 	
 	if (defined $this->{SubScenes}) {
@@ -1532,7 +1539,7 @@ sub get_copy {
 	$new->{EventModel} = $this->{EventModel};
 	if (defined $this->{Routes}) {
 		$new->{Routes} = $this->{Routes};
-	 # print "Scene.pm: GET_COPY: ROUTE ", 
+	 # print "Scene.pm: GET_COPY: ROUTE ",
 	 #	$new->{Routes}[0][0] , " ", 
 	 #	$new->{Routes}[0][1] , " ",
 	 #	$new->{Routes}[0][2] , " ",
