@@ -685,7 +685,6 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, double tick, int o
 	if (over) {
 		len = strlen(ev);
 		if (len == strlen("PRESS")) {
-			printf ("got a push\n");
 			node->isActive=1;
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_TouchSensor, isActive));
@@ -695,7 +694,6 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, double tick, int o
 				offsetof (struct VRML_TouchSensor, touchTime));
 
 		} else if (len == strlen("RELEASE")) { 
-			printf ("got a RELEASE\n");
 			node->isActive=0;
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_TouchSensor, isActive));
