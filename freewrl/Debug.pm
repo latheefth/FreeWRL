@@ -16,28 +16,40 @@ package VRML::Debug;
 use File::Basename;
 
 sub toString {
-	my ($dt) = @_;
+	my ($dt, $offset) = @_;
 
 	return "NULL" if (!defined $dt);
 	return "\"\"" if ($dt eq "");
 
 	my $ref = ref $dt;
+	my $key;
+	my $value;
 
 	return $dt if (!$ref);
 
 	if ($ref eq "HASH") {
-		my $key;
-		my $value;
 		my @str;
-		my $tmp;
+		my $tab1 = "\t";
+		my $tab2 = "";
+		my $i;
 
 		return "{} $dt" if (!%{$dt});
+		for($i = 0; $i < $offset; $i++) {
+			$tab1 .= "\t";
+			$tab2 .= "\t";
+		}
 
 		push @str, "{";
 		while (($key, $value) = each %{$dt}) {
-			push @str, "\t".toString($key)." => ".toString($value).",";
+			if ($key =~ /Intern/) {
+				$key = VRML::NodeIntern::dump_name($key);
+			} else {
+				$key = toString($key);
+			}
+			$value = toString($value, $offset+1);
+			push @str, "$tab1$key => $value,";
 		}
-		push @str, "} $dt";
+		push @str, "$tab2} $dt";
 		return join("\n", @str);
 	} elsif ($ref eq "ARRAY") {
 		return "[] $dt" if (!@{$dt});
@@ -49,7 +61,7 @@ sub toString {
 		return "$dt { $dt->{DEFName}, ".toString($dt->{DEFNode})." }";
 	} elsif ($ref eq "VRML::IS") {
 		return "$dt { $dt->{Name}, ".toString($dt->{Ref}).", ".toString($dt->{ISField})." }";
-	} elsif ($ref =~ /(Intern|Scene|Type)$/) {
+	} elsif ($ref =~ /(Intern|Scene|Type)/) {
 		return VRML::NodeIntern::dump_name($dt);
 	} else {
 		return "$ref ".$dt;

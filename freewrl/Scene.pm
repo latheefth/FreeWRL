@@ -401,6 +401,7 @@ sub new_def {
 
 	print "VRML::Scene::new_def ", VRML::Debug::toString(\@_), "\n"
 		if $VRML::verbose::scene;
+
 	my $def = VRML::DEF->new($name, $node, $vrmlname);
 
 	$this->{DEF}{$name} = $def;
@@ -615,7 +616,7 @@ sub getNode {
 		warn("Node $name is not defined");
 		return undef;
 	}
-
+#print "VRML::Scene::getNode: ", VRML::Debug::toString($n), "\n";
 	#AK - #return $n->real_node(1); # Return proto enclosing node.
 	return $n->node();
 }
@@ -662,7 +663,6 @@ sub make_is {
 				VRML::Debug::toString($this->{NodeParent}), ") $is\n"
 						if $VRML::verbose::scene;
 
-
 	my $proto_ft = $this->{NodeParent}{Type}{FieldKinds}{$is} or
 		die("Missing field type for $is from statement: $field IS $is");
 	my $node_ft = $node->{Type}{FieldKinds}{$field} or
@@ -672,29 +672,21 @@ sub make_is {
 			if ($proto_ft ne $node_ft and $node_ft ne "exposedField");
 
 	# If child's a field or exposedField, get initial value
-	print "CK: $node_ft, PK: $proto_ft\n" 
+	print "VRML::Scene::make_is: $node_ft $field, NodeParent $proto_ft $is\n"
 		 if $VRML::verbose::scene;
 
 	my $ftype = "VRML::Field::"."$node->{Type}{FieldTypes}{$field}";
 
 	if ($node_ft =~ /[fF]ield$/ and $proto_ft =~ /[fF]ield$/) {
-		print "SETV: $_ NP : '$this->{NodeParent}' '$this->{NodeParent}{Fields}{$_}'\n"
+		print "VRML::Scene::make_is: returning $this->{NodeParent}{Fields}{$is}\n"
 			if $VRML::verbose::scene;
-		##$retval= "VRML::Field::$node->{Type}{FieldTypes}{$field}"->copy($this->{NodeParent}{Fields}{$is});
 		$retval= $ftype->copy($this->{NodeParent}{Fields}{$is});
 	} else {
-		##$retval = $node->{Type}{Defaults}{$_};
 		$retval = $node->{Type}{Defaults}{$is};
 	}
 
 	## add to event model
-	if ($this->{NodeParent}{Type}{EventIns}{$is} and
-		$node->{Type}{EventIns}{$field}) {
-		$this->{EventModel}->add_is_in($this->{NodeParent}, $is, $node, $field);
-	} elsif ($this->{NodeParent}{Type}{EventOuts}{$is} and
-		$node->{Type}{EventOuts}{$field}) {
-		$this->{EventModel}->add_is_out($this->{NodeParent}, $is, $node, $field);
-	}
+	$this->{EventModel}->add_is($this->{NodeParent}, $is, $node, $field);
 
 	return $retval;
 }
@@ -884,9 +876,10 @@ sub make_backend {
 		# I am a PROTO -- only my first node renders anything, but other nodes
 		# need the CNode to be there for data storage (eg, scripts, interpolators...)
 
-		print "\tScene: I'm a PROTO ",VRML::NodeIntern::dump_name($this),
-			" $be $parentbe\n"
-				if $VRML::verbose::be;
+		print "VRML::Scene::make_be: PROTO ",
+			VRML::NodeIntern::dump_name($this),
+					", Nodes ", VRML::Debug::toString($this->{Nodes}),
+						" $be $parentbe\n" if $VRML::verbose::be;
 
 		# print "   has node $#{$this->{Nodes}}\n";
 
@@ -918,8 +911,8 @@ sub make_backend {
 		}
 		
 	} else {
-		print "\tScene: I'm not PROTO ",VRML::NodeIntern::dump_name($this), " $be $parentbe ($this->{IsInline})\n"
-			if $VRML::verbose::be;
+		print "\tScene: I'm not PROTO ", VRML::NodeIntern::dump_name($this),
+			" $be $parentbe ($this->{IsInline})\n" if $VRML::verbose::be;
 
 		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 

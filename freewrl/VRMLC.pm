@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.105  2003/07/22 16:04:48  ayla
+#
+# Fix of ROUTE implementation problems with PROTO and Script nodes, take 1.
+#
 # Revision 1.104  2003/07/18 17:15:43  crc_canada
 # added a getProperty type of call for Javascript
 #
@@ -2234,17 +2238,17 @@ OUTPUT:
 # register a route that can go via C, rather than perl.
 
 void
-do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr, scrpt, extra)
+do_CRoutes_Register(from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra)
 	void *from
 	int fromoffset
-	void *to
-	int tooffset
+	int to_count
+	char *tonode_str
 	int len
 	void *intptr
 	int scrpt
 	int extra
 CODE:
-	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr,scrpt, extra);
+	CRoutes_Register(from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
 
 void
 CRoutes_js_new (num, cx, glob, brow)
@@ -2254,6 +2258,16 @@ CRoutes_js_new (num, cx, glob, brow)
 	void *brow
 CODE:
 	do_CRoutes_js_new (num, cx, glob, brow);
+
+
+#********************************************************************************
+#
+# Free memory allocated in CRoutes_Register
+
+void
+do_CRoutes_free()
+CODE:
+	CRoutes_free();
 
 
 #********************************************************************************

@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.113  2003/07/22 16:04:48  ayla
+#
+# Fix of ROUTE implementation problems with PROTO and Script nodes, take 1.
+#
 # Revision 1.112  2003/07/17 15:42:25  crc_canada
 # GL_COLOR_MATERIAL enabled before push of attrib in IndexedLineSet; moved enable to after push
 #
@@ -1007,13 +1011,15 @@ Text => '
 ',
 
 Material =>  '
-		float m[4]; int i; 
+		float m[4]; int i;
 		float dcol[4];
 		float ecol[4];
 		float scol[4];
 		float shin;
 		float amb;
 		float trans;
+
+		if (verbose) printf("Material_Rend: %u\n", nod_);
 
 		GLbyte  cleartone[] = {
 		      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1824,6 +1830,7 @@ Billboard => (join '','
 		if (this_->_dlchange == this_->_change) {
 			glEndList();
 		}
+
 		last_visited_shape = 0;
 		glPopAttrib();
 	',

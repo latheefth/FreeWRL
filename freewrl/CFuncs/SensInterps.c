@@ -329,8 +329,8 @@ void do_Oint3 (void *node) {
 	kVs = px->keyValue.p;
 
 	if (SEVerbose) {
-		printf ("Position/Color interp, kin %d kvin %d set_fraction %f\n",
-			kin,kvin,px->set_fraction);
+		printf("do_Oint3: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, px->set_fraction);
 	}
 
 	/* make sure we have the keys and keyValues */

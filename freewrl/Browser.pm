@@ -511,9 +511,12 @@ sub shut {
 	if ($VRML::ENV{AS_PLUGIN}) {
 		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
 	}
+
 	if ($this->{JSCleanup}) {
 		&{$this->{JSCleanup}}();
 	}
+
+	VRML::VRMLFunc::do_CRoutes_free();
 	$this->{BE}->close_screen();
 }
 
@@ -532,8 +535,7 @@ sub tick {
 	#activate proximity sensors.
 	$this->{BE}->render_pre();
 
-	$this->{EV}->propagate_events($time,$this->{BE},
-		$this->{Scene});
+	$this->{EV}->propagate_events($time, $this->{BE}, $this->{Scene});
 
 	#do actual screen writing
 	$this->{BE}->render();

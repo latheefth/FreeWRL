@@ -25,9 +25,7 @@ sub new {
 	bless {
 		   First => {},
 		   Listen => undef,
-		   CIs => undef,
-		   NCIs => undef,
-		   PIs => undef,
+		   IS => undef,
 		   Queue => undef,
 		   Route => undef,
 		  },$type;
@@ -43,12 +41,8 @@ sub print {
 		print "\t",VRML::NodeIntern::dump_name($_),":\t$_->{TypeName}\n";
 	}
 
-	print "ROUTEs\n", VRML::Debug::toString($this->{Route}), "\n";
-
-	print "ISs\nPI hash:\n",
-		VRML::Debug::toString($this->{PIs}),
-				"\nCI hash:\n",
-					VRML::Debug::toString($this->{NCIs}), "\n";
+	print "ROUTE hash: ", VRML::Debug::toString($this->{Route}), "\n";
+	print "\nIS hash: ", VRML::Debug::toString($this->{IS}), "\n";
 }
 
 # XXX Softref
@@ -70,7 +64,7 @@ sub remove_first {
 # Initialize Scripting interfaces. 
 
 sub verify_script_started {
-	my ($node,$number) = @_;
+	my ($scene, $node, $number) = @_;
 
 	#print "verify_script_started, $node, $number\n";
 
@@ -165,7 +159,7 @@ sub verify_script_started {
 			last;
 		} elsif (/\.js/) {
 			# New js url handling
-			my $code = getTextFromURLs($scene, $_, $node);
+			my $code = VRML::NodeType::getTextFromURLs($scene, $_, $node);
 
 			print "JS url: code = $code\n"
 				if $VRML::verbose::script;
@@ -214,20 +208,28 @@ sub verify_script_started {
 # returns node, field, script, ok
 
 sub resolve_node_cnode {
-	my ($this,$scene, $node, $field, $direction) = @_;
+	my ($this, $scene, $node, $field, $direction) = @_;
 
 	# return values.
 	my $outptr = 0;
 	my $outoffset = 0;
-	my $scrpt = 0; 
+	my $to_count = 0;
+	my $tonode_str = "";
+	my @tonodes;
+	my $scrpt = 0;
 	my $il = 0;
 	my $ok = 0;
 	my $cs;
+	my $proto_node;
+	my $proto_field;
+	my $is_proto;
+	my $tmp;
 
 
-	#print "start of resolve_node_cnode, this $this node $node, field $field,  direction $direction\n";
+	print "\nVRML::EventMachine::resolve_node_cnode: ", VRML::Debug::toString(\@_), "\n"
+		if $VRML::verbose::events;
 
-	my $tmp = VRML::Handles::get($node);
+	$tmp = VRML::Handles::get($node);
 	if (ref $tmp eq "VRML::NodeIntern") {
 		$node = $tmp;
 	} else {
@@ -237,40 +239,90 @@ sub resolve_node_cnode {
 			return (0,0,0,0,0);
 		}
 	}
-	#print "handle got $node ",VRML::NodeIntern::dump_name($node),"\n";
+	print "handle got $node ", ($node->{IsProto} ? "PROTO " : ""),
+		"$node->{TypeName} ", VRML::NodeIntern::dump_name($node),"\n"
+			if $VRML::verbose::events;
+
+	# is this an IS?
+	if ($node->{IsProto} && exists $this->{IS}{$node}{$field}) {
+#print "IS hash ", VRML::Debug::toString($this->{IS}), "\n";
+		$is_proto = 1;
+		if ($direction =~ /eventIn/) {
+			foreach (@{$this->{IS}{$node}{$field}}) {
+				$proto_node = $_->[0];
+				$proto_field = $_->[1];
+
+				next if ($proto_node->{TypeName} =~ /script/i);
+
+				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+					if (!defined ($outoffset =
+								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+						print "No offset for $proto_field.\n";
+						$outptr = undef;
+					} else {
+						print "$proto_node->{TypeName} ",
+							VRML::NodeIntern::dump_name($proto_node),
+									" CNode: $outptr, $proto_field eventIn: $outoffset.\n";
+						push @tonodes, "$outptr:$outoffset";
+						$to_count++;
+					}
+				} else {
+					print "No CNode for $proto_node->{TypeName} ",
+						VRML::NodeIntern::dump_name($proto_node), ".\n";
+				}
+			}
+			$tonode_str = join(" ", @tonodes);
+		} else { # XXX PROTO multiple eventOuts not handled yet
+
+			foreach (@{$this->{IS}{$node}{$field}}) {
+				$proto_node = $_->[0];
+				$proto_field = $_->[1];
+
+				next if ($proto_node->{TypeName} =~ /script/i);
+
+				if (defined ($outptr = $proto_node->{BackNode}{CNode})) {
+					if (!defined ($outoffset =
+								  $VRML::CNodes{$proto_node->{TypeName}}{Offs}{$proto_field})) {
+						print "No offset for $proto_field.\n";
+						$outptr = undef;
+					} else {
+						print "$proto_node->{TypeName} ",
+							VRML::NodeIntern::dump_name($proto_node),
+									" CNode: $outptr, $proto_field eventOut: $outoffset.\n";
+						last;
+					}
+				} else {
+					print "No CNode for $proto_node->{TypeName} ",
+						VRML::NodeIntern::dump_name($proto_node), ".\n";
+				}
+			}
+			if (! ($outptr || $offset) &&
+				! $proto_node->{TypeName} =~ /script/i) {
+				print "Failed to find CNode info for PROTO $node->{TypeName} ",
+					VRML::NodeIntern::dump_name($node), " in IS hash.\n";
+				return (0,0,0,0,0);
+			}
+		}
+	}
+
 
 	# Protos, when expanded, still have the same script number. We need to make
 	# sure that a script within a proto is uniquely identified by the scene
 	# proto expansion; otherwise routing will cross-pollinate .
+
 	$cs = $scene;
 	if (defined $node->{ProtoExp}) {
 		#print "this is a protoexp, I am ",VRML::NodeIntern::dump_name($node->{Scene}), 
 		#		" ProtoExp ",VRML::NodeIntern::dump_name($node->{ProtoExp}),"\n";
 		$cs = $node->{ProtoExp};
 
-		$node = $node->{ProtoExp}{Nodes}[0];
-		#print "ProtoExp node now is ",VRML::NodeIntern::dump_name($node),"\n";
+		## needed ???
+		$node = $node->real_node();
+		print "ProtoExp node now is $node->{TypeName} ", VRML::NodeIntern::dump_name($node), "\n";
 	}
 	if (!defined $SCENENUMBERS{$cs}) { $SCENENUMBERS{$cs} = $scenecount++; }
 	my $scenenum = $SCENENUMBERS{$cs};
-
 	#print "current scene number is $scenenum\n";
-
-	
-	# is this an IS?
-	if ($direction eq "eventOut") {
-		#print "checking eventOut for $this\n";
-		if (defined $this->{NCIs}{$node}{$field}) {
-			#print "got it!\n";
-			my $nn = $this->{NCIs}{$node}{$field}[0];
-			$field = $this->{NCIs}{$node}{$field}[1];
-			$node = $nn;
-		}	
-
-
-	} else {
-		#print "handle eventins properly here\n";
-	}
 
 	#addChildren really is Children
 	if (($field eq "addChildren") || ($field eq "removeChildren")) {
@@ -289,21 +341,32 @@ sub resolve_node_cnode {
 		}
 	}
 
-	if ($node->{TypeName} =~/^__script__/) {
-		$outptr = $scenenum; 
-		$outoffset = VRML::VRMLFunc::paramIndex($field,
-			$node->{Type}{FieldTypes}{$field});
-
-		verify_script_started($node,$outptr);
+	if (!$is_proto && $node->{TypeName} =~ /script/i) {
+		$outptr = $scenenum;
+		$outoffset = VRML::VRMLFunc::paramIndex($field, $node->{Type}{FieldTypes}{$field});
+		verify_script_started($scene, $node, $outptr);
 
 		if ($direction eq "eventOut") {
 			$scrpt = 1;
 		} else {
 			$scrpt = 2;
+			$to_count = 1;
+			$tonode_str = "$outptr:$outoffset";
 		}
+		print "got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
+	} elsif ($proto_node->{TypeName} =~ /script/i) { ## needed ???
+		$outptr = $scenenum;
+		$outoffset = VRML::VRMLFunc::paramIndex($proto_field, $proto_node->{Type}{FieldTypes}{$proto_field});
+		verify_script_started($scene, $proto_node, $outptr);
 
-		#print "got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
-
+		if ($direction eq "eventOut") {
+			$scrpt = 1;
+		} else {
+			$scrpt = 2;
+			$to_count = 1;
+			$tonode_str = "$outptr:$outoffset";
+			}
+			print "PROTO: got a script, outptr $outptr, offset $outoffset, scenenum $scenenum\n";
 	} else {
 		if (!defined $node->{BackNode}) {
 			# check if this node resides within a Javascript invocation...
@@ -324,35 +387,64 @@ sub resolve_node_cnode {
 			$node->make_backend($brow->{BE},$brow->{BE});
 		}
 
-		if (!defined ($outptr=$node->{BackNode}{CNode})) {
-			# are there backend CNodes made for both from and to nodes?
-			print "add_route, from $field - no backend CNode node\n";
-			return (0,0,0,0);
-		}
+		if (!$is_proto) {
+			if (!defined ($outptr=$node->{BackNode}{CNode})) {
+				# are there backend CNodes made for both from and to nodes?
+				print "add_route, from $field - no backend CNode node\n";
+				return (0,0,0,0,0);
+			}
 
-		# are there offsets for these eventins and eventouts?
-		if(!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
-			print "add_route, event $field offset not defined\n";
-			return (0,0,0,0);
+			# are there offsets for these eventins and eventouts?
+			if (!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{$field})) {
+				print "resolve_node_cnode: CNodes entry ",
+					VRML::Debug::toString($VRML::CNodes{$node->{TypeName}}),
+							", $node->{TypeName} ",
+								VRML::NodeIntern::dump_name($node),
+										", event $field offset not defined\n";
+				return (0,0,0,0,0);
+			}
+			if ($direction =~ /eventIn/i) {
+				$to_count = 1;
+				$tonode_str = "$outptr:$outoffset";
+			}
 		}
+#if ($is_proto) {
+#	print "$proto_node->{TypeName} ", VRML::NodeIntern::dump_name($proto_node), " CNode: $outptr, $field $direction: $outoffset.\n";
+#} else {
+#	print "$node->{TypeName} ", VRML::NodeIntern::dump_name($node), " CNode: $outptr, $field $direction: $outoffset.\n";
+#}
 	}
 
 	# ok, we have node and field, lets find either field length, or interpolator
-	if ($direction eq "eventOut") {
+	if ($direction =~ /eventOut/i) {
 		# do we handle this type of data within C yet?
-		$il=VRML::VRMLFunc::getClen(
-			"VRML::Field::$node->{Type}{FieldTypes}{$field}"->clength($field));
-		if ($il==0) {
+		if ($is_proto) {
+			$il = VRML::VRMLFunc::getClen("VRML::Field::$proto_node->{Type}{FieldTypes}{$proto_field}"->clength($proto_field));
+		} else {
+			$il = VRML::VRMLFunc::getClen("VRML::Field::$node->{Type}{FieldTypes}{$field}"->clength($field));
+		}
+		if ($il == 0) {
 			print "add_route, dont handle $eventOut types in C yet\n";
-			return (0,0,0,0);
+			return (0,0,0,0,0);
 		}
 	} else {
 		# is this an interpolator that is handled by C yet?
-		$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
+		if ($is_proto) {
+			$il = VRML::VRMLFunc::InterpPointer($proto_node->{Type}{Name});
+		} else {
+			$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
+		}
 		#print "interp pointer for ",$node->{Type}{Name}," is $il\n";
 	}
 
-	return ($outptr, $outoffset, $scrpt, 1,$il);
+	#return ($outptr, $outoffset, $scrpt, $is_count, $is_str, 1, $il);
+	#return ($outptr, $outoffset, $scrpt, 1, $il);
+
+	if ($direction =~ /eventIn/i) {
+		return ($to_count, $tonode_str, $scrpt, 1, $il);
+	} else {
+		return ($outptr, $outoffset, $scrpt, 1, $il);
+	}
 }
 
 
@@ -378,24 +470,29 @@ sub resolve_node_cnode {
 sub add_route {
 	my($this, $scene, $fromNode, $eventOut, $toNode, $eventIn) = @_;
 
-	my $outoffset;
-	my $inoffset;
 	my $outptr;
-	my $inptr;
+	my $outoffset;
+#	my $inptr;
+#	my $inoffset;
+	my $to_count = 0;
+	my $tonode_str = "";
 	my $datalen;
 	my $scrpt = 0;
+	my $is_count = 0;
+	my $is_str = "";
 	my $extraparam = 0;
 	my $fc = 0; my $tc = 0; #from and to script nodes.
 
 	# print "\nstart of add_route, $scene, $fromNode, $eventOut, $toNode, $eventIn\n";
 
 	# FROM NODE
-	my ($outptr,$outoffset,$fc,$ok,$datalen) = $this->resolve_node_cnode ($scene,$fromNode,$eventOut,"eventOut");
+	my ($outptr, $outoffset, $fc, $ok, $datalen) = $this->resolve_node_cnode($scene, $fromNode, $eventOut, "eventOut");
 	if ($ok == 0) {return 1;} # error message already printed
 
 
 	# TO NODE
-	my ($inptr,$inoffset,$tc,$ok,$intptr) = $this->resolve_node_cnode ($scene,$toNode,$eventIn,"eventIn");
+#	my ($inptr, $inoffset, $tc, $ok, $intptr) = $this->resolve_node_cnode($scene, $toNode, $eventIn, "eventIn");
+	my ($to_count, $tonode_str, $tc, $ok, $intptr) = $this->resolve_node_cnode($scene, $toNode, $eventIn, "eventIn");
 	if ($eventIn eq "addChildren") {
 		$extraparam = 1;
 	}
@@ -404,9 +501,13 @@ sub add_route {
 
 	$scrpt = $fc + $tc;
 
-	#print "add_route, outptr $outptr, ofst $outoffset, inptr $inptr, ofst $inoffset len $datalen interp $intptr sc $scrpt\n";
-	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,
-		$intptr, $scrpt,$extraparam);
+	#print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
+
+#	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,
+#										$intptr, $scrpt, $extraparam);
+	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset,
+										$to_count, $tonode_str,
+										$datalen, $intptr, $scrpt, $extraparam);
 }
 
 ## needs to be tested with more than just the EAI AddRoute test and to have CRoutes added to it.
@@ -433,20 +534,15 @@ sub delete_route {
 	}
 }
 
-sub add_is_out {
-	my($this, $pn, $pf, $cn, $cf) = @_;
-	#print "adding ",VRML::NodeIntern::dump_name($pn), "field $pf to this $this cn ",
-	#	VRML::NodeIntern::dump_name($cn), " cf $cf\n";
+sub add_is {
+	my ($this, $nodeParent, $is, $node, $field) = @_;
+#	print "\nVRML::EventMachine::add_is: $this $node (", VRML::NodeIntern::dump_name($node), ") $field IS $nodeParent (", VRML::NodeIntern::dump_name($nodeParent), ") $is\n";
 
-	# CIs predates CRoutes; should be removed once CRoutes complete
-	$this->{CIs}{$cn}{$cf} = [$pn, $pf];
-	$this->{NCIs}{$pn}{$pf} = [$cn, $cf];
-}
+	#$this->{IS}{$nodeParent}{$is} = [ $node, $field ];
 
-sub add_is_in {
-	my($this, $pn, $pf, $cn, $cf) = @_;
-
-	push @{$this->{PIs}{$pn}{$pf}}, [$cn, $cf];
+	## VRML97 4.83: multiple IS statements for the fields, eventIns, and
+	## eventOuts in the prototype interface declaration is valid
+	push @{$this->{IS}{$nodeParent}{$is}}, [ $node, $field ];
 }
 
 sub register_listener {
@@ -495,6 +591,7 @@ sub propagate_events {
 		# Propagate our events as long as they last
 		$this->{Queue} = [];
 		@ne = ();
+
 		# Call eventsprocessed
 		#JAS - this happens only for Scripts, for now. Is it still required?
 		for (values %ep) {
@@ -517,12 +614,6 @@ sub send_event_to {
 	my $mych;
 	
 	print "send_event_to depreciated $node, $field, @{$value} ",{@{$value}}->{CNode},"\n";
-
-	#foreach $mych (@{$value}) {
-	#	print "sendevto ",$node->{BackNode}{CNode}, " field $field child $mych, BN ",
-	#			$mych->{BackNode}{CNode},"\n";
-	#}
-
 }
 
 # This sends a bind/unbind event TO node
@@ -549,17 +640,8 @@ sub send_set_bind_to {
 		return;
 	}
 
-	VRML::VRMLFunc::do_bind_to ($node->{TypeName}, $outptr, $bindValue);
+	VRML::VRMLFunc::do_bind_to($node->{TypeName}, $outptr, $bindValue);
 }
-
-#JAS sub put_events {
-#JAS 	my ($this, $events) = @_;
-#JAS 	# print "Put_events\n";
-#JAS 	#for (@$events) {
-#JAS 	#	die("Invalid put_events event $_\n") if (ref $_ ne "ARRAY");
-#JAS 	#}
-#JAS 	#push @{$this->{Queue}}, @$events;
-#JAS }
 
 sub handle_touched {
 	my($this, $node, $but, $move, $over) = @_;

@@ -238,7 +238,6 @@ sub new {
 		($this->{IsProto} ? " PROTO" : ""),
 			" $this->{Type} $this->{TypeName} ", dump_name($this), "\n"
 				if $VRML::verbose::nodec;
-
     return $this;
 }
 
@@ -456,17 +455,17 @@ sub iterate_nodes {
 	my $ft;
 
     print "VRML::NodeIntern::iterate_nodes: ", VRML::Debug::toString(\@_),
-		"\n" if $VRML::verbose::scene;
+		", node type name: $this->{TypeName}\n" if $VRML::verbose::scene;
 
     &$sub($this, $parent);
 
 	for (keys %{$this->{Fields}}) {
 		$ft = $this->{Type}{FieldTypes}{$_};
 		if ($ft =~ /SFNode$/) {
-			print "\tField type SFNode\n" if $VRML::verbose::scene;
+			print "\t$_: Field type SFNode\n" if $VRML::verbose::scene;
 			$this->{Fields}{$_}->iterate_nodes($sub, $this);
 		} elsif ($ft =~ /MFNode$/) {
-			print "\tField type MFNode\n" if $VRML::verbose::scene;
+			print "\t$_: Field type MFNode\n" if $VRML::verbose::scene;
 			my $ref = $this->{RFields}{$_};
 			for (@{$ref}) {
 				print "\titerate_nodes 3 going down... $_\n" if $VRML::verbose::scene;
@@ -663,6 +662,7 @@ sub set_backend_fields {
 			}
 
 			my $ben = $be->new_node($this->{TypeName});
+
 			$this->{BackNode} = $ben;
 			$this->{BackEnd} = $be;
 			$this->set_backend_fields();

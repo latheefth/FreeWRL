@@ -20,13 +20,17 @@ sub new {
 		VRMLName => $vrmlname
 	}, $type;
 
+	print "VRML::DEF::new: ", VRML::Debug::toString($this), "\n"
+		if $VRML::verbose::scene;
+
 	return $this;
 }
 
 sub copy {
 	my ($this, $node) = @_;
 
-	return (ref $this)->new($this->{Name}, $this->{Node}->copy($node), $this->{VRMLName});
+	return (ref $this)->new($this->{Name},
+							$this->{Node}->copy($node), $this->{VRMLName});
 }
 
 sub make_executable {
