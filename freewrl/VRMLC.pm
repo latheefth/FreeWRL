@@ -28,8 +28,11 @@
 #  do normals for indexedfaceset
 #
 # $Log$
-# Revision 1.1  2000/08/04 07:07:38  rcoscali
-# Initial revision
+# Revision 1.2  2000/08/06 19:48:37  rcoscali
+# Fixed Cylinder. Now attacking cone.
+#
+# Revision 1.1.1.1  2000/08/04 07:07:38  rcoscali
+# initial import (creation) of sources repository
 #
 #
 
@@ -903,6 +906,121 @@ static struct VRML_Virt virt_${n} = { ".
 		print "$_ (",length($c),") ";
 		# Substitute field gets
 		$c =~ s~\$tex2d\(([^)]*)\)~
+		  {
+			int rx,sx,ry,sy;
+			unsigned char *ptr = SvPV(\$f(__data$1),PL_na);
+			if(\$f(__depth$1) && \$f(__x$1) && \$f(__y$1)) {
+				
+				unsigned char *dest = ptr;
+			        int x, y;
+				printf ("repeatS = %s   repeatT = %s\\n", \$f(repeatS$1) ? "GL_REPEAT" : "GL_CLAMP", \$f(repeatT$1) ? "GL_REPEAT" : "GL_CLAMP" );
+
+				rx = 1; sx = \$f(__x$1);
+				while(sx) {sx /= 2; rx *= 2;}
+				if(rx/2 == \$f(__x$1)) {rx /= 2;}
+				ry = 1; sy = \$f(__y$1);
+				while(sy) {sy /= 2; ry *= 2;}
+				if(ry/2 == \$f(__y$1)) {ry /= 2;}
+
+				glEnable(GL_LIGHTING);
+				glColor3f(1.0,1.0,1.0);
+					
+				printf("Doing texture image %d %d %d\\n",\$f(__depth$1),\$f(__x$1),\$f(__y$1));
+			
+				glEnable(GL_TEXTURE_2D);
+
+				if(rx != \$f(__x$1) || ry != \$f(__y$1)) {
+                                        fprintf( stderr, "Warning ! The texture coordinates you specified are not power of two !\\nThe image will be scaled & colors will be distorded !\\n" );
+					/* We have to scale: tex dim have to be power of 2 */
+					dest = malloc(\$f(__depth$1) * rx * ry);
+					printf("Scaling %d %d to %d %d\\n",
+					 	\$f(__x$1), \$f(__y$1) ,
+					 	rx, ry);
+					gluScaleImage(
+					     \$f(__depth$1),
+					     \$f(__x$1), \$f(__y$1),
+					     GL_UNSIGNED_BYTE,
+					     ptr,
+					     rx, ry,
+					     GL_UNSIGNED_BYTE,
+					     dest
+					);
+					fprintf (stderr, "end of gluScaleImage\n");
+				}
+
+			printf ("VRMLC.pm - get_rendfunc\n");
+/* void print_gl_stuff() */
+{
+  float buf[4] = {-9.9, -9.9, -9.9, -9.9};
+
+  glGetMaterialfv (GL_FRONT, GL_SPECULAR,buf);
+			  printf ("GL_FRONT, GL_SPECULAR %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_FRONT, GL_AMBIENT,buf);
+			  printf ("GL_FRONT, GL_AMBIENT %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_FRONT, GL_DIFFUSE,buf);
+			  printf ("GL_FRONT, GL_DIFFUSE %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_FRONT, GL_EMISSION,buf);
+			  printf ("GL_FRONT, GL_EMISSION %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_FRONT, GL_SHININESS,buf);
+			  printf ("GL_FRONT, GL_SHINESSES %2.2f \\n",buf[0]);
+  glGetMaterialfv (GL_FRONT, GL_COLOR_INDEXES,buf);
+			  printf ("GL_FRONT, GL_COLOR_INDEXES %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  
+  glGetMaterialfv (GL_BACK, GL_SPECULAR,buf);
+			  printf ("GL_BACK, GL_SPECULAR %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_BACK, GL_AMBIENT,buf);
+			  printf ("GL_BACK, GL_AMBIENT %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_BACK, GL_DIFFUSE,buf);
+			  printf ("GL_BACK, GL_DIFFUSE %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_BACK, GL_EMISSION,buf);
+			  printf ("GL_BACK, GL_EMISSION %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+  glGetMaterialfv (GL_BACK, GL_SHININESS,buf);
+			  printf ("GL_BACK, GL_SHININESS %2.2f \\n",buf[0]);
+  glGetMaterialfv (GL_BACK, GL_COLOR_INDEXES,buf);
+			  printf ("GL_BACK, GL_COLOR_INDEXES %2.2f %2.2f %2.2f %2.2f\\n",buf[0],buf[1],buf[2],buf[3]);
+ glGetLightfv (GL_LIGHT0, GL_AMBIENT, buf);
+			  printf ("GL_LIGHT0, GL_AMBIENT %2.2f %2.2f %2.2f %2.2f\\n",buf[0], buf[1],buf[2],buf[3]);
+  glGetLightfv (GL_LIGHT0, GL_DIFFUSE, buf);
+			  printf ("GL_LIGHT0, GL_DIFFUSE %2.2f %2.2f %2.2f %2.2f\\n",buf[0], buf[1],buf[2],buf[3]);
+  glGetLightfv (GL_LIGHT0, GL_SPECULAR, buf);
+			  printf ("GL_LIGHT0, GL_SPECULAR %2.2f %2.2f %2.2f %2.2f\\n",buf[0], buf[1],buf[2],buf[3]);
+  glGetLightfv (GL_LIGHT0, GL_POSITION, buf);
+			  printf ("GL_LIGHT0, GL_POSITION %2.2f %2.2f %2.2f %2.2f\\n",buf[0], buf[1],buf[2],buf[3]);
+  glGetLightfv (GL_LIGHT0, GL_SPOT_DIRECTION, buf);
+			  printf ("GL_LIGHT0, GL_SPOT_DIRECTION %2.2f %2.2f %2.2f \\n",buf[0], buf[1],buf[2]);
+  glGetLightfv (GL_LIGHT0, GL_SPOT_EXPONENT, buf);
+			  printf ("GL_LIGHT0, GL_SPOT_EXPONENT %2.2f\\n",buf[0]);
+  glGetLightfv (GL_LIGHT0, GL_SPOT_CUTOFF, buf);
+			  printf ("GL_LIGHT0, GL_SPOT_CUTOFF %2.2f\\n",buf[0]);
+  glGetLightfv (GL_LIGHT0, GL_CONSTANT_ATTENUATION, buf);
+			  printf ("GL_LIGHT0, GL_CONSTANT_ATTENUATION %2.2f\\n",buf[0]);
+  glGetLightfv (GL_LIGHT0, GL_LINEAR_ATTENUATION, buf);
+			  printf ("GL_LIGHT0, GL_SPOT_LINEAR_ATTENUATION %2.2f\\n",buf[0]);
+  glGetLightfv (GL_LIGHT0, GL_QUADRATIC_ATTENUATION, buf);
+			  printf ("GL_LIGHT0, GL_SPOT_QUADRATIC_ATTENUATION %2.2f\\n",buf[0]);
+ 
+			  printf ("\\n"); 
+}
+				glTexImage2D(GL_TEXTURE_2D,
+					     0, 
+					     \$f(__depth$1),  
+					     rx, ry,
+					     0,
+					     ((\$f(__depth$1))==1 ? GL_LUMINANCE : GL_RGB),
+					     GL_UNSIGNED_BYTE,
+					     dest
+				);
+
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, \$f(repeatS$1) ? GL_REPEAT : GL_CLAMP );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, \$f(repeatT$1) ? GL_REPEAT : GL_CLAMP );
+
+				if(ptr != dest) free(dest);
+			}
+		     }
+			~g;
+		$c =~ s~\$ptex2d\(([^)]*)\)~
 		  {
 			int rx,sx,ry,sy;
 			unsigned char *ptr = SvPV(\$f(__data$1),PL_na);

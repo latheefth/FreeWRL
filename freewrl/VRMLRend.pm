@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.3  2000/08/06 19:48:37  rcoscali
+# Fixed Cylinder. Now attacking cone.
+#
 # Revision 1.2  2000/08/04 22:54:41  rcoscali
 # Add a cvs header, mainly for test
 #
@@ -120,37 +123,41 @@ Cylinder => '
 		float r = $f(radius);
 		float a,a1,a2;
 		DECL_TRIG1
-		int i;
+		int i = 0;
 		$start_list();
 		INIT_TRIG1(div)
-		if($f(bottom)) {
-            /* printf ("Cylinder : bottom\n"); */
+
+		if($f(top)) {
+			            /*	printf ("Cylinder : top\n"); */
 			glBegin(GL_POLYGON);
 			glNormal3f(0,1,0);
 			START_TRIG1
 			for(i=0; i<div; i++) {
-				TC(0.5+0.5*SIN1,0.5+0.5*SIN1);
-				glVertex3f(r*SIN1,h,r*COS1);
-				UP_TRIG1
-			}
-			glEnd();
-		} else {
-			/* printf ("Cylinder : NO bottom\n"); */
-		} 
-		if($f(top)) {
-			            /*	printf ("Cylinder : top\n"); */
-			glBegin(GL_POLYGON);
-			glNormal3f(0,-1,0);
-			START_TRIG1
-			for(i=div-1; i>=0; i--) {
-				TC(0.5+0.5*-SIN1,0.5+0.5*COS1);
-				glVertex3f(-r*SIN1,-h,r*COS1);
+printf("top arc #%d  coord[%2.7f, %2.7f, %2.7f]      \\ttexccord[%2.7f, %2.7f]       COS1 = %2.7f     SIN = %2.7f\\n", i, -r*SIN1, (float)+h, r*COS1, 0.5 - 0.5*SIN1, 0.5 -0.5*COS1, COS1, SIN1);
+				TC( 0.5 - 0.5*SIN1, 0.5 - 0.5*COS1);
+				glVertex3f( -r*SIN1, (float)h, r*COS1 );
 				UP_TRIG1
 			}
 			glEnd();
 		} else {
 			/* printf ("Cylinder : NO top\n"); */
 		}
+
+		if($f(bottom)) {
+            		/* printf ("Cylinder : bottom\n"); */
+			glBegin(GL_POLYGON);
+			glNormal3f(0,-1,0);
+			START_TRIG1
+			for(i=0; i<div; i++) {
+printf("bottom arc #%d  coord[%2.7f, %2.7f, %2.7f]      \\ttexccord[%2.7f, %2.7f]       COS1 = %2.7f     SIN = %2.7f\\n", i, r*SIN1, (float)-h, r*COS1, 0.5 + 0.5*SIN1, 0.5 + 0.5*COS1, COS1, SIN1);
+				TC(0.5+0.5*SIN1,0.5+0.5*COS1);
+				glVertex3f(r*SIN1,(float)-h,r*COS1);
+				UP_TRIG1
+			}
+			glEnd();
+		} else {
+			/* printf ("Cylinder : NO bottom\n"); */
+		} 
 
 		if($f(side)) {
 				/* if(!nomode) {
@@ -163,18 +170,24 @@ Cylinder => '
 				float lsin = SIN1;
 				float lcos = COS1;
 				UP_TRIG1;
-				glNormal3f(lsin,0,lcos);
-				TC(i/df,0);
-				glVertex3f(r*lsin,-h,r*lcos);
-				glNormal3f(SIN1,0,COS1);
-				TC((i+1)/df,0);
-				glVertex3f(r*SIN1,-h,r*COS1);
-				/* glNormal3f(sin(a1),0,cos(a1));  (same) */
-				TC((i+1)/df,1);
-				glVertex3f(r*SIN1,h,r*COS1);
-				glNormal3f(lsin,0,lcos);
-				TC(i/df,1);
-				glVertex3f(r*lsin,h,r*lcos);
+
+				glNormal3f(lsin, 0.0, lcos);
+ 				TC(1.0-((float)i/df), 1.0);
+				 glVertex3f((float)r*lsin, (float)h, (float)r*lcos);
+
+				glNormal3f(SIN1, 0.0, COS1);
+ 				TC(1.0-(((float)i+1.0)/df), 1.0);
+				glVertex3f(r*SIN1,  (float)h, r*COS1);
+
+				/* glNormal3f(SIN1, 0.0, COS1); (same) */
+				TC(1.0-(((float)i+1.0)/df), 0.0);
+				glVertex3f(r*SIN1, (float)-h, r*COS1);
+
+				glNormal3f(lsin, 0.0, lcos);
+				TC(1.0-((float)i/df), 0.0);
+				glVertex3f(r*lsin, (float)-h, r*lcos);
+
+
 			}
 			glEnd();
 				/*
@@ -565,7 +578,7 @@ ImageTexture => ('
 
 PixelTexture => ('
 	$start_list();
-	$tex2d();
+	$ptex2d();
 
 	$end_list();
 '),

@@ -191,7 +191,7 @@ sub init_image {
 			my $tempfile_name = "/tmp/freewrl_";
 			$tempfile = join '', $tempfile_name,$lgname,".png";
 	
-			my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
+			my $cmd = "$VRML::Browser::CONVERT -flip $file $tempfile";
 			my $status = system ($cmd);
 			die "$image conversion problem: '$cmd' returns $?"
 				unless $status == 0;
