@@ -85,18 +85,22 @@ int   myff;		// which index into font_face are we using
 
 /* for keeping track of tesselated points */
 int relative_index[500];	/* pointer to which point is returned by tesselator  */
-int relindx = 0;		/* index into relative_index			     */
+int relindx;			/* index into relative_index			     */
 struct VRML_PolyRep *rep_;	/* this is the internal rep of the polyrep	     */
-int point_count=0;		/* how many points used so far? maps into rep-_coord */
-int indx_count=0;		/* maps intp rep_->cindex			     */
+int point_count;		/* how many points used so far? maps into rep-_coord */
+int indx_count;			/* maps intp rep_->cindex			     */
 int coordmaxsize;		/* maximum coords before needing to realloc	     */
 int cindexmaxsize;		/* maximum cindexes before needing to realloc        */
 
 
 /* Outline callbacks and global vars */
-int contour_started = FALSE;
+int contour_started;
 FT_Vector last_point;
 int FW_Vertex;
+
+/* flag to determine if we need to call the open_font call */ 
+int started = FALSE;
+
 
 int FW_moveto ( FT_Vector* to, void* user) {
 
@@ -383,9 +387,26 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 
 	/* have we done any rendering yet */
 
+	/* do we need to call open font? */
+	if (!started) {
+		if (strlen(sys_fp) ==0) {
+			printf ("Could not find System Fonts for Text nodes\n");
+			return;
+		}
+		open_font();
+		started = TRUE;
+	}
+
 	if (TextVerbose) printf ("entering FW_Render_text \n");
 
 	rep_ = rp;
+
+
+	relindx = 0;                /* index into relative_index                         */
+	point_count=0;              /* how many points used so far? maps into rep-_coord */
+	indx_count=0;               /* maps intp rep_->cindex                            */
+	contour_started = FALSE;
+
 
 	pen_x = 0.0; pen_y = 0.0;
 	cur_glyph = 0;
