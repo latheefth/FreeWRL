@@ -415,6 +415,7 @@ sub eventloop {
 		if (VRML::VRMLFunc::BrowserAction()) {
 			my $action;
 			my $try;
+			my $url;
 			my @stgs;
 			my $string;
 
@@ -423,9 +424,9 @@ sub eventloop {
 			# split the string up, if there are more items than one. 
 			@stgs = split (" ",$action);
 			foreach $try (@stgs) {
-				$string = VRML::URL::get_absolute($try); 		
+				($string, $url) = VRML::NodeType::getTextFromURLs($this->{Scene}, $try);
 				if (defined $string) {
-					$this->load_file_intro($try);
+					$this->load_file_intro($url);
 				}
 			}
 		}
