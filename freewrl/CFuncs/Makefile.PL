@@ -48,8 +48,5 @@ vpath %.c
 
 all :: ${O_FILES}
 
-clean ::
-	rm ${O_FILES}
-
     /;
 }
