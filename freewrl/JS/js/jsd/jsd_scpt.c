@@ -1,23 +1,42 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: NPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Netscape Public License
- * Version 1.0 (the "NPL"); you may not use this file except in
- * compliance with the NPL.  You may obtain a copy of the NPL at
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
  * http://www.mozilla.org/NPL/
  *
- * Software distributed under the NPL is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the NPL
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
- * NPL.
+ * License.
  *
- * The Initial Developer of this code under the NPL is Netscape
- * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation.  All Rights
- * Reserved.
- */
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is 
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the NPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the NPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 /*
- * JavaScript Debugger API - Script support
+ * JavaScript Debugging support - Script support
  */
 
 #include "jsd.h"
@@ -36,13 +55,13 @@
 #ifdef DEBUG
 void JSD_ASSERT_VALID_SCRIPT(JSDScript* jsdscript)
 {
-    PR_ASSERT(jsdscript);
-    PR_ASSERT(jsdscript->script);
+    JS_ASSERT(jsdscript);
+    JS_ASSERT(jsdscript->script);
 }
 void JSD_ASSERT_VALID_EXEC_HOOK(JSDExecHook* jsdhook)
 {
-    PR_ASSERT(jsdhook);
-    PR_ASSERT(jsdhook->hook);
+    JS_ASSERT(jsdhook);
+    JS_ASSERT(jsdhook->hook);
 }
 #endif
 
@@ -58,7 +77,7 @@ HasFileExtention(const char* name, const char* ext)
     p++;
     for(i = 0; i < len; i++ )
     {
-        PR_ASSERT(islower(ext[i]));
+        JS_ASSERT(islower(ext[i]));
         if( 0 == p[i] || tolower(p[i]) != ext[i] )
             return JS_FALSE;
     }
@@ -78,7 +97,7 @@ _newJSDScript(JSDContext*  jsdc,
     uintN     lineno;
     const char* raw_filename;
 
-    PR_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
+    JS_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
 
     /* these are inlined javascript: urls and we can't handle them now */
     lineno = (uintN) JS_GetScriptBaseLineNumber(cx, script);
@@ -90,13 +109,15 @@ _newJSDScript(JSDContext*  jsdc,
         return NULL;
 
     raw_filename = JS_GetScriptFilename(cx,script);
-    
-    PR_APPEND_LINK(&jsdscript->links, &jsdc->scripts);
+
+    JS_HashTableAdd(jsdc->scriptsTable, (void *)script, (void *)jsdscript);
+    JS_APPEND_LINK(&jsdscript->links, &jsdc->scripts);
     jsdscript->jsdc         = jsdc;
     jsdscript->script       = script;        
     jsdscript->function     = function;
     jsdscript->lineBase     = lineno;
     jsdscript->lineExtent   = (uintN)NOT_SET_YET;
+    jsdscript->data         = NULL;
 #ifndef LIVEWIRE
     jsdscript->url          = (char*) jsd_BuildNormalizedURL(raw_filename);
 #else
@@ -124,7 +145,7 @@ _newJSDScript(JSDContext*  jsdc,
     }
 #endif
 
-    PR_INIT_CLIST(&jsdscript->hooks);
+    JS_INIT_CLIST(&jsdscript->hooks);
     
     return jsdscript;
 }           
@@ -133,15 +154,18 @@ static void
 _destroyJSDScript(JSDContext*  jsdc,
                   JSDScript*   jsdscript)
 {
-    PR_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
+    JS_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
 
     /* destroy all hooks */
     jsd_ClearAllExecutionHooksForScript(jsdc, jsdscript);
 
-    PR_REMOVE_LINK(&jsdscript->links);
+    JS_REMOVE_LINK(&jsdscript->links);
     if(jsdscript->url)
         free(jsdscript->url);
 
+    if (jsdscript->profileData)
+        free(jsdscript->profileData);
+    
     if(jsdscript)
         free(jsdscript);
 }
@@ -149,6 +173,14 @@ _destroyJSDScript(JSDContext*  jsdc,
 /***************************************************************************/
 
 #ifdef JSD_DUMP
+#ifndef XP_WIN
+void
+OutputDebugString (char *buf)
+{
+    fprintf (stderr, "%s", buf);
+}
+#endif
+
 static void
 _dumpJSDScript(JSDContext* jsdc, JSDScript* jsdscript, const char* leadingtext)
 {
@@ -185,47 +217,170 @@ _dumpJSDScriptList( JSDContext* jsdc )
 #endif /* JSD_DUMP */
 
 /***************************************************************************/
-void 
-jsd_DestroyAllJSDScripts( JSDContext* jsdc )
+JS_STATIC_DLL_CALLBACK(JSHashNumber)
+jsd_hash_script(const void *key)
 {
-    JSDScript *jsdscript;
-    JSDScript *next;
+    return ((JSHashNumber) key) >> 2; /* help lame MSVC1.5 on Win16 */
+}
 
-    PR_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
+JS_STATIC_DLL_CALLBACK(void *)
+jsd_alloc_script_table(void *priv, size_t size)
+{
+    return malloc(size);
+}
 
-    for( jsdscript = (JSDScript*)jsdc->scripts.next;
-         jsdscript != (JSDScript*)&jsdc->scripts;
-         jsdscript = next )
+JS_STATIC_DLL_CALLBACK(void)
+jsd_free_script_table(void *priv, void *item)
+{
+    free(item);
+}
+
+JS_STATIC_DLL_CALLBACK(JSHashEntry *)
+jsd_alloc_script_entry(void *priv, const void *item)
+{
+    return (JSHashEntry*) malloc(sizeof(JSHashEntry));
+}
+
+JS_STATIC_DLL_CALLBACK(void)
+jsd_free_script_entry(void *priv, JSHashEntry *he, uintN flag)
+{
+    if (flag == HT_FREE_ENTRY)
     {
-        next = (JSDScript*)jsdscript->links.next;
-        _destroyJSDScript( jsdc, jsdscript );
+        _destroyJSDScript((JSDContext*) priv, (JSDScript*) he->value);
+        free(he);
     }
+}
+
+static JSHashAllocOps script_alloc_ops = {
+    jsd_alloc_script_table, jsd_free_script_table,
+    jsd_alloc_script_entry, jsd_free_script_entry
+};
+
+#ifndef JSD_SCRIPT_HASH_SIZE
+#define JSD_SCRIPT_HASH_SIZE 1024
+#endif
+
+JSBool
+jsd_InitScriptManager(JSDContext* jsdc)
+{
+    JS_INIT_CLIST(&jsdc->scripts);
+    jsdc->scriptsTable = JS_NewHashTable(JSD_SCRIPT_HASH_SIZE, jsd_hash_script,
+                                         JS_CompareValues, JS_CompareValues,
+                                         &script_alloc_ops, (void*) jsdc);
+    return (JSBool) jsdc->scriptsTable;
+}
+
+void
+jsd_DestroyScriptManager(JSDContext* jsdc)
+{
+    JSD_LOCK_SCRIPTS(jsdc);
+    if (jsdc->scriptsTable)
+        JS_HashTableDestroy(jsdc->scriptsTable);
+    JSD_UNLOCK_SCRIPTS(jsdc);
 }
 
 JSDScript*
 jsd_FindJSDScript( JSDContext*  jsdc,
                    JSScript     *script )
 {
-    JSDScript *jsdscript;
-
-    PR_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
-
-    for( jsdscript = (JSDScript *)jsdc->scripts.next;
-         jsdscript != (JSDScript *)&jsdc->scripts;
-         jsdscript = (JSDScript *)jsdscript->links.next )
-    {
-        if (jsdscript->script == script)
-            return jsdscript;
-    }
-    return NULL;
+    JS_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
+    return (JSDScript*) JS_HashTableLookup(jsdc->scriptsTable, (void *)script);
 }               
+
+JSDProfileData*
+jsd_GetScriptProfileData(JSDContext* jsdc, JSDScript *script)
+{
+    if (!script->profileData)
+        script->profileData = (JSDProfileData*)calloc(1, sizeof(JSDProfileData));
+
+    return script->profileData;
+}
+
+uint32
+jsd_GetScriptFlags(JSDContext *jsdc, JSDScript *script)
+{
+    return script->flags;
+}
+
+void
+jsd_SetScriptFlags(JSDContext *jsdc, JSDScript *script, uint32 flags)
+{
+    script->flags = flags;
+}
+
+uintN
+jsd_GetScriptCallCount(JSDContext* jsdc, JSDScript *script)
+{
+    if (script->profileData)
+        return script->profileData->callCount;
+
+    return 0;
+}
+
+uintN
+jsd_GetScriptMaxRecurseDepth(JSDContext* jsdc, JSDScript *script)
+{
+    if (script->profileData)
+        return script->profileData->maxRecurseDepth;
+
+    return 0;
+}
+
+jsdouble
+jsd_GetScriptMinExecutionTime(JSDContext* jsdc, JSDScript *script)
+{
+    if (script->profileData)
+        return script->profileData->minExecutionTime;
+
+    return 0.0;
+}
+
+jsdouble
+jsd_GetScriptMaxExecutionTime(JSDContext* jsdc, JSDScript *script)
+{
+    if (script->profileData)
+        return script->profileData->maxExecutionTime;
+
+    return 0.0;
+}
+
+jsdouble
+jsd_GetScriptTotalExecutionTime(JSDContext* jsdc, JSDScript *script)
+{
+    if (script->profileData)
+        return script->profileData->totalExecutionTime;
+
+    return 0.0;
+}
+
+void
+jsd_ClearScriptProfileData(JSDContext* jsdc, JSDScript *script)
+{
+    if (script->profileData)
+    {
+        free(script->profileData);
+        script->profileData = NULL;
+    }
+}    
+
+JSScript *
+jsd_GetJSScript (JSDContext *jsdc, JSDScript *script)
+{
+    return script->script;
+}
+
+JSFunction *
+jsd_GetJSFunction (JSDContext *jsdc, JSDScript *script)
+{
+    return script->function;
+}
 
 JSDScript*
 jsd_IterateScripts(JSDContext* jsdc, JSDScript **iterp)
 {
     JSDScript *jsdscript = *iterp;
     
-    PR_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
+    JS_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
 
     if( !jsdscript )
         jsdscript = (JSDScript *)jsdc->scripts.next;
@@ -235,12 +390,26 @@ jsd_IterateScripts(JSDContext* jsdc, JSDScript **iterp)
     return jsdscript;
 }
 
+void *
+jsd_SetScriptPrivate(JSDScript *jsdscript, void *data)
+{
+    void *rval = jsdscript->data;
+    jsdscript->data = data;
+    return rval;
+}
+
+void *
+jsd_GetScriptPrivate(JSDScript *jsdscript)
+{
+    return jsdscript->data;
+}
+
 JSBool
 jsd_IsActiveScript(JSDContext* jsdc, JSDScript *jsdscript)
 {
     JSDScript *current;
 
-    PR_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
+    JS_ASSERT(JSD_SCRIPTS_LOCKED(jsdc));
 
     for( current = (JSDScript *)jsdc->scripts.next;
          current != (JSDScript *)&jsdc->scripts;
@@ -275,12 +444,12 @@ jsd_GetScriptBaseLineNumber(JSDContext* jsdc, JSDScript *jsdscript)
 uintN
 jsd_GetScriptLineExtent(JSDContext* jsdc, JSDScript *jsdscript)
 {
-    if( NOT_SET_YET == jsdscript->lineExtent )
+    if( NOT_SET_YET == (int)jsdscript->lineExtent )
         jsdscript->lineExtent = JS_GetScriptLineExtent(jsdc->dumbContext, jsdscript->script);
     return jsdscript->lineExtent;
 }
 
-pruword
+jsuword
 jsd_GetClosestPC(JSDContext* jsdc, JSDScript* jsdscript, uintN line)
 {
 #ifdef LIVEWIRE
@@ -293,12 +462,12 @@ jsd_GetClosestPC(JSDContext* jsdc, JSDScript* jsdscript, uintN line)
     }
 #endif
 
-    return (pruword) JS_LineNumberToPC(jsdc->dumbContext, 
-                                        jsdscript->script, line );
+    return (jsuword) JS_LineNumberToPC(jsdc->dumbContext, 
+                                       jsdscript->script, line );
 }
 
 uintN
-jsd_GetClosestLine(JSDContext* jsdc, JSDScript* jsdscript, pruword pc)
+jsd_GetClosestLine(JSDContext* jsdc, JSDScript* jsdscript, jsuword pc)
 {
     uintN first = jsdscript->lineBase;
     uintN last = first + jsd_GetScriptLineExtent(jsdc, jsdscript) - 1;
@@ -346,7 +515,7 @@ jsd_GetScriptHook(JSDContext* jsdc, JSD_ScriptHookProc* hook, void** callerdata)
 
 /***************************************************************************/
 
-void PR_CALLBACK
+void JS_DLL_CALLBACK
 jsd_NewScriptHookProc( 
                 JSContext   *cx,
                 const char  *filename,      /* URL this script loads from */
@@ -365,8 +534,6 @@ jsd_NewScriptHookProc(
     if( JSD_IS_DANGEROUS_THREAD(jsdc) )
         return;
     
-    jsd_JSContextUsed(jsdc, cx);
-
 #ifdef LIVEWIRE
     if( 1 == lineno )
         jsdlw_PreLoadSource(jsdc, LWDBG_GetCurrentApp(), filename, JS_TRUE );
@@ -392,10 +559,10 @@ jsd_NewScriptHookProc(
     JSD_UNLOCK();
 
     if( hook )
-        hook(jsdc, jsdscript, PR_TRUE, hookData);
+        hook(jsdc, jsdscript, JS_TRUE, hookData);
 }                
 
-void PR_CALLBACK
+void JS_DLL_CALLBACK
 jsd_DestroyScriptHookProc( 
                 JSContext   *cx,
                 JSScript    *script,
@@ -411,8 +578,6 @@ jsd_DestroyScriptHookProc(
     if( JSD_IS_DANGEROUS_THREAD(jsdc) )
         return;
     
-    jsd_JSContextUsed(jsdc, cx);
-
     JSD_LOCK_SCRIPTS(jsdc);
     jsdscript = jsd_FindJSDScript(jsdc, script);
     JSD_UNLOCK_SCRIPTS(jsdc);
@@ -433,10 +598,10 @@ jsd_DestroyScriptHookProc(
     JSD_UNLOCK();
 
     if( hook )
-        hook(jsdc, jsdscript, PR_FALSE, hookData);
+        hook(jsdc, jsdscript, JS_FALSE, hookData);
 
     JSD_LOCK_SCRIPTS(jsdc);
-    _destroyJSDScript(jsdc, jsdscript);
+    JS_HashTableRemove(jsdc->scriptsTable, (void *)script);
     JSD_UNLOCK_SCRIPTS(jsdc);
 
 #ifdef JSD_DUMP
@@ -450,10 +615,10 @@ jsd_DestroyScriptHookProc(
 /***************************************************************************/
 
 static JSDExecHook*
-_findHook(JSDContext* jsdc, JSDScript* jsdscript, pruword pc)
+_findHook(JSDContext* jsdc, JSDScript* jsdscript, jsuword pc)
 {
     JSDExecHook* jsdhook;
-    PRCList* list = &jsdscript->hooks;
+    JSCList* list = &jsdscript->hooks;
 
     for( jsdhook = (JSDExecHook*)list->next;
          jsdhook != (JSDExecHook*)list;
@@ -469,7 +634,7 @@ static JSBool
 _isActiveHook(JSDContext* jsdc, JSScript *script, JSDExecHook* jsdhook)
 {
     JSDExecHook* current;
-    PRCList* list;
+    JSCList* list;
     JSDScript* jsdscript;
 
     JSD_LOCK_SCRIPTS(jsdc);
@@ -497,13 +662,11 @@ _isActiveHook(JSDContext* jsdc, JSScript *script, JSDExecHook* jsdhook)
 }
 
 
-JSTrapStatus PR_CALLBACK
+JSTrapStatus JS_DLL_CALLBACK
 jsd_TrapHandler(JSContext *cx, JSScript *script, jsbytecode *pc, jsval *rval,
                 void *closure)
 {
-    uintN hookanswer = JSD_HOOK_RETURN_CONTINUE;
-    JSDThreadState* jsdthreadstate;
-    JSDExecHook* jsdhook = (JSDExecHook*) closure;
+    JSDExecHook* jsdhook = (JSDExecHook*) JSVAL_TO_PRIVATE(((jsval)closure));
     JSD_ExecutionHookProc hook;
     void* hookData;
     JSDContext*  jsdc;
@@ -519,9 +682,9 @@ jsd_TrapHandler(JSContext *cx, JSScript *script, jsbytecode *pc, jsval *rval,
     }
 
     JSD_ASSERT_VALID_EXEC_HOOK(jsdhook);
-    PR_ASSERT(jsdhook->pc == (pruword)pc);
-    PR_ASSERT(jsdhook->jsdscript->script == script);
-    PR_ASSERT(jsdhook->jsdscript->jsdc == jsdc);
+    JS_ASSERT(jsdhook->pc == (jsuword)pc);
+    JS_ASSERT(jsdhook->jsdscript->script == script);
+    JS_ASSERT(jsdhook->jsdscript->jsdc == jsdc);
 
     hook = jsdhook->hook;
     hookData = jsdhook->callerdata;
@@ -536,28 +699,13 @@ jsd_TrapHandler(JSContext *cx, JSScript *script, jsbytecode *pc, jsval *rval,
     if( JSD_IS_DANGEROUS_THREAD(jsdc) )
         return JSTRAP_CONTINUE;
 
-    jsd_JSContextUsed(jsdc, cx);
-
 #ifdef LIVEWIRE
-    if( ! jsdlw_UserCodeAtPC(jsdc, jsdscript, (pruword)pc) )
+    if( ! jsdlw_UserCodeAtPC(jsdc, jsdscript, (jsuword)pc) )
         return JSTRAP_CONTINUE;
 #endif
 
-    jsdthreadstate = jsd_NewThreadState(jsdc,cx);
-    if( jsdthreadstate )
-    {
-        hookanswer = hook(jsdc, jsdthreadstate, 
-                          JSD_HOOK_BREAKPOINT, hookData );
-
-        jsd_DestroyThreadState(jsdc, jsdthreadstate);
-    }
-
-    *rval = 0;           /* XXX extend this */
-
-    if( JSD_HOOK_RETURN_ABORT == hookanswer )
-        return JSTRAP_ERROR;
-
-    return JSTRAP_CONTINUE; /* XXX extend this */
+    return jsd_CallExecutionHook(jsdc, cx, JSD_HOOK_BREAKPOINT,
+                                 hook, hookData, rval);
 }
 
 
@@ -565,7 +713,7 @@ jsd_TrapHandler(JSContext *cx, JSScript *script, jsbytecode *pc, jsval *rval,
 JSBool
 jsd_SetExecutionHook(JSDContext*           jsdc, 
                      JSDScript*            jsdscript,
-                     pruword               pc,
+                     jsuword               pc,
                      JSD_ExecutionHookProc hook,
                      void*                 callerdata)
 {
@@ -597,13 +745,14 @@ jsd_SetExecutionHook(JSDContext*           jsdc,
     jsdhook->callerdata = callerdata;
 
     if( ! JS_SetTrap(jsdc->dumbContext, jsdscript->script, 
-                     (jsbytecode*)pc, jsd_TrapHandler, (void*) jsdhook) )
+                     (jsbytecode*)pc, jsd_TrapHandler, 
+                     (void*) PRIVATE_TO_JSVAL(jsdhook)) )
     {
         free(jsdhook);
         return JS_FALSE;
     }
 
-    PR_APPEND_LINK(&jsdhook->links, &jsdscript->hooks);
+    JS_APPEND_LINK(&jsdhook->links, &jsdscript->hooks);
     JSD_UNLOCK();
 
     return JS_TRUE;
@@ -612,7 +761,7 @@ jsd_SetExecutionHook(JSDContext*           jsdc,
 JSBool
 jsd_ClearExecutionHook(JSDContext*           jsdc, 
                        JSDScript*            jsdscript,
-                       pruword               pc)
+                       jsuword               pc)
 {
     JSDExecHook* jsdhook;
 
@@ -621,7 +770,7 @@ jsd_ClearExecutionHook(JSDContext*           jsdc,
     jsdhook = _findHook(jsdc, jsdscript, pc);
     if( ! jsdhook )
     {
-        PR_ASSERT(0);
+        JS_ASSERT(0);
         JSD_UNLOCK();
         return JS_FALSE;
     }
@@ -629,7 +778,7 @@ jsd_ClearExecutionHook(JSDContext*           jsdc,
     JS_ClearTrap(jsdc->dumbContext, jsdscript->script, 
                  (jsbytecode*)pc, NULL, NULL );
 
-    PR_REMOVE_LINK(&jsdhook->links);
+    JS_REMOVE_LINK(&jsdhook->links);
     free(jsdhook);
 
     JSD_UNLOCK();
@@ -640,13 +789,13 @@ JSBool
 jsd_ClearAllExecutionHooksForScript(JSDContext* jsdc, JSDScript* jsdscript)
 {
     JSDExecHook* jsdhook;
-    PRCList* list = &jsdscript->hooks;
+    JSCList* list = &jsdscript->hooks;
 
     JSD_LOCK();
 
     while( (JSDExecHook*)list != (jsdhook = (JSDExecHook*)list->next) )
     {
-        PR_REMOVE_LINK(&jsdhook->links);
+        JS_REMOVE_LINK(&jsdhook->links);
         free(jsdhook);
     }
 

@@ -69,19 +69,17 @@ use POSIX;
 sub new {
 	my($type, $pars) = @_;
 	my $this = bless {
-					  Verbose => delete $pars->{Verbose},
-					  BE => new VRML::GLBackEnd(
-												$pars->{FullScreen},
-												$pars->{Shutter},
-												$pars->{EyeDist},
-												$pars->{Parent},
-												$pars->{ScreenDist},
-												@{$pars->{BackEnd} or []}
-											   ),
-					  EV => new VRML::EventMachine(),
-					  Scene => undef,
-					  URL => undef
-	}, $type;
+			  Verbose => delete $pars->{Verbose},
+			  BE => new VRML::GLBackEnd($pars->{FullScreen}, 
+						    $pars->{Shutter}, 
+						    $pars->{EyeDist}, 
+						    $pars->{ScreenDist}, 
+						    @{$pars->{BackEnd} or []}),
+			  EV => new VRML::EventMachine(),
+			  Scene => undef,
+			  URL => undef,
+			  JSCleanup => undef
+			 }, $type;
 	return $this;
 }
 
@@ -217,12 +215,7 @@ sub eventloop {
 			}
 		}
 	}
-
-	$this->{BE}->close_screen();
-	if ($VRML::ENV{AS_PLUGIN}) {
-		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
-		#VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
-	}
+	$this->shut();
 }
 
 sub prepare {
@@ -249,6 +242,21 @@ sub prepare2 {
 	$this->{Scene}->init_routing($this->{EV},$this->{BE});
 	$this->{EV}->print;
 }
+
+sub shut {
+	my($this) = @_;
+
+	if ($VRML::ENV{AS_PLUGIN}) {
+		VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{pluginSock});
+		##VRML::PluginGlue::closeFileDesc($VRML::PluginGlue::globals{freeWRLSock});
+	}
+	if ($this->{JSCleanup}) {
+		&{$this->{JSCleanup}}();
+	}
+	$this->{BE}->close_screen();
+}
+
+
 sub tick {
 	#
 	my($this) = @_;
@@ -346,14 +354,12 @@ sub replaceWorld {
 }
 
 
-sub createVrmlFromString { 
-
-
-	my ($this,$string) = @_;
+sub createVrmlFromString {
+	my ($this, $string) = @_;
 
 	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING");
 	VRML::Parser::parse($scene, $string);
-        $scene->make_executable();
+	$scene->make_executable();
 	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
 	# print "CVS - ret is $ret\n";
 	# debugging scene graph call: 
@@ -363,7 +369,7 @@ sub createVrmlFromString {
 	return $ret;
 }
 
-sub createVrmlFromURL { 
+sub createVrmlFromURL {
 	my ($this,$file,$url) = @_;
 
 	# stage 1a - get the URL....
@@ -381,12 +387,12 @@ sub createVrmlFromURL {
 
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
 	if (!$t) {
-		die "File $file was not found";
+		die("File $file was not found");
 	}
 
 	unless($t =~ /^#VRML V2.0/s) {
 		if ($t =~ /^#VRML V1.0/s) {
-			print "Sorry, this file is according to VRML V1.0, I only know V2.0\n"; exit (1);
+			die("Sorry, this file is according to VRML V1.0. I only know V2.0\n");
 		}
 		warn("WARNING: file '$file' doesn't start with the '#VRML V2.0' header line");
 	}
@@ -405,14 +411,38 @@ sub createVrmlFromURL {
 	return $ret
 }
 
+sub addRoute {
+	my ($this, $fn, $ff, $tn, $tf, $scene) = @_;
 
-sub addRoute {  print "No addroute yet\n"; exit(1) }
-sub deleteRoute { print "No deleteroute yet"; exit (1) }
+	##print "VRML::Browser::addRoute: $fn, $ff, $tn, $tf, $scene\n";
+
+	my $fromNode = VRML::Handles::get($fn)->real_node();
+	my $toNode = VRML::Handles::get($tn)->real_node();
+	my @ar=[$fromNode, $ff, $toNode, $tf];
+
+	$scene->new_route(@ar);
+	$this->prepare2();
+	# make sure route gets rendered
+	VRML::OpenGL::set_render_frame();
+}
+
+sub deleteRoute {
+	my ($this, $fn, $ff, $tn, $tf, $scene) = @_;
+
+	##print "VRML::Browser::deleteRoute\n";
+
+	my $fromNode = VRML::Handles::get($fn)->real_node();
+	my $toNode = VRML::Handles::get($tn)->real_node();
+	my @ar=[$fromNode, $ff, $toNode, $tf];
+
+	$scene->delete_route(@ar);
+	$this->prepare2();
+}
 
 # EAI
 sub api_beginUpdate { print "no beginupdate yet\n"; exit(1) }
 sub api_endUpdate { print "no endupdate yet\n"; exit(1) }
-sub api_getNode { 
+sub api_getNode {
 	$_[0]->{Scene}->getNode($_[1]);
 }
 sub api__sendEvent { 
@@ -504,7 +534,6 @@ sub save_snapshot {
     print STDERR "Can't open pipe for saving image\n";
     $main::snapcnt-- ;
   }
-    
 }
 
 ## Eventually convert a sequence of saved raw images. 
@@ -518,17 +547,16 @@ sub save_snapshot {
 ##
 ## $main::seqname :
 sub convert_raw_sequence   {
-  
+
   return unless @main::saved ;
   my $cmd ;
   # Convert to gif
   if (! $main::nogif){
     # size options for 'convert'
     my $sz = join " ",
-    map {"-size $_->[1]x$_->[2] rgb:$_->[0]"} @main::saved ; 
-    $cmd = "$VRML::Browser::CONVERT -flip ". 
+    map {"-size $_->[1]x$_->[2] rgb:$_->[0]"} @main::saved ;
+    $cmd = "$VRML::Browser::CONVERT -flip ".
       " -delay 35 $sz $main::seqname.gif";
-    
   } else {	# Convert to ppm
     $cmd = join ";\n",
     map {"$VRML::Browser::CONVERT -flip ".
@@ -548,7 +576,6 @@ sub convert_raw_sequence   {
       print STDERR "convert failed. keeping raw images\n";
       @main::saved = ();	# Prevent END from trying again
       exit 1;
-      
       # If all seems ok, remove raw images
     } else {
       print STDERR "convert successful. unlinking raw images\n";
@@ -683,7 +710,7 @@ sub check_displayed {
         # is this child displayed yet?
 
         if (defined $ONSCREEN{$node}) {
-                return 1;
+			return 1;
         }
         return 0;
 }
@@ -694,8 +721,8 @@ sub check_displayed {
 sub front_end_child_reserve {
 	my ($child,$real) = @_;
 	$RP{$child} = $real;
-	# print "front_end_child_reserve, reserving for child $child ", ref $child, 
-	# 	VRML::NodeIntern::dump_name($child),  " real $real ", ref $real, 
+	# print "front_end_child_reserve, reserving for child $child ", ref $child,
+	# 	VRML::NodeIntern::dump_name($child),  " real $real ", ref $real,
 	# 	VRML::NodeIntern::dump_name($real), "\n";
 
 }
@@ -745,7 +772,7 @@ sub check {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
 	if(!exists $S{$handle}) {
-		print ("Handle::check $handle - Not a Node Handle!\n");
+		##print ("Handle::check $handle - Not a Node Handle!\n");
 		return 0;
 	}
 	#print "Handle::check ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";

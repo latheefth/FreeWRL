@@ -83,18 +83,6 @@ close OUT;
 
 print "Note that 'convert' cannot be found\n" unless $a ;
 
-## Check for required Javascript libraries,
-## if they don't exist, make them.
-
-print "Checking for the Mozilla JavaScript Reference library and application.\n";
-if (-e "JS/js/Linux_All_DBG.OBJ/libjs.a" && -e "JS/js/Linux_All_DBG.OBJ/js") {
-    print "The Javascript library and application were found.\n";
-} else {
-    print "The Javascript library and application were not found - make them.\n";
-    chdir("JS/js");
-    system("make");
-    chdir($pwd);
-}
 
 use ExtUtils::MakeMaker;
 WriteMakefile(
@@ -129,6 +117,7 @@ sub MY::post_constants {
 q{
 
 vpath %.c .:./CFuncs
+vpath %.o .:./CFuncs
 
 CFUNCS_SRC:=$(wildcard ./CFuncs/*.c)
 OBJECT+=$(CFUNCS_SRC:%c=%o)
@@ -137,34 +126,6 @@ OBJECT+=$(CFUNCS_SRC:%c=%o)
 
 	return ($post_const);
 }
-
-
-#sub MY::c_o {
-#	my $c_o = "";
-
-#	$c_o =
-#q{
-
-#%.o : %.c
-#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-#%.o : %.C
-#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-#%.o : %.cpp
-#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-#%.o : %.cxx
-#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-#%.o : %.cc
-#	$(CCCMD) -c $< $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) -o $@
-
-#};
-
-#	return ($c_o);
-#}
-
 
 
 sub MY::postamble {

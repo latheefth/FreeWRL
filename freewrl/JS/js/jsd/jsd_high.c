@@ -1,23 +1,42 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: NPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Netscape Public License
- * Version 1.0 (the "NPL"); you may not use this file except in
- * compliance with the NPL.  You may obtain a copy of the NPL at
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
  * http://www.mozilla.org/NPL/
  *
- * Software distributed under the NPL is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the NPL
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
- * NPL.
+ * License.
  *
- * The Initial Developer of this code under the NPL is Netscape
- * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation.  All Rights
- * Reserved.
- */
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is 
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the NPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the NPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 /*
- * JavaScript Debugger API - 'High Level' functions
+ * JavaScript Debugging support - 'High Level' functions
  */
 
 #include "jsd.h"
@@ -25,12 +44,12 @@
 /***************************************************************************/
 
 /* XXX not 'static' because of old Mac CodeWarrior bug */ 
-PRCList _jsd_context_list = PR_INIT_STATIC_CLIST(&_jsd_context_list);
+JSCList _jsd_context_list = JS_INIT_STATIC_CLIST(&_jsd_context_list);
 
 /* these are used to connect JSD_SetUserCallbacks() with JSD_DebuggerOn() */
 static JSD_UserCallbacks _callbacks;
 static void*             _user = NULL; 
-static JSTaskState*      _jstaskstate = NULL;
+static JSRuntime*        _jsrt = NULL;
 
 #ifdef JSD_HAS_DANGEROUS_THREAD
 static void* _dangerousThread = NULL;
@@ -43,24 +62,18 @@ void* _jsd_global_lock = NULL;
 #ifdef DEBUG
 void JSD_ASSERT_VALID_CONTEXT(JSDContext* jsdc)
 {
-    PR_ASSERT(jsdc->inited);
-    PR_ASSERT(jsdc->jstaskstate);
-    PR_ASSERT(jsdc->jscontexts);
-    PR_ASSERT(jsdc->dumbContext);
-    PR_ASSERT(jsdc->glob);
+    JS_ASSERT(jsdc->inited);
+    JS_ASSERT(jsdc->jsrt);
+    JS_ASSERT(jsdc->dumbContext);
+    JS_ASSERT(jsdc->glob);
 }
 #endif
-
-static prhashcode
-_hash_root(const void *key)
-{
-    return ((prhashcode) key) >> 2; /* help lame MSVC1.5 on Win16 */
-}
 
 static JSClass global_class = {
     "JSDGlobal", 0,
     JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,
-    JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   JS_FinalizeStub
+    JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   JS_FinalizeStub,
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSBool
@@ -71,13 +84,13 @@ _validateUserCallbacks(JSD_UserCallbacks* callbacks)
 }    
 
 static JSDContext*
-_newJSDContext(JSTaskState*       jstaskstate, 
+_newJSDContext(JSRuntime*         jsrt, 
                JSD_UserCallbacks* callbacks, 
                void*              user)
 {
     JSDContext* jsdc = NULL;
 
-    if( ! jstaskstate )
+    if( ! jsrt )
         return NULL;
 
     if( ! _validateUserCallbacks(callbacks) )
@@ -90,9 +103,9 @@ _newJSDContext(JSTaskState*       jstaskstate,
     if( ! JSD_INIT_LOCKS(jsdc) )
         goto label_newJSDContext_failure;
 
-    PR_INIT_CLIST(&jsdc->links);
+    JS_INIT_CLIST(&jsdc->links);
 
-    jsdc->jstaskstate = jstaskstate;
+    jsdc->jsrt = jsrt;
 
     if( callbacks )
         memcpy(&jsdc->userCallbacks, callbacks, callbacks->size);
@@ -103,20 +116,22 @@ _newJSDContext(JSTaskState*       jstaskstate,
     jsdc->dangerousThread = _dangerousThread;
 #endif
 
-    PR_INIT_CLIST(&jsdc->threadsStates);
-    PR_INIT_CLIST(&jsdc->scripts);
-    PR_INIT_CLIST(&jsdc->sources);
-    PR_INIT_CLIST(&jsdc->removedSources);
+    JS_INIT_CLIST(&jsdc->threadsStates);
+    JS_INIT_CLIST(&jsdc->sources);
+    JS_INIT_CLIST(&jsdc->removedSources);
 
     jsdc->sourceAlterCount = 1;
 
-    jsdc->jscontexts = PR_NewHashTable(256, _hash_root,
-                                       PR_CompareValues, PR_CompareValues,
-                                       NULL, NULL);
-    if( ! jsdc->jscontexts )
+    if( ! jsd_CreateAtomTable(jsdc) )
         goto label_newJSDContext_failure;
 
-    jsdc->dumbContext = JS_NewContext(jsdc->jstaskstate, 256);
+    if( ! jsd_InitObjectManager(jsdc) )
+        goto label_newJSDContext_failure;
+
+    if( ! jsd_InitScriptManager(jsdc) )
+        goto label_newJSDContext_failure;
+
+    jsdc->dumbContext = JS_NewContext(jsdc->jsrt, 256);
     if( ! jsdc->dumbContext )
         goto label_newJSDContext_failure;
 
@@ -127,28 +142,21 @@ _newJSDContext(JSTaskState*       jstaskstate,
     if( ! JS_InitStandardClasses(jsdc->dumbContext, jsdc->glob) )
         goto label_newJSDContext_failure;
 
+    jsdc->data = NULL;
     jsdc->inited = JS_TRUE;
 
     JSD_LOCK();
-    PR_INSERT_LINK(&jsdc->links, &_jsd_context_list);
+    JS_INSERT_LINK(&jsdc->links, &_jsd_context_list);
     JSD_UNLOCK();
 
     return jsdc;
 
 label_newJSDContext_failure:
+    jsd_DestroyObjectManager(jsdc);
+    jsd_DestroyAtomTable(jsdc);
     if( jsdc )
         free(jsdc);
     return NULL;
-}
-
-PR_STATIC_CALLBACK(intN)
-_hash_entry_zapper(PRHashEntry *he, intN i, void *arg)
-{
-    if(he->value)
-        free(he->value);
-    he->value = NULL;
-    he->key   = NULL;
-    return HT_ENUMERATE_NEXT;
 }
 
 static void
@@ -157,14 +165,11 @@ _destroyJSDContext(JSDContext* jsdc)
     JSD_ASSERT_VALID_CONTEXT(jsdc);
 
     JSD_LOCK();
-    PR_REMOVE_LINK(&jsdc->links);
+    JS_REMOVE_LINK(&jsdc->links);
     JSD_UNLOCK();
 
-    if( jsdc->jscontexts )
-    {
-        PR_HashTableEnumerateEntries(jsdc->jscontexts, _hash_entry_zapper, NULL);
-        PR_HashTableDestroy(jsdc->jscontexts);
-    }
+    jsd_DestroyObjectManager(jsdc);
+    jsd_DestroyAtomTable(jsdc);
 
     jsdc->inited = JS_FALSE;
 
@@ -180,55 +185,62 @@ _destroyJSDContext(JSDContext* jsdc)
 /***************************************************************************/
 
 JSDContext*
-jsd_DebuggerOnForUser(JSTaskState*       jstaskstate, 
+jsd_DebuggerOnForUser(JSRuntime*         jsrt, 
                       JSD_UserCallbacks* callbacks, 
                       void*              user)
 {
     JSDContext* jsdc;
     JSContext* iter = NULL;
-    JSContext* cx;
 
-    jsdc = _newJSDContext(jstaskstate, callbacks, user);
+    jsdc = _newJSDContext(jsrt, callbacks, user);
     if( ! jsdc )
         return NULL;
 
     /* set hooks here */
-    JS_SetNewScriptHookProc(jsdc->jstaskstate, jsd_NewScriptHookProc, jsdc);
-    JS_SetDestroyScriptHookProc(jsdc->jstaskstate, jsd_DestroyScriptHookProc, jsdc);
+    JS_SetNewScriptHookProc(jsdc->jsrt, jsd_NewScriptHookProc, jsdc);
+    JS_SetDestroyScriptHookProc(jsdc->jsrt, jsd_DestroyScriptHookProc, jsdc);
+    JS_SetDebuggerHandler(jsdc->jsrt, jsd_DebuggerHandler, jsdc);
+    JS_SetExecuteHook(jsdc->jsrt, jsd_TopLevelCallHook, jsdc);
+    JS_SetCallHook(jsdc->jsrt, jsd_FunctionCallHook, jsdc);
+    JS_SetObjectHook(jsdc->jsrt, jsd_ObjectHook, jsdc);
+    JS_SetThrowHook(jsdc->jsrt, jsd_ThrowHandler, jsdc);
+    JS_SetDebugErrorHook(jsdc->jsrt, jsd_DebugErrorHook, jsdc);
 #ifdef LIVEWIRE
     LWDBG_SetNewScriptHookProc(jsd_NewScriptHookProc, jsdc);
 #endif
-
-    /* enumerate contexts for JSTaskState and add them to our table */
-    while( NULL != (cx = JS_ContextIterator(jsdc->jstaskstate, &iter)) )
-        jsd_JSContextUsed(jsdc, cx);
-
     if( jsdc->userCallbacks.setContext )
         jsdc->userCallbacks.setContext(jsdc, jsdc->user);
-    
     return jsdc;
 }
 
 JSDContext*
 jsd_DebuggerOn(void)
 {
-    PR_ASSERT(_jstaskstate);
-    PR_ASSERT(_validateUserCallbacks(&_callbacks));
-    return jsd_DebuggerOnForUser(_jstaskstate, &_callbacks, _user);
+    JS_ASSERT(_jsrt);
+    JS_ASSERT(_validateUserCallbacks(&_callbacks));
+    return jsd_DebuggerOnForUser(_jsrt, &_callbacks, _user);
 }
 
 void
 jsd_DebuggerOff(JSDContext* jsdc)
 {
     /* clear hooks here */
-    JS_SetNewScriptHookProc(jsdc->jstaskstate, NULL, NULL);
-    JS_SetDestroyScriptHookProc(jsdc->jstaskstate, NULL, NULL);
+    JS_SetNewScriptHookProc(jsdc->jsrt, NULL, NULL);
+    JS_SetDestroyScriptHookProc(jsdc->jsrt, NULL, NULL);
+    JS_SetDebuggerHandler(jsdc->jsrt, NULL, NULL);
+    JS_SetExecuteHook(jsdc->jsrt, NULL, NULL);
+    JS_SetCallHook(jsdc->jsrt, NULL, NULL);
+    JS_SetObjectHook(jsdc->jsrt, NULL, NULL);
+    JS_SetThrowHook(jsdc->jsrt, NULL, NULL);
+    JS_SetDebugErrorHook(jsdc->jsrt, NULL, NULL);
 #ifdef LIVEWIRE
     LWDBG_SetNewScriptHookProc(NULL,NULL);
 #endif
 
     /* clean up */
-    jsd_DestroyAllJSDScripts(jsdc);
+    JSD_LockScriptSubsystem(jsdc);
+    jsd_DestroyScriptManager(jsdc);
+    JSD_UnlockScriptSubsystem(jsdc);
     jsd_DestroyAllSources(jsdc);
     
     _destroyJSDContext(jsdc);
@@ -238,9 +250,9 @@ jsd_DebuggerOff(JSDContext* jsdc)
 }
 
 void
-jsd_SetUserCallbacks(JSTaskState* jstaskstate, JSD_UserCallbacks* callbacks, void* user)
+jsd_SetUserCallbacks(JSRuntime* jsrt, JSD_UserCallbacks* callbacks, void* user)
 {
-    _jstaskstate = jstaskstate;
+    _jsrt = jsrt;
     _user = user;
 
 #ifdef JSD_HAS_DANGEROUS_THREAD
@@ -253,18 +265,49 @@ jsd_SetUserCallbacks(JSTaskState* jstaskstate, JSD_UserCallbacks* callbacks, voi
         memset(&_callbacks, 0 , sizeof(JSD_UserCallbacks));
 }
 
+void*
+jsd_SetContextPrivate(JSDContext* jsdc, void *data)
+{
+    void *rval = jsdc->data;
+    jsdc->data = data;
+    return data;
+}
+
+void*
+jsd_GetContextPrivate(JSDContext* jsdc)
+{
+    return jsdc->data;
+}
+
+void
+jsd_ClearAllProfileData(JSDContext* jsdc)
+{
+    JSDScript *current;
+    
+    JSD_LOCK_SCRIPTS(jsdc);
+    current = (JSDScript *)jsdc->scripts.next;
+    while (current != (JSDScript *)&jsdc->scripts)
+    {
+        jsd_ClearScriptProfileData(jsdc, current);
+        current = (JSDScript *)current->links.next;
+    }
+
+    JSD_UNLOCK_SCRIPTS(jsdc);
+}
+
 JSDContext*
 jsd_JSDContextForJSContext(JSContext* context)
 {
     JSDContext* iter;
     JSDContext* jsdc = NULL;
+    JSRuntime*  runtime = JS_GetRuntime(context);
 
     JSD_LOCK();
     for( iter = (JSDContext*)_jsd_context_list.next;
          iter != (JSDContext*)&_jsd_context_list;
          iter = (JSDContext*)iter->links.next )
     {
-        if( PR_HashTableLookup(iter->jscontexts, context) )
+        if( runtime == iter->jsrt )
         {
             jsdc = iter;
             break;
@@ -274,38 +317,21 @@ jsd_JSDContextForJSContext(JSContext* context)
     return jsdc;
 }    
 
-static JSDContextWrapper*
-_jsd_JSDContextWrapperForJSContext(JSDContext* jsdc, JSContext* context)
+JS_STATIC_DLL_CALLBACK(JSBool)
+jsd_DebugErrorHook(JSContext *cx, const char *message,
+                   JSErrorReport *report, void *closure)
 {
-    JSDContextWrapper* w = NULL;
-    JSD_LOCK();
-    w = (JSDContextWrapper*) PR_HashTableLookup(jsdc->jscontexts, context);
-    JSD_UNLOCK();
-    return w;
-}
-
-PR_STATIC_CALLBACK(void)
-jsd_ErrorReporter(JSContext *cx, const char *message, JSErrorReport *report)
-{
-    JSDContextWrapper* wrapper;
-    JSDContext* jsdc;
-    uintN action = JSD_ERROR_REPORTER_PASS_ALONG;
+    JSDContext* jsdc = (JSDContext*) closure;
     JSD_ErrorReporter errorReporter;
     void*             errorReporterData;
-
-    jsdc = jsd_JSDContextForJSContext(cx);
+    
     if( ! jsdc )
     {
-        PR_ASSERT(0);
-        return;
+        JS_ASSERT(0);
+        return JS_TRUE;
     }
-
-    wrapper = _jsd_JSDContextWrapperForJSContext(jsdc, cx);
-    if( ! wrapper )
-    {
-        PR_ASSERT(0);
-        return;
-    }
+    if( JSD_IS_DANGEROUS_THREAD(jsdc) )
+        return JS_TRUE;
 
     /* local in case hook gets cleared on another thread */
     JSD_LOCK();
@@ -313,86 +339,41 @@ jsd_ErrorReporter(JSContext *cx, const char *message, JSErrorReport *report)
     errorReporterData = jsdc->errorReporterData;
     JSD_UNLOCK();
 
-    if( errorReporter && ! JSD_IS_DANGEROUS_THREAD(jsdc) )
-        action = errorReporter(jsdc, cx, message, report, 
-                               errorReporterData);
+    if(!errorReporter)
+        return JS_TRUE;
 
-    switch(action)
+    switch(errorReporter(jsdc, cx, message, report, errorReporterData))
     {
         case JSD_ERROR_REPORTER_PASS_ALONG:
-            if( wrapper->originalErrorReporter )
-                wrapper->originalErrorReporter(cx, message, report);
-            break;
-        case JSD_ERROR_REPORTER_RETURN:    
-            break;
+            return JS_TRUE;
+        case JSD_ERROR_REPORTER_RETURN:
+            return JS_FALSE;
         case JSD_ERROR_REPORTER_DEBUG:
         {
-            JSDThreadState* jsdthreadstate;
+            jsval rval;
+            JSD_ExecutionHookProc   hook;
+            void*                   hookData;
 
-            jsdthreadstate = jsd_NewThreadState(jsdc,cx);
-            if( jsdthreadstate )
-            {
-                JSD_ExecutionHookProc   hook;
-                void*                   hookData;
+            /* local in case hook gets cleared on another thread */
+            JSD_LOCK();
+            hook = jsdc->debugBreakHook;
+            hookData = jsdc->debugBreakHookData;
+            JSD_UNLOCK();
 
-                /* local in case hook gets cleared on another thread */
-                JSD_LOCK();
-                hook = jsdc->debugBreakHook;
-                hookData = jsdc->debugBreakHookData;
-                JSD_UNLOCK();
-
-                if(hook)
-                    hook(jsdc, jsdthreadstate, 
-                         JSD_HOOK_DEBUG_REQUESTED, hookData);
-
-                jsd_DestroyThreadState(jsdc, jsdthreadstate);
-            }
-            break;
+            jsd_CallExecutionHook(jsdc, cx, JSD_HOOK_DEBUG_REQUESTED,
+                                  hook, hookData, &rval);
+            /* XXX Should make this dependent on ExecutionHook retval */
+            return JS_TRUE;
         }
+        case JSD_ERROR_REPORTER_CLEAR_RETURN:
+            if(report && JSREPORT_IS_EXCEPTION(report->flags))
+                JS_ClearPendingException(cx);
+            return JS_FALSE;
         default:
-            PR_ASSERT(0);
+            JS_ASSERT(0);
             break;
     }
-}
-
-void 
-jsd_JSContextUsed(JSDContext* jsdc, JSContext* context)
-{
-    JSDContextWrapper* wrapper;
-    PRHashEntry*       he;
-
-    wrapper = _jsd_JSDContextWrapperForJSContext(jsdc, context);
-    if( wrapper )
-    {
-        /* error reporters are sometimes overwritten by other code... */
-        JSErrorReporter oldrep = JS_SetErrorReporter(context, jsd_ErrorReporter);
-        if( jsd_ErrorReporter != oldrep )
-            wrapper->originalErrorReporter = oldrep;
-        return;
-    }
-
-    /* else... */
-    wrapper = (JSDContextWrapper*) calloc(1,sizeof(JSDContextWrapper));
-    if( ! wrapper )
-        return;
-
-    JSD_LOCK();
-    he = PR_HashTableAdd(jsdc->jscontexts, context, wrapper);
-    JSD_UNLOCK();
-    if( ! he )
-    {
-        free(wrapper);
-        return;
-    }
-
-    wrapper->context = context;
-    wrapper->jsdc    = jsdc;
-
-    /* add our error reporter */
-    wrapper->originalErrorReporter = JS_SetErrorReporter(context, jsd_ErrorReporter);
-
-    /* add our printer */
-    /* add our loader */
+    return JS_TRUE;
 }
 
 JSBool

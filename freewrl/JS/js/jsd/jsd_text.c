@@ -1,32 +1,52 @@
-/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: NPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Netscape Public License
- * Version 1.0 (the "NPL"); you may not use this file except in
- * compliance with the NPL.  You may obtain a copy of the NPL at
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
  * http://www.mozilla.org/NPL/
  *
- * Software distributed under the NPL is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the NPL
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
  * for the specific language governing rights and limitations under the
- * NPL.
+ * License.
  *
- * The Initial Developer of this code under the NPL is Netscape
- * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation.  All Rights
- * Reserved.
- */
+ * The Original Code is mozilla.org code.
+ *
+ * The Initial Developer of the Original Code is 
+ * Netscape Communications Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 1998
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the NPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the NPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 /*
- * JavaScript Debugger API - Source Text functions
+ * JavaScript Debugging support - Source Text functions
  */
 
+#include <ctype.h>
 #include "jsd.h"
 
 #ifdef DEBUG
 void JSD_ASSERT_VALID_SOURCE_TEXT(JSDSourceText* jsdsrc)
 {
-    PR_ASSERT(jsdsrc);
-    PR_ASSERT(jsdsrc->url);
+    JS_ASSERT(jsdsrc);
+    JS_ASSERT(jsdsrc->url);
 }
 #endif
 
@@ -37,7 +57,7 @@ static void
 _clearText(JSDContext* jsdc, JSDSourceText* jsdsrc)
 {
     if( jsdsrc->text )
-        MY_XP_HUGE_FREE(jsdsrc->text);
+        free(jsdsrc->text);
     jsdsrc->text        = NULL;
     jsdsrc->textLength  = 0;
     jsdsrc->textSpace   = 0;
@@ -57,36 +77,35 @@ _appendText(JSDContext* jsdc, JSDSourceText* jsdsrc,
 
     if( neededSize > jsdsrc->textSpace )
     {
-        MY_XP_HUGE_CHAR_PTR pBuf;
+        char* newBuf;
         uintN iNewSize;
 
         /* if this is the first alloc, the req might be all that's needed*/
         if( ! jsdsrc->textSpace )
-             iNewSize = length;
+            iNewSize = length;
         else
-             iNewSize = (neededSize * 5 / 4) + MEMBUF_GROW;
+            iNewSize = (neededSize * 5 / 4) + MEMBUF_GROW;
 
-        pBuf = (MY_XP_HUGE_CHAR_PTR) MY_XP_HUGE_ALLOC(iNewSize);
-        if( pBuf )
+        newBuf = (char*) realloc(jsdsrc->text, iNewSize);
+        if( ! newBuf )
         {
-            if( jsdsrc->text )
+            /* try again with the minimal size really asked for */
+            iNewSize = neededSize;
+            newBuf = (char*) realloc(jsdsrc->text, iNewSize);
+            if( ! newBuf )
             {
-                MY_XP_HUGE_MEMCPY(pBuf, jsdsrc->text, jsdsrc->textLength);
-                MY_XP_HUGE_FREE(jsdsrc->text);
+                /* out of memory */
+                _clearText( jsdc, jsdsrc );
+                jsdsrc->status = JSD_SOURCE_FAILED;
+                return JS_FALSE;
             }
-            jsdsrc->text = pBuf;
-            jsdsrc->textSpace = iNewSize;
         }
-        else 
-        {
-            /* LTNOTE: throw an out of memory exception */
-            _clearText( jsdc, jsdsrc );
-            jsdsrc->status = JSD_SOURCE_FAILED;
-            return JS_FALSE;
-        }
+
+        jsdsrc->text = newBuf;
+        jsdsrc->textSpace = iNewSize;
     }
 
-    MY_XP_HUGE_MEMCPY(&jsdsrc->text[jsdsrc->textLength], text, length);
+    memcpy(jsdsrc->text + jsdsrc->textLength, text, length);
     jsdsrc->textLength += length;
     return JS_TRUE;
 }
@@ -109,15 +128,15 @@ _newSource(JSDContext* jsdc, const char* url)
 static void
 _destroySource(JSDContext* jsdc, JSDSourceText* jsdsrc)
 {
-    PR_ASSERT(NULL == jsdsrc->text);  /* must _clearText() first */
-    MY_XP_FREE(jsdsrc->url);
-    MY_XP_FREE(jsdsrc);
+    JS_ASSERT(NULL == jsdsrc->text);  /* must _clearText() first */
+    free(jsdsrc->url);
+    free(jsdsrc);
 }
 
 static void
 _removeSource(JSDContext* jsdc, JSDSourceText* jsdsrc)
 {
-    PR_REMOVE_LINK(&jsdsrc->links);
+    JS_REMOVE_LINK(&jsdsrc->links);
     _clearText(jsdc, jsdsrc);
     _destroySource(jsdc, jsdsrc);
 }
@@ -128,29 +147,29 @@ _addSource(JSDContext* jsdc, const char* url)
     JSDSourceText* jsdsrc = _newSource(jsdc, url);
     if( ! jsdsrc )
         return NULL;
-    PR_INSERT_LINK(&jsdsrc->links, &jsdc->sources);
+    JS_INSERT_LINK(&jsdsrc->links, &jsdc->sources);
     return jsdsrc;
 }
 
 static void
 _moveSourceToFront(JSDContext* jsdc, JSDSourceText* jsdsrc)
 {
-    PR_REMOVE_LINK(&jsdsrc->links);
-    PR_INSERT_LINK(&jsdsrc->links, &jsdc->sources);
+    JS_REMOVE_LINK(&jsdsrc->links);
+    JS_INSERT_LINK(&jsdsrc->links, &jsdc->sources);
 }
 
 static void
 _moveSourceToRemovedList(JSDContext* jsdc, JSDSourceText* jsdsrc)
 {
     _clearText(jsdc, jsdsrc);
-    PR_REMOVE_LINK(&jsdsrc->links);
-    PR_INSERT_LINK(&jsdsrc->links, &jsdc->removedSources);
+    JS_REMOVE_LINK(&jsdsrc->links);
+    JS_INSERT_LINK(&jsdsrc->links, &jsdc->removedSources);
 }
 
 static void
 _removeSourceFromRemovedList( JSDContext* jsdc, JSDSourceText* jsdsrc )
 {
-    PR_REMOVE_LINK(&jsdsrc->links);
+    JS_REMOVE_LINK(&jsdsrc->links);
     _destroySource( jsdc, jsdsrc );
 }
 
@@ -185,7 +204,7 @@ strncasecomp (const char* one, const char * two, int n)
             return 0;   
         if (!(*pA && *pB)) 
             return *pA - *pB;
-        tmp = MY_XP_TO_LOWER(*pA) - MY_XP_TO_LOWER(*pB);
+        tmp = tolower(*pA) - tolower(*pB);
         if (tmp) 
             return tmp;
     }
@@ -202,14 +221,14 @@ jsd_BuildNormalizedURL( const char* url_string )
     if( ! url_string )
         return NULL;
 
-    if (!MY_XP_STRNCASECMP(url_string, file_url_prefix, FILE_URL_PREFIX_LEN) &&
+    if (!strncasecomp(url_string, file_url_prefix, FILE_URL_PREFIX_LEN) &&
         url_string[FILE_URL_PREFIX_LEN + 0] == '/' &&
         url_string[FILE_URL_PREFIX_LEN + 1] == '/') {
-        new_url_string = PR_smprintf("%s%s",
+        new_url_string = JS_smprintf("%s%s",
                                      file_url_prefix,
                                      url_string + FILE_URL_PREFIX_LEN + 2);
     } else {
-        new_url_string = MY_XP_STRDUP(url_string);
+        new_url_string = strdup(url_string);
     }
     return new_url_string;
 }
@@ -276,7 +295,7 @@ jsd_GetSourceURL(JSDContext* jsdc, JSDSourceText* jsdsrc)
 
 JSBool
 jsd_GetSourceText(JSDContext* jsdc, JSDSourceText* jsdsrc,
-                  const char** ppBuf, int* pLen )
+                  const char** ppBuf, intN* pLen )
 {
     *ppBuf = jsdsrc->text;
     *pLen  = jsdsrc->textLength;
@@ -434,6 +453,47 @@ jsd_AppendSourceText(JSDContext* jsdc,
     return jsdsrc;
 }
 
+JSDSourceText*
+jsd_AppendUCSourceText(JSDContext* jsdc,
+                       JSDSourceText* jsdsrc,
+                       const jschar* text,       /* *not* zero terminated */
+                       size_t length,
+                       JSDSourceStatus status)
+{
+#define UNICODE_TRUNCATE_BUF_SIZE 1024
+    static char* buf = NULL;
+    int remaining = length;
+
+    if(!text || !length)
+        return jsd_AppendSourceText(jsdc, jsdsrc, NULL, 0, status);
+
+    JSD_LOCK_SOURCE_TEXT(jsdc);
+    if(!buf)
+    {
+        buf = malloc(UNICODE_TRUNCATE_BUF_SIZE);
+        if(!buf)
+        {
+            JSD_UNLOCK_SOURCE_TEXT(jsdc);
+            return NULL;
+        }
+    }
+    while(remaining && jsdsrc) {
+        int bytes = JS_MIN(remaining, UNICODE_TRUNCATE_BUF_SIZE);
+        int i;
+        for(i = 0; i < bytes; i++)
+            buf[i] = (const char) *(text++);
+        jsdsrc = jsd_AppendSourceText(jsdc,jsdsrc,
+                                      buf, bytes,
+                                      JSD_SOURCE_PARTIAL);
+        remaining -= bytes;
+    }
+    if(jsdsrc && status != JSD_SOURCE_PARTIAL)
+        jsdsrc = jsd_AppendSourceText(jsdc, jsdsrc, NULL, 0, status);
+
+    JSD_UNLOCK_SOURCE_TEXT(jsdc);
+    return jsdsrc;
+}
+
 /* convienence function for adding complete source of url in one call */
 JSBool
 jsd_AddFullSourceText(JSDContext* jsdc, 
@@ -471,8 +531,10 @@ jsd_StartingEvalUsingFilename(JSDContext* jsdc, const char* url)
     jsdsrc = jsd_FindSourceForURL(jsdc, url);
     if(jsdsrc)
     {
+#if 0
 #ifndef JSD_LOWLEVEL_SOURCE
-        PR_ASSERT(! jsdsrc->doingEval);
+        JS_ASSERT(! jsdsrc->doingEval);
+#endif
 #endif
         jsdsrc->doingEval = JS_TRUE;
     }
@@ -488,13 +550,15 @@ jsd_FinishedEvalUsingFilename(JSDContext* jsdc, const char* url)
     jsdsrc = jsd_FindSourceForURL(jsdc, url);
     if(jsdsrc)
     {
+#if 0
 #ifndef JSD_LOWLEVEL_SOURCE
         /*
         * when using this low level source addition, this jsdsrc might 
         * not have existed before the eval, but does exist now (without
         * this flag set!)
         */
-        PR_ASSERT(jsdsrc->doingEval);
+        JS_ASSERT(jsdsrc->doingEval);
+#endif
 #endif
         jsdsrc->doingEval = JS_FALSE;
     }
