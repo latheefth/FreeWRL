@@ -484,7 +484,7 @@ BEGIN {
 
 	# version option from Etienne 
 	if (defined $version) {
-		print "$VRML::Config{VERSION}\n";
+		print "$VRML::Config::vrml_config{VERSION}\n";
 		exit;
 	}
 
