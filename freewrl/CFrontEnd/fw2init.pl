@@ -46,16 +46,9 @@ sub open_browser {
 }
 
 sub load_file_intro {
-        my $string;
-
-	print "start of load_file_intro on fw2init.pl\n";
-
-	# testing...
-	my $url = "./s.wrl";
-	 VRML::VRMLFunc::SaveURL($url);
-	 
 	# root is always a Group node, DO NOT CHANGE THIS
-	$string = "Group{}";
+	my $string = "Group{}";
+	my $url = VRML::VRMLFunc::GetBrowserURL();
 
         delete $b->{Scene};
         $b->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);

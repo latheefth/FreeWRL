@@ -11,6 +11,7 @@
 #include <Structs.h>
 #include <pthread.h>
 #include <headers.h>
+#include <getopt.h>
 
 #ifdef AQUA
 
@@ -25,10 +26,6 @@
 #include <GL/glu.h>
 #include <GL/glext.h>
 
-#endif
-
-#ifdef printf
-#undef printf
 #endif
 
 // display and win are opened here, then pointers passed to
@@ -56,19 +53,89 @@ extern char *BrowserURL;
 extern produceTask(unsigned a,char *b,unsigned ptr, unsigned ofs);
 extern PerlInterpreter *my_perl;
 
-int main (int argc, char **argv, char **env) {
+int main (int argc, char **argv) {
 	int retval;
 	int count;
+	int c;
+	int digit_optind = 0;
 
-	BrowserURL = "./";
+	/* parse command line arguments */
+	while (1) {
+		int this_option_optind = optind ? optind : 1;
+		int option_index = 0;
+		static struct option long_options[] = {
+			{"version", 0, 0, 'x'},
+			{"fullscreen", 0, 0, 'x'},
+			{"plugin", 1, 0, 'x'},
+			{"geometry", 1, 0, 'x'},
+			{"parent", 1, 0, 'x'},
+			{"seq", 0, 0, 'x'},
+			{"seqb",1, 0, 'x'},
+			{"snapb", 1, 0, 'x'},
+			{"seqtmp", 1, 0, 'x'},
+			{"shutter", 0, 0, 'x'},
+			{"eyedist", 1, 0, 'x'},
+			{"screendist", 1, 0, 'x'},
+			{"gif", 0, 0, 'x'},
+			{"maximg", 1, 0, 'x'},
+			{"eai", 1, 0, 'x'},
+			{"server", 1, 0, 'x'},
+			{"sig", 1, 0, 'x'},
+			{"ps", 1, 0, 'x'},
+			{"help", 0, 0, 'h'},
+			{0, 0, 0, 0}
+		};
+
+		c = getopt_long (argc, argv, "h", long_options, &option_index);
+		if (c == -1)
+			break;
+
+		switch (c) {
+			case 0:
+				printf ("FreeWRL option --%s", long_options[option_index].name);
+				if (optarg)
+					printf (" with arg %s", optarg);
+				printf ("\n");
+				break;
+
+			case 'x':
+				printf ("option --%s not implemented yet, complain bitterly\n",
+					long_options[option_index].name);
+				break;
+
+			case 'h':
+				printf ("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
+				printf ("   type \"man freewrl\" to view man pages\n\n");
+				break;
+			default:
+				/* printf ("?? getopt returned character code 0%o ??\n", c); */
+				break;
+		}
+	}
+	if (optind < argc) {
+		if (optind != (argc-1)) {
+			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n", 
+				argv[optind]);
+		}
+
+		/* save the url for later use, if required */
+		if (BrowserURL != NULL) free (BrowserURL);
+		BrowserURL = malloc (strlen(argv[optind])+1);
+		strcpy (BrowserURL,argv[optind]);
+
+
+	} else {
+		printf ("freewrl:missing VRML/X3D file name\n");
+		exit(1);
+	}
+
 	/* create the display thread. */
 	pthread_create (&thread1, NULL, (void *)&displayThread, (void *)threadmsg);
 
 	/* create the initial scene, from the file passed in
 	and place it as a child of the rootNode. */
 
-	produceTask(FROMURL, 
-		"./s.wrl",
+	produceTask(FROMURL, argv[optind],
 		rootNode, offsetof (struct VRML_Group, children));
 
 	/* now wait around until something kills this thread. */

@@ -250,8 +250,6 @@ sub load_file_intro {
 
 	print "load_file_intro, url $url\n";
 
-	VRML::VRMLFunc::SaveURL($url);
-
 	delete $this->{Scene};
 	$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
 
@@ -421,7 +419,8 @@ sub createVrmlFromURL {
 	# stage 1a - get the URL....
 	$url = ($url || $file);
 	#JAS my $wurl = $this->{Scene}->get_world_url();
-	my $wurl="./";
+	#JAS my $wurl="./";
+	my $wurl = $url;
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
 	my $t = VRML::NodeType::getTextFromURLs($this->{Scene}, $url);
@@ -761,7 +760,6 @@ sub printhere { print "here from Browser.pm\n";}
 # EAI_CreateVrmlFromString - parse commands, and return a string of (node-number backnode) pairs.
 sub EAI_CreateVrmlFromString {
 	my ($string) = @_;
-print "EAI_CreateVrmlFromString, string $string\n";
 
 	my $rv = createVrmlFromString ($globalBrowser,$string);
 

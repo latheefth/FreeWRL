@@ -236,84 +236,51 @@ As the name says, there is nothing you can do in the NONE navigation mode.
 
 =over 4
 
-=item C<-url> I<baseurl>
+=item C<--version>
 
-The browser downloads the URL given as the first argument on the command
-line. The contents of the VRML file can refer to relative URLs just like HTML.
-If given, this option is used to resolve the relative URLs instead
-of the first commandline argument.
+Prints out the current FreeWRL version.
 
-For example,
-
-	freewrl -url http://www.foo.com/bigworld.wrl  tmp.wrl
-
-can be used to run C<bigrworld.wrl> from a copy on the local hard drive
-so that relative links will still work.
-
-=item C<-fast>
-
-Enables the fastest rendering in exchange for poorer picture quality.
-This is overrides any C<-best> options seen on the command line.
-
-=item C<-fullscreen>
+=item C<--fullscreen>
 
 Forces FreeWRL to run in fullscreen mode.  Note that if your graphics drivers
 have an alternate way to enable fullscreen rendering it may be best to use that
 way instead. The fullscreen flag will not enable hardware acceleration if it has
 not already been enabled.
 
-=item C<-plugin> I<PIDstring>
+=item C<--plugin> I<PIDstring>
 
 Tells FreeWRL that it is running within a web browser, and thus to get all URLs
 from the browser, use the browser for EAI, not to handle the "q" key, pass the
 XID (see X11 header file X.h) of the parent window, and to use the PID as the
 window title.
 
-=item C<-geo[metry]> I<geom>
+=item C<--geo[metry]> I<geom>
 
-=item C<-parent> I<xid>
+=item C<--parent> I<xid>
 
 Set the initial window geometry with the usual X window format string.
 
-=item C<-[no]lwp>
-
-Use / don't use libwww-perl. If you use the option -nolwp, you can only
-view documents on your local file system.
-
-=item C<-log> I<file>
-
-Log stdout and stderr into I<file>.
-
-=item C<-save> I<dir>
-
-Save all the documents used in I<dir>. Useful if you want to see what
-went wrong over a slow network connection.
-
-This feature will probably be upgraded later to modify the urls and
-filenames in a proper way, for now it just plonks down files with
-names "s0", "s1" etc.
-
-=item C<-seq>
+=item C<--seq>
 
 The "s" key will start/stop saving a sequence of images rather than
 saving a single snapshot.
 
-=item C<-seqb> I<basename>
+=item C<--seqb> I<basename>
 
 Specify base name for the sequence file. Default is
-"freewrl.seq". Sets the "-seq" option.
+"freewrl.seq". Sets the "--seq" option.
 
-=item C<-snapb> I<basename>
+=item C<--snapb> I<basename>
 
 Specify base name for the snapshot files. Default is
-"freewrl.snap". Unsets the "-seq" option.
+"freewrl.snap". Unsets the "--seq" option.
 
-=item C<-seqtmp> I<basename>
+=item C<--seqtmp> I<basename>
 
 Specify base name for the sequence temporary files. Default is
 ~/freewrl_tmp.
 
-=item C<-shutter>
+=item C<--shutter>
 
 Forces FreeWRL to start in shutterglas stereo mode via GLX_STEREO in
 attributs of glXChooseVisual. This needs software and hardware like
@@ -322,54 +289,44 @@ IRIX on a SGI Indigo2 Impact with crystal eyes shutterglasses.
 On some SGI machines, you need to switch to a stereo capable visual 
 as root with setmon/xsetmon and then restart the X Server.
 
-=item C<-eyedist> I<number>
+=item C<--eyedist> I<number>
 
 Distance between the eyes of the viewer in shutter mode, default 0.06
 
-=item C<-screendist> I<number>
+=item C<--screendist> I<number>
 
 Distance between screen and the eyes of the viewer in shutter mode, 
 default 0.8
 
-=item C<-gif>
+=item C<--gif>
 
-In conjunction of "-seq" only, the sequence will be saved as an animated gif,
+In conjunction of "--seq" only, the sequence will be saved as an animated gif,
 rather than a mpg file.
 
-=item C<-maximg>
+=item C<--maximg>
 
 Maximum number of snapshots or images in the sequence. Default is 100
 to avoid filling up disk.
 
-=item C<-eai> I<host:port>
+=item C<--eai> I<host:port>
 
 The browser will try to connect to the socket at I<host:port> to obtain
 an EAI connection. This option is mostly for internal use by
 the EAI libraries.
 
-=item C<-server>
+=item C<--server>
 
 FreeWRL will behave as a server : it spawns a child browser, prints
 its PID on STDOUT and exits. The child then reloads the url given on
 the command line upon receipt of a SIGUSR1 signal. 
 
-=item C<-sig>
+=item C<--sig>
 
 Reload the URL given on the command line upon receipt of a SIGUSR1 signal.
 
-=item C<-ps>
+=item C<--ps>
 
 Allow perl scripts in vrml files. Make sure your perl scripts are secure.
-
-=item C<-psout> I<file>
-
-Print statements within perl scripts will -by default- go to I<file>.
-
-=item I<debugcode>
-
-Various strings here turn on debugging for various parts of the browser.
-Mostly of interest to developers, who can see the file C<freewrl.PL> 
-in the distribution for the codes.
 
 =back
 

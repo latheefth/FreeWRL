@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.126  2003/11/26 19:38:32  crc_canada
+# command line file name for c back end
+#
 # Revision 1.125  2003/11/26 16:31:06  crc_canada
 # First pass at threading.
 #
@@ -2483,15 +2486,12 @@ CODE:
 	BrowserVersion = malloc (strlen(str)+1);
 	strcpy (BrowserVersion,str);
 
-# save the specific FreeWRL version number from the Config files.
-void
-SaveURL(str)
-	char *str
+SV *
+GetBrowserURL()
 CODE:
-	if (BrowserURL != NULL) free (BrowserURL);
-	BrowserURL = malloc (strlen(str)+1);
-	strcpy (BrowserURL,str);
-
+	RETVAL = newSVpv(BrowserURL, strlen(BrowserURL));
+OUTPUT:
+	RETVAL
 
 #****************JAVASCRIPT FUNCTIONS*********************************
 
