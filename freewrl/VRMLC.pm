@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.77  2003/04/09 20:40:53  crc_canada
+# font paths now determined entirely in freewrl.PL; the save_font_path
+# function only serves to save it within the C side of FreeWRL.
+#
 # Revision 1.76  2003/04/09 16:30:57  sdumoulin
 # Changed for Aqua build
 #
@@ -1654,23 +1658,7 @@ int
 save_font_path(myfp)
 	char *myfp
 CODE:
-	FILE *fp;
-	char fname [1024];
-	strncpy(fname,myfp,fp_name_len-20);
-	
-	strcat(fname,"/Amrigoi.ttf");
-
-	//printf ("save_font_path, trying %s\n",fname);
-	if ((fp=fopen(fname,"r"))!=NULL) {
-		// this path is ok
 		strncpy(sys_fp,myfp,fp_name_len-20);
-		fclose(fp);
-		RETVAL=1;
-	} else {
-		RETVAL=0;
-	}
-OUTPUT:
-	RETVAL
 
 
 
