@@ -14,11 +14,15 @@ DONE:	Rectangular pictures are not mapped correctly.
 
 DONE:	Extrusion endCaps are facing the wrong way! (begincaps are ok)
 
+Does render_polyrep'd nodes use display/texture lists?
+
 do_textures smooths textures, but make it NOT smooth pixeltextures. (need another
 parameter) - see t4*wrl in luigi's home directory
 
+Try GL_CULLing backgrounds and basic shapes. (COSMO on the SGI does this)
+this should double rendering speed for them.
 
-Extrusion Textures not working.
+Extrusion Textures not working reliably.
 
 IndexedFaceSets are not using all points correctly. (check out the lightning bolt
 example) (Kiwano.wrl, and ast.wrl)
@@ -28,8 +32,14 @@ DEF and USE in createVrmlFromString examples (eg, Etiennes perl tests)
 More SAI work.
 	- automatic creation of pipes.
 
-Sometimes things seg-fault. Check out ~/uigi/example*wrl - the chopper.
-
 H-ANIM working.
+	- Nancy "works", but:	
+		1) run mode, arms flail around.
+		2) face is not good. (IFS problem, again)
+		3) buttons don't float properly. (rotation problem,
+		   as in the robotic finger test???)
+		4) what happened to the "stand" button?
+
+
 
 GeoVRML working.
