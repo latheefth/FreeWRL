@@ -9,123 +9,114 @@
 	require DynaLoader;
 	@ISA = qw(Exporter DynaLoader);
 	@EXPORT = qw(
-glMultMatrixd
-glGetDoublev
-GL_MODELVIEW_MATRIX
-glXDestroyContext
-glupPickMatrix
-GL_VIEWPORT
-glSelectBuffer
-GL_SELECT
-ControlMask
-ShiftMask
-Button1Mask
-Button2Mask
-Button3Mask
-Button1
-Button2
-Button3
-glRenderMode
-GL_RENDER
-GL_MODELVIEW_STACK_DEPTH
-GL_AMBIENT
-GL_DIFFUSE
-GL_SPECULAR
-glLightfv
-GL_POSITION
-GL_MODELVIEW
-glHint
-GL_NICEST
-GL_PERSPECTIVE_CORRECTION_HINT
-gluPerspective
-glPushMatrix
-glPopMatrix
-glLoadIdentity
-glViewport
-glGetIntegerv
-GL_PROJECTION_STACK_DEPTH
-glMatrixMode
-GL_PROJECTION
-glClear
-GL_COLOR_BUFFER_BIT
-GL_DEPTH_BUFFER_BIT
-glDisable
-KeyPress
-KeyRelease
-ButtonPress
-ButtonRelease
-MotionNotify
-ConfigureNotify
-glpXNextEvent
-glMaterialf
-glEnable
-glDepthFunc
-glBlendFunc
-glpOpenWindow
-glXSwapBuffers
-XPending
-GLX_DOUBLEBUFFER
-GLX_RGBA
-GLX_RED_SIZE
-GLX_GREEN_SIZE
-GLX_BLUE_SIZE
-GLX_DEPTH_SIZE
-KeyPressMask
-KeyReleaseMask
-ButtonPressMask 
-ButtonMotionMask
-ButtonReleaseMask
-ExposureMask
-StructureNotifyMask
-PointerMotionMask
-glClearColor
-GL_FLAT
-GL_SMOOTH
-glShadeModel
-
-
-GL_LEQUAL
-GL_DEPTH_TEST
-GL_BLEND
-GL_SRC_ALPHA
-GL_ONE_MINUS_SRC_ALPHA
-GL_NORMALIZE
-GL_LIGHTING
-GL_LIGHT0
-GL_LIGHT1
-GL_LIGHT2
-GL_LIGHT3
-GL_LIGHT4
-GL_LIGHT5
-GL_LIGHT6
-GL_LIGHT7
-GL_LIGHT8
-GL_LIGHT9
-GL_CULL_FACE
-GL_LIGHT_MODEL_TWO_SIDE
-GL_TRUE
-GL_LIGHT_MODEL_LOCAL_VIEWER
-GL_FALSE
-GL_LIGHT_MODEL_TWO_SIDE
-
-GL_POLYGON_OFFSET_EXT
-glPolygonOffsetEXT
-glPixelStorei
-glLightModeli
-GL_UNPACK_ALIGNMENT
-GL_PACK_ALIGNMENT
-GL_FRONT_AND_BACK
-GL_SHININESS
-
-
+		Button1
+		Button1Mask
+		Button2
+		Button2Mask
+		Button3
+		Button3Mask
+		ButtonMotionMask
+		ButtonPress
+		ButtonPressMask 
+		ButtonRelease
+		ButtonReleaseMask
+		ConfigureNotify
+		ControlMask
+		ExposureMask
+		GLX_BLUE_SIZE
+		GLX_DEPTH_SIZE
+		GLX_DOUBLEBUFFER
+		GLX_GREEN_SIZE
+		GLX_RED_SIZE
+		GLX_RGBA
+		GL_AMBIENT
+		GL_BLEND
+		GL_COLOR_BUFFER_BIT
+		GL_CULL_FACE
+		GL_DEPTH_BUFFER_BIT
+		GL_DEPTH_TEST
+		GL_DIFFUSE
+		GL_FALSE
+		GL_FLAT
+		GL_FRONT_AND_BACK
+		GL_LEQUAL
+		GL_LIGHT0
+		GL_LIGHT1
+		GL_LIGHT2
+		GL_LIGHT3
+		GL_LIGHT4
+		GL_LIGHT5
+		GL_LIGHT6
+		GL_LIGHT7
+		GL_LIGHT8
+		GL_LIGHT9
+		GL_LIGHTING
+		GL_LIGHT_MODEL_LOCAL_VIEWER
+		GL_LIGHT_MODEL_TWO_SIDE
+		GL_LIGHT_MODEL_TWO_SIDE
+		GL_MODELVIEW
+		GL_MODELVIEW_MATRIX
+		GL_MODELVIEW_STACK_DEPTH
+		GL_NICEST
+		GL_NORMALIZE
+		GL_ONE_MINUS_SRC_ALPHA
+		GL_PACK_ALIGNMENT
+		GL_PERSPECTIVE_CORRECTION_HINT
+		GL_POLYGON_OFFSET_EXT
+		GL_POSITION
+		GL_PROJECTION
+		GL_PROJECTION_STACK_DEPTH
+		GL_RENDER
+		GL_SELECT
+		GL_SHININESS
+		GL_SMOOTH
+		GL_SPECULAR
+		GL_SRC_ALPHA
+		GL_TRUE
+		GL_UNPACK_ALIGNMENT
+		GL_VIEWPORT
+		KeyPress
+		KeyPressMask
+		KeyRelease
+		KeyReleaseMask
+		MotionNotify
+		PointerMotionMask
+		ShiftMask
+		StructureNotifyMask
+		XPending
+		glBlendFunc
+		glClear
+		glClearColor
+		glDepthFunc
+		glDisable
+		glEnable
+		glGetDoublev
+		glGetIntegerv
+		glHint
+		glLightModeli
+		glLightfv
+		glLoadIdentity
+		glMaterialf
+		glMatrixMode
+		glMultMatrixd
+		glPixelStorei
+		glPolygonOffsetEXT
+		glPopMatrix
+		glPushMatrix
+		glRenderMode
+		glSelectBuffer
+		glShadeModel
+		glViewport
+		glXDestroyContext
+		glXSwapBuffers
+		glpOpenWindow
+		glpXNextEvent
+		gluPerspective
+		glupPickMatrix
 	);
 	bootstrap VRML::OpenGL;
-sub APIENTRY () {__cdecl}
-sub AlreadyGrabbed () {1}
-sub AnyModifier () {(1<<15)}
-sub AsyncBoth () {6}
-sub AsyncKeyboard () {3}
-sub AsyncPointer () {0}
+
+
 sub Button1 () {1}
 sub Button1Mask () {(1<<8)}
 sub Button1MotionMask () {(1<<8)}
@@ -135,336 +126,37 @@ sub Button2MotionMask () {(1<<9)}
 sub Button3 () {3}
 sub Button3Mask () {(1<<10)}
 sub Button3MotionMask () {(1<<10)}
-sub Button4 () {4}
-sub Button4Mask () {(1<<11)}
-sub Button4MotionMask () {(1<<11)}
-sub Button5 () {5}
-sub Button5Mask () {(1<<12)}
-sub Button5MotionMask () {(1<<12)}
 sub ButtonMotionMask () {(1<<13)}
 sub ButtonPress () {4}
 sub ButtonPressMask () {(1<<2)}
 sub ButtonRelease () {5}
 sub ButtonReleaseMask () {(1<<3)}
-sub CALLBACK () {__cdecl}
-sub CirculateNotify () {26}
-sub CirculateRequest () {27}
-sub ClientMessage () {33}
-sub ColormapChangeMask () {(1<<23)}
-sub ColormapInstalled () {1}
-sub ColormapNotify () {32}
-sub ColormapUninstalled () {0}
 sub ConfigureNotify () {22}
-sub ConfigureRequest () {23}
-sub ControlMapIndex () {2}
 sub ControlMask () {(1<<2)}
-sub CreateNotify () {16}
-sub DestroyNotify () {17}
-sub DirectColor () {5}
-sub EnterNotify () {7}
-sub EnterWindowMask () {(1<<4)}
-sub Expose () {12}
 sub ExposureMask () {(1<<15)}
-sub FamilyChaos () {2}
-sub FamilyDECnet () {1}
-sub FamilyInternet () {0}
-sub FocusChangeMask () {(1<<21)}
-sub FocusIn () {9}
-sub FocusOut () {10}
-sub GLX_ACCUM_ALPHA_SIZE () {17}
-sub GLX_ACCUM_BLUE_SIZE () {16}
-sub GLX_ACCUM_GREEN_SIZE () {15}
-sub GLX_ACCUM_RED_SIZE () {14}
-sub GLX_ALPHA_SIZE () {11}
-sub GLX_AUX_BUFFERS () {7}
-sub GLX_BAD_ATTRIBUTE () {2}
-sub GLX_BAD_CONTEXT () {5}
-sub GLX_BAD_ENUM () {7}
-sub GLX_BAD_SCREEN () {1}
-sub GLX_BAD_VALUE () {6}
-sub GLX_BAD_VISUAL () {4}
 sub GLX_BLUE_SIZE () {10}
-sub GLX_BUFFER_SIZE () {2}
 sub GLX_DEPTH_SIZE () {12}
-sub GLX_DIRECT_COLOR_EXT () {0x8003}
 sub GLX_DOUBLEBUFFER () {5}
-sub GLX_EXTENSIONS () {3}
-sub GLX_EXT_visual_info () {1}
-sub GLX_GRAY_SCALE_EXT () {0x8006}
 sub GLX_GREEN_SIZE () {9}
-sub GLX_LEVEL () {3}
-sub GLX_MESA_copy_sub_buffer () {1}
-sub GLX_MESA_pixmap_colormap () {1}
-sub GLX_MESA_release_buffers () {1}
-sub GLX_NONE_EXT () {0x8000}
-sub GLX_NO_EXTENSION () {3}
-sub GLX_PSEUDO_COLOR_EXT () {0x8004}
 sub GLX_RED_SIZE () {8}
 sub GLX_RGBA () {4}
-sub GLX_STATIC_COLOR_EXT () {0x8005}
-sub GLX_STATIC_GRAY_EXT () {0x8007}
-sub GLX_STENCIL_SIZE () {13}
-sub GLX_STEREO () {6}
-sub GLX_TRANSPARENT_BLUE_VALUE_EXT () {0x27}
-sub GLX_TRANSPARENT_GREEN_VALUE_EXT () {0x26}
-sub GLX_TRANSPARENT_INDEX_EXT () {0x8009}
-sub GLX_TRANSPARENT_INDEX_VALUE_EXT () {0x24}
-sub GLX_TRANSPARENT_RED_VALUE_EXT () {0x25}
-sub GLX_TRANSPARENT_RGB_EXT () {0x8008}
-sub GLX_TRANSPARENT_TYPE_EXT () {0x23}
-sub GLX_TRUE_COLOR_EXT () {0x8002}
-sub GLX_USE_GL () {1}
-sub GLX_VENDOR () {1}
-sub GLX_VERSION () {2}
-sub GLX_VERSION_1_1 () {1}
-sub GLX_X_VISUAL_TYPE_EXT () {0x22}
-sub GL_2D () {0x0600}
-sub GL_2_BYTES () {0x1407}
-sub GL_3D () {0x0601}
-sub GL_3D_COLOR () {0x0602}
-sub GL_3D_COLOR_TEXTURE () {0x0603}
-sub GL_3_BYTES () {0x1408}
-sub GL_4D_COLOR_TEXTURE () {0x0604}
-sub GL_4_BYTES () {0x1409}
-sub GL_ACCUM () {0x0100}
-sub GL_ACCUM_ALPHA_BITS () {0x0D5B}
-sub GL_ACCUM_BLUE_BITS () {0x0D5A}
-sub GL_ACCUM_BUFFER_BIT () {0x00000200}
-sub GL_ACCUM_CLEAR_VALUE () {0x0B80}
-sub GL_ACCUM_GREEN_BITS () {0x0D59}
-sub GL_ACCUM_RED_BITS () {0x0D58}
-sub GL_ADD () {0x0104}
-sub GL_ALPHA () {0x1906}
-sub GL_ALPHA12 () {0x803D}
-sub GL_ALPHA16 () {0x803E}
-sub GL_ALPHA4 () {0x803B}
-sub GL_ALPHA8 () {0x803C}
-sub GL_ALPHA_BIAS () {0x0D1D}
-sub GL_ALPHA_BITS () {0x0D55}
-sub GL_ALPHA_SCALE () {0x0D1C}
-sub GL_ALPHA_TEST () {0x0BC0}
-sub GL_ALPHA_TEST_FUNC () {0x0BC1}
-sub GL_ALPHA_TEST_REF () {0x0BC2}
-sub GL_ALWAYS () {0x0207}
 sub GL_AMBIENT () {0x1200}
 sub GL_AMBIENT_AND_DIFFUSE () {0x1602}
-sub GL_AND () {0x1501}
-sub GL_AND_INVERTED () {0x1504}
-sub GL_AND_REVERSE () {0x1502}
-sub GL_ATTRIB_STACK_DEPTH () {0x0BB0}
-sub GL_AUTO_NORMAL () {0x0D80}
-sub GL_AUX0 () {0x0409}
-sub GL_AUX1 () {0x040A}
-sub GL_AUX2 () {0x040B}
-sub GL_AUX3 () {0x040C}
-sub GL_AUX_BUFFERS () {0x0C00}
-sub GL_BACK () {0x0405}
-sub GL_BACK_LEFT () {0x0402}
-sub GL_BACK_RIGHT () {0x0403}
-sub GL_BITMAP () {0x1A00}
-sub GL_BITMAP_TOKEN () {0x0704}
 sub GL_BLEND () {0x0BE2}
 sub GL_BLEND_COLOR_EXT () {0x8005}
 sub GL_BLEND_DST () {0x0BE0}
 sub GL_BLEND_EQUATION_EXT () {0x8009}
 sub GL_BLEND_SRC () {0x0BE1}
-sub GL_BLUE () {0x1905}
-sub GL_BLUE_BIAS () {0x0D1B}
-sub GL_BLUE_BITS () {0x0D54}
-sub GL_BLUE_SCALE () {0x0D1A}
-sub GL_BYTE () {0x1400}
-sub GL_C3F_V3F () {0x2A24}
-sub GL_C4F_N3F_V3F () {0x2A26}
-sub GL_C4UB_V2F () {0x2A22}
-sub GL_C4UB_V3F () {0x2A23}
-sub GL_CCW () {0x0901}
-sub GL_CLAMP () {0x2900}
-sub GL_CLEAR () {0x1500}
-sub GL_CLIENT_ATTRIB_STACK_DEPTH () {0x0BB1}
-sub GL_CLIENT_PIXEL_STORE_BIT () {0x00000001}
-sub GL_CLIENT_VERTEX_ARRAY_BIT () {0x00000002}
-sub GL_CLIP_PLANE0 () {0x3000}
-sub GL_CLIP_PLANE1 () {0x3001}
-sub GL_CLIP_PLANE2 () {0x3002}
-sub GL_CLIP_PLANE3 () {0x3003}
-sub GL_CLIP_PLANE4 () {0x3004}
-sub GL_CLIP_PLANE5 () {0x3005}
-sub GL_COEFF () {0x0A00}
-sub GL_COLOR () {0x1800}
-sub GL_COLOR_ARRAY () {0x8076}
-sub GL_COLOR_ARRAY_COUNT_EXT () {0x8084}
-sub GL_COLOR_ARRAY_EXT () {0x8076}
-sub GL_COLOR_ARRAY_POINTER () {0x8090}
-sub GL_COLOR_ARRAY_POINTER_EXT () {0x8090}
-sub GL_COLOR_ARRAY_SIZE () {0x8081}
-sub GL_COLOR_ARRAY_SIZE_EXT () {0x8081}
-sub GL_COLOR_ARRAY_STRIDE () {0x8083}
-sub GL_COLOR_ARRAY_STRIDE_EXT () {0x8083}
-sub GL_COLOR_ARRAY_TYPE () {0x8082}
-sub GL_COLOR_ARRAY_TYPE_EXT () {0x8082}
 sub GL_COLOR_BUFFER_BIT () {0x00004000}
-sub GL_COLOR_CLEAR_VALUE () {0x0C22}
-sub GL_COLOR_INDEX () {0x1900}
-sub GL_COLOR_INDEX12_EXT () {0x80E6}
-sub GL_COLOR_INDEX16_EXT () {0x80E7}
-sub GL_COLOR_INDEX1_EXT () {0x80E2}
-sub GL_COLOR_INDEX2_EXT () {0x80E3}
-sub GL_COLOR_INDEX4_EXT () {0x80E4}
-sub GL_COLOR_INDEX8_EXT () {0x80E5}
-sub GL_COLOR_INDEXES () {0x1603}
-sub GL_COLOR_LOGIC_OP () {0x0BF2}
-sub GL_COLOR_MATERIAL () {0x0B57}
-sub GL_COLOR_MATERIAL_FACE () {0x0B55}
-sub GL_COLOR_MATERIAL_PARAMETER () {0x0B56}
-sub GL_COLOR_TABLE_ALPHA_SIZE_EXT () {0x80DD}
-sub GL_COLOR_TABLE_BLUE_SIZE_EXT () {0x80DC}
-sub GL_COLOR_TABLE_FORMAT_EXT () {0x80D8}
-sub GL_COLOR_TABLE_GREEN_SIZE_EXT () {0x80DB}
-sub GL_COLOR_TABLE_INTENSITY_SIZE_EXT () {0x80DF}
-sub GL_COLOR_TABLE_LUMINANCE_SIZE_EXT () {0x80DE}
-sub GL_COLOR_TABLE_RED_SIZE_EXT () {0x80DA}
-sub GL_COLOR_TABLE_WIDTH_EXT () {0x80D9}
-sub GL_COLOR_WRITEMASK () {0x0C23}
-sub GL_COMPILE () {0x1300}
-sub GL_COMPILE_AND_EXECUTE () {0x1301}
-sub GL_CONSTANT_ALPHA () {0x8003}
-sub GL_CONSTANT_ALPHA_EXT () {0x8003}
-sub GL_CONSTANT_ATTENUATION () {0x1207}
-sub GL_CONSTANT_COLOR () {0x8001}
-sub GL_CONSTANT_COLOR_EXT () {0x8001}
-sub GL_COPY () {0x1503}
-sub GL_COPY_INVERTED () {0x150C}
-sub GL_COPY_PIXEL_TOKEN () {0x0706}
 sub GL_CULL_FACE () {0x0B44}
 sub GL_CULL_FACE_MODE () {0x0B45}
-sub GL_CURRENT_BIT () {0x00000001}
-sub GL_CURRENT_COLOR () {0x0B00}
-sub GL_CURRENT_INDEX () {0x0B01}
-sub GL_CURRENT_NORMAL () {0x0B02}
-sub GL_CURRENT_RASTER_COLOR () {0x0B04}
-sub GL_CURRENT_RASTER_DISTANCE () {0x0B09}
-sub GL_CURRENT_RASTER_INDEX () {0x0B05}
-sub GL_CURRENT_RASTER_POSITION () {0x0B07}
-sub GL_CURRENT_RASTER_POSITION_VALID () {0x0B08}
-sub GL_CURRENT_RASTER_TEXTURE_COORDS () {0x0B06}
-sub GL_CURRENT_TEXTURE_COORDS () {0x0B03}
-sub GL_CW () {0x0900}
-sub GL_DECAL () {0x2101}
-sub GL_DECR () {0x1E03}
-sub GL_DEPTH () {0x1801}
-sub GL_DEPTH_BIAS () {0x0D1F}
-sub GL_DEPTH_BITS () {0x0D56}
 sub GL_DEPTH_BUFFER_BIT () {0x00000100}
-sub GL_DEPTH_CLEAR_VALUE () {0x0B73}
-sub GL_DEPTH_COMPONENT () {0x1902}
-sub GL_DEPTH_FUNC () {0x0B74}
-sub GL_DEPTH_RANGE () {0x0B70}
-sub GL_DEPTH_SCALE () {0x0D1E}
 sub GL_DEPTH_TEST () {0x0B71}
-sub GL_DEPTH_WRITEMASK () {0x0B72}
 sub GL_DIFFUSE () {0x1201}
-sub GL_DITHER () {0x0BD0}
-sub GL_DOMAIN () {0x0A02}
-sub GL_DONT_CARE () {0x1100}
-sub GL_DOUBLE () {0x140A}
-sub GL_DOUBLEBUFFER () {0x0C32}
-sub GL_DRAW_BUFFER () {0x0C01}
-sub GL_DRAW_PIXEL_TOKEN () {0x0705}
-sub GL_DST_ALPHA () {0x0304}
-sub GL_DST_COLOR () {0x0306}
-sub GL_EDGE_FLAG () {0x0B43}
-sub GL_EDGE_FLAG_ARRAY () {0x8079}
-sub GL_EDGE_FLAG_ARRAY_COUNT_EXT () {0x808D}
-sub GL_EDGE_FLAG_ARRAY_EXT () {0x8079}
-sub GL_EDGE_FLAG_ARRAY_POINTER () {0x8093}
-sub GL_EDGE_FLAG_ARRAY_POINTER_EXT () {0x8093}
-sub GL_EDGE_FLAG_ARRAY_STRIDE () {0x808C}
-sub GL_EDGE_FLAG_ARRAY_STRIDE_EXT () {0x808C}
-sub GL_EMISSION () {0x1600}
-sub GL_ENABLE_BIT () {0x00002000}
-sub GL_EQUAL () {0x0202}
-sub GL_EQUIV () {0x1509}
-sub GL_EVAL_BIT () {0x00010000}
-sub GL_EXP () {0x0800}
-sub GL_EXP2 () {0x0801}
-sub GL_EXTENSIONS () {0x1F03}
-sub GL_EXT_blend_color () {1}
-sub GL_EXT_blend_logic_op () {1}
-sub GL_EXT_blend_minmax () {1}
-sub GL_EXT_blend_subtract () {1}
-sub GL_EXT_paletted_texture () {1}
-sub GL_EXT_point_parameters () {1}
-sub GL_EXT_polygon_offset () {1}
-sub GL_EXT_shared_texture_palette () {1}
-sub GL_EXT_texture3D () {1}
-sub GL_EXT_texture_object () {1}
-sub GL_EXT_vertex_array () {1}
-sub GL_EYE_LINEAR () {0x2400}
-sub GL_EYE_PLANE () {0x2502}
 sub GL_FALSE () {0}
-sub GL_FASTEST () {0x1101}
-sub GL_FEEDBACK () {0x1C01}
-sub GL_FEEDBACK_BUFFER_POINTER () {0x0DF0}
-sub GL_FEEDBACK_BUFFER_SIZE () {0x0DF1}
-sub GL_FEEDBACK_BUFFER_TYPE () {0x0DF2}
-sub GL_FILL () {0x1B02}
 sub GL_FLAT () {0x1D00}
-sub GL_FLOAT () {0x1406}
-sub GL_FOG () {0x0B60}
-sub GL_FOG_BIT () {0x00000080}
-sub GL_FOG_COLOR () {0x0B66}
-sub GL_FOG_DENSITY () {0x0B62}
-sub GL_FOG_END () {0x0B64}
-sub GL_FOG_HINT () {0x0C54}
-sub GL_FOG_INDEX () {0x0B61}
-sub GL_FOG_MODE () {0x0B65}
-sub GL_FOG_START () {0x0B63}
-sub GL_FRONT () {0x0404}
 sub GL_FRONT_AND_BACK () {0x0408}
-sub GL_FRONT_FACE () {0x0B46}
-sub GL_FRONT_LEFT () {0x0400}
-sub GL_FRONT_RIGHT () {0x0401}
-sub GL_FUNC_ADD_EXT () {0x8006}
-sub GL_FUNC_REVERSE_SUBTRACT_EXT () {0x800B}
-sub GL_FUNC_SUBTRACT_EXT () {0x800A}
-sub GL_GEQUAL () {0x0206}
-sub GL_GREATER () {0x0204}
-sub GL_GREEN () {0x1904}
-sub GL_GREEN_BIAS () {0x0D19}
-sub GL_GREEN_BITS () {0x0D53}
-sub GL_GREEN_SCALE () {0x0D18}
-sub GL_HINT_BIT () {0x00008000}
-sub GL_INCR () {0x1E02}
-sub GL_INDEX_ARRAY () {0x8077}
-sub GL_INDEX_ARRAY_COUNT_EXT () {0x8087}
-sub GL_INDEX_ARRAY_EXT () {0x8077}
-sub GL_INDEX_ARRAY_POINTER () {0x8091}
-sub GL_INDEX_ARRAY_POINTER_EXT () {0x8091}
-sub GL_INDEX_ARRAY_STRIDE () {0x8086}
-sub GL_INDEX_ARRAY_STRIDE_EXT () {0x8086}
-sub GL_INDEX_ARRAY_TYPE () {0x8085}
-sub GL_INDEX_ARRAY_TYPE_EXT () {0x8085}
-sub GL_INDEX_BITS () {0x0D51}
-sub GL_INDEX_CLEAR_VALUE () {0x0C20}
-sub GL_INDEX_LOGIC_OP () {0x0BF1}
-sub GL_INDEX_MODE () {0x0C30}
-sub GL_INDEX_OFFSET () {0x0D13}
-sub GL_INDEX_SHIFT () {0x0D12}
-sub GL_INDEX_WRITEMASK () {0x0C21}
-sub GL_INT () {0x1404}
-sub GL_INTENSITY () {0x8049}
-sub GL_INTENSITY12 () {0x804C}
-sub GL_INTENSITY16 () {0x804D}
-sub GL_INTENSITY4 () {0x804A}
-sub GL_INTENSITY8 () {0x804B}
-sub GL_INVALID_ENUM () {0x0500}
-sub GL_INVALID_OPERATION () {0x0502}
-sub GL_INVALID_VALUE () {0x0501}
-sub GL_INVERT () {0x150A}
-sub GL_KEEP () {0x1E00}
-sub GL_LEFT () {0x0406}
 sub GL_LEQUAL () {0x0203}
-sub GL_LESS () {0x0201}
 sub GL_LIGHT0 () {0x4000}
 sub GL_LIGHT1 () {0x4001}
 sub GL_LIGHT2 () {0x4002}
@@ -475,460 +167,42 @@ sub GL_LIGHT6 () {0x4006}
 sub GL_LIGHT7 () {0x4007}
 sub GL_LIGHTING () {0x0B50}
 sub GL_LIGHTING_BIT () {0x00000040}
-sub GL_LIGHT_MODEL_AMBIENT () {0x0B53}
 sub GL_LIGHT_MODEL_LOCAL_VIEWER () {0x0B51}
 sub GL_LIGHT_MODEL_TWO_SIDE () {0x0B52}
-sub GL_LINE () {0x1B01}
-sub GL_LINEAR () {0x2601}
-sub GL_LINEAR_ATTENUATION () {0x1208}
-sub GL_LINEAR_MIPMAP_LINEAR () {0x2703}
-sub GL_LINEAR_MIPMAP_NEAREST () {0x2701}
-sub GL_LINES () {0x0001}
-sub GL_LINE_BIT () {0x00000004}
-sub GL_LINE_LOOP () {0x0002}
-sub GL_LINE_RESET_TOKEN () {0x0707}
-sub GL_LINE_SMOOTH () {0x0B20}
-sub GL_LINE_SMOOTH_HINT () {0x0C52}
-sub GL_LINE_STIPPLE () {0x0B24}
-sub GL_LINE_STIPPLE_PATTERN () {0x0B25}
-sub GL_LINE_STIPPLE_REPEAT () {0x0B26}
-sub GL_LINE_STRIP () {0x0003}
-sub GL_LINE_TOKEN () {0x0702}
-sub GL_LINE_WIDTH () {0x0B21}
-sub GL_LINE_WIDTH_GRANULARITY () {0x0B23}
-sub GL_LINE_WIDTH_RANGE () {0x0B22}
-sub GL_LIST_BASE () {0x0B32}
-sub GL_LIST_BIT () {0x00020000}
-sub GL_LIST_INDEX () {0x0B33}
-sub GL_LIST_MODE () {0x0B30}
-sub GL_LOAD () {0x0101}
-sub GL_LOGIC_OP () {0x0BF1}
-sub GL_LOGIC_OP_MODE () {0x0BF0}
-sub GL_LUMINANCE () {0x1909}
-sub GL_LUMINANCE12 () {0x8041}
-sub GL_LUMINANCE12_ALPHA12 () {0x8047}
-sub GL_LUMINANCE12_ALPHA4 () {0x8046}
-sub GL_LUMINANCE16 () {0x8042}
-sub GL_LUMINANCE16_ALPHA16 () {0x8048}
-sub GL_LUMINANCE4 () {0x803F}
-sub GL_LUMINANCE4_ALPHA4 () {0x8043}
-sub GL_LUMINANCE6_ALPHA2 () {0x8044}
-sub GL_LUMINANCE8 () {0x8040}
-sub GL_LUMINANCE8_ALPHA8 () {0x8045}
-sub GL_LUMINANCE_ALPHA () {0x190A}
-sub GL_MAP1_COLOR_4 () {0x0D90}
-sub GL_MAP1_GRID_DOMAIN () {0x0DD0}
-sub GL_MAP1_GRID_SEGMENTS () {0x0DD1}
-sub GL_MAP1_INDEX () {0x0D91}
-sub GL_MAP1_NORMAL () {0x0D92}
-sub GL_MAP1_TEXTURE_COORD_1 () {0x0D93}
-sub GL_MAP1_TEXTURE_COORD_2 () {0x0D94}
-sub GL_MAP1_TEXTURE_COORD_3 () {0x0D95}
-sub GL_MAP1_TEXTURE_COORD_4 () {0x0D96}
-sub GL_MAP1_VERTEX_3 () {0x0D97}
-sub GL_MAP1_VERTEX_4 () {0x0D98}
-sub GL_MAP2_COLOR_4 () {0x0DB0}
-sub GL_MAP2_GRID_DOMAIN () {0x0DD2}
-sub GL_MAP2_GRID_SEGMENTS () {0x0DD3}
-sub GL_MAP2_INDEX () {0x0DB1}
-sub GL_MAP2_NORMAL () {0x0DB2}
-sub GL_MAP2_TEXTURE_COORD_1 () {0x0DB3}
-sub GL_MAP2_TEXTURE_COORD_2 () {0x0DB4}
-sub GL_MAP2_TEXTURE_COORD_3 () {0x0DB5}
-sub GL_MAP2_TEXTURE_COORD_4 () {0x0DB6}
-sub GL_MAP2_VERTEX_3 () {0x0DB7}
-sub GL_MAP2_VERTEX_4 () {0x0DB8}
-sub GL_MAP_COLOR () {0x0D10}
-sub GL_MAP_STENCIL () {0x0D11}
-sub GL_MATRIX_MODE () {0x0BA0}
-sub GL_MAX_3D_TEXTURE_SIZE_EXT () {0x8073}
-sub GL_MAX_ATTRIB_STACK_DEPTH () {0x0D35}
-sub GL_MAX_CLIENT_ATTRIB_STACK_DEPTH () {0x0D3B}
-sub GL_MAX_CLIP_PLANES () {0x0D32}
-sub GL_MAX_EVAL_ORDER () {0x0D30}
-sub GL_MAX_EXT () {0x8008}
-sub GL_MAX_LIGHTS () {0x0D31}
-sub GL_MAX_LIST_NESTING () {0x0B31}
-sub GL_MAX_MODELVIEW_STACK_DEPTH () {0x0D36}
-sub GL_MAX_NAME_STACK_DEPTH () {0x0D37}
-sub GL_MAX_PIXEL_MAP_TABLE () {0x0D34}
-sub GL_MAX_PROJECTION_STACK_DEPTH () {0x0D38}
-sub GL_MAX_TEXTURE_SIZE () {0x0D33}
-sub GL_MAX_TEXTURE_STACK_DEPTH () {0x0D39}
-sub GL_MAX_VIEWPORT_DIMS () {0x0D3A}
-sub GL_MESA_resize_buffers () {1}
-sub GL_MESA_window_pos () {1}
-sub GL_MIN_EXT () {0x8007}
 sub GL_MODELVIEW () {0x1700}
 sub GL_MODELVIEW_MATRIX () {0x0BA6}
 sub GL_MODELVIEW_STACK_DEPTH () {0x0BA3}
-sub GL_MODULATE () {0x2100}
-sub GL_MULT () {0x0103}
-sub GL_N3F_V3F () {0x2A25}
-sub GL_NAME_STACK_DEPTH () {0x0D70}
-sub GL_NAND () {0x150E}
-sub GL_NEAREST () {0x2600}
-sub GL_NEAREST_MIPMAP_LINEAR () {0x2702}
-sub GL_NEAREST_MIPMAP_NEAREST () {0x2700}
-sub GL_NEVER () {0x0200}
 sub GL_NICEST () {0x1102}
-sub GL_NONE () {0}
-sub GL_NOOP () {0x1505}
-sub GL_NOR () {0x1508}
 sub GL_NORMALIZE () {0x0BA1}
-sub GL_NORMAL_ARRAY () {0x8075}
-sub GL_NORMAL_ARRAY_COUNT_EXT () {0x8080}
-sub GL_NORMAL_ARRAY_EXT () {0x8075}
-sub GL_NORMAL_ARRAY_POINTER () {0x808F}
-sub GL_NORMAL_ARRAY_POINTER_EXT () {0x808F}
-sub GL_NORMAL_ARRAY_STRIDE () {0x807F}
-sub GL_NORMAL_ARRAY_STRIDE_EXT () {0x807F}
-sub GL_NORMAL_ARRAY_TYPE () {0x807E}
-sub GL_NORMAL_ARRAY_TYPE_EXT () {0x807E}
-sub GL_NOTEQUAL () {0x0205}
-sub GL_NO_ERROR () {0}
-sub GL_OBJECT_LINEAR () {0x2401}
-sub GL_OBJECT_PLANE () {0x2501}
-sub GL_ONE () {1}
-sub GL_ONE_MINUS_CONSTANT_ALPHA () {0x8004}
-sub GL_ONE_MINUS_CONSTANT_ALPHA_EXT () {0x8004}
-sub GL_ONE_MINUS_CONSTANT_COLOR () {0x8002}
-sub GL_ONE_MINUS_CONSTANT_COLOR_EXT () {0x8002}
-sub GL_ONE_MINUS_DST_ALPHA () {0x0305}
-sub GL_ONE_MINUS_DST_COLOR () {0x0307}
 sub GL_ONE_MINUS_SRC_ALPHA () {0x0303}
-sub GL_ONE_MINUS_SRC_COLOR () {0x0301}
-sub GL_OR () {0x1507}
-sub GL_ORDER () {0x0A01}
-sub GL_OR_INVERTED () {0x150D}
-sub GL_OR_REVERSE () {0x150B}
-sub GL_OUT_OF_MEMORY () {0x0505}
 sub GL_PACK_ALIGNMENT () {0x0D05}
-sub GL_PACK_IMAGE_HEIGHT_EXT () {0x806C}
-sub GL_PACK_LSB_FIRST () {0x0D01}
-sub GL_PACK_ROW_LENGTH () {0x0D02}
-sub GL_PACK_SKIP_IMAGES_EXT () {0x806B}
-sub GL_PACK_SKIP_PIXELS () {0x0D04}
-sub GL_PACK_SKIP_ROWS () {0x0D03}
-sub GL_PACK_SWAP_BYTES () {0x0D00}
-sub GL_PASS_THROUGH_TOKEN () {0x0700}
 sub GL_PERSPECTIVE_CORRECTION_HINT () {0x0C50}
-sub GL_PIXEL_MAP_A_TO_A () {0x0C79}
-sub GL_PIXEL_MAP_A_TO_A_SIZE () {0x0CB9}
-sub GL_PIXEL_MAP_B_TO_B () {0x0C78}
-sub GL_PIXEL_MAP_B_TO_B_SIZE () {0x0CB8}
-sub GL_PIXEL_MAP_G_TO_G () {0x0C77}
-sub GL_PIXEL_MAP_G_TO_G_SIZE () {0x0CB7}
-sub GL_PIXEL_MAP_I_TO_A () {0x0C75}
-sub GL_PIXEL_MAP_I_TO_A_SIZE () {0x0CB5}
-sub GL_PIXEL_MAP_I_TO_B () {0x0C74}
-sub GL_PIXEL_MAP_I_TO_B_SIZE () {0x0CB4}
-sub GL_PIXEL_MAP_I_TO_G () {0x0C73}
-sub GL_PIXEL_MAP_I_TO_G_SIZE () {0x0CB3}
-sub GL_PIXEL_MAP_I_TO_I () {0x0C70}
-sub GL_PIXEL_MAP_I_TO_I_SIZE () {0x0CB0}
-sub GL_PIXEL_MAP_I_TO_R () {0x0C72}
-sub GL_PIXEL_MAP_I_TO_R_SIZE () {0x0CB2}
-sub GL_PIXEL_MAP_R_TO_R () {0x0C76}
-sub GL_PIXEL_MAP_R_TO_R_SIZE () {0x0CB6}
-sub GL_PIXEL_MAP_S_TO_S () {0x0C71}
-sub GL_PIXEL_MAP_S_TO_S_SIZE () {0x0CB1}
-sub GL_PIXEL_MODE_BIT () {0x00000020}
-sub GL_POINT () {0x1B00}
-sub GL_POINTS () {0x0000}
-sub GL_POINT_BIT () {0x00000002}
-sub GL_POINT_FADE_THRESHOLD_SIZE_EXT () {0x8128}
-sub GL_POINT_SIZE () {0x0B11}
-sub GL_POINT_SIZE_GRANULARITY () {0x0B13}
-sub GL_POINT_SIZE_MAX_EXT () {0x8127}
-sub GL_POINT_SIZE_MIN_EXT () {0x8126}
-sub GL_POINT_SIZE_RANGE () {0x0B12}
-sub GL_POINT_SMOOTH () {0x0B10}
-sub GL_POINT_SMOOTH_HINT () {0x0C51}
-sub GL_POINT_TOKEN () {0x0701}
-sub GL_POLYGON () {0x0009}
-sub GL_POLYGON_BIT () {0x00000008}
-sub GL_POLYGON_MODE () {0x0B40}
-sub GL_POLYGON_OFFSET_BIAS_EXT () {0x8039}
 sub GL_POLYGON_OFFSET_EXT () {0x8037}
-sub GL_POLYGON_OFFSET_FACTOR () {0x8038}
-sub GL_POLYGON_OFFSET_FACTOR_EXT () {0x8038}
-sub GL_POLYGON_OFFSET_FILL () {0x8037}
-sub GL_POLYGON_OFFSET_LINE () {0x2A02}
-sub GL_POLYGON_OFFSET_POINT () {0x2A01}
-sub GL_POLYGON_OFFSET_UNITS () {0x2A00}
-sub GL_POLYGON_SMOOTH () {0x0B41}
-sub GL_POLYGON_SMOOTH_HINT () {0x0C53}
-sub GL_POLYGON_STIPPLE () {0x0B42}
-sub GL_POLYGON_STIPPLE_BIT () {0x00000010}
-sub GL_POLYGON_TOKEN () {0x0703}
 sub GL_POSITION () {0x1203}
 sub GL_PROJECTION () {0x1701}
 sub GL_PROJECTION_MATRIX () {0x0BA7}
 sub GL_PROJECTION_STACK_DEPTH () {0x0BA4}
-sub GL_PROXY_TEXTURE_1D () {0x8063}
-sub GL_PROXY_TEXTURE_2D () {0x8064}
-sub GL_PROXY_TEXTURE_3D_EXT () {0x8070}
-sub GL_Q () {0x2003}
-sub GL_QUADRATIC_ATTENUATION () {0x1209}
-sub GL_QUADS () {0x0007}
-sub GL_QUAD_STRIP () {0x0008}
-sub GL_R () {0x2002}
-sub GL_R3_G3_B2 () {0x2A10}
-sub GL_READ_BUFFER () {0x0C02}
-sub GL_RED () {0x1903}
-sub GL_RED_BIAS () {0x0D15}
-sub GL_RED_BITS () {0x0D52}
-sub GL_RED_SCALE () {0x0D14}
 sub GL_RENDER () {0x1C00}
 sub GL_RENDERER () {0x1F01}
 sub GL_RENDER_MODE () {0x0C40}
-sub GL_REPEAT () {0x2901}
-sub GL_REPLACE () {0x1E01}
-sub GL_RETURN () {0x0102}
-sub GL_RGB () {0x1907}
-sub GL_RGB10 () {0x8052}
-sub GL_RGB10_A2 () {0x8059}
-sub GL_RGB12 () {0x8053}
-sub GL_RGB16 () {0x8054}
-sub GL_RGB4 () {0x804F}
-sub GL_RGB5 () {0x8050}
-sub GL_RGB5_A1 () {0x8057}
-sub GL_RGB8 () {0x8051}
-sub GL_RGBA () {0x1908}
-sub GL_RGBA12 () {0x805A}
-sub GL_RGBA16 () {0x805B}
-sub GL_RGBA2 () {0x8055}
-sub GL_RGBA4 () {0x8056}
-sub GL_RGBA8 () {0x8058}
-sub GL_RGBA_MODE () {0x0C31}
-sub GL_RIGHT () {0x0407}
-sub GL_S () {0x2000}
-sub GL_SCISSOR_BIT () {0x00080000}
-sub GL_SCISSOR_BOX () {0x0C10}
-sub GL_SCISSOR_TEST () {0x0C11}
 sub GL_SELECT () {0x1C02}
-sub GL_SET () {0x150F}
-sub GL_SHADE_MODEL () {0x0B54}
-sub GL_SHARED_TEXTURE_PALETTE_EXT () {0x81FB}
 sub GL_SHININESS () {0x1601}
-sub GL_SHORT () {0x1402}
 sub GL_SMOOTH () {0x1D01}
 sub GL_SPECULAR () {0x1202}
-sub GL_SPHERE_MAP () {0x2402}
-sub GL_SPOT_CUTOFF () {0x1206}
-sub GL_SPOT_DIRECTION () {0x1204}
-sub GL_SPOT_EXPONENT () {0x1205}
 sub GL_SRC_ALPHA () {0x0302}
 sub GL_SRC_ALPHA_SATURATE () {0x0308}
-sub GL_SRC_COLOR () {0x0300}
-sub GL_STACK_OVERFLOW () {0x0503}
-sub GL_STACK_UNDERFLOW () {0x0504}
-sub GL_STENCIL () {0x1802}
-sub GL_STENCIL_BITS () {0x0D57}
-sub GL_STENCIL_BUFFER_BIT () {0x00000400}
-sub GL_STENCIL_CLEAR_VALUE () {0x0B91}
-sub GL_STENCIL_FAIL () {0x0B94}
-sub GL_STENCIL_FUNC () {0x0B92}
-sub GL_STENCIL_INDEX () {0x1901}
-sub GL_STENCIL_PASS_DEPTH_FAIL () {0x0B95}
-sub GL_STENCIL_PASS_DEPTH_PASS () {0x0B96}
-sub GL_STENCIL_REF () {0x0B97}
-sub GL_STENCIL_TEST () {0x0B90}
-sub GL_STENCIL_VALUE_MASK () {0x0B93}
-sub GL_STENCIL_WRITEMASK () {0x0B98}
-sub GL_STEREO () {0x0C33}
-sub GL_SUBPIXEL_BITS () {0x0D50}
-sub GL_T () {0x2001}
-sub GL_T2F_C3F_V3F () {0x2A2A}
-sub GL_T2F_C4F_N3F_V3F () {0x2A2C}
-sub GL_T2F_C4UB_V3F () {0x2A29}
-sub GL_T2F_N3F_V3F () {0x2A2B}
-sub GL_T2F_V3F () {0x2A27}
-sub GL_T4F_C4F_N3F_V4F () {0x2A2D}
-sub GL_T4F_V4F () {0x2A28}
-sub GL_TABLE_TOO_LARGE_EXT () {0x8031}
-sub GL_TEXTURE () {0x1702}
-sub GL_TEXTURE_1D () {0x0DE0}
-sub GL_TEXTURE_1D_BINDING_EXT () {0x8068}
-sub GL_TEXTURE_2D () {0x0DE1}
-sub GL_TEXTURE_2D_BINDING_EXT () {0x8069}
-sub GL_TEXTURE_3D_BINDING_EXT () {0x806A}
-sub GL_TEXTURE_3D_EXT () {0x806F}
-sub GL_TEXTURE_ALPHA_SIZE () {0x805F}
-sub GL_TEXTURE_BASE_LEVEL_SGIS () {0x813C}
-sub GL_TEXTURE_BINDING_1D () {0x8068}
-sub GL_TEXTURE_BINDING_2D () {0x8069}
-sub GL_TEXTURE_BIT () {0x00040000}
-sub GL_TEXTURE_BLUE_SIZE () {0x805E}
-sub GL_TEXTURE_BORDER () {0x1005}
-sub GL_TEXTURE_BORDER_COLOR () {0x1004}
-sub GL_TEXTURE_COMPONENTS () {0x1003}
-sub GL_TEXTURE_COORD_ARRAY () {0x8078}
-sub GL_TEXTURE_COORD_ARRAY_COUNT_EXT () {0x808B}
-sub GL_TEXTURE_COORD_ARRAY_EXT () {0x8078}
-sub GL_TEXTURE_COORD_ARRAY_POINTER () {0x8092}
-sub GL_TEXTURE_COORD_ARRAY_POINTER_EXT () {0x8092}
-sub GL_TEXTURE_COORD_ARRAY_SIZE () {0x8088}
-sub GL_TEXTURE_COORD_ARRAY_SIZE_EXT () {0x8088}
-sub GL_TEXTURE_COORD_ARRAY_STRIDE () {0x808A}
-sub GL_TEXTURE_COORD_ARRAY_STRIDE_EXT () {0x808A}
-sub GL_TEXTURE_COORD_ARRAY_TYPE () {0x8089}
-sub GL_TEXTURE_COORD_ARRAY_TYPE_EXT () {0x8089}
-sub GL_TEXTURE_DEPTH_EXT () {0x8071}
-sub GL_TEXTURE_ENV () {0x2300}
-sub GL_TEXTURE_ENV_COLOR () {0x2201}
-sub GL_TEXTURE_ENV_MODE () {0x2200}
-sub GL_TEXTURE_GEN_MODE () {0x2500}
-sub GL_TEXTURE_GEN_Q () {0x0C63}
-sub GL_TEXTURE_GEN_R () {0x0C62}
-sub GL_TEXTURE_GEN_S () {0x0C60}
-sub GL_TEXTURE_GEN_T () {0x0C61}
-sub GL_TEXTURE_GREEN_SIZE () {0x805D}
-sub GL_TEXTURE_HEIGHT () {0x1001}
-sub GL_TEXTURE_INDEX_SIZE_EXT () {0x80E1}
-sub GL_TEXTURE_INTENSITY_SIZE () {0x8061}
-sub GL_TEXTURE_LUMINANCE_SIZE () {0x8060}
-sub GL_TEXTURE_MAG_FILTER () {0x2800}
-sub GL_TEXTURE_MATRIX () {0x0BA8}
-sub GL_TEXTURE_MAX_LEVEL_SGIS () {0x813D}
-sub GL_TEXTURE_MAX_LOD_SGIS () {0x813B}
-sub GL_TEXTURE_MIN_FILTER () {0x2801}
-sub GL_TEXTURE_MIN_LOD_SGIS () {0x813A}
-sub GL_TEXTURE_PRIORITY () {0x8066}
-sub GL_TEXTURE_PRIORITY_EXT () {0x8066}
-sub GL_TEXTURE_RED_SIZE () {0x805C}
-sub GL_TEXTURE_RESIDENT () {0x8067}
-sub GL_TEXTURE_RESIDENT_EXT () {0x8067}
-sub GL_TEXTURE_STACK_DEPTH () {0x0BA5}
-sub GL_TEXTURE_WIDTH () {0x1000}
-sub GL_TEXTURE_WRAP_R_EXT () {0x8072}
-sub GL_TEXTURE_WRAP_S () {0x2802}
-sub GL_TEXTURE_WRAP_T () {0x2803}
-sub GL_TRANSFORM_BIT () {0x00001000}
 sub GL_TRUE () {1}
 sub GL_UNPACK_ALIGNMENT () {0x0CF5}
-sub GL_UNPACK_IMAGE_HEIGHT_EXT () {0x806E}
-sub GL_UNPACK_LSB_FIRST () {0x0CF1}
-sub GL_UNPACK_ROW_LENGTH () {0x0CF2}
-sub GL_UNPACK_SKIP_IMAGES_EXT () {0x806D}
-sub GL_UNPACK_SKIP_PIXELS () {0x0CF4}
-sub GL_UNPACK_SKIP_ROWS () {0x0CF3}
-sub GL_UNPACK_SWAP_BYTES () {0x0CF0}
-sub GL_UNSIGNED_BYTE () {0x1401}
-sub GL_UNSIGNED_INT () {0x1405}
-sub GL_UNSIGNED_SHORT () {0x1403}
-sub GL_V2F () {0x2A20}
-sub GL_V3F () {0x2A21}
-sub GL_VENDOR () {0x1F00}
-sub GL_VERSION () {0x1F02}
-sub GL_VERSION_1_1 () {1}
-sub GL_VERTEX_ARRAY () {0x8074}
-sub GL_VERTEX_ARRAY_COUNT_EXT () {0x807D}
-sub GL_VERTEX_ARRAY_EXT () {0x8074}
-sub GL_VERTEX_ARRAY_POINTER () {0x808E}
-sub GL_VERTEX_ARRAY_POINTER_EXT () {0x808E}
-sub GL_VERTEX_ARRAY_SIZE () {0x807A}
-sub GL_VERTEX_ARRAY_SIZE_EXT () {0x807A}
-sub GL_VERTEX_ARRAY_STRIDE () {0x807C}
-sub GL_VERTEX_ARRAY_STRIDE_EXT () {0x807C}
-sub GL_VERTEX_ARRAY_TYPE () {0x807B}
-sub GL_VERTEX_ARRAY_TYPE_EXT () {0x807B}
 sub GL_VIEWPORT () {0x0BA2}
 sub GL_VIEWPORT_BIT () {0x00000800}
-sub GL_XOR () {0x1506}
-sub GL_ZERO () {0}
-sub GL_ZOOM_X () {0x0D16}
-sub GL_ZOOM_Y () {0x0D17}
-sub GrabFrozen () {4}
-sub GrabInvalidTime () {2}
-sub GrabModeAsync () {1}
-sub GrabModeSync () {0}
-sub GrabNotViewable () {3}
-sub GrabSuccess () {0}
-sub GraphicsExpose () {13}
-sub GravityNotify () {24}
-sub GrayScale () {1}
 sub KeyPress () {2}
 sub KeyPressMask () {(1<<0)}
 sub KeyRelease () {3}
 sub KeyReleaseMask () {(1<<1)}
-sub KeymapNotify () {11}
-sub KeymapStateMask () {(1<<14)}
-sub LASTEvent () {35}
-sub LeaveNotify () {8}
-sub LeaveWindowMask () {(1<<5)}
-sub LockMapIndex () {1}
-sub LockMask () {(1<<1)}
-sub MESA_MAJOR_VERSION () {2}
-sub MESA_MINOR_VERSION () {6}
-sub MapNotify () {19}
-sub MapRequest () {20}
-sub MappingNotify () {34}
-sub Mod1MapIndex () {3}
-sub Mod1Mask () {(1<<3)}
-sub Mod2MapIndex () {4}
-sub Mod2Mask () {(1<<4)}
-sub Mod3MapIndex () {5}
-sub Mod3Mask () {(1<<5)}
-sub Mod4MapIndex () {6}
-sub Mod4Mask () {(1<<6)}
-sub Mod5MapIndex () {7}
-sub Mod5Mask () {(1<<7)}
 sub MotionNotify () {6}
-sub NoEventMask () {0}
-sub NoExpose () {14}
-sub NotifyAncestor () {0}
-sub NotifyDetailNone () {7}
-sub NotifyGrab () {1}
-sub NotifyHint () {1}
-sub NotifyInferior () {2}
-sub NotifyNonlinear () {3}
-sub NotifyNonlinearVirtual () {4}
-sub NotifyNormal () {0}
-sub NotifyPointer () {5}
-sub NotifyPointerRoot () {6}
-sub NotifyUngrab () {2}
-sub NotifyVirtual () {1}
-sub NotifyWhileGrabbed () {3}
-sub OwnerGrabButtonMask () {(1<<24)}
-sub PlaceOnBottom () {1}
-sub PlaceOnTop () {0}
-sub PointerMotionHintMask () {(1<<7)}
 sub PointerMotionMask () {(1<<6)}
-sub PropertyChangeMask () {(1<<22)}
-sub PropertyDelete () {1}
-sub PropertyNewValue () {0}
-sub PropertyNotify () {28}
-sub PseudoColor () {3}
-sub ReparentNotify () {21}
-sub ReplayKeyboard () {5}
-sub ReplayPointer () {2}
-sub ResizeRedirectMask () {(1<<18)}
-sub ResizeRequest () {25}
-sub SelectionClear () {29}
-sub SelectionNotify () {31}
-sub SelectionRequest () {30}
-sub ShiftMapIndex () {0}
 sub ShiftMask () {(1<<0)}
-sub StaticColor () {2}
-sub StaticGray () {0}
 sub StructureNotifyMask () {(1<<17)}
-sub SubstructureNotifyMask () {(1<<19)}
-sub SubstructureRedirectMask () {(1<<20)}
-sub SyncBoth () {7}
-sub SyncKeyboard () {4}
-sub SyncPointer () {1}
-sub TrueColor () {4}
-sub UnmapNotify () {18}
-sub VisibilityChangeMask () {(1<<16)}
-sub VisibilityFullyObscured () {2}
-sub VisibilityNotify () {15}
-sub VisibilityPartiallyObscured () {1}
-sub VisibilityUnobscured () {0}
-sub WINGDIAPI () {extern}
-sub X_PROTOCOL () {11}
-sub X_PROTOCOL_REVISION () {0}
 
 %window_defaults=(
                 'x'     => 0,
