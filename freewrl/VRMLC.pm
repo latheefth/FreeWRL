@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.8  2000/08/31 22:49:23  rcoscali
+# Add depth 2 support (2 channels/color components) which isMINANCE_ALPHAre (wi
+#
 # Revision 1.7  2000/08/31 07:59:52  rcoscali
 # Terminate fix of image loading
 # Add flip_image routine in JPEG.xs
@@ -955,15 +958,14 @@ static struct VRML_Virt virt_${n} = { ".
 					printf("Scaling %d %d to %d %d\\n",
 					 	\$f(__x$1), \$f(__y$1) ,
 					 	rx, ry);
-					gluScaleImage(
-					     (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA)),
-					     \$f(__x$1), \$f(__y$1),
-					     GL_UNSIGNED_BYTE,
-					     ptr,
-					     rx, ry,
-					     GL_UNSIGNED_BYTE,
-					     dest
-					);
+					gluScaleImage((\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==2 ? GL_LUMINANCE_ALPHA : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA ))),
+						      \$f(__x$1), \$f(__y$1),
+						      GL_UNSIGNED_BYTE,
+						      ptr,
+						      rx, ry,
+						      GL_UNSIGNED_BYTE,
+						      dest
+						      );
 					fprintf (stderr, "end of gluScaleImage\n");
 				}
 
@@ -1036,7 +1038,7 @@ static struct VRML_Virt virt_${n} = { ".
 					     \$f(__depth$1),  
 					     rx, ry,
 					     0,
-					     (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA)),
+					     (\$f(__depth$1)==1 ? GL_LUMINANCE : (\$f(__depth$1)==2 ? GL_LUMINANCE_ALPHA : (\$f(__depth$1)==3 ? GL_RGB : GL_RGBA ))),
 					     GL_UNSIGNED_BYTE,
 					     dest
 				);
