@@ -984,7 +984,7 @@ int *level;
 #endif
 
 static int number_of_bits_set(unsigned long a)
-//unsigned long a;
+/* unsigned long a;*/
 {
     if(!a) return 0;
     if(a & 1) return 1 + number_of_bits_set(a >> 1);
@@ -997,7 +997,7 @@ static int number_of_bits_set(unsigned long a)
  */
 static int
 free_bits_at_bottom(unsigned long a)
-//unsigned long a;
+/* unsigned long a;*/
 {
       /* assume char is 8 bits */
     if(!a) return sizeof(unsigned long) * 8;
@@ -1040,7 +1040,7 @@ static long *b_2_pix_alloc=NULL;
 
 void
 InitColorDither(int thirty2)
-//int thirty2;
+/* int thirty2;*/
 {
     /*
      * misuse of the wpixel array for the pixel masks. Note that this
@@ -6641,8 +6641,8 @@ get_more_data(
     got_sys:
       /* Yow, a System Layer Stream.  Much harder to parse.  Call in the
 	     specialist.... */
-      //fprintf(stderr,"This is an MPEG System Layer Stream.  ");
-      //fprintf(stderr,"Audio is not played.\n");
+      /* fprintf(stderr,"This is an MPEG System Layer Stream.  ");*/
+      /* fprintf(stderr,"Audio is not played.\n");*/
       vid_stream->sys_layer = 1;
       result = read_sys(vid_stream,(unsigned int) data);
       return result;
@@ -6753,8 +6753,8 @@ pure_get_more_data(
   buffer = (unsigned char *) *buf_ptr;
 
   if (length > 0) {
-	  //  a known problem - can overwrite - JAS
-	  //
+	  /*   a known problem - can overwrite - JAS*/
+	  /* */
 	  if ((unsigned char *)buf_start != buffer) {
     		memcpy((unsigned char *) buf_start, buffer, (unsigned int) (length*4));
 	  }

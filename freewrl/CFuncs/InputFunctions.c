@@ -30,12 +30,12 @@ char * readInputString(char *fn, char *parent) {
 
 	isTemp = FALSE;
 	bufcount = 0;
-	bufsize = 5 * READSIZE; // initial size
+	bufsize = 5 * READSIZE; /*  initial size*/
 	buffer =(char *)malloc(bufsize * sizeof (char));
 
-	//printf ("start of readInputString, \n\tfile: %s\n\tparent: %s\n",
-	//		fn,parent);
-	//printf ("\tBrowserURL: %s\n\n",BrowserURL);
+	/* printf ("start of readInputString, \n\tfile: %s\n\tparent: %s\n",*/
+	/* 		fn,parent);*/
+	/* printf ("\tBrowserURL: %s\n\n",BrowserURL);*/
 
 	/* verify (possibly, once again) the file name. This
 	 * should have been done already, with the exception of
@@ -45,7 +45,7 @@ char * readInputString(char *fn, char *parent) {
 	 * */
 
 	/* combine parent and fn to make mynewname */
-	//printf ("before mas, in Input, fn %s\n",fn);
+	/* printf ("before mas, in Input, fn %s\n",fn);*/
 	makeAbsoluteFileName(mynewname,parent,fn);
 
 	/* check to see if this file exists */
@@ -58,7 +58,7 @@ char * readInputString(char *fn, char *parent) {
 
 	if (((unsigned char) firstbytes[0] == 0x1f) &&
 			((unsigned char) firstbytes[1] == 0x8b)) {
-		//printf ("this is a gzipped file!\n");
+		/* printf ("this is a gzipped file!\n");*/
 		isTemp = TRUE;
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 		/* first, move this to a .gz file */
@@ -89,17 +89,17 @@ char * readInputString(char *fn, char *parent) {
 	do {
 		justread = fread (&buffer[bufcount],1,READSIZE,infile);
 		bufcount += justread;
-		//printf ("just read in %d bytes\n",justread);
+		/* printf ("just read in %d bytes\n",justread);*/
 
 		if ((bufsize - bufcount) < READSIZE) {
-			//printf ("HAVE TO REALLOC INPUT MEMORY\n");
+			/* printf ("HAVE TO REALLOC INPUT MEMORY\n");*/
 			bufsize += READSIZE;
 			buffer =(char *) realloc (buffer, (unsigned int) bufsize);
 		}
 	} while (justread>0);
 
 	buffer[bufcount] = '\0';
-	//printf ("finished read, buffcount %d\n string %s",bufcount,buffer);
+	/* printf ("finished read, buffcount %d\n string %s",bufcount,buffer);*/
 	fclose (infile);
 
 	if (isTemp) unlink(mynewname);
@@ -116,10 +116,10 @@ char *sanitizeInputString (char *buffer) {
 	/* now, what kind of file is this? */
 	inputtype = UNKNOWNFILE;
 	if (strncmp (buffer,VRML2HEADER,sizeof(VRML2HEADER)-1) == 0) {
-		//printf ("this is a VRML V2 file\n");
+		/* printf ("this is a VRML V2 file\n");*/
 		inputtype = VRMLFILE;
 	} else if (strncmp (buffer, X3DHEADER, sizeof(X3DHEADER)-1) == 0) {
-		//printf ("this is an X3D file\n");
+		/* printf ("this is an X3D file\n");*/
 		inputtype = X3DFILE;
 	}
 
@@ -127,10 +127,10 @@ char *sanitizeInputString (char *buffer) {
 	 * anything else of interest */
 	if (inputtype == UNKNOWNFILE) {
 		if (strstr (buffer,"<Scene>") != NULL) {
-			//printf ("Scene found, its x3d\n");
+			/* printf ("Scene found, its x3d\n");*/
 			inputtype = X3DFILE;
 		} else if (strstr (buffer,"<X3D") != NULL) {
-			//printf ("Scene found, its x3d\n");
+			/* printf ("Scene found, its x3d\n");*/
 			inputtype = X3DFILE;
 		}
 
@@ -152,7 +152,7 @@ void VRMLPreParse(char *buffer) {
 	int maxptr;
 	int inquotes;
 
-	//cptr = strlen(VRML2HEADER); /* leave the header intact, for now */
+	/* cptr = strlen(VRML2HEADER); leave the header intact, for now */
 	cptr = 0;
 	inquotes = FALSE;
 	maxptr = strlen(buffer);
@@ -162,19 +162,19 @@ void VRMLPreParse(char *buffer) {
 	while (cptr < maxptr) {
 		/* determine whether this is within quotes or not */
 		if (buffer[cptr] == '"') {
-			//printf ("found a quote start at %d\n",cptr);
+			/* printf ("found a quote start at %d\n",cptr);*/
 			if (buffer[cptr-1] != '\\') {
 				inquotes = !inquotes;
 			}
-			//printf ("so, inquotes = %d\n",inquotes);
+			/* printf ("so, inquotes = %d\n",inquotes);*/
 		}
 
 		if ((!inquotes) & (buffer[cptr]=='#')) {
-			//printf ("comment starts at %d\n",cptr);
+			/* printf ("comment starts at %d\n",cptr);*/
 			while (((buffer[cptr]&0xff) >= ' ') || (buffer[cptr] == '\t')) {
 				buffer[cptr] = ' ';
 				cptr ++;
-				//printf ("char is %x\n",(buffer[cptr]&0xff));
+				/* printf ("char is %x\n",(buffer[cptr]&0xff));*/
 			}
 		}
 		cptr ++;

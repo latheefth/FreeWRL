@@ -14,14 +14,14 @@
 char NetscapeName[MAXNETSCAPENAMELEN];
 
 
-static int PluginSocketVerbose = 0; // CHECK DIRECTORY IN PLUGINPRINT
+static int PluginSocketVerbose = 0; /*  CHECK DIRECTORY IN PLUGINPRINT*/
 static FILE * tty = NULL;
 fd_set rfds;
 struct timeval tv;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
-//added M. Ward Dec8/04
+/* added M. Ward Dec8/04*/
 extern void abort();
 
 /* prints to a log file if we are running as a plugin */
@@ -129,9 +129,9 @@ requestUrlfromPlugin(int sockDesc,
 
 	linecount = 0;
 	linelen = fread (buf,1,2000,infile);
-	//pluginprint ("verify read, read in %d characters\n",linelen);
+	/* pluginprint ("verify read, read in %d characters\n",linelen);*/
 	while ((linelen > 0) && (linecount < 5)){
-	//	pluginprint ("verify read, read in %d characters\n",linelen);
+	/* 	pluginprint ("verify read, read in %d characters\n",linelen);*/
 
 		/* did we find a "404 file not found" message? */
 		/* some, all??? will eventually return a 404 html text in

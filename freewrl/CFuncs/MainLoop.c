@@ -53,7 +53,7 @@ int ocurse = ACURSE;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 #include "headers.h"
 
-void Next_ViewPoint(void);		// switch to next viewpoint -
+void Next_ViewPoint(void);		/*  switch to next viewpoint -*/
 void setup_viewpoint(int doBinding);
 void get_collisionoffset(double *x, double *y, double *z);
 
@@ -77,16 +77,16 @@ double nearPlane=0.1;
 double farPlane=21000.0;
 double screenRatio=1.5;
 double fieldofview=45.0;
-int CursorOverSensitive=FALSE;		// is Cursor over a Sensitive node?
-int oldCOS=FALSE;			// which node was cursor over before this node?
-int NavigationMode=FALSE;		// are we navigating or sensing?
+int CursorOverSensitive=FALSE;		/*  is Cursor over a Sensitive node?*/
+int oldCOS=FALSE;			/*  which node was cursor over before this node?*/
+int NavigationMode=FALSE;		/*  are we navigating or sensing?*/
 int ButDown[] = {FALSE,FALSE,FALSE,FALSE,FALSE};
 
-int currentX, currentY;			// current mouse position.
-int lastMouseEvent = MapNotify;		// last event a mouse did; care about Button and Motion events only.
-int lastPressedOver = 0;		// the sensitive node that the mouse was last buttonpressed over.
+int currentX, currentY;			/*  current mouse position.*/
+int lastMouseEvent = MapNotify;		/*  last event a mouse did; care about Button and Motion events only.*/
+int lastPressedOver = 0;		/*  the sensitive node that the mouse was last buttonpressed over.*/
 
-int maxbuffers = 1;			// how many active indexes in bufferarray
+int maxbuffers = 1;			/*  how many active indexes in bufferarray*/
 int bufferarray[] = {GL_BACK,0};
 
 /* current time and other time related stuff */
@@ -142,7 +142,7 @@ void EventLoop() {
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
 
-	//printf ("start of MainLoop\n");
+	/* printf ("start of MainLoop\n");*/
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
@@ -157,21 +157,21 @@ void EventLoop() {
 		timeA = timeB = timeC = timeD = timeE = timeF =0.0;
 		#endif
 	} else {
-		// rate limit ourselves to about 65fps.
-		//waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0;
+		/*  rate limit ourselves to about 65fps.*/
+		/* waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0;*/
 		waittime.tv_usec = (TickTime - lastTime - 0.0153)*1000000.0;
 		lastTime = TickTime;
 		if (waittime.tv_usec < 0.0) {
 			waittime.tv_usec = -waittime.tv_usec;
-			//printf ("waiting %d\n",(int)waittime.tv_usec);
+			/* printf ("waiting %d\n",(int)waittime.tv_usec);*/
 			usleep((unsigned)waittime.tv_usec);
 		}
 	}
 	if (loop_count == 25) {
 
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
-		update_status(); // tell status bar to refresh, if it is displayed
-		//printf ("fps %f\n",BrowserFPS);
+		update_status(); /*  tell status bar to refresh, if it is displayed*/
+		/* printf ("fps %f\n",BrowserFPS);*/
 
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
@@ -179,9 +179,9 @@ void EventLoop() {
 				timeA,timeB,
 				timeC, timeD,
 				timeE,timeF);
-				//timeA/oxf*100.0,timeB/oxf*100.0,
-				//timeC/oxf*100.0, timeD/oxf*100.0,
-				//timeE/oxf*100.0,timeF/oxf*100.0);
+				/* timeA/oxf*100.0,timeB/oxf*100.0,*/
+				/* timeC/oxf*100.0, timeD/oxf*100.0,*/
+				/* timeE/oxf*100.0,timeF/oxf*100.0);*/
 		#endif
 		BrowserStartTime = TickTime;
 		loop_count = 1;
@@ -261,7 +261,7 @@ void EventLoop() {
 
 	/* handle_mouse events if clicked on a sensitive node */
 	if (!NavigationMode && HaveSensitive) {
-	//if (!NavigationMode) {
+	/* if (!NavigationMode) {*/
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint(FALSE);
 		render_hier((void *)rootNode,VF_Sensitive);
@@ -269,14 +269,14 @@ void EventLoop() {
 
 		/* did we have a click of button 1? */
 		if (ButDown[1] && (!lastPressedOver)) {
-			// printf ("Not Navigation and 1 down\n");
+			/*  printf ("Not Navigation and 1 down\n");*/
 			/* send an event of ButtonPress and isOver=true */
 			lastPressedOver = CursorOverSensitive;
 			sendSensorEvents(lastPressedOver, ButtonPress, TRUE);
 		}
 
 		if ((!ButDown[1]) && lastPressedOver) {
-			// printf ("Not Navigation and 1 up\n");
+			/*  printf ("Not Navigation and 1 up\n");*/
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
 			sendSensorEvents(lastPressedOver, ButtonRelease, TRUE);
@@ -284,7 +284,7 @@ void EventLoop() {
 		}
 
 		if ((lastMouseEvent == MotionNotify) && ButDown[1]) {
-			// printf ("Not Navigation and motion\n");
+			/*  printf ("Not Navigation and motion\n");*/
 			sendSensorEvents(lastPressedOver,MotionNotify, TRUE);
 		}
 
@@ -403,9 +403,9 @@ void handle_Xevents() {
 			case KeyPress:
 			case KeyRelease:
 				XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
-				// Map keypad keys in - thanks to Aubrey Jaffer.
+				/*  Map keypad keys in - thanks to Aubrey Jaffer.*/
 				switch(ks) {
-				   // the non-keyboard arrow keys
+				   /*  the non-keyboard arrow keys*/
 				   case XK_Left: ks = XK_j; break;
 				   case XK_Right: ks = XK_l; break;
 				   case XK_Up: ks = XK_p; break;
@@ -443,9 +443,9 @@ void handle_Xevents() {
 				break;
 			case ButtonPress:
 			case ButtonRelease:
-				// if a button is pressed, we should not change state,
-				// so keep a record.
-				if (event.xbutton.button>5) break;  //bounds check
+				/*  if a button is pressed, we should not change state,*/
+				/*  so keep a record.*/
+				if (event.xbutton.button>5) break;  /* bounds check*/
 				ButDown[event.xbutton.button] = (event.type == ButtonPress);
 
 				/* if we are Not over a sensitive node, and we do NOT
@@ -459,22 +459,22 @@ void handle_Xevents() {
 				}
                                 break;
                         case MotionNotify:
-				// do we have more motion notify events queued?
+				/*  do we have more motion notify events queued?*/
 				if (XPending(dpy)) {
 					XPeekEvent(dpy,&nextevent);
 					if (nextevent.type==MotionNotify) { break;
 					}
 				}
 
-				// save the current x and y positions for picking.
+				/*  save the current x and y positions for picking.*/
 				currentX = event.xbutton.x;
 				currentY = event.xbutton.y;
 
 				if (NavigationMode) {
-					// find out what the first button down is
+					/*  find out what the first button down is*/
 					count = 0;
 					while ((count < 5) && (!ButDown[count])) count++;
-					if (count == 5) return; // no buttons down???
+					if (count == 5) return; /*  no buttons down???*/
 
 					handle (event.type,(unsigned)count,
 						(float)((float)event.xbutton.x/screenWidth),
@@ -511,13 +511,13 @@ void render_pre() {
 
 
 	/* 3. Viewpoint */
-	setup_viewpoint(TRUE); 	// need this to render collisions correctly
+	setup_viewpoint(TRUE); 	/*  need this to render collisions correctly*/
 
 	/* 4. Collisions */
 	if (be_collision == 1) {
 		render_collisions();
-		setup_viewpoint(FALSE); // update viewer position after collision, to
-				   // give accurate info to Proximity sensors.
+		setup_viewpoint(FALSE); /*  update viewer position after collision, to*/
+				   /*  give accurate info to Proximity sensors.*/
 	}
 
 	/* 5. render hierarchy - proximity */
@@ -530,71 +530,71 @@ void render_pre() {
 void render() {
 	int count;
 
-	// profile
-	//double xx,yy,zz,aa,bb,cc,dd,ee,ff;
-	//struct timeval mytime;
-	//struct timezone tz; /* unused see man gettimeofday */
+	/*  profile*/
+	/* double xx,yy,zz,aa,bb,cc,dd,ee,ff;*/
+	/* struct timeval mytime;*/
+	/* struct timezone tz; unused see man gettimeofday */
 
 	/* set transparency flag */
 	have_transparency = 0;
 
 	for (count = 0; count < maxbuffers; count++) {
 
-	//gettimeofday (&mytime,&tz);
-	//aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	/* gettimeofday (&mytime,&tz);*/
+	/* aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
 
-		set_buffer((unsigned)bufferarray[count]);		// in Viewer.c
+		set_buffer((unsigned)bufferarray[count]);		/*  in Viewer.c*/
 		glDrawBuffer((unsigned)bufferarray[count]);
 
-		// turn lights off, and clear buffer bits
+		/*  turn lights off, and clear buffer bits*/
 		BackEndClearBuffer();
 		BackEndLightsOff();
 
-		// turn light #0 off only if it is not a headlight.
+		/*  turn light #0 off only if it is not a headlight.*/
 		if (!get_headlight()) {
 			BackEndHeadlightOff();
 		}
 
-		// Correct Viewpoint, only needed when in stereo mode.
+		/*  Correct Viewpoint, only needed when in stereo mode.*/
 		if (maxbuffers > 1) setup_viewpoint(FALSE);
 
-	//gettimeofday (&mytime,&tz);
-	//bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-		// Other lights
+	/* gettimeofday (&mytime,&tz);*/
+	/* bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
+		/*  Other lights*/
 		glPrintError("XEvents::render, before render_hier");
 
 		render_hier((void *)rootNode, VF_Lights);
 		glPrintError("XEvents::render, render_hier(VF_Lights)");
 
-	//gettimeofday (&mytime,&tz);
-	//cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	/* gettimeofday (&mytime,&tz);*/
+	/* cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
 
-		// 4. Nodes (not the blended ones)
+		/*  4. Nodes (not the blended ones)*/
 
 		render_hier((void *)rootNode, VF_Geom);
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 
-		// 5. Blended Nodes
+		/*  5. Blended Nodes*/
 
-	//gettimeofday (&mytime,&tz);
-	//dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	/* gettimeofday (&mytime,&tz);*/
+	/* dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
 
 		if (have_transparency > 0) {
-			// turn off writing to the depth buffer
+			/*  turn off writing to the depth buffer*/
 			glDepthMask(FALSE);
 
-			// render the blended nodes
+			/*  render the blended nodes*/
 			render_hier((void *)rootNode, VF_Geom | VF_Blend);
 
-			// and turn writing to the depth buffer back on
+			/*  and turn writing to the depth buffer back on*/
 			glDepthMask(TRUE);
 			glPrintError("XEvents::render, render_hier(VF_Geom)");
 		}
 
-	//gettimeofday (&mytime,&tz);
-	//ee = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	/* gettimeofday (&mytime,&tz);*/
+	/* ee = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
 
-	//printf ("render %f %f %f %f\n",bb-aa, cc-bb, dd-cc, ee-dd);
+	/* printf ("render %f %f %f %f\n",bb-aa, cc-bb, dd-cc, ee-dd);*/
 	}
 #ifndef AQUA
 	glXSwapBuffers(dpy,win);
@@ -658,7 +658,7 @@ void setup_viewpoint(int doBinding) {
 
 	if (doBinding & (!isPerlParsing())) {
 		/* top of mainloop, we can tell the renderer to sort children */
-		//render_flag = VF_Viewpoint | VF_SortChildren;
+		/* render_flag = VF_Viewpoint | VF_SortChildren;*/
 		render_flag = VF_Viewpoint;
 
 		for (i=0; i<totviewpointnodes; i++) {
@@ -667,7 +667,7 @@ void setup_viewpoint(int doBinding) {
 
 			/* check the set_bind eventin to see if it is TRUE or FALSE */
 			if (*setBindPtr < 100) {
-				//printf ("Found a vp to modify %d\n",viewpointnodes[i]);
+				/* printf ("Found a vp to modify %d\n",viewpointnodes[i]);*/
 				/* up_vector is reset after a bind */
 				if (*setBindPtr==1) reset_upvector();
 
@@ -679,11 +679,11 @@ void setup_viewpoint(int doBinding) {
 		}
 	}
 
-        fwMatrixMode(GL_MODELVIEW); // this should be assumed , here for safety.
+        fwMatrixMode(GL_MODELVIEW); /*  this should be assumed , here for safety.*/
         fwLoadIdentity();
 
-        //Make viewpoint, adds offset in stereo mode.
-        //FIXME: I think it also adds offset of left eye in mono mode.
+        /* Make viewpoint, adds offset in stereo mode.*/
+        /* FIXME: I think it also adds offset of left eye in mono mode.*/
 
         viewer_togl(fieldofview);
 
@@ -771,7 +771,7 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	struct VRML_Box *p;
 	void (*myp)(unsigned *);
 
-	//printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);
+	/* printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);*/
 
 	if (strncmp("TouchSensor",type,10) == 0) { myp =  (void *)do_TouchSensor;
 	} else if (strncmp("GeoTouchSensor",type,10) == 0) { myp = (void *)do_GeoTouchSensor;
@@ -790,9 +790,9 @@ void setSensitive(void *ptr,int datanode,char *type) {
 	p = ptr;
 	p->_sens = TRUE;
 
-//	/* and tell the rendering pass that there is a sensitive node down
-//	 * this branch */
-//	update_renderFlag(p,VF_Sensitive);
+ 	/* and tell the rendering pass that there is a sensitive node down*/
+ 	 /* this branch */
+/* 	update_renderFlag(p,VF_Sensitive);*/
 
 	/* tell mainloop that we have to do a sensitive pass now */
 	HaveSensitive = TRUE;
@@ -862,8 +862,8 @@ void get_hyperhit() {
 	gluUnProject(hp.x, hp.y, hp.z, rh.modelMatrix,
 		projMatrix,viewport, &x3, &y3, &z3);
 
-	//printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
-	//	x1,y1,z1,x2,y2,z2,x3,y3,z3);
+	/* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",*/
+	/* 	x1,y1,z1,x2,y2,z2,x3,y3,z3);*/
 
 	/* and save this globally */
 	hyp_save_posn.c[0] = x1; hyp_save_posn.c[1] = y1; hyp_save_posn.c[2] = z1;
@@ -905,7 +905,7 @@ void Next_ViewPoint() {
 
 /* set internal variables for screen sizes, and calculate frustum */
 void setScreenDim(int wi, int he) {
-	//printf ("setScreenDim called - %d x %d\n",wi,he);
+	/* printf ("setScreenDim called - %d x %d\n",wi,he);*/
         screenWidth = wi;
         screenHeight = he;
         if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;

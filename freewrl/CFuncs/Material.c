@@ -44,8 +44,8 @@ GLfloat default_emission[] = {0.0,0.0,0.0,1.0};
 
 void do_shininess (float shininess) {
 	if ((shininess > 128.0) || (shininess < 0.0)) {
-		//JAS printf ("Shininess %f outside of bounds\n",shininess/128.0);
-		//JAS return;  /* bounds check */
+		/* JAS printf ("Shininess %f outside of bounds\n",shininess/128.0); */
+		/* JAS return;   bounds check */
 		if (shininess>128.0){shininess = 128.0;}else{shininess=0.0;}
 	}
 
@@ -60,10 +60,10 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 
 	for (i=0; i<4; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
-			//printf ("do_glMaterialfv, pname %d idx %d val %f out of range\n",
-			//		pname,i,param[i]);
+			/* printf ("do_glMaterialfv, pname %d idx %d val %f out of range\n",
+					pname,i,param[i]); */
 			if (param[i]>1.0) {param[i]=1.0;} else {param[i]=0.0;}
-			//JAS return; /* bounds check error found, break out */
+			/* JAS return; bounds check error found, break out */
 		}
 	}
 

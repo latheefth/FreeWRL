@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.149  2005/03/22 15:15:47  crc_canada
+# more compile bugs; binary files were dinked in last upload.
+#
 # Revision 1.148  2005/03/21 13:39:04  crc_canada
 # change permissions, remove whitespace on file names, etc.
 #
@@ -141,8 +144,8 @@ Background => '
 
 
 Box => '
-	extern GLfloat boxtex[];		// in CFuncs/statics.c
-	extern GLfloat boxnorms[];		// in CFuncs/statics.c
+	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
+	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	float *pt;
 	float x = $f(size,0)/2;
 	float y = $f(size,1)/2;
@@ -156,35 +159,35 @@ Box => '
 
 
 	if (this_->_ichange != this_->_change) {
-		// have to regen the shape
+		/*  have to regen the shape*/
 
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible)
+		/*  malloc memory (if possible)*/
 		if (!this_->__points) this_->__points = (int) malloc (sizeof(struct SFColor)*(24));
 		if (!this_->__points) {
 			printf ("can not malloc memory for box points\n");
 			return;
 		}
 
-		// now, create points; 4 points per face.
+		/*  now, create points; 4 points per face.*/
 		pt = (float *) this_->__points;
-		// front
+		/*  front*/
 		*pt++ =  x; *pt++ =  y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
 		*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ =  z;
-		// back
+		/*  back*/
 		*pt++ =  x; *pt++ = -y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
 		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ = -z;
-		// top
+		/*  top*/
 		*pt++ = -x; *pt++ =  y; *pt++ =  z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
 		*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ =  y; *pt++ = -z;
-		// down
+		/*  down*/
 		*pt++ = -x; *pt++ = -y; *pt++ = -z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
 		*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ = -y; *pt++ =  z;
-		// right
+		/*  right*/
 		*pt++ =  x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ = -z;
 		*pt++ =  x; *pt++ =  y; *pt++ = -z; *pt++ =  x; *pt++ =  y; *pt++ =  z;
-		// left
+		/*  left*/
 		*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
 		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
 	}
@@ -195,7 +198,7 @@ Box => '
 		glDisable(GL_CULL_FACE);
 	}
 
-	// Draw it; assume VERTEX and NORMALS already defined.
+	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
@@ -218,11 +221,11 @@ Cylinder => '
 	int i = 0;
 	struct SFColor *pt;
 	float a1, a2;
-	extern GLfloat cylnorms[];		// in CFuncs/statics.c
-	extern unsigned char cyltopindx[];	// in CFuncs/statics.c
-	extern unsigned char cylbotindx[];	// in CFuncs/statics.c
-	extern GLfloat cylendtex[];		// in CFuncs/statics.c
-	extern GLfloat cylsidetex[];		// in CFuncs/statics.c
+	extern GLfloat cylnorms[];		/*  in CFuncs/statics.c*/
+	extern unsigned char cyltopindx[];	/*  in CFuncs/statics.c*/
+	extern unsigned char cylbotindx[];	/*  in CFuncs/statics.c*/
+	extern GLfloat cylendtex[];		/*  in CFuncs/statics.c*/
+	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
 
 	if ((h < 0) || (r < 0)) {return;}
 
@@ -230,18 +233,18 @@ Cylinder => '
 	setExtent(r,h,r,(struct VRML_Box *)this_);
 
 	if (this_->_ichange != this_->_change) {
-		// have to regen the shape
+		/*  have to regen the shape*/
 
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible)
+		/*  malloc memory (if possible)*/
 		if (!this_->__points) this_->__points = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
 		if (!this_->__normals) this_->__normals = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
 		if ((!this_->__normals) || (!this_->__points)) {
 			printf ("error mallocing memory for Cylinder\n");
 			return;
 		}
-		// now, create the vertices; this is a quad, so each face = 4 points
+		/*  now, create the vertices; this is a quad, so each face = 4 points*/
 		pt = (struct SFColor *) this_->__points;
 		for (i=0; i<CYLDIV; i++) {
 			a1 = PI*2*i/(float)CYLDIV;
@@ -254,10 +257,10 @@ Cylinder => '
 			pt[i*2+1].c[2] = r*cos(a1);
 		}
 
-		// wrap the points around
+		/*  wrap the points around*/
 		memcpy (&pt[CYLDIV*2].c[0],&pt[0].c[0],sizeof(struct SFColor)*2);
 
-		// center points of top and bottom
+		/*  center points of top and bottom*/
 		pt[CYLDIV*2+2].c[0] = 0.0; pt[CYLDIV*2+2].c[1] = (float) h; pt[CYLDIV*2+2].c[2] = 0.0;
 		pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
 	}
@@ -268,7 +271,7 @@ Cylinder => '
 	}
 
 
-	// Display the shape
+	/*  Display the shape*/
 	if (HAVETODOTEXTURES) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 
@@ -302,19 +305,19 @@ Cylinder => '
 
 
 Cone => '
-	// DO NOT change this define, unless you want to recalculate statics below....
+	/*  DO NOT change this define, unless you want to recalculate statics below....*/
 	#define  CONEDIV 20
 
 	float h = $f(height)/2;
 	float r = $f(bottomRadius);
 	float angle;
 	int i;
-	struct SFColor *pt;			// bottom points
-	struct SFColor *spt;			// side points
-	struct SFColor *norm;			// side normals
-	extern unsigned char tribotindx[];	// in CFuncs/statics.c
-	extern float tribottex[];		// in CFuncs/statics.c
-	extern float trisidtex[];		// in CFuncs/statics.c
+	struct SFColor *pt;			/*  bottom points*/
+	struct SFColor *spt;			/*  side points*/
+	struct SFColor *norm;			/*  side normals*/
+	extern unsigned char tribotindx[];	/*  in CFuncs/statics.c*/
+	extern float tribottex[];		/*  in CFuncs/statics.c*/
+	extern float trisidtex[];		/*  in CFuncs/statics.c*/
 
 	if ((h < 0) || (r < 0)) {return;}
 
@@ -322,10 +325,10 @@ Cone => '
 	setExtent(r,h,r,(struct VRML_Box *)this_);
 
 	if (this_->_ichange != this_->_change) {
-		// have to regen the shape
+		/*  have to regen the shape*/
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible)
+		/*  malloc memory (if possible)*/
 		if (!this_->__botpoints) this_->__botpoints = (int) malloc (sizeof(struct SFColor)*(CONEDIV+3));
 		if (!this_->__sidepoints) this_->__sidepoints = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
 		if (!this_->__normals) this_->__normals = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
@@ -334,7 +337,7 @@ Cone => '
 			return;
 		}
 
-		// generate the vertexes for the triangles; top point first. (note: top point no longer used)
+		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
 		pt = (struct SFColor *)this_->__botpoints;
 		pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
 		for (i=1; i<=CONEDIV; i++) {
@@ -342,39 +345,39 @@ Cone => '
 			pt[i].c[1] = (float) -h;
 			pt[i].c[2] = r*cos(PI*2*i/(float)CONEDIV);
 		}
-		// and throw another point that is centre of bottom
+		/*  and throw another point that is centre of bottom*/
 		pt[CONEDIV+1].c[0] = 0.0; pt[CONEDIV+1].c[1] = (float) -h; pt[CONEDIV+1].c[2] = 0.0;
 
-		// and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...
+		/*  and, for the bottom, [CONEDIV] = [CONEDIV+2]; but different texture coords, so...*/
 		memcpy (&pt[CONEDIV+2].c[0],&pt[CONEDIV].c[0],sizeof (struct SFColor));
 
-		// side triangles. Make 3 seperate points per triangle... makes glDrawArrays with normals
-		// easier to handle.
-		// rearrange bottom points into this array; top, bottom, left.
+		/*  side triangles. Make 3 seperate points per triangle... makes glDrawArrays with normals*/
+		/*  easier to handle.*/
+		/*  rearrange bottom points into this array; top, bottom, left.*/
 		spt = (struct SFColor *)this_->__sidepoints;
 		for (i=0; i<CONEDIV; i++) {
-			// top point
+			/*  top point*/
 			spt[i*3].c[0] = 0.0; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0;
-			// left point
+			/*  left point*/
 			memcpy (&spt[i*3+1].c[0],&pt[i+1].c[0],sizeof (struct SFColor));
-			//right point
+			/* right point*/
 			memcpy (&spt[i*3+2].c[0],&pt[i+2].c[0],sizeof (struct SFColor));
 		}
 
-		// wrap bottom point around once again... ie, final right point = initial left point
+		/*  wrap bottom point around once again... ie, final right point = initial left point*/
 		memcpy (&spt[(CONEDIV-1)*3+2].c[0],&pt[1].c[0],sizeof (struct SFColor));
 
-		// Side Normals - note, normals for faces doubled - see malloc above
-		// this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...
+		/*  Side Normals - note, normals for faces doubled - see malloc above*/
+		/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
 		norm = (struct SFColor *)this_->__normals;
 		for (i=0; i<=CONEDIV; i++) {
-			// top point
+			/*  top point*/
 			angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
 			norm[i*3+0].c[0] = sin(angle); norm[i*3+0].c[1] = (float)h/r; norm[i*3+0].c[2] = cos(angle);
-			//left point
+			/* left point*/
 			angle = PI * 2 * (i+0) / (float) (CONEDIV);
 			norm[i*3+1].c[0] = sin(angle); norm[i*3+1].c[1] = (float)h/r; norm[i*3+1].c[2] = cos(angle);
-			// right point
+			/*  right point*/
 			angle = PI * 2 * (i+1) / (float) (CONEDIV);
 			norm[i*3+2].c[0] = sin(angle); norm[i*3+2].c[1] = (float)h/r; norm[i*3+2].c[2] = cos(angle);
 		}
@@ -387,8 +390,8 @@ Cone => '
 	}
 
 
-	// OK - we have vertex data, so lets just render it.
-	// Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.
+	/*  OK - we have vertex data, so lets just render it.*/
+	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
 	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
@@ -409,7 +412,7 @@ Cone => '
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_TRIANGLES, 0, 60);
 	}
-	// set things back to normal - Textures and ColoUrs disabled.
+	/*  set things back to normal - Textures and ColoUrs disabled.*/
 	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 
@@ -429,17 +432,17 @@ Sphere => '
 	#define SIN2 t2_sa
 	#define COS2 t2_ca
 
-	// make the divisions 20; dont change this, because statics.c values
-	// will then need recaculating.
+	/*  make the divisions 20; dont change this, because statics.c values*/
+	/*  will then need recaculating.*/
 	#define SPHDIV 20
 
-	extern GLfloat spherenorms[];		// side normals
-	extern float spheretex[];		// in CFuncs/statics.c
+	extern GLfloat spherenorms[];		/*  side normals*/
+	extern float spheretex[];		/*  in CFuncs/statics.c*/
 	int count;
 	float rad = $f(radius);
 
 	if (rad<=0.0) {
-		//printf ("invalid sphere rad %f\n",rad);
+		/* printf ("invalid sphere rad %f\n",rad);*/
 		return;}
 
 	/* for BoundingBox calculations */
@@ -452,12 +455,12 @@ Sphere => '
 		struct SFColor *pts;
 		int count;
 
-		// have to regen the shape
+		/*  have to regen the shape*/
 
 		this_->_ichange = this_->_change;
 
-		// malloc memory (if possible)
-		// 2 vertexes per points. (+1, to loop around and close structure)
+		/*  malloc memory (if possible)*/
+		/*  2 vertexes per points. (+1, to loop around and close structure)*/
 		if (!this_->__points) this_->__points =
 		(int) malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
 		if (!this_->__points) {
@@ -500,7 +503,7 @@ Sphere => '
 	}
 
 
-	// Display the shape
+	/*  Display the shape*/
 	if (HAVETODOTEXTURES) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer (2,GL_FLOAT,0,spheretex);
@@ -560,7 +563,7 @@ LineSet => '
 	int ncoc;		/* which coord we are using for this vertex */
 	int punt;		/* how many vetex points are in this line segment */
 	int c;			/* temp variable */
-	//int *p;
+	/* int *p;*/
 	struct SFColor *coord=0; int ncoord;
 	struct SFColor *color=0; int ncolor=0;
 	int *vertexC; int nvertexc;
@@ -570,13 +573,13 @@ LineSet => '
 
 	/* do we have to re-verify LineSet? */
 	if (this_->_ichange != this_->_change) {
-		// re-draw every time. this_->_ichange = this_->_change;
+		/*  re-draw every time. this_->_ichange = this_->_change;*/
 
 		nvertexc = (this_->vertexCount).n; vertexC = (this_->vertexCount).p;
 		$fv(coord, coord, get3, &ncoord);
 		$fv_null(color, color, get3, &ncolor);
 
-		//printf ("we have %d coords, %d colors\n",ncoord,ncolor);
+		/* printf ("we have %d coords, %d colors\n",ncoord,ncolor);*/
 		ncoc = 0;
 
 		if ((nvertexc == 0) || (ncoord == 0)) {
@@ -595,22 +598,22 @@ LineSet => '
 		}
 
 		/* if we are re-genning; remalloc */
-		//if (this_->__points) free ((void *)this_->__points);
+		/* if (this_->__points) free ((void *)this_->__points);*/
 
-		//if (!this_->__points) this_->__points = (int) malloc (sizeof(unsigned int)*(nvertexc));
-		//if (!this_->__points) {
-		//	printf ("can not malloc memory for LineSet points\n");
-		//	this_->_ichange = this_->_change; /* make this error show only once */
-		//	return;
-		//}
-		//p = (int *)this_->__points;
+		/* if (!this_->__points) this_->__points = (int) malloc (sizeof(unsigned int)*(nvertexc));*/
+		/* if (!this_->__points) {*/
+		/* 	printf ("can not malloc memory for LineSet points\n");*/
+		/* 	this_->_ichange = this_->_change; make this error show only once */
+		/* 	return;*/
+		/* }*/
+		/* p = (int *)this_->__points;*/
 
 
 		/* go through the vertex count array and verify that all is good. */
 		for (vtc = 0; vtc < nvertexc; vtc++) {
 			/* save the pointer to the vertex array for the GL call */
-			//*p = vertexC;
-			//p++;
+			/* *p = vertexC;*/
+			/* p++;*/
 
 			punt = *vertexC;
 
@@ -618,7 +621,7 @@ LineSet => '
 			if (punt < 2) {
 				printf ("LineSet, vertexCount[%d] has %d vertices...\n",vtc,punt);
 				this_->_ichange = this_->_change; /* make this error show only once */
-				//free ((void *)this_->__points);
+				/* free ((void *)this_->__points);*/
 glPopAttrib();
 				return;
 			}
@@ -627,7 +630,7 @@ glPopAttrib();
 			if ((punt + ncoc) > ncoord) {
 				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
 				this_->_ichange = this_->_change; /* make this error show only once */
-				//free ((void *)this_->__points);
+				/* free ((void *)this_->__points);*/
 glPopAttrib();
 				return;
 			}
@@ -635,13 +638,13 @@ glPopAttrib();
 			if ((punt + ncoc) > ncolor) {
 				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
 				this_->_ichange = this_->_change; /* make this error show only once */
-				//free ((void *)this_->__points);
+				/* free ((void *)this_->__points);*/
 glPopAttrib();
 				return;
 			}
 			}
 
-			// do this for glMultiDrawElements ncoc += punt;
+			/*  do this for glMultiDrawElements ncoc += punt;*/
 			glBegin(GL_LINE_STRIP);
 
 			/* draw the line */
@@ -672,11 +675,11 @@ glPopAttrib();
 	}
 
 	/* now, actually draw array */
-	//if (this_->__points) {
-	//	printf ("calling glMultiDrawElements, promcount %d\n",(this_->vertexCount).n);
-	//	glMultiDrawElements(GL_LINE_STRIP,(this_->vertexCount).p,GL_FLOAT,
-	//			this_->__points,(this_->vertexCount).n);
-	//}
+	/* if (this_->__points) {*/
+	/* 	printf ("calling glMultiDrawElements, promcount %d\n",(this_->vertexCount).n);*/
+	/* 	glMultiDrawElements(GL_LINE_STRIP,(this_->vertexCount).p,GL_FLOAT,*/
+	/* 			this_->__points,(this_->vertexCount).n);*/
+	/* }*/
 glDisable(GL_COLOR_MATERIAL);
 glPopAttrib();
 
@@ -920,7 +923,7 @@ Material =>  '
 
 		/* set the transparency here for the material */
 		trans = 1.0 - $f(transparency);
-		//printf ("Material, trans %f\n",$f(transparency));
+		/* printf ("Material, trans %f\n",DOLLARf(transparency));*/
 		if (trans<0.0) trans = 0.0;
 		if (trans>=0.99) trans = 0.99;
 
@@ -946,12 +949,12 @@ Material =>  '
 
 		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); }
 		scol[3] = trans;
-		//scol[3] = 1.0;
+		/* scol[3] = 1.0;*/
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
 		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); }
 		ecol[3] = trans;
-		//ecol[3] = 1.0;
+		/* ecol[3] = 1.0;*/
 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
 		glColor3f(ecol[0],ecol[1],ecol[2]);
@@ -967,13 +970,13 @@ TextureTransform => '
 	glPushMatrix();
 	glLoadIdentity();
 
-	// Render transformations according to spec.
+	/*  Render transformations according to spec.*/
 
-	glTranslatef(-$f(center,0),-$f(center,1), 0);		// 5
-	glScalef($f(scale,0),$f(scale,1),1);			// 4
-	glRotatef($f(rotation)/3.1415926536*180,0,0,1);		// 3
-	glTranslatef($f(center,0),$f(center,1), 0);		// 2
-	glTranslatef($f(translation,0), $f(translation,1), 0); 	// 1
+	glTranslatef(-$f(center,0),-$f(center,1), 0);		/*  5*/
+	glScalef($f(scale,0),$f(scale,1),1);			/*  4*/
+	glRotatef($f(rotation)/3.1415926536*180,0,0,1);		/*  3*/
+	glTranslatef($f(center,0),$f(center,1), 0);		/*  2*/
+	glTranslatef($f(translation,0), $f(translation,1), 0); 	/*  1*/
 
 	glMatrixMode(GL_MODELVIEW);
 ',
@@ -994,7 +997,7 @@ MovieTexture => '
 	/* really simple, the texture number is calculated, then simply sent here.
 	   The last_bound_texture field is sent, and, made current */
 
-	// if this is attached to a Sound node, tell it...
+	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
 	loadMovieTexture(this_);
@@ -1032,16 +1035,16 @@ Sound => '
 	acp = (struct VRML_AudioClip *) $f(source);
 	mcp = (struct VRML_MovieTexture *) $f(source);
 
-	// MovieTextures NOT handled yet
-	// first - is there a node (any node!) attached here?
+	/*  MovieTextures NOT handled yet*/
+	/*  first - is there a node (any node!) attached here?*/
 	if (acp) {
-		// do the sound registering first, and tell us if this is an audioclip
-		// or movietexture.
+		/*  do the sound registering first, and tell us if this is an audioclip*/
+		/*  or movietexture.*/
 
 		render_node(acp);
 
-		// if the attached node is not active, just return
-		//printf ("in Sound, checking AudioClip isactive %d\n", acp->isActive);
+		/*  if the attached node is not active, just return*/
+		/* printf ("in Sound, checking AudioClip isactive %d\n", acp->isActive);*/
 		if (acp->isActive == 0) return;
 
 		direction.x = $f(direction,0);
@@ -1088,38 +1091,38 @@ Sound => '
 		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 		gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
 			mod,proj,viewport, &vec.x,&vec.y,&vec.z);
-		//printf ("mod %lf %lf %lf proj %lf %lf %lf\n",
-		//mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);
+		/* printf ("mod %lf %lf %lf proj %lf %lf %lf\n",*/
+		/* mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);*/
 
 		len = sqrt(VECSQ(vec));
-		//printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
-		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
+		/* printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,*/
+		/* 	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);*/
 
 
-		// pan left/right. full left = 0; full right = 1.
+		/*  pan left/right. full left = 0; full right = 1.*/
 		if (len < 0.001) angle = 0;
 		else {
 			if (APPROX (mod[12],0)) {
-				//printf ("mod12 approaches zero\n");
+				/* printf ("mod12 approaches zero\n");*/
 				mod[12] = 0.001;
 			}
 			angle = fabs(atan2(mod[14],mod[12])) - (PI/2.0);
 			angle = angle/(PI/2.0);
 
-			// Now, scale this angle to make it between -0.5
-			// and +0.5; if we divide it by 2.0, we will get
-			// this range, but if we divide it by less, then
-			// the sound goes "hard over" to left or right for
-			// a bit.
+			/*  Now, scale this angle to make it between -0.5*/
+			/*  and +0.5; if we divide it by 2.0, we will get*/
+			/*  this range, but if we divide it by less, then*/
+			/*  the sound goes "hard over" to left or right for*/
+			/*  a bit.*/
 			angle = angle / 1.5;
 
-			// now scale to 0 to 1
+			/*  now scale to 0 to 1*/
 			angle = angle + 0.5;
 
-			// bounds check...
+			/*  bounds check...*/
 			if (angle > 1.0) angle = 1.0;
 			if (angle < 0.0) angle = 0.0;
-			//printf ("angle: %f\n",angle);
+			/* printf ("angle: %f\n",angle);*/
 		}
 
 
@@ -1158,7 +1161,7 @@ Sound => '
 ',
 
 AudioClip => '
-	// register an audioclip
+	/*  register an audioclip*/
 	float pitch,stime, sttime;
 	int loop;
 	unsigned char *filename = (unsigned char *)this_->__localFileName;
@@ -1174,7 +1177,7 @@ AudioClip => '
 		SoundEngineInit();
 	}
 #ifndef JOHNSOUND
-	if (this_->isActive == 0) return;  // not active, so just bow out
+	if (this_->isActive == 0) return;  /*  not active, so just bow out*/
 #endif
 
 	if (!SoundSourceRegistered(this_->__sourceNumber)) {
@@ -1299,16 +1302,16 @@ Transform => '
 	 the second-last pass. ;-) */
 	recalculate_dist = render_light;
 
-	//printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
+	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 	if(!render_vp) {
-                //glPushMatrix();
+                /* glPushMatrix();*/
 		fwXformPush(this_);
 
 		/* might we have had a change to a previously ignored value? */
 		if (this_->_change != this_->_dlchange) {
-			//printf ("re-rendering for %d\n",this_);
+			/* printf ("re-rendering for %d\n",this_);*/
 			this_->__do_center = verify_translate ((GLfloat *)this_->center.c);
 			this_->__do_trans = verify_translate ((GLfloat *)this_->translation.c);
 			this_->__do_scale = verify_scale ((GLfloat *)this_->scale.c);
@@ -1357,9 +1360,9 @@ Transform => '
 
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
-			//printf ("calling PointInView for %d\n",this_);
+			/* printf ("calling PointInView for %d\n",this_);*/
 			this_->PIV = PointInView(this_);
-			//printf ("ppv %d\n",this_->PIV);
+			/* printf ("ppv %d\n",this_->PIV);*/
 
 	       }
         }
@@ -1452,7 +1455,7 @@ GeoLocation => (join '','
 Transform => (join '','
 
 	if(!render_vp) {
-            //glPopMatrix();
+            /* glPopMatrix();*/
 	    fwXformPop(this_);
 	} else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
@@ -1554,8 +1557,8 @@ Billboard => (join '','
 		if (((!render_vp) && render_light)) {
 			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 			this_->_dist = modelMatrix[14];
-			//printf ("getDist - recalculating distance, it is %f for %d\n",
-			//	this_->_dist,this_);
+			/* printf ("getDist - recalculating distance, it is %f for %d\n",*/
+			/* 	this_->_dist,this_);*/
 		}
 
 		if((render_collision) || (render_sensitive)) {
@@ -1566,8 +1569,8 @@ Billboard => (join '','
 
 
 		/* JAS - if not collision, and render_geom is not set, no need to go further */
-		//printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-		//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+		/* printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
+		/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 		/* a texture and a transparency flag... */
 		last_bound_texture = 0;
@@ -1600,8 +1603,8 @@ Billboard => (join '','
 				update_renderFlag(this_,VF_Blend);
 		}
 
-		//printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",
-		//	have_transparency, trans, last_texture_depth);
+		/* printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",*/
+		/* 	have_transparency, trans, last_texture_depth);*/
 
 		should_rend = FALSE;
 		/* now, are we rendering blended nodes? */
@@ -1617,8 +1620,8 @@ Billboard => (join '','
 			}
 		}
 
-		//if (should_rend) {printf ("RENDERING THIS ONE\n");
-		//} else { printf ("NOT RENDERING THIS ONE\n");}
+		/* if (should_rend) {printf ("RENDERING THIS ONE\n");*/
+		/* } else { printf ("NOT RENDERING THIS ONE\n");}*/
 
 		/* should we render this node on this pass? */
 		if (should_rend) {
@@ -1784,7 +1787,7 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 			p = (struct VRML_Box *)$f(children,i);
 			v = *(struct VRML_Virt **)p;
 			if (v->rend == DirectionalLight_Rend) {
-				// printf ("group found a light\n");
+				/*  printf ("group found a light\n");*/
 				$i(has_light) ++;
 			}
 		}
@@ -1800,7 +1803,7 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 			p = (struct VRML_Box *)$f(__children,i);
 			v = *(struct VRML_Virt **)p;
 			if (v->rend == DirectionalLight_Rend) {
-				// printf ("group found a light\n");
+				/*  printf ("group found a light\n");*/
 				$i(has_light) ++;
 			}
 		}
@@ -1843,8 +1846,8 @@ ProximitySensor => q~
 
 	if(!$f(enabled)) return;
 
-	//printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
+	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 	/* transforms viewers coordinate space into sensors coordinate space.
 	 * this gives the orientation of the viewer relative to the sensor.

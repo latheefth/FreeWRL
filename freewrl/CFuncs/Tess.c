@@ -57,7 +57,7 @@ int global_IFS_Coord_count=0;
 	by OpenGL automatically, if the Polygon is specified	*/
 
 void FW_tess_begin(GLenum e) {
-               //printf(" FW_tess_begin   e = %s\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN"));
+               /*printf(" FW_tess_begin   e = %s\n", (e == GL_TRIANGLES ? "GL_TRIANGLES" : "UNKNOWN")); */
 		/* we only should get GL_TRIANGLES as type, because
 		we defined  the edge_flag callback		*/
 		/* check, if the structure is there		*/
@@ -66,12 +66,12 @@ void FW_tess_begin(GLenum e) {
 }
 
 void FW_tess_end(void) {
-	//printf("FW_tess_end: Tesselation done.\n");
+	/*printf("FW_tess_end: Tesselation done.\n"); */
 	/* nothing to do	*/
 }
 
 void FW_tess_edgeflag(GLenum flag) {
-	//printf("FW_tess_edgeflag: An edge was done (flag = %d).\n", flag);
+	/*printf("FW_tess_edgeflag: An edge was done (flag = %d).\n", flag); */
 	/* nothing to do, this function has to be registered
 	so that only GL_TRIANGLES are used	*/
 }
@@ -87,34 +87,35 @@ void FW_IFS_tess_vertex(void *p) {
 			global_IFS_Coords[global_IFS_Coord_count-1];
 		*/
 	} else {
-		//printf ("FW_IFS_tess_vertex, global_ifs_coord count %d, pointer %d\n",global_IFS_Coord_count,*dp);
+		/*printf ("FW_IFS_tess_vertex, global_ifs_coord count %d, pointer %d\n",global_IFS_Coord_count,*dp);*/
 		global_IFS_Coords[global_IFS_Coord_count++] = *dp;
 	}
 
 }
 
 void FW_tess_error(GLenum e) {
-	// Prints out tesselation errors. Older versions of at least MESA would
-	// give errors, so for now at least, lets just ignore them.
-	// printf("FW_tess_error %d: >%s<\n",e,gluErrorString(e));
+	/* Prints out tesselation errors. Older versions of at least MESA would
+	 give errors, so for now at least, lets just ignore them.
+	 printf("FW_tess_error %d: >%s<\n",e,gluErrorString(e)); */
 }
 
 
 
 void FW_tess_combine_data (GLdouble c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
 	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
-	//printf("FW_tess_combine data\n");
-	//printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
-	//	c[0],c[1],c[2],w[0],w[1],w[2],w[3]);
-	//printf ("vertex 0 %lf %lf %lf, 1 %lf %lf %lf, 2 %lf %lf %lf, 3 %lf %lf %lf\n",
-	//	*d[0]->x,*d[0]->y,*d[0]->z,
-	//	*d[1]->x,*d[1]->y,*d[1]->z,
-	//	*d[2]->x,*d[2]->y,*d[2]->z,
-	//	*d[3]->x,*d[3]->y,*d[3]->z);
+	/* printf("FW_tess_combine data\n"); 
+	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
+		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
+	printf ("vertex 0 %lf %lf %lf, 1 %lf %lf %lf, 2 %lf %lf %lf, 3 %lf %lf %lf\n",
+		*d[0]->x,*d[0]->y,*d[0]->z,
+		*d[1]->x,*d[1]->y,*d[1]->z,
+		*d[2]->x,*d[2]->y,*d[2]->z,
+		*d[3]->x,*d[3]->y,*d[3]->z); 
 
-	//printf ("d %d %d %d %d\n",d[0],d[1],d[2],d[3]);
-	//printf ("d %f %f %f %f\n",*d[0],*d[1],*d[2],*d[3]);
-	//printf ("new coord %d\n",nv);
+	printf ("d %d %d %d %d\n",d[0],d[1],d[2],d[3]);
+	printf ("d %f %f %f %f\n",*d[0],*d[1],*d[2],*d[3]);
+	printf ("new coord %d\n",nv);
+	*/
 	nv[0] = c[0];
 	nv[1] = c[1];
 	nv[2] = c[2];
@@ -128,8 +129,8 @@ void verify_global_IFS_Coords(int max) {
 	int count;
 
 	for (count = 0; count < global_IFS_Coord_count; count++) {
-		//printf ("verifying count %d; val is %d, max %d\n",
-		//		count,global_IFS_Coords[count],max);
+		/*printf ("verifying count %d; val is %d, max %d\n",
+				count,global_IFS_Coords[count],max); */
 		if ((global_IFS_Coords[count] < 0) ||
 			(global_IFS_Coords[count] >= max)) {
 
@@ -145,8 +146,8 @@ void verify_global_IFS_Coords(int max) {
 
 void FW_tess_combine (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
-	//printf("FW_tess_combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
-	//	c[0],c[1],c[2],w[0],w[1],w[2],w[3]);
+	/*printf("FW_tess_combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
+		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); */
 	nv[0] = c[0];
 	nv[1] = c[1];
 	nv[2] = c[2];

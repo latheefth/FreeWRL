@@ -423,14 +423,14 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 	UNUSED (context); UNUSED(obj);
 
 	jsval _rval = INT_TO_JSVAL(0);
-	//printf ("FreeWRL:javascript: ");
+	/* printf ("FreeWRL:javascript: "); */
 	for (count=0; count < argc; count++) {
 		if (JSVAL_IS_STRING(argv[count])) {
 			_str = JSVAL_TO_STRING(argv[count]);
 			_id_c = JS_GetStringBytes(_str);
 			printf (_id_c);
 		} else {
-	//		printf ("unknown arg type %d\n",count);
+	/*		printf ("unknown arg type %d\n",count); */
 		}
 	}
 	printf ("\n");

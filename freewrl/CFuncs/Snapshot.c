@@ -157,7 +157,7 @@ void Snapshot () {
 	}
 	fclose (tmpfile);
 
-	//convert -size 450x300 -depth 8 -flip /tmp/snappedfile.rgb out.png works.
+	/* convert -size 450x300 -depth 8 -flip /tmp/snappedfile.rgb out.png works. */
 
 	free (buffer);
 

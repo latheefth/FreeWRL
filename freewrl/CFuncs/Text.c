@@ -387,8 +387,7 @@ void FW_draw_character (FT_Glyph glyph) {
 void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length,
 		double maxext, double spacing, double mysize, unsigned int fsparam,
 		struct VRML_PolyRep *rp) {
-	//unsigned char *str = "xx"; // string pointer- initialization gets around compiler warning
-	unsigned char *str; // string pointer- initialization gets around compiler warning
+	unsigned char *str; /* string pointer- initialization gets around compiler warning */
 	unsigned int i,row;
 	double shrink = 0;
 	double rshrink = 0;

@@ -474,8 +474,8 @@ void do_Oint4 (void *node) {
 		}
 		oldangle = kVs[counter-1].r[3];
 		testangle = newangle-oldangle;
-		//printf ("newangle %f oldangle %f testangle %f\n",
-		//		newangle,oldangle, testangle);
+		/* printf ("newangle %f oldangle %f testangle %f\n",*/
+		/* 		newangle,oldangle, testangle);*/
 
 		/* make it so we smoothly transition */
 		if (fabs(testangle) > PI) {
@@ -486,8 +486,8 @@ void do_Oint4 (void *node) {
 				if (testangle>0.0) { oldangle += PI*2;
 				} else { newangle += PI*2; }
 			}
-			//printf ("NOW newangle %f oldangle %f testangle %f\n",
-				//	newangle,oldangle, testangle);
+			/* printf ("NOW newangle %f oldangle %f testangle %f\n",*/
+				/* 	newangle,oldangle, testangle);*/
 
 		}
 
@@ -496,7 +496,7 @@ void do_Oint4 (void *node) {
 		 * the axes between these, only the angles */
 
 		if (stzero || endzero) {
-			//printf ("have zero angle somewhere...\n");
+			/* printf ("have zero angle somewhere...\n");*/
 			if (stzero) {
 				/* starting angle zero, use the next axis */
 				for (tmp = 0; tmp <= 2; tmp++) {
@@ -510,9 +510,9 @@ void do_Oint4 (void *node) {
 						kVs[counter-1].r[tmp];
 				}
 			}
-			//printf ("axis now %f %f %f\n",px->value_changed.r[0],
-			//		px->value_changed.r[1],
-			//		px->value_changed.r[2]);
+			/* printf ("axis now %f %f %f\n",px->value_changed.r[0],*/
+			/* 		px->value_changed.r[1],*/
+			/* 		px->value_changed.r[2]);*/
 		}
 
 
@@ -546,7 +546,7 @@ void do_GeoOint (void *node) {
 
 
 /* fired at start of event loop for every Collision */
-//void do_CollisionTick(struct VRML_Collision *cx) {
+/* void do_CollisionTick(struct VRML_Collision *cx) {*/
 void do_CollisionTick( void *ptr) {
 	struct VRML_Collision *cx = (struct VRML_Collision *)cx;
         if (cx->__hit == 3) {
@@ -559,7 +559,7 @@ void do_CollisionTick( void *ptr) {
 
 
 /* Audio AudioClip sensor code */
-//void do_AudioTick(struct VRML_AudioClip *node) {
+/* void do_AudioTick(struct VRML_AudioClip *node) {*/
 void do_AudioTick(void *ptr) {
 	struct VRML_AudioClip *node = (struct VRML_AudioClip *)ptr;
 	int 	oldstatus;
@@ -605,7 +605,7 @@ void do_AudioTick(void *ptr) {
 }
 
 
-//void do_TimeSensorTick (struct VRML_TimeSensor *node) {
+/* void do_TimeSensorTick (struct VRML_TimeSensor *node) {*/
 void do_TimeSensorTick ( void *ptr) {
 	struct VRML_TimeSensor *node = (struct VRML_TimeSensor *)ptr;
 	double myDuration;
@@ -686,7 +686,7 @@ void do_TimeSensorTick ( void *ptr) {
 
 
 /* ProximitySensor code for ClockTick */
-//void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {
+/* void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {*/
 void do_ProximitySensorTick( void *ptr) {
 	struct VRML_ProximitySensor *node = (struct VRML_ProximitySensor *)ptr;
 	/* are we enabled? */
@@ -734,7 +734,7 @@ void do_ProximitySensorTick( void *ptr) {
 
 
 /* Audio MovieTexture code */
-//void do_MovieTextureTick(struct VRML_MovieTexture *node) {
+/* void do_MovieTextureTick(struct VRML_MovieTexture *node) {*/
 void do_MovieTextureTick( void *ptr) {
 	struct VRML_MovieTexture *node = (struct VRML_MovieTexture *)ptr;
 	int 	oldstatus;
@@ -822,7 +822,7 @@ void do_MovieTextureTick( void *ptr) {
 	Sensitive nodes
 
 *****************************************************************************/
-//void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, int ev, int over) {
+/* void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, int ev, int over) {*/
 void do_GeoTouchSensor ( void *ptr, int ev, int over) {
 
 struct VRML_GeoTouchSensor *node = (struct VRML_GeoTouchSensor *)ptr;
@@ -833,7 +833,7 @@ UNUSED(over);
 };
 
 
-//void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
+/* void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {*/
 void do_TouchSensor ( void *ptr, int ev, int over) {
 
 	struct VRML_TouchSensor *node;
@@ -888,7 +888,7 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 	}
 }
 
-//void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {
+/* void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int over) {
 	struct VRML_PlaneSensor *node = (struct VRML_PlaneSensor *)ptr;
 	float mult, nx, ny;
@@ -975,7 +975,7 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 }
 
 
-//void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
+/* void do_Anchor (struct VRML_Anchor *node, int ev, int over) {*/
 void do_Anchor ( void *ptr, int ev, int over) {
 	struct VRML_Anchor *node = (struct VRML_Anchor *)ptr;
 	UNUSED(over);
@@ -990,7 +990,7 @@ void do_Anchor ( void *ptr, int ev, int over) {
 }
 
 
-//void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
+/* void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {*/
 void do_CylinderSensor ( void *ptr, int ev, int over) {
 	struct VRML_CylinderSensor *node = (struct VRML_CylinderSensor *)ptr;
 	float rot, radius, ang, length;
@@ -1137,7 +1137,7 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 }
 
 
-//void do_SphereSensor (struct VRML_SphereSensor *node, int ev, int over) {
+/* void do_SphereSensor (struct VRML_SphereSensor *node, int ev, int over) {*/
 void do_SphereSensor ( void *ptr, int ev, int over) {
 	struct VRML_SphereSensor *node = (struct VRML_SphereSensor *)ptr;
 	int tmp;

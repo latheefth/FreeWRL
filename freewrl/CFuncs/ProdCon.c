@@ -144,7 +144,7 @@ void __pt_EAI_GetViewpoint (void);
 void __pt_EAI_GetType (void);
 void __pt_EAI_GetTypeName (void);
 void __pt_EAI_GetValue (void);
-//JAS void __pt_EAI_replaceWorld (void);
+/* JAS void __pt_EAI_replaceWorld (void);*/
 void __pt_EAI_Route (void);
 void EAI_readNewWorld(char *inputstring);
 
@@ -189,8 +189,8 @@ void initializePerlThread(char *perlpath) {
 	strcpy (myPerlInstallDir, perlpath);
 
 	/* create consumer thread and set the "read only" flag indicating this */
-        //M. Ward Dec 8/04 - ICAC the typecast here is for a pointer to a function that
-	//returns a pointer to a void and takes a pointer to a void as a parameter
+        /* M. Ward Dec 8/04 - ICAC the typecast here is for a pointer to a function that*/
+	/* returns a pointer to a void and takes a pointer to a void as a parameter*/
 	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_perlThread, (void *) perlpath);
 }
 
@@ -204,7 +204,7 @@ int isPerlParsing() {return(PerlParsing);}
 /* is the initial URL loaded? Robert Sim */
 int isURLLoaded() {return(URLLoaded&&!PerlParsing);}
 
-//Added M. Ward Dec 8/04
+/* Added M. Ward Dec 8/04*/
 extern void XEventStereo();
 
 /*
@@ -212,6 +212,7 @@ extern void XEventStereo();
  * return TRUE if it looks like a file from the network, false if it
  * is local to this machine
  */
+
 
 int checkNetworkFile(char *fn) {
 	if ((strncmp(fn,"ftp://", strlen("ftp://"))) &&
@@ -254,10 +255,10 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	   be a local file by now
 	 */
 	if (checkNetworkFile(fname)) {
-		// Is this an Anchor? if so, lets just assume we can
-		// get it
+		/*  Is this an Anchor? if so, lets just assume we can*/
+		/*  get it*/
 		if (!GetIt) {
-			//printf ("Assuming Anchor mode, returning TRUE\n");
+			/* printf ("Assuming Anchor mode, returning TRUE\n");*/
 			return (TRUE);
 		}
 
@@ -295,7 +296,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 /* filename is malloc'd, combine pspath and thisurl to make an
    absolute file name */
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
-	//printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl);
+	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl);*/
 
 	/* lets try this - if we are running under a browser, let the
 	   browser do the pathing stuff */
@@ -307,7 +308,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
-		//printf ("copying psppath over for %s\n",thisurl);
+		/* printf ("copying psppath over for %s\n",thisurl);*/
 		strcpy (filename,pspath);
 		/* do we actually have anything here? */
 		if (strlen(pspath) > 0) {
@@ -321,7 +322,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	strcat(filename,thisurl);
 
 	/* and, return in the ptr filename, the filename created... */
-	//printf ("makeAbsoluteFileName, just made :%s:\n",filename);
+	/* printf ("makeAbsoluteFileName, just made :%s:\n",filename);*/
 }
 
 
@@ -458,7 +459,7 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	int *scripttype) {
 	int complete;
 
-	//printf ("EAI_GetType starting\n");
+	/* printf ("EAI_GetType starting\n");*/
 	PSP_LOCK
 	DATA_LOCK
 	psp.ptr = (unsigned)direction;
@@ -482,7 +483,7 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	*datalen = psp.Etype[2];
 	*nodetype = psp.Etype[3];
 	*scripttype = psp.Etype[4];
-	//printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype);
+	/* printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype);*/
 	PSP_UNLOCK
 }
 
@@ -491,7 +492,7 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 	int complete;
 	char *retstr;
 
-	//printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname);
+	/* printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname);*/
 	PSP_LOCK
 	DATA_LOCK
 	psp.ptr = (unsigned)nodename;
@@ -511,7 +512,7 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 
 	/* copy results out */
 	retstr = psp.retstr;
-	//printf ("EAI_GetValue finishing, retval = %s\n",retstr);
+	/* printf ("EAI_GetValue finishing, retval = %s\n",retstr);*/
 	PSP_UNLOCK
 	return retstr;
 
@@ -522,7 +523,7 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 	int complete;
 	char *retstr;
 
-	//printf ("EAI_GetTypeName starting node %d \n",nodenum);
+	/* printf ("EAI_GetTypeName starting node %d \n",nodenum);*/
 	PSP_LOCK
 	DATA_LOCK
 	psp.ptr = (unsigned int)NULL;
@@ -542,7 +543,7 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 
 	/* copy results out */
 	retstr = psp.retstr;
-	//printf ("EAI_GetTypeName finishing, retval = %s\n",retstr);
+	/* printf ("EAI_GetTypeName finishing, retval = %s\n",retstr);*/
 	PSP_UNLOCK
 	return retstr;
 
@@ -636,7 +637,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	/* do we want to return if the parsing thread is busy, or do
 	   we want to wait? */
 	if (returnifbusy) {
-		//printf ("perlParse, returnifbusy, PerlParsing %d\n",PerlParsing);
+		/* printf ("perlParse, returnifbusy, PerlParsing %d\n",PerlParsing);*/
 		if (PerlParsing) return (FALSE);
 	}
 	PSP_LOCK
@@ -805,11 +806,11 @@ void _perlThread(void *perlpath) {
 			break;
 			}
 
-//JAS		case EAIREPWORLD: {
-//JAS			/* EAI sending in a new world */
-//JAS			__pt_EAI_replaceWorld();
-//JAS			break;
-//JAS			}
+/* JAS		case EAIREPWORLD: {*/
+			/* EAI sending in a new world */
+/* JAS			__pt_EAI_replaceWorld();*/
+/* JAS			break;*/
+/* JAS			}*/
 
 		default: {
 			printf ("produceTask - invalid type!\n");
@@ -827,9 +828,9 @@ void _perlThread(void *perlpath) {
 	}
 }
 
-// add a node to the root group. ASSUMES ROOT IS A GROUP NODE! (it should be)
-// this code is very similar to getMFNode in CFuncs/CRoutes.c, except that
-// we do not pass in a string of nodes to assign. (and, do not remove, etc)
+/*  add a node to the root group. ASSUMES ROOT IS A GROUP NODE! (it should be)*/
+/*  this code is very similar to getMFNode in CFuncs/CRoutes.c, except that*/
+/*  we do not pass in a string of nodes to assign. (and, do not remove, etc)*/
 void addToNode (unsigned rc, unsigned newNode) {
 
 	int oldlen, newlen;
@@ -839,7 +840,7 @@ void addToNode (unsigned rc, unsigned newNode) {
 	unsigned *tmp;
 
 	par = (struct Multi_Node *) rc;
-	//printf ("addToNode, adding %d to %d\n",newNode,rc);
+	/* printf ("addToNode, adding %d to %d\n",newNode,rc);*/
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
@@ -940,7 +941,7 @@ unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr) 
 		count = call_pv("VRML::Browser::EAI_CreateVrmlFromString", G_ARRAY);
 	SPAGAIN ;
 
-	//Perl is returning a series of BN/node# pairs, reorder to node#/BN.
+	/* Perl is returning a series of BN/node# pairs, reorder to node#/BN.*/
 	for (tmp = 1; tmp <= count; tmp++) {
 		retarr[count-tmp] = POPi;
 		/* printf ("popped off %d\n",retarr[count-tmp]); */
@@ -1031,7 +1032,7 @@ void __pt_openBrowser() {
 	viewer_default();
 
 	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSViv(1000))); // left in as an example
+	XPUSHs(sv_2mortal(newSViv(1000))); /*  left in as an example*/
 	XPUSHs(sv_2mortal(newSViv(2000)));
 	PUTBACK;
 	call_pv("open_browser", G_DISCARD);
@@ -1070,7 +1071,7 @@ void __pt_doInline() {
 		slashindex ++; /* leave the slash there */
 		*slashindex = 0;
 	} else {psp.path[0] = 0;}
-	//printf ("doInLine, parenturl is %s\n",psp.path);
+	/* printf ("doInLine, parenturl is %s\n",psp.path);*/
 
 	/* try the first url, up to the last, until we find a valid one */
 	count = 0;
@@ -1089,7 +1090,7 @@ void __pt_doInline() {
 		count ++;
 	}
 	psp.inp = filename; /* will be freed later */
-	//printf ("doinline, psp.inp = %s\n",psp.inp);
+	/* printf ("doinline, psp.inp = %s\n",psp.inp);*/
 	/* printf ("inlining %s\n",filename); */
 
 	/* were we successful at locating one of these? if so,
@@ -1109,7 +1110,7 @@ void __pt_doStringUrl () {
 	int myretarr[2000];
 
 	if (psp.zeroBind) {
-		//printf ("doStringUrl, have to zero Bindables in Perl\n");
+		/* printf ("doStringUrl, have to zero Bindables in Perl\n");*/
 		__pt_zeroBindables();
 		psp.zeroBind=FALSE;
 	}
@@ -1221,7 +1222,7 @@ void __pt_EAI_GetNode () {
 	ENTER;
 	SAVETMPS;
 	PUSHMARK(SP);
-	//this is for integers XPUSHs(sv_2mortal(newSViv(nname)));
+	/* this is for integers XPUSHs(sv_2mortal(newSViv(nname)));*/
 	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
 
 
@@ -1235,7 +1236,7 @@ void __pt_EAI_GetNode () {
 	/* return value in psp.jparamcount */
 	psp.jparamcount = POPi;
 
-	//printf ("The node is %x\n", psp.jparamcount) ;
+	/* printf ("The node is %x\n", psp.jparamcount) ;*/
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
@@ -1249,7 +1250,7 @@ void __pt_EAI_GetViewpoint () {
 	ENTER;
 	SAVETMPS;
 	PUSHMARK(SP);
-	//this is for integers XPUSHs(sv_2mortal(newSViv(nname)));
+	/* this is for integers XPUSHs(sv_2mortal(newSViv(nname)));*/
 	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
 
 
@@ -1263,7 +1264,7 @@ void __pt_EAI_GetViewpoint () {
 	/* return value in psp.jparamcount */
 	psp.jparamcount = POPi;
 
-	//printf ("The node is %x\n", psp.jparamcount) ;
+	/* printf ("The node is %x\n", psp.jparamcount) ;*/
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
@@ -1335,13 +1336,13 @@ void __pt_EAI_GetValue (){
 	/* push on the nodenum, fieldname and direction */
 	XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
 	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-	// this was for pushing on an integer... XPUSHs(sv_2mortal(newSViv(psp.inp)));
+	/*  this was for pushing on an integer... XPUSHs(sv_2mortal(newSViv(psp.inp)));*/
 
 	PUTBACK;
 	count = call_pv("VRML::Browser::EAI_GetValue",G_EVAL|G_SCALAR);
 	SPAGAIN;
 
-	//printf ("GetValue return; count %d\n",count);
+	/* printf ("GetValue return; count %d\n",count);*/
 	if (count != 1) {
 		psp.sv=NULL;
 	} else {
@@ -1350,19 +1351,19 @@ void __pt_EAI_GetValue (){
 	}
 
 	PUTBACK;
-	//printf ("EAI_GetValue retval %d\n", retval) ;
+	/* printf ("EAI_GetValue retval %d\n", retval) ;*/
 
-	//if (SvOK(retval)) {printf ("retval is an SV\n"); }
-	//else {printf ("retval is NOT an SV\n"); return;}
+	/* if (SvOK(retval)) {printf ("retval is an SV\n"); }*/
+	/* else {printf ("retval is NOT an SV\n"); return;}*/
 	/* now, decode this SV */
-	//printf ("SVtype is %x\n",SvTYPE(retval));
-	//printf ("String is :%s: len %d \n",SvPV(retval,len),len);
+	/* printf ("SVtype is %x\n",SvTYPE(retval));*/
+	/* printf ("String is :%s: len %d \n",SvPV(retval,len),len);*/
 
 	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval,len); // now, we have the length
+	ctmp = SvPV(retval,len); /*  now, we have the length*/
 	psp.retstr = (char *)malloc (sizeof (char) * (len+5));
 	strcpy (psp.retstr,ctmp);
-	//printf ("GetValue, retstr will be :%s:\n",psp.retstr);
+	/* printf ("GetValue, retstr will be :%s:\n",psp.retstr);*/
 
 	FREETMPS;
 	LEAVE;
@@ -1387,7 +1388,7 @@ void __pt_EAI_GetTypeName (){
 	count = call_pv("VRML::Browser::EAI_GetTypeName",G_EVAL|G_SCALAR);
 	SPAGAIN;
 
-	//printf ("GetTypeName return; count %d\n",count);
+	/* printf ("GetTypeName return; count %d\n",count);*/
 	if (count != 1) {
 		psp.sv=NULL;
 	} else {
@@ -1398,30 +1399,32 @@ void __pt_EAI_GetTypeName (){
 	PUTBACK;
 
 	/* make a copy of the return string - caller has to free it after use */
-	ctmp = SvPV(retval, len); // now, we have the length
+	ctmp = SvPV(retval, len); /*  now, we have the length*/
 	psp.retstr =(char *) malloc (sizeof (char) * (len+5));
 	strcpy (psp.retstr,ctmp);
-	//printf ("GetTypeName, retstr will be :%s:\n",psp.retstr);
+	/* printf ("GetTypeName, retstr will be :%s:\n",psp.retstr);*/
 
 	FREETMPS;
 	LEAVE;
 }
 
-//JASvoid __pt_EAI_replaceWorld () {
-//JAS	int count;
-//JAS
-//JAS	printf ("ProdCon, _pt_EAI_replaceWorld, fieldname %s\n",psp.fieldname);
-//JAS//	dSP;
-//JAS//	ENTER;
-//JAS//	SAVETMPS;
-//JAS//	PUSHMARK(SP);
-//JAS//	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-//JAS//	PUTBACK;
-//JAS//		count = call_pv("VRML::Browser::EAI_replaceWorld", G_ARRAY);
-//JAS//	SPAGAIN ;
-//JAS//	PUTBACK;
-//JAS//	FREETMPS;
-//JAS//	LEAVE;
-//JAS}
+/*
+void __pt_EAI_replaceWorld () {
+	int count;
+
+	printf ("ProdCon, _pt_EAI_replaceWorld, fieldname %s\n",psp.fieldname);
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+	PUTBACK;
+		count = call_pv("VRML::Browser::EAI_replaceWorld", G_ARRAY);
+	SPAGAIN ;
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+*/
 
 /****************************** END OF EAI **********************************/

@@ -337,7 +337,7 @@ sub new_node {
 
 	# VRML scripting.
 	if ($type eq "Script") {
-		print "Scene.pm - new script node, cnt $cnt\n ";
+		#print "Scene.pm - new script node, cnt $cnt\n ";
 		# Special handling for Script which has an interface.
 		my $t = "__script__".$cnt++;
 		 #print " name is $t ";

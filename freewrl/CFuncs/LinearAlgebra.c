@@ -40,7 +40,7 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
     length_a = calc_vector_length(a);
     length_b = calc_vector_length(b);
 
-    //printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);
+    /* printf("scalar: %f  length_a: %f  length_b: %f \n", scalar, length_a, length_b);*/
 
     /* if (scalar == 0) */
     if (APPROX(scalar, 0)) {
@@ -53,7 +53,7 @@ float calc_angle_between_two_vectors(struct pt a, struct pt b)
     }
 
     temp = scalar /(length_a * length_b);
-    // printf("temp: %f", temp);
+    /*  printf("temp: %f", temp);*/
 
     /*acos() appears to be unable to handle 1 and -1  */
     /* fixed to handle border case where temp <=-1.0 for 0.39 JAS */
@@ -84,14 +84,14 @@ GLdouble det3x3(GLdouble* data)
 
 struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b)
 {
-    struct pt tmp; //JAS
+    struct pt tmp; /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
 	r->x = b[0]*a->x +b[4]*a->y +b[8]*a->z +b[12];
 	r->y = b[1]*a->x +b[5]*a->y +b[9]*a->z +b[13];
 	r->z = b[2]*a->x +b[6]*a->y +b[10]*a->z +b[14];
     } else {
-	//JAS was  - struct pt tmp = {a->x,a->y,a->z};
+	/* JAS was  - struct pt tmp = {a->x,a->y,a->z};*/
 	tmp.x = a->x; tmp.y = a->y; tmp.z = a->z;
 	r->x = b[0]*tmp.x +b[4]*tmp.y +b[8]*tmp.z +b[12];
 	r->y = b[1]*tmp.x +b[5]*tmp.y +b[9]*tmp.z +b[13];
@@ -102,14 +102,14 @@ struct pt* transform(struct pt* r, const struct pt* a, const GLdouble* b)
 
 float* transformf(float* r, const float* a, const GLdouble* b)
 {
-    float tmp[3];  //JAS
+    float tmp[3];  /* JAS*/
 
     if(r != a) { /*protect from self-assignments */
 	r[0] = b[0]*a[0] +b[4]*a[1] +b[8]*a[2] +b[12];
 	r[1] = b[1]*a[0] +b[5]*a[1] +b[9]*a[2] +b[13];
 	r[2] = b[2]*a[0] +b[6]*a[1] +b[10]*a[2] +b[14];
     } else {
-	tmp[0] =a[0]; tmp[1] = a[1]; tmp[2] = a[2]; //JAS
+	tmp[0] =a[0]; tmp[1] = a[1]; tmp[2] = a[2]; /* JAS*/
 	r[0] = b[0]*tmp[0] +b[4]*tmp[1] +b[8]*tmp[2] +b[12];
 	r[1] = b[1]*tmp[0] +b[5]*tmp[1] +b[9]*tmp[2] +b[13];
 	r[2] = b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2] +b[14];
@@ -126,7 +126,7 @@ struct pt* transform3x3(struct pt* r, const struct pt* a, const GLdouble* b)
 	r->y = b[1]*a->x +b[5]*a->y +b[9]*a->z;
 	r->z = b[2]*a->x +b[6]*a->y +b[10]*a->z;
     } else {
-	//JAS struct pt tmp = {a->x,a->y,a->z};
+	/* JAS struct pt tmp = {a->x,a->y,a->z};*/
 	tmp.x = a->x; tmp.y = a->y; tmp.z = a->z;
 	r->x = b[0]*tmp.x +b[4]*tmp.y +b[8]*tmp.z;
 	r->y = b[1]*tmp.x +b[5]*tmp.y +b[9]*tmp.z;
@@ -216,12 +216,12 @@ struct pt* vecdiff(struct pt* r, struct pt* v, struct pt* v2)
 
 /*i,j,n will form an orthogonal vector space */
 void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
-    //optimal axis finding algorithm. the solution isn't unique.
-    // each of these three calculations doesn't work (or works poorly)
-    // in certain distinct cases. (gives zero vectors when two axes are 0)
-    // selecting the calculations according to smallest axis avoids this problem.
-    // (the two remaining axis are thus far from zero, if n is normal)
-    if(fabs(n.x) <= fabs(n.y) && fabs(n.x) <= fabs(n.z)) { //x smallest
+    /* optimal axis finding algorithm. the solution isn't unique.*/
+    /*  each of these three calculations doesn't work (or works poorly)*/
+    /*  in certain distinct cases. (gives zero vectors when two axes are 0)*/
+    /*  selecting the calculations according to smallest axis avoids this problem.*/
+    /*  (the two remaining axis are thus far from zero, if n is normal)*/
+    if(fabs(n.x) <= fabs(n.y) && fabs(n.x) <= fabs(n.z)) { /* x smallest*/
 	i->x = 0;
 	i->y = n.z;
 	i->z = -n.y;
@@ -229,7 +229,7 @@ void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
 	j->x = n.y*n.y + n.z*n.z;
 	j->y = (-n.x)*n.y;
 	j->z = (-n.x)*n.z;
-    } else if(fabs(n.y) <= fabs(n.x) && fabs(n.y) <= fabs(n.z)) { //y smallest
+    } else if(fabs(n.y) <= fabs(n.x) && fabs(n.y) <= fabs(n.z)) { /* y smallest*/
 	i->x = -n.z;
 	i->y = 0;
 	i->z = n.x;
@@ -237,7 +237,7 @@ void make_orthogonal_vector_space(struct pt* i, struct pt* j, struct pt n) {
 	j->x = (-n.x)*n.y;
 	j->y = n.x*n.x + n.z*n.z;
 	j->z = (-n.y)*n.z;
-    } else { //z smallest
+    } else { /* z smallest*/
 	i->x = n.y;
 	i->y = -n.x;
 	i->z = 0;
@@ -350,7 +350,7 @@ GLdouble* mattranslate(GLdouble* r, double dx, double dy, double dz)
 GLdouble* matmultiply(GLdouble* r, GLdouble* m , GLdouble* n)
 {
     GLdouble tm[16],tn[16];
-    //prevent self-multiplication problems.
+    /* prevent self-multiplication problems.*/
     if(r == m) {
 	memcpy(tm,m,sizeof(GLdouble)*16);
 	m = tm;
@@ -429,16 +429,3 @@ GLdouble* veccross(GLdouble* r, GLdouble* v1, GLdouble* v2)
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-

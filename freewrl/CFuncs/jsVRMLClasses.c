@@ -182,7 +182,7 @@ _standardMFGetProperty(JSContext *cx,
 	int32 _length, _index;
 	jsval _length_val;
 
-	// in case we need to run makeNewElement
+	/*  in case we need to run makeNewElement*/
 	int newElemenLen;
 	jsval newEle;
 
@@ -202,8 +202,8 @@ _standardMFGetProperty(JSContext *cx,
 
 		if (_index >= _length) {
 			if (JSVRMLClassesVerbose) printf ("\n\nconstructing new object\n");
-			// we were making this with C calls, but it would fail with a
-			// segfault; so, now, we run a script to do it.
+			/*  we were making this with C calls, but it would fail with a*/
+			/*  segfault; so, now, we run a script to do it.*/
 
 
 			newElemenLen = strlen(makeNewElement);
@@ -236,7 +236,7 @@ _standardMFGetProperty(JSContext *cx,
 		if (*vp == JSVAL_VOID) {
 			printf( "warning: %s: obj = %u, jsval = %d does not exist!\n",name,
 				(unsigned int) obj, (int) _index);
-			//return JS_FALSE;
+			/* return JS_FALSE;*/
 		}
 	}
 	if (JSVRMLClassesVerbose) printf ("_standardMFGetProperty finishing; element is %d %x\n",*vp,*vp);
@@ -378,7 +378,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 			if (_buff[i] == '[') _buff[i]=' ';
 		}
 	}
-	//printf ("domfstring, buff %s\n",_buff);
+	/* printf ("domfstring, buff %s\n",_buff);*/
 	_str = JS_NewStringCopyZ(cx, _buff);
 	*rval = STRING_TO_JSVAL(_str);
 
@@ -811,13 +811,13 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 			printf( "malloc failed in setECMANative.\n");
 			return JS_FALSE;
 		}
-		//JAS - do NOT prepend/append double quotes to this string
-		//JAS - only for the null terminator
-		//JAS len += 3;
+		/* JAS - do NOT prepend/append double quotes to this string*/
+		/* JAS - only for the null terminator*/
+		/* JAS len += 3;*/
 		len += 1;
 
 		memset(_new_vp_c, 0, len);
-		//JAS sprintf(_new_vp_c, "\"%.*s\"", len, _vp_c);
+		/* JAS sprintf(_new_vp_c, "\"%.*s\"", len, _vp_c);*/
 		sprintf(_new_vp_c, "%.*s", len, _vp_c);
 		_newVpStr = JS_NewStringCopyZ(context, _new_vp_c);
 		*vp = STRING_TO_JSVAL(_newVpStr);
@@ -1717,7 +1717,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		*vp = _rval;
 		if (JSVRMLClassesVerbose) printf ("jsp, returnval %d, storing in %d\n",_rval,vp);
 		if (JSVRMLClassesVerbose) printf ("jsp, is rv a string?\n");
-		//if (JSVAL_IS_STRING(_rval)) printf ("yes!\n");
+		/* if (JSVAL_IS_STRING(_rval)) printf ("yes!\n");*/
 		free(_buff);
 	}
 
@@ -1805,8 +1805,8 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		val_len = strlen(ptr->handle) + 1;
 		sprintf(_buff, "__node_%s", _id_c);
 
-		// save this property in Javascript, because, we'll be getting it
-		// via perl shortly.
+		/*  save this property in Javascript, because, we'll be getting it*/
+		/*  via perl shortly.*/
 		if (!JS_SetProperty(cx, globalObj, _buff, vp)) {
 			printf(
 					"JS_SetProperty failed for \"%s\" in SFNodeSetProperty.\n",
@@ -1814,8 +1814,8 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			return JS_FALSE;
 		}
 
-		// call the perl method to manipulate this node - we must do this
-		// because we need the offsets that only perl (or, via a ROUTE) has.
+		/*  call the perl method to manipulate this node - we must do this*/
+		/*  because we need the offsets that only perl (or, via a ROUTE) has.*/
 		doPerlCallMethodVA(brow->sv_js, "jspSFNodeSetProperty", "ss", _id_c, ptr->handle);
 		free(_buff);
 	}
@@ -2526,7 +2526,7 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 					printf ("conversion problem in SFVec2fGeneric\n");
 					return JS_FALSE;
 				}
-				//printf ("past scan, %f %f %f\n",pars[0], pars[1]);
+				/* printf ("past scan, %f %f %f\n",pars[0], pars[1]);*/
 			} else {
 				if (!JS_ConvertArguments(cx, argc, argv, "o", &_paramObj)) {
 					printf( "JS_ConvertArguments failed in SFVec2f.\n");
@@ -2965,7 +2965,7 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 					printf ("conversion problem in SFVec3fGeneric\n");
 					return JS_FALSE;
 				}
-				//printf ("past scan, %f %f %f\n",pars[0], pars[1],pars[2]);
+				/* printf ("past scan, %f %f %f\n",pars[0], pars[1],pars[2]);*/
 			} else {
 				if (!JS_ConvertArguments(cx, argc, argv, "o", &_paramObj)) {
 					printf( "JS_ConvertArguments failed in SFVec3f.\n");
@@ -3460,7 +3460,7 @@ MFColorAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			//&SFColorClass, proto_SFColor,
+			/* &SFColorClass, proto_SFColor,*/
 			"_FreeWRL_Internal = new SFColor()", "MFColor");
 }
 
@@ -3631,7 +3631,7 @@ JSBool
 MFNodeToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
-	//printf ("start of MFNODETOSTRING, obj %d\n",obj);
+	/* printf ("start of MFNODETOSTRING, obj %d\n",obj);*/
 	return doMFToString(cx, obj, "MFNode", rval);
 }
 
@@ -3706,7 +3706,7 @@ JSBool
 MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	if (JSVRMLClassesVerbose) printf ("startof MFNODEGETPROPERTY obj %d\n");
 	return _standardMFGetProperty(cx, obj, id, vp,
-			//&SFNodeClass, proto_SFNode,
+			/* &SFNodeClass, proto_SFNode,*/
 			"_FreeWRL_Internal = 0",
 			"MFNode");
 }
@@ -3754,7 +3754,7 @@ MFTimeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFTimeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			//&MFTimeClass, proto_MFTime,
+			/* &MFTimeClass, proto_MFTime,*/
 			 "_FreeWRL_Internal = 0.0",
 			"MFTime");
 }
@@ -3836,9 +3836,9 @@ MFVec2fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			//&SFVec2fClass, proto_SFVec2f,
+			/* &SFVec2fClass, proto_SFVec2f,*/
 			 "_FreeWRL_Internal = new SFVec2f()","MFVec2f");
-			// "new SFVec2f()","MFVec2f");
+			/*  "new SFVec2f()","MFVec2f");*/
 }
 
 JSBool
@@ -3916,7 +3916,7 @@ MFVec3fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			//&SFVec3fClass, proto_SFVec3f,
+			/* &SFVec3fClass, proto_SFVec3f,*/
 			 "_FreeWRL_Internal = new SFVec3f()","MFVec3f");
 }
 
@@ -3929,7 +3929,7 @@ JSBool
 MFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
-	//printf ("CALLED MFVec3fToString\n");
+	/* printf ("CALLED MFVec3fToString\n");*/
 	return doMFToString(cx, obj, "MFVec3f", rval);
 }
 
@@ -4365,7 +4365,7 @@ MFRotationAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool
 MFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	return _standardMFGetProperty(cx, obj, id, vp,
-			//&SFRotationClass, proto_SFRotation,
+			/* &SFRotationClass, proto_SFRotation,*/
 			 "_FreeWRL_Internal = new SFRotation()","MFRotation");
 }
 

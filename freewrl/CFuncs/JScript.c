@@ -36,9 +36,9 @@ Javascript C language binding.
 #include "jsNative.h"
 #include "jsVRMLClasses.h"
 
-//#define MAX_RUNTIME_BYTES 0x100000L
+/* #define MAX_RUNTIME_BYTES 0x100000L*/
 #define MAX_RUNTIME_BYTES 0x1000000L
-//#define STACK_CHUNK_SIZE 0x2000L
+/* #define STACK_CHUNK_SIZE 0x2000L*/
 #define STACK_CHUNK_SIZE 0x20000L
 
 
@@ -100,21 +100,21 @@ char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; 
 void JScleanup(int num);
 void JScleanup (int num) {
 	UNUSED(num);
-	//VRML::VRMLFunc::cleanupJS($this->{ScriptNum});
-//	BrowserNative *brow = br;
-//	JSContext *_context = cx;
-//
-//	if (brow) {
-//		printf("\tfree browser internals!!!\n");
-//		JS_free(_context, brow);
-//		printf("\tbrowser internals freed!!!\n");
-//	}
-//
-//	/* JS_DestroyContext(_context); */
-//	/* printf("\tJS _context destroyed!!!\n"); */
-//
-//	JS_DestroyRuntime(runtime);
- //   JS_ShutDown();
+	/* VRML::VRMLFunc::cleanupJS($this->{ScriptNum});*/
+/* 	BrowserNative *brow = br;*/
+/* 	JSContext *_context = cx;*/
+/* */
+/* 	if (brow) {*/
+/* 		printf("\tfree browser internals!!!\n");*/
+/* 		JS_free(_context, brow);*/
+/* 		printf("\tbrowser internals freed!!!\n");*/
+/* 	}*/
+/* */
+/* 	 JS_DestroyContext(_context); */
+/* 	 printf("\tJS _context destroyed!!!\n"); */
+/* */
+/* 	JS_DestroyRuntime(runtime);*/
+ /*    JS_ShutDown();*/
 
 }
 
@@ -185,11 +185,11 @@ void JSInit(int num, SV *script) {
 	if (JSVerbose) printf("\tJS standard classes initialized,\n");
 
 
-	//if (JSVerbose) {
-	//	reportWarningsOn();
-	//} else {
-	//	reportWarningsOff();
-	//}
+	/* if (JSVerbose) {*/
+	/* 	reportWarningsOn();*/
+	/* } else {*/
+	/* 	reportWarningsOff();*/
+	/* }*/
 
 	JS_SetErrorReporter(_context, errorReporter);
 	if (JSVerbose) printf("\tJS errror reporter set,\n");
@@ -264,7 +264,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	//printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj);
+	/* printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj);*/
 
 	if (!ActualrunScript(num,script,&rval))
 		return JS_FALSE;
@@ -434,7 +434,7 @@ SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len)
 	SFNodeNative *ptr;
 	ptr = (SFNodeNative *) malloc(sizeof(*ptr));
 
-	//printf ("SFNodeNativeNew; string len %d handle_len %d\n",vrmlstring_len,handle_len);
+	/* printf ("SFNodeNativeNew; string len %d handle_len %d\n",vrmlstring_len,handle_len);*/
 
 	if (ptr == NULL) {
 		return NULL;
@@ -478,8 +478,8 @@ SFNodeNativeAssign(void *top, void *fromp)
 	SFNodeNative *to = (SFNodeNative *)top;
 	SFNodeNative *from = (SFNodeNative *)fromp;
 
-	//printf ("SFNodeNativeAssign, assigning from vrmlstring %s handle %s to vrmlstring %s handle %s\n",
-	//	from->vrmlstring,from->handle,to->vrmlstring,to->handle);
+	/* printf ("SFNodeNativeAssign, assigning from vrmlstring %s handle %s to vrmlstring %s handle %s\n",*/
+	/* 	from->vrmlstring,from->handle,to->vrmlstring,to->handle);*/
 
 	to->touched++;
 
@@ -489,7 +489,7 @@ SFNodeNativeAssign(void *top, void *fromp)
 	from_vrmlstring_len = strlen(from->vrmlstring) + 1;
 	from_handle_len = strlen(from->handle) + 1;
 
-	//printf ("lengths: %d %d, %d %d\n",from_handle_len,from_vrmlstring_len, to_handle_len,to_vrmlstring_len);
+	/* printf ("lengths: %d %d, %d %d\n",from_handle_len,from_vrmlstring_len, to_handle_len,to_vrmlstring_len);*/
 
 
 	if (from_vrmlstring_len > to_vrmlstring_len) {

@@ -36,13 +36,13 @@
 void statusbar_position (void);
 
 
-int new_status = TRUE; 		// do we need to re-calculate status bar
-GLuint status_dlist = 0;	// status bar display list
-int viewer_type = 0;		// WALK, etc...
-char vpname[25];		// Viewpoint name
-int vplen = 0;			// Viewpoint length
-GLdouble initial_angle = 0.0;	// initial rotation after vp bind
-int get_angle = TRUE;		// record the initial angle
+int new_status = TRUE; 		/*  do we need to re-calculate status bar*/
+GLuint status_dlist = 0;	/*  status bar display list*/
+int viewer_type = 0;		/*  WALK, etc...*/
+char vpname[25];		/*  Viewpoint name*/
+int vplen = 0;			/*  Viewpoint length*/
+GLdouble initial_angle = 0.0;	/*  initial rotation after vp bind*/
+int get_angle = TRUE;		/*  record the initial angle*/
 
 /* trigger a update */
 void update_status() {
@@ -55,7 +55,7 @@ void viewpoint_name_status (char *str) {
 	if (vplen > 20) vplen = 20;
 	else vplen = strlen(str);
 	strncpy (vpname,str,(size_t) vplen);
-	vpname[vplen] = 0; // make sure terminated
+	vpname[vplen] = 0; /*  make sure terminated*/
 	new_status = TRUE;
 	get_angle = TRUE;
 }
@@ -109,7 +109,7 @@ void render_status () {
 		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s",
 			"(Loading...)", BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 
-		// let the other threads run, too
+		/*  let the other threads run, too*/
 		sched_yield();
 
 	} else {
@@ -147,18 +147,18 @@ void render_status () {
 	rep_.tcoord = 0;
 
 	holder._intern = &rep_;
-	holder._nparents=0;		// stops boundingbox calcs from propagating
+	holder._nparents=0;		/*  stops boundingbox calcs from propagating*/
 
-	FW_rendertext (1,		// lines
-		NULL,			// Perl SV pointer
-		statusline,	 	// text to display
-		0,			// number of length lines
-		0,			// pointer to length lines
-		0.0,			// max extent
-		1.0,			// spacing
-		0.2,			// size
-		0x8827,			// Font, etc
-		&rep_);			// pointer to polyrep structure
+	FW_rendertext (1,		/*  lines*/
+		NULL,			/*  Perl SV pointer*/
+		statusline,	 	/*  text to display*/
+		0,			/*  number of length lines*/
+		0,			/*  pointer to length lines*/
+		0.0,			/*  max extent*/
+		1.0,			/*  spacing*/
+		0.2,			/*  size*/
+		0x8827,			/*  Font, etc*/
+		&rep_);			/*  pointer to polyrep structure*/
 
 
 	/* now that we have the text, go somewhere and render it */

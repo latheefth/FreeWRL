@@ -10,10 +10,10 @@
  *
  *
  * Wav decoding data came from data sheets at:
- * http://www.borg.com/~jglatt/tech/wave.htm
+ * http:www.borg.com/~jglatt/tech/wave.htm
  *
  * Some programming info from:
- * http://vengeance.et.tudelft.nl/ecfh/Articles/devdsp-0.1.txt
+ * http: vengeance.et.tudelft.nl/ecfh/Articles/devdsp-0.1.txt
  *
  *
  *********************************************************************/
@@ -28,24 +28,24 @@ key_t IPCKey;
 int msq_fromclnt;
 int msq_toclnt;
 
-int current_max = -1;		// the maximum source number recieved so far.
-int registered[MAXSOURCES];	// is source registered? (boolean)
-int active[MAXSOURCES];		// is source active? (boolean)
-int loop[MAXSOURCES];		// is this sound looped? (boolean)
-SNDFILE *sndfile[MAXSOURCES];	// structure containing sound file info
+int current_max = -1;		/*  the maximum source number recieved so far.*/
+int registered[MAXSOURCES];	/*  is source registered? (boolean)*/
+int active[MAXSOURCES];		/*  is source active? (boolean)*/
+int loop[MAXSOURCES];		/*  is this sound looped? (boolean)*/
+SNDFILE *sndfile[MAXSOURCES];	/*  structure containing sound file info*/
 
-FWSNDMSG msg;	// incoming message
+FWSNDMSG msg;	/*  incoming message*/
 
-float fps = 30.0;		// initial value...
+float fps = 30.0;		/*  initial value...*/
 int currentSource = -1;
 
-char cp2[310];    // hold the current filename, in case of errors
+char cp2[310];    /*  hold the current filename, in case of errors*/
 
 int S_Server_IPC = -1;
 int xx;
 
 
-//testing...
+/* testing...*/
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/soundcard.h>
@@ -57,24 +57,24 @@ int xx;
 
 unsigned char* data;
 
-//##########################################################################
-//
-// Sound file handling routines
-//
-//
+/* ##########################################################################*/
+/* */
+/*  Sound file handling routines*/
+/* */
+/* */
 
-// if the sndfile is open, rewind and set bytes_remaining
+/*  if the sndfile is open, rewind and set bytes_remaining*/
 void rewind_to_beginning (SNDFILE *wavfile) {
 	if (wavfile != NULL) {
 		if (wavfile->fd != NULL) {
-			//printf ("rewinding to beginning...\n");
-			//printf ("seek set is %d, chunkSize %d\n",
-			//		(int)wavfile->wavdataoffset,
-			//		(int)wavfile->DataChunk.chunkSize);
+			/* printf ("rewinding to beginning...\n");*/
+			/* printf ("seek set is %d, chunkSize %d\n",*/
+			/* 		(int)wavfile->wavdataoffset,*/
+			/* 		(int)wavfile->DataChunk.chunkSize);*/
 
 			wavfile->bytes_remaining = wavfile->DataChunk.chunkSize;
 			fseek (wavfile->fd, wavfile->wavdataoffset, SEEK_SET);
-			//printf ("rewind bytes remaining %ld\n",wavfile->bytes_remaining);
+			/* printf ("rewind bytes remaining %ld\n",wavfile->bytes_remaining);*/
 
 			if (wavfile->bytes_remaining <= 0) {
 				printf ("Error in getting wavfile DataChunk\n");
@@ -87,27 +87,27 @@ void rewind_to_beginning (SNDFILE *wavfile) {
 
 
 
-// find a chunk start.
+/*  find a chunk start.*/
 int chunk (char *buf, char *find, int len) {
 	int mycnt;
 
 	mycnt=0;
 	while (mycnt < (len) - strlen(find)) {
 		if (strncmp (&buf[mycnt], find, strlen(find)) == 0) {
-			// found it!
-			//printf ("found %s at %d\n",find, mycnt);
+			/*  found it!*/
+			/* printf ("found %s at %d\n",find, mycnt);*/
 			return (mycnt);
 		} else {
-			//printf ("not found, mycnt = %d\n",mycnt);
+			/* printf ("not found, mycnt = %d\n",mycnt);*/
 			mycnt ++;
 		}
 	}
-	return -1;  // did not find it
+	return -1;  /*  did not find it*/
 }
 
 
-// Decode what kind of file this is - skip through the headers,
-// save the type in the SNDFILE structure.
+/*  Decode what kind of file this is - skip through the headers,*/
+/*  save the type in the SNDFILE structure.*/
 
 int querySoundType(SNDFILE *me) {
 	int br;
@@ -115,14 +115,14 @@ int querySoundType(SNDFILE *me) {
 	br = fread(me->data,1,BUFSIZE,me->fd);
 	me->dataptr = chunk (me->data,"RIFF",BUFSIZE);
 
-	//Not a RIFF file
+	/* Not a RIFF file*/
 	if (me->dataptr < 0) {
 		printf ("SoundEngine:not a RIFF file\n\t%s\n",cp2);
 		return -1;
 	}
 
 	br = chunk (&me->data[me->dataptr],"WAVE",BUFSIZE);
-	// a WAVE file
+	/*  a WAVE file*/
 	if (br < 0) {
 		printf ("SoundEngine:not a WAVE file\n\t%s\n",cp2);
 		return -1;
@@ -130,7 +130,7 @@ int querySoundType(SNDFILE *me) {
 
 	me->dataptr +=br;
 	br = chunk (&me->data[me->dataptr],"fmt ",BUFSIZE);
-	// have format
+	/*  have format*/
 	if (br < 0) {
 		printf ("SoundServer:no fmt found in WAVE file\n\t%s\n",cp2);
 		return -1;
@@ -138,7 +138,7 @@ int querySoundType(SNDFILE *me) {
 
 	me->dataptr += br;
 
-	// copy over format header information
+	/*  copy over format header information*/
 	memcpy (&me->FormatChunk, &me->data[me->dataptr], sizeof (fmtChnk));
 
 
@@ -160,12 +160,12 @@ int querySoundType(SNDFILE *me) {
 		return -1;
 	}
 
-	// pass over the fmt chunk - note the chunkSize does not include all. see spec.
+	/*  pass over the fmt chunk - note the chunkSize does not include all. see spec.*/
 	me->dataptr += 8 + me->FormatChunk.chunkSize;
 
 
 	br = chunk (&me->data[me->dataptr],"data",BUFSIZE);
-	// have data
+	/*  have data*/
 	if (br < 0) {
 		printf ("SoundServer:no data found in WAVE file\n\t%s\n",cp2);
 		return -1;
@@ -182,28 +182,28 @@ int querySoundType(SNDFILE *me) {
 	printf ("dataptr is %d\n",me->dataptr);
 	*/
 
-	// does this file have a zero chunksize?
+	/*  does this file have a zero chunksize?*/
 	if (me->DataChunk.chunkSize <= 0) {
 		printf ("SoundServer:WAV DataChunk size invalid\n\t%s\n",cp2);
 		return -1;
 	}
 
-	// is this file compressed?
+	/*  is this file compressed?*/
 
 
-	me->wavdataoffset = me->dataptr+8; // wavdataoffset is the actual position of start of data
+	me->wavdataoffset = me->dataptr+8; /*  wavdataoffset is the actual position of start of data*/
 	return WAVFILE;
 }
 
-// Open and initiate sound file
+/*  Open and initiate sound file*/
 
 SNDFILE *openSound (char *path,int soundNo) {
 
 	SNDFILE *mysound;
 
-	mysound	= (SNDFILE *) malloc (sizeof(SNDFILE)); // This is the return value
+	mysound	= (SNDFILE *) malloc (sizeof(SNDFILE)); /*  This is the return value*/
 
-	if (!mysound) return NULL;	// memory allocation error
+	if (!mysound) return NULL;	/*  memory allocation error*/
 
 	mysound->fd = fopen(path,"r");
 	mysound->bytes_remaining = UNINITWAV;
@@ -213,8 +213,8 @@ SNDFILE *openSound (char *path,int soundNo) {
 		return NULL;
 	}
 
-	// ok - we have the file opened. Assume WAV file, because that's
-	// what we handle for now.
+	/*  ok - we have the file opened. Assume WAV file, because that's*/
+	/*  what we handle for now.*/
 
 	switch (querySoundType(mysound)) {
 		case WAVFILE: {
@@ -235,27 +235,27 @@ SNDFILE *openSound (char *path,int soundNo) {
 				 return NULL;
 			}
 		}
-	// we should never reach here...
+	/*  we should never reach here...*/
 	return NULL;
 }
 
 
-//##########################################################################
-//
-// Receive information from FreeWRL
+/* ##########################################################################*/
+/* */
+/*  Receive information from FreeWRL*/
 
 void
 toclnt(char *message_to_send) {
 	msg.mtype= 1;
 	(void) strcpy(msg.msg, message_to_send);
-	//printf ("SoundEngine - sending back %s\n",msg.msg);
+	/* printf ("SoundEngine - sending back %s\n",msg.msg);*/
 
 	while((xx=msgsnd(msq_toclnt, &msg,strlen(msg.msg)+1,IPC_NOWAIT)) != 0);
 	if (xx) {   /* Send to client */
 		printf ("SoundEngineServer - error sending ready msg\n");
 		exit(1);
 	}
-	//printf ("SoundEngine - sendT back %s\n",msg.msg);
+	/* printf ("SoundEngine - sendT back %s\n",msg.msg);*/
 }
 
 int fromclnt () {
@@ -263,34 +263,34 @@ int fromclnt () {
 }
 
 
-// Go through, and act on the message -it is stored in the global "msg" struct
+/*  Go through, and act on the message -it is stored in the global "msg" struct*/
 void process_command () {
-	float x,y,z; // temporary variables
-	int a,b,cp2len;   // temporary variables
+	float x,y,z; /*  temporary variables*/
+	int a,b,cp2len;   /*  temporary variables*/
 	int myloop;
 	int mysource;
-	float bal;	// balance
-	char cp[310];    // temporary variable
+	float bal;	/*  balance*/
+	char cp[310];    /*  temporary variable*/
 	char st[10];
 	char pitch[30];
 	double duration;
 
-	//printf ("processing %s\n",msg.msg);
+	/* printf ("processing %s\n",msg.msg);*/
 
 	if (strncmp ("REGS",msg.msg,4) == 0) {
-		// a REGISTER message
+		/*  a REGISTER message*/
 		a=5; b=0;
-		//printf ("REGS matched len %d, first start %c %c %c %c\n",strlen(msg.msg),
-		//		msg.msg[a],msg.msg[a+1], msg.msg[a+2], msg.msg[a+3]);
+		/* printf ("REGS matched len %d, first start %c %c %c %c\n",strlen(msg.msg),*/
+		/* 		msg.msg[a],msg.msg[a+1], msg.msg[a+2], msg.msg[a+3]);*/
 
-		// start SOX conversion...
+		/*  start SOX conversion...*/
 		cp[0]='\0';
 		strcpy(cp,"/usr/bin/sox");
 		strcat(cp," ");
 		b = strlen(cp);
-		cp2len=0; // keep the original file name around for a bit.
+		cp2len=0; /*  keep the original file name around for a bit.*/
 
-		// copy over the url name; skip past the REGS: at beginning.
+		/*  copy over the url name; skip past the REGS: at beginning.*/
 		while ((a<strlen(msg.msg)-1) && (b<300) && (msg.msg[a]>' ')) {
 			cp[b]=msg.msg[a];
 			cp2[cp2len] = msg.msg[a];
@@ -298,11 +298,11 @@ void process_command () {
 		}
 		cp[b]='\0'; cp2[cp2len]='\0';
 
-		// get rest of parameters
-		//printf ("getting rest of parameters from %s\n",&msg.msg[a]);
+		/*  get rest of parameters*/
+		/* printf ("getting rest of parameters from %s\n",&msg.msg[a]);*/
 		sscanf (&msg.msg[a], " %d %d %f %f %f",&mysource,&myloop,&x,&y,&z);
 
-		// do the pitch
+		/*  do the pitch*/
 		strcat (cp, " -r ");
 		if ((x > 1.01) || (x < 0.98)) {
 			if (x<0.01) x = 1;
@@ -312,43 +312,43 @@ void process_command () {
 		}
 		strcat (cp,pitch);
 
-		// finish the conversion line
+		/*  finish the conversion line*/
 		strcat (cp,"-c2 -w /tmp/sound");
 		b = strlen(cp);
 
 		sprintf (st,"%d.wav",mysource);
-		//printf ("ST is %s\n cp is %s\n",st,cp);
+		/* printf ("ST is %s\n cp is %s\n",st,cp);*/
 		strcat (cp,st);
 
-		//strcat (cp, " 2>/tmp/FreeWRL_Errors");
+		/* strcat (cp, " 2>/tmp/FreeWRL_Errors");*/
 
-		printf ("going to system %s\n",cp);
+		/* printf ("going to system %s\n",cp); */
 		freewrlSystem (cp);
 
-		// make the new, converted file name, then later, open it
+		/*  make the new, converted file name, then later, open it*/
 		strcpy (cp,"/tmp/sound");
 		strcat (cp,st);
 
-		//printf ("registering source %d loop %d x %f y %f z %f name %s \n",mysource,myloop,x,y,z,cp);
+		/* printf ("registering source %d loop %d x %f y %f z %f name %s \n",mysource,myloop,x,y,z,cp);*/
 
 		if (mysource > current_max) current_max = mysource;
 
 
-		// Can we open this sound file?
+		/*  Can we open this sound file?*/
 
-		//printf ("REGS opening sound\n");
+		/* printf ("REGS opening sound\n");*/
 		sndfile[mysource] = openSound(cp,mysource);
 		if (sndfile[mysource] == NULL) {
 			printf ("SoundServer:open problem for:\n\t %s\n",cp2);
 			duration = 1.0;
 		} else {
-			// Copy over all of the temporary data to the correct place.
-			registered[mysource] = 1;     // is source registered? (boolean)
-			loop[mysource] = myloop;           // is this sound looped? (boolean)
-			sndfile[mysource]->pitch = x;          // pitch of 1 = standard playback
+			/*  Copy over all of the temporary data to the correct place.*/
+			registered[mysource] = 1;     /*  is source registered? (boolean)*/
+			loop[mysource] = myloop;           /*  is this sound looped? (boolean)*/
+			sndfile[mysource]->pitch = x;          /*  pitch of 1 = standard playback*/
 
-			sndfile[mysource]->ampl = 0;         // Gain of this sound
-			sndfile[mysource]->balance = 50;	// balance of this sound.
+			sndfile[mysource]->ampl = 0;         /*  Gain of this sound*/
+			sndfile[mysource]->balance = 50;	/*  balance of this sound.*/
 
 			duration = (double) sndfile[mysource]->DataChunk.chunkSize / (double) sndfile[mysource]->FormatChunk.dwAvgBytesPerSec;
 
@@ -357,33 +357,33 @@ void process_command () {
 		toclnt(cp);			/* Tell client we're ready */
 
 	} else if (strncmp ("AMPL",msg.msg,4) == 0) {
-		// set amplitude for this sound source
+		/*  set amplitude for this sound source*/
 
-//	printf ("%s\n",msg.msg);
+/* 	printf ("%s\n",msg.msg);*/
 		/* format is command, source#, amplitude, balance, Framerate */
 
 		sscanf (msg.msg,"AMPL %d %f %f %f",&a,&x,&bal,&fps);
-		//printf ("got ampl for sound %d\n",a);
+		/* printf ("got ampl for sound %d\n",a);*/
 		if ((registered[a] == 1) && (a>=0) && (a<MAXSOURCES)) {
 			sndfile[a]->ampl = (int) (x*100.0);
-			//printf ("ampl conv, orig %f now %d\n",x,sndfile[a]->ampl);
+			/* printf ("ampl conv, orig %f now %d\n",x,sndfile[a]->ampl);*/
 			sndfile[a]->balance = (int) ((float)bal * 100.0);
 		}
 		playWavFragment ();
 	} else if (strncmp ("ACTV",msg.msg,4) == 0) {
-		// set this source to be active
+		/*  set this source to be active*/
 		sscanf (msg.msg,"ACTV %d %d",&a,&b);
 		if ((a>=0) && (a<MAXSOURCES)) {
 			active[a]=b;
 			if (b==1) {
-				// sound is becoming active
+				/*  sound is becoming active*/
 				rewind_to_beginning (sndfile[a]);
 			}
 		}
-		//printf ("ACTV parsing, active%d now is %d from message %s\n",a,b,msg.msg);
+		/* printf ("ACTV parsing, active%d now is %d from message %s\n",a,b,msg.msg);*/
 
-	//} else {
-	//	printf ("SoundEngine - unknown message recieved %s\n",msg.msg);
+	/* } else {*/
+	/* 	printf ("SoundEngine - unknown message recieved %s\n",msg.msg);*/
 	}
 }
 
@@ -397,29 +397,29 @@ int main(int argc,char **argv) {
 		exit(1);
 	}
 
-	// initiate tables
+	/*  initiate tables*/
 	for (xx=0; xx<MAXSOURCES; xx++) {
 		registered[xx] = 0;
 		active[xx] = 0;
 		sndfile[xx] = NULL;
 	}
 
-	// open the DSP
+	/*  open the DSP*/
 	initiateDSP();
 
-	//printf ("Server - getting the client IPC from argv %s\n", argv[0]);
+	/* printf ("Server - getting the client IPC from argv %s\n", argv[0]);*/
 	S_Server_IPC=getppid();
 
-	//printf ("a='%s', msg='%s', d='%d'.\n", argv[0],msg.msg,S_Server_IPC);
+	/* printf ("a='%s', msg='%s', d='%d'.\n", argv[0],msg.msg,S_Server_IPC);*/
 	if (!strncmp("INIT",argv[0],4)) {
 		sscanf (argv[0],"%s%d",msg.msg,&S_Server_IPC);
 	} else {
 		printf ("SoundServer: no Client_IPC on command line\n");
-		//printf ("a='%s', msg='%s', dud='%d'.\n", argv[0],msg.msg,dud);
+		/* printf ("a='%s', msg='%s', dud='%d'.\n", argv[0],msg.msg,dud);*/
 		exit(1);
 	}
 
-	// get message queues
+	/*  get message queues*/
 	if ((msq_fromclnt = msgget(S_Server_IPC,0666)) < 0) {
 		printf ("SoundServer: no IPC queue available\n");
 		exit(1);
@@ -428,8 +428,8 @@ int main(int argc,char **argv) {
 		printf ("SoundServer: no IPC queue available\n");
 		exit(1);
 	}
-	//printf ("Server, ok, msq_fromclnt=%x msq_toclnt=%x key %d\n",
-	//		msq_fromclnt,msq_toclnt,S_Server_IPC);
+	/* printf ("Server, ok, msq_fromclnt=%x msq_toclnt=%x key %d\n",*/
+	/* 		msq_fromclnt,msq_toclnt,S_Server_IPC);*/
 
 
 	toclnt("OK");			/* Tell client we're ready */
@@ -437,20 +437,20 @@ int main(int argc,char **argv) {
 	do {
 		xx = fromclnt();
 		if (xx < 0) {
-			// gets here if the client exited
+			/*  gets here if the client exited*/
 			exit (0);
 		}
 
-		//printf ("server, from FreeWRL=%x message='%s'\n",xx,msg.msg);
+		/* printf ("server, from FreeWRL=%x message='%s'\n",xx,msg.msg);*/
 		process_command ();
 	} while (strncmp ("QUIT",msg.msg,4));
 	for (count=0; count<current_max; count++) {
 		sprintf (fileRemove,"/tmp/sound%d.wav",count);
-		//printf ("unlinking %d\n",count);
+		/* printf ("unlinking %d\n",count);*/
 		unlink(fileRemove);
 	}
 
-	//printf ("Server exiting normally\n");
+	/* printf ("Server exiting normally\n");*/
 	exit(0);
 }
 
@@ -492,7 +492,7 @@ int freewrlSystem (char *sysline) {
 	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
-	//printf ("freewrlSystem, have %s here\n",internbuf);
+	/* printf ("freewrlSystem, have %s here\n",internbuf);*/
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 
 	/* split the command off of internbuf, for execing. */
@@ -501,26 +501,26 @@ int freewrlSystem (char *sysline) {
 		paramline[count] = internbuf;
 		internbuf = strchr(internbuf,' ');
 		if (internbuf != NULL) {
-			//printf ("more strings here! :%s:\n",internbuf);
+			/* printf ("more strings here! :%s:\n",internbuf);*/
 			*internbuf = '\0';
-			//printf ("param %d is :%s:\n",count,paramline[count]);
+			/* printf ("param %d is :%s:\n",count,paramline[count]);*/
 			internbuf++;
 			count ++;
-			if (count >= MAXEXECPARAMS) return -1; // never...
+			if (count >= MAXEXECPARAMS) return -1; /*  never...*/
 		}
 	}
 
-//	 printf ("finished while loop, count %d\n",count);
-//	{ int xx;
-//		for (xx=0; xx<MAXEXECPARAMS;xx++) {
-//			printf ("item %d is :%s:\n",xx,paramline[xx]);
-//	}}
+/* 	 printf ("finished while loop, count %d\n",count);*/
+/* 	{ int xx;*/
+/* 		for (xx=0; xx<MAXEXECPARAMS;xx++) {*/
+/* 			printf ("item %d is :%s:\n",xx,paramline[xx]);*/
+/* 	}}*/
 
 
 	/* is the last string "&"? if so, we don't need to wait around */
 	if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
 		waitForChild=FALSE;
-		paramline[count] = '\0'; // remove the ampersand.
+		paramline[count] = '\0'; /*  remove the ampersand.*/
 	}
 
 	if (count > 0) {
@@ -532,26 +532,26 @@ int freewrlSystem (char *sysline) {
 			int Xrv;
 
 			/* child process */
-			//printf ("child execing, pid %d %d\n",childProcess, getpid());
+			/* printf ("child execing, pid %d %d\n",childProcess, getpid());*/
 		 	Xrv = execl(paramline[0],
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
 				paramline[6],paramline[7]);
-			//printf ("child finished execing\n");
+			/* printf ("child finished execing\n");*/
 			exit (Xrv);
 			}
 			default: {
 			/* parent process */
-			//printf ("parent waiting for child %d\n",childProcess);
+			/* printf ("parent waiting for child %d\n",childProcess);*/
 
 			/* do we have to wait around? */
 			if (!waitForChild) {
-				//printf ("do not have to wait around\n");
+				/* printf ("do not have to wait around\n");*/
 				return 0;
 			}
 			waitpid (childProcess,&pidStatus,0);
-			//printf ("parent - child finished - pidStatus %d \n",
-			//		pidStatus);
+			/* printf ("parent - child finished - pidStatus %d \n",*/
+			/* 		pidStatus);*/
 			}
 		}
 		return pidStatus;

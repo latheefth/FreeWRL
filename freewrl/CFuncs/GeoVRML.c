@@ -16,8 +16,8 @@
 
 int GeoVerbose = 0;
 
-int GeoSys     = GEO_GD + GEO_WE;	// which GeoSystem is parsed from the last GeoOrigin
-double GeoOrig[3];			// last GeoOrigin parsed in lat/long/elvation format
+int GeoSys     = GEO_GD + GEO_WE;	/* which GeoSystem is parsed from the last GeoOrigin */
+double GeoOrig[3];			/* last GeoOrigin parsed in lat/long/elvation format */
 
 /* Function Prototypes */
 void parse_ellipsoid(int *dest, char *str, char *description);
@@ -130,7 +130,7 @@ void render_GeoOrigin (struct VRML_GeoOrigin *node) {
 
 void render_GeoLocation (struct VRML_GeoLocation *node) {
 	STRLEN xx;
-	//GLdouble modelMatrix[16];
+	/* GLdouble modelMatrix[16]; */
 
         /* is the position "compiled" yet? */
         if (node->_change != node->_dlchange) {
@@ -145,8 +145,9 @@ void render_GeoLocation (struct VRML_GeoLocation *node) {
         }
 
 	/* this is a transform */
-	//fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	//printf ("modelmatrix shows us at %f %f %f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+	/*fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	printf ("modelmatrix shows us at %f %f %f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+	*/
 
 	if (node->geoOrigin) render_node(node->geoOrigin);
 
@@ -158,7 +159,8 @@ void render_GeoLocation (struct VRML_GeoLocation *node) {
 	glTranslated ((double)node->__geoCoords.c[0]-GeoOrig[0],
 			(double)node->__geoCoords.c[1]-GeoOrig[1],
 			(double)node->__geoCoords.c[2]-GeoOrig[2]);
-	//fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	//printf ("modelmatrix now shows us at %f %f %f\n\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+	/*fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	printf ("modelmatrix now shows us at %f %f %f\n\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+	*/
 
 }

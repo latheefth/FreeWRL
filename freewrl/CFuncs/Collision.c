@@ -1146,15 +1146,15 @@ int fast_ycylinder_sphere_intersect(double y1, double y2, double r,struct pt pce
 /*basically, it does collision with a triangle on a plane that passes through the origin.*/
 struct pt cone_disp(double y1, double y2, double ystep, double r, struct pt base, struct pt top, double baseradius) {
 
-    struct pt i; //cone axis vector
-    double h; //height of cone
+    struct pt i; /* cone axis vector*/
+    double h; /* height of cone*/
     struct pt tmp;
-    struct pt bn; //direction from cone to cylinder
-    struct pt side; //side of base in direction of origin
-    struct pt normalbase; //collision normal of base (points downwards)
-    struct pt normalside; //collision normal of side (points outside)
-    struct pt normaltop; //collision normal of top (points up)
-    struct pt bn_normal; //bn, normalized;
+    struct pt bn; /* direction from cone to cylinder*/
+    struct pt side; /* side of base in direction of origin*/
+    struct pt normalbase; /* collision normal of base (points downwards)*/
+    struct pt normalside; /* collision normal of side (points outside)*/
+    struct pt normaltop; /* collision normal of top (points up)*/
+    struct pt bn_normal; /* bn, normalized;*/
     struct pt mindispv= {0,0,0};
     double mindisp = 1E99;
 
@@ -1178,7 +1178,7 @@ struct pt cone_disp(double y1, double y2, double ystep, double r, struct pt base
     vecscale(&side,&bn,baseradius);
     VECADD(side,base);
 
-    //find normals ;
+    /* find normals ;*/
     h = vecnormal(&i,&i);
     normaltop = i;
     vecscale(&normalbase,&normaltop,-1.0);
@@ -1226,15 +1226,15 @@ struct pt cone_disp(double y1, double y2, double ystep, double r, struct pt base
 /*basically, it does collision with a rectangle on a plane that passes through the origin.*/
 struct pt cylinder_disp(double y1, double y2, double ystep, double r, struct pt base, struct pt top, double baseradius) {
 
-    struct pt i; //cone axis vector
-    double h; //height of cone
+    struct pt i; /* cone axis vector*/
+    double h; /* height of cone*/
     struct pt tmp;
-    struct pt bn; //direction from cone to cylinder
-    struct pt sidetop; //side of top in direction of origin
-    struct pt sidebase; //side of base in direction of origin
-    struct pt normalbase; //collision normal of base (points downwards)
-    struct pt normalside; //collision normal of side (points outside)
-    struct pt normaltop; //collision normal of top (points upwards)
+    struct pt bn; /* direction from cone to cylinder*/
+    struct pt sidetop; /* side of top in direction of origin*/
+    struct pt sidebase; /* side of base in direction of origin*/
+    struct pt normalbase; /* collision normal of base (points downwards)*/
+    struct pt normalside; /* collision normal of side (points outside)*/
+    struct pt normaltop; /* collision normal of top (points upwards)*/
     struct pt mindispv= {0,0,0};
     double mindisp = 1E99;
 
@@ -1258,7 +1258,7 @@ struct pt cylinder_disp(double y1, double y2, double ystep, double r, struct pt 
     sidetop = top; VECADD(sidetop,sidebase)
 		       VECADD(sidebase,base);
 
-    //find normals ;
+    /* find normals ;*/
     h = vecnormal(&i,&i);
     normaltop = i;
     vecscale(&normalbase,&normaltop,-1.0);
@@ -1414,14 +1414,14 @@ struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML
 
 
     res.x=0.0; res.y=0.0; res.z=0.0;
-    maxc = 0; // highest cindex, used to point into newc structure.
+    maxc = 0; /*  highest cindex, used to point into newc structure.*/
 
     for(i = 0; i < pr.ntri*3; i++) {
 	if (pr.cindex[i] > maxc) {maxc = pr.cindex[i];}
     }
 
     /*transform all points to viewer space */
-    // orig - JAS newc = (float*)malloc((pr.ntri)*9*sizeof(float));
+    /*  orig - JAS newc = (float*)malloc((pr.ntri)*9*sizeof(float));*/
     newc = (float*)malloc(maxc*9*sizeof(float));
     for(i = 0; i < pr.ntri*3; i++) {
 	transformf(&newc[pr.cindex[i]*3],&pr.coord[pr.cindex[i]*3],mat);
@@ -1512,7 +1512,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, stru
 
 
     res.x=0.0; res.y=0.0; res.z=0.0;
-    maxc = 0; // highest cindex, used to point into newc structure.
+    maxc = 0; /*  highest cindex, used to point into newc structure.*/
 
     for(i = 0; i < pr.ntri*3; i++) {
 	if (pr.cindex[i] > maxc) {maxc = pr.cindex[i];}
@@ -1554,15 +1554,15 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
     double maxr = sqrt((y2-y1)*(y2-y1) + r*r); /*maximum radius of cylinder */
     struct pt dispf = {0,0,0};
     struct pt dispb = {0,0,0};
-    double scale; //inverse scale factor.
-    GLdouble invmat[16]; //inverse transformation matrix
-    double maxd2f = 0; //maximum distance of polygon displacements, frontfacing (squared)
-    double maxd2b = 0; //maximum distance of polygon displacements, backfacing (squared)
-    int dispcountf = 0; //number of polygon displacements
-    int dispcountb = 0; //number of polygon displacements
+    double scale; /* inverse scale factor.*/
+    GLdouble invmat[16]; /* inverse transformation matrix*/
+    double maxd2f = 0; /* maximum distance of polygon displacements, frontfacing (squared)*/
+    double maxd2b = 0; /* maximum distance of polygon displacements, backfacing (squared)*/
+    int dispcountf = 0; /* number of polygon displacements*/
+    int dispcountb = 0; /* number of polygon displacements*/
     int x,z;
-    struct pt tris[6]; //two triangles
-    float* newc; //transformed coordinates.
+    struct pt tris[6]; /* two triangles*/
+    float* newc; /* transformed coordinates.*/
     int frontfacing;
 
     /*essentially do an inverse transform of cylinder origin, and size*/
@@ -1579,17 +1579,17 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
     z2 = (int) ((orig.z + scale*maxr) / zs) +1;
     if(x1 < 0) x1 = 0;
     if(x2 >= xdim) x2 = xdim-1;
-    if(x1 >= x2) return zero; // outside
+    if(x1 >= x2) return zero; /*  outside*/
     if(z1 < 0) z1 = 0;
     if(z2 >= zdim) z2 = zdim-1;
-    if(z1 >= z2) return zero; // outside
-    //printf ("coll, xdim %d, zdim %d\n",xdim, zdim);
+    if(z1 >= z2) return zero; /*  outside*/
+    /* printf ("coll, xdim %d, zdim %d\n",xdim, zdim);*/
 
     if(!pr.cindex || !pr.coord)
 	printf("ZERO PTR! WE ARE DOOMED!\n");
 
-    newc = (float*)malloc(xdim*zdim*3*sizeof(float)); //big chunk will be uninitialized.
-    // transform points that will be used.
+    newc = (float*)malloc(xdim*zdim*3*sizeof(float)); /* big chunk will be uninitialized.*/
+    /*  transform points that will be used.*/
     for(z = z1; z <= z2; z++)
 	for(x = x1; x <= x2; x++) {
 	    transformf(&newc[(x+xdim*z)*3],&pr.coord[(x+xdim*z)*3],mat);
@@ -1601,10 +1601,10 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
 	for(x = x1; x < (x2-1); x++) {
 	    int i;
 	    struct pt pd;
-		//printf ("z %d z1 %d z2 %d x %d x1 %d x2 %d\n",z,z1,z2,x,x1,x2);
-		//printf ("ntri %d\n",pr.ntri);
+		/* printf ("z %d z1 %d z2 %d x %d x1 %d x2 %d\n",z,z1,z2,x,x1,x2);*/
+		/* printf ("ntri %d\n",pr.ntri);*/
 
-		//printf ("x %d z %d; x+(xdim-1)*z = %d\n",x,z,x+(xdim-1)*z);
+		/* printf ("x %d z %d; x+(xdim-1)*z = %d\n",x,z,x+(xdim-1)*z);*/
 
 	    for(i = 0; i < 3; i++) {
 		    /*
@@ -1629,7 +1629,7 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
 		tris[3+i].z = pr.coord[3*(2*(x+(xdim-1)*z)+1)+i + 2];
 	    }
 
-	    for(i = 0; i < 2; i++) { //repeat for both triangles
+	    for(i = 0; i < 2; i++) { /* repeat for both triangles*/
 		struct pt normal;
 		polynormal(&normal,&tris[0+i*3],&tris[1+i*3],&tris[2+i*3]);
 		frontfacing = (vecdot(&normal,&tris[0+i*3]) < 0);	/*if normal facing avatar */

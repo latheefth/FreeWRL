@@ -39,7 +39,7 @@ int freewrlSystem (char *sysline) {
 	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
-	//printf ("freewrlSystem, have %s here\n",internbuf);
+	/* printf ("freewrlSystem, have %s here\n",internbuf);*/
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 	count = 0;
 
@@ -51,21 +51,21 @@ int freewrlSystem (char *sysline) {
 	} else {
 		/* split the command off of internbuf, for execing. */
 		while (internbuf != NULL) {
-			//printf ("looping, count is %d\n",count);
+			/* printf ("looping, count is %d\n",count);*/
 			paramline[count] = internbuf;
 			internbuf = strchr(internbuf,' ');
 			if (internbuf != NULL) {
-				//printf ("more strings here! :%s:\n",internbuf);
+				/* printf ("more strings here! :%s:\n",internbuf);*/
 				*internbuf = '\0';
-				//printf ("param %d is :%s:\n",count,paramline[count]);
+				/* printf ("param %d is :%s:\n",count,paramline[count]);*/
 				internbuf++;
 				count ++;
-				if (count >= MAXEXECPARAMS) return -1; // never...
+				if (count >= MAXEXECPARAMS) return -1; /*  never...*/
 			}
 		}
 	}
 	/*
-	//printf ("finished while loop, count %d\n",count);
+	printf ("finished while loop, count %d\n",count);
 	{ int xx;
 		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
@@ -79,7 +79,7 @@ int freewrlSystem (char *sysline) {
 		/* is the last string "&"? if so, we don't need to wait around */
 		if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
 			waitForChild=FALSE;
-			paramline[count] = '\0'; // remove the ampersand.
+			paramline[count] = '\0'; /*  remove the ampersand.*/
 		}
 	}
 
@@ -92,7 +92,7 @@ int freewrlSystem (char *sysline) {
 			int Xrv;
 
 			/* child process */
-			//printf ("child execing, pid %d %d\n",childProcess, getpid());
+			/* printf ("child execing, pid %d %d\n",childProcess, getpid());*/
 		 	Xrv = execl(paramline[0],
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
@@ -102,16 +102,16 @@ int freewrlSystem (char *sysline) {
 			}
 			default: {
 			/* parent process */
-			//printf ("parent waiting for child %d\n",childProcess);
+			/* printf ("parent waiting for child %d\n",childProcess);*/
 
 			/* do we have to wait around? */
 			if (!waitForChild) {
-				//printf ("do not have to wait around\n");
+				/* printf ("do not have to wait around\n");*/
 				return 0;
 			}
 			waitpid (childProcess,&pidStatus,0);
-			//printf ("parent - child finished - pidStatus %d \n",
-			//		pidStatus);
+			/* printf ("parent - child finished - pidStatus %d \n",*/
+			/* 		pidStatus);*/
 			}
 		}
 		return pidStatus;
@@ -143,7 +143,7 @@ void doBrowserAction () {
 
 
 	struct Multi_String Anchor_url;
-	//struct Multi_String { int n; SV * *p; };
+	/* struct Multi_String { int n; SV * *p; };*/
 
 	Anchor_url = AnchorsAnchor->url;
 
@@ -171,14 +171,14 @@ void doBrowserAction () {
 		*slashindex = 0;
 	 } else {mypath[0] = 0;}
 
-	//printf ("Anchor, url so far is %s\n",mypath);
+	/* printf ("Anchor, url so far is %s\n",mypath);*/
 
 	/* try the first url, up to the last */
 	count = 0;
 	while (count < Anchor_url.n) {
 		thisurl = SvPV(Anchor_url.p[count],xx);
 
-		// is this a local Viewpoint?
+		/*  is this a local Viewpoint?*/
 		if (thisurl[0] == '#') {
 			localNode = EAI_GetViewpoint(&thisurl[1]);
 			tableIndex = -1;
@@ -189,7 +189,7 @@ void doBrowserAction () {
 					 break;
 				}
 			}
-			// did we find a match with known Viewpoints?
+			/*  did we find a match with known Viewpoints?*/
 			if (tableIndex>=0) {
 				/* unbind current, and bind this one */
 				send_bind_to(VIEWPOINT,
@@ -201,7 +201,7 @@ void doBrowserAction () {
 				printf ("failed to match local Viewpoint\n");
 			}
 
-			// lets get outa here - jobs done.
+			/*  lets get outa here - jobs done.*/
 			free (filename);
 			return;
 		}
@@ -222,7 +222,7 @@ void doBrowserAction () {
 		count ++;
 	}
 
-	// did we locate that file?
+	/*  did we locate that file?*/
 	if (count == Anchor_url.n) {
 		if (count > 0) {
 			printf ("Could not locate url (last choice was %s)\n",filename);
@@ -230,23 +230,23 @@ void doBrowserAction () {
 		free (filename);
 		return;
 	}
-	//printf ("we were successful at locating :%s:\n",filename);
+	/* printf ("we were successful at locating :%s:\n",filename);*/
 
-	//which browser are we running under? if we are running as a
-	//plugin, we'll have some of this information already.
+	/* which browser are we running under? if we are running as a*/
+	/* plugin, we'll have some of this information already.*/
 
 	if (checkIfX3DVRMLFile(filename)) {
 		Anchor_ReplaceWorld (filename);
 	} else {
-		// We should get the browser to get the new window,
-		// but this code seems to fail in mozilla. So, lets
-		// just open a new browser, and see what happens...
-		//if (RUNNINGASPLUGIN) {
-		//	printf ("Anchor, running as a plugin - load non-vrml file\n");
-		//	requestNewWindowfromPlugin(_fw_FD,_fw_instance,filename);
-		//} else {
-			//printf ("IS NOT a vrml/x3d file\n");
-			//printf ("Anchor: -DBROWSER is :%s:\n",BROWSER);
+		/*  We should get the browser to get the new window,*/
+		/*  but this code seems to fail in mozilla. So, lets*/
+		/*  just open a new browser, and see what happens...*/
+		/* if (RUNNINGASPLUGIN) {*/
+		/* 	printf ("Anchor, running as a plugin - load non-vrml file\n");*/
+		/* 	requestNewWindowfromPlugin(_fw_FD,_fw_instance,filename);*/
+		/* } else {*/
+			/* printf ("IS NOT a vrml/x3d file\n");*/
+			/* printf ("Anchor: -DBROWSER is :%s:\n",BROWSER);*/
 
 
 			strcpy (sysline, BROWSER);
@@ -254,7 +254,7 @@ void doBrowserAction () {
 			strcat (sysline, filename);
 			strcat (sysline, " &");
 			freewrlSystem (sysline);
-		//}
+		/* }*/
 	}
 	free (filename);
 }

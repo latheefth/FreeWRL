@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.166  2005/03/22 15:15:44  crc_canada
+# more compile bugs; binary files were dinked in last upload.
+#
 # Revision 1.165  2005/03/22 13:25:24  crc_canada
 # compile warnings reduced.
 #
@@ -994,8 +997,8 @@ GLint global_texSize = 0;
 /* for printing warnings about Sound node problems - only print once per invocation */
 int soundWarned = FALSE;
 
-int verbose;
-int verbose_collision; /*print out collision info*/
+int verbose = FALSE;
+int verbose_collision = FALSE; /*print out collision info*/
 
 int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
 int render_geom;
@@ -1085,7 +1088,7 @@ char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 char *lastReadFile = NULL;
 
-int rootNode=0;	// scene graph root node
+int rootNode=0;	/* scene graph root node */
 
 /*******************************************************************************/
 
@@ -1271,7 +1274,7 @@ void render_node(void *node) {
 	 * that child... further in future: could just calculate
 	 * transforms myself..
 	 */
-	//if(render_sensitive && (p->_renderFlags & VF_Sensitive))
+	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
 	if(render_sensitive && p->_sens)
 	  {
 	    if (verbose) printf ("rs 5\n");
@@ -1314,7 +1317,7 @@ void render_node(void *node) {
 	    #endif
         }
 
-	//if(render_sensitive && (p->_renderFlags & VF_Sensitive))
+	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
 	if(render_sensitive && p->_sens)
 	  {
 	    if (verbose) printf ("rs 9\n");
@@ -1379,7 +1382,7 @@ void add_parent(void *node_, void *parent_) {
 	node = (struct VRML_Box *)node_;
 	parent = (struct VRML_Box *)parent_;
 
-	//printf ("adding node %d to parent %d\n",node_, parent_);
+	/* printf ("adding node %d to parent %d\n",node_, parent_); */
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
 	node->_nparents ++;
@@ -1423,7 +1426,7 @@ render_hier(void *p, int rwhat)
 	GLdouble modelMatrix[16];
 	#define XXXrender_pre_profile
 	#ifdef render_pre_profile
-	// profile
+	/*  profile */
 	double xx,yy,zz,aa,bb,cc,dd,ee,ff;
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
@@ -1442,7 +1445,7 @@ render_hier(void *p, int rwhat)
 	hpdist = -1;
 
 
-	//if (render_geom) {verbose = TRUE; printf ("START OF RENDER GEOM\n");}
+	/* if (render_geom) {verbose = TRUE; printf ("START OF RENDER GEOM\n");} */
 	#ifdef render_pre_profile
 	if (render_geom) {
 		gettimeofday (&mytime,&tz);
@@ -1450,8 +1453,8 @@ render_hier(void *p, int rwhat)
 	}
 	#endif
 
-	//printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+	/*printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
 	if (!p) {
 		/* we have no geometry yet, sleep for a tiny bit */
@@ -1464,14 +1467,6 @@ render_hier(void *p, int rwhat)
 
 	/* status bar */
 	if (render_geom) {
-
-	/*
-		if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
-		// let the other threads run, too
-			//sched_yield();
-		}
-	*/
-
 		if (display_status) {
 			render_status();
 		}
@@ -1521,7 +1516,7 @@ render_hier(void *p, int rwhat)
 
 		if (verbose) printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
 	}
-	//if (render_geom)verbose=FALSE;
+	/* if (render_geom)verbose=FALSE; */
 }
 
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
@@ -1567,7 +1562,6 @@ CODE:
         p->_nparalloc = 0;
 	p->_ichange = 0;
 	p->_dist = -10000.0; /* put unsorted nodes first in rendering */
-	//p->_dist = 0.0; /* put unsorted nodes first in rendering */
 	p->_extent[0] = 0.0;
 	p->_extent[1] = 0.0;
 	p->_extent[2] = 0.0;

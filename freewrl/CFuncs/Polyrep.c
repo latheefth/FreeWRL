@@ -88,12 +88,12 @@ void IFS_face_normals (
 	tmp_a = 0;
 
 
-	// Assume each face is ok for now
+	/*  Assume each face is ok for now*/
 	for(i=0; i<faces; i++) {
 		faceok[i] = TRUE;
 	}
 
-	// calculate normals for each face
+	/*  calculate normals for each face*/
 	for(i=0; i<faces; i++) {
 		if (tmp_a >= cin-2) {
 			printf ("last face in IFS has not enough vertexes\n");
@@ -113,9 +113,9 @@ void IFS_face_normals (
 				checkpoint = tmp_a;
 				while (checkpoint < cin) {
 					if (this_IFS->coordIndex.p[checkpoint] == -1) {
-						checkpoint = cin; // stop the scan
+						checkpoint = cin; /*  stop the scan*/
 					} else {
-						//printf ("verifying %d for face %d\n",this_IFS->coordIndex.p[checkpoint],i);
+						/* printf ("verifying %d for face %d\n",this_IFS->coordIndex.p[checkpoint],i);*/
 						if ((this_IFS->coordIndex.p[checkpoint] < 0) ||
 						    (this_IFS->coordIndex.p[checkpoint] >= npoints)) {
 							printf ("IndexedFaceSet face %d has a point out of range,",i);
@@ -135,10 +135,10 @@ void IFS_face_normals (
 			tmp_c = FALSE;
 			pt_1 = tmp_a;
 			if (ccw) {
-				//printf ("IFS face normals CCW\n");
+				/* printf ("IFS face normals CCW\n");*/
 				pt_2 = tmp_a+1; pt_3 = tmp_a+2;
 			} else {
-				//printf ("IFS face normals *NOT* CCW\n");
+				/* printf ("IFS face normals *NOT* CCW\n");*/
 				pt_3 = tmp_a+1; pt_2 = tmp_a+2;
 			}
 
@@ -159,7 +159,7 @@ void IFS_face_normals (
 				facenormals[i].y = -(a[0]*b[2] - b[0]*a[2]);
 				facenormals[i].z = a[0]*b[1] - b[0]*a[1];
 
-				//printf ("vector length is %f\n",calc_vector_length (facenormals[i]));
+				/* printf ("vector length is %f\n",calc_vector_length (facenormals[i]));*/
 
 				if (fabs(calc_vector_length (facenormals[i])) < 0.00001) {
 					AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
@@ -184,7 +184,7 @@ void IFS_face_normals (
 							/* we would have a divide by zero in normalize_vector, so... */
 							facenormals[i].z = 1.0;
 
-							// Mark this face to be bad
+							/*  Mark this face to be bad*/
 							faceok[i] = FALSE;
 						}
 						tmp_c = TRUE;  tmp_a +=2;
@@ -212,7 +212,7 @@ void IFS_face_normals (
 		if (i<faces-1) {
 			while (((this_IFS->coordIndex.p[tmp_a-1]) != -1) &&
 				(tmp_a < cin-2)) {
-				//printf ("skipping past %d for face %d\n",this_IFS->coordIndex.p[tmp_a-1],i);
+				/* printf ("skipping past %d for face %d\n",this_IFS->coordIndex.p[tmp_a-1],i);*/
 				tmp_a++;
 			}
 		}
@@ -236,7 +236,7 @@ void IFS_face_normals (
 				tmp_a*=POINT_FACES;
 				add_to_face (tmp_a,facectr,pointfaces);
 			} else {
-			//	printf ("skipping add_to_face for invalid face %d\n",facectr);
+			/* 	printf ("skipping add_to_face for invalid face %d\n",facectr);*/
 			}
 		}
 	}
@@ -306,8 +306,8 @@ void Extru_check_normal (
 	}
 
 	normalize_vector(&facenormals[this_face]);
-	//printf ("facenormal for %d is %f %f %f\n",this_face, facenormals[this_face].x,
-	//		facenormals[this_face].y, facenormals[this_face].z);
+	/* printf ("facenormal for %d is %f %f %f\n",this_face, facenormals[this_face].x,*/
+	/* 		facenormals[this_face].y, facenormals[this_face].z);*/
 }
 
 /* Tesselated faces MAY have the wrong normal calculated. re-calculate after tesselation	*/
@@ -323,10 +323,10 @@ void IFS_check_normal (
 	float a[3]; float b[3];
 
 
-	//printf ("IFS_check_normal, base %d points %d %d %d\n",base,
-	//	global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
-	//printf ("normal was %f %f %f\n\n",facenormals[this_face].x,
-	//	facenormals[this_face].y,facenormals[this_face].z);
+	/* printf ("IFS_check_normal, base %d points %d %d %d\n",base,*/
+	/* 	global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);*/
+	/* printf ("normal was %f %f %f\n\n",facenormals[this_face].x,*/
+	/* 	facenormals[this_face].y,facenormals[this_face].z);*/
 
 
 	/* first three coords give us the normal */
@@ -350,21 +350,21 @@ void IFS_check_normal (
 	facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
 	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
 
-	//printf ("vector length is %f\n",calc_vector_length (facenormals[this_face]));
+	/* printf ("vector length is %f\n",calc_vector_length (facenormals[this_face]));*/
 
 	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
-		//printf ("warning: Tesselated surface has invalid normal - if this is an IndexedFaceSet, check coordinates of ALL faces\n");
+		/* printf ("warning: Tesselated surface has invalid normal - if this is an IndexedFaceSet, check coordinates of ALL faces\n");*/
 	} else {
 
 		normalize_vector(&facenormals[this_face]);
 
 
-		//printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
-		//	c1->c[0],c1->c[1],c1->c[2],
-		//	c2->c[0],c2->c[1],c2->c[2],
-		//	c3->c[0],c3->c[1],c3->c[2]);
-		//printf ("normal %f %f %f\n\n",facenormals[this_face].x,
-		//	facenormals[this_face].y,facenormals[this_face].z);
+		/* printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",*/
+		/* 	c1->c[0],c1->c[1],c1->c[2],*/
+		/* 	c2->c[0],c2->c[1],c2->c[2],*/
+		/* 	c3->c[0],c3->c[1],c3->c[2]);*/
+		/* printf ("normal %f %f %f\n\n",facenormals[this_face].x,*/
+		/* 	facenormals[this_face].y,facenormals[this_face].z);*/
 	}
 
 }
@@ -550,8 +550,8 @@ void Extru_ST_map(
 
 	/* find the base and range of S, T */
 	for (x=0; x<nsec; x++) {
-		 //printf ("for textures, coord vals %f %f for sec %d\n",
-		 //Vals[x*2+0], Vals[x*2+1],x);
+		 /* printf ("for textures, coord vals %f %f for sec %d\n",*/
+		 /* Vals[x*2+0], Vals[x*2+1],x);*/
 		if (Vals[x*2+0] < minS) minS = Vals[x*2+0];
 		if (Vals[x*2+0] > maxS) maxS = Vals[x*2+0];
 		if (Vals[x*2+1] < minT) minT = Vals[x*2+1];
@@ -566,7 +566,7 @@ void Extru_ST_map(
 	/* if (Trange == 0.0) Trange = 0.001; */
 	if (APPROX(Trange, 0.0)) Trange = 0.001;
 
-	//printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange);
+	/* printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange);*/
 
 	/* Ok, we know the min vals of S and T; and the ranges. The way that end cap
 	 * triangles are drawn is that we have one common point, the first point in
@@ -721,7 +721,7 @@ void render_polyrep(void *node,
 
 	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
 
-	// printing.
+	/*  printing.*/
 	/*
 	{int i,j;
 		for(i=0; i<r->ntri*3; i++) {
@@ -746,25 +746,25 @@ void render_polyrep(void *node,
 		glEnable(GL_COLOR_MATERIAL);
 	}
 
-	// clockwise or not?
+	/*  clockwise or not?*/
 	if (!r->ccw) {
 		glFrontFace(GL_CW);
 	}
 
-	// status bar, text do not have normals
+	/*  status bar, text do not have normals*/
 	if (r->normal) {
 		glNormalPointer(GL_FLOAT,0,(GLfloat *) r->normal);
 	} else {
 		glDisableClientState(GL_NORMAL_ARRAY);
 	}
 
-	// textures?
+	/*  textures?*/
 	if (r->tcoord) {
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer (2,GL_FLOAT,0,r->tcoord);
 	}
 
-	// colours?
+	/*  colours?*/
 	if (r->color) {
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(4,GL_FLOAT,0,r->color);
@@ -774,14 +774,14 @@ void render_polyrep(void *node,
 	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->coord);
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
 
-	// put things back to the way they were;
+	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
 	if (r->color) {
 		glDisable(GL_COLOR_MATERIAL);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	if (r->tcoord) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	// clockwise or not? - NVIDIA needs this reset; Mesa was ok without it
+	/*  clockwise or not? - NVIDIA needs this reset; Mesa was ok without it*/
 	if (!r->ccw) glFrontFace(GL_CCW);
 
 }
@@ -823,7 +823,7 @@ void stream_polyrep(void *node,
 	int *newcindex;
 	struct SFColor *newpoints;
 	struct SFColor *newnorms;
-	//struct SFColor *newcolors;
+	/* struct SFColor *newcolors;*/
 	struct SFRotation *newcolors;
 	float *newtc;
 
@@ -840,8 +840,8 @@ void stream_polyrep(void *node,
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
 
-	newtc = 0;  	// unless we have to use it; look for malloc below
-	newcolors=0;	// only if we have colours
+	newtc = 0;  	/*  unless we have to use it; look for malloc below*/
+	newcolors=0;	/*  only if we have colours*/
 
 	/* malloc required memory */
 	newcindex = (int*)malloc (sizeof (int)*r->ntri*3);
@@ -974,7 +974,7 @@ void stream_polyrep(void *node,
 				/* ColorMaterial -> these set Material too */
 				/* bounds check colors[] here */
 				if (coli >= ncolors) {
-					//printf ("bounds check for Colors! have %d want %d\n",ncolors-1,coli);
+					/* printf ("bounds check for Colors! have %d want %d\n",ncolors-1,coli);*/
 					coli = 0;
 				}
 				if (stream_poly_verbose) {
@@ -997,13 +997,13 @@ void stream_polyrep(void *node,
 		/* Coordinate points	*/
 		if(points) {
 			memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
-			//XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];
+			/* XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];*/
 			if (stream_poly_verbose)
 				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 		} else if(r->coord) {
 			memcpy (&newpoints[i].c[0], &r->coord[3*ind], sizeof(struct SFColor));
-			//XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2];
+			/* XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2];*/
 			if (stream_poly_verbose)
 				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
@@ -1013,13 +1013,13 @@ void stream_polyrep(void *node,
 		/* Textures	*/
 		if (FORCETEXTURES) {
 		    if(texcoords && ntexcoords) {
-			// did we run out of tex coords? Hanim-Nancy does this...
+			/*  did we run out of tex coords? Hanim-Nancy does this...*/
 			if (tci < ntexcoords) {
 			    if (stream_poly_verbose) {
 				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]);
 			    }
 			    memcpy(&newtc[i*2],texcoords[tci].c,sizeof(float)*2);
-		  	    //glTexCoord2fv(texcoords[tci].c);
+		  	    /* glTexCoord2fv(texcoords[tci].c);*/
 			} else {
 				 if (stream_poly_verbose)
 					 printf ("caught ntexcoord problem: index %d gt %d\n",tci,ntexcoords);
@@ -1027,7 +1027,7 @@ void stream_polyrep(void *node,
 			}
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
-			    // did we run out of tex coords? Hanim-Nancy does this...
+			    /*  did we run out of tex coords? Hanim-Nancy does this...*/
 				if (stream_poly_verbose) {
 					printf ("tc2a i %d %f %f\n", i,r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
 					printf ("tci = %d, indexing %d\n",tci, 3*tci+2);

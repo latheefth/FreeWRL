@@ -16,7 +16,7 @@ PROTO dirigible [ ] {
                   DEF hull Transform {
                     translation 0 0 0
                     scale 0.25 0.25 1
-                    children [
+                    children [ 
                       Shape {
                         appearance Appearance {
                           material Material { diffuseColor 0.53 0.81 0.98 }
