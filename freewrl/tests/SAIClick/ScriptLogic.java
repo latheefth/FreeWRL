@@ -14,8 +14,7 @@ public class ScriptLogic extends Script {
   int b2;
   int b3;
   SFTime startTime;
-  public void init() {
-    System.out.println("Bar!");
+  public void initialize() {
     startTime  = (SFTime) getEventOut("startTime");
   }
   public void processEvent( Event e ) {
