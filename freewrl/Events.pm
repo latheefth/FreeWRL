@@ -602,80 +602,81 @@ sub propagate_events {
 	while(1) {
 		my %ep; # All nodes for which ep must be called
 		# Propagate our events as long as they last
-		while(@e || @{$this->{ToQueue}}) {
-			print "Something in the old queue\n";
-			$havevent = 1;
-			$this->{Queue} = [];
-			@ne = ();
-			for my $e (@e) {
-				print "Events.pm: old loop while SEND ",
-					VRML::Debug::toString($e), "\n"
-					;#JAS		if $VRML::verbose::events;
-				#AK The following line of code causes problems when a node
-				#AK ($e->[0]) needs to have more than one event processed
-				#AK for a given EventsProcessed. This causes problems with
-				#AK Script nodes in particular since they may have any
-				#AK number of event types.
-				#AK # don't send same event again
-				#AK next if($sent{$e->[0]}{$e->[1]}++);
-
-				# now send it! JAS.
-				my $sub;
-				if($this->{Listen}{$e->[0]} and
-				   $sub = $this->{Listen}{$e->[0]}{$e->[1]}) {
-				   	$sub->($e->[2]);
-				}
-
-				for(@{$this->{Route}{$e->[0]}{$e->[1]}}) {
-					push @{$this->{ToQueue}},
-						[ $_->[0], $_->[1], $e->[2] ];
-				}
-				my $c;
-				# Was this eventOut a child of someone?
-				if($c = $this->{CIs}{$e->[0]}{$e->[1]}) {
-
-					# Check that it is not a field or eventIn!
-					$fk = $c->[0]->{Type}{FieldKinds}{$c->[1]};
-					die("Field kind for $fk is not defined") if (!defined $fk);
-					if ($fk eq "eventOut" or $fk eq "exposedField") {
-						push @ne, [ $c->[0], $c->[1], $e->[2] ];
-					}
-				}
-			}
-			my @te = @{$this->{ToQueue}};
-			$this->{ToQueue} = [];
-			for my $e (@te) {
-					push @ne, 
-					   $e->[0]->receive_event($e->[1],
-							$e->[2], $timestamp);
-					$ep{$e->[0]} = $e->[0];
-					# Was this event routed to someone
-					# who has children?
-
-					for(@{$this->{PIs}{$e->[0]}{$e->[1]}}) {
-						$fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
-						die("Field kind for $fk is not defined") if (!defined $fk);
-
-						if ($fk eq "eventIn" or $fk eq "exposedField") {
-							push @{$this->{ToQueue}},
-								[ $_->[0], $_->[1], $e->[2] ];
-						}
-					}
-			}
-			@e = (@ne,@{$this->{Queue}});
-		}
+#JAS		while(@e || @{$this->{ToQueue}}) {
+#JAS			print "Something in the old queue\n";
+#JAS			$havevent = 1;
+#JAS			$this->{Queue} = [];
+#JAS			@ne = ();
+#JAS			for my $e (@e) {
+#JAS				print "Events.pm: old loop while SEND ",
+#JAS					VRML::Debug::toString($e), "\n"
+#JAS					;#JAS		if $VRML::verbose::events;
+#JAS				#AK The following line of code causes problems when a node
+#JAS				#AK ($e->[0]) needs to have more than one event processed
+#JAS				#AK for a given EventsProcessed. This causes problems with
+#JAS				#AK Script nodes in particular since they may have any
+#JAS				#AK number of event types.
+#JAS				#AK # don't send same event again
+#JAS				#AK next if($sent{$e->[0]}{$e->[1]}++);
+#JAS
+#JAS				# now send it! JAS.
+#JAS				my $sub;
+#JAS				if($this->{Listen}{$e->[0]} and
+#JAS				   $sub = $this->{Listen}{$e->[0]}{$e->[1]}) {
+#JAS				   	$sub->($e->[2]);
+#JAS				}
+#JAS
+#JAS				for(@{$this->{Route}{$e->[0]}{$e->[1]}}) {
+#JAS					push @{$this->{ToQueue}},
+#JAS						[ $_->[0], $_->[1], $e->[2] ];
+#JAS				}
+#JAS				my $c;
+#JAS				# Was this eventOut a child of someone?
+#JAS				if($c = $this->{CIs}{$e->[0]}{$e->[1]}) {
+#JAS
+#JAS					# Check that it is not a field or eventIn!
+#JAS					$fk = $c->[0]->{Type}{FieldKinds}{$c->[1]};
+#JAS					die("Field kind for $fk is not defined") if (!defined $fk);
+#JAS					if ($fk eq "eventOut" or $fk eq "exposedField") {
+#JAS						push @ne, [ $c->[0], $c->[1], $e->[2] ];
+#JAS					}
+#JAS				}
+#JAS			}
+#JAS			my @te = @{$this->{ToQueue}};
+#JAS			$this->{ToQueue} = [];
+#JAS			for my $e (@te) {
+#JAS					push @ne, 
+#JAS					   $e->[0]->receive_event($e->[1],
+#JAS							$e->[2], $timestamp);
+#JAS					$ep{$e->[0]} = $e->[0];
+#JAS					# Was this event routed to someone
+#JAS					# who has children?
+#JAS
+#JAS					for(@{$this->{PIs}{$e->[0]}{$e->[1]}}) {
+#JAS						$fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
+#JAS						die("Field kind for $fk is not defined") if (!defined $fk);
+#JAS
+#JAS						if ($fk eq "eventIn" or $fk eq "exposedField") {
+#JAS							push @{$this->{ToQueue}},
+#JAS								[ $_->[0], $_->[1], $e->[2] ];
+#JAS						}
+#JAS					}
+#JAS			}
+#JAS			@e = (@ne,@{$this->{Queue}});
+#JAS		}
 		$this->{Queue} = [];
 		@ne = ();
 		# Call eventsprocessed
+		#JAS - this happens only for Scripts, for now. Is it still required?
 		for (values %ep) {
 			push @ne,$_->events_processed($timestamp,$be);
 		}
-		if ($VRML::verbose::events) {
-			print "NEWEVENTS:\n";
-			for (@ne) {
-				print "$_->[0] $_->[1] $_->[2]\n";
-			}
-		}
+#JAS		if ($VRML::verbose::events) {
+#JAS			print "NEWEVENTS:\n";
+#JAS			for (@ne) {
+#JAS				print "$_->[0] $_->[1] $_->[2]\n";
+#JAS			}
+#JAS		}
 		last if(!@ne);
 		@e = (@ne,@{$this->{Queue}}); # Here we go again ;)
 		$this->{Queue} = [];
