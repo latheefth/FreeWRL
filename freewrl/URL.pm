@@ -79,7 +79,7 @@ sub save_text {
 
 sub is_gzip {
 	if($_[0] =~ /^\037\213/) {
-		warn "GZIPPED content -- trying to ungzip\n";
+		# warn "GZIPPED content -- trying to ungzip\n";
 		return 1;
 	}
 	return 0;
