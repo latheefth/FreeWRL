@@ -9,7 +9,8 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "1.04-pre2";
+# put the version here, and, in the "sh maker" section below.
+$VERSION = "1.04-pre3";
 
 BEGIN {
  eval "use 5.004";
@@ -287,7 +288,7 @@ INST_DYNAMIC_DEP =
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so /usr/local/lib/libFreeWRLFunc.so\n},
 				qq{\t/sbin/ldconfig\n},
 				qq{\# compile C front end\n},
-				qq{\t\@cd CFrontEnd && sh maker $vrmlinstdir\n},
+				qq{\t\@cd CFrontEnd && sh maker $vrmlinstdir "1.04-pre3" \n},
 				qq{\# install C front end\n},
 				qq{\tcp CFrontEnd/fw2init.pl "/usr/bin"\n},
 				qq{\tcp CFrontEnd/freewrl "/usr/bin"\n},

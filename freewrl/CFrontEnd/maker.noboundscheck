@@ -9,7 +9,7 @@ gcc -c perlxsi.c  \
 	-I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts` 
 
 gcc -c freewrl.c \
-	-DPERLPATH=\"$1\" -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+	-DFWVER=\"$2\" -DPERLPATH=\"$1\" -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
 
 gcc -c fwopts.c \
 	-D_REENTRANT

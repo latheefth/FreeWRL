@@ -65,7 +65,7 @@ int main (int argc, char **argv) {
 		int this_option_optind = optind ? optind : 1;
 		int option_index = 0;
 		static struct option long_options[] = {
-			{"version", 0, 0, 'x'},
+			{"version", 0, 0, 'v'},
 			{"fullscreen", 0, 0, 'x'},
 			{"eai", 0, 0, 'e'},
 			{"fast", 0, 0, 'f'},
@@ -128,6 +128,7 @@ int main (int argc, char **argv) {
 			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); break; 
 			case 'j': sscanf (optarg,"%d",&_fw_FD); break;
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
+			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
 
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */

@@ -40,7 +40,7 @@
 #include "jsVRMLClasses.h" /* VRML field type implementation */
 
 /* for communicating with Netscape */
-extern int _fw_pipe, _fw_FD;
+/* in headers.h extern int _fw_pipe, _fw_FD; */
 extern unsigned _fw_instance;
 
 
@@ -174,7 +174,7 @@ int fileExists(char *fname, char *firstBytes) {
 
 	/* are we running under netscape? if so, ask the browser, and 
 	   save the name it returns (cache entry) */
-	if ((_fw_pipe != 0) && (strcmp(BrowserURL,fname)!=0)) {
+	if (RUNNINGASPLUGIN && (strcmp(BrowserURL,fname)!=0)) {
 		retName = requestUrlfromPlugin(_fw_FD,_fw_instance,fname);
 		strcpy (fname,retName);
 	}
@@ -201,7 +201,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 
 	/* lets try this - if we are running under a browser, let the
 	   browser do the pathing stuff */
-	if (_fw_pipe != 0) {
+	if (RUNNINGASPLUGIN) {
 		/* printf ("makeAbsolute, running under a browser, just copy\n"); */
 		strcpy (filename,thisurl);
 		return;

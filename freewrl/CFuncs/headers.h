@@ -120,6 +120,9 @@ extern int global_IFS_Coord_count;
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES (last_bound_texture != 0)
 
+extern int _fw_pipe, _fw_FD;
+#define RUNNINGASPLUGIN (_fw_pipe != 0)
+
 /* appearance does material depending on last texture depth */
 extern int last_texture_depth;
 

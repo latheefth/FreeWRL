@@ -5,7 +5,7 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-
+#define RUNNINGASPLUGIN (_fw_pipe != 0)
 #include <unistd.h>
 #include <stdio.h>
 
@@ -276,7 +276,7 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 		}
 
 		XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
-		if (_fw_pipe==0) {
+		if (!RUNNINGASPLUGIN) {
 			/* just map us to the display */
 			XMapWindow(dpy, win);
 		} else {

@@ -32,6 +32,8 @@ Cursor sensorc;
 Cursor curcursor;
 #endif
 
+#include "headers.h"
+
 void Next_ViewPoint();			// switch to next viewpoint - 
 void Snapshot();			// get a snapshot
 
@@ -486,10 +488,11 @@ void do_keyPress(char kp, int type) {
 			case 'h': { toggle_headlight(); break;}
 			case '/': { print_viewer(); break; }
 			case '.': { display_status = !display_status; break; }
-			case 'q': { puts ("check to see if we are netscaped \n");
+			case 'q': { if (!RUNNINGASPLUGIN) {
 					shutdown_EAI();
 					exit(0);
 					break;
+				    }
 				  }
 			case 'c': {be_collision = !be_collision; break; }
 			case '?': {system ("xterm -e man freewrl &"); break;}
