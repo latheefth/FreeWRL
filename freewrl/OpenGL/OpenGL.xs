@@ -101,6 +101,37 @@ sensor_cursor()
 	XDefineCursor (dpy, win, sensorc);
 	}
 
+
+# GL Render loop C functions
+void
+BackEndRender1()
+	CODE:
+	{
+        glDisable(GL_LIGHT0); /* Put them all off first */
+        glDisable(GL_LIGHT1);
+        glDisable(GL_LIGHT2);
+        glDisable(GL_LIGHT3);
+        glDisable(GL_LIGHT4);
+        glDisable(GL_LIGHT5);
+        glDisable(GL_LIGHT6);
+        glDisable(GL_LIGHT7);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+
+
+void
+BackEndHeadlightOn()
+	CODE:
+	{
+	    float pos[]={0.0, 0.0, 1.0, 0.0};
+	    float s[]={1.0,1.0,1.0,1.0};
+            glEnable(GL_LIGHT0);
+            glLightfv(GL_LIGHT0,GL_POSITION, pos);
+            glLightfv(GL_LIGHT0,GL_AMBIENT, s);
+            glLightfv(GL_LIGHT0,GL_DIFFUSE, s);
+            glLightfv(GL_LIGHT0,GL_SPECULAR, s);
+	}
+
 void
 glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	int	x
