@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.8  2001/03/23 16:02:11  crc_canada
+# unknown, unrecorded changes.
+#
 # Revision 1.7  2000/12/13 14:41:57  crc_canada
 # Bug hunting.
 #
@@ -1029,6 +1032,9 @@ sub as_string {
 }
 
 sub js_default { 'new SFNode("","NULL")' }
+
+sub toj {$_[1]}
+sub fromj {$_[1]}
 
 # javascript implemented in place because of special nature.
 
