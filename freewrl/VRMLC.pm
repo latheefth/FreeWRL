@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.56  2002/07/09 16:13:02  crc_canada
+# Text nodes now in here; seperate module removed
+#
 # Revision 1.55  2002/07/03 17:04:09  crc_canada
 # MovieTexture now has internal decoding
 #
@@ -316,7 +319,7 @@ Box => '
 				if(verbose) printf("cyok: %f\\n",cz);
 				if(cz >= -z && cz < z) {
 					if(verbose) printf("czok:\\n");
-					HIT(xrat0, x,cy,cz, 1,0,0, -1,-1, "cube x0");
+					rayhit(xrat0, x,cy,cz, 1,0,0, -1,-1, "cube x0");
 				}
 			}
 		}
@@ -325,7 +328,7 @@ Box => '
 			if(cy >= -y && cy < y) {
 				float cz = MRATZ(xrat1);
 				if(cz >= -z && cz < z) {
-					HIT(xrat1, -x,cy,cz, -1,0,0, -1,-1, "cube x1");
+					rayhit(xrat1, -x,cy,cz, -1,0,0, -1,-1, "cube x1");
 				}
 			}
 		}
@@ -338,7 +341,7 @@ Box => '
 			if(cx >= -x && cx < x) {
 				float cz = MRATZ(yrat0);
 				if(cz >= -z && cz < z) {
-					HIT(yrat0, cx,y,cz, 0,1,0, -1,-1, "cube y0");
+					rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cube y0");
 				}
 			}
 		}
@@ -347,7 +350,7 @@ Box => '
 			if(cx >= -x && cx < x) {
 				float cz = MRATZ(yrat1);
 				if(cz >= -z && cz < z) {
-					HIT(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cube y1");
+					rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cube y1");
 				}
 			}
 		}
@@ -360,7 +363,7 @@ Box => '
 			if(cx >= -x && cx < x) {
 				float cy = MRATY(zrat0);
 				if(cy >= -y && cy < y) {
-					HIT(zrat0, cx,cy,z, 0,0,1, -1,-1,"cube z0");
+					rayhit(zrat0, cx,cy,z, 0,0,1, -1,-1,"cube z0");
 				}
 			}
 		}
@@ -369,7 +372,7 @@ Box => '
 			if(cx >= -x && cx < x) {
 				float cy = MRATY(zrat1);
 				if(cy >= -y && cy < y) {
-					HIT(zrat1, cx,cy,-z, 0,0,-1,  -1,-1,"cube z1");
+					rayhit(zrat1, cx,cy,-z, 0,0,-1,  -1,-1,"cube z1");
 				}
 			}
 		}
@@ -441,11 +444,11 @@ Sphere => '
 		cx = MRATX(sol1);
 		cy = MRATY(sol1);
 		cz = MRATZ(sol1);
-		HIT(sol1, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 0");
+		rayhit(sol1, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 0");
 		cx = MRATX(sol2);
 		cy = MRATY(sol2);
 		cz = MRATZ(sol2);
-		HIT(sol2, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 1");
+		rayhit(sol2, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 1");
 	}
 ',
 
@@ -462,14 +465,14 @@ Cylinder => '
 			float cx = MRATX(yrat0);
 			float cz = MRATZ(yrat0);
 			if(r*r > cx*cx+cz*cz) {
-				HIT(yrat0, cx,y,cz, 0,1,0, -1,-1, "cylcap 0");
+				rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cylcap 0");
 			}
 		}
 		if(TRAT(yrat1)) {
 			float cx = MRATX(yrat1);
 			float cz = MRATZ(yrat1);
 			if(r*r > cx*cx+cz*cz) {
-				HIT(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cylcap 1");
+				rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cylcap 1");
 			}
 		}
 	}
@@ -490,13 +493,13 @@ Cylinder => '
 			if(cy > -h && cy < h) {
 				cx = MRATX(sol1);
 				cz = MRATZ(sol1);
-				HIT(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
+				rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
 			}
 			cy = MRATY(sol2);
 			if(cy > -h && cy < h) {
 				cx = MRATX(sol2);
 				cz = MRATZ(sol2);
-				HIT(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 2");
+				rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 2");
 			}
 		}
 	}
@@ -543,14 +546,14 @@ Cone => '
 			cx = MRATX(sol1);
 			cz = MRATZ(sol1);
 			/* XXX Normal */
-			HIT(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 1");
+			rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 1");
 		}
 		cy0 = cy;
 		cy = MRATY(sol2);
 		if(cy > -h && cy < h) {
 			cx = MRATX(sol2);
 			cz = MRATZ(sol2);
-			HIT(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 2");
+			rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 2");
 		}
 		/*
 		printf("CONSOLV: (%f %f) (%f %f)\\n", sol1, sol2,cy0,cy);
@@ -562,13 +565,20 @@ Cone => '
 			float cx = MRATX(yrat0);
 			float cz = MRATZ(yrat0);
 			if(r*r > cx*cx + cz*cz) {
-				HIT(yrat0, cx, -y, cz, 0, -1, 0, -1, -1, "conbot");
+				rayhit(yrat0, cx, -y, cz, 0, -1, 0, -1, -1, "conbot");
 			}
 		}
 	}
 ',
 
 ElevationGrid => ( '
+		$mk_polyrep();
+		render_ray_polyrep(this_, 
+			0, NULL
+		);
+'),
+
+Text => ( '
 		$mk_polyrep();
 		render_ray_polyrep(this_, 
 			0, NULL
@@ -599,7 +609,7 @@ IndexedFaceSet => '
 #
 # GenPolyRep
 #  code for generating internal polygonal representations
-#  of some nodes (ElevationGrid, Extrusion and IndexedFaceSet)
+#  of some nodes (ElevationGrid, Text, Extrusion and IndexedFaceSet)
 #
 #
 
@@ -607,6 +617,7 @@ IndexedFaceSet => '
 	ElevationGrid => (do "VRMLElevationGrid.pm"),
 	Extrusion => (do "VRMLExtrusion.pm"),
 	IndexedFaceSet => (do "VRMLIndexedFaceSet.pm"),
+	Text => (do "VRMLText.pm"),
 );
 
 ######################################################################
@@ -967,37 +978,6 @@ sub gen {
 
 struct pt {GLdouble x,y,z;};
 
-struct VRML_Extrusion_Adj {
-	int south_pt;
-	int north_pt;
-	int east_pt;
-	int west_pt;
-
-	int north_east_pt;
-	int south_east_pt;
-	int south_west_pt;
-	int north_west_pt;
-
-	struct pt north_vec;
-	struct pt south_vec;
-	struct pt east_vec;
-	struct pt west_vec;
-	
-	struct pt first_quad_diag_vec;
-	struct pt second_quad_diag_vec;
-	struct pt third_quad_diag_vec;
-	struct pt fourth_quad_diag_vec;
-
-	struct pt north_edge_vec;
-	struct pt east_edge_vec;
-	struct pt south_edge_vec;
-	struct pt west_edge_vec;
-
-	struct pt cumul_normal_vec;
-};
-
-
-
 struct VRML_Virt {
 	void (*prep)(void *);
 	void (*rend)(void *); 
@@ -1016,7 +996,7 @@ struct VRML_Virt {
 	char *name;
 };
 
-/* Internal representation of IndexedFaceSet, Extrusion & ElevationGrid:
+/* Internal representation of IndexedFaceSet, Text, Extrusion & ElevationGrid:
  * set of triangles.
  * done so that we get rid of concave polygons etc.
  */
@@ -1169,7 +1149,8 @@ float tx,float ty, char *descr)  {
 	GLdouble projMatrix[16];
 	GLdouble wx, wy, wz;
 	/* Real rat-testing */
-	if(verbose) printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\nR: (%f %f %f) (%f %f %f)\n",
+	if(verbose) 
+		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\nR: (%f %f %f) (%f %f %f)\n",
 		descr, rat,cx,cy,cz,nx,ny,nz,
 		t_r1.x, t_r1.y, t_r1.z,
 		t_r2.x, t_r2.y, t_r2.z
@@ -1253,6 +1234,7 @@ void render_node(void *node) {
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
+
 	if(verbose)
 	  {
 	    printf("=========================================NODE RENDERED===================================================\n");
@@ -1264,7 +1246,7 @@ void render_node(void *node) {
 		   v->fin, 
 		   v->rendray,
 		   hypersensitive);
-	    printf("Render_state any %d geom %d light %d sens %d\n",
+	    printf("Render_state geom %d light %d sens %d\n",
 		   render_geom, 
 		   render_light, 
 		   render_sensitive);
@@ -1437,7 +1419,41 @@ CODE:
 OUTPUT:
 	RETVAL
 
+####################################################################
+#
+# Save Font Paths for later use in C, if Text nodes exist
+#
+####################################################################
 
+void
+save_font_paths(sysfp, myfp)
+	char *sysfp
+	char *myfp
+CODE:
+	struct stat *buf;
+	char fname [1024];
+	//printf ("SaveFontPaths, saving %s and %s\n",sysfp,myfp);
+	strncpy(fname,sysfp,fp_name_len-20);
+	strcat(fname,"/Amrigoi.ttf");
+	//printf ("looking for %s\n",fname);
+	if (stat(fname,buf) == 0) {
+		// this path is ok
+		strncpy(sys_fp,sysfp,fp_name_len-20);
+	} else {
+		strncpy(fname,myfp,fp_name_len-20);
+		strcat(fname,"/Amrigoi.ttf");
+		//printf ("looking for %s\n",fname);
+		if (stat(fname,buf) == 0) {
+			// this second path is ok
+			strncpy (sys_fp,myfp,fp_name_len-20);
+		} else {
+			printf ("no FreeWRL fonts found\n");
+			sys_fp[0] = 0;
+		}
+	}
+
+	// and initialize the font structures
+	open_font();
 
 
 
@@ -1600,6 +1616,7 @@ render_hier(p,rwhat,wvp)
 	int rwhat
 	void *wvp
 CODE:
+
 	render_vp = rwhat & VF_Viewpoint;
         found_vp = 0;
 	render_geom =  rwhat & VF_Geom;
