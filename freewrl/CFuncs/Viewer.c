@@ -18,6 +18,8 @@
 /* The global viewer - should be passed in by pointer JAS  */
 extern VRML_Viewer Viewer;
 
+extern int navi_tos;
+
 static int viewer_type = NONE;
 static int viewer_initialized = FALSE;
 static VRML_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
@@ -121,6 +123,11 @@ set_eyehalf(VRML_Viewer *viewer, const double eyehalf, const double eyehalfangle
 void
 set_viewer_type(const int type)
 {
+	/* can the currently bound viewer type handle this */
+	/* if there is no bound viewer, just ignore (happens on initialization) */
+	if (navi_tos != -1)
+		if (Viewer.oktypes[type]==FALSE) return;
+
 	viewer_init(&Viewer,type);
 
 	switch(type) {
@@ -227,8 +234,6 @@ void
 handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, const double x, const double y)
 {
 	VRML_Viewer_Walk *walk = viewer->walk;
-
-	printf("Viewer handle_walk: mouse event %s, button %u, x %f, y %f\n", mev, button, x, y); 
 
 	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
 		walk->SY = y;

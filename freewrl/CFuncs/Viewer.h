@@ -141,6 +141,7 @@ typedef struct viewer {
 	double eyehalf;
 	double eyehalfangle;
 	unsigned int buffer;
+	int oktypes[6];		//boolean for types being acceptable.
 	VRML_Viewer_Walk *walk;
 	VRML_Viewer_Examine *examine;
 	VRML_Viewer_Fly *fly;
