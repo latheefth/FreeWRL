@@ -1,4 +1,6 @@
-# Copyright (C) 1998 Tuomas J. Lukka 1999 John Stewart CRC Canada
+# Copyright (C) 1998 Tuomas J. Lukka
+#               1999 John Stewart CRC Canada
+#               2002 Jochen Hoenicke
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
@@ -44,7 +46,9 @@ sub toJava {
 	} elsif ($type =~ /SFNode/) {
 		return VRML::Handles::reserve($value->real_node(1));
 	} elsif ($type =~ /SFString/) {
-		return encode_base64($value);
+		$value = encode_base64($value);
+		$value =~ tr/\n//d;
+		return $value;
 	} elsif ($type =~ /SFImage/) {
 		die "SFImage to java not implemented";
 	} elsif ($type =~ /SF(Color|Rotation|Vec2f|Vec3f)/) {
@@ -206,9 +210,12 @@ sub receive {
 			my $field = $i->getline; chomp $field;
 			my $t = $node->{Type};
 			my $ft = $t->{FieldTypes}{$field};
+			my $value = $node->{Fields}{$field};
 
-			print "$node->dump_name().$field is $node->{Fields}{$field}\n"
-			    if $VRML::verbose::java;
+			print "$node->dump_name().$field is "
+			    . (ref $value eq "ARRAY"
+			       ? join ",", @{$value} : $value) . "\n"
+				   if $VRML::verbose::java;
 			
 			$this->{O}->print(toJava($ft, $node->{Fields}{$field})
 					  ."\n");
@@ -222,7 +229,11 @@ sub receive {
 			print "$node.$field := ".
 				(ref $value eq "ARRAY" ? join ",",@{$value} : "$value")."\n"
 				if $VRML::verbose::java;
-			push @a, [$node, $field, $value];
+			if ($node->{Type}{FieldKinds}{$field} eq "eventOut") {
+				push @a, [$node, $field, $value];
+			} else {
+				$node->{EventModel}->send_event_to($node, $field, $value);
+			}
 		} elsif($cmd eq "GETBROWSER") {
 			my $nid = $i->getline; chomp $nid;
 			my $node = fromJava("SFNode", $nid);
