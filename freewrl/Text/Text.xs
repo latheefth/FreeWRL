@@ -14,6 +14,10 @@
 #define MAXVECS 200
 #define POINTSIZE 20
 
+
+#define TOPTOBOTTOM (fsparam & 0x04)
+#define LEFTTORIGHT (!(fsparam & 0x02))
+
 #define OUT2GL(a) (x_size * (0.0 +a) / ((1.0*(font_face[myff]->height)) / PPI*XRES))
 
 #include <GL/gl.h>
@@ -103,16 +107,6 @@ static void FW_err(GLenum e) {
 	printf("FreeWRL Text error %d: '%s'\n",e,gluErrorString(e));
 }
 
-static void FW_GLU_TESS_BEGIN() { printf("FW_GLU_TESS_BEGIN\n");}
-static void FW_GLU_TESS_BEGIN_DATA() { printf("FW_GLU_TESS_BEGIN_DATA\n");}
-static void FW_GLU_TESS_EDGE_FLAG() { printf("FW_GLU_TESS_EDGE_FLAG\n");}
-static void FW_GLU_TESS_EDGE_FLAG_DATA() { printf("FW_GLU_TESS_EDGE_FLAG_DATA\n");}
-static void FW_GLU_TESS_VERTEX() { printf("FW_GLU_TESS_VERTEX\n");}
-static void FW_GLU_TESS_VERTEX_DATA() { printf("FW_GLU_TESS_VERTEX_DATA\n");}
-static void FW_GLU_TESS_END() { printf("FW_GLU_TESS_END\n");}
-static void FW_GLU_TESS_END_DATA() { printf("FW_GLU_TESS_END_DATA\n");}
-
-
 void FW_GLU_TESS_COMBINE (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
 	printf("FW_GLU_TESS_COMBINE\n");
@@ -122,17 +116,20 @@ void FW_GLU_TESS_COMBINE (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
 	*out = nv; 
 }
 
+
+/* These are not used in FreeWRL - yet. 
+static void FW_GLU_TESS_BEGIN() { printf("FW_GLU_TESS_BEGIN\n");}
+static void FW_GLU_TESS_BEGIN_DATA() { printf("FW_GLU_TESS_BEGIN_DATA\n");}
+static void FW_GLU_TESS_EDGE_FLAG() { printf("FW_GLU_TESS_EDGE_FLAG\n");}
+static void FW_GLU_TESS_EDGE_FLAG_DATA() { printf("FW_GLU_TESS_EDGE_FLAG_DATA\n");}
+static void FW_GLU_TESS_VERTEX() { printf("FW_GLU_TESS_VERTEX\n");}
+static void FW_GLU_TESS_VERTEX_DATA() { printf("FW_GLU_TESS_VERTEX_DATA\n");}
+static void FW_GLU_TESS_END() { printf("FW_GLU_TESS_END\n");}
+static void FW_GLU_TESS_END_DATA() { printf("FW_GLU_TESS_END_DATA\n");}
 static void FW_GLU_TESS_COMBINE_DATA() { printf("FW_GLU_TESS_COMBINE_DATA\n");}
 static void FW_GLU_TESS_ERROR() { printf("FW_TESS_ERROR\n");}
 static void FW_GLU_TESS_ERROR_DATA() { printf("FW_GLU_TESS_ERROR_DATA\n");}
-
-
-
-
-
-
-
-
+*/
 
 
 
@@ -293,14 +290,13 @@ int FW_init_face() {
 }
 
 /* calculate extent of a range of characters */
-double FW_extent (int start, int length) {
+float FW_extent (int start, int length) {
 	int count;
-	double ret = 0;
+	float ret = 0;
 
 	for (count = start; count <length; count++) {
-		ret += glyphs[count]->advance.x;
+		ret += glyphs[count]->advance.x >> 10;
 	}
-	printf ("FW_Extent returning %lf\n",ret);
 	return ret;
 }
 
@@ -472,20 +468,49 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 	   if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen);}
 	}
 
-	pen_y = 0.0;
+	printf("topToBottom %d leftToRight %d\n",fsparam & 0x04, fsparam & 0x02);
+
+	/* topToBottom */
+	if (TOPTOBOTTOM) {
+		spacing =  -spacing;  /* row increment */
+		pen_y = 0.0;
+	} else {
+		pen_y -= n-1;
+	}
+
+
+	/* leftToRight */
+	if (LEFTTORIGHT) {
+		glRotatef (180,0,1,0);
+	}
+
+
 	for(row = 0; row < n; row++) {
-	   	double l;
+	   	float rowlen;
 
 	   	str = SvPV(p[row],PL_na);
 		if (verbose) printf ("text2 row %d :%s:\n",row, str);
 	        pen_x = 0.0;
 		rshrink = 0;
+		rowlen = FW_extent(counter,strlen(str));
 		if(row < nl && length[row]) {
-			l = FW_extent(counter,strlen(str));
-			rshrink = length[row] / OUT2GL(l);
+			rshrink = length[row] / OUT2GL(rowlen);
 		}
 		if(shrink) { glScalef(shrink,1,1); }
 		if(rshrink) { glScalef(rshrink,1,1); }
+
+
+		/* Justify, FIRST, BEGIN, MIDDLE and END */
+
+		/* MIDDLE */
+		if (fsparam & 0x800) { pen_x = -rowlen/2.0; }
+
+		/* END */
+		if ((fsparam & 0x1000) & (fsparam & 0x01)) {
+			printf ("rowlen is %f\n",rowlen);
+			pen_x = -rowlen;
+		}
+
 
 		for(i=0; i<strlen(str); i++) {
 			FT_UInt glyph_index;
@@ -495,7 +520,8 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 			FT_Done_Glyph (glyphs[counter+i]);
 		}
 		counter += strlen(str);
-		pen_y -= 1.0 * y_size;  /* row increment */
+
+		pen_y += spacing * y_size;
    	}
 	if (verbose) printf ("exiting FW_Render_text\n");
 }
