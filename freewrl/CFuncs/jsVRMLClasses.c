@@ -107,14 +107,19 @@ _standardMFGetProperty(JSContext *cx,
 		JSObject *obj, 
 		jsval id, 
 		jsval *vp,
-		JSClass *myClass,
-		JSObject *myProto,
+		char *makeNewElement,
 		char *name) {
 
 	JSObject *_obj;
 	int32 _length, _index;
 	jsval _length_val;
+
+	// in case we need to run makeNewElement
+	int newElemenLen;
+	jsval newEle;
 	
+	//printf ("_standardMFGetProperty starting\n");
+
 	if (!JS_GetProperty(cx, obj, "length", &_length_val)) {
 		printf( "JS_GetProperty failed for \"length\" in %s.\n",name);
 		return JS_FALSE;
@@ -128,31 +133,46 @@ _standardMFGetProperty(JSContext *cx,
 		//printf ("standard get property, index requested %d\n",_index);
 	
 		if (_index >= _length) {
-			if ((_obj =
-				JS_ConstructObject(cx, &SFVec3fClass, proto_SFVec3f, NULL))
-				== NULL) {
-				printf( "JS_ConstructObject failed in %s.\n",name);
+			//printf ("\n\nconstructing new object\n");
+			// we were making this with C calls, but it would fail with a 
+			// segfault; so, now, we run a script to do it.
+
+
+			newElemenLen = strlen(makeNewElement);
+
+			if (!JS_EvaluateScript(cx, obj, makeNewElement, newElemenLen,
+				FNAME_STUB, LINENO_STUB, &newEle)) {
+				printf("JS_EvaluateScript failed for \"%s\".\n", makeNewElement);
 				return JS_FALSE;
 			}
-			*vp = OBJECT_TO_JSVAL(_obj);
+	
+			*vp = OBJECT_TO_JSVAL(newEle);
+
+			//printf ("defining element %d now... is %d %x\n",_index,*vp,*vp);
 			if (!JS_DefineElement(cx, obj, (jsint) _index, *vp,
 				JS_PropertyStub, JS_PropertyStub,
 				JSPROP_ENUMERATE)) {
 				printf( "JS_DefineElement failed in %s.\n",name);
 				return JS_FALSE;
 			}
-		} else {
-			if (!JS_LookupElement(cx, obj, _index, vp)) {
-				printf( "JS_LookupElement failed in %s.\n",name);
-				return JS_FALSE;
-			}
-			if (*vp == JSVAL_VOID) {
-				printf( "warning: %s: obj = %u, jsval = %d does not exist!\n",name,
-					(unsigned int) obj, (int) _index);
-				//return JS_FALSE;
+
+			if (!doMFSetProperty(cx,obj,id,vp,name)) {
+				printf ("wow, cant assign property\n");
 			}
 		}
+		//printf ("object already has this index\n");
+		if (!JS_LookupElement(cx, obj, _index, vp)) {
+			printf( "JS_LookupElement failed in %s.\n",name);
+			return JS_FALSE;
+		}
+		if (*vp == JSVAL_VOID) {
+			printf( "warning: %s: obj = %u, jsval = %d does not exist!\n",name,
+				(unsigned int) obj, (int) _index);
+			//return JS_FALSE;
+		}
 	}
+	//printf ("_standardMFGetProperty finishing; element is %d %x\n",*vp,*vp);
+
 	return JS_TRUE;
 }
 
@@ -170,18 +190,18 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	JSBool isString = JS_FALSE;
 
     if (!JS_GetProperty(cx, obj, "length", &_v)) {
-		printf(
-				"JS_GetProperty failed for \"length\" in doMFToString for %s.\n",
+		printf( "JS_GetProperty failed for \"length\" in doMFToString for %s.\n",
 				className);
         return JS_FALSE;
 	}
 	len = JSVAL_TO_INT(_v);
 
-	//printf ("mfstring, len %d\n",len);
+	//printf ("doMFToString, len %d\n",len);
 
 	if (len == 0) {
 		_str = JS_NewStringCopyZ(cx, _empty_array);
 		*rval = STRING_TO_JSVAL(_str);
+		printf ("doMFToString, len is zero, returning JS_TRUE, and %d\n",*rval);
 		return JS_TRUE;
 	}
 
@@ -193,8 +213,7 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 	buff_size = LARGESTRING;
 	if ((_buff = (char *)
 		 malloc(buff_size * sizeof(char))) == NULL) {
-			printf(
-					"malloc failed in doMFToString for %s.\n",
+			printf( "malloc failed in doMFToString for %s.\n",
 					className);
 			return JS_FALSE;
 	}
@@ -206,9 +225,12 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 				i, len,className);
 			return JS_FALSE;
 		}
-		//printf ("doMFToString, element %d is %d\n",i,_v);
 		_tmpStr = JS_ValueToString(cx, _v);
-		_tmp_valStr = JS_GetStringBytes(_tmpStr);
+		if (_tmpStr==NULL) {
+			_tmp_valStr = "NULL";
+		} else {
+			_tmp_valStr = JS_GetStringBytes(_tmpStr);
+		}
 		//printf ("doMFToString, element %d is %d, string %s\n",i,_v,_tmp_valStr);
 		tmp_valStr_len = strlen(_tmp_valStr) + 1;
 		tmp_buff_len = strlen(_buff);
@@ -278,12 +300,10 @@ doMFToString(JSContext *cx, JSObject *obj, const char *className, jsval *rval)
 
 		free(_tmp_buff);
     }
-
 	_str = JS_NewStringCopyZ(cx, _buff);
 	*rval = STRING_TO_JSVAL(_str);
 
 	free(_buff);
-
     return JS_TRUE;
 }
 
@@ -297,9 +317,9 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 	size_t p_len = 0;
 	int len = 0, ind = JSVAL_TO_INT(id);
 
-	if (JSVRMLClassesVerbose) {
+	if (JSVRMLClassesVerbose) 
 		printf("\tdoMFAddProperty:%s ",name);
-	}
+	
 
 	str = JS_ValueToString(cx, id);
 	p = JS_GetStringBytes(str);
@@ -319,25 +339,31 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 		!strncmp(p, "constructor", p_len) ||
 		!strncmp(p, "getTransform", p_len)) {
 		if (JSVRMLClassesVerbose) {
-			printf("property \"%s\" is one of \"length\", \"constructor\", \"assign\", \"__touched_flag\", \"toString\". Do nothing.\n", p);
+			printf("property \"%s\" is one of the standard properties. Do nothing.\n", p);
 		}
 		return JS_TRUE;
 	}
 
-	if (JSVRMLClassesVerbose) {
-		sstr = JS_ValueToString(cx, *vp);
-		pp = JS_GetStringBytes(sstr);
-
-		printf("adding property %s, %s to object %u, \n",
-			   p, pp, (unsigned int) obj);
-	}
+	//if (JSVRMLClassesVerbose) {
+	//	printf ("(past quickreturn), context %d %x vp %d %x\n",cx,cx,*vp,*vp);
+	//	
+	//	sstr = JS_ValueToString(cx, *vp);
+	//	printf ("past JS_ValueToString\n");
+	//	if (JSVAL_IS_STRING(*vp)) {
+	//		pp = JS_GetStringBytes(sstr);
+	//
+	//		printf("adding property %s, %s to object %u, \n",
+	//			   p, pp, (unsigned int) obj);
+	//	} else {
+	//		printf ("OBJECT IS NOT A STRING!!! ERROR!!!\n");
+	//	}
+	//}
 	if (!JSVAL_IS_INT(id)){ 
 		printf( "JSVAL_IS_INT failed for id in doMFAddProperty.\n");
 		return JS_FALSE;
 	}
 	if (!JS_GetProperty(cx, obj, "length", &v)) {
-		printf(
-				"JS_GetProperty failed for \"length\" in doMFAddProperty.\n");
+		printf( "JS_GetProperty failed for \"length\" in doMFAddProperty.\n");
 		return JS_FALSE;
 	}
 	
@@ -374,13 +400,17 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 	jsint _index;
 
 	if (JSVRMLClassesVerbose) {
+		printf ("doMFSetProperty, for vp %d %x\n",
+				*vp,*vp);
 		_str = JS_ValueToString(cx, id);
 		_c = JS_GetStringBytes(_str);
+		printf ("id is %s\n",_c);
 
 		_sstr = JS_ValueToString(cx, *vp);
-		_cc = JS_GetStringBytes(_sstr);
-		printf("\tdoMFSetProperty:%s: obj = %u, id = %s, vp = %s\n",name,
-			   (unsigned int) obj, _c, _cc);
+		printf ("looking up value for %d %x object %u\n",*vp,*vp,(unsigned int) obj);
+		//_cc = JS_GetStringBytes(_sstr);
+		//printf("\tdoMFSetProperty:%s: obj = %u, id = %s, vp = %s\n",name,
+	//		   (unsigned int) obj, _c, _cc);
 	}
 
 	if (JSVAL_IS_INT(id)) {
@@ -388,8 +418,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 
 		myv = INT_TO_JSVAL(1);
 		if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
-			printf(
-					"JS_SetProperty failed for \"__touched_flag\" in doMFSetProperty.\n");
+			printf( "JS_SetProperty failed for \"__touched_flag\" in doMFSetProperty.\n");
 			return JS_FALSE;
 		}
 	}
@@ -450,7 +479,7 @@ doMFStringUnquote(JSContext *cx, jsval *vp)
 				_tmp_vpStr[j++] = _buff[i];
 			}
 		}
-		printf ("new unquoted string %s\n",_tmp_vpStr);
+		//printf ("new unquoted string %s\n",_tmp_vpStr);
 
 		_vpStr = JS_NewStringCopyZ(cx, _tmp_vpStr);
 		*vp = STRING_TO_JSVAL(_vpStr);
@@ -480,84 +509,73 @@ loadVrmlClasses(JSContext *context, JSObject *globalObj)
 
 
 	if ((proto_SFColor = JS_InitClass(context, globalObj, NULL, &SFColorClass,
-									  SFColorConstr, INIT_ARGC, NULL,
-									  SFColorFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for SFColorClass failed in loadVrmlClasses.\n");
+			  SFColorConstr, INIT_ARGC, NULL,
+			  SFColorFunctions, NULL, NULL)) == NULL) {
+		printf("JS_InitClass for SFColorClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_SFColor);
 	if (!JS_SetProperty(context, globalObj, "__SFColor_proto", &v)) {
-		printf(
-				"JS_SetProperty for SFColorClass failed in loadVrmlClasses.\n");
+		printf("JS_SetProperty for SFColorClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 	
 	if ((proto_SFVec2f = JS_InitClass(context, globalObj, NULL, &SFVec2fClass,
-									  SFVec2fConstr, INIT_ARGC, NULL,
-									  SFVec2fFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for SFVec2fClass failed in loadVrmlClasses.\n");
+			  SFVec2fConstr, INIT_ARGC, NULL,
+			  SFVec2fFunctions, NULL, NULL)) == NULL) {
+		printf("JS_InitClass for SFVec2fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_SFVec2f);
 	if (!JS_SetProperty(context, globalObj, "__SFVec2f_proto", &v)) {
-		printf(
-				"JS_SetProperty for SFVec2fClass failed in loadVrmlClasses.\n");
+		printf("JS_SetProperty for SFVec2fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 	
 	if ((proto_SFVec3f = JS_InitClass(context, globalObj, NULL, &SFVec3fClass,
-									  SFVec3fConstr, INIT_ARGC, NULL,
-									  SFVec3fFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for SFVec3fClass failed in loadVrmlClasses.\n");
+			  SFVec3fConstr, INIT_ARGC, NULL,
+			  SFVec3fFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for SFVec3fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_SFVec3f);
 	if (!JS_SetProperty(context, globalObj, "__SFVec3f_proto", &v)) {
-		printf(
-				"JS_SetProperty for SFVec3fClass failed in loadVrmlClasses.\n");
+		printf("JS_SetProperty for SFVec3fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_SFRotation = JS_InitClass(context, globalObj, NULL, &SFRotationClass,
-										 SFRotationConstr, INIT_ARGC,
-										 NULL, SFRotationFunctions, NULL,
-										 NULL)) == NULL) {
-		printf(
-				"JS_InitClass for SFRotationClass failed in loadVrmlClasses.\n");
+			 SFRotationConstr, INIT_ARGC,
+			 NULL, SFRotationFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for SFRotationClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_SFRotation);
 	if (!JS_SetProperty(context, globalObj, "__SFRotation_proto", &v)) {
-		printf(
-				"JS_SetProperty for SFRotationClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for SFRotationClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_SFImage = JS_InitClass(context, globalObj, NULL, &SFImageClass,
-									  SFImageConstr, INIT_ARGC, NULL,
-									  SFImageFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for SFImageClass failed in loadVrmlClasses.\n");
+			  SFImageConstr, INIT_ARGC, NULL,
+			  SFImageFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for SFImageClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_SFImage);
 	if (!JS_SetProperty(context, globalObj, "__SFImage_proto", &v)) {
-		printf(
-				"JS_SetProperty for SFImageClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for SFImageClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_SFNode = JS_InitClass(context, globalObj, NULL, &SFNodeClass,
-				 SFNodeConstr, INIT_ARGC_NODE, NULL,
-				 SFNodeFunctions, NULL, NULL)) == NULL) {
+			 SFNodeConstr, INIT_ARGC_NODE, NULL,
+			 SFNodeFunctions, NULL, NULL)) == NULL) {
 		printf( "JS_InitClass for SFNodeClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
@@ -569,150 +587,130 @@ loadVrmlClasses(JSContext *context, JSObject *globalObj)
 	v = 0;
 
 	if ((proto_MFFloat = JS_InitClass(context, globalObj, NULL, &MFFloatClass,
-									  MFFloatConstr, INIT_ARGC, NULL,
-									  MFFloatFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFFloatClass failed in loadVrmlClasses.\n");
+			  MFFloatConstr, INIT_ARGC, NULL,
+			  MFFloatFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFFloatClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFFloat);
 	if (!JS_SetProperty(context, globalObj, "__MFFloat_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFFloatClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFFloatClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_MFTime = JS_InitClass(context, globalObj, NULL, &MFTimeClass,
-									 MFTimeConstr, INIT_ARGC, NULL,
-									 MFTimeFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFTimeClass failed in loadVrmlClasses.\n");
+			 MFTimeConstr, INIT_ARGC, NULL,
+			 MFTimeFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFTimeClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFTime);
 	if (!JS_SetProperty(context, globalObj, "__MFTime_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFTimeClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFTimeClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_MFInt32 = JS_InitClass(context, globalObj, NULL, &MFInt32Class,
-									  MFInt32Constr, INIT_ARGC, NULL,
-									  MFInt32Functions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFInt32Class failed in loadVrmlClasses.\n");
+			  MFInt32Constr, INIT_ARGC, NULL,
+			  MFInt32Functions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFInt32Class failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFInt32);
 	if (!JS_SetProperty(context, globalObj, "__MFInt32_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFInt32Class failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFInt32Class failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_MFColor = JS_InitClass(context, globalObj, NULL, &MFColorClass,
-									  MFColorConstr, INIT_ARGC, NULL,
-									  MFColorFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFColorClass failed in loadVrmlClasses.\n");
+			  MFColorConstr, INIT_ARGC, NULL,
+			  MFColorFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFColorClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFColor);
 	if (!JS_SetProperty(context, globalObj, "__MFColor_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFColorClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFColorClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_MFVec2f = JS_InitClass(context, globalObj, NULL, &MFVec2fClass,
-									  MFVec2fConstr, INIT_ARGC, NULL,
-									  MFVec2fFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFVec2fClass failed in loadVrmlClasses.\n");
+			  MFVec2fConstr, INIT_ARGC, NULL,
+			  MFVec2fFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFVec2fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFVec2f);
 	if (!JS_SetProperty(context, globalObj, "__MFVec2f_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFVec2fClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFVec2fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_MFVec3f = JS_InitClass(context, globalObj, NULL, &MFVec3fClass,
-									  MFVec3fConstr, INIT_ARGC, NULL,
-									  MFVec3fFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFVec3fClass failed in loadVrmlClasses.\n");
+			  MFVec3fConstr, INIT_ARGC, NULL,
+			  MFVec3fFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFVec3fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFVec3f);
 	if (!JS_SetProperty(context, globalObj, "__MFVec3f_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFVec3fClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFVec3fClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_MFRotation = JS_InitClass(context, globalObj, NULL, &MFRotationClass,
-										 MFRotationConstr, INIT_ARGC, NULL,
-										 MFRotationFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFRotationClass failed in loadVrmlClasses.\n");
+			 MFRotationConstr, INIT_ARGC, NULL,
+			 MFRotationFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFRotationClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFRotation);
 	if (!JS_SetProperty(context, globalObj, "__MFRotation_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFRotationClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFRotationClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 	
 	if ((proto_MFNode = JS_InitClass(context, globalObj, NULL, &MFNodeClass,
-									 MFNodeConstr, INIT_ARGC, NULL,
-									 MFNodeFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFNodeClass failed in loadVrmlClasses.\n");
+			 MFNodeConstr, INIT_ARGC, NULL,
+			 MFNodeFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFNodeClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFNode);
 	if (!JS_SetProperty(context, globalObj, "__MFNode_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFNodeClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFNodeClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 
 	if ((proto_MFString = JS_InitClass(context, globalObj, NULL, &MFStringClass,
-									   MFStringConstr, INIT_ARGC, NULL,
-									   MFStringFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for MFStringClass failed in loadVrmlClasses.\n");
+			   MFStringConstr, INIT_ARGC, NULL,
+			   MFStringFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for MFStringClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_MFString);
 	if (!JS_SetProperty(context, globalObj, "__MFString_proto", &v)) {
-		printf(
-				"JS_SetProperty for MFStringClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for MFStringClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = 0;
 	if ((proto_VrmlMatrix = JS_InitClass(context, globalObj, NULL, &VrmlMatrixClass,
-									   VrmlMatrixConstr, INIT_ARGC, NULL,
-									   VrmlMatrixFunctions, NULL, NULL)) == NULL) {
-		printf(
-				"JS_InitClass for VrmlMatrixClass failed in loadVrmlClasses.\n");
+			   VrmlMatrixConstr, INIT_ARGC, NULL,
+			   VrmlMatrixFunctions, NULL, NULL)) == NULL) {
+		printf( "JS_InitClass for VrmlMatrixClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 	v = OBJECT_TO_JSVAL(proto_VrmlMatrix);
 	if (!JS_SetProperty(context, globalObj, "__VrmlMatrix_proto", &v)) {
-		printf(
-				"JS_SetProperty for VrmlMatrixClass failed in loadVrmlClasses.\n");
+		printf( "JS_SetProperty for VrmlMatrixClass failed in loadVrmlClasses.\n");
 		return JS_FALSE;
 	}
 
@@ -2723,8 +2721,7 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[0] = 0.0;
 		(ptr->v).c[1] = 0.0;
 	} else {
-		if (!JS_ConvertArguments(cx, argc, argv, "d d",
-								 &(pars[0]), &(pars[1]))) {
+		if (!JS_ConvertArguments(cx, argc, argv, "d d", &(pars[0]), &(pars[1]))) {
 			printf( "JS_ConvertArguments failed in SFVec2fConstr.\n");
 			return JS_FALSE;
 		}
@@ -3170,7 +3167,7 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 		(ptr->v).c[2] = 0.0;
 	} else {
 		if (!JS_ConvertArguments(cx, argc, argv, "d d d",
-								 &(pars[0]), &(pars[1]), &(pars[2]))) {
+				 &(pars[0]), &(pars[1]), &(pars[2]))) {
 			printf( "JS_ConvertArguments failed in SFVec3fConstr.\n");
 			return JS_FALSE;
 		}
@@ -3369,8 +3366,9 @@ MFColorAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool 
 MFColorGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,  &MFColorClass, proto_MFColor,
-			"MFColor");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&SFColorClass, proto_SFColor,
+			"_FreeWRL_Internal = new SFColor()", "MFColor");
 }
 
 JSBool 
@@ -3448,8 +3446,9 @@ MFFloatAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool 
 MFFloatGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,  &MFFloatClass, proto_MFFloat,
-			"MFFloat");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&MFFloatClass, proto_MFFloat,
+			"_FreeWRL_Internal = 0.0", "MFFloat");
 }
 
 JSBool 
@@ -3527,8 +3526,9 @@ MFInt32AddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool 
 MFInt32GetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,  &MFInt32Class, proto_MFInt32,
-			"MFInt32");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&MFInt32Class, proto_MFInt32,
+			"_FreeWRL_Internal = 0", "MFInt32");
 }
 
 JSBool 
@@ -3614,8 +3614,10 @@ MFNodeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 JSBool 
 MFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 	//printf ("startof MFNODEGETPROPERTY obj %d\n");
-	return _standardMFGetProperty(cx, obj, id, vp,  &MFNodeClass, 
-			proto_MFNode,"MFNode");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&SFNodeClass, proto_SFNode,
+			"_FreeWRL_Internal = 0",
+			"MFNode");
 }
 
 JSBool
@@ -3660,8 +3662,10 @@ MFTimeAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool 
 MFTimeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,  &MFTimeClass, 
-			proto_MFTime,"MFTime");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&MFTimeClass, proto_MFTime,
+			 "_FreeWRL_Internal = 0.0",
+			"MFTime");
 }
 
 JSBool 
@@ -3740,8 +3744,10 @@ MFVec2fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool 
 MFVec2fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,  &SFVec2fClass, 
-			proto_SFVec2f,"MFVec2f");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&SFVec2fClass, proto_SFVec2f,
+			 "_FreeWRL_Internal = new SFVec2f()","MFVec2f");
+			// "new SFVec2f()","MFVec2f");
 }
 
 JSBool 
@@ -3763,19 +3769,17 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	jsval v = INT_TO_JSVAL(argc);
  
 	if (!JS_DefineProperty(cx, obj, "length", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"length\" in MFVec2fConstr.\n");
+				   JS_PropertyStub, JS_PropertyStub,
+				   JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"length\" in MFVec2fConstr.\n");
 		return JS_FALSE;
 	}
 
 	v = INT_TO_JSVAL(0);
 	if (!JS_DefineProperty(cx, obj, "__touched_flag", v,
-						   JS_PropertyStub, JS_PropertyStub,
-						   JSPROP_PERMANENT)) {
-		printf(
-				"JS_DefineProperty failed for \"__touched_flag\" in MFVec2fConstr.\n");
+				   JS_PropertyStub, JS_PropertyStub,
+				   JSPROP_PERMANENT)) {
+		printf( "JS_DefineProperty failed for \"__touched_flag\" in MFVec2fConstr.\n");
 		return JS_FALSE;
 	}
 	if (!argv) {
@@ -3788,8 +3792,7 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
-			printf(
-					"JS_ValueToObject failed in MFVec2fConstr.\n");
+			printf( "JS_ValueToObject failed in MFVec2fConstr.\n");
 			return JS_FALSE;
 		}
 		if (!JS_InstanceOf(cx, _obj, &SFVec2fClass, NULL)) {
@@ -3798,11 +3801,9 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		}
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
-							  JS_PropertyStub, JS_PropertyStub,
-							  JSPROP_ENUMERATE)) {
-			printf(
-					"JS_DefineElement failed for arg %d in MFVec2fConstr.\n",
-					i);
+						  JS_PropertyStub, JS_PropertyStub,
+						  JSPROP_ENUMERATE)) {
+			printf( "JS_DefineElement failed for arg %d in MFVec2fConstr.\n", i);
 			return JS_FALSE;
 		}
 	}
@@ -3823,8 +3824,9 @@ MFVec3fAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool 
 MFVec3fGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,  &MFVec3fClass, 
-			proto_MFVec3f,"MFVec3f");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&SFVec3fClass, proto_SFVec3f,
+			 "_FreeWRL_Internal = new SFVec3f()","MFVec3f");
 }
 
 JSBool 
@@ -3836,6 +3838,7 @@ JSBool
 MFVec3fToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval) {
 	UNUSED(argc);
 	UNUSED(argv);
+	printf ("CALLED MFVec3fToString\n");
 	return doMFToString(cx, obj, "MFVec3f", rval);
 }
 
@@ -3867,13 +3870,11 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	if (JSVRMLClassesVerbose) {
-		printf("MFVec3fConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+		printf("MFVec3fConstr: obj = %u, %u args\n", (unsigned int) obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
-			printf(
-					"JS_ValueToObject failed in MFVec3fConstr.\n");
+			printf( "JS_ValueToObject failed in MFVec3fConstr.\n");
 			return JS_FALSE;
 		}
 		if (!JS_InstanceOf(cx, _obj, &SFVec3fClass, NULL)) {
@@ -3882,12 +3883,10 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 		}
 
 		if (!JS_DefineElement(cx, obj, (jsint) i, argv[i],
-							  JS_PropertyStub, JS_PropertyStub,
-							  /* getAssignProperty, setAssignProperty, */
-							  JSPROP_ENUMERATE)) {
-			printf(
-					"JS_DefineElement failed for arg %d in MFVec3fConstr.\n",
-					i);
+				  JS_PropertyStub, JS_PropertyStub,
+				  /* getAssignProperty, setAssignProperty, */
+				  JSPROP_ENUMERATE)) {
+			printf( "JS_DefineElement failed for arg %d in MFVec3fConstr.\n", i);
 			return JS_FALSE;
 		}
 	}
@@ -4274,8 +4273,9 @@ MFRotationAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 
 JSBool 
 MFRotationGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
-	return _standardMFGetProperty(cx, obj, id, vp,  &MFRotationClass, 
-			proto_MFRotation,"MFRotation");
+	return _standardMFGetProperty(cx, obj, id, vp,  
+			//&SFRotationClass, proto_SFRotation,
+			 "_FreeWRL_Internal = new SFRotation()","MFRotation");
 }
 
 JSBool 

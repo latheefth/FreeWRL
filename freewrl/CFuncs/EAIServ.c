@@ -86,7 +86,7 @@ int bufcount2;				// pointer into buffer
 int bufsize2;				// current size in bytes of input buffer 
 
 
-int EAIVerbose = 0;
+int EAIVerbose = 1;
 
 int EAIsendcount = 0;			// how many commands have been sent back?
 
@@ -961,6 +961,7 @@ void handle_Listener () {
 
 unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	int val;
+	double lval;
 	char *memptr;
 	int ty;
 	float fl[4];
@@ -999,6 +1000,11 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 				memcpy(memptr,&val,(unsigned) size);
 				break; 
 			}
+		case SFTIME: {
+				lval = SvIV(data); // is this ok for doubles?
+				memcpy(memptr,&lval,(unsigned) size);
+				break;
+			}
 		case SFFLOAT: {
 				fl[0] = SvNV(data);
 				memcpy(memptr,&fl[0],(unsigned) size);
@@ -1021,6 +1027,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 				/* these are the same, different lengths for different types, though. */
 				SFFloats = (float *) memptr;
 				len = size / (sizeof(float));	// should be 2 for SFVec2f, 3 for SFVec3F...
+				if (EAIVerbose)
 				printf ("EAI Extra - size %d len %d\n",size,len);
 
 				if(!SvROK(data)) {

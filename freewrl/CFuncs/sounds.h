@@ -48,7 +48,7 @@
 #define SOUND_STARTED 1
 #define SOUND_NEEDS_STARTING 3
 
-#define MAXSOUNDS 20
+#define MAXSOUNDS 50
 
 typedef struct {
 	long	mtype;	/* message type */

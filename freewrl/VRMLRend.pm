@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.139  2004/10/15 19:26:13  crc_canada
+# Javascript bugs where if there were 2 scripts, with MFVecXf's, and all
+# elements were not filled in, things would segfault. Believe it or not.
+#
 # Revision 1.138  2004/10/06 13:39:44  crc_canada
 # Debian patches from Sam Hocevar.
 #
@@ -981,9 +985,10 @@ AudioClip => '
 
 	if (!SoundSourceRegistered(this_->__sourceNumber)) {
 		
-		 printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
+		 /* printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
 			this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
 			filename);
+		*/
 		
 		
 

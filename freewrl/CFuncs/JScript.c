@@ -264,6 +264,8 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
+	//printf("JSrunScript - context %d %x  obj %d %x\n",_context,_context, _globalObj,_globalObj);
+
 	if (!ActualrunScript(num,script,&rval))
 		return JS_FALSE;
 
@@ -328,8 +330,8 @@ int JSaddGlobalAssignProperty(int num, char *name, char *str) {
 
 
 	if (JSVerbose) {
-		printf("addGlobalAssignProperty: name \"%s\", evaluate script \"%s\"\n",
-			   name, str);
+		printf("addGlobalAssignProperty: cx: %x obj %x name \"%s\", evaluate script \"%s\"\n",
+			   _context, _globalObj, name, str);
 	}
 	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
 						   FNAME_STUB, LINENO_STUB, &_rval)) {
