@@ -191,7 +191,7 @@ void bind_node (void *node, unsigned int setBindofst,
 	isBoundptr = (unsigned int *) ((unsigned int) node + isboundofst);
 	oldstacktop = stack + *tos;  
 
-	printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
+	//printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr);
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
 	   is not a new push or pop */
@@ -228,7 +228,7 @@ void bind_node (void *node, unsigned int setBindofst,
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = (unsigned int *) (*oldstacktop + isboundofst);
 			*oldboundptr = 0;
-			 printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
+			 //printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
 	
 			/* tell the possible parents of this change */
 			update_node((void *) *oldstacktop);

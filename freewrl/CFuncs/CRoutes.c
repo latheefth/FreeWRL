@@ -1362,9 +1362,10 @@ void mark_event (unsigned int from, unsigned int totalptr) {
 		(totalptr != CRoutes[findit].fnptr)) findit ++;
 
 	/* did we find the exact entry? */
-	if (CRVerbose)
-/* 		printf ("ep, (%#x %#x) (%#x %#x) at %d \n",from,CRoutes[findit].fromnode, totalptr,CRoutes[findit].fnptr,findit); */
-		printf ("ep, (%u %u) (%u %u) at %d \n",from,CRoutes[findit].fromnode, totalptr,CRoutes[findit].fnptr,findit);
+	if (CRVerbose) {
+ 		printf ("ep, (%#x %#x) (%#x %#x) at %d \n",
+			from,CRoutes[findit].fromnode, totalptr,
+			CRoutes[findit].fnptr,findit); }
 
 	/* if we did, signal it to the CEvents loop  - maybe more than one ROUTE,
 	   eg, a time sensor goes to multiple interpolators */
@@ -1707,8 +1708,9 @@ void propagate_events() {
 					if (CRVerbose)
 						printf("event %u %u sent something\n", CRoutes[counter].fromnode, CRoutes[counter].fnptr);
 
-					/* we have this event found */
-/* 					CRoutes[counter].act = FALSE; */
+					/* to get routing to/from exposedFields, lets
+					 * mark this to/offset as an event */
+					mark_event (to_ptr->node, to_ptr->foffset);
 
 					if (CRoutes[counter].direction_flag != 0) {
 						/* scripts are a bit complex, so break this out */
