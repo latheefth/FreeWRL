@@ -40,6 +40,7 @@ public class ConstSFImage extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         StringBuffer sb = new StringBuffer();
         sb.append(width).append(' ').append(height).append(' ').append(components);
         for (int i = 0; i < pixels.length; i+=components) {

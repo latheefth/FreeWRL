@@ -36,6 +36,7 @@ public class SFString extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return vrml.FWHelper.quote(s);
     }
 

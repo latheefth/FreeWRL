@@ -19,6 +19,7 @@ public class ConstSFBool extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return value ? "TRUE" : "FALSE";
     }
 

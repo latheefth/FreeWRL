@@ -63,6 +63,7 @@ public class SFRotation extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return ""+axisX+" "+axisY+" "+axisZ+" "+angle;
     }
 

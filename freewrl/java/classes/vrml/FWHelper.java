@@ -51,14 +51,15 @@ public class FWHelper {
 	int len = str.length();
 	if ((len & 3) != 0)
 	    throw new IllegalArgumentException("Not Base64: "+str);
-	int padding = len - str.indexOf('=', len - 3);
+	int padstart = str.indexOf('=', len - 3);
+	int padding = padstart == -1 ? 0 : len - padstart;
 	byte[] utf8 = new byte[len / 4 * 3];
 
 	for (int i = 0; i < len / 4; i++) {
-	    int value = (revBase64[str.charAt(i)] << 18)
-		+ (revBase64[str.charAt(i+1)] << 12)
-		+ (revBase64[str.charAt(i+2)] << 6)
-		+ revBase64[str.charAt(i+3)];
+	    int value = (revBase64[str.charAt(4*i)] << 18)
+		+ (revBase64[str.charAt(4*i+1)] << 12)
+		+ (revBase64[str.charAt(4*i+2)] << 6)
+		+ revBase64[str.charAt(4*i+3)];
 	    utf8[3*i+0] = (byte) (value >> 16);
 	    utf8[3*i+1] = (byte) (value >>  8);
 	    utf8[3*i+2] = (byte) (value      );

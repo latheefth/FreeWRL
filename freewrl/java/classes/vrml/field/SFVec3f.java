@@ -71,6 +71,7 @@ public class SFVec3f extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return ""+x+" "+y+" "+z;
     }
 

@@ -235,6 +235,7 @@ sub sf_stringfuncs
 	print O <<EOF;
 
     public String toString() {
+        __updateRead();
         $toString{$ft}
     }
 
@@ -425,6 +426,7 @@ sub mf_stringfuncs
     print O <<EOF;
 
     public String toString() {
+        __updateRead();
         StringBuffer sb = new StringBuffer("[");
         int size = __vect.size();
         for (int i = 0; i < size; i++) {

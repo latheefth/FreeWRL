@@ -71,6 +71,7 @@ public class SFColor extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return ""+red+" "+green+" "+blue;
     }
 

@@ -19,6 +19,7 @@ public class ConstSFInt32 extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return String.valueOf(value);
     }
 

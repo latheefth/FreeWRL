@@ -19,6 +19,7 @@ public class ConstSFNode extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return FWHelper.nodeToString(node);
     }
 

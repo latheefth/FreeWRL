@@ -36,6 +36,7 @@ public class SFTime extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return String.valueOf(value);
     }
 

@@ -36,6 +36,7 @@ public class SFFloat extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return String.valueOf(f);
     }
 

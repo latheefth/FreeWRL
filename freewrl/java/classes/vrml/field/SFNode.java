@@ -36,6 +36,7 @@ public class SFNode extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return FWHelper.nodeToString(node);
     }
 

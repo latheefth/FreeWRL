@@ -29,6 +29,7 @@ public class ConstSFRotation extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return ""+axisX+" "+axisY+" "+axisZ+" "+angle;
     }
 

@@ -36,6 +36,7 @@ public class SFBool extends Field {
     }
 
     public String toString() {
+        __updateRead();
         return value ? "TRUE" : "FALSE";
     }
 

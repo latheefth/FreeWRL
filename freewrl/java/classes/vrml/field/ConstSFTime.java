@@ -19,6 +19,7 @@ public class ConstSFTime extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return String.valueOf(value);
     }
 

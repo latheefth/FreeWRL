@@ -19,6 +19,7 @@ public class ConstSFString extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return vrml.FWHelper.quote(s);
     }
 

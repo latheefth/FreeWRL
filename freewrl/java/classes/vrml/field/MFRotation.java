@@ -103,6 +103,7 @@ public class MFRotation extends MField {
     }
 
     public String toString() {
+        __updateRead();
         StringBuffer sb = new StringBuffer("[");
         int size = __vect.size();
         for (int i = 0; i < size; i++) {

@@ -33,6 +33,7 @@ public class ConstSFVec2f extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return ""+x+" "+y;
     }
 

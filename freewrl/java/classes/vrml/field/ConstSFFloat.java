@@ -19,6 +19,7 @@ public class ConstSFFloat extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return String.valueOf(f);
     }
 

@@ -41,6 +41,7 @@ public class ConstSFColor extends ConstField {
     }
 
     public String toString() {
+        __updateRead();
         return ""+red+" "+green+" "+blue;
     }
 
