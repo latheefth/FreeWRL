@@ -21,7 +21,7 @@ import vrml.external.FreeWRLEAI.EAIAsyncThread;
 import vrml.external.exception.InvalidNodeException;
 import vrml.external.exception.InvalidVrmlException;
 import vrml.external.BrowserGlobals;
-import netscape.security.*;
+//JAS import netscape.security.*;
 
 public class Browser implements BrowserInterface
 
@@ -105,11 +105,12 @@ public class Browser implements BrowserInterface
 	EAISocket = null;
 
 	// enable privleges
-	try {
-		PrivilegeManager.enablePrivilege ("UniversalConnect");
-	} catch (Throwable e) {
-		System.out.println("EAI: not using Netscape");
-	}
+	System.out.println ("WARNING - netscape security commented out\n");
+	//try {
+	//	PrivilegeManager.enablePrivilege ("UniversalConnect");
+	//} catch (Throwable e) {
+	//	System.out.println("EAI: not using Netscape");
+	//}
 	
 	try {
 		EAISocket = new ServerSocket(2000);
@@ -336,14 +337,34 @@ public class Browser implements BrowserInterface
     public void          addRoute(Node fromNode, String fromEventOut,
                                   Node toNode, String toEventIn) throws
 				  IllegalArgumentException {
-      throw new IllegalArgumentException ("AddRoute Not Implemented");
+      String retval;
+
+      synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "\nAR " + fromNode + " " + fromEventOut +
+		" " + toNode + " " + toEventIn +"\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+      return;
+
+      // throw new IllegalArgumentException ("AddRoute Not Implemented");
     }
   
   
     public void          deleteRoute(Node fromNode, String fromEventOut,
                                      Node toNode, String toEventIn) 
 			 throws IllegalArgumentException {
-      throw new IllegalArgumentException ("DeleteRoute Not Implemented");
+      String retval;
+
+      synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "\nDR " + fromNode + " " + fromEventOut +
+		" " + toNode + " " + toEventIn +"\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+      return;
+
+    //  throw new IllegalArgumentException ("DeleteRoute Not Implemented");
     }
   
     // begin and end an update cycle
@@ -366,6 +387,7 @@ public class Browser implements BrowserInterface
     // return an instance of the Browser class
     // This returns the first embedded plugin in the current frame.
     static public Browser getBrowser(Applet pApplet) {
+System.out.println ("WARNING - remember netscape.security commented out - look for JAS in code\n");
       return (new Browser(pApplet));
     }
   
