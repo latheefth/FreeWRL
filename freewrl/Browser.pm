@@ -152,7 +152,7 @@ sub load_string {
 	# and, take care of keeping the viewpoints active...
 	# JAS $this->{Scene}->register_vps($this);
 	# debugging scene graph call: 
-	$this->{Scene}->dump(0) if $VRML::verbose::scenedump;
+	$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
 }
 
 sub get_scene {
@@ -358,7 +358,7 @@ sub createVrmlFromString {
 	# print "CVS - ret is $ret\n";
 	# debugging scene graph call: 
 	#print "dump createVrmlFromString commented out\n";
-	$scene->dump(0)if $VRML::verbose::scenedump;
+	$scene->dump(0)if $VRML::verbose::scenegraph;
 
 	return $ret;
 }
@@ -400,7 +400,7 @@ sub createVrmlFromURL {
 	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
 	print "CVU - ret is $ret\n";
 	# debugging scene graph call
-	$scene->dump(0) if $VRML::verbose::scenedump;
+	$scene->dump(0) if $VRML::verbose::scenegraph;
 	
 	return $ret
 }
