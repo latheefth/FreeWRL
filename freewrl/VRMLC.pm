@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.106  2003/07/30 18:45:38  crc_canada
+# set_viewer_type call modified.
+#
 # Revision 1.105  2003/07/22 16:04:48  ayla
 #
 # Fix of ROUTE implementation problems with PROTO and Script nodes, take 1.
@@ -2317,11 +2320,12 @@ do_set_eyehalf(eyehalf, eyehalfangle)
 CODE:
 	set_eyehalf(&Viewer, eyehalf, eyehalfangle);
 
-void
-do_set_viewer_type(type)
-	int type
-CODE:
-	set_viewer_type(type);
+#JAS void
+#JAS do_set_viewer_type(type)
+#JAS 	int type
+#JAS CODE:
+#JAS 	printf ("calling do_set_viewer_type\n");
+#JAS 	set_viewer_type(type);
 
 void
 do_handle_key(key)
