@@ -128,7 +128,9 @@
 	// do the Text parameters, guess at the number of triangles required
 	rep_->ntri = 0;
 	//printf ("Text, calling FW_rendertext\n");
-	FW_rendertext ($f_n(string),$f(string),$f_n(length),$f(length),
+
+	/* call render text - NULL means get the text from the string */
+	FW_rendertext ($f_n(string),$f(string),NULL, $f_n(length),$f(length),
 			$f(maxExtent),spacing,size,fsparams,rep_);
 
 	//printf ("Text, tris = %d\n",rep_->ntri);
