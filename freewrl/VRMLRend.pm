@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.32  2001/06/01 15:37:36  crc_canada
+# ProximitySensor now has correct axis for rotations when rotating about
+# the X axis. This affects many things, particularly the HUD test (24.wrl)
+#
 # Revision 1.31  2001/05/16 18:04:17  crc_canada
 # changes to allow compiling on Irix without errors (still warnings, though)
 #
@@ -1162,8 +1166,8 @@ ProximitySensor => q~
 	static const struct pt zpvec = {0,0,0.05};
 	static const struct pt orig = {0,0,0};
 	struct pt t_zvec, t_yvec, t_orig;
-GLdouble modelMatrix[16]; 
-GLdouble projMatrix[16];
+	GLdouble modelMatrix[16]; 
+	GLdouble projMatrix[16];
 
 	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
@@ -1185,8 +1189,10 @@ GLdouble projMatrix[16];
 	   fabs(cy) > $f(size,1)/2 ||
 	   fabs(cz) > $f(size,2)/2) return;
 
+	/* Ok, we now have to compute... */
 	$f(__hit) = 1;
 
+	/* Position */
 	$f(__t1,0) = t_orig.x;
 	$f(__t1,1) = t_orig.y;
 	$f(__t1,2) = t_orig.z;
@@ -1215,11 +1221,13 @@ GLdouble projMatrix[16];
 
 
 	if(APPROX(dr1r2.z,1.0)) {
+		/* rotation */
 		$f(__t2,0) = 0;
 		$f(__t2,1) = 0;
 		$f(__t2,2) = 1;
 		$f(__t2,3) = atan2(-dr2r3.x,dr2r3.y);
 	} else if(APPROX(dr2r3.y,1.0)) {
+		/* rotation */
 		$f(__t2,0) = 0;
 		$f(__t2,1) = 1;
 		$f(__t2,2) = 0;
@@ -1230,6 +1238,7 @@ GLdouble projMatrix[16];
 		nor1.z -= 1.0;
 		nor2 = dr2r3;
 		nor2.y -= 1.0;
+
 		/* Now, the intersection of the planes, obviously cp */
 		VECCP(nor1,nor2,ins);
 /* don't know why this is here JAS
@@ -1240,16 +1249,20 @@ GLdouble projMatrix[16];
 */
 
 		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len);
-		$f(__t2,0) = ins.x;
-		$f(__t2,1) = ins.y;
-		$f(__t2,2) = ins.z;
-		/* Finally, the angle */
+
+		/* the angle */
 		VECCP(dr1r2,ins, nor1);
 		VECCP(zpvec, ins, nor2);
 		len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len);
 		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len);
 		VECCP(nor1,nor2,ins);
+
 		$f(__t2,3) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2));
+
+		/* rotation  - should normalize sometime... */
+		$f(__t2,0) = ins.x;
+		$f(__t2,1) = ins.y;
+		$f(__t2,2) = ins.z;
 	}
 	if(verbose) printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",
 		nor1.x, nor1.y, nor1.z,
