@@ -397,12 +397,15 @@ INST_DYNAMIC_DEP =
 				qq{\tcp -r fonts $VRMLINSTDIR\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
 				));
-		if ($VRML_CONFIG{PLATFORM} =~ /LINUX/i) {
+		if ($VRML::Config::vrml_config{PLATFORM} eq "LINUX") {
 			push(@postamble, join(
+				"\n",
+				qq{# make the libFreeWRLFunc shared library active\n},
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
 				qq{\t/sbin/ldconfig\n}
 			));
 		}
+
 
 
 		# make the C Front End.
@@ -473,8 +476,10 @@ INST_DYNAMIC_DEP =
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
 			 ));
-		if ($VRML_CONFIG{PLATFORM} =~ /LINUX/i) {
+
+		if ($VRML::Config::vrml_config{PLATFORM} eq "LINUX") {
 			push(@postamble, join(
+				"\n",
 				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
 				qq{\t/sbin/ldconfig\n}
 			));

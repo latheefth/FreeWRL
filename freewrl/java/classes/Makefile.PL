@@ -53,11 +53,11 @@ NETSCAPE_CLASS_DIR=$VRML::Config::vrml_config{NETSCAPE_CLASSES}
                 return join("\n",
                                         qq{\# --- Java Archive\n},
 					qq{%.class: %.java\n},
-					qq{\$(JAVAC) \$(JFLAGS) \$\<\n},
+					qq{\t\$(JAVAC) \$(JFLAGS) \$\<\n},
 					qq{vrml.jar: \$(CLASSES)\n},
-					qq{\$(JAR) cf \$\@ \`find vrml -name \*.class\`\n},
-                                        qq{install ::},
-                                        qq{\tcd classes && \$(MAKE) install\n}
+					qq{\t\$(JAR) cf \$\@ \`find vrml -name \*.class\`\n},
+                                        #JASqq{install ::},
+                                        #JASqq{\tcd classes && \$(MAKE) install\n}
                                    );
         }
 
