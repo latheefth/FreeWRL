@@ -81,7 +81,7 @@ $VRML::verbose = 1;
 }
 
 sub new {
-	my($type,%pars) = @_;
+	my($type,$fullscreen,%pars) = @_;
 	my $this = bless {}, $type;
 
 	my($w,$h) = (300,300);
@@ -113,9 +113,10 @@ sub new {
 			       ButtonMotionMask | ButtonReleaseMask |
 			       ExposureMask | StructureNotifyMask |
 			       PointerMotionMask),
-		      width => $w,height => $h,
+		      width => $w,height => $h, fs => $fullscreen,
 		      "x" => $x,
 		      "y" => $y);
+
 	
         glClearColor(0,0,0,1);
 #        my $lb = VRML::OpenGL::glpRasterFont("5x8",0,256);
@@ -130,9 +131,7 @@ sub new {
         glEnable(&GL_NORMALIZE);
         glEnable(&GL_LIGHTING);
         glEnable(&GL_LIGHT0);
-
 	glEnable(&GL_CULL_FACE);
-
         glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
         glLightModeli(&GL_LIGHT_MODEL_LOCAL_VIEWER, &GL_FALSE);
         glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
@@ -176,6 +175,11 @@ sub new {
 	$this->{Viewer} = VRML::Viewer::Examine->new;
 
 	return $this;
+}
+
+# SD - adding call to shut down Open GL screen
+sub close_screen {
+	glXDestroyContext();
 }
 
 # Set the sub used to go forwards/backwards in VP list
