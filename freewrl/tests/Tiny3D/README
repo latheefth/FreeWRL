@@ -4,6 +4,10 @@ BUT -- the appletviewer no longer uses CLASSPATH (!!!) so please
 copy over these files to the ../../java directory, and run from
 there. 
 
+eg, in this directory, type:
+
+	cp -r ../../java/classes/* .
+
 This will put the EAI classes local to the Tiny3D program, and
 the appletviewer will be happy.
 
