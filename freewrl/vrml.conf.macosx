@@ -9,8 +9,8 @@
     FREEWRL_INC => '-I/usr/include/sys/ -I/usr/X11R6/include -I/Freewrl/jpeg-6b -I/usr/local/src/freetype2/freetype/include -I/usr/local/include/freetype2/config',
 
 # Javascript lib & include (relative to the JS/ directory)
-    JS_LIBS => '-Ljs/Darwin5.2.2_DBG.OBJ -ljs',
-    JS_INC => '-Ijs/src -Ijs/',
+    JS_LIBS => '-Ljs/src/Darwin5.2.2_OPT.OBJ -ljs',
+    JS_INC => '-Ijs/src/Darwin5.2.2_OPT.OBJ -Ijs/src -Ijs/',
 
 # Saxon location - required for x3d running.
     SAXON_LOC => '/usr/local/src/saxon/saxon.jar',
