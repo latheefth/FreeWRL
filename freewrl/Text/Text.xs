@@ -103,6 +103,41 @@ static void FW_err(GLenum e) {
 	printf("FreeWRL Text error %d: '%s'\n",e,gluErrorString(e));
 }
 
+static void FW_GLU_TESS_BEGIN() { printf("FW_GLU_TESS_BEGIN\n");}
+static void FW_GLU_TESS_BEGIN_DATA() { printf("FW_GLU_TESS_BEGIN_DATA\n");}
+static void FW_GLU_TESS_EDGE_FLAG() { printf("FW_GLU_TESS_EDGE_FLAG\n");}
+static void FW_GLU_TESS_EDGE_FLAG_DATA() { printf("FW_GLU_TESS_EDGE_FLAG_DATA\n");}
+static void FW_GLU_TESS_VERTEX() { printf("FW_GLU_TESS_VERTEX\n");}
+static void FW_GLU_TESS_VERTEX_DATA() { printf("FW_GLU_TESS_VERTEX_DATA\n");}
+static void FW_GLU_TESS_END() { printf("FW_GLU_TESS_END\n");}
+static void FW_GLU_TESS_END_DATA() { printf("FW_GLU_TESS_END_DATA\n");}
+
+
+void FW_GLU_TESS_COMBINE (GLdouble c[3], void *d[4], GLfloat w[4], void **out) {
+	GLdouble *nv = (GLdouble *) malloc(sizeof(GLdouble)*3);
+	printf("FW_GLU_TESS_COMBINE\n");
+	nv[0] = c[0];
+	nv[1] = c[1];
+	nv[2] = c[2];
+	*out = nv; 
+}
+
+static void FW_GLU_TESS_COMBINE_DATA() { printf("FW_GLU_TESS_COMBINE_DATA\n");}
+static void FW_GLU_TESS_ERROR() { printf("FW_TESS_ERROR\n");}
+static void FW_GLU_TESS_ERROR_DATA() { printf("FW_GLU_TESS_ERROR_DATA\n");}
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Outline callbacks and global vars */
 int contour_started = FALSE;
 FT_Vector last_point;
@@ -543,11 +578,26 @@ CODE:
 
 	/* register tesselation callbacks for OpenGL calls */
 	triang = gluNewTess();
+/*
+	gluTessCallback(triang, GLU_TESS_BEGIN, FW_GLU_TESS_BEGIN);
+	gluTessCallback(triang, GLU_TESS_BEGIN_DATA,FW_GLU_TESS_BEGIN_DATA);
+	gluTessCallback(triang, GLU_TESS_EDGE_FLAG,FW_GLU_TESS_EDGE_FLAG);
+	gluTessCallback(triang, GLU_TESS_EDGE_FLAG_DATA,FW_GLU_TESS_EDGE_FLAG_DATA);
+	gluTessCallback(triang, GLU_TESS_VERTEX,FW_GLU_TESS_VERTEX);
+	gluTessCallback(triang, GLU_TESS_VERTEX_DATA,FW_GLU_TESS_VERTEX_DATA);
+	gluTessCallback(triang, GLU_TESS_END,FW_GLU_TESS_END);
+	gluTessCallback(triang, GLU_TESS_END_DATA,FW_GLU_TESS_END_DATA);
+*/
+	gluTessCallback(triang, GLU_TESS_COMBINE,FW_GLU_TESS_COMBINE);
+/*
+	gluTessCallback(triang, GLU_TESS_COMBINE_DATA,FW_GLU_TESS_COMBINE_DATA);
+	gluTessCallback(triang, GLU_TESS_ERROR,FW_GLU_TESS_ERROR);
+	gluTessCallback(triang, GLU_TESS_ERROR_DATA,FW_GLU_TESS_ERROR_DATA);
+*/
 	gluTessCallback(triang, GLU_BEGIN, FW_beg);
 	gluTessCallback(triang, GLU_VERTEX, FW_ver);
 	gluTessCallback(triang, GLU_END, FW_end);
 	gluTessCallback(triang, GLU_ERROR, FW_err);
-
 
 	FW_outline_interface.move_to = (FT_Outline_MoveTo_Func)FW_moveto;
 	FW_outline_interface.line_to = (FT_Outline_LineTo_Func)FW_lineto;
