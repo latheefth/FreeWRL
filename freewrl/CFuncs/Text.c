@@ -344,7 +344,7 @@ FW_draw_character (FT_Glyph glyph) {
 
 
 
-void FW_rendertext(int n,SV **p,int nl, float *length, 
+void FW_rendertext(int numrows,SV **p,int nl, float *length, 
 		float maxext, float spacing, float mysize, unsigned int fsparam,
 		struct VRML_PolyRep *rp) {
 	char *str;
@@ -439,12 +439,16 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 
 
 	/* load all of the characters first... */
-	for (row=0; row<n; row++) {
+	for (row=0; row<numrows; row++) {
 		str = SvPV(p[row],PL_na);
 		for(i=0; i<strlen(str); i++) {
 			FW_Load_Char(str[i]);
 			char_count++;
 		}
+	}
+
+	if (TextVerbose) {
+		printf ("Text: rows %d char_count %d\n",numrows,char_count);
 	}
 
 	/* what is the estimated number of triangles? assume a certain number of tris per char */
@@ -464,7 +468,7 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 	   double maxlen = 0;
 	   double l;
 	   int counter = 0;
-	   for(row = 0; row < n; row++) {
+	   for(row = 0; row < numrows; row++) {
 		str = SvPV(p[row],PL_na);
 		l = FW_extent(counter,strlen(str));
 		counter += strlen(str);
@@ -479,7 +483,7 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 		spacing =  -spacing;  /* row increment */
 		pen_y = 0.0;
 	} else {
-		pen_y -= n-1;
+		pen_y -= numrows-1;
 	}
 
 
@@ -489,7 +493,7 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 	}
 
 
-	for(row = 0; row < n; row++) {
+	for(row = 0; row < numrows; row++) {
 	   	float rowlen;
 
 	   	str = SvPV(p[row],PL_na);
@@ -563,10 +567,11 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
 	rep_->ntri=indx_count/3;
 
-	//printf ("cindex indexes, mallocd %d, used %d\n",cindexmaxsize,indx_count);
-	//printf ("coord indexes, mallocd %d   used %d\n",coordmaxsize,point_count);
-	realloc (rep_->cindex,sizeof(*(rep_->cindex))*indx_count);
-	realloc (rep_->coord,sizeof(*(rep_->coord))*point_count*3);
+	// if indx count is zero, DO NOT get rid of mallocd memory
+	if (indx_count !=0) {
+		realloc (rep_->cindex,sizeof(*(rep_->cindex))*indx_count);
+		realloc (rep_->coord,sizeof(*(rep_->coord))*point_count*3);
+	}
 
 	/* now, generate normals */
 	rep_->normal = malloc(sizeof(*(rep_->normal))*indx_count*3);
