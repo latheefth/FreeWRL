@@ -242,7 +242,6 @@ sub getVersion { return $VRML::Config{VERSION} }
 sub getCurrentSpeed { return 0.0 } # legal
 sub getCurrentFrameRate { return $FPS }
 sub getWorldURL { return $_[0]{URL} }
-sub replaceWorld { print "Can't do replaceworld yet\n"; exit (1) }
 sub loadURL { print "Can't do loadURL yet\n"; exit (1) }
 sub setDescription { print "Set description: ",
 	(join '',reverse split '',$_[1]),"\n" } # Read the spec: 4.12.10.8 ;)
@@ -251,6 +250,39 @@ sub setDescription { print "Set description: ",
 # leak horribly. Perl 5.005 (to be out soon) will probably
 # provide soft references. If not, we are going to make a temporary
 # solution. For now, we leak.
+
+sub replaceWorld {
+	# make a new scene, this is very similar to load_string, found
+	# in this file.
+
+	my ($this,$string) = @_;
+	my @newnodes = ();
+	my $n;
+
+	# lets go and create the new node array from the nodes as sent in.
+	for $n (split(' ',$string)) {
+		# print "looking at element $n " , VRML::Handles::get($n), "\n";
+		@newnodes = (@newnodes,VRML::Handles::get($n));
+	}
+
+        $this->clear_scene();
+
+        $this->{Scene} = VRML::Scene->new($this->{EV},"from replaceWorld");
+        $this->{Scene}->set_browser($this);
+	$this->{Scene}->topnodes(\@newnodes);
+
+        prepare ($this);
+
+	# go through the Bindables...
+	for $n (@newnodes) {
+		$this->{Scene}->replaceWorld_Bindable($n);
+	}
+
+        # and, take care of keeping the viewpoints active...
+        $this->{Scene}->register_vps($this);
+
+}
+
 
 sub createVrmlFromString { 
 
@@ -574,6 +606,8 @@ sub get {
 		exit (1);
 	}
 	# print "handle get ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
+	# print "       type ",$S{$handle}[0]{Type},"\n";
+	# print "       typeName ",$S{$handle}[0]{TypeName},"\n";
 	return $S{$handle}[0];
 }
 sub check {
