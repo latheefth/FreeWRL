@@ -36,7 +36,7 @@ void cleanupDie(int num, char *msg);
 void setECMAtype(int num);
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 int get_touched_flag(int fptr, int actualscript);
-void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eleperinex);
+void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setMultiElementtype(int num);
 void Multimemcpy(void *tn, void *fn, int len);
 unsigned int CRoutes_Register(unsigned int from, int fromoffset, 
@@ -639,7 +639,7 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 
 
 /****************************************************************/
-/* a script is returning a Multi-float type; copy this from 	*/
+/* a script is returning a Multi-number type; copy this from 	*/
 /* the script return string to the data structure within the	*/
 /* freewrl C side of things.					*/
 /*								*/
@@ -647,10 +647,20 @@ void getMFNodetype (char *strp, struct Multi_Node *par, int ar) {
 /* a series of Multi_Vec3f's while in reality the structure	*/
 /* of the multi structures is the same - so we "fudge" things	*/
 /* to make this multi-purpose.					*/
+/* eletype switches depending on:				*/
+/* 	0: MFINT32						*/
+/* 	1: MFFLOAT						*/
+/* 	2: MFVEC2F						*/
+/* 	3: MFCOLOR						*/
+/* 	4: MFROTATION						*/
+/*	5: MFTIME						*/
 /****************************************************************/
 
-void getMultiFloattype (JSContext *cx, struct Multi_Vec3f *tn, int eleperinex) {
+void getMultNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	float *fl;
+	int *il;
+	double *dl;
+
 	float f2, f3, f4;
 	int shouldfind;
 	jsval mainElement, subElement;
@@ -658,45 +668,50 @@ void getMultiFloattype (JSContext *cx, struct Multi_Vec3f *tn, int eleperinex) {
 	int i,j;
 	JSString *_tmpStr;
 	char *strp;
+	int elesize;
 
-	/* pass in a character string, a pointer to a Multi*float 
-	   structure, and an indication of the number of elements per index;
-	   eg, 3 = SFColor, 2 = SFVec2f, etc, etc */ 
+	/* get size of each element, used for mallocing memory */
+	if (eletype == 0) elesize = sizeof (int);		// integer
+	else if (eletype == 5) elesize = sizeof (double);	// doubles.
+	else elesize = sizeof (float)*eletype;			// 1, 2, 3 or 4 floats per element.
 
 	/* rough check of return value */
 	if (!JSVAL_IS_OBJECT(global_return_val)) {
-		if (JSVerbose) printf ("getMultiFloattype - did not get an object\n");
+		if (JSVerbose) printf ("getMultNumType - did not get an object\n");
 		return;
 	}
 
-	// printf ("getmultielementtypestart, tn %d %x dest has  %d\n",tn,tn,tn->n * eleperinex);
+	//printf ("getmultielementtypestart, tn %d %x dest has  %d size %d\n",tn,tn,eletype, elesize);
 
 	if (!JS_GetProperty(cx, global_return_val, "length", &mainElement)) {
-		printf ("JS_GetProperty failed for \"length\" in getMultiFloattype\n");
+		printf ("JS_GetProperty failed for \"length\" in getMultNumType\n");
 		return;
 	}
 	len = JSVAL_TO_INT(mainElement);
-	// printf ("getmuiltie length of grv is %d\n",len);
+	//printf ("getmuiltie length of grv is %d old len is %d\n",len,tn->n);
 
 	/* do we have to realloc memory? */
 	if (len != tn->n) {
 		/* yep... */
 			// printf ("old pointer %d\n",tn->p);
 		if (tn->p != NULL) free (tn->p);
-		tn->p = malloc (sizeof(float)*eleperinex*len);
+		tn->p = malloc (elesize*len);
 		if (tn->p == NULL) {
-			printf ("can not malloc memory in getMultiFloattype\n");
+			printf ("can not malloc memory in getMultNumType\n");
 			return;
 		}
 		tn->n = len;
 	}
 
+	/* set these three up, but we only use one of them */
 	fl = (float *) tn->p;
+	il = (int *) tn->p;
+	dl = (double *) tn->p;
 
 	/* go through each element of the main array. */
 	for (i = 0; i < len; i++) {
 		if (!JS_GetElement(cx, global_return_val, i, &mainElement)) {
-			printf ("JS_GetElement failed for %d in getMultiFloattype\n",i);
+			printf ("JS_GetElement failed for %d in getMultNumType\n",i);
 			return;
 		}
 
@@ -704,7 +719,8 @@ void getMultiFloattype (JSContext *cx, struct Multi_Vec3f *tn, int eleperinex) {
 		strp = JS_GetStringBytes(_tmpStr);
                 //printf ("sub element %d is %s as a string\n",i,strp);
 
-		switch (eleperinex) {
+		switch (eletype) {
+		case 0: { sscanf(strp,"%d",il); il++; break;}
 		case 1: { sscanf(strp,"%f",fl); fl++; break;}
 		case 2: { sscanf (strp,"%f %f",fl,&f2);
 			fl++; *fl=f2; fl++; break;}
@@ -712,8 +728,10 @@ void getMultiFloattype (JSContext *cx, struct Multi_Vec3f *tn, int eleperinex) {
 			fl++; *fl=f2; fl++; *fl=f3; fl++; break;}
 		case 4: { sscanf (strp,"%f %f %f %f",fl,&f2,&f3,&f4);
 			fl++; *fl=f2; fl++; *fl=f3; fl++; *fl=f4; fl++; break;}
-		default : {printf ("getMultiFloattype only handles types with 1-4 floats, you gave me %d\n",
-				eleperinex);
+		case 5: {sscanf (strp,"%lf",dl); dl++; break;}
+
+		default : {printf ("getMultNumType unhandled eletype: %d\n",
+				eletype);
 			   return;
 			}
 		}
@@ -1159,6 +1177,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 			if (JSVerbose) printf ("VALUE CHANGED! copy value and update %d\n",tn);
 
+			if (JSVerbose) printf (" -- string from javascript is %s\n",strp);
 			/* eventOuts go to VRML data structures */
 
 			switch (JSparamnames[fptr].type) {
@@ -1219,10 +1238,10 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 				/* a series of Floats... */
-				case MFCOLOR: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,3); break;}
-				case MFFLOAT: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,1); break;}
-				case MFROTATION: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,4); break;}
-				case MFVEC2F: {getMultiFloattype ((JSContext *)JSglobs[actualscript].cx, tn+tptr,2); break;}
+				case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,3); break;}
+				case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,1); break;}
+				case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,4); break;}
+				case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,2); break;}
 				case MFNODE: {getMFNodetype (strp,tn+tptr,CRoutes[route].extra); break;}
 				case MFSTRING: {
 						getMFStringtype (JSglobs[actualscript].cx,
@@ -1230,8 +1249,9 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 						break;
 					}
 
-				case MFTIME:
-				case MFINT32:
+				case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,0); break;}
+				case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, tn+tptr,5); break;}
+
 				default: {	printf ("WARNING: unhandled from type %d\n",JSparamnames[fptr].type);
 						printf (" -- string from javascript is %s\n",strp);
 					}
@@ -1241,6 +1261,13 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 			update_node(tn);
 			mark_event (tn,tptr);
 			//mark_event (CRoutes[route].fromnode,CRoutes[route].fnptr);
+
+			/* run an interpolator, if one is attached. */
+			if (CRoutes[route].interpptr != 0) {
+				/* this is an interpolator, call it */
+				if (CRVerbose) printf ("script propagate_events. index %d is an interpolator\n",route);
+				CRoutes[route].interpptr(CRoutes[route].tonode);
+			}
 		} 
 		route++;
 	}
@@ -1319,8 +1346,8 @@ void propagate_events() {
 	/* int mvcompCount, mvcompSize; */
 	/* struct Multi_Vec3f *mv3fptr; */
 
-
-	if (CRVerbose) printf ("\npropagate_events start\n");
+	if (CRVerbose) 
+		printf ("\npropagate_events start\n");
 
 	do {
 		/* set all script flags to false - no triggers */
