@@ -8,11 +8,11 @@ require DynaLoader;
 @ISA=DynaLoader;
 bootstrap VRML::Text;
 
-
 # just tell Text.xs where to find the fonts. If the first path (first param)
 # can not be found, then the second should have the baklava font supplied
 # with FreeWRL
 
 open_font($VRML::ENV{FREETYPE_FONT_PATH},($VRML::ENV{FREEWRL_FONTS}||"fonts"));
+
 
 1;
