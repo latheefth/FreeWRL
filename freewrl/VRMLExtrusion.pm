@@ -14,7 +14,10 @@
 /*****begin of Member Extrusion	*/
 /* This code originates from the file VRMLExtrusion.pm */
 int nspi = $f_n(spine);			/* number of spine points	*/
-int nsec = $f_n(crossSection);		/* no. of points in the 2D curve*/
+int nsec = $f_n(crossSection);		/* no. of points in the 2D curve
+					   but note that this is verified
+					   and coincident points thrown out */
+
 int nori = $f_n(orientation);		/* no. of given orientators
 					   which rotate the calculated SCPs =
 					   spine-aligned cross-section planes*/ 
@@ -27,7 +30,7 @@ struct SFRotation *orientation=$f(orientation);/*vector of SCP rotations*/
 struct VRML_PolyRep *rep_=this_->_intern;/*internal rep, we want to fill*/
 struct VRML_PolyRep tess_polyrep;	/* rep for tessellating the caps*/
 
-/* the next four variables will point at members of *rep		*/
+/* the next variables will point at members of *rep		*/
 int   *cindex;				/* field containing indices into
 					   the coord vector. Three together
 					   indicate which points form a 
@@ -38,14 +41,15 @@ float *coord;				/* contains vertices building the
 float *tcoord;				/* contains vertices building the
 					   textures as x y z values	*/
 
-//int   *tcindex;				/* field containing indicies into
-//					   the tcoord vector. 		*/
+int	*tcindex;			/* field containing texture indices
+					   for the vertex. 		*/
+int	tcindex_count = 0;		/* placement of tcindexes	*/
 
 int   *norindex; 			/* indices into *normal		*/
 float *normal; 				/* (filled in a different function)*/ 
 
 
-int ntri = 2 * (nspi-1) * (nsec-1); 	/* no. of triangles to be used
+int ntri = 0;			 	/* no. of triangles to be used
 					   to represent all, but the caps */
 int nctri=0;				/* no. of triangles for both caps*/
 int nctri_add=0;			/* max no. of add triangles for b.caps*/
@@ -84,7 +88,7 @@ struct SCP *SCP;			/* dyn. vector rep. the SCPs	*/
 
 struct pt spm1,spc,spp1,spcp,spy,spz,spoz,spx;	/* help vertix vars	*/
 
-
+int	tci_ct;				/* Tex Gen index counter	*/
 
 /* variables for calculating smooth normals */
 int 	HAVETOSMOOTH;
@@ -103,14 +107,64 @@ int	end_of_sides;			/* for triangle normal generation,
 					   keep track of where the sides end
 					   and caps begin		*/
 
+/* variables for begin/endcap S,T mapping for textures			*/
+float *beginVals;
+float *endVals;
+struct SFVec2f *crossSection;
+
 //verbose = 1;
+
 
 if (verbose) printf ("VRMLExtrusion.pm start\n");
 
-/* do we have a closed curve?						*/
-if(curve[0].c[0] == curve[nsec-1].c[0] &&
-   curve[0].c[1] == curve[nsec-1].c[1])
-	tubular=1;
+/***********************************************************************
+ *
+ * Copy and verify cross section - remove coincident points (yes, virginia,
+ * one of the NIST tests has this - the pie-shaped convex one
+ *
+ ************************************************************************/
+crossSection     = malloc(sizeof(crossSection)*nsec*2);
+if (!(crossSection)) die ("can not malloc memory for Extrusion crossSection");
+
+if (nsec < 1) { 
+	printf ("Extrusion, crossSection too small\n");
+} else {
+	int tmp1, temp_indx;
+	int increment, currentlocn;
+
+	currentlocn = 0;
+	for (tmp1=0; tmp1<nsec; tmp1++) {
+		/* save this crossSection */
+		crossSection[currentlocn].c[0] = curve[tmp1].c[0];
+		crossSection[currentlocn].c[1] = curve[tmp1].c[1];
+	
+		/* assume that it is not duplicated */
+		increment = 1;	
+
+		for (temp_indx=0; temp_indx<currentlocn; temp_indx++) {
+			if ((APPROX(crossSection[currentlocn].c[0],crossSection[temp_indx].c[0])) &&
+			    (APPROX(crossSection[currentlocn].c[1],crossSection[temp_indx].c[1]))) {
+				/* maybe we have a closed curve, so points SHOULD be the same */
+				if ((temp_indx != 0) && (tmp1 != (nsec-1))) {
+					increment = 0;
+					break;
+				} else { 
+					tubular = 1;
+				}
+			}
+		}
+		/* increment the crossSection index, unless it was duplicated */
+		currentlocn += increment;
+	}
+	
+	if (verbose) printf ("we had nsec %d coords, but now we have %d\n",nsec,currentlocn+1);
+	nsec = currentlocn+1;
+}
+
+
+/* now that we have removed possible coincident vertices, we can calc ntris */
+ntri = 2 * (nspi-1) * (nsec-1);
+
 
 /* check if the spline is closed					*/
 
@@ -148,10 +202,10 @@ if($f(beginCap)||$f(endCap)) {
 	while(sec+2<=nsec-1 && 
 		/* to find out if two vectors a and b are colinear, 
 		   try a.x*b.y=a.y*b.x					*/
-		APPROX(0,    (curve[sec+1].c[0]-curve[0].c[0])
-			    *(curve[sec+2].c[1]-curve[0].c[1])
-			  -  (curve[sec+1].c[1]-curve[0].c[1])
-			    *(curve[sec+2].c[0]-curve[0].c[0]))	
+		APPROX(0,    (crossSection[sec+1].c[0]-crossSection[0].c[0])
+			    *(crossSection[sec+2].c[1]-crossSection[0].c[1])
+			  -  (crossSection[sec+1].c[1]-crossSection[0].c[1])
+			    *(crossSection[sec+2].c[0]-crossSection[0].c[0]))	
 	     ) ncolinear_at_begin++, sec++;
 
 	/* check if there are colinear points at the end of the curve
@@ -159,10 +213,10 @@ if($f(beginCap)||$f(endCap)) {
 		draw the triangle to there.				*/
 	sec=tubular?(nsec-2):(nsec-1);
 	while(sec-2>=0 && 
-		APPROX(0,    (curve[sec  ].c[0]-curve[0].c[0])
-			    *(curve[sec-1].c[1]-curve[0].c[1])
-			  -  (curve[sec  ].c[1]-curve[0].c[1])
-			    *(curve[sec-1].c[0]-curve[0].c[0]))	
+		APPROX(0,    (crossSection[sec  ].c[0]-crossSection[0].c[0])
+			    *(crossSection[sec-1].c[1]-crossSection[0].c[1])
+			  -  (crossSection[sec  ].c[1]-crossSection[0].c[1])
+			    *(crossSection[sec-1].c[0]-crossSection[0].c[0]))	
 	     ) ncolinear_at_end++,sec--;
 
 	nctri-= ncolinear_at_begin+ncolinear_at_end;
@@ -191,9 +245,6 @@ if(!$f(convex)) {
  
 rep_->ntri = ntri + nctri;	/* Thats the no. of triangles representing
 				the whole Extrusion Shape.		*/
-				
-/* Extrusions dont have texture coords, so setting this to 0 always	*/
-rep_->tcindex = 0;
 
 /* get some memory							*/
 cindex  = rep_->cindex   = malloc(sizeof(*(rep_->cindex))*3*(rep_->ntri));
@@ -222,11 +273,22 @@ SCP     = malloc(sizeof(struct SCP)*nspi);
 } 
 
 if (HAVETODOTEXTURES) {
-//	/* so, we now have to worry about textures. */
-//	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*(nspi*nsec+max_ncoord_add)*3);
-	// tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(rep_->ntri));
-	//if (!(tcoord && tcindex)) die ("Not enough memory Extrusion Tcoords");
-	//if (!(tcoord)) die ("Not enough memory Extrusion Tcoords");
+	int tc = 0;
+
+	if($f(beginCap)) tc += nsec;
+	if($f(endCap)) tc += nsec;
+	
+	/* so, we now have to worry about textures. */
+	/* XXX note - this over-estimates; realloc to be exact */
+	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*(rep_->ntri+tc)*3);
+	tcindex  = rep_->tcindex   = malloc(sizeof(*(rep_->cindex))*3*rep_->ntri);
+
+	/* keep around cross section info for tex coord mapping */
+	beginVals = malloc(sizeof(float) * 2 * nsec);
+	endVals = malloc(sizeof(float) * 2 * nsec);
+
+	if (!(tcoord && tcindex && beginVals && endVals)) 
+		die ("Not enough memory Extrusion Tcoords");
 }
 
 /* Normal Generation Code */
@@ -567,25 +629,16 @@ for(spi = 0; spi<nspi; spi++) {
 			  "\tWon`t correct it, because it is bad VRML`97.\n",
 			  ori+1); 
  			
-		/* first variante:*/ 
 		MATRIX_FROM_ROTATION(orientation[ori],m);
 		VECMM(m,spx);
 		VECMM(m,spy);
 		VECMM(m,spz);
-		/* */
-
-		/* alternate code (second variant): */ 
-		/*
-		VECRROTATE(orientation[ori],spx);
-		VECRROTATE(orientation[ori],spy);
-		VECRROTATE(orientation[ori],spz);
-		/* */
 	} 
  
 	for(sec = 0; sec<nsec; sec++) {
 		struct pt point;
-		float ptx = curve[sec].c[0];
-		float ptz = curve[sec].c[1];
+		float ptx = crossSection[sec].c[0];
+		float ptz = crossSection[sec].c[1];
 		if(nsca) {
 			int sca = (nsca==nspi ? spi : 0);
 			ptx *= $f(scale,sca).c[0];
@@ -594,6 +647,18 @@ for(spi = 0; spi<nspi; spi++) {
 		point.x = ptx;
 		point.y = 0; 
 		point.z = ptz;
+
+
+	   /* texture mapping for caps - keep vals around */
+	   if (HAVETODOTEXTURES) {
+	   	if (spi == 0) { /* begin cap vertices */
+			beginVals[sec*2+0] = ptx;
+			beginVals[sec*2+1] = ptz;
+		   } else if (spi == (nspi-1)) {  /* end cap vertices */
+			endVals[sec*2+0]=ptx;
+			endVals[sec*2+1]=ptz;
+		   } 
+	   }
 
 	   coord[(sec+spi*nsec)*3+0] = 
 	    spx.x * point.x + spy.x * point.y + spz.x * point.z
@@ -630,6 +695,8 @@ int A,B,C,D; /* should referr to the four vertices of the polygon
 		 A----B
 		 
 		*/
+int Atex, Btex, Ctex, Dtex, Etex, Ftex;	/* Tex Coord points */
+
 struct pt ac,bd,	/* help vectors	*/
 	ab,cd;		/* help vectors	for testing intersection */
 int E,F;		/* third point to be used for the triangles*/	
@@ -659,10 +726,13 @@ for(x=0; x<nsec-1; x++) {
   C=(x+1)+(z+1)*nsec; 
   D= x+(z+1)*nsec;
 
+  /* texture mapping coords */
+  Atex = A; Btex = B; Ctex = C; Dtex = D;
+
   /* if we are circular, check to see if this is the first tri, or the last */
   /* the vertexes are identical, but for smooth normal calcs, make the    */
   /* indexes the same, too                                                */
-
+  /* note, we dont touch tex coords here.				  */
   // printf ("x %d z %d nsec %d nspi %d\n",x,z,nsec,nspi);
 
   if (tubular) {
@@ -685,9 +755,9 @@ for(x=0; x<nsec-1; x++) {
   VEC_FROM_COORDDIFF(coord,D,coord,B,bd);
 
   if(sqrt(VECSQ(ac))>sqrt(VECSQ(bd))) {
-  	E=B; F=D;
+  	E=B; F=D; Etex=Btex; Ftex=Dtex;
   } else {
-  	E=C; F=A;
+  	E=C; F=A; Etex=Ctex; Ftex=Atex;
   }
 
   /* if concave polygons are expected, we also expect intersecting ones
@@ -750,12 +820,26 @@ for(x=0; x<nsec-1; x++) {
   // printf ("Triangle1 %d %d %d\n",D,A,E); 
   /* first triangle  calculate pointfaces, etc, for this face */
   Elev_Tri(triind*3, this_face, D,A,E, TRUE , rep_, facenormals, pointfaces,ccw);
+
+  if (HAVETODOTEXTURES) {
+		tcindex[triind*3] = Dtex;
+		tcindex[triind*3+2] = Etex;
+		tcindex[triind*3+1] = Atex;
+  }
+
   defaultface[triind] = this_face;
-  triind ++;
+  triind++;
 
   // printf ("Triangle2 %d %d %d\n",B,C,F);
   /* second triangle - pointfaces, etc,for this face  */
   Elev_Tri(triind*3, this_face, B, C, F, TRUE, rep_, facenormals, pointfaces,ccw);
+
+  if (HAVETODOTEXTURES) {
+		tcindex[triind*3] = Btex;
+		tcindex[triind*3+1] = Ctex;
+		tcindex[triind*3+2] = Ftex;
+  }
+
   defaultface[triind] = this_face;
   triind ++; 
   this_face ++;
@@ -776,12 +860,19 @@ for (tmp=0; tmp<(triind*3); tmp++) {
 	}
 	rep_->norindex[tmp] = tmp;
 }
-/* keep track of where the sides end, triangle count-wise */
+/* keep track of where the sides end, triangle count-wise, for Normal mapping */
 end_of_sides = triind*3;
 
+/* tcindexes are TOTALLY different from sides  - set this in case we are 
+   doing textures in the end caps */
+tci_ct = nspi*nsec; 
 
 if($f(convex)) {
 	int endpoint;
+
+        int Sindex, Tindex = 0;
+        GLfloat Ssize, Tsize = 0.0;
+	int triind_start; 	/* textures need 2 passes */
 
 	/* if not tubular, we need one more triangle */
 	if (tubular) endpoint = nsec-3-ncolinear_at_end;
@@ -790,28 +881,50 @@ if($f(convex)) {
 
 	/* this is the simple case with convex polygons	*/
 	if($f(beginCap)) {
+		triind_start = triind;
+
 		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
   			Elev_Tri(triind*3, this_face, 0, x+2, x+1, TRUE , rep_, facenormals, pointfaces,ccw);
   			defaultface[triind] = this_face;
+			if (HAVETODOTEXTURES)
+				Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw);
 			triind ++;
 		}
+
+		if (HAVETODOTEXTURES) {
+			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+				beginVals,nsec,rep_);
+			tci_ct+=endpoint-(0+ncolinear_at_begin);
+		}
+		triind_start+=endpoint-(0+ncolinear_at_begin);
 		this_face++;
 	} /* if beginCap */
 	
 	if($f(endCap)) {
+		triind_start = triind;
+
 		for(x=0+ncolinear_at_begin; x<endpoint; x++) {
   			Elev_Tri(triind*3, this_face, 0  +(nspi-1)*nsec,
 				x+1+(nspi-1)*nsec,x+2+(nspi-1)*nsec,
 				TRUE , rep_, facenormals, pointfaces,ccw);
   			defaultface[triind] = this_face;
+			if (HAVETODOTEXTURES)
+				Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec, 
+					x+1+(nspi-1)*nsec, 
+					x+2+(nspi-1)*nsec, rep_,ccw);
 			triind ++;
 		}
 		this_face++;
+		if (HAVETODOTEXTURES)
+			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+				endVals, nsec, rep_);
 	} /* if endCap */
 	
 } else 
     if($f(beginCap)||$f(endCap)) { 
 	/* polygons might be concave-> do tessellation			*/
+	/* XXX - no textures yet - Linux Tesselators give me enough headaches; 
+	   lets wait until they are all ok before trying texture mapping */
 
 	/* give us some memory - this array will contain tessd triangle counts */
 	int *tess_vs;
@@ -862,8 +975,6 @@ if($f(convex)) {
 			tess_vs[x] = x+(nspi-1)*nsec;
 			gluTessVertex(global_tessobj,tess_v,&tess_vs[x]);
 		}
-		if(!tubular) {	/* non closed need one triangle more	*/
- 		}
 		gluEndPolygon(global_tessobj);
 
 		for (x=0; x<global_IFS_Coord_count; x+=3) {
@@ -897,17 +1008,16 @@ for (tmp=end_of_sides; tmp<(triind*3); tmp++) {
 	rep_->norindex[tmp] = tmp;
 }
 
-/* do texture mapping calculations */
+/* do texture mapping calculations for sides */
 if (HAVETODOTEXTURES) {
-	int x,z;
-	for(x=0; x<nsec; x++) {
-		for(z=0; z<nspi; z++) {
-//			tcoord[(z+x*nsec)*3+0] = (float) z/(nspi-1);
-//			tcoord[(z+x*nsec)*3+1] = 0;
-//			tcoord[(z+x*nsec)*3+2] = (float) x/(nsec-1);
+	for(sec=0; sec<nsec; sec++) {
+		for(spi=0; spi<nspi; spi++) {
+			//printf ("side texts sec %d spi %d placement %d\n",sec,spi,&tcoord[(sec+spi*nsec)*3]);
+			tcoord[(sec+spi*nsec)*3+0] = (float) sec/(nsec-1);
+			tcoord[(sec+spi*nsec)*3+1] = 0;
+			tcoord[(sec+spi*nsec)*3+2] = (float) spi/(nspi-1);
 		}
 	}	
-
 }
 
 
@@ -917,6 +1027,12 @@ if (verbose) printf ("done, lets free\n");
 free (defaultface);
 free (pointfaces);
 free (facenormals);
+free (crossSection);
+
+if (HAVETODOTEXTURES) {
+	free (beginVals); 
+	free (endVals);
+}
 
 
 if(verbose)
