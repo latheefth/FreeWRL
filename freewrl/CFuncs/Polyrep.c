@@ -68,11 +68,11 @@ int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 	/* bounds check  XXX should free all mallocd memory */	
 	if (min_points_per_face < 3) { 
 		printf ("have an IFS with a face with too few vertex\n"); 
-		return(1);
+		return(0);
 	}
 	if (faces < 1) {
 		printf("an IndexedFaceSet with no faces found\n");
-		return (1);
+		return (0);
 	}
 	return faces;
 }
@@ -608,19 +608,22 @@ void render_polyrep(void *node,
 	int Sindex = 0;
 	int Tindex = 0;
 
+	int polyrep_verbose = 0;
 
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
 
 		
-	/*printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
+	if (polyrep_verbose) {
+		printf("Render polyrep %d '%s' (%d %d): %d\n",node,v->name, 
 			p->_change, r->_change, r->ntri);
-	printf ("\tnpoints %d ncolors %d nnormals %d\n",
+		printf ("\tnpoints %d ncolors %d nnormals %d\n",
 			npoints,ncolors,nnormals);
-	printf("\tntexcoords = %d    texcoords = 0x%lx\n",
+		printf("\tntexcoords = %d    texcoords = 0x%lx\n",
 			ntexcoords, texcoords);
-	*/
+	}
+	
 		
 
 	/* do we need to generate default texture mapping? */
@@ -695,7 +698,7 @@ void render_polyrep(void *node,
 		int tci = i;
 		int ind = r->cindex[i];
 
-		//printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
+		if (polyrep_verbose) printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
 
 		/* get normals and colors, if any	*/
 		if(r->norindex) { nori = r->norindex[i];}
@@ -709,7 +712,7 @@ void render_polyrep(void *node,
 		/* get texture coordinates, if any	*/
 		if (HAVETODOTEXTURES && r->tcindex) {
 			tci = r->tcindex[i]; 
-			//printf ("have textures, and tcindex i %d tci %d\n",i,tci);
+			if (polyrep_verbose) printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
 
 		/* get the normals, if there are any	*/
@@ -718,13 +721,17 @@ void render_polyrep(void *node,
 				/* this should be caught before here JAS */
 				warn("Too large normal index %d nnormals %d-- help??",nori, nnormals);
 			}
-			//printf ("nnormals at %d , nori %d ",&normals[nori].c,nori);
-			//fwnorprint (normals[nori].c);
+			if (polyrep_verbose) {
+				printf ("nnormals at %d , nori %d ",&normals[nori].c,nori);
+				fwnorprint (normals[nori].c);
+			}
 
 			glNormal3fv(normals[nori].c);
 		} else if(r->normal) {
-			//printf ("r->normal nori %d ",nori);
-			//fwnorprint(r->normal+3*nori);
+			if (polyrep_verbose) {
+				printf ("r->normal nori %d ",nori);
+				fwnorprint(r->normal+3*nori);
+			}
 			
 			glNormal3fv(r->normal+3*nori);
 		}
@@ -732,10 +739,18 @@ void render_polyrep(void *node,
 		if(hasc && prevcolor != coli) {
 			if(ncolors) { 
 				/* ColorMaterial -> these set Material too */
-				/* printf ("coloUr"); fwnorprint(colors[coli].c); printf ("\n");*/
+				if (polyrep_verbose) {
+					printf ("coloUr"); 
+					fwnorprint(colors[coli].c); 
+					printf ("\n");
+				}
 				glColor3fv(colors[coli].c);
 			} else if(r->color) {
-				/* printf ("coloUr"); fwnorprint(r->color+3*coli); printf ("\n"); */
+				if (polyrep_verbose) {
+					printf ("coloUr"); 
+					fwnorprint(r->color+3*coli); 
+					printf ("\n"); 
+				}
 				glColor3fv(r->color+3*coli);
 			} 
 		}
@@ -745,33 +760,39 @@ void render_polyrep(void *node,
 		/* Coordinate points	*/
 		if(points) {
 			XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
-			//printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
+			if (polyrep_verbose) 
+				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
 		} else if(r->coord) {	
 			XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
-			//printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
+			if (polyrep_verbose) 
+				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
 		}
 
 
 		/* Textures	*/
 		if (HAVETODOTEXTURES) {
 		    if(texcoords && ntexcoords) {
-			//printf ("tc1 %f %f\n",texcoords[tci].c[0],texcoords[tci].c[1]); 
+			if (polyrep_verbose) 
+				printf ("tc1 %f %f\n",texcoords[tci].c[0],texcoords[tci].c[1]); 
 		  	glTexCoord2fv(texcoords[tci].c);
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
-				//printf ("tc2a %f %f %d\n", r->tcoord[3*tci+0], r->tcoord[3*tci+2],&r->tcoord[3*tci]);
+				if (polyrep_verbose) 
+					printf ("tc2a %f %f %d\n", r->tcoord[3*tci+0], r->tcoord[3*tci+2],
+							&r->tcoord[3*tci]);
 		  		glTexCoord2f( r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
 			} else {
-				//printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
+				if (polyrep_verbose) 
+					printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 		  		glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 			}
 		    } else {
 			/* default textures */
 			/* we want the S values to range from 0..1, and the 
 			   T values to range from 0...S/T */
-		  	/* printf ("tc3, %f %f\n", (XYZ[Sindex] - minVals[Sindex])/Ssize,
+		  	if (polyrep_verbose) printf ("tc3, %f %f\n", (XYZ[Sindex] - minVals[Sindex])/Ssize,
                                         (XYZ[Tindex] - minVals[Tindex])/Ssize);
-			*/
+			
 			glTexCoord2f( (XYZ[Sindex] - minVals[Sindex])/Ssize,
 					(XYZ[Tindex] - minVals[Tindex])/Ssize);
 		    }
@@ -907,7 +928,7 @@ void render_ray_polyrep(void *node,
 		}
 	}
 }
-
+
 void regen_polyrep(void *node) 
 {
 	struct VRML_Virt *v;
