@@ -23,6 +23,7 @@ sub new {
 					  Name => $name,
 					  Ref => undef
 					 }, $type;
+	# print "IS::new, $this name is $name\n";
 	return $this;
 }
 
@@ -43,20 +44,24 @@ sub iterate_nodes {
 
 sub name { 
 	my ($this) = @_;
+	# print "IS:: sub name returns ",$this->{Name},"\n";
 	return $this->{Name};
 }
 
 sub set_ref {
 	my ($this, $ref) = @_;
+	# print "IS::set_ref sets $this to ref $ref\n";
 	$this->{Ref} = $ref;
 }
 
 sub get_ref {
 	my ($this) = @_;
+	# print "IS::get_ref, getting for this $this\n";
 	if (!defined $this->{Ref}) {
 		print "IS not def!\n";
 		exit(1);
 	}
+	# print "IS::get_ref, returning ",$this->{Ref},"\n";
 	return $this->{Ref};
 }
 
@@ -75,7 +80,7 @@ sub dump {
 	my ($this, $level) = @_;
 	my $lp = $level*2+2;
 	my $padded = pack("A$lp","$level ");
-	print "$padded node $this IS ", $this->{Name},"\n";
+	print "$padded node ", VRML::NodeIntern::dump_name($this)," IS ", $this->{Name},"\n";
 }
 
 
