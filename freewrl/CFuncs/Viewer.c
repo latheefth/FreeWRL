@@ -643,7 +643,7 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
 		}
 		changed += fly->Velocity[i];
-	printf ("vel %d %f\n",i,fly->Velocity[i]);
+	//printf ("vel %d %f\n",i,fly->Velocity[i]);
 	}
 
 	v.x = fly->Velocity[0] * time_diff;
@@ -660,7 +660,7 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);
 		}
 		changed += fly->AVelocity[i];
-	printf ("avel %d %f\n",i,fly->AVelocity[i]);
+	//printf ("avel %d %f\n",i,fly->AVelocity[i]);
 	}
 	
 	nq.x = fly->AVelocity[0];
