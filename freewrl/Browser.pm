@@ -68,7 +68,7 @@ sub new {
 	my($type,$pars) = @_;
 	my $this = bless {
 		Verbose => delete $pars->{Verbose},
-		BE => new VRML::GLBackEnd(@{$pars->{BackEnd} or []}),
+		BE => new VRML::GLBackEnd($pars->{FullScreen}, @{$pars->{BackEnd} or []}),
 		EV => new VRML::EventMachine(),
 	}, $type;
 	return $this;
@@ -173,6 +173,7 @@ sub eventloop {
 		  }
 		}
 	      }
+	$this->{BE}->close_screen();
 }
 
 sub prepare {
