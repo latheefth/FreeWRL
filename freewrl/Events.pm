@@ -62,6 +62,170 @@ sub remove_first {
 	delete $this->{First}{$node};
 }
 
+###############################################################################
+#
+# Initialize Scripting interfaces. 
+
+sub verify_script_started {
+	my ($node,$number) = @_;
+
+#JAS	print "verify_script_started, $node, $number\n";
+#JAS	foreach (keys %$node) {
+#JAS	 	print "we have this key $_\n";
+#JAS	}
+#JAS
+#JAS	print "verify_script_started, $node\n";
+#JAS	foreach (keys %{$node->{Fields}}) {
+#JAS		print "we have this Fields key $_, type ",$node->{Fields}{$_},"\n";
+#JAS		#print "we have this Fields key $_, type ",$node->{Fields}{$_}{TypeName},"\n";
+#JAS	}
+
+
+	print "ScriptInit t ",
+		VRML::NodeIntern::dump_name($node), "\n"
+			if $VRML::verbose::script;
+
+	my $h;
+	my $Browser = $node->{Scene}->get_browser();
+
+	for (@{$node->{Fields}{url}}) {
+		# is this already made???
+		print "Working on $_\n" if $VRML::verbose::script;
+		if (defined  $node->{J}) {
+			print "...{J} already defined, skipping\n"
+				if $VRML::verbose::script;
+			last;
+		}
+
+		my $str = $_;
+		print "TRY $str\n" if $VRML::verbose::script;
+		if (s/^perl(_tjl_xxx1)?://) {
+			print "perl scripting not moved yet to new routing structure\n";
+			last;
+
+			print "XXX1 script\n" if $VRML::verbose::script;
+			check_perl_script();
+
+			# See about RFields in file ARCHITECTURE and in
+			# Scene.pm's VRML::FieldHash package
+			my $u = $node->{Fields};
+
+			my $node = $node->{RFields};
+
+			# This string ties scalars
+			my $nodeie = join("", map {
+				"tie \$$_, 'MTS',  \\\$node->{$_};"
+			} script_variables($u));
+
+			$h = eval "({$_})";
+
+			# Wrap up each sub in the script node
+			foreach (keys %$h) {
+				my $nodemp = $h->{$_};
+				my $src = join ("\n",
+					"sub {",
+					"  $nodeie",
+					"  \&\$nodemp (\@_)",
+					"}");
+					## print "---- src ----$src\n--------------",
+					$h->{$_} = eval $src ;
+			}
+
+			print "Evaled: $h\n",
+				"-- h = $h --\n",
+					(map {"$_ => $h->{$_}\n"}
+					 keys %$h),
+					"-- u = $u --\n",
+					(map {
+					"$_ => $u->{$_}\n"
+					} keys %$u),
+					"-- t = $node --\n",
+					(map {
+					"$_ => $node->{$_}\n"
+					} keys %$node)
+			 if $VRML::verbose::script;
+			if ($@) {
+				die "Invalid script '$@'"
+			}
+			last;
+		} elsif (/\.class$/) {
+			print "java class invocation scripting not moved yet to new routing structure\n";
+			last;
+
+			my $wurl = $scene->get_world_url();
+			$node->{PURL} = $scene->get_url();
+			if (!defined $VRML::J) {
+				eval('require "VRML/VRMLJava.pm"');
+				die $@ if ($@);
+
+				$VRML::J =
+					VRML::JavaCom->new($scene->get_browser);
+			}
+			if (defined $wurl) {
+				$VRML::J->newscript($wurl, $_, $node);
+			} else {
+				$VRML::J->newscript($node->{PURL}, $_, $node);
+			}
+
+			$node->{J} = $VRML::J;
+			last;
+		} elsif (/\.js/) {
+			# New js url handling
+			my $code = getTextFromURLs($scene, $_, $node);
+
+			print "JS url: code = $code\n"
+				if $VRML::verbose::script;
+			eval('require VRML::JS;');
+			die $@ if ($@);
+
+			$node->{J} = VRML::JS->new($number, $code, $node, $Browser);
+			last;
+		} elsif (s/^(java|vrml)script://) {
+			eval('require VRML::JS;');
+			die $@ if ($@);
+
+			$node->{J} = VRML::JS->new($number, $_, $node, $Browser);
+			last;
+		} else {
+			warn("Unknown script: $_");
+		}
+	}
+
+	die "Didn't find a valid perl(_tjl_xxx)? or java script"
+		if (!defined $h and !defined $node->{J});
+
+	print "Script got: ", (join ',',keys %$h), "\n"
+		if $VRML::verbose::script;
+	$node->{ScriptScript} = $h;
+	my $s;
+	if (($s = $node->{ScriptScript}{"initialize"})) {
+		print "CALL $s\n if $VRML::verbose::script"
+			if $VRML::verbose::script;
+		perl_script_output(1);
+		my @res = &{$s}();
+		perl_script_output(0);
+	}
+}
+
+################################################################################
+# add_route
+#
+# go through, and find:
+#	- pointer to datastructures in C
+#	- offsets of actual data within these datastructures
+#	- length of the data.
+#	- function pointer for an Interpolator function, if required.
+#
+# with the following caveats:
+#	- data length of "-1" is special - it signifies that the field is a MF
+#	  field. (eg, Orientation/Normal Interpolators) the copy length is
+#	  found at "event prop" time.
+#
+#	- script value of 1 - fromNode is a script node
+#	- script value of 2 - toNode is a script node
+#	- script value of 3 - fromNode and toNodes are script nodes
+#
+
 sub add_route {
 	my($this, $fromNode, $eventOut, $toNode, $eventIn) = @_;
 
@@ -70,27 +234,45 @@ sub add_route {
 	my $outptr;
 	my $inptr;
 	my $datalen;
+	my $scrpt = 0;
 
-	# are there backends made for both from and to nodes?
+	# FROM NODE
 	if (!defined $fromNode->{BackNode}) {
-		print "add_route, from $eventOut - no backend node\n";
-		return 1;
-	}
-	if (!defined $toNode->{BackNode}) {
-		print "add_route, to $eventin - no backend node\n";
-		return 1;
+		if ($fromNode->{TypeName} =~/^__script__/) {
+			$outptr = substr($fromNode->{TypeName},10,100);
+			$outoffset = VRML::VRMLFunc::paramIndex($eventOut,
+				$fromNode->{Type}{FieldTypes}{$eventOut});
+
+			verify_script_started($fromNode,$outptr);
+			$scrpt = $scrpt + 1;
+
+		} else {
+			print "add_route, from $eventOut - no backend node\n";
+			#foreach (keys %$fromNode) {
+			#	print "	key $_\n";
+			#}
+			return 1;
+		}
+	} else {
+		if (!defined ($outptr=$fromNode->{BackNode}{CNode})) {
+			# are there backend CNodes made for both from and to nodes?
+			print "add_route, from $eventOut - no backend CNode node\n";
+			return 1;
+		}
+
+		# are there offsets for these eventins and eventouts?
+		if(!defined ($outoffset=$VRML::CNodes{$fromNode->{TypeName}}{Offs}{$eventOut})) {
+			print "add_route, eventout $eventOut offset not defined\n";
+			return 1;
+		}
 	}
 
-	# are there backend CNodes made for both from and to nodes?
-	if (!defined ($outptr=$fromNode->{BackNode}{CNode})) {
-		print "add_route, from $eventOut - no backend CNode node\n";
-		return 1;
-	}
-	if (!defined ($inptr=$toNode->{BackNode}{CNode})) {
-		print "add_route, to $eventin - no backend CNode node\n";
-		return 1;
-	}
 
+	# TO NODE
+	#addChildren really is Children
+	if (($eventIn eq "addChildren") || ($eventIn eq "removeChildren")) {
+		$eventIn = "children";
+	}
 
 	## ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
 	## eventIns (see VRML97 node reference)
@@ -103,16 +285,35 @@ sub add_route {
 		}
 	}
 
+	if (!defined $toNode->{BackNode}) {
+		if ($toNode->{TypeName} =~/^__script__/) {
+			$inptr = substr($toNode->{TypeName},10,100);
+			$inoffset = VRML::VRMLFunc::paramIndex($eventIn,
+				$toNode->{Type}{FieldTypes}{$eventIn});
 
-	# are there offsets for these eventins and eventouts?
-	if(!defined ($outoffset=$VRML::CNodes{$fromNode->{TypeName}}{Offs}{$eventOut})) {
-		print "add_route, eventout $eventOut offset not defined\n";
-		return 1;
+			verify_script_started($toNode,$inptr);
+			$scrpt = $scrpt + 2;
+
+		} else {
+			print "add_route, to $eventin - no backend node\n";
+			#foreach (keys %$toNode) {
+			#	print "	key $_\n";
+			#}
+			return 1;
+		}
+	} else {
+		if (!defined ($inptr=$toNode->{BackNode}{CNode})) {
+			print "add_route, to $eventin - no backend CNode node\n";
+			return 1;
+		}
+		if(!defined ($inoffset=$VRML::CNodes{$toNode->{TypeName}}{Offs}{$eventIn})) {
+			print "add_route, eventin $eventIn offset not defined\n";
+			return 1;
+		}
 	}
-	if(!defined ($inoffset=$VRML::CNodes{$toNode->{TypeName}}{Offs}{$eventIn})) {
-		print "add_route, eventin $eventIn offset not defined\n";
-		return 1;
-	}
+
+
+
 
 	# length of the field
 	$datalen=VRML::VRMLFunc::getClen(
@@ -127,8 +328,9 @@ sub add_route {
 	# is this an interpolator that is handled by C yet?
 	$intptr = VRML::VRMLFunc::InterpPointer($toNode->{Type}{Name});
 
+	# print "add_route, outptr $outptr, ofst $outoffset, inptr $inptr, ofst $inoffset len $datalen interp $intptr sc $scrpt\n";
 	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset, $inptr, $inoffset, $datalen,
-		$intptr);
+		$intptr, $scrpt);
 }
 
 ## needs to be tested with more than just the EAI AddRoute test and to have CRoutes added to it.
@@ -180,10 +382,13 @@ sub propagate_events {
 	my $fk;
 	my %sent; # to prevent sending twice, always set bit here
 
+	#save timestamp in backend 
+	VRML::VRMLFunc::setTick($timestamp);
+	
 	for(values %{$this->{First}}) {
 		print "GETFIRST ", VRML::NodeIntern::dump_name($_), " $_\n" 
 			if $VRML::verbose::events;
-		push @e, $_->get_firstevent($timestamp);
+		push @e, $_->get_firstevent();
 	}
 	for(@{$this->{MouseSensitive}}) {
 		# Mouse Sensitive nodes, eg, PlaneSensors, TouchSensors. Actual
@@ -198,7 +403,7 @@ sub propagate_events {
 		my $nd = $_->[0];
 		VRML::VRMLFunc::handle_mouse_sensitive($nd->{Type}{Name},
 				$nd->{BackNode}{CNode},
-				$_->[1],$timestamp,$_->[3]);
+				$_->[1],$_->[3]);
 	}
 	my $n = scalar @e;
 	push @e, @{$this->{Queue}};
@@ -344,7 +549,7 @@ sub send_set_bind_to {
 
 sub put_events {
 	my ($this, $events) = @_;
-	print "Put_events\n";
+	# print "Put_events\n";
 	for (@$events) {
 		die("Invalid put_events event $_\n") if (ref $_ ne "ARRAY");
 	}

@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.32  2003/05/28 14:18:35  crc_canada
+# Scripts moved to CRoute structure
+#
 # Revision 1.31  2003/05/08 16:01:33  crc_canada
 # Moving code to C
 #
@@ -724,8 +727,9 @@ sub clength {
 	my $r = (ref $_[0] or $_[0]);
 	$r =~ s/VRML::Field::MF//;
 	if ($r eq "Vec3f") {return -1;} # signal that a -1 is a Multi_Vec3f for CRoutes
+	if ($r eq "Node") {return -10;} # signal that a -10 is a Multi_Node for CRoutes
 
-	print "clength struct not handled Multi_$r $_[1]";
+	print "clength struct not handled Multi_$r $_[1]\n";
 	return 0;
 }
 sub cstruct {
@@ -880,6 +884,9 @@ sub cget {if(!defined $_[2]) {return "$_[1]"}
 sub as_string {
 	$_[1]->as_string();
 }
+sub clength {
+        return -11; # signal that a -11 is a SFNode for CRoutes
+}
 
 
 ##
@@ -918,6 +925,10 @@ sub cfunc {"sv_setsv($_[1],$_[2]);"}
 
 sub print {print "\"$_[1]\""}
 sub as_string{"\"$_[1]\""}
+
+sub clength {
+        return -12; # signal that a -12 is a SFImage for CRoutes
+}
 
 
 

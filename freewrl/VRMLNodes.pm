@@ -755,9 +755,9 @@ my $protono;
 							  },
 
 							ClockTick => sub {
-								my($t,$tick) = @_;
+								my($t) = @_;
 								VRML::VRMLFunc::MovieTextureClockTick(
-									$t->{BackNode}->{CNode},$tick);
+									$t->{BackNode}->{CNode});
 							},
 							 }
 					   ),
@@ -977,10 +977,10 @@ my $protono;
 							},
 
 							ClockTick => sub {
-								my($t,$tick) = @_;
+								my($t) = @_;
 
 								VRML::VRMLFunc::AudioClockTick(
-									$t->{BackNode}->{CNode},$tick);
+									$t->{BackNode}->{CNode});
 							},
 						   },
 					  ),
@@ -1251,10 +1251,10 @@ my $protono;
 					   },
 					   {
 						ClockTick => sub {
-							my($t,$tick) = @_;
+							my($t) = @_;
 
 							VRML::VRMLFunc::TimeSensorClockTick(
-								$t->{BackNode}->{CNode},$tick);
+								$t->{BackNode}->{CNode});
 						},
 					   }
 					  ),
@@ -1351,10 +1351,10 @@ my $protono;
 					   },
 					   {
 						ClockTick => sub {
-							my($t,$tick) = @_;
+							my($t) = @_;
 
 							VRML::VRMLFunc::ProximitySensorClockTick(
-								$t->{BackNode}->{CNode},$tick);
+								$t->{BackNode}->{CNode});
 						},
 					   }
 					  ),
@@ -1478,135 +1478,6 @@ my $protono;
 						mustEvaluate => [SFBool, 0, field]
 					   },
 					   {
-						Initialize => sub {
-							my($t, $f, $time, $scene) = @_;
-
-							print "ScriptInit t ",
-								VRML::NodeIntern::dump_name($t),
-										" f $f time $time scene ",
-											VRML::NodeIntern::dump_name($scene), "\n"
-													if $VRML::verbose::script;
-
-							my $h;
-							my $Browser = $scene->get_browser();
-							for (@{$f->{url}}) {
-								# is this already made???
-								print "Working on $_\n" if $VRML::verbose::script;
-								if (defined  $t->{J}) {
-									print "...{J} already defined, skipping\n"
-										if $VRML::verbose::script;
-									last;
-								}
-
-								my $str = $_;
-								print "TRY $str\n" if $VRML::verbose::script;
-								if (s/^perl(_tjl_xxx1)?://) {
-									{
-										print "XXX1 script\n" if $VRML::verbose::script;
-										check_perl_script();
-
-										# See about RFields in file ARCHITECTURE and in
-										# Scene.pm's VRML::FieldHash package
-										my $u = $t->{Fields};
-
-										my $t = $t->{RFields};
-
-										# This string ties scalars
-										my $tie = join("", map {
-											"tie \$$_, 'MTS',  \\\$t->{$_};"
-										} script_variables($u));
-
-										$h = eval "({$_})";
-
-										# Wrap up each sub in the script node
-										foreach (keys %$h) {
-											my $tmp = $h->{$_};
-											my $src = join ("\n",
-															"sub {",
-															"  $tie",
-															"  \&\$tmp (\@_)",
-															"}");
-											## print "---- src ----$src\n--------------",
-											$h->{$_} = eval $src ;
-										}
-
-										print "Evaled: $h\n",
-											"-- h = $h --\n",
-												(map {"$_ => $h->{$_}\n"}
-												 keys %$h),
-													"-- u = $u --\n",
-														(map {
-															"$_ => $u->{$_}\n"
-														} keys %$u),
-															"-- t = $t --\n",
-																(map {
-																	"$_ => $t->{$_}\n"
-																} keys %$t)
-																	if $VRML::verbose::script;
-										if ($@) {
-											die "Invalid script '$@'"
-										}
-									}
-									last;
-								} elsif (/\.class$/) {
-									my $wurl = $scene->get_world_url();
-									$t->{PURL} = $scene->get_url();
-									if (!defined $VRML::J) {
-										eval('require "VRML/VRMLJava.pm"');
-										die $@ if ($@);
-
-										$VRML::J =
-											VRML::JavaCom->new($scene->get_browser);
-									}
-									if (defined $wurl) {
-										$VRML::J->newscript($wurl, $_, $t);
-									} else {
-										$VRML::J->newscript($t->{PURL}, $_, $t);
-									}
-
-									$t->{J} = $VRML::J;
-									last;
-								} elsif (/\.js/) {
-									# New js url handling
-									my $code = getTextFromURLs($scene, $_, $t);
-
-									print "JS url: code = $code\n"
-										if $VRML::verbose::script;
-									eval('require VRML::JS;');
-									die $@ if ($@);
-
-									$t->{J} = VRML::JS->new($code, $t, $Browser);
-									last;
-								} elsif (s/^(java|vrml)script://) {
-									eval('require VRML::JS;');
-									die $@ if ($@);
-
-									$t->{J} = VRML::JS->new($_, $t, $Browser);
-									last;
-								} else {
-									warn("Unknown script: $_");
-								}
-							}
-
-							die "Didn't find a valid perl(_tjl_xxx)? or java script"
-								if (!defined $h and !defined $t->{J});
-
-							print "Script got: ", (join ',',keys %$h), "\n"
-								if $VRML::verbose::script;
-							$t->{ScriptScript} = $h;
-							my $s;
-							if (($s = $t->{ScriptScript}{"initialize"})) {
-								print "CALL $s\n if $VRML::verbose::script"
-									if $VRML::verbose::script;
-								perl_script_output(1);
-								my @res = &{$s}();
-								perl_script_output(0);
-								return @res;
-							} elsif ($t->{J}) {
-								return $t->{J}->initialize($scene, $t);
-							}
-							return ();
-						},
 						url => sub {
 							print "ScriptURL $_[0] $_[1]!!\n"
 								if $VRML::verbose::script;
@@ -1675,10 +1546,10 @@ my $protono;
 						},
 
 						ClockTick => sub {
-							my($t,$tick) = @_;
+							my($t) = @_;
 
 							VRML::VRMLFunc::CollisionClockTick(
-								$t->{BackNode}->{CNode},$tick);
+								$t->{BackNode}->{CNode});
 						}
 					   }
 					  ),

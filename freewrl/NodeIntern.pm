@@ -343,12 +343,12 @@ sub real_node {
 
 # Return the initial events returned by this node.
 sub get_firstevent {
-    my ($this, $timestamp) = @_;
+    my ($this) = @_;
 
     if ($this->{Type}{Actions}{ClockTick}) {
 		print "\tAction clocktick!\n" if $VRML::verbose;
 		my @ev = &{$this->{Type}{Actions}{ClockTick}}(
-				$this, $timestamp);
+				$this);
     }
     return ();
 }

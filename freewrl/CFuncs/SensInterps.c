@@ -55,7 +55,6 @@ void do_active_inactive (
 	double *inittime,	/* pointer to nodes inittime		*/
 	double *startt,		/* pointer to nodes startTime		*/
 	double *stopt,		/* pointer to nodes stop time		*/
-	double tick,		/* time tick				*/
 	int loop,		/* nodes loop field			*/
 	float myDuration,	/* duration of cycle			*/
 	float speed		/* speed field				*/
@@ -66,43 +65,43 @@ void do_active_inactive (
 	if (*act == 1) {   /* active - should we stop? */
 		if (SEVerbose) printf ("is active\n"); 
 
-		if (tick > *stopt) {
+		if (TickTime > *stopt) {
 			if (*startt >= *stopt) { 
 				/* cases 1 and 2 */
 				if (!(loop)) {
 					if (speed != 0) {
-					    if (tick >= (*startt + 
+					    if (TickTime >= (*startt + 
 							fabs(myDuration/speed))) {
 						if (SEVerbose) printf ("stopping case x\n");
-			printf ("tick %f startt %f myD %f speed %f fabs %f\n",
-					tick, *startt, myDuration, speed, fabs(myDuration/speed));
+			printf ("TickTime %f startt %f myD %f speed %f fabs %f\n",
+					TickTime, *startt, myDuration, speed, fabs(myDuration/speed));
 						*act = 0;
-						*stopt = tick;
+						*stopt = TickTime;
 					    }
 					}
 				/*
 				} else {
 				#	print "stopping case y\n";
 				#	node->{isActive} = 0;
-				#	node->{stopTime} = $tick;
+				#	node->{stopTime} = $TickTime;
 				*/
 				}
 			} else {
 				if (SEVerbose) printf ("stopping case z\n");
 				*act = 0;
-				*stopt = tick;
+				*stopt = TickTime;
 			}
 		}
 	}
 
 	/* immediately process start events; as per spec.  */
 	if (*act == 0) {   /* active - should we start? */
-		/* if (SEVerbose) printf ("is not active tick %f startt %f\n",tick,*startt); */
+		/* if (SEVerbose) printf ("is not active TickTime %f startt %f\n",TickTime,*startt); */
 
-		if (tick >= *startt) {
+		if (TickTime >= *startt) {
 			/* We just might need to start running */
 
-			if (tick >= *stopt) {
+			if (TickTime >= *stopt) {
 				/* lets look at the initial conditions; have not had a stoptime
 				event (yet) */
 
@@ -110,7 +109,7 @@ void do_active_inactive (
 					if (*startt >= *stopt) {
 						/* VRML standards, table 4.2 case 2 */
 						/* if (SEVerbose) printf ("CASE 2\n"); */
-						*startt = tick;
+						*startt = TickTime;
 						*act = 1;
 					}
 				} else if (*startt >= *stopt) {
@@ -121,7 +120,7 @@ void do_active_inactive (
 						we should be running 
 						VRML standards, table 4.2 case 1 
 						*/
-						*startt = tick;
+						*startt = TickTime;
 						*act = 1;
 					}
 				}
@@ -129,7 +128,7 @@ void do_active_inactive (
 				/* if (SEVerbose) printf ("case 3 here\n"); */
 				/* we should be running -  
 				VRML standards, table 4.2 cases 1 and 2 and 3 */
-				*startt = tick;
+				*startt = TickTime;
 				*act = 1;
 			}
 		}
@@ -483,11 +482,11 @@ if (SEVerbose) printf ("starting do_Oint4\n");
 
 
 /* Audio AudioClip sensor code */
-void do_AudioTick(struct VRML_AudioClip *node, double tick) {
+void do_AudioTick(struct VRML_AudioClip *node) {
 	int 	oldstatus;	
 
 	/* can we possibly have started yet? */
-	if(tick < node->startTime) {
+	if(TickTime < node->startTime) {
 		return;
 	}
 
@@ -496,7 +495,7 @@ void do_AudioTick(struct VRML_AudioClip *node, double tick) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,tick,node->loop,return_Duration(node->__sourceNumber),
+		&node->stopTime,node->loop,return_Duration(node->__sourceNumber),
 		node->pitch);
 	
 
@@ -514,7 +513,7 @@ void do_AudioTick(struct VRML_AudioClip *node, double tick) {
 }
 
 
-void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick) {
+void do_TimeSensorTick (struct VRML_TimeSensor *node) {
 	double myDuration;
 	int oldstatus;
 	double myTime;
@@ -530,7 +529,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick) {
 	}
 
 	/* can we possibly have started yet? */
-	if(tick < node->startTime) {
+	if(TickTime < node->startTime) {
 		return;
 	}
 
@@ -540,7 +539,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,tick,node->loop,node->cycleTime, 1.0);
+		&node->stopTime,node->loop,node->cycleTime, 1.0);
 
 
 	/* now process if we have changed states */
@@ -557,7 +556,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick) {
 
 	if(node->isActive == 1) {
 		/* calculate what fraction we should be */
- 		myTime = (tick - node->startTime) / myDuration;
+ 		myTime = (TickTime - node->startTime) / myDuration;
 
 		if (node->loop) {
 			frac = myTime - (int) myTime;
@@ -570,14 +569,14 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick) {
 
 		/* cycleTime events once at start, and once every loop. */
 		if (frac < node->__ctflag) {
-			/* push @e, [$t, cycleTime, $tick]; */
-			node->cycleTime = tick;
+			/* push @e, [$t, cycleTime, $TickTime]; */
+			node->cycleTime = TickTime;
 			mark_event ((unsigned int) node, offsetof(struct VRML_TimeSensor, cycleTime));
 		}
 		node->__ctflag = frac;
 	
 		/* time  and fraction_changed events */
-		/* push @e, [$t, "time", $tick];
+		/* push @e, [$t, "time", $TickTime];
 		push @e, [$t, fraction_changed, $frac]; */
 		node->fraction_changed = frac;
 		mark_event ((unsigned int) node, offsetof(struct VRML_TimeSensor, fraction_changed));
@@ -586,7 +585,7 @@ void do_TimeSensorTick (struct VRML_TimeSensor *node, double tick) {
 
 
 /* ProximitySensor code for ClockTick */
-void do_ProximitySensorTick(struct VRML_ProximitySensor *node, double tick) {
+void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {
 	
 	/* are we enabled? */
 	if (!node->enabled) return;
@@ -595,7 +594,7 @@ void do_ProximitySensorTick(struct VRML_ProximitySensor *node, double tick) {
 		if (!node->isActive) {
 			if (SEVerbose) printf ("PROX - initial defaults\n");
 			node->isActive = 1;
-			node->enterTime = tick;
+			node->enterTime = TickTime;
 			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, isActive));
 			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, enterTime));
 		}
@@ -617,7 +616,7 @@ void do_ProximitySensorTick(struct VRML_ProximitySensor *node, double tick) {
 		if (node->isActive) {
 			if (SEVerbose) printf ("PROX - stopping\n");
 			node->isActive = 0;
-			node->exitTime = tick;
+			node->exitTime = TickTime;
 			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, isActive));
 			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, exitTime));
 		}
@@ -627,7 +626,7 @@ void do_ProximitySensorTick(struct VRML_ProximitySensor *node, double tick) {
 
 
 /* Audio MovieTexture code */
-void do_MovieTextureTick(struct VRML_MovieTexture *node, double tick) {
+void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	int 	oldstatus;	
 	float 	frac;		/* which texture to display */
 	int 	highest,lowest;	/* selector variables		*/
@@ -637,7 +636,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node, double tick) {
 	float	duration;
 
 	/* can we possibly have started yet? */
-	if(tick < node->startTime) {
+	if(TickTime < node->startTime) {
 		return;
 	}
 
@@ -651,7 +650,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node, double tick) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,tick,node->loop,duration,speed);
+		&node->stopTime,node->loop,duration,speed);
 	
 
 	/* what we do now depends on whether we are active or not */
@@ -668,7 +667,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node, double tick) {
 			lowest = highest-1;
 		}	
 		/* calculate what fraction we should be */
- 		myTime = (tick - node->startTime) * speed/duration;
+ 		myTime = (TickTime - node->startTime) * speed/duration;
 
 		frac = myTime - truncf((float)myTime);
 	
@@ -699,7 +698,7 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node, double tick) {
 	}
 }
 
-void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, double tick, int over) {
+void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, int over) {
 	int len;
 
 	/* TouchSensor - handle only a PRESS or RELEASE - should handle hitPoint,hitNormal */
@@ -730,7 +729,7 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, double tick, int o
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_TouchSensor, isActive));
 
-			node->touchTime = tick;
+			node->touchTime = TickTime;
 			mark_event((unsigned int) node,
 				offsetof (struct VRML_TouchSensor, touchTime));
 
@@ -742,7 +741,7 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, double tick, int o
 	}
 }
 
-void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, double tick, int over) {
+void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
 	int len;
 	float mult, nx, ny;
 	struct SFColor tr;
@@ -828,7 +827,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, double tick, int o
 }
 
 
-void do_Anchor (struct VRML_Anchor *node, char *ev, double tick, int over) {
+void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
 	int len;
 	int urllen;
 	unsigned char *urlptr;
@@ -865,12 +864,12 @@ void do_Anchor (struct VRML_Anchor *node, char *ev, double tick, int over) {
 	}
 }
 
-void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, double tick, int over) {
+void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
 /* not implemented */
 }
 
 
-void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, double tick, int over) {
+void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 	int len, tmp;
 	float tr1sq, tr2sq, tr1tr2;
 	struct SFColor dee, arr, cp, dot;
