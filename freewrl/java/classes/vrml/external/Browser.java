@@ -334,8 +334,8 @@ public class Browser implements BrowserInterface
           x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
 
 	  //System.out.println ("CVS - for this one, we have NODE" + x[count].NodeName +
-		//" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
-		//" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
+	//	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
+	//	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
 
           count ++;
 	  if (count == 100) {
@@ -371,11 +371,19 @@ public class Browser implements BrowserInterface
 
          tokens = new StringTokenizer (retval);
          count = 0;
- 	 x = new Node[tokens.countTokens()];
+ 	 x = new Node[tokens.countTokens()/2];
 
          while (tokens.hasMoreTokens()) {
            x[count] = new Node();
            x[count].NodeName = tokens.nextToken();
+           x[count].nodeptr = tokens.nextToken();
+           x[count].offset = "0";
+           x[count].datasize = "4";
+           x[count].datatype = "h"; // see CFuncs/EAIServ.c for a complete desc.
+	   //System.out.println ("CVU - for this one, we have NODE" + x[count].NodeName +
+		//	" pointer:" + x[count].nodeptr + " offset:" + x[count].offset +
+		//	" datasize: " + x[count].datasize + " datatype:" + x[count].datatype);
+
            count ++;
          }
  	queryno += 1;
@@ -401,8 +409,6 @@ public class Browser implements BrowserInterface
          queryno += 1;
        }
       return;
-
-      // throw new IllegalArgumentException ("AddRoute Not Implemented");
     }
   
   
@@ -418,8 +424,6 @@ public class Browser implements BrowserInterface
          queryno += 1;
        }
       return;
-
-    //  throw new IllegalArgumentException ("DeleteRoute Not Implemented");
     }
   
     // begin and end an update cycle

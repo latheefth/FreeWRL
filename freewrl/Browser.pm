@@ -240,6 +240,7 @@ sub rectChanged
 #########################################################################
 sub load_file_intro {
 	my($this, $url) = @_;
+	my $string;
 
 	# save this for getworldurl calls...
 	$this->{URL} = $url;
@@ -251,27 +252,20 @@ sub load_file_intro {
 
 	$this->{Scene}->set_browser($this);
 
-	$this->load_file_nothreads($url,undef);
-       	prepare ($this);
-	# and, take care of keeping the viewpoints active...
-	# JAS $this->{Scene}->register_vps($this);
-	# debugging scene graph call: 
-	$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
-}
-
-sub load_file_nothreads {
-	my($this,$url,$string) = @_;
-	print "load_file_nothreads: URL: $url\n" if $VRML::verbose::scene;
-
 	if (defined $url) {
 		$string = VRML::URL::get_absolute($url);
 	}
 
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
 	if (!$string) { print "\nFreeWRL Exiting -- File $url was not found.\n"; 
-exit(1);}
+		exit(1);}
 
 	$this->load_string($string, $url);
+
+       	prepare ($this);
+
+	# debugging scene graph call: 
+	$this->{Scene}->dump(0) if $VRML::verbose::scenegraph;
 }
 
 ########################################################################
@@ -411,18 +405,6 @@ sub prepare {
 	$this->{EV}->print;
 }
 
-# prepare2 - re-do just the routing when adding/removing a child. This should
-# NOT be this static. XXX
-
-sub prepare2 {
-	my($this) = @_;
-	my $bind = 0;
-
-	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	$this->{Scene}->init_events($this->{EV}, $this->{BE}, $bind);
-	$this->{EV}->print;
-}
-
 sub shut {
 	my($this) = @_;
 
@@ -527,15 +509,18 @@ sub replaceWorld {
 
 sub loadURL { print "Can't do loadURL yet\n"; }
 
-sub createVrmlFromString {
-	my ($this, $string) = @_;
+
+#createVrml common stuff
+sub create_common {
+	my ($this,$f1,$f2,$string) = @_;
 	my $bind = 0;
 
-	my $wurl = $this->{Scene}->get_world_url();
-	my $scene = VRML::Scene->new($this->{EV}, "FROM A STRING", $wurl);
+	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
+	$scene->set_browser($this);
 
 	VRML::Parser::parse($scene, $string);
 	$scene->make_executable();
+	#JAS $scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$scene->init_events($this->{EV}, $this->{BE}, $bind);
 	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
@@ -545,13 +530,21 @@ sub createVrmlFromString {
 	return $ret;
 }
 
+sub createVrmlFromString {
+	my ($this, $string) = @_;
+
+	my $wurl = $this->{Scene}->get_world_url();
+	return $this->create_common ("FROM A STRING",$wurl,$string);
+}
+
 sub createVrmlFromURL {
 	my ($this, $file, $url) = @_;
+
 	my $bind = 0;
 
 	# stage 1a - get the URL....
 	$url = ($url || $file);
-	my $wurl = getWorldURL($this);
+	my $wurl = $this->{Scene}->get_world_url();
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
 	my $t = VRML::NodeType::getTextFromURLs($this->{Scene}, $url);
@@ -569,20 +562,7 @@ sub createVrmlFromURL {
 	}
 
 	# Stage 2 - load the string in....
-
-	my $scene = VRML::Scene->new($this->{EV}, $url, $wurl);
-	VRML::Parser::parse($scene, $t);
-	$scene->make_executable();
-	$scene->setup_routing($this->{EV}, $this->{BE});
-	$scene->init_events($this->{EV}, $this->{BE}, $bind);
-
-	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
-	print "VRML::Browser::createVrmlFromUrl: mkbe_and_array returned $ret\n"
-		if $VRML::verbose::scene;
-	# debugging scene graph call
-	$scene->dump(0) if $VRML::verbose::scenegraph;
-	
-	return $ret;
+	return $this->create_common($url,$wurl,$t);
 }
 
 sub addRoute {
@@ -591,14 +571,12 @@ sub addRoute {
 	$this->{Scene}->new_route($fn, $ff, $tn, $tf);
 	## not initializing Bindables -- necessary???
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	#AK - #$this->prepare2();
 }
 
 sub deleteRoute {
 	my ($this, $fn, $ff, $tn, $tf) = @_;
 
 	$this->{Scene}->delete_route($fn, $ff, $tn, $tf);
-	#AK - #$this->prepare2();
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
 }
 
@@ -628,12 +606,12 @@ sub api__getFieldInfo {
 	return($k,$t);
 }
 
-sub api__updateRouting {
-	my ($this, $node, $field) = @_;
-
-	$this->{Scene}->update_routing($node, $field);
-	$this->prepare2();
-}
+#JAS sub api__updateRouting {
+#JAS 	my ($this, $node, $field) = @_;
+#JAS 
+#JAS 	$this->{Scene}->update_routing($node, $field);
+	#JAS $this->prepare2();
+#JAS }
 
 
 #######################################################################
@@ -804,6 +782,8 @@ END {
 # It does this because, until a specific field is requested, we can't
 # use the generic subroutines that are put in place for routing in Events.pm
 
+my @EAIinfo;
+
 sub EAI_GetNode {
 	my ($nodetoget) = @_;
 
@@ -854,6 +834,35 @@ sub EAI_GetType {
 
 
 	# print "BROWSER:EAI_GetType, $nodenum, $fieldname, $direction\n";
+
+	# is this an IS'd field?
+	my $realele = VRML::Handles::get("NODE$nodenum");
+
+	if (exists $realele->{Fields}{$fieldname}) {
+		# print "BROWSER:EAI - field $fieldname exists in node\n";
+	} else {
+		# print "BROWSER:EAI - field $fieldname DOES NOT exist in node\n";
+		my $ms = $realele->{Scene};		
+		my ($xele, $sc, $in, $rn, $rf);
+
+		# try to find this node/field within this scene.
+		foreach $xele (@EAIinfo) {
+			($sc, $rf, $rn, $in) = @{$xele};
+			# print "in $in rf $rf fieldname $fieldname\n";
+			if ($ms eq $sc) {  # same scene
+				if ($fieldname eq $rf) {
+					$realele = $rn;
+					$fieldname = $in;
+					# print "realele now is $realele, field $fieldname\n";
+					goto FOUNDIT;
+				}
+			}
+		}
+		FOUNDIT:
+	}
+
+	# print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
+
 	
 	# return node pointer, offset, data length, type
 	# EAI C code expects the return type to be one of the following:
@@ -923,7 +932,7 @@ sub EAI_GetType {
 		print "EAI_GetType, unhandled type $fieldtype - this is an error!\n";
 	}
 		
-	#print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
+	# print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
 
 	return ($outptr, $outoffset, $datalen, $retft); 
 
@@ -942,24 +951,60 @@ sub EAI_CreateVrmlFromString {
 	my $bn;
 
 	foreach $ele (@rvarr) {
-		# print "element $ele \n";
 		$realele = VRML::Handles::get($ele);
-		# print "type ",$realele->{TypeName},"\n";
 
+		# get the back nodes; but if this is a proto defn, skip it.
 		if (exists $realele->{BackNode}{CNode}) {
 			$bn = $realele->{BackNode}{CNode};
+			$ele =~ s/^NODE//;
+			$retval{$ele} = $bn;
 		} else {
-			print "warning, EAI_CreateVrmlFromString - no backnode found for $ele\n";
-			$bn = 0;
+			# print "warning, EAI_CreateVrmlFromString - no backnode found for $ele\n";
 		}
-		$ele =~ s/^NODE//;
-		# print " as a number $bn\n";
-		$retval{$ele} = $bn;
 	}
 	return %retval;
 }
 
+sub EAI_CreateVrmlFromURL {
+	my ($string) = @_;
 
+	my $rv = createVrmlFromURL ($globalBrowser,$string, $string);
+
+	my @rvarr = split (" ", $rv);
+	my %retval = ();
+	my $ele;
+	my $realele;
+	my $bn;
+
+	foreach $ele (@rvarr) {
+		$realele = VRML::Handles::get($ele);
+
+		# get the back nodes; but if this is a proto defn, skip it.
+		if (exists $realele->{BackNode}{CNode}) {
+			$bn = $realele->{BackNode}{CNode};
+			$ele =~ s/^NODE//;
+			$retval{$ele} = $bn;
+		} else {
+			# print "warning, EAI_CreateVrmlFromURL - no backnode found for $ele\n";
+		}
+	}
+	return %retval;
+}
+
+#######################################################
+#
+# for protos, we need to know the real node and real field
+# for each scene, input node
+#
+#######################################################
+sub save_EAI_info {
+	my ($scene, $node, $rn, $in) = @_;
+
+	#print "Browser::save_EAI_info, scene ", VRML::NodeIntern::dump_name ($scene), 
+	#	" node:",VRML::NodeIntern::dump_name($node), " real $rn  ISN $in\n";
+
+	push @EAIinfo, [$scene,$in,$node,$rn];
+}
 #########################################################3
 #
 # Private stuff

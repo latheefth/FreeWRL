@@ -346,116 +346,118 @@ void handle_EAI () {
 	/* any command read in? */
 	if (bufcount > 1) 
 		EAI_parse_commands (buffer);
-	}
+}
 
-	/******************************************************************************
-	*
-	* EAI_parse_commands
-	*
-	* there can be many commands waiting, so we loop through commands, and return
-	* a status of EACH command
-	*
-	* a Command starts off with a sequential number, a space, then a letter indicating
-	* the command, then the parameters of the command.
-	*
-	* the command names are #defined at the start of this file.
-	*
-	* some commands have sub commands (eg, get a value) to indicate data types, 
-	* (eg, SFFLOAT); these sub types are indicated with a lower case letter; again,
-	* look to the top of this file for the #defines
-	*
-	*********************************************************************************/
+/******************************************************************************
+*
+* EAI_parse_commands
+*
+* there can be many commands waiting, so we loop through commands, and return
+* a status of EACH command
+*
+* a Command starts off with a sequential number, a space, then a letter indicating
+* the command, then the parameters of the command.
+*
+* the command names are #defined at the start of this file.
+*
+* some commands have sub commands (eg, get a value) to indicate data types, 
+* (eg, SFFLOAT); these sub types are indicated with a lower case letter; again,
+* look to the top of this file for the #defines
+*
+*********************************************************************************/
 
-	void EAI_parse_commands (char *bufptr) {
-		char buf[EAIREADSIZE];	// return value place
-		char ctmp[EAIREADSIZE];	// temporary character buffer
-		char dtmp[EAIREADSIZE];	// temporary character buffer
-		unsigned int nodarr[200]; // returning node/backnode combos from CreateVRML fns.
+void EAI_parse_commands (char *bufptr) {
+	char buf[EAIREADSIZE];	// return value place
+	char ctmp[EAIREADSIZE];	// temporary character buffer
+	char dtmp[EAIREADSIZE];	// temporary character buffer
+	unsigned int nodarr[200]; // returning node/backnode combos from CreateVRML fns.
 
-		int count;
-		char command;
-		unsigned int uretval;		// unsigned return value
-		unsigned int ra,rb,rc,rd;	// temps
-		char *EOT;		// ptr to End of Text marker
+	int count;
+	char command;
+	unsigned int uretval;		// unsigned return value
+	unsigned int ra,rb,rc,rd;	// temps
+	char *EOT;		// ptr to End of Text marker
 
-		while (strlen(bufptr)> 0) {
-			//printf ("start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
+	while (strlen(bufptr)> 0) {
+		//printf ("start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
 
-			/* step 1, get the command sequence number */
-			if (sscanf (bufptr,"%d",&count) != 1) {
-				printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
-				count = 0;
+		/* step 1, get the command sequence number */
+		if (sscanf (bufptr,"%d",&count) != 1) {
+			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
+			count = 0;
+		}
+
+		/* step 2, skip past the sequence number */
+		while (isdigit(*bufptr)) bufptr++;
+		while (*bufptr == ' ') bufptr++;
+
+		/* step 3, get the command */
+		//printf ("command %c seq %d\n",*bufptr,count);
+		command = *bufptr;
+		bufptr++;
+
+		// return is something like: $hand->print("RE\n$reqid\n1\n$id\n");
+
+		if (EAIVerbose) printf ("\n... %d ",count);
+
+		switch (command) {
+			case GETNAME: { 
+				if (EAIVerbose) printf ("GETNAME\n");
+				sprintf (buf,"RE\n%d\n1\n%s",count,BrowserName);
+				break; 
+				}
+			case GETVERSION: { 
+				if (EAIVerbose) printf ("GETVERSION\n");
+				sprintf (buf,"RE\n%d\n1\n%s",count,BrowserVersion);
+				break; 
+				}
+			case GETCURSPEED: { 
+				if (EAIVerbose) printf ("GETCURRENTSPEED\n");
+				sprintf (buf,"RE\n%d\n1\n%f",count,(float) 1.0/BrowserFPS);
+				break; 
+				}
+			case GETFRAMERATE: { 
+				if (EAIVerbose) printf ("GETFRAMERATE\n");
+				sprintf (buf,"RE\n%d\n1\n%f",count,BrowserFPS);
+				break; 
+				}
+			case GETURL: { 
+				if (EAIVerbose) printf ("GETURL\n");
+				sprintf (buf,"RE\n%d\n1\n%s",count,BrowserURL);
+				break; 
+				}
+			case GETNODE:  {
+				//format int seq# COMMAND    string nodename
+
+				sscanf (bufptr," %s",ctmp);
+				if (EAIVerbose) printf ("GETNODE %s\n",ctmp);
+
+				uretval = EAI_GetNode(ctmp);
+
+				sprintf (buf,"RE\n%d\n1\n%d",count,uretval);
+				break; 
 			}
+		case GETTYPE:  {
+			//format int seq# COMMAND  int node#   string fieldname   string direction
 
-			/* step 2, skip past the sequence number */
-			while (isdigit(*bufptr)) bufptr++;
-			while (*bufptr == ' ') bufptr++;
+			sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
+			if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
 
-			/* step 3, get the command */
-			//printf ("command %c seq %d\n",*bufptr,count);
-			command = *bufptr;
-			bufptr++;
+			EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
 
-			// return is something like: $hand->print("RE\n$reqid\n1\n$id\n");
-
-			if (EAIVerbose) printf ("\n... %d ",count);
-
-			switch (command) {
-				case GETNAME: { 
-					if (EAIVerbose) printf ("GETNAME\n");
-					sprintf (buf,"RE\n%d\n1\n%s",count,BrowserName);
-					break; 
-					}
-				case GETVERSION: { 
-					if (EAIVerbose) printf ("GETVERSION\n");
-					sprintf (buf,"RE\n%d\n1\n%s",count,BrowserVersion);
-					break; 
-					}
-				case GETCURSPEED: { 
-					if (EAIVerbose) printf ("GETCURRENTSPEED\n");
-					sprintf (buf,"RE\n%d\n1\n%f",count,(float) 1.0/BrowserFPS);
-					break; 
-					}
-				case GETFRAMERATE: { 
-					if (EAIVerbose) printf ("GETFRAMERATE\n");
-					sprintf (buf,"RE\n%d\n1\n%f",count,BrowserFPS);
-					break; 
-					}
-				case GETURL: { 
-					if (EAIVerbose) printf ("GETURL\n");
-					sprintf (buf,"RE\n%d\n1\n%s",count,BrowserURL);
-					break; 
-					}
-				case GETNODE:  {
-					//format int seq# COMMAND    string nodename
-
-					sscanf (bufptr," %s",ctmp);
-					if (EAIVerbose) printf ("GETNODE %s\n",ctmp);
-
-					uretval = EAI_GetNode(ctmp);
-
-					sprintf (buf,"RE\n%d\n1\n%d",count,uretval);
-					break; 
-				}
-			case GETTYPE:  {
-				//format int seq# COMMAND  int node#   string fieldname   string direction
-
-				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
-				if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
-
-				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
-
-				sprintf (buf,"RE\n%d\n1\n%d %d %d %c",count,ra,rb,rc,rd);
-				break;
-				}
-			case SENDEVENT:   {
-				//format int seq# COMMAND NODETYPE pointer offset data
-				if (EAIVerbose) printf ("SENDEVENT %s\n",bufptr);
-				EAI_SendEvent(bufptr);
-				break;
-				}
-			case CREATEVS: {
-				//format int seq# COMMAND vrml text     string EOT
+			sprintf (buf,"RE\n%d\n1\n%d %d %d %c",count,ra,rb,rc,rd);
+			break;
+			}
+		case SENDEVENT:   {
+			//format int seq# COMMAND NODETYPE pointer offset data
+			if (EAIVerbose) printf ("SENDEVENT %s\n",bufptr);
+			EAI_SendEvent(bufptr);
+			break;
+			}
+		case CREATEVU: 
+		case CREATEVS: {
+			//format int seq# COMMAND vrml text     string EOT
+			if (command == CREATEVS) {
 				if (EAIVerbose) printf ("CREATEVS %s\n",bufptr);
 
 				EOT = strstr(buffer,"\nEOT\n");
@@ -467,55 +469,58 @@ void handle_EAI () {
 
 				*EOT = 0; // take off the EOT marker
 
-				ra = EAI_CreateVrmlFromString(bufptr,nodarr);
+				ra = EAI_CreateVrml("String",bufptr,nodarr);
+			} else {
+				if (EAIVerbose) printf ("CREATEVU %s\n",bufptr);
+				ra = EAI_CreateVrml("URL",bufptr,nodarr);
+			}
 
-				sprintf (buf,"RE\n%d\n%d\n",count,ra);
-				for (rb = 0; rb < ra; rb++) {
-					sprintf (ctmp,"%d ", nodarr[rb]);
-					strcat (buf,ctmp);
-				}
+			sprintf (buf,"RE\n%d\n%d\n",count,ra);
+			for (rb = 0; rb < ra; rb++) {
+				sprintf (ctmp,"%d ", nodarr[rb]);
+				strcat (buf,ctmp);
+			}
 
-				// finish this for now
-				bufptr[0] = 0;
-				break;
-				}
-			case SENDCHILD :  {
-				//format int seq# COMMAND  int node#   ParentNode field ChildNode
+			// finish this for now
+			bufptr[0] = 0;
+			break;
+			}
+		case SENDCHILD :  {
+			//format int seq# COMMAND  int node#   ParentNode field ChildNode
 
-				sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
-				rc = ra+rb; // final pointer- should point to a Multi_Node
+			sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
+			rc = ra+rb; // final pointer- should point to a Multi_Node
 
-				if (EAIVerbose) printf ("SENDCHILD %d %d %s %s\n",ra, rb, ctmp, dtmp);
+			if (EAIVerbose) printf ("SENDCHILD %d %d %s %s\n",ra, rb, ctmp, dtmp);
 
-				getMFNodetype (dtmp,(struct Multi_Node *)rc, 
-						!strcmp(ctmp,"addChildren"));
+			getMFNodetype (dtmp,(struct Multi_Node *)rc, 
+					strcmp(ctmp,"removeChildren"));
 
-				sprintf (buf,"RE\n%d\n1\n0",count);
-				break;
-				}
-			case UPDATEROUTING :  {
-				//format int seq# COMMAND  int node#   ParentNode field ChildNode
+			sprintf (buf,"RE\n%d\n1\n0",count);
+			break;
+			}
+		case UPDATEROUTING :  {
+			//format int seq# COMMAND  int node#   ParentNode field ChildNode
 
-				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
-				if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
+			sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
+			if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
 
-				sprintf (buf,"RE\n%d\n1\n0",count);
-				break;
-				}
-			case REPLACEWORLD:  
-			case GETVALUE: 
-			case REGLISTENER: 
-			case ADDROUTE:  
-			case DELETEROUTE:  
-			case LOADURL: 
-			case SETDESCRIPT:  
-			case CREATEVU:  
-			case STOPFREEWRL:  
-			default: {
-				printf ("unhandled command :%c: %d\n",command,command);
-				strcat (buf, "unknown_EAI_command");
-				break;
-				}
+			sprintf (buf,"RE\n%d\n1\n0",count);
+			break;
+			}
+		case REPLACEWORLD:  
+		case GETVALUE: 
+		case REGLISTENER: 
+		case ADDROUTE:  
+		case DELETEROUTE:  
+		case LOADURL: 
+		case SETDESCRIPT:  
+		case STOPFREEWRL:  
+		default: {
+			printf ("unhandled command :%c: %d\n",command,command);
+			strcat (buf, "unknown_EAI_command");
+			break;
+			}
 					
 		}
 

@@ -502,6 +502,13 @@ sub make_executable {
 
 			$this->{Fields}{$field} = $scene->make_is($this, $field, $n);
 			$ref = ref $this->{Fields}{$field};
+
+			#print "mkexe, scene ",VRML::NodeIntern::dump_name($scene),
+			#" this " ,VRML::NodeIntern::dump_name($this), " field $field n, $n, ref $ref",
+			#	"\n";
+
+			# save this information in a convenient way so that EAI can get at it.
+			VRML::Browser::save_EAI_info ($scene,$this,$field,$n);
 		}
 		# Then, make the elements executable. Note that
 		# we do two things; the first is for non-arrays, the
