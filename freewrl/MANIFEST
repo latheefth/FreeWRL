@@ -353,7 +353,6 @@ Plugin/PluginGlue.xs
 Plugin/typemap
 Plugin/netscape/include/npapi.h
 Plugin/netscape/include/npupp.h
-Plugin/netscape/include/nputils.h
 Plugin/netscape/Makefile
 Plugin/netscape/source/npfreewrl.c
 Plugin/netscape/source/common/npunix.c
