@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.42  2001/12/14 14:46:06  crc_canada
+# Transparency issues fixed, this time with debug statements removed!
+#
 # Revision 1.41  2001/12/14 14:29:20  crc_canada
 # Material transparency now handled by the GL_STIPPLE method. This appears
 # to be how the browser in the NIST test renders transparency.
@@ -812,9 +815,7 @@ Material => ( join '',
 
 		glColor3f(m[0],m[1],m[2]);
 
-		printf ("Material, transparency is %f\n",$f(transparency));
 		if (fabs($f(transparency)) > 0.01) {
-			printf ("Material, transparent object\n");
 			glEnable(GL_POLYGON_STIPPLE);
 			if (fabs($f(transparency)) < 0.26) {
 				glPolygonStipple (threequartertone);
