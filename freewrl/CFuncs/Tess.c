@@ -70,7 +70,7 @@ void FW_IFS_tess_vertex(void *p) {
 	int *dp=p;
 
 	global_IFS_Coords[global_IFS_Coord_count++] = *dp;
-	printf ("tess vertex, %d count now is %d\n",*dp,global_IFS_Coord_count);
+	/* printf ("tess vertex, %d count now is %d\n",*dp,global_IFS_Coord_count); */
 
 }
 
