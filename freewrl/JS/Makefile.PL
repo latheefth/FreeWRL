@@ -37,7 +37,7 @@ WriteMakefile(
 	sub dynamic_lib {
 		if ($VRML::Config::vrml_config{PLATFORM} =~ /macosx/i) {
 			return "ARMAYBE = :
-OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS}
+OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS2}
 INST_DYNAMIC_DEP =
 
 \$\(INST_DYNAMIC\): \$\(OBJECT\) \$\(MYEXTLIB\) \$\(BOOTSTRAP\) \$\(INST_ARCHAUTODIR\)/.exists \$\(EXPORT_LIST\) \$\(PERL_ARCHIVE\) \$\(PERL_ARCHIVE_AFTER\) \$\(INST_DYNAMIC_DEP\)

@@ -2,10 +2,9 @@
 #LIBS  = -L. -L/usr/X11R6/lib -L/usr/local/lib
 
 COMPILERFLAGS = -Wall
+DEFINES = -DAQUA
 CC = gcc
-CFLAGS = $(COMPILERFLAGS) $(INCLUDE)
-# use this for better borders on window LIBRARIES = -lXaw3d
-LIBRARIES = -lXaw
+CFLAGS = $(COMPILERFLAGS) $(DEFINES) $(INCLUDE)
 SVROBJ = FreeWRL_Message.o
 
 all: main

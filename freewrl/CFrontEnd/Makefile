@@ -15,7 +15,6 @@ all:	freewrl
 install:  freewrl
 	strip freewrl
 	cp freewrl $(BINDIR)
-	cp fw2init.pl $(BINDIR)
 
 perlxsi:
 	perl -MExtUtils::Embed -e xsinit -- -o perlxsi.c;

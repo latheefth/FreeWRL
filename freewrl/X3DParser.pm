@@ -1328,7 +1328,7 @@ sub getChildType {
 # parse the field values of a node - eg, parse the size field of a Box node.
 sub parseSimpleField {
 	my ($pn,$field,$value) = @_;
-        print "parseSimpleField field $field, node $pn, value $value \n";
+        #print "parseSimpleField field $field, node $pn, value $value \n";
 
         my $no = $VRML::Nodes{$pn};
 

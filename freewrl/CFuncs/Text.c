@@ -21,6 +21,7 @@
 
 #include "Structs.h"
 #include "headers.h"
+#include "installdir.h"
 
 
 #define XRES 96
@@ -43,11 +44,6 @@
 #include <GL/glu.h>
 #include <GL/glx.h>
 #endif
-
-/* #include "../OpenGL/OpenGL.m"
-
-D_OPENGL;
-*/
 
 #include <stdio.h>
 
@@ -458,15 +454,15 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	}
 
 	/* have we done any rendering yet */
-
 	/* do we need to call open font? */
 	if (!started) {
-		if (strlen(sys_fp) ==0) {
-			printf ("Could not find System Fonts for Text nodes\n");
-			return;
-		}
-		open_font();
-		started = TRUE;
+		if (open_font()) {
+			started = TRUE;
+		} else {
+                        printf ("Could not find System Fonts for Text nodes\n");
+                        return;
+                }
+
 	}
 
 	if (TextVerbose) printf ("entering FW_Render_text \n");
@@ -689,6 +685,7 @@ int
 open_font() {
 	int len;
 	int err;
+	FILE *tmpfile;
 
 	if (TextVerbose)
 		printf ("open_font called\n");
@@ -701,15 +698,43 @@ open_font() {
 	FW_outline_interface.shift = 0;
 	FW_outline_interface.delta = 0;
 
+	/* where are the fonts stored? */
+	if (strlen(INSTALLDIR) > (fp_name_len-30)) {
+		printf ("Internal problem; fp_name_len is not long enough\n");
+		return FALSE;
+	}
+	strcpy(sys_fp,INSTALLDIR);
+	strcat(sys_fp,"/VRML/fonts/Amrigon.ttf");
+	/* printf ("checking to see if directory %s exists\n",sys_fp); */
+	tmpfile = fopen(sys_fp,"r");
+	if (!tmpfile) {
+		printf ("FreeWRL fonts not installed; trying build dir copy\n");
+		strcpy(sys_fp,BUILDDIR);
+		strcat(sys_fp,"/fonts/Amrigon.ttf");
+		/* printf ("checking to see if directory %s exists\n",sys_fp); */
+		tmpfile = fopen(sys_fp,"r");
+		if (!tmpfile) {
+			/* printf ("NO SYSTEM FONTS FOUND\n"); */
+			return FALSE;
+		} else {
+			strcpy(sys_fp,BUILDDIR);
+			strcat (sys_fp,"/fonts");
+		}
 
-
+	} else {
+		strcpy(sys_fp,INSTALLDIR);
+		strcat (sys_fp,"/VRML/fonts");
+	}
+	
 	/* lets initialize some things */
 	for (len = 0; len < num_fonts; len++) {
 		font_opened[len] = FALSE;
 	}
 
-	if ((err = FT_Init_FreeType(&library)))
+	if ((err = FT_Init_FreeType(&library))) {
 		  fprintf(stderr, "FreeWRL FreeType Initialize error %d\n",err);
+		return FALSE;
+	}
 
-	return err;
+	return TRUE;
 }

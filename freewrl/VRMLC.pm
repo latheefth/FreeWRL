@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.168  2005/04/06 16:56:08  crc_canada
+# more OS X changes.
+#
 # Revision 1.167  2005/04/05 19:41:39  crc_canada
 # some make problems fixed; this time back on Linux.
 #
@@ -1195,7 +1198,6 @@ void render_node(void *node) {
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
-verbose=1;
 
 	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
@@ -1365,7 +1367,6 @@ verbose=1;
 	    printf("==============\n");
 	  }
 	  #endif
-verbose=0;
 
 }
 
@@ -1529,17 +1530,17 @@ PROTOTYPES: ENABLE
 
 
 
-####################################################################
-#
-# Save Font Paths for later use in C, if Text nodes exist
-#
-####################################################################
-
-void
-save_font_path(myfp)
-	char *myfp
-CODE:
-		strncpy(sys_fp,myfp,fp_name_len-20);
+#JAS ####################################################################
+#JAS #
+#JAS # Save Font Paths for later use in C, if Text nodes exist
+#JAS #
+#JAS ####################################################################
+#JAS 
+#JAS void
+#JAS save_font_path(myfp)
+#JAS 	char *myfp
+#JAS CODE:
+#JAS 		strncpy(sys_fp,myfp,fp_name_len-20);
 
 
 

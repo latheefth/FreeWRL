@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include "Structs.h"
 #include "headers.h"
+#include "installdir.h"
 #include "PluginSocket.h"
 #include <pthread.h>
 #ifdef AQUA
@@ -667,35 +668,43 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 void _perlThread(void *perlpath) {
         char *commandline[] = {"", NULL};
 	char *builddir;
+	char *installdir;
 	int xx;
+	#define FW2A "/VRML/fw2init.pl"
+	#define FW2B "/CFrontEnd/fw2init.pl"
 
 	FILE *tempfp; /* for tring to locate the fw2init.pl file */
 
+
 	/* is the browser started yet? */
 	if (!browserRunning) {
-
-		commandline[1] = FW2INITPL;
+		/* find out if this FreeWRL is installed yet */
+		xx = strlen(INSTALLDIR) + strlen (FW2A) + 10;
+		installdir = (char *)malloc (sizeof(char) * xx);
+		strcpy (installdir,INSTALLDIR);
+		strcat (installdir,FW2A);
+		commandline[1] = installdir;
 
 		/* find out where the fw2init.pl file is */
 		if ((tempfp = fopen(commandline[1],"r")) != NULL) {
-			/* printf ("opened %s %d\n",commandline[1],tempfp); */
+			/* printf ("opened %s %d\n",commandline[1],tempfp);  */
 			fclose(tempfp);
 		} else {
-			/* printf ("error opening %s\n",commandline[1]);  */
-			xx = strlen (BUILDDIR) + strlen ("./CFrontEnd/fw2init.pl") + 10;
+			/* printf ("error opening %s\n",commandline[1]); */
+			xx = strlen (BUILDDIR) + strlen (FW2B) + 10;
 			builddir = (char *)malloc (sizeof(char) * xx);
 			strcpy (builddir, BUILDDIR);
-			strcat (builddir, "/CFrontEnd/fw2init.pl");
+			strcat (builddir, FW2B);
 			commandline[1] = builddir;
 
 			if ((tempfp = fopen(commandline[1],"r")) != NULL) {
 
-				/* printf ("opened %s\n",commandline[1]);  */
+				printf ("FreeWRL not installed; opened %s\n",commandline[1]); 
 				fclose(tempfp);
 			} else {
 				ConsoleMessage ("can not locate the fw2init.pl file, tried: " \
 				"    %s\n    and\n    %s\nexiting...\n",
-				FW2INITPL,builddir);
+				installdir,builddir);
 				exit(1);
 			}
 		}

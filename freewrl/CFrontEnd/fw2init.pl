@@ -41,19 +41,19 @@ sub open_browser {
 	$be = $b->{BE};
 
 	# fonts
-	my $testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/fonts";
-	if (-e "$testpath/Baubodi.ttf") {
-		VRML::VRMLFunc::save_font_path($testpath);
-	} else {
-		foreach (@INC) {
-			$testpath =  "$_/VRML/fonts";
-			if (-e "$testpath/Baubodi.ttf") {
-				VRML::VRMLFunc::save_font_path($testpath);
-				# print "found font path at $testpath\n";
-				return;
-			}
-		}
-	}
+	#Now done directly in CFuncs/Text.c my $testpath =  "$VRML::ENV{FREEWRL_BUILDDIR}/fonts";
+	#Now done directly in CFuncs/Text.c if (-e "$testpath/Baubodi.ttf") {
+	#Now done directly in CFuncs/Text.c 		VRML::VRMLFunc::save_font_path($testpath);
+	#Now done directly in CFuncs/Text.c } else {
+	#Now done directly in CFuncs/Text.c 	foreach (@INC) {
+	#Now done directly in CFuncs/Text.c 		$testpath =  "$_/VRML/fonts";
+	#Now done directly in CFuncs/Text.c 		if (-e "$testpath/Baubodi.ttf") {
+	#Now done directly in CFuncs/Text.c 			VRML::VRMLFunc::save_font_path($testpath);
+	#Now done directly in CFuncs/Text.c 			# print "found font path at $testpath\n";
+	#Now done directly in CFuncs/Text.c 			return;
+	#Now done directly in CFuncs/Text.c 		}
+	#Now done directly in CFuncs/Text.c 	}
+	#Now done directly in CFuncs/Text.c }
 }
 
 sub load_file_intro {

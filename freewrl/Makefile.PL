@@ -128,6 +128,15 @@ if (!defined $VRML_CONFIG{COPIER}) {
 if (!defined $VRML_CONFIG{SOUNDCONV}) {
 	print "no SOUNDCONV defined in vrml.conf, exiting...\n"; exit (1); }
 
+# is this an update of an older build? Some files have moved.
+my $oldfw2initpl = $VRML_CONFIG{BIN_DIR}."/fw2init.pl";
+print "checking for $oldfw2initpl\n";
+if (-e $oldfw2initpl) {
+	print "***************************************************************************\n";
+	print "There is an old file that should be removed by hand: $oldfw2initpl\n";
+	print "***************************************************************************\n";
+}
+
 
 if ($VRML_CONFIG{WARNINGS} eq "low") { push @ccflags, $warnings_low; }
 if ($VRML_CONFIG{WARNINGS} eq "medium") { push @ccflags, $warnings_low, $warnings_medium; }
@@ -196,7 +205,7 @@ print OUT "#define XMESSAGE \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_Message\"\n";
 print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
 
 # Path to installed fw2init.pl
-print OUT "#define FW2INITPL \"",$VRML_CONFIG{BIN_DIR},"/fw2init.pl\"\n";
+#print OUT "#define FW2INITPL \"",$LIB_DIR,"/fw2init.pl\"\n";
 
 # lets just dump out some standard defines, from the vrml.conf file.
 my @dumpToVRMLCONF = ("SOUND_ENGINE",
@@ -228,11 +237,10 @@ close OUT;
 
 
 # make the xs_init.c file We seem to need to do this for OS X
-
+# and copy over other makefiles as required.
 if ($OS eq "Darwin") {
 	`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
 	`cp JS/Makefile.aqua.PL JS/Makefile.PL`;
-	`cp CFrontEnd/Makefile.aqua CFrontEnd/Makefile`;
 	`cp FreeWRL_Message/Makefile.aqua FreeWRL_Message/Makefile`;
 }
 
@@ -343,7 +351,6 @@ INST_DYNAMIC_DEP =
 
 	sub postamble {
 		my @postamble;
-		#JAS my $VRMLINSTDIR   = "\$(INSTALLPRIVLIB)/VRML";
 		my $VRMLINSTDIR   = "\$(DESTINSTALLPRIVLIB)/VRML";
 		my $FRONTEND      = "\$(dir)/CFrontEnd";
 		my $SOUNDENGINE   = "\$(dir)/SoundEngine";
@@ -361,6 +368,7 @@ INST_DYNAMIC_DEP =
 
 		push(@postamble, join(
 				"\n",
+				qq{\techo "#define INSTALLDIR \\"\$(DESTINSTALLPRIVLIB)\\"" > CFuncs/installdir.h\n},
 				qq{\# --- VRML::VRMLFunc:\n},
 				qq{VRMLFunc.pm VRMLFunc.xs: VRMLC.pm VRMLFields.pm VRMLNodes.pm VRMLRend.pm},
 				qq{\t\$(PERL) VRMLC.pm\n},
@@ -376,15 +384,15 @@ INST_DYNAMIC_DEP =
 
 
 		if ($OS ne "Darwin") {
-		if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
-		my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
-		my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
-			push(@postamble, join(
-				  "\n",
-				  qq{\# --- Mozilla/Netscape Plugin:\n},
-				  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"$x1\"\n}
+			if ($VRML::Config::vrml_config{NETSCAPE_INST}) {
+				my $PLOC = $VRML::Config::vrml_config{NETSCAPE_INST};
+				my $x1 = $VRML::Config::vrml_config{NETSCAPE_INST};
+				push(@postamble, join(
+					  "\n",
+					  qq{\# --- Mozilla/Netscape Plugin:\n},
+					  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"$x1\"\n}
 				 ));
-		}
+			}
 		}
 
 		if ($VRML::Config::vrml_config{JAVA_INST} && $VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
@@ -401,6 +409,8 @@ INST_DYNAMIC_DEP =
 				qq{\# copy fonts, libjs.so over\n},
 				qq{\tcp -r fonts $VRMLINSTDIR\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
+				qq{\# copy copy the initialization file over\n},
+				qq{\tcp CFrontEnd/fw2init.pl $VRMLINSTDIR\n},
 				));
 		if ($VRML::Config::vrml_config{PLATFORM} eq "LINUX") {
 			push(@postamble, join(
@@ -416,6 +426,7 @@ INST_DYNAMIC_DEP =
                              qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
                              qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
                                 qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
+				qq{\tcp freewrl.aquascript /usr/bin/freewrl; chmod 755 /usr/bin/freewrl\n},
 			));
 		}
 		
@@ -425,7 +436,6 @@ INST_DYNAMIC_DEP =
 		# make the C Front End.
 		my $def2;
 		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) ";
-
 		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
 			print "COMPILING WITH BOUNDSCHECKING\n";
 			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
@@ -436,10 +446,14 @@ INST_DYNAMIC_DEP =
 
 		my $def = $def1.$def2;
 
-		push (@postamble, join("\n",
-			  qq{\n\# --- FreeWRL C Front End:},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def\n},
-			 ));
+		# Darwin's front end is either a cocoa app or a carbon app; the front ends are made
+		# in a different file. So, in this make, don't make a front end!
+		if ($OS ne "Darwin") {
+			push (@postamble, join("\n",
+				  qq{\n\# --- FreeWRL C Front End:},
+				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def\n},
+				 ));
+		}
 
 		# make the sound engine.
 		if ($OS ne "Darwin") {
