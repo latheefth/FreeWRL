@@ -417,7 +417,7 @@ sub receive_event {
 	$this->{RFields}{$field} = $value;
 
 	if($this->{Type}{Actions}{$field}) {
-		print "RACT!\n" if $VRML::verbose;
+		print "RACT!\n" if $VRML::verbose::events;
 		my @ev = &{$this->{Type}{Actions}{$field}}($this,$this->{RFields},
 			$value,$timestamp);
 		for(@ev) {
@@ -670,7 +670,7 @@ sub make_backend {
 	}
 	if($NOT{$this->{TypeName}} or $this->{TypeName} =~ /^__script/) {
 		print "NODE: makebe NOT\n"
-			; #JAS if $VRML::verbose::be;
+			if $VRML::verbose::be;
 		return ();
 	}
 	if($this->{IsProto}) {
@@ -1406,11 +1406,10 @@ sub setup_routing {
 				if($VRML::Nodes::siblingsensitive{$n->{TypeName}}) {
 					print "Scene.pm:SES: $n $n->{TypeName}", 
 						" bn ", $_[0],"\n" 
-						;#JAS if $VRML::verbose::scene;
+						if $VRML::verbose::scene;
 					$be->set_sensitive(
 						$_[0]->{BackNode},
-						sub { print "Scene.pm:SES sub\n";
-							$eventmodel->
+						sub { $eventmodel->
 							    handle_touched($n,
 							    		@_);
 						}
