@@ -67,6 +67,8 @@
 		GL_PROJECTION
 		GL_PROJECTION_STACK_DEPTH
 		GL_RENDER
+		GL_RGB
+		GL_RGBA
 		GL_SELECT
 		GL_SHININESS
 		GL_SMOOTH
@@ -74,6 +76,7 @@
 		GL_SRC_ALPHA
 		GL_TRUE
 		GL_UNPACK_ALIGNMENT
+		GL_UNSIGNED_BYTE
 		GL_VIEWPORT
 		KeyPress
 		KeyPressMask
@@ -100,9 +103,11 @@
 		glMatrixMode
 		glMultMatrixd
 		glPixelStorei
+		glPolygonMode
 		glPolygonOffsetEXT
 		glPopMatrix
 		glPushMatrix
+		glReadPixels
 		glRenderMode
 		glSelectBuffer
 		glShadeModel
@@ -185,6 +190,8 @@ sub GL_PROJECTION_STACK_DEPTH () {0x0BA4}
 sub GL_RENDER () {0x1C00}
 sub GL_RENDERER () {0x1F01}
 sub GL_RENDER_MODE () {0x0C40}
+sub GL_RGB () {0x1907}
+sub GL_RGBA () {4}
 sub GL_SELECT () {0x1C02}
 sub GL_SHININESS () {0x1601}
 sub GL_SMOOTH () {0x1D01}
@@ -193,6 +200,7 @@ sub GL_SRC_ALPHA () {0x0302}
 sub GL_SRC_ALPHA_SATURATE () {0x0308}
 sub GL_TRUE () {1}
 sub GL_UNPACK_ALIGNMENT () {0x0CF5}
+sub GL_UNSIGNED_BYTE () {0x1401}
 sub GL_VIEWPORT () {0x0BA2}
 sub GL_VIEWPORT_BIT () {0x00000800}
 sub KeyPress () {2}
