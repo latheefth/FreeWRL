@@ -40,6 +40,10 @@
 #include <GL/glx.h>
 #endif
 
+#ifdef AQUA
+typedef GLvoid (*_GLUfuncptr)(GLvoid);
+#endif
+
 #include "Structs.h"
 #include "headers.h"
 
