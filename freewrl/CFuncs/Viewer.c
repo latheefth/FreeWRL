@@ -63,7 +63,7 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 /* 							VRML::Nodes->{NavigationInfo}{Defaults}); */
 		/* speed & headlight are the only NavigationInfo fields used */
 		viewer->headlight = TRUE;
-		viewer->speed = 0.0;
+		viewer->speed = 1.0;
 /* 		Dist = 10.0; */
 		viewer->Dist = 10.0;
 		viewer->eyehalf = 0.0;
@@ -232,11 +232,14 @@ handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 		walk->SX = x;
 /* 	} elsif($mev eq "DRAG" and $but == 1) { */
 	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
+	printf ("walk drag, button %d\n",button);
 		if (button == 1) {
 /* 		$this->{ZD} = ($my - $this->{SY}) * $this->{Navi}{Fields}{speed}; */
 			walk->ZD = (y - walk->SY) * viewer->speed;
 /* 		$this->{RD} = ($mx - $this->{SX}) * 0.1; */
 			walk->RD = (x - walk->SX) * 0.1;
+printf ("ZD %f RD %f speed %f\n",walk->ZD, walk->RD,viewer->speed);
+
 /* 	} elsif($mev eq "DRAG" and $but == 3) { */
 		} else if (button == 3) {
 /* 		$this->{XD} = ($mx - $this->{SX}) * $this->{Navi}{Fields}{speed}; */
