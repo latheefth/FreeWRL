@@ -157,7 +157,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	        servaddr.sin_family      = AF_INET;
 	        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	        servaddr.sin_port        = htons(EAIBASESOCKET+socketincrement);
-		printf ("binding to socket %d\n",EAIBASESOCKET+socketincrement);
+		//printf ("binding to socket %d\n",EAIBASESOCKET+socketincrement);
 
 	        while (bind((*sockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 			return FALSE;
@@ -209,7 +209,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		/* and are we using this with EAI? */
 		if (socketincrement==0) EAIinitialized = TRUE;	
 	}
-	if (EAIVerbose) printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
+	//if (EAIVerbose) printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
 	return TRUE;
 }
 
@@ -320,9 +320,9 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 				(*listenfd) = -1;
 			}
 
-			if (EAIVerbose) 
-				printf ("read in from socket %d , max %d bfct %d data %s\n",
-						retval,EAIREADSIZE, *bfct, &bf[(*bfct)]);
+			//if (EAIVerbose) 
+			//	printf ("read in from socket %d , max %d bfct %d data %s\n",
+			//			retval,EAIREADSIZE, *bfct, &bf[(*bfct)]);
 
 			(*bfct) += retval;
 
@@ -391,27 +391,31 @@ void EAI_parse_commands (char *bufptr) {
 	char *EOT;		// ptr to End of Text marker
 
 	while (strlen(bufptr)> 0) {
-		//printf ("start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
+	//	printf ("start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
 
 		/* step 1, get the command sequence number */
 		if (sscanf (bufptr,"%d",&count) != 1) {
 			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
 			count = 0;
 		}
+	//	printf ("EAI - seq number %d\n",count);
 
 		/* step 2, skip past the sequence number */
 		while (isdigit(*bufptr)) bufptr++;
+	//	printf("past sequence number, string:%s\n",bufptr);
 		while (*bufptr == ' ') bufptr++;
+	//	printf ("past the space, string:%s\n",bufptr);
 
 		/* step 3, get the command */
-		/*
-		if (EAIVerbose)
-		{
-		    printf ("EAI_parse_commands cmd %s\n",*bufptr);
-		    printf ("command %c seq %d\n",*bufptr,count);
-		}
-		*/
+		
+		//if (EAIVerbose)
+	//	{
+	//	    printf ("EAI_parse_commands cmd %s\n",*bufptr);
+	//	    printf ("command %c seq %d\n",*bufptr,count);
+	//	}
+		
 		command = *bufptr;
+	//	printf ("command %c\n",command);
 		bufptr++;
 
 		// return is something like: $hand->print("RE\n$reqid\n1\n$id\n");

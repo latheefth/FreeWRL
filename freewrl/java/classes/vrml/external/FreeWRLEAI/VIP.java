@@ -13,27 +13,44 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; see the file COPYING.  If not, write to
 // the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
 package vrml.external.FreeWRLEAI;
+import vrml.external.FreeWRLEAI.*;
 
 public final class VIP {
-    static final short	QUIT = -1;
-    static final short	MESSAGE = -2;
-    static final short	ADD_OBJECT = -3;
-    static final short	REMOVE_OBJECT = -4;
-    static final short	PRIVATE_MESSAGE = -5;
-    static final short	CREATE_OBJECT = -6;
-    static final short	USER_INFO = -7;
+    public static final short	QUIT = -1;
+    public static final short	MESSAGE = -2;
+    public static final short	ADD_OBJECT = -3;
+    public static final short	REMOVE_OBJECT = -4;
+    public static final short	PRIVATE_MESSAGE = -5;
+    public static final short	CREATE_OBJECT = -6;
+    public static final short	USER_INFO = -7;
+    public static final short  SELF_INFO = -8;
+    public static final short  SSRC = -9;
+    public static final short  TRANSFERREQUEST = -10;
+    public static final short  TRANSFERACCEPT = -11;
+    public static final short  TRANSFERREJECT = -12;
+    public static final short  TRANSFERREQUESTADD = -13;
 
-    static final short	POSITION = 0;
-    static final short	ORIENTATION = 1;
-    static final short	SCALE = 2;
-    static final short	NAME = 3;
+    public static final short	POSITION = 0;
+    public static final short	ORIENTATION = 1;
+    public static final short	SCALE = 2;
+    public static final short	NAME = 3;
+    public static final short  OWNER = 4;
+    public static final short  PARENT = 5;
+    public static final short  CHILDREN = 6;
+    public static final short  DROPPED = 7;
+    
 
     // this is the number of fields reserved by the VIP protocol
-    static final short	NUM_FIELDS = 4;
+    public static final short	NUM_FIELDS = 4;
 
-    static String fieldName(short value) {
+   // this is the maximum number of possible gestures
+   public static final short MAX_GESTURES = 10;
+
+   // this is the maximum number of children
+   public static final short MAX_CHILDREN = 50;
+
+    public static String fieldName(short value) {
         switch (value) {
 	  case QUIT:		return "QUIT";
 	  case MESSAGE:		return "message";

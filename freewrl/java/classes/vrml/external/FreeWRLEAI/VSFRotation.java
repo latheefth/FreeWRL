@@ -15,7 +15,6 @@
 // the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package vrml.external.FreeWRLEAI;
-
 import java.io.*;
 
 public class VSFRotation extends VField
@@ -68,4 +67,22 @@ public class VSFRotation extends VField
     public float[] getValue() {
 	return values;
     }
+
+    /* Isabelle June 25 1999 for RAT 3D */
+
+    public double getAngle() {
+	/* a 90 degree correcting factor is required to map VNet initial orientation to */
+	/* standard convention.  VNet defines 0 degree as where the avatar is facing */
+	/* whereas normally, 0 degree is on the x axis of a circle */
+
+	double angle;
+
+	angle = (double)values[3] + (Math.PI/2);
+	if (angle > Math.PI)  /* value can only be between +/- PI */
+	{
+		angle = angle - (2*Math.PI);
+	}
+	return angle;
+    }
+
 }

@@ -13,9 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; see the file COPYING.  If not, write to
 // the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
 package vrml.external.FreeWRLEAI;
-
 import java.io.*;
 
 public class VSFVec3f extends VField
@@ -74,4 +72,44 @@ public class VSFVec3f extends VField
 			    values[1] - v.values[1],
 			    values[2] - v.values[2]);
     }
+
+    public VSFVec3f times(float s) {
+	return new VSFVec3f(values[0] * s,
+			    values[1] * s,
+			    values[2] * s);
+    }
+
+    /* Isabelle April 8 1999 for proximity calculation */
+
+    public double getDistance(VSFVec3f v) {
+
+        double x;
+        double y;
+        double z;
+        double distance;
+
+        x = (double)(values[0] - v.values[0]);
+        y = (double)(values[1] - v.values[1]);
+        z = (double)(values[2] - v.values[2]);
+
+        distance = Math.sqrt((x*x) + (y*y) + (z*z));
+        return distance;
+    }
+
+    public double getAngle(VSFVec3f v) {
+
+	/* working on the x-z plan for now.  I might add the y axis later on */
+	double delta_x;
+	double delta_z;
+	double angle;  /* in radians */
+
+	delta_x = (double) (values[0] - v.values[0]);
+	/* axis shifted 180 degrees with standard.  Therefore need to invert the parameters */
+	delta_z = (double) (v.values[2] - values[2]); 
+	angle = Math.atan2(delta_z, delta_x);  /* returns the angle whose tangent is z/x */
+	return(angle);
+
+    }
+	
+
 }
