@@ -109,7 +109,7 @@ sub connect {
 
 	$this->{I} = FileHandle->new;
 	$this->{O} = FileHandle->new;
-	open2($this->{I}, $this->{O}, 'java vrml.FWJavaScript');
+	open2($this->{I}, $this->{O}, 'java -Xbootclasspath/a:java/classes/vrml.jar vrml.FWJavaScript');
 	$this->{I}->setvbuf("",_IONBF,0);
 
 	# $pid = open3("<, $this->{O}, 'java_g -v FWJavaScript ');
@@ -132,12 +132,42 @@ sub initialize {
 	$this->receive($eid);
     }
 
+$URLSTART = "[A-Za-z]+://";
+
 sub newscript {
 	my($this, $purl, $url, $node) = @_;
-	#JAS undef $1;
-	$purl =~ /^(.*\/)[^\/]+$/;
-	$url = "file://$1$url"; # XXXX!!
+
 	print ("VRMLJava.pm: url $url, purl $purl node $node\n");
+	## FIXME:  The caller of newscript should probably handle this!
+	if ($url !~ /^$URLSTART/) {
+	    # url is not a complete url, make it relative to purl
+		if ($url =~ /^\//) {
+			if ($purl =~ /^($URLSTART[^\/]+)/) {
+				# url is server relative, purl contains server
+				$url = "$1$url";
+			} else {
+				# purl is not a url, so make url a file url.
+				$url = "file:/$url";
+			}
+		} elsif ($purl =~ /^($URLSTART.*)\/[^\/]*$/
+				 || $purl =~ /^($URLSTART[^\/]+)$/) {
+			# url is relative to purl and purl is complete.
+			$url = "$1/$url";
+		} else {
+			if ($purl =~ /^(.*\/)[^\/]+$/) {
+				# purl contains preceding directories append them
+				$url = "$1$url";
+			}
+			if ($url !~ /^\//) {
+				# url is not yet absolute, append the current path
+				chomp($_ = `pwd`);
+				$url = $_."/$url";
+			}
+			# Now make it a file url.
+			$url = "file:$url";
+		}
+	}
+	print ("VRMLJava.pm: resulting url $url\n");
 
 	if(!$this->{O}) {$this->connect}
 	print "VRMLJava.pm - connect passed\n";
