@@ -248,8 +248,6 @@ sub newextp {
 		}
     }
 
-	$this->{WorldURL} = $this->get_world_url();
-
     print("EXTERNPROTO with URL: $url\n") if $VRML::verbose::parse;
 	my ($string, $protourl, $protoname, $brow, $po);
 	my $success = 0;

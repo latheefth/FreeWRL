@@ -2606,6 +2606,7 @@ my $protono;
 								}
 
 								$p->set_url($url);
+								$p->set_world_url($url);
 								VRML::Parser::parse($p, $text);
 								if (!defined $p) {
 									die("Inline not found");
