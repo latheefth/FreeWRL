@@ -542,7 +542,7 @@ sub setup_projection {
 	  }
 	
 	#FIXME: 45 deg. hardcoded angle??? must get this somewhere -ncoder
-	gluPerspective(45.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 200000);
+	gluPerspective(45.0, ($this->{H} != 0 ? $this->{W}/$this->{H} : $this->{W}), 0.1, 21000.0);
 	glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
 	glMatrixMode(&GL_MODELVIEW);
         glPrintError("GLBackEnd::setup_projection");
