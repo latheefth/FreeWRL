@@ -480,6 +480,45 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 	render_frame = 5;
 }
 
+void
+glpOpenGLInitialize()
+	CODE:
+
+	{
+	// Configure OpenGL for our uses.
+
+	glClearColor(0,0,0,1);
+	glShadeModel (GL_SMOOTH);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_DEPTH_TEST);
+
+	// JAS - ALPHA testing for textures - right now we just use 0/1 alpha
+	// JAS   channel for textures - true alpha blending can come when we sort
+	// JAS   nodes.
+	
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glAlphaFunc (GL_GREATER, 0.1);
+	glEnable (GL_ALPHA_TEST);
+
+	// end of ALPHA test
+	glEnable(GL_NORMALIZE);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_CULL_FACE);
+
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+	glEnable(GL_POLYGON_OFFSET_EXT);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+	glPixelStorei(GL_PACK_ALIGNMENT,1);
+
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 0.2 * 128);
+	}
+
 
 void
 glXSwapBuffers(d=dpy,w=win)
@@ -688,23 +727,6 @@ glupPickMatrix(x,y,width,height,vp1,vp2,vp3,vp4)
 		vp[0] = vp1; vp[1]=vp2; vp[2]=vp3; vp[3]=vp4;
 		gluPickMatrix(x,y,width,height,vp);
 	}
-
-
-void
-glPolygonOffsetEXT(factor,bias)
-	GLfloat factor
-	GLfloat bias
-	CODE:
-	{
-/* Commented out -- a bug report said this stopped the program from running somewhere :( */
-/*
-		#ifdef GL_EXT_polygon_offset
-			extern void glPolygonOffsetEXT(GLfloat factor, GLfloat units);
-			glPolygonOffsetEXT(factor,bias);
-		#endif
-*/
-	}
-
 
 
 void
