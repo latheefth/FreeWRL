@@ -43,19 +43,18 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
 		'-I/Users/johnstewart/FreeWRL/jpeg-6b '.
-		'-I/usr/local/src/freetype2/freetype/include '.
-		'-I/usr/local/include/freetype2/config '.
-		'-I/usr/local/include/freetype',
+		'-I/Users/johnstewart/FreeWRL/libpng '.
+		'-I/Users/johnstewart/FreeWRL/freetype-2/include '.
+		'-I/Users/johnstewart/FreeWRL/freetype-2/include/freetype '.
+		' ',
 
 ############################################################################
 # Netscape installation
 # If Netscape is not installed, leave NETSCAPE_INST empty e.g.
-    NETSCAPE_INST => '',
+    NETSCAPE_INST => '/Users/johnstewart/temp',
 
 ############################################################################
-# Java installation (Sun's Java 2 SDK Standard Edition 1.3.1)
-# If Java is not installed, leave JAVA_INST empty e.g.
-    JAVA_INST => '',
+    JAVA_INST => '/Users/johnstewart/temp',
 
 ############################################################################
 # LD flags
