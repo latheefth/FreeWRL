@@ -543,7 +543,10 @@ public class Browser implements BrowserInterface
  	while (queryno != Integer.parseInt(req)) { 
            try {
              req = Browser.EAIfromFreeWRLInputStream.readLine();
-           } catch (IOException ie) {System.out.println (ie);}
+           } catch (IOException ie) {
+		System.out.println ("getVRMLreply: " + ie);
+		return rep;
+	   }
 
            if (queryno != Integer.parseInt(req)) {
              System.out.println ("getVRMLreply - REPLIES MIXED UP!!! Expecting " 
