@@ -153,7 +153,7 @@ void bind_node (void *node, unsigned int setBindofst,
 			/* yep... unbind it, and send an event in case anyone cares */
 			oldboundptr = *oldstacktop + isboundofst;
 			*oldboundptr = 0;
-			// printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
+			 //printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop);
 	
 			/* tell the possible parents of this change */
 			update_node(*oldstacktop);
@@ -206,11 +206,18 @@ void render_Fog (struct VRML_Fog *node) {
 	char *fogptr;
 
 
+	//printf ("render_Fog, node %d isBound %d color %f %f %f set_bind %d\n",
+		//node, node->isBound, node->color.c[0],node->color.c[1],node->color.c[2],node->set_bind);
+
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
+
 		bind_node (node,offsetof (struct VRML_Fog,set_bind),
 			offsetof (struct VRML_Fog,isBound),
 			&fog_tos,&fog_stack[0]);
+
+		/* if we do not have any more nodes on top of stack, disable fog */
+		glDisable (GL_FOG);
 	}
 
 	if(!node->isBound) return;
