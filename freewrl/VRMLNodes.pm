@@ -165,6 +165,47 @@ sub script_variables {
   grep { ! /mustEvaluate|directOutput/ } sort keys %{shift()};
 }
 
+<<<<<<< VRMLNodes.pm
+package MTS ;			# My tied Scalar : Will be used to tie scalars
+				# to fields and eventIn for perl scripting.
+
+use Exporter ;
+@ISA = qw(Exporter);
+@EXPORT = qw( with ) ;
+
+require Tie::Scalar;
+
+sub TIESCALAR {
+  ### my $class = shift;
+  ## my $self = shift;
+  ## bless $self;
+  ### bless shift ; 
+  bless $_[1];
+}
+
+sub FETCH {
+  ## my $self = shift;
+  ## $$self ;
+  ### ${shift()};
+  ${$_[0]};
+}
+
+sub STORE {
+  ## my $self = shift;
+  ## $$self = shift ;
+  ${$_[0]} = $_[1];
+}
+
+
+package VRML::NodeType;
+
+# JAS - used by EAI to see if this child is already present in field "children" of parent.
+sub checkChildPresent {
+	my ($node,$child) = @_;
+	print "VRMLNodes.pm:checkChildPresent: checking for child $child in node $node\n";
+	foreach $item (@{$node->{RFields}{"children"}}) {
+		print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
+=======
 package MTS ;			# My tied Scalar : Will be used to tie scalars
 				# to fields and eventIn for perl scripting.
 
@@ -214,80 +255,34 @@ sub add_MFNode {
 	# Step 1: - is it already here???
 	foreach $item (@{$node->{RFields}{$field}}) {
 #JAS 		print "VRMLNode::add_MFNode, checking to see if $child is equal to $item\n";
+>>>>>>> 1.14
 		if ($item eq $child) {
-			print "VRMLNode::add_MFNode: child $child already ",
-				"present in parent\n";
-			return;
+			print "VRMLNode::checkChildPresent: child $child already ",
+			"present in parent\n";
+			return 1;
 		}
 	}
-
-#JAS 	print "VRMLNode::add_MFNode: child $child not found in $node $field\n";
-	# Step 2: Add the node to the field. Back end stuff handled by
-	# the browser.
-
-	# Is this an array we are adding to, or just a scalar?
-
-	# print "Node RFields Field is of type: ";
-	if ("ARRAY" eq ref $node->{RFields}{$field}) {
-#JAS 		print "ARRAY ";
-#JAS 		print $node->{RFields}{$field};
-#JAS 		print " Node: $node field $field child ";
-#JAS 		print VRML::Handles::get($child);
- #JAS 		print "\n";
-#JAS 		print "VRMLNodes:add_MFNode: ARRAY was is: ";
-#JAS 		print @{ $node->{RFields}{$field} };
-
-  		push(@{ $node->{RFields}{$field} }, VRML::Handles::get($child));
-
-#JAS 		print "VRMLNodes:add_MFNode: ARRAY now is: ";
-#JAS 		print @{ $node->{RFields}{$field} };
-	} else {
-		#print "Not an array value\n";
-		$node->{RFields}{$field} = VRML::Handles::get($child);
-	}
+	return 0;
 }
 
-sub remove_MFNode {
-        my ($node, $field, $child) = @_;
-        # $node  - node to remove child from.
-        # $field - field of $node to remove child from.
-        # $child - remove this $child from $field of $node.
-	
-#JAS 	print "remove_child, node is $node, child is $child\n";
-	my ($i, $match_idx);
+# JAS - used by EAI to remove the desired node from the parent
+sub removeChild {
+	my ($node,$child) = @_;
+	my @av;
 
-	my $i = 0;
-	foreach $item (@{$node->{RFields}{children}}) {
-		if ($item eq $child) {
-			$match_idx = $i;
-			last;
+	print "VRMLNodes.pm:removeChild: checking for child $child in node $node\n";
+	foreach $item (@{$node->{RFields}{"children"}}) {
+		print "VRMLNodes:checkChildPresent, comparing $item with $child\n";
+		if (!($item eq $child)) {
+			push @av, $item;
+		} else {
+			print "VRMLNode::removeChild: child $child found\n";
 		}
-	$i++;
 	}
-
-	if (defined $match_idx) {
-		# remove child
-		my $removed = splice(@{ $node->{RFields}{children} }, $match_idx, 1);
-	} else {
-		print "WARNING: remove_child - child $child not found in parent\n";
-	}
+	print "VRMLNodes.pm:removeChild: array now is @av\n";
+	return @av;
 }
 
-sub make_MFNode {
-	my ($node) = @_;
-
-	# Some routines (eg, sending a Node value to a variable
-	# need things to be in MFNodes, but the EAI Java stuff will send
-	# things in SFNode format. Simply make this into an array,
-
-        my $tt = [$node];
-	# JASprint "make_MFNode, ", ref($tt), " value ", $tt->[0], "\n";
-	return $tt;
-}
-
-
-# these are no longer used, but are kept around because of the
-# coding. JS
 #JSsub return_be_node {
 #JS        # this takes a hash, and returns the cnode benode thingie... JS
 #JS        my ($node) = @_;
