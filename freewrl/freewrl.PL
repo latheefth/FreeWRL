@@ -256,6 +256,10 @@ Forces FreeWRL to run in 800x600 mode.   See also --fullscreen option
 Starts FreeWRL without the on-screen status bar. See the "." key definition
 for how to toggle this status bar display when running.
 
+=item C<--keypress>
+
+Sends the sequence of characters following to FreeWRL for processing once the
+	original URL is loaded.
 
 =item C<--plugin> I<PIDstring>
 

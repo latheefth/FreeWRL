@@ -48,6 +48,9 @@ static pthread_t *loopthread;
 char *threadmsg = "eventloop";
 pthread_t thread1;
 
+/* keypress sequence for startup - Robert Sim */
+extern char *keypress_string;
+
 
 /* for plugin running - these are read from the command line */
 #ifndef AQUA
@@ -109,6 +112,7 @@ int main (int argc, char **argv) {
 			{"version", 0, 0, 'v'},
 			{"big",  0, 0, 'b'},		/* Alberto Dubuc */
 			{"nostatus",0, 0, 's'},		/* Alberto Dubuc */
+			{"keypress",1, 0, 'K'},		/* Robert Sim */
 
 			{"seq", 0, 0, 'l'},
 			{"seqb",1, 0, 'm'},
@@ -134,7 +138,7 @@ int main (int argc, char **argv) {
 		c = getopt_long (argc, argv, "h", long_options, &option_index);
 #else
 		/*Sun version of getopt_long needs all the letters of parameters defined*/
-		                c = getopt_long (argc, argv, "efghijkvlpqmnobs", long_options, &option_index);
+		                c = getopt_long (argc, argv, "efghijkvlpqmnobsK", long_options, &option_index);
 #endif
 
 		if (c == -1)
@@ -237,6 +241,11 @@ int main (int argc, char **argv) {
 				break;
 			case 'y':
 				setEyeDist(optarg);
+				break;
+
+				/* initial string of keypresses once main url is loaded */
+			case 'K':	
+				keypress_string=optarg;
 				break;
 			default:
 				/* printf ("?? getopt returned character code 0%o ??\n", c); */

@@ -166,6 +166,9 @@ int PerlInitialized=FALSE;
 /* is the parsing thread active? this is read-only, used as a "flag" by other tasks */
 int PerlParsing=FALSE;
 
+/* Initial URL loaded yet? - Robert Sim */
+int URLLoaded=FALSE;
+
 /* the actual perl interpreter */
 PerlInterpreter *my_perl;
 
@@ -191,6 +194,8 @@ int isPerlinitialized() {return PerlInitialized;}
 /* statusbar uses this to tell user that we are still loading */
 int isPerlParsing() {return(PerlParsing);}
 
+/* is the initial URL loaded? Robert Sim */
+int isURLLoaded() {return(URLLoaded&&!PerlParsing);}
 
 
 /*
@@ -747,6 +752,7 @@ void _perlThread(void *perlpath) {
 		if (psp.path) free (psp.path);
 
 		*psp.comp = 1;
+		URLLoaded=TRUE;
 		PerlParsing=FALSE;
 		DATA_UNLOCK
 	}

@@ -50,6 +50,7 @@ int ccurse = ACURSE;
 int ocurse = ACURSE;
 #endif
 
+char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 #include "headers.h"
 
 void Next_ViewPoint(void);		// switch to next viewpoint - 
@@ -170,6 +171,16 @@ void EventLoop() {
 	if (BrowserAction) {
 		doBrowserAction ();
 		BrowserAction = FALSE;	/* action complete */
+	}
+
+	/* handle any events provided on the command line - Robert Sim */
+	if (keypress_string && isURLLoaded() && (!isTextureParsing())) {
+		char* c=keypress_string;
+		while (*c) {
+			do_keyPress(*c,KeyPress);
+			c++;
+		}
+		keypress_string=NULL;
 	}
 
 	/* Handle X events */

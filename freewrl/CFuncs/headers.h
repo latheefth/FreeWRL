@@ -372,6 +372,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 
 extern int rootNode;
 extern int isPerlParsing(void);
+extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
 extern int isTextureParsing(void);
 extern void loadInline(struct VRML_Inline *node);
 extern void loadImageTexture(struct VRML_ImageTexture *node);
