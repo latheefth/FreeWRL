@@ -437,44 +437,70 @@ void setECMAtype (int num) {
 	}
 }
 
+/* Verify that this structure points to a series of SvPVs not
+ * SvPVMGs or anything like that If it does, convert it to a SvPV */
+
+void verifySVtype(struct Multi_String *to) {
+	int i;
+	SV **svptr;
+	struct STRUCT_SV *newSV;
+
+	svptr = to->p;
+	//printf ("\n verifySVtype old structure: %d %d\n",svptr,to->n);
+	for (i=0; i<(to->n); i++) {
+		//printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
+		//		(svptr[i])->sv_flags,
+		//		 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
+
+		if (SvFLAGS(svptr[i]) |= SVt_PVMG) {
+			//printf ("have to convert element %d\n",i);
+			newSV = malloc (sizeof (struct STRUCT_SV));
+			/* copy over old to new */
+			newSV->sv_flags = SVt_PV | SVf_POK;
+			newSV->sv_refcnt = 1;
+			newSV->sv_any = (svptr[i])->sv_any;
+			free (svptr[i]);
+			svptr[i] = newSV;
+		}
+	}
+	//printf ("done verifySVtype\n");
+}
 
 /****************************************************************/
 /* a script is returning a MFString type; add this to the C	*/
 /* children field						*/
 /****************************************************************/
 void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
-	/* unsigned int newptr; */
 	int xx;
 	int oldlen, newlen;
-	/* char *cptr; */
-	/* void *newmal; */
-
 	jsval _v;
 	JSObject *obj;
 	int i;
 	char *valStr, *OldvalStr;
 	SV **svptr;
+	SV *tmpSV;
 	SV **newp, **oldp;
 	int myv;
 	int count;
+	struct xpv *mypv;
 
 	JSString *strval; /* strings */
 
 	/* oldlen = what was there in the first place */
+	verifySVtype(to);
+	
 	oldlen = to->n;
 	svptr = to->p;
 	newlen=0;
 
-	if (!JS_ValueToObject(cx, (jsval) from, &obj)) printf ("JS_ValueToObject failed in getMFStringtype\n");
+	if (!JS_ValueToObject(cx, (jsval) from, &obj)) 
+		printf ("JS_ValueToObject failed in getMFStringtype\n");
 
-	//printf ("getMFStringtype, object is %d\n",obj);
 	if (!JS_GetProperty(cx, obj, "length", &_v)) {
 		printf ("JS_GetProperty failed for \"length\" in getMFStringtype.\n");
         }
 
-	newlen = JSVAL_TO_INT(_v);	
-
-	// printf ("new len %d old len %d\n",newlen,oldlen);
+	newlen = JSVAL_TO_INT(_v);
 
 	// if we have to expand size of SV...
 	if (newlen > oldlen) {
@@ -486,23 +512,41 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 		// copy old values over
 		for (count = 0; count <oldlen; count ++) {
 			//printf ("copying over element %d\n",count);
-			newp = oldp;
+			*newp = *oldp;
 			newp+= sizeof (to->p);
-			oldp += sizeof (to->p);	
+			oldp+= sizeof (to->p);	
 		}
 		
 		// zero new entries
 		for (count = oldlen; count < newlen; count ++) {
-			//printf ("zeroing new element %d\n",count);
-			*newp = newSVpv("",0);
+			/* make the new SV */
+			*newp = malloc (sizeof (struct STRUCT_SV));
+			(*newp)->sv_flags = SVt_PV | SVf_POK;
+			(*newp)->sv_refcnt=1;
+			mypv = malloc(sizeof (struct xpv));
+			(*newp)->sv_any = mypv;
+
+			/* now, make it point to a blank string */
+			(*mypv).xpv_pv = malloc (2);
+			strcpy((*mypv).xpv_pv ,"");
+			(*mypv).xpv_cur = 0;
+			(*mypv).xpv_len = 1;
 		}
 		free (svptr);
 		svptr = to->p;
 	}
+	//printf ("verifying structure here\n");
+	//for (i=0; i<(to->n); i++) {
+	//	printf ("indx %d flag %x string :%s: len1 %d len2 %d\n",i,
+	//			(svptr[i])->sv_flags,
+	//			 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
+	//}
+	//printf ("done\n");
+
 
 	for (i = 0; i < newlen; i++) {
 		// get the old string pointer
-		OldvalStr = SvPV(svptr[i],xx);
+		OldvalStr = SvPVX(svptr[i]);
 		//printf ("old string at %d is %s len %d\n",i,OldvalStr,strlen(OldvalStr));
 
 		// get the new string pointer
@@ -518,9 +562,32 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 
 		// if the strings are different...
 		if (strncmp(valStr,OldvalStr,strlen(valStr)) != 0) {
-			sv_setpv(svptr[i],valStr);
+			// now Perl core dumps since this is the wrong thread, so lets do this 
+			// ourselves: sv_setpv(svptr[i],valStr);
+
+			// get a pointer to the xpv to modify
+			mypv = SvANY(svptr[i]);
+
+			// free the old string
+			free (mypv->xpv_pv); 
+
+			// malloc a new string, of correct len for terminator
+			mypv->xpv_pv = malloc (strlen(valStr)+2);
+
+			// copy string over
+			strcpy (mypv->xpv_pv, valStr);
+
+			// and tell us that it is now longer
+			mypv->xpv_len = strlen(valStr)+1;
+			mypv->xpv_cur = strlen(valStr)+0;
 		}
 	}
+	//printf ("\n new structure: %d %d\n",svptr,newlen);
+	//for (i=0; i<newlen; i++) {
+	//	printf ("indx %d string :%s: len1 %d len2 %d\n",i,
+	//			//mypv->xpv_pv, mypv->xpv_cur,mypv->xpv_len);
+	//			 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
+	//}
 
 	myv = INT_TO_JSVAL(1);
 	if (!JS_SetProperty(cx, obj, "__touched_flag", (jsval *)&myv)) {
@@ -969,6 +1036,7 @@ void CRoutes_js_new (int num,unsigned int cx, unsigned int glob, unsigned int br
 	UNUSED(glob);
 	UNUSED(brow);
 
+	//printf ("CRoutes_js_new, number %d\n",num);
 
 	/* more scripts than we can handle right now? */
 	if (num >= JSMaxScript)  {
@@ -1486,7 +1554,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				case MFNODE: {getMFNodetype (strp,(void *)(tn+tptr),CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
-									 (jsval *)global_return_val,(void *)(tn+tptr)); 
+						 (jsval *)global_return_val,(void *)(tn+tptr)); 
 					break;
 				}
 
@@ -1539,6 +1607,8 @@ this sends events to scripts that have eventIns defined.
 void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
+
+	printf("sendScriptEventIn, num %d\n",num);
 
 	/* script value: 1: this is a from script route
 			 2: this is a to script route
