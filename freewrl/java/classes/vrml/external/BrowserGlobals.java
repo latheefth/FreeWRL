@@ -1,7 +1,7 @@
 package vrml.external;
 import vrml.external.field.*;
 import vrml.external.FreeWRLEAI.*;
-public synchronized class BrowserGlobals
+public class BrowserGlobals
 {
     
 
