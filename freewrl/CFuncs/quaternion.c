@@ -148,8 +148,8 @@ inverse(Quaternion *ret, const Quaternion *quat)
 
 	/* unit quaternion, so take conjugate */
 	normalize(ret);
-/* 	printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n", */
-/* 		   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z); */
+ 	//printf("Quaternion inverse: ret = {%f, %f, %f, %f}, quat = {%f, %f, %f, %f}\n", 
+ 	//	   ret->w, ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z); 
 }
 
 double
@@ -221,7 +221,7 @@ rotation(struct pt *ret, const Quaternion *quat, const struct pt *v)
 	ret->x = q_r2.x;
 	ret->y = q_r2.y;
 	ret->z = q_r2.z;
-/* 	printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z); */
+ 	//printf("Quaternion rotation: ret = {%f, %f, %f}, quat = {%f, %f, %f, %f}, v = {%f, %f, %f}\n", ret->x, ret->y, ret->z, quat->w, quat->x, quat->y, quat->z, v->x, v->y, v->z); 
 }
 
 
@@ -233,8 +233,8 @@ togl(Quaternion *quat)
 	if (quat->w > 1) { normalize(quat); }
 
 	/* get the angle, but turn us around 180 degrees */
-	//printf ("togl: setting rotation %f %f %f %f\n",(2 * (acos(quat->w) / PI * 180)),-quat->x, -quat->y, -quat->z);
-	glRotated((2 * (acos(quat->w) / PI * 180)), -quat->x, -quat->y, -quat->z);
+	//printf ("togl: setting rotation %f %f %f %f\n",quat->w,quat->x,quat->y,quat->z);
+	glRotated((2 * (acos(quat->w) / PI * 180)), quat->x, quat->y, quat->z);
 }
 
 void
