@@ -10,11 +10,11 @@
 #define FSIGOK
 #endif
 
+
 static int PluginSocketVerbose = 0; // CHECK DIRECTORY IN PLUGINPRINT
 static FILE * tty = NULL;
 fd_set rfds;
 struct timeval tv;
-
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
@@ -45,7 +45,7 @@ int waitForData(int sock) {
 	count = 0;
 	do {
 		tv.tv_sec = 0;
-		tv.tv_usec = 50;
+		tv.tv_usec = 100;
 		FD_ZERO(&rfds);
 		FD_SET((sock), &rfds);
 	
@@ -56,9 +56,9 @@ int waitForData(int sock) {
 			pluginprint ("waitForData returns TRUE\n","");
 			return (TRUE);
 		} else {
-			pluginprint ("eaitForData returns FALSE\n","");
+			//pluginprint ("eaitForData returns FALSE\n","");
 			count ++;
-			if (count > 1000) {
+			if (count > 1000000) {
 				pluginprint ("waitForData, timing out\n","");
 				return (FALSE);
 			}
@@ -150,6 +150,10 @@ requestUrlfromPlugin(int sockDesc,
 {
 	size_t len = 0, ulen = 0, bytes = 0;
 	urlRequest request;
+	FILE  *infile;
+	int linecount;
+	int linelen;
+	char buf[2004];
 
 	pluginprint ("requestURL fromPlugin, getting %s\n",url);
 
@@ -166,22 +170,12 @@ requestUrlfromPlugin(int sockDesc,
 
 	pluginprint ("requestURL fromPlugin, step 1\n","");
 
-#if FALSE
-#ifdef MSG_CONFIRM
-	flags |= MSG_CONFIRM;
-#endif /* MSG_CONFIRM */
-#endif /* FALSE */
-
 	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
 		pluginprint ("write failed in requestUrlfromPlugin","");
 		return NULL;
 	}
 
 	pluginprint ("requestURL fromPlugin, step 2\n","");
-#if FALSE
-	flags |= MSG_WAITALL;
-#endif /* FALSE */
-	
 
 	/* wait around for a bit to see if this is going to pass or fail */
 	if (!waitForData(sockDesc)) return NULL;
@@ -193,6 +187,32 @@ requestUrlfromPlugin(int sockDesc,
 	}
 
 	pluginprint ("requestURL fromPlugin, returning %s\n",return_url);
+
+	/* now, did this request return a text file with a html page indicating 404- not found? */
+	infile = fopen (return_url,"r");
+	if (infile < 0) return NULL;
+
+	linecount = 0;
+	linelen = fread (buf,1,2000,infile);
+	pluginprint ("verify read, read in %d characters\n",linelen);
+	while ((linelen > 0) && (linecount < 5)){	
+		pluginprint ("verify read, read in %d characters\n",linelen);
+		
+		/* did we find a "404 file not found" message? */
+		/* some, all??? will eventually return a 404 html text in
+		   place of whatever you requested */
+		if (strstr(buf,"<TITLE>404 Not Found</TITLE>") != NULL) {
+			pluginprint ("found a 404 in :%s:\n",buf);
+			fclose (infile);
+			return NULL;
+		}
+		linecount ++;
+		linelen = fread (buf,1,2000,infile);
+	}
+	fclose (infile);
+
+
+	/* we must be returning something here */
 	return return_url;
 }
 

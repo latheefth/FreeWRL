@@ -45,6 +45,8 @@
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
 #define PLUGIN_DESCRIPTION	"V3.1 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
 
+#define ERRORMSG "FILE DOES NOT EXIST"
+
 char *paramline[15]; /* parameter line */
 
 static int PluginVerbose = 0;  // CHECK LOG FILE PATH BEFORE SETTING THIS TO 1
