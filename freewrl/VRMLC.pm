@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.103  2003/07/17 13:42:48  crc_canada
+# EAI work
+#
 # Revision 1.102  2003/07/15 18:51:48  crc_canada
 # EAI in C work
 #
@@ -2413,6 +2416,7 @@ CODE:
 
 	if (loop_count == 25) {
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
+		//printf ("Fps: %f\n",BrowserFPS);
 		BrowserStartTime = TickTime; 
 		loop_count = 1;
 	} else {
@@ -2753,12 +2757,12 @@ void
 do_create_EAI(eailine)
 	char *eailine
 	CODE:
-	printf ("create_EAI called :%s:\n",eailine);
+	create_EAI(eailine);
 
 void
 do_handle_EAI ()
 	CODE:
-	//printf ("handle eai called\n");
+	handle_EAI();
 
 
 #****************JAVASCRIPT FUNCTIONS*********************************
