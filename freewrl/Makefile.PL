@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "1.01";
+$VERSION = "1.01-pre1";
 
 BEGIN {
  eval "use 5.004";
