@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.99  2003/07/09 18:12:31  crc_canada
+# added function to allow Javascript with DEF'd parameter to add/remove children through this param.
+#
 # Revision 1.98  2003/07/07 19:08:20  ayla
 #
 # Billboard calculation uses ModelView matrix again, which hopefully fixes
@@ -2726,6 +2729,21 @@ CODE:
 	RETVAL = JSparamIndex (evin,evtype);
 OUTPUT:
 RETVAL
+
+
+# allow Javascript to add/remove children when the parent is a USE - see JS/JS.pm.
+void
+jsManipulateChild(par, fiel, child)
+	int par
+	char *fiel
+	int child
+CODE:
+	char onechildline[100];
+
+	sprintf (onechildline, "[ %d ]",child);
+	getMFNodetype (onechildline, (struct Multi_Node *) par,
+		!strncmp (fiel,"addChild",strlen ("addChild")));
+
 
 #****************JAVASCRIPT FUNCTIONS*********************************
 
