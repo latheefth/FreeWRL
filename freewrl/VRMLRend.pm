@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.89  2003/02/06 20:28:57  crc_canada
+# remove endlist macro (was commented out) also remove some incorrect
+# and commented out stuff at glEndList() call in Shape
+#
 # Revision 1.88  2003/01/31 19:34:05  crc_canada
 # More SoundEngine work
 #
@@ -1678,9 +1682,6 @@ Transform => (join '','
 		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
 		);
         } 
-	/*
-	$endlist();
-	*/
 '),
 
 Billboard => '
@@ -2036,17 +2037,8 @@ Billboard => (join '','
 		
 		if ((render_geom) && (!render_sensitive)) {
 			if (this_->_dlchange == this_->_change) {
-				/* premature ending of dlists */
 				glEndList();
 			}
-
-			/* JAS
-			glError = glGetError();
-			while (glError != GL_NO_ERROR) {
-				printf ("VRMLRend.pm::Shape:glError: %s\n",gluErrorString(glError));
-				glError = glGetError();
-			}
-			*/
 		}
 		last_visited_shape = 0;
 		glPopAttrib();
