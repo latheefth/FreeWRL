@@ -47,11 +47,9 @@ Comments/help/Additional build notes more than welcome.
 </LIST>
 
 <P>
+<BR>(updated 03 August  2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
 <BR>(updated 07 June  2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
 <BR>(updated 08 May 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
-<BR>(updated 08 April 2001 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
-<BR>(updated 31 August 2000 - <A HREF="mailto:remi@cohen-scali.com">remi@cohen-scali.com</A>)
-<BR>(updated 19 June 2000 - <A HREF="mailto:john.stewart@crc.ca">john.stewart@crc.ca</A>)
 
 <H3>
 Building FreeWRL as a standalone executable
@@ -243,9 +241,15 @@ If these programs don't run, then go back and make FreeWRL it so that it does wo
 
 <A HREF="Plugin/readme.html">instructions</A>.</P>
 <P>
-<P><B>5) Getting it to work with external sensors.</B></P>
+<P><B>5) X3D compatibility.</B></P>
+
+<P><B>5.1)</B> Go to the x3d directory, and follow the
+
+<A HREF="x3d/readme.html">instructions</A>.</P>
 <P>
-<B>5.1)</B> CRC's "Flying Chair".
+<P><B>6) Getting it to work with external sensors.</B></P>
+<P>
+<B>6.1)</B> CRC's "Flying Chair".
 <P>
 This chair can be seen in the "links" section. The code to 
 run this chair is freely available, at:
@@ -253,31 +257,31 @@ run this chair is freely available, at:
 http://sourceforge.net/projects/mvip/</A>
 <P>
 
-<B>5.2)</B> Thrustmaster style Joystick 
+<B>6.2)</B> Thrustmaster style Joystick 
 <P>
 The 2-D joystick interface is available at: 
 <A HREF="/html/FreeWRL/downloads/joystick/Joystick-1.0.tar.gz">http://www.crc.ca/FreeWRL/download/joystick/Joystick-1.0.tar.gz</A>, and the 3D joystick
 interface is available as part of the chair code, as outlined above.
 
-<P><B>5.3)</B> Data Glove.</P>
+<P><B>6.3)</B> Data Glove.</P>
 <P>
 This interface is being actively worked on.
 <P>
-<P><B>5.4)</B> Spaceball 3D positioning mouse.</P>
+<P><B>6.4)</B> Spaceball 3D positioning mouse.</P>
 <P>
 This interface is being actively worked on.
 <P>
-<P><B>5.4)</B> Touchscreens.</P>
+<P><B>6.4)</B> Touchscreens.</P>
 <P>
 One of our FreeWRL users has made a very interesting touchscreen
 interface to FreeWRL. This code will be incorporated into FreeWRL
 when it is complete.
 <P>
-<P><B>5.6)</B> Polhemus/Virtual Research goggles with position sensor.</P>
+<P><B>6.6)</B> Polhemus/Virtual Research goggles with position sensor.</P>
 This works very well with the "Flying Chair" mentioned above, but if you 
 wish to run this alone, without joystick (and chair!), here are the
 directions:
-<P><B>5.6.1)</B> Polhemus Position Sensor.</P>  
+<P><B>6.6.1)</B> Polhemus Position Sensor.</P>  
 
 <P> - Untar and compile the code in the Polhemus 1.0. tarfile. 
 <BR>- run minicom (with modem in it strings set to null) and see if you can get any input.  
@@ -297,7 +301,7 @@ directions:
 <P> - run the program Polhemus/termite to get the polhemus interface   code working. Note - headset should be pointed at where you want &quot;front&quot; to be.</P>
 
 
-<P><B>5.6.2)</B> Virtual Research goggles
+<P><B>6.6.2)</B> Virtual Research goggles
 <P> An option has been added to FreeWRL to run in full screen mode just for these goggles. Start FreeWRL with the "-fullscreen" option; eg:
 <P>
 freewrl tests/1.wrl -best -fullscreen -geometry 640x480
