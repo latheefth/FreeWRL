@@ -166,9 +166,6 @@ OpenGL/OpenGL.pm
 OpenGL/OpenGL.vf
 OpenGL/OpenGL.xs
 OpenGL/X.h
-OpenGL/examples/clip
-OpenGL/generate.p
-OpenGL/hints/solaris_2.pl
 OpenGL/typemap
 Parser.pm
 Quaternion.pm
