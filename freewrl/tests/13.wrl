@@ -5,28 +5,27 @@
 # for conditions of use and redistribution.
 
 # first example of points, lines and faces.
-# this is a cube, made of faces.
-
+# This is the test of default indexed face set texture mapping, from
+# the spec. 
 
 Shape {
 	appearance Appearance {
-	material Material {
-	}
+		texture ImageTexture {url "helpers/IFStexture2.gif"}
 	}
 
 	geometry IndexedFaceSet {
 		coord Coordinate {
 		point [
 			# the top of the cube
-			-1.0 1.0 1.0,
-			1.0 1.0 1.0,
-			1.0 1.0 -1.0,
-			-1.0 1.0 -1.0,
+			-3.0 1.5 1.0,
+			3.0 1.5 1.0,
+			3.0 1.5 -1.0,
+			-3.0 1.5 -1.0,
 			# around the bottom of the cube
-			-1.0 -1.0 1.0,
-			1.0 -1.0 1.0,
-			1.0 -1.0 -1.0,
-			-1.0 -1.0 -1.0,
+			-3.0 -1.5 1.0,
+			3.0 -1.5 1.0,
+			3.0 -1.5 -1.0,
+			-3.0 -1.5 -1.0,
 			]
 		}
 
