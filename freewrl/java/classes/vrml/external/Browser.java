@@ -57,7 +57,7 @@ public class Browser implements BrowserInterface
     // The following are used to send to/from the FreeWRL Browser by:
     // 		- EAIinThread
 
-    ServerSocket	EAISocket;
+    Socket	EAISocket;
     Socket		sock;
     static PrintWriter         EAIout;
     
@@ -126,6 +126,7 @@ public class Browser implements BrowserInterface
 	int incrport = -1;
 	EAISocket = null;
 
+	System.out.println ("trying to open socket on 9877");
 	//enable privleges
 	//JAS try {
 	//JAS 	PrivilegeManager.enablePrivilege ("UniversalConnect");
@@ -134,19 +135,21 @@ public class Browser implements BrowserInterface
 	//JAS }
 	
 	try {
-		EAISocket = new ServerSocket(2000);
+		EAISocket = new Socket("localhost",9877);
 	} catch (IOException e) {
 		System.out.println ("EAI: Error creating socket for FreeWRL EAI on port 2000");
 	}
-	//System.out.println ("EAI: opened port, ready for data" );
+	System.out.println ("EAI: opened TCP Client port, ready for data" );
 
 
-  	try {
-  		sock=EAISocket.accept();
-  	} catch (IOException e) {
-  	  System.out.print ("EAI: System error on accept method\n");
-  	}
+  	//JAStry {
+  	//JAS	sock=EAISocket.accept();
+  	//JAS} catch (IOException e) {
+  	  //JASSystem.out.print ("EAI: System error on accept method\n");
+  	//JAS}
 
+
+	sock = EAISocket;	//JAS - these are the same now...
 
 
 
@@ -194,12 +197,15 @@ public class Browser implements BrowserInterface
 
 	//====================================================================
   	// Wait for the FreeWRL browser to send us something...
-        try {
-          fwvers = BrowserfromEAI.readLine();
-	  //System.out.println ("Browser: FreeWRL Version: " + fwvers);
-        } catch (IOException ie) {System.out.println ("EAI: caught " + ie);}
+        //try {
+         // fwvers = BrowserfromEAI.readLine();
+	 // System.out.println ("Browser: FreeWRL Version: " + fwvers);
+        //} catch (IOException ie) {System.out.println ("EAI: caught " + ie);}
   
   	// Browser is "gotten", and is started.
+
+System.out.println ("Browser is here, and is running");
+
   	return;
     }
   
@@ -449,7 +455,7 @@ public class Browser implements BrowserInterface
       temp = new Node();  
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "\nGN " + NodeName + "\n");
+        EAIoutSender.send ("" + queryno + "A " + NodeName + "\n");
         temp.NodeName = getVRMLreply (queryno);
         queryno += 1;
       }
@@ -489,12 +495,14 @@ public class Browser implements BrowserInterface
     }
 
   // Most events don't need us to wait around for it.
-  public static void SendEvent (String NodeName, String FieldName, String Value)
+  public static void SendEvent (String NodePtr, String Offset, String datasize, String NodeType, String Value)
     {
 
+System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + NodePtr +
+		" Offset " + Offset);
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "\nSE " + NodeName + " " + 
-           FieldName + "\n" + Value + "\n");
+        EAIoutSender.send ("" + queryno + "D" + NodeType + " " + 
+           NodePtr + " " + Offset + " " + Value + "\n");
         // JAS - don't wait. getVRMLreply(queryno);
         queryno += 1;
       }
@@ -514,14 +522,15 @@ public class Browser implements BrowserInterface
   }
 
 
-  protected static String SendEventType (String NodeName, String FieldName) {
+  protected static String SendEventType (String NodeName, String FieldName, String direction) {
+
       // get a type from a particular node.
 
       String retval;
 
       synchronized (FreeWRLToken) {
-        EAIoutSender.send ("" + queryno + "\nGT " + NodeName + " " +
-           FieldName + "\n");
+        EAIoutSender.send ("" + queryno + "F " + NodeName + " " +
+           FieldName + " " + direction + "\n");
         retval = getVRMLreply(queryno);
         queryno += 1;
       }

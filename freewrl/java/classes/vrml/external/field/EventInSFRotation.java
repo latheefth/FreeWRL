@@ -6,7 +6,7 @@ public class EventInSFRotation extends EventIn {
   public EventInSFRotation() { EventType = FieldTypes.SFROTATION; }
 
   public void          setValue(float[] value) {
-    Browser.SendEvent (inNode , command, "" + value[0] + " " + value[1] +
+    Browser.SendEvent (nodeptr,offset,datasize , datatype, "" + value[0] + " " + value[1] +
                   " " + value[2] + " " + value[3]);
     return;
   }

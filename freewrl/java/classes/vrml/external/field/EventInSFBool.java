@@ -7,9 +7,9 @@ public class EventInSFBool extends EventIn {
 
   public void          setValue(boolean value) {
   if (value) {
-    Browser.SendEvent (inNode , command, "TRUE");
+    Browser.SendEvent (nodeptr,offset,datasize , datatype, "TRUE");
   } else {
-    Browser.SendEvent (inNode, command, "FALSE");
+    Browser.SendEvent (nodeptr,offset,datasize , datatype, "FALSE");
   }
   return;
   }

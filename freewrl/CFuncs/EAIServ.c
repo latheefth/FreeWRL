@@ -6,13 +6,40 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-/*
- *
- */
-
 /************************************************************************/
 /*									*/
 /* implement EAI server functionality for FreeWRL.			*/
+/*									*/
+/* Design notes:							*/
+/*	FreeWRL is a server, the Java (or whatever) program is a client	*/
+/*									*/
+/*	Commands come in, and get answered to, except for sendEvents;	*/
+/*	for these there is no response (makes system faster)		*/
+/*									*/
+/*	Nodes that are registered for listening to, send async		*/
+/*	messages.							*/
+/*									*/
+/*	very simple example:						*/
+/*		move a transform; Java code:				*/
+/*									*/
+/*		EventInMFNode addChildren;				*/
+/*		EventInSFVec3f newpos;					*/
+/*		try { root = browser.getNode("ROOT"); }			*/
+/*		catch (InvalidNodeException e) { ... }			*/
+/*									*/
+/*		newpos=(EventInSFVec3f)root.getEventIn("translation");	*/
+/*		val[0] = 1.0; val[1] = 1.0; val[2] = 1.0;		*/
+/*		newpos.setValue(val);					*/
+/*									*/
+/*		Three EAI commands sent:				*/
+/*			1) GetNode ROOT					*/
+/*				returns a node identifier		*/
+/*			2) GetType (nodeID) translation			*/
+/*				returns posn in memory, length,		*/
+/*				and data type				*/
+/*									*/
+/*			3) SendEvent posn-in-memory, len, data		*/
+/*				returns nothing - assumed to work.	*/
 /*									*/
 /************************************************************************/
 
@@ -30,6 +57,55 @@ extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
 
 #define MAXEAIHOSTNAME	255		// length of hostname on command line
 #define EAIREADSIZE	2048		// maximum we are allowed to read in from socket
+#define EAIBASESOCKET   9877		// socket number to start at
+
+
+/* these are commands accepted from the EAI client */
+#define GETNODE		'A'
+#define UPDATEROUTING 	'B'
+#define SENDCHILD 	'C'
+#define SENDEVENT	'D'
+#define GETVALUE	'E'
+#define GETTYPE		'F'
+#define	REGLISTENER	'G'
+#define	ADDROUTE	'H'
+#define	DELETEROUTE	'J'
+#define GETNAME		'K'
+#define	GETVERSION	'L'
+#define GETCURSPEED	'M'
+#define GETFRAMERATE	'N'
+#define	GETURL		'O'
+#define	REPLACEWORLD	'P'
+#define	LOADURL		'Q'
+#define	SETDESCRIPT	'R'
+#define CREATEVS	'S'
+#define	CREATEVU	'T'
+#define	STOPFREEWRL	'U'
+
+/* Subtypes - types of data to get from EAI */
+#define	SFUNKNOWN	'a'
+#define	SFBOOL		'b'
+#define	SFCOLOR		'c'
+#define	SFFLOAT		'd'
+#define	SFTIME		'e'
+#define	SFINT32		'f'
+#define	SFSTRING	'g'
+#define	SFNODE		'h'
+#define	SFROTATION	'i'
+#define	SFVEC2F		'j'
+#define	SFIMAGE		'k'
+#define	MFCOLOR		'l'
+#define	MFFLOAT		'm'
+#define	MFTIME		'n'
+#define	MFINT32		'o'
+#define	MFSTRING	'p'
+#define	MFNODE		'q'
+#define	MFROTATION	'r'
+#define	MFVEC2F		's'
+#define MFVEC3F		't'
+#define SFVEC3F		'u'
+
+
 
 int EAIwanted = FALSE;			// do we want EAI?
 char EAIhost[MAXEAIHOSTNAME];		// host we are connecting to
@@ -40,92 +116,151 @@ int EAIfailed = FALSE;			// did we not succeed in opening interface?
 int EAIconnectstep = 0;			// where we are in the connect sequence
 
 /* socket stuff */
-int 	sockfd;
-struct sockaddr_in	servaddr;
+int 	sockfd = -1;			// main TCP socket fd
+int	listenfd = -1;			// listen to this one for an incoming connection
+
+struct sockaddr_in	servaddr, cliaddr;
 fd_set rfds;
 struct timeval tv;
 
 /* eai connect line */
 char *inpline;
 
-int EAIVerbose = 0;
+/* EAI input buffer */
+char *buffer;
+int bufcount;				// pointer into buffer
+int bufsize;				// current size in bytes of input buffer 
+
+
+int EAIVerbose = 1;
+
+int EAIsendcount = 0;			// how many commands have been sent back?
+
+
+
+// prototypes
+void EAI_parse_commands (char *stptr);
+unsigned int EAI_SendEvent(char *bufptr);
+void EAI_send_string (char *str);
+void connect_EAI(void);
+void create_EAI(char *eailine);
+void handle_EAI(void);
+
 
 void EAI_send_string(char *str){
 	int n;
 
-	if (EAIVerbose) printf ("EAI_send_string, %s\n",str);
-	n = send (sockfd, str, strlen(str) ,0);
+	/* add a trailing newline */
+	strcat (str,"\n");
+
+	if (EAIVerbose) printf ("EAISERVER:EAI_send_string, %s\n",str);
+	n = write (listenfd, str, (unsigned int) strlen(str));
+	if (n<strlen(str)) {
+		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
+	}
+	if (EAIVerbose) printf ("EAISERVER:EAI_send_string, sent \n");
 
 }
 
-
-
-/* open the socket connection - thanks to the stevens network programming book */
+/* open the socket connection -  we open as a TCP server, and will find a free socket */
 void connect_EAI() {
-	char vers[200];
+	int socketincrement;
+	int len;
+	const int on=1;
+	int flags;
+
+        struct sockaddr_in      servaddr;
 
 	if (EAIfailed) return;
 
-	if (EAIVerbose) printf ("connect step %d\n",EAIconnectstep);
+	//if (EAIVerbose) printf ("EAISERVER:connect\n");
 
-	switch (EAIconnectstep) {
-	case 0: {
-			if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
-				printf ("EAI Socket open error\n");
-				EAIfailed = TRUE;
+	if (sockfd < 0) {
+		// step 1  - create socket
+	        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+			printf ("EAIServer: socket error\n");
+			EAIfailed=TRUE;
+			return;
+		}
+	
+	
+		setsockopt (sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+	
+		if (flags=fcntl(sockfd,F_GETFL,0) < 0) {
+			printf ("EAIServer: trouble gettingsocket flags\n");
+			EAIfailed=TRUE;
+			return;
+		} else {
+			flags |= O_NONBLOCK;
+	
+			if (fcntl(sockfd, F_SETFL, flags) < 0) {
+				printf ("EAIServer: trouble setting non-blocking socket\n");
+				EAIfailed=TRUE;
 				return;
 			}
-
-			EAIconnectstep ++;
-			break;
 		}
+	
+		printf ("connect_EAI - socket made\n");
+	
+		// step 2 - bind to socket
+		socketincrement = 0;
+	        bzero(&servaddr, sizeof(servaddr));
+	        servaddr.sin_family      = AF_INET;
+	        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	        servaddr.sin_port        = htons(EAIBASESOCKET+socketincrement);
+	
+	        while (bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+			//socketincrement++;
+			//printf ("error binding to %d, trying %d\n",EAIBASESOCKET+socketincrement-1,
+			//	EAIBASESOCKET+socketincrement);
+			//servaddr.sin_port        = htons(EAIBASESOCKET+socketincrement);
 
-	case 1: {
-			bzero (&servaddr, sizeof (servaddr));
-
-			servaddr.sin_family = AF_INET;
-			servaddr.sin_port = htons (2000);
-
-			if (inet_pton(AF_INET,"127.0.0.1", &servaddr.sin_addr) < 0) {
-				printf ("EAI inet_pton error\n");
-				EAIfailed = TRUE;
-				return;
-			}
-			EAIconnectstep ++;
-			break;
+			// do we really want to ramp up and find a "free" socket? Not in
+			// this version, anyway.
+			EAIfailed=TRUE;
+			return;
 		}
-
-	case 2: {
-			/* wait for EAI to come on line  - thus we never fail at this step */	
-			if (connect (sockfd, (struct sockaddr_in *) &servaddr, sizeof (servaddr)) < 0) {
-				// printf ("EAI connect error\n");
-				// keep going until success EAIfailed = TRUE;
-				return;
-			}
-
-			/* set up the select polling data structure */
-			FD_ZERO(&rfds);
-			FD_SET(sockfd, &rfds);
-
-			/* tell the EAI what version of FreeWRL we are running */
-			strncpy (vers,BrowserVersion,190);
-			strcat (vers,"\n");
-			EAI_send_string(vers);
-
-			/* seems like we are up and running now, and waiting for a command */
-			EAIinitialized = TRUE;	
-			EAIconnectstep ++;
-			break;
+	
+		if (EAIVerbose) printf ("EAISERVER: bound to socket %d\n",EAIBASESOCKET+socketincrement);
+	
+		// step 3 - listen
+	
+	        if (listen(sockfd, 1024) < 0) {
+	                printf ("EAIServer: listen error\n");
+			EAIfailed=TRUE;
+			return;
 		}
+		//printf ("past step 3\n");
+	}
 
-	default: {}
+	if ((sockfd >=0) && (listenfd<0)) {
+		// step 4 - accept
+		len = sizeof(cliaddr);
+	        if ( (listenfd = accept(sockfd, (struct sockaddr *) &cliaddr, &len)) < 0) {
+			//printf ("EAIServer: no client yet\n");
+		}
+		//printf ("past step 4 - listenfd %d\n",listenfd);
+	}
+
+
+	if (listenfd >=0) {
+		/* allocate memory for input buffer */
+		bufcount = 0;
+		bufsize = 2 * EAIREADSIZE; // initial size
+		buffer = malloc(bufsize * sizeof (char));
+		if (buffer == 0) {
+			printf ("can not malloc memory for input buffer in create_EAI\n");
+			EAIfailed = TRUE;
+			return;
+		}
+		
+		/* seems like we are up and running now, and waiting for a command */
+		EAIinitialized = TRUE;	
 	}
 }
 
-
-
 void create_EAI(char *eailine) {
-        if (EAIVerbose) printf ("create_EAI called :%s:\n",eailine);
+        if (EAIVerbose) printf ("EAISERVER:create_EAI called :%s:\n",eailine);
 
 	/* already wanted? if so, just return */
 	if (EAIwanted) return;
@@ -134,15 +269,17 @@ void create_EAI(char *eailine) {
 	EAIwanted = TRUE;
 
 	/* copy over the eailine to a local variable */
-	inpline = malloc((strlen (eailine)+1) * sizeof (char));
 
-	if (inpline == 0) {
-		printf ("can not malloc memory in create_EAI\n");
-		EAIwanted = FALSE;
-		return;
-	}
+	// JAS - right now we use localhost, and a base of EAIBASESOCKET, so ignore this line
+	//inpline = malloc((strlen (eailine)+1) * sizeof (char));
 
-	strcpy (inpline,eailine);
+	//if (inpline == 0) {
+	//	printf ("can not malloc memory in create_EAI\n");
+	//	EAIwanted = FALSE;
+	//	return;
+	//}
+
+	//strcpy (inpline,eailine);
 	
 	/* have we already started? */
 	if (!EAIinitialized) {
@@ -150,11 +287,10 @@ void create_EAI(char *eailine) {
 	}
 }
 
+/* possibly we have an incoming EAI request from the client */
 void handle_EAI () {
 	int retval;
-
-	char buf[EAIREADSIZE];
-
+	int len;
 
 	/* do nothing unless we are wanted */
 	if (!EAIwanted) return;
@@ -163,19 +299,307 @@ void handle_EAI () {
 		return;
 	}
 
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	FD_ZERO(&rfds);
-	FD_SET(sockfd, &rfds);
-	retval = select(1, &rfds, NULL, NULL, &tv);
+	len = sizeof (servaddr);
+	retval = FALSE;
+	bufcount = 0;
 
-	if (retval) {
-		printf("Data is available now.\n");
-		retval = read (sockfd, buf,EAIREADSIZE);
-		printf ("read in %d , max %d\n",retval,EAIREADSIZE);
+	do {
+		tv.tv_sec = 0;
+		tv.tv_usec = 0;
+		FD_ZERO(&rfds);
+		FD_SET(listenfd, &rfds);
+	
+		retval = select(listenfd+1, &rfds, NULL, NULL, &tv);
+	
+	        //if (EAIVerbose) printf ("EAISERVER:Select retval:%d\n",retval);
+	
+		if (retval) {
+			retval = read (listenfd, &buffer[bufcount],EAIREADSIZE);
+
+			if (retval == 0) {
+				// client disappeared
+				close (listenfd);
+				listenfd = -1;
+				EAIinitialized=FALSE;
+			}
+
+			printf ("read in %d , max %d",retval,EAIREADSIZE);
+			printf ("space left %d\n",bufsize - bufcount);
+			bufcount += retval;
+
+			if ((bufsize - bufcount) < 10) {
+				printf ("HAVE TO REALLOC INPUT MEMORY\n");
+				bufsize += EAIREADSIZE;
+				buffer = realloc (buffer, bufsize);
+			}
+		}
+	} while (retval);
+
+	/* make this into a C string */
+	bufcount ++;
+	buffer[bufcount] = 0;
+
+	/* any command read in? */
+	if (bufcount > 1) 
+		EAI_parse_commands (buffer);
+}
+
+/******************************************************************************
+*
+* EAI_parse_commands
+*
+* there can be many commands waiting, so we loop through commands, and return
+* a status of EACH command
+*
+* a Command starts off with a sequential number, a space, then a letter indicating
+* the command, then the parameters of the command.
+*
+* the command names are #defined at the start of this file.
+*
+* some commands have sub commands (eg, get a value) to indicate data types, 
+* (eg, SFFLOAT); these sub types are indicated with a lower case letter; again,
+* look to the top of this file for the #defines
+*
+*********************************************************************************/
+
+void EAI_parse_commands (char *bufptr) {
+	char buf[EAIREADSIZE];	// return value place
+	char ctmp[EAIREADSIZE];	// temporary character buffer
+	char dtmp[EAIREADSIZE];	// temporary character buffer
+	int count;
+	char command;
+	unsigned int uretval;		// unsigned return value
+	unsigned int ra,rb,rc,rd;	// temps
+
+
+	while (strlen(bufptr)> 0) {
+		//for (tmp = 0; tmp <= strlen(bufptr); tmp ++) {
+		//	printf ("char %d is %x %d\n",tmp,bufptr[tmp],bufptr[tmp]);
+		//}
+	
+		printf ("EAIServer string is:%s: strlen %d\n",bufptr,strlen (bufptr));
+
+
+		/* step 1, get the command sequence number */
+		if (sscanf (bufptr,"%d",&count) != 1) {
+			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
+			count = 0;
+		}
+
+		/* step 2, skip past the sequence number */
+		while (isdigit(*bufptr)) bufptr++;
+		while (*bufptr == ' ') bufptr++;
+
+		/* step 3, get the command */
+		printf ("command %c seq %d\n",*bufptr,count);
+		command = *bufptr;
+		bufptr++;
+
+		// return is something like: $hand->print("RE\n$reqid\n1\n$id\n");
+
+		/* step 4, get the return string prepared */
+		sprintf (buf,"\nRE\n%d\n",count);
+
+		switch (command) {
+			case GETNAME: { 
+				if (EAIVerbose) printf ("GETNAME command recieved\n");
+				strcat (buf,BrowserName);
+				break; 
+				}
+			case GETVERSION: { 
+				if (EAIVerbose) printf ("GETVERSION command recieved\n");
+				strcat (buf,BrowserVersion);
+				break; 
+				}
+			case GETCURSPEED: { 
+				if (EAIVerbose) printf ("GETCURRENTSPEED command recieved\n");
+				strcat (buf,"0.0"); // valid to return this
+				break; 
+				}
+			case GETFRAMERATE: { 
+				if (EAIVerbose) printf ("GETFRAMERATE command recieved\n");
+				sprintf (buf,"%d %f",count,BrowserFPS);
+				break; 
+				}
+			case GETURL: { 
+				if (EAIVerbose) printf ("GETURL command recieved\n");
+				strcat (buf,BrowserURL); // valid to return this
+				break; 
+				}
+			case GETNODE:  {
+				//format int seq# COMMAND    string nodename
+
+				if (EAIVerbose) printf ("GETNODE command recieved\n");
+
+				sscanf (bufptr," %s",ctmp);
+				uretval = EAI_GetNode(ctmp);
+
+				sprintf (buf,"RE\n%d\n1000\n%d",count,uretval);
+				break; 
+				}
+			case GETTYPE:  {
+				//format int seq# COMMAND  int node#   string fieldname   string direction
+
+				if (EAIVerbose) printf ("GETNODE command recieved\n");
+
+				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
+				EAI_GetType (uretval,ctmp,dtmp,&ra,&rb,&rc,&rd);
+
+				sprintf (buf,"RE\n%d\n01\n%d %d %d %c",count,ra,rb,rc,rd);
+				break;
+				}
+			case SENDEVENT:   {
+				//format int seq# COMMAND NODETYPE pointer offset data
+				if (EAIVerbose) printf ("SENDEVENT command recieved\n");
+				printf ("line is %s\n",bufptr);
+
+				sprintf (buf,"%d %d\n",count,EAI_SendEvent(bufptr));
+
+				break;
+				}
+			case REPLACEWORLD:  
+			case UPDATEROUTING : 
+			case SENDCHILD :  
+			case GETVALUE: 
+			case REGLISTENER: 
+			case ADDROUTE:  
+			case DELETEROUTE:  
+			case LOADURL: 
+			case SETDESCRIPT:  
+			case CREATEVS: 
+			case CREATEVU:  
+			case STOPFREEWRL:  
+			default: {
+				printf ("unknown command :%c: %d\n",command,command);
+				strcat (buf, "unknown_EAI_command");
+				break;
+				}
+					
+		}
+
+
+		/* send the response */
+		EAI_send_string (buf);
+	
+		/* skip to the next command */
+		while (*bufptr >= ' ') bufptr++;
+		//printf ("at next command len %d str:%s:\n",strlen(bufptr),bufptr);
+
+		/* skip any new lines that may be there */
+		while ((*bufptr == 10) || (*bufptr == 13)) bufptr++;
+		//printf ("skipped newlines, len %d str:%s:\n",strlen(bufptr),bufptr);
 	}
 }
 
+unsigned int EAI_SendEvent (char *ptr) {
+	unsigned char nodetype;
+	unsigned int nodeptr;
+	unsigned int offset;
+
+	int ival;
+	float fl[4];
+	double dval;
+
+	/* we have an event, get the data properly scanned in from the ASCII string, and then
+		friggin do it! ;-) */
+
+	// node type
+	nodetype = *ptr; ptr++;
+
+	//blank space
+	ptr++;
+	
+	//nodeptr, offset
+	sscanf (ptr, "%d %d",&nodeptr, &offset);
+	while ((*ptr) > ' ') ptr++; 	// node ptr
+	while ((*ptr) == ' ') ptr++;	// inter number space(s)
+	while ((*ptr) > ' ') ptr++;	// node offset
+	printf ("EAI_SendEvent, nodeptr %x offset %x\n",nodeptr,offset);
+
+	// now, we are at start of data.
+	printf ("EAI_SendEvent, event string now is %s\n",ptr);
+
+	/* This switch statement is almost identical to the one in the Javascript
+	   code (check out CFuncs/CRoutes.c), except that explicit Javascript calls
+	   are impossible here (this is not javascript!) */
+
+	switch (nodetype) {
+		case SFBOOL:	{	/* SFBool */
+			/* printf ("we have a boolean, copy value over string is %s\n",strp); */
+			if (strncmp(ptr,"true",4)== (unsigned int) 0) {
+				ival = 1;
+			} else {
+				/* printf ("ASSUMED TO BE FALSE\n"); */
+				ival = 0;
+			}	
+			memcpy ((void *)nodeptr+offset, (void *)&ival,sizeof(int));
+			break;
+		}
+
+//xxx		case SFTIME: {
+//xxx			if (!JS_ValueToNumber((JSContext *)JSglobs[actualscript].cx, 
+//xxx								  global_return_val,&tval)) tval=0.0;
+//xxx
+//xxx			//printf ("SFTime conversion numbers %f from string %s\n",tval,ptr);
+//xxx			//printf ("copying to %#x offset %#x len %d\n",tn, tptr,len);
+//xxx			memcpy ((void *)nodeptr+offset, (void *)&tval,sizeof(double));
+//xxx			break;
+//xxx		}
+		case SFNODE:
+		case SFINT32: {
+			sscanf (ptr,"%d",&ival);
+			memcpy ((void *)nodeptr+offset, (void *)&ival,sizeof(int));
+			break;
+		}
+		case SFFLOAT: {
+			sscanf (ptr,"%f",&fl);
+			memcpy ((void *)nodeptr+offset, (void *)&fl,sizeof(float));
+			break;
+		}
+
+		case SFVEC2F: {	/* SFVec2f */
+			sscanf (ptr,"%f %f",&fl[0],&fl[1]);
+			memcpy ((void *)nodeptr+offset, (void *)fl,sizeof(float)*2);
+			break;
+		}
+		case SFVEC3F:
+		case SFCOLOR: {	/* SFColor */
+			sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
+			memcpy ((void *)nodeptr+offset, (void *)fl,sizeof(float)*3);
+			break;
+		}
+
+		case SFROTATION: {
+			sscanf (ptr,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
+			memcpy ((void *)nodeptr+offset, (void *)fl,sizeof(float)*4);
+			break;
+		}
+
+
+		/* a series of Floats... */
+//xxx		case MFVEC3F:
+//xxx		case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,3); break;}
+//xxx		case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,1); break;}
+//xxx		case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,4); break;}
+//xxx		case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,2); break;}
+//xxx		case MFNODE: {getMFNodetype (ptr,nodeptr+offset,CRoutes[route].extra); break;}
+//xxx		case MFSTRING: {
+//xxx			getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
+//xxx							 global_return_val,nodeptr+offset); 
+//xxx			break;
+//xxx		}
+//xxx
+//xxx		case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,0); break;}
+//xxx		case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, nodeptr+offset,5); break;}
+
+		default: {
+			printf ("unhandled Event :%c: - get code in here\n",nodetype);
+			return FALSE;
+		}
+	}
+	update_node ((void *)nodeptr);
+	return TRUE;
+}
 
 
 //sub gulp {

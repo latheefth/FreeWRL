@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.110  2003/09/03 20:50:47  crc_canada
+# First pass at EAI in C code.
+#
 # Revision 1.109  2003/08/25 21:43:46  sdumoulin
 # #Modified to remove poll function calls
 #
@@ -1500,7 +1503,89 @@ if (count > 1) {
 	LEAVE;
 }
 
-/*************************JAVASCRIPT*********************************/
+/*************************END OF JAVASCRIPT*********************************/
+
+/****************************** EAI ****************************************/
+
+unsigned int EAI_GetNode (char *nname) {
+	int count;
+	unsigned int noderef;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	//this is for integers XPUSHs(sv_2mortal(newSViv(nname)));
+	XPUSHs(sv_2mortal(newSVpv(nname, 0)));
+
+
+	PUTBACK;
+	count = call_pv("EAI_GetNode", G_SCALAR);
+	SPAGAIN ;
+
+	if (count != 1)
+		croak("Big trouble\n") ;
+
+	noderef = POPi;
+
+	printf ("The node is %x\n", noderef) ;
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+
+	printf ("returning from EAI_GetNode\n");
+	return (noderef);
+}
+
+void EAI_GetType (unsigned int nodenum, char *fieldname, char *direction,
+	unsigned int	*nodeptr,
+	unsigned int	*dataoffset,
+	unsigned int	*datalen,
+	unsigned int	*nodetype) {
+
+	unsigned int 	count;
+
+	printf ("entering C get_type; nodenum %d, field %s direction %s\n",nodenum,fieldname,direction);	
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSViv(nodenum)));
+	XPUSHs(sv_2mortal(newSVpv(fieldname, 0)));
+	XPUSHs(sv_2mortal(newSVpv(direction, 0)));
+
+	PUTBACK;
+	count = call_pv("EAI_GetType",G_ARRAY);
+	SPAGAIN;
+
+	if (count != 4) {
+		*nodetype=97;	// SFUNKNOWN - check CFuncs/EAIServ.c
+		*datalen=0;*dataoffset=0;*nodeptr=0;
+	} else {
+		/* pop values off stack in reverse of perl return order */
+		*nodetype = POPi;
+		*datalen = POPi;
+		*dataoffset = POPi;
+		*nodeptr = POPi;
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+
+	printf ("returning from EAI_GetType\n");
+	printf ("node pointer %d, dataoffset %d, datalen %d nodetype %d\n",
+			*nodeptr, *dataoffset, *datalen, *nodetype);
+	return;
+}
+
+
+
+
+
+
+/****************************** END OF EAI **********************************/
 
 /* Sub, rather than big macro... */
 void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz, 
@@ -2456,6 +2541,7 @@ CODE:
 	} else {
 		// rate limit ourselves to 120fps. 
 		waittime.tv_usec = (TickTime - lastTime - 0.0084)*1000000.0; 
+		//JAS - 1fps testing waittime.tv_usec = (TickTime - lastTime - 10.0)*1000000.0; 
 		lastTime = TickTime;
 		if (waittime.tv_usec < 0.0) {
 			waittime.tv_usec = -waittime.tv_usec;

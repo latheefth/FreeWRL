@@ -10,7 +10,7 @@ public class EventInSFNode extends EventIn {
   public void          setValue(Node node) {
     int count;
 
-    Browser.SendEvent (inNode , command, node.NodeName);
+    Browser.SendEvent (nodeptr,offset,datasize , datatype, node.NodeName);
 
   return;
   }

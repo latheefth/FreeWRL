@@ -222,6 +222,7 @@ sub resolve_node_cnode {
 	my $proto_field;
 	my $is_proto;
 	my $tmp;
+	my $fieldtype;
 
 	print "\nVRML::EventMachine::resolve_node_cnode: ",
 		VRML::Debug::toString(\@_), "\n" if $VRML::verbose::events;
@@ -433,8 +434,10 @@ sub resolve_node_cnode {
 		# do we handle this type of data within C yet?
 		if ($is_proto) {
 			$il = VRML::VRMLFunc::getClen("VRML::Field::$proto_node->{Type}{FieldTypes}{$proto_field}"->clength($proto_field));
+			$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
 		} else {
 			$il = VRML::VRMLFunc::getClen("VRML::Field::$node->{Type}{FieldTypes}{$field}"->clength($field));
+			$fieldtype = $node->{Type}{FieldTypes}{$field};
 		}
 		if ($il == 0) {
 			print "add_route, dont handle $eventOut types in C yet\n";
@@ -444,19 +447,17 @@ sub resolve_node_cnode {
 		# is this an interpolator that is handled by C yet?
 		if ($is_proto) {
 			$il = VRML::VRMLFunc::InterpPointer($proto_node->{Type}{Name});
+			$fieldtype = $proto_node->{Type}{FieldTypes}{$proto_field};
 		} else {
 			$il = VRML::VRMLFunc::InterpPointer($node->{Type}{Name});
+			$fieldtype = $node->{Type}{FieldTypes}{$field};
 		}
-		#print "interp pointer for ",$node->{Type}{Name}," is $il\n";
 	}
 
-	#return ($outptr, $outoffset, $scrpt, $is_count, $is_str, 1, $il);
-	#return ($outptr, $outoffset, $scrpt, 1, $il);
-
 	if ($direction =~ /eventIn/i) {
-		return ($to_count, $tonode_str, $scrpt, 1, $il);
+		return ($to_count, $tonode_str, $scrpt, 1, $il,$fieldtype);
 	} else {
-		return ($outptr, $outoffset, $scrpt, 1, $il);
+		return ($outptr, $outoffset, $scrpt, 1, $il,$fieldtype);
 	}
 }
 

@@ -48,6 +48,7 @@ use Config;
 # path for x3d conversion template
 
 my $XSLTpath = "";
+my $globalBrowser = "";
 
 
 ###############################################
@@ -107,6 +108,11 @@ sub new {
 	# save browser version
 	VRML::VRMLFunc::SaveVersion($VRML::Config::vrml_config{VERSION});
 
+
+	# save this - there is only one browser method EVER, and this makes
+	# calling functions from C for EAI easier.
+
+	$globalBrowser = $this;
 
 	return $this;
 }
@@ -688,9 +694,9 @@ sub deleteRoute {
 sub api_beginUpdate { print "no beginupdate yet\n"; exit(1) }
 sub api_endUpdate { print "no endupdate yet\n"; exit(1) }
 
-sub api_getNode {
-	$_[0]->{Scene}->getNode($_[1]);
-}
+#JAS sub api_getNode {
+#JAS 	$_[0]->{Scene}->getNode($_[1]);
+#JAS }
 sub api__sendEvent {
 	my($this, $node, $field, $val) = @_;
 	$this->{EV}->send_event_to($node, $field, $val);
@@ -877,6 +883,144 @@ END {
   convert_raw_sequence() 
 }
 
+
+################
+# EAI Perl functions.
+
+# EAI_GetNode returns "UNDEFINED" for undefined node, or it returns the 
+# number of the node so that when the node is manipulated, it can be
+# referenced as NODE42. 
+#
+# It does this because, until a specific field is requested, we can't
+# use the generic subroutines that are put in place for routing in Events.pm
+
+sub EAI_GetNode {
+	my ($nodetoget) = @_;
+
+	my $node = $globalBrowser->{Scene}->getNode($nodetoget);
+
+	if (!defined $node) {
+		warn("Node $nodetoget is not defined");
+		return 0;
+	}
+
+	if ("VRML::DEF" eq ref $node) {
+		$node = $globalBrowser->{Scene}->getNode(VRML::Handles::return_def_name($nodetoget));
+		if (!defined $node) {
+			warn("DEF node $nodetoget is not defined");
+			return 0;
+		}
+	}
+
+	my $id = VRML::Handles::reserve($node);
+
+	print "handle is $id\n";
+	$id =~ s/^NODE//;
+	print "node number is $id\n";
+
+	# remember this - this node is displayed already
+	#VRML::Handles::displayed($node);
+
+	
+	return $id;
+}
+
+sub EAI_GetType {
+	my ($nodenum, $fieldname, $direction) = @_;
+
+	my $outptr;
+	my $outoffset;
+	my $fieldtype;
+	my $retft;
+
+	my $fc;
+	my $ok;
+	my $datalen;
+	my $tc;
+	my $intptr;
+	my $to_count;
+	my $tonode_str;
+
+
+	print "BROWSER:EAI_GetType, $nodenum, $fieldname, $direction\n";
+	
+	# return node pointer, offset, data length, type
+	# EAI C code expects the return type to be one of the following:
+	#define SFUNKNOWN       'a' (decimal 97)
+	#define SFBOOL          'b' (decimal 98.....
+	#define SFCOLOR         'c' 99
+	#define SFFLOAT         'd' 100
+	#define SFTIME          'e' 101
+	#define SFINT32         'f' 102
+	#define SFSTRING        'g' 103
+	#define SFNODE          'h' 104
+	#define SFROTATION      'i' 105
+	#define SFVEC2F         'j' 106
+	#define SFIMAGE         'k' 107
+	#define MFCOLOR         'l' 108
+	#define MFFLOAT         'm' 109
+	#define MFTIME          'n' 110
+	#define MFINT32         'o' 111
+	#define MFSTRING        'p' 112
+	#define MFNODE          'q' 113
+	#define MFROTATION      'r' 114
+	#define MFVEC2F         's' 115
+	#define MFVEC3F		't' 116
+	#define SFVEC3F		'u' 117
+
+
+
+	# get info from FreeWRL internals.
+	if ($direction eq "eventOut") {
+		($outptr, $outoffset, $fc, $ok, $datalen, $fieldtype) = $globalBrowser->{EV}->resolve_node_cnode (
+        		$globalBrowser->{Scene}, "NODE$nodenum", $fieldname, $direction);
+
+	} else {
+        	($to_count, $tonode_str, $tc, $ok, $intptr, $fieldtype) = 
+				$globalBrowser->{EV}->resolve_node_cnode($globalBrowser->{Scene}, 
+					"NODE$nodenum", $fieldname, $direction);
+
+		$datalen = 0; # we either know the length (eg, SFInt32), or if MF, it is the eventOut that
+			      # determines the exact length.
+
+		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
+		
+	}
+	$retft = 97; 	#SFUNKNOWN
+
+	if ($fieldtype eq "SFBool") {$retft = 98;}
+	elsif ($fieldtype eq "SFVec3f") {$retft = 117;}
+	elsif ($fieldtype eq "SFColor") {$retft = 99; }# color and vec3f are identical
+	elsif ($fieldtype eq "SFFloat") {$retft = 100;}
+	elsif ($fieldtype eq "SFTime") {$retft = 101;}
+	elsif ($fieldtype eq "SFInt32") {$retft = 102;}
+	elsif ($fieldtype eq "SFString") {$retft = 103;}
+	elsif ($fieldtype eq "SFNode") {$retft = 104;}
+	elsif ($fieldtype eq "SFRotation") {$retft = 105;}
+	elsif ($fieldtype eq "SFVec2f") {$retft = 106;}
+	elsif ($fieldtype eq "SFImage") {$retft = 107;}
+	elsif ($fieldtype eq "MFColor") {$retft = 108;}
+	elsif ($fieldtype eq "MFFloat") {$retft = 109;}
+	elsif ($fieldtype eq "MFTime") {$retft = 110;}
+	elsif ($fieldtype eq "MFInt32") {$retft = 111;}
+	elsif ($fieldtype eq "MFString") {$retft = 112;}
+	elsif ($fieldtype eq "MFNode") {$retft = 113;}
+	elsif ($fieldtype eq "MFRotation") {$retft = 114;}
+	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
+	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
+	else {	
+		print "EAI_GetType, unhandled type $fieldtype - this is an error!\n";
+	}
+		
+	print "Browser.pm: outptr $outptr offset $outoffset datalen $datalen retft $retft\n";
+
+	return ($outptr, $outoffset, $datalen, $retft); 
+
+}
+
+
+
+
 #########################################################3
 #
 # Private stuff
@@ -1003,4 +1147,3 @@ sub check {
 }
 
 1;
-

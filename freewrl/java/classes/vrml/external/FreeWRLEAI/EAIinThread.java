@@ -50,8 +50,8 @@ public  class EAIinThread implements Runnable {
       try {
         EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
         // wait for FreeWRL to send us the opening sequence...
-	Stemp = EAIin.readLine();
-        EAItoBrowserPrintWriter.println (Stemp);
+	//Stemp = EAIin.readLine();
+        //EAItoBrowserPrintWriter.println (Stemp);
       } catch (IOException e) {
         System.out.print ("error reiniting data input stream");
       }

@@ -11,6 +11,10 @@ public class EventOut {
 			// response...
  public String command;	// the actual command...
  public String RLreturn;	// If this is a register listener response...
+ public String nodeptr; //pointer to start of FreeWRL structure in memory
+ public String offset;  //offset of actual field in memory from base.
+ public String datasize; // how long this data really is
+ public String datatype;
 
 
   // Get the type of this EventOut (specified in FieldTypes.java)

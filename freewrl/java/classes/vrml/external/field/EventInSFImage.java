@@ -11,7 +11,7 @@ public class EventInSFImage extends EventIn {
     int count;
 
     // lord knows if this will work....
-    Browser.SendEvent (inNode , command, "" + value);
+    Browser.SendEvent (nodeptr,offset,datasize , datatype, "" + value);
 
   return;
   }
