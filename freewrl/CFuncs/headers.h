@@ -109,7 +109,8 @@ void Extru_tex(
 	int B,
 	int C,
 	struct VRML_PolyRep *this_Elev,
-	int ccw);
+	int ccw,
+	int tcindexsize);
 
 void Extru_init_tex_cap_vals();
 
