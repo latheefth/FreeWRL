@@ -12,7 +12,6 @@ public class BrowserGlobals
 public static int	EVno = 0;
 public static int	EVarray [] = new int[256];
 public static int	EVtype [] = new int[256];
-public static boolean   EVshortreply [] = new boolean[256];
 public static Object EVObject[] = new Object[256];
 public static EventOutObserver EVObserver[] = new EventOutObserver[256];
 

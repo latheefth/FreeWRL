@@ -93,19 +93,6 @@ public class Browser implements BrowserInterface
         return BrowserGlobals.EVObserver[eventno];
       }
 
-    public boolean get_Browser_EV_short_reply (int event)
-      {
-	int EVcounter;
-        for (EVcounter=0; EVcounter<BrowserGlobals.EVno; EVcounter++) {
-          if (BrowserGlobals.EVarray[EVcounter] == event) {
-            break;
-          }
-        }
-	// System.out.println ("get_Browser_EV_short_reply is returning " + BrowserGlobals.EVshortreply[EVcounter]);
-        return BrowserGlobals.EVshortreply[EVcounter];
-
-      }
-
     public void Browser_RL_Async_send (String EVentreply, int eventno) 
       {
         int EVcounter;
@@ -114,7 +101,7 @@ public class Browser implements BrowserInterface
             break;
           }
         }
-	// System.out.println ("Browser_RL_Async_send sending " + EVentreply + " to number " + EVcounter);
+	//System.out.println ("Browser_RL_Async_send sending " + EVentreply + " to number " + EVcounter);
         RL_Async.send(EVentreply, EVcounter);
       }
 
@@ -551,6 +538,8 @@ public class Browser implements BrowserInterface
 	String command) {
       // get a value from a particular node.
 
+	//System.out.println ("SendEventOut, nodeptr " + nodeptr + " datatype " + datatype);
+
       String retval;
        synchronized (FreeWRLToken) {
          EAIoutSender.send ("" + queryno + "E " + nodeptr + " " + offset + " " + datatype +
@@ -559,6 +548,7 @@ public class Browser implements BrowserInterface
          retval = getVRMLreply(queryno);
          queryno += 1;
       }
+	//System.out.println ("SendEventOut returns " + retval);
      return retval;
 }
 
@@ -566,6 +556,10 @@ public class Browser implements BrowserInterface
 			String nodeptr, String offset, String datatype,  String datasize, int EventType)
     {
        synchronized (FreeWRLToken) {
+         	//System.out.println ("Registering " + queryno + " node: " + nodeptr + " offset:"
+		// + offset + " datatype:" + datatype +
+ 		//" datasize:" + datasize + "\n");
+
          EAIoutSender.send ("" + queryno + "G " + nodeptr + " " + offset + " " + datatype +
  		" " + datasize + "\n");
  
@@ -573,32 +567,6 @@ public class Browser implements BrowserInterface
          BrowserGlobals.EVtype [BrowserGlobals.EVno] = EventType;     
          BrowserGlobals.EVObject[BrowserGlobals.EVno] = userData;
          BrowserGlobals.EVObserver[BrowserGlobals.EVno] = f;
-	 // Is this a short, consise answer type? 
-	 // (see field/FieldTypes.java for more info)
-
-	 switch (EventType) {
-		case 1:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-		case 12:
-		case 13:
-		case 14:
-		case 15:
-		case 16:
-		case 17:
-		case 18:
-		case 19:
-			BrowserGlobals.EVshortreply[BrowserGlobals.EVno] = true;
-			break;
-		default:
-			BrowserGlobals.EVshortreply[BrowserGlobals.EVno] = false;
-	 } 
-
 
          BrowserGlobals.EVno += 1;
        

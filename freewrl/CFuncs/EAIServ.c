@@ -777,6 +777,9 @@ void handle_Listener () {
 	   it might think that the "oldlen" will be non-zero */
 	bzero(&EAIListenerData, sizeof(EAIListenerData));
 
+	/* append the EV_EOT marker to the end of the string */
+	strcat (buf,"\nEV_EOT");
+
 	/* send the EV reply */
 	EAI_send_string(buf);
 }
