@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.46  2002/01/08 18:55:59  crc_canada
+# standard text and fontstyle now works - not quite up to standard, though.
+#
 # Revision 1.45  2002/01/04 20:19:01  crc_canada
 # FontStyle and Text node work
 #
@@ -830,7 +833,6 @@ Text => '
 		
 		for (tmp = 0; tmp < tx; tmp++) {
 			stmp = SvPV(svptr[tmp],PL_na);
-			printf ("Justify %d is %s\n",tmp,stmp);
 			if (strlen(stmp) == 0) {
 				if (tmp == 0) {fsparams |= 0x400;
 				} else {fsparams |= 0x2000;
@@ -842,16 +844,11 @@ Text => '
 			else if (!strcmp(stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
 			else { printf ("Warning - FontStyle family %s unknown\n",stmp);}
 		}
-
-		printf ("end of font style, fsparams is %x\n",fsparams);
-		printf ("size %f spacing %f\n",size,spacing);
-
 	}
 	if(f) {
 		f($f_n(string),$f(string),$f_n(length),$f(length),
 			$f(maxExtent),spacing,size,fsparams);
 	}
-	printf ("end of Text\n");
 	glPopAttrib();
 ',
 
