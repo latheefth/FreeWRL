@@ -216,6 +216,199 @@ sub STORE {
 
 package VRML::NodeType;
 
+# JAS - many nodes use the same type of algorithm for ClockTicks and each had 
+# JAS - the same code (kind of) Make it all happen here. Refer to the VRML
+# JAS - spec 4.6.9- Time Dependent Nodes.
+
+sub ClockTick_TimeDepNodes {
+	my($t,$f,$tick) = @_;
+
+	# print "CT in ClockTick_TimeDepNodes - $t $f $tick\n";
+	# can we possibly have started yet?
+	if($tick < $f->{startTime}) {
+		return();
+	}
+
+	my $oldstatus = $f->{isActive}; 
+	my @e;
+
+	my $time;
+	my $duration = 1.0;
+	my $speed = 1.0;	# speed, pitch, depending on calling node syntax
+
+	# used only for MovieTexture Video mode only
+	my $frac = 1;
+	my $highest = 1;
+	my $lowest = 0;
+
+
+	if ($f->{__type} == 0) {
+		# MovieTexture - Texture mode
+		$speed = $f->{speed};
+		$frac = $f->{__ctex};
+		$lowest = $f->{__texture0_};
+		$highest = $f->{__texture1_};
+
+		# sanity check - avoids divide by zero problems below
+		if ($lowest >= $highest) {
+			$lowest = $highest-1;
+		}	
+		$duration = ($highest - $lowest)/30;
+
+	} elsif ($f->{__type} == 1) {
+		# AudioClip
+		$speed = $f->{pitch};
+
+	} elsif ($f->{__type} == 2) {
+		# TimeSensor
+		$duration = $f->{cycleInterval};
+		
+		
+	}
+
+	print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
+		$f->{isActive}," initTime ",$f->{__inittime},"\n"
+			if $VRML::verbose::timesens;
+
+	# what we do now depends on whether we are active or not
+
+	if ($f->{isActive} == 1) {   # active - should we stop?
+
+		if ($tick > $f->{stopTime}) {
+			if ($f->{startTime} >= $f->{stopTime}) { 
+				# cases 1 and 2
+				if (!($f->{loop})) {
+					if ($speed != 0) {
+					    if ($tick >= ($f->{startTime} + 
+							abs($duration/$speed))) {
+						#print "stopping case x\n";
+						$f->{isActive} = 0;
+						$f->{stopTime} = $tick;
+					    }
+					}
+				} else {
+				#	print "stopping case y\n";
+				#	$f->{isActive} = 0;
+				#	$f->{stopTime} = $tick;
+				}
+			} else {
+				#print "stopping case z\n";
+				$f->{isActive} = 0;
+				$f->{stopTime} = $tick;
+			}
+		}
+	}
+
+	# immediately process start events; as per spec. 
+	if ($f->{isActive} == 0) {   # active - should we start?
+		if ($tick >= $f->{startTime}) {
+			# We just might need to start running
+
+			if ($tick >= $f->{stopTime}) {
+				# lets look at the initial conditions; have not had a stoptime
+				# event (yet)
+
+				if ($f->{loop}) {
+					if ($f->{startTime} >= $f->{stopTime}) {
+						# VRML standards, table 4.2 case 2 
+						$f->{startTime} = $tick;
+						$f->{isActive} = 1;
+						#print "case 2 here\n";
+					}
+				} elsif ($f->{startTime} >= $f->{stopTime}) {
+					if ($f->{startTime} > $f->{__inittime}) { #ie, we have an event
+						#print "case 1 here\n";
+						# we should be running 
+						# VRML standards, table 4.2 case 1 
+						$f->{startTime} = $tick;
+						$f->{isActive} = 1;
+					}
+				}
+			} else {
+				#print "case 3 here\n";
+				# we should be running -  
+				# VRML standards, table 4.2 cases 1 and 2 and 3
+				$f->{startTime} = $tick;
+				$f->{isActive} = 1;
+			}
+		}
+
+		# if we have gone active, make sure that the first image is displayed
+		# for MovieTextures
+		if (($f->{isActive} == 1) && ($f->{__type} == 0)) { $f->{__ctex} = -1; }
+
+		# TimeSensor cycleTime - event at start or once per cycle.
+		if (($f->{isActive} == 1)  && ($f->{__type} == 2)) {
+			$f->{__ctflag} = 10;  # force code below to generate event
+		}
+
+	}
+	if ($oldstatus != $f->{isActive}) {
+		push @e, [$t, "isActive", $f->{isActive}];
+	}
+
+	if($f->{isActive} == 1) {
+		if ($f->{__type} == 0) {
+			# MovieTextures
+			# calculate what fraction we should be 
+	 		$time = ($tick - $f->{startTime}) * $speed / $duration;
+			$frac = $time - int $time;
+	
+			# negative speed? - only MovieTextures will vary this.
+			if ($speed < 0) {
+				$frac = 1+$frac; # frac will be *negative*
+			} elsif ($speed == 0) {
+				$frac = 0;
+			}
+	
+			# frac will tell us what texture frame we should apply...
+			$frac = int ($frac*($highest-$lowest+1) + $lowest);
+	
+			# verify parameters
+			if ($frac < $lowest){ 
+				#print "frac $frac lowest $lowest\n"; 
+				$frac = $lowest
+			}
+			if ($frac > $highest){ 
+				#print "frac $frac highest $highest\n";
+				$frac = $highest
+			}
+	
+			if ($f->{__ctex} != $frac) {
+				$f->{__ctex} = $frac;
+				# print "pushing image $frac of $lowest $highest\n";
+				push @e, [$t, "mytexfrac", $f->{__ctex}];
+			}
+		} elsif ($f->{__type} == 1) {
+			# make sure that the SoundEngine gets updates, even if no geometry nodes
+			# require it.
+			VRML::OpenGL::set_render_frame();
+		} elsif ($f->{__type} == 2) {
+			# TimeSensors
+			# calculate what fraction we should be 
+	 		$time = ($tick - $f->{startTime}) * $speed / $duration;
+
+			if ($f->{loop}) {
+				$frac = $time - int $time;
+			} else {
+				$frac = ($time > 1 ? 1 : $time);
+			}
+
+			# cycleTime events once at start, and once every loop.
+			if ($frac < $f->{__ctflag}) {
+				# print "cycleTime event\n";
+                               	push @e, [$t, cycleTime, $tick];
+			}
+			$f->{__ctflag} = $frac;
+	
+			# time  and fraction_changed events
+			push @e, [$t, "time", $tick]; 
+			push @e, [$t, fraction_changed, $frac];
+		}
+	} 
+	return @e;
+}
+
 
 # JAS - used by EAI to see if this child is already present in field "children" of parent.
 sub checkChildPresent {
@@ -339,9 +532,6 @@ sub init_image {
 		return;
 
 	NO_TEXTURE:
-#	$f->{__depth.$name} = 0;
-#	$f->{__x.$name} = 0;
-#	$f->{__y.$name} = 0;
 	$f->{__locfile.$name} = "";
 	$f->{__texture.$name} = 0;
 	$f->{__istemporary.$name} = 0;
@@ -414,18 +604,12 @@ sub init_movie_image {
 	$f->{__texture0_} = $init_tex;
 	$f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
 		$file,$f->{repeatS},$f->{repeatT});
-	#	$f->{__depth} = $dep;
-	#	$f->{__x} = $wi;
-	#	$f->{__y} = $hei;
 	$f->{__locfile} = ();
 	#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
 	#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
 	return;
 
  NO_TEXTURE:
-#    $f->{__depth} = 0;
-#    $f->{__x} = 0;
-#    $f->{__y} = 0;
     $f->{__locfile} = ();
     $f->{__texture0_} = 0;
     $f->{__texture1_} = 0;
@@ -435,7 +619,7 @@ sub init_movie_image {
 # AudioClip WAV/MIDI sound file
 sub init_sound {
 	my($name, $urlname, $t, $f, $scene) = @_;
-	# print "init_sound_image, name $name, urlname $urlname t $t f $f \n";
+	#print "init_sound_image, name $name, urlname $urlname t $t f $f \n";
 
 	my $purl = $t->{PURL} = $scene->get_url;
 	my $wurl = $scene->get_world_url;
@@ -644,18 +828,15 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	repeatT	=> [SFBool, 1, ""], 	# not exposedfield
 	duration_changed	=> [SFTime,undef,eventOut],
 	isActive	=> [SFBool, undef, out],
-#        __depth => [SFInt32, 1, "field"],
-#        __x => [SFInt32,0, "field"],
-#        __y => [SFInt32,0, "field"],
         __locfile => [MFString, [], "field"],
         __texture0_ => [SFInt32,0, "field"], # initial texture number 
         __texture1_ => [SFInt32,0, "field"], # last texture number
 	__ctex => [SFInt32, 0, "field"],	# which texture number is used
-	__status => [SFInt32, 0, "field"],	# active = 1
 	__inittime => [SFInt32,0,"field"],	# time that we were initialized at
 
         __sourceNumber => [SFInt32,0,"field"], # internal sequence number
 	__localFileName => [SFString, ""],	# local name, as received on system
+	__type => [SFInt32,0],			# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
  },
 
 @x= {
@@ -665,12 +846,12 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	if ($SoundMaterial eq "Sound") {
 		# Assign a source number to this source
 		$f->{__sourceNumber} = $globalAudioSource++;
+		$f->{__type} = 4;  
 
 		# get the file
 		init_sound("","url",$t,$f,$scene,1);
 	} else {
 
-		$f->{__sourceNumber} = -1;	# this is a movietexture, not a Sound
 		init_movie_image("","url",$t,$f,$scene);
 
 		# which frame to start with?
@@ -679,7 +860,7 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 		} else {
 			$f->{__ctex} = $f->{__texture1_};
 		}
-		$f->{__status} = 0;  # inactive
+		$f->{isActive} = 0;  # inactive
 		$f->{__inittime} = $time;
 
 		#print "mt init time is $time\n";
@@ -700,147 +881,8 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	  },
 
 	 ClockTick => sub {
-		my($t,$f,$tick) = @_;
-
-		if ($f->{__sourceNumber} < 0) {
-			# can we possibly have started yet?
-			if($tick < $f->{startTime}) {
-				return();
-			}
-	
-			my $oldstatus = $f->{__status}; 
-			my @e;
-	
-			my $frac = $f->{__ctex};
-			my $time;
-			my $lowest = $f->{__texture0_};
-			my $highest = $f->{__texture1_};
-	
-			# sanity check - avoids divide by zero problems below
-			if ($lowest >= $highest) {
-				$lowest = $highest-1;
-			}	
-	
-			my $duration = ($highest - $lowest)/30;
-	
-			print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
-				$f->{__status}," initTime ",$f->{__inittime},"\n"
-					if $VRML::verbose::timesens;
-	
-			# what we do now depends on whether we are active or not
-	
-			if ($f->{__status} == 1) {   # active - should we stop?
-	
-				if ($tick > $f->{stopTime}) {
-					if ($f->{startTime} >= $f->{stopTime}) { 
-						# cases 1 and 2
-						if (!($f->{loop})) {
-							if ($f->{speed} != 0) {
-							    if ($tick >= ($f->{startTime} + 
-									abs($duration/$f->{speed}))) {
-								#print "stopping case x\n";
-								$f->{__status} = 0;
-								$f->{stopTime} = $tick;
-							    }
-							}
-						} else {
-						#	print "stopping case y\n";
-						#	$f->{__status} = 0;
-						#	$f->{stopTime} = $tick;
-						}
-					} else {
-						#print "stopping case z\n";
-						$f->{__status} = 0;
-						$f->{stopTime} = $tick;
-					}
-				}
-			}
-	
-			# immediately process start events; as per spec. 
-			if ($f->{__status} == 0) {   # active - should we start?
-				if ($tick >= $f->{startTime}) {
-					# We just might need to start running
-	
-					if ($tick >= $f->{stopTime}) {
-						# lets look at the initial conditions; have not had a stoptime
-						# event (yet)
-	
-						if ($f->{loop}) {
-							if ($f->{startTime} >= $f->{stopTime}) {
-								# VRML standards, table 4.2 case 2 
-								$f->{startTime} = $tick;
-								$f->{__status} = 1;
-								#print "case 2 here\n";
-							}
-						} elsif ($f->{startTime} >= $f->{stopTime}) {
-							if ($f->{startTime} > $f->{__inittime}) { #ie, we have an event
-								#print "case 1 here\n";
-								# we should be running 
-								# VRML standards, table 4.2 case 1 
-								$f->{startTime} = $tick;
-								$f->{__status} = 1;
-							}
-						}
-					} else {
-						#print "case 3 here\n";
-						# we should be running -  
-						# VRML standards, table 4.2 cases 1 and 2 and 3
-						$f->{startTime} = $tick;
-						$f->{__status} = 1;
-					}
-				}
-	
-				# if we have gone active, make sure that the first image is displayed
-				if ($f->{__status} == 1) { $f->{__ctex} = -1; }
-	
-			}
-		
-			if($f->{__status} == 1) {
-	
-				# calculate what fraction we should be 
-		 		$time = ($tick - $f->{startTime}) * $f->{speed} / $duration;
-			
-				$frac = $time - int $time;
-	
-				# negative speed?
-				if ($f->{speed} < 0) {
-					$frac = 1+$frac; # frac will be *negative*
-				}
-	
-				elsif ($f->{speed} == 0) {
-					$frac = 0;
-				}
-	
-				# frac will tell us what texture frame we should apply...
-				$frac = int ($frac*($highest-$lowest+1) + $lowest);
-			}
-	
-			# verify parameters
-			if ($frac < $lowest){ 
-				#print "frac $frac lowest $lowest\n"; 
-				$frac = $lowest
-			}
-			if ($frac > $highest){ 
-				#print "frac $frac highest $highest\n";
-				$frac = $highest
-			}
-	
-			if ($oldstatus != $f->{__status}) {
-				push @e, [$t, "isActive", $f->{__status}];
-			}
-	
-			if ($f->{__ctex} != $frac) {
-				$f->{__ctex} = $frac;
-				#print "pushing image $frac of $lowest $highest\n";
-				push @e, [$t, "mytexfrac", $f->{__ctex}];
-			}
-			return @e;
-		} else {
-			# MovieTexture is a SoundNode
-		}
+		return ClockTick_TimeDepNodes (@_);
 	 },
-
-
 }
 ),
 
@@ -1001,21 +1043,39 @@ AudioClip => new VRML::NodeType("AudioClip",
 
         __sourceNumber => [SFInt32,0, "field"], # internal sequence number
 	__localFileName => [SFString, ""],	# local name, as received on system
+	__inittime => [SFInt32,0,"field"],	# time that we were initialized at
+	__type => [SFInt32,1],			# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
  },
-	{
-		Initialize => sub {
-			my ($t,$f,$time,$scene) = @_;
+@x= {
+	Initialize => sub {
+		my ($t,$f,$time,$scene) = @_;
 
-			# Assign a source number to this source
-			$f->{__sourceNumber} = $globalAudioSource++;
+		# Assign a source number to this source
+		$f->{__sourceNumber} = $globalAudioSource++;
 
-			# get the file
-			init_sound("","url",$t,$f,$scene,1);
-			$SoundMaterial = "unknown"; # we are done with this Sound...
+		# get the file
+		init_sound("","url",$t,$f,$scene,1);
+		$SoundMaterial = "unknown"; # we are done with this Sound...
 
-			return ();
-		 }
-	}
+		return ();
+	 },
+
+	 startTime => sub {
+	 	my($t,$f,$val) = @_;
+		#print "MT StartTime $val\n";
+		$f->{startTime} = $val;
+	 },
+	 # Ignore if less than startTime
+	 stopTime => sub {
+	  	my($t,$f,$val) = @_;
+	 	#print "MT StopTime $val\n";
+		$f->{stopTime} = $val;
+	  },
+
+	 ClockTick => sub {
+		return ClockTick_TimeDepNodes (@_);
+	 },
+ },
 ),
 
 
@@ -1514,11 +1574,15 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 	 isActive => [SFBool, undef, out],
 	 cycleTime => [SFTime, undef, out],
 	 fraction_changed => [SFFloat, undef, out],
-	 time => [SFTime, undef, out]
+	 time => [SFTime, undef, out],
+	 __type => [SFInt32,2],			# 0:MovTex Vid 1:AudioClip 2:TimeSensor 3:MT Audio
+	 __ctflag =>[SFTime,0],			# cycleTimer flag.
 	}, 
 	{
 	 Initialize => sub {
 	 	my($t,$f) = @_;
+
+		$f->{__ctflag} = 10.0;  # force an event at startup
 		# print "TS init\n";
 	 	return ();
 	 },
@@ -1559,69 +1623,18 @@ TimeSensor => new VRML::NodeType("TimeSensor",
 		my($t,$f,$tick) = @_;
 		my @e;
 		my $act = 0; 
-		# print "TS CT\n";
-		# XXX Not spec :(
+		#print "TS CT\n";
+
+		# are we enabled? If not, make sure we are not marked active. 
 		if(!$f->{enabled}) {
 			if($f->{isActive}) {
 				push @e, [$t, "isActive", 0];
 			}
 			return @e;
 		}
-		# Are we active?
-		if($tick > $f->{startTime}) {
-			if($f->{startTime} >= $f->{stopTime}) {
-				if($f->{loop}) {
-					$act = 1;
-				} else {
-					if($f->{startTime} + $f->{cycleInterval} >=
-						$tick) {
-						$act = 1;
-					}
-				}
-			} else {
-				if($tick < $f->{stopTime}) {
-					if($f->{loop}) {
-						$act = 1;
-					} else {
-						if($f->{startTime} + $f->{cycleInterval} >=
-							$tick) {
-							$act = 1;
-						}
-					}
-				}
-			}
-		}
-		my $ct = 0, $frac = 0;
-		my $time = ($tick - $f->{startTime}) / $f->{cycleInterval};
-		print "TIMESENS: $time '$act'\n" if $VRML::verbose::timesens;
-		if($act) {
-			if($f->{loop}) {
-				$frac = $time - int $time;
-			} else {
-				$frac = ($time > 1 ? 1 : $time);
-			}
-		} else {$frac = 1}
-		$ct = int $time;
-		if($act || $f->{isActive}) {
-			push @e, [$t, "time", $tick];
-			push @e, [$t, fraction_changed, $frac];
-			print "TIME: FRAC: $frac ($time $act $ct $tick $f->{startTime} $f->{cycleInterval} $f->{stopTime})\n"
-				if $VRML::verbose;
-			if($ct != $f->{cycleTime}) {
-				push @e, [$t, cycleTime, $ct];
-			}
-		} 
-		if($act) {
-			if(!$f->{isActive}) {
-				push @e, [$t, isActive, 1];
-			}
-		} else {
-			if($f->{isActive}) {
-				push @e, [$t, isActive, 0];
-			}
-		}
-		$this->{Priv}{active} = $act;
-		return @e;
+
+		# ok, we ARE enabled. Process 
+		return ClockTick_TimeDepNodes (@_);
 	 },
 	}
 ),
