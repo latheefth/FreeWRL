@@ -1,0 +1,1541 @@
+<!--
+# Extensible 3D (X3D) Document Type Definition (DTD) x3d-compromise.dtd
+#
+# this draft X3D DTD:
+#	http://www.web3D.org/TaskGroups/x3d/translation/x3d-compromise.dtd
+#
+# changelog:
+#	http://www.web3d.org/TaskGroups/x3d/translation/x3d-dtd-changelog.txt
+#
+# test world:
+#	http://www.web3D.org/TaskGroups/x3d/translation/examples/AllVrml97Nodes.wrl
+#	http://www.web3D.org/TaskGroups/x3d/translation/examples/AllVrml97Nodes.wrl.txt
+#
+# test translation:
+#	http://www.web3D.org/TaskGroups/x3d/translation/examples/AllVrml97Nodes.xml
+#	http://www.web3D.org/TaskGroups/x3d/translation/examples/AllVrml97Nodes.xml.txt
+#
+# editor:
+#	http://www.web3d.org/TaskGroups/x3d/translation/README.X3D-Edit.txt
+#
+# DTD version plans:		
+#	increment by .1 when each of the following is complete:
+#	- initial well-defined DTD                                     0.5
+#	- all nodes available in test scene and checked in DTD         0.6
+#	- Xeena able to present translated X3D scene using DTD         0.7
+#	- Xj3D able to translate full test scene using DTD into X3D    0.8
+#	- DTD compliance exercised by NIST's VRML & XML test suites    0.9
+#	- approval by task group, community, Web3D Consortium          1.0
+#
+# current version:  0.79
+#
+# revised:          17 April 2001
+#
+-->
+
+<!--	Profile:  authors can override these default IGNORE/INCLUDE values.
+	If CoreProfile is INCLUDEd, all other profiles must be IGNOREd.
+	Note CoreProfile enforces strict compliance with Core capabilities. -->
+
+<!ENTITY % BaseLineProfile	"INCLUDE">
+<!ENTITY % CoreProfile  	"IGNORE">
+<!ENTITY % DisJavaVrmlProfile	"INCLUDE">
+<!ENTITY % GeoVrmlProfile	"INCLUDE">
+<!ENTITY % HAnimProfile 	"INCLUDE">
+<!ENTITY % NurbsProfile		"INCLUDE">
+<!ENTITY % X3dExtensions 	"IGNORE">
+<!ENTITY % LatticeProfile 	"IGNORE"> <!-- not yet included -->
+
+<!ENTITY % profileNames	"(BaseLine|Core|DisJavaVrml|Full|GeoVrml|HumanoidAnimation|Lattice|Nurbs)" >
+
+
+<!-- *** Entity declarations *** -->
+
+<!ENTITY % X3dFieldTypes	" Boolean | Booleans | Color | Colors | Float | Floats | Image | Integer | Integers | Node | Nodes | Rotation | Rotations | String | Strings | Time | Times | Vector2Float | Vector2FloatArray | Vector3Float | Vector3FloatArray | Vector3Double | Vector3DoubleArray" >
+
+<!ENTITY % Vrml97FieldTypes	" SFBool | MFBool | SFColor | MFColor | SFFloat | MFFloat | SFImage | SFInt32 | MFInt32 | SFNode | MFNode | SFRotation | MFRotation | SFString | MFString | SFTime | MFTime | SFVec3f | MFVec3f | SFVec2f | MFVec2f " >
+
+<!ENTITY % SFBool	"(true|false)">	<!-- Boolean	-->
+<!ENTITY % MFBool	"CDATA">	<!-- Booleans	-->
+<!ENTITY % SFColor	"CDATA">	<!-- Color	-->
+<!ENTITY % MFColor	"CDATA">	<!-- Colors	-->
+<!ENTITY % SFFloat	"CDATA">	<!-- Float	-->
+<!ENTITY % MFFloat	"CDATA">	<!-- Floats	-->
+<!ENTITY % SFImage	"CDATA">	<!-- Image data	-->
+<!ENTITY % SFInt32	"CDATA">	<!-- Integer	-->
+<!ENTITY % MFInt32	"CDATA">	<!-- Integers	-->
+<!ENTITY % SFNode	"#PCDATA">	<!-- Node  - handled by tag rules -->
+<!ENTITY % MFNode	"#PCDATA">	<!-- Nodes - handled by tag rules -->
+<!ENTITY % SFRotation 	"CDATA">	<!-- Rotation	-->
+<!ENTITY % MFRotation 	"CDATA">	<!-- Rotations	-->
+<!ENTITY % SFString	"CDATA">	<!-- String	-->
+<!ENTITY % MFString	"CDATA">	<!-- Strings	-->
+<!ENTITY % SFTime	"CDATA">	<!-- Time	-->
+<!ENTITY % MFTime	"CDATA">	<!-- Times	-->
+<!ENTITY % SFVec2f	"CDATA">	<!-- Vector2Float	-->
+<!ENTITY % MFVec2f	"CDATA">	<!-- Vector2FloatArray -->
+<!ENTITY % SFVec3f	"CDATA">	<!-- Vector3Float	-->
+<!ENTITY % MFVec3f	"CDATA">	<!-- Vector3FloatArray -->
+
+<!-- Double types declared in GeoVrml.dtd -->
+
+<!--	Fields:  VRML 97 Part 5, Field and event reference
+	http://www.web3D.org/technicalinfo/specifications/vrml97/part1   -->
+
+<!--	User needs to append | after each new node in any of these extensions.
+		For an example, see examples/ProtoTagDtdDeclarationExamples.xml   -->
+
+<!ENTITY % AppearanceNodeExtensions  "" >
+<!ENTITY % AudioClipNodeExtensions  "" >
+<!ENTITY % BindableNodeExtensions  "" >
+<!ENTITY % ColorNodeExtensions  "" >
+<!ENTITY % CoordinateNodeExtensions  "" >
+<!ENTITY % FontStyleNodeExtensions  "" >
+<!ENTITY % GeometryNodeExtensions  "" >
+<!ENTITY % GroupingNodeExtensions  "" >
+<!ENTITY % InterpolatorNodeExtensions  "" > 
+<!ENTITY % LightNodeExtensions  "" >
+<!ENTITY % MaterialNodeExtensions  "" >
+<!ENTITY % NormalNodeExtensions  "" >
+<!ENTITY % ScriptNodeExtensions  "" > 
+<!ENTITY % SensorNodeExtensions  "" > 
+<!ENTITY % ShapeNodeExtensions  "" >
+<!ENTITY % SoundNodeExtensions  "" >
+
+<!-- MovieTexture must be able to appear twice: -->
+<!ENTITY % MovieTextureNodeExtensions  "" >
+<!ENTITY % TextureNodeExtensions  "" >
+
+<!ENTITY % TextureCoordinateNodeExtensions  "" >
+<!ENTITY % TextureTransformNodeExtensions  "" >
+<!ENTITY % WorldInfoNodeExtensions  "" >
+
+<!-- Users defining PROTOs do not override any of the following parameter entity declarations. -->
+
+<![%BaseLineProfile;[
+
+<!ENTITY % WildcardNodes       	" (USE | ProtoInstance) " >
+
+]]>
+
+<![%CoreProfile;[
+
+<!ENTITY % WildcardNodes       	" USE " >
+
+]]>
+
+<![%DisJavaVrmlProfile;[
+
+<!ENTITY % DisJavaVrmlGroupingNodes	" EspduTransform | SignalPdu | ReceiverPdu | TransmitterPdu | " >
+
+]]>
+
+<!-- GeoVrml profile: type extensions for the scene graph -->
+
+<![%GeoVrmlProfile;[
+
+<!ENTITY % GeoCoordinateNode		" GeoCoordinate | " >
+<!ENTITY % GeoElevationGridNode		" GeoElevationGrid | " >
+<!ENTITY % GeoGroupingNodes		" GeoInline | GeoLocation | GeoLOD | " >
+<!ENTITY % GeoMetadataNode		" GeoMetadata | " >
+<!ENTITY % GeoOriginNode		" GeoOrigin | " >
+<!ENTITY % GeoBehaviorNodes		" GeoPositionInterpolator | GeoTouchSensor | " >
+<!ENTITY % GeoViewpointNode		" GeoViewpoint | " >
+
+]]>
+
+<![%HAnimProfile;[
+
+<!ENTITY % HAnimGroupingNodes		" Joint | Segment | Site | Humanoid | " >
+<!ENTITY % DisplacerNode		" Displacer | " >
+
+]]>
+
+<![%NurbsProfile;[
+
+<!ENTITY % NurbsGroupingNodes	" Contour2D | CoordinateDeformer | NurbsGroup | NurbsTextureSurface | " >
+<!ENTITY % NurbsGeometryNodes	" NurbsCurve | NurbsCurve2D | NurbsSurface | Polyline2D | TrimmedSurface | " >
+<!ENTITY % NurbsInterpolators	" NurbsPositionInterpolator | " >
+
+]]>
+
+
+<!-- otherwise set tags to null strings if not previously defined by DisJavaVrml, GeoVrml, HAnim, Nurbs -->
+
+<!ENTITY % DisJavaVrmlGroupingNodes	"" >
+
+<!ENTITY % GeoCoordinateNode		"" >
+<!ENTITY % GeoElevationGridNode		"" >
+<!ENTITY % GeoGroupingNodes		"" >
+<!ENTITY % GeoMetadataNode		"" >
+<!ENTITY % GeoOriginNode		"" >
+<!ENTITY % GeoBehaviorNodes		"" >
+<!ENTITY % GeoViewpointNode		"" >
+
+<!ENTITY % HAnimGroupingNodes		"" >
+<!ENTITY % DisplacerNode		"" >
+
+<!ENTITY % NurbsGroupingNodes		"" >
+<!ENTITY % NurbsGeometryNodes		"" >
+<!ENTITY % NurbsInterpolators		"" >
+
+<!-- no further type extensions needed -->
+
+<![%CoreProfile;[
+
+<!ENTITY % AudioClipNodes "" >
+<!ENTITY % FontStyleNodes "" >
+<!ENTITY % MovieTextureNodes "" >
+<!ENTITY % NormalNodes "" >
+<!ENTITY % ScriptNodes "" >
+<!ENTITY % SoundNodes "" >
+<!ENTITY % TextureCoordinateNodes "" >
+<!ENTITY % TextureTransformNodes "" >
+
+]]>
+
+<!-- Declarations appearing only in BaseLineProfile -->
+
+<![%BaseLineProfile;[
+
+<!ENTITY % AudioClipNodes		" %AudioClipNodeExtensions; AudioClip " >
+
+<!ENTITY % FontStyleNodes		" %FontStyleNodeExtensions; FontStyle " >
+
+<!ENTITY % MovieTextureNodes		" %MovieTextureNodeExtensions; MovieTexture " >
+
+<!ENTITY % NormalNodes			" %NormalNodeExtensions; Normal " >
+
+<!ENTITY % ScriptNodes			" %ScriptNodeExtensions; Script " >
+
+<!ENTITY % SoundNodes			" %SoundNodeExtensions; Sound " >
+
+<!ENTITY % TextureCoordinateNodes	" %TextureCoordinateNodeExtensions; TextureCoordinate " >
+
+<!ENTITY % TextureTransformNodes	" %TextureTransformNodeExtensions; TextureTransform " >
+
+]]>
+
+<!-- Declarations appearing differently in X3dExtensions, BaseLineProfile and CoreProfile -->
+
+<!-- X3D Extensions (superset overriding some BaseLineProfile declarations) -->
+
+<![%X3dExtensions;[
+
+<!--
+<!ENTITY % AppearanceNodeX3dExtensions " MultiTexture | MultiTextureTree | MultiTextureAppearance | " >
+<!ENTITY % GeometryNodesX3dExtensions  " MultiTextureIndexedFaceSet | " >
+-->
+
+<!ENTITY % AppearanceNodeX3dExtensions "" >
+<!ENTITY % GeometryNodesX3dExtensions  "" >
+
+]]>
+
+<!ENTITY % AppearanceNodeX3dExtensions "" >
+<!ENTITY % GeometryNodesX3dExtensions  "" >
+
+<![%CoreProfile;[
+
+<!ENTITY % AppearanceNodes  	" Appearance " >
+
+<!ENTITY % BehaviorLeafNodes	" CoordinateInterpolator | KeySensor | OrientationInterpolator | PositionInterpolator | ScalarInterpolator | TimeSensor | TouchSensor " >
+
+<!ENTITY % BindableNodes    	" Background | NavigationInfo | Viewpoint " >
+
+<!ENTITY % ColorNodes       	" Color | ColorNode " >
+
+<!ENTITY % CoordinateNodes  	" Coordinate " >
+
+<!ENTITY % GeometryNodes    	" IndexedFaceSet | IndexedLineSet | PointSet " >
+
+<!ENTITY % GroupingNodes    	" Anchor | Group | Inline | Transform " >
+
+<!ENTITY % LightNodes       	" DirectionalLight " >
+
+<!ENTITY % MaterialNodes    	" Material " >
+
+<!ENTITY % ShapeNodes       	" Shape " >
+
+<!ENTITY % TextureNodes     	" ImageTexture " >
+
+<!ENTITY % WorldInfoNodes   	" WorldInfo " >
+
+]]>
+
+<![%BaseLineProfile;[
+
+<!ENTITY % AppearanceNodes  	" %AppearanceNodeExtensions; %AppearanceNodeX3dExtensions; Appearance " >
+
+<!ENTITY % BehaviorLeafNodes	" %InterpolatorNodeExtensions; %SensorNodeExtensions; %ScriptNodeExtensions; %GeoBehaviorNodes; %DisplacerNode; %NurbsInterpolators; ColorInterpolator | CoordinateInterpolator | CylinderSensor | KeySensor | NormalInterpolator | OrientationInterpolator | PlaneSensor | PositionInterpolator | ProximitySensor | ScalarInterpolator | Script | SphereSensor | StringSensor | TimeSensor | TouchSensor | VisibilitySensor " >
+
+<!ENTITY % BindableNodes    	" %BindableNodeExtensions; %GeoViewpointNode; Background | Fog | NavigationInfo | Viewpoint " >
+
+<!ENTITY % ColorNodes       	" %ColorNodeExtensions; Color | ColorNode " >
+
+<!ENTITY % CoordinateNodes  	" %CoordinateNodeExtensions; %GeoCoordinateNode; Coordinate " >
+
+<!ENTITY % GeometryNodes    	" %GeometryNodeExtensions; %GeometryNodesX3dExtensions; %GeoElevationGridNode; %NurbsGeometryNodes; Box | Cone | Cylinder | ElevationGrid | Extrusion | IndexedFaceSet | IndexedLineSet | PointSet | Sphere | Text " >
+
+<!ENTITY % GroupingNodes    	" %GroupingNodeExtensions; %DisJavaVrmlGroupingNodes; %GeoGroupingNodes; %HAnimGroupingNodes; %NurbsGroupingNodes; Anchor | Billboard | Collision | Group | Inline | LOD | Switch | Transform " >
+
+<!ENTITY % LightNodes       	" %LightNodeExtensions; DirectionalLight | SpotLight | PointLight " >
+
+<!ENTITY % MaterialNodes    	" %MaterialNodeExtensions; Material " >
+
+<!ENTITY % ShapeNodes       	" %ShapeNodeExtensions; Shape " >
+
+<!ENTITY % TextureNodes     	" %TextureNodeExtensions; ImageTexture | MovieTexture | PixelTexture " >
+
+<!ENTITY % WorldInfoNodes   	" %WorldInfoNodeExtensions; %GeoMetadataNode; WorldInfo " >
+
+]]>
+
+<!-- These VRML 97 specification terms relate to a possible future object hierarchy of nodes.
+     For details, see VRML 97 4.6.5 Grouping and children nodes
+     http://www.web3D.org/technicalinfo/specifications/vrml97/part1/concepts.html#4.6.5 -->
+
+<![%CoreProfile;[
+
+<!ENTITY % GeometricPropertyNodes " %ColorNodes; " >
+
+<!ENTITY % AppearanceChildNodes	" %MaterialNodes; | %TextureNodes; " >
+
+<!ENTITY % SceneLeafNodes   	" %LightNodes; | %ShapeNodes; | %WorldInfoNodes; " >
+
+<!ENTITY % ProtoNodes       	"" >
+
+]]>
+
+<![%BaseLineProfile;[
+
+<!ENTITY % GeometricPropertyNodes " %CoordinateNodes; | %ColorNodes; | %NormalNodes; | %TextureCoordinateNodes; " >
+
+<!ENTITY % AppearanceChildNodes	" %MaterialNodes; | %TextureNodes; | %TextureTransformNodes; " >
+
+<!ENTITY % SceneLeafNodes   	" %GeoOriginNode; %LightNodes; | %ShapeNodes; | %SoundNodes; | %WorldInfoNodes; " >
+
+<!ENTITY % ProtoNodes       	" %AppearanceNodes; | %AppearanceChildNodes; | %BehaviorLeafNodes; | %BindableNodes; | %FontStyleNodes; | %GeometricPropertyNodes; | %GeometryNodes; | %GroupingNodes; | %SceneLeafNodes; | ProtoInstance | USE " >
+
+]]>
+
+
+<![%CoreProfile;[
+
+<!ENTITY % ChildrenNodes    	" %BehaviorLeafNodes; | %BindableNodes; | %GroupingNodes; | %SceneLeafNodes; " >
+
+<!ENTITY % SceneNodes       	" ( %ChildrenNodes; | %WildcardNodes; )*, ROUTE* " >
+
+]]>
+
+<![%BaseLineProfile;[
+
+<!ENTITY % ChildrenNodes    	" %BehaviorLeafNodes; | %BindableNodes; | %GroupingNodes; | %SceneLeafNodes; " >
+
+<!ENTITY % SceneNodes       	" (ExternProtoDeclare|ProtoDeclare)*, ( %ChildrenNodes; | %WildcardNodes; )*, ROUTE* " >
+
+]]>
+
+
+<!ENTITY % AllVRML97Nodes   	" Anchor|Appearance|AudioClip|Background|Billboard|Box|Collision|Color|ColorNode|ColorInterpolator|Cone|Coordinate|CoordinateInterpolator|Cylinder|CylinderSensor|DirectionalLight|ElevationGrid|Extrusion|Fog|FontStyle|Group|Header|ImageTexture|IndexedFaceSet|IndexedLineSet|Inline|KeySensor|LOD|Material|MovieTexture|NavigationInfo|Normal|NormalInterpolator|OrientationInterpolator|PixelTexture|PlaneSensor|PointLight|PointSet|PositionInterpolator|ProximitySensor|ScalarInterpolator|Scene|Script|Shape|Sound|Sphere|SphereSensor|SpotLight|StringSensor|Switch|Text|TextureCoordinate|TextureTransform|TimeSensor|TouchSensor|Transform|Viewpoint|VisibilitySensor|WorldInfo " >
+
+<!ENTITY % AllGeoVrmlTags	" GeoCoordinate|GeoElevationGrid|GeoInline|GeoLocation|GeoLOD|GeoMetadata|GeoOrigin|GeoPositionInterpolator|GeoTouchSensor|GeoViewpoint " >
+
+<!ENTITY % AllHAnimTags         " Displacer|Humanoid|Joint|Segment|Site " >
+
+
+<!-- Not used (yet, anyway) in tagset definitions. -->
+
+<!ENTITY % SensorNodes      	" Anchor | Collision | CylinderSensor | KeySensor | PlaneSensor | ProximitySensor | SphereSensor | StringSensor | TimeSensor | TouchSensor | VisibilitySensor " >
+
+<!ENTITY % DragSensors      	" CylinderSensor | PlaneSensor | SphereSensor " >
+
+<!ENTITY % EnvironmentalSensorNodes " Collision | ProximitySensor | TimeSensor | VisibilitySensor " >
+
+<!ENTITY % PointingDeviceSensors " Anchor | CylinderSensor | PlaneSensor | SphereSensor | TouchSensor " >
+
+<!ENTITY % KeyDeviceSensors	" " >
+
+<!ENTITY % InterpolatorNodes	" ColorInterpolator | CoordinateInterpolator | NormalInterpolator | OrientationInterpolator | PositionInterpolator | ScalarInterpolator " >
+
+<!ENTITY % TimeDependentNodes	" AudioClip | MovieTexture | TimeSensor " >
+
+
+<!-- ================================== -->
+<!-- ****** Wrapper tags.    ****** -->
+
+<!ENTITY % AllVRML97Fields   	" appearance|children|choice|color|coord|fontStyle|normal|source|texCoord|textureTransform|geometry|level|material|proxy|texture " >
+
+
+<!-- no attributes for wrapper tags, since there they are merely fields and
+     not nodes instantiated by VRML that can be DEFed. -->
+
+<!ELEMENT appearance (%AppearanceNodes; | %WildcardNodes;)? >
+<!ELEMENT children ( %ChildrenNodes; | %WildcardNodes; )* >
+<!ELEMENT choice ( %ChildrenNodes; | %WildcardNodes; )* >
+<!ELEMENT color (%ColorNodes; | %WildcardNodes;)? >
+<!ELEMENT coord (%CoordinateNodes; | %WildcardNodes;)? >
+<![%BaseLineProfile;[
+<!ELEMENT fontStyle (%FontStyleNodes; | %WildcardNodes;)? >
+<!ELEMENT normal (%NormalNodes; | %WildcardNodes;)? >
+<!ELEMENT source ( %AudioClipNodes; | %MovieTextureNodes; | %WildcardNodes; )? >
+<!ELEMENT texCoord (%TextureCoordinateNodes; | %WildcardNodes;)? >
+<!ELEMENT textureTransform (%TextureTransformNodes; | %WildcardNodes;)? >
+]]>
+<!ELEMENT geometry (%GeometryNodes; | %WildcardNodes;)? >
+<!ELEMENT level ( %ChildrenNodes; | %WildcardNodes; )* >
+<!ELEMENT material (%MaterialNodes; | %WildcardNodes;)? >
+<!ELEMENT proxy (%ChildrenNodes; | %WildcardNodes;)? >
+<!ELEMENT texture (%TextureNodes; | %WildcardNodes;)? >
+
+<!-- DIS-Java-VRML profile:  Distributed Interactive Simulation node extensions for the scene graph -->
+
+<![%DisJavaVrmlProfile;[
+
+<!ENTITY % DisJavaVrmlDTD PUBLIC 
+	"http://www.web3D.org/TaskGroups/x3d/translation/DisJavaVrml.dtd"
+	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/DisJavaVrml.dtd">
+
+%DisJavaVrmlDTD;
+
+]]>
+
+
+<!-- GeoVrml profile: node extensions for the scene graph -->
+
+<![%GeoVrmlProfile;[
+
+<!-- GeoVrml's rootNode depends on profile-specific parameter-entity definitions,
+     so it appears inside the X3D DTD rather than in GeoVrml.dtd -->
+
+<!ELEMENT rootNode ( %ChildrenNodes; | %WildcardNodes; )* >
+
+<!ENTITY % GeoVrmlDTD PUBLIC 
+	"http://www.web3D.org/TaskGroups/x3d/translation/GeoVrml.dtd"
+	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/GeoVrml.dtd">
+
+%GeoVrmlDTD;
+
+]]>
+
+<!-- HumanoidAnimation (H-Anim) profile: node extensions for the scene graph -->
+
+<![%HAnimProfile;[
+
+<!-- wrapper tag -->
+<!ELEMENT humanoidBody ( %ChildrenNodes; | %WildcardNodes; )* >
+
+<!ENTITY % HAnimDTD PUBLIC 
+	"http://www.web3D.org/TaskGroups/x3d/translation/HumanoidAnimation.dtd"
+	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/HumanoidAnimation.dtd">
+
+%HAnimDTD;
+
+]]>
+
+<!-- Nurbs profile:  Non-Uniform Rational B-Splines -->
+
+<![%NurbsProfile;[
+
+<!ENTITY % NurbsDTD PUBLIC 
+	"http://www.web3D.org/TaskGroups/x3d/translation/Nurbs-compromise.dtd"
+	"file://localhost/C:/www.web3D.org/TaskGroups/x3d/translation/Nurbs-compromise.dtd">
+
+%NurbsDTD;
+
+]]>
+
+
+<!-- *** X3D DTD *** -->
+
+<![%BaseLineProfile;[
+
+<!-- isOver, touchTime added to Anchor to match multiple interface with TouchSensorType -->
+
+<!ELEMENT Anchor (children)? >
+<!ATTLIST Anchor 
+	description %SFString; #IMPLIED
+	parameter   %MFString; #IMPLIED
+	url         %MFString; #IMPLIED
+	bboxCenter  %SFVec3f;  "0 0 0"
+	bboxSize    %SFVec3f;  "-1 -1 -1"
+	isOver      %SFBool;   #IMPLIED
+	touchTime   %SFTime;   #IMPLIED
+	DEF         ID         #IMPLIED 
+	USE         IDREF      #IMPLIED >
+]]>
+
+<![%CoreProfile;[
+
+<!ELEMENT Anchor (children)? >
+<!ATTLIST Anchor 
+	url         %MFString; #IMPLIED
+	bboxCenter  %SFVec3f;  "0 0 0"
+	bboxSize    %SFVec3f;  "-1 -1 -1"
+	DEF         ID         #IMPLIED 
+	USE         IDREF      #IMPLIED >
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Appearance (
+	(material, ((texture, textureTransform?) | (textureTransform, texture?))? ) |
+	(texture, ((material, textureTransform?) | (textureTransform, material?))? ) |
+	(textureTransform, ((texture, material?) | (material, texture?))? )?
+) >
+]]>
+
+<![%CoreProfile;[
+
+<!ELEMENT Appearance (
+	((material, texture?) | (texture, material?))?
+) >
+]]>
+
+<!ATTLIST Appearance
+	DEF ID      #IMPLIED
+	USE IDREF   #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT AudioClip EMPTY >
+<!ATTLIST AudioClip
+	description %SFString; #IMPLIED
+	loop        %SFBool;   "false"
+	pitch       %SFFloat;  "1.0"
+	startTime   %SFTime;   "0"
+	stopTime    %SFTime;   "0"
+	url         %MFString; #IMPLIED
+	duration    %SFTime;   "0.0"
+	isActive    %SFBool;   "false"
+	DEF         ID         #IMPLIED
+	USE         IDREF      #IMPLIED>
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Background EMPTY>
+<!ATTLIST Background
+	groundAngle %MFFloat;  #IMPLIED
+	groundColor %MFColor;  "0 0 0"
+	backUrl     %MFString; #IMPLIED
+	bottomUrl   %MFString; #IMPLIED
+	frontUrl    %MFString; #IMPLIED
+	leftUrl     %MFString; #IMPLIED
+	rightUrl    %MFString; #IMPLIED
+	topUrl      %MFString; #IMPLIED
+	skyAngle    %MFFloat;  #IMPLIED
+	skyColor    %MFColor;  "0 0 0"
+	bind        %SFBool;   "false"
+	bindTime    %SFTime;   "-1"
+	isBound     %SFBool;   "false"
+	DEF         ID         #IMPLIED 
+	USE         IDREF      #IMPLIED >
+]]>
+
+<![%CoreProfile;[
+
+<!ELEMENT Background EMPTY>
+<!ATTLIST Background
+	bottomUrl   %MFString; #IMPLIED
+	skyAngle    %MFFloat;  #IMPLIED
+	skyColor    %SFColor;  "0 0 0"
+	bind        %SFBool;   "false"
+	bindTime    %SFTime;   "-1"
+	isBound     %SFBool;   "false"
+	DEF         ID         #IMPLIED 
+	USE         IDREF      #IMPLIED >
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Billboard (children)? >
+<!ATTLIST Billboard
+	axisOfRotation %SFVec3f; "0 1 0"
+	bboxCenter     %SFVec3f; "0 0 0"
+	bboxSize       %SFVec3f; "-1 -1 -1"
+	DEF            ID        #IMPLIED 
+	USE            IDREF     #IMPLIED>
+
+<!ELEMENT Box EMPTY>
+<!ATTLIST Box
+	size %SFVec3f; "2 2 2"
+	DEF  ID        #IMPLIED 
+	USE  IDREF     #IMPLIED>
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Collision ( (children, proxy?) | (proxy, children?) )? >
+<!ATTLIST Collision
+	collide     %SFBool;  "true"
+	bboxCenter  %SFVec3f; "0 0 0"
+	bboxSize    %SFVec3f; "-1 -1 -1"
+	collideTime %SFTime;  "0.0"
+	DEF         ID        #IMPLIED 
+	USE         IDREF     #IMPLIED >
+]]>
+
+<!ELEMENT Color EMPTY >
+<!ATTLIST Color
+	color       %MFColor; #IMPLIED
+	DEF         ID        #IMPLIED
+	USE         IDREF     #IMPLIED>
+
+<!ELEMENT ColorNode EMPTY >
+<!ATTLIST ColorNode
+	color       %MFColor; #IMPLIED
+	DEF         ID        #IMPLIED
+	USE         IDREF     #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT ColorInterpolator EMPTY>
+<!ATTLIST ColorInterpolator
+	fraction    %SFFloat; "0"
+	key         %MFFloat; #IMPLIED
+	keyValue    %MFColor; #IMPLIED
+	value       %SFColor; "0 0 0"
+	DEF         ID        #IMPLIED
+	USE         IDREF     #IMPLIED>
+
+<!ELEMENT Cone EMPTY>
+<!ATTLIST Cone
+	bottomRadius %SFFloat; "1"
+	height       %SFFloat; "2"
+	side         %SFBool;  "true"
+	bottom       %SFBool;  "true"
+	DEF          ID        #IMPLIED
+	USE          IDREF     #IMPLIED>
+]]>
+
+<!ELEMENT Coordinate EMPTY >
+<!ATTLIST Coordinate 
+	point        %MFVec3f; #IMPLIED
+	DEF          ID        #IMPLIED
+	USE          IDREF     #IMPLIED>
+
+<!ELEMENT CoordinateInterpolator EMPTY>
+<!ATTLIST CoordinateInterpolator
+	fraction %SFFloat; "0"
+	key      %MFFloat; #IMPLIED
+	keyValue %MFVec3f; #IMPLIED
+	value    %MFVec3f; "0 0 0"
+	DEF      ID        #IMPLIED
+	USE      IDREF     #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Cylinder EMPTY>
+<!ATTLIST Cylinder 
+	bottom   %SFBool; "true"
+	height   %SFFloat; "2"
+	radius   %SFFloat; "1"
+	side     %SFBool;  "true"
+	top      %SFBool;  "true"
+	DEF      ID        #IMPLIED
+	USE      IDREF     #IMPLIED>
+
+<!ELEMENT CylinderSensor EMPTY>
+<!ATTLIST CylinderSensor
+	autoOffset %SFBool;     "true"
+	diskAngle  %SFFloat;    "0.262"
+	enabled    %SFBool;     "true"
+	maxAngle   %SFFloat;    "-1"
+	minAngle   %SFFloat;    "0"
+	offset     %SFFloat;    "0"
+	isActive   %SFBool;     "false"	
+	rotation   %SFRotation; "0 0 1 0"
+	trackPoint %SFVec3f;    "0 0 0"
+	DEF        ID           #IMPLIED
+	USE        IDREF        #IMPLIED>
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT DirectionalLight EMPTY>
+<!ATTLIST DirectionalLight
+	ambientIntensity %SFFloat; "0"
+	color            %SFColor; "1 1 1"
+	direction        %SFVec3f; "0 0 -1"
+	intensity        %SFFloat; "1"
+	on               %SFBool;  "true"
+	DEF              ID        #IMPLIED
+	USE              IDREF     #IMPLIED>
+]]>
+
+<![%CoreProfile;[
+
+<!ELEMENT DirectionalLight EMPTY>
+<!ATTLIST DirectionalLight
+	color            %SFColor; "1 1 1"
+	direction        %SFVec3f; "0 0 -1"
+	intensity        %SFFloat; "1"
+	on               %SFBool;  "true"
+	DEF              ID        #IMPLIED
+	USE              IDREF     #IMPLIED>
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT ElevationGrid (
+	(color, ((normal, texCoord?) | (texCoord, normal?))? ) |
+	(normal, ((color, texCoord?) | (texCoord, color?))? ) |
+	(texCoord, ((normal, color?) | (color, normal?))? )?
+) >
+
+<!ATTLIST ElevationGrid
+	height          %MFFloat; #IMPLIED
+	ccw             %SFBool;  "true"
+	colorPerVertex  %SFBool;  "true"
+	creaseAngle     %SFFloat; "0"
+	normalPerVertex %SFBool;  "true"
+	solid           %SFBool;  "true"
+	xDimension      %SFInt32; "0"
+	xSpacing        %SFFloat; "1.0"
+	zDimension      %SFInt32; "0"
+	zSpacing        %SFFloat; "1.0"
+	DEF             ID        #IMPLIED
+	USE             IDREF     #IMPLIED>
+
+<!ELEMENT ExternProtoDeclare ( field* ) >
+<!ATTLIST ExternProtoDeclare
+	name		NMTOKEN		#REQUIRED
+	url		%MFString;	#REQUIRED
+	nodeTypeHint	CDATA		#IMPLIED>
+
+<!ELEMENT Extrusion EMPTY >
+<!ATTLIST Extrusion
+	beginCap     %SFBool;     "true"
+	ccw          %SFBool;     "true"
+	convex       %SFBool;     "true"
+	creaseAngle  %SFFloat;    "0.0"
+	crossSection %MFVec2f;    "1 1  1 -1  -1 -1  -1 1  1 1"
+	endCap       %SFBool;     "true"
+	orientation  %MFRotation; "0 0 1 0"
+	scale        %MFVec2f;    "1 1"
+	solid        %SFBool;     "true"
+	spine        %MFVec3f;    "0 0 0  0 1 0"
+	DEF          ID           #IMPLIED
+	USE          IDREF        #IMPLIED>
+
+<!-- field is only used in a Script, ProtoDeclare or ExternProtoDeclare.
+     Initialization values for simple types go in the value attribute.
+     Contained content tags are only for initialization of Node or Nodes. -->
+
+<!ELEMENT field  ( %ProtoNodes; )* >
+<!ATTLIST field
+	type  ( %X3dFieldTypes; ) #REQUIRED
+	name  NMTOKEN          #REQUIRED
+	value CDATA            #IMPLIED
+  	xml:space              (default | preserve) "default"
+	IS    NMTOKENS         #IMPLIED
+	USE   IDREF            #IMPLIED
+	vrml97Hint (eventIn | eventOut | field | exposedField) #IMPLIED>
+
+<!-- fieldValue resets default field values inside a ProtoInstance.
+     Initialization values for simple types go in the value attribute.
+     Contained content tags are only for initialization of Node or Nodes. -->
+
+<!ELEMENT fieldValue ( %ProtoNodes; )* >
+<!ATTLIST fieldValue
+	name	NMTOKEN	#REQUIRED
+	value	CDATA	#IMPLIED
+	USE 	IDREF	#IMPLIED>
+
+<!ELEMENT Fog EMPTY >
+<!ATTLIST Fog
+	color           %SFColor;            "1 1 1"
+	fogType         (LINEAR|EXPONENTIAL) "LINEAR"
+	visibilityRange %SFFloat;            "0"
+	bind            %SFBool;             "false"
+	bindTime        %SFTime;             "-1"
+	isBound         %SFBool;             "false"
+	DEF             ID                   #IMPLIED
+	USE             IDREF                #IMPLIED>
+
+<!ELEMENT FontStyle EMPTY >
+<!ATTLIST FontStyle
+	family      %MFString; '"SERIF"'
+	horizontal  %SFBool;   "true"
+	justify     %MFString; '"BEGIN"'
+	language    %SFString; #IMPLIED
+	leftToRight %SFBool;   "true"
+	size        %SFFloat;  "1.0"
+	spacing     %SFFloat;  "1.0"
+	style       (PLAIN|BOLD|ITALIC|BOLDITALIC) "PLAIN"
+	topToBottom %SFBool;   "true"
+	DEF         ID         #IMPLIED
+	USE         IDREF      #IMPLIED>
+
+<!-- Minimum supported values mentioned in VRML 97 specification
+	family      ' "SERIF" "SANS" "TYPEWRITER" '
+	justify     ' "FIRST" "BEGIN" "MIDDLE" "END" '       -->
+]]>
+
+<!ELEMENT Group (children)? >
+<!ATTLIST Group
+	bboxCenter %SFVec3f; "0 0 0"
+	bboxSize   %SFVec3f; "-1 -1 -1"
+	DEF        ID        #IMPLIED
+	USE        IDREF     #IMPLIED>
+
+<!ELEMENT Header ( #PCDATA | meta )* >
+
+<!ELEMENT ImageTexture EMPTY >
+<!ATTLIST ImageTexture 
+	url     %MFString; #IMPLIED
+	repeatS %SFBool; "true"
+	repeatT %SFBool; "true"
+	DEF     ID       #IMPLIED
+	USE     IDREF    #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT IndexedFaceSet (
+   (color, (	(coord, ((normal,texCoord?) | (texCoord,normal)?)?) |
+		(normal,((coord,texCoord?) | (texCoord,coord?))?) |
+		(texCoord,((coord,normal?) | (normal,coord?))?) )? )
+ | (coord, (	(color,	((normal,texCoord?) | (texCoord,normal)?)?) |
+		(normal,((color,texCoord?) | (texCoord,color?))?) |
+		(texCoord,((color,normal?) | (normal,color?))?) )? )
+ | (normal, (	(color,	((coord,texCoord?) | (texCoord,coord?))?) |
+		(coord,((color,texCoord?) | (texCoord,color?))?) |
+		(texCoord,((color,coord?) | (coord,color?))?) )? )
+ | (texCoord, (	(color,	((coord,normal?) | (normal,coord?))?) |
+		(coord,((color,normal?) | (normal,color?))?) |
+		(normal,((color,coord?) | (coord,color?))?) )? )?
+) >
+
+<!ATTLIST IndexedFaceSet
+	ccw             %SFBool;  "true"
+	colorIndex      %MFInt32; #IMPLIED
+	colorPerVertex  %SFBool;  "true"
+	convex          %SFBool;  "true"
+	coordIndex      %MFInt32; #IMPLIED
+	creaseAngle     %SFFloat; "0"
+	normalIndex     %MFInt32; #IMPLIED
+	normalPerVertex %SFBool;  "true"
+	solid           %SFBool;  "true"
+	texCoordIndex   %MFInt32; #IMPLIED
+	DEF             ID        #IMPLIED
+	USE             IDREF     #IMPLIED>
+]]>
+
+<![%CoreProfile;[
+
+<!-- texture coordinates in Core or not?? -->
+
+<!ELEMENT IndexedFaceSet ( (color, coord?) | (coord, color?) )? >
+<!ATTLIST IndexedFaceSet
+	ccw             %SFBool;  "true"
+	colorIndex      %MFInt32; #IMPLIED
+	colorPerVertex  %SFBool;  "true"
+	convex          %SFBool;  #FIXED    "true"
+	coordIndex      %MFInt32; #IMPLIED
+	creaseAngle     %SFFloat; "0"
+	normalPerVertex %SFBool;  "true"
+	solid           %SFBool;  "true"
+	texCoordIndex   %MFInt32; #IMPLIED
+	DEF             ID        #IMPLIED
+	USE             IDREF     #IMPLIED>
+]]>
+
+<!ELEMENT IndexedLineSet ( (color, coord?) | (coord, color?) )? >
+<!ATTLIST IndexedLineSet
+	colorIndex      %MFInt32; #IMPLIED
+	colorPerVertex  %SFBool;  "true"
+	coordIndex      %MFInt32; #IMPLIED
+	lineWidth       %SFFloat; "1.0"
+	DEF             ID        #IMPLIED
+	USE             IDREF     #IMPLIED>
+
+<!-- Inline may contain nodes once url is loaded.         -->
+<!-- This permits external access - open technical issue. -->
+
+<!ELEMENT Inline (children)? >
+<!ATTLIST Inline 
+	url         %MFString; #IMPLIED
+	bboxCenter  %SFVec3f;  "0 0 0"
+	bboxSize    %SFVec3f;  "-1 -1 -1"
+	DEF         ID         #IMPLIED
+	USE         IDREF      #IMPLIED>
+
+<!ELEMENT KeySensor EMPTY >
+<!ATTLIST KeySensor 
+	keyPress		%SFInt32;	#IMPLIED
+	keyRelease		%SFInt32;	#IMPLIED
+	actionKeyPress		%SFInt32;	#IMPLIED
+	actionKeyRelease	%SFInt32;	#IMPLIED
+	shiftKey		%SFBool;	#IMPLIED
+	controlKey		%SFBool;	#IMPLIED
+	altKey			%SFBool;	#IMPLIED
+	enabled			%SFBool;	"true"
+	isActive		%SFBool;	"false"
+	DEF			ID		#IMPLIED
+	USE			IDREF		#IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT LOD (level)? >
+<!ATTLIST LOD
+	center %SFVec3f; "0 0 0"
+	range  %MFFloat; #IMPLIED
+	DEF    ID        #IMPLIED
+	USE    IDREF     #IMPLIED>
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Material EMPTY >
+<!ATTLIST Material
+	ambientIntensity %SFFloat; "0.2"
+	diffuseColor     %SFColor; "0.8 0.8 0.8"
+	emissiveColor    %SFColor; "0 0 0"
+	shininess        %SFFloat; "0.2"
+	specularColor    %SFColor; "0 0 0"
+	transparency     %SFFloat; "0"
+	DEF              ID        #IMPLIED
+	USE              IDREF     #IMPLIED>
+]]>
+
+<![%CoreProfile;[
+
+<!ELEMENT Material EMPTY >
+<!ATTLIST Material
+	diffuseColor     %SFColor; "0.8 0.8 0.8"
+	emissiveColor    %SFColor; "0 0 0"
+	transparency     %SFFloat; "0"
+	DEF              ID        #IMPLIED
+	USE              IDREF     #IMPLIED>
+]]>
+
+<!-- *** XHTML exerpts to define meta tag, should convert
+         to external declaration when tools are robust    *** -->
+
+<!-- i18n, language, meta tag definitions from XHTML 1.0
+     http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd -->
+
+<!ENTITY % LanguageCode "NMTOKEN">
+    <!-- a language code, as per [IETF RFC3066/BCP47] ftp://ftp.isi.edu/in-notes/bcp/bcp47.txt -->
+
+<!-- internationalization attributes
+  lang        language code (backwards compatible)
+  xml:lang    language code (as per XML 1.0 spec)
+  dir         direction for weak/neutral text
+-->
+<!ENTITY % i18n
+ "lang        %LanguageCode; #IMPLIED
+  xml:lang    %LanguageCode; #IMPLIED
+  dir         (ltr|rtl)      #IMPLIED"
+  >
+
+<!-- generic metadata information, matches HTML usage, made attribute 'name' required -->
+<!ELEMENT meta EMPTY>  
+<!ATTLIST meta
+  %i18n;
+  http-equiv  CDATA          #IMPLIED
+  name        CDATA          #REQUIRED
+  content     CDATA          #REQUIRED
+  scheme      CDATA          #IMPLIED
+  >
+
+<![%BaseLineProfile;[
+
+<!ELEMENT MovieTexture EMPTY >
+<!ATTLIST MovieTexture
+	loop      %SFBool;   "true"
+	speed     %SFFloat;  "1.0"
+	startTime %SFTime;   "0"
+	stopTime  %SFTime;   "0"
+	url       %MFString; #IMPLIED
+	repeatS   %SFBool;   "true"
+	repeatT   %SFBool;   "true"
+	duration  %SFTime;   "0.0"
+	isActive  %SFBool;   "false"
+	DEF       ID         #IMPLIED
+	USE       IDREF      #IMPLIED>
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT NavigationInfo EMPTY >
+<!ATTLIST NavigationInfo
+	avatarSize      %MFFloat;  "0.25 1.6 0.75"
+	headlight       %SFBool;   "true"
+	speed           %SFFloat;  "1"
+	type            %MFString; #IMPLIED
+	visibilityLimit %SFFloat;  "0"
+	bind            %SFBool;   "false"
+	bindTime        %SFTime;   "-1"
+	isBound         %SFBool;   "false"
+	DEF             ID         #IMPLIED
+	USE             IDREF      #IMPLIED>
+]]>
+<![%CoreProfile;[
+
+<!ELEMENT NavigationInfo EMPTY >
+<!ATTLIST NavigationInfo
+	headlight       %SFBool;  "true"
+	bind            %SFBool;  "false"
+	bindTime        %SFTime;  "-1"
+	isBound         %SFBool;  "false"
+	DEF             ID        #IMPLIED
+	USE             IDREF     #IMPLIED>
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Normal EMPTY >
+<!ATTLIST Normal
+	vector    %MFVec3f; #IMPLIED
+	DEF       ID        #IMPLIED
+	USE       IDREF     #IMPLIED>
+
+<!ELEMENT NormalInterpolator EMPTY >
+<!ATTLIST NormalInterpolator
+	fraction %SFFloat; "0"
+	key      %MFFloat; #IMPLIED
+	keyValue %MFVec3f; #IMPLIED
+	value    %MFVec3f; "0 0 0"
+	DEF      ID        #IMPLIED
+	USE      IDREF     #IMPLIED>
+]]>
+
+<!ELEMENT OrientationInterpolator EMPTY >
+<!ATTLIST OrientationInterpolator
+	fraction %SFFloat;    "0"
+	key      %MFFloat;    #IMPLIED
+	keyValue %MFRotation; #IMPLIED
+	value    %SFRotation; "0 0 1 0"
+	DEF      ID           #IMPLIED
+	USE      IDREF        #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT PixelTexture EMPTY >
+<!ATTLIST PixelTexture 
+	image   %SFImage; "0 0 0"
+	repeatS %SFBool;  "true"
+	repeatT %SFBool;  "true"
+	DEF     ID        #IMPLIED
+	USE     IDREF     #IMPLIED>
+
+<!ELEMENT PlaneSensor EMPTY >
+<!ATTLIST PlaneSensor 
+	autoOffset  %SFBool;  "true"
+	enabled     %SFBool;  "true"
+	maxPosition %SFVec2f; "-1 -1"
+	minPosition %SFVec2f; "0 0"
+	offset      %SFVec3f; "0 0 0"
+	isActive    %SFBool;  "false"
+	trackPoint  %SFVec3f; "0 0 0"
+	translation %SFVec3f; "0 0 0"
+	DEF         ID        #IMPLIED
+	USE         IDREF     #IMPLIED>
+
+<!ELEMENT PointLight EMPTY >
+<!ATTLIST PointLight
+	ambientIntensity %SFFloat;	"0"
+	attenuation      %SFVec3f;	"1 0 0"
+	color            %SFColor;	"1 1 1"
+	intensity        %SFFloat;	"1"
+	location         %SFVec3f;	"0 0 0"
+	on               %SFBool;	"true"
+	radius		%SFFloat;	"100"
+	DEF		ID		#IMPLIED
+	USE		IDREF		#IMPLIED>
+]]>
+
+<!ELEMENT PointSet ( (color, coord?) | (coord, color?) )? >
+<!ATTLIST PointSet
+	pointSize %SFFloat; "1.0"
+	DEF       ID        #IMPLIED
+	USE       IDREF     #IMPLIED>
+
+<!ELEMENT PositionInterpolator EMPTY >
+<!ATTLIST PositionInterpolator
+	fraction %SFFloat; "0"
+	key      %MFFloat; #IMPLIED
+	keyValue %MFVec3f; #IMPLIED
+	value    %SFVec3f; "0 0 0"
+	DEF      ID        #IMPLIED
+	USE      IDREF     #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!-- choice of nodes contained in PROTO constrained by valid ( %ProtoNodes; )* rather than ( ANY )* ) >  -->
+
+<!ELEMENT ProtoDeclare ( field*, (ProtoDeclare|ExternProtoDeclare)*, ( %ProtoNodes; )+, ROUTE* ) >
+<!ATTLIST ProtoDeclare
+	name NMTOKEN    #REQUIRED> <!-- the name given to this type of PROTO -->
+
+<!ELEMENT ProtoInstance ( fieldValue | %AllVRML97Fields; )* >
+<!ATTLIST ProtoInstance
+     name     NMTOKEN           #REQUIRED
+     DEF      ID                #IMPLIED
+     USE      IDREF             #IMPLIED>
+
+<!ELEMENT ProximitySensor EMPTY >
+<!ATTLIST ProximitySensor
+	center      %SFVec3f;    "0 0 0"
+	size        %SFVec3f;    "0 0 0"
+	enabled     %SFBool;     "true"
+	isActive    %SFBool;     "false"
+	position    %SFVec3f;    "0 0 0"
+	orientation %SFRotation; "0 0 1 0"
+	enterTime   %SFTime;     "0"
+	exitTime    %SFTime;     "0"
+	DEF         ID           #IMPLIED
+	USE         IDREF        #IMPLIED>
+]]>
+
+<!ELEMENT ROUTE EMPTY >
+<!ATTLIST ROUTE
+	fromNode    IDREF   #REQUIRED
+	fromField   NMTOKEN #REQUIRED
+	toNode      IDREF   #REQUIRED
+	toField     NMTOKEN #REQUIRED>
+
+<!ELEMENT ScalarInterpolator EMPTY >
+<!ATTLIST ScalarInterpolator
+	fraction %SFFloat; "0"
+	key      %MFFloat; #IMPLIED
+	keyValue %MFFloat; #IMPLIED
+	value    %SFFloat; "0"
+	DEF      ID        #IMPLIED
+	USE      IDREF     #IMPLIED>
+
+<!ELEMENT Scene ( %SceneNodes; ) >
+<!ATTLIST Scene
+	DEF                  ID          #IMPLIED
+	evaluate             %SFBool;    #IMPLIED
+	browserResponse      %SFString;  #IMPLIED
+	boundBackground      IDREF       #IMPLIED
+	boundFog             IDREF       #IMPLIED
+	boundGeoViewpoint    IDREF       #IMPLIED
+	boundNavigationInfo  IDREF       #IMPLIED
+	boundViewpoint       IDREF       #IMPLIED
+	browserName          %SFString;  #IMPLIED
+	browserVersion       %SFString;  #IMPLIED
+	createVrmlFromString %SFString;  #IMPLIED
+	createVrmlFromX3d    %SFString;  #IMPLIED
+	createVrmlFromUrl    %SFString;  #IMPLIED
+	creationTargetNode   IDREF       #IMPLIED
+	currentFrameRate     %SFFloat;   #IMPLIED
+	currentSpeed         %SFFloat;   #IMPLIED
+	currentTime          %SFTime;    #IMPLIED
+	dashboardVisible     %SFBool;    #IMPLIED
+	description          %SFString;  #IMPLIED
+	loadUrl              %MFString;  #IMPLIED
+	loadUrlParameter     %SFString;  #IMPLIED
+	pixelHeight          %SFInt32;   #IMPLIED
+	pixelWidth           %SFInt32;   #IMPLIED
+	worldUrl             %MFString;  #IMPLIED>
+
+<!-- Script is similar to PROTO regarding user definition of multiple fields -->
+
+<![%BaseLineProfile;[
+
+<!-- script code should be included as CDATA sections -->
+<!ELEMENT Script ( #PCDATA | field )* >
+<!ATTLIST Script
+	url          %MFString; #IMPLIED
+	directOutput %SFBool; "false"
+	mustEvaluate %SFBool; "false"
+  	xml:space    (default | preserve) #FIXED "preserve"
+  	DEF ID       #IMPLIED
+	USE IDREF    #IMPLIED>
+]]>
+
+<!ELEMENT Shape ( (appearance, geometry?) | (geometry, appearance?) )? >
+<!ATTLIST Shape
+	DEF ID       #IMPLIED
+	USE IDREF    #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT Sound (source)? >
+<!ATTLIST Sound
+	direction  %SFVec3f; "0 0 1"
+	intensity  %SFFloat; "1"
+	location   %SFVec3f; "0 0 0"
+	maxBack    %SFFloat; "10"
+	maxFront   %SFFloat; "10"
+	minBack    %SFFloat; "1"
+	minFront   %SFFloat; "1"
+	priority   %SFFloat; "0"
+	spatialize %SFBool;  "true"
+	DEF        ID        #IMPLIED
+	USE        IDREF     #IMPLIED>
+
+<!ELEMENT Sphere EMPTY >
+<!ATTLIST Sphere
+	radius %SFFloat; "1"
+	DEF    ID        #IMPLIED
+	USE    IDREF     #IMPLIED>
+
+<!ELEMENT SphereSensor EMPTY >
+<!ATTLIST SphereSensor 
+	autoOffset %SFBool;     "true"
+	enabled    %SFBool;     "true"
+	offset     %SFRotation; "0 1 0 0"
+	isActive   %SFBool;     "false"
+	rotation   %SFRotation; "0 1 0 0"
+	trackPoint %SFVec3f;    "0 0 0"
+	DEF        ID           #IMPLIED
+	USE        IDREF        #IMPLIED>
+
+<!ELEMENT SpotLight EMPTY >
+<!ATTLIST SpotLight
+	ambientIntensity %SFFloat; "0"
+	attenuation      %SFVec3f; "1 0 0"
+	beamWidth        %SFFloat; "1.570796"
+	color            %SFColor; "1 1 1"
+	cutOffAngle      %SFFloat; ".785398"
+	direction        %SFVec3f; "0 0 -1"
+	intensity        %SFFloat; "1"
+	location         %SFVec3f; "0 0 0"
+	on               %SFBool;  "true"
+	radius           %SFFloat; "100"
+	DEF              ID        #IMPLIED
+	USE              IDREF     #IMPLIED>
+
+<!-- StringSensor:  convert \r and \b to integer values -->
+
+<!ELEMENT StringSensor EMPTY >
+<!ATTLIST StringSensor 
+	enteredText		%SFString;	#IMPLIED
+	finalText		%SFString;	#IMPLIED
+	terminationText		%SFString;	"\r"
+	deletionCharacter	%SFInt32;	"\b"
+	enabled			%SFBool;	"true"
+	isActive		%SFBool;	"false"
+	DEF			ID		#IMPLIED
+	USE			IDREF		#IMPLIED>
+
+<!ELEMENT Switch (choice)? >
+<!ATTLIST Switch
+	whichChoice %SFInt32; "-1"
+	DEF         ID        #IMPLIED
+	USE         IDREF     #IMPLIED>
+
+<!ELEMENT Text (fontStyle)? >
+<!ATTLIST Text
+	string    %MFString; #IMPLIED
+	length    %MFFloat;  #IMPLIED
+	maxExtent %SFFloat;  "0.0"
+	DEF       ID         #IMPLIED
+	USE       IDREF      #IMPLIED>
+]]>
+
+<!ELEMENT TextureCoordinate EMPTY >
+<!ATTLIST TextureCoordinate
+	point     %MFVec2f;  #IMPLIED
+	DEF       ID         #IMPLIED
+	USE       IDREF      #IMPLIED>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT TextureTransform EMPTY >
+<!ATTLIST TextureTransform
+	center      %SFVec2f; "0 0"
+	rotation    %SFFloat; "0"
+	scale       %SFVec2f; "1 1"
+	translation %SFVec2f; "0 0"
+	DEF         ID        #IMPLIED
+	USE         IDREF     #IMPLIED>
+]]>
+
+<!ELEMENT TimeSensor EMPTY >
+<!ATTLIST TimeSensor
+	cycleInterval %SFTime;  "1.0"
+	enabled       %SFBool;  "true"
+	loop          %SFBool;  "false"
+	startTime     %SFTime;  "0"
+	stopTime      %SFTime;  "0"
+	cycleTime     %SFTime;  "0"
+	fraction      %SFFloat; "0"
+	isActive      %SFBool;  "false"
+	time          %SFTime;  "0"
+	DEF           ID         #IMPLIED
+	USE           IDREF      #IMPLIED>
+
+<![%CoreProfile;[
+
+<!ELEMENT TouchSensor EMPTY >
+<!ATTLIST TouchSensor
+	enabled      %SFBool;  "true"
+	isActive     %SFBool;  "false"
+	isOver       %SFBool;  "false"
+	touchTime    %SFTime;  "0"
+	DEF          ID        #IMPLIED
+	USE          IDREF     #IMPLIED>
+
+]]>
+
+<![%BaseLineProfile;[
+
+<!ELEMENT TouchSensor EMPTY >
+<!ATTLIST TouchSensor
+	enabled      %SFBool;  "true"
+	hitNormal    %SFVec3f; "0 0 1"
+	hitPoint     %SFVec3f; "0 0 0"
+	hitTexCoord  %SFVec2f; "0 0"
+	isActive     %SFBool;  "false"
+	isOver       %SFBool;  "false"
+	touchTime    %SFTime;  "0"
+	DEF          ID        #IMPLIED
+	USE          IDREF     #IMPLIED>
+]]>
+
+
+<!ELEMENT Transform (children)? >
+<!ATTLIST Transform 
+	center           %SFVec3f;    "0 0 0"
+	rotation         %SFRotation; "0 0 1 0"
+	scale            %SFVec3f;    "1 1 1"
+	scaleOrientation %SFRotation; "0 0 1 0"
+	translation      %SFVec3f;    "0 0 0"
+	bboxCenter       %SFVec3f;    "0 0 0"
+	bboxSize         %SFVec3f;    "-1 -1 -1"
+	DEF              ID           #IMPLIED 
+	USE              IDREF        #IMPLIED >
+
+<!--	Note that USE node does not provide any type checking of content nodes.
+	Utilizing USE attributes in the nodes themselves is preferred, because
+        that approach provides type checking. -->
+
+<!ELEMENT USE EMPTY >
+<!ATTLIST USE
+	node         IDREF        #REQUIRED>
+
+<!ELEMENT Viewpoint EMPTY >
+<!ATTLIST Viewpoint
+	fieldOfView %SFFloat;    "0.785398"
+	jump        %SFBool;     "true"
+	orientation %SFRotation; "0 0 1 0"
+	position    %SFVec3f;    "0 0 10"
+	description %SFString;   #IMPLIED
+	bind        %SFBool;     "false"
+	bindTime    %SFTime;     "-1"
+	isBound     %SFBool;     "false"
+	examine     %SFRotation; "0 0 0"
+	DEF         ID           #IMPLIED
+	USE         IDREF        #IMPLIED>
+<!-- examine (point of rotation) is proposed addition, maybe belongs in NavigationInfo instead... -->
+
+<![%BaseLineProfile;[
+
+<!ELEMENT VisibilitySensor EMPTY >
+<!ATTLIST VisibilitySensor 
+	center    %SFVec3f; "0 0 0"
+	enabled   %SFBool;  "true"
+	size      %SFVec3f; "0 0 0"
+	enterTime %SFTime;  "0.0"
+	exitTime  %SFTime;  "0.0"
+	isActive  %SFBool;  "false"
+	DEF       ID        #IMPLIED
+	USE       IDREF     #IMPLIED>
+]]>
+
+<!ELEMENT WorldInfo EMPTY >
+<!ATTLIST WorldInfo 
+	info  %MFString; #IMPLIED
+	title %SFString; #IMPLIED
+	DEF ID       #IMPLIED
+	USE IDREF    #IMPLIED>
+
+<!ELEMENT X3D    ( Header? , Scene ) >
+<!ATTLIST X3D 
+	profileForContainedScene %profileNames; #IMPLIED>
+
+
+<!-- ***** X3D Extensions,  under development ***** -->
+
+
+<![%X3dExtensions;[
+
+<!-- ***** MultiTexture Extensions proposal by Rob Glidden ***** -->
+
+
+<!-- Tool problems when invoking  XHTML DTD here for img | object | iframe | div
+
+<!ENTITY img PUBLIC
+	"-//W3C//DTD XHTML 1.0 Frameset//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+
+<!ENTITY object PUBLIC
+	"-//W3C//DTD XHTML 1.0 Frameset//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+
+<!ENTITY iframe PUBLIC
+	"-//W3C//DTD XHTML 1.0 Frameset//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+
+<!ENTITY div PUBLIC
+	"-//W3C//DTD XHTML 1.0 Frameset//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+-->
+
+<!-- Tool problems when  invoking Structured Vector Graphics (SVG) DTD for svg;
+	also have more recent DTDs that need to be checked...
+
+<!ENTITY svg SYSTEM
+	"http://www.w3.org/Graphics/SVG/SVG-19991203.dtd">
+
+<!ELEMENT Surface (( %MaterialNodes; | img | object | iframe | div | svg | Scene3D ), TextureTransform?) >
+
+-->
+
+
+<!--
+No followup effort has yet tried to compose the various multitexture proposals.
+
+<!ELEMENT Surface (( %MaterialNodes; | Scene3D ), TextureTransform?) >
+<!ATTLIST Surface
+	textureTransform          IDREF     #IMPLIED
+	mappingSurfaceCoordinates IDREF    #IMPLIED
+	repeatS   %SFBool;  "true"
+	repeatT   %SFBool;  "true"
+	width     %SFInt32; "0"
+	height    %SFInt32; "0"
+	DEF       ID        #IMPLIED
+	USE       IDREF     #IMPLIED>
+
+<!ELEMENT Scene3D ((Background, Viewpoint?) | (Viewpoint, Background?))? >
+<!ATTLIST Scene3D
+	Root       IDREF #REQUIRED
+	Viewpoint  IDREF #REQUIRED
+	Background IDREF #REQUIRED
+	RenderInfo IDREF #REQUIRED
+	DEF        ID    #IMPLIED
+	USE        IDREF #IMPLIED>
+
+<!ELEMENT MultiTexture ((Material, Surface*) | (Surface+, Material?))? >
+<!ATTLIST MultiTexture
+	diffuseSurface    IDREF  #IMPLIED
+	ambientSurface    IDREF  #IMPLIED
+	bumpSurface       IDREF  #IMPLIED
+	material          IDREF  #IMPLIED
+	reflectionType (USER | USERCUBIC | USERSPHERE | REFLECT | CUBIC | SPHERE) "USER"
+	reflectionSurfaces IDREFS #IMPLIED
+	maskSurface       IDREF  #IMPLIED
+	DEF               ID     #IMPLIED
+	USE               IDREF  #IMPLIED>
+
+<!ELEMENT MultiTextureTree ( RenderOp ) >
+<!ATTLIST MultiTextureTree
+	DEF ID       #IMPLIED
+	USE IDREF    #IMPLIED>   
+
+-->
+
+<!-- what is Vector ??
+
+<!ELEMENT RenderOp ((Surface | RenderOp), (Script, Vector?, Color? )? ) >
+
+<!ELEMENT RenderOp ((Surface | RenderOp), (Script, Color? )? ) >
+<!ATTLIST RenderOp
+	factor %SFFloat; ".5"
+	type (ADD | MODULATE | MODULATE2 | LINEAR | SCRIPT) #REQUIRED
+	DEF    ID    #IMPLIED
+	USE    IDREF #IMPLIED>
+-->
+
+<!-- Curtis Beeson's alternative:  lightweight multitexture proposal
+     http://www.web3d.org/WorkingGroups/x3d-contributors/hypermail/1999/1855.html
+
+Appearance {
+        exposedField SFMaterial diffuseMaterial
+        exposedField SFTexture  lightMap
+        exposedField SFTexture  diffuseMap
+        exposedField SFTexture  envMap
+        exposedField SFTexture  envMapMask
+        exposedField SFTextureTransform lightMapTransform
+        exposedField SFTextureTransform diffuseMapTransform
+        exposedField SFTextureTransform envMapTransform
+        exposedField SFTextureTransform envMapMaskTransform
+        exposedField SFEnum envMapType { SPHERICAL | CUBIC }
+}
+-->
+
+<!--
+<!ELEMENT MultiTextureAppearance
+	(((%MaterialNodes;), ((%TextureNodes;) | (%TextureTransformNodes;))*) |
+	 (((%TextureNodes;) | (%TextureTransformNodes;))+,
+          (%MaterialNodes;), 
+          ((%TextureNodes;) | (%TextureTransformNodes;))*)
+	)? >
+<!ATTLIST MultiTextureAppearance
+	diffuseMaterial         IDREF #IMPLIED
+	lightMap                IDREF #IMPLIED
+	diffuseMap              IDREF #IMPLIED
+	envMap                  IDREF #IMPLIED
+	envMapMask              IDREF #IMPLIED
+	lightMapTransform       IDREF #IMPLIED
+	diffuseMapTransform     IDREF #IMPLIED
+	envMapTransform         IDREF #IMPLIED
+	envMapMaskTransform     IDREF #IMPLIED
+	envMapType (SPHERICAL|CUBIC)  #IMPLIED
+	DEF ID      #IMPLIED
+	USE IDREF   #IMPLIED>
+
+IndexedFaceSet {
+  eventIn       MFInt32 set_colorIndex
+  eventIn       MFInt32 set_coordIndex
+  eventIn       MFInt32 set_normalIndex
+  eventIn       MFInt32 set_texCoordIndex
+  exposedField  SFNode  color             NULL
+  exposedField  SFNode  coord             NULL
+  exposedField  SFNode  normal            NULL
+  field         SFBool  ccw               TRUE
+  field         MFInt32 colorIndex        []        # [-1,)
+  field         SFBool  colorPerVertex    TRUE
+  field         SFBool  convex            TRUE
+  field         MFInt32 coordIndex        []        # [-1,)
+  field         SFFloat creaseAngle       0         # [0,)
+  field         MFInt32 normalIndex       []        # [-1,)
+  field         SFBool  normalPerVertex   TRUE
+  field         SFBool  solid             TRUE
+
+  (begin new stuff)
+  exposedField  SFNode  lightTexCoord        NULL
+  field         MFInt32 lightCoordIndex      []        # [-1,)
+  exposedField  SFNode  diffuseTexCoord      NULL
+  field         MFInt32 diffusetexCoordIndex []        # [-1,)
+  exposedField  SFNode  envTexCoord          NULL
+  field         MFInt32 envTexCoordIndex     []        # [-1,)
+  exposedField  SFNode  envMaskTexCoord      NULL
+  field         MFInt32 envMaskTexCoordIndex []        # [-1,)
+}
+
+
+<!ELEMENT MultiTextureIndexedFaceSet (Color?, Coordinate*, Normal?, TextureCoordinate*) >
+<!ATTLIST MultiTextureIndexedFaceSet
+	ccw             %SFBool;  "true"
+	colorIndex      %MFInt32; #IMPLIED
+	colorPerVertex  %SFBool;  "true"
+	convex          %SFBool;  #FIXED    "true"
+	coordIndex      %MFInt32; #IMPLIED
+	creaseAngle     %SFFloat; "0"
+	normalIndex     %MFInt32; #IMPLIED
+	normalPerVertex %SFBool;  "true"
+	solid           %SFBool;  "true"
+	texCoordIndex   %MFInt32; #IMPLIED
+
+	lightTexCoord        IDREF     #IMPLIED
+	lightCoordIndex      %MFInt32; #IMPLIED
+	diffuseTexCoord      IDREF     #IMPLIED
+	diffusetexCoordIndex %MFInt32; #IMPLIED
+	envTexCoord          IDREF     #IMPLIED
+	envTexCoordIndex     %MFInt32; #IMPLIED
+	envMaskTexCoord      IDREF     #IMPLIED
+	envMaskTexCoordIndex %MFInt32; #IMPLIED
+
+	DEF             ID        #IMPLIED
+	USE             IDREF     #IMPLIED>
+-->
+
+]]>
+

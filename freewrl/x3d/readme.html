@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<HTML>
+<HEAD>
+<TITLE>FreeWRL X3D compatibility</TITLE>
+</HEAD>
+<BODY>
+
+<H1>What is X3D compatibility, and what is X3D?</H1>
+<P>
+X3D is the follow on for VRML, and is being defined by the 
+ <A HREF="http://www.web3d.org">Web3D Consortium</A>.
+<P>
+Don Brutzman of the Naval Postgraduate School in Monterey, California, created 
+a template that allows an XML tool to translate X3D to VRML. We use this template
+to do our conversions.
+<P>
+<H2>Building and using X3D Compatibility.</H2>
+
+<H3>Making the software: </H3>
+<P>
+X3D Compatibility is built in. However, it does need the following:
+<OL>
+<LI> Saxon, from 
+ <A HREF="http://saxon.sourceforge.net">Saxon home</A>. All we need from this
+package is the Java .jar file, "saxon.jar".
+<LI> Edit the "vrml.conf" file, and verify the path to this jar file.
+</OL>
+
+<H3>Installing the software:</H3>
+
+<OL>
+<LI> Compile and install FreeWRL
+</OL>
+<H3>Testing the software:</H3>
+<OL>
+<li> run any of the numbered .xml tests in the "tests" directory.
+</OL>
+	
+<H3>Further Notes:</H3>
+<OL>
+<LI>The translation process needs ".dtd" files, as referenced in the .xml files. 
+The first reference is for a web reference; the second is a reference to the 
+local file system.
+<P>
+If, like me, you have an http proxy in place, the local file will be referenced.
+You will have to ensure that the path in these files is correct by either:
+<UL>
+<LI>editing the path in the .xml files
+<LI>putting in symbolic links so that the files can be found in this directory.
+(they are included here)
+</UL>
+<P>
+An example of the type of error you are likely to see is: 
+<P>
+"java.io.FileNotFoundException: /www.web3D.org/TaskGroups/x3d/translation/x3d-compact.dtd"
+<P>
+One (not totally satisfactory) solution is to go as root:
+<P>
+<UL>
+<LI>cd /
+<LI>ln -s . C:
+<LI>ln -s . www.web3D.org
+<LI>ln -s . TaskGroups
+<LI>ln -s . x3d
+<LI>ln -s /usr/local/src/FreeWRL-whatever-it-is/x3d translation
+</UL>
+</OL>
+<P>
+Copyright (c) John Stewart CRC Canada, 2001.
+
+<P>
+The dtd and xsl files are Copyright (c) Don Brutzman, Navy Postgraduate School, Monterey, Calif., 2001. </I>
+
+</BODY>
+</HTML>
