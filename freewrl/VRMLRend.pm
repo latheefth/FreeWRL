@@ -20,6 +20,10 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.47  2002/01/09 16:14:45  crc_canada
+# removal of some debugging statements, and it no longer dies on some proximity
+# sensor errors.
+#
 # Revision 1.46  2002/01/08 18:55:59  crc_canada
 # standard text and fontstyle now works - not quite up to standard, though.
 #
@@ -1439,11 +1443,12 @@ ProximitySensor => q~
 		);
 	
 	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) {
-		die("Sorry, can't handle unevenly scaled ProximitySensors yet :("
-		  "dp: %f v: (%f %f %f) (%f %f %f)", VECPT(dr1r2, dr2r3),
+		printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :("
+		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3),
 		  	dr1r2.x,dr1r2.y,dr1r2.z,
 		  	dr2r3.x,dr2r3.y,dr2r3.z
 			);
+		return;
 	}
 
 
