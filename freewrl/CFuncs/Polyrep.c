@@ -785,7 +785,7 @@ void render_polyrep(void *node,
 		
 
 	/* do we need to generate default texture mapping? */
-	if (glIsEnabled(GL_TEXTURE_2D) && (ntexcoords == 0) && (!r->tcoord)) {
+	if (HAVETODOTEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
 		for(i=0; i<r->ntri*3; i++) {
 		  int ind = r->cindex[i];
 		  for (j=0; j<3; j++) {
@@ -882,7 +882,7 @@ void render_polyrep(void *node,
 		else coli = ind;
 
 		/* get texture coordinates, if any	*/
-		if (glIsEnabled(GL_TEXTURE_2D) && r->tcindex) {
+		if (HAVETODOTEXTURES && r->tcindex) {
 			tci = r->tcindex[i]; 
 			if (polyrep_verbose) printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 		}
@@ -942,7 +942,7 @@ void render_polyrep(void *node,
 
 
 		/* Textures	*/
-		if (glIsEnabled(GL_TEXTURE_2D)) {
+		if (HAVETODOTEXTURES) {
 		    if(texcoords && ntexcoords) {
 			// did we run out of tex coords? Hanim-Nancy does this...
 			if (tci < ntexcoords) {
