@@ -481,3 +481,121 @@ sub jspSFNodeConstr {
 		cleanupDie("runScript failed in VRML::JS::jspSFNodeConstr");
 	}
 }
+
+
+sub getProperty {
+	my ($this, $type, $prop) = @_;
+	my ($rstr, $rval, $l, $i);
+	my @res;
+
+	print "VRML::JS::getProperty: ", VRML::Debug::toString(\@_), "\n"
+		if $VRML::verbose::js;
+
+	if ($type eq "SFNode") {
+		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+					   "$prop.__handle", $rstr, $rval)) {
+			cleanupDie("runScript failed in VRML::JS::getProperty");
+		}
+		return VRML::Handles::get($rstr);
+	} elsif ($type =~ /$ECMAScriptNative/) {
+		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+					   "_".$prop."_touched=0; $prop", $rstr, $rval)) {
+			cleanupDie("runScript failed in VRML::JS::getProperty");
+		}
+		return $rval;
+	} elsif ($type eq "MFNode") {
+		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+					   "$prop.length", $rstr, $l)) {
+			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
+		}
+		print "\trunScript returned length $l for MFNode\n"
+			if $VRML::verbose::js;
+		for ($i = 0; $i < $l; $i++) {
+			if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum},
+						   "$prop"."[$i].__handle", $rstr, $rval)) {
+				cleanupDie("runScript failed in VRML::JS::getProperty");
+			}
+			if ($rstr !~ /^undef/) {
+				push @res, VRML::Handles::get($rstr);
+			}
+		}
+		print "\treturn ", VRML::Debug::toString(\@res), "\n"
+			if $VRML::verbose::js;
+		return \@res;
+	} else {
+		if (!VRML::VRMLFunc::jsrunScript($this->{ScriptNum}, "$prop", $rstr, $rval)) {
+			cleanupDie("runScript failed in VRML::JS::getProperty");
+		}
+		print "\trunScript returned \"$rstr\" for $type.\n"
+			if $VRML::verbose::js;
+		(pos $rstr) = 0;
+		return "VRML::Field::$type"->parse($this->{Browser}{Scene}, $rstr);
+	}
+}
+
+
+sub addRemoveChildren {
+	my ($this, $node, $field, $c) = @_;
+
+	if ($field !~ /^(?:add|remove)Children$/) {
+		warn("Invalid field $field for VRML::JS::addChildren");
+		return;
+	}
+
+	print "VRML::JS::addRemoveChildren: ", VRML::Debug::toString(\@_), "\n"
+		if $VRML::verbose::js;
+
+	if (ref $c eq "ARRAY") {
+		return if (!@{$c});
+		$this->{Browser}->api__sendEvent($node, $field, $c);
+	} else {
+		return if (!$c);
+		$this->{Browser}->api__sendEvent($node, $field, [$c]);
+	}
+}
+
+
+sub jspSFNodeSetProperty {
+	my ($this, $prop, $handle) = @_;
+	my ($node, $val, $vt, $actualField, $rval);
+	my $scene = $this->{Browser}{Scene};
+
+	$node = VRML::Handles::get($handle);
+
+	## see VRML97, section 4.7 (field, eventIn, and eventOut semantics)
+	if ($prop =~ /^set_($VRML::Error::Word+)/ and
+		$node->{Type}{FieldKinds}{$prop} !~ /in$/i) {
+		$actualField = $1;
+	} elsif ($prop =~ /($VRML::Error::Word+)_changed$/ and
+			 $node->{Type}{FieldKinds}{$prop} !~ /out$/i) {
+		$actualField = $1;
+	} else {
+		$actualField = $prop;
+	}
+
+	$vt = $node->{Type}{FieldTypes}{$actualField};
+
+	if (!defined $vt) {
+		cleanupDie("Invalid property $prop");
+	}
+	$val = $this->getProperty($vt, "$handle"."_$prop");
+
+	print "VRML::JS::jspSFNodeSetProperty: setting $actualField, ",
+		VRML::Debug::toString($val), " for $prop of $handle\n"
+			if $VRML::verbose::js;
+
+	if ($actualField =~ /^(?:add|remove)Children$/) {
+		my $outoffset;
+
+		$outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{children};
+	        foreach $mych (@{$val}) {
+        	        #print "sendevto ",$node->{BackNode}{CNode}, " field $actualField child $mych, BN ",
+                	#                $mych->{BackNode}{CNode},"\n";
+			VRML::VRMLFunc::jsManipulateChild($node->{BackNode}{CNode}+$outoffset,
+							$actualField, $mych->{BackNode}{CNode});
+        	}
+
+	} else {
+		$node->{RFields}{$actualField} = $val;
+	}
+}
