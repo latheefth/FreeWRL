@@ -19,7 +19,7 @@ public  class EAIinThread implements Runnable {
     Applet		FreeWLRSceneInterface;
     Browser		mybrowser;
 
-    boolean debug = true;
+    boolean debug = false;
   
     // The following are used to send from the event thread to the
     // browser thread. The event thread gets stuff from the EAI port
@@ -48,12 +48,12 @@ public  class EAIinThread implements Runnable {
       try {
         EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
         // wait for FreeWRL to send us the opening sequence...
-		System.out.println("waiting for FreeWRL");
+	System.out.println("EAI: waiting for FreeWRL...");
+	System.out.println ("EAI: FreeWRL returned: ");
         EAItoBrowserPrintWriter.println (EAIin.readLine());
       } catch (IOException e) {
         System.out.print ("error reiniting data input stream");
       }
-	  System.out.println("got response from FreeWRL");
   
       // Now, this is the loop that loops to end all loops....
   
@@ -64,7 +64,7 @@ public  class EAIinThread implements Runnable {
         // EVs are events, and have two following lines.
   
         reply = EAIin.readLine();
-		System.out.println("reply: \"" + reply + "\"");
+	if (debug) System.out.println("Initial reply: \"" + reply + "\"");
         while (reply != null)  {
           // Loop here, processing incoming events
 
