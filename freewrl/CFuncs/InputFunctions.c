@@ -177,7 +177,6 @@ void VRMLPreParse(char *buffer) {
 				//printf ("char is %x\n",(buffer[cptr]&0xff));
 			}
 		}
-
 		cptr ++;
 	}
 }

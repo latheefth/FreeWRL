@@ -43,14 +43,13 @@ require Tie::Hash;
 require 'VRML/VRMLNodes.pm';
 require 'VRML/VRMLFields.pm';
 require 'VRML/FieldHash.pm';
-#errorrequire 'Tie::Scalar';
-#errorrequire 'Tie::StdHash';
 
 use vars qw/$Word $qre $cre/;
 
 X3D::Error->import;
 
 my $X3DScene;
+
 
 # Doc tree format.
 # Each level has:
@@ -62,25 +61,22 @@ my $X3DScene;
 sub parse {
 	my ( $scene, $text ) = @_;
 	my @RetArr;
-	my @n;
-	my %f;
+	my $n;
 
 	$X3DScene = $scene;
-
-	$VRML::verbose::parse = 1;
+	$X3D::verbose::parse = 0;
 	
-	print "entering x3d parser\n*****************\n" if $VRML::verbose::parse;
+	print "entering x3d parser\n*****************\n" if $X3D::verbose::parse;
 	
 	# Parse the text into an XML tree style document.
 	my $p = XML::Parser->new( Style => 'Tree' );
 	my $doc = $p->parse($text);
 
 	# dump this internal structure to the output, if required.
-	print Dumper ($doc), "\n\n";
+	print Dumper ($doc), "\n\n" if $X3D::verbose::parse;
 
 	# make an initial topnode of a Group type.
 	# we'll get the fields later, so for now, just send in blank hash.
-	my $TopNode = $X3DScene->new_node("Group", \%f);
 
 	# lets see if this is a valid X3D file; what was
 	# returned should be an array, with 2 elements; the
@@ -92,140 +88,175 @@ sub parse {
 		if ($ele0 ne "X3D") {
 			print "FreeWRL expected an X3D document, got: $ele0\n";
 		} else {
-			print "lets parse!\n";
-			@n = parseTree($TopNode,$ele1,0);
+			$n = parse_X3DStatement("Group",$ele1);
+			if (defined $n) {push @RetArr,$n};
 		}
 
 	} else {
 		print "Invalid X3D SceneGraph\n";
 	}
 
-	push @RetArr, @n;
 	$X3DScene->topnodes(\@RetArr);
-	return @RetArr;
 }
 
-sub parseTree {
-	my ($thisNode,$doc,$level) = @_;
+sub parse_X3DStatement {
+	my ($parentNode,$doc) = @_;
 
-	my @returnArray;
+	my @retArray;
 	my $nele = $#$doc;
 	my $arele = 0;
-	my @subArray;
-
-
-	my $lp = $level*2+2;
-	my $padded = pack("A$lp","$level ");
-
-
-	print "$padded start parseTree, array elements $nele node ",
-		$thisNode->{Type}{Name},"\n";
 
 	my $bnub;
+	my $field;
 
-	my %f;
+	my %field;
 
-	my $NewNode; 	# this is made from the ascii Node name
+	my $thisLevelNode; 	# this is made from the ascii Node name
 	my $nextNodeName;
+	
+	print "start parse_X3DStatement, array elements $nele node ",
+		$parentNode,", ref doc ",ref $doc,"\n" if $X3D::verbose::parse;
 
+	# lets just make a "Scene" equate to a "Group"
+	if ($parentNode eq "Scene") {$parentNode = "Group"};
+
+	my $no = $VRML::Nodes{$parentNode};
+
+	if (!defined $no) {
+		print "Invalid node '$parentNode'\n";
+	}
+	print "parse_X3DStatement, parentnode type $no\n" if $X3D::verbose::parse;
+
+
+	# go through the array elements for this entry in $doc, and
+	# determine just what to do with them.
 	while ($arele <= $nele ){
-		#print "$padded in while loop, looking at element $arele\n";
 		$bnub = $doc->[$arele];
+
+		# is this a sub-array?
 		if (ref $bnub eq "ARRAY") {
-			#print "$padded (ele $arele) array\n";
-			@subArray = ();
-			my @n = parseTree($NewNode, $bnub,$level+1);
-			print "n is @n\n";
-			if (@n ne 0) {
-				push @subArray, @n;		
-				print "$padded subArray is @subArray\n";
-				# assume this is a Group for now
-				my $f = "children";
-				print "checking on fields\n";
-				if (!exists $NewNode->{Fields}{$f}) {
-					print "this field should exist: $f\n";
-					exit (1);
-				}
-				print "$padded field already created $f ";
-				foreach (@{$NewNode->{RFields}{$f}}) {
-					print VRML::NodeIntern::dump_name ($_)," ";
+			# look ahead to see what type the array is to determine
+			# this node's child.
+			#print "calling getChildtype, parentNode $parentNode, nextNodeName $nextNodeName\n";
+			#$field = getChildType($parentNode,$bnub);
+			$field = getChildType($parentNode,$nextNodeName);
+			#print "field $field\n";
+			
+			my $ft = $no->{FieldTypes}{$field};
+				print "FT: $ft\n"
+				if $X3D::verbose::parse;
+			if(!defined $ft) {
+				print "Invalid field '$field' for node '$parentNode'\n";
+				print "Possible fields are: ";
+				foreach (keys % {$no->{FieldTypes}}) {
+					if (index($_,"_") !=0) {print "$_ ";}
 				}
 				print "\n";
-				print "ref a ",ref $NewNode->{RFields}{$f},"\n";
-				print "ref b ",ref @subArray,"\n";
-				print "pushing to ",VRML::NodeIntern::dump_name($NewNode)," array ",@subArray,"\n";
-				print "is ",
-				$NewNode->{RFields}{$f}," ...",@{$NewNode->{RFields}{$f}},"\n";
-				push @{$NewNode->{RFields}{$f}},@subArray;
-	
-				print "$padded so, for node ",
-				VRML::NodeIntern::dump_name($NewNode),
-				" we have ";
-				foreach (@{$NewNode->{RFields}{$f}}) {
-					print VRML::NodeIntern::dump_name($_)," ";
-				} print "\n";
-				print "$padded ",VRML::NodeIntern::dump_name($NewNode)," is $NewNode\n";
-				print "$padded fields is ",$NewNode->{RFields},"\n";
-				
-				# erase name; helps in error tracking.
-				$nextNodeName = "";
-				@subArray = ();
-			} else {
-				print "$padded subArray is blank\n";
+
+				exit(1);
 			}
 
+			if ($ft eq "MFNode") {
+				#print "have a MFNode\n";
+			if (ref $field{$field} eq "ARRAY") { 
+				#print "fieldfield already defined and is an ARRAY\n";
+				my $nextele = @{$field{$field}};
+				#print "element size is $nextele\n";
+				$field{$field}->[$nextele] = parse_X3DStatement($nextNodeName, $bnub);
+				
+			} else {
+				#print "new fieldfield\n";
+				$field{$field} = [parse_X3DStatement($nextNodeName, $bnub)];
+			}
+
+			} elsif ($ft eq "SFNode") {
+				$field{$field} = parse_X3DStatement($nextNodeName, $bnub);
+			} else {
+				print "CANT HANDLE fieldYpue $ft here\n";
+			}
+			#print "fieldfield is ",$field{$field}," ref ",ref $field{$field},"\n";
+			
+
+		# is this a simple field of the node?
 		} elsif (ref $bnub eq "HASH") {
 			# this had better be the first element, as it
-			# is the parameters for the node we are parsing.
+			# is the parameters for parent of the level we are parsing.
 			if ($arele != 0) {
 				print "Invalid X3D Tree, found a misplaced HASH at element $arele\n";
 			}
-			print "$padded (ele $arele) hash\n";
-			parseFields ($thisNode, $bnub);
+			parseSimpleFields ($parentNode, $bnub);
 
+		# else is this just junk, or a new Node type?
 		}else {
 			$bnub =~ s/\s+//g;
 			
 			# skip past "empty" elements in tree. 
 			if ($bnub ne "0") {
 				if ($bnub ne "") {
-					print "$padded (ele $arele) NEXT NODE :$bnub:\n";
+					#print "(ele $arele) NEXT NODE :$bnub: of ", $parentNode,"\n";
+
 					$nextNodeName = $bnub;
-					# we equate a Scene to a Group.
-					if ($nextNodeName eq "Scene") {$nextNodeName = "Group";}
-
-					print "$padded making new $nextNodeName \n";
-					# we'll get the fields later, so for now, just send in blank hash.
-					$NewNode = $X3DScene->new_node($nextNodeName, \%f);
-					print "$padded created ",
-					VRML::NodeIntern::dump_name($NewNode),
-					"\n";
-
-					if(defined $NewNode) {
-						push @returnArray, $NewNode;
-						print "$padded here, a is ";
-						foreach (@returnArray) {
-							print VRML::NodeIntern::dump_name($_)," ";
-						}
-						print "\n";
-					}
-				
 				}
 			}
 		}
 		$arele++;
 		
 	}
-	print "$padded end parseTree, returning ";
-	foreach (@returnArray) {
-		print VRML::NodeIntern::dump_name($_)," ";
-	} print "\n";
-	return @returnArray;
+
+	#print "parse_X3DStatement, returning from $parentNode  field is ",\%field,"\n";
+	return $X3DScene->new_node($parentNode,\%field);
 }
 
-sub parseFields {
+# we have to look ahead and see what kind of node is coming down the line.
+sub getChildType {
+	my ($pn,$nnn) = @_;
+
+	my $st = "children";
+	my $nextAscii = "";
+
+	my $no = $VRML::Nodes{$pn};
+
+	#print "\n\n";
+	if (!defined $no) {
+		print "getChildType - node $pn is invalid\n";
+	}
+	#foreach (keys %{$no->{FieldTypes}}){print"possible fields $_\n";}
+	#
+	#print "getChildType, parent $pn nextNodeName $nnn - lets find the field\n"; 
+  
+	# lets see if this is a special one for Shape
+	if ($pn eq "Shape") {
+		#print "did find a Shape nextnode is $nnn\n";
+		if ($nnn =~/(Box|Sphere|Cone|Cylinder|ElevationGrid|IndexedFaceSet)/) {
+			return "geometry";
+		}
+	} elsif ($pn eq "Appearance") {
+		if ($nnn =~/(ImageTexture|PixelTexture|MovieTexture)/) {
+			return "texture";
+		}
+	}
+
+
+		
+	my $testfield = lcfirst ($nnn);
+	
+	if (defined ($no->{FieldTypes}{$testfield})) {
+		#print "we found $testfield\n";
+		$st = $testfield;
+	}
+	if (!defined ($no->{FieldTypes}{$st})) {
+		print "ERROR - could not find $st\n";
+	}
+
+	#print "getChildType for node $pn, returning $st\n";
+	return $st;
+}
+
+
+sub parseSimpleFields {
 	my ($me,$fieldVals) = @_;
 
+	#return; # do nothing for now.
 
 	print "start parseFields\n";
 	my $key;
@@ -233,9 +264,6 @@ sub parseFields {
 		print "$key of nodeType ",$me->{Type}{Name}," is $key\n";
 		print "value ",$fieldVals->{$key},"\n";
 	}
-
 	print "end parseFields\n";
 }
-
-
 1;
