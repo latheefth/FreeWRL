@@ -148,7 +148,6 @@ sub propagate_events {
 					push @ne, 
 					   $_->[0]->receive_event($_->[1],
 							$e->[2],$timestamp);
-print "received event, ", $_->[0],"\n";
 
 					$ep{$_->[0]} = $_->[0];
 					# Was this event routed to someone
