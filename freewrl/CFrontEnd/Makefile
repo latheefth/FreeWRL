@@ -22,10 +22,10 @@ perlxsi:
 	$(CC) $(INC) $(PFLAGS) perlxsi.c
 
 fwopts: 
-	$(CC) $(INC) $(FWFLAGS) fwopts.c
+	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
 
 freewrl: perlxsi fwopts
-	$(CC) $(INC) $(FRFLAGS) freewrl.c \
+	$(CC) $(INC) $(FRFLAGS) $(DEFINE) freewrl.c \
 	-L/usr/people/luigi/freewrl/FreeWRL-1.04.3/blib 
 
 	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
