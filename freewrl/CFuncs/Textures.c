@@ -24,7 +24,6 @@
 #include "Structs.h"
 #include "headers.h"
 
-
 void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 	int x,y,depth;
 	GLint Sgl_rep_or_clamp;
@@ -37,6 +36,11 @@ void do_texture(depth,x,y,ptr,Sgl_rep_or_clamp, Tgl_rep_or_clamp,Image)
 
 	GLint texSize;
 	int rx,ry,sx,sy;
+
+
+	/* save this to determine whether we need to do material node
+	  within appearance or not */
+	last_texture_depth = depth;
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
