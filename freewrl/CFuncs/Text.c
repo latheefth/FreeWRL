@@ -337,6 +337,7 @@ FW_draw_character (FT_Glyph glyph) {
 		printf ("FW_draw_character; glyphformat  -- need outline for %s %s\n",
 			font_face[myff]->family_name,font_face[myff]->style_name); 
 	}
+	if (TextVerbose) printf ("done character\n");
 }
 
 
@@ -457,6 +458,7 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 		exit(1);
 	}
 
+
 	
 	if(maxext > 0) {
 	   double maxlen = 0;
@@ -529,8 +531,20 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 			/* copy over the tesselated coords for the character to
 			 * the rep structure */
 
+			//printf ("we have global_IFS_Coord_count at %d\n",global_IFS_Coord_count);
 			for (x=0; x<global_IFS_Coord_count; x++) {
-				rep_->cindex[indx_count++] = global_IFS_Coords[x];
+				//printf ("copying %d\n",global_IFS_Coords[x]);
+				//
+				//did the tesselator give us back garbage?
+
+				if ((global_IFS_Coords[x] > cindexmaxsize) ||
+				   (global_IFS_Coords[x] < 0)) {
+					if (TextVerbose) 
+					printf ("Tesselated index %d out of range; skipping\n",
+						     global_IFS_Coords[x]);
+				} else {	
+					rep_->cindex[indx_count++] = global_IFS_Coords[x];
+				}
 			}
 
 			if (indx_count > (cindexmaxsize-400)) {
@@ -563,6 +577,23 @@ void FW_rendertext(int n,SV **p,int nl, float *length,
 	}
 
 
+	/* do we have texture mapping to do? */
+	if (HAVETODOTEXTURES) {
+		rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*point_count*3);
+		if (!(rep_->tcoord)) {
+			printf ("can not malloc memory for text textures\n");
+		} else {
+			/* an attempt to try to make this look like the NIST example */
+			/* I can't find a standard as to how to map textures to text JAS */
+			for (i=0; i<point_count; i++) {
+				rep_->tcoord[i*3+0] = rep_->coord[i*3+0]*1.66;
+				rep_->tcoord[i*3+1] = 0.0; 
+				rep_->tcoord[i*3+2] = rep_->coord[i*3+1]*1.66;
+			}
+
+		}
+
+	}
 
 	if (TextVerbose) printf ("exiting FW_Render_text\n");
 }
