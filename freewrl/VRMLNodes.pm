@@ -1291,7 +1291,7 @@ CoordinateInterpolator => new VRML::NodeType("ColorInterpolator",
 	{key => [MFFloat, []],
 	 keyValue => [MFVec3f, []],
 	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [MVVec3f, undef, out],
+	 value_changed => [MFVec3f, undef, out],
 	},
     @x = 
 	{Initialize => sub {
@@ -1354,7 +1354,7 @@ NormalInterpolator => new VRML::NodeType("ColorInterpolator",
 	{key => [MFFloat, []],
 	 keyValue => [MFVec3f, []],
 	 set_fraction => [SFFloat, undef, in],
-	 value_changed => [MVVec3f, undef, out],
+	 value_changed => [MFVec3f, undef, out],
 	},
     @x = 
 	{Initialize => sub {
@@ -1973,225 +1973,207 @@ NavigationInfo => new VRML::NodeType("NavigationInfo",
 
 	Script =>
 	new VRML::NodeType("Script",
-					   {
-						url => [MFString, []],
-						directOutput => [SFBool, 0, ""], # not exposedfields
-						mustEvaluate => [SFBool, 0, ""]
-					   },
-					   {
-						Initialize =>
-						sub {
+		   {
+			url => [MFString, []],
+			directOutput => [SFBool, 0, ""], # not exposedfields
+			mustEvaluate => [SFBool, 0, ""]
+		   },
+		   {
+			Initialize =>
+			sub {
 
-							#JAS $VRML::verbose::script = 1;
+				#JAS $VRML::verbose::script = 1;
 
-							my($t,$f,$time,$scene) = @_;
-							print "ScriptInit $_[0] $_[1]!!\n" if $VRML::verbose::script;
-							print "Parsing script\n" if $VRML::verbose::script;
-							my $h;
-							my $Browser = $scene->get_browser();
-							for (@{$f->{url}}) {
-								# is this already made???
-								if (defined  $t->{J}) {
-									last;
-								}
+				my($t,$f,$time,$scene) = @_;
+				print "ScriptInit t ",
+						VRML::NodeIntern::dump_name($t)," f $f time $time scene ",
+						VRML::NodeIntern::dump_name($scene),"\n" if $VRML::verbose::script;
 
-								my $str = $_;
-								print "TRY $str\n" if $VRML::verbose::script;
-								##  				if(s/^perl_tjl_xxx://) {
-								##  					check_perl_script();
-								##  					$h = eval "({$_})";
-								##  					if($@) {
-								##  						die "Inv script '$@'"
-								##  					}
-								##  					last;
-								##  				} elsif(s/^perl(_tjl_xxx1)?://) {
-								if (s/^perl(_tjl_xxx1)?://) {
-									{  
-										print "XXX1 script\n" if $VRML::verbose::script;
-										check_perl_script();
+				my $h;
+				my $Browser = $scene->get_browser();
+				for (@{$f->{url}}) {
+					# is this already made???
+					print "Working on $_\n" if $VRML::verbose::script;
+					if (defined  $t->{J}) {
+						print "...{J} already defined, skipping\n"
+							if $VRML::verbose::script;
+						last;
+					}
 
-										# See about RFields in file ARCHITECTURE and in 
-										# Scene.pm's VRML::FieldHash package
-										my $u = $t->{Fields};
+					my $str = $_;
+					print "TRY $str\n" if $VRML::verbose::script;
+					if (s/^perl(_tjl_xxx1)?://) {
+						{  
+							print "XXX1 script\n" if $VRML::verbose::script;
+							check_perl_script();
 
-										my $t = $t->{RFields};
+							# See about RFields in file ARCHITECTURE and in 
+							# Scene.pm's VRML::FieldHash package
+							my $u = $t->{Fields};
 
-										## Failed attempt ... 
-										##  my $decl = 
-										##  join "",
-										##		map {"my *$_ = \\\$t->{$_}; "} script_variables ($u);
-										## print "decl = $decl\n";
-										## eval qq{$decl \$h = eval "({$_})"};
+							my $t = $t->{RFields};
 
-										## fields of vrml node will appear as scalar
-										## variables in the script. In fact, they are
-										## scalars tied to the corresponding key/values of
-										## $h.
-
-								# This string ties scalars
-										my $tie = 
-											join "", map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
-										## print "tie = $tie\n";
-										## $h = eval "$tie ({$_})";
-										$h = eval "({$_})";
-								# Wrap up each sub in the script node
-										foreach (keys %$h) {
-											my $tmp = $h->{$_};
-											my $src = join ("\n",
-															"sub {",
-															"  $tie",
-															"  \&\$tmp (\@_)",
-															"}");
-											## print "---- src ----$src\n--------------",
-											$h->{$_} = eval $src ;
-										}
-
-										## $h = eval "({$_})";
-					
-
-										if ($VRML::verbose::script) {
-											print "Evaled: $h\n",
-												"-- h = $h --\n",
-													(map {"$_ => $h->{$_}\n"} keys %$h),
-														"-- u = $u --\n",
-															(map {"$_ => $u->{$_}\n"} keys %$u),
-																"-- t = $t --\n",
-																	(map {"$_ => $t->{$_}\n"} keys %$t);
-										}
-										if ($@) {
-											die "Invalid script '$@'"
-										}
-									}
-									last;
-								} elsif (/\.class$/) {
-									#	$VRML::verbose::js = 1;	#RCS
-									#EG				if(/\.class$/) {
-									my $wurl = $scene->get_world_url;
-									$t->{PURL} = $scene->get_url;
-									if (!defined $VRML::J) {
-										eval('require "VRML/VRMLJava.pm"');
-										if ($@) {
-											die $@;
-										}
-										$VRML::J =
-											VRML::JavaCom->new($scene->get_browser);
-									}
-									if (defined $wurl) {
-										$VRML::J->newscript($wurl,$_,$t);
-									} else {
-										$VRML::J->newscript($t->{PURL},$_,$t);
-									}
-
-									$t->{J} = $VRML::J;
-									last;
-								} elsif (/\.js/) {
-									#RCS die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
-									# New js url handling
-									my $purl = $t->{PURL} = $scene->get_url;
-									my $wurl = $scene->get_world_url;
-									print "JS url: purl = $purl\n";
-									my $file;
-
-									if (defined $wurl) {
-										$file =
-											VRML::URL::get_relative($wurl, $_, 1);
-									} else {
-										$file =
-											VRML::URL::get_relative($purl, $_, 1);
-									}
-
-									print "JS url: file = $file\n";
-									open (SCRIPT_CODE, "< $file") || die("Couldn't retrieve javascript url $_ !");
-									my $code ="";
-									while (<SCRIPT_CODE>) {
-										$code.=$_;
-									}
-									;
-									close(SCRIPT_CODE);
-									print "JS url: code = $code\n";
-									eval('require VRML::JS;');
-									if ($@) {
-										die $@;
-									}
-									$t->{J} = VRML::JS->new($code,$t,$Browser);
-									last;
-								} elsif (s/^(java|vrml)script://) {
-									eval('require VRML::JS;');
-									if ($@) {
-										die $@;
-									}
-									$t->{J} = VRML::JS->new($_,$t,$Browser);
-									last;
-								} else {
-									warn("unknown script: $_");
-								}
+							# This string ties scalars
+							my $tie = 
+								join "", map {"tie \$$_, 'MTS',  \\\$t->{$_};"} script_variables ($u);
+							## print "tie = $tie\n";
+							## $h = eval "$tie ({$_})";
+							$h = eval "({$_})";
+							# Wrap up each sub in the script node
+							foreach (keys %$h) {
+								my $tmp = $h->{$_};
+								my $src = join ("\n",
+									"sub {",
+									"  $tie",
+									"  \&\$tmp (\@_)",
+									"}");
+								## print "---- src ----$src\n--------------",
+								$h->{$_} = eval $src ;
 							}
 
-							#EG  			if(!defined $t->{J}) {
-							#EG  			  die "Didn't find a valid java script";
-							#EG  			}
+							## $h = eval "({$_})";
+		
 
-			
-							if (!defined $h and !defined $t->{J}) {
-								die "Didn't find a valid perl(_tjl_xxx)? or java script";
+							if ($VRML::verbose::script) {
+								print "Evaled: $h\n",
+									"-- h = $h --\n",
+										(map {"$_ => $h->{$_}\n"} keys %$h),
+											"-- u = $u --\n",
+												(map {"$_ => $u->{$_}\n"} keys %$u),
+													"-- t = $t --\n",
+														(map {"$_ => $t->{$_}\n"} keys %$t);
 							}
-							print "GOT EVS: ",(join ',',keys %$h),"\n" 
-								if $VRML::verbose::script;
-							$t->{ScriptScript} = $h;
-							my $s;
-							if (($s = $t->{ScriptScript}{"initialize"})) {
-								print "CALL $s\n if $VRML::verbose::script"
-									if $VRML::verbose::script;
-								##EG show_stack (5);
-								##EG return &{$s}();
-								perl_script_output (1);
-								my @res = &{$s}();
-								perl_script_output (0);
-								return @res ;
+							if ($@) {
+								die "Invalid script '$@'"
+							}
+						}
+						last;
+					} elsif (/\.class$/) {
+						#	$VRML::verbose::js = 1;	#RCS
+						#EG				if(/\.class$/) {
+						my $wurl = $scene->get_world_url;
+						$t->{PURL} = $scene->get_url;
+						if (!defined $VRML::J) {
+							eval('require "VRML/VRMLJava.pm"');
+							if ($@) {
+								die $@;
+							}
+							$VRML::J =
+								VRML::JavaCom->new($scene->get_browser);
+						}
+						if (defined $wurl) {
+							$VRML::J->newscript($wurl,$_,$t);
+						} else {
+							$VRML::J->newscript($t->{PURL},$_,$t);
+						}
 
-							} elsif ($t->{J}) {
+						$t->{J} = $VRML::J;
+						last;
+					} elsif (/\.js/) {
+						#RCS die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
+						# New js url handling
+						my $purl = $t->{PURL} = $scene->get_url;
+						my $wurl = $scene->get_world_url;
+						print "JS url: purl = $purl\n";
+						my $file;
 
-								#EG			if($t->{J}) {
-								return $t->{J}->initialize($scene, $t);
-							}
-							return ();
-						},
-						url => sub {
-							print "ScriptURL $_[0] $_[1]!!\n" if $VRML::verbose::script;
-							die "URL setting not enabled";
-						},
-						__any__ => sub {
-							my($t,$f,$v,$time,$ev) = @_;
-							print "ScriptANY $_[0] $_[1] $_[2] $_[3] $_[4]!!\n"
-								if $VRML::verbose::script;
-							my $s;
-							if (($s = $t->{ScriptScript}{$ev})) {
-								print "CALL $s\n"
-									if $VRML::verbose::script;
-								##EG show_stack (5);
-								##EG return &{$s}();
-								perl_script_output (1);
-								my @res = &{$s}();
-								perl_script_output (0);
-								return @res ;
-							} elsif ($t->{J}) {
+						if (defined $wurl) {
+							$file =
+								VRML::URL::get_relative($wurl, $_, 1);
+						} else {
+							$file =
+								VRML::URL::get_relative($purl, $_, 1);
+						}
 
-								#EG			if($t->{J}) {
-								return $t->{J}->sendevent($t, $ev, $v, $time);
-							}
-							return ();
-						},
-						EventsProcessed => sub {
-							my($t,$f) = @_;
-							print "ScriptEP $_[0] $_[1]!!\n"
-								if $VRML::verbose::script;
-							if ($t->{J}) {
-								return $t->{J}->sendeventsproc($t);
-							}
-							return ();
-						},
-					   }
-					  ),
+						print "JS url: file = $file\n";
+						open (SCRIPT_CODE, "< $file") || die("Couldn't retrieve javascript url $_ !");
+						my $code ="";
+						while (<SCRIPT_CODE>) {
+							$code.=$_;
+						}
+						;
+						close(SCRIPT_CODE);
+						print "JS url: code = $code\n";
+						eval('require VRML::JS;');
+						if ($@) {
+							die $@;
+						}
+						$t->{J} = VRML::JS->new($code,$t,$Browser);
+						last;
+					} elsif (s/^(java|vrml)script://) {
+						eval('require VRML::JS;');
+						if ($@) {
+							die $@;
+						}
+						$t->{J} = VRML::JS->new($_,$t,$Browser);
+						last;
+					} else {
+						warn("unknown script: $_");
+					}
+				}
+
+				if (!defined $h and !defined $t->{J}) {
+					die "Didn't find a valid perl(_tjl_xxx)? or java script";
+				}
+				print "GOT EVS: ",(join ',',keys %$h),"\n" 
+					if $VRML::verbose::script;
+				$t->{ScriptScript} = $h;
+				my $s;
+				if (($s = $t->{ScriptScript}{"initialize"})) {
+					print "CALL $s\n if $VRML::verbose::script"
+						if $VRML::verbose::script;
+					perl_script_output (1);
+					my @res = &{$s}();
+					perl_script_output (0);
+					return @res ;
+
+				} elsif ($t->{J}) {
+
+					#EG			if($t->{J}) {
+					return $t->{J}->initialize($scene, $t);
+				}
+				return ();
+			},
+			url => sub {
+				print "ScriptURL $_[0] $_[1]!!\n" if $VRML::verbose::script;
+				die "URL setting not enabled";
+			},
+			__any__ => sub {
+				my($t,$f,$v,$time,$ev) = @_;
+				print "ScriptANY ",VRML::NodeIntern::dump_name($t),
+					" $_[1] $_[2] $_[3] $_[4]\n"
+
+					if $VRML::verbose::script;
+				my $s;
+
+
+				if (($s = $t->{ScriptScript}{$ev})) {
+					print "CALL $s\n"
+						if $VRML::verbose::script;
+					##EG show_stack (5);
+					##EG return &{$s}();
+					perl_script_output (1);
+					my @res = &{$s}();
+					perl_script_output (0);
+					return @res ;
+				} elsif ($t->{J}) {
+
+					#EG			if($t->{J}) {
+					return $t->{J}->sendevent($t, $ev, $v, $time);
+				}
+				return ();
+			},
+			EventsProcessed => sub {
+				my($t,$f) = @_;
+				print "ScriptEP $_[0] $_[1]!!\n"
+					if $VRML::verbose::script;
+				if ($t->{J}) {
+					return $t->{J}->sendeventsproc($t);
+				}
+				return ();
+			},
+		   }
+		  ),
 
  Collision => new VRML::NodeType("Collision",
  {
