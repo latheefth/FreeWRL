@@ -19,8 +19,13 @@
 #include "headers.h"
 #include "Structs.h"
 #include "Viewer.h"
+#include <sys/time.h>
+
+extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
+
 
 #define MAXEAIHOSTNAME	255		// length of hostname on command line
+#define EAIREADSIZE	2048		// maximum we are allowed to read in from socket
 
 int EAIwanted = FALSE;			// do we want EAI?
 char EAIhost[MAXEAIHOSTNAME];		// host we are connecting to
@@ -28,35 +33,147 @@ int EAIport;				// port we are connecting to
 int EAIinitialized = FALSE;		// are we running?
 int EAIrecount = 0;			// retry counter for opening socket interface
 int EAIfailed = FALSE;			// did we not succeed in opening interface?
+int EAIconnectstep = 0;			// where we are in the connect sequence
+
+/* socket stuff */
+int 	sockfd;
+struct sockaddr_in	servaddr;
+fd_set rfds;
+struct timeval tv;
+
+/* eai connect line */
+char *inpline;
+
+int EAIVerbose = 0;
+
+void EAI_send_string(char *str){
+	int n;
+
+	if (EAIVerbose) printf ("EAI_send_string, %s\n",str);
+	n = send (sockfd, str, strlen(str) ,0);
+
+}
+
+
+
+/* open the socket connection - thanks to the stevens network programming book */
+void connect_EAI() {
+	char vers[200];
+
+	if (EAIfailed) return;
+
+	if (EAIVerbose) printf ("connect step %d\n",EAIconnectstep);
+
+	switch (EAIconnectstep) {
+	case 0: {
+			if ((sockfd = socket (AF_INET, SOCK_STREAM, 0)) < 0) {
+				printf ("EAI Socket open error\n");
+				EAIfailed = TRUE;
+				return;
+			}
+
+			EAIconnectstep ++;
+			break;
+		}
+
+	case 1: {
+			bzero (&servaddr, sizeof (servaddr));
+
+			servaddr.sin_family = AF_INET;
+			servaddr.sin_port = htons (2000);
+
+			if (inet_pton(AF_INET,"127.0.0.1", &servaddr.sin_addr) < 0) {
+				printf ("EAI inet_pton error\n");
+				EAIfailed = TRUE;
+				return;
+			}
+			EAIconnectstep ++;
+			break;
+		}
+
+	case 2: {
+			/* wait for EAI to come on line  - thus we never fail at this step */	
+			if (connect (sockfd, (struct sockaddr_in *) &servaddr, sizeof (servaddr)) < 0) {
+				// printf ("EAI connect error\n");
+				// keep going until success EAIfailed = TRUE;
+				return;
+			}
+
+			/* set up the select polling data structure */
+			FD_ZERO(&rfds);
+			FD_SET(sockfd, &rfds);
+
+			/* tell the EAI what version of FreeWRL we are running */
+			strncpy (vers,BrowserVersion,190);
+			strcat (vers,"\n");
+			EAI_send_string(vers);
+
+			/* seems like we are up and running now, and waiting for a command */
+			EAIinitialized = TRUE;	
+			EAIconnectstep ++;
+			break;
+		}
+
+	default: {}
+	}
+}
+
+
 
 void create_EAI(char *eailine) {
-        printf ("create_EAI called :%s:\n",eailine);
+        if (EAIVerbose) printf ("create_EAI called :%s:\n",eailine);
+
+	/* already wanted? if so, just return */
+	if (EAIwanted) return;
 
 	/* so we know we want EAI */
 	EAIwanted = TRUE;
+
+	/* copy over the eailine to a local variable */
+	inpline = malloc((strlen (eailine)+1) * sizeof (char));
+
+	if (inpline == 0) {
+		printf ("can not malloc memory in create_EAI\n");
+		EAIwanted = FALSE;
+		return;
+	}
+
+	strcpy (inpline,eailine);
+	
+	/* have we already started? */
+	if (!EAIinitialized) {
+		connect_EAI();
+	}
 }
 
 void handle_EAI () {
+	int retval;
 
+	char buf[EAIREADSIZE];
+
+
+	/* do nothing unless we are wanted */
 	if (!EAIwanted) return;
+	if (!EAIinitialized) {
+		connect_EAI();
+		return;
+	}
 
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	FD_ZERO(&rfds);
+	FD_SET(sockfd, &rfds);
+	retval = select(1, &rfds, NULL, NULL, &tv);
+
+	if (retval) {
+		printf("Data is available now.\n");
+		retval = read (sockfd, buf,EAIREADSIZE);
+		printf ("read in %d , max %d\n",retval,EAIREADSIZE);
+	}
 }
 
 
 
-//sub new {
-//	my($type,$browser) = @_;
-//	my $this = bless {
-//		B => $browser,
-//	}, $type;
-//	## NB: This code reference will be shifted out of the browser's
-//	## Periodic array if we hit the maximum connection failures, as
-//	## specified in $VRML::ENV{EAI_CONN_RETRY} when FreeWRL is used
-//	## as a Netscape plugin.
-//	$browser->add_periodic(sub {$this->poll});
-//	return $this;
-//}
-//
 //sub gulp {
 //	my($this, $handle) = @_;
 //	my ($s,$b);
