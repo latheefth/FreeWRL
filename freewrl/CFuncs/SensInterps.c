@@ -13,14 +13,24 @@ Interps are the "EventsProcessed" fields of interpolators.
 
 ******************************************/
 
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+
+
 #include "SensInterps.h"
 
 
 int SEVerbose = 0;
 
+/* when we get a new sound source, what is the number for this? */
+int SoundSourceNumber = 0;
+
+
 char AnchorString[ASLEN];
 
-
+/* function prototypes */
+void locateAudioSource (struct VRML_AudioClip *node);
 
 /* returns the audio duration, unscaled by pitch */
 float return_Duration (int indx) {
@@ -507,6 +517,12 @@ void do_AudioTick(struct VRML_AudioClip *node) {
 	}
 
 	oldstatus = node->isActive;
+
+	/* is this audio wavelet initialized yet? */
+	if (node->__sourceNumber < 0) {
+		locateAudioSource (node);
+		/* printf ("do_AudioTick, node %d sn %d\n", node, node->__sourceNumber); */
+	}
 
 	/* call common time sensor routine */
 	do_active_inactive (
@@ -1166,4 +1182,63 @@ void do_SphereSensor (struct VRML_SphereSensor *node, int ev, int over) {
 				offsetof (struct VRML_SphereSensor, rotation_changed));
 		}
 	}
+}
+
+void locateAudioSource (struct VRML_AudioClip *node) {
+	int xx;
+	int count;
+	char *filename;
+	char *mypath;
+	char *slashindex;
+	char *thisurl;
+	char firstBytes[4]; /* not used here, but required for function call */
+
+	node->__sourceNumber = SoundSourceNumber;
+	SoundSourceNumber++;
+
+	filename = malloc(1000);
+	
+	/* lets make up the path and save it, and make it the global path */
+	count = strlen(SvPV(node->__parenturl,xx));
+	mypath = malloc ((sizeof(char)* count)+1);
+	
+	if ((!filename) || (!mypath)) {
+		printf ("locateAudioSource:can not malloc for filename\n");
+		exit(1);
+	}
+	
+	/* copy the parent path over */
+	strcpy (mypath,SvPV(node->__parenturl,xx));
+	
+	/* and strip off the file name, leaving any path */
+	slashindex = rindex(mypath,'/');
+	if (slashindex != NULL) { 
+		slashindex ++; /* leave the slash on */
+		*slashindex = 0; 
+	 } else {mypath[0] = 0;}
+
+	/* try the first url, up to the last */
+	count = 0;
+	while (count < (node->url).n) {
+		thisurl = SvPV((node->url).p[count],xx);
+	
+		/* check to make sure we don't overflow */
+		if ((strlen(thisurl)+strlen(mypath)) > 900) break;
+
+		/* put the path and the file name together */	
+		makeAbsoluteFileName(filename,mypath,thisurl);
+
+		if (fileExists(filename,firstBytes)) { break; }
+		count ++;
+	}
+	if (count == (node->url).n) {
+		/* well, no file found */
+		printf ("Audio: could not find audio file\n");
+		free (filename);
+	} else { 
+		/* save local file in the structure, so that it can 
+		   be initialized later */
+		node->__localFileName = (int) filename;
+	}
+	free (mypath);
 }

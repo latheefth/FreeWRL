@@ -234,6 +234,26 @@ sub rectChanged
 # End of Aqua interface functions
 
 
+
+sub getTextFromFile {
+	my ($file) = @_;
+	
+	# read in data from a file; the file name has been verified
+	# to exist before here by "C" functions (or, it is the name
+	# of a file in the Browser cache). Read it in, and return
+
+	# print "Browser:getTextFromFile, file $_\n";
+
+	open (INPUT, "<$file");
+	my @lines = (<INPUT>);
+	close (INPUT); 
+
+	my $text = "@lines";
+	# print "Browser:getTextFromFile, got $text\n";
+
+	return $text;
+}
+
 # actually load the file and parse it.
 sub load_string {
 	my($this,$string,$file) = @_;
@@ -416,7 +436,8 @@ sub createVrmlFromURL {
 	my $wurl = $url;
 
 	print "File: $file URL: $url\n" if $VRML::verbose::scene;
-	my $t = VRML::NodeType::getTextFromURLs($this->{Scene}, $url);
+	my $t = getTextFromFile($url);
+
 
 	# Stage 2 - load the string in....
 	return $this->create_common($url,$wurl,$t);
@@ -549,18 +570,6 @@ END {
   print "Please wait while sequence is converted\n" if @main::saved ;
   convert_raw_sequence() 
 }
-
-#JAS # go to the next viewpoint.
-#JAS sub NextVP {
-#JAS 	print "calling NextVP\n";
-#JAS 
-#JAS 	if ($globalBrowser->{BE}->{VPSub}) {
-#JAS 		$globalBrowser->{BE}->{VPSub}->(1);
-#JAS 	} else {
-#JAS 		print "cant find VPSub\n";
-#JAS 	}
-#JAS }
-
 
 sub Snapshot {
 # Sequence saving ##########################
@@ -769,6 +778,7 @@ sub EAI_CreateVrmlFromURL {
 	my ($string) = @_;
 	$globalBrowser->{URL} = $string;
 
+	# print "Browser, EAI_CreateVrmlFromURL, $string\n";
 	my $rv = createVrmlFromURL ($globalBrowser,$string, $string);
 
 	my @rvarr = split (" ", $rv);

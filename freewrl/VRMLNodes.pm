@@ -8,8 +8,8 @@
 
 package VRML::NodeType; 
 
-my $globalAudioSource = 0;  # count of audio sources
-my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
+#JAS my $globalAudioSource = 0;  # count of audio sources
+#JAS my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
 
 #########################################################
 # The routines below implement the browser object interface.
@@ -150,138 +150,27 @@ sub STORE {
 
 package VRML::NodeType;
 
-
-# pass in a scene, and an MFString of urls, returns a local name to the file.
-sub getFileFromUrls {
-	my ($scene, $urls, $node) = @_;
-
-	my $purl = $scene->get_url();
-	if ($node) {
-		$node->{PURL} = $purl;
-	}
-	my $wurl = $scene->get_world_url();
-	my $file;
-	my $suffix;
-	my $u;
-
-	for $u (@{$urls}) {
-		next unless $u =~ /\.(\w*)$/;
-		$suffix = $1;
-		
-		if (defined $wurl) {
-			$file = VRML::URL::get_relative($wurl, $u, 1);
-		} else {
-			$file = VRML::URL::get_relative($purl, $u, 1);
-		}
-
-		if ($file) {
-			last;
-		} else {
-			warn("Could not retrieve $u");
-		}
-	}
-	print "VRML::Nodes::getFileFromUrls got: $file, $suffix\n"
-		if $VRML::verbose;
-	return (wantarray ? ($file, $suffix) : $file);
-}
-
-sub getTextFromURLs {
-	my ($scene, $url, $node) = @_;
-
-	my $purl = $scene->get_url();
-	if ($node) {
-		$node->{PURL} = $purl;
-	}
-	my $wurl = $scene->get_world_url();
-	my $text;
-	my $actual_url;
-
-	if (ref $url eq "ARRAY") {
-		for my $u (@{$url}) {
-			if (defined $wurl) {
-				($text, $actual_url) = VRML::URL::get_relative($wurl, $u);
-			} else {
-				($text, $actual_url) = VRML::URL::get_relative($purl, $u);
-			}
-
-			if ($text) {
-				last;
-			} else {
-				warn("Could not retrieve $u from ".VRML::Debug::toString($url));
-			}
-		}
-	} else {
-		if (defined $wurl) {
-			($text, $actual_url) = VRML::URL::get_relative($wurl, $url);
-		} else {
-			($text, $actual_url) = VRML::URL::get_relative($purl, $url);
-		}
-
-		if (!$text) {
-			warn("Could not retrieve $u from $url");
-		}
-	}
-
-	print "VRML::Nodes::getTextFromUrls got: $text, $actual_url\n"
-		if $VRML::verbose;
-	return (wantarray ? ($text, $actual_url) : $text);
-}
-
-#JAS# MPEG picture image
-#JASsub init_movie_image {
-#JAS	my($name, $urlname, $t, $f, $scene) = @_;
-#JAS	# print "init_movie_image, name $name, urlname $urlname t $t f $f \n";
-#JAS
-#JAS	my $urls = $f->{$urlname};
-#JAS	if ($#{$urls} == -1) { goto NO_TEXTURE; }
-#JAS
-#JAS	my $file;
-#JAS	my $suffix;
-#JAS	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
-#JAS
-#JAS	#JAS my $init_tex = VRML::VRMLFunc::glGenTexture();
-#JAS	#JAS $f->{__texture0_} = $init_tex;
-#JAS	#JAS $f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
-#JAS	#JAS 	$file,$f->{repeatS},$f->{repeatT});
-#JAS	#JAS $f->{__locfile} = ();
-#JAS
-#JAS	$f->{__texture0_}=0;
-#JAS	$f->{__texture1_}=0;
-#JAS
-#JAS	#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
-#JAS	#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
-#JAS	return;
-#JAS
+#JAS # AudioClip WAV/MIDI sound file
+#JAS sub init_sound {
+#JAS 	my($name, $urlname, $t, $f, $scene) = @_;
+#JAS 	#print "init_sound_image, name $name, urlname $urlname t $t f $f \n";
+#JAS 
+#JAS 	my $urls = $f->{$urlname};
+#JAS 	if ($#{$urls} == -1) { goto NO_TEXTURE; }
+#JAS 
+#JAS 	my $file;
+#JAS 	my $suffix;
+#JAS 	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
+#JAS 
+#JAS 	$f->{__localFileName} = $file;
+#JAS 
+#JAS 	return;
+#JAS 
 #JAS NO_TEXTURE:
-#JAS   $f->{__locfile} = ();
-#JAS    $f->{__texture0_} = 0;
-#JAS    $f->{__texture1_} = 0;
-#JAS    return;
-#JAS}
-
-# AudioClip WAV/MIDI sound file
-sub init_sound {
-	my($name, $urlname, $t, $f, $scene) = @_;
-	#print "init_sound_image, name $name, urlname $urlname t $t f $f \n";
-
-	my $urls = $f->{$urlname};
-	if ($#{$urls} == -1) { goto NO_TEXTURE; }
-
-	my $file;
-	my $suffix;
-	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
-
-	$f->{__localFileName} = $file;
-
-	return;
-
-NO_TEXTURE:
-	return;
-}
-
+#JAS 	return;
+#JAS }
 
 ########################################################################
-
 
 my $protono;
 
@@ -455,28 +344,10 @@ my $protono;
 						 # time that we were initialized at
 						 __inittime => [SFTime, 0, field],
 						 # internal sequence number
-						 __sourceNumber => [SFInt32, 0, field],
-						 # local name, as received on system
-						 __localFileName => [SFString, "", exposedField],
+						 __sourceNumber => [SFInt32, -1, field],
 						# parent url, gets replaced at node build time
 						__parenturl =>[SFString,"",field],
-						},
-						@x = {
-							  Initialize => sub {
-								  my ($t,$f,$time,$scene) = @_;
-
-								  if ($SoundMaterial eq "Sound") {
-									  # Assign a source number to this source
-									  $f->{__sourceNumber} = $globalAudioSource++;
-
-									  # get the file
-									  init_sound("","url",$t,$f,$scene,1);
-								  }
-								  # this will only be reset the next time a Sound node gets hit
-								  $SoundMaterial = "unknown";
-								  return ();
-							  },
-							 }
+						}
 					   ),
 	Box =>
 	new VRML::NodeType("Box",
@@ -647,38 +518,16 @@ my $protono;
 						url => [MFString, [], exposedField],
 						duration_changed => [SFTime, -1, eventOut],
 						isActive => [SFBool, 0, eventOut],
+						# parent url, gets replaced at node build time
+						__parenturl =>[SFString,"",field],
 
 						# internal sequence number
-						__sourceNumber => [SFInt32, 0, field],
+						__sourceNumber => [SFInt32, -1, field],
 						# local name, as received on system
-						__localFileName => [SFString, "",field],
+						__localFileName => [SFInt32, 0,field],
 						# time that we were initialized at
 						__inittime => [SFTime, 0, field],
-					   },
-						{
-							Initialize => sub {
-								my ($t,$f,$time,$scene) = @_;
-								# Assign a source number to this source
-								$f->{__sourceNumber} = $globalAudioSource++;
-
-								# get the file
-								init_sound("","url",$t,$f,$scene,1);
-								# we are done with this Sound...
-								$SoundMaterial = "unknown";
-								return ();
-							},
-
-							startTime => sub {
-								my($t,$f,$val) = @_;
-								$f->{startTime} = $val;
-							},
-							# Ignore if less than startTime
-							stopTime => sub {
-								my($t,$f,$val) = @_;
-								$f->{stopTime} = $val;
-							},
-
-						   },
+					   }
 					  ),
 	Sound =>
 	new VRML::NodeType("Sound",
@@ -694,12 +543,6 @@ my $protono;
 						source => [SFNode, NULL, exposedField],
 						spatialize => [SFBool,1, field]
 					   },
-					   {
-						Initialize => sub {
-							$SoundMaterial = "Sound";
-							return ();
-						}
-					   }
 					  ),
 	Switch =>
 	new VRML::NodeType("Switch",
@@ -1098,7 +941,7 @@ my $protono;
 					   {
 						url => [MFString, [], exposedField],
 						directOutput => [SFBool, 0, field],
-						mustEvaluate => [SFBool, 0, field]
+						mustEvaluate => [SFBool, 0, field],
 					   },
 					   {
 						url => sub {

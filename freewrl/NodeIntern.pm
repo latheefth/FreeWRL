@@ -303,7 +303,7 @@ sub startScript {
 			last;
 		} elsif (/\.js/) {
 			# New js url handling
-			my $code = VRML::NodeType::getTextFromURLs($scene, $_, $node);
+			my $code = VRML::Browser::getTextFromFile($_);
 
 			print "JS url: code = $code\n"
 				if $VRML::verbose::script;

@@ -263,6 +263,13 @@ float SoundSourceInit (int num, int loop, float pitch, float start_time, float s
 	float duration;
 	int returnednum;
 
+	
+	SReg[num] = TRUE;
+	if (url == NULL) {
+		printf ("SoundSourceInit - no file to source \n");
+		return 0.0;
+	}
+
 	if (strlen(url) > 192) {
 		printf ("SoundSourceInit - url %s is too long\n",url);
 		return 0.0;
@@ -270,7 +277,6 @@ float SoundSourceInit (int num, int loop, float pitch, float start_time, float s
 
 	sprintf (mystring,"REGS:%s %2d %2d %4.3f %4.3f %4.3f",url,num,loop,pitch,start_time,
 			stop_time);
-	SReg[num] = TRUE;
 	Sound_toserver(mystring);
 	/* printf ("SoundSourceInit, waiting for response\n"); */
 	waitformessage();
@@ -287,7 +293,7 @@ float SoundSourceInit (int num, int loop, float pitch, float start_time, float s
 void SetAudioActive (int num, int stat) {
 	char mystring[512];
 
-	printf ("SoundSource - got SetAudioActive for %d state %d\n",num,stat);
+	/* printf ("SoundSource - got SetAudioActive for %d state %d\n",num,stat); */
 	sprintf (mystring,"ACTV %2d %2d",num,stat);
 	Sound_toserver(mystring);
 }

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.132  2003/12/22 18:49:01  crc_canada
+# replace URL.pm; now do via C or browser
+#
 # Revision 1.131  2003/12/18 18:18:44  crc_canada
 # EAI and Javascript working.
 #
@@ -2019,43 +2022,6 @@ CODE:
 	}
 OUTPUT:
 	RETVAL
-
-#JAS
-#JASint
-#JASglGenTexture()
-#JAS	CODE:
-#JAS	{
-#JAS	//extern GLXContext cx;
-#JAS	//extern XVisualInfo *vi;
-#JAS	//extern Window *win;
-#JAS	//extern Display *dpy;
-#JAS
-#JAS	GLuint texture;
-#JAS	//static myContext = NULL;
-#JAS
-#JAS	///* this thread, the parsing thread, requires the context */
-#JAS	//if (myContext==NULL) {
-#JAS//		myContext=glXCreateContext(dpy, vi, cx, GL_FALSE);
-#JAS//		printf ("linking %d %d cx %d\n",dpy,vi,cx);
-#JAS//		printf ("contextx linked %d\n",myContext);
-#JAS//	}
-#JASprintf ("renderer, my pid is %d\n",getpid());
-#JAS	
-#JAS	printf ("renderer %s\n",glGetString(GL_RENDERER));
-#JAS	printf ("and thread is %d\n",pthread_self());
-#JAS
-#JAS	glGenTextures(1, &texture);
-#JAS
-#JAS
-#JAS	texture=0;
-#JAS
-#JAS	printf ("glGenTexture , number %d\n",texture);
-#JAS	RETVAL = texture;
-#JAS	}
-#JAS	OUTPUT:
-#JAS	RETVAL
-
-
 
 #********************************************************************************
 #

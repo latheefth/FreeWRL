@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.126  2003/12/22 18:49:01  crc_canada
+# replace URL.pm; now do via C or browser
+#
 # Revision 1.125  2003/12/04 18:33:57  crc_canada
 # Basic threading ok
 #
@@ -791,19 +794,21 @@ Sound => '
 	 
 		glPushMatrix();
 
-		// first, find whether or not we are within the maximum circle.
+		/*
+		first, find whether or not we are within the maximum circle.
 
-		// translate to the location, and move the centre point, depending
-		// on whether we have a direction and differential maxFront and MaxBack
-		// directions.
+		translate to the location, and move the centre point, depending
+		on whether we have a direction and differential maxFront and MaxBack
+		directions.
+		*/
 
 		glTranslatef (location.x + midmax*direction.x, 
 				location.y + midmax*direction.y, 
 				location.z + midmax * direction.z);
 
-		// make the ellipse a circle by scaling...
-		//JAS glScalef (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
-		// JAS - scaling needs work - we need direction information, and parameter work.
+		/* make the ellipse a circle by scaling...
+		glScalef (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
+		- scaling needs work - we need direction information, and parameter work. */
 
 		if ((fabs(this_->minFront - this_->minBack) > 0.5) || 
 			(fabs(this_->maxFront - this_->maxBack) > 0.5)) {
@@ -820,17 +825,18 @@ Sound => '
 		gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 	
 		len = sqrt(VECSQ(vec)); 
-		//printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
-		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
+		/* printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,
+			-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);
+		*/
 	
 		amp = 0.0;
-		// is this within the maxFront maxBack?
+		/* is this within the maxFront maxBack? */
 
-		// this code needs rework JAS
+		/* this code needs rework JAS */
 		if (len < this_->maxFront) {
 	
-			// note: using vecs, length is always positive - need to work in direction
-			// vector
+			/* note: using vecs, length is always positive - need to work in direction
+			vector */
 			if (len < 0.0) {
 				if (len < this_->minBack) {amp = 1.0;}
 				else {
@@ -843,7 +849,7 @@ Sound => '
 				}
 			}
 
-			// Now, fit in the intensity.
+			/* Now, fit in the intensity. */
 			amp = amp*this_->intensity;
 			if (sound_from_audioclip) {
 				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,0.0);
@@ -861,16 +867,16 @@ AudioClip => '
 	float pitch,stime, sttime;
 	int loop;
 	int xx;
-	unsigned char *filename = SvPV(this_->__localFileName,xx);
+	unsigned char *filename = (unsigned char *)this_->__localFileName;
 
-	// tell Sound that this is an audioclip
+	/* tell Sound that this is an audioclip */
 	sound_from_audioclip = TRUE;
 
-	//printf ("_change %d _dlchange %d _ichange %d\n",this_->_change,
-	//	this_->_dlchange, this_->_ichange); 
+	/* printf ("_change %d _dlchange %d _ichange %d\n",this_->_change,
+		this_->_dlchange, this_->_ichange);  */
 
 	if (!SoundEngineStarted) { 
-		//printf ("AudioClip: initializing SoundEngine\n");
+		/* printf ("AudioClip: initializing SoundEngine\n"); */
 		SoundEngineStarted = TRUE;
 		SoundEngineInit();
 	}
@@ -878,9 +884,12 @@ AudioClip => '
 	if (this_->isActive == 0) return;  // not active, so just bow out
 
 	if (!SoundSourceRegistered(this_->__sourceNumber)) {
-		//printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
-		//	this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
-		//	filename);
+		
+		/* printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
+			this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
+			filename);
+		*/
+		
 
 		pitch = this_->pitch;
 		stime = this_->startTime;
@@ -890,8 +899,10 @@ AudioClip => '
 		AC_LastDuration[this_->__sourceNumber] = 
 			SoundSourceInit (this_->__sourceNumber, this_->loop,
 			(float) pitch,(float) stime, (float) sttime, filename);
-		//printf ("globalDuration source %d %f\n",
-		//		this_->__sourceNumber,AC_LastDuration[this_->__sourceNumber]);
+		/* printf ("globalDuration source %d %f\n",
+				this_->__sourceNumber,AC_LastDuration[this_->__sourceNumber]); */
+
+		if (filename) free (filename);
 	}
 
 	
@@ -1940,10 +1951,6 @@ Box => q~
 
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       //JAS struct pt iv = {$f(size,0),0,0};
-	       //JAS struct pt jv = {0,$f(size,1),0};
-	       //JAS struct pt kv = {0,0,$f(size,2)};
-	       //JAS struct pt ov = {-$f(size,0)/2,-$f(size,1)/2,-$f(size,2)/2};
 	       struct pt iv = {0,0,0};
 	       struct pt jv = {0,0,0};
 	       struct pt kv = {0,0,0};
@@ -1955,7 +1962,6 @@ Box => q~
 	       struct pt delta;
 	       struct pt tupv = {0,1,0};
 
-		//JAS - fill in structs from above.
 		iv.x = $f(size,0);
 		jv.y = $f(size,1);
 		kv.z = $f(size,2);
@@ -2021,8 +2027,6 @@ Cone => q~
 
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       //JAS struct pt iv = {0,h,0};
-	       //JAS struct pt jv = {0,-h,0};
 	       struct pt iv = {0,0,0};
 	       struct pt jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
@@ -2031,7 +2035,6 @@ Cone => q~
 	       struct pt delta;
 	       struct pt tupv = {0,1,0};
 	      
-	       // JAS - see above commented out struct def.
 	       iv.y = h; jv.y = -h;
  
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
@@ -2090,8 +2093,6 @@ Cylinder => q~
 
 	       GLdouble modelMatrix[16]; 
 	       GLdouble upvecmat[16]; 
-	       //JAS struct pt iv = {0,h,0};
-	       //JAS struct pt jv = {0,-h,0};
 	       struct pt iv = {0,0,0};
 	       struct pt jv = {0,0,0};
 	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
@@ -2101,7 +2102,6 @@ Cylinder => q~
 	       struct pt delta;
 	       
 
-		// JAS - fill up structures as commented out above
 		iv.y = h;
 		jv.y = -h;
 
@@ -2315,11 +2315,12 @@ Text => q~
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
 
+		/*JAS - normals are always this way - helps because some
+			normal calculations failed because of very small triangles
+			which made collision calcs fail, which moved the Viewpoint...
+			so, if there is no need to calculate normals..., why do it? */
 	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,-1}; // JAS - normals are always this way - helps because some
-					   // JAS - normal calculations failed because of very small triangles
-					   // JAS - which made collision calcs fail, which moved the Viewpoint...
-					   // JAS - so, if there is no need to calculate normals..., why do it?
+	       struct pt delta = {0,0,-1}; 
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
 	       int change;

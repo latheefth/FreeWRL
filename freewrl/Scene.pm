@@ -254,7 +254,7 @@ sub newextp {
 
 	for (@{$url}) {
 		($protourl, $protoname) = split(/#/, $_, 2);
-		$string = VRML::NodeType::getTextFromURLs($this, $protourl);
+		$string = VRML::Browser::getTextFromFile($protourl);
 
 		next if (!$string);
 

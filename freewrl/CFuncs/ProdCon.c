@@ -202,7 +202,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	/* lets try this - if we are running under a browser, let the
 	   browser do the pathing stuff */
 	if (_fw_pipe != 0) {
-		printf ("makeAbsolute, running under a browser, just copy\n");
+		/* printf ("makeAbsolute, running under a browser, just copy\n"); */
 		strcpy (filename,thisurl);
 		return;
 	}
@@ -222,6 +222,7 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	strcat(filename,thisurl);
 
 	/* and, return in the ptr filename, the filename created... */
+	/* printf ("makeAbsoluteFileName, just made :%s:\n",filename); */
 }
 
 
