@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.60  2002/06/21 19:58:58  crc_canada
+# Material now called for RGB textures, but diffuseColor set to white.
+#
 # Revision 1.59  2002/06/17 14:41:45  ncoder
 # Added sphere collision detection (more to come)
 # -This included adding rendering passes,
@@ -238,9 +241,7 @@
 
 # Rend = real rendering
 %RendC = (
-# XXX Tex coords wrong :(
-Box => (join '',
-	'
+Box => '
 	 float x = $f(size,0)/2;
 	 float y = $f(size,1)/2;
 	 float z = $f(size,2)/2;
@@ -318,10 +319,10 @@ Box => (join '',
 		glTexCoord2f(0,0);
 		glVertex3f(-x,-y,-z);
 		glEnd();
-				glDepthMask(GL_TRUE);
+		glDepthMask(GL_TRUE);
 	glPopAttrib();
-	',
-),
+	
+',
 
 
 Cylinder => '
@@ -585,8 +586,7 @@ Sphere => 'int vdiv = vert_div;
 					} */
 ',
 
-IndexedFaceSet =>  ( join '',
-		'
+IndexedFaceSet => '
 		struct SFColor *points; int npoints;
 		struct SFColor *colors; int ncolors=0;
 		struct SFColor *normals; int nnormals=0;
@@ -615,11 +615,7 @@ IndexedFaceSet =>  ( join '',
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
-'),
-
-# XXX emissiveColor not taken :(
-
-# XXX Coredump possible for stupid input.
+',
 
 IndexedLineSet => '
 		int i;
@@ -705,7 +701,7 @@ PointSet => '
 	struct SFColor *points; int npoints=0;
 	struct SFColor *colors; int ncolors=0;
 
-		/* for shape display list redrawing */
+	/* for shape display list redrawing */
 	this_->_myshape = last_visited_shape; 
 
 	$fv(coord, points, get3, &npoints);
@@ -737,7 +733,7 @@ PointSet => '
 	glEnable(GL_LIGHTING);
 ',
 
-ElevationGrid => ( '
+ElevationGrid =>  '
 		struct SFColor *colors; int ncolors=0;
                 struct SFVec2f *texcoords; int ntexcoords=0;
 		struct SFColor *normals; int nnormals=0;
@@ -763,9 +759,9 @@ ElevationGrid => ( '
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
-'),
+',
 
-Extrusion => ( '
+Extrusion => '
 
 		/* for shape display list redrawing */
 		this_->_myshape = last_visited_shape; 
@@ -784,7 +780,7 @@ Extrusion => ( '
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
-'),
+',
 
 # FontStyle params handled in Text.
 FontStyle => '',
@@ -914,8 +910,15 @@ Text => '
 ',
 
 
-Material => ( join '',
-	"	float m[4]; int i; 
+Material =>  '
+		float m[4]; int i; 
+		float dcol[4];
+		float ecol[4];
+		float scol[4];
+		float shin;
+		float amb;
+		float trans;
+
 		GLubyte quartertone[] = {
 		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
 		      0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22,
@@ -970,23 +973,36 @@ Material => ( join '',
 		      0xEF, 0xEF, 0xEF, 0xEF, 0xFE, 0xFE, 0xFE, 0xFE,
 		      0xFD, 0xFD, 0xFD, 0xFD, 0xBF, 0xBF, 0xBF, 0xBF
 		   };
-		",assgn_m(diffuseColor,1),";
 
 		/* for shape display list redrawing */
 		this_->_myshape = last_visited_shape; 
 
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, m);
-		for(i=0; i<3; i++) {
-			m[i] *= ", getf(Material, ambientIntensity),";
+		/* We have to keep track of whether to reset diffuseColor if using
+		   textures; no texture or greyscale, we use the diffuseColor, if
+		   RGB we set diffuseColor to be grey */
+		if (last_texture_depth >1) {
+			dcol[0]=0.8, dcol[1]=0.8, dcol[2]=0.8;
+		} else {
+			for (i=0; i<3;i++){ dcol[i] = $f(diffuseColor,i); }
 		}
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, m);
-		",assgn_m(specularColor,1),";
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, m);
+		dcol[3] = 1.0;
 
-		",assgn_m(emissiveColor,1),';
-		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, m);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
-		glColor3f(m[0],m[1],m[2]);
+		amb = $f(ambientIntensity);
+
+		for(i=0; i<3; i++) {
+			dcol[i] *= amb;
+		}
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
+
+		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); } scol[3] = 1.0;
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
+
+		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); } ecol[3] = 1.0;
+		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
+
+		glColor3f(ecol[0],ecol[1],ecol[2]);
 
 		if (fabs($f(transparency)) > 0.01) {
 			glEnable(GL_POLYGON_STIPPLE);
@@ -998,14 +1014,10 @@ Material => ( join '',
 		}
 
 		if(fabs($f(shininess) - 0.2) > 0.001) {
-			/* printf("Set shininess: %f\n",$f(shininess)); */
 			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 
 				128 * $f(shininess));
-				/* 128*$f(shininess)*$f(shininess)); */
-				/* 128-(128*$f(shininess))); */
-				/* 1.0/((",getf(Material,shininess),"+1)/128.0)); */
 		}
-'),
+',
 
 TextureTransform => '
 
@@ -1024,7 +1036,7 @@ TextureTransform => '
 	glMatrixMode(GL_MODELVIEW);
 ',
 
-ImageTexture => ('
+ImageTexture => '
 	unsigned char *ptr = SvPV((this_->__data),PL_na);
 
 		/* for shape display list redrawing */
@@ -1042,9 +1054,9 @@ ImageTexture => ('
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_LINEAR);
-'),
+',
 
-PixelTexture => ('
+PixelTexture => '
 
 	unsigned char *ptr = SvPV((this_->__data),PL_na);
 
@@ -1059,7 +1071,7 @@ PixelTexture => ('
 		((this_->repeatS)) ? GL_REPEAT : GL_CLAMP, 
 		((this_->repeatT)) ? GL_REPEAT : GL_CLAMP,
 		GL_NEAREST);
-'),
+',
 
 
 MovieTexture => '
@@ -1093,7 +1105,6 @@ MovieTexture => '
 ',
 
 
-# Fog node ... Nothing here
 Fog => '
 	/* Fog node... */
 
@@ -1155,9 +1166,6 @@ AudioClip => ' ',
 
 # CylinderSensor .... Nothing here
 CylinderCensor => ' ',
-
-
-
 
 
 # GLBackend is using 200000 as distance - we use 100000 for background
@@ -1901,8 +1909,8 @@ Billboard => (join '','
 		}
 
 
-		/* if we have a material, and we did NOT have a rgb texture, do material */
-		if(($f(material)) && (last_texture_depth <= 1)) {
+		/* if we have a material, do it. last_texture_depth is used to select diffuseColor */
+		if($f(material)) {
 			render_node($f(material));
 		} else {
 			/* no material, so just colour the following shape */
@@ -1911,6 +1919,7 @@ Billboard => (join '','
 			glColor3f(1.0,1.0,1.0);
 		} 
 	
+	',
 	',
 	Shape => '
 		GLenum glError;
