@@ -132,7 +132,9 @@ typedef struct viewer_fly {
 
 typedef struct viewer {
 	struct pt Pos;
+	struct pt AntiPos;
 	Quaternion Quat;
+	Quaternion AntiQuat;
 	int headlight;
 	double speed;
 	double Dist;
