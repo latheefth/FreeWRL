@@ -22,12 +22,16 @@ Installs for the impatient
 </H3>
 
 Either grab a pre-packaged version of FreeWRL (in rpm format), or grab
-the source, and try:
+the source for FreeWRL and the SoundEngine, and try:
 <P>gunzip FreeWRL-version-tar.gz
 <P>untar FreeWRL-version.tar
 <p>cd FreeWRL-version
 <p>perl Makefile.PL
 <p>make install
+<p>
+For the sound engine, gunzip it, untar it, cd into the directory, and
+"make install".
+<p>
 
 <h3>
 Installs for everybody else
@@ -35,8 +39,8 @@ Installs for everybody else
 
 
 <P>
-<B>Red Hat 8.0, Irix 6.5, and  MacOS-X</B> will be the build platforms
-for FreeWRL 0.36 and beyond.
+<B>Red Hat 8.0 and MacOS-X</B> will be the build platforms
+for FreeWRL 0.38 and beyond.
 <P>
 <B>Mac OS-X users:</B> Congradulations! You now can compile and run FreeWRL. We have 
 put specific install directions
@@ -86,14 +90,8 @@ Building FreeWRL as a standalone executable
 This is the place to start. Once it runs, you can configure more options for FreeWRL to use, like Netscape Plugin functionality.
 <P>
 <P>
-<P><B>Notes:</B> All files are available here:</P>
-
-<LIST>
-<P>- <A HREF="http://www.crc.ca/en/html/FreeWRL/downloads/downloads">http://www.crc.ca/en/html/FreeWRL/downloads/downloads</A>
-
-<BR>- <A HREF="http://sourceforge.net/projects/freewrl/">http://sourceforge.net/projects/freewrl/</A>
-<BR>- <A HREF="http://freeware.sgi.com">http://freeware.sgi.com/</A>
-</LIST>
+You can get FreeWRL from: 
+<A HREF="http://sourceforge.net/projects/freewrl/">http://sourceforge.net/projects/freewrl/</A>
 <P>
 You can also access the cvs repository. The way to do it is explained at:
 
@@ -123,6 +121,8 @@ to either ignore the errors, or install Mesa as indicated above.
 The java compiler, javac must be in your path. the command "which javac" will tell you
 if you have this installed.
 <P>
+<B>RedHat 8.0</B> - get and install the jdkgcj-0.2.3-1.i386.rpm rpm package off of disc 3 in the RedHat set.
+<p>
 <B>RedHat 7.2</B> needed Suns Java 1.2 or above installed. The open-source Java equivalent, Kaffe, is not
 quite up to the job yet. With Kaffe, you will get Java compile errors, so for now, please use
 Suns Java 1.2 or above.
@@ -173,7 +173,7 @@ the include files spread all over the place. for <B>RedHat 7.2</B>, make sure yo
 have a look at the FreeType section of vrml.conf.rh7.2.
 <P>
 <LI>Install Perl Modules; Irix will need all of these, Red Hat will
-only need the ones indicated:<BR>    
+only need the ones indicated; <B>RedHat 8.0</b> does not need any.<BR>    
 
 <P>Digest-MD5-2.09
 <BR>HTML-Parser-2.25        
@@ -202,11 +202,6 @@ can't find it, you can always download it from
  or 
 <A HREF="http://freeware.sgi.com">http://freeware.sgi.com/</A>
 
-<P>
-<LI>FreeWRL-0.33 (and possibly later?) does support MovieTexture nodes, video only. The tool
-that is in use is one from the <A HREF="http://www.mpeg.org/MSSG/">MPEG Software Simulation Group</A>.
-You will need the MPEG2 Video Codec installed (file mpeg2decode) and in your path when you make FreeWRL in order to have this work. Warning - the current method is very slow on startup.
-We are working on a better method.
 <P>
 <LI>Make the Make file
 
@@ -265,13 +260,12 @@ file is used to handle EAI code access to the local filesystem and sockets.
 </LIST>
 
 
-<P><B>5.0 Getting it all to work with Netscape.</B></P>
+<P><B>5.0 Getting it all to work with Netscape/Mozilla.</B></P>
 
-<P><B>5.1)</B> Follow the
-<A HREF="Plugin/readme.html">instructions</A> in the Plugin readme file.</P>
-<P>
-If FreeWRL was built correctly, then the Netscape Plugin was
-installed in Netscape's system plugins directory.</P>
+If FreeWRL was built correctly, then the Netscape/Mozilla Plugin was
+installed in the browser plugins directory. Stop and start your 
+browser, and enter "about:plugins" in the url entry box. You should
+see the FreeWRL plugin listed.</P>
 <P>
 <P><B>6.0 X3D compatibility.</B></P>
 
