@@ -112,6 +112,8 @@ glFrontFace
 glFrustum
 glGenLists
 glGenTextures
+glDeleteTextures
+glBindTexture
 glGetBooleanv
 glGetClipPlane
 glGetDoublev

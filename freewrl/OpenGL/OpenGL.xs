@@ -902,7 +902,17 @@ glDeleteLists(list,range)
 void
 glGenTextures(n,textures)
 	GLsizei	n
-	char *	textures
+	GLuint *	textures
+
+void
+glBindTexture(target,texture)
+	GLenum target
+	GLuint texture
+
+void
+glDeleteTextures(n,textures)
+	GLsizei	n
+	GLuint *	textures
 
 GLuint
 glGenLists(range)
