@@ -804,9 +804,13 @@ void render_polyrep(void *node,
 		/* Textures	*/
 		if (BEHAVETODOTEXTURES) {
 		    if(texcoords && ntexcoords) {
-			if (polyrep_verbose) 
+			// did we run out of tex coords? Hanim-Nancy does this...
+			if (tci < ntexcoords) {
+			    if (polyrep_verbose) {
 				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]); 
-		  	glTexCoord2fv(texcoords[tci].c);
+			    }
+		  	    glTexCoord2fv(texcoords[tci].c);
+			} else {printf ("caught ntexcoord problem: index %d gt %d\n",tci,ntexcoords);}
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
 				if (polyrep_verbose) 
