@@ -44,37 +44,16 @@
 #define MPEG_LIB_VIDEO_HEADER
 #include <stdio.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 
-#ifdef SH_MEM
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <X11/extensions/XShm.h>
-#endif
+#define TRUE 1
+#define FALSE 0
 
 
-/* X11/xmd.h correctly defines INT32, etc */
-#ifndef XMD_H
-typedef int INT32;
-typedef short INT16;
-typedef char INT8;
-#endif
-typedef unsigned int UINT32;
-typedef unsigned short UINT16;
-typedef unsigned char UINT8;
- 
 /* Define Parsing error codes. */
 
 #define SKIP_PICTURE (-10)
 #define SKIP_TO_START_CODE (-1)
 #define PARSE_OK 1
-
-/* Define BOOLEAN, TRUE, and FALSE. */
-
-#define BOOLEAN int
-#define TRUE 1
-#define FALSE 0
 
 /* Set ring buffer size. */
 
@@ -114,30 +93,9 @@ typedef unsigned char UINT8;
 #define PAST_LOCK 0x02
 #define FUTURE_LOCK 0x04
 
-#define HYBRID_DITHER 0
-#define HYBRID2_DITHER 1
-#define FS4_DITHER 2
-#define FS2_DITHER 3
-#define FS2FAST_DITHER 4
-#define Twox2_DITHER 5
-#define GRAY_DITHER 6
-#define FULL_COLOR_DITHER 7
-#define NO_DITHER 8
-#define ORDERED_DITHER 9
-#define MONO_DITHER 10
 #define MONO_THRESHOLD 11
-#define ORDERED2_DITHER 12
-#define MBORDERED_DITHER 13
-#define GRAY256_DITHER 14
-#define PPM_DITHER     15
-#define FULL_COLOR2_DITHER 16
-#define GRAY2_DITHER 17
-#define GRAY2562_DITHER 18
 
-#ifdef DISABLE_DITHER
-#define IS_2x2_DITHER(a) (0)
 #else
-#define IS_2x2_DITHER(a) ((a) == Twox2_DITHER || (a) == FULL_COLOR2_DITHER || (a) == GRAY2_DITHER || (a) == (GRAY2562_DITHER))
 #endif
 
 /* External declaration of row,col to zig zag conversion matrix. */
@@ -169,14 +127,14 @@ typedef struct pict_image {
 /* Group of pictures structure. */
 
 typedef struct GoP {
-  BOOLEAN drop_flag;                     /* Flag indicating dropped frame. */
+  int drop_flag;                     /* Flag indicating dropped frame. */
   unsigned int tc_hours;                 /* Hour component of time code.   */
   unsigned int tc_minutes;               /* Minute component of time code. */
   unsigned int tc_seconds;               /* Second component of time code. */
   unsigned int tc_pictures;              /* Picture counter of time code.  */
-  BOOLEAN closed_gop;                    /* Indicates no pred. vectors to
+  int closed_gop;                    /* Indicates no pred. vectors to
 					    previous group of pictures.    */
-  BOOLEAN broken_link;                   /* B frame unable to be decoded.  */
+  int broken_link;                   /* B frame unable to be decoded.  */
   char *ext_data;                        /* Extension data.                */
   char *user_data;                       /* User data.                     */
 } GoP;
@@ -187,11 +145,11 @@ typedef struct pict {
   unsigned int temp_ref;                 /* Temporal reference.             */
   unsigned int code_type;                /* Frame type: P, B, I             */
   unsigned int vbv_delay;                /* Buffer delay.                   */
-  BOOLEAN full_pel_forw_vector;          /* Forw. vectors specified in full
+  int full_pel_forw_vector;          /* Forw. vectors specified in full
 					    pixel values flag.              */
   unsigned int forw_r_size;              /* Used for vector decoding.       */
   unsigned int forw_f;                   /* Used for vector decoding.       */
-  BOOLEAN full_pel_back_vector;          /* Back vectors specified in full 
+  int full_pel_back_vector;          /* Back vectors specified in full 
 					    pixel values flag.              */
   unsigned int back_r_size;              /* Used in decoding.               */
   unsigned int back_f;                   /* Used in decoding.               */
@@ -222,9 +180,9 @@ typedef struct macroblock {
   int motion_v_back_code;                /* Back vert. motion vector code.   */
   unsigned int motion_v_back_r;          /* Used in decoding vectors.        */
   unsigned int cbp;                      /* Coded block pattern.             */
-  BOOLEAN mb_intra;                      /* Intracoded mblock flag.          */
-  BOOLEAN bpict_past_forw;               /* Past B frame forw. vector flag.  */
-  BOOLEAN bpict_past_back;               /* Past B frame back vector flag.   */
+  int mb_intra;                      /* Intracoded mblock flag.          */
+  int bpict_past_forw;               /* Past B frame forw. vector flag.  */
+  int bpict_past_back;               /* Past B frame back vector flag.   */
   int past_intra_addr;                   /* Addr of last intracoded mblock.  */
   int recon_right_for_prev;              /* Past right forw. vector.         */
   int recon_down_for_prev;               /* Past down forw. vector.          */
@@ -252,7 +210,7 @@ typedef struct vid_stream {
   unsigned char picture_rate;                  /* Code for picture rate.     */
   unsigned int bit_rate;                       /* Bit rate.                  */
   unsigned int vbv_buffer_size;                /* Minimum buffer size.       */
-  BOOLEAN const_param_flag;                    /* Contrained parameter flag. */
+  int const_param_flag;                    /* Contrained parameter flag. */
   unsigned char intra_quant_matrix[8][8];      /* Quantization matrix for
 						  intracoded frames.         */
   unsigned char non_intra_quant_matrix[8][8];  /* Quanitization matrix for 
@@ -283,8 +241,8 @@ typedef struct vid_stream {
   long seekValue;                              /* 0 no seeking
 						  >0 do a seek,
 						  <0 already has done seek   */
-  BOOLEAN swap;                                /* from ReadFile              */
-  BOOLEAN Parse_done;                          /* from read_sys              */
+  int swap;                                /* from ReadFile              */
+  int Parse_done;                          /* from read_sys              */
   int gAudioStreamID;
   int gVideoStreamID;
   int gReservedStreamID;
@@ -439,11 +397,6 @@ Error: Unknown endianism of architecture
 //#define BIG_ENDIAN_ARCHITECTURE 1
 #endif
 
-#ifdef __alpha__
-#define SIXTYFOUR_BIT
-#endif
-#endif /* video.h already included */
-
 
 #ifdef __STDC__
 # define	P(s) s
@@ -473,8 +426,8 @@ void Destroympeg_VidStream P((mpeg_VidStream *astream));
 PictImage *NewPictImage P(( mpeg_VidStream *vid_stream ));
 void DestroyPictImage P((PictImage *apictimage));
 mpeg_VidStream *mpeg_VidRsrc P((TimeStamp time_stamp,mpeg_VidStream *vid_stream, int first ));
-void SetBFlag P((BOOLEAN val ));
-void SetPFlag P((BOOLEAN val ));
+void SetBFlag P((int val ));
+void SetPFlag P((int val ));
 
 /* parseblock.c */
 void ParseReconBlock P((int n, mpeg_VidStream *vid_stream ));
@@ -944,12 +897,6 @@ typedef struct {
   int num_bits;                       /* length of the Huffman code */
 } mb_type_entry;
 
-/* Decoding table for macroblock_type in predictive-coded pictures */
-//JASextern mb_type_entry mb_type_P[64];
-
-/* Decoding table for macroblock_type in bidirectionally-coded pictures */
-//JASextern mb_type_entry mb_type_B[64];
-
 
 /* Structures for an entry in the decoding table of coded_block_pattern */
 typedef struct {
@@ -984,17 +931,6 @@ typedef struct {
   int num_bits;          /* length of the Huffman code */
 } dct_dc_size_entry;
 
-/* External declaration of dct dc size lumiance table. */
-
-//JASextern dct_dc_size_entry dct_dc_size_luminance[32];
-//JASextern dct_dc_size_entry dct_dc_size_luminance1[16];
-
-/* External declaration of dct dc size chrom table. */
-
-//JASextern dct_dc_size_entry dct_dc_size_chrominance[32];
-//JASextern dct_dc_size_entry dct_dc_size_chrominance1[32];
-
-
 /* DCT coeff tables. */
 
 #define RUN_MASK 0xfc00
@@ -1002,15 +938,6 @@ typedef struct {
 #define NUM_MASK 0x000f
 #define RUN_SHIFT 10
 #define LEVEL_SHIFT 4
-
-/* External declaration of dct coeff tables. */
-
-//JASextern unsigned short int dct_coeff_tbl_0[256];
-//JASextern unsigned short int dct_coeff_tbl_1[16];
-//JASextern unsigned short int dct_coeff_tbl_2[4];
-//JASextern unsigned short int dct_coeff_tbl_3[4];
-//JASextern unsigned short int dct_coeff_next[256];
-//JASextern unsigned short int dct_coeff_first[256];
 
 #define DecodeDCTDCSizeLum(macro_val)                    \
 {                                                    \
@@ -1053,20 +980,6 @@ typedef struct {
   unsigned int temp, index;						\
   unsigned int value, next32bits, flushed;				\
 									\
-  /*									\
-   * Grab the next 32 bits and use it to improve performance of		\
-   * getting the bits to parse. Thus, calls are translated as:		\
-   *									\
-   *	show_bitsX  <-->   next32bits >> (32-X)				\
-   *	get_bitsX   <-->   val = next32bits >> (32-flushed-X);		\
-   *			   flushed += X;				\
-   *			   next32bits &= bitMask[flushed];		\
-   *	flush_bitsX <-->   flushed += X;				\
-   *			   next32bits &= bitMask[flushed];		\
-   *									\
-   * I've streamlined the code a lot, so that we don't have to mask	\
-   * out the low order bits and a few of the extra adds are removed.	\
-   */									\
   show_bits32(next32bits);						\
 									\
   /* show_bits8(index); */						\
@@ -1179,25 +1092,6 @@ typedef struct {
   DecodeDCTCoeff(dct_coeff_next, runval, levelval);   \
 }
 
-/*
- *--------------------------------------------------------------
- *
- * DecodeMBAddrInc --
- *
- *      Huffman Decoder for macro_block_address_increment; the location
- *      in which the result will be placed is being passed as argument.
- *      The decoded value is obtained by doing a table lookup on
- *      mb_addr_inc.
- *
- * Results:
- *      The decoded value for macro_block_address_increment or ERROR
- *      for unbound values will be placed in the location specified.
- *
- * Side effects:
- *      Bit stream is irreversibly parsed.
- *
- *--------------------------------------------------------------
- */
 #define DecodeMBAddrInc(val)				\
 {							\
     unsigned int index;					\
@@ -1205,29 +1099,6 @@ typedef struct {
     val = mb_addr_inc[index].value;			\
     flush_bits(mb_addr_inc[index].num_bits);		\
 }
-
-/*
- *--------------------------------------------------------------
- *
- * DecodeMotionVectors --
- *
- *      Huffman Decoder for the various motion vectors, including
- *      motion_horizontal_forward_code, motion_vertical_forward_code,
- *      motion_horizontal_backward_code, motion_vertical_backward_code.
- *      Location where the decoded result will be placed is being passed
- *      as argument. The decoded values are obtained by doing a table
- *      lookup on motion_vectors.
- *
- * Results:
- *      The decoded value for the motion vector or ERROR for unbound
- *      values will be placed in the location specified.
- *
- * Side effects:
- *      Bit stream is irreversibly parsed.
- *
- *--------------------------------------------------------------
- */
-
 #define DecodeMotionVectors(value)			\
 {							\
   unsigned int index;					\
@@ -1235,28 +1106,6 @@ typedef struct {
   value = motion_vectors[index].code;			\
   flush_bits(motion_vectors[index].num_bits);		\
 }
-/*
- *--------------------------------------------------------------
- *
- * DecodeMBTypeB --
- *
- *      Huffman Decoder for macro_block_type in bidirectionally-coded
- *      pictures;locations in which the decoded results: macroblock_quant,
- *      macroblock_motion_forward, macro_block_motion_backward,
- *      macroblock_pattern, macro_block_intra, will be placed are
- *      being passed as argument. The decoded values are obtained by
- *      doing a table lookup on mb_type_B.
- *
- * Results:
- *      The various decoded values for macro_block_type in
- *      bidirectionally-coded pictures or ERROR for unbound values will
- *      be placed in the locations specified.
- *
- * Side effects:
- *      Bit stream is irreversibly parsed.
- *
- *--------------------------------------------------------------
- */
 #define DecodeMBTypeB(quant, motion_fwd, motion_bwd, pat, intra)	\
 {									\
   unsigned int index;							\
@@ -1270,27 +1119,6 @@ typedef struct {
   intra = mb_type_B[index].mb_intra;					\
   flush_bits(mb_type_B[index].num_bits);				\
 }
-/*
- *--------------------------------------------------------------
- *
- * DecodeMBTypeI --
- *
- *      Huffman Decoder for macro_block_type in intra-coded pictures;
- *      locations in which the decoded results: macroblock_quant,
- *      macroblock_motion_forward, macro_block_motion_backward,
- *      macroblock_pattern, macro_block_intra, will be placed are
- *      being passed as argument.
- *
- * Results:
- *      The various decoded values for macro_block_type in intra-coded
- *      pictures or ERROR for unbound values will be placed in the
- *      locations specified.
- *
- * Side effects:
- *      Bit stream is irreversibly parsed.
- *
- *--------------------------------------------------------------
- */
 #define DecodeMBTypeI(quant, motion_fwd, motion_bwd, pat, intra)	\
 {									\
   unsigned int index;							\
@@ -1307,28 +1135,6 @@ typedef struct {
     flush_bits (1 + quant);						\
   }									\
 }
-/*
- *--------------------------------------------------------------
- *
- * DecodeMBTypeP --
- *
- *      Huffman Decoder for macro_block_type in predictive-coded pictures;
- *      locations in which the decoded results: macroblock_quant,
- *      macroblock_motion_forward, macro_block_motion_backward,
- *      macroblock_pattern, macro_block_intra, will be placed are
- *      being passed as argument. The decoded values are obtained by
- *      doing a table lookup on mb_type_P.
- *
- * Results:
- *      The various decoded values for macro_block_type in
- *      predictive-coded pictures or ERROR for unbound values will be
- *      placed in the locations specified.
- *
- * Side effects:
- *      Bit stream is irreversibly parsed.
- *
- *--------------------------------------------------------------
- */
 #define DecodeMBTypeP(quant, motion_fwd, motion_bwd, pat, intra)	\
 {									\
   unsigned int index;							\
@@ -1343,25 +1149,6 @@ typedef struct {
 									\
   flush_bits(mb_type_P[index].num_bits);				\
 }
-/*
- *--------------------------------------------------------------
- *
- * DecodeCBP --
- *
- *      Huffman Decoder for coded_block_pattern; location in which the
- *      decoded result will be placed is being passed as argument. The
- *      decoded values are obtained by doing a table lookup on
- *      coded_block_pattern.
- *
- * Results:
- *      The decoded value for coded_block_pattern or ERROR for unbound
- *      values will be placed in the location specified.
- *
- * Side effects:
- *      Bit stream is irreversibly parsed.
- *
- *--------------------------------------------------------------
- */
 #define DecodeCBP(coded_bp)						\
 {									\
   unsigned int index;							\

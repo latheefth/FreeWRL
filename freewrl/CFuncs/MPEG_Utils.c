@@ -1804,8 +1804,8 @@ ParseReconBlock(n, vid_stream)
      *    memset((char *) DCT_recon, 0, 64*sizeof(short int));
      */
     {
-      INT32 *p;
-      p = (INT32 *) reconptr;
+      int *p;
+      p = (int *) reconptr;
 
       p[0] = p[1] = p[2] = p[3] = p[4] = p[5] = p[6] = p[7] = p[8] = p[9] = 
       p[10] = p[11] = p[12] = p[13] = p[14] = p[15] = p[16] = p[17] = p[18] =
@@ -3272,7 +3272,7 @@ ParseMacroBlock(vid_stream)
   int mask, i, recon_right_for, recon_down_for, recon_right_back,
       recon_down_back;
   int zero_block_flag;
-  BOOLEAN mb_quant = 0, mb_motion_forw = 0, mb_motion_back = 0, 
+  int mb_quant = 0, mb_motion_forw = 0, mb_motion_back = 0, 
       mb_pattern = 0;
 
   /*
@@ -5103,16 +5103,16 @@ DoPictureDisplay(vid_stream)
  * shift" instructions that shift in copies of the sign bit.  But some
  * C compilers implement >> with an unsigned shift.  For these machines you
  * must define RIGHT_SHIFT_IS_UNSIGNED.
- * RIGHT_SHIFT provides a proper signed right shift of an INT32 quantity.
+ * RIGHT_SHIFT provides a proper signed right shift of an int quantity.
  * It is only applied with constant shift counts.  SHIFT_TEMPS must be
  * included in the variables of any routine using RIGHT_SHIFT.
  */
   
 #ifdef RIGHT_SHIFT_IS_UNSIGNED
-#define SHIFT_TEMPS	INT32 shift_temp;
+#define SHIFT_TEMPS	int shift_temp;
 #define RIGHT_SHIFT(x,shft)  \
 	((shift_temp = (x)) < 0 ? \
-	 (shift_temp >> (shft)) | ((~((INT32) 0)) << (32-(shft))) : \
+	 (shift_temp >> (shft)) | ((~((int) 0)) << (32-(shft))) : \
 	 (shift_temp >> (shft)))
 #else
 #define SHIFT_TEMPS
@@ -5157,7 +5157,7 @@ DoPictureDisplay(vid_stream)
  * they are represented to better-than-integral precision.  These outputs
  * require BITS_IN_JSAMPLE + PASS1_BITS + 3 bits; this fits in a 16-bit word
  * with the recommended scaling.  (To scale up 12-bit sample data further, an
- * intermediate INT32 array would be needed.)
+ * intermediate int array would be needed.)
  *
  * To avoid overflow of the 32-bit intermediate results in pass 2, we must
  * have BITS_IN_JSAMPLE + CONST_BITS + PASS1_BITS <= 26.  Error analysis
@@ -5170,7 +5170,7 @@ DoPictureDisplay(vid_stream)
 #define PASS1_BITS  1		/* lose a little precision to avoid overflow */
 #endif
 
-#define ONE	((INT32) 1)
+#define ONE	((int) 1)
 
 #define CONST_SCALE (ONE << CONST_BITS)
 
@@ -5180,19 +5180,19 @@ DoPictureDisplay(vid_stream)
  * the correct integer constant values and insert them by hand.
  */
 
-#define FIX(x)	((INT32) ((x) * CONST_SCALE + 0.5))
+#define FIX(x)	((int) ((x) * CONST_SCALE + 0.5))
 
 /* When adding two opposite-signed fixes, the 0.5 cancels */
-#define FIX2(x)	((INT32) ((x) * CONST_SCALE))
+#define FIX2(x)	((int) ((x) * CONST_SCALE))
 
-/* Descale and correctly round an INT32 value that's scaled by N bits.
+/* Descale and correctly round an int value that's scaled by N bits.
  * We assume RIGHT_SHIFT rounds towards minus infinity, so adding
  * the fudge factor is correct for either sign of X.
  */
 
 #define DESCALE(x,n)  RIGHT_SHIFT((x) + (ONE << ((n)-1)), n)
 
-/* Multiply an INT32 variable by an INT32 constant to yield an INT32 result.
+/* Multiply an int variable by an INT32 constant to yield an INT32 result.
  * For 8-bit samples with the recommended scaling, all the variable
  * and constant values involved are no more than 16 bits wide, so a
  * 16x16->32 bit multiply can be used instead of a full 32x32 multiply;
@@ -5208,7 +5208,7 @@ DoPictureDisplay(vid_stream)
 #define MULTIPLY(var,const)  (((INT16) (var)) * ((INT16) (const)))
 #endif
 #ifdef SHORTxLCONST_32		/* known to work with Microsoft C 6.0 */
-#define MULTIPLY(var,const)  (((INT16) (var)) * ((INT32) (const)))
+#define MULTIPLY(var,const)  (((INT16) (var)) * ((int) (const)))
 #endif
 #endif
 
@@ -5391,10 +5391,10 @@ void
 j_rev_dct (data)
      DCTBLOCK data;
 {
-  INT32 tmp0, tmp1, tmp2, tmp3;
-  INT32 tmp10, tmp11, tmp12, tmp13;
-  INT32 z1, z2, z3, z4, z5;
-  INT32 d0, d1, d2, d3, d4, d5, d6, d7;
+  int tmp0, tmp1, tmp2, tmp3;
+  int tmp10, tmp11, tmp12, tmp13;
+  int z1, z2, z3, z4, z5;
+  int d0, d1, d2, d3, d4, d5, d6, d7;
   register DCTELEM *dataptr;
   int rowctr;
   SHIFT_TEMPS
@@ -6743,7 +6743,7 @@ pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
   unsigned int request;
   unsigned char *buffer, *mark;
   unsigned int *lmark;
-  BOOLEAN swap=vid_stream->swap;
+  int swap=vid_stream->swap;
   
   if (vid_stream->EOF_flag) return 0;
   
@@ -6822,15 +6822,6 @@ pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
   return 1;
 }
 
-
-
-
-/* 
-  Here is the specialist.... 
-  Code is adapted from our program demux....
-  define __SYSREAD_LOGGING_ON__ to get  an output file for debugging
-  */
-
 /*
  *----------------------------------------------------------
  *
@@ -6860,7 +6851,7 @@ int read_sys(vid_stream, start)
   double systemClockTime;
   unsigned long muxRate;
   /* Statistics */
-  BOOLEAN match;
+  int match;
   
   if (!start) {
     errorCode = ReadStartCode(&startCode,vid_stream);
