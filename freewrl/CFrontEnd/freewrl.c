@@ -42,10 +42,7 @@ pthread_t thread1;
 
 
 /* function prototypes */
-//extern void xs_init(void);
 void displayThread();
-int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-                        unsigned ptr, unsigned ofs);
 
 int main (int argc, char **argv) {
 	int retval;
@@ -60,6 +57,7 @@ int main (int argc, char **argv) {
 		static struct option long_options[] = {
 			{"version", 0, 0, 'x'},
 			{"fullscreen", 0, 0, 'x'},
+			{"fast", 0, 0, 'f'},
 			{"plugin", 1, 0, 'x'},
 			{"geometry", 1, 0, 'g'},
 			{"parent", 1, 0, 'x'},
@@ -96,6 +94,9 @@ int main (int argc, char **argv) {
 				printf ("option --%s not implemented yet, complain bitterly\n",
 					long_options[option_index].name);
 				break;
+			case 'f':
+				global_texSize = 256;
+				break;
 
 			case 'h':
 				printf ("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
@@ -118,11 +119,10 @@ int main (int argc, char **argv) {
 		}
 
 		/* save the url for later use, if required */
+		count = strlen(argv[optind]);
 		if (BrowserURL != NULL) free (BrowserURL);
-		BrowserURL = malloc (strlen(argv[optind])+1);
+		BrowserURL = malloc (count+1);
 		strcpy (BrowserURL,argv[optind]);
-
-
 	} else {
 		printf ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
@@ -135,6 +135,9 @@ int main (int argc, char **argv) {
 	initializePerlThread();
 	while (!isPerlinitialized()) {usleep(200);}
 
+	/* create the Texture parser thread */
+	initializeTextureThread();
+	while (!isTextureinitialized()) {usleep(200);}
 
 	/* create the initial scene, from the file passed in
 	and place it as a child of the rootNode. */

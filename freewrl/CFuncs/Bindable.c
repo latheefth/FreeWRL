@@ -709,7 +709,9 @@ void render_Background (struct VRML_Background *node) {
 		/* go through each of the 6 possible sides */
 
 		if(node->__textureback>0) {
-			bind_image (bckptr, (unsigned *) &node->__textureback, 0,0,node->__istemporaryback);
+
+printf ("textures disabled here\n");
+			//bind_image (bckptr, (unsigned *) &node->__textureback, 0,0,node->__istemporaryback);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,0.0,1.0); 
 			glTexCoord2d(1.0, 0.0); glVertex3d(-sc, -sc, sc);
@@ -720,7 +722,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturefront>0) {
-			bind_image (frtptr, (unsigned *) &node->__texturefront, 0,0,node->__istemporaryfront);
+			//bind_image (frtptr, (unsigned *) &node->__texturefront, 0,0,node->__istemporaryfront);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,0.0,-1.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,-sc);
@@ -731,7 +733,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturetop>0) {
-			bind_image (topptr, (unsigned *) &node->__texturetop, 0,0,node->__istemporarytop);
+			//bind_image (topptr, (unsigned *) &node->__texturetop, 0,0,node->__istemporarytop);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,1.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
@@ -742,7 +744,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__texturebottom>0) {
-			bind_image (botptr, (unsigned *) &node->__texturebottom, 0,0,node->__istemporarybottom);
+			//bind_image (botptr, (unsigned *) &node->__texturebottom, 0,0,node->__istemporarybottom);
 			glBegin(GL_QUADS);
 			glNormal3d(0.0,-(1.0),0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,-sc,-sc);
@@ -753,7 +755,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__textureright>0) {
-			bind_image (rtptr, (unsigned *) &node->__textureright, 0,0,node->__istemporaryright);
+			//bind_image (rtptr, (unsigned *) &node->__textureright, 0,0,node->__istemporaryright);
 			glBegin(GL_QUADS);
 			glNormal3d(1.0,0.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(sc,sc,sc);
@@ -764,7 +766,7 @@ void render_Background (struct VRML_Background *node) {
 		};
 
 		if(node->__textureleft>0) {
-			bind_image (lftptr, (unsigned *) &node->__textureleft, 0,0,node->__istemporaryleft);
+			//bind_image (lftptr, (unsigned *) &node->__textureleft, 0,0,node->__istemporaryleft);
 			glBegin(GL_QUADS);
 			glNormal3d(-1.0,0.0,0.0);
 			glTexCoord2d(1.0,1.0); glVertex3d(-sc,sc, -sc);

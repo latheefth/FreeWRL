@@ -379,7 +379,7 @@ sub new {
 		$this->{Type} = $t;
     }
 
-    $this->do_defaults();
+    $this->do_defaults($scene);
 
 	print "VRML::NodeIntern::new: ", dump_name($this->{Scene}),
 		($this->{IsProto} ? " PROTO" : ""),
@@ -390,8 +390,11 @@ sub new {
 
 
 # Fill in nonexisting field values by the default values.
+# if the field name is "__parenturl", then we supply the current url to it.
+# this helps the C threads find relative files, as loading can be intermixed.
+
 sub do_defaults {
-	my ($this) = @_;
+	my ($this,$scene) = @_;
 	my $ftype;
 	my $init;
 
@@ -412,7 +415,11 @@ sub do_defaults {
 			} elsif (ref $this->{Type}{Defaults}{$_} eq "ARRAY") {
 				push @{$this->{Fields}{$_}}, @{$this->{Type}{Defaults}{$_}};
 			} else {
-				$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
+				if ($_ eq "__parenturl") {
+					$this->{Fields}{$_} = $scene->get_url();
+				} else {
+					$this->{Fields}{$_} = $this->{Type}{Defaults}{$_};
+				}
 			}
 		}
 	}
@@ -675,10 +682,7 @@ sub make_executable {
 sub initialize {
     my ($this, $scene) = @_;
 
-    # Inline is initialized at make_backend
-
-    if ($this->{Type}{Actions}{Initialize}
-	     && $this->{TypeName} ne "Inline") {
+    if ($this->{Type}{Actions}{Initialize}) {
 		return &{$this->{Type}{Actions}{Initialize}}(
 													 $this,
 													 $this->{RFields},
@@ -736,23 +740,6 @@ sub set_backend_fields {
 		}
 
 		if (!defined $this->{BackNode}) {
-			if ($this->{TypeName} eq "Inline") {
-				print "\tInline Initialize: ",
-					{$this->{Type}{Actions}{Initialize}}, ", RFields ",
-						VRML::Debug::toString($this->{RFields}), "\n"
-								if $VRML::verbose::be;
-			
-				&{$this->{Type}{Actions}{Initialize}}(
-													  $this,
-													  $this->{RFields},
-													  (my $timestamp=(POSIX::times())[0] / 100),
-													  $this->{Scene}
-													 );
-
-				## means that Inline's Initialize failed to get a valid url
-				return undef if (!$this->{IsProto});
-			}
-
 			if ($this->{TypeName} eq "WorldInfo") {
 				print "VRML::NodeIntern::make_backend NOT - ", $this->{TypeName},"\n"
 					if $VRML::verbose::be;
@@ -774,13 +761,6 @@ sub set_backend_fields {
 			if ($this->{IsProto}) {
 				print "\tIsProto ", dump_name($this), "\n"
 					if $VRML::verbose::be;
-
-				## Inline'd node backends need special handling
-				if ($this->{TypeName} eq "Inline") {
-					$this->{BackNode} = $this->{ProtoExp}->make_backend($be, $parentbe);
-					return $this->{BackNode};
-				}
-
 				return $this->{ProtoExp}->make_backend($be, $parentbe);
 			}
 

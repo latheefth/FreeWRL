@@ -43,6 +43,7 @@ struct PSStruct {
 	unsigned ptr;		/* address (node) to put data		*/
 	unsigned ofs;		/* offset in node for data		*/
 	int bind;		/* should we issue a bind? 		*/
+	char *path;		/* path of parent URL			*/
 };
 
 
@@ -55,9 +56,10 @@ void initializePerlThread(void);
 unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
 unsigned int getBindables (char *tp, unsigned int *retarr);
 void getAllBindables(void);
-int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-                        unsigned ptr, unsigned ofs);
 int isPerlinitialized(void);
+int fileExists(char *fn);
+int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
+			unsigned ptr, unsigned ofs);
 
 /* Bindables */
 int *fognodes;
@@ -102,6 +104,32 @@ int isPerlinitialized() {return PerlInitialized;}
 /* statusbar uses this to tell user that we are still loading */
 int isPerlParsing() {return(PerlParsing);}
 
+/* does this file exist on the local file system, or via the HTML Browser? */
+int fileExists(char *fname) {
+	FILE *fp;
+	int ok;
+
+	/* are we running under netscape? if so, ask the browser */
+
+	/* we are not netscaped */
+	fp= fopen (fname,"r");
+	ok = (fp != NULL);
+	fclose (fp);
+	
+	return (ok);
+}
+
+/* Inlines... Multi_URLs, load only when available, etc, etc */
+void loadInline(struct VRML_Inline *node) {
+	/* first, are we busy? */
+	if (PerlParsing) return;
+
+	node->__loadstatus = 1;
+	perlParse(INLINE,(char *)node, FALSE, FALSE, 
+		(unsigned *) node,
+		offsetof (struct VRML_Inline, __children));
+}
+
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 			unsigned ptr, unsigned ofs) {
 	int iret;
@@ -116,6 +144,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	psp.type = type;
 	psp.ptr = ptr;
 	psp.ofs = ofs;
+	psp.path = NULL;
 	psp.bind = bind; /* should we issue a set_bind? */
 	psp.inp = malloc (strlen(inp)+2);
 	if (!(psp.inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
@@ -130,7 +159,13 @@ void _perlThread() {
 	int count;
 	int retval;
 	int retarr[1000];
+	char *filename;
         char *commandline[] = {"", NULL};
+	struct Multi_String *inurl;
+	struct VRML_Inline *inl;
+	int xx;
+	char *thisurl;
+	char *slashindex;
 
 	// is the browser started yet? 
 	if (!browserRunning) {
@@ -166,11 +201,81 @@ void _perlThread() {
 		PerlInitialized=TRUE; /* have to do this AFTER ensuring we are locked */
 		DATA_LOCK_WAIT
 		PerlParsing=TRUE;
+
+		/* is this a INLINE? If it is, try to load one of the URLs. */
+		if (psp.type == INLINE) {
+			inl = (struct VRML_Inline *)psp.ptr;
+			inurl = &(inl->url);
+			filename = malloc(1000);
+
+			/* lets make up the path and save it, and make it the global path */
+			count = strlen(SvPV(inl->__parenturl,xx));
+			psp.path = malloc (count+1);
+
+			if ((!filename) || (!psp.path)) {
+				printf ("perl thread can not malloc for filename\n");
+				exit(1);
+			}
+			
+			/* copy the parent path over */
+			strcpy (psp.path,SvPV(inl->__parenturl,xx));
+
+			/* and strip off the file name, leaving any path */
+			slashindex = rindex(psp.path,'/');
+			if (slashindex != NULL) { 
+				slashindex ++; /* leave the slash there */
+				*slashindex = 0;
+			} else {psp.path[0] = 0;}
+
+			/* try the first url, up to the last */
+			count = 0;
+			while (count < inurl->n) {
+				thisurl = SvPV(inurl->p[count],xx);
+
+				/* check to make sure we don't overflow */
+				if ((strlen(thisurl)+strlen(psp.path)) > 900) break;
+
+				/* does this name start off with a ftp, http, or a "/"? */
+				if ((strncmp(thisurl,"ftp://", strlen("ftp://"))) &&
+				   (strncmp(thisurl,"FTP://", strlen("FTP://"))) &&
+				   (strncmp(thisurl,"http://", strlen("http://"))) &&
+				   (strncmp(thisurl,"HTTP://", strlen("HTTP://"))) &&
+				   (strncmp(thisurl,"/",strlen("/")))) {
+					strcpy (filename,psp.path);
+				} else {
+					filename[0]=0;
+				}
+				strcat(filename,thisurl);
+
+				if (fileExists(filename)) {
+					break;
+				}
+				count ++;
+			}
+			psp.inp = filename; /* will be freed later */
+
+			/* were we successful at locating one of these? if so,
+			   make it into a FROMURL */
+			if (count != inurl->n) {
+				/* printf ("we were successful at locating %s\n",filename); */
+				psp.type=FROMURL;
+			} else {
+				printf ("Could not locate url (last choice was %s)\n",filename);
+			}
+		}
+
+			
 		if ((psp.type == FROMSTRING) || (psp.type==FROMURL)) {
 			if (psp.type==FROMSTRING) {
 	        		retval = CreateVrml("String",psp.inp,retarr);
 			} else {
-				retval = CreateVrml("URL",psp.inp,retarr);
+				if (!fileExists(psp.inp)) { 
+					retval=0;
+					psp.bind=0;
+					printf ("file problem: %s does not exist\n",psp.inp);
+				} else {
+					retval = CreateVrml("URL",psp.inp,retarr);
+				}
 			} 
 	
 	        	// now that we have the VRML/X3D file, load it into the scene.
@@ -181,7 +286,7 @@ void _perlThread() {
 	        	}
 	
 			/* get the Bindables from this latest VRML/X3D file */
-			getAllBindables();
+			if (retval > 0) getAllBindables();
 	
 			/* send a set_bind to any nodes that exist */
 			if (psp.bind) {
@@ -190,10 +295,15 @@ void _perlThread() {
 				if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,navnodes[0],1);
 				if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,viewpointnodes[0],1);
 			}
+		} else if (psp.type==INLINE) {
+			/* this should be changed to a FROMURL before here */
+			printf ("Inline unsuccessful\n");
 		} else {
 			printf ("produceTask - invalid type!\n");
 		}
-		free (psp.inp);
+		if (psp.inp) free (psp.inp);
+		if (psp.path) free (psp.path);
+
 		PerlParsing=FALSE;
 		DATA_UNLOCK
 	}

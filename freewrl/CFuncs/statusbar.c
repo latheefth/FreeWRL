@@ -106,7 +106,7 @@ void render_status () {
 		strcat (vpname, "NONE");
 		vplen = strlen (vpname);
 	}
-	if (isPerlParsing() || (!isPerlinitialized())) {
+	if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
 		sprintf (statusline, "VP: %s   FPS: %5.2f  NAV: %s  %s", 
 			"(Loading...)", BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 	} else { 

@@ -282,21 +282,27 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 #endif
 
 
-/* Producer/Consumer types */
+/* types to tell the Perl thread what to handle */
 #define FROMSTRING 	1
 #define	FROMURL		2
+#define INLINE		3
 
 
 
 
 extern int rootNode;
 extern int isPerlParsing(void);
+extern int isTextureParsing(void);
+extern void loadInline(struct VRML_Inline *node);
+extern void loadImageTexture(struct VRML_ImageTexture *node);
+extern void loadPixelTexture(struct VRML_PixelTexture *node);
+extern void loadMovieTexture(struct VRML_MovieTexture *node);
 extern void new_tessellation(void);
 extern void initializePerlThread(void);
 extern PerlInterpreter *my_perl;
 extern void setGeometry (char *optarg);
 extern int isPerlinitialized(void);
-extern char *BrowserName, *BrowserVersion, *BrowserURL; // defined in VRMLC.pm
+extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserPATH; // defined in VRMLC.pm
 extern int display_status;		// toggle status bar - defined in VRMLC.pm
 extern int be_collision;		// toggle collision detection - defined in VRMLC.pm
 extern double hpdist;			// in VRMLC.pm
@@ -311,5 +317,9 @@ extern struct currayhit rh,rph,rhhyper;
 extern int smooth_normals;
 extern void xs_init(void);
 extern int navi_tos;
+extern void initializePerlThread(void);
+extern void initializeTextureThread(void);
+extern int isTextureinitialized(void);
+extern int fileExists(char *fname);
 
 #endif /* __HEADERS_H__ */

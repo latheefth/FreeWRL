@@ -227,155 +227,37 @@ sub getTextFromURLs {
 	return (wantarray ? ($text, $actual_url) : $text);
 }
 
-########################################################################
-#
-# Image loading.
-#
-
-# picture image
-sub init_image {
-	my($name, $urlname, $t, $f, $scene, $flip) = @_;
-	my $urls = $f->{$urlname};
-
-	if ($#{$urls} == -1) { goto NO_TEXTURE; }
-
-	my $file;
-	my $suffix;
-	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
-
-	my ($hei,$wi,$dep);
-	my $tempfile = $file;
-
-	$f->{__istemporary.$name} = 0;
-
-	if ($file eq "") {
-		# print "empty file\n";
-		goto NO_TEXTURE;
-	}
-
-	$f->{__texture.$name} = 0;	# bind during rendering stage
-
-	# find out what kind of file it is...
-	my $lgname = $ENV{LOGNAME};
-	my $outfilename = "/tmp/freewrl_";
-	my $outfile = join '', $outfilename,$lgname, "_STDOUT";
-	my $cmd = "file $file > $outfile";
-
-	my $status = system ($cmd);
-	my $results = `cat $outfile`;
-	system ("rm $outfile");
-
-
-       if (!($results  =~ /\sPNG\simage/ || $results =~ /\sJPEG\simage/)) {
-		# Lets convert to a png, and go from there...
-		# Use Imagemagick to do the conversion, and flipping.
-	
-		# Simply make a default user specific file by
-		# attaching the username (LOGNAME from environment).
-
-		my $tempfile_name = "/tmp/freewrl_";
-		$tempfile = join '', $tempfile_name,$lgname,
-			$f->{__texture.$name},".png";
-
-		my $cmd = "$VRML::Browser::CONVERT $file $tempfile";
-		my $status = system ($cmd);
-		warn "$image conversion problem: '$cmd' returns $?"
-			unless $status == 0;
-
-		# tell bind_texture to remove this one
-		$f->{__istemporary.$name} = 1;
-	}
-
-	$f->{__locfile.$name} = $tempfile; # store the name for later processing
-		return;
-
-	NO_TEXTURE:
-	$f->{__locfile.$name} = "";
-	$f->{__texture.$name} = 0;
-	$f->{__istemporary.$name} = 0;
-	return;
-}
-
-
-sub init_pixel_image {
-    my($imagename, $t, $f, $scene) = @_;
-    my $sfimage = $f->{$imagename};
-
-    # now, $sfimage contains the "image" field of the node.
-
-    if (!defined $sfimage) {
-		$f->{__depth} = 0;
-		$f->{__x} = 0;
-		$f->{__y} = 0;
-		$f->{___istemporary} = 0;
-		$f->{___texture} = 0;
-		$f->{__locfile} = "";
-    } else {
-		$sfimage =~ /\s*([0-9]+)\s+([0-9]+)\s+([0-9]+)/ogcs
-			or parsefail($_[2], "didn't match width/height/depth of SFImage");
-
-		# should we just store the string here, or should we put it to a file?
-		# Some of these textures are large - in the order of a meg. For now,
-		# they are written to a file, which allows handling equivalent to
-		# what happens for other images.
-
-		$f->{__depth} = $3;
-		$f->{__x} = $1;
-		$f->{__y} = $2;
-		$f->{__istemporary} = 1;
-		#JAS $f->{__texture} = VRML::VRMLFunc::glGenTexture();
-		$f->{__texture} = 0;
-
-		my $lgname = $ENV{LOGNAME};
-		my $tempfile_name = "/tmp/freewrl_";
-		my $tempfile = join '', $tempfile_name,$lgname,
-			$f->{__texture},".pixtex";
-
-		$f->{__locfile} = $tempfile;
-	
-		# write ascii pixeltexture data to file
-		my $fh;
-		open ($fh, "> $tempfile");
-		print $fh $sfimage;
-		close ($fh);
-
-    }
-    return;
-}
-
-
-
-# MPEG picture image
-sub init_movie_image {
-	my($name, $urlname, $t, $f, $scene) = @_;
-	# print "init_movie_image, name $name, urlname $urlname t $t f $f \n";
-
-	my $urls = $f->{$urlname};
-	if ($#{$urls} == -1) { goto NO_TEXTURE; }
-
-	my $file;
-	my $suffix;
-	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
-
-	#JAS my $init_tex = VRML::VRMLFunc::glGenTexture();
-	#JAS $f->{__texture0_} = $init_tex;
-	#JAS $f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
-	#JAS 	$file,$f->{repeatS},$f->{repeatT});
-	#JAS $f->{__locfile} = ();
-
-	$f->{__texture0_}=0;
-	$f->{__texture1_}=0;
-
-	#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
-	#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
-	return;
-
- NO_TEXTURE:
-    $f->{__locfile} = ();
-    $f->{__texture0_} = 0;
-    $f->{__texture1_} = 0;
-    return;
-}
+#JAS# MPEG picture image
+#JASsub init_movie_image {
+#JAS	my($name, $urlname, $t, $f, $scene) = @_;
+#JAS	# print "init_movie_image, name $name, urlname $urlname t $t f $f \n";
+#JAS
+#JAS	my $urls = $f->{$urlname};
+#JAS	if ($#{$urls} == -1) { goto NO_TEXTURE; }
+#JAS
+#JAS	my $file;
+#JAS	my $suffix;
+#JAS	($file, $suffix) = getFileFromUrls($scene, $urls, $t);
+#JAS
+#JAS	#JAS my $init_tex = VRML::VRMLFunc::glGenTexture();
+#JAS	#JAS $f->{__texture0_} = $init_tex;
+#JAS	#JAS $f->{__texture1_} =  VRML::VRMLFunc::read_mpg_file ($init_tex,
+#JAS	#JAS 	$file,$f->{repeatS},$f->{repeatT});
+#JAS	#JAS $f->{__locfile} = ();
+#JAS
+#JAS	$f->{__texture0_}=0;
+#JAS	$f->{__texture1_}=0;
+#JAS
+#JAS	#print "init_movie, for $f, first texture is ",$f->{__texture0_},"\n";
+#JAS	#print "init_movie, for $f, last texture is ",$f->{__texture1_},"\n";
+#JAS	return;
+#JAS
+#JAS NO_TEXTURE:
+#JAS   $f->{__locfile} = ();
+#JAS    $f->{__texture0_} = 0;
+#JAS    $f->{__texture1_} = 0;
+#JAS    return;
+#JAS}
 
 # AudioClip WAV/MIDI sound file
 sub init_sound {
@@ -534,55 +416,22 @@ my $protono;
 	ImageTexture =>
 	new VRML::NodeType("ImageTexture",
 					   {
-						# original URL from VRML file
 						url => [MFString, [], exposedField],
-						# VRML repeatS field
 						repeatS => [SFBool, 1, field],
-						# VRML repeatT field
 						repeatT => [SFBool, 1, field],
-						# where on the local file system texture resides
-						__locfile => [SFString, "", field],
-						# OpenGL texture number
 						__texture => [SFInt32, 0, field],
-						# if we have to remove this after processing
-						__istemporary =>[SFInt32, 0, field]
+						__parenturl =>[SFString,"",field],
 					   },
-					   {
-						Initialize => sub {
-							my ($t,$f,$time,$scene) = @_;
-							init_image("","url",$t,$f,$scene,1);
-							return ();
-						}
-					   }
 					  ),
 	PixelTexture =>
 	new VRML::NodeType("PixelTexture",
 					   {
-						# pixeltexture value, uncompiled.
 						image => [SFImage, [0, 0, 0], exposedField],
 						repeatS => [SFBool, 1, field],
 						repeatT => [SFBool, 1, field],
-						# OpenGL texture number
 						__texture => [SFInt32, 0, field],
-						# depth, from PixelTexture
-						__depth => [SFInt32, 1, field],
-						# if we have to remove the data file after processing
-						__istemporary =>[SFInt32, 0, field],
-						# x size, from PixelTexture
-						__x => [SFInt32, 0, field],
-						# y size, from PixelTexture
-						__y => [SFInt32, 0, field],
-						# the name that the PixelTexture data (ascii) is
-						__locfile => [SFString, "", field]
-						# stored in to allow C functions to parse it.
+						__parenturl =>[SFString,"",field],
 					   },
-					   {
-						Initialize => sub {
-							my($t,$f,$time,$scene) = @_;
-							init_pixel_image("image",$t,$f,$scene);
-							return ();
-						}
-					   }
 					  ),
 	MovieTexture =>
 	new VRML::NodeType ("MovieTexture",
@@ -609,6 +458,8 @@ my $protono;
 						 __sourceNumber => [SFInt32, 0, field],
 						 # local name, as received on system
 						 __localFileName => [SFString, "", exposedField],
+						# parent url, gets replaced at node build time
+						__parenturl =>[SFString,"",field],
 						},
 						@x = {
 							  Initialize => sub {
@@ -620,19 +471,19 @@ my $protono;
 
 									  # get the file
 									  init_sound("","url",$t,$f,$scene,1);
-								  } else {
-									  init_movie_image("","url",$t,$f,$scene);
-
-									  # which frame to start with?
-									  if ($f->{speed} >= 0) {
-										  $f->{__ctex} = $f->{__texture0_};
-									  } else {
-										  $f->{__ctex} = $f->{__texture1_};
-									  }
-									  $f->{isActive} = 0; # inactive
-									  $f->{__inittime} = $time;
-
-									  #print "mt init time is $time\n";
+#JAS								  } else {
+#JAS									  init_movie_image("","url",$t,$f,$scene);
+#JAS
+#JAS									  # which frame to start with?
+#JAS									  if ($f->{speed} >= 0) {
+#JAS										  $f->{__ctex} = $f->{__texture0_};
+#JAS									  } else {
+#JAS										  $f->{__ctex} = $f->{__texture1_};
+#JAS									  }
+#JAS									  $f->{isActive} = 0; # inactive
+#JAS									  $f->{__inittime} = $time;
+#JAS
+#JAS									  #print "mt init time is $time\n";
 								  }
 								  # this will only be reset the next time a Sound node gets hit
 								  $SoundMaterial = "unknown";
@@ -1319,35 +1170,11 @@ my $protono;
 					   {
 						url => [MFString, [], exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
-						bboxSize => [SFVec3f, [-1, -1, -1], field]
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+                                                __children => [MFNode, [], exposedField],
+						__loadstatus =>[SFInt32,0,field],
+						__parenturl =>[SFString,"",field],
 					   },
-					   {
-						Initialize => sub {
-							my($node, $f, $time, $scene) = @_;
-
-							my $urls = $f->{url};
-							my $proto;
-
-							my ($text, $url) = getTextFromURLs($scene, $urls, $node);
-							if ($text) {
-								$proto = $scene->new_proto("__proto".$protono++);
-								$node->{ProtoExp} = $proto;
-								$node->{ProtoExp}->set_parentnode($node);
-								$node->{IsProto} = 1;
-								$node->{ProtoExp}{IsInline} = 1;
-
-								$proto->set_url($url);
-								$proto->set_world_url($url);
-
-								VRML::Parser::parse($proto, $text);
-								$node->{ProtoExp}->make_executable();
-							} else {
-								warn("Unable to locate a valid url from ".VRML::Debug::toString($urls));
-							}
-
-							return ();
-						}
-					   }
 					  ),
 	# GeoVRML Nodes
 #XXX

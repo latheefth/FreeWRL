@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.125  2003/12/04 18:33:57  crc_canada
+# Basic threading ok
+#
 # Revision 1.124  2003/11/28 16:17:05  crc_canada
 # Bindables now registered and handled in C
 #
@@ -708,19 +711,12 @@ TextureTransform => '
 
 # Pixels and Images are all handled the same way now - the methods are identical.
 PixelTexture => '
-	int xx;
-	unsigned char *filename = SvPV((this_->__locfile),xx);
-	bind_image (filename,&this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
+	loadPixelTexture(this_);
 	last_bound_texture = this_->__texture;
 ',
 
 ImageTexture => '
-	int xx;
-	unsigned char *filename = SvPV((this_->__locfile),xx);
-
-	/* and, bind to the texture */
-	bind_image (filename,&this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
-	/* save the reference globally */
+	loadImageTexture(this_);
 	last_bound_texture = this_->__texture;
 ',
 
@@ -736,6 +732,7 @@ MovieTexture => '
 	// if this is attached to a Sound node, tell it...
 	sound_from_audioclip = FALSE;
 
+	loadMovieTexture(this_);
 	last_bound_texture = this_->__ctex;
 ',
 
@@ -1206,6 +1203,42 @@ Billboard => (join '','
 
 		curlight = savedlight;
 	',
+	Inline => '
+		int nc = $f_n(__children); 
+		int i;
+		int savedlight = curlight;
+
+		if(verbose) {printf("RENDER INLINE START %d (%d)\n",this_, nc);}
+
+		/* lets see if we still have to load this one... */
+		if ($f(__loadstatus)==0) loadInline(this_);
+		if($i(has_light)) {
+			glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
+			for(i=0; i<nc; i++) {
+				struct VRML_Box *p = $f(__children,i);
+				struct VRML_Virt *v = *(struct VRML_Virt **)p;
+				if(v->rend == DirectionalLight_Rend) {
+					render_node(p);
+				}
+			}
+		}
+		for(i=0; i<nc; i++) {
+			struct VRML_Box *p = $f(__children,i);
+			struct VRML_Virt *v = *(struct VRML_Virt **)p;
+			if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
+			/* Hmm - how much time does this consume? */
+			/* Not that much. */
+			if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
+				render_node(p);
+			}
+		}
+		if($i(has_light)) {
+			glPopAttrib();
+		}
+		if(verbose) {printf("RENDER INLINE END %d\n",this_);}
+
+		curlight = savedlight;
+	',
 	Switch => '
 		int wc = $f(whichChoice);
 		if(wc >= 0 && wc < $f_n(choice)) {
@@ -1533,6 +1566,7 @@ $ExtraMem{Billboard} = $ExtraMem{Group};
 $ExtraMem{Anchor} = $ExtraMem{Group};
 $ExtraMem{Collision} = $ExtraMem{Group};
 $ExtraMem{GeoLocation} = $ExtraMem{Group};
+$ExtraMem{Inline} = $ExtraMem{Group};
 
 
 #######################################################################
@@ -1549,6 +1583,20 @@ $ExtraMem{GeoLocation} = $ExtraMem{Group};
 		$i(has_light) = 0;
 		for(i=0; i<nc; i++) {
 			struct VRML_Box *p = $f(children,i);
+			struct VRML_Virt *v = *(struct VRML_Virt **)p;
+			if (v->rend == DirectionalLight_Rend) {
+				// printf ("group found a light\n");
+				$i(has_light) ++;
+			}
+		}
+	',
+	Inline => '
+		int i;
+		int nc = $f_n(__children); 
+
+		$i(has_light) = 0;
+		for(i=0; i<nc; i++) {
+			struct VRML_Box *p = $f(__children,i);
 			struct VRML_Virt *v = *(struct VRML_Virt **)p;
 			if (v->rend == DirectionalLight_Rend) {
 				// printf ("group found a light\n");

@@ -1,0 +1,52 @@
+perl -MExtUtils::Embed -e xsinit -- -o perlxsi.c
+
+gcc -c perlxsi.c  \
+	-fbounds-checking \
+	-I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts` 
+
+gcc -c freewrl.c \
+	-fbounds-checking \
+	-I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+
+gcc -c fwopts.c \
+	-fbounds-checking \
+	-D_REENTRANT
+
+gcc -o freewrl \
+	-lGL -lGLU -lXext -lX11  -lfreetype -lpng -lz -ljpeg -ljs\
+	-lpthread \
+	-L/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.2.2 \
+	-L/usr/X11R6/lib \
+	-L../JS/js/src/Linux_All_OPT.OBJ  \
+	perlxsi.o freewrl.o fwopts.o \
+	../CFuncs/ProdCon.o\
+	../VRMLFunc.o \
+	../JS/JS.o \
+	../CFuncs/Bindable.o    \
+	../CFuncs/CRoutes.o    \
+	../CFuncs/Collision.o    \
+	../CFuncs/EAIServ.o    \
+	../CFuncs/GeoVRML.o    \
+	../CFuncs/JScript.o    \
+	../CFuncs/LinearAlgebra.o    \
+	../CFuncs/MPEG_Utils.o    \
+	../CFuncs/MainLoop.o    \
+	../CFuncs/Material.o    \
+	../CFuncs/NormalCalcs.o    \
+	../CFuncs/OpenGL_Utils.o    \
+	../CFuncs/Polyrep.o    \
+	../CFuncs/SensInterps.o    \
+	../CFuncs/SoundEngineClient.o    \
+	../CFuncs/Tess.o    \
+	../CFuncs/Text.o    \
+	../CFuncs/Textures.o    \
+	../CFuncs/Viewer.o    \
+	../CFuncs/jsUtils.o    \
+	../CFuncs/jsVRMLBrowser.o    \
+	../CFuncs/jsVRMLClasses.o    \
+	../CFuncs/quaternion.o    \
+	../CFuncs/readpng.o    \
+	../CFuncs/statics.o    \
+	../CFuncs/statusbar.o    \
+	-lcheck \
+	`perl -MExtUtils::Embed -e ccopts -e ldopts`

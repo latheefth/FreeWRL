@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.36  2003/12/04 18:33:57  crc_canada
+# Basic threading ok
+#
 # Revision 1.35  2003/09/16 14:57:24  crc_canada
 # EAI in C updates for Sept 15 2003
 #
@@ -198,7 +201,6 @@ sub cget {if(!defined $_[2]) {return "$_[1]"}
 	else {die "If CGet with indices, abstract must be overridden"} }
 sub cstruct () {""}
 sub cfunc {die("Must overload cfunc")}
-#sub jsimpleget {return {}}
 
 sub copy {
 	my($type, $value) = @_;
@@ -331,51 +333,10 @@ sub cfunc {
 }
 
 
-# javascript
-
-#sub jsprop {
-#	return '{"r", 0, JSPROP_ENUMERATE},{"g", 1, JSPROP_ENUMERATE},
-#		{"b", 2, JSPROP_ENUMERATE}'
-#}
-#sub jsnumprop {
-#	return { map {($_ => "$_[1].c[$_]")} 0..2 }
-#}
-#sub jstostr {
-#	return "
-#		{static char buff[250];
-#		 sprintf(buff,\"\%f \%f \%f\", $_[1].c[0], $_[1].c[1], $_[1].c[2]);
-#		 \$RET(buff);
-#		}
-#	"
-#}
-#sub jscons {
-#	return [
-#		"jsdouble pars[3];",
-#		"d d d",
-#		"&(pars[0]),&(pars[1]),&(pars[2])",
-#		"$_[1].c[0] = pars[0]; $_[1].c[1] = pars[1]; $_[1].c[2] = pars[2];",
-#		# Last: argless
-#		"$_[1].c[0] = 0; $_[1].c[1] = 0; $_[1].c[2] = 0;",
-#	];
-#}
-
-##sub js_default {
-##	return "new SFColor(0,0,0)"
-##}
-
-
 ###########################################################
 package VRML::Field::SFVec3f;
 @ISA=VRML::Field::SFColor;
 sub cstruct {return ""}
-
-##sub jsprop {
-##	return '{"x", 0, JSPROP_ENUMERATE},{"y", 1, JSPROP_ENUMERATE},
-##		{"z", 2, JSPROP_ENUMERATE}'
-##}
-##sub js_default {
-##	return "new SFVec3f(0,0,0)"
-##}
 
 sub vec_add { join '',map {"$_[3].c[$_] = $_[1].c[$_] + $_[2].c[$_];"} 0..2; }
 sub vec_subtract { join '',map {"$_[3].c[$_] = $_[1].c[$_] - $_[2].c[$_];"} 0..2; }
