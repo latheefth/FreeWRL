@@ -69,6 +69,8 @@ sub new {
 		$this->{AntiPos} = $old->{AntiPos};
 		$this->{AntiQuat} = $old->{AntiQuat};
                 $this->{Navi} = $old->{Navi};
+		$this->{eyehalf} = $old->{eyehalf};
+		$this->{eyehalfangle} = $old->{eyehalfangle}; 
 	} else {
                 $this->{Navi} = VRML::Scene->new_node("NavigationInfo",
                                 VRML::Nodes->{NavigationInfo}{Defaults});
