@@ -22,3 +22,13 @@ rm -r JS/js/Linux_All_DBG.OBJ
 rm -r Plugin/mozilla
 rm -r nodes/
 rm freewrl
+
+# cleanup Plugin directory
+
+rm -r Plugin/CFuncs/
+rm -r Plugin/mozilla/
+rm -r Plugin/common/
+rm -r Plugin/include/
+rm -r Plugin/Source/
+rm -r Plugin/Unix/
+

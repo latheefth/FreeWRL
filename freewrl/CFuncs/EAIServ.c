@@ -72,6 +72,14 @@ struct sockaddr_in	servaddr, cliaddr;
 fd_set rfds;
 struct timeval tv;
 
+unsigned char loopFlags = 0;
+
+enum theLoopFlags {
+		NO_CLIENT_CONNECTED = 0x1,
+		NO_EAI_CLASS	    = 0x2,
+		NO_RETVAL_CHANGE    = 0x4
+};
+
 /* EAI input buffer */
 char *buffer2;
 int bufcount2;				// pointer into buffer
@@ -103,6 +111,7 @@ void EAI_send_string(char *str, int lfd){
 
 	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
+		if (EAIVerbose)
 		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
 	}
 }
@@ -165,7 +174,15 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		// step 4 - accept
 		len = sizeof(cliaddr);
 	        if ( ((*listenfd) = accept((*sockfd), (struct sockaddr *) &cliaddr, &len)) < 0) {
-			//printf ("EAIServer: no client yet\n");
+			if (EAIVerbose && !(loopFlags&NO_CLIENT_CONNECTED)) {
+				printf ("EAISERVER: no client yet\n");
+				loopFlags |= NO_CLIENT_CONNECTED;
+			}
+
+		} else {
+			loopFlags &= ~NO_CLIENT_CONNECTED;
+			if (EAIVerbose)
+				printf ("EAISERVER: no client yet\n");
 		}
 	}
 
@@ -259,7 +276,7 @@ void create_EAI() {
 	pointer to max size,
 	pointer to socket to listen to */
 void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
-	int retval;
+	int retval, oldRetval;
 
 	retval = FALSE;
 	do {
@@ -268,7 +285,19 @@ void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 		FD_ZERO(&rfds);
 		FD_SET((*listenfd), &rfds);
 	
+		oldRetval = retval;
 		retval = select((*listenfd)+1, &rfds, NULL, NULL, &tv);
+
+		if (retval != oldRetval) {
+			loopFlags &= NO_RETVAL_CHANGE;
+		}
+
+		if ((EAIVerbose)&&!(loopFlags&NO_RETVAL_CHANGE)) {
+			printf ("readEAIsocket--, retval %d\n",retval);
+			loopFlags |= NO_RETVAL_CHANGE;
+		}
+
+		
 		if (retval) {
 			retval = read ((*listenfd), &buffer2[(*bfct)],EAIREADSIZE);
 
@@ -360,7 +389,13 @@ void EAI_parse_commands (char *bufptr) {
 		while (*bufptr == ' ') bufptr++;
 
 		/* step 3, get the command */
-		//printf ("command %c seq %d\n",*bufptr,count);
+		/*
+		if (EAIVerbose)
+		{
+		    printf ("EAI_parse_commands cmd %s\n",*bufptr);
+		    printf ("command %c seq %d\n",*bufptr,count);
+		}
+		*/
 		command = *bufptr;
 		bufptr++;
 
@@ -542,7 +577,20 @@ void EAI_parse_commands (char *bufptr) {
 				
 //XXXX			case LOADURL: 
 //XXXX			case SETDESCRIPT:  
-//XXXX			case STOPFREEWRL:  
+		  	case STOPFREEWRL: {		    
+				if (EAIVerbose) printf ("Shutting down Freewrl\n");
+				if (!RUNNINGASPLUGIN) {
+				    shutdown_EAI();
+				    exit(0);
+				    break;
+				}
+			    }
+			  case NEXTVIEWPOINT: {
+				if (EAIVerbose) printf ("Next Viewpoint\n");
+				Next_ViewPoint();
+				sprintf (buf,"RE\n%d\n0",count);
+				break;
+			    }	
 			default: {
 				printf ("unhandled command :%c: %d\n",command,command);
 				strcat (buf, "unknown_EAI_command");
@@ -592,7 +640,8 @@ unsigned int EAI_SendEvent (char *ptr) {
 	while ((*ptr) > ' ') ptr++;	// script type
 
 	if (EAIVerbose) 
-		printf ("EAI_SendEvent, nodeptr %x offset %x script type %d \n",nodeptr,offset, scripttype);
+		 printf ("EAI_SendEvent, type %c, nodeptr %x offset %x script type %d \n",
+				 nodetype,nodeptr,offset, scripttype);
 
 	/* We have either a event to a memory location, or to a script. */
 	/* the field scripttype tells us whether this is true or not.   */

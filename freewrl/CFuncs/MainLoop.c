@@ -572,7 +572,7 @@ void do_keyPress(const char kp, int type) {
 			case '.': { display_status = !display_status; break; }
 			case 'q': { if (!RUNNINGASPLUGIN) {
 					  doQuit();
-					shutdown_EAI();
+					if (wantEAI) shutdown_EAI();
 					exit(0);
 					break;
 				    }
