@@ -220,6 +220,29 @@ void Extru_check_normal (
         struct VRML_PolyRep  *rep_,
 	int ccw);
 
+void Extru_tex(
+	int vertex_ind,
+	int tci_ct,
+	int A,
+	int B,
+	int C,
+	struct VRML_PolyRep *this_Elev,
+	int ccw);
+
+void Extru_init_tex_cap_vals();
+
+void Extru_ST_map(
+        int triind_start,
+        int start, 
+        int end,
+	float *Vals,
+	int nsec,
+        struct VRML_PolyRep *this_Extru);
+
+
+
+
+
 void normalize_vector(struct pt *vec);
 
 void normalize_ifs_face (float *point_normal,
@@ -242,3 +265,6 @@ extern int global_IFS_Coord_count;
 
 /* do we have to do textures?? */
 #define HAVETODOTEXTURES  (glIsEnabled(GL_TEXTURE_2D))
+
+/* appearance does material depending on last texture depth */
+extern int last_texture_depth;
