@@ -278,12 +278,6 @@ Set the initial window geometry with the usual X window format string.
 Use / don't use libwww-perl. If you use the option -nolwp, you can only
 view documents on your local file system.
 
-=item C<-fontdir> I<dir>
-
-Look for the FreeWRL fonts in directory I<dir>. Default: ./fonts
-(assumes you are running in the FreeWRL build directory).
-This behaviour will probably change.
-
 =item C<-zpl> I<number>
 
 Set the Z-buffer backplane level. If your world is very big, try setting
@@ -436,7 +430,6 @@ BEGIN {
 		"geometry=s" => \$geometry,
 		"lwp!" => \$VRML::ENV{FREEWRL_NO_LWP},
 		"save=s" => \$VRML::ENV{FREEWRL_SAVE},
-		"fontdir=s" => \$VRML::ENV{FREEWRL_FONTS},
 		"log=s" => \$log,
 		"seq"=>\$seq,
                 "seqb=s"=>\$seqname_opt,
