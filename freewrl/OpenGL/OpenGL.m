@@ -8,7 +8,10 @@ typedef struct OpenGLVTab
 #undef VFUNC
 #undef VVAR
 } OpenGLVTab; 
-extern OpenGLVTab *OpenGLVPtr;
+#ifndef OPENGLVPTR
+#define OPENGLVPTR
+OpenGLVTab *OpenGLVPtr;
+#endif
 #if defined (__APPLE__)
 #define D_OPENGL extern OpenGLVTab *OpenGLVPtr
 #endif
