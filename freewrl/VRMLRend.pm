@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.80  2002/10/16 15:36:17  crc_canada
+# more sound work...
+#
 # Revision 1.79  2002/10/10 18:31:40  crc_canada
 # sound node work AND
 # added X3DMATERIALPROPERTY definition, to change the way materials work with textures
@@ -1040,6 +1043,9 @@ MovieTexture => '
 	/* really simple, the texture number is calculated, then simply sent here.
 	   The last_bound_texture field is sent, and, made current */
 
+	// if this is attached to a Sound node, tell it...
+	sound_from_audioclip = FALSE;
+
 	last_bound_texture = this_->__ctex;
 	this_->_myshape = last_visited_shape; 
 
@@ -1122,55 +1128,86 @@ Sound => '
 	float amp;
 
 	float radius;
+	struct VRML_AudioClip *acp = $f(source);
+	struct VRML_MovieTexture *mcp = $f(source);
 
-	direction.x = $f(direction,0);
-	direction.y = $f(direction,1);
-	direction.z = $f(direction,2);
 
-	location.x = $f(location,0); 
-	location.y = $f(location,1); 
-	location.z = $f(location,2);
+	char mystring[256];
 
-	midmin = (this_->minFront - this_->minBack) / 2.0;
-	midmax = (this_->maxFront - this_->maxBack) / 2.0;
-
- 
-	glPushMatrix();
-
-	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
-	gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
-
-	// add in the local offset
-	vec.x -= location.x; vec.y -= location.y; vec.z -= location.z;
-
-	len = sqrt(VECSQ(vec)); 
-
-	// elipse calculations.
-	elipse.x = vec.x * sin(direction.x);
-	elipse.y = vec.y * sin(direction.y);
-	elipse.z = vec.z * sin(direction.z);
-
-	//printf ("Soundx len*elipse +midmin = %f %f %f \n",len*elipse.x,len*elipse.y, len*elipse.z);
-	amp = 0.0;
-	// is this within the maxFront maxBack?
-
-	if (((elipse.y >= -this_->maxBack)  && (elipse.y <= this_->maxFront)) ||
-	    ((elipse.y >= -this_->maxBack)  && (elipse.y <= this_->maxFront)) ||
-	    ((elipse.y >= -this_->maxBack)  && (elipse.y <= this_->maxFront))) {
-		printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
-		-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
-		elipse.x, elipse.y, elipse.z); 
-	}
 	
+	// first - is there a node (any node!) attached here?
+	if (acp) {
+		// do the sound registering first, and tell us if this is an audioclip
+		// or movietexture.
 
-	glPopMatrix();
+		render_node(acp);
 
 
-	if ($f(source)) {
-		render_node($f(source));
+
+		direction.x = $f(direction,0);
+		direction.y = $f(direction,1);
+		direction.z = $f(direction,2);
+	
+		location.x = $f(location,0); 
+		location.y = $f(location,1); 
+		location.z = $f(location,2);
+	
+		midmin = (this_->minFront - this_->minBack) / 2.0;
+		midmax = (this_->maxFront - this_->maxBack) / 2.0;
+	
+	 
+		glPushMatrix();
+	
+		glGetDoublev(GL_MODELVIEW_MATRIX, mod);
+		glGetDoublev(GL_PROJECTION_MATRIX, proj);
+		gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
+	
+		// add in the local offset
+		vec.x -= location.x; vec.y -= location.y; vec.z -= location.z;
+	
+		len = sqrt(VECSQ(vec)); 
+	
+		// elipse calculations.
+		elipse.x = vec.x * sin(direction.x);
+		elipse.y = vec.y * sin(direction.y);
+		elipse.z = vec.z * sin(direction.z);
+	
+		//printf ("Soundx len*elipse +midmin = %f %f %f \n",len*elipse.x,len*elipse.y, len*elipse.z);
+		amp = 0.0;
+		// is this within the maxFront maxBack?
+	
+		// This should be elipse, but make it vec for now. (this then is a "funny" circle,
+		// if the mins and maxs are not the same
+		if (((vec.x >= -this_->maxBack)  && (vec.x <= this_->maxFront)) &&
+		    ((vec.y >= -this_->maxBack)  && (vec.y <= this_->maxFront)) &&
+		    ((vec.z >= -this_->maxBack)  && (vec.z <= this_->maxFront))) {
+		//	printf("Sound: len %f mB %f mF %f angles (%f %f %f) (%f %f %f)\n",len,
+		//	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z,	
+		//	elipse.x, elipse.y, elipse.z); 
+	
+			// note: using vecs, length is always positive - need to work in direction
+			// vector
+			if (len < 0.0) {
+				if (len < this_->minBack) {amp = 1.0;}
+				else {
+					amp = (len - this_->maxBack) / (this_->maxBack - this_->minBack);
+				}
+			} else {
+				if (len < this_->minFront) {amp = 1.0;}
+				else {
+					amp = (this_->maxFront - len) / (this_->maxFront - this_->minFront);
+				}
+			}
+		//	printf ("amplitude %f\n",amp);
+			if (sound_from_audioclip) {
+				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,0.0);
+			} else {
+				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,0.0);
+			}
+			Sound_toserver(mystring);
+		}
+		glPopMatrix();
 	}
-
 ',
 
 AudioClip => '
@@ -1181,6 +1218,9 @@ AudioClip => '
 	unsigned char *filename = SvPV((this_->__localFileName),PL_na);
 
 	//printf ("AudioClip rend for clip %d\n",this_->__sourceNumber);
+
+	// tell Sound that this is an audioclip
+	sound_from_audioclip = TRUE;
 
 	if (!init) { 
 		printf ("initializing SoundEngine\n");
@@ -2925,7 +2965,6 @@ Text => q~
 	       }
 	       
 ~,
-#Text => '',
 ElevationGrid => q~
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
