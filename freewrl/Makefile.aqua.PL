@@ -9,7 +9,7 @@
 
 system "perl VRMLC.pm";
 
-$VERSION = "1.05";
+$VERSION = "1.04.5";
 
 BEGIN {
  eval "use 5.004";
@@ -85,7 +85,7 @@ my @jslibs;
 if ($VRML_CONFIG{PLATFORM} =~ /irix/i) {
 	$jsobjdir = "$jsdir/IRIX6.5";
 } elsif ($VRML_CONFIG{PLATFORM} =~ /macosx/i) {
-	$jsobjdir = "$jsdir/Darwin6.6";
+	$jsobjdir = "$jsdir/Darwin7.2.0";
 } else { ## linux used by default
 	$jsobjdir = "$jsdir/Linux_All";
 }
@@ -327,8 +327,8 @@ INST_DYNAMIC_DEP =
 				qq{\tcp -r fonts $VRMLINSTDIR\n},
 				qq{\tcp -r x3d $VRMLINSTDIR\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
-				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
-				qq{\t/sbin/ldconfig\n},
+				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/libFreeWRLFunc.dylib\n},
+				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle $LIB_DIR/VRMLFunc.bundle\n},
 				));
 
 		# make the C Front End.
@@ -339,7 +339,7 @@ INST_DYNAMIC_DEP =
 		push (@postamble, join("\n",
 			  qq{\n\# --- FreeWRL C Front End:},
 			  qq{all ::},
-			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
+			  qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.bundle blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.dylib\n},
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def2 $def1 \n},
 			  qq{install ::},
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def1 $def2\n},
