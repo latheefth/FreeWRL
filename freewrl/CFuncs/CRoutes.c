@@ -492,8 +492,8 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, unsigne
 	int il;
 	int intval = 0;
 
-	//printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
-	//	tonode,toname,JSparamnames[toname].name,dataType,datalen);
+	printf ("set_one_ECMAtype, to %d namepointer %d, fieldname %s, datatype %d length %d\n",
+		tonode,toname,JSparamnames[toname].name,dataType,datalen);
 
 	switch (dataType) {
 		case SFBOOL:	{	/* SFBool */
@@ -556,7 +556,7 @@ void setECMAtype (int num) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
 		tptr = (int) to_ptr->foffset;
-
+		printf("set_one_ECMAtype called in setECMAtype\n");
 		set_one_ECMAtype (tn, tptr, JSparamnames[tptr].type, (void *)fn,(unsigned) len);
 	}
 }
@@ -900,41 +900,53 @@ void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) 
 /*  "Node" {return -10;}         				*/
 /****************************************************************/
 
-void getCLASSMultNumType (char *buf, char bufSize, 
-		struct Multi_Vec3f *tn, int eletype, int addChild) {
+void getCLASSMultNumType (char *buf, int bufSize, 
+			  struct Multi_Vec3f *tn,
+			  int eletype, int addChild) {
 	float f2, f3, f4;
 	int len;
 	int i;
 	char *strp;
 	int elesize;
 
+
+
+	
 	/* get size of each element, used for mallocing memory */
 	switch (eletype) {
-		case -13: elesize = sizeof (char); break;	// string
-		case -14: elesize = sizeof (float); break;	// Float
-		case -15: elesize = sizeof(float)*4; break;	// Rotation
-		case -16: elesize = sizeof(int); break;		// Integer
-		case -1:
-		case -17: elesize = sizeof(float)*3; break;	// SFColor, SFVec3f
-		case -18: elesize = sizeof(float)*2; break;	// SFVec2f
+	  case -13: elesize = sizeof (char); break;	/* string   */
+	  case -14:
+	  case MFFLOAT:
+	    elesize = sizeof (float); break;	        /* Float    */
+	  case -15: elesize = sizeof(float)*4; break;	/* Rotation */
+	  case -16: elesize = sizeof(int); break;	/* Integer  */
+
+	  /*  
+	  case SFVEC3F:
+	  case SFCOLOR:
+	  */  
+	  case -1:
+	  case -17:
+	    elesize = sizeof(float)*3;
+	    break;	/* SFColor, SFVec3f */
+	  case -18: elesize = sizeof(float)*2; break;	// SFVec2f
 		case -10: elesize = sizeof(int); break;
 		default: {printf ("getCLASSMulNumType - unknown type %d\n",eletype); return;}
 	}
 
-	len = bufSize / elesize;				// convert Bytes into whatever
-
-	//printf ("getmuiltie len %d old len is %d buffSize %d eletype %d\n",len,tn->n,bufSize,eletype);
+	len = bufSize / elesize;  /* convert Bytes into whatever */
 	
+	printf("getCLASSMultNumType: bufSize:%d, eletype:%d, allocated: %d, elesize: %d.\n",
+	       bufSize,eletype, tn->n, elesize);
+								       	
 	/* now, we either replace the whole data, or we add or remove it if
 	 * this is a Node type. (eg, add/remove child) */
 
-	if (eletype != -10) {
-			
-	
+	if (eletype != -10) {	
 		/* do we have to realloc memory? */
 		if (len != tn->n) {
 			/* yep... */
-				// printf ("old pointer %d\n",tn->p);
+		    printf ("old pointer %d\n",tn->p);
 			tn->n = 0;	/* gets around possible mem problem */
 			if (tn->p != NULL) free (tn->p);
 			tn->p = malloc ((unsigned)(elesize*len));
@@ -1366,7 +1378,7 @@ struct fchain
 float  *readMFFloatString(char *input, int *eQty, int type)
 {
 
-    /*     CRVerbose = 1;  */
+    CRVerbose = 0;
     
     float *retVal = NULL;
     char *retValPtr;
@@ -1462,10 +1474,11 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 			default:memcpy ((void *)retValPtr,(void *)(&actual->fcontent), dataSize);
 		}
 		retValPtr += dataSize;
-
-		if (CRVerbose) printf("Token val: %f, i: %d, count %d\n",retVal[i],i,count);
+		i = 0;		
+		if (CRVerbose) printf("Token val: %f, i: %d, ptr:%x, count %d\n",retVal[i],i,actual,count);
 		actual = actual->next;
 		free(theChainHd);
+
 		while(NULL != actual)
 		{
 		    struct fchain *tmpPtr = actual;
@@ -1476,6 +1489,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 			default:memcpy ((void *)retValPtr,(void *)(&actual->fcontent), dataSize);
 		    }
 		    retValPtr += dataSize;
+		    i++;
 		    if (CRVerbose) printf("Token val: %f, i: %d, ptr:%x\n",retVal[i],i,actual);		    		    
 		    actual = actual->next;
 		    free(tmpPtr);
@@ -1490,6 +1504,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 	count = 0;
     }
 
+    CRVerbose = 0;
     *eQty = count;
     return retVal;
 } 
@@ -1497,7 +1512,7 @@ float  *readMFFloatString(char *input, int *eQty, int type)
 /*--------------------------------------------------------------------------*/
 
 void set_EAI_MFElementtype (int num, int offset, void *pptr, int len) {
-/*     CRVerbose = 1; */
+    CRVerbose = 0; 
     if (CRVerbose) printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
     
     int tn, tptr;
@@ -1653,7 +1668,7 @@ void set_EAI_MFElementtype (int num, int offset, void *pptr, int len) {
       printf ("AR failed in setxx\n");
     
     if (CRVerbose) printf("------------END set_EAI_MFElementtype ---------------\n");
-/*     CRVerbose = 0; */
+    CRVerbose = 0; 
 }
 
 
@@ -2438,16 +2453,16 @@ char *processThisClassEvent (unsigned int fn,
 				tn = (int) to_ptr->node;
 				tptr = (int) to_ptr->foffset;
 	
-				//printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
-				//		tn, tptr, len, CRoutes[ctr].len);
+				printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
+						tn, tptr, len, CRoutes[ctr].len);
 				
 				memptr = tn+tptr;
 		
 				if (CRoutes[ctr].len < 0) {
-					/* this is a MF*node type - the extra field should be 1 for add */
-					getCLASSMultNumType (
-						membuffer, len, (struct Multi_Vec3f *) memptr,
-						CRoutes[ctr].len, CRoutes[ctr].extra);
+				    /* this is a MF*node type - the extra field should be 1 for add */
+				    getCLASSMultNumType (membuffer, len,
+							 (struct Multi_Vec3f *) memptr,
+							 CRoutes[ctr].len, CRoutes[ctr].extra);
 				} else {
 					/* simple copy */
 					memcpy ((void *)memptr, membuffer,len);

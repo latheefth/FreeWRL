@@ -156,7 +156,6 @@ void EventLoop() {
 
 	/* should we do events, or maybe Perl is parsing? */
 	doEvents = (!isPerlParsing()) && isPerlinitialized();
-	//doEvents = TRUE;
 
 	/* BrowserAction required? eg, anchors, etc */
 	if (BrowserAction) {

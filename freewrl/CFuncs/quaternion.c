@@ -100,6 +100,7 @@ matrix_to_quaternion (Quaternion *quat, double *mat) {
 		}
 	}
 
+	//printf ("Quat x %f y %f z %f w %f\n",X,Y,Z,W);
 	quat->x = X;
 	quat->y = Y;
 	quat->z = Z;

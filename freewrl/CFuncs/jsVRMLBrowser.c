@@ -423,7 +423,7 @@ VrmlBrowserPrint(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsv
 	char *_id_c;
 
 	jsval _rval = INT_TO_JSVAL(0);
-	printf ("FreeWRL:javascript: ");
+	//printf ("FreeWRL:javascript: ");
 	for (count=0; count < argc; count++) {
 		if (JSVAL_IS_STRING(argv[count])) {
 			_str = JSVAL_TO_STRING(argv[count]);

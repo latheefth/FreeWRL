@@ -246,7 +246,7 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
 						   FNAME_STUB, LINENO_STUB, rval)) {
-		fprintf(stderr, "JS_EvaluateScript failed for \"%s\".\n", script);
+		printf("JS_EvaluateScript failed for \"%s\".\n", script);
 		return JS_FALSE;
 	 }
 
@@ -278,7 +278,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
 	}
 
 	if (!JS_ValueToNumber(_context, rval, &dval)) {
-		fprintf(stderr, "JS_ValueToNumber failed.\n");
+		printf("JS_ValueToNumber failed.\n");
 		return JS_FALSE;
 	}
 	if (JSVerbose) {
@@ -305,7 +305,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  		printf ("start of JSGetProperty, cx %d script %s\n",(int)_context,script);
  
  	if (!JS_GetProperty(_context, _globalObj, script, &rval)) {
- 		fprintf(stderr, "JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
+ 		printf("JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
  		return JS_FALSE;
  	}
  
@@ -336,16 +336,14 @@ int JSaddGlobalAssignProperty(int num, char *name, char *str) {
 	}
 	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
 						   FNAME_STUB, LINENO_STUB, &_rval)) {
-		fprintf(stderr,
-				"JS_EvaluateScript failed for \"%s\" in addGlobalAssignProperty.\n",
+		printf("JS_EvaluateScript failed for \"%s\" in addGlobalAssignProperty.\n",
 				str);
 		return JS_FALSE;
 	}
 	if (!JS_DefineProperty(_context, _globalObj, name, _rval,
 						   getAssignProperty, setAssignProperty,
 						   0 | JSPROP_PERMANENT)) {
-		fprintf(stderr,
-				"JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n",
+		printf("JS_DefineProperty failed for \"%s\" in addGlobalAssignProperty.\n",
 				name);
 		return JS_FALSE;
 	}
@@ -370,8 +368,7 @@ int JSaddSFNodeProperty(int num, char *nodeName, char *name, char *str) {
 			   name, nodeName, str);
 	}
 	if (!JS_GetProperty(_context, _globalObj, nodeName, &_val)) {
-		fprintf(stderr,
-				"JS_GetProperty failed for \"%s\" in addSFNodeProperty.\n",
+		printf("JS_GetProperty failed for \"%s\" in addSFNodeProperty.\n",
 				nodeName);
 		return JS_FALSE;
 	}
@@ -379,16 +376,14 @@ int JSaddSFNodeProperty(int num, char *nodeName, char *name, char *str) {
 
 	if (!JS_EvaluateScript(_context, _obj, str, strlen(str),
 						   FNAME_STUB, LINENO_STUB, &_rval)) {
-		fprintf(stderr,
-				"JS_EvaluateScript failed for \"%s\" in addSFNodeProperty.\n",
+		printf("JS_EvaluateScript failed for \"%s\" in addSFNodeProperty.\n",
 				str);
 		return JS_FALSE;
 	}
 	if (!JS_DefineProperty(_context, _obj, name, _rval,
 						   NULL, NULL,
 						   0 | JSPROP_PERMANENT)) {
-		fprintf(stderr,
-				"JS_DefineProperty failed for \"%s\" in addSFNodeProperty.\n",
+		printf("JS_DefineProperty failed for \"%s\" in addSFNodeProperty.\n",
 				name);
 		return JS_FALSE;
 	}
@@ -413,8 +408,7 @@ int JSaddGlobalECMANativeProperty(int num, char *name) {
 	if (!JS_DefineProperty(_context, _globalObj, name, rval,
 						   NULL, setECMANative,
 						   0 | JSPROP_PERMANENT)) {
-		fprintf(stderr,
-				"JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
+		printf("JS_DefineProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
 				name);
 		return JS_FALSE;
 	}
@@ -423,8 +417,7 @@ int JSaddGlobalECMANativeProperty(int num, char *name) {
 	sprintf(buffer, "_%s_touched", name);
 	_val = INT_TO_JSVAL(0);
 	if (!JS_SetProperty(_context, _globalObj, buffer, &_val)) {
-		fprintf(stderr,
-				"JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
+		printf("JS_SetProperty failed for \"%s\" in addGlobalECMANativeProperty.\n",
 				buffer);
 		return JS_FALSE;
 	}
@@ -448,12 +441,12 @@ SFNodeNativeNew(size_t vrmlstring_len, size_t handle_len)
 	}
 	ptr->vrmlstring = (char *) malloc(vrmlstring_len * sizeof(char));
 	if (ptr->vrmlstring == NULL) {
-		fprintf(stderr, "malloc failed in SFNodeNativeNew.\n");
+		printf("malloc failed in SFNodeNativeNew.\n");
 		return NULL;
 	}
 	ptr->handle = (char *) malloc(handle_len * sizeof(char));
 	if (ptr->handle == NULL) {
-		fprintf(stderr, "malloc failed in SFNodeNativeNew.\n");
+		printf("malloc failed in SFNodeNativeNew.\n");
 		return NULL;
 	}
 	ptr->touched = 0;
@@ -503,7 +496,7 @@ SFNodeNativeAssign(void *top, void *fromp)
 		to->vrmlstring = (char *) realloc(to->vrmlstring,
 										  from_vrmlstring_len * sizeof(char));
 		if (to->vrmlstring == NULL) {
-			fprintf(stderr, "realloc failed in SFNodeNativeAssign.\n");
+			printf("realloc failed in SFNodeNativeAssign.\n");
 			return JS_FALSE;
 		}
 	}
@@ -514,7 +507,7 @@ SFNodeNativeAssign(void *top, void *fromp)
 		to->handle = (char *) realloc(to->handle,
 									  from_handle_len * sizeof(char));
 		if (to->handle == NULL) {
-			fprintf(stderr, "realloc failed in SFNodeNativeAssign.\n");
+			printf("realloc failed in SFNodeNativeAssign.\n");
 			return JS_FALSE;
 		}
 	}
