@@ -4,7 +4,11 @@
 #include "/usr/include/unistd.h"
 #include <errno.h>
 #include <fcntl.h>
+#ifndef __APPLE__
+#include <malloc.h>
+#else
 #include <sys/malloc.h>
+#endif
 #include <string.h>
 #include <memory.h>
 #include <signal.h>
@@ -91,7 +95,9 @@ typedef struct {
 #define ALREADYHERE
 extern int loop[MAXSOURCES];
 extern char theFile[310];
+#ifdef __APPLE__
 extern AudioUnit theUnit;
+#endif
 #endif
 extern int dspFile;
 void closeDSP();
