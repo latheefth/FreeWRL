@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.61  2002/06/21 20:15:43  crc_canada
+# compile warning removed in Appearance
+#
 # Revision 1.60  2002/06/21 19:58:58  crc_canada
 # Material now called for RGB textures, but diffuseColor set to white.
 #
@@ -1918,8 +1921,6 @@ Billboard => (join '','
                        	glDisable (GL_LIGHTING);
 			glColor3f(1.0,1.0,1.0);
 		} 
-	
-	',
 	',
 	Shape => '
 		GLenum glError;
