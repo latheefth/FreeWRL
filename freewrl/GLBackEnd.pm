@@ -388,25 +388,21 @@ sub event {
 			} else {
 				$becollision = 1;
 			}
+		} elsif ($key eq "?") {
+			# print "help key pushed\n";
+			system ("xterm -e man freewrl &");
+
 		} elsif (!VRML::VRMLFunc::use_keys()) {
 			if ($key eq "k") {
-				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.4);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.4);
 			} elsif ($key eq "j") {
-				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.5, 0.6);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.5, 0.6);
 			} elsif ($key eq "l") {
-				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.6, 0.5);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.6, 0.5);
 			} elsif ($key eq "h") {
-				#AK - #$this->{Viewer}->handle("PRESS", 1, 0.5, 0.5);
-				#AK - #$this->{Viewer}->handle("DRAG", 1, 0.4, 0.5);
 				VRML::VRMLFunc::do_handle("PRESS", 1, 0.5, 0.5);
 				VRML::VRMLFunc::do_handle("DRAG", 1, 0.4, 0.5);
 			}
@@ -567,20 +563,6 @@ sub render_collisions {
     my ($node, $viewpoint) = @{$this}{Root, Viewpoint};
     $node = $node->{CNode};
 	VRML::VRMLFunc::do_render_collisions($node);
-
-    #AK - #VRML::VRMLFunc::reset_collisionoffset();
-
-    #AK - #VRML::VRMLFunc::render_hier($node,  # Node
-	#AK - #			&VF_Collision, 
-	#AK - #			0); # what view point
-
-    #AK - #my($x,$y,$z);
-    #AK - #VRML::VRMLFunc::get_collisionoffset($x,$y,$z);
-#    print "$x,$y,$z";
-
-	#AK - replace this!!! XXX
-    #AK - #my $nv = $this->{Viewer}->{Quat}->invert->rotate([$x,$y,$z]);
-    #AK - #for(0..2) {$this->{Viewer}->{Pos}[$_] += $nv->[$_]}
 }
 
 # Given root node of scene, render it all
