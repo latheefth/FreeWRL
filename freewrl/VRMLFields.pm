@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.21  2002/09/19 19:39:35  crc_canada
+# some changes brought about by much EAI work.
+#
 # Revision 1.20  2002/07/11 16:21:42  crc_canada
 # ImageTexture fields changed to read in textures by C rather than Perl
 #
@@ -870,6 +873,13 @@ sub print {
 sub as_string {
 	my $r = $_[0];
 	$r =~ s/::MF/::SF/;
+
+	if (!defined($_[1])) {
+		# print "as_string, undefined, returning nothing\n";
+		return;
+	}
+
+	# print "MFNode:as_string, r is $r, 0 is ",$_[0]," 1 is ",$_[1],"\n";
 	if("ARRAY" eq ref $_[1]) {
 		"(Multi print, $_[0], $_[1])", @{$_[1]},"  [ ".(join ' ',map {$r->as_string($_)} @{$_[1]})." ] ";
 	} else {
