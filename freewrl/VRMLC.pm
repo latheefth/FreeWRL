@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.100  2003/07/09 18:30:34  crc_canada
+# removeChildren now possible for a normal ROUTE.
+#
 # Revision 1.99  2003/07/09 18:12:31  crc_canada
 # added function to allow Javascript with DEF'd parameter to add/remove children through this param.
 #
@@ -2219,7 +2222,7 @@ OUTPUT:
 # register a route that can go via C, rather than perl.
 
 void
-do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr, scrpt)
+do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr, scrpt, extra)
 	void *from
 	int fromoffset
 	void *to
@@ -2227,8 +2230,9 @@ do_CRoutes_Register(from, fromoffset, to, tooffset, len, intptr, scrpt)
 	int len
 	void *intptr
 	int scrpt
+	int extra
 CODE:
-	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr,scrpt);
+	CRoutes_Register(from,fromoffset,to,tooffset,len,intptr,scrpt, extra);
 
 void
 CRoutes_js_new (num, cx, glob, brow)
