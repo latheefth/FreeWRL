@@ -28,6 +28,9 @@
 #  do normals for indexedfaceset
 #
 # $Log$
+# Revision 1.15  2000/11/15 15:26:35  crc_canada
+# Removed a printf "Render tex coord".
+#
 # Revision 1.14  2000/11/07 14:51:36  crc_canada
 # Better glGenTexture initialization
 #
@@ -1610,7 +1613,7 @@ void render_polyrep(void *node,
 		}
 		prevcolor = coli;
 		if(texcoords && ntexcoords) {
-		  	printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] );
+		  	/* printf("Render tex coord #%d = [%.5f, %.5f]\t\t",tci, texcoords[tci].c[0], texcoords[tci].c[1] ); */
 			fflush(stdout);
 		  	glTexCoord2fv(texcoords[tci].c);
 		} /* TODO RCS: Complete use of texCoordIndex */
