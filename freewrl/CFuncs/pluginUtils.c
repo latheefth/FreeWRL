@@ -11,6 +11,98 @@
 
 extern unsigned _fw_instance;
 
+/* get all system commands, and pass them through here. What we do
+ * is take parameters and execl them, in specific formats, to stop
+ * people (or, to try to stop) from typing malicious code. */
+int freewrlSystem (char *sysline) {
+	int ok;
+	char *params;
+	char *paramline[20];
+	char buf[2000];
+	char *internbuf;
+	int count;
+	pid_t childProcess;
+	int pidStatus;
+
+	int waitForChild;
+
+	waitForChild = TRUE;
+
+	ok = FALSE;
+	internbuf = buf;
+
+	/* bounds check */
+	if (strlen(sysline)>=2000) return FALSE;
+	strcpy (buf,sysline);
+
+	//printf ("freewrlSystem, have %s here\n",internbuf);
+	for (count=0; count<20; count++) paramline[count] = NULL;
+
+	/* split the command off of internbuf, for execing. */
+	count = 0;
+	while (internbuf != NULL) {
+		paramline[count] = internbuf;
+		internbuf = strchr(internbuf,' ');
+		if (internbuf != NULL) {
+			//printf ("more strings here! :%s:\n",internbuf);
+			*internbuf = '\0';
+			//printf ("param %d is :%s:\n",count,paramline[count]);
+			internbuf++;
+			count ++;
+		}
+	}
+	/*
+	 printf ("finished while loop, count %d\n",count);
+	{ int xx;
+		for (xx=0; xx<20;xx++) {
+			printf ("item %d is :%s:\n",xx,paramline[xx]);
+	}}
+	*/
+
+	/* is the last string "&"? if so, we don't need to wait around */
+	if (strncmp(paramline[count],"&",strlen(paramline[count])) == 0) {
+		waitForChild=FALSE;
+		paramline[count] = '\0'; // remove the ampersand.
+	}
+
+	if (count > 0) {
+		switch (childProcess=fork()) {
+			case -1: 
+				perror ("fork"); exit(1);
+
+			case 0: {
+			int Xrv;
+
+			/* child process */
+			//printf ("child execing, pid %d %d\n",childProcess, getpid());
+		 	Xrv = execl(paramline[0], 
+				paramline[0],paramline[1], paramline[2],
+				paramline[3],paramline[4],paramline[5],
+				paramline[6],paramline[7]);
+			//printf ("child finished execing\n");
+			exit (Xrv);
+			} 
+			default: {
+			/* parent process */
+			//printf ("parent waiting for child %d\n",childProcess);
+
+			/* do we have to wait around? */
+			if (!waitForChild) {
+				//printf ("do not have to wait around\n");
+				return 0;
+			}
+			waitpid (childProcess,&pidStatus,0);
+			//printf ("parent - child finished - pidStatus %d \n",
+			//		pidStatus);
+			}
+		}
+		return pidStatus;
+	} else {
+		printf ("System call failed :%s:\n",sysline);
+	}
+	return -1;
+}
+
 /* implement Anchor/Browser actions */
 
 int checkIfX3DVRMLFile(char *fn);
@@ -138,11 +230,13 @@ void doBrowserAction () {
 		//} else {
 			//printf ("IS NOT a vrml/x3d file\n");
 			//printf ("Anchor: -DBROWSER is :%s:\n",BROWSER);
+
+
 			strcpy (sysline, BROWSER);
 			strcat (sysline, " ");
 			strcat (sysline, filename);
 			strcat (sysline, " &");
-			system (sysline);
+			freewrlSystem (sysline);
 		//}
 	}
 	free (filename);

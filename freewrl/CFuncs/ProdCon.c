@@ -257,19 +257,19 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
 
-		/* quick check of semicolons in here */
-		if (strchr(fname,';')!=NULL) {
-			*strchr(fname,';') = '\0';
+		/* string length checking */
+		if ((strlen(WGET)+strlen(fname)+strlen(tempname)) < (1000-10)) {
+		    sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
+		    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
+		    freewrlSystem (sysline);
+		    strcpy (fname,tempname);
+		} else {
+		    printf ("Internal FreeWRL problem - strings too long for wget\n");
+		    strcat (fname,"");
 		}
-
-		sprintf (sysline,"wget %s -O %s\n",fname,tempname);
-		printf ("\nFreeWRL will try to use wget to get %s\n",fname);
-		system (sysline);
-		strcpy (fname,tempname);
 	}
 
 
-	//printf ("fileExists, opening %s\n",fname);
 	fp= fopen (fname,"r");
 	ok = (fp != NULL);
 

@@ -662,8 +662,9 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	    (strncmp(firstBytes,firstMPGb,4) != 0)) {
 		sysline = malloc(sizeof(char)*(strlen(filename)+100));
 		if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
-		sprintf(sysline,"convert %s /tmp/freewrl%d.png",filename,getpid());
-		if (system (sysline) != 0) {
+		sprintf(sysline,"%s %s /tmp/freewrl%d.png",
+				CONVERT,filename,getpid());
+		if (freewrlSystem (sysline) != 0) {
 			printf ("Freewrl: error running convert line %s\n",sysline);
 		} else {
 			sprintf (filename,"/tmp/freewrl%d.png",getpid());

@@ -722,6 +722,7 @@ void setup_projection(int pick, int x, int y) {
 
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
 void do_keyPress(const char kp, int type) {
+	char comline[100];
 	if (type == KeyPress) {
 		switch (kp) {
 			case 'e': { set_viewer_type (EXAMINE); break; }
@@ -737,7 +738,14 @@ void do_keyPress(const char kp, int type) {
 				    }
 				  }
 			case 'c': {be_collision = !be_collision; break; }
-			case '?': {system ("xterm -e man freewrl &"); break;}
+			case '?': {
+					  if (strlen(ASCIITERM) < 50) {
+						  strcpy (comline,ASCIITERM);
+						  strcat (comline," -e man freewrl &");
+						  freewrlSystem(comline);
+					  }
+				   break;
+				  }
 			case 'v': {Next_ViewPoint(); break;}
 			case 's': {setSnapshot(); break;}
 			default: {handle_key(kp);}

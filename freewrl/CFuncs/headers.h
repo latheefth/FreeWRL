@@ -526,5 +526,6 @@ void EAI_readNewWorld(char *inputstring);
 void addToNode (unsigned rc, unsigned newNode);
 
 void zeroAllBindables(void);
+int freewrlSystem (char *string);
 
 #endif /* __HEADERS_H__ */

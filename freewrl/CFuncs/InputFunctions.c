@@ -60,13 +60,12 @@ char * readInputString(char *fn, char *parent) {
 		//printf ("this is a gzipped file!\n");
 		isTemp = TRUE;
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
-		sprintf (sysline,"gunzip <%s >%s\n",mynewname,tempname);
+		sprintf (sysline,"%s <%s >%s",UNZIP,mynewname,tempname);
 		system (sysline);
 		strcpy (mynewname,tempname);
 	}
 
 	/* ok, now, really read this one. */
-	//printf ("readInputString, reading from %s\n",mynewname);
 	infile = fopen(mynewname,"r");
 
 	if ((buffer == 0) || (infile == NULL)){

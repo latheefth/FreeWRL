@@ -66,8 +66,8 @@ void saveSnapSequence() {
 	} else {
 		sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,snapGoodCount);
 	}
-	sprintf(sysline,"convert -size %dx%d -depth 8 -flip %s/%s*rgb %s",
-		screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
+	sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s",
+		CONVERT screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
 
 	/* printf ("convert line %s\n",sysline); */
 
@@ -165,8 +165,8 @@ void Snapshot () {
 	if (!snapsequence) {
 		snapGoodCount++;
 		sprintf (thisGoodFile,"%s/%s.%04d.png",mytmp,mysnapb,snapGoodCount);
-		sprintf(sysline,"convert -size %dx%d -depth 8 -flip %s %s",
-		screenWidth, screenHeight,thisRawFile,thisGoodFile);
+		sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s %s",
+		CONVERT,screenWidth, screenHeight,thisRawFile,thisGoodFile);
 
 		if (system (sysline) != 0) {
 			printf ("Freewrl: error running convert line %s\n",sysline);

@@ -393,8 +393,9 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  		commandline[0] = '\0';
  		return;
  	}
- 
- 	strcat (commandline,"java -Dfreewrl.lib.dir=");
+
+	strcat (commandline,JAVA);
+ 	strcat (commandline," -Dfreewrl.lib.dir=");
  	strcat (commandline,libdir);
  	strcat (commandline, " -Djava.security.policy=");
  	strcat (commandline, javaPolicy);
