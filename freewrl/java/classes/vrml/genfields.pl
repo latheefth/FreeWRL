@@ -66,7 +66,14 @@ my %toPerl = (
 	    );
 
 my %fromPerl = (
-	"Bool"   => 'value = in.readBoolean();',
+	#"Bool"   => 'value = in.readBoolean();',
+	Bool => '
+			String myline;
+			myline = in.readLine();
+			value = myline.equals("1");
+			//System.out.println ("reading in a boolean value is " + value);
+		',
+	
 	"Color"  => 'red = Float.parseFloat(in.readUTF());
         green = Float.parseFloat(in.readUTF()); 
         blue = Float.parseFloat(in.readUTF());',

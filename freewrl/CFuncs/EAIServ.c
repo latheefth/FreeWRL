@@ -109,6 +109,7 @@ void EAI_send_string(char *str, int lfd){
 	if (EAIVerbose) 
 		printf ("EAI Command returns\n%s(end of command)\n",str);
 
+	printf ("EAI_send_string, sending :%s:\n",str);
 	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
 		if (EAIVerbose)
@@ -188,8 +189,8 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	}
 
 
-	/* are we ok, and are we using this with EAI? */
-	if (((*listenfd) >=0) && (socketincrement==0)) {
+	/* are we ok, ? */
+	if ((*listenfd) >=0)  {
 		/* allocate memory for input buffer */
 		bufcount2 = 0;
 		bufsize2 = 2 * EAIREADSIZE; // initial size
@@ -204,7 +205,8 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		bzero(&EAIListenerData, sizeof(EAIListenerData));
 
 		/* seems like we are up and running now, and waiting for a command */
-		EAIinitialized = TRUE;	
+		/* and are we using this with EAI? */
+		if (socketincrement==0) EAIinitialized = TRUE;	
 	}
 	if (EAIVerbose) printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
 	return TRUE;
@@ -275,11 +277,15 @@ void create_EAI() {
 	pointer to buffer,
 	pointer to buffer index
 	pointer to max size,
-	pointer to socket to listen to */
-void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
+	pointer to socket to listen to 
+ 
+ 	return the char pointer - it may have been realloc'd */
+
+
+char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 	int retval, oldRetval;
 
-	printf ("read_EAI_socket, listenfd %d\n",*listenfd);
+	//printf ("read_EAI_socket, listenfd %d buffer addr %d\n",*listenfd,bf);
 	retval = FALSE;
 	do {
 		tv2.tv_sec = 0;
@@ -289,6 +295,7 @@ void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 	
 		oldRetval = retval;
 		retval = select((*listenfd)+1, &rfds2, NULL, NULL, &tv2);
+		//printf ("select retval %d\n",retval);
 
 		if (retval != oldRetval) {
 			loopFlags &= NO_RETVAL_CHANGE;
@@ -301,27 +308,33 @@ void read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 
 		
 		if (retval) {
-			retval = read ((*listenfd), &buffer2[(*bfct)],EAIREADSIZE);
+			retval = read ((*listenfd), &bf[(*bfct)],EAIREADSIZE);
 
-			if (retval == 0) {
-				if (EAIVerbose) printf ("read_EAI_socket, client is gone!\n");
+			if (retval <= 0) {
+				if (EAIVerbose) 
+					printf ("read_EAI_socket, client is gone! errno %d\n",errno);
+					perror("READ_EAISOCKET");
+					printf ("EBADF %d, EINVAL %d, EFAULT %d\n",
+							EBADF, EINVAL, EFAULT);
 				// client disappeared
 				close ((*listenfd));
 				(*listenfd) = -1;
 			}
 
 			if (EAIVerbose) 
-				printf ("read in from socket %d , max %d\n",retval,EAIREADSIZE);
+				printf ("read in from socket %d , max %d bfct %d data %s\n",
+						retval,EAIREADSIZE, *bfct, &bf[(*bfct)]);
 
 			(*bfct) += retval;
 
-			if (((*bfsz) - (*bfct)) < 10) {
-				//printf ("HAVE TO REALLOC INPUT MEMORY\n");
+			if (((*bfsz) - (*bfct)) < 128) {
+				printf ("HAVE TO REALLOC INPUT MEMORY\n");
 				(*bfsz) += EAIREADSIZE;
 				bf = realloc (bf, (unsigned int) (*bfsz));
 			}
 		}
 	} while (retval);
+	return (bf);
 }
 
 
@@ -336,7 +349,7 @@ void handle_EAI () {
 
 	bufcount2 = 0;
 
-	read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
+	buffer2 = read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
 
 	/* make this into a C string */
 	buffer2[bufcount2] = 0;
@@ -469,7 +482,7 @@ void EAI_parse_commands (char *bufptr) {
 					EOT = strstr(buffer2,"\nEOT\n");
 					// if we do not have a string yet, we have to do this...
 					while (EOT == NULL) {
-						read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
+						buffer2 = read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
 						EOT = strstr(buffer2,"\nEOT\n");
 					}
 	
@@ -583,8 +596,7 @@ void EAI_parse_commands (char *bufptr) {
 		  	case STOPFREEWRL: {		    
 				if (EAIVerbose) printf ("Shutting down Freewrl\n");
 				if (!RUNNINGASPLUGIN) {
-				    shutdown_EAI();
-				    exit(0);
+					doQuit();
 				    break;
 				}
 			    }
@@ -615,13 +627,16 @@ void EAI_parse_commands (char *bufptr) {
 }
 
 unsigned int EAI_SendEvent (char *ptr) {
+
+/*     EAIVerbose = 1; */
+    
 	unsigned char nodetype;
 	unsigned int nodeptr;
 	unsigned int offset;
 	unsigned int scripttype;
 
 	int ival;
-	float fl[4];
+	float fl[10];
 	double tval;
 	unsigned int memptr;
 
@@ -693,21 +708,34 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 		case EAI_SFVEC2F: {	/* EAI_SFVec2f */
 			sscanf (ptr,"%f %f",&fl[0],&fl[1]);
-			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, ptr, sizeof(float)*2);
+			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, fl, sizeof(float)*2);
 			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*2);
 			break;
 		}
-		case EAI_SFVEC3F:
-		case EAI_SFCOLOR: {	/* EAI_SFColor */
-			sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
-			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, ptr, sizeof(float)*3);
-			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
-			break;
+	  case EAI_SFVEC3F:
+	  case EAI_SFCOLOR:
+	    {	/* EAI_SFColor */
+		sscanf (ptr,"%f %f %f",&fl[0],&fl[1],&fl[2]);
+		if (scripttype)
+		{
+		    if (EAIVerbose)
+		    {
+			printf("Calling Set_one_MultiElementtype: nd %d, off %d, val: %s\n",
+			       (int)nodeptr,(int)offset,ptr);
+		    }
+		    Set_one_MultiElementtype ((int)nodeptr, (int)offset, fl, sizeof(float)*3);
 		}
+		else
+		{
+		    if (EAIVerbose) printf("Copying mem values of fl in memptr: %d\n",memptr);
+		    memcpy ((void *)memptr, (void *)fl,sizeof(float)*3);
+		}
+		break;
+	    }
 
 		case EAI_SFROTATION: {
 			sscanf (ptr,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, ptr, sizeof(float)*4);
+			if (scripttype) Set_one_MultiElementtype ((int)nodeptr, (int)offset, fl, sizeof(float)*4);
 			else memcpy ((void *)memptr, (void *)fl,sizeof(float)*4);
 			break;
 		}
@@ -715,9 +743,9 @@ unsigned int EAI_SendEvent (char *ptr) {
 		case EAI_MFSTRING: {
 			if (EAIVerbose) {
 				printf ("EAI_MFSTRING, string is %s\nxxx\n",ptr);
-				printf ("EAI_MFSTRING, have to fix this code - sorry Sarah. JohnS\n");
+				printf ("EAI_MFSTRING, have to fix this code. JohnS\n");
 			}
-//xxx			getEAI_MFStringtype ((JSContext *) JSglobs[actualscript].cx,
+//xxx			getEAI_MFStringtype ((JSContext *) ScriptControl[actualscript].cx,
 //xxx							 global_return_val,memptr); 
 			break;
 		}
@@ -730,20 +758,46 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 		/* a series of Floats... */
 //xxx		case EAI_MFVEC3F:
-//xxx		case EAI_MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,3); break;}
-//xxx		case EAI_MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,1); break;}
-//xxx		case EAI_MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,4); break;}
-//xxx		case EAI_MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,2); break;}
+//xxx		case EAI_MFCOLOR: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,3); break;}
+	  case EAI_MFFLOAT:
+	    {
+		/* Setting of MFFloat when is declared an MFFloat in script*/
+		int elem;
+		float *fl2 =  readMFFloatString(ptr,&elem);
+		 
+		if (scripttype)
+		{
+		    if (EAIVerbose) printf("EAI_SendEvent, nodeptr %i, off %i, ptr \"%s\".\n",(int)nodeptr,(int)offset,ptr);
+		    if(elem > 0)
+			set_EAI_MFElementtype ((int)nodeptr, (int)offset, fl2, sizeof(float)*elem);
+		}
+		else
+		{
+		    /*DANGER : I could overwrite memory when the MFFloat readed is */
+		    /*bigger than the one allocated. This could be a pontential    */
+		    /*failure. Possible workaround: try to find how big is the     */
+		    /*allocated MFFloat, or reallocate the existing one.           */
+		    memcpy ((void *)memptr, (void *)fl2,sizeof(float)*elem);
+		}
+		
+		if(elem > 0)
+		  free(fl2);
+		
+		break;
+	    }
+//xxx		case EAI_MFROTATION: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,4); break;}
+//xxx		case EAI_MFVEC2F: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,2); break;}
 //xxx		case EAI_MFNODE: {getEAI_MFNodetype (ptr,memptr,CRoutes[route].extra); break;}
 //xxx		case EAI_MFSTRING: {
 //xxx			break;
 //xxx		}
 //xxx
-//xxx		case EAI_MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,0); break;}
-//xxx		case EAI_MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, memptr,5); break;}
+//xxx		case EAI_MFINT32: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,0); break;}
+//xxx		case EAI_MFTIME: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, memptr,5); break;}
 
 		default: {
-			printf ("unhandled Event :%c: - get code in here\n",nodetype);
+                        printf ("unhandled Event :%c: - get code in here\n",nodetype);
+                        EAIVerbose = 0;
 			return FALSE;
 		}
 	}
@@ -760,6 +814,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		mark_event (nodeptr,offset);
 	}
 
+/* 	EAIVerbose = 0; */
 	return TRUE;
 }
 

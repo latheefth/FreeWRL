@@ -6,6 +6,7 @@ import vrml.field.*;
 
 public class FWCreateField {
     public static Field createField(String type) {
+	    System.out.println ("FWCreateField: " + type);
         type = type.intern();
         if (type == "SFBool")
             return new SFBool();

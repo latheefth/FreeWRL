@@ -291,6 +291,8 @@ void openMainWindow (unsigned *Disp, unsigned *Win,
 		//JAS if (event_mask & StructureNotifyMask) {
 		//JAS 	XIfEvent(dpy, &event, WaitForNotify, (char*)win);
 		//JAS }
+		// Alberto Dubuc:
+		XMoveWindow(dpy,win,xPos,yPos);
 	} else { 
 		printf ("NO PBUFFER EXTENSION\n");
 		exit(1);

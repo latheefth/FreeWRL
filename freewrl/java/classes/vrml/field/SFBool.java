@@ -44,7 +44,12 @@ public class SFBool extends Field {
     }
 
     public void __fromPerl(DataInputStream in)  throws IOException {
-        value = in.readBoolean();
+        
+			String myline;
+			myline = in.readLine();
+			value = myline.equals("1");
+			System.out.println ("reading in a boolean value is " + value);
+		
     }
 
     public void __toPerl(DataOutputStream out)  throws IOException {

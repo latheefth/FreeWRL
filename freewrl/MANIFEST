@@ -22,7 +22,6 @@ Text/.cvsignore
 USE.pm
 VRMLC.pm
 VRMLCU.pm
-VRMLExtrusion.pm
 VRMLFields.pm
 VRMLJava.pm
 VRMLNodes.pm
@@ -165,10 +164,6 @@ tests/8.wrl
 tests/9.wrl
 typemap
 vrml.conf
-Plugin/Makefile.PL
-Plugin/PluginGlue.pm
-Plugin/PluginGlue.xs
-Plugin/typemap
 Plugin/netscape/include/npapi.h
 Plugin/netscape/include/npupp.h
 Plugin/netscape/Makefile

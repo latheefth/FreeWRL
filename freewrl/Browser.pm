@@ -446,6 +446,43 @@ sub EAI_GetNode {
 	return $id;
 }
 
+# get the value for a node; NOT used for EAI, only for .class (and other scripts)
+# node is called EAI_... because it "fits" in with the other nodes.
+
+sub EAI_GetValue {
+	my ($nodenum, $fieldname) = @_;
+
+	#chop $fieldname;
+	print "Browser.pm - EAI_GetValue on node $nodenum, field $fieldname\n";
+	my $realele = VRML::Handles::get("NODE$nodenum");
+	# strip off a "set_" or a "_changed" if we should.
+	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
+
+	#print "Browser.pm now node $realele, field :$fieldname:\n";
+	print "exactvalue is ",$realele->{Fields}{$fieldname},"\n";
+	#print "exactvalue2 is ",$realele->{RFields}{$fieldname},"\n";
+
+	#my $key;
+	#foreach $key (keys(%{$realele})) {print "key $key\n";}
+	#foreach $key (keys(%{$realele->{Fields}})) {
+	#	print "Field $key, ",$realele->{Fields}{$key},"\n";}
+
+	my $retval;
+	if ("ARRAY" eq ref $realele->{RFields}{$fieldname}) {
+		$retval = "[";
+		foreach (@{$realele->{RFields}{$fieldname}}) {
+			$retval = $retval.$_." ";
+		}
+		$retval = $retval."]";
+	} else {
+		$retval = "".$realele->{RFields}{$fieldname};
+	}
+	print "retval in Browser.pm is $retval\n";
+	return $retval;
+}
+
+
+
 # get the type, return values used for direct manipulation in C, such as memory location, datasize, etc.
 sub EAI_GetType {
 	my ($nodenum, $fieldname, $direction) = @_;
@@ -463,12 +500,12 @@ sub EAI_GetType {
 	my $tonode_str;
 
 
-	# print "BROWSER:EAI_GetType, $nodenum, $fieldname, $direction\n";
+	#print "BROWSER:EAI_GetType, $nodenum, $fieldname, $direction\n";
 
 	# is this an IS'd field?
 	my $realele = VRML::Handles::get("NODE$nodenum");
 
-	# print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{Type};
+	#print "BROWSER::EAI_GetType ", $realele, " - " , $realele->{Type};
 
 	# strip off a "set_" or a "_changed" if we should.
 	$fieldname = VRML::Parser::parse_exposedField($fieldname, $realele->{Type});
@@ -484,7 +521,7 @@ sub EAI_GetType {
 	#print "\n\n\n";
 
 
-	# print "BROWSER::EAI_GetType now $fieldname\n";
+	#print "BROWSER::EAI_GetType now $fieldname\n";
 
 	if (exists $realele->{Fields}{$fieldname}) {
 		# print "BROWSER:EAI - field $fieldname exists in node, it is ",
@@ -515,7 +552,7 @@ sub EAI_GetType {
 		#print "------------------\n";
 	}
 
-	# print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
+	#print "BROWSER:EAI_GetType, realele is ", VRML::NodeIntern::dump_name($realele)," field $fieldname\n";
 
 	
 	
@@ -531,16 +568,15 @@ sub EAI_GetType {
 
 		$datalen = 0; # we either know the length (eg, SFInt32), or if MF, it is the eventOut that
 			      # determines the exact length.
-
 		($outptr, $outoffset) = split(/:/,$tonode_str,2); 
 
-		#print "BROWSER:EAI_GetType to_count:",$to_count,
-		#" tonode_str:",$tonode_str,
-		#" type:", $type,
-		#" ok:", $ok,
-		#" intptr:", $intptr,
-		#" fieldtype:", $fieldtype,
-		#"\n";
+#		print "BROWSER:EAI_GetType to_count:",$to_count,
+#		" tonode_str:",$tonode_str,
+#		" type:", $type,
+#		" ok:", $ok,
+#		" intptr:", $intptr,
+#		" fieldtype:", $fieldtype,
+#		"\n";
 	}
 
 	#print "Browser, type $type\n";
@@ -568,7 +604,7 @@ sub EAI_GetType {
 	elsif ($fieldtype eq "MFVec2f") {$retft = 115;}
 	elsif ($fieldtype eq "MFVec3f") {$retft = 116;}
 		
-	# print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
+	#print "Browser.pm: EAI_GetType outptr $outptr offset $outoffset datalen $datalen retft $retft type $type\n";
 	my $scalaroutptr = $outptr;
 	return ($scalaroutptr, $outoffset, $datalen, $retft, $type); 
 }

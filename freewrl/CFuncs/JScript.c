@@ -129,20 +129,18 @@ void JSMaxAlloc() {
 	int count;
 
 	JSMaxScript += 10;
-	JSglobs = realloc (JSglobs, sizeof (*JSglobs) * JSMaxScript);
+	ScriptControl = realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
 	scr_act = realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
-	thisScriptType = realloc (scr_act, sizeof (int) * JSMaxScript);
 
-	if ((JSglobs == NULL) || (scr_act == 0)) {
+	if ((ScriptControl == NULL) || (scr_act == 0)) {
 		printf ("Can not allocate memory for more script indexes\n");
 		exit(1);
 	}
 
 	/* mark these scripts inactive */
 	for (count=JSMaxScript-10; count<JSMaxScript; count++) {
-		printf ("initializing %d, address %d\n",count, &scr_act[count]);
 		scr_act[count]= FALSE;
-		thisScriptType[count] = NOSCRIPT;
+		ScriptControl[count].thisScriptType = NOSCRIPT;
 	}
 }
 
@@ -201,9 +199,9 @@ void JSInit(int num, SV *script) {
 	br->magic = BROWMAGIC; /* needed ??? */
 
 	/* for this script, here are the necessary data areas */
-	JSglobs[num].cx = (unsigned int) _context;
-	JSglobs[num].glob = (unsigned int) _globalObj;
-	JSglobs[num].brow = (unsigned int) br;
+	ScriptControl[num].cx = (unsigned int) _context;
+	ScriptControl[num].glob = (unsigned int) _globalObj;
+	ScriptControl[num].brow = (unsigned int) br;
 
 	
 	if (!loadVrmlClasses(_context, _globalObj)) 
@@ -237,8 +235,8 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 	JSObject *_globalObj;
 
 	/* get context and global object for this script */
-	_context = (JSContext *) JSglobs[num].cx;
-	_globalObj = (JSObject *)JSglobs[num].glob;
+	_context = (JSContext *) ScriptControl[num].cx;
+	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 
 	if (JSVerbose) 
@@ -266,8 +264,8 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
 	JSObject *_globalObj;
 
 	/* get context and global object for this script */
-	_context = (JSContext *) JSglobs[num].cx;
-	_globalObj = (JSObject *)JSglobs[num].glob;
+	_context = (JSContext *) ScriptControl[num].cx;
+	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 	if (!ActualrunScript(num,script,&rval))
 		return JS_FALSE;
@@ -300,8 +298,8 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  	JSObject *_globalObj;
  
  	/* get context and global object for this script */
- 	_context = (JSContext *) JSglobs[num].cx;
- 	_globalObj = (JSObject *)JSglobs[num].glob;
+ 	_context = (JSContext *) ScriptControl[num].cx;
+ 	_globalObj = (JSObject *)ScriptControl[num].glob;
  
  	if (JSVerbose)
  		printf ("start of JSGetProperty, cx %d script %s\n",(int)_context,script);
@@ -328,8 +326,8 @@ int JSaddGlobalAssignProperty(int num, char *name, char *str) {
 	JSObject *_globalObj;
 
 	/* get context and global object for this script */
-	_context = (JSContext *) JSglobs[num].cx;
-	_globalObj = (JSObject *)JSglobs[num].glob;
+	_context = (JSContext *) ScriptControl[num].cx;
+	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 
 	if (JSVerbose) {
@@ -363,8 +361,8 @@ int JSaddSFNodeProperty(int num, char *nodeName, char *name, char *str) {
 	jsval _val, _rval = INT_TO_JSVAL(0);
 
 	/* get context and global object for this script */
-	_context = (JSContext *) JSglobs[num].cx;
-	_globalObj = (JSObject *)JSglobs[num].glob;
+	_context = (JSContext *) ScriptControl[num].cx;
+	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 
 	if (JSVerbose) {
@@ -405,8 +403,8 @@ int JSaddGlobalECMANativeProperty(int num, char *name) {
 	jsval _val, rval = INT_TO_JSVAL(0);
 
 	/* get context and global object for this script */
-	_context = (JSContext *) JSglobs[num].cx;
-	_globalObj = (JSObject *)JSglobs[num].glob;
+	_context = (JSContext *) ScriptControl[num].cx;
+	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 	if (JSVerbose) {
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);

@@ -109,6 +109,9 @@ struct PSStruct {
 	int *retarr;		/* the place to put nodes		*/
 	int retarrsize;		/* size of array pointed to by retarr	*/
 	unsigned Etype[10];	/* EAI return values			*/
+
+	/* for class - return a string */
+	char *retstr;
 };
 
 
@@ -129,6 +132,7 @@ void __pt_doStringUrl (void);
 void __pt_doPerlCallMethodVA(void);
 void __pt_EAI_GetNode (void);
 void __pt_EAI_GetType (void);
+void __pt_EAI_GetValue (void);
 //JAS void __pt_EAI_replaceWorld (void);
 void __pt_EAI_Route (void);
 
@@ -354,6 +358,7 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	int *scripttype) {
 	int complete;
 	
+	printf ("EAI_GetType starting\n");
 	PSP_LOCK
 	DATA_LOCK
 	psp.ptr = (unsigned)direction;
@@ -378,6 +383,37 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	*scripttype = psp.Etype[4];
 	//printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype);
 	PSP_UNLOCK
+}
+
+/* interface for getting node type parameters from EAI */
+char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
+	int complete;
+	int len;
+	char *retstr;
+	
+	printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname);
+	PSP_LOCK
+	DATA_LOCK
+	psp.ptr = (unsigned)nodename;
+	psp.jparamcount=nodenum;
+	psp.fieldname = fieldname;
+
+	psp.comp = &complete;
+	psp.type = EAIGETVALUE;
+	psp.ofs = (unsigned)NULL;
+	psp.path = NULL;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	DATA_LOCK_SIGNAL
+	DATA_UNLOCK
+	while (complete!=1) usleep(10);
+
+	/* copy results out */
+	retstr = psp.retstr;
+	//printf ("EAI_GetValue finishing, retval = %s\n",retstr);
+	PSP_UNLOCK
+	return retstr;
+
 }
 
 /* interface for getting a node number via the EAI */
@@ -564,6 +600,7 @@ void _perlThread(void *perlpath) {
 			CALLMETHOD	Javascript... 	
 			EAIGETNODE      EAI getNode     
 			EAIGETTYPE	EAI getType	
+			EAIGETVALUE	EAI getValue - in a string.	
 			EAIROUTE	EAI add/delete route
 			EAIREPWORLD     EAI replace world */
 
@@ -604,6 +641,11 @@ void _perlThread(void *perlpath) {
 		case EAIGETTYPE: {
 			/* EAI wants type for a node */
 			__pt_EAI_GetType();
+			break;
+			}
+		case EAIGETVALUE: {
+			/* EAI wants type for a node */
+			__pt_EAI_GetValue();
 			break;
 			}
 		case EAIROUTE: {
@@ -1093,6 +1135,50 @@ void __pt_EAI_GetType (){
 	}
 
 	PUTBACK;
+	FREETMPS;
+	LEAVE;
+}
+
+void __pt_EAI_GetValue (){
+	unsigned int 	count;
+	int len;
+
+	SV * retval;
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+
+	/* push on the nodenum, fieldname and direction */
+	XPUSHs(sv_2mortal(newSViv(psp.jparamcount)));
+	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
+
+	PUTBACK;
+	count = call_pv("VRML::Browser::EAI_GetValue",G_EVAL|G_SCALAR);
+	SPAGAIN;
+
+	printf ("GetValue return; count %d\n",count);
+	if (count != 1) {
+		psp.sv=NULL;	
+	} else {
+		/* pop values off stack in reverse of perl return order */
+		retval = POPs;
+	} 
+
+	PUTBACK;
+	//printf ("retval %d\n", retval) ;
+                                                                                    
+	//if (SvOK(retval)) {printf ("retval is an SV\n"); }
+	//else {printf ("retval is NOT an SV\n"); return;}
+	                                                                                    
+	/* now, decode this SV */
+	//printf ("SVtype is %x\n",SvTYPE(retval));
+	//printf ("String is :%s: len %d \n",SvPV(retval,len),len);
+	
+	/* make a copy of the return string - caller has to free it after use */
+	psp.retstr = malloc (sizeof (char) * (len+5));
+	strcpy (psp.retstr,SvPV(retval,len));
+
 	FREETMPS;
 	LEAVE;
 }

@@ -163,9 +163,8 @@ int CRoutes_Count;
 int CRoutes_MAX;
 
 /* Structure table */
-struct CRjsStruct *JSglobs = 0; 	/* global objects and contexts for each script */
+struct CRscriptStruct *ScriptControl = 0; 	/* global objects and contexts for each script */
 int *scr_act = 0;			/* this script has been sent an eventIn */
-int *thisScriptType = 0;		/* this script is a... */
 int scripts_active;		/* a script has been sent an eventIn */
 int max_script_found = -1;	/* the maximum script number found */
 
@@ -227,21 +226,21 @@ int get_touched_flag (int fptr, int actualscript) {
 	jsval _length_val;
 	int count;
 
-	mycx = (JSContext *) JSglobs[actualscript].cx;
+	mycx = (JSContext *) ScriptControl[actualscript].cx;
 	myname = JSparamnames[fptr].name;
 	if (JSVerbose) 
 		printf ("\nget_touched_flag, name %s script %d context %#x \n",myname,
 				actualscript,mycx);
 
 	/* should never get into this if */
-	if (thisScriptType[actualscript] != JAVASCRIPT) {
+	if (ScriptControl[actualscript].thisScriptType != JAVASCRIPT) {
 		printf ("gettouched, not a javascript\n");
 		return;
 	}
 
 	len = strlen(myname);
 	index = 0;
-	interpobj = JSglobs[actualscript].glob;
+	interpobj = ScriptControl[actualscript].glob;
 	complex_name = (strstr(myname,".") != NULL);
 	fullname[0] = 0;
 
@@ -408,13 +407,13 @@ int get_touched_flag (int fptr, int actualscript) {
 		return (touched != 0);
 	}
 
-	//printf ("using touched method %s on %d %d\n",tmethod,JSglobs[actualscript].cx,interpobj);
+	//printf ("using touched method %s on %d %d\n",tmethod,ScriptControl[actualscript].cx,interpobj);
 
 	if (!JS_GetProperty(mycx, (JSObject *) interpobj ,tmethod,&retval2)) {
               	printf ("cant get property for %s\n",tmethod);
 		return FALSE;
         } else {
-       	        //strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, retval2);
+       	        //strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, retval2);
                	//strtouched = JS_GetStringBytes(strval);
                	//printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
 
@@ -489,7 +488,6 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, unsigne
 		printf ("failed to set parameter, line %s\n",scriptline);
 	}
 }
-
 
 /* sets a SFBool, SFFloat, SFTime, SFIint32, SFString in a script */
 void setECMAtype (int num) {
@@ -911,8 +909,8 @@ void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dat
 
 
 	/* get context and global object for this script */
-	_context = (JSContext *) JSglobs[tonode].cx;
-	_globalObj = (JSObject *)JSglobs[tonode].glob;
+	_context = (JSContext *) ScriptControl[tonode].cx;
+	_globalObj = (JSObject *)ScriptControl[tonode].glob;
 
 
 	/* make up the name */
@@ -978,8 +976,8 @@ void setMultiElementtype (int num) {
 		}
 
 		/* get context and global object for this script */
-		_context = (JSContext *) JSglobs[tn].cx;
-		_globalObj = (JSObject *)JSglobs[tn].glob;
+		_context = (JSContext *) ScriptControl[tn].cx;
+		_globalObj = (JSObject *)ScriptControl[tn].glob;
 		fn += fptr;
 		Set_one_MultiElementtype (tn, tptr, (void *)fn, (unsigned)len);
 	}
@@ -1004,6 +1002,8 @@ void setMFElementtype (int num) {
 	JSContext *_context;
 	JSObject *_globalObj;
 
+	if (CRVerbose) printf("------------BEGIN setMFElementtype ---------------\n");
+
 	fn = (int) CRoutes[num].fromnode; 
 	fptr = (int) CRoutes[num].fnptr;
 	pptr = fn + fptr;
@@ -1023,10 +1023,10 @@ void setMFElementtype (int num) {
 		}
 
 		/* get context and global object for this script */
-		_context = (JSContext *) JSglobs[tn].cx;
-		_globalObj = (JSObject *)JSglobs[tn].glob;
+		_context = (JSContext *) ScriptControl[tn].cx;
+		_globalObj = (JSObject *)ScriptControl[tn].glob;
 
-		/* make uep the name */
+		/* make up the name */
 		sprintf (scriptline,"%s(",JSparamnames[tptr].name);
 		switch (JSparamnames[tptr].type) {
 			case MFCOLOR: {
@@ -1056,9 +1056,9 @@ void setMFElementtype (int num) {
 							      strcat(sline,",");
 						      }
 						     pptr += elementlen;
-							strcat (scriptline,sline);
+						     strcat (scriptline,sline);
 					      }
-						break;
+					      break;
 				      }
 			case MFTIME:  {
 					      strcat (scriptline, "new MFTime(");
@@ -1070,7 +1070,7 @@ void setMFElementtype (int num) {
 							      strcat(sline,",");
 						      }
 						     pptr += elementlen;
-							strcat (scriptline,sline);
+						     strcat (scriptline,sline);
 					      }
 					      break;
 				      }
@@ -1143,31 +1143,299 @@ void setMFElementtype (int num) {
 		
 		/* convert these values to a jsval type */
 		strcat (scriptline,"))");
+		if (CRVerbose) printf("ScriptLine: %s\n",scriptline);
+		
 		if (!ActualrunScript(tn,scriptline,&retval))
 			printf ("AR failed in setxx\n");
+		
 
-		// JAS - not sure what to do; we have called the function with new
-		// objects. What else is required?
-		//
-		//if (!JS_SetProperty (_context, _globalObj, scriptline, &retval))
-		//	printf ("JS_SetProperty failed in setMFElementtype\n");
-
-		//_privPtr->touched = 0;
-
-		/* now, runscript to tell it that it has been touched */
-		//sprintf (scriptline,"__tmp_arg_%s.__touched()", JSparamnames[tptr].name);
-		//if (!ActualrunScript(tn, scriptline ,&retval)) 
-		//	printf ("failed to set parameter, line %s\n",scriptline);
-
-		/* and run the function */
-		//sprintf (scriptline,"%s(__tmp_arg_%s,%f)",
-		//	 JSparamnames[tptr].name,JSparamnames[tptr].name,
-		//	 TickTime);
-		//if (!ActualrunScript(tn, scriptline ,&retval)) {
-		//	printf ("failed to set parameter, line %s\n",scriptline);
-		//}
 	}
+	if (CRVerbose) printf("------------END setMFElementtype ---------------\n");
 }
+
+
+/*--------------------------------------------------------------------------*/
+/*
+ struct fchain
+ 
+ This struct is used to create a temporary dinamyc chain of floats.
+ */
+/*--------------------------------------------------------------------------*/
+
+struct fchain;
+
+struct fchain
+{
+    float content;
+    struct fchain *next;
+};
+
+/*--------------------------------------------------------------------------*/
+/*
+ readMFFloatString
+
+ Function to read a string with numbers and returning an array of floats.
+ Every string is delimited and cutted when inside is found an alfabetical
+ character, or any "control" caracter.
+
+ Example 1: given the following string: " 1.004 1.005 \n 1.02"
+ will be returned: retVal[0] = 1.004, retVal[1] = 1.005
+
+ Example 2: given the following string: " 1.007 1.003 A 1.02"
+ will be returned: retVal[0] = 1.007, retVal[1] = 1.003
+
+ */
+
+/*--------------------------------------------------------------------------*/
+
+float  *readMFFloatString(char *input, int *eQty)
+{
+
+    /*     CRVerbose = 1;  */
+    
+    float *retVal = NULL;
+    char  *tptr;
+    char  *theSpc = " ";
+    char  *token;
+    int   count,i = 0;
+
+    struct fchain *theChainHd, *actual;
+    theChainHd = actual = NULL;
+
+    token = input;
+    while((!iscntrl(*token))&&(!isalpha(*token))) token++;
+    count = token - input;
+    if(count > 0) {
+	tptr  = malloc(count + 2);
+	
+	strncpy(tptr,input,(count));
+	tptr[count] = 0;
+	
+	if (CRVerbose) printf("Token : ---#%s#---\n",tptr);
+	token = strtok(tptr,theSpc);
+
+	if(NULL != token)
+	{
+	    count = 1;
+	    theChainHd = malloc(sizeof(struct fchain));
+	    theChainHd->next = NULL;
+	    actual = theChainHd;
+	    
+	    while(NULL != token)
+	    {
+		actual->content = atof(token);
+		if (CRVerbose) printf("Token is: #%s#-, val: %f\n",token,actual->content);
+		
+		token = strtok(NULL,theSpc);
+		if(NULL != token)
+		{
+		    actual->next =  malloc(sizeof(struct fchain));
+		    actual = actual->next;
+		    actual->next = NULL;
+		    count++;
+		}
+		else
+		{
+		    actual->next = NULL;
+		}
+	    }
+	    
+	    if(count > 0)
+	    {
+		retVal = malloc(sizeof(float)*count);
+		
+		actual = theChainHd;
+		retVal[i] = actual->content;
+		if (CRVerbose) printf("Token val: %f, i: %d, count %d\n",retVal[i],i,count);
+		actual = actual->next;
+		free(theChainHd);
+		i++;		
+		while(NULL != actual)
+		{
+		    struct fchain *tmpPtr = actual;
+		    retVal[i] = actual->content;
+		    if (CRVerbose) printf("Token val: %f, i: %d, ptr:%x\n",retVal[i],i,actual);		    		    
+		    actual = actual->next;
+		    free(tmpPtr);
+		    i++;
+		}
+	    }
+	}
+	
+	free(tptr);
+    }
+    else
+    {
+	count = 0;
+    }
+
+    /*     CRVerbose = 0;  */
+    *eQty = count;
+    return retVal;
+} 
+
+/*--------------------------------------------------------------------------*/
+
+void set_EAI_MFElementtype (int num, int offset, void *pptr, int len) {
+/*     CRVerbose = 1; */
+    if (CRVerbose) printf("------------BEGIN set_EAI_MFElementtype ---------------\n");
+    
+    int tn, tptr;
+    char scriptline[2000];
+    char sline[100];
+    jsval retval;
+    int x;
+    int elementlen;
+    float *fp;
+    int *ip;
+    double *dp;
+
+    JSContext *_context;
+    JSObject *_globalObj;
+	
+    tn   = num;
+    tptr = offset;
+
+    if (CRVerbose) {
+	printf ("got a script event! index %d\n",num);
+	printf ("\tto %#x toptr %#x\n",tn,tptr);
+	printf ("\tdata length %d\n",len);
+	printf ("and, sending it to %s\n",JSparamnames[tptr].name);
+    }
+
+    /* get context and global object for this script */
+    _context = (JSContext *) ScriptControl[tn].cx;
+    _globalObj = (JSObject *)ScriptControl[tn].glob;
+
+    /* make up the name */
+    sprintf (scriptline,"%s(",JSparamnames[tptr].name);
+    switch (JSparamnames[tptr].type) {
+      case MFCOLOR: {
+	  strcat (scriptline, "new MFColor(");
+	  elementlen = sizeof (float) * 3;
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f %f %f",*fp,
+		       *(fp+elementlen),
+		       *(fp+(elementlen*2)),
+		       *(fp+(elementlen*3)));
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case MFFLOAT: {		
+	  strcat (scriptline, "new MFFloat(");
+	  elementlen = sizeof (float);
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f",*fp);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+
+	  break;
+      }
+      case MFTIME:  {
+	  strcat (scriptline, "new MFTime(");
+	  elementlen = sizeof (double);
+	  for (x=0; x<(len/elementlen); x++) {
+	      dp = (double *)pptr;
+	      sprintf (sline,"%lf",*dp);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case MFINT32: {	
+	  strcat (scriptline, "new MFInt32(");
+	  elementlen = sizeof (int);
+	  for (x=0; x<(len/elementlen); x++) {
+	      ip = (int *)pptr;
+	      sprintf (sline,"%d",*ip);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case MFSTRING:{	
+	  strcat (scriptline, "new MFString(");
+	  elementlen = sizeof (float);
+	  printf ("ScriptAssign, MFString probably broken\n");
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f",*fp);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case MFNODE:  {	
+	  strcat (scriptline, "new MFNode(");
+	  elementlen = sizeof (int);
+	  for (x=0; x<(len/elementlen); x++) {
+	      ip = (int *)pptr;
+	      sprintf (sline,"%u",*ip);
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
+      case MFROTATION: {	strcat (scriptline, "new MFRotation(");
+      elementlen = sizeof (float)*4;
+      for (x=0; x<(len/elementlen); x++) {
+	  fp = (float *)pptr;
+	  sprintf (sline,"%f %f %f %f",*fp,
+		   *(fp+elementlen),
+		   *(fp+(elementlen*2)),
+		   *(fp+(elementlen*3)),
+		   *(fp+(elementlen*4)));
+	  sprintf (sline,"%f",*fp);
+	  if (x < ((len/elementlen)-1)) {
+	      strcat(sline,",");
+	  }
+	  pptr += elementlen;
+	  strcat (scriptline,sline);
+      }
+      break;
+      }
+      default: {
+	  printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
+	  strcat (scriptline,"(");
+      }
+    }
+		
+    /* convert these values to a jsval type */
+    strcat (scriptline,"))");
+		
+    if (CRVerbose) printf("ScriptLine: %s\n",scriptline);
+
+    
+    if (!ActualrunScript(tn,scriptline,&retval))
+      printf ("AR failed in setxx\n");
+    
+    if (CRVerbose) printf("------------END set_EAI_MFElementtype ---------------\n");
+/*     CRVerbose = 0; */
+}
+
 
 /* internal variable to copy a C structure's Multi* field */
 void Multimemcpy (void *tn, void *fn, int multitype) {
@@ -1300,7 +1568,17 @@ void CRoutes_js_new (int num,
 	}
 
 	/* record whether this is a javascript, class invocation, ... */
-	thisScriptType[num] = scriptType;
+	ScriptControl[num].thisScriptType = scriptType;
+
+	/* if it is a CLASSSCRIPT, make sure we know that it is not
+	 * initialized yet; because of threading, we have to wait until
+	 * the creating (perl) function is finished, otherwise a 
+	 * potential deadlock situation occurs, if the initialize
+	 * tries to get something via perl...
+	 */
+
+	if (scriptType == CLASSSCRIPT) ScriptControl[num].initialized = FALSE;
+	else ScriptControl[num].initialized = TRUE;
 
 	if (num > max_script_found) max_script_found = num;
 }
@@ -1345,6 +1623,7 @@ int JSparamIndex (char *name, char *type) {
 	unsigned len;
 	int ty;
 	int ctr;
+printf ("start of JSparamIndex, name %s, type %s\n",name,type);
 
 	ty = convert_typetoInt(type);
 
@@ -1377,6 +1656,7 @@ int JSparamIndex (char *name, char *type) {
 	strncpy (JSparamnames[jsnameindex].name,name,len);
 	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
+	printf ("JSparamNameIndex, returning %d\n",jsnameindex);
 	return jsnameindex;
 }
 
@@ -1689,7 +1969,6 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	/* do we have any routes yet? - we can gather events before any routes are made */
 	if (!CRoutes_Initiated) return;
 
-
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
 	while (CRoutes[route].fromnode<(unsigned)actualscript) route++;
@@ -1729,7 +2008,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 			if (touched_flag) {
 				/* we did, so get the value */
-				strval = JS_ValueToString((JSContext *)JSglobs[actualscript].cx, global_return_val);
+				strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
 			        strp = JS_GetStringBytes(strval);
 
 				if (JSVerbose) 
@@ -1764,7 +2043,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				}
 
 				case SFTIME: {
-					if (!JS_ValueToNumber((JSContext *)JSglobs[actualscript].cx, 
+					if (!JS_ValueToNumber((JSContext *)ScriptControl[actualscript].cx, 
 										  global_return_val,&tval)) tval=0.0;
 
 					//printf ("SFTime conversion numbers %f from string %s\n",tval,strp);
@@ -1808,19 +2087,19 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 					/* a series of Floats... */
-				case MFCOLOR: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),3); break;}
-				case MFFLOAT: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),1); break;}
-				case MFROTATION: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),4); break;}
-				case MFVEC2F: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),2); break;}
+				case MFCOLOR: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),3); break;}
+				case MFFLOAT: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),1); break;}
+				case MFROTATION: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),4); break;}
+				case MFVEC2F: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),2); break;}
 				case MFNODE: {getMFNodetype (strp,(void *)(tn+tptr),CRoutes[route].extra); break;}
 				case MFSTRING: {
-					getMFStringtype ((JSContext *) JSglobs[actualscript].cx,
+					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
 						 (jsval *)global_return_val,(void *)(tn+tptr)); 
 					break;
 				}
 
-				case MFINT32: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),0); break;}
-				case MFTIME: {getMultNumType ((JSContext *)JSglobs[actualscript].cx, (void *)(tn+tptr),5); break;}
+				case MFINT32: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),0); break;}
+				case MFTIME: {getMultNumType ((JSContext *)ScriptControl[actualscript].cx, (void *)(tn+tptr),5); break;}
 
 				default: {	printf("WARNING: unhandled from type %s\n", FIELD_TYPE_STRING(JSparamnames[fptr].type));
 				printf (" -- string from javascript is %s\n",strp);
@@ -1857,6 +2136,34 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
 }
 
+void gatherClassEventOuts (int script) {
+	if (!(ScriptControl[script].initialized)) {
+		initJavaClass(script);
+		ScriptControl[script].initialized=TRUE;
+	}
+}
+
+/* sets a CLASS variable - routing into the .class file */
+void sendJClassEventIn(int num, int fromoffset) {
+	int fn, tn, tptr;
+	int len;
+	unsigned int to_counter;
+	CRnodeStruct *to_ptr = NULL;
+
+	fn = (int) CRoutes[num].fromnode + (int) CRoutes[num].fnptr;
+	len = CRoutes[num].len;
+	
+	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+		to_ptr = &(CRoutes[num].tonodes[to_counter]);
+		tn = (int) to_ptr->node;
+		tptr = (int) to_ptr->foffset;
+
+		sendCLASSEvent(tn, JSparamnames[tptr].name,
+			JSparamnames[tptr].type,len); 
+			
+	}
+}
+
 /********************************************************************
 
 sendScriptEventIn.
@@ -1864,17 +2171,55 @@ sendScriptEventIn.
 this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
+void sendJScriptEventIn (int num, int fromoffset) {
+printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset);
+
+	/* set the parameter */
+	/* see comments in gatherScriptEventOuts to see exact formats */
+
+	switch (JSparamnames[fromoffset].type) {
+	case SFBOOL:	
+	case SFFLOAT:
+	case SFTIME:
+	case SFINT32:
+	case SFNODE:
+	case SFSTRING: {
+		setECMAtype(num);
+		break;
+		}
+	case SFCOLOR: 
+	case SFVEC2F:
+	case SFROTATION: {
+		setMultiElementtype(num);
+		break;
+		}
+	case MFCOLOR:
+	case MFFLOAT:
+	case MFTIME:
+	case MFINT32:
+	case MFSTRING:
+	case MFNODE:
+	case MFROTATION: {
+		setMFElementtype(num);
+		break;
+		}
+	default : {
+		printf("WARNING: sendScriptEventIn type %s not handled yet\n", 
+			FIELD_TYPE_STRING(JSparamnames[fromoffset].type));
+		}
+	}
+}
 
 void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	if (JSVerbose) printf("sendScriptEventIn, num %d\n",num);
+	if (JSVerbose) 
+	  printf("----BEGIN-------\nsendScriptEventIn, num %d\n",num);
 
 	/* script value: 1: this is a from script route
 			 2: this is a to script route
 			 3: this is a from script to a script route */
-
 	if (CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
@@ -1883,45 +2228,27 @@ void sendScriptEventIn(int num) {
 
 			/* mark that this script has been active */
 			mark_script((int)(to_ptr->node));
-
-			/* set the parameter */
-			/* see comments in gatherScriptEventOuts to see exact formats */
-
-			switch (JSparamnames[to_ptr->foffset].type) {
-			case SFBOOL:	
-			case SFFLOAT:
-			case SFTIME:
-			case SFINT32:
-			case SFNODE:
-			case SFSTRING: {
-				setECMAtype(num);
-				break;
-			}
-			case SFCOLOR: 
-			case SFVEC2F:
-			case SFROTATION: {
-				setMultiElementtype(num);
-				break;
-			}
-			case MFCOLOR:
-			case MFFLOAT:
-			case MFTIME:
-			case MFINT32:
-			case MFSTRING:
-			case MFNODE:
-			case MFROTATION: {
-				setMFElementtype(num);
-				break;
-			}
-			default : {
-				printf("WARNING: sendScriptEventIn type %s not handled yet\n", 
-					FIELD_TYPE_STRING(JSparamnames[to_ptr->foffset].type));
+			switch (ScriptControl[to_ptr->node].thisScriptType) {
+				case CLASSSCRIPT: {
+					sendJClassEventIn(num, to_ptr->foffset);
+					break;
 				}
+				case JAVASCRIPT: {
+					sendJScriptEventIn(num,to_ptr->foffset);
+					break;
+				  }
+				default: {
+				printf ("do not handle eventins for script type %d\n",
+						ScriptControl[to_ptr->node].thisScriptType);
+				 }
 			}
 		}
 	} else if (CRoutes[num].direction_flag == SCRIPT_TO_SCRIPT) {
 		printf("WARNING: sendScriptEventIn, don't handle script to script routes yet\n");
+	} else {
+		if (CRVerbose) printf("Route ????\n");
 	}
+	if (JSVerbose) printf("-----END-----\n");
 }
 
 /********************************************************************
@@ -2021,10 +2348,19 @@ void propagate_events() {
 		/* run gatherScriptEventOuts for each active script */
 		if (scripts_active) {
 			for (counter =0; counter <= max_script_found; counter++) {
-				if (thisScriptType[counter] == JAVASCRIPT) {
-					gatherScriptEventOuts (counter,TRUE);
-				} else {
-					printf ("only handle JAVASCRIPT here\n");
+				switch (ScriptControl[counter].thisScriptType) {
+					case JAVASCRIPT: {
+						gatherScriptEventOuts (counter,TRUE);
+						break;
+					}
+					case CLASSSCRIPT: {
+						gatherClassEventOuts(counter);
+						break;
+					  }
+					default: {
+					printf ("do not handle eventouts for script type %d\n",
+							ScriptControl[counter].thisScriptType);
+					 }
 				}
 			}
 		}
@@ -2054,11 +2390,14 @@ void process_eventsProcessed() {
 	jsval retval;
 
 	for (counter = 0; counter <= max_script_found; counter++) {
-	    if (thisScriptType[counter] == JAVASCRIPT) {
-		    printf ("process_eventsProcessed; script %d is a JAVASCRIPT\n",thisScriptType[counter]);
+	    if (ScriptControl[counter].thisScriptType == JAVASCRIPT) {
       		if (!ActualrunScript(counter, "eventsProcessed()" ,&retval))
                 	printf ("failed to run eventsProcessed for script %d\n",counter);
+	    } else {
+		    //printf ("process_eventsProcessed; script %d is a CLASSSCRIPT\n",
+		//		    ScriptControl[counter].thisScriptType);
 	    }
+
 	}
 }
 

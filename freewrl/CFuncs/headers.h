@@ -256,10 +256,20 @@ struct currayhit {
 
 
 
-struct CRjsStruct {
+struct CRscriptStruct {
+	/* type */
+	int thisScriptType;
+
+	/* Javascript parameters */
 	unsigned int	cx;	/* JSContext		*/
 	unsigned int	glob;	/* JSGlobals		*/
 	unsigned int	brow;	/* BrowserIntern	*/
+
+	/* Java .CLASS parameters */
+	unsigned int 	initialized; 	/* has initialize been sent? */
+	int listen_fd, send_fd;		/* socket descriptors */
+	char NodeID[20];		/* combo Perl NODEXXX, and CNODE */
+
 };
 void JSMaxAlloc(void);
 void cleanupDie(int num, char *msg);
@@ -294,7 +304,7 @@ void process_eventsProcessed(void);
 
 
 
-extern struct CRjsStruct *JSglobs; /* Javascript invocation parameters */
+extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */
 extern int *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
@@ -333,12 +343,13 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define FROMSTRING 	1
 #define	FROMURL		2
 #define INLINE		3
-#define CALLMETHOD	4  /* Javascript... 	*/
-#define CALLMETHODVA    5  /* Javascript... 	*/
-#define EAIGETNODE      6  /* EAI getNode      	*/
-#define EAIGETTYPE	7  /* EAI getType	*/
-#define EAIREPWORLD     8  /* EAI replace world */
-#define EAIROUTE	9  /* EAI add/del route */
+#define CALLMETHOD	4   /* Javascript... 	*/
+#define CALLMETHODVA    5   /* Javascript... 	*/
+#define EAIGETNODE      6   /* EAI getNode      	*/
+#define EAIGETTYPE	7   /* EAI getType	*/
+#define EAIREPWORLD     8   /* EAI replace world */
+#define EAIROUTE	9   /* EAI add/del route */
+#define EAIGETVALUE	10  /* get a value of a node */
 
 
 
@@ -434,5 +445,12 @@ extern char *myPerlInstallDir;
 
 
 /* Java CLASS invocation */
-int newJavaClass(int scriptInvocationNumber,char * nodestr,int *node);
+int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
+int initJavaClass(int scriptno); 
+char *EAI_GetValue (unsigned int uretval,
+		        char *ctmp, char *dtmp);
+void setCLASStype (int num); 
+void sendCLASSEvent(int scriptno, char *fieldName, int type, int len);
+
+
 #endif /* __HEADERS_H__ */

@@ -1,15 +1,7 @@
 package vrml;
 
-//import java.util.*;
-//import java.applet.*;
-//import java.awt.*;
 import java.net.*;
-//import java.io.*;
-//import java.lang.reflect.*;
-
-
-
-
+import java.lang.System;
 import java.lang.reflect.*;
 import java.io.*;
 import java.util.Hashtable;
@@ -24,8 +16,10 @@ public final class FWJavaScript {
     static Browser theBrowser;
 
 	static Socket sock;		// communication socket with FreeWRL
-	static PrintWriter EAIout;
-	static BufferedReader  EAIin;
+	//static PrintWriter EAIout;
+	//static BufferedReader  EAIin;
+	static DataInputStream EAIin;
+	static DataOutputStream EAIout;
 
 
     
@@ -35,24 +29,23 @@ public final class FWJavaScript {
     }
 
     public static void send_touched(String reqid) throws IOException {
-	// System.err.println("send_touched\n");
+	// System.out.println("send_touched\n");
 	Enumeration e = touched.keys();
 	while(e.hasMoreElements()) {
-	    // System.err.println("send_touched one\n");
+	    // System.out.println("send_touched one\n");
 	    Field val = (Field) e.nextElement();
 	    FWJavaScriptBinding b = val.__binding;
 	    BaseNode n = b.node();
 	    String f = b.field();
 	    String nodeid = n._get_nodeid();
-	    EAIout.println("SENDEVENT");
-	    EAIout.println(nodeid);
-	    EAIout.println(f);
+	    EAIout.writeBytes("SENDEVENT");
+	    EAIout.writeBytes(nodeid);
+	    EAIout.writeBytes(f);
 System.out.println ("commented out val.__toPerl");
 	    //val.__toPerl(out);
 	}
 	touched.clear();
-	EAIout.println("FINISHED");
-	EAIout.println(reqid);
+	EAIout.writeBytes("FIN "+reqid);
 	EAIout.flush();
     }
 
@@ -67,6 +60,7 @@ System.out.println ("commented out val.__toPerl");
     {
 	int counter;
 	String reply;
+	String nodeid = "";
 
   	// Create a socket here for an EAI/CLASS server on localhost
 	sock = null;
@@ -87,34 +81,36 @@ System.out.println ("commented out val.__toPerl");
 		}
 	}
 
-	EAIout = new PrintWriter (sock.getOutputStream());
-	EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
-
-	// send along the initial string
-	System.out.println ("sending initial string");
-	EAIout.println ("freewrl 1.1111 testing");
-	EAIout.println ("freewrl 1.1111 testing");
-	EAIout.println ("freewrl 1.1111 testing");
-	EAIout.println ("freewrl 1.1111 testing");
-	EAIout.println ("freewrl 1.1111 testing");
-	EAIout.println ("freewrl 1.1111 testing");
-	EAIout.flush();
+	//EAIout = new PrintWriter (sock.getOutputStream());
+	//EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
+	EAIout = new DataOutputStream (sock.getOutputStream());
+	EAIin = new DataInputStream(sock.getInputStream());
 
 	/* Install security */
-	System.setSecurityManager(new SecurityManager());
+	System.out.println ("Security manager commented out");
+	//System.setSecurityManager(new SecurityManager());
 
 	/* And Go... */
 	theBrowser = new Browser();
 
 	 	Hashtable scripts = new Hashtable();
-		EAIout.println("JavaClass version 1.0 - www.crc.ca");
+		EAIout.writeBytes("JavaClass version 1.0 - www.crc.ca");
 		EAIout.flush();
 
 		while(true) {
 			String cmd = EAIin.readLine();
-			System.err.println("got ");
-			System.err.println("--- "+cmd);
-			String nodeid =	EAIin.readLine() + EAIin.readLine();
+
+			// did FreeWRL leave us?
+			if (cmd == null) {
+				System.out.println ("have null string  exiting...\n"); 
+				System.exit(1);
+			}
+
+			System.out.println("got ");
+			System.out.println("--- "+cmd);
+
+			nodeid =EAIin.readLine() + EAIin.readLine();
+
 			if(cmd.equals("NEWSCRIPT")) {
 				String url = EAIin.readLine();
 				System.out.println("NEWSCRIPT: "+url);
@@ -130,7 +126,7 @@ System.out.println ("commented out val.__toPerl");
 				    s = (Script) classloader
 					.loadClass(classname).newInstance();
 				} catch (Exception ex) {
-				    System.err.println("Can't load script: "
+				    System.out.println("Can't load script: "
 						       + url);
 				    throw ex;
 				}
@@ -140,28 +136,28 @@ System.out.println ("commented out val.__toPerl");
 			} else if(cmd.equals("SETFIELD")) {
 			} else if(cmd.equals("INITIALIZE")) {
 				Script s = (Script)scripts.get(nodeid);
-System.out.println ("got INITIALIZE, past Script s");
-
 				reqid = EAIin.readLine();
-System.out.println ("just read in reqid " + reqid);
 				s.initialize();
-System.out.println ("just initialized");
 				send_touched(reqid);
-System.out.println ("sent touched");
 			} else if(cmd.equals("EVENTSPROCESSED")) {
 				Script s = (Script)scripts.get(nodeid);
 				reqid = EAIin.readLine();
 				s.eventsProcessed();
 				send_touched(reqid);
 			} else if(cmd.equals("SENDEVENT")) {
+				System.out.println ("FWJ - got a SENDEVENT");
+				System.out.println ("NodeID is " + nodeid);
 				Script s = (Script)scripts.get(nodeid);
+				System.out.println ("FWJ - got the script from nodeid");
 				reqid = EAIin.readLine();
 				String fname = EAIin.readLine();
 				String ftype = EAIin.readLine();
+				System.out.println ("FWJ, got SENDEVENT, script " + nodeid
+						+ " field " + fname + " type " + ftype);
+
 				ConstField fval = 
 				    FWCreateField.createConstField(ftype);
-System.out.println ("commented out __fromPerl\n");
-				//fval.__fromPerl(in);
+				fval.__fromPerl(EAIin);
 				double timestamp = 
 				    Double.parseDouble(EAIin.readLine());
 				Event ev = new Event(
@@ -169,34 +165,33 @@ System.out.println ("commented out __fromPerl\n");
 					timestamp,
 					fval
 				);
+				System.out.println ("FWJ: calling processEvent");
 				s.processEvent(ev);
+				System.out.println ("FWJ: sending touched");
 				send_touched(reqid);
+				System.out.println ("JWJ: finished sendevent");
 			} else {
 				throw new Exception("Invalid command '"
 						+ cmd + "'");
 			}
 		EAIout.flush();
 		}
-		//} catch(IOException e) {
-		//	System.err.println(e);
-		//	throw new Exception("Io error");
-		//}
-		
 	}
 
     public static String getFieldType(BaseNode node, String fieldname, 
 				      String kind)
     {
 	try {
-	    System.err.println("Java: "+node._get_nodeid()
+	    System.out.println ();
+	    System.out.println("FWJ:start getFieldType "+node._get_nodeid()
 			       +".getField("+fieldname+")");
 
-	    EAIout.println("GETFIELD");
-	    EAIout.println(node._get_nodeid());
-	    EAIout.println(fieldname);
-	    EAIout.println(kind);
+	    EAIout.writeBytes("GF " + node._get_nodeid() + " " + fieldname + " " + kind + "\n");
+	    EAIout.writeBytes(kind);
 	    EAIout.flush();
 
+	    System.out.println ("FWJ: getFieldType complete for" +node._get_nodeid()
+			                                   +".getField("+fieldname+")");
 	    return EAIin.readLine();
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
@@ -204,26 +199,28 @@ System.out.println ("commented out __fromPerl\n");
     }
 
     public static void readField(BaseNode node, String fieldName, Field fld) {
-	//try {
-	    System.err.println("FWJ: "+node._get_nodeid()+".readField("+fieldName+")");
-	    FWJavaScript.EAIout.println("READFIELD");
-	    FWJavaScript.EAIout.println(node._get_nodeid());
-	    FWJavaScript.EAIout.println(fieldName);
+	try {
+	    System.out.println ();
+	    System.out.println("FWJ:start readField "+
+			    node._get_nodeid()+".readField("+fieldName+") " +
+			    fld);
+	    FWJavaScript.EAIout.writeBytes("RF " + 
+			    node._get_nodeid() + " " + fieldName + "\n");
 	    FWJavaScript.EAIout.flush();
-System.out.println ("commented out fromPerl  xx\n");
-	    //fld.__fromPerl(in);
-	//} catch (IOException e) {
-	 //   throw new InternalError("Communication error: "+e);
-	//}
+	    fld.__fromPerl(EAIin);
+	} catch (IOException e) {
+	    throw new InternalError("Communication error: "+e);
+	}
+	System.out.println ("FWJ: readField complete for " +node._get_nodeid()+".readField("+fieldName+")");
     }
 
     public static String getNodeType(BaseNode node)
     {
 	try {
-	    System.err.println("creating VRML.");
-	    FWJavaScript.EAIout.println("GETTYPE");
-	    FWJavaScript.EAIout.println(node._get_nodeid());
+	    System.out.println("FWJ: creating VRML.");
+	    FWJavaScript.EAIout.writeBytes("GT "+ node._get_nodeid() + "\n");
 	    FWJavaScript.EAIout.flush();
+	    System.out.println("FWJ: getNodeType complete");
 	    return EAIin.readLine();
 	} catch (IOException e) {
 	    throw new InternalError("Communication error: "+e);
@@ -240,8 +237,8 @@ System.out.println ("commented out fromPerl  xx\n");
 	throws InvalidVRMLSyntaxException
     {
 	try {
-	    FWJavaScript.EAIout.println("CREATEVRML");
-	    FWJavaScript.EAIout.println(vrmlSyntax);
+	    FWJavaScript.EAIout.writeBytes("CV");
+	    FWJavaScript.EAIout.writeBytes(vrmlSyntax);
 	    FWJavaScript.EAIout.flush();
 	    String intstring = FWJavaScript.EAIin.readLine();
 	    int number = Integer.parseInt(intstring);
