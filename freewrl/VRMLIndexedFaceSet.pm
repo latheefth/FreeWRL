@@ -61,6 +61,12 @@ int i,j;	/* general purpose counters */
 int tmp_a, tmp_b;
 int this_face, this_coord, this_normal, this_normalindex;
 
+/* check to see if there are params to make at least one triangle */
+if (cin<2) {
+	//printf ("Null IFS found, returing ntri0\n");
+        rep_->ntri = 0;
+        return;
+}
 
 /* if the last coordIndex == -1, ignore it */
 if($f(coordIndex,cin-1) == -1) { cin--; }
