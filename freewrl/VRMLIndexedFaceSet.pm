@@ -182,17 +182,24 @@ if (!nnormals) {  		/* 3 vertexes per triangle, and 3 points per tri */
 }
 
 
-if (ntexerrors == 0)
-	tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
-else {
+if (ntexerrors == 0) {
+	if ((ntexCoords) && (HAVETODOTEXTURES)) {
+		tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+	}
+} else {
 	ntexCoords = 0; tcin = 0; 
 	printf ("killing textures %x\n",this_->texCoord);
 }
 
 /* in C always check if you got the mem you wanted...  >;->		*/
-if(!(cindex && colindex && tcindex && norindex && rep_->normal )) {
+if(!(cindex && colindex && norindex && rep_->normal )) {
 	die("Not enough memory for IndexFaceSet node triangles... ;(");
 } 
+
+if (!(tcindex) && HAVETODOTEXTURES && ntexCoords) {
+	die("Not enough memory for IndexFaceSet textures... ;(");
+} 
+
 
 
 /* Concave faces - use the OpenGL Triangulator to give us the triangles */
@@ -338,7 +345,7 @@ for (this_face=0; this_face<faces; this_face++) {
 
 
 		/* Texture Coordinates */
-		if (ntexCoords) {
+		if ((ntexCoords) && (HAVETODOTEXTURES)) {
 			if (tcin) {
 				tcindex[vert_ind] = $f(texCoordIndex,this_coord+global_IFS_Coords[i]);
 				//printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]);
