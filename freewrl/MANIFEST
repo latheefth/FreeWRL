@@ -32,7 +32,6 @@ Scene.pm
 Text/.cvsignore
 URL.pm
 USE.pm
-VRML.h
 VRMLC.pm
 VRMLCU.pm
 VRMLExtrusion.pm
