@@ -14,9 +14,6 @@
 #define PIXELSIZE 1
 #define POINTSIZE 50
 
-/* 
-#define OUT2GL(a,i) (size * (0.0 +a) / ((1.0*(font_face[i]->ascender + font_face[i]->descender)) / PPI*XRES))
-*/
 #define OUT2GL(a,i) (size * (0.0 +a) / ((1.0*(font_face[i]->height)) / PPI*XRES))
 
 #include <GL/gl.h>
@@ -59,9 +56,7 @@ char fw_fp[fp_len];
 char thisfontname[fp_name_len];
 
 /* where are we? */
-int xorig = 0;
-int yorig = 0;
-
+FT_Vector pen;
 
 /* are we initialized yet */
 int initialized = FALSE;
@@ -97,7 +92,6 @@ static void FW_err(GLenum e) {
 FW_make_fontname (int num, char *name) {
 	int i;
 
-printf ("FW_make_fontname %x\n",num);
 /*
                         bit:    0       BOLD        (boolean)
                         bit:    1       ITALIC      (boolean)
@@ -111,25 +105,28 @@ printf ("FW_make_fontname %x\n",num);
 		strcat (thisfontname,"/baklava.ttf");
 	} else {
 		strcpy (thisfontname,sys_fp);
-	
-	if ((num & 0x01)) printf ("bit 1 set\n");
-	if ((num & 0x02)) printf ("bit 2 set\n");
-	if ((num & 0x04)) printf ("bit 4 set\n");
-	if ((num & 0x08)) printf ("bit 8 set\n");
-	if ((num & 0x10)) printf ("bit 10 set\n");
-	
-		if ((num & 0x04)) strcat (thisfontname,"/Serifa");
-		else if ((num & 0x08)) strcat (thisfontname,"/SANS");
-		else if ((num & 0x10)) strcat (thisfontname,"/TYPEWRITER");
 
-		switch (num & 0x03) {
-		case 0:	strcat (thisfontname,"n"); break; /* normal */
-		case 1: strcat (thisfontname,"b"); break; /* bold */
-		case 2: strcat (thisfontname,"i"); break; /* italic */
-		case 3: strcat (thisfontname,"i"); break; /* bold italic */
+		switch (num) {
+			/* Serif, norm, bold, italic, bold italic */
+			case 0x04: strcat (thisfontname,"/Amrigon.ttf"); break;
+			case 0x05: strcat (thisfontname,"/Amrigob.ttf"); break;
+			case 0x06: strcat (thisfontname,"/Amrigoi.ttf"); break;
+			case 0x07: strcat (thisfontname,"/Amrigobi.ttf"); break;
+
+			/* Sans, norm, bold, italic, bold italic */
+			case 0x08: strcat (thisfontname,"/Baubodn.ttf"); break;
+			case 0x09: strcat (thisfontname,"/Baubodi.ttf"); break;
+			case 0x0a: strcat (thisfontname,"/Baubodn.ttf"); break;
+			case 0x0b: strcat (thisfontname,"/Baubodbi.ttf"); break;
+
+			/* Typewriter, norm, bold, italic, bold italic */
+			case 0x10: strcat (thisfontname,"/Futuran.ttf"); break;
+			case 0x11: strcat (thisfontname,"/Futurabi.ttf"); break;
+			case 0x12: strcat (thisfontname,"/Futurab.ttf"); break;
+			case 0x13: strcat (thisfontname,"/Futurabi.ttf"); break;
+
+			default: printf ("dont know how to handle font id %x\n",num);
 		}
-
-		strcat (thisfontname,".ttf");
 	}
 	
 	printf ("FW_make_fontname made %s\n",thisfontname);
@@ -162,11 +159,6 @@ int FW_init_face(int num, char *name) {
 			font_opened[num] = TRUE;
 		}
 	}
-
-	printf ("EM %d\n",font_face[num]->units_per_EM ) ;
-	if (font_face[num]->units_per_EM != 2048) 
-		printf ("Warning - old type - will display too small (%s %s)\n",
-			font_face[num]->family_name,name);
 	return TRUE;
 }
 
@@ -223,7 +215,6 @@ void FW_draw_outline (int myff, FT_OutlineGlyph oglyph, float size) {
 	GLdouble *v2;
 	GLdouble *vnew;
 
-
 	/* lets do the stuff to equate truetype and type1 fonts */
 	if (font_face[myff]->units_per_EM != 1000) 
 		size = size * font_face[myff]->units_per_EM/1000.0;
@@ -247,8 +238,8 @@ void FW_draw_outline (int myff, FT_OutlineGlyph oglyph, float size) {
 
 
 
-			float x = OUT2GL(oglyph->outline.points[point].x+xorig,myff);
-			float y = (0.0 + OUT2GL(oglyph->outline.points[point].y,myff) + yorig);
+			float x = OUT2GL(oglyph->outline.points[point].x+pen.x,myff);
+			float y = (0.0 + OUT2GL(oglyph->outline.points[point].y,myff) + pen.y);
 
 			flag = oglyph->outline.tags[point];
 			v[0] = x; v[1] = y; v[2] = 0;
@@ -289,9 +280,7 @@ void FW_draw_outline (int myff, FT_OutlineGlyph oglyph, float size) {
 			flaglast = flag;
 		}
 	}
-	if (verbose) printf ("end of FW_draw_outline\n");
 	gluEndPolygon(triang);
-	if (verbose) printf ("end of FW_draw_outline -- really!\n");
 }
 
 /* draw a glyph object */
@@ -302,7 +291,13 @@ FW_draw_character (int myff, FT_Glyph glyph, float size) {
 	} else {
 		printf ("FW_draw_character; glyphformat  -- need outline\n"); 
 	}
-	xorig +=  font_face[myff]->glyph->metrics.horiAdvance;
+
+	/* old type1 fonts, lets scale the pen movement appropriately */
+	if (font_face[myff]->units_per_EM == 1000) 
+		/* size = size * 2.048; */
+		size = size * 1.7;
+
+	pen.x +=  size * (glyph->advance.x >> 10);
 }
 
 
@@ -347,8 +342,6 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 
 			bit: 17-31	spare
 	*/
-	printf ("rendering text n %d nl %d first line length %f maxext %f spacing %f size %f fsparam %x\n",
-			n, nl, length[0], maxext, spacing, size, fsparam);
 
 	/* have we done any rendering yet */
 	if (!initialized) {
@@ -403,15 +396,14 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 
 	   if(maxlen > maxext) {shrink = maxext / OUT2GL(maxlen,myff);}
 	}
-	printf ("shrink is %f\n",shrink);
 
-	yorig = 0;
+	pen.y = 0;
 	for(row = 0; row < n; row++) {
 	   	double l;
 
 	   	str = SvPV(p[row],PL_na);
-		printf ("text2 row %d :%s:\n",row, str);
-	        xorig = 0;
+		if (verbose) printf ("text2 row %d :%s:\n",row, str);
+	        pen.x = 0;
 		rshrink = 0;
 		if(row < nl && length[row]) {
 			l = FW_extent(counter,strlen(str));
@@ -429,7 +421,7 @@ static void FW_rendertext(int n,SV **p,int nl, float *length,
 			FT_Done_Glyph (glyphs[counter+i]);
 		}
 		counter += strlen(str);
-		yorig -= 1.0;  /* row increment */
+		pen.y -= 1.0;  /* row increment */
    }
 }
 
@@ -486,6 +478,7 @@ CODE:
 		font_opened[len] = FALSE;
 	}
 
+	pen.x = 0; pen.y = 0;
 	}
 
 
