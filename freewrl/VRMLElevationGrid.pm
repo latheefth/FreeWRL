@@ -14,7 +14,6 @@ float zs = $f(zSpacing);
 float *f = $f(height);
 float a[3],b[3];
 int *cindex; 
-int *tcindex;
 float *coord;
 float *tcoord;
 int *colindex;
@@ -31,7 +30,7 @@ struct SFColor *normals;
 int nnormals = 0;
 int ccw = $f(ccw);
 
-void *texcoords;
+struct SFVec2f *texcoords;
 int ntexcoords = 0;
 
 /* variables for calculating smooth normals */
@@ -91,20 +90,17 @@ if(ncolors) {
 	}
 }
 
-/* just to make sure, we set tcindex to NULL first */
-tcindex = 0;
-
 if (HAVETODOTEXTURES) {
 	/* so, we now have to worry about textures. */
 	tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
 	if (!(tcoord)) die ("Not enough memory ElevGrid Tcoords");
 
+	rep_->tcindex = 0; // we will generate our own mapping
 	/* do we have to generate a default texture map?? */
-	if (ntexcoords != 0) {
-		tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
-		if (!(tcindex)) {	
-			die ("Not enough memory for ElevationGrid Tex Coords");
-		}
+	if ((ntexcoords > 0) && (ntexcoords < (nx*nz))) {
+		printf ("too few TextureCoordinates for ElevationGrid, expect %d have %d\n",
+			nx*nz, ntexcoords);
+		ntexcoords = 0; // set it to zero, so we calculate them
 	}
 }
 
@@ -156,9 +152,17 @@ for(z=0; z<nz; z++) {
 		coord[(x+z*nx)*3+1] = h;
 		coord[(x+z*nx)*3+2] = z*zs;
 		if (HAVETODOTEXTURES) {
-			tcoord[(x+z*nx)*3+0] = (float) x/(nx-1);
 			tcoord[(x+z*nx)*3+1] = 0;
-			tcoord[(x+z*nx)*3+2] = (float) z/(nz-1);
+			if (ntexcoords > 0) {
+				// TextureCoordinate passed in
+				tcoord[(x+z*nx)*3+0] = texcoords[x+z*nx].c[0];
+				tcoord[(x+z*nx)*3+2] = texcoords[x+z*nx].c[1];
+			} else {
+				tcoord[(x+z*nx)*3+0] = (float) x/(nx-1);
+				tcoord[(x+z*nx)*3+2] = (float) z/(nz-1);
+			}
+			//printf ("EV TC %d %d %f %f\n",
+			//	z,x,tcoord[(x+z*nx)*3+0], tcoord[(x+z*nx)*3+2] );
 		}
 	}
 }
@@ -249,19 +253,6 @@ if (ncolors) {
 			/* supplied colours/face- face has 3 points, 2 tris... */
 			rep_->colindex[x] = x/6;
 		}
-	}
-}
-
-/* if we have texcoords, we need the texture coord index */
-if (ntexcoords) {
-	for (x=0; x<ntri; x++) {
-		//printf ("elev tcindex was %d %d %d now is %d %d %d\n",
-		//	tcindex[x*3+0],tcindex[x*3+1],tcindex[x*3+2],
-		//	rep_->cindex[x*3+0],rep_->cindex[x*3+1],
-		//	rep_->cindex[x*3+2]);
-		tcindex[x*3+0] = rep_->cindex[x*3+0];
-		tcindex[x*3+1] = rep_->cindex[x*3+1];
-		tcindex[x*3+2] = rep_->cindex[x*3+2];
 	}
 }
 
