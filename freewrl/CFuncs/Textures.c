@@ -718,7 +718,8 @@ void _textureThread(void) {
 
 			/* is this a temporary file? */
 			if (remove == 1) {
-				unlink (loadparams[currentlyWorkingOn].filename);
+printf ("SHOULD REMOVE, COMMENTED OUT\n");
+				//unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
 			if (TexVerbose) printf ("duplicate file, currentlyWorkingOn %d texnum %s\n",
@@ -821,6 +822,59 @@ void __reallyloadPixelTexture() {
 }
 		
 	
+/*********************************************************************************************/
+
+/*
+ * JPEG ERROR HANDLING: code from
+ * http://courses.cs.deu.edu.tr/cse566/newpage2.htm
+ *
+ * The JPEG library's standard error handler (jerror.c) is divided into
+ * several "methods" which you can override individually.  This lets you
+ * adjust the behavior without duplicating a lot of code, which you might
+ * have to update with each future release.
+ *
+ * Our example here shows how to override the "error_exit" method so that
+ * control is returned to the library's caller when a fatal error occurs,
+ * rather than calling exit() as the standard error_exit method does.
+ *
+ * We use C's setjmp/longjmp facility to return control.  This means that the
+ * routine which calls the JPEG library must first execute a setjmp() call to
+ * establish the return point.  We want the replacement error_exit to do a
+ * longjmp().  But we need to make the setjmp buffer accessible to the
+ * error_exit routine.  To do this, we make a private extension of the
+ * standard JPEG error handler object.  (If we were using C++, we'd say we
+ * were making a subclass of the regular error handler.)
+ *
+ * Here's the extended error handler struct:
+ */
+ 
+struct my_error_mgr {
+	struct jpeg_error_mgr pub;    /* "public" fields */
+	jmp_buf setjmp_buffer; /* for return to caller */
+};
+ 
+typedef struct my_error_mgr * my_error_ptr;
+ 
+/*
+ * Here's the routine that will replace the standard error_exit method:
+ */
+ 
+METHODDEF(void)
+my_error_exit (j_common_ptr cinfo)
+{
+	/* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+  	my_error_ptr myerr = (my_error_ptr) cinfo->err;
+ 
+ 	/* Always display the message. */
+  	/* We could postpone this until after returning, if we chose. */
+  	//JAS (*cinfo->err->output_message) (cinfo);
+ 
+ 	/* Return control to the setjmp point */
+  	longjmp(myerr->setjmp_buffer, 1);
+}
+
+/*********************************************************************************************/
+ 
 void __reallyloadImageTexture() {	
 	FILE *infile;  
 	char *filename; 
@@ -837,24 +891,29 @@ void __reallyloadImageTexture() {
 
 	/* jpeg variables */
 	struct jpeg_decompress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	struct my_error_mgr jerr;
 	JDIMENSION nrows;
 	JSAMPROW row = 0;
 	JSAMPROW rowptr[1];
 	unsigned rowcount, columncount;
 	int dp;
 
+	/* jpeg file detection */
+	size_t rval;
+	char teststring[10];
+
+
 
 	filename = loadparams[currentlyWorkingOn].filename;
+
 	infile = fopen(filename,"r");
+
 	if ((rc = readpng_init(infile, &image_width, &image_height)) != 0) {
 
 		/* it is not a png file - assume a jpeg file */
 		/* start from the beginning again */
 		rewind (infile);
-		
-		/* see http://www.the-labs.com/JPEG/libjpeg.html for details */
-		
+
 		/* Select recommended processing options for quick-and-dirty output. */
 		cinfo.two_pass_quantize = FALSE;
 		cinfo.dither_mode = JDITHER_ORDERED;
@@ -862,7 +921,19 @@ void __reallyloadImageTexture() {
 		cinfo.dct_method = JDCT_FASTEST;
 		cinfo.do_fancy_upsampling = FALSE;
 
-		cinfo.err = jpeg_std_error(&jerr);
+		/* call my error handler if there is an error */
+		cinfo.err = jpeg_std_error(&jerr.pub);
+		jerr.pub.error_exit = my_error_exit;
+		if (setjmp(jerr.setjmp_buffer)) {
+			/* if we are here, we have a JPEG error */
+			printf ("FreeWRL Image problem - could not read %s\n", filename);
+			jpeg_destroy_compress(&cinfo);
+			fclose (infile);
+			isloaded[texture_num] = INVALID;
+			return;
+		}
+
+
 		jpeg_create_decompress(&cinfo);
 
 		/* Specify data source for decompression */
