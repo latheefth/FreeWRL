@@ -44,7 +44,7 @@
 #include <X11/StringDefs.h>
 
 
-#define PLUGIN_NAME			"FreeWRL VRML Netscape - Mozilla Plugin 1.0"
+#define PLUGIN_NAME			"FreeWRL VRML Netscape - Mozilla Plugin 2.0"
 #define PLUGIN_DESCRIPTION	"Implements VRML plugin functionality using FreeWRL. \nPlease see http://www.crc.ca/FreeWRL for more information"
 
 char *paramline[20]; /* parameter line */
@@ -382,7 +382,7 @@ char*
 NPP_GetMIMEDescription(void)
 {
 	print_here ("NPP_GetMIMEDescription");
-        return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser");
+        return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser;model/X3D:x3d:FreeWRL X3D Browser;x-world/x-X3D:x3d:FreeWRL X3D Browser");
 }
 
 NPError
