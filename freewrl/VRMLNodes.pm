@@ -551,6 +551,7 @@ my $protono;
  Billboard	children
  Anchor		children
  Collision	children
+ GeoLocation	children
 );
 
 %VRML::Nodes::siblingsensitive = map {($_, 1)} qw/
@@ -1553,6 +1554,22 @@ my $protono;
 						__geoSystem => [SFInt32,0,field],
 					}
 					),
+
+	GeoLocation =>
+	new VRML::NodeType("GeoLocation",
+					{
+						geoCoords => [SFString,"",exposedField],
+						children => [MFNode, [], field],
+						geoOrigin => [SFNode, NULL, field],
+						geoSystem => [MFString,["GD","WE"],field],
+
+						# "compiled" versions of strings above
+						__geoCoords => [SFVec3f,[0, 0, 0], field],
+						__geoSystem => [SFInt32,0,field],
+						
+					}
+					),
+
 
 
 

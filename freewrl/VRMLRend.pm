@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.116  2003/09/25 18:58:49  crc_canada
+# GeoVRML additions
+#
 # Revision 1.115  2003/09/25 17:40:42  crc_canada
 # first steps at GeoVRML
 #
@@ -1479,6 +1482,10 @@ GeoViewpoint => '
 	if (!render_vp) return;
 	render_GeoViewpoint ((struct VRML_GeoViewpoint*) this_);',
 
+GeoLocation => '
+	printf ("GeoLocation PushMatrix\n");
+	glPushMatrix();
+	render_GeoLocation ((struct VRML_GeoLocation*) this_);',
 
 Transform => '
 
@@ -1621,6 +1628,11 @@ Billboard => '
 
 # Finish rendering
 %FinC = (
+GeoLocation => (join '','
+	printf ("GeoLocation pop matrix\n");
+	glPopMatrix();
+	'),
+
 Transform => (join '','
         
 	if(!render_vp) {
@@ -1891,8 +1903,6 @@ Billboard => (join '','
 				struct VRML_Box *p = $f(children,i);
 				struct VRML_Virt *v = *(struct VRML_Virt **)p;
 				if(verbose) {printf("RENDER GROUP %d CHILD %d\n",this_, p);}
-				/* Hmm - how much time does this consume? */
-				/* Not that much. */
 				if(!$i(has_light) || (v->rend != DirectionalLight_Rend)) {
 					render_node(p);
 				}
@@ -1910,6 +1920,7 @@ Billboard => (join '','
 $ChildC{Transform} = $ChildC{Group};
 $ChildC{Billboard} = $ChildC{Group};
 $ChildC{Anchor} = $ChildC{Group};
+$ChildC{GeoLocation} = $ChildC{Group};
 
 #######################################################################
 #######################################################################
@@ -2028,6 +2039,7 @@ $ExtraMem{Transform} = $ExtraMem{Group};
 $ExtraMem{Billboard} = $ExtraMem{Group};
 $ExtraMem{Anchor} = $ExtraMem{Group};
 $ExtraMem{Collision} = $ExtraMem{Group};
+$ExtraMem{GeoLocation} = $ExtraMem{Group};
 
 
 #######################################################################
@@ -2058,6 +2070,7 @@ $ChangedC{Transform} = $ChangedC{Group};
 $ChangedC{Billboard} = $ChangedC{Group};
 $ChangedC{Anchor} = $ChangedC{Group};
 $ChangedC{Collision} = $ChangedC{Group};
+$ChangedC{GeoLocation} = $ChangedC{Group};
 
 
 #######################################################################

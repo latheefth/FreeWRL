@@ -35,3 +35,4 @@
 /* function prototypes */
 void geoSystemCompile (struct Multi_String *geoSystem, int *__geoSystem, char *description);
 void render_GeoOrigin (struct VRML_GeoOrigin *node);
+void render_GeoLocation (struct VRML_GeoLocation *node);

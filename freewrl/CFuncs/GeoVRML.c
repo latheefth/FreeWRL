@@ -80,3 +80,19 @@ void render_GeoOrigin (struct VRML_GeoOrigin *node) {
                 node->_dlchange = node->_change;
         }
 }
+
+void render_GeoLocation (struct VRML_GeoLocation *node) {
+        /* is the position "compiled" yet? */
+        if (node->_change != node->_dlchange) {
+                if (sscanf (SvPV(node->geoCoords,PL_na),"%f %f %f",&node->__geoCoords.c[0],
+                        &node->__geoCoords.c[1], &node->__geoCoords.c[2]) != 3) {
+                        printf ("GeoLocation: invalid geoCoords string: :%s:\n",
+                                        SvPV(node->geoCoords,PL_na));
+                }
+
+                geoSystemCompile (&node->geoSystem, &node->__geoSystem,"GeoLocation");
+                node->_dlchange = node->_change;
+        }
+	printf ("GeoLocating to %f %f %f\n",node->__geoCoords.c[0],node->__geoCoords.c[1],
+			node->__geoCoords.c[2]);
+}
