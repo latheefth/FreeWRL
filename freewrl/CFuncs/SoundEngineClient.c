@@ -217,8 +217,8 @@ void SoundSourceInit (int num, int loop, float pitch, float start_time, float st
 		return;
 	}
 
-	sprintf (mystring,"REGS %2d %2d %4.3f %4.3f %4.3f %s",num,loop,pitch,start_time,
-			stop_time,url);
+	sprintf (mystring,"REGS:%s %2d %2d %4.3f %4.3f %4.3f",url,num,loop,pitch,start_time,
+			stop_time);
 	SReg[num] = TRUE;
 	Sound_toserver(mystring);
 }
