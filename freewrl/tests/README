@@ -128,6 +128,10 @@ AddRemove:
 	on these, or run it from within netscape. Also, read the "README" 
 	in the directory.
 
+AddRoute:
+	Java applet with EAI add/remove/addroute/removeroute buttons.
+	Check paths, etc, and have fun!
+
 Tiny3D:
 	Java applet with EAI to create a scene. Run the script "standalone"
 	in the directory - check paths for everything, as it is dependent
