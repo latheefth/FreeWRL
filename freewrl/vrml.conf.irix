@@ -8,7 +8,11 @@
 
 # OpenGL (or Mesa) libraries, defines and includes (e.g. -I/usr/OpenGL...). 
      OPENGL_LIBS => '-L/usr/lib32 -lGL -lGLU -lXext -lX11',
-     OPENGL_DEFINE => '',
+     # the following line is required to switch into quadbuffer stereo mode
+     # on SGI Indigo2 Impact or some SGI O2 workstations
+     OPENGL_DEFINE => '-DSTEREOCOMMAND="\"/usr/gfx/setmon -n 1024x768_96s\""',
+
+
 
 # JPEG libraries & includes
     JPEG_LIBS => '-L/usr/freeware/lib32 -ljpeg',
