@@ -83,7 +83,14 @@ sub STORE {
 	# 	print "DEREF: $v\n" if $VRML::verbose::tief;
 	# }
 	$$v = $value;
-	print "STORE, $node, $k, $value\n" if $VRML::verbose::events;
+	if ($VRML::verbose::events) {
+		if ($k eq "__data") {
+			print "STORE, $node, $k, BINARY DATA\n";
+		} else { 
+			print "STORE, $node, $k, $value\n";
+		}
+	}
+
 	if (defined $node->{EventModel}){
 	  print "STORE, defined eventmodel\n" if $VRML::verbose::events;
 	  $node->{EventModel}->put_event($node, $k, $value);
@@ -408,9 +415,6 @@ sub receive_event {
 		("ARRAY" eq ref $value? (join ', ',@$value):$value),"\n" 
 		if $VRML::verbose::events;
 	$this->{RFields}{$field} = $value;
-        # if ("ARRAY" eq ref $value) {
- 	# print "REC:.... array contains ",@$value,"\n";
-	# }
 
 	if($this->{Type}{Actions}{$field}) {
 		print "RACT!\n" if $VRML::verbose;
@@ -1087,6 +1091,7 @@ sub getNode {
 
 sub as_string {
 	my($this) = @_;
+print "Scene::as_string, nodes are ", @{$this->{Nodes}},"\n";
 	join "\n ($this) ",map {$_->as_string} @{$this->{Nodes}};
 }
 
