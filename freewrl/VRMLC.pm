@@ -27,6 +27,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.31  2001/06/25 18:35:01  crc_canada
+# ElevationGrid textures now ok.
+#
 # Revision 1.30  2001/06/18 17:24:50  crc_canada
 # IRIX compile warnings removed
 #
@@ -486,7 +489,9 @@ ElevationGrid => '
 		float *f = $f(height);
 		float a[3],b[3];
 		int *cindex; 
+        	int *tcindex;
 		float *coord;
+		float *tcoord;
 		int *colindex;
 		int ntri = (nx && nz ? 2 * (nx-1) * (nz-1) : 0);
 		int triind;
@@ -494,9 +499,9 @@ ElevationGrid => '
 		int cpv = $f(colorPerVertex);
 		struct SFColor *colors; int ncolors=0;
 		struct VRML_PolyRep *rep_ = this_->_intern;
+		
 		$fv_null(color, colors, get3, &ncolors);
 		rep_->ntri = ntri;
-		printf("Gen elevgrid %d %d %d\\n", ntri, nx, nz);
 		if(nf != nx * nz) {
 			die("Elevationgrid: too many / too few: %d %d %d\\n",
 				nf, nx, nz);
@@ -511,7 +516,10 @@ ElevationGrid => '
 		}
 		cindex = rep_->cindex = malloc(sizeof(*(rep_->cindex))*3*(ntri));
 		coord = rep_->coord = malloc(sizeof(*(rep_->coord))*nx*nz*3);
+		tcoord = rep_->tcoord = malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
 		colindex = rep_->colindex = malloc(sizeof(*(rep_->colindex))*3*(ntri));
+	        tcindex = rep_->tcindex = malloc(sizeof(*(rep_->tcindex))*3*(ntri));
+
 		/* Flat */
 		rep_->normal = malloc(sizeof(*(rep_->normal))*3*ntri);
 		rep_->norindex = malloc(sizeof(*(rep_->norindex))*3*ntri);
@@ -524,12 +532,18 @@ ElevationGrid => '
  
 
 		/* Prepare the coordinates */
+		/* note, we always prepare our canned tcoords, even if we currently 
+		   dont need them */
+
 		for(x=0; x<nx; x++) {
 		 for(z=0; z<nz; z++) {
 		  float h = f[x+z*nx];
 		  coord[(x+z*nx)*3+0] = x*xs;
 		  coord[(x+z*nx)*3+1] = h;
 		  coord[(x+z*nx)*3+2] = z*zs;
+		  tcoord[(x+z*nx)*3+0] = (float) x/(nx-1);
+		  tcoord[(x+z*nx)*3+1] = 0;
+		  tcoord[(x+z*nx)*3+2] = (float) z/(nz-1);
 		 }
 		}
 		/* set the indices to the coordinates		*/
@@ -568,9 +582,9 @@ ElevationGrid => '
 		}
 		  
 		  /* 1: */
-		  cindex[triind*3+0] = D;
-		  cindex[triind*3+1] = A;
-		  cindex[triind*3+2] = E;
+		  cindex[triind*3+0] = tcindex[triind*3+0] =D;
+		  cindex[triind*3+1] = tcindex[triind*3+1] =A;
+		  cindex[triind*3+2] = tcindex[triind*3+2] =E;
 		  if(cpv) {
 			  colindex[triind*3+0] = D;
 			  colindex[triind*3+1] = A;
@@ -585,9 +599,9 @@ ElevationGrid => '
 		rep_->norindex[triind*3+2] = triind;
 		  triind ++;
 		  /* 2: */
-		  cindex[triind*3+0] = B;
-		  cindex[triind*3+1] = C;
-		  cindex[triind*3+2] = F;
+		  cindex[triind*3+0] = tcindex[triind*3+0] = B;
+		  cindex[triind*3+1] = tcindex[triind*3+1] = C;
+		  cindex[triind*3+2] = tcindex[triind*3+2] = F;
 		  if(cpv) {
 			  colindex[triind*3+0] = B;
 			  colindex[triind*3+1] = C;
@@ -871,21 +885,6 @@ IndexedFaceSet => '
 			}
 		}
 	}
-        /* Got neither tex index nor tex coords: fallback to default mapping */
-        if(! tcin && ! ntexCoords) {
-           /* Map S axis on X plane and T axis on Y plane */
-           GLfloat sgenparams[] = {1.0, 0.0, 0.0, 0.0};
-           GLfloat tgenparams[] = {0.0, 1.0, 0.0, 0.0};
-	   /* printf ("no tex coords, go back to default mapping\n"); */
-
-           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-           glTexGenfv(GL_S, GL_OBJECT_PLANE, sgenparams);
-           glEnable(GL_TEXTURE_GEN_S);
-           glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-           glTexGenfv(GL_T, GL_OBJECT_PLANE, tgenparams);
-           glEnable(GL_TEXTURE_GEN_T);
-        }
-
 if(!$f(convex)) {
 
 /* End a non-convex polygon */
@@ -1237,8 +1236,6 @@ sub gen {
 
 #define offset_of(p_type,field) ((unsigned int)(&(((p_type)NULL)->field)-NULL))
 
-#define TC(a,b) glTexCoord2f(a,b)
-
 #ifdef M_PI
 #define PI M_PI
 #else
@@ -1269,6 +1266,7 @@ sub gen {
 #define UP_TRIG2 t2_sa1 = t2_sa; t2_sa -= t2_sa*t2_aa - t2_ca * t2_ab; t2_ca -= t2_ca * t2_aa + t2_sa1 * t2_ab;
 #define SIN2 t2_sa
 #define COS2 t2_ca
+
 
 D_OPENGL;
 
@@ -1356,7 +1354,7 @@ struct VRML_PolyRep { /* Currently a bit wasteful, because copying */
 	int *norindex;
 	float *normal; /* triples or null */
         int *tcindex; /* triples or null */
-        float *tc;
+        float *tcoord;	/* triples (per triangle) of texture coords */
 };
 
 ';
@@ -1603,7 +1601,8 @@ void render_polyrep(void *node,
 	int npoints, struct SFColor *points,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
-	int ntexcoords, struct SFVec2f *texcoords);
+	int ntexcoords, struct SFVec2f *texcoords
+	);
 void regen_polyrep(void *node) ;
 void calc_poly_normals_flat(struct VRML_PolyRep *rep);
 
@@ -1760,6 +1759,10 @@ void render_polyrep(void *node,
 	int pti;
 	int hasc;
 
+	/* texture generation points... */
+	GLfloat minx, miny, minz = 99999.0;
+	GLfloat maxx, maxy, maxz = -99999.0;
+
 	v = *(struct VRML_Virt **)node;
 	p = node;
 	r = p->_intern;
@@ -1781,34 +1784,6 @@ void render_polyrep(void *node,
 		glEnable(GL_COLOR_MATERIAL);
 	}
 
-        for(i=0; i<r->ntri*3; i+=3) {
-                int ind = r->cindex[i];
-                GLfloat a1,b1,c1 = 0.0;
-                GLfloat a2,b2,c2 = 0.0;
-                GLfloat a3,b3,c3 = 0.0;
-		GLfloat x1,x2,x3 = 0.0;
-
-                if(points) {
-                        a1=points[ind].c[0];b1=points[ind].c[1];c1=points[ind].c[2];
-			ind = r->cindex[i+1];
-                        a2=points[ind].c[0];b2=points[ind].c[1];c2=points[ind].c[2];
-			ind = r->cindex[i+2];
-                        a3=points[ind].c[0];b3=points[ind].c[1];c3=points[ind].c[2];
-
-                } else if(r->coord) {
-                        a1=r->coord[3*ind+0]; b1=r->coord[3*ind+1]; c1= r->coord[3*ind+2];
-			ind = r->cindex[i+1];
-                        a2=r->coord[3*ind+0]; b2=r->coord[3*ind+1]; c2= r->coord[3*ind+2];
-			ind = r->cindex[i+2];
-                        a3=r->coord[3*ind+0]; b3=r->coord[3*ind+1]; c3= r->coord[3*ind+2];
-                }
-	}
-
-
-
-
-
-
 	glBegin(GL_TRIANGLES);
 	for(i=0; i<r->ntri*3; i++) {
 		int nori = i;
@@ -1818,9 +1793,7 @@ void render_polyrep(void *node,
 		GLfloat color[4];
 		GLfloat a,b,c = 0.0;
 
-		/* printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3); 
-		printf ("rp, r->norindex %d  r->colindex %d, r->tcindex %d\n",
-			r->norindex,  r->colindex, r->tcindex); */
+		/* printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3);  */
 
 		/* get normals and colors, if any	*/
 		if(r->norindex) {nori = r->norindex[i];}
@@ -1856,29 +1829,20 @@ void render_polyrep(void *node,
 
 
 		/* Textures	*/
+		if (glIsEnabled(GL_TEXTURE_2D)) {
 		if(texcoords && ntexcoords) {
-		  	/* printf("Render tex coord #%d = [%.5f, %.5f]\t\t",
-				tci, texcoords[tci].c[0], texcoords[tci].c[1] ); */
+		  	/*printf("Render tex coord #%d = [%.5f, %.5f]\t\t",
+				tci, texcoords[tci].c[0], texcoords[tci].c[1] ); 
+			*/
 		  	glTexCoord2fv(texcoords[tci].c);
-
-		} else {
-			/* maybe the Material node has textures? 	*/
-			/* if so, try some kind of mapping.		*/
-			/* lord knows if anything will happen...	*/
-			switch (tci -tci/6*6) {
-			case 0:
-				TC(1,1); break;
-			case 1:
-				TC(0,1); break;
-			case 2:
-				TC(0,0); break;
-			case 3:
-				TC(1,1); break;
-			case 4:
-				TC(0,0); break; 
-			case 5:
-				TC(1,0); break;
-			}
+		} else if (r->tcoord) {
+			/* we generated these... */
+			/* printf ("polyrep structure has ind %d tex coords %f %f %f \n",ind,
+			r->tcoord[3*ind+0], r->tcoord[3*ind+1],r->tcoord[3*ind+2]   );
+			*/
+		  	glTexCoord2f( r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
+			
+		}
 		}
 
 
@@ -1886,14 +1850,16 @@ void render_polyrep(void *node,
 		/* Coordinate points	*/
 		if(points) {
 		  	/* printf("Render (points) vertex #%d = [%.5f, %.5f, %.5f]\n",
-			  ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] ); */
+			  ind, points[ind].c[0], points[ind].c[1], points[ind].c[2] );  */
 			glVertex3fv(points[ind].c);
 		} else if(r->coord) {	
 		  	/* printf("Render (r->coord) vertex #%d = [%.5f, %.5f, %.5f]\n",
-			  ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]); */
+			  ind, r->coord[3*ind+0], r->coord[3*ind+1], r->coord[3*ind+2]); 
+			*/
 			glVertex3fv(r->coord+3*ind);
 		}
 	}
+
 	glEnd();
 	if(hasc) {
 		glDisable(GL_COLOR_MATERIAL);
@@ -2041,7 +2007,7 @@ void regen_polyrep(void *node)
 		r = p->_intern;
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
-		r->norindex = 0; r->normal = 0;
+		r->norindex = 0; r->normal = 0; r->tcoord = 0;
 		r->tcindex = 0; 
 	}
 	r = p->_intern;
@@ -2049,6 +2015,7 @@ void regen_polyrep(void *node)
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);
+	FREE_IF_NZ(r->tcoord);
 	FREE_IF_NZ(r->colindex);
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->norindex);
