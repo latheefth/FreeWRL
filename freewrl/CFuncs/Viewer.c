@@ -110,9 +110,9 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 void
 print_viewer()
 {
-  struct orient ori;
-  quaternion_to_vrmlrot(&(Viewer.Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
-  printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (Viewer.Pos).x, (Viewer.Pos).y, (Viewer.Pos).z, (Viewer.Quat).w, (Viewer.Quat).x, (Viewer.Quat).y, (Viewer.Quat).z, ori.x, ori.y, ori.z, ori.a);
+	struct orient ori;
+	quaternion_to_vrmlrot(&(Viewer.Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
+	printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (Viewer.Pos).x, (Viewer.Pos).y, (Viewer.Pos).z, (Viewer.Quat).w, (Viewer.Quat).x, (Viewer.Quat).y, (Viewer.Quat).z, ori.x, ori.y, ori.z, ori.a);
 
 }
 
@@ -546,6 +546,8 @@ handle_tick_exfly()
 * with data from the external inputs(the ascension or polhemus at least)
 *I/O: takes a pointer to a list of data, returns nothing
 *************************************************/
+
+/*JAS 
 void handle_tick_exin ( float *data ) {
 
   viewer_type = EXFLY;
@@ -560,6 +562,7 @@ void handle_tick_exin ( float *data ) {
   (Viewer.Quat).z = data[6];
 
 }
+*/
 
 void
 set_action(char *key)
@@ -635,6 +638,7 @@ handle_tick_fly()
 	for (i = 0; i < KEYS_HANDLED; i++) {
 		(ps[i]).hit += (fly->WasDown[i]).hit;
 		(fly->WasDown[i]).hit = 0;
+	} //JAS - MW lost this one.
 
 	memset(translate, 0, sizeof(int) * COORD_SYS);
 	memset(rotate, 0, sizeof(int) * COORD_SYS);
@@ -683,7 +687,7 @@ handle_tick_fly()
 	set(&q_v, &(Viewer.Quat));
 	multiply(&(Viewer.Quat), &nq, &q_v);
 
-    }
+    //JAS - MW added one here. }
 
 }
 
