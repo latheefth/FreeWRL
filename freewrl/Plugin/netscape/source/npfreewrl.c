@@ -101,17 +101,17 @@ static int freewrl_running = 0;
 // Debugging routine
 static void print_here (char * xx)
 {
-
-    if (tty == NULL) {
-	tty = fopen("/tmp/log", "w");
-
-	if (tty == NULL)
-	    abort();
-	fprintf (tty, "\nplugin restarted\n");
-	}
-
-    fprintf(tty, "plug-in: %s\n", xx);
-    fflush(tty);
+// uncomment this stuff to enable log printing.
+//    if (tty == NULL) {
+//	tty = fopen("/tmp/log", "w");
+//
+//	if (tty == NULL)
+//	    abort();
+//	fprintf (tty, "\nplugin restarted\n");
+//	}
+//
+//    fprintf(tty, "plug-in: %s\n", xx);
+//    fflush(tty);
 }
 
 
