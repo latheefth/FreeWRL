@@ -854,7 +854,11 @@ sub newextp {
 		 if($string =~ /^#VRML V1.0/) {
 			 print "Sorry, this file is according to VRML V1.0, I only know V2.0\n";
 			 exit(1);
-		 }
+                } elsif ($string =~/^<\?xml version/s) {
+                                print "Sorry, xml encoding is not here yet\n";
+                                exit(1);
+                }
+
 		 warn("WARNING: file '$protourl' doesn't start with the '#VRML V2.0' header line");
 	}
 
@@ -1085,7 +1089,7 @@ sub mkbe_and_array {
 
 
 sub getNode {
-	my $n = $_[0]{TmpDef}{$_[1]};
+	my $n = $_[0]{TmpDef}{VRML::Field::SFNode::return_def_name($_[1])};
 	if(!defined $n) {
 		print "Node '$_[1]' not defined\n";
 		return "undefined";
