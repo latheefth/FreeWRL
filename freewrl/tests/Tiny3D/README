@@ -1,9 +1,13 @@
-Woops!
+As of 0.27, Tiny3D now works. 
 
+BUT -- the appletviewer no longer uses CLASSPATH (!!!) so please
+copy over these files to the ../../java directory, and run from
+there. 
 
-This one has a null pointer in it that my EAI classes
-don't like...
+This will put the EAI classes local to the Tiny3D program, and
+the appletviewer will be happy.
 
-... so it does not run (yet)
+Anybody want to investigate a workaround? IF not, check back
+here later...
 
 John.
