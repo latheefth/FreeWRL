@@ -28,12 +28,10 @@
 
 #include "jsVRMLBrowser.h"
 
-#define INIT_ARGC_IMG 3
-#define INIT_ARGC 3
-#define INIT_ARGC_ROT 2
+#define INIT_ARGC_NODE 1
+#define INIT_ARGC 0
 
-#define NULL_HANDLE "NULL"
-#define BROWSER_SFNODE "__node"
+#define NULL_HANDLE "NULL_HANDLE"
 
 #if 0
 /* #define AVECLEN(x) (sqrt((x)[0]*(x)[0]+(x)[1]*(x)[1]+(x)[2]*(x)[2])) */
@@ -67,7 +65,7 @@
  * * SFRotation, MFRotation
  * * MFString
  * * MFTime
- * * SFVec2f, MFVec2f -- untested!!!
+ * * SFVec2f, MFVec2f
  * * SFVec3f, MFVec3f
  *
  * These (single value) fields have struct types defined elsewhere
