@@ -323,7 +323,11 @@ sub createVrmlFromString {
 	my $scene = VRML::Scene->new($this->{EV},"FROM A STRING, DUH");
 	VRML::Parser::parse($scene, $string);
         $scene->make_executable();
-	return $scene->mkbe_and_array($this->{BE},$this->{Scene});
+	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
+	# debugging scene graph call: 
+	# $scene->dump(0);
+
+	return $ret;
 }
 
 sub createVrmlFromURL { 
@@ -356,11 +360,11 @@ sub createVrmlFromURL {
 	VRML::Parser::parse($scene, $t);
         $scene->make_executable();
 
-	if ($VRML::verbose::eai) {
-		print "createVRMLFromURL - nodes are ",  $scene->mkbe_and_array(), "\n";
-	}
-
-	return $scene->mkbe_and_array($this->{BE},$this->{Scene});
+	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
+	# debugging scene graph call
+	# $scene->dump(0);
+	
+	return $ret
  }
 
 
@@ -378,31 +382,6 @@ sub api__sendEvent {
 	$this->{EV}->send_event_to($node,$field,$val);
 }
 
-# this one just registers real_node IS's.
-my %IS = ();
-sub api__register_IS_ALIAS {
-	my ($node, $is, $as, $direction) = @_;
-	# print "api__register_IS_ALIAS, node $node, is $is as $as direction $direction\n";
-	# note, we don't care right now what the direction is... Should we?
-	if(!defined $IS{$node}{$is}) {
-		$IS{$node}{$is} = $as;
-	}
-
-}
-
-sub api__find_IS_ALIAS {
-	my ($node, $is) = @_;
-	# print "api__find_IS_ALIAS, checking node $node for field $is\n";
-        if (!defined $IS{$node}{$is}) {
-		# print "api__find_IS_ALIAS returning FALSE \n";
-		return FALSE;
-	}
-	# print "api__find_IS_ALIAS returning ",  $IS{$node}{$is},"\n";
-	return $IS{$node}{$is};
-}
-
-
-
 sub api__registerListener { 
 	my($this, $node, $field, $sub) = @_;
 	$this->{EV}->register_listener($node, $field, $sub);
@@ -411,30 +390,37 @@ sub api__registerListener {
 sub api__getFieldInfo {
 	my($this,$node,$field) = @_;
 
-	#print "getFieldInfo, type is ",$node->{Type},"\n";
-	#print "getFieldInfo, FieldKinds is ",$node->{Type}{FieldKinds},"\n";
-        #for(keys %{$node->{Type}{FieldKinds}}) {
-	#	print "key $_\n";
-	#}
-	#print "getFieldInfo, Fieldtype is ",$node->{Type}{FieldTypes},"\n";
-        #for(keys %{$node->{Type}{FieldTypes}}) {
-	#	print "key $_\n";
-	#}
+	my ($k, $t);
 
-	my($k,$t) = ($node->{Type}{FieldKinds}{$field},$node->{Type}{FieldTypes}{$field});
+	# print "api__getFieldInfor for node ",VRML::Node::dump_name($node),"\n";
+
+	# print "getFieldInfo, type is ",$node->{Type},"\n";
+	# print "getFieldInfo, FieldKinds is ",$node->{Type}{FieldKinds},"\n";
+        # for(keys %{$node->{Type}{FieldKinds}}) {
+	# 	print "key $_\n";
+	# }
+	# print "getFieldInfo, Fieldtype is ",$node->{Type}{FieldTypes},"\n";
+        # for(keys %{$node->{Type}{FieldTypes}}) {
+	# 	print "key $_\n";
+	# }
+	# print "getFieldInfo, Fieldtype is ",$node->{FieldTypes},"\n";
+        # for(keys %{$node->{FieldTypes}}) {
+	# 	print "key $_\n";
+	# }
+
+	# print "gestures try is ", $node->{FieldType}{gestures},"\n";
+	# if (exists $node->{Type}) {
+		($k,$t) = ($node->{Type}{FieldKinds}{$field},$node->{Type}{FieldTypes}{$field});
+	# } else {
+	# 	($k,$t) = ($node->{FieldKinds}{$field},$node->{FieldTypes}{$field});
+	# }
 	
-	# print "getFieldInfo, k is $k, type is $t\n";
+	 print "getFieldInfo, k is $k, type is $t\n";
 	return($k,$t);
 }
 
 
 sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
-
-# lets find the actual child transform that contains the field - PROTO stuff...
-sub  find_transform {
-        my ($this,$node, $field) = @_;
-	return VRML::NodeType::find_transform ($this, $node, $field, 0);
-}
 
 # is the child already present in the parent? If so, then return 1, if not, return 0
 sub checkChildPresent {
@@ -629,12 +615,12 @@ sub def_reserve {
 }
 sub return_def_name {
 	my ($name) = @_;
-	# print "return_def_name, looking for $name , it is ";
+	#print "return_def_name, looking for $name , it is ";
 	if (!exists $DEFNAMES{$name}) {
 		# print "return_def_name - Name $name does not exist!\n";
 		return $name;
 	}
-	# print $DEFNAMES{$name},"\n";
+	#print $DEFNAMES{$name},"\n";
 	return $DEFNAMES{$name};
 	}
 
@@ -666,7 +652,9 @@ sub check_displayed {
 sub front_end_child_reserve {
 	my ($child,$real) = @_;
 	$RP{$child} = $real;
-	# print "front_end_child_reserve, reserving for child $child ", ref $child, " real $real ", ref $real, "\n";
+	# print "front_end_child_reserve, reserving for child $child ", ref $child, 
+	# 	VRML::Node::dump_name($child),  " real $real ", ref $real, 
+	# 	VRML::Node::dump_name($real), "\n";
 
 }
 
@@ -709,7 +697,7 @@ sub get {
 	##print "       typeName ",$S{$handle}[0]{TypeName},"\n";
 	if(!exists $S{$handle}) {
 		print "Nonexistent VRML Node Handle!\n";
-		exit (1);
+		return $handle;
 	}
 	return $S{$handle}[0];
 }
@@ -717,7 +705,7 @@ sub check {
 	my($handle) = @_;
 	return NULL if $handle eq "NULL";
 	if(!exists $S{$handle}) {
-		print ("Handle::check $handle - Not a Node Handle!\n");
+		# print ("Handle::check $handle - Not a Node Handle!\n");
 		return 0;
 	}
 	# print "Handle::check ", $S{$handle}[0], " ref ", ref($S{$handle}[0]), "\n";
