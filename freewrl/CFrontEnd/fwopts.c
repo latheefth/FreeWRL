@@ -144,7 +144,7 @@ void setGeometry (char *gstring);
 static int xPos = 0;
 static int yPos = 0;
 #ifndef AQUA
-void openMainWindow (unsigned *Disp, unsigned *Win,
+void openMainWindow (Display *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
 	int	pw = 0; 

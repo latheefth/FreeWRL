@@ -637,7 +637,7 @@ void _perlThread(void *perlpath) {
 		/* initialize stuff for prel interpreter */
 		my_perl = perl_alloc();
 		perl_construct (my_perl);
-		if (perl_parse(my_perl, (char *)xs_init, 2, commandline, NULL)) {
+		if (perl_parse(my_perl, (XSINIT_t)xs_init, 2, commandline, NULL)) {
 			printf ("freewrl can not parse initialization script %s, exiting...\n",
 				commandline[1]);
 			exit(1);

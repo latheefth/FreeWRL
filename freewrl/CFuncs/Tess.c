@@ -159,14 +159,14 @@ void new_tessellation(void) {
 		freewrlDie("Got no memory for Tessellation Object!");
 		
 	/* register the CallBackfunctions				*/
-	gluTessCallback(global_tessobj,GLU_BEGIN,FW_tess_begin);
-	gluTessCallback(global_tessobj,GLU_EDGE_FLAG,FW_tess_edgeflag);
-	gluTessCallback(global_tessobj,GLU_VERTEX,FW_IFS_tess_vertex);
-	gluTessCallback(global_tessobj,GLU_TESS_VERTEX,FW_IFS_tess_vertex);
-	gluTessCallback(global_tessobj,GLU_ERROR,FW_tess_error);
-	gluTessCallback(global_tessobj,GLU_END,FW_tess_end);
-	gluTessCallback(global_tessobj, GLU_TESS_COMBINE_DATA,FW_tess_combine_data);
-	gluTessCallback(global_tessobj, GLU_TESS_COMBINE,FW_tess_combine);
+	gluTessCallback(global_tessobj,GLU_BEGIN,(_GLUfuncptr)FW_tess_begin);
+	gluTessCallback(global_tessobj,GLU_EDGE_FLAG,(_GLUfuncptr)FW_tess_edgeflag);
+	gluTessCallback(global_tessobj,GLU_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
+	gluTessCallback(global_tessobj,GLU_TESS_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
+	gluTessCallback(global_tessobj,GLU_ERROR,(_GLUfuncptr)FW_tess_error);
+	gluTessCallback(global_tessobj,GLU_END,(_GLUfuncptr)FW_tess_end);
+	gluTessCallback(global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_data);
+	gluTessCallback(global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
 
 
 	    /* Unused right now.

@@ -899,7 +899,7 @@ void __reallyloadImageTexture() {
 
 void __reallyloadMovieTexture () {
 	int x,y,depth,frameCount;
-	int ptr;
+	void *ptr;
 	int firstTex;
 	
 	firstTex = *loadparams[currentlyWorkingOn].texture_num;

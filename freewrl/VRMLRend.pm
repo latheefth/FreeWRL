@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.138  2004/10/06 13:39:44  crc_canada
+# Debian patches from Sam Hocevar.
+#
 # Revision 1.137  2004/09/21 17:52:46  crc_canada
 # make some rendering improvements.
 #
@@ -930,13 +933,25 @@ Sound => '
 				}
 			}
 
-			/* Now, fit in the intensity. */
+#ifdef JOHNSOUND
+			/* Now, fit in the intensity. Send along command, with
+			source number, amplitude, balance, and the current Framerate */
+			amp = amp*this_->intensity;
+			if (sound_from_audioclip) {
+				sprintf (mystring,"AMPL %d %f %d %f",acp->__sourceNumber,
+					amp,0,BrowserFPS);
+			} else {
+				sprintf (mystring,"MMPL %d %f %d %f",mcp->__sourceNumber,
+					amp,0,BrowserFPS);
+			}
+#else
 			amp = amp*this_->intensity;
 			if (sound_from_audioclip) {
 				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,0.0);
 			} else {
 				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,0.0);
 			}
+#endif
 			Sound_toserver(mystring);
 		}
 		glPopMatrix();
@@ -960,15 +975,16 @@ AudioClip => '
 		SoundEngineStarted = TRUE;
 		SoundEngineInit();
 	}
-
+#ifndef JOHNSOUND
 	if (this_->isActive == 0) return;  // not active, so just bow out
+#endif
 
 	if (!SoundSourceRegistered(this_->__sourceNumber)) {
 		
-		/* printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
+		 printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
 			this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
 			filename);
-		*/
+		
 		
 
 		pitch = this_->pitch;

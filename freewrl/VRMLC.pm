@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.157  2004/10/06 13:39:44  crc_canada
+# Debian patches from Sam Hocevar.
+#
 # Revision 1.156  2004/09/30 20:11:55  crc_canada
 # Bug fixes for EAI.
 #
@@ -1832,7 +1835,7 @@ OUTPUT:
 RETVAL
 
 # simple malloc - used for Java CLASS parameters
-int
+void *
 malloc_this (size)
 	int size
 	CODE:

@@ -34,6 +34,6 @@ freewrl: perlxsi fwopts
 	-lpthread -lFreeWRLFunc $(BC)\
 
 clean:
-	rm *o; rm perlxsi*; rm freewrl;
+	rm -f *o; rm -f perlxsi*; rm -f freewrl;
 
 distclean: clean

@@ -1069,7 +1069,7 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 	return JS_TRUE;
 }
 
-JSBool
+void
 SFColorFinalize(JSContext *cx, JSObject *obj)
 {
 	SFColorNative *ptr;
@@ -1079,10 +1079,9 @@ SFColorFinalize(JSContext *cx, JSObject *obj)
 	}
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFColorFinalize.\n");
-		return JS_FALSE;
+		return;
 	}
 	SFColorNativeDelete(ptr);
-	return JS_TRUE;
 }
 
 JSBool
@@ -1285,7 +1284,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	return JS_TRUE;
 }
 
-JSBool
+void
 SFImageFinalize(JSContext *cx, JSObject *obj)
 {
 	SFImageNative *ptr;
@@ -1295,10 +1294,9 @@ SFImageFinalize(JSContext *cx, JSObject *obj)
 	}
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFImageFinalize.\n");
-		return JS_FALSE;
+		return;
 	}
 	SFImageNativeDelete(ptr);
-	return JS_TRUE;
 }
 
 JSBool
@@ -1604,7 +1602,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 	return JS_TRUE;
 }
 
-JSBool
+void
 SFNodeFinalize(JSContext *cx, JSObject *obj)
 {
 	SFNodeNative *ptr;
@@ -1614,10 +1612,9 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 	}
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFNodeFinalize.\n");
-		return JS_FALSE;
+		return;
 	}
 	SFNodeNativeDelete(ptr);
-	return JS_TRUE;
 }
 
 JSBool 
@@ -2311,7 +2308,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	return JS_TRUE;
 }
 
-JSBool
+void
 SFRotationFinalize(JSContext *cx, JSObject *obj)
 {
 	SFRotationNative *ptr;
@@ -2321,10 +2318,9 @@ SFRotationFinalize(JSContext *cx, JSObject *obj)
 	}
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFRotationFinalize.\n");
-		return JS_FALSE;
+		return;
 	}
 	SFRotationNativeDelete(ptr);
-	return JS_TRUE;
 }
 
 JSBool 
@@ -2745,7 +2741,7 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 }
 
 
-JSBool
+void
 SFVec2fFinalize(JSContext *cx, JSObject *obj)
 {
 	SFVec2fNative *ptr;
@@ -2755,10 +2751,9 @@ SFVec2fFinalize(JSContext *cx, JSObject *obj)
 	}
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec2fFinalize.\n");
-		return JS_FALSE;
+		return;
 	}
 	SFVec2fNativeDelete(ptr);
-	return JS_TRUE;
 }
 
 JSBool 
@@ -3192,7 +3187,7 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 	return JS_TRUE;
 }
 
-JSBool
+void
 SFVec3fFinalize(JSContext *cx, JSObject *obj)
 {
 	SFVec3fNative *ptr;
@@ -3202,10 +3197,9 @@ SFVec3fFinalize(JSContext *cx, JSObject *obj)
 	}
 	if ((ptr = JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec3fFinalize.\n");
-		return JS_FALSE;
+		return;
 	}
 	SFVec3fNativeDelete(ptr);
-	return JS_TRUE;
 }
 
 JSBool 

@@ -6738,7 +6738,7 @@ pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
   if (length > 0) {
 	  //  a known problem - can overwrite - JAS
 	  //
-	  if (buf_start != buffer) {
+	  if ((unsigned char *)buf_start != buffer) {
     		memcpy((unsigned char *) buf_start, buffer, (unsigned int) (length*4));
 	  }
     mark = ((unsigned char *) (buf_start + length));
@@ -7407,7 +7407,7 @@ FILE *mpegfile;
  */
 
 
-void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,int *ptr) {
+void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,void **ptr) {
 
   mpeg_VidStream *theStream;
   int ppm_width = -1,  ppm_height = -1, ppm_modulus = -1;
@@ -7484,7 +7484,7 @@ void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,int *ptr) {
     r_2_pix_alloc = NULL; g_2_pix_alloc= NULL;b_2_pix_alloc = NULL;
     
       fclose(mpegfile);
-	*ptr =  (int)dataPointer;
+	*ptr =  dataPointer;
 	
 	/* take 1 from the frame count */
 	*frameCount = (*frameCount) -1;
