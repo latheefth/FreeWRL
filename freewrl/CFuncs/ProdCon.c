@@ -256,6 +256,12 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 		}
 
 		sprintf (tempname, "%s",tempnam("/tmp","freewrl_tmp"));
+
+		/* quick check of semicolons in here */
+		if (strchr(fname,';')!=NULL) {
+			*strchr(fname,';') = '\0';
+		}
+
 		sprintf (sysline,"wget %s -O %s\n",fname,tempname);
 		printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 		system (sysline);
