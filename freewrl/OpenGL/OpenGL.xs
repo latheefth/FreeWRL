@@ -69,7 +69,7 @@ static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
 }
 /* Mesa hack */
 #undef CALLBACK
-#define CALLBACK void
+#define CALLBACK GLvoid
 
 
 MODULE = VRML::OpenGL		PACKAGE = VRML::OpenGL
@@ -301,7 +301,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,event_mask, wintitle, ...)
 	    }
 	
 	    /* what is the hardware 3d accel? */
-	    strncpy (renderer, glGetString(GL_RENDERER), 250);
+	    strncpy (renderer, (char *) glGetString(GL_RENDERER), 250);
 	    /* printf ("%s\n",renderer); */
 
 
