@@ -177,3 +177,8 @@ extern GLint global_texSize;
  */
 #define fp_name_len 256
 extern char sys_fp[fp_name_len];
+
+
+/* Sound stuff */
+void SoundSourceInit (int sourcenum, int loop, float pitch,
+			float start_time, float stop_time, char *url);
