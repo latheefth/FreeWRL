@@ -81,13 +81,9 @@ sub STORE {
 
 	$$v = $value;
 
-	if (defined $node->{EventModel}) {
-		print "\tdefined eventmodel\n" if $VRML::verbose::events;
-		#JAS - not needed anymore $node->{EventModel}->put_event($node, $k, $value);
-		if (defined $node->{BackNode}) {
-			print "\tBackNode defined $node->{BackNode}\n"  if $VRML::verbose::events;
-			$node->set_backend_fields($k);
-		}
+	if (defined $node->{BackNode}) {
+		print "\tBackNode defined $node->{BackNode}\n"  if $VRML::verbose::events;
+		$node->set_backend_fields($k);
 	}
 }
 }

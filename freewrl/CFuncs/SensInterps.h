@@ -75,33 +75,12 @@ do_ProximitySensorTick(struct VRML_ProximitySensor *node);
 void
 do_MovieTextureTick(struct VRML_MovieTexture *node);
 
-void
-do_Anchor(struct VRML_Anchor *node,
-		  char *ev,
-		  int over);
-
-void
-do_TouchSensor(struct VRML_TouchSensor *px,
-			   char *typ,
-			   int over);
-
-void
-do_GeoTouchSensor(struct VRML_GeoTouchSensor *px, char *typ, int over);
-
-void
-do_PlaneSensor(struct VRML_PlaneSensor *px,
-			   char *typ,
-			   int over);
-
-void
-do_CylinderSensor(struct VRML_CylinderSensor *px,
-				  char *typ,
-				  int over);
-
-void
-do_SphereSensor(struct VRML_SphereSensor *px,
-				char *typ,
-				int over);
+void do_Anchor(struct VRML_Anchor *node, int typ, int over);
+void do_TouchSensor(struct VRML_TouchSensor *px, int typ, int over);
+void do_GeoTouchSensor(struct VRML_GeoTouchSensor *px, int typ, int over);
+void do_PlaneSensor(struct VRML_PlaneSensor *px, int typ, int over);
+void do_CylinderSensor(struct VRML_CylinderSensor *px, int typ, int over);
+void do_SphereSensor(struct VRML_SphereSensor *px, int typ, int over);
 
 
 

@@ -856,7 +856,6 @@ void stream_polyrep(void *node,
 	}
 
 	if (HAVETODOTEXTURES) {
-		printf ("newtc has ntri %d\n",r->ntri);
 		/* newtc is indexed as 2 floats per vertex */
 		newtc = malloc (sizeof (float)*2*r->ntri*3);
 		if (!newtc) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}

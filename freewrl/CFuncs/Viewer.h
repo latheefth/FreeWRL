@@ -153,20 +153,19 @@ viewer_init(VRML_Viewer *viewer,
 			int type);
 
 void
-print_viewer(VRML_Viewer *viewer);
+print_viewer();
 
 unsigned int
-get_buffer(VRML_Viewer *viewer);
+get_buffer();
 
 void
-set_buffer(VRML_Viewer *viewer,
-		   const unsigned int buffer);
+set_buffer( const unsigned int buffer);
 
 int
-get_headlight(VRML_Viewer *viewer);
+get_headlight();
 
 void
-toggle_headlight(VRML_Viewer *viewer);
+toggle_headlight();
 
 int
 use_keys(void);
@@ -188,55 +187,40 @@ xy2qua(Quaternion *ret,
 	   const double y);
 
 void
-viewer_togl(VRML_Viewer *viewer,
-			double fieldofview);
+viewer_togl( double fieldofview);
 
 
-void handle(VRML_Viewer *viewer,
-			 const char *mev,
-			 const unsigned int button,
-			 const double x,
-			 const double y);
+void handle(const int mev, const unsigned int button, const float x, const float y);
 
 void
-handle_walk(VRML_Viewer *viewer,
-			const char *mev,
+handle_walk( const int mev,
 			const unsigned int button,
-			const double x,
-			const double y);
+			const float x,
+			const float y);
 
 void
-handle_examine(VRML_Viewer *viewer,
-			   const char *mev,
+handle_examine(const int mev,
 			   const unsigned int button,
-			   const double x,
-			   const double y);
+			   const float x,
+			   const float y);
 
 void
-handle_key(VRML_Viewer *viewer,
-		   const double time,
-		   const char key);
+handle_key(const char key);
 
 void
-handle_keyrelease(VRML_Viewer *viewer,
-				  const double time,
-				  const char key);
+handle_keyrelease (const char key);
 
 void
-handle_tick(VRML_Viewer *viewer,
-			const double time);
+handle_tick();
 
 void
-handle_tick_walk(VRML_Viewer *viewer,
-				 const double time);
+handle_tick_walk();
 
 void
-handle_tick_exfly(VRML_Viewer *viewer,
-				  const double time);
+handle_tick_exfly();
 
 void
-handle_tick_fly(VRML_Viewer *viewer,
-				const double time);
+handle_tick_fly();
 
 void
 set_action(char *key);
@@ -248,8 +232,7 @@ set_stereo_offset(unsigned int buffer,
 				  double fieldofview);
 
 void
-increment_pos(VRML_Viewer *viewer,
-			  struct pt *vec);
+increment_pos( struct pt *vec);
 
 void
 bind_viewpoint(struct VRML_Viewpoint *node);

@@ -247,7 +247,7 @@ sub load_file_intro {
 
 	VRML::VRMLFunc::SaveURL($url);
 
-	$this->clear_scene();
+	delete $this->{Scene};
 	$this->{Scene} = VRML::Scene->new($this->{EV}, $url, $url);
 
 	$this->{Scene}->set_browser($this);
@@ -300,27 +300,11 @@ sub load_string {
 
 
 ########################################################################
-sub clear_scene {
-	my($this) = @_;
-	delete $this->{Scene};
-}
-
-sub get_scene {
-	my($this) = @_;
-	$this->{Scene} or ($this->{Scene} = VRML::Scene->new(
-		$this->{EV}, "USER"));
-}
-sub get_eventmodel { return $_[0]->{EV} }
-
-sub get_backend { return $_[0]{BE} }
-
-
-########################################################################
 sub eventloop {
 	my($this) = @_;
 	## my $seqcnt = 0;
 	while (!$this->{BE}->quitpressed) {
-		# print "eventloop\n";
+		#print "eventloop\n";
 
 		# Events from within C; do we have a replaceWorld or goto Viewpoint action?
 
@@ -343,7 +327,7 @@ sub eventloop {
 			}
 		}
 
-		$this->tick();
+		VRML::VRMLFunc::XXEventLoop();
 		# Skip 1st image, which may not be good
 		if ( $main::seq && $main::saving && ++$main::seqcnt ) {
 			# Too many images. Stop saving, do conversion
@@ -404,7 +388,10 @@ sub prepare {
 	$this->{Scene}->init_events($this->{EV}, $this->{BE}, $bind);
 	
 	# display this one
-	$this->{BE}->set_root($bn);
+	$this->{BE}->set_root($bn); # should eventually be removed
+	VRML::VRMLFunc::set_root($bn->{CNode});
+	
+	
 
 	$this->{EV}->print;
 }
@@ -425,33 +412,6 @@ sub shut {
 	$this->{BE}->close_screen();
 }
 
-
-sub tick {
-	my($this) = @_;
-	#handle app/os events.
-	
-	# set timestamp in C
-	VRML::VRMLFunc::timestamp();
-
-	$this->{BE}->handle_events();
-
-	#update viewer position (first draft)
-	VRML::VRMLFunc::do_handle_tick();
-
-	#setup projection.
-	#activate proximity sensors.
-	$this->{BE}->render_pre();
-
-	$this->{EV}->propagate_events($this->{BE}, $this->{Scene});
-
-	#do actual screen writing
-	$this->{BE}->render();
-
-	#handle EAI.
-	VRML::VRMLFunc::do_handle_EAI();
-}
-
-my $FPS = 0;
 
 # Viewpoints are stored in the browser rather in the 
 # individual scenes...
@@ -474,9 +434,6 @@ sub set_next_vp {
 
 
 # The routines below implement the browser object interface.
-
-sub getCurrentSpeed { return 0.0; } # legal
-sub getCurrentFrameRate { return $FPS; }
 
 sub setDescription {
 	my ($this, $desc) = @_;
@@ -501,7 +458,7 @@ sub replaceWorld {
 	}
 
 	$this->{Scene}->topnodes(\@newnodes);
-	##JAS $this->clear_scene();
+	##JAS delete $this->{Scene};
 	##JAS $this->{Scene} = VRML::Scene->new($this->{EV}, "from replaceWorld");
 	##JAS $this->{Scene}->set_browser($this);
 	##JAS $this->{Scene}->topnodes(\@newnodes);
@@ -630,7 +587,7 @@ sub convertX3D {
 sub save_snapshot {
 				# Get snapshot
   my ($this) = @_ ;
-  my $s2 = $this->snapshot();
+  my $s2 = $globalBrowser->{BE}->snapshot();
 				# Save it
   $main::snapcnt++ ;
   return if $main::snapcnt > $main::maximg ;
@@ -647,34 +604,6 @@ sub save_snapshot {
   }
 }
 
-
-
-# use Perl to save the snapshot sequences. From: Aleksandar Donev <adonev@Princeton.EDU>
-
-#sub save_snapshot_aleksandar {
-#	# Get snapshot
-#	my ($this) = @_ ;
-#	# print "This=$this\n";
-#	my $s2 = $this->snapshot();
-#	$main::snapcnt++ ;
-#	return if $main::snapcnt > $main::maximg ;
-#
-#	my $outname = sprintf("$main::snapname.%04d.ppm",$main::snapcnt);
-#	my $cmd = "$VRML::Browser::CONVERT -flip -depth 8 -size $s2->[0]x$s2->[1] rgb:- $outname";
-#	# my $cmd = "rawtoppm $s2->[0] $s2->[1] | pnmflip -tb > $outname.raw.ppm";
-#	# my $cmd = "cat > $outname.rgb";
-#	# print "Saving snapshot : Command is '$cmd'\n";
-#
-#	# Use ImageMagick directly
-#	use Image::Magick;
-#	my($x,$image);
-#	$image=Image::Magick->new(magick=>'rgb', depth=>8, size=>'300x300', quality=>75);
-#	$x=$image->BlobToImage($s2->[2]);
-#	warn "$x\n" if "$x";
-#	$x=$image->Flip;
-#	$x=$image->Write($outname);
-#	warn "$x\n" if "$x";
-#} # A. Donev
 
 
 
@@ -705,14 +634,6 @@ sub convert_raw_sequence   {
 		map {"-flip -size $_->[1]x$_->[2] rgb:$_->[0]"} @main::saved ;
 	$cmd = "$VRML::Browser::CONVERT -depth 8 ".
 			" -delay 70 $sz $outfile";
-	#} else {	# Convert to ppm
-	#	$cmd = join ";\n",
-	#		map {"$VRML::Browser::CONVERT -depth 8 ".
-	#		"-size $_->[1]x$_->[2] rgb:$_->[0] ".
-	#		"-flip $main::seqtmp/$main::seqname.".sprintf("%04d",$_- >[3]).".ppm"
-	#		} @main::saved ;
-	#}
-	#JAS print "$$ : cmd is : \n-------\n$cmd\n------\n";
 
 	# Fork so that system call won't hang browser
 	my $p = fork (); 
@@ -720,20 +641,10 @@ sub convert_raw_sequence   {
 		print STDERR "could not fork to convert image sequence\n";
 	} elsif ($p == 0) {
 		my $nok = system $cmd;
-		# print "nok is $nok\n";
-		# JAS - convert to mpg format returns an error, at least in RH 7.3
-		# JAS - even if it is successful. Figure that one out...
-		#JAS if ($nok) {
-		#JAS 	print STDERR "convert failed. keeping raw images\n";
-		#JAS 	@main::saved = ();	# Prevent END from trying again
-		#JAS 	exit 1;
-		# If all seems ok, remove raw images
-		#JAS } else {
 			print STDERR "convert successful. unlinking raw images\n";
 			map {unlink $_->[0]} @main::saved;
 			@main::saved = ();	# Prevent END from trying again
 			exit 0;
-		#JAS }
 	}			
 				# Parent process #####################
 	@main::saved = ();
@@ -745,6 +656,42 @@ sub convert_raw_sequence   {
 END { 
   print "Please wait while sequence is converted\n" if @main::saved ;
   convert_raw_sequence() 
+}
+
+# go to the next viewpoint.
+sub NextVP {
+	if ($globalBrowser->{BE}->{VPSub}) {
+		$globalBrowser->{BE}->{VPSub}->(1);
+	} else {
+		print "cant find VPSub\n";
+	}
+}
+#JAS sub render_pre() { $globalBrowser->{BE}->render_pre();}
+#JAS sub render() { $globalBrowser->{BE}->render();}
+#JAS sub propagate_Perl_events() { 
+#JAS 	$globalBrowser->{EV}->propagate_events($globalBrowser->{BE}, $globalBrowser->{Scene});
+#JAS }
+
+
+sub Snapshot {
+# Sequence saving ##########################
+	if ($main::seq) {
+		$main::saving = ! $main::saving ;
+		print "Saving ",$main::saving ? "on" : "off","\n" ;
+
+		# At end of sequence, convert raw
+		# images to a gif or ppm's
+		if (! $main::saving) {
+			VRML::Browser::convert_raw_sequence();
+		} else {                                # Start new sequence
+			@main::saved = ();      # Reset list of images
+			$main::seqcnt = 0;
+		}
+	# Single image
+	} else {
+		print "Saving snapshot\n";
+		VRML::Browser::save_snapshot($globalBrowser);
+	}
 }
 
 

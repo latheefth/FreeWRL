@@ -436,7 +436,7 @@ sub add_route {
 
 	$scrpt = $fc + $tc;
 
-	#print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
+	# print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
 
 	VRML::VRMLFunc::do_CRoutes_Register($outptr, $outoffset,
 										$to_count, $tonode_str,
@@ -480,38 +480,6 @@ sub register_listener {
 	$this->{Listen}{$node}{$field} = $sub;
 }
 
-# get_firstevent returns [$node, fieldName, value]
-sub propagate_events {
-	my($this, $be, $scene) = @_;
-	my @e;
-	my @ne;
-	my $fk;
-	my %sent; # to prevent sending twice, always set bit here
-
-	VRML::VRMLFunc::do_first();
-
-	for(@{$this->{MouseSensitive}}) {
-		# Mouse Sensitive nodes, eg, PlaneSensors, TouchSensors. Actual
-		# position, hyperhit, etc, now stored in C structures; only the
-		# node event is passed from GLBackEnd now.
-
-		# this can be sped up quite a bit, but it requires some 
-		# rewriting on GLBackEnd.pm for Sensitive nodes.
-
-		print "MEV node ", VRML::Debug::toString($_), " type $_->[0]->{TypeName}\n"
-			if $VRML::verbose::events;
-
-		my $nd = $_->[0];
-		VRML::VRMLFunc::handle_mouse_sensitive($nd->{Type}{Name},
-				$nd->{BackNode}{CNode},
-				$_->[1],$_->[3]);
-	}
-	$this->{MouseSensitive} = [];
-
-	# CRoutes and Javascript/ECMAScript eventsProcessed ();
-	VRML::VRMLFunc::do_propagate_events();
-}
-
 # This sends a bind/unbind event TO node
 sub send_set_bind_to {
 	my ($this, $node, $bindValue) = @_;
@@ -537,12 +505,6 @@ sub send_set_bind_to {
 	}
 
 	VRML::VRMLFunc::do_bind_to($node->{TypeName}, $outptr, $bindValue);
-}
-
-sub handle_touched {
-	my($this, $node, $but, $move, $over) = @_;
-	#print "Events.pm: HTOUCH: node $node, but $but, move $move, over $over \n";
-	push @{$this->{MouseSensitive}}, [ $node, $but, $move, $over];
 }
 
 1;

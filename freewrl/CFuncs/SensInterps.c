@@ -719,12 +719,11 @@ void do_MovieTextureTick(struct VRML_MovieTexture *node) {
 	}
 }
 
-void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, char *ev, int over) {
+void do_GeoTouchSensor (struct VRML_GeoTouchSensor *node, int ev, int over) {
 };
 
 
-void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, int over) {
-	int len;
+void do_TouchSensor (struct VRML_TouchSensor *node, int ev, int over) {
 
 	/* TouchSensor - handle only a PRESS or RELEASE - should handle hitPoint,hitNormal */
 
@@ -746,11 +745,9 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, int over) {
 			offsetof (struct VRML_TouchSensor, isOver));
 	}
 
-
 	/* active */
 	if (over) {
-		len = strlen(ev);
-		if (len == strlen("PRESS")) {
+		if (ev == ButtonPress) {
 			node->isActive=1;
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_TouchSensor, isActive));
@@ -759,7 +756,7 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, int over) {
 			mark_event((unsigned int) node,
 				offsetof (struct VRML_TouchSensor, touchTime));
 
-		} else if (len == strlen("RELEASE")) { 
+		} else if (ev == ButtonRelease) { 
 			node->isActive=0;
 			mark_event ((unsigned int) node, 
 				offsetof (struct VRML_TouchSensor, isActive));
@@ -767,8 +764,7 @@ void do_TouchSensor (struct VRML_TouchSensor *node, char *ev, int over) {
 	}
 }
 
-void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
-	int len;
+void do_PlaneSensor (struct VRML_PlaneSensor *node, int ev, int over) {
 	float mult, nx, ny;
 	struct SFColor tr;
 	int tmp;
@@ -776,9 +772,8 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
 	UNUSED(over);
 
 	if (!node) return;
-	len = strlen(ev);
 
-	if (len == strlen("PRESS")) {
+	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
 		memcpy ((void *) &node->_origPoint,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
@@ -788,7 +783,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
 		mark_event ((unsigned int) node, 
 			offsetof (struct VRML_PlaneSensor, isActive));
 
-	} else if (len == strlen("DRAG")) {
+	} else if (ev==MotionNotify) {
 		/* hyperhit saved in render_hypersensitive phase */
 		mult = (node->_origPoint.c[2] - hyp_save_posn.c[2]) /
 			(hyp_save_norm.c[2]-hyp_save_posn.c[2]);
@@ -835,7 +830,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
 
 
 
-	} else if (len == strlen("RELEASE")) {
+	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
 		mark_event ((unsigned int) node, 
@@ -854,8 +849,7 @@ void do_PlaneSensor (struct VRML_PlaneSensor *node, char *ev, int over) {
 }
 
 
-void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
-	int len;
+void do_Anchor (struct VRML_Anchor *node, int ev, int over) {
 	int urllen;
 	unsigned char *urlptr;
 	int counter;
@@ -863,8 +857,7 @@ void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
 	UNUSED(over);
 	
 	if (!node) return;
-	len = strlen(ev);
-	if (len == strlen("PRESS")) {
+	if (ev==ButtonPress) {
 		/* no parameters in url field? */
 		if (node->url.n < 1) return;
 
@@ -895,8 +888,7 @@ void do_Anchor (struct VRML_Anchor *node, char *ev, int over) {
 }
 
 
-void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
-	int len;
+void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
 	float rot, radius, ang, length, w, x, y, z;
 	double det, pos, neg, temp;
 	Quaternion bv, dir1, dir2, tempV;
@@ -905,9 +897,8 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
 	UNUSED(over);
 
 	if (!node) return;
-	len = strlen(ev);
 
-	if (len == strlen("PRESS")) {
+	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
     		memcpy ((void *) &node->_origPoint,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
@@ -963,7 +954,7 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
 			node->_dlchange=0;
         	}
 
-	} else if (len == strlen("DRAG")) {		
+	} else if (ev==MotionNotify) {		
 		
 		memcpy ((void *) &node->trackPoint_changed,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
@@ -1024,7 +1015,7 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
 		mark_event ((unsigned int) node, 
 			offsetof (struct VRML_CylinderSensor, rotation_changed));
 	
-	} else if (len == strlen("RELEASE")) {
+	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
 		mark_event ((unsigned int) node, 
@@ -1042,8 +1033,8 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, char *ev, int over) {
 }
 
 
-void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
-	int len, tmp;
+void do_SphereSensor (struct VRML_SphereSensor *node, int ev, int over) {
+	int tmp;
 	float tr1sq, tr2sq, tr1tr2;
 	struct SFColor dee, arr, cp, dot;
 	float deelen, aay, bee, cee, und, sol, cl, an;
@@ -1053,9 +1044,8 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 	UNUSED(over);
 
 	if (!node) return;
-	len = strlen(ev);
 
-	if (len == strlen("PRESS")) {
+	if (ev==ButtonPress) {
 		/* record the current position from the saved position */
 		memcpy ((void *) &node->_origPoint,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
@@ -1070,7 +1060,7 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 		mark_event ((unsigned int) node, 
 			offsetof (struct VRML_SphereSensor, isActive));
 
-	} else if (len == strlen("RELEASE")) {
+	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
 		mark_event ((unsigned int) node, 
@@ -1081,7 +1071,7 @@ void do_SphereSensor (struct VRML_SphereSensor *node, char *ev, int over) {
 				(void *) &node->rotation_changed,
 				sizeof (struct SFRotation));
 		}
-	} else if (len == strlen("DRAG")) {
+	} else if (ev==MotionNotify) {
 		/* 1. get the point on the plane */
 
 		tr1sq = hyp_save_posn.c[0] * hyp_save_posn.c[0] + 

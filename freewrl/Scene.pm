@@ -1017,10 +1017,8 @@ sub setup_routing {
 					 print "VRML::Scene sibling sensitive $n, $n->{TypeName}, bn, ",
 						 $_[0], "\n" if $VRML::verbose::scene;
 
-					 $be->set_sensitive($_[0]->{BackNode},
-						sub {
-							$eventmodel->handle_touched($n, @_);
-						});
+					VRML::VRMLFunc::set_sensitive ($_[0]->{BackNode}{CNode},
+							$n->{BackNode}{CNode},$n->{TypeName});
 				 }
 			 }
 		 }
@@ -1028,7 +1026,7 @@ sub setup_routing {
 		# Anchors, etc. 
 		 if ($VRML::Nodes::sensitive{$_[0]->{TypeName}}) {
 			my $n = $_->real_node();
-			$be->set_sensitive($_[0]->{BackNode}, sub {$eventmodel->handle_touched($n, @_); });
+			VRML::VRMLFunc::set_sensitive ($_[0]->{BackNode}{CNode},$n->{BackNode}{CNode},$n->{TypeName});
 		 }
 	 });
 

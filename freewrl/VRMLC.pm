@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.124  2003/11/06 14:39:28  crc_canada
+# More moving event loop to C
+#
 # Revision 1.123  2003/10/30 14:20:44  crc_canada
 # change rate limit to about 65fps from 120fps.
 #
@@ -1347,6 +1350,7 @@ int render_proximity;
 int render_collision;
 
 int display_status = 1;  /* display a status bar? */
+int be_collision = 1;	/* do collision detection? */
 
 int found_vp; /*true when viewpoint found*/
 
@@ -1391,13 +1395,6 @@ double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
 /* Viewpoint Field of View */
 GLdouble fieldofview = 45;
 
-
-/* current time and other time related stuff */
-double TickTime;
-double lastTime;
-double BrowserStartTime; 	/* start of calculating FPS 	*/
-double BrowserFPS = 0.0;	/* calculated FPS		*/
-
 /* used to save rayhit and hyperhit for later use by C functions */
 struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
@@ -1405,12 +1402,8 @@ struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 int BrowserAction = FALSE;
 char * BrowserActionString = 0;
 
-struct currayhit {
-void *node; /* What node hit at that distance? */
-GLdouble modelMatrix[16]; /* What the matrices were at that node */
-GLdouble projMatrix[16];
-} rh,rph,rhhyper;
- /* used to test new hits */
+struct currayhit  rh,rph,rhhyper;
+/* used to test new hits */
 
 /* this is used to return the duration of an audioclip to the perl
 side of things. SvPV et al. works, but need to figure out all
@@ -1433,6 +1426,9 @@ int SoundEngineStarted = FALSE;
 char *BrowserVersion = NULL;
 char *BrowserURL = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
+
+int rootNode;	// scene graph root node
+
 
 /*************************JAVASCRIPT*********************************/
 #ifndef __jsUtils_h__
@@ -1535,6 +1531,21 @@ if (count > 1) {
 }
 
 /*************************END OF JAVASCRIPT*********************************/
+
+
+/****************************MISC ROUTINES**********************************/
+
+void Next_ViewPoint() {
+	dSP;
+	PUSHMARK(SP);
+	call_pv("NextVP", G_DISCARD|G_NOARGS);
+}
+
+void Snapshot() {
+	dSP;
+	PUSHMARK(SP);
+	call_pv("Snapshot",G_DISCARD|G_NOARGS);
+}
 
 /****************************** EAI ****************************************/
 
@@ -1663,8 +1674,6 @@ void EAI_replaceWorld (char *inputstring) {
 
 	return;
 }
-
-	
 
 /****************************** END OF EAI **********************************/
 
@@ -1858,8 +1867,7 @@ void render_node(void *node) {
 	  }
         
 
-        if(hypersensitive == node)  /* is this really common to all rendering passes? -ncoder */
-        {
+        if((render_sensitive) && (hypersensitive == node)) {
             if (verbose) printf ("rs 7\n");
             hyper_r1 = t_r1;
             hyper_r2 = t_r2;
@@ -1880,7 +1888,6 @@ void render_node(void *node) {
 	    /* HP */
 	      rph = srh;
 	  }
-
 	if(v->fin) 
 	  {
 	    if (verbose) printf ("rs A\n");
@@ -1892,6 +1899,7 @@ void render_node(void *node) {
 	    if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
 	  }
 	if (verbose) printf("(end render_node)\n");
+
 	if(glerror != GL_NONE)
 	  {
 	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
@@ -1958,7 +1966,6 @@ void remove_parent(void *node_, void *parent_) {
 	}
 }
 
-
 void
 render_hier(void *p, int rwhat)
 {
@@ -1995,13 +2002,6 @@ render_hier(void *p, int rwhat)
 	}
 	render_node(p);
 
-	/* Get raycasting results */
-	if(render_sensitive) {
-		if(hpdist >= 0) {
-			if(verbose) printf("RAY HIT!\n");
-		}
-	}
-
 	/*get viewpoint result, only for upvector*/
 	if (render_vp &&
 		ViewerUpvector.x == 0 &&
@@ -2017,28 +2017,6 @@ render_hier(void *p, int rwhat)
 		if (verbose) printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
 	}
 }
-
-
-void
-get_collisionoffset(double *x, double *y, double *z)
-{
-	struct pt res = CollisionInfo.Offset;
-
-	/* uses mean direction, with maximum distance */
-	if (CollisionInfo.Count == 0) {
-	    *x = *y = *z = 0;
-	} else {
-	    if (vecnormal(&res, &res) == 0.) {
-			*x = *y = *z = 0;
-	    } else {
-			vecscale(&res, &res, sqrt(CollisionInfo.Maximum2));
-			*x = res.x;
-			*y = res.y;
-			*z = res.z;
-	    }
-	}
-}
-
 
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 PROTOTYPES: ENABLE
@@ -2138,49 +2116,13 @@ CODE:
 	free(ptr); /* COULD BE MEMLEAK IF STUFF LEFT INSIDE */
 
 void
-set_sensitive(ptr,sens)
-	void *ptr
-	int sens
+set_sensitive(ptr,datanode,type)
+	int ptr
+	int datanode
+	char *type
 CODE:
-	/* Choose box randomly */
-	struct VRML_Box *p = ptr;
-	p->_sens = sens;
+	setSensitive (ptr,datanode,type);
 
-void 
-set_hypersensitive(ptr)
-	void *ptr
-CODE:	
-	hypersensitive = ptr;
-	hyperhit = 0;
-
-# get the hyperhit and rayhit - eg, a planesensor, and SAVE the results  
-# for later. Right now the results are returned to Perl, and also saved 
-# for later use by direct C code. JAS
-int
-get_hyperhit()
-CODE:
-	double x1,y1,z1,x2,y2,z2,x3,y3,z3;
-	GLdouble projMatrix[16];
-
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-	gluUnProject(r1.x, r1.y, r1.z, rhhyper.modelMatrix,
-		projMatrix, viewport, &x1, &y1, &z1);
-	gluUnProject(r2.x, r2.y, r2.z, rhhyper.modelMatrix,
-		projMatrix, viewport, &x2, &y2, &z2);
-	gluUnProject(hp.x, hp.y, hp.z, rh.modelMatrix,
-		projMatrix,viewport, &x3, &y3, &z3);
-		
-	/* printf ("get_hyperhit in VRMLC %f %f %f, %f %f %f, %f %f %f\n",
-		x1,y1,z1,x2,y2,z2,x3,y3,z3); */
-	
-	/* and save this globally */
-	hyp_save_posn.c[0] = x1; hyp_save_posn.c[1] = y1; hyp_save_posn.c[2] = z1;
-	hyp_save_norm.c[0] = x2; hyp_save_norm.c[1] = y2; hyp_save_norm.c[2] = z2;
-	ray_save_posn.c[0] = x3; ray_save_posn.c[1] = y3; ray_save_posn.c[2] = z3;
-	
-	RETVAL=1;
-OUTPUT:
-	RETVAL
 
 void
 set_viewer_delta(x,y,z)
@@ -2210,19 +2152,6 @@ CODE:
 OUTPUT:
 	RETVAL
 
-
-# setup_projection
-void
-setup_projection(ratio)
-	double ratio
-CODE:
-
-	/* bounds check */
-	if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
-
-        gluPerspective(fieldofview, ratio, 0.1, 21000.0);
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
-        glMatrixMode(GL_MODELVIEW);
 
 int
 get_hits(ptr)
@@ -2255,13 +2184,6 @@ CODE:
 
 
 void
-get_collisionoffset(x,y,z)
-	double *x
-	double *y
-	double *z
-
-
-void
 render_hier(p,rwhat)
 	void *p
 	int rwhat
@@ -2277,23 +2199,6 @@ CODE:
 	}
 	v = *(struct VRML_Virt **)p;
 	v->rend(p);
-
-
-void
-do_render_collisions(p)
-	void *p
-PREINIT:
-	struct pt v;
-CODE:
-	CollisionInfo.Offset.x = 0;
-	CollisionInfo.Offset.y = 0;
-	CollisionInfo.Offset.z = 0;
-	CollisionInfo.Count = 0;
-	CollisionInfo.Maximum2 = 0.;
-
-	render_hier(p, VF_Collision);
-	get_collisionoffset(&(v.x), &(v.y), &(v.z));
-	increment_pos(&Viewer, &v);
 
 
 # get the current rayhit. Save the rayhit for later use by Cfunctions, eg, PlaneSensor
@@ -2456,12 +2361,6 @@ CODE:
 #********************************************************************************
 # Viewer functions implemented in C replacing viewer Perl module
 
-void
-do_print_viewer()
-CODE:
-	print_viewer(&Viewer);
-
-
 unsigned int
 do_get_buffer()
 CODE:
@@ -2470,28 +2369,10 @@ OUTPUT:
 	RETVAL
 
 void
-do_set_buffer(buffer)
-   unsigned int buffer
+set_root(rn)
+	unsigned int rn
 CODE:
-	set_buffer(&Viewer, buffer);
-
-int
-do_get_headlight()
-CODE:
-	RETVAL = get_headlight(&Viewer);
-OUTPUT:
-	RETVAL
-
-void
-do_toggle_headlight()
-CODE:
-	toggle_headlight(&Viewer);
-
-
-void
-do_viewer_togl()
-CODE:
-	viewer_togl(&Viewer, fieldofview);
+	rootNode = rn;
 
 void
 do_set_eyehalf(eyehalf, eyehalfangle)
@@ -2500,41 +2381,23 @@ do_set_eyehalf(eyehalf, eyehalfangle)
 CODE:
 	set_eyehalf(&Viewer, eyehalf, eyehalfangle);
 
-#JAS void
-#JAS do_set_viewer_type(type)
-#JAS 	int type
-#JAS CODE:
-#JAS 	printf ("calling do_set_viewer_type\n");
-#JAS 	set_viewer_type(type);
+#JAS - two temporary fns
+void
+set_win_ptr(ptr)
+	unsigned ptr
+	CODE:
+	set_Win_Ptr(ptr);
 
 void
-do_handle_key(key)
-	char key
-CODE:
-	handle_key(&Viewer, TickTime, key);
-
-
-void
-do_handle_keyrelease(key)
-	char key
-CODE:
-	handle_keyrelease(&Viewer, TickTime, key);
-
+set_dpy_ptr (ptr)
+	unsigned ptr
+	CODE:
+	set_Display_Ptr(ptr);
 
 void
-do_handle_tick()
-CODE:
-	handle_tick(&Viewer, TickTime);
-
-
-void
-do_handle(mev, button, x, y)
-	char *mev
-	unsigned int button
-	double x
-	double y
-CODE:
-	handle(&Viewer, mev, button, x, y);
+setStereoView()
+	CODE:
+	XEventStereo();
 
 
 int
@@ -2558,16 +2421,6 @@ CODE:
 	send_bind_to (x,outptr,bindValue);
 
 #********************************************************************************
-# do the events, and events, and events, until no more events triggered
-
-void
-do_propagate_events()
-CODE:
-	propagate_events();
-	process_eventsProcessed();  // go through all scripts, and do the eventsProcessed call
-
-
-#********************************************************************************
 # Register a timesensitive node so that it gets "fired" every event loop
 
 void
@@ -2577,88 +2430,12 @@ add_first(clocktype,node)
 CODE:
 	add_first(clocktype,node);
 
-# temporary definition - do the clockticks for all nodes that have clock ticks
-void
-do_first()
-CODE:	
-	do_first();
-
-
-
-#********************************************************************************
-#Mouse events at beginning of event loop - Sensors.
-#
-# params - x		- pointer to type string; 
-#	 - pt		- pointer to data structure (CNode) for this invocation
-#	 - typ		- mouse action, eg "DRAG" (string! yeeech!)
-#	 - over 	- isOver
-void
-handle_mouse_sensitive(x,pt,typ,over)
-	char *x
-	void *pt
-	char *typ
-	int over
-CODE:
-	if (strncmp("TouchSensor",x,strlen("TouchSensor"))==0) {
-		do_TouchSensor (pt,typ,over);
-		
-	} else if (strncmp("PlaneSensor",x,strlen("PlaneSensor"))==0) {
-		do_PlaneSensor (pt,typ,over);
-
-	} else if (strncmp("CylinderSensor",x,strlen("CylinderSensor"))==0) {
-		do_CylinderSensor (pt,typ,over);
-
-	} else if (strncmp("SphereSensor",x,strlen("SphereSensor"))==0) {
-		do_SphereSensor (pt,typ,over);
-
-	} else if (strncmp("Anchor",x,strlen("Anchor"))==0) {
-		do_Anchor (pt,typ,over);
-
-	} else if (strncmp("GeoTouchSensor",x,strlen("GeoTouchSensor"))==0) {
-		do_GeoTouchSensor (pt,typ,over);
-
-	} else { printf ("do_handle_events, unknown %s\n",x);}
-	
-	
-
-
-
 #********************************************************************************
 
 void
-timestamp()
+XXEventLoop()
 CODE:
-	static int loop_count = 0;
-	struct timeval waittime;
-
-	struct timeval mytime;
-	struct timezone tz; /* unused see man gettimeofday */
-	gettimeofday (&mytime,&tz);
-	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-
-	/* First time through */
-	if (loop_count == 0) {
-		BrowserStartTime = TickTime;
-		lastTime = TickTime;
-	} else {
-		// rate limit ourselves to about 65fps. 
-		waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0; 
-		lastTime = TickTime;
-		if (waittime.tv_usec < 0.0) {
-			waittime.tv_usec = -waittime.tv_usec;
-			//printf ("waiting %d\n",(int)waittime.tv_usec);
-			usleep(waittime.tv_usec);
-		}
-	}
-
-	if (loop_count == 25) {
-		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
-		update_status(); // tell status bar to refresh, if it is displayed 
-		BrowserStartTime = TickTime; 
-		loop_count = 1;
-	} else {
-		loop_count++;
-	}
+	EventLoop();
 
 
 # save the specific FreeWRL version number from the Config files.
@@ -2784,29 +2561,12 @@ CODE:
 	getMFNodetype (onechildline, (struct Multi_Node *) par,
 		!strncmp (fiel,"addChild",strlen ("addChild")));
 
-# status bar
-void
-toggle_status_bar()
-	CODE:
-	display_status = !display_status;
-
-
 # link into EAI.
 void
 do_create_EAI(eailine)
 	char *eailine
 	CODE:
 	create_EAI(eailine);
-
-void
-do_handle_EAI ()
-	CODE:
-	handle_EAI();
-
-void
-do_EAI_shutdown ()
-	CODE:
-	shutdown_EAI();
 
 int
 EAIExtraMemory (type,size,data)

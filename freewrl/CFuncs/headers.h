@@ -156,6 +156,8 @@ void mark_event (unsigned int from, unsigned int fromoffset);
 /* saved rayhit and hyperhit */
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 
+/* set a node to be sensitive */
+void setSensitive(void *ptr,int datanode,char *type);
 
 /* bindable nodes */
 extern GLint viewport[];
@@ -230,6 +232,12 @@ void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, unsigne
 void mark_script (int num);
 
 
+/* structure for rayhits */
+struct currayhit {
+	void *node; /* What node hit at that distance? */
+	GLdouble modelMatrix[16]; /* What the matrices were at that node */
+	GLdouble projMatrix[16];
+};
 
 
 

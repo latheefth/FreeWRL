@@ -77,39 +77,39 @@ void viewer_init (VRML_Viewer *viewer, int type) {
 
 
 void
-print_viewer(VRML_Viewer *viewer)
+print_viewer()
 {
 	struct orient or;
-	quaternion_to_vrmlrot(&(viewer->Quat), &(or.x), &(or.y), &(or.z), &(or.a));
+	quaternion_to_vrmlrot(&(Viewer.Quat), &(or.x), &(or.y), &(or.z), &(or.a));
 
-	printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (viewer->Pos).x, (viewer->Pos).y, (viewer->Pos).z, (viewer->Quat).w, (viewer->Quat).x, (viewer->Quat).y, (viewer->Quat).z, or.x, or.y, or.z, or.a);
+	printf("Viewer {\n\tPosition [ %.4g, %.4g, %.4g ]\n\tQuaternion [ %.4g, %.4g, %.4g, %.4g ]\n\tOrientation [ %.4g, %.4g, %.4g, %.4g ]\n}\n", (Viewer.Pos).x, (Viewer.Pos).y, (Viewer.Pos).z, (Viewer.Quat).w, (Viewer.Quat).x, (Viewer.Quat).y, (Viewer.Quat).z, or.x, or.y, or.z, or.a);
 }
 
 unsigned int
-get_buffer(VRML_Viewer *viewer)
+get_buffer()
 {
-	return(viewer->buffer);
+	return(Viewer.buffer);
 }
 
 void
-set_buffer(VRML_Viewer *viewer, const unsigned int buffer)
+set_buffer(const unsigned int buffer)
 {
-	viewer->buffer = buffer;
+	Viewer.buffer = buffer;
 }
 
 int
-get_headlight(VRML_Viewer *viewer)
+get_headlight()
 {
-	return(viewer->headlight);
+	return(Viewer.headlight);
 }
 
 void
-toggle_headlight(VRML_Viewer *viewer)
+toggle_headlight()
 {
-	if (viewer->headlight == TRUE) {
-		viewer->headlight = FALSE;
+	if (Viewer.headlight == TRUE) {
+		Viewer.headlight = FALSE;
 	} else {
-		viewer->headlight = TRUE;
+		Viewer.headlight = TRUE;
 	}
 }
 
@@ -197,7 +197,7 @@ resolve_pos(VRML_Viewer *viewer)
 }
 
 void
-viewer_togl(VRML_Viewer *viewer, double fieldofview)
+viewer_togl(double fieldofview)
 {
 
 	/* GLdouble modelMatrix[16]; 
@@ -212,15 +212,15 @@ viewer_togl(VRML_Viewer *viewer, double fieldofview)
 
 
 /* 	if ($this->{buffer}!=&VRML::OpenGL::GL_BACK) */
-	if (viewer->buffer != GL_BACK) {
-		set_stereo_offset(viewer->buffer, viewer->eyehalf, viewer->eyehalfangle, fieldofview);
+	if (Viewer.buffer != GL_BACK) {
+		set_stereo_offset(Viewer.buffer, Viewer.eyehalf, Viewer.eyehalfangle, fieldofview);
 /* 		VRML::VRMLFunc::set_stereo_offset ($this->{buffer}, $this->{eyehalf},$this->{eyehalfangle}); */
 	}
 
-	togl(&(viewer->Quat));
-	glTranslated(-(viewer->Pos).x, -(viewer->Pos).y, -(viewer->Pos).z);
-	glTranslated((viewer->AntiPos).x, (viewer->AntiPos).y, (viewer->AntiPos).z);
-	togl(&(viewer->AntiQuat));
+	togl(&(Viewer.Quat));
+	glTranslated(-(Viewer.Pos).x, -(Viewer.Pos).y, -(Viewer.Pos).z);
+	glTranslated((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
+	togl(&(Viewer.AntiQuat));
 
         /* glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
        printf ("Viewer end _togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
@@ -234,22 +234,22 @@ viewer_togl(VRML_Viewer *viewer, double fieldofview)
 
 
 void
-handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, const double x, const double y)
+handle_walk(const int mev, const unsigned int button, const float x, const float y)
 {
-	VRML_Viewer_Walk *walk = viewer->walk;
+	VRML_Viewer_Walk *walk = Viewer.walk;
 
-	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
+	if (mev == ButtonPress ) {
 		walk->SY = y;
 		walk->SX = x;
-	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
+	} else if (mev == MotionNotify) {
 		if (button == 1) {
-			walk->ZD = (y - walk->SY) * viewer->speed;
+			walk->ZD = (y - walk->SY) * Viewer.speed;
 			walk->RD = (x - walk->SX) * 0.1;
 		} else if (button == 3) {
-			walk->XD = (x - walk->SX) * viewer->speed;
-			walk->YD = -(y - walk->SY) * viewer->speed;
+			walk->XD = (x - walk->SX) * Viewer.speed;
+			walk->YD = -(y - walk->SY) * Viewer.speed;
 		}
-	} else if (strncmp(mev, RELEASE, RELEASE_LEN) == 0) {
+	} else if (mev == ButtonRelease) {
 		if (button == 1) {
 			walk->ZD = 0;
 			walk->RD = 0;
@@ -262,23 +262,22 @@ handle_walk(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 
 
 void
-handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, double x, double y)
+handle_examine(const int mev, const unsigned int button, float x, float y)
 {
-/* 	my($this, $mev, $but, $mx, $my) = @_; */
 	Quaternion q, q_i, arc;
-	struct pt p = { 0, 0, viewer->Dist };
-	VRML_Viewer_Examine *examine = viewer->examine;
+	struct pt p = { 0, 0, Viewer.Dist };
+	VRML_Viewer_Examine *examine = Viewer.examine;
 	double squat_norm;
 
-	if (strncmp(mev, PRESS, PRESS_LEN) == 0) {
+	if (mev == ButtonPress) {
 		if (button == 1) {
 			xy2qua(&(examine->SQuat), x, y);
-			set(&(examine->OQuat), &(viewer->Quat));
+			set(&(examine->OQuat), &(Viewer.Quat));
 		} else if (button == 3) {
 			examine->SY = y;
-			examine->ODist = viewer->Dist;
+			examine->ODist = Viewer.Dist;
 		}
-	} else if (strncmp(mev, DRAG, DRAG_LEN) == 0) {
+	} else if (mev == MotionNotify) {
 		if (button == 1) {
 			squat_norm = norm(&(examine->SQuat));
 			/* we have missed the press */
@@ -287,7 +286,7 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 				/* 			$this->{SQuat} = $this->xy2qua($mx,$my); */
 				xy2qua(&(examine->SQuat), x, y);
 				/* 			$this->{OQuat} = $this->{Quat}; */
-				set(&(examine->OQuat), &(viewer->Quat));
+				set(&(examine->OQuat), &(Viewer.Quat));
 			} else {
 				/* my $q = $this->xy2qua($mx,$my); */
 				xy2qua(&q, x, y);
@@ -297,27 +296,27 @@ handle_examine(VRML_Viewer *viewer, const char *mev, const unsigned int button, 
 
 		
 				/* $this->{Quat} = $arc->multiply($this->{OQuat}); */
-				multiply(&(viewer->Quat), &arc, &(examine->OQuat));
+				multiply(&(Viewer.Quat), &arc, &(examine->OQuat));
 			}
 		} else if (button == 3) {
-			viewer->Dist = examine->ODist * exp(examine->SY - y);
+			Viewer.Dist = examine->ODist * exp(examine->SY - y);
 
 		}
  	}
-	inverse(&q_i, &(viewer->Quat));
-	rotation(&(viewer->Pos), &q_i, &p);
+	inverse(&q_i, &(Viewer.Quat));
+	rotation(&(Viewer.Pos), &q_i, &p);
 
-	viewer->Pos.x += (examine->Origin).x;
-	viewer->Pos.y += (examine->Origin).y;
-	viewer->Pos.z += (examine->Origin).z;
+	Viewer.Pos.x += (examine->Origin).x;
+	Viewer.Pos.y += (examine->Origin).y;
+	Viewer.Pos.z += (examine->Origin).z;
 }
 
 
-void handle(VRML_Viewer *viewer, const char *mev, const unsigned int button, const double x, const double y)
+void handle(const int mev, const unsigned int button, const float x, const float y)
 {
 
-/* printf("Viewer handle: viewer_type %s, mouse event %s, button %u, x %f, y %f\n", */
-/* 	   VIEWER_STRING(viewer_type), mev, button, x, y); */
+	/* printf("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
+	   VIEWER_STRING(viewer_type), mev, button, x, y);  */
 
 	if (button == 2) {
 		return;
@@ -327,10 +326,10 @@ void handle(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 	case NONE:
 		break;
 	case EXAMINE:
-		handle_examine(viewer, mev, button, x, y);
+		handle_examine(mev, button, x, y);
 		break;
 	case WALK:
-		handle_walk(viewer, mev, button, x, y);
+		handle_walk(mev, button, x, y);
 		break;
 	case EXFLY:
 		break;
@@ -343,14 +342,12 @@ void handle(VRML_Viewer *viewer, const char *mev, const unsigned int button, con
 
 
 void
-handle_key(VRML_Viewer *viewer, const double time, const char key)
+handle_key(const char key)
 {
 	/* my($this,$time,$key) = @_; */
-	VRML_Viewer_Fly *fly = viewer->fly;
+	VRML_Viewer_Fly *fly = Viewer.fly;
 	char _key;
 	int i;
-
-	UNUSED(time);
 
 	if (viewer_type == FLY) {
 		/* $key = lc $key; */
@@ -367,14 +364,12 @@ handle_key(VRML_Viewer *viewer, const double time, const char key)
 
 
 void
-handle_keyrelease(VRML_Viewer *viewer, const double time, const char key)
+handle_keyrelease(const char key)
 {
 	/* my($this,$time,$key) = @_; */
-	VRML_Viewer_Fly *fly = viewer->fly;
+	VRML_Viewer_Fly *fly = Viewer.fly;
 	char _key;
 	int i;
-
-	UNUSED(time);
 
 	if (viewer_type == FLY) {
 		/* $key = lc $key; */
@@ -403,14 +398,13 @@ handle_keyrelease(VRML_Viewer *viewer, const double time, const char key)
  */
 
 void
-handle_tick_walk(VRML_Viewer *viewer, const double time)
+handle_tick_walk()
 {
-/* 	my($this, $time) = @_; */
-	VRML_Viewer_Walk *walk = viewer->walk;
-	Quaternion q = { (viewer->Quat).w,
-					 (viewer->Quat).x,
-					 (viewer->Quat).y,
-					 (viewer->Quat).z },
+	VRML_Viewer_Walk *walk = Viewer.walk;
+	Quaternion q = { (Viewer.Quat).w,
+					 (Viewer.Quat).x,
+					 (Viewer.Quat).y,
+					 (Viewer.Quat).z },
 		/* my $nq = new VRML::Quaternion(1-0.2*$this->{RD},0,0.2*$this->{RD},0); */
 		nq = { 1 - 0.2 * walk->RD,
 			   0,
@@ -418,16 +412,10 @@ handle_tick_walk(VRML_Viewer *viewer, const double time)
 			   0 };
 	struct pt p = { 0.15 * walk->XD, 0.15 * walk->YD, 0.15 * walk->ZD };
 
-	UNUSED(time);
+	increment_pos(&p);
 
-	/* my $nv = $this->{Quat}->invert->rotate([0.15*$this->{XD},0.15*$this->{YD},0.15*$this->{ZD}]); */
-	/* for(0..2) {$this->{Pos}[$_] += $nv->[$_]} */
-	increment_pos(viewer, &p);
-
-	/* $nq->normalize_this; */
 	normalize(&nq);
-	/* $this->{Quat} = $nq->multiply($this->{Quat}); */
-	multiply(&(viewer->Quat), &nq, &q);
+	multiply(&(Viewer.Quat), &nq, &q);
     
 	/* info passed to Collision routines */
 	/* VRML::VRMLFunc::set_viewer_delta($this->{XD},
@@ -456,14 +444,11 @@ handle_tick_walk(VRML_Viewer *viewer, const double time)
 /* my $inf = 0; */
 
 void
-handle_tick_exfly(VRML_Viewer *viewer, const double time)
+handle_tick_exfly()
 {
-/* 	my($this, $time) = @_; */
 	size_t len = 0;
 	char string[STRING_SIZE];
 	float px,py,pz,q1,q2,q3,q4;
-
-	UNUSED(time);
 
 	memset(string, 0, STRING_SIZE * sizeof(char));
 
@@ -506,45 +491,18 @@ handle_tick_exfly(VRML_Viewer *viewer, const double time)
 		/* read error? */
 		if (len != 7) return;
 
-		(viewer->Pos).x = px;
-		(viewer->Pos).y = py;
-		(viewer->Pos).z = pz;
+		(Viewer.Pos).x = px;
+		(Viewer.Pos).y = py;
+		(Viewer.Pos).z = pz;
 
-		(viewer->Quat).w = q1;
-		(viewer->Quat).x = q2;
-		(viewer->Quat).y = q3;
-		(viewer->Quat).z = q4;
+		(Viewer.Quat).w = q1;
+		(Viewer.Quat).x = q2;
+		(Viewer.Quat).y = q3;
+		(Viewer.Quat).z = q4;
 	}
 }
 
 
-/* $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ */
-
-/* package VRML::Viewer::Fly; # Modeled after Descent(tm) ;) */
-/* @VRML::Viewer::Fly::ISA=VRML::Viewer; */
-/* # */
-/* # Members: */
-/* #  Velocity - current velocity as 3-vector */
-/* #   */
-
-/* # Do nothing for the mouse */
-
-
-/* my %actions = ( */
-/* 	a => sub {$aadd[2] -= $_[0]}, */
-/* 	z => sub {$aadd[2] += $_[0]}, */
-/* 	j => sub {$aadd[0] -= $_[0]}, */
-/* 	l => sub {$aadd[0] += $_[0]}, */
-/* 	p => sub {$aadd[1] += $_[0]}, */
-/* 	';' => sub {$aadd[1] -= $_[0]}, */
-
-/* 	8 => sub {$radd[0] += $_[0]}, */
-/* 	k => sub {$radd[0] -= $_[0]}, */
-/* 	u => sub {$radd[1] -= $_[0]}, */
-/* 	o => sub {$radd[1] += $_[0]}, */
-/* 	7 => sub {$radd[2] -= $_[0]}, */
-/* 	9 => sub {$radd[2] += $_[0]}, */
-/* ); */
 
 void
 set_action(char *key)
@@ -592,11 +550,9 @@ set_action(char *key)
 }
 
 void
-handle_tick_fly(VRML_Viewer *viewer, const double time)
+handle_tick_fly()
 {
-/* 	my($this, $time) = @_; */
-
-	VRML_Viewer_Fly *fly = viewer->fly;
+	VRML_Viewer_Fly *fly = Viewer.fly;
 	Key ps[KEYS_HANDLED] = KEYMAP;
 	Quaternion q_v, nq = { 1, 0, 0, 0 };
 	struct pt v;
@@ -604,11 +560,11 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 	int i;
 
 	if (fly->lasttime < 0) {
-		fly->lasttime = time;
+		fly->lasttime = TickTime;
 		return;
 	} else {
-		time_diff = time - fly->lasttime;
-		fly->lasttime = time;
+		time_diff = TickTime - fly->lasttime;
+		fly->lasttime = TickTime;
 		if (APPROX(time_diff, 0)) {
 			return;
 		}
@@ -650,7 +606,7 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 	v.y = fly->Velocity[1] * time_diff;
 	v.z = fly->Velocity[2] * time_diff;
 
-	increment_pos(viewer, &v);
+	increment_pos(&v);
 
 	for (i = 0; i < COORD_SYS; i++) {
 		fly->AVelocity[i] *= pow(0.04, time_diff);
@@ -668,30 +624,26 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 	nq.z = fly->AVelocity[2];
 	normalize(&nq);
 
-	set(&q_v, &(viewer->Quat));
-	multiply(&(viewer->Quat), &nq, &q_v);
+	set(&q_v, &(Viewer.Quat));
+	multiply(&(Viewer.Quat), &nq, &q_v);
 }
 
 void
-handle_tick(VRML_Viewer *viewer, const double time)
+handle_tick()
 {
-
-/* printf("Viewer handle_tick: viewer_type %s, time %f\n", */
-/* 	   VIEWER_STRING(viewer_type), time); */
-
 	switch(viewer_type) {
 	case NONE:
 		break;
 	case EXAMINE:
 		break;
 	case WALK:
-		handle_tick_walk(viewer, time);
+		handle_tick_walk();
 		break;
 	case EXFLY:
-		handle_tick_exfly(viewer, time);
+		handle_tick_exfly();
 		break;
 	case FLY:
-		handle_tick_fly(viewer, time);
+		handle_tick_fly();
 		break;
 	default:
 		break;
@@ -765,17 +717,16 @@ set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehal
 }
 
 void
-increment_pos(VRML_Viewer *viewer, struct pt *vec)
+increment_pos(struct pt *vec)
 {
 	struct pt nv;
 	Quaternion q_i;
-
-	inverse(&q_i, &(viewer->Quat));
+	inverse(&q_i, &(Viewer.Quat));
 	rotation(&nv, &q_i, vec);
 
-	(viewer->Pos).x += nv.x;
-	(viewer->Pos).y += nv.y;
-	(viewer->Pos).z += nv.z;
+	(Viewer.Pos).x += nv.x;
+	(Viewer.Pos).y += nv.y;
+	(Viewer.Pos).z += nv.z;
 }
 
 
