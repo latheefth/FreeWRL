@@ -629,14 +629,18 @@ void verifySVtype(struct Multi_String *to) {
 		//		(svptr[i])->sv_flags,
 		//		 SvPVX(svptr[i]), SvCUR(svptr[i]), SvLEN(svptr[i]));
 
-		if (SvFLAGS(svptr[i]) |= SVt_PVMG) {
+		if (SvFLAGS(svptr[i]) != (SVt_PV | SVf_POK)) {
+			//printf ("comparing %x to %x\n",SvFLAGS(svptr[i]),(SVt_PV | SVf_POK));
 			//printf ("have to convert element %d\n",i);
 			newSV = malloc (sizeof (struct STRUCT_SV));
 			/* copy over old to new */
 			newSV->sv_flags = SVt_PV | SVf_POK;
 			newSV->sv_refcnt = 1;
 			newSV->sv_any = (svptr[i])->sv_any;
-			free (svptr[i]);
+			//printf ("old ref count was %d\n",(svptr[i])->sv_refcnt);
+			(svptr[i])->sv_refcnt --;
+
+			//JAS free (svptr[i]);
 			svptr[i] = newSV;
 		}
 	}
