@@ -1717,7 +1717,6 @@ Script => new VRML::NodeType("Script",
 					}
 					$VRML::J->newscript($t->{PURL},$_,$t);
 					$t->{J} = $VRML::J;
-					$t->{J}->sendinit($t);
 					last;
 				} elsif(/\.js/) {
 #RCS					die("Sorry, no javascript files yet -- XXX FIXME (trivial fix!)");
@@ -1770,7 +1769,7 @@ Script => new VRML::NodeType("Script",
 			} elsif($t->{J}) {
 
 #EG			if($t->{J}) {
-				return $t->{J}->initialize($scene);
+				return $t->{J}->initialize($scene, $t);
 			}
 			return ();
 		},
