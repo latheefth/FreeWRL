@@ -11,11 +11,17 @@ What code in the distribution is not Tuomas's  (if I have left something
 out, contact me as soon as possible at john.stewart@crc.ca - I really
 want no-one to be left out accidentally) 
 
+ - Clayton Cottingham
+	- RPMized FreeWRL
+
  - Ayla Khan
 	- Interface parse corrections
+	- perl parse errors corrected
+	- more nodes defined
 
  - Alain Gagnon
 	- Normals for Cones fixed
+	- smooth shading for extrusions.
 
  - Many, many, node additions/fixing - Remi Cohen-Scali.
 
