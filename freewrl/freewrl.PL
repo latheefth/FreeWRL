@@ -422,8 +422,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 use Carp;
 $SIG{__DIE__} = sub {print Carp::longmess(@_);die;};
 
-use VRML::Config;
-
 BEGIN {
 
 	# use VRML::Browser;
@@ -631,7 +629,9 @@ if ($fast) {
 	&VRML::VRMLFunc::set_maxtexture_size(2048);
 }
 
-$b->load_file($ARGV[0],$url);
+
+# load and display the file
+$b->load_file_intro($ARGV[0]);
 
 # lets handle a normal term...
 $SIG{TERM} = \&clean_exit;
@@ -639,8 +639,10 @@ $SIG{QUIT} = \&clean_exit;
 $SIG{USR2} = \&clean_exit;
 
 $SIG{USR1} = sub {
-    $b->load_file($ARGV[0],$url);
-    &VRML::OpenGL::raise_me_please();
+	$b->load_file_intro($ARGV[0]);
+
+	# force window to top of display
+	&VRML::OpenGL::raise_me_please();
 } if $sig_reload;
 
 ## either make better or remove...
