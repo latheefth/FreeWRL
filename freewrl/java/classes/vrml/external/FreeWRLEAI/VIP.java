@@ -30,6 +30,8 @@ public final class VIP {
     public static final short  TRANSFERACCEPT = -11;
     public static final short  TRANSFERREJECT = -12;
     public static final short  TRANSFERREQUESTADD = -13;
+    public static final short  FILEREQUEST = -14;
+    public static final short  FRQRESPONSE = -15;
 
     public static final short	POSITION = 0;
     public static final short	ORIENTATION = 1;
