@@ -208,6 +208,59 @@ void IFS_face_normals (
 	}
 	*/
 }
+
+
+
+/* Tesselated faces MAY have the wrong normal calculated. re-calculate after tesselation	*/
+
+void IFS_check_normal (
+	struct pt *facenormals,
+	int this_face, 
+	struct SFColor *points) {
+
+	int facectr;
+	float AC, BC;
+	struct SFColor *c1,*c2,*c3;
+	float a[3]; float b[3];
+
+
+	/* printf ("IFS_check_normal, points %d %d %d\n",global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
+	printf ("normal was %f %f %f\n\n",facenormals[this_face].x,
+		facenormals[this_face].y,facenormals[this_face].z);
+	*/
+	/* first three coords give us the normal */
+	c1 = &(points[global_IFS_Coords[0]]);
+	c2 = &(points[global_IFS_Coords[1]]); 
+	c3 = &(points[global_IFS_Coords[2]]);
+
+	a[0] = c2->c[0] - c1->c[0];
+	a[1] = c2->c[1] - c1->c[1];
+	a[2] = c2->c[2] - c1->c[2];
+	b[0] = c3->c[0] - c1->c[0];
+	b[1] = c3->c[1] - c1->c[1];
+	b[2] = c3->c[2] - c1->c[2];
+
+	facenormals[this_face].x = a[1]*b[2] - b[1]*a[2];
+	facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
+	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
+
+	/* printf ("vector length is %f\n",calc_vector_length (facenormals[this_face])); */
+
+	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
+		printf ("tesselator should not give degenerate triangles back\n");
+	}
+
+	normalize_vector(&facenormals[this_face]);
+	
+	/*
+	printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+		c1->c[0],c1->c[1],c1->c[2],
+		c2->c[0],c2->c[1],c2->c[2],
+		c3->c[0],c3->c[1],c3->c[2]);
+	printf ("normal %f %f %f\n\n",facenormals[this_face].x,
+		facenormals[this_face].y,facenormals[this_face].z);
+	*/
+}
 
 /*********************************************************************
  *
@@ -334,6 +387,7 @@ void render_polyrep(void *node,
 		/* get normals and colors, if any	*/
 		if(r->norindex) {nori = r->norindex[i];}
 		else nori = ind;
+
 		if(r->colindex) {
 			coli = r->colindex[i];
 		}
@@ -362,10 +416,12 @@ void render_polyrep(void *node,
 		if(hasc && prevcolor != coli) {
 			if(ncolors) { 
 				/* ColorMaterial -> these set Material too */
+				/* printf ("coloUr"); fwnorprint(colors[coli].c); printf ("\n");*/
 				glColor3fv(colors[coli].c);
 			} else if(r->color) {
+				/* printf ("coloUr"); fwnorprint(r->color+3*coli); printf ("\n"); */
 				glColor3fv(r->color+3*coli);
-			}
+			} 
 		}
 		prevcolor = coli;
 
@@ -373,14 +429,15 @@ void render_polyrep(void *node,
 		/* Coordinate points	*/
 		if(points) {
 			XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];  
-			/* 
+			/*
 			printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
-			*/ 
+			*/
 		} else if(r->coord) {	
 			XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2]; 
 			/* 
 			printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",ind,XYZ[0],XYZ[1],XYZ[2]);  
-			*/ 
+			*/
+			 
 		}
 
 		/* Textures	*/
