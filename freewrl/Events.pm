@@ -126,9 +126,9 @@ sub propagate_events {
 			@ne = ();
 			for my $e (@e) {
 				if($VRML::verbose::events) {
-					print "SEND $e->[0] $e->[0]{TypeName} $e->[1] $e->[2]\n" ;
+					print "Events.pm:while:SEND $e->[0] $e->[0]{TypeName} $e->[1] $e->[2]\n" ;
 					if("ARRAY" eq ref $e->[2]) {
-						print "ARRAYVAL: @{$e->[2]}\n";
+						print "Events.pm:while:ARRAYVAL: @{$e->[2]}\n";
 					}
 				}
 				# don't send same event again
@@ -235,6 +235,26 @@ sub send_event_to {
 	my($this,$node,$field,$value) = @_;
 	push @{$this->{ToQueue}}, [$node, $field, $value];
 }
+#this one sends a value to an array, $ar is 1 for add, 2 for remove
+#JASsub send_arrayevent_to {
+#JAS	my($this,$node,$field,$value,$ar) = @_;
+#JAS	print "send_arrayevent_to, root node , field was ";
+   #JAS     print $node->{$field};
+#JAS	print "\n";
+#JAS	if ("ARRAY" eq ref $node->{$field}) {                                print "ARRAYVAL: @{$e->[2]}\n";
+#JAS        }
+#JASpush(@{ $node->{$field} }, VRML::Handles::get($child));
+#JAS        print $node->{$field};
+#JAS	print "\n";
+#JAS	if ("ARRAY" eq ref $node->{$field}) {                                print "ARRAYVAL: @{$e->[2]}\n";
+#JAS        }
+
+
+		#			print "SEND $e->[0] $e->[0]{TypeName} $e->[1] $e->[2]\n" ;
+		#			if("ARRAY" eq ref $e->[2]) {
+		#				print "ARRAYVAL: @{$e->[2]}\n";
+#JAS	push @{$this->{ToQueue}}, [$node, $field, $value,$ar];
+#JAS}
 
 sub put_events {
 	my($this,$events) = @_;
