@@ -612,6 +612,8 @@ Sphere => new VRML::NodeType("Sphere",
 	{radius => [SFFloat, 1]}
 ),
 
+# normalPerVertex does not work.
+
 IndexedFaceSet => new VRML::NodeType("IndexedFaceSet",
 	{coord => [SFNode, NULL],
 	 coordIndex => [MFInt32, []],
@@ -625,6 +627,7 @@ IndexedFaceSet => new VRML::NodeType("IndexedFaceSet",
 	 convex => [SFBool, 1],
 	 color => [SFNode, NULL],
 	 colorPerVertex => [SFBool, 1],
+	 normalPerVertex => [SFBool, 1],
 	 ccw => [SFBool, 1],
 	}
 ),
