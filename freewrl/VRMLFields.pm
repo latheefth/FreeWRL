@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.6  2000/12/01 02:01:39  crc_canada
+# More SAI work
+#
 # Revision 1.5  2000/11/29 18:45:19  crc_canada
 # Format changes, and trying to get more SAI node types working.
 #
@@ -405,7 +408,7 @@ sub cfunc {
 sub jdata {"float x,y;"}
 sub jalloc {""}
 sub jset {return {"" => "x=0; y=0;",
-	"float coords[]" => "x = colors[0]; y=colors[1];",
+	"float coords[]" => "x = coords[0]; y=coords[1];",
 	"float x2,float y2" => "x=x2; y=y2;"
 }}
 # JAS sub jeaiset { "float coords[]" }
