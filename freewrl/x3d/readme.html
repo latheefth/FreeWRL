@@ -20,16 +20,38 @@ to do our conversions.
 <P>
 X3D Compatibility is built in. However, it does need the following:
 <OL>
-<LI> Saxon, from 
- <A HREF="http://saxon.sourceforge.net">Saxon home</A>. All we need from this
-package is the Java .jar file, "saxon.jar".
-<LI> Edit the "vrml.conf" file, and verify the path to this jar file.
+<LI> perl module 
+XML-LibXML-0.99 or later.
+<LI> perl module 
+XML-LibXSLT-1.09 or later.
+<LI>
+Gnome Lib 
+libxml2-2.3.10 or later.
+<LI> 
+Gnome Lib
+libxslt-0.11.0 or later.
 </OL>
-
+<P> All of these modules/libraries are on the freewrl download site, 
+ <A HREF="http://www.crc.ca/en/html/FreeWRL/downloads/downloads">here</A>.
+<P>
 <H3>Installing the software:</H3>
 
 <OL>
-<LI> Compile and install FreeWRL
+<LI> Uncompress and untar the library files, and cd into each directory in turn.
+The following steps will need to be acomplished, as root:
+<UL>
+<LI>./configure
+<LI>make
+<LI>make install
+</UL>
+<LI> run the ldconfig command, without parameters. eg, "ldconfig".
+
+<LI> Uncompress and untar the Perl XML* files. cd into each directory, and do
+the following to make and install these modules:
+<UL>
+<LI>perl Makefile.PL
+<LI>make install
+</UL>
 </OL>
 <H3>Testing the software:</H3>
 <OL>
