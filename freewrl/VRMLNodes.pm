@@ -558,7 +558,7 @@ my $protono;
  ProximitySensor
  VisibilitySensor
  PixelTexture
-
+ Collision
  MovieTexture
  AudioClip
  Sound
@@ -755,7 +755,7 @@ my $protono;
 							  },
 
 							ClockTick => sub {
-								my($t,$f,$tick) = @_;
+								my($t,$tick) = @_;
 								VRML::VRMLFunc::MovieTextureClockTick(
 									$t->{BackNode}->{CNode},$tick);
 							},
@@ -977,7 +977,7 @@ my $protono;
 							},
 
 							ClockTick => sub {
-								my($t,$f,$tick) = @_;
+								my($t,$tick) = @_;
 
 								VRML::VRMLFunc::AudioClockTick(
 									$t->{BackNode}->{CNode},$tick);
@@ -1251,7 +1251,7 @@ my $protono;
 					   },
 					   {
 						ClockTick => sub {
-							my($t,$f,$tick) = @_;
+							my($t,$tick) = @_;
 
 							VRML::VRMLFunc::TimeSensorClockTick(
 								$t->{BackNode}->{CNode},$tick);
@@ -1351,7 +1351,7 @@ my $protono;
 					   },
 					   {
 						ClockTick => sub {
-							my($t,$f,$tick) = @_;
+							my($t,$tick) = @_;
 
 							VRML::VRMLFunc::ProximitySensorClockTick(
 								$t->{BackNode}->{CNode},$tick);
@@ -1675,19 +1675,10 @@ my $protono;
 						},
 
 						ClockTick => sub {
-							my($t,$f,$tick) = @_;
-							return if !$t->{BackEnd};
-							my $hit;
+							my($t,$tick) = @_;
 
-							VRML::VRMLFunc::get_collision_info($t->{BackNode}->{CNode},
-															   $hit);
-
-							if ($hit == 3) { #collision occured and state changed
-								if ($VRML::verbose::collision) {
-									print "COLLISION: $t, time=$tick\n";
-								}
-								$f->{collideTime} = $tick;
-							}
+							VRML::VRMLFunc::CollisionClockTick(
+								$t->{BackNode}->{CNode},$tick);
 						}
 					   }
 					  ),
