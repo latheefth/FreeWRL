@@ -52,7 +52,7 @@ struct fudge original_display;
 
 Cursor arrowc;
 Cursor sensorc;
-int	render_frame = 0;	/* do we render, or do we sleep? */
+int	render_frame = 5;	/* do we render, or do we sleep? */
 int	now_mapped = 1;		/* are we on screen, or minimized? */
 
 /* Tesselator Object - have one here for use by all */
@@ -257,7 +257,7 @@ void
 set_render_frame()
 	CODE:
 	{
-	render_frame = 1;
+	render_frame = 5; /* render a couple of frames to let events propagate */
 	}
 
 void
@@ -312,7 +312,7 @@ void
 BackEndRender1()
 	CODE:
 	{
-	render_frame = 0;
+	if (render_frame > 0) render_frame--;
 
         glDisable(GL_LIGHT0); /* Put them all off first */
         glDisable(GL_LIGHT1);
@@ -518,7 +518,7 @@ glpcOpenWindow(x,y,w,h,pw,fullscreen,shutter,event_mask, wintitle, ...)
 
 
 	    /* and make it so that we render 1 frame, at least */
-	    render_frame = 1;
+	    render_frame = 5;
 	}
 
 
@@ -554,7 +554,7 @@ glpXNextEvent(d=dpy)
 
 
 		/* must render now */
-		render_frame = 1;
+		render_frame = 5;
 
 		switch(event.type) {
 			case ConfigureNotify:
@@ -724,6 +724,17 @@ void
 glBlendFunc(sfactor,dfactor)
 	GLenum	sfactor
 	GLenum	dfactor
+
+int
+glGenTexture()
+	CODE:
+	{ 
+	GLuint texture;	
+	glGenTextures(1, &texture);
+	RETVAL = texture;
+	}
+	OUTPUT:
+	RETVAL
 
 
 
