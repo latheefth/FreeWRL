@@ -143,7 +143,9 @@ void EventLoop() {
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
 
-	
+	//printf ("start of MainLoop\n");
+invalidateStack();
+
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
@@ -169,9 +171,14 @@ void EventLoop() {
 	if (loop_count == 25) {
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		update_status(); // tell status bar to refresh, if it is displayed 
+		//printf ("fps %f\n",BrowserFPS);
+
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
 		printf ("times %lf %lf %lf %lf %lf %lf\n",
+				//timeA,timeB,
+				//timeC, timeD,
+				//timeE,timeF);
 				timeA/oxf*100.0,timeB/oxf*100.0,
 				timeC/oxf*100.0, timeD/oxf*100.0,
 				timeE/oxf*100.0,timeF/oxf*100.0);
@@ -522,10 +529,19 @@ void render_pre() {
 void render() {
 	int count;
 
+	// profile
+	//double xx,yy,zz,aa,bb,cc,dd,ee,ff;
+	//struct timeval mytime;
+	//struct timezone tz; /* unused see man gettimeofday */
+
 	/* set transparency flag */
 	have_transparency = 0;
 
 	for (count = 0; count < maxbuffers; count++) {
+
+	//gettimeofday (&mytime,&tz);
+	//aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	
 		set_buffer((unsigned)bufferarray[count]);		// in Viewer.c
 		glDrawBuffer((unsigned)bufferarray[count]);
 
@@ -541,11 +557,16 @@ void render() {
 		// Correct Viewpoint, only needed when in stereo mode.
 		if (maxbuffers > 1) setup_viewpoint(FALSE);
 
+	//gettimeofday (&mytime,&tz);
+	//bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 		// Other lights
 		glPrintError("XEvents::render, before render_hier");
 
 		render_hier((void *)rootNode, VF_Lights);
 		glPrintError("XEvents::render, render_hier(VF_Lights)");
+
+	//gettimeofday (&mytime,&tz);
+	//cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 
 		// 4. Nodes (not the blended ones)
 
@@ -553,6 +574,9 @@ void render() {
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 
 		// 5. Blended Nodes 
+
+	//gettimeofday (&mytime,&tz);
+	//dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
 
 		if (have_transparency > 0) {
 			// turn off writing to the depth buffer
@@ -565,6 +589,11 @@ void render() {
 			glDepthMask(TRUE);
 			glPrintError("XEvents::render, render_hier(VF_Geom)");
 		}
+
+	//gettimeofday (&mytime,&tz);
+	//ee = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+
+	//printf ("render %f %f %f %f\n",bb-aa, cc-bb, dd-cc, ee-dd);
 	}
 #ifndef AQUA
 	glXSwapBuffers(dpy,win);
@@ -628,7 +657,8 @@ void setup_viewpoint(int doBinding) {
 
 	if (doBinding & (!isPerlParsing())) { 
 		/* top of mainloop, we can tell the renderer to sort children */
-		render_flag = VF_Viewpoint | VF_Blend;
+		//render_flag = VF_Viewpoint | VF_SortChildren;
+		render_flag = VF_Viewpoint;
 
 		for (i=0; i<totviewpointnodes; i++) {
 			setBindPtr = (unsigned int *)(viewpointnodes[i]+
@@ -648,7 +678,7 @@ void setup_viewpoint(int doBinding) {
 		}
 	}
 	
-        glMatrixMode(GL_MODELVIEW); // this should be assumed , here for safety.
+        fwMatrixMode(GL_MODELVIEW); // this should be assumed , here for safety.
         glLoadIdentity();
 
         //Make viewpoint, adds offset in stereo mode.
@@ -663,7 +693,7 @@ void setup_viewpoint(int doBinding) {
 
 
 void setup_projection(int pick, int x, int y) {
-	glMatrixMode(GL_PROJECTION);
+	fwMatrixMode(GL_PROJECTION);
 	
 	glViewport(0,0,screenWidth,screenHeight);
 	glLoadIdentity();
@@ -679,7 +709,7 @@ void setup_projection(int pick, int x, int y) {
 
         gluPerspective(fieldofview, screenRatio, nearPlane, farPlane);
         glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
-        glMatrixMode(GL_MODELVIEW);
+        fwMatrixMode(GL_MODELVIEW);
 
 	glPrintError("XEvents::setup_projection");
 }
@@ -816,7 +846,7 @@ void get_hyperhit() {
 	double x1,y1,z1,x2,y2,z2,x3,y3,z3;
 	GLdouble projMatrix[16];
 
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(r1.x, r1.y, r1.z, rhhyper.modelMatrix,
 		projMatrix, viewport, &x1, &y1, &z1);
 	gluUnProject(r2.x, r2.y, r2.z, rhhyper.modelMatrix,
@@ -847,8 +877,11 @@ void XEventStereo() {
 /* if we had an opengl error... */
 void glPrintError(char *str) {
         int err;
+#ifdef GLERRORS
         while((err = glGetError()) != GL_NO_ERROR)
                 fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString((unsigned)err),str);
+
+#endif
         }
 
 /* go to the next viewpoint */

@@ -308,8 +308,8 @@ void render_Fog (struct VRML_Fog *node) {
 
 	fogptr = SvPV((node->fogType),foglen); 
 	glPushMatrix();
-	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
 	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
 	glTranslated(x,y,z);
@@ -488,8 +488,8 @@ void render_Background (struct VRML_Background *node) {
 	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
 	glShadeModel(GL_SMOOTH);
 	glPushMatrix();
-	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 	/* Get origin */
 	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
 	glTranslated(x,y,z);

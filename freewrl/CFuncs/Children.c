@@ -31,11 +31,6 @@
 
 static int ChildVerbose = 0;
 static int VerboseIndent = 0;
-//static int SensitiveLocal = FALSE; /* is there a sensitive node nearby? 
-//				    a sensor attaches to siblings of a 
-//				    transform/group; so we keep track of
-//				    this so that we can render geometry of
-//				    siblings */
 
 static void VerboseStart (char *whoami, struct VRML_Box *me, int nc) {
 	int c;
@@ -139,19 +134,11 @@ void groupingChild (struct VRML_Group *this_) {
 	if(ChildVerbose) VerboseStart ("GROUP", (struct VRML_Box *)this_, nc);
 
 	/* should we go down here? */
-//	if (render_sensitive && (!SensitiveLocal)) {
-//		if ((render_sensitive & this_->_renderFlags)== 0) {
-//			if (ChildVerbose) VerboseEnd("GROUP");
-//			return;
-//		}
-//		/* is this group/transform the actual SENsitive one,
-//		 * or is it just on the path to it? */
-//		if (this_->_sens) {
-//			//printf ("turning Sensitive on for group %d\n",this_);
-//			SensitiveLocal = TRUE;
-//		}
-//	}
-	
+	//printf ("Group, rb %x VF_B %x, flags %x\n",render_blend, VF_Blend, this_->_renderFlags);
+	if (render_blend == VF_Blend) 
+		if ((this_->_renderFlags & VF_Blend) != VF_Blend)  return;
+	if (render_proximity == VF_Proximity) 
+		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity)  return;
 
 	/* do we have to sort this node? */
 	if ((nc > 2 && render_blend)) sortChildren(this_->children);
@@ -162,12 +149,6 @@ void groupingChild (struct VRML_Group *this_) {
 	/* now, just render the non-directionalLight children */
 	normalChildren(this_->children);
 	
-//	/* turn off "sensitive nearby" flag */
-//	if (this_->_sens && render_sensitive) {
-//		//printf ("turning Sensitive off for group %d\n",this_);
-//		SensitiveLocal = FALSE;
-//	}
-
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
 		//if (ChildVerbose) 
@@ -231,20 +212,15 @@ void transformChild (struct VRML_Transform *this_) {
 
 	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct VRML_Box *)this_, nc);
 
-//	/* should we go down here? */
-//	if (render_sensitive && (!SensitiveLocal)) {
-//		if ((render_sensitive & this_->_renderFlags)== 0) {
-//			if (ChildVerbose) VerboseEnd("TRANSFORM");
-//			return;
-//		}
-//		/* is this group/transform the actual SENsitive one,
-//		 * or is it just on the path to it? */
-//		if (this_->_sens) {
-//			//printf ("turining sens on for xform %d\n",this_);
-//			SensitiveLocal = TRUE;
-//		}
-//	}
-	
+	/* should we go down here? */
+	//printf("transformChild %d render_blend %x renderFlags %x\n",
+	//		this_, render_blend, this_->_renderFlags);
+	if (render_blend == VF_Blend) 
+		if ((this_->_renderFlags & VF_Blend) != VF_Blend)  return;
+	if (render_proximity == VF_Proximity) 
+		if ((this_->_renderFlags & VF_Proximity) != VF_Proximity)  return;
+
+
 #ifdef BOUNDINGBOX
 	if (this_->PIV > 0) {
 #endif
@@ -263,12 +239,6 @@ void transformChild (struct VRML_Transform *this_) {
 #ifdef BOUNDINGBOX
 	}
 #endif
-
-//	/* turn off "sensitive nearby" flag */
-//	if (this_->_sens && render_sensitive) {
-//		//printf ("turning Sensitive off for xform %d\n",this_);
-//		SensitiveLocal = FALSE;
-//	}
 
 	if (render_geom && (!render_blend)) {
 		//if (ChildVerbose)
@@ -474,8 +444,9 @@ void lodChild (struct VRML_LOD *this_) {
 
 	/* calculate which one to display - only do this once per eventloop. */
 	if (render_geom && (!render_blend)) {
-		glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-		glGetDoublev(GL_PROJECTION_MATRIX, proj);
+		fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+		//printf ("LOD, mat %f %f %f\n",mod[12],mod[13],mod[14]);
+		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 		gluUnProject(0,0,0,mod,proj,viewport,
 			&vec.x,&vec.y,&vec.z);
 		vec.x -= (this_->center).c[0];
@@ -551,5 +522,25 @@ void collisionChild(struct VRML_Collision *this_) {
 	
 		if(ChildVerbose) {printf("RENDER COLLISIONCHILD END %d\n",this_);}
 		curlight = savedlight;
+	}
+}
+
+
+
+
+/* propagate flags up the scene graph */
+/* used to tell the rendering pass that, there is/used to be nodes
+ * of interest down the branch. Eg, Transparent nodes - no sense going
+ * through it all when rendering only for nodes. */
+
+void update_renderFlag(void *ptr, int flag) {
+	struct VRML_Box *p = ptr;
+	int i;
+
+	/* send notification up the chain */
+	p->_renderFlags = p->_renderFlags | flag;
+
+	for (i = 0; i < p->_nparents; i++) {
+		update_renderFlag(p->_parents[i],flag);
 	}
 }

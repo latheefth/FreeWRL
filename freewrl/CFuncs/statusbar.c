@@ -203,8 +203,8 @@ void statusbar_position () {
 
 	scaler = fieldofview/45.0;
 
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
 		&t_orig.x,&t_orig.y,&t_orig.z);
 	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.155  2004/09/21 17:52:46  crc_canada
+# make some rendering improvements.
+#
 # Revision 1.154  2004/09/15 19:21:18  crc_canada
 # woops - problems with previous Sensitive rendering optimizations.
 #
@@ -594,7 +597,7 @@ sub gen_struct {
 	# /* Store actual point etc. later */
        my $s = "struct VRML_$name {\n" .
                " /***/ struct VRML_Virt *v;\n"         	.
-#               " /*s*/ int _renderFlags; /*sensitive, etc */ \n"                  	.
+               " /*s*/ int _renderFlags; /*sensitive, etc */ \n"                  	.
                " /*s*/ int _sens; /*THIS is sensitive */ \n"                  	.
                " /*t*/ int _hit; \n"                   	.
                " /*a*/ int _change; \n"                	.
@@ -926,7 +929,6 @@ int nextlight() {
 	return lightcode[curlight++];
 }
 
-
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
 int last_texture_depth = 0;
@@ -961,6 +963,7 @@ int found_vp; /*true when viewpoint found*/
 
 GLuint last_bound_texture;
 int	have_transparency;	/* did this Shape have transparent material? */
+int	have_textureTransform;
 
 int smooth_normals = -1; /* -1 means, uninitialized */
 
@@ -1052,8 +1055,8 @@ float tx,float ty, char *descr)  {
 	if(rat<0 || (rat>hpdist && hpdist >= 0)) {
 		return;
 	}
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluProject(cx,cy,cz, modelMatrix, projMatrix, viewport,
 		&hp.x, &hp.y, &hp.z);
 	hpdist = rat;
@@ -1065,8 +1068,8 @@ float tx,float ty, char *descr)  {
 void upd_ray() {
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
 		&t_r1.x,&t_r1.y,&t_r1.z);
 	gluUnProject(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
@@ -1126,7 +1129,9 @@ void render_node(void *node) {
 	int srg;
 	int sch;
 	struct currayhit srh;
+	#ifdef GLERRORS
 	int glerror = GL_NONE;
+	#endif
 	char* stage = "";
 
 	if(verbose) printf("\nRender_node %u\n",(unsigned int) node);
@@ -1159,7 +1164,9 @@ void render_node(void *node) {
 	    if (verbose) printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
 	    v->changed(node);
 	    p->_ichange = p->_change;
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
+	    #endif
 	  }
 
 	if(v->prep) 
@@ -1170,34 +1177,44 @@ void render_node(void *node) {
 	      {
 		upd_ray();
 	      }
+	      #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "prep";
+	    #endif
 	  }
 
 	if(render_proximity && v->proximity) 
 	{
 	    if (verbose) printf ("rs 2a\n");
 	    v->proximity(node);
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
+	    #endif
 	}
 
 	if(render_collision && v->collision) 
 	{
 	    if (verbose) printf ("rs 2b\n");
 	    v->collision(node);
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
+	    #endif
 	}
 
 	if(render_geom && !render_sensitive && v->rend) 
 	  {
 	    if (verbose) printf ("rs 3\n");
 	    v->rend(node);
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
+	    #endif
 	  }
 	if(render_light && v->light) 
 	  {
 	    if (verbose) printf ("rs 4\n");
 	    v->light(node);
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_light";
+	    #endif
 	  }
 	/* Future optimization: when doing VP/Lights, do only 
 	 * that child... further in future: could just calculate
@@ -1215,16 +1232,20 @@ void render_node(void *node) {
 	    /* HP */
 	      srh = rph;
 	    rph.node = node;
-	    glGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
-	    glGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
+	    fwGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
+	    fwGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
+	    #endif
 
 	  }
 	if(render_geom && render_sensitive && !hypersensitive && v->rendray) 
 	  {
 	    if (verbose) printf ("rs 6\n");
 	    v->rendray(node);
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
+	    #endif
 	  }
         
 
@@ -1237,7 +1258,9 @@ void render_node(void *node) {
         if(v->children) {
             if (verbose) printf ("rs 8\n");
             v->children(node);
+	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
+	    #endif
         }
 
 	//if(render_sensitive && (p->_renderFlags & VF_Sensitive)) 
@@ -1258,10 +1281,13 @@ void render_node(void *node) {
 	      { 
 		upd_ray();
 	      }
+	    #ifdef GLERRORS
 	    if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
+	    #endif
 	  }
 	if (verbose) printf("(end render_node)\n");
 
+	#ifdef GLERRORS
 	if(glerror != GL_NONE)
 	  {
 	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
@@ -1280,6 +1306,7 @@ void render_node(void *node) {
 	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
 	    printf("==============\n");
 	  }
+	  #endif
 
 }
 
@@ -1298,8 +1325,7 @@ void add_parent(void *node_, void *parent_) {
 	struct VRML_Box *parent = parent_;
 	if(!node) return;
 	//printf ("adding node %d to parent %d\n",node_, parent_);
-	//parent->_renderFlags = parent->_renderFlags |
-	//	node->_renderFlags;
+	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
 	node->_nparents ++;
 	if(node->_nparents > node->_nparalloc) {
@@ -1338,6 +1364,14 @@ render_hier(void *p, int rwhat)
 {
 	struct pt upvec = {0,1,0};
 	GLdouble modelMatrix[16];
+	#define XXXrender_pre_profile
+	#ifdef render_pre_profile
+	// profile
+	double xx,yy,zz,aa,bb,cc,dd,ee,ff;
+	struct timeval mytime;
+	struct timezone tz; /* unused see man gettimeofday */
+	#endif
+
 
 	render_vp = rwhat & VF_Viewpoint;
 	found_vp = 0;
@@ -1349,6 +1383,15 @@ render_hier(void *p, int rwhat)
 	render_collision = rwhat & VF_Collision;
 	curlight = 0;
 	hpdist = -1;
+
+
+	//if (render_geom) {verbose = TRUE; printf ("START OF RENDER GEOM\n");}
+	#ifdef render_pre_profile
+	if (render_geom) {
+		gettimeofday (&mytime,&tz);
+		aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	}
+	#endif
 
 	//printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
@@ -1367,10 +1410,35 @@ render_hier(void *p, int rwhat)
 		render_status();
 	}
 	
+
+	#ifdef render_pre_profile
+	if (render_geom) {
+		gettimeofday (&mytime,&tz);
+		bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	}
+	#endif
+
 	if (render_sensitive) {
 		upd_ray();
 	}
+
+	#ifdef render_pre_profile
+	if (render_geom) {
+		gettimeofday (&mytime,&tz);
+		cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	}
+	#endif
+
 	render_node(p);
+
+	#ifdef render_pre_profile
+	if (render_geom) {
+		gettimeofday (&mytime,&tz);
+		dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);
+	}
+	#endif
+
 
 	/*get viewpoint result, only for upvector*/
 	if (render_vp &&
@@ -1380,12 +1448,13 @@ render_hier(void *p, int rwhat)
 
 		/* store up vector for gravity and collision detection */
 		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
-		glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 		matinverse(modelMatrix,modelMatrix);
 		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
 
 		if (verbose) printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
 	}
+	//if (render_geom)verbose=FALSE;
 }
 
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
@@ -1416,7 +1485,7 @@ CODE:
 	struct VRML_Box *p = ptr;
 	/* printf("Alloc: %d %d -> %d\n", siz, virt, ptr);  */
 	*(struct VRML_Virt **)ptr = (struct VRML_Virt *)virt;
-	//p->_renderFlags = 0;
+	p->_renderFlags = 0;
 	p->_hit = 0;
 	p->_sens = FALSE;
 	p->_intern = 0;

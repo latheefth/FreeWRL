@@ -205,7 +205,7 @@ viewer_togl(double fieldofview)
 
 	/* GLdouble modelMatrix[16]; 
 
-        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+        fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	printf ("Viewer_togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
                 modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
                 modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],
@@ -225,7 +225,7 @@ viewer_togl(double fieldofview)
 	glTranslated((Viewer.AntiPos).x, (Viewer.AntiPos).y, (Viewer.AntiPos).z);
 	togl(&(Viewer.AntiQuat));
 
-        /* glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+        /* fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
        printf ("Viewer end _togl Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
                 modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
                 modelMatrix[1],  modelMatrix[5],  modelMatrix[ 9],  modelMatrix[13],

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.137  2004/09/21 17:52:46  crc_canada
+# make some rendering improvements.
+#
 # Revision 1.136  2004/09/08 18:58:58  crc_canada
 # More Frustum culling work.
 #
@@ -741,6 +744,8 @@ Material =>  '
 		   indexedfaceset with colour node */
 		if (trans <=0.99) {
 			have_transparency++;
+			if ((this_->_renderFlags & VF_Blend) != VF_Blend)
+				update_renderFlag(this_,VF_Blend);
 			last_transparency=trans;
 		}
 
@@ -771,8 +776,10 @@ Material =>  '
 ',
 
 TextureTransform => '
+	have_textureTransform=TRUE;
        	glEnable(GL_TEXTURE_2D);
 	glMatrixMode(GL_TEXTURE);
+	glPushMatrix();
 	glLoadIdentity();
 
 	// Render transformations according to spec.
@@ -894,8 +901,8 @@ Sound => '
 
 		
 	
-		glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-		glGetDoublev(GL_PROJECTION_MATRIX, proj);
+		fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 		gluUnProject(0,0,0,mod,proj,viewport, &vec.x,&vec.y,&vec.z);
 	
 		len = sqrt(VECSQ(vec)); 
@@ -1083,7 +1090,8 @@ Transform => '
 	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
 
 	if(!render_vp) {
-                glPushMatrix();
+                //glPushMatrix();
+		fwXformPush(this_);
 
 		/* might we have had a change to a previously ignored value? */
 		if (this_->_change != this_->_dlchange) {
@@ -1167,8 +1175,8 @@ Billboard => '
 
 	glPushMatrix();
 
-	glGetDoublev(GL_MODELVIEW_MATRIX, mod);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
+	fwGetDoublev(GL_PROJECTION_MATRIX, proj);
 	gluUnProject(orig.x, orig.y, orig.z, mod, proj,
 		viewport, &vpos.x, &vpos.y, &vpos.z);
 
@@ -1232,7 +1240,8 @@ GeoLocation => (join '','
 Transform => (join '','
         
 	if(!render_vp) {
-            glPopMatrix();
+            //glPopMatrix();
+	    fwXformPop(this_);
 	} else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if(found_vp) {
@@ -1296,23 +1305,13 @@ Billboard => (join '','
 	Appearance => '
 		if($f(texture)) {
 
-			/* is there a TextureTransform? if no texture, forget about it */
+			/* is there a TextureTransform? if no texture, fugutaboutit */
 		    	if($f(textureTransform))   {
 				render_node($f(textureTransform));
 			}
 
 			/* now, render the texture */
 			render_node($f(texture));
-
-			/* undo the transform, if there was one */
-		    	if($f(textureTransform))   {
-				glMatrixMode(GL_TEXTURE);
-				glLoadIdentity();
-				glTranslatef(0, 0, 0);
-				glRotatef(0,0,0,1);
-				glScalef(1,1,1);
-				glMatrixMode(GL_MODELVIEW);
-		    	}
 #ifndef X3DMATERIALPROPERTY
 		} else {
 			last_texture_depth = 0;
@@ -1341,7 +1340,7 @@ Billboard => (join '','
 
 		/* do we need to do some distance calculations? */
 		if (((!render_vp) && render_light)) { 
-			glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 			this_->_dist = modelMatrix[14];
 			//printf ("getDist - recalculating distance, it is %f for %d\n", 
 			//	this_->_dist,this_);
@@ -1355,14 +1354,13 @@ Billboard => (join '','
 
 
 		/* JAS - if not collision, and render_geom is not set, no need to go further */
-		if (!render_geom) return;
-
 		//printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
 		//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
 
 		/* a texture and a transparency flag... */
 		last_bound_texture = 0;
 		trans = have_transparency;
+		have_textureTransform = FALSE;
 
 
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
@@ -1380,7 +1378,11 @@ Billboard => (join '','
 
 		/* lets look at texture depth, and if it has alpha, call
 		it a transparent node */
-		if (last_texture_depth >3) have_transparency++;
+		if (last_texture_depth >3) {
+			have_transparency++;
+			if ((this_->_renderFlags & VF_Blend) != VF_Blend)
+				update_renderFlag(this_,VF_Blend);
+		}
 
 		//printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",
 		//	have_transparency, trans, last_texture_depth);
@@ -1411,6 +1413,14 @@ Billboard => (join '','
 			}
 			/* Now, do the geometry */
 			render_node((this_->geometry));
+		}
+
+		/* did we have a TextureTransform in the Appearance node? */
+		if (have_textureTransform) {
+			glMatrixMode(GL_TEXTURE);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			have_textureTransform = FALSE;
 		}
 
 		glPopAttrib();
@@ -1612,11 +1622,16 @@ ProximitySensor => q~
 	GLdouble modelMatrix[16]; 
 	GLdouble projMatrix[16];
 
+	if(!$f(enabled)) return;
+
+	//printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	//render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+
 	/* transforms viewers coordinate space into sensors coordinate space. 
 	 * this gives the orientation of the viewer relative to the sensor.   
 	 */
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 	gluUnProject(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
 		&t_orig.x,&t_orig.y,&t_orig.z);
 	gluUnProject(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
@@ -1628,7 +1643,6 @@ ProximitySensor => q~
 	cy = t_orig.y - $f(center,1);
 	cz = t_orig.z - $f(center,2);
 
-	if(!$f(enabled)) return;
 	if($f(size,0) == 0 || $f(size,1) == 0 || $f(size,2) == 0) return;
 
 	if(fabs(cx) > $f(size,0)/2 ||
@@ -1717,7 +1731,7 @@ ProximitySensor => q~
 
 #######################################################################
 #
-# ProximityC = following code is run to do collision detection 
+# CollisionC = following code is run to do collision detection 
 #
 # In collision nodes:
 #    if enabled:
@@ -1779,7 +1793,7 @@ Sphere => q~
 		}
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -1930,7 +1944,7 @@ Box => q~
 
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	       
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -1999,7 +2013,7 @@ Cone => q~
 	       iv.y = h; jv.y = -h;
  
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -2066,7 +2080,7 @@ Cylinder => q~
 		jv.y = -h;
 
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -2154,7 +2168,7 @@ IndexedFaceSet => q~
 			pr.coord = (void*)points;
 		}
 
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -2226,7 +2240,7 @@ Extrusion => q~
 	       }
 /*	       printf("_PolyRep = %d\n",this_->_intern);*/
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -2301,7 +2315,7 @@ Text => q~
 	         correclty in the RENDER pass */
 
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -2369,7 +2383,7 @@ GeoElevationGrid => q~
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);
@@ -2431,7 +2445,7 @@ ElevationGrid => q~
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 	       pr = *((struct VRML_PolyRep*)this_->_intern);
-	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
 	       matrotate2v(upvecmat,ViewerUpvector,tupv);

@@ -118,3 +118,63 @@ BackEndHeadlightOn()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, s);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, s);
 }
+
+
+/* OpenGL tuning stuff - cache the modelview matrix */
+static int myMat = -111;
+static int MODmatOk = FALSE;
+static int PROJmatOk = FALSE;
+static double MODmat[16];
+static double PROJmat[16];
+static int sav = 0;
+static int tot = 0;
+
+void invalidateStack() {
+	//printf ("invalidateStack\n");
+	//printf ("sav %d tot %d\n",sav,tot);
+	MODmatOk=FALSE;
+	PROJmatOk=FALSE;
+}
+
+void fwMatrixMode (int mode) { 
+	if (myMat != mode) {
+		myMat = mode;
+		glMatrixMode(mode);
+		//printf ("setting MatrixMode to %d\n",mode);
+	}
+}
+	
+void fwGetDoublev (int ty, double *mat) {
+	//printf ("glGetDoublev, type %d sav %d tot %d\n",ty,sav,tot);
+	tot++;
+	if (ty == GL_MODELVIEW_MATRIX) {
+		if (!MODmatOk) {
+			glGetDoublev (ty, MODmat);
+			MODmatOk = TRUE;
+		} else sav ++;
+		memcpy (mat, MODmat, sizeof (MODmat));
+	} else if (ty == GL_PROJECTION_MATRIX) {
+		if (!PROJmatOk) {
+			glGetDoublev (ty, PROJmat);
+			PROJmatOk = TRUE;
+		} else sav ++;
+		memcpy (mat, PROJmat, sizeof (PROJmat));
+	} else {
+		printf ("fwGetDoublev, inv type %d\n",ty);
+	}
+}
+
+void fwXformPush(struct VRML_Transform *me) {
+	glPushMatrix();
+	MODmatOk = FALSE;
+	PROJmatOk = FALSE;
+	//printf ("XFORM Push\n");
+
+}
+
+void fwXformPop(struct VRML_Transform *me) {
+	glPopMatrix();
+	MODmatOk = FALSE;
+	PROJmatOk = FALSE;
+	//printf ("XFORM Pop\n");
+}

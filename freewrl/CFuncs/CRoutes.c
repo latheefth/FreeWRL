@@ -870,7 +870,7 @@ void AddRemoveChildren (struct Multi_Vec3f *tn, int *nodelist, int len, int ar) 
 	if (len <=0) return;
 
 	oldlen = tn->n;
-	printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);
+	//printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);
 	
 	if (ar != 0) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */

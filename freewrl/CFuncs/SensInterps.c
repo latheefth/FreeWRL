@@ -679,6 +679,11 @@ void do_ProximitySensorTick(struct VRML_ProximitySensor *node) {
 	if (!node) return;
 	if (!node->enabled) return;
 
+	/* make sure scenegraph rendering knows we exist */
+	if ((node->_renderFlags & VF_Proximity) != VF_Proximity)
+		update_renderFlag(node,VF_Proximity);
+
+	/* did we get a signal? */
 	if (node->__hit) {
 		if (!node->isActive) {
 			if (SEVerbose) printf ("PROX - initial defaults\n");
@@ -978,7 +983,7 @@ void do_CylinderSensor (struct VRML_CylinderSensor *node, int ev, int over) {
 				ray_save_posn.c[1] * ray_save_posn.c[1] +
 				ray_save_posn.c[2] * ray_save_posn.c[2];
 		
-        	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+        	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
      		/*
      		printf ("Cur Matrix: \n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n\t%f %f %f %f\n",
                		modelMatrix[0],  modelMatrix[4],  modelMatrix[ 8],  modelMatrix[12],
@@ -1286,20 +1291,3 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	free (mypath);
 }
 
-
-/* propagate flags up the scene graph */
-/* used to tell the rendering pass that, there is/used to be nodes
- * of interest down the branch. Eg, Sensitive nodes - no sense going
- * through it all when rendering for sensitive nodes. */
-
-//void update_renderFlag(void *ptr, int flag) {
-//	struct VRML_Box *p = ptr;
-//	int i;
-//
-//	/* send notification up the chain */
-//	p->_renderFlags = p->_renderFlags | flag;
-//
-//	for (i = 0; i < p->_nparents; i++) {
-//		update_renderFlag(p->_parents[i],flag);
-//	}
-//}

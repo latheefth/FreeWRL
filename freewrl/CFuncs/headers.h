@@ -45,7 +45,6 @@ extern CGLContextObj aqglobalContext;
 #define PI 3.141592653589793
 #endif
 
-
 /* defines for raycasting: */
 #define APPROX(a,b) (fabs(a-b)<0.00000001)
 #define NORMAL_VECTOR_LENGTH_TOLERANCE 0.00001
@@ -507,4 +506,9 @@ void getCLASSMultNumType (char *buf, int bufSize, struct Multi_Vec3f *tn, int el
 void freewrlDie(const char *format);
 #endif
 
+void fwGetDoublev (int ty, double *mat);
+void fwMatrixMode (int mode);
+void fwXformPush(struct VRML_Transform *me);
+void fwXformPop(struct VRML_Transform *me);
+void invalidateStack(void);
 #endif /* __HEADERS_H__ */

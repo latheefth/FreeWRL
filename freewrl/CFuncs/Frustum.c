@@ -182,8 +182,8 @@ void calculateFrustumCone () {
 	
 #ifdef BOUNDINGBOX
 
-	glGetDoublev (GL_PROJECTION_MATRIX, proj);
-	glGetDoublev (GL_MODELVIEW_MATRIX, mod);
+	fwGetDoublev (GL_PROJECTION_MATRIX, proj);
+	fwGetDoublev (GL_MODELVIEW_MATRIX, mod);
 
 	//printf ("calculateFrustum\n");
 	//printf ("nearPlane    %f\n",nearPlane);
@@ -295,7 +295,7 @@ int PointInView(struct VRML_Transform *nod) {
 	xcount=0;
 	pointok=0;
 
-	glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	nod->bboxCenter.c[0] = modelMatrix[12];
 	nod->bboxCenter.c[1] = modelMatrix[13];
 	nod->bboxCenter.c[2] = modelMatrix[14];

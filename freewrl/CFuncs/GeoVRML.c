@@ -144,7 +144,7 @@ void render_GeoLocation (struct VRML_GeoLocation *node) {
         }
 
 	/* this is a transform */
-	//glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	//fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	//printf ("modelmatrix shows us at %f %f %f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
 
 	if (node->geoOrigin) render_node(node->geoOrigin);
@@ -157,7 +157,7 @@ void render_GeoLocation (struct VRML_GeoLocation *node) {
 	glTranslated ((double)node->__geoCoords.c[0]-GeoOrig[0], 
 			(double)node->__geoCoords.c[1]-GeoOrig[1],
 			(double)node->__geoCoords.c[2]-GeoOrig[2]);
-	//glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	//fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 	//printf ("modelmatrix now shows us at %f %f %f\n\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
 
 }
