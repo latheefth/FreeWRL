@@ -1,0 +1,26 @@
+=====================================================
+=FreeWRL Collision detection algorithm documentation=
+=====================================================
+
+
+In the mathematica/ directory :
+Some mathematica notebooks.
+This will show where some of the equations I used came from.
+
+In the src/ directory :
+These are debugging programs I made to help me figure out everything.
+Might be usefull to visualise the workings of the algorithms.
+Check the source to see key bindings. Fool around.
+VERY sloppy code. Modify at your own risk.
+
+In the tex/ directory :
+This is the latex source and images of the two pdf files.
+Run make here to generate pdfs.
+
+tex/crc_stage.pdf : 
+My intern report. In french. Very draft form. 
+(It wasn't due till the week after).
+
+tex/algo.pdf : 
+General view of the workings of the algorithm. 
+Uses some of the same images as crc_stage.tex.
