@@ -283,11 +283,11 @@ void IFS_check_normal (
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
 
-	/*
+	/*	
 	printf ("IFS_check_normal, base %d points %d %d %d\n",base, global_IFS_Coords[0],global_IFS_Coords[1],global_IFS_Coords[2]);
 	printf ("normal was %f %f %f\n\n",facenormals[this_face].x,
 		facenormals[this_face].y,facenormals[this_face].z);
-	*/
+	*/	
 	
 	/* first three coords give us the normal */
 	c1 = &(points[this_IFS->coordIndex.p[base+global_IFS_Coords[0]]]);
@@ -305,15 +305,15 @@ void IFS_check_normal (
 	facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
 	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
 
-	/* printf ("vector length is %f\n",calc_vector_length (facenormals[this_face])); */
+	//printf ("vector length is %f\n",calc_vector_length (facenormals[this_face])); 
 
 	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
-		printf ("tesselator should not give degenerate triangles back\n");
+		printf ("warning: Tesselated surface has invalid normal - if this is an IndexedFaceSet, check coordinates of ALL faces\n");
 	}
 
 	normalize_vector(&facenormals[this_face]);
 	
-	/*
+	/*	
 	printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
 		c1->c[0],c1->c[1],c1->c[2],
 		c2->c[0],c2->c[1],c2->c[2],
