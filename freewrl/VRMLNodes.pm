@@ -38,6 +38,7 @@ my @vps;	# viewpoint Scenes.
 my @vpn;	# viewpoint Nodes.
 my $vpno = 1;
 my $globalAudioSource = 0;  # count of audio sources
+my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
 
 # Viewpoints are stored in the browser rather in the 
 # individual scenes...
@@ -501,8 +502,10 @@ my $protono;
  ProximitySensor
  VisibilitySensor
  PixelTexture
+
  MovieTexture
  AudioClip
+ Sound
 /;
 
 # What are the transformation-hierarchy child nodes?
@@ -555,7 +558,7 @@ my $protono;
     emissiveColor => [SFColor, [0,0,0]],
     shininess => [SFFloat, 0.2],
     transparency => [SFFloat, 0]
- }
+}
  ),
 
  ImageTexture => new VRML::NodeType("ImageTexture",
@@ -616,24 +619,38 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	__ctex => [SFInt32, 0, "field"],	# which texture number is used
 	__status => [SFInt32, 0, "field"],	# active = 1
 	__inittime => [SFInt32,0,"field"],	# time that we were initialized at
+
+        __sourceNumber => [SFInt32,0,"field"], # internal sequence number
+	__localFileName => [SFString, ""],	# local name, as received on system
  },
 
 @x= {
     Initialize => sub {
 	my ($t,$f,$time,$scene) = @_;
-	init_movie_image("","url",$t,$f,$scene);
 
-	# which frame to start with?
-	if ($f->{speed} >= 0) {
-		$f->{__ctex} = $f->{__texture0_};
+	if ($SoundMaterial eq "Sound") {
+		# Assign a source number to this source
+		$f->{__sourceNumber} = $globalAudioSource++;
+
+		# get the file
+		init_sound("","url",$t,$f,$scene,1);
 	} else {
-		$f->{__ctex} = $f->{__texture1_};
-	}
-	$f->{__status} = 0;  # inactive
-	$f->{__inittime} = $time;
 
-	#print "mt init time is $time\n";
-	
+		$f->{__sourceNumber} = -1;	# this is a movietexture, not a Sound
+		init_movie_image("","url",$t,$f,$scene);
+
+		# which frame to start with?
+		if ($f->{speed} >= 0) {
+			$f->{__ctex} = $f->{__texture0_};
+		} else {
+			$f->{__ctex} = $f->{__texture1_};
+		}
+		$f->{__status} = 0;  # inactive
+		$f->{__inittime} = $time;
+
+		#print "mt init time is $time\n";
+	}
+	$SoundMaterial = "unknown";	# this will only be reset the next time a Sound node gets hit
 	return ();
     },
 	 startTime => sub {
@@ -651,138 +668,142 @@ MovieTexture => new VRML::NodeType ("MovieTexture",
 	 ClockTick => sub {
 		my($t,$f,$tick) = @_;
 
-		# can we possibly have started yet?
-		if($tick < $f->{startTime}) {
-			return();
-		}
-
-		my $oldstatus = $f->{__status}; 
-		my @e;
-
-		my $frac = $f->{__ctex};
-		my $time;
-		my $lowest = $f->{__texture0_};
-		my $highest = $f->{__texture1_};
-
-		# sanity check - avoids divide by zero problems below
-		if ($lowest >= $highest) {
-			$lowest = $highest-1;
-		}	
-
-		my $duration = ($highest - $lowest)/30;
-
-		print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
-			$f->{__status}," initTime ",$f->{__inittime},"\n"
-				if $VRML::verbose::timesens;
-
-		# what we do now depends on whether we are active or not
-
-		if ($f->{__status} == 1) {   # active - should we stop?
-
-			if ($tick > $f->{stopTime}) {
-				if ($f->{startTime} >= $f->{stopTime}) { 
-					# cases 1 and 2
-					if (!($f->{loop})) {
-						if ($f->{speed} != 0) {
-						    if ($tick >= ($f->{startTime} + 
-								abs($duration/$f->{speed}))) {
-							#print "stopping case x\n";
-							$f->{__status} = 0;
-							$f->{stopTime} = $tick;
-						    }
+		if ($f->{__sourceNumber} < 0) {
+			# can we possibly have started yet?
+			if($tick < $f->{startTime}) {
+				return();
+			}
+	
+			my $oldstatus = $f->{__status}; 
+			my @e;
+	
+			my $frac = $f->{__ctex};
+			my $time;
+			my $lowest = $f->{__texture0_};
+			my $highest = $f->{__texture1_};
+	
+			# sanity check - avoids divide by zero problems below
+			if ($lowest >= $highest) {
+				$lowest = $highest-1;
+			}	
+	
+			my $duration = ($highest - $lowest)/30;
+	
+			print "ct, start ",$f->{startTime}," stop ",$f->{stopTime},"tick $tick status ",
+				$f->{__status}," initTime ",$f->{__inittime},"\n"
+					if $VRML::verbose::timesens;
+	
+			# what we do now depends on whether we are active or not
+	
+			if ($f->{__status} == 1) {   # active - should we stop?
+	
+				if ($tick > $f->{stopTime}) {
+					if ($f->{startTime} >= $f->{stopTime}) { 
+						# cases 1 and 2
+						if (!($f->{loop})) {
+							if ($f->{speed} != 0) {
+							    if ($tick >= ($f->{startTime} + 
+									abs($duration/$f->{speed}))) {
+								#print "stopping case x\n";
+								$f->{__status} = 0;
+								$f->{stopTime} = $tick;
+							    }
+							}
+						} else {
+						#	print "stopping case y\n";
+						#	$f->{__status} = 0;
+						#	$f->{stopTime} = $tick;
 						}
 					} else {
-					#	print "stopping case y\n";
-					#	$f->{__status} = 0;
-					#	$f->{stopTime} = $tick;
+						#print "stopping case z\n";
+						$f->{__status} = 0;
+						$f->{stopTime} = $tick;
 					}
-				} else {
-					#print "stopping case z\n";
-					$f->{__status} = 0;
-					$f->{stopTime} = $tick;
 				}
 			}
-		}
-
-		# immediately process start events; as per spec. 
-		if ($f->{__status} == 0) {   # active - should we start?
-			if ($tick >= $f->{startTime}) {
-				# We just might need to start running
-
-				if ($tick >= $f->{stopTime}) {
-					# lets look at the initial conditions; have not had a stoptime
-					# event (yet)
-
-					if ($f->{loop}) {
-						if ($f->{startTime} >= $f->{stopTime}) {
-							# VRML standards, table 4.2 case 2 
-							$f->{startTime} = $tick;
-							$f->{__status} = 1;
-							#print "case 2 here\n";
-						}
-					} elsif ($f->{startTime} >= $f->{stopTime}) {
-						if ($f->{startTime} > $f->{__inittime}) { #ie, we have an event
-							#print "case 1 here\n";
-							# we should be running 
-							# VRML standards, table 4.2 case 1 
-							$f->{startTime} = $tick;
-							$f->{__status} = 1;
-						}
-					}
-				} else {
-					#print "case 3 here\n";
-					# we should be running -  
-					# VRML standards, table 4.2 cases 1 and 2 and 3
-					$f->{startTime} = $tick;
-					$f->{__status} = 1;
-				}
-			}
-
-			# if we have gone active, make sure that the first image is displayed
-			if ($f->{__status} == 1) { $f->{__ctex} = -1; }
-
-		}
 	
-		if($f->{__status} == 1) {
-
-			# calculate what fraction we should be 
-	 		$time = ($tick - $f->{startTime}) * $f->{speed} / $duration;
+			# immediately process start events; as per spec. 
+			if ($f->{__status} == 0) {   # active - should we start?
+				if ($tick >= $f->{startTime}) {
+					# We just might need to start running
+	
+					if ($tick >= $f->{stopTime}) {
+						# lets look at the initial conditions; have not had a stoptime
+						# event (yet)
+	
+						if ($f->{loop}) {
+							if ($f->{startTime} >= $f->{stopTime}) {
+								# VRML standards, table 4.2 case 2 
+								$f->{startTime} = $tick;
+								$f->{__status} = 1;
+								#print "case 2 here\n";
+							}
+						} elsif ($f->{startTime} >= $f->{stopTime}) {
+							if ($f->{startTime} > $f->{__inittime}) { #ie, we have an event
+								#print "case 1 here\n";
+								# we should be running 
+								# VRML standards, table 4.2 case 1 
+								$f->{startTime} = $tick;
+								$f->{__status} = 1;
+							}
+						}
+					} else {
+						#print "case 3 here\n";
+						# we should be running -  
+						# VRML standards, table 4.2 cases 1 and 2 and 3
+						$f->{startTime} = $tick;
+						$f->{__status} = 1;
+					}
+				}
+	
+				# if we have gone active, make sure that the first image is displayed
+				if ($f->{__status} == 1) { $f->{__ctex} = -1; }
+	
+			}
 		
-			$frac = $time - int $time;
-
-			# negative speed?
-			if ($f->{speed} < 0) {
-				$frac = 1+$frac; # frac will be *negative*
+			if($f->{__status} == 1) {
+	
+				# calculate what fraction we should be 
+		 		$time = ($tick - $f->{startTime}) * $f->{speed} / $duration;
+			
+				$frac = $time - int $time;
+	
+				# negative speed?
+				if ($f->{speed} < 0) {
+					$frac = 1+$frac; # frac will be *negative*
+				}
+	
+				elsif ($f->{speed} == 0) {
+					$frac = 0;
+				}
+	
+				# frac will tell us what texture frame we should apply...
+				$frac = int ($frac*($highest-$lowest+1) + $lowest);
 			}
-
-			elsif ($f->{speed} == 0) {
-				$frac = 0;
+	
+			# verify parameters
+			if ($frac < $lowest){ 
+				#print "frac $frac lowest $lowest\n"; 
+				$frac = $lowest
 			}
-
-			# frac will tell us what texture frame we should apply...
-			$frac = int ($frac*($highest-$lowest+1) + $lowest);
+			if ($frac > $highest){ 
+				#print "frac $frac highest $highest\n";
+				$frac = $highest
+			}
+	
+			if ($oldstatus != $f->{__status}) {
+				push @e, [$t, "isActive", $f->{__status}];
+			}
+	
+			if ($f->{__ctex} != $frac) {
+				$f->{__ctex} = $frac;
+				#print "pushing image $frac of $lowest $highest\n";
+				push @e, [$t, "mytexfrac", $f->{__ctex}];
+			}
+			return @e;
+		} else {
+			# MovieTexture is a SoundNode
 		}
-
-		# verify parameters
-		if ($frac < $lowest){ 
-			#print "frac $frac lowest $lowest\n"; 
-			$frac = $lowest
-		}
-		if ($frac > $highest){ 
-			#print "frac $frac highest $highest\n";
-			$frac = $highest
-		}
-
-		if ($oldstatus != $f->{__status}) {
-			push @e, [$t, "isActive", $f->{__status}];
-		}
-
-		if ($f->{__ctex} != $frac) {
-			$f->{__ctex} = $frac;
-			#print "pushing image $frac of $lowest $highest\n";
-			push @e, [$t, "mytexfrac", $f->{__ctex}];
-		}
-		return @e;
 	 },
 
 
@@ -956,7 +977,8 @@ AudioClip => new VRML::NodeType("AudioClip",
 
 			# get the file
 			init_sound("","url",$t,$f,$scene,1);
-			print "local sound file name ",$f->{__localFileName},"\n";
+			$SoundMaterial = "unknown"; # we are done with this Sound...
+
 			return ();
 		 }
 	}
@@ -975,7 +997,13 @@ Sound => new VRML::NodeType("Sound",
 	priority => [SFFloat, 0],
 	source => [SFNode, NULL],
 	spatialize => [SFBool,1, ""]	# not exposedfield
-}
+},
+
+	{Initialize => sub {
+		$SoundMaterial = "Sound";
+		return ();
+	}
+	}
 ),
 
  Switch => new VRML::NodeType("Switch",
