@@ -1025,7 +1025,7 @@ sub getNode {
 	my $n = $_[0]{TmpDef}{$_[1]};
 	if(!defined $n) {
 		print "Node '$_[1]' not defined\n";
-		exit (1);
+		return "undefined";
 	}
 	return $n->real_node(1); # Return proto enclosing node.
 }
