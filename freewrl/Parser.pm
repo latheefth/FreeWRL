@@ -17,7 +17,20 @@ require Exporter;
 
 # Define the RE for a VRML word.
 # $Word = q|[^\-+0-9"'#,\.\[\]\\{}\0-\x20][^"'#,\.\{\}\\{}\0-\x20]*|;
-$Word = q|[^\x30-\x39\x0-\x20\x22\x23\x27\x2b\x2c\x2d\x2e\x5b\x5c\x5d\x7b\x7d\x7f][^\x0-\x20\x22\x23\x27\x2c\x2e\x5b\x5c\x5d\x7b\x7d\x7f]*|;
+
+## Bug 424524:
+## It was reported that there was some difficulty parsing VRML words when the
+## character > occurred at the end of a word.
+## 
+## The problem lay in the usage of the Perl assertion \b to designate a word
+## boundary : \b is the position between \w and \W, either \W\w at the beginning
+## of a word or \w\W at the end. Characters such as >, while legal in VRML97,
+## are not included in \w, causing the truncation of the word.
+## 
+## This bug was fixed by including the possibility of a premature word boundary: 
+
+$Word = qr|[^\x30-\x39\x0-\x20\x22\x23\x27\x2b\x2c\x2d\x2e\x5b\x5c\x5d\x7b\x7d\x7f][^\x0-\x20\x22\x23\x27\x2c\x2e\x5b\x5c\x5d\x7b\x7d\x7f]*(?:\b[^\x0-\x20\x22\x23\x27\x2c\x2e\x5b\x5c\x5d\x7b\x7d\x7f])?|;
+
 $qre = qr{(?<!\\)\"};		# " Regexp for unquoted double quote  
 $cre = qr{[^\"\n]};		# " Regexp for not dquote, not \n char
 
@@ -32,9 +45,11 @@ $cre = qr{[^\"\n]};		# " Regexp for not dquote, not \n char
 #        ) 
 # XXX This is correct but might be too slow...
 # $Float = q~[+-]?(?:[0-9]+\.?|[0-9]*\.[0-9]+)(?:[eE][+-]?[0-9]+)?~
+
 $Float = q~[\deE+\-\.]+~;
 
 # ([+\-]?(([0-9]+)|(0[xX][0-9a-fA-F]+))) 
+
 $Integer = q~[\da-fA-FxX+\-]+~;
 
 sub parsefail {
@@ -142,7 +157,7 @@ sub parse_statement { # string in $_[1]
 		return undef;
 	} elsif($justcheck) {
 		return -1;
-	} elsif($_[1] =~ /\G\s*($Word)\b/gsc) {
+	} elsif($_[1] =~ /\G\s*($Word)/gsc) {
 		(pos $_[1]) = $p;
 		print "AND NOW: ",(pos $_[1]),"\n"
 			if $VRML::verbose::parse;
@@ -218,7 +233,7 @@ sub parse_interfacedecl {
 			my($ft, $t, $n) = ($1,$2,$3);
 			$f{$n} = [$ft, $t];
 			if($fieldval) {
-				if($_[3] =~ /\G\s*IS\s+($Word)\b/gsc) {
+				if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
 					push @{$f{$n}}, $scene->new_is($1);
 				} else {
 					push @{$f{$n}},
@@ -231,7 +246,7 @@ sub parse_interfacedecl {
 			my $eft = ($f eq "url" ? "exposedField":"field");
 			print "SCRFIELD $f $ft $eft\n"
 				if $VRML::verbose::parse;
-			if($_[3] =~ /\G\s*IS\s+($Word)\b/gsc) {
+			if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {
 				$f{$f} = [$ft, $f, $scene->new_is($1)];
 			} else {
 				$f{$f} = [$ft, $f, "VRML::Field::$ft"->parse($scene,$_[3])];
@@ -248,7 +263,7 @@ sub parse_interfacedecl {
 sub parse_route {
 	my($scene) = @_;
 	$_[1] =~ /\G
-		\s*ROUTE
+		\s*ROUTE\b
 		\s*($Word)\s*\.
 		\s*($Word)\s+(TO\s+|to\s+|)
 		\s*($Word)\s*\.
@@ -277,26 +292,31 @@ sub parse {
 	$_[2] =~ /\G\s*/gsc;
 	print "PARSENODES, ",(pos $_[2])," ",length $_[2],"\n"
 		if $VRML::verbose::parse;
-	$_[2] =~ /\G\s*($Word)\b/ogsc or parsefail($_[2],"didn't match for sfnode fword");
+	###$_[2] =~ /\G\s*$Word\b/ogsc or parsefail($_[2],"didn't match for sfnode fword");
+	$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],"didn't match for sfnode fword");
+
 	my $nt = $1;
 	if($nt eq "NULL") {
 		return "NULL";
 	}
 	if($nt eq "DEF") {
-		$_[2] =~ /\G\s*($Word)\b/ogsc or parsefail($_[2],
+		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
 			"DEF must be followed by a defname");
+
 		my $defname = $1;
 		print "DEF $defname\n"
 			if $VRML::verbose::parse;
+
 		my $node = VRML::Field::SFNode->parse($scene,$_[2]);
 		print "DEF - node is $node \n" if  $VRML::verbose::parse;
+
 		# print "creating scene->new_def for $defname, $node\n";
                 return $scene->new_def($defname, $node);
 		# print "back from scene->new_def\n";
 
 	} 
 	if($nt eq "USE") {
-		$_[2] =~ /\G\s*($Word)\b/ogsc or parsefail($_[2],
+		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
 			"USE must be followed by a defname");
 		my $dn = $1;
 		print "USE $dn\n"
@@ -333,9 +353,11 @@ sub parse {
 			if $VRML::verbose::parse;
 		# Apparently, some people use it :(
 		$_[2] =~ /\G\s*,\s*/gsc and parsewarnstd($_[2], "Comma not really right");
-		$_[2] =~ /\G\s*($Word)\b\s*/gsc or parsefail($_[2],"Node body","field name not found");
+
+		$_[2] =~ /\G\s*($Word)\s*/gsc or parsefail($_[2],"Node body","field name not found");
 		print "FIELD: '$1'\n"
 			if $VRML::verbose::parse;
+
 		my $f = $1;
 		my $ft = $no->{FieldTypes}{$f};
 		print "FT: $ft\n"
@@ -351,7 +373,7 @@ sub parse {
 
 		print "Storing values... $ft for node $nt, f $f\n" if $VRML::verbose::parse;
 
-		if($_[2] =~ /\G\s*IS\s+($Word)\b/gsc) {
+		if($_[2] =~ /\G\s*IS\s+($Word)/gsc) {
 			$f{$f} = $scene->new_is($1);
                         print "storing type 1, $f, (@{$f{$f}})\n" if $VRML::verbose::parse;
 		} else {
