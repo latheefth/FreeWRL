@@ -27,7 +27,7 @@
 #define DSP "/dev/dsp"
 
 #define MAXSOURCES 50
-#define BUFSIZE 1024 
+#define BUFSIZE  1024
 #define NUMBUFS 2 
 
 #define FormatID 'fmt '   /* chunkID for Format Chunk. NOTE: There is a space at the end of this ID. */
@@ -77,7 +77,6 @@ void initiateDSP ();
 
 
 // Mixer proto defs
-int openMixer();
 void closeMixer();
 void setMixerGain(float mygain);
 
