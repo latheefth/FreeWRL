@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.122  2003/10/16 17:24:59  crc_canada
+# remove unused code
+#
 # Revision 1.121  2003/10/09 16:03:46  crc_canada
 # removed references to "timestamp" in perl code - not required as all timestamp stuff happens in C
 #
@@ -862,20 +865,14 @@ IndexedFaceSet => '
 
 %Get3C = (
 Coordinate => '
-	/* ptr for invalidating the shape display list */
-	this_->_myshape = last_visited_shape; 
 	*n = $f_n(point); 
 	return $f(point);
 ',
 Color => '
-	/* ptr for invalidating the shape display list */
-	this_->_myshape = last_visited_shape;
 	*n = $f_n(color); 
 	return $f(color);
 ',
 Normal => '
-	/* ptr for invalidating the shape display list */
-	this_->_myshape = last_visited_shape; 
 	*n = $f_n(vector);
 	return $f(vector);
 '
@@ -883,8 +880,6 @@ Normal => '
 
 %Get2C = (
 TextureCoordinate => '
-	/* ptr for invalidating the shape display list */
-	this_->_myshape = last_visited_shape; 
 	*n = $f_n(point);
 	return $f(point);
 ',
@@ -1000,7 +995,6 @@ sub gen_struct {
 	       "       int _nparents; \n"		.
 	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
-	       " /*disp list JAS*/ struct VRML_Shape *_myshape; \n"		.
                " /*d*/ void *_intern; \n"              	.
                " /***/\n";
 	
@@ -1322,9 +1316,6 @@ int nextlight() {
 	return lightcode[curlight++];
 }
 
-
-/* for display list regeneration, we need to keep track of this*/
-struct VRML_Shape *last_visited_shape = 0;
 
 /* material node usage depends on texture depth; if rgb (depth1) we blend color field
    and diffusecolor with texture, else, we dont bother with material colors */
@@ -2129,7 +2120,6 @@ CODE:
         p->_nparents = 0;
         p->_nparalloc = 0;
 	p->_ichange = 0;
-	p->_myshape = last_visited_shape; /* This is for display list regeneration */
 	RETVAL=ptr;
 OUTPUT:
 	RETVAL

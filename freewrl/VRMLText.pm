@@ -15,9 +15,6 @@
         double size = 1.0;
 	unsigned int fsparams = 0;
 
-	/* for shape display list redrawing */
-	this_->_myshape = last_visited_shape; 
-
 	/* We need both sides */
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable(GL_CULL_FACE);

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.119  2003/10/16 17:24:59  crc_canada
+# remove unused code
+#
 # Revision 1.118  2003/10/10 14:10:17  crc_canada
 # Compile time option for display lists added.
 #
@@ -465,9 +468,6 @@ Box => '
 	 float y = $f(size,1)/2;
 	 float z = $f(size,2)/2;
 
-	/* for shape display list redrawing */
-	this_->_myshape = last_visited_shape; 
-
 	 glPushAttrib(GL_LIGHTING);
 	 glShadeModel(GL_FLAT);
 	 glBegin(GL_QUADS);
@@ -554,9 +554,6 @@ Cylinder => '
 		int i = 0;
 		INIT_TRIG1(div)
         
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape;
-
 		if($f(top)) {
 			            /*	printf ("Cylinder : top\n"); */
 			glBegin(GL_POLYGON);
@@ -672,9 +669,6 @@ Cone => '
 		DECL_TRIG1
 
 
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape;
-
 		if(h <= 0 && r <= 0) {return;}
 
 		/* The angular distance of each step in the rotations that create  */
@@ -759,9 +753,6 @@ Sphere => 'int vdiv = vert_div;
 		DECL_TRIG1
 		DECL_TRIG2
 
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
-
 		INIT_TRIG1(vdiv) 
 		INIT_TRIG2(hdiv)
 		glPushMatrix();
@@ -811,9 +802,6 @@ IndexedFaceSet => '
 		struct SFColor *normals; int nnormals=0;
 		struct SFVec2f *texcoords; int ntexcoords=0;
 
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
-
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
@@ -848,9 +836,6 @@ IndexedLineSet => '
 		struct SFColor *points; int npoints;
 		struct SFColor *colors; int ncolors=0;
 
-
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
 
 		if(verbose) printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		$fv(coord, points, get3, &npoints);
@@ -932,9 +917,6 @@ PointSet => '
 	struct SFColor *points; int npoints=0;
 	struct SFColor *colors; int ncolors=0;
 
-	/* for shape display list redrawing */
-	this_->_myshape = last_visited_shape; 
-
 	$fv(coord, points, get3, &npoints);
 	$fv_null(color, colors, get3, &ncolors);
 	if(ncolors && ncolors < npoints) {
@@ -968,9 +950,6 @@ GeoElevationGrid => '
                 struct SFVec2f *texcoords; int ntexcoords=0;
 		struct SFColor *normals; int nnormals=0;
 
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
-
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
@@ -997,9 +976,6 @@ ElevationGrid =>  '
                 struct SFVec2f *texcoords; int ntexcoords=0;
 		struct SFColor *normals; int nnormals=0;
 
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
-
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
@@ -1022,10 +998,6 @@ ElevationGrid =>  '
 ',
 
 Extrusion => '
-
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
-
 		$mk_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -1042,9 +1014,6 @@ FontStyle => '',
 
 # Text is a polyrep, as of freewrl 0.34
 Text => '
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
-
 		$mk_polyrep();
 
 		/* always Text is visible from both sides */
@@ -1174,9 +1143,6 @@ Material =>  '
 		      0x7f, 0x7f, 0x7f, 0x7f, 0xff, 0xff, 0xff, 0xff,
 		      0xf7, 0xf7, 0xf7, 0xf7, 0xff, 0xff, 0xff, 0xff
 		   };
-
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
 #ifndef X3DMATERIALPROPERTY
 		/* We have to keep track of whether to reset diffuseColor if using
 		   textures; no texture or greyscale, we use the diffuseColor, if
@@ -1226,11 +1192,6 @@ Material =>  '
 ',
 
 TextureTransform => '
-
-
-		/* for shape display list redrawing */
-	this_->_myshape = last_visited_shape; 
-
        	glEnable(GL_TEXTURE_2D);
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
@@ -1249,16 +1210,12 @@ TextureTransform => '
 # Pixels and Images are all handled the same way now - the methods are identical.
 PixelTexture => '
 	unsigned char *filename = SvPV((this_->__locfile),PL_na);
-	this_->_myshape = last_visited_shape; 
 	last_bound_texture = this_->__texture;
 	bind_image (filename,this_->__texture,this_->repeatS,this_->repeatT,this_->__istemporary);
 ',
 
 ImageTexture => '
 	unsigned char *filename = SvPV((this_->__locfile),PL_na);
-	
-	/* for shape display list redrawing */
-	this_->_myshape = last_visited_shape; 
 
 	/* save the reference globally */
 	last_bound_texture = this_->__texture;
@@ -1280,8 +1237,6 @@ MovieTexture => '
 	sound_from_audioclip = FALSE;
 
 	last_bound_texture = this_->__ctex;
-	this_->_myshape = last_visited_shape; 
-
 ',
 
 
@@ -1800,10 +1755,6 @@ Billboard => (join '','
 
 	',
 	Appearance => '
-		/* for shape display list redrawing */
-		this_->_myshape = last_visited_shape; 
-
-
 		if($f(texture)) {
 
 			/* is there a TextureTransform? if no texture, forget about it */
@@ -1855,9 +1806,6 @@ Billboard => (join '','
 		/* Display lists used here. The name of the game is to use the
 		display list for everything, except for sensitive nodes. */
 
-		/* Appearance, Material, Shape, will make a new list, via this pointer */
-		last_visited_shape = this_;
-
 		/* a texture flag... */
 		last_bound_texture = 0;
 
@@ -1903,7 +1851,6 @@ Billboard => (join '','
 		}
 #endif
 
-		last_visited_shape = 0;
 		glPopAttrib();
 	',
 	Collision => '

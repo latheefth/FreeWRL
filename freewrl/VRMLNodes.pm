@@ -6,25 +6,7 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
-# The event subs:
-#  Initialize($node,$fields,$time,$scene): called when node created in world
-#
-#  field/eventname($node,$fields,$value,$time) 
-#	(if field/exposedField, the name, otherwise exact eventname)
-#		: called when eventIn received in that event.
-#
-# default field/eventname: $t->set_field(...,...), if event received,
-#  field is not set so that it can be ignored (e.g. TimeSensor)
-#  set_field returns the eventout to send also...!!
-#
-#  all these can return lists of eventOuts to send.
-#
-# XXXXXXXXXXXX
-#  Problem: Interpolators send an event at startup and they shouldn't...
-#  TouchSensor: how to get hitpoint, normal and texcoords without 
-#   		spending an ungodly amount of time at it?
-
-package VRML::NodeType; # Same for internal and external!
+package VRML::NodeType; 
 
 my @vps;	# viewpoint Scenes.
 my @vpn;	# viewpoint Nodes.
@@ -747,7 +729,8 @@ my $protono;
 						 bottomRadius => [SFFloat, 1.0, field],
 						 height => [SFFloat, 2.0, field],
 						 side => [SFBool, 1, field],
-						 bottom => [SFBool, 1, field]
+						 bottom => [SFBool, 1, field],
+						 __points =>[SFInt32,0,field]
 						},
 					   ),
 
