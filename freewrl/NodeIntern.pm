@@ -281,25 +281,8 @@ sub startScript {
 			}
 			last;
 		} elsif (/\.class$/) {
-			print "java class invocation scripting not moved yet to new routing structure\n";
-			last;
-
-			my $wurl = $scene->get_world_url();
-			$node->{PURL} = $scene->get_url();
-			if (!defined $VRML::J) {
-				eval('require "VRML/VRMLJava.pm"');
-				die $@ if ($@);
-
-				$VRML::J =
-					VRML::JavaCom->new($scene->get_browser);
-			}
-			if (defined $wurl) {
-				$VRML::J->newscript($wurl, $_, $node);
-			} else {
-				$VRML::J->newscript($node->{PURL}, $_, $node);
-			}
-
-			$node->{J} = $VRML::J;
+			eval ('require VRML::VRMLJava');
+			$node->{J}= VRML::JavaClass->new($node,$scriptInvocationNumber, $_);
 			last;
 		} elsif (/\.js/) {
 			# New js url handling
@@ -341,9 +324,6 @@ sub startScript {
 
 	$scriptInvocationNumber ++;
 }
-
-
-
 
 sub new {
     my ($type, $scene, $ntype, $fields, $eventmodel) = @_;
@@ -465,82 +445,11 @@ sub real_node {
 	return $this;
 }
 
-# Return the initial events returned by this node.
-sub get_firstevent {
-    my ($this) = @_;
-
-    if ($this->{Type}{Actions}{ClockTick}) {
-		print "\tAction clocktick!\n" if $VRML::verbose;
-		my @ev = &{$this->{Type}{Actions}{ClockTick}}(
-				$this);
-    }
-    return ();
-}
-
-sub receive_event {
-	my ($this, $event, $value, $timestamp) = @_;
-	my $tmp;
-
-	if (!exists $this->{Fields}{$event}) {
-		die("Invalid event $event received for $this->{TypeName}");
-	}
-
-	my $field = $event;
-
-	## ElevationGrid, Extrusion, IndexedFaceSet and IndexedLineSet
-	## eventIns (see VRML97 node reference)
-	if ($event =~ /^set_($VRML::Error::Word+)/) {
-		$tmp = $1;
-		if ($this->{Type}{EventIns}{$event} and
-			$this->{Type}{FieldKinds}{$tmp} eq "field") {
-			$field = $tmp;
-		}
-	}
-
-	print "VRML::NodeIntern::receive_event: ", dump_name($this),
-		" $this->{TypeName} event $event, field $field ",
-			VRML::Debug::toString($value),
-					", timestamp $timestamp\n"
-						if $VRML::verbose::events;
-
-	$this->{RFields}{$field} = $value;
-
-	if ($this->{Type}{Actions}{$event}) {
-		print "\treceived event action!\n" if $VRML::verbose::events;
-		my @ev = &{$this->{Type}{Actions}{$event}}($this, $this->{RFields},
-												   $value, $timestamp);
-		for (@ev) {
-			$this->{Fields}{$_->[1]} = $_->[2];
-		}
-		return @ev;
-	} elsif ($this->{Type}{Actions}{__any__}) {
-		my @ev = &{$this->{Type}{Actions}{__any__}}(
-													$this,
-													$this->{RFields},
-													$value,
-													$timestamp,
-													$event,
-												   );
-		# XXXX!!!???
-		for (@ev) {
-			$this->{Fields}{$_->[1]} = $_->[2];
-		}
-		return @ev;
-	} elsif ($VRML::Nodes::bindable{$this->{TypeName}}
-			 and $event eq "set_bind") {
-		my $scene = $this->get_global_scene();
-		$scene->set_bind($this, $value, $timestamp);
-		return ();
-	} else {
-		# Ignore event
-	}
-}
-
-# Get the outermost scene we are in
-sub get_global_scene {
-    my ($this) = @_;
-    return $this->{Scene}->get_scene();
-}
+#JAS # Get the outermost scene we are in
+#JAS sub get_global_scene {
+#JAS     my ($this) = @_;
+#JAS     return $this->{Scene}->get_scene();
+#JAS }
 
 # Copy a deeper struct
 sub ccopy {
@@ -679,20 +588,6 @@ sub make_executable {
 	    if $VRML::verbose::scene;
 }
 
-sub initialize {
-    my ($this, $scene) = @_;
-
-    if ($this->{Type}{Actions}{Initialize}) {
-		return &{$this->{Type}{Actions}{Initialize}}(
-													 $this,
-													 $this->{RFields},
-													 (my $timestamp=(POSIX::times())[0] / 100),
-													 $this->{Scene}
-													);
-    }
-    return ();
-}
-
 sub set_backend_fields {
     my ($this, @fields) = @_;
     my $be = $this->{BackEnd};
@@ -786,5 +681,4 @@ sub set_backend_fields {
 	}
 
 }
-
 1;

@@ -52,7 +52,6 @@ use Config;
 my $XSLTpath = "$VRML::ENV{FREEWRL_BUILDDIR}/x3d/X3dToVrml97.xsl";
 my $globalBrowser = "";
 
-
 ###############################################
 #
 # Public functions
@@ -304,39 +303,12 @@ sub getTextFromFile {
 	return $text;
 }
 
-# actually load the file and parse it.
-#JASsub load_string {
-#JAS	my($this,$string,$file) = @_;
-#JAS
-#JAS	my $type = 0;
-#JAS
-#JAS	#print "load_string, string is $string\nload_string file is $file\n";
-#JAS	# type is 0 for VRML v2, 1 for xml
-#JAS
-#JAS	if ($string =~ /^#VRML V2.0/s) {
-#JAS		$type = 0;
-#JAS	} elsif($string =~ /^#VRML V1.0/s) {
-#JAS			print "VRML V1.0, I only know V2.0";
-#JAS			return;
-#JAS	} elsif ($string =~/^<\?xml version/s) {
-#JAS		$type = 1;
-#JAS	} else {
-#JAS		#warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
-#JAS		$type = 0;
-#JAS	}
-#JAS	if ($type == 1)  {
-#JAS               $string = convertX3D($string);
-#JAS	}
-#JAS	VRML::Parser::parse($this->{Scene},$string);
-#JAS}
-
 sub prepare {
 	my($this) = @_;
 
 	$this->{Scene}->make_executable();
 	my $bn = $this->{Scene}->make_backend($this->{BE});
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	$this->{Scene}->init_events($this->{EV}, $this->{BE});
 	
 	# display this one
 
@@ -479,7 +451,6 @@ sub create_common {
 	$scene->make_executable();
 	$scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
-	$scene->init_events($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
 	$scene->dump(0) if $VRML::verbose::scenegraph;
 

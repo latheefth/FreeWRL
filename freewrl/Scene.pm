@@ -1049,28 +1049,4 @@ sub setup_routing {
 		if $VRML::verbose::scene;
 }
 
-
-# Send initial events
-sub init_events {
-	my ($this, $eventmodel, $backend) = @_;
-	my @e;
-
-	print "VRML::Scene::init_events this $this ev $eventmodel be $backend\n"
-		if $VRML::verbose::scene;
-
-	$this->iterate_nodes_all(sub {$_[0]->initialize($this);});
-}
-
-
-sub update_routing {
-	my ($this, $node, $field) = @_;
-	##my ($fn, $ff, $tn, $tf, $item);
-
-	## for EAI:
-	## add code to delete route if a child is removed if necessary...
-	## what else???
-}
-
-
-
 1;

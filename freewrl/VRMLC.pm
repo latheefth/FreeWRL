@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.134  2004/02/25 19:09:14  crc_canada
+# code cleanup.
+#
 # Revision 1.133  2004/01/21 21:11:49  crc_canada
 # More SGI Irix compile errors fixed
 #
@@ -1549,7 +1552,7 @@ void render_node(void *node) {
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = node;
-
+	
 	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
@@ -2026,6 +2029,24 @@ CODE:
 OUTPUT:
 	RETVAL
 
+
+
+#********************************************************************************
+#
+# We have a new class invocation to worry about...
+
+int
+do_newJavaClass(scriptInvocationNumber,nodestr,node)
+	int scriptInvocationNumber
+	char *nodestr
+	int node
+CODE:
+	printf ("do_newJavaClass, script %d, node %s\n",scriptInvocationNumber,nodestr);
+	RETVAL = newJavaClass(scriptInvocationNumber,nodestr,node);
+OUTPUT:
+	RETVAL
+
+
 #********************************************************************************
 #
 # register a route that can go via C, rather than perl.
@@ -2043,16 +2064,6 @@ do_CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, 
 	int extra
 CODE:
 	CRoutes_Register(adrem, (unsigned int)from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
-
-void
-do_CRoutes_js_new (num, cx, glob, brow)
-	int num
-	void *cx
-	void *glob
-	void *brow
-CODE:
-	CRoutes_js_new (num, (unsigned int) cx, (unsigned int) glob, (unsigned int) brow);
-
 
 #********************************************************************************
 #
@@ -2224,7 +2235,14 @@ EAIExtraMemory (type,size,data)
 OUTPUT:
 RETVAL
 
-	
+# simple malloc - used for Java CLASS parameters
+int
+malloc_this (size)
+	int size
+	CODE:
+	RETVAL = malloc(size);
+OUTPUT:
+RETVAL
 
 #****************JAVASCRIPT FUNCTIONS*********************************
 
