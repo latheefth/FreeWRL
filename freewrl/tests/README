@@ -71,8 +71,24 @@ Notes:
 
 26.wrl: Background images.
 
-27.wrl: bouncing ball. Click on the ball. (from Jed Hartman)
+27.wrl: Bouncing ball. Click on the ball. (from Jed Hartman)
 
+28.wrl: Rectangle with a bookcase image mapped on it.
+
+29.wrl: Textured sphere with vertical stripes and arrows going
+        up. Stripes should appear, left to right, as dark red, dark
+        green, dark blue, black, dark cyan and white.
+
+30.wrl: A noodle drain.
+
+31.wrl: A set of "camera" like objects. Uses a DEF'd Inline node which has
+        "camera.wrl" as url.
+
+32.wrl: Contains 30.wrl and 31.wrl.
+
+33.wrl: Contains two copies 30.wrl, translated.
+
+34.wrl: The noodle drain with a the original texture mapped on it. 
 
 AddRemove:	
 	Java applet with EAI add/remove button. Run the script "standalone"
