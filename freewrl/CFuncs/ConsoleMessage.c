@@ -140,8 +140,9 @@ int ConsoleMessage(char *fmt, ...) {
 	va_end(ap);				/* clean up				 */
 
 #ifdef AQUA
-	printf (FWbuffer);
+	sendCM(FWbuffer);
 #else
+	printf (FWbuffer);
 	if (RUNNINGASPLUGIN) {
 		freewrlSystem (FWbuffer);
 	} else {
