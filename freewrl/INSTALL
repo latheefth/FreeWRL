@@ -1,4 +1,4 @@
-# Copyright (C) 1998 Tuomas J. Lukka, 2000 John Stewart, CRC Canada.
+# Copyright (C) 1998 Tuomas J. Lukka, 2000,2001 John Stewart, CRC Canada.
 # DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution, EXCEPT on the files
@@ -13,11 +13,19 @@
 Introduction:
 -------------
 
-The Install is possibly a long-winded affair; it depends
-on your distribution of Linux, and what other packages you
-have installed.
+The complexity of the install depends on what packages you have installed 
+with your system, and what packages may have been installed later.
 
-At this point in time, I am using RedHat 6.2.
+I have tested the build on brand new builds of:
+
+	SuSe 7.1 FTP'd on March 30-31 2001
+	TurboLinux Workstation 4.0.5.SMC Tues Oct 19, 1999
+
+NOTE: this test workstation has limited disk space, so I built with
+the "Development Workstation" options - you may *not* have to do one
+or two of the steps outlined below if you install everything.
+
+At this point in time, my personal workstation usesRedHat 6.2.
 
 Comments/help more than welcome.
 
@@ -26,95 +34,113 @@ This install is divided up into the following sections:
 
 1) Building FreeWRL to run "standalone", without Netscape.
 	
-2) Installing FreeWRL for non-root usage.
+2) Installing Java support for EAI.
 
-3) Installing Java support.
+3) Getting it all to work with Netscape.
 
-4) Getting it all to work with Netscape.
-
-5) Getting it to work with the Polhemus Fastrak 3d, or a Joystick.
+4) Getting it to work with the Polhemus Fastrak 3d, or a Joystick.
 
 
 (updated 19 June 2000 - john.stewart@crc.ca)
 (updated 31 Aug 2000 - remi@cohen-scali.com)
+(updated 02 Apr 2001 - john.stewart@crc.ca)
 
 
 ===================================================================
 1) Building FreeWRL as a standalone executable.
 
 Notes:	All files are available here: 
+
 		- http://www.crc.ca/FreeWRL/download/
-		- http://sourceforge.net/projects/freewrl/
+		- http://freewrl.sourceforge.net/
+
 	You can also access the cvs repository. The way to do it is
 	explained at:
+
 		- http://sourceforge.net/cvs/?group_id=9120
+
 	or browse it online at:
+
 		- http://cvs.sourceforge.net/cgi-bin/cvsweb.cgi/freewrl/?cvsroot=freewrl
 
 	Nightly CVS tarballs (for risky of you) are available at:
-		- ftp://ftp.rcsnet.net/pub/FreeWRL-Nightly-CVS-Tree-Tarball/
+
+		- http://www.rcsnet.net/pub/FreeWRL-Nightly-CVS-Tree-Tarball/
 
 	The tests directory has a README in it - it describes the
  	tests available. RUN THEM ALL - Look at the TEST.STATUS file
  	in the tests directory for test results expected.
 
 	
-1.1)  Mesa and Mesa demos.
+1.1)  OpenGL (usually Mesa)
 
-	EITHER install the Mesa rpms from the RedHat disk, or get
-	the latest from the Mesa Web page:
+	TurboLinux:	nothing needed.
+	Suse 7.1:	rpm -Uvh mesadev.rpm from disk x3d2.	
+
+	Usually, Mesa is included in newer distributions. If not
+	installed it is on the distribution disks.
+
+	If you wnt the latest stable release, download it from:
 
 		http://www.mesa3d.org
 
-	I put the files in /usr/local/src/Mesa-3.2.
 
-	Add /usr/local/src/Mesa-3.2/lib to LD_LIBRARY_PATH
-	in /etc/csh.cshrc
+1.2) 3D hardware accelleration.
 
-	eg:
-	setenv LD_LIBRARY_PATH /usr/local/src/Mesa-3.2/lib
+	If you have a Linux compatible 3D accel. card, then 
+	simply install it, and follow the directions from the 
+	manufacturer.
 
-	If you go the RPM route, install all of the Mesa-3.2
-	rpms as found on the disk. (look for something like
-	Mesa-3.2.x and Mesa-devel-3.2.x)
+	You will have accellerated OpenGL; just make sure that 
+	you point to the correct version of the GL libs in vrm.lconf;
 
-1.2) Mesa 3DFX hardware accelleration.
+	ldconfig -p | grep GL
 
-	XFree86 now includes hardware accelleration. 
-
-	You may wish to set the following environment
-	variables (see the mesa/docs/README.3DFX)
-
-        - To set the default screen refresh rate:
-                setenv SST_SCREENREFRESH=75
-
-          the supported values are 60, 70, 72, 75, 80, 85, 90, 100, 120.
-
-        - To force the Mesa library to swap buffers as fast as possible,
-          without any vertical blanking synchronization:
-                setenv FX_GLIDE_SWAPINTERVAL 0
-                setenv SST_SWAP_EN_WAIT_ON_VIDSYNC 0
-
+	will show you which versions of the (mesa) GL library
+	you have.
 
 
 1.3) FreeWRL Installation.
+
+	This section has specifics for certain distributions.
+	check at the bottom of this section for these dists.
+
+	TurboLinux:	Perform step 1: below.
+			change the two references in vrml.conf
+			from:
+				-lGL -lGLU
+
+			To:
+				-lMesaGL -lMesaGLU
+
+			and go to the next section.
+
+	Suse 7.1:	Perform steps 1, 4, and 5 below.
+			I had to install
+		                Digest-MD5-2.09
+		                MIME-Base64-2.11
+		                URI-1.04
+		                libnet-1.0607
+		                HTML-Parser-2.25
+		                libwww-perl-5.47
+			and had to find ImageMagick. It most likely
+			was not installed because I had to restrict
+			packages on my installation.
+
+		
 
 	1) grab the latest FreeWRL tar file, and untar it.
 
 	2) Verify that the vrml.conf file have the good reference
 	to the following libraries:
-		- Mesa (2 references in this file)
+		- GL and GLU
 		- PNG
 		- JPEG
 
-	3) install the FreeType RPMs from the RH 6.2 CD #1.
-	(I do this manually; mount the cd, cd into the RedHat
-	RPM directory - and "rpm -i" all three of the freetype
-	rpms - freetype-1.3.x, freetype-devel-1.3.x, and 
-	freetype-utils-1.3.x)
+	3) install the FreeType RPMs if needed.
+	(freetype-1.3.x, freetype-devel-1.3.x, freetype-utils-1.3.x)
 
-	4) had to install Perl Modules:
-	(perl modules are stored on my download page) 
+	4) required Perl Modules:
 
 		Digest-MD5-2.09
 		HTML-Parser-2.25	
@@ -126,79 +152,64 @@ Notes:	All files are available here:
 
 	Installing these modules is a no-brainer; just untar
 	each module, then go into the directory, and 
+
 		perl Makefile.PL
 		make
 		make install
-	You can also use the CPAN shell or PPM if you use ActivePerl.
-	The version of Perl you should use is 5.6.0 (regular CPAN or
-	ActivePerl are ok) or 5.005_xx if you are hacker.
 
 	Note that libwww-perl will most likely ask you if you
 	want to reconfigure- I always just select the default (no)
 
+	5) ImageMagick is required for some conversions of graphics
+	files. The "convert" utility is used; this *should* now be
+	installed with any graphical Linux distribution. If you
+	can't find it, you can always download it from:
 
+		http://www.imagemagick.org
 
 1.4) Make the Makefile 
 
-	perl Makefile.PL
+	This has three major steps; execute these commands:
+	
+		perl Makefile.PL
+		cd JS/js
+		make
+		cd ..
+		perl Makefile.PL
 
-in the main FreeWRL directory. If there are any errors, correct
-them first. If there is no -ljs, see below: this is the javascript
-library. Email me if the problem persists.
- 
-Go to JS/js/ subdirectory and compile the Mozilla javascript code.
-In order to do it, issue:
-       cd JS/js; make
-
-Warning ! This step is important and is not included in the
-makefiles. You should go in that step if you fetched FreeWRL
-from CVS.
+	The last few lines of the last command should be:
+		Warning: -Ljs/Linux_All_DBG.OBJ changed to (something)
+		Writing Makefile for VRML::JS
+		Writing Makefile for VRML::OpenGL
+		Writing Makefile for VRML::PNG
+		Writing Makefile for VRML::Text
+		Writing Makefile for VRML::VRMLFunc
 
 
 1.5) Build/install freewrl
 
-	make
+	make install
 
-which should compile and install (in the blib/ directory) the files.
-Because this release is strictly alpha, installing them anywhere else
-takes a couple of steps. See the major steps below.
- 
-1.6) (should be already there, but... ) For the java interface, 
-you have to first create the named pipes via the commands (in the 
-FreeWRL build directory)
+1.6) SAI is in beta; some of the SAI tests in the tests directory
+	work. To make them function on your system; type the following two
+	commands:
 
-       mknod .javapipej p
-       mknod .javapipep p
+       		mknod .javapipej p
+       		mknod .javapipep p
 
-classpath, like this: assuming that FreeWRL is in /opt/FreeWRL/ , 
-then you would do:
-
-	bash, ksh:
-
-	export CLASSPATH=/opt/FreeWRL/java/classes:$CLASSPATH
-
-	tcsh, csh:
-
-	setenv CLASSPATH /opt/FreeWRL/java/classes:$CLASSPATH
+	Please READ the README's in the SAI tests directories for
+	further instructions.
 
 
 1.7) Do tests of all of the numbered files (And any others that
-you want!) in the tests directory. Note that some use javascript,
-so you will be testing javascript, too. 
-
-===================================================================
-2) Installing FreeWRL for non-root usage.
-
-
-2.1) To install freewrl, type:
-
-	make install
+	you want!) in the tests directory. Note that some use javascript,
+	so you will be testing javascript, too. 
 
 
 ===================================================================
-3) Installing Java support.
+2) Installing Java support.
 
-3.1) Javascript:
+2.1) Javascript:
 
 In the basic install, you should have installed the java support
 to allow some of the test programs in the tests directory to work.
@@ -207,7 +218,7 @@ to allow some of the test programs in the tests directory to work.
 If these programs don't run, then go back and make FreeWRL
 it so that it does work.
 
-3.2) EAI code:
+2.2) EAI code:
 
 Make sure that the CLASSPATH environment variable is set
 correctly (see above).
@@ -221,7 +232,7 @@ Any java code that uses the "import vrml.external..." command, will
 get the requsite classes from this directory.
 
 
-3.3) Testing the EAI code.
+2.3) Testing the EAI code.
 
 cd into the tests/AddRemove directory in the build tree.
 
@@ -342,8 +353,8 @@ http://www.crc.ca/FreeWRL/download/joystickxxx.
 
 #
 # $Log$
-# Revision 1.5  2001/03/28 02:38:28  crc_canada
-# Some install simplifications.
+# Revision 1.6  2001/04/03 14:53:45  crc_canada
+# update standalone install
 #
 # Revision 1.4  2000/11/03 20:11:29  crc_canada
 # add text about speeding up 3dfx cards
