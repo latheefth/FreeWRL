@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.92  2003/03/19 19:38:13  crc_canada
+# Text collision vector calcs fixed - normal now fixed, not calculated.
+#
 # Revision 1.91  2003/03/17 16:18:28  crc_canada
 # two changes - more stipple transparency levels - DirectionalLight order code
 # fixed.
@@ -3017,8 +3020,10 @@ Text => q~
 	       static int refnum = 0;
 
 	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,0};
-
+	       struct pt delta = {0,0,-1}; // JAS - normals are always this way - helps because some
+					   // JAS - normal calculations failed because of very small triangles
+					   // JAS - which made collision calcs fail, which moved the Viewpoint...
+					   // JAS - so, if there is no need to calculate normals..., why do it?
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
 	       int change;
