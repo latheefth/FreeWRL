@@ -62,6 +62,7 @@ realclean: clean
 
 spotless: realclean
 	-rm -Rf ${bak_dir}
+	-rm -f *~
 
 display: dvi
 	xdvi vts.dvi
