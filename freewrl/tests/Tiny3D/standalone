@@ -1,0 +1,3 @@
+#nice freewrl -eai localhost:2000 root.wrl -best eai &
+nice freewrl -eai localhost:2000 root.wrl -best &
+appletviewer tiny3d.html
