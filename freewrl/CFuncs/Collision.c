@@ -1421,6 +1421,7 @@ struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML
 /*Optimized polyrep_disp for planar polyreps.
   Used for text.
   planar_polyrep_disp computes the normal using the first polygon, if no normal is specified (if it is zero).
+  JAS - Normal is always specified now. (see VRMLRend.pm for invocation)
 */
 struct pt planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, struct VRML_PolyRep* pr, struct pt n, struct pt dispsum, prflags flags) {
     struct pt p[3];
