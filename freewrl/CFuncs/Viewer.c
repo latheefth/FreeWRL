@@ -364,6 +364,7 @@ handle_keyrelease(VRML_Viewer *viewer, const double time, const char key)
 	/* my($this,$time,$key) = @_; */
 	VRML_Viewer_Fly *fly = viewer->fly;
 	char _key;
+	int i;
 
 	UNUSED(time);
 
@@ -557,6 +558,14 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 {
 /* 	my($this, $time) = @_; */
 	VRML_Viewer_Fly *fly = viewer->fly;
+/* 	my $v = $this->{Velocity}; */
+	struct pt _velocity = fly->Velocity;
+/* 	my $av = $this->{AVelocity}; */
+	struct pt _avelocity = fly->AVelocity;
+	ps[KEYS_HANDLED] = KEYMAP;
+	int i;
+	double changed;
+
 /* 	if(!defined $this->{Velocity}) {$this->{Velocity} = [0,0,0]} */
 /* 	if(!defined $this->{AVelocity}) {$this->{AVelocity} = [0,0,0]} */
 /* 	if($lasttime == -1) {$lasttime = $time;} */
@@ -566,20 +575,28 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 	
 	/* first, get all the keypresses since the last time */
 /* 	my %ps; */
-/* 	for(keys %{$this->{Down}}) { */
+/* 	for(keys %{$this->{Down}}) */
+	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		$ps{$_} += $this->{Down}{$_}; */
-/* 	} */
-/* 	for(keys %{$this->{WasDown}}) { */
+		ps[i] += (fly->Down[i])->hit;
+	}
+
+/* 	for(keys %{$this->{WasDown}}) */
+	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		$ps{$_} += delete $this->{WasDown}{$_}; */
-/* 	} */
+		ps[i] += (fly->WasDown[i])->hit;
+		(fly->WasDown[i]).hit = 0;
+	}
+
 /* 	undef @aadd; */
 /* 	undef @radd; */
-/* 	for(keys %ps) { */
+/* 	for(keys %ps) */
+	for (i = 0; i < KEYS_HANDLED; i++) {
 /* 		if(exists $actions{$_}) { */
 /* 			$actions{$_}->($ps{$_}?1:0); */
 /* 		}  */
-/* 	} */
-/* 	my $v = $this->{Velocity}; */
+	}
+
 /* 	my $ind = 0; */
 /* 	my $dt = $time-$lasttime; */
 /* 	if($dt == 0) { return; } */
@@ -597,7 +614,6 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 /* 	); */
 /* 	for(0..2) {$this->{Pos}[$_] += $nv->[$_]} */
 
-/* 	my $av = $this->{AVelocity}; */
 /* 	$ind = 0; */
 /* 	my $sq; */
 /* 	for(@$av) {$_ *= 0.04 ** ($dt); */
@@ -612,10 +628,14 @@ handle_tick_fly(VRML_Viewer *viewer, const double time)
 /* 	$this->{Quat} = $nq->multiply($this->{Quat}); */
 	
 	/* any movement? if so, lets render it */
-/* 	if (abs($changed) > 0.000001) { */
+/* 	if (abs($changed) > 0.000001) */
+	if (fabs(changed) > 0.000001) {
 /* 		VRML::OpenGL::set_render_frame(); */
-/* 	} */
+		set_render_frame();
+	}
+
 /* 	$lasttime = $time; */
+	fly->lasttime = time;
 }
 
 
