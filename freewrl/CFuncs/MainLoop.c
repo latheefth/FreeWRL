@@ -95,6 +95,11 @@ double lastTime;
 double BrowserStartTime; 	/* start of calculating FPS 	*/
 double BrowserFPS = 0.0;	/* calculated FPS		*/
 
+#ifdef PROFILE
+static double timeA, timeB, timeC, timeD, timeE, timeF, xxf, oxf;
+#endif
+
+
 /* used for initializing (sometimes!) javascript initialize() */
 int myMaxScript = -1;
 
@@ -138,15 +143,19 @@ void EventLoop() {
 	struct timeval mytime;
 	struct timezone tz; /* unused see man gettimeofday */
 
+	
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
-
 
 	/* First time through */
 	if (loop_count == 0) {
 		BrowserStartTime = TickTime;
 		lastTime = TickTime;
+		#ifdef PROFILE
+		printf ("time setup for debugging\n");
+		timeA = timeB = timeC = timeD = timeE = timeF =0.0; 
+		#endif
 	} else {
 		// rate limit ourselves to about 65fps. 
 		waittime.tv_usec = (TickTime - lastTime - 0.0120)*1000000.0; 
@@ -160,6 +169,13 @@ void EventLoop() {
 	if (loop_count == 25) {
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
 		update_status(); // tell status bar to refresh, if it is displayed 
+		#ifdef PROFILE
+		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
+		printf ("times %lf %lf %lf %lf %lf %lf\n",
+				timeA/oxf*100.0,timeB/oxf*100.0,
+				timeC/oxf*100.0, timeD/oxf*100.0,
+				timeE/oxf*100.0,timeF/oxf*100.0);
+		#endif
 		BrowserStartTime = TickTime; 
 		loop_count = 1;
 	} else {
@@ -188,17 +204,53 @@ void EventLoop() {
 	/* Handle X events */
 	handle_Xevents();
 	
+	#ifdef PROFILE
+	gettimeofday (&mytime,&tz);
+	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	timeA = (double)timeA +  (double)xxf - TickTime;
+	#endif
+
 	/* Viewer move viewpoint */
 	handle_tick();
 
+	#ifdef PROFILE	
+	gettimeofday (&mytime,&tz);
+	oxf = xxf;
+	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	timeB = (double)timeB +  (double)xxf - oxf;
+	#endif
+
 	/* setup Projection and activate ProximitySensors */
 	render_pre();
+	
+	#ifdef PROFILE
+	gettimeofday (&mytime,&tz);
+	oxf = xxf;
+	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	timeC = (double)timeC +  (double)xxf - oxf;
+	#endif
+
 
 	/* first events (clock ticks, etc) */
 	if (doEvents) do_first ();
 
+	#ifdef PROFILE	
+	gettimeofday (&mytime,&tz);
+	oxf = xxf;
+	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	timeD = (double)timeD +  (double)xxf - oxf;
+	#endif
+
 	/* actual rendering */
 	render();
+
+	
+	#ifdef PROFILE
+	gettimeofday (&mytime,&tz);
+	oxf = xxf;
+	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	timeE = (double)timeE +  (double)xxf - oxf;
+	#endif
 
 	/* handle_mouse events if clicked on a sensitive node */
 	if (!NavigationMode && HaveSensitive) {
@@ -312,6 +364,14 @@ void EventLoop() {
 		    myMaxScript = max_script_found;
 		}
 	}
+	
+	#ifdef PROFILE
+	gettimeofday (&mytime,&tz);
+	oxf = xxf;
+	xxf = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
+	timeF = (double)timeF +  (double)xxf - oxf;
+	#endif
+
 }	
 
 

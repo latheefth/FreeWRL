@@ -33,6 +33,14 @@
 #include "headers.h"
 
 static double frustumConeAngle = 0.0;
+
+
+static int PlaneInCheck(
+	float angle, 		// tan of the viewing angle
+	float Zdist, 		// distance to centre
+	float extent, 		// "spread" of the extent in this direction
+	float lineDist		// offset of vector
+		);
   
 /* take the measurements of a geometry (eg, box), and save it. Note 
  * that what is given is a Shape, the values get pushed up to the
@@ -70,7 +78,7 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 	int i;
 	struct VRML_Box *parent;
 
-	//printf ("propextent, bboxcenter %f %f %f, myextent %f %f %f me %d parents %d\n",
+	//printf ("propextent, xDistoxcenter %f %f %f, myextent %f %f %f me %d parents %d\n",
 	//		x,y,z,me->_extent[0],me->_extent[1],me->_extent[2],me,
 	//		me->_nparents);
 
@@ -87,23 +95,16 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 #endif
 }
 
-void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV) {
+void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
 #ifdef BOUNDINGBOX
 	float x,y,z;
-	x = bbs.c[0];
-	y = bbs.c[1];
-	z = bbs.c[2];
-	//printf ("BoundingBox, size %f %f %f %d\n",x,y,z, PIV);
-	//
-	//
-	
-	return;
-	//
-	//
+	x = xDists.c[0];
+	y = xDists.c[1];
+	z = xDists.c[2];
+return;	
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
 	if (PIV == 0) return;
 
-	//return;
 	/* calculate distance to this box from the Frustum */
 
 	
@@ -201,7 +202,7 @@ void calculateFrustumCone () {
 }
 
 /************************************************************
- * inCheck - check if a point is "within" expected values
+ * PlaneInCheck - check if a point is "within" expected values
  *
  * What we do is check a point in X and in Y, using the viewport
  * angle.
@@ -233,34 +234,59 @@ void calculateFrustumCone () {
  *
  *     We check x and y seperately.
  *
+ *     The way checks are done is, assume a line in X or Y plane;
+ *     we have the two outer limits(AB), and the limits of the bounding
+ *     box (CD), if CD is contained within AB, the plane is contained.
+ *     if D is outside of A, or C is outside of B, then the plane is
+ *     really out of view, otherwise, we know at least C or D is within
+ *     the AB.
+ *
+ *     Of course, if things are behind you, the test is really easy;
+ *     nothing is in view!
+ *
  *************************************************************/
 
-void inCheck(GLdouble Distance,GLdouble bb,GLdouble cc, int *xcount, int *pointok) {
-	GLdouble xx;	
-	
-	//xx = tan(0.7)*Distance;
-	xx = tan(0.2)*Distance;
+static int PlaneInCheck(
+	float angle,		// tan of the viewing angle
+	float Zdist, 		// distance to centre
+	float extent, 		// "spread" of the extent in this direction
+	float lineDist		// offset of vector
+		) {
+	float A;	// "left" most point of Frustum
+	float B;	// "right" most point of Frustum
+	float C;	// "left" side of bBox
+	float D;	// "right" side of bbox
 
-	//printf ("        comparing %f with %f, %f ",xx, bb,cc);
+	A = -Zdist * angle;
+	B = Zdist * angle;
+	C = -extent + lineDist;
+	D = extent + lineDist;
+	C = C / Zdist;
+	D = D / Zdist;
+	//printf ("	A %4.3f C %4.3f;  D %4.3f B %4.3f z %4.3f",A,C,D,B,Zdist);
 
-	// Point is behind viewer
-	if (Distance<0.0) {
-	//	printf (" Xcount %d\n",0);
-		return;
+	if (Zdist < 0.0) {
+		//printf ("BEHIND\n ");
+		return 0;
 	}
 
-	// are both points positive?
-	if ((bb>0.0) && (xx < bb) && 
-		(cc>0.0) && (xx < cc)) (*xcount)++;
-	
-	if ((bb>0.0) && (cc>0.0)) (*pointok)++;
+	if ((A<C) && (D<B)) {
+		//printf ("BOTH POINTS OK\n");
+		return 2;
+	} 
 
-	//printf (" Xcount %d pok %d\n",*xcount,*pointok);
+
+	if ((D<A) || (C>B)) { 
+		//printf ("POINTS OUTSIDE\n");
+		return 0;
+	} 
+
+	//printf ("POSSBLE\n");
+	return 1;
 }
 
-
 int PointInView(struct VRML_Transform *nod) {
-	GLdouble xx,yy,Distance,bb,cc,dd,ee,ff,ex_X,ex_Y,ex_Z;
+	GLdouble xx,yy,Distance,xDist,yDist,dd,ee,ff,ex_X,ex_Y,ex_Z;
 	GLdouble modelMatrix[16];
 	int retval;
 	int xcount, pointok;
@@ -277,51 +303,33 @@ int PointInView(struct VRML_Transform *nod) {
 #ifdef BOUNDINGBOX
 
 	// get the x,y values from the modelMatrix
-	//bb = modelMatrix[12]; // x ish
-	//cc = modelMatrix[13]; // y ish
-	bb = modelMatrix[13]; // x ish
-	cc = modelMatrix[12]; // y ish
-	printf ("\nbb %f cc %f dist approx %f\n",bb,cc,modelMatrix[14]);
+	xDist = modelMatrix[12]; // X
+	yDist = modelMatrix[13]; // Y
+	//printf ("\nxDist %f yDist %f dist approx %f\n",xDist,yDist,modelMatrix[14]);
 
 	// get the extent from the VRML Struct passed in
-	//ex_X=nod->_extent[0]; 
-	//ex_Y=nod->_extent[1];
+	ex_X=nod->_extent[0]; 
+	ex_Y=nod->_extent[1];
 	ex_Z=nod->_extent[2];
-	printf ("extent %f %f %f\n",nod->_extent[0], nod->_extent[1],nod->_extent[2]);
+	//printf ("extent %f %f %f\n",nod->_extent[0], nod->_extent[1],nod->_extent[2]);
 
 	// check the 4 points closer to us
 	Distance = -modelMatrix[14]+ex_Z; // distance
-	ex_X = (nod->_extent[0])*Distance;
-	ex_Y = (nod->_extent[1])*Distance;
+	xcount += PlaneInCheck(tan (0.2), Distance, ex_X, xDist);
+	xcount += PlaneInCheck(tan (0.2), Distance, ex_X, yDist);
 
-	inCheck(Distance, bb+ex_X, cc+ex_Y,&xcount,&pointok);
-	inCheck(Distance, -(bb-ex_X), cc+ex_Y,&xcount,&pointok);
-	inCheck(Distance, bb+ex_X, -(cc-ex_Y),&xcount,&pointok);
-	inCheck(Distance, -(bb-ex_X), -(cc-ex_Y),&xcount,&pointok);
 
 	/* check the 4 points farther from us */
 	Distance = -modelMatrix[14]-ex_Z; // distance
-	ex_X = (nod->_extent[0])*Distance;
-	ex_Y = (nod->_extent[1])*Distance;
-	inCheck(Distance, bb+ex_X, cc+ex_Y,&xcount,&pointok);
-	inCheck(Distance, -(bb-ex_X), cc+ex_Y,&xcount,&pointok);
-	inCheck(Distance, bb+ex_X, -(cc-ex_Y),&xcount,&pointok);
-	inCheck(Distance, -(bb-ex_X), -(cc-ex_Y),&xcount,&pointok);
+	xcount += PlaneInCheck(tan (0.2), Distance, ex_X, xDist);
+	xcount += PlaneInCheck(tan (0.2), Distance, ex_Y, yDist);
 
-	//printf ("PIV %d %d\n",xcount,pointok);
+	//printf ("Xc %d\n",xcount);
+
 #endif
 	nod->_dist = modelMatrix[14];
-	//printf ("getDist - recalculating distance, it is %f for %d\n", 
-	//	nod->_dist,nod);
-	
-	// are all 8 points within the view?
-	//if (pointok==8) return 2;
-	//if ((pointok>1) && (xcount>4)) return 1;
-	
-	// simple test - are all points behind us?
+	if (xcount == 8) return 2;
 	if (xcount > 0) return 1;
-	
-	
-	return retval;
+	return 0;
 }
 
