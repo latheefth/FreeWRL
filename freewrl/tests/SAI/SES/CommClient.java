@@ -147,7 +147,7 @@ public class CommClient {
       if (_time < 0)
 	_time = 0;
       else
-	_time+=20;
+	_time+=4;
       return _time;
     }
   }
@@ -218,7 +218,7 @@ public class CommClient {
 	    String keyword = tokenScanner.nextToken ();
 	    if (keyword.equals("time")) {
 	      _time = Integer.parseInt(tokenScanner.nextToken());
-	    //System.err.println ("SimTime " + ((float) _time/100) + " sec"); 
+	      //System.err.println ("SimTime " + ((float) _time/100) + " sec"); 
 	    }
 	    else if (keyword.equals("signal")) {
 	      String direction = tokenScanner.nextToken ();
