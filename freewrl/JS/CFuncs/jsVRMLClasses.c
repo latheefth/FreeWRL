@@ -418,7 +418,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 		len += 3;
 
 		memset(_new_vp_c, 0, len);
-		sprintf(_new_vp_c, "\"%s\"", _vp_c);
+		sprintf(_new_vp_c, "\"%.*s\"", len, _vp_c);
 		_newVpStr = JS_NewStringCopyZ(context, _new_vp_c);
 		*vp = STRING_TO_JSVAL(_newVpStr);
 
@@ -448,7 +448,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 		return JS_FALSE;
 	}
 	memset(_buff, 0, len);
-	sprintf(_buff, "_%s_touched", _id_c);
+	sprintf(_buff, "_%.*s_touched", len, _id_c);
 	v = INT_TO_JSVAL(1);
 	if (!JS_SetProperty(context, obj, _buff, &v)) {
 		fprintf(stderr,
@@ -5098,6 +5098,7 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
     int len = 0, i;
 	size_t buff_size = 0, tmp_valStr_len = 0, tmp_buff_len = 0;
 
+	UNUSED(argc);
 	UNUSED(argv);
     if (!JS_GetProperty(cx, obj, "length", &_v)) {
 		fprintf(stderr,
@@ -5105,10 +5106,6 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
         return JS_FALSE;
 	}
     len = JSVAL_TO_INT(_v);
-	if (verbose) {
-		printf("MFStringToString: obj = %u, argc = %u, len = %d\n",
-			   (unsigned int) obj, argc, len);
-	}
 
 	buff_size = LARGESTRING;
 	if ((_buff =
@@ -5141,7 +5138,9 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 			}
 		}
 
-		if (i == 0) {
+		if (len == 1) {
+			sprintf(_buff, "[ \"%.*s\" ]", tmp_valStr_len, _tmp_valStr);
+		} else if (i == 0 && len > 1) {
 			sprintf(_buff, "[ \"%.*s\"", tmp_valStr_len, _tmp_valStr);
 		} else {
 			if ((_tmp_buff =
@@ -5168,12 +5167,12 @@ MFStringToString(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
     }
 	_str = JS_NewStringCopyZ(cx, _buff);
 	*rval = STRING_TO_JSVAL(_str);
-	JS_free(cx, _buff);
 
 	if (verbose) {
-		printf("MFStringToString: obj = %u, string = \"%s\"\n",
-			   (unsigned int) obj, _buff);
+		printf("MFStringToString: obj = %u, len = %d, string = \"%s\"\n",
+			   (unsigned int) obj, len, _buff);
 	}
+	JS_free(cx, _buff);
 
     return JS_TRUE;
 }

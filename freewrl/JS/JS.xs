@@ -108,7 +108,7 @@ doPerlCallMethod(SV *sv, const char *methodName)
 void
 doPerlCallMethodVA(SV *sv, const char *methodName, const char *format, ...)
 {
-	va_list ap; /*will point to each unnamed argument in turn*/
+	va_list ap; /* will point to each unnamed argument in turn */
 	char *c;
 	void *v;
 	int count = 0;
@@ -584,7 +584,7 @@ CODE:
 	}
 	cx = _context;
 	if (verbose) {
-		printf("\tJS _context created,\n");
+		printf("\tJS context created,\n");
 	}
 	
 	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
@@ -682,7 +682,7 @@ CODE:
 	size_t len;
 
 	if (verbose) {
-		printf("runScript: \"%s\", ", script);
+		printf("runScript \"%s\", ", script);
 	}
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _obj, script, len,
@@ -734,7 +734,7 @@ CODE:
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
-		printf("jsSFColorSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
+		printf("jsSFColorSet: obj %u, name %s\n", (unsigned int) _obj, name);
 	}
 	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFColorSet.\n");
@@ -779,7 +779,7 @@ CODE:
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
-		printf("jsSFImageSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
+		printf("jsSFImageSet: obj %u, name %s\n", (unsigned int) _obj, name);
 	}
 	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFImageSet.\n");
@@ -824,7 +824,7 @@ CODE:
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
-		printf("jsSFVec2fSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
+		printf("jsSFVec2fSet: obj %u, name %s\n", (unsigned int) _obj, name);
 	}
 	if(!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFVec2fSet.\n");
@@ -869,7 +869,7 @@ CODE:
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
-		printf("jsSFVec3fSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
+		printf("jsSFVec3fSet: obj %u, name %s\n", (unsigned int) _obj, name);
 	}
 	if(!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFVec3fSet.\n");
@@ -914,7 +914,7 @@ CODE:
 	_cx = cx;
 	_obj = obj;
 	if (verbose) {
-		printf("jsSFRotationSet: obj = %u, name = %s\n", (unsigned int) _obj, name);
+		printf("jsSFRotationSet: obj %u, name %s\n", (unsigned int) _obj, name);
 	}
 	if (!JS_GetProperty(_cx, _obj, name, &_val)) {
 		fprintf(stderr, "JS_GetProperty failed in jsSFRotationSet.\n");
@@ -960,7 +960,7 @@ CODE:
 	_globalObj = glob;
 
 	if (verbose) {
-		printf("addSFNodeProperty: name=\"%s\", node name=\"%s\", script = \"%s\"\n",
+		printf("addSFNodeProperty: name \"%s\", node name \"%s\", evaluate script \"%s\"\n",
 			   name, nodeName, str);
 	}
 	if (!JS_GetProperty(_context, _globalObj, nodeName, &_val)) {
@@ -1013,7 +1013,7 @@ CODE:
 	_globalObj = glob;
 
 	if (verbose) {
-		printf("addGlobalAssignProperty: name = \"%s\", evaluate script = \"%s\"\n",
+		printf("addGlobalAssignProperty: name \"%s\", evaluate script \"%s\"\n",
 			   name, str);
 	}
 	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
@@ -1056,7 +1056,7 @@ CODE:
 	_context = cx;
 	_globalObj = glob;
 	if (verbose) {
-		printf("addGlobalECMANativeProperty: name = \"%s\"\n", name);
+		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
 	}
 
 	if (!JS_DefineProperty(_context, _globalObj, name, rval,

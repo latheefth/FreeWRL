@@ -341,18 +341,18 @@ sub replaceWorld {
 		@newnodes = (@newnodes,VRML::Handles::get($n));
 	}
 
-        $this->clear_scene();
-        $this->{Scene} = VRML::Scene->new($this->{EV},"from replaceWorld");
-        $this->{Scene}->set_browser($this);
+	$this->clear_scene();
+	$this->{Scene} = VRML::Scene->new($this->{EV},"from replaceWorld");
+	$this->{Scene}->set_browser($this);
 	$this->{Scene}->topnodes(\@newnodes);
-        prepare ($this);
+	prepare ($this);
 
 	# go through the Bindables...
 	for $n (@newnodes) {
 		$this->{Scene}->replaceWorld_Bindable($n);
 	}
-        # and, take care of keeping the viewpoints active...
-        # JAS $this->{Scene}->register_vps($this);
+	# and, take care of keeping the viewpoints active...
+	# JAS $this->{Scene}->register_vps($this);
 }
 
 
@@ -391,7 +391,8 @@ sub createVrmlFromURL {
 
 	# Required due to changes in VRML::URL::get_absolute in URL.pm:
 	if (!$t) {
-		die("File $file was not found");
+		warn("File $file was not found");
+		return "";
 	}
 
 	unless($t =~ /^#VRML V2.0/s) {
@@ -403,16 +404,17 @@ sub createVrmlFromURL {
 
 	# Stage 2 - load the string in....
 
-	my $scene = VRML::Scene->new($this->{EV},$url,$wurl);
+	my $scene = VRML::Scene->new($this->{EV}, $url, $wurl);
 	VRML::Parser::parse($scene, $t);
 	$scene->make_executable();
 
-	my $ret = $scene->mkbe_and_array($this->{BE},$this->{Scene});
-	print "CVU - ret is $ret\n";
+	my $ret = $scene->mkbe_and_array($this->{BE}, $this->{Scene});
+	print "VRML::Browser::createVrmlFromUrl: mkbe_and_array returned $ret\n"
+		if $VRML::verbose::scene;
 	# debugging scene graph call
 	$scene->dump(0) if $VRML::verbose::scenegraph;
 	
-	return $ret
+	return $ret;
 }
 
 sub addRoute {
@@ -491,7 +493,6 @@ sub api__getFieldInfo {
 	# print "getFieldInfo, k is $k, type is $t\n";
 	return($k,$t);
 }
-
 
 sub add_periodic { push @{$_[0]{Periodic}}, $_[1]; }
 

@@ -67,6 +67,11 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
+		if (verbose) {
+			printf("VrmlBrowserCreateVrmlFromString: obj = %u, str = \"%s\"\n",
+				   (unsigned int) obj, _c);
+		}
+
 		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromString", "s", _c);
 	} else {
 		fprintf(stderr,
@@ -131,13 +136,7 @@ VrmlBrowserCreateVrmlFromURL(JSContext *context, JSObject *obj,
 			return JS_FALSE;
 		}
 
-		if (!JS_CallFunctionName(context, _obj[0],
-								 "toString", 0, NULL, &(_v[0]))) {
-			fprintf(stderr,
-					"JS_CallFunctionName failed in VrmlBrowserCreateVrmlFromURL.\n");
-			return JS_FALSE;
-		}
-		_str[0] = JS_ValueToString(context, _v[0]);
+		_str[0] = JS_ValueToString(context, argv[0]);
 		_costr[0] = JS_GetStringBytes(_str[0]);
 
 		if (!JS_GetProperty(context, _obj[1], "__handle", &(_v[1]))) {

@@ -256,6 +256,7 @@ sub new {
 		Fields => $fields,
 		EventModel => $eventmodel,
 		Scene => $scene,
+		SceneRoutes => undef,
 		BackNode => undef,
 		BackEnd => undef,
 		RFields => undef,
@@ -269,7 +270,7 @@ sub new {
 	# PROTO
 	$this->{IsProto} = 1;
 	$this->{Type} = $scene->get_proto($this->{TypeName});
-	print "\tnew Node ", VRML::NodeIntern::dump_name($this), 
+	print "\tnew Node ", VRML::NodeIntern::dump_name($this),
 	    "of type $ntype is a PROTO, type is ",
 	    	VRML::NodeIntern::dump_name($this->{Type}),"\n"
 		 		if $VRML::verbose::nodec;
@@ -334,7 +335,7 @@ sub as_string {
 				as_string($this->{Fields}{$_});
 		}
     }
-    $s .= "}";
+    $s .= " }";
     return $s;
 }
 
@@ -362,7 +363,7 @@ sub real_node {
 # Return the initial events returned by this node.
 sub get_firstevent {
     my ($this, $timestamp) = @_;
-    print "VRML::NodeIntern::get_firstevent $this $this->{TypeName} $timestamp\n" 
+    print "VRML::NodeIntern::get_firstevent $this $this->{TypeName} $timestamp\n"
 	    if $VRML::verbose;
     if ($this->{Type}{Actions}{ClockTick}) {
 		print "\tAction clocktick!\n" if $VRML::verbose;
@@ -384,9 +385,13 @@ sub receive_event {
 	unless($field =~ s/^set_// and
 		   exists($this->{Fields}{$field})) ;
     }
-    print "VRML::NodeIntern::receive_event $this $this->{TypeName} $field $timestamp $value : ",
-	    ("ARRAY" eq ref $value? (join ', ',@$value):$value),"\n" 
-	    if $VRML::verbose::events;
+    print "VRML::NodeIntern::receive_event ",
+		VRML::NodeIntern::dump_name($this),
+				" $this->{TypeName} $field $timestamp ",
+					(ref $value eq "ARRAY" ?
+					 "[ ".(join ", ", @{$value})." ]" :
+					 $value),"\n"
+						if $VRML::verbose::events;
     $this->{RFields}{$field} = $value;
 
     if ($this->{Type}{Actions}{$field}) {
@@ -501,9 +506,10 @@ sub iterate_nodes {
 
 sub make_executable {
     my ($this, $scene) = @_;
-    print "VRML::NodeIntern::make_executable ",VRML::NodeIntern::dump_name($this),
-        " $this->{TypeName}\n" 
-	        if $VRML::verbose::scene;
+    print "VRML::NodeIntern::make_executable ",
+		VRML::NodeIntern::dump_name($this),
+				" $this->{TypeName}\n"
+					if $VRML::verbose::scene;
 
     # loop through all the fields for this node type.
 

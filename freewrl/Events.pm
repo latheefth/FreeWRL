@@ -57,7 +57,7 @@ sub print {
 # XXX Softref
 sub add_first {
 	my($this,$node) = @_;
-	print "Events.pm add_first ", VRML::NodeIntern::dump_name($node),"\n"
+	print "Events.pm: add_first ", VRML::NodeIntern::dump_name($node),"\n"
 		if $VRML::verbose::events;
 	$this->{First}{$node} = $node;
 
@@ -76,18 +76,19 @@ sub add_route {
 
 	# debugging code
 
-	print "EVENTS:ADD_ROUTE ($fn) ",VRML::NodeIntern::dump_name($fn)," field $ff (EventOut $ff0) to ($tn)",
+	print "Events.pm: ADD_ROUTE ($fn) ",
+		VRML::NodeIntern::dump_name($fn)," field $ff (EventOut $ff0) to ($tn)",
 		VRML::NodeIntern::dump_name($tn), " field $tf (EventIn $tf0)\n"if $VRML::verbose::events;
 	if ($VRML::verbose::events) {
-		print "EVENTS:ADD_ROUTE from fields:\n";
+		print "Events.pm: ADD_ROUTE from fields\n";
 		my $item;
 		foreach $item (keys %{$fn->{Type}{EventOuts}}) {
-			print "		$item\n";
+			print "\t$item\n";
 		}
 
-		print "EVENTS:ADD_ROUTE to fields:\n";
+		print "Events.pm: ADD_ROUTE to fields\n";
 		foreach $item (keys % {$tn->{Type}{EventIns}}) {
-			print "		$item\n";
+			print "\t$item\n";
 		}
 	}
 
@@ -96,18 +97,18 @@ sub add_route {
 
 	print "MAPPED: $ff, $tf\n" if $VRML::verbose::events;
 	if(!defined $ff) {
-		print "Invalid fromfield '$ff0' for ROUTE. Valid fields are:\n";
+		print "Invalid fromfield '$ff0' for ROUTE. Valid fields are\n";
 		my $item;
 		foreach $item (keys %{$fn->{Type}{EventOuts}}) {
-			print "		$item\n";
+			print "\t$item\n";
 		}
 		return;
 	}
 	if(!defined $tf) {
-		print "Invalid tofield '$tf0' for ROUTE. Valid fields are:\n";
+		print "Invalid tofield '$tf0' for ROUTE. Valid fields are\n";
 		my $item;
 		foreach $item (keys % {$tn->{Type}{EventIns}}) {
-			print "		$item\n";
+			print "\t$item\n";
 		}
 		return;
 	}
@@ -137,19 +138,19 @@ sub add_route {
 
 sub delete_route {
 	my($this,$fn, $ff0, $tn, $tf0) = @_;
-	print "DELETE_ROUTE $fn $ff $tn $tf\n"  if $VRML::verbose::events;
+	print "Events.pm: DELETE_ROUTE $fn $ff $tn $tf\n"  if $VRML::verbose::events;
 	$ff = $fn->{Type}{EventOuts}{$ff0};
 	$tf = $tn->{Type}{EventIns}{$tf0};
-	print "delete_route: MAPPED: $ff, $tf\n" if $VRML::verbose::events;
+	print "Events.pm: DELETE_ROUTE mapped $ff, $tf\n" if $VRML::verbose::events;
 	if(!defined $ff) {
 		die("Invalid fromfield '$ff0' for ROUTE");
 	}
 	if(!defined $tf) {
 		die("Invalid tofield '$tf0' for ROUTE");
 	}
-	print "delete_route: current routes: \n";
+	print "Events.pm: DELETE_ROUTE current routes\n";
 	foreach (@{$this->{Route}{$fn}{$ff}}) {
-		print "delete_route: route: ",@{$_},"\n";
+		print "route ",@{$_},"\n";
 	}
 	pop @{$this->{Route}{$fn}{$ff}}, [$tn, $tf]
 }
@@ -183,7 +184,7 @@ sub propagate_events {
 	#print "propagate_events, looking at First of ",
 	#	VRML::NodeIntern::dump_name($this),"\n";
 	for(values %{$this->{First}}) {
-		print "GETFIRST $_\n" 
+		print "GETFIRST ", VRML::NodeIntern::dump_name($_), " $_\n" 
 			if $VRML::verbose::events;
 		push @e, $_->get_firstevent($timestamp);
 	}
@@ -207,13 +208,15 @@ sub propagate_events {
 			$this->{Queue} = [];
 			@ne = ();
 			for my $e (@e) {
-
-				if($VRML::verbose::events) {
-					print "Events.pm:while:SEND $e->[0] $e->[0]{TypeName} $e->[1] $e->[2]\n" ;
-					if("ARRAY" eq ref $e->[2]) {
-						print "Events.pm:while:ARRAYVAL: @{$e->[2]}\n";
-					}
-				}
+				print "Events.pm: while SEND ",
+					VRML::NodeIntern::dump_name($e->[0]),
+							" $e->[0]{TypeName} $e->[1] $e->[2]",
+								(ref $e->[2] eq "ARRAY" ?
+								 " [ ".join(", ",
+											  map(VRML::NodeIntern::dump_name($_),
+												  @{$e->[2]}))." ]" :
+								 ""), "\n"
+									 if $VRML::verbose::events;
 				#AK The following line of code causes problems when a node
 				#AK ($e->[0]) needs to have more than one event processed
 				#AK for a given EventsProcessed. This causes problems with
@@ -260,7 +263,7 @@ sub propagate_events {
 					# Was this event routed to someone
 					# who has children?
 					for(@{$this->{PIs}{$e->[0]}{$e->[1]}}) {
-						print "Events.pm:P_IS: send to $_\n"
+						print "Events.pm: P_IS send to $_\n"
 						 if $VRML::verbose::events;
 						my $fk = $_->[0]->{Type}{FieldKinds}{$_->[1]};
 						# print"Events.pm - fk $fk one ",$_->[1], " , e2 ", $e->[2],"\n";

@@ -63,7 +63,7 @@ sub new {
 	${$this->{Browser}}{JSCleanup} = \&{cleanup};
 
 	init($this->{JSContext}, $this->{JSGlobal}, $this->{BrowserIntern}, $this);
-	print "\tcontext = $this->{JSContext}, global object = $this->{JSGlobal}\n"
+	print "\tcontext $this->{JSContext}, global object $this->{JSGlobal}\n"
 		if $VRML::verbose::js;
 
 	my ($rs, $rval);
@@ -107,7 +107,7 @@ sub initScriptFields {
 	my $fkind = $nt->{FieldKinds}{$field};
 	my ($rstr, $v);
 
-	print "VRML::JS::initScriptFields: field $field, type=$type, field kind=",
+	print "VRML::JS::initScriptFields: field $field, type $type, field kind ",
 		$nt->{FieldKinds}{$field}, "\n"
 		if $VRML::verbose::js;
 
@@ -128,7 +128,7 @@ sub initScriptFields {
 		} else {
 			if ($type eq "SFNode") {
 				$value = $node->{RFields}{$field};
-				print "\tJS field property $field, value=",
+				print "\tJS field property $field, value ",
 					(ref $value eq "ARRAY" ?
 					 "(".join(', ', @{$value}).")" : "$value"), "\n"
 				 if $VRML::verbose::js;
@@ -144,7 +144,7 @@ sub initScriptFields {
 		}
 	} elsif ($fkind eq "field") {
 		$value = $node->{RFields}{$field};
-		print "\tJS field property $field, value=",
+		print "\tJS field property $field, value ",
 			(ref $value eq "ARRAY" ?
 			 "(".join(', ', @{$value}).")" : "$value"), "\n"
 				 if $VRML::verbose::js;
@@ -180,10 +180,10 @@ sub initSFNodeFields {
 	my ($constr, $fkind, $ftype, $type, $value, $rstr, $v);
 	my @fields = keys %{$node->{Fields}};
 
-	print "VRML::JS::initSFNodeFields: $nodeName, $ntn, [",
+	print "VRML::JS::initSFNodeFields: $nodeName, $ntn, [ ",
 		join(", ",
 			 map("$nt->{FieldTypes}{$_} $_", @fields)
-			), "]\n"
+			), " ]\n"
 				if $VRML::verbose::js;
 
 	for (@fields) {
@@ -207,7 +207,7 @@ sub initSFNodeFields {
 			if ($type !~ /$ECMAScriptNative/) {
 				if ($type eq "SFNode") {
 					$value = $node->{RFields}{$_};
-					print "\tJS field property $_, value=",
+					print "\tJS field property $_, value ",
 						(ref $value eq "ARRAY" ?
 						 "(".join(', ', @{$value}).")" : "$value"), "\n"
 							 if $VRML::verbose::js;
@@ -223,7 +223,7 @@ sub initSFNodeFields {
 			}
 		} elsif ($fkind =~ /^(?:exposed)??[Ff]ield$/) {
 			$value = $node->{RFields}{$_};
-			print "\tJS field property $_, value=",
+			print "\tJS field property $_, value ",
 				(ref $value eq "ARRAY" ?
 				 "(".join(', ', @{$value}).")" : "$value"), "\n"
 					 if $VRML::verbose::js;
@@ -432,14 +432,14 @@ sub setProperty { # Assigns a value to a property.
 	}
 	$vftype = "VRML::Field::$ftype";
 
-	print "VRML::JS::setProperty args: field=$field, value=$value, property=$prop\n"
+	print "VRML::JS::setProperty args: field $field, value $value, property $prop\n"
 		if $VRML::verbose::js;
 	## problem with MF types - what to do from new ???
 	if ($ftype =~ /^MF/) {
 		$styp = $ftype;
 		$styp =~ s/^MF/SF/;
 		for ($i = 0; $i < $#{$value}; $i++) {
-			print "\tsetProperty(\"____$styp\", [", @{$value->[$i]}, "], \"____tmp\")\n"
+			print "\tsetProperty(\"____$styp\", [ ", @{$value->[$i]}, " ], \"____tmp\")\n"
 				if $VRML::verbose::js;
 			$this->setProperty("____$styp", $value->[$i], "____tmp");
 			if (!runScript($this->{JSContext}, $this->{JSGlobal},
@@ -461,7 +461,7 @@ sub setProperty { # Assigns a value to a property.
 			cleanupDie("runScript failed in VRML::JS::setProperty");
 		}
 	} elsif ($ftype ne "SFNode") {
-		print "\tjs$ftype"."Set: $prop, [", @{$value}, "]\n"
+		print "\tjs$ftype"."Set: $prop, [ ", @{$value}, " ]\n"
 			if $VRML::verbose::js;
 		&{"js$ftype"."Set"}($this->{JSContext}, $this->{JSGlobal}, $prop, $value);
 		if (!runScript($this->{JSContext}, $this->{JSGlobal},
@@ -469,7 +469,7 @@ sub setProperty { # Assigns a value to a property.
 			cleanupDie("runScript failed in VRML::JS::setProperty");
 		}
 	} else {
-		print "VRML::JS::setProperty: type=$ftype. Do nothing for now.\n";
+		print "VRML::JS::setProperty: type $ftype. Do nothing for now.\n";
 	}
 }
 
@@ -477,7 +477,7 @@ sub getProperty {
 	my ($this, $type, $prop) = @_;
 	my ($rstr, $rval, $l);
 
-	print "VRML::JS::getProperty: type=$type, property=$prop\n"
+	print "VRML::JS::getProperty: type $type, property $prop\n"
 		if $VRML::verbose::js;
 
 
@@ -498,7 +498,7 @@ sub getProperty {
 					   "$prop.length", $rstr, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty for \"$prop.length\"");
 		}
-		print "\trunScript returned length=$l for MFNode\n" if $VRML::verbose::js;
+		print "\trunScript returned length $l for MFNode\n" if $VRML::verbose::js;
 		my $fn = $prop;
 		my @res = map {
 			if (!runScript($this->{JSContext}, $this->{JSGlobal},
@@ -518,7 +518,7 @@ sub getProperty {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rstr, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
-		print "\trunScript returned length=$l for MFString\n" if $VRML::verbose::js;
+		print "\trunScript returned length $l for MFString\n" if $VRML::verbose::js;
 		my $fn = $prop;
 		my @res = map {
 			if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$fn"."[$_]", $rstr, $rval)) {
@@ -531,7 +531,7 @@ sub getProperty {
 		if (!runScript($this->{JSContext}, $this->{JSGlobal}, "$prop.length", $rstr, $l)) {
 			cleanupDie("runScript failed in VRML::JS::getProperty");
 		}
-		print "\trunScript returned length=$l for $type\n" if $VRML::verbose::js;
+		print "\trunScript returned length $l for $type\n" if $VRML::verbose::js;
 		my $fn = $prop;
 		my $st = $type;
 		$st =~ s/MF/SF/;
@@ -595,7 +595,7 @@ sub jspSFNodeSetProperty {
 
 	print "VRML::JS::jspSFNodeSetProperty: setting $actualField, $val",
 		(ref $val eq "ARRAY" ?
-		 "=[".join(", ", map(VRML::NodeIntern::dump_name($_), @{$val}))."] " :
+		 " [ ".join(", ", map(VRML::NodeIntern::dump_name($_), @{$val}))." ] " :
 		 " "),
 			 "for $prop of $handle\n"
 		if $VRML::verbose::js;
@@ -605,12 +605,11 @@ sub jspSFNodeSetProperty {
 	if ($actualField eq "removeChildren") {
 		if ($this->{Browser}->checkChildPresent($node, $val)) {
 			@av = $this->{Browser}->removeChild($node, $val);
-			$this->{Browser}->api__sendEvent($val, "children", \@av);
+			##$this->{Browser}->api__sendEvent($node, "children", \@av);
+			$this->{Browser}->api__sendEvent($node, $actualField, \@av);
 		}
 	} elsif ($actualField eq "addChildren") {
-		$actualField = "children";
 		if (!($this->{Browser}->checkChildPresent($node, $val))) {
-			@av = @{$node->{RFields}{$actualField}};
 			if (ref $val eq "ARRAY") {
 				push @av, @{$val};
 			} else {
@@ -626,10 +625,10 @@ sub jspSFNodeAssign {
 	my ($vt, $val);
 	my $scene = $this->{Browser}{Scene};
 	my $root = $scene->{RootNode};
-	my $field = "children";
+	my $field = "addChildren";
 	my @av;
 
-	print "VRML::JS::jspSFNodeAssign: id=$id\n" if $VRML::verbose::js;
+	print "VRML::JS::jspSFNodeAssign: id $id\n" if $VRML::verbose::js;
 
 	$vt = $this->{Node}{Type}{FieldTypes}{$id};
 	if (!defined $vt) {
@@ -639,7 +638,6 @@ sub jspSFNodeAssign {
 	$this->{Node}{RFields}{$id} = $val;
 
 	if (!($this->{Browser}->checkChildPresent($root, $val))) {
-		@av = @{$root->{Fields}{$field}};
 		push @av, $val;
 		$this->{Browser}->api__sendEvent($root, $field, \@av);
 	}
@@ -654,7 +652,7 @@ sub jspSFNodeConstr {
 	if (defined $node->{IsProto}) {
 		$node = $node->real_node();
 	}
-	print "VRML::JS::jspSFNodeConstr: handle=$handle, string=\"$str\"\n"
+	print "VRML::JS::jspSFNodeConstr: handle $handle, string \"$str\"\n"
 		if $VRML::verbose::js;
 
 	if (!runScript($this->{JSContext}, $this->{JSGlobal},
@@ -699,7 +697,7 @@ sub jspBrowserSetDescription {
 		if $VRML::verbose::js;
 	my $n = $this->{Browser}->setDescription($desc);
 	if (!runScript($this->{JSContext}, $this->{JSGlobal},
-				   "Browser.__bret = \"$n\"", $rs, $rval)) {
+				   "Browser.__bret=\"$n\"", $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspBrowserSetDescription");
 	}
 }
@@ -709,7 +707,7 @@ sub jspBrowserAddRoute {
 	my ($this, $str) = @_;
 	my ($rval, $rs);
 
-	print "VRML::JS::jspBrowserAddRoute: route=\"$str\"\n"
+	print "VRML::JS::jspBrowserAddRoute: route \"$str\"\n"
 			if $VRML::verbose::js;
 	if ($str =~ /^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {
 		my ($fn, $ff, $tn, $tf) = ($1, $2, $3, $4);
@@ -730,7 +728,7 @@ sub jspBrowserDeleteRoute {
 	my ($this, $str) = @_;
 	my ($rval, $rs);
 
-	print "VRML::JS::jspBrowserDeleteRoute: route=\"$str\"\n"
+	print "VRML::JS::jspBrowserDeleteRoute: route \"$str\"\n"
 			if $VRML::verbose::js;
 	if ($str =~ /^([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)$/) {
 		my ($fn, $ff, $tn, $tf) = ($1, $2, $3, $4);
@@ -773,44 +771,84 @@ sub jspBrowserGetWorldURL {
 
 sub jspBrowserCreateVrmlFromString {
 	my ($this, $str) = @_;
-	my ($rval, $rs, $constr);
-	my @nodes;
-	print "VRML::JS::jspBrowserCreateVrmlFromString: string=\"$str\"\n"
+	my ($rval, $rs);
+	my @handles;
+	print "VRML::JS::jspBrowserCreateVrmlFromString: \"$str\"\n"
 		if $VRML::verbose::js;
 
-	$h = $this->{Browser}->createVrmlFromString($str);
+	my $h = $this->{Browser}->createVrmlFromString($str);
+	push @handles, split(" ", $h);
 
-	if (ref $h eq "ARRAY") {
-		@nodes = map {VRML::Handles::get($_)} @{$h};
-	} else {
-		push @nodes, VRML::Handles::get($h);
-	}
-	$constr = $this->constrString(MFNode, \@nodes);
-	my $sc = "Browser.__bret=$constr";
+	my @nodes = map(VRML::Handles::get($_), @handles);
+	my $constr = $this->constrString(MFNode, \@nodes);
+	my $script = "Browser.__bret=$constr";
 
-	if (!runScript($this->{JSContext}, $this->{JSGlobal}, $sc, $rs, $rval)) {
+	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				   $script, $rs, $rval)) {
 		cleanupDie("runScript failed in VRML::JS::jspBrowserCreateVrmlFromString");
 	}
-
-	##print "VRML::JS::jspBrowserCreateVrmlFromString: script node=$this->{Node}, \@nodes=".join(', ', @nodes)."\n" if $VRML::verbose::js;
-
 	## Debug:
 	##$this->{Browser}{Scene}->dump(0);
 }
 
 sub jspBrowserCreateVrmlFromURL {
-	my ($this, $urls, $handle, $event) = @_;
-	my ($rval, $rs);
+	my ($this, $u, $handle, $event) = @_;
+	my ($h, $rval, $rstr);
+	my @handles;
+	my @rootNodes;
+	my @av;
 
-	print "VRML::JS::jspBrowserCreateVrmlFromURL: url=\"$urls\", handle=\"$handle\", event=\"$event\"\n"
+	print "VRML::JS::jspBrowserCreateVrmlFromURL: $u, $handle, $event\n"
 		if $VRML::verbose::js;
+	my $scene = $this->{Browser}{Scene};
+	my $root = $scene->{RootNode};
+	my $urls = VRML::Field::MFString->parse($scene, $u);
 
-	print "VRML::JS::jspBrowserCreateVrmlFromURL: does nothing!!!\n";
-#	my $mfn = $this->{Browser}->createVrmlFromURL($urls);
-#	my @hs = map {VRML::Handles::reserve($_)} @$mfn;
-#	my $sc = "Browser.__bret=new MFNode(".(join ',',map {qq{new SFNode("$_")}} @hs).")";
+	for (@{$urls}) {
+		$h = $this->{Browser}->createVrmlFromURL($_);
+		push @handles, split(" ", $h);
+	}
+	my @nodes = map(VRML::Handles::get($_), @handles);
 
-#	if (!runScript($this->{JSContext}, $this->{JSGlobal}, $sc, $rs, $rval)) {
-#		cleanupDie("runScript failed in VRML::JS::jspBrowserCreateVrmlFromURL");
-#	}
+	my $constr = $this->constrString(MFNode, \@nodes);
+	my $script = "Browser.__bret=$constr";
+
+	if (!runScript($this->{JSContext}, $this->{JSGlobal},
+				   $script, $rs, $rval)) {
+		cleanupDie("runScript failed in VRML::JS::jspBrowserCreateVrmlFromURL");
+	}
+	my $node = VRML::Handles::get($handle);
+
+	for(@nodes) {
+		if (defined $_->{Scene}{RootNode}) {
+			push @rootNodes, $_->{Scene}{RootNode};
+		}
+	}
+
+	print "VRML::JS::jspBrowserCreateVrmlFromURL: handles [ ",
+		join(", ", @handles), " ], root nodes [ ",
+			join(", ",
+				 map(VRML::NodeIntern::dump_name($_)." $_", @rootNodes)),
+					 " ]\n"
+						 if $VRML::verbose::js;
+
+	if ($event eq "removeChildren") {
+		for (@nodes) {
+			if ($this->{Browser}->checkChildPresent($root, $_)) {
+				push @av, $this->{Browser}->removeChild($root, $_);
+			}
+		}
+		$this->{Browser}->api__sendEvent($root, $event, \@av);
+	} elsif ($event !~ /^[ar].{2,5}?Children$/) {
+		for (@nodes) {
+			if (!($this->{Browser}->checkChildPresent($root, $_))) {
+				push @av, $_;
+			}
+		}
+		$this->{Browser}->api__sendEvent($root, "addChildren", \@av);
+	}
+	$this->{Browser}->api__sendEvent($node, $event, \@rootNodes);
+
+	## Debug:
+	##$this->{Browser}{Scene}->dump(0);
 }
