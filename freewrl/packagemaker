@@ -14,5 +14,8 @@ cd ../FreeWRL-0.40-pre2
 find . -name typescript -exec rm {} \;
 find . -name CVS -exec rm -r {} \;
 rm package*
+rm Viewer.pm
+rm Quaternion.pm
+rm lastcvscheckin
 rm -r JS/js/Linux_All_DBG.OBJ
 rm freewrl
