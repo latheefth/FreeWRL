@@ -271,7 +271,7 @@ void swallow_check (PluginInstance * This)
 									err = XFree(subchildren);
 									printXError("XFree(subchildren)", err);
 #else
-									XFree (subsubchildren);
+									XFree (subchildren);
 #endif
 								}
 								if (0 != XQueryTree (This->display, subchildren[k], &root,
