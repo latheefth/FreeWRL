@@ -24,7 +24,7 @@
       <Shape>
          <Appearance>
             <Material/>
-            <ImageTexture url="&#34;helpers/vts.jpg&#34;"/>
+            <ImageTexture url="&#34;helpers/brick.png&#34;"/>
          </Appearance>
          <Box/>
       </Shape>
