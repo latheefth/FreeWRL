@@ -1056,16 +1056,6 @@ my $protono;
 						 removeChildren => sub {
 							 return removeChildren_GroupingNodes(@_);
 						 },
-
-						 #JAS EventsProcessed => sub {
-						#JAS 	 #my($node,$fields,$time) = @_;
-						#JAS 	 ##my $ac = $fields->{addChildren};
-						#JAS 	 #print("Transform:EventsProcessed $node $fields\n");
-						#JAS 	 ##$node->{BackEnd}->update_scene($time);
-						#JAS 	 ##add_MFNode($t,"children",$ac->[0], 1);
-						#JAS 	 ##$node->receive_event("addChildren", $ac, $time);
-						#JAS 	 return ();
-						 #JAS }
 						},
 					   ),
 
