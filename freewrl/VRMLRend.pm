@@ -14,12 +14,15 @@
 #              Certain Abbreviation are used, some are substituted in the
 #              writing process in get_rendfunc() [VRMLC.pm]. 
 #              Others are "C-#defines".
-#              e.g. for #define TC(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm] 
+#              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm] 
 #  
 #              Hashes filled in this file:
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.36  2001/06/25 18:34:42  crc_canada
+# ElevationGrid default textures now correct.
+#
 # Revision 1.35  2001/06/18 19:11:50  crc_canada
 # Background ground angle bug if > 3 angles fixed.
 #
@@ -157,68 +160,68 @@ Box => (join '',
 
 		/* front side */
 		glNormal3f(0,0,1);
-		TC(1,1);
+		glTexCoord2f(1,1);
 		glVertex3f(x,y,z);
-		TC(0,1);
+		glTexCoord2f(0,1);
 		glVertex3f(-x,y,z);
-		TC(0,0);
+		glTexCoord2f(0,0);
 		glVertex3f(-x,-y,z);
-		TC(1,0);
+		glTexCoord2f(1,0);
 		glVertex3f(x,-y,z);
 
 		/* back side */
 		glNormal3f(0,0,-1);
-		TC(0,0);
+		glTexCoord2f(0,0);
 		glVertex3f(x,-y,-z);
-		TC(1,0);
+		glTexCoord2f(1,0);
 		glVertex3f(-x,-y,-z);
-		TC(1,1);
+		glTexCoord2f(1,1);
 		glVertex3f(-x,y,-z);
-		TC(0,1);
+		glTexCoord2f(0,1);
 		glVertex3f(x,y,-z);
 
 		/* top side */
 		glNormal3f(0,1,0);
-		TC(0,0);
+		glTexCoord2f(0,0);
 		glVertex3f(-x,y,z);
-		TC(1,0);
+		glTexCoord2f(1,0);
 		glVertex3f(x,y,z);
-		TC(1,1);
+		glTexCoord2f(1,1);
 		glVertex3f(x,y,-z);
-		TC(0,1);
+		glTexCoord2f(0,1);
 		glVertex3f(-x,y,-z);
 
 		/* down side */
 		glNormal3f(0,-1,0);
-		TC(0,0);
+		glTexCoord2f(0,0);
 		glVertex3f(-x,-y,-z);
-		TC(1,0);
+		glTexCoord2f(1,0);
 		glVertex3f(x,-y,-z);
-		TC(1,1);
+		glTexCoord2f(1,1);
 		glVertex3f(x,-y,z);
-		TC(0,1);
+		glTexCoord2f(0,1);
 		glVertex3f(-x,-y,z);
 
 		/* right side */
 		glNormal3f(1,0,0);
-		TC(0,0);
+		glTexCoord2f(0,0);
 		glVertex3f(x,-y,z);
-		TC(1,0);
+		glTexCoord2f(1,0);
 		glVertex3f(x,-y,-z);
-		TC(1,1);
+		glTexCoord2f(1,1);
 		glVertex3f(x,y,-z);
-		TC(0,1);
+		glTexCoord2f(0,1);
 		glVertex3f(x,y,z);
 
 		/* left side */
 		glNormal3f(-1,0,0);
-		TC(1,0);
+		glTexCoord2f(1,0);
 		glVertex3f(-x,-y,z);
-		TC(1,1);
+		glTexCoord2f(1,1);
 		glVertex3f(-x,y,z);
-		TC(0,1);
+		glTexCoord2f(0,1);
 		glVertex3f(-x,y,-z);
-		TC(0,0);
+		glTexCoord2f(0,0);
 		glVertex3f(-x,-y,-z);
 		glEnd();
 				glDepthMask(GL_TRUE);
@@ -246,7 +249,7 @@ Cylinder => '
 			glNormal3f(0,1,0);
 			START_TRIG1
 			for(i=0; i<div; i++) {
-				TC( 0.5 - 0.5*SIN1, 0.5 - 0.5*COS1);
+				glTexCoord2f( 0.5 - 0.5*SIN1, 0.5 - 0.5*COS1);
 				glVertex3f( -r*SIN1, (float)h, r*COS1 );
 				UP_TRIG1
 			}
@@ -261,7 +264,7 @@ Cylinder => '
 			glNormal3f(0,-1,0);
 			START_TRIG1
 			for(i=0; i<div; i++) {
-				TC(0.5+0.5*SIN1,0.5+0.5*COS1);
+				glTexCoord2f(0.5+0.5*SIN1,0.5+0.5*COS1);
 				glVertex3f(r*SIN1,(float)-h,r*COS1);
 				UP_TRIG1
 			}
@@ -283,19 +286,19 @@ Cylinder => '
 				UP_TRIG1;
 
 				glNormal3f(lsin, 0.0, lcos);
- 				TC(1.0-((float)i/df), 1.0);
+ 				glTexCoord2f(1.0-((float)i/df), 1.0);
 				 glVertex3f((float)r*lsin, (float)h, (float)r*lcos);
 
 				glNormal3f(SIN1, 0.0, COS1);
- 				TC(1.0-(((float)i+1.0)/df), 1.0);
+ 				glTexCoord2f(1.0-(((float)i+1.0)/df), 1.0);
 				glVertex3f(r*SIN1,  (float)h, r*COS1);
 
 				/* glNormal3f(SIN1, 0.0, COS1); (same) */
-				TC(1.0-(((float)i+1.0)/df), 0.0);
+				glTexCoord2f(1.0-(((float)i+1.0)/df), 0.0);
 				glVertex3f(r*SIN1, (float)-h, r*COS1);
 
 				glNormal3f(lsin, 0.0, lcos);
-				TC(1.0-((float)i/df), 0.0);
+				glTexCoord2f(1.0-((float)i/df), 0.0);
 				glVertex3f((float)r*lsin, (float)-h, (float)r*lcos);
 
 
@@ -375,7 +378,7 @@ To understand these variables is to understand this code.
 			for(i=0; i<d_div; i++) {
 				if (!(i % 2))
 				{
-					TC(0.5+0.5*SIN1,0.5+0.5*COS1);
+					glTexCoord2f(0.5+0.5*SIN1,0.5+0.5*COS1);
 					glVertex3f(r*SIN1,(float)-h,r*COS1);
 				}
 				UP_TRIG1
@@ -423,11 +426,11 @@ To understand these variables is to understand this code.
 
 				/* place the bottom points and normals */
 				glNormal3f(rtwo*SIN1, htwo, rtwo*COS1);
-				TC(1.0-((i+1.0)/df), 0.0);
+				glTexCoord2f(1.0-((i+1.0)/df), 0.0);
 				glVertex3f(r*SIN1, (float)-h, r*COS1);
 
 				glNormal3f(rtwo*lsin, htwo, rtwo*lcos);
-				TC(1.0-((float)i/df), 0.0);
+				glTexCoord2f(1.0-((float)i/df), 0.0);
 				glVertex3f(r*lsin, (float)-h, r*lcos);
 
 			}
@@ -476,11 +479,11 @@ Sphere => 'int vdiv = vert_div;
 #define MOD_1(x) ( (x)<=1 ? (x) : ((x)<=(1.0+MY_EPS))? 1.0 : (x)-1.0 )
 
 				glNormal3f(vsin2 * hcos1, vcos2, vsin2 * hsin1);
-				TC(MOD_1(h / hf), 2.0 * ((v + 1.0) / vf));
+				glTexCoord2f(MOD_1(h / hf), 2.0 * ((v + 1.0) / vf));
 				glVertex3f(vsin2 * hcos1, vcos2, vsin2 * hsin1);
 
 				glNormal3f(vsin1 * hcos1, vcos1, vsin1 * hsin1); 
-				TC(MOD_1(h / hf), 2.0 * (v/vf));
+				glTexCoord2f(MOD_1(h / hf), 2.0 * (v/vf));
 				glVertex3f(vsin1 * hcos1, vcos1, vsin1 * hsin1); 
 #undef MOD_1
 #undef MY_EPS
@@ -519,8 +522,7 @@ IndexedFaceSet =>  ( join '',
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords
-		);
+			ntexcoords, texcoords);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -647,14 +649,16 @@ PointSet => '
 
 ElevationGrid => ( '
 		struct SFColor *colors; int ncolors=0;
+                struct SFVec2f *texcoords; int ntexcoords=0;
 		struct SFColor *normals; int nnormals=0;
-
 
 		/* for shape display list redrawing */
 		this_->_myshape = last_visited_shape; 
 
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
 		$mk_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -664,7 +668,7 @@ ElevationGrid => ( '
 			0, NULL,
 			ncolors, colors,
 			nnormals, normals,
-			0, NULL
+			ntexcoords, texcoords
 		);
 		if(!$f(solid)) {
 			glPopAttrib();
@@ -1098,10 +1102,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BACKTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,1); 
-			TC(1, 1); glVertex3f(-0.43, -0.43, 0.43);
-			TC(1, 0); glVertex3f(-0.43, 0.43, 0.43);
-			TC(0, 0); glVertex3f(0.43, 0.43, 0.43);
-			TC(0, 1); glVertex3f(0.43, -0.43, 0.43);
+			glTexCoord2f(1, 1); glVertex3f(-0.43, -0.43, 0.43);
+			glTexCoord2f(1, 0); glVertex3f(-0.43, 0.43, 0.43);
+			glTexCoord2f(0, 0); glVertex3f(0.43, 0.43, 0.43);
+			glTexCoord2f(0, 1); glVertex3f(0.43, -0.43, 0.43);
 			glEnd();
 		};
 
@@ -1109,10 +1113,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[FRONTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,0,-1);
-			TC(1,0); glVertex3f(0.43,0.43,-0.43);
-			TC(0,0); glVertex3f(-0.43,0.43,-0.43);
-			TC(0,1); glVertex3f(-0.43,-0.43,-0.43);
-			TC(1,1); glVertex3f(0.43,-0.43,-0.43); 
+			glTexCoord2f(1,0); glVertex3f(0.43,0.43,-0.43);
+			glTexCoord2f(0,0); glVertex3f(-0.43,0.43,-0.43);
+			glTexCoord2f(0,1); glVertex3f(-0.43,-0.43,-0.43);
+			glTexCoord2f(1,1); glVertex3f(0.43,-0.43,-0.43); 
 			glEnd();
 		};
 
@@ -1120,10 +1124,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[TOPTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,1,0);
-			TC(1,0); glVertex3f(0.43,0.43,0.43);
-			TC(0,0); glVertex3f(-0.43,0.43,0.43);
-			TC(0,1); glVertex3f(-0.43,0.43,-0.43);
-			TC(1,1); glVertex3f(0.43,0.43,-0.43);
+			glTexCoord2f(1,0); glVertex3f(0.43,0.43,0.43);
+			glTexCoord2f(0,0); glVertex3f(-0.43,0.43,0.43);
+			glTexCoord2f(0,1); glVertex3f(-0.43,0.43,-0.43);
+			glTexCoord2f(1,1); glVertex3f(0.43,0.43,-0.43);
 			glEnd();
 		};
 
@@ -1131,10 +1135,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[BOTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(0,-(1),0);
-			TC(1,0); glVertex3f(0.43,-0.43,-0.43);
-			TC(0,0); glVertex3f(-0.43,-0.43,-0.43);
-			TC(0,1); glVertex3f(-0.43,-0.43,0.43);
-			TC(1,1); glVertex3f(0.43,-0.43,0.43);
+			glTexCoord2f(1,0); glVertex3f(0.43,-0.43,-0.43);
+			glTexCoord2f(0,0); glVertex3f(-0.43,-0.43,-0.43);
+			glTexCoord2f(0,1); glVertex3f(-0.43,-0.43,0.43);
+			glTexCoord2f(1,1); glVertex3f(0.43,-0.43,0.43);
 			glEnd();
 		};
 
@@ -1142,10 +1146,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[RIGHTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(1,0,0);
-			TC(1,0); glVertex3f(0.43,0.43,0.43);
-			TC(0,0); glVertex3f(0.43,0.43,-0.43);
-			TC(0,1); glVertex3f(0.43,-0.43,-0.43);
-			TC(1,1); glVertex3f(0.43,-0.43,0.43);
+			glTexCoord2f(1,0); glVertex3f(0.43,0.43,0.43);
+			glTexCoord2f(0,0); glVertex3f(0.43,0.43,-0.43);
+			glTexCoord2f(0,1); glVertex3f(0.43,-0.43,-0.43);
+			glTexCoord2f(1,1); glVertex3f(0.43,-0.43,0.43);
 			glEnd();
 		};
 
@@ -1153,10 +1157,10 @@ Background => '
 			glBindTexture (GL_TEXTURE_2D, BackTextures[LEFTTEX]);
 			glBegin(GL_QUADS);
 			glNormal3f(-1,0,0);
-			TC(1,0); glVertex3f(-0.43,0.43, -0.43);
-			TC(0,0); glVertex3f(-0.43,0.43,  0.43); 
-			TC(0,1); glVertex3f(-0.43,-0.43, 0.43);
-			TC(1,1); glVertex3f(-0.43,-0.43,-0.43);
+			glTexCoord2f(1,0); glVertex3f(-0.43,0.43, -0.43);
+			glTexCoord2f(0,0); glVertex3f(-0.43,0.43,  0.43); 
+			glTexCoord2f(0,1); glVertex3f(-0.43,-0.43, 0.43);
+			glTexCoord2f(1,1); glVertex3f(-0.43,-0.43,-0.43);
 			glEnd();
 		 };
 	}
@@ -1630,6 +1634,10 @@ Billboard => (join '','
 		/* Appearance, Material, Shape, will make a new list, via this pointer */
 		last_visited_shape = this_;
 
+		/* a texture flag... */
+		last_bound_texture = 0;
+	
+
 		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
 		/* if we are rendering the geometry, see if we have a disp. list */
 		if ((render_geom) && (!render_sensitive)) { 
@@ -1645,9 +1653,6 @@ Billboard => (join '','
 			this_->_dlist = glGenLists(1);
 			this_->_dlchange = this_->_change;
 
-			/* a texture flag... */
-			last_bound_texture = 0;
-	
 			/* is there an associated appearance node? */	
         	        if($f(appearance)) {
 				render_textures = 1;
@@ -1686,6 +1691,8 @@ Billboard => (join '','
 				glError = glGetError();
 			}
 		}
+
+		if (last_bound_texture != 0) glDisable (GL_TEXTURE_2D);
 
 		last_visited_shape = 0;
 		glPopAttrib();
