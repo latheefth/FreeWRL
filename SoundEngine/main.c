@@ -87,8 +87,9 @@ void playSound (int indexno) {
 	// New sound?
 	if (currentSource != indexno) {
 		// Sound already opened for another clip?
-		if (currentSource >= 0)
+		if (currentSource >= 0) {
 			closeDSP();
+		}
 
 		currentSource = indexno;
 		initiateDSP();
@@ -133,15 +134,18 @@ int querySoundType(SNDFILE *me) {
 	// copy over format header information
 	memcpy (&me->FormatChunk, &me->data[me->dataptr], sizeof (fmtChnk));
 
-/* printf ("fmt chunkid %c%c%c%c\n",me->FormatChunk.chunkID[0],me->FormatChunk.chunkID[1],me->FormatChunk.chunkID[2],me->FormatChunk.chunkID[3]);
-printf ("fmt chunkSize %ld\n", me->FormatChunk.chunkSize);
-printf ("fmt wChannels %d\n", me->FormatChunk. wChannels);
-printf ("fmt wFormatTag %d\n", me->FormatChunk. wFormatTag);
-printf ("fmt dwSamplesPerSec %ld\n", me->FormatChunk. dwSamplesPerSec);
-printf ("fmt dwAvgBytesPerSec %ld\n", me->FormatChunk. dwAvgBytesPerSec);
-printf ("fmt wBlockAlign %d\n", me->FormatChunk. wBlockAlign);
-printf ("fmt wBitsPerSample %d\n", me->FormatChunk. wBitsPerSample);
-*/
+	/*
+	printf ("fmt chunkid %c%c%c%c\n",me->FormatChunk.chunkID[0],
+		me->FormatChunk.chunkID[1],me->FormatChunk.chunkID[2],me->FormatChunk.chunkID[3]);
+	printf ("fmt chunkSize %ld\n", me->FormatChunk.chunkSize);
+	printf ("fmt wChannels %d\n", me->FormatChunk. wChannels);
+	printf ("fmt wFormatTag %d\n", me->FormatChunk. wFormatTag);
+	printf ("fmt dwSamplesPerSec %ld\n", me->FormatChunk. dwSamplesPerSec);
+	printf ("fmt dwAvgBytesPerSec %ld\n", me->FormatChunk. dwAvgBytesPerSec);
+	printf ("fmt wBlockAlign %d\n", me->FormatChunk. wBlockAlign);
+	printf ("fmt wBitsPerSample %d\n", me->FormatChunk. wBitsPerSample);
+	*/
+
 
 	// is this file compressed?
 	if (me->FormatChunk. wFormatTag != 1) {
@@ -162,16 +166,17 @@ printf ("fmt wBitsPerSample %d\n", me->FormatChunk. wBitsPerSample);
 
 	me->dataptr += br;
 	memcpy (&me->DataChunk, &me->data[me->dataptr], sizeof (datChnk));
-/*
- printf ("data chunkid %c%c%c%c\n",me->DataChunk.chunkID[0],me->DataChunk.chunkID[1],me->DataChunk.chunkID[2],me->DataChunk.chunkID[3]);
-printf ("data chunkSize %lx\n", me->DataChunk.chunkSize);
 
-printf ("actual number of sample frames %ld\n",me->DataChunk.chunkSize/me->FormatChunk.wBlockAlign);
+	/*
+ 	printf ("data chunkid %c%c%c%c\n",me->DataChunk.chunkID[0],
+	me->DataChunk.chunkID[1],me->DataChunk.chunkID[2],me->DataChunk.chunkID[3]);
+	printf ("data chunkSize %lx\n", me->DataChunk.chunkSize);
+	printf ("actual number of sample frames %ld\n",me->DataChunk.chunkSize/me->FormatChunk.wBlockAlign);
+	printf ("dataptr is %d\n",me->dataptr);
+	*/
 
-printf ("dataptr is %d\n",me->dataptr);
-*/
 
-	me->wavdataoffset = me->dataptr; // wavdataoffset is the actual position of start of data
+	me->wavdataoffset = me->dataptr+8; // wavdataoffset is the actual position of start of data
 	return WAVFILE;
 }
 
@@ -281,7 +286,7 @@ void process_command () {
 			startt[a] = y;         // start time
 			stopt[a] = z;          // stop time
 			ampl[a] = 0.0;         // Gain of this sound
-			names[a] = malloc(b+2);
+			names[a] = malloc(strlen(cp)+2);
 			for (c=0; c<=strlen(cp); c++) {
 				names[a][c] = cp[c];
 			}
