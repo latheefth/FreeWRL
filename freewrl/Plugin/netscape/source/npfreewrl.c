@@ -382,7 +382,7 @@ char*
 NPP_GetMIMEDescription(void)
 {
 	print_here ("NPP_GetMIMEDescription");
-        return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser;model/X3D:x3d:FreeWRL X3D Browser;x-world/x-X3D:x3d:FreeWRL X3D Browser");
+        return("x-world/x-vrml:wrl:FreeWRL VRML Browser;model/vrml:wrl:FreeWRL VRML Browser;model/x3d+vrml:x3dv:FreeWRL VRML Browser;model/x3d+xml:x3d:FreeWRL X3D Browser;model/x3d+vrml:x3dv:FreeWRL X3D Browser;model/x3d+binary:x3db:FreeWRL X3D Browser");
 }
 
 NPError
