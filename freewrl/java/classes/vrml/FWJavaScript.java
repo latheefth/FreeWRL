@@ -73,13 +73,8 @@ public final class FWJavaScript {
 			);
 		}
 		System.err.println("Sending a line:'"+ver+"'");
-		out.println("TJL XXX JAVA-PERL 0.02");
+		out.println("TJL XXX JAVA-PERL 0.03");
 		System.err.println("Sent a line:'"+ver+"'");
-		out.flush();
-		String dir = in.readLine().trim();
-		System.err.println("GOT DIRl a line:'"+dir+"'");
-		FWJavaScriptClassLoader tl = new FWJavaScriptClassLoader(dir,
-			dir.getClass().getClassLoader());
 		out.flush();
 		while(true) {
 			String cmd = in.readLine();
@@ -89,14 +84,24 @@ public final class FWJavaScript {
 			String nodeid =	in.readLine().trim();
 			if(cmd.equals("NEWSCRIPT")) {
 				String url = in.readLine().trim();
-				System.err.println("NEWSCRIPT");
-				Constructor mrc = tl.loadFile(url).
-					getConstructor(new Class[0]);
-				System.err.println("GOt constructor");
-				Script s = (Script)mrc.newInstance(
-						new Class[0]);
+				System.err.println("NEWSCRIPT: "+url);
+				FWJavaScriptClassLoader classloader = 
+				    new FWJavaScriptClassLoader(url);
+				String classname
+				    = url.substring(url.lastIndexOf('/')+1);
+				if (classname.endsWith(".class"))
+				    classname = classname
+					.substring(0, classname.length() - 6);
+				Script s;
+				try {
+				    s = (Script) classloader
+					.loadClass(classname).newInstance();
+				} catch (Exception ex) {
+				    System.err.println("Can't load script: "
+						       + url);
+				    throw ex;
+				}
 				s._set_nodeid(nodeid);
-				System.err.println("GOt instance");
 				scripts.put(nodeid,s);
 			} else if(cmd.equals("SETFIELD")) {
 			} else if(cmd.equals("INITIALIZE")) {
@@ -212,4 +217,3 @@ public final class FWJavaScript {
 	}
     }
 }
-
