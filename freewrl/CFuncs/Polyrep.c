@@ -25,6 +25,9 @@ extern struct pt t_r1;
 extern struct pt t_r2;
 extern struct pt t_r3;
 
+void add_to_face ( int point, int face, int *pointfaces);
+
+
 
 
 /* GENERIC POLYREP SMOOTH NORMAL DATABASE GENERATION 		*/
@@ -89,7 +92,8 @@ void IFS_face_normals (
 	int npoints,
 	int cin,
 	struct SFColor *points,
-	struct VRML_IndexedFaceSet *this_IFS) {
+	struct VRML_IndexedFaceSet *this_IFS,
+	int ccw) {
 
 	int tmp_a, tmp_c;
 	int i;
@@ -98,12 +102,18 @@ void IFS_face_normals (
 	float AC, BC;
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
+	int zz1, zz2;
 
 	tmp_a = 0;
 	for(i=0; i<faces; i++) {
 		/* check for degenerate triangles -- if found, try to select another point */
 		tmp_c = FALSE;
-		pt_1 = tmp_a; pt_2 = tmp_a+1; pt_3 = tmp_a+2;
+		pt_1 = tmp_a; 
+		if (ccw) {
+			pt_2 = tmp_a+1; pt_3 = tmp_a+2;
+		} else {
+			pt_3 = tmp_a+1; pt_2 = tmp_a+2;
+		}
 
 		do {	
 			/* first three coords give us the normal */
@@ -189,11 +199,7 @@ void IFS_face_normals (
 			facectr++;
 		} else {
 			tmp_a*=POINT_FACES;
-			/* is this point in too many faces? if not, record it */
-			if (pointfaces[tmp_a] < (POINT_FACES-1)) {
-				pointfaces[tmp_a]++;
-				pointfaces[tmp_a+ pointfaces[tmp_a]] = facectr; 
-			}
+			add_to_face (tmp_a,facectr,pointfaces);
 		}
 	}
 
@@ -212,6 +218,64 @@ void IFS_face_normals (
 
 
 /* Tesselated faces MAY have the wrong normal calculated. re-calculate after tesselation	*/
+
+void Extru_check_normal (
+	struct pt *facenormals,
+	int this_face, 
+	float direction,
+	struct VRML_PolyRep  *rep_, 
+	int ccw) {
+
+	/* only use this after tesselator as we get coord indexes from global var */
+	struct SFColor *c1,*c2,*c3;
+	float a[3]; float b[3];
+	int zz1, zz2;
+
+	if (ccw) {
+		zz1 = 1;
+		zz2 = 2;
+	} else {
+		zz1 = 2;
+		zz2 = 1;
+	}
+
+	//printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
+	//	global_IFS_Coords[1],global_IFS_Coords[2]);
+
+	/* first three coords give us the normal */
+ 	c1 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[0]];
+ 	c2 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[zz1]];
+ 	c3 = (struct SFColor *) &rep_->coord[3*global_IFS_Coords[zz2]];
+
+	//printf ("Extru_check_normal, coords %d %d %d\n",global_IFS_Coords[0],
+	//	global_IFS_Coords[1],global_IFS_Coords[2]);
+	//printf ("Extru_check_normal vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+	//	c1->c[0],c1->c[1],c1->c[2],
+	//	c2->c[0],c2->c[1],c2->c[2],
+	//	c3->c[0],c3->c[1],c3->c[2]);
+
+	a[0] = c2->c[0] - c1->c[0];
+	a[1] = c2->c[1] - c1->c[1];
+	a[2] = c2->c[2] - c1->c[2];
+	b[0] = c3->c[0] - c1->c[0];
+	b[1] = c3->c[1] - c1->c[1];
+	b[2] = c3->c[2] - c1->c[2];
+
+	facenormals[this_face].x = a[1]*b[2] - b[1]*a[2] * direction;
+	facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]) * direction;
+	facenormals[this_face].z = a[0]*b[1] - b[0]*a[1] * direction;
+
+	if (fabs(calc_vector_length (facenormals[this_face])) < 0.0001) {
+		printf ("tesselator should not give degenerate triangles back\n");
+	}
+
+	normalize_vector(&facenormals[this_face]);
+	//printf ("facenormal for %d is %f %f %f\n",this_face, facenormals[this_face].x,
+	//		facenormals[this_face].y, facenormals[this_face].z);
+}
+
+/* Tesselated faces MAY have the wrong normal calculated. re-calculate after tesselation	*/
+
 
 void IFS_check_normal (
 	struct pt *facenormals,
@@ -262,6 +326,24 @@ void IFS_check_normal (
 	*/
 }
 
+
+void add_to_face (
+	int point,
+	int face,
+	int *pointfaces) {
+
+	int count;
+	if (pointfaces[point] < (POINT_FACES-1)) {
+		/* room to add, but is it already there? */
+		for (count = 1; count <= pointfaces[point]; count++) {
+			if (pointfaces[point+count] == face) return;
+		}
+		/* ok, we have an empty slot, and face not already added */
+		pointfaces[point]++;
+		pointfaces[point+ pointfaces[point]] = face;
+	}
+}
+	
 /********************************************************************
  *
  * ElevationGrid Triangle
@@ -276,24 +358,34 @@ void Elev_Tri (
 	int NONORMALS,
 	struct VRML_PolyRep *this_Elev,
 	struct pt *facenormals,
-	int *pointfaces) {
+	int *pointfaces,
+	int ccw) {
 
-struct SFColor *c1,*c2,*c3;
-float a[3]; float b[3];
-int tmp;
+	struct SFColor *c1,*c2,*c3;
+	float a[3]; float b[3];
+	int tmp;
+
+	//printf ("Triangle %d %d %d\n",A,D,E);
+
+	/* generate normals in a clockwise manner, reverse the triangle */
+	if (!(ccw)) {
+		tmp = D;
+		D = E;
+		E = tmp;
+	}
+		
 
 	this_Elev->cindex[vertex_ind] = A;
 	this_Elev->cindex[vertex_ind+1] = D;
 	this_Elev->cindex[vertex_ind+2] = E;
 
-	//printf ("Triangle %d %d %d\n",A,D,E);
 	if (NONORMALS) {
 		/* calculate normal for this triangle */
                 c1 = (struct SFColor *) &this_Elev->coord[3*A];
                 c2 = (struct SFColor *) &this_Elev->coord[3*D];
                 c3 = (struct SFColor *) &this_Elev->coord[3*E];
 
-		//printf ("calc norms for \n%f %f %f\n%f %f %f\n%f %f %f\n",
+		//printf ("calc norms \n%f %f %f\n%f %f %f\n%f %f %f\n",
 		//c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
 		//c3->c[0],c3->c[1],c3->c[2]);
 
@@ -308,27 +400,14 @@ int tmp;
 		facenormals[this_face].y = -(a[0]*b[2] - b[0]*a[2]);
 		facenormals[this_face].z = a[0]*b[1] - b[0]*a[1];
 
-		//printf ("facenormal for %d is %f %f %f\n",this_face, facenormals[this_face].x,
-		//	facenormals[this_face].y, facenormals[this_face].z);
+		//printf ("facenormals index %d is %f %f %f\n",this_face, facenormals[this_face].x,
+		//		facenormals[this_face].y, facenormals[this_face].z);
 
 		/* add this face to the faces for this point */
-		tmp = A * POINT_FACES;
-		if (pointfaces[tmp] < (POINT_FACES-1)) {
-			pointfaces[tmp]++;
-			pointfaces[tmp+ pointfaces[tmp]] = this_face;
-		}
-		tmp = D * POINT_FACES;
-		if (pointfaces[tmp] < (POINT_FACES-1)) {
-			pointfaces[tmp]++;
-			pointfaces[tmp+ pointfaces[tmp]] = this_face;
-		}
-		tmp = E * POINT_FACES;
-		if (pointfaces[tmp] < (POINT_FACES-1)) {
-			pointfaces[tmp]++;
-			pointfaces[tmp+ pointfaces[tmp]] = this_face;
-		}
+		add_to_face (A*POINT_FACES,this_face,pointfaces);
+		add_to_face (D*POINT_FACES,this_face,pointfaces);
+		add_to_face (E*POINT_FACES,this_face,pointfaces);
 	}
-	
 }
 
 
@@ -474,7 +553,7 @@ void render_polyrep(void *node,
 				/* this should be caught before here JAS */
 				warn("Too large normal index %d nnormals %d-- help??",nori, nnormals);
 			}
-			//printf ("nnormals, nori %d ",nori);
+			//printf ("nnormals at %d , nori %d ",&normals[nori].c,nori);
 			//fwnorprint (normals[nori].c);
 
 			glNormal3fv(normals[nori].c);
