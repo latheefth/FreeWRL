@@ -10,7 +10,8 @@ package VRML::GLBackEnd;
 use VRML::OpenGL;
 
 use VRML::VRMLFunc;
-VRML::VRMLFunc::set_divs(10,10);
+glShadeModel(&GL_SMOOTH);
+
 if($VRML::verbose::rend) {
 	VRML::VRMLFunc::render_verbose(1);
 }
@@ -29,25 +30,15 @@ use strict vars;
 my $cursortype = 0;  # pointer cursor
 my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
-####
-#
-# Set rendering accuracy vs speed tradeoff
-# 
-# Currently only has effect when something changes - otherwise
-# values stored in the display lists are used for nodes.
 
-sub set_best {
-	glShadeModel(&GL_SMOOTH);
-	VRML::VRMLFunc::set_divs(20,20);
-	VRML::VRMLFunc::set_smooth_normals(1);
-	
-}
+###
+#
+# set fast rendering - don't do smooth shading
+
 sub set_fast {
 	glShadeModel(&GL_FLAT);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	VRML::VRMLFunc::set_divs(8,8);
-	VRML::VRMLFunc::set_smooth_normals(0);
 }
+
 
 ####
 #
@@ -138,7 +129,6 @@ sub new {
 
 
         glClearColor(0,0,0,1);
-        glShadeModel (&GL_FLAT);
 	glDepthFunc(&GL_LEQUAL);
         glEnable(&GL_DEPTH_TEST);
 	glEnable(&GL_BLEND);
@@ -232,6 +222,7 @@ sub update_scene {
 	} else {
 		VRML::OpenGL::BackEndSleep();
 	}
+	
 
 }
 
@@ -618,7 +609,6 @@ sub setup_projection {
 	glHint(&GL_PERSPECTIVE_CORRECTION_HINT,&GL_NICEST);
 	glMatrixMode(&GL_MODELVIEW);
 	glLoadIdentity();
-	# glShadeModel(GL_SMOOTH);
 }
 
 sub setup_viewpoint {
