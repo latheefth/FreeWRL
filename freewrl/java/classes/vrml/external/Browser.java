@@ -21,7 +21,7 @@ import vrml.external.FreeWRLEAI.EAIAsyncThread;
 import vrml.external.exception.InvalidNodeException;
 import vrml.external.exception.InvalidVrmlException;
 import vrml.external.BrowserGlobals;
-//JAS import netscape.security.*;
+import netscape.security.*;
 
 public class Browser implements BrowserInterface
 
@@ -104,13 +104,12 @@ public class Browser implements BrowserInterface
 	int incrport = -1;
 	EAISocket = null;
 
-	// enable privleges
-	System.out.println ("WARNING - netscape security commented out\n");
-	//try {
-	//	PrivilegeManager.enablePrivilege ("UniversalConnect");
-	//} catch (Throwable e) {
-	//	System.out.println("EAI: not using Netscape");
-	//}
+	//enable privleges
+	try {
+		PrivilegeManager.enablePrivilege ("UniversalConnect");
+	} catch (Throwable e) {
+		System.out.println("EAI: not using Netscape");
+	}
 	
 	try {
 		EAISocket = new ServerSocket(2000);
@@ -387,7 +386,6 @@ public class Browser implements BrowserInterface
     // return an instance of the Browser class
     // This returns the first embedded plugin in the current frame.
     static public Browser getBrowser(Applet pApplet) {
-System.out.println ("WARNING - remember netscape.security commented out - look for JAS in code\n");
       return (new Browser(pApplet));
     }
   
