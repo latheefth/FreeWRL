@@ -50,11 +50,12 @@ int msq_toserver = -1;
 int msq_fromserver = -1;
 pid_t S_Server_PID;
 
-void toserver () {
+void Sound_toserver (char *message) {
 	int xx;
 
 	if (initialized != SOUND_STARTED)  return;
 
+	strcpy (msg.msg,message);
 	printf ("Client:Sending to server %s\n",msg.msg);
         while(xx = msgsnd(msq_toserver, &msg,strlen(msg.msg)+1,IPC_NOWAIT));
         if (xx) {   /* Send to server */
@@ -204,14 +205,16 @@ int SoundSourceRegistered  (int num) {
 void SoundSourceInit (int num, int loop, float pitch, float start_time, float stop_time,
 		char *url) {
 
+	char mystring[512];
+
 	if (strlen(url) > 192) {
 		printf ("SoundSourceInit - url %s is too long\n",url);
 		return;
 	}
 
-	sprintf (msg.msg,"REGS %2d %2d %4.3f %4.3f %4.3f %s",num,loop,pitch,start_time,
+	sprintf (mystring,"REGS %2d %2d %4.3f %4.3f %4.3f %s",num,loop,pitch,start_time,
 			stop_time,url);
 	SReg[num] = TRUE;
-	toserver();
+	Sound_toserver(mystring);
 }
 
