@@ -33,16 +33,27 @@ This install is divided up into the following sections:
 
 
 (updated 19 June 2000 - john.stewart@crc.ca)
+(updated 31 Aug 2000 - remi@cohen-scali.com)
 
 
 ===================================================================
 1) Building FreeWRL as a standalone executable.
 
-Notes:	All files are available here: http://www.crc.ca/FreeWRL/download/
+Notes:	All files are available here: 
+		- http://www.crc.ca/FreeWRL/download/
+		- http://sourceforge.net/projects/freewrl/
+	You can also access the cvs repository. The way to do it is
+	explained at:
+		- http://sourceforge.net/cvs/?group_id=9120
+	or browse it online at:
+		- http://cvs.sourceforge.net/cgi-bin/cvsweb.cgi/freewrl/?cvsroot=freewrl
+
+	Nightly CVS tarballs (for risky of you) are available at:
+		- ftp://ftp.rcsnet.net/pub/FreeWRL-Nightly-CVS-Tree-Tarball/
 
 	The tests directory has a README in it - it describes the
- 	tests available. RUN THEM ALL - and note that test 14 
-	will fail right now.
+ 	tests available. RUN THEM ALL - Look at the TEST.STATUS file
+ 	in the tests directory for test results expected.
 
 	
 1.1)  Mesa and Mesa demos.
@@ -84,8 +95,11 @@ Notes:	All files are available here: http://www.crc.ca/FreeWRL/download/
 
 	1) grab the latest FreeWRL tar file, and untar it.
 
-	2) verify that the vrml.conf file points to the Mesa
-	install directory (2 references in this file)
+	2) Verify that the vrml.conf file have the good reference
+	to the following libraries:
+		- Mesa (2 references in this file)
+		- PNG
+		- JPEG
 
 	3) install the FreeType RPMs from the RH 6.2 CD #1.
 	(I do this manually; mount the cd, cd into the RedHat
@@ -103,13 +117,15 @@ Notes:	All files are available here: http://www.crc.ca/FreeWRL/download/
 		libnet-1.0607
 		libwww-perl-5.47
 		Image-Base-1.07
-		Image-Xpm-1.07
 
 	Installing these modules is a no-brainer; just untar
 	each module, then go into the directory, and 
 		perl Makefile.PL
 		make
 		make install
+	You can also use the CPAN shell or PPM if you use ActivePerl.
+	The version of Perl you should use is 5.6.0 (regular CPAN or
+	ActivePerl are ok) or 5.005_xx if you are hacker.
 
 	Note that libwww-perl will most likely ask you if you
 	want to reconfigure- I always just select the default (no)
@@ -125,11 +141,15 @@ them first. If there is no -ljs, see below: this is the javascript
 library. Email me if the problem persists.
  
 Go to JS/js/ subdirectory and compile the Mozilla javascript code.
-
+In order to do it, issue:
        cd JS/js; make
 
+Warning ! This step is important and is not included in the
+makefiles. You should go in that step if you fetched FreeWRL
+from CVS.
 
-1.5) Make ./freewrl
+
+1.5) Build/install freewrl
 
 	make
 
