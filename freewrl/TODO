@@ -6,8 +6,8 @@
 
 TODO wishlist for 0.28 release.
 
-Fran Taylor sent in some great tips for getting FreeWRL to work better with
-Netscape. Implement and document these.
+STARTED: Fran Taylor sent in some great tips for getting FreeWRL to work 
+	better with Netscape. Implement and document these.
 
 DONE:	EAI CreateTest working (needs replaceworld EAI call)
 
