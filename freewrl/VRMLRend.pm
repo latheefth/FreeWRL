@@ -20,6 +20,12 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.54  2002/05/02 15:05:39  crc_canada
+# Changed PointSet color/points algorithm to only warn if less colors
+# exist than are needed, and to then ignore colors. Previous behaviour
+# was to die if colors existed, and not the same number of color coords
+# as points existed.
+#
 # Revision 1.53  2002/05/01 15:13:11  crc_canada
 # Fog support
 #
@@ -681,8 +687,9 @@ PointSet => '
 
 	$fv(coord, points, get3, &npoints);
 	$fv_null(color, colors, get3, &ncolors);
-	if(ncolors && ncolors != npoints) {
-		die("Not same number of colors and points");
+	if(ncolors && ncolors < npoints) {
+		printf ("PointSet has less colors than points - removing color\n");
+		ncolors = 0;
 	}
 	glDisable(GL_LIGHTING);
 	glBegin(GL_POINTS);
