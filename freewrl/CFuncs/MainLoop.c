@@ -36,7 +36,8 @@ extern Window win;
 
 extern int display_status;		// toggle status bar - defined in VRMLC.pm
 extern int be_collision;		// toggle collision detection - defined in VRMLC.pm
-void Next_ViewPoint();			// switch to next viewpoint - in VRMLC.pm
+void Next_ViewPoint();			// switch to next viewpoint - 
+void Snapshot();			// get a snapshot
 extern int rootNode;			// Scenegraph root node - in VRMLC.pm
 extern double hpdist;			// in VRMLC.pm
 extern struct pt hp;			// in VRMLC.pm
@@ -92,7 +93,7 @@ double BrowserStartTime; 	/* start of calculating FPS 	*/
 double BrowserFPS = 0.0;	/* calculated FPS		*/
 
 /* Function protos */
-void do_kp(char kp, int type);
+void do_keyPress(char kp, int type);
 void render_collisions(void);
 void render_pre(void);
 void render(void);
@@ -299,7 +300,7 @@ void handle_Xevents() {
 				   default: break;
 				   }
 				buf[0]=(char)ks;buf[1]='\0';
-				do_kp(ks,event.type);
+				do_keyPress(ks,event.type);
 
 				break;
 			case ButtonPress:
@@ -496,7 +497,7 @@ void setup_projection(int pick, int x, int y) {
 }
 
 /* handle a keypress. "man freewrl" shows all the recognized keypresses */
-void do_kp(char kp, int type) {
+void do_keyPress(char kp, int type) {
 	if (type == KeyPress) {
 		switch (kp) {
 			case 'e': { set_viewer_type (EXAMINE); break; }
@@ -654,3 +655,12 @@ void glPrintError(char *str) {
                 fprintf(stderr,"OpenGL Error: \"%s\" in %s\n", gluErrorString(err),str);
         }
 #endif
+
+void Next_ViewPoint() { 
+	printf ("MAinloop, nextvp\n");
+}
+
+
+void Snapshot () {
+	printf ("Mainloop, snapshot\n");
+}

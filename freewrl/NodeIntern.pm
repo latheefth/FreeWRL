@@ -790,12 +790,10 @@ sub set_backend_fields {
 			$this->{BackEnd} = $be;
 			$this->set_backend_fields();
 
-			# was this a viewpoint? Was it not in a proto definition?
-			if (($this->{TypeName} eq "Viewpoint")  ||
-			    ($this->{TypeName} eq "GeoViewpoint")) {
+			# is this a bindable node?
+			if ($VRML::Nodes::bindable{$this->{TypeName}}) {
 				if ($this->{BackEnd}) {
-					my $scene = $this->{Scene};
-					VRML::NodeType::register_vp($scene, $this);
+					VRML::Browser::register_bind($this);
 				}
 			}
 		}

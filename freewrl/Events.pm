@@ -480,31 +480,4 @@ sub register_listener {
 	$this->{Listen}{$node}{$field} = $sub;
 }
 
-# This sends a bind/unbind event TO node
-sub send_set_bind_to {
-	my ($this, $node, $bindValue) = @_;
-	my $outptr;
-	my $outoffset;
-
-	# are there a backend made for from node?
-	if (!defined $node->{BackNode}) {
-		print "set_bind - no backend node\n";
-		return;
-	}
-
-	# are there backend CNodes made for both from and to nodes?
-	if (!defined ($outptr=$node->{BackNode}{CNode})) {
-		print "set_bind - no backend CNode node\n";
-		return;
-	}
-
-	# are there offsets for these binds?
-	if(!defined ($outoffset=$VRML::CNodes{$node->{TypeName}}{Offs}{set_bind})) {
-		print "set_bind offset not defined\n";
-		return;
-	}
-
-	VRML::VRMLFunc::do_bind_to($node->{TypeName}, $outptr, $bindValue);
-}
-
 1;

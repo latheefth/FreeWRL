@@ -8,48 +8,8 @@
 
 package VRML::NodeType; 
 
-my @vps;	# viewpoint Scenes.
-my @vpn;	# viewpoint Nodes.
-my $vpno = 0;
 my $globalAudioSource = 0;  # count of audio sources
 my $SoundMaterial;	    # is the parent a Sound or not? (MovieTextures...)
-
-# Viewpoints are stored in the browser rather in the 
-# individual scenes...
-
-sub register_vp {
-	my ($scene, $node) = @_;
-	#print "Node::register_vp $scene $node\n";
-	push @vpn, $node;
-	push @vps, $scene;
-        #	print "VRML::NodeIntern::register_vp, viewpoint is ",$node->{Fields}{description},"\n";
-         #         print "ref t ", ref $node,"\n";
-         #         print "ref t backend ", ref $node->{BackEnd},"\n";
-         #         print "t backend ", $node->{BackEnd},"\n";
-         #         print "ref t backnode ", ref $node->{BackNode},"\n";
-         #         print "t backNode ", $node->{BackNode},"\n";
-         #         print "ref t protoexp ", ref $node->{ProtoExp},"\n";
-         #         print "t protoexp ", $node->{ProtoExp},"\n";
-         #         if (defined $node->{IsProto}) print "t isproto ", $node->{IsProto} ,"\n";
-# 		print "VRML::NODE::end\n";
-
-}
-
-sub set_next_vp {
-	$vpno++;
-	if ($vpno > $#vpn) {$vpno = 0;}
-	# print "set_next_vp, next vp to get is number $vpno\n";
-}
-
-sub get_vp_node { 
-	#print "get_vp_node, returning vp $vpno " , $vpn[$vpno],"\n";
-return $vpn[$vpno];}
-
-sub get_vp_scene {
-	#print "get_vp_scene, returning ", $vps[$vpno],"\n";
-return $vps[$vpno];}
-
-
 
 #########################################################
 # The routines below implement the browser object interface.

@@ -7,6 +7,7 @@
 
 #include "EXTERN.h"
 #include "perl.h"
+#include "Bindable.h"
 
 #include <stdio.h>
 #include "Structs.h"
@@ -33,8 +34,6 @@ struct PSStruct {
 	char *inp;		// data for task
 	unsigned ptr;		// node to put data
 	unsigned ofs;		// offset in node for data
-
-	pthread_t waitfor;	// thread to wait for completion of
 };
 
 
@@ -44,6 +43,8 @@ void consumeTask (struct PSStruct *psptr);
 void loadInitialGroup(void); 
 void openBrowser(void); 
 unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
+unsigned int getBindables (char *tp, unsigned int *retarr);
+void getAllBindables(void);
 
 extern void xs_init(void);
 extern unsigned rootNode;
@@ -52,7 +53,7 @@ extern Window win;
 extern GLXContext cx;
 
 
-// variables for gl context switching.
+/* variables for gl context switching. */
 pthread_mutex_t _ContextLock 	= PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t condition_mutex	= PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t	condition_cond	= PTHREAD_COND_INITIALIZER;
@@ -62,11 +63,18 @@ int TextureWantsCX = FALSE;
 #define CXSIG()	   pthread_cond_signal(&condition_cond)
 #define CXWAIT()   pthread_cond_wait (&condition_cond, &condition_mutex)
 
+/* Bindables */
+int *fognodes;
+int *backgroundnodes;
+int *navnodes;
+int *viewpointnodes;
+int totfognodes = 0;
+int totbacknodes = 0;
+int totnavnodes = 0;
+int totviewpointnodes = 0;
 
-
-
-// keep track of the last producer thread made
-pthread_t lastPCthread = NULL;
+/* keep track of the producer thread made */
+pthread_t PCthread = NULL;
 static int browserRunning=FALSE;
 PerlInterpreter *my_perl;
 
@@ -85,10 +93,9 @@ void produceTask(unsigned type, char *inp, unsigned ptr, unsigned ofs) {
 	psptr->inp = malloc (strlen(inp)+2);
 	if (!(psptr->inp)) {printf ("malloc failure in produceTask\n"); exit(1);}
 	memcpy (psptr->inp,inp,strlen(inp)+1);
-	psptr->waitfor = lastPCthread;
 
 	// create consumer thread
-	iret = pthread_create (&lastPCthread, NULL, (void *)&consumeTask, (void *) psptr);
+	iret = pthread_create (&PCthread, NULL, (void *)&consumeTask, (void *) psptr);
 }
 	
 
@@ -106,7 +113,6 @@ void consumeTask(struct PSStruct *psptr) {
 		/* initialize stuff for prel interpreter */
 		my_perl = perl_alloc();
 		perl_construct (my_perl);
-
 		if (perl_parse(my_perl, xs_init, 2, commandline, NULL)) {
 			printf ("freewrl can not find its initialization script %s\n",commandline[1]);
 			exit (1);
@@ -140,6 +146,15 @@ void consumeTask(struct PSStruct *psptr) {
         	for (count =1; count < retval; count+=2) {
         		addToNode(psptr->ptr+psptr->ofs, retarr[count]);
         	}
+
+		/* get the Bindables from this latest VRML/X3D file */
+		getAllBindables();
+
+		/* send a set_bind to any nodes that exist */
+		if (totfognodes != 0) send_bind_to (FOG,fognodes[0],1);
+		if (totbacknodes != 0) send_bind_to (BACKGROUND,backgroundnodes[0],1);
+		if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,navnodes[0],1);
+		if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,viewpointnodes[0],1);
 	} else {
 		printf ("produceTask - invalid type!\n");
 	}
@@ -186,8 +201,41 @@ void addToNode (unsigned rc, unsigned newNode) {
 	free (tmp);
 }
 
+/* get all of the bindables from the Perl side. */
+void getAllBindables() {
+	int retval;
+	int aretarr[1000];
+	int bretarr[1000];
+	int cretarr[1000];
+	int dretarr[1000];
+	int count;
 
+	/* first, free any previous nodes */
+	if (fognodes) free (fognodes);
+	if (backgroundnodes) free (backgroundnodes);
+	if (navnodes) free (navnodes);
+	if (viewpointnodes) free (viewpointnodes);
 
+	/* now, get the values */
+	totviewpointnodes = getBindables("Viewpoint",aretarr);
+	totfognodes = getBindables("Fog",bretarr);
+	totnavnodes = getBindables("NavigationInfo",cretarr);
+	totbacknodes = getBindables("Background",dretarr);
+
+	/* and, malloc the memory needed */
+	viewpointnodes = malloc (sizeof(int)*totviewpointnodes);
+	navnodes = malloc (sizeof(int)*totnavnodes);
+	backgroundnodes = malloc (sizeof(int)*totbacknodes);
+	fognodes = malloc (sizeof(int)*totfognodes);
+
+	/* and, copy the results over */
+	memcpy (fognodes,bretarr,(unsigned) totfognodes*sizeof(int));
+	memcpy (backgroundnodes,dretarr,(unsigned) totbacknodes*sizeof(int));
+	memcpy (navnodes,cretarr,(unsigned) totnavnodes*sizeof(int));
+	memcpy (viewpointnodes,aretarr,(unsigned) totviewpointnodes*sizeof(int));
+}
+
+/* Create VRML/X3D, returning an array of nodes */
 unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr) {
 	int count;
 	unsigned int noderef;
@@ -220,6 +268,37 @@ unsigned int CreateVrml (char *tp, char *inputstring, unsigned int *retarr) {
 	return (count);
 }
 
+
+
+unsigned int getBindables (char *tp, unsigned int *retarr) {
+	int count;
+	unsigned int noderef;
+	int tmp, addr, ind;
+
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSVpv(tp, 0)));
+	PUTBACK;
+	count = call_pv("VRML::Browser::getBindables", G_ARRAY);
+	SPAGAIN ;
+
+	/* Perl is returning a series of Bindable node addresses */
+	/* first comes the address, then the index. They might be out of order */
+	count = count/2;
+	for (tmp = 0; tmp < count; tmp++) {
+		addr = POPi;
+		ind = POPi;
+		retarr[ind] = addr;
+	}
+
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+
+	return (count);
+}
 
 void loadInitialGroup() {
 	dSP;

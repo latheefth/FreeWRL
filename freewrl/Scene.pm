@@ -942,23 +942,23 @@ sub make_backend {
 		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 
 		#print "Scene, done NOT PROTO ",VRML::NodeIntern::dump_name($this)," $be $parentbe\n";
- 		$be->set_vp_sub(
- 			sub {
-				# print "set_vp_sub start\n";
- 				my $b = $this->get_browser();
- 				my $vn = $b->get_vp_node();
- 				my $vs = $b->get_vp_scene();
- 				return if (!defined $vn);
-				# print "set_vp_sub, vs $vs\n";
-				# send an unbind of current viewpoint
- 				$vs->{EventModel}->send_set_bind_to($vn, 0);
- 				$b->set_next_vp();
- 				my $vn = $b->get_vp_node();
-				# and send a bind of the next viewpoint
- 				$vs->{EventModel}->send_set_bind_to($vn, 1);
-				# print "set_vp_sub end\n";
- 			}
- 		);	
+ 		#JAS $be->set_vp_sub(
+ 		#JAS 	sub {
+		#JAS 		# print "set_vp_sub start\n";
+ 		#JAS 		my $b = $this->get_browser();
+ 		#JAS 		my $vn = $b->get_vp_node();
+ 		#JAS 		my $vs = $b->get_vp_scene();
+ 		#JAS 		return if (!defined $vn);
+		#JAS 		# print "set_vp_sub, vs $vs\n";
+		#JAS 		# send an unbind of current viewpoint
+ 		#JAS 		$vs->{EventModel}->send_set_bind_to($vn, 0);
+ 		#JAS 		$b->set_next_vp();
+ 		#JAS 		my $vn = $b->get_vp_node();
+		#JAS 		# and send a bind of the next viewpoint
+ 		#JAS 		$vs->{EventModel}->send_set_bind_to($vn, 1);
+		#JAS 		# print "set_vp_sub end\n";
+ 		#JAS 	}
+ 		#JAS	);	
 	}
 	$this->{BackNode} = $bn;
 	return $bn;
@@ -1088,24 +1088,13 @@ sub setup_routing {
 
 # Send initial events
 sub init_events {
-	my ($this, $eventmodel, $backend, $bind) = @_;
+	my ($this, $eventmodel, $backend) = @_;
 	my @e;
 
-	print "VRML::Scene::init_events this $this ev $eventmodel be $backend bind $bind\n"
+	print "VRML::Scene::init_events this $this ev $eventmodel be $backend\n"
 		if $VRML::verbose::scene;
 
 	$this->iterate_nodes_all(sub {$_[0]->initialize($this);});
-
-	if ($bind) {
-		for (keys %{$this->{Bindable}}) {
-			# remember, Viewpoints and GeoViewpoints are treated the same.
-			if ($_ ne "GeoViewpoint") {
-				print "\tINIT Bindable '$_'\n" 
-					if $VRML::verbose::scene;
-				$eventmodel->send_set_bind_to($this->{Bindable}{$_}, 1);
-			}
-		}
-	}
 }
 
 

@@ -8,7 +8,6 @@
 
 package VRML::GLBackEnd;
 
-use VRML::OpenGL;
 use VRML::VRMLFunc;
 require 'VRML/VRMLCU.pm';
 
@@ -101,16 +100,16 @@ sub setEyeDist {
 								  );
 }
 
-# SD - adding call to shut down Open GL screen
-
-# Set the sub used to go forwards/backwards in VP list
-sub set_vp_sub {
-	$_[0]{VPSub} = $_[1];
-}
-
-sub quitpressed {
-	return delete $_[0]{QuitPressed};
-}
+#JAS # SD - adding call to shut down Open GL screen
+#JAS 
+#JAS # Set the sub used to go forwards/backwards in VP list
+#JAS sub set_vp_sub {
+#JAS 	$_[0]{VPSub} = $_[1];
+#JAS }
+#JAS
+#JASsub quitpressed {
+#JAS	return delete $_[0]{QuitPressed};
+#JAS}
 
 sub updateCoords {
 	my ($this, $xcoor, $ycoor) = @_;

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.128  2003/11/28 16:17:05  crc_canada
+# Bindables now registered and handled in C
+#
 # Revision 1.127  2003/11/27 14:50:51  crc_canada
 # copy libjs.so over to /usr/local/lib and general cleanup
 #
@@ -1433,6 +1436,8 @@ char *BrowserName = "FreeWRL VRML/X3D Browser";
 
 int rootNode=0;	// scene graph root node
 
+/* the perl interpreter - made in the Producer/Consumer threading init */
+extern PerlInterpreter *my_perl;
 
 /*************************JAVASCRIPT*********************************/
 #ifndef __jsUtils_h__
@@ -1536,20 +1541,6 @@ if (count > 1) {
 
 /*************************END OF JAVASCRIPT*********************************/
 
-
-/****************************MISC ROUTINES**********************************/
-
-void Next_ViewPoint() {
-	dSP;
-	PUSHMARK(SP);
-	call_pv("NextVP", G_DISCARD|G_NOARGS);
-}
-
-void Snapshot() {
-	dSP;
-	PUSHMARK(SP);
-	call_pv("Snapshot",G_DISCARD|G_NOARGS);
-}
 
 /****************************** EAI ****************************************/
 
@@ -2300,39 +2291,40 @@ CODE:
 OUTPUT:
 	RETVAL
 
-int
-glGenTexture()
-	CODE:
-	{
-	//extern GLXContext cx;
-	//extern XVisualInfo *vi;
-	//extern Window *win;
-	//extern Display *dpy;
-
-	GLuint texture;
-	//static myContext = NULL;
-
-	///* this thread, the parsing thread, requires the context */
-	//if (myContext==NULL) {
-//		myContext=glXCreateContext(dpy, vi, cx, GL_FALSE);
-//		printf ("linking %d %d cx %d\n",dpy,vi,cx);
-//		printf ("contextx linked %d\n",myContext);
-//	}
-printf ("renderer, my pid is %d\n",getpid());
-	
-	printf ("renderer %s\n",glGetString(GL_RENDERER));
-	printf ("and thread is %d\n",pthread_self());
-
-	glGenTextures(1, &texture);
-
-
-	texture=0;
-
-	printf ("glGenTexture , number %d\n",texture);
-	RETVAL = texture;
-	}
-	OUTPUT:
-	RETVAL
+#JAS
+#JASint
+#JASglGenTexture()
+#JAS	CODE:
+#JAS	{
+#JAS	//extern GLXContext cx;
+#JAS	//extern XVisualInfo *vi;
+#JAS	//extern Window *win;
+#JAS	//extern Display *dpy;
+#JAS
+#JAS	GLuint texture;
+#JAS	//static myContext = NULL;
+#JAS
+#JAS	///* this thread, the parsing thread, requires the context */
+#JAS	//if (myContext==NULL) {
+#JAS//		myContext=glXCreateContext(dpy, vi, cx, GL_FALSE);
+#JAS//		printf ("linking %d %d cx %d\n",dpy,vi,cx);
+#JAS//		printf ("contextx linked %d\n",myContext);
+#JAS//	}
+#JASprintf ("renderer, my pid is %d\n",getpid());
+#JAS	
+#JAS	printf ("renderer %s\n",glGetString(GL_RENDERER));
+#JAS	printf ("and thread is %d\n",pthread_self());
+#JAS
+#JAS	glGenTextures(1, &texture);
+#JAS
+#JAS
+#JAS	texture=0;
+#JAS
+#JAS	printf ("glGenTexture , number %d\n",texture);
+#JAS	RETVAL = texture;
+#JAS	}
+#JAS	OUTPUT:
+#JAS	RETVAL
 
 
 
@@ -2388,17 +2380,6 @@ set_root(rn)
 	unsigned int rn
 CODE:
 	rootNode = rn;
-
-#********************************************************************************
-# Send a bind/unbind to this node
-
-void
-do_bind_to (x,outptr,bindValue)
-	char *x
-	void *outptr
-	int bindValue
-CODE:
-	send_bind_to (x,outptr,bindValue);
 
 #********************************************************************************
 # Register a timesensitive node so that it gets "fired" every event loop

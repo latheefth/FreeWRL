@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.124  2003/11/28 16:17:05  crc_canada
+# Bindables now registered and handled in C
+#
 # Revision 1.123  2003/11/26 16:31:06  crc_canada
 # First pass at threading.
 #
@@ -34,408 +37,6 @@
 #
 # Revision 1.118  2003/10/10 14:10:17  crc_canada
 # Compile time option for display lists added.
-#
-# Revision 1.117  2003/10/01 16:56:55  crc_canada
-# More GeoVRML changes.
-#
-# Revision 1.116  2003/09/25 18:58:49  crc_canada
-# GeoVRML additions
-#
-# Revision 1.115  2003/09/25 17:40:42  crc_canada
-# first steps at GeoVRML
-#
-# Revision 1.114  2003/07/31 17:32:55  crc_canada
-# compile error on some versions of gcc - fixed.
-#
-# Revision 1.113  2003/07/22 16:04:48  ayla
-#
-# Fix of ROUTE implementation problems with PROTO and Script nodes, take 1.
-#
-# Revision 1.112  2003/07/17 15:42:25  crc_canada
-# GL_COLOR_MATERIAL enabled before push of attrib in IndexedLineSet; moved enable to after push
-#
-# Revision 1.111  2003/07/07 19:08:20  ayla
-#
-# Billboard calculation uses ModelView matrix again, which hopefully fixes
-# Billboard node problems once and for all.
-# Fixed function get_timestamp() in VRMLC.pm and removed time as argument to a
-# number of Viewer functions since TickTime is a global.
-#
-# Revision 1.110  2003/06/24 15:36:57  crc_canada
-# Viewpoints now rendered in correct location (PrepC not RendC)
-#
-# Revision 1.109  2003/05/17 05:54:30  ayla
-#
-# Changes needed to support the port of Viewer and Quaternion Perl code to C - pass 1.
-# No doubt there will also be problems with this, and there are blocks of code that have been disabled for now.
-#
-# Revision 1.108  2003/05/14 17:25:06  crc_canada
-# ProximitySensor code now in C
-#
-# Revision 1.107  2003/05/12 18:56:40  crc_canada
-# Bindables in C, part II
-#
-# Revision 1.106  2003/05/09 15:16:03  crc_canada
-# background_bindable node name change
-#
-# Revision 1.104  2003/05/08 16:01:47  crc_canada
-# Moving code to C
-#
-# Revision 1.103  2003/05/02 05:41:31  ayla
-#
-# Fixed Billboard code for the case where axisOfRotation is [0, 0, 0] - the Billboard does't quite line up correctly, but it's an improvement over the previous implementation.
-#
-# Revision 1.102  2003/04/29 17:13:19  crc_canada
-# TimeSensor ClockTick code now in C
-#
-# Revision 1.101  2003/04/28 19:40:02  crc_canada
-# AudioClip ClockTick now in C
-#
-# Revision 1.100  2003/04/25 15:51:05  crc_canada
-# Interpolators now in C
-#
-# Revision 1.99  2003/04/16 19:03:39  crc_canada
-# Transform and Material improvements.
-#
-# Revision 1.98  2003/04/16 16:46:56  ayla
-#
-# Added check to prevent possible divide by zero error in Billboard.
-#
-# Revision 1.97  2003/04/15 16:47:47  crc_canada
-# reworked Shape so that explicit geometry was called only when required.
-#
-# Revision 1.96  2003/04/09 18:23:27  crc_canada
-# IndexedLineSet color field bounds checking - if less colours than expected,
-# don't go into never-never land.
-#
-# Revision 1.95  2003/04/03 17:28:32  crc_canada
-# Viewpoint animated fieldOfViews now works
-#
-# Revision 1.94  2003/04/02 19:21:56  crc_canada
-# Material parameter checking - some systems would give a GLError if a parameter was out of
-# bounds
-#
-# Revision 1.93  2003/04/01 20:07:22  crc_canada
-# Background is put 10 times further "away" so that large models don't disappear
-#
-# Revision 1.92  2003/03/19 19:38:13  crc_canada
-# Text collision vector calcs fixed - normal now fixed, not calculated.
-#
-# Revision 1.91  2003/03/17 16:18:28  crc_canada
-# two changes - more stipple transparency levels - DirectionalLight order code
-# fixed.
-#
-# Revision 1.90  2003/02/26 18:49:22  crc_canada
-# TextureTransform transformation/scaling/rotation/centre now according to spec
-#
-# Revision 1.89  2003/02/06 20:28:57  crc_canada
-# remove endlist macro (was commented out) also remove some incorrect
-# and commented out stuff at glEndList() call in Shape
-#
-# Revision 1.88  2003/01/31 19:34:05  crc_canada
-# More SoundEngine work
-#
-# Revision 1.86  2003/01/24 18:01:23  crc_canada
-# Update Sound distance algorithm. Not perfect, but works a bit...
-#
-# Revision 1.85  2003/01/07 19:00:39  crc_canada
-# more sound engine work
-#
-# Revision 1.84  2002/11/28 20:15:41  crc_canada
-# For 0.37, PixelTextures are handled in the same fashion as other static images
-#
-# Revision 1.83  2002/11/12 19:36:30  crc_canada
-# ElevationGrid with TextureCoordinate - use calculated ones, not ones passed in.
-#
-# Revision 1.82  2002/10/17 23:53:43  crc_canada
-# make it quiet. for sound nodes
-#
-# Revision 1.81  2002/10/17 18:31:09  crc_canada
-# Sound node - have code in here to put a shape in for the max back/front to
-# allow me to glscalef it for ellipses, but the code is commented out, because
-# this must be released.
-#
-# Revision 1.79  2002/10/10 18:31:40  crc_canada
-# sound node work AND
-# added X3DMATERIALPROPERTY definition, to change the way materials work with textures
-#
-# Revision 1.78  2002/09/24 18:19:29  crc_canada
-# Fixed compile problem on Irix.
-#
-# Revision 1.77  2002/08/16 20:02:03  ncoder
-# new and improved Indexfaceset and Extrusion collision detection!
-#
-# Revision 1.76  2002/08/14 17:43:34  ncoder
-# Stepping code
-#
-# Revision 1.75  2002/08/08 17:56:13  ncoder
-# small mistake corrected : forgot to enable doublesided mode when IndexFaceSets not solid.
-#
-# Revision 1.74  2002/08/08 17:03:05  ncoder
-# Added Text collision
-# Added ElevationGrid collision
-# Improved multiple collision handling.
-# Corrected polydisp that used to use a reversed normal.
-#
-# Revision 1.73  2002/08/02 16:43:29  ncoder
-# improved correction (still not perfect)
-# of the HAVETODOTEXTURES bug.
-#
-# Revision 1.72  2002/08/02 15:08:53  ncoder
-# Corrected proximitysensor changes.
-# Added more fine-grained glError checking
-#
-# Revision 1.71  2002/07/31 20:56:53  ncoder
-# Added:
-#     Support for "collide" boolean field in collision nodes
-#     Support for proxy nodes.
-# 	Collide time envents launched
-#
-# Small improvement in ProximitySensors
-#
-# Revision 1.70  2002/07/30 18:12:14  ncoder
-# Added collision support for extrusions
-# Polyrep disp. still flakey, i'll need to do corrections.
-#
-# Revision 1.69  2002/07/29 20:07:39  ncoder
-# Removed lingering printmatrix debug code. (VRMLRend.pm)
-#
-# Other non significant code changes.
-#
-# Revision 1.68  2002/07/29 19:36:25  crc_canada
-# Background Textures now working with new style of texture reading.
-#
-# Revision 1.67  2002/07/26 18:15:51  ncoder
-# Added support (incomplete) of index face set collisions.
-# Bugs corrected in Collision detection
-# Further cleanup in rendering (GLBackEnd.pm)
-# removed useless free in Polyrep.c
-#
-# Revision 1.66  2002/07/19 16:56:52  ncoder
-# added collision detection for
-# Boxes, cones, cylinders.
-# Added a debug flag to print out collision information ("collision")
-#
-# a few modifications/additions to functions in LinearAlgebra
-#
-# Revision 1.65  2002/07/15 15:38:41  crc_canada
-# enable sharing of textures, if they have the same url
-#
-# Revision 1.63  2002/07/09 16:13:59  crc_canada
-# Text nodes now in main module, seperate module removed
-#
-# Revision 1.62  2002/07/03 17:02:59  crc_canada
-# MovieTexture now has internal decoding
-#
-# Revision 1.61  2002/06/21 20:15:43  crc_canada
-# compile warning removed in Appearance
-#
-# Revision 1.60  2002/06/21 19:58:58  crc_canada
-# Material now called for RGB textures, but diffuseColor set to white.
-#
-# Revision 1.59  2002/06/17 14:41:45  ncoder
-# Added sphere collision detection (more to come)
-# -This included adding rendering passes,
-# -Changed the render_node parameter passing method (now using flags).
-# -Other details I forgot.
-#
-# Added C file LinearAlgebra.h/.c
-# -Contains matrix/vector calculations.
-# -Some were moved from headers.h, others from random places. a few new ones.
-#
-# Bugs pending:
-# -Temprorary unefficient state : to much redraws of the viewpoint and perspective.
-# -Proximity sensors out of sync when collision active.
-#
-# Revision 1.58  2002/06/17 12:30:28  crc_canada
-# Material properties for greyscale textures and RGB textures should be ok now
-#
-# Revision 1.57  2002/05/30 21:18:04  ncoder
-# Fixed bug with the order of the multiplication of the transformations while rendering the viewpoint.
-# Increased performance of viewpoint rendering code.
-#
-# Added some comments.
-#
-# Revision 1.56  2002/05/08 18:15:07  crc_canada
-# Text nodes without a FontStyle were not rendered correctly. Fixed.
-#
-# Revision 1.55  2002/05/06 16:44:20  crc_canada
-# initial MovieTexture work
-#
-# Revision 1.53  2002/05/01 15:13:11  crc_canada
-# Fog support
-#
-# better texture binding
-#
-# Revision 1.52  2002/04/17 19:21:15  crc_canada
-# glErrors are no longer checked for and printed. Code is in there so at some
-# point in time, we can have a look at the problem again.
-#
-# Revision 1.51  2002/02/05 20:32:53  crc_canada
-# Aubery Jaffers lighting changes.
-#
-# Added support code for nodes not currently being supported; gets
-# around parsing problems.
-#
-# Revision 1.50  2002/01/23 21:07:56  crc_canada
-# textureTransform problems fixed (they were not being zeroed), but efficiency
-# may be better handled.
-#
-# some material/texture problems - material should show through textures, now
-# works.
-#
-# Revision 1.49  2002/01/22 17:42:27  crc_canada
-# I made a mistake in comment types; comment changed to C style from Perl style
-#
-# Revision 1.48  2002/01/20 15:05:25  crc_canada
-# if display lists change when in creation, don't do the glEnd for them
-#
-# Revision 1.47  2002/01/09 16:14:45  crc_canada
-# removal of some debugging statements, and it no longer dies on some proximity
-# sensor errors.
-#
-# Revision 1.46  2002/01/08 18:55:59  crc_canada
-# standard text and fontstyle now works - not quite up to standard, though.
-#
-# Revision 1.45  2002/01/04 20:19:01  crc_canada
-# FontStyle and Text node work
-#
-# Revision 1.44  2001/12/14 17:52:34  crc_canada
-# ElevationGrid and IndexedFaceSet texture over colour problem resolved.
-#
-# Revision 1.43  2001/12/14 16:35:34  crc_canada
-# TextureTransform bug fixed - texture transforms were not within the
-# associated Display List for the Shape. Moved creating display list to
-# before texture code in Shape node.
-#
-# Revision 1.42  2001/12/14 14:46:06  crc_canada
-# Transparency issues fixed, this time with debug statements removed!
-#
-# Revision 1.41  2001/12/14 14:29:20  crc_canada
-# Material transparency now handled by the GL_STIPPLE method. This appears
-# to be how the browser in the NIST test renders transparency.
-#
-# Revision 1.40  2001/12/12 19:17:16  crc_canada
-# LODS now spec compliant
-#
-# Revision 1.39  2001/08/16 16:56:25  crc_canada
-# Viewpoint work
-#
-# Revision 1.38  2001/07/31 16:20:33  crc_canada
-# more Background node work
-#
-# Revision 1.37  2001/07/05 16:04:33  crc_canada
-# Initial IFS texture default code re-write
-#
-# Revision 1.36  2001/06/25 18:34:42  crc_canada
-# ElevationGrid default textures now correct.
-#
-# Revision 1.35  2001/06/18 19:11:50  crc_canada
-# Background ground angle bug if > 3 angles fixed.
-#
-# Revision 1.34  2001/06/18 17:24:32  crc_canada
-# IRIX compile warnings removed.
-#
-# Revision 1.33  2001/06/15 19:32:18  crc_canada
-# lighting disabled as per spec if no Material and/or no Appearance
-#
-# Revision 1.32  2001/06/01 15:37:36  crc_canada
-# ProximitySensor now has correct axis for rotations when rotating about
-# the X axis. This affects many things, particularly the HUD test (24.wrl)
-#
-# Revision 1.31  2001/05/16 18:04:17  crc_canada
-# changes to allow compiling on Irix without errors (still warnings, though)
-#
-# Revision 1.30  2001/05/16 16:00:06  crc_canada
-# Check for glError at the end of Shape node.
-#
-# Revision 1.29  2001/05/11 15:00:11  crc_canada
-# Cone Normals now correct
-#
-# Revision 1.28  2001/05/04 19:51:32  crc_canada
-# some extraneous debugging code removed.
-#
-# Revision 1.27  2001/05/03 20:24:08  crc_canada
-# Proper use of Display lists and Textures for Shape nodes and below.
-#
-# Revision 1.26  2001/04/27 16:50:03  crc_canada
-# Working display lists for Shape nodes
-#
-# Revision 1.25  2001/04/24 19:54:16  crc_canada
-# Display list work
-#
-# Revision 1.24  2001/03/26 17:41:50  crc_canada
-# Background rendering for some OpenGL implementations fixed.
-# IndexedLineSet no longer disrupts other renderings.
-#
-# Revision 1.23  2001/03/23 16:00:02  crc_canada
-# IndexedLineSet culling disabled - it was affecting other shapes in the scene graph.
-#
-# Revision 1.22  2001/03/13 16:19:57  crc_canada
-# Pre 0.28 checkin
-#
-# Revision 1.20  2000/12/20 17:27:52  crc_canada
-# more IndexedFaceSet work - normals this time.
-#
-# Revision 1.19  2000/12/18 21:19:59  crc_canada
-# IndexedFaceSet colorPerVertex and colorIndex now working correctly
-#
-# Revision 1.18  2000/12/08 13:10:39  crc_canada
-# Two fixes to Background nodes:
-# 	- possible core dump if only one sky angle and no ground angles.
-# 	- make background sphere a lot larger.
-#
-# Revision 1.17  2000/12/07 19:12:25  crc_canada
-# code cleanup, and IndexedFaceSet texture mapping
-#
-# Revision 1.16  2000/11/16 18:46:02  crc_canada
-# Nothing much - just comments and verbose code.
-#
-# Revision 1.15  2000/11/15 16:37:01  crc_canada
-# Removed some extra opengl calls from box.
-#
-# Revision 1.14  2000/11/03 21:52:16  crc_canada
-# Speed updates - texture objects added
-#
-# Revision 1.13  2000/10/28 17:42:51  crc_canada
-# EAI addchildren, etc, should be ok now.
-#
-# Revision 1.12  2000/09/03 20:17:50  rcoscali
-# Made some test for blending
-# Tests are displayed with 38 & 39.wrlð
-#
-# Revision 1.11  2000/08/31 23:00:00  rcoscali
-# Add depth 2 support (2 channels/color components) which isMINANCE_ALPHAre (wi
-#
-# Revision 1.10  2000/08/30 00:04:18  rcoscali
-# Comment out a glDisable(GL_LIGHTING) (uncommented by mistake ??)
-# Fixed a problem in cone rendering (order of the vertexes)i
-#
-# Revision 1.9  2000/08/07 01:24:45  rcoscali
-# Removed a glShadeModel(mooth) forgotten after a test
-#
-# Revision 1.8  2000/08/07 01:03:09  rcoscali
-# Fixed another little problem on texture of cone. It was mapped in the wrong way.
-#
-# Revision 1.7  2000/08/07 00:28:44  rcoscali
-# Removed debug macros and traces for sphere
-#
-# Revision 1.6  2000/08/06 22:55:17  rcoscali
-# Ok ! All is like it should be for 0.26
-# I tag the release as A_0_26
-#
-# Revision 1.5  2000/08/06 20:44:46  rcoscali
-# Cone OK ... Now doing sphere ...
-#
-# Revision 1.4  2000/08/06 20:14:41  rcoscali
-# Box Ok too. Now doing cone ...
-#
-# Revision 1.3  2000/08/06 19:48:37  rcoscali
-# Fixed Cylinder. Now attacking cone.
-#
-# Revision 1.2  2000/08/04 22:54:41  rcoscali
-# Add a cvs header, mainly for test
-#
 #
 
 
@@ -598,7 +199,7 @@ Cylinder => '
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
-	// set things back to normal - Textures and ColoUrs disabled.
+	/* set things back to normal - Textures and ColoUrs disabled. */
 	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 ',
@@ -751,13 +352,11 @@ Sphere => '
 			printf ("can not malloc memory in Sphere\n");
 			return;
 		}
-
 		pts = (struct SFColor *) this_->__points;
 		count = 0;
 
 		INIT_TRIG1(SPHDIV) 
 		INIT_TRIG2(SPHDIV)
-		//glScalef($f(radius), $f(radius), $f(radius));
 
 		START_TRIG1
 		for(v=0; v<SPHDIV; v++) {
@@ -2154,6 +1753,11 @@ Sphere => q~
 	       struct pt tupv = {0,1,0};
 	       struct pt dir;
 
+		/* are we initialized yet? */
+		if (this_->__points==0) {
+			return;
+		}
+
 	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
 	       glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
@@ -2302,7 +1906,7 @@ Box => q~
 
 	       struct pt delta;
 	       struct pt tupv = {0,1,0};
-	       
+
 		//JAS - fill in structs from above.
 		iv.x = $f(size,0);
 		jv.y = $f(size,1);

@@ -34,6 +34,18 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 /* Bind stack */
 #define MAX_STACK 20
 
+
+/* Bindables, Viewpoint, NavigationInfo, Background and Fog */
+#define BACKGROUND 1
+#define VIEWPOINT  2
+#define NAVIGATIONINFO 3
+#define FOG        4
+#define GEOVIEWPOINT 5
+extern int *fognodes;
+extern int *backgroundnodes;
+extern int *navnodes;
+extern int *viewpointnodes;
+extern int totfognodes, totbacknodes, totnavnodes, totviewpointnodes;
 void
 reset_upvector(void);
 
@@ -41,9 +53,7 @@ void
 set_naviinfo(struct VRML_NavigationInfo *node);
 
 void
-send_bind_to(char *nodetype,
-			 void *node,
-			 int value);
+send_bind_to(int nodetype, void *node, int value);
 
 void
 bind_node(void *node,

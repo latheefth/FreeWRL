@@ -301,12 +301,11 @@ sub load_string {
 
 sub prepare {
 	my($this) = @_;
-	my $bind = 1;
 
 	$this->{Scene}->make_executable();
 	my $bn = $this->{Scene}->make_backend($this->{BE});
 	$this->{Scene}->setup_routing($this->{EV}, $this->{BE});
-	$this->{Scene}->init_events($this->{EV}, $this->{BE}, $bind);
+	$this->{Scene}->init_events($this->{EV}, $this->{BE});
 	
 	# display this one
 	$this->{BE}->set_root($bn); # should eventually be removed
@@ -334,24 +333,59 @@ sub shut {
 }
 
 
-# Viewpoints are stored in the browser rather in the 
-# individual scenes...
 
-#sub register_vp {
-#	my ($this, $scene, $node) = @_;
-#	VRML::NodeType::register_vp($scene, $node);
-#}
 
-sub get_vp_node {
-	return VRML::NodeType::get_vp_node();
-}
-sub get_vp_scene {
-	return VRML::NodeType::get_vp_scene();
-}
-sub set_next_vp {
-	VRML::NodeType::set_next_vp();
+# Bindable return values.
+# Viewpoint (or GeoViewpoint)
+# Background
+# NavigationInfo
+# Fog
+
+my %vpn = (); my $vpcount=0;
+my %bgd = (); my $bgcount=0;
+my %nav=(); my $navcount=0;
+my %fog=(); my $fogcount=0;
+
+
+# Save this node pointer so that the C backend can get it.
+# save a maximum of 900; this is to avoid any stack overflow.
+sub register_bind {
+	my ($node) = @_;
+        if (!defined ($node->{BackNode}{CNode})) {
+                print "register_vp - no backend CNode node\n";
+                return;
+        }
+
+	if ($node->{TypeName} eq "Viewpoint") {
+		if ($vpcount>900) {return;}
+		$vpn{$vpcount} = $node->{BackNode}{CNode}; $vpcount++;
+	} elsif ($node->{TypeName} eq "Background") {
+		if ($bgcount>900) {return;}
+		$bgd{$bgcount} = $node->{BackNode}{CNode}; $bgcount++;
+	} elsif ($node->{TypeName} eq "NavigationInfo") {
+		if ($navcount>900) {return;}
+		$nav{$navcount} = $node->{BackNode}{CNode}; $navcount++;
+	} elsif ($node->{TypeName} eq "Fog") {
+		if ($fogcount>900) {return;}
+		$fog{$fogcount} = $node->{BackNode}{CNode}; $fogcount++;
+	} else {
+		print ("Browser:register_bind, unknown type ",$node->{TypeName});
+	}
 }
 
+# the C side wants a list of specific bindables.
+sub getBindables {
+	my ($ty) = @_;
+	# check to see what bindable we wish
+	if ($ty eq "Viewpoint") { return %vpn; }
+	elsif ($ty eq "Background") { return %bgd; }
+	elsif ($ty eq "NavigationInfo") { return %nav; }
+	elsif ($ty eq "Fog") { return %fog; }
+	else {
+		print ("Browser::getBindables, invalid request $ty\n");
+		return ();
+	}
+}
 
 
 # The routines below implement the browser object interface.
@@ -387,7 +421,6 @@ sub loadURL { print "Can't do loadURL yet\n"; }
 #createVrml common stuff
 sub create_common {
 	my ($this,$f1,$f2,$string) = @_;
-	my $bind = 1; #JAS - set this to 0 to stop initial binding
 	my $ret;
 
 	my $scene = VRML::Scene->new($this->{EV}, $f1,$f2);
@@ -397,7 +430,7 @@ sub create_common {
 	$scene->make_executable();
 	$scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
-	$scene->init_events($this->{EV}, $this->{BE}, $bind);
+	$scene->init_events($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
 	$scene->dump(0) if $VRML::verbose::scenegraph;
 
@@ -565,14 +598,16 @@ END {
   convert_raw_sequence() 
 }
 
-# go to the next viewpoint.
-sub NextVP {
-	if ($globalBrowser->{BE}->{VPSub}) {
-		$globalBrowser->{BE}->{VPSub}->(1);
-	} else {
-		print "cant find VPSub\n";
-	}
-}
+#JAS # go to the next viewpoint.
+#JAS sub NextVP {
+#JAS 	print "calling NextVP\n";
+#JAS 
+#JAS 	if ($globalBrowser->{BE}->{VPSub}) {
+#JAS 		$globalBrowser->{BE}->{VPSub}->(1);
+#JAS 	} else {
+#JAS 		print "cant find VPSub\n";
+#JAS 	}
+#JAS }
 
 
 sub Snapshot {

@@ -99,7 +99,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 
 
 /* send a set_bind event from Perl to this Bindable node */
-void send_bind_to(char *nodetype, void *node, int value) {
+void send_bind_to(int nodetype, void *node, int value) {
 	struct VRML_Background *bg;
 	struct VRML_Fog *fg;
 	struct VRML_NavigationInfo *nv;
@@ -108,9 +108,9 @@ void send_bind_to(char *nodetype, void *node, int value) {
 	char * nameptr;
 	int len;
 
-	// printf ("\nsend_bind_to, nodetype %s node %d value %d\n",nodetype,node,value);
+	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); */
 
-	if (strncmp("Background",nodetype,strlen("Background"))==0) {
+	if (nodetype == BACKGROUND) {
 		bg = (struct VRML_Background *) node;
 		bg->set_bind = value;
 
@@ -118,7 +118,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 			offsetof (struct VRML_Background,isBound),
 			&background_tos,&background_stack[0]);
 
-	} else if (strncmp("Viewpoint",nodetype,strlen("Viewpoint"))==0) {
+	} else if (nodetype == VIEWPOINT) {
 		vp = (struct VRML_Viewpoint *) node;
 		vp->set_bind = value;
 		nameptr = SvPV(vp->description,len);
@@ -134,7 +134,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 			bind_viewpoint (vp);
 		}
 
-	} else if (strncmp("GeoViewpoint",nodetype,strlen("GeoViewpoint"))==0) {
+	} else if (nodetype == GEOVIEWPOINT) {
 		gvp = (struct VRML_GeoViewpoint *) node;
 		gvp->set_bind = value;
 		nameptr = SvPV(gvp->description,len);
@@ -150,14 +150,14 @@ void send_bind_to(char *nodetype, void *node, int value) {
 			bind_geoviewpoint (gvp);
 		}
 
-	} else if (strncmp("Fog",nodetype,strlen("Fog"))==0) {
+	} else if (nodetype == FOG) {
 		fg = (struct VRML_Fog *) node;
 		fg->set_bind = value;
 		bind_node (node,offsetof (struct VRML_Fog,set_bind),
 			offsetof (struct VRML_Fog,isBound),
 			&fog_tos,&fog_stack[0]);
 
-	} else if (strncmp("NavigationInfo",nodetype,strlen("NavigationInfo"))==0) {
+	} else if (nodetype == NAVIGATIONINFO) {
 		nv = (struct VRML_NavigationInfo *) node;
 		nv->set_bind = value;
 		bind_node (node,offsetof (struct VRML_NavigationInfo,set_bind),
@@ -167,7 +167,7 @@ void send_bind_to(char *nodetype, void *node, int value) {
 		if (value==1) set_naviinfo(nv);
 
 	} else {
-		printf ("send_bind_to, cant send a set_bind to %s !!\n",nodetype);
+		printf ("send_bind_to, cant send a set_bind to %d !!\n",nodetype);
 	}
 }
 
@@ -352,7 +352,6 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 }
 
 void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
-	GLint vp[10];
 	double a1;
 	char *posnstring;
 	int xx;
