@@ -1,10 +1,8 @@
 <HTML>
-
 <HEAD>
-<META NAME="Generator" CONTENT="WordPerfect 9">
 <TITLE></TITLE>
 </HEAD>
-<P>&#35;Copyright (C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart, CRC Canada.
+<P>&#35;Copyright (C) 1998 Tuomas J. Lukka, 2001, 2002, 2005 John Stewart, CRC Canada.
 <BR>&#35;DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
 <BR>&#35;See the GNU Library General Public License (file COPYING in the distribution)
 <BR>&#35;for conditions of use and redistribution, EXCEPT on the files
@@ -12,120 +10,192 @@
 
 <BODY TEXT="#000000" LINK="#0000ff" VLINK="#551a8b" ALINK="#ff0000" BGCOLOR="#c0c0c0">
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica"></SPAN><SPAN STYLE="font-family: Helvetica">Macintosh Aqua Installation Instructions</SPAN></P>
+<BR ><BR >
+<P><B>Macintosh Aqua Installation Instructions</B></P>
 
-<p>
-<p>
-<p>
-<p>
-<B> *** Please note - the OS X installs are being revamped. Contact John Stewart for more info</b><p>
-<p>
-<p>
-<p>
-<p>
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">The following instructions are for compiling the FreeWRL rendering engine for use with the FreeWRL Aqua GUI for Mac OSX.
-The release of Mac OS X used was Mac OS X v 10.3.2.  The instructions assume that you are starting with a freshly
-installed Mac OS system, and all supporting packages required are listed and referenced.  You may already have some
-of these packages installed on your system.  If so, you may be able to skip some steps.</SPAN></P>
+<P>
+The following instructions are for compiling the FreeWRL rendering engine for use with the FreeWRL Aqua GUI for Mac OSX.
+The release of Mac OS X used was Mac OS X v 10.3.8, with updates current to April 8, 2005.  
+The instructions assume that you are starting with a freshly
+installed Mac OS system, <B>with an installed FreeWRL package,</b>
+and all supporting packages required are listed and referenced.  You may already have some
+of these packages installed on your system.  If so, you may be able to skip some steps.</P>
 
 
-<P><SPAN STYLE="font-family: Helvetica">NOTE: If you have already installed the FreeWRL for Aqua package and wish to recompile freewrl these instructions are for you.  Follow the steps below to make sure that you have the requisite files.  Step 6 can be skipped, as you already have the FreeWRL for Aqua package installed on your system.
+<P><B>NOTE 1: </B>You need to do this ONLY if you wish to change the source code. The "dmg" OS X
+install installs a functioning system.
+<P><B>NOTE 2: </B>
+This package compiles the FreeWRL library, which contains 99.9% of the FreeWRL code. The Cocoa
+and Carbon interface files are not here; please ask us for these files if you wish. The Cocoa
+and Carbon interfaces mimic the commands found in the CFrontEnd source code files, but with
+windowing commands suitable for OS X, instead of X-11.
+<OL>
+<P>
+<LI>
+Install Xcode-1.2 package from Apple disc.
+	This has has cvs, etc.
+<P>
+<LI>
+Install all software updates from Apple via the "software update" function of OS X.
+<P>
+<LI>
+(if required) enable root password - via finder start Applications/NetInfo manager.
+First authenticate, then enable root, and give root a password.
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 1.  Download and install the developer tools for Mac OS X
-from connect.apple.com.  This pacakge is self installing.</SPAN></P>
+<P>
+<LI>
+Download and install the ImageMagick package from www.entropy.ch/software/macosx/.  The package available
+from this location is self-installing and requires no tweaking to install on Darwin.</P>
+<P>
+<LI>
+Download and install the FreeWRL for Aqua package from Sourceforge.  This package will install the latest functional version of FreeWRL for Aqua on your system.  It will also install all needed perl modules and OSX frameworks.  This package is self-installing.  Double-click to begin the install process and indicate that FreeWRL should be installed on your primary hard drive.  (If you have a partitioned drive, or multiple drives, you must install FreeWRL on the same partition as that which contains the /Library/Frameworks directory).
+<P>
+<LI>
+Download the FreeWRL source code. 
+You can download via "cvs", or just download the latest source package. 
+If you are installing from cvs, run the "packagemaker" script, and go to the directory that it makes. (eg, cd ../FreeWRL-1.11-pre5)
+<P>
+<LI>
+Download expat-1.95.8.tar.gz from 
+http://sf.net/projects/expat. 
+<UL>
+<LI>	Untar, 
+<LI>cd into it; 
+<LI>./configure; 
+<LI>make install
+</UL>
+<P>
+<LI>
+Download XML-Parser-2.31.tar.gz from 
+http://www.cpan.org/modules/01modules.index.html.
+<UL>
+<LI>Untar, 
+<LI>cd into it; 
+<LI>perl Makefile.PL;  
+<LI>make install
+</UL>
+<P>
+<LI>
+For the builds following, make the symbolic link:
+<UL>
+<LI>	cd /usr
+<LI>	ln -s /usr/share/man
+<LI>	cd -
+</UL>
+You can remove this link after successful compiling if you want.
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 2. Download and install the ImageMagick package from www.entropy.ch/software/macosx/.  The package available
-from this location is self-installing and requires no tweaking to install on Darwin.</SPAN></P>
+<P>
+<LI>
+Download libjpeg from
+http://www.ijg.org/files/jpegsrc.v6b.tar.gz
+<UL>
+<LI>	Untar, cd into it;
+<LI>	./configure --prefix="/usr" --mandir="/usr/share";
+<LI>	make install;
+<LI>	make install-lib.
+</UL>
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 3. Download and install the libjpeg package from www.freshmeat.net.  This package looks for a man directory as
-specified in the Makefile.  Edit the makefile to point to a valid directory on your system before running make.   Change
-into the directory and </SPAN></P>
+<P>
+<LI>
+Download zlib There is already a zlib there, but we need some more files.
+http://www.gzip.org/zlib/zlib-1.2.2.tar.gz;
+<UL>
+<LI>untar, rename zlib-1.2.2 to zlib;
+<LI>	./configure --prefix="/usr";
+<LI>	make install.
+</UL>
+<P>
+<LI>
+Download libpng.
+http://sf.net/projects/libpng.
+<UL>
+untar, move to libpng (same as zlib);
+<LI>	./configure --prefix="/usr";
+<LI>	make install.
+</UL>
+<P>
+<LI>
+Download freetype2.
+http://sf.net/projects/freetype.
+<UL>
+<LI>	./configure --prefix="/usr";
+<LI>	make install.
+</UL>
+<P>
+<LI>
+In the FreeWRL source directory: perl Makefile.PL - note, the end has "warnings":
+<UL>
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">./configure</SPAN></P>
+<LI>Unrecognized argument in LIBS ignored: '-F/System/Library/Frameworks'
+<LI>Unrecognized argument in LIBS ignored: '-framework'
+<LI>Unrecognized argument in LIBS ignored: 'OpenGL'
+<LI>Unrecognized argument in LIBS ignored: '-framework'
+<LI>Unrecognized argument in LIBS ignored: 'GLUT'
+<LI>Unrecognized argument in LIBS ignored: '-framework'
+<LI>Unrecognized argument in LIBS ignored: 'Cocoa'
 
-<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+</UL>
 
-<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+<P>
+<LI>
+edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/sv.h.
+on line 387, comment out the 
+<UL>
+	DIR *    xiou_dirp;   /* for opendir, readdir, etc */
+line.
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 4. Download and install the zlib and libpng packages from www.sourceforge.org.  Rename the source directories to
-simply "zlib" and "libpng" and make sure that they are in the same subdirectory.  Install the zlib package first, then the
-libpng package.  Change into the zlib directory and</SPAN></P>
+</UL>
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">./configure</SPAN></P>
+<P>
+<LI>
+edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/reentr.h
+<UL>
+On line 716, comment out the
+	struct tm _gmtime_struct;
+and on line 719, comment out the:
+	struct tm _localtime_struct;
+line.
 
-<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+</UL>
+<P>
+<LI>
+edit /usr/include/dirent.h
+<UL>
+On line 113, comment out the line:
+	struct dirent *readdir(DIR *);
+NOTE: you may have to change the permissions on this file in order to write it.
 
-<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+</UL>
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Then change into the libpng directory and</SPAN></P>
+<P>
+<LI>
+edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/proto.h line 915
+<UL>
+comment out line 915: 
+	PERL_CALLCONV DIR*        Perl_dirp_dup(pTHX_ DIR* dp);
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">cp scripts/makefile.macosx makefile</SPAN></P>
+</UL>
 
-<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
+<P>
+<LI>
+ranlib /usr/lib/libjpeg.a
 
-<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
+<P>
+<LI>
+The Cocoa frontend needs this path update:
+<UL>
+	cd /usr/local/lib
+	ln -s /usr/lib/AquaIntLib.dylib
+	cd -
 
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 5. Download and install Freetype2 version 2.0.9 from freetype.sourceforge.org.  You will need to move
-/usr/local/include/freetype2/freetype to /usr/local/include/freetype after installation.  Change into the freetype directory
-and</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">./configure</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">cp -r /usr/local/include/freetype2/freetype /usr/local/include/freetype</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">rm -r /usr/local/include/freetype2/freetype</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 6. Download and install the FreeWRL for Aqua package from Sourceforge.  This package will install the latest functional version of FreeWRL for Aqua on your system.  It will also install all needed perl modules and OSX frameworks.  This package is self-installing.  Double-click to begin the install process and indicate that FreeWRL should be installed on your primary hard drive.  (If you have a partitioned drive, or multiple drives, you must install FreeWRL on the same partition as that which contains the /Library/Frameworks directory).
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 7.  Download the FreeWRL source code.  This source code is available from sourceforge in the aptly named FreeWRLSource package.  This package contains two directories: freewrl, which contains the files needed to recompile the FreeWRL program itself, and freewrlFrontEnd which contains the Project Builder files needed to recompile the GUI.  You do not need to recompile the GUI in order to update the FreeWRL program.  In most cases, the files in the FreeWRLFrontEnd can be left alone.  Should you wish to change the GUI (add controls etc.) you may do so by opening the files in the FreeWRLFrontEnd directory in ProjectBuilder.  The following instructions are for recompiling the code in the freewrl directory.  Move into the freewrl directory and continue with Step 8.</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 8.  Copy the aqua makefiles and configuration files over their linux equivalents .  This can be accomplished by issuing the following commands from the freewrl directory:</span></p>
-<p><SPAN STYLE="font-family: Helvetica">mv vrml.conf.aqua vrml.conf</SPAN></P>
-<p><SPAN STYLE="font-family: Helvetica">mv Makefile.aqua.PL Makefile.PL</SPAN></P>
-<p><SPAN STYLE="font-family: Helvetica">mv JS/Makefile.aqua.PL JS/Makefile.PL</SPAN></P>
-<p><SPAN STYLE="font-family: Helvetica">mv CFrontEnd/Makefile.aqua CFrontEnd/Makefile</SPAN></P>
-<p><span style = "font-family: Helvetica">
-Check that the directories for the libaries in the file vrml.conf are
-correct.  These are dependant on where you installed the libjpeg/libpng/zlib/Freetype packages above.  Make any required changes.
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 9.  Make the Makefile</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">perl Makefile.PL</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 10. run ranlib on /usr/local/lib/libpng.a</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">ranlib /usr/local/lib/libpng.a</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Step 11. Build and install FreeWRL</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">make</SPAN></P>
-
-<P><SPAN STYLE="font-family: Helvetica">make install</SPAN></P>
-
-<BR WP="BR1"><BR WP="BR2">
-<P><SPAN STYLE="font-family: Helvetica">Start the FreeWRL for Aqua GUI interface by double-clicking on the FreeWRL icon (this can be found in the /FreeWRL directory if you chose to install the FreeWRL package into the default directory).  The FreeWRL GUI will automatically use the newly compiled version of FreeWRL.
-<BR WP="BR1"><BR WP="BR2">
-<BR WP="BR1"><BR WP="BR2">
+</UL>
+<P>
+<LI>
+In the FreeWRL Source directory, 
+<UL>
+<LI>make install
+</UL>
+ to make the new OSX FreeWRL backend.
+</OL>
 </BODY>
 </HTML>
