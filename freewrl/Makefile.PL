@@ -21,7 +21,7 @@ if ($OS eq "Darwin") {
 # create the VRMLFunc.pm module
 system "perl VRMLC.pm";
 
-$VERSION = "V1.11-pre5";
+$VERSION = "V1.11";
 
 BEGIN {
  eval "use 5.004";
@@ -403,10 +403,10 @@ INST_DYNAMIC_DEP =
 		push(@postamble, join(
 				  "\n",
 				qq{\# copy fonts, libjs.so over\n},
-				qq{\tcp -r fonts $VRMLINSTDIR\n},
+				qq{\tcp -r fonts \$(DESTINSTALLPRIVLIB)/VRML\n},
 				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
 				qq{\# copy copy the initialization file over\n},
-				qq{\tcp CFrontEnd/fw2init.pl $VRMLINSTDIR\n},
+				qq{\tcp CFrontEnd/fw2init.pl \$(DESTINSTALLPRIVLIB)/VRML\n},
 				));
 		if ($OS eq "Linux") {
 			push(@postamble, join(
