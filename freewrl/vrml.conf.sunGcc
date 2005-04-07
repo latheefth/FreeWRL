@@ -89,10 +89,6 @@ LIB_DIR => "$PPREFIX/lib",
     NETSCAPE_PLUGINS => '',
 
 ############################################################################
-# Java installation (Sun's Java 2 SDK Standard Edition 1.4.0)
-# If Java is not installed, leave JAVA_INST empty e.g.
-# JAVA_INST => ''
-
     JAVA_INST => '/usr/java',
     JAVA_INC => '-I/usr/java/include -I/usr/java/include/solaris',
 

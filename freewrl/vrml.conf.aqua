@@ -44,10 +44,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 
 ############################################################################
 # Netscape installation
-# If Netscape is not installed, leave NETSCAPE_INST empty e.g.
     NETSCAPE_INST => '/Users/johnstewart/temp',
-
-############################################################################
     JAVA_INST => '/Users/johnstewart/temp',
 
 ############################################################################

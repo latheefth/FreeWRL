@@ -70,25 +70,13 @@ LIB_DIR => "/usr/lib",
 ############################################################################
 # Netscape/Mozilla  installation
 #
-# If Netscape is not installed, leave NETSCAPE_INST empty e.g.
-# NETSCAPE_INST => ''
-#
-# NETSCAPE_CLASSES is where vrml.jar (needed for EAI applets)
-# will be installed to.
-# NETSCAPE_PLUGINS is used to determine where the plugin will
-# be installed if this is your browser.
 
 NETSCAPE_INST => '',
 
-#    NETSCAPE_INST => '/usr/local/mozilla/plugins',
     NETSCAPE_CLASSES => '/usr/local/mozilla/plugins',
     NETSCAPE_PLUGINS => '/usr/local/mozilla/plugins',
 
 ############################################################################
-# Java installation (Sun's Java 2 SDK Standard Edition 1.4.0)
-# If Java is not installed, leave JAVA_INST empty e.g.
-# JAVA_INST => ''
-
     JAVA_INST => '/usr/java/j2sdk1.4.0',
     JAVA_INC => '-I/usr/java/j2sdk1.4.0/include -I/usr/java/j2sdk1.4.0/include/linux',
 
