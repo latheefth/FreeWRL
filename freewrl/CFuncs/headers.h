@@ -452,19 +452,19 @@ extern int screenWidth, screenHeight;
 #ifdef AQUA
 extern int getOffset();
 extern void initGL();
+extern void setButDown(int button, int value);
+extern void setCurXY(int x, int y);
+extern void setLastMouseEvent(int etype);
+extern void initFreewrl();
+extern void aqDisplayThread();
+#endif
 extern void setSnapSeq();
 extern void setSeqFile(char* file);
 extern void setSnapFile(char* file);
 extern void setMaxImages(int max);
-extern void setButDown(int button, int value);
 extern void setBrowserURL(char *str);
-extern void setFullPath(char *str);
-extern void setCurXY(int x, int y);
-extern void setLastMouseEvent(int etype);
-extern void initFreewrl();
 extern void setSeqTemp(char* file);
-extern void aqDisplayThread();
-#endif
+extern void setFullPath(char *str);
 extern void setScreenDim(int w, int h);
 
 extern char *getLibVersion();
@@ -474,7 +474,7 @@ extern void doBrowserAction ();
 
 extern char *myPerlInstallDir;
 
-extern void freewrlDie (const char *format);
+void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
 void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV);
@@ -517,10 +517,6 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	struct Multi_Vec3f *tn,
 	struct VRML_Box *parent,
 	int eletype, int addChild);
-
-#ifdef AQUA
-void freewrlDie(const char *format);
-#endif
 
 void fwGetDoublev (int ty, double *mat);
 void fwMatrixMode (int mode);

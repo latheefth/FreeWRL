@@ -19,27 +19,20 @@ int fullscreen;
 float global_linewidth = 1.0;
 
 
-#ifndef AQUA
-
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
-
-#endif
 
 #ifdef LINUX
 #include <GL/glext.h>
 #endif
 
-#ifndef AQUA
 #include <X11/cursorfont.h>
 #ifdef XF86V4
 #include <X11/extensions/xf86vmode.h>
 #endif
 #include <X11/keysym.h>
-#endif
 
-#ifndef AQUA
 Colormap cmap;
 XSetWindowAttributes swa;
 Window winDummy;
@@ -47,7 +40,6 @@ XVisualInfo *vi;
 	Display *dpy;
 	Window win;
 	GLXContext cx;
-#endif
 
 extern int _fw_pipe, _fw_FD;
 extern unsigned _fw_instance;
@@ -61,7 +53,6 @@ int glwinx, glwiny;
 int i;
 int dpyWidth, dpyHeight;
 
-#ifndef AQUA
 #ifdef XF86V4
 XF86VidModeModeInfo **modes;
 int oldx, oldy;
@@ -72,13 +63,9 @@ int oldx, oldy;
 //struct fudge **modes;
 //struct fudge original_display;
 #endif
-#endif
 
-#ifndef AQUA
 Cursor arrowc;
 Cursor sensorc;
-#endif
-
 
 #define OPENGL_NOVIRT
 //JAS static OpenGLVTab vtab;
@@ -99,7 +86,6 @@ static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRU
 
 int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
 
-#ifndef AQUA
 int  default_attributes0[] =
    {
    GLX_DEPTH_SIZE,         24,		// JAS
@@ -134,20 +120,16 @@ int  default_attributes3[] =
    GLX_RGBA,               GL_TRUE,
    0
    };
-#endif
 
 
 int	shutter = 0; /* stereo shutter glasses */
 
 // Function prototypes
-#ifndef AQUA
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
-#endif
 void setGeometry (char *gstring);
 
 static int xPos = 0;
 static int yPos = 0;
-#ifndef AQUA
 void openMainWindow (Display *Disp, unsigned *Win,
 		GLXContext *Cont) {
 
@@ -171,15 +153,6 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	XTextProperty windowName;
 
 	int items=0; // jas
-
-	//JAS if(items>NUM_ARG+1){
-	//JAS 	len=(items-NUM_ARG+1)* sizeof(int);
-	//JAS 	attributes = (int *)malloc(len*sizeof(int));
-	//JAS 	for(i=0;i<(items-NUM_ARG+1);i++) {
-	//JAS 		attributes[i]=SvIV(ST(i+NUM_ARG+1));
-	//JAS 	}
-	//JAS }
-
 
 	/* get a connection */
 	dpy = XOpenDisplay(0);
@@ -336,10 +309,8 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	//printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
 	//	glGetString(GL_RENDERER));
 }
-#endif
 
 
-#ifndef AQUA
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 {
    XVisualInfo *vi=NULL;
@@ -403,8 +374,6 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    free(attrib_mem);
    return(NULL);
 }
-#endif
-
 
 void setGeometry (char *gstring) {
 	int c;

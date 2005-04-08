@@ -914,26 +914,6 @@ void setScreenDim(int wi, int he) {
 	calculateFrustumCone();
 }
 
-#ifdef AQUA
-void initGL() {
-        aqglobalContext = CGLGetCurrentContext();
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-}
-
-int getOffset() {
-        return offsetof(struct VRML_Group, children);
-}
-
-void setCurXY(int cx, int cy) {
-        currentX = cx;
-        currentY = cy;
-}
-
-void setLastMouseEvent(int etype) {
-        lastMouseEvent = etype;
-}
-
 void setBrowserURL(char* file) {
         int count;
         count = strlen(file);
@@ -952,6 +932,26 @@ void setFullPath(char* file) {
 	}
 	BrowserFullPath = malloc ((strlen(file)+1) * sizeof (char));
 	strcpy(BrowserFullPath, file);
+}
+
+#ifdef AQUA
+void initGL() {
+        aqglobalContext = CGLGetCurrentContext();
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+}
+
+int getOffset() {
+        return offsetof(struct VRML_Group, children);
+}
+
+void setCurXY(int cx, int cy) {
+        currentX = cx;
+        currentY = cy;
+}
+
+void setLastMouseEvent(int etype) {
+        lastMouseEvent = etype;
 }
 
 
@@ -983,6 +983,7 @@ void setButDown(int button, int value) {
         ButDown[button] = value;
 }
 
+#endif
 
 void setSnapSeq() {
         snapsequence = TRUE;
@@ -1019,7 +1020,6 @@ void setSeqTemp(char* file) {
         strcpy(seqtmp, file);
         printf("seqtmp is %s\n", seqtmp);
 }
-#endif
 
 /* if we had an exit(1) anywhere in this C code - it means
    a memory error. So... print out a standard message to the
@@ -1043,11 +1043,8 @@ void doQuit(void) {
 	exit(0);
 }
 
-#ifdef AQUA
 void freewrlDie (const char *format) {
-        printf ("\nFreeWRL: Catastrophic error:\n");
-        printf (format);
-        printf ("\n");
-        doQuit();
+	ConsoleMessage ("Catastrophic error: %s\n",format);
+	doQuit();
 }
-#endif
+

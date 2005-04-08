@@ -19,13 +19,9 @@
 #include <unistd.h>
 #include <dlfcn.h>
 
-#ifndef AQUA
-
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
-
-#endif
 
 #ifdef LINUX
 #include <GL/glext.h>
@@ -36,15 +32,11 @@
 // display and win are opened here, then pointers passed to
 // freewrl. We just use these as unsigned, because we just
 // pass the pointers along; we do not care what type they are.
-#ifndef AQUA
 Display *Disp;
 Window Win;
 GLXContext globalContext;
-#endif
 
-#ifndef AQUA
 int wantEAI=FALSE;		/* enable EAI? */
-#endif
 extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
 extern float global_linewidth;	/* in CFrontEnd/fwopts.c - ILS line width */
 extern void   XEventStereo();
@@ -53,9 +45,7 @@ extern int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
                         unsigned ptr, unsigned ofs, int *complete,
                         int zeroBind);
 
-#ifndef AQUA
 extern void openMainWindow (Display *Disp, unsigned *Win, GLXContext *Cont);
-#endif
 extern void glpOpenGLInitialize();
 extern void EventLoop();
 extern void resetGeometry();
@@ -70,11 +60,9 @@ extern char *keypress_string;
 
 
 /* for plugin running - these are read from the command line */
-#ifndef AQUA
 int _fw_pipe=0;
 int _fw_FD=0;
 unsigned  _fw_instance=0;
-#endif
 
 /* function prototypes */
 void displayThread();
@@ -92,15 +80,12 @@ int main (int argc, char **argv) {
 	char *pwd;
 
 #ifndef IRIX
-#ifndef AQUA
 	/* first, get the FreeWRL shared lib, and verify the version. */
 	if(strcmp(FWVER,getLibVersion())){
   	  ConsoleMessage ("FreeWRL expected library version %s, got %s...\n",FWVER,getLibVersion());
 	}
 #endif
-#endif
 
-#ifndef AQUA
 	/* set the screen width and height before getting into arguments */
 	screenWidth = 450; screenHeight=300;
 	fullscreen = 0;
@@ -176,9 +161,7 @@ int main (int argc, char **argv) {
 				break;
 
 			case 'e':
-#ifndef AQUA
 				wantEAI=TRUE;
-#endif
 				break;
 
 			case 'f':
@@ -215,32 +198,20 @@ int main (int argc, char **argv) {
 
 
 			/* Snapshot stuff */
-			case 'l': snapsequence = TRUE; break;
+			case 'l': setSnapSeq(); break;
 			case 'p': snapGif = TRUE; break;
 			case 'q': sscanf (optarg,"%d",&maxSnapImages);
-				  if (maxSnapImages <=0) {
-					printf ("FreeWRL: Commandline -maximg %s invalid\n",optarg);
-					maxSnapImages = 100;
-				  }
+				  setMaxImages(maxSnapImages);
 				  break;
 
 			case 'm':
-				  count = strlen(argv[optind]);
-				  if (count > 500) count = 500;
-				  snapseqB = (char *)malloc (count+1);
-                		  strcpy (snapseqB,argv[optind]);
+				  setSeqFile(argv[optind]);
 				  break;
 			case 'n':
-				  count = strlen(argv[optind]);
-				  if (count > 500) count = 500;
-				  snapsnapB = (char *)malloc (count+1);
-                		  strcpy (snapsnapB,argv[optind]);
+				  setSnapFile(argv[optind]);
 				  break;
 			case 'o':
-				  count = strlen(argv[optind]);
-				  if (count > 500) count = 500;
-				  seqtmp = (char*)malloc (count+1);
-                		  strcpy (seqtmp,argv[optind]);
+				  setSeqTemp(argv[optind]);
 				  break;
 
 			case 'b': /* Alberto Dubuc - bigger window */
@@ -276,8 +247,6 @@ int main (int argc, char **argv) {
 	}
 
 #endif
-#endif
-#ifndef AQUA
 	if (optind < argc) {
 		if (optind != (argc-1)) {
 			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n",
@@ -285,23 +254,21 @@ int main (int argc, char **argv) {
 		}
 
 		/* save the url for later use, if required */
-		count = strlen(argv[optind]);
+		setBrowserURL (argv[optind]);
+		/* JAS  count = strlen(argv[optind]);
 		if (BrowserURL != NULL) free (BrowserURL);
 		BrowserURL = (char *)malloc (count+1);
-		strcpy (BrowserURL,argv[optind]);
+		strcpy (BrowserURL,argv[optind]); */
 	} else {
 		ConsoleMessage ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
 	}
-#endif
 
    /* create the display thread. */
         pthread_create (&thread1, NULL, (void *(*)(void *))&displayThread, (void *)threadmsg);
 
-#ifndef AQUA
         /* create the Perl parser thread */
         initializePerlThread(PERLPATH);
-#endif
         while (!isPerlinitialized()) {usleep(50);}
 
         /* create the Texture parser thread */
@@ -322,13 +289,13 @@ int main (int argc, char **argv) {
         filename = (char *)malloc(1000 * sizeof (char));
         pwd = (char *)malloc(1000 * sizeof (char));
         getcwd(pwd,1000);
-#ifndef AQUA
         /* if this is a network file, leave the name as is. If it is
          * a local file, prepend the path to it */
         if (checkNetworkFile(argv[optind])) {
-                strcpy (filename,argv[optind]);
+		setFullPath(argv[optind]);
+                /*strcpy (filename,argv[optind]);
                 BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
-                strcpy(BrowserFullPath,pwd);
+                strcpy(BrowserFullPath,pwd); */
 
         } else {
 
@@ -336,7 +303,6 @@ int main (int argc, char **argv) {
                 BrowserFullPath = (char *)malloc ((strlen(filename)+1) * sizeof(char));
                 strcpy (BrowserFullPath,filename);
         }
-#endif
 
         // printf ("FrontEnd, filename %s\n",filename);
 	perlParse(FROMURL, filename,TRUE,FALSE,
@@ -345,9 +311,7 @@ int main (int argc, char **argv) {
 	free(filename); free(pwd);
 
 	/* do we require EAI? */
-#ifndef AQUA
 	if (wantEAI) create_EAI();
-#endif
 
 	/* now wait around until something kills this thread. */
 	pthread_join(thread1, NULL);
@@ -360,9 +324,7 @@ int main (int argc, char **argv) {
 /* handle all the displaying and event loop stuff. */
 void displayThread() {
 	int count;
-#ifndef AQUA
 	openMainWindow(Disp,(unsigned int *)&Win,&globalContext);
-#endif
 
 	glpOpenGLInitialize();
 	new_tessellation();
@@ -402,15 +364,3 @@ void catch_SIGALRM(int sig)
     alarm(0);
     signal(SIGALRM, catch_SIGALRM);
 }
-
-/* funnel all print statements through here - this allows us to
- * eventually put errors/messages on a window
- * */
-
-#ifndef AQUA
-/* stop all of FreeWRL, terrible error! */
-void freewrlDie (const char *format) {
-	ConsoleMessage ("Catastrophic error: %s\n",format);
-	doQuit();
-}
-#endif
