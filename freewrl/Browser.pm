@@ -220,7 +220,7 @@ sub create_common {
         if ($string =~ /^#VRML V2.0/s) {
                 $type = 0;
         } elsif($string =~ /^#VRML V1.0/s) {
-                        print "VRML V1.0, I only know V2.0";
+                        VRML::VRMLFunc::ConsoleMessage( "VRML V1.0, I only know V2.0");
                         return;
         } elsif ($string =~/^<\?xml version/s) {
                 $type = 1;
