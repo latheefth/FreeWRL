@@ -142,7 +142,6 @@ int ConsoleMessage(char *fmt, ...) {
 #ifdef AQUA
 	sendCM(FWbuffer);
 #else
-	printf (FWbuffer);
 	if (RUNNINGASPLUGIN) {
 		freewrlSystem (FWbuffer);
 	} else {
