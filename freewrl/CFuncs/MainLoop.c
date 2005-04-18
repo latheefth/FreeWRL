@@ -51,6 +51,7 @@ int ocurse = ACURSE;
 #endif
 
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
+int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 per loop */
 #include "headers.h"
 
 void Next_ViewPoint(void);		/*  switch to next viewpoint -*/
@@ -199,13 +200,19 @@ void EventLoop() {
 	}
 
 	/* handle any events provided on the command line - Robert Sim */
-	if (keypress_string && isURLLoaded() && (!isTextureParsing())) {
-		char* c=keypress_string;
-		while (*c) {
-			do_keyPress(*c,KeyPress);
-			c++;
+	if (keypress_string && doEvents) {
+		if (keypress_wait_for_settle > 0) {
+			keypress_wait_for_settle--;
+		} else {
+			/* dont do the null... */
+			if (*keypress_string) {
+				/* printf ("handling key %c\n",*keypress_string); */
+				do_keyPress(*keypress_string,KeyPress);
+				keypress_string++;
+			} else {
+				keypress_string=NULL;
+			}
 		}
-		keypress_string=NULL;
 	}
 
 	/* Handle X events */
