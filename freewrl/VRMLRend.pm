@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.152  2005/04/18 20:40:46  crc_canada
+# Some work on removing startup memory errors.
+#
 # Revision 1.151  2005/04/18 15:27:16  crc_canada
 # speedup shapes that do not have textures by removing a glPushAttrib and glPopAttrib
 #
@@ -2387,6 +2390,13 @@ IndexedFaceSet => q~
 	       prflags flags = 0;
 	       int change = 0;
 
+		/* JAS - first pass, intern is probably zero */
+		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+
+
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
 	       $mk_polyrep();
@@ -2468,6 +2478,13 @@ Extrusion => q~
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+
 
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
@@ -2607,6 +2624,12 @@ GeoElevationGrid => q~
 		sscanf (SvPV (this_->xSpacing,xx),"%f",&xSpacing);
 		sscanf (SvPV(this_->zSpacing,xx),"%f",&zSpacing);
 
+		/* JAS - first pass, intern is probably zero */
+		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+
 
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
@@ -2667,6 +2690,12 @@ ElevationGrid => q~
 	       struct VRML_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
 
 	       /*save changed state.*/
 	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;

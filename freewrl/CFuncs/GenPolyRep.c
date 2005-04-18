@@ -480,7 +480,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 	int *cindex;		/* Coordinate Index	*/
 	int *colindex;		/* Color Index		*/
-	int *tcindex;		/* Tex Coord Index	*/
+	int *tcindex=0;		/* Tex Coord Index	*/
 	int *norindex;		/* Normals Index	*/
 
 	int faces=0;
@@ -676,7 +676,8 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 		freewrlDie("Not enough memory for IndexFaceSet node triangles... ;(");
 	}
 
-	if (!(tcindex) && FORCETEXTURES && ntexCoords) {
+	if (FORCETEXTURES && ntexCoords) {
+		if (!tcindex) 
 		freewrlDie("Not enough memory for IndexFaceSet textures... ;(");
 	}
 
