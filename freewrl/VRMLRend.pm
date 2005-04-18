@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.151  2005/04/18 15:27:16  crc_canada
+# speedup shapes that do not have textures by removing a glPushAttrib and glPopAttrib
+#
 # Revision 1.150  2005/03/30 21:56:55  crc_canada
 # remove GL_TEXTURE_BIT on Shape - speeds up rendering.
 #
@@ -1523,6 +1526,9 @@ Billboard => (join '','
 
 	Appearance => '
 		if($f(texture)) {
+			/* we have to do a glPush, then restore, later */
+			have_texture=TRUE;
+			glPushAttrib(GL_ENABLE_BIT); 
 
 			/* is there a TextureTransform? if no texture, fugutaboutit */
 		    	if($f(textureTransform))   {
@@ -1547,6 +1553,7 @@ Billboard => (join '','
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
                        	glDisable (GL_LIGHTING);
 			glColor3f(1.0,1.0,1.0);
+			lightingOn = FALSE;
 		}
 	',
 	Shape => '
@@ -1579,10 +1586,13 @@ Billboard => (join '','
 		last_bound_texture = 0;
 		trans = have_transparency;
 		have_textureTransform = FALSE;
+		have_texture = FALSE;
 
+                /* assume that lighting is enabled. Absence of Material or Appearance
+                   node will turn lighting off; in this case, at the end of Shape, we
+                   have to turn lighting back on again. */
+                lightingOn = TRUE;
 
-		/* JAS glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT); */
-		glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT); 
 
 		/* is there an associated appearance node? */
        	        if($f(appearance)) {
@@ -1592,6 +1602,7 @@ Billboard => (join '','
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
                        	glDisable (GL_LIGHTING);
        	                glColor3f(1.0,1.0,1.0);
+			lightingOn = FALSE;
 
 			/* tell the rendering passes that this is just "normal" */
 			last_texture_depth = 0;
@@ -1648,10 +1659,15 @@ Billboard => (join '','
 			glMatrixMode(GL_TEXTURE);
 			glPopMatrix();
 			glMatrixMode(GL_MODELVIEW);
-			have_textureTransform = FALSE;
 		}
 
-		glPopAttrib();
+               /* did the lack of an Appearance or Material node turn lighting off? */
+                if (!lightingOn) {
+                        glEnable (GL_LIGHTING);
+                }
+
+
+		if (have_texture) glPopAttrib(); 
 	',
 );
 

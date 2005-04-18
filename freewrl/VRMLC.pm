@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.169  2005/04/18 15:27:06  crc_canada
+# speedup shapes that do not have textures by removing a glPushAttrib and glPopAttrib
+#
 # Revision 1.168  2005/04/06 16:56:08  crc_canada
 # more OS X changes.
 #
@@ -1021,7 +1024,9 @@ int found_vp; /*true when viewpoint found*/
 
 GLuint last_bound_texture;
 int	have_transparency;	/* did this Shape have transparent material? */
-int	have_textureTransform;
+int	have_textureTransform;  /* do we have to undo the textureTransforms? */
+int	lightingOn;		/* do we need to restore lighting in Shape? */
+int	have_texture;		/* do we have a texture (And thus a push?) */
 
 int smooth_normals = -1; /* -1 means, uninitialized */
 
