@@ -386,12 +386,12 @@ INST_DYNAMIC_DEP =
 				push(@postamble, join(
 					  "\n",
 					  qq{\# --- Mozilla/Netscape Plugin:\n},
-					  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"$x1\"\n}
+					  qq{\t\@cd Plugin && \$(MAKE) install PLUGDIR=\"\$(DESTDIR)$x1\"\n}
 				 ));
 			}
 		}
 
-		if ($VRML::Config::vrml_config{JAVA_INST} && $VRML::Config::vrml_config{NETSCAPE_CLASSES}) {
+		if ($VRML::Config::vrml_config{JAVA_INST}) {
 			push(@postamble, join(
 				  "\n",
 				  qq{\# --- Java Archive\n},
@@ -404,7 +404,7 @@ INST_DYNAMIC_DEP =
 				  "\n",
 				qq{\# copy fonts, libjs.so over\n},
 				qq{\tcp -r fonts \$(DESTINSTALLPRIVLIB)/VRML\n},
-				qq{\tcp JS/$jsobjdir/libjs.so $LIB_DIR\n},
+				qq{\tcp JS/$jsobjdir/libjs.so \$(DESTDIR)$LIB_DIR\n},
 				qq{\# copy copy the initialization file over\n},
 				qq{\tcp CFrontEnd/fw2init.pl \$(DESTINSTALLPRIVLIB)/VRML\n},
 				));
@@ -412,7 +412,7 @@ INST_DYNAMIC_DEP =
 			push(@postamble, join(
 				"\n",
 				qq{# make the libFreeWRLFunc shared library active\n},
-				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
+				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so \$(DESTDIR)$LIB_DIR/libFreeWRLFunc.so\n},
 				qq{\t/sbin/ldconfig\n}
 			));
 		}
@@ -431,7 +431,7 @@ INST_DYNAMIC_DEP =
 
 		# make the C Front End.
 		my $def2;
-		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(FRONTEND_DIR) ";
+		my $def1 = "OSNAME=\$(OSNAME) PPATH=\$(INSTALLPRIVLIB)/VRML BINDIR=\$(DESTDIR)\$(FRONTEND_DIR) ";
 		if ($VRML::Config::vrml_config{BOUNDS_CHECK} eq "on") {
 			print "COMPILING WITH BOUNDSCHECKING\n";
 			$def2 = "INC=\"$MYINC\" LIBS=\"$MYLIBS\" LDFLAGS=\"$MYLDFLAGS\" BC=\"-lboundscheck\"";
@@ -444,29 +444,20 @@ INST_DYNAMIC_DEP =
 
 		# Darwin's front end is either a cocoa app or a carbon app; the front ends are made
 		# in a different file. So, in this make, don't make a front end!
-		if ($OS ne "Darwin") {
-			push (@postamble, join("\n",
-				  qq{\n\# --- FreeWRL C Front End:},
-				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def\n},
-				 ));
-		}
 
-		# make the sound engine.
+		# make the sound engine, console message, and frontend if NOT OSX.
 		if ($OS ne "Darwin") {
 			if ($VRML::Config::vrml_config{SOUND_ENGINE}) {
 			push (@postamble, join("\n",
 				  qq{\n\# --- Sound Engine:},
 				  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) install $def \n},
+			  	  qq{\n\# --- FreeWRL Message Console:},
+			  	  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) install $def \n},
+				  qq{\n\# --- FreeWRL C Front End:},
+				  qq{\tcd \$(FRONTEND) && \$(MAKE) install $def\n},
 				 ));
 			}
 		}
-
-		# make the Console displayer.
-		push (@postamble, join("\n",
-			  qq{\n\# --- FreeWRL Message Console:},
-			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) install $def \n},
-			 ));
-
 
 		###################################################
 		# lets do the clean:: targets at this step.
@@ -475,13 +466,13 @@ INST_DYNAMIC_DEP =
 			  "\n",
 			  qq{clean ::},
 			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clean\n},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
-			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			 ));
 		if ($OS ne "Darwin") {
 			push(@postamble, join(
 			  "\n",
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
+			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			));
 		}
 
@@ -492,13 +483,13 @@ INST_DYNAMIC_DEP =
 			  "\n",
 			  qq{distclean :: realclean},
 			  qq{\tcd JS/$jsdir && \$(MAKE) -f Makefile.ref BUILD_OPT=$BUILD_OPT clobber},
-			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
-			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			 ));
 		if ($OS ne "Darwin") {
 			push(@postamble, join(
 			  "\n",
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) clean $def \n},
+			  qq{\tcd \$(FRONTEND) && \$(MAKE) clean $def\n},
+			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) clean $def \n},
 			));
 		}
 
@@ -513,8 +504,9 @@ INST_DYNAMIC_DEP =
 		if ($OS eq "Linux") {
 			push(@postamble, join(
 				"\n",
-				qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
-				qq{\t/sbin/ldconfig\n}
+				#qq{\tcp blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so $LIB_DIR/libFreeWRLFunc.so\n},
+				#qq{\t/sbin/ldconfig\n}
+				qq{\t\tcp -f blib/arch/auto/VRML/VRMLFunc/VRMLFunc.so blib/arch/auto/VRML/VRMLFunc/libFreeWRLFunc.so\n},
 			));
 		}
 		if ($OS eq "Darwin") {
@@ -530,16 +522,10 @@ INST_DYNAMIC_DEP =
 		push(@postamble, join(
 			  "\n",
 			  qq{\tcd \$(SOUNDENGINE) && \$(MAKE) all $def \n},
-			 ));
-		}
-
-
-		push(@postamble, join(
-			  "\n",
 			  qq{\tcd \$(FRONTEND) && \$(MAKE) all $def \n},
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
 			 ));
-
+		}
 
 		return join("\n", @postamble);
 	}
