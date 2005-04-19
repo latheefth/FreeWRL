@@ -39,7 +39,7 @@ int freewrlSystem (char *sysline) {
 	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
-	/* printf ("freewrlSystem, have %s here\n",internbuf);*/
+	/* printf ("freewrlSystem, have %s here\n",internbuf); */
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 	count = 0;
 
@@ -51,11 +51,11 @@ int freewrlSystem (char *sysline) {
 	} else {
 		/* split the command off of internbuf, for execing. */
 		while (internbuf != NULL) {
-			/* printf ("looping, count is %d\n",count);*/
+			/* printf ("freewrlSystem: looping, count is %d\n",count); */
 			paramline[count] = internbuf;
 			internbuf = strchr(internbuf,' ');
 			if (internbuf != NULL) {
-				/* printf ("more strings here! :%s:\n",internbuf);*/
+				/* printf ("freewrlSystem: more strings here! :%s:\n",internbuf); */
 				*internbuf = '\0';
 				/* printf ("param %d is :%s:\n",count,paramline[count]);*/
 				internbuf++;
@@ -64,13 +64,13 @@ int freewrlSystem (char *sysline) {
 			}
 		}
 	}
-	/*
-	printf ("finished while loop, count %d\n",count);
-	{ int xx;
+	
+	/* printf ("freewrlSystem: finished while loop, count %d\n",count); */
+	/* { int xx;
 		for (xx=0; xx<MAXEXECPARAMS;xx++) {
 			printf ("item %d is :%s:\n",xx,paramline[xx]);
-	}}
-	*/
+	}} */
+	
 
 
 	if (haveXmessage) {
@@ -92,17 +92,17 @@ int freewrlSystem (char *sysline) {
 			int Xrv;
 
 			/* child process */
-			/* printf ("child execing, pid %d %d\n",childProcess, getpid());*/
+			/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess, getpid()); */
 		 	Xrv = execl(paramline[0],
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
 				paramline[6],paramline[7]);
-			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]);
+			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]); 
 			exit (Xrv);
 			}
 			default: {
 			/* parent process */
-			/* printf ("parent waiting for child %d\n",childProcess);*/
+			/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess); */
 
 			/* do we have to wait around? */
 			if (!waitForChild) {
@@ -110,8 +110,8 @@ int freewrlSystem (char *sysline) {
 				return 0;
 			}
 			waitpid (childProcess,&pidStatus,0);
-			/* printf ("parent - child finished - pidStatus %d \n",*/
-			/* 		pidStatus);*/
+			/* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
+			 		pidStatus); */
 			}
 		}
 		return pidStatus;

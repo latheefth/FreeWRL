@@ -616,7 +616,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	STRLEN xx;
 	*istemp=FALSE;	/* don't remove this file */
 
-	if (TexVerbose) printf ("start of findTextureFile for texture %d\n",*texnum);
+	if (TexVerbose) printf ("textureThread:start of findTextureFile for texture %d\n",*texnum);
 
 	/* try to find this file. */
 
@@ -625,7 +625,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		int a,b,c;
 		char *name;
 
-		/* printf ("findTextureFile, going to get name \n"); */
+		if (TexVerbose) printf ("textureThread, going to get name \n");
 		name = SvPV(loadparams[*texnum].parenturl,xx);
 		filename = (char *)malloc(100);
 
@@ -639,7 +639,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 		}
 
 		sprintf (filename,"PixelTexture_%d_%d",c,b);
-		/* printf ("temp name is %s\n",filename); */
+		if (TexVerbose) printf ("textureThread, temp name is %s\n",filename);
 	} else {
 
 		/* lets make up the path and save it, and make it the global path */
@@ -672,12 +672,14 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 			/* put the path and the file name together */
 			makeAbsoluteFileName(filename,mypath,thisurl);
 
+			if (TexVerbose) printf ("textureThread: checking for %s\n", filename);
 			if (fileExists(filename,firstBytes,TRUE)) { break; }
 			count ++;
 		}
 
 		if (count != loadparams[*texnum].url.n) {
-			/* printf ("we were successful at locating %s\n",filename);  */
+			if (TexVerbose) 
+				printf ("textureThread: we were successful at locating %s\n",filename); 
 		} else {
 			if (count > 0) {
 				printf ("Could not locate url (last choice was %s)\n",filename);
@@ -691,15 +693,15 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	/* ok, have we seen this one before? */
 	flen = strlen(filename);
 	for (count=1; count < max_texture; count++) {
-		/*
+		
 		if (TexVerbose)
-			printf ("comparing :%s: :%s: (%d %d) count %d\n",
+			printf ("textureThread: comparing :%s: :%s: (%d %d) count %d\n",
 					filename,
 					loadparams[count].filename,
 					strlen(filename),
 					strlen(loadparams[count].filename),
 					count);
-		*/
+	
 
 		/* are the names different lengths? */
 		if (strlen(loadparams[count].filename) == flen) {
@@ -721,7 +723,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 			/* and tell OpenGL to use the previous texture number */
 			*texnum=count;
 			textureInProcess = count;
-			if (TexVerbose) printf ("duplicate, so setting textureInProcess back to %d\n",count);
+			if (TexVerbose) printf ("textureThread: duplicate, so setting textureInProcess back to %d\n",count);
 			return FALSE;
 		    }
 		}
@@ -737,6 +739,8 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 			if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
 			sprintf(sysline,"%s %s /tmp/freewrl%d.png",
 					CONVERT,filename,getpid());
+			if (TexVerbose) 
+				printf ("textureThread: running convert on %s\n",sysline);
 			if (freewrlSystem (sysline) != 0) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			} else {
@@ -752,7 +756,7 @@ int findTextureFile (int *texnum, int type, int *istemp) {
 	strcpy (loadparams[*texnum].filename,filename);
 	free (filename);
 	if (TexVerbose)
-		printf ("new name, save it %d, name %s\n",*texnum,loadparams[*texnum].filename);
+		printf ("textureThread: new name, save it %d, name %s\n",*texnum,loadparams[*texnum].filename);
 	return TRUE;
 }
 
@@ -772,10 +776,13 @@ void _textureThread(void) {
 		/* look for the file. If one does not exist, or it
 		   is a duplicate, just unlock and return */
 		if (TexVerbose)
-			printf ("tex thread, currentlyworking on %d\n",currentlyWorkingOn);
+			printf ("textureThread, currentlyworking on %d\n",currentlyWorkingOn);
 
 		if (findTextureFile((int *)loadparams[currentlyWorkingOn].texture_num,
 			loadparams[currentlyWorkingOn].type,&remove)) {
+		if (TexVerbose)
+			printf ("textureThread, findTextureFile ok for %d\n",currentlyWorkingOn);
+
 
 			/* is this a pixeltexture? */
 			if (loadparams[currentlyWorkingOn].type==PIXELTEXTURE) {
@@ -786,6 +793,9 @@ void _textureThread(void) {
 				__reallyloadImageTexture();
 			}
 
+		if (TexVerbose)
+			printf ("textureThread, after reallyLoad for  %d\n",currentlyWorkingOn);
+
 			/* check to see if there was an error */
 			if (isloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID)
 				isloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
@@ -795,13 +805,13 @@ void _textureThread(void) {
 				unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
-			if (TexVerbose) printf ("duplicate file, currentlyWorkingOn %d texnum %d\n",
+			if (TexVerbose) printf ("textureThread: duplicate file, currentlyWorkingOn %d texnum %d\n",
 				currentlyWorkingOn, *(loadparams[currentlyWorkingOn].texture_num));
 		}
 
 		/* signal that we are finished */
 		if (TexVerbose)
-			printf ("finished parsing texture for currentlyWorkingOn %d\n",currentlyWorkingOn);
+			printf ("textureThread: finished parsing texture for currentlyWorkingOn %d\n",currentlyWorkingOn);
 		TextureParsing=FALSE;
 		currentlyWorkingOn = -1;
 		REGENUNLOCK

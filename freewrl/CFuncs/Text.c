@@ -642,6 +642,11 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	/* save the triangle count (note, we have a "vertex count", not a "triangle count" */
 	FW_rep_->ntri=indx_count/3;
 
+	/* set these variables so they are not uninitialized */
+	FW_rep_->ccw=FALSE;
+
+
+
 	/* if indx count is zero, DO NOT get rid of mallocd memory - creates a bug as pointers cant be null */
 	if (indx_count !=0) {
 		/* realloc bug in linux - this causes the pointers to be eventually lost... */
