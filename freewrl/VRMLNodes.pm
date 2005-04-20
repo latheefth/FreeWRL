@@ -660,7 +660,8 @@ my $protono;
 						removeChildren => [MFNode, undef, eventIn],
 						children => [MFNode, [], exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
-						bboxSize => [SFVec3f, [-1, -1, -1], field]
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+						 __isProto => [SFInt32, 0, field],
 					   },
 					  ),
 	Anchor =>

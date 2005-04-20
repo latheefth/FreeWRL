@@ -935,27 +935,6 @@ sub set_parentnode {
 #
 ############################################################
 
-# nodes within protos that need a backend simply for data storage; these
-# nodes display. (only first node in PROTO can display)
-
-my %VISIBLE = map {($_=>1)} qw/
-	Box
-	Cone
-	Sphere
-	IndexedFaceSet
-	ElevationGrid
-	GeoElevationGrid
-	Extrusion
-	IndexedLineSet
-	LineSet
-	Background
-	PointLight
-	Fog
-	DirectionalLight
-	SpotLight
-        /;
-
-
 sub make_backend {
 	my ($this, $be, $parentbe) = @_;
 	my $vrml97_msg = "VRML97 4.8.3: 'A prototype definition consists of one or more nodes, nested PROTO statements, and ROUTE statements.'";
@@ -964,7 +943,6 @@ sub make_backend {
 		" $be $parentbe \n"
 			if $VRML::verbose::be;
 
-	#JAS return $this->{BackNode} if ($this->{BackNode});
 	return $this->{BackNode} if ($this->{BackNode}{CNode});
 
 	my $bn;
@@ -978,44 +956,20 @@ sub make_backend {
 						" $be $parentbe\n"
 				if $VRML::verbose::be;
 
-		#print "   has node $#{$this->{Nodes}}\n";
+		print "   has node $#{$this->{Nodes}}\n";
 
 		# this is the first node; make it no matter what kind it is.
-		# print "going to make this, no matter what: ",$this->{Nodes}[0]->{TypeName},"\n";
 		if (! defined $this->{Nodes}[0]) {
 			die("$vrml97_msg Empty prototype definition for $this->{NodeParent}{TypeName}");
 		}
+
+		# tell the renderer that this is a PROTO - only first child is visible on screen 
+		$this->{Nodes}[0]->{Fields}{__isProto} = 1;
+
+		# make the backend...
 		$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
-
-
-		# other nodes; make them as long as they are not visible
-		my $nc;
-		my $tn;
-		my $wn;
-
-		$nc = 1; # already did first node...
-
-		my $tn = $#{$this->{Nodes}};
-
-		while ($nc <= $tn) {
-			$wn = $this->{Nodes}[$nc];
-			# print "working on node ",VRML::NodeIntern::dump_name($wn)," ref ",ref $wn,"\n";
-			if (ref $wn eq "VRML::DEF") {
-
- 				$wn = $wn->{Node};
-				#did not work for def'd scenes: $wn = $wn->real_node();
-			}
-			# print "now is ",VRML::NodeIntern::dump_name($wn),", ref ",ref $wn," type ",$wn->{TypeName},"\n";
-			if (!($VISIBLE{$wn->{TypeName}})) {
-				# print "this is invisible\n"; foreach (keys %{$wn}) {print "   has key $_\n";}
-				$wn->make_backend($be, $parentbe);
-			}
-			$nc++;
-		}
 	} else {
-		print "\tScene: I'm not PROTO ", VRML::NodeIntern::dump_name($this),
-			" $be $parentbe \n"
-				 if $VRML::verbose::be;
+		# this is not a proto; just do a regular make backend...
 		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 	}
 	$this->{BackNode} = $bn;

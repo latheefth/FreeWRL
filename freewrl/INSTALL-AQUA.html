@@ -29,19 +29,18 @@ This package compiles the FreeWRL library, which contains 99.9% of the FreeWRL c
 and Carbon interface files are not here; please ask us for these files if you wish. The Cocoa
 and Carbon interfaces mimic the commands found in the CFrontEnd source code files, but with
 windowing commands suitable for OS X, instead of X-11.
+<P><B>NOTE 2: </B>OSX 10.4 (Tiger) builds will be built when the OS is received.
 <OL>
-<P>
-<LI>
-Install Xcode-1.2 package from Apple disc.
-	This has has cvs, etc.
-<P>
-<LI>
-Install all software updates from Apple via the "software update" function of OS X.
 <P>
 <LI>
 (if required) enable root password - via finder start Applications/NetInfo manager.
 First authenticate, then enable root, and give root a password.
-
+<P>
+<LI>
+Install Xcode-1.2 package from Apple disc.  This has has cvs, etc.
+<P>
+<LI>
+Install all software updates from Apple via the "software update" function of OS X.
 <P>
 <LI>
 Download and install the ImageMagick package from www.entropy.ch/software/macosx/.  The package available
@@ -59,20 +58,22 @@ If you are installing from cvs, run the "packagemaker" script, and go to the dir
 Download expat-1.95.8.tar.gz from 
 http://sf.net/projects/expat. 
 <UL>
-<LI>	Untar, 
-<LI>cd into it; 
-<LI>./configure; 
+<LI>	Untar (eg, gunzip expat-1.95.8.tar.gz)
+<LI>cd into it  (eg,  cd expat-1.95.8)
+<LI>./configure 
 <LI>make install
+<LI>cd ..
 </UL>
 <P>
 <LI>
 Download XML-Parser-2.31.tar.gz from 
 http://www.cpan.org/modules/01modules.index.html.
 <UL>
-<LI>Untar, 
-<LI>cd into it; 
-<LI>perl Makefile.PL;  
+<LI>Untar
+<LI>cd into it
+<LI>perl Makefile.PL
 <LI>make install
+<LI>cd ..
 </UL>
 <P>
 <LI>
@@ -89,10 +90,12 @@ You can remove this link after successful compiling if you want.
 Download libjpeg from
 http://www.ijg.org/files/jpegsrc.v6b.tar.gz
 <UL>
-<LI>	Untar, cd into it;
-<LI>	./configure --prefix="/usr" --mandir="/usr/share";
-<LI>	make install;
-<LI>	make install-lib.
+<LI>	Untar
+<LI> cd into it
+<LI>	./configure --prefix="/usr" --mandir="/usr/share"
+<LI>	make install
+<LI>	make install-lib
+<LI>    cd ..
 </UL>
 
 <P>
@@ -100,26 +103,34 @@ http://www.ijg.org/files/jpegsrc.v6b.tar.gz
 Download zlib There is already a zlib there, but we need some more files.
 http://www.gzip.org/zlib/zlib-1.2.2.tar.gz;
 <UL>
-<LI>untar, rename zlib-1.2.2 to zlib;
-<LI>	./configure --prefix="/usr";
-<LI>	make install.
+<LI>untar 
+<LI>rename zlib-1.2.2 to zlib
+<LI>cd zlib
+<LI>	./configure --prefix="/usr"
+<LI>	make install
+<LI>    cd ..
 </UL>
 <P>
 <LI>
 Download libpng.
 http://sf.net/projects/libpng.
 <UL>
-untar, move to libpng (same as zlib);
-<LI>	./configure --prefix="/usr";
-<LI>	make install.
+<LI>untar
+<LI> move to libpng (same as zlib);
+<LI>	./configure --prefix="/usr"
+<LI>	make install
+<LI>    cd ..
 </UL>
 <P>
 <LI>
 Download freetype2.
 http://sf.net/projects/freetype.
 <UL>
-<LI>	./configure --prefix="/usr";
-<LI>	make install.
+<LI> untar
+<LI> cd into it
+<LI>	./configure --prefix="/usr"
+<LI>	make install
+<LI>    cd ..
 </UL>
 <P>
 <LI>
@@ -135,7 +146,9 @@ In the FreeWRL source directory: perl Makefile.PL - note, the end has "warnings"
 <LI>Unrecognized argument in LIBS ignored: 'Cocoa'
 
 </UL>
-
+<p>
+And, the top will have some warnings about not finding some executables; these
+are for Unix (non apple) machines only, and can be ignored.
 <P>
 <LI>
 edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/sv.h.
@@ -150,9 +163,9 @@ line.
 <LI>
 edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/reentr.h
 <UL>
-On line 716, comment out the
+<LI>On line 716, comment out the
 	struct tm _gmtime_struct;
-and on line 719, comment out the:
+<LI>and on line 719, comment out the:
 	struct tm _localtime_struct;
 line.
 
@@ -161,9 +174,9 @@ line.
 <LI>
 edit /usr/include/dirent.h
 <UL>
-On line 113, comment out the line:
+<LI>On line 113, comment out the line:
 	struct dirent *readdir(DIR *);
-NOTE: you may have to change the permissions on this file in order to write it.
+<LI>NOTE: you may have to change the permissions on this file in order to write it.
 
 </UL>
 
@@ -184,9 +197,9 @@ ranlib /usr/lib/libjpeg.a
 <LI>
 The Cocoa frontend needs this path update:
 <UL>
-	cd /usr/local/lib
-	ln -s /usr/lib/AquaIntLib.dylib
-	cd -
+<LI>	cd /usr/local/lib
+<LI>	ln -s /usr/lib/AquaIntLib.dylib
+<LI>	cd -
 
 </UL>
 <P>
