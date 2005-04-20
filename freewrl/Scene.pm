@@ -956,7 +956,7 @@ sub make_backend {
 						" $be $parentbe\n"
 				if $VRML::verbose::be;
 
-		print "   has node $#{$this->{Nodes}}\n";
+		#print "   has node $#{$this->{Nodes}}\n";
 
 		# this is the first node; make it no matter what kind it is.
 		if (! defined $this->{Nodes}[0]) {

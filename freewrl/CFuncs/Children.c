@@ -131,6 +131,9 @@ void groupingChild (struct VRML_Group *this_) {
 	int nc = ((this_->children).n);
 	int savedlight = curlight;
 
+	/* any children at all? */
+	if (nc==0) return;
+
 	if(ChildVerbose) VerboseStart ("GROUP", (struct VRML_Box *)this_, nc);
 
 	/* should we go down here? */
@@ -146,14 +149,21 @@ void groupingChild (struct VRML_Group *this_) {
 			return;
 		}
 
-	/* do we have to sort this node? */
-	if ((nc > 2 && render_blend)) sortChildren(this_->children);
+	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
+	if ((((this_->__isProto) == 0) && (nc > 2)  && render_blend)) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
 
 	/* now, just render the non-directionalLight children */
-	normalChildren(this_->children);
+	if (this_->__isProto == 1) {
+		(this_->children).n = 1;
+		normalChildren(this_->children);
+		(this_->children).n = nc;
+	} else {
+		normalChildren(this_->children);
+	}
+
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
@@ -182,6 +192,10 @@ void groupingChild (struct VRML_Group *this_) {
 void billboardChild (struct VRML_Billboard *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
+
+
+	/* any children at all? */
+	if (nc==0) return;
 
 	if(ChildVerbose) printf("RENDER BILLBOARD START %d (%d)\n",this_, nc);
 
@@ -215,6 +229,10 @@ void billboardChild (struct VRML_Billboard *this_) {
 void transformChild (struct VRML_Transform *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
+
+
+	/* any children at all? */
+	if (nc==0) return;
 
 	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct VRML_Box *)this_, nc);
 
@@ -285,6 +303,10 @@ void anchorChild (struct VRML_Anchor *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
 
+
+	/* any children at all? */
+	if (nc==0) return;
+
 	if(ChildVerbose) printf("RENDER ANCHOR START %d (%d)\n",this_, nc);
 
 	/* do we have to sort this node? */
@@ -316,6 +338,10 @@ void anchorChild (struct VRML_Anchor *this_) {
 void geolocationChild (struct VRML_GeoLocation *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
+
+
+	/* any children at all? */
+	if (nc==0) return;
 
 	if(ChildVerbose) printf("RENDER GEOLOCATION START %d (%d)\n",this_, nc);
 
@@ -350,6 +376,10 @@ void geolocationChild (struct VRML_GeoLocation *this_) {
 void inlineChild (struct VRML_Inline *this_) {
 	int nc = (this_->__children).n;
 	int savedlight = curlight;
+
+
+	/* any children at all? */
+	if (nc==0) return;
 
 	if(ChildVerbose) {printf("RENDER INLINE START %d (%d)\n",this_, nc);}
 
@@ -388,6 +418,10 @@ void inlinelodChild (struct VRML_InlineLoadControl *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
 	struct VRML_Inline *inl;
+
+
+	/* any children at all? */
+	if (nc==0) return;
 
 	if(ChildVerbose) {printf("RENDER INLINELOADCHILD START %d (%d)\n",this_, nc);}
 
