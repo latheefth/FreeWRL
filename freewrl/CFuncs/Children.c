@@ -137,7 +137,7 @@ void groupingChild (struct VRML_Group *this_) {
 	if(ChildVerbose) VerboseStart ("GROUP", (struct VRML_Box *)this_, nc);
 
 	/* should we go down here? */
-	/* printf ("Group, rb %x VF_B %x, flags %x\n",render_blend, VF_Blend, this_->_renderFlags); */
+	/* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom);  */
 	if (render_blend == VF_Blend)
 		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
 			if(ChildVerbose) VerboseEnd ("GROUP");
@@ -156,7 +156,7 @@ void groupingChild (struct VRML_Group *this_) {
 	if(this_->has_light) dirlightChildren(this_->children);
 
 	/* now, just render the non-directionalLight children */
-	if (this_->__isProto == 1) {
+	if ((this_->__isProto == 1) && render_geom) {
 		(this_->children).n = 1;
 		normalChildren(this_->children);
 		(this_->children).n = nc;
