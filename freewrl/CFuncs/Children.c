@@ -377,14 +377,14 @@ void inlineChild (struct VRML_Inline *this_) {
 	int nc = (this_->__children).n;
 	int savedlight = curlight;
 
-
-	/* any children at all? */
-	if (nc==0) return;
-
 	if(ChildVerbose) {printf("RENDER INLINE START %d (%d)\n",this_, nc);}
 
 	/* lets see if we still have to load this one... */
 	if ((this_->__loadstatus)==0) loadInline(this_);
+
+
+	/* any children at all? */
+	if (nc==0) return; 
 
 	/* do we have to sort this node? */
 	if ((nc > 2 && render_blend)) sortChildren(this_->__children);
