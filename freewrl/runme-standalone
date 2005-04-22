@@ -20,7 +20,7 @@
 #
 setenv dir `pwd`
 # or, eg:
-setenv dir "/usr/people/luigi/freewrl/FreeWRL-1.04.5"
+#setenv dir "/usr/people/luigi/freewrl/FreeWRL-1.04.5"
 
 
 
