@@ -12,7 +12,6 @@
  */
 
 
-#ifndef AQUA
 #include <stdio.h>
 #include <malloc.h>
 #include <sys/types.h>
@@ -49,10 +48,8 @@ void dismiss_proc (Widget w, XtPointer client_data, XtPointer call_data) {
 	XtDestroyApplicationContext(app_context);
 	exit (0);
 }
-#endif
 
 int main(int argc, char **argv) {
-#ifndef AQUA
 
 	if (argc > 1) {
 		strncpy (inLine,argv[1],strlen(argv[1]));
@@ -102,5 +99,4 @@ int main(int argc, char **argv) {
 	XtAddCallback(dismissButton,XtNcallback, dismiss_proc, NULL);
 	XtRealizeWidget(top);
 	XtAppMainLoop(app_context);
-#endif
 }
