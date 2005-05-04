@@ -2,13 +2,13 @@
 
 # Assume you are in root of FreeWRL directory.
 
-rm -r ../FreeWRL-1.12-pre1
-mkdir ../FreeWRL-1.12-pre1
-cp -r . ../FreeWRL-1.12-pre1
+rm -r ../FreeWRL-1.12
+mkdir ../FreeWRL-1.12
+cp -r . ../FreeWRL-1.12
 
 # now, trim off any fat you see
 
-cd ../FreeWRL-1.12-pre1
+cd ../FreeWRL-1.12
 
 find . -name typescript -exec rm {} \;
 find . -name CVS -exec rm -r {} \;
