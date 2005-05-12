@@ -11,7 +11,7 @@
  * line get lost.
  */
 
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <sys/types.h>
@@ -99,4 +99,5 @@ int main(int argc, char **argv) {
 	XtAddCallback(dismissButton,XtNcallback, dismiss_proc, NULL);
 	XtRealizeWidget(top);
 	XtAppMainLoop(app_context);
+	return 0;
 }

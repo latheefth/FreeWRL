@@ -1266,9 +1266,9 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    case SFBOOL:	{	/* SFBool */
 	    	if (strncasecmp(buf,"true",4)==0)
 		{
-		    (int *)memptr = 1;
+		    *(int *)memptr = 1;
 	    	} else {
-		    (int *)memptr = 0;
+		    *(int *)memptr = 0;
 	    	}
 		len = sizeof(int);
 	    	break;

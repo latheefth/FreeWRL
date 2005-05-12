@@ -363,7 +363,7 @@ my $protono;
 
 						resumeTime => [SFTime,0,exposedField],
 						pauseTime => [SFTime,0,exposedField],
-						isActive => [SFTime,0,eventOut],
+						elapsedTime => [SFTime,0,eventOut],
 						isPaused => [SFTime,0,eventOut],
 
 						 # has the URL changed???

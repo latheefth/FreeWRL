@@ -241,27 +241,65 @@ void FW_make_fontname (int num) {
                         bit:    2       SERIF
                         bit:    3       SANS
                         bit:    4       TYPEWRITER
+
+	JAS - May 2005 - The Vera freely distributable ttf files
+	are:
+		Vera.ttf
+		VeraMono.ttf
+		VeraSeBd.ttf
+		VeraSe.ttf
+		VeraMoBI.ttf
+		VeraMoIt.ttf
+		VeraIt.ttf
+		VeraMoBd.ttf
+		VeraBd.ttf
+		VeraBI.ttf
+
+	The files that were included were copyright Bitstream;
+	the Vera files are also from Bitstream, but are
+	freely distributable. See the copyright file in the
+	fonts directory.
+
 */
 
 	strcpy (thisfontname, sys_fp);
 	switch (num) {
 		/* Serif, norm, bold, italic, bold italic */
+		/* no Serif Italic in Vera... */
+	case 0x04: strcat (thisfontname,"/VeraSe.ttf"); break;
+	case 0x05: strcat (thisfontname,"/VeraSeBd.ttf"); break;
+	case 0x06: strcat (thisfontname,"/VeraSe.ttf"); break;
+	case 0x07: strcat (thisfontname,"/VeraSeBd.ttf"); break;
+	/*
 	case 0x04: strcat (thisfontname,"/Amrigon.ttf"); break;
 	case 0x05: strcat (thisfontname,"/Amrigob.ttf"); break;
 	case 0x06: strcat (thisfontname,"/Amrigoi.ttf"); break;
 	case 0x07: strcat (thisfontname,"/Amrigobi.ttf"); break;
+	*/
 
 		/* Sans, norm, bold, italic, bold italic */
+	case 0x08: strcat (thisfontname,"/Vera.ttf"); break;
+	case 0x09: strcat (thisfontname,"/VeraBd.ttf"); break;
+	case 0x0a: strcat (thisfontname,"/VeraIt.ttf"); break;
+	case 0x0b: strcat (thisfontname,"/VeraBI.ttf"); break;
+	/*
 	case 0x08: strcat (thisfontname,"/Baubodn.ttf"); break;
 	case 0x09: strcat (thisfontname,"/Baubodn.ttf"); break;
 	case 0x0a: strcat (thisfontname,"/Baubodi.ttf"); break;
 	case 0x0b: strcat (thisfontname,"/Baubodbi.ttf"); break;
+	*/
 
 		/* Typewriter, norm, bold, italic, bold italic */
+	case 0x10: strcat (thisfontname,"/VeraMono.ttf"); break;
+	case 0x11: strcat (thisfontname,"/VeraMoBd.ttf"); break;
+	case 0x12: strcat (thisfontname,"/VeraMoIt.ttf"); break;
+	case 0x13: strcat (thisfontname,"/VeraMoBI.ttf"); break;
+	/*
 	case 0x10: strcat (thisfontname,"/Futuran.ttf"); break;
 	case 0x11: strcat (thisfontname,"/Futurab.ttf"); break;
 	case 0x12: strcat (thisfontname,"/Futurabi.ttf"); break;
 	case 0x13: strcat (thisfontname,"/Futurabi.ttf"); break;
+	*/
 
 	default: printf ("dont know how to handle font id %x\n",num);
 	}
