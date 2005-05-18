@@ -24,6 +24,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 # Main defines for OpenGL, libjpeg, libpng, and freetype
     FREEWRL_LIBS => '-L/usr/lib '.
 		'-L/System/Library/Frameworks/OpenGL.framework/Libraries '.
+		'-L/FreeWRL/jpeg-6b '.
 		'-ljpeg '.
 		'-lpng '.
 		'-lz '.
@@ -36,10 +37,11 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.
+		'-I/FreeWRL/jpeg-6b '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
-		'-I/usr/include/freetype2 '.
-		'-I/usr/include/freetype2/freetype '.
+		'-I/usr/local/include/freetype2 '.
+		'-I/usr/local/include/freetype2/freetype '.
 		' ',
 
 ############################################################################
@@ -53,7 +55,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-undefined error '.
 		'-dynamiclib '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/ '.
+		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '. 
 		'-framework OpenGL '.
 		'-framework GLUT '.
@@ -64,7 +66,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-undefined error '.
 		'-bundle '.
 		'-L/usr/lib '.
-		'-L/System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/ '.
+		'-L/System/Library/Perl/5.8.6/darwin-thread-multi-2level/CORE/ '.
 		'-F/System/Library/Frameworks '.
 		'-framework OpenGL '.
 		'-framework GLUT '.
