@@ -149,8 +149,13 @@ int		rl_meta_chars = 0;
 **  Declarations.
 */
 STATIC CHAR	*editinput();
+#ifndef __APPLE__
 extern int	read();
 extern int	write();
+#else
+extern ssize_t read();
+extern ssize_t write();
+#endif
 #if	defined(USE_TERMCAP)
 extern char	*getenv();
 extern char	*tgetstr();
