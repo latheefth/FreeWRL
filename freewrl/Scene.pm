@@ -271,7 +271,7 @@ sub newextp {
 		unless ($string =~ /^#VRML V2.0/s) {
 			die("Sorry, this file is according to VRML V1.0, I only know V2.0")
 				if ($string =~ /^#VRML V1.0/);
-			warn("File $protourl doesn't start with the '#VRML V2.0' header line");
+			#warn("File $protourl doesn't start with the '#VRML V2.0' header line");
 		}
 
 		# remove comments, etc...
