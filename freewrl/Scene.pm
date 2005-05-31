@@ -289,23 +289,37 @@ sub newextp {
 		}
 		(pos $string) = $po;
 
-		# marijn: end of copying, now locate right PROTO
-		while ($string =~ /[\s,^](PROTO\s+)($VRML::Error::Word)/gsc ) {
+		# strip off any whitespace at the beginning of the string.
+                $string =~ s/^\s+//g;
+
+		# go through all PROTOS in this EXTERNPROTO; stop when
+		# we have our PROTO. (parse and use all protos up to this
+		# point
+		while ($string =~ /(PROTO\s+)($VRML::Error::Word)/gsc ) {
 			if (!$protoname) {
 				$protoname = $2;
 			}
 
+			#print "requested proto is $protoname, found $2; d1 is $1\n";
 			if ($2 eq $protoname) {
-				(pos $string) -= ((length $1) + (length $2));
-				VRML::Parser::parse_statement($this, $string);
+				# found our proto
 				$success = 1;
-				last;
 			}
+	
+			# back up; put the "PROTO name" back on the front
+			(pos $string) -= ((length $1) + (length $2));
+
+			# parse this PROTO
+			VRML::Parser::parse_statement($this, $string);
+
+			# strip off any whitespace at the beginning of the string.
+                	$string =~ s/^\s+//g;
+
 		}
 		last if ($success);
 	}
 
-	VRML::Error::parsefail("no PROTO found", VRML::Debug::toString($url))
+	VRML::Error::parsefail($string,"looking for PROTO $protoname, not found in EXTERNPROTO file")
 		if (!$success);
 
     # marijn: now create an instance of the PROTO, with all fields IS'd.

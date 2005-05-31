@@ -738,6 +738,10 @@ void render_polyrep(void *node,
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
+		if (!lightingOn) {
+			glEnable (GL_LIGHTING);
+			lightingOn = TRUE;
+		}
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);

@@ -412,6 +412,7 @@ extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; /* def
 extern char *lastReadFile; 		/* name last file read in */
 extern int display_status;		/* toggle status bar - defined in VRMLC.pm */
 extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */
+extern int  lightingOn;			/* in VRMLC.pm */
 extern double hpdist;			/* in VRMLC.pm */
 extern struct pt hp;			/* in VRMLC.pm */
 extern void *hypersensitive; 		/* in VRMLC.pm */
