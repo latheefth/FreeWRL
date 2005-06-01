@@ -15,6 +15,23 @@ extern unsigned _fw_instance;
  * is take parameters and execl them, in specific formats, to stop
  * people (or, to try to stop) from typing malicious code. */
 
+/* keep a list of children; if one hangs, doQuit will hang, also. */
+#define MAXPROCESSLIST 128
+pid_t childProcess[MAXPROCESSLIST];
+int lastchildProcess = 0;
+int childProcessListInit = FALSE;
+
+void killErrantChildren(void) {
+	int count;
+	
+	for (count = 0; count < MAXPROCESSLIST; count++) {
+		if (childProcess[count] != 0) {
+			/* printf ("trying to kill %d\n",childProcess[count]); */
+			kill (childProcess[count],SIGINT);
+		}
+	}
+}
+
 int freewrlSystem (char *sysline) {
 
 #define MAXEXECPARAMS 10
@@ -23,13 +40,22 @@ int freewrlSystem (char *sysline) {
 	char buf[EXECBUFSIZE];
 	char *internbuf;
 	int count;
-	pid_t childProcess;
+	/* pid_t childProcess[lastchildProcess]; */
 	int pidStatus;
 
 	int waitForChild;
 	int haveXmessage;
 
 
+	/* make all entries in the child process list = 0 */
+	if (childProcessListInit == FALSE) {
+		for (count=0; count<MAXPROCESSLIST; count++) {
+			childProcess[count] = 0;
+		}
+		childProcessListInit = TRUE;
+	}
+	
+		
 	waitForChild = TRUE;
 	haveXmessage = !strncmp(sysline,XMESSAGE,strlen(XMESSAGE));
 
@@ -39,7 +65,7 @@ int freewrlSystem (char *sysline) {
 	if (strlen(sysline)>=EXECBUFSIZE) return FALSE;
 	strcpy (buf,sysline);
 
-	/* printf ("freewrlSystem, have %s here\n",internbuf); */
+	/* printf ("freewrlSystem, have %s here\n",internbuf);  */
 	for (count=0; count<MAXEXECPARAMS; count++) paramline[count] = NULL;
 	count = 0;
 
@@ -84,7 +110,7 @@ int freewrlSystem (char *sysline) {
 	}
 
 	if (count > 0) {
-		switch (childProcess=fork()) {
+		switch (childProcess[lastchildProcess]=fork()) {
 			case -1:
 				perror ("fork"); exit(1);
 
@@ -92,7 +118,7 @@ int freewrlSystem (char *sysline) {
 			int Xrv;
 
 			/* child process */
-			/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess, getpid()); */
+			/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid()); */
 		 	Xrv = execl(paramline[0],
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
@@ -102,14 +128,18 @@ int freewrlSystem (char *sysline) {
 			}
 			default: {
 			/* parent process */
-			/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess); */
+			/* printf ("freewrlSystem: parent waiting for child %d\n",childProcess[lastchildProcess]); */
+
+			lastchildProcess++;
+			if (lastchildProcess == MAXPROCESSLIST) lastchildProcess=0;
+
 
 			/* do we have to wait around? */
 			if (!waitForChild) {
-				/* printf ("do not have to wait around\n");*/
+				/* printf ("freewrlSystem - do not have to wait around\n"); */
 				return 0;
 			}
-			waitpid (childProcess,&pidStatus,0);
+			waitpid (childProcess[lastchildProcess],&pidStatus,0);
 			/* printf ("freewrlSystem: parent - child finished - pidStatus %d \n",
 			 		pidStatus); */
 			}

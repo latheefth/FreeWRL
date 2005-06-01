@@ -1042,11 +1042,16 @@ void doQuit(void) {
 #ifndef AQUA
 	char mystring[20];
 
+	/* printf ("doQuit - got the quit signal in thread %d\n",pthread_self()); */
 	sprintf (mystring, "QUIT");
 	Sound_toserver(mystring);
 	resetGeometry();
 	if (wantEAI) shutdown_EAI();
 #endif
+
+	/* kill any remaining children */
+	killErrantChildren();
+	/* printf ("doQuit - calling exit(0)\n"); */
 	exit(0);
 }
 

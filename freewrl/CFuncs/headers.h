@@ -549,5 +549,5 @@ int ConsoleMessage(char *fmt, ...);
 void outOfMemory(char *message);
 void initializeScript(int num,int evIn);
 
-
+void killErrantChildren(void);
 #endif /* __HEADERS_H__ */

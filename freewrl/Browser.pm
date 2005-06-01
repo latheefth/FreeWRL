@@ -230,16 +230,14 @@ sub create_common {
         }
 
 
-	# call Clayton's X3D parser, if this is an X3D file.
-	# if not, then just call the VRML parser
-	# JAS ----- USE the old one for now; fields not quite correct.
+	# is this VRML or X3D? 
         if ($type == 1)  {
 	#	if (!eval('require VRML::X3DParser')) {
 	#		VRML::VRMLFunc::ConsoleMessage (
 	#			"FreeWRL can not load the X3DParser perl module".
 	#			"\n - this is going to fail");
 	#	} else {
-			X3D::Parser::parse($scene, $string);
+		X3D::Parser::parse($scene, $string);
 	#	}
         } else {
 		# remove comments, etc:

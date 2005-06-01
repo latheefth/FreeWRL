@@ -764,6 +764,8 @@ void _textureThread(void) {
 
 	int remove;
 
+	/* printf ("textureThread is %d\n",pthread_self()); */
+
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
 		TLOCK

@@ -324,6 +324,8 @@ int main (int argc, char **argv) {
 /* handle all the displaying and event loop stuff. */
 void displayThread() {
 	int count;
+
+	/* printf ("displayThread, I am %d\n",pthread_self()); */
 	openMainWindow(Disp,(unsigned int *)&Win,&globalContext);
 
 	glpOpenGLInitialize();

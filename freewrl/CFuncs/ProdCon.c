@@ -272,6 +272,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 #else
 		    sprintf (sysline,"%s %s -O %s",WGET,fname,tempname);
 #endif
+		    /*printf ("\nFreeWRL will try to use wget to get %s in thread %d\n",fname,pthread_self());*/
 		    printf ("\nFreeWRL will try to use wget to get %s\n",fname);
 		    freewrlSystem (sysline);
 		    strcpy (fname,tempname);
@@ -675,6 +676,7 @@ void _perlThread(void *perlpath) {
 
 	FILE *tempfp; /* for tring to locate the fw2init.pl file */
 
+	/* printf ("perlThread is %d\n",pthread_self()); */
 
 	/* is the browser started yet? */
 	if (!browserRunning) {
