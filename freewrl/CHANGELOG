@@ -1,0 +1,10 @@
+For 1.13:
+
+	- EXTERNPROTOS can now reference PROTOS in the Extern'd file.
+
+	- freewrlSystem now keeps a list of children; on doQuit it attempts
+	  to remove these children from the system with a kill (child,SIGINT).
+	  This solves a problem where wget can hang and leave the freewrl 
+	  display thread around.
+
+
