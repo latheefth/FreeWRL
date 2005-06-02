@@ -894,7 +894,7 @@ void AddRemoveChildren (
 	}
 
 	oldlen = tn->n;
-	/* printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar); */
+	/* printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);  */
 
 	if (ar != 0) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
@@ -914,9 +914,12 @@ void AddRemoveChildren (
 
 		/* set up the C structures for this new MFNode addition */
 		free (tn->p);
-		tn->p = &newmal;
+		/* JAS tn->p = &newmal; */
+		tn->p = newmal;
 
-		/* copy the new stuff over */
+		/* copy the new stuff over - note, newmal changes 
+		what it points to */
+
 		newmal = (void *) ((int) newmal + sizeof (void *) * oldlen);
 		memcpy(newmal,nodelist,sizeof(void *) * len);
 
