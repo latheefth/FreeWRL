@@ -7,4 +7,7 @@ For 1.13:
 	  This solves a problem where wget can hang and leave the freewrl 
 	  display thread around.
 
+	- fixed a problem that caused add/remove children from EAI and
+	  scripts to fail (segfault)
+
 
