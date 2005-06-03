@@ -10,4 +10,6 @@ For 1.13:
 	- fixed a problem that caused add/remove children from EAI and
 	  scripts to fail (segfault)
 
-
+	- revised error messages where some field values are incorrect;
+	  eg, putting a TextureCoord as a coord field of an IndexedFaceSet
+	  now displays a more informative message.

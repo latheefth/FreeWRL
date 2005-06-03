@@ -879,9 +879,9 @@ void AddRemoveChildren (
 	int oldlen;
 	void *newmal;
 	int num_removed;
-	long int *remchild;
-	long int *remptr;
-	long int *tmpptr;
+	int *remchild;
+	int *remptr;
+	int *tmpptr;
 
 	int counter, c2;
 
@@ -938,10 +938,11 @@ void AddRemoveChildren (
 		   the parameters */
 
 		num_removed = 0;
-		remchild = (long int*)nodelist;
+		remchild = (int*)nodelist;
 		for (c2 = 0; c2 < len; c2++) {
-			remptr = (long int *)tn->p;
+			remptr = (int *)tn->p;
 			for (counter = 0; counter < tn->n; counter ++) {
+				/* printf ("remove, comparing %d with %d\n",*remptr, *remchild); */
 				if (*remptr == *remchild) {
 					*remptr = 0;  /* "0" can not be a valid memory address */
 					num_removed ++;
@@ -951,12 +952,13 @@ void AddRemoveChildren (
 			remchild ++;
 		}
 
-		/* printf ("end of finding, num_removed is %d\n",num_removed); */
+		/* printf ("end of finding, num_removed is %d\n",num_removed);  */
 
 		if (num_removed > 0) {
+			/* printf ("mallocing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
 			newmal = malloc ((oldlen-num_removed)*sizeof(void *));
-			tmpptr = (long int *)newmal;
-			remptr = (long int *)tn->p;
+			tmpptr = (int *)newmal;
+			remptr = (int *)tn->p;
 			if (newmal == 0) {
 				printf ("cant malloc memory for removeChildren");
 				return;
@@ -964,18 +966,21 @@ void AddRemoveChildren (
 
 			/* go through and copy over anything that is not zero */
 			for (counter = 0; counter < tn->n; counter ++) {
+				/* printf ("count %d is %d\n",counter, *remptr); */
 				if (*remptr != 0) {
 					*tmpptr = *remptr;
+					/* printf ("now, tmpptr %d is %d\n",tmpptr,*tmpptr); */
 					remove_parent((void *)*remptr,(void *)tn);
 					tmpptr ++;
 				}
 				remptr ++;
 			}
+			/* printf ("done loops, now make data active \n"); */
 
 			/* now, do the move of data */
 			tn->n = 0;
 			free (tn->p);
-			tn->p = &newmal;
+			tn->p = newmal;
 			tn->n = oldlen - num_removed;
 		}
 	}
@@ -2172,7 +2177,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		scripts_active = TRUE;
 	}
 
-	if (CRVerbose)
+	/*if (CRVerbose) */
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
 				from, fromoffset, to_count, tonode_str, length, (unsigned)intptr);
 
@@ -2483,6 +2488,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 		fptr = CRoutes[route].fnptr;
 		fn = CRoutes[route].fromnode;
 		len = CRoutes[route].len;
+CRVerbose=1;
+JSVerbose=1;
 
 		if (CRVerbose)
 			printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
@@ -2615,6 +2622,9 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 		route++;
 	}
 	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
+CRVerbose=0;
+JSVerbose=0;
+
 }
 
 /* start getting events from a Class script. IF the script is not
@@ -2793,7 +2803,7 @@ this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
 void sendJScriptEventIn (int num, int fromoffset) {
-	/* printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset); */
+	printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset); 
 
 	/* this script initialized yet? */
 	initializeScript(num, TRUE);
@@ -2839,6 +2849,8 @@ void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
+JSVerbose=1;
+
 	if (JSVerbose)
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d\n",num);
 
@@ -2875,6 +2887,7 @@ void sendScriptEventIn(int num) {
 		if (CRVerbose) printf("Route ????\n");
 	}
 	if (JSVerbose) printf("-----END-----\n");
+JSVerbose=0;
 }
 
 /********************************************************************

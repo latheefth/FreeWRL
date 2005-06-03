@@ -588,6 +588,7 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 		psp.type = FROMSTRING;
 	}
 
+	complete = 0; /* make sure we wait for completion */
 	psp.comp = &complete;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
@@ -602,7 +603,7 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
 	DATA_LOCK_SIGNAL
 	DATA_UNLOCK
-	while (complete!=1) {usleep(10);}
+	while (complete!=1) { usleep(10);}
 	retval = psp.retarrsize;
 	PSP_UNLOCK
 	return (retval);
@@ -1135,10 +1136,10 @@ void __pt_doStringUrl () {
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {
-		 /* printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
-			psp.retarr, retval);  */
+		 printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
+			psp.retarr, retval);  
 		for (count = 0; count < retval; count ++) {
-			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
+			printf ("	...saving %d in %d\n",myretarr[count],count); 
 			psp.retarr[count] = myretarr[count];
 		}
 		psp.retarrsize = retval;

@@ -26,6 +26,11 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.170  2005/06/03 17:05:51  crc_canada
+# More add/remove children from scripts/eai problems fixed. The ProdCon
+# code had an invalid "complete" flag; the remove code in AddRemoveChildren
+# had a pointer/contents of problem.
+#
 # Revision 1.169  2005/04/18 15:27:06  crc_canada
 # speedup shapes that do not have textures by removing a glPushAttrib and glPopAttrib
 #
@@ -587,7 +592,7 @@ sub fvirt {
 	if($ret) {$ret = "$ret = ";}
 	return "if(this_->$f) {
 		  if(!(*(struct VRML_Virt **)(this_->$f))->$v) {
-		  	freewrlDie(\"NULL METHOD $t $f $v\");
+		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
 		  }
 		  $ret ((*(struct VRML_Virt **)(this_->$f))->$v(this_->$f,
 		    ".(join ',',@a).")) ;}
@@ -604,7 +609,7 @@ sub fvirt_null {
 	if($ret) {$ret = "$ret = ";}
 	return "if(this_->$f) {
 		  if(!(*(struct VRML_Virt **)(this_->$f))->$v) {
-		  	freewrlDie(\"NULL METHOD $t $f $v\");
+		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
 		  }
 		  $ret ((*(struct VRML_Virt **)(this_->$f))->$v(this_->$f,
 		    ".(join ',',@a).")) ;
@@ -617,7 +622,7 @@ sub fgetfnvirt_n {
 	if($ret) {$ret = "$ret = ";}
 	return "if($n) {
 	         if(!(*(struct VRML_Virt **)n)->$v) {
-		  	freewrlDie(\"NULL METHOD $n $ret $v\");
+		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
 		 }
 		 $ret ((*(struct VRML_Virt **)($n))->$v($n,
 		    ".(join ',',@a).")) ;}
