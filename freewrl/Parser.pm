@@ -379,30 +379,36 @@ sub parse {
 		if ($parentField eq "level") {$parentField = "children";}
 
 		# is this a PROTO?
-		if ($parentField eq "protoTop") {$parentField = "children";}
+		#if ($parentField eq "protoTop") {$parentField = "children";}
 
 		if ($VRML::Nodes::{$parentField}{$nt}) {
 		        #print "node $nt is ok for a parentField of $parentField\n";
 		} else {
 			my $okPROTO = 0;
 
-			# is this a PROTO Expansion?
-			#if ($parentField eq "children") {
-				#print "Hmmm... verifying if $nt is a proto expansion scene $scene\n";
-				if (exists $scene->{Protos}{$nt}) {
-#					print "I found it!!!",
-#VRML::NodeIntern::dump_name($scene),"\n";
-#print "scene rootnode type is ",$scene->{Protos}{$nt}{RootNode}{Type}{Name},"\n";
+			# is this a proto?
+			my $prot = $scene->get_proto($nt);
+			if (defined $prot) {
+				my $nodeszero = $prot->{Nodes}[0];
+				my $firstchild=$nodeszero->{Fields}{children}[0];
 
-
-					$okPROTO = 1;
-					#foreach (keys % {$scene->{Protos}{$nt}}) {
-#					foreach (keys % {$scene->{Protos}{$nt}{RootNode}}) {
-#						print "proto $nt has key $_\n";
-#					}
+				# we have the first child; resolve the def if required.
+				if (ref $firstchild eq "VRML::DEF") {
+					$firstchild = $firstchild->real_node();
 				}
-			#}
-	
+
+				my $childtype = $firstchild->{Type}{Name};
+
+				#print "and, first chid of nodeszero is $firstchild\n";
+				#print "and, first chid of nodeszero TYPE is ",$childtype,"\n";
+
+				if ($VRML::Nodes::{$parentField}{$childtype}) {
+					#print "child type $childtype IS OK! for $parentField\n";
+					$okPROTO=1;
+				}
+			}
+
+
 			# nope, it failed even the PROTO test.
 			if ($okPROTO == 0) {
 				my ($package, $filename, $line) = caller;

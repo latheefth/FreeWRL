@@ -209,7 +209,6 @@ my $protono;
 # section of:
 #ISO-IEC-19775-IS-X3DAbstractSpecification/Part01/concepts.html#f-Objecthierarchy
 %VRML::Nodes::children = map {($_=>1)} qw/
-	_PROTOEXPANSION
 	Fog
 	GeoViewpoint
 	NavigationInfo
