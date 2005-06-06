@@ -387,19 +387,27 @@ sub parse {
 			my $okPROTO = 0;
 
 			# is this a PROTO Expansion?
-			if ($parentField eq "children") {
+			#if ($parentField eq "children") {
 				#print "Hmmm... verifying if $nt is a proto expansion scene $scene\n";
 				if (exists $scene->{Protos}{$nt}) {
-					#print "I found it!!!\n";
+#					print "I found it!!!",
+#VRML::NodeIntern::dump_name($scene),"\n";
+#print "scene rootnode type is ",$scene->{Protos}{$nt}{RootNode}{Type}{Name},"\n";
+
+
 					$okPROTO = 1;
+					#foreach (keys % {$scene->{Protos}{$nt}}) {
+#					foreach (keys % {$scene->{Protos}{$nt}{RootNode}}) {
+#						print "proto $nt has key $_\n";
+#					}
 				}
-			}
+			#}
 	
 			# nope, it failed even the PROTO test.
 			if ($okPROTO == 0) {
 				my ($package, $filename, $line) = caller;
-        			VRML::VRMLFunc::ConsoleMessage("WARNING -- node $nt is NOT ok as a ".
-					"field of type $parentField\n...called from $package, $line");
+        			VRML::VRMLFunc::ConsoleMessage("WARNING -- node $nt may not be ok as a ".
+					"field of type $parentField\n(...called from $package, $line)");
 			}
 		}
 	}
