@@ -65,6 +65,7 @@ public  class EAIinThread implements Runnable {
 			// Loop here, processing incoming events
 			reply = EAIin.readLine();
 
+			if (reply != null) {
 			if (reply.equals("EV")) {
 				EVentno = EAIin.readLine();
 				int eventno = Integer.parseInt(EVentno);
@@ -105,6 +106,7 @@ public  class EAIinThread implements Runnable {
 		}
 		if (debug) System.out.println ("EAIinThread closing stream");
 			mybrowser.close();
+	}
 	} catch (IOException e) {
 		//System.out.print ("error reiniting data input stream\n");
 	}

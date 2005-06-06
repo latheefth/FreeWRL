@@ -2177,7 +2177,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		scripts_active = TRUE;
 	}
 
-	/*if (CRVerbose) */
+	if (CRVerbose) 
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
 				from, fromoffset, to_count, tonode_str, length, (unsigned)intptr);
 
@@ -2488,8 +2488,6 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 		fptr = CRoutes[route].fnptr;
 		fn = CRoutes[route].fromnode;
 		len = CRoutes[route].len;
-CRVerbose=1;
-JSVerbose=1;
 
 		if (CRVerbose)
 			printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
@@ -2622,9 +2620,6 @@ JSVerbose=1;
 		route++;
 	}
 	if (JSVerbose) printf ("finished  gatherScriptEventOuts loop\n");
-CRVerbose=0;
-JSVerbose=0;
-
 }
 
 /* start getting events from a Class script. IF the script is not
@@ -2803,7 +2798,7 @@ this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
 void sendJScriptEventIn (int num, int fromoffset) {
-	printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset); 
+	/* printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset);  */
 
 	/* this script initialized yet? */
 	initializeScript(num, TRUE);
@@ -2849,8 +2844,6 @@ void sendScriptEventIn(int num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-JSVerbose=1;
-
 	if (JSVerbose)
 	  printf("----BEGIN-------\nsendScriptEventIn, num %d\n",num);
 
@@ -2887,7 +2880,6 @@ JSVerbose=1;
 		if (CRVerbose) printf("Route ????\n");
 	}
 	if (JSVerbose) printf("-----END-----\n");
-JSVerbose=0;
 }
 
 /********************************************************************

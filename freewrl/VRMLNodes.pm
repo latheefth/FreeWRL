@@ -27,16 +27,7 @@ EOF
  	}
  }
 
-## EG
-## perl_script_output ( $on )
-##
-## If a script output file has been specified with the "-psout" option, and
-##   If $on is true,  then
-##     the filehandle corresponding to the script output file is selected.
-##   If $on is false, then
-##     the previously selected filehandle is selected.
-##
-## The following VRML:: variables are used
+# The following VRML:: variables are used
 BEGIN {
 								# Script output file name (set with -psout)
   $VRML::script_out_file = "" unless
@@ -214,6 +205,106 @@ my $protono;
         /;
 
 
+# nodes that are valid children fields. Check out the X3DChildNode
+# section of:
+#ISO-IEC-19775-IS-X3DAbstractSpecification/Part01/concepts.html#f-Objecthierarchy
+%VRML::Nodes::children = map {($_=>1)} qw/
+	_PROTOEXPANSION
+	Fog
+	GeoViewpoint
+	NavigationInfo
+	Viewpoint
+	Background
+	TextureBackground
+	Inline
+	StaticGroup
+	Shape
+	Anchor
+	Billboard
+	Collision
+	EspduTransform
+	GeoLocation
+	GeoLOD
+	Group
+	HAnimJoint
+	HAnimSegment
+	HAnimSite
+	LOD
+	Switch
+	Transform
+	NurbsSet
+	NurbsOrientationInterpolator
+	NurbsPositionInterpolator
+	NurbsSurfaceInterpolator
+	HanimHumanoid
+	ReceiverPdu
+	SignalPdu
+	TransmitterPdu
+	ColorInterpolator
+	CoordinateInterpolator
+	CoordinateInterpolator2D
+	GeoPositionInterpolator
+	NormalInterpolator
+	OrientationInterpolator
+	PositionInterpolator
+	PositionInterpolator2D
+	ScalarInterpolator
+	DirectionalLight
+	PointLight
+	SpotLight
+	Script
+	TimeSensor
+	Collision
+	ProximitySensor
+	VisibilitySensor
+	KeySensor
+	StringSensor
+	LoadSensor
+	CylinderSensor
+	PlaneSensor
+	SphereSensor
+	GeoTouchSensor
+	TouchSensor
+	Sound
+	TimeSensor
+	X3DSoundSourceNode
+	BooleanSequencer
+	IntegerSequencer
+	BooleanTrigger
+	IntegerTrigger
+	TimeTrigger
+	BooleanFilter
+	BooleanToggle
+	GeoMetadata
+	WorldInfo
+        /;
+
+#nodes that are valid appearance fields.
+%VRML::Nodes::appearance = map {($_=>1)} qw/
+	Appearance
+        /;
+
+#nodes that are valid material fields.
+%VRML::Nodes::fontStyle = map {($_=>1)} qw/
+	FontStyle
+        /;
+
+#nodes that are valid material fields.
+%VRML::Nodes::material = map {($_=>1)} qw/
+	Material
+        /;
+
+#nodes that are valid color fields.
+%VRML::Nodes::color = map {($_=>1)} qw/
+	Color
+	ColorRGBA
+        /;
+
+#nodes that are valid textureTransform fields.
+%VRML::Nodes::textureTransform = map {($_=>1)} qw/
+	TextureTransform
+        /;
+
 # nodes that are valid texture fields.
 %VRML::Nodes::texture = map {($_=>1)} qw/
 	ImageTexture
@@ -227,8 +318,13 @@ my $protono;
 	/;
 
 # nodes that are valid texcoord fields.
-%VRML::Nodes::tcoord = map {($_=>1)} qw/
+%VRML::Nodes::texCoord = map {($_=>1)} qw/
 	TextureCoordinate
+	/;
+
+# nodes that are valid sound source fields.
+%VRML::Nodes::source = map {($_=>1)} qw/
+	AudioClip
 	/;
 
 # nodes that are just ignored for now.
@@ -261,7 +357,7 @@ my $protono;
 /;
 
 # What are the transformation-hierarchy child nodes?
-%VRML::Nodes::children = qw(
+%VRML::Nodes::Transchildren = qw(
  Transform	children
  Group		children
  Billboard	children

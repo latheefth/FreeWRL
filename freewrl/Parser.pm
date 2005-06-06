@@ -73,7 +73,8 @@ sub parse {
 	my @a;
 	my ($n, $r);
 	while($text !~ /\G\s*$/gsc) {
-		$n = parse_statement($scene,$text);
+		# any valid child node can be a top node.
+		$n = parse_statement($scene,$text,0,"children");
 
 		$r = ($text =~ /\G\s*,\s*/gsc); # Eat comma if it is there...
 		if(defined $n) {push @a, $n}
@@ -86,11 +87,14 @@ sub parse {
 # Parse a statement, return a node if it is a node, otherwise
 # return undef.
 sub parse_statement { # string in $_[1]
-	my($scene) = @_;
+	my($scene, $text, $justcheck, $parentNode) = @_;
+
 	## commas again
 	$_[1] =~ /\G\s*,\s*/gsc;
+
 	my $justcheck = $_[2];
-	print "PARSE: '",substr($_[1],pos $_[1]),"'\n"
+
+	print "PARSE: parse_statement; justcheck $justcheck parentNode $parentNode '",substr($_[1],pos $_[1]),"'\n"
 		if $VRML::verbose::parse;
 	# Peek-ahead to see what is to come... store pos.
 	my $p = pos $_[1];
@@ -108,13 +112,13 @@ sub parse_statement { # string in $_[1]
 		(pos $_[1]) = $p;
 		parse_route($scene,$_[1]);
 		return undef;
-	} elsif($justcheck) {
+	} elsif($justcheck == 1) {
 		return -1;
 	} elsif($_[1] =~ /\G\s*($Word)/gsc) {
 		(pos $_[1]) = $p;
 		print "AND NOW: ",(pos $_[1]),"\n"
 			if $VRML::verbose::parse;
-		return VRML::Field::SFNode->parse($scene,$_[1]);
+		return VRML::Field::SFNode->parse($scene,$_[1],$parentNode);
 	} else {
 		print "WORD WAS: '$Word'\n"
 			if $VRML::verbose::parse;
@@ -136,10 +140,10 @@ sub parse_proto {
 
 	my @a;
 	while($_[1] !~ /\G\s*}\s*/gsc) {
-		my $n = parse_statement($pro,$_[1]);
+		my $n = parse_statement($pro,$_[1],0,"protoTop");
 		if(defined $n) {push @a, $n}
 	}
-	# print "parse_proto, setting topnodes for ",VRML::NodeIntern::dump_name($pro),"\n";
+	#print "parse_proto, setting topnodes for ",VRML::NodeIntern::dump_name($pro),"\n";
 	$pro->topnodes(\@a);
 }
 
@@ -296,7 +300,7 @@ VRML::Error->import;
 my $LASTDEF = 1;
 
 sub parse {
-	my($type, $scene) = @_;
+	my($type, $scene, $txt, $parentField) = @_;
 	$_[2] =~ /\G\s*/gsc;
 
 	if ($VRML::verbose::parse) {
@@ -318,6 +322,7 @@ sub parse {
 	my $rep_field;
 	my $field_counter = 1;
 
+
 	if($nt eq "DEF") {
 		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
 			"DEF must be followed by a defname");
@@ -331,7 +336,7 @@ sub parse {
 		print "Parser.pm: DEF $vrmlname as $defname\n"
 			if $VRML::verbose::parse;
 
-		my $node = VRML::Field::SFNode->parse($scene, $_[2]);
+		my $node = VRML::Field::SFNode->parse($scene, $_[2],$parentField);
 		print "DEF - node $defname is $node \n" if  $VRML::verbose::parse;
 
 		return $scene->new_def($defname, $node, $vrmlname);
@@ -358,6 +363,48 @@ sub parse {
 			if $VRML::verbose::parse;
 		return VRML::Parser::parse_script($scene,$_[2]);
 	}
+
+	# verify that this node is ok for the parent field type.
+	#print "--- sub parse, nt $nt parentfield $parentField\n";
+	if ($parentField eq "") {
+		my ($package, $filename, $line) = caller;
+		print "VRML::Field::SFNode::parse: null parentField  ",
+			(pos $_[2]), " ",
+				length $_[2], " from $package, $line\n";
+	} else {
+		# is this a switch choice?
+		if ($parentField eq "choice") {$parentField = "children";}
+
+		# is this a LOD level?
+		if ($parentField eq "level") {$parentField = "children";}
+
+		# is this a PROTO?
+		if ($parentField eq "protoTop") {$parentField = "children";}
+
+		if ($VRML::Nodes::{$parentField}{$nt}) {
+		        #print "node $nt is ok for a parentField of $parentField\n";
+		} else {
+			my $okPROTO = 0;
+
+			# is this a PROTO Expansion?
+			if ($parentField eq "children") {
+				#print "Hmmm... verifying if $nt is a proto expansion scene $scene\n";
+				if (exists $scene->{Protos}{$nt}) {
+					#print "I found it!!!\n";
+					$okPROTO = 1;
+				}
+			}
+	
+			# nope, it failed even the PROTO test.
+			if ($okPROTO == 0) {
+				my ($package, $filename, $line) = caller;
+        			VRML::VRMLFunc::ConsoleMessage("WARNING -- node $nt is NOT ok as a ".
+					"field of type $parentField\n...called from $package, $line");
+			}
+		}
+	}
+
+
 	my $proto;
 	$p = pos $_[2];
 
@@ -394,7 +441,7 @@ sub parse {
 	my $isscript = ($nt eq "Script");
 	my %f;
 	while(1) {
-		while(VRML::Parser::parse_statement($scene,$_[2],1)
+		while(VRML::Parser::parse_statement($scene,$_[2],1,$parentField)
 			!= -1) {}; # check for PROTO & co
 		last if ($_[2] =~ /\G\s*}\s*/gsc);
 		print "Pos: ",(pos $_[2]),"\n"
@@ -462,7 +509,7 @@ sub parse {
 				VRML::Debug::toString($f{$f}), ")\n"
 						if $VRML::verbose::parse;
 		} else {
-			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2]);
+			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2],$f);
 				print "storing type 2, $f, (",
 					VRML::NodeIntern::dump_name($f{$f}), ")\n"
 						if $VRML::verbose::parse;
@@ -494,9 +541,4 @@ sub print {
 	print "}\n";
 }
 
-
 1;
-
-
-
-

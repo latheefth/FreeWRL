@@ -310,7 +310,7 @@ sub newextp {
 			(pos $string) -= ((length $1) + (length $2));
 
 			# parse this PROTO
-			VRML::Parser::parse_statement($this, $string);
+			VRML::Parser::parse_statement($this, $string,0,"protoTop");
 
 			# strip off any whitespace at the beginning of the string.
                 	$string =~ s/^\s+//g;
@@ -1038,7 +1038,7 @@ sub setup_routing {
 		 }
 		 # Look at child nodes
 		 my $c;
-		 if ($c = $VRML::Nodes::children{$_[0]->{TypeName}}) {
+		 if ($c = $VRML::Nodes::Transchildren{$_[0]->{TypeName}}) {
 			 my $ref = $_[0]->{RFields}{$c};
 			 print "\tCHILDFIELD: GOT @$ref FOR CHILDREN\n"
 				 if $VRML::verbose::scene;

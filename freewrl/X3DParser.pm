@@ -1304,7 +1304,7 @@ sub getChildType {
 	if ($VRML::Nodes::geometry{$nnn}) { return "geometry"; }
 	if ($VRML::Nodes::texture{$nnn}) { return "texture"; }
 	if ($VRML::Nodes::coord{$nnn}) { return "coord"; }
-	if ($VRML::Nodes::tcoord{$nnn}) { return "texCoord"; }
+	if ($VRML::Nodes::texCoord{$nnn}) { return "texCoord"; }
 
 	# now, see if we can tell by making the first character of the nodename lowercase...
 	my $testfield = lcfirst ($nnn);
