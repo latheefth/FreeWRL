@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.153  2005/06/09 14:52:50  crc_canada
+# ColorRGBA nodes supported.
+#
 # Revision 1.152  2005/04/18 20:40:46  crc_canada
 # Some work on removing startup memory errors.
 #
@@ -535,12 +538,24 @@ IndexedFaceSet => '
 		struct SFColor *colors=0; int ncolors=0;
 		struct SFColor *normals=0; int nnormals=0;
 		struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+
+
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
 
 		$mk_polyrep();
 		if(!$f(solid)) {
@@ -552,7 +567,7 @@ IndexedFaceSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords);
+			ntexcoords, texcoords, ct);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -831,10 +846,20 @@ GeoElevationGrid => '
 		struct SFColor *colors=0; int ncolors=0;
                 struct SFVec2f *texcoords; int ntexcoords=0;
 		struct SFColor *normals=0; int nnormals=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
 
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
 
 		$mk_polyrep();
 		if(!$f(solid)) {
@@ -846,7 +871,8 @@ GeoElevationGrid => '
 			ncolors, colors,
 			nnormals, normals,
 			/*JAS - ntexcoords, texcoords */
-			0, NULL
+			0, NULL,
+			ct
 		);
 		if(!$f(solid)) {
 			glPopAttrib();
@@ -857,10 +883,19 @@ ElevationGrid =>  '
 		struct SFColor *colors=0; int ncolors=0;
                 struct SFVec2f *texcoords=0; int ntexcoords=0;
 		struct SFColor *normals=0; int nnormals=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
 
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
 
 		$mk_polyrep();
 		if(!$f(solid)) {
@@ -872,7 +907,8 @@ ElevationGrid =>  '
 			ncolors, colors,
 			nnormals, normals,
 			/*JAS - ntexcoords, texcoords */
-			0, NULL
+			0, NULL,
+			ct	
 		);
 		if(!$f(solid)) {
 			glPopAttrib();
@@ -885,7 +921,7 @@ Extrusion => '
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL);
+		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -902,7 +938,7 @@ Text => '
                 glPushAttrib(GL_ENABLE_BIT);
                 glDisable(GL_CULL_FACE);
 
-		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL);
+		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0);
 
 		glPopAttrib();
 ',

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.171  2005/06/09 14:52:49  crc_canada
+# ColorRGBA nodes supported.
+#
 # Revision 1.170  2005/06/03 17:05:51  crc_canada
 # More add/remove children from scripts/eai problems fixed. The ProdCon
 # code had an invalid "complete" flag; the remove code in AddRemoveChildren
@@ -519,13 +522,19 @@ IndexedFaceSet => '
 ######################################################################
 #
 # Get3
-#  get a coordinate / color / normal array from the node.
+#  get a coordinate / color colorRGBA / normal array from the node.
+# I know, colorRGBAs are 4 not 3 values, but they are interchangeable
+# in the X3DColorNode spec...
 #
 
 %Get3C = (
 Coordinate => '
 	*n = $f_n(point);
 	return $f(point);
+',
+ColorRGBA => '
+	*n = $f_n(color);
+	return $f(color);
 ',
 Color => '
 	*n = $f_n(color);
@@ -1687,6 +1696,8 @@ CODE:
 		case 5: RETVAL = sizeof (struct SFColor);
 			break;
 		case 6: RETVAL = sizeof (struct SFVec2f);
+			break;
+		case 7: RETVAL = sizeof (struct SFColorRGBA);
 			break;
 		case -11: RETVAL = sizeof (unsigned int);
 			break;

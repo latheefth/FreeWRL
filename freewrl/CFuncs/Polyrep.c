@@ -651,12 +651,18 @@ void Extru_ST_map(
 }
 
 
+/* take 3 or 4 floats, bounds check them, and put them in a destination. 
+   Used for copying color X3DColorNode values over for streaming the
+   structure. */
 
-void do_glColor3fv(struct SFRotation *dest, GLfloat *param) {
+void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA) {
 	int i;
+	int pc;
+
+	if (isRGBA) pc = 4; else pc = 3;
 
 	/* parameter checks */
-	for (i=0; i<3; i++) {
+	for (i=0; i<pc; i++) {
 		if ((param[i] < 0.0) || (param[i] >1.0)) {
 			param[i] = 0.5;
 		}
@@ -664,7 +670,15 @@ void do_glColor3fv(struct SFRotation *dest, GLfloat *param) {
 	dest->r[0] = param[0];
 	dest->r[1] = param[1];
 	dest->r[2] = param[2];
-	dest->r[3] = last_transparency;
+
+	/* does this color have an alpha channel? */
+	if (isRGBA) {
+		dest->r[3] = param[3];
+	} else {
+		dest->r[3] = last_transparency;
+	}
+	/* printf ("do_glColor4fv, %f %f %f %f\n",dest->r[0],dest->r[1],dest->r[2],dest->r[3]); */
+
 }
 
 
@@ -697,7 +711,8 @@ void render_polyrep(void *node,
 	int npoints, struct SFColor *points,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
-	int ntexcoords, struct SFVec2f *texcoords)
+	int ntexcoords, struct SFVec2f *texcoords,
+	int isRGBA)
 {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
@@ -716,7 +731,7 @@ void render_polyrep(void *node,
 	/* do we still have to stream this one for faster rendering? */
 	if (r->norindex) {
 		stream_polyrep (node,npoints,points,ncolors,colors,
-				nnormals,normals,ntexcoords,texcoords);
+				nnormals,normals,ntexcoords,texcoords,isRGBA);
 	}
 
 	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
@@ -797,13 +812,17 @@ void render_polyrep(void *node,
 *  convert a polyrep into a structure format that displays very
 *  well, especially on fast graphics hardware
 *
+*  the isRGBA parameter tells us whether the color node (if present)
+*  is in RGB or RGBA format.
+*
 *********************************************************************/
 
 void stream_polyrep(void *node,
 	int npoints, struct SFColor *points,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
-	int ntexcoords, struct SFVec2f *texcoords)
+	int ntexcoords, struct SFVec2f *texcoords,
+	int isRGBA)
 {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
@@ -827,8 +846,8 @@ void stream_polyrep(void *node,
 	int *newcindex;
 	struct SFColor *newpoints;
 	struct SFColor *newnorms;
-	/* struct SFColor *newcolors;*/
-	struct SFRotation *newcolors;
+	struct SFColorRGBA *newcolors;
+	struct SFColorRGBA *oldColorsRGBA;
 	float *newtc;
 
 	int stream_poly_verbose = 0;
@@ -860,8 +879,11 @@ void stream_polyrep(void *node,
 	} else newnorms = 0;
 
 
+	/* if we have colours, make up a new structure for them to stream to, and also
+	   copy pointers to ensure that we index through colorRGBAs properly. */
 	if (hasc) {
-		newcolors = (struct SFRotation*)malloc (sizeof (struct SFRotation)*r->ntri*3);
+		newcolors = (struct SFColorRGBA*)malloc (sizeof (struct SFColorRGBA)*r->ntri*3);
+		oldColorsRGBA = (struct SFColorRGBA*) colors;
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 
@@ -986,14 +1008,20 @@ void stream_polyrep(void *node,
 					fwnorprint(colors[coli].c);
 					printf ("\n");
 				}
-				do_glColor3fv(&newcolors[i],colors[coli].c);
+				if (isRGBA)
+					do_glColor4fv(&newcolors[i],oldColorsRGBA[coli].r,isRGBA);
+				else
+					do_glColor4fv(&newcolors[i],colors[coli].c,isRGBA);
 			} else if(r->color) {
 				if (stream_poly_verbose) {
 					printf ("coloUr");
 					fwnorprint(r->color+3*coli);
 					printf ("\n");
 				}
-				do_glColor3fv(&newcolors[i],r->color+3*coli);
+				if (isRGBA)
+					do_glColor4fv(&newcolors[i],r->color+4*coli,isRGBA);
+				else
+					do_glColor4fv(&newcolors[i],r->color+3*coli,isRGBA);
 			}
 		}
 

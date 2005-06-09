@@ -18,7 +18,7 @@ VRML::VRMLFunc::load_data(); # Fill hashes.
 sub alloc_struct_be {
 	my($type) = @_;
 	if(!defined $VRML::CNodes{$type}) {
-		die("No CNode for $type\n");
+		die("No CNode for $type in alloc_struct_be\n");
 	}
 	# print "ALLNod: '$type' $VRML::CNodes{$type}{Offs}{_end_} $VRML::CNodes{$type}{Virt}\n";
 	my $s = VRML::VRMLFunc::alloc_struct($VRML::CNodes{$type}{Offs}{_end_},
@@ -40,7 +40,7 @@ sub alloc_struct_be {
 sub free_struct_be {
 	my($node,$type) = @_;
 	if(!defined $VRML::CNodes{$type}) {
-		die("No CNode for $type\n");
+		die("No CNode for $type in free_struct_be\n");
 	}
 	my($k,$o);
 	while(($k,$o) = each %{$VRML::CNodes{$type}{Offs}}) {

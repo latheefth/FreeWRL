@@ -107,7 +107,7 @@ void
 do_color_normal_reset(void);
 
 void
-do_glColor3fv(struct SFRotation *dest, GLfloat *param);
+do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA);
 
 void
 do_glNormal3fv(struct SFColor *dest, GLfloat *param);
@@ -121,7 +121,8 @@ stream_polyrep(void *node,
 			   int nnormals,
 			   struct SFColor *normals,
 			   int ntexcoords,
-			   struct SFVec2f *texcoords);
+			   struct SFVec2f *texcoords,
+				int isRGBA);
 
 void
 render_ray_polyrep(void *node,

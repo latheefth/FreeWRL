@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.48  2005/06/09 14:52:49  crc_canada
+# ColorRGBA nodes supported.
+#
 # Revision 1.47  2005/03/21 13:39:04  crc_canada
 # change permissions, remove whitespace on file names, etc.
 #
@@ -207,6 +210,8 @@
 	MFNode
 	SFColor
 	MFColor
+	SFColorRGBA
+	MFColorRGBA
 	SFTime
 	SFString
 	MFString
@@ -375,6 +380,69 @@ sub cfunc {
 	"
 }
 
+
+###########################################################
+package VRML::Field::SFColorRGBA;
+@ISA=VRML::Field;
+VRML::Error->import();
+
+sub init { return [0, 0, 0, 1]; }
+
+sub parse {
+	my($type,$p) = @_;
+
+	# first, look for 4 floats, can have commas
+	$_[2] =~ /\G\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)\s{0,},{0,1}\s{0,}($Float)/ogsc
+		or VRML::Error::parsefail($_[2],"not proper rotation");
+	return [$1,$2,$3,$4];
+}
+
+sub print {print join ' ',@{$_[1]}}
+sub as_string {join ' ',@{$_[1]}}
+
+sub cstruct {return "struct SFColorRGBA {
+ 	float r[4]; };"}
+
+sub rot_invert {
+	"
+	 $_[2].r[0] = $_[1].r[0];
+	 $_[2].r[1] = $_[1].r[1];
+	 $_[2].r[2] = $_[1].r[2];
+	 $_[2].r[3] = -$_[1].r[3];
+	"
+}
+
+sub ctype {return "struct SFColorRGBA $_[1]"}
+sub clength {7} #for C routes. Keep in sync with getClen in VRMLC.pm.
+sub cget {return "($_[1].r[$_[2]])"}
+
+sub cfunc {
+	return "{
+		AV *a;
+		SV **b;
+		int i;
+		if(!SvROK($_[2])) {
+			$_[1].r[0] = 1;
+			$_[1].r[1] = 0;
+			$_[1].r[2] = 0;
+			$_[1].r[3] = 0;
+			/* die(\"Help! SFColorRGBA without being ref\"); */
+		} else {
+			if(SvTYPE(SvRV($_[2])) != SVt_PVAV) {
+				freewrlDie(\"Help! SFColorRGBA without being arrayref\");
+			}
+			a = (AV *) SvRV($_[2]);
+			for(i=0; i<4; i++) {
+				b = av_fetch(a, i, 1); /* LVal for easiness */
+				if(!b) {
+					freewrlDie(\"Help: SFColor b == 0\");
+				}
+				$_[1].r[i] = SvNV(*b);
+			}
+		}
+	} /*ee*/
+	"
+}
 
 ###########################################################
 package VRML::Field::SFVec3f;
@@ -686,6 +754,10 @@ package VRML::Field::MFNode;
 package VRML::Field::MFColor;
 @ISA=VRML::Field::Multi;
 
+###########################################################
+package VRML::Field::MFColorRGBA;
+@ISA=VRML::Field::Multi;
+
 
 ###########################################################
 package VRML::Field::MFVec2f;
@@ -943,11 +1015,275 @@ sub as_string {
 sub clength {-11} #for C routes. Keep in sync with getClen in VRMLC.pm.
 
 
-##
-## RCS: Implement SFImage
-## Remi Cohen-Scali
-##
 
+use vars qw/$Word/;
+VRML::Error->import;
+
+
+my $LASTDEF = 1;
+
+sub parse {
+	my($type, $scene, $txt, $parentField) = @_;
+	$_[2] =~ /\G\s*/gsc;
+
+	if ($VRML::verbose::parse) {
+		my ($package, $filename, $line) = caller;
+		print "VRML::Field::SFNode::parse: ",
+			(pos $_[2]), " ",
+				length $_[2], " from $package, $line\n";
+	}
+
+	$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],"didn't match for sfnode fword");
+
+	my $nt = $1;
+	if($nt eq "NULL") {
+		return "NULL";
+	}
+	my $vrmlname;
+	my $is_name;
+	my $p;
+	my $rep_field;
+	my $field_counter = 1;
+
+
+	if($nt eq "DEF") {
+		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
+			"DEF must be followed by a defname");
+
+		# store this as a sequence number, because multiple DEFS of the same name
+		# must be unique. (see the spec)
+		$vrmlname = $1;
+		VRML::Handles::def_reserve($vrmlname, "DEF$LASTDEF");
+		$LASTDEF++;
+		my $defname = VRML::Handles::return_def_name($vrmlname);
+		print "Parser.pm: DEF $vrmlname as $defname\n"
+			if $VRML::verbose::parse;
+
+		my $node = VRML::Field::SFNode->parse($scene, $_[2],$parentField);
+		print "DEF - node $defname is $node \n" if  $VRML::verbose::parse;
+
+		return $scene->new_def($defname, $node, $vrmlname);
+
+	}
+	if($nt eq "USE") {
+		$_[2] =~ /\G\s*($Word)/ogsc or parsefail($_[2],
+			"USE must be followed by a defname");
+
+		$vrmlname = $1;
+		# is is already DEF'd???
+		my $dn = VRML::Handles::return_def_name($vrmlname);
+        	if(!defined $dn) {
+			VRML::VRMLFunc::ConsoleMessage( "USE name $vrmlname not DEFined yet\n");
+			goto PARSE_EXIT;
+		}
+
+		print "USE $dn\n"
+			if $VRML::verbose::parse;
+		return $scene->new_use($dn);
+	}
+	if($nt eq "Script") {
+		print "SCRIPT!\n"
+			if $VRML::verbose::parse;
+		return VRML::Parser::parse_script($scene,$_[2]);
+	}
+
+	# verify that this node is ok for the parent field type.
+	# my ($package, $filename, $line) = caller;
+	# print "--- sub parse, nt $nt parentfield $parentField from $package, $line\n";
+	if ($parentField eq "") {
+		my ($package, $filename, $line) = caller;
+		print "VRML::Field::SFNode::parse: null parentField  ",
+			(pos $_[2]), " ",
+				length $_[2], " from $package, $line\n";
+	} else {
+		# is this a switch choice?
+		if ($parentField eq "choice") {$parentField = "children";}
+
+		# is this a LOD level?
+		if ($parentField eq "level") {$parentField = "children";}
+
+		# is this a PROTO? All valid children fields should work for proto top nodes.
+		# see below... JAS #if ($parentField eq "protoTop") {$parentField = "children";}
+
+		if ($VRML::Nodes::{$parentField}{$nt}) {
+		        #print "node $nt is ok for a parentField of $parentField\n";
+		} else {
+			my $okPROTO = 0;
+
+			# is this a proto?
+			my $prot = $scene->get_proto($nt);
+			if (defined $prot) {
+				my $nodeszero = $prot->{Nodes}[0];
+				my $firstchild=$nodeszero->{Fields}{children}[0];
+
+				# we have the first child; resolve the def if required.
+				if (ref $firstchild eq "VRML::DEF") {
+					$firstchild = $firstchild->real_node();
+				}
+
+				my $childtype = $firstchild->{Type}{Name};
+
+				#print "and, first chid of nodeszero is $firstchild\n";
+				#print "and, first chid of nodeszero TYPE is ",$childtype,"\n";
+
+				if ($VRML::Nodes::{$parentField}{$childtype}) {
+					#print "child type $childtype IS OK! for $parentField\n";
+					$okPROTO=1;
+				}
+			}
+
+			# is this a proto top field? If so, just accept it, as when the
+			# proto is used, the first node will get type checked.
+			if ($parentField eq "protoTop") {
+				$okPROTO = 1;
+			}
+
+
+			# nope, it failed even the PROTO tests.
+			if ($okPROTO == 0) {
+				my ($package, $filename, $line) = caller;
+        			VRML::VRMLFunc::ConsoleMessage("WARNING -- node $nt may not be ok as a ".
+					"field of type $parentField\n(...called from $package, $line)");
+			}
+		}
+	}
+
+
+	my $proto;
+	$p = pos $_[2];
+
+	my $no = $VRML::Nodes{$nt};
+	## look in PROTOs that have already been processed
+	if (!defined $no) {
+		$no = $scene->get_proto($nt);
+		print "PROTO? '$no'\n"
+			if $VRML::verbose::parse;
+	}
+
+	## next, let's try looking for EXTERNPROTOs in the file
+	if (!defined $no) {
+		## return to the beginning
+		pos $_[2] = 0;
+		VRML::Parser::parse_externproto($scene, $_[2], $nt);
+
+		## reset position and try looking for PROTO nodes again
+		pos $_[2] = $p;
+		$no = $scene->get_proto($nt);
+		print "PROTO? '$no'\n"
+			if $VRML::verbose::parse;
+	}
+
+	if (!defined $no) {
+		parsefail($_[2],"Invalid node '$nt'");
+	}
+
+	$proto=1;
+	print "Match: '$nt'\n"
+		if $VRML::verbose::parse;
+
+	$_[2] =~ /\G\s*{\s*/gsc or parsefail($_[2],"didn't match brace!\n");
+	my $isscript = ($nt eq "Script");
+	my %f;
+	while(1) {
+		while(VRML::Parser::parse_statement($scene,$_[2],1,$parentField)
+			!= -1) {}; # check for PROTO & co
+		last if ($_[2] =~ /\G\s*}\s*/gsc);
+		print "Pos: ",(pos $_[2]),"\n"
+			if $VRML::verbose::parse;
+		# Apparently, some people use it :(
+		$_[2] =~ /\G\s*,\s*/gsc and parsewarnstd($_[2], "Comma not really right");
+
+		$_[2] =~ /\G\s*($Word)\s*/gsc or parsefail($_[2],"Node body","field name not found");
+		print "FIELD: '$1'\n"
+			if $VRML::verbose::parse;
+
+		my $f = VRML::Parser::parse_exposedField($1, $no);
+		my $ft = $no->{FieldTypes}{$f};
+		print "FT: $ft\n"
+			if $VRML::verbose::parse;
+		if(!defined $ft) {
+			my $em = "Invalid field '$f' for node '$nt'\n";
+			$em = $em. "Possible fields are: ";
+			foreach (keys % {$no->{FieldTypes}}) {
+				if (index($_,"_") !=0) {$em= $em. "$_ ";}
+			}
+			$em = $em. "\n";
+
+			VRML::VRMLFunc::ConsoleMessage ($em);
+			goto PARSE_EXIT;
+		}
+
+		# the following lines return something like:
+		# 	Storing values... SFInt32 for node VNetInfo, f port
+		#       storing type 2, port, (8888)
+
+		print "Storing values... $ft for node $nt, f $f\n"
+			 if $VRML::verbose::parse;
+
+		if($_[2] =~ /\G\s*IS\s+($Word)/gsc) {
+			$is_name = $1;
+
+			# Allow multiple IS statements for a single field in a node in
+			# a prototype definition.
+			# Prepending digits to the field name should be safe, since legal
+			# VRML names may not begin with numerical characters.
+			#
+			# See NIST test Misc, PROTO, #19 (30eventouts.wrl) as example.
+			if (exists $f{$f}) {
+				$rep_field = ++$field_counter.$f;
+				print "VRML::Field::SFNode::parse: an IS for $ft $f exists, try $rep_field.\n"
+					if $VRML::verbose::parse;
+				$no->{FieldTypes}{$rep_field} = $no->{FieldTypes}{$f};
+				$no->{FieldKinds}{$rep_field} = $no->{FieldKinds}{$f};
+				$no->{Defaults}{$rep_field} = $no->{Defaults}{$f};
+
+				if (exists $no->{EventIns}{$f}) {
+					$no->{EventIns}{$rep_field} = $rep_field;
+				}
+
+				if (exists $no->{EventOuts}{$f}) {
+					$no->{EventOuts}{$rep_field} = $rep_field;
+				}
+
+				$f{$rep_field} = $scene->new_is($is_name, $rep_field);
+			} else {
+				$f{$f} = $scene->new_is($is_name, $f);
+			}
+			print "storing type 1, $f, (name ",
+				VRML::Debug::toString($f{$f}), ")\n"
+						if $VRML::verbose::parse;
+		} else {
+			$f{$f} = "VRML::Field::$ft"->parse($scene,$_[2],$f);
+				print "storing type 2, $f, (",
+					VRML::NodeIntern::dump_name($f{$f}), ")\n"
+						if $VRML::verbose::parse;
+		}
+	}
+	print "END\n"
+		if $VRML::verbose::parse;
+	return $scene->new_node($nt, \%f);
+}
+
+
+sub print {
+	my($typ, $this) = @_;
+	if($this->{Type}{Name} eq "DEF") {
+		print "DEF $this->{Fields}{id} ";
+		$this->{Type}{Fields}{node}->print($this->{Fields}{node});
+		return;
+	}
+	if($this->{Type}{Name} eq "USE") {
+		print "USE $this->{Fields}{id} ";
+		return;
+	}
+	print "$this->{Type}{Name} {";
+	for(keys %{$this->{Fields}}) {
+		print "$_ ";
+		$this->{Type}{Fields}{$_}->print($this->{Fields}{$_});
+		print "\n";
+	}
+	print "}\n";
+}
 
 ###########################################################
 package VRML::Field::SFImage;

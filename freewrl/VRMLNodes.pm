@@ -204,6 +204,73 @@ my $protono;
 	TriangleStripSet
         /;
 
+# nodes that are valid at the top; not all children nodes
+# can reside at the top of the scenegraph.
+%VRML::Nodes::topNodes = map {($_=>1)} qw/
+	GeoOrigin
+	Contour2D
+	NurbsTextureCoordinate
+	Fog
+	GeoViewpoint
+	NavigationInfo
+	Viewpoint
+	Background
+	TextureBackground
+	Inline
+	StaticGroup
+	Anchor
+	Billboard
+	Collision
+	EspduTransform
+	GeoLocation
+	GeoLOD
+	Group
+	HAnimJoint
+	HAnimSegment
+	HAnimSite
+	LOD
+	Switch
+	Transform
+	NurbsSet
+	NurbsOrientationInterpolator
+	NurbsPositionInterpolator
+	NurbsSurfaceInterpolator
+	HanimHumanoid
+	ReceiverPdu
+	SignalPdu
+	TransmitterPdu
+	ColorInterpolator
+	CoordinateInterpolator
+	CoordinateInterpolator2D
+	GeoPositionInterpolator
+	NormalInterpolator
+	OrientationInterpolator
+	PositionInterpolator
+	PositionInterpolator2D
+	ScalarInterpolator
+	DirectionalLight
+	PointLight
+	SpotLight
+	Script
+	TimeSensor
+	Collision
+	ProximitySensor
+	VisibilitySensor
+	KeySensor
+	StringSensor
+	LoadSensor
+	CylinderSensor
+	PlaneSensor
+	SphereSensor
+	GeoTouchSensor
+	TouchSensor
+	Sound
+	TimeSensor
+	BooleanFilter
+	BooleanToggle
+	GeoMetadata
+	WorldInfo
+        /;
 
 # nodes that are valid children fields. Check out the X3DChildNode
 # section of:
@@ -293,7 +360,7 @@ my $protono;
 	Material
         /;
 
-#nodes that are valid color fields.
+#nodes that are valid X3DColorNode color fields.
 %VRML::Nodes::color = map {($_=>1)} qw/
 	Color
 	ColorRGBA
@@ -330,6 +397,8 @@ my $protono;
 %VRML::Nodes::skipthese = map {($_=>1)} qw/
 	X3D
 	Metadata
+	MetadataDouble
+	MetadataInteger
 	MetadataString
 	MetadataFloat
 	MetadataSet
@@ -514,10 +583,25 @@ my $protono;
 	new VRML::NodeType("Coordinate",
 					   { point => [MFVec3f, [], exposedField] }
 					  ),
+
+	#X3DColorNode###############
 	Color =>
 	new VRML::NodeType("Color",
-					   { color => [MFColor, [], exposedField] }
+					   { 
+						color => [MFColor, [], exposedField],
+						__isRGBA => [SFBool, 0, field] 
+					   }
 					  ),
+	ColorRGBA =>
+	new VRML::NodeType("ColorRGBA",
+					   { 
+						color => [MFColorRGBA, [], exposedField],
+						__isRGBA => [SFBool, 1, field] 
+					   }
+					  ),
+	#############################
+
+
 	Normal =>
 	new VRML::NodeType("Normal",
 					   { vector => [MFVec3f, [], exposedField] }

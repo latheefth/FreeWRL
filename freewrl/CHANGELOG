@@ -1,4 +1,6 @@
 For 1.13:
+	- Now use freely distributable font files. See the README in the
+	  fonts directory.
 
 	- EXTERNPROTOS can now reference PROTOS in the Extern'd file.
 
@@ -13,3 +15,8 @@ For 1.13:
 	- revised error messages where some field values are incorrect;
 	  eg, putting a TextureCoord as a coord field of an IndexedFaceSet
 	  now displays a more informative message.
+
+	- now attempts to build on 64 bit athalon processors.
+
+	- ColorRGBA nodes supported for IndexedFaceSet, and equiv. NOT
+	  supported in scripting/eai yet.
