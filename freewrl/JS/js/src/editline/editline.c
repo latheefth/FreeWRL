@@ -149,17 +149,22 @@ int		rl_meta_chars = 0;
 **  Declarations.
 */
 STATIC CHAR	*editinput();
-#ifndef __APPLE__
+
+
+/* these should be in /usr/include/unistd.h - JAS */
+
+#ifndef read
 extern int	read();
-extern int	write();
-#else
-extern ssize_t read();
-extern ssize_t write();
 #endif
+#ifndef write
+extern int	write();
+#endif
+
 #if	defined(USE_TERMCAP)
 extern char	*getenv();
 extern char	*tgetstr();
 extern int	tgetent();
+
 #endif	/* defined(USE_TERMCAP) */
 
 /*
