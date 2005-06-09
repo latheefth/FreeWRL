@@ -1136,10 +1136,10 @@ void __pt_doStringUrl () {
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {
-		 printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
-			psp.retarr, retval);  
+		 /*printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
+			psp.retarr, retval);   */
 		for (count = 0; count < retval; count ++) {
-			printf ("	...saving %d in %d\n",myretarr[count],count); 
+			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
 			psp.retarr[count] = myretarr[count];
 		}
 		psp.retarrsize = retval;

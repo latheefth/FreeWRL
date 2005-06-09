@@ -1,4 +1,2 @@
-EAI=../../java/classes
-
-freewrl --eai root.wrl &
-appletviewer -J-classpath -J$EAI -J-Djava.security.policy="$EAI/java.policy" add-remove1.html
+freewrl 1.wrl --eai &
+java  EAIExample
