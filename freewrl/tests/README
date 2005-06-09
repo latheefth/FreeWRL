@@ -77,12 +77,12 @@ Notes:
         up. Stripes should appear, left to right, as dark red, dark
         green, dark blue, black, dark cyan and white.
 
-30.wrl: A noodle drain.
+30.wrl: An IndexedFaceSet with RGBA Color nodes.
 
 31.wrl: A set of "camera" like objects. Uses a DEF'd Inline node which has
         "camera.wrl" as url.
 
-32.wrl: Contains 30.wrl and 31.wrl.
+32.wrl: Contains "cameras" and a "common kitchen utensil".
 
 33.wrl: A "big" transparent set of Cones. Shows sorting of nodes,
 	and rendering of transparency.
