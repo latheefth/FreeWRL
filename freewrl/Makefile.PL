@@ -76,7 +76,7 @@ print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.
 
 my $sitearchjsdir = "\$(INSTALLPRIVLIB)/auto/VRML/JS";
 
-my $jsdir = "js/src";
+my $jsdir = "js1.5/src";
 my $jsobjdir;
 my $BUILD_OPT;
 
