@@ -53,7 +53,21 @@ use Cwd qw(getcwd chdir);
 if ($OS eq "Darwin") {
 	require './vrml.conf.aqua';
 } else {
-	require './vrml.conf';
+
+	# what Architecture are we running under on a non-Apple machine?
+	my $ARCH = `arch`;
+
+	# remove whitespace at beginning and end.
+	$ARCH =~ s/\s+$//;
+	$ARCH =~ s/^\s+//;
+
+	if ($ARCH eq "x86_64") {
+		# 64 bit architecture.
+		require './vrml.conf.x86_64';
+	} else {
+		# standard 32 bit architecture
+		require './vrml.conf';
+	}
 }
 %VRML_CONFIG_DIST = %VRML_CONFIG;
 
