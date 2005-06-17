@@ -23,7 +23,8 @@ rm Viewer.pm
 rm Quaternion.pm
 rm VRMLServ.pm
 rm lastcvscheckin
-rm -r JS/js/Linux_All_DBG.OBJ
+rm -r JS/js
+rm -r JS/js1.5/Linux_All_DBG.OBJ
 rm -r Plugin/mozilla
 rm -r nodes/
 rm -r speed/

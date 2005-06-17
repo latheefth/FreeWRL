@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.49  2005/06/17 21:15:09  crc_canada
+# Javascript: MFTime, MF* routing, and script-to-script routing.
+#
 # Revision 1.48  2005/06/09 14:52:49  crc_canada
 # ColorRGBA nodes supported.
 #
@@ -213,6 +216,7 @@
 	SFColorRGBA
 	MFColorRGBA
 	SFTime
+	MFTime
 	SFString
 	MFString
 	SFVec2f
@@ -722,6 +726,10 @@ sub parse {
 
 
 ###########################################################
+package VRML::Field::MFTime;
+@ISA=VRML::Field::MFFloat;
+
+###########################################################
 package VRML::Field::MFVec3f;
 @ISA=VRML::Field::Multi;
 
@@ -772,7 +780,7 @@ sub parse {
 	my($type,$p) = @_;
 	if($_[2] =~ /\G\s*\[\s*/gsc) {
 		$_[2] =~ /\G([^\]]*)\]/gsc or
-		 VRML::Error::parsefail($_[2],"unterminated MFFloat");
+		 VRML::Error::parsefail($_[2],"unterminated MFFInt32");
 		my $a = $1;
 		$a =~ s/^\s*//s;
 		$a =~ s/\s*$//s;
@@ -828,7 +836,7 @@ sub clength {
 	if ($r eq "Int32") {return -16;}	# signal that a clength -16 is a Multi_Int32 for CRoutes
 	if ($r eq "Color") {return -17;}	# signal that a clength -1  is a Multi_Color for CRoutes
 	if ($r eq "Vec2f") {return -18;}	# signal that a clength -18 is a Multi_Vec2f for CRoutes
-	if ($r eq "Vec3f") {return -1;} 	# signal that a clength -1  is a Multi_Vec3f for CRoutes
+	if ($r eq "Vec3f") {return -19;} 	# signal that a clength -19  is a Multi_Vec3f for CRoutes
 	if ($r eq "Node") {return -10;} 	# signal that a clength -10 is a Multi_Node for CRoutes
 
 	print "clength struct not handled Multi_$r $_[1]\n";

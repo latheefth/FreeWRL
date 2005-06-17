@@ -387,7 +387,7 @@ int get_touched_flag (int fptr, int actualscript) {
 		complex_name = TRUE;
 		break;
 		}
-	case MFCOLOR: case MFROTATION: case MFNODE: case MFVEC2F: {
+	case MFCOLOR: case MFROTATION: case MFNODE: case MFVEC2F: case MFVEC3F: {
 		strcpy (tmethod,"__touched_flag");
 		touched_Multi = TRUE;
 		complex_name = TRUE;
@@ -401,7 +401,7 @@ int get_touched_flag (int fptr, int actualscript) {
 		break;
 		}
 
-	case SFCOLOR:
+	case SFCOLOR: case SFVEC3F:
 	case SFNODE: case SFROTATION: case SFVEC2F: {
 		if (complex_name) strcpy (tmethod,"__touched()");
 		else sprintf (tmethod, "%s.__touched()",fullname);
@@ -502,6 +502,7 @@ int get_touched_flag (int fptr, int actualscript) {
 			} else {
 				/* printf ("first element %d is %d\n",count,vp); */
 				switch (JSparamnames[fptr].type) {
+				  case MFVEC3F:
 				  case MFCOLOR: {
 					if (!(SFColorTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFColor/MFVec3f\n");
@@ -1002,9 +1003,9 @@ void AddRemoveChildren (
 /*  "Float" {return -14;}        				*/
 /*  "Rotation" {return -15;}     				*/
 /*  "Int32" {return -16;}        				*/
-/*  "Color" {return -17;}        				*/
+/*  "Color" {return -1;}        				*/
 /*  "Vec2f" {return -18;}        				*/
-/*  "Vec3f" {return -1;}         				*/
+/*  "Vec3f" {return -19;}         				*/
 /*  "Node" {return -10;}         				*/
 /****************************************************************/
 
@@ -1030,9 +1031,11 @@ void getCLASSMultNumType (char *buf, int bufSize,
 	  /*
 	  case SFVEC3F:
 	  case SFCOLOR:
+	 
 	  */
 	  case -1:
 	  case -17:
+	  case -19:
 	    elesize = sizeof(float)*3;
 	    break;	/* SFColor, SFVec3f */
 	  case -18: elesize = sizeof(float)*2; break;	/* SFVec2f */
@@ -1042,7 +1045,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 
 	len = bufSize / elesize;  /* convert Bytes into whatever */
 
-	if (CRVerbose)
+/*	if (CRVerbose) */
 		printf("getCLASSMultNumType: bufSize:%d, eletype:%d, allocated: %d, elesize: %d.\n",
 	       bufSize,eletype, tn->n, elesize);
 
@@ -1105,6 +1108,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	char *strp;
 	int elesize;
 
+
 	/* get size of each element, used for mallocing memory */
 	if (eletype == 0) elesize = sizeof (int);		/* integer */
 	else if (eletype == 5) elesize = sizeof (double);	/* doubles. */
@@ -1116,14 +1120,14 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		return;
 	}
 
-	/*printf ("getmultielementtypestart, tn %d %#x dest has  %d size %d\n",tn,tn,eletype, elesize); */
+	/* printf ("getmultielementtypestart, tn %d %#x dest has  %d size %d\n",tn,tn,eletype, elesize); */
 
 	if (!JS_GetProperty(cx, (JSObject *)global_return_val, "length", &mainElement)) {
 		printf ("JS_GetProperty failed for \"length\" in getJSMultiNumType\n");
 		return;
 	}
 	len = JSVAL_TO_INT(mainElement);
-	/* printf ("getmuiltie length of grv is %d old len is %d\n",len,tn->n); */
+	/* printf ("getmuiltie length of grv is %d old len is %d\n",len,tn->n);  */
 
 	/* do we have to realloc memory? */
 	if (len != tn->n) {
@@ -1131,6 +1135,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 		/* yep... */
 			/* printf ("old pointer %d\n",tn->p); */
 		if (tn->p != NULL) free (tn->p);
+		if (CRVerbose) printf ("mallocing memory for elesize %d len %d\n",elesize,len);
 		tn->p = (struct SFColor *)malloc ((unsigned)(elesize*len));
 		if (tn->p == NULL) {
 			printf ("can not malloc memory in getJSMultiNumType\n");
@@ -1152,7 +1157,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
                 _tmpStr = JS_ValueToString(cx, mainElement);
 		strp = JS_GetStringBytes(_tmpStr);
-                /* printf ("sub element %d is %s as a string\n",i,strp); */
+                /* printf ("sub element %d is %s as a string\n",i,strp);  */
 
 		switch (eletype) {
 		case 0: { sscanf(strp,"%d",il); il++; break;}
@@ -1407,28 +1412,50 @@ void setMFElementtype (int num) {
 	float *fp;
 	int *ip;
 	double *dp;
+	struct Multi_Node *mfp;
+
+	/* for MFStrings we have: */
+	char *chptr;
+	STRLEN xx;
+	SV **ptr;
 
 	JSContext *_context;
 	JSObject *_globalObj;
 
-	if (CRVerbose) printf("------------BEGIN setMFElementtype ---------------\n");
+	if (JSVerbose) printf("------------BEGIN setMFElementtype ---------------\n");
 
 	fn = (int) CRoutes[num].fromnode;
 	fptr = (int) CRoutes[num].fnptr;
 	pptr = fn + fptr;
 	len = CRoutes[num].len;
 
+	/* is this from a MFElementType? */
+	if (len <= 0) {
+		if (JSVerbose) printf ("len of %d means that this is a MF type\n",len);
+		mfp = (struct Multi_Node *) pptr;
+
+		/* check Multimemcpy for C to C routing for this type */
+		/* get the number of elements */
+		len = mfp->n;  
+		pptr = mfp->p;
+		if (JSVerbose) printf ("setMFElementtype, len now %d, from %d\n",len,fn);
+	}
+
+		
+
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = (int) to_ptr->node;
 		tptr = (int) to_ptr->foffset;
 
-		if (CRVerbose) {
+		if (JSVerbose) {
 			printf ("got a script event! index %d type %d\n",
 					num, CRoutes[num].direction_flag);
 			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,tptr);
+			printf ("\tfrom %d from ptr %d\n\tto %d toptr %d\n",fn,fptr,tn,tptr);
 			printf ("\tdata length %d\n",len);
-			printf ("and, sending it to %s\n",JSparamnames[tptr].name);
+			printf ("and, sending it to %s as type %d\n",JSparamnames[tptr].name,
+					JSparamnames[tptr].type);
 		}
 
 		/* get context and global object for this script */
@@ -1436,129 +1463,184 @@ void setMFElementtype (int num) {
 		_globalObj = (JSObject *)ScriptControl[tn].glob;
 
 		/* make up the name */
-		sprintf (scriptline,"%s(",JSparamnames[tptr].name);
 		switch (JSparamnames[tptr].type) {
+			case MFVEC3F: {
+				/*strcpy (scriptline,"xxy = new MFVec3f(new SFVec3f(1,2,3));printValue (xxy)");
+					break;*/
+				strcpy (scriptline, "xxy = new MFVec3f(");
+				elementlen = sizeof (float);
+				for (x=0; x<len; x++) {
+					fp = (float *)pptr;
+					sprintf (sline,"new SFVec3f (%f, ",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+
+					fp = (float *)pptr;
+					sprintf (sline,"%f, ",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+
+					fp = (float *)pptr;
+					sprintf (sline,"%f)",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+					if (x < (len-1)) 
+						strcat(scriptline,", ");
+				}
+				break;
+				}
 			case MFCOLOR: {
-					      strcat (scriptline, "new MFColor(");
-					      elementlen = sizeof (float) * 3;
-					      for (x=0; x<(len/elementlen); x++) {
-						      fp = (float *)pptr;
-						      sprintf (sline,"%f %f %f",*fp,
-								      *(fp+elementlen),
-								      *(fp+(elementlen*2)));
-						      if (x < ((len/elementlen)-1)) {
-							      strcat(sline,",");
-						      }
-						     pptr += elementlen;
-							strcat (scriptline,sline);
-					      }
-					      break;
-				      }
+				/*strcpy (scriptline,"xxy = new MFColor(new SFColor(1,2,3));printValue (xxy)");
+					break;*/
+				strcpy (scriptline, "xxy = new MFColor(");
+				elementlen = sizeof (float);
+				for (x=0; x<len; x++) {
+					fp = (float *)pptr;
+					sprintf (sline,"new SFColor (%f, ",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+
+					fp = (float *)pptr;
+					sprintf (sline,"%f, ",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+
+					fp = (float *)pptr;
+					sprintf (sline,"%f)",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+					if (x < (len-1)) 
+						strcat(scriptline,", ");
+				}
+				break;
+				}
 			case MFFLOAT: {
-					      strcat (scriptline, "new MFFloat(");
-					      elementlen = sizeof (float);
-					      for (x=0; x<(len/elementlen); x++) {
-						      fp = (float *)pptr;
-						      sprintf (sline,"%f",*fp);
-						      if (x < ((len/elementlen)-1)) {
-							      strcat(sline,",");
-						      }
-						     pptr += elementlen;
-						     strcat (scriptline,sline);
-					      }
-					      break;
-				      }
+				strcpy (scriptline, "xxy = new MFFloat(");
+				elementlen = sizeof (float);
+				for (x=0; x<len; x++) {
+					fp = (float *)pptr;
+					sprintf (sline,"%f",*fp);
+					if (x < (len-1)) {
+						strcat(sline,",");
+					}
+					pptr += elementlen;
+					strcat (scriptline,sline);
+				}
+				break;
+				}
 			case MFTIME:  {
-					      strcat (scriptline, "new MFTime(");
-					      elementlen = sizeof (double);
-					      for (x=0; x<(len/elementlen); x++) {
-						      dp = (double *)pptr;
-						      sprintf (sline,"%lf",*dp);
-						      if (x < ((len/elementlen)-1)) {
-							      strcat(sline,",");
-						      }
-						     pptr += elementlen;
-						     strcat (scriptline,sline);
-					      }
-					      break;
-				      }
+				strcpy (scriptline, "xxy = new MFTime(");
+				elementlen = sizeof (double);
+				for (x=0; x<len; x++) {
+					dp = (double *)pptr;
+					sprintf (sline,"%lf",*dp);
+					if (x < (len-1)) {
+						strcat(sline,",");
+					}
+					pptr += elementlen;
+					strcat (scriptline,sline);
+				}
+				break;
+				}
 			case SFIMAGE:	/* JAS - SFIMAGES are SFStrings in Perl, but an MFInt in Java */
 			case MFINT32: {
-					      strcat (scriptline, "new MFInt32(");
-					      elementlen = sizeof (int);
-					      for (x=0; x<(len/elementlen); x++) {
-						      ip = (int *)pptr;
-						      sprintf (sline,"%d",*ip);
-						      if (x < ((len/elementlen)-1)) {
-							      strcat(sline,",");
-						      }
-						     pptr += elementlen;
-							strcat (scriptline,sline);
-					      }
-					      break;
-				      }
+				strcpy (scriptline, "xxy = new MFInt32(");
+				elementlen = sizeof (int);
+				for (x=0; x<len; x++) {
+					ip = (int *)pptr;
+					sprintf (sline,"%d",*ip);
+					if (x < (len-1)) {
+						strcat(sline,",");
+					}
+					pptr += elementlen;
+						strcat (scriptline,sline);
+				}
+				break;
+				}
 			case MFSTRING:{
-					      strcat (scriptline, "new MFString(");
-					      elementlen = sizeof (float);
-					      printf ("ScriptAssign, MFString probably broken\n");
-					      for (x=0; x<(len/elementlen); x++) {
-						      fp = (float *)pptr;
-						      sprintf (sline,"%f",*fp);
-						      if (x < ((len/elementlen)-1)) {
-							      strcat(sline,",");
-						      }
-						     pptr += elementlen;
-							strcat (scriptline,sline);
-					      }
-					      break;
-				      }
+				strcpy (scriptline, "xxy = new MFString(");
+				ptr = (SV **) pptr;
+				for (x=0; x<len; x++) {
+
+					chptr = (char *)SvPV(ptr[x],xx);
+					/* printf ("string might be length %d: %s\n",xx,chptr); */
+					strcat (scriptline,"new String('");
+					strcat (scriptline,chptr);
+					strcat (scriptline,"')");
+					if (x < (len-1)) {
+						strcat (scriptline,",");
+					}
+					
+				}
+				break;
+				}
 			case MFNODE:  {
-					      strcat (scriptline, "new MFNode(");
-					      elementlen = sizeof (int);
-					      for (x=0; x<(len/elementlen); x++) {
-						      ip = (int *)pptr;
-						      sprintf (sline,"%u",*ip);
-						      if (x < ((len/elementlen)-1)) {
-							      strcat(sline,",");
-						      }
-						     pptr += elementlen;
-							strcat (scriptline,sline);
-					      }
-					      break;
-				      }
-			case MFROTATION: {	strcat (scriptline, "new MFRotation(");
-					      elementlen = sizeof (float)*4;
-					      for (x=0; x<(len/elementlen); x++) {
-						      fp = (float *)pptr;
-						      sprintf (sline,"%f %f %f %f",*fp,
-								*(fp+elementlen),
-								*(fp+(elementlen*2)),
-								*(fp+(elementlen*3)));
-						      sprintf (sline,"%f",*fp);
-						      if (x < ((len/elementlen)-1)) {
-							      strcat(sline,",");
-						      }
-						     pptr += elementlen;
-							strcat (scriptline,sline);
-					      }
-						 break;
-					 }
+				strcpy (scriptline, "xxy = new MFNode(");
+				elementlen = sizeof (int);
+				for (x=0; x<len; x++) {
+					ip = (int *)pptr;
+					sprintf (sline,"%u",*ip);
+					if (x < (len-1)) {
+						strcat(sline,",");
+					}
+					pptr += elementlen;
+						strcat (scriptline,sline);
+				}
+				break;
+				}
+			case MFROTATION: {	
+				strcpy (scriptline, "xxy = new MFRotation(");
+
+				elementlen = sizeof (float);
+				for (x=0; x<len; x++) {
+
+
+					fp = (float *)pptr;
+					sprintf (sline,"new SFRotation (%f, ",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+
+					fp = (float *)pptr;
+					sprintf (sline,"%f, ",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+
+					fp = (float *)pptr;
+					sprintf (sline,"%f, ",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+
+					fp = (float *)pptr;
+					sprintf (sline,"%f)",*fp);
+					pptr += elementlen;
+					strcat (scriptline,sline);
+					if (x < (len-1)) 
+						strcat(scriptline,", ");
+				}
+				break;
+				}
 			default: {
-					 printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
-					 strcat (scriptline,"(");
-				 }
+					printf ("setMFElement, SHOULD NOT DISPLAY THIS\n");
+					strcat (scriptline,"(");
+				}
 		}
 
 		/* convert these values to a jsval type */
-		strcat (scriptline,"))");
-		if (CRVerbose) printf("ScriptLine: %s\n",scriptline);
+		strcat (scriptline,");");
+		strcat (scriptline,JSparamnames[tptr].name);
+		strcat (scriptline,"(xxy);");
+
+/*
+		if (JSVerbose) 
+*/
+			printf("ScriptLine: %s\n",scriptline);
 
 		if (!ActualrunScript(tn,scriptline,&retval))
 			printf ("AR failed in setxx\n");
 
 
 	}
-	if (CRVerbose) printf("------------END setMFElementtype ---------------\n");
+	if (JSVerbose) printf("------------END setMFElementtype ---------------\n");
 }
 
 
@@ -1769,6 +1851,22 @@ void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len) {
     /* make up the name */
     sprintf (scriptline,"%s(",JSparamnames[tptr].name);
     switch (JSparamnames[tptr].type) {
+      case MFVEC3F: {
+	  strcat (scriptline, "new MFVec3f(");
+	  elementlen = sizeof (float) * 3;
+	  for (x=0; x<(len/elementlen); x++) {
+	      fp = (float *)pptr;
+	      sprintf (sline,"%f %f %f",*fp,
+		       *(fp+elementlen),
+		       *(fp+(elementlen*2)));
+	      if (x < ((len/elementlen)-1)) {
+		  strcat(sline,",");
+	      }
+	      pptr += elementlen;
+	      strcat (scriptline,sline);
+	  }
+	  break;
+      }
       case MFCOLOR: {
 	  strcat (scriptline, "new MFColor(");
 	  elementlen = sizeof (float) * 3;
@@ -1902,12 +2000,12 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 
 	struct Multi_Vec3f *mv3ffn, *mv3ftn;
 
-	/* printf ("Multimemcpy, copying structures %d %d type %d\n",tn,fn,multitype); */
+	if (CRVerbose) printf ("Multimemcpy, copying structures %d %d type %d\n",tn,fn,multitype); 
 
 	/* copy a complex (eg, a MF* node) node from one to the other
 	   the following types are currently found in VRMLNodes.pm -
 
-		 -1  is a Multi_Color or MultiVec3F
+		 -1  is a Multi_Color 
 		 -10 is a Multi_Node
 		 -12 is a SFImage
 		 -13 is a Multi_String
@@ -1915,6 +2013,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 		 -15 is a Multi_Rotation
 		 -16 is a Multi_Int32
 		 -18 is a Multi_Vec2f
+		 -19 is a Multi_Vec3f
 	*/
 
 	/* Multi_XXX nodes always consist of a count then a pointer - see
@@ -1930,17 +2029,19 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 	/* and the from and to sizes */
 	fromcount = mv3ffn->n;
 	tocount = mv3ftn->n;
+	if (CRVerbose) printf ("Multimemcpy, fromcount %d\n",fromcount);
 
 	/* get the structure length */
 	switch (multitype) {
 		case -1: {structlen = sizeof (struct SFColor); break; }
 		case -10: {structlen = sizeof (unsigned int); break; }
-		case -12: {structlen = sizeof (unsigned int); break; } /* this is broken in many, many ways */
+		case -12: {structlen = sizeof (unsigned int); break; } 
 		case -13: {structlen = sizeof (unsigned int); break; }
 		case -14: {structlen = sizeof (float); break; }
 		case -15: {structlen = sizeof (struct SFRotation); break;}
 		case -16: {structlen = sizeof (int); break;}
 		case -18: {structlen = sizeof (struct SFVec2f); break;}
+		case -19: {structlen = sizeof (struct SFColor); break;} /* This is actually SFVec3f - but no struct of this type */
 		default: {
 			printf("WARNING: Multimemcpy, don't handle type %d yet\n", multitype);
 			structlen=0;
@@ -1959,7 +2060,7 @@ void Multimemcpy (void *tn, void *fn, int multitype) {
 	/* tell the recipient how many elements are here */
 	mv3ftn->n = fromcount;
 
-	/*printf ("Multimemcpy, fromcount %d tocount %d fromptr %d toptr %d\n",fromcount,tocount,fromptr,toptr); */
+	if (CRVerbose) printf ("Multimemcpy, fromcount %d tocount %d fromptr %d toptr %d\n",fromcount,tocount,fromptr,toptr); 
 
 	/* and do the copy of the data */
 	memcpy (toptr,fromptr,structlen * fromcount);
@@ -2035,7 +2136,7 @@ int convert_typetoInt (char *type) {
 	/* first, convert the type to an integer value */
 	if (strncmp("SFBool",type,7) == 0) return SFBOOL;
 	else if (strncmp ("SFColor",type,7) == 0) return SFCOLOR;
-	else if (strncmp ("SFVec3f",type,7) == 0) return SFCOLOR; /*Colors and Vec3fs are same */
+	else if (strncmp ("SFVec3f",type,7) == 0) return SFVEC3F; 
 	else if (strncmp ("SFFloat",type,7) == 0) return SFFLOAT;
 	else if (strncmp ("SFTime",type,6) == 0) return SFTIME;
 	else if (strncmp ("SFInt32",type,6) == 0) return SFINT32;
@@ -2045,7 +2146,7 @@ int convert_typetoInt (char *type) {
 	else if (strncmp ("SFVec2f",type,6) == 0) return SFVEC2F;
 	else if (strncmp ("SFRotation",type,6) == 0) return SFROTATION;
 	else if (strncmp ("MFColor",type,7) == 0) return MFCOLOR;
-	else if (strncmp ("MFVec3f",type,7) == 0) return MFCOLOR; /*Colors and Vec3fs are same */
+	else if (strncmp ("MFVec3f",type,7) == 0) return MFVEC3F; 
 	else if (strncmp ("MFFloat",type,7) == 0) return MFFLOAT;
 	else if (strncmp ("MFTime",type,6) == 0) return MFTIME;
 	else if (strncmp ("MFInt32",type,6) == 0) return MFINT32;
@@ -2133,23 +2234,38 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	const char *token = " ";
 	CRnodeStruct *to_ptr = NULL;
 	unsigned int to_counter;
-	char *chptr;
+	struct Multi_Node *Mchptr;
+	void * chptr;
+
 	char buf[20];
 	unsigned ton, toof;		/* used to help determine duplicate routes */
 
 	/* is this a script to script route??? */
+	/* if so, we need an intermediate location for memory, as the values must
+	   be placed somewhere FROM the script node, to be found when sending TO
+	   the other script */
 	if (scrdir == SCRIPT_TO_SCRIPT) {
-		chptr = (char *)malloc (sizeof (char) * length);
-		/*  printf ("wwwwwoooowwww!!! script to script!! length %d\n",length); */
-		if (length > 0) {
-			sprintf (buf,"%d:0",(int) chptr);
-			CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
-			CRoutes_Register (adrem, (unsigned)chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
-			return;
+		if (length <= 0) {
+			/* this is of an unknown length - most likely a MF* field */
+
+			/* So, this is a Multi_Node, malloc it... */
+			Mchptr = (struct Multi_Node *)malloc (sizeof(struct Multi_Node)); 
+			chptr = (void *)Mchptr;
+
+			if (CRVerbose) printf ("hmmm - script to script, len %d ptr %d %x\n",
+				length,chptr,chptr);
+
+			Mchptr->n = 0; /* make it 0 nodes long */
+			Mchptr->p = 0; /* it has no memory mallocd here */
+			
 		} else {
-			printf ("CRoutes_Register, can't handle script to script with MF* nodes yet\n");
-			return;
+			/* this is just a block of memory, eg, it will hold an "SFInt32" */
+			chptr = malloc (sizeof (char) * length);
 		}
+		sprintf (buf,"%d:0",(int) chptr);
+		CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
+		CRoutes_Register (adrem, (unsigned)chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
+		return;
 	}
 
 	/* first time through, create minimum and maximum for insertion sorts */
@@ -2514,7 +2630,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
 			        strp = JS_GetStringBytes(strval);
 
-				if (JSVerbose)
+				if (JSVerbose) 
 					printf ("retval string is %s\n",strp);
 			}
 		}
@@ -2573,7 +2689,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
 				}
-
+				case SFVEC3F:
 				case SFCOLOR: {	/* SFColor */
 					sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
 					/* printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]); */
@@ -2594,6 +2710,7 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 
 					/* a series of Floats... */
+				case MFVEC3F:
 				case MFCOLOR: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),3); break;}
 				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),1); break;}
 				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),4); break;}
@@ -2608,7 +2725,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 				case MFINT32: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),0); break;}
 				case MFTIME: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),5); break;}
 
-				default: {	printf("WARNING: unhandled from type %s\n", FIELD_TYPE_STRING(JSparamnames[fptr].type));
+				default: {	printf("WARNING: unhandled from type (%d) %s\n", 
+					JSparamnames[fptr].type,FIELD_TYPE_STRING(JSparamnames[fptr].type));
 				printf (" -- string from javascript is %s\n",strp);
 				}
 				}
@@ -2766,7 +2884,7 @@ void sendJClassEventIn(int num, int fromoffset) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	/* printf ("sendJClassEventIn, num %d fromoffset %d\n",num,fromoffset); */
+	/* printf ("sendJClassEventIn, num %d fromoffset %d\n",num,fromoffset);  */
 
 	fn = (int) CRoutes[num].fromnode + (int) CRoutes[num].fnptr;
 	len = CRoutes[num].len;
@@ -2798,7 +2916,8 @@ this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
 void sendJScriptEventIn (int num, int fromoffset) {
-	/* printf ("CRoutes, sending ScriptEventIn to from offset %d\n",fromoffset);  */
+	if (JSVerbose) printf ("CRoutes, sending ScriptEventIn to from offset %d type %d\n",
+			fromoffset,JSparamnames[fromoffset].type);  
 
 	/* this script initialized yet? */
 	initializeScript(num, TRUE);
@@ -2818,11 +2937,13 @@ void sendJScriptEventIn (int num, int fromoffset) {
 		}
 	case SFCOLOR:
 	case SFVEC2F:
+	case SFVEC3F:
 	case SFROTATION: {
 		setMultiElementtype(num);
 		break;
 		}
 	case MFCOLOR:
+	case MFVEC3F:
 	case MFFLOAT:
 	case MFTIME:
 	case MFINT32:
@@ -2845,11 +2966,14 @@ void sendScriptEventIn(int num) {
 	CRnodeStruct *to_ptr = NULL;
 
 	if (JSVerbose)
-	  printf("----BEGIN-------\nsendScriptEventIn, num %d\n",num);
+	  printf("----BEGIN-------\nsendScriptEventIn, num %d direction %d\n",num,
+		CRoutes[num].direction_flag);
 
 	/* script value: 1: this is a from script route
 			 2: this is a to script route
-			 3: this is a from script to a script route */
+			 (3 = SCRIPT_TO_SCRIPT - this gets changed in to a FROM and a TO;
+			 check for SCRIPT_TO_SCRIPT in this file */
+
 	if (CRoutes[num].direction_flag == TO_SCRIPT) {
 		for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 			to_ptr = &(CRoutes[num].tonodes[to_counter]);
@@ -2874,10 +2998,8 @@ void sendScriptEventIn(int num) {
 				 }
 			}
 		}
-	} else if (CRoutes[num].direction_flag == SCRIPT_TO_SCRIPT) {
-		printf("WARNING: sendScriptEventIn, don't handle script to script routes yet\n");
 	} else {
-		if (CRVerbose) printf("Route ????\n");
+		if (JSVerbose) printf ("not a TO_SCRIPT value, ignoring this entry\n");
 	}
 	if (JSVerbose) printf("-----END-----\n");
 }

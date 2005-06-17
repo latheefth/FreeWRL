@@ -23,3 +23,6 @@ For 1.13:
 
 	- updated Javascript version - new Mozilla SpiderMonkey version
 	  is 1.5.
+
+	- Javascripting - MF nodes and script to script routing now is
+	  much better (may still be bugs, but it works for my tests)
