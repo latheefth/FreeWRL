@@ -44,6 +44,8 @@ public  class EAIinThread implements Runnable {
 	String	EVentreply;
 	String	REreply;
 	String	Stemp;
+	String EVTime;
+	double  evTime;
 
 	try {
 		EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
@@ -65,8 +67,10 @@ public  class EAIinThread implements Runnable {
 			// Loop here, processing incoming events
 			reply = EAIin.readLine();
 
-			if (reply != null) {
 			if (reply.equals("EV")) {
+				EVTime = EAIin.readLine();
+				evTime = Double.parseDouble(EVTime);
+				
 				EVentno = EAIin.readLine();
 				int eventno = Integer.parseInt(EVentno);
 				if (debug) System.out.println ("EAIinThread 3 reply is " + EVentno);
@@ -87,6 +91,8 @@ public  class EAIinThread implements Runnable {
 
 				mybrowser.Browser_RL_Async_send(EVentreply,eventno);
 			} else if (reply.equals("RE")) {
+				EVTime = EAIin.readLine();
+				evTime = Double.parseDouble(EVTime);
 
 				// This is the integer reply to the command... number...
 				EAItoBrowserPrintWriter.println(EAIin.readLine());
@@ -106,7 +112,6 @@ public  class EAIinThread implements Runnable {
 		}
 		if (debug) System.out.println ("EAIinThread closing stream");
 			mybrowser.close();
-	}
 	} catch (IOException e) {
 		//System.out.print ("error reiniting data input stream\n");
 	}

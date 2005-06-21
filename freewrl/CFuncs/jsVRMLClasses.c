@@ -447,6 +447,7 @@ doMFAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp, char *name) {
 
 
 	myv = INT_TO_JSVAL(1);
+
 	if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
 		printf(
 				"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
@@ -484,6 +485,7 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 		_index = JSVAL_TO_INT(id);
 
 		myv = INT_TO_JSVAL(1);
+
 		if (!JS_SetProperty(cx, obj, "__touched_flag", &myv)) {
 			printf( "JS_SetProperty failed for \"__touched_flag\" in doMFSetProperty.\n");
 			return JS_FALSE;
@@ -4442,7 +4444,7 @@ MFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	return _standardMFAssign (cx, obj, argc, argv, rval, &MFRotationClass,"MFRotationAssign");
 }
 
-
+/* MFStrings */
 JSBool
 MFStringAddProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 {

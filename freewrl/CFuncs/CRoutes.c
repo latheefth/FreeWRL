@@ -325,7 +325,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	mycx = (JSContext *) ScriptControl[actualscript].cx;
 	myname = JSparamnames[fptr].name;
-	if (JSVerbose)
+	if (JSVerbose) 
 		printf ("\nget_touched_flag, name %s script %d context %#x \n",myname,
 				actualscript,mycx);
 
@@ -416,20 +416,22 @@ int get_touched_flag (int fptr, int actualscript) {
 	}
 
 	/* get the property value, if we can */
-	/* printf ("getting property for fullname %s\n",fullname); */
+	if (CRVerbose) 
+	printf ("getting property for fullname %s\n",fullname);
 	if (!JS_GetProperty(mycx, (JSObject *) interpobj ,fullname,&retval)) {
-               	printf ("cant get property for %s\n",fullname);
+               	if (CRVerbose) printf ("cant get property for %s\n",fullname);
 		return FALSE;
         } else {
        	        strval = JS_ValueToString(mycx, retval);
                	strtouched = JS_GetStringBytes(strval);
-               	/*printf ("and get of actual property %d returns %s\n",retval,strtouched); */
+               	if (CRVerbose)  
+			printf ("and get of actual property %d returns %s\n",retval,strtouched); 
 
 		/* this can be undefined, as the associated route is created if there is a DEF
 		 node in the parameter list, and the function does not touch this node/field.
 		 if this is the case, just ignore it. */
 		if (strcmp("undefined",strtouched)==0) {
-			/* printf ("abnormal return here\n"); */
+			if (CRVerbose) printf ("abnormal return here\n");
 			return FALSE;
 		}
 
@@ -440,7 +442,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 	/*  Now, for the Touched (and thus the return) value */
 	if (touched_function) {
-		/* printf ("Function, have to run script\n"); */
+		if (CRVerbose) printf ("Function, have to run script\n"); 
 
 		if (!ActualrunScript(actualscript, tmethod ,&retval))
 			printf ("failed to get touched, line %s\n",tmethod);
@@ -476,6 +478,7 @@ int get_touched_flag (int fptr, int actualscript) {
 
 
 		jlen = JSVAL_TO_INT(_length_val);
+		if (CRVerbose) printf ("touched_Multi: jlen %d\n",jlen);
 		if (jlen>0) {
 			/* yeah! We don't have to go through each element!
 			set it to "0" for next time. */
@@ -487,11 +490,11 @@ int get_touched_flag (int fptr, int actualscript) {
 
 
 		if (!JS_GetProperty(mycx, (JSObject *) interpobj, "length", &_length_val)) {
-				fprintf(stderr, "JS_GetProperty failed for \"length\" in here.\n");
+				printf("JS_GetProperty failed for \"length\" in here.\n");
 				            return JS_FALSE;
             	}
 		jlen = JSVAL_TO_INT(_length_val);
-		/* printf ("length of object %d is %d\n",interpobj,jlen); */
+		if (CRVerbose) printf ("length of object %d is %d\n",interpobj,jlen); 
 
 
 
@@ -500,12 +503,13 @@ int get_touched_flag (int fptr, int actualscript) {
 			if (!JS_GetElement(mycx, (JSObject *) interpobj,
 				count, &vp)) { printf ("cant get element %d\n",count);
 			} else {
-				/* printf ("first element %d is %d\n",count,vp); */
+				if (CRVerbose) printf ("first element %d is %d\n",count,vp); 
 				switch (JSparamnames[fptr].type) {
 				  case MFVEC3F:
 				  case MFCOLOR: {
 					if (!(SFColorTouched( mycx, (JSObject *)vp, 0, 0, &tval)))
 						printf ("cant get touched for MFColor/MFVec3f\n");
+
 				     	break;
 					}
 				  case MFROTATION: {
@@ -523,29 +527,32 @@ int get_touched_flag (int fptr, int actualscript) {
 						printf ("cant get touched for MFVec2f\n");
 				     	break;
 					}
+				  default: printf ("WARNING, touched touched_Multi case problem for scripts\n");
 				}
 				touched += JSVAL_TO_INT(tval);
-				/* printf ("touched for %d is %d\n",count, JSVAL_TO_INT(tval)); */
+				if (CRVerbose) printf ("touched for %d is %d\n",count, JSVAL_TO_INT(tval)); 
 			}
 		}
 		return (touched != 0);
 	}
 
-	/* printf ("using touched method %s on %d %d\n",tmethod,ScriptControl[actualscript].cx,interpobj); */
+	if (JSVerbose) printf ("using touched method %s on %d %d\n",tmethod,ScriptControl[actualscript].cx,interpobj); 
 
 	if (!JS_GetProperty(mycx, (JSObject *) interpobj ,tmethod,&retval2)) {
               	printf ("cant get property for %s\n",tmethod);
 		return FALSE;
         } else {
-		/* 
+		 
        	        strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, retval2);
                	strtouched = JS_GetStringBytes(strval);
-               	printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
-		*/
+               	if (JSVerbose) printf ("and getproperty 3 %d returns %s\n",retval2,strtouched);
+		
 
 		if (JSVAL_IS_INT(retval2)) {
 			intval = JSVAL_TO_INT(retval2);
 		}
+
+		if (JSVerbose) printf ("and here, 3, going to compare %d to 0\n",intval);
 
 		/*  set it to 0 now. */
 		v = INT_TO_JSVAL(0);
@@ -791,11 +798,15 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 	}
 	*/
 
+	/* JAS 
 	myv = INT_TO_JSVAL(1);
+	printf ("b setting touched_flag for %d %d\n",cx,obj);
+
 	if (!JS_SetProperty(cx, obj, "__touched_flag", (jsval *)&myv)) {
 		fprintf(stderr,
 			"JS_SetProperty failed for \"__touched_flag\" in doMFAddProperty.\n");
 	}
+	*/
 }
 
 
@@ -1630,9 +1641,7 @@ void setMFElementtype (int num) {
 		strcat (scriptline,JSparamnames[tptr].name);
 		strcat (scriptline,"(xxy);");
 
-/*
 		if (JSVerbose) 
-*/
 			printf("ScriptLine: %s\n",scriptline);
 
 		if (!ActualrunScript(tn,scriptline,&retval))
@@ -2293,7 +2302,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		scripts_active = TRUE;
 	}
 
-	if (CRVerbose) 
+	if (CRVerbose)  
 		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
 				from, fromoffset, to_count, tonode_str, length, (unsigned)intptr);
 
@@ -2457,7 +2466,7 @@ void mark_event (unsigned int from, unsigned int totalptr) {
 
 	findit = 1;
 
-	if (CRVerbose)
+	if (CRVerbose) 
 		printf ("\nmark_event, from %u fromoffset %u\n", from, totalptr);
 
 	/* events in the routing table are sorted by fromnode. Find
@@ -2621,16 +2630,17 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
-			if (CRVerbose)
+			if (CRVerbose) 
 				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			touched_flag = get_touched_flag(fptr,actualscript);
 
 			if (touched_flag) {
+				if (CRVerbose) printf ("got TRUE touched_flag\n");
 				/* we did, so get the value */
 				strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
 			        strp = JS_GetStringBytes(strval);
 
-				if (JSVerbose) 
+				if (CRVerbose) 
 					printf ("retval string is %s\n",strp);
 			}
 		}
