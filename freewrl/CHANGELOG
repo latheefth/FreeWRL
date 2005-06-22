@@ -26,3 +26,8 @@ For 1.13:
 
 	- Javascripting - MF nodes and script to script routing now is
 	  much better (may still be bugs, but it works for my tests)
+
+	- EAI code changed so that the current Browser timestamp is
+	  delivered to the EAI side of things. Right now, the EAI
+	  java code (EAIinThread.java) reads and parses this time 
+	  value, but does not do anything with it.
