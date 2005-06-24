@@ -1143,7 +1143,7 @@ void __pt_doStringUrl () {
 		retval = _pt_CreateVrml("URL",psp.inp,(unsigned long int *)myretarr);
 	}
 
-printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr);
+	/* printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr); */
 
 
 	/* copy the returned nodes to the caller */

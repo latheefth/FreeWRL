@@ -110,7 +110,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	char * nameptr;
 	STRLEN len;
 
-	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); */
+	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value);  */
 
 	if (nodetype == BACKGROUND) {
 		bg = (struct VRML_Background *) node;
@@ -180,27 +180,33 @@ void send_bind_to(int nodetype, void *node, int value) {
 void bind_node (void *node, unsigned int setBindofst,
 			int isboundofst, int *tos, unsigned int *stack) {
 
-	char *oldstacktop;
-	char *newstacktop;
-	void *nst;			/* used for pointer maths */
+	unsigned long int *oldstacktop;
+	unsigned long int *newstacktop;
+	char *nst;			/* used for pointer maths */
 	unsigned int *setBindptr;	/* this nodes setBind */
 	unsigned int *isBoundptr;	/* this nodes isBound */
 	char *oldboundptr;	/* previous nodes isBound */
 
-	char * tmpnode;
+	
 	/* setup some variables. Use char * as a pointer as it is ok between 32
 	   and 64 bit systems for a pointer arithmetic. */
-	tmpnode = (char *)node;
-	tmpnode += setBindofst;
-	setBindptr = (unsigned int *)tmpnode;
+	nst = (char *)node;
+	nst += setBindofst;
+	setBindptr = (unsigned int *)nst;
 
-	tmpnode = (char *)node;
-	tmpnode += isboundofst;
-	isBoundptr = (unsigned int *) tmpnode;
+	nst = (char *)node;
+	nst += isboundofst;
+	isBoundptr = (unsigned int *) nst;
 
-	oldstacktop = (char *)stack + *tos;
+	if (*tos >=0) {oldstacktop = (unsigned long int *)stack + *tos;}
+	else oldstacktop = (unsigned long int *)stack;
 
-	/* printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr); */
+	/*
+	printf ("\nbind_node, node %d, set_bind %d tos %d\n",node,*setBindptr,*tos); 
+	printf ("stack %x, oldstacktop %x sizeof usint %x\n",stack, oldstacktop,
+			sizeof(unsigned int));
+	*/
+
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
 	   is not a new push or pop */
@@ -221,7 +227,10 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		/* set up pointers, increment stack */
 		*tos = *tos+1;
-		newstacktop = (char *)stack + *tos;
+		/* printf ("just incremented tos, ptr %d val %d\n",tos,*tos); */
+
+		newstacktop = (unsigned long int *)stack + *tos;
+		/* printf ("so, newstacktop is %x\n",newstacktop); */
 
 
 		/* save pointer to new top of stack */
@@ -232,6 +241,7 @@ void bind_node (void *node, unsigned int setBindofst,
 		   have to check for a different one, as if we are binding to the current
 		   Viewpoint, then we do NOT want to unbind it, if we do then the current
 		   top of stack Viewpoint is unbound! */
+		/* printf ("before if... *tos %d *oldstacktop %d *newstacktop %d\n",*tos, *oldstacktop, *newstacktop); */
 
 		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
@@ -256,7 +266,7 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		mark_event (node, (unsigned int) isboundofst);
 
-		/* printf ("old TOS is %d, we are %d\n",*oldstacktop, node); */
+		/* printf ("old TOS is %d, we are %d\n",*oldstacktop, node);  */
 		if ((unsigned int) node != *oldstacktop) return;
 
 		/* printf ("ok, we were TOS, setting %d to 0\n",node); */
@@ -266,8 +276,8 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		if (*tos >= 0) {
 			/* stack is not empty */
-			newstacktop = (char *) ((unsigned long int)stack + *tos);
-			/* printf ("   .... and we had a stack value; binding node %d\n",*newstacktop); */
+			newstacktop = (unsigned long int *) ((unsigned long int)stack + *tos);
+			/* printf ("   .... and we had a stack value; binding node %d\n",*newstacktop);  */
 
 			/* set the popped value of isBound to true */
 			isBoundptr = (unsigned int *) (*newstacktop + isboundofst);
