@@ -85,11 +85,11 @@ endif
 # Use the editline library to provide line-editing support.
 JS_EDITLINE = 1
 
-ifeq ($(CPU_ARCH),x86_64)
-# Use VA_COPY() standard macro on x86-64
-# FIXME: better use it everywhere
-OS_CFLAGS += -DHAVE_VA_COPY
-endif
+#JAS ifeq ($(CPU_ARCH),x86_64)
+#JAS # Use VA_COPY() standard macro on x86-64
+#JAS # FIXME: better use it everywhere
+#JAS OS_CFLAGS += -DHAVE_VA_COPY
+#JAS endif
 
 ifeq ($(CPU_ARCH),x86_64)
 # We need PIC code for shared libraries
