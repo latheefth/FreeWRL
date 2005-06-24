@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.50  2005/06/24 12:35:10  crc_canada
+# Changes to help with 64 bit compiles.
+#
 # Revision 1.49  2005/06/17 21:15:09  crc_canada
 # Javascript: MFTime, MF* routing, and script-to-script routing.
 #
@@ -222,6 +225,7 @@
 	SFVec2f
 	MFVec2f
 	SFImage
+	FreeWRLPTR
 /;
 
 ###########################################################
@@ -307,6 +311,29 @@ sub as_string { return sprintf("%f", $_[1]); }
 sub ctype {"double $_[1]"}
 sub clength {3} #for C routes. Keep in sync with getClen in VRMLC.pm.
 
+
+###########################################################
+package VRML::Field::FreeWRLPTR;
+@ISA=VRML::Field;
+VRML::Error->import;
+
+sub init { return 0; }
+
+sub parse {
+	my($type,$p,$s,$n) = @_;
+	$_[2] =~ /\G\s*($Integer)\b/ogsc
+		or parsefail($_[2],"not proper FreeWRLPTR");
+	return $1;
+}
+
+sub print {print " $_[1] "}
+sub as_string {$_[1]}
+
+sub ctype {return "void * $_[1]"}
+sub clength {8} #for C routes. Keep in sync with getClen in VRMLC.pm.
+sub cfunc {return "$_[1] = SvIV($_[2]);/*bb*/\n"}
+
+###########################################################
 ###########################################################
 package VRML::Field::SFInt32;
 @ISA=VRML::Field;

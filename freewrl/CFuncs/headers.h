@@ -174,13 +174,13 @@ int verify_scale(GLfloat *params);
 /* C routes */
 #define MAXJSVARIABLELENGTH 25	/* variable name length can be this long... */
 
-void mark_event (unsigned int from, unsigned int fromoffset);
+void mark_event (void *from, unsigned int fromoffset);
 
 /* saved rayhit and hyperhit */
 extern struct SFColor ray_save_posn, hyp_save_posn, hyp_save_norm;
 
 /* set a node to be sensitive */
-void setSensitive(void *ptr,int datanode,char *type);
+void setSensitive(void *ptr,void *datanode,char *type);
 
 /* bindable nodes */
 extern GLint viewport[];
@@ -304,7 +304,7 @@ int get_touched_flag(int fptr, int actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setMultiElementtype(int num);
 void Multimemcpy(void *tn, void *fn, int len);
-void CRoutes_Register(int adrem,        unsigned int from,
+void CRoutes_Register(int adrem,        void *from,
                                  int fromoffset,
                                  unsigned int to_count,
                                  char *tonode_str,
@@ -379,7 +379,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 
 
 
-extern int rootNode;
+extern void *rootNode;
 extern int isPerlParsing(void);
 extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
 extern int isTextureParsing(void);
@@ -513,7 +513,7 @@ char *EAI_GetValue (unsigned int uretval,
 void setCLASStype (int num);
 void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
 void processClassEvents(int scriptno, int startEntry, int endEntry);
-char *processThisClassEvent (unsigned int fn, int startEntry, int endEntry, char *buf);
+char *processThisClassEvent (void *fn, int startEntry, int endEntry, char *buf);
 int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen);
 void getCLASSMultNumType (char *buf, int bufSize,
 	struct Multi_Vec3f *tn,
@@ -529,7 +529,7 @@ void doBrowserAction (void);
 void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
-void addToNode (unsigned rc, unsigned newNode);
+void addToNode (void *rc,  void *newNode);
 /* added M. Ward Dec 13/04 */
 void make_text(struct VRML_Text *this_ );
 void make_elevationgrid(struct VRML_ElevationGrid *this_);
@@ -542,7 +542,7 @@ void zeroAllBindables(void);
 int freewrlSystem (char *string);
 
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-                        unsigned ptr, unsigned ofs, int *complete,
+                        void *ptr, unsigned ofs, int *complete,
                         int zeroBind);
 
 

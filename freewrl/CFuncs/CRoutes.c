@@ -42,7 +42,7 @@
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
 void AddRemoveChildren (struct VRML_Box *parent, struct Multi_Node *tn, int *nodelist, int len, int ar);
-void markScriptResults(int tn, int tptr, int route, int tonode);
+void markScriptResults(void * tn, int tptr, int route, void *tonode);
 void initializeScript(int num,int evIn);
 
 /*****************************************
@@ -142,12 +142,12 @@ struct CRjsnameStruct {
 };
 
 typedef struct _CRnodeStruct {
-	unsigned int node;
+	void *node;
 	unsigned int foffset;
 } CRnodeStruct;
 
 struct CRStruct {
-	unsigned int	fromnode;
+	void *	fromnode;
 	unsigned int	fnptr;
 	unsigned int tonode_count;
 	CRnodeStruct *tonodes;
@@ -203,10 +203,10 @@ int num_ClockEvents = 0;
    accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of
    the node types, eg, VRML_IndexedFaceSet  the first offset is for VRML_Virt :=)
 */
-void markScriptResults(int tn, int tptr, int route, int tonode) {
+void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 	if (tptr != 0) {
 		/* printf ("can update this node %d %d\n",tn,tptr); */
-		update_node((void *)tn);
+		update_node(tn);
 	} else {
 		/*printf ("skipping this node %d %d flag %d\n",tn,tptr,CRoutes[route].direction_flag); */
 	}
@@ -218,7 +218,7 @@ void markScriptResults(int tn, int tptr, int route, int tonode) {
 		/* this is an interpolator, call it */
 		CRoutesExtra = CRoutes[route].extra; /* in case the interp requires it... */
 		if (CRVerbose) printf ("script propagate_events. index %d is an interpolator\n",route);
-		CRoutes[route].interpptr((void *)(tonode));
+		CRoutes[route].interpptr(tonode);
 	}
 }
 
@@ -1375,42 +1375,52 @@ void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dat
 
 
 void setMultiElementtype (int num) {
-	int fn, fptr, tn, tptr;
-	int len;
+	void * fn;
+	void * tn;
+	unsigned int tptr, fptr;
+	unsigned int len;
 	unsigned int to_counter;
+
+	int indexPointer;
+
 	CRnodeStruct *to_ptr = NULL;
 
 	JSContext *_context;
 	JSObject *_globalObj;
 
-	fn = (int) CRoutes[num].fromnode;
-	fptr = (int) CRoutes[num].fnptr;
+	fn = CRoutes[num].fromnode;
+	fptr = CRoutes[num].fnptr;
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = (int) to_ptr->node;
-		tptr = (int) to_ptr->foffset;
+
+		/* the to_node should be a script number; it will be a small integer */
+		tn = to_ptr->node;
+		indexPointer = (int) tn;
+		tptr = to_ptr->foffset;
 
 		if (CRVerbose) {
 			printf ("got a script event! index %d type %d\n",
 					num, CRoutes[num].direction_flag);
-			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,tn,tptr);
+			printf ("\tfrom %#x from ptr %#x\n\tto %#x toptr %#x\n",fn,fptr,indexPointer,tptr);
 			printf ("\tdata length %d\n",len);
-			printf ("setMultiElementtype here tn %d tptr %d len %d\n",tn, tptr,len);
+			printf ("setMultiElementtype here indexPointer %d tptr %d len %d\n",indexPointer, tptr,len);
 		}
 
 		/* get context and global object for this script */
-		_context = (JSContext *) ScriptControl[tn].cx;
-		_globalObj = (JSObject *)ScriptControl[tn].glob;
+		_context = (JSContext *) ScriptControl[indexPointer].cx;
+		_globalObj = (JSObject *)ScriptControl[indexPointer].glob;
 		fn += fptr;
-		Set_one_MultiElementtype (tn, tptr, (void *)fn, (unsigned)len);
+		Set_one_MultiElementtype (indexPointer, tptr, fn, len);
 	}
 }
 
 
 void setMFElementtype (int num) {
-	int fn, fptr, tn, tptr;
+	void * fn;
+	void * tn;
+	unsigned int tptr, fptr;
 	int len;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
@@ -1419,7 +1429,7 @@ void setMFElementtype (int num) {
 	jsval retval;
 	int x;
 	int elementlen;
-	int pptr;
+	char *pptr;
 	float *fp;
 	int *ip;
 	double *dp;
@@ -1430,14 +1440,20 @@ void setMFElementtype (int num) {
 	STRLEN xx;
 	SV **ptr;
 
+	int indexPointer;
+
 	JSContext *_context;
 	JSObject *_globalObj;
 
 	if (JSVerbose) printf("------------BEGIN setMFElementtype ---------------\n");
 
-	fn = (int) CRoutes[num].fromnode;
-	fptr = (int) CRoutes[num].fnptr;
-	pptr = fn + fptr;
+	fn = CRoutes[num].fromnode;
+	fptr = CRoutes[num].fnptr;
+	
+	/* we can do arithmetic on character pointers; so we have to cast void *
+	   to char * here */
+	pptr = (char *)fn + fptr;
+
 	len = CRoutes[num].len;
 
 	/* is this from a MFElementType? */
@@ -1448,7 +1464,7 @@ void setMFElementtype (int num) {
 		/* check Multimemcpy for C to C routing for this type */
 		/* get the number of elements */
 		len = mfp->n;  
-		pptr = mfp->p;
+		pptr = (char *) mfp->p; /* pptr is a char * just for math stuff */
 		if (JSVerbose) printf ("setMFElementtype, len now %d, from %d\n",len,fn);
 	}
 
@@ -1456,8 +1472,9 @@ void setMFElementtype (int num) {
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = (int) to_ptr->node;
-		tptr = (int) to_ptr->foffset;
+		tn = to_ptr->node;
+		tptr = to_ptr->foffset;
+		indexPointer = (int) tn; /* tn should be a small int here - it is script # */
 
 		if (JSVerbose) {
 			printf ("got a script event! index %d type %d\n",
@@ -1470,8 +1487,8 @@ void setMFElementtype (int num) {
 		}
 
 		/* get context and global object for this script */
-		_context = (JSContext *) ScriptControl[tn].cx;
-		_globalObj = (JSObject *)ScriptControl[tn].glob;
+		_context = (JSContext *) ScriptControl[indexPointer].cx;
+		_globalObj = (JSObject *)ScriptControl[indexPointer].glob;
 
 		/* make up the name */
 		switch (JSparamnames[tptr].type) {
@@ -1644,7 +1661,7 @@ void setMFElementtype (int num) {
 		if (JSVerbose) 
 			printf("ScriptLine: %s\n",scriptline);
 
-		if (!ActualrunScript(tn,scriptline,&retval))
+		if (!ActualrunScript(indexPointer,scriptline,&retval))
 			printf ("AR failed in setxx\n");
 
 
@@ -2233,10 +2250,14 @@ Register a route in the routing table.
 ********************************************************************/
 
 
-void
-
-CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_count, char *tonode_str,
-				 int length, void *intptr, int scrdir, int extra)
+void CRoutes_Register(int adrem,        void *from,
+                                 int fromoffset,
+                                 unsigned int to_count,
+                                 char *tonode_str,
+                                 int length,
+                                 void *intptr,
+                                 int scrdir,
+                                 int extra)
 {
 	int insert_here, shifter;
 	char *buffer;
@@ -2247,7 +2268,8 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 	void * chptr;
 
 	char buf[20];
-	unsigned ton, toof;		/* used to help determine duplicate routes */
+	long unsigned toof;		/* used to help determine duplicate routes */
+	long unsigned toN;
 
 	/* is this a script to script route??? */
 	/* if so, we need an intermediate location for memory, as the values must
@@ -2273,7 +2295,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		}
 		sprintf (buf,"%d:0",(int) chptr);
 		CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
-		CRoutes_Register (adrem, (unsigned)chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
+		CRoutes_Register (adrem, chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
 		return;
 	}
 
@@ -2289,7 +2311,7 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		CRoutes[0].tonodes = NULL;
 		CRoutes[0].act = FALSE;
 		CRoutes[0].interpptr = 0;
-		CRoutes[1].fromnode = 0x8FFFFFFF;
+		CRoutes[1].fromnode = (char *) -1;
 		CRoutes[1].fnptr = 0x8FFFFFFF;
 		CRoutes[1].tonode_count = 0;
 		CRoutes[1].tonodes = NULL;
@@ -2330,8 +2352,8 @@ CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_c
 		(CRoutes[insert_here-1].tonodes!=0)) {
 
 		/* possible duplicate route */
-		sscanf (tonode_str, "%u:%u", &ton,&toof);
-		if ((ton == (CRoutes[insert_here-1].tonodes)->node) &&
+		sscanf (tonode_str, "%u:%u", &toN,&toof);
+		if ((toN == ((long unsigned)(CRoutes[insert_here-1].tonodes)->node)) &&
 			(toof == (CRoutes[insert_here-1].tonodes)->foffset)) {
 			/* this IS a duplicate, now, what to do? */
 
@@ -2459,7 +2481,7 @@ in the routing table that this node/offset triggered an event.
 
 ********************************************************************/
 
-void mark_event (unsigned int from, unsigned int totalptr) {
+void mark_event (void *from, unsigned int totalptr) {
 	int findit;
 
 	if (!CRoutes_Initiated) return;  /* no routes registered yet */
@@ -2572,7 +2594,9 @@ FIXME XXXXX =  can we do this without the string conversions?
 
 void gatherScriptEventOuts(int actualscript, int ignore) {
 	int route;
-	int fn, tn, fptr, tptr;
+	unsigned int fptr, tptr;
+	void * fn;
+ 	void * tn;
 	unsigned len;
 	float fl[0];	/* return float values */
 	double tval;
@@ -2598,8 +2622,10 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
-	while (CRoutes[route].fromnode<(unsigned)actualscript) route++;
-	while (CRoutes[route].fromnode == (unsigned)actualscript) {
+
+	/* compare as long unsigneds; should work in 64 bit environments */
+	while (((long unsigned) CRoutes[route].fromnode)<((long unsigned)actualscript)) route++;
+	while (((long unsigned)CRoutes[route].fromnode) == ((long unsigned)actualscript)) {
 		/* is this the same from node/field as before? */
 		if ((CRoutes[route].fromnode == CRoutes[route-1].fromnode) &&
 			(CRoutes[route].fnptr == CRoutes[route-1].fnptr) &&
@@ -2650,8 +2676,8 @@ void gatherScriptEventOuts(int actualscript, int ignore) {
 			/* get some easy to use pointers */
 			for (to_counter = 0; to_counter < CRoutes[route].tonode_count; to_counter++) {
 				to_ptr = &(CRoutes[route].tonodes[to_counter]);
-				tn = (int) to_ptr->node;
-				tptr = (int) to_ptr->foffset;
+				tn = to_ptr->node;
+				tptr = to_ptr->foffset;
 
 				if (JSVerbose) printf ("VALUE CHANGED! copy value and update %d\n",tn);
 
@@ -2767,9 +2793,11 @@ void gatherClassEventOuts (int script) {
 
 	/* routing table is ordered, so we can walk up to this script */
 	startEntry=1;
-	while (CRoutes[startEntry].fromnode<(unsigned)script) startEntry++;
+
+	/* do comparisons as unsigned long - should work in 64 bit environments */
+	while (((unsigned long)CRoutes[startEntry].fromnode)<((unsigned long)script)) startEntry++;
 	endEntry = startEntry;
-	while (CRoutes[endEntry].fromnode == (unsigned)script) endEntry++;
+	while (((unsigned long)CRoutes[endEntry].fromnode) == ((unsigned long)script)) endEntry++;
 	/* printf ("routing table entries to scan between: %d and %d\n", startEntry, endEntry); */
 
 	/* now, process received commands... */
@@ -2782,7 +2810,7 @@ void gatherClassEventOuts (int script) {
  * values along.
  */
 
-char *processThisClassEvent (unsigned int fn,
+char *processThisClassEvent (void *fn,
 		int startEntry, int endEntry, char *buf) {
 	int ctr;
 	char fieldName[MAXJSVARIABLELENGTH];
@@ -2790,12 +2818,14 @@ char *processThisClassEvent (unsigned int fn,
 	int thislen;
 	int entry;
 
-	int tn, tptr, len;
+	unsigned int tptr, len;
+	void * tn;
+
 	CRnodeStruct *to_ptr = NULL;
 	int to_counter;
 
 	int fieldType, fieldOffs, fieldLen;
-	 unsigned int memptr;
+	char *memptr;
 
 	if (CRVerbose)
 		printf ("processThisClassEvent, starting at %d ending at %d\nstring %s\n",
@@ -2833,8 +2863,8 @@ char *processThisClassEvent (unsigned int fn,
 
 	/* can we do a direct copy here? (ie, is this a USE?) */
 	if ((len > 0) && (fieldOffs>0) && (fn > 0)) {
-	        memptr = fn+fieldOffs;
-		memcpy ((void*)memptr, membuffer,len);
+	        memptr = (char *)fn+fieldOffs;
+		memcpy (memptr, membuffer,len);
 	} else if (entry == -1) {
 		printf ("routing: can not find %s in parameter table and it is not a USE field\n", fieldName);
 		return (buf);
@@ -2854,8 +2884,8 @@ char *processThisClassEvent (unsigned int fn,
 		if (CRoutes[ctr].fnptr == entry) {
 			for (to_counter = 0; to_counter < CRoutes[ctr].tonode_count; to_counter++) {
 				to_ptr = &(CRoutes[ctr].tonodes[to_counter]);
-				tn = (int) to_ptr->node;
-				tptr = (int) to_ptr->foffset;
+				tn = to_ptr->node;
+				tptr = to_ptr->foffset;
 
 				if (CRVerbose)
 					printf ("route, going to copy to %d:%d, len %d CRlen %d\n",
@@ -2990,9 +3020,9 @@ void sendScriptEventIn(int num) {
 
 			/* get the value from the VRML structure, in order to propagate it to a script */
 
-			/* mark that this script has been active */
+			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
 			mark_script((int)(to_ptr->node));
-			switch (ScriptControl[to_ptr->node].thisScriptType) {
+			switch (ScriptControl[((int)to_ptr->node)].thisScriptType) {
 				case CLASSSCRIPT: {
 					/* sendJClassEventIn(to_ptr->node, to_ptr->foffset); */
 					sendJClassEventIn(num, to_ptr->foffset);
@@ -3004,7 +3034,7 @@ void sendScriptEventIn(int num) {
 				  }
 				default: {
 				printf ("do not handle eventins for script type %d\n",
-						ScriptControl[to_ptr->node].thisScriptType);
+						ScriptControl[((int)to_ptr->node)].thisScriptType);
 				 }
 			}
 		}

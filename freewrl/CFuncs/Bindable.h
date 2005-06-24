@@ -41,10 +41,10 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 #define NAVIGATIONINFO 3
 #define FOG        4
 #define GEOVIEWPOINT 5
-extern int *fognodes;
-extern int *backgroundnodes;
-extern int *navnodes;
-extern int *viewpointnodes;
+extern unsigned long int *fognodes;
+extern unsigned long int *backgroundnodes;
+extern unsigned long int *navnodes;
+extern unsigned long int *viewpointnodes;
 extern int totfognodes, totbacknodes, totnavnodes, totviewpointnodes;
 extern int currboundvpno;
 
@@ -61,11 +61,7 @@ void
 send_bind_to(int nodetype, void *node, int value);
 
 void
-bind_node(void *node,
-		  unsigned int setBindofst,
-		  int isboundofst,
-		  int *tos,
-		  unsigned int *stack);
+bind_node(void *node, unsigned int setBindofst, int isboundofst, int *tos, unsigned int *stack);
 
 void
 render_Fog(struct VRML_Fog *node);

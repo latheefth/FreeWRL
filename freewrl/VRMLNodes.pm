@@ -550,7 +550,7 @@ my $protono;
 	new VRML::NodeType("Box",
 					   { 	size => [SFVec3f, [2, 2, 2], field],
 						solid => [SFBool, 1, field],
-						__points  =>[SFInt32,0,field],
+						__points  =>[FreeWRLPTR,0,field],
 					   }
 					  ),
 	Cylinder =>
@@ -562,8 +562,8 @@ my $protono;
 						 side => [SFBool, 1, field],
 						 top => [SFBool, 1, field],
 						solid => [SFBool, 1, field],
-						 __points =>[SFInt32,0,field],
-						 __normals =>[SFInt32,0,field],
+						 __points =>[FreeWRLPTR,0,field],
+						 __normals =>[FreeWRLPTR,0,field],
 						},
 					   ),
 	Cone =>
@@ -574,9 +574,9 @@ my $protono;
 						 side => [SFBool, 1, field],
 						 bottom => [SFBool, 1, field],
 						solid => [SFBool, 1, field],
-						 __sidepoints =>[SFInt32,0,field],
-						 __botpoints =>[SFInt32,0,field],
-						 __normals =>[SFInt32,0,field],
+						 __sidepoints =>[FreeWRLPTR,0,field],
+						 __botpoints =>[FreeWRLPTR,0,field],
+						 __normals =>[FreeWRLPTR,0,field],
 						},
 					   ),
 	Coordinate =>
@@ -654,7 +654,7 @@ my $protono;
 	new VRML::NodeType("Sphere",
 					   { 	radius => [SFFloat, 1.0, field],
 						solid => [SFBool, 1, field],
-						 __points =>[SFInt32,0,field],
+						 __points =>[FreeWRLPTR,0,field],
  					   }
 					  ),
 	IndexedFaceSet =>
@@ -699,7 +699,7 @@ my $protono;
 						color => [SFNode, NULL, exposedField],
 						coord => [SFNode, NULL, exposedField],
 						vertexCount => [MFInt32,[],exposedField],
-						__points  =>[SFInt32,0,field],
+						__points  =>[FreeWRLPTR,0,field],
 
 					   }
 					  ),
@@ -759,7 +759,7 @@ my $protono;
 						# internal sequence number
 						__sourceNumber => [SFInt32, -1, field],
 						# local name, as received on system
-						__localFileName => [SFInt32, 0,field],
+						__localFileName => [FreeWRLPTR, 0,field],
 						# time that we were initialized at
 						__inittime => [SFTime, 0, field],
 					   }
@@ -1134,8 +1134,8 @@ my $protono;
 						bindTime => [SFTime,0,eventOut],
 						isBound => [SFBool, 0, eventOut],
 						__parenturl =>[SFString,"",field],
-						__points =>[SFInt32,0,field],
-						__colours =>[SFInt32,0,field],
+						__points =>[FreeWRLPTR,0,field],
+						__colours =>[FreeWRLPTR,0,field],
 						__quadcount => [SFInt32,0,field],
 
 						(map {(

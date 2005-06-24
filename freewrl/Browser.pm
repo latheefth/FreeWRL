@@ -113,9 +113,13 @@ sub prepare {
 
 	# display this one
 
-	VRML::NodeIntern::dump_name($bn), ", ",
-	VRML::NodeIntern::dump_name($bn->{CNode}), ", ",
+	#print "preparing ",
+	#VRML::NodeIntern::dump_name($bn), ", ",
+	#VRML::NodeIntern::dump_name($bn->{CNode}), ", ",
+	#"\n";
+
 	$this->{BE}->set_root($bn); # should eventually be removed
+	# print "calling set_root, with a value of ",$bn->{CNode},"\n";
 	VRML::VRMLFunc::set_root($bn->{CNode});
 
 	$this->{EV}->print;

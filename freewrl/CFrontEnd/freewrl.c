@@ -41,10 +41,6 @@ extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
 extern float global_linewidth;	/* in CFrontEnd/fwopts.c - ILS line width */
 extern void   XEventStereo();
 
-extern int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-                        unsigned ptr, unsigned ofs, int *complete,
-                        int zeroBind);
-
 extern void openMainWindow (Display *Disp, unsigned *Win, GLXContext *Cont);
 extern void glpOpenGLInitialize();
 extern void EventLoop();

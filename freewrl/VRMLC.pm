@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.172  2005/06/24 12:35:09  crc_canada
+# Changes to help with 64 bit compiles.
+#
 # Revision 1.171  2005/06/09 14:52:49  crc_canada
 # ColorRGBA nodes supported.
 #
@@ -1113,7 +1116,7 @@ char *BrowserFullPath = NULL;
 char *BrowserName = "FreeWRL VRML/X3D Browser";
 char *lastReadFile = NULL;
 
-int rootNode=0;	/* scene graph root node */
+void *rootNode=0;	/* scene graph root node */
 
 /*******************************************************************************/
 
@@ -1220,6 +1223,9 @@ void render_node(void *node) {
 
 	if(verbose) {
 	    printf("=========================================NODE RENDERED===================================================\n");
+	printf ("node %d %d\n",p,v);
+	printf ("nodename %s\n",v->name);
+return;
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
 		   v->name,
 		   v->prep,
@@ -1611,11 +1617,11 @@ CODE:
 
 void
 set_sensitive(ptr,datanode,type)
-	int ptr
-	int datanode
+	void *ptr
+	void *datanode
 	char *type
 CODE:
-	setSensitive ((void *)ptr,datanode,type);
+	setSensitive (ptr,datanode,type);
 
 void
 render_verbose(i)
@@ -1633,7 +1639,7 @@ CODE:
 # return a C pointer to a func for the interpolator functions. Used in CRoutes
 # to enable event propagation to call the correct interpolator
 #
-unsigned int
+void *
 InterpPointer(x)
 	char *x
 CODE:
@@ -1644,25 +1650,25 @@ CODE:
 
 	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
 		pt = (void *)do_Oint4;
-		RETVAL = (unsigned int) pt;
+		RETVAL = pt;
 	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
 		pt = (void *)do_OintScalar;
-		RETVAL = (unsigned int) pt;
+		RETVAL = pt;
 	} else if (strncmp("ColorInterpolator",x,strlen("ColorInterpolator"))==0) {
 		pt = (void *)do_Oint3;
-		RETVAL = (unsigned int) pt;
+		RETVAL = pt;
 	} else if (strncmp("PositionInterpolator",x,strlen("PositionInterpolator"))==0) {
 		pt = (void *)do_Oint3;
-		RETVAL = (unsigned int) pt;
+		RETVAL = pt;
 	} else if (strncmp("CoordinateInterpolator",x,strlen("CoordinateInterpolator"))==0) {
 		pt = (void *)do_OintCoord;
-		RETVAL = (unsigned int) pt;
+		RETVAL = pt;
 	} else if (strncmp("NormalInterpolator",x,strlen("NormalInterpolator"))==0) {
 		pt = (void *)do_OintCoord;
-		RETVAL = (unsigned int) pt;
+		RETVAL = pt;
 	} else if (strncmp("GeoPositionInterpolator",x,strlen("GeoPositionInterpolator"))==0) {
 		pt = (void *)do_GeoOint;
-		RETVAL = (unsigned int) pt;
+		RETVAL = pt;
 	} else {
 		RETVAL = 0;
 	}
@@ -1726,6 +1732,9 @@ OUTPUT:
 #********************************************************************************
 #
 # register a route that can go via C, rather than perl.
+#CRoutes_Register(int adrem, unsigned int from, int fromoffset, unsigned int to_count, char *tonode_str,
+#                                 int length, void *intptr, int scrdir, int extra)
+
 
 void
 do_CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra)
@@ -1739,7 +1748,7 @@ do_CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, 
 	int scrpt
 	int extra
 CODE:
-	CRoutes_Register(adrem, (unsigned int)from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
+	CRoutes_Register(adrem, from, fromoffset, to_count, tonode_str, len, intptr, scrpt, extra);
 
 #********************************************************************************
 #
@@ -1763,9 +1772,10 @@ OUTPUT:
 
 void
 set_root(rn)
-	unsigned int rn
+	unsigned long  rn
 CODE:
-	rootNode = rn;
+	printf ("VRMLC; set_root to %d\n", rn);
+	rootNode = (void *) rn;
 
 #********************************************************************************
 # Register a timesensitive node so that it gets "fired" every event loop
@@ -1773,9 +1783,9 @@ CODE:
 void
 add_first(clocktype,node)
 	char *clocktype
-	int node
+	void *node
 CODE:
-	add_first(clocktype,(void *)node);
+	add_first(clocktype,node);
 
 #********************************************************************************
 
@@ -1905,8 +1915,8 @@ RETVAL
 # allow Javascript to add/remove children when the parent is a USE - see JS/JS.pm.
 void
 jsManipulateChild(ptr, par, fiel, child)
-	int ptr
-	int par
+	void *ptr
+	void *par
 	char *fiel
 	int child
 CODE:

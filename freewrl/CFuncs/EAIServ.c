@@ -270,14 +270,18 @@ void EAI_RNewW(char *bufptr) {
 /* EAI, replaceWorld. */
 void EAI_RW(char *str) {
 
-	unsigned oldlen, newNode;
+	int oldlen;
+	char *newNode;
 	struct VRML_Group *rn;
 	struct Multi_Node *par;
+	char *tmp;
 
 	int i;
 
 	rn = (struct VRML_Group *) rootNode;
 	par = &(rn->children);
+	tmp = (char *) rootNode;
+	tmp += offsetof (struct VRML_Group, children);
 
 	if (EAIVerbose) printf ("EAIRW, rootNode is %d\n",rootNode);
 
@@ -295,8 +299,7 @@ void EAI_RW(char *str) {
 	while (isspace(*str)) str++;
 	while (strlen(str) > 0) {
 		i = sscanf (str, "%u",&newNode);
-		if (i>0) addToNode ((unsigned) rootNode + offsetof (struct
-					VRML_Group, children), newNode);
+		if (i>0) addToNode (tmp,newNode);
 
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;
@@ -492,27 +495,27 @@ void EAI_parse_commands (char *bufptr) {
 		switch (command) {
 			case GETNAME: {
 				if (EAIVerbose) printf ("GETNAME\n");
-				sprintf (buf,"RE\n%d\n%s",count,BrowserName);
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserName);
 				break;
 				}
 			case GETVERSION: {
 				if (EAIVerbose) printf ("GETVERSION\n");
-				sprintf (buf,"RE\n%d\n%s",count,BrowserVersion);
+				sprintf (buf,"RE\n%f\n%f\n%d\n%s",TickTime,count,BrowserVersion);
 				break;
 				}
 			case GETCURSPEED: {
 				if (EAIVerbose) printf ("GETCURRENTSPEED\n");
-				sprintf (buf,"RE\n%d\n%f",count,(float) 1.0/BrowserFPS);
+				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,(float) 1.0/BrowserFPS);
 				break;
 				}
 			case GETFRAMERATE: {
 				if (EAIVerbose) printf ("GETFRAMERATE\n");
-				sprintf (buf,"RE\n%d\n%f",count,BrowserFPS);
+				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserFPS);
 				break;
 				}
 			case GETURL: {
 				if (EAIVerbose) printf ("GETURL\n");
-				sprintf (buf,"RE\n%d\n%s",count,BrowserURL);
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserURL);
 				break;
 				}
 			case GETNODE:  {
@@ -523,7 +526,7 @@ void EAI_parse_commands (char *bufptr) {
 
 				uretval = EAI_GetNode(ctmp);
 
-				sprintf (buf,"RE\n%d\n%d",count,uretval);
+				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,uretval);
 				break;
 			}
 			case GETTYPE:  {
@@ -534,7 +537,7 @@ void EAI_parse_commands (char *bufptr) {
 
 				EAI_GetType (uretval,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
 
-				sprintf (buf,"RE\n%d\n%d %d %d %c %d",count,ra,rb,rc,rd,scripttype);
+				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d",TickTime,count,ra,rb,rc,rd,scripttype);
 				break;
 				}
 			case SENDEVENT:   {
@@ -576,7 +579,7 @@ void EAI_parse_commands (char *bufptr) {
 					ra = EAI_CreateVrml("URL",ctmp,nodarr,200);
 				}
 
-				sprintf (buf,"RE\n%d\n",count);
+				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
 				for (rb = 0; rb < ra; rb++) {
 					sprintf (ctmp,"%d ", nodarr[rb]);
 					strcat (buf,ctmp);
@@ -602,7 +605,7 @@ void EAI_parse_commands (char *bufptr) {
 				/* tell the routing table that this node is updated - used for RegisterListeners */
 				mark_event(ra,rb);
 
-				sprintf (buf,"RE\n%d\n0",count);
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case UPDATEROUTING :  {
@@ -611,7 +614,7 @@ void EAI_parse_commands (char *bufptr) {
 				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
 				if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
 
-				sprintf (buf,"RE\n%d\n0",count);
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case REGLISTENER: {
@@ -633,7 +636,7 @@ void EAI_parse_commands (char *bufptr) {
 				/* set up the route from this variable to the handle_Listener routine */
 				CRoutes_Register  (1,ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
 
-				sprintf (buf,"RE\n%d\n0",count);
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
@@ -650,14 +653,14 @@ void EAI_parse_commands (char *bufptr) {
 			case REPLACEWORLD:  {
 				if (EAIVerbose) printf ("REPLACEWORLD %s \n",bufptr);
 				EAI_RW(bufptr);
-				sprintf (buf,"RE\n%d\n0",count);
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case ADDROUTE:
 			case DELETEROUTE:  {
 				if (EAIVerbose) printf ("Add/Delete route %s\n",bufptr);
 				EAI_Route ((char) command,bufptr);
-				sprintf (buf,"RE\n%d\n0",count);
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 
@@ -666,7 +669,7 @@ void EAI_parse_commands (char *bufptr) {
 				if (EAIVerbose) printf ("REREADWRL <%s> \n",bufptr);
 				EAI_RNewW(bufptr);
 
-				sprintf (buf,"RE\n%d\n0",count);
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 			}
 
@@ -681,7 +684,7 @@ void EAI_parse_commands (char *bufptr) {
 			  case NEXTVIEWPOINT: {
 				if (EAIVerbose) printf ("Next Viewpoint\n");
 				Next_ViewPoint();
-				sprintf (buf,"RE\n%d\n0",count);
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 			    }
 			default: {
@@ -1133,15 +1136,15 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	switch (type) {
 		case EAI_SFBOOL: 	{
 			if (EAIVerbose) printf ("EAI_SFBOOL\n");
-			if (memptr[0] == 1) sprintf (buf,"%s\n%d\nTRUE",reptype,id);
-			else sprintf (buf,"%s\n%d\nFALSE",reptype,id);
+			if (memptr[0] == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
+			else sprintf (buf,"%s\n%f\n%d\nFALSE",reptype,TickTime,id);
 			break;
 		}
 
 		case EAI_SFTIME:	{
 			if (EAIVerbose) printf ("EAI_SFTIME\n");
 			memcpy(&dval,memptr,sizeof(double));
-			sprintf (buf, "%s\n%d\n%lf",reptype,id,dval);
+			sprintf (buf, "%s\n%f\n%d\n%lf",reptype,TickTime,id,dval);
 			break;
 		}
 
@@ -1149,14 +1152,14 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case EAI_SFINT32:	{
 			if (EAIVerbose) printf ("EAI_SFINT32 or EAI_SFNODE\n");
 			memcpy(&ival,memptr,sizeof(int));
-			sprintf (buf, "%s\n%d\n%d",reptype,id,ival);
+			sprintf (buf, "%s\n%f\n%d\n%d",reptype,TickTime,id,ival);
 			break;
 		}
 
 		case EAI_SFFLOAT:	{
 			if (EAIVerbose) printf ("EAI_SFTIME\n");
 			memcpy(fl,memptr,sizeof(float));
-			sprintf (buf, "%s\n%d\n%f",reptype,id,fl[0]);
+			sprintf (buf, "%s\n%f\n%d\n%f",reptype,TickTime,id,fl[0]);
 			break;
 		}
 
@@ -1164,27 +1167,27 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case EAI_SFCOLOR:	{
 			if (EAIVerbose) printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
 			memcpy(fl,memptr,sizeof(float)*3);
-			sprintf (buf, "%s\n%d\n%f %f %f",reptype,id,fl[0],fl[1],fl[2]);
+			sprintf (buf, "%s\n%f\n%d\n%f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2]);
 			break;
 		}
 
 		case EAI_SFVEC2F:	{
 			if (EAIVerbose) printf ("EAI_SFVEC2F\n");
 			memcpy(fl,memptr,sizeof(float)*2);
-			sprintf (buf, "%s\n%d\n%f %f",reptype,id,fl[0],fl[1]);
+			sprintf (buf, "%s\n%f\n%d\n%f %f",reptype,TickTime,id,fl[0],fl[1]);
 			break;
 		}
 
 		case EAI_SFROTATION:	{
 			if (EAIVerbose) printf ("EAI_SFROTATION\n");
 			memcpy(fl,memptr,sizeof(float)*4);
-			sprintf (buf, "%s\n%d\n%f %f %f %f",reptype,id,fl[0],fl[1],fl[2],fl[3]);
+			sprintf (buf, "%s\n%f\n%d\n%f %f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2],fl[3]);
 			break;
 		}
 
 		case EAI_SFSTRING:	{
 			if (EAIVerbose) printf ("EAI_SFSTRING\n");
-			sprintf (buf, "%s\n%d\n\"%s\"",reptype,id,memptr);
+			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,memptr);
 			break;
 		}
 
@@ -1195,7 +1198,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			MSptr = (struct Multi_String *) memptr;
 
 			/* printf ("EAI_MFString, there are %d strings\n",(*MSptr).n);*/
-			sprintf (buf, "%s\n%d\n",reptype,id);
+			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MSptr).n; row++) {
@@ -1216,7 +1219,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			MNptr = (struct Multi_Node *) memptr;
 
 			if (EAIVerbose) printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(int) memptr);
-			sprintf (buf, "%s\n%d\n",reptype,id);
+			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MNptr).n; row++) {

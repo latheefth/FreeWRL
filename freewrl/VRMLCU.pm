@@ -20,7 +20,7 @@ sub alloc_struct_be {
 	if(!defined $VRML::CNodes{$type}) {
 		die("No CNode for $type in alloc_struct_be\n");
 	}
-	# print "ALLNod: '$type' $VRML::CNodes{$type}{Offs}{_end_} $VRML::CNodes{$type}{Virt}\n";
+	# print "VRMLCU ALLNod: '$type' $VRML::CNodes{$type}{Offs}{_end_} $VRML::CNodes{$type}{Virt}\n";
 	my $s = VRML::VRMLFunc::alloc_struct($VRML::CNodes{$type}{Offs}{_end_},
 		$VRML::CNodes{$type}{Virt}
 		);
@@ -28,13 +28,13 @@ sub alloc_struct_be {
 	while(($k,$o) = each %{$VRML::CNodes{$type}{Offs}}) {
 		next if $k eq '_end_';
 		my $ft = $VRML::Nodes{$type}{FieldTypes}{$k};
-		# print "ALLS: $type $k $ft $o\n";
+		# print "VRMLCU ALLS: $type $k $ft $o\n";
 		&{"VRML::VRMLFunc::alloc_offs_$ft"}(
 			$s, $o
 		);
 	}
+	#print "end of alloc_struct_be; returning $s\n";
 	return $s;
-	print "end of alloc_struct_be\n";
 }
 
 sub free_struct_be {

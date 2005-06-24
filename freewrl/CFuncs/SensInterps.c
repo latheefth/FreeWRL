@@ -164,7 +164,7 @@ void do_OintScalar (void *node) {
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
 
-	mark_event ((unsigned int) px, offsetof (struct VRML_ScalarInterpolator, value_changed));
+	mark_event (node, offsetof (struct VRML_ScalarInterpolator, value_changed));
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -214,7 +214,7 @@ void do_OintCoord(void *node) {
 	if (SEVerbose)
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
 
-	mark_event ((unsigned int) px, offsetof (struct VRML_CoordinateInterpolator, value_changed));
+	mark_event (node, offsetof (struct VRML_CoordinateInterpolator, value_changed));
 
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -336,7 +336,7 @@ void do_Oint3 (void *node) {
 	if (!node) return;
 	px = (struct VRML_PositionInterpolator *) node;
 
-	mark_event ((unsigned int) px, offsetof (struct VRML_PositionInterpolator, value_changed));
+	mark_event (node, offsetof (struct VRML_PositionInterpolator, value_changed));
 
 	kin = px->key.n;
 	kvin = px->keyValue.n;
@@ -408,7 +408,7 @@ void do_Oint4 (void *node) {
 				kvin, kin);
 
 
-	mark_event ((unsigned int) px, offsetof (struct VRML_OrientationInterpolator, value_changed));
+	mark_event (node, offsetof (struct VRML_OrientationInterpolator, value_changed));
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -552,7 +552,7 @@ void do_CollisionTick( void *ptr) {
         if (cx->__hit == 3) {
                 /* printf ("COLLISION at %f\n",TickTime); */
                 cx->collideTime = TickTime;
-                mark_event ((unsigned int) cx, offsetof(struct VRML_Collision, collideTime));
+                mark_event (ptr, offsetof(struct VRML_Collision, collideTime));
         }
 }
 
@@ -593,7 +593,7 @@ void do_AudioTick(void *ptr) {
 
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		mark_event ((unsigned int) node, offsetof(struct VRML_AudioClip, isActive));
+		mark_event (node, offsetof(struct VRML_AudioClip, isActive));
 		/* tell SoundEngine that this source has changed.  */
 	        if (!SoundEngineStarted) {
         	        if (SEVerbose) printf ("SetAudioActive: initializing SoundEngine\n");
@@ -619,7 +619,7 @@ void do_TimeSensorTick ( void *ptr) {
 	if (!node->enabled) {
 		if (node->isActive) {
 			node->isActive=0;
-			mark_event ((unsigned int) node, offsetof(struct VRML_TimeSensor, isActive));
+			mark_event (ptr, offsetof(struct VRML_TimeSensor, isActive));
 		}
 		return;
 	}
@@ -646,14 +646,14 @@ void do_TimeSensorTick ( void *ptr) {
 		}
 
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		mark_event ((unsigned int) node, offsetof(struct VRML_TimeSensor, isActive));
+		mark_event (ptr, offsetof(struct VRML_TimeSensor, isActive));
 	}
 
 
 	if(node->isActive == 1) {
 		/* set time field */
 		node->time = TickTime;
-		mark_event ((unsigned int) node,
+		mark_event (ptr,
 				offsetof(struct VRML_TimeSensor, time));
 
 		/* calculate what fraction we should be */
@@ -672,7 +672,7 @@ void do_TimeSensorTick ( void *ptr) {
 		if (frac < node->__ctflag) {
 			/* push @e, [$t, cycleTime, $TickTime]; */
 			node->cycleTime = TickTime;
-			mark_event ((unsigned int) node, offsetof(struct VRML_TimeSensor, cycleTime));
+			mark_event (ptr, offsetof(struct VRML_TimeSensor, cycleTime));
 		}
 		node->__ctflag = frac;
 
@@ -680,7 +680,8 @@ void do_TimeSensorTick ( void *ptr) {
 		/* push @e, [$t, "time", $TickTime];
 		push @e, [$t, fraction_changed, $frac]; */
 		node->fraction_changed = frac;
-		mark_event ((unsigned int) node, offsetof(struct VRML_TimeSensor, fraction_changed));
+		mark_event (ptr, offsetof(struct VRML_TimeSensor, fraction_changed));
+
 	}
 }
 
@@ -703,8 +704,9 @@ void do_ProximitySensorTick( void *ptr) {
 			if (SEVerbose) printf ("PROX - initial defaults\n");
 			node->isActive = 1;
 			node->enterTime = TickTime;
-			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, isActive));
-			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, enterTime));
+			mark_event (ptr, offsetof(struct VRML_ProximitySensor, isActive));
+			mark_event (ptr, offsetof(struct VRML_ProximitySensor, enterTime));
+
 		}
 
 		/* now, has anything changed? */
@@ -712,21 +714,22 @@ void do_ProximitySensorTick( void *ptr) {
 			if (SEVerbose) printf ("PROX - position changed!!! \n");
 			memcpy ((void *) &node->position_changed,
 				(void *) &node->__t1,sizeof(struct SFColor));
-			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, position_changed));
+			mark_event (ptr, offsetof(struct VRML_ProximitySensor, position_changed));
 		}
 		if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
 			if (SEVerbose) printf  ("PROX - orientation changed!!!\n ");
 			memcpy ((void *) &node->orientation_changed,
 				(void *) &node->__t2,sizeof(struct SFRotation));
-			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, orientation_changed));
+			mark_event (ptr, offsetof(struct VRML_ProximitySensor, orientation_changed));
 		}
 	} else {
 		if (node->isActive) {
 			if (SEVerbose) printf ("PROX - stopping\n");
 			node->isActive = 0;
 			node->exitTime = TickTime;
-			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, isActive));
-			mark_event ((unsigned int) node, offsetof(struct VRML_ProximitySensor, exitTime));
+			mark_event (ptr, offsetof(struct VRML_ProximitySensor, isActive));
+
+			mark_event (ptr, offsetof(struct VRML_ProximitySensor, exitTime));
 		}
 	}
 	node->__hit=FALSE;
@@ -769,7 +772,7 @@ void do_MovieTextureTick( void *ptr) {
 	/* what we do now depends on whether we are active or not */
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		mark_event ((unsigned int) node, offsetof(struct VRML_MovieTexture, isActive));
+		mark_event (ptr, offsetof(struct VRML_MovieTexture, isActive));
 	}
 
 	if(node->isActive == 1) {
@@ -848,8 +851,7 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 	/* isOver state */
 	if (over != node->isOver) {
 		node->isOver = over;
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_TouchSensor, isOver));
+		mark_event (ptr, offsetof (struct VRML_TouchSensor, isOver));
 	}
 
 	/* active */
@@ -858,23 +860,21 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 		/* button presses */
 		if (ev == ButtonPress) {
 			node->isActive=1;
-			mark_event ((unsigned int) node,
-				offsetof (struct VRML_TouchSensor, isActive));
+			mark_event (ptr, offsetof (struct VRML_TouchSensor, isActive));
 
 			node->touchTime = TickTime;
-			mark_event((unsigned int) node,
-				offsetof (struct VRML_TouchSensor, touchTime));
+			mark_event(ptr, offsetof (struct VRML_TouchSensor, touchTime));
 
 		} else if (ev == ButtonRelease) {
 			node->isActive=0;
-			mark_event ((unsigned int) node,
+			mark_event (ptr,
 				offsetof (struct VRML_TouchSensor, isActive));
 		}
 
 		/* hitPoint and hitNormal */
 		memcpy ((void *) &node->hitPoint_changed,
 				(void *) &ray_save_posn,sizeof(struct SFColor));
-		mark_event((unsigned int) node, offsetof (struct VRML_TouchSensor, hitPoint_changed));
+		mark_event(ptr, offsetof (struct VRML_TouchSensor, hitPoint_changed));
 
 		/* have to normalize normal; change it from SFColor to struct pt. */
 		normalval.x = hyp_save_norm.c[0];
@@ -884,7 +884,7 @@ void do_TouchSensor ( void *ptr, int ev, int over) {
 		node->hitNormal_changed.c[0] = normalval.x;
 		node->hitNormal_changed.c[1] = normalval.y;
 		node->hitNormal_changed.c[2] = normalval.z;
-		mark_event((unsigned int) node, offsetof (struct VRML_TouchSensor, hitNormal_changed));
+		mark_event(ptr, offsetof (struct VRML_TouchSensor, hitNormal_changed));
 	}
 }
 
@@ -906,8 +906,7 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 
 		/* set isActive true */
 		node->isActive=1;
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_PlaneSensor, isActive));
+		mark_event (ptr, offsetof (struct VRML_PlaneSensor, isActive));
 
 	} else if ((ev==MotionNotify) && (node->isActive==1)) {
 		/* hyperhit saved in render_hypersensitive phase */
@@ -925,8 +924,7 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 		node->trackPoint_changed.c[1] = ny;
 		node->trackPoint_changed.c[2] = node->_origPoint.c[2];
 
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_PlaneSensor, trackPoint_changed));
+		mark_event (ptr, offsetof (struct VRML_PlaneSensor, trackPoint_changed));
 
 		/* clamp translation to max/min position */
 		tr.c[0] = nx - node->_origPoint.c[0] + node->offset.c[0];
@@ -951,16 +949,14 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 			node->translation_changed.c[1],node->translation_changed.c[2]);
 
 		/* and send this event */
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_PlaneSensor, translation_changed));
+		mark_event (ptr, offsetof (struct VRML_PlaneSensor, translation_changed));
 
 
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_PlaneSensor, isActive));
+		mark_event (ptr, offsetof (struct VRML_PlaneSensor, isActive));
 
 		/* autoOffset? */
 		if (node->autoOffset) {
@@ -968,8 +964,7 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 			node->offset.c[1] = node->translation_changed.c[1];
 			node->offset.c[2] = node->translation_changed.c[2];
 
-			mark_event ((unsigned int) node,
-				offsetof (struct VRML_PlaneSensor, translation_changed));
+			mark_event (ptr, offsetof (struct VRML_PlaneSensor, translation_changed));
 		}
 	}
 }
@@ -1009,8 +1004,7 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 
 		/* set isActive true */
 		node->isActive=1;
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_CylinderSensor, isActive));
+		mark_event (ptr, offsetof (struct VRML_CylinderSensor, isActive));
 
     		/* record the current Radius */
 		node->_radius = ray_save_posn.c[0] * ray_save_posn.c[0] +
@@ -1063,8 +1057,7 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 		memcpy ((void *) &node->trackPoint_changed,
 			(void *) &ray_save_posn,sizeof(struct SFColor));
 
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_CylinderSensor, trackPoint_changed));
+		mark_event (ptr, offsetof (struct VRML_CylinderSensor, trackPoint_changed));
 
 		dir1.w=0;
   		dir1.x=ray_save_posn.c[0];
@@ -1116,22 +1109,19 @@ void do_CylinderSensor ( void *ptr, int ev, int over) {
 		node->rotation_changed.r[2] = 0;
 		node->rotation_changed.r[3] = rot;
 
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_CylinderSensor, rotation_changed));
+		mark_event (ptr, offsetof (struct VRML_CylinderSensor, rotation_changed));
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_CylinderSensor, isActive));
+		mark_event (ptr, offsetof (struct VRML_CylinderSensor, isActive));
 		/* save auto offset of rotation */
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
 				(void *) &node->rotation_changed.r[3],
 				sizeof (float));
 
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_CylinderSensor, rotation_changed));
+		mark_event (ptr, offsetof (struct VRML_CylinderSensor, rotation_changed));
 		}
 	}
 }
@@ -1163,14 +1153,12 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 
 		/* set isActive true */
 		node->isActive=1;
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_SphereSensor, isActive));
+		mark_event (ptr, offsetof (struct VRML_SphereSensor, isActive));
 
 	} else if (ev==ButtonRelease) {
 		/* set isActive false */
 		node->isActive=0;
-		mark_event ((unsigned int) node,
-			offsetof (struct VRML_SphereSensor, isActive));
+		mark_event (ptr, offsetof (struct VRML_SphereSensor, isActive));
 
 		if (node->autoOffset) {
 			memcpy ((void *) &node->offset,
@@ -1244,8 +1232,7 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 			}
 			memcpy ((void *)&node->trackPoint_changed,
 				(void *)&arr, sizeof (struct SFColor));
-			mark_event ((unsigned int) node,
-				offsetof (struct VRML_SphereSensor, trackPoint_changed));
+			mark_event (ptr, offsetof (struct VRML_SphereSensor, trackPoint_changed));
 
 			vrmlrot_to_quaternion(&q, cp.c[0], cp.c[1], cp.c[2], -an);
 			vrmlrot_to_quaternion(&q2,
@@ -1262,8 +1249,7 @@ void do_SphereSensor ( void *ptr, int ev, int over) {
 			node->rotation_changed.r[2] = s3;
 			node->rotation_changed.r[3] = s4;
 
-			mark_event ((unsigned int) node,
-				offsetof (struct VRML_SphereSensor, rotation_changed));
+			mark_event (ptr, offsetof (struct VRML_SphereSensor, rotation_changed));
 		}
 	}
 }
@@ -1322,7 +1308,7 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	} else {
 		/* save local file in the structure, so that it can
 		   be initialized later */
-		node->__localFileName = (int) filename;
+		node->__localFileName = (void *) filename;
 	}
 	free (mypath);
 }

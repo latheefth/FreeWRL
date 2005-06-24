@@ -62,8 +62,8 @@ void get_collisionoffset(double *x, double *y, double *z);
 	have to look up type and data in order to properly handle it */
 struct SensStruct {
 	void *fromnode;
-	int  datanode;
-	void (*interpptr)(int, int, int);
+	void *datanode;
+	void (*interpptr)(void *, int, int);
 };
 struct SensStruct *SensorEvents = 0;
 int num_SensorEvents = 0;
@@ -271,7 +271,7 @@ void EventLoop() {
 	/* if (!NavigationMode) {*/
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint(FALSE);
-		render_hier((void *)rootNode,VF_Sensitive);
+		render_hier(rootNode,VF_Sensitive);
 		CursorOverSensitive = rayHit();
 
 		/* did we have a click of button 1? */
@@ -774,7 +774,7 @@ int rayHit() {
 
 
 /* set a node to be sensitive, and record info for this node */
-void setSensitive(void *ptr,int datanode,char *type) {
+void setSensitive(void *ptr,void *datanode,char *type) {
 	struct VRML_Box *p;
 	void (*myp)(unsigned *);
 
@@ -847,8 +847,7 @@ void sendSensorEvents(int COS,int ev, int status) {
 			}
 
 
-			SensorEvents[count].interpptr(SensorEvents[count].datanode,
-                                                                ev,status);
+			SensorEvents[count].interpptr(SensorEvents[count].datanode, ev,status);
 			return;
 		}
 	}

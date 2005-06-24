@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.154  2005/06/24 12:35:10  crc_canada
+# Changes to help with 64 bit compiles.
+#
 # Revision 1.153  2005/06/09 14:52:50  crc_canada
 # ColorRGBA nodes supported.
 #
@@ -176,7 +179,7 @@ Box => '
 		this_->_ichange = this_->_change;
 
 		/*  malloc memory (if possible)*/
-		if (!this_->__points) this_->__points = (int) malloc (sizeof(struct SFColor)*(24));
+		if (!this_->__points) this_->__points = malloc (sizeof(struct SFColor)*(24));
 		if (!this_->__points) {
 			printf ("can not malloc memory for box points\n");
 			return;
@@ -250,8 +253,8 @@ Cylinder => '
 		this_->_ichange = this_->_change;
 
 		/*  malloc memory (if possible)*/
-		if (!this_->__points) this_->__points = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
-		if (!this_->__normals) this_->__normals = (int)malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
+		if (!this_->__points) this_->__points = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
+		if (!this_->__normals) this_->__normals = malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
 		if ((!this_->__normals) || (!this_->__points)) {
 			printf ("error mallocing memory for Cylinder\n");
 			return;
@@ -341,9 +344,9 @@ Cone => '
 		this_->_ichange = this_->_change;
 
 		/*  malloc memory (if possible)*/
-		if (!this_->__botpoints) this_->__botpoints = (int) malloc (sizeof(struct SFColor)*(CONEDIV+3));
-		if (!this_->__sidepoints) this_->__sidepoints = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
-		if (!this_->__normals) this_->__normals = (int) malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+		if (!this_->__botpoints) this_->__botpoints = malloc (sizeof(struct SFColor)*(CONEDIV+3));
+		if (!this_->__sidepoints) this_->__sidepoints = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+		if (!this_->__normals) this_->__normals = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
 		if ((!this_->__normals) || (!this_->__botpoints) || (!this_->__sidepoints)) {
 			printf ("failure mallocing more memory for Cone rendering\n");
 			return;
@@ -474,7 +477,7 @@ Sphere => '
 		/*  malloc memory (if possible)*/
 		/*  2 vertexes per points. (+1, to loop around and close structure)*/
 		if (!this_->__points) this_->__points =
-		(int) malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
+			malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
 		if (!this_->__points) {
 			printf ("can not malloc memory in Sphere\n");
 			return;
@@ -624,7 +627,7 @@ LineSet => '
 		/* if we are re-genning; remalloc */
 		/* if (this_->__points) free ((void *)this_->__points);*/
 
-		/* if (!this_->__points) this_->__points = (int) malloc (sizeof(unsigned int)*(nvertexc));*/
+		/* if (!this_->__points) this_->__points = malloc (sizeof(unsigned int)*(nvertexc));*/
 		/* if (!this_->__points) {*/
 		/* 	printf ("can not malloc memory for LineSet points\n");*/
 		/* 	this_->_ichange = this_->_change; make this error show only once */

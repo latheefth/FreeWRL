@@ -100,7 +100,7 @@ extern unsigned _fw_instance;
 struct PSStruct {
 	unsigned type;		/* what is this task? 			*/
 	char *inp;		/* data for task (eg, vrml text)	*/
-	unsigned ptr;		/* address (node) to put data		*/
+	void *ptr;		/* address (node) to put data		*/
 	unsigned ofs;		/* offset in node for data		*/
 	int zeroBind;		/* should we dispose Bindables in Perl?	*/
 	int bind;		/* should we issue a bind? 		*/
@@ -110,7 +110,7 @@ struct PSStruct {
 	/* for javascript items, for Ayla's generic doPerlCallMethodVA call */
 	/* warning; some fields shared by EAI */
 	char *fieldname;	/* pointer to a static field name	*/
-	unsigned Jptr[10];	/* array of x pointers    		*/
+	void *Jptr[10];		/* array of x pointers    		*/
 	char Jtype[10];		/* array of x pointer types (s or p)	*/
 	int jparamcount;	/* number of parameters for this one	*/
 	SV *sv;			/* the SV for javascript		*/
@@ -130,12 +130,12 @@ void _perlThread (void *perlpath);
 void __pt_loadInitialGroup(void);
 void __pt_setPath(char *perlpath);
 void __pt_openBrowser(void);
-unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr);
-unsigned int __pt_getBindables (char *tp, unsigned int *retarr);
+unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *retarr);
+unsigned int __pt_getBindables (char *tp, unsigned long int *retarr);
 void getAllBindables(void);
 int isPerlinitialized(void);
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-			unsigned ptr, unsigned ofs, int *complete,
+			void *ptr, unsigned ofs, int *complete,
 			int zeroBind);
 void __pt_doInline(void);
 void __pt_doStringUrl (void);
@@ -150,10 +150,10 @@ void __pt_EAI_Route (void);
 void EAI_readNewWorld(char *inputstring);
 
 /* Bindables */
-int *fognodes = NULL;
-int *backgroundnodes = NULL;
-int *navnodes = NULL;
-int *viewpointnodes = NULL;
+unsigned long int *fognodes = NULL;
+unsigned long int *backgroundnodes = NULL;
+unsigned long int *navnodes = NULL;
+unsigned long int *viewpointnodes = NULL;
 int totfognodes = 0;
 int totbacknodes = 0;
 int totnavnodes = 0;
@@ -340,7 +340,7 @@ void loadInline(struct VRML_Inline *node) {
 	if (PerlParsing) return;
 
 	perlParse(INLINE,(char *)node, FALSE, FALSE,
-		(unsigned) node,
+		(void *) node,
 		offsetof (struct VRML_Inline, __children),
 		&node->__loadstatus,FALSE);
 }
@@ -361,6 +361,7 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 	psp.sv = sv;
 	psp.comp = &complete;
 	psp.type = CALLMETHOD;
+	psp.retarr = NULL;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.zeroBind = FALSE;
@@ -377,12 +378,12 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 			c = va_arg(ap, char *);
 			len = strlen(c);
 			c[len] = 0;
-			psp.Jptr[psp.jparamcount]=(unsigned)c;
+			psp.Jptr[psp.jparamcount]=(void *)c;
 			psp.Jtype[psp.jparamcount]='s';
 			break;
 		case 'p':
 			v = va_arg(ap, void *);
-			psp.Jptr[psp.jparamcount]=(unsigned)v;
+			psp.Jptr[psp.jparamcount]=(void *)v;
 			psp.Jtype[psp.jparamcount]='p';
 			break;
 		default:
@@ -408,6 +409,7 @@ unsigned int EAI_GetNode(char *nname) {
 	DATA_LOCK
 	psp.comp = &complete;
 	psp.type = EAIGETNODE;
+	psp.retarr = NULL;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
@@ -432,6 +434,7 @@ unsigned int EAI_GetViewpoint(char *nname) {
 	DATA_LOCK
 	psp.comp = &complete;
 	psp.type = EAIGETVIEWPOINT;
+	psp.retarr = NULL;
 	psp.ptr = (unsigned)NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
@@ -464,12 +467,13 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	/* printf ("EAI_GetType starting\n");*/
 	PSP_LOCK
 	DATA_LOCK
-	psp.ptr = (unsigned)direction;
+	psp.ptr = direction;
 	psp.jparamcount=nodenum;
 	psp.fieldname = fieldname;
 
 	psp.comp = &complete;
 	psp.type = EAIGETTYPE;
+	psp.retarr = NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
@@ -497,12 +501,13 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 	/* printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname);*/
 	PSP_LOCK
 	DATA_LOCK
-	psp.ptr = (unsigned)nodename;
+	psp.ptr = nodename;
 	psp.jparamcount=nodenum;
 	psp.fieldname = fieldname;
 
 	psp.comp = &complete;
 	psp.type = EAIGETVALUE;
+	psp.retarr = NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
@@ -534,6 +539,7 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 
 	psp.comp = &complete;
 	psp.type = EAIGETTYPENAME;
+	psp.retarr = NULL;
 	psp.ofs = (unsigned)NULL;
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
@@ -560,8 +566,9 @@ void EAI_Route(char cmnd, char *fn) {
 	DATA_LOCK
 	psp.comp = &complete;
 	psp.type = EAIROUTE;
-	psp.ptr = (unsigned) cmnd;
-	psp.ofs = (unsigned)NULL;
+	psp.retarr = NULL;
+	psp.ofs = (unsigned) cmnd;
+	psp.ptr = NULL;
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
@@ -617,6 +624,7 @@ void EAI_readNewWorld(char *inputstring) {
     DATA_LOCK
     psp.comp = &complete;
     psp.type = FROMURL;
+	psp.retarr = NULL;
     psp.ptr  = rootNode;
     psp.ofs  = offsetof(struct VRML_Group, children);
     psp.path = NULL;
@@ -634,7 +642,7 @@ void EAI_readNewWorld(char *inputstring) {
 
 /****************************************************************************/
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
-			unsigned ptr, unsigned ofs,int *complete,
+			void *ptr, unsigned ofs,int *complete,
 			int zeroBind) {
 
 	/* do we want to return if the parsing thread is busy, or do
@@ -649,6 +657,7 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	/* copy the data over; malloc and copy input string */
 	psp.comp = complete;
 	psp.type = type;
+	psp.retarr = NULL;
 	psp.ptr = ptr;
 	psp.ofs = ofs;
 	psp.path = NULL;
@@ -843,13 +852,13 @@ void _perlThread(void *perlpath) {
 /*  add a node to the root group. ASSUMES ROOT IS A GROUP NODE! (it should be)*/
 /*  this code is very similar to getMFNode in CFuncs/CRoutes.c, except that*/
 /*  we do not pass in a string of nodes to assign. (and, do not remove, etc)*/
-void addToNode (unsigned rc, unsigned newNode) {
+void addToNode (void *rc, void *newNode) {
 
 	int oldlen, newlen;
-	unsigned *newmal;
-	unsigned *place;
+	void **newmal;
+	void **place;
 	struct Multi_Node *par;
-	unsigned *tmp;
+	void **tmp;
 
 	par = (struct Multi_Node *) rc;
 	/* printf ("addToNode, adding %d to %d\n",newNode,rc);*/
@@ -857,34 +866,34 @@ void addToNode (unsigned rc, unsigned newNode) {
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
 	newlen=1;
-	newmal = (unsigned int *)malloc ((oldlen+newlen)*sizeof(unsigned int));
+	newmal = (void **)malloc ((oldlen+newlen)*sizeof(void **));
 	if (newmal == 0) {
 		printf ("cant malloc memory for addChildren");
 		return;
 	}
 
 	/* copy the old stuff over */
-	if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(unsigned int));
+	if (oldlen > 0) memcpy (newmal,par->p,oldlen*sizeof(void **));
 
 	/* increment pointer to point to place for new addition */
-	place = (unsigned int *) ((int) newmal + sizeof (unsigned int) * oldlen);
+	place = (void **) ((unsigned long int) newmal + sizeof (void **) * oldlen);
 
 	/* and store the new child. */
 	*place = newNode;
 
 	/* set up the C structures for this new MFNode addition */
-	tmp = (unsigned int *)par->p;
-	par->p = (void **)newmal;
+	tmp = par->p;
+	par->p = newmal;
 	par->n = oldlen+newlen;
 	free (tmp);
 }
 
 /* get all of the bindables from the Perl side. */
 void getAllBindables() {
-	int aretarr[1000];
-	int bretarr[1000];
-	int cretarr[1000];
-	int dretarr[1000];
+	unsigned long int aretarr[1000];
+	unsigned long int bretarr[1000];
+	unsigned long int cretarr[1000];
+	unsigned long int dretarr[1000];
 
 	/* first, free any previous nodes */
 	if (fognodes) free (fognodes);
@@ -895,22 +904,22 @@ void getAllBindables() {
 	navnodes=NULL; viewpointnodes=NULL;
 
 	/* now, get the values */
-	totviewpointnodes =( int ) __pt_getBindables("Viewpoint",(unsigned int*)aretarr);
-	totfognodes = (int )__pt_getBindables("Fog",(unsigned int*)bretarr);
-	totnavnodes = ( int )__pt_getBindables("NavigationInfo",(unsigned int*)cretarr);
-	totbacknodes = (int )__pt_getBindables("Background",(unsigned int*)dretarr);
+	totviewpointnodes = __pt_getBindables("Viewpoint",aretarr);
+	totfognodes = __pt_getBindables("Fog",bretarr);
+	totnavnodes = __pt_getBindables("NavigationInfo",cretarr);
+	totbacknodes = __pt_getBindables("Background",dretarr);
 
 	/* and, malloc the memory needed */
-	viewpointnodes = (int *)malloc (sizeof(int)*totviewpointnodes);
-	navnodes = (int *)malloc (sizeof(int)*totnavnodes);
-	backgroundnodes = (int *)malloc (sizeof(int)*totbacknodes);
-	fognodes = (int *)malloc (sizeof(int)*totfognodes);
+	viewpointnodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totviewpointnodes);
+	navnodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totnavnodes);
+	backgroundnodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totbacknodes);
+	fognodes = (unsigned long int *)malloc (sizeof(unsigned long int)*totfognodes);
 
 	/* and, copy the results over */
-	memcpy (fognodes,bretarr,(unsigned) totfognodes*sizeof(int));
-	memcpy (backgroundnodes,dretarr,(unsigned) totbacknodes*sizeof(int));
-	memcpy (navnodes,cretarr,(unsigned) totnavnodes*sizeof(int));
-	memcpy (viewpointnodes,aretarr,(unsigned) totviewpointnodes*sizeof(int));
+	memcpy (fognodes,bretarr,(unsigned) totfognodes*sizeof(unsigned long int));
+	memcpy (backgroundnodes,dretarr,(unsigned) totbacknodes*sizeof(unsigned long int));
+	memcpy (navnodes,cretarr,(unsigned) totnavnodes*sizeof(unsigned long int));
+	memcpy (viewpointnodes,aretarr,(unsigned) totviewpointnodes*sizeof(unsigned long int));
 }
 
 /*****************************************************************************
@@ -935,7 +944,7 @@ void getAllBindables() {
 /*************************NORMAL ROUTINES***************************/
 
 /* Create VRML/X3D, returning an array of nodes */
-unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned int *retarr) {
+unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *retarr) {
 	int count;
 	int tmp;
 
@@ -974,7 +983,7 @@ void __pt_zeroBindables() {
 	call_pv("VRML::Browser::zeroBindables", G_ARRAY);
 }
 
-unsigned int __pt_getBindables (char *tp, unsigned int *retarr) {
+unsigned int __pt_getBindables (char *tp, unsigned long int *retarr) {
 	int count;
 	int tmp, addr, ind;
 
@@ -1128,18 +1137,21 @@ void __pt_doStringUrl () {
 	}
 
 	if (psp.type==FROMSTRING) {
-       		retval = _pt_CreateVrml("String",psp.inp,(unsigned int *)myretarr);
+       		retval = _pt_CreateVrml("String",psp.inp,(unsigned long int *)myretarr);
 
 	} else {
-		retval = _pt_CreateVrml("URL",psp.inp,(unsigned int *)myretarr);
+		retval = _pt_CreateVrml("URL",psp.inp,(unsigned long int *)myretarr);
 	}
+
+printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr);
+
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {
-		 /*printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
-			psp.retarr, retval);   */
+		 printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
+			psp.retarr, retval);   
 		for (count = 0; count < retval; count ++) {
-			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
+			printf ("	...saving %d in %d\n",myretarr[count],count); 
 			psp.retarr[count] = myretarr[count];
 		}
 		psp.retarrsize = retval;
@@ -1166,7 +1178,7 @@ void __pt_doStringUrl () {
 
 	       	for (count =1; count < retval; count+=2) {
 			/* add this child to the node */
-       			addToNode(psp.ptr+psp.ofs, (unsigned)(myretarr[count]));
+       			addToNode(psp.ptr+psp.ofs, (unsigned long int*)(myretarr[count]));
 
 			/* tell the child that it has a new parent! */
 			add_parent((void *)myretarr[count],(void *)psp.ptr);
@@ -1289,7 +1301,7 @@ void __pt_EAI_Route () {
 	ENTER;
 	SAVETMPS;
 	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSViv(psp.ptr)));
+	XPUSHs(sv_2mortal(newSViv(psp.ofs)));
 	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
 	PUTBACK;
 	call_pv("VRML::Browser::EAI_Route", G_SCALAR);

@@ -43,7 +43,7 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 	SV **svptr;
 	int i;
 	char *typeptr;
-	unsigned int xx;
+	STRLEN xx;
 
 	if (node->avatarSize.n<2) {
 		printf ("set_naviinfo, avatarSize smaller than expected\n");
@@ -108,7 +108,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	struct VRML_Viewpoint *vp;
 	struct VRML_GeoViewpoint *gvp;
 	char * nameptr;
-	unsigned int len;
+	STRLEN len;
 
 	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value); */
 
@@ -180,16 +180,25 @@ void send_bind_to(int nodetype, void *node, int value) {
 void bind_node (void *node, unsigned int setBindofst,
 			int isboundofst, int *tos, unsigned int *stack) {
 
-	unsigned int *oldstacktop;
-	unsigned int *newstacktop;
+	char *oldstacktop;
+	char *newstacktop;
+	void *nst;			/* used for pointer maths */
 	unsigned int *setBindptr;	/* this nodes setBind */
 	unsigned int *isBoundptr;	/* this nodes isBound */
-	unsigned int *oldboundptr;	/* previous nodes isBound */
+	char *oldboundptr;	/* previous nodes isBound */
 
-	/* setup some variables */
-	setBindptr = (unsigned int *) ((unsigned int) node + setBindofst);
-	isBoundptr = (unsigned int *) ((unsigned int) node + isboundofst);
-	oldstacktop = stack + *tos;
+	char * tmpnode;
+	/* setup some variables. Use char * as a pointer as it is ok between 32
+	   and 64 bit systems for a pointer arithmetic. */
+	tmpnode = (char *)node;
+	tmpnode += setBindofst;
+	setBindptr = (unsigned int *)tmpnode;
+
+	tmpnode = (char *)node;
+	tmpnode += isboundofst;
+	isBoundptr = (unsigned int *) tmpnode;
+
+	oldstacktop = (char *)stack + *tos;
 
 	/* printf ("bind_node, node %d, set_bind %d\n",node,*setBindptr); */
 	/* we either have a setBind of 1, which is a push, or 0, which
@@ -208,16 +217,16 @@ void bind_node (void *node, unsigned int setBindofst,
 		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
 		*setBindptr = 100;
 
-		mark_event ((unsigned int) node, (unsigned int) isboundofst);
+		mark_event (node, (unsigned int) isboundofst);
 
 		/* set up pointers, increment stack */
 		*tos = *tos+1;
-		newstacktop = stack + *tos;
+		newstacktop = (char *)stack + *tos;
 
 
 		/* save pointer to new top of stack */
-		*newstacktop = (unsigned int) node;
-		update_node((void *) *newstacktop);
+		*newstacktop = (unsigned long int) node;
+		update_node((void *) newstacktop);
 
 		/* was there another DIFFERENT node at the top of the stack?
 		   have to check for a different one, as if we are binding to the current
@@ -226,12 +235,12 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
-			oldboundptr = (unsigned int *) (*oldstacktop + isboundofst);
+			oldboundptr = (char*) ((long int) *oldstacktop  + (long int)isboundofst);
 			*oldboundptr = 0;
 			 /* printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop); */
 
 			/* tell the possible parents of this change */
-			update_node((void *) *oldstacktop);
+			update_node((void *) ((long int) *oldstacktop));
 		}
 	} else {
 		/* POP FROM TOP OF STACK  - if we ARE the top of stack */
@@ -245,7 +254,7 @@ void bind_node (void *node, unsigned int setBindofst,
 		/* unset the set_bind flag  - setBind can be 0 or 1; lets make it garbage */
 		*setBindptr = 100;
 
-		mark_event ((unsigned int) node, (unsigned int) isboundofst);
+		mark_event (node, (unsigned int) isboundofst);
 
 		/* printf ("old TOS is %d, we are %d\n",*oldstacktop, node); */
 		if ((unsigned int) node != *oldstacktop) return;
@@ -257,16 +266,19 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		if (*tos >= 0) {
 			/* stack is not empty */
-			newstacktop = stack + *tos;
+			newstacktop = (char *) ((unsigned long int)stack + *tos);
 			/* printf ("   .... and we had a stack value; binding node %d\n",*newstacktop); */
 
 			/* set the popped value of isBound to true */
 			isBoundptr = (unsigned int *) (*newstacktop + isboundofst);
+
 			*isBoundptr = 1;
 
 			/* tell the possible parents of this change */
-			update_node((void *) *newstacktop);
-			mark_event ((unsigned int) *newstacktop, (unsigned int) isboundofst);
+			nst = (void *) (*newstacktop + (int) 0);
+			update_node(nst);
+
+			mark_event (nst, (unsigned int) isboundofst);
 		}
 	}
 }
@@ -280,7 +292,7 @@ void render_Fog (struct VRML_Fog *node) {
 	GLdouble sx, sy, sz;
 	/* int frtlen; */
 	GLfloat fog_colour [4];
-	unsigned int foglen;
+	STRLEN foglen;
 	char *fogptr;
 
 
@@ -361,7 +373,7 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	double a1;
 	char *posnstring;
-	unsigned int xx, yy;
+	STRLEN xx, yy;
 
 
 	/* printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind); */
@@ -546,8 +558,8 @@ void render_Background (struct VRML_Background *node) {
 		node->__quadcount = estq * 4;
 
 		/* now, malloc space for new arrays  - 3 points per vertex, 4 per quad. */
-		node->__points = (int)malloc (sizeof (GLfloat) * estq * 3 * 4);
-		node->__colours = (int)malloc (sizeof (GLfloat) * estq * 3 * 4);
+		node->__points = malloc (sizeof (GLfloat) * estq * 3 * 4);
+		node->__colours = malloc (sizeof (GLfloat) * estq * 3 * 4);
 		if ((node->__points == 0) || (node->__colours == 0)) {
 			outOfMemory("malloc failure in background\n");
 		}
