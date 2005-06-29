@@ -26,7 +26,6 @@ VRMLFields.pm
 VRMLJava.pm
 VRMLNodes.pm
 VRMLRend.pm
-fonts/README
 freewrl.PL
 tests/1.wrl			Sample things
 tests/10.wrl

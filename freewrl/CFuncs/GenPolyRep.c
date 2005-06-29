@@ -541,9 +541,11 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 	int fanVertex;
 	int *newIndex;
 
+	/*
 	printf ("checkX3DComposedGeomFields for node %s\n",X3DCOMPOSED_STRING(this_->__GeometryType));
 	printf ("cin %d cpv %d npv %d tcin %d colin %d norin %d creaseAngle %f ccw %d\n",
 		cin, cpv, npv, tcin, colin, norin, creaseAngle, ccw);
+	*/
 
 
 	/* texture coords coords colors and normals */
@@ -575,7 +577,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			   colors =  ((*(struct VRML_Virt **)(this_->color))-> get3(this_->color,
 			     &ncolors)) ;
 			};
-	printf ("npoints %d ntexCoords %d nnormals %d ncolors %d\n",npoints,ntexCoords,nnormals,ncolors);
+	/* printf ("npoints %d ntexCoords %d nnormals %d ncolors %d\n",npoints,ntexCoords,nnormals,ncolors); */
 
 	/*if (ncolors > 0) {
 		if (ncolors < npoints) 
@@ -805,7 +807,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
                 	break;
         }
 
-printf ("check returning TRUE for X3DGeom fields\n");
+	/* printf ("check returning TRUE for X3DGeom fields\n"); */
 	return retval;
 }
 
@@ -870,7 +872,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	norin = ((this_->normalIndex).n);
 	creaseAngle = (this_->creaseAngle);
 	ccw = ((this_->ccw));
-	printf ("NOW, the IFS has a cin of %d ca %f\n",cin,creaseAngle);
+	/* printf ("NOW, the IFS has a cin of %d ca %f\n",cin,creaseAngle); */
 
 	/* record ccw flag */
 	rep_->ccw = ccw;
