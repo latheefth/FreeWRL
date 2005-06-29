@@ -747,14 +747,14 @@ open_font() {
 		return FALSE;
 	}
 	strcpy(sys_fp,INSTALLDIR);
-	strcat(sys_fp,"/VRML/fonts/Amrigon.ttf");
-	/* printf ("checking to see if directory %s exists\n",sys_fp); */
+	strcat(sys_fp,"/VRML/fonts/Vera.ttf");
+	printf ("checking to see if directory %s exists\n",sys_fp); 
 	tmpfile = fopen(sys_fp,"r");
 	if (!tmpfile) {
 		printf ("FreeWRL fonts not installed; trying build dir copy\n");
 		strcpy(sys_fp,BUILDDIR);
-		strcat(sys_fp,"/fonts/Amrigon.ttf");
-		/* printf ("checking to see if directory %s exists\n",sys_fp); */
+		strcat(sys_fp,"/fonts/Vera.ttf");
+		printf ("checking to see if directory %s exists\n",sys_fp); 
 		tmpfile = fopen(sys_fp,"r");
 		if (!tmpfile) {
 			/* printf ("NO SYSTEM FONTS FOUND\n"); */
