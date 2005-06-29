@@ -8,7 +8,7 @@ public class BrowserGlobals
 // Events. EVno is the "highest +1" registered event number...
 // EVarray corresponds to the events returned by FreeWRL  to our
 // type, EVtype is the type as registered.
-
+public static double	TickTime = 0.0;
 public static int	EVno = 0;
 public static int	EVarray [] = new int[256];
 public static int	EVtype [] = new int[256];

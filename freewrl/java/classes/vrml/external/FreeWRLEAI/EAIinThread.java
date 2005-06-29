@@ -45,7 +45,6 @@ public  class EAIinThread implements Runnable {
 	String	REreply;
 	String	Stemp;
 	String EVTime;
-	double  evTime;
 
 	try {
 		EAIin = new BufferedReader( new InputStreamReader(sock.getInputStream()));
@@ -69,7 +68,7 @@ public  class EAIinThread implements Runnable {
 
 			if (reply.equals("EV")) {
 				EVTime = EAIin.readLine();
-				evTime = Double.parseDouble(EVTime);
+				BrowserGlobals.TickTime = Double.parseDouble(EVTime);
 				
 				EVentno = EAIin.readLine();
 				int eventno = Integer.parseInt(EVentno);
@@ -92,7 +91,7 @@ public  class EAIinThread implements Runnable {
 				mybrowser.Browser_RL_Async_send(EVentreply,eventno);
 			} else if (reply.equals("RE")) {
 				EVTime = EAIin.readLine();
-				evTime = Double.parseDouble(EVTime);
+				BrowserGlobals.TickTime = Double.parseDouble(EVTime);
 
 				// This is the integer reply to the command... number...
 				EAItoBrowserPrintWriter.println(EAIin.readLine());

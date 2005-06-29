@@ -31,3 +31,7 @@ For 1.13:
 	  delivered to the EAI side of things. Right now, the EAI
 	  java code (EAIinThread.java) reads and parses this time 
 	  value, but does not do anything with it.
+
+	- added all Triangle nodes - code was written in less than a 
+	  day, so bugs may exist - it does however run the X3D Triangle
+	  conformance tests successfully.

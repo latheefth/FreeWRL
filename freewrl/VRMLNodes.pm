@@ -166,6 +166,158 @@ my $protono;
  GeoViewpoint
 /;
 
+
+
+%VRML::Nodes::X3DComposedGeometry = map {($_=>1)} qw/
+	IndexedFaceSet
+	IndexedTriangleFanSet
+	IndexedTriangleSet
+	IndexedTriangleStripSet
+	TriangleFanSet
+	TriangleStripSet
+	TriangleSet
+	/;
+
+%VRML::Nodes::X3DCG_IndexedTriangleStripSet = map {($_=>1)} qw/
+	color
+	coord
+	creaseAngle
+	metadata
+	normal
+	#texCoord
+	ccw
+	#colorIndex
+	#colorPerVertex
+	#convex
+	#coordIndex
+	#normalIndex
+	normalPerVertex
+	solid
+	#texCoordIndex
+	index
+	#fanCount
+	/;
+%VRML::Nodes::X3DCG_IndexedTriangleSet = map {($_=>1)} qw/
+	color
+	coord
+	#creaseAngle
+	metadata
+	normal
+	texCoord
+	ccw
+	#colorIndex
+	colorPerVertex
+	#convex
+	#coordIndex
+	#normalIndex
+	normalPerVertex
+	solid
+	#texCoordIndex
+	index
+	#fanCount
+	/;
+
+%VRML::Nodes::X3DCG_IndexedTriangleFanSet = map {($_=>1)} qw/
+	color
+	coord
+	#creaseAngle
+	metadata
+	normal
+	texCoord
+	ccw
+	#colorIndex
+	colorPerVertex
+	#convex
+	#coordIndex
+	#normalIndex
+	normalPerVertex
+	solid
+	#texCoordIndex
+	index
+	#fanCount
+	/;
+
+%VRML::Nodes::X3DCG_TriangleFanSet = map {($_=>1)} qw/
+	color
+	coord
+	#creaseAngle
+	metadata
+	normal
+	texCoord
+	ccw
+	#colorIndex
+	colorPerVertex
+	#convex
+	#coordIndex
+	#normalIndex
+	normalPerVertex
+	solid
+	#texCoordIndex
+	#index
+	fanCount
+	/;
+
+%VRML::Nodes::X3DCG_TriangleSet = map {($_=>1)} qw/
+	color
+	coord
+	#creaseAngle
+	metadata
+	normal
+	texCoord
+	ccw
+	#colorIndex
+	colorPerVertex
+	#convex
+	#coordIndex
+	#normalIndex
+	normalPerVertex
+	solid
+	#texCoordIndex
+	#index
+	#fanCount
+	/;
+
+%VRML::Nodes::X3DCG_TriangleStripSet = map {($_=>1)} qw/
+	color
+	coord
+	#creaseAngle
+	metadata
+	normal
+	stripCount
+	texCoord
+	ccw
+	#colorIndex
+	colorPerVertex
+	#convex
+	#coordIndex
+	#normalIndex
+	normalPerVertex
+	solid
+	#texCoordIndex
+	#index
+	#fanCount
+	/;
+
+
+%VRML::Nodes::X3DCG_IndexedFaceSet = map {($_=>1)} qw/
+	color
+	coord
+	creaseAngle
+	metadata
+	normal
+	texCoord
+	ccw
+	colorIndex
+	colorPerVertex
+	convex
+	coordIndex
+	normalIndex
+	normalPerVertex
+	solid
+	texCoordIndex
+	/;
+
+
 %VRML::Nodes::visible = map {($_=>1)} qw/
 	Box
 	Cone
@@ -657,6 +809,12 @@ my $protono;
 						 __points =>[FreeWRLPTR,0,field],
  					   }
 					  ),
+
+	########################################################################################
+	# X3DComposedGeometryNodes - DO NOT CHANGE THE ORDER OF THESE FIELDS; all nodes in this
+	# section MUST be the same (they are all basically treated as an IndexedFaceSet)
+	########################################################################################
+
 	IndexedFaceSet =>
 	new VRML::NodeType("IndexedFaceSet",
 					   {
@@ -677,9 +835,205 @@ my $protono;
 						normalIndex => [MFInt32, [], field],
 						normalPerVertex => [SFBool, 1, field],
 						solid => [SFBool, 1, field],
-						texCoordIndex => [MFInt32, [], field]
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,0,field],
+						
 					   }
 					  ),
+
+	IndexedTriangleFanSet =>
+	new VRML::NodeType("IndexedTriangleFanSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,1,field],
+						
+					   }
+					  ),
+
+	IndexedTriangleSet =>
+	new VRML::NodeType("IndexedTriangleSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,2,field],
+						
+					   }
+					  ),
+
+	IndexedTriangleStripSet =>
+	new VRML::NodeType("IndexedTriangleStripSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,3,field],
+						
+					   }
+					  ),
+
+	TriangleFanSet =>
+	new VRML::NodeType("TriangleFanSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,4,field],
+						
+					   }
+					  ),
+
+
+	TriangleStripSet =>
+	new VRML::NodeType("TriangleStripSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,5,field],
+						
+					   }
+					  ),
+	TriangleSet =>
+	new VRML::NodeType("TriangleSet",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,6,field],
+						
+					   }
+					  ),
+	########################################################################################
+
+
 	IndexedLineSet =>
 	new VRML::NodeType("IndexedLineSet",
 					   {

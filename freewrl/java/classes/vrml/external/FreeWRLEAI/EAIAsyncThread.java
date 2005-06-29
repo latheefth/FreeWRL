@@ -135,7 +135,7 @@ public class EAIAsyncThread extends Thread {
 
       if (BrowserGlobals.EVObserver[msg.EventNumber] != null) {
       	BrowserGlobals.EVObserver[msg.EventNumber].callback (me,
-		(double) 0.0, BrowserGlobals.EVObject[msg.EventNumber]);
+		BrowserGlobals.TickTime, BrowserGlobals.EVObject[msg.EventNumber]);
       } else {
 		System.out.println ("WARNING - EAIAsyncThread.callback - thread callback null, discarding");
       }

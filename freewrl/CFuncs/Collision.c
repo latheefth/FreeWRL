@@ -1736,4 +1736,103 @@ void printmatrix(GLdouble* mat) {
 #endif
 
 
+void collideIndexedFaceSet (struct VRML_IndexedFaceSet *this_ ){
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       struct SFColor *points=0; int npoints;
 
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+	       struct pt tupv = {0,1,0};
+	       struct pt delta = {0,0,0};
+
+	       struct VRML_PolyRep pr;
+	       prflags flags = 0;
+	       int change = 0;
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
+	       /* $mk_polyrep(); */
+		if(!this_->_intern ||
+                        this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+                                regen_polyrep(this_);;
+
+
+	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
+	       if(!this_->solid) {
+		   flags = flags | PR_DOUBLESIDED;
+	       }
+
+	       pr = *((struct VRML_PolyRep*)this_->_intern);
+
+		/* IndexedFaceSets are "different", in that the user specifies points, among
+		   other things.  The rendering pass takes these external points, and streams
+		   them to make rendering much faster on hardware accel. We have to check to
+		   see whether we have got here before the first rendering of a possibly new
+		   IndexedFaceSet */
+		if (!pr.coord) {
+	       		/* $fv(coord, points, get3, &npoints); */
+	
+			if(this_->coord) {
+				  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
+				  	freewrlDie("NULL METHOD IndexedLineSet coord  get3");
+		  		}
+		   		points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
+		     			&npoints)) ;}
+ 	  		else { (freewrlDie("NULL FIELD IndexedLineSet coord "));};
+			pr.coord = (float*)points;
+
+		}
+
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
+
+
+/*	       printf("npoints=%d\n",npoints);
+	       for(i = 0; i < npoints; i++) {
+		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
+	       }*/
+	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+/*		   printmatrix(modelMatrix);*/
+		   fprintf(stderr,"COLLISION_IFS: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+
+	       }
+
+}

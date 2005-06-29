@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.174  2005/06/29 17:00:11  crc_canada
+# EAI and X3D Triangle code added.
+#
 # Revision 1.173  2005/06/24 18:51:29  crc_canada
 # more 64 bit compile changes.
 #
@@ -500,6 +503,59 @@ IndexedFaceSet => '
 		);
 ',
 
+IndexedTriangleFanSet => '
+		struct SFColor *points=0; int npoints;
+		$fv(coord, points, get3, &npoints);
+		$mk_polyrep();
+		render_ray_polyrep(this_,
+			npoints, points
+		);
+',
+
+IndexedTriangleSet => '
+		struct SFColor *points=0; int npoints;
+		$fv(coord, points, get3, &npoints);
+		$mk_polyrep();
+		render_ray_polyrep(this_,
+			npoints, points
+		);
+',
+
+IndexedTriangleStripSet => '
+		struct SFColor *points=0; int npoints;
+		$fv(coord, points, get3, &npoints);
+		$mk_polyrep();
+		render_ray_polyrep(this_,
+			npoints, points
+		);
+',
+
+TriangleFanSet => '
+		struct SFColor *points=0; int npoints;
+		$fv(coord, points, get3, &npoints);
+		$mk_polyrep();
+		render_ray_polyrep(this_,
+			npoints, points
+		);
+',
+
+TriangleStripSet => '
+		struct SFColor *points=0; int npoints;
+		$fv(coord, points, get3, &npoints);
+		$mk_polyrep();
+		render_ray_polyrep(this_,
+			npoints, points
+		);
+',
+TriangleSet => '
+		struct SFColor *points=0; int npoints;
+		$fv(coord, points, get3, &npoints);
+		$mk_polyrep();
+		render_ray_polyrep(this_,
+			npoints, points
+		);
+',
+
 );
 
 #####################################################################3
@@ -515,7 +571,13 @@ IndexedFaceSet => '
 %GenPolyRepC = (
 	ElevationGrid => 'make_elevationgrid(this_);',
 	Extrusion => 'make_extrusion(this_);',
-	IndexedFaceSet => 'make_indexedfaceset(this_);',
+	IndexedFaceSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *) this_);',
+	IndexedTriangleFanSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	IndexedTriangleSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	IndexedTriangleStripSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	TriangleFanSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	TriangleStripSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	TriangleSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
 	Text => 'make_text(this_);',
 	GeoElevationGrid => (do "VRMLGeoElevationGrid.pm"),
 );

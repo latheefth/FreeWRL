@@ -90,7 +90,7 @@ sub ExtraMemory {
 		$ExtraMem{"$node$field"} = $memptr;
 	}
 
-	print "Events.pm: ExtraMemory: field $field Clength $clen  type $type value $value address $memptr\n";
+	#print "Events.pm: ExtraMemory: field $field Clength $clen  type $type value $value address $memptr\n";
 	return ($memptr ,$type,$clen);
 }
 

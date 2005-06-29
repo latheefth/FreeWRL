@@ -8,6 +8,7 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
+extern int verbose_collision;
 
 #include "Structs.h"
 
@@ -535,6 +536,7 @@ void make_text(struct VRML_Text *this_ );
 void make_elevationgrid(struct VRML_ElevationGrid *this_);
 void make_extrusion(struct VRML_Extrusion *this_);
 void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
+void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
 
 
 

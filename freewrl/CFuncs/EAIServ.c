@@ -603,7 +603,7 @@ void EAI_parse_commands (char *bufptr) {
 						strcmp(ctmp,"removeChildren"));
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
-				mark_event(ra,rb);
+				mark_event((void *)ra,rb);
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -634,7 +634,7 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
 
 				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (1,ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
+				CRoutes_Register  (1,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -889,7 +889,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		if (offset > 0) update_node ((void *)nodeptr);
 
 		/* if anything uses this for routing, tell it that it has changed */
-		mark_event (nodeptr,offset);
+		mark_event ((void *)nodeptr,offset);
 	}
 	/*EAIVerbose = 0;*/
 	return TRUE;

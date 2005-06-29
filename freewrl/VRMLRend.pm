@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.155  2005/06/29 17:00:13  crc_canada
+# EAI and X3D Triangle code added.
+#
 # Revision 1.154  2005/06/24 12:35:10  crc_canada
 # Changes to help with 64 bit compiles.
 #
@@ -576,6 +579,222 @@ IndexedFaceSet => '
 		}
 ',
 
+IndexedTriangleFanSet => '
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
+		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		$fv_null(coord, points, get3, &npoints);
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+
+		}
+		render_polyrep(this_,
+			npoints, points,
+			ncolors, colors,
+			nnormals, normals,
+			ntexcoords, texcoords,ct);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
+IndexedTriangleSet => '
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
+		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		$fv(coord, points, get3, &npoints);
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+
+		}
+		render_polyrep(this_,
+			npoints, points,
+			ncolors, colors,
+			nnormals, normals,
+			ntexcoords, texcoords,ct);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
+IndexedTriangleStripSet => '
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
+		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		$fv(coord, points, get3, &npoints);
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+
+		}
+		render_polyrep(this_,
+			npoints, points,
+			ncolors, colors,
+			nnormals, normals,
+			ntexcoords, texcoords,ct);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
+TriangleFanSet => '
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
+		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		$fv(coord, points, get3, &npoints);
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+
+		}
+		render_polyrep(this_,
+			npoints, points,
+			ncolors, colors,
+			nnormals, normals,
+			ntexcoords, texcoords,ct);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
+TriangleStripSet => '
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
+		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		$fv(coord, points, get3, &npoints);
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+
+		}
+		render_polyrep(this_,
+			npoints, points,
+			ncolors, colors,
+			nnormals, normals,
+			ntexcoords, texcoords,ct);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
+TriangleSet => '
+		struct SFColor *points=0; int npoints;
+		struct SFColor *colors=0; int ncolors=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
+		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		$fv(coord, points, get3, &npoints);
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+
+		}
+		render_polyrep(this_,
+			npoints, points,
+			ncolors, colors,
+			nnormals, normals,
+			ntexcoords, texcoords,ct);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
 
 LineSet => '
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -2410,91 +2629,35 @@ Cylinder => q~
 
 
 IndexedFaceSet => q~
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
-	       struct SFColor *points=0; int npoints;
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+~,
 
-	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
-	       struct pt t_orig = {0,0,0};
-	       static int refnum = 0;
-
-	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,0};
-
-	       struct VRML_PolyRep pr;
-	       prflags flags = 0;
-	       int change = 0;
-
-		/* JAS - first pass, intern is probably zero */
-		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
-
-		/* JAS - no triangles in this text structure */
-		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+IndexedTriangleFanSet => q~
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+~,
 
 
-	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
-	       $mk_polyrep();
- 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
-	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
-	         correclty in the RENDER pass */
-
-	       if(!$f(solid)) {
-		   flags = flags | PR_DOUBLESIDED;
-	       }
-
-	       pr = *((struct VRML_PolyRep*)this_->_intern);
-
-		/* IndexedFaceSets are "different", in that the user specifies points, among
-		   other things.  The rendering pass takes these external points, and streams
-		   them to make rendering much faster on hardware accel. We have to check to
-		   see whether we have got here before the first rendering of a possibly new
-		   IndexedFaceSet */
-		if (!pr.coord) {
-	       		$fv(coord, points, get3, &npoints);
-			pr.coord = (float*)points;
-
-		}
-
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
-
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-	       scale = pow(det3x3(modelMatrix),1./3.);
-/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
+IndexedTriangleSet => q~
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+~,
 
 
-/*	       printf("npoints=%d\n",npoints);
-	       for(i = 0; i < npoints; i++) {
-		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
-	       }*/
-	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+IndexedTriangleStripSet => q~
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+~,
 
-	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
 
-	       accumulate_disp(&CollisionInfo,delta);
+TriangleFanSet => q~
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+~,
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
-/*		   printmatrix(modelMatrix);*/
-		   fprintf(stderr,"COLLISION_IFS: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
-			  t_orig.x, t_orig.y, t_orig.z,
-			  delta.x, delta.y, delta.z
-			  );
+TriangleStripSet => q~
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+~,
 
-	       }
 
+TriangleSet => q~
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
 ~,
 
 Extrusion => q~

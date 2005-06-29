@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.51  2005/06/29 17:00:12  crc_canada
+# EAI and X3D Triangle code added.
+#
 # Revision 1.50  2005/06/24 12:35:10  crc_canada
 # Changes to help with 64 bit compiles.
 #
@@ -1247,6 +1250,48 @@ sub parse {
 			VRML::VRMLFunc::ConsoleMessage ($em);
 			goto PARSE_EXIT;
 		}
+
+		# JAS print "checking if this $nt field $f is a ComposedGeom node\n";
+		if (defined $VRML::Nodes::X3DComposedGeometry{$nt}) {
+			# JAS print "it IS a composedGeom node\n";
+
+			my $ok = 1;
+
+			# check field exists matrix. Must be a better way to code this.
+			if ($nt eq "IndexedFaceSet") {
+			    if (!defined $VRML::Nodes::X3DComposedGeometry_IndexedTriangleStripSet{$f}) {
+				$ok = 0;
+			    }
+			} elsif ($nt eq "IndexedTriangleFanSet") {
+			    if (!defined $VRML::Nodes::X3DCG_IndexedTriangleFanSet{$f}) {
+				$ok = 0;
+			    }
+			} elsif ($nt eq "IndexedTriangleSet") {
+			    if (!defined $VRML::Nodes::X3DCG_IndexedTriangleSet{$f}) {
+				$ok = 0;
+			    }
+			} elsif ($nt eq "IndexedTriangleStripSet") {
+			    if (!defined $VRML::Nodes::X3DCG_IndexedTriangleStripSet{$f}) {
+				$ok = 0;
+			    }
+			} elsif ($nt eq "TriangleFanSet") {
+			    if (!defined $VRML::Nodes::X3DCG_TriangleFanSet{$f}) {
+				$ok = 0;
+			    }
+			} elsif ($nt eq "TriangleStripSet") {
+			    if (!defined $VRML::Nodes::X3DCG_TriangleStripSet{$f}) {
+				$ok = 0;
+			    }
+			} elsif ($nt eq "TriangleSet") {
+			    if (!defined $VRML::Nodes::X3DCG_TriangleSet{$f}) {
+				$ok = 0;
+			    }
+			}
+			if ($ok ==0) {
+				VRML::VRMLFunc::ConsoleMessage ("Invalid field $f for node $nt");
+				goto PARSE_EXIT;
+			}
+		}	
 
 		# the following lines return something like:
 		# 	Storing values... SFInt32 for node VNetInfo, f port
