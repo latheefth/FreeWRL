@@ -3059,8 +3059,8 @@ in this case.
 ********************************************************************/
 void propagate_events() {
 	int havinterp;
-	unsigned long int counter;
-	unsigned int to_counter;
+	int counter;
+	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
 	/* int mvcompCount, mvcompSize; */
