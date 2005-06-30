@@ -249,7 +249,6 @@ extern struct VRML_Anchor *AnchorsAnchor;
 
 void CRoutes_js_new (int num,int scriptType);
 extern int max_script_found;
-void gatherScriptEventOuts(int script, int ignore);
 void getMFNodetype (char *strp, struct Multi_Node *ch, struct VRML_Box *par, int ar);
 
 void update_node(void *ptr);
@@ -261,8 +260,8 @@ int JSparamIndex (char *name, char *type);
 
 /* setting script eventIns from routing table or EAI */
 void Set_one_MultiElementtype (int tn, int tptr, void *fn, unsigned len);
-void set_one_ECMAtype (int tonode, int toname, int dataType, void *Data, unsigned datalen);
-void mark_script (int num);
+void set_one_ECMAtype (unsigned long int tonode, int toname, int dataType, void *Data, unsigned datalen);
+void mark_script (unsigned long int num);
 
 
 /* structure for rayhits */
@@ -279,9 +278,9 @@ struct CRscriptStruct {
 	int thisScriptType;
 
 	/* Javascript parameters */
-	unsigned int	cx;	/* JSContext		*/
-	unsigned int	glob;	/* JSGlobals		*/
-	unsigned int	brow;	/* BrowserIntern	*/
+	unsigned long int	cx;	/* JSContext		*/
+	unsigned long int	glob;	/* JSGlobals		*/
+	unsigned long int	brow;	/* BrowserIntern	*/
 
 	/* Java .CLASS parameters */
 	unsigned int 	_initialized; 	/* has initialize been sent? */
@@ -301,7 +300,7 @@ void EAI_GetType (unsigned int uretval,
 
 
 void setECMAtype(int num);
-int get_touched_flag(int fptr, int actualscript);
+int get_touched_flag(int fptr, unsigned long int actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
 void setMultiElementtype(int num);
 void Multimemcpy(void *tn, void *fn, int len);
@@ -314,7 +313,6 @@ void CRoutes_Register(int adrem,        void *from,
                                  int scrdir,
                                  int extra);
 void CRoutes_free(void);
-void mark_script(int num);
 void propagate_events(void);
 void sendScriptEventIn(int num);
 void add_first(char *clocktype,void * node);
@@ -325,7 +323,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
 
 
 extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */
-extern int *scr_act;    /* script active array - defined in CRoutes.c */
+extern unsigned long int *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 void render_status(void); /* status bar */

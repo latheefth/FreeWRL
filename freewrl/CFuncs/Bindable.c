@@ -267,7 +267,7 @@ void bind_node (void *node, unsigned int setBindofst,
 		mark_event (node, (unsigned int) isboundofst);
 
 		/* printf ("old TOS is %d, we are %d\n",*oldstacktop, node);  */
-		if ((unsigned int) node != *oldstacktop) return;
+		if ((unsigned long int) node != *oldstacktop) return;
 
 		/* printf ("ok, we were TOS, setting %d to 0\n",node); */
 

@@ -126,11 +126,11 @@ void cleanupDie(int num, char *msg) {
 
 void JSMaxAlloc() {
 	/* perform some reallocs on JavaScript database stuff for interfacing */
-	int count;
+	unsigned long int count;
 
 	JSMaxScript += 10;
 	ScriptControl = (struct CRscriptStruct*)realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
-	scr_act = (int *)realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
+	scr_act = (unsigned long int *)realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
 
 	if ((ScriptControl == NULL) || (scr_act == 0)) {
 		printf ("Can not allocate memory for more script indexes\n");
@@ -199,9 +199,9 @@ void JSInit(int num, SV *script) {
 	br->magic = BROWMAGIC; /* needed ??? */
 
 	/* for this script, here are the necessary data areas */
-	ScriptControl[num].cx = (unsigned int) _context;
-	ScriptControl[num].glob = (unsigned int) _globalObj;
-	ScriptControl[num].brow = (unsigned int) br;
+	ScriptControl[num].cx = (unsigned long int) _context;
+	ScriptControl[num].glob = (unsigned long int) _globalObj;
+	ScriptControl[num].brow = (unsigned long int) br;
 
 
 	if (!loadVrmlClasses(_context, _globalObj))
@@ -238,7 +238,7 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 
 	if (JSVerbose)
 		printf("ActualrunScript script %d cx %x \"%s\", \n",
-			   num, (unsigned int) _context, script);
+			   num, _context, script);
 
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
@@ -301,7 +301,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 	if (JSVerbose)
- 		printf ("start of JSGetProperty, cx %d script %s\n",(int)_context,script);
+ 		printf ("start of JSGetProperty, cx %d script %s\n",_context,script);
 
  	if (!JS_GetProperty(_context, _globalObj, script, &rval)) {
  		printf("JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
