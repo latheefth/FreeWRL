@@ -16,7 +16,8 @@ For 1.13:
 	  eg, putting a TextureCoord as a coord field of an IndexedFaceSet
 	  now displays a more informative message.
 
-	- now attempts to build on 64 bit athalon processors.
+	- Builds on 64 bit processors. Some scripting/EAI/CLASS links not
+	  yet correct.
 
 	- ColorRGBA nodes supported for IndexedFaceSet, and equiv. NOT
 	  supported in scripting/eai yet.
