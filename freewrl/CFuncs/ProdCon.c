@@ -686,7 +686,7 @@ void _perlThread(void *perlpath) {
 
 	FILE *tempfp; /* for tring to locate the fw2init.pl file */
 
-	/* printf ("perlThread is %d\n",pthread_self()); */
+	/* printf ("perlThread is %d\n",pthread_self());  */
 
 	/* is the browser started yet? */
 	if (!browserRunning) {
@@ -699,7 +699,7 @@ void _perlThread(void *perlpath) {
 
 		/* find out where the fw2init.pl file is */
 		if ((tempfp = fopen(commandline[1],"r")) != NULL) {
-			/* printf ("opened %s %d\n",commandline[1],tempfp);  */
+			/* printf ("opened %s %d\n",commandline[1],tempfp); */
 			fclose(tempfp);
 		} else {
 			/* printf ("error opening %s\n",commandline[1]); */
@@ -734,7 +734,7 @@ void _perlThread(void *perlpath) {
 		__pt_setPath((char *)perlpath);
 
 		/* pass in the source directory path in case make install not called */
-		/* printf ("sending in path %s\n",BUILDDIR);  */
+		/* printf ("sending in path %s\n",BUILDDIR); */
 		__pt_setPath(BUILDDIR);
 
 
@@ -1128,19 +1128,19 @@ void __pt_doInline() {
 void __pt_doStringUrl () {
 	int count;
 	int retval;
-	int myretarr[2000];
+	unsigned long int myretarr[2000];
 
 	if (psp.zeroBind) {
-		/* printf ("doStringUrl, have to zero Bindables in Perl\n");*/
+		/* printf ("doStringUrl, have to zero Bindables in Perl\n"); */
 		__pt_zeroBindables();
 		psp.zeroBind=FALSE;
 	}
 
 	if (psp.type==FROMSTRING) {
-       		retval = _pt_CreateVrml("String",psp.inp,(unsigned long int *)myretarr);
+       		retval = _pt_CreateVrml("String",psp.inp,myretarr);
 
 	} else {
-		retval = _pt_CreateVrml("URL",psp.inp,(unsigned long int *)myretarr);
+		retval = _pt_CreateVrml("URL",psp.inp,myretarr);
 	}
 
 	/* printf ("__pt_doStringUrl, retval %d; retarr %d\n",retval,psp.retarr); */
@@ -1148,10 +1148,9 @@ void __pt_doStringUrl () {
 
 	/* copy the returned nodes to the caller */
 	if (psp.retarr != NULL) {
-		 /* printf ("returning to EAI caller, psp.retarr = %d, count %d\n",
-			psp.retarr, retval);    */
+		/* printf ("returning to EAI caller, psp.retarr = %d, count %d\n", psp.retarr, retval); */
 		for (count = 0; count < retval; count ++) {
-			/* printf ("	...saving %d in %d\n",myretarr[count],count);  */
+			/* printf ("	...saving %d in %d\n",myretarr[count],count); */
 			psp.retarr[count] = myretarr[count];
 		}
 		psp.retarrsize = retval;
@@ -1171,21 +1170,22 @@ void __pt_doStringUrl () {
        	/* now that we have the VRML/X3D file, load it into the scene.
        	   myretarr contains node number/memory location pairs; thus the count
        	   by two. */
-	if (psp.ptr != (unsigned int)NULL) {
+	if (psp.ptr != NULL) {
 		/* if we have a valid node to load this into, do it */
 		/* note that EAI CreateVRML type commands will NOT give */
 		/* a valid node */
 
 	       	for (count =1; count < retval; count+=2) {
+			/* printf ("__pt_doStringUrl, adding count %d %d\n", count,myretarr[count]); */
 			/* add this child to the node */
-       			addToNode(psp.ptr+psp.ofs, (unsigned long int*)(myretarr[count]));
+       			addToNode(psp.ptr+psp.ofs, (void *)(myretarr[count]));
 
 			/* tell the child that it has a new parent! */
-			add_parent((void *)myretarr[count],(void *)psp.ptr);
+			add_parent((void *)myretarr[count],psp.ptr);
        		}
 
 		/* tell the node that we have changed */
-		update_node((void *)psp.ptr);
+		update_node(psp.ptr);
 	}
 }
 

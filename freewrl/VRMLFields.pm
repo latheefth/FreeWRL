@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.52  2005/06/30 14:20:05  crc_canada
+# 64 bit compile changes.
+#
 # Revision 1.51  2005/06/29 17:00:12  crc_canada
 # EAI and X3D Triangle code added.
 #
@@ -1259,7 +1262,7 @@ sub parse {
 
 			# check field exists matrix. Must be a better way to code this.
 			if ($nt eq "IndexedFaceSet") {
-			    if (!defined $VRML::Nodes::X3DComposedGeometry_IndexedTriangleStripSet{$f}) {
+			    if (!defined $VRML::Nodes::X3DCG_IndexedFaceSet{$f}) {
 				$ok = 0;
 			    }
 			} elsif ($nt eq "IndexedTriangleFanSet") {
