@@ -36,7 +36,7 @@ require 'VRML/Parser.pm';
 require 'VRML/Scene.pm';
 require 'VRML/Events.pm';
 require 'VRML/Config.pm';
-require 'VRML/X3DParser.pm';
+#JAS require 'VRML/X3DParser.pm';
 
 package VRML::Browser;
 use File::Basename;
@@ -236,13 +236,13 @@ sub create_common {
 
 	# is this VRML or X3D? 
         if ($type == 1)  {
-	#	if (!eval('require VRML::X3DParser')) {
-	#		VRML::VRMLFunc::ConsoleMessage (
-	#			"FreeWRL can not load the X3DParser perl module".
-	#			"\n - this is going to fail");
-	#	} else {
+		if (!eval('require VRML::X3DParser')) {
+			VRML::VRMLFunc::ConsoleMessage (
+				"FreeWRL can not load the X3DParser perl module".
+				"\n - this is going to fail");
+		} else {
 		X3D::Parser::parse($scene, $string);
-	#	}
+		}
         } else {
 		# remove comments, etc:
 		$string = VRML::VRMLFunc::sanitizeInput($string);
