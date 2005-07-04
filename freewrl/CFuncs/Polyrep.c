@@ -66,7 +66,7 @@ int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
 /* 	- face normals; given a face, tell me the normal	*/
 /*	- point-face;   for each point, tell me the face(s)	*/
 
-void IFS_face_normals (
+int IFS_face_normals (
 	struct pt *facenormals,
 	int *faceok,
 	int *pointfaces,
@@ -86,6 +86,7 @@ void IFS_face_normals (
 	float a[3]; float b[3];
 
 	tmp_a = 0;
+	int retval = FALSE;
 
 
 	/*  Assume each face is ok for now*/
@@ -96,14 +97,14 @@ void IFS_face_normals (
 	/*  calculate normals for each face*/
 	for(i=0; i<faces; i++) {
 		if (tmp_a >= cin-2) {
-			printf ("last face in IFS has not enough vertexes\n");
+			printf ("last face in Indexed Geometry has not enough vertexes\n");
 			faceok[i] = FALSE;
 		} else {
 			/* does this face have at least 3 vertexes? */
 			if ((this_IFS->coordIndex.p[tmp_a] == -1) ||
 			    (this_IFS->coordIndex.p[tmp_a+1] == -1) ||
 			    (this_IFS->coordIndex.p[tmp_a+2] == -1)) {
-				printf ("have a face with two or less vertexes\n");
+				printf ("IndexedFaceNormals: have a face with two or less vertexes\n");
 				faceok[i] = FALSE;
 
 				if (this_IFS->coordIndex.p[tmp_a] != -1) tmp_a++;
@@ -118,7 +119,7 @@ void IFS_face_normals (
 						/* printf ("verifying %d for face %d\n",this_IFS->coordIndex.p[checkpoint],i);*/
 						if ((this_IFS->coordIndex.p[checkpoint] < 0) ||
 						    (this_IFS->coordIndex.p[checkpoint] >= npoints)) {
-							printf ("IndexedFaceSet face %d has a point out of range,",i);
+							printf ("Indexed Geometry face %d has a point out of range,",i);
 							printf (" point is %d, should be between 0 and %d\n",
 								this_IFS->coordIndex.p[checkpoint],npoints-1);
 							faceok[i] = FALSE;
@@ -210,20 +211,34 @@ void IFS_face_normals (
 
 		/* skip forward to next ifs - we have the normal - but check for bad Points!*/
 		if (i<faces-1) {
-			while (((this_IFS->coordIndex.p[tmp_a-1]) != -1) &&
-				(tmp_a < cin-2)) {
-				/* printf ("skipping past %d for face %d\n",this_IFS->coordIndex.p[tmp_a-1],i);*/
-				tmp_a++;
+			if (tmp_a <= 0) {
+				/* this is an error in the input file; lets try and continue */
+				tmp_a = 1;
+			} 
+
+			if (tmp_a > 0) {
+				while (((this_IFS->coordIndex.p[tmp_a-1]) != -1) && (tmp_a < cin-2)) {
+					/* printf ("skipping past %d for face %d\n",this_IFS->coordIndex.p[tmp_a-1],i);*/
+					tmp_a++;
+				}
 			}
 		}
 	}
 
 
+	/* do we have any valid faces??? */
+	for(i=0; i<faces; i++) {
+		if (faceok[i] == TRUE) {
+			retval = TRUE;
+		}
+	}
+	if (!retval) return retval; /* nope, lets just drop out of here */
+	
+
 	/* now, go through each face, and make a point-face list
 	   so that I can give it a point later, and I will know which face(s)
 	   it belong to that point */
-
-	/* printf ("\nnow generating point-face list\n");  */
+	printf ("\nnow generating point-face list\n"); 
 	for (i=0; i<npoints; i++) { pointfaces[i*POINT_FACES]=0; }
 	facectr=0;
 	for(i=0; i<cin; i++) {
@@ -241,8 +256,11 @@ void IFS_face_normals (
 		}
 	}
 
-	/* printf ("\ncheck \n");
+	/*
+	 printf ("\ncheck \n");
 	for (i=0; i<npoints; i++) {
+		int tmp_b;
+
 		tmp_a = i*POINT_FACES;
 		printf ("point %d is in %d faces, these are:\n ", i, pointfaces[tmp_a]);
 		for (tmp_b=0; tmp_b<pointfaces[tmp_a]; tmp_b++) {
@@ -251,6 +269,9 @@ void IFS_face_normals (
 		printf ("\n");
 	}
 	*/
+
+	return retval;
+	
 }
 
 

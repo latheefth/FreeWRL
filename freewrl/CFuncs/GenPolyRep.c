@@ -1,5 +1,4 @@
 /*******************************************************************
- * Copyright (C) 2005 John Stewart, CRC Canada.
  * Copyright (C) 2004 John Stewart, CRC Canada.
  * Copyright (C) 2000 2002 John Stewart, CRC Canada.
  * Copyright (C) 1998 Bernhard Reiter and Tuomas J. Lukka
@@ -31,32 +30,13 @@
 extern void initialize_smooth_normals();
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct VRML_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
 extern int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS);
-extern void IFS_face_normals(struct pt *facenormals,int *faceok,int *pointfaces,int faces,int npoints,int cin,struct SFColor *points,struct VRML_IndexedFaceSet *this_IFS,int ccw);
+extern int IFS_face_normals(struct pt *facenormals,int *faceok,int *pointfaces,int faces,int npoints,int cin,struct SFColor *points,struct VRML_IndexedFaceSet *this_IFS,int ccw);
 extern void verify_global_IFS_Coords(int max);
 extern void IFS_check_normal(struct pt *facenormals,int this_face,struct SFColor *points,int base,struct VRML_IndexedFaceSet *this_IFS,int ccw);
 extern void Extru_tex(int vertex_ind,int tci_ct,int A,int B,int C,struct VRML_PolyRep *this_Elev,int ccw,int tcindexsize);
 extern void Extru_ST_map(int triind_start,int start,int end,float *Vals,int nsec,struct VRML_PolyRep *this_Extru, int tcoordsize);
 extern void Extru_check_normal(struct pt *facenormals,int this_face,int dire,struct VRML_PolyRep *rep_,int ccw);
 
-
-/*X3DComposedGeometryNodes */
-#define INDEXEDFACESET          0
-#define INDEXEDTRIANGLEFANSET   1
-#define INDEXEDTRIANGLESET      2
-#define INDEXEDTRIANGLESTRIPSET 3
-#define TRIANGLEFANSET          4
-#define TRIANGLESTRIPSET        5
-#define TRIANGLESET             6
-
-
-#define X3DCOMPOSED_STRING(f) ( \
-        f == INDEXEDFACESET             ? "IndexedFaceSet" : ( \
-        f == INDEXEDTRIANGLEFANSET      ? "IndexedTriangleFanSet" : ( \
-        f == INDEXEDTRIANGLESET         ? "IndexedTriangleSet" : ( \
-        f == INDEXEDTRIANGLESTRIPSET    ? "IndexedTriangleStripSet" : ( \
-        f == TRIANGLEFANSET             ? "TriangleFanSet" : ( \
-        f == TRIANGLESTRIPSET           ? "TriangleStripSet" : ( \
-        f == TRIANGLESET                ? "TriangleSet" : "unknown X3DComposedGeometry Node")))))))
 
 
 void make_text (struct VRML_Text *this_) {
@@ -468,14 +448,6 @@ void make_elevationgrid(struct VRML_ElevationGrid *this_) {
 	}
 }
 
-/******************************************************************************
-
-ComposedGeometryNodes
-
-Code written June 28, 2005 - John Stewart.
-
-*******************************************************************************/
-
 
 /* calculate how many triangles are required for IndexedTriangleFanSet and 
 	IndexedTriangleStripSets */
@@ -501,6 +473,7 @@ int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 			/* bounds checking... */
 			if (zz < 3) {
 				printf ("IndexedTriangle[Fan|Strip]Set, index %d is less than 3\n");
+				return 0;
 			}
 			zz = 0;
 		} else {
@@ -515,79 +488,37 @@ int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 
 /* check validity of fields */
 int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
-	int cin = ((this_->coordIndex).n);
-	int cpv = ((this_->colorPerVertex));
-	int npv = ((this_->normalPerVertex));
-	int tcin = ((this_->texCoordIndex).n);
-	int colin = ((this_->colorIndex).n);
-	int norin = ((this_->normalIndex).n);
-	float creaseAngle = (this_->creaseAngle);
-	int ccw = ((this_->ccw));
-
-
 	struct SFColor *points;
-	struct SFVec2f *texCoords;
-	struct SFColor *normals;
-	struct SFColor *colors;
-	int ntexCoords, npoints, nnormals, ncolors;
-
+	int npoints;
 	int retval = TRUE;
-
 	int IndexSize = 0;
-
-	ntexCoords = 0; npoints = 0; nnormals = 0; ncolors = 0;
-
+	npoints = 0; 
 	int xx,yy,zz; /* temporary variables */
 	int fanVertex;
 	int *newIndex;
+	int windingOrder; /*TriangleStripSet ordering */
 
-	/*
-	printf ("checkX3DComposedGeomFields for node %s\n",X3DCOMPOSED_STRING(this_->__GeometryType));
-	printf ("cin %d cpv %d npv %d tcin %d colin %d norin %d creaseAngle %f ccw %d\n",
-		cin, cpv, npv, tcin, colin, norin, creaseAngle, ccw);
-	*/
+	/* printf ("checkX3DComposedGeomFields for node %s\n",X3DCOMPOSED_STRING(this_->__GeometryType)); */
 
+	/* creaseAngle - set if normalPerVertex TRUE */
+	if (this_->normalPerVertex) {
+		switch (this_->__GeometryType) {
+			/* IFS has creaseAngle; TriangleSet specs no smoothing */
+			case INDEXEDFACESET:
+			case TRIANGLESET:
+				break;
 
-	/* texture coords coords colors and normals */
-	if(this_->texCoord) {
-			  if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet texCoord  get2");
-			  }
-			   texCoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> get2(this_->texCoord,
-			     &ntexCoords)) ;
-			};
-	if(this_->coord) {
-			  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet coord  get3");
-			  }
-			   points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
-			     &npoints)) ;}
-	 	  else { (freewrlDie("NULL FIELD IndexedFaceSet coord "));};
-	if(this_->normal) {
-			  if(!(*(struct VRML_Virt **)(this_->normal))-> get3) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet normal  get3");
-			  }
-			   normals =  ((*(struct VRML_Virt **)(this_->normal))-> get3(this_->normal,
-			     &nnormals)) ;
-			};
-	if(this_->color) {
-			  if(!(*(struct VRML_Virt **)(this_->color))-> get3) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet color  get3");
-			  }
-			   colors =  ((*(struct VRML_Virt **)(this_->color))-> get3(this_->color,
-			     &ncolors)) ;
-			};
-	/* printf ("npoints %d ntexCoords %d nnormals %d ncolors %d\n",npoints,ntexCoords,nnormals,ncolors); */
+			/* set the creaseAngle to set smoothing for the rest */
+			default:
+				/* printf ("ITS - setting creaseAngle to 3.141*2\n"); */
+				this_->creaseAngle = PI*2;
+		}
+	}
 
-	/*if (ncolors > 0) {
-		if (ncolors < npoints) 
-		freewrlDie ("IndexedTriangleSet - not enough colors");
-		if (nnormals < npoints)
-		freewrlDie ("IndexedTriangleSet - not enough colors");
-		if (ntexCoords < npoints)
-		freewrlDie ("IndexedTriangleSet - not enough texCoords");
-	}*/
-
+	/* colorPerVertex is always TRUE, except for IndexedFaceSets */
+	if (this_->__GeometryType != INDEXEDFACESET) {
+		this_->colorPerVertex = TRUE;
+	}
 
 	/* verify fields for each Node type, according to the spec. Fields that SHOULD
 	   not appear in a node are identified in Parser.pm using the hashes in VRMLNodes.pm
@@ -601,6 +532,10 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 		case INDEXEDTRIANGLEFANSET   :
 			/* printf ("start of ITFS\n"); */
 			IndexSize = returnIndexedFanStripIndexSize(this_->index);
+			if (IndexSize == 0) {
+				/* printf ("IndexSize for ITFS %d\n",IndexSize); */
+				break;
+			}
 
 			newIndex = malloc (sizeof(int) * IndexSize);
 			/* now calculate the indexes */
@@ -611,8 +546,16 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 				fanVertex = xx;
 				/* scan forward to find end of fan */
 				while ((xx<this_->index.n) && (this_->index.p[xx] > -1)) xx++;
-				/* printf ("fan runs between %d and %d\n", fanVertex,xx); */
+				/* printf ("fan runs between %d and %d\n", fanVertex,xx);  */
+
+				/* bounds checking... */
+				if (xx >= IndexSize) {
+					printf ("ITFS - index size error... IndexSize < index value \n");
+					xx = IndexSize;
+				}
+
 				for (zz=fanVertex+1; zz<(xx-1); zz++) {
+					/* printf ("newIndexSize %d, fv %d, zz %d\n",IndexSize, fanVertex, zz); */
 					newIndex[yy] = this_->index.p[fanVertex]; yy++;
 					newIndex[yy] = this_->index.p[zz]; yy++; 
 					newIndex[yy] = this_->index.p[zz+1]; yy++;
@@ -638,6 +581,11 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 		case INDEXEDTRIANGLESTRIPSET :
 			/* printf ("start of ITSS\n"); */
 			IndexSize = returnIndexedFanStripIndexSize(this_->index);
+			if (IndexSize == 0) {
+				/* printf ("IndexSize for ITFS %d\n",IndexSize); */
+				break;
+			}
+
 			newIndex = malloc (sizeof(int) * IndexSize);
 
 			/* now calculate the indexes */
@@ -648,10 +596,27 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 				/* scan forward to find end of fan */
 				while ((xx<this_->index.n) && (this_->index.p[xx] > -1)) xx++;
 				/* printf ("strip runs between %d and %d\n", fanVertex,xx);  */
+
+				/* bounds checking... */
+				if (xx >= IndexSize) {
+					printf ("ITFS - index size error... IndexSize < index value \n");
+					xx = IndexSize;
+				}
+
+
+				windingOrder=0;
 				for (zz=fanVertex; zz<(xx-2); zz++) {
-					newIndex[yy] = this_->index.p[zz]; yy++;
-					newIndex[yy] = this_->index.p[zz+1]; yy++; 
-					newIndex[yy] = this_->index.p[zz+2]; yy++;
+					if (windingOrder==0) {
+						newIndex[yy] = this_->index.p[zz]; yy++;
+						newIndex[yy] = this_->index.p[zz+1]; yy++; 
+						newIndex[yy] = this_->index.p[zz+2]; yy++;
+						windingOrder ++;
+					} else {
+						newIndex[yy] = this_->index.p[zz]; yy++;
+						newIndex[yy] = this_->index.p[zz+2]; yy++; 
+						newIndex[yy] = this_->index.p[zz+1]; yy++;
+						windingOrder =0;
+					}
 					newIndex[yy] = -1; yy++;
 				}
 				
@@ -664,22 +629,26 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 				zz += 2;
 			}
 					
-			xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; } 
+			/* xx=0; while (xx < IndexSize) { printf ("index %d val %d\n",xx,newIndex[xx]); xx++; }  */
 
 			/* now, make the new index active */
-			/* free (this_->coordIndex.p); should free if malloc'd already*/
+			/* free (this_->coordIndex.p); should free if malloc'd already */
 			this_->coordIndex.p = newIndex;
 			this_->coordIndex.n = IndexSize;
                 	break;
 
 		case INDEXEDTRIANGLESET      :
 			IndexSize = ((this_->index.n) * 4) / 3;
+			if (IndexSize <= 0) {
+				break;
+			}
+
 			newIndex = malloc (sizeof(int) * IndexSize);
 			zz = 0; yy=0;
 			/* printf ("index: "); */
 			for (xx = 0; xx < this_->index.n; xx++) {
 				newIndex[zz] = this_->index.p[xx];
-				/* printf (" %d ",newIndex[zz]); */
+				/* printf (" %d ",newIndex[zz]);  */
 				zz++;
 				yy++;
 				if (yy == 3) {
@@ -693,31 +662,44 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			}
 
 			/* now, make the new index active */
-			/*free (this_->coordIndex.p); should free if malloc'd already */
+			/* free (this_->coordIndex.p); should free if malloc'd already */
 			this_->coordIndex.p = newIndex;
 			this_->coordIndex.n = IndexSize;
-
-			/* does this follow the npv=true, creaseangle = pi rule? */
-			if (this_->normalPerVertex) {
-				printf ("ITS - setting creaseAngle to 3.141*2\n");
-				this_->creaseAngle = PI*2;
-			}
                 	break;
 
 		case TRIANGLESET          :
-			this_->colorPerVertex = TRUE; /* always, according to spec */
+			if(this_->coord) {
+				  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
+				  	freewrlDie("NULL METHOD IndexedFaceSet coord  get3");
+				  }
+				  points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
+			     &npoints)) ;
+			 } else { 
+				freewrlDie("NULL FIELD Triangle/IFS coord ");
+			}
 
+
+			/* verify whether we have an incorrect number of coords or not */
+			if (((npoints/3)*3) != npoints) {
+				printf ("Warning, in TriangleSet, Coordinates not a multiple of 3\n");
+				npoints = ((npoints/3)*3);
+			}
+
+			/* printf ("npoints %d\n",npoints); */
+
+
+			/* calculate index size; every "face" ends in -1 */
 			IndexSize = (npoints * 4) / 3;
-			printf ("IndexSize is %d\n",IndexSize);
+			/* printf ("IndexSize is %d\n",IndexSize); */
 			this_->coordIndex.p = malloc (sizeof(int) * IndexSize);
 			this_->coordIndex.n = IndexSize;
+
 			IndexSize = 0; /* for assigning the indexes */
 			
 			/* now calculate the indexes */
 			yy=0; zz=0;
 			for (xx=0; xx<npoints; xx+=3) {
-				printf ("index %d tris %d %d %d -1\n",
-						xx/3, xx, xx+1, xx+2);
+				/* printf ("index %d tris %d %d %d -1\n", xx/3, xx, xx+1, xx+2);  */
 				this_->coordIndex.p[IndexSize++] = xx;
 				this_->coordIndex.p[IndexSize++] = xx+1;
 				this_->coordIndex.p[IndexSize++] = xx+2;
@@ -725,15 +707,14 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			}
                 	break;
 		case TRIANGLESTRIPSET        :
-			printf ("TSS, stripCount %d\n",(this_->stripCount).n);
+			 /* printf ("TSS, stripCount %d\n",(this_->stripCount).n);  */
 			if ((this_->stripCount).n < 1) {
-				freewrlDie("TriangleStripSet, need at least one stripCount element");
+				freewrlDie ("TriangleStripSet, need at least one stripCount element");
 			}
-			this_->colorPerVertex = TRUE; /* always, according to spec */
 
 			/* calculate the size of the Index array */
 			for (xx=0; xx<(this_->stripCount).n; xx++) {
-				printf ("stripCount %d is %d  \n",xx,(this_->stripCount).p[xx]);
+				 /* printf ("stripCount %d is %d  \n",xx,(this_->stripCount).p[xx]); */
 				IndexSize += ((this_->stripCount).p[xx]-2) * 4;
 				/* bounds checking... */
 				if ((this_->stripCount).p[xx] < 3) {
@@ -741,7 +722,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 				}
 			}
 
-			printf ("IndexSize is %d\n",IndexSize);
+			/* printf ("IndexSize is %d\n",IndexSize); */
 			this_->coordIndex.p = malloc (sizeof(int) * IndexSize);
 			this_->coordIndex.n = IndexSize;
 			IndexSize = 0; /* for assigning the indexes */
@@ -749,56 +730,64 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			/* now calculate the indexes */
 			yy=0; zz=0;
 			for (xx=0; xx<(this_->stripCount).n; xx++) {
-				printf ("stripCount %d is %d  \n",xx,(this_->stripCount).p[xx]);
+				windingOrder=0;
+				/* printf ("stripCount %d is %d  \n",xx,(this_->stripCount).p[xx]);  */
 				for (yy=0; yy< ((this_->stripCount).p[xx]-2); yy++) {
-					printf ("fc %d tris %d %d %d -1\n",
-						xx, zz, zz+1, zz+2);
-					this_->coordIndex.p[IndexSize++] = zz;
-					this_->coordIndex.p[IndexSize++] = zz+1;
-					this_->coordIndex.p[IndexSize++] = zz+2;
+					if (windingOrder==0) {
+						/* printf ("fcwo0 %d tris %d %d %d -1\n", xx, zz, zz+1, zz+2); */
+						this_->coordIndex.p[IndexSize++] = zz;
+						this_->coordIndex.p[IndexSize++] = zz+1;
+						this_->coordIndex.p[IndexSize++] = zz+2;
+						windingOrder++;
+					} else {
+						/* printf ("fcwo1 %d tris %d %d %d -1\n", xx, zz+1, zz, zz+2); */
+						this_->coordIndex.p[IndexSize++] = zz+1;
+						this_->coordIndex.p[IndexSize++] = zz;
+						this_->coordIndex.p[IndexSize++] = zz+2;
+						windingOrder=0;
+					}
 					this_->coordIndex.p[IndexSize++] = -1;
-					zz = zz++;
+					zz++;
 				}
 				zz += 2;
 			}
 					
                 	break;
 		case TRIANGLEFANSET             :
-			printf ("TFS, fanCount %d\n",(this_->fanCount).n);
+			/* printf ("TFS, fanCount %d\n",(this_->fanCount).n);  */
 			if ((this_->fanCount).n < 1) {
-				freewrlDie("TriangleFanSet, need at least one fanCount element");
+				freewrlDie ("TriangleFanSet, need at least one fanCount element");
 			}
-			this_->colorPerVertex = TRUE; /* always, according to spec */
 
 			/* calculate the size of the Index array */
 			for (xx=0; xx<(this_->fanCount).n; xx++) {
-				printf ("fanCount %d is %d  \n",xx,(this_->fanCount).p[xx]);
+				/* printf ("fanCount %d is %d  \n",xx,(this_->fanCount).p[xx]); */
 				IndexSize += ((this_->fanCount).p[xx]-2) * 4;
 				/* bounds checking... */
 				if ((this_->fanCount).p[xx] < 3) {
-					printf ("TriangleFanSet, index %d is less than 3\n");
+					printf ("TriangleFanSet, fanCount index %d is less than 3\n", (this_->fanCount).p[xx]);
 				}
 			}
 
-			printf ("IndexSize is %d\n",IndexSize);
+			/* printf ("IndexSize is %d\n",IndexSize); */
 			this_->coordIndex.p = malloc (sizeof(int) * IndexSize);
 			this_->coordIndex.n = IndexSize;
 			IndexSize = 0; /* for assigning the indexes */
-			
+
 			/* now calculate the indexes */
 			yy=0; zz=0;
 			for (xx=0; xx<(this_->fanCount).n; xx++) {
-				printf ("fanCount %d is %d  \n",xx,(this_->fanCount).p[xx]);
+				/* printf ("fanCount %d is %d  \n",xx,(this_->fanCount).p[xx]); */
 				fanVertex = zz;
 				zz ++;
 				for (yy=0; yy< ((this_->fanCount).p[xx]-2); yy++) {
-					printf ("fc %d tris %d %d %d -1\n",
-						xx, fanVertex, zz, zz+1);
+					/* printf ("fc %d tris %d %d %d -1\n",
+						xx, fanVertex, zz, zz+1); */
 					this_->coordIndex.p[IndexSize++] = fanVertex;
 					this_->coordIndex.p[IndexSize++] = zz;
 					this_->coordIndex.p[IndexSize++] = zz+1;
 					this_->coordIndex.p[IndexSize++] = -1;
-					zz = zz++;
+					zz++;
 				}
 				zz++;
 			}
@@ -813,7 +802,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 
 
 void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
-	int cin = ((this_->coordIndex).n);
+	int cin= ((this_->coordIndex).n);
 	int cpv = ((this_->colorPerVertex));
 	int npv = ((this_->normalPerVertex));
 	int tcin = ((this_->texCoordIndex).n);
@@ -876,7 +865,6 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 	/* record ccw flag */
 	rep_->ccw = ccw;
-
 
 	/* check to see if there are params to make at least one triangle */
 	if (cin<2) {
@@ -956,12 +944,14 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 			ntexerrors = 1;
 		}
 
-		if (tcin == 0 && ntexCoords != npoints) {
-			/* rule G */
-			printf ("IndexedFaceSet, Rule G: points %d texCoords %d and no texCoordIndex\n",
-				npoints,ntexCoords);
-			ntexerrors = 1;
-	   	}
+		if (this_->__GeometryType == INDEXEDFACESET) {
+			if (tcin == 0 && ntexCoords != npoints) {
+				/* rule G */
+				printf ("IndexedFaceSet, Rule G: points %d texCoords %d and no texCoordIndex\n",
+					npoints,ntexCoords);
+				ntexerrors = 1;
+	   		}
+		}
 	}
 
 
@@ -998,7 +988,10 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	/* generate the face-normals table, so for each face, we know the normal
 	   and for each point, we know the faces that it is in */
 
-	IFS_face_normals (facenormals,faceok,pointfaces,faces,npoints,cin,points,this_,ccw);
+	if (!IFS_face_normals (facenormals,faceok,pointfaces,faces,npoints,cin,points,this_,ccw)) {
+		rep_->ntri=0;
+		return;
+	}
 
 	/* wander through to see how much memory needs allocating for triangles */
 	for(i=0; i<cin; i++) {

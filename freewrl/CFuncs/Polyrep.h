@@ -41,7 +41,7 @@ int
 count_IFS_faces(int cin,
 				struct VRML_IndexedFaceSet *this_IFS);
 
-void
+int 
 IFS_face_normals(struct pt *facenormals,
 				 int *faceok,
 				 int *pointfaces,

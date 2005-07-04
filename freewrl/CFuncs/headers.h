@@ -61,6 +61,27 @@ extern CGLContextObj aqglobalContext;
                >NORMAL_VECTOR_LENGTH_TOLERANCE \
 )
 
+
+/*X3DComposedGeometryNodes */
+#define INDEXEDFACESET          0
+#define INDEXEDTRIANGLEFANSET   1
+#define INDEXEDTRIANGLESET      2
+#define INDEXEDTRIANGLESTRIPSET 3
+#define TRIANGLEFANSET          4
+#define TRIANGLESTRIPSET        5
+#define TRIANGLESET             6
+
+
+#define X3DCOMPOSED_STRING(f) ( \
+        f == INDEXEDFACESET             ? "IndexedFaceSet" : ( \
+        f == INDEXEDTRIANGLEFANSET      ? "IndexedTriangleFanSet" : ( \
+        f == INDEXEDTRIANGLESET         ? "IndexedTriangleSet" : ( \
+        f == INDEXEDTRIANGLESTRIPSET    ? "IndexedTriangleStripSet" : ( \
+        f == TRIANGLEFANSET             ? "TriangleFanSet" : ( \
+        f == TRIANGLESTRIPSET           ? "TriangleStripSet" : ( \
+        f == TRIANGLESET                ? "TriangleSet" : "unknown X3DComposedGeometry Node")))))))
+
+
 /* defines for raycasting: */
 #define XEQ (APPROX(t_r1.x,t_r2.x))
 #define YEQ (APPROX(t_r1.y,t_r2.y))
