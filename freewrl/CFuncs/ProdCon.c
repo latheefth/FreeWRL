@@ -241,6 +241,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	char tempname[1000];
 	char sysline[1000];
 
+	/* printf ("checking for filename here %s\n",fname); */
+
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
 	if (RUNNINGASPLUGIN && (strcmp(BrowserURL,fname)!=0)) {
@@ -282,6 +284,8 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 		}
 	}
 
+	/* printf ("opening file %s\n",fname); */
+
 
 	fp= fopen (fname,"r");
 	ok = (fp != NULL);
@@ -298,7 +302,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 /* filename is malloc'd, combine pspath and thisurl to make an
    absolute file name */
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
-	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl);*/
+	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
 
 	/* lets try this - if we are running under a browser, let the
 	   browser do the pathing stuff */
@@ -318,13 +322,36 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 				strcat (filename,"/");
 		}
 
+		/* does this "thisurl" start with file:, as in "freewrl file:test.wrl" ? */
+		if ((strncmp(thisurl,"file:",strlen("file:"))==0) || 
+				(strncmp(thisurl,"FILE:",strlen("FILE:"))==0)) {
+			/* printf ("stripping file off of start\n");  */
+			thisurl += strlen ("file:");
+
+			/* now, is this a relative or absolute filename? */
+			if (strncmp(thisurl,"/",strlen("/")) !=0) {
+				/* printf ("we have a leading slash after removing file: from name\n");
+				printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename);  */
+				strcat(filename,thisurl);
+			
+			} else {
+				/* printf ("we have no leading slash after removing file: from name\n"); */
+				strcpy (filename,thisurl);
+			}	
+			
+		} else {
+			/* printf ("makeAbsolute, going to copy %s to %s\n",thisurl, filename); */
+			strcat(filename,thisurl);
+
+		}
+
+
 	} else {
-		filename[0]=0;
+		strcpy (filename,thisurl);
 	}
-	strcat(filename,thisurl);
 
 	/* and, return in the ptr filename, the filename created... */
-	/* printf ("makeAbsoluteFileName, just made :%s:\n",filename);*/
+	 /* printf ("makeAbsoluteFileName, just made :%s:\n",filename); */
 }
 
 
