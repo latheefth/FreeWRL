@@ -66,11 +66,17 @@ sub ExtraMemory {
 	my $memptr;
 	my $value;
 
-	#print "ExtraMemory: wanting field $field for node ",VRML::NodeIntern::dump_name($node),"\n";
-	#foreach (keys%{$node}) {print "	node key $_\n";}
-	#foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
-	#foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
+	# DEBUG print "ExtraMemory: wanting field $field for node ",VRML::NodeIntern::dump_name($node),"\n";
+	# DEBUG foreach (keys%{$node}) {print "	node key $_\n";}
+	# DEBUG foreach (keys%{$node->{Scene}}) {print "	nodeScene key $_\n";}
+	# DEBUG foreach (keys%{$node->{Scene}{Pars}}) {print "	nodeScenePars key $_\n";}
 
+	# DEBUG { use Devel::Peek;
+	# DEBUG print "start of dump\n";
+	# DEBUG Dump $node->{Scene}{NodeParent}{Fields}{$field};
+	# DEBUG print "end of dump\n";
+	# DEBUG print "value is ",$node->{Scene}{NodeParent}{Fields}{$field},"\n";
+	# DEBUG }
 	my $type = $node->{Scene}{Pars}{$field}[1];
 
 	# test to see if this is a valid type

@@ -117,7 +117,32 @@ public class Node {
     // System.out.println ("EventOut: NNPR " + NNPR + " NOFF " + NOFF +
     //	" NDS " + NDS + " NewDT " + NewDT + " ScrTyp" + ScrT);
 
+
+
     // check out the return values specified in CFuncs/EAIServ.c
+	// #define EAI_SFUNKNOWN           'a'
+	// #define EAI_SFBOOL              'b'
+	// #define EAI_SFCOLOR             'c'
+	// #define EAI_SFFLOAT             'd'
+	// #define EAI_SFTIME              'e'
+	// #define EAI_SFINT32             'f'
+	// #define EAI_SFSTRING            'g'
+	// #define EAI_SFNODE              'h'
+	// #define EAI_SFROTATION          'i'
+	// #define EAI_SFVEC2F             'j'
+	// #define EAI_SFIMAGE             'k'
+	// #define EAI_MFCOLOR             'l'
+	// #define EAI_MFFLOAT             'm'
+	// #define EAI_MFTIME              'n'
+	// #define EAI_MFINT32             'o'
+	// #define EAI_MFSTRING            'p'
+	// #define EAI_MFNODE              'q'
+	// #define EAI_MFROTATION          'r'
+	// #define EAI_MFVEC2F             's'
+	// #define EAI_MFVEC3F             't'
+	// #define EAI_SFVEC3F             'u'
+
+
     if(NewDT.equals("p")) { ret = new EventOutMFString();
     } else if(NewDT.equals("k")) { ret = new EventOutSFImage();
     } else if(NewDT.equals("e")) { ret = new EventOutSFTime();
@@ -130,7 +155,7 @@ public class Node {
     } else if(NewDT.equals("r")) { ret = new EventOutMFRotation();
     } else if(NewDT.equals("s")) { ret = new EventOutMFVec2f();
     } else if(NewDT.equals("j")) { ret = new EventOutSFVec2f();
-    } else if(NewDT.equals("l")) { ret = new EventOutMFVec3f();
+    } else if(NewDT.equals("t")) { ret = new EventOutMFVec3f();
     } else if(NewDT.equals("q")) { ret = new EventOutMFNode();
     } else if(NewDT.equals("i")) { ret = new EventOutSFRotation();
     } else if(NewDT.equals("g")) { ret = new EventOutSFString();

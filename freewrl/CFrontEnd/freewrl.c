@@ -287,20 +287,19 @@ int main (int argc, char **argv) {
         getcwd(pwd,1000);
         /* if this is a network file, leave the name as is. If it is
          * a local file, prepend the path to it */
+
         if (checkNetworkFile(argv[optind])) {
 		setFullPath(argv[optind]);
-                /*strcpy (filename,argv[optind]);
+                strcpy (filename,argv[optind]); 
                 BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
-                strcpy(BrowserFullPath,pwd); */
+                strcpy(BrowserFullPath,pwd); 
 
         } else {
-
                 makeAbsoluteFileName(filename, pwd, argv[optind]);
                 BrowserFullPath = (char *)malloc ((strlen(filename)+1) * sizeof(char));
                 strcpy (BrowserFullPath,filename);
         }
 
-        // printf ("FrontEnd, filename %s\n",filename);
 	perlParse(FROMURL, filename,TRUE,FALSE,
 		rootNode, offsetof (struct VRML_Group, children),&tmp,TRUE);
 
