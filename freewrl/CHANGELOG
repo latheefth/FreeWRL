@@ -36,3 +36,6 @@ For 1.13:
 	- added all Triangle nodes - code was written in less than a 
 	  day, so bugs may exist - it does however run the X3D Triangle
 	  conformance tests successfully.
+
+	- EAI EventOutMFFloat, EventOutMFVec2f, EventOutMFVec3f,
+	  EventOutMFColor, EventOutMFRotation all revisited.

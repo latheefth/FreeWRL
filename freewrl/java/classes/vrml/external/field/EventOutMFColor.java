@@ -1,37 +1,47 @@
-// This one is interesting... Is it a real node, or are we parsing
-// the value of something like a string of VRML stuff????
+// read in a multi float value from the FreeWRL browser.
 
 package vrml.external.field;
 import vrml.external.Browser;
 import vrml.external.field.FieldTypes;
+import java.util.*;
 
 public class EventOutMFColor extends EventOutMField {
    public EventOutMFColor() { EventType = FieldTypes.MFCOLOR; }
 
   public float[][]        getValue() {
-    //Node x[] = {new Node()};
-    String rep;
-	float [] fvals = new float [3];
-	float [][] rval = new float[1][3];
+	float [] fvals;
+	float [][] rval;
+	int lines;
+	int rows;
+	int count1;
+	int count2;
+	StringTokenizer tokens;
+	String rep;
 
+	if (RLreturn == null) {
+		rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+	} else {
+		rep = RLreturn;
+	}
+	// get the number of lines of code to come back.
 
-    // Ok, lets first see what the value of this thing is...
-    // I guess, lets see if the RLreturn field has something...
-    // if it does, then this is an ASYNC value sent from the FreeWRL VRML Browser.
+	rows = 3;
 
-    if (RLreturn == null) {
-      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
-    } else {
-      rep = RLreturn;
-    }
+	tokens = new StringTokenizer (rep);
 
-    System.out.println ("DEBUG: EventOutMFColor getValue - rep = " + rep);
+	//System.out.println ("DEBUG: EventOutMFColor getValue - rep = " + rep);
+	lines = Integer.valueOf(tokens.nextToken()).intValue();
+	//System.out.println ("DEBUG: read in as a token " + lines);
 
-    // ok, so now we have some VRML text in the String rep...
-    // XXX - maybe we can split this up on matching []'s???????
+	rval = new float [lines][3];
 
+	// now, read in the lines.
+	for (count1=0; count1<lines; count1++) {
+		for (count2=0; count2<rows; count2++) {
+			rval[count1][count2] = Float.valueOf(tokens.nextToken()).floatValue();
+		}
+	}
 	return rval;
-    //return x;
   }
 
 
@@ -41,4 +51,3 @@ public class EventOutMFColor extends EventOutMField {
     return all[index];
   }
 }
-

@@ -697,7 +697,10 @@ void EAI_parse_commands (char *bufptr) {
 
 
 		/* send the response - events don't send a reply */
-		if (command != SENDEVENT) EAI_send_string (buf,listenfd);
+		if (command != SENDEVENT) {
+			strcat (buf,"\nRE_EOT");
+			EAI_send_string (buf,listenfd);
+		}
 
 		/* skip to the next command */
 		while (*bufptr >= ' ') bufptr++;
@@ -968,18 +971,22 @@ void handle_Listener () {
 unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	int val;
 	double lval;
-	char *memptr;
+	void *memptr;
 	int ty;
 	float fl[4];
 	STRLEN len;
 
 	/* variables for MFStrings */
 	struct Multi_String *MSptr;
+	struct Multi_Color *MCptr;
 	float *SFFloats;
 	AV *aM;
+	AV *subaM;
 	SV **bM;
 	int iM;
-	int lM;
+	int lM; 
+	int tmpint;
+	int numPerRow;
 	STRLEN xx;
 
 
@@ -988,10 +995,12 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	/* convert the type string to an internal type */
 	ty = convert_typetoInt (type);
 
-	if (EAIVerbose) printf ("EAI - extra memory for size %d type %s\n",size,type);
+ 	if (EAIVerbose)  
+
+		printf ("EAI - extra memory for size %d type %s\n",size,type);
 
 	if (size > 0) {
-		memptr =(char *) malloc ((unsigned)size);
+		memptr =malloc ((unsigned)size);
 		if (memptr == NULL) {
 			printf ("can not allocate memory for PROTO Interface decls\n");
 			return 0;
@@ -1019,7 +1028,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 
 		case SFSTRING: {
-				memptr = (char *)malloc(strlen(SvPV(data,len))+1);
+				memptr = malloc(strlen(SvPV(data,len))+1);
 				if (memptr == NULL) {
 					printf ("can not allocate memory for PROTO Interface decls\n");
 					return 0;
@@ -1064,7 +1073,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 		case MFSTRING: {
 			/* malloc the main pointer */
-			memptr = (char *)malloc (sizeof (struct Multi_String));
+			memptr = malloc (sizeof (struct Multi_String));
 
 			if (memptr == NULL) {
 				printf ("can not allocate memory for PROTO Interface decls\n");
@@ -1101,13 +1110,99 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 			break;
 		}
 
+		case MFFLOAT:
+		case MFVEC2F:
+		case MFROTATION:
+		case MFVEC3F:
+		case MFCOLOR: {
+			/* struct Multi_Color { int n; struct SFColor  *p; }; */
+			numPerRow=3;
+			if (ty==MFFLOAT) {numPerRow=1;}
+			else if (ty==MFVEC2F) {numPerRow=2;}
+			else if (ty==MFROTATION) {numPerRow=4;};
+
+
+			/* malloc the main pointer */
+			memptr = malloc (sizeof (struct Multi_Color));
+			if (memptr == NULL) {
+				printf ("can not allocate memory for PROTO Interface decls\n");
+				return 0;
+			}
+			MCptr = (struct Multi_Color *) memptr;
+			(*MCptr).n = 0;
+			(*MCptr).p = 0;
+			if(!SvROK(data)) {
+				printf ("EAI_Extra_Memory: Help! Multi without being ref\n");
+				return 0;
+			} 
+			if(SvTYPE(SvRV(data)) != SVt_PVAV) {
+				printf ("EAI_Extra_Memory: Help! Multi without being ref\n");
+			}
+
+
+			/* printf ("sv_dump on data %x is:\n",data); sv_dump(data);  */
+
+                        aM = (AV *) SvRV(data);
+                        lM = av_len(aM)+1;
+
+			/* printf ("sv_dump on aM data %x is:\n",aM); sv_dump(aM);  */
+
+			/* printf ("This MFColor has (lM is) %d\n",lM); */
+                        /* XXX Free previous p */
+                        (*MCptr).n = lM;
+                        (*MCptr).p = (struct SFColor *)malloc(lM * numPerRow * sizeof(*((*MCptr).p)));
+			SFFloats = (float *) (*MCptr).p;
+
+			/* printf ("EAI_DO_EXTRA, memptr for floats is %x\n",SFFloats); */
+
+			/* bM = av_fetch(aM, 0, 1);*/  
+			for (iM = 0; iM < lM; iM++) {
+				bM = av_fetch(aM, iM, 1); /* LVal for easiness */
+				/* printf ("bm is %x iM %d flags %x\n",*bM, iM, SvFLAGS (*bM)); */
+				if(!bM) {
+					freewrlDie("Help: Multi VRML::Field::SFColor bM == 0");
+				}
+
+				/* printf ("type of node is %x\n",SvTYPE(*bM)); sv_dump(*bM); 
+				printf ("type of aM %x is %x\n",aM,SvTYPE(aM)); sv_dump(aM);  */
+
+
+				/* is this a single or double array? */
+				if (numPerRow==1) {
+					/* printf ("rows 1; type of node is %x\n",SvTYPE(*bM)); sv_dump(*bM);  */
+					*SFFloats = SvNV(*bM); SFFloats++;
+				} else {
+					if(!SvROK((*bM))) {
+						for(tmpint=0; tmpint<numPerRow; tmpint++) {
+							*SFFloats = 0; SFFloats++;
+						}
+					} else {
+						if(SvTYPE(SvRV((*bM))) != SVt_PVAV) {
+							freewrlDie("Help! SFColor without being arrayref");
+						}
+						subaM = (AV *) SvRV((*bM));
+						for(tmpint=0; tmpint<numPerRow; tmpint++) {
+							bM = av_fetch(subaM, tmpint, 1); /* LVal for easiness */
+							if(!bM) {
+								freewrlDie("Help: SFColor b == 0");
+							}
+							/* printf ("saving %d %d %f\n",iM,tmpint,SvNV(*bM)); */
+							*SFFloats = SvNV(*bM); SFFloats++;
+	
+						}
+					}
+				}
+			}
+ 
+
+
+			 break; 
+		}
+
 /*XXX		case MFNODE: { break; }*/
 /*XXX		case MFROTATION: { break; }*/
-/*XXX		case MFVEC2F: { break; }*/
 /*XXX		case SFTIME : { break; }*/
 /*XXX		case SFIMAGE: { break; }*/
-/*XXX		case MFCOLOR: { break; }*/
-/*XXX		case MFFLOAT: { break; }*/
 /*XXX		case MFTIME: { break; }*/
 /*XXX		case MFINT32: { break; }*/
 		default: {
@@ -1126,12 +1221,17 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 	double dval;
 	float fl[4];
+	float *fp;
 	int ival;
 	int row;			/* MF* counter */
 	struct Multi_String *MSptr;	/* MFString pointer */
 	struct Multi_Node *MNptr;	/* MFNode pointer */
+	struct Multi_Color *MCptr;	/* MFColor pointer */
 	char *ptr;			/* used for building up return string */
 	STRLEN xx;
+
+	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
+	int i;
 
 	switch (type) {
 		case EAI_SFBOOL: 	{
@@ -1228,19 +1328,53 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			}
 			break;
 		}
+
+		case EAI_MFFLOAT:
+		case EAI_MFVEC2F:
+		case EAI_MFVEC3F:
+		case EAI_MFROTATION:
+		case EAI_MFCOLOR: {
+			numPerRow=3;
+			if (type==EAI_MFFLOAT) {numPerRow=1;}
+			else if (type==EAI_MFVEC2F) {numPerRow=2;}
+			else if (type==EAI_MFROTATION) {numPerRow=4;}
+
+			MCptr = (struct Multi_Color *) memptr;
+			if (EAIVerbose) 
+				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
+			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
+			ptr = buf + strlen(buf);
+
+
+			fp = (float *) (*MCptr).p;
+			for (row=0; row<(*MCptr).n; row++) {
+				for (i=0; i<numPerRow; i++) {
+					fl[i] = *fp; fp++;
+				}
+				switch (numPerRow) {
+					case 1:
+						sprintf (ptr, "%f \n",fl[0]); break;
+					case 2:
+						sprintf (ptr, "%f %f \n",fl[0],fl[1]); break;
+					case 3:
+						sprintf (ptr, "%f %f %f \n",fl[0],fl[1],fl[2]); break;
+					case 4:
+						sprintf (ptr, "%f %f %f %f \n",fl[0],fl[1],fl[2],fl[3]); break;
+				}
+				/* printf ("line %d is %s\n",row,ptr); */
+				ptr = buf + strlen (buf);
+			}
+
+			break;
+		}
 		default: {
 			printf ("EAI, type %c not handled yet\n",type);
 		}
 
 
 /*XXX	case EAI_SFIMAGE:	{handleptr = &handleEAI_SFIMAGE_Listener;break;}*/
-/*XXX	case EAI_MFCOLOR:	{handleptr = &handleEAI_MFCOLOR_Listener;break;}*/
-/*XXX	case EAI_MFFLOAT:	{handleptr = &handleEAI_MFFLOAT_Listener;break;}*/
 /*XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}*/
 /*XXX	case EAI_MFINT32:	{handleptr = &handleEAI_MFINT32_Listener;break;}*/
-/*XXX	case EAI_MFROTATION:{handleptr = &handleEAI_MFROTATION_Listener;break;}*/
-/*XXX	case EAI_MFVEC2F:	{handleptr = &handleEAI_MFVEC2F_Listener;break;}*/
-/*XXX	case EAI_MFVEC3F:	{handleptr = &handleEAI_MFVEC3F_Listener;break;}*/
 	}
 }
 

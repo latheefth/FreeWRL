@@ -97,7 +97,18 @@ public  class EAIinThread implements Runnable {
 				EAItoBrowserPrintWriter.println(EAIin.readLine());
 
 				// and the response
-				EAItoBrowserPrintWriter.println(EAIin.readLine());
+				EVentreply = new String ("");
+				//EAItoBrowserPrintWriter.println(EAIin.readLine());
+				reply = EAIin.readLine();
+				if (debug) System.out.println ("EAIinThread 5xx reply is " + reply);
+
+				// Now, read the reply, until the string "RE_EOT is read in ???
+				while (!reply.equals("RE_EOT")) {
+					EVentreply = EVentreply + reply;
+					reply = EAIin.readLine();
+				}
+
+				EAItoBrowserPrintWriter.println(EVentreply);
 
 				EAItoBrowserPrintWriter.flush();
 
