@@ -1,43 +1,50 @@
-// This one is interesting... Is it a real node, or are we parsing
-// the value of something like a string of VRML stuff????
+// read in a multi float value from the FreeWRL browser.
 
 package vrml.external.field;
-import vrml.external.Node;
 import vrml.external.Browser;
 import vrml.external.field.FieldTypes;
+import java.util.*;
 
 public class EventOutMFInt32 extends EventOutMField {
    public EventOutMFInt32() { EventType = FieldTypes.MFINT32; }
 
-  public Node[]        getValue() {
-    Node x[] = {new Node()};
-    String rep;
+  public int[]  getValue() {
+	int [] rval;
+	int lines;
+	int rows;
+	int count1;
+	int count2;
+	StringTokenizer tokens;
+	String rep;
 
-    // Ok, lets first see what the value of this thing is...
-    // I guess, lets see if the RLreturn field has something...
-    // if it does, then this is an ASYNC value sent from the FreeWRL VRML Browser.
+	if (RLreturn == null) {
+		rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+	} else {
+		rep = RLreturn;
+	}
+	// get the number of lines of code to come back.
 
-    if (RLreturn == null) {
-      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
-    } else {
-      rep = RLreturn;
-    }
+	rows = 1;
 
-    System.out.println ("DEBUG: EventOutMFInt32 getValue - rep = " + rep);
+	tokens = new StringTokenizer (rep);
 
-    // ok, so now we have some VRML text in the String rep...
-    // XXX - maybe we can split this up on matching []'s???????
+	//System.out.println ("DEBUG: EventOutMFInt32 getValue - rep = " + rep);
+	lines = Integer.valueOf(tokens.nextToken()).intValue();
+	//System.out.println ("DEBUG: read in as a token " + lines);
 
-    x[0].NodeName = rep;
+	rval = new int [lines];
 
-    return x;
+	// now, read in the lines.
+	for (count1=0; count1<lines; count1++) {
+		rval[count1] = Integer.valueOf(tokens.nextToken()).intValue();
+	}
+	return rval;
   }
 
 
-  public Node          get1Value(int index) {
-    Node all[] = getValue();
+  public int          get1Value(int index) {
+    int all[] = getValue();
 
     return all[index];
   }
 }
-

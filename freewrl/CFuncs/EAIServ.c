@@ -980,6 +980,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	struct Multi_String *MSptr;
 	struct Multi_Color *MCptr;
 	float *SFFloats;
+	int *SFints;
 	AV *aM;
 	AV *subaM;
 	SV **bM;
@@ -1110,6 +1111,61 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 			break;
 		}
 
+		case MFINT32: {
+			/* malloc the main pointer */
+			memptr = malloc (sizeof (struct Multi_Int32));
+			if (memptr == NULL) {
+				printf ("can not allocate memory for PROTO Interface decls\n");
+				return 0;
+			}
+			MCptr = (struct Multi_Int32 *) memptr;
+			(*MCptr).n = 0;
+			(*MCptr).p = 0;
+			if(!SvROK(data)) {
+				printf ("EAI_Extra_Memory: Help! Multi without being ref\n");
+				return 0;
+			} 
+			if(SvTYPE(SvRV(data)) != SVt_PVAV) {
+				printf ("EAI_Extra_Memory: Help! Multi without being ref\n");
+			}
+
+
+			/* printf ("sv_dump on data %x is:\n",data); sv_dump(data);  */
+
+                        aM = (AV *) SvRV(data);
+                        lM = av_len(aM)+1;
+
+			/* printf ("sv_dump on aM data %x is:\n",aM); sv_dump(aM);  */
+
+			/* printf ("This MFColor has (lM is) %d\n",lM); */
+                        /* XXX Free previous p */
+                        (*MCptr).n = lM;
+                        (*MCptr).p = (struct SFInt32 *)malloc(lM * numPerRow * sizeof(*((*MCptr).p)));
+			SFints = (int *) (*MCptr).p;
+
+			/* printf ("EAI_DO_EXTRA, memptr for floats is %x\n",SFints); */
+
+			/* bM = av_fetch(aM, 0, 1);*/  
+			for (iM = 0; iM < lM; iM++) {
+				bM = av_fetch(aM, iM, 1); /* LVal for easiness */
+				/* printf ("bm is %x iM %d flags %x\n",*bM, iM, SvFLAGS (*bM)); */
+				if(!bM) {
+					freewrlDie("Help: Multi VRML::Field::SFColor bM == 0");
+				}
+
+				/* printf ("type of node is %x\n",SvTYPE(*bM)); sv_dump(*bM); 
+				printf ("type of aM %x is %x\n",aM,SvTYPE(aM)); sv_dump(aM);  */
+
+
+				/* is this a single or double array? */
+				/* printf ("rows 1; type of node is %x\n",SvTYPE(*bM)); sv_dump(*bM);  */
+				*SFints = SvIV(*bM); SFints++;
+				/* printf ("saved int %d as %d\n",iM,SvIV(*bM)); */
+			}
+
+			break;
+			}
+
 		case MFFLOAT:
 		case MFVEC2F:
 		case MFROTATION:
@@ -1204,7 +1260,6 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 /*XXX		case SFTIME : { break; }*/
 /*XXX		case SFIMAGE: { break; }*/
 /*XXX		case MFTIME: { break; }*/
-/*XXX		case MFINT32: { break; }*/
 		default: {
 			printf ("EAI_do_ExtraMemory, unhandled type %s\n",type);
 		}
@@ -1222,6 +1277,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	double dval;
 	float fl[4];
 	float *fp;
+	int *ip;
 	int ival;
 	int row;			/* MF* counter */
 	struct Multi_String *MSptr;	/* MFString pointer */
@@ -1329,6 +1385,24 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
+		case EAI_MFINT32: {
+			MCptr = (struct Multi_Color *) memptr;
+			if (EAIVerbose) 
+				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
+			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
+			ptr = buf + strlen(buf);
+
+			ip = (int *) (*MCptr).p;
+			for (row=0; row<(*MCptr).n; row++) {
+				sprintf (ptr, "%d \n",*ip); 
+				ip++;
+				/* printf ("line %d is %s\n",row,ptr);  */
+				ptr = buf + strlen (buf);
+			}
+
+			break;
+		}
+
 		case EAI_MFFLOAT:
 		case EAI_MFVEC2F:
 		case EAI_MFVEC3F:
@@ -1374,7 +1448,6 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 /*XXX	case EAI_SFIMAGE:	{handleptr = &handleEAI_SFIMAGE_Listener;break;}*/
 /*XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}*/
-/*XXX	case EAI_MFINT32:	{handleptr = &handleEAI_MFINT32_Listener;break;}*/
 	}
 }
 
