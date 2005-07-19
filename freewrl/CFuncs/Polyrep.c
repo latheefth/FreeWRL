@@ -238,7 +238,7 @@ int IFS_face_normals (
 	/* now, go through each face, and make a point-face list
 	   so that I can give it a point later, and I will know which face(s)
 	   it belong to that point */
-	printf ("\nnow generating point-face list\n"); 
+	/* printf ("\nnow generating point-face list\n");  */
 	for (i=0; i<npoints; i++) { pointfaces[i*POINT_FACES]=0; }
 	facectr=0;
 	for(i=0; i<cin; i++) {

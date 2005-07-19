@@ -38,4 +38,6 @@ For 1.13:
 	  conformance tests successfully.
 
 	- EAI EventOutMFFloat, EventOutMFVec2f, EventOutMFVec3f,
-	  EventOutMFColor, EventOutMFRotation all revisited.
+	  EventOutMFColor, EventOutMFRotation EventOutMFInt32 all revisited.
+
+	- X3D - initial support for containerField.

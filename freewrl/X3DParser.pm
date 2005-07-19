@@ -1046,69 +1046,94 @@ sub parseIS {
 sub parseX3DNodeField {
 	my ($parentNode,$nextNodeName,$fieldref,$bnub,$protoFields) = @_;
 	my $field;
+	my $fieldFound = 0;
 	my $no = $VRML::Nodes{$parentNode};
 
 
-	#print "parseX3DNodeField, field $field for node $parentNode next $nextNodeName\n";
+	# print "parseX3DNodeField, field $field for node $parentNode next $nextNodeName bnub $bnub fieldref $fieldref\n";
 
 	if ($nextNodeName eq "IS") {
 		#print "nextNodeName is an IS\n";
 		parseIS($parentNode,$fieldref,$bnub,$protoFields);
 	} else {
-	$field = getChildType($parentNode,$nextNodeName);
-
-	# some nodes have same fields as VRML97, but different name.
-	if (($parentNode eq "LOD") && ($field eq "children")) {
-		$field = level; # VRML97, children
-	}
-	if (($parentNode eq "Switch") && ($field eq "children")) {
-		$field = choice; # VRML97, children
-	}
+		#print "parseX3DNodeField, have to go and find fieldType\n";
 
 
-	my $ft = $no->{FieldTypes}{$field};
-	print "FT: $ft\n" if $X3D::verbose;
-	if(!defined $ft) {
-		my $mt = "Invalid field '$field' for node '$parentNode'\n";
-		$mt = $mt . "Possible fields are: ";
-		foreach (keys % {$no->{FieldTypes}}) {
-			if (index($_,"_") !=0) {$mt = $mt . "$_ ";}
-		}
-		VRML::VRMLFunc::ConsoleMessage($mt);
-		goto PARSE_EXIT;
-	}
+		# possibly we have a containerField as part of the node parameters. Lets go through and
+		# see... 
+		foreach my $arel(@{$bnub}) { 
+			# print "field of bnub $arel\n";
+			if (ref $arel eq "HASH") {
+				# print "field is a hash\n";
+				#foreach my $key (keys(%{$arel})) { print "hash value is $key", $arel->{$key},"\n"; }
 
-
-	if ($ft eq "MFNode") {
-		#print "have a MFNode\n";
-		if (ref $fieldref->{$field} eq "ARRAY") {
-		#print "fieldfield already defined and is an ARRAY\n";
-
-		# find out what index the next element should be.
-		my $nextele = @{$fieldref->{$field}};
-		#print "element size is $nextele\n";
-		my $retval = parse_X3DStatement($nextNodeName, $bnub,$protoFields);
-		#print "element return value is $retval ref ",
-		#	ref $retval,"\n";
-
-		# we had a return value. Things like ProtoDeclares
-		# will return an undefined value - we dont want
-		# these as children (or whatever)
-		if (defined $retval) {
-			$fieldref->{$field}->[$nextele] = $retval;
+				if (exists $arel->{containerField}) {
+					$fieldFound = 1;
+					$field = $arel->{containerField};
+					#print "containerField exists! value is $field\n";
+				}
+			}
 		}
 
-	} else {
-		#print "new fieldfield\n";
-		$fieldref->{$field} = [parse_X3DStatement($nextNodeName, $bnub,$protoFields)];
-	}
-
-	} elsif ($ft eq "SFNode") {
-		#print "new SFNode field\n";
-		$fieldref->{$field} = parse_X3DStatement($nextNodeName, $bnub,$protoFields);
-	} else {
-		print "CANT HANDLE fieldYpue $ft here\n";
-	}
+		if ($fieldFound == 0) {
+			# print "containerField not found, looking for field now: $field\n";
+			$field = getChildType($parentNode,$nextNodeName);
+		#} else {
+		#	print "containerField showed us that this is a $field\n";
+		}
+	
+		# some nodes have same fields as VRML97, but different name.
+		if (($parentNode eq "LOD") && ($field eq "children")) {
+			$field = level; # VRML97, children
+		}
+		if (($parentNode eq "Switch") && ($field eq "children")) {
+			$field = choice; # VRML97, children
+		}
+	
+	
+		my $ft = $no->{FieldTypes}{$field};
+		print "FT: $ft\n" if $X3D::verbose;
+		if(!defined $ft) {
+			my $mt = "Invalid field '$field' for node '$parentNode'\n";
+			$mt = $mt . "Possible fields are: ";
+			foreach (keys % {$no->{FieldTypes}}) {
+				if (index($_,"_") !=0) {$mt = $mt . "$_ ";}
+			}
+			VRML::VRMLFunc::ConsoleMessage($mt);
+			goto PARSE_EXIT;
+		}
+	
+	
+		if ($ft eq "MFNode") {
+			#print "have a MFNode\n";
+			if (ref $fieldref->{$field} eq "ARRAY") {
+			#print "fieldfield already defined and is an ARRAY\n";
+	
+			# find out what index the next element should be.
+			my $nextele = @{$fieldref->{$field}};
+			#print "element size is $nextele\n";
+			my $retval = parse_X3DStatement($nextNodeName, $bnub,$protoFields);
+			#print "element return value is $retval ref ",
+			#	ref $retval,"\n";
+	
+			# we had a return value. Things like ProtoDeclares
+			# will return an undefined value - we dont want
+			# these as children (or whatever)
+			if (defined $retval) {
+				$fieldref->{$field}->[$nextele] = $retval;
+			}
+	
+		} else {
+			#print "new fieldfield\n";
+			$fieldref->{$field} = [parse_X3DStatement($nextNodeName, $bnub,$protoFields)];
+		}
+	
+		} elsif ($ft eq "SFNode") {
+			#print "new SFNode field\n";
+			$fieldref->{$field} = parse_X3DStatement($nextNodeName, $bnub,$protoFields);
+		} else {
+			print "CANT HANDLE fieldYpue $ft here\n";
+		}
 	#print "fieldfield is ",$fieldref->{$field}," ref ",ref $fieldref->{$field},"\n";
 	#if (ref $fieldref->{$field} eq "ARRAY") {
 	#	foreach (@{$fieldref->{$field}}) {
@@ -1133,6 +1158,8 @@ sub parse_X3DStatement {
 	my $nextNodeName;
 
 	my $LocalDEF = "";
+
+	my $containerField = "";
 
 	#print "start of parse_X3DStatement, protofields $protoFields\n";
 	#foreach my $key (keys (%{$protoFields})) {print "field $key\n";}
@@ -1209,8 +1236,8 @@ sub parse_X3DStatement {
 			# copy any keys over to the parent for later parsing.
 			my $key;
 			foreach $key (keys(%{$bnub})) {
-				print "$key of $parentNode is ",$bnub->{$key},"\n"
-					if $X3D::verbose;
+				print "parse_X3DStatement $key of $parentNode is ",$bnub->{$key},"\n"
+				 	if $X3D::verbose;
 
 				# is this possibly stuff like 'profile' that can be found in the
 				# X3D header? if so, just skip it.
@@ -1219,6 +1246,10 @@ sub parse_X3DStatement {
 				# is this a DEF?
 				if ($key eq "DEF") {
 					$LocalDEF = $bnub->{$key};
+				} elsif ($key eq "containerField") {
+					$containerField = $bnub->{$key};
+					# print "parse_X3DStatement: containerField now is $containerField\n";
+
 				} elsif ($key eq "USE") {
 					# is is already DEF'd???
 					my $dn = VRML::Handles::return_def_name($bnub->{$key});
@@ -1293,35 +1324,9 @@ sub getChildType {
 	if (!defined $no) {
 		print "X3DParser: getChildType - node $pn is invalid\n";
 	}
-	#foreach (keys %{$no->{FieldTypes}}){print"possible fields $_\n";}
-	#
-	#print "getChildType, parent $pn nextNodeName $nnn - lets find the field\n";
 
-	# generic matchings - if we have an, eg LineSet, tell the caller that it is a geometry field
-	# note that cases where there is a 1 to 1 mapping with just the first letter changed is
-	# handled below. eg; "Color" node is returned as a "color" field.
-
-	if ($VRML::Nodes::geometry{$nnn}) { return "geometry"; }
-	if ($VRML::Nodes::texture{$nnn}) { return "texture"; }
-	if ($VRML::Nodes::coord{$nnn}) { return "coord"; }
-	if ($VRML::Nodes::texCoord{$nnn}) { return "texCoord"; }
-
-	# now, see if we can tell by making the first character of the nodename lowercase...
-	my $testfield = lcfirst ($nnn);
-
-	if (defined ($no->{FieldTypes}{$testfield})) {
-		#print "we found $testfield\n";
-		$st = $testfield;
-	}
-	if (!defined ($no->{FieldTypes}{$st})) {
-		print "ERROR - could not find $st or $nnn for node $no\n";
-	}
-
-	if ($X3D::parse::verbose) {
-		if ($st eq "children") {
-			#print "getChildType for node $pn, field $nnn, returning $st\n";
-		}
-	}
+	$st = $VRML::X3DNodes::defaultContainerType{$nnn};
+	#print "returnType says that $nnn is a $st\n";
 	return $st;
 }
 
