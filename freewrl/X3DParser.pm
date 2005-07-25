@@ -10,7 +10,7 @@
 
 package X3D::Parser;
 
-$X3D::verbose = 0;
+$X3D::verbose = 1;
 
 use strict vars;
 use XML::Parser;
@@ -635,6 +635,7 @@ sub parseX3DScript {
 	my $fvref = \%fieldValueHash;
 	my $retval;
 	my $LocalDEF = "";
+	my $containerField = "";
 
 
 	#print "parseX3DScript call\n"; print Dumper ($proto), "\n\n";
@@ -655,6 +656,8 @@ sub parseX3DScript {
 					$url = $bnub->{$key};
 				} elsif ($key eq "DEF") {
 					$LocalDEF = $bnub->{$key};
+				} elsif ($key eq "containerField") {
+					$containerField = $bnub->{$key};
 				} else {
 					VRML::VRMLFunc::ConsoleMessage ("ScriptInstance - field $key is invalid\n");
 				}
@@ -665,6 +668,8 @@ sub parseX3DScript {
 			$X3DProtos{$LocalDEF}{ScriptInterface}{mustEvaluate} = $mustEvaluate;
 			$X3DProtos{$LocalDEF}{ScriptInterface}{directOutput} = $directOutput;
 			$X3DProtos{$LocalDEF}{ScriptInterface}{url} = $url;
+			$X3DProtos{$LocalDEF}{ScriptInterface}{containerField} = $containerField;
+
 
 
 		# lets look for fields if we find it, parse it.
