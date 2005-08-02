@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.156  2005/08/02 13:22:45  crc_canada
+# Move ElevationGrid to new face set order.
+#
 # Revision 1.155  2005/06/29 17:00:13  crc_canada
 # EAI and X3D Triangle code added.
 #
@@ -1101,6 +1104,41 @@ GeoElevationGrid => '
 		}
 ',
 
+JASElevationGrid =>  '
+		struct SFColor *colors=0; int ncolors=0;
+                struct SFVec2f *texcoords=0; int ntexcoords=0;
+		struct SFColor *normals=0; int nnormals=0;
+		struct VRML_ColorRGBA *thc;
+		int ct=0;
+
+
+		$fv_null(color, colors, get3, &ncolors);
+		$fv_null(normal, normals, get3, &nnormals);
+		$fv_null(texCoord, texcoords, get2, &ntexcoords);
+
+		/* get whether this is an RGB or an RGBA color node */
+		if (colors != NULL) {
+			thc = this_->color;
+			ct = thc->__isRGBA;
+		}
+
+		$mk_polyrep();
+		if(!$f(solid)) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+		}
+		render_polyrep(this_,
+			0, NULL,
+			ncolors, colors,
+			nnormals, normals,
+			/*JAS - ntexcoords, texcoords */
+			0, NULL,
+			ct	
+		);
+		if(!$f(solid)) {
+			glPopAttrib();
+		}
+',
 ElevationGrid =>  '
 		struct SFColor *colors=0; int ncolors=0;
                 struct SFVec2f *texcoords=0; int ntexcoords=0;
@@ -2628,6 +2666,9 @@ Cylinder => q~
 	       ~,
 
 
+JASElevationGrid => q~
+		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+~,
 IndexedFaceSet => q~
 		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
 ~,

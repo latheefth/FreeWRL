@@ -846,7 +846,7 @@ void stream_polyrep(void *node,
 	int isRGBA)
 {
 	struct VRML_Virt *v;
-	struct VRML_Box *p;
+	struct VRML_IndexedFaceSet *p;
 	struct VRML_PolyRep *r;
 	int i;
 	int hasc;
@@ -878,7 +878,7 @@ void stream_polyrep(void *node,
 	if (stream_poly_verbose) printf ("\nstart stream_polyrep\n");
 
 	v = *(struct VRML_Virt **)node;
-	p = (struct VRML_Box *)node;
+	p = (struct VRML_IndexedFaceSet *)node;
 	r = (struct VRML_PolyRep *)p->_intern;
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
@@ -918,50 +918,52 @@ void stream_polyrep(void *node,
 
 	/* do we need to generate default texture mapping? */
 	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
+		if (p->__GeometryType == INDEXEDFACESET) {	
 		/* use Mufti's initialization scheme for minVals and maxVals; */
-		for (j=0; j<3; j++) {
-			if (points) {
-				minVals[j] = points[r->cindex[0]].c[j];
-				maxVals[j] = points[r->cindex[0]].c[j];
-			} else {
-				minVals[j] = r->coord[3*r->cindex[0]+j];
-				maxVals[j] = r->coord[3*r->cindex[0]+j];
+			for (j=0; j<3; j++) {
+				if (points) {
+					minVals[j] = points[r->cindex[0]].c[j];
+					maxVals[j] = points[r->cindex[0]].c[j];
+				} else {
+					minVals[j] = r->coord[3*r->cindex[0]+j];
+					maxVals[j] = r->coord[3*r->cindex[0]+j];
+				}
 			}
-		}
 
-		for(i=0; i<r->ntri*3; i++) {
-		  int ind = r->cindex[i];
-		  for (j=0; j<3; j++) {
-		      if(points) {
-			    if (minVals[j] > points[ind].c[j]) minVals[j] = points[ind].c[j];
-			    if (maxVals[j] < points[ind].c[j]) maxVals[j] = points[ind].c[j];
-		      } else if(r->coord) {
-			    if (minVals[j] >  r->coord[3*ind+j]) minVals[j] =  r->coord[3*ind+j];
-			    if (maxVals[j] <  r->coord[3*ind+j]) maxVals[j] =  r->coord[3*ind+j];
-		      }
-		  }
-		}
+			for(i=0; i<r->ntri*3; i++) {
+			  int ind = r->cindex[i];
+			  for (j=0; j<3; j++) {
+			      if(points) {
+				    if (minVals[j] > points[ind].c[j]) minVals[j] = points[ind].c[j];
+				    if (maxVals[j] < points[ind].c[j]) maxVals[j] = points[ind].c[j];
+			      } else if(r->coord) {
+				    if (minVals[j] >  r->coord[3*ind+j]) minVals[j] =  r->coord[3*ind+j];
+				    if (maxVals[j] <  r->coord[3*ind+j]) maxVals[j] =  r->coord[3*ind+j];
+			      }
+			  }
+			}
 
-		/* find the S,T mapping. */
-		Xsize = maxVals[0]-minVals[0];
-		Ysize = maxVals[1]-minVals[1];
-		Zsize = maxVals[2]-minVals[2];
-
-		if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
-			/* X size largest */
-			Ssize = Xsize; Sindex = 0;
-			if (Ysize >= Zsize) { Tsize = Ysize; Tindex = 1;
-			} else { Tsize = Zsize; Tindex = 2; }
-		} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
-			/* Y size largest */
-			Ssize = Ysize; Sindex = 1;
-			if (Xsize >= Zsize) { Tsize = Xsize; Tindex = 0;
-			} else { Tsize = Zsize; Tindex = 2; }
-		} else {
-			/* Z is the largest */
-			Ssize = Zsize; Sindex = 2;
-			if (Xsize >= Ysize) { Tsize = Xsize; Tindex = 0;
-			} else { Tsize = Ysize; Tindex = 1; }
+			/* find the S,T mapping. */
+			Xsize = maxVals[0]-minVals[0];
+			Ysize = maxVals[1]-minVals[1];
+			Zsize = maxVals[2]-minVals[2];
+	
+			if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
+				/* X size largest */
+				Ssize = Xsize; Sindex = 0;
+				if (Ysize >= Zsize) { Tsize = Ysize; Tindex = 1;
+				} else { Tsize = Zsize; Tindex = 2; }
+			} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
+				/* Y size largest */
+				Ssize = Ysize; Sindex = 1;
+				if (Xsize >= Zsize) { Tsize = Xsize; Tindex = 0;
+				} else { Tsize = Zsize; Tindex = 2; }
+			} else {
+				/* Z is the largest */
+				Ssize = Zsize; Sindex = 2;
+				if (Xsize >= Ysize) { Tsize = Xsize; Tindex = 0;
+				} else { Tsize = Ysize; Tindex = 1; }
+			}
 		}
 	}
 

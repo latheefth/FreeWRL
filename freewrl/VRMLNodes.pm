@@ -323,6 +323,7 @@ my $protono;
 	Cone
 	Sphere
 	IndexedFaceSet
+	JASElevationGrid
 	ElevationGrid
 	GeoElevationGrid
 	Extrusion
@@ -342,6 +343,7 @@ my $protono;
 	Cylinder
 	IndexedFaceSet
 	ElevationGrid
+	JASElevationGrid
 	GeoElevationGrid
 	Extrusion
 	IndexedLineSet
@@ -623,6 +625,7 @@ my $protono;
 	CylinderSensor 		=>children,
 	DirectionalLight 	=>children,
 	ElevationGrid 		=>geometry,
+	JASElevationGrid 		=>geometry,
 	Extrusion 		=>geometry,
 	Fog 			=>children,
 	FontStyle 		=>children,
@@ -929,8 +932,51 @@ my $protono;
 						stripCount => [MFInt32, [], field],
 
 						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,0,field],
+						__GeometryType =>[SFInt32,1,field],
 						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
+						
+					   }
+					  ),
+	JASElevationGrid =>
+	new VRML::NodeType("JASElevationGrid",
+					   {
+						set_colorIndex => [MFInt32, undef, eventIn],
+						set_coordIndex => [MFInt32, undef, eventIn],
+						set_normalIndex => [MFInt32, undef, eventIn],
+						set_texCoordIndex => [MFInt32, undef, eventIn],
+						color => [SFNode, NULL, exposedField],
+						coord => [SFNode, NULL, exposedField],
+						normal => [SFNode, NULL, exposedField],
+						texCoord => [SFNode, NULL, exposedField],
+						ccw => [SFBool, 1, field],
+						colorIndex => [MFInt32, [], field],
+						colorPerVertex => [SFBool, 1, field],
+						convex => [SFBool, 1, field],
+						coordIndex => [MFInt32, [], field],
+						creaseAngle => [SFFloat, 0, field],
+						normalIndex => [MFInt32, [], field],
+						normalPerVertex => [SFBool, 1, field],
+						solid => [SFBool, 1, field],
+						texCoordIndex => [MFInt32, [], field],
+						index => [MFInt32, [], field],
+						fanCount => [MFInt32, [], field],
+						stripCount => [MFInt32, [], field],
+
+						# GeometryType, see CFuncs/ for exact mapping.
+						__GeometryType =>[SFInt32,2,field],
+						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
 					   }
 					  ),
 
@@ -960,7 +1006,14 @@ my $protono;
 						stripCount => [MFInt32, [], field],
 
 						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,1,field],
+						__GeometryType =>[SFInt32,4,field],
+						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
 						
 					   }
 					  ),
@@ -991,7 +1044,14 @@ my $protono;
 						stripCount => [MFInt32, [], field],
 
 						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,2,field],
+						__GeometryType =>[SFInt32,8,field],
+						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
 						
 					   }
 					  ),
@@ -1022,7 +1082,14 @@ my $protono;
 						stripCount => [MFInt32, [], field],
 
 						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,3,field],
+						__GeometryType =>[SFInt32,16,field],
+						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
 						
 					   }
 					  ),
@@ -1053,7 +1120,14 @@ my $protono;
 						stripCount => [MFInt32, [], field],
 
 						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,4,field],
+						__GeometryType =>[SFInt32,32,field],
+						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
 						
 					   }
 					  ),
@@ -1085,7 +1159,14 @@ my $protono;
 						stripCount => [MFInt32, [], field],
 
 						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,5,field],
+						__GeometryType =>[SFInt32,64,field],
+						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
 						
 					   }
 					  ),
@@ -1115,7 +1196,14 @@ my $protono;
 						stripCount => [MFInt32, [], field],
 
 						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,6,field],
+						__GeometryType =>[SFInt32,128,field],
+						
+						set_height => [MFFloat, undef, eventIn],
+						height => [MFFloat, [], field],
+						xDimension => [SFInt32, 0, field],
+						xSpacing => [SFFloat, 1.0, field],
+						zDimension => [SFInt32, 0, field],
+						zSpacing => [SFFloat, 1.0, field]
 						
 					   }
 					  ),

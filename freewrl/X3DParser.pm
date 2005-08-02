@@ -10,7 +10,7 @@
 
 package X3D::Parser;
 
-$X3D::verbose = 1;
+$X3D::verbose = 0;
 
 use strict vars;
 use XML::Parser;
@@ -1170,8 +1170,8 @@ sub parse_X3DStatement {
 	#foreach my $key (keys (%{$protoFields})) {print "field $key\n";}
 
 
-	print "start parse_X3DStatement, array elements $nele node ",
-		$parentNode,", ref doc ",ref $doc,"\n" if $X3D::verbose;
+	#print "start parse_X3DStatement, array elements $nele node ",
+	#	$parentNode,", ref doc ",ref $doc,"\n" if $X3D::verbose;
 
 	# lets just make a "Scene" equate to a "Group"
 	if ($parentNode eq "Scene") {$parentNode = "Group"};

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.175  2005/08/02 13:22:44  crc_canada
+# Move ElevationGrid to new face set order.
+#
 # Revision 1.174  2005/06/29 17:00:11  crc_canada
 # EAI and X3D Triangle code added.
 #
@@ -479,6 +482,10 @@ GeoElevationGrid => ( '
 		render_ray_polyrep(this_, 0, NULL);
 '),
 
+JASElevationGrid => ( '
+		$mk_polyrep();
+		render_ray_polyrep(this_, 0, NULL);
+'),
 ElevationGrid => ( '
 		$mk_polyrep();
 		render_ray_polyrep(this_, 0, NULL);
@@ -570,6 +577,7 @@ TriangleSet => '
 
 %GenPolyRepC = (
 	ElevationGrid => 'make_elevationgrid(this_);',
+	JASElevationGrid => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
 	Extrusion => 'make_extrusion(this_);',
 	IndexedFaceSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *) this_);',
 	IndexedTriangleFanSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',

@@ -487,6 +487,14 @@ int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 
 
 /* check validity of fields */
+int checkX3DIndexedFaceSetFields (struct VRML_IndexedFaceSet *this_) {
+	return TRUE;
+}
+
+int checkX3DJASElevationGridFields (struct VRML_IndexedFaceSet *this_) {
+	return TRUE;
+}
+
 int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 	struct SFColor *points;
 	int npoints;
@@ -498,13 +506,15 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 	int *newIndex;
 	int windingOrder; /*TriangleStripSet ordering */
 
-	/* printf ("checkX3DComposedGeomFields for node %s\n",X3DCOMPOSED_STRING(this_->__GeometryType)); */
+	/* printf ("checkX3DComposedGeomFields for node (%d) %s\n",
+			this_->__GeometryType, X3DCOMPOSED_STRING(this_->__GeometryType)); 
+	*/
+	
 
 	/* creaseAngle - set if normalPerVertex TRUE */
 	if (this_->normalPerVertex) {
 		switch (this_->__GeometryType) {
 			/* IFS has creaseAngle; TriangleSet specs no smoothing */
-			case INDEXEDFACESET:
 			case TRIANGLESET:
 				break;
 
@@ -515,20 +525,13 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 		}
 	}
 
-	/* colorPerVertex is always TRUE, except for IndexedFaceSets */
-	if (this_->__GeometryType != INDEXEDFACESET) {
-		this_->colorPerVertex = TRUE;
-	}
+	/* colorPerVertex always TRUE for these Geom types */
+	this_->colorPerVertex = TRUE;
 
 	/* verify fields for each Node type, according to the spec. Fields that SHOULD
 	   not appear in a node are identified in Parser.pm using the hashes in VRMLNodes.pm
 	   so we do not have to worry about them here. */
 	switch (this_->__GeometryType) {
-		case INDEXEDFACESET          :
-			/* this code is handled in the caller */
-			/* we can move most of the param checking code to here, though. */
-                	break;
-
 		case INDEXEDTRIANGLEFANSET   :
 			/* printf ("start of ITFS\n"); */
 			IndexSize = returnIndexedFanStripIndexSize(this_->index);
@@ -793,6 +796,8 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			}
                 	break;
         	default:
+			printf ("invalid node passed to CheckX3DComposedGeometryFields!\n");
+			return FALSE;
                 	break;
         }
 
@@ -847,9 +852,26 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	int i;				/* general purpose counters */
 	int this_face, this_coord, this_normal, this_normalindex;
 
-	if (!checkX3DComposedGeomFields(this_)) {
-	        rep_->ntri = 0;
-	        return;
+
+	/* if this is a X3DComposedGeom - check fields */
+	if (this_->__GeometryType & X3DGEOM_MASK) {
+		if (!checkX3DComposedGeomFields(this_)) {
+	        	rep_->ntri = 0;
+	        	return;
+		}
+	} else if (this_->__GeometryType & INDEXEDFACESET) {
+		if (!checkX3DIndexedFaceSetFields(this_)) {
+	        	rep_->ntri = 0;
+	        	return;
+		}
+		
+
+	} else if (this_->__GeometryType & JASELEVATIONGRID) {
+		if (!checkX3DJASElevationGridFields(this_)) {
+	        	rep_->ntri = 0;
+	        	return;
+		}
+
 	}
 
 	/* lets get the structure parameters, after munging by checkX3DComposedGeomFields... */
