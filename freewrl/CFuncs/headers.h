@@ -363,7 +363,7 @@ void render_polyrep(void *node,
         int ncolors, struct SFColor *colors,
         int nnormals, struct SFColor *normals,
         int ntexcoords, struct SFVec2f *texcoords,
-	int isRGBA);
+	int isRGBA, int isStreamed);
 
 
 extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */

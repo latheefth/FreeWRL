@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.176  2005/08/03 18:41:40  crc_canada
+# Working on Polyrep structure.
+#
 # Revision 1.175  2005/08/02 13:22:44  crc_canada
 # Move ElevationGrid to new face set order.
 #
@@ -856,6 +859,10 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
 		$c =~ s/\$fv\(([^)]*)\)/fvirt($n,split ',',$1)/ge;
 		$c =~ s/\$fv_null\(([^)]*)\)/fvirt_null($n,split ',',$1)/ge;
+		$c =~ s/\$mk_streamable_polyrep\(\)/if(!this_->_intern ||
+			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) {
+				regen_polyrep(this_);
+				this_->__PolyStreamed=FALSE; }/g;
 		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern ||
 			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
 				regen_polyrep(this_);/g;

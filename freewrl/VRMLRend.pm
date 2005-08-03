@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.157  2005/08/03 18:41:41  crc_canada
+# Working on Polyrep structure.
+#
 # Revision 1.156  2005/08/02 13:22:45  crc_canada
 # Move ElevationGrid to new face set order.
 #
@@ -551,9 +554,8 @@ IndexedFaceSet => '
 		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
-
-
-		$fv(coord, points, get3, &npoints);
+		/* these use methods to get the values...		    */
+		$fv_null(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
@@ -566,7 +568,7 @@ IndexedFaceSet => '
 		}
 
 
-		$mk_polyrep();
+		$mk_streamable_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
@@ -576,7 +578,7 @@ IndexedFaceSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords, ct);
+			ntexcoords, texcoords, ct, this_->__PolyStreamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -591,6 +593,7 @@ IndexedTriangleFanSet => '
 		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		/* these use methods to get the values...		    */
 		$fv_null(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -603,7 +606,7 @@ IndexedTriangleFanSet => '
 			ct = thc->__isRGBA;
 		}
 
-		$mk_polyrep();
+		$mk_streamable_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
@@ -613,7 +616,7 @@ IndexedTriangleFanSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct);
+			ntexcoords, texcoords,ct, this_->__PolyStreamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -627,6 +630,7 @@ IndexedTriangleSet => '
 		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		/* these use methods to get the values...		    */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -639,7 +643,7 @@ IndexedTriangleSet => '
 			ct = thc->__isRGBA;
 		}
 
-		$mk_polyrep();
+		$mk_streamable_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
@@ -649,7 +653,7 @@ IndexedTriangleSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct);
+			ntexcoords, texcoords,ct, this_->__PolyStreamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -663,6 +667,7 @@ IndexedTriangleStripSet => '
 		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		/* these use methods to get the values...		    */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -675,7 +680,7 @@ IndexedTriangleStripSet => '
 			ct = thc->__isRGBA;
 		}
 
-		$mk_polyrep();
+		$mk_streamable_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
@@ -685,7 +690,7 @@ IndexedTriangleStripSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct);
+			ntexcoords, texcoords,ct, this_->__PolyStreamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -699,6 +704,7 @@ TriangleFanSet => '
 		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		/* these use methods to get the values...		    */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -711,7 +717,7 @@ TriangleFanSet => '
 			ct = thc->__isRGBA;
 		}
 
-		$mk_polyrep();
+		$mk_streamable_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
@@ -721,7 +727,7 @@ TriangleFanSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct);
+			ntexcoords, texcoords,ct, this_->__PolyStreamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -735,6 +741,7 @@ TriangleStripSet => '
 		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		/* these use methods to get the values...		    */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -747,7 +754,7 @@ TriangleStripSet => '
 			ct = thc->__isRGBA;
 		}
 
-		$mk_polyrep();
+		$mk_streamable_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
@@ -757,7 +764,7 @@ TriangleStripSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct);
+			ntexcoords, texcoords,ct, this_->__PolyStreamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -771,6 +778,7 @@ TriangleSet => '
 		int ct=0;
 
 		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+		/* these use methods to get the values...		    */
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
@@ -783,7 +791,7 @@ TriangleSet => '
 			ct = thc->__isRGBA;
 		}
 
-		$mk_polyrep();
+		$mk_streamable_polyrep();
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
@@ -793,7 +801,7 @@ TriangleSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct);
+			ntexcoords, texcoords,ct, this_->__PolyStreamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -1075,6 +1083,7 @@ GeoElevationGrid => '
 		int ct=0;
 
 
+		/* these use methods to get the values...		    */
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
@@ -1095,9 +1104,8 @@ GeoElevationGrid => '
 			0, NULL,
 			ncolors, colors,
 			nnormals, normals,
-			/*JAS - ntexcoords, texcoords */
-			0, NULL,
-			ct
+			ntexcoords, texcoords,
+			ct, -1
 		);
 		if(!$f(solid)) {
 			glPopAttrib();
@@ -1133,7 +1141,8 @@ JASElevationGrid =>  '
 			nnormals, normals,
 			/*JAS - ntexcoords, texcoords */
 			0, NULL,
-			ct	
+			ct, -1
+			
 		);
 		if(!$f(solid)) {
 			glPopAttrib();
@@ -1147,6 +1156,7 @@ ElevationGrid =>  '
 		int ct=0;
 
 
+		/* these use methods to get the values...		    */
 		$fv_null(color, colors, get3, &ncolors);
 		$fv_null(normal, normals, get3, &nnormals);
 		$fv_null(texCoord, texcoords, get2, &ntexcoords);
@@ -1168,7 +1178,7 @@ ElevationGrid =>  '
 			nnormals, normals,
 			/*JAS - ntexcoords, texcoords */
 			0, NULL,
-			ct	
+			ct, -1
 		);
 		if(!$f(solid)) {
 			glPopAttrib();
@@ -1181,7 +1191,7 @@ Extrusion => '
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0);
+		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0, -1);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -1198,7 +1208,7 @@ Text => '
                 glPushAttrib(GL_ENABLE_BIT);
                 glDisable(GL_CULL_FACE);
 
-		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0);
+		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0,-1);
 
 		glPopAttrib();
 ',

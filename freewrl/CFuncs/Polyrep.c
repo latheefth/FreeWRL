@@ -733,10 +733,10 @@ void render_polyrep(void *node,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
 	int ntexcoords, struct SFVec2f *texcoords,
-	int isRGBA)
+	int isRGBA, int isStreamed)
 {
 	struct VRML_Virt *v;
-	struct VRML_Box *p;
+	struct VRML_IndexedFaceSet *p;
 	struct VRML_PolyRep *r;
 	int polyrep_verbose = 0;
 
@@ -750,10 +750,12 @@ void render_polyrep(void *node,
 	}
 
 	/* do we still have to stream this one for faster rendering? */
-	if (r->norindex) {
+	/* -1 means we can't stream; 0 means not streamed yet, 1 means streamed ok */
+/* printf ("isstreamed is %d\n",isStreamed); */
+if (isStreamed==0) {
 		stream_polyrep (node,npoints,points,ncolors,colors,
 				nnormals,normals,ntexcoords,texcoords,isRGBA);
-	}
+}
 
 	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
 
@@ -836,6 +838,9 @@ void render_polyrep(void *node,
 *  the isRGBA parameter tells us whether the color node (if present)
 *  is in RGB or RGBA format.
 *
+* points is the preferred way of getting coordinates into this 
+* function. the r->coord method will go away.
+*
 *********************************************************************/
 
 void stream_polyrep(void *node,
@@ -880,6 +885,10 @@ void stream_polyrep(void *node,
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_IndexedFaceSet *)node;
 	r = (struct VRML_PolyRep *)p->_intern;
+/*printf ("polyv, points %d coord %d npoints %d ntri %d\n",points,r->coord,npoints,r->ntri); */
+
+	p->__PolyStreamed = TRUE;
+
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (last_texture_depth<=1));

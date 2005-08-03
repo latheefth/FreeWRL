@@ -168,7 +168,8 @@ my $protono;
 
 
 
-%VRML::Nodes::X3DComposedGeometry = map {($_=>1)} qw/
+%VRML::Nodes::X3DFaceGeometry = map {($_=>1)} qw/
+	JASElevationGrid
 	IndexedFaceSet
 	IndexedTriangleFanSet
 	IndexedTriangleSet
@@ -184,120 +185,92 @@ my $protono;
 	creaseAngle
 	metadata
 	normal
-	#texCoord
 	ccw
-	#colorIndex
-	#colorPerVertex
-	#convex
-	#coordIndex
-	#normalIndex
 	normalPerVertex
 	solid
-	#texCoordIndex
 	index
-	#fanCount
 	/;
 %VRML::Nodes::X3DCG_IndexedTriangleSet = map {($_=>1)} qw/
 	color
 	coord
-	#creaseAngle
 	metadata
 	normal
 	texCoord
 	ccw
-	#colorIndex
 	colorPerVertex
-	#convex
-	#coordIndex
-	#normalIndex
 	normalPerVertex
 	solid
-	#texCoordIndex
 	index
-	#fanCount
 	/;
 
 %VRML::Nodes::X3DCG_IndexedTriangleFanSet = map {($_=>1)} qw/
 	color
 	coord
-	#creaseAngle
 	metadata
 	normal
 	texCoord
 	ccw
-	#colorIndex
 	colorPerVertex
-	#convex
-	#coordIndex
-	#normalIndex
 	normalPerVertex
 	solid
-	#texCoordIndex
 	index
-	#fanCount
 	/;
 
 %VRML::Nodes::X3DCG_TriangleFanSet = map {($_=>1)} qw/
 	color
 	coord
-	#creaseAngle
 	metadata
 	normal
 	texCoord
 	ccw
-	#colorIndex
 	colorPerVertex
-	#convex
-	#coordIndex
-	#normalIndex
 	normalPerVertex
 	solid
-	#texCoordIndex
-	#index
 	fanCount
 	/;
 
 %VRML::Nodes::X3DCG_TriangleSet = map {($_=>1)} qw/
 	color
 	coord
-	#creaseAngle
 	metadata
 	normal
 	texCoord
 	ccw
-	#colorIndex
 	colorPerVertex
-	#convex
-	#coordIndex
-	#normalIndex
 	normalPerVertex
 	solid
-	#texCoordIndex
-	#index
-	#fanCount
 	/;
 
 %VRML::Nodes::X3DCG_TriangleStripSet = map {($_=>1)} qw/
 	color
 	coord
-	#creaseAngle
 	metadata
 	normal
 	stripCount
 	texCoord
 	ccw
-	#colorIndex
 	colorPerVertex
-	#convex
-	#coordIndex
-	#normalIndex
 	normalPerVertex
 	solid
-	#texCoordIndex
-	#index
-	#fanCount
 	/;
 
+
+%VRML::Nodes::X3DCG_JASElevationGrid = map {($_=>1)} qw/
+	set_height
+	color
+	normal
+	texCoord
+	height
+	ccw
+	colorPerVertex
+	creaseAngle
+	normalPerVertex
+	solid
+	xDimension
+	xSpacing
+	zDimension
+	zSpacing
+	/;
 
 %VRML::Nodes::X3DCG_IndexedFaceSet = map {($_=>1)} qw/
 	color
@@ -939,7 +912,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 						
 					   }
 					  ),
@@ -976,7 +950,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 					   }
 					  ),
 
@@ -1013,7 +988,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 						
 					   }
 					  ),
@@ -1051,7 +1027,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 						
 					   }
 					  ),
@@ -1089,7 +1066,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 						
 					   }
 					  ),
@@ -1127,7 +1105,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 						
 					   }
 					  ),
@@ -1166,7 +1145,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 						
 					   }
 					  ),
@@ -1203,7 +1183,8 @@ my $protono;
 						xDimension => [SFInt32, 0, field],
 						xSpacing => [SFFloat, 1.0, field],
 						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
+						zSpacing => [SFFloat, 1.0, field],
+						__PolyStreamed => [SFBool, 0, field],
 						
 					   }
 					  ),
