@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.177  2005/08/04 14:39:38  crc_canada
+# more work on moving elevationgrid to streaming polyrep structure
+#
 # Revision 1.176  2005/08/03 18:41:40  crc_canada
 # Working on Polyrep structure.
 #
@@ -482,88 +485,74 @@ Cone => '
 
 GeoElevationGrid => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 0, NULL);
+		render_ray_polyrep(this_, NULL);
 '),
 
 JASElevationGrid => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 0, NULL);
+		render_ray_polyrep(this_, NULL);
 '),
 ElevationGrid => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 0, NULL);
+		render_ray_polyrep(this_, NULL);
 '),
 
 Text => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 0, NULL);
+		render_ray_polyrep(this_, NULL);
 '),
 
 Extrusion => ( '
 		$mk_polyrep();
-		render_ray_polyrep(this_, 0, NULL);
+		render_ray_polyrep(this_, NULL);
 '),
 
 IndexedFaceSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_,
-			npoints, points
-		);
+		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleFanSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_,
-			npoints, points
-		);
+		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_,
-			npoints, points
-		);
+		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleStripSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_,
-			npoints, points
-		);
+		render_ray_polyrep(this_, points);
 ',
 
 TriangleFanSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_,
-			npoints, points
-		);
+		render_ray_polyrep(this_, points);
 ',
 
 TriangleStripSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_,
-			npoints, points
-		);
+		render_ray_polyrep(this_, points);
 ',
 TriangleSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
 		$mk_polyrep();
-		render_ray_polyrep(this_,
-			npoints, points
-		);
+		render_ray_polyrep(this_, points);
 ',
 
 );
@@ -862,7 +851,7 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$mk_streamable_polyrep\(\)/if(!this_->_intern ||
 			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) {
 				regen_polyrep(this_);
-				this_->__PolyStreamed=FALSE; }/g;
+				}/g;
 		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern ||
 			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
 				regen_polyrep(this_);/g;
@@ -1008,6 +997,7 @@ struct VRML_PolyRep { /* Currently a bit wasteful, because copying */
 	float *normal; /* triples or null */
         int *tcindex; /* triples or null */
         float *tcoord;	/* triples (per triangle) of texture coords */
+	int streamed;	/* has this gone through stream_polyrep yet? */
 };
 
 /* viewer dimentions (for collision detection) */

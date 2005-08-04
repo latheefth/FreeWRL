@@ -199,13 +199,15 @@ int IFS_face_normals (
 
 			normalize_vector(&facenormals[i]);
 
-			/*printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
+			/*
+			printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
 				c1->c[0],c1->c[1],c1->c[2],
 				c2->c[0],c2->c[1],c2->c[2],
 				c3->c[0],c3->c[1],c3->c[2]);
 			printf ("normal %f %f %f\n\n",facenormals[i].x,
 				facenormals[i].y,facenormals[i].z);
 			*/
+			
 
 		}
 
@@ -238,7 +240,7 @@ int IFS_face_normals (
 	/* now, go through each face, and make a point-face list
 	   so that I can give it a point later, and I will know which face(s)
 	   it belong to that point */
-	/* printf ("\nnow generating point-face list\n");  */
+	/* printf ("\nnow generating point-face list\n");   */
 	for (i=0; i<npoints; i++) { pointfaces[i*POINT_FACES]=0; }
 	facectr=0;
 	for(i=0; i<cin; i++) {
@@ -736,7 +738,7 @@ void render_polyrep(void *node,
 	int isRGBA, int isStreamed)
 {
 	struct VRML_Virt *v;
-	struct VRML_IndexedFaceSet *p;
+	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
 	int polyrep_verbose = 0;
 
@@ -751,17 +753,19 @@ void render_polyrep(void *node,
 
 	/* do we still have to stream this one for faster rendering? */
 	/* -1 means we can't stream; 0 means not streamed yet, 1 means streamed ok */
-/* printf ("isstreamed is %d\n",isStreamed); */
-if (isStreamed==0) {
-		stream_polyrep (node,npoints,points,ncolors,colors,
+/* printf ("isstreamed is %d\n",isStreamed);  */
+	if (isStreamed==0) {
+		stream_polyrep (node,points,ncolors,colors,
 				nnormals,normals,ntexcoords,texcoords,isRGBA);
-}
+	}
 
 	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
 
 	/*  printing.*/
-	/*
+	
+/*
 	{int i,j;
+printf ("intern %d\n", p->_intern);
 		for(i=0; i<r->ntri*3; i++) {
 			printf ("i %d cindex %d ",i,r->cindex[i]);
 			printf (" coords %f %f %f\n",
@@ -772,7 +776,8 @@ if (isStreamed==0) {
 		}
 
 	}
-	*/
+*/
+	
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
@@ -839,12 +844,13 @@ if (isStreamed==0) {
 *  is in RGB or RGBA format.
 *
 * points is the preferred way of getting coordinates into this 
-* function. the r->coord method will go away.
+* function. the r->coord method will go away. Currently only used by
+* Extrusions.
 *
 *********************************************************************/
 
 void stream_polyrep(void *node,
-	int npoints, struct SFColor *points,
+	struct SFColor *points,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
 	int ntexcoords, struct SFVec2f *texcoords,
@@ -878,16 +884,15 @@ void stream_polyrep(void *node,
 
 	int stream_poly_verbose = 0;
 
-	UNUSED (npoints);
-
 	if (stream_poly_verbose) printf ("\nstart stream_polyrep\n");
 
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_IndexedFaceSet *)node;
 	r = (struct VRML_PolyRep *)p->_intern;
-/*printf ("polyv, points %d coord %d npoints %d ntri %d\n",points,r->coord,npoints,r->ntri); */
+	/*printf ("polyv, points %d coord %d ntri %d\n",points,r->coord,r->ntri);  */
 
-	p->__PolyStreamed = TRUE;
+	 r->streamed = TRUE;
+
 
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
@@ -1147,8 +1152,7 @@ void stream_polyrep(void *node,
  * polygonal representations
  */
 
-void render_ray_polyrep(void *node,
-	int npoints, struct SFColor *points)
+void render_ray_polyrep(void *node, struct SFColor *points)
 {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
@@ -1171,7 +1175,6 @@ void render_ray_polyrep(void *node,
 	r = (struct VRML_PolyRep *)p->_intern;
 
 
-	UNUSED(npoints);
 	/*
 	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,v->name,
 		p->_change, r->_change, r->ntri);
@@ -1289,10 +1292,11 @@ void regen_polyrep(void *node)
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0; r->tcoord = 0;
-		r->tcindex = 0;
+		r->tcindex = 0; 
 	}
 	r = (struct VRML_PolyRep *)p->_intern;
 	r->_change = p->_change;
+	r->streamed = FALSE;
 
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.158  2005/08/04 14:39:38  crc_canada
+# more work on moving elevationgrid to streaming polyrep structure
+#
 # Revision 1.157  2005/08/03 18:41:41  crc_canada
 # Working on Polyrep structure.
 #
@@ -578,7 +581,7 @@ IndexedFaceSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords, ct, this_->__PolyStreamed);
+			ntexcoords, texcoords, ct, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -616,7 +619,7 @@ IndexedTriangleFanSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct, this_->__PolyStreamed);
+			ntexcoords, texcoords,ct, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -653,7 +656,7 @@ IndexedTriangleSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct, this_->__PolyStreamed);
+			ntexcoords, texcoords,ct, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -690,7 +693,7 @@ IndexedTriangleStripSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct, this_->__PolyStreamed);
+			ntexcoords, texcoords,ct, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -727,7 +730,7 @@ TriangleFanSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct, this_->__PolyStreamed);
+			ntexcoords, texcoords,ct, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -764,7 +767,7 @@ TriangleStripSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct, this_->__PolyStreamed);
+			ntexcoords, texcoords,ct, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -801,7 +804,7 @@ TriangleSet => '
 			npoints, points,
 			ncolors, colors,
 			nnormals, normals,
-			ntexcoords, texcoords,ct, this_->__PolyStreamed);
+			ntexcoords, texcoords,ct, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
@@ -1141,7 +1144,7 @@ JASElevationGrid =>  '
 			nnormals, normals,
 			/*JAS - ntexcoords, texcoords */
 			0, NULL,
-			ct, -1
+			ct, ((struct VRML_PolyRep *)this_->_intern)->streamed
 			
 		);
 		if(!$f(solid)) {
@@ -1191,7 +1194,7 @@ Extrusion => '
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0, -1);
+		render_polyrep(this_,0,NULL,0,NULL,0,NULL,0,NULL,0, ((struct VRML_PolyRep *)this_->_intern)->streamed);
 		if(!$f(solid)) {
 			glPopAttrib();
 		}
