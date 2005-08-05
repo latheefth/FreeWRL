@@ -66,7 +66,12 @@ void saveSnapSequence() {
 	} else {
 		sprintf (thisGoodFile,"%s/%s.%04d.mpg",mytmp,myseqb,snapGoodCount);
 	}
-	sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s",
+	/* sprintf(sysline,"%s -size %dx%d -depth 8 -flip %s/%s*rgb %s", */
+
+	/* Dani Rozenbaum - In order to generate 
+	 movies (e.g. with mencoder) images have to be three-band RGB (in other 
+	 words 24-bits) */
+sprintf(sysline, "%s -size %dx%d -depth 24 -colorspace RGB +matte -flip %s/%s*rgb %s",
 		CONVERT, screenWidth, screenHeight,mytmp,myseqb,thisGoodFile);
 
 	/* printf ("convert line %s\n",sysline); */
