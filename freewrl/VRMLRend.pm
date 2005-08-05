@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.159  2005/08/05 18:54:40  crc_canada
+# ElevationGrid to new structure. works ok; still some minor errors.
+#
 # Revision 1.158  2005/08/04 14:39:38  crc_canada
 # more work on moving elevationgrid to streaming polyrep structure
 #
@@ -1115,7 +1118,7 @@ GeoElevationGrid => '
 		}
 ',
 
-JASElevationGrid =>  '
+ElevationGrid =>  '
 		struct SFColor *colors=0; int ncolors=0;
                 struct SFVec2f *texcoords=0; int ntexcoords=0;
 		struct SFColor *normals=0; int nnormals=0;
@@ -1146,42 +1149,6 @@ JASElevationGrid =>  '
 			0, NULL,
 			ct, ((struct VRML_PolyRep *)this_->_intern)->streamed
 			
-		);
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
-',
-ElevationGrid =>  '
-		struct SFColor *colors=0; int ncolors=0;
-                struct SFVec2f *texcoords=0; int ntexcoords=0;
-		struct SFColor *normals=0; int nnormals=0;
-		struct VRML_ColorRGBA *thc;
-		int ct=0;
-
-
-		/* these use methods to get the values...		    */
-		$fv_null(color, colors, get3, &ncolors);
-		$fv_null(normal, normals, get3, &nnormals);
-		$fv_null(texCoord, texcoords, get2, &ntexcoords);
-
-		/* get whether this is an RGB or an RGBA color node */
-		if (colors != NULL) {
-			thc = this_->color;
-			ct = thc->__isRGBA;
-		}
-
-		$mk_polyrep();
-		if(!$f(solid)) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
-		render_polyrep(this_,
-			0, NULL,
-			ncolors, colors,
-			nnormals, normals,
-			/*JAS - ntexcoords, texcoords */
-			0, NULL,
-			ct, -1
 		);
 		if(!$f(solid)) {
 			glPopAttrib();
@@ -2679,7 +2646,7 @@ Cylinder => q~
 	       ~,
 
 
-JASElevationGrid => q~
+ElevationGrid => q~
 		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
 ~,
 IndexedFaceSet => q~
@@ -2927,72 +2894,6 @@ GeoElevationGrid => q~
 			  );
 
 	       }
-~,
-
-ElevationGrid => q~
-	       GLdouble awidth = naviinfo.width; /*avatar width*/
-	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
-	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
-	       GLdouble astep = -naviinfo.height+naviinfo.step;
-	       GLdouble modelMatrix[16];
-	       GLdouble upvecmat[16];
-
-	       struct pt t_orig = {0,0,0};
-	       static int refnum = 0;
-
-	       struct pt tupv = {0,1,0};
-	       struct pt delta = {0,0,0};
-
-	       struct VRML_PolyRep pr;
-	       prflags flags = 0;
-	       int change = 0;
-
-		/* JAS - first pass, intern is probably zero */
-		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
-
-		/* JAS - no triangles in this text structure */
-		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
-
-	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
-	       $mk_polyrep();
- 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
-	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
-	         correclty in the RENDER pass */
-
-	       if(!$f(solid)) {
-		   flags = flags | PR_DOUBLESIDED;
-	       }
-	       pr = *((struct VRML_PolyRep*)this_->_intern);
-	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-
-	       transform3x3(&tupv,&tupv,modelMatrix);
-	       matrotate2v(upvecmat,ViewerUpvector,tupv);
-	       matmultiply(modelMatrix,upvecmat,modelMatrix);
-	       matinverse(upvecmat,upvecmat);
-
-	       /* values for rapid test */
-	       t_orig.x = modelMatrix[12];
-	       t_orig.y = modelMatrix[13];
-	       t_orig.z = modelMatrix[14];
-/*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
-
-
-	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,$f(xDimension),$f(zDimension),$f(xSpacing),$f(zSpacing),modelMatrix,flags);
-
-	       vecscale(&delta,&delta,-1);
-	       transform3x3(&delta,&delta,upvecmat);
-
-	       accumulate_disp(&CollisionInfo,delta);
-
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
-		   fprintf(stderr,"COLLISION_ELG: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
-			  t_orig.x, t_orig.y, t_orig.z,
-			  delta.x, delta.y, delta.z
-			  );
-
-	       }
-
 ~,
 
 );

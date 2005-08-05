@@ -169,7 +169,7 @@ my $protono;
 
 
 %VRML::Nodes::X3DFaceGeometry = map {($_=>1)} qw/
-	JASElevationGrid
+	ElevationGrid
 	IndexedFaceSet
 	IndexedTriangleFanSet
 	IndexedTriangleSet
@@ -255,7 +255,7 @@ my $protono;
 	/;
 
 
-%VRML::Nodes::X3DCG_JASElevationGrid = map {($_=>1)} qw/
+%VRML::Nodes::X3DCG_ElevationGrid = map {($_=>1)} qw/
 	set_height
 	color
 	normal
@@ -296,7 +296,6 @@ my $protono;
 	Cone
 	Sphere
 	IndexedFaceSet
-	JASElevationGrid
 	ElevationGrid
 	GeoElevationGrid
 	Extrusion
@@ -316,7 +315,6 @@ my $protono;
 	Cylinder
 	IndexedFaceSet
 	ElevationGrid
-	JASElevationGrid
 	GeoElevationGrid
 	Extrusion
 	IndexedLineSet
@@ -598,7 +596,6 @@ my $protono;
 	CylinderSensor 		=>children,
 	DirectionalLight 	=>children,
 	ElevationGrid 		=>geometry,
-	JASElevationGrid 		=>geometry,
 	Extrusion 		=>geometry,
 	Fog 			=>children,
 	FontStyle 		=>children,
@@ -826,25 +823,6 @@ my $protono;
 	new VRML::NodeType("TextureCoordinate",
 					   { point => [MFVec2f, [], exposedField] }
 					  ),
-	ElevationGrid =>
-	new VRML::NodeType("ElevationGrid",
-					   {
-						set_height => [MFFloat, undef, eventIn],
-						color => [SFNode, NULL, exposedField],
-						normal => [SFNode, NULL, exposedField],
-						texCoord => [SFNode, NULL, exposedField],
-						height => [MFFloat, [], field],
-						ccw => [SFBool, 1, field],
-						colorPerVertex => [SFBool, 1, field],
-						creaseAngle => [SFFloat, 0, field],
-						normalPerVertex => [SFBool, 1, field],
-						solid => [SFBool, 1, field],
-						xDimension => [SFInt32, 0, field],
-						xSpacing => [SFFloat, 1.0, field],
-						zDimension => [SFInt32, 0, field],
-						zSpacing => [SFFloat, 1.0, field]
-					   }
-					  ),
 	Extrusion =>
 	new VRML::NodeType("Extrusion",
 					   {
@@ -917,8 +895,8 @@ my $protono;
 						
 					   }
 					  ),
-	JASElevationGrid =>
-	new VRML::NodeType("JASElevationGrid",
+	ElevationGrid =>
+	new VRML::NodeType("ElevationGrid",
 					   {
 						set_colorIndex => [MFInt32, undef, eventIn],
 						set_coordIndex => [MFInt32, undef, eventIn],

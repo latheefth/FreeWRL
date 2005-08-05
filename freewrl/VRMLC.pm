@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.178  2005/08/05 18:54:38  crc_canada
+# ElevationGrid to new structure. works ok; still some minor errors.
+#
 # Revision 1.177  2005/08/04 14:39:38  crc_canada
 # more work on moving elevationgrid to streaming polyrep structure
 #
@@ -488,10 +491,6 @@ GeoElevationGrid => ( '
 		render_ray_polyrep(this_, NULL);
 '),
 
-JASElevationGrid => ( '
-		$mk_polyrep();
-		render_ray_polyrep(this_, NULL);
-'),
 ElevationGrid => ( '
 		$mk_polyrep();
 		render_ray_polyrep(this_, NULL);
@@ -568,8 +567,7 @@ TriangleSet => '
 #
 
 %GenPolyRepC = (
-	ElevationGrid => 'make_elevationgrid(this_);',
-	JASElevationGrid => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	ElevationGrid => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
 	Extrusion => 'make_extrusion(this_);',
 	IndexedFaceSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *) this_);',
 	IndexedTriangleFanSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',

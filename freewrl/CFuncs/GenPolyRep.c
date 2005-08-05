@@ -174,273 +174,6 @@ void make_text (struct VRML_Text *this_) {
 	glPopAttrib();
 }
 
-void make_elevationgrid(struct VRML_ElevationGrid *this_) {
-	int x,z;
-	int nx = (this_->xDimension);
-	float xs = (this_->xSpacing);
-	int nz = (this_->zDimension);
-	float zSp = (this_->zSpacing);
-	float *f = ((this_->height).p);
-	int *cindex;
-	float *coord;
-	float *tcoord;
-	int *colindex;
-	int ntri = (nx && nz ? 2 * (nx-1) * (nz-1) : 0);
-	int vertex_ind;
-	int nf = ((this_->height).n);
-	int cpv = ((this_->colorPerVertex));
-	struct SFColor *colors;
-	int ncolors=0;
-	struct VRML_PolyRep *rep_ = (struct VRML_PolyRep *)this_->_intern;
-	float creaseAngle = (this_->creaseAngle);
-	int npv = ((this_->normalPerVertex));
-	struct SFColor *normals;
-	int nnormals = 0;
-	int ccw = ((this_->ccw));
-
-	struct SFVec2f *texcoords;
-	int ntexcoords = 0;
-
-	/* variables for calculating smooth normals */
-	int 	HAVETOSMOOTH;
-	struct 	pt *facenormals = 0;
-	int	*pointfaces = 0;
-	int 	faces;
-	int	this_face = 0;
-	int	tmp;
-	int 	calc_normind;
-
-
-	int A,B,C,D; /* should referr to the four vertices
-			of the polygon
-			(hopefully) counted counter-clockwise, like
-
-			 D----C
-			 |    |
-			 |    |
-			 |    |
-			 A----B
-
-			*/
-	struct pt ac,bd;/* help vectors	*/
-	int E,F;	/* third point to be used for the triangles*/
-
-	if(this_->color) {
-			  if(!(*(struct VRML_Virt **)(this_->color))-> get3) {
-			  	freewrlDie("NULL METHOD ElevationGrid color  get3");
-			  }
-			   colors =  ((*(struct VRML_Virt **)(this_->color))-> get3(this_->color,
-			     &ncolors)) ;
-			};
-	if(this_->normal) {
-			  if(!(*(struct VRML_Virt **)(this_->normal))-> get3) {
-			  	freewrlDie("NULL METHOD ElevationGrid normal  get3");
-			  }
-			   normals =  ((*(struct VRML_Virt **)(this_->normal))-> get3(this_->normal,
-			     &nnormals)) ;
-			};
-	if(this_->texCoord) {
-			  if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
-			  	freewrlDie("NULL METHOD ElevationGrid texCoord  get2");
-			  }
-			   texcoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> get2(this_->texCoord,
-			     &ntexcoords)) ;
-			};
-
-	/* Render_Polyrep will use this number of triangles */
-	rep_->ntri = ntri;
-
-	/* ccw or not? */
-	rep_->ccw = 1;
-
-	/* printf ("nf %d nx %d nz %d\n",nf, nx, nz);*/
-
-	if(nf != nx * nz) {
-		freewrlDie("Elevationgrid: x,y vs. height: incorrect count:\n");
-	}
-
-
-	if(ncolors) {
-		if(!cpv && ncolors < (nx-1) * (nz-1)) {
-			freewrlDie("Elevationgrid: too few colors");
-		}
-		if(cpv && ncolors < nx*nz) {
-			freewrlDie("Elevationgrid: 2too few colors");
-		}
-		colindex = rep_->colindex = (int *)malloc(sizeof(*(rep_->colindex))*3*(ntri));
-		if (!(colindex)) {
-			freewrlDie("Not enough memory for ElevationGrid node color index ");
-		}
-	}
-
-	/* so, we now have to worry about textures. */
-	tcoord = rep_->tcoord = (float *)malloc(sizeof(*(rep_->tcoord))*nx*nz*3);
-	if (!(tcoord)) freewrlDie ("Not enough memory ElevGrid Tcoords");
-
-	rep_->tcindex = 0; /*  we will generate our own mapping*/
-	/* do we have to generate a default texture map?? */
-	if ((ntexcoords > 0) && (ntexcoords < (nx*nz))) {
-		printf ("too few TextureCoordinates for ElevationGrid, expect %d have %d\n",
-			nx*nz, ntexcoords);
-		ntexcoords = 0; /*  set it to zero, so we calculate them*/
-	}
-
-
-
-
-	/* Coords, CoordIndexes, and Normals are needed all the time */
-	cindex = rep_->cindex = (int *)malloc(sizeof(*(rep_->cindex))*3*(ntri));
-	coord = rep_->coord = (float *)malloc(sizeof(*(rep_->coord))*nx*nz*3);
-	rep_->norindex = (int *)malloc(sizeof(*(rep_->norindex))*3*ntri);
-	if(!(cindex && coord && rep_->norindex)) {
-		freewrlDie("Not enough memory for ElevationGrid node triangles... ;(");
-	}
-
-	/* we are calculating Normals */
-	if (nnormals == 0) {
-		rep_->normal = (float *)malloc(sizeof(*(rep_->normal))*3*ntri*3);
-		if (!(rep_->normal)) {
-			freewrlDie("Not enough memory for ElevationGrid node normals");
-		}
-	}
-
-
-	/* determine if we need to smooth out norms */
-	initialize_smooth_normals();
-	HAVETOSMOOTH = smooth_normals && (nnormals == 0) && (fabs(creaseAngle) > 0.00001);
-
-	if (nnormals == 0) {
-		faces = (nx-1) * (nz-1) * 2; /* we treat each triangle as a face = makes really nice normals */
-
-		/* for each face, we can look in this structure and find the normal */
-		facenormals = (struct pt*)malloc(sizeof(*facenormals)*faces);
-
-		/* for each point, tell us which faces it is in, first index is  the face count */
-		pointfaces = (int *)malloc(sizeof(*pointfaces)*nz*nx*POINT_FACES);
-		for (tmp=0; tmp<nz*nx; tmp++) { pointfaces[tmp*POINT_FACES]=0; }
-
-		if (!(pointfaces && facenormals)) {
-			freewrlDie("Not enough memory for ElevationGrid node normal point calcs... ");
-		}
-	}
-
-	/* Prepare the coordinates */
-	/*   NOTE: if this is changed, collision detection might not work. check Collision.c:elevationgrid_disp() */
-	for(z=0; z<nz; z++) {
-		for(x=0; x<nx; x++) {
-			float h = f[x+z*nx];
-			coord[(x+z*nx)*3+0] = x*xs;
-			coord[(x+z*nx)*3+1] = h;
-			coord[(x+z*nx)*3+2] = z*zSp;
-			tcoord[(x+z*nx)*3+1] = 0;
-			if (ntexcoords > 0) {
-				/*  TextureCoordinate passed in*/
-				tcoord[(x+z*nx)*3+0] = texcoords[x+z*nx].c[0];
-				tcoord[(x+z*nx)*3+2] = texcoords[x+z*nx].c[1];
-			} else {
-				tcoord[(x+z*nx)*3+0] = (float) x/(nx-1);
-				tcoord[(x+z*nx)*3+2] = (float) z/(nz-1);
-			}
-			/* printf ("EV TC %d %d %f %f\n",*/
-			/* 	z,x,tcoord[(x+z*nx)*3+0], tcoord[(x+z*nx)*3+2] );*/
-		}
-	}
-
-	/* set the indices to the coordinates		*/
-	/*   NOTE: if this is changed, collision detection might not work. check Collision.c:elevationgrid_disp() */
-	vertex_ind = 0;
-	for(z=0; z<nz-1; z++) {
-		for(x=0; x<nx-1; x++) {
-			A=x+z*nx;
-			B=(x+1)+z*nx;
-			C=(x+1)+(z+1)*nx;
-			D=x+(z+1)*nx;
-			/* calculate the distance A-C and see,
-				if it is smaller as B-D        			*/
-			VEC_FROM_COORDDIFF(coord,C,coord,A,ac);
-			VEC_FROM_COORDDIFF(coord,D,coord,B,bd);
-
-
-			if(sqrt(VECSQ(ac))>sqrt(VECSQ(bd))) { E=B; F=D;
-			} else { E=C; F=A;}
-
-			/* first triangle: */
-			Elev_Tri(vertex_ind,this_face,A,D,E,(nnormals==0),
-				rep_,facenormals,pointfaces,ccw);
-			vertex_ind += 3;
-			this_face++;
-
-			/* second triangle: */
-			Elev_Tri(vertex_ind,this_face,C,B,F,(nnormals==0),
-				rep_,facenormals,pointfaces,ccw);
-			vertex_ind += 3;
-			this_face++;
-		}
-	}
-
-	/* Normals */
-	if (nnormals == 0) {
-		calc_normind = 0;
-		for (x=0; x<vertex_ind; x++) {
-			this_face = x/3;
-
-			/* if we have to calculate normals */
-			if (HAVETOSMOOTH) {
-				/* normalize each vertex */
-				normalize_ifs_face (&rep_->normal[calc_normind*3],
-					facenormals, pointfaces, cindex[x],
-					this_face, creaseAngle);
-				rep_->norindex[x] = calc_normind++;
-			} else {
-				rep_->normal[x*3+0]=facenormals[this_face].x;
-				rep_->normal[x*3+1]=facenormals[this_face].y;
-				rep_->normal[x*3+2]=facenormals[this_face].z;
-				rep_->norindex[x] = x;
-			}
-		}
-	} else {
-		/* we have been supplied normals */
-		if(npv){
-			/*normal per vertex*/
-			for (x=0; x<ntri; x++){
-				rep_->norindex[x*3+0] = rep_->cindex[x*3+0];
-				rep_->norindex[x*3+1] = rep_->cindex[x*3+1];
-				rep_->norindex[x*3+2] = rep_->cindex[x*3+2];
-			}
-		} else {
-			/*normal per quad*/
-			for (x=0; x < vertex_ind; x++){
-				/* supplied norms/face- face has 3 points, 2 tris... */
-				rep_->norindex[x] = x/6;
-			}
-		}
-	}
-
-	/* ColoUrs */
-	if (ncolors) {
-		/* we have been supplied colors */
-		if(cpv){
-			/*colour per vertex*/
-			for (x=0; x<ntri; x++){
-				rep_->colindex[x*3+0] = rep_->cindex[x*3+0];
-				rep_->colindex[x*3+1] = rep_->cindex[x*3+1];
-				rep_->colindex[x*3+2] = rep_->cindex[x*3+2];
-			}
-		} else {
-			/*colour per quad*/
-			for (x=0; x < vertex_ind; x++){
-				/* supplied colours/face- face has 3 points, 2 tris... */
-				rep_->colindex[x] = x/6;
-			}
-		}
-	}
-
-	if (nnormals == 0) {
-		free (facenormals);
-		free (pointfaces);
-	}
-}
-
 
 /* calculate how many triangles are required for IndexedTriangleFanSet and 
 	IndexedTriangleStripSets */
@@ -484,8 +217,8 @@ int checkX3DIndexedFaceSetFields (struct VRML_IndexedFaceSet *this_) {
 	return TRUE;
 }
 
-/* check validity of JASElevationGrid fields */
-int checkX3DJASElevationGridFields (struct VRML_JASElevationGrid *this_,
+/* check validity of ElevationGrid fields */
+int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 				float **points, int *npoints) {
 	int i,j;
 	int nx = (this_->xDimension);
@@ -499,8 +232,10 @@ int checkX3DJASElevationGridFields (struct VRML_JASElevationGrid *this_,
 
 	float *newpoints;
 	float newPoint[3];
-
-
+	int nquads = ntri/2;
+	int quadind;
+	int *cindexptr;
+	
 
 	/* check validity of input fields */
 	if(nh != nx * nz) {
@@ -516,43 +251,56 @@ int checkX3DJASElevationGridFields (struct VRML_JASElevationGrid *this_,
 	}
 
 	/* make up points array */
-	/* newpoints = (struct SFColor *)malloc (sizeof (struct SFColor)*ntri*3); */
-printf ("fixme - malloc size\n");
-
-	newpoints = (float *)malloc (1000);
+	/* a point is a vertex and consists of 3 floats (x,y,z) */
+	newpoints = (float *)malloc (sizeof (float) * nz * nx * 3);
 	if (!newpoints) {ntri=0;printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
 	FREE_IF_NZ(rep->coord);
 	rep->coord = (float *)newpoints;
 
-/* fudge coordIndex for now */
-                        this_->coordIndex.p = malloc (sizeof(int) * 100);
-                        this_->coordIndex.n = 5;
-this_->coordIndex.p[0] = 0;
-this_->coordIndex.p[1] = 1;
-this_->coordIndex.p[2] = 2;
-this_->coordIndex.p[3] = 3;
-this_->coordIndex.p[4] = -1;
+	/* make up coord index */
+	this_->coordIndex.p = malloc (sizeof(int) * nquads * 5);
+	cindexptr = this_->coordIndex.p;
 
-*points = newpoints;
-*npoints = 5;
-printf ("in jaslel, npoints %d p %d newp %d\n",*npoints,*points,newpoints);
+	this_->coordIndex.n = nquads * 5;
+	*npoints = this_->coordIndex.n;
+
+	for (j = 0; j < (nz -1); j++) {
+		for (i=0; i < (nx-1) ; i++) {
+			/* printf ("coord maker, j %d i %d\n",j,i);
+			printf ("coords for this quad: %d %d %d %d %d\n",
+					j*nx+i,
+					j*nx+i+nx,
+					j*nx+i+nx+1,
+					j*nx+i+1,
+					-1);
+			*/
+			*cindexptr = j*nx+i; cindexptr++;
+			*cindexptr = j*nx+i+nx; cindexptr++;
+			*cindexptr = j*nx+i+nx+1; cindexptr++;
+			*cindexptr = j*nx+i+1; cindexptr++;
+			*cindexptr = -1; cindexptr++;
+			
+		}
+	}
+			
+	/* return the newpoints array to the caller */
+	*points = newpoints;
 
 		
 	/* Render_Polyrep will use this number of triangles */
 	rep->ntri = ntri;
 	for (j=0; j<nz; j++) {
 		for (i=0; i < nx; i++) {
-		printf ("point [%d,%d] is %f %f %f (hei ind %d)\n",
+		/* printf ("point [%d,%d] is %f %f %f (hei ind %d)\n",
 			i,j,
 			xSp * i,
 			height[i+(j*nx)],
 			zSp * j,
 			i+(j*nx));
+		*/
 		newPoint[0] = xSp * i; newPoint[1] = height[i+(j*nx)]; newPoint[2]=zSp*j;
 		memcpy(newpoints,newPoint,sizeof(float)*3);
-fwnorprint(newpoints);
 		newpoints += 3;
-printf ("newpoints now %d\n",newpoints);
 		}
 	}
 	return TRUE;
@@ -929,14 +677,12 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 		}
 		
 
-	} else if (this_->__GeometryType & JASELEVATIONGRID) {
-		if (!checkX3DJASElevationGridFields((struct VRML_JASElevationGrid *)this_,
+	} else if (this_->__GeometryType & ELEVATIONGRID) {
+		if (!checkX3DElevationGridFields((struct VRML_ElevationGrid *)this_,
 			&points, &npoints)) {
 	        	rep_->ntri = 0;
 	        	return;
 		}
-printf ("JASELE points %d np %d\n",points,npoints);
-
 	}
 
 	/* lets get the structure parameters, after munging by checkX3DComposedGeomFields... */

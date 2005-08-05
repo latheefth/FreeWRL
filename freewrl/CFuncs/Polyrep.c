@@ -932,7 +932,8 @@ void stream_polyrep(void *node,
 
 	/* do we need to generate default texture mapping? */
 	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
-		if (p->__GeometryType == INDEXEDFACESET) {	
+		if ((p->__GeometryType == INDEXEDFACESET) ||
+		   (p->__GeometryType == ELEVATIONGRID)) {
 		/* use Mufti's initialization scheme for minVals and maxVals; */
 			for (j=0; j<3; j++) {
 				if (points) {

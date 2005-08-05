@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.54  2005/08/05 18:54:39  crc_canada
+# ElevationGrid to new structure. works ok; still some minor errors.
+#
 # Revision 1.53  2005/08/03 18:41:40  crc_canada
 # Working on Polyrep structure.
 #
@@ -1268,8 +1271,8 @@ sub parse {
 			    if (!defined $VRML::Nodes::X3DCG_IndexedFaceSet{$f}) {
 				$ok = 0;
 			    }
-			} elsif ($nt eq "JASElevationGrid") {
-			    if (!defined $VRML::Nodes::X3DCG_JASElevationGrid{$f}) {
+			} elsif ($nt eq "ElevationGrid") {
+			    if (!defined $VRML::Nodes::X3DCG_ElevationGrid{$f}) {
 				$ok = 0;
 			    }
 			} elsif ($nt eq "IndexedTriangleFanSet") {

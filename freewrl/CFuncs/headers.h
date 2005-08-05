@@ -64,7 +64,7 @@ extern CGLContextObj aqglobalContext;
 
 /*X3DComposedGeometryNodes */
 #define INDEXEDFACESET          1
-#define JASELEVATIONGRID	2
+#define ELEVATIONGRID		2
 #define INDEXEDTRIANGLEFANSET   4
 #define INDEXEDTRIANGLESET      8
 #define INDEXEDTRIANGLESTRIPSET 16
@@ -77,7 +77,7 @@ extern CGLContextObj aqglobalContext;
 
 #define X3DCOMPOSED_STRING(f) ( \
         f == INDEXEDFACESET             ? "IndexedFaceSet" : ( \
-        f == JASELEVATIONGRID           ? "JASElevati/Grid" : ( \
+        f == ELEVATIONGRID              ? "ElevationGrid" : ( \
         f == INDEXEDTRIANGLEFANSET      ? "IndexedTriangleFanSet" : ( \
         f == INDEXEDTRIANGLESET         ? "IndexedTriangleSet" : ( \
         f == INDEXEDTRIANGLESTRIPSET    ? "IndexedTriangleStripSet" : ( \
@@ -556,7 +556,6 @@ void EAI_readNewWorld(char *inputstring);
 void addToNode (void *rc,  void *newNode);
 /* added M. Ward Dec 13/04 */
 void make_text(struct VRML_Text *this_ );
-void make_elevationgrid(struct VRML_ElevationGrid *this_);
 void make_extrusion(struct VRML_Extrusion *this_);
 void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
 void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
