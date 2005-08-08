@@ -235,6 +235,10 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	int nquads = ntri/2;
 	int quadind;
 	int *cindexptr;
+
+	float *tcoord;
+	int ntexcoords=0;
+	struct SFVec2f *texcoords;
 	
 
 	/* check validity of input fields */
@@ -250,14 +254,36 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 		return FALSE;
 	}
 
+	/* any texture coordinates passed in? */
+        if(this_->texCoord) {
+		/* use method to get coord pointer */
+		if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
+			freewrlDie("NULL METHOD ElevationGrid texCoord  get2");
+		}
+		texcoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> 
+			get2(this_->texCoord, &ntexcoords)) ;
+	}
+
+	/* allocate memory for texture coords */
+	FREE_IF_NZ(rep->tcoord);
+	tcoord = rep->tcoord = (float *)malloc (sizeof (float) * nx * nz * 3);
+	if (!tcoord) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
+	rep->tcindex=0; /* we will generate our own mapping */
+	if ((ntexcoords>0) && (ntexcoords < (nx * nz))) {
+		printf ("ElevationGrid, too few texcoords supplied\n");
+		ntexcoords=0;
+	}
+		
+
 	/* make up points array */
 	/* a point is a vertex and consists of 3 floats (x,y,z) */
 	newpoints = (float *)malloc (sizeof (float) * nz * nx * 3);
-	if (!newpoints) {ntri=0;printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
+	if (!newpoints) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
 	FREE_IF_NZ(rep->coord);
 	rep->coord = (float *)newpoints;
 
 	/* make up coord index */
+	if (this_->coordIndex.n > 0) FREE_IF_NZ(this_->coordIndex.p);
 	this_->coordIndex.p = malloc (sizeof(int) * nquads * 5);
 	cindexptr = this_->coordIndex.p;
 
@@ -268,17 +294,30 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 		for (i=0; i < (nx-1) ; i++) {
 			/* printf ("coord maker, j %d i %d\n",j,i);
 			printf ("coords for this quad: %d %d %d %d %d\n",
-					j*nx+i,
-					j*nx+i+nx,
-					j*nx+i+nx+1,
-					j*nx+i+1,
-					-1);
+				j*nx+i, j*nx+i+nx, j*nx+i+nx+1, j*nx+i+1, -1);
 			*/
+			
 			*cindexptr = j*nx+i; cindexptr++;
 			*cindexptr = j*nx+i+nx; cindexptr++;
 			*cindexptr = j*nx+i+nx+1; cindexptr++;
 			*cindexptr = j*nx+i+1; cindexptr++;
 			*cindexptr = -1; cindexptr++;
+		}
+	}
+
+	/* texture coords */
+	for (j = 0; j < nz; j++) {
+		for (i=0; i < nx ; i++) {
+			tcoord[(i+j*nx)*3+1] = 0;
+			if (ntexcoords>0) {
+				tcoord[(i+j*nx)*3+0] = texcoords[i+j*nx].c[0];
+				tcoord[(i+j*nx)*3+2] = texcoords[i+j*nx].c[1];
+			} else {
+				tcoord[(i+j*nx)*3+0] = (float) i/(nx-1);
+				tcoord[(i+j*nx)*3+2] = (float) j/(nz-1);
+			}
+			/* printf ("tex coord %d is %f %f \n",
+				i+j*nx, tcoord[(i+j*nx)*3+0], tcoord[(i+j*nx)*3+2]); */
 			
 		}
 	}
