@@ -46,13 +46,16 @@ static int PlaneInCheck(
  * that what is given is a Shape, the values get pushed up to the
  * Geometries grouping node parent. */
 
+
+/* this is used for collision in transformChildren - don't bother going through
+   children of a transform if there is nothing close... */
+
 void setExtent(float x, float y, float z, struct VRML_Box *me) {
-#ifdef BOUNDINGBOX
 	int c,d;
 	struct VRML_Box *shapeParent;
 	struct VRML_Box *geomParent;
 
-	/*printf ("setExtent - Shape node has %d parents\n",me->_nparents);*/
+	/* printf ("setExtent - Shape node has %d parents\n",me->_nparents); */
 	for (c=0; c<(me->_nparents); c++) {
 		/*printf ("parent %d of %d is %d\n",c,me,me->_parents[c]);*/
 		shapeParent = (struct VRML_Box *)me->_parents[c];
@@ -66,15 +69,12 @@ void setExtent(float x, float y, float z, struct VRML_Box *me) {
 			if (z > geomParent->_extent[2]) geomParent->_extent[2] = z;
 		}
 	}
-	/*printf ("setExtent, for %f %f %f, node %d\n",x,y,z,me);*/
-#endif
-
+	/* printf ("setExtent, for %f %f %f, node %d\n",x,y,z,me); */
 }
 
 /* for children nodes; set the parent grouping nodes extent - we expect the center
  * of the group to be passed in in the floats x,y,z */
 void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
-#ifdef BOUNDINGBOX
 	int i;
 	struct VRML_Box *parent;
 
@@ -92,7 +92,6 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 		if (z > parent->_extent[2]) parent->_extent[2] = z;
 	/*	printf ("propextent, me %d my parent %d is %d ext %4.2f %4.2f %4.2f\n",me,i,parent, parent->_extent[0],parent->_extent[1],parent->_extent[2]);*/
 	}
-#endif
 }
 
 void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
@@ -101,7 +100,7 @@ void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
 	x = xDists.c[0];
 	y = xDists.c[1];
 	z = xDists.c[2];
-return;
+
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
 	if (PIV == 0) return;
 

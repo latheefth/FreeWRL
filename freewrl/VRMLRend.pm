@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.160  2005/08/26 18:08:38  crc_canada
+# 1.14-pre1 changes.
+#
 # Revision 1.159  2005/08/05 18:54:40  crc_canada
 # ElevationGrid to new structure. works ok; still some minor errors.
 #
@@ -2465,7 +2468,7 @@ Box => q~
 		ov.x = -$f(size,0)/2; ov.y = -$f(size,1)/2; ov.z = -$f(size,2)/2;
 
 
-	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
@@ -2479,8 +2482,6 @@ Box => q~
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
 	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*$f(size,0),scale*$f(size,1),scale*$f(size,2))) return;
-
-
 
 	       /* get transformed box edges and position */
 	       transform(&ov,&ov,modelMatrix);

@@ -230,11 +230,65 @@ void transformChild (struct VRML_Transform *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
 
+	/* Fast collision with BoundingBox during render_collision phase */
+	GLdouble awidth = naviinfo.width; /*avatar width*/
+	GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+
+	GLdouble modelMatrix[16];
+	GLdouble upvecmat[16]; 
+	struct pt iv = {0,0,0};
+	struct pt jv = {0,0,0};
+	struct pt kv = {0,0,0};
+	struct pt ov = {0,0,0};
+
+	struct pt t_orig = {0,0,0};
+	GLdouble scale; /* FIXME: wont work for non-uniform scales. */
+
+	struct pt delta;
+	struct pt tupv = {0,1,0};
+
 
 	/* any children at all? */
 	if (nc==0) return;
 
 	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct VRML_Box *)this_, nc);
+
+	/* Check to see if we have to check for collisions for this transform. */
+	if (render_collision) {
+		iv.x = this_->_extent[0]/2.0;
+		jv.y = this_->_extent[1]/2.0;
+		kv.z = this_->_extent[2]/2.0;
+		ov.x = -(this_->_extent[0]); 
+		ov.y = -(this_->_extent[1]); 
+		ov.z = -(this_->_extent[2]);
+
+	       /* get the transformed position of the Box, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       /* matinverse(upvecmat,upvecmat); */
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+		/* printf ("TB this %d, extent %4.3f %4.3f %4.3f pos %4.3f %4.3f %4.3f\n", 
+			this_,this_->_extent[0],this_->_extent[1],this_->_extent[2],
+			t_orig.x,t_orig.y,t_orig.z); */
+	       scale = pow(det3x3(modelMatrix),1./3.);
+	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,
+			scale*this_->_extent[0]*2,
+			scale*this_->_extent[1]*2,
+			scale*this_->_extent[2]*2)) {
+			/* printf ("TB this %d returning fast\n",this_); */
+			return;
+		/* } else {
+			printf ("TB really look at %d\n",this_); */
+		}
+	}
 
 	/* should we go down here? */
 	/* printf("transformChild %d render_blend %x renderFlags %x\n",

@@ -452,7 +452,7 @@ void handle_Xevents() {
 			case ButtonRelease:
 				/*  if a button is pressed, we should not change state,*/
 				/*  so keep a record.*/
-				if (event.xbutton.button>5) break;  /* bounds check*/
+				if (event.xbutton.button>=5) break;  /* bounds check*/
 				ButDown[event.xbutton.button] = (event.type == ButtonPress);
 
 				/* if we are Not over a sensitive node, and we do NOT
