@@ -485,6 +485,9 @@ extern void initFreewrl();
 extern void aqDisplayThread();
 #endif
 extern void setSnapSeq();
+extern void setEAIport(int pnum);
+extern void setNoStatus();
+extern void closeFreewrl();
 extern void setSeqFile(char* file);
 extern void setSnapFile(char* file);
 extern void setMaxImages(int max);

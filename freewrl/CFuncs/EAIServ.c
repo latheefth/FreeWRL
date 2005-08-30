@@ -57,7 +57,7 @@
 
 int EAIwanted = FALSE;			/* do we want EAI?*/
 char EAIhost[MAXEAIHOSTNAME];		/* host we are connecting to*/
-int EAIport;				/* port we are connecting to*/
+int EAIport = 9877;				/* port we are connecting to*/
 int EAIinitialized = FALSE;		/* are we running?*/
 int EAIrecount = 0;			/* retry counter for opening socket interface*/
 int EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
@@ -165,8 +165,8 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	        bzero(&servaddr, sizeof(servaddr));
 	        servaddr.sin_family      = AF_INET;
 	        servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	        servaddr.sin_port        = htons(EAIBASESOCKET+socketincrement);
-		/*printf ("binding to socket %d\n",EAIBASESOCKET+socketincrement);*/
+	        servaddr.sin_port        = htons(EAIport+socketincrement);
+		/*printf ("binding to socket %d\n",EAIport+socketincrement);*/
 
 	        while (bind((*sockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 			loopFlags &= ~NO_EAI_CLASS;

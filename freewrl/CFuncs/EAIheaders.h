@@ -63,6 +63,7 @@ int createUDPSocket();
 int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd);
 void EAI_send_string (char *str, int listenfd);
 char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd);
+extern int EAIport;
 
 
 

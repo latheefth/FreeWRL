@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "Bindable.h"
 #include "Snapshot.h"
+#include "EAIheaders.h"
 
 #include "OpenGL_Utils.h"
 #include "Viewer.h"
@@ -36,7 +37,7 @@ Cursor curcursor;
 #include <OpenGL.h>
 CGLContextObj aqglobalContext;
 #include <pthread.h>
-pthread_t mythread;
+pthread_t mythread = 0;
 char* threadmsg;
 #define KeyPress        2
 #define KeyRelease      3
@@ -50,8 +51,10 @@ int ccurse = ACURSE;
 int ocurse = ACURSE;
 #endif
 
+int quitThread = 0;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 per loop */
+extern int viewer_initialized;
 #include "headers.h"
 
 void Next_ViewPoint(void);		/*  switch to next viewpoint -*/
@@ -963,16 +966,18 @@ void setLastMouseEvent(int etype) {
 
 void initFreewrl() {
         threadmsg = "event loop";
-        pthread_create(&mythread, NULL, (void *) aqDisplayThread, (void*) threadmsg);
-        initializePerlThread("/usr/bin/perl");
-        while (!isPerlinitialized()) {
-                usleep(50);
-        }
-        initializeTextureThread();
-        while (!isTextureinitialized()) {
-                usleep(50);
-        }
-
+	quitThread = 0;
+	if (mythread <= 0) {
+        	pthread_create(&mythread, NULL, (void *) aqDisplayThread, (void*) threadmsg);
+        	initializePerlThread("/usr/bin/perl");
+        	while (!isPerlinitialized()) {
+        	        usleep(50);
+        	}
+        	initializeTextureThread();
+        	while (!isTextureinitialized()) {
+        	        usleep(50);
+        	}
+	}
         int tmp = 0;
         perlParse(FROMURL, BrowserURL, TRUE, FALSE, rootNode, offsetof(struct VRML_Group, children), &tmp, TRUE);
 }
@@ -981,7 +986,9 @@ void aqDisplayThread() {
         glpOpenGLInitialize();
         new_tessellation();
         while (1) {
-                EventLoop();
+		while (!quitThread) {
+                	EventLoop();
+		}
         }
 }
 
@@ -993,6 +1000,14 @@ void setButDown(int button, int value) {
 
 void setSnapSeq() {
         snapsequence = TRUE;
+}
+
+void setEAIport(int pnum) {
+        EAIport = pnum;
+}
+
+void setNoStatus() {
+        display_status = 0;
 }
 
 void setSeqFile(char* file) {
@@ -1011,6 +1026,35 @@ void setSnapFile(char* file) {
         snapsnapB = malloc(count + 1);
         strcpy(snapsnapB, file);
         printf("snapsnapB is %s\n", snapsnapB);
+}
+
+void closeFreewrl() {
+        struct Multi_Node* tn;
+        struct VRML_Group* rn;
+        int i;
+        //if (wantEAI) shutdown_EAI();
+        /* kill any remaining children */
+        /* printf ("doQuit - calling exit(0)\n"); */
+        //glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        //updateContext();
+        rn = (struct VRML_Group*) rootNode;
+        tn =  &(rn->children);
+        tn->n = 0;
+        quitThread = 1;
+        if (fognodes) free (fognodes);
+        if (backgroundnodes) free (backgroundnodes);
+        if (navnodes) free (navnodes);
+        if (viewpointnodes) free (viewpointnodes);
+        fognodes = NULL;
+        backgroundnodes = NULL;
+        navnodes = NULL;
+        viewpointnodes = NULL;
+        totviewpointnodes = 0;
+        totfognodes = 0;
+        totnavnodes = 0;
+        totbacknodes = 0;
+        viewer_initialized = FALSE;
+        set_viewer_type (EXAMINE);
 }
 
 void setMaxImages(int max) {
