@@ -98,6 +98,7 @@ SOUNDCONV => "/usr/bin/sox",
 ############################################################################
 
 # Java runtime. Java, Jikes, etc is ok, so long as it is not ancient.
+# if no Java, comment both of these lines.
     JAVA => "/usr/bin/java",
     JAVA_INST => '/usr/java/j2sdk1.4.0',
 
