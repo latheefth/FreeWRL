@@ -78,7 +78,6 @@ NETSCAPE_INST => '',
 
 ############################################################################
     JAVA_INST => '/usr/java/j2sdk1.4.0',
-    JAVA_INC => '-I/usr/java/j2sdk1.4.0/include -I/usr/java/j2sdk1.4.0/include/linux',
 
 ############################################################################
 # LDFLAGS.  Set linker flags here.

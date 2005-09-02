@@ -81,14 +81,14 @@ double nearPlane=0.1;
 double farPlane=21000.0;
 double screenRatio=1.5;
 double fieldofview=45.0;
-int CursorOverSensitive=FALSE;		/*  is Cursor over a Sensitive node?*/
-int oldCOS=FALSE;			/*  which node was cursor over before this node?*/
+unsigned char * CursorOverSensitive=0;		/*  is Cursor over a Sensitive node?*/
+unsigned char * oldCOS=0;			/*  which node was cursor over before this node?*/
 int NavigationMode=FALSE;		/*  are we navigating or sensing?*/
 int ButDown[] = {FALSE,FALSE,FALSE,FALSE,FALSE};
 
 int currentX, currentY;			/*  current mouse position.*/
 int lastMouseEvent = MapNotify;		/*  last event a mouse did; care about Button and Motion events only.*/
-int lastPressedOver = 0;		/*  the sensitive node that the mouse was last buttonpressed over.*/
+unsigned char * lastPressedOver = 0;		/*  the sensitive node that the mouse was last buttonpressed over.*/
 
 int maxbuffers = 1;			/*  how many active indexes in bufferarray*/
 int bufferarray[] = {GL_BACK,0};
@@ -121,9 +121,9 @@ void handle_Xevents(void);
 void XEventStereo(void);
 void handle_Xevents(void);
 void EventLoop(void);
-int  rayHit(void);
+unsigned char*  rayHit(void);
 void get_hyperhit(void);
-void sendSensorEvents(int COS,int ev, int status);
+void sendSensorEvents(unsigned char *COS,int ev, int status);
 
 /* a simple routine to allow the front end to get our version */
 char *getLibVersion() {
@@ -278,14 +278,14 @@ void EventLoop() {
 		CursorOverSensitive = rayHit();
 
 		/* did we have a click of button 1? */
-		if (ButDown[1] && (!lastPressedOver)) {
+		if (ButDown[1] && (lastPressedOver==0)) {
 			/*  printf ("Not Navigation and 1 down\n");*/
 			/* send an event of ButtonPress and isOver=true */
 			lastPressedOver = CursorOverSensitive;
 			sendSensorEvents(lastPressedOver, ButtonPress, TRUE);
 		}
 
-		if ((!ButDown[1]) && lastPressedOver) {
+		if ((ButDown[1]==0) && lastPressedOver) {
 			/*  printf ("Not Navigation and 1 up\n");*/
 			/* send an event of ButtonRelease and isOver=true;
 			   an isOver=false event will be sent below if required */
@@ -302,7 +302,7 @@ void EventLoop() {
 
 		/* do we need to re-define cursor style? 	*/
 		/* do we need to send an isOver event?		*/
-		if (CursorOverSensitive) {
+		if (CursorOverSensitive!= 0) {
 #ifndef AQUA
 			cursor= sensorc;
 #else
@@ -311,7 +311,7 @@ void EventLoop() {
 
 			/* is this a new node that we are now over?
 			   don't change the node pointer if we are clicked down */
-			if ((!lastPressedOver) && (CursorOverSensitive != oldCOS)) {
+			if ((lastPressedOver==0) && (CursorOverSensitive != oldCOS)) {
 				sendSensorEvents(oldCOS,MapNotify,FALSE);
 				sendSensorEvents(CursorOverSensitive,MapNotify,TRUE);
 				oldCOS=CursorOverSensitive;
@@ -334,9 +334,9 @@ void EventLoop() {
 			}
 
 			/* were we over a sensitive node? */
-			if (oldCOS) {
+			if (oldCOS!=0) {
 				sendSensorEvents(oldCOS,MapNotify,FALSE);
-				oldCOS=FALSE;
+				oldCOS=0;
 			}
 		}
 
@@ -460,8 +460,8 @@ void handle_Xevents() {
 
 				/* if we are Not over a sensitive node, and we do NOT
 				   already have a button down from a sensitive node... */
-				if ((!CursorOverSensitive) &&
-						(!lastPressedOver))  {
+				if ((CursorOverSensitive==0) &&
+						(lastPressedOver==0))  {
 					NavigationMode=ButDown[1] || ButDown[3];
 					handle (event.type,event.xbutton.button,
 						(float) ((float)event.xbutton.x/screenWidth),
@@ -760,7 +760,7 @@ void do_keyPress(const char kp, int type) {
 	}
 }
 
-int rayHit() {
+unsigned char* rayHit() {
         double x,y,z;
 
         if(hpdist >= 0) {
@@ -769,7 +769,7 @@ int rayHit() {
                 /* and save this globally */
                 ray_save_posn.c[0] = x; ray_save_posn.c[1] = y; ray_save_posn.c[2] = z;
 
-                return ((int)rh.node);
+                return ((unsigned char*) rh.node);
         } else {
                 return(0);
         }
@@ -829,14 +829,14 @@ void setSensitive(void *ptr,void *datanode,char *type) {
 
 /* we have a sensor event changed, look up event and do it */
 /* note, ProximitySensor events are handled during tick, as they are time-sensitive only */
-void sendSensorEvents(int COS,int ev, int status) {
+void sendSensorEvents(unsigned char * COS,int ev, int status) {
 	int count;
 
 	/* printf ("sio, COS %d ev %d status %d\n",COS,ev,status); */
-	if (!COS) return;
+	if (COS==0) return;
 
 	for (count = 0; count < num_SensorEvents; count++) {
-		if ((int) SensorEvents[count].fromnode == COS) {
+		if (SensorEvents[count].fromnode == COS) {
 
 			/* should we set/use hypersensitive mode? */
 			if (ev==ButtonPress) {
@@ -1032,11 +1032,8 @@ void closeFreewrl() {
         struct Multi_Node* tn;
         struct VRML_Group* rn;
         int i;
-        //if (wantEAI) shutdown_EAI();
         /* kill any remaining children */
         /* printf ("doQuit - calling exit(0)\n"); */
-        //glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-        //updateContext();
         rn = (struct VRML_Group*) rootNode;
         tn =  &(rn->children);
         tn->n = 0;

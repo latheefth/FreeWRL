@@ -98,9 +98,7 @@ JS_LIBS => '-L/mit/freewrl_v0.35/distrib/sun4x_58/FreeWRL-0.35/JS/js/SunOS5.8_DB
 JS_INC => '-I/mit/freewrl_v0.35/distrib/sun4x_58/FreeWRL-0.35/JS/js/SunOS5.8_DBG.OBJ',
 
 JAVA_INST => '/afs/athena/software/java_v1.4.0_01/distrib/home',
-JAVA_INC => '-I/afs/athena/software/java_v1.4.0_01/distrib/home/include -I/afs/athena/software/java_v1.4.0_01/distrib/home/include/solaris'
 
-and leave SAXON_LOC empty.
 
 run perl Makefile.PL PREFIX=/mit/freewrl_v0.35/distrib/sun4x_58/FreeWRL-0.35 /at the top level.
 
@@ -175,7 +173,6 @@ JS_INC => '-I/mit/freewrl_v0.35/distrib/i386_linux24/FreeWRL-0.35/JS/js/Linu
 x_All_DBG.OBJ',
 
 JAVA_INST => '/afs/athena/software/java_v1.4.0_01/distrib/home',
-JAVA_INC => '-I/afs/athena/software/java_v1.4.0_01/distrib/home/include/linu
 x'
 
 Follow "standard" build instructions, omitting modifications for Sun except

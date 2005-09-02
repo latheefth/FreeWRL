@@ -12,6 +12,11 @@
 
 #include "jsVRMLClasses.h"
 
+/* quick fix to get around some compiler warnings on 64 bit systems */
+
+#define VERBOSE_OBJX (unsigned long)
+#define VERBOSE_OBJ 
+
 /********************************************************/
 /*							*/
 /* first part - standard helper functions		*/
@@ -161,7 +166,7 @@ JSBool _standardMFAssign(JSContext *cx,
 
 	if (JSVRMLClassesVerbose) {
 		printf("%s: obj = %u, id = \"%s\", from = %u, len = %d\n",name,
-		(unsigned int) obj, _id_str, (unsigned int) _from_obj, len);
+		VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj, len);
 	}
 
 	/* copyElements */
@@ -235,7 +240,7 @@ _standardMFGetProperty(JSContext *cx,
 		}
 		if (*vp == JSVAL_VOID) {
 			printf( "warning: %s: obj = %u, jsval = %d does not exist!\n",name,
-				(unsigned int) obj, (int) _index);
+				VERBOSE_OBJ obj, (int) _index);
 			/* return JS_FALSE;*/
 		}
 	}
@@ -473,11 +478,11 @@ doMFSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp,char *name)
 		printf ("id is %s\n",_c);
 
 		_sstr = JS_ValueToString(cx, *vp);
-		printf ("looking up value for %d %x object %u\n",*vp,*vp,(unsigned int) obj);
+		printf ("looking up value for %d %x object %u\n",*vp,*vp,VERBOSE_OBJ obj);
 		if (JSVRMLClassesVerbose) {
 			_cc = JS_GetStringBytes(_sstr);
 			printf("\tdoMFSetProperty:%s: obj = %u, id = %s, vp = %s\n",name,
-			   (unsigned int) obj, _c, _cc);
+			   VERBOSE_OBJ obj, _c, _cc);
 		}
 	}
 
@@ -826,7 +831,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 
 		if (JSVRMLClassesVerbose) {
 			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
-				   (unsigned int) obj, _id_c, _new_vp_c);
+				   VERBOSE_OBJ obj, _id_c, _new_vp_c);
 		}
 		free(_new_vp_c);
 	} else {
@@ -834,7 +839,7 @@ setECMANative(JSContext *context, JSObject *obj, jsval id, jsval *vp)
 			_vpStr = JS_ValueToString(context, *vp);
 			_vp_c = JS_GetStringBytes(_vpStr);
 			printf("setECMANative: obj = %u, id = \"%s\", vp = %s\n",
-				   (unsigned int) obj, _id_c, _vp_c);
+				   VERBOSE_OBJ obj, _id_c, _vp_c);
 		}
 	}
 
@@ -877,7 +882,7 @@ getAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		_vp_c = JS_GetStringBytes(_vpStr);
 
 		printf("getAssignProperty: obj = %u, id = \"%s\", vp = %s\n",
-			   (unsigned int) obj, _id_c, _vp_c);
+			   VERBOSE_OBJ obj, _id_c, _vp_c);
 	}
 	return JS_TRUE;
 }
@@ -907,7 +912,7 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		}
 		if (JSVRMLClassesVerbose) {
 			printf("setAssignProperty: obj = %u, id = \"%s\", from = %ld, to = %ld\n",
-				   (unsigned int) obj, _id_c, _newVal, _initVal);
+				   VERBOSE_OBJ obj, _id_c, _newVal, _initVal);
 		}
 		_o = JSVAL_TO_OBJECT(_initVal);
 		_argv[0] = _newVal;
@@ -922,7 +927,7 @@ setAssignProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			_str = JS_ValueToString(cx, id);
 			_id_c = JS_GetStringBytes(_str);
 			printf("setAssignProperty: obj = %u, id = \"%s\"\n",
-				   (unsigned int) obj, _id_c);
+				   VERBOSE_OBJ obj, _id_c);
 		}
 	}
 
@@ -1059,7 +1064,7 @@ SFColorAssign(JSContext *cx, JSObject *obj,
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFColorAssign: obj = %u, id = \"%s\", from = %u\n",
-			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
 	}
 
     SFColorNativeAssign(ptr, fptr);
@@ -1085,7 +1090,7 @@ SFColorTouched(JSContext *cx, JSObject *obj,
     t = ptr->touched;
 	ptr->touched = 0;
     if (JSVRMLClassesVerbose) {
-		printf("SFColorTouched: obj = %u, touched = %d\n", (unsigned int) obj, t);
+		printf("SFColorTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
 	}
     *rval = INT_TO_JSVAL(t);
     return JS_TRUE;
@@ -1128,7 +1133,7 @@ SFColorConstr(JSContext *cx, JSObject *obj,
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFColorConstr: obj = %u, %u args, %f %f %f\n",
-			   (unsigned int) obj, argc,
+			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
@@ -1142,7 +1147,7 @@ SFColorFinalize(JSContext *cx, JSObject *obj)
 	SFColorNative *ptr;
 
 	if (JSVRMLClassesVerbose) {
-		printf("SFColorFinalize: obj = %u\n", (unsigned int) obj);
+		printf("SFColorFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	}
 	if ((ptr = (SFColorNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFColorFinalize.\n");
@@ -1211,7 +1216,7 @@ SFColorSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	ptr->touched++;
 	if (JSVRMLClassesVerbose) {
 		printf("SFColorSetProperty: obj = %u, id = %d, touched = %d\n",
-			   (unsigned int) obj, JSVAL_TO_INT(id), ptr->touched);
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
 	}
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &_val)) {
@@ -1252,7 +1257,7 @@ SFImageTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
     t = ptr->touched;
 	ptr->touched = 0;
     if (JSVRMLClassesVerbose) {
-		printf("SFImageTouched: obj = %u, touched = %d\n", (unsigned int) obj, t);
+		printf("SFImageTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
 	}
     *rval = INT_TO_JSVAL(t);
     return JS_TRUE;
@@ -1264,7 +1269,7 @@ SFImageFinalize(JSContext *cx, JSObject *obj)
 	SFImageNative *ptr;
 
 	if (JSVRMLClassesVerbose) {
-		printf("SFImageFinalize: obj = %u\n", (unsigned int) obj);
+		printf("SFImageFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	}
 	if ((ptr = (SFImageNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFImageFinalize.\n");
@@ -1314,7 +1319,7 @@ SFImageConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	if (JSVRMLClassesVerbose) {
 		printf("SFImageConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 
 
@@ -1429,7 +1434,7 @@ printf ("start of SFNodeAssign\n");
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFNodeAssign: obj = %u, id = \"%s\", from = %u\n",
-			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
 	}
 
 	/* printf ("SFNodeAssign calling SFNodeNativeAssign\n"); */
@@ -1493,7 +1498,7 @@ SFNodeTouched(JSContext *cx, JSObject *obj,
 	ptr->touched = 0;
     if (JSVRMLClassesVerbose) {
 		printf("SFNodeTouched: obj = %u, touched = %d\n",
-			   (unsigned int) obj, t);
+			   VERBOSE_OBJ obj, t);
 	}
     *rval = INT_TO_JSVAL(t);
     return JS_TRUE;
@@ -1629,7 +1634,7 @@ SFNodeConstr(JSContext *cx, JSObject *obj,
 	*rval = OBJECT_TO_JSVAL(obj);
 	if (JSVRMLClassesVerbose) {
 		printf("SFNodeConstr: obj = %u, argc = %u, vrmlstring=\"%s\", handle=\"%s\"\n",
-			   (unsigned int) obj, argc, ptr->vrmlstring, ptr->handle);
+			   VERBOSE_OBJ obj, argc, ptr->vrmlstring, ptr->handle);
 	}
 	return JS_TRUE;
 }
@@ -1640,7 +1645,7 @@ SFNodeFinalize(JSContext *cx, JSObject *obj)
 	SFNodeNative *ptr;
 
 	if (JSVRMLClassesVerbose) {
-		printf("SFNodeFinalize: obj = %u\n", (unsigned int) obj);
+		printf("SFNodeFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	}
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFNodeFinalize.\n");
@@ -1731,7 +1736,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 		_val_c = JS_GetStringBytes(_valStr);
 
 		printf("SFNodeGetProperty: obj = %u, id = %s, vp = %s\n",
-			   (unsigned int) obj, _id_c, _val_c);
+			   VERBOSE_OBJ obj, _id_c, _val_c);
 	}
 
 	return JS_TRUE;
@@ -1756,7 +1761,7 @@ SFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 
 	if (JSVRMLClassesVerbose) {
 		printf("SFNodeSetProperty: obj = %u, id = %s, vp = %s\n",
-			   (unsigned int) obj, _id_c, _val_c);
+			   VERBOSE_OBJ obj, _id_c, _val_c);
 	}
 
 	if ((ptr = (SFNodeNative *)JS_GetPrivate(cx, obj)) == NULL) {
@@ -1861,7 +1866,7 @@ SFRotationGetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 
 	if (JSVRMLClassesVerbose) {
 		printf("SFRotationGetAxis: obj = %u, result = [%.9g, %.9g, %.9g]\n",
-			   (unsigned int) obj,
+			   VERBOSE_OBJ obj,
 			   (_retNative->v).c[0],
 			   (_retNative->v).c[1],
 			   (_retNative->v).c[2]);
@@ -2058,7 +2063,7 @@ SFRotationSetAxis(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
 
 	if (JSVRMLClassesVerbose) {
 		printf("SFRotationSetAxis: obj = %u, result = [%.9g, %.9g, %.9g, %.9g]\n",
-			   (unsigned int) obj,
+			   VERBOSE_OBJ obj,
 			   (_rot->v).r[0],
 			   (_rot->v).r[1],
 			   (_rot->v).r[2],
@@ -2203,7 +2208,7 @@ SFRotationAssign(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFRotationAssign: obj = %u, id = \"%s\", from = %u\n",
-			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
 	}
 
     SFRotationNativeAssign(ptr, fptr);
@@ -2228,7 +2233,7 @@ SFRotationTouched(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *
     t = ptr->touched;
 	ptr->touched = 0;
     if (JSVRMLClassesVerbose) {
-		printf("SFRotationTouched: obj = %u, touched = %d\n", (unsigned int) obj, t);
+		printf("SFRotationTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
 	}
     *rval = INT_TO_JSVAL(t);
     return JS_TRUE;
@@ -2336,7 +2341,7 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 
 	if (JSVRMLClassesVerbose) {
 		printf("SFRotationConstr: obj = %u, %u args, %f %f %f %f\n",
-			   (unsigned int) obj, argc,
+			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).r[0], (ptr->v).r[1], (ptr->v).r[2], (ptr->v).r[3]);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
@@ -2349,7 +2354,7 @@ SFRotationFinalize(JSContext *cx, JSObject *obj)
 	SFRotationNative *ptr;
 
 	if (JSVRMLClassesVerbose) {
-		printf("SFRotationFinalize: obj = %u\n", (unsigned int) obj);
+		printf("SFRotationFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	}
 	if ((ptr = (SFRotationNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFRotationFinalize.\n");
@@ -2431,7 +2436,7 @@ SFRotationSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	ptr->touched++;
 	if (JSVRMLClassesVerbose) {
 		printf("SFRotationSetProperty: obj = %u, id = %d, touched = %d\n",
-			   (unsigned int) obj, JSVAL_TO_INT(id), ptr->touched);
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
 	}
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
 		printf( "JS_ConvertValue failed in SFRotationSetProperty.\n");
@@ -2621,12 +2626,12 @@ JSBool SFVec2fGeneric( JSContext *cx, JSObject *obj,
 
 	if ((JSVRMLClassesVerbose) && (retSFVec2f)){
 		printf("SFVec2fgeneric: obj = %u, result = [%.9g, %.9g]\n",
-			   (unsigned int) obj,
+			   VERBOSE_OBJ obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1]);
 	}
 	if ((JSVRMLClassesVerbose) && (retNumeric)){
 		printf("SFVec2fgeneric: obj = %u, result = %.9g\n",
-			   (unsigned int) obj, d);
+			   VERBOSE_OBJ obj, d);
 	}
 
 	return JS_TRUE;
@@ -2728,7 +2733,7 @@ SFVec2fAssign(JSContext *cx, JSObject *obj,
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFVec2fAssign: obj = %u, id = \"%s\", from = %u\n",
-			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ _from_obj);
 	}
 
     SFVec2fNativeAssign(ptr, fptr);
@@ -2754,7 +2759,7 @@ SFVec2fTouched(JSContext *cx, JSObject *obj,
     t = ptr->touched;
 	ptr->touched = 0;
     if (JSVRMLClassesVerbose) {
-		printf("SFVec2fTouched: obj = %u, touched = %d\n", (unsigned int) obj, t);
+		printf("SFVec2fTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
 	}
     *rval = INT_TO_JSVAL(t);
     return JS_TRUE;
@@ -2794,7 +2799,7 @@ SFVec2fConstr(JSContext *cx, JSObject *obj,
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFVec2fConstr: obj = %u, %u args, %f %f\n",
-			   (unsigned int) obj, argc,
+			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1]);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
@@ -2808,7 +2813,7 @@ SFVec2fFinalize(JSContext *cx, JSObject *obj)
 	SFVec2fNative *ptr;
 
 	if (JSVRMLClassesVerbose) {
-		printf("SFColorFinalize: obj = %u\n", (unsigned int) obj);
+		printf("SFColorFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	}
 	if ((ptr = (SFVec2fNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec2fFinalize.\n");
@@ -2868,7 +2873,7 @@ SFVec2fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	ptr->touched++;
 	if (JSVRMLClassesVerbose) {
 		printf("SFVec2fSetProperty: obj = %u, id = %d, touched = %d\n",
-			   (unsigned int) obj, JSVAL_TO_INT(id), ptr->touched);
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
 	}
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -3082,13 +3087,13 @@ JSBool SFVec3fGeneric( JSContext *cx, JSObject *obj,
 	}
 	if ((JSVRMLClassesVerbose) && (retSFVec3f)){
 		printf("SFVec3fgeneric: obj = %u, result = [%.9g, %.9g, %.9g]\n",
-			   (unsigned int) obj,
+			   VERBOSE_OBJ obj,
 			   (_retNative->v).c[0], (_retNative->v).c[1],
 			   (_retNative->v).c[2]);
 	}
 	if ((JSVRMLClassesVerbose) && (retNumeric)){
 		printf("SFVec2fgeneric: obj = %u, result = %.9g\n",
-			   (unsigned int) obj, d);
+			   VERBOSE_OBJ obj, d);
 	}
 return JS_TRUE;
 }
@@ -3203,7 +3208,7 @@ SFVec3fAssign(JSContext *cx, JSObject *obj,
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFVec3fAssign: obj = %u, id = \"%s\", from = %u\n",
-			   (unsigned int) obj, _id_str, (unsigned int) _from_obj);
+			   VERBOSE_OBJ obj, _id_str, VERBOSE_OBJ  _from_obj);
 	}
 
     SFVec3fNativeAssign(ptr, fptr);
@@ -3229,7 +3234,7 @@ SFVec3fTouched(JSContext *cx, JSObject *obj,
     t = ptr->touched;
 	ptr->touched = 0;
     if (JSVRMLClassesVerbose) {
-		printf("SFVec3fTouched: obj = %u, touched = %d\n", (unsigned int) obj, t);
+		printf("SFVec3fTouched: obj = %u, touched = %d\n", VERBOSE_OBJ obj, t);
 	}
     *rval = INT_TO_JSVAL(t);
     return JS_TRUE;
@@ -3272,7 +3277,7 @@ SFVec3fConstr(JSContext *cx, JSObject *obj,
 	}
 	if (JSVRMLClassesVerbose) {
 		printf("SFVec3fConstr: obj = %u, %u args, %f %f %f\n",
-			   (unsigned int) obj, argc,
+			   VERBOSE_OBJ obj, argc,
 			   (ptr->v).c[0], (ptr->v).c[1], (ptr->v).c[2]);
 	}
 	*rval = OBJECT_TO_JSVAL(obj);
@@ -3285,7 +3290,7 @@ SFVec3fFinalize(JSContext *cx, JSObject *obj)
 	SFVec3fNative *ptr;
 
 	if (JSVRMLClassesVerbose) {
-		printf("SFVec3fFinalize: obj = %u\n", (unsigned int) obj);
+		printf("SFVec3fFinalize: obj = %u\n", VERBOSE_OBJ obj);
 	}
 	if ((ptr = (SFVec3fNative *)JS_GetPrivate(cx, obj)) == NULL) {
 		printf( "JS_GetPrivate failed in SFVec3fFinalize.\n");
@@ -3355,7 +3360,7 @@ SFVec3fSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 	ptr->touched++;
 	if (JSVRMLClassesVerbose) {
 		printf("SFVec3fSetProperty: obj = %u, id = %d, touched = %d\n",
-			   (unsigned int) obj, JSVAL_TO_INT(id), ptr->touched);
+			   VERBOSE_OBJ obj, JSVAL_TO_INT(id), ptr->touched);
 	}
 
 	if (!JS_ConvertValue(cx, *vp, JSTYPE_NUMBER, &myv)) {
@@ -3428,7 +3433,7 @@ MFColorConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFColorConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
@@ -3512,7 +3517,7 @@ MFFloatConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFFloatConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToNumber(cx, argv[i], &_d)) {
@@ -3591,7 +3596,7 @@ MFInt32Constr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFInt32Constr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToInt32(cx, argv[i], &_i)) {
@@ -3672,7 +3677,7 @@ MFNodeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFNodeConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
@@ -3740,7 +3745,7 @@ MFNodeSetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp) {
 			_str = JSVAL_TO_STRING(_val);
 			_c = JS_GetStringBytes(_str);
 			printf("MFNodeSetProperty: obj = %u, id = %d, SFNode object = %u, handle = \"%s\"\n",
-				   (unsigned int) obj, _index, (unsigned int) _obj, _c);
+				   VERBOSE_OBJ obj, _index, VERBOSE_OBJ _obj, _c);
 		}
 	}
 	return doMFSetProperty(cx, obj, id, vp,"MFNodeSetProperty");
@@ -3801,7 +3806,7 @@ MFTimeConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFTimeConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToNumber(cx, argv[i], &_d)) {
@@ -3881,7 +3886,7 @@ MFVec2fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFVec2fConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
@@ -3963,7 +3968,7 @@ MFVec3fConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval
 	}
 
 	if (JSVRMLClassesVerbose) {
-		printf("MFVec3fConstr: obj = %u, %u args\n", (unsigned int) obj, argc);
+		printf("MFVec3fConstr: obj = %u, %u args\n", VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
@@ -4344,7 +4349,7 @@ VrmlMatrixGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			if (*vp == JSVAL_VOID) {
 				printf(
 						"VrmlMatrixGetProperty: obj = %u, jsval = %d does not exist!\n",
-					   (unsigned int) obj, (int) _index);
+					   VERBOSE_OBJ obj, (int) _index);
 				return JS_FALSE;
 			}
 		}
@@ -4413,7 +4418,7 @@ MFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFRotationConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if (!JS_ValueToObject(cx, argv[i], &_obj)) {
@@ -4495,7 +4500,7 @@ MFStringGetProperty(JSContext *cx, JSObject *obj, jsval id, jsval *vp)
 			if (*vp == JSVAL_VOID) {
 				printf(
 						"MFStringGetProperty: obj = %u, jsval = %d does not exist!\n",
-					   (unsigned int) obj, (int) _index);
+					   VERBOSE_OBJ obj, (int) _index);
 				return JS_FALSE;
 			}
 		}
@@ -4556,7 +4561,7 @@ MFStringConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rva
 
 	if (JSVRMLClassesVerbose) {
 		printf("MFStringConstr: obj = %u, %u args\n",
-			   (unsigned int) obj, argc);
+			   VERBOSE_OBJ obj, argc);
 	}
 	for (i = 0; i < argc; i++) {
 		if ((_str = JS_ValueToString(cx, argv[i])) == NULL) {

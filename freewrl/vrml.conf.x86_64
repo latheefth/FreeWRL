@@ -39,9 +39,6 @@ CONVERT => "/usr/bin/convert",
 # some wrl/x3d files are zipped; how do we unzip them?
 UNZIP => "/bin/gunzip",	
 
-# Java compiler. Java, Jikes, etc is ok, so long as it is not ancient.
-JAVA => "/usr/bin/java",
-
 # how to copy one file to another:
 COPIER => "/bin/cp",
 
@@ -100,8 +97,9 @@ SOUNDCONV => "/usr/bin/sox",
 
 ############################################################################
 
+# Java runtime. Java, Jikes, etc is ok, so long as it is not ancient.
+    JAVA => "/usr/bin/java",
     JAVA_INST => '/usr/java/j2sdk1.4.0',
-    JAVA_INC => '-I/usr/java/j2sdk1.4.0/include -I/usr/java/j2sdk1.4.0/include/linux',
 
 ############################################################################
 # LDFLAGS.  Set linker flags here.

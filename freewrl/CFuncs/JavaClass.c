@@ -330,6 +330,11 @@ void makeJavaInvocation (char *commandline, int scriptno) {
  		printf ("JavaClass:perlpath: %s, builddir %s\n",myPerlInstallDir, BUILDDIR);
  	commandline[0] = '\0';
 
+	if (strncmp(JAVA,"JAVAISNOTDEFINED",strlen(JAVA)) != 0) {
+		printf ("JavaClsss: java interpreter not found at build time\n");
+		return;
+	}
+
  	/* get the CLASSPATH, if one exists */
  	myenv = getenv ("CLASSPATH");
  	if (myenv == NULL) {

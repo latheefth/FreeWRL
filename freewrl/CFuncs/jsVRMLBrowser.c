@@ -307,7 +307,7 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
 		if (JSVerbose) {
 			printf("VrmlBrowserCreateVrmlFromString: obj = %u, str = \"%s\"\n",
-				   (unsigned int) obj, _c);
+				   obj, _c);
 		}
 
 		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromString", "s", _c);

@@ -7184,6 +7184,10 @@ int ReadPacket(
 	2 - got video packet into buffer
 	*/
 {
+
+	/* to get around compiler warnings, fread return val always caught */
+	size_t fret;
+
   unsigned int **bs_ptr=&vid_stream->buf_start;
   int *max_length = &vid_stream->max_buf_length;
   int *length_ptr=&vid_stream->buf_length;
@@ -7243,32 +7247,32 @@ int ReadPacket(
     }
   }
 
-  fread(&nextByte,1,1,vid_stream->input);
+  fret = fread(&nextByte,1,1,vid_stream->input);
   pos = 0;
   while (nextByte & 0x80) {
     ++numStuffBytes;
     ++pos;
-    fread(&nextByte,1,1,vid_stream->input);
+    fret = fread(&nextByte,1,1,vid_stream->input);
   }
   if ((nextByte >> 6) == 0x01) {
     pos += 2;
-    fread(&nextByte,1,1,vid_stream->input);
-    fread(&nextByte,1,1,vid_stream->input);
+    fret = fread(&nextByte,1,1,vid_stream->input);
+    fret = fread(&nextByte,1,1,vid_stream->input);
   }
   if ((nextByte >> 4) == 0x02) {
     scratch[0] = nextByte;                      /* jim */
-    fread(&scratch[1],1,4,vid_stream->input);   /* jim */
-    fread(&nextByte,1,1,vid_stream->input);
+    fret = fread(&scratch[1],1,4,vid_stream->input);   /* jim */
+    fret = fread(&nextByte,1,1,vid_stream->input);
     pos += 5;
   }
   else if ((nextByte >> 4) == 0x03) {
     scratch[0] = nextByte;                      /* jim */
-    fread(&scratch[1],1,9,vid_stream->input);   /* jim */
-    fread(&nextByte,1,1,vid_stream->input);
+    fret = fread(&scratch[1],1,9,vid_stream->input);   /* jim */
+    fret = fread(&nextByte,1,1,vid_stream->input);
     pos += 10;
   }
   else {
-    fread(&nextByte,1,1,vid_stream->input);
+    fret = fread(&nextByte,1,1,vid_stream->input);
     pos += 1;
   }
   /* Read all the headers, now make room for packet */
@@ -7325,12 +7329,12 @@ int ReadPacket(
   }
   else if (packetID == vid_stream->gAudioStreamID) {
     packetBuffer = (unsigned char *)(*buf_ptr + *length_ptr + 1);
-    fread(packetBuffer, 1, packetDataLength - 1, vid_stream->input);
+    fret = fread(packetBuffer, 1, packetDataLength - 1, vid_stream->input);
   }
   else /* Donno what it is, just nuke it */ {
     /* This code should be unreachable */
     packetBuffer = (unsigned char *)(*buf_ptr + *length_ptr + 1);
-    fread(packetBuffer, 1, packetDataLength - 1, vid_stream->input);
+    fret = fread(packetBuffer, 1, packetDataLength - 1, vid_stream->input);
   }
   return 0;
 }

@@ -124,23 +124,6 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$BUILD_OPT = 1;
 }
 
-# check for the following items to be defined in vrml.conf:
-if (!defined $VRML_CONFIG{BROWSER}) {
-	print "no Browser defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{WGET}) {
-	print "no WGET defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{ASCIITERM}) {
-	print "no ASCIITERM defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{CONVERT}) {
-	print "no CONVERT defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{UNZIP}) {
-	print "no UNZIP defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{JAVA}) {
-	print "no JAVA defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{COPIER}) {
-	print "no COPIER defined in vrml.conf, exiting...\n"; exit (1); }
-if (!defined $VRML_CONFIG{SOUNDCONV}) {
-	print "no SOUNDCONV defined in vrml.conf, exiting...\n"; exit (1); }
 
 # is this an update of an older build? Some files have moved.
 my $oldfw2initpl = $VRML_CONFIG{BIN_DIR}."/fw2init.pl";
@@ -220,7 +203,6 @@ print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundSe
 
 # lets just dump out some standard defines, from the vrml.conf file.
 my @dumpToVRMLCONF = (
-#	"SOUND_ENGINE",
 	"BROWSER",
 	"SOUNDCONV",
 	"ASCIITERM",
@@ -233,13 +215,14 @@ my @dumpToVRMLCONF = (
 foreach (@dumpToVRMLCONF) {
 	if (defined $VRML_CONFIG{$_}) {
 		if (!(-e $VRML_CONFIG{$_})) {
-			print "WARNING: Check your specific vrml.conf file; can not find ".
+			print "WARNING: Check your specific vrml.conf file; can not find system executable ".
 				$VRML_CONFIG{$_}." for identifier $_\n";
 		}
 		print OUT "#define\t$_\t\t";
                 print OUT '"',$VRML_CONFIG{$_},'"';
  	} else {
-		print OUT "#define\t$_\t\t$_"."ISNOTDEFINED";
+		print OUT "#define\t$_\t\t";
+		print OUT '"',"$_"."ISNOTDEFINED",'"';
  	}
  	print OUT "\n";
 }

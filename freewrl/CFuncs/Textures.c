@@ -19,11 +19,11 @@
 #include "readpng.h"
 
 void new_do_texture(int texno);
-void checkAndAllocTexMemTables(int *texture_num, int increment);
+void checkAndAllocTexMemTables(GLuint *texture_num, int increment);
 
 struct loadTexParams {
 	/* data sent in to texture parsing thread */
-	unsigned *texture_num;
+	GLuint *texture_num;
 	GLuint genned_texture;
 	unsigned repeatS;
 	unsigned repeatT;
@@ -91,7 +91,7 @@ int currentlyWorkingOn = -1;
 int textureInProcess = -1;
 
 /* function Prototypes */
-int findTextureFile (int *texnum, int type, int *remove);
+int findTextureFile (GLuint *texnum, int type, int *remove);
 void _textureThread(void);
 void store_tex_info(
 		int texno,
@@ -132,7 +132,7 @@ int isTextureParsing() {
 }
 
 /* lets remove this texture from the process... */
-void freeTexture (int *texno) {
+void freeTexture (GLuint *texno) {
 	if (TexVerbose) printf ("freeTexture, texno %d cwo %d inprocess %d\n",*texno,currentlyWorkingOn, textureInProcess );
 
 	if (*texno > 0) isloaded[*texno] = INVALID;
@@ -195,8 +195,10 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 		 we just accept that the current texture parameters have to
 		 be left behind. */
 		node->_ichange = node->_change;
-		freeTexture(&(node->__texture)); /* this will cause bind_image to create a
-				     	 new "slot" for this texture */
+
+		/* this will cause bind_image to create a new "slot" for this texture */
+		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
+		freeTexture((GLuint*) &(node->__texture)); 
 	}
 
 	bind_image(IMAGETEXTURE, node->__parenturl,
@@ -214,8 +216,9 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 		 we just accept that the current texture parameters have to
 		 be left behind. */
 		node->_ichange = node->_change;
-		freeTexture(&(node->__texture)); /* this will cause bind_image to create a
-				     		 new "slot" for this texture */
+		/* this will cause bind_image to create a new "slot" for this texture */
+		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
+		freeTexture((GLuint*) &(node->__texture)); 
 	}
 	bind_image(PIXELTEXTURE, node->image,
 		mynull,
@@ -246,8 +249,8 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 				isloaded[firsttex] = NOTLOADED;
 				loadparams[firsttex].filename="uninitialized file";
 				loadparams[firsttex].depth = 0;
-				freeTexture(&(node->__texture0_)); /* this will cause bind_image to create a */
-				freeTexture(&(node->__texture1_)); /* this will cause bind_image to create a */
+				freeTexture((GLuint *)&(node->__texture0_)); /* this will cause bind_image to create a */
+				freeTexture((GLuint *)&(node->__texture1_)); /* this will cause bind_image to create a */
 				node->__ctex = 0;
 				node->__inittime = 0;
 				node->__sourceNumber = -1;
@@ -311,7 +314,7 @@ void store_tex_info(
 
 void do_possible_multitexture(int texno) {
 	int st;
-	int *texnums;
+	GLuint *texnums;
 	int imageDatasize;
 	int framecount;
 	GLubyte *imageptr;
@@ -322,8 +325,8 @@ void do_possible_multitexture(int texno) {
 		framecount = loadparams[texno].frames;
 
 		/* ok, a series of textures - eg, an mpeg file - needs unsquishing */
-		texnums = (int*)malloc (sizeof(GLuint) * framecount);
-		glGenTextures(framecount,(GLuint *)texnums);
+		texnums = (GLuint*)malloc (sizeof(GLuint) * framecount);
+		glGenTextures(framecount,texnums);
 
 		/* Irix returns "wierd" numbers; this appears to work
 		   across all platforms */
@@ -481,7 +484,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		/* check to see if "isloaded" and "loadparams" is ok
 			size-wise. if not,
 			make them larger, by 16 */
-		checkAndAllocTexMemTables((int *)texture_num, 16);
+		checkAndAllocTexMemTables(texture_num, 16);
 
 		glGenTextures(1,&loadparams[*texture_num].genned_texture);
 		if (TexVerbose)
@@ -493,7 +496,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,
 	   make them larger, by 16 */
-	checkAndAllocTexMemTables((int *)texture_num, 16);
+	checkAndAllocTexMemTables(texture_num, 16);
 
 	/* set the texture depth - required for Material diffuseColor selection */
 	last_texture_depth = loadparams[*texture_num].depth;
@@ -558,7 +561,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 /* check to see if we have enough memory for internal Texture tables */
 /* we should lock, unless we are already locked- MPG decoding happens when locked */
-void checkAndAllocTexMemTables(int *texture_num, int increment) {
+void checkAndAllocTexMemTables(GLuint *texture_num, int increment) {
 	int count;
 	int prev_max_texture;
 
@@ -597,7 +600,7 @@ void checkAndAllocTexMemTables(int *texture_num, int increment) {
    this is almost identical to the one for Inlines, but running
    in different threads */
 
-int findTextureFile (int *texnum, int type, int *istemp) {
+int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	char *filename;
 	char *mypath;
 	char *thisurl;
@@ -780,7 +783,7 @@ void _textureThread(void) {
 		if (TexVerbose)
 			printf ("textureThread, currentlyworking on %d\n",currentlyWorkingOn);
 
-		if (findTextureFile((int *)loadparams[currentlyWorkingOn].texture_num,
+		if (findTextureFile(loadparams[currentlyWorkingOn].texture_num,
 			loadparams[currentlyWorkingOn].type,&remove)) {
 		if (TexVerbose)
 			printf ("textureThread, findTextureFile ok for %d\n",currentlyWorkingOn);
@@ -851,7 +854,7 @@ void __reallyloadPixelTexture() {
 	}
 
 	/* ok - we have a valid Perl pointer, go for it. */
-	tptr = (unsigned char *)SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
+	tptr = (char *)SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
 	/* printf ("PixelTextures, string now is %s\n",tptr); */
 
 	while (isspace(*tptr))tptr++;
@@ -1136,8 +1139,6 @@ void __reallyloadMovieTexture () {
 	mpg_main(loadparams[currentlyWorkingOn].filename,
 		&x,&y,&depth,&frameCount,&ptr);
 
-
-	if (TexVerbose) printf ("ireallyloadmv frame count is %d depth %d ptr %d\n",frameCount,depth,(int)ptr);
 
 	/* store the "generic" data */
 	store_tex_info(currentlyWorkingOn,

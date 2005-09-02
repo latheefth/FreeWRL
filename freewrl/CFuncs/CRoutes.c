@@ -2156,7 +2156,7 @@ void CRoutes_js_new (int num, int scriptType) {
 
 	ScriptControl[num]._initialized = FALSE;
 	if (num > max_script_found) max_script_found = num;
-	/* printf ("returning from CRoutes_js_new\n"); */
+	/* printf ("returning from CRoutes_js_new - num %d max_script_found %d\n",num,max_script_found); */
 
 }
 
@@ -2576,7 +2576,7 @@ void saveSFImage (struct VRML_PixelTexture *node, char *str) {
 	} else {
 		/* printf ("saveSFImage passed test, lets decode it\n"); */
 		/* ok - we have a valid Perl pointer, go for it. */
-		strptr = (unsigned char *)SvPV(node->image,xx);
+		strptr = (char *)SvPV(node->image,xx);
 		/* printf ("saveSFImage PixelTexture string was %s\n",strptr); */
 
 		/* free the old "parts" of this... */
@@ -2595,13 +2595,13 @@ FIXME XXXXX =  can we do this without the string conversions?
 
 ********************************************************************/
 
-void gatherScriptEventOuts(unsigned long int actualscript, int ignore) {
+void gatherScriptEventOuts(unsigned long int actualscript) {
 	int route;
 	unsigned int fptr, tptr;
 	void * fn;
  	void * tn;
 	unsigned len;
-	float fl[0];	/* return float values */
+	float fl[4];	/* return float values */
 	double tval;
 	int ival;
 
@@ -2611,8 +2611,6 @@ void gatherScriptEventOuts(unsigned long int actualscript, int ignore) {
 	int touched_flag=FALSE;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
-
-	UNUSED(ignore);
 
 	/* go through all routes, looking for this script as an eventOut */
 
@@ -2643,7 +2641,7 @@ void gatherScriptEventOuts(unsigned long int actualscript, int ignore) {
 		fn = CRoutes[route].fromnode;
 		len = CRoutes[route].len;
 
-		if (CRVerbose)
+		if (JSVerbose)
 			printf ("\ngatherSentEvents, from %s type %d len %d\n",JSparamnames[fptr].name,
 				JSparamnames[fptr].type, len);
 
@@ -2659,21 +2657,20 @@ void gatherScriptEventOuts(unsigned long int actualscript, int ignore) {
 
 		/* now, set the actual properties - switch as documented above */
 		if (!fromalready) {
-			if (CRVerbose) 
+			if (JSVerbose) 
 				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
 			touched_flag = get_touched_flag(fptr,actualscript);
 
 			if (touched_flag) {
-				if (CRVerbose) printf ("got TRUE touched_flag\n");
+				if (JSVerbose) printf ("got TRUE touched_flag\n");
 				/* we did, so get the value */
 				strval = JS_ValueToString((JSContext *)ScriptControl[actualscript].cx, global_return_val);
 			        strp = JS_GetStringBytes(strval);
 
-				if (CRVerbose) 
+				if (JSVerbose) 
 					printf ("retval string is %s\n",strp);
 			}
 		}
-
 
 		if (touched_flag) {
 			/* get some easy to use pointers */
@@ -2737,8 +2734,10 @@ void gatherScriptEventOuts(unsigned long int actualscript, int ignore) {
 				}
 
 				case SFROTATION: {
+int tmp;
+tmp =
 					sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
-					/*printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]); */
+					/* printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]); */
 					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
 				}
@@ -3063,9 +3062,6 @@ void propagate_events() {
 	int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	/* int mvcompCount, mvcompSize; */
-	/* struct Multi_Vec3f *mv3fptr; */
-
 	if (CRVerbose)
 		printf ("\npropagate_events start\n");
 
@@ -3152,9 +3148,14 @@ void propagate_events() {
 		/* run gatherScriptEventOuts for each active script */
 		if (scripts_active) {
 			for (counter =0; counter <= max_script_found; counter++) {
+/*
+printf ("msf %d c %d\n",max_script_found, counter);
+printf ("script type %d\n",ScriptControl[counter].thisScriptType);
+*/
+
 				switch (ScriptControl[counter].thisScriptType) {
 					case JAVASCRIPT: {
-						gatherScriptEventOuts (counter,TRUE);
+						gatherScriptEventOuts (counter);
 						break;
 					}
 					case CLASSSCRIPT: {

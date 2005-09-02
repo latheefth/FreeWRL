@@ -71,7 +71,6 @@ LIB_DIR => "$PPREFIX/lib",
     FREEWRL_INC => "-I/usr/openwin/include/ -I$PPREFIX/include/freetype2 -I$PPREFIX/include/freetype2/freetype/ -I$PPREFIX/include/",
 
 #   JS_LIBS => '-L$HOME/VRML/toolkits/js/src/SunOS5.8_DBG.OBJ -ljs',
-#   JAVA_INC => '-I$HOME/VRML/toolkits/js/src/SunOS5.8_DBG.OBJ',
 
 ############################################################################
 # Netscape/Mozilla  installation
@@ -90,7 +89,6 @@ LIB_DIR => "$PPREFIX/lib",
 
 ############################################################################
     JAVA_INST => '/usr/java',
-    JAVA_INC => '-I/usr/java/include -I/usr/java/include/solaris',
 
 ############################################################################
 # LDFLAGS.  Set linker flags here.
