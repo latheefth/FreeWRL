@@ -392,5 +392,6 @@ print "\nFreeWRL Error....\n";
 print "this should not happen - you are running the freewrl manpage pod,\n";
 print "not the freewrl executable. On Unix, make sure that you are running\n";
 print "the installed freewrl executable, or the CFrontEnd/freewrl in the build directory.\n";
+print "\nHint - did you do a make install, and was it successful?\n";
 print "\n\n";
 !NO!SUBS!

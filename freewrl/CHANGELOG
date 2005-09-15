@@ -1,3 +1,10 @@
+For 1.14:
+	- Added NavigationInfo speed field values to FLY mode rotations and
+	  translations.
+
+	- fixed bug in Javascript invocation dealing with multi float
+	  (3F, 4F) values. 
+
 For 1.13:
 	- Now use freely distributable font files. See the README in the
 	  fonts directory.

@@ -605,6 +605,8 @@ handle_tick_fly()
 		}
 	}
 
+	/* printf ("speed %f timedif %lf\n",Viewer.speed,time_diff); */
+
 	/* first, get all the keypresses since the last time */
 	for (i = 0; i < KEYS_HANDLED; i++) {
 		(ps[i]).hit += (fly->Down[i]).hit;
@@ -628,7 +630,7 @@ handle_tick_fly()
 	for (i = 0; i < COORD_SYS; i++) {
 		fly->Velocity[i] *= pow(0.06, time_diff);
 
-		fly->Velocity[i] += time_diff * translate[i] * 14.5;
+		fly->Velocity[i] += time_diff * translate[i] * 14.5 * Viewer.speed;
 
 		if (fabs(fly->Velocity[i]) >9.0) {
 			fly->Velocity[i] /= (fabs(fly->Velocity[i]) /9.0);
@@ -645,7 +647,7 @@ handle_tick_fly()
 
 	for (i = 0; i < COORD_SYS; i++) {
 		fly->AVelocity[i] *= pow(0.04, time_diff);
-		fly->AVelocity[i] += time_diff * rotate[i] * 0.1;
+		fly->AVelocity[i] += time_diff * rotate[i] * 0.025 * Viewer.speed;
 
 		if (fabs(fly->AVelocity[i]) > 0.8) {
 			fly->AVelocity[i] /= (fabs(fly->AVelocity[i]) / 0.8);

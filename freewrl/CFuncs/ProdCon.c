@@ -50,11 +50,6 @@
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
-/* thread synchronization issues */
-pthread_mutex_t condition_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t psp_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t  condition_cond  = PTHREAD_COND_INITIALIZER;
-
 #ifdef AQUA
 int _fw_FD = 0;
 int _fw_pipe = 0;
@@ -65,38 +60,25 @@ unsigned _fw_instance;
 /* in headers.h extern int _fw_pipe, _fw_FD; */
 extern unsigned _fw_instance;
 
-#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex);
-#define DATA_LOCK_SIGNAL        pthread_cond_signal(&condition_cond);
-#define DATA_LOCK_WAIT          pthread_cond_wait(&condition_cond, &condition_mutex);
-#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex);
+int _P_LOCK_VAR;
 
-/* for debugging.
-#define DATA_LOCK       	pthread_mutex_lock(&condition_mutex); \
-					printf ("locked by %d\n",pthread_self());
+/* thread synchronization issues */
+#define PERL_LOCKING_INIT _P_LOCK_VAR = 0
+#define SEND_TO_PERL if (_P_LOCK_VAR==0) _P_LOCK_VAR=1; else printf ("SEND_TO_PERL = flag wrong!\n");
+#define PERL_FINISHING if (_P_LOCK_VAR==1) _P_LOCK_VAR=0; else printf ("PERL_FINISHING - flag wrong!\n");
 
-#define DATA_LOCK_SIGNAL        printf ("signalling by %d\n",pthread_self()); \
-					pthread_cond_signal(&condition_cond); \
-					printf ("signaled by %d\n",pthread_self());
+#define UNLOCK pthread_cond_signal(&condition); pthread_mutex_unlock(&mutex);
 
-#define DATA_UNLOCK     	pthread_mutex_unlock(&condition_mutex); \
-					printf ("unlocked by %d\n",pthread_self());
-#define DATA_LOCK_WAIT          printf ("waiting by %d\n",pthread_self()); \
-					pthread_cond_wait(&condition_cond, &condition_mutex);
-*/
+#define WAIT_WHILE_PERL_BUSY  pthread_mutex_lock(&mutex); \
+     while (_P_LOCK_VAR==1) { pthread_cond_wait(&condition, &mutex);}
 
+#define WAIT_WHILE_NO_DATA pthread_mutex_lock(&mutex); \
+     while (_P_LOCK_VAR==0) { pthread_cond_wait(&condition, &mutex);}
 
-/* for debugging
-#define PSP_LOCK		while(PerlParsing){printf("pp\n");usleep(10);}pthread_mutex_lock(&psp_mutex);
-*/
-
-#define PSP_LOCK		while(PerlParsing){usleep(10);}pthread_mutex_lock(&psp_mutex);
-#define PSP_UNLOCK		pthread_mutex_unlock(&psp_mutex);
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 
 
-/*
-#define PSP_LOCK
-#define PSP_UNLOCK
-*/
 struct PSStruct {
 	unsigned type;		/* what is this task? 			*/
 	char *inp;		/* data for task (eg, vrml text)	*/
@@ -190,8 +172,6 @@ void initializePerlThread(char *perlpath) {
 	strcpy (myPerlInstallDir, perlpath);
 
 	/* create consumer thread and set the "read only" flag indicating this */
-        /* M. Ward Dec 8/04 - ICAC the typecast here is for a pointer to a function that*/
-	/* returns a pointer to a void and takes a pointer to a void as a parameter*/
 	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_perlThread, (void *) perlpath);
 }
 
@@ -381,8 +361,7 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 	const char *p = format;
 	int complete;
 
-	PSP_LOCK
-	DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
 	complete=0;
 	/* copy the data over; malloc and copy input strings */
 	psp.sv = sv;
@@ -421,10 +400,15 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 	}
 	va_end(ap);
 
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
-	PSP_UNLOCK
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+	/* grab data */
+	UNLOCK;
+
 }
 
 /* interface for getting a node number via the EAI */
@@ -432,8 +416,8 @@ unsigned int EAI_GetNode(char *nname) {
 	int complete;
 	int retval;
 
-	PSP_LOCK
-	DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
 	psp.comp = &complete;
 	psp.type = EAIGETNODE;
 	psp.retarr = NULL;
@@ -444,11 +428,15 @@ unsigned int EAI_GetNode(char *nname) {
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	psp.fieldname = nname;
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+	/* grab data */
 	retval = psp.jparamcount;
-	PSP_UNLOCK
+	UNLOCK;
 	return (retval);
 }
 
@@ -457,8 +445,8 @@ unsigned int EAI_GetViewpoint(char *nname) {
 	int complete;
 	int retval;
 
-	PSP_LOCK
-	DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
 	psp.comp = &complete;
 	psp.type = EAIGETVIEWPOINT;
 	psp.retarr = NULL;
@@ -469,11 +457,16 @@ unsigned int EAI_GetViewpoint(char *nname) {
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	psp.fieldname = nname;
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+	/* grab data */
 	retval = psp.jparamcount;
-	PSP_UNLOCK
+	UNLOCK;
 	return (retval);
 }
 
@@ -491,9 +484,8 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	int *scripttype) {
 	int complete;
 
-	/* printf ("EAI_GetType starting\n");*/
-	PSP_LOCK
-	DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
 	psp.ptr = direction;
 	psp.jparamcount=nodenum;
 	psp.fieldname = fieldname;
@@ -506,18 +498,23 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
 
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+
+	/* grab data */
 	/* copy results out */
 	*nodeptr = psp.Etype[0];
 	*dataoffset = psp.Etype[1];
 	*datalen = psp.Etype[2];
 	*nodetype = psp.Etype[3];
 	*scripttype = psp.Etype[4];
-	/* printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype);*/
-	PSP_UNLOCK
+	/* printf("EAI_GetType: %d %d %d %c %d\n",*nodeptr,*dataoffset,*datalen,*nodetype,*scripttype); */
+	UNLOCK;
 }
 
 /* interface for getting node type parameters from EAI - mftype is for MF nodes.*/
@@ -525,9 +522,9 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 	int complete;
 	char *retstr;
 
-	/* printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname);*/
-	PSP_LOCK
-	DATA_LOCK
+	/* printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname); */
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
 	psp.ptr = nodename;
 	psp.jparamcount=nodenum;
 	psp.fieldname = fieldname;
@@ -540,14 +537,22 @@ char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
 
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+
+
+
+	/* grab data */
 	/* copy results out */
 	retstr = psp.retstr;
-	/* printf ("EAI_GetValue finishing, retval = %s\n",retstr);*/
-	PSP_UNLOCK
+	/* printf ("EAI_GetValue finishing, retval = %s\n",retstr); */
+	UNLOCK;
 	return retstr;
 
 }
@@ -558,8 +563,8 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 	char *retstr;
 
 	/* printf ("EAI_GetTypeName starting node %d \n",nodenum);*/
-	PSP_LOCK
-	DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
 	psp.ptr = (unsigned int)NULL;
 	psp.jparamcount=nodenum;
 	psp.fieldname = NULL;
@@ -572,14 +577,20 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
 
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+
+	/* grab data */
 	/* copy results out */
 	retstr = psp.retstr;
 	/* printf ("EAI_GetTypeName finishing, retval = %s\n",retstr);*/
-	PSP_UNLOCK
+	UNLOCK;
 	return retstr;
 
 }
@@ -589,8 +600,8 @@ void EAI_Route(char cmnd, char *fn) {
 	int complete;
 	int retval;
 
-	PSP_LOCK
-	DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
 	psp.comp = &complete;
 	psp.type = EAIROUTE;
 	psp.retarr = NULL;
@@ -601,11 +612,17 @@ void EAI_Route(char cmnd, char *fn) {
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
 	psp.fieldname = fn;
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) usleep(10);
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+
+	/* grab data */
 	retval = psp.jparamcount;
-	PSP_UNLOCK
+	UNLOCK;
 }
 
 /* interface for creating VRML for EAI */
@@ -614,8 +631,7 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	int retval;
 	UNUSED(tp);
 
-	PSP_LOCK
-	DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
 	if (strncmp(tp,"URL",2) ==  0) {
 			psp.type= FROMURL;
 	} else {
@@ -635,11 +651,17 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 	psp.inp = (char *)malloc (strlen(inputstring)+2);
 	if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n");}
 	memcpy (psp.inp,inputstring,strlen(inputstring)+1);
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	while (complete!=1) { usleep(10);}
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+
+	/* grab data */
 	retval = psp.retarrsize;
-	PSP_UNLOCK
+	UNLOCK;
 	return (retval);
 }
 
@@ -647,8 +669,8 @@ int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize
 void EAI_readNewWorld(char *inputstring) {
     int complete;
 
-    PSP_LOCK
-    DATA_LOCK
+	WAIT_WHILE_PERL_BUSY;
+    complete=0;
     psp.comp = &complete;
     psp.type = FROMURL;
 	psp.retarr = NULL;
@@ -661,10 +683,15 @@ void EAI_readNewWorld(char *inputstring) {
     psp.inp  = (char *)malloc (strlen(inputstring)+2);
     if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n"); }
     memcpy (psp.inp,inputstring,strlen(inputstring)+1);
-    DATA_LOCK_SIGNAL
-    DATA_UNLOCK
-    while (complete!=1) usleep(10);
-    PSP_UNLOCK
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+	/* grab data */
+	UNLOCK;
 }
 
 /****************************************************************************/
@@ -674,12 +701,15 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 	/* do we want to return if the parsing thread is busy, or do
 	   we want to wait? */
+	/* printf ("start of PerlParse, thread %d\n",pthread_self()); */
 	if (returnifbusy) {
 		/* printf ("perlParse, returnifbusy, PerlParsing %d\n",PerlParsing);*/
 		if (PerlParsing) return (FALSE);
 	}
-	PSP_LOCK
-	DATA_LOCK
+
+	WAIT_WHILE_PERL_BUSY;
+
+	/* printf ("perlParse, past WAIT_WHILE_PERL_BUSY in %d\n",pthread_self()); */
 
 	/* copy the data over; malloc and copy input string */
 	psp.comp = complete;
@@ -696,12 +726,21 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 	if (!(psp.inp)) {outOfMemory ("malloc failure in produceTask\n");}
 	memcpy (psp.inp,inp,strlen(inp)+1);
 
-	DATA_LOCK_SIGNAL
-	DATA_UNLOCK
-	PSP_UNLOCK
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* printf ("perlParse, waiting for data \n"); */
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+	/* grab data */
+	UNLOCK;
+
 	return (TRUE);
 }
 
+/***********************************************************************************/
 
 void _perlThread(void *perlpath) {
         char *commandline[] = {"", NULL};
@@ -713,7 +752,8 @@ void _perlThread(void *perlpath) {
 
 	FILE *tempfp; /* for tring to locate the fw2init.pl file */
 
-	/* printf ("perlThread is %d\n",pthread_self());  */
+	/* printf ("perlThread is %d\n",pthread_self()); */
+	PERL_LOCKING_INIT;
 
 	/* is the browser started yet? */
 	if (!browserRunning) {
@@ -774,13 +814,15 @@ void _perlThread(void *perlpath) {
 
 		/* Now, possibly this is the first VRML file to
 		   add. Check to see if maybe we have a ptr of 0. */
+
+		PerlInitialized=TRUE;  /* have to do this AFTER ensuring we are locked */
 	}
 
 	/* now, loop here forever, waiting for instructions and obeying them */
 	for (;;) {
-		DATA_LOCK
-		PerlInitialized=TRUE; /* have to do this AFTER ensuring we are locked */
-		DATA_LOCK_WAIT
+		/* printf ("thread %d waiting for data\n",pthread_self()); */
+		WAIT_WHILE_NO_DATA;
+
 		PerlParsing=TRUE;
 
 		/* have to handle these types of commands:
@@ -872,7 +914,8 @@ void _perlThread(void *perlpath) {
 		*psp.comp = 1;
 		URLLoaded=TRUE;
 		PerlParsing=FALSE;
-		DATA_UNLOCK
+		PERL_FINISHING;
+		UNLOCK;
 	}
 }
 
@@ -1352,7 +1395,9 @@ void __pt_EAI_GetType (){
 	XPUSHs(sv_2mortal(newSVpv((const char *)psp.ptr, (STRLEN)0)));
 
 	PUTBACK;
+printf ("going to call VRML::Browser::EAI_GetType\n");
 	count = call_pv("VRML::Browser::EAI_GetType",G_ARRAY);
+printf ("called VRML::Browser::EAI_GetType\n");
 	SPAGAIN;
 
 	if (count != 5) {
@@ -1371,6 +1416,7 @@ void __pt_EAI_GetType (){
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
+printf ("leaving called VRML::Browser::EAI_GetType\n");
 }
 
 void __pt_EAI_GetValue (){
