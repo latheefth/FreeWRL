@@ -109,7 +109,7 @@ my @jslibs;
 if ($VRML_CONFIG{PLATFORM} =~ /irix/i) {
 	$jsobjdir = "$jsdir/IRIX6.5";
 } elsif ($OS eq "Darwin") {
-	$jsobjdir = "$jsdir/Darwin_All";
+	$jsobjdir = "$jsdir/Darwin";
 } elsif ($VRML_CONFIG{PLATFORM} =~ /sunos/i) {
 	$jsobjdir = "$jsdir/SunOS5.8";
 } else { ## linux used by default
