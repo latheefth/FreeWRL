@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.179  2005/09/27 02:31:48  crc_canada
+# cleanup of verbose code.
+#
 # Revision 1.178  2005/08/05 18:54:38  crc_canada
 # ElevationGrid to new structure. works ok; still some minor errors.
 #
@@ -225,15 +228,27 @@ Box => '
 	if(!XEQ) {
 		float xrat0 = XRAT(x);
 		float xrat1 = XRAT(-x);
-		if(verbose) printf("!XEQ: %f %f\\n",xrat0,xrat1);
+		#ifdef RENDERVERBOSE 
+		printf("!XEQ: %f %f\\n",xrat0,xrat1);
+		#endif
+
 		if(TRAT(xrat0)) {
 			float cy = MRATY(xrat0);
-			if(verbose) printf("TRok: %f\\n",cy);
+			#ifdef RENDERVERBOSE 
+			printf("TRok: %f\\n",cy);
+			#endif
+
 			if(cy >= -y && cy < y) {
 				float cz = MRATZ(xrat0);
-				if(verbose) printf("cyok: %f\\n",cz);
+				#ifdef RENDERVERBOSE 
+				printf("cyok: %f\\n",cz);
+				#endif
+
 				if(cz >= -z && cz < z) {
-					if(verbose) printf("czok:\\n");
+					#ifdef RENDERVERBOSE 
+					printf("czok:\\n");
+					#endif
+
 					rayhit(xrat0, x,cy,cz, 1,0,0, -1,-1, "cube x0");
 				}
 			}
@@ -758,8 +773,8 @@ CODE:
 		$o .= "\t*ptr_++ = offsetof(struct VRML_$name, $_);\n";
 	}
 	$o .= "\t*ptr_++ = sizeof(struct VRML_$name);\n";
-	$o .= "RETVAL=&(virt_${name});
-	if(verbose) printf(\"$name virtual: %d \\n \", RETVAL);
+	$o .= "\tRETVAL=&(virt_${name});\n";
+	$o .= "\t#ifdef RENDERVERBOSE\n\tprintf(\"$name virtual: %d \\n \", RETVAL);\n\t#endif 
 OUTPUT:
 	RETVAL
 ";
@@ -1088,9 +1103,6 @@ GLint global_texSize = 0;
 /* for printing warnings about Sound node problems - only print once per invocation */
 int soundWarned = FALSE;
 
-int verbose = FALSE;
-int verbose_collision = FALSE; /*print out collision info*/
-
 int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
 int render_geom;
 int render_light;
@@ -1192,12 +1204,14 @@ float tx,float ty, char *descr)  {
 	GLdouble projMatrix[16];
 
 	/* Real rat-testing */
-	if(verbose)
+	#ifdef RENDERVERBOSE
 		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
 		descr, rat,cx,cy,cz,nx,ny,nz,
 		t_r1.x, t_r1.y, t_r1.z,
 		t_r2.x, t_r2.y, t_r2.z
 		);
+	#endif
+
 	if(rat<0 || (rat>hpdist && hpdist >= 0)) {
 		return;
 	}
@@ -1208,7 +1222,9 @@ float tx,float ty, char *descr)  {
 	hpdist = rat;
 	rh=rph;
 	rhhyper=rph;
-	if (verbose) printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
+	#ifdef RENDERVERBOSE 
+		printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
+	#endif
 }
 
 /* Call this when modelview and projection modified */
@@ -1280,13 +1296,15 @@ void render_node(void *node) {
 	char* stage = "";
 	#endif
 
-	if(verbose)
+	#ifdef RENDERVERBOSE
 		printf("\nRender_node %u\n",(unsigned int) node);
+	#endif
+
 	if(!node) {return;}
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
 
-	if(verbose) {
+	#ifdef RENDERVERBOSE 
 	    printf("=========================================NODE RENDERED===================================================\n");
 	printf ("node %d %d\n",p,v);
 	printf ("nodename %s\n",v->name);
@@ -1304,14 +1322,16 @@ return;
 		   render_light,
 		   render_sensitive);
 	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
-	}
+	#endif
 
         /* we found viewpoint on render_vp pass, stop exploring tree.. */
         if(render_vp && found_vp) return;
 
 	if(p->_change != p->_ichange && v->changed)
 	  {
-	    if (verbose) printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
+	    #endif
 	    v->changed(node);
 	    p->_ichange = p->_change;
 	    #ifdef GLERRORS
@@ -1321,7 +1341,10 @@ return;
 
 	if(v->prep)
 	  {
-	    if (verbose) printf ("rs 2\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 2\n");
+	    #endif
+
 	    v->prep(node);
 	    if(render_sensitive && !hypersensitive)
 	      {
@@ -1334,7 +1357,9 @@ return;
 
 	if(render_proximity && v->proximity)
 	{
-	    if (verbose) printf ("rs 2a\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 2a\n");
+	    #endif
 	    v->proximity(node);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
@@ -1343,7 +1368,10 @@ return;
 
 	if(render_collision && v->collision)
 	{
-	    if (verbose) printf ("rs 2b\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 2b\n");
+	    #endif
+
 	    v->collision(node);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
@@ -1352,7 +1380,10 @@ return;
 
 	if(render_geom && !render_sensitive && v->rend)
 	  {
-	    if (verbose) printf ("rs 3\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 3\n");
+	    #endif
+
 	    v->rend(node);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
@@ -1360,7 +1391,10 @@ return;
 	  }
 	if(render_light && v->light)
 	  {
-	    if (verbose) printf ("rs 4\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 4\n");
+	    #endif
+
 	    v->light(node);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_light";
@@ -1373,10 +1407,16 @@ return;
 	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
 	if(render_sensitive && p->_sens)
 	  {
-	    if (verbose) printf ("rs 5\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 5\n");
+	    #endif
+
 	    srg = render_geom;
 	    render_geom = 1;
-	    if(verbose) printf("CH1 %d: %d\n",node, cur_hits, p->_hit);
+	    #ifdef RENDERVERBOSE 
+		printf("CH1 %d: %d\n",node, cur_hits, p->_hit);
+	    #endif
+
 	    sch = cur_hits;
 	    cur_hits = 0;
 	    /* HP */
@@ -1391,7 +1431,10 @@ return;
 	  }
 	if(render_geom && render_sensitive && !hypersensitive && v->rendray)
 	  {
-	    if (verbose) printf ("rs 6\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 6\n");
+	    #endif
+
 	    v->rendray(node);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
@@ -1400,13 +1443,19 @@ return;
 
 
         if((render_sensitive) && (hypersensitive == node)) {
-            if (verbose) printf ("rs 7\n");
+            #ifdef RENDERVERBOSE 
+		printf ("rs 7\n");
+	    #endif
+
             hyper_r1 = t_r1;
             hyper_r2 = t_r2;
             hyperhit = 1;
         }
         if(v->children) {
-            if (verbose) printf ("rs 8\n");
+            #ifdef RENDERVERBOSE 
+		printf ("rs 8\n");
+	    #endif
+
             v->children(node);
 	    #ifdef GLERRORS
 	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
@@ -1416,16 +1465,25 @@ return;
 	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
 	if(render_sensitive && p->_sens)
 	  {
-	    if (verbose) printf ("rs 9\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs 9\n");
+	    #endif
+
 	    render_geom = srg;
 	    cur_hits = sch;
-	    if(verbose) printf("CH3: %d %d\n",cur_hits, p->_hit);
+	    #ifdef RENDERVERBOSE 
+		printf("CH3: %d %d\n",cur_hits, p->_hit);
+	    #endif
+
 	    /* HP */
 	      rph = srh;
 	  }
 	if(v->fin)
 	  {
-	    if (verbose) printf ("rs A\n");
+	    #ifdef RENDERVERBOSE 
+		printf ("rs A\n");
+	    #endif
+
 	    v->fin(node);
 	    if(render_sensitive && v == &virt_Transform)
 	      {
@@ -1435,7 +1493,10 @@ return;
 	    if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
 	    #endif
 	  }
-	if (verbose) printf("(end render_node)\n");
+	#ifdef RENDERVERBOSE 
+		printf("(end render_node)\n");
+	#endif
+
 
 	#ifdef GLERRORS
 	if(glerror != GL_NONE)
@@ -1541,7 +1602,6 @@ render_hier(void *p, int rwhat)
 	hpdist = -1;
 
 
-	/* if (render_geom) {verbose = TRUE; printf ("START OF RENDER GEOM\n");} */
 	#ifdef render_pre_profile
 	if (render_geom) {
 		gettimeofday (&mytime,&tz);
@@ -1558,8 +1618,9 @@ render_hier(void *p, int rwhat)
 		return;
 	}
 
-	if (verbose)
+	#ifdef RENDERVERBOSE
   		printf("Render_hier node=%d what=%d\n", p, rwhat);
+	#endif
 
 	/* status bar */
 	if (render_geom) {
@@ -1610,9 +1671,11 @@ render_hier(void *p, int rwhat)
 		matinverse(modelMatrix,modelMatrix);
 		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
 
-		if (verbose) printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
+		#ifdef RENDERVERBOSE 
+		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
+		#endif
+
 	}
-	/* if (render_geom)verbose=FALSE; */
 }
 
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
@@ -1687,18 +1750,6 @@ set_sensitive(ptr,datanode,type)
 	char *type
 CODE:
 	setSensitive (ptr,datanode,type);
-
-void
-render_verbose(i)
-	int i;
-CODE:
-	verbose=i;
-
-void
-render_verbose_collision(i)
-	int i;
-CODE:
-	verbose_collision=i;
 
 #*****************************************************************************
 # return a C pointer to a func for the interpolator functions. Used in CRoutes
@@ -1886,15 +1937,6 @@ OUTPUT:
 
 
 #****************JAVASCRIPT FUNCTIONS*********************************
-
-void
-setJSVerbose(v)
-	int v;
-CODE:
-{
-	JSVerbose = v;
-}
-
 
 ## worry about garbage collection here ???
 void

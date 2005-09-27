@@ -23,9 +23,9 @@ VrmlBrowserInit(JSContext *context, JSObject *globalObj, BrowserNative *brow)
 	/* brow->sv_js = newSVsv(sv_js); */ /* new duplicate of sv_js */
 	/* brow->magic = BROWMAGIC; */
 
-	if (JSVerbose) {
+	#ifdef JSVERBOSE
 		printf("VrmlBrowserInit\n");
-	}
+	#endif
 
 	/* why not JS_InitClass ??? */
 	obj = JS_DefineObject(context,
@@ -305,10 +305,10 @@ VrmlBrowserCreateVrmlFromString(JSContext *context, JSObject *obj,
 
 	if (argc == 1 &&
 		JS_ConvertArguments(context, argc, argv, _c_format, &_c)) {
-		if (JSVerbose) {
+		#ifdef JSVERBOSE
 			printf("VrmlBrowserCreateVrmlFromString: obj = %u, str = \"%s\"\n",
 				   obj, _c);
-		}
+		#endif
 
 		doPerlCallMethodVA(brow->sv_js, "jspBrowserCreateVrmlFromString", "s", _c);
 	} else {

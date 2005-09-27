@@ -10,7 +10,6 @@
  * General Texture objects
  */
 
-
 #include "Textures.h"
 #include <pthread.h>
 #include "Structs.h"
@@ -75,8 +74,6 @@ static pthread_mutex_t genmutex = PTHREAD_MUTEX_INITIALIZER;
 #define REGENLOCK 	pthread_mutex_lock(&genmutex);
 #define REGENUNLOCK 	pthread_mutex_unlock(&genmutex);
 
-int TexVerbose=0;
-
 /* is the texture thread up and running yet? */
 int TextureThreadInitialized = FALSE;
 
@@ -127,19 +124,28 @@ int isTextureinitialized() {
 /* statusbar uses this to tell user that we are still loading */
 int isTextureParsing() {
 	/* return currentlyWorkingOn>=0; */
-	if (TexVerbose) printf ("call to isTextureParsing, returning %d\n",textureInProcess > 0);
+	#ifdef TEXVERBOSE 
+	printf ("call to isTextureParsing, returning %d\n",textureInProcess > 0);
+	#endif
+
 	return textureInProcess >0;
 }
 
 /* lets remove this texture from the process... */
 void freeTexture (GLuint *texno) {
-	if (TexVerbose) printf ("freeTexture, texno %d cwo %d inprocess %d\n",*texno,currentlyWorkingOn, textureInProcess );
+	#ifdef TEXVERBOSE 
+	printf ("freeTexture, texno %d cwo %d inprocess %d\n",*texno,currentlyWorkingOn, textureInProcess );
+	#endif
+
 
 	if (*texno > 0) isloaded[*texno] = INVALID;
 
 	/* is this the texture that we are currently working on?? */
 	if ((*texno) == textureInProcess) {
-		if (TexVerbose) printf ("freeTexture - zeroing textureInProcess, too\n");
+		#ifdef TEXVERBOSE 
+		printf ("freeTexture - zeroing textureInProcess, too\n");
+		#endif
+
 		textureInProcess = -1;
 	}
 	/*
@@ -266,10 +272,12 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
 
 	if (isloaded[firsttex] == UNSQUASHED) {
-		if (TexVerbose)
+		#ifdef TEXVERBOSE
 			printf ("movie texture now unsquished, first and last textures %d %d ctex %d\n",
 			loadparams[firsttex].x, loadparams[firsttex].y,
 			node->__ctex);
+
+		#endif
 
 		/* copy over the first and last texture numbers */
 		node->__texture0_ = loadparams[firsttex].x;
@@ -457,15 +465,24 @@ void new_do_texture(int texno) {
 void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		GLuint *texture_num, int repeatS, int repeatT) {
 
-	if (TexVerbose) printf ("bind_image, textureInProcess %d\n",textureInProcess);
+	#ifdef TEXVERBOSE 
+	printf ("bind_image, textureInProcess %d\n",textureInProcess);
+	#endif
+
 	if (textureInProcess > 0) {
 		sched_yield();
 		/* we are already working on a texture. Is it THIS one? */
 		if (textureInProcess != (*texture_num)) {
-			if (TexVerbose) printf ("bind_image, textureInProcess = %d, texture_num %d returning \n",textureInProcess,*texture_num);
+			#ifdef TEXVERBOSE 
+			printf ("bind_image, textureInProcess = %d, texture_num %d returning \n",
+				textureInProcess,*texture_num);
+			#endif
+
 			return;
 		}
-		if (TexVerbose) printf ("bind_image, textureInProcess == texture_num\n");
+		#ifdef TEXVERBOSE 
+		printf ("bind_image, textureInProcess == texture_num\n");
+		#endif
 	}
 
 	/* signal that his is the one we want to work on */
@@ -487,11 +504,13 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		checkAndAllocTexMemTables(texture_num, 16);
 
 		glGenTextures(1,&loadparams[*texture_num].genned_texture);
-		if (TexVerbose)
+		#ifdef TEXVERBOSE
 			printf ("just genned texture %d\n",*texture_num);
+		#endif
 	}
-	if (TexVerbose)
+	#ifdef TEXVERBOSE
 		printf ("bind_image, textureInProcess %d status %d\n",textureInProcess,isloaded[*texture_num]);
+	#endif
 
 
 	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,
@@ -503,7 +522,9 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 	/* have we already processed this one before? */
 	if (isloaded[*texture_num] == LOADED) {
-		if (TexVerbose) printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
+		#ifdef TEXVERBOSE 
+		printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
+		#endif
 
 		glBindTexture (GL_TEXTURE_2D, *texture_num);
 		textureInProcess = -1; /* we have finished the whole process */
@@ -523,10 +544,16 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	/* is this one read in, but requiring final manipulation
 	 * by THIS thread? */
 	if (isloaded[*texture_num] == NEEDSBINDING) {
-		if (TexVerbose) printf ("tex %d needs binding, name %s\n",*texture_num,
+		#ifdef TEXVERBOSE 
+		printf ("tex %d needs binding, name %s\n",*texture_num,
 				loadparams[*texture_num].filename);
+		#endif
+
 		do_possible_multitexture(*texture_num);
-		if (TexVerbose) printf ("tex %d now loaded\n",*texture_num);
+		#ifdef TEXVERBOSE 
+		printf ("tex %d now loaded\n",*texture_num);
+		#endif
+
 		return;
 	}
 
@@ -548,11 +575,14 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	loadparams[*texture_num].repeatS = repeatS;
 	loadparams[*texture_num].repeatT = repeatT;
 	if (currentlyWorkingOn <0) {
-		if (TexVerbose)
+		#ifdef TEXVERBOSE
 			printf ("currentlyWorkingOn WAS %d ",currentlyWorkingOn);
+		#endif
+
 		currentlyWorkingOn = *texture_num;
-		if (TexVerbose)
+		#ifdef TEXVERBOSE
 			printf ("just set currentlyWorkingOn to %d\n",currentlyWorkingOn);
+		#endif
 	}
         T_LOCK_SIGNAL
         TUNLOCK
@@ -619,7 +649,9 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	STRLEN xx;
 	*istemp=FALSE;	/* don't remove this file */
 
-	if (TexVerbose) printf ("textureThread:start of findTextureFile for texture %d\n",*texnum);
+	#ifdef TEXVERBOSE 
+	printf ("textureThread:start of findTextureFile for texture %d\n",*texnum);
+	#endif
 
 	/* try to find this file. */
 
@@ -628,7 +660,10 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 		int a,b,c;
 		char *name;
 
-		if (TexVerbose) printf ("textureThread, going to get name \n");
+		#ifdef TEXVERBOSE 
+		printf ("textureThread, going to get name \n");
+		#endif
+
 		name = SvPV(loadparams[*texnum].parenturl,xx);
 		filename = (char *)malloc(100);
 
@@ -642,7 +677,10 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 		}
 
 		sprintf (filename,"PixelTexture_%d_%d",c,b);
-		if (TexVerbose) printf ("textureThread, temp name is %s\n",filename);
+		#ifdef TEXVERBOSE 
+		printf ("textureThread, temp name is %s\n",filename);
+		#endif
+
 	} else {
 
 		/* lets make up the path and save it, and make it the global path */
@@ -675,18 +713,23 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			/* put the path and the file name together */
 			makeAbsoluteFileName(filename,mypath,thisurl);
 
-			if (TexVerbose) printf ("textureThread: checking for %s\n", filename);
+			#ifdef TEXVERBOSE 
+			printf ("textureThread: checking for %s\n", filename);
+			#endif
+
 			if (fileExists(filename,firstBytes,TRUE)) { break; }
 			count ++;
 		}
 
 		if (count != loadparams[*texnum].url.n) {
-			if (TexVerbose) 
+			#ifdef TEXVERBOSE 
 				printf ("textureThread: we were successful at locating %s\n",filename); 
+			#endif
 		} else {
 			if (count > 0) {
-				printf ("Could not locate url (last choice was %s)\n",filename);
+				printf ("Could not locate URL (last choice was %s)\n",filename);
 			}
+printf ("count %d lpp.n %d\n",count, loadparams[*texnum].url.n);
 			free (filename);
 			freeTexture(texnum);
 			loadparams[*texnum].filename="file not found";
@@ -697,21 +740,23 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	flen = strlen(filename);
 	for (count=1; count < max_texture; count++) {
 		
-		if (TexVerbose)
+		#ifdef TEXVERBOSE
 			printf ("textureThread: comparing :%s: :%s: (%d %d) count %d\n",
 					filename,
 					loadparams[count].filename,
 					strlen(filename),
 					strlen(loadparams[count].filename),
 					count);
+		#endif
 	
 
 		/* are the names different lengths? */
 		if (strlen(loadparams[count].filename) == flen) {
 		    if(strncmp(loadparams[count].filename,filename,flen)==0) {
-			if (TexVerbose)
+			#ifdef TEXVERBOSE
 				printf ("duplicate name %s at %d %d\n",
 					filename,count,*texnum);
+			#endif
 
 			/* duplicate, make this entry INVALID, and make the
 			   filename the same (avoids segfaults in strncmp, above)
@@ -726,7 +771,10 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			/* and tell OpenGL to use the previous texture number */
 			*texnum=count;
 			textureInProcess = count;
-			if (TexVerbose) printf ("textureThread: duplicate, so setting textureInProcess back to %d\n",count);
+			#ifdef TEXVERBOSE 
+			printf ("textureThread: duplicate, so setting textureInProcess back to %d\n",count);
+			#endif
+
 			return FALSE;
 		    }
 		}
@@ -742,8 +790,10 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			if (!sysline) {printf ("malloc failure in convert, exiting\n"); exit(1);}
 			sprintf(sysline,"%s %s /tmp/freewrl%d.png",
 					CONVERT,filename,getpid());
-			if (TexVerbose) 
+			#ifdef TEXVERBOSE 
 				printf ("textureThread: running convert on %s\n",sysline);
+			#endif
+
 			if (freewrlSystem (sysline) != 0) {
 				printf ("Freewrl: error running convert line %s\n",sysline);
 			} else {
@@ -758,8 +808,10 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	loadparams[*texnum].filename = (char *)malloc(sizeof(char) * strlen(filename)+1);
 	strcpy (loadparams[*texnum].filename,filename);
 	free (filename);
-	if (TexVerbose)
+	#ifdef TEXVERBOSE
 		printf ("textureThread: new name, save it %d, name %s\n",*texnum,loadparams[*texnum].filename);
+	#endif
+
 	return TRUE;
 }
 
@@ -780,13 +832,15 @@ void _textureThread(void) {
 
 		/* look for the file. If one does not exist, or it
 		   is a duplicate, just unlock and return */
-		if (TexVerbose)
+		#ifdef TEXVERBOSE
 			printf ("textureThread, currentlyworking on %d\n",currentlyWorkingOn);
+		#endif
 
 		if (findTextureFile(loadparams[currentlyWorkingOn].texture_num,
 			loadparams[currentlyWorkingOn].type,&remove)) {
-		if (TexVerbose)
+			#ifdef TEXVERBOSE
 			printf ("textureThread, findTextureFile ok for %d\n",currentlyWorkingOn);
+			#endif
 
 
 			/* is this a pixeltexture? */
@@ -798,8 +852,9 @@ void _textureThread(void) {
 				__reallyloadImageTexture();
 			}
 
-		if (TexVerbose)
+			#ifdef TEXVERBOSE
 			printf ("textureThread, after reallyLoad for  %d\n",currentlyWorkingOn);
+			#endif
 
 			/* check to see if there was an error */
 			if (isloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID)
@@ -810,13 +865,17 @@ void _textureThread(void) {
 				unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
-			if (TexVerbose) printf ("textureThread: duplicate file, currentlyWorkingOn %d texnum %d\n",
+			#ifdef TEXVERBOSE 
+				printf ("textureThread: duplicate file, currentlyWorkingOn %d texnum %d\n",
 				currentlyWorkingOn, *(loadparams[currentlyWorkingOn].texture_num));
+			#endif
 		}
 
 		/* signal that we are finished */
-		if (TexVerbose)
+		#ifdef TEXVERBOSE
 			printf ("textureThread: finished parsing texture for currentlyWorkingOn %d\n",currentlyWorkingOn);
+		#endif
+
 		TextureParsing=FALSE;
 		currentlyWorkingOn = -1;
 		REGENUNLOCK
@@ -845,7 +904,10 @@ void __reallyloadPixelTexture() {
 	   then mark texture INVALID and return. eg, PixelTexture {} will get
 	   caught here */
 
-	if (TexVerbose) printf ("start of reallyLoadPixelTexture\n");
+	#ifdef TEXVERBOSE 
+	printf ("start of reallyLoadPixelTexture\n");
+	#endif
+
 	if ((SvFLAGS(loadparams[currentlyWorkingOn].parenturl) & SVf_POK) == 0) {
 		printf ("this one is going to fail\n");
 		freeTexture(loadparams[currentlyWorkingOn].texture_num);
@@ -928,7 +990,9 @@ void __reallyloadPixelTexture() {
 		/*isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
 	}
 
-	if (TexVerbose) printf ("end of reallyloadPixelTextures\n");
+	#ifdef TEXVERBOSE 
+	printf ("end of reallyloadPixelTextures\n");
+	#endif
 }
 
 

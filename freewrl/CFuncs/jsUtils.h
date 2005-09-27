@@ -37,7 +37,6 @@
 #define BROWSER_RETVAL "__ret"
 
 
-extern JSBool JSVerbose;
 static JSBool reportWarnings = JS_TRUE;
 
 int

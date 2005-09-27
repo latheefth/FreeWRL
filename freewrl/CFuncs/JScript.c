@@ -90,8 +90,6 @@ static JSClass globalClass = {
 };
 
 
-int JSVerbose = 0;
-
 int JSMaxScript = 0;
 
 char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false; function print(x) {Browser.print(x)} ";
@@ -152,7 +150,9 @@ void JSInit(int num, SV *script) {
 	JSObject *_globalObj; 	/* these are set here */
 	BrowserNative *br; 	/* these are set here */
 
-	if (JSVerbose) printf("init: script %d\n",num);
+	#ifdef JSVERBOSE 
+	printf("init: script %d\n",num);
+	#endif
 
 	/* more scripts than we can handle right now? */
 	if (num >= JSMaxScript)  {
@@ -163,36 +163,48 @@ void JSInit(int num, SV *script) {
 	runtime = JS_NewRuntime(MAX_RUNTIME_BYTES);
 	if (!runtime) freewrlDie("JS_NewRuntime failed");
 
-	if (JSVerbose) printf("\tJS runtime created,\n");
+	#ifdef JSVERBOSE 
+	printf("\tJS runtime created,\n");
+	#endif
 
 
 	_context = JS_NewContext(runtime, STACK_CHUNK_SIZE);
 	if (!_context) freewrlDie("JS_NewContext failed");
 
-	if (JSVerbose) printf("\tJS context created,\n");
+	#ifdef JSVERBOSE 
+	printf("\tJS context created,\n");
+	#endif
 
 
 	_globalObj = JS_NewObject(_context, &globalClass, NULL, NULL);
 	if (!_globalObj) freewrlDie("JS_NewObject failed");
 
-	if (JSVerbose) printf("\tJS global object created,\n");
+	#ifdef JSVERBOSE 
+	printf("\tJS global object created,\n");
+	#endif
 
 
 	/* gets JS standard classes */
 	if (!JS_InitStandardClasses(_context, _globalObj))
 		freewrlDie("JS_InitStandardClasses failed");
 
-	if (JSVerbose) printf("\tJS standard classes initialized,\n");
+	#ifdef JSVERBOSE 
+	printf("\tJS standard classes initialized,\n");
+	#endif
 
 
-	/* if (JSVerbose) {*/
+
+	/* #ifdef JSVERBOSE {*/
 	/* 	reportWarningsOn();*/
 	/* } else {*/
 	/* 	reportWarningsOff();*/
 	/* }*/
 
 	JS_SetErrorReporter(_context, errorReporter);
-	if (JSVerbose) printf("\tJS errror reporter set,\n");
+	#ifdef JSVERBOSE 
+	printf("\tJS errror reporter set,\n");
+	#endif
+
 
 	br = (BrowserNative *) JS_malloc(_context, sizeof(BrowserNative));
 	br->sv_js = newSVsv(script); /* new duplicate of sv_js */
@@ -207,13 +219,19 @@ void JSInit(int num, SV *script) {
 	if (!loadVrmlClasses(_context, _globalObj))
 		freewrlDie("loadVrmlClasses failed");
 
-	if (JSVerbose) printf("\tVRML classes loaded,\n");
+	#ifdef JSVERBOSE 
+	printf("\tVRML classes loaded,\n");
+	#endif
+
 
 
 	if (!VrmlBrowserInit(_context, _globalObj, br))
 		freewrlDie("VrmlBrowserInit failed");
 
-	if (JSVerbose) printf("\tVRML Browser interface loaded,\n");
+	#ifdef JSVERBOSE 
+	printf("\tVRML Browser interface loaded,\n");
+	#endif
+
 
 	/* now, run initial scripts */
 	if (!ActualrunScript(num,DefaultScriptMethods,&rval))
@@ -222,7 +240,9 @@ void JSInit(int num, SV *script) {
 	/* send this data over to the routing table functions. */
 	CRoutes_js_new (num, JAVASCRIPT);
 
-	if (JSVerbose) printf("\tVRML browser initialized\n");
+	#ifdef JSVERBOSE 
+	printf("\tVRML browser initialized\n");
+	#endif
 }
 
 /* run the script from within C */
@@ -236,9 +256,10 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 
-	if (JSVerbose)
+	#ifdef JSVERBOSE
 		printf("ActualrunScript script %d cx %x \"%s\", \n",
 			   num, _context, script);
+	#endif
 
 	len = strlen(script);
 	if (!JS_EvaluateScript(_context, _globalObj, script, len,
@@ -247,7 +268,10 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 		return JS_FALSE;
 	 }
 
-	if (JSVerbose) printf ("runscript passed\n");
+	#ifdef JSVERBOSE 
+	printf ("runscript passed\n");
+	#endif
+
 	return JS_TRUE;
 }
 
@@ -272,17 +296,18 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
 	strval = JS_ValueToString(_context, rval);
 	strp = JS_GetStringBytes(strval);
 	sv_setpv(rstr, strp);
-	if (JSVerbose) {
+	#ifdef JSVERBOSE 
 		printf("strp=\"%s\", ", strp);
-	}
+	#endif
 
 	if (!JS_ValueToNumber(_context, rval, &dval)) {
 		printf("JS_ValueToNumber failed.\n");
 		return JS_FALSE;
 	}
-	if (JSVerbose) {
+	#ifdef JSVERBOSE 
 		printf("dval=%.4g\n", dval);
-	}
+	#endif
+
 	sv_setnv(rnum, dval);
 	return JS_TRUE;
 }
@@ -300,8 +325,9 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  	_context = (JSContext *) ScriptControl[num].cx;
  	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	if (JSVerbose)
+	#ifdef JSVERBOSE
  		printf ("start of JSGetProperty, cx %d script %s\n",_context,script);
+	#endif
 
  	if (!JS_GetProperty(_context, _globalObj, script, &rval)) {
  		printf("JSGetProperty verify failed for %s in SFNodeSetProperty.\n", script);
@@ -311,9 +337,9 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  	strval = JS_ValueToString(_context, rval);
  	strp = JS_GetStringBytes(strval);
  	sv_setpv(rstr, strp);
- 	if (JSVerbose) {
+ 	#ifdef JSVERBOSE 
  		printf("JSGetProperty strp=:%s:\n", strp);
- 	}
+ 	#endif
 
  	return JS_TRUE;
  }
@@ -329,10 +355,11 @@ int JSaddGlobalAssignProperty(int num, char *name, char *str) {
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 
-	if (JSVerbose) {
+	#ifdef JSVERBOSE 
 		printf("addGlobalAssignProperty: cx: %x obj %x name \"%s\", evaluate script \"%s\"\n",
 			   _context, _globalObj, name, str);
-	}
+	#endif
+
 	if (!JS_EvaluateScript(_context, _globalObj, str, strlen(str),
 						   FNAME_STUB, LINENO_STUB, &_rval)) {
 		printf("JS_EvaluateScript failed for \"%s\" in addGlobalAssignProperty.\n",
@@ -362,10 +389,11 @@ int JSaddSFNodeProperty(int num, char *nodeName, char *name, char *str) {
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
 
-	if (JSVerbose) {
+	#ifdef JSVERBOSE 
 		printf("addSFNodeProperty: name \"%s\", node name \"%s\", evaluate script \"%s\"\n",
 			   name, nodeName, str);
-	}
+	#endif
+
 	if (!JS_GetProperty(_context, _globalObj, nodeName, &_val)) {
 		printf("JS_GetProperty failed for \"%s\" in addSFNodeProperty.\n",
 				nodeName);
@@ -400,9 +428,10 @@ int JSaddGlobalECMANativeProperty(int num, char *name) {
 	_context = (JSContext *) ScriptControl[num].cx;
 	_globalObj = (JSObject *)ScriptControl[num].glob;
 
-	if (JSVerbose) {
+	#ifdef JSVERBOSE 
 		printf("addGlobalECMANativeProperty: name \"%s\"\n", name);
-	}
+	#endif
+	
 
 	if (!JS_DefineProperty(_context, _globalObj, name, rval,
 						   NULL, setECMANative,

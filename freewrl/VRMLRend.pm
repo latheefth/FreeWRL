@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.161  2005/09/27 02:31:48  crc_canada
+# cleanup of verbose code.
+#
 # Revision 1.160  2005/08/26 18:08:38  crc_canada
 # 1.14-pre1 changes.
 #
@@ -969,7 +972,10 @@ IndexedLineSet => '
 		struct SFColor *colors=0; int ncolors=0;
 
 
-		if(verbose) printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
+		#ifdef RENDERVERBOSE
+		printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
+		#endif
+
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
                 glPushAttrib(GL_ENABLE_BIT);
@@ -977,10 +983,12 @@ IndexedLineSet => '
                 glDisable(GL_CULL_FACE);
 
 		if(ncolors && !cpv) {
-			if (verbose) printf("glColor3f(%f,%f,%f);\n",
+			#ifdef RENDERVERBOSE
+			printf("glColor3f(%f,%f,%f);\n",
 				  colors[plno].c[0],
 				  colors[plno].c[1],
 				  colors[plno].c[2]);
+			#endif
 			glColor3f(colors[plno].c[0],
 				  colors[plno].c[1],
 				  colors[plno].c[2]);
@@ -989,7 +997,9 @@ IndexedLineSet => '
 		glBegin(GL_LINE_STRIP);
 		for(i=0; i<cin; i++) {
 			ind = $f(coordIndex,i);
-			if(verbose) printf("Line: %d %d\n",i,ind);
+			#ifdef RENDERVERBOSE
+			printf("Line: %d %d\n",i,ind);
+			#endif
 
 			if(ind==-1) {
 				glEnd();
@@ -1064,13 +1074,20 @@ PointSet => '
 	}
 	glDisable(GL_LIGHTING);
 	glBegin(GL_POINTS);
-	if(verbose) printf("PointSet: %d %d\n", npoints, ncolors);
+
+	#ifdef RENDERVERBOSE
+	printf("PointSet: %d %d\n", npoints, ncolors);
+	#endif
+
 	for(i=0; i<npoints; i++) {
 		if(ncolors) {
-			if(verbose) printf("Color: %f %f %f\n",
+			#ifdef RENDERVERBOSE
+			printf("Color: %f %f %f\n",
 				  colors[i].c[0],
 				  colors[i].c[1],
 				  colors[i].c[2]);
+			#endif
+
 			glColor3f(colors[i].c[0],
 				  colors[i].c[1],
 				  colors[i].c[2]);
@@ -2192,13 +2209,15 @@ ProximitySensor => q~
 	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len);
 	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len);
 
-	if(verbose) printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",
+	#ifdef RENDERVERBOSE
+	printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n",
 		t_orig.x, t_orig.y, t_orig.z,
 		t_zvec.x, t_zvec.y, t_zvec.z,
 		t_yvec.x, t_yvec.y, t_yvec.z,
 		dr1r2.x, dr1r2.y, dr1r2.z,
 		dr2r3.x, dr2r3.y, dr2r3.z
 		);
+	#endif
 
 	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) {
 		printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :("
@@ -2248,11 +2267,13 @@ ProximitySensor => q~
 		$f(__t2,1) = ins.y;
 		$f(__t2,2) = ins.z;
 	}
-	if(verbose) printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",
+	#ifdef RENDERVERBOSE
+	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",
 		nor1.x, nor1.y, nor1.z,
 		nor2.x, nor2.y, nor2.z,
 		ins.x, ins.y, ins.z
 	);
+	#endif
 ~,
 
 
@@ -2363,12 +2384,17 @@ Sphere => q~
 	       if(p_orig.y > atop) {
 
 		   if(p_orig.x < awidth) {
-		       if(verbose) printf(" /* over, we push down. */ \n");
+			#ifdef RENDERVERBOSE
+		       printf(" /* over, we push down. */ \n");
+			#endif
+
 		       delta.y = (p_orig.y - radius) - (atop);
 		   } else {
 		       struct pt d2s;
 		       GLdouble ratio;
-		       if(verbose) printf(" /* over side */ \n");
+		       #ifdef RENDERVERBOSE
+			printf(" /* over side */ \n");
+			#endif
 
 		       /* distance vector from corner to center of sphere*/
 		       d2s.x = p_orig.x - awidth;
@@ -2392,12 +2418,17 @@ Sphere => q~
 		   }
 	       } else if(p_orig.y < abottom) {
 		   if(p_orig.x < awidth) {
-		       if(verbose) printf(" /* under, we push up. */ \n");
+			#ifdef RENDERVERBOSE
+		       printf(" /* under, we push up. */ \n");
+			#endif
+
 		       delta.y = (p_orig.y + radius) -abottom;
 		   } else {
 		       struct pt d2s;
 		       GLdouble ratio;
-		       if(verbose) printf(" /* under side */ \n");
+			#ifdef RENDERVERBOSE
+		       printf(" /* under side */ \n");
+			#endif
 
 		       /* distance vector from corner to center of sphere*/
 		       d2s.x = p_orig.x - awidth;
@@ -2421,7 +2452,9 @@ Sphere => q~
 		   }
 
 	       } else {
-		   if(verbose) printf(" /* side */ \n");
+		   #ifdef RENDERVERBOSE
+			printf(" /* side */ \n");
+		   #endif
 
 		   /* push to side */
 		   delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
@@ -2432,13 +2465,14 @@ Sphere => q~
 	       transform3x3(&delta,&delta,upvecmat);
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (delta.x != 0. || delta.y != 0. || delta.z != 0.))
+		#ifdef COLLISIONVERBOSE
+	       if((delta.x != 0. || delta.y != 0. || delta.z != 0.))
 	           printf("COLLISION_SPH: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z,
 			  p_orig.x, n_orig.x, n_orig.z
 			  );
-
+		#endif
 
 	       ~,
 Box => q~
@@ -2497,17 +2531,20 @@ Box => q~
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
 			  ov.x, ov.y, ov.z,
 			  delta.x, delta.y, delta.z
 			  );
-	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
 	           printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
 			  jv.x, jv.y, jv.z,
 			  kv.x, kv.y, kv.z
 			  );
+		#endif
 
 
 	       ~,
@@ -2562,17 +2599,19 @@ Cone => q~
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_CON: (%f %f %f) (%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
 			  delta.x, delta.y, delta.z
 			  );
-	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
 	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
 			  iv.x, iv.y, iv.z,
 			  jv.x, jv.y, jv.z,
 			  scale*r
 			  );
+		#endif
 
 
 	       ~,
@@ -2631,17 +2670,19 @@ Cylinder => q~
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
 	           printf("COLLISION_CYL: (%f %f %f) (%f %f %f)\n",
 			  iv.x, iv.y, iv.z,
 			  delta.x, delta.y, delta.z
 			  );
-	       if(verbose_collision && (fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
 	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
 			  iv.x, iv.y, iv.z,
 			  jv.x, jv.y, jv.z,
 			  scale*r
 			  );
+		#endif
 
 
 	       ~,
@@ -2747,14 +2788,15 @@ Extrusion => q~
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
 /*		   printmatrix(modelMatrix);*/
 		   fprintf(stderr,"COLLISION_EXT: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
-
 	       }
+		#endif
 
 ~,
 
@@ -2814,13 +2856,15 @@ Text => q~
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		#ifdef COLLISIONVERBOSE 
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
 		   fprintf(stderr,"COLLISION_TXT: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
 
 	       }
+		#endif
 
 ~,
 
@@ -2888,13 +2932,14 @@ GeoElevationGrid => q~
 
 	       accumulate_disp(&CollisionInfo,delta);
 
-	       if(verbose_collision && (fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
 		   fprintf(stderr,"COLLISION_ELG: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
 			  t_orig.x, t_orig.y, t_orig.z,
 			  delta.x, delta.y, delta.z
 			  );
-
 	       }
+		#endif
 ~,
 
 );

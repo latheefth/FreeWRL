@@ -11,21 +11,6 @@ package VRML::NodeType;
 #########################################################
 # The routines below implement the browser object interface.
 
-# EG Die unless perl scripts are enabled
-sub check_perl_script {
- 	if(!$VRML::DO_PERL) {
- 		die <<EOF ;
-
-Perl scripts are currently unsafe as they are trusted and run in the
-main interpreter. If you are sure of your code (i.e. you have written
-it or know the writer), use freewrl's "-ps" (perl scripts) option.
-
-FreeWRL should soon be modified to run untrusted Perl code in Safe
-compartments. Until that, Perl scripts are disabled by default.
-
-EOF
- 	}
- }
 
 # The following VRML:: variables are used
 BEGIN {
@@ -39,71 +24,8 @@ BEGIN {
   $VRML::LAST_HANDLE = 0 ;		# Filehandle in use before script call
 }
 
-sub perl_script_output {
 
-  my $on = shift ;
-  my $v = 0 ;					# Local verbose option
-
-  if ($VRML::script_out_file) {	# If output is re-routed
-
-								# I've already opened the file ....
-    if ($VRML::script_out_open) {
-								# ... but has someone deleted it?
-	  if (! -f $VRML::script_out_file) {
-		print "Script output file disappeared! (no problem)\n" if $v;
-		close VRML_SCRIPT_OUT;
-		$VRML::script_out_open = 0;
-	  }
-	}
-								# Eventually open the file
-    if (!$VRML::script_out_open) {
-      open VRML_SCRIPT_OUT, ">$VRML::script_out_file"
-		or die "Can't open script output file '$VRML::script_out_file'\n";
-      $VRML::script_out_open = 1;
-      print "Opened script output file '$VRML::script_out_file'\n" if $v;
-    }
-
-    if ($on) {					# select script output filehandle
-      if (!$VRML::script_out_selected){
-		$VRML::LAST_HANDLE = select VRML_SCRIPT_OUT;
-		$| = 1;
-		$VRML::script_out_selected = 1;
-		print $VRML::LAST_HANDLE "VRML_SCRIPT_OUT selected\n" if $v;
-      } else {
-		print $VRML::LAST_HANDLE "VRML_SCRIPT_OUT already selected\n" if $v;
-      }
-    } else {					# select previous output filehandle
-      select $VRML::LAST_HANDLE;
-      $VRML::script_out_selected = 0;
-      print "Selected previous filehandle '$VRML::LAST_HANDLE'\n" if $v;
-    }
-  } else {
-    print "No script output file specified\n" if $v;
-  }
-}								# End perl_script_output
-
-## EG : Just a little debugging function
-sub show_stack {
-  my $n = @_ ? shift : 1 ;
-  for $i (2..$n+1) {
-	my @a = caller ($i);
-	if (@a) {
-	  $a[1] =~ s{^.*/}{};
-	  print "package $a[0], file $a[1]:$a[2], sub $a[3], wantarray $a[5]\n" ;
-	}
-  }
-}
-use Data::Dumper ;
-
-# EG : returns the list of names of fields that are visible in the
-# script
-sub script_variables {
-  ## my $fields = shift ;
-  ## my @res = grep { ! /mustEvaluate|directOutput/ } sort keys %$fields ;
-  ## map {print "$_ has value ", Dumper ($fields->{$_}) } @res ;
-  ## @res;
-  grep { ! /mustEvaluate|directOutput/ } sort keys %{shift()};
-}
+#JAS use Data::Dumper ;
 
 package VRML::NodeType;
 
@@ -1671,8 +1593,6 @@ my $protono;
 	# JAS took out perl script, because it is not standard.
 
 
-	## directOutput && mustEvaluate work???
-
 	Script =>
 	new VRML::NodeType("Script",
 					   {
@@ -1680,38 +1600,13 @@ my $protono;
 						directOutput => [SFBool, 0, field],
 						mustEvaluate => [SFBool, 0, field],
 					   },
-					   {
-						url => sub {
-							print "ScriptURL $_[0] $_[1]!!\n"
-								if $VRML::verbose::script;
-							die "URL setting not enabled";
-						},
-						__any__ => sub {
-							my($t,$f,$v,$time,$ev) = @_;
-							print "ScriptANY ",VRML::NodeIntern::dump_name($t),
-								" $_[1] $_[2] $_[3] $_[4]\n"
-
-									if $VRML::verbose::script;
-							my $s;
-
-
-							if (($s = $t->{ScriptScript}{$ev})) {
-								print "CALL $s\n"
-									if $VRML::verbose::script;
-								##EG show_stack (5);
-								##EG return &{$s}();
-								perl_script_output (1);
-								my @res = &{$s}();
-								perl_script_output (0);
-								return @res ;
-							} elsif ($t->{J}) {
-
-								#EG			if($t->{J}) {
-								return $t->{J}->sendevent($t, $ev, $v, $time);
-							}
-							return ();
-						},
-					   }
+	#JAS				   {
+	#JAS					url => sub {
+	#JAS						print "ScriptURL $_[0] $_[1]!!\n"
+	#JAS							if $VRML::verbose::script;
+	#JAS						die "URL setting not enabled";
+	#JAS					},
+	#JAS				   }
 					  ),
 
 	Collision =>

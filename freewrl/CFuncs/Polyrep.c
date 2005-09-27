@@ -740,20 +740,19 @@ void render_polyrep(void *node,
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
-	int polyrep_verbose = 0;
 
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
 	r = (struct VRML_PolyRep *)p->_intern;
 
 	if (r->ntri==0) {
-		if (polyrep_verbose) printf ("Render polyrep, no triangles\n");
+		/* no triangles */
 		return;
 	}
 
 	/* do we still have to stream this one for faster rendering? */
 	/* -1 means we can't stream; 0 means not streamed yet, 1 means streamed ok */
-/* printf ("isstreamed is %d\n",isStreamed);  */
+	/* printf ("isstreamed is %d\n",isStreamed);  */
 	if (isStreamed==0) {
 		stream_polyrep (node,points,ncolors,colors,
 				nnormals,normals,ntexcoords,texcoords,isRGBA);
@@ -883,7 +882,7 @@ void stream_polyrep(void *node,
 	float *newtc;
 
 
-	#ifdef stream_poly_verbose
+	#ifdef STREAM_POLY_VERBOSE
 	printf ("\nstart stream_polyrep\n");
 	#endif
 
@@ -995,7 +994,7 @@ void stream_polyrep(void *node,
 		/* new cindex, this should just be a 1.... ntri*3 linear string */
 		newcindex[i] = i;
 
-		#ifdef stream_poly_verbose
+		#ifdef STREAM_POLY_VERBOSE
 		printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3);
 		#endif
 
@@ -1011,7 +1010,7 @@ void stream_polyrep(void *node,
 		/* get texture coordinates, if any	*/
 		if (FORCETEXTURES && r->tcindex) {
 			tci = r->tcindex[i];
-			#ifdef stream_poly_verbose
+			#ifdef STREAM_POLY_VERBOSE
 				printf ("have textures, and tcindex i %d tci %d\n",i,tci);
 			#endif
 		}
@@ -1022,14 +1021,14 @@ void stream_polyrep(void *node,
 				/* bounds check normals here... */
 				nori=0;
 			}
-			#ifdef stream_poly_verbose
+			#ifdef STREAM_POLY_VERBOSE
 				printf ("nnormals at %d , nori %d ",(int) &normals[nori].c,nori);
 				fwnorprint (normals[nori].c);
 			#endif
 
 			do_glNormal3fv(&newnorms[i], normals[nori].c);
 		} else if(r->normal) {
-			#ifdef stream_poly_verbose
+			#ifdef STREAM_POLY_VERBOSE
 				printf ("r->normal nori %d ",nori);
 				fwnorprint(r->normal+3*nori);
 			#endif
@@ -1045,7 +1044,7 @@ void stream_polyrep(void *node,
 					/* printf ("bounds check for Colors! have %d want %d\n",ncolors-1,coli);*/
 					coli = 0;
 				}
-				#ifdef stream_poly_verbose
+				#ifdef STREAM_POLY_VERBOSE
 					printf ("coloUr ncolors %d, coli %d",ncolors,coli);
 					fwnorprint(colors[coli].c);
 					printf ("\n");
@@ -1055,7 +1054,7 @@ void stream_polyrep(void *node,
 				else
 					do_glColor4fv(&newcolors[i],colors[coli].c,isRGBA);
 			} else if(r->color) {
-				#ifdef stream_poly_verbose
+				#ifdef STREAM_POLY_VERBOSE
 					printf ("coloUr");
 					fwnorprint(r->color+3*coli);
 					printf ("\n");
@@ -1072,14 +1071,14 @@ void stream_polyrep(void *node,
 		if(points) {
 			memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
 			/* XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];*/
-			#ifdef stream_poly_verbose
+			#ifdef STREAM_POLY_VERBOSE
 				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 			#endif
 		} else if(r->coord) {
 			memcpy (&newpoints[i].c[0], &r->coord[3*ind], sizeof(struct SFColor));
 			/* XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2];*/
-			#ifdef stream_poly_verbose
+			#ifdef STREAM_POLY_VERBOSE
 				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",i,
 					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
 			#endif
@@ -1091,13 +1090,13 @@ void stream_polyrep(void *node,
 		    if(texcoords && ntexcoords) {
 			/*  did we run out of tex coords? Hanim-Nancy does this...*/
 			if (tci < ntexcoords) {
-			    #ifdef stream_poly_verbose
+			    #ifdef STREAM_POLY_VERBOSE
 				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]);
 			    #endif
 			    memcpy(&newtc[i*2],texcoords[tci].c,sizeof(float)*2);
 		  	    /* glTexCoord2fv(texcoords[tci].c);*/
 			} else {
-				 #ifdef stream_poly_verbose
+				 #ifdef STREAM_POLY_VERBOSE
 					 printf ("caught ntexcoord problem: index %d gt %d\n",tci,ntexcoords);
 				 #endif
 				newtc[i*2] = 0.0; newtc[i*2+1] = 0.0;
@@ -1105,14 +1104,14 @@ void stream_polyrep(void *node,
 		    } else if (r->tcoord) {
 			if (r->tcindex) {
 			    /*  did we run out of tex coords? Hanim-Nancy does this...*/
-				#ifdef stream_poly_verbose
+				#ifdef STREAM_POLY_VERBOSE
 					printf ("tc2a i %d %f %f\n", i,r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
 					printf ("tci = %d, indexing %d\n",tci, 3*tci+2);
 				#endif
 		  		newtc[i*2] = r->tcoord[3*tci+0]; newtc[i*2+1] =  r->tcoord[3*tci+2];
 
 			} else {
-				#ifdef stream_poly_verbose
+				#ifdef STREAM_POLY_VERBOSE
 					printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
 				#endif
 		  		newtc[i*2] = r->tcoord[3*ind+0]; newtc[i*2+1] = r->tcoord[3*ind+2];
@@ -1151,7 +1150,7 @@ void stream_polyrep(void *node,
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->tcindex);
 
-	#ifdef stream_poly_verbose
+	#ifdef STREAM_POLY_VERBOSE
 		printf ("end render_polyrep\n\n");
 	#endif
 }

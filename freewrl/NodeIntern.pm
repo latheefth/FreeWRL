@@ -219,7 +219,6 @@ sub startScript {
 			if $VRML::verbose::events;
 
 	my $retval;
-	my $h;
 	my $scene = $node->{Scene};
 	my $Browser = $node->{Scene}->get_browser();
 
@@ -241,56 +240,7 @@ sub startScript {
 		print "TRY $str\n"
 			if $VRML::verbose::script;
 
-		if (s/^perl(_tjl_xxx1)?://) {
-			print "perl scripting not moved yet to new routing structure\n";
-			last;
-
-#JAS			print "XXX1 script\n" if $VRML::verbose::script;
-#JAS			check_perl_script();
-#JAS
-#JAS			# See about RFields in file ARCHITECTURE and in
-#JAS			# Scene.pm's VRML::FieldHash package
-#JAS			my $u = $node->{Fields};
-#JAS
-#JAS			my $node = $node->{RFields};
-#JAS
-#JAS			# This string ties scalars
-#JAS			my $nodeie = join("", map {
-#JAS				"tie \$$_, 'MTS',  \\\$node->{$_};"
-#JAS			} script_variables($u));
-#JAS
-#JAS			$h = eval "({$_})";
-#JAS
-#JAS			# Wrap up each sub in the script node
-#JAS			foreach (keys %$h) {
-#JAS				my $nodemp = $h->{$_};
-#JAS				my $src = join ("\n",
-#JAS					"sub {",
-#JAS					"  $nodeie",
-#JAS					"  \&\$nodemp (\@_)",
-#JAS					"}");
-#JAS					## print "---- src ----$src\n--------------",
-#JAS					$h->{$_} = eval $src ;
-#JAS			}
-#JAS
-#JAS			print "Evaled: $h\n",
-#JAS				"-- h = $h --\n",
-#JAS					(map {"$_ => $h->{$_}\n"}
-#JAS					 keys %$h),
-#JAS					"-- u = $u --\n",
-#JAS					(map {
-#JAS					"$_ => $u->{$_}\n"
-#JAS					} keys %$u),
-#JAS					"-- t = $node --\n",
-#JAS					(map {
-#JAS					"$_ => $node->{$_}\n"
-#JAS					} keys %$node)
-#JAS			 if $VRML::verbose::script;
-#JAS			if ($@) {
-#JAS				die "Invalid script '$@'"
-#JAS			}
-#JAS			last;
-		} elsif (/\.class$/) {
+		if (/\.class$/) {
 			eval ('require VRML::VRMLJava');
 			$node->{J}= VRML::JavaClass->new($node,$scriptInvocationNumber, $_);
 			last;
@@ -317,12 +267,9 @@ sub startScript {
 		}
 	}
 
-	die "Didn't find a valid perl(_tjl_xxx)? or java script"
-		if (!defined $h and !defined $node->{J});
+	die "Didn't find a valid script"
+		if (!defined $node->{J});
 
-	print "Script got: ", (join ',',keys %$h), "\n"
-		if $VRML::verbose::script;
-	$node->{ScriptScript} = $h;
 	$node->{scriptInvocationNumber} = $scriptInvocationNumber;
 
 	#print "NODE $node ",
@@ -331,15 +278,6 @@ sub startScript {
 	#		 "$node->{TypeName} ", VRML::NodeIntern::dump_name($node),
 	#		 " scriptInvocationNumber:",$node->{scriptInvocationNumber},
 	#		 "\n";
-
-	my $s;
-	if (($s = $node->{ScriptScript}{"initialize"})) {
-		print "CALL $s\n if $VRML::verbose::script"
-			if $VRML::verbose::script;
-		perl_script_output(1);
-		my @res = &{$s}();
-		perl_script_output(0);
-	}
 
 	$scriptInvocationNumber ++;
 }

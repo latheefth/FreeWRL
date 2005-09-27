@@ -1190,7 +1190,7 @@ void __pt_doInline() {
 		/* printf ("we were successful at locating %s\n",filename); */
 		psp.type=FROMURL;
 	} else {
-		if (count > 0) printf ("Could not locate url (last choice was %s)\n",filename);
+		if (count > 0) printf ("Could Not Locate URL (last choice was %s)\n",filename);
 	}
 }
 

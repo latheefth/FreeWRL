@@ -86,8 +86,6 @@ int bufcount2;				/* pointer into buffer*/
 int bufsize2;				/* current size in bytes of input buffer*/
 
 
-int EAIVerbose = 0;
-
 int EAIsendcount = 0;			/* how many commands have been sent back?*/
 
 char EAIListenerData[EAIREADSIZE];	/* this is the location for getting Listenered data back again.*/
@@ -112,14 +110,16 @@ void EAI_send_string(char *str, int lfd){
 	/* add a trailing newline */
 	strcat (str,"\n");
 
-	if (EAIVerbose)
+	#ifdef EAIVERBOSE
 		printf ("EAI/CLASS Command returns\n%s(end of command)\n",str);
+	#endif
 
 	/*printf ("EAI_send_string, sending :%s:\n",str);*/
 	n = write (lfd, str, (unsigned int) strlen(str));
 	if (n<strlen(str)) {
-		if (EAIVerbose)
+		#ifdef EAIVERBOSE
 		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
+		#endif
 	}
 	/*printf ("EAI_send_string, wrote %d\n",n);*/
 }
@@ -159,7 +159,10 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 			}
 		}
 
-		if (EAIVerbose) printf ("conEAIorCLASS - socket made\n");
+		#ifdef EAIVERBOSE 
+		printf ("conEAIorCLASS - socket made\n");
+		#endif
+
 
 		/* step 2 - bind to socket*/
 	        bzero(&servaddr, sizeof(servaddr));
@@ -173,7 +176,10 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 			return FALSE;
 		}
 
-		if (EAIVerbose) printf ("EAISERVER: bound to socket %d\n",EAIBASESOCKET+socketincrement);
+		#ifdef EAIVERBOSE 
+		printf ("EAISERVER: bound to socket %d\n",EAIBASESOCKET+socketincrement);
+		#endif
+
 
 		/* step 3 - listen*/
 
@@ -188,15 +194,18 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		/* step 4 - accept*/
 		len = sizeof(cliaddr);
 	        if ( ((*listenfd) = accept((*sockfd), (struct sockaddr *) &cliaddr, (socklen_t *)&len)) < 0) {
-			if (EAIVerbose && !(loopFlags&NO_CLIENT_CONNECTED)) {
+			#ifdef EAIVERBOSE
+			if (!(loopFlags&NO_CLIENT_CONNECTED)) {
 				printf ("EAISERVER: no client yet\n");
 				loopFlags |= NO_CLIENT_CONNECTED;
 			}
+			#endif
 
 		} else {
 			loopFlags &= ~NO_CLIENT_CONNECTED;
-			if (EAIVerbose)
+			#ifdef EAIVERBOSE
 				printf ("EAISERVER: no client yet\n");
+			#endif
 		}
 	}
 
@@ -221,12 +230,15 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 		/* and are we using this with EAI? */
 		if (socketincrement==0) EAIinitialized = TRUE;
 	}
-	/*if (EAIVerbose) printf ("EAISERVER: conEAIorCLASS returning TRUE\n");*/
+	/* printf ("EAISERVER: conEAIorCLASS returning TRUE\n");*/
 
-	if (EAIVerbose && !(loopFlags&NO_EAI_CLASS)) {
+	#ifdef EAIVERBOSE
+	if ( !(loopFlags&NO_EAI_CLASS)) {
 		printf ("EAISERVER: conEAIorCLASS returning TRUE\n");
 		loopFlags |= NO_EAI_CLASS;
 	}
+	#endif
+
 	return TRUE;
 }
 
@@ -243,12 +255,18 @@ void EAI_RNewW(char *bufptr) {
 	rn = (struct VRML_Group *) rootNode;
 	par = &(rn->children);
 
-	if (EAIVerbose) printf ("EAI_RNewW, rootNode is %d\n",rootNode);
+	#ifdef EAIVERBOSE 
+	printf ("EAI_RNewW, rootNode is %d\n",rootNode);
+	#endif
+
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
 
-	if (EAIVerbose) printf ("oldRoot has %d nodes\n",oldlen);
+	#ifdef EAIVERBOSE 
+	printf ("oldRoot has %d nodes\n",oldlen);
+	#endif
+
 
 	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
 	par->n = 1;
@@ -258,11 +276,17 @@ void EAI_RNewW(char *bufptr) {
 	while('/' != *pstr) {pstr ++; bufptr++;}
 	while(!isspace(*pstr)) pstr ++;
 	*pstr = 0;
-	if (EAIVerbose) printf ("New bufptr <%s>\n",bufptr);
+	#ifdef EAIVERBOSE 
+	printf ("New bufptr <%s>\n",bufptr);
+	#endif
+
 
 	EAI_readNewWorld(bufptr);
 
-	if (EAIVerbose) printf ("EAI_RNewW, rootNode now is %d\n",rootNode);
+	#ifdef EAIVERBOSE 
+	printf ("EAI_RNewW, rootNode now is %d\n",rootNode);
+	#endif
+
 }
 
 /* ========================================================================== */
@@ -283,12 +307,18 @@ void EAI_RW(char *str) {
 	tmp = (char *) rootNode;
 	tmp += offsetof (struct VRML_Group, children);
 
-	if (EAIVerbose) printf ("EAIRW, rootNode is %d\n",rootNode);
+	#ifdef EAIVERBOSE 
+	printf ("EAIRW, rootNode is %d\n",rootNode);
+	#endif
+
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
 
-	if (EAIVerbose) printf ("oldRoot has %d nodes\n",oldlen);
+	#ifdef EAIVERBOSE 
+	printf ("oldRoot has %d nodes\n",oldlen);
+	#endif
+
 
 	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
 	par->n = 1;
@@ -309,7 +339,10 @@ void EAI_RW(char *str) {
 /* the user has pressed the "q" key */
 void shutdown_EAI() {
 
-	if (EAIVerbose) printf ("shutting down EAI\n");
+	#ifdef EAIVERBOSE 
+	printf ("shutting down EAI\n");
+	#endif
+
 	strcpy (EAIListenerData,"QUIT\n\n\n");
 	if (EAIinitialized) {
 		EAI_send_string(EAIListenerData,listenfd);
@@ -317,7 +350,10 @@ void shutdown_EAI() {
 
 }
 void create_EAI() {
-        if (EAIVerbose) printf ("EAISERVER:create_EAI called\n");
+        #ifdef EAIVERBOSE 
+	printf ("EAISERVER:create_EAI called\n");
+	#endif
+
 
 	/* already wanted? if so, just return */
 	if (EAIwanted) return;
@@ -359,18 +395,22 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 			loopFlags &= NO_RETVAL_CHANGE;
 		}
 
-		if ((EAIVerbose)&&!(loopFlags&NO_RETVAL_CHANGE)) {
+		#ifdef EAIVERBOSE
+		if (!(loopFlags&NO_RETVAL_CHANGE)) {
 			printf ("readEAIsocket--, retval %d\n",retval);
 			loopFlags |= NO_RETVAL_CHANGE;
 		}
+		#endif
 
 
 		if (retval) {
 			retval = read ((*listenfd), &bf[(*bfct)],EAIREADSIZE);
 
 			if (retval <= 0) {
-				if (EAIVerbose)
+				#ifdef EAIVERBOSE
 					printf ("read_EAI_socket, client is gone! errno %d\n",errno);
+				#endif
+
 				/*perror("READ_EAISOCKET");*/
 				/* client disappeared*/
 				close ((*listenfd));
@@ -381,7 +421,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 				doQuit();
 			}
 
-			if (EAIVerbose)
+			#ifdef EAIVERBOSE
 			{
 			    char tmpBuff1[EAIREADSIZE];
 			    strncpy(tmpBuff1,&bf[(*bfct)],retval);
@@ -389,6 +429,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 			    printf ("read in from socket %d bytes, max %d bfct %d cmd <%s>\n",
 				    retval,EAIREADSIZE, *bfct,tmpBuff1);/*, &bf[(*bfct)]);*/
 			}
+			#endif
 
 
 			(*bfct) += retval;
@@ -422,7 +463,9 @@ void handle_EAI () {
 
 	/* make this into a C string */
 	buffer2[bufcount2] = 0;
-	if(EAIVerbose && bufcount2) printf ("handle_EAI-- Data is :%s:\n",buffer2);
+	#ifdef EAIVERBOSE
+		if (bufcount2) printf ("handle_EAI-- Data is :%s:\n",buffer2);
+	#endif
 
 	/* any command read in? */
 	if (bufcount2 > 1)
@@ -478,7 +521,7 @@ void EAI_parse_commands (char *bufptr) {
 
 		/* step 3, get the command */
 
-		/*if (EAIVerbose)*/
+		/* EAIVERBOSE*/
 	/*	{*/
 	/*	    printf ("EAI_parse_commands cmd %s\n",*bufptr);*/
 	/*	    printf ("command %c seq %d\n",*bufptr,count);*/
@@ -490,31 +533,43 @@ void EAI_parse_commands (char *bufptr) {
 
 		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
 
-		if (EAIVerbose) printf ("\n... %d ",count);
+		#ifdef EAIVERBOSE 
+		printf ("\n... %d ",count);
+		#endif
 
 		switch (command) {
 			case GETNAME: {
-				if (EAIVerbose) printf ("GETNAME\n");
+				#ifdef EAIVERBOSE 
+				printf ("GETNAME\n");
+				#endif
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserName);
 				break;
 				}
 			case GETVERSION: {
-				if (EAIVerbose) printf ("GETVERSION\n");
+				#ifdef EAIVERBOSE 
+				printf ("GETVERSION\n");
+				#endif
 				sprintf (buf,"RE\n%f\n%f\n%d\n%s",TickTime,count,BrowserVersion);
 				break;
 				}
 			case GETCURSPEED: {
-				if (EAIVerbose) printf ("GETCURRENTSPEED\n");
+				#ifdef EAIVERBOSE 
+				printf ("GETCURRENTSPEED\n");
+				#endif
 				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,(float) 1.0/BrowserFPS);
 				break;
 				}
 			case GETFRAMERATE: {
-				if (EAIVerbose) printf ("GETFRAMERATE\n");
+				#ifdef EAIVERBOSE 
+				printf ("GETFRAMERATE\n");
+				#endif
 				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserFPS);
 				break;
 				}
 			case GETURL: {
-				if (EAIVerbose) printf ("GETURL\n");
+				#ifdef EAIVERBOSE 
+				printf ("GETURL\n");
+				#endif
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserURL);
 				break;
 				}
@@ -522,7 +577,9 @@ void EAI_parse_commands (char *bufptr) {
 				/*format int seq# COMMAND    string nodename*/
 
 				sscanf (bufptr," %s",ctmp);
-				if (EAIVerbose) printf ("GETNODE %s\n",ctmp);
+				#ifdef EAIVERBOSE 
+				printf ("GETNODE %s\n",ctmp);
+				#endif
 
 				uretval = EAI_GetNode(ctmp);
 
@@ -533,7 +590,9 @@ void EAI_parse_commands (char *bufptr) {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
 				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
-				if (EAIVerbose) printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
+				#ifdef EAIVERBOSE 
+				printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
+				#endif
 
 				EAI_GetType (uretval,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
 
@@ -542,7 +601,9 @@ void EAI_parse_commands (char *bufptr) {
 				}
 			case SENDEVENT:   {
 				/*format int seq# COMMAND NODETYPE pointer offset data*/
-				if (EAIVerbose) printf ("SENDEVENT %s\n",bufptr);
+				#ifdef EAIVERBOSE 
+				printf ("SENDEVENT %s\n",bufptr);
+				#endif
 				EAI_SendEvent(bufptr);
 				break;
 				}
@@ -550,7 +611,9 @@ void EAI_parse_commands (char *bufptr) {
 			case CREATEVS: {
 				/*format int seq# COMMAND vrml text     string EOT*/
 				if (command == CREATEVS) {
-					if (EAIVerbose) printf ("CREATEVS %s\n",bufptr);
+					#ifdef EAIVERBOSE 
+					printf ("CREATEVS %s\n",bufptr);
+					#endif
 
 					EOT = strstr(buffer2,"\nEOT\n");
 					/* if we do not have a string yet, we have to do this...*/
@@ -575,7 +638,9 @@ void EAI_parse_commands (char *bufptr) {
 					}
 					ctmp[rb] = 0;
 
-					if (EAIVerbose) printf ("CREATEVU %s\n",ctmp);
+					#ifdef EAIVERBOSE 
+					printf ("CREATEVU %s\n",ctmp);
+					#endif
 					ra = EAI_CreateVrml("URL",ctmp,nodarr,200);
 				}
 
@@ -595,7 +660,9 @@ void EAI_parse_commands (char *bufptr) {
 				sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
 				rc = ra+rb; /* final pointer- should point to a Multi_Node*/
 
-				if (EAIVerbose) printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
+				#ifdef EAIVERBOSE 
+				printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
+				#endif
 
 
 				getMFNodetype (dtmp,(struct Multi_Node *)rc,
@@ -612,13 +679,17 @@ void EAI_parse_commands (char *bufptr) {
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
 				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
-				if (EAIVerbose) printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
+				#ifdef EAIVERBOSE 
+				printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
+				#endif
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case REGLISTENER: {
-				if (EAIVerbose) printf ("REGISTERLISTENER %s \n",bufptr);
+				#ifdef EAIVERBOSE 
+				printf ("REGISTERLISTENER %s \n",bufptr);
+				#endif
 
 				/*143024848 88 8 e 6*/
 				sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
@@ -641,7 +712,10 @@ void EAI_parse_commands (char *bufptr) {
 				}
 
 			case GETVALUE: {
-				if (EAIVerbose) printf ("GETVALUE %s \n",bufptr);
+				#ifdef EAIVERBOSE 
+				printf ("GETVALUE %s \n",bufptr);
+				#endif
+
 
 				/* format: ptr, offset, type, length (bytes)*/
 				sscanf (bufptr, "%d %d %c %d", &ra,&rb,ctmp,&rc);
@@ -651,14 +725,20 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 				}
 			case REPLACEWORLD:  {
-				if (EAIVerbose) printf ("REPLACEWORLD %s \n",bufptr);
+				#ifdef EAIVERBOSE 
+				printf ("REPLACEWORLD %s \n",bufptr);
+				#endif
+
 				EAI_RW(bufptr);
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
 			case ADDROUTE:
 			case DELETEROUTE:  {
-				if (EAIVerbose) printf ("Add/Delete route %s\n",bufptr);
+				#ifdef EAIVERBOSE 
+				printf ("Add/Delete route %s\n",bufptr);
+				#endif
+
 				EAI_Route ((char) command,bufptr);
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -666,7 +746,10 @@ void EAI_parse_commands (char *bufptr) {
 
 			case REREADWRL: {
 
-				if (EAIVerbose) printf ("REREADWRL <%s> \n",bufptr);
+				#ifdef EAIVERBOSE 
+				printf ("REREADWRL <%s> \n",bufptr);
+				#endif
+
 				EAI_RNewW(bufptr);
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
@@ -675,14 +758,19 @@ void EAI_parse_commands (char *bufptr) {
 
 /*XXXX			case SETDESCRIPT:*/
 		  	case STOPFREEWRL: {
-				if (EAIVerbose) printf ("Shutting down Freewrl\n");
+				#ifdef EAIVERBOSE 
+				printf ("Shutting down Freewrl\n");
+				#endif
 				if (!RUNNINGASPLUGIN) {
 					doQuit();
 				    break;
 				}
 			    }
 			  case NEXTVIEWPOINT: {
-				if (EAIVerbose) printf ("Next Viewpoint\n");
+				#ifdef EAIVERBOSE 
+				printf ("Next Viewpoint\n");
+				#endif
+
 				Next_ViewPoint();
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -742,9 +830,10 @@ unsigned int EAI_SendEvent (char *ptr) {
 	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
 	while ((*ptr) > ' ') ptr++;	/* script type */
 
-	if (EAIVerbose)
+	#ifdef EAIVERBOSE
 		 printf ("EAI_SendEvent, type %c, nodeptr %x offset %x script type %d \n",
 				 nodetype,nodeptr,offset, scripttype);
+	#endif
 
 	/* We have either a event to a memory location, or to a script. */
 	/* the field scripttype tells us whether this is true or not.   */
@@ -752,7 +841,9 @@ unsigned int EAI_SendEvent (char *ptr) {
 	memptr = nodeptr+offset;	/* actual pointer to start of destination data in memory */
 
 	/* now, we are at start of data. */
-	if (EAIVerbose) printf ("EAI_SendEvent, event string now is %s\n",ptr);
+	#ifdef EAIVERBOSE 
+	printf ("EAI_SendEvent, event string now is %s\n",ptr);
+	#endif
 
 	/* This switch statement is almost identical to the one in the Javascript
 	   code (check out CFuncs/CRoutes.c), except that explicit Javascript calls
@@ -826,7 +917,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 		}
 		default: {
                         printf ("unhandled Event :%c: - get code in here\n",nodetype);
-                        /*EAIVerbose = 0;*/
 			return FALSE;
 		}
 	}
@@ -834,7 +924,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 	/* if we had an error on conversion */
 	if (len == 0)
 	{
-		/*EAIVerbose = 0;*/
 		return FALSE;
 	}
 
@@ -847,8 +936,10 @@ unsigned int EAI_SendEvent (char *ptr) {
 		  case EAI_MFVEC3F:
 		  case EAI_MFCOLOR:
 		  case EAI_MFFLOAT: {
-		      if (EAIVerbose)
+		      #ifdef EAIVERBOSE
 			printf("EAI_SendEvent, elem %i, count %i, nodeptr %i, off %i, ptr \"%s\".\n",len, elemCount, (int)nodeptr,(int)offset,ptr);
+			#endif
+
 		      set_EAI_MFElementtype ((int)nodeptr, (int)offset, (unsigned char *)myBuffer, len);
 		      break;
 		  }
@@ -894,7 +985,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 		/* if anything uses this for routing, tell it that it has changed */
 		mark_event ((void *)nodeptr,offset);
 	}
-	/*EAIVerbose = 0;*/
 	return TRUE;
 }
 
@@ -923,8 +1013,9 @@ void handle_Listener () {
 	tp = CRoutesExtra&0xff;
 	id = (CRoutesExtra & 0xffffff00) >>8;
 
-	if (EAIVerbose)
+	#ifdef EAIVERBOSE
 		printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
+	#endif
 
 	/* convert the data to string form, for sending to the EAI java client */
 	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
@@ -996,9 +1087,9 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	/* convert the type string to an internal type */
 	ty = convert_typetoInt (type);
 
- 	if (EAIVerbose)  
-
+ 	#ifdef EAIVERBOSE  
 		printf ("EAI - extra memory for size %d type %s\n",size,type);
+	#endif
 
 	if (size > 0) {
 		memptr =malloc ((unsigned)size);
@@ -1043,8 +1134,9 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 				/* these are the same, different lengths for different types, though. */
 				SFFloats = (float *) memptr;
 				len = size / (sizeof(float));	/* should be 2 for SFVec2f, 3 for SFVec3F...*/
-				if (EAIVerbose)
+				#ifdef EAIVERBOSE
 				printf ("EAI Extra - size %d len %d\n",size,len);
+				#endif
 
 				if(!SvROK(data)) {
 					for (iM=0; iM<len; iM++) {
@@ -1291,14 +1383,18 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 	switch (type) {
 		case EAI_SFBOOL: 	{
-			if (EAIVerbose) printf ("EAI_SFBOOL\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFBOOL\n");
+			#endif
 			if (memptr[0] == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
 			else sprintf (buf,"%s\n%f\n%d\nFALSE",reptype,TickTime,id);
 			break;
 		}
 
 		case EAI_SFTIME:	{
-			if (EAIVerbose) printf ("EAI_SFTIME\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFTIME\n");
+			#endif
 			memcpy(&dval,memptr,sizeof(double));
 			sprintf (buf, "%s\n%f\n%d\n%lf",reptype,TickTime,id,dval);
 			break;
@@ -1306,14 +1402,19 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case EAI_SFNODE:
 		case EAI_SFINT32:	{
-			if (EAIVerbose) printf ("EAI_SFINT32 or EAI_SFNODE\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFINT32 or EAI_SFNODE\n");
+			#endif
 			memcpy(&ival,memptr,sizeof(int));
 			sprintf (buf, "%s\n%f\n%d\n%d",reptype,TickTime,id,ival);
 			break;
 		}
 
 		case EAI_SFFLOAT:	{
-			if (EAIVerbose) printf ("EAI_SFTIME\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFTIME\n");
+			#endif
+
 			memcpy(fl,memptr,sizeof(float));
 			sprintf (buf, "%s\n%f\n%d\n%f",reptype,TickTime,id,fl[0]);
 			break;
@@ -1321,34 +1422,45 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case EAI_SFVEC3F:
 		case EAI_SFCOLOR:	{
-			if (EAIVerbose) printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
+			#endif
 			memcpy(fl,memptr,sizeof(float)*3);
 			sprintf (buf, "%s\n%f\n%d\n%f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2]);
 			break;
 		}
 
 		case EAI_SFVEC2F:	{
-			if (EAIVerbose) printf ("EAI_SFVEC2F\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFVEC2F\n");
+			#endif
 			memcpy(fl,memptr,sizeof(float)*2);
 			sprintf (buf, "%s\n%f\n%d\n%f %f",reptype,TickTime,id,fl[0],fl[1]);
 			break;
 		}
 
 		case EAI_SFROTATION:	{
-			if (EAIVerbose) printf ("EAI_SFROTATION\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFROTATION\n");
+			#endif
+
 			memcpy(fl,memptr,sizeof(float)*4);
 			sprintf (buf, "%s\n%f\n%d\n%f %f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2],fl[3]);
 			break;
 		}
 
 		case EAI_SFSTRING:	{
-			if (EAIVerbose) printf ("EAI_SFSTRING\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_SFSTRING\n");
+			#endif
 			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,memptr);
 			break;
 		}
 
 		case EAI_MFSTRING:	{
-			if (EAIVerbose) printf ("EAI_MFSTRING\n");
+			#ifdef EAIVERBOSE 
+			printf ("EAI_MFSTRING\n");
+			#endif
 
 			/* make the Multi_String pointer */
 			MSptr = (struct Multi_String *) memptr;
@@ -1374,7 +1486,10 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		case EAI_MFNODE: 	{
 			MNptr = (struct Multi_Node *) memptr;
 
-			if (EAIVerbose) printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(int) memptr);
+			#ifdef EAIVERBOSE 
+			printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(int) memptr);
+			#endif
+
 			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
 			ptr = buf + strlen(buf);
 
@@ -1387,8 +1502,10 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case EAI_MFINT32: {
 			MCptr = (struct Multi_Color *) memptr;
-			if (EAIVerbose) 
+			#ifdef EAIVERBOSE 
 				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
+			#endif
+
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
 			ptr = buf + strlen(buf);
 
@@ -1414,8 +1531,10 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			else if (type==EAI_MFROTATION) {numPerRow=4;}
 
 			MCptr = (struct Multi_Color *) memptr;
-			if (EAIVerbose) 
+			#ifdef EAIVERBOSE 
 				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
+			#endif
+
 			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
 			ptr = buf + strlen(buf);
 
@@ -1465,7 +1584,9 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
 
-	if(EAIVerbose) printf("ScanValtoBuffer\n");
+	#ifdef EAIVERBOSE
+	printf("ScanValtoBuffer\n");
+	#endif
 
 	if (bufsz < 10) {
 		printf ("cant perform conversion with small buffer\n");
@@ -1544,7 +1665,9 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		  	default     : len = *quant * sizeof(float) ; /* turn into byte count */
 		  }
 
-		  if(EAIVerbose) printf ("bufsz is %d, len = %d quant = %d\n",bufsz, len, *quant);
+		  #ifdef EAIVERBOSE
+			printf ("bufsz is %d, len = %d quant = %d\n",bufsz, len, *quant);
+		  #endif
 		  if (len > bufsz) {
 			  printf ("Warning, MultiFloat too large, truncating to %d \n",bufsz);
 			  len = bufsz;

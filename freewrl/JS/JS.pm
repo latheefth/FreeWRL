@@ -39,10 +39,6 @@ bootstrap VRML::JS $VERSION;
 ## Debug:
 #$VRML::verbose::js=1;
 
-if ($VRML::verbose::js) {
-	VRML::VRMLFunc::setJSVerbose(1);
-}
-
 our $ECMAScriptNative = qr{^SF(?:Bool|Float|Time|Int32|String)$};
 
 my $eventInArg = "__tmp_arg_";

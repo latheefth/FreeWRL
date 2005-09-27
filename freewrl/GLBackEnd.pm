@@ -11,14 +11,6 @@ package VRML::GLBackEnd;
 use VRML::VRMLFunc;
 require "VRML/VRMLCU.pm";
 
-if($VRML::verbose::rend) {
-	VRML::VRMLFunc::render_verbose(1);
-}
-
-if($VRML::verbose::collision) {
-    VRML::VRMLFunc::render_verbose_collision(1);
-}
-
 use strict vars;
 
 ###############################################################
@@ -36,11 +28,6 @@ my $becollision = 1;	# collision detection turned on or off - 1 = on.
 ###############################################################
 #
 # Private functions, used by other browser modules below
-
-if (0) {
-	VRML::VRMLFunc::render_verbose(1);
-	$VRML::verbose = 1;
-}
 
 sub new {
 	my(

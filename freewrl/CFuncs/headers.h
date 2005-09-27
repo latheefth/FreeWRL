@@ -8,7 +8,37 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
-extern int verbose_collision;
+
+/********************************
+	Verbosity
+*********************************/
+
+/* Java Class invocation */
+#undef JSVRMLCLASSVERBOSE
+
+/* child node parsing */
+#undef CHILDVERBOSE
+
+/* routing */
+#undef CRVERBOSE
+
+/* Javascript */
+#undef JSVERBOSE
+
+/* sensitive events */
+#undef SEVERBOSE
+
+/* Text nodes */
+#undef TEXTVERBOSE
+
+/* Texture processing */
+#undef TEXVERBOSE
+
+/* streaming from VRML to OpenGL internals. */
+#undef STREAM_POLY_VERBOSE
+
+/* collision */
+#undef COLLISIONVERBOSE
 
 #include "Structs.h"
 
@@ -278,8 +308,6 @@ void getMFNodetype (char *strp, struct Multi_Node *ch, struct VRML_Box *par, int
 
 void update_node(void *ptr);
 void update_renderFlag(void *ptr, int flag);
-
-extern int CRVerbose, JSVerbose;
 
 int JSparamIndex (char *name, char *type);
 
