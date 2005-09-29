@@ -87,6 +87,9 @@ int currentlyWorkingOn = -1;
 
 int textureInProcess = -1;
 
+/* how many texel units; if -1, we have not tried to find out yet */
+GLint maxTexelUnits = -1;
+
 /* function Prototypes */
 int findTextureFile (GLuint *texnum, int type, int *remove);
 void _textureThread(void);
@@ -103,7 +106,7 @@ void store_tex_info(
 void __reallyloadPixelTexture(void);
 void __reallyloadImageTexture(void);
 void __reallyloadMovieTexture(void);
-void do_possible_multitexture(int texno);
+void do_possible_textureSequence(int texno);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
@@ -130,6 +133,38 @@ int isTextureParsing() {
 
 	return textureInProcess >0;
 }
+
+/* can our OpenGL implementation handle multitexturing?? */
+void init_multitexture_handling() {
+	char *glExtensions;
+
+	glExtensions = glGetString(GL_EXTENSIONS);
+
+	if ((strstr (glExtensions, "GL_ARB_texture_env_combine")!=0) &&
+		(strstr (glExtensions,"GL_ARB_multitexture")!=0)) {
+
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB,&maxTexelUnits);
+
+		if (maxTexelUnits > MAX_MULTITEXTURE) {
+			printf ("init_multitexture_handling - reducing number of multitexs from %d to %d\n",
+				maxTexelUnits,MAX_MULTITEXTURE);
+			maxTexelUnits = MAX_MULTITEXTURE;
+		}
+		printf ("can do multitexture we have %d units\n",maxTexelUnits);
+
+
+		/* we assume that GL_TEXTURE*_ARB are sequential. Lets to a little check */
+		if ((GL_TEXTURE0_ARB +1) != GL_TEXTURE1_ARB) {
+			printf ("Warning, code expects GL_TEXTURE0_ARB to be 1 less than GL_TEXTURE1_ARB\n");
+		} 
+
+	} else {
+		printf ("can not do multitexture\n");
+		maxTexelUnits = 0;
+	}
+}
+
+
 
 /* lets remove this texture from the process... */
 void freeTexture (GLuint *texno) {
@@ -210,7 +245,73 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 	bind_image(IMAGETEXTURE, node->__parenturl,
 		node->url,
 		(GLuint*)&node->__texture,node->repeatS,node->repeatT);
+
+        bound_textures[texture_count] = node->__texture;
+
 }
+
+/* load in a texture, if possible */
+void loadMultiTexture (struct VRML_MultiTexture *node) {
+	int count;
+	int max;
+	struct VRML_ImageTexture *nt;
+
+
+	/* have we initiated multitexture support yet? */
+	if (maxTexelUnits < 0)  {
+		init_multitexture_handling();
+	}
+
+	/* printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->__type,
+			node->texture.n,
+			node->texture.p[0], node->texture.p[1]);
+	*/
+
+	/* ok, normally the scene graph contains function pointers. What we have
+	   here is a set of pointers to datastructures of (hopefully!)
+	   types like VRML_ImageTexture, VRML_PixelTexture, and VRML_MovieTexture.
+
+	   the first integer in the datastructures is a number - see the __type
+	   field in VRMLNodes.pm for these structures. 
+	*/
+
+	/* how many textures can we use? */
+	max = node->texture.n; 
+	if (max > maxTexelUnits) max = maxTexelUnits;
+
+	for (count=0; count < max; count++) {
+		/* get the texture */
+		nt = node->texture.p[count];
+
+		switch (nt->__type) {
+			case 4: 
+				/* printf ("MultiTexture %d is a ImageTexture\n",count); */
+				loadImageTexture ((struct VRML_ImageTexture*) nt);
+				break;
+			case 1:
+				printf ("MultiTexture %d is a MULTITEXTURE!!\n",count);
+				break;
+			case 2:
+				/* printf ("MultiTexture %d is a PixelTexture\n",count); */
+				loadPixelTexture ((struct VRML_PixelTexture*) nt);
+				break;
+			case 3:
+				/* printf ("MultiTexture %d is a MovieTexture\n"); */
+				loadMovieTexture ((struct VRML_MovieTexture*) nt);
+				break;
+			default:
+				printf ("MultiTexture - unknown sub texture type\n");
+		}
+
+		/* now, lets increment texture_count. The current texture will be
+		   stored in bound_textures[texture_count]; texture_count will be 1
+		   for "normal" textures; at least 1 for MultiTextures. */
+
+        	texture_count++;
+	}
+
+}
+
 
 /* load in a texture, if possible */
 void loadPixelTexture (struct VRML_PixelTexture *node) {
@@ -229,6 +330,8 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 	bind_image(PIXELTEXTURE, node->image,
 		mynull,
 		(GLuint*)&node->__texture,node->repeatS,node->repeatT);
+
+        bound_textures[texture_count] = node->__texture;
 }
 
 /* load in a texture, if possible */
@@ -293,6 +396,7 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 		/* make an event for the inittime */
 		node->__inittime = TickTime;
 	}
+        bound_textures[texture_count] = node->__ctex;
 }
 
 
@@ -320,7 +424,7 @@ void store_tex_info(
 /* do we do 1 texture, or is this a series of textures, requiring final binding
    by this thread? */
 
-void do_possible_multitexture(int texno) {
+void do_possible_textureSequence(int texno) {
 	int st;
 	GLuint *texnums;
 	int imageDatasize;
@@ -549,7 +653,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 				loadparams[*texture_num].filename);
 		#endif
 
-		do_possible_multitexture(*texture_num);
+		do_possible_textureSequence(*texture_num);
 		#ifdef TEXVERBOSE 
 		printf ("tex %d now loaded\n",*texture_num);
 		#endif

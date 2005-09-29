@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.180  2005/09/29 03:01:13  crc_canada
+# initial MultiTexture support
+#
 # Revision 1.179  2005/09/27 02:31:48  crc_canada
 # cleanup of verbose code.
 #
@@ -774,7 +777,7 @@ CODE:
 	}
 	$o .= "\t*ptr_++ = sizeof(struct VRML_$name);\n";
 	$o .= "\tRETVAL=&(virt_${name});\n";
-	$o .= "\t#ifdef RENDERVERBOSE\n\tprintf(\"$name virtual: %d \\n \", RETVAL);\n\t#endif 
+	$o .= "\t /*printf(\"$name virtual: %d \\n \", RETVAL);  */
 OUTPUT:
 	RETVAL
 ";
@@ -1116,7 +1119,10 @@ int be_collision = 1;	/* do collision detection? */
 
 int found_vp; /*true when viewpoint found*/
 
-GLuint last_bound_texture;
+/* texture stuff - see code. Need array because of MultiTextures */
+GLuint bound_textures[MAX_MULTITEXTURE];
+int texture_count;
+
 int	have_transparency;	/* did this Shape have transparent material? */
 int	have_textureTransform;  /* do we have to undo the textureTransforms? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */

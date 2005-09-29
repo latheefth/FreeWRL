@@ -181,7 +181,16 @@ extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
 
 /* do we have to do textures?? */
-#define HAVETODOTEXTURES (last_bound_texture != 0)
+#define HAVETODOTEXTURES (texture_count != 0)
+
+/* multitexture and single texture handling */
+#define MAX_MULTITEXTURE 10
+
+/* texture stuff - see code. Need array because of MultiTextures */
+extern GLuint bound_textures[MAX_MULTITEXTURE];
+extern int texture_count; 
+
+
 
 extern int _fw_pipe, _fw_FD;
 #define RUNNINGASPLUGIN (_fw_pipe != 0)
@@ -209,10 +218,6 @@ extern int SoundEngineStarted;
 /* Material optimizations */
 void do_shininess (float shininess);
 void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param);
-
-/* Some drivers give a GL error if doing a glIsEnabled when creating
-   display lists, so we just use an already created variable. */
-extern GLuint last_bound_texture;
 
 /* used to determine whether we have transparent materials. */
 extern int have_transparency;
@@ -439,6 +444,7 @@ extern void loadInline(struct VRML_Inline *node);
 extern void loadImageTexture(struct VRML_ImageTexture *node);
 extern void loadPixelTexture(struct VRML_PixelTexture *node);
 extern void loadMovieTexture(struct VRML_MovieTexture *node);
+extern void loadMultiTexture(struct VRML_MultiTexture *node);
 extern void loadBackgroundTextures (struct VRML_Background *node);
 extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
 extern GLfloat Backtex[], Backnorms[];

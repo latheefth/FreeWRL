@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.162  2005/09/29 03:01:13  crc_canada
+# initial MultiTexture support
+#
 # Revision 1.161  2005/09/27 02:31:48  crc_canada
 # cleanup of verbose code.
 #
@@ -1289,24 +1292,33 @@ TextureTransform => '
 # Pixels and Images are all handled the same way now - the methods are identical.
 PixelTexture => '
 	loadPixelTexture(this_);
-	last_bound_texture = this_->__texture;
+	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 ',
 
 ImageTexture => '
 	loadImageTexture(this_);
-	last_bound_texture = this_->__texture;
+	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
+',
+
+# MultiTexture handling... Can we compile the string comparisons in?
+
+MultiTexture => '
+	loadMultiTexture(this_);
 ',
 
 ######
 MovieTexture => '
 	/* really simple, the texture number is calculated, then simply sent here.
-	   The last_bound_texture field is sent, and, made current */
+	   The bound_textures field is sent, and, made current */
 
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
 	loadMovieTexture(this_);
-	last_bound_texture = this_->__ctex;
+	bound_textures[texture_count] = this_->__ctex;
+	/* not multitexture, should have saved to bound_textures[0] */
+	
+	texture_count=1;
 ',
 
 
@@ -1859,6 +1871,7 @@ Billboard => (join '','
 		int trans;
 		int should_rend;
 		GLdouble modelMatrix[16];
+		int count;
 
 		if(!(this_->geometry)) { return; }
 
@@ -1882,7 +1895,7 @@ Billboard => (join '','
 		/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
 
 		/* a texture and a transparency flag... */
-		last_bound_texture = 0;
+		texture_count = 0; /* will be >=1 if textures found */
 		trans = have_transparency;
 		have_textureTransform = FALSE;
 		have_texture = FALSE;
@@ -1939,17 +1952,23 @@ Billboard => (join '','
 
 		/* should we render this node on this pass? */
 		if (should_rend) {
-			if (last_bound_texture != 0) {
-				/* we had a texture */
-				glEnable (GL_TEXTURE_2D);
-				glBindTexture(GL_TEXTURE_2D,last_bound_texture);
+			if (texture_count != 0) {
+				/* we had at least 1 texture */
+				for (count = 0; count < texture_count; count++) {
+					glActiveTextureARB(GL_TEXTURE0_ARB+count);
+					glBindTexture(GL_TEXTURE_2D,bound_textures[count]);
+					glEnable (GL_TEXTURE_2D);
+				}
 			}
 			/* Now, do the geometry */
 			render_node((this_->geometry));
 
 			/* disable the texture */
-			if (last_bound_texture != 0) {
-				glDisable (GL_TEXTURE_2D);
+			if (texture_count != 0) {
+				for (count = 0; count < texture_count; count++) {
+					glActiveTextureARB(GL_TEXTURE0_ARB+count);
+					glDisable (GL_TEXTURE_2D);
+				}
 			}
 		}
 

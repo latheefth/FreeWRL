@@ -423,6 +423,7 @@ my $protono;
 	ImageTexture
 	PixelTexture
 	MovieTexture
+	MultiTexture
         /;
 
 # nodes that are valid coord fields.
@@ -542,6 +543,7 @@ my $protono;
 	LineSet 		=>geometry,
 	LOD 			=>children,
 	Material 		=>material,
+	MultiTexture		=>texture,
 	MovieTexture 		=>texture,
 	NavigationInfo 		=>children,
 	Normal 			=>normal,
@@ -626,9 +628,14 @@ my $protono;
 						 transparency => [SFFloat, 0, exposedField]
 						}
 					   ),
+
+######################################################
+
 	ImageTexture =>
 	new VRML::NodeType("ImageTexture",
 					   {
+						__type => [SFInt32,4,field], #ImageTexture
+
 						url => [MFString, [], exposedField],
 						repeatS => [SFBool, 1, field],
 						repeatT => [SFBool, 1, field],
@@ -636,10 +643,28 @@ my $protono;
 						__parenturl =>[SFString,"",field],
 					   },
 					  ),
+
+	MultiTexture =>
+	new VRML::NodeType("MultiTexture",
+					   {
+						__type => [SFInt32,1,field], #MultiTexture
+
+						alpha =>[SFFloat, 1, exposedField],
+						color =>[SFColor,[1,1,1],exposedField],
+						function =>[MFString,[],exposedField],
+						mode =>[MFString,[],exposedField],
+						source =>[MFString,[],exposedField],
+						texture=>[MFNode,undef,exposedField],
+						__texture => [SFInt32, 0, field],
+					
+					   },
+					  ),
+
 	PixelTexture =>
 	new VRML::NodeType("PixelTexture",
 					   {
-						#JAS image => [SFImage, [0, 0, 0], exposedField],
+						__type => [SFInt32,2,field], #PixelTexture
+
 						image => [SFImage, "0, 0, 0", exposedField],
 						repeatS => [SFBool, 1, field],
 						repeatT => [SFBool, 1, field],
@@ -650,6 +675,8 @@ my $protono;
 	MovieTexture =>
 	new VRML::NodeType ("MovieTexture",
 						{
+						__type => [SFInt32,3,field], #MovieTexture
+
 						 loop => [SFBool, 0, exposedField],
 						 speed => [SFFloat, 1.0, exposedField],
 						 startTime => [SFTime, 0, exposedField],
@@ -681,6 +708,44 @@ my $protono;
 						__parenturl =>[SFString,"",field],
 						}
 					   ),
+
+	MultiTextureCoordinate =>
+	new VRML::NodeType("MultiTextureCoordinate",
+					   {
+						texture=>[MFNode,undef,exposedField],
+					   },
+					  ),
+
+	MultiTextureTransform =>
+	new VRML::NodeType("MultiTextureTransform",
+					   {
+						textureTransform=>[MFNode,undef,exposedField],
+					   },
+					  ),
+	TextureCoordinate =>
+	new VRML::NodeType("TextureCoordinate",
+					   { point => [MFVec2f, [], exposedField] }
+					  ),
+	TextureCoordinateGenerator =>
+	new VRML::NodeType("TextureCoordinateGenerator", {
+					mode => [SFString,"SPHERE",exposedField],
+					parameter => [MFFloat,[],exposedField],
+					}
+					  ),
+
+
+	TextureTransform =>
+	new VRML::NodeType ("TextureTransform",
+						{
+						 center => [SFVec2f, [0, 0], exposedField],
+						 rotation => [SFFloat, 0, exposedField],
+						 scale => [SFVec2f, [1, 1], exposedField],
+						 translation => [SFVec2f, [0, 0], exposedField]
+						}
+					   ),
+
+###########################################################
+
 	Box =>
 	new VRML::NodeType("Box",
 					   { 	size => [SFVec3f, [2, 2, 2], field],
@@ -740,10 +805,6 @@ my $protono;
 	Normal =>
 	new VRML::NodeType("Normal",
 					   { vector => [MFVec3f, [], exposedField] }
-					  ),
-	TextureCoordinate =>
-	new VRML::NodeType("TextureCoordinate",
-					   { point => [MFVec2f, [], exposedField] }
 					  ),
 	Extrusion =>
 	new VRML::NodeType("Extrusion",
@@ -1233,15 +1294,6 @@ my $protono;
 						 __do_scaleO => [SFInt32, 0, field],
 						 __do_scale => [SFInt32, 0, field],
 						},
-					   ),
-	TextureTransform =>
-	new VRML::NodeType ("TextureTransform",
-						{
-						 center => [SFVec2f, [0, 0], exposedField],
-						 rotation => [SFFloat, 0, exposedField],
-						 scale => [SFVec2f, [1, 1], exposedField],
-						 translation => [SFVec2f, [0, 0], exposedField]
-						}
 					   ),
 	Group =>
 	new VRML::NodeType("Group",

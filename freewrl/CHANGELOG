@@ -1,4 +1,7 @@
 For 1.14:
+	- support for nodes:
+		MultiTexture
+
 	- Threading problem in ProdCon fixed - mainly seen in EAI code.
 	
 	- Added NavigationInfo speed field values to FLY mode rotations and
