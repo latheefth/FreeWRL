@@ -229,6 +229,7 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 
 /* load in a texture, if possible */
 void loadImageTexture (struct VRML_ImageTexture *node) {
+
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
@@ -262,7 +263,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 		init_multitexture_handling();
 	}
 
-	/* printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->__type,
+	/* printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->__aType,
 			node->texture.n,
 			node->texture.p[0], node->texture.p[1]);
 	*/
@@ -271,7 +272,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 	   here is a set of pointers to datastructures of (hopefully!)
 	   types like VRML_ImageTexture, VRML_PixelTexture, and VRML_MovieTexture.
 
-	   the first integer in the datastructures is a number - see the __type
+	   the first integer in the datastructures is a number - see the __aType
 	   field in VRMLNodes.pm for these structures. 
 	*/
 
@@ -279,11 +280,12 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 	max = node->texture.n; 
 	if (max > maxTexelUnits) max = maxTexelUnits;
 
+	/* go through and get all of the textures */
 	for (count=0; count < max; count++) {
 		/* get the texture */
 		nt = node->texture.p[count];
 
-		switch (nt->__type) {
+		switch (nt->__aType) {
 			case 4: 
 				/* printf ("MultiTexture %d is a ImageTexture\n",count); */
 				loadImageTexture ((struct VRML_ImageTexture*) nt);
@@ -300,7 +302,8 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 				loadMovieTexture ((struct VRML_MovieTexture*) nt);
 				break;
 			default:
-				printf ("MultiTexture - unknown sub texture type\n");
+				printf ("MultiTexture - unknown sub texture type %d\n",
+						nt->__aType);
 		}
 
 		/* now, lets increment texture_count. The current texture will be
@@ -316,6 +319,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 /* load in a texture, if possible */
 void loadPixelTexture (struct VRML_PixelTexture *node) {
 	struct Multi_String mynull;
+
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this

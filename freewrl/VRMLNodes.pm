@@ -634,7 +634,8 @@ my $protono;
 	ImageTexture =>
 	new VRML::NodeType("ImageTexture",
 					   {
-						__type => [SFInt32,4,field], #ImageTexture
+						# make sure this is first, see gen_struct - for MultiTexture
+						__aType => [SFInt32,4,field], #ImageTexture
 
 						url => [MFString, [], exposedField],
 						repeatS => [SFBool, 1, field],
@@ -647,7 +648,8 @@ my $protono;
 	MultiTexture =>
 	new VRML::NodeType("MultiTexture",
 					   {
-						__type => [SFInt32,1,field], #MultiTexture
+						# make sure this is first, see gen_struct - for MultiTexture
+						__aType => [SFInt32,1,field], #MultiTexture
 
 						alpha =>[SFFloat, 1, exposedField],
 						color =>[SFColor,[1,1,1],exposedField],
@@ -663,7 +665,8 @@ my $protono;
 	PixelTexture =>
 	new VRML::NodeType("PixelTexture",
 					   {
-						__type => [SFInt32,2,field], #PixelTexture
+						# make sure this is first, see gen_struct - for MultiTexture
+						__aType => [SFInt32,2,field], #PixelTexture
 
 						image => [SFImage, "0, 0, 0", exposedField],
 						repeatS => [SFBool, 1, field],
@@ -675,7 +678,8 @@ my $protono;
 	MovieTexture =>
 	new VRML::NodeType ("MovieTexture",
 						{
-						__type => [SFInt32,3,field], #MovieTexture
+						# make sure this is first, see gen_struct - for MultiTexture
+						__aType => [SFInt32,3,field], #MovieTexture
 
 						 loop => [SFBool, 0, exposedField],
 						 speed => [SFFloat, 1.0, exposedField],

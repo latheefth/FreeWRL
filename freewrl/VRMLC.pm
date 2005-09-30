@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.181  2005/09/30 12:53:21  crc_canada
+# Initial MultiTexture support.
+#
 # Revision 1.180  2005/09/29 03:01:13  crc_canada
 # initial MultiTexture support
 #
@@ -730,8 +733,13 @@ sub rend_geom {
 
 sub gen_struct {
 	my($name,$node) = @_;
-	my @f = keys %{$node->{FieldTypes}};
-	my $nf = scalar @f;
+	my @unsortedfields = keys %{$node->{FieldTypes}};
+	# sort the field array, so that we can ensure the order of structure
+	# elements, so that we can force some elements to the front, so that
+	# in the C back end, we can determine what a node type is
+
+	my @sf = sort(@unsortedfields);
+	my $nf = scalar @sf;
 	# /* Store actual point etc. later */
        my $s = "struct VRML_$name {\n" .
                " /***/ struct VRML_Virt *v;\n"         	.
@@ -765,16 +773,20 @@ CODE:
 	my $p = " {
 		my \$s = '';
 		my \$v = get_${name}_offsets(\$s);
-		\@{\$n->{$name}{Offs}}{".(join ',',map {"\"$_\""} @f,'_end_')."} =
+		\@{\$n->{$name}{Offs}}{".(join ',',map {"\"$_\""} @sf,'_end_')."} =
 			unpack(\"i*\",\$s);
 		\$n->{$name}{Virt} = \$v;
  }
 	";
-	for(@f) {
+
+	for(@sf) {
 		my $cty = "VRML::Field::$node->{FieldTypes}{$_}"->ctype($_);
 		$s .= "\t$cty;\n";
 		$o .= "\t*ptr_++ = offsetof(struct VRML_$name, $_);\n";
 	}
+
+
+
 	$o .= "\t*ptr_++ = sizeof(struct VRML_$name);\n";
 	$o .= "\tRETVAL=&(virt_${name});\n";
 	$o .= "\t /*printf(\"$name virtual: %d \\n \", RETVAL);  */
