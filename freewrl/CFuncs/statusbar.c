@@ -27,9 +27,9 @@
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
 #ifdef AQUA
-#define HELPER "(command-? help)"
+#define HELPER "command-?"
 #else
-#define HELPER "(? help)"
+#define HELPER "?"
 #endif
 
 
@@ -106,14 +106,14 @@ void render_status () {
 		vplen = strlen (vpname);
 	}
 	if (isPerlParsing() || isTextureParsing() || (!isPerlinitialized())) {
-		sprintf (statusline, "%s %5.2f fps %s %s",
-			"(Loading...)", BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
+		sprintf (statusline, "(Loading...)  speed: %2.0f   Mode: %s  HelpKey: %s",
+			BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 
 		/*  let the other threads run, too*/
 		sched_yield();
 
 	} else {
-		sprintf (statusline, "%s %5.2f fps %s %s",
+		sprintf (statusline, "Viewpoint: %s  Speed: %2.0f  Mode: %s  HelpKey: %s",
 		vpname, BrowserFPS, VIEWER_STRING(viewer_type),HELPER);
 	}
 
@@ -127,6 +127,7 @@ void render_status () {
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glEnable(GL_LIGHT0);
         glColor3d(1.0,1.0,1.0);
+	glScalef(0.5,1.0, 1.0);
 
 
 	rep_.ntri = 0;

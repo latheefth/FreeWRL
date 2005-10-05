@@ -1,4 +1,6 @@
 For 1.14:
+	- status bar updated to reduce size and increase information.
+
 	- support for nodes:
 		MultiTexture
 

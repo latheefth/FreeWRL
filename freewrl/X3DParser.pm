@@ -918,9 +918,12 @@ sub verifyX3DNodeExists {
 
 		#PROTOTYPES
 
+
 		# fall through case - lets see if this is just the X3D node.
 		if ($node ne "X3D") {
-			VRML::VRMLFunc::ConsoleMessage( "WARNING - node $node is either not valid or not currently handled\n");
+			if (!defined ($VRML::Nodes::skipthese{$node})) {
+				VRML::VRMLFunc::ConsoleMessage( "WARNING - node $node is either not valid or not currently handled\n");
+			}
 			return 0;
 		}
 	}
