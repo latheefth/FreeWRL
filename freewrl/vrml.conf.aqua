@@ -3,8 +3,6 @@
 # to inform the compiler where the libraries are on your system.
 %VRML_CONFIG = (
 ############################################################################
-# don't touch this!!!
-    PLATFORM => 'MACOSX',
 BIN_DIR => "/usr/bin",
 LIB_DIR => "/usr/lib",
 WARNINGS => "off",

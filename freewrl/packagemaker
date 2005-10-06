@@ -1,14 +1,20 @@
+$!/bin/sh
+
 # make distribution directory, and copy all needed files over.
 
 # Assume you are in root of FreeWRL directory.
 
+$PACKAGE = 
 rm -r ../freewrl-1.14-pre2
 mkdir ../freewrl-1.14-pre2
 cp -r . ../freewrl-1.14-pre2
 
-# now, trim off any fat you see
+# go to the package directory.
 
 cd ../freewrl-1.14-pre2
+
+# 
+# now, trim off any fat you see
 
 find . -name typescript -exec rm {} \;
 find . -name CVS -exec rm -r {} \;
@@ -47,3 +53,5 @@ rm -r Plugin/include/
 rm -r Plugin/Source/
 rm -r Plugin/Unix/
 
+# remove some of the tests
+rm -r tests/H-Anim

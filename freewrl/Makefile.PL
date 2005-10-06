@@ -10,18 +10,24 @@ my $OS = `uname`;
 $OS =~ s/\s+$//;
 $OS =~ s/^\s+//;
 
-#$OS = chomp($OS);
-
-print "OS is $OS\n";
 if ($OS eq "Darwin") {
 	print "This install is running on an Apple OS X computer\n";
+} elsif ($OS eq "Linux") {
+	print "This install is running on a Linux based computer\n";
+} elsif ($OS eq "IRIX64") {
+	print "This install is running on an Irix computer\n";
+} elsif ($OS eq "SunOS") {
+	print "This install is running on a Linux based computer\n";
+} else {
+	print "The uname command returned $OS - dont know what platform - assuming Linux\n";
 }
+
 
 
 # create the VRMLFunc.pm module
 system "perl VRMLC.pm";
 
-$VERSION = "V1.14-pre2";
+my $VERSION = "V1.14-pre2";
 
 BEGIN {
  eval "use 5.004";
@@ -52,9 +58,12 @@ use Cwd qw(getcwd chdir);
 # get the VRML.conf file.
 if ($OS eq "Darwin") {
 	require './vrml.conf.aqua';
+} elsif ($OS eq "IRIX64") {
+	require './vrml.conf.irix';
+} elsif ($OS eq "SunOS") {
+	require './vrml.conf.sunGcc';
 } else {
-
-	# what Architecture are we running under on a non-Apple machine?
+	# assume a Linux computer.
 	my $ARCH = `arch`;
 
 	# remove whitespace at beginning and end.
@@ -69,18 +78,6 @@ if ($OS eq "Darwin") {
 		require './vrml.conf';
 	}
 }
-%VRML_CONFIG_DIST = %VRML_CONFIG;
-
-#JAS for(keys %VRML_CONFIG) {
-#JAS 	if(!exists($VRML_CONFIG_DIST{$_})) {
-#JAS 		die("Invalid key '$_' found in user supplied file '$vrml_conf_file'.
-#JAS This key may no longer be in use, or someone may have garbled the 'vrml.conf'
-#JAS file in the distribution. Please correct and try again");
-#JAS 	}
-#JAS }
-
-%VRML_CONFIG = (%VRML_CONFIG_DIST, %VRML_CONFIG);
-
 $VRML_CONFIG{VERSION} = $VERSION;
 
 print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.\n";
@@ -106,11 +103,11 @@ my @jsinc;
 my @jslibs;
 
 
-if ($VRML_CONFIG{PLATFORM} =~ /irix/i) {
+if ($OS eq  "IRIX64") {
 	$jsobjdir = "$jsdir/IRIX6.5";
 } elsif ($OS eq "Darwin") {
 	$jsobjdir = "$jsdir/Darwin";
-} elsif ($VRML_CONFIG{PLATFORM} =~ /sunos/i) {
+} elsif ($OS eq "SunOS") {
 	$jsobjdir = "$jsdir/SunOS5.8";
 } else { ## linux used by default
 	$jsobjdir = "$jsdir/Linux_All";
@@ -124,6 +121,17 @@ if ($VRML_CONFIG{DEBUG} eq "on") {
 	$BUILD_OPT = 1;
 }
 
+# get the RPM building flags from the vrml.conf file, if they
+# exist.
+
+my $RPM_PREFIX = "";
+
+if (defined $VRML_CONFIG{RPM_PREFIX}) {
+	print "RPM_PREFIX defined!\n";
+	$RPM_PREFIX = $VRML_CONFIG{RPM_PREFIX};
+} else {
+	print "RPM_PREFIX not defined in config file, will not be able to make rpms\n";
+}
 
 # is this an update of an older build? Some files have moved.
 my $oldfw2initpl = $VRML_CONFIG{BIN_DIR}."/fw2init.pl";
@@ -196,7 +204,6 @@ if ($OS eq "Darwin") {
 
 # lets write some generated #defines.
 print OUT "#define BUILDDIR \"$pwd\"\n";
-#print OUT "#define FWVER \"",quotemeta($VERSION),"\"\n";
 print OUT "#define FWVER \"",$VERSION,"\"\n";
 print OUT "#define XMESSAGE \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_Message\"\n";
 print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
@@ -257,7 +264,6 @@ use ExtUtils::MakeMaker;
 require './Config.pm';
 
 WriteMakefile(
-			  ##OPTIMIZE => "-g",
 			  NAME => "VRML::VRMLFunc",
 			  DISTNAME => "FreeWRL",
 			  dist => {
@@ -268,10 +274,8 @@ WriteMakefile(
 							  OTHERLDFLAGS => $VRML::Config::vrml_config{LDFLAGS},
 							  LDDLFLAGS => $VRML::Config::vrml_config{LDDLFLAGS}
 							 },
-							 #VERSION => $VERSION,
 			  DEFINE => $VRML::Config::vrml_config{FREEWRL_DEFINE},
 			  INC => $VRML::Config::vrml_config{FREEWRL_INC},
-			  #SOUNDCONV => $VRML::Config::vrml_config{SOUNDCONV},
 			  EXE_FILES => ['freewrl'],
 			  MAN1PODS => { freewrl => '$(INST_MAN1DIR)/freewrl.$(MAN1EXT)' },
 			  PL_FILES => {'freewrl.PL' => 'freewrl'},
@@ -306,7 +310,7 @@ WriteMakefile(
 	}
 
 	sub dynamic_lib {
-		if ($VRML::Config::vrml_config{PLATFORM} =~ /macosx/i) {
+		if ($OS eq "Darwin") {
 			return "ARMAYBE = :
 OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS}
 INST_DYNAMIC_DEP =
@@ -523,6 +527,19 @@ INST_DYNAMIC_DEP =
 			  qq{\tcd \$(CONSOLEMSG) && \$(MAKE) all $def \n},
 			 ));
 		}
+
+		###################################################
+		# lets do the all:: targets at this step.
+		###################################################
+		if ($RPM_PREFIX ne "") {
+			print "have RPM_PREFIX - lets build the rpm make entry\n";
+		push(@postamble, join(
+			  "\n",
+			  qq{rpm::},
+				qq{echo can not do this\n},
+			));
+		}
+
 
 		return join("\n", @postamble);
 	}
