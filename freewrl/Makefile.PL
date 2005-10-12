@@ -27,7 +27,7 @@ if ($OS eq "Darwin") {
 # create the VRMLFunc.pm module
 system "perl VRMLC.pm";
 
-my $VERSION = "V1.14-pre3";
+my $VERSION = "V1.14-pre4";
 
 BEGIN {
  eval "use 5.004";
@@ -531,9 +531,30 @@ INST_DYNAMIC_DEP =
 			$sourcepackage =~ s/^\s+//;
 			my $srcdir = substr($sourcepackage, 0, rindex ($sourcepackage,".tar"));
 			my $rpmversion = substr ($srcdir,index($srcdir,"-")+1,100);
-print "srcdir $srcdir, rpmversion $rpmversion\n";
+			#print "srcdir $srcdirrpmversion $rpmversion sourcepackage $sourcepackage\n";
 
-			my $specfile = "$RPM_PREFIX/SPECS/".$srcdir.".spec";
+
+			# find the OS name. This is version specific. Anyone got a better idea?
+
+			#my $osname = `cat /etc/redhat-release`;
+			my $osname = `cat $VRML::Config::vrml_config{RPM_OSNAME_FILE}`;
+
+			# remove and brackets and anything following.
+			$osname =~s/\n.*//;
+			$osname =~s/\(.*//;
+			$osname =~s/ //g;
+
+
+			if ($osname eq "") {
+				print "blank name for OSNAME, check RPM_OSNAME_FILE in vrml.conf. \n";
+				$osname = "unknown";
+			}
+			#print "osname is: $osname\n";
+
+			# make spec file name.
+			my $specfile = "$RPM_PREFIX/SPECS/".$srcdir.".".$osname.".spec";
+			# print "spec file is $specfile\n";
+
 
 		push(@postamble, join(
 			  "\n",
@@ -546,7 +567,7 @@ print "srcdir $srcdir, rpmversion $rpmversion\n";
 				qq{\techo \"Summary: A vrml viewer\" > $specfile},
 				qq{\techo \"Name: freewrl\" >> $specfile},
 				qq{\techo \"Version: $rpmversion\" >> $specfile},
-				qq{\techo \"Release: 1\" >> $specfile},
+				qq{\techo \"Release: $osname\" >> $specfile},
 				qq{\techo \"Copyright: GPL\" >> $specfile},
 				qq{\techo \"Group: Applications\/Multimedia\" >> $specfile},
 				qq{\techo \"Source0: $sourcepackage.gz\" >> $specfile},
@@ -578,7 +599,8 @@ print "srcdir $srcdir, rpmversion $rpmversion\n";
 				qq{\techo \"$bin_dir\/FreeWRL_Message\" >> $specfile},
 				qq{\techo \"$bin_dir\/freewrl\" >> $specfile},
 				qq{\techo -n \$(INSTALLSITEARCH) >> $specfile},
-#INSTALLSITEARCH or DESTINSTALLPRIVLIB?
+				qq{\techo "/VRML" >> $specfile},
+				qq{\techo -n \$(DESTINSTALLPRIVLIB) >> $specfile},
 				qq{\techo "/VRML" >> $specfile},
 				qq{\techo -n \$(INSTALLSITEARCH) >> $specfile},
 				qq{\techo "/auto/VRML" >> $specfile},
@@ -607,9 +629,9 @@ print "srcdir $srcdir, rpmversion $rpmversion\n";
 			# now that spec file is written, finish off rpm build commands.
 			push(@postamble, join(
 			  "\n",
-			  qq{rpm::},
 				qq{\t# make the gzip file of the dist.},
 				qq{\trpmbuild -ba $specfile},
+				qq{\t# move the rpm file to a platform-specific name.},
 				));
 		}
 

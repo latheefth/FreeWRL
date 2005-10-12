@@ -1,8 +1,7 @@
 For 1.14:
-	- status bar updated to reduce size and increase information.
+	- support for building rpms in Makefile.PL.
 
-	- support for nodes:
-		MultiTexture
+	- status bar updated to reduce size and increase information.
 
 	- Threading problem in ProdCon fixed - mainly seen in EAI code.
 	
