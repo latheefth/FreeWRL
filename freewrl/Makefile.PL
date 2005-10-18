@@ -80,6 +80,9 @@ if ($OS eq "Darwin") {
 }
 $VRML_CONFIG{VERSION} = $VERSION;
 
+# save this for JS/Makefile.PL
+$VRML_CONFIG{PLATFORM} = $OS;
+
 print STDERR "\nCreating platform specific INC, LIBS, DEFINE based on vrml.conf.\n";
 
 ## Handle platform-specific compile options for the Javascript engine
@@ -228,7 +231,6 @@ close OUT;
 # and copy over other makefiles as required.
 if ($OS eq "Darwin") {
 	`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
-	`cp JS/Makefile.aqua.PL JS/Makefile.PL`;
 	`cp FreeWRL_Message/Makefile.aqua FreeWRL_Message/Makefile`;
 }
 

@@ -35,7 +35,7 @@ WriteMakefile(
 	package MY;
 
 	sub dynamic_lib {
-		if ($VRML::Config::vrml_config{PLATFORM} =~ /macosx/i) {
+		if ($VRML::Config::vrml_config{PLATFORM} ="Darwin") {
 			return "ARMAYBE = :
 OTHERLDFLAGS = $VRML::Config::vrml_config{LDFLAGS2}
 INST_DYNAMIC_DEP =

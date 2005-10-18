@@ -15,11 +15,14 @@
 
 <P>
 The following instructions are for compiling the FreeWRL rendering engine for use with the FreeWRL Aqua GUI for Mac OSX.
-The release of Mac OS X used was Mac OS X v 10.3.8, with updates current to April 8, 2005.  
+The releases of Mac OS X used were Mac OS X v 10.3.8, with updates current to April 8, 2005, and 10.4.2, with updates
+current to October 12, 2005.
+<p>  
 The instructions assume that you are starting with a freshly
 installed Mac OS system, <B>with an installed FreeWRL package,</b>
 and all supporting packages required are listed and referenced.  You may already have some
 of these packages installed on your system.  If so, you may be able to skip some steps.</P>
+<p>
 
 
 <P><B>NOTE 1: </B>You need to do this ONLY if you wish to change the source code. The "dmg" OS X
@@ -29,12 +32,16 @@ This package compiles the FreeWRL library, which contains 99.9% of the FreeWRL c
 and Carbon interface files are not here; please ask us for these files if you wish. The Cocoa
 and Carbon interfaces mimic the commands found in the CFrontEnd source code files, but with
 windowing commands suitable for OS X, instead of X-11.
-<P><B>NOTE 2: </B>OSX 10.4 (Tiger) builds will be built when the OS is received.
+<P><B>NOTE 2: </B>OSX 10.4 (Tiger) builds - follow these instructions. The line numbers for include
+file edits are generally very close; IIRC, they were within a line or two of the 10.3 file locations; the file paths
+are the same as OSX 10.3, with the exception of the Perl directories; edit files in ../Perl/5.8.6/.. rather than 5.8.1
+for 10.3.
+<p>
 <OL>
 <P>
 <LI>
 (if required) enable root password - via finder start Applications/NetInfo manager.
-First authenticate, then enable root, and give root a password.
+From the "Security" pull down menu, first authenticate, then enable root, and give root a password.
 <P>
 <LI>
 Install Xcode-1.2 package from Apple disc.  This has has cvs, etc.
@@ -152,7 +159,7 @@ are for Unix (non apple) machines only, and can be ignored.
 <P>
 <LI>
 edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/sv.h.
-on line 387, comment out the 
+on line 387 (OSX 10.4: Perl 5.8.6, line 388), comment out the 
 <UL>
 	DIR *    xiou_dirp;   /* for opendir, readdir, etc */
 line.
@@ -161,7 +168,9 @@ line.
 
 <P>
 <LI>
-edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/reentr.h
+edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/reentr.h 
+(OSX 10.4: Perl 5.8.6; line numbers 720, 723);
+
 <UL>
 <LI>On line 716, comment out the
 	struct tm _gmtime_struct;
@@ -174,7 +183,7 @@ line.
 <LI>
 edit /usr/include/dirent.h
 <UL>
-<LI>On line 113, comment out the line:
+<LI>On line 113 (OSX 10.4 line 114), comment out the line:
 	struct dirent *readdir(DIR *);
 <LI>NOTE: you may have to change the permissions on this file in order to write it.
 
@@ -182,7 +191,7 @@ edit /usr/include/dirent.h
 
 <P>
 <LI>
-edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/proto.h line 915
+edit /System/Library/Perl/5.8.1/darwin-thread-multi-2level/CORE/proto.h line 915 (OSX 10.4; perl 5.8.6, line 916)
 <UL>
 comment out line 915: 
 	PERL_CALLCONV DIR*        Perl_dirp_dup(pTHX_ DIR* dp);
