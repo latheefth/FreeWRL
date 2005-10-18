@@ -228,10 +228,8 @@ close OUT;
 
 
 # make the xs_init.c file We seem to need to do this for OS X
-# and copy over other makefiles as required.
 if ($OS eq "Darwin") {
 	`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
-	`cp FreeWRL_Message/Makefile.aqua FreeWRL_Message/Makefile`;
 }
 
 ## make the Javascript libraries if needed
