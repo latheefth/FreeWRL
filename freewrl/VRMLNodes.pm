@@ -317,6 +317,9 @@ my $protono;
 	BooleanToggle
 	GeoMetadata
 	WorldInfo
+	PROFILE
+	COMPONENT
+	META
         /;
 
 # nodes that are valid children fields. Check out the X3DChildNode
