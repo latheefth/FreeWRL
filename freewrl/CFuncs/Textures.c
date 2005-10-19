@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include "readpng.h"
 
+
 void new_do_texture(int texno);
 void checkAndAllocTexMemTables(GLuint *texture_num, int increment);
 
@@ -40,6 +41,8 @@ struct loadTexParams {
 	GLint Src;
 	GLint Trc;
 	GLint Image;
+
+	GLint mode;
 };
 
 
@@ -138,24 +141,26 @@ int isTextureParsing() {
 void init_multitexture_handling() {
 	char *glExtensions;
 
-	glExtensions = glGetString(GL_EXTENSIONS);
+	glExtensions = (char *)glGetString(GL_EXTENSIONS);
 
 	if ((strstr (glExtensions, "GL_ARB_texture_env_combine")!=0) &&
 		(strstr (glExtensions,"GL_ARB_multitexture")!=0)) {
 
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB,&maxTexelUnits);
+		glGetIntegerv(GL_MAX_TEXTURE_UNITS,&maxTexelUnits);
 
 		if (maxTexelUnits > MAX_MULTITEXTURE) {
 			printf ("init_multitexture_handling - reducing number of multitexs from %d to %d\n",
 				maxTexelUnits,MAX_MULTITEXTURE);
 			maxTexelUnits = MAX_MULTITEXTURE;
 		}
+		#ifdef TEXVERBOSE
 		printf ("can do multitexture we have %d units\n",maxTexelUnits);
+		#endif
 
 
 		/* we assume that GL_TEXTURE*_ARB are sequential. Lets to a little check */
-		if ((GL_TEXTURE0_ARB +1) != GL_TEXTURE1_ARB) {
-			printf ("Warning, code expects GL_TEXTURE0_ARB to be 1 less than GL_TEXTURE1_ARB\n");
+		if ((GL_TEXTURE0 +1) != GL_TEXTURE1) {
+			printf ("Warning, code expects GL_TEXTURE0 to be 1 less than GL_TEXTURE1\n");
 		} 
 
 	} else {
@@ -216,7 +221,7 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 		if (thisurl.n != 0) {
 			/* we have an image specified for this face */
 
-			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, (GLuint *)thistex, 0, 0);
+			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, (GLuint *)thistex, 0, 0,GL_MODULATE);
 
 			/* if we do not have an image for this Background face yet, dont draw
 			 * the quads */
@@ -228,8 +233,7 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 }
 
 /* load in a texture, if possible */
-void loadImageTexture (struct VRML_ImageTexture *node) {
-
+void loadImageTexture (struct VRML_ImageTexture *node, GLint mode) {
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
@@ -245,28 +249,118 @@ void loadImageTexture (struct VRML_ImageTexture *node) {
 
 	bind_image(IMAGETEXTURE, node->__parenturl,
 		node->url,
-		(GLuint*)&node->__texture,node->repeatS,node->repeatT);
+		(GLuint*)&node->__texture,node->repeatS,node->repeatT,mode);
 
         bound_textures[texture_count] = node->__texture;
 
 }
 
-/* load in a texture, if possible */
+/* load in a MultiTexture, if possible */
+/*
+
+                                                alpha =>[SFFloat, 1, exposedField],
+                                                color =>[SFColor,[1,1,1],exposedField],
+                                                function =>[MFString,[],exposedField],
+                                                mode =>[MFString,[],exposedField],
+                                                source =>[MFString,[],exposedField],
+                                                texture=>[MFNode,undef,exposedField],
+*/
+
+
 void loadMultiTexture (struct VRML_MultiTexture *node) {
 	int count;
 	int max;
+	GLint * mp, *sp;
+
+	char *mode;
+	STRLEN xx;
+
 	struct VRML_ImageTexture *nt;
 
-
-	/* have we initiated multitexture support yet? */
-	if (maxTexelUnits < 0)  {
-		init_multitexture_handling();
-	}
-
-	/* printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->__aType,
+	#ifdef TEXVERBOSE
+	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->__aType,
 			node->texture.n,
 			node->texture.p[0], node->texture.p[1]);
-	*/
+	printf ("	change %d ichange %d\n",node->_change, node->_ichange);
+	#endif
+	
+	/* new node, or node paramaters changed */
+        if (node->_ichange != node->_change) {
+                /*  have to regen the shape*/
+                node->_ichange = node->_change;
+
+		/* have we initiated multitexture support yet? */
+		if (maxTexelUnits < 0)  {
+			init_multitexture_handling();
+		}
+
+		/* alloc fields, if required - only do this once, even if node changes */
+		if (node->__modes == 0) {
+			/* printf ("loadMulti, mallocing for modes\n"); */
+			node->__modes = (int) malloc (sizeof (GLuint) * maxTexelUnits);
+			node->__sources = (int) malloc (sizeof (GLuint) * maxTexelUnits);
+			mp = (GLint *) node->__modes;
+			sp = (GLint *) node->__sources;
+
+			/* set defaults for these fields */
+			for (count = 0; count < maxTexelUnits; count++) {
+				*mp  = GL_MODULATE; mp++;
+				*sp = GL_SPECULAR; sp++;
+			}
+		}
+
+		/* how many textures can we use? no sense scanning those we cant use */
+		max = node->mode.n; 
+		if (max > maxTexelUnits) max = maxTexelUnits;
+
+		/* go through the modes, and change string name into a GLint */
+		mp = (GLint *) node->__modes;
+		for (count = 0; count < max; count++) {
+			mode = SvPV(node->mode.p[count],xx);
+			/* printf ("mode %d is %s len %d\n",count, mode, xx); */
+		        if (strncmp("MODULATE",mode,strlen("MODULATE"))==0) { *mp = GL_MODULATE; }
+		        else if (strncmp("REPLACE",mode,strlen("REPLACE"))==0) { *mp = GL_REPLACE; }
+
+/*		        else if (strncmp("MODULATE2X",mode,strlen("MODULATE2X"))==0) { *mp = GL_MODULATE2X; } */
+/*		        else if (strncmp("MODULATE4X",mode,strlen("MODULATE4X"))==0) { *mp = GL_MODULATE4X; } */
+		        else if (strncmp("ADD",mode,strlen("ADD"))==0) { *mp = GL_ADD; }
+/*		        else if (strncmp("ADDSIGNED",mode,strlen("ADDSIGNED"))==0) { *mp = GL_ADDSIGNED; } */
+		        else if (strncmp("SUBTRACT",mode,strlen("SUBTRACT"))==0) { *mp = GL_SUBTRACT; }
+/*		        else if (strncmp("ADDSMOOTH",mode,strlen("ADDSMOOTH"))==0) { *mp = GL_ADDSMOOTH; } */
+/*		        else if (strncmp("BLENDDIFFUSEALPHA",mode,strlen("BLENDDIFFUSEALPHA"))==0) { *mp = GL_BLENDDIFFUSEALPHA; } */
+/*		        else if (strncmp("BLENDCURRENTALPHA",mode,strlen("BLENDCURRENTALPHA"))==0) { *mp = GL_BLENDCURRENTALPHA; } */
+/*		        else if (strncmp("MODULATEALPHA_ADDCOLOR",mode,strlen("MODULATEALPHA_ADDCOLOR"))==0) { *mp = GL_MODULATEALPHA_ADDCOLOR; } */
+/*		        else if (strncmp("MODULATEINVALPHA_ADDCOLOR",mode,strlen("MODULATEINVALPHA_ADDCOLOR"))==0) { *mp = GL_MODULATEINVALPHA_ADDCOLOR; } */
+/*		        else if (strncmp("MODULATEINVCOLOR_ADDALPHA",mode,strlen("MODULATEINVCOLOR_ADDALPHA"))==0) { *mp = GL_MODULATEINVCOLOR_ADDALPHA; } */
+/*		        else if (strncmp("OFF",mode,strlen("OFF"))==0) { *mp = GL_OFF; } */
+/*		        else if (strncmp("SELECTARG1",mode,strlen("SELECTARG1"))==0) { *mp = GL_SELECTARG1; } */
+/*		        else if (strncmp("SELECTARG2",mode,strlen("SELECTARG2"))==0) { *mp = GL_SELECTARG2; } */
+/*		        else if (strncmp("DOTPRODUCT3",mode,strlen("DOTPRODUCT3"))==0) { *mp = GL_DOTPRODUCT3; } */
+			else {
+				ConsoleMessage ("MultiTexture - invalid mode or not supported yet- \"%s\"\n",mode); *mp=GL_MODULATE;
+			}
+
+
+			/* printf ("mp for %d is %d\n",count,*mp); */
+			mp++;
+		}
+
+
+	/* compile the sources */
+/*
+""
+"DIFFUSE"
+"SPECULAR"
+"FACTOR"
+*/
+	/* compile the functions */
+/*""
+"COMPLEMENT"
+"ALPHAREPLICATE"
+*/
+
+
+	}
 
 	/* ok, normally the scene graph contains function pointers. What we have
 	   here is a set of pointers to datastructures of (hopefully!)
@@ -281,25 +375,34 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 	if (max > maxTexelUnits) max = maxTexelUnits;
 
 	/* go through and get all of the textures */
+	mp = (GLint *) node->__modes;
+
 	for (count=0; count < max; count++) {
+		#ifdef TEXVERBOSE
+		printf ("loadMultiTexture, working on texture %d\n",count);
+		#endif
+
+		glActiveTexture(GL_TEXTURE0+count);
+		glEnable(GL_TEXTURE_2D);
+
 		/* get the texture */
 		nt = node->texture.p[count];
 
 		switch (nt->__aType) {
 			case 4: 
-				/* printf ("MultiTexture %d is a ImageTexture\n",count); */
-				loadImageTexture ((struct VRML_ImageTexture*) nt);
+				/* printf ("MultiTexture %d is a ImageTexture mode %d\n",count,*mp);  */
+				loadImageTexture ((struct VRML_ImageTexture*) nt,*mp);
 				break;
 			case 1:
-				printf ("MultiTexture %d is a MULTITEXTURE!!\n",count);
+				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
 				break;
 			case 2:
 				/* printf ("MultiTexture %d is a PixelTexture\n",count); */
-				loadPixelTexture ((struct VRML_PixelTexture*) nt);
+				loadPixelTexture ((struct VRML_PixelTexture*) nt,*mp);
 				break;
 			case 3:
 				/* printf ("MultiTexture %d is a MovieTexture\n"); */
-				loadMovieTexture ((struct VRML_MovieTexture*) nt);
+				loadMovieTexture ((struct VRML_MovieTexture*) nt,*mp);
 				break;
 			default:
 				printf ("MultiTexture - unknown sub texture type %d\n",
@@ -311,13 +414,17 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 		   for "normal" textures; at least 1 for MultiTextures. */
 
         	texture_count++;
-	}
+		mp++;
 
+		#ifdef TEXVERBOSE
+		printf ("loadMultiTexture, finished with texture %d\n",count);
+		#endif
+	}
 }
 
 
 /* load in a texture, if possible */
-void loadPixelTexture (struct VRML_PixelTexture *node) {
+void loadPixelTexture (struct VRML_PixelTexture *node, GLint mode) {
 	struct Multi_String mynull;
 
 	if (node->_ichange != node->_change) {
@@ -333,13 +440,13 @@ void loadPixelTexture (struct VRML_PixelTexture *node) {
 	}
 	bind_image(PIXELTEXTURE, node->image,
 		mynull,
-		(GLuint*)&node->__texture,node->repeatS,node->repeatT);
+		(GLuint*)&node->__texture,node->repeatS,node->repeatT,mode);
 
         bound_textures[texture_count] = node->__texture;
 }
 
 /* load in a texture, if possible */
-void loadMovieTexture (struct VRML_MovieTexture *node) {
+void loadMovieTexture (struct VRML_MovieTexture *node,GLint mode) {
 	int firsttex;
 
 	/* possible bug? If two nodes use the same MovieTexture URL, and,
@@ -362,6 +469,7 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 				isloaded[firsttex] = NOTLOADED;
 				loadparams[firsttex].filename="uninitialized file";
 				loadparams[firsttex].depth = 0;
+				loadparams[firsttex].mode = mode;
 				freeTexture((GLuint *)&(node->__texture0_)); /* this will cause bind_image to create a */
 				freeTexture((GLuint *)&(node->__texture1_)); /* this will cause bind_image to create a */
 				node->__ctex = 0;
@@ -374,7 +482,7 @@ void loadMovieTexture (struct VRML_MovieTexture *node) {
 
 	bind_image(MOVIETEXTURE, node->__parenturl,
 		node->url,
-		(GLuint*)&node->__texture0_,node->repeatS,node->repeatT);
+		(GLuint*)&node->__texture0_,node->repeatS,node->repeatT,mode);
 
 	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
 
@@ -467,7 +575,7 @@ void do_possible_textureSequence(int texno) {
 
 			/* elements that are different from the "standard" */
 			loadparams[texnums[st]].texdata =(unsigned char *) malloc (imageDatasize);
-			loadparams[texnums[st]].texture_num = (unsigned int *)&texnums[st];
+			loadparams[texnums[st]].texture_num = (GLuint *)&texnums[st];
 			loadparams[texnums[st]].frames=1;
 
 			/* copy the segment out of the squished data to this pure frame */
@@ -506,8 +614,9 @@ void new_do_texture(int texno) {
 
 	/* save this to determine whether we need to do material node
 	  within appearance or not */
-
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	
+	/* printf ("new_do_texture, texno %d mode %d\n",texno,loadparams[texno].mode); */
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, loadparams[texno].mode);
 
 	/* Image should be GL_LINEAR for pictures, GL_NEAREST for pixelTs */
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, loadparams[texno].Image);
@@ -568,10 +677,12 @@ void new_do_texture(int texno) {
 	texture_num	the OpenGL texture identifier
 
 	repeatS, repeatT VRML fields
+
+	mode - vrml fields, but translated into GL_MODULATE, etc.
 ************************************************************************************/
 
 void bind_image(int itype, SV *parenturl, struct Multi_String url,
-		GLuint *texture_num, int repeatS, int repeatT) {
+		GLuint *texture_num, int repeatS, int repeatT, GLint mode) {
 
 	#ifdef TEXVERBOSE 
 	printf ("bind_image, textureInProcess %d\n",textureInProcess);
@@ -682,6 +793,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	loadparams[*texture_num].texture_num = texture_num;
 	loadparams[*texture_num].repeatS = repeatS;
 	loadparams[*texture_num].repeatT = repeatT;
+	loadparams[*texture_num].mode = mode;
 	if (currentlyWorkingOn <0) {
 		#ifdef TEXVERBOSE
 			printf ("currentlyWorkingOn WAS %d ",currentlyWorkingOn);
@@ -1321,4 +1433,39 @@ void __reallyloadMovieTexture () {
 
 	/* now, for the mpeg specific data */
 	loadparams[currentlyWorkingOn].frames = frameCount;
+}
+
+
+/*********************************************************************************/
+/* texture enabling - works for single texture, for multitexture. */
+
+
+void textureDraw_start(GLfloat *tex) {
+	int c;
+
+	#ifdef TEXVERBOSE
+	printf ("textureDraw_start, texture_count %d\n",texture_count);
+	#endif
+
+	for (c=0; c<texture_count; c++) {
+		/* are we ok with this texture yet? */
+		if (isloaded[bound_textures[c]] == LOADED) {
+			glActiveTexture(GL_TEXTURE0+c);
+			glClientActiveTexture(GL_TEXTURE0+c);
+			glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
+			glTexCoordPointer (2,GL_FLOAT,0,tex);
+			glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+			glEnable(GL_TEXTURE_2D);
+		}
+	}
+}
+
+void textureDraw_end(void) {
+	int c;
+
+	for (c=0; c<texture_count; c++) {
+		glClientActiveTexture(GL_TEXTURE0+c);
+		glDisable(GL_TEXTURE_2D);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	}
 }

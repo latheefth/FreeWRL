@@ -24,7 +24,7 @@ find . -name "*.class" -exec rm -r {} \;
 find . -name "*.jar" -exec rm -r {} \;
 
 # remove empty directories.
-find -type d -empty -exec rmdir {} \;
+find . -type d -empty -exec rmdir {} \;
 
 rm package*
 rm Viewer.pm

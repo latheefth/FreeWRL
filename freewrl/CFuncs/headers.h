@@ -189,6 +189,8 @@ extern int global_IFS_Coord_count;
 /* texture stuff - see code. Need array because of MultiTextures */
 extern GLuint bound_textures[MAX_MULTITEXTURE];
 extern int texture_count; 
+extern void textureDraw_start(GLfloat *tex);
+extern void textureDraw_end(void);
 
 
 
@@ -441,9 +443,9 @@ extern int isPerlParsing(void);
 extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
 extern int isTextureParsing(void);
 extern void loadInline(struct VRML_Inline *node);
-extern void loadImageTexture(struct VRML_ImageTexture *node);
-extern void loadPixelTexture(struct VRML_PixelTexture *node);
-extern void loadMovieTexture(struct VRML_MovieTexture *node);
+extern void loadImageTexture(struct VRML_ImageTexture *node,GLint mode);
+extern void loadPixelTexture(struct VRML_PixelTexture *node,GLint mode);
+extern void loadMovieTexture(struct VRML_MovieTexture *node,GLint mode);
 extern void loadMultiTexture(struct VRML_MultiTexture *node);
 extern void loadBackgroundTextures (struct VRML_Background *node);
 extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
@@ -612,4 +614,6 @@ void outOfMemory(char *message);
 void initializeScript(int num,int evIn);
 
 void killErrantChildren(void);
+
+
 #endif /* __HEADERS_H__ */

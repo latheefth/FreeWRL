@@ -66,6 +66,9 @@ package VRML::Parser;
 use vars qw/$Word $qre $cre/;
 VRML::Error->import;
 
+
+my $Chars = qr/(?:[\x00-\x21\x23-\x5b\x5d-\xffff]*|\x5c\x22|\x5c{2}[^\x22])*/o;
+
 # Parse a whole file into $scene.
 sub parse {
 	my($scene, $text) = @_;
@@ -110,6 +113,18 @@ sub parse_statement { # string in $_[1]
 		(pos $_[1]) = $p;
 		parse_proto($scene,$_[1]);
 		return undef;
+	} elsif($_[1] =~ /\G\s*PROFILE\b/gsc) {
+		(pos $_[1]) = $p;
+		parse_PROFILE($scene, $_[1]);
+		return undef;
+	} elsif($_[1] =~ /\G\s*META\b/gsc) {
+		(pos $_[1]) = $p;
+		parse_META($scene, $_[1]);
+		return undef;
+	} elsif($_[1] =~ /\G\s*COMPONENT\b/gsc) {
+		(pos $_[1]) = $p;
+		parse_COMPONENT($scene, $_[1]);
+		return undef;
 	} elsif($_[1] =~ /\G\s*ROUTE\b/gsc) {
 		(pos $_[1]) = $p;
 		parse_route($scene,$_[1]);
@@ -128,6 +143,41 @@ sub parse_statement { # string in $_[1]
 			if $VRML::verbose::parse;
 		parsefail($_[1],"Can't find next statement");
 	}
+}
+
+#parse a PROFILE statement in a VRML file. Dont do anything with it yet.
+sub parse_PROFILE  {
+	my($scene) = @_;
+	$_[1] =~ /\G\s*PROFILE\s+($Word)\s*/ogsxc
+	 or parsefail($_[1], "PROFILE statement");
+	#my $name = $1;
+	#print "parse profile:", $name,"\n";
+}
+
+#parse a COMPONENT statement in a VRML file. Dont do anything with it yet.
+sub parse_COMPONENT  {
+	my($scene) = @_;
+	$_[1] =~ /\G\s*COMPONENT\s*/ogsxc
+		 or parsefail($_[1], "COMPONENT statement");
+
+        $_[1] =~ /\G\s*\x22($Chars)\x22\s*/g
+                or VRML::Error::parsefail($_[1], "improper SFString");
+
+        $_[1] =~ /\G\s*\x22($Chars)\x22\s*/g
+                or VRML::Error::parsefail($_[1], "improper SFString");
+}
+
+#parse a META statement in a VRML file. Dont do anything with it yet.
+sub parse_META  {
+	my($scene) = @_;
+	$_[1] =~ /\G\s*META\s*/ogsxc
+		 or parsefail($_[1], "META statement");
+
+        $_[1] =~ /\G\s*\x22($Chars)\x22\s*/g
+                or VRML::Error::parsefail($_[1], "improper SFString");
+
+        $_[1] =~ /\G\s*\x22($Chars)\x22\s*/g
+                or VRML::Error::parsefail($_[1], "improper SFString");
 }
 
 sub parse_proto {

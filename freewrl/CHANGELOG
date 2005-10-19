@@ -1,4 +1,8 @@
 For 1.14:
+	- MultiTexture node support.
+
+	- parse META, PROFILE, COMPONENT in VRML encoded X3D files.
+
 	- support for building rpms in Makefile.PL.
 
 	- status bar updated to reduce size and increase information.

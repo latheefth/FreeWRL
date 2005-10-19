@@ -806,8 +806,9 @@ printf ("intern %d\n", p->_intern);
 
 	/*  textures?*/
 	if (r->tcoord) {
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer (2,GL_FLOAT,0,r->tcoord);
+		/* glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer (2,GL_FLOAT,0,r->tcoord); */
+		textureDraw_start(r->tcoord);
 	}
 
 	/*  colours?*/
@@ -826,7 +827,8 @@ printf ("intern %d\n", p->_intern);
 		glDisable(GL_COLOR_MATERIAL);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	if (r->tcoord) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	if (r->tcoord) /* glDisableClientState(GL_TEXTURE_COORD_ARRAY); */
+		textureDraw_end();
 	/*  clockwise or not? - NVIDIA needs this reset; Mesa was ok without it*/
 	if (!r->ccw) glFrontFace(GL_CCW);
 

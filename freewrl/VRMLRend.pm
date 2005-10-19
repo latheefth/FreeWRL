@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.163  2005/10/19 19:38:58  crc_canada
+# MultiTexture, META, PROFILE, COMPONENT node support.
+#
 # Revision 1.162  2005/09/29 03:01:13  crc_canada
 # initial MultiTexture support
 #
@@ -238,17 +241,13 @@ Box => '
 	}
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
+	textureDraw_start(boxtex);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 	glNormalPointer (GL_FLOAT,0,boxnorms);
-	if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,boxtex);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	glDrawArrays (GL_QUADS, 0, 24);
-
-	if (HAVETODOTEXTURES) glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-
+	textureDraw_end();
 	if(!$f(solid)) { glPopAttrib(); }
 ',
 
@@ -311,18 +310,17 @@ Cylinder => '
 
 
 	/*  Display the shape*/
-	if (HAVETODOTEXTURES) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 
 	if ($f(side)) {
 		glNormalPointer (GL_FLOAT,0,cylnorms);
-		if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,cylsidetex);
+		textureDraw_start(cylsidetex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
 	}
-	if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,cylendtex);
 	if($f(bottom)) {
+		textureDraw_start(cylendtex);
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
@@ -330,14 +328,13 @@ Cylinder => '
 	}
 
 	if ($f(top)) {
+		textureDraw_start(cylendtex);
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
-	/* set things back to normal - Textures and ColoUrs disabled. */
-	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
+	textureDraw_end();
 
 	if(!$f(solid)) { glPopAttrib(); }
 ',
@@ -432,12 +429,10 @@ Cone => '
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
-	if (HAVETODOTEXTURES) glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-
 	if($f(bottom)) {
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__botpoints);
-		if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,tribottex);
+		textureDraw_start(tribottex);
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
@@ -446,13 +441,12 @@ Cone => '
 	if($f(side)) {
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__sidepoints);
 		glNormalPointer (GL_FLOAT,0,(GLfloat *)this_->__normals);
-		if (HAVETODOTEXTURES) glTexCoordPointer (2,GL_FLOAT,0,trisidtex);
+		textureDraw_start(trisidtex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_TRIANGLES, 0, 60);
 	}
-	/*  set things back to normal - Textures and ColoUrs disabled.*/
-	if (HAVETODOTEXTURES) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	textureDraw_end();
 
 
 	if(!$f(solid)) { glPopAttrib(); }
@@ -543,10 +537,7 @@ Sphere => '
 
 
 	/*  Display the shape*/
-	if (HAVETODOTEXTURES) {
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer (2,GL_FLOAT,0,spheretex);
-	}
+	textureDraw_start(spheretex);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 	glNormalPointer (GL_FLOAT,0,spherenorms);
 
@@ -555,8 +546,7 @@ Sphere => '
 		glDrawArrays (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 	}
 
-	if (HAVETODOTEXTURES) glDisableClientState (GL_TEXTURE_COORD_ARRAY);
-
+	textureDraw_end();
 
 	if(!$f(solid)) { glPopAttrib(); }
 ',
@@ -1291,12 +1281,12 @@ TextureTransform => '
 
 # Pixels and Images are all handled the same way now - the methods are identical.
 PixelTexture => '
-	loadPixelTexture(this_);
+	loadPixelTexture(this_,GL_MODULATE);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 ',
 
 ImageTexture => '
-	loadImageTexture(this_);
+	loadImageTexture(this_,GL_MODULATE);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 ',
 
@@ -1314,7 +1304,7 @@ MovieTexture => '
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
-	loadMovieTexture(this_);
+	loadMovieTexture(this_,GL_MODULATE);
 	bound_textures[texture_count] = this_->__ctex;
 	/* not multitexture, should have saved to bound_textures[0] */
 	
@@ -1952,24 +1942,7 @@ Billboard => (join '','
 
 		/* should we render this node on this pass? */
 		if (should_rend) {
-			if (texture_count != 0) {
-				/* we had at least 1 texture */
-				for (count = 0; count < texture_count; count++) {
-					glActiveTextureARB(GL_TEXTURE0_ARB+count);
-					glBindTexture(GL_TEXTURE_2D,bound_textures[count]);
-					glEnable (GL_TEXTURE_2D);
-				}
-			}
-			/* Now, do the geometry */
 			render_node((this_->geometry));
-
-			/* disable the texture */
-			if (texture_count != 0) {
-				for (count = 0; count < texture_count; count++) {
-					glActiveTextureARB(GL_TEXTURE0_ARB+count);
-					glDisable (GL_TEXTURE_2D);
-				}
-			}
 		}
 
 		/* did we have a TextureTransform in the Appearance node? */
