@@ -81,6 +81,8 @@ double nearPlane=0.1;
 double farPlane=21000.0;
 double screenRatio=1.5;
 double fieldofview=45.0;
+
+
 unsigned char * CursorOverSensitive=0;		/*  is Cursor over a Sensitive node?*/
 unsigned char * oldCOS=0;			/*  which node was cursor over before this node?*/
 int NavigationMode=FALSE;		/*  are we navigating or sensing?*/
@@ -147,6 +149,9 @@ void EventLoop() {
 	struct timezone tz; /* unused see man gettimeofday */
 
 	/* printf ("start of MainLoop\n");*/
+	#ifdef PROFILEMARKER
+	glTranslatef(1,1,1); glTranslatef (-1,-1,-1);
+	#endif
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
@@ -202,6 +207,10 @@ void EventLoop() {
 		BrowserAction = FALSE;	/* action complete */
 	}
 
+	#ifdef PROFILEMARKER
+	glTranslatef(2,2,2); glTranslatef (-2,-2,-2);
+	#endif
+
 	/* handle any events provided on the command line - Robert Sim */
 	if (keypress_string && doEvents) {
 		if (keypress_wait_for_settle > 0) {
@@ -220,6 +229,12 @@ void EventLoop() {
 
 	/* Handle X events */
 	handle_Xevents();
+
+
+	#ifdef PROFILEMARKER
+	glTranslatef(3,3,3); glTranslatef (-3,-3,-3);
+	#endif
+
 
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
@@ -240,6 +255,11 @@ void EventLoop() {
 	/* setup Projection and activate ProximitySensors */
 	render_pre();
 
+
+	#ifdef PROFILEMARKER
+	glTranslatef(4,4,4); glTranslatef (-4,-4,-4);
+	#endif
+
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -251,6 +271,11 @@ void EventLoop() {
 	/* first events (clock ticks, etc) if we have other things to do, yield */
 	if (doEvents) do_first (); else sched_yield();
 
+
+	#ifdef PROFILEMARKER
+	glTranslatef(5,5,5); glTranslatef (-5,-5,-5);
+	#endif
+
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
 	oxf = xxf;
@@ -261,6 +286,9 @@ void EventLoop() {
 	/* actual rendering */
 	render();
 
+	#ifdef PROFILEMARKER
+	glTranslatef(6,6,6); glTranslatef (-6,-6,-6);
+	#endif
 
 	#ifdef PROFILE
 	gettimeofday (&mytime,&tz);
@@ -359,6 +387,11 @@ void EventLoop() {
 		Snapshot();
 	}
 
+
+	#ifdef PROFILEMARKER
+	glTranslatef(7,7,7); glTranslatef (-7,-7,-7);
+	#endif
+
 	if (doEvents) {
 		/* handle ROUTES - at least the ones not generated in do_first() */
 		propagate_events();
@@ -368,6 +401,11 @@ void EventLoop() {
 
 		/* EAI */
 		handle_EAI();
+
+
+	#ifdef PROFILEMARKER
+	glTranslatef(10,10,10); glTranslatef (-10,-10,-10);
+	#endif
 
 	}
 	/* any new scripts in here, that maybe are not initialized yet?
@@ -517,7 +555,7 @@ void render_pre() {
 	when in stereo mode. */
 	fwLoadIdentity();
 
-	if (get_headlight()) BackEndHeadlightOn();
+	if (get_headlight()) lightState(0,TRUE);
 
 
 	/* 3. Viewpoint */
@@ -550,6 +588,12 @@ void render() {
 
 	for (count = 0; count < maxbuffers; count++) {
 
+
+	#ifdef PROFILEMARKER
+	glTranslatef(50,50,50); glTranslatef (-50,-50,-50);
+	#endif
+
+
 	/* gettimeofday (&mytime,&tz);*/
 	/* aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
 
@@ -562,19 +606,36 @@ void render() {
 
 		/*  turn light #0 off only if it is not a headlight.*/
 		if (!get_headlight()) {
-			BackEndHeadlightOff();
+			lightState(0,FALSE);
 		}
+
+
+		#ifdef PROFILEMARKER
+		glTranslatef(50,50,50); glTranslatef (-50,-50,-50);
+		#endif
+
 
 		/*  Correct Viewpoint, only needed when in stereo mode.*/
 		if (maxbuffers > 1) setup_viewpoint(FALSE);
 
+
+		#ifdef PROFILEMARKER
+		glTranslatef(51,51,51); glTranslatef (-51,-51,-51);
+		#endif
+
 	/* gettimeofday (&mytime,&tz);*/
 	/* bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
+
 		/*  Other lights*/
 		glPrintError("XEvents::render, before render_hier");
 
 		render_hier((void *)rootNode, VF_Lights);
 		glPrintError("XEvents::render, render_hier(VF_Lights)");
+
+
+		#ifdef PROFILEMARKER
+		glTranslatef(52,52,52); glTranslatef (-52,-52,-52);
+		#endif
 
 	/* gettimeofday (&mytime,&tz);*/
 	/* cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
@@ -585,6 +646,11 @@ void render() {
 		glPrintError("XEvents::render, render_hier(VF_Geom)");
 
 		/*  5. Blended Nodes*/
+
+
+		#ifdef PROFILEMARKER
+		glTranslatef(53,53,53); glTranslatef (-53,-53,-53);
+		#endif
 
 	/* gettimeofday (&mytime,&tz);*/
 	/* dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
@@ -601,6 +667,12 @@ void render() {
 			glPrintError("XEvents::render, render_hier(VF_Geom)");
 		}
 
+		#ifdef PROFILEMARKER
+		glTranslatef(54,54,54); glTranslatef (-54,-54,-54);
+		#endif
+
+
+
 	/* gettimeofday (&mytime,&tz);*/
 	/* ee = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;*/
 
@@ -612,6 +684,12 @@ void render() {
 	CGLError err = CGLFlushDrawable(aqglobalContext);
 	updateContext();
 #endif
+
+	#ifdef PROFILEMARKER
+	glTranslatef(55,55,55); glTranslatef (-55,-55,-55);
+	#endif
+
+
 	glPrintError("XEvents::render");
 }
 
@@ -716,9 +794,9 @@ void setup_projection(int pick, int x, int y) {
 
         /* bounds check */
         if ((fieldofview <= 0.0) || (fieldofview > 180.0)) fieldofview=45.0;
+        /* glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);  */
+        gluPerspective(fieldofview, screenRatio, nearPlane, farPlane); 
 
-        gluPerspective(fieldofview, screenRatio, nearPlane, farPlane);
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT,GL_NICEST);
         fwMatrixMode(GL_MODELVIEW);
 
 	glPrintError("XEvents::setup_projection");
@@ -914,7 +992,6 @@ void Next_ViewPoint() {
 
 /* set internal variables for screen sizes, and calculate frustum */
 void setScreenDim(int wi, int he) {
-	/* printf ("setScreenDim called - %d x %d\n",wi,he);*/
         screenWidth = wi;
         screenHeight = he;
         if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;

@@ -52,11 +52,8 @@ BackEndClearBuffer(void);
 void
 BackEndLightsOff(void);
 
-void
-BackEndHeadlightOff(void);
+void lightState (GLint light, int state);
 
-void
-BackEndHeadlightOn(void);
 
 #ifndef AQUA
 extern Display *dpy;

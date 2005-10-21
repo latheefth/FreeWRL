@@ -72,11 +72,6 @@ void render_status () {
 
 	char statusline[200];
 
-	static GLfloat light_ambient[] = {0.0, 0.0, 0.0, 1.0};
-	static GLfloat light_diffuse[] = {0.0, 0.0, 0.0, 1.0};
-	static GLfloat light_specular[] = {0.0, 0.0, 0.0, 1.0};
-	static GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};
-
 	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
 	glShadeModel(GL_SMOOTH);
 	glPushMatrix();
@@ -121,11 +116,7 @@ void render_status () {
 	new_status = FALSE;
 
 	glDisable (GL_LIGHTING);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glEnable(GL_LIGHT0);
+	lightState(0,TRUE);
         glColor3d(1.0,1.0,1.0);
 	glScalef(0.5,1.0, 1.0);
 

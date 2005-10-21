@@ -20,23 +20,35 @@ extern CGLContextObj aqglobalContext;
 static int now_mapped = 1;		/* are we on screen, or minimized? */
 
 
-int
-get_now_mapped()
-{
+/* lights status. Light 0 is the headlight */
+static int lights[8];
+
+/* keep track of lighting */
+void lightState(GLint light, int status) {
+	if (lights[light] != status) {
+		if (status) glEnable(GL_LIGHT0+light);
+		else glDisable(GL_LIGHT0+light);
+		lights[light]=status;
+	}
+}
+
+
+int get_now_mapped() {
 	return now_mapped;
 }
 
 
-void
-set_now_mapped(int val)
-{
+void set_now_mapped(int val) {
 	now_mapped = val;
 }
 
 
-void
-glpOpenGLInitialize()
-{
+void glpOpenGLInitialize() {
+	int i;
+        float pos[] = { 0.0, 0.0, 0.0, 1.0 };
+        float s[] = { 1.0, 1.0, 1.0, 1.0 };
+        float As[] = { 0.0, 0.0, 0.0, 1.0 };
+
 	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f;
         #ifdef AQUA
         CGLSetCurrentContext(aqglobalContext);
@@ -67,7 +79,20 @@ glpOpenGLInitialize()
 	/* end of ALPHA test */
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
+
+	/* keep track of light states; initial turn all lights off except for headlight */
+	for (i=0; i<8; i++) {
+		lights[i] = 9999;
+		lightState(i,FALSE);
+	}
+	lightState(0, TRUE);
+
+        glLightfv(GL_LIGHT0, GL_POSITION, pos);
+printf ("XXX - in here, settign AMBIENT to %f %f %f\n",As[0],As[1],As[2]);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, As);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, s);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, s);
+
 	glEnable(GL_CULL_FACE);
 
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -79,46 +104,20 @@ glpOpenGLInitialize()
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, (float) (0.2 * 128));
 }
 
-void
-BackEndClearBuffer()
-{
+void BackEndClearBuffer() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void
-BackEndLightsOff()
-{
-	glDisable(GL_LIGHT1); /* Put them all off first (except headlight)*/
-	glDisable(GL_LIGHT2);
-	glDisable(GL_LIGHT3);
-	glDisable(GL_LIGHT4);
-	glDisable(GL_LIGHT5);
-	glDisable(GL_LIGHT6);
-	glDisable(GL_LIGHT7);
+/* turn off all non-headlight lights; will turn them on if required. */
+void BackEndLightsOff() {
+	int i;
+	for (i=1; i<8; i++) {
+		lightState(i, FALSE);
+	}
 }
-
-void
-BackEndHeadlightOff()
-{
-	glDisable(GL_LIGHT0); /* headlight off (or other, if no headlight) */
-}
-
-
-void
-BackEndHeadlightOn()
-{
-	float pos[] = { 0.0, 0.0, 1.0, 0.0 };
-	float s[] = { 1.0, 1.0, 1.0, 1.0 };
-
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, pos);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, s);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, s);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, s);
-}
-
 
 /* OpenGL tuning stuff - cache the modelview matrix */
+
 static int myMat = -111;
 static int MODmatOk = FALSE;
 static int PROJmatOk = FALSE;

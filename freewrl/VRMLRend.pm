@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.164  2005/10/21 20:16:52  crc_canada
+# lighting, multitexture changes.
+#
 # Revision 1.163  2005/10/19 19:38:58  crc_canada
 # MultiTexture, META, PROFILE, COMPONENT node support.
 #
@@ -1281,12 +1284,12 @@ TextureTransform => '
 
 # Pixels and Images are all handled the same way now - the methods are identical.
 PixelTexture => '
-	loadPixelTexture(this_,GL_MODULATE);
+	loadPixelTexture(this_,GL_TEXTURE_ENV,GL_REPLACE);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 ',
 
 ImageTexture => '
-	loadImageTexture(this_,GL_MODULATE);
+	loadImageTexture(this_,GL_TEXTURE_ENV,GL_REPLACE);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 ',
 
@@ -1304,7 +1307,7 @@ MovieTexture => '
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
-	loadMovieTexture(this_,GL_MODULATE);
+	loadMovieTexture(this_,GL_TEXTURE_ENV,GL_REPLACE);
 	bound_textures[texture_count] = this_->__ctex;
 	/* not multitexture, should have saved to bound_textures[0] */
 	
@@ -1826,6 +1829,19 @@ Billboard => (join '','
 	Collision => 'collisionChild(this_);',
 
 	Appearance => '
+		last_texture_depth = 0;
+		last_transparency = 1.0;
+
+		if($f(material)) {
+			render_node($f(material));
+		} else {
+			/* no material, so just colour the following shape */
+                       	/* Spec says to disable lighting and set coloUr to 1,1,1 */
+                       	glDisable (GL_LIGHTING);
+			glColor3f(1.0,1.0,1.0);
+			lightingOn = FALSE;
+		}
+
 		if($f(texture)) {
 			/* we have to do a glPush, then restore, later */
 			have_texture=TRUE;
@@ -1838,24 +1854,8 @@ Billboard => (join '','
 
 			/* now, render the texture */
 			render_node($f(texture));
-#ifndef X3DMATERIALPROPERTY
-		} else {
-			last_texture_depth = 0;
-			last_transparency = 1.0;
-#endif
 		}
 
-
-		/* if we have a material, do it. last_texture_depth is used to select diffuseColor */
-		if($f(material)) {
-			render_node($f(material));
-		} else {
-			/* no material, so just colour the following shape */
-                       	/* Spec says to disable lighting and set coloUr to 1,1,1 */
-                       	glDisable (GL_LIGHTING);
-			glColor3f(1.0,1.0,1.0);
-			lightingOn = FALSE;
-		}
 	',
 	Shape => '
 		int trans;
@@ -2009,7 +2009,6 @@ Billboard => (join '','
 				vec[0] = $f(color,0) * $f(ambientIntensity);
 				vec[1] = $f(color,1) * $f(ambientIntensity);
 				vec[2] = $f(color,2) * $f(ambientIntensity);
-
 				glLightfv(light, GL_AMBIENT, vec);
 
 				/* XXX */

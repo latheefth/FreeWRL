@@ -780,16 +780,13 @@ printf ("intern %d\n", p->_intern);
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
-		if (!lightingOn) {
-			glEnable (GL_LIGHTING);
-			lightingOn = TRUE;
-		}
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 		glEnable(GL_COLOR_MATERIAL);
+
 	}
 
 	/*  clockwise or not?*/
