@@ -607,6 +607,11 @@ sub parseX3DProtoInstance {
 	if ($LocalDEF ne "") {
                 # store this as a sequence number, because multiple DEFS of the same name
                 # must be unique. (see the spec)
+
+		if (VRML::Handles::def_check($LocalDEF) ne "") {
+			VRML::VRMLFunc::ConsoleMessage(
+				"WARNING: DEF name '$LocalDEF' has already been DEFined - we will use the current value");
+		} 
                 VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
                 $LASTDEF++;
                 my $defname = VRML::Handles::return_def_name($LocalDEF);
@@ -829,6 +834,11 @@ sub parseX3DScript {
 	if ($LocalDEF ne "") {
                 # store this as a sequence number, because multiple DEFS of the same name
                 # must be unique. (see the spec)
+		if (VRML::Handles::def_check($LocalDEF) ne "") {
+			VRML::VRMLFunc::ConsoleMessage(
+				"WARNING: DEF name '$LocalDEF' has already been DEFined - we will use the current value");
+		} 
+
                 VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
                 $LASTDEF++;
                 my $defname = VRML::Handles::return_def_name($LocalDEF);
@@ -1305,6 +1315,13 @@ sub parse_X3DStatement {
 	if ($LocalDEF ne "") {
                 # store this as a sequence number, because multiple DEFS of the same name
                 # must be unique. (see the spec)
+
+		if (VRML::Handles::def_check($LocalDEF) ne "") {
+			VRML::VRMLFunc::ConsoleMessage(
+				"WARNING: DEF name '$LocalDEF' has already been DEFined - we will use the current value");
+		} 
+
+
                 VRML::Handles::def_reserve($LocalDEF, "DEF$LASTDEF");
                 $LASTDEF++;
                 my $defname = VRML::Handles::return_def_name($LocalDEF);

@@ -31,6 +31,8 @@ rm Viewer.pm
 rm Quaternion.pm
 rm VRMLServ.pm
 rm lastcvscheckin
+rm -r OpenGL/
+rm -r Text/
 rm -r JS/js
 rm -r JS/js1.5/Linux_All_DBG.OBJ
 rm -r Plugin/mozilla

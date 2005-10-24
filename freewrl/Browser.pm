@@ -239,6 +239,7 @@ sub create_common {
 		if (!eval('require VRML::X3DParser')) {
 			VRML::VRMLFunc::ConsoleMessage (
 				"FreeWRL can not load the X3DParser perl module".
+				" - check that the perl XML-Parser module is installed ".
 				"\n - this is going to fail");
 		} else {
 		X3D::Parser::parse($scene, $string);
@@ -840,6 +841,13 @@ sub return_def_name {
 	print "return_def_name, looking for $name , it IS a def, returning ",
 		$DEFNAMES{$name},"\n" if $handles_debug;
 
+	return $DEFNAMES{$name};
+}
+
+
+# is this DEF name already defined?
+sub def_check {
+	my ($name) = @_;
 	return $DEFNAMES{$name};
 }
 

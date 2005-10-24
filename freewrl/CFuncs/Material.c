@@ -79,13 +79,13 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 
 	diff = FALSE;
 	for (i=0; i<4; i++) {
-		if (fabs(myfloats[i]-param[i]) > 0.001) {
+		if (fabs(myfloats[i]-param[i]) > 0.1) {
 			diff = TRUE;
 			break;
 		}
 	}
 
-	if (diff) { glMaterialfv (face,pname,param); }
+	if (diff==TRUE) { glMaterialfv (face,pname,param); }
 }
 
 
