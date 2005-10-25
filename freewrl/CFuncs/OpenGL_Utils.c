@@ -88,7 +88,6 @@ void glpOpenGLInitialize() {
 	lightState(0, TRUE);
 
         glLightfv(GL_LIGHT0, GL_POSITION, pos);
-printf ("XXX - in here, settign AMBIENT to %f %f %f\n",As[0],As[1],As[2]);
         glLightfv(GL_LIGHT0, GL_AMBIENT, As);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, s);
         glLightfv(GL_LIGHT0, GL_SPECULAR, s);
