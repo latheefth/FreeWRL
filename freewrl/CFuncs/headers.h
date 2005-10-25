@@ -455,6 +455,7 @@ extern void new_tessellation(void);
 extern void initializePerlThread(char *perlpath);
 extern PerlInterpreter *my_perl;
 extern void setGeometry (char *optarg);
+extern void setWantEAI(int flag);
 extern void setPluginPipe(char *optarg);
 extern void setPluginFD(char *optarg);
 extern void setPluginInstance(char *optarg);
