@@ -162,7 +162,7 @@ void EventLoop() {
 		BrowserStartTime = TickTime;
 		lastTime = TickTime;
 		#ifdef PROFILE
-		printf ("time setup for debugging\n");
+		/* printf ("time setup for debugging\n"); */ 
 		timeA = timeB = timeC = timeD = timeE = timeF =0.0;
 		#endif
 	} else {
@@ -184,10 +184,10 @@ void EventLoop() {
 
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
-		printf ("times %lf %lf %lf %lf %lf %lf\n",
+		/* printf ("times %lf %lf %lf %lf %lf %lf\n",
 				timeA,timeB,
 				timeC, timeD,
-				timeE,timeF);
+				timeE,timeF); */
 				/* timeA/oxf*100.0,timeB/oxf*100.0,*/
 				/* timeC/oxf*100.0, timeD/oxf*100.0,*/
 				/* timeE/oxf*100.0,timeF/oxf*100.0);*/
@@ -1081,6 +1081,10 @@ void setSnapSeq() {
 
 void setEAIport(int pnum) {
         EAIport = pnum;
+}
+
+void setWantEAI(int flag) {
+	EAIwanted = TRUE;
 }
 
 void setNoStatus() {
