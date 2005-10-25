@@ -423,9 +423,8 @@ int get_touched_flag (int fptr, unsigned long int actualscript) {
 	#endif
 
 	if (!JS_GetProperty(mycx, (JSObject *) interpobj ,fullname,&retval)) {
-               	#ifdef CRVERBOSE printf ("cant get property for %s\n",fullname);
+               	printf ("cant get property for %s\n",fullname);
 		return FALSE;
-		#endif
         } else {
        	        strval = JS_ValueToString(mycx, retval);
                	strtouched = JS_GetStringBytes(strval);
@@ -1153,8 +1152,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 
 	/* rough check of return value */
 	if (!JSVAL_IS_OBJECT(global_return_val)) {
-		#ifdef CRVERBOSE printf ("getJSMultiNumType - did not get an object\n");
-		#endif
+		printf ("getJSMultiNumType - did not get an object\n");
 		return;
 	}
 
