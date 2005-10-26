@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.166  2005/10/26 13:59:57  crc_canada
+# LineSet and PointSet nodes up to spec.
+#
 # Revision 1.165  2005/10/26 13:06:24  crc_canada
 # IndexedLineSet now up to spec.
 #
@@ -838,6 +841,9 @@ LineSet => '
 
 
 	glPushAttrib(GL_ENABLE_BIT);
+	glDisable (GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_CULL_FACE);
 
 	/* do we have to re-verify LineSet? */
 	if (this_->_ichange != this_->_change) {
@@ -857,13 +863,6 @@ LineSet => '
 			return;
 		}
 
-
-		if (ncolor != 0) {
-			glDisable (GL_LIGHTING);
-			glEnable(GL_COLOR_MATERIAL);
-		} else {
-			glNormal3f(0.0, 0.0, 1.0);
-		}
 
 		/* if we are re-genning; remalloc */
 		/* if (this_->__points) free ((void *)this_->__points);*/
@@ -916,17 +915,19 @@ glPopAttrib();
 			glBegin(GL_LINE_STRIP);
 
 			/* draw the line */
-			if (ncolor!= 0) {
+			if (ncolor!= 0) 
 				glColor3f( color[ncoc].c[0],color[ncoc].c[1],color[ncoc].c[2]);
-			}
+			else glColor3f (1.0, 1.0, 1.0);
+
 			glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
 			ncoc++;
 
 
 			for (c=1; c<punt; c++) {
-				if (ncolor!= 0) {
+				if (ncolor!= 0) 
 					glColor3f( color[ncoc].c[0],color[ncoc].c[1],color[ncoc].c[2]);
-				}
+			
+				
 				glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
 				ncoc++;
 			}
@@ -937,9 +938,6 @@ glPopAttrib();
 
 
 		}
-		if (ncolor != 0) {
-			glEnable (GL_LIGHTING);
-		}
 	}
 
 	/* now, actually draw array */
@@ -948,8 +946,7 @@ glPopAttrib();
 	/* 	glMultiDrawElements(GL_LINE_STRIP,(this_->vertexCount).p,GL_FLOAT,*/
 	/* 			this_->__points,(this_->vertexCount).n);*/
 	/* }*/
-glDisable(GL_COLOR_MATERIAL);
-glPopAttrib();
+	glPopAttrib();
 
 ',
 IndexedLineSet => '
@@ -1025,7 +1022,6 @@ IndexedLineSet => '
 			}
 		}
 		glEnd();
-		glDisable(GL_COLOR_MATERIAL);
                 glPopAttrib();
 ',
 
@@ -1048,12 +1044,19 @@ PointSet => '
 		printf ("PointSet has less colors than points - removing color\n");
 		ncolors = 0;
 	}
-	glDisable(GL_LIGHTING);
+
+	glPushAttrib(GL_ENABLE_BIT);
+	glDisable (GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_CULL_FACE);
+
 	glBegin(GL_POINTS);
 
 	#ifdef RENDERVERBOSE
 	printf("PointSet: %d %d\n", npoints, ncolors);
 	#endif
+
+	if (ncolors==0) glColor3f (1.0, 1.0, 1.0);
 
 	for(i=0; i<npoints; i++) {
 		if(ncolors) {
@@ -1075,7 +1078,7 @@ PointSet => '
 		);
 	}
 	glEnd();
-	glEnable(GL_LIGHTING);
+                glPopAttrib();
 ',
 GeoElevationGrid => '
 		struct SFColor *colors=0; int ncolors=0;

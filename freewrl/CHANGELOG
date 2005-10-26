@@ -1,5 +1,5 @@
 For 1.14:
-	- IndexedLineSet node up to spec compliance.
+	- IndexedLineSet, LineSet, and PointSet  nodes up to spec compliance.
 
 	- MultiTexture node support.
 
