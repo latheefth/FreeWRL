@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.165  2005/10/26 13:06:24  crc_canada
+# IndexedLineSet now up to spec.
+#
 # Revision 1.164  2005/10/21 20:16:52  crc_canada
 # lighting, multitexture changes.
 #
@@ -975,20 +978,9 @@ IndexedLineSet => '
 		$fv(coord, points, get3, &npoints);
 		$fv_null(color, colors, get3, &ncolors);
                 glPushAttrib(GL_ENABLE_BIT);
-		glEnable(GL_COLOR_MATERIAL);
+		glDisable (GL_LIGHTING);
+		glDisable(GL_COLOR_MATERIAL);
                 glDisable(GL_CULL_FACE);
-
-		if(ncolors && !cpv) {
-			#ifdef RENDERVERBOSE
-			printf("glColor3f(%f,%f,%f);\n",
-				  colors[plno].c[0],
-				  colors[plno].c[1],
-				  colors[plno].c[2]);
-			#endif
-			glColor3f(colors[plno].c[0],
-				  colors[plno].c[1],
-				  colors[plno].c[2]);
-		}
 
 		glBegin(GL_LINE_STRIP);
 		for(i=0; i<cin; i++) {
@@ -997,35 +989,21 @@ IndexedLineSet => '
 			printf("Line: %d %d\n",i,ind);
 			#endif
 
+			/* a new line strip? */
 			if(ind==-1) {
 				glEnd();
-				plno++;
-				if(ncolors && !cpv) {
-					c = plno;
-					if((!colin && plno < ncolors) ||
-					   (colin && plno < colin)) {
-						if(colin) {
-							c = $f(colorIndex,c);
-						}
-						if (c<ncolors) {
-						      glColor3f(colors[c].c[0],
-						        colors[c].c[1],
-						   	colors[c].c[2]);
-						} else {
-						      glColor3f(colors[0].c[0],
-					        	colors[0].c[1],
-						   	colors[0].c[2]);
-						}
-
-					}
-				}
 				glBegin(GL_LINE_STRIP);
+				plno++;
 			} else {
-				if(ncolors && cpv) {
-					c = i;
-					if(colin) {
-						c = $f(colorIndex,c);
+				if(ncolors) {
+					if (cpv) {
+						c = i;
+						if(colin)  c = $f(colorIndex,i);
+						else c=i; 
+					} else {
+						c = plno;
 					}
+
 					if (c<ncolors) {
 					      glColor3f(colors[c].c[0],
 					        colors[c].c[1],
@@ -1036,6 +1014,8 @@ IndexedLineSet => '
 					   	colors[0].c[2]);
 					}
 
+				} else {
+					glColor3f(1.0,1.0,1.0);
 				}
 				glVertex3f(
 					points[ind].c[0],

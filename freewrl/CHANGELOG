@@ -1,4 +1,6 @@
 For 1.14:
+	- IndexedLineSet node up to spec compliance.
+
 	- MultiTexture node support.
 
 	- Ambient intensity light bug fixed.
