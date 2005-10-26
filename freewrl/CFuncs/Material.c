@@ -76,7 +76,7 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 	}
 
 	/* compare default values with new */
-
+/* creates material bugs, just always do material 
 	diff = FALSE;
 	for (i=0; i<4; i++) {
 		if (fabs(myfloats[i]-param[i]) > 0.1) {
@@ -84,8 +84,10 @@ void do_glMaterialfv (GLenum face, GLenum pname, GLfloat *param) {
 			break;
 		}
 	}
+	if (diff==TRUE) 
+	*/
+	glMaterialfv (face,pname,param);
 
-	if (diff==TRUE) { glMaterialfv (face,pname,param); }
 }
 
 
