@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.167  2005/10/27 15:40:10  crc_canada
+# Sphere draw arrays had incorrect value for counts.
+#
 # Revision 1.166  2005/10/26 13:59:57  crc_canada
 # LineSet and PointSet nodes up to spec.
 #
@@ -551,7 +554,8 @@ Sphere => '
 	glNormalPointer (GL_FLOAT,0,spherenorms);
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
-	for (count = 0; count < SPHDIV; count ++) {
+	/* for (count = 0; count < SPHDIV; count ++) { */
+	for (count = 0; count < SPHDIV/2; count ++) { 
 		glDrawArrays (GL_QUAD_STRIP, count*(SPHDIV+1)*2, (SPHDIV+1)*2);
 	}
 
