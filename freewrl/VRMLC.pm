@@ -26,6 +26,10 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.182  2005/10/27 13:47:23  crc_canada
+# repeatS, repeatT flags were not handled correctly if same image but different flags.
+# So, removed the "check image already loaded" code.
+#
 # Revision 1.181  2005/09/30 12:53:21  crc_canada
 # Initial MultiTexture support.
 #
@@ -1127,7 +1131,7 @@ int render_proximity;
 int render_collision;
 
 int display_status = 1;  /* display a status bar? */
-int be_collision = 1;	/* do collision detection? */
+int be_collision = 0;	/* do collision detection? */
 
 int found_vp; /*true when viewpoint found*/
 

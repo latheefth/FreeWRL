@@ -1,4 +1,8 @@
 For 1.14:
+	- collision turned off by default as it affected conformance; some of the
+	  Web3D Interchange profile conformance tests assumed that the viewpoint was
+	  within a primitive shape.
+
 	- IndexedLineSet, LineSet, and PointSet  nodes up to spec compliance.
 
 	- MultiTexture node support.

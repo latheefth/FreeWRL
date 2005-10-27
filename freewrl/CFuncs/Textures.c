@@ -610,6 +610,10 @@ void new_do_texture(int texno) {
 	/* save this to determine whether we need to do material node
 	  within appearance or not */
 	
+	#ifdef TEXVERBOSE
+	printf ("new_do_texture, tex %d, s %d t %d\n",texno, loadparams[texno].Src, loadparams[texno].Trc);
+	#endif
+
 	/* Image should be GL_LINEAR for pictures, GL_NEAREST for pixelTs */
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, loadparams[texno].Image);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, loadparams[texno].Image);
@@ -942,7 +946,6 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			if (count > 0) {
 				printf ("Could not locate URL (last choice was %s)\n",filename);
 			}
-printf ("count %d lpp.n %d\n",count, loadparams[*texnum].url.n);
 			free (filename);
 			freeTexture(texnum);
 			loadparams[*texnum].filename="file not found";
@@ -950,6 +953,10 @@ printf ("count %d lpp.n %d\n",count, loadparams[*texnum].url.n);
 		}
 	}
 	/* ok, have we seen this one before? */
+	/* this is commented out, as if the image has different repeatT, repeatS flags, it will
+	   not be rendered correctly for the "second" invocation */
+
+	#ifdef SEARCHFORDUPLICATETEXTURES
 	flen = strlen(filename);
 	for (count=1; count < max_texture; count++) {
 		
@@ -992,6 +999,7 @@ printf ("count %d lpp.n %d\n",count, loadparams[*texnum].url.n);
 		    }
 		}
 	}
+	#endif
 
 	if (type !=PIXELTEXTURE) {
 		/* is this a texture type that is *not* handled internally? */
