@@ -576,7 +576,7 @@ my $protono;
 	Switch 			=>children,
 	Text 			=>geometry,
 	TextureCoordinate 	=>texCoord,
-	TextureTransform 	=>texture,
+	TextureTransform 	=>textureTransform,
 	TimeSensor 		=>children,
 	TouchSensor 		=>children,
 	Transform 		=>children,
