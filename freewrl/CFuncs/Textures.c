@@ -43,6 +43,22 @@ struct loadTexParams {
 	GLint Image;
 };
 
+struct multiTexParams {
+	GLint texture_env_mode;
+	GLint combine_rgb;
+	GLint source0_rgb;
+	GLint operand0_rgb;
+	GLint source1_rgb;
+	GLint operand1_rgb;
+	GLint combine_alpha;
+	GLint source0_alpha;
+	GLint operand0_alpha;
+	GLint source1_alpha;
+	GLint operand1_alpha;
+	GLfloat rgb_scale;
+	GLfloat alpha_scale;
+};
+
 
 /* for isloaded structure */
 #define NOTLOADED	0
@@ -220,7 +236,7 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 			/* we have an image specified for this face */
 
 			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, (GLuint *)thistex, 0, 0,
-				GL_TEXTURE_ENV_MODE, GL_REPLACE);
+				NULL);
 
 			/* if we do not have an image for this Background face yet, dont draw
 			 * the quads */
@@ -232,7 +248,7 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 }
 
 /* load in a texture, if possible */
-void loadImageTexture (struct VRML_ImageTexture *node, GLint pname, GLint param) {
+void loadImageTexture (struct VRML_ImageTexture *node, void *param) {
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
@@ -248,7 +264,7 @@ void loadImageTexture (struct VRML_ImageTexture *node, GLint pname, GLint param)
 
 	bind_image(IMAGETEXTURE, node->__parenturl,
 		node->url,
-		(GLuint*)&node->__texture,node->repeatS,node->repeatT,pname,param);
+		(GLuint*)&node->__texture,node->repeatS,node->repeatT,param);
 
         bound_textures[texture_count] = node->__texture;
 
@@ -257,7 +273,7 @@ void loadImageTexture (struct VRML_ImageTexture *node, GLint pname, GLint param)
 void loadMultiTexture (struct VRML_MultiTexture *node) {
 	int count;
 	int max;
-	GLint * paramPtr, *pnamePtr;
+	struct multiTexParams *paramPtr;
 
 	char *param;
 	STRLEN xx;
@@ -284,15 +300,25 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 		/* alloc fields, if required - only do this once, even if node changes */
 		if (node->__params == 0) {
 			/* printf ("loadMulti, mallocing for params\n"); */
-			node->__params = (int) malloc (sizeof (GLuint) * maxTexelUnits);
-			node->__pnames = (int) malloc (sizeof (GLuint) * maxTexelUnits);
-			paramPtr = (GLint *) node->__params;
-			pnamePtr = (GLint *) node->__pnames;
+			node->__params = (int) malloc (sizeof (struct multiTexParams) * maxTexelUnits);
+			paramPtr = (struct multiTexParams*) node->__params;
 
 			/* set defaults for these fields */
 			for (count = 0; count < maxTexelUnits; count++) {
-				*paramPtr  = GL_MODULATE; paramPtr++;
-				*pnamePtr = GL_TEXTURE_ENV_MODE; pnamePtr++;
+				paramPtr->texture_env_mode  = GL_MODULATE; 
+				paramPtr->combine_rgb = GL_MODULATE;
+				paramPtr->source0_rgb = GL_TEXTURE;
+				paramPtr->operand0_rgb = GL_SRC_COLOR;
+				paramPtr->source1_rgb = GL_PREVIOUS;
+				paramPtr->operand1_rgb = GL_SRC_COLOR;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->source0_alpha = GL_TEXTURE;
+				paramPtr->operand0_alpha = GL_SRC_ALPHA;
+				paramPtr->source1_alpha = GL_PREVIOUS;
+				paramPtr->operand1_alpha = GL_SRC_ALPHA;
+				paramPtr->rgb_scale = 1;
+				paramPtr->alpha_scale = 1;
+				paramPtr++;
 			}
 		}
 
@@ -301,38 +327,68 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 		if (max > maxTexelUnits) max = maxTexelUnits;
 
 		/* go through the params, and change string name into a GLint */
-		paramPtr = (GLint *) node->__params;
+		paramPtr = (struct multiTexParams*) node->__params;
 		for (count = 0; count < max; count++) {
 			param = SvPV(node->mode.p[count],xx);
 			/* printf ("param %d is %s len %d\n",count, param, xx); */
-		        if (strncmp("MODULATE",param,strlen("MODULATE"))==0) 
-				{*paramPtr = GL_MODULATE; *pnamePtr = GL_TEXTURE_ENV_MODE;}
-		        else if (strncmp("REPLACE",param,strlen("REPLACE"))==0) 
-				{*paramPtr = GL_REPLACE; *pnamePtr = GL_TEXTURE_ENV_MODE;}
-		        else if (strncmp("ADD",param,strlen("ADD"))==0) 
-				{*paramPtr = GL_ADD; *pnamePtr = GL_TEXTURE_ENV_MODE;}
-		        else if (strncmp("SUBTRACT",param,strlen("SUBTRACT"))==0) 
-				{*paramPtr = GL_SUBTRACT; *pnamePtr = GL_TEXTURE_ENV_MODE;}
+
+		        if (strncmp("MODULATE2X",param,strlen("MODULATE2X"))==0) { 
+                                paramPtr->rgb_scale = 2;
+                                paramPtr->alpha_scale = 2; } 
+
+		        else if (strncmp("MODULATE4X",param,strlen("MODULATE4X"))==0) {
+                                paramPtr->rgb_scale = 2;
+                                paramPtr->alpha_scale = 2; } 
+
+		        else if (strncmp("ADDSMOOTH",param,strlen("ADDSMOOTH"))==0) {  } 
+		        else if (strncmp("BLENDDIFFUSEALPHA",param,strlen("BLENDDIFFUSEALPHA"))==0) {  } 
+		        else if (strncmp("BLENDCURRENTALPHA",param,strlen("BLENDCURRENTALPHA"))==0) {  } 
+		        else if (strncmp("MODULATEALPHA_ADDCOLOR",param,strlen("MODULATEALPHA_ADDCOLOR"))==0) {  } 
+		        else if (strncmp("MODULATEINVALPHA_ADDCOLOR",param,strlen("MODULATEINVALPHA_ADDCOLOR"))==0) {  } 
+		        else if (strncmp("MODULATEINVCOLOR_ADDALPHA",param,strlen("MODULATEINVCOLOR_ADDALPHA"))==0) {  } 
+		        else if (strncmp("SELECTARG1",param,strlen("SELECTARG1"))==0) {  } 
+		        else if (strncmp("SELECTARG2",param,strlen("SELECTARG2"))==0) {  }
+		        else if (strncmp("DOTPRODUCT3",param,strlen("DOTPRODUCT3"))==0) {  }
+
+		        else if (strncmp("MODULATE",param,strlen("MODULATE"))==0) {
+				/* defaults */}
+
+		        else if (strncmp("REPLACE",param,strlen("REPLACE"))==0) {
+				paramPtr->texture_env_mode = GL_REPLACE;}
+
+		        else if (strncmp("SUBTRACT",param,strlen("SUBTRACT"))==0) {
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_SUBTRACT;}
+
+		        else if (strncmp("ADDSIGNED2X",param,strlen("ADDSIGNED2X"))==0) {
+				paramPtr->rgb_scale = 2;
+				paramPtr->alpha_scale = 2;
+				paramPtr->texture_env_mode = GL_COMBINE; 
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_ADD_SIGNED;}
+
+		        else if (strncmp("ADDSIGNED",param,strlen("ADDSIGNED"))==0) {
+				paramPtr->texture_env_mode = GL_COMBINE; 
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_ADD_SIGNED;}
+
+
+		        else if (strncmp("ADD",param,strlen("ADD"))==0) {
+					paramPtr->texture_env_mode = GL_COMBINE;
+					paramPtr->combine_alpha = GL_MODULATE;
+					paramPtr->combine_rgb = GL_ADD; }
+
+
+		        else if (strncmp("OFF",param,strlen("OFF"))==0) { 
+					paramPtr->texture_env_mode = GL_REPLACE; } 
 
 
 
-/*		        else if (strncmp("MODULATE2X",param,strlen("MODULATE2X"))==0) { *paramPtr = GL_MODULATE2X; } */
-/*		        else if (strncmp("MODULATE4X",param,strlen("MODULATE4X"))==0) { *paramPtr = GL_MODULATE4X; } */
-/*		        else if (strncmp("ADDSIGNED",param,strlen("ADDSIGNED"))==0) { *paramPtr = GL_ADDSIGNED; } */
-/*		        else if (strncmp("ADDSMOOTH",param,strlen("ADDSMOOTH"))==0) { *paramPtr = GL_ADDSMOOTH; } */
-/*		        else if (strncmp("BLENDDIFFUSEALPHA",param,strlen("BLENDDIFFUSEALPHA"))==0) { *paramPtr = GL_BLENDDIFFUSEALPHA; } */
-/*		        else if (strncmp("BLENDCURRENTALPHA",param,strlen("BLENDCURRENTALPHA"))==0) { *paramPtr = GL_BLENDCURRENTALPHA; } */
-/*		        else if (strncmp("MODULATEALPHA_ADDCOLOR",param,strlen("MODULATEALPHA_ADDCOLOR"))==0) { *paramPtr = GL_MODULATEALPHA_ADDCOLOR; } */
-/*		        else if (strncmp("MODULATEINVALPHA_ADDCOLOR",param,strlen("MODULATEINVALPHA_ADDCOLOR"))==0) { *paramPtr = GL_MODULATEINVALPHA_ADDCOLOR; } */
-/*		        else if (strncmp("MODULATEINVCOLOR_ADDALPHA",param,strlen("MODULATEINVCOLOR_ADDALPHA"))==0) { *paramPtr = GL_MODULATEINVCOLOR_ADDALPHA; } */
-/*		        else if (strncmp("OFF",param,strlen("OFF"))==0) { *paramPtr = GL_OFF; } */
-/*		        else if (strncmp("SELECTARG1",param,strlen("SELECTARG1"))==0) { *paramPtr = GL_SELECTARG1; } */
-/*		        else if (strncmp("SELECTARG2",param,strlen("SELECTARG2"))==0) { *paramPtr = GL_SELECTARG2; } */
-/*		        else if (strncmp("DOTPRODUCT3",param,strlen("DOTPRODUCT3"))==0) { *paramPtr = GL_DOTPRODUCT3; } */
+
 			else {
-				ConsoleMessage ("MultiTexture - invalid param or not supported yet- \"%s\"\n",param); *paramPtr=GL_MODULATE;
+				ConsoleMessage ("MultiTexture - invalid param or not supported yet- \"%s\"\n",param);
 			}
-
 
 			/* printf ("paramPtr for %d is %d\n",count,*paramPtr);  */
 			paramPtr++;
@@ -368,7 +424,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 	if (max > maxTexelUnits) max = maxTexelUnits;
 
 	/* go through and get all of the textures */
-	paramPtr = (GLint *) node->__params;
+	paramPtr = (struct multiTexParams *) node->__params;
 
 	for (count=0; count < max; count++) {
 		#ifdef TEXVERBOSE
@@ -385,7 +441,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 			case 4: 
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
 				loadImageTexture ((struct VRML_ImageTexture*) nt,
-					GL_TEXTURE_ENV_MODE, *paramPtr);
+					(void *)paramPtr);
 				break;
 			case 1:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
@@ -393,12 +449,12 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 			case 2:
 				/* printf ("MultiTexture %d is a PixelTexture\n",count); */
 				loadPixelTexture ((struct VRML_PixelTexture*) nt,
-					GL_TEXTURE_ENV_MODE, *paramPtr);
+					(void *)paramPtr);
 				break;
 			case 3:
 				/* printf ("MultiTexture %d is a MovieTexture\n"); */
 				loadMovieTexture ((struct VRML_MovieTexture*) nt,
-					GL_TEXTURE_ENV_MODE, *paramPtr);
+					(void *)paramPtr);
 				break;
 			default:
 				printf ("MultiTexture - unknown sub texture type %d\n",
@@ -420,7 +476,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 
 
 /* load in a texture, if possible */
-void loadPixelTexture (struct VRML_PixelTexture *node, GLint pname, GLint param) {
+void loadPixelTexture (struct VRML_PixelTexture *node, void *param) {
 	struct Multi_String mynull;
 
 	if (node->_ichange != node->_change) {
@@ -436,13 +492,13 @@ void loadPixelTexture (struct VRML_PixelTexture *node, GLint pname, GLint param)
 	}
 	bind_image(PIXELTEXTURE, node->image,
 		mynull,
-		(GLuint*)&node->__texture,node->repeatS,node->repeatT,pname, param);
+		(GLuint*)&node->__texture,node->repeatS,node->repeatT, param);
 
         bound_textures[texture_count] = node->__texture;
 }
 
 /* load in a texture, if possible */
-void loadMovieTexture (struct VRML_MovieTexture *node,GLint pname, GLint param) {
+void loadMovieTexture (struct VRML_MovieTexture *node, void *param) {
 	int firsttex;
 
 	/* possible bug? If two nodes use the same MovieTexture URL, and,
@@ -477,7 +533,7 @@ void loadMovieTexture (struct VRML_MovieTexture *node,GLint pname, GLint param) 
 
 	bind_image(MOVIETEXTURE, node->__parenturl,
 		node->url,
-		(GLuint*)&node->__texture0_,node->repeatS,node->repeatT,pname, param);
+		(GLuint*)&node->__texture0_,node->repeatS,node->repeatT, param);
 
 	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
 
@@ -674,11 +730,13 @@ void new_do_texture(int texno) {
 
 	repeatS, repeatT VRML fields
 
-	pname, param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
+	param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
 ************************************************************************************/
 
 void bind_image(int itype, SV *parenturl, struct Multi_String url,
-		GLuint *texture_num, int repeatS, int repeatT, GLint pname, GLint param) {
+		GLuint *texture_num, int repeatS, int repeatT, void *param) {
+
+	struct multiTexParams *paramPtr;
 
 	#ifdef TEXVERBOSE 
 	printf ("bind_image, textureInProcess %d\n",textureInProcess);
@@ -741,7 +799,26 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
 		#endif
 
-		glTexEnvi(GL_TEXTURE_ENV, pname, param);
+		/* is this a MultiTexture, or just a "normal" single texture? */
+		if (param == NULL) {
+			glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		} else {
+			paramPtr = (struct multiTexParams *) param;
+
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, paramPtr->texture_env_mode);
+			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, paramPtr->combine_rgb);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, paramPtr->source0_rgb);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, paramPtr->operand0_rgb);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, paramPtr->operand1_rgb);
+			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, paramPtr->combine_alpha);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, paramPtr->source0_alpha);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, paramPtr->operand0_alpha);
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
+			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
+			glTexEnvi(GL_TEXTURE_ENV, GL_ALPHA_SCALE, paramPtr->alpha_scale);
+		}
 
 		glBindTexture (GL_TEXTURE_2D, *texture_num);
 		textureInProcess = -1; /* we have finished the whole process */

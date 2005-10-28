@@ -660,7 +660,6 @@ my $protono;
 						mode =>[MFString,[],exposedField],
 						source =>[MFString,[],exposedField],
 						texture=>[MFNode,undef,exposedField],
-						__pnames => [SFInt32, 0, field],
 						__params => [SFInt32, 0, field],
 
 					

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.168  2005/10/28 17:00:18  crc_canada
+# MultiTexture work
+#
 # Revision 1.167  2005/10/27 15:40:10  crc_canada
 # Sphere draw arrays had incorrect value for counts.
 #
@@ -1271,12 +1274,12 @@ TextureTransform => '
 
 # Pixels and Images are all handled the same way now - the methods are identical.
 PixelTexture => '
-	loadPixelTexture(this_,GL_TEXTURE_ENV,GL_REPLACE);
+	loadPixelTexture(this_,NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 ',
 
 ImageTexture => '
-	loadImageTexture(this_,GL_TEXTURE_ENV,GL_REPLACE);
+	loadImageTexture(this_,NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 ',
 
@@ -1294,7 +1297,7 @@ MovieTexture => '
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
-	loadMovieTexture(this_,GL_TEXTURE_ENV,GL_REPLACE);
+	loadMovieTexture(this_,NULL);
 	bound_textures[texture_count] = this_->__ctex;
 	/* not multitexture, should have saved to bound_textures[0] */
 	

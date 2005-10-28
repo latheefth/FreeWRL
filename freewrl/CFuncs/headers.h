@@ -443,9 +443,9 @@ extern int isPerlParsing(void);
 extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
 extern int isTextureParsing(void);
 extern void loadInline(struct VRML_Inline *node);
-extern void loadImageTexture(struct VRML_ImageTexture *node,GLint pname, GLint param);
-extern void loadPixelTexture(struct VRML_PixelTexture *node,GLint pname, GLint param);
-extern void loadMovieTexture(struct VRML_MovieTexture *node,GLint pname, GLint param);
+extern void loadImageTexture(struct VRML_ImageTexture *node,  void *param);
+extern void loadPixelTexture(struct VRML_PixelTexture *node,  void *param);
+extern void loadMovieTexture(struct VRML_MovieTexture *node,  void *param);
 extern void loadMultiTexture(struct VRML_MultiTexture *node);
 extern void loadBackgroundTextures (struct VRML_Background *node);
 extern GLfloat boxtex[], boxnorms[], BackgroundVert[];

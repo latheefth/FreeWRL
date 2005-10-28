@@ -110,7 +110,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 	char * nameptr;
 	STRLEN len;
 
-	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value);  */
+	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value);   */
 
 	if (nodetype == BACKGROUND) {
 		bg = (struct VRML_Background *) node;
@@ -185,7 +185,7 @@ void bind_node (void *node, unsigned int setBindofst,
 	char *nst;			/* used for pointer maths */
 	unsigned int *setBindptr;	/* this nodes setBind */
 	unsigned int *isBoundptr;	/* this nodes isBound */
-	char *oldboundptr;	/* previous nodes isBound */
+	unsigned long int *oldboundptr;	/* previous nodes isBound */
 
 	
 	/* setup some variables. Use char * as a pointer as it is ok between 32
@@ -206,6 +206,7 @@ void bind_node (void *node, unsigned int setBindofst,
 	printf ("stack %x, oldstacktop %x sizeof usint %x\n",stack, oldstacktop,
 			sizeof(unsigned int));
 	*/
+	
 
 	/* we either have a setBind of 1, which is a push, or 0, which
 	   is a pop. the value of 100 (arbitrary) indicates that this
@@ -245,9 +246,9 @@ void bind_node (void *node, unsigned int setBindofst,
 
 		if ((*tos >= 1) && (*oldstacktop!=*newstacktop)) {
 			/* yep... unbind it, and send an event in case anyone cares */
-			oldboundptr = (char*) ((long int) *oldstacktop  + (long int)isboundofst);
+			oldboundptr = ((long int) *oldstacktop  + (long int)isboundofst);
 			*oldboundptr = 0;
-			 /* printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop); */
+			/* printf ("....bind_node, in set_bind true, unbinding node %d\n",*oldstacktop); */
 
 			/* tell the possible parents of this change */
 			update_node((void *) ((long int) *oldstacktop));
@@ -501,7 +502,7 @@ void render_Background (struct VRML_Background *node) {
 	int estq;
 	int actq;
 
-	 /* printf ("RBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind); */
+	/* printf ("RBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);   */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		bind_node (node,offsetof (struct VRML_Background,set_bind),
