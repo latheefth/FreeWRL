@@ -23,7 +23,6 @@
 #include "Structs.h"
 #include "Polyrep.h"
 
-/* added M. Ward Dec 6/04*/
 extern void initialize_smooth_normals();
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct VRML_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
 extern int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS);
@@ -751,11 +750,14 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 	/* texture coords IndexedFaceSet coords colors and normals */
 	if(this_->texCoord) {
+printf ("GenPolyRepC - ignoring texCoord\n");
+/*
 			  if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
 			  	freewrlDie("NULL METHOD IndexedFaceSet texCoord  get2");
 			  }
 			   texCoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> get2(this_->texCoord,
 			     &ntexCoords)) ;
+*/
 			};
 
 	/* coords - either in vrml/x3d file, or, if ElevationGrid, calculated for us. */

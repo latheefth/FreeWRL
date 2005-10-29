@@ -730,16 +730,11 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 
 
 
-void render_polyrep(void *node,
-	int npoints, struct SFColor *points,
-	int ncolors, struct SFColor *colors,
-	int nnormals, struct SFColor *normals,
-	int ntexcoords, struct SFVec2f *texcoords,
-	int isRGBA, int isStreamed)
-{
+void render_polyrep(void *node) {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
+	struct SFVec2f *tc;
 
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
@@ -750,33 +745,7 @@ void render_polyrep(void *node,
 		return;
 	}
 
-	/* do we still have to stream this one for faster rendering? */
-	/* -1 means we can't stream; 0 means not streamed yet, 1 means streamed ok */
-	/* printf ("isstreamed is %d\n",isStreamed);  */
-	if (isStreamed==0) {
-		stream_polyrep (node,points,ncolors,colors,
-				nnormals,normals,ntexcoords,texcoords,isRGBA);
-	}
-
 	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
-
-	/*  printing.*/
-	
-/*
-	{int i,j;
-printf ("intern %d\n", p->_intern);
-		for(i=0; i<r->ntri*3; i++) {
-			printf ("i %d cindex %d ",i,r->cindex[i]);
-			printf (" coords %f %f %f\n",
-					r->coord[3*r->cindex[i]+0],
-					r->coord[3*r->cindex[i]+1],
-					r->coord[3*r->cindex[i]+2]
-			       );
-		}
-
-	}
-*/
-	
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
@@ -786,27 +755,17 @@ printf ("intern %d\n", p->_intern);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
 		glEnable(GL_COLOR_MATERIAL);
-
 	}
 
 	/*  clockwise or not?*/
-	if (!r->ccw) {
-		glFrontFace(GL_CW);
-	}
+	if (!r->ccw) { glFrontFace(GL_CW); }
 
 	/*  status bar, text do not have normals*/
-	if (r->normal) {
-		glNormalPointer(GL_FLOAT,0,(GLfloat *) r->normal);
-	} else {
-		glDisableClientState(GL_NORMAL_ARRAY);
-	}
+	if (r->normal) glNormalPointer(GL_FLOAT,0,(GLfloat *) r->normal);
+	else glDisableClientState(GL_NORMAL_ARRAY); 
 
 	/*  textures?*/
-	if (r->tcoord) {
-		/* glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer (2,GL_FLOAT,0,r->tcoord); */
-		textureDraw_start(r->tcoord);
-	}
+	if (r->tcoord) textureDraw_start(r->tcoord);
 
 	/*  colours?*/
 	if (r->color) {
@@ -824,9 +783,8 @@ printf ("intern %d\n", p->_intern);
 		glDisable(GL_COLOR_MATERIAL);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	if (r->tcoord) /* glDisableClientState(GL_TEXTURE_COORD_ARRAY); */
-		textureDraw_end();
-	/*  clockwise or not? - NVIDIA needs this reset; Mesa was ok without it*/
+	if (r->tcoord) textureDraw_end();
+
 	if (!r->ccw) glFrontFace(GL_CCW);
 
 }
@@ -889,10 +847,6 @@ void stream_polyrep(void *node,
 	p = (struct VRML_IndexedFaceSet *)node;
 	r = (struct VRML_PolyRep *)p->_intern;
 	/*printf ("polyv, points %d coord %d ntri %d\n",points,r->coord,r->ntri);  */
-
-	 r->streamed = TRUE;
-
-
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
@@ -1175,6 +1129,13 @@ void render_ray_polyrep(void *node, struct SFColor *points)
 	float tmp1,tmp2;
 	float v1len, v2len, v3len;
 	float v12pt;
+
+	if (!p->_intern) {
+		printf ("render_ray_polyrep - no internal structure, returning\n");
+		return;
+	}
+
+
 	ray.x = t_r2.x - t_r1.x;
 	ray.y = t_r2.y - t_r1.y;
 	ray.z = t_r2.z - t_r1.z;
@@ -1278,22 +1239,77 @@ void render_ray_polyrep(void *node, struct SFColor *points)
 	}
 }
 
-void regen_polyrep(void *node)
-{
+/* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
+void regen_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
 	struct VRML_Virt *v;
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
+
+	struct SFColor *points=0; int npoints;
+	struct SFColor *colors=0; int ncolors=0;
+	struct SFColor *normals=0; int nnormals=0;
+	struct SFVec2f *texcoords=0; int ntexcoords=0;
+	struct VRML_ColorRGBA *thc;
+	int ct=0;
+
 	v = *(struct VRML_Virt **)node;
-
 	p = (struct VRML_Box *)node;
+
+	/* get "coord", "color", "normal", "texCoord", "colorIndex" */
+	/* these use methods to get the values...                   */
+/*
+                $fv_null(coord, points, get3, &npoints);
+                $fv_null(color, colors, get3, &ncolors);
+                $fv_null(normal, normals, get3, &nnormals);
+
+*/
+
+                if(coord) {
+                  if(!(*(struct VRML_Virt **)(coord))-> get3) {
+                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field coord accessMethod  get3");
+                  }
+                   points =  ((*(struct VRML_Virt **)(coord))-> get3(coord, &npoints)) ;
+                }
+
+                if(color) {
+                  if(!(*(struct VRML_Virt **)(color))-> get3) {
+                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field color accessMethod  get3");
+                  }
+                   colors =  ((*(struct VRML_Virt **)(color))-> get3(color,
+                     &ncolors)) ;
+                };
+                if(normal) {
+                  if(!(*(struct VRML_Virt **)(normal))-> get3) {
+                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field normal accessMethod  get3");
+                  }
+                   normals =  ((*(struct VRML_Virt **)(normal))-> get3(normal,
+                     &nnormals)) ;
+                };
+                if(texCoord) {
+                  if(!(*(struct VRML_Virt **)(texCoord))-> get2) {
+                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field texCoord accessMethod  get2");
+                  }
+                   texcoords =  ((*(struct VRML_Virt **)(texCoord))-> get2(texCoord,
+                     &ntexcoords)) ;
+                };
+
+
+
+
+
+                /* get whether this is an RGB or an RGBA color node */
+/*
+                if (colors != NULL) {
+                        thc = node->color;
+                        ct = thc->__isRGBA;
+                }
+*/
+
+	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
-
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
-
-		/* in C always check if you got the mem you wanted...  >;->		*/
-		if (!(p->_intern)) {
+		if (!(p->_intern)) 
 			freewrlDie("Not enough memory to regen_polyrep... ;(");
-		}
 
 		r = (struct VRML_PolyRep *)p->_intern;
 		r->ntri = -1;
@@ -1303,7 +1319,6 @@ void regen_polyrep(void *node)
 	}
 	r = (struct VRML_PolyRep *)p->_intern;
 	r->_change = p->_change;
-	r->streamed = FALSE;
 
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);
@@ -1313,6 +1328,21 @@ void regen_polyrep(void *node)
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->normal);
 	FREE_IF_NZ(r->tcindex);
+
+
+printf ("regen_polyre, going to mkpolyrep\n");
+	/* make the node by calling the correct method */
 	v->mkpolyrep(node);
+
+	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
+	/*
+stream_polyrep(void *node,
+        struct SFColor *points,
+        int ncolors, struct SFColor *colors,
+        int nnormals, struct SFColor *normals,
+        int ntexcoords, struct SFVec2f *texcoords,
+        int isRGBA)
+*/
+printf ("regen_polyrep finished\n");
 }
 

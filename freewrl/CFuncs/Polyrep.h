@@ -127,5 +127,5 @@ void
 render_ray_polyrep(void *node,
 				   struct SFColor *points);
 
-void
-regen_polyrep(void *node);
+void regen_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
+

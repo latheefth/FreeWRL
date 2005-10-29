@@ -437,6 +437,7 @@ my $protono;
 # nodes that are valid texcoord fields.
 %VRML::Nodes::texCoord = map {($_=>1)} qw/
 	TextureCoordinate
+	MultiTextureCoordinate
 	/;
 
 # nodes that are valid sound source fields.
@@ -547,6 +548,7 @@ my $protono;
 	LOD 			=>children,
 	Material 		=>material,
 	MultiTexture		=>texture,
+	MultiTextureCoordinate  =>texCoord,
 	MovieTexture 		=>texture,
 	NavigationInfo 		=>children,
 	Normal 			=>normal,
@@ -718,9 +720,8 @@ my $protono;
 					   ),
 
 	MultiTextureCoordinate =>
-	new VRML::NodeType("MultiTextureCoordinate",
-					   {
-						texture=>[MFNode,undef,exposedField],
+	new VRML::NodeType("MultiTextureCoordinate", {
+						texCoord =>[MFNode,undef,exposedField],
 					   },
 					  ),
 

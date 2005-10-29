@@ -155,8 +155,10 @@ void render_status () {
 
 	/* now that we have the text, go somewhere and render it */
 	glTranslated (0.0, -1.0, -3.0);
-	render_polyrep(&holder,0,NULL,0,NULL,0,NULL,0,NULL,0,-1);
-
+/* 
+	render_polyrep(&holder,0,NULL,0,NULL,0,NULL,NULL,0,-1);
+*/
+printf ("statusbar removed for now\n");
 	/* free the malloc'd memory; the string is now in a display list */
         FREE_IF_NZ(rep_.cindex);
         FREE_IF_NZ(rep_.coord);

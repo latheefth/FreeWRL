@@ -393,13 +393,7 @@ void viewpoint_name_status(char *str); /* tell status bar name of current vp 	*/
 int convert_typetoInt (char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
 extern double BrowserFPS;
-void render_polyrep(void *node,
-        int npoints, struct SFColor *points,
-        int ncolors, struct SFColor *colors,
-        int nnormals, struct SFColor *normals,
-        int ntexcoords, struct SFVec2f *texcoords,
-	int isRGBA, int isStreamed);
-
+void render_polyrep(void *node);
 
 extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
 

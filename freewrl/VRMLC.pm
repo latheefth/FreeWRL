@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.183  2005/10/29 16:24:00  crc_canada
+# Polyrep rendering changes - step 1
+#
 # Revision 1.182  2005/10/27 13:47:23  crc_canada
 # repeatS, repeatT flags were not handled correctly if same image but different flags.
 # So, removed the "check image already loaded" code.
@@ -512,70 +515,59 @@ Cone => '
 ',
 
 GeoElevationGrid => ( '
-		$mk_polyrep();
 		render_ray_polyrep(this_, NULL);
 '),
 
 ElevationGrid => ( '
-		$mk_polyrep();
 		render_ray_polyrep(this_, NULL);
 '),
 
 Text => ( '
-		$mk_polyrep();
 		render_ray_polyrep(this_, NULL);
 '),
 
 Extrusion => ( '
-		$mk_polyrep();
 		render_ray_polyrep(this_, NULL);
 '),
 
 IndexedFaceSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
-		$mk_polyrep();
 		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleFanSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
-		$mk_polyrep();
 		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
-		$mk_polyrep();
 		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleStripSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
-		$mk_polyrep();
 		render_ray_polyrep(this_, points);
 ',
 
 TriangleFanSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
-		$mk_polyrep();
 		render_ray_polyrep(this_, points);
 ',
 
 TriangleStripSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
-		$mk_polyrep();
 		render_ray_polyrep(this_, points);
 ',
 TriangleSet => '
 		struct SFColor *points=0; int npoints;
 		$fv(coord, points, get3, &npoints);
-		$mk_polyrep();
 		render_ray_polyrep(this_, points);
 ',
 
@@ -880,13 +872,6 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
 		$c =~ s/\$fv\(([^)]*)\)/fvirt($n,split ',',$1)/ge;
 		$c =~ s/\$fv_null\(([^)]*)\)/fvirt_null($n,split ',',$1)/ge;
-		$c =~ s/\$mk_streamable_polyrep\(\)/if(!this_->_intern ||
-			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) {
-				regen_polyrep(this_);
-				}/g;
-		$c =~ s/\$mk_polyrep\(\)/if(!this_->_intern ||
-			this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
-				regen_polyrep(this_);/g;
 		if($_ eq "Get3") {
 			$f .= "\n\nstruct SFColor *${n}_$_(void *nod_,int *n)";
 		} elsif($_ eq "Get2") {
@@ -1029,7 +1014,6 @@ struct VRML_PolyRep { /* Currently a bit wasteful, because copying */
 	float *normal; /* triples or null */
         int *tcindex; /* triples or null */
         float *tcoord;	/* triples (per triangle) of texture coords */
-	int streamed;	/* has this gone through stream_polyrep yet? */
 };
 
 /* viewer dimentions (for collision detection) */
