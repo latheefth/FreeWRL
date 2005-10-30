@@ -740,6 +740,8 @@ void render_polyrep(void *node) {
 	p = (struct VRML_Box *)node;
 	r = (struct VRML_PolyRep *)p->_intern;
 
+
+	/* printf ("render_polyrep, _nodeType %d\n",p->_nodeType); */
 	if (r->ntri==0) {
 		/* no triangles */
 		return;
@@ -885,8 +887,8 @@ void stream_polyrep(void *node,
 
 	/* do we need to generate default texture mapping? */
 	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
-		if ((p->__GeometryType == INDEXEDFACESET) ||
-		   (p->__GeometryType == ELEVATIONGRID)) {
+		if ((p->_nodeType == NODE_IndexedFaceSet) ||
+		   (p->_nodeType == NODE_ElevationGrid)) {
 		/* use Mufti's initialization scheme for minVals and maxVals; */
 			for (j=0; j<3; j++) {
 				if (points) {
@@ -1249,61 +1251,57 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	struct SFColor *colors=0; int ncolors=0;
 	struct SFColor *normals=0; int nnormals=0;
 	struct SFVec2f *texcoords=0; int ntexcoords=0;
-	struct VRML_ColorRGBA *thc;
 	int ct=0;
+
+
+	struct VRML_Coordinate *xc;
+	struct VRML_Color *cc;
+	struct VRML_Normal *nc;
+	struct VRML_TextureCoordinate *tc;
 
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
 
-	/* get "coord", "color", "normal", "texCoord", "colorIndex" */
-	/* these use methods to get the values...                   */
-/*
-                $fv_null(coord, points, get3, &npoints);
-                $fv_null(color, colors, get3, &ncolors);
-                $fv_null(normal, normals, get3, &nnormals);
+	if(coord) {
+		xc = (struct VRML_Coordinate *) coord;
+		if (xc->_nodeType != NODE_Coordinate) {
+			printf ("regen_polyrep, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
+		} else {
+			points = xc->point.p;
+			npoints = xc->point.n;
+		}
+	}
 
-*/
+	if (color) {
+		cc = (struct VRML_Color *) color;
+		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+			printf ("regen_polyrep, expected %d got %d\n", NODE_Color, cc->_nodeType);
+		} else {
+			colors = cc->color.p;
+			ncolors = cc->color.n;
+			ct = (cc->_nodeType == NODE_ColorRGBA);
+		}
+	}
+	
+	if(normal) {
+		nc = (struct VRML_Normal *) normal;
+		if (nc->_nodeType != NODE_Normal) {
+			printf ("regen_polyrep, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
+		} else {
+			normals = nc->vector.p;
+			nnormals = nc->vector.n;
+		}
+	}
 
-                if(coord) {
-                  if(!(*(struct VRML_Virt **)(coord))-> get3) {
-                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field coord accessMethod  get3");
-                  }
-                   points =  ((*(struct VRML_Virt **)(coord))-> get3(coord, &npoints)) ;
-                }
-
-                if(color) {
-                  if(!(*(struct VRML_Virt **)(color))-> get3) {
-                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field color accessMethod  get3");
-                  }
-                   colors =  ((*(struct VRML_Virt **)(color))-> get3(color,
-                     &ncolors)) ;
-                };
-                if(normal) {
-                  if(!(*(struct VRML_Virt **)(normal))-> get3) {
-                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field normal accessMethod  get3");
-                  }
-                   normals =  ((*(struct VRML_Virt **)(normal))-> get3(normal,
-                     &nnormals)) ;
-                };
-                if(texCoord) {
-                  if(!(*(struct VRML_Virt **)(texCoord))-> get2) {
-                        freewrlDie(" - probable incorrect field for node IndexedTriangleFanSet field texCoord accessMethod  get2");
-                  }
-                   texcoords =  ((*(struct VRML_Virt **)(texCoord))-> get2(texCoord,
-                     &ntexcoords)) ;
-                };
-
-
-
-
-
-                /* get whether this is an RGB or an RGBA color node */
-/*
-                if (colors != NULL) {
-                        thc = node->color;
-                        ct = thc->__isRGBA;
-                }
-*/
+	if (texCoord) {
+		tc = (struct VRML_TextureCoordinate *) texCoord;
+		if (tc->_nodeType != NODE_TextureCoordinate) {
+			printf ("regen_polyrep, normal expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
+		} else {
+			texcoords = tc->point.p;
+			ntexcoords = tc->point.n;
+		}
+	}
 
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
@@ -1330,19 +1328,10 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	FREE_IF_NZ(r->tcindex);
 
 
-printf ("regen_polyre, going to mkpolyrep\n");
 	/* make the node by calling the correct method */
 	v->mkpolyrep(node);
 
 	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
-	/*
-stream_polyrep(void *node,
-        struct SFColor *points,
-        int ncolors, struct SFColor *colors,
-        int nnormals, struct SFColor *normals,
-        int ntexcoords, struct SFVec2f *texcoords,
-        int isRGBA)
-*/
-printf ("regen_polyrep finished\n");
+	stream_polyrep(node, points, ncolors, colors, nnormals, normals, ntexcoords, texcoords, ct);
 }
 

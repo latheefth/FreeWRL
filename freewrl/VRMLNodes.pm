@@ -719,22 +719,31 @@ my $protono;
 						}
 					   ),
 
-	MultiTextureCoordinate =>
-	new VRML::NodeType("MultiTextureCoordinate", {
-						texCoord =>[MFNode,undef,exposedField],
-					   },
-					  ),
-
 	MultiTextureTransform =>
 	new VRML::NodeType("MultiTextureTransform",
 					   {
 						textureTransform=>[MFNode,undef,exposedField],
 					   },
 					  ),
+
+#############################################################################################
+	MultiTextureCoordinate =>
+	new VRML::NodeType("MultiTextureCoordinate", {
+						texCoord =>[MFNode,undef,exposedField],
+						__TCType => [SFInt32, 0, field],
+					   },
+					  ),
+
 	TextureCoordinate =>
 	new VRML::NodeType("TextureCoordinate",
-					   { point => [MFVec2f, [], exposedField] }
+					   { point => [MFVec2f, [], exposedField],
+						__TCType => [SFInt32, 1, field],
+						 }
 					  ),
+#############################################################################################
+
+
+
 	TextureCoordinateGenerator =>
 	new VRML::NodeType("TextureCoordinateGenerator", {
 					mode => [SFString,"SPHERE",exposedField],
@@ -798,14 +807,12 @@ my $protono;
 	new VRML::NodeType("Color",
 					   { 
 						color => [MFColor, [], exposedField],
-						__isRGBA => [SFBool, 0, field] 
 					   }
 					  ),
 	ColorRGBA =>
 	new VRML::NodeType("ColorRGBA",
 					   { 
 						color => [MFColorRGBA, [], exposedField],
-						__isRGBA => [SFBool, 1, field] 
 					   }
 					  ),
 	#############################
@@ -874,9 +881,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,1,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -912,9 +916,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,2,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -950,9 +951,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,4,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -989,9 +987,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,8,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -1028,9 +1023,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,16,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -1067,9 +1059,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,32,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -1107,9 +1096,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,64,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -1145,9 +1131,6 @@ my $protono;
 						fanCount => [MFInt32, [], field],
 						stripCount => [MFInt32, [], field],
 
-						# GeometryType, see CFuncs/ for exact mapping.
-						__GeometryType =>[SFInt32,128,field],
-						
 						set_height => [MFFloat, undef, eventIn],
 						height => [MFFloat, [], field],
 						xDimension => [SFInt32, 0, field],
@@ -1374,7 +1357,6 @@ my $protono;
 
 	###################################################################################
 	# PositionInterpolator,ColorInterpolator use same code
-	# MAKE SURE FIELD DEFS ARE SAME AND IN SAME ORDER
 
 	ColorInterpolator =>
 	new VRML::NodeType("ColorInterpolator",
@@ -1649,11 +1631,6 @@ my $protono;
 					   },
 					  ),
 
-	# Complete
-	# fields, eventins and outs parsed in Parse.pm by special switch :(
-	# JAS took out perl script, because it is not standard.
-
-
 	Script =>
 	new VRML::NodeType("Script",
 					   {
@@ -1661,13 +1638,6 @@ my $protono;
 						directOutput => [SFBool, 0, field],
 						mustEvaluate => [SFBool, 0, field],
 					   },
-	#JAS				   {
-	#JAS					url => sub {
-	#JAS						print "ScriptURL $_[0] $_[1]!!\n"
-	#JAS							if $VRML::verbose::script;
-	#JAS						die "URL setting not enabled";
-	#JAS					},
-	#JAS				   }
 					  ),
 
 	Collision =>
@@ -1996,7 +1966,7 @@ my $protono;
 
 
 
-); ##%VRML::Nodes
+); 
 
 
 1;

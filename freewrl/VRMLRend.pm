@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.170  2005/10/30 15:55:53  crc_canada
+# Review the way nodes are identified at runtime.
+#
 # Revision 1.169  2005/10/29 16:24:00  crc_canada
 # Polyrep rendering changes - step 1
 #
@@ -570,203 +573,82 @@ Sphere => '
 	if(!$f(solid)) { glPopAttrib(); }
 ',
 IndexedFaceSet => '
-		if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) {
-                                regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
-		}
+		if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)  
+			regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
-
 		}
-
 		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
+		if(!$f(solid)) glPopAttrib();
 ',
 
 IndexedTriangleFanSet => '
-                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) {
-                                regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
-                }
+                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
-
 		}
 		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
+		if(!$f(solid)) glPopAttrib();
 ',
 IndexedTriangleSet => '
-		struct SFColor *points=0; int npoints;
-		struct SFColor *colors=0; int ncolors=0;
-		struct SFColor *normals=0; int nnormals=0;
-		struct SFVec2f *texcoords=0; int ntexcoords=0;
-		struct VRML_ColorRGBA *thc;
-		int ct=0;
+                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
 
-		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
-		/* these use methods to get the values...		    */
-		$fv(coord, points, get3, &npoints);
-		$fv_null(color, colors, get3, &ncolors);
-		$fv_null(normal, normals, get3, &nnormals);
-
-
-		/* get whether this is an RGB or an RGBA color node */
-		if (colors != NULL) {
-			thc = this_->color;
-			ct = thc->__isRGBA;
-		}
-
-		/* mk_streamable_polyrep(); */
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
-
 		}
 		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
+		if(!$f(solid)) glPopAttrib();
 ',
 IndexedTriangleStripSet => '
-		struct SFColor *points=0; int npoints;
-		struct SFColor *colors=0; int ncolors=0;
-		struct SFColor *normals=0; int nnormals=0;
-		struct SFVec2f *texcoords=0; int ntexcoords=0;
-		struct VRML_ColorRGBA *thc;
-		int ct=0;
+                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
-		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
-		/* these use methods to get the values...		    */
-		$fv(coord, points, get3, &npoints);
-		$fv_null(color, colors, get3, &ncolors);
-		$fv_null(normal, normals, get3, &nnormals);
-
-
-		/* get whether this is an RGB or an RGBA color node */
-		if (colors != NULL) {
-			thc = this_->color;
-			ct = thc->__isRGBA;
-		}
-
-		/* mk_streamable_polyrep(); */
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
-
 		}
 		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
+		if(!$f(solid)) glPopAttrib();
 ',
 TriangleFanSet => '
-		struct SFColor *points=0; int npoints;
-		struct SFColor *colors=0; int ncolors=0;
-		struct SFColor *normals=0; int nnormals=0;
-		struct SFVec2f *texcoords=0; int ntexcoords=0;
-		struct VRML_ColorRGBA *thc;
-		int ct=0;
+                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
 
-		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
-		/* these use methods to get the values...		    */
-		$fv(coord, points, get3, &npoints);
-		$fv_null(color, colors, get3, &ncolors);
-		$fv_null(normal, normals, get3, &nnormals);
-
-
-		/* get whether this is an RGB or an RGBA color node */
-		if (colors != NULL) {
-			thc = this_->color;
-			ct = thc->__isRGBA;
-		}
-
-		/* mk_streamable_polyrep(); */
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
-
 		}
 		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
+		if(!$f(solid)) glPopAttrib();
 ',
 TriangleStripSet => '
-		struct SFColor *points=0; int npoints;
-		struct SFColor *colors=0; int ncolors=0;
-		struct SFColor *normals=0; int nnormals=0;
-		struct SFVec2f *texcoords=0; int ntexcoords=0;
-		struct VRML_ColorRGBA *thc;
-		int ct=0;
+                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
 
-		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
-		/* these use methods to get the values...		    */
-		$fv(coord, points, get3, &npoints);
-		$fv_null(color, colors, get3, &ncolors);
-		$fv_null(normal, normals, get3, &nnormals);
-
-
-		/* get whether this is an RGB or an RGBA color node */
-		if (colors != NULL) {
-			thc = this_->color;
-			ct = thc->__isRGBA;
-		}
-
-		/* mk_streamable_polyrep(); */
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
-
 		}
 		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
+		if(!$f(solid)) glPopAttrib();
 ',
 TriangleSet => '
-		struct SFColor *points=0; int npoints;
-		struct SFColor *colors=0; int ncolors=0;
-		struct SFColor *normals=0; int nnormals=0;
-		struct SFVec2f *texcoords=0; int ntexcoords=0;
-		struct VRML_ColorRGBA *thc;
-		int ct=0;
+                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
 
-		/* get "coord", "color", "normal", "texCoord", "colorIndex" */
-		/* these use methods to get the values...		    */
-		$fv(coord, points, get3, &npoints);
-		$fv_null(color, colors, get3, &ncolors);
-		$fv_null(normal, normals, get3, &nnormals);
-
-
-		/* get whether this is an RGB or an RGBA color node */
-		if (colors != NULL) {
-			thc = this_->color;
-			ct = thc->__isRGBA;
-		}
-
-		/* mk_streamable_polyrep(); */
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
-
 		}
 		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
+		if(!$f(solid)) glPopAttrib();
 ',
 
 LineSet => '
@@ -1081,8 +963,6 @@ FontStyle => 'UNUSED(this_);',
 Text => '
                 if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
                         regen_polyrep(this_, NULL, NULL, NULL, NULL);
-
-
 
 		/* always Text is visible from both sides */
                 glPushAttrib(GL_ENABLE_BIT);

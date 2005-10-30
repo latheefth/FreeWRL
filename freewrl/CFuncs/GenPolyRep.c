@@ -23,6 +23,18 @@
 #include "Structs.h"
 #include "Polyrep.h"
 
+
+#define X3DCOMPOSED_STRING(f) ( \
+        f == NODE_IndexedFaceSet          ? "IndexedFaceSet" : ( \
+        f == NODE_ElevationGrid           ? "ElevationGrid" : ( \
+        f == NODE_IndexedTriangleFanSet   ? "IndexedTriangleFanSet" : ( \
+        f == NODE_IndexedTriangleSet      ? "IndexedTriangleSet" : ( \
+        f == NODE_IndexedTriangleStripSet ? "IndexedTriangleStripSet" : ( \
+        f == NODE_TriangleFanSet          ? "TriangleFanSet" : ( \
+        f == NODE_TriangleStripSet        ? "TriangleStripSet" : ( \
+        f == NODE_TriangleSet             ? "TriangleSet" : "unknown X3DComposedGeometry Node"))))))))
+
+
 extern void initialize_smooth_normals();
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct VRML_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
 extern int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS);
@@ -356,15 +368,15 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 	int windingOrder; /*TriangleStripSet ordering */
 
 	/* printf ("checkX3DComposedGeomFields for node (%d) %s\n",
-			this_->__GeometryType, X3DCOMPOSED_STRING(this_->__GeometryType)); 
+			this_->_nodeType, X3DCOMPOSED_STRING(this_->_nodeType)); 
 	*/
 	
 
 	/* creaseAngle - set if normalPerVertex TRUE */
 	if (this_->normalPerVertex) {
-		switch (this_->__GeometryType) {
+		switch (this_->_nodeType) {
 			/* IFS has creaseAngle; TriangleSet specs no smoothing */
-			case TRIANGLESET:
+			case NODE_TriangleSet:
 				break;
 
 			/* set the creaseAngle to set smoothing for the rest */
@@ -380,8 +392,8 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 	/* verify fields for each Node type, according to the spec. Fields that SHOULD
 	   not appear in a node are identified in Parser.pm using the hashes in VRMLNodes.pm
 	   so we do not have to worry about them here. */
-	switch (this_->__GeometryType) {
-		case INDEXEDTRIANGLEFANSET   :
+	switch (this_->_nodeType) {
+		case NODE_IndexedTriangleFanSet   :
 			/* printf ("start of ITFS\n"); */
 			IndexSize = returnIndexedFanStripIndexSize(this_->index);
 			if (IndexSize == 0) {
@@ -430,7 +442,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			this_->coordIndex.n = IndexSize;
                 	break;
 
-		case INDEXEDTRIANGLESTRIPSET :
+		case NODE_IndexedTriangleStripSet:
 			/* printf ("start of ITSS\n"); */
 			IndexSize = returnIndexedFanStripIndexSize(this_->index);
 			if (IndexSize == 0) {
@@ -489,7 +501,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			this_->coordIndex.n = IndexSize;
                 	break;
 
-		case INDEXEDTRIANGLESET      :
+		case NODE_IndexedTriangleSet :
 			IndexSize = ((this_->index.n) * 4) / 3;
 			if (IndexSize <= 0) {
 				break;
@@ -519,7 +531,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			this_->coordIndex.n = IndexSize;
                 	break;
 
-		case TRIANGLESET          :
+		case NODE_TriangleSet :
 			if(this_->coord) {
 				  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
 				  	freewrlDie("NULL METHOD IndexedFaceSet coord  get3");
@@ -558,7 +570,8 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 				this_->coordIndex.p[IndexSize++] = -1;
 			}
                 	break;
-		case TRIANGLESTRIPSET        :
+
+		case NODE_TriangleStripSet :
 			 /* printf ("TSS, stripCount %d\n",(this_->stripCount).n);  */
 			if ((this_->stripCount).n < 1) {
 				freewrlDie ("TriangleStripSet, need at least one stripCount element");
@@ -605,7 +618,8 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 			}
 					
                 	break;
-		case TRIANGLEFANSET             :
+
+		case NODE_TriangleFanSet :
 			/* printf ("TFS, fanCount %d\n",(this_->fanCount).n);  */
 			if ((this_->fanCount).n < 1) {
 				freewrlDie ("TriangleFanSet, need at least one fanCount element");
@@ -702,22 +716,23 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	int this_face, this_coord, this_normal, this_normalindex;
 
 
-	/* if this is a X3DComposedGeom - check fields */
-	if (this_->__GeometryType & X3DGEOM_MASK) {
-		if (!checkX3DComposedGeomFields(this_)) {
-	        	rep_->ntri = 0;
-	        	return;
-		}
-	} else if (this_->__GeometryType & INDEXEDFACESET) {
+	if (this_->_nodeType == NODE_IndexedFaceSet) {
 		if (!checkX3DIndexedFaceSetFields(this_)) {
 	        	rep_->ntri = 0;
 	        	return;
 		}
 		
 
-	} else if (this_->__GeometryType & ELEVATIONGRID) {
+	} else if (this_->_nodeType == NODE_ElevationGrid) {
 		if (!checkX3DElevationGridFields((struct VRML_ElevationGrid *)this_,
 			&points, &npoints)) {
+	        	rep_->ntri = 0;
+	        	return;
+		}
+	
+	/* if this is a X3DComposedGeom - check fields */
+	} else {
+		if (!checkX3DComposedGeomFields(this_)) {
 	        	rep_->ntri = 0;
 	        	return;
 		}
@@ -750,14 +765,11 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 	/* texture coords IndexedFaceSet coords colors and normals */
 	if(this_->texCoord) {
-printf ("GenPolyRepC - ignoring texCoord\n");
-/*
 			  if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
 			  	freewrlDie("NULL METHOD IndexedFaceSet texCoord  get2");
 			  }
 			   texCoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> get2(this_->texCoord,
 			     &ntexCoords)) ;
-*/
 			};
 
 	/* coords - either in vrml/x3d file, or, if ElevationGrid, calculated for us. */
@@ -820,7 +832,7 @@ printf ("GenPolyRepC - ignoring texCoord\n");
 			ntexerrors = 1;
 		}
 
-		if (this_->__GeometryType == INDEXEDFACESET) {
+		if (this_->_nodeType == NODE_IndexedFaceSet) {
 			if (tcin == 0 && ntexCoords != npoints) {
 				/* rule G */
 				printf ("IndexedFaceSet, Rule G: points %d texCoords %d and no texCoordIndex\n",

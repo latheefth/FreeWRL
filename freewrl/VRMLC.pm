@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.184  2005/10/30 15:55:53  crc_canada
+# Review the way nodes are identified at runtime.
+#
 # Revision 1.183  2005/10/29 16:24:00  crc_canada
 # Polyrep rendering changes - step 1
 #
@@ -729,31 +732,33 @@ sub rend_geom {
 
 sub gen_struct {
 	my($name,$node) = @_;
+
 	my @unsortedfields = keys %{$node->{FieldTypes}};
+
 	# sort the field array, so that we can ensure the order of structure
-	# elements, so that we can force some elements to the front, so that
-	# in the C back end, we can determine what a node type is
+	# elements.
 
 	my @sf = sort(@unsortedfields);
 	my $nf = scalar @sf;
 	# /* Store actual point etc. later */
-       my $s = "struct VRML_$name {\n" .
-               " /***/ struct VRML_Virt *v;\n"         	.
-               " /*s*/ int _renderFlags; /*sensitive, etc */ \n"                  	.
-               " /*s*/ int _sens; /*THIS is sensitive */ \n"                  	.
-               " /*t*/ int _hit; \n"                   	.
-               " /*a*/ int _change; \n"                	.
-	       " /*n*/ int _dlchange; \n"              	.
-               " /*d*/ GLuint _dlist; \n"              	.
+       my $s = "/***********************/\nstruct VRML_$name {\n" .
+               "       struct VRML_Virt *v;\n"         	.
+               "       int _renderFlags; /*sensitive, etc */ \n"                  	.
+               "       int _sens; /*THIS is sensitive */ \n"                  	.
+               "       int _hit; \n"                   	.
+               "       int _change; \n"                	.
+	       "       int _dlchange; \n"              	.
+               "       GLuint _dlist; \n"              	.
 	       "       void **_parents; \n"	  	.
 	       "       int _nparents; \n"		.
 	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
 	       "       float _dist; /*sorting for blending */ \n".
-	       "	float _extent[3]; /* used for boundingboxes */ \n" .
-	       "	int PIV; /* points in view */ \n" .
-               " /*d*/ void *_intern; \n"              	.
-               " /***/\n";
+	       "       float _extent[3]; /* used for boundingboxes */ \n" .
+	       "       int PIV; /* points in view */ \n" .
+               "       void *_intern; \n"              	.
+               "       int _nodeType; /* unique integer for each type */ \n".
+               " /*** node specific data: *****/\n";
 
 	my $o = "
 void *
@@ -938,6 +943,21 @@ sub gen_constants_c {
 #
 
 sub gen {
+	# make a table of nodetypes, so that at runtime we can determine what kind a
+	# node is - comes in useful at times.
+	my $nodeIntegerType = 1100;
+
+
+        my @unsortedNodeList = keys %VRML::Nodes;
+        my @sf = sort(@unsortedNodeList);
+	for (@sf) {
+		# print "node $_ is tagged as $nodeIntegerType\n";
+		# tag each node type with a integer key.
+		my $defstr = "#define NODE_".$_."	$nodeIntegerType\n";
+		push @str, $defstr;
+		$nodeIntegerType ++;
+	}
+
 	for(@VRML::Fields) {
 		push @str, ("VRML::Field::$_")->cstruct . "\n";
 		push @xsfn, get_offsf($_);
@@ -946,7 +966,6 @@ sub gen {
 	for(@NodeTypes) {
 		my $no = $VRML::Nodes{$_};
 		my($str, $offs, $perl) = gen_struct($_, $no);
-
 		push @str, $str;
 		push @xsfn, $offs;
 		push @poffsfn, $perl;
@@ -1028,6 +1047,7 @@ struct sNaviInfo {
 
 
 	# print out the generated structures
+	print STRUCTS join '',@NODEDEFS;
 	print STRUCTS join '',@str;
 
 	print STRUCTS '
@@ -1689,24 +1709,12 @@ PROTOTYPES: ENABLE
 
 
 
-#JAS ####################################################################
-#JAS #
-#JAS # Save Font Paths for later use in C, if Text nodes exist
-#JAS #
-#JAS ####################################################################
-#JAS 
-#JAS void
-#JAS save_font_path(myfp)
-#JAS 	char *myfp
-#JAS CODE:
-#JAS 		strncpy(sys_fp,myfp,fp_name_len-20);
-
-
 
 void *
-alloc_struct(siz,virt)
+alloc_struct(siz,virt, itype)
 	int siz
 	void *virt
+	int itype
 CODE:
 	void *ptr = malloc(siz);
 	struct VRML_Box *p;
@@ -1730,6 +1738,7 @@ CODE:
 	p->_extent[0] = 0.0;
 	p->_extent[1] = 0.0;
 	p->_extent[2] = 0.0;
+	p->_nodeType = itype;
 	p->PIV = 1;
 
 	RETVAL=ptr;

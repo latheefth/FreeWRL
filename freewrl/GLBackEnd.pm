@@ -23,7 +23,6 @@ use strict vars;
 my $cursortype = 0;  # pointer cursor
 my $curcursor = 99;  # the last cursor change - force the cursor on startup
 
-my $becollision = 1;	# collision detection turned on or off - 1 = on.
 
 ###############################################################
 #
@@ -68,26 +67,6 @@ sub setEyeDist {
 
 
 sub set_root { $_[0]{Root} = $_[1] }
-
-sub finish_event {
-	my($this) = @_;
-
-	return if $this->{EDone};
-	my $x = $this->{MX} / $this->{W};
-	my $y = $this->{MY} / $this->{H};
-	my $but = $this->{BUT};
-	if(($but == 1 or $but == 3) and $cursortype==0) {
-	    #AK - #$this->{Viewer}->handle("DRAG", $but, $x, $y);
-		VRML::VRMLFunc::do_handle("DRAG", $but, $x, $y);
-	    # print "FE: $but $x $y\n";
-	} elsif($but == 2) {
-	    $this->{MCLICK} = 1;
-	    $this->{MCLICKO} = 1;
-	    $this->{MOX} = $this->{MX}; $this->{MOY} = $this->{MY}
-	}
-	$this->{EDone} = 1;
-}
-
 
 sub new_node {
 	my($this,$type,$fields) = @_;

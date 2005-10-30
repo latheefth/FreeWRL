@@ -13,22 +13,48 @@ package VRML::CU;
 
 use VRML::VRMLFunc;
 
-VRML::VRMLFunc::load_data(); # Fill hashes.
+VRML::VRMLFunc::load_data(); # Fill hashes
+
+my $nodeMappingInitialized = 0;
+my %NODEINTEGERMAPPING = ();
+
+
+# make a list of node to integer maps. look at Structs.h, #define NODE_Group for instance.
+# these mappings for the C runtime are made in VRMLC.pm - we make the same here.
+sub initNodeMapping {
+	#print "start of VRMLCU.pm $VRML::Nodes\n";
+
+        my @unsortedfields = keys %VRML::Nodes;
+        my @sf = sort(@unsortedfields);
+	my $nodeIntegerType = 1100; # keep equivalent to the equiv in VRMLC.pm
+	for (@sf) {
+		$NODEINTEGERMAPPING{$_} = $nodeIntegerType;
+		$nodeIntegerType ++;
+	}
+	$nodeMappingInitialized=1;
+}
+
 
 sub alloc_struct_be {
 	my($type) = @_;
 	if(!defined $VRML::CNodes{$type}) {
 		die("No CNode for $type in alloc_struct_be\n");
 	}
-	# print "VRMLCU ALLNod: '$type' $VRML::CNodes{$type}{Offs}{_end_} $VRML::CNodes{$type}{Virt}\n";
+
+	if ($nodeMappingInitialized == 0) {initNodeMapping();}
+
+	my $nodeType = $NODEINTEGERMAPPING{$type};
+	#print "VRMLCU - nt $nodeType\n";
+
+	#print "VRMLCU ALLNod: '$type' $VRML::CNodes{$type}{Offs}{_end_} $VRML::CNodes{$type}{Virt}\n";
 	my $s = VRML::VRMLFunc::alloc_struct($VRML::CNodes{$type}{Offs}{_end_},
-		$VRML::CNodes{$type}{Virt}
-		);
+		$VRML::CNodes{$type}{Virt},
+		$nodeType);
 	my($k,$o);
 	while(($k,$o) = each %{$VRML::CNodes{$type}{Offs}}) {
 		next if $k eq '_end_';
 		my $ft = $VRML::Nodes{$type}{FieldTypes}{$k};
-		# print "VRMLCU ALLS: $type $k $ft $o\n";
+		#print "VRMLCU ALLS: $type $k $ft $o\n";
 		&{"VRML::VRMLFunc::alloc_offs_$ft"}(
 			$s, $o
 		);

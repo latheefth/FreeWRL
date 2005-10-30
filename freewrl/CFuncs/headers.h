@@ -92,30 +92,6 @@ extern CGLContextObj aqglobalContext;
 )
 
 
-/*X3DComposedGeometryNodes */
-#define INDEXEDFACESET          1
-#define ELEVATIONGRID		2
-#define INDEXEDTRIANGLEFANSET   4
-#define INDEXEDTRIANGLESET      8
-#define INDEXEDTRIANGLESTRIPSET 16
-#define TRIANGLEFANSET          32
-#define TRIANGLESTRIPSET        64
-#define TRIANGLESET             128
-
-#define X3DGEOM_MASK (INDEXEDTRIANGLEFANSET | INDEXEDTRIANGLESET | INDEXEDTRIANGLESTRIPSET | \
-			TRIANGLEFANSET | TRIANGLESTRIPSET | TRIANGLESET)
-
-#define X3DCOMPOSED_STRING(f) ( \
-        f == INDEXEDFACESET             ? "IndexedFaceSet" : ( \
-        f == ELEVATIONGRID              ? "ElevationGrid" : ( \
-        f == INDEXEDTRIANGLEFANSET      ? "IndexedTriangleFanSet" : ( \
-        f == INDEXEDTRIANGLESET         ? "IndexedTriangleSet" : ( \
-        f == INDEXEDTRIANGLESTRIPSET    ? "IndexedTriangleStripSet" : ( \
-        f == TRIANGLEFANSET             ? "TriangleFanSet" : ( \
-        f == TRIANGLESTRIPSET           ? "TriangleStripSet" : ( \
-        f == TRIANGLESET                ? "TriangleSet" : "unknown X3DComposedGeometry Node"))))))))
-
-
 /* defines for raycasting: */
 #define XEQ (APPROX(t_r1.x,t_r2.x))
 #define YEQ (APPROX(t_r1.y,t_r2.y))
