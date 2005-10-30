@@ -811,7 +811,7 @@ void stream_polyrep(void *node,
 	struct SFColor *points,
 	int ncolors, struct SFColor *colors,
 	int nnormals, struct SFColor *normals,
-	int ntexcoords, struct SFVec2f *texcoords,
+	struct VRML_TextureCoordinate *tc,
 	int isRGBA)
 {
 	struct VRML_Virt *v;
@@ -819,6 +819,8 @@ void stream_polyrep(void *node,
 	struct VRML_PolyRep *r;
 	int i;
 	int hasc;
+	int ntexcoords;
+	struct SFVec2f *texcoords;
 
 	/* texture generation points... */
 	int j;
@@ -840,6 +842,15 @@ void stream_polyrep(void *node,
 	struct SFColorRGBA *oldColorsRGBA;
 	float *newtc;
 
+
+	if (tc) {
+		if ((tc->_nodeType != NODE_TextureCoordinate) && (tc->_nodeType != NODE_MultiTextureCoordinate)) {
+			printf ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
+		} else {
+			texcoords = tc->point.p;
+			ntexcoords = tc->point.n;
+		}
+	}
 
 	#ifdef STREAM_POLY_VERBOSE
 	printf ("\nstart stream_polyrep\n");
@@ -1257,7 +1268,6 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	struct VRML_Coordinate *xc;
 	struct VRML_Color *cc;
 	struct VRML_Normal *nc;
-	struct VRML_TextureCoordinate *tc;
 
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
@@ -1293,16 +1303,6 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 		}
 	}
 
-	if (texCoord) {
-		tc = (struct VRML_TextureCoordinate *) texCoord;
-		if (tc->_nodeType != NODE_TextureCoordinate) {
-			printf ("regen_polyrep, normal expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
-		} else {
-			texcoords = tc->point.p;
-			ntexcoords = tc->point.n;
-		}
-	}
-
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
 		p->_intern = malloc(sizeof(struct VRML_PolyRep));
@@ -1332,6 +1332,6 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	v->mkpolyrep(node);
 
 	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
-	stream_polyrep(node, points, ncolors, colors, nnormals, normals, ntexcoords, texcoords, ct);
+	stream_polyrep(node, points, ncolors, colors, nnormals, normals, texCoord, ct);
 }
 

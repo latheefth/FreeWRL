@@ -639,9 +639,6 @@ my $protono;
 	ImageTexture =>
 	new VRML::NodeType("ImageTexture",
 					   {
-						# make sure this is first, see gen_struct - for MultiTexture
-						__aType => [SFInt32,4,field], #ImageTexture
-
 						url => [MFString, [], exposedField],
 						repeatS => [SFBool, 1, field],
 						repeatT => [SFBool, 1, field],
@@ -653,9 +650,6 @@ my $protono;
 	MultiTexture =>
 	new VRML::NodeType("MultiTexture",
 					   {
-						# make sure this is first, see gen_struct - for MultiTexture
-						__aType => [SFInt32,1,field], #MultiTexture
-
 						alpha =>[SFFloat, 1, exposedField],
 						color =>[SFColor,[1,1,1],exposedField],
 						function =>[MFString,[],exposedField],
@@ -671,9 +665,6 @@ my $protono;
 	PixelTexture =>
 	new VRML::NodeType("PixelTexture",
 					   {
-						# make sure this is first, see gen_struct - for MultiTexture
-						__aType => [SFInt32,2,field], #PixelTexture
-
 						image => [SFImage, "0, 0, 0", exposedField],
 						repeatS => [SFBool, 1, field],
 						repeatT => [SFBool, 1, field],
@@ -684,9 +675,6 @@ my $protono;
 	MovieTexture =>
 	new VRML::NodeType ("MovieTexture",
 						{
-						# make sure this is first, see gen_struct - for MultiTexture
-						__aType => [SFInt32,3,field], #MovieTexture
-
 						 loop => [SFBool, 0, exposedField],
 						 speed => [SFFloat, 1.0, exposedField],
 						 startTime => [SFTime, 0, exposedField],
@@ -730,14 +718,12 @@ my $protono;
 	MultiTextureCoordinate =>
 	new VRML::NodeType("MultiTextureCoordinate", {
 						texCoord =>[MFNode,undef,exposedField],
-						__TCType => [SFInt32, 0, field],
 					   },
 					  ),
 
 	TextureCoordinate =>
 	new VRML::NodeType("TextureCoordinate",
 					   { point => [MFVec2f, [], exposedField],
-						__TCType => [SFInt32, 1, field],
 						 }
 					  ),
 #############################################################################################

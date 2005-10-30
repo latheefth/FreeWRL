@@ -251,6 +251,8 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	int ntexcoords=0;
 	struct SFVec2f *texcoords;
 	
+        struct VRML_TextureCoordinate *tc;
+
 
 	/* check validity of input fields */
 	if(nh != nx * nz) {
@@ -266,13 +268,14 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	}
 
 	/* any texture coordinates passed in? */
-        if(this_->texCoord) {
-		/* use method to get coord pointer */
-		if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
-			freewrlDie("NULL METHOD ElevationGrid texCoord  get2");
-		}
-		texcoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> 
-			get2(this_->texCoord, &ntexcoords)) ;
+        if (this_->texCoord) {
+                tc = (struct VRML_TextureCoordinate *) this_->texCoord;
+                if (tc->_nodeType != NODE_TextureCoordinate) {
+                        printf ("checkX3DIFSF expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
+                } else {
+                        texcoords = tc->point.p;
+                        ntexcoords = tc->point.n;
+                }
 	}
 
 	/* allocate memory for texture coords */
@@ -366,6 +369,8 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 	int fanVertex;
 	int *newIndex;
 	int windingOrder; /*TriangleStripSet ordering */
+        struct VRML_Coordinate *xc;
+
 
 	/* printf ("checkX3DComposedGeomFields for node (%d) %s\n",
 			this_->_nodeType, X3DCOMPOSED_STRING(this_->_nodeType)); 
@@ -532,16 +537,15 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
                 	break;
 
 		case NODE_TriangleSet :
-			if(this_->coord) {
-				  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
-				  	freewrlDie("NULL METHOD IndexedFaceSet coord  get3");
-				  }
-				  points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
-			     &npoints)) ;
-			 } else { 
-				freewrlDie("NULL FIELD Triangle/IFS coord ");
-			}
-
+		        if(this_->coord) {
+		                xc = (struct VRML_Coordinate *) this_->coord;
+		                if (xc->_nodeType != NODE_Coordinate) {
+		                        printf ("TriangleSet, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
+		                } else {
+		                        points = xc->point.p;
+		                        npoints = xc->point.n;
+		                }
+		        }
 
 			/* verify whether we have an incorrect number of coords or not */
 			if (((npoints/3)*3) != npoints) {
@@ -693,10 +697,8 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 	struct SFColor *c1;
 	struct SFColor *points;
-	struct SFVec2f *texCoords;
 	struct VRML_PolyRep *rep_ = (struct VRML_PolyRep *)this_->_intern;
 	struct SFColor *normals;
-	struct SFColor *colors;
 
 	int *cindex;		/* Coordinate Index	*/
 	int *colindex;		/* Color Index		*/
@@ -715,6 +717,10 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	int i;				/* general purpose counters */
 	int this_face, this_coord, this_normal, this_normalindex;
 
+	struct VRML_Coordinate *xc;
+	struct VRML_Color *cc;
+	struct VRML_Normal *nc;
+	struct VRML_TextureCoordinate *tc;
 
 	if (this_->_nodeType == NODE_IndexedFaceSet) {
 		if (!checkX3DIndexedFaceSetFields(this_)) {
@@ -764,36 +770,51 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 
 	/* texture coords IndexedFaceSet coords colors and normals */
-	if(this_->texCoord) {
-			  if(!(*(struct VRML_Virt **)(this_->texCoord))-> get2) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet texCoord  get2");
-			  }
-			   texCoords =  ((*(struct VRML_Virt **)(this_->texCoord))-> get2(this_->texCoord,
-			     &ntexCoords)) ;
-			};
-
-	/* coords - either in vrml/x3d file, or, if ElevationGrid, calculated for us. */
 	if(this_->coord) {
-			  if(!(*(struct VRML_Virt **)(this_->coord))-> get3) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet coord  get3");
-			  }
-			   points =  ((*(struct VRML_Virt **)(this_->coord))-> get3(this_->coord,
-			     &npoints)) ;}
-	 	  
+		xc = (struct VRML_Coordinate *) this_->coord;
+		if (xc->_nodeType != NODE_Coordinate) {
+			printf ("make_IFS, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
+		} else {
+			points = xc->point.p;
+			npoints = xc->point.n;
+		}
+	}
+
+
+	/* just check this parameter here for correctness and, whether to generate other nodes. We
+	   will check it better in stream_polyrep. */
+	if (this_->color) {
+		cc = (struct VRML_Color *) this_->color;
+		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+			printf ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
+		} else {
+			ncolors = cc->color.n;
+		}
+	}
+	
 	if(this_->normal) {
-			  if(!(*(struct VRML_Virt **)(this_->normal))-> get3) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet normal  get3");
-			  }
-			   normals =  ((*(struct VRML_Virt **)(this_->normal))-> get3(this_->normal,
-			     &nnormals)) ;
-			};
-	if(this_->color) {
-			  if(!(*(struct VRML_Virt **)(this_->color))-> get3) {
-			  	freewrlDie("NULL METHOD IndexedFaceSet color  get3");
-			  }
-			   colors =  ((*(struct VRML_Virt **)(this_->color))-> get3(this_->color,
-			     &ncolors)) ;
-			};
+		nc = (struct VRML_Normal *) this_->normal;
+		if (nc->_nodeType != NODE_Normal) {
+			printf ("make_IFS, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
+		} else {
+			normals = nc->vector.p;
+			nnormals = nc->vector.n;
+		}
+	}
+
+	/* just check this parameter here for correctness and, whether to generate other nodes. We
+	   will check it better in stream_polyrep. */
+	if (this_->texCoord) {
+		tc = (struct VRML_TextureCoordinate *) this_->texCoord;
+		if (tc->_nodeType == NODE_TextureCoordinate) {
+			ntexCoords = tc->point.n;
+		} else if (tc->_nodeType == NODE_MultiTextureCoordinate ) {
+			/* printf ("MakeIFS - got a MultiTextureCoordinate - assuming ntexcoords - npoints for now\n"); */
+			ntexCoords = npoints;
+		} else {
+			printf ("make_IFS, normal expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
+		}
+	}
 
 	/************************************************************************
 	Rules from the spec:

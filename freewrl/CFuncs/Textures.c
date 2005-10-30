@@ -281,7 +281,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 	struct VRML_ImageTexture *nt;
 
 	#ifdef TEXVERBOSE
-	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->__aType,
+	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->_nodeType,
 			node->texture.n,
 			node->texture.p[0], node->texture.p[1]);
 	printf ("	change %d ichange %d\n",node->_change, node->_ichange);
@@ -415,8 +415,6 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 	   here is a set of pointers to datastructures of (hopefully!)
 	   types like VRML_ImageTexture, VRML_PixelTexture, and VRML_MovieTexture.
 
-	   the first integer in the datastructures is a number - see the __aType
-	   field in VRMLNodes.pm for these structures. 
 	*/
 
 	/* how many textures can we use? */
@@ -437,28 +435,28 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 		/* get the texture */
 		nt = node->texture.p[count];
 
-		switch (nt->__aType) {
-			case 4: 
+		switch (nt->_nodeType) {
+			case NODE_ImageTexture : 
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
 				loadImageTexture ((struct VRML_ImageTexture*) nt,
 					(void *)paramPtr);
 				break;
-			case 1:
+			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
 				break;
-			case 2:
+			case NODE_PixelTexture:
 				/* printf ("MultiTexture %d is a PixelTexture\n",count); */
 				loadPixelTexture ((struct VRML_PixelTexture*) nt,
 					(void *)paramPtr);
 				break;
-			case 3:
+			case NODE_MovieTexture:
 				/* printf ("MultiTexture %d is a MovieTexture\n"); */
 				loadMovieTexture ((struct VRML_MovieTexture*) nt,
 					(void *)paramPtr);
 				break;
 			default:
 				printf ("MultiTexture - unknown sub texture type %d\n",
-						nt->__aType);
+						nt->_nodeType);
 		}
 
 		/* now, lets increment texture_count. The current texture will be
