@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.171  2005/10/31 17:44:42  crc_canada
+# texCoords for triangle node regeneration verified.
+#
 # Revision 1.170  2005/10/30 15:55:53  crc_canada
 # Review the way nodes are identified at runtime.
 #
@@ -597,7 +600,7 @@ IndexedTriangleFanSet => '
 ',
 IndexedTriangleSet => '
                 if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -608,7 +611,7 @@ IndexedTriangleSet => '
 ',
 IndexedTriangleStripSet => '
                 if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
 
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -619,7 +622,7 @@ IndexedTriangleStripSet => '
 ',
 TriangleFanSet => '
                 if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -630,7 +633,7 @@ TriangleFanSet => '
 ',
 TriangleStripSet => '
                 if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
@@ -641,7 +644,7 @@ TriangleStripSet => '
 ',
 TriangleSet => '
                 if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
+                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!$f(solid)) {
 			glPushAttrib(GL_ENABLE_BIT);
