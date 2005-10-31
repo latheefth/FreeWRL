@@ -119,8 +119,8 @@ stream_polyrep(void *node,
 			   struct SFColor *colors,
 			   int nnormals,
 			   struct SFColor *normals,
-			   int ntexcoords,
-			   struct SFVec2f *texcoords,
+        struct VRML_TextureCoordinate *tc,
+
 				int isRGBA);
 
 void
