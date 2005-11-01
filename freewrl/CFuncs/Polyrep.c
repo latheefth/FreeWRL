@@ -798,29 +798,31 @@ void render_polyrep(void *node) {
 *  convert a polyrep into a structure format that displays very
 *  well, especially on fast graphics hardware
 *
-*  the isRGBA parameter tells us whether the color node (if present)
-*  is in RGB or RGBA format.
-*
 * points is the preferred way of getting coordinates into this 
 * function. the r->coord method will go away. Currently only used by
 * Extrusions.
 *
 *********************************************************************/
 
-void stream_polyrep(void *node,
-	struct SFColor *points,
-	int ncolors, struct SFColor *colors,
-	int nnormals, struct SFColor *normals,
-	struct VRML_TextureCoordinate *tc,
-	int isRGBA)
-{
+void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
+
 	struct VRML_Virt *v;
 	struct VRML_IndexedFaceSet *p;
 	struct VRML_PolyRep *r;
 	int i;
 	int hasc;
-	int ntexcoords;
-	struct SFVec2f *texcoords;
+
+	struct SFColor *points=0; int npoints;
+	struct SFColor *colors=0; int ncolors=0;
+	struct SFColor *normals=0; int nnormals=0;
+	struct SFVec2f *texcoords=0; int ntexcoords=0;
+	int isRGBA = FALSE;
+
+	struct VRML_Coordinate *xc;
+	struct VRML_Color *cc;
+	struct VRML_Normal *nc;
+	struct VRML_TextureCoordinate *tc;
+
 
 	/* texture generation points... */
 	int j;
@@ -842,8 +844,40 @@ void stream_polyrep(void *node,
 	struct SFColorRGBA *oldColorsRGBA;
 	float *newtc;
 
+	/* sanity check parameters, and get numbers */
+	if(coord) {
+		xc = (struct VRML_Coordinate *) coord;
+		if (xc->_nodeType != NODE_Coordinate) {
+			printf ("stream_polyrep, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
+		} else {
+			points = xc->point.p;
+			npoints = xc->point.n;
+		}
+	}
 
-	if (tc) {
+	if (color) {
+		cc = (struct VRML_Color *) color;
+		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+			printf ("stream_polyrep, expected %d got %d\n", NODE_Color, cc->_nodeType);
+		} else {
+			colors = cc->color.p;
+			ncolors = cc->color.n;
+			isRGBA = (cc->_nodeType == NODE_ColorRGBA);
+		}
+	}
+	
+	if(normal) {
+		nc = (struct VRML_Normal *) normal;
+		if (nc->_nodeType != NODE_Normal) {
+			printf ("stream_polyrep, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
+		} else {
+			normals = nc->vector.p;
+			nnormals = nc->vector.n;
+		}
+	}
+
+	if (texCoord) {
+		tc = (struct VRML_TextureCoordinate *) texCoord;
 		if ((tc->_nodeType != NODE_TextureCoordinate) && (tc->_nodeType != NODE_MultiTextureCoordinate)) {
 			printf ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
 		} else {
@@ -853,13 +887,16 @@ void stream_polyrep(void *node,
 	}
 
 	#ifdef STREAM_POLY_VERBOSE
-	printf ("\nstart stream_polyrep\n");
+	printf ("\nstart stream_polyrep ncoords %d ncolors %d nnormals %d ntexcoords %d\n",
+			npoints, ncolors, nnormals, ntexcoords);
 	#endif
 
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_IndexedFaceSet *)node;
 	r = (struct VRML_PolyRep *)p->_intern;
-	/*printf ("polyv, points %d coord %d ntri %d\n",points,r->coord,r->ntri);  */
+	#ifdef STREAM_POLY_VERBOSE
+	printf ("polyv, points %d coord %d ntri %d rnormal nnormal\n",points,r->coord,r->ntri,r->normal, nnormals);
+	#endif
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
@@ -1258,50 +1295,8 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	struct VRML_Box *p;
 	struct VRML_PolyRep *r;
 
-	struct SFColor *points=0; int npoints;
-	struct SFColor *colors=0; int ncolors=0;
-	struct SFColor *normals=0; int nnormals=0;
-	struct SFVec2f *texcoords=0; int ntexcoords=0;
-	int ct=0;
-
-
-	struct VRML_Coordinate *xc;
-	struct VRML_Color *cc;
-	struct VRML_Normal *nc;
-
 	v = *(struct VRML_Virt **)node;
 	p = (struct VRML_Box *)node;
-
-	if(coord) {
-		xc = (struct VRML_Coordinate *) coord;
-		if (xc->_nodeType != NODE_Coordinate) {
-			printf ("regen_polyrep, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
-		} else {
-			points = xc->point.p;
-			npoints = xc->point.n;
-		}
-	}
-
-	if (color) {
-		cc = (struct VRML_Color *) color;
-		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-			printf ("regen_polyrep, expected %d got %d\n", NODE_Color, cc->_nodeType);
-		} else {
-			colors = cc->color.p;
-			ncolors = cc->color.n;
-			ct = (cc->_nodeType == NODE_ColorRGBA);
-		}
-	}
-	
-	if(normal) {
-		nc = (struct VRML_Normal *) normal;
-		if (nc->_nodeType != NODE_Normal) {
-			printf ("regen_polyrep, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
-		} else {
-			normals = nc->vector.p;
-			nnormals = nc->vector.n;
-		}
-	}
 
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
@@ -1332,6 +1327,6 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	v->mkpolyrep(node);
 
 	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
-	stream_polyrep(node, points, ncolors, colors, nnormals, normals, texCoord, ct);
+	stream_polyrep(node, coord, color, normal, texCoord);
 }
 

@@ -5,8 +5,8 @@
 
 
 Viewpoint {
-  position      0 0 0
-#JAS - now that this works, the test looks horrible. :-)  fieldOfView   0.2
+  position      0 0 1 
+  fieldOfView 0.3
 }
 DEF t Script {
           eventOut        SFInt32        out

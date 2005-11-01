@@ -112,17 +112,7 @@ do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA);
 void
 do_glNormal3fv(struct SFColor *dest, GLfloat *param);
 
-void
-stream_polyrep(void *node,
-			   struct SFColor *points,
-			   int ncolors,
-			   struct SFColor *colors,
-			   int nnormals,
-			   struct SFColor *normals,
-        struct VRML_TextureCoordinate *tc,
-
-				int isRGBA);
-
+void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
 void
 render_ray_polyrep(void *node,
 				   struct SFColor *points);

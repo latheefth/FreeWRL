@@ -697,7 +697,7 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 	for (i = 0; i<(unsigned int)indx_count; i++) {
 		FW_rep_->normal[i*3+0] = 0.0;
 		FW_rep_->normal[i*3+1] = 0.0;
-		FW_rep_->normal[i*3+2] = -1.0;
+		FW_rep_->normal[i*3+2] = 1.0;
 	}
 
 
