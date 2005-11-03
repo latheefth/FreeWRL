@@ -168,6 +168,8 @@ extern int texture_count;
 extern void textureDraw_start(GLfloat *tex);
 extern void textureDraw_end(void);
 
+extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
+
 
 
 extern int _fw_pipe, _fw_FD;

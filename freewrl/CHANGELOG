@@ -1,4 +1,6 @@
 For 1.14:
+	- MultiTextureTransform node support.
+
 	- Sphere solid flag now works.
 
 	- "Endian" bug fixed in Binding stack code.

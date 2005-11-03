@@ -23,6 +23,63 @@ static int now_mapped = 1;		/* are we on screen, or minimized? */
 /* lights status. Light 0 is the headlight */
 static int lights[8];
 
+
+
+/******************************************************************/
+/* textureTransforms of all kinds */
+
+
+
+
+/* did we have a TextureTransform in the Appearance node? */
+void start_textureTransform (void *textureNode, int ttnum) {
+	struct VRML_TextureTransform  *ttt;
+	struct VRML_MultiTextureTransform *mtt;
+	
+	/* first, is this a textureTransform, or a MultiTextureTransform? */
+	ttt = (struct VRML_TextureTransform *) textureNode;
+
+	/* stuff common to all textureTransforms - gets undone at finish_textureTransform */
+       	glEnable(GL_TEXTURE_2D);
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+
+	/* is this a simple TextureTransform? */
+	if (ttt->_nodeType == NODE_TextureTransform) {
+		/*  Render transformations according to spec.*/
+        	glTranslatef(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+        	glScalef(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+        	glRotatef((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        	glTranslatef(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+        	glTranslatef(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+
+	/* is this a MultiTextureTransform? */
+	} else  if (ttt->_nodeType == NODE_MultiTextureTransform) {
+		mtt = (struct VRML_MultiTextureTransform *) textureNode;
+		if (ttnum < mtt->textureTransform.n) {
+			ttt = (struct VRML_TextureTransform *) mtt->textureTransform.p[ttnum];
+			/* is this a simple TextureTransform? */
+			if (ttt->_nodeType == NODE_TextureTransform) {
+				/*  Render transformations according to spec.*/
+        			glTranslatef(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+        			glScalef(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+        			glRotatef((ttt->rotation) /3.1415926536*180,0,0,1);			/*  3*/
+        			glTranslatef(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+        			glTranslatef(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+			} else {
+				printf ("MultiTextureTransform expected a textureTransform for texture %d, got %d\n",
+					ttnum, ttt->_nodeType);
+			}
+		} else {
+			printf ("not enough textures in MultiTextureTransform....\n");
+		}
+
+	} else {
+		printf ("expected a textureTransform node, got %d\n",ttt->_nodeType);
+	}
+}
+
+
 /* keep track of lighting */
 void lightState(GLint light, int status) {
 	if (lights[light] != status) {

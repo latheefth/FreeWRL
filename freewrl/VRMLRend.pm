@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.172  2005/11/03 16:15:06  crc_canada
+# MultiTextureTransform - textureTransforms changed considerably.
+#
 # Revision 1.171  2005/10/31 17:44:42  crc_canada
 # texCoords for triangle node regeneration verified.
 #
@@ -959,8 +962,11 @@ Extrusion => '
 		}
 ',
 
-# FontStyle params handled in Text.
+# FontStyle params handled in Text. This is here so that VRML_FontStyle struct will be generated.
 FontStyle => 'UNUSED(this_);',
+
+# MultiTextureCoordinate params handled in C code. This is here so that VRML_MultiTextureCoordinate struct will be generated
+MultiTextureCoordinate => ' UNUSED(this_);',
 
 # Text is a polyrep, as of freewrl 0.34
 Text => '
@@ -974,10 +980,6 @@ Text => '
 		render_polyrep(this_);
 
 		glPopAttrib();
-',
-
-MultiTextureCoordinate => '
-		printf ("rendering MultiTextureCoordinate\n");
 ',
 
 Material =>  '
@@ -1045,22 +1047,12 @@ Material =>  '
 		do_shininess(shin);
 ',
 
+MultiTextureTransform => '
+		printf ("rendering MultiTextureTransform\n");
+',
+
 TextureTransform => '
-	have_textureTransform=TRUE;
-       	glEnable(GL_TEXTURE_2D);
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-
-	/*  Render transformations according to spec.*/
-
-	glTranslatef(-$f(center,0),-$f(center,1), 0);		/*  5*/
-	glScalef($f(scale,0),$f(scale,1),1);			/*  4*/
-	glRotatef($f(rotation)/3.1415926536*180,0,0,1);		/*  3*/
-	glTranslatef($f(center,0),$f(center,1), 0);		/*  2*/
-	glTranslatef($f(translation,0), $f(translation,1), 0); 	/*  1*/
-
-	glMatrixMode(GL_MODELVIEW);
+		printf ("rendering TextureTransform\n");
 ',
 
 # Pixels and Images are all handled the same way now - the methods are identical.
@@ -1613,6 +1605,10 @@ Billboard => (join '','
 		last_texture_depth = 0;
 		last_transparency = 1.0;
 
+	/* printf ("in Appearance, this %d, nodeType %d\n",this_, this_->_nodeType);
+	 printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+
 		if($f(material)) {
 			render_node($f(material));
 		} else {
@@ -1629,9 +1625,7 @@ Billboard => (join '','
 			glPushAttrib(GL_ENABLE_BIT); 
 
 			/* is there a TextureTransform? if no texture, fugutaboutit */
-		    	if($f(textureTransform))   {
-				render_node($f(textureTransform));
-			}
+			this_textureTransform = this_->textureTransform;
 
 			/* now, render the texture */
 			render_node($f(texture));
@@ -1668,7 +1662,6 @@ Billboard => (join '','
 		/* a texture and a transparency flag... */
 		texture_count = 0; /* will be >=1 if textures found */
 		trans = have_transparency;
-		have_textureTransform = FALSE;
 		have_texture = FALSE;
 
                 /* assume that lighting is enabled. Absence of Material or Appearance
@@ -1724,13 +1717,6 @@ Billboard => (join '','
 		/* should we render this node on this pass? */
 		if (should_rend) {
 			render_node((this_->geometry));
-		}
-
-		/* did we have a TextureTransform in the Appearance node? */
-		if (have_textureTransform) {
-			glMatrixMode(GL_TEXTURE);
-			glPopMatrix();
-			glMatrixMode(GL_MODELVIEW);
 		}
 
                /* did the lack of an Appearance or Material node turn lighting off? */

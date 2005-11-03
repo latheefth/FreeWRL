@@ -549,6 +549,7 @@ my $protono;
 	Material 		=>material,
 	MultiTexture		=>texture,
 	MultiTextureCoordinate  =>texCoord,
+	MultiTextureTransform	=>textureTransform,
 	MovieTexture 		=>texture,
 	NavigationInfo 		=>children,
 	Normal 			=>normal,

@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.185  2005/11/03 16:15:06  crc_canada
+# MultiTextureTransform - textureTransforms changed considerably.
+#
 # Revision 1.184  2005/10/30 15:55:53  crc_canada
 # Review the way nodes are identified at runtime.
 #
@@ -1144,7 +1147,7 @@ GLuint bound_textures[MAX_MULTITEXTURE];
 int texture_count;
 
 int	have_transparency;	/* did this Shape have transparent material? */
-int	have_textureTransform;  /* do we have to undo the textureTransforms? */
+void *	this_textureTransform;  /* do we have some kind of textureTransform? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	have_texture;		/* do we have a texture (And thus a push?) */
 

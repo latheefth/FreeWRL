@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include "readpng.h"
 
-
 void new_do_texture(int texno);
 void checkAndAllocTexMemTables(GLuint *texture_num, int increment);
 
@@ -429,8 +428,11 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 		printf ("loadMultiTexture, working on texture %d\n",count);
 		#endif
 
+		/*
+		do we need this? obviously not, but I'm leaving it here for now...
 		glActiveTexture(GL_TEXTURE0+count);
 		glEnable(GL_TEXTURE_2D);
+		*/
 
 		/* get the texture */
 		nt = node->texture.p[count];
@@ -1526,8 +1528,13 @@ void textureDraw_start(GLfloat *tex) {
 	for (c=0; c<texture_count; c++) {
 		/* are we ok with this texture yet? */
 		if (isloaded[bound_textures[c]] == LOADED) {
+
 			glActiveTexture(GL_TEXTURE0+c);
 			glClientActiveTexture(GL_TEXTURE0+c);
+        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+
+
+
 			glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 			glTexCoordPointer (2,GL_FLOAT,0,tex);
 			glEnableClientState (GL_TEXTURE_COORD_ARRAY);
@@ -1544,4 +1551,6 @@ void textureDraw_end(void) {
 		glDisable(GL_TEXTURE_2D);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
+
+        glMatrixMode(GL_MODELVIEW);
 }

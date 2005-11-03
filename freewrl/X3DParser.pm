@@ -1068,7 +1068,7 @@ sub parseX3DNodeField {
 	my $no = $VRML::Nodes{$parentNode};
 
 
-	# print "parseX3DNodeField, field $field for node $parentNode next $nextNodeName bnub $bnub fieldref $fieldref\n";
+	#print "parseX3DNodeField, field $field for node $parentNode next $nextNodeName bnub $bnub fieldref $fieldref\n";
 
 	if ($nextNodeName eq "IS") {
 		#print "nextNodeName is an IS\n";
@@ -1094,7 +1094,7 @@ sub parseX3DNodeField {
 		}
 
 		if ($fieldFound == 0) {
-			# print "containerField not found, looking for field now: $field\n";
+			 #print "containerField not found, looking for field now: $field\n";
 			$field = getChildType($parentNode,$nextNodeName);
 		#} else {
 		#	print "containerField showed us that this is a $field\n";
@@ -1108,11 +1108,12 @@ sub parseX3DNodeField {
 			$field = choice; # VRML97, children
 		}
 	
+		#print "field now is $field for parent $parentNode, next $nextNodeName \n";
 	
 		my $ft = $no->{FieldTypes}{$field};
 		print "FT: $ft\n" if $X3D::verbose;
 		if(!defined $ft) {
-			my $mt = "Invalid field '$field' for node '$parentNode'\n";
+			my $mt = "Invalid field '$nextNodeName' for node '$parentNode'\n";
 			$mt = $mt . "Possible fields are: ";
 			foreach (keys % {$no->{FieldTypes}}) {
 				if (index($_,"_") !=0) {$mt = $mt . "$_ ";}
