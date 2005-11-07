@@ -112,6 +112,210 @@ int myMaxScript = -1;
 /* do we have some sensitive nodes in scene graph? */
 static int HaveSensitive = FALSE;
 
+
+/* from VRMLC.pm */
+
+/* Rearrange to take advantage of headlight when off */
+int curlight = 0;
+int nlightcodes = 7;
+int lightcode[7] = {
+	GL_LIGHT1,
+	GL_LIGHT2,
+	GL_LIGHT3,
+	GL_LIGHT4,
+	GL_LIGHT5,
+	GL_LIGHT6,
+	GL_LIGHT7,
+};
+int nextlight() {
+	if(curlight == nlightcodes) { return -1; }
+	return lightcode[curlight++];
+}
+
+/* material node usage depends on texture depth; if rgb (depth1) we blend color field
+   and diffusecolor with texture, else, we dont bother with material colors */
+int last_texture_depth = 0;
+float last_transparency = 0.0;
+
+/* Sounds can come from AudioClip nodes, or from MovieTexture nodes. Different
+   structures on these */
+int sound_from_audioclip = 0;
+
+/* and, we allow a maximum of so many pixels per texture */
+/* if this is zero, first time a texture call is made, this is set to the OpenGL implementations max */
+GLint global_texSize = 0;
+
+/* for printing warnings about Sound node problems - only print once per invocation */
+int soundWarned = FALSE;
+
+int render_vp; /*set up the inverse viewmatrix of the viewpoint.*/
+int render_geom;
+int render_light;
+int render_sensitive;
+int render_blend;
+int render_proximity;
+int render_collision;
+
+int display_status = 1;  /* display a status bar? */
+int be_collision = 0;	/* do collision detection? */
+
+int found_vp; /*true when viewpoint found*/
+
+/* texture stuff - see code. Need array because of MultiTextures */
+GLuint bound_textures[MAX_MULTITEXTURE];
+int texture_count;
+
+int	have_transparency;	/* did this Shape have transparent material? */
+void *	this_textureTransform;  /* do we have some kind of textureTransform? */
+int	lightingOn;		/* do we need to restore lighting in Shape? */
+int	have_texture;		/* do we have a texture (And thus a push?) */
+
+int smooth_normals = -1; /* -1 means, uninitialized */
+
+int cur_hits=0;
+
+/* Collision detection results */
+struct sCollisionInfo CollisionInfo = { {0,0,0} , 0, 0. };
+
+/* Displacement of viewer , used for colision calculation  PROTYPE, CURRENTLY UNUSED*/
+struct pt ViewerDelta = {0,0,0};
+
+/* dimentions of viewer, and "up" vector (for collision detection) */
+struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
+
+/* for alignment of collision cylinder, and gravity (later). */
+struct pt ViewerUpvector = {0,0,0};
+
+VRML_Viewer Viewer;
+
+
+/* These two points define a ray in window coordinates */
+
+struct pt r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0};
+struct pt t_r1,t_r2,t_r3; /* transformed ray */
+void *hypersensitive = 0; int hyperhit = 0;
+struct pt hyper_r1,hyper_r2; /* Transformed ray for the hypersensitive node */
+
+GLint viewport[4] = {-1,-1,2,2};
+
+/* These three points define 1. hitpoint 2., 3. two different tangents
+ * of the surface at hitpoint (to get transformation correctly */
+
+/* All in window coordinates */
+
+struct pt hp, ht1, ht2;
+double hpdist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+
+/* used to save rayhit and hyperhit for later use by C functions */
+struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+
+/* Any action for the Browser (perl code) to do? */
+int BrowserAction = FALSE;
+struct VRML_Anchor *AnchorsAnchor;
+
+
+struct currayhit  rh,rph,rhhyper;
+/* used to test new hits */
+
+/* this is used to return the duration of an audioclip to the perl
+side of things. SvPV et al. works, but need to figure out all
+references, etc. to bypass this fudge JAS */
+float AC_LastDuration[50]  = {-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0,
+				-1.0,-1.0,-1.0,-1.0,-1.0} ;
+
+/* is the sound engine started yet? */
+int SoundEngineStarted = FALSE;
+
+/* stored FreeWRL version, pointers to initialize data */
+char *BrowserVersion = NULL;
+char *BrowserURL = NULL; 
+char *BrowserFullPath = NULL;
+char *BrowserName = "FreeWRL VRML/X3D Browser";
+char *lastReadFile = NULL;
+
+void *rootNode=0;	/* scene graph root node */
+
+/*******************************************************************************/
+
+/* Sub, rather than big macro... */
+void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
+float tx,float ty, char *descr)  {
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
+
+	/* Real rat-testing */
+	#ifdef RENDERVERBOSE
+		printf("RAY HIT %s! %f (%f %f %f) (%f %f %f)\n\tR: (%f %f %f) (%f %f %f)\n",
+		descr, rat,cx,cy,cz,nx,ny,nz,
+		t_r1.x, t_r1.y, t_r1.z,
+		t_r2.x, t_r2.y, t_r2.z
+		);
+	#endif
+
+	if(rat<0 || (rat>hpdist && hpdist >= 0)) {
+		return;
+	}
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	gluProject(cx,cy,cz, modelMatrix, projMatrix, viewport,
+		&hp.x, &hp.y, &hp.z);
+	hpdist = rat;
+	rh=rph;
+	rhhyper=rph;
+	#ifdef RENDERVERBOSE 
+		printf ("Rayhit, hp.x y z: - %f %f %f rat %f hpdist %f\n",hp.x,hp.y,hp.z, rat, hpdist);
+	#endif
+}
+
+/* Call this when modelview and projection modified */
+void upd_ray() {
+	GLdouble modelMatrix[16];
+	GLdouble projMatrix[16];
+	fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	fwGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+	gluUnProject(r1.x,r1.y,r1.z,modelMatrix,projMatrix,viewport,
+		&t_r1.x,&t_r1.y,&t_r1.z);
+	gluUnProject(r2.x,r2.y,r2.z,modelMatrix,projMatrix,viewport,
+		&t_r2.x,&t_r2.y,&t_r2.z);
+	gluUnProject(r3.x,r3.y,r3.z,modelMatrix,projMatrix,viewport,
+		&t_r3.x,&t_r3.y,&t_r3.z);
+/*	printf("Upd_ray: (%f %f %f)->(%f %f %f) == (%f %f %f)->(%f %f %f)\n",
+		r1.x,r1.y,r1.z,r2.x,r2.y,r2.z,
+		t_r1.x,t_r1.y,t_r1.z,t_r2.x,t_r2.y,t_r2.z);
+*/
+}
+
+
+/* if a node changes, void the display lists */
+/* Courtesy of Jochen Hoenicke */
+
+void update_node(void *ptr) {
+	struct VRML_Box *p;
+	int i;
+
+	p = (struct VRML_Box*) ptr;
+
+	p->_change ++;
+	p->PIV=1;
+	for (i = 0; i < p->_nparents; i++) {
+		update_node((void *)p->_parents[i]);
+	}
+}
+
+/*explicit declaration. Needed for Collision_Child*/
+void Group_Child(void *nod_);
+
+
+/* end of from VRMLC.pm */
+
 /* Function protos */
 void do_keyPress(char kp, int type);
 void render_collisions(void);

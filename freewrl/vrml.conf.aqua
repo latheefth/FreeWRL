@@ -52,7 +52,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 
 ############################################################################
 # LD flags
-	LDFLAGS => '-twolevel_namespace '.
+	LDFLAGS => '-flat_namespace '.
 		'-undefined error '.
 		'-dynamiclib '.
 		'-L/usr/lib '.
@@ -63,7 +63,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-framework Cocoa '.
 		'-lAquaIntLib -lperl `perl -MExtUtils::Embed -e ldopts`',
 
-	LDFLAGS2 => '-twolevel_namespace '.
+	LDFLAGS2 => '-flat_namespace '.
 		'-undefined error '.
 		'-bundle '.
 		'-L/usr/lib '.
