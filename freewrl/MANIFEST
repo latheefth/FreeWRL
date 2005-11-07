@@ -18,7 +18,6 @@ Makefile.PL
 NodeIntern.pm
 Parser.pm
 Scene.pm
-Text/.cvsignore
 USE.pm
 VRMLC.pm
 VRMLCU.pm

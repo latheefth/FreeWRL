@@ -209,9 +209,9 @@ void freeTexture (GLuint *texno) {
 
 	/* this crashes some Nvidia drivers
 	glDeleteTextures(1,texo);
-	*/
 
 	*texno = 0;
+	*/
 }
 
 
@@ -739,7 +739,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	struct multiTexParams *paramPtr;
 
 	#ifdef TEXVERBOSE 
-	printf ("bind_image, textureInProcess %d\n",textureInProcess);
+	printf ("bind_image, textureInProcess %d texture_num %d\n",textureInProcess,*texture_num);
 	#endif
 
 	if (textureInProcess > 0) {
@@ -946,7 +946,6 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	#ifdef TEXVERBOSE 
 	printf ("textureThread:start of findTextureFile for texture %d\n",*texnum);
 	#endif
-
 	/* try to find this file. */
 
 	/* pixelTextures - lets just make a specific string for this one */
@@ -1021,11 +1020,13 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			#endif
 		} else {
 			if (count > 0) {
-				printf ("Could not locate URL (last choice was %s)\n",filename);
+				
+				printf ("Could not locate URL for texture %d (last choice was %s)\n",*texnum,filename);
 			}
 			free (filename);
 			freeTexture(texnum);
 			loadparams[*texnum].filename="file not found";
+			isloaded[*texnum]=INVALID;
 			return FALSE;
 		}
 	}
@@ -1163,10 +1164,7 @@ void _textureThread(void) {
 				unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
-			#ifdef TEXVERBOSE 
-				printf ("textureThread: duplicate file, currentlyWorkingOn %d texnum %d\n",
-				currentlyWorkingOn, *(loadparams[currentlyWorkingOn].texture_num));
-			#endif
+			isloaded[*loadparams[currentlyWorkingOn].texture_num]=INVALID;
 		}
 
 		/* signal that we are finished */
@@ -1180,7 +1178,6 @@ void _textureThread(void) {
 		TUNLOCK
 	}
 }
-
 
 /********************************************************************************/
 /* load specific types of textures						*/
