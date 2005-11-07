@@ -91,6 +91,12 @@ extern CGLContextObj aqglobalContext;
                >NORMAL_VECTOR_LENGTH_TOLERANCE \
 )
 
+/* from VRMLC.pm */
+extern int sound_from_audioclip;
+extern int have_texture;
+extern int soundWarned;
+extern int cur_hits;
+extern struct pt hyper_r1,hyper_r2;
 
 /* defines for raycasting: */
 #define XEQ (APPROX(t_r1.x,t_r2.x))
