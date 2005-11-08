@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.174  2005/11/08 16:21:33  crc_canada
+# material node for Interchange testing.
+#
 # Revision 1.173  2005/11/08 16:00:20  crc_canada
 # reorg for 10.4.3 (OSX) dylib problem.
 #
@@ -1101,7 +1104,9 @@ Material =>  '
 
 		amb = $f(ambientIntensity);
 		for(i=0; i<3; i++) {
-			dcol[i] *= amb;
+                       /* to make this render like Xj3D, make ambient 0 with only headlight */
+                        /* dcol[i] *= amb; */
+                        dcol[i] = 0.0;
 		}
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
