@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.173  2005/11/08 16:00:20  crc_canada
+# reorg for 10.4.3 (OSX) dylib problem.
+#
 # Revision 1.172  2005/11/03 16:15:06  crc_canada
 # MultiTextureTransform - textureTransforms changed considerably.
 #
@@ -674,7 +677,8 @@ LineSet => '
 	struct SFColor *coord=0; int ncoord;
 	struct SFColor *color=0; int ncolor=0;
 	int *vertexC; int nvertexc;
-
+	struct VRML_Coordinate *xc;
+	struct VRML_Color *cc;
 
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable (GL_LIGHTING);
@@ -686,8 +690,29 @@ LineSet => '
 		/*  re-draw every time. this_->_ichange = this_->_change;*/
 
 		nvertexc = (this_->vertexCount).n; vertexC = (this_->vertexCount).p;
-		$fv(coord, coord, get3, &ncoord);
-		$fv_null(color, color, get3, &ncolor);
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                	        freewrlDie ("LineSet, coord node expected");
+                	} else {
+                        	coord = xc->point.p;
+                        	ncoord = xc->point.n;
+                	}
+        	}
+ 
+
+        	if (this_->color) {
+                	cc = (struct VRML_Color *) this_->color;
+                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+                	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
+                	} else {
+                	        ncolor = cc->color.n;
+				color = cc->color.p;
+                	}
+        	}
+
+
 
 		/* printf ("we have %d coords, %d colors\n",ncoord,ncolor);*/
 		ncoc = 0;
@@ -802,14 +827,33 @@ IndexedLineSet => '
 		int c;
 		struct SFColor *points=0; int npoints;
 		struct SFColor *colors=0; int ncolors=0;
-
+		struct VRML_Coordinate *xc;
+		struct VRML_Color *cc;
 
 		#ifdef RENDERVERBOSE
 		printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		#endif
 
-		$fv(coord, points, get3, &npoints);
-		$fv_null(color, colors, get3, &ncolors);
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                	        freewrlDie ("IndexedLineSet, coord node expected");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
+        	if (this_->color) {
+                	cc = (struct VRML_Color *) this_->color;
+                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+                	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
+                	} else {
+                	        ncolors = cc->color.n;
+				colors = cc->color.p;
+                	}
+        	}
+
                 glPushAttrib(GL_ENABLE_BIT);
 		glDisable (GL_LIGHTING);
 		glDisable(GL_COLOR_MATERIAL);
@@ -873,9 +917,30 @@ PointSet => '
 	int i;
 	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
+	struct VRML_Coordinate *xc;
+	struct VRML_Color *cc;
 
-	$fv(coord, points, get3, &npoints);
-	$fv_null(color, colors, get3, &ncolors);
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                	        freewrlDie ("IndexedLineSet, coord node expected");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
+
+        	if (this_->color) {
+                	cc = (struct VRML_Color *) this_->color;
+                	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+                	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
+                	} else {
+                	        ncolors = cc->color.n;
+				colors = cc->color.p;
+                	}
+        	}
+
 	if(ncolors && ncolors < npoints) {
 		printf ("PointSet has less colors than points - removing color\n");
 		ncolors = 0;
@@ -965,8 +1030,17 @@ Extrusion => '
 # FontStyle params handled in Text. This is here so that VRML_FontStyle struct will be generated.
 FontStyle => 'UNUSED(this_);',
 
+# TextureCoordinate params handled in C code. This is here so that VRML_TextureCoordinate struct will be generated
+TextureCoordinate => ' UNUSED(this_);',
+
 # MultiTextureCoordinate params handled in C code. This is here so that VRML_MultiTextureCoordinate struct will be generated
 MultiTextureCoordinate => ' UNUSED(this_);',
+
+Coordinate => ' UNUSED(this_);',
+ColorRGBA => ' UNUSED(this_);',
+Color => ' UNUSED(this_);',
+Normal => ' UNUSED(this_);',
+
 
 # Text is a polyrep, as of freewrl 0.34
 Text => '

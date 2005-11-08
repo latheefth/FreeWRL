@@ -572,11 +572,14 @@ void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (void *rc,  void *newNode);
-/* added M. Ward Dec 13/04 */
 void make_text(struct VRML_Text *this_ );
 void make_extrusion(struct VRML_Extrusion *this_);
 void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
 void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
+
+#define NODE_ADD_PARENT(a) add_parent(a,ptr)
+#define NODE_REMOVE_PARENT(a) add_parent(a,ptr)
+
 
 
 

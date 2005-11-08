@@ -1,4 +1,12 @@
-For 1.14:
+For 1.15:
+	- Fixed dynamic linker bug with OSX 10.4.3
+
+	- removed get3 and get2 method calls, leading to better error messages when
+	  unexpected children are found in VRML code.
+
+	- tagged all nodes with a unique type identifier, leading to better error
+	  messaging at runtime for code with generated nodes.
+	
 	- MultiTextureTransform node support.
 
 	- Sphere solid flag now works.

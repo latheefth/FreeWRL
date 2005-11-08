@@ -4,9 +4,6 @@ CVS/
 ^JPEG/Makefile$
 ^PNG/Makefile$
 ^OpenGL/Makefile$
-^Text/Makefile$
-^Text/Text.bs$
-^Text/Text.c$
 ^JS/Makefile$
 Makefile\.old$
 ^OLD/

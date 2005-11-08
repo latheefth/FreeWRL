@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.187  2005/11/08 16:00:20  crc_canada
+# reorg for 10.4.3 (OSX) dylib problem.
+#
 # Revision 1.186  2005/11/07 19:22:51  crc_canada
 # OSX 10.4.3 broke FreeWRL - had to move defns out of VRMLC.pm
 #
@@ -523,60 +526,129 @@ Cone => '
 	}
 ',
 
-GeoElevationGrid => ( '
-		render_ray_polyrep(this_, NULL);
-'),
+GeoElevationGrid => ( ' render_ray_polyrep(this_, NULL); '),
 
-ElevationGrid => ( '
-		render_ray_polyrep(this_, NULL);
-'),
+ElevationGrid => ( ' render_ray_polyrep(this_, NULL); '),
 
-Text => ( '
-		render_ray_polyrep(this_, NULL);
-'),
+Text => ( ' render_ray_polyrep(this_, NULL); '),
 
-Extrusion => ( '
-		render_ray_polyrep(this_, NULL);
-'),
+Extrusion => ( ' render_ray_polyrep(this_, NULL); '),
 
 IndexedFaceSet => '
 		struct SFColor *points=0; int npoints;
-		$fv(coord, points, get3, &npoints);
+		struct VRML_Coordinate *xc;
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                        	freewrlDie ("IndexedFaceSet - coord node wrong type");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
 		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleFanSet => '
 		struct SFColor *points=0; int npoints;
-		$fv(coord, points, get3, &npoints);
+		struct VRML_Coordinate *xc;
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                        	freewrlDie ("IndexedTriangleFanSet - coord node wrong type");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
 		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleSet => '
 		struct SFColor *points=0; int npoints;
-		$fv(coord, points, get3, &npoints);
+		struct VRML_Coordinate *xc;
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                        	freewrlDie ("IndexedTriangleSet - coord node wrong type");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
 		render_ray_polyrep(this_, points);
 ',
 
 IndexedTriangleStripSet => '
 		struct SFColor *points=0; int npoints;
-		$fv(coord, points, get3, &npoints);
+		struct VRML_Coordinate *xc;
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                        	freewrlDie ("IndexedTriangleStripSet - coord node wrong type");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
 		render_ray_polyrep(this_, points);
 ',
 
 TriangleFanSet => '
 		struct SFColor *points=0; int npoints;
-		$fv(coord, points, get3, &npoints);
+		struct VRML_Coordinate *xc;
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                        	freewrlDie ("TriangleFanSet - coord node wrong type");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
 		render_ray_polyrep(this_, points);
 ',
 
 TriangleStripSet => '
 		struct SFColor *points=0; int npoints;
-		$fv(coord, points, get3, &npoints);
+		struct VRML_Coordinate *xc;
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                        	freewrlDie ("TriangleStripSet - coord node wrong type");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
 		render_ray_polyrep(this_, points);
 ',
 TriangleSet => '
 		struct SFColor *points=0; int npoints;
-		$fv(coord, points, get3, &npoints);
+		struct VRML_Coordinate *xc;
+
+        	if(this_->coord) {
+                	xc = (struct VRML_Coordinate *) this_->coord;
+                	if (xc->_nodeType != NODE_Coordinate) {
+                        	freewrlDie ("TriangleSet - coord node wrong type");
+                	} else {
+                        	points = xc->point.p;
+                        	npoints = xc->point.n;
+                	}
+        	}
+ 
 		render_ray_polyrep(this_, points);
 ',
 
@@ -610,49 +682,13 @@ TriangleSet => '
 ######################################################################
 ######################################################################
 #
-# Get3
-#  get a coordinate / color colorRGBA / normal array from the node.
-# I know, colorRGBAs are 4 not 3 values, but they are interchangeable
-# in the X3DColorNode spec...
-#
-
-%Get3C = (
-Coordinate => '
-	*n = $f_n(point);
-	return $f(point);
-',
-ColorRGBA => '
-	*n = $f_n(color);
-	return $f(color);
-',
-Color => '
-	*n = $f_n(color);
-	return $f(color);
-',
-Normal => '
-	*n = $f_n(vector);
-	return $f(vector);
-'
-);
-
-%Get2C = (
-TextureCoordinate => '
-	*n = $f_n(point);
-	return $f(point);
-',
-);
-
-######################################################################
-######################################################################
-######################################################################
-#
 # Generation
 #  Functions for generating the code
 #
 
 
 {
-	my %AllNodes = (%RendC, %RendRayC, %PrepC, %FinC, %ChildC, %Get3C, %Get2C, %LightC,
+	my %AllNodes = (%RendC, %RendRayC, %PrepC, %FinC, %ChildC, %LightC,
 		%ChangedC, %ProximityC, %CollisionC);
 	@NodeTypes = keys %AllNodes;
 }
@@ -865,7 +901,7 @@ sub get_rendfunc {
 	my($n) = @_;
 	#JAS print "RENDF $n ";
 	# XXX
-	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light Get3 Get2
+	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light 
 		Changed Proximity Collision/;
 	my $f;
 	my $v = "
@@ -883,13 +919,7 @@ static struct VRML_Virt virt_${n} = { ".
 		$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
 		$c =~ s/\$fv\(([^)]*)\)/fvirt($n,split ',',$1)/ge;
 		$c =~ s/\$fv_null\(([^)]*)\)/fvirt_null($n,split ',',$1)/ge;
-		if($_ eq "Get3") {
-			$f .= "\n\nstruct SFColor *${n}_$_(void *nod_,int *n)";
-		} elsif($_ eq "Get2") {
-			$f .= "\n\nstruct SFVec2f *${n}_$_(void *nod_,int *n)";
-		} else {
-			$f .= "\n\nvoid ${n}_$_(void *nod_)";
-		}
+		$f .= "\n\nvoid ${n}_$_(void *nod_)";
 		$f .= "{ /* GENERATED FROM HASH ${_}C, MEMBER $n */
 			struct VRML_$n *this_ = (struct VRML_$n *)nod_;
 			{$c}
@@ -1012,10 +1042,6 @@ struct VRML_Virt {
 	void (*rendray)(void *);
 	void (*mkpolyrep)(void *);
 	void (*light)(void *);
-	/* And get float coordinates : Coordinate, Color */
-	/* XXX Relies on MFColor repr.. */
-	struct SFColor *(*get3)(void *, int *); /* Number in int */
-	struct SFVec2f *(*get2)(void *, int *); /* Number in int */
 	void (*changed)(void *);
 	void (*proximity)(void *);
 	void (*collision)(void *);
@@ -1107,409 +1133,6 @@ struct sNaviInfo {
 	print XS join '',@vstruc;
 	print XS <<'ENDHERE'
 
-/*********************************************************************
- * Code here again comes almost verbatim from VRMLC.pm
- */
-
-/*********************************************************************
- *********************************************************************
- *
- * render_node : call the correct virtual functions to render the node
- * depending on what we are doing right now.
- */
-
-void render_node(void *node) {
-	struct VRML_Virt *v;
-	struct VRML_Box *p;
-	int srg = 0;
-	int sch = 0;
-	struct currayhit srh;
-	#ifdef GLERRORS
-	int glerror = GL_NONE;
-	char* stage = "";
-	#endif
-
-	#ifdef RENDERVERBOSE
-		printf("\nRender_node %u\n",(unsigned int) node);
-	#endif
-
-	if(!node) {return;}
-	v = *(struct VRML_Virt **)node;
-	p = (struct VRML_Box *)node;
-
-	#ifdef RENDERVERBOSE 
-	    printf("=========================================NODE RENDERED===================================================\n");
-	printf ("node %d %d\n",p,v);
-	printf ("nodename %s\n",v->name);
-return;
-	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   v->name,
-		   v->prep,
-		   v->rend,
-		   v->children,
-		   v->fin,
-		   v->rendray,
-		   hypersensitive);
-	    printf("Render_state geom %d light %d sens %d\n",
-		   render_geom,
-		   render_light,
-		   render_sensitive);
-	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
-	#endif
-
-        /* we found viewpoint on render_vp pass, stop exploring tree.. */
-        if(render_vp && found_vp) return;
-
-	if(p->_change != p->_ichange && v->changed)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 1 pch %d pich %d vch %d\n",p->_change,p->_ichange,v->changed);
-	    #endif
-	    v->changed(node);
-	    p->_ichange = p->_change;
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "change";
-	    #endif
-	  }
-
-	if(v->prep)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 2\n");
-	    #endif
-
-	    v->prep(node);
-	    if(render_sensitive && !hypersensitive)
-	      {
-		upd_ray();
-	      }
-	      #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "prep";
-	    #endif
-	  }
-
-	if(render_proximity && v->proximity)
-	{
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 2a\n");
-	    #endif
-	    v->proximity(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_proximity";
-	    #endif
-	}
-
-	if(render_collision && v->collision)
-	{
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 2b\n");
-	    #endif
-
-	    v->collision(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_collision";
-	    #endif
-	}
-
-	if(render_geom && !render_sensitive && v->rend)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 3\n");
-	    #endif
-
-	    v->rend(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_geom";
-	    #endif
-	  }
-	if(render_light && v->light)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 4\n");
-	    #endif
-
-	    v->light(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_light";
-	    #endif
-	  }
-	/* Future optimization: when doing VP/Lights, do only
-	 * that child... further in future: could just calculate
-	 * transforms myself..
-	 */
-	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
-	if(render_sensitive && p->_sens)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 5\n");
-	    #endif
-
-	    srg = render_geom;
-	    render_geom = 1;
-	    #ifdef RENDERVERBOSE 
-		printf("CH1 %d: %d\n",node, cur_hits, p->_hit);
-	    #endif
-
-	    sch = cur_hits;
-	    cur_hits = 0;
-	    /* HP */
-	      srh = rph;
-	    rph.node = node;
-	    fwGetDoublev(GL_MODELVIEW_MATRIX, rph.modelMatrix);
-	    fwGetDoublev(GL_PROJECTION_MATRIX, rph.projMatrix);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "render_sensitive";
-	    #endif
-
-	  }
-	if(render_geom && render_sensitive && !hypersensitive && v->rendray)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 6\n");
-	    #endif
-
-	    v->rendray(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "rs 6";
-	    #endif
-	  }
-
-
-        if((render_sensitive) && (hypersensitive == node)) {
-            #ifdef RENDERVERBOSE 
-		printf ("rs 7\n");
-	    #endif
-
-            hyper_r1 = t_r1;
-            hyper_r2 = t_r2;
-            hyperhit = 1;
-        }
-        if(v->children) {
-            #ifdef RENDERVERBOSE 
-		printf ("rs 8\n");
-	    #endif
-
-            v->children(node);
-	    #ifdef GLERRORS
-	    if(glerror == GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "children";
-	    #endif
-        }
-
-	/* if(render_sensitive && (p->_renderFlags & VF_Sensitive)) */
-	if(render_sensitive && p->_sens)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs 9\n");
-	    #endif
-
-	    render_geom = srg;
-	    cur_hits = sch;
-	    #ifdef RENDERVERBOSE 
-		printf("CH3: %d %d\n",cur_hits, p->_hit);
-	    #endif
-
-	    /* HP */
-	      rph = srh;
-	  }
-	if(v->fin)
-	  {
-	    #ifdef RENDERVERBOSE 
-		printf ("rs A\n");
-	    #endif
-
-	    v->fin(node);
-	    if(render_sensitive && v == &virt_Transform)
-	      {
-		upd_ray();
-	      }
-	    #ifdef GLERRORS
-	    if(glerror != GL_NONE && ((glerror = glGetError()) != GL_NONE) ) stage = "fin";
-	    #endif
-	  }
-	#ifdef RENDERVERBOSE 
-		printf("(end render_node)\n");
-	#endif
-
-
-	#ifdef GLERRORS
-	if(glerror != GL_NONE)
-	  {
-	    printf("============== GLERROR : %s in stage %s =============\n",gluErrorString(glerror),stage);
-	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   v->name,
-		   v->prep,
-		   v->rend,
-		   v->children,
-		   v->fin,
-		   v->rendray,
-		   hypersensitive);
-	    printf("Render_state geom %d light %d sens %d\n",
-		   render_geom,
-		   render_light,
-		   render_sensitive);
-	    printf ("pchange %d pichange %d vchanged %d\n",p->_change, p->_ichange,v->changed);
-	    printf("==============\n");
-	  }
-	  #endif
-
-}
-
-/*
- * The following code handles keeping track of the parents of a given
- * node. This enables us to traverse the scene on C level for optimizations.
- *
- * We use this array code because VRML nodes usually don't have
- * hundreds of children and don't usually shuffle them too much.
- */
-
-#define NODE_ADD_PARENT(a) add_parent(a,ptr)
-
-void add_parent(void *node_, void *parent_) {
-	struct VRML_Box *node;
-	struct VRML_Box *parent;
-	if(!node_) return;
-
-	node = (struct VRML_Box *)node_;
-	parent = (struct VRML_Box *)parent_;
-
-	/* printf ("adding node %d to parent %d\n",node_, parent_); */
-	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
-
-	node->_nparents ++;
-	if(node->_nparents > node->_nparalloc) {
-		node->_nparalloc += 10;
-		if (node->_parents == NULL)  {
-			node->_parents = (void **)malloc(sizeof(node->_parents[0])* node->_nparalloc) ;
-		} else {
-		node->_parents =
-			(void **)realloc(node->_parents, sizeof(node->_parents[0])*
-							node->_nparalloc) ;
-		}
-	}
-	node->_parents[node->_nparents-1] = parent_;
-}
-
-#define NODE_REMOVE_PARENT(a) add_parent(a,ptr)
-
-void remove_parent(void *node_, void *parent_) {
-	struct VRML_Box *node;
-	struct VRML_Box *parent;
-	int i;
-	if(!node_) return;
-	node = (struct VRML_Box *)node_;
-	parent = (struct VRML_Box *)parent_;
-	node->_nparents --;
-	for(i=0; i<node->_nparents; i++) {
-		if(node->_parents[i] == parent) {
-			break;
-		}
-	}
-	for(; i<node->_nparents; i++) {
-		node->_parents[i] = node->_parents[i+1];
-	}
-}
-
-void
-render_hier(void *p, int rwhat)
-{
-	struct pt upvec = {0,1,0};
-	GLdouble modelMatrix[16];
-	#define XXXrender_pre_profile
-	#ifdef render_pre_profile
-	/*  profile */
-	double xx,yy,zz,aa,bb,cc,dd,ee,ff;
-	struct timeval mytime;
-	struct timezone tz; /* unused see man gettimeofday */
-	#endif
-
-
-	render_vp = rwhat & VF_Viewpoint;
-	found_vp = 0;
-	render_geom =  rwhat & VF_Geom;
-	render_light = rwhat & VF_Lights;
-	render_sensitive = rwhat & VF_Sensitive;
-	render_blend = rwhat & VF_Blend;
-	render_proximity = rwhat & VF_Proximity;
-	render_collision = rwhat & VF_Collision;
-	curlight = 0;
-	hpdist = -1;
-
-
-	#ifdef render_pre_profile
-	if (render_geom) {
-		gettimeofday (&mytime,&tz);
-		aa = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-	}
-	#endif
-
-	/*printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-
-	if (!p) {
-		/* we have no geometry yet, sleep for a tiny bit */
-		usleep(1000);
-		return;
-	}
-
-	#ifdef RENDERVERBOSE
-  		printf("Render_hier node=%d what=%d\n", p, rwhat);
-	#endif
-
-	/* status bar */
-	if (render_geom) {
-		if (display_status) {
-			render_status();
-		}
-	}
-
-
-	#ifdef render_pre_profile
-	if (render_geom) {
-		gettimeofday (&mytime,&tz);
-		bb = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-	}
-	#endif
-
-	if (render_sensitive) {
-		upd_ray();
-	}
-
-	#ifdef render_pre_profile
-	if (render_geom) {
-		gettimeofday (&mytime,&tz);
-		cc = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-	}
-	#endif
-
-	render_node(p);
-
-	#ifdef render_pre_profile
-	if (render_geom) {
-		gettimeofday (&mytime,&tz);
-		dd = (double)mytime.tv_sec+(double)mytime.tv_usec/1000000.0;
-		printf ("render_geom status %f ray %f geom %f\n",bb-aa, cc-bb, dd-cc);
-	}
-	#endif
-
-
-	/*get viewpoint result, only for upvector*/
-	if (render_vp &&
-		ViewerUpvector.x == 0 &&
-		ViewerUpvector.y == 0 &&
-		ViewerUpvector.z == 0) {
-
-		/* store up vector for gravity and collision detection */
-		/* naviinfo.reset_upvec is set to 1 after a viewpoint change */
-		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-		matinverse(modelMatrix,modelMatrix);
-		transform3x3(&ViewerUpvector,&upvec,modelMatrix);
-
-		#ifdef RENDERVERBOSE 
-		printf("ViewerUpvector = (%f,%f,%f)\n", ViewerUpvector);
-		#endif
-
-	}
-}
 
 MODULE = VRML::VRMLFunc PACKAGE = VRML::VRMLFunc
 PROTOTYPES: ENABLE
