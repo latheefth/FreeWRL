@@ -35,6 +35,7 @@ Cursor curcursor;
 #endif
 #ifdef AQUA
 #include <OpenGL.h>
+aqua_linewidth = 0.0;
 CGLContextObj aqglobalContext;
 #include <pthread.h>
 pthread_t mythread = 0;
@@ -1026,6 +1027,9 @@ void initGL() {
         aqglobalContext = CGLGetCurrentContext();
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
+        glLineWidth(aqua_linewidth);
+        glPointSize(aqua_linewidth);
+        glEnable(GL_LINE_SMOOTH);
 }
 
 int getOffset() {
@@ -1090,6 +1094,31 @@ void setWantEAI(int flag) {
 
 void setNoStatus() {
         display_status = 0;
+}
+
+void setLineWidth(float lwidth) {
+        aqua_linewidth = lwidth;
+}
+
+void setFast() {
+        global_texSize = 256;
+}
+
+
+void setSnapGif() {
+        snapGif = 1;
+}
+
+void setNoCollision() {
+        be_collision = 0;
+}
+
+void setKeyString(char* kstring) {
+        int count;
+        count = strlen(kstring);
+        if (count > 500) count = 500;
+        keypress_string = malloc(count+1);
+        strcpy(keypress_string, kstring);
 }
 
 void setSeqFile(char* file) {
