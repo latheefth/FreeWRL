@@ -1096,9 +1096,11 @@ void setNoStatus() {
         display_status = 0;
 }
 
+#ifdef AQUA
 void setLineWidth(float lwidth) {
         aqua_linewidth = lwidth;
 }
+#endif
 
 void setFast() {
         global_texSize = 256;

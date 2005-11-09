@@ -775,25 +775,28 @@ void render_polyrep(void *node) {
 			textureDraw_start(r->tcoord);
 	} else {
 		IFSNodePtr = (struct VRML_Box *)node;
-		if (IFSNodePtr->texCoord != NULL) {
-			struct VRML_TextureCoordinateGenerator *tc;
-			tc = (struct VRML_TextureCoordinateGenerator *)  IFSNodePtr->texCoord;
-			printf ("have %d for texCoord in Polyrep\n",tc->_nodeType);
-
-                       glActiveTexture(GL_TEXTURE0);
-                        glClientActiveTexture(GL_TEXTURE0);
-        
-        
-                        glBindTexture(GL_TEXTURE_2D,bound_textures[0]);
-                        glEnable(GL_TEXTURE_2D);
-
-
-
-			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-			glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);			
-			glEnable(GL_TEXTURE_GEN_S);
-
-			glEnable(GL_TEXTURE_GEN_T);
+		/* printf ("no textures - is this the status bar? %d\n",IFSNodePtr->_nodeType); */
+		if (IFSNodePtr->_nodeType != NODE_Statusbar) {
+			if (IFSNodePtr->texCoord != NULL) {
+				struct VRML_TextureCoordinateGenerator *tc;
+				tc = (struct VRML_TextureCoordinateGenerator *)  IFSNodePtr->texCoord;
+				printf ("have %d for texCoord in Polyrep\n",tc->_nodeType);
+	
+	                       glActiveTexture(GL_TEXTURE0);
+	                        glClientActiveTexture(GL_TEXTURE0);
+	        
+	        
+	                        glBindTexture(GL_TEXTURE_2D,bound_textures[0]);
+	                        glEnable(GL_TEXTURE_2D);
+	
+	
+	
+				glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+				glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);			
+				glEnable(GL_TEXTURE_GEN_S);
+	
+				glEnable(GL_TEXTURE_GEN_T);
+			}
 		}
 	}
 
@@ -964,8 +967,13 @@ printf ("stream_polyrep, tcoordtype = %d\n",r->tcoordtype);
 
 
 
+printf ("before generating default tex mapping, %d %d %d\n",
+		FORCETEXTURES, ntexcoords, r->tcoord);
+
 	/* do we need to generate default texture mapping? */
 	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
+		printf ("have to gen default textures\n");
+
 		if ((p->_nodeType == NODE_IndexedFaceSet) ||
 		   (p->_nodeType == NODE_ElevationGrid)) {
 		/* use Mufti's initialization scheme for minVals and maxVals; */
@@ -1184,8 +1192,10 @@ printf ("stream_polyrep, tcoordtype = %d\n",r->tcoordtype);
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->tcindex);
 
+printf ("end of stream_polyrep, r-tcood %d\n",r->tcoord);
+
 	#ifdef STREAM_POLY_VERBOSE
-		printf ("end render_polyrep\n\n");
+		printf ("end stream_polyrep\n\n");
 	#endif
 }
 

@@ -140,6 +140,7 @@ void render_status () {
 
 	holder._intern = &rep_;
 	holder._nparents=0;		/*  stops boundingbox calcs from propagating*/
+	holder._nodeType=NODE_Statusbar;/*  ensure that textureGeneration not done in render_polyrep */
 
 	FW_rendertext (1,		/*  lines*/
 		NULL,			/*  Perl SV pointer*/
