@@ -958,17 +958,11 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 
-printf ("stream_polyrep, tcoordtype = %d\n",r->tcoordtype);
 	if (FORCETEXTURES) {
 		/* newtc is indexed as 2 floats per vertex */
 		newtc = (float *) malloc (sizeof (float)*2*r->ntri*3);
 		if (!newtc) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
 	}
-
-
-
-printf ("before generating default tex mapping, %d %d %d\n",
-		FORCETEXTURES, ntexcoords, r->tcoord);
 
 	/* do we need to generate default texture mapping? */
 	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
@@ -1191,8 +1185,6 @@ printf ("before generating default tex mapping, %d %d %d\n",
 	/* we dont require these indexes any more */
 	FREE_IF_NZ(r->norindex);
 	FREE_IF_NZ(r->tcindex);
-
-printf ("end of stream_polyrep, r-tcood %d\n",r->tcoord);
 
 	#ifdef STREAM_POLY_VERBOSE
 		printf ("end stream_polyrep\n\n");
