@@ -438,6 +438,7 @@ my $protono;
 %VRML::Nodes::texCoord = map {($_=>1)} qw/
 	TextureCoordinate
 	MultiTextureCoordinate
+	TextureCoordinateGenerator
 	/;
 
 # nodes that are valid sound source fields.
@@ -579,6 +580,7 @@ my $protono;
 	Switch 			=>children,
 	Text 			=>geometry,
 	TextureCoordinate 	=>texCoord,
+	TextureCoordinateGenerator  =>texCoord,
 	TextureTransform 	=>textureTransform,
 	TimeSensor 		=>children,
 	TouchSensor 		=>children,
@@ -727,16 +729,15 @@ my $protono;
 					   { point => [MFVec2f, [], exposedField],
 						 }
 					  ),
+	TextureCoordinateGenerator =>
+	new VRML::NodeType("TextureCoordinate",
+					   { 
+						parameter => [MFFloat, [], exposedField],
+						mode => [SFString,"SPHERE",exposedField],
+					 }
+					  ),
 #############################################################################################
 
-
-
-	TextureCoordinateGenerator =>
-	new VRML::NodeType("TextureCoordinateGenerator", {
-					mode => [SFString,"SPHERE",exposedField],
-					parameter => [MFFloat,[],exposedField],
-					}
-					  ),
 
 
 	TextureTransform =>

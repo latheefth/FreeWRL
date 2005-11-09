@@ -806,14 +806,23 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	   will check it better in stream_polyrep. */
 	if (this_->texCoord) {
 		tc = (struct VRML_TextureCoordinate *) this_->texCoord;
+
+		/* render_polyrep will be told this... */
+		rep_->tcoordtype=tc->_nodeType;
+
 		if (tc->_nodeType == NODE_TextureCoordinate) {
 			ntexCoords = tc->point.n;
 		} else if (tc->_nodeType == NODE_MultiTextureCoordinate ) {
 			/* printf ("MakeIFS - got a MultiTextureCoordinate - assuming ntexcoords - npoints for now\n"); */
 			ntexCoords = npoints;
+		} else if (tc->_nodeType == NODE_TextureCoordinateGenerator ) {
+			printf ("MakeIFS - got a TextureCoordinateGenerator - assuming ntexcoords - npoints for now\n"); 
 		} else {
-			printf ("make_IFS, normal expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
+			printf ("make_IFS, texCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
 		}
+	} else {
+		/* render_polyrep will be told this... */
+		rep_->tcoordtype=0;
 	}
 
 	/************************************************************************
@@ -862,7 +871,6 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	   		}
 		}
 	}
-
 
 
 	/* Once per freewrl Invocation, the smooth_normals flag is initialized */
@@ -1159,6 +1167,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 }
 
 #define FORCETEXTURES TRUE
+
 void make_extrusion(struct VRML_Extrusion *this_) {
 	/*****begin of Member Extrusion	*/
 	/* This code originates from the file VRMLExtrusion.pm */

@@ -7,7 +7,7 @@
 *********************************************************************/
 #include "Polyrep.h"
 
-#define FORCETEXTURES TRUE
+#define FORCETEXTURES (r->tcoordtype != NODE_TextureCoordinateGenerator)
 /* reset colors to defaults, if we have to */
 GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
 GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
@@ -732,22 +732,26 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 
 void render_polyrep(void *node) {
 	struct VRML_Virt *v;
-	struct VRML_Box *p;
+	struct VRML_Box *genericNodePtr;
+	struct VRML_IndexedFaceSet *IFSNodePtr;
 	struct VRML_PolyRep *r;
 	struct SFVec2f *tc;
 
 	v = *(struct VRML_Virt **)node;
-	p = (struct VRML_Box *)node;
-	r = (struct VRML_PolyRep *)p->_intern;
+	genericNodePtr = (struct VRML_Box *)node;
+	r = (struct VRML_PolyRep *)genericNodePtr->_intern;
 
 
-	/* printf ("render_polyrep, _nodeType %d\n",p->_nodeType); */
+	#ifdef TEXVERVBOSE
+	printf ("render_polyrep, _nodeType %d\n",genericNodePtr->_nodeType); 
+	#endif
+
 	if (r->ntri==0) {
 		/* no triangles */
 		return;
 	}
 
-	setExtent(p->_extent[0],p->_extent[1],p->_extent[2],p);
+	setExtent(genericNodePtr->_extent[0],genericNodePtr->_extent[1],genericNodePtr->_extent[2],genericNodePtr);
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {
@@ -767,7 +771,31 @@ void render_polyrep(void *node) {
 	else glDisableClientState(GL_NORMAL_ARRAY); 
 
 	/*  textures?*/
-	if (r->tcoord) textureDraw_start(r->tcoord);
+	if (r->tcoord) {
+			textureDraw_start(r->tcoord);
+	} else {
+		IFSNodePtr = (struct VRML_Box *)node;
+		if (IFSNodePtr->texCoord != NULL) {
+			struct VRML_TextureCoordinateGenerator *tc;
+			tc = (struct VRML_TextureCoordinateGenerator *)  IFSNodePtr->texCoord;
+			printf ("have %d for texCoord in Polyrep\n",tc->_nodeType);
+
+                       glActiveTexture(GL_TEXTURE0);
+                        glClientActiveTexture(GL_TEXTURE0);
+        
+        
+                        glBindTexture(GL_TEXTURE_2D,bound_textures[0]);
+                        glEnable(GL_TEXTURE_2D);
+
+
+
+			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+			glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);			
+			glEnable(GL_TEXTURE_GEN_S);
+
+			glEnable(GL_TEXTURE_GEN_T);
+		}
+	}
 
 	/*  colours?*/
 	if (r->color) {
@@ -878,7 +906,9 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	if (texCoord) {
 		tc = (struct VRML_TextureCoordinate *) texCoord;
-		if ((tc->_nodeType != NODE_TextureCoordinate) && (tc->_nodeType != NODE_MultiTextureCoordinate)) {
+		if ((tc->_nodeType != NODE_TextureCoordinate) && 
+			(tc->_nodeType != NODE_MultiTextureCoordinate) &&
+			(tc->_nodeType != NODE_TextureCoordinateGenerator )) {
 			printf ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
 		} else {
 			texcoords = tc->point.p;
@@ -925,6 +955,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
 	}
 
+printf ("stream_polyrep, tcoordtype = %d\n",r->tcoordtype);
 	if (FORCETEXTURES) {
 		/* newtc is indexed as 2 floats per vertex */
 		newtc = (float *) malloc (sizeof (float)*2*r->ntri*3);
@@ -1309,6 +1340,7 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0; r->tcoord = 0;
 		r->tcindex = 0; 
+		r->tcoordtype = 0;
 	}
 	r = (struct VRML_PolyRep *)p->_intern;
 	r->_change = p->_change;
