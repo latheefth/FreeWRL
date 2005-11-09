@@ -780,7 +780,7 @@ void render_polyrep(void *node) {
 			if (IFSNodePtr->texCoord != NULL) {
 				struct VRML_TextureCoordinateGenerator *tc;
 				tc = (struct VRML_TextureCoordinateGenerator *)  IFSNodePtr->texCoord;
-				printf ("have %d for texCoord in Polyrep\n",tc->_nodeType);
+				/* printf ("have %d for texCoord in Polyrep\n",tc->_nodeType); */
 	
 	                       glActiveTexture(GL_TEXTURE0);
 	                        glClientActiveTexture(GL_TEXTURE0);

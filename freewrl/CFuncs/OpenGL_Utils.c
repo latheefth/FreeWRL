@@ -82,6 +82,7 @@ void start_textureTransform (void *textureNode, int ttnum) {
 
 /* keep track of lighting */
 void lightState(GLint light, int status) {
+	if (light<0) return; /* nextlight will return -1 if too many lights */
 	if (lights[light] != status) {
 		if (status) glEnable(GL_LIGHT0+light);
 		else glDisable(GL_LIGHT0+light);

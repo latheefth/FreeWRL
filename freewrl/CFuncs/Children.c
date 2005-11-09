@@ -57,7 +57,6 @@ void sortChildren (struct Multi_Node ch) {
 	int noswitch;
 	struct VRML_Box *a, *b, *c;
 
-	/* printf ("have to sort %d, nc %d\n",this_, nc); */
 	/* simple, inefficient bubble sort */
 	/* this is a fast sort when nodes are already sorted;
 	   may wish to go and "QuickSort" or so on, when nodes
@@ -65,7 +64,6 @@ void sortChildren (struct Multi_Node ch) {
 	   have to be totally reversed) */
 
 	nc = ch.n;
-	/* printf ("sortChildren, have %d children\n",nc); */
 
 	for(i=0; i<nc; i++) {
 		noswitch = TRUE;
@@ -100,9 +98,7 @@ void dirlightChildren(struct Multi_Node ch) {
 	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
 	for(i=0; i<ch.n; i++) {
 		struct VRML_Box *p = (struct VRML_Box *)ch.p[i];
-		struct VRML_Virt *v = *(struct VRML_Virt **)p;
-
-		if(v->rend == DirectionalLight_Rend)
+		if (p->_nodeType == NODE_DirectionalLight)
 			render_node(p);
 	}
 }
@@ -113,10 +109,7 @@ void normalChildren(struct Multi_Node ch) {
 
 	for(i=0; i<ch.n; i++) {
 		struct VRML_Box *p = (struct VRML_Box *)ch.p[i];
-		struct VRML_Virt *v = *(struct VRML_Virt **)p;
-		/* Hmm - how much time does this consume? */
-		/* Not that much. */
-		if(v->rend != DirectionalLight_Rend) {
+		if(p->_nodeType != NODE_DirectionalLight) {
 		/* printf ("normalchildren, child %d, piv %d\n",p,p->PIV); */
 /*			if ((p->PIV) > 0) */
 				render_node(p);

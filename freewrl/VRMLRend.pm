@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.176  2005/11/09 16:33:46  crc_canada
+# DirectionalLight fixes.
+#
 # Revision 1.175  2005/11/09 13:29:08  crc_canada
 # TextureCoordinateGenerator nodes - first try
 #
@@ -1386,7 +1389,8 @@ DirectionalLight => '
 		int light = nextlight();
 		if(light >= 0) {
 			float vec[4];
-			glEnable(light);
+			/* glEnable(light); */
+			lightState(light-GL_LIGHT0,TRUE);
 			vec[0] = -$f(direction,0);
 			vec[1] = -$f(direction,1);
 			vec[2] = -$f(direction,2);
@@ -1875,7 +1879,9 @@ Billboard => (join '','
 			int light = nextlight();
 			if(light >= 0) {
 				float vec[4];
-				glEnable(light);
+				/* glEnable(light); */
+				lightState(light-GL_LIGHT0,TRUE);
+
 				vec[0] = $f(direction,0);
 				vec[1] = $f(direction,1);
 				vec[2] = $f(direction,2);
@@ -1954,8 +1960,7 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 		$i(has_light) = 0;
 		for(i=0; i<nc; i++) {
 			p = (struct VRML_Box *)$f(children,i);
-			v = *(struct VRML_Virt **)p;
-			if (v->rend == DirectionalLight_Rend) {
+			if (p->_nodeType == NODE_DirectionalLight) {
 				/*  printf ("group found a light\n");*/
 				$i(has_light) ++;
 			}
@@ -1970,8 +1975,7 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 		$i(has_light) = 0;
 		for(i=0; i<nc; i++) {
 			p = (struct VRML_Box *)$f(__children,i);
-			v = *(struct VRML_Virt **)p;
-			if (v->rend == DirectionalLight_Rend) {
+			if (p->_nodeType == NODE_DirectionalLight) {
 				/*  printf ("group found a light\n");*/
 				$i(has_light) ++;
 			}
