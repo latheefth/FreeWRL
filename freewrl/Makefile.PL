@@ -27,8 +27,8 @@ if ($OS eq "Darwin") {
 # create the VRMLFunc.pm module
 system "perl VRMLC.pm";
 
-#my $VERSION = "V1.14-pre4";
-my $VERSION = "V1.15";
+my $VERSION = "V1.16.1";
+#my $VERSION = "V1.15";
 
 BEGIN {
  eval "use 5.004";
