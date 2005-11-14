@@ -136,7 +136,7 @@ void render_status () {
 	rep_.norindex = 0;
 	rep_.normal = 0;
 	rep_.tcindex = 0;
-	rep_.tcoord = 0;
+	rep_.GeneratedTexCoords = 0;
 
 	holder._intern = &rep_;
 	holder._nparents=0;		/*  stops boundingbox calcs from propagating*/
@@ -162,7 +162,7 @@ void render_status () {
 	/* free the malloc'd memory; the string is now in a display list */
         FREE_IF_NZ(rep_.cindex);
         FREE_IF_NZ(rep_.coord);
-        FREE_IF_NZ(rep_.tcoord);
+        FREE_IF_NZ(rep_.GeneratedTexCoords);
         FREE_IF_NZ(rep_.colindex);
         FREE_IF_NZ(rep_.color);
         FREE_IF_NZ(rep_.norindex);

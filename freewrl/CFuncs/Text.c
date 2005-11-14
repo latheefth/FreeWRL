@@ -703,16 +703,16 @@ void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned in
 
 	/* do we have texture mapping to do? */
 	if (HAVETODOTEXTURES) {
-		FW_rep_->tcoord = (float *)malloc(sizeof(*(FW_rep_->tcoord))*(FW_pointctr+1)*3);
-		if (!(FW_rep_->tcoord)) {
+		FW_rep_->GeneratedTexCoords = (float *)malloc(sizeof(*(FW_rep_->GeneratedTexCoords))*(FW_pointctr+1)*3);
+		if (!(FW_rep_->GeneratedTexCoords)) {
 			printf ("can not malloc memory for text textures\n");
 		} else {
 			/* an attempt to try to make this look like the NIST example */
 			/* I can't find a standard as to how to map textures to text JAS */
 			for (i=0; i<(unsigned int)FW_pointctr; i++) {
-				FW_rep_->tcoord[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
-				FW_rep_->tcoord[i*3+1] = 0.0;
-				FW_rep_->tcoord[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
+				FW_rep_->GeneratedTexCoords[i*3+0] = FW_rep_->coord[i*3+0]*1.66;
+				FW_rep_->GeneratedTexCoords[i*3+1] = 0.0;
+				FW_rep_->GeneratedTexCoords[i*3+2] = FW_rep_->coord[i*3+1]*1.66;
 			}
 
 		}

@@ -106,6 +106,12 @@ int textureInProcess = -1;
 /* how many texel units; if -1, we have not tried to find out yet */
 GLint maxTexelUnits = -1;
 
+
+/* for texture remapping in TextureCoordinate nodes */
+int	*global_tcin;
+int	global_tcin_count;
+
+
 /* function Prototypes */
 int findTextureFile (GLuint *texnum, int type, int *remove);
 void _textureThread(void);
@@ -1511,31 +1517,109 @@ void __reallyloadMovieTexture () {
 }
 
 
+
 /*********************************************************************************/
 /* texture enabling - works for single texture, for multitexture. */
 
 
-void textureDraw_start(GLfloat *tex) {
+void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 	int c;
+	struct SFNode *mySFnode;
+	struct VRML_TextureCoordinate *myTCnode;
+	struct VRML_MultiTextureCoordinate *myMTCnode;
+	struct Multi_Vec2f *myPoints;
 
 	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, texture_count %d\n",texture_count);
+	printf ("textureDraw_start, texture_count %d texture[0] %d\n",texture_count,bound_textures[c]);
 	#endif
 
-	for (c=0; c<texture_count; c++) {
-		/* are we ok with this texture yet? */
-		if (isloaded[bound_textures[c]] == LOADED) {
+	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
+	if (texC == NULL) {
+		for (c=0; c<texture_count; c++) {
+			/* are we ok with this texture yet? */
+			if (isloaded[bound_textures[c]] == LOADED) {
+	
+				glActiveTexture(GL_TEXTURE0+c);
+				glClientActiveTexture(GL_TEXTURE0+c);
+	        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+	
+				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
+				glTexCoordPointer (2,GL_FLOAT,0,genTex);
+				glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+				glEnable(GL_TEXTURE_2D);
+			}
+		}
 
-			glActiveTexture(GL_TEXTURE0+c);
-			glClientActiveTexture(GL_TEXTURE0+c);
-        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+	/* hmmm - maybe this texCoord node exists? */
+	} else {
+		myTCnode = (struct VRML_TextureCoordinate *) texC->texCoord;
+
+		#ifdef TEXVERBOSE
+		printf ("ok, texC->_nodeType is %d\n",texC->_nodeType);
+		printf ("myTCnode is of type %d\n",myTCnode->_nodeType);
+		#endif
+
+		if (myTCnode->_nodeType == NODE_TextureCoordinate) {
+			#ifdef TEXVERBOSE
+			printf ("have a NODE_TextureCoordinate\n");
+			printf ("and this texture has %d points we have texturedepth of %d\n",myTCnode->point.n,texture_count);
+			#endif
+		
+
+			/* render the TextureCoordinate node for every texture in this node */
+			for (c=0; c<texture_count; c++) {
+				render_node (texC->texCoord);
+				/* are we ok with this texture yet? */
+				if (isloaded[bound_textures[c]] == LOADED) {
+		
+					glActiveTexture(GL_TEXTURE0+c);
+					glClientActiveTexture(GL_TEXTURE0+c);
+		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+		
+/* printf ("texture %d has compiledpoint size of %d, ptr %d\n",bound_textures[c], 
+			myTCnode->__compiledpoint.n, myTCnode->__compiledpoint.p);
+printf ("its name is %s\n",loadparams[bound_textures[c]].filename);
+*/
+
+					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
+					glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+					glEnable(GL_TEXTURE_2D);
+				}
+			}
+		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
+			myMTCnode = (struct VRML_MultiTextureCoordinate *) texC->texCoord;
 
 
-
-			glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
-			glTexCoordPointer (2,GL_FLOAT,0,tex);
-			glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-			glEnable(GL_TEXTURE_2D);
+printf ("MultiTextureCoordinate node, have %d texCoords\n",myMTCnode->texCoord.n);
+printf ("FIXME\n");
+			
+			/* render the TextureCoordinate node for every texture in this node */
+			for (c=0; c<texture_count; c++) {
+				if (c<myMTCnode->texCoord.n) {
+/*					myTCnode = 
+						(struct VRML_TextureCoordinate *) myTCnode->texCoord.p[c]->texC->texCoord;
+*/
+				}
+/*
+struct Multi_Node { int n; void * *p; };
+*/
+				render_node (texC->texCoord);
+				/* are we ok with this texture yet? */
+				if (isloaded[bound_textures[c]] == LOADED) {
+		
+					glActiveTexture(GL_TEXTURE0+c);
+					glClientActiveTexture(GL_TEXTURE0+c);
+		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+		
+					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
+					glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+					glEnable(GL_TEXTURE_2D);
+				}
+			}
+		} else {
+			/* this has to be a TexureCoordinateGenerator node */
 		}
 	}
 }
@@ -1551,3 +1635,64 @@ void textureDraw_end(void) {
 
         glMatrixMode(GL_MODELVIEW);
 }
+
+
+
+void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this) {
+}
+
+void render_texturecoordinate(struct VRML_TextureCoordinate *this) {
+	int i;
+	int op;
+	struct SFVec2f oFp;
+	struct SFVec2f nFp;
+	float *fptr;
+
+	#ifdef TEXVERBOSE
+	printf ("rendering TextureCoordinate node __compiledpoint %d\n",this->__compiledpoint);
+	printf ("tcin %d tcin_count %d oldpoint.n %d\n",global_tcin, global_tcin_count, this->point.n);
+	#endif
+
+	/* is this the statusbar? we should *always* have a global_tcin textureIndex */
+	if (global_tcin == 0) return;
+
+	if (this->__compiledpoint.n == 0) {
+		this->__compiledpoint.n = global_tcin_count;
+		this->__compiledpoint.p = (struct SFVec2f *) malloc (sizeof(float) *2 * global_tcin_count);
+
+		fptr = this->__compiledpoint.p;
+	
+		for (i=0; i<global_tcin_count; i++) {
+			op = global_tcin[i];
+			oFp = this->point.p[op];
+			nFp = this->__compiledpoint.p[i];
+	
+			#ifdef TEXVERBOSE
+			printf ("TextureCoordinate copying %d to %d\n",op,i);	
+			printf ("	op %f %f\n",oFp.c[0], oFp.c[1]);
+			#endif
+
+			*fptr = oFp.c[0]; fptr++; *fptr = oFp.c[1]; fptr++;
+			
+		}
+	
+		
+		#ifdef TEXVERBOSE
+		for (i=0; i<global_tcin_count; i++) {
+			nFp = this->__compiledpoint.p[i];
+			printf ("checking... %d %f %f\n",i,nFp.c[0], nFp.c[1]);
+		}
+		#endif
+	} else {
+		if (this->__compiledpoint.n < global_tcin_count) {
+			printf ("TextureCoordinate - problem %d < %d\n",this->__compiledpoint.n,global_tcin_count);
+		}
+	}
+
+}
+
+void render_multitexturecoordinate(struct VRML_MultiTextureCoordinate *this) {
+}
+
+
+

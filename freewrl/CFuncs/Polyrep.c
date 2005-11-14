@@ -7,7 +7,6 @@
 *********************************************************************/
 #include "Polyrep.h"
 
-#define FORCETEXTURES (r->tcoordtype != NODE_TextureCoordinateGenerator)
 /* reset colors to defaults, if we have to */
 GLfloat diffuseColor[] = {0.8, 0.8, 0.8,1.0};
 GLfloat ambientIntensity[] = {0.16, 0.16, 0.16, 1.0}; /*VRML diff*amb defaults */
@@ -623,13 +622,13 @@ void Extru_ST_map(
 		}
 
 		/* S value */
-		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+		this_Extru->GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
 
 		/* not used by render_polyrep */
-		this_Extru->tcoord[tci*3+1] = 0;
+		this_Extru->GeneratedTexCoords[tci*3+1] = 0;
 
 		/* T value */
-		this_Extru->tcoord[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+		this_Extru->GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
 
 
 		/* for second vertex */
@@ -642,13 +641,13 @@ void Extru_ST_map(
 		}
 
 		/* S value */
-		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+		this_Extru->GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
 
 		/* not used by render_polyrep */
-		this_Extru->tcoord[tci*3+1] = 0;
+		this_Extru->GeneratedTexCoords[tci*3+1] = 0;
 
 		/* T value */
-		this_Extru->tcoord[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+		this_Extru->GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
 
 
 		/* for third vertex */
@@ -661,13 +660,13 @@ void Extru_ST_map(
 		}
 
 		/* S value */
-		this_Extru->tcoord[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+		this_Extru->GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
 
 		/* not used by render_polyrep */
-		this_Extru->tcoord[tci*3+1] = 0;
+		this_Extru->GeneratedTexCoords[tci*3+1] = 0;
 
 		/* T value */
-		this_Extru->tcoord[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+		this_Extru->GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
 
 		triind_start++;
 	}
@@ -741,15 +740,17 @@ void render_polyrep(void *node) {
 	genericNodePtr = (struct VRML_Box *)node;
 	r = (struct VRML_PolyRep *)genericNodePtr->_intern;
 
-
-	#ifdef TEXVERVBOSE
-	printf ("render_polyrep, _nodeType %d\n",genericNodePtr->_nodeType); 
+	#ifdef TEXVERBOSE
+	printf ("\nrender_polyrep, _nodeType %d\n",genericNodePtr->_nodeType); 
 	#endif
 
 	if (r->ntri==0) {
 		/* no triangles */
 		return;
 	}
+
+	global_tcin = r->tcindex;
+	global_tcin_count = r->ntri*3;
 
 	setExtent(genericNodePtr->_extent[0],genericNodePtr->_extent[1],genericNodePtr->_extent[2],genericNodePtr);
 
@@ -771,32 +772,13 @@ void render_polyrep(void *node) {
 	else glDisableClientState(GL_NORMAL_ARRAY); 
 
 	/*  textures?*/
-	if (r->tcoord) {
-			textureDraw_start(r->tcoord);
+	if (r->GeneratedTexCoords) {
+			textureDraw_start(NULL,r->GeneratedTexCoords);
 	} else {
-		IFSNodePtr = (struct VRML_Box *)node;
+		IFSNodePtr = (struct VRML_IndexedFaceSet *)node;
 		/* printf ("no textures - is this the status bar? %d\n",IFSNodePtr->_nodeType); */
 		if (IFSNodePtr->_nodeType != NODE_Statusbar) {
-			if (IFSNodePtr->texCoord != NULL) {
-				struct VRML_TextureCoordinateGenerator *tc;
-				tc = (struct VRML_TextureCoordinateGenerator *)  IFSNodePtr->texCoord;
-				/* printf ("have %d for texCoord in Polyrep\n",tc->_nodeType); */
-	
-	                       glActiveTexture(GL_TEXTURE0);
-	                        glClientActiveTexture(GL_TEXTURE0);
-	        
-	        
-	                        glBindTexture(GL_TEXTURE_2D,bound_textures[0]);
-	                        glEnable(GL_TEXTURE_2D);
-	
-	
-	
-				glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-				glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);			
-				glEnable(GL_TEXTURE_GEN_S);
-	
-				glEnable(GL_TEXTURE_GEN_T);
-			}
+			textureDraw_start(IFSNodePtr, NULL);
 		}
 	}
 
@@ -810,386 +792,50 @@ void render_polyrep(void *node) {
 	glVertexPointer(3,GL_FLOAT,0,(GLfloat *) r->coord);
 	glDrawElements(GL_TRIANGLES,r->ntri*3,GL_UNSIGNED_INT, r->cindex);
 
+/*
+	{
+		int i;
+		int *cin;
+		int *tcin;
+		float *cod;
+		float *tcod;
+		tcod = r->GeneratedTexCoords;
+		cod = r->coord;
+		cin = r->cindex;
+		tcin = r->tcindex;
+
+printf ("\n\n");
+		for (i=0; i<r->ntri*3; i++) {
+			printf ("i %d cindex %d vertex %f %f %f",i,cin[i],
+				cod[cin[i]*3+0],
+				cod[cin[i]*3+1],
+				cod[cin[i]*3+2]);
+
+if (tcin != 0) printf (" tcin %d ",tcin[i]);
+
+			if (tcod != 0) {
+			printf (" tex %f %f",
+				tcod[cin[i]*2+0],
+				tcod[cin[i]*2+1]);
+			}
+			printf ("\n");
+		}
+	}
+*/
+/* printf ("exiting...\n"); exit(0); */
+
 	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
 	if (r->color) {
 		glDisable(GL_COLOR_MATERIAL);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	if (r->tcoord) textureDraw_end();
+	if (r->GeneratedTexCoords) textureDraw_end();
 
 	if (!r->ccw) glFrontFace(GL_CCW);
 
 }
 
-/********************************************************************
-*
-* stream_polyrep
-*
-*  convert a polyrep into a structure format that displays very
-*  well, especially on fast graphics hardware
-*
-* points is the preferred way of getting coordinates into this 
-* function. the r->coord method will go away. Currently only used by
-* Extrusions.
-*
-*********************************************************************/
-
-void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
-
-	struct VRML_Virt *v;
-	struct VRML_IndexedFaceSet *p;
-	struct VRML_PolyRep *r;
-	int i;
-	int hasc;
-
-	struct SFColor *points=0; int npoints;
-	struct SFColor *colors=0; int ncolors=0;
-	struct SFColor *normals=0; int nnormals=0;
-	struct SFVec2f *texcoords=0; int ntexcoords=0;
-	int isRGBA = FALSE;
-
-	struct VRML_Coordinate *xc;
-	struct VRML_Color *cc;
-	struct VRML_Normal *nc;
-	struct VRML_TextureCoordinate *tc;
-
-
-	/* texture generation points... */
-	int j;
-	GLfloat minVals[] = {99999.9, 99999.9, 99999.9};
-	GLfloat maxVals[] = {-99999.9, -999999.9, -99999.0};
-	GLfloat Ssize = 0.0;
-	GLfloat Tsize = 0.0;
-	GLfloat Xsize = 0.0;
-	GLfloat Ysize = 0.0;
-	GLfloat Zsize = 0.0;
-	int Sindex = 0;
-	int Tindex = 0;
-
-	/* new memory locations for new data */
-	int *newcindex;
-	struct SFColor *newpoints;
-	struct SFColor *newnorms;
-	struct SFColorRGBA *newcolors;
-	struct SFColorRGBA *oldColorsRGBA;
-	float *newtc;
-
-	/* sanity check parameters, and get numbers */
-	if(coord) {
-		xc = (struct VRML_Coordinate *) coord;
-		if (xc->_nodeType != NODE_Coordinate) {
-			printf ("stream_polyrep, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
-		} else {
-			points = xc->point.p;
-			npoints = xc->point.n;
-		}
-	}
-
-	if (color) {
-		cc = (struct VRML_Color *) color;
-		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-			printf ("stream_polyrep, expected %d got %d\n", NODE_Color, cc->_nodeType);
-		} else {
-			colors = cc->color.p;
-			ncolors = cc->color.n;
-			isRGBA = (cc->_nodeType == NODE_ColorRGBA);
-		}
-	}
-	
-	if(normal) {
-		nc = (struct VRML_Normal *) normal;
-		if (nc->_nodeType != NODE_Normal) {
-			printf ("stream_polyrep, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
-		} else {
-			normals = nc->vector.p;
-			nnormals = nc->vector.n;
-		}
-	}
-
-	if (texCoord) {
-		tc = (struct VRML_TextureCoordinate *) texCoord;
-		if ((tc->_nodeType != NODE_TextureCoordinate) && 
-			(tc->_nodeType != NODE_MultiTextureCoordinate) &&
-			(tc->_nodeType != NODE_TextureCoordinateGenerator )) {
-			printf ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
-		} else {
-			texcoords = tc->point.p;
-			ntexcoords = tc->point.n;
-		}
-	}
-
-	#ifdef STREAM_POLY_VERBOSE
-	printf ("\nstart stream_polyrep ncoords %d ncolors %d nnormals %d ntexcoords %d\n",
-			npoints, ncolors, nnormals, ntexcoords);
-	#endif
-
-	v = *(struct VRML_Virt **)node;
-	p = (struct VRML_IndexedFaceSet *)node;
-	r = (struct VRML_PolyRep *)p->_intern;
-	#ifdef STREAM_POLY_VERBOSE
-	printf ("polyv, points %d coord %d ntri %d rnormal nnormal\n",points,r->coord,r->ntri,r->normal, nnormals);
-	#endif
-
-	/* Do we have any colours? Are textures, if present, not RGB? */
-	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
-
-	newtc = 0;  	/*  unless we have to use it; look for malloc below*/
-	newcolors=0;	/*  only if we have colours*/
-
-	/* malloc required memory */
-	newcindex = (int*)malloc (sizeof (int)*r->ntri*3);
-	if (!newcindex) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
-
-	newpoints = (struct SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
-	if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
-
-	if ((nnormals) || (r->normal)) {
-		newnorms = (struct SFColor*)malloc (sizeof (struct SFColor)*r->ntri*3);
-		if (!newpoints) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
-	} else newnorms = 0;
-
-
-	/* if we have colours, make up a new structure for them to stream to, and also
-	   copy pointers to ensure that we index through colorRGBAs properly. */
-	if (hasc) {
-		newcolors = (struct SFColorRGBA*)malloc (sizeof (struct SFColorRGBA)*r->ntri*3);
-		oldColorsRGBA = (struct SFColorRGBA*) colors;
-		if (!newcolors) { r->ntri=0;printf("out of memory in stream_polyrep\n");return; }
-	}
-
-	if (FORCETEXTURES) {
-		/* newtc is indexed as 2 floats per vertex */
-		newtc = (float *) malloc (sizeof (float)*2*r->ntri*3);
-		if (!newtc) {r->ntri=0;printf("out of memory in stream_polyrep\n");return;}
-	}
-
-	/* do we need to generate default texture mapping? */
-	if (FORCETEXTURES && (ntexcoords == 0) && (!r->tcoord)) {
-		printf ("have to gen default textures\n");
-
-		if ((p->_nodeType == NODE_IndexedFaceSet) ||
-		   (p->_nodeType == NODE_ElevationGrid)) {
-		/* use Mufti's initialization scheme for minVals and maxVals; */
-			for (j=0; j<3; j++) {
-				if (points) {
-					minVals[j] = points[r->cindex[0]].c[j];
-					maxVals[j] = points[r->cindex[0]].c[j];
-				} else {
-					minVals[j] = r->coord[3*r->cindex[0]+j];
-					maxVals[j] = r->coord[3*r->cindex[0]+j];
-				}
-			}
-
-			for(i=0; i<r->ntri*3; i++) {
-			  int ind = r->cindex[i];
-			  for (j=0; j<3; j++) {
-			      if(points) {
-				    if (minVals[j] > points[ind].c[j]) minVals[j] = points[ind].c[j];
-				    if (maxVals[j] < points[ind].c[j]) maxVals[j] = points[ind].c[j];
-			      } else if(r->coord) {
-				    if (minVals[j] >  r->coord[3*ind+j]) minVals[j] =  r->coord[3*ind+j];
-				    if (maxVals[j] <  r->coord[3*ind+j]) maxVals[j] =  r->coord[3*ind+j];
-			      }
-			  }
-			}
-
-			/* find the S,T mapping. */
-			Xsize = maxVals[0]-minVals[0];
-			Ysize = maxVals[1]-minVals[1];
-			Zsize = maxVals[2]-minVals[2];
-	
-			if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
-				/* X size largest */
-				Ssize = Xsize; Sindex = 0;
-				if (Ysize >= Zsize) { Tsize = Ysize; Tindex = 1;
-				} else { Tsize = Zsize; Tindex = 2; }
-			} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
-				/* Y size largest */
-				Ssize = Ysize; Sindex = 1;
-				if (Xsize >= Zsize) { Tsize = Xsize; Tindex = 0;
-				} else { Tsize = Zsize; Tindex = 2; }
-			} else {
-				/* Z is the largest */
-				Ssize = Zsize; Sindex = 2;
-				if (Xsize >= Ysize) { Tsize = Xsize; Tindex = 0;
-				} else { Tsize = Ysize; Tindex = 1; }
-			}
-		}
-	}
-
-	/* now, lets go through the old, non-linear polyrep structure, and
-	   put it in a stream format */
-
-	for(i=0; i<r->ntri*3; i++) {
-		int nori = i;
-		int coli = i;
-		int tci = i;
-		int ind = r->cindex[i];
-
-		/* new cindex, this should just be a 1.... ntri*3 linear string */
-		newcindex[i] = i;
-
-		#ifdef STREAM_POLY_VERBOSE
-		printf ("rp, i, ntri*3 %d %d\n",i,r->ntri*3);
-		#endif
-
-		/* get normals and colors, if any	*/
-		if(r->norindex) { nori = r->norindex[i];}
-		else nori = ind;
-
-		if(r->colindex) {
-			coli = r->colindex[i];
-		}
-		else coli = ind;
-
-		/* get texture coordinates, if any	*/
-		if (FORCETEXTURES && r->tcindex) {
-			tci = r->tcindex[i];
-			#ifdef STREAM_POLY_VERBOSE
-				printf ("have textures, and tcindex i %d tci %d\n",i,tci);
-			#endif
-		}
-
-		/* get the normals, if there are any	*/
-		if(nnormals) {
-			if(nori >= nnormals) {
-				/* bounds check normals here... */
-				nori=0;
-			}
-			#ifdef STREAM_POLY_VERBOSE
-				printf ("nnormals at %d , nori %d ",(int) &normals[nori].c,nori);
-				fwnorprint (normals[nori].c);
-			#endif
-
-			do_glNormal3fv(&newnorms[i], normals[nori].c);
-		} else if(r->normal) {
-			#ifdef STREAM_POLY_VERBOSE
-				printf ("r->normal nori %d ",nori);
-				fwnorprint(r->normal+3*nori);
-			#endif
-
-			do_glNormal3fv(&newnorms[i], r->normal+3*nori);
-		}
-
-		if(hasc) {
-			if(ncolors) {
-				/* ColorMaterial -> these set Material too */
-				/* bounds check colors[] here */
-				if (coli >= ncolors) {
-					/* printf ("bounds check for Colors! have %d want %d\n",ncolors-1,coli);*/
-					coli = 0;
-				}
-				#ifdef STREAM_POLY_VERBOSE
-					printf ("coloUr ncolors %d, coli %d",ncolors,coli);
-					fwnorprint(colors[coli].c);
-					printf ("\n");
-				#endif
-				if (isRGBA)
-					do_glColor4fv(&newcolors[i],oldColorsRGBA[coli].r,isRGBA);
-				else
-					do_glColor4fv(&newcolors[i],colors[coli].c,isRGBA);
-			} else if(r->color) {
-				#ifdef STREAM_POLY_VERBOSE
-					printf ("coloUr");
-					fwnorprint(r->color+3*coli);
-					printf ("\n");
-				#endif
-				if (isRGBA)
-					do_glColor4fv(&newcolors[i],r->color+4*coli,isRGBA);
-				else
-					do_glColor4fv(&newcolors[i],r->color+3*coli,isRGBA);
-			}
-		}
-
-
-		/* Coordinate points	*/
-		if(points) {
-			memcpy (&newpoints[i], &points[ind].c[0],sizeof (struct SFColor));
-			/* XYZ[0]= points[ind].c[0]; XYZ[1]= points[ind].c[1]; XYZ[2]= points[ind].c[2];*/
-			#ifdef STREAM_POLY_VERBOSE
-				printf("Render (points) #%d = [%.5f, %.5f, %.5f]\n",i,
-					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
-			#endif
-		} else if(r->coord) {
-			memcpy (&newpoints[i].c[0], &r->coord[3*ind], sizeof(struct SFColor));
-			/* XYZ[0]=r->coord[3*ind+0]; XYZ[1]=r->coord[3*ind+1]; XYZ[2]=r->coord[3*ind+2];*/
-			#ifdef STREAM_POLY_VERBOSE
-				printf("Render (r->coord) #%d = [%.5f, %.5f, %.5f]\n",i,
-					newpoints[i].c[0],newpoints[i].c[1],newpoints[i].c[2]);
-			#endif
-		}
-
-
-		/* Textures	*/
-		if (FORCETEXTURES) {
-		    if(texcoords && ntexcoords) {
-			/*  did we run out of tex coords? Hanim-Nancy does this...*/
-			if (tci < ntexcoords) {
-			    #ifdef STREAM_POLY_VERBOSE
-				printf ("tc1 tci %d %f %f\n",tci,texcoords[tci].c[0],texcoords[tci].c[1]);
-			    #endif
-			    memcpy(&newtc[i*2],texcoords[tci].c,sizeof(float)*2);
-		  	    /* glTexCoord2fv(texcoords[tci].c);*/
-			} else {
-				 #ifdef STREAM_POLY_VERBOSE
-					 printf ("caught ntexcoord problem: index %d gt %d\n",tci,ntexcoords);
-				 #endif
-				newtc[i*2] = 0.0; newtc[i*2+1] = 0.0;
-			}
-		    } else if (r->tcoord) {
-			if (r->tcindex) {
-			    /*  did we run out of tex coords? Hanim-Nancy does this...*/
-				#ifdef STREAM_POLY_VERBOSE
-					printf ("tc2a i %d %f %f\n", i,r->tcoord[3*tci+0], r->tcoord[3*tci+2]);
-					printf ("tci = %d, indexing %d\n",tci, 3*tci+2);
-				#endif
-		  		newtc[i*2] = r->tcoord[3*tci+0]; newtc[i*2+1] =  r->tcoord[3*tci+2];
-
-			} else {
-				#ifdef STREAM_POLY_VERBOSE
-					printf ("tc2b %f %f\n", r->tcoord[3*ind+0], r->tcoord[3*ind+2]);
-				#endif
-		  		newtc[i*2] = r->tcoord[3*ind+0]; newtc[i*2+1] = r->tcoord[3*ind+2];
-			}
-		    } else {
-			/* default textures */
-			/* we want the S values to range from 0..1, and the
-			   T values to range from 0...S/T */
-
-			newtc[i*2]   = (newpoints[i].c[Sindex] - minVals[Sindex])/Ssize;
-			newtc[i*2+1] = (newpoints[i].c[Tindex] - minVals[Tindex])/Ssize;
-		    }
-		}
-
-		/* calculate maxextents */
-		if (fabs(newpoints[i].c[0]) > (p->_extent[0])) p->_extent[0] = fabs(newpoints[i].c[0]);
-		if (fabs(newpoints[i].c[1]) > (p->_extent[1])) p->_extent[1] = fabs(newpoints[i].c[1]);
-		if (fabs(newpoints[i].c[2]) > (p->_extent[2])) p->_extent[2] = fabs(newpoints[i].c[2]);
-	}
-
-	/* free the old, and make the new current. */
-	FREE_IF_NZ(r->coord);
-	r->coord = (float *)newpoints;
-	FREE_IF_NZ(r->normal);
-	r->normal = (float *)newnorms;
-	FREE_IF_NZ(r->cindex);
-	r->cindex = newcindex;
-	FREE_IF_NZ(r->tcoord);
-	r->tcoord = newtc;
-
-	FREE_IF_NZ(r->color);
-	FREE_IF_NZ(r->colindex);
-	r->color = (float *)newcolors;
-
-	/* we dont require these indexes any more */
-	FREE_IF_NZ(r->norindex);
-	FREE_IF_NZ(r->tcindex);
-
-	#ifdef STREAM_POLY_VERBOSE
-		printf ("end stream_polyrep\n\n");
-	#endif
-}
 
 /*********************************************************************
  *
@@ -1340,7 +986,7 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 		r = (struct VRML_PolyRep *)p->_intern;
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
-		r->norindex = 0; r->normal = 0; r->tcoord = 0;
+		r->norindex = 0; r->normal = 0; r->GeneratedTexCoords = 0;
 		r->tcindex = 0; 
 		r->tcoordtype = 0;
 	}
@@ -1349,7 +995,7 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 
 	FREE_IF_NZ(r->cindex);
 	FREE_IF_NZ(r->coord);
-	FREE_IF_NZ(r->tcoord);
+	FREE_IF_NZ(r->GeneratedTexCoords);
 	FREE_IF_NZ(r->colindex);
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->norindex);
@@ -1361,6 +1007,9 @@ void regen_polyrep(void *node, void *coord, void *color, void *normal, void *tex
 	v->mkpolyrep(node);
 
 	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
-	stream_polyrep(node, coord, color, normal, texCoord);
+	/* if there were errors, then rep->ntri should be 0 */
+	if (r->ntri != 0)
+		stream_polyrep(node, coord, color, normal, texCoord);
+
 }
 

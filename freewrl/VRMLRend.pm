@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.177  2005/11/14 14:18:53  crc_canada
+# Texture rework in progress...
+#
 # Revision 1.176  2005/11/09 16:33:46  crc_canada
 # DirectionalLight fixes.
 #
@@ -280,7 +283,7 @@ Box => '
 	}
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	textureDraw_start(boxtex);
+	textureDraw_start(NULL,boxtex);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 	glNormalPointer (GL_FLOAT,0,boxnorms);
 
@@ -353,13 +356,13 @@ Cylinder => '
 
 	if ($f(side)) {
 		glNormalPointer (GL_FLOAT,0,cylnorms);
-		textureDraw_start(cylsidetex);
+		textureDraw_start(NULL,cylsidetex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
 	}
 	if($f(bottom)) {
-		textureDraw_start(cylendtex);
+		textureDraw_start(NULL,cylendtex);
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cylbotindx);
@@ -367,7 +370,7 @@ Cylinder => '
 	}
 
 	if ($f(top)) {
-		textureDraw_start(cylendtex);
+		textureDraw_start(NULL,cylendtex);
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CYLDIV+2 ,GL_UNSIGNED_BYTE,cyltopindx);
@@ -471,7 +474,7 @@ Cone => '
 	if($f(bottom)) {
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__botpoints);
-		textureDraw_start(tribottex);
+		textureDraw_start(NULL,tribottex);
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
@@ -480,7 +483,7 @@ Cone => '
 	if($f(side)) {
 		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__sidepoints);
 		glNormalPointer (GL_FLOAT,0,(GLfloat *)this_->__normals);
-		textureDraw_start(trisidtex);
+		textureDraw_start(NULL,trisidtex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_TRIANGLES, 0, 60);
@@ -576,7 +579,7 @@ Sphere => '
 
 
 	/*  Display the shape*/
-	textureDraw_start(spheretex);
+	textureDraw_start(NULL,spheretex);
 	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
 	glNormalPointer (GL_FLOAT,0,spherenorms);
 
@@ -1039,11 +1042,6 @@ Extrusion => '
 # FontStyle params handled in Text. This is here so that VRML_FontStyle struct will be generated.
 FontStyle => 'UNUSED(this_);',
 
-# TextureCoordinate params handled in C code. This is here so that VRML_TextureCoordinate struct will be generated
-TextureCoordinate => ' UNUSED(this_);',
-
-# MultiTextureCoordinate params handled in C code. This is here so that VRML_MultiTextureCoordinate struct will be generated
-MultiTextureCoordinate => ' UNUSED(this_);',
 
 Coordinate => ' UNUSED(this_);',
 ColorRGBA => ' UNUSED(this_);',
@@ -1051,9 +1049,20 @@ Color => ' UNUSED(this_);',
 Normal => ' UNUSED(this_);',
 
 TextureCoordinateGenerator => '
-	printf ("rendering TextureCoordinateGenerator\n");
-
+	/* go to Textures.c and render the textures there */
+	render_texturecoordinategenerator((struct VRML_TextureCoordinate_Generator *)this_);
 ',
+
+TextureCoordinate => ' 
+	/* go to Textures.c and render the textures there */
+	render_texturecoordinate((struct VRML_TextureCoordinate *)this_);
+',
+
+MultiTextureCoordinate => ' 
+	/* go to Textures.c and render the textures there */
+	render_multitexturecoordinate((struct VRML_MultiTextureCoordinate *)this_);
+',
+
 
 
 # Text is a polyrep, as of freewrl 0.34
@@ -1760,7 +1769,6 @@ Billboard => (join '','
                    have to turn lighting back on again. */
                 lightingOn = TRUE;
 
-
 		/* is there an associated appearance node? */
        	        if($f(appearance)) {
                         render_node($f(appearance));
@@ -1814,7 +1822,6 @@ Billboard => (join '','
                 if (!lightingOn) {
                         glEnable (GL_LIGHTING);
                 }
-
 
 		if (have_texture) glPopAttrib(); 
 	',

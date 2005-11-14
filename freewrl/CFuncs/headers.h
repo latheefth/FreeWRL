@@ -171,7 +171,9 @@ extern int global_IFS_Coord_count;
 /* texture stuff - see code. Need array because of MultiTextures */
 extern GLuint bound_textures[MAX_MULTITEXTURE];
 extern int texture_count; 
-extern void textureDraw_start(GLfloat *tex);
+extern int     *global_tcin;
+extern int     global_tcin_count; 
+extern void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *tex);
 extern void textureDraw_end(void);
 
 extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
@@ -581,6 +583,12 @@ void make_text(struct VRML_Text *this_ );
 void make_extrusion(struct VRML_Extrusion *this_);
 void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
 void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
+
+
+void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this);
+void render_texturecoordinate(struct VRML_TextureCoordinate *this);
+void render_multitexturecoordinate(struct VRML_MultiTextureCoordinate *this);
+
 
 #define NODE_ADD_PARENT(a) add_parent(a,ptr)
 #define NODE_REMOVE_PARENT(a) add_parent(a,ptr)

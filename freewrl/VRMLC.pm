@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.190  2005/11/14 14:18:53  crc_canada
+# Texture rework in progress...
+#
 # Revision 1.189  2005/11/09 14:25:19  crc_canada
 # segfault fixing...
 #
@@ -1012,6 +1015,7 @@ sub gen {
 	}
         push @str, "\n/* and now the structs for the nodetypes */ \n";
 	for(@NodeTypes) {
+		print "working on node $_\n";
 		my $no = $VRML::Nodes{$_};
 		my($str, $offs, $perl) = gen_struct($_, $no);
 		push @str, $str;
@@ -1076,7 +1080,7 @@ struct VRML_PolyRep { /* Currently a bit wasteful, because copying */
 	int *norindex;
 	float *normal; /* triples or null */
         int *tcindex; /* triples or null */
-        float *tcoord;	/* triples (per triangle) of texture coords */
+        float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 };
 

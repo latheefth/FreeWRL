@@ -225,6 +225,15 @@ int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 
 /* check validity of fields */
 int checkX3DIndexedFaceSetFields (struct VRML_IndexedFaceSet *this_) {
+	/* does this have any coordinates? */
+	if (this_->coord == 0) {
+		printf ("checkX3DIFS - have an IFS with no coords...\n");
+		return FALSE;
+	}
+	if (this_->coordIndex.n == 0) {
+		printf ("checkX3DIFS - have an IFS with no coordIndex\n");
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -279,8 +288,8 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	}
 
 	/* allocate memory for texture coords */
-	FREE_IF_NZ(rep->tcoord);
-	tcoord = rep->tcoord = (float *)malloc (sizeof (float) * nx * nz * 3);
+	FREE_IF_NZ(rep->GeneratedTexCoords);
+	tcoord = rep->GeneratedTexCoords = (float *)malloc (sizeof (float) * nx * nz * 3);
 	if (!tcoord) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
 	rep->tcindex=0; /* we will generate our own mapping */
 	if ((ntexcoords>0) && (ntexcoords < (nx * nz))) {
@@ -688,12 +697,9 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	int npoints = 0;
 	int nnormals=0;
 	int ncolors=0;
-	int ntexCoords = 0;
+	int texCoordNodeType = 0;
 	int vert_ind = 0;
 	int calc_normind = 0;
-
-	/* flags for errors */
-	int ntexerrors = 0;
 
 	struct SFColor *c1;
 	struct SFColor *points;
@@ -806,72 +812,11 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	   will check it better in stream_polyrep. */
 	if (this_->texCoord) {
 		tc = (struct VRML_TextureCoordinate *) this_->texCoord;
-
-		/* render_polyrep will be told this... */
 		rep_->tcoordtype=tc->_nodeType;
-
-		if (tc->_nodeType == NODE_TextureCoordinate) {
-			ntexCoords = tc->point.n;
-		} else if (tc->_nodeType == NODE_MultiTextureCoordinate ) {
-			/* printf ("MakeIFS - got a MultiTextureCoordinate - assuming ntexcoords - npoints for now\n"); */
-			ntexCoords = npoints;
-		} else if (tc->_nodeType == NODE_TextureCoordinateGenerator ) {
-			printf ("MakeIFS - got a TextureCoordinateGenerator - assuming ntexcoords - npoints for now\n"); 
-		} else {
-			printf ("make_IFS, texCoord expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
-		}
+		texCoordNodeType = tc->_nodeType;
 	} else {
-		/* render_polyrep will be told this... */
 		rep_->tcoordtype=0;
 	}
-
-	/************************************************************************
-	Rules from the spec:
-
-	 If the texCoord field is not NULL, it shall contain a TextureCoordinate node.
-	   The texture coordinates in that node are applied to the vertices of the
-	   IndexedFaceSet as follows:
-
-	f.If the texCoordIndex field is not empty, then it is used to choose texture
-	coordinates for each vertex of the IndexedFaceSet in exactly the same
-	manner that the coordIndex field is used to choose coordinates for each vertex
-	from the Coordinate node.
-
-		1. The texCoordIndex field shall contain at
-	      	   least as many indices as the coordIndex field,
-
-		2. and shall contain end-of-face
-		   markers (-1) in exactly the same places as the coordIndex field.
-
-		3. If the
-	      	   greatest index in the texCoordIndex field is N, then there shall be
-		   N+1 texture coordinates in the TextureCoordinate node.
-
-		g.If the texCoordIndex field is empty, then the coordIndex array is used to
-		choose texture coordinates from the TextureCoordinate node. If the
-	      	greatest index in the coordIndex field is N, then there shall be N+1 texture
-		coordinates in the TextureCoordinate node.
-	*****************************************************************************/
-
-
-	if (ntexCoords != 0) { /* texCoord field not NULL */
-		if (tcin > 0 && tcin < cin) {
-			/* Rule F part 1 */
-			printf ("IndexedFaceSet, Rule F part 1: texCoordIndex less than coordIndex (%d %d)\n",
-				tcin, cin);
-			ntexerrors = 1;
-		}
-
-		if (this_->_nodeType == NODE_IndexedFaceSet) {
-			if (tcin == 0 && ntexCoords != npoints) {
-				/* rule G */
-				printf ("IndexedFaceSet, Rule G: points %d texCoords %d and no texCoordIndex\n",
-					npoints,ntexCoords);
-				ntexerrors = 1;
-	   		}
-		}
-	}
-
 
 	/* Once per freewrl Invocation, the smooth_normals flag is initialized */
 	initialize_smooth_normals();
@@ -913,20 +858,9 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	/* wander through to see how much memory needs allocating for triangles */
 	for(i=0; i<cin; i++) {
 		if(((this_->coordIndex).p[i]) == -1) {
-	                       if(tcin > 0  && ((this_->texCoordIndex).p[i]) != -1) {
-				/* Rule F part 2 see above */
-	                                printf ("IndexedFaceSet, Rule F, part 2: coordIndex[%d] = -1 => expect texCoordIndex[%d] = -1 (but is %d)\n", i, i, ((this_->texCoordIndex).p[i]));
-				ntexerrors = 1;
-	                        }
 			ntri += nvert-2;
 			nvert = 0;
 		} else {
-			if (tcin > 0 && ((this_->texCoordIndex).p[i]) >= ntexCoords) {
-				/* Rule F, part 3 see above */
-				printf ("IndexedFaceSet, Rule F, part 3: TexCoordIndex[%d] %d is greater than num texCoord (%d)\n",i, ((this_->texCoordIndex).p[i]),
-					ntexCoords);
-				ntexerrors = 1;
-			}
 			nvert ++;
 		}
 	}
@@ -953,22 +887,11 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	}
 
 
-	if (ntexerrors == 0) {
-		if (ntexCoords) {
-			tcindex = rep_->tcindex = (int*)malloc(sizeof(*(rep_->tcindex))*3*(ntri));
-		}
-	} else {
-		ntexCoords = 0; tcin = 0;
-	}
+	tcindex = rep_->tcindex = (int*)malloc(sizeof(*(rep_->tcindex))*3*(ntri));
 
 	/* in C always check if you got the mem you wanted...  >;->		*/
-	if(!(cindex && colindex && norindex && rep_->normal )) {
+	if(!(cindex && colindex && norindex && tcindex && rep_->normal )) {
 		freewrlDie("Not enough memory for IndexFaceSet node triangles... ;(");
-	}
-
-	if (ntexCoords) {
-		if (!tcindex) 
-		freewrlDie("Not enough memory for IndexFaceSet textures... ;(");
 	}
 
 
@@ -1132,15 +1055,13 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 
 				/* Texture Coordinates */
-				if (ntexCoords) {
-					if (tcin) {
-						tcindex[vert_ind] = ((this_->texCoordIndex).p[this_coord+global_IFS_Coords[i]]);
-						/* printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]);*/
-					} else {
-						/* no texCoordIndex, use the Coord Index */
-						tcindex[vert_ind] = ((this_->coordIndex).p[this_coord+global_IFS_Coords[i]]);
-						/* printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]);*/
-					}
+				if (tcin) {
+					tcindex[vert_ind] = ((this_->texCoordIndex).p[this_coord+global_IFS_Coords[i]]);
+					/* printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]); */
+				} else {
+					/* no texCoordIndex, use the Coord Index */
+					tcindex[vert_ind] = ((this_->coordIndex).p[this_coord+global_IFS_Coords[i]]);
+					/* printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]); */
 				}
 
 				/* increment index, but check for baaad errors.	 */
@@ -1450,7 +1371,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 
 		if (Extru_Verbose)
 			printf ("tcoordsize is %d\n",tcoordsize);
-		tcoord = rep_->tcoord = (float *)malloc(sizeof(*(rep_->tcoord))*tcoordsize);
+		tcoord = rep_->GeneratedTexCoords = (float *)malloc(sizeof(*(rep_->GeneratedTexCoords))*tcoordsize);
 
 		tcindexsize = rep_->ntri*3;
 		if (Extru_Verbose)
