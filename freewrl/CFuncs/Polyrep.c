@@ -749,6 +749,7 @@ void render_polyrep(void *node) {
 		return;
 	}
 
+	/* save these values for streaming the texture coordinates later */
 	global_tcin = r->tcindex;
 	global_tcin_count = r->ntri*3;
 
@@ -796,22 +797,18 @@ void render_polyrep(void *node) {
 	{
 		int i;
 		int *cin;
-		int *tcin;
 		float *cod;
 		float *tcod;
 		tcod = r->GeneratedTexCoords;
 		cod = r->coord;
 		cin = r->cindex;
-		tcin = r->tcindex;
 
-printf ("\n\n");
+printf ("\n\nrender_polyrep:\n");
 		for (i=0; i<r->ntri*3; i++) {
 			printf ("i %d cindex %d vertex %f %f %f",i,cin[i],
 				cod[cin[i]*3+0],
 				cod[cin[i]*3+1],
 				cod[cin[i]*3+2]);
-
-if (tcin != 0) printf (" tcin %d ",tcin[i]);
 
 			if (tcod != 0) {
 			printf (" tex %f %f",
@@ -822,7 +819,10 @@ if (tcin != 0) printf (" tcin %d ",tcin[i]);
 		}
 	}
 */
-/* printf ("exiting...\n"); exit(0); */
+
+/*
+printf ("exiting...\n"); exit(0); 
+*/
 
 	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);

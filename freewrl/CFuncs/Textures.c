@@ -1571,16 +1571,9 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 				render_node (texC->texCoord);
 				/* are we ok with this texture yet? */
 				if (isloaded[bound_textures[c]] == LOADED) {
-		
 					glActiveTexture(GL_TEXTURE0+c);
 					glClientActiveTexture(GL_TEXTURE0+c);
 		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-		
-/* printf ("texture %d has compiledpoint size of %d, ptr %d\n",bound_textures[c], 
-			myTCnode->__compiledpoint.n, myTCnode->__compiledpoint.p);
-printf ("its name is %s\n",loadparams[bound_textures[c]].filename);
-*/
-
 					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 					glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
 					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
@@ -1645,7 +1638,11 @@ void render_texturecoordinate(struct VRML_TextureCoordinate *this) {
 	int i;
 	int op;
 	struct SFVec2f oFp;
+
+	#ifdef TEXVERBOSE
 	struct SFVec2f nFp;
+	#endif
+
 	float *fptr;
 
 	#ifdef TEXVERBOSE
@@ -1656,37 +1653,53 @@ void render_texturecoordinate(struct VRML_TextureCoordinate *this) {
 	/* is this the statusbar? we should *always* have a global_tcin textureIndex */
 	if (global_tcin == 0) return;
 
-	if (this->__compiledpoint.n == 0) {
-		this->__compiledpoint.n = global_tcin_count;
-		this->__compiledpoint.p = (struct SFVec2f *) malloc (sizeof(float) *2 * global_tcin_count);
+	if (this->_ichange != this->_change) {
+		this->_ichange = this->_change;
 
-		fptr = this->__compiledpoint.p;
+		if (this->__compiledpoint.n == 0) {
+			this->__compiledpoint.n = global_tcin_count;
+			this->__compiledpoint.p = (struct SFVec2f *) malloc (sizeof(float) *2 * global_tcin_count);
+		} 
+	
+		fptr = (float *) this->__compiledpoint.p;
+		
+		/* ok, we have a bunch of triangles, loop through and stream the texture coords
+		   into a format that matches 1 for 1, the coordinates */
 	
 		for (i=0; i<global_tcin_count; i++) {
 			op = global_tcin[i];
-			oFp = this->point.p[op];
-			nFp = this->__compiledpoint.p[i];
 	
-			#ifdef TEXVERBOSE
-			printf ("TextureCoordinate copying %d to %d\n",op,i);	
-			printf ("	op %f %f\n",oFp.c[0], oFp.c[1]);
-			#endif
-
-			*fptr = oFp.c[0]; fptr++; *fptr = oFp.c[1]; fptr++;
-			
+			/* bounds check - is the tex coord greater than the number of points? 	*/
+			/* this should have been checked before hand...				*/
+			if (op >= this->point.n) {
+				#ifdef TEXVERBOSE
+				printf ("renderTextureCoord - op %d npoints %d\n",op,this->point.n);
+				#endif
+				*fptr = 0.0; fptr++; 
+				*fptr = 0.0; fptr++; 
+			} else {
+				oFp = this->point.p[op];
+	
+				#ifdef TEXVERBOSE
+				printf ("TextureCoordinate copying %d to %d\n",op,i);	
+				printf ("	op %f %f\n",oFp.c[0], oFp.c[1]);
+				#endif
+	
+				*fptr = oFp.c[0]; fptr++; *fptr = oFp.c[1]; fptr++;
+			}
 		}
-	
 		
+			
 		#ifdef TEXVERBOSE
 		for (i=0; i<global_tcin_count; i++) {
 			nFp = this->__compiledpoint.p[i];
 			printf ("checking... %d %f %f\n",i,nFp.c[0], nFp.c[1]);
 		}
 		#endif
-	} else {
-		if (this->__compiledpoint.n < global_tcin_count) {
-			printf ("TextureCoordinate - problem %d < %d\n",this->__compiledpoint.n,global_tcin_count);
-		}
+	}
+
+	if (this->__compiledpoint.n < global_tcin_count) {
+		printf ("TextureCoordinate - problem %d < %d\n",this->__compiledpoint.n,global_tcin_count);
 	}
 
 }

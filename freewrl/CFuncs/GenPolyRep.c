@@ -260,14 +260,14 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	int ntexcoords=0;
 	struct SFVec2f *texcoords;
 	
-        struct VRML_TextureCoordinate *tc;
-
-
 	/* check validity of input fields */
 	if(nh != nx * nz) {
-		printf ("Elevationgrid: x,y vs. height: incorrect count %d %d, %d:\n",
-			nx,nz,nh);
-		/* return FALSE; */
+		if (nh > nx * nz) {
+			printf ("Elevationgrid: warning: x,y vs. height: %d * %d ne %d:\n", nx,nz,nh);
+		} else {
+			printf ("Elevationgrid: error: x,y vs. height: %d * %d ne %d:\n", nx,nz,nh);
+			return FALSE;
+		}
 	}
 
 	/* do we have any triangles? */
@@ -276,32 +276,23 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 		return FALSE;
 	}
 
-	/* any texture coordinates passed in? */
-        if (this_->texCoord) {
-                tc = (struct VRML_TextureCoordinate *) this_->texCoord;
-                if (tc->_nodeType != NODE_TextureCoordinate) {
-                        printf ("checkX3DIFSF expected %d, got %d\n",NODE_TextureCoordinate, tc->_nodeType);
-                } else {
-                        texcoords = tc->point.p;
-                        ntexcoords = tc->point.n;
-                }
-	}
+	/* any texture coordinates passed in? if so, DO NOT generate any texture coords here. */
+        if (!(this_->texCoord)) {
+		/* allocate memory for texture coords */
+		FREE_IF_NZ(rep->GeneratedTexCoords);
 
-	/* allocate memory for texture coords */
-	FREE_IF_NZ(rep->GeneratedTexCoords);
-	tcoord = rep->GeneratedTexCoords = (float *)malloc (sizeof (float) * nx * nz * 3);
-	if (!tcoord) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
-	rep->tcindex=0; /* we will generate our own mapping */
-	if ((ntexcoords>0) && (ntexcoords < (nx * nz))) {
-		printf ("ElevationGrid, too few texcoords supplied\n");
-		ntexcoords=0;
+		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
+		tcoord = rep->GeneratedTexCoords = (float *)malloc (sizeof (float) * nquads * 12); 
+		if (!tcoord) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
+
+		rep->tcindex=0; /* we will generate our own mapping */
 	}
-		
 
 	/* make up points array */
 	/* a point is a vertex and consists of 3 floats (x,y,z) */
 	newpoints = (float *)malloc (sizeof (float) * nz * nx * 3);
 	if (!newpoints) {printf ("out of memory in malloc in ElevationGrid\n"); return FALSE;}
+	 
 	FREE_IF_NZ(rep->coord);
 	rep->coord = (float *)newpoints;
 
@@ -311,11 +302,14 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	cindexptr = this_->coordIndex.p;
 
 	this_->coordIndex.n = nquads * 5;
+	/* return the newpoints array to the caller */
+	*points = newpoints;
 	*npoints = this_->coordIndex.n;
 
 	for (j = 0; j < (nz -1); j++) {
 		for (i=0; i < (nx-1) ; i++) {
-			/* printf ("coord maker, j %d i %d\n",j,i);
+			/*
+			 printf ("coord maker, j %d i %d\n",j,i);
 			printf ("coords for this quad: %d %d %d %d %d\n",
 				j*nx+i, j*nx+i+nx, j*nx+i+nx+1, j*nx+i+1, -1);
 			*/
@@ -325,46 +319,59 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 			*cindexptr = j*nx+i+nx+1; cindexptr++;
 			*cindexptr = j*nx+i+1; cindexptr++;
 			*cindexptr = -1; cindexptr++;
+
 		}
 	}
 
-	/* texture coords */
-	for (j = 0; j < nz; j++) {
-		for (i=0; i < nx ; i++) {
-			tcoord[(i+j*nx)*3+1] = 0;
-			if (ntexcoords>0) {
-				tcoord[(i+j*nx)*3+0] = texcoords[i+j*nx].c[0];
-				tcoord[(i+j*nx)*3+2] = texcoords[i+j*nx].c[1];
-			} else {
-				tcoord[(i+j*nx)*3+0] = (float) i/(nx-1);
-				tcoord[(i+j*nx)*3+2] = (float) j/(nz-1);
+	/* tex coords These need to be streamed now; that means for each quad, each vertex needs its tex coords. */
+	/* if the texCoord node exists, let render_TextureCoordinate (or whatever the node is) do our work for us */
+	if (!(this_->texCoord)) {
+		for (j = 0; j < (nz -1); j++) {
+			for (i=0; i < (nx-1) ; i++) {
+				/* first triangle, 3 vertexes */
+				/* first tri */
+				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+			
+				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+				/* second tri */
+				*tcoord = ((float) (i+0)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
+	
+				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+1)/(nz-1)); tcoord ++; 
+	
+				*tcoord = ((float) (i+1)/(nx-1)); tcoord++;
+				*tcoord = ((float)(j+0)/(nz-1)); tcoord ++; 
 			}
-			/* printf ("tex coord %d is %f %f \n",
-				i+j*nx, tcoord[(i+j*nx)*3+0], tcoord[(i+j*nx)*3+2]); */
-			
 		}
 	}
 			
-	/* return the newpoints array to the caller */
-	*points = newpoints;
-
-		
 	/* Render_Polyrep will use this number of triangles */
 	rep->ntri = ntri;
+
 	for (j=0; j<nz; j++) {
 		for (i=0; i < nx; i++) {
-		/* printf ("point [%d,%d] is %f %f %f (hei ind %d)\n",
+		/*
+		 printf ("point [%d,%d] is %f %f %f (hei ind %d)\n",
 			i,j,
 			xSp * i,
 			height[i+(j*nx)],
 			zSp * j,
 			i+(j*nx));
 		*/
+		
 		newPoint[0] = xSp * i; newPoint[1] = height[i+(j*nx)]; newPoint[2]=zSp*j;
 		memcpy(newpoints,newPoint,sizeof(float)*3);
 		newpoints += 3;
 		}
 	}
+
 	return TRUE;
 }
 
@@ -1056,7 +1063,12 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 				/* Texture Coordinates */
 				if (tcin) {
-					tcindex[vert_ind] = ((this_->texCoordIndex).p[this_coord+global_IFS_Coords[i]]);
+					/* bounds checking if we run out of texCoords, just fill in with 0 */
+					if ((this_coord+global_IFS_Coords[i]) < this_->texCoordIndex.n) {
+						tcindex[vert_ind] = ((this_->texCoordIndex).p[this_coord+global_IFS_Coords[i]]);
+					} else {
+						tcindex[vert_ind] = 0;
+					}
 					/* printf ("ntexCoords,tcin,  index %d\n",tcindex[vert_ind]); */
 				} else {
 					/* no texCoordIndex, use the Coord Index */

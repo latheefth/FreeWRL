@@ -143,7 +143,10 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	hasc = ((ncolors || r->color) && (last_texture_depth<=1));
 
 	if MUST_GENERATE_TEXTURES {
+		#ifdef STREAM_POLY_VERBOSE
 		printf ("mustGenerateTextures, mallocing newtc\n");
+		#endif
+
 		newtc = (float *) malloc (sizeof (float)*2*r->ntri*3);
 	} else {
 		newtc = 0;  	/*  unless we have to use it; look for malloc below*/
@@ -347,11 +350,12 @@ void defaultTextureMap(struct VRML_IndexedFaceSet *p, struct VRML_PolyRep * r, s
 	minVals[1]=999999.9; 
 	minVals[2]=999999.9; 
 
+		#ifdef STREAM_POLY_VERBOSE
 		printf ("have to gen default textures\n");
+		#endif
 
 		if ((p->_nodeType == NODE_IndexedFaceSet) ||
 		   (p->_nodeType == NODE_ElevationGrid)) {
-printf ("yes, we have to do this... points %d rcindex %d\n",points, r->cindex);
 
 		/* use Mufti's initialization scheme for minVals and maxVals; */
 			for (j=0; j<3; j++) {
@@ -363,7 +367,6 @@ printf ("yes, we have to do this... points %d rcindex %d\n",points, r->cindex);
 					maxVals[j] = r->coord[3*r->cindex[0]+j];
 				}
 			}
-printf ("past step 1\n");
 
 
 			for(i=0; i<r->ntri*3; i++) {
@@ -378,8 +381,6 @@ printf ("past step 1\n");
 			      }
 			  }
 			}
-
-printf ("past step 2\n");
 
 			/* find the S,T mapping. */
 			Xsize = maxVals[0]-minVals[0];
@@ -403,5 +404,4 @@ printf ("past step 2\n");
 				} else { Tsize = Ysize; Tindex = 1; }
 			}
 		}
-	printf ("default textures genned\n");
 }
