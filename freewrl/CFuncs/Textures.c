@@ -1521,6 +1521,25 @@ void __reallyloadMovieTexture () {
 /*********************************************************************************/
 /* texture enabling - works for single texture, for multitexture. */
 
+void setupTexGen (struct VRML_TextureCoordinateGenerator *this) {
+	switch (this->__compiledmode) {
+	case GL_OBJECT_LINEAR:
+	case GL_EYE_LINEAR:
+	case GL_REFLECTION_MAP:
+	case GL_SPHERE_MAP:
+	case GL_NORMAL_MAP:
+                                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,this->__compiledmode);
+                                glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,this->__compiledmode);                      
+                                glEnable(GL_TEXTURE_GEN_S);
+                                glEnable(GL_TEXTURE_GEN_T);
+	break;
+	default: {}
+		/* printf ("problem with compiledmode %d\n",this->__compiledmode); */
+	}
+}
+
+
+
 
 void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 	int c;
@@ -1623,15 +1642,9 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 					if (myTCnode->_nodeType == NODE_TextureCoordinate) {
 						glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
 					} else if (myTCnode->_nodeType == NODE_TextureCoordinateGenerator) {
-                                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-                                glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);                      
-                                glEnable(GL_TEXTURE_GEN_S);
-        
-                                glEnable(GL_TEXTURE_GEN_T);
-
+						setupTexGen ((struct VRML_TextureCoordinateGenerator*) myTCnode);
 					}
 
-					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 					glEnable(GL_TEXTURE_2D);
 				}
 			}
@@ -1639,10 +1652,8 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 			/* this has to be a TexureCoordinateGenerator node */
 			#ifdef TEXVERBOSE
 			printf ("have a NODE_TextureCoordinateGenerator\n");
-			printf ("and this texture has %d points we have texturedepth of %d\n",myTCnode->point.n,texture_count);
 			#endif
 		
-
 			/* render the TextureCoordinate node for every texture in this node */
 			for (c=0; c<texture_count; c++) {
 				render_node (texC->texCoord);
@@ -1653,15 +1664,8 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 
-	/* do the texture work here.. */
-                                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
-                                glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);                      
-                                glEnable(GL_TEXTURE_GEN_S);
-        
-                                glEnable(GL_TEXTURE_GEN_T);
+					setupTexGen((struct VRML_TextureCoordinateGenerator*) myTCnode);
 
-
-					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 					glEnable(GL_TEXTURE_2D);
 				}
 			}
@@ -1682,21 +1686,44 @@ void textureDraw_end(void) {
 }
 
 
+/* verify the TextureCoordinateGenerator node - if the params are ok, then the internal
+   __compiledmode is NOT zero. If there are problems, the __compiledmode IS zero */
 
 void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this) {
-/*
-      TextureCoordinateGenerator =>
-        new VRML::NodeType("TextureCoordinateGenerator",
-                                           {
-                                                parameter => [MFFloat, [], exposedField],
-                                                mode => [SFString,"SPHERE",exposedField],
-                                         }
-                                          ),
-*/
+	STRLEN xx;
+	char *modeptr;
 
 	if (this->_ichange != this->_change) {
 		this->_ichange = this->_change;
 
+		modeptr = SvPV (this->mode,xx);
+
+		/* make the __compiledmode reflect actual OpenGL parameters */
+		if(strncmp("SPHERE-REFLECT-LOCAL",modeptr,strlen("SPHERE-REFLECT-LOCAL"))==0) {
+			this->__compiledmode = GL_SPHERE_MAP;
+		} else if(strncmp("SPHERE-REFLECT",modeptr,strlen("SPHERE-REFLECT"))==0) {
+			this->__compiledmode = GL_SPHERE_MAP;
+		} else if(strncmp("SPHERE-LOCAL",modeptr,strlen("SPHERE-LOCAL"))==0) {
+			this->__compiledmode = GL_SPHERE_MAP;
+		} else if(strncmp("SPHERE",modeptr,strlen("SPHERE"))==0) {
+			this->__compiledmode = GL_SPHERE_MAP;
+		} else if(strncmp("CAMERASPACENORMAL",modeptr,strlen("CAMERASPACENORMAL"))==0) {
+			this->__compiledmode = GL_NORMAL_MAP;
+		} else if(strncmp("CAMERASPACEPOSITION",modeptr,strlen("CAMERASPACEPOSITION"))==0) {
+			this->__compiledmode = GL_OBJECT_LINEAR;
+		} else if(strncmp("CAMERASPACEREFLECTION",modeptr,strlen("CAMERASPACEREFLECTION"))==0) {
+			this->__compiledmode = GL_REFLECTION_MAP;
+		} else if(strncmp("COORD-EYE",modeptr,strlen("COORD-EYE"))==0) {
+			this->__compiledmode = GL_EYE_LINEAR;
+		} else if(strncmp("COORD",modeptr,strlen("COORD"))==0) {
+			this->__compiledmode = GL_EYE_LINEAR;
+		} else if(strncmp("NOISE-EYE",modeptr,strlen("NOISE-EYE"))==0) {
+			this->__compiledmode = GL_EYE_LINEAR;
+		} else if(strncmp("NOISE",modeptr,strlen("NOISE"))==0) {
+			this->__compiledmode = GL_EYE_LINEAR;
+		} else {
+			printf ("TextureCoordinateGenerator - error - %s invalid as a mode\n",modeptr);
+		}
 	}
 
 	
