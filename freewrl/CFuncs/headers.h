@@ -587,8 +587,6 @@ void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
 
 void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this);
 void render_texturecoordinate(struct VRML_TextureCoordinate *this);
-void render_multitexturecoordinate(struct VRML_MultiTextureCoordinate *this);
-
 
 #define NODE_ADD_PARENT(a) add_parent(a,ptr)
 #define NODE_REMOVE_PARENT(a) add_parent(a,ptr)

@@ -1099,7 +1099,12 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 }
 
-/* stream the extrusion texture coords */
+/***************************************************************
+   stream the extrusion texture coords. We do this now because 
+   stream_polyrep does not go through the tcindexes - the old
+   "render every triangle" method did. So, we gain in rendering
+   speed for a little bit of post-processing here. 
+ ***************************************************************/
 void stream_extrusion_texture_coords (struct VRML_PolyRep *rep_, 
 			float *tcoord, 
 			int *tcindex) {
@@ -1110,6 +1115,7 @@ void stream_extrusion_texture_coords (struct VRML_PolyRep *rep_,
 
 	/* printf ("stream_extrusion_texture_coords, have %d triangles \n",rep_->ntri); */
 
+	/* 2 floats per vertex, each triangle has 3 vertexes... */
 	rep_->GeneratedTexCoords = (float*)malloc (sizeof(float) * 2 * 3 * rep_->ntri);
 	if (!rep_->GeneratedTexCoords) {
 		printf ("Streaming Extrusion - malloc problem\n");
@@ -1117,16 +1123,18 @@ void stream_extrusion_texture_coords (struct VRML_PolyRep *rep_,
 
 	nc = rep_->GeneratedTexCoords;
 
+	/* go through - note now that the "span" is 2 floats per vertex, while the old
+	   method (used when the extrusion code was written) was to use 3 floats, but
+	   ignoring one of them. Thus the "ind*3" stuff below. Yes, we could go through
+	   and re-write the generator, but, who cares - the tcoord param is freed after
+	   the return of this, so the "waste" is only temporary.
+	*/
 	for (count = 0; count < rep_->ntri*3; count++) {
 		ind = tcindex[count];
 		/* printf ("working through vertex %d - tcindex %d vertex %f %f \n",count,ind,
 			tcoord[ind*3], tcoord[ind*3+2]); */
 		*nc = tcoord[ind*3]; nc++; *nc = tcoord[ind*3+2]; nc++;
 	}
-		
-
-
-
 }
 
 
@@ -2195,6 +2203,8 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 
 	/* stream the texture coords so that they are linear as tcindex is not used in stream_polyrep */
 	stream_extrusion_texture_coords (rep_, tcoord, tcindex);
+
+	/* now that the tex coords are streamed, remove the temoporary arrays */
 	free (tcoord);
 	free (tcindex);
 

@@ -251,12 +251,10 @@ my $protono;
 	TriangleStripSet
         /;
 
-# nodes that are valid at the top; not all children nodes
+# nodes that are valid at the top; not all nodes
 # can reside at the top of the scenegraph.
+# see http://www.web3d.org/x3d/specifications/ISO-IEC-19775-X3DAbstractSpecification/
 %VRML::Nodes::topNodes = map {($_=>1)} qw/
-	GeoOrigin
-	Contour2D
-	NurbsTextureCoordinate
 	Fog
 	GeoViewpoint
 	NavigationInfo
@@ -265,6 +263,7 @@ my $protono;
 	TextureBackground
 	Inline
 	StaticGroup
+	Shape
 	Anchor
 	Billboard
 	Collision
@@ -282,7 +281,7 @@ my $protono;
 	NurbsOrientationInterpolator
 	NurbsPositionInterpolator
 	NurbsSurfaceInterpolator
-	HanimHumanoid
+	HAnimHumanoid
 	ReceiverPdu
 	SignalPdu
 	TransmitterPdu
@@ -313,6 +312,13 @@ my $protono;
 	TouchSensor
 	Sound
 	TimeSensor
+	AudioClip
+	MovieTexture
+	BooleanSequencer
+	IntegerSequencer
+	BooleanTrigger
+	IntegerTrigger
+	TimeTrigger
 	BooleanFilter
 	BooleanToggle
 	GeoMetadata

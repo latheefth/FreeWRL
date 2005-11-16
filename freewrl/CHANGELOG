@@ -1,3 +1,12 @@
+For 1.16:
+	- added nodes to the "topNodes" field - some warnings were printed for correct
+	  scenegraphs pertaining to what nodes were allowed as root nodes.
+
+	- reworked texture coordinates for Extrusion and ElevationGrid to handle Multi
+	  Texture nodes (MultiTextureTransform, TextureCoordinateGenerator, etc...)
+
+
+
 For 1.15:
 	- Fixed dynamic linker bug with OSX 10.4.3
 

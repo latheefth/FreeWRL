@@ -1582,22 +1582,34 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 			}
 		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
 			myMTCnode = (struct VRML_MultiTextureCoordinate *) texC->texCoord;
+			myTCnode = myMTCnode; /* for now, in case of errors, this is set to an invalid value */
 
-
-printf ("MultiTextureCoordinate node, have %d texCoords\n",myMTCnode->texCoord.n);
-printf ("FIXME\n");
+			#ifdef TEXVERBOSE
+			printf ("MultiTextureCoordinate node, have %d texCoords\n",myMTCnode->texCoord.n);
+			#endif
 			
 			/* render the TextureCoordinate node for every texture in this node */
 			for (c=0; c<texture_count; c++) {
+				/* do we have enough textures in this MultiTextureCoordinate node? */
 				if (c<myMTCnode->texCoord.n) {
-/*					myTCnode = 
-						(struct VRML_TextureCoordinate *) myTCnode->texCoord.p[c]->texC->texCoord;
-*/
+					myTCnode = 
+						(struct VRML_TextureCoordinate *) myMTCnode->texCoord.p[c];
+
+					/* is this a valid textureCoord node, and not another
+					   MultiTextureCoordinate node? */
+					if ((myTCnode->_nodeType == NODE_TextureCoordinate) ||
+					    (myTCnode->_nodeType == NODE_TextureCoordinateGenerator)) {
+						render_node (myTCnode);
+					#ifdef TEXVERBOSE
+					} else {
+						printf ("MultiTextureCoord, problem with %d as a child \n",myTCnode->_nodeType);
+					#endif
+					}
+				#ifdef TEXVERBOSE
+				} else {
+					printf ("MultiTextureCoord, not enough children for the number of textures...\n");
+				#endif
 				}
-/*
-struct Multi_Node { int n; void * *p; };
-*/
-				render_node (texC->texCoord);
 				/* are we ok with this texture yet? */
 				if (isloaded[bound_textures[c]] == LOADED) {
 		
@@ -1606,13 +1618,53 @@ struct Multi_Node { int n; void * *p; };
 		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 		
 					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
-					glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					
+					/* do the texture coordinate stuff */
+					if (myTCnode->_nodeType == NODE_TextureCoordinate) {
+						glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+					} else if (myTCnode->_nodeType == NODE_TextureCoordinateGenerator) {
+                                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+                                glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);                      
+                                glEnable(GL_TEXTURE_GEN_S);
+        
+                                glEnable(GL_TEXTURE_GEN_T);
+
+					}
+
 					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 					glEnable(GL_TEXTURE_2D);
 				}
 			}
 		} else {
 			/* this has to be a TexureCoordinateGenerator node */
+			#ifdef TEXVERBOSE
+			printf ("have a NODE_TextureCoordinateGenerator\n");
+			printf ("and this texture has %d points we have texturedepth of %d\n",myTCnode->point.n,texture_count);
+			#endif
+		
+
+			/* render the TextureCoordinate node for every texture in this node */
+			for (c=0; c<texture_count; c++) {
+				render_node (texC->texCoord);
+				/* are we ok with this texture yet? */
+				if (isloaded[bound_textures[c]] == LOADED) {
+					glActiveTexture(GL_TEXTURE0+c);
+					glClientActiveTexture(GL_TEXTURE0+c);
+		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
+
+	/* do the texture work here.. */
+                                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);
+                                glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_SPHERE_MAP);                      
+                                glEnable(GL_TEXTURE_GEN_S);
+        
+                                glEnable(GL_TEXTURE_GEN_T);
+
+
+					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+					glEnable(GL_TEXTURE_2D);
+				}
+			}
 		}
 	}
 }
@@ -1632,6 +1684,24 @@ void textureDraw_end(void) {
 
 
 void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this) {
+/*
+      TextureCoordinateGenerator =>
+        new VRML::NodeType("TextureCoordinateGenerator",
+                                           {
+                                                parameter => [MFFloat, [], exposedField],
+                                                mode => [SFString,"SPHERE",exposedField],
+                                         }
+                                          ),
+*/
+
+	if (this->_ichange != this->_change) {
+		this->_ichange = this->_change;
+
+	}
+
+	
+
+
 }
 
 void render_texturecoordinate(struct VRML_TextureCoordinate *this) {
@@ -1703,9 +1773,3 @@ void render_texturecoordinate(struct VRML_TextureCoordinate *this) {
 	}
 
 }
-
-void render_multitexturecoordinate(struct VRML_MultiTextureCoordinate *this) {
-}
-
-
-
