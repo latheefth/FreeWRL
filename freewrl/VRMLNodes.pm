@@ -734,7 +734,7 @@ my $protono;
 	new VRML::NodeType("TextureCoordinate",
 					   { 
 						point => [MFVec2f, [], exposedField],
-						__compiledpoint => [MFVec2f, [], exposedField],
+						__compiledpoint => [MFVec2f, [], field],
 					 },
 					  ),
 	TextureCoordinateGenerator =>
@@ -742,6 +742,7 @@ my $protono;
 					   { 
 						parameter => [MFFloat, [], exposedField],
 						mode => [SFString,"SPHERE",exposedField],
+						__compiledmode => [SFInt32,0,field],
 					 }
 					  ),
 #############################################################################################
