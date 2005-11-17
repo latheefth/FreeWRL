@@ -41,7 +41,7 @@ GLfloat boxtex[] ={ 1,1, 0,1, 0,0, 1,0,
 		    0,0, 1,0, 1,1, 0,1,
 		    1,0, 1,1, 0,1, 0,0};
 
-/* Background */
+/* Background and TextureBackground */
 /* faces are quads, 4 vertices; order: front, back, top, down, right, left. */
 GLfloat Backnorms[] ={0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
 			0,0,1, 0,0,1, 0,0,1, 0,0,1,

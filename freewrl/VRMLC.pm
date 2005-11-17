@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.191  2005/11/17 18:51:45  crc_canada
+# revisit bindable nodes; add beginnings of TextureBackground
+#
 # Revision 1.190  2005/11/14 14:18:53  crc_canada
 # Texture rework in progress...
 #
@@ -1015,7 +1018,7 @@ sub gen {
 	}
         push @str, "\n/* and now the structs for the nodetypes */ \n";
 	for(@NodeTypes) {
-		print "working on node $_\n";
+		#print "working on node $_\n";
 		my $no = $VRML::Nodes{$_};
 		my($str, $offs, $perl) = gen_struct($_, $no);
 		push @str, $str;
@@ -1223,8 +1226,6 @@ InterpPointer(x)
 CODE:
 	void *pt;
 	void do_Oint4(void *x);
-
-	/* XXX still to do; Fog, Background, Viewpoint, NavigationInfo, Collision */
 
 	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
 		pt = (void *)do_Oint4;

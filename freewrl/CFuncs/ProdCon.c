@@ -1231,10 +1231,10 @@ void __pt_doStringUrl () {
 
 	/* send a set_bind to any nodes that exist */
 	if (psp.bind) {
-		if (totfognodes != 0) send_bind_to (FOG,(void *)(fognodes[0]),1);
-		if (totbacknodes != 0) send_bind_to (BACKGROUND,(void *)(backgroundnodes[0]),1);
-		if (totnavnodes != 0) send_bind_to (NAVIGATIONINFO,(void *)(navnodes[0]),1);
-		if (totviewpointnodes != 0) send_bind_to(VIEWPOINT,(void *)(viewpointnodes[0]),1);
+		if (totfognodes != 0) send_bind_to (NODE_Fog,(void *)(fognodes[0]),1);
+		if (totbacknodes != 0) send_bind_to (NODE_Background,(void *)(backgroundnodes[0]),1);
+		if (totnavnodes != 0) send_bind_to (NODE_NavigationInfo,(void *)(navnodes[0]),1);
+		if (totviewpointnodes != 0) send_bind_to(NODE_Viewpoint,(void *)(viewpointnodes[0]),1);
 	}
 
        	/* now that we have the VRML/X3D file, load it into the scene.

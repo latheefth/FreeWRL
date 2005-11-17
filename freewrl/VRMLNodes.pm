@@ -83,6 +83,7 @@ my $protono;
 %VRML::Nodes::bindable = map {($_,1)} qw/
  Viewpoint
  Background
+ TextureBackground
  NavigationInfo
  Fog
  GeoViewpoint
@@ -223,6 +224,7 @@ my $protono;
 	Extrusion
 	IndexedLineSet
 	Background
+	TextureBackground
 	PointLight
 	Fog
 	DirectionalLight
@@ -585,6 +587,7 @@ my $protono;
 	SpotLight 		=>children,
 	Switch 			=>children,
 	Text 			=>geometry,
+	TextureBackground 	=>children,
 	TextureCoordinate 	=>texCoord,
 	TextureCoordinateGenerator  =>texCoord,
 	TextureTransform 	=>textureTransform,
@@ -1574,6 +1577,30 @@ my $protono;
 					   }
 					  ),
 
+	TextureBackground =>
+	new VRML::NodeType("TextureBackground",
+					   {
+						set_bind => [SFBool, undef, eventIn],
+						groundAngle => [MFFloat, [], exposedField],
+						groundColor => [MFColor, [], exposedField],
+						skyAngle => [MFFloat, [], exposedField],
+						skyColor => [MFColor, [[0, 0, 0]], exposedField],
+						bindTime => [SFTime,0,eventOut],
+						isBound => [SFBool, 0, eventOut],
+						__parenturl =>[SFString,"",field],
+						__points =>[FreeWRLPTR,0,field],
+						__colours =>[FreeWRLPTR,0,field],
+						__quadcount => [SFInt32,0,field],
+
+						frontTexture=>[SFNode,NULL,exposedField],
+						backTexture=>[SFNode,NULL,exposedField],
+						topTexture=>[SFNode,NULL,exposedField],
+						bottomTexture=>[SFNode,NULL,exposedField],
+						leftTexture=>[SFNode,NULL,exposedField],
+						rightTexture=>[SFNode,NULL,exposedField],
+						transparency=> [MFFloat,[0],exposedField],
+					   },
+					  ),
 	Background =>
 	new VRML::NodeType("Background",
 					   {

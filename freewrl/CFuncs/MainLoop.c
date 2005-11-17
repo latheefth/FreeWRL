@@ -762,8 +762,6 @@ void setup_viewpoint(int doBinding) {
 				if (*setBindPtr==1) reset_upvector();
 
 				bind_node ((void *)viewpointnodes[i],
-					offsetof (struct VRML_Viewpoint,set_bind),
-					offsetof (struct VRML_Viewpoint,isBound),
 					&viewpoint_tos,&viewpoint_stack[0]);
 			}
 		}
@@ -985,10 +983,10 @@ void glPrintError(char *str) {
 void Next_ViewPoint() {
 	if (totviewpointnodes>=2) {
 		/* whew, we have other vp nodes */
-		send_bind_to(VIEWPOINT,(void *)viewpointnodes[currboundvpno],0);
+		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
 		currboundvpno++;
 		if (currboundvpno>=totviewpointnodes) currboundvpno=0;
-		send_bind_to(VIEWPOINT,(void *)viewpointnodes[currboundvpno],1);
+		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
 	}
 }
 

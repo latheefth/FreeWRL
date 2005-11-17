@@ -7,7 +7,7 @@
 
 /*****************************************
 
-Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
+Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 
 ******************************************/
 
@@ -35,12 +35,7 @@ Bindable nodes - Background, Fog, NavigationInfo, Viewpoint.
 #define MAX_STACK 20
 
 
-/* Bindables, Viewpoint, NavigationInfo, Background and Fog */
-#define BACKGROUND 1
-#define VIEWPOINT  2
-#define NAVIGATIONINFO 3
-#define FOG        4
-#define GEOVIEWPOINT 5
+/* Bindables, Viewpoint, NavigationInfo, Background, TextureBackground and Fog */
 extern unsigned long int *fognodes;
 extern unsigned long int *backgroundnodes;
 extern unsigned long int *navnodes;
@@ -61,7 +56,7 @@ void
 send_bind_to(int nodetype, void *node, int value);
 
 void
-bind_node(void *node, unsigned int setBindofst, int isboundofst, int *tos, unsigned int *stack);
+bind_node(void *node, int *tos, unsigned int *stack);
 
 void
 render_Fog(struct VRML_Fog *node);
@@ -75,7 +70,7 @@ render_Viewpoint(struct VRML_Viewpoint *node);
 void
 render_GeoViewpoint(struct VRML_GeoViewpoint *node);
 
-void
-render_Background(struct VRML_Background *node);
+void render_Background(struct VRML_Background *node);
+void render_TextureBackground(struct VRML_TextureBackground *node);
 
 

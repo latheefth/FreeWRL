@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.179  2005/11/17 18:51:45  crc_canada
+# revisit bindable nodes; add beginnings of TextureBackground
+#
 # Revision 1.178  2005/11/16 16:02:01  crc_canada
 # MultiTextureCoordinate work.
 #
@@ -228,6 +231,10 @@ render_Fog((struct VRML_Fog *) this_);',
 Background => '
 	if (!render_geom) printf ("rendering background while not geom\n");
 		render_Background ((struct VRML_Background *) this_); ',
+
+TextureBackground => '
+	if (!render_geom) printf ("rendering background while not geom\n");
+		render_TextureBackground ((struct VRML_TextureBackground *) this_); ',
 
 
 Box => '

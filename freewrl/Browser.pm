@@ -142,7 +142,7 @@ sub shut {
 
 # Bindable return values.
 # Viewpoint (or GeoViewpoint)
-# Background
+# Background (or TextureBackground)
 # NavigationInfo
 # Fog
 
@@ -172,12 +172,18 @@ sub register_bind {
 	if ($node->{TypeName} eq "Viewpoint") {
 		if ($vpcount>900) {return;}
 		$vpn{$vpcount} = $node->{BackNode}{CNode}; $vpcount++;
+
 	} elsif ($node->{TypeName} eq "Background") {
 		if ($bgcount>900) {return;}
 		$bgd{$bgcount} = $node->{BackNode}{CNode}; $bgcount++;
+	} elsif ($node->{TypeName} eq "TextureBackground") {
+		if ($bgcount>900) {return;}
+		$bgd{$bgcount} = $node->{BackNode}{CNode}; $bgcount++;
+
 	} elsif ($node->{TypeName} eq "NavigationInfo") {
 		if ($navcount>900) {return;}
 		$nav{$navcount} = $node->{BackNode}{CNode}; $navcount++;
+
 	} elsif ($node->{TypeName} eq "Fog") {
 		if ($fogcount>900) {return;}
 		$fog{$fogcount} = $node->{BackNode}{CNode}; $fogcount++;
@@ -191,7 +197,7 @@ sub getBindables {
 	my ($ty) = @_;
 	# check to see what bindable we wish
 	if ($ty eq "Viewpoint") { return %vpn; }
-	elsif ($ty eq "Background") { return %bgd; }
+	elsif ($ty eq "Background") { return %bgd; } #Background or TextureBackground
 	elsif ($ty eq "NavigationInfo") { return %nav; }
 	elsif ($ty eq "Fog") { return %fog; }
 	else {
