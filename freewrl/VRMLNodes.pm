@@ -449,6 +449,16 @@ my $protono;
 	TextureCoordinateGenerator
 	/;
 
+# nodes that are valid fillProperties fields.
+%VRML::Nodes::fillProperties = map {($_=>1)} qw/
+	FillProperties
+	/;
+
+# nodes that are valid lineProperties fields.
+%VRML::Nodes::lineProperties = map {($_=>1)} qw/
+	LineProperties
+	/;
+
 # nodes that are valid sound source fields.
 %VRML::Nodes::source = map {($_=>1)} qw/
 	AudioClip
@@ -533,6 +543,7 @@ my $protono;
 	DirectionalLight 	=>children,
 	ElevationGrid 		=>geometry,
 	Extrusion 		=>geometry,
+	FillProperties		=>fillProperties,
 	Fog 			=>children,
 	FontStyle 		=>children,
 	GeoCoordinate 		=>children,
@@ -554,6 +565,7 @@ my $protono;
 	Inline 			=>children,
 	InlineLoadControl 	=>children,
 	LineSet 		=>geometry,
+	LineProperties		=>lineProperties,
 	LOD 			=>children,
 	Material 		=>material,
 	MultiTexture		=>texture,
@@ -643,6 +655,25 @@ my $protono;
 						 shininess => [SFFloat, 0.2, exposedField],
 						 specularColor => [SFColor, [0, 0, 0], exposedField],
 						 transparency => [SFFloat, 0, exposedField]
+						}
+					   ),
+
+	LineProperties =>
+	new VRML::NodeType ("LineProperties",
+						{
+						applied => [SFBool, 1, exposedField],
+						linetype => [SFInt32, 1, exposedField],
+						linewidthScaleFactor => [SFFloat, 0, exposedField],
+						}
+					   ),
+
+	FillProperties =>
+	new VRML::NodeType ("FillProperties",
+						{
+						filled => [SFBool, 1, exposedField],
+						hatchColor => [SFColor, [1,1,1], exposedField],
+						hatched => [SFBool, 1, exposedField],
+						hatchStyle => [SFInt32, 1, exposedField],
 						}
 					   ),
 

@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.180  2005/11/18 21:00:27  crc_canada
+# LineProperties
+#
 # Revision 1.179  2005/11/17 18:51:45  crc_canada
 # revisit bindable nodes; add beginnings of TextureBackground
 #
@@ -1089,6 +1092,39 @@ Text => '
 		glPopAttrib();
 ',
 
+
+LineProperties => '
+	GLint	factor;
+	GLushort pat;
+
+	if (this_->applied) {
+		if (this_->linewidthScaleFactor > 1.0) glLineWidth(this_->linewidthScaleFactor);
+		if (this_->linetype > 0) {
+			factor = 1;
+			pat = 0xffff; /* can not support fancy line types - this is the default */
+			switch (this_->linetype) {
+				case 2: pat = 0xaaaa; break;
+				case 3: pat = 0x4444; break;
+				case 4: pat = 0xa4a4; break;
+				case 5: pat = 0xaa44; break;
+				case 6: pat = 0x0100; break;
+				case 7: pat = 0x0100; break;
+				case 10: pat = 0xaaaa; break;
+				case 11: pat = 0x0170; break;
+				case 12: pat = 0x0000; break;
+				case 13: pat = 0x0000; break;
+				default: {}
+			}
+			glLineStipple (factor,pat);
+			glEnable(GL_LINE_STIPPLE);
+		}
+	}
+
+',
+
+FillProperties => '
+',
+
 Material =>  '
 		int i;
 		float dcol[4];
@@ -1727,6 +1763,18 @@ Billboard => (join '','
                        	glDisable (GL_LIGHTING);
 			glColor3f(1.0,1.0,1.0);
 			lightingOn = FALSE;
+		}
+
+		if ($f(fillProperties)) {
+			render_node($f(fillProperties));
+		}
+
+		/* set line widths - if we have line a lineProperties node */
+		if ($f(lineProperties)) {
+			render_node($f(lineProperties));
+		} else {
+			glDisable (GL_LINE_STIPPLE);
+			glLineWidth(1.0);
 		}
 
 		if($f(texture)) {
