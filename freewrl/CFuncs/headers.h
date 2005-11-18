@@ -428,6 +428,7 @@ extern void loadPixelTexture(struct VRML_PixelTexture *node,  void *param);
 extern void loadMovieTexture(struct VRML_MovieTexture *node,  void *param);
 extern void loadMultiTexture(struct VRML_MultiTexture *node);
 extern void loadBackgroundTextures (struct VRML_Background *node);
+extern void loadTextureBackgroundTextures (struct VRML_TextureBackground *node);
 extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
 extern GLfloat Backtex[], Backnorms[];
 

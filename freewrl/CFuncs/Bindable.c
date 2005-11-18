@@ -847,7 +847,7 @@ void render_Background (struct VRML_Background *node) {
 
 void render_TextureBackground (struct VRML_TextureBackground *node) {
 
-	/* printf ("RTBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind); */
+	/* printf ("RTBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);  */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		bind_node (node, &background_tos,&background_stack[0]);
@@ -875,9 +875,18 @@ void render_TextureBackground (struct VRML_TextureBackground *node) {
 	glDisableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 
-
 	/* now, for the textures, if they exist */
-/* .... */
+	if ((node->backTexture !=0) ||
+			(node->frontTexture !=0) ||
+			(node->leftTexture !=0) ||
+			(node->rightTexture !=0) ||
+			(node->topTexture !=0) ||
+			(node->bottomTexture !=0)) {
+
+		loadTextureBackgroundTextures(node);
+        	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
+	}
+
 	glPopMatrix();
 	glPopAttrib();
 }

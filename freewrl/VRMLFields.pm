@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.56  2005/11/18 18:24:24  crc_canada
+# TextureBackground work.
+#
 # Revision 1.55  2005/10/19 19:38:58  crc_canada
 # MultiTexture, META, PROFILE, COMPONENT node support.
 #
@@ -1138,8 +1141,8 @@ sub parse {
 	}
 
 	# verify that this node is ok for the parent field type.
-	# my ($package, $filename, $line) = caller;
-	# print "--- sub parse, nt $nt parentfield $parentField from $package, $line\n";
+	# my ($package, $filename, $line) = caller; print "--- sub parse, nt $nt parentfield $parentField from $package, $line\n";
+
 	if ($parentField eq "") {
 		my ($package, $filename, $line) = caller;
 		print "VRML::Field::SFNode::parse: null parentField  ",
@@ -1188,6 +1191,10 @@ sub parse {
 				$okPROTO = 1;
 			}
 
+			# is this a sub-texture of TextureBackground or some other texture/texture mapping
+			my $pind = index($parentField,"Texture");
+			my $cind = index ($nt,"Texture");
+			if (($pind > 0) && ($cind>0)) { $okPROTO = 1;}
 
 			# nope, it failed even the PROTO tests.
 			if ($okPROTO == 0) {

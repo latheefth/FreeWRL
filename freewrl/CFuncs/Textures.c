@@ -252,6 +252,50 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 	}
 }
 
+
+/* do TextureBackground textures, if possible */
+void loadTextureBackgroundTextures (struct VRML_TextureBackground *node) {
+	struct VRML_Box *thistex = 0;
+	int count;
+
+	for (count=0; count<6; count++) {
+		/* go through these, back, front, top, bottom, right left */
+		switch (count) {
+			case 0: {thistex = (struct VRML_Box *)node->frontTexture;  break;}
+			case 1: {thistex = (struct VRML_Box *)node->backTexture;   break;}
+			case 2: {thistex = (struct VRML_Box *)node->topTexture;    break;}
+			case 3: {thistex = (struct VRML_Box *)node->bottomTexture; break;}
+			case 4: {thistex = (struct VRML_Box *)node->rightTexture;  break;}
+			case 5: {thistex = (struct VRML_Box *)node->leftTexture;   break;}
+		}
+		if (thistex != 0) {
+			/* we have an image specified for this face */
+			/* the X3D spec says that a X3DTextureNode has to be one of... */
+			if ((thistex->_nodeType == NODE_ImageTexture) ||
+			    (thistex->_nodeType == NODE_PixelTexture) ||
+			    (thistex->_nodeType == NODE_MovieTexture) ||
+			    (thistex->_nodeType == NODE_MultiTexture)) {
+
+				texture_count = 0;
+				/* render the proper texture */
+				render_node((void *)thistex);
+		                glColor3d(1.0,1.0,1.0);
+
+        			textureDraw_start(NULL,Backtex);
+        			glVertexPointer (3,GL_FLOAT,0,BackgroundVert);
+        			glNormalPointer (GL_FLOAT,0,Backnorms);
+
+        			glDrawArrays (GL_QUADS, count*4, 4);
+        			textureDraw_end();
+
+
+
+			} 
+		}
+		glDisable (GL_TEXTURE_2D);
+	}
+}
+
 /* load in a texture, if possible */
 void loadImageTexture (struct VRML_ImageTexture *node, void *param) {
 	if (node->_ichange != node->_change) {
@@ -272,7 +316,6 @@ void loadImageTexture (struct VRML_ImageTexture *node, void *param) {
 		(GLuint*)&node->__texture,node->repeatS,node->repeatT,param);
 
         bound_textures[texture_count] = node->__texture;
-
 }
 
 void loadMultiTexture (struct VRML_MultiTexture *node) {
@@ -1549,7 +1592,7 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 	struct Multi_Vec2f *myPoints;
 
 	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, texture_count %d texture[0] %d\n",texture_count,bound_textures[c]);
+	printf ("textureDraw_start, texture_count %d texture[0] %d\n",texture_count,bound_textures[0]);
 	#endif
 
 	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
