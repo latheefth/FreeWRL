@@ -146,6 +146,15 @@ int isTextureinitialized() {
 	return TextureThreadInitialized;
 }
 
+/* is this texture loaded? used in LoadSensor */
+int isTextureLoaded(int texno) {
+	/* no, have not even started looking at this */
+
+	if (texno == 0) return FALSE;
+	return (isloaded[texno]==LOADED);
+}
+
+
 /* statusbar uses this to tell user that we are still loading */
 int isTextureParsing() {
 	/* return currentlyWorkingOn>=0; */
