@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.182  2005/11/21 14:29:04  crc_canada
+# StaticGroup node
+#
 # Revision 1.181  2005/11/18 21:34:38  crc_canada
 # fillProperties.
 #
@@ -1759,6 +1762,7 @@ Billboard => (join '','
 # Render children (real child nodes, not e.g. appearance/geometry)
 %ChildC = (
 	Group => 'groupingChild(this_); ',
+	StaticGroup => 'staticGroupingChild(this_); ',
 	Billboard => 'billboardChild(this_); ',
 	Transform => 'transformChild(this_); ',
 	Anchor => 'anchorChild(this_); ',
@@ -2039,6 +2043,7 @@ $ExtraMem{Collision} = $ExtraMem{Group};
 $ExtraMem{GeoLocation} = $ExtraMem{Group};
 $ExtraMem{Inline} = $ExtraMem{Group};
 $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
+$ExtraMem{StaticGroup} = $ExtraMem{Group};
 
 
 #######################################################################
@@ -2063,26 +2068,27 @@ $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 				$i(has_light) ++;
 			}
 		}
-	',
-	Inline => '
-		int i;
-		int nc = $f_n(__children);
-		struct VRML_Box *p;
-		struct VRML_Virt *v;
+        ',
+        Inline => '
+                int i;
+                int nc = $f_n(__children);
+                struct VRML_Box *p;
+                struct VRML_Virt *v;
 
-		$i(has_light) = 0;
-		for(i=0; i<nc; i++) {
-			p = (struct VRML_Box *)$f(__children,i);
-			if (p->_nodeType == NODE_DirectionalLight) {
-				/*  printf ("group found a light\n");*/
-				$i(has_light) ++;
-			}
-		}
-	'
+                $i(has_light) = 0;
+                for(i=0; i<nc; i++) {
+                        p = (struct VRML_Box *)$f(__children,i);
+                        if (p->_nodeType == NODE_DirectionalLight) {
+                                /*  printf ("group found a light\n");*/
+                                $i(has_light) ++;
+                        }
+                }
+        '
 );
 
 
 $ChangedC{Transform} = $ChangedC{Group};
+$ChangedC{StaticGroup} = $ChangedC{Group};
 $ChangedC{Billboard} = $ChangedC{Group};
 $ChangedC{Anchor} = $ChangedC{Group};
 $ChangedC{Collision} = $ChangedC{Group};

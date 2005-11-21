@@ -120,6 +120,111 @@ void normalChildren(struct Multi_Node ch) {
 /********************************************************************
  * now, nodes called from VRMLFunc.[c,xs] during rendering process
  * *****************************************************************/
+void staticGroupingChild (struct VRML_StaticGroup *this_) {
+	int nc = ((this_->children).n);
+	int savedlight = curlight;
+	int createlist = FALSE;
+
+	/* any children at all? */
+	if (nc==0) return;
+
+	if(ChildVerbose) VerboseStart ("STATICGROUP", (struct VRML_Box *)this_, nc);
+
+	/* should we go down here? */
+/*	printf ("staticGroup, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); 
+       printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+        render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);
+*/
+
+	if ((!render_geom) && (!render_light)) {
+		/* printf ("staticGroup, returning short, no light or geom\n"); */
+		return;
+	}
+
+	if (render_geom) {
+		if (render_blend==VF_Blend) {
+			if (this_->__transparency < 0) {
+				/* printf ("creating transparency display list %d\n",this_->__transparency); */
+				this_->__transparency  = glGenLists(1);
+				createlist = TRUE;
+				glNewList(this_->__transparency,GL_COMPILE_AND_EXECUTE);
+			} else {
+				/* printf ("calling transparency list\n"); */
+				glCallList (this_->__transparency);
+				return;
+			}
+
+		} else {
+			if  (this_->__solid <0 ) {
+				/* printf ("creating solid display list\n"); */
+				this_->__solid  = glGenLists(1);
+				createlist = TRUE;
+				glNewList(this_->__solid,GL_COMPILE_AND_EXECUTE);
+			} else {
+				/* printf ("calling solid list\n"); */
+				glCallList (this_->__solid);
+				/* do we have to tell the MainLoop that we have transparency down here? */
+				/* is the transparency display list created? */
+				if (this_->__transparency > -1) have_transparency++;
+				return;
+			}
+		}
+	}
+
+
+	if (render_blend == VF_Blend)
+		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
+			if(ChildVerbose) VerboseEnd ("STATICGROUP");
+			if (createlist) glEndList();
+			return;
+		}
+
+
+
+	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
+	if ((((this_->__isProto) == 0) && (nc > 2)  && render_blend)) sortChildren(this_->children);
+
+	/* do we have a DirectionalLight for a child? */
+	if(this_->has_light) dirlightChildren(this_->children);
+
+	/* now, just render the non-directionalLight children */
+	if ((this_->__isProto == 1) && render_geom) {
+		(this_->children).n = 1;
+		normalChildren(this_->children);
+		(this_->children).n = nc;
+	} else {
+		normalChildren(this_->children);
+	}
+
+
+	/* BoundingBox/Frustum stuff */
+	if (render_geom && (!render_blend)) {
+		if (ChildVerbose)
+			printf ("staticGroupingChild, this is %d, extent %f %f %f\n",
+			this_, this_->_extent[0], this_->_extent[1],
+			this_->_extent[2]);
+		this_->bboxSize.c[0] = this_->_extent[0];
+		this_->bboxSize.c[1] = this_->_extent[1];
+		this_->bboxSize.c[2] = this_->_extent[2];
+
+		/* pass the bounding box calculations on up the chain */
+		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct VRML_Box *)this_);
+		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
+	}
+
+
+	/* did we have that directionalLight? */
+	if((this_->has_light)) glPopAttrib();
+
+	if(ChildVerbose) VerboseEnd ("STATICGROUP");
+
+
+			if (createlist) glEndList();
+
+	curlight = savedlight;
+}
+
+
 void groupingChild (struct VRML_Group *this_) {
 	int nc = ((this_->children).n);
 	int savedlight = curlight;

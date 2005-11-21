@@ -539,6 +539,7 @@ extern double nearPlane, farPlane, screenRatio;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
 void groupingChild (struct VRML_Group *this_);
+void staticGroupingChild (struct VRML_StaticGroup *this_);
 void billboardChild (struct VRML_Billboard *this_);
 void transformChild (struct VRML_Transform *this_);
 void anchorChild (struct VRML_Anchor *this_);

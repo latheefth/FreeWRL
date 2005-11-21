@@ -5,7 +5,9 @@ For 1.16:
 	- reworked texture coordinates for Extrusion and ElevationGrid to handle Multi
 	  Texture nodes (MultiTextureTransform, TextureCoordinateGenerator, etc...)
 
-	- first pass at TextureCoordinateGenerator node.
+	- New nodes: 
+		- TextureCoordinateGenerator node.
+		- StaticGroup node.
 
 
 
