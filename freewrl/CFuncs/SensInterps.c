@@ -80,12 +80,6 @@ void do_active_inactive (
 						*stopt = TickTime;
 					    }
 					}
-				/*
-				} else {
-				#	print "stopping case y\n";
-				#	node->{isActive} = 0;
-				#	node->{stopTime} = $TickTime;
-				*/
 				}
 			} else {
 				if (SEVerbose) printf ("stopping case z\n");
@@ -1313,3 +1307,122 @@ void locateAudioSource (struct VRML_AudioClip *node) {
 	free (mypath);
 }
 
+void render_loadsensor (struct VRML_LoadSensor *node) {
+	int total;
+	int count;
+	int nowLoading;
+	int nowFinished;
+	struct VRML_ImageTexture *tnode;
+	
+	/* if not enabled, do nothing */
+	if (!node) return;
+	if (!node->enabled) return;
+
+	/* we only need to look at this during the rendering pass - once per event loop */
+	if (!render_geom) return;
+
+	/* do we need to re-generate our internal variables? */
+	if (node->_change != node->_ichange) {
+		node->_ichange = node->_change;
+		node->__loading = 0;
+		node->__finishedloading = 0;
+		node->progress = 0.0;
+		node->__StartLoadTime = 0.0;
+	}
+
+	/* do we actually have any nodes to watch? */
+	if (node->watchList.n<=0) return;
+
+	/* are all nodes loaded? */
+	if (node->__finishedloading == node->watchList.n) return;
+
+	/* our current status... */
+	nowLoading = 0;
+	nowFinished = 0;
+
+	/* go through node list, and check to see what the status is */
+	/* printf ("have %d nodes to watch\n",node->watchList.n); */
+	for (count = 0; count < node->watchList.n; count ++) {
+		tnode = node->watchList.p[count];
+		/* printf ("node type of node %d is %d\n",count,tnode->_nodeType); */
+		switch (tnode->_nodeType) {
+		case NODE_ImageTexture:
+			/* printf ("opengl tex is %d\n",tnode->__texture); */
+			/* is this texture thought of yet? */
+			if (tnode->__texture > 0) {
+				nowLoading++;
+				/* is it finished loading? */
+				if (isTextureLoaded(tnode->__texture)) nowFinished ++;
+			}
+				
+			break;
+
+		case NODE_MovieTexture:
+			break;
+
+		case NODE_Inline:
+			break;
+
+		case NODE_Script:
+			break;
+
+		case NODE_AudioClip:
+			break;
+		default :{} /* there should never be anything here, but... */
+		}
+	}
+		
+
+	/* ok, are we NOW finished loading? */
+	if (nowFinished == node->watchList.n) {
+		node->isActive = 0;
+		mark_event (node, offsetof (struct VRML_LoadSensor, isActive));
+
+		node->isLoaded = 1;
+		mark_event (node, offsetof (struct VRML_LoadSensor, isLoaded));
+
+		node->progress = 1.0;
+		mark_event (node, offsetof (struct VRML_LoadSensor, progress));
+
+		node->loadTime = TickTime;
+		mark_event (node, offsetof (struct VRML_LoadSensor, loadTime));
+	}	
+
+	/* have we NOW started loading? */
+	if ((nowLoading > 0) && (node->__loading == 0)) {
+		/* mark event isActive TRUE */
+		node->isActive = 1;
+		mark_event (node, offsetof (struct VRML_LoadSensor, isActive));
+
+	
+		node->__StartLoadTime = TickTime;
+	}
+	
+	/* what is our progress? */
+	if (node->isActive == 1) {
+		node->progress = (float)(nowFinished)/(float)(node->watchList.n);
+		mark_event (node, offsetof (struct VRML_LoadSensor, progress));
+	}
+
+	/* remember our status for next time. */
+	node->__loading = nowLoading;
+	node->__finishedloading = nowFinished;
+
+	/* did we run out of time? */
+	if (node->timeOut > 0.0001) {			/* we have a timeOut specified */
+		if (node->__StartLoadTime > 0.001) {	/* we have a start Time recorded from the isActive = TRUE */
+		
+			/* ok, we should look at time outs */
+			if ((TickTime - node->__StartLoadTime) > node->timeOut) {
+				node->isLoaded = 0;
+				mark_event (node, offsetof (struct VRML_LoadSensor, isLoaded));
+
+				node->isActive = 0;
+				mark_event (node, offsetof (struct VRML_LoadSensor, isActive));
+
+				/* and, we will just assume that we have loaded everything next iteration */
+				node->__finishedloading = node->watchList.n;
+			}
+		}
+	}
+}

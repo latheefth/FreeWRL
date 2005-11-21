@@ -178,6 +178,7 @@ extern void textureDraw_end(void);
 
 extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
 
+extern int isTextureLoaded(int texno);
 
 
 extern int _fw_pipe, _fw_FD;
@@ -587,6 +588,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
 void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
 
 
+void render_loadsensor(struct VRML_LoadSensor *this);
 void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this);
 void render_texturecoordinate(struct VRML_TextureCoordinate *this);
 

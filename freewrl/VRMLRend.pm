@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.183  2005/11/21 21:03:34  crc_canada
+# LoadSensor node for ImageTextures.
+#
 # Revision 1.182  2005/11/21 14:29:04  crc_canada
 # StaticGroup node
 #
@@ -1066,6 +1069,9 @@ Coordinate => ' UNUSED(this_);',
 ColorRGBA => ' UNUSED(this_);',
 Color => ' UNUSED(this_);',
 Normal => ' UNUSED(this_);',
+
+# a LoadSensor is not a "pointing device" sensor; we can render it here
+LoadSensor =>'render_loadsensor((struct VRML_LoadSensor *)this_); ',
 
 TextureCoordinateGenerator => '
 	/* go to Textures.c and render the textures there */

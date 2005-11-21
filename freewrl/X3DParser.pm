@@ -225,54 +225,7 @@ sub getX3DExternProtoBody {
 		# marijn: set the url for this proto
 #JAS		$this->set_url($newurl,$parentURL);
 
-#JAS		# XXX marijn: code copied from Browser->parse()
-#JAS		$po = pos $string;
-#JAS		while ($string =~ /([\#\"])/gsc) {
-#JAS			(pos $string)--;
-#JAS			if ($1 eq "#") {
-#JAS				$string =~ s/#.*$//m;
-#JAS			} else {
-#JAS				VRML::Field::SFString->parse($this, $string);
-#JAS			}
-#JAS		}
-#JAS		(pos $string) = $po;
-#JAS
-#JAS		# marijn: end of copying, now locate right PROTO
-#JAS		while ($string =~ /[\s,^](PROTO\s+)($VRML::Error::Word)/gsc ) {
-#JAS			if (!$protoname) {
-#JAS				$protoname = $2;
-#JAS			}
-#JAS
-#JAS			if ($2 eq $protoname) {
-#JAS				(pos $string) -= ((length $1) + (length $2));
-#JAS				VRML::Parser::parse_statement($this, $string);
-#JAS				$success = 1;
-#JAS				last;
-#JAS			}
-#JAS		}
-#JAS		last if ($success);
 	}
-#JAS
-#JAS	VRML::Error::parsefail("no PROTO found", VRML::Debug::toString($url))
-#JAS		if (!$success);
-#JAS
-#JAS    # marijn: now create an instance of the PROTO, with all fields IS'd.
-#JAS    my %fields = map { $_ => $this->new_is($_) } keys %{$this->{Pars}};
-#JAS    my $n = $this->new_node($protoname, \%fields);
-#JAS    my @node = ($n);
-#JAS
-#JAS
-#JAS    # XXX marijn: code copied from Parser::parse_proto
-#JAS    $this->topnodes(\@node);
-#JAS
-#JAS    # marijn: copy defaults from PROTO
-#JAS	$this->{Defaults} = {
-#JAS						 map {$_ => $this->{Protos}{$protoname}->{Defaults}{$_}}
-#JAS						 keys %{$this->{Protos}{$protoname}->{Defaults}}
-#JAS						};
-#JAS	return $this;
-#JAS}
-
 }
 
 
@@ -1106,6 +1059,11 @@ sub parseX3DNodeField {
 		}
 		if (($parentNode eq "Switch") && ($field eq "children")) {
 			$field = choice; # VRML97, children
+		}
+
+		# is this a LoadSensor? if so, and the field is ok, add it to the watchList
+		if (($parentNode eq "LoadSensor") && (exists $VRML::Nodes::X3DUrlObject{$nextNodeName})) {
+			$field = watchList;
 		}
 	
 		#print "field now is $field for parent $parentNode, next $nextNodeName \n";
