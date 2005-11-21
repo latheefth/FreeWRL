@@ -391,7 +391,6 @@ my $protono;
 	TouchSensor
 	Sound
 	TimeSensor
-	X3DSoundSourceNode
 	BooleanSequencer
 	IntegerSequencer
 	BooleanTrigger
@@ -526,7 +525,7 @@ my $protono;
 %VRML::X3DNodes::defaultContainerType = (
 	Anchor 			=>children,
 	Appearance 		=>appearance,
-	AudioClip 		=>children,
+	AudioClip 		=>source,
 	Background 		=>children,
 	Billboard 		=>children,
 	Box 			=>geometry,
@@ -1233,6 +1232,8 @@ my $protono;
 						topToBottom => [SFBool, 1, field]
 					   }
 					  ),
+
+################################################################################################
 	AudioClip =>
 	new VRML::NodeType("AudioClip",
 					   {
@@ -1261,6 +1262,7 @@ my $protono;
 						__inittime => [SFTime, 0, field],
 					   }
 					  ),
+
 	Sound =>
 	new VRML::NodeType("Sound",
 					   {
@@ -1276,6 +1278,8 @@ my $protono;
 						spatialize => [SFBool,1, field]
 					   },
 					  ),
+
+################################################################################################
 	Switch =>
 	new VRML::NodeType("Switch",
 					   {

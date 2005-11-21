@@ -8,6 +8,7 @@ For 1.16:
 	- New nodes: 
 		- TextureCoordinateGenerator node.
 		- StaticGroup node.
+		- TextureBackground node.
 
 
 
