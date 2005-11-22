@@ -9,6 +9,7 @@ For 1.16:
 		- TextureCoordinateGenerator node.
 		- StaticGroup node.
 		- TextureBackground node.
+		- LoadSensor node. (has problems with Scripts)
 
 
 

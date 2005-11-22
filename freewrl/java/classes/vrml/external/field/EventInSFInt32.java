@@ -14,4 +14,11 @@ public class EventInSFInt32 extends EventIn {
 
   return;
   }
+
+  public void setValue(int value) {
+	Integer wrapper;
+	wrapper = new Integer(value);
+	Browser.newSendEvent(this, "" + value);
+	return;
+   }
 }

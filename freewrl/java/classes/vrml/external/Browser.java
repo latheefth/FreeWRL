@@ -23,7 +23,7 @@ import vrml.external.BrowserGlobals;
 import java.lang.System;
 //JAS - no longer using Netscape import netscape.security.*;
 
-public class Browser implements BrowserInterface
+public class Browser implements BrowserInterface, IBrowser
 
 {
 
@@ -106,20 +106,103 @@ public class Browser implements BrowserInterface
       }
 
     // Associates this instance with the first embedded plugin in the current frame.
+    public Browser(Applet pApplet, int portnum) {
+        int counter;
+
+        // Create a socket here for an EAI server on localhost
+        int incrport = -1;
+        EAISocket = null;
+
+        counter = 1;
+        while (EAISocket == null) {
+                try {
+                        EAISocket = new Socket("localhost",portnum);
+                } catch (IOException e) {
+                        // wait up to 30 seconds for FreeWRL to answer.
+                        counter = counter + 1;
+                        if (counter == 60) {
+                                System.out.println ("EAI: Java code timed out finding FreeWRL");
+                                System.exit(1);
+                        }
+                        try {Thread.sleep (500);} catch (InterruptedException f) { }
+                }
+        }
+
+        sock = EAISocket;       //JAS - these are the same now...
+
+
+
+        //===================================================================
+        // create the EAIinThread to Browser.
+
+        // Open the pipe for EAI replies to be sent to us...
+        try {
+                EAIinThreadtoBrowserPipe = new PipedWriter();
+                BrowserfromEAIPipe = new PipedReader(EAIinThreadtoBrowserPipe);
+        } catch (IOException ie) {
+          System.out.println ("EAI: caught error in new PipedReader: " + ie);
+        }
+
+        EAIinThreadtoBrowser = new PrintWriter(EAIinThreadtoBrowserPipe);
+        BrowserfromEAI = new BufferedReader (BrowserfromEAIPipe);
+
+        // Start the readfrom FREEWRL thread...
+
+
+        //===================================================================
+        // create the EAIinThread to Browser.
+
+        // Open the pipe for EAI replies to be sent to us...
+        try {
+                EAIinThreadtoBrowserPipe = new PipedWriter();
+                BrowserfromEAIPipe = new PipedReader(EAIinThreadtoBrowserPipe);
+        } catch (IOException ie) {
+          System.out.println ("EAI: caught error in new PipedReader: " + ie);
+        }
+
+        EAIinThreadtoBrowser = new PrintWriter(EAIinThreadtoBrowserPipe);
+        BrowserfromEAI = new BufferedReader (BrowserfromEAIPipe);
+
+        // Start the readfrom FREEWRL thread...
+        FreeWRLThread = new Thread ( new EAIinThread(sock, pApplet,
+                EAIinThreadtoBrowser, this));
+        FreeWRLThread.start();
+
+
+        //====================================================================
+        // Start the thread that allows Registered Listenered
+        // updates to come in.
+        RL_Async = new EAIAsyncThread();
+        RL_Async.start();
+
+
+        //====================================================================
+        // create the EAIoutThread - send data to FreeWRL.
+        try {
+                EAIout = new PrintWriter (sock.getOutputStream());
+        } catch (IOException e) {
+                System.out.print ("EAI: Problem in handshaking with Browser");
+        }
+
+
+        // Start the SendTo FREEWRL thread...
+        EAIoutSender = new EAIoutThread(EAIout);
+        EAIoutSender.start();
+
+
+
+        //====================================================================
+        // Browser is "gotten", and is started.
+        return;
+    }
+
+    // Associates this instance with the first embedded plugin in the current frame.
     public Browser(Applet pApplet) {
 	int counter;
 
   	// Create a socket here for an EAI server on localhost
 	int incrport = -1;
 	EAISocket = null;
-
-	//System.out.println ("trying to open socket on 9877");
-	//enable privleges
-	//JAS try {
-	//JAS 	PrivilegeManager.enablePrivilege ("UniversalConnect");
-	//JAS } catch (Throwable e) {
-	//JAS 	System.out.println("EAI: not using Netscape");
-	//JAS }
 
 	counter = 1;
 	while (EAISocket == null) {
@@ -195,7 +278,7 @@ public class Browser implements BrowserInterface
     }
 
   // Get the browser name
-  public static String getName() {
+  public String getName() {
       String retval;
        synchronized (FreeWRLToken) {
          EAIoutSender.send ("" + queryno + "K\n");
@@ -437,6 +520,10 @@ public class Browser implements BrowserInterface
       return (new Browser(pApplet));
     }
 
+    static public Browser getBrowser(Applet pApplet, int portnum) {
+      return (new Browser(pApplet, portnum));
+    }
+
     // return an instance of the Browser class
     // If frameName is NULL, current frame is assumed.
     static public Browser getBrowser(Applet pApplet, String frameName, int index) {
@@ -496,8 +583,7 @@ public class Browser implements BrowserInterface
 	// Most events don't need us to wait around for it.
 	public static void newSendEvent (Node node, String Value) {
 
-		//System.out.println ("SendEvent, sending NodeType " + NodeType + " NodePtr " + NodePtr +
-		//	" Offset " + Offset);
+		System.out.println("In send event");
 		synchronized (FreeWRLToken) {
 			EAIoutSender.send ("" + queryno + "D" + node.datatype + " " +
 				node.nodeptr + " " + node.offset + " " +node.ScriptType + " " + Value + "\n");

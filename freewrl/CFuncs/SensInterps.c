@@ -1313,6 +1313,9 @@ void render_loadsensor (struct VRML_LoadSensor *node) {
 	int nowLoading;
 	int nowFinished;
 	struct VRML_ImageTexture *tnode;
+	struct VRML_MovieTexture *mnode;
+	struct VRML_AudioClip *anode;
+	struct VRML_Inline *inode;
 	
 	/* if not enabled, do nothing */
 	if (!node) return;
@@ -1343,7 +1346,9 @@ void render_loadsensor (struct VRML_LoadSensor *node) {
 	/* go through node list, and check to see what the status is */
 	/* printf ("have %d nodes to watch\n",node->watchList.n); */
 	for (count = 0; count < node->watchList.n; count ++) {
-		tnode = node->watchList.p[count];
+
+		tnode = (struct VRML_ImageTexture *) node->watchList.p[count];
+
 		/* printf ("node type of node %d is %d\n",count,tnode->_nodeType); */
 		switch (tnode->_nodeType) {
 		case NODE_ImageTexture:
@@ -1358,16 +1363,33 @@ void render_loadsensor (struct VRML_LoadSensor *node) {
 			break;
 
 		case NODE_MovieTexture:
+			mnode = (struct VRML_MovieTexture *) tnode; /* change type to MovieTexture */
+			/* printf ("opengl tex is %d\n",mnode->__texture0_); */
+			/* is this texture thought of yet? */
+			if (mnode->__texture0_ > 0) {
+				nowLoading++;
+				/* is it finished loading? */
+				if (isTextureLoaded(mnode->__texture0_)) nowFinished ++;
+			}
+				
 			break;
 
 		case NODE_Inline:
+			inode = (struct VRML_Inline *) tnode; /* change type to Inline */
+			printf ("LoadSensor, Inline %d, type %d loadstatus %d at %d\n",inode,inode->_nodeType,inode->__loadstatus, &inode->__loadstatus);
 			break;
 
 		case NODE_Script:
+			nowLoading ++; /* broken - assume that the url is ok for now */
 			break;
 
 		case NODE_AudioClip:
+			anode = (struct VRML_AudioClip *) tnode; /* change type to AudioClip */
+			/* AudioClip sourceNumber will be gt -1 if the clip is ok. see code for details */
+			if (anode->__sourceNumber > -1) nowLoading ++;
+
 			break;
+
 		default :{} /* there should never be anything here, but... */
 		}
 	}
