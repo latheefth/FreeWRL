@@ -9,16 +9,19 @@ public class EventInMFVec2f extends EventIn {
 
   public void          setValue(float[][] value) throws IllegalArgumentException {
 	int count;
+	String val;
+
 	if (value == null) {
 		throw new IllegalArgumentException();
 	}
-	Browser.newSendEvent(this,  " " + value.length);
+	val = " " + value.length;
 	for (count = 0; count < value.length; count++) {
 		if (value[count].length < 2) {
 			throw new IllegalArgumentException();
 		}
-		Browser.newSendEvent(this,  " " + value[count][0] + " " + value[count][1]);
+		val = val + " " + value[count][0] + " " + value[count][1];
 	}
+	Browser.newSendEvent(this,val);
 	
     return;
   }
@@ -27,7 +30,7 @@ public class EventInMFVec2f extends EventIn {
 	if ((value == null) || (index < 0) || (value.length < 2)) {
 		throw new IllegalArgumentException();
 	}
-	Browser.newSendEvent(this,  " " + index + " " + value[0] + " " + value[1]);
+	Browser.newSendEvent(this,  " ONEVAL " + index + " " + value[0] + " " + value[1]);
 
   return;
   }

@@ -9,14 +9,17 @@ public class EventInMFInt32 extends EventIn {
 
   public void          setValue(int value[]) throws IllegalArgumentException {
 	int count;
+	String val;
+
 	if (value == null) {
 		throw new IllegalArgumentException();
 	}
-	Browser.newSendEvent(this, " " + value.length);
+	val = " " + value.length;
 	
 	for (count = 0; count < value.length; count++) {
-		Browser.newSendEvent(this, " " + value[count]);
+		val = val + " " + value[count];
 	}
+	Browser.newSendEvent(this,val);
     return;
   }
 
@@ -24,7 +27,7 @@ public class EventInMFInt32 extends EventIn {
 	if (index < 0) {
 		throw new IllegalArgumentException();
 	}
-	Browser.newSendEvent(this, " " + index + " " + value);
+	Browser.newSendEvent(this, " ONEVAL " + index + " " + value);
 
   return;
   }

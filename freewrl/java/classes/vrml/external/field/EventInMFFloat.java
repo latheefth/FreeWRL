@@ -8,15 +8,18 @@ public class EventInMFFloat extends EventIn {
   public EventInMFFloat() { EventType = FieldTypes.MFFLOAT; }
 
   public void          setValue(float[] value) throws IllegalArgumentException {
+	String val;
+
         int count;
         if (value == null) {
                 throw new IllegalArgumentException();
         }
-        Browser.newSendEvent(this, " " + value.length);
+        val = " " + value.length;
 
         for (count = 0; count < value.length; count++) {
-                Browser.newSendEvent(this, " " + value[count]);
+			val = val + " " + value[count];
         }
+        Browser.newSendEvent(this, val);
 
     return;
   }
@@ -25,7 +28,7 @@ public class EventInMFFloat extends EventIn {
        if (index < 0) {
                 throw new IllegalArgumentException();
         }
-        Browser.newSendEvent(this, " " + index + " " + value);
+        Browser.newSendEvent(this, " ONEVAL " + index + " " + value);
   return;
   }
 }
