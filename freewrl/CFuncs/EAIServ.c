@@ -1,5 +1,5 @@
 /*******************************************************************
- Copyright (C) 1998 Tuomas J. Lukka 2003 John Stewart, Ayla Khan CRC Canada
+ Copyright (C) 1998 Tuomas J. Lukka 2003, 2005 John Stewart, Ayla Khan CRC Canada
  Portions Copyright (C) 1998 John Breen
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  See the GNU Library General Public License (file COPYING in the distribution)
@@ -55,23 +55,20 @@
 
 #include "EAIheaders.h"
 
-int EAIwanted = FALSE;			/* do we want EAI?*/
-char EAIhost[MAXEAIHOSTNAME];		/* host we are connecting to*/
 int EAIport = 9877;				/* port we are connecting to*/
 int EAIinitialized = FALSE;		/* are we running?*/
-int EAIrecount = 0;			/* retry counter for opening socket interface*/
 int EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
-int EAIconnectstep = 0;			/* where we are in the connect sequence*/
+char EAIListenerData[EAIREADSIZE]; /* this is the location for getting Listenered data back again.*/
+char EAIListenerArea[40];
 
 /* socket stuff */
-int 	sockfd = -1;			/* main TCP socket fd*/
-int	listenfd = -1;			/* listen to this one for an incoming connection*/
-
-struct hostent *hostptr;
-struct sockaddr_in	servaddr, cliaddr;
+int 	EAIsockfd = -1;			/* main TCP socket fd*/
+int	EAIlistenfd = -1;			/* listen to this one for an incoming connection*/
 fd_set rfds2;
 struct timeval tv2;
 
+
+struct sockaddr_in	servaddr, cliaddr;
 unsigned char loopFlags = 0;
 
 enum theLoopFlags {
@@ -81,52 +78,25 @@ enum theLoopFlags {
 };
 
 /* EAI input buffer */
-char *buffer2;
-int bufcount2;				/* pointer into buffer*/
-int bufsize2;				/* current size in bytes of input buffer*/
+char *EAIbuffer;
+int EAIbufcount;				/* pointer into buffer*/
+int EAIbufsize;				/* current size in bytes of input buffer*/
 
-
-int EAIsendcount = 0;			/* how many commands have been sent back?*/
-
-char EAIListenerData[EAIREADSIZE];	/* this is the location for getting Listenered data back again.*/
-char EAIListenerArea[40];		/* put the address of the EAIListenerData here.*/
+int EAIwanted = FALSE;                       /* do we want EAI?*/
 
 /* prototypes*/
+/*
 void EAI_parse_commands (char *stptr);
-unsigned int EAI_SendEvent(char *bufptr);
-void handle_Listener (void);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 void EAI_RW(char *str);
 void EAI_RNewW(char *);
-
-/*added nov 26/04 m. Ward*/
 extern void Next_ViewPoint();
 extern void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len);
-extern float  *readMFFloatString(char *input, int *eQty, int type);
-
-void EAI_send_string(char *str, int lfd){
-	unsigned int n;
-
-	/* add a trailing newline */
-	strcat (str,"\n");
-
-	#ifdef EAIVERBOSE
-		printf ("EAI/CLASS Command returns\n%s(end of command)\n",str);
-	#endif
-
-	/*printf ("EAI_send_string, sending :%s:\n",str);*/
-	n = write (lfd, str, (unsigned int) strlen(str));
-	if (n<strlen(str)) {
-		#ifdef EAIVERBOSE
-		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
-		#endif
-	}
-	/*printf ("EAI_send_string, wrote %d\n",n);*/
-}
+*/
 
 /* open the socket connection -  we open as a TCP server, and will find a free socket */
 /* EAI will have a socket increment of 0; Java Class invocations will have 1 +	      */
-int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
+int conEAIorCLASS(int socketincrement, int *EAIsockfd, int *EAIlistenfd) {
 	int len;
 	const int on=1;
 	int flags;
@@ -135,24 +105,24 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 
 	if ((EAIfailed) &&(socketincrement==0)) return FALSE;
 
-	if ((*sockfd) < 0) {
+	if ((*EAIsockfd) < 0) {
 		/* step 1  - create socket*/
-	        if (((*sockfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	        if (((*EAIsockfd) = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 			printf ("EAIServer: socket error\n");
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 
-		setsockopt ((*sockfd), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+		setsockopt ((*EAIsockfd), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
-		if ((flags=fcntl((*sockfd),F_GETFL,0)) < 0) {
+		if ((flags=fcntl((*EAIsockfd),F_GETFL,0)) < 0) {
 			printf ("EAIServer: trouble gettingsocket flags\n");
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		} else {
 			flags |= O_NONBLOCK;
 
-			if (fcntl((*sockfd), F_SETFL, flags) < 0) {
+			if (fcntl((*EAIsockfd), F_SETFL, flags) < 0) {
 				printf ("EAIServer: trouble setting non-blocking socket\n");
 				loopFlags &= ~NO_EAI_CLASS;
 				return FALSE;
@@ -171,7 +141,7 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	        servaddr.sin_port        = htons(EAIport+socketincrement);
 		/*printf ("binding to socket %d\n",EAIport+socketincrement);*/
 
-	        while (bind((*sockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+	        while (bind((*EAIsockfd), (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
@@ -183,17 +153,17 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 
 		/* step 3 - listen*/
 
-	        if (listen((*sockfd), 1024) < 0) {
+	        if (listen((*EAIsockfd), 1024) < 0) {
 	                printf ("EAIServer: listen error\n");
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
 		}
 	}
 
-	if (((*sockfd) >=0) && ((*listenfd)<0)) {
+	if (((*EAIsockfd) >=0) && ((*EAIlistenfd)<0)) {
 		/* step 4 - accept*/
 		len = sizeof(cliaddr);
-	        if ( ((*listenfd) = accept((*sockfd), (struct sockaddr *) &cliaddr, (socklen_t *)&len)) < 0) {
+	        if ( ((*EAIlistenfd) = accept((*EAIsockfd), (struct sockaddr *) &cliaddr, (socklen_t *)&len)) < 0) {
 			#ifdef EAIVERBOSE
 			if (!(loopFlags&NO_CLIENT_CONNECTED)) {
 				printf ("EAISERVER: no client yet\n");
@@ -211,12 +181,12 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 
 
 	/* are we ok, ? */
-	if ((*listenfd) >=0)  {
+	if ((*EAIlistenfd) >=0)  {
 		/* allocate memory for input buffer */
-		bufcount2 = 0;
-		bufsize2 = 2 * EAIREADSIZE; /* initial size*/
-		buffer2 = (char *)malloc(bufsize2 * sizeof (char));
-		if (buffer2 == 0) {
+		EAIbufcount = 0;
+		EAIbufsize = 2 * EAIREADSIZE; /* initial size*/
+		EAIbuffer = (char *)malloc(EAIbufsize * sizeof (char));
+		if (EAIbuffer == 0) {
 			printf ("can not malloc memory for input buffer in create_EAI\n");
 			loopFlags &= ~NO_EAI_CLASS;
 			return FALSE;
@@ -242,99 +212,6 @@ int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd) {
 	return TRUE;
 }
 
-/* ========================================================================== */
-/* AD */
-
-void EAI_RNewW(char *bufptr) {
-
-	unsigned oldlen;
-	struct   VRML_Group *rn;
-	struct   Multi_Node *par;
-	char     *pstr;
-
-	rn = (struct VRML_Group *) rootNode;
-	par = &(rn->children);
-
-	#ifdef EAIVERBOSE 
-	printf ("EAI_RNewW, rootNode is %d\n",rootNode);
-	#endif
-
-
-	/* oldlen = what was there in the first place */
-	oldlen = par->n;
-
-	#ifdef EAIVERBOSE 
-	printf ("oldRoot has %d nodes\n",oldlen);
-	#endif
-
-
-	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
-	par->n = 1;
-
-	/* trick to put only the path name only */
-	pstr = bufptr;
-	while('/' != *pstr) {pstr ++; bufptr++;}
-	while(!isspace(*pstr)) pstr ++;
-	*pstr = 0;
-	#ifdef EAIVERBOSE 
-	printf ("New bufptr <%s>\n",bufptr);
-	#endif
-
-
-	EAI_readNewWorld(bufptr);
-
-	#ifdef EAIVERBOSE 
-	printf ("EAI_RNewW, rootNode now is %d\n",rootNode);
-	#endif
-
-}
-
-/* ========================================================================== */
-
-/* EAI, replaceWorld. */
-void EAI_RW(char *str) {
-
-	int oldlen;
-	char *newNode;
-	struct VRML_Group *rn;
-	struct Multi_Node *par;
-	char *tmp;
-
-	int i;
-
-	rn = (struct VRML_Group *) rootNode;
-	par = &(rn->children);
-	tmp = (char *) rootNode;
-	tmp += offsetof (struct VRML_Group, children);
-
-	#ifdef EAIVERBOSE 
-	printf ("EAIRW, rootNode is %d\n",rootNode);
-	#endif
-
-
-	/* oldlen = what was there in the first place */
-	oldlen = par->n;
-
-	#ifdef EAIVERBOSE 
-	printf ("oldRoot has %d nodes\n",oldlen);
-	#endif
-
-
-	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
-	par->n = 1;
-
-	/* go through the string, and send the nodes into the rootnode */
-	/* first, remove the command, and get to the beginning of node */
-	while ((*str != ' ') && (strlen(str) > 0)) str++;
-	while (isspace(*str)) str++;
-	while (strlen(str) > 0) {
-		i = sscanf (str, "%u",&newNode);
-		if (i>0) addToNode (tmp,newNode);
-
-		while (isdigit(*str)) str++;
-		while (isspace(*str)) str++;
-	}
-}
 
 /* the user has pressed the "q" key */
 void shutdown_EAI() {
@@ -345,7 +222,7 @@ void shutdown_EAI() {
 
 	strcpy (EAIListenerData,"QUIT\n\n\n");
 	if (EAIinitialized) {
-		EAI_send_string(EAIListenerData,listenfd);
+		EAI_send_string(EAIListenerData,EAIlistenfd);
 	}
 
 }
@@ -363,9 +240,59 @@ void create_EAI() {
 
 	/* have we already started? */
 	if (!EAIinitialized) {
-		EAIfailed = !(conEAIorCLASS(0,&sockfd,&listenfd));
+		EAIfailed = !(conEAIorCLASS(0,&EAIsockfd,&EAIlistenfd));
 	}
 }
+
+
+/* possibly we have an incoming EAI request from the client */
+void handle_EAI () {
+	/* do nothing unless we are wanted */
+	if (!EAIwanted) return;
+	if (!EAIinitialized) {
+		EAIfailed = !(conEAIorCLASS(0,&EAIsockfd,&EAIlistenfd));
+		return;
+	}
+
+	/* have we closed connection? */
+	if (EAIlistenfd < 0) return;
+
+	EAIbufcount = 0;
+
+	EAIbuffer = read_EAI_socket(EAIbuffer,&EAIbufcount, &EAIbufsize, &EAIlistenfd);
+
+	/* make this into a C string */
+	EAIbuffer[EAIbufcount] = 0;
+	#ifdef EAIVERBOSE
+		if (EAIbufcount) printf ("handle_EAI-- Data is :%s:\n",EAIbuffer);
+	#endif
+
+	/* any command read in? */
+	if (EAIbufcount > 1)
+		EAI_parse_commands (EAIbuffer);
+}
+
+
+void EAI_send_string(char *str, int lfd){
+	unsigned int n;
+
+	/* add a trailing newline */
+	strcat (str,"\n");
+
+	#ifdef EAIVERBOSE
+		printf ("EAI/CLASS Command returns\n%s(end of command)\n",str);
+	#endif
+
+	/*printf ("EAI_send_string, sending :%s:\n",str);*/
+	n = write (lfd, str, (unsigned int) strlen(str));
+	if (n<strlen(str)) {
+		#ifdef EAIVERBOSE
+		printf ("write, expected to write %d, actually wrote %d\n",n,strlen(str));
+		#endif
+	}
+	/*printf ("EAI_send_string, wrote %d\n",n);*/
+}
+
 
 /* read in from the socket.   pass in -
 	pointer to buffer,
@@ -376,19 +303,19 @@ void create_EAI() {
  	return the char pointer - it may have been realloc'd */
 
 
-char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
+char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 	int retval, oldRetval;
 
-	/*printf ("read_EAI_socket, listenfd %d buffer addr %d\n",*listenfd,bf);*/
+	/*printf ("read_EAI_socket, EAIlistenfd %d buffer addr %d\n",*EAIlistenfd,bf);*/
 	retval = FALSE;
 	do {
 		tv2.tv_sec = 0;
 		tv2.tv_usec = 0;
 		FD_ZERO(&rfds2);
-		FD_SET((*listenfd), &rfds2);
+		FD_SET((*EAIlistenfd), &rfds2);
 
 		oldRetval = retval;
-		retval = select((*listenfd)+1, &rfds2, NULL, NULL, &tv2);
+		retval = select((*EAIlistenfd)+1, &rfds2, NULL, NULL, &tv2);
 		/*printf ("select retval %d\n",retval);*/
 
 		if (retval != oldRetval) {
@@ -404,7 +331,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 
 
 		if (retval) {
-			retval = read ((*listenfd), &bf[(*bfct)],EAIREADSIZE);
+			retval = read ((*EAIlistenfd), &bf[(*bfct)],EAIREADSIZE);
 
 			if (retval <= 0) {
 				#ifdef EAIVERBOSE
@@ -413,8 +340,8 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 
 				/*perror("READ_EAISOCKET");*/
 				/* client disappeared*/
-				close ((*listenfd));
-				(*listenfd) = -1;
+				close ((*EAIlistenfd));
+				(*EAIlistenfd) = -1;
 
 				/* And, lets just exit FreeWRL*/
 				printf ("FreeWRL:EAI socket closed, exiting...\n");
@@ -445,611 +372,6 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd) {
 }
 
 
-/* possibly we have an incoming EAI request from the client */
-void handle_EAI () {
-	/* do nothing unless we are wanted */
-	if (!EAIwanted) return;
-	if (!EAIinitialized) {
-		EAIfailed = !(conEAIorCLASS(0,&sockfd,&listenfd));
-		return;
-	}
-
-	/* have we closed connection? */
-	if (listenfd < 0) return;
-
-	bufcount2 = 0;
-
-	buffer2 = read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
-
-	/* make this into a C string */
-	buffer2[bufcount2] = 0;
-	#ifdef EAIVERBOSE
-		if (bufcount2) printf ("handle_EAI-- Data is :%s:\n",buffer2);
-	#endif
-
-	/* any command read in? */
-	if (bufcount2 > 1)
-		EAI_parse_commands (buffer2);
-}
-
-/******************************************************************************
-*
-* EAI_parse_commands
-*
-* there can be many commands waiting, so we loop through commands, and return
-* a status of EACH command
-*
-* a Command starts off with a sequential number, a space, then a letter indicating
-* the command, then the parameters of the command.
-*
-* the command names are #defined at the start of this file.
-*
-* some commands have sub commands (eg, get a value) to indicate data types,
-* (eg, EAI_SFFLOAT); these sub types are indicated with a lower case letter; again,
-* look to the top of this file for the #defines
-*
-*********************************************************************************/
-
-void EAI_parse_commands (char *bufptr) {
-	char buf[EAIREADSIZE];	/* return value place*/
-	char ctmp[EAIREADSIZE];	/* temporary character buffer*/
-	char dtmp[EAIREADSIZE];	/* temporary character buffer*/
-	unsigned int nodarr[200]; /* returning node/backnode combos from CreateVRML fns.*/
-
-	int count;
-	char command;
-	unsigned int uretval;		/* unsigned return value*/
-	unsigned int ra,rb,rc,rd;	/* temps*/
-	unsigned int scripttype;
-	char *EOT;		/* ptr to End of Text marker*/
-
-	while (strlen(bufptr)> 0) {
-	/*	printf ("start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);*/
-
-		/* step 1, get the command sequence number */
-		if (sscanf (bufptr,"%d",&count) != 1) {
-			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
-			count = 0;
-		}
-	/*	printf ("EAI - seq number %d\n",count);*/
-
-		/* step 2, skip past the sequence number */
-		while (isdigit(*bufptr)) bufptr++;
-	/*	printf("past sequence number, string:%s\n",bufptr);*/
-		while (*bufptr == ' ') bufptr++;
-	/*	printf ("past the space, string:%s\n",bufptr);*/
-
-		/* step 3, get the command */
-
-		/* EAIVERBOSE*/
-	/*	{*/
-	/*	    printf ("EAI_parse_commands cmd %s\n",*bufptr);*/
-	/*	    printf ("command %c seq %d\n",*bufptr,count);*/
-	/*	}*/
-
-		command = *bufptr;
-	/*	printf ("command %c\n",command);*/
-		bufptr++;
-
-		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
-
-		#ifdef EAIVERBOSE 
-		printf ("\n... %d ",count);
-		#endif
-
-		switch (command) {
-			case GETNAME: {
-				#ifdef EAIVERBOSE 
-				printf ("GETNAME\n");
-				#endif
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserName);
-				break;
-				}
-			case GETVERSION: {
-				#ifdef EAIVERBOSE 
-				printf ("GETVERSION\n");
-				#endif
-				sprintf (buf,"RE\n%f\n%f\n%d\n%s",TickTime,count,BrowserVersion);
-				break;
-				}
-			case GETCURSPEED: {
-				#ifdef EAIVERBOSE 
-				printf ("GETCURRENTSPEED\n");
-				#endif
-				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,(float) 1.0/BrowserFPS);
-				break;
-				}
-			case GETFRAMERATE: {
-				#ifdef EAIVERBOSE 
-				printf ("GETFRAMERATE\n");
-				#endif
-				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,BrowserFPS);
-				break;
-				}
-			case GETURL: {
-				#ifdef EAIVERBOSE 
-				printf ("GETURL\n");
-				#endif
-				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserURL);
-				break;
-				}
-			case GETNODE:  {
-				/*format int seq# COMMAND    string nodename*/
-
-				sscanf (bufptr," %s",ctmp);
-				#ifdef EAIVERBOSE 
-				printf ("GETNODE %s\n",ctmp);
-				#endif
-
-				uretval = EAI_GetNode(ctmp);
-
-				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,uretval);
-				break;
-			}
-			case GETTYPE:  {
-				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
-
-				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
-				#ifdef EAIVERBOSE 
-				printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
-				#endif
-
-				EAI_GetType (uretval,ctmp,dtmp,(int *)&ra,(int *)&rb,(int *)&rc,(int *)&rd,(int *)&scripttype);
-
-				sprintf (buf,"RE\n%f\n%d\n%d %d %d %c %d",TickTime,count,ra,rb,rc,rd,scripttype);
-				break;
-				}
-			case SENDEVENT:   {
-				/*format int seq# COMMAND NODETYPE pointer offset data*/
-				#ifdef EAIVERBOSE 
-				printf ("SENDEVENT %s\n",bufptr);
-				#endif
-				EAI_SendEvent(bufptr);
-				break;
-				}
-			case CREATEVU:
-			case CREATEVS: {
-				/*format int seq# COMMAND vrml text     string EOT*/
-				if (command == CREATEVS) {
-					#ifdef EAIVERBOSE 
-					printf ("CREATEVS %s\n",bufptr);
-					#endif
-
-					EOT = strstr(buffer2,"\nEOT\n");
-					/* if we do not have a string yet, we have to do this...*/
-					while (EOT == NULL) {
-						buffer2 = read_EAI_socket(buffer2,&bufcount2, &bufsize2, &listenfd);
-						EOT = strstr(buffer2,"\nEOT\n");
-					}
-
-					*EOT = 0; /* take off the EOT marker*/
-
-					ra = EAI_CreateVrml("String",bufptr,nodarr,200);
-				} else {
-					/* sanitize this string - remove leading
-					 * and trailing garbage */
-					ra = 0; rb = 0;
-					while ((ra < strlen(bufptr)) &&
-							(bufptr[ra] <= ' '))
-						ra++;
-					while (bufptr[ra] > ' ') {
-						ctmp[rb] = bufptr[ra];
-						rb ++; ra++;
-					}
-					ctmp[rb] = 0;
-
-					#ifdef EAIVERBOSE 
-					printf ("CREATEVU %s\n",ctmp);
-					#endif
-					ra = EAI_CreateVrml("URL",ctmp,nodarr,200);
-				}
-
-				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
-				for (rb = 0; rb < ra; rb++) {
-					sprintf (ctmp,"%d ", nodarr[rb]);
-					strcat (buf,ctmp);
-				}
-
-				/* finish this for now*/
-				bufptr[0] = 0;
-				break;
-				}
-			case SENDCHILD :  {
-				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
-
-				sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
-				rc = ra+rb; /* final pointer- should point to a Multi_Node*/
-
-				#ifdef EAIVERBOSE 
-				printf ("SENDCHILD Parent: %d ParentField: %d %s Child: %s\n",ra, rb, ctmp, dtmp);
-				#endif
-
-
-				getMFNodetype (dtmp,(struct Multi_Node *)rc,
-						(struct VRML_Box *)ra,
-						strcmp(ctmp,"removeChildren"));
-
-				/* tell the routing table that this node is updated - used for RegisterListeners */
-				mark_event((void *)ra,rb);
-
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-				}
-			case UPDATEROUTING :  {
-				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
-
-				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
-				#ifdef EAIVERBOSE 
-				printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
-				#endif
-
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-				}
-			case REGLISTENER: {
-				#ifdef EAIVERBOSE 
-				printf ("REGISTERLISTENER %s \n",bufptr);
-				#endif
-
-				/*143024848 88 8 e 6*/
-				sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
-				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
-				ctmp[1]=0;
-
-				/*printf ("REGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",*/
-				/*		ra, rb,rc,ctmp);*/
-
-
-				/* put the address of the listener area in a string format for registering
-				   the route - the route propagation will copy data to here */
-				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
-
-				/* set up the route from this variable to the handle_Listener routine */
-				CRoutes_Register  (1,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
-
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-				}
-
-			case GETVALUE: {
-				#ifdef EAIVERBOSE 
-				printf ("GETVALUE %s \n",bufptr);
-				#endif
-
-
-				/* format: ptr, offset, type, length (bytes)*/
-				sscanf (bufptr, "%d %d %c %d", &ra,&rb,ctmp,&rc);
-
-				ra = ra + rb;   /* get absolute pointer offset*/
-				EAI_Convert_mem_to_ASCII (count,"RE",(int)ctmp[0],(char *)ra, buf);
-				break;
-				}
-			case REPLACEWORLD:  {
-				#ifdef EAIVERBOSE 
-				printf ("REPLACEWORLD %s \n",bufptr);
-				#endif
-
-				EAI_RW(bufptr);
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-				}
-			case ADDROUTE:
-			case DELETEROUTE:  {
-				#ifdef EAIVERBOSE 
-				printf ("Add/Delete route %s\n",bufptr);
-				#endif
-
-				EAI_Route ((char) command,bufptr);
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-				}
-
-			case REREADWRL: {
-
-				#ifdef EAIVERBOSE 
-				printf ("REREADWRL <%s> \n",bufptr);
-				#endif
-
-				EAI_RNewW(bufptr);
-
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-			}
-
-/*XXXX			case SETDESCRIPT:*/
-		  	case STOPFREEWRL: {
-				#ifdef EAIVERBOSE 
-				printf ("Shutting down Freewrl\n");
-				#endif
-				if (!RUNNINGASPLUGIN) {
-					doQuit();
-				    break;
-				}
-			    }
-			  case NEXTVIEWPOINT: {
-				#ifdef EAIVERBOSE 
-				printf ("Next Viewpoint\n");
-				#endif
-
-				Next_ViewPoint();
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-			    }
-			default: {
-				printf ("unhandled command :%c: %d\n",command,command);
-				strcat (buf, "unknown_EAI_command");
-				break;
-				}
-
-			}
-
-
-		/* send the response - events don't send a reply */
-		if (command != SENDEVENT) {
-			strcat (buf,"\nRE_EOT");
-			EAI_send_string (buf,listenfd);
-		}
-
-		/* skip to the next command */
-		while (*bufptr >= ' ') bufptr++;
-
-		/* skip any new lines that may be there */
-		while ((*bufptr == 10) || (*bufptr == 13)) bufptr++;
-	}
-}
-
-/* an incoming EAI/CLASS event has come in, convert the ASCII characters
- * to an internal representation, and act upon it */
-
-unsigned int EAI_SendEvent (char *ptr) {
-	unsigned char nodetype;
-	unsigned int nodeptr;
-	unsigned int offset;
-	unsigned int scripttype;
-
-	unsigned int memptr;
-
-	int len, elemCount;
-	int MultiElement;
-	char myBuffer[6000];
-
-	/* we have an event, get the data properly scanned in from the ASCII string, and then
-		friggin do it! ;-) */
-
-	/* node type */
-	nodetype = *ptr; ptr++;
-
-	/* blank space */
-	ptr++;
-
-	/* nodeptr, offset */
-	sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
-	while ((*ptr) > ' ') ptr++; 	/* node ptr */
-	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
-	while ((*ptr) > ' ') ptr++;	/* node offset */
-	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
-	while ((*ptr) > ' ') ptr++;	/* script type */
-
-	#ifdef EAIVERBOSE
-		 printf ("EAI_SendEvent, type %c, nodeptr %x offset %x script type %d \n",
-				 nodetype,nodeptr,offset, scripttype);
-	#endif
-
-	/* We have either a event to a memory location, or to a script. */
-	/* the field scripttype tells us whether this is true or not.   */
-
-	memptr = nodeptr+offset;	/* actual pointer to start of destination data in memory */
-
-	/* now, we are at start of data. */
-	#ifdef EAIVERBOSE 
-	printf ("EAI_SendEvent, event string now is %s\n",ptr);
-	#endif
-
-	/* This switch statement is almost identical to the one in the Javascript
-	   code (check out CFuncs/CRoutes.c), except that explicit Javascript calls
-	   are impossible here (this is not javascript!) */
-
-
-	/* convert the ascii string into an internal representation */
-	/* this will return '0' on failure */
-	len = ScanValtoBuffer(&elemCount, nodetype - EAI_SFUNKNOWN,
-			ptr , myBuffer, sizeof(myBuffer));
-
-	if (len == 0) {
-		printf ("EAI_SendEvent, conversion failure\n");
-		return( -1 );
-	}
-
-	MultiElement=FALSE;
-	switch (nodetype) {
-		case EAI_SFBOOL:
-		case EAI_SFTIME:
-		case EAI_SFNODE:
-		case EAI_SFINT32:
-		case EAI_SFFLOAT: {
-			  MultiElement = FALSE;  /*Redundant, I hope the compiler will optimize */
-			  break;
-		} /* these are all ok, just continue on */
-
-		case EAI_SFVEC2F:
-	  	case EAI_SFVEC3F:
-	  	case EAI_SFCOLOR:
-		case EAI_SFROTATION: {
-			MultiElement=TRUE;
-			break;
-		}
-		/* a series of Floats... (AD ????????)*/
-	        case EAI_MFROTATION:
-	        case EAI_MFTIME    :
-	        case EAI_MFINT32   :
-	        case EAI_MFNODE    :
-	        case EAI_MFVEC2F   :
-	        case EAI_MFVEC3F   :
-	        case EAI_MFCOLOR   :
-	        case EAI_MFFLOAT   : {
-		    /* Setting of MFFloat when is declared an MFFloat in script */
-		    MultiElement=TRUE;
-		    /*
-		      if (scripttype)
-		      {
-		      }
-		      else
-		      {
-
-		      getCLASSMultNumType (myBuffer, sizeof(float)*len,
-		      (struct Multi_Vec3f *) memptr, MFFLOAT, FALSE);
-
-		      }
-		     */
-		   break;
-		}
-		case EAI_MFSTRING: {
-			/* myBuffer will have a full SV structure now, and len will*/
-			/* be -1.*/
-			break;
-		}
-
-		case EAI_SFSTRING: {
-			len = 0;
-
-			/* AD What happens here???????? */
-			/* this can be handled exactly like a set_one_ECMAtype if it is a script */
-		}
-		default: {
-                        printf ("unhandled Event :%c: - get code in here\n",nodetype);
-			return FALSE;
-		}
-	}
-
-	/* if we had an error on conversion */
-	if (len == 0)
-	{
-		return FALSE;
-	}
-
-
-	if (scripttype) {
-	    /* this is a Javascript route, so... */
-	    if (MultiElement) {
-		switch (nodetype)
-		{
-		  case EAI_MFVEC3F:
-		  case EAI_MFCOLOR:
-		  case EAI_MFFLOAT: {
-		      #ifdef EAIVERBOSE
-			printf("EAI_SendEvent, elem %i, count %i, nodeptr %i, off %i, ptr \"%s\".\n",len, elemCount, (int)nodeptr,(int)offset,ptr);
-			#endif
-
-		      set_EAI_MFElementtype ((int)nodeptr, (int)offset, (unsigned char *)myBuffer, len);
-		      break;
-		  }
-		  case EAI_SFVEC2F   :
-		  case EAI_SFVEC3F   :
-		  case EAI_SFCOLOR   :
-		  case EAI_SFROTATION: {
-		      Set_one_MultiElementtype ((int)nodeptr, (int)offset,
-						myBuffer,len);
-		      break;
-		  }
-		}
-	    }else {
-		printf("set_one_ECMAtype called by EAI_SendEvent\n");
-		set_one_ECMAtype((int)nodeptr,(int)offset,
-				 nodetype-EAI_SFUNKNOWN, myBuffer,len);
-	    }
-	    mark_script((int)nodeptr);
-	} else {
-		/* now, do the memory copy */
-		/* if we have a positive len, then, do a straight copy */
-		if (len > 0) {
-			memcpy ((void *)memptr, (void *)myBuffer,len);
-		} else {
-			/* if len < 0, it is "wierd". See ScanValtoBuffer
-			 * for accurate return values. */
-			if (len == -1) {
-				/*printf ("EAI_MFSTRING copy over \n");*/
-				getEAI_MFStringtype ((struct Multi_String *)myBuffer,
-							(struct Multi_String *)memptr);
-			}
-		}
-
-
-		/* if this is a geometry, make it re-render.
-		   Some nodes (PROTO interface params w/o IS's)
-		   will have an offset of zero, and are thus not
-		   "real" nodes, only memory locations
-		*/
-
-		if (offset > 0) update_node ((void *)nodeptr);
-
-		/* if anything uses this for routing, tell it that it has changed */
-		mark_event ((void *)nodeptr,offset);
-	}
-	return TRUE;
-}
-
-/*****************************************************************
-*
-*	handle_Listener is called when a requested value changes.
-*
-*	What happens is that the "normal" freewrl routing code finds
-*	an EventOut changed, copies the data to the buffer EAIListenerData,
-*	and copies an extra bit to the global CRoutesExtra.
-*
-*	(see the CRoutes_Register call above for this routing setup)
-*
-*	This routine decodes the data type and acts on it. The data type
-*	has (currently) an id number, that the client uses, and the data
-*	type.
-*
-********************************************************************/
-
-void handle_Listener () {
-	int id, tp;
-	char buf[EAIREADSIZE];
-	struct Multi_Node *mfptr;	/* used for freeing memory*/
-
-	/* get the type and the id.*/
-	tp = CRoutesExtra&0xff;
-	id = (CRoutesExtra & 0xffffff00) >>8;
-
-	#ifdef EAIVERBOSE
-		printf ("Handle listener, id %x type %x extradata %x\n",id,tp,CRoutesExtra);
-	#endif
-
-	/* convert the data to string form, for sending to the EAI java client */
-	EAI_Convert_mem_to_ASCII (id,"EV", tp, EAIListenerData, buf);
-
-	/* if this is a MF type, there most likely will be malloc'd memory to free... */
-	switch (tp) {
-		case EAI_MFCOLOR:
-		case EAI_MFFLOAT:
-		case EAI_MFTIME:
-		case EAI_MFINT32:
-		case EAI_MFSTRING:
-		case EAI_MFNODE:
-		case EAI_MFROTATION:
-		case EAI_MFVEC2F:
-		case EAI_MFVEC3F: {
-			mfptr = (struct Multi_Node *) EAIListenerData;
-			if (((*mfptr).p) != NULL) free ((*mfptr).p);
-		}
-		default: {}
-	}
-
-
-
-
-	/* zero the memory for the next time - MultiMemcpy needs this to be zero, otherwise
-	   it might think that the "oldlen" will be non-zero */
-	bzero(&EAIListenerData, sizeof(EAIListenerData));
-
-	/* append the EV_EOT marker to the end of the string */
-	strcat (buf,"\nEV_EOT");
-
-	/* send the EV reply */
-	EAI_send_string(buf,listenfd);
-}
 
 
 /********************************************************************
@@ -1359,412 +681,4 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	/* printf ("EAI_Extra memory, returning %d\n",memptr);*/
 	return (unsigned) memptr;
 
-}
-
-/* convert a number in memory to a printable type. Used to send back EVents, or replies to
-   the Java client program. */
-
-void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf) {
-
-	double dval;
-	float fl[4];
-	float *fp;
-	int *ip;
-	int ival;
-	int row;			/* MF* counter */
-	struct Multi_String *MSptr;	/* MFString pointer */
-	struct Multi_Node *MNptr;	/* MFNode pointer */
-	struct Multi_Color *MCptr;	/* MFColor pointer */
-	char *ptr;			/* used for building up return string */
-	STRLEN xx;
-
-	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
-	int i;
-
-	switch (type) {
-		case EAI_SFBOOL: 	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFBOOL\n");
-			#endif
-			if (memptr[0] == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
-			else sprintf (buf,"%s\n%f\n%d\nFALSE",reptype,TickTime,id);
-			break;
-		}
-
-		case EAI_SFTIME:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFTIME\n");
-			#endif
-			memcpy(&dval,memptr,sizeof(double));
-			sprintf (buf, "%s\n%f\n%d\n%lf",reptype,TickTime,id,dval);
-			break;
-		}
-
-		case EAI_SFNODE:
-		case EAI_SFINT32:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFINT32 or EAI_SFNODE\n");
-			#endif
-			memcpy(&ival,memptr,sizeof(int));
-			sprintf (buf, "%s\n%f\n%d\n%d",reptype,TickTime,id,ival);
-			break;
-		}
-
-		case EAI_SFFLOAT:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFTIME\n");
-			#endif
-
-			memcpy(fl,memptr,sizeof(float));
-			sprintf (buf, "%s\n%f\n%d\n%f",reptype,TickTime,id,fl[0]);
-			break;
-		}
-
-		case EAI_SFVEC3F:
-		case EAI_SFCOLOR:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFCOLOR or EAI_SFVEC3F\n");
-			#endif
-			memcpy(fl,memptr,sizeof(float)*3);
-			sprintf (buf, "%s\n%f\n%d\n%f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2]);
-			break;
-		}
-
-		case EAI_SFVEC2F:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFVEC2F\n");
-			#endif
-			memcpy(fl,memptr,sizeof(float)*2);
-			sprintf (buf, "%s\n%f\n%d\n%f %f",reptype,TickTime,id,fl[0],fl[1]);
-			break;
-		}
-
-		case EAI_SFROTATION:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFROTATION\n");
-			#endif
-
-			memcpy(fl,memptr,sizeof(float)*4);
-			sprintf (buf, "%s\n%f\n%d\n%f %f %f %f",reptype,TickTime,id,fl[0],fl[1],fl[2],fl[3]);
-			break;
-		}
-
-		case EAI_SFSTRING:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_SFSTRING\n");
-			#endif
-			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,memptr);
-			break;
-		}
-
-		case EAI_MFSTRING:	{
-			#ifdef EAIVERBOSE 
-			printf ("EAI_MFSTRING\n");
-			#endif
-
-			/* make the Multi_String pointer */
-			MSptr = (struct Multi_String *) memptr;
-
-			/* printf ("EAI_MFString, there are %d strings\n",(*MSptr).n);*/
-			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
-			ptr = buf + strlen(buf);
-
-			for (row=0; row<(*MSptr).n; row++) {
-        	        	/* printf ("String %d is %s\n",row,SvPV((*MSptr).p[row],xx));*/
-				if (strlen (SvPV((*MSptr).p[row],xx)) == 0) {
-					sprintf (ptr, "\"XyZZtitndi\" "); /* encode junk for Java side.*/
-				} else {
-					sprintf (ptr, "\"%s\" ",SvPV((*MSptr).p[row],xx));
-				}
-				/* printf ("buf now is %s\n",buf);*/
-				ptr = buf + strlen (buf);
-			}
-
-			break;
-		}
-
-		case EAI_MFNODE: 	{
-			MNptr = (struct Multi_Node *) memptr;
-
-			#ifdef EAIVERBOSE 
-			printf ("EAI_MFNode, there are %d nodes at %d\n",(*MNptr).n,(int) memptr);
-			#endif
-
-			sprintf (buf, "%s\n%f\n%d\n",reptype,TickTime,id);
-			ptr = buf + strlen(buf);
-
-			for (row=0; row<(*MNptr).n; row++) {
-				sprintf (ptr, "%d ",(int) (*MNptr).p[row]);
-				ptr = buf + strlen (buf);
-			}
-			break;
-		}
-
-		case EAI_MFINT32: {
-			MCptr = (struct Multi_Color *) memptr;
-			#ifdef EAIVERBOSE 
-				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
-			#endif
-
-			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
-			ptr = buf + strlen(buf);
-
-			ip = (int *) (*MCptr).p;
-			for (row=0; row<(*MCptr).n; row++) {
-				sprintf (ptr, "%d \n",*ip); 
-				ip++;
-				/* printf ("line %d is %s\n",row,ptr);  */
-				ptr = buf + strlen (buf);
-			}
-
-			break;
-		}
-
-		case EAI_MFFLOAT:
-		case EAI_MFVEC2F:
-		case EAI_MFVEC3F:
-		case EAI_MFROTATION:
-		case EAI_MFCOLOR: {
-			numPerRow=3;
-			if (type==EAI_MFFLOAT) {numPerRow=1;}
-			else if (type==EAI_MFVEC2F) {numPerRow=2;}
-			else if (type==EAI_MFROTATION) {numPerRow=4;}
-
-			MCptr = (struct Multi_Color *) memptr;
-			#ifdef EAIVERBOSE 
-				printf ("EAI_MFColor, there are %d nodes at %d\n",(*MCptr).n,(int) memptr);
-			#endif
-
-			sprintf (buf, "%s\n%f\n%d\n%d \n",reptype,TickTime,id,(*MCptr).n);
-			ptr = buf + strlen(buf);
-
-
-			fp = (float *) (*MCptr).p;
-			for (row=0; row<(*MCptr).n; row++) {
-				for (i=0; i<numPerRow; i++) {
-					fl[i] = *fp; fp++;
-				}
-				switch (numPerRow) {
-					case 1:
-						sprintf (ptr, "%f \n",fl[0]); break;
-					case 2:
-						sprintf (ptr, "%f %f \n",fl[0],fl[1]); break;
-					case 3:
-						sprintf (ptr, "%f %f %f \n",fl[0],fl[1],fl[2]); break;
-					case 4:
-						sprintf (ptr, "%f %f %f %f \n",fl[0],fl[1],fl[2],fl[3]); break;
-				}
-				/* printf ("line %d is %s\n",row,ptr); */
-				ptr = buf + strlen (buf);
-			}
-
-			break;
-		}
-		default: {
-			printf ("EAI, type %c not handled yet\n",type);
-		}
-
-
-/*XXX	case EAI_SFIMAGE:	{handleptr = &handleEAI_SFIMAGE_Listener;break;}*/
-/*XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}*/
-	}
-}
-
-
-
-/* take an ASCII string from the EAI or CLASS, and convert it into
-   a memory block */
-
-int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
-	float *floatptr;
-	int len;
-
-	/* pointers to cast memptr to*/
-	float *flmem;
-
-	/* pass in string in buf; memory block is memptr, size in bytes, bufsz */
-
-	#ifdef EAIVERBOSE
-	printf("ScanValtoBuffer\n");
-	#endif
-
-	if (bufsz < 10) {
-		printf ("cant perform conversion with small buffer\n");
-		return (0);
-	}
-
-	switch (type) {
-	    case SFBOOL:	{	/* SFBool */
-	    	if (strncasecmp(buf,"true",4)==0)
-		{
-		    *(int *)memptr = 1;
-	    	} else {
-		    *(int *)memptr = 0;
-	    	}
-		len = sizeof(int);
-	    	break;
-	    }
-
-	    case SFINT32: {
-	    	sscanf (buf,"%d",(int *)memptr);
-		len = sizeof (int);
-	    	break;
-	    }
-	    case SFFLOAT: {
-	    	sscanf (buf,"%f",(float *)memptr);
-		len = sizeof (float);
-	    	break;
-	    }
-
-	    case SFVEC2F: {	/* SFVec2f */
-		flmem = (float *)memptr;
-	    	sscanf (buf,"%f %f",&flmem[0], &flmem[1]);
-		len = sizeof(float) * 2;
-	    	break;
-	    }
-
-	    case SFVEC3F:
-	    case SFCOLOR: {	/* SFColor */
-		flmem = (float *)memptr;
-	    	sscanf (buf,"%f %f %f",&flmem[0],&flmem[1],&flmem[2]);
-		len = sizeof(float) * 3;
-	    	break;
-	    }
-
-	    case SFROTATION: {
-		flmem = (float *)memptr;
-	    	sscanf (buf,"%f %f %f %f",&flmem[0],&flmem[1],&flmem[2],&flmem[3]);
-		len = sizeof(float) * 4;
-	    	break;
-	    }
-
-	    case SFTIME: {
-		sscanf (buf, "%lf", (double *)memptr);
-		len = sizeof(double);
-		break;
-	    }
-
-	    case MFNODE:
-	    case MFINT32:
-	    case MFTIME:
-	    case SFNODE:
-	    case MFCOLOR:
-	    case MFVEC3F:
-	    case MFFLOAT:
-	    case MFROTATION:
-	    case MFVEC2F: {
-		  /* use Alberto Dubuc's MFFloat scanning algorithm */
-		  floatptr = readMFFloatString(buf,quant,type);
-
-		  /* get how many bytes in the type */
-		  switch (type) {
-	    		case MFTIME : len = *quant * sizeof(double); break;
-	    		case SFNODE :
-	    		case MFNODE :
-	    		case MFINT32: len = *quant * sizeof(int)   ; break;
-		  	default     : len = *quant * sizeof(float) ; /* turn into byte count */
-		  }
-
-		  #ifdef EAIVERBOSE
-			printf ("bufsz is %d, len = %d quant = %d\n",bufsz, len, *quant);
-		  #endif
-		  if (len > bufsz) {
-			  printf ("Warning, MultiFloat too large, truncating to %d \n",bufsz);
-			  len = bufsz;
-		  }
-
-		  /* now, copy over the data to the memory pointer passed in */
-		  if(NULL != floatptr)
-		    memcpy (memptr,floatptr,len);
-		  else
-		  {
-		      perror("ScanValtoBuffer: floatptr NULL!");
-		  }
-
-		  /* free the memory malloc'd in Alberto's code */
-		  free (floatptr);
-
-		  break;
-	    }
-
-	    case MFSTRING: {
-		int count;
-		SV ** newp;
-		struct xpv *mypv;
-		struct Multi_String *strptr;
-		int thisele, thissize, maxele;	/* used for reading in MFStrings*/
-
-
-		/* return a Multi_String.*/
-		/*  struct Multi_String { int n; SV * *p; };*/
-		/*  buf will look like:*/
-		/*  2  0;9:wordg.png  1;12:My"wordg.png*/
-		/*  where 2 = max elements; 0;9 is element 0, 9 chars long...*/
-
-
-		strptr = (struct Multi_String *)memptr;
-
-		/* scan to start of element count, and read it in.*/
-		while (*buf==' ') buf++;
-		sscanf (buf,"%d",&maxele);
-		while (*buf!=' ') buf++;
-
-		/* make (and initialize) this MFString internal representation.*/
-		strptr->n = maxele;
-		/*printf ("mallocing strptr->p, size %d\n",sizeof(strptr->p));*/
-		strptr->p = (SV**)malloc (maxele * sizeof(strptr->p));
-		newp = strptr->p;
-
-		/* scan through EAI string, extract strings, etc, etc.*/
-		do {
-			/* scan to start of element number*/
-
-			/* make the new SV */
-			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
-			(*newp)->sv_flags = SVt_PV | SVf_POK;
-			(*newp)->sv_refcnt=1;
-			mypv = (struct xpv *)malloc(sizeof (struct xpv));
-			/*printf ("just mallocd for mypv, it is %d and size %d\n",*/
-			/*		mypv, sizeof (struct xpv));*/
-			(*newp)->sv_any = mypv;
-
-			while (*buf==' ') buf++;
-			sscanf (buf,"%d;%d",&thisele,&thissize);
-			/*printf ("this element %d has size %d\n",thisele,thissize);*/
-
-			/*mypv = (struct xpv *) newp + (thisele*sizeof(newp));*/
-
-			/* scan to start of string*/
-			while (*buf!=':') buf++; buf++;
-
-			/* fill in the SV values...copy the string over...*/
-			(*mypv).xpv_pv = (char *)malloc (thissize+2);
-			strncpy((*mypv).xpv_pv ,buf,thissize);
-			(*mypv).xpv_pv[thissize] = '\0'; /* null terminate*/
-			(*mypv).xpv_cur = thissize-1;    /* size without term*/
-			(*mypv).xpv_len = thissize;      /* size with termination*/
-
-			/* increment buf by string size.*/
-			buf += thissize;
-
-			/* scan to next start of string, or end of line*/
-			while (*buf==' ') buf++;
-
-			/* point to next SV to fill*/
-			newp++;
-		} while (((int)*buf)>=32);
-		/*len = maxele*sizeof(struct Multi_String);*/
-		/* return -1 to indicate that this is "wierd".*/
-		len = -1;
-
-		break;
-	   }
-	  default: {
-		printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
-		printf ("complain to the FreeWRL team.\n");
-		printf ("(string is :%s:)\n",buf);
-		return (0);
-	    }
-	}
-	return (len);
 }

@@ -1,4 +1,13 @@
 /* headers for EAI and java CLASS invocation */
+#define EAIVERBOSE
+
+/* function prototypes */
+void handle_Listener (void);
+void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
+unsigned int EAI_SendEvent (char *ptr);
+void EAI_RNewW(char *bufptr);
+void EAI_RW(char *bufptr);
+
 
 #define MAXEAIHOSTNAME	255		/* length of hostname on command line */
 #define EAIREADSIZE	2048		/* maximum we are allowed to read in from socket */
@@ -63,8 +72,13 @@ int createUDPSocket();
 int conEAIorCLASS(int socketincrement, int *sockfd, int *listenfd);
 void EAI_send_string (char *str, int listenfd);
 char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *listenfd);
+extern int EAIlistenfd;
+extern int EAIsockfd;
 extern int EAIport;
 extern int EAIwanted;
-
-
+extern int EAIbufsize;
+extern char *EAIbuffer;
+extern int EAIbufcount;
+extern char EAIListenerData[EAIREADSIZE];
+extern char EAIListenerArea[40];
 

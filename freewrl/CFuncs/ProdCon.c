@@ -1395,9 +1395,7 @@ void __pt_EAI_GetType (){
 	XPUSHs(sv_2mortal(newSVpv((const char *)psp.ptr, (STRLEN)0)));
 
 	PUTBACK;
-printf ("going to call VRML::Browser::EAI_GetType\n");
 	count = call_pv("VRML::Browser::EAI_GetType",G_ARRAY);
-printf ("called VRML::Browser::EAI_GetType\n");
 	SPAGAIN;
 
 	if (count != 5) {
@@ -1416,7 +1414,6 @@ printf ("called VRML::Browser::EAI_GetType\n");
 	PUTBACK;
 	FREETMPS;
 	LEAVE;
-printf ("leaving called VRML::Browser::EAI_GetType\n");
 }
 
 void __pt_EAI_GetValue (){

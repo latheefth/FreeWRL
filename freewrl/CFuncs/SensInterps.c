@@ -29,8 +29,6 @@ Interps are the "EventsProcessed" fields of interpolators.
 /* if a Sound {} can not be found... */
 #define BADAUDIOSOURCE -9999
 
-int SEVerbose = 0;
-
 /* when we get a new sound source, what is the number for this? */
 int SoundSourceNumber = 0;
 
@@ -61,8 +59,10 @@ void do_active_inactive (
 	/* what we do now depends on whether we are active or not */
 
 	if (*act == 1) {   /* active - should we stop? */
-		if (SEVerbose) printf ("is active tick %f startt %f stopt %f\n",
+		#ifdef SEVERBOSE
+		printf ("is active tick %f startt %f stopt %f\n",
 				TickTime, *startt, *stopt);
+		#endif
 
 		if (TickTime > *stopt) {
 			if (*startt >= *stopt) {
@@ -75,14 +75,20 @@ void do_active_inactive (
 					if (! APPROX(speed, 0)) {
 					    if (TickTime >= (*startt +
 							fabs(myDuration/speed))) {
-						if (SEVerbose) printf ("stopping case x\n");
+						#ifdef SEVERBOSE
+						printf ("stopping case x\n");
+						#endif
+
 						*act = 0;
 						*stopt = TickTime;
 					    }
 					}
 				}
 			} else {
-				if (SEVerbose) printf ("stopping case z\n");
+				#ifdef SEVERBOSE
+				printf ("stopping case z\n");
+				#endif
+
 				*act = 0;
 				*stopt = TickTime;
 			}
@@ -91,7 +97,7 @@ void do_active_inactive (
 
 	/* immediately process start events; as per spec.  */
 	if (*act == 0) {   /* active - should we start? */
-		/* if (SEVerbose) printf ("is not active TickTime %f startt %f\n",TickTime,*startt); */
+		/* printf ("is not active TickTime %f startt %f\n",TickTime,*startt); */
 
 		if (TickTime >= *startt) {
 			/* We just might need to start running */
@@ -103,14 +109,14 @@ void do_active_inactive (
 				if (loop) {
 					if (*startt >= *stopt) {
 						/* VRML standards, table 4.2 case 2 */
-						/* if (SEVerbose) printf ("CASE 2\n"); */
+						/* printf ("CASE 2\n"); */
 						*startt = TickTime;
 						*act = 1;
 					}
 				} else if (*startt >= *stopt) {
 					if (*startt > *inittime) {
 						/* ie, we have an event */
-						 /* if (SEVerbose) printf ("case 1 here\n"); */
+						 /* printf ("case 1 here\n"); */
 						/*
 						we should be running
 						VRML standards, table 4.2 case 1
@@ -120,7 +126,7 @@ void do_active_inactive (
 					}
 				}
 			} else {
-				/* if (SEVerbose) printf ("case 3 here\n"); */
+				/* printf ("case 3 here\n"); */
 				/* we should be running -
 				VRML standards, table 4.2 cases 1 and 2 and 3 */
 				*startt = TickTime;
@@ -167,8 +173,9 @@ void do_OintScalar (void *node) {
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
 
-	if (SEVerbose)
+	#ifdef SEVERBOSE
 		printf ("ScalarInterpolator, kin %d kvin %d, vc %f\n",kin,kvin,px->value_changed);
+	#endif
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= px->key.p[0]) {
@@ -205,8 +212,9 @@ void do_OintCoord(void *node) {
 	px = (struct VRML_CoordinateInterpolator *) node;
 
 
-	if (SEVerbose)
+	#ifdef SEVERBOSE
 		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
+	#endif
 
 	mark_event (node, offsetof (struct VRML_CoordinateInterpolator, value_changed));
 
@@ -217,9 +225,10 @@ void do_OintCoord(void *node) {
 
 	/* do we need to (re)allocate the value changed array? */
 	if (kpkv != px->value_changed.n) {
-		if (SEVerbose)
+		#ifdef SEVERBOSE
 		    printf ("refactor valuechanged array. n %d sizeof p %d\n",
 			kpkv,sizeof (struct SFColor) * kpkv);
+		#endif
 		if (px->value_changed.n != 0) {
 			free (px->value_changed.p);
 		}
@@ -233,7 +242,10 @@ void do_OintCoord(void *node) {
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		if (SEVerbose) printf ("no keys or keyValues yet\n");
+		#ifdef SEVERBOSE
+		printf ("no keys or keyValues yet\n");
+		#endif
+
 		for (indx = 0; indx < kpkv; indx++) {
 			valchanged[indx].c[0] = 0.0;
 			valchanged[indx].c[1] = 0.0;
@@ -244,14 +256,18 @@ void do_OintCoord(void *node) {
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
 
 
-	if (SEVerbose) {
+	#ifdef SEVERBOSE
 		printf ("debugging, kpkv %d, px->value_changed.n %d\n", kpkv, px->value_changed.n);
 		printf ("CoordinateInterpolator, kpkv %d\n",kpkv);
-	}
+	#endif
+	
 
 	/* set_fraction less than or greater than keys */
 	if (px->set_fraction <= px->key.p[0]) {
-		if (SEVerbose) printf ("COINT out1\n");
+		#ifdef SEVERBOSE
+		printf ("COINT out1\n");
+		#endif
+
 		for (indx = 0; indx < kpkv; indx++) {
 			memcpy ((void *)&valchanged[indx],
 				(void *)&kVs[indx], sizeof (struct SFColor));
@@ -259,22 +275,36 @@ void do_OintCoord(void *node) {
 			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
 			/* JAS valchanged[indx].c[2] = kVs[indx].c[2]; */
 		}
-		if (SEVerbose) printf ("COINT out1 copied\n");
+		#ifdef SEVERBOSE
+		printf ("COINT out1 copied\n");
+		#endif
 	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		if (SEVerbose) printf ("COINT out2\n");
+		#ifdef SEVERBOSE
+		printf ("COINT out2\n");
+		#endif
+
 		for (indx = 0; indx < kpkv; indx++) {
 			memcpy ((void *)&valchanged[indx],
 				(void *)&kVs[kvin-kpkv+indx],
 				sizeof (struct SFColor));
 		}
-		if (SEVerbose) printf ("COINT out2 finished\n");
+		#ifdef SEVERBOSE
+		printf ("COINT out2 finished\n");
+		#endif
 	} else {
-		if (SEVerbose) printf ("COINT out3\n");
+		#ifdef SEVERBOSE
+		printf ("COINT out3\n");
+		#endif
+
 		/* have to go through and find the key before */
-		if (SEVerbose) printf ("indx=0, kin %d frac %f\n",kin,px->set_fraction);
+		#ifdef SEVERBOSE
+		printf ("indx=0, kin %d frac %f\n",kin,px->set_fraction);
+		#endif
 
 		myKey=find_key(kin,(float)(px->set_fraction),px->key.p);
-		if (SEVerbose) printf ("working on key %d\n",myKey);
+		#ifdef SEVERBOSE
+		printf ("working on key %d\n",myKey);
+		#endif
 
 		/* find the fraction between the 2 values */
 		interval = (px->set_fraction - px->key.p[myKey-1]) /
@@ -284,11 +314,12 @@ void do_OintCoord(void *node) {
 			thisone = myKey * kpkv + indx;
 			prevone = (myKey-1) * kpkv + indx;
 
-
+			#ifdef SEVERBOSE
 			if (thisone >= kvin) {
-				if (SEVerbose) printf ("CoordinateInterpolator error: thisone %d prevone %d indx %d kpkv %d kin %d kvin %d\n",thisone,prevone,
+				printf ("CoordinateInterpolator error: thisone %d prevone %d indx %d kpkv %d kin %d kvin %d\n",thisone,prevone,
 				indx,kpkv,kin,kvin);
 			}
+			#endif
 
 			for (tmp=0; tmp<3; tmp++) {
 				valchanged[indx].c[tmp] = kVs[prevone].c[tmp]  +
@@ -296,7 +327,9 @@ void do_OintCoord(void *node) {
 							kVs[prevone].c[tmp]);
 			}
 		}
-		if (SEVerbose) printf ("COINT out3 finished\n");
+		#ifdef SEVERBOSE
+		printf ("COINT out3 finished\n");
+		#endif
 
 	}
 
@@ -312,7 +345,10 @@ void do_OintCoord(void *node) {
 			valchanged[indx].c[2] = normalval.z;
 		}
         }
-	if (SEVerbose) printf ("Done CoordinateInterpolator\n");
+	#ifdef SEVERBOSE
+	printf ("Done CoordinateInterpolator\n");
+	#endif
+
 }
 
 
@@ -336,10 +372,10 @@ void do_Oint3 (void *node) {
 	kvin = px->keyValue.n;
 	kVs = px->keyValue.p;
 
-	if (SEVerbose) {
+	#ifdef SEVERBOSE
 		printf("do_Oint3: Position/Color interp, node %u kin %d kvin %d set_fraction %f\n",
 			   node, kin, kvin, px->set_fraction);
-	}
+	#endif
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
@@ -370,8 +406,10 @@ void do_Oint3 (void *node) {
 				kVs[counter-1].c[tmp];
 		}
 	}
-	if (SEVerbose) printf ("Pos/Col, new value (%f %f %f)\n",
+	#ifdef SEVERBOSE
+	printf ("Pos/Col, new value (%f %f %f)\n",
 		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
+	#endif
 }
 
 /* OrientationInterpolator				 		*/
@@ -397,9 +435,10 @@ void do_Oint4 (void *node) {
 	kvin = ((px->keyValue).n);
 	kVs = ((px->keyValue).p);
 
-	if (SEVerbose)
-		printf ("starting do_Oint4; keyValue count %d and key count %d\n",
+	#ifdef SEVERBOSE
+	printf ("starting do_Oint4; keyValue count %d and key count %d\n",
 				kvin, kin);
+	#endif
 
 
 	mark_event (node, offsetof (struct VRML_OrientationInterpolator, value_changed));
@@ -431,7 +470,7 @@ void do_Oint4 (void *node) {
 		stzero = APPROX(kVs[counter-1].r[3],0.0);
 		endzero = APPROX(kVs[counter].r[3],0.0);
 
-		if (SEVerbose) {
+		#ifdef SEVERBOSE
 			printf ("counter %d interval %f\n",counter,interval);
 			printf ("angles %f %f %f %f, %f %f %f %f\n",
 				kVs[counter-1].r[0],
@@ -442,7 +481,7 @@ void do_Oint4 (void *node) {
 				kVs[counter].r[1],
 				kVs[counter].r[2],
 				kVs[counter].r[3]);
-		}
+		#endif
 
 		/* are there any -1s in there? */
 		testangle = 0.0;
@@ -521,8 +560,10 @@ void do_Oint4 (void *node) {
 		}
 
 		px->value_changed.r[3]=newangle;
-		if (SEVerbose) printf ("Oint, new angle %f %f %f %f\n",px->value_changed.r[0],
+		#ifdef SEVERBOSE
+		printf ("Oint, new angle %f %f %f %f\n",px->value_changed.r[0],
 			px->value_changed.r[1],px->value_changed.r[2], px->value_changed.r[3]);
+		#endif
 	}
 }
 
@@ -590,7 +631,9 @@ void do_AudioTick(void *ptr) {
 		mark_event (node, offsetof(struct VRML_AudioClip, isActive));
 		/* tell SoundEngine that this source has changed.  */
 	        if (!SoundEngineStarted) {
-        	        if (SEVerbose) printf ("SetAudioActive: initializing SoundEngine\n");
+        	        #ifdef SEVERBOSE
+			printf ("SetAudioActive: initializing SoundEngine\n");
+			#endif
                 	SoundEngineStarted = TRUE;
                 	SoundEngineInit();
 		}
@@ -659,8 +702,9 @@ void do_TimeSensorTick ( void *ptr) {
 			frac = (myTime > 1 ? 1 : myTime);
 		}
 
-		if (SEVerbose) printf ("TimeSensor myTime %f frac %f dur %f\n",
-				myTime,frac,myDuration);
+		#ifdef SEVERBOSE
+		printf ("TimeSensor myTime %f frac %f dur %f\n", myTime,frac,myDuration);
+		#endif
 
 		/* cycleTime events once at start, and once every loop. */
 		if (frac < node->__ctflag) {
@@ -695,7 +739,10 @@ void do_ProximitySensorTick( void *ptr) {
 	/* did we get a signal? */
 	if (node->__hit) {
 		if (!node->isActive) {
-			if (SEVerbose) printf ("PROX - initial defaults\n");
+			#ifdef SEVERBOSE
+			printf ("PROX - initial defaults\n");
+			#endif
+
 			node->isActive = 1;
 			node->enterTime = TickTime;
 			mark_event (ptr, offsetof(struct VRML_ProximitySensor, isActive));
@@ -705,20 +752,29 @@ void do_ProximitySensorTick( void *ptr) {
 
 		/* now, has anything changed? */
 		if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
-			if (SEVerbose) printf ("PROX - position changed!!! \n");
+			#ifdef SEVERBOSE
+			printf ("PROX - position changed!!! \n");
+			#endif
+
 			memcpy ((void *) &node->position_changed,
 				(void *) &node->__t1,sizeof(struct SFColor));
 			mark_event (ptr, offsetof(struct VRML_ProximitySensor, position_changed));
 		}
 		if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
-			if (SEVerbose) printf  ("PROX - orientation changed!!!\n ");
+			#ifdef SEVERBOSE
+			printf  ("PROX - orientation changed!!!\n ");
+			#endif
+
 			memcpy ((void *) &node->orientation_changed,
 				(void *) &node->__t2,sizeof(struct SFRotation));
 			mark_event (ptr, offsetof(struct VRML_ProximitySensor, orientation_changed));
 		}
 	} else {
 		if (node->isActive) {
-			if (SEVerbose) printf ("PROX - stopping\n");
+			#ifdef SEVERBOSE
+			printf ("PROX - stopping\n");
+			#endif
+
 			node->isActive = 0;
 			node->exitTime = TickTime;
 			mark_event (ptr, offsetof(struct VRML_ProximitySensor, isActive));
@@ -909,9 +965,11 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 		nx = hyp_save_posn.c[0] + mult * (hyp_save_norm.c[0] - hyp_save_posn.c[0]);
 		ny = hyp_save_posn.c[1] + mult * (hyp_save_norm.c[1] - hyp_save_posn.c[1]);
 
-		if (SEVerbose) printf ("now, mult %f nx %f ny %f op %f %f %f\n",mult,nx,ny,
+		#ifdef SEVERBOSE
+		printf ("now, mult %f nx %f ny %f op %f %f %f\n",mult,nx,ny,
 			node->_origPoint.c[0],node->_origPoint.c[1],
 			node->_origPoint.c[2]);
+		#endif
 
 		/* trackpoint changed */
 		node->trackPoint_changed.c[0] = nx;
@@ -939,8 +997,10 @@ void do_PlaneSensor ( void *ptr, int ev, int over) {
 		node->translation_changed.c[1] = tr.c[1];
 		node->translation_changed.c[2] = tr.c[2];
 
-		if (SEVerbose) printf ("TRC %f %f %f\n",node->translation_changed.c[0],
+		#ifdef SEVERBOSE
+		printf ("TRC %f %f %f\n",node->translation_changed.c[0],
 			node->translation_changed.c[1],node->translation_changed.c[2]);
+		#endif
 
 		/* and send this event */
 		mark_event (ptr, offsetof (struct VRML_PlaneSensor, translation_changed));
