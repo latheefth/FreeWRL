@@ -256,4 +256,6 @@ extern float screendist;
 
 
 void XEventStereo(void);
+
+float getCurrentSpeed();
 #endif /* __VIEWER_H_ */

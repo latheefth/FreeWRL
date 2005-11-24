@@ -1,5 +1,4 @@
 /* headers for EAI and java CLASS invocation */
-#define EAIVERBOSE
 
 /* function prototypes */
 void handle_Listener (void);

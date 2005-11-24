@@ -89,8 +89,10 @@ VrmlBrowserGetCurrentSpeed(JSContext *context, JSObject *obj, uintN argc, jsval 
 	UNUSED(argc);
 	UNUSED(argv);
 
-	/* 0.0 is a valid return for this one. */
-	_str = JS_NewString(context,"0.0",strlen("0.0")+1);
+	char string[10];
+
+	sprintf (string,"%f",getCurrentSpeed());
+	_str = JS_NewString(context,string,strlen(string)+1);
 	*rval = STRING_TO_JSVAL(_str);
 	return JS_TRUE;
 }

@@ -31,6 +31,9 @@ static VRML_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
 static FILE *exfly_in_file;
+
+struct pt VPvelocity;
+
 void print_viewer(void);
 unsigned int get_buffer(void);
 int get_headlight(void);
@@ -40,10 +43,15 @@ void handle_tick_fly(void);
 void handle_tick_exfly(void);
 void handle_tick(void);
 
+/* used for EAI calls to get the current speed. Not used for general calcs */
+float getCurrentSpeed() {
+	return (BrowserFPS * (fabs(VPvelocity.x) + fabs(VPvelocity.y) + fabs(VPvelocity.z)));
+}
 
 void viewer_default() {
 	Quaternion q_i;
 
+	VPvelocity.x = 0.0; VPvelocity.y = 0.0; VPvelocity.z = 0.0; 
 	(Viewer.Pos).x = 0;
 	(Viewer.Pos).y = 0;
 	(Viewer.Pos).z = 10;
@@ -128,15 +136,11 @@ set_buffer(const unsigned int buffer)
 	Viewer.buffer = buffer;
 }
 
-int
-get_headlight()
-{
+int get_headlight() {
 	return(Viewer.headlight);
 }
 
-void
-toggle_headlight()
-{
+void toggle_headlight() {
 	if (Viewer.headlight == TRUE) {
 		Viewer.headlight = FALSE;
 	} else {
@@ -144,16 +148,16 @@ toggle_headlight()
 	}
 }
 
-void
-set_eyehalf(const double eyehalf, const double eyehalfangle)
-{
+void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 	Viewer.eyehalf = eyehalf;
 	Viewer.eyehalfangle = eyehalfangle;
 }
 
-void
-set_viewer_type(const int type)
-{
+void set_viewer_type(const int type) {
+
+	/* set velocity array to zero again - used only for EAI */
+	VPvelocity.x=0.0; VPvelocity.y=0.0; VPvelocity.z=0.0;
+
 	/* can the currently bound viewer type handle this */
 	/* if there is no bound viewer, just ignore (happens on initialization) */
 	if (navi_tos != -1)
@@ -180,9 +184,7 @@ set_viewer_type(const int type)
 }
 
 
-int
-use_keys()
-{
+int use_keys() {
 	if (viewer_type == FLY) {
 		return TRUE;
 	}
@@ -190,9 +192,7 @@ use_keys()
 }
 
 
-void
-resolve_pos(VRML_Viewer *viewer)
-{
+void resolve_pos(VRML_Viewer *viewer) {
 	/* my($this) = @_; */
 	struct pt rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
@@ -227,9 +227,7 @@ resolve_pos(VRML_Viewer *viewer)
 	}
 }
 
-void
-viewer_togl(double fieldofview)
-{
+void viewer_togl(double fieldofview) {
 
 	/* GLdouble modelMatrix[16];
 
@@ -242,10 +240,8 @@ viewer_togl(double fieldofview)
 	*/
 
 
-/* 	if ($this->{buffer}!=&VRML::OpenGL::GL_BACK) */
 	if (Viewer.buffer != GL_BACK) {
 		set_stereo_offset(Viewer.buffer, Viewer.eyehalf, Viewer.eyehalfangle, fieldofview);
-/* 		VRML::VRMLFunc::set_stereo_offset ($this->{buffer}, $this->{eyehalf},$this->{eyehalfangle}); */
 	}
 
 	togl(&(Viewer.Quat));
@@ -264,9 +260,7 @@ viewer_togl(double fieldofview)
 }
 
 
-void
-handle_walk(const int mev, const unsigned int button, const float x, const float y)
-{
+void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
 	VRML_Viewer_Walk *walk = Viewer.walk;
 
 	if (mev == ButtonPress ) {
@@ -292,9 +286,7 @@ handle_walk(const int mev, const unsigned int button, const float x, const float
 }
 
 
-void
-handle_examine(const int mev, const unsigned int button, float x, float y)
-{
+void handle_examine(const int mev, const unsigned int button, float x, float y) {
 	Quaternion q, q_i, arc;
 	struct pt p = { 0, 0, 0};
 	VRML_Viewer_Examine *examine = Viewer.examine;
@@ -753,14 +745,20 @@ set_stereo_offset(unsigned int buffer, const double eyehalf, const double eyehal
       glRotated(angle, 0.0, 1.0, 0.0);
 }
 
-void
-increment_pos(struct pt *vec)
-{
+
+/* used to move, in WALK, FLY modes. */
+void increment_pos(struct pt *vec) {
 	struct pt nv;
 	Quaternion q_i;
+
+
 	inverse(&q_i, &(Viewer.Quat));
 	rotation(&nv, &q_i, vec);
 
+	/* save velocity calculations for this mode; used for EAI calls only */
+	VPvelocity.x = nv.x; VPvelocity.y = nv.y; VPvelocity.z = nv.z;
+
+	/* and, act on this change of location. */
 	(Viewer.Pos).x += nv.x;
 	(Viewer.Pos).y += nv.y;
 	(Viewer.Pos).z += nv.z;

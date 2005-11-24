@@ -23,7 +23,7 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 #endif
 
 #include "EAIheaders.h"
-
+#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
 /* get how many bytes in the type */
 int returnElementLength(int type) {
@@ -56,6 +56,60 @@ int returnElementRowSize (int type) {
 	return 1;
 
 }
+
+/* copy new scanned in data over to the memory area in the scene graph. */
+
+void *Multi_Struct_memptr (int type, void *memptr) {
+	struct Multi_Vec3f *mp;
+
+	/* is this a straight copy, or do we have a struct to send to? */
+	/* now, some internal reps use a structure defined as:
+	   struct Multi_Vec3f { int n; struct SFColor  *p; };
+	   so, we have to put the data in the p pointer, so as to
+	   not overwrite the data. */
+
+	switch (type) {
+		case MFVEC2F: 
+		case MFCOLOR: 
+		case MFVEC3F: 
+		case MFROTATION: 
+			mp = (struct Multi_Vec3f*) memptr;
+			memptr = mp->p;
+
+		default: {}
+		}
+	return memptr;
+}
+
+
+/* change a memory loction - do we need to do a simple copy, or
+do we need to change a Structure type? */
+
+void SetMemory (int type, void *destptr, void *srcptr, int len) {
+	void *newptr;
+	struct Multi_Vec3f *mp;
+
+	/* is this a structure? If Multi_Struct_memptr returns a different
+	   pointer, than it IS a struct {int n void *p} structure type. */
+
+	newptr = Multi_Struct_memptr(type, destptr);
+	if (newptr != destptr) {
+		mp = (struct Multi_Vec3f*) destptr;
+		/* printf ("SetMemory was %d ",mp->n); */
+		mp->n=0;
+		FREE_IF_NZ(mp->p);
+		mp->p = malloc(len);
+		memcpy (mp->p,srcptr,len);
+		mp->n = len /(returnElementLength(type)*returnElementRowSize(type));
+		/* printf (" is %d\n ",mp->n); */
+	} else {
+		/* this is a straight copy */
+		memcpy (destptr, srcptr, len);
+	}
+}
+
+
+
 
 
 /* take an ASCII string from the EAI or CLASS, and convert it into
@@ -354,14 +408,14 @@ void EAI_parse_commands (char *bufptr) {
 				#ifdef EAIVERBOSE 
 				printf ("GETVERSION\n");
 				#endif
-				sprintf (buf,"RE\n%f\n%f\n%d\n%s",TickTime,count,BrowserVersion);
+				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserVersion);
 				break;
 				}
 			case GETCURSPEED: {
 				#ifdef EAIVERBOSE 
 				printf ("GETCURRENTSPEED\n");
 				#endif
-				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,(float) 1.0/BrowserFPS);
+				sprintf (buf,"RE\n%f\n%d\n%f",TickTime,count,getCurrentSpeed());
 				break;
 				}
 			case GETFRAMERATE: {
@@ -603,30 +657,6 @@ void EAI_parse_commands (char *bufptr) {
 	}
 }
 
-/* copy new scanned in data over to the memory area in the scene graph. */
-void *Multi_Struct_memcpy (int type, void *memptr) {
-	struct Multi_Vec3f *mp;
-
-	/* is this a straight copy, or do we have a struct to send to? */
-	/* now, some internal reps use a structure defined as:
-	   struct Multi_Vec3f { int n; struct SFColor  *p; };
-	   so, we have to put the data in the p pointer, so as to
-	   not overwrite the data. */
-
-	switch (type) {
-		case MFVEC2F: 
-		case MFCOLOR: 
-		case MFVEC3F: 
-		case MFROTATION: 
-			mp = (struct Multi_Vec3f*) memptr;
-			memptr = mp->p;
-
-		default: {}
-		}
-	return memptr;
-}
-
-
 /* an incoming EAI/CLASS event has come in, convert the ASCII characters
  * to an internal representation, and act upon it */
 
@@ -701,7 +731,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 
 		/* if this is a struct Multi* node type, move the actual memory pointer to the data */
-		memptr = (unsigned int) Multi_Struct_memcpy(nodetype-EAI_SFUNKNOWN, (void *) memptr);
+		memptr = (unsigned int) Multi_Struct_memptr(nodetype-EAI_SFUNKNOWN, (void *) memptr);
 
 		/* and index into that array; we have the index, and sizes to worry about 	*/
 		memptr += valIndex * returnElementLength(nodetype-EAI_SFUNKNOWN) *  returnElementRowSize(nodetype-EAI_SFUNKNOWN);
@@ -729,9 +759,10 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 	/* convert the ascii string into an internal representation */
 	/* this will return '0' on failure */
-	len = ScanValtoBuffer(&elemCount, nodetype - EAI_SFUNKNOWN,
-			ptr , myBuffer, sizeof(myBuffer));
+	len = ScanValtoBuffer(&elemCount, nodetype - EAI_SFUNKNOWN, ptr , myBuffer, sizeof(myBuffer));
 
+
+	/* an error in ascii to memory conversion happened */
 	if (len == 0) {
 		printf ("EAI_SendEvent, conversion failure\n");
 		return( -1 );
@@ -773,8 +804,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 		}
 
 		case EAI_SFSTRING: {
-			len = 0;
-
 			/* AD What happens here???????? */
 			/* this can be handled exactly like a set_one_ECMAtype if it is a script */
 		}
@@ -783,12 +812,6 @@ unsigned int EAI_SendEvent (char *ptr) {
 			return FALSE;
 		}
 	}
-
-	/* if we had an error on conversion */
-	if (len == 0) {
-		return FALSE;
-	}
-
 
 	if (scripttype) {
 	    /* this is a Javascript route, so... */
@@ -824,7 +847,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		/* if we have a positive len, then, do a straight copy */
 
 		if (len > 0) {
-			memcpy (Multi_Struct_memcpy(nodetype-EAI_SFUNKNOWN, (void *) memptr), (void *)myBuffer,len);
+			SetMemory(nodetype-EAI_SFUNKNOWN,(void *)memptr,(void *)myBuffer,len);
 		} else {
 			/* if len < 0, it is "wierd". See ScanValtoBuffer
 			 * for accurate return values. */
