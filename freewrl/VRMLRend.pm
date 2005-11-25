@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.184  2005/11/25 21:14:55  crc_canada
+# Texture bugs and optimizations.
+#
 # Revision 1.183  2005/11/21 21:03:34  crc_canada
 # LoadSensor node for ImageTextures.
 #
@@ -1110,6 +1113,7 @@ LineProperties => '
 	GLushort pat;
 
 	if (this_->applied) {
+		global_lineProperties=TRUE;
 		if (this_->linewidthScaleFactor > 1.0) glLineWidth(this_->linewidthScaleFactor);
 		if (this_->linetype > 0) {
 			factor = 1;
@@ -1153,6 +1157,7 @@ FillProperties => '
 		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
 		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55};
 
+		global_fillProperties=TRUE;
 
 		if (!this_->filled) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -1807,17 +1812,11 @@ Billboard => (join '','
 
 		if ($f(fillProperties)) {
 			render_node($f(fillProperties));
-		} else {
-			glDisable (GL_POLYGON_STIPPLE);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		/* set line widths - if we have line a lineProperties node */
 		if ($f(lineProperties)) {
 			render_node($f(lineProperties));
-		} else {
-			glDisable (GL_LINE_STIPPLE);
-			glLineWidth(1.0);
 		}
 
 		if($f(texture)) {
@@ -1854,6 +1853,12 @@ Billboard => (join '','
 			render_node((this_->geometry));
 			return;
 		}
+
+		/* reset textureTransform pointer */
+		this_textureTransform = 0;
+		global_lineProperties=FALSE;
+		global_fillProperties=FALSE;
+
 
 
 		/* JAS - if not collision, and render_geom is not set, no need to go further */
@@ -1923,6 +1928,16 @@ Billboard => (join '','
                 if (!lightingOn) {
                         glEnable (GL_LIGHTING);
                 }
+
+		/* any line properties to reset? */
+		if (global_lineProperties) {
+			glDisable (GL_POLYGON_STIPPLE);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		if (global_fillProperties) {
+			glDisable (GL_LINE_STIPPLE);
+			glLineWidth(1.0);
+		}
 
 		if (have_texture) glPopAttrib(); 
 	',

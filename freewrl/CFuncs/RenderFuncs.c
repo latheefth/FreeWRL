@@ -92,6 +92,9 @@ int	have_transparency;	/* did this Shape have transparent material? */
 void *	this_textureTransform;  /* do we have some kind of textureTransform? */
 int	lightingOn;		/* do we need to restore lighting in Shape? */
 int	have_texture;		/* do we have a texture (And thus a push?) */
+int	global_lineProperties;	/* line properties -width, etc			*/
+int	global_fillProperties;	/* polygon fill properties - hatching, etc	*/
+
 
 int smooth_normals = -1; /* -1 means, uninitialized */
 

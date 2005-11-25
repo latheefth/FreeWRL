@@ -1606,6 +1606,10 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 
 	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
 	if (texC == NULL) {
+		#ifdef TEXVERBOSE
+		printf ("textureDraw_start, using passed in genTex\n");
+		#endif
+
 		for (c=0; c<texture_count; c++) {
 			/* are we ok with this texture yet? */
 			if (isloaded[bound_textures[c]] == LOADED) {
@@ -1613,7 +1617,6 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 				glActiveTexture(GL_TEXTURE0+c);
 				glClientActiveTexture(GL_TEXTURE0+c);
 	        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-	
 				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 				glTexCoordPointer (2,GL_FLOAT,0,genTex);
 				glEnableClientState (GL_TEXTURE_COORD_ARRAY);
@@ -1728,15 +1731,18 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 void textureDraw_end(void) {
 	int c;
 
+	#ifdef TEXVERBOSE
+	printf ("start of textureDraw_end\n");
+	#endif
 	for (c=0; c<texture_count; c++) {
 		glClientActiveTexture(GL_TEXTURE0+c);
+	        if (this_textureTransform) end_textureTransform(this_textureTransform,c);
 		glDisable(GL_TEXTURE_2D);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
         glMatrixMode(GL_MODELVIEW);
 }
-
 
 /* verify the TextureCoordinateGenerator node - if the params are ok, then the internal
    __compiledmode is NOT zero. If there are problems, the __compiledmode IS zero */

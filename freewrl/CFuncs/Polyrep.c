@@ -820,17 +820,22 @@ printf ("\n\nrender_polyrep:\n");
 	}
 */
 
-/*
-printf ("exiting...\n"); exit(0); 
-*/
-
 	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
 	if (r->color) {
 		glDisable(GL_COLOR_MATERIAL);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
-	if (r->GeneratedTexCoords) textureDraw_end();
+	if (r->GeneratedTexCoords) {
+			textureDraw_end();
+	} else {
+		IFSNodePtr = (struct VRML_IndexedFaceSet *)node;
+		/* printf ("no textures - is this the status bar? %d\n",IFSNodePtr->_nodeType); */
+		if (IFSNodePtr->_nodeType != NODE_Statusbar) {
+			textureDraw_end();
+		}
+	}
+
 
 	if (!r->ccw) glFrontFace(GL_CCW);
 

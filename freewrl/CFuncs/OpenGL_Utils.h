@@ -34,6 +34,7 @@
 #include "headers.h"
 
 void start_textureTransform (void *textureNode, int ttnum);
+void end_textureTransform (void *textureNode, int ttnum);
 
 int
 get_now_mapped(void);

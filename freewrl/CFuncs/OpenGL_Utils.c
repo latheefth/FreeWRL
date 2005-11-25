@@ -39,9 +39,9 @@ void start_textureTransform (void *textureNode, int ttnum) {
 	/* first, is this a textureTransform, or a MultiTextureTransform? */
 	ttt = (struct VRML_TextureTransform *) textureNode;
 
-	/* stuff common to all textureTransforms - gets undone at finish_textureTransform */
-       	glEnable(GL_TEXTURE_2D);
+	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
 	glMatrixMode(GL_TEXTURE);
+       	glEnable(GL_TEXTURE_2D);
 	glLoadIdentity();
 
 	/* is this a simple TextureTransform? */
@@ -77,8 +77,15 @@ void start_textureTransform (void *textureNode, int ttnum) {
 	} else {
 		printf ("expected a textureTransform node, got %d\n",ttt->_nodeType);
 	}
+	glMatrixMode(GL_MODELVIEW);
 }
 
+/* did we have a TextureTransform in the Appearance node? */
+void end_textureTransform (void *textureNode, int ttnum) {
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+}
 
 /* keep track of lighting */
 void lightState(GLint light, int status) {
