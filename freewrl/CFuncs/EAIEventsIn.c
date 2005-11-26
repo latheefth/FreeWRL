@@ -73,6 +73,8 @@ void *Multi_Struct_memptr (int type, void *memptr) {
 		case MFCOLOR: 
 		case MFVEC3F: 
 		case MFROTATION: 
+		case MFFLOAT:
+		case MFINT32:
 			mp = (struct Multi_Vec3f*) memptr;
 			memptr = mp->p;
 
@@ -230,7 +232,8 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			while (*buf<=' ') buf++;
 
 			/* scan in number */
-			sscanf (buf,"%f",fp);
+			if ((type==MFINT32) || (type=MFNODE)) sscanf (buf,"%d",fp);
+			else sscanf (buf,"%f",fp);
 
 			/* go to next number */
 			while (*buf >' ') buf++;
