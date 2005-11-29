@@ -1,2 +1,2 @@
-freewrl 1.wrl --eai &
-java  EAIExample
+freewrl root.wrl --eai &
+java  EAIAddRemove

@@ -18,7 +18,7 @@ public  class EAIinThread implements Runnable {
 	Applet		FreeWLRSceneInterface;
 	Browser		mybrowser;
 
-	boolean debug = true;
+	boolean debug = false;
 
 	// The following are used to send from the event thread to the
 	// browser thread. The event thread gets stuff from the EAI port

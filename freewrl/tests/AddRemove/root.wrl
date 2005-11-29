@@ -3,4 +3,4 @@
 DEF Camera Viewpoint {
     position 0 0 7
 }
-DEF ROOT Group {}
+DEF ROOTNODE Group {}
