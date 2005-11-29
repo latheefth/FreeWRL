@@ -11,6 +11,8 @@ For 1.16:
 		- TextureBackground node.
 		- LoadSensor node. (has problems with Scripts)
 
+	- EAI work - work on EventInMF* nodes, and on the get* nodes in Browser.java
+
 
 
 For 1.15:

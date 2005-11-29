@@ -526,6 +526,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 		}
 
 		case MFINT32: {
+			numPerRow=1;
 			/* malloc the main pointer */
 			memptr = malloc (sizeof (struct Multi_Int32));
 			if (memptr == NULL) {
@@ -543,7 +544,6 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 				printf ("EAI_Extra_Memory: Help! Multi without being ref\n");
 			}
 
-
 			/* printf ("sv_dump on data %x is:\n",data); sv_dump(data);  */
 
                         aM = (AV *) SvRV(data);
@@ -551,7 +551,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 			/* printf ("sv_dump on aM data %x is:\n",aM); sv_dump(aM);  */
 
-			/* printf ("This MFColor has (lM is) %d\n",lM); */
+			/* printf ("This MFInt32 has (lM is) %d\n",lM);  */
                         /* XXX Free previous p */
                         (*MCptr).n = lM;
                         (*MCptr).p = (struct SFInt32 *)malloc(lM * numPerRow * sizeof(*((*MCptr).p)));

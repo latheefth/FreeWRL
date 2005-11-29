@@ -31,7 +31,6 @@ void EAI_RW(char *bufptr);
 #define	GETURL		'O'
 #define	REPLACEWORLD	'P'
 #define	LOADURL		'Q'
-#define	SETDESCRIPT	'R'
 #define CREATEVS	'S'
 #define	CREATEVU	'T'
 #define	STOPFREEWRL	'U'

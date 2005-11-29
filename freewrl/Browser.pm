@@ -64,7 +64,6 @@ sub new {
 			$pars->{Parent},
 			$pars->{ScreenDist},
 			@{$pars->{BackEnd} or []}),
-		Description => "",
 		EV => new VRML::EventMachine(),
 		Scene => undef,
 		URL => undef,
@@ -205,15 +204,6 @@ sub getBindables {
 		return ();
 	}
 }
-
-
-# The routines below implement the browser object interface.
-
-sub setDescription {
-	my ($this, $desc) = @_;
-	$this->{Description} = $desc;
-	print "Set description: $desc\n"; ## may do more later
-} # Read the spec: 4.12.10.8 ;)
 
 #createVrml common stuff
 sub create_common {

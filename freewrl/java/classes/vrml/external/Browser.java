@@ -365,8 +365,10 @@ public class Browser implements BrowserInterface, IBrowser
     // Set the description of the current world in a browser-specific
     // manner. To clear the description, pass an empty string as argument
     public void          setDescription(String description) {
-      System.out.println ("EAI: setDescription Not Implemented");
-
+      //System.out.println ("EAI: setDescription Not Implemented");
+	// this does nothing - FreeWRL does not display the description field,
+	// nor is there any way to get the description back again, so we
+	// just call it quits and return.
       return;
     }
 

@@ -232,16 +232,17 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			while (*buf<=' ') buf++;
 
 			/* scan in number */
-			if ((type==MFINT32) || (type=MFNODE)) sscanf (buf,"%d",fp);
-			else sscanf (buf,"%f",fp);
+			if ((type==MFINT32) || (type==MFNODE)) {
+				sscanf (buf,"%d",ip);
+			} else { 
+				sscanf (buf,"%f",fp);
+			}
 
 			/* go to next number */
 			while (*buf >' ') buf++;
-			fp ++;
+			fp ++; ip++;
 		}
 			
-
-
 		  /* now, copy over the data to the memory pointer passed in */
 		  if(NULL != tmpbuf) memcpy (memptr,tmpbuf,len);
 		  else perror("ScanValtoBuffer: tmpbuf NULL!");
@@ -618,7 +619,6 @@ void EAI_parse_commands (char *bufptr) {
 				break;
 			}
 
-/*XXXX			case SETDESCRIPT:*/
 		  	case STOPFREEWRL: {
 				#ifdef EAIVERBOSE 
 				printf ("Shutting down Freewrl\n");
