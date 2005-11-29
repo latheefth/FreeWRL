@@ -1154,6 +1154,50 @@ my $protono;
 
 	###################################################################################
 
+	Arc2D => new VRML::NodeType("Arc2D", {
+					    	endAngle => [SFFloat, 1.5707, field],
+					    	radius => [SFFloat, 1.0, field],
+					    	startAngle => [SFFloat, 0.0, field],
+ 					   }),
+
+	ArcClose2D => new VRML::NodeType("ArcClose2D", {
+						closureType => [SFString,"PIE",field],
+					    	endAngle => [SFFloat, 1.5707, field],
+					    	radius => [SFFloat, 1.0, field],
+						solid => [SFBool, 0, field],
+					    	startAngle => [SFFloat, 0.0, field],
+ 					   }),
+
+
+	Circle2D => new VRML::NodeType("Circle2D", {
+					    	radius => [SFFloat, 1.0, field],
+ 					   }),
+
+	Disk2D => new VRML::NodeType("Disk2D", {
+					    	innerRadius => [SFFloat, 0.0, field],
+					    	outerRadius => [SFFloat, 1.0, field],
+						solid => [SFBool, 0, field],
+ 					   }),
+
+	Polyline2D => new VRML::NodeType("Polyline2D", {
+					    	lineSegments => [MFVec2f, [], field],
+ 					   }),
+
+	Polypoint2D => new VRML::NodeType("Polypoint2D", {
+					    	point => [MFVec2f, [], exposedField],
+ 					   }),
+
+	Rectangle2D => new VRML::NodeType("Rectangle2D", {
+					    	size => [SFVec2f, [2.0, 2.0], field],
+						solid => [SFBool, 0, field],
+ 					   }),
+
+
+	TriangleSet2D => new VRML::NodeType("TriangleSet2D", {
+					    	vertices => [MFVec2f, [], exposedField],
+						solid => [SFBool, 0, field],
+ 					   }),
+
 	###################################################################################
 
 	#		Text Component
