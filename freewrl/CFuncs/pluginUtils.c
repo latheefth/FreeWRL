@@ -323,22 +323,8 @@ int checkIfX3DVRMLFile(char *fn) {
 
 void Anchor_ReplaceWorld (char *filename) {
 	int tmp;
-	struct VRML_Group *rn;
-	struct Multi_Node *par;
 
-	rn = (struct VRML_Group *) rootNode;
-	par = &(rn->children);
-
-	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
-	par->n = 1;
-
-	/* tell statusbar that we have none */
-	viewer_default();
-	viewpoint_name_status("NONE");
-
-	/* reset OpenGL positioning */
-
-	/* set the initial viewpoint to 0,0,0... */
+	kill_oldWorld();
 
 	perlParse(FROMURL, filename,TRUE,FALSE,
 		rootNode, offsetof (struct VRML_Group, children),&tmp,

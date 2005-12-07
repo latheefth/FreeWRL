@@ -88,8 +88,6 @@ int EAIwanted = FALSE;                       /* do we want EAI?*/
 /*
 void EAI_parse_commands (char *stptr);
 void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
-void EAI_RW(char *str);
-void EAI_RNewW(char *);
 extern void Next_ViewPoint();
 extern void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len);
 */

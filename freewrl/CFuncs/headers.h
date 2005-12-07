@@ -514,7 +514,6 @@ extern void setKeyString(char *str);
 extern void setNoCollision();
 extern void setSnapGif();
 extern void setLineWidth(float lwidth);
-extern void closeFreewrl();
 extern void setSeqFile(char* file);
 extern void setSnapFile(char* file);
 extern void setMaxImages(int max);
@@ -555,7 +554,7 @@ void collisionChild(struct VRML_Collision *this_);
 
 extern int render_sensitive,render_vp,render_light,render_proximity,curlight,verbose,render_blend,render_geom,render_collision;
 
-
+extern void XEventStereo();
 
 
 /* Java CLASS invocation */
@@ -614,6 +613,11 @@ void outOfMemory(char *message);
 void initializeScript(int num,int evIn);
 
 void killErrantChildren(void);
+
+void kill_routing(void);
+void kill_bindables(void);
+void kill_javascript(void);
+void kill_oldWorld(void);
 
 
 #endif /* __HEADERS_H__ */

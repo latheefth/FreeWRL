@@ -30,7 +30,6 @@ our @EXPORT = qw{
 				 initialize,
 				 sendeventsproc,
 				 sendevent,
-				 cleanup
 			 };
 
 bootstrap VRML::JS $VERSION;
@@ -59,8 +58,6 @@ sub new {
 	print "VRML::JS::new: num $number $this $this->{Node}{TypeName} ",
 		VRML::NodeIntern::dump_name($node),
 				"\n$text\n" if $VRML::verbose::js;
-	${$this->{Browser}}{JSCleanup} = \&{cleanup};
-
 	$this->{ScriptNum} = $number;  # we go by this script number
 	VRML::VRMLFunc::jsinit($number,$this);
 	if (!VRML::VRMLFunc::jsrunScript($number, $text, $rs, $rval)) {
@@ -323,13 +320,7 @@ sub constrString {
 
 sub cleanupDie {
 	my ($this, $msg) = @_;
-	cleanup();
 	die($msg);
-}
-
-sub cleanup {
-	my ($this) = @_;
-	VRML::VRMLFunc::jscleanup($this->{ScriptNum});
 }
 
 sub sendeventsproc {

@@ -606,6 +606,7 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
+#ifdef OLDEAICODE
 
 			case REREADWRL: {
 
@@ -618,6 +619,7 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 			}
+#endif
 
 		  	case STOPFREEWRL: {
 				#ifdef EAIVERBOSE 
@@ -877,7 +879,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 }
 
 
-
+#ifdef OLDEAICODE
 /* ========================================================================== */
 /* AD */
 
@@ -924,40 +926,25 @@ void EAI_RNewW(char *bufptr) {
 	#endif
 
 }
+#endif
 
 /* ========================================================================== */
 
+
+
+
 /* EAI, replaceWorld. */
 void EAI_RW(char *str) {
-
-	int oldlen;
 	char *newNode;
-	struct VRML_Group *rn;
-	struct Multi_Node *par;
+	int i;
 	char *tmp;
 
-	int i;
+	/* clean the slate! */
+	kill_oldWorld();
 
-	rn = (struct VRML_Group *) rootNode;
-	par = &(rn->children);
+
 	tmp = (char *) rootNode;
 	tmp += offsetof (struct VRML_Group, children);
-
-	#ifdef EAIVERBOSE 
-	printf ("EAIRW, rootNode is %d\n",rootNode);
-	#endif
-
-
-	/* oldlen = what was there in the first place */
-	oldlen = par->n;
-
-	#ifdef EAIVERBOSE 
-	printf ("oldRoot has %d nodes\n",oldlen);
-	#endif
-
-
-	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
-	par->n = 1;
 
 	/* go through the string, and send the nodes into the rootnode */
 	/* first, remove the command, and get to the beginning of node */

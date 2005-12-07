@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.192  2005/12/07 22:04:44  crc_canada
+# replaceWorld functionality being added.
+#
 # Revision 1.191  2005/11/17 18:51:45  crc_canada
 # revisit bindable nodes; add beginnings of TextureBackground
 #
@@ -1408,12 +1411,6 @@ jsinit(num, sv_js)
 	SV *sv_js
 CODE:
 	JSInit(num,sv_js);
-
-void
-jscleanup(num)
-	int num
-CODE:
-	JScleanup(num);
 
 int
 jsrunScript(num, script, rstr, rnum)

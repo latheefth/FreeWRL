@@ -1139,32 +1139,6 @@ void setSnapFile(char* file) {
         printf("snapsnapB is %s\n", snapsnapB);
 }
 
-void closeFreewrl() {
-        struct Multi_Node* tn;
-        struct VRML_Group* rn;
-        int i;
-        /* kill any remaining children */
-        /* printf ("doQuit - calling exit(0)\n"); */
-        rn = (struct VRML_Group*) rootNode;
-        tn =  &(rn->children);
-        tn->n = 0;
-        quitThread = 1;
-        if (fognodes) free (fognodes);
-        if (backgroundnodes) free (backgroundnodes);
-        if (navnodes) free (navnodes);
-        if (viewpointnodes) free (viewpointnodes);
-        fognodes = NULL;
-        backgroundnodes = NULL;
-        navnodes = NULL;
-        viewpointnodes = NULL;
-        totviewpointnodes = 0;
-        totfognodes = 0;
-        totnavnodes = 0;
-        totbacknodes = 0;
-        viewer_initialized = FALSE;
-        set_viewer_type (EXAMINE);
-}
-
 void setMaxImages(int max) {
         if (max <=0)
                 max = 100;
@@ -1190,19 +1164,16 @@ void outOfMemory(char *msg) {
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
-#ifndef AQUA
-	char mystring[20];
+	kill_oldWorld();
 
-	/* printf ("doQuit - got the quit signal in thread %d\n",pthread_self()); */
-	sprintf (mystring, "QUIT");
-	Sound_toserver(mystring);
+	/* set geometry to normal size from fullscreen */
+	#ifndef AQUA
 	resetGeometry();
-	if (wantEAI) shutdown_EAI();
-#endif
+	#endif
 
 	/* kill any remaining children */
 	killErrantChildren();
-	/* printf ("doQuit - calling exit(0)\n"); */
+
 	exit(0);
 }
 

@@ -56,6 +56,8 @@ int _fw_pipe = 0;
 unsigned _fw_instance;
 #endif
 
+#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
+
 /* for communicating with Netscape */
 /* in headers.h extern int _fw_pipe, _fw_FD; */
 extern unsigned _fw_instance;
@@ -127,7 +129,6 @@ void __pt_EAI_GetViewpoint (void);
 void __pt_EAI_GetType (void);
 void __pt_EAI_GetTypeName (void);
 void __pt_EAI_GetValue (void);
-/* JAS void __pt_EAI_replaceWorld (void);*/
 void __pt_EAI_Route (void);
 void EAI_readNewWorld(char *inputstring);
 
@@ -184,9 +185,6 @@ int isPerlParsing() {return(PerlParsing);}
 
 /* is the initial URL loaded? Robert Sim */
 int isURLLoaded() {return(URLLoaded&&!PerlParsing);}
-
-/* Added M. Ward Dec 8/04*/
-extern void XEventStereo();
 
 /*
  * Check to see if the file name is a local file, or a network file.
@@ -896,12 +894,6 @@ void _perlThread(void *perlpath) {
 			break;
 			}
 
-/* JAS		case EAIREPWORLD: {*/
-			/* EAI sending in a new world */
-/* JAS			__pt_EAI_replaceWorld();*/
-/* JAS			break;*/
-/* JAS			}*/
-
 		default: {
 			printf ("produceTask - invalid type!\n");
 			}
@@ -958,6 +950,21 @@ void addToNode (void *rc, void *newNode) {
 	free (tmp);
 }
 
+
+/* for ReplaceWorld (or, just, on start up) forget about previous bindables */
+
+void kill_bindables (void) {
+	totfognodes=0;
+	totbacknodes=0;
+	totnavnodes=0;
+	totviewpointnodes=0;
+	currboundvpno=0;
+	FREE_IF_NZ(fognodes);
+	FREE_IF_NZ(backgroundnodes);
+	FREE_IF_NZ(navnodes);
+	FREE_IF_NZ(viewpointnodes);
+}
+
 /* get all of the bindables from the Perl side. */
 void getAllBindables() {
 	unsigned long int aretarr[1000];
@@ -966,12 +973,7 @@ void getAllBindables() {
 	unsigned long int dretarr[1000];
 
 	/* first, free any previous nodes */
-	if (fognodes) free (fognodes);
-	if (backgroundnodes) free (backgroundnodes);
-	if (navnodes) free (navnodes);
-	if (viewpointnodes) free (viewpointnodes);
-	fognodes=NULL; backgroundnodes=NULL;
-	navnodes=NULL; viewpointnodes=NULL;
+	kill_bindables();
 
 	/* now, get the values */
 	totviewpointnodes = __pt_getBindables("Viewpoint",aretarr);
@@ -1501,24 +1503,3 @@ void __pt_EAI_GetTypeName (){
 	FREETMPS;
 	LEAVE;
 }
-
-/*
-void __pt_EAI_replaceWorld () {
-	int count;
-
-	printf ("ProdCon, _pt_EAI_replaceWorld, fieldname %s\n",psp.fieldname);
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSVpv(psp.fieldname, 0)));
-	PUTBACK;
-		count = call_pv("VRML::Browser::EAI_replaceWorld", G_ARRAY);
-	SPAGAIN ;
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-}
-*/
-
-/****************************** END OF EAI **********************************/

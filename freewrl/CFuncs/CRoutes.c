@@ -3150,3 +3150,22 @@ void do_first() {
 	/* now, propagate these events */
 	propagate_events();
 }
+
+
+/*******************************************************************
+
+kill_routing()
+
+Stop routing, remove structure. Used for ReplaceWorld style calls.
+
+********************************************************************/
+
+void kill_routing (void) {
+        if (CRoutes_Initiated) {
+                CRoutes_Count = 0;
+                CRoutes_MAX = 0;
+                free (CRoutes);
+                CRoutes_Initiated = FALSE;
+        }
+}
+

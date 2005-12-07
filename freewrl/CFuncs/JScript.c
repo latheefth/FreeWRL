@@ -95,30 +95,12 @@ int JSMaxScript = 0;
 char *DefaultScriptMethods = "function initialize() {}; function shutdown() {}; function eventsProcessed() {}; TRUE=true; FALSE=false; function print(x) {Browser.print(x)} ";
 
 /* housekeeping routines */
-void JScleanup(int num);
-void JScleanup (int num) {
-	UNUSED(num);
-	/* VRML::VRMLFunc::cleanupJS($this->{ScriptNum});*/
-/* 	BrowserNative *brow = br;*/
-/* 	JSContext *_context = cx;*/
-/* */
-/* 	if (brow) {*/
-/* 		printf("\tfree browser internals!!!\n");*/
-/* 		JS_free(_context, brow);*/
-/* 		printf("\tbrowser internals freed!!!\n");*/
-/* 	}*/
-/* */
-/* 	 JS_DestroyContext(_context); */
-/* 	 printf("\tJS _context destroyed!!!\n"); */
-/* */
-/* 	JS_DestroyRuntime(runtime);*/
- /*    JS_ShutDown();*/
-
+void kill_javascript(void) {
 }
 
 
 void cleanupDie(int num, char *msg) {
-	JScleanup(num);
+	kill_javascript();
 	freewrlDie(msg);
 }
 
