@@ -706,16 +706,15 @@ my $protono;
 						children => [MFNode, [], exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
-						 __isProto => [SFInt32, 0, field],
+						 __isProto => [SFInt32, 0, field], # tell renderer that this is a proto...
 					   }),
 
 	StaticGroup => new VRML::NodeType("StaticGroup", {
 						children => [MFNode, [], exposedField],
 						bboxCenter => [SFVec3f, [0, 0, 0], field],
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
-						 __isProto => [SFInt32, 0, field],
-						 __transparency => [SFInt32, -1, field],
-						 __solid => [SFInt32, -1, field],
+						 __transparency => [SFInt32, -1, field], # display list for transparencies
+						 __solid => [SFInt32, -1, field],	 # display list for solid geoms.
 					   }),
 
 	Switch => new VRML::NodeType("Switch", {

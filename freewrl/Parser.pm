@@ -198,7 +198,9 @@ sub parse_proto {
 		if(defined $n) {push @a, $n}
 	}
 	#print "parse_proto, setting topnodes for ",VRML::NodeIntern::dump_name($pro),"\n";
-	$pro->topnodes(\@a);
+	
+	# make the top nodes be encased within a group; this helps with displaying only first child...
+	$pro->prototopnodes(\@a);
 }
 
 sub parse_externproto {
@@ -263,7 +265,7 @@ sub parse_interfacedecl {
 					push @{$f{$n}}, $scene->new_is($1, $n);
 				} else {
 					push @{$f{$n}},
-					  "VRML::Field::$t"->parse($scene,$_[3]);
+					  "VRML::Field::$t"->parse($scene,$_[3],"protoTop");
 				}
 			}
 		} elsif($script && $_[3] =~ /\G\s*(url|directOutput|mustEvaluate)\b/gsc) {

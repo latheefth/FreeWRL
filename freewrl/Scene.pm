@@ -98,7 +98,7 @@ sub dump {
 		print "\n";
 	}
 
-	# this was Nodes, but RootNode should contain all.
+	# this was Nodes, but if a PROTO, RootNode should contain all.
 	if (defined $this->{RootNode}) {
 		print "\n$padded(RootNode of ",VRML::NodeIntern::dump_name($this),")\n";
  		$this->{RootNode}->dump($level+1);
@@ -329,7 +329,7 @@ sub newextp {
 
 
     # XXX marijn: code copied from Parser::parse_proto
-    $this->topnodes(\@node);
+    $this->prototopnodes(\@node);
 
     # marijn: copy defaults from PROTO
 	$this->{Defaults} = {
@@ -532,15 +532,26 @@ sub new_externproto {
 	return $p;
 }
 
-sub topnodes {
+
+# prototopnodes - do a topnode, but put ALL proto children within a Group{} construct
+# to help with displaying geometry of only first child.
+
+sub prototopnodes {
 	my ($this, $nodes) = @_;
 
 	$this->{RootNode} = $this->new_node("Group",{children => $nodes});
 
 	#JAS - had trouble with protos as topnodes in 1.07; just simplify
 	#JAS   that by making all in a group.
-	#JAS - was $this->{Nodes} = $nodes;
+	#JAS - 1.16.2 changed this to 2 subs; prototopnodes and topnodes.
 	push (@{$this->{Nodes}},$this->{RootNode});
+}
+
+# topnodes for non-PROTO Scenes.
+sub topnodes {
+	my ($this, $nodes) = @_;
+	$this->{Nodes} = $nodes;
+
 }
 
 sub get_proto {
@@ -979,13 +990,8 @@ sub make_backend {
 
 		# tell the renderer that this is a PROTO - only first child is visible on screen 
 		$this->{Nodes}[0]->{Fields}{__isProto} = 1;
-
-		# make the backend...
-		$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
-	} else {
-		# this is not a proto; just do a regular make backend...
-		$bn = $this->{RootNode}->make_backend($be, $parentbe);
 	}
+	$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
 	$this->{BackNode} = $bn;
 	return $bn;
 }

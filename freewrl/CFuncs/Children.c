@@ -182,19 +182,13 @@ void staticGroupingChild (struct VRML_StaticGroup *this_) {
 
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((((this_->__isProto) == 0) && (nc > 2)  && render_blend)) sortChildren(this_->children);
+	if ((nc > 2)  && render_blend) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
 
 	/* now, just render the non-directionalLight children */
-	if ((this_->__isProto == 1) && render_geom) {
-		(this_->children).n = 1;
-		normalChildren(this_->children);
-		(this_->children).n = nc;
-	} else {
-		normalChildren(this_->children);
-	}
+	normalChildren(this_->children);
 
 
 	/* BoundingBox/Frustum stuff */
