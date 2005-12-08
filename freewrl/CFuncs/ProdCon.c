@@ -623,6 +623,34 @@ void EAI_Route(char cmnd, char *fn) {
 	UNLOCK;
 }
 
+/* interface for telling the Perl side to forget about everything...  */
+void EAI_killBindables (void) {
+	int complete;
+
+	WAIT_WHILE_PERL_BUSY;
+	complete=0;
+	psp.comp = &complete;
+	psp.type = ZEROBINDABLES;
+	psp.retarr = NULL;
+	psp.ofs = NULL;
+	psp.ptr = NULL;
+	psp.path = NULL;
+	psp.zeroBind = FALSE;
+	psp.bind = FALSE; /* should we issue a set_bind? */
+	psp.inp = NULL;
+	psp.fieldname = NULL;
+
+	/* send data to Perl Interpreter */
+	SEND_TO_PERL;
+	UNLOCK;
+
+	/* wait for data */
+	WAIT_WHILE_PERL_BUSY;
+
+	/* grab data */
+	UNLOCK;
+}
+
 /* interface for creating VRML for EAI */
 int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize) {
 	int complete;
@@ -833,7 +861,7 @@ void _perlThread(void *perlpath) {
 			EAIGETTYPE	EAI getType
 			EAIGETVALUE	EAI getValue - in a string.
 			EAIROUTE	EAI add/delete route
-			EAIREPWORLD     EAI replace world */
+			ZEROBINDABLES	tell the front end to just forget about DEFS, etc */
 
 		if (psp.type == INLINE) {
 		/* is this a INLINE? If it is, try to load one of the URLs. */
@@ -894,6 +922,8 @@ void _perlThread(void *perlpath) {
 			break;
 			}
 
+		case ZEROBINDABLES: __pt_zeroBindables(); break;
+
 		default: {
 			printf ("produceTask - invalid type!\n");
 			}
@@ -950,6 +980,10 @@ void addToNode (void *rc, void *newNode) {
 	free (tmp);
 }
 
+/* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
+void kill_DEFS (void) {
+	__pt_zeroBindables();
+}
 
 /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
 

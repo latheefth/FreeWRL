@@ -343,6 +343,7 @@ void cleanupDie(int num, char *msg);
 void shutdown_EAI(void);
 unsigned int EAI_GetNode(char *str);
 unsigned int EAI_GetViewpoint(char *str);
+void EAI_killBindables (void);
 void EAI_GetType (unsigned int uretval,
         char *ctmp, char *dtmp,
         int *ra, int *rb,
@@ -413,7 +414,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
 #define CALLMETHODVA    5   /* Javascript... 	*/
 #define EAIGETNODE      6   /* EAI getNode      	*/
 #define EAIGETTYPE	7   /* EAI getType	*/
-#define EAIREPWORLD     8   /* EAI replace world */
+#define ZEROBINDABLES   8   /* get rid of Perl datastructures */
 #define EAIROUTE	9   /* EAI add/del route */
 #define EAIGETVALUE	10  /* get a value of a node */
 #define EAIGETTYPENAME	11  /* get the type name for a  node */
@@ -617,7 +618,7 @@ void killErrantChildren(void);
 void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
-void kill_oldWorld(void);
+void kill_oldWorld(int a, int b, int c);
 
 
 #endif /* __HEADERS_H__ */

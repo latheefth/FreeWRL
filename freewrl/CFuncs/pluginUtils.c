@@ -324,7 +324,7 @@ int checkIfX3DVRMLFile(char *fn) {
 void Anchor_ReplaceWorld (char *filename) {
 	int tmp;
 
-	kill_oldWorld();
+	kill_oldWorld(TRUE,TRUE,TRUE);
 
 	perlParse(FROMURL, filename,TRUE,FALSE,
 		rootNode, offsetof (struct VRML_Group, children),&tmp,

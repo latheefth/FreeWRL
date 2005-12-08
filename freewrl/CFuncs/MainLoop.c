@@ -1164,7 +1164,7 @@ void outOfMemory(char *msg) {
 
 /* quit key pressed, or Plugin sends SIGQUIT */
 void doQuit(void) {
-	kill_oldWorld();
+	kill_oldWorld(TRUE,TRUE,TRUE);
 
 	/* set geometry to normal size from fullscreen */
 	#ifndef AQUA

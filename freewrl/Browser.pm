@@ -156,6 +156,8 @@ my %fog=(); my $fogcount=0;
 sub zeroBindables {
 	%vpn=(); %bgd = (); %nav = (); %fog = ();
 	$vpcount=0; $bgcount=0; $navcount=0; $fogcount=0;
+	
+	VRML::Handles::deleteAllHandles();
 }
 
 # Save this node pointer so that the C backend can get it.
@@ -783,6 +785,13 @@ my $handles_debug = 0;
 my %S = ();
 my %DEFNAMES = ();
 my %EAINAMES = ();
+
+# on a replaceWorld call...
+sub deleteAllHandles {
+	%S=();
+	%DEFNAMES = ();
+	%EAINAMES = ();
+}
 
 # keep a list of DEFined names and their real names around. Because
 # a name can be used more than once, (eg, DEF MX ..... USE MX .... DEF MX

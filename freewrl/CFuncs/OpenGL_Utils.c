@@ -317,37 +317,56 @@ void kill_MFNode (struct Multi_Node *par) {
 }
 
 void kill_SFString (SV *str) {
+	/* ok - here we maybe could destroy strings with a SV_REFCNT_dec(str) call, but, it
+		would be better to get the Browser to destroy this string itself next time it
+		garbage collects (via perl) so lets just ignore this here for now */
+
 	printf ("kill this string \n");
+	if (SvOK(str)) {printf ("str is an SV refcnt %d\n",SvREFCNT(str)); } else {printf ("str is NOT an SV!\n");}
 }
 
 void kill_MFString (struct Multi_String *par) {
-	printf ("kill this Multistring\n");
+	int i;
+	for (i=0; i<par->n; i++) {
+		kill_SFString(par->p[i]);
+	}
 }
 
 void kill_MFFloat (struct Multi_Float *par) {
-	printf ("kill this Multistring\n");
+	FREE_IF_NZ(par->p);
+}
+
+void kill_MFRotation (struct Multi_Rotation *par) {
+	FREE_IF_NZ(par->p);
+}
+
+void kill_MFVec2f (struct Multi_Vec2f *par) {
+	FREE_IF_NZ(par->p);
 }
 
 void kill_MFInt32 (struct Multi_Int32 *par) {
-	printf ("kill this Multistring\n");
+	FREE_IF_NZ(par->p);
 }
 
 void kill_MFColorRGBA (struct Multi_ColorRGBA *par) {
-	printf ("kill this color\n");
+	FREE_IF_NZ(par->p);
 }
 
 void kill_MFColor (struct Multi_Color *par) {
-	printf ("kill this color\n");
+	FREE_IF_NZ(par->p);
 }
 
 void kill_MFVec3f (struct Multi_Vec3f *par) {
-	printf ("kill this color\n");
+	FREE_IF_NZ(par->p);
 }
 
 void kill_FreeWRLPTR (void * par) {
-	printf ("kill this pointer\n");
+	FREE_IF_NZ(par);
 }
 
+void kill_texture (int *tn, int cnt) {
+	glDeleteTextures (cnt, (GLuint *)tn);
+}
 
 /* go through the nodes from the root, and remove all malloc'd memory */
 
@@ -460,6 +479,7 @@ void kill_rendering(void *thisnode) {
 
 			/* these are handled the same */
 			case NODE_IndexedFaceSet:
+			case NODE_ElevationGrid:
 			case NODE_TriangleSet:
 			case NODE_TriangleStripSet:
 			case NODE_TriangleFanSet:
@@ -526,7 +546,285 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 		/* Geometry 3D Component */
+			case NODE_Box: {
+				struct VRML_Box *thisNode;
+				thisNode = (struct VRML_Box *) thisnode;
+				kill_FreeWRLPTR(thisNode->__points);
+				break; }
 
+			case NODE_Cone: {
+				struct VRML_Cone *thisNode;
+				thisNode = (struct VRML_Cone *) thisnode;
+				kill_FreeWRLPTR(thisNode->__sidepoints);
+				kill_FreeWRLPTR(thisNode->__botpoints);
+				kill_FreeWRLPTR(thisNode->__normals);
+				break; }
+
+			case NODE_Cylinder: {
+				struct VRML_Cylinder *thisNode;
+				thisNode = (struct VRML_Cylinder *) thisnode;
+				kill_FreeWRLPTR(thisNode->__points);
+				kill_FreeWRLPTR(thisNode->__normals);
+				break; }
+
+			case NODE_Extrusion: {
+				struct VRML_Extrusion *thisNode;
+				thisNode = (struct VRML_Extrusion *) thisnode;
+				kill_MFVec2f (&thisNode->crossSection);
+				kill_MFRotation(&thisNode->orientation);
+				kill_MFVec2f (&thisNode->scale);
+				kill_MFVec3f (&thisNode->spine);
+				break; }
+
+			case NODE_Sphere: {
+				struct VRML_Sphere *thisNode;
+				thisNode = (struct VRML_Sphere *) thisnode;
+				kill_FreeWRLPTR(thisNode->__points);
+				break; }
+
+		/* Geometry 2D Component */
+
+
+		/* Text Component */
+
+			case NODE_Text: {
+				struct VRML_Text *thisNode;
+				thisNode = (struct VRML_Text *) thisnode;
+				kill_rendering(thisNode->fontStyle);
+				kill_MFString (&thisNode->string);
+				kill_MFFloat(&thisNode->length);
+				break; }
+
+			case NODE_FontStyle: break;
+
+		/* Sound Component */
+
+			case NODE_AudioClip: {
+				struct VRML_AudioClip *thisNode;
+				thisNode = (struct VRML_AudioClip *) thisnode;
+				kill_SFString (thisNode->description);
+				kill_MFString (&thisNode->url);
+				kill_SFString (thisNode->__parenturl);
+				kill_FreeWRLPTR(thisNode->__localFileName);
+				break; }
+
+			case NODE_Sound: break;
+
+		/* Lighting Component */
+
+			case NODE_DirectionalLight:
+			case NODE_PointLight:
+			case NODE_SpotLight: break;
+
+		/* Texturing Component */
+
+			case NODE_ImageTexture: {
+				struct VRML_ImageTexture *thisNode;
+				thisNode = (struct VRML_ImageTexture *) thisnode;
+				kill_MFString (&thisNode->url);
+				kill_SFString (thisNode->__parenturl);
+				kill_texture (&thisNode->__texture,1);
+				break; }
+
+			case NODE_MovieTexture: {
+				struct VRML_MovieTexture *thisNode;
+				thisNode = (struct VRML_MovieTexture *) thisnode;
+				kill_MFString (&thisNode->url);
+				kill_SFString (thisNode->__parenturl);
+				kill_texture (&thisNode->__texture0_,thisNode->__texture1_ -
+								thisNode->__texture0_);
+				kill_MFString (&thisNode->__oldurl);
+				break; }
+
+
+			case NODE_MultiTexture: {
+				struct VRML_MultiTexture *thisNode;
+				thisNode = (struct VRML_MultiTexture *) thisnode;
+				kill_MFString (&thisNode->function);
+				kill_MFString (&thisNode->mode);
+				kill_MFString (&thisNode->source);
+				kill_MFNode (&thisNode->texture);
+				break; }
+
+			case NODE_MultiTextureCoordinate: {
+				struct VRML_MultiTextureCoordinate *thisNode;
+				thisNode = (struct VRML_MultiTextureCoordinate *) thisnode;
+				kill_MFNode (&thisNode->texCoord);
+				break; }
+
+			case NODE_MultiTextureTransform: {
+				struct VRML_MultiTextureTransform *thisNode;
+				thisNode = (struct VRML_MultiTextureTransform *) thisnode;
+				kill_MFNode (&thisNode->textureTransform);
+				break; }
+
+			case NODE_PixelTexture: {
+				struct VRML_PixelTexture *thisNode;
+				thisNode = (struct VRML_PixelTexture *) thisnode;
+				kill_SFString (thisNode->image);
+				kill_SFString (thisNode->__parenturl);
+				kill_texture (&thisNode->__texture,1);
+				break; }
+
+			case NODE_TextureCoordinate: {
+				struct VRML_TextureCoordinate *thisNode;
+				thisNode = (struct VRML_TextureCoordinate *) thisnode;
+				kill_MFVec2f (&thisNode->point);
+				kill_MFVec2f (&thisNode->__compiledpoint);
+				break; }
+
+			case NODE_TextureCoordinateGenerator: {
+				struct VRML_TextureCoordinateGenerator *thisNode;
+				thisNode = (struct VRML_TextureCoordinateGenerator *) thisnode;
+				kill_MFFloat (&thisNode->parameter);
+				kill_SFString (thisNode->mode);
+				break; }
+
+			case NODE_TextureTransform: break;
+
+
+		/* Interpolation Component */
+
+			case NODE_ColorInterpolator: {
+				struct VRML_ColorInterpolator *thisNode;
+				thisNode = (struct VRML_ColorInterpolator *) thisnode;
+				kill_MFFloat(&thisNode->key);
+				kill_MFVec3f ((struct Multi_Vec3f *) &thisNode->keyValue);
+				break; }
+
+			case NODE_CoordinateInterpolator: /* same as NormalInterpolator */
+			case NODE_NormalInterpolator: {
+				struct VRML_CoordinateInterpolator *thisNode;
+				thisNode = (struct VRML_CoordinateInterpolator *) thisnode;
+				kill_MFFloat (&thisNode->key);
+				kill_MFVec3f (&thisNode->keyValue);
+				break; }
+
+			case NODE_PositionInterpolator: {
+				struct VRML_PositionInterpolator *thisNode;
+				thisNode = (struct VRML_PositionInterpolator *) thisnode;
+				kill_MFFloat(&thisNode->key);
+				kill_MFVec3f (&thisNode->keyValue);
+				break; }
+
+			case NODE_OrientationInterpolator: {
+				struct VRML_OrientationInterpolator *thisNode;
+				thisNode = (struct VRML_OrientationInterpolator *) thisnode;
+				kill_MFFloat(&thisNode->key);
+				kill_MFRotation (&thisNode->keyValue);
+				break; }
+
+
+			case NODE_ScalarInterpolator: {
+				struct VRML_ScalarInterpolator *thisNode;
+				thisNode = (struct VRML_ScalarInterpolator *) thisnode;
+				kill_MFFloat(&thisNode->key);
+				kill_MFFloat (&thisNode->keyValue);
+				break; }
+
+		/* Pointing Device Component */
+	
+			/* potential memory leak, if the Description field is not blank */
+			case NODE_TouchSensor: break;
+			case NODE_PlaneSensor: break;
+			case NODE_SphereSensor: break;
+			case NODE_CylinderSensor: break;
+
+		/* Key Device Component */
+
+		/* Environmental Sensor Component */
+
+			case NODE_ProximitySensor: break;
+			case NODE_VisibilitySensor: break;
+		
+		/* Navigation Component */
+
+			case NODE_LOD: {
+				struct VRML_LOD *thisNode;
+				thisNode = (struct VRML_LOD *) thisnode;
+				kill_MFNode (&thisNode->level);
+				kill_MFFloat(&thisNode->range);
+				break; }
+
+			case NODE_Billboard: {
+				struct VRML_Billboard *thisNode;
+				thisNode = (struct VRML_Billboard *) thisnode;
+				kill_MFNode (&thisNode->children);
+				break; }
+
+			case NODE_Collision: {
+				struct VRML_Collision *thisNode;
+				thisNode = (struct VRML_Collision *) thisnode;
+				kill_MFNode (&thisNode->children);
+				kill_rendering (thisNode->proxy);
+				break; }
+
+			case NODE_Viewpoint: break;  /* possible description memory leak */
+
+			case NODE_NavigationInfo: break; /* possible avatarSize, type, transitionType memory leak */
+
+		/* Environmental Effects Component */
+
+			case NODE_Fog: break;
+
+			case NODE_TextureBackground: {
+				struct VRML_TextureBackground *thisNode;
+				thisNode = (struct VRML_TextureBackground *) thisnode;
+				kill_MFFloat(&thisNode->groundAngle);
+				kill_MFVec3f((struct Multi_Vec3f *)&thisNode->groundColor);
+				kill_MFFloat(&thisNode->skyAngle);
+				kill_MFVec3f((struct Multi_Vec3f *)&thisNode->skyColor);
+				kill_SFString(thisNode->__parenturl);
+				kill_FreeWRLPTR(thisNode->__points);
+				kill_FreeWRLPTR(thisNode->__colours);
+				kill_rendering (thisNode->frontTexture);
+				kill_rendering (thisNode->backTexture);
+				kill_rendering (thisNode->topTexture);
+				kill_rendering (thisNode->bottomTexture);
+				kill_rendering (thisNode->leftTexture);
+				kill_rendering (thisNode->rightTexture);
+				kill_MFFloat (&thisNode->transparency);
+				break; }
+
+			case NODE_Background: {
+				struct VRML_Background *thisNode;
+				thisNode = (struct VRML_Background *) thisnode;
+				kill_MFFloat(&thisNode->groundAngle);
+				kill_MFVec3f((struct Multi_Vec3f *)&thisNode->groundColor);
+				kill_MFFloat(&thisNode->skyAngle);
+				kill_MFVec3f((struct Multi_Vec3f *)&thisNode->skyColor);
+				kill_SFString(thisNode->__parenturl);
+				kill_FreeWRLPTR(thisNode->__points);
+				kill_FreeWRLPTR(thisNode->__colours);
+				kill_texture (&thisNode->__texturefront,1);
+				kill_texture (&thisNode->__textureback,1);
+				kill_texture (&thisNode->__texturetop,1);
+				kill_texture (&thisNode->__texturebottom,1);
+				kill_texture (&thisNode->__textureleft,1);
+				kill_texture (&thisNode->__textureright,1);
+				kill_MFString(&thisNode->frontUrl);
+				kill_MFString(&thisNode->backUrl);
+				kill_MFString(&thisNode->topUrl);
+				kill_MFString(&thisNode->bottomUrl);
+				kill_MFString(&thisNode->leftUrl);
+				kill_MFString(&thisNode->rightUrl);
+				break; }
+
+
+		/* Geospatial Component */
+
+
+		/* H-Anim Component */
+
+		/* NURBS Component */
+
+		/* Scripting Component */
+			case NODE_Script: break; /* no data stored here -all in perl */
+
+		/* old VRML nodes */
+			case NODE_InlineLoadControl: break; /* memory leak, but out of date node */
+
+			
 
 		default: {
 			printf ("kill_rendering, unhandled node type %d - ",rn->_nodeType);
@@ -542,18 +840,15 @@ void kill_rendering(void *thisnode) {
 
 /* if we have a ReplaceWorld style command, we have to remove the old world. */
 
-void kill_oldWorld(void) {
+void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
         char mystring[20];
 
 
 	/* kill DEFS, handles */
-	printf ("have to kill DEFS\n");
+	EAI_killBindables();
 
 	/* stop routing */
 	kill_routing();
-
-	/* remove bindables */
-	kill_bindables();
 
 	/* stop rendering */
 	kill_rendering(rootNode);
@@ -566,9 +861,9 @@ void kill_oldWorld(void) {
 	kill_javascript();
 
 	/* free EAI */
-/*
-        if (wantEAI) shutdown_EAI();
-*/
+	if (kill_EAI) {
+        	shutdown_EAI();
+	}
 
 	/* free java Class invocation */
 

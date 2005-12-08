@@ -1941,16 +1941,6 @@ my $protono;
 
 	###################################################################################
 	# Internal structures, to store def and use in the right way
-	#DEF =>
-	#new VRML::NodeType("DEF",
-	#				   { node => [SFNode, NULL, exposedField] },
-	#				   id => [SFString, ""]
-	#				  ),
-	#USE =>
-	#new VRML::NodeType("USE",
-	#				   { node => [SFNode, NULL, exposedField] },
-	#				   id => [SFString, ""]
-	#				  ),
 
 	InlineLoadControl =>
 	new VRML::NodeType("InlineLoadControl",
