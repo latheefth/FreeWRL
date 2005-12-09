@@ -34,8 +34,8 @@ void EAI_RW(char *bufptr);
 #define CREATEVS	'S'
 #define	CREATEVU	'T'
 #define	STOPFREEWRL	'U'
-
 #define	NEXTVIEWPOINT	'V'
+#define UNREGLISTENER   'W'
 
 /* Subtypes - types of data to get from EAI  - we don't use the ones defined in
    headers.h, because we want ASCII characters */

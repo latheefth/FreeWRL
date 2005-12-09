@@ -667,6 +667,29 @@ public class Browser implements BrowserInterface, IBrowser
        }
     }
 
+  public static void unRegisterListener (EventOutObserver f,
+			String nodeptr, String offset, String datatype,  String datasize, int EventType)
+    {
+       synchronized (FreeWRLToken) {
+         	//System.out.println ("Registering " + queryno + " node: " + nodeptr + " offset:"
+		// + offset + " datatype:" + datatype +
+ 		//" datasize:" + datasize + "\n");
+
+         EAIoutSender.send ("" + queryno + "W " + nodeptr + " " + offset + " " + datatype +
+ 		" " + datasize + "\n");
+
+         //BrowserGlobals.EVarray [BrowserGlobals.EVno] =  queryno;
+         //BrowserGlobals.EVtype [BrowserGlobals.EVno] = EventType;
+         //BrowserGlobals.EVObject[BrowserGlobals.EVno] = userData;
+         //BrowserGlobals.EVObserver[BrowserGlobals.EVno] = f;
+
+         //BrowserGlobals.EVno += 1;
+
+         getVRMLreply(queryno);
+         queryno += 1;
+       }
+    }
+
     protected synchronized static String getVRMLreply (int queryno)
       {
 

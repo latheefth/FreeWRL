@@ -38,8 +38,8 @@ public class EventOut extends vrml.external.Node {
 
   // terminate notification on the passed EventOutObserver
   public void          unadvise(EventOutObserver f) {
-    System.out.println ("ERROR: Eventout.unadvise Not Implemented yet...");
 
+    Browser.unRegisterListener (f, nodeptr,offset,datatype , datasize, EventType);
   return;
   }
 }

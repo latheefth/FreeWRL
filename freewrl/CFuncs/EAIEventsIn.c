@@ -25,7 +25,6 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 #include "EAIheaders.h"
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
-
 /* used for loadURL */
 struct VRML_Anchor EAI_AnchorNode;
 SV *EAI_newSVpv(char *str);
@@ -577,6 +576,31 @@ void EAI_parse_commands (char *bufptr) {
 
 				/* set up the route from this variable to the handle_Listener routine */
 				CRoutes_Register  (1,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
+
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+				break;
+				}
+
+			case UNREGLISTENER: {
+				#ifdef EAIVERBOSE 
+				printf ("UNREGISTERLISTENER %s \n",bufptr);
+				#endif
+
+				/*143024848 88 8 e 6*/
+				sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
+				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
+				ctmp[1]=0;
+
+				/* printf ("UNREGISTERLISTENER from %d foffset %d fieldlen %d type %s \n",
+						ra, rb,rc,ctmp); */
+
+
+				/* put the address of the listener area in a string format for registering
+				   the route - the route propagation will copy data to here */
+				sprintf (EAIListenerArea,"%d:0",(int)&EAIListenerData);
+
+				/* set up the route from this variable to the handle_Listener routine */
+				CRoutes_Register  (0,(void *)ra,(int)rb, 1, EAIListenerArea, (int) rc,(void *) &handle_Listener, 0, (count<<8)+ctmp[0]); /* encode id and type here*/
 
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
