@@ -25,6 +25,12 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 #include "EAIheaders.h"
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
+
+/* used for loadURL */
+struct VRML_Anchor EAI_AnchorNode;
+SV *EAI_newSVpv(char *str);
+void createLoadURL(char *bufptr);
+
 /* get how many bytes in the type */
 int returnElementLength(int type) {
 	  switch (type) {
@@ -285,6 +291,8 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 			/* scan to start of element number*/
 
 			/* make the new SV */
+			/* can we use the EAI_newSVpv command below? */
+
 			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
 			(*newp)->sv_flags = SVt_PV | SVf_POK;
 			(*newp)->sv_refcnt=1;
@@ -601,7 +609,6 @@ void EAI_parse_commands (char *bufptr) {
 				#ifdef EAIVERBOSE 
 				printf ("Add/Delete route %s\n",bufptr);
 				#endif
-
 				EAI_Route ((char) command,bufptr);
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
@@ -639,6 +646,22 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 			    }
+
+			case LOADURL: {
+				#ifdef EAIVERBOSE
+				printf ("loadURL %s\n",bufptr);
+				#endif
+
+				createLoadURL(bufptr);
+
+				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+
+				/* now tell the EventLoop that BrowserAction is requested... */
+				AnchorsAnchor = &EAI_AnchorNode;
+				BrowserAction = TRUE;
+				break;
+				}
+
 			default: {
 				printf ("unhandled command :%c: %d\n",command,command);
 				strcat (buf, "unknown_EAI_command");
@@ -957,4 +980,88 @@ void EAI_RW(char *str) {
 		while (isdigit(*str)) str++;
 		while (isspace(*str)) str++;
 	}
+}
+
+
+void createLoadURL(char *bufptr) {
+	#define strbrk " :loadURLStringBreak:"
+	int count;
+	char newstring[2000];
+	int np;
+	char *spbrk;
+
+
+	/* fill in Anchor parameters */
+	EAI_AnchorNode.description = EAI_newSVpv("From EAI");
+
+	/* fill in length fields from string */
+	while (*bufptr==' ') bufptr++;
+	sscanf (bufptr,"%d",&EAI_AnchorNode.url.n);
+	while (*bufptr>' ') bufptr++;
+	while (*bufptr==' ') bufptr++;
+	sscanf (bufptr,"%d",&EAI_AnchorNode.parameter.n);
+	while (*bufptr>' ') bufptr++;
+	while (*bufptr==' ') bufptr++;
+
+	/* now, we should be at the strings. */
+	bufptr--;
+
+	/* malloc the sizes required */
+	if (EAI_AnchorNode.url.n > 0) EAI_AnchorNode.url.p = malloc(EAI_AnchorNode.url.n * sizeof (struct sv));
+	if (EAI_AnchorNode.parameter.n > 0) EAI_AnchorNode.parameter.p = malloc(EAI_AnchorNode.parameter.n * sizeof (struct sv));
+
+	for (count=0; count<EAI_AnchorNode.url.n; count++) {
+		bufptr += strlen(strbrk);
+		/* printf ("scanning, at :%s:\n",bufptr); */
+		
+		/* nullify the next "strbrk" */
+		spbrk = strstr(bufptr,strbrk);
+		if (spbrk!=NULL) *spbrk='\0';
+
+		EAI_AnchorNode.url.p[count] = EAI_newSVpv(bufptr);
+
+		if (spbrk!=NULL) bufptr = spbrk;
+	}
+	for (count=0; count<EAI_AnchorNode.parameter.n; count++) {
+		bufptr += strlen(strbrk);
+		/* printf ("scanning, at :%s:\n",bufptr); */
+		
+		/* nullify the next "strbrk" */
+		spbrk = strstr(bufptr,strbrk);
+		if (spbrk!=NULL) *spbrk='\0';
+
+		EAI_AnchorNode.parameter.p[count] = EAI_newSVpv(bufptr);
+
+		if (spbrk!=NULL) bufptr = spbrk;
+	}
+	EAI_AnchorNode.__parenturl = EAI_newSVpv("./");
+}
+
+
+
+/* mimic making newSVpv, but *not* using Perl, as this is a different thread */
+/* see Extending and Embedding Perl, Jenness, Cozens pg 75-77 */
+SV *EAI_newSVpv(char *str) {
+	SV *retval;
+	struct xpv *newpv;
+
+	#ifdef EAIVERBOSE
+	printf ("EAI_newSVpv for :%s:\n",str);
+	#endif
+
+	/* the returning SV is here. Make blank struct */
+	retval = malloc (sizeof (struct sv));
+	newpv = malloc (sizeof (struct xpv));
+
+	retval->sv_any = newpv;
+	retval->sv_refcnt = 1;
+	retval->sv_flags = SVt_PV | SVf_POK;
+
+	newpv->xpv_pv = malloc (strlen (str)+1);
+	strncpy(newpv->xpv_pv,str,strlen(str)+1);
+	newpv->xpv_cur = strlen(str);
+	newpv->xpv_len = strlen(str)+1;
+
+	return retval;
+
 }

@@ -2125,7 +2125,6 @@ Register a route in the routing table.
 
 ********************************************************************/
 
-
 void CRoutes_Register(
 		int adrem,
 		void *from,
@@ -2204,8 +2203,9 @@ void CRoutes_Register(
 	}
 
 	#ifdef CRVERBOSE  
-		printf ("CRoutes_Register from %u off %u to %u %s len %d intptr %u\n",
-				from, fromoffset, to_count, tonode_str, length, intptr);
+		printf ("\n\nCRoutes_Register adrem %d from %u off %u to %u %s len %d intptr %u\n",
+				adrem, from, fromoffset, to_count, tonode_str, length, intptr);
+		printf ("CRoutes_Register, CRoutes_Count is %d\n",CRoutes_Count);
 	#endif
 
 	insert_here = 1;
@@ -2228,18 +2228,32 @@ void CRoutes_Register(
 		insert_here++;
 	}
 
+
 	/* Quick check to verify that we don't have a duplicate route here
 	   OR to delete a route... */
-	if ((CRoutes[insert_here-1].fromnode==from) &&
-		(CRoutes[insert_here-1].fnptr==(unsigned)fromoffset) &&
-		(CRoutes[insert_here-1].interpptr==intptr) &&
-		(CRoutes[insert_here-1].tonodes!=0)) {
+
+	#ifdef CRVERBOSE
+	printf ("ok, CRoutes_Register - is this a duplicate? comparing from (%d %d), fnptr (%d %d) intptr (%d %d) and tonodes %d\n",
+		CRoutes[insert_here].fromnode, from,
+		CRoutes[insert_here].fnptr, fromoffset,
+		CRoutes[insert_here].interpptr, intptr,
+		CRoutes[insert_here].tonodes);
+	#endif
+
+	if ((CRoutes[insert_here].fromnode==from) &&
+		(CRoutes[insert_here].fnptr==(unsigned)fromoffset) &&
+		(CRoutes[insert_here].interpptr==intptr) &&
+		(CRoutes[insert_here].tonodes!=0)) {
 
 		/* possible duplicate route */
 		sscanf (tonode_str, "%u:%u", &toN,&toof);
-		if ((toN == ((long unsigned)(CRoutes[insert_here-1].tonodes)->node)) &&
-			(toof == (CRoutes[insert_here-1].tonodes)->foffset)) {
+		if ((toN == ((long unsigned)(CRoutes[insert_here].tonodes)->node)) &&
+			(toof == (CRoutes[insert_here].tonodes)->foffset)) {
 			/* this IS a duplicate, now, what to do? */
+
+			#ifdef CRVERBOSE
+			printf ("duplicate route; maybe this is a remove? \n");
+			#endif
 
 			/* is this an add? */
 			if (adrem == 1) {
@@ -2249,12 +2263,13 @@ void CRoutes_Register(
 				return;
 			} else {
 				/* this is a remove */
-				for (shifter = CRoutes_Count-1; shifter > insert_here-1; shifter--) {
+
+				for (shifter = insert_here; shifter < CRoutes_Count; shifter++) {
 				#ifdef CRVERBOSE 
 					printf ("copying from %d to %d\n",shifter, shifter-1);
 				#endif
-					memcpy ((void *)&CRoutes[shifter-1],
-						(void *)&CRoutes[shifter],
+					memcpy ((void *)&CRoutes[shifter],
+						(void *)&CRoutes[shifter+1],
 						sizeof (struct CRStruct));
 				}
 				CRoutes_Count --;
@@ -2273,7 +2288,6 @@ void CRoutes_Register(
 
 	/* is this a removeRoute? if so, its not found, and we SHOULD return here */
 	if (adrem != 1) return;
-
 	#ifdef CRVERBOSE 
 		printf ("CRoutes, inserting at %d\n",insert_here);
 	#endif
@@ -2356,8 +2370,8 @@ void CRoutes_Register(
 				CRoutes[shifter].interpptr);
 		}
 	#endif
-
 }
+
 
 void
 CRoutes_free()

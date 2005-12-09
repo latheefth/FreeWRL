@@ -356,16 +356,32 @@ public class Browser implements BrowserInterface, IBrowser
     // Load the given URL with the passed parameters (as described
     // in the Anchor node)
     public void          loadURL(String[] url, String[] parameter) {
-      System.out.println ("EAI: loadURL Not Implemented");
+ 	String SysString = "";
+	String retval;
+	int count;
 
-      return;
+	// send along sizes of the Strings
+	SysString = "" + url.length + " " + parameter.length;
+
+        for (count=0; count<url.length; count++) {
+		SysString = SysString + " :loadURLStringBreak:" + url[count];
+	}
+
+        for (count=0; count<parameter.length; count++) {
+		SysString = SysString + " :loadURLStringBreak:" + parameter[count];
+	}
+
+        synchronized (FreeWRLToken) {
+          EAIoutSender.send ("" + queryno + "Q" + SysString);
+          retval = getVRMLreply(queryno);
+          queryno += 1;
+        }
     }
 
 
     // Set the description of the current world in a browser-specific
     // manner. To clear the description, pass an empty string as argument
     public void          setDescription(String description) {
-      //System.out.println ("EAI: setDescription Not Implemented");
 	// this does nothing - FreeWRL does not display the description field,
 	// nor is there any way to get the description back again, so we
 	// just call it quits and return.
