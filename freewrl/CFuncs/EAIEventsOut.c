@@ -107,12 +107,17 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
 	int i;
 
+	/* used because of endian problems... */
+	int *intptr;
+	intptr = (int *) memptr;
+
 	switch (type) {
 		case EAI_SFBOOL: 	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFBOOL\n");
 			#endif
-			if (memptr[0] == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
+
+			if (*intptr == 1) sprintf (buf,"%s\n%f\n%d\nTRUE",reptype,TickTime,id);
 			else sprintf (buf,"%s\n%f\n%d\nFALSE",reptype,TickTime,id);
 			break;
 		}
@@ -138,7 +143,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 
 		case EAI_SFFLOAT:	{
 			#ifdef EAIVERBOSE 
-			printf ("EAI_SFTIME\n");
+			printf ("EAI_SFFLOAT\n");
 			#endif
 
 			memcpy(fl,memptr,sizeof(float));

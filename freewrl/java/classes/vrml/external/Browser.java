@@ -600,8 +600,6 @@ public class Browser implements BrowserInterface, IBrowser
 
 	// Most events don't need us to wait around for it.
 	public static void newSendEvent (Node node, String Value) {
-
-		System.out.println("In send event");
 		synchronized (FreeWRLToken) {
 			EAIoutSender.send ("" + queryno + "D" + node.datatype + " " +
 				node.nodeptr + " " + node.offset + " " +node.ScriptType + " " + Value + "\n");

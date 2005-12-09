@@ -271,6 +271,8 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		/*  2  0;9:wordg.png  1;12:My"wordg.png*/
 		/*  where 2 = max elements; 0;9 is element 0, 9 chars long...*/
 
+printf ("MFSTRING - at start we have :%s:\n",buf);
+
 
 		strptr = (struct Multi_String *)memptr;
 
