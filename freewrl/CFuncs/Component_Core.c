@@ -9,5 +9,8 @@
 
 	X3D Core Component
 
+The Metadata nodes are parsed and removed - we do nothing with them
+for the moment.
+
 *********************************************************************/
 

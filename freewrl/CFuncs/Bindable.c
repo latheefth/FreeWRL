@@ -13,7 +13,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 
 #include "Bindable.h"
 #include "Viewer.h"
-#include "GeoVRML.h"
+#include "Component_Geospatial.h"
 
 /* Viewport data */
 GLint viewPort[10];
