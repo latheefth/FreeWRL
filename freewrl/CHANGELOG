@@ -1,4 +1,6 @@
 For 1.16:
+	- re-arranged the CFuncs directory to better follow X3D Spec.
+
 	- added nodes to the "topNodes" field - some warnings were printed for correct
 	  scenegraphs pertaining to what nodes were allowed as root nodes.
 

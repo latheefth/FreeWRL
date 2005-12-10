@@ -1,8 +1,15 @@
-/*
- * Copyright(C) 1998 Tuomas J. Lukka, 2001, 2002 John Stewart. CRC Canada.
- * NO WARRANTY. See the license (the file COPYING in the VRML::Browser
- * distribution) for details.
- */
+/*******************************************************************
+ Copyright (C) 2005, 2006 John Stewart, Ayla Khan, Sarah Dumoulin, CRC Canada.
+ DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
+ See the GNU Library General Public License (file COPYING in the distribution)
+ for conditions of use and redistribution.
+*********************************************************************/
+
+/*******************************************************************
+
+	X3D Text Component
+
+*********************************************************************/
 
 #include "EXTERN.h"
 #include "perl.h"

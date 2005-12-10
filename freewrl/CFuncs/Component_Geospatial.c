@@ -1,8 +1,14 @@
 /*******************************************************************
- Copyright (C) 2003 John Stewart, CRC Canada.
+ Copyright (C) 2005, 2006 John Stewart, Ayla Khan, Sarah Dumoulin, CRC Canada.
  DISTRIBUTED WITH NO WARRANTY, EXPRESS OR IMPLIED.
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
+*********************************************************************/
+
+/*******************************************************************
+
+	X3D Geospatial Component
+
 *********************************************************************/
 
 #include "EXTERN.h"
@@ -10,7 +16,7 @@
 #include "XSUB.h"
 
 #include "Structs.h"
-#include "GeoVRML.h"
+#include "Component_Geospatial.h"
 
 #include "headers.h"
 
