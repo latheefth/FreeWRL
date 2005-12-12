@@ -21,7 +21,6 @@
 
 #include "EAIheaders.h"
 
-
 /*****************************************************************
 *
 *	handle_Listener is called when a requested value changes.
@@ -103,6 +102,9 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 	struct Multi_Color *MCptr;	/* MFColor pointer */
 	char *ptr;			/* used for building up return string */
 	STRLEN xx;
+	SV *svptr;
+	struct xpv *this_xpv;
+	unsigned char *retSFString;
 
 	int numPerRow;			/* 1, 2, 3 or 4 floats per row of this MF? */
 	int i;
@@ -180,11 +182,25 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			break;
 		}
 
+		case EAI_SFIMAGE:
 		case EAI_SFSTRING:	{
 			#ifdef EAIVERBOSE 
 			printf ("EAI_SFSTRING\n");
 			#endif
-			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,memptr);
+
+			svptr = (SV *)memptr;
+
+			this_xpv = svptr->sv_any;
+
+
+			retSFString = (unsigned char *)SvPV(((SV *)this_xpv),xx); 
+			/*
+				printf ("EAI_SFSTRING, SvTYPE on %x: %d  %x: %d\n",svptr,this_xpv,SvTYPE(svptr), SvTYPE((SV *)this_xpv));
+				printf ("EAI_SFSTRING - ptr %x flags %x should be %x\n",svptr->sv_any, svptr->sv_flags, SVt_PV | SVf_POK);
+				printf ("EAI_SFSTRING, string len %d %d \n",this_xpv->xpv_cur, this_xpv->xpv_len); 
+			*/
+
+			sprintf (buf, "%s\n%f\n%d\n\"%s\"",reptype,TickTime,id,retSFString);
 			break;
 		}
 
@@ -296,7 +312,6 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 		}
 
 
-/*XXX	case EAI_SFIMAGE:	{handleptr = &handleEAI_SFIMAGE_Listener;break;}*/
 /*XXX	case EAI_MFTIME:	{handleptr = &handleEAI_MFTIME_Listener;break;}*/
 	}
 }

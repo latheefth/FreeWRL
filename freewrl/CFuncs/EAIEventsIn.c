@@ -28,6 +28,10 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 /* used for loadURL */
 struct VRML_Anchor EAI_AnchorNode;
 SV *EAI_newSVpv(char *str);
+
+/* used for reading in SVs */
+SV *sv_global_tmp;
+
 void createLoadURL(char *bufptr);
 
 /* get how many bytes in the type */
@@ -95,9 +99,13 @@ do we need to change a Structure type? */
 void SetMemory (int type, void *destptr, void *srcptr, int len) {
 	void *newptr;
 	struct Multi_Vec3f *mp;
+	SV *svptr;
+
 
 	/* is this a structure? If Multi_Struct_memptr returns a different
 	   pointer, than it IS a struct {int n void *p} structure type. */
+
+	/* printf ("start of SetMemory, len %d type %d\n",len,type); */
 
 	newptr = Multi_Struct_memptr(type, destptr);
 	if (newptr != destptr) {
@@ -110,8 +118,19 @@ void SetMemory (int type, void *destptr, void *srcptr, int len) {
 		mp->n = len /(returnElementLength(type)*returnElementRowSize(type));
 		/* printf (" is %d\n ",mp->n); */
 	} else {
-		/* this is a straight copy */
-		memcpy (destptr, srcptr, len);
+
+		/* is this a straight copy, or a setting of an SV * ? */
+		if ((type == SFSTRING)  || (type == SFIMAGE)) {
+			/* printf ("SetMemory - this is an SV *\n"); */
+                        svptr = (SV *)destptr;
+			/* printf ("dest was a SV of type %x at %x\n",SvTYPE((SV *)svptr->sv_any),svptr->sv_any); */
+			svptr->sv_any = sv_global_tmp;
+			/* printf ("dest now is a SV of type %xat %x\n",SvTYPE((SV *)svptr->sv_any),svptr->sv_any); */
+			
+		} else {
+			/* this is a straight copy */
+			memcpy (destptr, srcptr, len);
+		}
 	}
 }
 
@@ -131,7 +150,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	void *tmpbuf;
 	int count;
 	int len;
-
+	
 	/* pointers to cast memptr to*/
 	float *flmem;
 
@@ -265,14 +284,14 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		int thisele, thissize, maxele;	/* used for reading in MFStrings*/
 
 
-		/* return a Multi_String.*/
-		/*  struct Multi_String { int n; SV * *p; };*/
-		/*  buf will look like:*/
-		/*  2  0;9:wordg.png  1;12:My"wordg.png*/
-		/*  where 2 = max elements; 0;9 is element 0, 9 chars long...*/
-
-printf ("MFSTRING - at start we have :%s:\n",buf);
-
+		/* return a Multi_String.						*/
+		/*  struct Multi_String { int n; SV * *p; };				*/
+		/*  buf will look like:							*/
+		/*  	2  0;9:wordg.png  1;12:My"wordg.png				*/
+		/*  	where 2 = max elements; 0;9 is element 0, 9 chars long...	*/
+		/* OR, if a set1Value:							*/
+		/* 	  -1 2:10:xxxxxxxxx						*/
+		/* 	  where the 2 is the index.					*/
 
 		strptr = (struct Multi_String *)memptr;
 
@@ -281,58 +300,92 @@ printf ("MFSTRING - at start we have :%s:\n",buf);
 		sscanf (buf,"%d",&maxele);
 		while (*buf!=' ') buf++;
 
-		/* make (and initialize) this MFString internal representation.*/
-		strptr->n = maxele;
-		/*printf ("mallocing strptr->p, size %d\n",sizeof(strptr->p));*/
-		strptr->p = (SV**)malloc (maxele * sizeof(strptr->p));
-		newp = strptr->p;
-
-		/* scan through EAI string, extract strings, etc, etc.*/
-		do {
-			/* scan to start of element number*/
-
-			/* make the new SV */
-			/* can we use the EAI_newSVpv command below? */
-
-			*newp = (SV*)malloc (sizeof (struct STRUCT_SV));
-			(*newp)->sv_flags = SVt_PV | SVf_POK;
-			(*newp)->sv_refcnt=1;
-			mypv = (struct xpv *)malloc(sizeof (struct xpv));
-			/*printf ("just mallocd for mypv, it is %d and size %d\n",*/
-			/*		mypv, sizeof (struct xpv));*/
-			(*newp)->sv_any = mypv;
-
+		/* is this a set1Value, or a setValue */
+		if (maxele == -1) {
+			/* is the range ok? for set1Value, we only replace, do not expand. */
 			while (*buf==' ') buf++;
 			sscanf (buf,"%d;%d",&thisele,&thissize);
-			/*printf ("this element %d has size %d\n",thisele,thissize);*/
+			/* printf ("this element %d has len %d MFStr size %d \n",thisele,thissize, strptr->n); */
 
-			/*mypv = (struct xpv *) newp + (thisele*sizeof(newp));*/
+			if (maxele < strptr->n) {
+				/* scan to start of string*/
+				while (*buf!=':') buf++; buf++;
 
-			/* scan to start of string*/
-			while (*buf!=':') buf++; buf++;
+				/* replace the space at stringln with a 0 */
+				buf += thissize; *buf = 0; buf-=thissize;
+				strptr->p[thisele] = EAI_newSVpv(buf);
 
-			/* fill in the SV values...copy the string over...*/
-			(*mypv).xpv_pv = (char *)malloc (thissize+2);
-			strncpy((*mypv).xpv_pv ,buf,thissize);
-			(*mypv).xpv_pv[thissize] = '\0'; /* null terminate*/
-			(*mypv).xpv_cur = thissize-1;    /* size without term*/
-			(*mypv).xpv_len = thissize;      /* size with termination*/
+				/* go to end of string */
+				buf += thissize+1;
+			} else {
+				printf ("EAI - warning, MFString set1Value, set %d out of range for array (0-%d)\n",
+					maxele,strptr->n);
+			}
+		} else {	
+			/* make (and initialize) this MFString internal representation.*/
+			strptr->n = maxele;
+			FREE_IF_NZ (strptr->p);
 
-			/* increment buf by string size.*/
-			buf += thissize;
+			strptr->p = (SV**)malloc (maxele * sizeof(strptr->p));
+			newp = strptr->p;
+	
+			/* scan through EAI string, extract strings, etc, etc.*/
+			do {
+				/* scan to start of element number*/
+				/* make the new SV */
+	
+				while (*buf==' ') buf++;
+				sscanf (buf,"%d;%d",&thisele,&thissize);
+				/*printf ("this element %d has size %d\n",thisele,thissize);*/
+	
+				/* scan to start of string*/
+				while (*buf!=':') buf++; buf++;
+	
+				/* replace the space at stringln with a 0 */
+				buf += thissize; *buf = 0; buf-=thissize;
+				strptr->p[thisele] = EAI_newSVpv(buf);
 
-			/* scan to next start of string, or end of line*/
-			while (*buf==' ') buf++;
-
-			/* point to next SV to fill*/
-			newp++;
-		} while (((int)*buf)>=32);
+				/* go to end of string */
+				buf += thissize+1;
+	
+				/* scan to next start of string, or end of line*/
+				while (*buf==' ') buf++;
+	
+				/* point to next SV to fill*/
+				newp++;
+			} while (((int)*buf)>=32);
+		}
 		/*len = maxele*sizeof(struct Multi_String);*/
 		/* return -1 to indicate that this is "wierd".*/
 		len = -1;
 
 		break;
 	   }
+
+	case SFIMAGE:
+	case SFSTRING: {
+		/* save this stuff to a global SV, rather than worrying about memory pointers */
+		#ifdef EAIVERBOSE
+		printf ("ScanValtoBuffer: SFSTRING, string is %s, ptr %x %d\n",buf,memptr,memptr);
+		#endif
+
+		/* take off the initial quote */
+		if (*buf == '"') buf++;
+
+		/* find the end of the string, and take off the final quote */
+		tmpbuf = (char *) rindex (buf,'"');
+		if (tmpbuf != NULL) {
+			*((char *)tmpbuf)='\0';
+		}
+		
+                sv_global_tmp = EAI_newSVpv(buf);
+		/* printf ("ScanValtoBuffer, svptr is now of type %x\n",SvTYPE(sv_global_tmp)); */
+		/*len = maxele*sizeof(struct Multi_String);*/
+		/* return -1 to indicate that this is "wierd".*/
+		len = sizeof (void *);
+		break;
+	}
+		
 	  default: {
 		printf("WARNING: unhandled CLASS from type %s\n", FIELD_TYPE_STRING(type));
 		printf ("complain to the FreeWRL team.\n");
@@ -858,8 +911,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		}
 
 		case EAI_SFSTRING: {
-			/* AD What happens here???????? */
-			/* this can be handled exactly like a set_one_ECMAtype if it is a script */
+			break;
 		}
 		default: {
                         printf ("unhandled Event :%c: - get code in here\n",nodetype);
@@ -1089,5 +1141,4 @@ SV *EAI_newSVpv(char *str) {
 	newpv->xpv_len = strlen(str)+1;
 
 	return retval;
-
 }

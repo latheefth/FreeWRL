@@ -358,7 +358,7 @@ there should be an entry for FreeWRL with Mime Type x-world/x-vrml.
 
 =head1 AUTHOR
 
-Project started by Tuomas J. Lukka, continued by John Stewart and others.
+Project Managed by John Stewart and others.
 
 
 Please send bug reports to C<freewrl-04 --at--  rogers.com>
@@ -369,7 +369,7 @@ see the FreeWRL home page at C<http://www.crc.ca/FreeWRL>.
 There is absolutely no warranty, express or implied for this software.
 For details on the conditions of use, see the FreeWRL distribution.
 
-FreeWRL is Copyright (C) 1998, 1999 Tuomas J. Lukka,
+FreeWRL is Copyright (C) 1998, 1999-2006 Tuomas J. Lukka,
 John Stewart and others.
 
 This library is free software; you can redistribute it and/or
