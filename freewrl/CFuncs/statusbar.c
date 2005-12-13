@@ -24,8 +24,6 @@
 #include "quaternion.h"
 #include "Viewer.h"
 
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
-
 #ifdef AQUA
 #define HELPER "command-?"
 #else

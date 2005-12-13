@@ -23,7 +23,6 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 #endif
 
 #include "EAIheaders.h"
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
 /* used for loadURL */
 struct VRML_Anchor EAI_AnchorNode;

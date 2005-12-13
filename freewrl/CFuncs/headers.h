@@ -8,6 +8,8 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
+/* free a malloc'd pointer */
+#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
 /********************************
 	Verbosity
@@ -594,6 +596,38 @@ void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
 void render_loadsensor(struct VRML_LoadSensor *this);
 void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this);
 void render_texturecoordinate(struct VRML_TextureCoordinate *this);
+
+/* Geometry3D nodes */
+void render_Box (struct VRML_Box *this);
+void render_Cone (struct VRML_Cone *this);
+void render_Cylinder (struct VRML_Cylinder *this);
+void render_ElevationGrid (struct VRML_ElevationGrid *this);
+void render_Extrusion (struct VRML_Extrusion *this);
+void render_IndexedFaceSet (struct VRML_IndexedFaceSet *this);
+void render_Sphere (struct VRML_Sphere *this);
+
+/* Geometry2D nodes */
+void render_Arc2D (struct VRML_Arc2D *this_);
+void render_ArcClose2D (struct VRML_ArcClose2D *this_);
+void render_Circle2D (struct VRML_Circle2D *this_);
+void render_Disk2D (struct VRML_Disk2D *this_);
+void render_Polyline2D (struct VRML_Polyline2D *this_);
+void render_Polypoint2D (struct VRML_Polypoint2D *this_);
+void render_Rectangle2D (struct VRML_Rectangle2D *this_);
+void render_TriangleSet2D (struct VRML_TriangleSet2D *this_);
+
+/* Rendering nodes */
+void render_IndexedTriangleFanSet (struct VRML_IndexedTriangleFanSet *this_); 
+void render_IndexedTriangleSet (struct VRML_IndexedTriangleSet *this_); 
+void render_IndexedTriangleStripSet (struct VRML_IndexedTriangleStripSet *this_); 
+void render_TriangleFanSet (struct VRML_TriangleFanSet *this_); 
+void render_TriangleStripSet (struct VRML_TriangleStripSet *this_); 
+void render_TriangleSet (struct VRML_TriangleSet *this_); 
+void render_LineSet (struct VRML_LineSet *this_); 
+void render_IndexedLineSet (struct VRML_IndexedLineSet *this_); 
+void render_PointSet (struct VRML_PointSet *this_); 
+
+
 
 #define NODE_ADD_PARENT(a) add_parent(a,ptr)
 #define NODE_REMOVE_PARENT(a) add_parent(a,ptr)

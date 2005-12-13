@@ -241,6 +241,14 @@ my $protono;
 
 # nodes that are valid geometry fields.
 %VRML::Nodes::geometry = map {($_=>1)} qw/
+	Arc2D
+	ArcClose2D
+	Circle2D
+	Disk2D
+	Polyline2D
+	Polypoint2D
+	Rectangle2D
+	TriangleSet2D
 	Box
 	Cone
 	Sphere
@@ -1157,6 +1165,8 @@ my $protono;
 					    	endAngle => [SFFloat, 1.5707, field],
 					    	radius => [SFFloat, 1.0, field],
 					    	startAngle => [SFFloat, 0.0, field],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	ArcClose2D => new VRML::NodeType("ArcClose2D", {
@@ -1165,36 +1175,50 @@ my $protono;
 					    	radius => [SFFloat, 1.0, field],
 						solid => [SFBool, 0, field],
 					    	startAngle => [SFFloat, 0.0, field],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 
 	Circle2D => new VRML::NodeType("Circle2D", {
 					    	radius => [SFFloat, 1.0, field],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	Disk2D => new VRML::NodeType("Disk2D", {
 					    	innerRadius => [SFFloat, 0.0, field],
 					    	outerRadius => [SFFloat, 1.0, field],
 						solid => [SFBool, 0, field],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	Polyline2D => new VRML::NodeType("Polyline2D", {
 					    	lineSegments => [MFVec2f, [], field],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	Polypoint2D => new VRML::NodeType("Polypoint2D", {
 					    	point => [MFVec2f, [], exposedField],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	Rectangle2D => new VRML::NodeType("Rectangle2D", {
 					    	size => [SFVec2f, [2.0, 2.0], field],
 						solid => [SFBool, 0, field],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 
 	TriangleSet2D => new VRML::NodeType("TriangleSet2D", {
 					    	vertices => [MFVec2f, [], exposedField],
 						solid => [SFBool, 0, field],
+						__points  =>[FreeWRLPTR,0,field],
+						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	###################################################################################

@@ -56,8 +56,6 @@ int _fw_pipe = 0;
 unsigned _fw_instance;
 #endif
 
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
-
 /* for communicating with Netscape */
 /* in headers.h extern int _fw_pipe, _fw_FD; */
 extern unsigned _fw_instance;
