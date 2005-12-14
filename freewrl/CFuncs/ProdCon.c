@@ -112,6 +112,7 @@ void _perlThread (void *perlpath);
 void __pt_loadInitialGroup(void);
 void __pt_setPath(char *perlpath);
 void __pt_openBrowser(void);
+void __pt_zeroBindables(void);
 unsigned int _pt_CreateVrml (char *tp, char *inputstring, unsigned long int *retarr);
 unsigned int __pt_getBindables (char *tp, unsigned long int *retarr);
 void getAllBindables(void);
