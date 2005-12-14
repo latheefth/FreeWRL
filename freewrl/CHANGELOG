@@ -1,4 +1,7 @@
 For 1.16:
+	- Geometry2D nodes:
+		Arc2D ArcClose2D Circle2D Polyline2D polypoint2D
+
 	- re-arranged the CFuncs directory to better follow X3D Spec.
 
 	- added nodes to the "topNodes" field - some warnings were printed for correct

@@ -20,91 +20,146 @@
 
 void *createLines (float start, float end, float radius, int closed, int *size);
 
-void render_Arc2D (struct VRML_Arc2D *this_) {
-	STRLEN xx;
-
-        if (this_->_ichange != this_->_change) {
+void render_Arc2D (struct VRML_Arc2D *node) {
+        if (node->_ichange != node->_change) {
                 /*  have to regen the shape*/
-                this_->_ichange = this_->_change;
+                node->_ichange = node->_change;
 		
-		FREE_IF_NZ (this_->__points);
-		this_->__numPoints = 0;
-		this_->__points = createLines (this_->startAngle,
-			this_->endAngle, this_->radius, NONE, &this_->__numPoints);
+		FREE_IF_NZ (node->__points);
+		node->__numPoints = 0;
+		node->__points = createLines (node->startAngle,
+			node->endAngle, node->radius, NONE, &node->__numPoints);
 	}
 
-	if (this_->__numPoints>0) {	
-                       glDisable(GL_CULL_FACE);
+	if (node->__numPoints>0) {	
+        	glPushAttrib(GL_ENABLE_BIT);
+	        glDisable (GL_LIGHTING);
+	        glDisable(GL_COLOR_MATERIAL);
+	        glDisable(GL_CULL_FACE);
+		glColor3f (1.0, 1.0, 1.0);
 
 		glDisableClientState (GL_NORMAL_ARRAY);
-		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
-        	glDrawArrays (GL_LINE_STRIP, 0, this_->__numPoints);
+		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
+        	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
-		glEnable (GL_CULL_FACE);
 
+		glPopAttrib();
 	}
 }
 
-
-
-void render_ArcClose2D (struct VRML_ArcClose2D *this_) {
+void render_ArcClose2D (struct VRML_ArcClose2D *node) {
 	STRLEN xx;
 	char *ct;
 
-        if (this_->_ichange != this_->_change) {
+        if (node->_ichange != node->_change) {
                 /*  have to regen the shape*/
-                this_->_ichange = this_->_change;
+                node->_ichange = node->_change;
 		
-		FREE_IF_NZ (this_->__points);
-		this_->__numPoints = 0;
+		FREE_IF_NZ (node->__points);
+		node->__numPoints = 0;
 
-		ct = SvPV(this_->closureType,xx);
-printf ("ct %s, len %d\n",ct,xx);
+		ct = SvPV(node->closureType,xx);
 
 		if (strncmp(ct,"PIE",xx) == 0) {
-			this_->__points = createLines (this_->startAngle,
-				this_->endAngle, this_->radius, PIE, &this_->__numPoints);
+			node->__points = createLines (node->startAngle,
+				node->endAngle, node->radius, PIE, &node->__numPoints);
 		} else if (strncmp(ct,"CHORD",xx) == 0) {
-			this_->__points = createLines (this_->startAngle,
-				this_->endAngle, this_->radius, CHORD, &this_->__numPoints);
+			node->__points = createLines (node->startAngle,
+				node->endAngle, node->radius, CHORD, &node->__numPoints);
 		} else {
-			printf ("ArcClose2D, closureType %s invalid\n",this_->closureType);
+			printf ("ArcClose2D, closureType %s invalid\n",node->closureType);
 		}
 	}
 
-printf ("mumPotits %d\n",this_->__numPoints);
 
-        glPushAttrib(GL_ENABLE_BIT);
-        glDisable (GL_LIGHTING);
-        glDisable(GL_COLOR_MATERIAL);
-        glDisable(GL_CULL_FACE);
+	if (node->__numPoints>0) {	
+        	glPushAttrib(GL_ENABLE_BIT);
+        	glDisable (GL_LIGHTING);
+        	glDisable(GL_COLOR_MATERIAL);
+        	glDisable(GL_CULL_FACE);
+		glColor3f (1.0, 1.0, 1.0);
 
-
-
-	if (this_->__numPoints>0) {	
 		glDisableClientState (GL_NORMAL_ARRAY);
-		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
-        	glDrawArrays (GL_LINE_STRIP, 0, this_->__numPoints);
+		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
+        	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
+		glPopAttrib();
 	}
-	glPopAttrib();
 }
 
+void render_Circle2D (struct VRML_Circle2D *node) {
+        if (node->_ichange != node->_change) {
+                /*  have to regen the shape*/
+                node->_ichange = node->_change;
+		
+		FREE_IF_NZ (node->__points);
+		node->__numPoints = 0;
+		node->__points = createLines (0.0, 0.0,
+			node->radius, NONE, &node->__numPoints);
+	}
 
-void render_Circle2D (struct VRML_Circle2D *this_){}
-void render_Disk2D (struct VRML_Disk2D *this_){}
-void render_Polyline2D (struct VRML_Polyline2D *this_){}
-void render_Polypoint2D (struct VRML_Polypoint2D *this_){}
-void render_Rectangle2D (struct VRML_Rectangle2D *this_){}
-void render_TriangleSet2D (struct VRML_TriangleSet2D *this_){}
+	if (node->__numPoints>0) {	
+        	glPushAttrib(GL_ENABLE_BIT);
+	        glDisable (GL_LIGHTING);
+	        glDisable(GL_COLOR_MATERIAL);
+	        glDisable(GL_CULL_FACE);
+		glColor3f (1.0, 1.0, 1.0);
+
+		glDisableClientState (GL_NORMAL_ARRAY);
+		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
+        	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
+		glEnableClientState (GL_NORMAL_ARRAY);
+
+		glPopAttrib();
+	}
+}
+
+void render_Polyline2D (struct VRML_Polyline2D *node){
+	if (node->lineSegments.n>0) {
+        	glPushAttrib(GL_ENABLE_BIT);
+	        glDisable (GL_LIGHTING);
+	        glDisable(GL_COLOR_MATERIAL);
+	        glDisable(GL_CULL_FACE);
+		glColor3f (1.0, 1.0, 1.0);
+
+		glDisableClientState (GL_NORMAL_ARRAY);
+		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
+        	glDrawArrays (GL_LINE_STRIP, 0, node->lineSegments.n);
+		glEnableClientState (GL_NORMAL_ARRAY);
+
+		glPopAttrib();
+	}
+}
+
+void render_Polypoint2D (struct VRML_Polypoint2D *node){
+	if (node->point.n>0) {
+        	glPushAttrib(GL_ENABLE_BIT);
+	        glDisable (GL_LIGHTING);
+	        glDisable(GL_COLOR_MATERIAL);
+	        glDisable(GL_CULL_FACE);
+		glColor3f (1.0, 1.0, 1.0);
+
+		glDisableClientState (GL_NORMAL_ARRAY);
+		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->point.p);
+        	glDrawArrays (GL_POINTS, 0, node->point.n);
+		glEnableClientState (GL_NORMAL_ARRAY);
+
+		glPopAttrib();
+	}
+}
+
+void render_Disk2D (struct VRML_Disk2D *node){}
+void render_Rectangle2D (struct VRML_Rectangle2D *node){}
+void render_TriangleSet2D (struct VRML_TriangleSet2D *node){}
 
 void *createLines (float start, float end, float radius, int closed, int *size) {
 	int i;
 	int isCircle;
 	int numPoints;
-	float tmp;
-	float *points;
-	float *fp;
+	GLfloat tmp;
+	GLfloat *points;
+	GLfloat *fp;
+	int arcpoints;
 
 	*size = 0;
 
@@ -124,8 +179,8 @@ void *createLines (float start, float end, float radius, int closed, int *size) 
 		
 
 	if (isCircle) {
-		printf ("createLines, this is a circle!\n");
 		numPoints = SEGMENTS_PER_CIRCLE;
+		closed = NONE; /* this is a circle, CHORD, PIE dont mean anything now */
 	} else {
 		numPoints = ((float) SEGMENTS_PER_CIRCLE * (start-end)/(PI*2.0));
 		if (numPoints>SEGMENTS_PER_CIRCLE) numPoints=SEGMENTS_PER_CIRCLE;
@@ -134,52 +189,35 @@ void *createLines (float start, float end, float radius, int closed, int *size) 
 	/* we always have to draw the line - we have a line strip, and we calculate
 	   the beginning points; we have also to calculate the ending point. */
 	numPoints++;
-printf ("numPoints is %d\n",numPoints);
+	arcpoints = numPoints;
 
 	/* closure type */
 	if (closed == CHORD) numPoints++;
 	if (closed == PIE) numPoints+=2;
 
-
-	points = malloc (sizeof(float)*numPoints*3);
+	points = malloc (sizeof(float)*numPoints*2);
 	fp = points;
 
-	for (i=0; i<numPoints; i++) {
+	for (i=0; i<arcpoints; i++) {
 		*fp = -radius * sinf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 		*fp = radius * cosf((PI * 2.0 * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
-		fp++;
-		*fp=0.0; /* z is always zero */
 		fp++;
 	}
 
 	/* do we have to draw any pies, cords, etc, etc? */
 	if (closed == CHORD) {
-printf ("have closure type of CHORD, npoints now %d\n",numPoints);
-
 		/* loop back to origin */
-*fp = 10.0;
-/*
 		*fp = -radius * sinf(0.0/((float)SEGMENTS_PER_CIRCLE));	
-*/
-printf ("back to %f ",*fp);
 		fp++;
 		*fp = radius * cosf(0.0/((float)SEGMENTS_PER_CIRCLE));	
-printf (" %f\n");
-		fp++;
-		*fp=0.0; /* z is always zero */
 		fp++;
 	} else if (closed == PIE) {
-printf ("have closure type of PIE\n");
-
 		/* go to origin */
-		*fp = 0.0; fp++; *fp=0.0; fp++; *fp=0.0; fp++;
-
+		*fp = 0.0; fp++; *fp=0.0; fp++; 
 		*fp = -radius * sinf(0.0/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 		*fp = radius * cosf(0.0/((float)SEGMENTS_PER_CIRCLE));	
-		fp++;
-		*fp=0.0; /* z is always zero */
 		fp++;
 	}
 
@@ -187,4 +225,3 @@ printf ("have closure type of PIE\n");
 	*size = numPoints;
 	return (void *)points;
 }
-	

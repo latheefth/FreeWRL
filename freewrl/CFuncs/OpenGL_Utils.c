@@ -583,6 +583,35 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 		/* Geometry 2D Component */
+			case NODE_Arc2D: {
+				struct VRML_Arc2D *thisNode;
+				thisNode = (struct VRML_Arc2D *) thisnode;
+				kill_FreeWRLPTR(thisNode->__points);
+				break; }
+
+			case NODE_ArcClose2D: {
+				struct VRML_ArcClose2D *thisNode;
+				thisNode = (struct VRML_ArcClose2D *) thisnode;
+				kill_FreeWRLPTR(thisNode->__points);
+				break; }
+
+			case NODE_Circle2D: {
+				struct VRML_Circle2D *thisNode;
+				thisNode = (struct VRML_Circle2D *) thisnode;
+				kill_FreeWRLPTR(thisNode->__points);
+				break; }
+
+			case NODE_Polyline2D: {
+				struct VRML_Polyline2D *thisNode;
+				thisNode = (struct VRML_Polyline2D *) thisnode;
+				kill_MFVec2f(thisNode->lineSegments);
+				break; }
+
+			case NODE_Polypoint2D: {
+				struct VRML_Polypoint2D *thisNode;
+				thisNode = (struct VRML_Polypoint2D *) thisnode;
+				kill_MFVec2f(thisNode->point);
+				break; }
 
 
 		/* Text Component */
