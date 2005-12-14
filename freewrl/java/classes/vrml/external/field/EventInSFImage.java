@@ -2,61 +2,73 @@ package vrml.external.field;
 import vrml.external.field.FieldTypes;
 import vrml.external.Browser;
 import java.awt.*;
+import java.math.BigInteger;
 
 public class EventInSFImage extends EventIn {
 
   public EventInSFImage() { EventType = FieldTypes.SFIMAGE; }
 
-  public void          setValue(int width, int height, int numComponents, byte[] pixels) throws IllegalArgumentException {
-    int count;
-	String value;
-	Integer val;
-	int counter;
-	int pixIndex;
-	Integer i,j,k,a;
-	
-	// are there enough pixels here? 
-	if (pixels.length != (width * height * numComponents)) {
-		throw new IllegalArgumentException("not enough components");
+  public void          setValue(int width, int height, int components, byte[] pixels) throws IllegalArgumentException {
+	int count;
+	int pixcount;
+	String val;
+	BigInteger newval;
+	byte xx[];
+
+
+	if (pixels.length != (width*height*components)) {
+		throw new IllegalArgumentException();
 	}
 
-	if ((numComponents < 0) || (numComponents > 4)) {
-		throw new IllegalArgumentException("numComponents out of range");
+	if ((components < 1) || (components > 4)) {
+		throw new IllegalArgumentException();
 	}
 
+	// use BigInt to ensure sign bit does not frick us up.
+	xx = new byte[components+1];
+	xx[0] = (byte) 0; // no sign bit here!
 
-	// Treat this the same as an SFString
-	value = "\"" + width + " " + height + " " + numComponents + " ";
+	val = new String("\"" + width  + " " + height + " " + components);
 
-	// Turn byte values into a String value
-	pixIndex = 0;
+	if (pixels== null) { pixcount = 0;} else {pixcount=pixels.length;}
 
-//	for (count = 0; count < width * height; count++) {
-//
-//		if (numComponents == 1) {
-//		}
-//
-//		if (numComponents == 2) {
-//		}
-//
-//		if (numComponents == 3) {
-//			i = intValue(pixels[pixIndex]); pixIndex++;	
-//			j = Integer.parseInt(pixels[pixIndex]); pixIndex++;	
-//			k = Integer.parseInt(pixels[pixIndex]); pixIndex++;	
-//			val = i * 0xffff + j * 0xff + k;
-//			value = value + Integer.toHexString(val) + " ";
-//		}
-//
-//		if (numComponents == 4) {
-//			i = pixels[pixIndex]; pixIndex++;	
-//			j = pixels[pixIndex]; pixIndex++;	
-//			k = pixels[pixIndex]; pixIndex++;	
-//			a = pixels[pixIndex]; pixIndex++;	
-//		}
-//	}	
+	if (components == 1) {
+		for (count = 0; count < pixcount; count++) {
+			xx[1] = pixels[count];  
+			newval = new BigInteger(xx);
+			//System.out.println ("Big int " + newval.toString(16));
+			val = val.concat(" 0x" + newval.toString(16));
+		}	
+	}
+	if (components == 2) {
+		for (count = 0; count < pixcount; count+=2) {
+			xx[1] = pixels[count]; xx[2] = pixels[count+1]; 
+			newval = new BigInteger(xx);
+			//System.out.println ("Big int " + newval.toString(16));
+			val = val.concat(" 0x" + newval.toString(16));
 
-	Browser.newSendEvent (this, value + "\"");
+		}	
+	}
+	if (components == 3) {
+		for (count = 0; count < pixcount; count+=3) {
+			xx[1] = pixels[count]; xx[2] = pixels[count+1]; xx[3]=pixels[count+2];
+			newval = new BigInteger(xx);
+			//System.out.println ("Big int " + newval.toString(16));
+			val = val.concat(" 0x" + newval.toString(16));
+		}	
+	}
+	if (components == 4) {
+		for (count = 0; count < pixcount; count+=4) {
+			xx[1] = pixels[count]; xx[2] = pixels[count+1]; xx[3]=pixels[count+2]; xx[4]=pixels[count+3];
+			newval = new BigInteger(xx);
+			//System.out.println ("Big int " + newval.toString(16));
+			val = val.concat(" 0x" + newval.toString(16));
 
+		}	
+	}
+	val = val.concat("\"");
+	// System.out.println ("sending " + val);
+	Browser.newSendEvent(this, val);
 	return;
   }
 }

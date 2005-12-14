@@ -104,7 +104,7 @@ void SetMemory (int type, void *destptr, void *srcptr, int len) {
 	/* is this a structure? If Multi_Struct_memptr returns a different
 	   pointer, than it IS a struct {int n void *p} structure type. */
 
-	/* printf ("start of SetMemory, len %d type %d\n",len,type); */
+	/* printf ("start of SetMemory, len %d type %d\n",len,type);  */
 
 	newptr = Multi_Struct_memptr(type, destptr);
 	if (newptr != destptr) {
@@ -908,7 +908,8 @@ unsigned int EAI_SendEvent (char *ptr) {
 			/* be -1.*/
 			break;
 		}
-
+		
+		case EAI_SFIMAGE:
 		case EAI_SFSTRING: {
 			break;
 		}

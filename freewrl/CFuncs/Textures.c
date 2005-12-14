@@ -205,7 +205,6 @@ void freeTexture (GLuint *texno) {
 	printf ("freeTexture, texno %d cwo %d inprocess %d\n",*texno,currentlyWorkingOn, textureInProcess );
 	#endif
 
-
 	if (*texno > 0) isloaded[*texno] = INVALID;
 
 	/* is this the texture that we are currently working on?? */
@@ -224,9 +223,9 @@ void freeTexture (GLuint *texno) {
 
 	/* this crashes some Nvidia drivers
 	glDeleteTextures(1,texo);
+	*/
 
 	*texno = 0;
-	*/
 }
 
 
