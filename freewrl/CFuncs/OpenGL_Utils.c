@@ -604,13 +604,13 @@ void kill_rendering(void *thisnode) {
 			case NODE_Polyline2D: {
 				struct VRML_Polyline2D *thisNode;
 				thisNode = (struct VRML_Polyline2D *) thisnode;
-				kill_MFVec2f(thisNode->lineSegments);
+				kill_MFVec2f(&thisNode->lineSegments);
 				break; }
 
 			case NODE_Polypoint2D: {
 				struct VRML_Polypoint2D *thisNode;
 				thisNode = (struct VRML_Polypoint2D *) thisnode;
-				kill_MFVec2f(thisNode->point);
+				kill_MFVec2f(&thisNode->point);
 				break; }
 
 
