@@ -6,10 +6,10 @@ import vrml.external.Browser;
 
 public class EventOutMFString extends EventOutMField {
 	// retstr is an array of string values.
-	// sizeof is the size of retstr.
+	// mySize is the size of retstr.
 
 	String[] retstr;
-	int sizeof = 0;
+	int mySize = 0;
 
 	public EventOutMFString() {EventType = FieldTypes.MFSTRING;}
 
@@ -26,33 +26,32 @@ public class EventOutMFString extends EventOutMField {
 		}
 
 		retstr = new String[(tokens.countTokens()/2)];
-		sizeof = 0;
+		mySize = 0;
 
 		rep = "";
 		while (tokens.hasMoreTokens()) {
-			retstr[sizeof] = tokens.nextToken();
+			retstr[mySize] = tokens.nextToken();
 
-			if (retstr[sizeof].equals("XyZZtitndi")) {
+			if (retstr[mySize].equals("XyZZtitndi")) {
 				//System.out.println ("found the gibberish line");
-				retstr[sizeof] = "";
+				retstr[mySize] = "";
 			}
 
 			if (tokens.hasMoreTokens()) rep = tokens.nextToken();
-			sizeof ++;
+			mySize ++;
 		}
+		// for getSize call
+		sizeof = mySize;
+
 		return retstr;
 	}
 
 	public String get1Value(int index) {
-		if ((index > sizeof) || (index < 0)) {
+		if ((index > mySize) || (index < 0)) {
 			System.out.println ("EventOutMFString.get1Value - index " + index +
 			" out of range");
 			index = 0;
 		}
 		return retstr[index];
-	}
-
-	public int getSize() {
-		return sizeof;
 	}
 }

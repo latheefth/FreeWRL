@@ -41,6 +41,8 @@ public class EventOutMFVec3f extends EventOutMField {
 			rval[count1][count2] = Float.valueOf(tokens.nextToken()).floatValue();
 		}
 	}
+	// for getSize call
+	sizeof = lines;
 	return rval;
   }
 

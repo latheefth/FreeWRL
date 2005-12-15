@@ -41,6 +41,10 @@ public class EventOutMFColor extends EventOutMField {
 			rval[count1][count2] = Float.valueOf(tokens.nextToken()).floatValue();
 		}
 	}
+
+	// for the getSize call:
+	sizeof = lines;
+
 	return rval;
   }
 

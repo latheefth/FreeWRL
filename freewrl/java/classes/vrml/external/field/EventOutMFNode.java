@@ -11,7 +11,7 @@ public class EventOutMFNode extends EventOutMField {
   // sizeof is the size of retnodes.
 
   Node[] retnodes;
-  int sizeof = 0;
+  int mySize = 0;
 
 
   public EventOutMFNode() {EventType = FieldTypes.MFNODE;}
@@ -30,16 +30,20 @@ public class EventOutMFNode extends EventOutMField {
 
     counttokens = tokens.countTokens();
     retnodes = new Node[counttokens];
-    sizeof = 0;
+    mySize = 0;
 
-    while (sizeof < counttokens) {
+    while (mySize < counttokens) {
 
-      retnodes[sizeof] = new Node();
+      retnodes[mySize] = new Node();
       rep = tokens.nextToken();
-      retnodes[sizeof].NodeName = new String(rep);
-      retnodes[sizeof].nodeptr = new String(rep);
-      sizeof ++;
+      retnodes[mySize].NodeName = new String(rep);
+      retnodes[mySize].nodeptr = new String(rep);
+      mySize ++;
     }
+
+        // for the getSize call
+        sizeof = mySize;
+
     return retnodes;
   }
 

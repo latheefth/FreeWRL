@@ -38,6 +38,10 @@ public class EventOutMFFloat extends EventOutMField {
 	for (count1=0; count1<lines; count1++) {
 		rval[count1] = Float.valueOf(tokens.nextToken()).floatValue();
 	}
+
+	// for the getSize call
+	sizeof = lines;
+
 	return rval;
   }
 

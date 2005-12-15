@@ -7,8 +7,11 @@ import vrml.external.field.FieldTypes;
 public class EventOutMField extends EventOut {
   public EventOutMField() {EventType = FieldTypes.UnknownType;}
 
+  // sizeof is the size of an EventOutMF* call.
+  int sizeof = 0;
+
+
   public int           getSize() {
-    System.out.println ("ERROR: EventOutMField Not Implemented");
-    return 0;
+    return sizeof;
   }
 }

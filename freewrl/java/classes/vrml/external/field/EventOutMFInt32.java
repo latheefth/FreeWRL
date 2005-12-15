@@ -37,7 +37,11 @@ public class EventOutMFInt32 extends EventOutMField {
 	// now, read in the lines.
 	for (count1=0; count1<lines; count1++) {
 		rval[count1] = Integer.valueOf(tokens.nextToken()).intValue();
+
 	}
+
+	// for the getSize call
+	sizeof = lines;
 	return rval;
   }
 
