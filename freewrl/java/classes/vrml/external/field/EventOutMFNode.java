@@ -8,10 +8,8 @@ import vrml.external.Browser;
 public class EventOutMFNode extends EventOutMField {
 
   // retnodes is an array of string values.
-  // sizeof is the size of retnodes.
-
   Node[] retnodes;
-  int mySize = 0;
+	int mySize;
 
 
   public EventOutMFNode() {EventType = FieldTypes.MFNODE;}
@@ -59,9 +57,5 @@ public class EventOutMFNode extends EventOutMField {
 	index = 0;
     }
     return MyNode[index];
-  }
-
-  public int           getSize() {
-	return sizeof;
   }
 }
