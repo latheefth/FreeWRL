@@ -28,7 +28,7 @@ public class EventInSFImage extends EventIn {
 	xx = new byte[components+1];
 	xx[0] = (byte) 0; // no sign bit here!
 
-	val = new String("\"" + width  + " " + height + " " + components);
+	val = new String("" + width  + " " + height + " " + components);
 
 	if (pixels== null) { pixcount = 0;} else {pixcount=pixels.length;}
 
@@ -66,9 +66,10 @@ public class EventInSFImage extends EventIn {
 
 		}	
 	}
-	val = val.concat("\"");
-	// System.out.println ("sending " + val);
-	Browser.newSendEvent(this, val);
+	//System.out.println ("sending " + val);
+
+    Browser.newSendEvent (this, val.length() + ":" + val + " ");
+
 	return;
   }
 }

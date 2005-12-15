@@ -1,16 +1,35 @@
 package vrml.external.field;
-//JAS import java.util.*;
-//JAS import vrml.external.Browser;
+import java.util.*;
+import vrml.external.Browser;
 import vrml.external.field.FieldTypes;
+import vrml.external.Node;
 
 
 public class EventOutSFNode extends EventOut {
   public EventOutSFNode() {EventType = FieldTypes.SFNODE;}
 
-  public String       getValue() {
-	//System.out.println ("in EventoutsfNode, we have " + RLreturn);
+  public Node  getValue() {
+    String rep;
+    StringTokenizer tokens;
+    int counttokens;
 
-    System.out.println ("ERROR: EventOutSFNode not implemented");
-    return RLreturn;
+  Node retnode;
+
+    if (command != null) {
+      rep = Browser.SendEventOut (nodeptr, offset, datasize, datatype, command);
+      tokens = new StringTokenizer (rep);
+    } else {
+      tokens = new StringTokenizer (RLreturn);
+    }
+    counttokens = tokens.countTokens();
+
+
+      retnode = new Node();
+      rep = tokens.nextToken();
+      retnode.NodeName = new String(rep);
+      retnode.nodeptr = new String(rep);
+    return retnode;
+
   }
 }
+

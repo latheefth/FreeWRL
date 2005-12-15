@@ -55,6 +55,7 @@
 
 #include "EAIheaders.h"
 
+
 int EAIport = 9877;				/* port we are connecting to*/
 int EAIinitialized = FALSE;		/* are we running?*/
 int EAIfailed = FALSE;			/* did we not succeed in opening interface?*/
@@ -83,14 +84,6 @@ int EAIbufcount;				/* pointer into buffer*/
 int EAIbufsize;				/* current size in bytes of input buffer*/
 
 int EAIwanted = FALSE;                       /* do we want EAI?*/
-
-/* prototypes*/
-/*
-void EAI_parse_commands (char *stptr);
-void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
-extern void Next_ViewPoint();
-extern void set_EAI_MFElementtype (int num, int offset, unsigned char *pptr, int len);
-*/
 
 /* open the socket connection -  we open as a TCP server, and will find a free socket */
 /* EAI will have a socket increment of 0; Java Class invocations will have 1 +	      */

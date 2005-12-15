@@ -175,6 +175,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    	break;
 	    }
 
+	    case SFNODE:
 	    case SFINT32: {
 	    	sscanf (buf,"%d",(int *)memptr);
 		len = sizeof (int);
@@ -217,7 +218,6 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    case MFNODE:
 	    case MFINT32:
 	    case MFTIME:
-	    case SFNODE:
 	    case MFCOLOR:
 	    case MFVEC3F:
 	    case MFFLOAT:
@@ -363,24 +363,34 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 	case SFIMAGE:
 	case SFSTRING: {
+		int thissize;
+
 		/* save this stuff to a global SV, rather than worrying about memory pointers */
 		#ifdef EAIVERBOSE
 		printf ("ScanValtoBuffer: SFSTRING, string is %s, ptr %x %d\n",buf,memptr,memptr);
 		#endif
 
-		/* take off the initial quote */
-		if (*buf == '"') buf++;
+		/* strings in the format "25:2 2 1 0xff 0x80 0x80 0xff" where 25 is the length */
+		while (*buf == ' ') buf++;
 
-		/* find the end of the string, and take off the final quote */
-		tmpbuf = (char *) rindex (buf,'"');
-		if (tmpbuf != NULL) {
-			*((char *)tmpbuf)='\0';
-		}
-		
+		sscanf (buf,"%d",&thissize);
+		/* printf ("this SFStr size %d \n",thissize);  */
+
+		/* scan to start of string*/
+		while (*buf!=':') buf++; buf++;
+
+		/* replace the space at stringln with a 0 */
+		buf += thissize; 
+		*buf=0;
+		buf -= thissize;
                 sv_global_tmp = EAI_newSVpv(buf);
+
+		/* return char to a space */
+		buf += thissize;
+		*buf=' ';
+
 		/* printf ("ScanValtoBuffer, svptr is now of type %x\n",SvTYPE(sv_global_tmp)); */
 		/*len = maxele*sizeof(struct Multi_String);*/
-		/* return -1 to indicate that this is "wierd".*/
 		len = sizeof (void *);
 		break;
 	}
@@ -428,31 +438,36 @@ void EAI_parse_commands (char *bufptr) {
 	char *EOT;		/* ptr to End of Text marker*/
 
 	while (strlen(bufptr)> 0) {
-	/*	printf ("start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);*/
+		#ifdef EAIVERBOSE
+		printf ("EAI_parse_commands:start of while loop, strlen %d str :%s:\n",strlen(bufptr),bufptr);
+		#endif
 
 		/* step 1, get the command sequence number */
 		if (sscanf (bufptr,"%d",&count) != 1) {
 			printf ("EAI_parse_commands, expected a sequence number on command :%s:\n",bufptr);
 			count = 0;
 		}
-	/*	printf ("EAI - seq number %d\n",count);*/
+		#ifdef EAIVERBOSE
+		printf ("EAI - seq number %d\n",count);
+		#endif
 
 		/* step 2, skip past the sequence number */
 		while (isdigit(*bufptr)) bufptr++;
-	/*	printf("past sequence number, string:%s\n",bufptr);*/
+		#ifdef EAIVERBOSE
+		printf("past sequence number, string:%s\n",bufptr);
+		#endif
+
 		while (*bufptr == ' ') bufptr++;
-	/*	printf ("past the space, string:%s\n",bufptr);*/
+		#ifdef EAIVERBOSE
+		printf ("past the space, string:%s\n",bufptr);
+		#endif
 
 		/* step 3, get the command */
 
-		/* EAIVERBOSE*/
-	/*	{*/
-	/*	    printf ("EAI_parse_commands cmd %s\n",*bufptr);*/
-	/*	    printf ("command %c seq %d\n",*bufptr,count);*/
-	/*	}*/
-
 		command = *bufptr;
-	/*	printf ("command %c\n",command);*/
+		#ifdef EAIVERBOSE
+		printf ("command %c\n",command);
+		#endif
 		bufptr++;
 
 		/* return is something like: $hand->print("RE\n$reqid\n1\n$id\n");*/
@@ -691,20 +706,6 @@ void EAI_parse_commands (char *bufptr) {
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 				}
-#ifdef OLDEAICODE
-
-			case REREADWRL: {
-
-				#ifdef EAIVERBOSE 
-				printf ("REREADWRL <%s> \n",bufptr);
-				#endif
-
-				EAI_RNewW(bufptr);
-
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
-				break;
-			}
-#endif
 
 		  	case STOPFREEWRL: {
 				#ifdef EAIVERBOSE 
@@ -814,7 +815,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 	/* lets go to the first non-blank character in the string */
 	while (*ptr == ' ') ptr++;
 	#ifdef EAIVERBOSE 
-	printf ("EAI_SendEvent, event string now is :%s\n",ptr);
+	printf ("EAI_SendEvent, event string now is :%s:\n",ptr);
 	#endif
 
 	/* is this a MF node, that has floats or ints, and the set1Value method is called? 	*/
@@ -873,6 +874,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 		printf ("EAI_SendEvent, conversion failure\n");
 		return( -1 );
 	}
+
 
 	MultiElement=FALSE;
 	switch (nodetype) {
@@ -977,61 +979,9 @@ unsigned int EAI_SendEvent (char *ptr) {
 		mark_event ((void *)nodeptr,offset);
 	}
 	return TRUE;
-}
-
-
-#ifdef OLDEAICODE
-/* ========================================================================== */
-/* AD */
-
-void EAI_RNewW(char *bufptr) {
-
-	unsigned oldlen;
-	struct   VRML_Group *rn;
-	struct   Multi_Node *par;
-	char     *pstr;
-
-	rn = (struct VRML_Group *) rootNode;
-	par = &(rn->children);
-
-	#ifdef EAIVERBOSE 
-	printf ("EAI_RNewW, rootNode is %d\n",rootNode);
-	#endif
-
-
-	/* oldlen = what was there in the first place */
-	oldlen = par->n;
-
-	#ifdef EAIVERBOSE 
-	printf ("oldRoot has %d nodes\n",oldlen);
-	#endif
-
-
-	/* make the old root have ZERO nodes  -well, leave the initial Group {}*/
-	par->n = 1;
-
-	/* trick to put only the path name only */
-	pstr = bufptr;
-	while('/' != *pstr) {pstr ++; bufptr++;}
-	while(!isspace(*pstr)) pstr ++;
-	*pstr = 0;
-	#ifdef EAIVERBOSE 
-	printf ("New bufptr <%s>\n",bufptr);
-	#endif
-
-
-	EAI_readNewWorld(bufptr);
-
-	#ifdef EAIVERBOSE 
-	printf ("EAI_RNewW, rootNode now is %d\n",rootNode);
-	#endif
+#undef EAIVERBOSE
 
 }
-#endif
-
-/* ========================================================================== */
-
-
 
 
 /* EAI, replaceWorld. */
