@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.194  2005/12/15 20:42:01  crc_canada
+# CoordinateInterpolator2D PositionInterpolator2D
+#
 # Revision 1.193  2005/12/10 20:26:18  crc_canada
 # Move some functions into new "Component" files.
 #
@@ -1235,6 +1238,12 @@ CODE:
 
 	if (strncmp("OrientationInterpolator",x,strlen("OrientationInterpolator"))==0) {
 		pt = (void *)do_Oint4;
+		RETVAL = pt;
+	} else if (strncmp("CoordinateInterpolator2D",x,strlen("CoordinateInterpolator2D"))==0) {
+		pt = (void *)do_OintCoord2D;
+		RETVAL = pt;
+	} else if (strncmp("PositionInterpolator2D",x,strlen("PositionInterpolator2D"))==0) {
+		pt = (void *)do_OintPos2D;
 		RETVAL = pt;
 	} else if (strncmp("ScalarInterpolator",x,strlen("ScalarInterpolator"))==0) {
 		pt = (void *)do_OintScalar;

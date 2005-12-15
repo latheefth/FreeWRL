@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.188  2005/12/15 20:42:01  crc_canada
+# CoordinateInterpolator2D PositionInterpolator2D
+#
 # Revision 1.187  2005/12/15 19:57:58  crc_canada
 # Geometry2D nodes complete.
 #
@@ -311,6 +314,7 @@ GeoElevationGrid => '
 
 # FontStyle params handled in Text. This is here so that VRML_FontStyle struct will be generated.
 FontStyle => 'UNUSED(this_);',
+
 
 
 Coordinate => ' UNUSED(this_);',
@@ -773,6 +777,8 @@ DirectionalLight => '
 # this creates the Struct values required to allow backend to fill the C values out
 ColorInterpolator => 'UNUSED(this_); /* compiler warning */',
 PositionInterpolator => 'UNUSED(this_); /* compiler warning */',
+CoordinateInterpolator2D => 'UNUSED(this_); /* compiler warning */',
+PositionInterpolator2D => 'UNUSED(this_); /* compiler warning */',
 GeoPositionInterpolator => 'UNUSED(this_); /* compiler warning */',
 ScalarInterpolator => 'UNUSED(this_); /* compiler warning */',
 OrientationInterpolator => 'UNUSED(this_); /* compiler warning */',

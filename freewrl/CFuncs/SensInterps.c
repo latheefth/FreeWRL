@@ -350,7 +350,205 @@ void do_OintCoord(void *node) {
 	#endif
 
 }
+void do_OintCoord2D(void *node) {
+	struct VRML_CoordinateInterpolator2D *px;
+	int kin, kvin/* , counter */;
+	struct SFVec2f *kVs;
+	struct SFVec2f *valchanged;
 
+	int thisone, prevone;	/* which keyValues we are interpolating between */
+	int tmp;
+	float interval;		/* where we are between 2 values */
+	struct pt normalval;	/* different structures for normalization calls */
+	int kpkv; /* keys per key value */
+	int indx;
+	int myKey;
+
+	if (!node) return;
+	px = (struct VRML_CoordinateInterpolator2D *) node;
+
+
+	#ifdef SEVERBOSE
+		printf ("debugging OintCoord keys %d kv %d vc %d\n",px->keyValue.n, px->key.n,px->value_changed.n);
+	#endif
+
+	mark_event (node, offsetof (struct VRML_CoordinateInterpolator2D, value_changed));
+
+	kin = px->key.n;
+	kvin = px->keyValue.n;
+	kVs = px->keyValue.p;
+	kpkv = kvin/kin;
+
+	/* do we need to (re)allocate the value changed array? */
+	if (kpkv != px->value_changed.n) {
+		#ifdef SEVERBOSE
+		    printf ("refactor valuechanged array. n %d sizeof p %d\n",
+			kpkv,sizeof (struct SFVec2f) * kpkv);
+		#endif
+		if (px->value_changed.n != 0) {
+			free (px->value_changed.p);
+		}
+		px->value_changed.n = kpkv;
+		px->value_changed.p =(struct SFVec2f*) malloc (sizeof (struct SFVec2f) * kpkv);
+	}
+
+	/* shortcut valchanged; have to put it here because might be remalloc'd */
+	valchanged = px->value_changed.p;
+
+
+	/* make sure we have the keys and keyValues */
+	if ((kvin == 0) || (kin == 0)) {
+		#ifdef SEVERBOSE
+		printf ("no keys or keyValues yet\n");
+		#endif
+
+		for (indx = 0; indx < kpkv; indx++) {
+			valchanged[indx].c[0] = 0.0;
+			valchanged[indx].c[1] = 0.0;
+		}
+		return;
+	}
+	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+
+
+	#ifdef SEVERBOSE
+		printf ("debugging, kpkv %d, px->value_changed.n %d\n", kpkv, px->value_changed.n);
+		printf ("CoordinateInterpolator2D, kpkv %d\n",kpkv);
+	#endif
+	
+
+	/* set_fraction less than or greater than keys */
+	if (px->set_fraction <= px->key.p[0]) {
+		#ifdef SEVERBOSE
+		printf ("COINT out1\n");
+		#endif
+
+		for (indx = 0; indx < kpkv; indx++) {
+			memcpy ((void *)&valchanged[indx],
+				(void *)&kVs[indx], sizeof (struct SFVec2f));
+			/* JAS valchanged[indx].c[0] = kVs[indx].c[0]; */
+			/* JAS valchanged[indx].c[1] = kVs[indx].c[1]; */
+		}
+		#ifdef SEVERBOSE
+		printf ("COINT out1 copied\n");
+		#endif
+	} else if (px->set_fraction >= px->key.p[kin-1]) {
+		#ifdef SEVERBOSE
+		printf ("COINT out2\n");
+		#endif
+
+		for (indx = 0; indx < kpkv; indx++) {
+			memcpy ((void *)&valchanged[indx],
+				(void *)&kVs[kvin-kpkv+indx],
+				sizeof (struct SFVec2f));
+		}
+		#ifdef SEVERBOSE
+		printf ("COINT out2 finished\n");
+		#endif
+	} else {
+		#ifdef SEVERBOSE
+		printf ("COINT out3\n");
+		#endif
+
+		/* have to go through and find the key before */
+		#ifdef SEVERBOSE
+		printf ("indx=0, kin %d frac %f\n",kin,px->set_fraction);
+		#endif
+
+		myKey=find_key(kin,(float)(px->set_fraction),px->key.p);
+		#ifdef SEVERBOSE
+		printf ("working on key %d\n",myKey);
+		#endif
+
+		/* find the fraction between the 2 values */
+		interval = (px->set_fraction - px->key.p[myKey-1]) /
+				(px->key.p[myKey] - px->key.p[myKey-1]);
+
+		for (indx = 0; indx < kpkv; indx++) {
+			thisone = myKey * kpkv + indx;
+			prevone = (myKey-1) * kpkv + indx;
+
+			#ifdef SEVERBOSE
+			if (thisone >= kvin) {
+				printf ("CoordinateInterpolator2D error: thisone %d prevone %d indx %d kpkv %d kin %d kvin %d\n",thisone,prevone,
+				indx,kpkv,kin,kvin);
+			}
+			#endif
+
+			for (tmp=0; tmp<2; tmp++) {
+				valchanged[indx].c[tmp] = kVs[prevone].c[tmp]  +
+						interval * (kVs[thisone].c[tmp] -
+							kVs[prevone].c[tmp]);
+			}
+		}
+		#ifdef SEVERBOSE
+		printf ("COINT out3 finished\n");
+		#endif
+
+	}
+
+	#ifdef SEVERBOSE
+	printf ("Done CoordinateInterpolator2D\n");
+	#endif
+}
+
+void do_OintPos2D(void *node) {
+/* PositionInterpolator2D				 		*/
+/* Called during the "events_processed" section of the event loop,	*/
+/* so this is called ONLY when there is something required to do, thus	*/
+/* there is no need to look at whether it is active or not		*/
+
+	struct VRML_PositionInterpolator2D *px;
+	int kin, kvin, counter, tmp;
+	struct SFVec2f *kVs;
+
+	if (!node) return;
+	px = (struct VRML_PositionInterpolator2D *) node;
+
+	mark_event (node, offsetof (struct VRML_PositionInterpolator2D, value_changed));
+
+	kin = px->key.n;
+	kvin = px->keyValue.n;
+	kVs = px->keyValue.p;
+
+	#ifdef SEVERBOSE
+		printf("do_Oint2: Position interp2D, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, px->set_fraction);
+	#endif
+
+	/* make sure we have the keys and keyValues */
+	if ((kvin == 0) || (kin == 0)) {
+		px->value_changed.c[0] = 0.0;
+		px->value_changed.c[1] = 0.0;
+		return;
+	}
+	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+
+
+	/* set_fraction less than or greater than keys */
+	if (px->set_fraction <= ((px->key).p[0])) {
+		memcpy ((void *)&px->value_changed,
+				(void *)&kVs[0], sizeof (struct SFVec2f));
+	} else if (px->set_fraction >= px->key.p[kin-1]) {
+		memcpy ((void *)&px->value_changed,
+				(void *)&kVs[kvin-1], sizeof (struct SFVec2f));
+	} else {
+		/* have to go through and find the key before */
+		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
+		for (tmp=0; tmp<2; tmp++) {
+			px->value_changed.c[tmp] =
+				(px->set_fraction - px->key.p[counter-1]) /
+				(px->key.p[counter] - px->key.p[counter-1]) *
+				(kVs[counter].c[tmp] -
+					kVs[counter-1].c[tmp]) +
+				kVs[counter-1].c[tmp];
+		}
+	}
+	#ifdef SEVERBOSE
+	printf ("Pos/Col, new value (%f %f)\n",
+		px->value_changed.c[0],px->value_changed.c[1]);
+	#endif
+}
 
 /* PositionInterpolator, ColorInterpolator		 		*/
 /* Called during the "events_processed" section of the event loop,	*/
