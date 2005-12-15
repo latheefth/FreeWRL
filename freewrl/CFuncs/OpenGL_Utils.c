@@ -613,6 +613,22 @@ void kill_rendering(void *thisnode) {
 				kill_MFVec2f(&thisNode->point);
 				break; }
 
+			case NODE_Rectangle2D: break;
+
+			case NODE_Disk2D: {
+				struct VRML_Disk2D *thisNode;
+				thisNode = (struct VRML_Disk2D *) thisnode;
+				kill_FreeWRLPTR(thisNode->__points);
+				kill_FreeWRLPTR(thisNode->__texCoords);
+				break; }
+
+			case NODE_TriangleSet2D: {
+				struct VRML_TriangleSet2D *thisNode;
+				thisNode = (struct VRML_TriangleSet2D *) thisnode;
+				kill_MFVec2f(&thisNode->vertices);
+				kill_FreeWRLPTR(thisNode->__texCoords);
+				break; }
+
 
 		/* Text Component */
 

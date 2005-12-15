@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.187  2005/12/15 19:57:58  crc_canada
+# Geometry2D nodes complete.
+#
 # Revision 1.186  2005/12/14 13:51:32  crc_canada
 # More Geometry2D nodes.
 #
@@ -1534,13 +1537,85 @@ ProximitySensor => q~
 %CollisionC = (
 
 Disk2D => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		/* yeah, yeah, we should collide with this shape */
+		/* if (this_->__IFSSTRUCT != NULL) collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_->__IFSSTRUCT); */
 	       ~,
 Rectangle2D => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		/* Modified Box code. */
+
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       struct pt iv = {0,0,0};
+	       struct pt jv = {0,0,0};
+	       struct pt kv = {0,0,0};
+	       struct pt ov = {0,0,0};
+
+	       struct pt t_orig = {0,0,0};
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+
+	       struct pt delta;
+	       struct pt tupv = {0,1,0};
+
+		iv.x = $f(size,0);
+		jv.y = $f(size,1);
+		kv.z = 0.0;
+		ov.x = -$f(size,0)/2; ov.y = -$f(size,1)/2; ov.z = 0.0;
+
+
+	       /* get the transformed position of the Box, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*$f(size,0),scale*$f(size,1),0.0)) return;
+
+	       /* get transformed box edges and position */
+	       transform(&ov,&ov,modelMatrix);
+	       transform3x3(&iv,&iv,modelMatrix);
+	       transform3x3(&jv,&jv,modelMatrix);
+	       transform3x3(&kv,&kv,modelMatrix);
+
+
+	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
+			  ov.x, ov.y, ov.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+	           printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
+			  iv.x, iv.y, iv.z,
+			  jv.x, jv.y, jv.z,
+			  kv.x, kv.y, kv.z
+			  );
+		#endif
+
 	       ~,
 TriangleSet2D => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		/* yeah, yeah, we should collide with this shape */
+		/* if (this_->__IFSSTRUCT != NULL) collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_->__IFSSTRUCT); */
 	       ~,
 
 Sphere => q~

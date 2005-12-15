@@ -1191,19 +1191,17 @@ my $protono;
 					    	outerRadius => [SFFloat, 1.0, field],
 						solid => [SFBool, 0, field],
 						__points  =>[FreeWRLPTR,0,field],
+						__texCoords  =>[FreeWRLPTR,0,field],
 						__numPoints =>[SFInt32,0,field],
+						__simpleDisk => [SFBool,0,field],
  					   }),
 
 	Polyline2D => new VRML::NodeType("Polyline2D", {
 					    	lineSegments => [MFVec2f, [], field],
-						__points  =>[FreeWRLPTR,0,field],
-						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	Polypoint2D => new VRML::NodeType("Polypoint2D", {
 					    	point => [MFVec2f, [], exposedField],
-						__points  =>[FreeWRLPTR,0,field],
-						__numPoints =>[SFInt32,0,field],
  					   }),
 
 	Rectangle2D => new VRML::NodeType("Rectangle2D", {
@@ -1217,8 +1215,7 @@ my $protono;
 	TriangleSet2D => new VRML::NodeType("TriangleSet2D", {
 					    	vertices => [MFVec2f, [], exposedField],
 						solid => [SFBool, 0, field],
-						__points  =>[FreeWRLPTR,0,field],
-						__numPoints =>[SFInt32,0,field],
+						__texCoords  =>[FreeWRLPTR,0,field],
  					   }),
 
 	###################################################################################
