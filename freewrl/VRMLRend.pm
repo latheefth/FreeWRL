@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.190  2005/12/16 18:07:11  crc_canada
+# rearrange perl generation
+#
 # Revision 1.189  2005/12/16 13:49:23  crc_canada
 # updating generation functions.
 #
@@ -244,510 +247,56 @@
 #
 #
 
-# Rend = real rendering
-
-%RendC = (
-
-#Bindable nodes in seperate file now
-#Viewpoint => ' ',
-#GeoViewpoint => ' ',
-
-NavigationInfo => 'render_NavigationInfo ((struct X3D_NavigationInfo *) this_);',
-
-Fog => '
-	if (!render_geom) printf ("rendering fog while not geom\n");
-render_Fog((struct X3D_Fog *) this_);',
-
-Background => '
-	if (!render_geom) printf ("rendering background while not geom\n");
-		render_Background ((struct X3D_Background *) this_); ',
-
-TextureBackground => '
-	if (!render_geom) printf ("rendering background while not geom\n");
-		render_TextureBackground ((struct X3D_TextureBackground *) this_); ',
-
-# Geometry3D
-Box => ' render_Box((struct X3D_Box *) this_); ',
-Cylinder => 'render_Cylinder((struct X3D_Cylinder *) this_); ',
-Cone => 'render_Cone((struct X3D_Cone *) this_); ',
-Sphere => 'render_Sphere ((struct X3D_Sphere *) this_); ',
-IndexedFaceSet => 'render_IndexedFaceSet ((struct X3D_IndexedFaceSet *) this_); ',
-Extrusion => 'render_Extrusion ((struct X3D_Extrusion *) this_); ',
-ElevationGrid => 'render_ElevationGrid ((struct X3D_ElevationGrid *) this_); ',
-
-
-# Geometry2D
-Arc2D => ' render_Arc2D((struct X3D_Arc2D *) this_); ',
-ArcClose2D => ' render_ArcClose2D((struct X3D_ArcClose2D *) this_); ',
-Circle2D => ' render_Circle2D((struct X3D_Circle2D *) this_); ',
-Disk2D => ' render_Disk2D((struct X3D_Disk2D *) this_); ',
-Polyline2D => ' render_Polyline2D((struct X3D_Polyline2D *) this_); ',
-Polypoint2D => ' render_Polypoint2D((struct X3D_Polypoint2D *) this_); ',
-Rectangle2D => ' render_Rectangle2D((struct X3D_Rectangle2D *) this_); ',
-TriangleSet2D => ' render_TriangleSet2D((struct X3D_TriangleSet2D *) this_); ',
-
-# Component_Rendering
-IndexedTriangleFanSet => 'render_IndexedTriangleFanSet ((struct X3D_IndexedTriangleFanSet *) this_); ',
-IndexedTriangleSet => 'render_IndexedTriangleSet ((struct X3D_IndexedTriangleSet *) this_); ',
-IndexedTriangleStripSet => 'render_IndexedTriangleStripSet ((struct X3D_IndexedTriangleStripSet *) this_); ',
-TriangleFanSet => 'render_TriangleFanSet ((struct X3D_TriangleFanSet *) this_); ',
-TriangleStripSet => 'render_TriangleStripSet ((struct X3D_TriangleStripSet *) this_); ',
-TriangleSet => 'render_TriangleSet ((struct X3D_TriangleSet *) this_); ',
-LineSet => 'render_LineSet ((struct X3D_LineSet *) this_); ',
-IndexedLineSet => 'render_IndexedLineSet ((struct X3D_IndexedLineSet *) this_); ',
-PointSet => 'render_PointSet ((struct X3D_PointSet *) this_); ',
-
-
-
-GeoElevationGrid => '
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-			regen_polyrep(this_, NULL, this_->color, this_->normal, this_->texCoord);
-
-		if(!$f(solid)) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
-		render_polyrep(this_);
-
-		if(!$f(solid)) {
-			glPopAttrib();
-		}
-',
-
-
-# a LoadSensor is not a "pointing device" sensor; we can render it here
-LoadSensor =>'render_loadsensor((struct X3D_LoadSensor *)this_); ',
-
-TextureCoordinateGenerator => '
-	/* go to Textures.c and render the textures there */
-	render_texturecoordinategenerator((struct X3D_TextureCoordinate_Generator *)this_);
-',
-
-TextureCoordinate => ' 
-	/* go to Textures.c and render the textures there */
-	render_texturecoordinate((struct X3D_TextureCoordinate *)this_);
-',
-
-# Text is a polyrep, as of freewrl 0.34
-Text => '
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
-
-		/* always Text is visible from both sides */
-                glPushAttrib(GL_ENABLE_BIT);
-                glDisable(GL_CULL_FACE);
-
-		render_polyrep(this_);
-
-		glPopAttrib();
-',
-
-
-LineProperties => '
-	GLint	factor;
-	GLushort pat;
-
-	if (this_->applied) {
-		global_lineProperties=TRUE;
-		if (this_->linewidthScaleFactor > 1.0) glLineWidth(this_->linewidthScaleFactor);
-		if (this_->linetype > 0) {
-			factor = 1;
-			pat = 0xffff; /* can not support fancy line types - this is the default */
-			switch (this_->linetype) {
-				case 2: pat = 0xaaaa; break;
-				case 3: pat = 0x4444; break;
-				case 4: pat = 0xa4a4; break;
-				case 5: pat = 0xaa44; break;
-				case 6: pat = 0x0100; break;
-				case 7: pat = 0x0100; break;
-				case 10: pat = 0xaaaa; break;
-				case 11: pat = 0x0170; break;
-				case 12: pat = 0x0000; break;
-				case 13: pat = 0x0000; break;
-				default: {}
-			}
-			glLineStipple (factor,pat);
-			glEnable(GL_LINE_STIPPLE);
-		}
-	}
-
-',
-
-FillProperties => '
-		GLubyte halftone[] = {
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
-		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55};
-
-		global_fillProperties=TRUE;
-
-		if (!this_->filled) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		}
-		if (this_->hatched) {
-			glColor3f (this_->hatchColor.c[0], this_->hatchColor.c[1],this_->hatchColor.c[2]);
-			glPolygonStipple(halftone);			
-			glEnable (GL_POLYGON_STIPPLE);
-		}
-',
-
-Material =>  '
-		int i;
-		float dcol[4];
-		float ecol[4];
-		float scol[4];
-		float shin;
-		float amb;
-		float trans;
-
-#ifndef X3DMATERIALPROPERTY
-		/* We have to keep track of whether to reset diffuseColor if using
-		   textures; no texture or greyscale, we use the diffuseColor, if
-		   RGB we set diffuseColor to be grey */
-		if (last_texture_depth >1) {
-			dcol[0]=0.8, dcol[1]=0.8, dcol[2]=0.8;
-		} else {
-#endif
-
-			for (i=0; i<3;i++){ dcol[i] = $f(diffuseColor,i); }
-#ifndef X3DMATERIALPROPERTY
-		}
-#endif
-
-		/* set the transparency here for the material */
-		trans = 1.0 - $f(transparency);
-		/* printf ("Material, trans %f\n",DOLLARf(transparency));*/
-		if (trans<0.0) trans = 0.0;
-		if (trans>=0.99) trans = 0.99;
-
-		/* and, record that we have a transparency here */
-		/* and record transparency value, in case we have an
-		   indexedfaceset with colour node */
-		if (trans <=0.99) {
-			have_transparency++;
-			if ((this_->_renderFlags & VF_Blend) != VF_Blend)
-				update_renderFlag(this_,VF_Blend);
-			last_transparency=trans;
-		}
-
-		dcol[3] = trans;
-
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
-
-		amb = $f(ambientIntensity);
-		for(i=0; i<3; i++) {
-                       /* to make this render like Xj3D, make ambient 0 with only headlight */
-                        /* dcol[i] *= amb; */
-                        dcol[i] = 0.0;
-		}
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
-
-		for (i=0; i<3;i++){ scol[i] = $f(specularColor,i); }
-		scol[3] = trans;
-		/* scol[3] = 1.0;*/
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
-
-		for (i=0; i<3;i++){ ecol[i] = $f(emissiveColor,i); }
-		ecol[3] = trans;
-		/* ecol[3] = 1.0;*/
-
-		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
-		glColor3f(ecol[0],ecol[1],ecol[2]);
-
-		shin = 128.0*$f(shininess);
-		do_shininess(shin);
-',
-
-MultiTextureTransform => '
-		printf ("rendering MultiTextureTransform\n");
-',
-
-TextureTransform => '
-		printf ("rendering TextureTransform\n");
-',
-
-# Pixels and Images are all handled the same way now - the methods are identical.
-PixelTexture => '
-	loadPixelTexture(this_,NULL);
-	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
-',
-
-ImageTexture => '
-	loadImageTexture(this_,NULL);
-	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
-',
-
-# MultiTexture handling... Can we compile the string comparisons in?
-
-MultiTexture => '
-	loadMultiTexture(this_);
-',
-
-######
-MovieTexture => '
-	/* really simple, the texture number is calculated, then simply sent here.
-	   The bound_textures field is sent, and, made current */
-
-	/*  if this is attached to a Sound node, tell it...*/
-	sound_from_audioclip = FALSE;
-
-	loadMovieTexture(this_,NULL);
-	bound_textures[texture_count] = this_->__ctex;
-	/* not multitexture, should have saved to bound_textures[0] */
-	
-	texture_count=1;
-',
-
-
-
-Sound => '
-/* node fields...
-	direction => [SFVec3f, [0, 0, 1]],
-	intensity => [SFFloat, 1.0],
-	location => [SFVec3f, [0,0,0]],
-	maxBack => [SFFloat, 10],
-	maxFront => [SFFloat, 10],
-	minBack => [SFFloat, 1],
-	minFront => [SFFloat, 1],
-	priority => [SFFloat, 0],
-	source => [SFNode, NULL],
-	spatialize => [SFBool,1, ""]	# not exposedfield
-*/
-
-	GLdouble mod[16];
-	GLdouble proj[16];
-	struct pt vec, direction, location;
-	double len;
-	double angle;
-	float midmin, midmax;
-	float amp;
-
-	struct X3D_AudioClip *acp;
-	struct X3D_MovieTexture *mcp;
-	char mystring[256];
-
-	acp = (struct X3D_AudioClip *) $f(source);
-	mcp = (struct X3D_MovieTexture *) $f(source);
-
-	/*  MovieTextures NOT handled yet*/
-	/*  first - is there a node (any node!) attached here?*/
-	if (acp) {
-		/*  do the sound registering first, and tell us if this is an audioclip*/
-		/*  or movietexture.*/
-
-		render_node(acp);
-
-		/*  if the attached node is not active, just return*/
-		/* printf ("in Sound, checking AudioClip isactive %d\n", acp->isActive);*/
-		if (acp->isActive == 0) return;
-
-		direction.x = $f(direction,0);
-		direction.y = $f(direction,1);
-		direction.z = $f(direction,2);
-
-		location.x = $f(location,0);
-		location.y = $f(location,1);
-		location.z = $f(location,2);
-
-		midmin = (this_->minFront - this_->minBack) / 2.0;
-		midmax = (this_->maxFront - this_->maxBack) / 2.0;
-
-
-		glPushMatrix();
-
-		/*
-		first, find whether or not we are within the maximum circle.
-
-		translate to the location, and move the centre point, depending
-		on whether we have a direction and differential maxFront and MaxBack
-		directions.
-		*/
-
-		glTranslatef (location.x + midmax*direction.x,
-				location.y + midmax*direction.y,
-				location.z + midmax * direction.z);
-
-		/* make the ellipse a circle by scaling...
-		glScalef (direction.x*2.0 + 0.5, direction.y*2.0 + 0.5, direction.z*2.0 + 0.5);
-		- scaling needs work - we need direction information, and parameter work. */
-
-		if ((fabs(this_->minFront - this_->minBack) > 0.5) ||
-			(fabs(this_->maxFront - this_->maxBack) > 0.5)) {
-			if (!soundWarned) {
-				printf ("FreeWRL:Sound: Warning - minBack and maxBack ignored in this version\n");
-				soundWarned = TRUE;
-			}
-		}
-
-
-
-		fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
-		fwGetDoublev(GL_PROJECTION_MATRIX, proj);
-		gluUnProject (viewport[2]/2,viewport[3]/2,0.0,
-			mod,proj,viewport, &vec.x,&vec.y,&vec.z);
-		/* printf ("mod %lf %lf %lf proj %lf %lf %lf\n",*/
-		/* mod[12],mod[13],mod[14],proj[12],proj[13],proj[14]);*/
-
-		len = sqrt(VECSQ(vec));
-		/* printf("Sound: len %f mB %f mF %f angles (%f %f %f)\n",len,*/
-		/* 	-this_->maxBack, this_->maxFront,vec.x,vec.y,vec.z);*/
-
-
-		/*  pan left/right. full left = 0; full right = 1.*/
-		if (len < 0.001) angle = 0;
-		else {
-			if (APPROX (mod[12],0)) {
-				/* printf ("mod12 approaches zero\n");*/
-				mod[12] = 0.001;
-			}
-			angle = fabs(atan2(mod[14],mod[12])) - (PI/2.0);
-			angle = angle/(PI/2.0);
-
-			/*  Now, scale this angle to make it between -0.5*/
-			/*  and +0.5; if we divide it by 2.0, we will get*/
-			/*  this range, but if we divide it by less, then*/
-			/*  the sound goes "hard over" to left or right for*/
-			/*  a bit.*/
-			angle = angle / 1.5;
-
-			/*  now scale to 0 to 1*/
-			angle = angle + 0.5;
-
-			/*  bounds check...*/
-			if (angle > 1.0) angle = 1.0;
-			if (angle < 0.0) angle = 0.0;
-			/* printf ("angle: %f\n",angle);*/
-		}
-
-
-		amp = 0.0;
-		/* is this within the maxFront maxBack? */
-
-		/* this code needs rework JAS */
-		if (len < this_->maxFront) {
-
-			/* note: using vecs, length is always positive - need to work in direction
-			vector */
-			if (len < 0.0) {
-				if (len < this_->minBack) {amp = 1.0;}
-				else {
-					amp = (len - this_->maxBack) / (this_->maxBack - this_->minBack);
-				}
-			} else {
-				if (len < this_->minFront) {amp = 1.0;}
-				else {
-					amp = (this_->maxFront - len) / (this_->maxFront - this_->minFront);
-				}
-			}
-
-			/* Now, fit in the intensity. Send along command, with
-			source number, amplitude, balance, and the current Framerate */
-			amp = amp*this_->intensity;
-			if (sound_from_audioclip) {
-				sprintf (mystring,"AMPL %d %f %f",acp->__sourceNumber,amp,angle);
-			} else {
-				sprintf (mystring,"MMPL %d %f %f",mcp->__sourceNumber,amp,angle);
-			}
-			Sound_toserver(mystring);
-		}
-		glPopMatrix();
-	}
-',
-
-AudioClip => '
-	/*  register an audioclip*/
-	float pitch,stime, sttime;
-	int loop;
-	unsigned char *filename = (unsigned char *)this_->__localFileName;
-
-	/* tell Sound that this is an audioclip */
-	sound_from_audioclip = TRUE;
-
-	/* printf ("_change %d _ichange %d\n",this_->_change, this_->_ichange);  */
-
-	if (!SoundEngineStarted) {
-		/* printf ("AudioClip: initializing SoundEngine\n"); */
-		SoundEngineStarted = TRUE;
-		SoundEngineInit();
-	}
-#ifndef JOHNSOUND
-	if (this_->isActive == 0) return;  /*  not active, so just bow out*/
-#endif
-
-	if (!SoundSourceRegistered(this_->__sourceNumber)) {
-
-		 /* printf ("AudioClip: registering clip %d loop %d p %f s %f st %f url %s\n",
-			this_->__sourceNumber,  this_->loop, this_->pitch,this_->startTime, this_->stopTime,
-			filename);
-		*/
-
-
-
-		pitch = this_->pitch;
-		stime = this_->startTime;
-		sttime = this_->stopTime;
-		loop = this_->loop;
-
-		AC_LastDuration[this_->__sourceNumber] =
-			SoundSourceInit (this_->__sourceNumber, this_->loop,
-			(float) pitch,(float) stime, (float) sttime, (char *)filename);
-		/* printf ("globalDuration source %d %f\n",
-				this_->__sourceNumber,AC_LastDuration[this_->__sourceNumber]); */
-
-		if (filename) free (filename);
-	}
-
-
- ',
-
-DirectionalLight => '
-	/* NOTE: This is called by the Group Children code
-	 * at the correct point (in the beginning of the rendering
-	 * of the children. We just turn the light on right now.
-	 */
-
-	if($f(on)) {
-		int light = nextlight();
-		if(light >= 0) {
-			float vec[4];
-			/* glEnable(light); */
-			lightState(light-GL_LIGHT0,TRUE);
-			vec[0] = -$f(direction,0);
-			vec[1] = -$f(direction,1);
-			vec[2] = -$f(direction,2);
-			vec[3] = 0;
-			glLightfv(light, GL_POSITION, vec);
-			vec[0] = $f(color,0) * $f(intensity);
-			vec[1] = $f(color,1) * $f(intensity);
-			vec[2] = $f(color,2) * $f(intensity);
-			vec[3] = 1;
-			glLightfv(light, GL_DIFFUSE, vec);
-			glLightfv(light, GL_SPECULAR, vec);
-
-			/* Aubrey Jaffer */
-			vec[0] = $f(color,0) * $f(ambientIntensity);
-			vec[1] = $f(color,1) * $f(ambientIntensity);
-			vec[2] = $f(color,2) * $f(ambientIntensity);
-
-			glLightfv(light, GL_AMBIENT, vec);
-		}
-	}
-',
-
-);
+# Rend = real rendering - rend_geom is true; this is for things that
+#	actually affect triangles/lines on the screen.
+#
+# All of these will have a render_xxx name associated with them.
+
+%RendC = map {($_=>1)} qw/
+	NavigationInfo
+	Fog
+	Background
+	TextureBackground
+	Box 
+	Cylinder 
+	Cone 
+	Sphere 
+	IndexedFaceSet 
+	Extrusion 
+	ElevationGrid 
+	Arc2D 
+	ArcClose2D 
+	Circle2D 
+	Disk2D 
+	Polyline2D 
+	Polypoint2D 
+	Rectangle2D 
+	TriangleSet2D 
+	IndexedTriangleFanSet 
+	IndexedTriangleSet 
+	IndexedTriangleStripSet 
+	TriangleFanSet 
+	TriangleStripSet 
+	TriangleSet 
+	LineSet 
+	IndexedLineSet 
+	PointSet 
+	GeoElevationGrid 
+	LoadSensor 
+	TextureCoordinateGenerator 
+	TextureCoordinate 
+	Text 
+	LineProperties 
+	FillProperties 
+	Material 
+	PixelTexture 
+	ImageTexture 
+	MultiTexture 
+	MovieTexture 
+	Sound 
+	AudioClip 
+	DirectionalLight 
+/;
 
 #######################################################################
 #######################################################################

@@ -590,12 +590,31 @@ void addToNode (void *rc,  void *newNode);
 void make_text(struct X3D_Text *this_ );
 void make_extrusion(struct X3D_Extrusion *this_);
 void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
+void make_GeoElevationGrid(struct X3D_GeoElevationGrid *this_);
 void collideIndexedFaceSet(struct X3D_IndexedFaceSet *this_);
 
 
-void render_loadsensor(struct X3D_LoadSensor *this);
-void render_texturecoordinategenerator(struct X3D_TextureCoordinateGenerator *this);
-void render_texturecoordinate(struct X3D_TextureCoordinate *this);
+void render_LoadSensor(struct X3D_LoadSensor *this);
+
+/* Sound Component */
+void render_Sound (struct X3D_Sound *this_);
+void render_AudioClip (struct X3D_AudioClip *this_);
+
+/* Texturing Component */
+void render_PixelTexture (struct X3D_PixelTexture *this_);
+void render_ImageTexture (struct X3D_ImageTexture *this_);
+void render_MultiTexture (struct X3D_MultiTexture *this_);
+void render_MovieTexture (struct X3D_MovieTexture *this_);
+void render_Text (struct X3D_Text * this_);
+void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *this);
+void render_TextureCoordinate(struct X3D_TextureCoordinate *this);
+
+/* Shape Component */
+void render_Appearance (struct X3D_Appearance *this_);
+void render_FillProperties (struct X3D_FillProperties *this_);
+void render_LineProperties (struct X3D_LineProperties *this_);
+void render_Material (struct X3D_Material *this_);
+void render_Shape (struct X3D_Shape *this_);
 
 /* Geometry3D nodes */
 void render_Box (struct X3D_Box *this);
@@ -627,7 +646,11 @@ void render_LineSet (struct X3D_LineSet *this_);
 void render_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
 void render_PointSet (struct X3D_PointSet *this_); 
 
+/* Component Lighting Nodes */
+void render_DirectionalLight (struct X3D_DirectionalLight *this_);
 
+/* Geospatial nodes */
+void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 
 #define NODE_ADD_PARENT(a) add_parent(a,ptr)
 #define NODE_REMOVE_PARENT(a) add_parent(a,ptr)

@@ -127,6 +127,18 @@ void FW_draw_outline(FT_OutlineGlyph oglyph);
 void FW_draw_character(FT_Glyph glyph);
 int open_font(void);
 
+void render_Text (struct X3D_Text * this_) {
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
+                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+
+		/* always Text is visible from both sides */
+                glPushAttrib(GL_ENABLE_BIT);
+                glDisable(GL_CULL_FACE);
+
+		render_polyrep(this_);
+
+		glPopAttrib();
+}
 
 void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
 	GLdouble v2[3];

@@ -28,7 +28,23 @@ double GeoOrig[3];			/* last GeoOrigin parsed in lat/long/elvation format */
 /* Function Prototypes */
 void parse_ellipsoid(int *dest, char *str, char *description);
 
+void make_GeoElevationGrid (struct X3D_GeoElevationGrid * this_) {
+}
 
+void render_GeoElevationGrid (struct X3D_GeoElevationGrid * this_) {
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
+			regen_polyrep(this_, NULL, this_->color, this_->normal, this_->texCoord);
+
+		if(!this_->solid) {
+			glPushAttrib(GL_ENABLE_BIT);
+			glDisable(GL_CULL_FACE);
+		}
+		render_polyrep(this_);
+
+		if(!this_->solid) {
+			glPopAttrib();
+		}
+}
 
 /* look for an ellipsoid in the GeoSystem field */
 void parse_ellipsoid(int *dest, char *str, char *description) {

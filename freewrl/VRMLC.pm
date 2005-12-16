@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.196  2005/12/16 18:07:05  crc_canada
+# rearrange perl generation
+#
 # Revision 1.195  2005/12/16 13:49:23  crc_canada
 # updating generation functions.
 #
@@ -699,7 +702,7 @@ TriangleSet => '
 	TriangleStripSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
 	TriangleSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
 	Text => 'make_text(this_);',
-	GeoElevationGrid => (do "VRMLGeoElevationGrid.pm"),
+	GeoElevationGrid => 'make_GeoElevationGrid(this_);',
 );
 
 ######################################################################
@@ -928,13 +931,32 @@ sub get_rendfunc {
 	my($n) = @_;
 	#JAS print "RENDF $n ";
 	# XXX
-	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light 
-		Changed Proximity Collision/;
+	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light Changed Proximity Collision/;
 	my $f;
-	my $v = 
-		" \nstatic struct X3D_Virt virt_${n} = { ".
-	(join ',',map {${$_."C"}{$n} ? "${n}_$_" : "NULL"} @f).
-",\"$n\"};";
+	my $comma = "";
+	my $v = " static struct X3D_Virt virt_${n} = { ";
+
+	for (@f) {
+		# does this function exist?
+		if (exists ${$_."C"}{$n}) {
+			# it exists in the specified hash; now is the function in CFuncs, 
+			# or generated here? (different names)
+print "in loop, looking for $_\n";
+			if ($_ eq "Rend") {
+				$v .= $comma."(void *)render_".${n};
+			} else {
+				$v .= $comma."${n}_$_";
+			}	
+		} else {
+			$v .= $comma."NULL";
+		}
+		$comma = ",";
+	}
+	$v .= "};\n";
+
+	#(join ',',map {${$_."C"}{$n} ? "${n}_$_" : "NULL"} @f).
+	#",\"$n\"};";
+	
 	for(@f) {
 		my $c =${$_."C"}{$n};
 		next if !defined $c;
@@ -943,8 +965,8 @@ sub get_rendfunc {
 		# Substitute field gets
 
 		if ($_ eq "Rend") {
-			print "Found Rend, skipping...\n";
-			$f .= "\n /* skipping " . $_ ."_Rend\n";
+			#print "Found Rend, skipping...\n";
+			$f .= "\n /* skipping " . $_ ."_Rend */\n";
 		} else {
 
 			$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
