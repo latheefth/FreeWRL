@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.197  2005/12/16 18:31:25  crc_canada
+# remove print debug statements
+#
 # Revision 1.196  2005/12/16 18:07:05  crc_canada
 # rearrange perl generation
 #
@@ -934,14 +937,13 @@ sub get_rendfunc {
 	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light Changed Proximity Collision/;
 	my $f;
 	my $comma = "";
-	my $v = " static struct X3D_Virt virt_${n} = { ";
+	my $v = "\nstatic struct X3D_Virt virt_${n} = { ";
 
 	for (@f) {
 		# does this function exist?
 		if (exists ${$_."C"}{$n}) {
 			# it exists in the specified hash; now is the function in CFuncs, 
 			# or generated here? (different names)
-print "in loop, looking for $_\n";
 			if ($_ eq "Rend") {
 				$v .= $comma."(void *)render_".${n};
 			} else {
@@ -954,19 +956,16 @@ print "in loop, looking for $_\n";
 	}
 	$v .= "};\n";
 
-	#(join ',',map {${$_."C"}{$n} ? "${n}_$_" : "NULL"} @f).
-	#",\"$n\"};";
-	
 	for(@f) {
 		my $c =${$_."C"}{$n};
 		next if !defined $c;
-		print "rendfunc $_ (",length($c),") ";
+		#print "rendfunc $_ (",length($c),") ";
 		# Rend func now in CFuncs directory and name changed from "xxx_Rend" to "render_xxx"
 		# Substitute field gets
 
 		if ($_ eq "Rend") {
 			#print "Found Rend, skipping...\n";
-			$f .= "\n /* skipping " . $_ ."_Rend */\n";
+			#$f .= "\n /* skipping " . $_ ."_Rend */\n";
 		} else {
 
 			$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
@@ -981,15 +980,6 @@ print "in loop, looking for $_\n";
 				}";
 		}
 	}
-	#JAS print "\n";
-	# generates something like:
-	# void Fog_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Fog */
-         	#                struct X3D_Fog *this_ = (struct X3D_Fog *)nod_;
-                 	#        {
-        	# if (!render_geom) printf ("rendering fog while not geom\n");
-	# render_Fog((struct X3D_Fog *) this_);}
-        	#                 }
-
 	return ($f,$v);
 }
 
