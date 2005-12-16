@@ -24,9 +24,9 @@
 
 static int viewer_type = NONE;
 int viewer_initialized = FALSE;
-static VRML_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
-static VRML_Viewer_Examine viewer_examine = { { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
-static VRML_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
+static X3D_Viewer_Walk viewer_walk = { 0, 0, 0, 0, 0, 0 };
+static X3D_Viewer_Examine viewer_examine = { { 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, 0, 0 };
+static X3D_Viewer_Fly viewer_fly = { { 0, 0, 0 }, { 0, 0, 0 }, KEYMAP, KEYMAP, -1 };
 
 static int translate[COORD_SYS] = { 0, 0, 0 }, rotate[COORD_SYS] = { 0, 0, 0 };
 
@@ -81,7 +81,7 @@ void viewer_default() {
 #endif
 }
 
-void viewer_init (VRML_Viewer *viewer, int type) {
+void viewer_init (X3D_Viewer *viewer, int type) {
 	Quaternion q_i;
 
 	/* what type are we? used for handle events below */
@@ -192,12 +192,12 @@ int use_keys() {
 }
 
 
-void resolve_pos(VRML_Viewer *viewer) {
+void resolve_pos(X3D_Viewer *viewer) {
 	/* my($this) = @_; */
 	struct pt rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
 	double dist = 0;
-	VRML_Viewer_Examine *examine = viewer->examine;
+	X3D_Viewer_Examine *examine = viewer->examine;
 
 	if (viewer_type == EXAMINE) {
 		/* my $z = $this->{Quat}->invert->rotate([0,0,1]); */
@@ -261,7 +261,7 @@ void viewer_togl(double fieldofview) {
 
 
 void handle_walk(const int mev, const unsigned int button, const float x, const float y) {
-	VRML_Viewer_Walk *walk = Viewer.walk;
+	X3D_Viewer_Walk *walk = Viewer.walk;
 
 	if (mev == ButtonPress ) {
 		walk->SY = y;
@@ -289,7 +289,7 @@ void handle_walk(const int mev, const unsigned int button, const float x, const 
 void handle_examine(const int mev, const unsigned int button, float x, float y) {
 	Quaternion q, q_i, arc;
 	struct pt p = { 0, 0, 0};
-	VRML_Viewer_Examine *examine = Viewer.examine;
+	X3D_Viewer_Examine *examine = Viewer.examine;
 	double squat_norm;
 
 	p.z=Viewer.Dist;
@@ -369,7 +369,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 void
 handle_key(const char key)
 {
-	VRML_Viewer_Fly *fly = Viewer.fly;
+	X3D_Viewer_Fly *fly = Viewer.fly;
 	char _key;
 	int i;
 
@@ -391,7 +391,7 @@ void
 handle_keyrelease(const char key)
 {
 	/* my($this,$time,$key) = @_; */
-	VRML_Viewer_Fly *fly = Viewer.fly;
+	X3D_Viewer_Fly *fly = Viewer.fly;
 	char _key;
 	int i;
 
@@ -424,7 +424,7 @@ handle_keyrelease(const char key)
 void
 handle_tick_walk()
 {
-	VRML_Viewer_Walk *walk = Viewer.walk;
+	X3D_Viewer_Walk *walk = Viewer.walk;
 	Quaternion q, nq;
 	struct pt p;
 
@@ -579,7 +579,7 @@ set_action(char *key)
 void
 handle_tick_fly()
 {
-	VRML_Viewer_Fly *fly = Viewer.fly;
+	X3D_Viewer_Fly *fly = Viewer.fly;
 	Key ps[KEYS_HANDLED] = KEYMAP;
 	Quaternion q_v, nq = { 1, 0, 0, 0 };
 	struct pt v;
@@ -767,7 +767,7 @@ void increment_pos(struct pt *vec) {
 
 
 void
-bind_viewpoint (struct VRML_Viewpoint *vp) {
+bind_viewpoint (struct X3D_Viewpoint *vp) {
 	Quaternion q_i;
 
 	/* set Viewer position and orientation */
@@ -797,7 +797,7 @@ bind_viewpoint (struct VRML_Viewpoint *vp) {
 }
 
 void
-bind_geoviewpoint (struct VRML_GeoViewpoint *vp) {
+bind_geoviewpoint (struct X3D_GeoViewpoint *vp) {
 	Quaternion q_i;
 
 	/* set Viewer position and orientation */

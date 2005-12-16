@@ -41,7 +41,7 @@
 
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
-void AddRemoveChildren (struct VRML_Box *parent, struct Multi_Node *tn, unsigned long int *nodelist, int len, int ar);
+void AddRemoveChildren (struct X3D_Box *parent, struct Multi_Node *tn, unsigned long int *nodelist, int len, int ar);
 void markScriptResults(void * tn, int tptr, int route, void *tonode);
 void initializeScript(int num,int evIn);
 
@@ -199,7 +199,7 @@ int num_ClockEvents = 0;
    script route - see CRoutes_Register here, and check for the malloc in that code.
    You should see that the offset is zero, while in real nodes, the offset of user
    accessible fields is NEVER zero - check out CFuncs/Structs.h and look at any of
-   the node types, eg, VRML_IndexedFaceSet  the first offset is for VRML_Virt :=)
+   the node types, eg, X3D_IndexedFaceSet  the first offset is for X3D_Virt :=)
 */
 void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 	if (tptr != 0) {
@@ -841,7 +841,7 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /* structure								*/
 /************************************************************************/
 
-void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, int ar) {
+void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, int ar) {
 	unsigned long int newptr;
 	int newlen;
 	char *cptr;
@@ -907,7 +907,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct VRML_Box *parent, 
 /****************************************************************/
 
 void AddRemoveChildren (
-		struct VRML_Box *parent,
+		struct X3D_Box *parent,
 		struct Multi_Node *tn,
 		unsigned long int *nodelist,
 		int len,
@@ -1046,7 +1046,7 @@ void AddRemoveChildren (
 
 void getCLASSMultNumType (char *buf, int bufSize,
 			  struct Multi_Vec3f *tn,
-			  struct VRML_Box *parent,
+			  struct X3D_Box *parent,
 			  int eletype, int addChild) {
 	int len;
 	int elesize;
@@ -2456,7 +2456,7 @@ saveSFImage - a PixelTexture is being sent back from a script, save it!
 	It comes back as a string; have to put it in as a SV.
 
 *********************************************************************/
-void saveSFImage (struct VRML_PixelTexture *node, char *str) {
+void saveSFImage (struct X3D_PixelTexture *node, char *str) {
 	char *strptr;
 	STRLEN xx;
 	int thissize;
@@ -2662,7 +2662,7 @@ tmp =
 					break;
 				}
 				case SFIMAGE: {
-					saveSFImage ((struct VRML_PixelTexture*) tn, strp);
+					saveSFImage ((struct X3D_PixelTexture*) tn, strp);
 					break;
 				}
 
@@ -2673,7 +2673,7 @@ tmp =
 				case MFFLOAT: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),1); break;}
 				case MFROTATION: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),4); break;}
 				case MFVEC2F: {getJSMultiNumType ((JSContext *)ScriptControl[actualscript].cx, (struct Multi_Vec3f *)(tn+tptr),2); break;}
-				case MFNODE: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct VRML_Box *)tn,CRoutes[route].extra); break;}
+				case MFNODE: {getMFNodetype (strp,(struct Multi_Node *)(tn+tptr),(struct X3D_Box *)tn,CRoutes[route].extra); break;}
 				case MFSTRING: {
 					getMFStringtype ((JSContext *) ScriptControl[actualscript].cx,
 						 (jsval *)global_return_val,(struct Multi_String *)(tn+tptr));
@@ -2823,7 +2823,7 @@ char *processThisClassEvent (void *fn,
 				    /* this is a MF*node type - the extra field should be 1 for add */
 				    getCLASSMultNumType (membuffer, len,
 							 (struct Multi_Vec3f *) memptr,
-							 (struct VRML_Box *)tn,
+							 (struct X3D_Box *)tn,
 							 CRoutes[ctr].len, CRoutes[ctr].extra);
 				} else {
 					/* simple copy */

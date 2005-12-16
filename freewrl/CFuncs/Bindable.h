@@ -50,7 +50,7 @@ void
 reset_upvector(void);
 
 void
-set_naviinfo(struct VRML_NavigationInfo *node);
+set_naviinfo(struct X3D_NavigationInfo *node);
 
 void
 send_bind_to(int nodetype, void *node, int value);
@@ -59,18 +59,18 @@ void
 bind_node(void *node, int *tos, unsigned int *stack);
 
 void
-render_Fog(struct VRML_Fog *node);
+render_Fog(struct X3D_Fog *node);
 
 void
-render_NavigationInfo(struct VRML_NavigationInfo *node);
+render_NavigationInfo(struct X3D_NavigationInfo *node);
 
 void
-render_Viewpoint(struct VRML_Viewpoint *node);
+render_Viewpoint(struct X3D_Viewpoint *node);
 
 void
-render_GeoViewpoint(struct VRML_GeoViewpoint *node);
+render_GeoViewpoint(struct X3D_GeoViewpoint *node);
 
-void render_Background(struct VRML_Background *node);
-void render_TextureBackground(struct VRML_TextureBackground *node);
+void render_Background(struct X3D_Background *node);
+void render_TextureBackground(struct X3D_TextureBackground *node);
 
 

@@ -39,7 +39,7 @@ void reset_upvector() {
 }
 
 /* called when binding NavigationInfo nodes */
-void set_naviinfo(struct VRML_NavigationInfo *node) {
+void set_naviinfo(struct X3D_NavigationInfo *node) {
 	SV **svptr;
 	int i;
 	char *typeptr;
@@ -102,19 +102,19 @@ void set_naviinfo(struct VRML_NavigationInfo *node) {
 
 /* send a set_bind event from Perl to this Bindable node */
 void send_bind_to(int nodetype, void *node, int value) {
-	struct VRML_Background *bg;
-	struct VRML_TextureBackground *tbg;
-	struct VRML_Fog *fg;
-	struct VRML_NavigationInfo *nv;
-	struct VRML_Viewpoint *vp;
-	struct VRML_GeoViewpoint *gvp;
+	struct X3D_Background *bg;
+	struct X3D_TextureBackground *tbg;
+	struct X3D_Fog *fg;
+	struct X3D_NavigationInfo *nv;
+	struct X3D_Viewpoint *vp;
+	struct X3D_GeoViewpoint *gvp;
 	char * nameptr;
 	STRLEN len;
 
 	/* printf ("\nsend_bind_to, nodetype %d node %d value %d\n",nodetype,node,value);  */
 
 	if (nodetype == NODE_Background) {
-		bg = (struct VRML_Background *) node;
+		bg = (struct X3D_Background *) node;
 
 		/* is this node a Background or TextureBackground node? */
 		if (bg->_nodeType == NODE_Background) {
@@ -123,7 +123,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 			bind_node (node, &background_tos,&background_stack[0]);
 		} else {
 			/* this is a TextureBackground node */
-			tbg = (struct VRML_TextureBackground *) node;
+			tbg = (struct X3D_TextureBackground *) node;
 			tbg->set_bind = value;
 
 			bind_node (node, &background_tos,&background_stack[0]);
@@ -131,7 +131,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 		}
 
 	} else if (nodetype == NODE_Viewpoint) {
-		vp = (struct VRML_Viewpoint *) node;
+		vp = (struct X3D_Viewpoint *) node;
 
 		if (vp->_nodeType == NODE_Viewpoint ) {
 			vp->set_bind = value;
@@ -148,7 +148,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 		} else {
 			/* must be a GeoViewpoint */
 
-			gvp = (struct VRML_GeoViewpoint *) node;
+			gvp = (struct X3D_GeoViewpoint *) node;
 			gvp->set_bind = value;
 			nameptr = SvPV(gvp->description,len);
 			viewpoint_name_status (nameptr);
@@ -163,12 +163,12 @@ void send_bind_to(int nodetype, void *node, int value) {
 		}
 
 	} else if (nodetype == NODE_Fog) {
-		fg = (struct VRML_Fog *) node;
+		fg = (struct X3D_Fog *) node;
 		fg->set_bind = value;
 		bind_node (node, &fog_tos,&fog_stack[0]);
 
 	} else if (nodetype == NODE_NavigationInfo) {
-		nv = (struct VRML_NavigationInfo *) node;
+		nv = (struct X3D_NavigationInfo *) node;
 		nv->set_bind = value;
 		bind_node (node, &navi_tos,&navi_stack[0]);
 
@@ -186,15 +186,15 @@ void send_bind_to(int nodetype, void *node, int value) {
 
 /* return the setBind offset of this node */
 unsigned int setBindofst(void *node) {
-	struct VRML_Background *tn;
-	tn = (struct VRML_Background *) node;
+	struct X3D_Background *tn;
+	tn = (struct X3D_Background *) node;
 	switch (tn->_nodeType) {
-		case NODE_Background: return offsetof(struct VRML_Background, set_bind);
-		case NODE_TextureBackground: return offsetof(struct VRML_TextureBackground, set_bind);
-		case NODE_Viewpoint: return offsetof(struct VRML_Viewpoint, set_bind);
-		case NODE_GeoViewpoint: return offsetof(struct VRML_GeoViewpoint, set_bind);
-		case NODE_Fog: return offsetof(struct VRML_Fog, set_bind);
-		case NODE_NavigationInfo: return offsetof(struct VRML_NavigationInfo, set_bind);
+		case NODE_Background: return offsetof(struct X3D_Background, set_bind);
+		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, set_bind);
+		case NODE_Viewpoint: return offsetof(struct X3D_Viewpoint, set_bind);
+		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, set_bind);
+		case NODE_Fog: return offsetof(struct X3D_Fog, set_bind);
+		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, set_bind);
 		default: {printf ("setBindoffst - huh? node type %d\n",tn->_nodeType); }
 	}
 	return 0;
@@ -202,15 +202,15 @@ unsigned int setBindofst(void *node) {
 
 /* return the isBound offset of this node */
 int isboundofst(void *node) {
-	struct VRML_Background *tn;
-	tn = (struct VRML_Background *) node;
+	struct X3D_Background *tn;
+	tn = (struct X3D_Background *) node;
 	switch (tn->_nodeType) {
-		case NODE_Background: return offsetof(struct VRML_Background, isBound);
-		case NODE_TextureBackground: return offsetof(struct VRML_TextureBackground, isBound);
-		case NODE_Viewpoint: return offsetof(struct VRML_Viewpoint, isBound);
-		case NODE_GeoViewpoint: return offsetof(struct VRML_GeoViewpoint, isBound);
-		case NODE_Fog: return offsetof(struct VRML_Fog, isBound);
-		case NODE_NavigationInfo: return offsetof(struct VRML_NavigationInfo, isBound);
+		case NODE_Background: return offsetof(struct X3D_Background, isBound);
+		case NODE_TextureBackground: return offsetof(struct X3D_TextureBackground, isBound);
+		case NODE_Viewpoint: return offsetof(struct X3D_Viewpoint, isBound);
+		case NODE_GeoViewpoint: return offsetof(struct X3D_GeoViewpoint, isBound);
+		case NODE_Fog: return offsetof(struct X3D_Fog, isBound);
+		case NODE_NavigationInfo: return offsetof(struct X3D_NavigationInfo, isBound);
 		default: {printf ("isBoundoffst - huh? node type %d\n",tn->_nodeType); }
 	}
 	return 0;
@@ -225,8 +225,8 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 	unsigned int *isBoundptr;	/* this nodes isBound */
 	unsigned long int *oldboundptr;	/* previous nodes isBound */
 
-	struct VRML_Background *bgnode;
-	bgnode=(struct VRML_Background*) node;
+	struct X3D_Background *bgnode;
+	bgnode=(struct X3D_Background*) node;
 	/* lets see what kind of node this is... */
 	/* printf ("bind_node, we have %d \n",bgnode->_nodeType); */
 
@@ -337,7 +337,7 @@ void bind_node (void *node, int *tos, unsigned int *stack) {
 	}
 }
 
-void render_Fog (struct VRML_Fog *node) {
+void render_Fog (struct X3D_Fog *node) {
 	GLdouble mod[16];
 	GLdouble proj[16];
 	GLdouble unit[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
@@ -410,7 +410,7 @@ void render_Fog (struct VRML_Fog *node) {
 	glPopMatrix();
 }
 
-void render_NavigationInfo (struct VRML_NavigationInfo *node) {
+void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
 		if (node->set_bind == 1) set_naviinfo(node);
@@ -420,7 +420,7 @@ void render_NavigationInfo (struct VRML_NavigationInfo *node) {
 	if(!node->isBound) return;
 }
 
-void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
+void render_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 	char *posnstring;
 	STRLEN xx, yy;
@@ -490,7 +490,7 @@ void render_GeoViewpoint (struct VRML_GeoViewpoint *node) {
 	/* printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
-void render_Viewpoint (struct VRML_Viewpoint *node) {
+void render_Viewpoint (struct X3D_Viewpoint *node) {
 	double a1;
 
 	 /* printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
@@ -578,7 +578,7 @@ void moveBackgroundCentre () {
 	glScaled(sx,sy,sz);
 }
 
-void recalculateBackgroundVectors(struct VRML_Background *node) {
+void recalculateBackgroundVectors(struct X3D_Background *node) {
 	struct SFColor *c1,*c2;
 	int hdiv = 20;			/* number of horizontal strips allowed */
 	int h,v;
@@ -587,7 +587,7 @@ void recalculateBackgroundVectors(struct VRML_Background *node) {
 	int actq;
 
 	/* filled in if this is a TextureBackground node */
-	struct VRML_TextureBackground *tbnode;
+	struct X3D_TextureBackground *tbnode;
 
 	/* generic structures between nodes used for taking individual pointers from node defns */
 	struct SFColor *skyCol; int skyColCt;
@@ -608,7 +608,7 @@ void recalculateBackgroundVectors(struct VRML_Background *node) {
 		skyAngCt = node->skyAngle.n;
 		gndAngCt = node->groundAngle.n;
 	} else {
-		tbnode = (struct VRML_TextureBackground *) node;
+		tbnode = (struct X3D_TextureBackground *) node;
 		skyCol = tbnode->skyColor.p;
 		gndCol = tbnode ->groundColor.p;
 		skyColCt = tbnode->skyColor.n;
@@ -791,7 +791,7 @@ void recalculateBackgroundVectors(struct VRML_Background *node) {
 
 }
 
-void render_Background (struct VRML_Background *node) {
+void render_Background (struct X3D_Background *node) {
 
 	/* printf ("RBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);  */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
@@ -845,7 +845,7 @@ void render_Background (struct VRML_Background *node) {
 }
 
 
-void render_TextureBackground (struct VRML_TextureBackground *node) {
+void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* printf ("RTBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);  */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
@@ -861,7 +861,7 @@ void render_TextureBackground (struct VRML_TextureBackground *node) {
 
 	if (node->_change != node->_ichange) 
 		/* recalculateBackgroundVectors will determine exact node type */
-		recalculateBackgroundVectors((struct VRML_Background *)node);	
+		recalculateBackgroundVectors((struct X3D_Background *)node);	
 
 
 	/* now, display the lists */

@@ -339,13 +339,13 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 /************************************************************************/
 
 /* Inlines... Multi_URLs, load only when available, etc, etc */
-void loadInline(struct VRML_Inline *node) {
+void loadInline(struct X3D_Inline *node) {
 	/* first, are we busy? */
 	if (PerlParsing) return;
 
 	perlParse(INLINE,(char *)node, FALSE, FALSE,
 		(void *) node,
-		offsetof (struct VRML_Inline, __children),
+		offsetof (struct X3D_Inline, __children),
 		&node->__loadstatus,FALSE);
 }
 
@@ -700,7 +700,7 @@ void EAI_readNewWorld(char *inputstring) {
     psp.type = FROMURL;
 	psp.retarr = NULL;
     psp.ptr  = rootNode;
-    psp.ofs  = offsetof(struct VRML_Group, children);
+    psp.ofs  = offsetof(struct X3D_Group, children);
     psp.path = NULL;
     psp.zeroBind = FALSE;
     psp.bind = TRUE; /* should we issue a set_bind? */
@@ -1171,12 +1171,12 @@ void __pt_doInline() {
 	int count;
 	char *filename;
 	struct Multi_String *inurl;
-	struct VRML_Inline *inl;
+	struct X3D_Inline *inl;
 	STRLEN xx;
 	char *thisurl;
 	char *slashindex;
 	char firstBytes[4];
-	inl = (struct VRML_Inline *)psp.ptr;
+	inl = (struct X3D_Inline *)psp.ptr;
 	inurl = &(inl->url);
 	filename = (char *)malloc(1000);
 

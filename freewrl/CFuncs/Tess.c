@@ -49,7 +49,7 @@ typedef GLvoid (*_GLUfuncptr)(GLvoid);
 
 
 GLUtriangulatorObj *global_tessobj;
-struct VRML_PolyRep *global_tess_polyrep=NULL;
+struct X3D_PolyRep *global_tess_polyrep=NULL;
 int global_IFS_Coords[TESS_MAX_COORDS];
 int global_IFS_Coord_count=0;
 

@@ -65,8 +65,8 @@ void viewer_type_status (int type) {
 }
 
 void render_status () {
-	struct VRML_PolyRep rep_;
-	struct VRML_IndexedFaceSet holder;
+	struct X3D_PolyRep rep_;
+	struct X3D_IndexedFaceSet holder;
 
 	char statusline[200];
 

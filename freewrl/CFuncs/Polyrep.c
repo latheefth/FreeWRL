@@ -21,7 +21,7 @@ GLfloat last_color[] = {0.0,0.0,0.0};
 
 /* How many faces are in this IndexedFaceSet?			*/
 
-int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS) {
+int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS) {
 	/* lets see how many faces we have */
 	int pointctr=0;
 	int max_points_per_face = 0;
@@ -73,7 +73,7 @@ int IFS_face_normals (
 	int npoints,
 	int cin,
 	struct SFColor *points,
-	struct VRML_IndexedFaceSet *this_IFS,
+	struct X3D_IndexedFaceSet *this_IFS,
 	int ccw) {
 
 	int tmp_a, tmp_c;
@@ -283,7 +283,7 @@ void Extru_check_normal (
 	struct pt *facenormals,
 	int this_face,
 	int direction,
-	struct VRML_PolyRep  *rep_,
+	struct X3D_PolyRep  *rep_,
 	int ccw) {
 
 	/* only use this after tesselator as we get coord indexes from global var */
@@ -339,7 +339,7 @@ void IFS_check_normal (
 	struct pt *facenormals,
 	int this_face,
 	struct SFColor *points, int base,
-	struct VRML_IndexedFaceSet *this_IFS, int ccw) {
+	struct X3D_IndexedFaceSet *this_IFS, int ccw) {
 
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
@@ -421,7 +421,7 @@ void Elev_Tri (
 	int D,
 	int E,
 	int NONORMALS,
-	struct VRML_PolyRep *this_Elev,
+	struct X3D_PolyRep *this_Elev,
 	struct pt *facenormals,
 	int *pointfaces,
 	int ccw) {
@@ -505,7 +505,7 @@ void Extru_tex(
 	int A,
 	int B,
 	int C,
-	struct VRML_PolyRep *this_Elev,
+	struct X3D_PolyRep *this_Elev,
 	int ccw,
 	int tcindexsize) {
 
@@ -556,7 +556,7 @@ void Extru_ST_map(
 	int end,
 	float *Vals,
 	int nsec,
-	struct VRML_PolyRep *this_Extru,
+	struct X3D_PolyRep *this_Extru,
 	int tcoordsize) {
 
 	int x;
@@ -730,15 +730,15 @@ void do_glNormal3fv(struct SFColor *dest, GLfloat *param) {
 
 
 void render_polyrep(void *node) {
-	struct VRML_Virt *v;
-	struct VRML_Box *genericNodePtr;
-	struct VRML_IndexedFaceSet *IFSNodePtr;
-	struct VRML_PolyRep *r;
+	struct X3D_Virt *v;
+	struct X3D_Box *genericNodePtr;
+	struct X3D_IndexedFaceSet *IFSNodePtr;
+	struct X3D_PolyRep *r;
 	struct SFVec2f *tc;
 
-	v = *(struct VRML_Virt **)node;
-	genericNodePtr = (struct VRML_Box *)node;
-	r = (struct VRML_PolyRep *)genericNodePtr->_intern;
+	v = *(struct X3D_Virt **)node;
+	genericNodePtr = (struct X3D_Box *)node;
+	r = (struct X3D_PolyRep *)genericNodePtr->_intern;
 
 	#ifdef TEXVERBOSE
 	printf ("\nrender_polyrep, _nodeType %d\n",genericNodePtr->_nodeType); 
@@ -776,7 +776,7 @@ void render_polyrep(void *node) {
 	if (r->GeneratedTexCoords) {
 			textureDraw_start(NULL,r->GeneratedTexCoords);
 	} else {
-		IFSNodePtr = (struct VRML_IndexedFaceSet *)node;
+		IFSNodePtr = (struct X3D_IndexedFaceSet *)node;
 		/* printf ("no textures - is this the status bar? %d\n",IFSNodePtr->_nodeType); */
 		if (IFSNodePtr->_nodeType != NODE_Statusbar) {
 			textureDraw_start(IFSNodePtr, NULL);
@@ -829,7 +829,7 @@ printf ("\n\nrender_polyrep:\n");
 	if (r->GeneratedTexCoords) {
 			textureDraw_end();
 	} else {
-		IFSNodePtr = (struct VRML_IndexedFaceSet *)node;
+		IFSNodePtr = (struct X3D_IndexedFaceSet *)node;
 		/* printf ("no textures - is this the status bar? %d\n",IFSNodePtr->_nodeType); */
 		if (IFSNodePtr->_nodeType != NODE_Statusbar) {
 			textureDraw_end();
@@ -850,9 +850,9 @@ printf ("\n\nrender_polyrep:\n");
 
 void render_ray_polyrep(void *node, struct SFColor *points)
 {
-	struct VRML_Virt *v;
-	struct VRML_Box *p;
-	struct VRML_PolyRep *r;
+	struct X3D_Virt *v;
+	struct X3D_Box *p;
+	struct X3D_PolyRep *r;
 	int i;
 	int pt;
 	float *point[3];
@@ -873,9 +873,9 @@ void render_ray_polyrep(void *node, struct SFColor *points)
 	ray.x = t_r2.x - t_r1.x;
 	ray.y = t_r2.y - t_r1.y;
 	ray.z = t_r2.z - t_r1.z;
-	v = *(struct VRML_Virt **)node;
-	p =(struct VRML_Box *) node;
-	r = (struct VRML_PolyRep *)p->_intern;
+	v = *(struct X3D_Virt **)node;
+	p =(struct X3D_Box *) node;
+	r = (struct X3D_PolyRep *)p->_intern;
 
 	/*
 	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,v->name,
@@ -975,27 +975,27 @@ void render_ray_polyrep(void *node, struct SFColor *points)
 
 /* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
 void regen_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
-	struct VRML_Virt *v;
-	struct VRML_Box *p;
-	struct VRML_PolyRep *r;
+	struct X3D_Virt *v;
+	struct X3D_Box *p;
+	struct X3D_PolyRep *r;
 
-	v = *(struct VRML_Virt **)node;
-	p = (struct VRML_Box *)node;
+	v = *(struct X3D_Virt **)node;
+	p = (struct X3D_Box *)node;
 
 	/* first time through; make the intern structure for this polyrep node */
 	if(!p->_intern) {
-		p->_intern = malloc(sizeof(struct VRML_PolyRep));
+		p->_intern = malloc(sizeof(struct X3D_PolyRep));
 		if (!(p->_intern)) 
 			freewrlDie("Not enough memory to regen_polyrep... ;(");
 
-		r = (struct VRML_PolyRep *)p->_intern;
+		r = (struct X3D_PolyRep *)p->_intern;
 		r->ntri = -1;
 		r->cindex = 0; r->coord = 0; r->colindex = 0; r->color = 0;
 		r->norindex = 0; r->normal = 0; r->GeneratedTexCoords = 0;
 		r->tcindex = 0; 
 		r->tcoordtype = 0;
 	}
-	r = (struct VRML_PolyRep *)p->_intern;
+	r = (struct X3D_PolyRep *)p->_intern;
 	r->_change = p->_change;
 
 	FREE_IF_NZ(r->cindex);

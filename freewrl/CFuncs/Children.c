@@ -32,7 +32,7 @@
 static int ChildVerbose = 0;
 static int VerboseIndent = 0;
 
-static void VerboseStart (char *whoami, struct VRML_Box *me, int nc) {
+static void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
 	int c;
 
 	for (c=0; c<VerboseIndent; c++) printf ("  ");
@@ -55,7 +55,7 @@ void sortChildren (struct Multi_Node ch) {
 	int i,j;
 	int nc;
 	int noswitch;
-	struct VRML_Box *a, *b, *c;
+	struct X3D_Box *a, *b, *c;
 
 	/* simple, inefficient bubble sort */
 	/* this is a fast sort when nodes are already sorted;
@@ -69,8 +69,8 @@ void sortChildren (struct Multi_Node ch) {
 		noswitch = TRUE;
 		for (j=(nc-1); j>i; j--) {
 			/* printf ("comparing %d %d\n",i,j); */
-			a = (struct VRML_Box *)ch.p[j-1];
-			b = (struct VRML_Box *)ch.p[j];
+			a = (struct X3D_Box *)ch.p[j-1];
+			b = (struct X3D_Box *)ch.p[j];
 
 			if (a->_dist > b->_dist) {
 				/* printf ("have to switch %d %d\n",i,j); */
@@ -97,7 +97,7 @@ void dirlightChildren(struct Multi_Node ch) {
 
 	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
 	for(i=0; i<ch.n; i++) {
-		struct VRML_Box *p = (struct VRML_Box *)ch.p[i];
+		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
 		if (p->_nodeType == NODE_DirectionalLight)
 			render_node(p);
 	}
@@ -108,7 +108,7 @@ void normalChildren(struct Multi_Node ch) {
 	int i;
 
 	for(i=0; i<ch.n; i++) {
-		struct VRML_Box *p = (struct VRML_Box *)ch.p[i];
+		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
 		if(p->_nodeType != NODE_DirectionalLight) {
 		/* printf ("normalchildren, child %d, piv %d\n",p,p->PIV); */
 /*			if ((p->PIV) > 0) */
@@ -120,7 +120,7 @@ void normalChildren(struct Multi_Node ch) {
 /********************************************************************
  * now, nodes called from VRMLFunc.[c,xs] during rendering process
  * *****************************************************************/
-void staticGroupingChild (struct VRML_StaticGroup *this_) {
+void staticGroupingChild (struct X3D_StaticGroup *this_) {
 	int nc = ((this_->children).n);
 	int savedlight = curlight;
 	int createlist = FALSE;
@@ -128,7 +128,7 @@ void staticGroupingChild (struct VRML_StaticGroup *this_) {
 	/* any children at all? */
 	if (nc==0) return;
 
-	if(ChildVerbose) VerboseStart ("STATICGROUP", (struct VRML_Box *)this_, nc);
+	if(ChildVerbose) VerboseStart ("STATICGROUP", (struct X3D_Box *)this_, nc);
 
 	/* should we go down here? */
 /*	printf ("staticGroup, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); 
@@ -202,7 +202,7 @@ void staticGroupingChild (struct VRML_StaticGroup *this_) {
 		this_->bboxSize.c[2] = this_->_extent[2];
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct VRML_Box *)this_);
+		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)this_);
 		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
@@ -219,14 +219,14 @@ void staticGroupingChild (struct VRML_StaticGroup *this_) {
 }
 
 
-void groupingChild (struct VRML_Group *this_) {
+void groupingChild (struct X3D_Group *this_) {
 	int nc = ((this_->children).n);
 	int savedlight = curlight;
 
 	/* any children at all? */
 	if (nc==0) return;
 
-	if(ChildVerbose) VerboseStart ("GROUP", (struct VRML_Box *)this_, nc);
+	if(ChildVerbose) VerboseStart ("GROUP", (struct X3D_Box *)this_, nc);
 
 	/* should we go down here? */
 	/* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom);  */
@@ -268,7 +268,7 @@ void groupingChild (struct VRML_Group *this_) {
 		this_->bboxSize.c[2] = this_->_extent[2];
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct VRML_Box *)this_);
+		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)this_);
 		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
@@ -281,7 +281,7 @@ void groupingChild (struct VRML_Group *this_) {
 }
 
 
-void billboardChild (struct VRML_Billboard *this_) {
+void billboardChild (struct X3D_Billboard *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
 
@@ -318,7 +318,7 @@ void billboardChild (struct VRML_Billboard *this_) {
 
 	curlight = savedlight;
 }
-void transformChild (struct VRML_Transform *this_) {
+void transformChild (struct X3D_Transform *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
 
@@ -344,7 +344,7 @@ void transformChild (struct VRML_Transform *this_) {
 	/* any children at all? */
 	if (nc==0) return;
 
-	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct VRML_Box *)this_, nc);
+	if(ChildVerbose) VerboseStart ("TRANSFORM",(struct X3D_Box *)this_, nc);
 
 	/* Check to see if we have to check for collisions for this transform. */
 	if (render_collision) {
@@ -433,7 +433,7 @@ void transformChild (struct VRML_Transform *this_) {
 		propagateExtent(this_->bboxCenter.c[0],
 				this_->bboxCenter.c[1],
 				this_->bboxCenter.c[2],
-				(struct VRML_Box*)this_);
+				(struct X3D_Box*)this_);
 		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
 	}
 
@@ -445,7 +445,7 @@ void transformChild (struct VRML_Transform *this_) {
 
 	curlight = savedlight;
 }
-void anchorChild (struct VRML_Anchor *this_) {
+void anchorChild (struct X3D_Anchor *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
 
@@ -481,7 +481,7 @@ void anchorChild (struct VRML_Anchor *this_) {
 
 	curlight = savedlight;
 }
-void geolocationChild (struct VRML_GeoLocation *this_) {
+void geolocationChild (struct X3D_GeoLocation *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
 
@@ -519,7 +519,7 @@ void geolocationChild (struct VRML_GeoLocation *this_) {
 }
 
 
-void inlineChild (struct VRML_Inline *this_) {
+void inlineChild (struct X3D_Inline *this_) {
 	int nc = (this_->__children).n;
 	int savedlight = curlight;
 
@@ -560,10 +560,10 @@ void inlineChild (struct VRML_Inline *this_) {
 }
 
 
-void inlinelodChild (struct VRML_InlineLoadControl *this_) {
+void inlinelodChild (struct X3D_InlineLoadControl *this_) {
 	int nc = (this_->children).n;
 	int savedlight = curlight;
-	struct VRML_Inline *inl;
+	struct X3D_Inline *inl;
 
 
 	/* any children at all? */
@@ -619,7 +619,7 @@ void inlinelodChild (struct VRML_InlineLoadControl *this_) {
 	curlight = savedlight;
 }
 
-void lodChild (struct VRML_LOD *this_) {
+void lodChild (struct X3D_LOD *this_) {
 	GLdouble mod[16];
 	GLdouble proj[16];
 	struct pt vec;
@@ -661,7 +661,7 @@ void lodChild (struct VRML_LOD *this_) {
 }
 
 
-void collisionChild(struct VRML_Collision *this_) {
+void collisionChild(struct X3D_Collision *this_) {
 	int nc = (this_->children).n;
 	int i;
 
@@ -734,7 +734,7 @@ void collisionChild(struct VRML_Collision *this_) {
  * through it all when rendering only for nodes. */
 
 void update_renderFlag(void *ptr, int flag) {
-	struct VRML_Box *p = (struct VRML_Box *)ptr;
+	struct X3D_Box *p = (struct X3D_Box *)ptr;
 	int i;
 
 	/* send notification up the chain */

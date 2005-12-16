@@ -19,10 +19,10 @@
 #define NONE 30
 
 void *createLines (float start, float end, float radius, int closed, int *size);
-void createDisk2D (struct VRML_Disk2D *node);
-void createTriangleSet2D (struct VRML_TriangleSet2D *node);
+void createDisk2D (struct X3D_Disk2D *node);
+void createTriangleSet2D (struct X3D_TriangleSet2D *node);
 
-void render_Arc2D (struct VRML_Arc2D *node) {
+void render_Arc2D (struct X3D_Arc2D *node) {
         if (node->_ichange != node->_change) {
                 /*  have to regen the shape*/
                 node->_ichange = node->_change;
@@ -49,7 +49,7 @@ void render_Arc2D (struct VRML_Arc2D *node) {
 	}
 }
 
-void render_ArcClose2D (struct VRML_ArcClose2D *node) {
+void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 	STRLEN xx;
 	char *ct;
 
@@ -89,7 +89,7 @@ void render_ArcClose2D (struct VRML_ArcClose2D *node) {
 	}
 }
 
-void render_Circle2D (struct VRML_Circle2D *node) {
+void render_Circle2D (struct X3D_Circle2D *node) {
         if (node->_ichange != node->_change) {
                 /*  have to regen the shape*/
                 node->_ichange = node->_change;
@@ -116,7 +116,7 @@ void render_Circle2D (struct VRML_Circle2D *node) {
 	}
 }
 
-void render_Polyline2D (struct VRML_Polyline2D *node){
+void render_Polyline2D (struct X3D_Polyline2D *node){
 	if (node->lineSegments.n>0) {
         	glPushAttrib(GL_ENABLE_BIT);
 	        glDisable (GL_LIGHTING);
@@ -133,7 +133,7 @@ void render_Polyline2D (struct VRML_Polyline2D *node){
 	}
 }
 
-void render_Polypoint2D (struct VRML_Polypoint2D *node){
+void render_Polypoint2D (struct X3D_Polypoint2D *node){
 	if (node->point.n>0) {
         	glPushAttrib(GL_ENABLE_BIT);
 	        glDisable (GL_LIGHTING);
@@ -150,7 +150,7 @@ void render_Polypoint2D (struct VRML_Polypoint2D *node){
 	}
 }
 
-void render_Disk2D (struct VRML_Disk2D *node){
+void render_Disk2D (struct X3D_Disk2D *node){
         if (node->_ichange != node->_change) {
                 /*  have to regen the shape*/
                 node->_ichange = node->_change;
@@ -178,7 +178,7 @@ void render_Disk2D (struct VRML_Disk2D *node){
 	}
 }
 
-void render_TriangleSet2D (struct VRML_TriangleSet2D *node){
+void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
         if (node->_ichange != node->_change) {
                 /*  have to regen the shape*/
                 node->_ichange = node->_change;
@@ -205,7 +205,7 @@ void render_TriangleSet2D (struct VRML_TriangleSet2D *node){
 }
 
 /* this code is remarkably like Box, but with a zero z axis. */
-void render_Rectangle2D (struct VRML_Rectangle2D *node) {
+void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	float *pt;
@@ -216,7 +216,7 @@ void render_Rectangle2D (struct VRML_Rectangle2D *node) {
 	if ((x < 0) || (y < 0)) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,y,0.0,(struct VRML_Box *)node);
+	setExtent(x,y,0.0,(struct X3D_Box *)node);
 
 
 	if (node->_ichange != node->_change) {
@@ -333,7 +333,7 @@ void *createLines (float start, float end, float radius, int closed, int *size) 
 }
 
 
-void createDisk2D (struct VRML_Disk2D *node) {
+void createDisk2D (struct X3D_Disk2D *node) {
 	float rad;
 	GLfloat *fp;
 	GLfloat *tp;
@@ -395,7 +395,7 @@ void createDisk2D (struct VRML_Disk2D *node) {
 	}
 }
 
-void createTriangleSet2D (struct VRML_TriangleSet2D *node) {
+void createTriangleSet2D (struct X3D_TriangleSet2D *node) {
 	GLfloat maxX, minX;
 	GLfloat maxY, minY;
 	GLfloat Ssize, Tsize;

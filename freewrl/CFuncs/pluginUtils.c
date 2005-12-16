@@ -327,6 +327,6 @@ void Anchor_ReplaceWorld (char *filename) {
 	kill_oldWorld(TRUE,TRUE,TRUE);
 
 	perlParse(FROMURL, filename,TRUE,FALSE,
-		rootNode, offsetof (struct VRML_Group, children),&tmp,
+		rootNode, offsetof (struct X3D_Group, children),&tmp,
 		TRUE);
 }

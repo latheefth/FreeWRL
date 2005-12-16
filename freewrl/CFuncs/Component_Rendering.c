@@ -14,8 +14,8 @@
 #include "headers.h"
 
 
-void render_IndexedTriangleFanSet (struct VRML_IndexedTriangleFanSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_) {
+                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
                         regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!this_->solid) {
@@ -26,8 +26,8 @@ void render_IndexedTriangleFanSet (struct VRML_IndexedTriangleFanSet *this_) {
 		if(!this_->solid) glPopAttrib();
 }
 
-void render_IndexedTriangleSet (struct VRML_IndexedTriangleSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_) {
+                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
                         regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!this_->solid) {
@@ -38,8 +38,8 @@ void render_IndexedTriangleSet (struct VRML_IndexedTriangleSet *this_) {
 		if(!this_->solid) glPopAttrib();
 }
 
-void render_IndexedTriangleStripSet (struct VRML_IndexedTriangleStripSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_) {
+                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
                         regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
 
 		if(!this_->solid) {
@@ -50,8 +50,8 @@ void render_IndexedTriangleStripSet (struct VRML_IndexedTriangleStripSet *this_)
 		if(!this_->solid) glPopAttrib();
 }
 
-void render_TriangleFanSet (struct VRML_TriangleFanSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+void render_TriangleFanSet (struct X3D_TriangleFanSet *this_) {
+                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
                         regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!this_->solid) {
@@ -62,8 +62,8 @@ void render_TriangleFanSet (struct VRML_TriangleFanSet *this_) {
 		if(!this_->solid) glPopAttrib();
 }
 
-void render_TriangleStripSet (struct VRML_TriangleStripSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+void render_TriangleStripSet (struct X3D_TriangleStripSet *this_) {
+                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
                         regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!this_->solid) {
@@ -74,8 +74,8 @@ void render_TriangleStripSet (struct VRML_TriangleStripSet *this_) {
 		if(!this_->solid) glPopAttrib();
 }
 
-void render_TriangleSet (struct VRML_TriangleSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change) 
+void render_TriangleSet (struct X3D_TriangleSet *this_) {
+                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
                         regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!this_->solid) {
@@ -87,7 +87,7 @@ void render_TriangleSet (struct VRML_TriangleSet *this_) {
 }
 
 
-void render_LineSet (struct VRML_LineSet *this_) {
+void render_LineSet (struct X3D_LineSet *this_) {
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -104,8 +104,8 @@ void render_LineSet (struct VRML_LineSet *this_) {
 	struct SFColor *coord=0; int ncoord;
 	struct SFColor *color=0; int ncolor=0;
 	int *vertexC; int nvertexc;
-	struct VRML_Coordinate *xc;
-	struct VRML_Color *cc;
+	struct X3D_Coordinate *xc;
+	struct X3D_Color *cc;
 
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable (GL_LIGHTING);
@@ -119,7 +119,7 @@ void render_LineSet (struct VRML_LineSet *this_) {
 		nvertexc = (this_->vertexCount).n; vertexC = (this_->vertexCount).p;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                 	        freewrlDie ("LineSet, coord node expected");
                 	} else {
@@ -130,7 +130,7 @@ void render_LineSet (struct VRML_LineSet *this_) {
  
 
         	if (this_->color) {
-                	cc = (struct VRML_Color *) this_->color;
+                	cc = (struct X3D_Color *) this_->color;
                 	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                 	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
                 	} else {
@@ -237,7 +237,7 @@ glPopAttrib();
 	glPopAttrib();
 }
 
-void render_IndexedLineSet (struct VRML_IndexedLineSet *this_) {
+void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -255,15 +255,15 @@ void render_IndexedLineSet (struct VRML_IndexedLineSet *this_) {
 		int c;
 		struct SFColor *points=0; int npoints;
 		struct SFColor *colors=0; int ncolors=0;
-		struct VRML_Coordinate *xc;
-		struct VRML_Color *cc;
+		struct X3D_Coordinate *xc;
+		struct X3D_Color *cc;
 
 		#ifdef RENDERVERBOSE
 		printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		#endif
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                 	        freewrlDie ("IndexedLineSet, coord node expected");
                 	} else {
@@ -273,7 +273,7 @@ void render_IndexedLineSet (struct VRML_IndexedLineSet *this_) {
         	}
  
         	if (this_->color) {
-                	cc = (struct VRML_Color *) this_->color;
+                	cc = (struct X3D_Color *) this_->color;
                 	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                 	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
                 	} else {
@@ -333,7 +333,7 @@ void render_IndexedLineSet (struct VRML_IndexedLineSet *this_) {
                 glPopAttrib();
 }
 
-void render_PointSet (struct VRML_PointSet *this_) {
+void render_PointSet (struct X3D_PointSet *this_) {
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -344,11 +344,11 @@ void render_PointSet (struct VRML_PointSet *this_) {
 	int i;
 	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
-	struct VRML_Coordinate *xc;
-	struct VRML_Color *cc;
+	struct X3D_Coordinate *xc;
+	struct X3D_Color *cc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                 	        freewrlDie ("IndexedLineSet, coord node expected");
                 	} else {
@@ -359,7 +359,7 @@ void render_PointSet (struct VRML_PointSet *this_) {
  
 
         	if (this_->color) {
-                	cc = (struct VRML_Color *) this_->color;
+                	cc = (struct X3D_Color *) this_->color;
                 	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                 	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
                 	} else {

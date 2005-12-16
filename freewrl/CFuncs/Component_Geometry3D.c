@@ -13,11 +13,11 @@
 
 #include "headers.h"
 
-void render_ElevationGrid (struct VRML_ElevationGrid *this);
-void render_Extrusion (struct VRML_Extrusion *this);
+void render_ElevationGrid (struct X3D_ElevationGrid *this);
+void render_Extrusion (struct X3D_Extrusion *this);
 
 
-void render_Box (struct VRML_Box *this_) {
+void render_Box (struct X3D_Box *this_) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	float *pt;
@@ -29,7 +29,7 @@ void render_Box (struct VRML_Box *this_) {
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,y,z,(struct VRML_Box *)this_);
+	setExtent(x,y,z,(struct X3D_Box *)this_);
 
 
 	if (this_->_ichange != this_->_change) {
@@ -83,7 +83,7 @@ void render_Box (struct VRML_Box *this_) {
 	if(!this_->solid) { glPopAttrib(); }
 }
 
-void render_Cylinder (struct VRML_Cylinder * this_) {
+void render_Cylinder (struct X3D_Cylinder * this_) {
 	#define CYLDIV 20
 	float h = (this_->height)/2;
 	float r = this_->radius;
@@ -99,7 +99,7 @@ void render_Cylinder (struct VRML_Cylinder * this_) {
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
-	setExtent(r,h,r,(struct VRML_Box *)this_);
+	setExtent(r,h,r,(struct X3D_Box *)this_);
 
 	if (this_->_ichange != this_->_change) {
 		/*  have to regen the shape*/
@@ -170,7 +170,7 @@ void render_Cylinder (struct VRML_Cylinder * this_) {
 	if(!this_->solid) { glPopAttrib(); }
 }
 
-void render_Cone (struct VRML_Cone *this_) {
+void render_Cone (struct X3D_Cone *this_) {
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
 	#define  CONEDIV 20
 
@@ -188,7 +188,7 @@ void render_Cone (struct VRML_Cone *this_) {
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
-	setExtent(r,h,r,(struct VRML_Box *)this_);
+	setExtent(r,h,r,(struct X3D_Box *)this_);
 
 	if (this_->_ichange != this_->_change) {
 		/*  have to regen the shape*/
@@ -283,7 +283,7 @@ void render_Cone (struct VRML_Cone *this_) {
 
 }
 
-void render_Sphere (struct VRML_Sphere *this_) {
+void render_Sphere (struct X3D_Sphere *this_) {
 	#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
 	#define START_TRIG1 t_sa = 0; t_ca = -1;
 	#define UP_TRIG1 t_sa1 = t_sa; t_sa -= t_sa*t_aa - t_ca * t_ab; t_ca -= t_ca * t_aa + t_sa1 * t_ab;
@@ -309,7 +309,7 @@ void render_Sphere (struct VRML_Sphere *this_) {
 		return;}
 
 	/* for BoundingBox calculations */
-	setExtent(rad,rad,rad,(struct VRML_Box *)this_);
+	setExtent(rad,rad,rad,(struct X3D_Box *)this_);
 
 	if (this_->_ichange != this_->_change) {
 		int v; int h;
@@ -382,8 +382,8 @@ void render_Sphere (struct VRML_Sphere *this_) {
 	if(!this_->solid) { glPopAttrib(); }
 }
 
-void render_IndexedFaceSet (struct VRML_IndexedFaceSet *this_) {
-		if (!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)  
+void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this_) {
+		if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)  
 			regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
 
 		if(!this_->solid) {
@@ -394,8 +394,8 @@ void render_IndexedFaceSet (struct VRML_IndexedFaceSet *this_) {
 		if(!this_->solid) glPopAttrib();
 }
 
-void render_ElevationGrid (struct VRML_ElevationGrid *this_) {
-                if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+void render_ElevationGrid (struct X3D_ElevationGrid *this_) {
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
                         regen_polyrep(this_, NULL, this_->color, this_->normal, this_->texCoord);
 
 		if(!this_->solid) {
@@ -406,8 +406,8 @@ void render_ElevationGrid (struct VRML_ElevationGrid *this_) {
 		if(!this_->solid) glPopAttrib();
 }
 
-void render_Extrusion (struct VRML_Extrusion *this_) {
-                if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+void render_Extrusion (struct X3D_Extrusion *this_) {
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
                         regen_polyrep(this_, NULL,NULL,NULL,NULL);
 
 

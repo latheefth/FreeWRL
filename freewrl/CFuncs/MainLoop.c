@@ -753,7 +753,7 @@ void setup_viewpoint(int doBinding) {
 
 		for (i=0; i<totviewpointnodes; i++) {
 			setBindPtr = (unsigned int *)(viewpointnodes[i]+
-				offsetof (struct VRML_Viewpoint, set_bind));
+				offsetof (struct X3D_Viewpoint, set_bind));
 
 			/* check the set_bind eventin to see if it is TRUE or FALSE */
 			if (*setBindPtr < 100) {
@@ -856,7 +856,7 @@ unsigned char* rayHit() {
 
 /* set a node to be sensitive, and record info for this node */
 void setSensitive(void *ptr,void *datanode,char *type) {
-	struct VRML_Box *p;
+	struct X3D_Box *p;
 	void (*myp)(unsigned *);
 
 	/* printf ("set_sensitive ,ptr %d data %d type %s\n",ptr,datanode,type);*/
@@ -1031,7 +1031,7 @@ void initGL() {
 }
 
 int getOffset() {
-        return offsetof(struct VRML_Group, children);
+        return offsetof(struct X3D_Group, children);
 }
 
 void setCurXY(int cx, int cy) {
@@ -1059,7 +1059,7 @@ void initFreewrl() {
         	}
 	}
         int tmp = 0;
-        perlParse(FROMURL, BrowserURL, TRUE, FALSE, rootNode, offsetof(struct VRML_Group, children), &tmp, TRUE);
+        perlParse(FROMURL, BrowserURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
 }
 
 void aqDisplayThread() {

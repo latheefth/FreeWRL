@@ -50,20 +50,20 @@ static int PlaneInCheck(
 /* this is used for collision in transformChildren - don't bother going through
    children of a transform if there is nothing close... */
 
-void setExtent(float x, float y, float z, struct VRML_Box *me) {
+void setExtent(float x, float y, float z, struct X3D_Box *me) {
 	int c,d;
-	struct VRML_Box *shapeParent;
-	struct VRML_Box *geomParent;
+	struct X3D_Box *shapeParent;
+	struct X3D_Box *geomParent;
 
 	/* printf ("setExtent - Shape node has %d parents\n",me->_nparents); */
 	for (c=0; c<(me->_nparents); c++) {
 		/*printf ("parent %d of %d is %d\n",c,me,me->_parents[c]);*/
-		shapeParent = (struct VRML_Box *)me->_parents[c];
+		shapeParent = (struct X3D_Box *)me->_parents[c];
 		/*printf ("setExtent - Geometry has %d parents \n",shapeParent->_nparents);*/
 		/*printf ("parent %d of %d is %d\n",c,shapeParent,shapeParent->_parents[c]);*/
 
 		for (d=0; d<(shapeParent->_nparents); d++) {
-			geomParent = (struct VRML_Box *)shapeParent->_parents[d];
+			geomParent = (struct X3D_Box *)shapeParent->_parents[d];
 			if (x > geomParent->_extent[0]) geomParent->_extent[0] = x;
 			if (y > geomParent->_extent[1]) geomParent->_extent[1] = y;
 			if (z > geomParent->_extent[2]) geomParent->_extent[2] = z;
@@ -74,9 +74,9 @@ void setExtent(float x, float y, float z, struct VRML_Box *me) {
 
 /* for children nodes; set the parent grouping nodes extent - we expect the center
  * of the group to be passed in in the floats x,y,z */
-void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
+void propagateExtent(float x, float y, float z, struct X3D_Box *me) {
 	int i;
-	struct VRML_Box *parent;
+	struct X3D_Box *parent;
 
 	/*printf ("propextent, xDistoxcenter %f %f %f, myextent %f %f %f me %d parents %d\n",*/
 	/*		x,y,z,me->_extent[0],me->_extent[1],me->_extent[2],me,*/
@@ -86,7 +86,7 @@ void propagateExtent(float x, float y, float z, struct VRML_Box *me) {
 	x =fabs(x)+me->_extent[0];y=fabs(y)+me->_extent[1];z=fabs(z)+me->_extent[2];
 
 	for (i=0; i<(me->_nparents); i++) {
-		parent = (struct VRML_Box *)me->_parents[i];
+		parent = (struct X3D_Box *)me->_parents[i];
 		if (x > parent->_extent[0]) parent->_extent[0] = x;
 		if (y > parent->_extent[1]) parent->_extent[1] = y;
 		if (z > parent->_extent[2]) parent->_extent[2] = z;
@@ -284,7 +284,7 @@ static int PlaneInCheck(
 	return 1;
 }
 
-int PointInView(struct VRML_Transform *nod) {
+int PointInView(struct X3D_Transform *nod) {
 #ifdef BOUNDINGBOX
 	GLdouble xx,yy,Distance,xDist,yDist,dd,ee,ff,ex_X,ex_Y,ex_Z;
 #endif

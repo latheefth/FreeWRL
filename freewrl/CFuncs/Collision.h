@@ -120,7 +120,7 @@ polyrep_disp_rec(double y1,
 				 double y2,
 				 double ystep,
 				 double r,
-				 struct VRML_PolyRep* pr,
+				 struct X3D_PolyRep* pr,
 				 struct pt* n,
 				 struct pt dispsum,
 				 prflags flags);
@@ -130,7 +130,7 @@ planar_polyrep_disp_rec(double y1,
 						double y2,
 						double ystep,
 						double r,
-						struct VRML_PolyRep* pr,
+						struct X3D_PolyRep* pr,
 						struct pt n,
 						struct pt dispsum,
 						prflags flags);
@@ -217,20 +217,20 @@ struct pt cone_disp(double y1, double y2, double ydisp, double r, struct pt base
 struct pt cylinder_disp(double y1, double y2, double ydisp, double r, struct pt base, struct pt top, double baseradius);
 
 /*uses sphere displacement, and a cylinder for stepping */
-struct pt polyrep_disp(double y1, double y2, double ydisp, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags);
+struct pt polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags);
 
 /*displacement when the polyrep structure is all in the same plane
   if normal is zero, it will be calculated form the first triangle*/
-struct pt planar_polyrep_disp(double y1, double y2, double ydisp, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags, struct pt n);
+struct pt planar_polyrep_disp(double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags, struct pt n);
 
-struct pt elevationgrid_disp( double y1, double y2, double ydisp, double r, struct VRML_PolyRep pr,
+struct pt elevationgrid_disp( double y1, double y2, double ydisp, double r, struct X3D_PolyRep pr,
 			      int xdim, int zdim, double xs, double zs, GLdouble* mat, prflags flags);
 
 /* functions VERY usefull for debugging purposes
    Use these inside FreeWRL to export a scene to
    the debugging programs. */
 #ifdef DEBUG_SCENE_EXPORT
-void printpolyrep(struct VRML_PolyRep pr, int npoints);
+void printpolyrep(struct X3D_PolyRep pr, int npoints);
 
 void printmatrix(GLdouble* mat);
 #endif

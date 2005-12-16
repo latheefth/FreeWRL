@@ -57,5 +57,5 @@ extern double GeoOrig[3];               /* last GeoOrigin parsed in lat/long/elv
 
 /* function prototypes */
 void geoSystemCompile (struct Multi_String *geoSystem, int *__geoSystem, char *description);
-void render_GeoOrigin (struct VRML_GeoOrigin *node);
-void render_GeoLocation (struct VRML_GeoLocation *node);
+void render_GeoOrigin (struct X3D_GeoOrigin *node);
+void render_GeoLocation (struct X3D_GeoLocation *node);

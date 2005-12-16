@@ -25,7 +25,7 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 #include "EAIheaders.h"
 
 /* used for loadURL */
-struct VRML_Anchor EAI_AnchorNode;
+struct X3D_Anchor EAI_AnchorNode;
 SV *EAI_newSVpv(char *str);
 
 /* used for reading in SVs */
@@ -605,7 +605,7 @@ void EAI_parse_commands (char *bufptr) {
 
 
 				getMFNodetype (dtmp,(struct Multi_Node *)rc,
-						(struct VRML_Box *)ra,
+						(struct X3D_Box *)ra,
 						strcmp(ctmp,"removeChildren"));
 
 				/* tell the routing table that this node is updated - used for RegisterListeners */
@@ -995,7 +995,7 @@ void EAI_RW(char *str) {
 
 
 	tmp = (char *) rootNode;
-	tmp += offsetof (struct VRML_Group, children);
+	tmp += offsetof (struct X3D_Group, children);
 
 	/* go through the string, and send the nodes into the rootnode */
 	/* first, remove the command, and get to the beginning of node */

@@ -230,7 +230,7 @@ void freeTexture (GLuint *texno) {
 
 
 /* do Background textures, if possible */
-void loadBackgroundTextures (struct VRML_Background *node) {
+void loadBackgroundTextures (struct X3D_Background *node) {
 	int *thistex = 0;
 	struct Multi_String thisurl;
 	int count;
@@ -262,19 +262,19 @@ void loadBackgroundTextures (struct VRML_Background *node) {
 
 
 /* do TextureBackground textures, if possible */
-void loadTextureBackgroundTextures (struct VRML_TextureBackground *node) {
-	struct VRML_Box *thistex = 0;
+void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
+	struct X3D_Box *thistex = 0;
 	int count;
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
 		switch (count) {
-			case 0: {thistex = (struct VRML_Box *)node->frontTexture;  break;}
-			case 1: {thistex = (struct VRML_Box *)node->backTexture;   break;}
-			case 2: {thistex = (struct VRML_Box *)node->topTexture;    break;}
-			case 3: {thistex = (struct VRML_Box *)node->bottomTexture; break;}
-			case 4: {thistex = (struct VRML_Box *)node->rightTexture;  break;}
-			case 5: {thistex = (struct VRML_Box *)node->leftTexture;   break;}
+			case 0: {thistex = (struct X3D_Box *)node->frontTexture;  break;}
+			case 1: {thistex = (struct X3D_Box *)node->backTexture;   break;}
+			case 2: {thistex = (struct X3D_Box *)node->topTexture;    break;}
+			case 3: {thistex = (struct X3D_Box *)node->bottomTexture; break;}
+			case 4: {thistex = (struct X3D_Box *)node->rightTexture;  break;}
+			case 5: {thistex = (struct X3D_Box *)node->leftTexture;   break;}
 		}
 		if (thistex != 0) {
 			/* we have an image specified for this face */
@@ -305,7 +305,7 @@ void loadTextureBackgroundTextures (struct VRML_TextureBackground *node) {
 }
 
 /* load in a texture, if possible */
-void loadImageTexture (struct VRML_ImageTexture *node, void *param) {
+void loadImageTexture (struct X3D_ImageTexture *node, void *param) {
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
@@ -326,7 +326,7 @@ void loadImageTexture (struct VRML_ImageTexture *node, void *param) {
         bound_textures[texture_count] = node->__texture;
 }
 
-void loadMultiTexture (struct VRML_MultiTexture *node) {
+void loadMultiTexture (struct X3D_MultiTexture *node) {
 	int count;
 	int max;
 	struct multiTexParams *paramPtr;
@@ -334,7 +334,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 	char *param;
 	STRLEN xx;
 
-	struct VRML_ImageTexture *nt;
+	struct X3D_ImageTexture *nt;
 
 	#ifdef TEXVERBOSE
 	 printf ("loadMultiTexture, this %d have %d textures %d %d\n",node->_nodeType,
@@ -469,7 +469,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 
 	/* ok, normally the scene graph contains function pointers. What we have
 	   here is a set of pointers to datastructures of (hopefully!)
-	   types like VRML_ImageTexture, VRML_PixelTexture, and VRML_MovieTexture.
+	   types like X3D_ImageTexture, X3D_PixelTexture, and X3D_MovieTexture.
 
 	*/
 
@@ -497,7 +497,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 		switch (nt->_nodeType) {
 			case NODE_ImageTexture : 
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-				loadImageTexture ((struct VRML_ImageTexture*) nt,
+				loadImageTexture ((struct X3D_ImageTexture*) nt,
 					(void *)paramPtr);
 				break;
 			case NODE_MultiTexture:
@@ -505,12 +505,12 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 				break;
 			case NODE_PixelTexture:
 				/* printf ("MultiTexture %d is a PixelTexture\n",count); */
-				loadPixelTexture ((struct VRML_PixelTexture*) nt,
+				loadPixelTexture ((struct X3D_PixelTexture*) nt,
 					(void *)paramPtr);
 				break;
 			case NODE_MovieTexture:
 				/* printf ("MultiTexture %d is a MovieTexture\n"); */
-				loadMovieTexture ((struct VRML_MovieTexture*) nt,
+				loadMovieTexture ((struct X3D_MovieTexture*) nt,
 					(void *)paramPtr);
 				break;
 			default:
@@ -533,7 +533,7 @@ void loadMultiTexture (struct VRML_MultiTexture *node) {
 
 
 /* load in a texture, if possible */
-void loadPixelTexture (struct VRML_PixelTexture *node, void *param) {
+void loadPixelTexture (struct X3D_PixelTexture *node, void *param) {
 	struct Multi_String mynull;
 
 	if (node->_ichange != node->_change) {
@@ -555,7 +555,7 @@ void loadPixelTexture (struct VRML_PixelTexture *node, void *param) {
 }
 
 /* load in a texture, if possible */
-void loadMovieTexture (struct VRML_MovieTexture *node, void *param) {
+void loadMovieTexture (struct X3D_MovieTexture *node, void *param) {
 	int firsttex;
 
 	/* possible bug? If two nodes use the same MovieTexture URL, and,
@@ -1572,7 +1572,7 @@ void __reallyloadMovieTexture () {
 /*********************************************************************************/
 /* texture enabling - works for single texture, for multitexture. */
 
-void setupTexGen (struct VRML_TextureCoordinateGenerator *this) {
+void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
 	switch (this->__compiledmode) {
 	case GL_OBJECT_LINEAR:
 	case GL_EYE_LINEAR:
@@ -1592,11 +1592,11 @@ void setupTexGen (struct VRML_TextureCoordinateGenerator *this) {
 
 
 
-void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
+void textureDraw_start(struct X3D_IndexedFaceSet *texC, GLfloat *genTex) {
 	int c;
 	struct SFNode *mySFnode;
-	struct VRML_TextureCoordinate *myTCnode;
-	struct VRML_MultiTextureCoordinate *myMTCnode;
+	struct X3D_TextureCoordinate *myTCnode;
+	struct X3D_MultiTextureCoordinate *myMTCnode;
 	struct Multi_Vec2f *myPoints;
 
 	#ifdef TEXVERBOSE
@@ -1625,7 +1625,7 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 
 	/* hmmm - maybe this texCoord node exists? */
 	} else {
-		myTCnode = (struct VRML_TextureCoordinate *) texC->texCoord;
+		myTCnode = (struct X3D_TextureCoordinate *) texC->texCoord;
 
 		#ifdef TEXVERBOSE
 		printf ("ok, texC->_nodeType is %d\n",texC->_nodeType);
@@ -1654,7 +1654,7 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 				}
 			}
 		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
-			myMTCnode = (struct VRML_MultiTextureCoordinate *) texC->texCoord;
+			myMTCnode = (struct X3D_MultiTextureCoordinate *) texC->texCoord;
 			myTCnode = myMTCnode; /* for now, in case of errors, this is set to an invalid value */
 
 			#ifdef TEXVERBOSE
@@ -1666,7 +1666,7 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 				/* do we have enough textures in this MultiTextureCoordinate node? */
 				if (c<myMTCnode->texCoord.n) {
 					myTCnode = 
-						(struct VRML_TextureCoordinate *) myMTCnode->texCoord.p[c];
+						(struct X3D_TextureCoordinate *) myMTCnode->texCoord.p[c];
 
 					/* is this a valid textureCoord node, and not another
 					   MultiTextureCoordinate node? */
@@ -1696,7 +1696,7 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 					if (myTCnode->_nodeType == NODE_TextureCoordinate) {
 						glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
 					} else if (myTCnode->_nodeType == NODE_TextureCoordinateGenerator) {
-						setupTexGen ((struct VRML_TextureCoordinateGenerator*) myTCnode);
+						setupTexGen ((struct X3D_TextureCoordinateGenerator*) myTCnode);
 					}
 
 					glEnable(GL_TEXTURE_2D);
@@ -1718,7 +1718,7 @@ void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *genTex) {
 		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
 					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
 
-					setupTexGen((struct VRML_TextureCoordinateGenerator*) myTCnode);
+					setupTexGen((struct X3D_TextureCoordinateGenerator*) myTCnode);
 
 					glEnable(GL_TEXTURE_2D);
 				}
@@ -1746,7 +1746,7 @@ void textureDraw_end(void) {
 /* verify the TextureCoordinateGenerator node - if the params are ok, then the internal
    __compiledmode is NOT zero. If there are problems, the __compiledmode IS zero */
 
-void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this) {
+void render_texturecoordinategenerator(struct X3D_TextureCoordinateGenerator *this) {
 	STRLEN xx;
 	char *modeptr;
 
@@ -1788,7 +1788,7 @@ void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *t
 
 }
 
-void render_texturecoordinate(struct VRML_TextureCoordinate *this) {
+void render_texturecoordinate(struct X3D_TextureCoordinate *this) {
 	int i;
 	int op;
 	struct SFVec2f oFp;

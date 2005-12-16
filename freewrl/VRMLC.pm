@@ -26,6 +26,9 @@
 #  Test indexedlineset
 #
 # $Log$
+# Revision 1.195  2005/12/16 13:49:23  crc_canada
+# updating generation functions.
+#
 # Revision 1.194  2005/12/15 20:42:01  crc_canada
 # CoordinateInterpolator2D PositionInterpolator2D
 #
@@ -557,10 +560,10 @@ Extrusion => ( ' render_ray_polyrep(this_, NULL); '),
 
 IndexedFaceSet => '
 		struct SFColor *points=0; int npoints;
-		struct VRML_Coordinate *xc;
+		struct X3D_Coordinate *xc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                         	freewrlDie ("IndexedFaceSet - coord node wrong type");
                 	} else {
@@ -574,10 +577,10 @@ IndexedFaceSet => '
 
 IndexedTriangleFanSet => '
 		struct SFColor *points=0; int npoints;
-		struct VRML_Coordinate *xc;
+		struct X3D_Coordinate *xc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                         	freewrlDie ("IndexedTriangleFanSet - coord node wrong type");
                 	} else {
@@ -591,10 +594,10 @@ IndexedTriangleFanSet => '
 
 IndexedTriangleSet => '
 		struct SFColor *points=0; int npoints;
-		struct VRML_Coordinate *xc;
+		struct X3D_Coordinate *xc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                         	freewrlDie ("IndexedTriangleSet - coord node wrong type");
                 	} else {
@@ -608,10 +611,10 @@ IndexedTriangleSet => '
 
 IndexedTriangleStripSet => '
 		struct SFColor *points=0; int npoints;
-		struct VRML_Coordinate *xc;
+		struct X3D_Coordinate *xc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                         	freewrlDie ("IndexedTriangleStripSet - coord node wrong type");
                 	} else {
@@ -625,10 +628,10 @@ IndexedTriangleStripSet => '
 
 TriangleFanSet => '
 		struct SFColor *points=0; int npoints;
-		struct VRML_Coordinate *xc;
+		struct X3D_Coordinate *xc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                         	freewrlDie ("TriangleFanSet - coord node wrong type");
                 	} else {
@@ -642,10 +645,10 @@ TriangleFanSet => '
 
 TriangleStripSet => '
 		struct SFColor *points=0; int npoints;
-		struct VRML_Coordinate *xc;
+		struct X3D_Coordinate *xc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                         	freewrlDie ("TriangleStripSet - coord node wrong type");
                 	} else {
@@ -658,10 +661,10 @@ TriangleStripSet => '
 ',
 TriangleSet => '
 		struct SFColor *points=0; int npoints;
-		struct VRML_Coordinate *xc;
+		struct X3D_Coordinate *xc;
 
         	if(this_->coord) {
-                	xc = (struct VRML_Coordinate *) this_->coord;
+                	xc = (struct X3D_Coordinate *) this_->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                         	freewrlDie ("TriangleSet - coord node wrong type");
                 	} else {
@@ -686,15 +689,15 @@ TriangleSet => '
 #
 
 %GenPolyRepC = (
-	ElevationGrid => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	ElevationGrid => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
 	Extrusion => 'make_extrusion(this_);',
-	IndexedFaceSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *) this_);',
-	IndexedTriangleFanSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
-	IndexedTriangleSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
-	IndexedTriangleStripSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
-	TriangleFanSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
-	TriangleStripSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
-	TriangleSet => 'make_indexedfaceset((struct VRML_IndexedFaceSet *)this_);',
+	IndexedFaceSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *) this_);',
+	IndexedTriangleFanSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
+	IndexedTriangleSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
+	IndexedTriangleStripSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
+	TriangleFanSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
+	TriangleStripSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
+	TriangleSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
 	Text => 'make_text(this_);',
 	GeoElevationGrid => (do "VRMLGeoElevationGrid.pm"),
 );
@@ -709,9 +712,12 @@ TriangleSet => '
 
 
 {
-	my %AllNodes = (%RendC, %RendRayC, %PrepC, %FinC, %ChildC, %LightC,
-		%ChangedC, %ProximityC, %CollisionC);
-	@NodeTypes = keys %AllNodes;
+	# old method - now, lets gen structs for literally all nodes.
+	#my %AllNodes = (%RendC, %RendRayC, %PrepC, %FinC, %ChildC, %LightC, %ChangedC, %ProximityC, %CollisionC);
+	# @NodeTypes = keys %AllNodes;
+
+	@NodeTypes = keys %VRML::Nodes;
+	# foreach my $key (keys (%{$VRML::Nodes})) {print "field $key\n";}
 }
 
 sub assgn_m {
@@ -746,10 +752,10 @@ sub fvirt {
 	}
 	if($ret) {$ret = "$ret = ";}
 	return "if(this_->$f) {
-		  if(!(*(struct VRML_Virt **)(this_->$f))->$v) {
+		  if(!(*(struct X3D_Virt **)(this_->$f))->$v) {
 		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
 		  }
-		  $ret ((*(struct VRML_Virt **)(this_->$f))->$v(this_->$f,
+		  $ret ((*(struct X3D_Virt **)(this_->$f))->$v(this_->$f,
 		    ".(join ',',@a).")) ;}
  	  else { (freewrlDie(\"NULL FIELD $t $f $a\"));}";
 }
@@ -763,10 +769,10 @@ sub fvirt_null {
 	}
 	if($ret) {$ret = "$ret = ";}
 	return "if(this_->$f) {
-		  if(!(*(struct VRML_Virt **)(this_->$f))->$v) {
+		  if(!(*(struct X3D_Virt **)(this_->$f))->$v) {
 		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
 		  }
-		  $ret ((*(struct VRML_Virt **)(this_->$f))->$v(this_->$f,
+		  $ret ((*(struct X3D_Virt **)(this_->$f))->$v(this_->$f,
 		    ".(join ',',@a).")) ;
 		}";
 }
@@ -776,10 +782,10 @@ sub fgetfnvirt_n {
 	my($n, $ret, $v, @a) = @_;
 	if($ret) {$ret = "$ret = ";}
 	return "if($n) {
-	         if(!(*(struct VRML_Virt **)n)->$v) {
+	         if(!(*(struct X3D_Virt **)n)->$v) {
 		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
 		 }
-		 $ret ((*(struct VRML_Virt **)($n))->$v($n,
+		 $ret ((*(struct X3D_Virt **)($n))->$v($n,
 		    ".(join ',',@a).")) ;}
 	"
 }
@@ -804,8 +810,8 @@ sub gen_struct {
 	my @sf = sort(@unsortedfields);
 	my $nf = scalar @sf;
 	# /* Store actual point etc. later */
-       my $s = "/***********************/\nstruct VRML_$name {\n" .
-               "       struct VRML_Virt *v;\n"         	.
+       my $s = "/***********************/\nstruct X3D_$name {\n" .
+               "       struct X3D_Virt *v;\n"         	.
                "       int _renderFlags; /*sensitive, etc */ \n"                  	.
                "       int _sens; /*THIS is sensitive */ \n"                  	.
                "       int _hit; \n"                   	.
@@ -846,12 +852,12 @@ CODE:
 	for(@sf) {
 		my $cty = "VRML::Field::$node->{FieldTypes}{$_}"->ctype($_);
 		$s .= "\t$cty;\n";
-		$o .= "\t*ptr_++ = offsetof(struct VRML_$name, $_);\n";
+		$o .= "\t*ptr_++ = offsetof(struct X3D_$name, $_);\n";
 	}
 
 
 
-	$o .= "\t*ptr_++ = sizeof(struct VRML_$name);\n";
+	$o .= "\t*ptr_++ = sizeof(struct X3D_$name);\n";
 	$o .= "\tRETVAL=&(virt_${name});\n";
 	$o .= "\t /*printf(\"$name virtual: %d \\n \", RETVAL);  */
 OUTPUT:
@@ -925,28 +931,43 @@ sub get_rendfunc {
 	my @f = qw/Prep Rend Child Fin RendRay GenPolyRep Light 
 		Changed Proximity Collision/;
 	my $f;
-	my $v = "
-static struct VRML_Virt virt_${n} = { ".
+	my $v = 
+		" \nstatic struct X3D_Virt virt_${n} = { ".
 	(join ',',map {${$_."C"}{$n} ? "${n}_$_" : "NULL"} @f).
 ",\"$n\"};";
 	for(@f) {
 		my $c =${$_."C"}{$n};
 		next if !defined $c;
-		#JAS print "$_ (",length($c),") ";
+		print "rendfunc $_ (",length($c),") ";
+		# Rend func now in CFuncs directory and name changed from "xxx_Rend" to "render_xxx"
 		# Substitute field gets
 
-		$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
-		$c =~ s/\$i\(([^)]*)\)/(this_->$1)/g;
-		$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
-		$c =~ s/\$fv\(([^)]*)\)/fvirt($n,split ',',$1)/ge;
-		$c =~ s/\$fv_null\(([^)]*)\)/fvirt_null($n,split ',',$1)/ge;
-		$f .= "\n\nvoid ${n}_$_(void *nod_)";
-		$f .= "{ /* GENERATED FROM HASH ${_}C, MEMBER $n */
-			struct VRML_$n *this_ = (struct VRML_$n *)nod_;
-			{$c}
-			}";
+		if ($_ eq "Rend") {
+			print "Found Rend, skipping...\n";
+			$f .= "\n /* skipping " . $_ ."_Rend\n";
+		} else {
+
+			$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
+			$c =~ s/\$i\(([^)]*)\)/(this_->$1)/g;
+			$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
+			$c =~ s/\$fv\(([^)]*)\)/fvirt($n,split ',',$1)/ge;
+			$c =~ s/\$fv_null\(([^)]*)\)/fvirt_null($n,split ',',$1)/ge;
+			$f .= "\n\nvoid ${n}_$_(void *nod_)";
+			$f .= "{ /* GENERATED FROM HASH ${_}C, MEMBER $n */
+				struct X3D_$n *this_ = (struct X3D_$n *)nod_;
+				{$c}
+				}";
+		}
 	}
 	#JAS print "\n";
+	# generates something like:
+	# void Fog_Rend(void *nod_){ /* GENERATED FROM HASH RendC, MEMBER Fog */
+         	#                struct X3D_Fog *this_ = (struct X3D_Fog *)nod_;
+                 	#        {
+        	# if (!render_geom) printf ("rendering fog while not geom\n");
+	# render_Fog((struct X3D_Fog *) this_);}
+        	#                 }
+
 	return ($f,$v);
 }
 
@@ -1027,7 +1048,7 @@ sub gen {
 	}
         push @str, "\n/* and now the structs for the nodetypes */ \n";
 	for(@NodeTypes) {
-		#print "working on node $_\n";
+		# print "working on node $_\n";
 		my $no = $VRML::Nodes{$_};
 		my($str, $offs, $perl) = gen_struct($_, $no);
 		push @str, $str;
@@ -1062,7 +1083,7 @@ sub gen {
 struct pt {GLdouble x,y,z;};
 struct orient {GLdouble x,y,z,a;};
 
-struct VRML_Virt {
+struct X3D_Virt {
 	void (*prep)(void *);
 	void (*rend)(void *);
 	void (*children)(void *);
@@ -1080,7 +1101,7 @@ struct VRML_Virt {
  * set of triangles.
  * done so that we get rid of concave polygons etc.
  */
-struct VRML_PolyRep { /* Currently a bit wasteful, because copying */
+struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int _change;
 	int ccw;	/* ccw field for single faced structures */
 	int ntri; /* number of triangles */
@@ -1114,7 +1135,6 @@ struct sNaviInfo {
 	print STRUCTS '
 #endif /* ifndef */
 ';
-
 
 	open CST, ">CFuncs/constants.h";
 	print CST  &gen_constants_c();
@@ -1176,12 +1196,12 @@ alloc_struct(siz,virt, itype)
 	int itype
 CODE:
 	void *ptr = malloc(siz);
-	struct VRML_Box *p;
+	struct X3D_Box *p;
 
-	p = (struct VRML_Box *) ptr;
+	p = (struct X3D_Box *) ptr;
 
 	/* printf("Alloc: %d %d -> %d\n", siz, virt, ptr);  */
-	*(struct VRML_Virt **)ptr = (struct VRML_Virt *)virt;
+	*(struct X3D_Virt **)ptr = (struct X3D_Virt *)virt;
 	p->_renderFlags = 0;
 	p->_hit = 0;
 	p->_sens = FALSE;
@@ -1208,9 +1228,9 @@ void
 release_struct(ptr)
 	void *ptr
 CODE:
-	struct VRML_Box *p;
+	struct X3D_Box *p;
 
-	p = (struct VRML_Box *) ptr;
+	p = (struct X3D_Box *) ptr;
 
 	if(p->_parents) free(p->_parents);
 	if(p->_dlist) glDeleteLists(p->_dlist,1);
@@ -1504,7 +1524,7 @@ CODE:
 	sprintf (onechildline, "[ %d ]",child);
 
 	getMFNodetype (onechildline, (struct Multi_Node *) ptr,
-		(struct VRML_Box *)par,
+		(struct X3D_Box *)par,
 		!strncmp (fiel,"addChild",strlen ("addChild")));
 
 # link into EAI.

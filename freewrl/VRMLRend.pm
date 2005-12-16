@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.189  2005/12/16 13:49:23  crc_canada
+# updating generation functions.
+#
 # Revision 1.188  2005/12/15 20:42:01  crc_canada
 # CoordinateInterpolator2D PositionInterpolator2D
 #
@@ -249,55 +252,55 @@
 #Viewpoint => ' ',
 #GeoViewpoint => ' ',
 
-NavigationInfo => 'render_NavigationInfo ((struct VRML_NavigationInfo *) this_);',
+NavigationInfo => 'render_NavigationInfo ((struct X3D_NavigationInfo *) this_);',
 
 Fog => '
 	if (!render_geom) printf ("rendering fog while not geom\n");
-render_Fog((struct VRML_Fog *) this_);',
+render_Fog((struct X3D_Fog *) this_);',
 
 Background => '
 	if (!render_geom) printf ("rendering background while not geom\n");
-		render_Background ((struct VRML_Background *) this_); ',
+		render_Background ((struct X3D_Background *) this_); ',
 
 TextureBackground => '
 	if (!render_geom) printf ("rendering background while not geom\n");
-		render_TextureBackground ((struct VRML_TextureBackground *) this_); ',
+		render_TextureBackground ((struct X3D_TextureBackground *) this_); ',
 
 # Geometry3D
-Box => ' render_Box((struct VRML_Box *) this_); ',
-Cylinder => 'render_Cylinder((struct VRML_Cylinder *) this_); ',
-Cone => 'render_Cone((struct VRML_Cone *) this_); ',
-Sphere => 'render_Sphere ((struct VRML_Sphere *) this_); ',
-IndexedFaceSet => 'render_IndexedFaceSet ((struct VRML_IndexedFaceSet *) this_); ',
-Extrusion => 'render_Extrusion ((struct VRML_Extrusion *) this_); ',
-ElevationGrid => 'render_ElevationGrid ((struct VRML_ElevationGrid *) this_); ',
+Box => ' render_Box((struct X3D_Box *) this_); ',
+Cylinder => 'render_Cylinder((struct X3D_Cylinder *) this_); ',
+Cone => 'render_Cone((struct X3D_Cone *) this_); ',
+Sphere => 'render_Sphere ((struct X3D_Sphere *) this_); ',
+IndexedFaceSet => 'render_IndexedFaceSet ((struct X3D_IndexedFaceSet *) this_); ',
+Extrusion => 'render_Extrusion ((struct X3D_Extrusion *) this_); ',
+ElevationGrid => 'render_ElevationGrid ((struct X3D_ElevationGrid *) this_); ',
 
 
 # Geometry2D
-Arc2D => ' render_Arc2D((struct VRML_Arc2D *) this_); ',
-ArcClose2D => ' render_ArcClose2D((struct VRML_ArcClose2D *) this_); ',
-Circle2D => ' render_Circle2D((struct VRML_Circle2D *) this_); ',
-Disk2D => ' render_Disk2D((struct VRML_Disk2D *) this_); ',
-Polyline2D => ' render_Polyline2D((struct VRML_Polyline2D *) this_); ',
-Polypoint2D => ' render_Polypoint2D((struct VRML_Polypoint2D *) this_); ',
-Rectangle2D => ' render_Rectangle2D((struct VRML_Rectangle2D *) this_); ',
-TriangleSet2D => ' render_TriangleSet2D((struct VRML_TriangleSet2D *) this_); ',
+Arc2D => ' render_Arc2D((struct X3D_Arc2D *) this_); ',
+ArcClose2D => ' render_ArcClose2D((struct X3D_ArcClose2D *) this_); ',
+Circle2D => ' render_Circle2D((struct X3D_Circle2D *) this_); ',
+Disk2D => ' render_Disk2D((struct X3D_Disk2D *) this_); ',
+Polyline2D => ' render_Polyline2D((struct X3D_Polyline2D *) this_); ',
+Polypoint2D => ' render_Polypoint2D((struct X3D_Polypoint2D *) this_); ',
+Rectangle2D => ' render_Rectangle2D((struct X3D_Rectangle2D *) this_); ',
+TriangleSet2D => ' render_TriangleSet2D((struct X3D_TriangleSet2D *) this_); ',
 
 # Component_Rendering
-IndexedTriangleFanSet => 'render_IndexedTriangleFanSet ((struct VRML_IndexedTriangleFanSet *) this_); ',
-IndexedTriangleSet => 'render_IndexedTriangleSet ((struct VRML_IndexedTriangleSet *) this_); ',
-IndexedTriangleStripSet => 'render_IndexedTriangleStripSet ((struct VRML_IndexedTriangleStripSet *) this_); ',
-TriangleFanSet => 'render_TriangleFanSet ((struct VRML_TriangleFanSet *) this_); ',
-TriangleStripSet => 'render_TriangleStripSet ((struct VRML_TriangleStripSet *) this_); ',
-TriangleSet => 'render_TriangleSet ((struct VRML_TriangleSet *) this_); ',
-LineSet => 'render_LineSet ((struct VRML_LineSet *) this_); ',
-IndexedLineSet => 'render_IndexedLineSet ((struct VRML_IndexedLineSet *) this_); ',
-PointSet => 'render_PointSet ((struct VRML_PointSet *) this_); ',
+IndexedTriangleFanSet => 'render_IndexedTriangleFanSet ((struct X3D_IndexedTriangleFanSet *) this_); ',
+IndexedTriangleSet => 'render_IndexedTriangleSet ((struct X3D_IndexedTriangleSet *) this_); ',
+IndexedTriangleStripSet => 'render_IndexedTriangleStripSet ((struct X3D_IndexedTriangleStripSet *) this_); ',
+TriangleFanSet => 'render_TriangleFanSet ((struct X3D_TriangleFanSet *) this_); ',
+TriangleStripSet => 'render_TriangleStripSet ((struct X3D_TriangleStripSet *) this_); ',
+TriangleSet => 'render_TriangleSet ((struct X3D_TriangleSet *) this_); ',
+LineSet => 'render_LineSet ((struct X3D_LineSet *) this_); ',
+IndexedLineSet => 'render_IndexedLineSet ((struct X3D_IndexedLineSet *) this_); ',
+PointSet => 'render_PointSet ((struct X3D_PointSet *) this_); ',
 
 
 
 GeoElevationGrid => '
-                if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
 			regen_polyrep(this_, NULL, this_->color, this_->normal, this_->texCoord);
 
 		if(!$f(solid)) {
@@ -312,39 +315,22 @@ GeoElevationGrid => '
 ',
 
 
-# FontStyle params handled in Text. This is here so that VRML_FontStyle struct will be generated.
-FontStyle => 'UNUSED(this_);',
-
-
-
-Coordinate => ' UNUSED(this_);',
-ColorRGBA => ' UNUSED(this_);',
-Color => ' UNUSED(this_);',
-Normal => ' UNUSED(this_);',
-
 # a LoadSensor is not a "pointing device" sensor; we can render it here
-LoadSensor =>'render_loadsensor((struct VRML_LoadSensor *)this_); ',
+LoadSensor =>'render_loadsensor((struct X3D_LoadSensor *)this_); ',
 
 TextureCoordinateGenerator => '
 	/* go to Textures.c and render the textures there */
-	render_texturecoordinategenerator((struct VRML_TextureCoordinate_Generator *)this_);
+	render_texturecoordinategenerator((struct X3D_TextureCoordinate_Generator *)this_);
 ',
 
 TextureCoordinate => ' 
 	/* go to Textures.c and render the textures there */
-	render_texturecoordinate((struct VRML_TextureCoordinate *)this_);
+	render_texturecoordinate((struct X3D_TextureCoordinate *)this_);
 ',
-
-MultiTextureCoordinate => ' 
-	/* go to Textures.c and render the textures there in textureDraw_start() */
-	UNUSED(this_);
-',
-
-
 
 # Text is a polyrep, as of freewrl 0.34
 Text => '
-                if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
                         regen_polyrep(this_, NULL, NULL, NULL, NULL);
 
 		/* always Text is visible from both sides */
@@ -549,12 +535,12 @@ Sound => '
 	float midmin, midmax;
 	float amp;
 
-	struct VRML_AudioClip *acp;
-	struct VRML_MovieTexture *mcp;
+	struct X3D_AudioClip *acp;
+	struct X3D_MovieTexture *mcp;
 	char mystring[256];
 
-	acp = (struct VRML_AudioClip *) $f(source);
-	mcp = (struct VRML_MovieTexture *) $f(source);
+	acp = (struct X3D_AudioClip *) $f(source);
+	mcp = (struct X3D_MovieTexture *) $f(source);
 
 	/*  MovieTextures NOT handled yet*/
 	/*  first - is there a node (any node!) attached here?*/
@@ -775,39 +761,22 @@ DirectionalLight => '
 
 %PrepC = (
 # this creates the Struct values required to allow backend to fill the C values out
-ColorInterpolator => 'UNUSED(this_); /* compiler warning */',
-PositionInterpolator => 'UNUSED(this_); /* compiler warning */',
-CoordinateInterpolator2D => 'UNUSED(this_); /* compiler warning */',
-PositionInterpolator2D => 'UNUSED(this_); /* compiler warning */',
-GeoPositionInterpolator => 'UNUSED(this_); /* compiler warning */',
-ScalarInterpolator => 'UNUSED(this_); /* compiler warning */',
-OrientationInterpolator => 'UNUSED(this_); /* compiler warning */',
-NormalInterpolator => 'UNUSED(this_); /* compiler warning */',
-CoordinateInterpolator => 'UNUSED(this_); /* compiler warning */',
-TimeSensor => 'UNUSED(this_); /* compiler warning */',
-SphereSensor => 'UNUSED(this_); /* compiler warning */',
-CylinderSensor =>'UNUSED(this_); /* compiler warning */',
-GeoTouchSensor => 'UNUSED(this_); /* compiler warning */',
-TouchSensor => 'UNUSED(this_); /* compiler warning */',
-PlaneSensor => 'UNUSED(this_); /* compiler warning */',
-VisibilitySensor => 'UNUSED(this_); /* compiler warning */',
-
-GeoOrigin => 'render_GeoOrigin ((struct VRML_GeoOrigin *) this_);',
+GeoOrigin => 'render_GeoOrigin ((struct X3D_GeoOrigin *) this_);',
 
 Viewpoint => '
 	/* Viewpoint is in the PrepC side of things, as it is rendered before other nodes */
 	if (!render_vp) return;
-	render_Viewpoint ((struct VRML_Viewpoint*) this_);',
+	render_Viewpoint ((struct X3D_Viewpoint*) this_);',
 
 GeoViewpoint => '
 	/* Viewpoint is in the PrepC side of things, as it is rendered before other nodes */
 	if (!render_vp) return;
-	render_GeoViewpoint ((struct VRML_GeoViewpoint*) this_);',
+	render_GeoViewpoint ((struct X3D_GeoViewpoint*) this_);',
 
 GeoLocation => '
 	if (!render_vp) {
 		glPushMatrix();
-		render_GeoLocation ((struct VRML_GeoLocation*) this_);
+		render_GeoLocation ((struct X3D_GeoLocation*) this_);
 	}',
 
 Transform => '
@@ -1329,12 +1298,12 @@ $ExtraMem{StaticGroup} = $ExtraMem{Group};
 	Group => '
 		int i;
 		int nc = $f_n(children);
-		struct VRML_Box *p;
-		struct VRML_Virt *v;
+		struct X3D_Box *p;
+		struct X3D_Virt *v;
 
 		$i(has_light) = 0;
 		for(i=0; i<nc; i++) {
-			p = (struct VRML_Box *)$f(children,i);
+			p = (struct X3D_Box *)$f(children,i);
 			if (p->_nodeType == NODE_DirectionalLight) {
 				/*  printf ("group found a light\n");*/
 				$i(has_light) ++;
@@ -1344,12 +1313,12 @@ $ExtraMem{StaticGroup} = $ExtraMem{Group};
         Inline => '
                 int i;
                 int nc = $f_n(__children);
-                struct VRML_Box *p;
-                struct VRML_Virt *v;
+                struct X3D_Box *p;
+                struct X3D_Virt *v;
 
                 $i(has_light) = 0;
                 for(i=0; i<nc; i++) {
-                        p = (struct VRML_Box *)$f(__children,i);
+                        p = (struct X3D_Box *)$f(__children,i);
                         if (p->_nodeType == NODE_DirectionalLight) {
                                 /*  printf ("group found a light\n");*/
                                 $i(has_light) ++;
@@ -1544,7 +1513,7 @@ ProximitySensor => q~
 
 Disk2D => q~
 		/* yeah, yeah, we should collide with this shape */
-		/* if (this_->__IFSSTRUCT != NULL) collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_->__IFSSTRUCT); */
+		/* if (this_->__IFSSTRUCT != NULL) collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_->__IFSSTRUCT); */
 	       ~,
 Rectangle2D => q~
 		/* Modified Box code. */
@@ -1621,7 +1590,7 @@ Rectangle2D => q~
 	       ~,
 TriangleSet2D => q~
 		/* yeah, yeah, we should collide with this shape */
-		/* if (this_->__IFSSTRUCT != NULL) collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_->__IFSSTRUCT); */
+		/* if (this_->__IFSSTRUCT != NULL) collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_->__IFSSTRUCT); */
 	       ~,
 
 Sphere => q~
@@ -1997,38 +1966,38 @@ Cylinder => q~
 
 
 ElevationGrid => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 IndexedFaceSet => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 
 IndexedTriangleFanSet => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 
 
 IndexedTriangleSet => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 
 
 IndexedTriangleStripSet => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 
 
 TriangleFanSet => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 
 TriangleStripSet => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 
 
 TriangleSet => q~
-		collideIndexedFaceSet ((struct VRML_IndexedFaceSet *) this_);
+		collideIndexedFaceSet ((struct X3D_IndexedFaceSet *) this_);
 ~,
 
 Extrusion => q~
@@ -2048,23 +2017,23 @@ Extrusion => q~
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
 
-	       struct VRML_PolyRep pr;
+	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
-                if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
                         regen_polyrep(this_, NULL, NULL, NULL, NULL);
 
- 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+ 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
 	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
@@ -2072,7 +2041,7 @@ Extrusion => q~
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 /*	       printf("_PolyRep = %d\n",this_->_intern);*/
-	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
@@ -2127,27 +2096,27 @@ Text => q~
 			so, if there is no need to calculate normals..., why do it? */
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,-1};
-	       struct VRML_PolyRep pr;
+	       struct X3D_PolyRep pr;
 	       int change = 0;
 
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
-                if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
                         regen_polyrep(this_, NULL, NULL, NULL, NULL);
 
- 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+ 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
 	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
-	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
@@ -2194,7 +2163,7 @@ GeoElevationGrid => q~
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
 
-	       struct VRML_PolyRep pr;
+	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
 		STRLEN xx;
@@ -2205,26 +2174,26 @@ GeoElevationGrid => q~
 		sscanf (SvPV(this_->zSpacing,xx),"%f",&zSpacing);
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
-                if(!this_->_intern || this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
                         regen_polyrep(this_, NULL, NULL, NULL, NULL);
 
 
- 	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+ 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
 	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
 	       if(!$f(solid)) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
-	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);

@@ -98,7 +98,7 @@ int   myff;		/* which index into font_face are we using  */
 /* for keeping track of tesselated points */
 int FW_RIA[500];	/* pointer to which point is returned by tesselator  */
 int FW_RIA_indx;			/* index into FW_RIA			     */
-struct VRML_PolyRep *FW_rep_;	/* this is the internal rep of the polyrep	     */
+struct X3D_PolyRep *FW_rep_;	/* this is the internal rep of the polyrep	     */
 int FW_pointctr;		/* how many points used so far? maps into rep-_coord */
 int indx_count;			/* maps intp FW_rep_->cindex			     */
 int coordmaxsize;		/* maximum coords before needing to realloc	     */
@@ -427,7 +427,7 @@ void FW_draw_character (FT_Glyph glyph) {
 
 void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length,
 		double maxext, double spacing, double mysize, unsigned int fsparam,
-		struct VRML_PolyRep *rp) {
+		struct X3D_PolyRep *rp) {
 	unsigned char *str; /* string pointer- initialization gets around compiler warning */
 	unsigned int i,row;
 	double shrink = 0;

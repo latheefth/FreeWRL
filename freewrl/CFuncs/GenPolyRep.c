@@ -36,19 +36,19 @@
 
 
 extern void initialize_smooth_normals();
-extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct VRML_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
-extern int count_IFS_faces(int cin, struct VRML_IndexedFaceSet *this_IFS);
-extern int IFS_face_normals(struct pt *facenormals,int *faceok,int *pointfaces,int faces,int npoints,int cin,struct SFColor *points,struct VRML_IndexedFaceSet *this_IFS,int ccw);
+extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
+extern int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS);
+extern int IFS_face_normals(struct pt *facenormals,int *faceok,int *pointfaces,int faces,int npoints,int cin,struct SFColor *points,struct X3D_IndexedFaceSet *this_IFS,int ccw);
 extern void verify_global_IFS_Coords(int max);
-extern void IFS_check_normal(struct pt *facenormals,int this_face,struct SFColor *points,int base,struct VRML_IndexedFaceSet *this_IFS,int ccw);
-extern void Extru_tex(int vertex_ind,int tci_ct,int A,int B,int C,struct VRML_PolyRep *this_Elev,int ccw,int tcindexsize);
-extern void Extru_ST_map(int triind_start,int start,int end,float *Vals,int nsec,struct VRML_PolyRep *this_Extru, int tcoordsize);
-extern void Extru_check_normal(struct pt *facenormals,int this_face,int dire,struct VRML_PolyRep *rep_,int ccw);
+extern void IFS_check_normal(struct pt *facenormals,int this_face,struct SFColor *points,int base,struct X3D_IndexedFaceSet *this_IFS,int ccw);
+extern void Extru_tex(int vertex_ind,int tci_ct,int A,int B,int C,struct X3D_PolyRep *this_Elev,int ccw,int tcindexsize);
+extern void Extru_ST_map(int triind_start,int start,int end,float *Vals,int nsec,struct X3D_PolyRep *this_Extru, int tcoordsize);
+extern void Extru_check_normal(struct pt *facenormals,int this_face,int dire,struct X3D_PolyRep *rep_,int ccw);
 
 
 
-void make_text (struct VRML_Text *this_) {
-	struct VRML_PolyRep *rep_ = (struct VRML_PolyRep *)this_->_intern;
+void make_text (struct X3D_Text *this_) {
+	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)this_->_intern;
         double spacing = 1.0;
         double size = 1.0;
 	unsigned int fsparams = 0;
@@ -87,7 +87,7 @@ void make_text (struct VRML_Text *this_) {
 			bit: 17-31	spare
 		*/
 
-		struct VRML_FontStyle *fsp;
+		struct X3D_FontStyle *fsp;
 		STRLEN xx;
 		unsigned char *lang;
 		unsigned char *style;
@@ -98,7 +98,7 @@ void make_text (struct VRML_Text *this_) {
 		unsigned char *stmp;
 
 		/* step 0 - is the FontStyle a proto? */
-		fsp = (struct VRML_FontStyle *)this_->fontStyle;
+		fsp = (struct X3D_FontStyle *)this_->fontStyle;
 
 		/* step 0.5 - now that we know FontStyle points ok, go for
 		 * the other pointers */
@@ -224,7 +224,7 @@ int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
 
 
 /* check validity of fields */
-int checkX3DIndexedFaceSetFields (struct VRML_IndexedFaceSet *this_) {
+int checkX3DIndexedFaceSetFields (struct X3D_IndexedFaceSet *this_) {
 	/* does this have any coordinates? */
 	if (this_->coord == 0) {
 		printf ("checkX3DIFS - have an IFS with no coords...\n");
@@ -238,7 +238,7 @@ int checkX3DIndexedFaceSetFields (struct VRML_IndexedFaceSet *this_) {
 }
 
 /* check validity of ElevationGrid fields */
-int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
+int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 				float **points, int *npoints) {
 	int i,j;
 	int nx = (this_->xDimension);
@@ -248,7 +248,7 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	float *height = ((this_->height).p);
 	int ntri = (nx && nz ? 2 * (nx-1) * (nz-1) : 0);
 	int nh = ((this_->height).n);
-	struct VRML_PolyRep *rep = (struct VRML_PolyRep *)this_->_intern;
+	struct X3D_PolyRep *rep = (struct X3D_PolyRep *)this_->_intern;
 
 	float *newpoints;
 	float newPoint[3];
@@ -375,7 +375,7 @@ int checkX3DElevationGridFields (struct VRML_ElevationGrid *this_,
 	return TRUE;
 }
 
-int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
+int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 	struct SFColor *points;
 	int npoints;
 	int retval = TRUE;
@@ -385,7 +385,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 	int fanVertex;
 	int *newIndex;
 	int windingOrder; /*TriangleStripSet ordering */
-        struct VRML_Coordinate *xc;
+        struct X3D_Coordinate *xc;
 
 
 	/* printf ("checkX3DComposedGeomFields for node (%d) %s\n",
@@ -554,7 +554,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 
 		case NODE_TriangleSet :
 		        if(this_->coord) {
-		                xc = (struct VRML_Coordinate *) this_->coord;
+		                xc = (struct X3D_Coordinate *) this_->coord;
 		                if (xc->_nodeType != NODE_Coordinate) {
 		                        printf ("TriangleSet, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
 		                } else {
@@ -689,7 +689,7 @@ int checkX3DComposedGeomFields (struct VRML_IndexedFaceSet *this_) {
 }
 
 
-void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
+void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 	int cin;
 	int cpv;
 	int npv;
@@ -710,7 +710,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 	struct SFColor *c1;
 	struct SFColor *points;
-	struct VRML_PolyRep *rep_ = (struct VRML_PolyRep *)this_->_intern;
+	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)this_->_intern;
 	struct SFColor *normals;
 
 	int *cindex;		/* Coordinate Index	*/
@@ -730,10 +730,10 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	int i;				/* general purpose counters */
 	int this_face, this_coord, this_normal, this_normalindex;
 
-	struct VRML_Coordinate *xc;
-	struct VRML_Color *cc;
-	struct VRML_Normal *nc;
-	struct VRML_TextureCoordinate *tc;
+	struct X3D_Coordinate *xc;
+	struct X3D_Color *cc;
+	struct X3D_Normal *nc;
+	struct X3D_TextureCoordinate *tc;
 
 	if (this_->_nodeType == NODE_IndexedFaceSet) {
 		if (!checkX3DIndexedFaceSetFields(this_)) {
@@ -743,7 +743,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 		
 
 	} else if (this_->_nodeType == NODE_ElevationGrid) {
-		if (!checkX3DElevationGridFields((struct VRML_ElevationGrid *)this_,
+		if (!checkX3DElevationGridFields((struct X3D_ElevationGrid *)this_,
 			&points, &npoints)) {
 	        	rep_->ntri = 0;
 	        	return;
@@ -784,7 +784,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 
 	/* texture coords IndexedFaceSet coords colors and normals */
 	if(this_->coord) {
-		xc = (struct VRML_Coordinate *) this_->coord;
+		xc = (struct X3D_Coordinate *) this_->coord;
 		if (xc->_nodeType != NODE_Coordinate) {
 			printf ("make_IFS, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
 		} else {
@@ -797,7 +797,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	/* just check this parameter here for correctness and, whether to generate other nodes. We
 	   will check it better in stream_polyrep. */
 	if (this_->color) {
-		cc = (struct VRML_Color *) this_->color;
+		cc = (struct X3D_Color *) this_->color;
 		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
 			printf ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
 		} else {
@@ -806,7 +806,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	}
 	
 	if(this_->normal) {
-		nc = (struct VRML_Normal *) this_->normal;
+		nc = (struct X3D_Normal *) this_->normal;
 		if (nc->_nodeType != NODE_Normal) {
 			printf ("make_IFS, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
 		} else {
@@ -818,7 +818,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
 	/* just check this parameter here for correctness and, whether to generate other nodes. We
 	   will check it better in stream_polyrep. */
 	if (this_->texCoord) {
-		tc = (struct VRML_TextureCoordinate *) this_->texCoord;
+		tc = (struct X3D_TextureCoordinate *) this_->texCoord;
 		rep_->tcoordtype=tc->_nodeType;
 		texCoordNodeType = tc->_nodeType;
 	} else {
@@ -1105,7 +1105,7 @@ void make_indexedfaceset(struct VRML_IndexedFaceSet *this_) {
    "render every triangle" method did. So, we gain in rendering
    speed for a little bit of post-processing here. 
  ***************************************************************/
-void stream_extrusion_texture_coords (struct VRML_PolyRep *rep_, 
+void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_, 
 			float *tcoord, 
 			int *tcindex) {
 
@@ -1138,7 +1138,7 @@ void stream_extrusion_texture_coords (struct VRML_PolyRep *rep_,
 }
 
 
-void make_extrusion(struct VRML_Extrusion *this_) {
+void make_extrusion(struct X3D_Extrusion *this_) {
 	/*****begin of Member Extrusion	*/
 	/* This code originates from the file VRMLExtrusion.pm */
 
@@ -1159,7 +1159,7 @@ void make_extrusion(struct VRML_Extrusion *this_) {
 	struct SFVec2f *curve =((this_->crossSection).p);/* vector of 2D curve points	*/
 	struct SFRotation *orientation=((this_->orientation).p);/*vector of SCP rotations*/
 
-	struct VRML_PolyRep *rep_=(struct VRML_PolyRep *)this_->_intern;/*internal rep, we want to fill*/
+	struct X3D_PolyRep *rep_=(struct X3D_PolyRep *)this_->_intern;/*internal rep, we want to fill*/
 
 	/* the next variables will point at members of *rep		*/
 	int   *cindex;				/* field containing indices into

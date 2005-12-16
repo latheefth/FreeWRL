@@ -10,7 +10,7 @@
 #define NO_TEXCOORD_NODE (r->tcoordtype==0)
 #define MUST_GENERATE_TEXTURES (NO_TCOORD_GEN_IN_SHAPE && NO_TEXCOORD_NODE)
 
-void defaultTextureMap(struct VRML_IndexedFaceSet *p, struct VRML_PolyRep *r, struct SFColor *points, int npoints);
+void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep *r, struct SFColor *points, int npoints);
 
 
 /********************************************************************
@@ -54,8 +54,8 @@ static GLfloat Zsize = 0.0;
 
 void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord) {
 
-	struct VRML_IndexedFaceSet *p;
-	struct VRML_PolyRep *r;
+	struct X3D_IndexedFaceSet *p;
+	struct X3D_PolyRep *r;
 	int i;
 	int hasc;
 
@@ -65,10 +65,10 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	struct SFVec2f *texcoords=0; int ntexcoords=0;
 	int isRGBA = FALSE;
 
-	struct VRML_Coordinate *xc;
-	struct VRML_Color *cc;
-	struct VRML_Normal *nc;
-	struct VRML_TextureCoordinate *tc;
+	struct X3D_Coordinate *xc;
+	struct X3D_Color *cc;
+	struct X3D_Normal *nc;
+	struct X3D_TextureCoordinate *tc;
 
 
 	/* new memory locations for new data */
@@ -81,8 +81,8 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	float *newtc;
 
 	/* get internal structures */
-	p = (struct VRML_IndexedFaceSet *)node;
-	r = (struct VRML_PolyRep *)p->_intern;
+	p = (struct X3D_IndexedFaceSet *)node;
+	r = (struct X3D_PolyRep *)p->_intern;
 
 	/* printf ("stream_polyrep, at start, we have %d triangles\n",r->ntri); */
 
@@ -95,7 +95,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 	/* sanity check parameters, and get numbers */
 	if(coord) {
-		xc = (struct VRML_Coordinate *) coord;
+		xc = (struct X3D_Coordinate *) coord;
 		if (xc->_nodeType != NODE_Coordinate) {
 			printf ("stream_polyrep, coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
 			r->ntri=0; return;
@@ -103,7 +103,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	}
 
 	if (color) {
-		cc = (struct VRML_Color *) color;
+		cc = (struct X3D_Color *) color;
 		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
 			printf ("stream_polyrep, expected %d got %d\n", NODE_Color, cc->_nodeType);
 			r->ntri=0; return;
@@ -111,7 +111,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	}
 	
 	if(normal) {
-		nc = (struct VRML_Normal *) normal;
+		nc = (struct X3D_Normal *) normal;
 		if (nc->_nodeType != NODE_Normal) {
 			printf ("stream_polyrep, normal expected %d, got %d\n",NODE_Normal, nc->_nodeType);
 			r->ntri=0; return;
@@ -119,7 +119,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 	}
 
 	if (texCoord) {
-		tc = (struct VRML_TextureCoordinate *) texCoord;
+		tc = (struct X3D_TextureCoordinate *) texCoord;
 		if ((tc->_nodeType != NODE_TextureCoordinate) && 
 			(tc->_nodeType != NODE_MultiTextureCoordinate) &&
 			(tc->_nodeType != NODE_TextureCoordinateGenerator )) {
@@ -333,7 +333,7 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 
 
 
-void defaultTextureMap(struct VRML_IndexedFaceSet *p, struct VRML_PolyRep * r, struct SFColor *points, int npoints) {
+void defaultTextureMap(struct X3D_IndexedFaceSet *p, struct X3D_PolyRep * r, struct SFColor *points, int npoints) {
 
 	/* variables used only in this routine */
 	GLfloat maxVals[] = {-99999.9, -999999.9, -99999.0};

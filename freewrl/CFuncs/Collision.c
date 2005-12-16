@@ -1295,7 +1295,7 @@ struct pt cylinder_disp(double y1, double y2, double ystep, double r, struct pt 
 }
 
 /*used by polyrep_disp */
-struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct VRML_PolyRep* pr, struct pt* n,  struct pt dispsum, prflags flags) {
+struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct X3D_PolyRep* pr, struct pt* n,  struct pt dispsum, prflags flags) {
     struct pt p[3];
     double maxdisp = 0;
     /* double minangle = 2 * M_PI; */
@@ -1406,7 +1406,7 @@ struct pt polyrep_disp_rec(double y1, double y2, double ystep, double r, struct 
 
 
 /*uses sphere displacement, and a cylinder for stepping */
-struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags) {
+struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags) {
     float* newc;
     struct pt* normals;
     int i;
@@ -1451,7 +1451,7 @@ struct pt polyrep_disp(double y1, double y2, double ystep, double r, struct VRML
   planar_polyrep_disp computes the normal using the first polygon, if no normal is specified (if it is zero).
   JAS - Normal is always specified now. (see VRMLRend.pm for invocation)
 */
-struct pt planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, struct VRML_PolyRep* pr, struct pt n, struct pt dispsum, prflags flags) {
+struct pt planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, struct X3D_PolyRep* pr, struct pt n, struct pt dispsum, prflags flags) {
     struct pt p[3];
     double lmaxdisp = 0;
     struct pt maxdispv = {0,0,0};
@@ -1505,7 +1505,7 @@ struct pt planar_polyrep_disp_rec(double y1, double y2, double ystep, double r, 
 }
 
 
-struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, struct VRML_PolyRep pr, GLdouble* mat, prflags flags, struct pt n) {
+struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, struct X3D_PolyRep pr, GLdouble* mat, prflags flags, struct pt n) {
     float* newc;
     int i;
     int maxc;
@@ -1547,7 +1547,7 @@ struct pt planar_polyrep_disp(double y1, double y2, double ystep, double r, stru
 
 
 
-struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, struct VRML_PolyRep pr,
+struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, struct X3D_PolyRep pr,
 			      int xdim, int zdim, double xs, double zs, GLdouble* mat, prflags flags) {
     struct pt orig;
     int x1,x2,z1,z2; /*integer index bounds to elevation grid tests.*/
@@ -1697,10 +1697,10 @@ struct pt elevationgrid_disp( double y1, double y2, double ystep, double r, stru
 
 
 #ifdef DEBUG_SCENE_EXPORT
-void printpolyrep(struct VRML_PolyRep pr) {
+void printpolyrep(struct X3D_PolyRep pr) {
     int i;
     int npoints = 0;
-    printf("VRML_PolyRep makepolyrep() {\n");
+    printf("X3D_PolyRep makepolyrep() {\n");
     printf(" int cindext[%d] = {",pr.ntri*3);
     for(i=0; i < pr.ntri*3-1; i++) {
 	printf("%d,",pr.cindex[i]);
@@ -1717,7 +1717,7 @@ void printpolyrep(struct VRML_PolyRep pr) {
     printf("%f};\n",pr.coord[i]);
 
     printf("static int cindex[%d];\nstatic float coord[%d];\n",pr.ntri*3,npoints*3);
-    printf("VRML_PolyRep pr = {0,%d,%d,cindex,coord,NULL,NULL,NULL,NULL,NULL,NULL};\n",pr.ntri,pr.alloc_tri);
+    printf("X3D_PolyRep pr = {0,%d,%d,cindex,coord,NULL,NULL,NULL,NULL,NULL,NULL};\n",pr.ntri,pr.alloc_tri);
     printf("memcpy(cindex,cindext,sizeof(cindex));\n");
     printf("memcpy(coord,coordt,sizeof(coord));\n");
     printf("return pr; }\n");
@@ -1736,7 +1736,7 @@ void printmatrix(GLdouble* mat) {
 #endif
 
 
-void collideIndexedFaceSet (struct VRML_IndexedFaceSet *this_ ){
+void collideIndexedFaceSet (struct X3D_IndexedFaceSet *this_ ){
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
@@ -1752,28 +1752,28 @@ void collideIndexedFaceSet (struct VRML_IndexedFaceSet *this_ ){
 	       struct pt tupv = {0,1,0};
 	       struct pt delta = {0,0,0};
 
-	       struct VRML_PolyRep pr;
+	       struct X3D_PolyRep pr;
 	       prflags flags = 0;
 	       int change = 0;
 
-	        struct VRML_Coordinate *xc;
+	        struct X3D_Coordinate *xc;
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct VRML_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct VRML_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct VRML_PolyRep *)this_->_intern)->_change;
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
 	       /* $mk_polyrep(); */
 		if(!this_->_intern ||
-                        this_->_change != ((struct VRML_PolyRep *)this_->_intern)->_change)
+                        this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
                                 regen_polyrep(this_);;
 
 
-	       if(this_->_intern) ((struct VRML_PolyRep *)this_->_intern)->_change = change;
+	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
 	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
@@ -1781,7 +1781,7 @@ void collideIndexedFaceSet (struct VRML_IndexedFaceSet *this_ ){
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 
-	       pr = *((struct VRML_PolyRep*)this_->_intern);
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
 
 		/* IndexedFaceSets are "different", in that the user specifies points, among
 		   other things.  The rendering pass takes these external points, and streams
@@ -1789,7 +1789,7 @@ void collideIndexedFaceSet (struct VRML_IndexedFaceSet *this_ ){
 		   see whether we have got here before the first rendering of a possibly new
 		   IndexedFaceSet */
 		if (!pr.coord) {
-	                xc = (struct VRML_Coordinate *) this_->coord;
+	                xc = (struct X3D_Coordinate *) this_->coord;
 	                if (xc->_nodeType != NODE_Coordinate) {
 	                        printf ("Collision - coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
 	                } else {

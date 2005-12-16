@@ -115,7 +115,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 }
 
 
-void render_GeoOrigin (struct VRML_GeoOrigin *node) {
+void render_GeoOrigin (struct X3D_GeoOrigin *node) {
 	STRLEN xx;
         /* is the position "compiled" yet? */
         if (node->_change != node->_dlchange) {
@@ -134,7 +134,7 @@ void render_GeoOrigin (struct VRML_GeoOrigin *node) {
         }
 }
 
-void render_GeoLocation (struct VRML_GeoLocation *node) {
+void render_GeoLocation (struct X3D_GeoLocation *node) {
 	STRLEN xx;
 	/* GLdouble modelMatrix[16]; */
 

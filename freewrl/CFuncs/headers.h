@@ -158,11 +158,11 @@ void normalize_ifs_face (float *point_normal,
 
 void FW_rendertext(unsigned int numrows,SV **ptr,char *directstring, unsigned int nl, double *length,
                 double maxext, double spacing, double mysize, unsigned int fsparam,
-                struct VRML_PolyRep *rp);
+                struct X3D_PolyRep *rp);
 
 
 /* Triangulator extern defs - look in CFuncs/Tess.c */
-extern struct VRML_PolyRep *global_tess_polyrep;
+extern struct X3D_PolyRep *global_tess_polyrep;
 extern GLUtriangulatorObj *global_tessobj;
 extern int global_IFS_Coords[];
 extern int global_IFS_Coord_count;
@@ -178,7 +178,7 @@ extern GLuint bound_textures[MAX_MULTITEXTURE];
 extern int texture_count; 
 extern int     *global_tcin;
 extern int     global_tcin_count; 
-extern void textureDraw_start(struct VRML_IndexedFaceSet *texC, GLfloat *tex);
+extern void textureDraw_start(struct X3D_IndexedFaceSet *texC, GLfloat *tex);
 extern void textureDraw_end(void);
 
 extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
@@ -247,7 +247,7 @@ extern struct sNaviInfo naviinfo;
 
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
-extern struct VRML_Anchor *AnchorsAnchor;
+extern struct X3D_Anchor *AnchorsAnchor;
 
 /* Scripting Routing interfaces */
 
@@ -303,7 +303,7 @@ extern struct VRML_Anchor *AnchorsAnchor;
 
 void CRoutes_js_new (int num,int scriptType);
 extern int max_script_found;
-void getMFNodetype (char *strp, struct Multi_Node *ch, struct VRML_Box *par, int ar);
+void getMFNodetype (char *strp, struct Multi_Node *ch, struct X3D_Box *par, int ar);
 
 void update_node(void *ptr);
 void update_renderFlag(void *ptr, int flag);
@@ -429,13 +429,13 @@ extern void *rootNode;
 extern int isPerlParsing(void);
 extern int isURLLoaded(void);	/* initial scene loaded? Robert Sim */
 extern int isTextureParsing(void);
-extern void loadInline(struct VRML_Inline *node);
-extern void loadImageTexture(struct VRML_ImageTexture *node,  void *param);
-extern void loadPixelTexture(struct VRML_PixelTexture *node,  void *param);
-extern void loadMovieTexture(struct VRML_MovieTexture *node,  void *param);
-extern void loadMultiTexture(struct VRML_MultiTexture *node);
-extern void loadBackgroundTextures (struct VRML_Background *node);
-extern void loadTextureBackgroundTextures (struct VRML_TextureBackground *node);
+extern void loadInline(struct X3D_Inline *node);
+extern void loadImageTexture(struct X3D_ImageTexture *node,  void *param);
+extern void loadPixelTexture(struct X3D_PixelTexture *node,  void *param);
+extern void loadMovieTexture(struct X3D_MovieTexture *node,  void *param);
+extern void loadMultiTexture(struct X3D_MultiTexture *node);
+extern void loadBackgroundTextures (struct X3D_Background *node);
+extern void loadTextureBackgroundTextures (struct X3D_TextureBackground *node);
 extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
 extern GLfloat Backtex[], Backnorms[];
 
@@ -536,24 +536,24 @@ void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
 void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV);
-void setExtent (float x, float y, float z, struct VRML_Box *this_);
-void propagateExtent (float x, float y, float z, struct VRML_Box *this_);
+void setExtent (float x, float y, float z, struct X3D_Box *this_);
+void propagateExtent (float x, float y, float z, struct X3D_Box *this_);
 void calculateFrustumCone(void);
-extern int PointInView(struct VRML_Transform *nod);
+extern int PointInView(struct X3D_Transform *nod);
 
 extern double nearPlane, farPlane, screenRatio;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
-void groupingChild (struct VRML_Group *this_);
-void staticGroupingChild (struct VRML_StaticGroup *this_);
-void billboardChild (struct VRML_Billboard *this_);
-void transformChild (struct VRML_Transform *this_);
-void anchorChild (struct VRML_Anchor *this_);
-void geolocationChild (struct VRML_GeoLocation *this_);
-void inlineChild (struct VRML_Inline *this_);
-void lodChild (struct VRML_LOD *this_);
-void inlinelodChild (struct VRML_InlineLoadControl *this_);
-void collisionChild(struct VRML_Collision *this_);
+void groupingChild (struct X3D_Group *this_);
+void staticGroupingChild (struct X3D_StaticGroup *this_);
+void billboardChild (struct X3D_Billboard *this_);
+void transformChild (struct X3D_Transform *this_);
+void anchorChild (struct X3D_Anchor *this_);
+void geolocationChild (struct X3D_GeoLocation *this_);
+void inlineChild (struct X3D_Inline *this_);
+void lodChild (struct X3D_LOD *this_);
+void inlinelodChild (struct X3D_InlineLoadControl *this_);
+void collisionChild(struct X3D_Collision *this_);
 
 extern int render_sensitive,render_vp,render_light,render_proximity,curlight,verbose,render_blend,render_geom,render_collision;
 
@@ -574,58 +574,58 @@ char *processThisClassEvent (void *fn, int startEntry, int endEntry, char *buf);
 int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen);
 void getCLASSMultNumType (char *buf, int bufSize,
 	struct Multi_Vec3f *tn,
-	struct VRML_Box *parent,
+	struct X3D_Box *parent,
 	int eletype, int addChild);
 
 void fwGetDoublev (int ty, double *mat);
 void fwMatrixMode (int mode);
-void fwXformPush(struct VRML_Transform *me);
-void fwXformPop(struct VRML_Transform *me);
+void fwXformPush(struct X3D_Transform *me);
+void fwXformPop(struct X3D_Transform *me);
 void fwLoadIdentity (void);
 void doBrowserAction (void);
 void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (void *rc,  void *newNode);
-void make_text(struct VRML_Text *this_ );
-void make_extrusion(struct VRML_Extrusion *this_);
-void make_indexedfaceset(struct VRML_IndexedFaceSet *this_);
-void collideIndexedFaceSet(struct VRML_IndexedFaceSet *this_);
+void make_text(struct X3D_Text *this_ );
+void make_extrusion(struct X3D_Extrusion *this_);
+void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
+void collideIndexedFaceSet(struct X3D_IndexedFaceSet *this_);
 
 
-void render_loadsensor(struct VRML_LoadSensor *this);
-void render_texturecoordinategenerator(struct VRML_TextureCoordinateGenerator *this);
-void render_texturecoordinate(struct VRML_TextureCoordinate *this);
+void render_loadsensor(struct X3D_LoadSensor *this);
+void render_texturecoordinategenerator(struct X3D_TextureCoordinateGenerator *this);
+void render_texturecoordinate(struct X3D_TextureCoordinate *this);
 
 /* Geometry3D nodes */
-void render_Box (struct VRML_Box *this);
-void render_Cone (struct VRML_Cone *this);
-void render_Cylinder (struct VRML_Cylinder *this);
-void render_ElevationGrid (struct VRML_ElevationGrid *this);
-void render_Extrusion (struct VRML_Extrusion *this);
-void render_IndexedFaceSet (struct VRML_IndexedFaceSet *this);
-void render_Sphere (struct VRML_Sphere *this);
+void render_Box (struct X3D_Box *this);
+void render_Cone (struct X3D_Cone *this);
+void render_Cylinder (struct X3D_Cylinder *this);
+void render_ElevationGrid (struct X3D_ElevationGrid *this);
+void render_Extrusion (struct X3D_Extrusion *this);
+void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
+void render_Sphere (struct X3D_Sphere *this);
 
 /* Geometry2D nodes */
-void render_Arc2D (struct VRML_Arc2D *this_);
-void render_ArcClose2D (struct VRML_ArcClose2D *this_);
-void render_Circle2D (struct VRML_Circle2D *this_);
-void render_Disk2D (struct VRML_Disk2D *this_);
-void render_Polyline2D (struct VRML_Polyline2D *this_);
-void render_Polypoint2D (struct VRML_Polypoint2D *this_);
-void render_Rectangle2D (struct VRML_Rectangle2D *this_);
-void render_TriangleSet2D (struct VRML_TriangleSet2D *this_);
+void render_Arc2D (struct X3D_Arc2D *this_);
+void render_ArcClose2D (struct X3D_ArcClose2D *this_);
+void render_Circle2D (struct X3D_Circle2D *this_);
+void render_Disk2D (struct X3D_Disk2D *this_);
+void render_Polyline2D (struct X3D_Polyline2D *this_);
+void render_Polypoint2D (struct X3D_Polypoint2D *this_);
+void render_Rectangle2D (struct X3D_Rectangle2D *this_);
+void render_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 
 /* Rendering nodes */
-void render_IndexedTriangleFanSet (struct VRML_IndexedTriangleFanSet *this_); 
-void render_IndexedTriangleSet (struct VRML_IndexedTriangleSet *this_); 
-void render_IndexedTriangleStripSet (struct VRML_IndexedTriangleStripSet *this_); 
-void render_TriangleFanSet (struct VRML_TriangleFanSet *this_); 
-void render_TriangleStripSet (struct VRML_TriangleStripSet *this_); 
-void render_TriangleSet (struct VRML_TriangleSet *this_); 
-void render_LineSet (struct VRML_LineSet *this_); 
-void render_IndexedLineSet (struct VRML_IndexedLineSet *this_); 
-void render_PointSet (struct VRML_PointSet *this_); 
+void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_); 
+void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_); 
+void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_); 
+void render_TriangleFanSet (struct X3D_TriangleFanSet *this_); 
+void render_TriangleStripSet (struct X3D_TriangleStripSet *this_); 
+void render_TriangleSet (struct X3D_TriangleSet *this_); 
+void render_LineSet (struct X3D_LineSet *this_); 
+void render_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
+void render_PointSet (struct X3D_PointSet *this_); 
 
 
 

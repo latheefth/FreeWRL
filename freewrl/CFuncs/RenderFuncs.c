@@ -36,7 +36,7 @@ RenderFuncs.c - do scenegraph rendering.
 #include "LinearAlgebra.h"
 
 
-struct VRML_Virt virt_Transform;
+struct X3D_Virt virt_Transform;
 
 /* Rearrange to take advantage of headlight when off */
 int curlight = 0;
@@ -112,7 +112,7 @@ struct sNaviInfo naviinfo = {0.25, 1.6, 0.75};
 /* for alignment of collision cylinder, and gravity (later). */
 struct pt ViewerUpvector = {0,0,0};
 
-VRML_Viewer Viewer;
+X3D_Viewer Viewer;
 
 
 /* These two points define a ray in window coordinates */
@@ -137,7 +137,7 @@ struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
 
 /* Any action for the Browser (perl code) to do? */
 int BrowserAction = FALSE;
-struct VRML_Anchor *AnchorsAnchor;
+struct X3D_Anchor *AnchorsAnchor;
 
 
 struct currayhit  rh,rph,rhhyper;
@@ -224,10 +224,10 @@ void upd_ray() {
 /* Courtesy of Jochen Hoenicke */
 
 void update_node(void *ptr) {
-	struct VRML_Box *p;
+	struct X3D_Box *p;
 	int i;
 
-	p = (struct VRML_Box*) ptr;
+	p = (struct X3D_Box*) ptr;
 
 	p->_change ++;
 	p->PIV=1;
@@ -247,8 +247,8 @@ void Group_Child(void *nod_);
  */
 
 void render_node(void *node) {
-	struct VRML_Virt *v;
-	struct VRML_Box *p;
+	struct X3D_Virt *v;
+	struct X3D_Box *p;
 	int srg = 0;
 	int sch = 0;
 	struct currayhit srh;
@@ -262,8 +262,8 @@ void render_node(void *node) {
 	#endif
 
 	if(!node) {return;}
-	v = *(struct VRML_Virt **)node;
-	p = (struct VRML_Box *)node;
+	v = *(struct X3D_Virt **)node;
+	p = (struct X3D_Box *)node;
 
 	#ifdef RENDERVERBOSE 
 	    printf("=========================================NODE RENDERED===================================================\n");
@@ -491,12 +491,12 @@ return;
  */
 
 void add_parent(void *node_, void *parent_) {
-	struct VRML_Box *node;
-	struct VRML_Box *parent;
+	struct X3D_Box *node;
+	struct X3D_Box *parent;
 	if(!node_) return;
 
-	node = (struct VRML_Box *)node_;
-	parent = (struct VRML_Box *)parent_;
+	node = (struct X3D_Box *)node_;
+	parent = (struct X3D_Box *)parent_;
 
 	/* printf ("adding node %d to parent %d\n",node_, parent_); */
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
@@ -517,12 +517,12 @@ void add_parent(void *node_, void *parent_) {
 
 
 void remove_parent(void *node_, void *parent_) {
-	struct VRML_Box *node;
-	struct VRML_Box *parent;
+	struct X3D_Box *node;
+	struct X3D_Box *parent;
 	int i;
 	if(!node_) return;
-	node = (struct VRML_Box *)node_;
-	parent = (struct VRML_Box *)parent_;
+	node = (struct X3D_Box *)node_;
+	parent = (struct X3D_Box *)parent_;
 	node->_nparents --;
 	for(i=0; i<node->_nparents; i++) {
 		if(node->_parents[i] == parent) {

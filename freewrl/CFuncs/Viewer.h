@@ -111,7 +111,7 @@ typedef struct viewer_walk {
 	double YD;
 	double ZD;
 	double RD;
-} VRML_Viewer_Walk;
+} X3D_Viewer_Walk;
 
 
 typedef struct viewer_examine {
@@ -120,7 +120,7 @@ typedef struct viewer_examine {
 	Quaternion SQuat;
 	double ODist;
 	double SY;
-} VRML_Viewer_Examine;
+} X3D_Viewer_Examine;
 
 typedef struct key {
 	char key;
@@ -135,7 +135,7 @@ typedef struct viewer_fly {
 	Key Down[KEYS_HANDLED];
 	Key WasDown[KEYS_HANDLED];
 	double lasttime;
-} VRML_Viewer_Fly;
+} X3D_Viewer_Fly;
 
 
 typedef struct viewer {
@@ -150,14 +150,14 @@ typedef struct viewer {
 	double eyehalfangle;
 	unsigned int buffer;
 	int oktypes[6];		/* boolean for types being acceptable. */
-	VRML_Viewer_Walk *walk;
-	VRML_Viewer_Examine *examine;
-	VRML_Viewer_Fly *fly;
-} VRML_Viewer;
+	X3D_Viewer_Walk *walk;
+	X3D_Viewer_Examine *examine;
+	X3D_Viewer_Fly *fly;
+} X3D_Viewer;
 
 
 void
-viewer_init(VRML_Viewer *viewer,
+viewer_init(X3D_Viewer *viewer,
 			int type);
 
 void
@@ -186,7 +186,7 @@ void
 set_viewer_type(const int type);
 
 void
-resolve_pos(VRML_Viewer *viewer);
+resolve_pos(X3D_Viewer *viewer);
 
 void
 xy2qua(Quaternion *ret,
@@ -242,12 +242,12 @@ void
 increment_pos( struct pt *vec);
 
 void
-bind_viewpoint(struct VRML_Viewpoint *node);
+bind_viewpoint(struct X3D_Viewpoint *node);
 
 void
-bind_geoviewpoint(struct VRML_GeoViewpoint *node);
+bind_geoviewpoint(struct X3D_GeoViewpoint *node);
 
-extern VRML_Viewer Viewer; /* in VRMLC.pm */
+extern X3D_Viewer Viewer; /* in VRMLC.pm */
 
 void viewer_default(void);
 

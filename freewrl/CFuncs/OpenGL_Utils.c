@@ -36,11 +36,11 @@ static int lights[8];
 
 /* did we have a TextureTransform in the Appearance node? */
 void start_textureTransform (void *textureNode, int ttnum) {
-	struct VRML_TextureTransform  *ttt;
-	struct VRML_MultiTextureTransform *mtt;
+	struct X3D_TextureTransform  *ttt;
+	struct X3D_MultiTextureTransform *mtt;
 	
 	/* first, is this a textureTransform, or a MultiTextureTransform? */
-	ttt = (struct VRML_TextureTransform *) textureNode;
+	ttt = (struct X3D_TextureTransform *) textureNode;
 
 	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
 	glMatrixMode(GL_TEXTURE);
@@ -58,9 +58,9 @@ void start_textureTransform (void *textureNode, int ttnum) {
 
 	/* is this a MultiTextureTransform? */
 	} else  if (ttt->_nodeType == NODE_MultiTextureTransform) {
-		mtt = (struct VRML_MultiTextureTransform *) textureNode;
+		mtt = (struct X3D_MultiTextureTransform *) textureNode;
 		if (ttnum < mtt->textureTransform.n) {
-			ttt = (struct VRML_TextureTransform *) mtt->textureTransform.p[ttnum];
+			ttt = (struct X3D_TextureTransform *) mtt->textureTransform.p[ttnum];
 			/* is this a simple TextureTransform? */
 			if (ttt->_nodeType == NODE_TextureTransform) {
 				/*  Render transformations according to spec.*/
@@ -290,12 +290,12 @@ void fwGetDoublev (int ty, double *mat) {
 	}
 }
 
-void fwXformPush(struct VRML_Transform *me) {
+void fwXformPush(struct X3D_Transform *me) {
 	glPushMatrix();
 	MODmatOk = FALSE;
 }
 
-void fwXformPop(struct VRML_Transform *me) {
+void fwXformPop(struct X3D_Transform *me) {
 	glPopMatrix();
 	MODmatOk = FALSE;
 }
@@ -371,12 +371,12 @@ void kill_texture (int *tn, int cnt) {
 /* go through the nodes from the root, and remove all malloc'd memory */
 
 void kill_rendering(void *thisnode) {
-	struct VRML_Group *rn;
+	struct X3D_Group *rn;
 
 	/* is there anything here? */
 	if (thisnode == 0) return;
 	
-	rn = (struct VRML_Group *) thisnode;
+	rn = (struct X3D_Group *) thisnode;
 	/* printf ("kill_rendering, killing node type %d\n",rn->_nodeType); */
 
 
@@ -386,8 +386,8 @@ void kill_rendering(void *thisnode) {
 
 		/* Networking Component */
 			case NODE_Anchor: {
-				struct VRML_Anchor *thisNode;
-				thisNode = (struct VRML_Anchor *) thisnode;
+				struct X3D_Anchor *thisNode;
+				thisNode = (struct X3D_Anchor *) thisnode;
 				kill_MFNode( &thisNode->children);
 				kill_SFString(thisNode->description);
 				kill_SFString(thisNode->__parenturl);
@@ -395,16 +395,16 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 			case NODE_Inline: {
-				struct VRML_Inline *thisNode;
-				thisNode = (struct VRML_Inline *) thisnode;
+				struct X3D_Inline *thisNode;
+				thisNode = (struct X3D_Inline *) thisnode;
 				kill_MFString (&thisNode->url);
 				kill_MFNode (&thisNode->__children);
 				kill_SFString (thisNode->__parenturl);
 				break; }
 
 			case NODE_LoadSensor: {
-				struct VRML_LoadSensor *thisNode;
-				thisNode = (struct VRML_LoadSensor *) thisnode;
+				struct X3D_LoadSensor *thisNode;
+				thisNode = (struct X3D_LoadSensor *) thisnode;
 				kill_MFNode (&thisNode->watchList);
 				break; }
 				
@@ -412,14 +412,14 @@ void kill_rendering(void *thisnode) {
 		/* Grouping Component */
 
 			case NODE_Group: {
-				struct VRML_Group * thisNode;
-				thisNode = (struct VRML_Group *) thisnode;
+				struct X3D_Group * thisNode;
+				thisNode = (struct X3D_Group *) thisnode;
 				kill_MFNode(& thisNode->children);
 				break; }
 
 			case NODE_StaticGroup: {
-				struct VRML_StaticGroup *thisNode;
-				thisNode = (struct VRML_StaticGroup *) thisnode;
+				struct X3D_StaticGroup *thisNode;
+				thisNode = (struct X3D_StaticGroup *) thisnode;
 				kill_MFNode(& thisNode->children);
 				if (thisNode->__transparency != -1) {
 					glDeleteLists (thisNode->__transparency,1); 
@@ -433,14 +433,14 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 			case NODE_Switch: {
-				struct VRML_Switch * thisNode;
-				thisNode = (struct VRML_Switch *) thisnode;
+				struct X3D_Switch * thisNode;
+				thisNode = (struct X3D_Switch *) thisnode;
 				kill_MFNode(& thisNode->choice);
 				break; }
 
 			case NODE_Transform: {
-				struct VRML_Transform * thisNode;
-				thisNode = (struct VRML_Transform *) thisnode;
+				struct X3D_Transform * thisNode;
+				thisNode = (struct X3D_Transform *) thisnode;
 				kill_MFNode(& thisNode->children);
 				break; }
 
@@ -451,26 +451,26 @@ void kill_rendering(void *thisnode) {
 
 		/* Rendering Component */			
 			case NODE_Color: {
-				struct VRML_Color *thisNode;
-				thisNode = (struct VRML_Color *) thisnode;
+				struct X3D_Color *thisNode;
+				thisNode = (struct X3D_Color *) thisnode;
 				kill_MFColor (&thisNode->color);
 				break; }
 
 			case NODE_ColorRGBA: {
-				struct VRML_ColorRGBA *thisNode;
-				thisNode = (struct VRML_ColorRGBA *) thisnode;
+				struct X3D_ColorRGBA *thisNode;
+				thisNode = (struct X3D_ColorRGBA *) thisnode;
 				kill_MFColorRGBA (&thisNode->color);
 				break; }
 
 			case NODE_Coordinate: {
-				struct VRML_Coordinate *thisNode;
-				thisNode = (struct VRML_Coordinate *) thisnode;
+				struct X3D_Coordinate *thisNode;
+				thisNode = (struct X3D_Coordinate *) thisnode;
 				kill_MFVec3f (&thisNode->point);
 				break; }
 
 			case NODE_IndexedLineSet: {
-				struct VRML_IndexedLineSet *thisNode;
-				thisNode = (struct VRML_IndexedLineSet *) thisnode;
+				struct X3D_IndexedLineSet *thisNode;
+				thisNode = (struct X3D_IndexedLineSet *) thisnode;
 				kill_rendering (thisNode->color);
 				kill_rendering (thisNode->coord);
 				kill_MFInt32 (&thisNode->colorIndex);
@@ -486,8 +486,8 @@ void kill_rendering(void *thisnode) {
 			case NODE_IndexedTriangleSet:
 			case NODE_IndexedTriangleStripSet:
 			case NODE_IndexedTriangleFanSet: {
-				struct VRML_IndexedTriangleFanSet *thisNode;
-				thisNode = (struct VRML_IndexedTriangleFanSet *) thisnode;
+				struct X3D_IndexedTriangleFanSet *thisNode;
+				thisNode = (struct X3D_IndexedTriangleFanSet *) thisnode;
 				kill_rendering (thisNode->color);
 				kill_rendering (thisNode->coord);
 				kill_rendering (thisNode->normal);
@@ -502,8 +502,8 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 			case NODE_LineSet: {
-				struct VRML_LineSet *thisNode;
-				thisNode = (struct VRML_LineSet *) thisnode;
+				struct X3D_LineSet *thisNode;
+				thisNode = (struct X3D_LineSet *) thisnode;
 				kill_rendering (thisNode->color);
 				kill_rendering (thisNode->coord);
 				kill_MFInt32 (&thisNode->vertexCount);
@@ -511,22 +511,22 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 			case NODE_Normal: {
-				struct VRML_Normal *thisNode;
-				thisNode = (struct VRML_Normal *) thisnode;
+				struct X3D_Normal *thisNode;
+				thisNode = (struct X3D_Normal *) thisnode;
 				kill_MFVec3f (&thisNode->vector);
 				break; }
 
 			case NODE_PointSet: {
-				struct VRML_PointSet *thisNode;
-				thisNode = (struct VRML_PointSet *) thisnode;
+				struct X3D_PointSet *thisNode;
+				thisNode = (struct X3D_PointSet *) thisnode;
 				kill_rendering (thisNode->color);
 				kill_rendering (thisNode->coord);
 				break; }
 
 		/* Shape Component */
 			case NODE_Appearance: {
-				struct VRML_Appearance *thisNode;
-				thisNode = (struct VRML_Appearance *) thisnode;
+				struct X3D_Appearance *thisNode;
+				thisNode = (struct X3D_Appearance *) thisnode;
 				kill_rendering (thisNode->material);
 				kill_rendering (thisNode->texture);
 				kill_rendering (thisNode->textureTransform);
@@ -539,37 +539,37 @@ void kill_rendering(void *thisnode) {
 			case NODE_Material: break;
 			
 			case NODE_Shape: {
-				struct VRML_Shape *thisNode;
-				thisNode = (struct VRML_Shape *) thisnode;
+				struct X3D_Shape *thisNode;
+				thisNode = (struct X3D_Shape *) thisnode;
 				kill_rendering (thisNode->appearance);
 				kill_rendering (thisNode->geometry);
 				break; }
 
 		/* Geometry 3D Component */
 			case NODE_Box: {
-				struct VRML_Box *thisNode;
-				thisNode = (struct VRML_Box *) thisnode;
+				struct X3D_Box *thisNode;
+				thisNode = (struct X3D_Box *) thisnode;
 				kill_FreeWRLPTR(thisNode->__points);
 				break; }
 
 			case NODE_Cone: {
-				struct VRML_Cone *thisNode;
-				thisNode = (struct VRML_Cone *) thisnode;
+				struct X3D_Cone *thisNode;
+				thisNode = (struct X3D_Cone *) thisnode;
 				kill_FreeWRLPTR(thisNode->__sidepoints);
 				kill_FreeWRLPTR(thisNode->__botpoints);
 				kill_FreeWRLPTR(thisNode->__normals);
 				break; }
 
 			case NODE_Cylinder: {
-				struct VRML_Cylinder *thisNode;
-				thisNode = (struct VRML_Cylinder *) thisnode;
+				struct X3D_Cylinder *thisNode;
+				thisNode = (struct X3D_Cylinder *) thisnode;
 				kill_FreeWRLPTR(thisNode->__points);
 				kill_FreeWRLPTR(thisNode->__normals);
 				break; }
 
 			case NODE_Extrusion: {
-				struct VRML_Extrusion *thisNode;
-				thisNode = (struct VRML_Extrusion *) thisnode;
+				struct X3D_Extrusion *thisNode;
+				thisNode = (struct X3D_Extrusion *) thisnode;
 				kill_MFVec2f (&thisNode->crossSection);
 				kill_MFRotation(&thisNode->orientation);
 				kill_MFVec2f (&thisNode->scale);
@@ -577,54 +577,54 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 			case NODE_Sphere: {
-				struct VRML_Sphere *thisNode;
-				thisNode = (struct VRML_Sphere *) thisnode;
+				struct X3D_Sphere *thisNode;
+				thisNode = (struct X3D_Sphere *) thisnode;
 				kill_FreeWRLPTR(thisNode->__points);
 				break; }
 
 		/* Geometry 2D Component */
 			case NODE_Arc2D: {
-				struct VRML_Arc2D *thisNode;
-				thisNode = (struct VRML_Arc2D *) thisnode;
+				struct X3D_Arc2D *thisNode;
+				thisNode = (struct X3D_Arc2D *) thisnode;
 				kill_FreeWRLPTR(thisNode->__points);
 				break; }
 
 			case NODE_ArcClose2D: {
-				struct VRML_ArcClose2D *thisNode;
-				thisNode = (struct VRML_ArcClose2D *) thisnode;
+				struct X3D_ArcClose2D *thisNode;
+				thisNode = (struct X3D_ArcClose2D *) thisnode;
 				kill_FreeWRLPTR(thisNode->__points);
 				break; }
 
 			case NODE_Circle2D: {
-				struct VRML_Circle2D *thisNode;
-				thisNode = (struct VRML_Circle2D *) thisnode;
+				struct X3D_Circle2D *thisNode;
+				thisNode = (struct X3D_Circle2D *) thisnode;
 				kill_FreeWRLPTR(thisNode->__points);
 				break; }
 
 			case NODE_Polyline2D: {
-				struct VRML_Polyline2D *thisNode;
-				thisNode = (struct VRML_Polyline2D *) thisnode;
+				struct X3D_Polyline2D *thisNode;
+				thisNode = (struct X3D_Polyline2D *) thisnode;
 				kill_MFVec2f(&thisNode->lineSegments);
 				break; }
 
 			case NODE_Polypoint2D: {
-				struct VRML_Polypoint2D *thisNode;
-				thisNode = (struct VRML_Polypoint2D *) thisnode;
+				struct X3D_Polypoint2D *thisNode;
+				thisNode = (struct X3D_Polypoint2D *) thisnode;
 				kill_MFVec2f(&thisNode->point);
 				break; }
 
 			case NODE_Rectangle2D: break;
 
 			case NODE_Disk2D: {
-				struct VRML_Disk2D *thisNode;
-				thisNode = (struct VRML_Disk2D *) thisnode;
+				struct X3D_Disk2D *thisNode;
+				thisNode = (struct X3D_Disk2D *) thisnode;
 				kill_FreeWRLPTR(thisNode->__points);
 				kill_FreeWRLPTR(thisNode->__texCoords);
 				break; }
 
 			case NODE_TriangleSet2D: {
-				struct VRML_TriangleSet2D *thisNode;
-				thisNode = (struct VRML_TriangleSet2D *) thisnode;
+				struct X3D_TriangleSet2D *thisNode;
+				thisNode = (struct X3D_TriangleSet2D *) thisnode;
 				kill_MFVec2f(&thisNode->vertices);
 				kill_FreeWRLPTR(thisNode->__texCoords);
 				break; }
@@ -633,8 +633,8 @@ void kill_rendering(void *thisnode) {
 		/* Text Component */
 
 			case NODE_Text: {
-				struct VRML_Text *thisNode;
-				thisNode = (struct VRML_Text *) thisnode;
+				struct X3D_Text *thisNode;
+				thisNode = (struct X3D_Text *) thisnode;
 				kill_rendering(thisNode->fontStyle);
 				kill_MFString (&thisNode->string);
 				kill_MFFloat(&thisNode->length);
@@ -645,8 +645,8 @@ void kill_rendering(void *thisnode) {
 		/* Sound Component */
 
 			case NODE_AudioClip: {
-				struct VRML_AudioClip *thisNode;
-				thisNode = (struct VRML_AudioClip *) thisnode;
+				struct X3D_AudioClip *thisNode;
+				thisNode = (struct X3D_AudioClip *) thisnode;
 				kill_SFString (thisNode->description);
 				kill_MFString (&thisNode->url);
 				kill_SFString (thisNode->__parenturl);
@@ -664,16 +664,16 @@ void kill_rendering(void *thisnode) {
 		/* Texturing Component */
 
 			case NODE_ImageTexture: {
-				struct VRML_ImageTexture *thisNode;
-				thisNode = (struct VRML_ImageTexture *) thisnode;
+				struct X3D_ImageTexture *thisNode;
+				thisNode = (struct X3D_ImageTexture *) thisnode;
 				kill_MFString (&thisNode->url);
 				kill_SFString (thisNode->__parenturl);
 				kill_texture (&thisNode->__texture,1);
 				break; }
 
 			case NODE_MovieTexture: {
-				struct VRML_MovieTexture *thisNode;
-				thisNode = (struct VRML_MovieTexture *) thisnode;
+				struct X3D_MovieTexture *thisNode;
+				thisNode = (struct X3D_MovieTexture *) thisnode;
 				kill_MFString (&thisNode->url);
 				kill_SFString (thisNode->__parenturl);
 				kill_texture (&thisNode->__texture0_,thisNode->__texture1_ -
@@ -683,8 +683,8 @@ void kill_rendering(void *thisnode) {
 
 
 			case NODE_MultiTexture: {
-				struct VRML_MultiTexture *thisNode;
-				thisNode = (struct VRML_MultiTexture *) thisnode;
+				struct X3D_MultiTexture *thisNode;
+				thisNode = (struct X3D_MultiTexture *) thisnode;
 				kill_MFString (&thisNode->function);
 				kill_MFString (&thisNode->mode);
 				kill_MFString (&thisNode->source);
@@ -692,35 +692,35 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 			case NODE_MultiTextureCoordinate: {
-				struct VRML_MultiTextureCoordinate *thisNode;
-				thisNode = (struct VRML_MultiTextureCoordinate *) thisnode;
+				struct X3D_MultiTextureCoordinate *thisNode;
+				thisNode = (struct X3D_MultiTextureCoordinate *) thisnode;
 				kill_MFNode (&thisNode->texCoord);
 				break; }
 
 			case NODE_MultiTextureTransform: {
-				struct VRML_MultiTextureTransform *thisNode;
-				thisNode = (struct VRML_MultiTextureTransform *) thisnode;
+				struct X3D_MultiTextureTransform *thisNode;
+				thisNode = (struct X3D_MultiTextureTransform *) thisnode;
 				kill_MFNode (&thisNode->textureTransform);
 				break; }
 
 			case NODE_PixelTexture: {
-				struct VRML_PixelTexture *thisNode;
-				thisNode = (struct VRML_PixelTexture *) thisnode;
+				struct X3D_PixelTexture *thisNode;
+				thisNode = (struct X3D_PixelTexture *) thisnode;
 				kill_SFString (thisNode->image);
 				kill_SFString (thisNode->__parenturl);
 				kill_texture (&thisNode->__texture,1);
 				break; }
 
 			case NODE_TextureCoordinate: {
-				struct VRML_TextureCoordinate *thisNode;
-				thisNode = (struct VRML_TextureCoordinate *) thisnode;
+				struct X3D_TextureCoordinate *thisNode;
+				thisNode = (struct X3D_TextureCoordinate *) thisnode;
 				kill_MFVec2f (&thisNode->point);
 				kill_MFVec2f (&thisNode->__compiledpoint);
 				break; }
 
 			case NODE_TextureCoordinateGenerator: {
-				struct VRML_TextureCoordinateGenerator *thisNode;
-				thisNode = (struct VRML_TextureCoordinateGenerator *) thisnode;
+				struct X3D_TextureCoordinateGenerator *thisNode;
+				thisNode = (struct X3D_TextureCoordinateGenerator *) thisnode;
 				kill_MFFloat (&thisNode->parameter);
 				kill_SFString (thisNode->mode);
 				break; }
@@ -731,38 +731,38 @@ void kill_rendering(void *thisnode) {
 		/* Interpolation Component */
 
 			case NODE_ColorInterpolator: {
-				struct VRML_ColorInterpolator *thisNode;
-				thisNode = (struct VRML_ColorInterpolator *) thisnode;
+				struct X3D_ColorInterpolator *thisNode;
+				thisNode = (struct X3D_ColorInterpolator *) thisnode;
 				kill_MFFloat(&thisNode->key);
 				kill_MFVec3f ((struct Multi_Vec3f *) &thisNode->keyValue);
 				break; }
 
 			case NODE_CoordinateInterpolator: /* same as NormalInterpolator */
 			case NODE_NormalInterpolator: {
-				struct VRML_CoordinateInterpolator *thisNode;
-				thisNode = (struct VRML_CoordinateInterpolator *) thisnode;
+				struct X3D_CoordinateInterpolator *thisNode;
+				thisNode = (struct X3D_CoordinateInterpolator *) thisnode;
 				kill_MFFloat (&thisNode->key);
 				kill_MFVec3f (&thisNode->keyValue);
 				break; }
 
 			case NODE_PositionInterpolator: {
-				struct VRML_PositionInterpolator *thisNode;
-				thisNode = (struct VRML_PositionInterpolator *) thisnode;
+				struct X3D_PositionInterpolator *thisNode;
+				thisNode = (struct X3D_PositionInterpolator *) thisnode;
 				kill_MFFloat(&thisNode->key);
 				kill_MFVec3f (&thisNode->keyValue);
 				break; }
 
 			case NODE_OrientationInterpolator: {
-				struct VRML_OrientationInterpolator *thisNode;
-				thisNode = (struct VRML_OrientationInterpolator *) thisnode;
+				struct X3D_OrientationInterpolator *thisNode;
+				thisNode = (struct X3D_OrientationInterpolator *) thisnode;
 				kill_MFFloat(&thisNode->key);
 				kill_MFRotation (&thisNode->keyValue);
 				break; }
 
 
 			case NODE_ScalarInterpolator: {
-				struct VRML_ScalarInterpolator *thisNode;
-				thisNode = (struct VRML_ScalarInterpolator *) thisnode;
+				struct X3D_ScalarInterpolator *thisNode;
+				thisNode = (struct X3D_ScalarInterpolator *) thisnode;
 				kill_MFFloat(&thisNode->key);
 				kill_MFFloat (&thisNode->keyValue);
 				break; }
@@ -785,21 +785,21 @@ void kill_rendering(void *thisnode) {
 		/* Navigation Component */
 
 			case NODE_LOD: {
-				struct VRML_LOD *thisNode;
-				thisNode = (struct VRML_LOD *) thisnode;
+				struct X3D_LOD *thisNode;
+				thisNode = (struct X3D_LOD *) thisnode;
 				kill_MFNode (&thisNode->level);
 				kill_MFFloat(&thisNode->range);
 				break; }
 
 			case NODE_Billboard: {
-				struct VRML_Billboard *thisNode;
-				thisNode = (struct VRML_Billboard *) thisnode;
+				struct X3D_Billboard *thisNode;
+				thisNode = (struct X3D_Billboard *) thisnode;
 				kill_MFNode (&thisNode->children);
 				break; }
 
 			case NODE_Collision: {
-				struct VRML_Collision *thisNode;
-				thisNode = (struct VRML_Collision *) thisnode;
+				struct X3D_Collision *thisNode;
+				thisNode = (struct X3D_Collision *) thisnode;
 				kill_MFNode (&thisNode->children);
 				kill_rendering (thisNode->proxy);
 				break; }
@@ -813,8 +813,8 @@ void kill_rendering(void *thisnode) {
 			case NODE_Fog: break;
 
 			case NODE_TextureBackground: {
-				struct VRML_TextureBackground *thisNode;
-				thisNode = (struct VRML_TextureBackground *) thisnode;
+				struct X3D_TextureBackground *thisNode;
+				thisNode = (struct X3D_TextureBackground *) thisnode;
 				kill_MFFloat(&thisNode->groundAngle);
 				kill_MFVec3f((struct Multi_Vec3f *)&thisNode->groundColor);
 				kill_MFFloat(&thisNode->skyAngle);
@@ -832,8 +832,8 @@ void kill_rendering(void *thisnode) {
 				break; }
 
 			case NODE_Background: {
-				struct VRML_Background *thisNode;
-				thisNode = (struct VRML_Background *) thisnode;
+				struct X3D_Background *thisNode;
+				thisNode = (struct X3D_Background *) thisnode;
 				kill_MFFloat(&thisNode->groundAngle);
 				kill_MFVec3f((struct Multi_Vec3f *)&thisNode->groundColor);
 				kill_MFFloat(&thisNode->skyAngle);

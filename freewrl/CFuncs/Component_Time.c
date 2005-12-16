@@ -13,9 +13,9 @@
 
 #include "headers.h"
 
-/* void do_TimeSensorTick (struct VRML_TimeSensor *node) {*/
+/* void do_TimeSensorTick (struct X3D_TimeSensor *node) {*/
 void do_TimeSensorTick ( void *ptr) {
-	struct VRML_TimeSensor *node = (struct VRML_TimeSensor *)ptr;
+	struct X3D_TimeSensor *node = (struct X3D_TimeSensor *)ptr;
 	double myDuration;
 	int oldstatus;
 	double myTime;
@@ -27,7 +27,7 @@ void do_TimeSensorTick ( void *ptr) {
 	if (!node->enabled) {
 		if (node->isActive) {
 			node->isActive=0;
-			mark_event (ptr, offsetof(struct VRML_TimeSensor, isActive));
+			mark_event (ptr, offsetof(struct X3D_TimeSensor, isActive));
 		}
 		return;
 	}
@@ -54,7 +54,7 @@ void do_TimeSensorTick ( void *ptr) {
 		}
 
 		/* push @e, [$t, "isActive", node->{isActive}]; */
-		mark_event (ptr, offsetof(struct VRML_TimeSensor, isActive));
+		mark_event (ptr, offsetof(struct X3D_TimeSensor, isActive));
 	}
 
 
@@ -62,7 +62,7 @@ void do_TimeSensorTick ( void *ptr) {
 		/* set time field */
 		node->time = TickTime;
 		mark_event (ptr,
-				offsetof(struct VRML_TimeSensor, time));
+				offsetof(struct X3D_TimeSensor, time));
 
 		/* calculate what fraction we should be */
  		myTime = (TickTime - node->startTime) / myDuration;
@@ -81,7 +81,7 @@ void do_TimeSensorTick ( void *ptr) {
 		if (frac < node->__ctflag) {
 			/* push @e, [$t, cycleTime, $TickTime]; */
 			node->cycleTime = TickTime;
-			mark_event (ptr, offsetof(struct VRML_TimeSensor, cycleTime));
+			mark_event (ptr, offsetof(struct X3D_TimeSensor, cycleTime));
 		}
 		node->__ctflag = frac;
 
@@ -89,7 +89,7 @@ void do_TimeSensorTick ( void *ptr) {
 		/* push @e, [$t, "time", $TickTime];
 		push @e, [$t, fraction_changed, $frac]; */
 		node->fraction_changed = frac;
-		mark_event (ptr, offsetof(struct VRML_TimeSensor, fraction_changed));
+		mark_event (ptr, offsetof(struct X3D_TimeSensor, fraction_changed));
 
 	}
 }

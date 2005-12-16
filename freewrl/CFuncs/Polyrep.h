@@ -39,7 +39,7 @@ extern struct pt t_r3;
 
 int
 count_IFS_faces(int cin,
-				struct VRML_IndexedFaceSet *this_IFS);
+				struct X3D_IndexedFaceSet *this_IFS);
 
 int 
 IFS_face_normals(struct pt *facenormals,
@@ -49,7 +49,7 @@ IFS_face_normals(struct pt *facenormals,
 				 int npoints,
 				 int cin,
 				 struct SFColor *points,
-				 struct VRML_IndexedFaceSet *this_IFS,
+				 struct X3D_IndexedFaceSet *this_IFS,
 				 int ccw);
 
 void
@@ -57,7 +57,7 @@ IFS_check_normal(struct pt *facenormals,
 				 int this_face,
 				 struct SFColor *points,
 				 int base,
-				 struct VRML_IndexedFaceSet *this_IFS,
+				 struct X3D_IndexedFaceSet *this_IFS,
 				 int ccw);
 
 void
@@ -72,7 +72,7 @@ Elev_Tri(int vertex_ind,
 		 int D,
 		 int E,
 		 int NONORMALS,
-		 struct VRML_PolyRep *this_Elev,
+		 struct X3D_PolyRep *this_Elev,
 		 struct pt *facenormals,
 		 int *pointfaces,
 		 int ccw);
@@ -83,7 +83,7 @@ Extru_tex(int vertex_ind,
 		  int A,
 		  int B,
 		  int C,
-		  struct VRML_PolyRep *this_Elev,
+		  struct X3D_PolyRep *this_Elev,
 		  int ccw,
 		  int tcindexsize);
 
@@ -93,14 +93,14 @@ Extru_ST_map(int triind_start,
 			 int end,
 			 float *Vals,
 			 int nsec,
-			 struct VRML_PolyRep *this_Extru,
+			 struct X3D_PolyRep *this_Extru,
 			 int tcoordsize);
 
 void
 Extru_check_normal(struct pt *facenormals,
 				   int this_face,
 				   int dire,
-				   struct VRML_PolyRep *rep_,
+				   struct X3D_PolyRep *rep_,
 				   int ccw);
 
 void
