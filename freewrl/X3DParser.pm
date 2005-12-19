@@ -443,7 +443,7 @@ sub parseX3DProtoInstance {
 	# go through the tree structure for the ProtoInstance.
 	while ($arele <= $nele ){
 		$bnub = $proto->[$arele];
-		#print "Instance: $bnub, ref ",ref $bnub," element $arele\n";
+		#print "XInstance: $bnub, ref ",ref $bnub," element $arele\n";
 		# did we find the hash? If so, these are the fields of the ProtoInstance node.
 		if (ref $bnub eq "HASH") {
 			my $key;
@@ -600,7 +600,7 @@ sub parseX3DScript {
 	# go through the tree structure for the ScriptInstance.
 	while ($arele <= $nele ){
 		$bnub = $proto->[$arele];
-		#print "Instance: $bnub, ref ",ref $bnub," element $arele\n";
+		#print "YInstance: $bnub, ref ",ref $bnub," element $arele\n";
 		# did we find the hash? If so, these are the fields of the ScriptInstance node.
 		if (ref $bnub eq "HASH") {
 			my $key;
@@ -639,10 +639,12 @@ sub parseX3DScript {
 			# get the fieldValue array.
 			my $fieldValueArr = $proto->[$arele];
 
+			# count how many elements are here - are there any additional X3D strings to parse?
+			my $numofnums = $#{$proto->[$arele]};
+
 			if (ref $fieldValueArr ne "ARRAY") {
 				VRML::VRMLFunc::ConsoleMessage ("ScriptInstance, expected an array for Field params, got ".ref $fieldValueArr);
 			} else {
-
 
 				# ok, the first value should be our name/value hash.
 				my $hash = $fieldValueArr->[0];
@@ -656,7 +658,7 @@ sub parseX3DScript {
 					my $accessType = "";
         				foreach my $key (keys %{$hash}) {
                 				my $hk = $hash->{$key};
-                        			#print "$key is $hk \n";
+                        			#print "here, $key is $hk \n";
 						if ($key eq "name") {
 							$name = $hk;
 						} elsif ($key eq "type") {
@@ -674,6 +676,18 @@ sub parseX3DScript {
 					$X3DProtos{$LocalDEF}{ScriptInterface}{field}{$name}{type} = $type;
 					$X3DProtos{$LocalDEF}{ScriptInterface}{field}{$name}{value} = $value;
 					$X3DProtos{$LocalDEF}{ScriptInterface}{field}{$name}{accessType} = $accessType;
+				}
+
+				# is there anything else here? more nodes, perhaps??
+				# Sometimes people will put defs in here; eg, the Maya rawkee exporter does this.
+				# we go through "until numofnums-1" because the last one is a 0 
+				if ($numofnums > 3) {
+					my $num = 3;
+					while ($num < ($numofnums-1)) {
+						# print "haskey $num ",$fieldValueArr->[$num],"\n";
+                				parse_X3DStatement($fieldValueArr->[$num],$fieldValueArr->[$num+1],"");
+						$num+=2;
+					}
 				}
 			}
 
@@ -1309,7 +1323,7 @@ sub getChildType {
 		print "X3DParser: getChildType - node $pn is invalid\n";
 	}
 
-	$st = $VRML::X3DNodes::defaultContainerType{$nnn};
+	$st = $X3D::X3DNodes::defaultContainerType{$nnn};
 	#print "returnType says that $nnn is a $st\n";
 	return $st;
 }

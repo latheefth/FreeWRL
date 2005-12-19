@@ -20,6 +20,9 @@
 #                      %RendC, %PrepC, %FinC, %ChildC, %LightC
 #
 # $Log$
+# Revision 1.191  2005/12/19 21:25:08  crc_canada
+# HAnim start
+#
 # Revision 1.190  2005/12/16 18:07:11  crc_canada
 # rearrange perl generation
 #
@@ -37,204 +40,7 @@
 #
 # Revision 1.185  2005/12/13 17:00:29  crc_canada
 # Arc2D work.
-#
-# Revision 1.184  2005/11/25 21:14:55  crc_canada
-# Texture bugs and optimizations.
-#
-# Revision 1.183  2005/11/21 21:03:34  crc_canada
-# LoadSensor node for ImageTextures.
-#
-# Revision 1.182  2005/11/21 14:29:04  crc_canada
-# StaticGroup node
-#
-# Revision 1.181  2005/11/18 21:34:38  crc_canada
-# fillProperties.
-#
-# Revision 1.180  2005/11/18 21:00:27  crc_canada
-# LineProperties
-#
-# Revision 1.179  2005/11/17 18:51:45  crc_canada
-# revisit bindable nodes; add beginnings of TextureBackground
-#
-# Revision 1.178  2005/11/16 16:02:01  crc_canada
-# MultiTextureCoordinate work.
-#
-# Revision 1.177  2005/11/14 14:18:53  crc_canada
-# Texture rework in progress...
-#
-# Revision 1.176  2005/11/09 16:33:46  crc_canada
-# DirectionalLight fixes.
-#
-# Revision 1.175  2005/11/09 13:29:08  crc_canada
-# TextureCoordinateGenerator nodes - first try
-#
-# Revision 1.174  2005/11/08 16:21:33  crc_canada
-# material node for Interchange testing.
-#
-# Revision 1.173  2005/11/08 16:00:20  crc_canada
-# reorg for 10.4.3 (OSX) dylib problem.
-#
-# Revision 1.172  2005/11/03 16:15:06  crc_canada
-# MultiTextureTransform - textureTransforms changed considerably.
-#
-# Revision 1.171  2005/10/31 17:44:42  crc_canada
-# texCoords for triangle node regeneration verified.
-#
-# Revision 1.170  2005/10/30 15:55:53  crc_canada
-# Review the way nodes are identified at runtime.
-#
-# Revision 1.169  2005/10/29 16:24:00  crc_canada
-# Polyrep rendering changes - step 1
-#
-# Revision 1.168  2005/10/28 17:00:18  crc_canada
-# MultiTexture work
-#
-# Revision 1.167  2005/10/27 15:40:10  crc_canada
-# Sphere draw arrays had incorrect value for counts.
-#
-# Revision 1.166  2005/10/26 13:59:57  crc_canada
-# LineSet and PointSet nodes up to spec.
-#
-# Revision 1.165  2005/10/26 13:06:24  crc_canada
-# IndexedLineSet now up to spec.
-#
-# Revision 1.164  2005/10/21 20:16:52  crc_canada
-# lighting, multitexture changes.
-#
-# Revision 1.163  2005/10/19 19:38:58  crc_canada
-# MultiTexture, META, PROFILE, COMPONENT node support.
-#
-# Revision 1.162  2005/09/29 03:01:13  crc_canada
-# initial MultiTexture support
-#
-# Revision 1.161  2005/09/27 02:31:48  crc_canada
-# cleanup of verbose code.
-#
-# Revision 1.160  2005/08/26 18:08:38  crc_canada
-# 1.14-pre1 changes.
-#
-# Revision 1.159  2005/08/05 18:54:40  crc_canada
-# ElevationGrid to new structure. works ok; still some minor errors.
-#
-# Revision 1.158  2005/08/04 14:39:38  crc_canada
-# more work on moving elevationgrid to streaming polyrep structure
-#
-# Revision 1.157  2005/08/03 18:41:41  crc_canada
-# Working on Polyrep structure.
-#
-# Revision 1.156  2005/08/02 13:22:45  crc_canada
-# Move ElevationGrid to new face set order.
-#
-# Revision 1.155  2005/06/29 17:00:13  crc_canada
-# EAI and X3D Triangle code added.
-#
-# Revision 1.154  2005/06/24 12:35:10  crc_canada
-# Changes to help with 64 bit compiles.
-#
-# Revision 1.153  2005/06/09 14:52:50  crc_canada
-# ColorRGBA nodes supported.
-#
-# Revision 1.152  2005/04/18 20:40:46  crc_canada
-# Some work on removing startup memory errors.
-#
-# Revision 1.151  2005/04/18 15:27:16  crc_canada
-# speedup shapes that do not have textures by removing a glPushAttrib and glPopAttrib
-#
-# Revision 1.150  2005/03/30 21:56:55  crc_canada
-# remove GL_TEXTURE_BIT on Shape - speeds up rendering.
-#
-# Revision 1.149  2005/03/22 15:15:47  crc_canada
-# more compile bugs; binary files were dinked in last upload.
-#
-# Revision 1.148  2005/03/21 13:39:04  crc_canada
-# change permissions, remove whitespace on file names, etc.
-#
-# Revision 1.147  2005/03/01 15:16:56  crc_canada
-# 1.11 pre2 first files checked in; some bugs, internal X3D parsing start, etc.
-#
-# Revision 1.146  2005/02/10 14:50:25  crc_canada
-# LineSet implemented.
-#
-# Revision 1.145  2005/01/16 20:55:08  crc_canada
-# Various compile warnings removed; some code from Matt Ward for Alldev;
-# some perl changes for generated code to get rid of warnings.
-#
-# Revision 1.144  2005/01/06 14:29:01  crc_canada
-# IFS with color nodes and no appearance now rendered.
-#
-# Revision 1.143  2005/01/05 21:40:57  crc_canada
-# Spheres of negative radius not displayed.
-#
-# Revision 1.142  2004/11/18 18:19:19  crc_canada
-# SoundEngine work.
-#
-# Revision 1.141  2004/11/09 16:11:43  crc_canada
-# added "pan" field for sound rendering.
-#
-# Revision 1.140  2004/10/22 19:02:42  crc_canada
-# javascript work.
-#
-# Revision 1.139  2004/10/15 19:26:13  crc_canada
-# Javascript bugs where if there were 2 scripts, with MFVecXf's, and all
-# elements were not filled in, things would segfault. Believe it or not.
-#
-# Revision 1.138  2004/10/06 13:39:44  crc_canada
-# Debian patches from Sam Hocevar.
-#
-# Revision 1.137  2004/09/21 17:52:46  crc_canada
-# make some rendering improvements.
-#
-# Revision 1.136  2004/09/08 18:58:58  crc_canada
-# More Frustum culling work.
-#
-# Revision 1.135  2004/08/23 17:46:26  crc_canada
-# Bulk commit: IndexedLineWidth width setting, and more Frustum culling work.
-#
-# Revision 1.134  2004/08/06 18:36:55  crc_canada
-# textureTransform nodes now reset the parameters in Appearance after a
-# transform, instead of always before a texture is drawn. This fixes a
-# Background bug (last texturetransform was applied to background images)
-# and speeds up rendering of non-textureTransformed textures.
-#
-# Revision 1.133  2004/07/13 19:46:20  crc_canada
-# solid flag for simple shapes.
-#
-# Revision 1.131  2004/06/21 15:15:20  crc_canada
-# 1.07 pre changes.
-#
-# Revision 1.130  2004/06/21 13:12:58  crc_canada
-# pre-1.07 changes.
-#
-# Revision 1.129  2004/06/10 20:05:52  crc_canada
-# Extrusion (with concave endcaps) bug fixed; some javascript changes.
-#
-# Revision 1.128  2004/05/25 18:18:51  crc_canada
-# more sorting of nodes
-#
-# Revision 1.126  2003/12/22 18:49:01  crc_canada
-# replace URL.pm; now do via C or browser
-#
-# Revision 1.125  2003/12/04 18:33:57  crc_canada
-# Basic threading ok
-#
-# Revision 1.124  2003/11/28 16:17:05  crc_canada
-# Bindables now registered and handled in C
-#
-# Revision 1.123  2003/11/26 16:31:06  crc_canada
-# First pass at threading.
-#
-# Revision 1.122  2003/10/24 14:04:08  crc_canada
-# Fast drawing for polyreps - try1
-#
-# Revision 1.121  2003/10/22 19:36:29  crc_canada
-# glDrawArrays and glDrawElements for simple shapes.
-#
-# Revision 1.119  2003/10/16 17:24:59  crc_canada
-# remove unused code
-#
-# Revision 1.118  2003/10/10 14:10:17  crc_canada
-# Compile time option for display lists added.
-#
+#.....
 
 
 
@@ -296,6 +102,8 @@
 	Sound 
 	AudioClip 
 	DirectionalLight 
+	HAnimHumanoid
+	HAnimJoint
 /;
 
 #######################################################################
@@ -310,6 +118,10 @@
 
 %PrepC = (
 # this creates the Struct values required to allow backend to fill the C values out
+HAnimJoint=> 'prep_HAnimJoint ((struct X3D_HAnimJoint *) this_);',
+HAnimSite=> 'prep_HAnimSite ((struct X3D_HAnimSite *) this_);',
+
+
 GeoOrigin => 'render_GeoOrigin ((struct X3D_GeoOrigin *) this_);',
 
 Viewpoint => '
@@ -524,6 +336,69 @@ Transform => (join '','
         }
 
 '),
+
+
+HAnimSite => (join '','
+	if(!render_vp) {
+            /* glPopMatrix();*/
+	    fwXformPop(this_);
+	} else {
+           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+            if(found_vp) {
+		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
+		);
+		glRotatef(',getf(Transform,scaleOrientation,3),'/3.1415926536*180,',
+			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
+		);
+		glScalef(',(join ',',map {"1.0/(".getf(Transform,scale,$_).")"} 0..2),'
+		);
+		glRotatef(-(',getf(Transform,scaleOrientation,3),'/3.1415926536*180),',
+			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
+		);
+		glRotatef(-(',getf(Transform,rotation,3),')/3.1415926536*180,',
+			(join ',',map {getf(Transform,rotation,$_)} 0..2),'
+		);
+		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
+		);
+		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"}
+			0..2),'
+		);
+            }
+        }
+
+'),
+
+HAnimJoint => (join '','
+	if(!render_vp) {
+            /* glPopMatrix();*/
+	    fwXformPop(this_);
+	} else {
+           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+            if(found_vp) {
+		glTranslatef(',(join ',',map {getf(Transform,center,$_)} 0..2),'
+		);
+		glRotatef(',getf(Transform,scaleOrientation,3),'/3.1415926536*180,',
+			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
+		);
+		glScalef(',(join ',',map {"1.0/(".getf(Transform,scale,$_).")"} 0..2),'
+		);
+		glRotatef(-(',getf(Transform,scaleOrientation,3),'/3.1415926536*180),',
+			(join ',',map {getf(Transform,scaleOrientation,$_)} 0..2),'
+		);
+		glRotatef(-(',getf(Transform,rotation,3),')/3.1415926536*180,',
+			(join ',',map {getf(Transform,rotation,$_)} 0..2),'
+		);
+		glTranslatef(',(join ',',map {"-(".getf(Transform,center,$_).")"} 0..2),'
+		);
+		glTranslatef(',(join ',',map {"-(".getf(Transform,translation,$_).")"}
+			0..2),'
+		);
+            }
+        }
+
+'),
+
+
 Billboard => (join '','
 	UNUSED (this_);
 	glPopMatrix();
@@ -541,6 +416,11 @@ Billboard => (join '','
 
 # Render children (real child nodes, not e.g. appearance/geometry)
 %ChildC = (
+	HAnimHumanoid => 'child_HAnimHumanoid((struct X3D_HAnimHumanoid *) this_); ',
+	HAnimJoint => 'child_HAnimJoint((struct X3D_HAnimJoint *) this_); ',
+	HAnimSegment => 'child_HAnimSegment((struct X3D_HAnimSegment *) this_); ',
+	HAnimSite => 'child_HAnimSite((struct X3D_HAnimSite *) this_); ',
+
 	Group => 'groupingChild(this_); ',
 	StaticGroup => 'staticGroupingChild(this_); ',
 	Billboard => 'billboardChild(this_); ',
@@ -834,6 +714,8 @@ $ExtraMem{GeoLocation} = $ExtraMem{Group};
 $ExtraMem{Inline} = $ExtraMem{Group};
 $ExtraMem{InlineLoadControl} = $ExtraMem{Group};
 $ExtraMem{StaticGroup} = $ExtraMem{Group};
+$ExtraMem{HAnimSite} = $ExtraMem{Group};
+$ExtraMem{HAnimHumanoid} = $ExtraMem{Group};
 
 
 #######################################################################
@@ -884,6 +766,7 @@ $ChangedC{Anchor} = $ChangedC{Group};
 $ChangedC{Collision} = $ChangedC{Group};
 $ChangedC{GeoLocation} = $ChangedC{Group};
 $ChangedC{InlineLoadControl} = $ChangedC{Group};
+$ChangedC{HAnimSite} = $ChangedC{Group};
 
 
 #######################################################################

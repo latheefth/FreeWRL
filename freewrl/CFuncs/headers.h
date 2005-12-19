@@ -596,6 +596,22 @@ void collideIndexedFaceSet(struct X3D_IndexedFaceSet *this_);
 
 void render_LoadSensor(struct X3D_LoadSensor *this);
 
+
+/* HAnim Component */
+void prep_HAnimJoint (struct X3D_HAnimJoint *this);
+void prep_HAnimSite (struct X3D_HAnimSite *this);
+
+void child_HAnimHumanoid(struct X3D_HAnimHumanoid *this_); 
+void child_HAnimJoint(struct X3D_HAnimJoint *this_); 
+void child_HAnimSegment(struct X3D_HAnimSegment *this_); 
+void child_HAnimSite(struct X3D_HAnimSite *this_); 
+
+void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node);
+void render_HAnimJoint (struct X3D_HAnimJoint * node);
+
+
+
+
 /* Sound Component */
 void render_Sound (struct X3D_Sound *this_);
 void render_AudioClip (struct X3D_AudioClip *this_);

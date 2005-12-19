@@ -406,12 +406,15 @@ sub new_node {
 
 		# work on everything else BUT the url .-|
 		for my $fk (keys %{$fields->{ScriptInterface}}) {
-			#print "X3DScript in Scene, key $fk\n";
+			# print "X3DScript in Scene, key $fk\n";
 			if (($fk eq "directOutput") || ($fk eq "mustEvaluate")) {
 				#print "found $fk\n";
 				my $iv = 0;
 				if ($fields->{ScriptInterface}{$fk} eq "true") {$iv = 1;}
 				$f{$fk} = ["SFBool",$iv,"field"];
+			} elsif ($fk eq "containerField") {
+				# print "X3DScript - got containerField...\n";
+				
 			} elsif ($fk eq "field") {
 				#print "found a field\n";
 				for my $sfk (keys %{$fields->{ScriptInterface}{$fk}}) {

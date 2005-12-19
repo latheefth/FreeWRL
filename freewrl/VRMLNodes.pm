@@ -538,7 +538,7 @@ my $protono;
 
 
 # used for the X3D Parser only. Return type of node.
-%VRML::X3DNodes::defaultContainerType = (
+%X3D::X3DNodes::defaultContainerType = (
 	Arc2D			=>geometry,
 	ArcClose2D		=>geometry,
 	Circle2D		=>geometry,
@@ -582,6 +582,11 @@ my $protono;
 	GeoTouchSensor		=>children,
 	GeoViewpoint 		=>children,
 	Group 			=>children,
+	HAnimDisplacer		=>children,
+	HAnimHumanoid		=>children,
+	HAnimJoint		=>joints,
+	HAnimSegment		=>segments,
+	HAnimSite		=>sites,
 	ImageTexture 		=>texture,
 	IndexedFaceSet 		=>geometry,
 	IndexedLineSet 		=>geometry,
@@ -1861,11 +1866,102 @@ my $protono;
 
 	###################################################################################
 
-	# HAnimDisplacer
-	# HAnimHumanoid
-	# HAnimJoint
-	# HAnimSegment
-	# HAnimSite
+	HAnimDisplacer => new VRML::NodeType("HAnimDisplacer", {
+						coordIndex => [MFInt32, [], exposedField],
+						displacements => [MFVec3f, [], exposedField],
+						name => [SFString, "", exposedField],
+						weight => [SFFloat, 0.0, expoeseField],
+					}),
+
+	HAnimHumanoid => new VRML::NodeType("HAnimHumanoid", {
+						center => [SFVec3f, [0, 0, 0], exposedField],
+						info => [MFString, [],exposedField],
+						joints => [MFNode,[],exposedField],
+						name => [SFString, "", exposedField],
+						rotation => [SFRotation,[0,0,1,0], exposedField],
+						scale => [SFVec3f,[1,1,1],exposedField],
+						scaleOrientation => [SFRotation, [0, 0, 1, 0], exposedField],
+						segments => [MFNode,[],exposedField],
+						sites => [MFNode,[],exposedField],
+						skeleton => [MFNode,[],exposedField],
+						skin => [MFNode,[],exposedField],
+						skinCoord => [SFNode, NULL, exposedField],
+						skinNormal => [SFNode, NULL, exposedField],
+						translation => [SFVec3f, [0, 0, 0], exposedField],
+						version => [SFString,"",exposedField],
+						viewpoints => [MFNode,[],exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+					}),
+
+	HAnimJoint => new VRML::NodeType("HAnimJoint", {
+
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						center => [SFVec3f, [0, 0, 0], exposedField],
+						children => [MFNode, [], exposedField],
+						rotation => [SFRotation, [0, 0, 1, 0], exposedField],
+						scale => [SFVec3f, [1, 1, 1], exposedField],
+						scaleOrientation => [SFRotation, [0, 0, 1, 0], exposedField],
+						translation => [SFVec3f, [0, 0, 0], exposedField],
+						displacers => [MFNode, [], exposedField],
+						limitOrientation => [SFRotation, [0, 0, 1, 0], exposedField],
+						llimit => [MFFloat,[],exposedField],
+						name => [SFString, "", exposedField],
+						skinCoordIndex => [MFInt32,[],exposedField],
+						skinCoordWeight => [MFFloat,[],exposedField],
+						stiffness => [MFFloat,[0,0,0],exposedField],
+						ulimit => [MFFloat,[],exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+
+						 # fields for reducing redundant calls
+						 __do_center => [SFInt32, 0, field],
+						 __do_trans => [SFInt32, 0, field],
+						 __do_rotation => [SFInt32, 0, field],
+						 __do_scaleO => [SFInt32, 0, field],
+						 __do_scale => [SFInt32, 0, field],
+					}),
+
+	HAnimSegment => new VRML::NodeType("HAnimSegment", {
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						name => [SFString, "", exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+						centerOfMass => [SFVec3f, [0, 0, 0], exposedField],
+						coord => [SFNode, NULL, exposedField],
+						displacers => [MFNode,[],exposedField],
+						mass => [SFFloat, 0, exposedField],
+						momentsOfInertia =>[MFFloat, [0, 0, 0, 0, 0, 0, 0, 0, 0],exposedField],
+					}),
+
+
+
+	HAnimSite => new VRML::NodeType("HAnimSite", {
+						addChildren => [MFNode, undef, eventIn],
+						removeChildren => [MFNode, undef, eventIn],
+						children => [MFNode, [], exposedField],
+						name => [SFString, "", exposedField],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
+						center => [SFVec3f, [0, 0, 0], exposedField],
+						children => [MFNode, [], exposedField],
+						rotation => [SFRotation, [0, 0, 1, 0], exposedField],
+						scale => [SFVec3f, [1, 1, 1], exposedField],
+						scaleOrientation => [SFRotation, [0, 0, 1, 0], exposedField],
+						translation => [SFVec3f, [0, 0, 0], exposedField],
+
+						 # fields for reducing redundant calls
+						 __do_center => [SFInt32, 0, field],
+						 __do_trans => [SFInt32, 0, field],
+						 __do_rotation => [SFInt32, 0, field],
+						 __do_scaleO => [SFInt32, 0, field],
+						 __do_scale => [SFInt32, 0, field],
+					}),
+
 
 	###################################################################################
 
