@@ -5,6 +5,7 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
+#include "headers.h"
 #include "Polyrep.h"
 
 /* reset colors to defaults, if we have to */
@@ -46,14 +47,14 @@ int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS) {
 	}
 
 
-	/*
+	/*	
 	printf ("this structure has %d faces\n",faces);
 	printf ("	max points per face %d\n",max_points_per_face);
 	printf ("	min points per face %d\n\n",min_points_per_face);
 	*/
-
+	
 	if (faces < 1) {
-		printf("an IndexedFaceSet with no faces found\n");
+		/* printf("an IndexedFaceSet with no faces found\n"); */
 		return (0);
 	}
 	return faces;
@@ -76,7 +77,7 @@ int IFS_face_normals (
 	struct X3D_IndexedFaceSet *this_IFS,
 	int ccw) {
 
-	int tmp_a, tmp_c;
+	int tmp_a, this_face_finished;
 	int i,checkpoint;
 	int facectr;
 	int pt_1, pt_2, pt_3;
@@ -87,6 +88,11 @@ int IFS_face_normals (
 	tmp_a = 0;
 	int retval = FALSE;
 
+	float this_vl;
+	struct pt thisfaceNorms;
+
+
+	/* printf ("IFS_face_normals, faces %d\n",faces); */
 
 	/*  Assume each face is ok for now*/
 	for(i=0; i<faces; i++) {
@@ -95,6 +101,15 @@ int IFS_face_normals (
 
 	/*  calculate normals for each face*/
 	for(i=0; i<faces; i++) {
+		/* lets decide which normal to choose here, in case of more than 1 triangle.
+		   we choose the triangle with the greatest vector length hoping that it is
+		   the least "degenerate" of them all */
+		this_vl = 0.0;
+		facenormals[i].x = 0.0;
+		facenormals[i].y = 0.0;
+		facenormals[i].z = 1.0;
+
+
 		if (tmp_a >= cin-2) {
 			printf ("last face in Indexed Geometry has not enough vertexes\n");
 			faceok[i] = FALSE;
@@ -115,7 +130,7 @@ int IFS_face_normals (
 					if (this_IFS->coordIndex.p[checkpoint] == -1) {
 						checkpoint = cin; /*  stop the scan*/
 					} else {
-						/* printf ("verifying %d for face %d\n",this_IFS->coordIndex.p[checkpoint],i);*/
+						/* printf ("verifying %d for face %d\n",this_IFS->coordIndex.p[checkpoint],i); */
 						if ((this_IFS->coordIndex.p[checkpoint] < 0) ||
 						    (this_IFS->coordIndex.p[checkpoint] >= npoints)) {
 							printf ("Indexed Geometry face %d has a point out of range,",i);
@@ -131,14 +146,16 @@ int IFS_face_normals (
 
 		/* face has passed checks so far... */
 		if (faceok[i]) {
-			/* check for degenerate triangles -- if found, try to select another point */
-			tmp_c = FALSE;
+			/* check for degenerate triangles -- we go through all triangles in a face to see which
+			   triangle has the largest vector length */
+
+			this_face_finished = FALSE;
 			pt_1 = tmp_a;
 			if (ccw) {
-				/* printf ("IFS face normals CCW\n");*/
+				/* printf ("IFS face normals CCW\n"); */
 				pt_2 = tmp_a+1; pt_3 = tmp_a+2;
 			} else {
-				/* printf ("IFS face normals *NOT* CCW\n");*/
+				/* printf ("IFS face normals *NOT* CCW\n"); */
 				pt_3 = tmp_a+1; pt_2 = tmp_a+2;
 			}
 
@@ -155,56 +172,53 @@ int IFS_face_normals (
 				b[1] = c3->c[1] - c1->c[1];
 				b[2] = c3->c[2] - c1->c[2];
 
-				facenormals[i].x = a[1]*b[2] - b[1]*a[2];
-				facenormals[i].y = -(a[0]*b[2] - b[0]*a[2]);
-				facenormals[i].z = a[0]*b[1] - b[0]*a[1];
+				thisfaceNorms.x = a[1]*b[2] - b[1]*a[2];
+				thisfaceNorms.y = -(a[0]*b[2] - b[0]*a[2]);
+				thisfaceNorms.z = a[0]*b[1] - b[0]*a[1];
 
-				/* printf ("vector length is %f\n",calc_vector_length (facenormals[i]));*/
+				/* printf ("vector length is %f\n",calc_vector_length (facenormals[i])); */
 
-				if (fabs(calc_vector_length (facenormals[i])) < 0.00001) {
-					AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
-					BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
-					/* printf ("AC %f ",AC);
-					printf ("BC %f \n",BC); */
-
-					/* we have 3 points, a, b, c */
-					/* we also have 3 vectors, AB, AC, BC */
-					/* find out which one looks the closest one to skip out */
-					/* either we move both 2nd and 3rd points, or just the 3rd */
-					if (fabs(AC) < fabs(BC)) { pt_2++; }
-					pt_3++;
-
-					/* skip forward to the next couple of points - if possible */
-					/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
-					tmp_a ++;
-					if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
-						/* printf ("possible degenerate triangle, but no more points\n"); */
-						/* put values in there so normals will work out */
-						if (fabs(calc_vector_length (facenormals[i])) < 0.0000001) {
-							/* we would have a divide by zero in normalize_vector, so... */
-							facenormals[i].z = 1.0;
-
-							/*  Mark this face to be bad*/
-							faceok[i] = FALSE;
-						}
-						tmp_c = TRUE;  tmp_a +=2;
-					}
-				} else {
-					tmp_c = TRUE;
-					tmp_a +=3;
+				/* is this vector length greater than a previous one? */
+				if (calc_vector_length(thisfaceNorms) > this_vl) {
+					/* printf ("for face, using points %d %d %d\n",pt_1, pt_2, pt_3); */
+					this_vl = calc_vector_length(thisfaceNorms);
+					facenormals[i].x = thisfaceNorms.x;
+					facenormals[i].y = thisfaceNorms.y;
+					facenormals[i].z = thisfaceNorms.z;
 				}
 
-			} while (!tmp_c);
+				/* lets skip along to next triangle in this face */
+
+				AC=(c1->c[0]-c3->c[0])*(c1->c[1]-c3->c[1])*(c1->c[2]-c3->c[2]);
+				BC=(c2->c[0]-c3->c[0])*(c2->c[1]-c3->c[1])*(c2->c[2]-c3->c[2]);
+				/* printf ("AC %f ",AC);
+				printf ("BC %f \n",BC);  */
+
+				/* we have 3 points, a, b, c */
+				/* we also have 3 vectors, AB, AC, BC */
+				/* find out which one looks the closest one to skip out */
+				/* either we move both 2nd and 3rd points, or just the 3rd */
+				if (fabs(AC) < fabs(BC)) { pt_2++; }
+				pt_3++;
+
+				/* skip forward to the next couple of points - if possible */
+				/* printf ("looking at %d, cin is %d\n",tmp_a, cin); */
+				tmp_a ++;
+				if ((tmp_a >= cin-2) || ((this_IFS->coordIndex.p[tmp_a+2]) == -1)) {
+					this_face_finished = TRUE;  tmp_a +=2;
+				}
+			} while (!this_face_finished);
 
 			normalize_vector(&facenormals[i]);
 
-			/*
+			/*	
 			printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
 				c1->c[0],c1->c[1],c1->c[2],
 				c2->c[0],c2->c[1],c2->c[2],
 				c3->c[0],c3->c[1],c3->c[2]);
 			printf ("normal %f %f %f\n\n",facenormals[i].x,
 				facenormals[i].y,facenormals[i].z);
+		
 			*/
 			
 

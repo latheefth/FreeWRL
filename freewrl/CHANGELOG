@@ -1,7 +1,14 @@
 For 1.16:
-	- H-Anim nodes complete.
+	- H-Anim nodes being worked on.
 
 	- Geometry2D nodes complete.
+
+	- streamlining build and rendering process by reducing amount of C code in
+	  VRMLRend.pm and VRMLC.pm
+
+	- bug in IndexedFaceSet rendering fixed - degenerate triangle finding changed
+	  so that all triangles are looked at in a face, and the one with the longest
+	  vector length is the one chosen to represent the normal of that face.
 
 	- re-arranged the CFuncs directory to better follow X3D Spec.
 

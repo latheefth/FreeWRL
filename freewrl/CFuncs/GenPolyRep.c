@@ -38,7 +38,6 @@
 extern void initialize_smooth_normals();
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct pt *facenormals,int *pointfaces,int ccw);
 extern int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS);
-extern int IFS_face_normals(struct pt *facenormals,int *faceok,int *pointfaces,int faces,int npoints,int cin,struct SFColor *points,struct X3D_IndexedFaceSet *this_IFS,int ccw);
 extern void verify_global_IFS_Coords(int max);
 extern void IFS_check_normal(struct pt *facenormals,int this_face,struct SFColor *points,int base,struct X3D_IndexedFaceSet *this_IFS,int ccw);
 extern void Extru_tex(int vertex_ind,int tci_ct,int A,int B,int C,struct X3D_PolyRep *this_Elev,int ccw,int tcindexsize);
