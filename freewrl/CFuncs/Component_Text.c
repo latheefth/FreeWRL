@@ -29,6 +29,7 @@
 #include "Structs.h"
 #include "headers.h"
 #include "installdir.h"
+#include "Collision.h"
 
 
 #define XRES 96
@@ -799,4 +800,217 @@ open_font() {
 	}
 
 	return TRUE;
+}
+
+void collide_Text (struct X3D_Text *this_) {
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+		/*JAS - normals are always this way - helps because some
+			normal calculations failed because of very small triangles
+			which made collision calcs fail, which moved the Viewpoint...
+			so, if there is no need to calculate normals..., why do it? */
+	       struct pt tupv = {0,1,0};
+	       struct pt delta = {0,0,-1};
+	       struct X3D_PolyRep pr;
+	       int change = 0;
+
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
+                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+
+ 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+/*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
+
+	       delta = planar_polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,PR_DOUBLESIDED,delta); /*delta used as zero*/
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+		#ifdef COLLISIONVERBOSE 
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		   fprintf(stderr,"COLLISION_TXT: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+
+	       }
+		#endif
+}
+
+
+
+void make_Text (struct X3D_Text *this_) {
+	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)this_->_intern;
+        double spacing = 1.0;
+        double size = 1.0;
+	unsigned int fsparams = 0;
+
+	/* We need both sides */
+	glPushAttrib(GL_ENABLE_BIT);
+	glDisable(GL_CULL_FACE);
+
+	if((this_->fontStyle)) {
+		/* We have a FontStyle. Parse params (except size and spacing) and
+		   make up an unsigned int with bits indicating params, to be
+		   passed to the Text Renderer
+
+			bit:	0	horizontal  (boolean)
+			bit:	1	leftToRight (boolean)
+			bit:	2	topToBottom (boolean)
+			  (style)
+			bit:	3	BOLD	    (boolean)
+			bit:	4	ITALIC	    (boolean)
+			  (family)
+			bit:	5	SERIF
+			bit:	6	SANS
+			bit:	7	TYPEWRITER
+			bit:	8 	indicates exact font pointer (future use)
+			  (Justify - major)
+			bit:	9	FIRST
+			bit:	10	BEGIN
+			bit:	11	MIDDLE
+			bit:	12	END
+			  (Justify - minor)
+			bit:	13	FIRST
+			bit:	14	BEGIN
+			bit:	15	MIDDLE
+			bit:	16	END
+
+			bit: 17-31	spare
+		*/
+
+		struct X3D_FontStyle *fsp;
+		STRLEN xx;
+		unsigned char *lang;
+		unsigned char *style;
+		struct Multi_String family;
+		struct Multi_String justify;
+		int tmp; int tx;
+		SV **svptr;
+		unsigned char *stmp;
+
+		/* step 0 - is the FontStyle a proto? */
+		fsp = (struct X3D_FontStyle *)this_->fontStyle;
+
+		/* step 0.5 - now that we know FontStyle points ok, go for
+		 * the other pointers */
+		lang = (unsigned char *)SvPV((fsp->language),xx);
+		style = (unsigned char *)SvPV((fsp->style),xx);
+
+		family = fsp->family;
+		justify = fsp->justify;
+
+
+		/* Step 1 - record the spacing and size, for direct use */
+		spacing = fsp->spacing;
+		size = fsp->size;
+
+		/* Step 2 - do the SFBools */
+        	fsparams = (fsp->horizontal)|(fsp->leftToRight<<1)|(fsp->topToBottom<<2);
+
+
+		/* Step 3 - the SFStrings - style and language */
+		/* actually, language is not parsed yet */
+
+		if (strlen((const char *)style)) {
+			if (!strcmp((const char *)style,"ITALIC")) {fsparams |= 0x10;}
+			else if(!strcmp((const char *)style,"BOLD")) {fsparams |= 0x08;}
+			else if (!strcmp((const char *)style,"BOLDITALIC")) {fsparams |= 0x18;}
+			else if (strcmp((const char *)style,"PLAIN")) {
+				printf ("Warning - FontStyle style %s  assuming PLAIN\n",style);}
+		}
+		if (strlen((const char *)lang)) {printf ("Warning - FontStyle - language param unparsed\n");}
+
+
+		/* Step 4 - the MFStrings now. Family, Justify. */
+		/* family can be blank, or one of the pre-defined ones. Any number of elements */
+
+		svptr = family.p;
+		for (tmp = 0; tmp < family.n; tmp++) {
+			stmp = (unsigned char *)SvPV(svptr[tmp],xx);
+			if (strlen((const char *)stmp) == 0) {fsparams |=0x20; }
+			else if (!strcmp((const char *)stmp,"SERIF")) { fsparams |= 0x20;}
+			else if(!strcmp((const char *)stmp,"SANS")) { fsparams |= 0x40;}
+			else if (!strcmp((const char *)stmp,"TYPEWRITER")) { fsparams |= 0x80;}
+			/* else { printf ("Warning - FontStyle family %s unknown\n",stmp);}*/
+		}
+
+		svptr = justify.p;
+		tx = justify.n;
+		/* default is "BEGIN" "FIRST" */
+		if (tx == 0) { fsparams |= 0x2400; }
+		else if (tx == 1) { fsparams |= 0x2000; }
+		else if (tx > 2) {
+			printf ("Warning - FontStyle, max 2 elements in Justify\n");
+			tx = 2;
+		}
+
+		for (tmp = 0; tmp < tx; tmp++) {
+			stmp = (unsigned char *)SvPV(svptr[tmp],xx);
+			if (strlen((const char *)stmp) == 0) {
+				if (tmp == 0) {fsparams |= 0x400;
+				} else {fsparams |= 0x2000;
+				}
+			}
+			else if (!strcmp((const char *)stmp,"FIRST")) { fsparams |= (0x200<<(tmp*4));}
+			else if(!strcmp((const char *)stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
+			else if (!strcmp((const char *)stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
+			else if (!strcmp((const char *)stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
+			/* else { printf ("Warning - FontStyle family %s unknown\n",stmp);}*/
+		}
+	} else {
+		/* send in defaults */
+		fsparams = 0x2427;
+	}
+
+
+	/*  do the Text parameters, guess at the number of triangles required*/
+	rep_->ntri = 0;
+	/* printf ("Text, calling FW_rendertext\n");*/
+
+	/* call render text - NULL means get the text from the string */
+	FW_rendertext (((this_->string).n),((this_->string).p),NULL, ((this_->length).n),(double *) ((this_->length).p),
+			(this_->maxExtent),spacing,size,fsparams,rep_);
+
+	/* printf ("Text, tris = %d\n",rep_->ntri);*/
+
+	glPopAttrib();
+}
+
+rendray_Text (struct X3D_Text *this_) {
+	render_ray_polyrep(this_, NULL);
 }

@@ -408,3 +408,110 @@ void render_PointSet (struct X3D_PointSet *this_) {
 	glEnd();
                 glPopAttrib();
 }
+
+void rendray_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_) {
+                struct SFColor *points=0; int npoints;
+                struct X3D_Coordinate *xc;
+
+                if(this_->coord) {
+                        xc = (struct X3D_Coordinate *) this_->coord;
+                        if (xc->_nodeType != NODE_Coordinate) {
+                                freewrlDie ("IndexedTriangleFanSet - coord node wrong type");
+                        } else {
+                                points = xc->point.p;
+                                npoints = xc->point.n;
+                        }
+                }
+
+                render_ray_polyrep(this_, points);
+}
+
+
+void rendray_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_) {
+               struct SFColor *points=0; int npoints;
+                struct X3D_Coordinate *xc;
+
+                if(this_->coord) {
+                        xc = (struct X3D_Coordinate *) this_->coord;
+                        if (xc->_nodeType != NODE_Coordinate) {
+                                freewrlDie ("IndexedTriangleSet - coord node wrong type");
+                        } else {
+                                points = xc->point.p;
+                                npoints = xc->point.n;
+                        }
+                }
+
+                render_ray_polyrep(this_, points);
+}
+
+void rendray_TriangleSet (struct X3D_TriangleSet *this_) {
+               struct SFColor *points=0; int npoints;
+                struct X3D_Coordinate *xc;
+
+                if(this_->coord) {
+                        xc = (struct X3D_Coordinate *) this_->coord;
+                        if (xc->_nodeType != NODE_Coordinate) {
+                                freewrlDie ("TriangleSet - coord node wrong type");
+                        } else {
+                                points = xc->point.p;
+                                npoints = xc->point.n;
+                        }
+                }
+
+                render_ray_polyrep(this_, points);
+}
+
+void rendray_TriangleFanSet (struct X3D_TriangleFanSet *this_) {
+               struct SFColor *points=0; int npoints;
+                struct X3D_Coordinate *xc;
+
+                if(this_->coord) {
+                        xc = (struct X3D_Coordinate *) this_->coord;
+                        if (xc->_nodeType != NODE_Coordinate) {
+                                freewrlDie ("TriangleFanSet - coord node wrong type");
+                        } else {
+                                points = xc->point.p;
+                                npoints = xc->point.n;
+                        }
+                }
+
+                render_ray_polyrep(this_, points);
+}
+
+
+void rendray_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_) {
+               struct SFColor *points=0; int npoints;
+                struct X3D_Coordinate *xc;
+
+                if(this_->coord) {
+                        xc = (struct X3D_Coordinate *) this_->coord;
+                        if (xc->_nodeType != NODE_Coordinate) {
+                                freewrlDie ("IndexedTriangleStripSet - coord node wrong type");
+                        } else {
+                                points = xc->point.p;
+                                npoints = xc->point.n;
+                        }
+                }
+
+                render_ray_polyrep(this_, points);
+}
+
+
+void rendray_TriangleStripSet (struct X3D_TriangleStripSet *this_) {
+                struct SFColor *points=0; int npoints;
+                struct X3D_Coordinate *xc;
+
+                if(this_->coord) {
+                        xc = (struct X3D_Coordinate *) this_->coord;
+                        if (xc->_nodeType != NODE_Coordinate) {
+                                freewrlDie ("TriangleStripSet - coord node wrong type");
+                        } else {
+                                points = xc->point.p;
+                                npoints = xc->point.n;
+                        }
+                }
+
+                render_ray_polyrep(this_, points);
+}
+
+

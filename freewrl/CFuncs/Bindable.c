@@ -10,7 +10,6 @@
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
 ******************************************/
-
 #include "Bindable.h"
 #include "Viewer.h"
 #include "Component_Geospatial.h"
@@ -410,118 +409,6 @@ void render_Fog (struct X3D_Fog *node) {
 	glPopMatrix();
 }
 
-void render_NavigationInfo (struct X3D_NavigationInfo *node) {
-	/* check the set_bind eventin to see if it is TRUE or FALSE */
-	if (node->set_bind < 100) {
-		if (node->set_bind == 1) set_naviinfo(node);
-
-		bind_node (node, &navi_tos,&navi_stack[0]);
-	}
-	if(!node->isBound) return;
-}
-
-void render_GeoViewpoint (struct X3D_GeoViewpoint *node) {
-	double a1;
-	char *posnstring;
-	STRLEN xx, yy;
-
-
-	/* printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind); */
-	/* check the set_bind eventin to see if it is TRUE or FALSE */
-	if (node->set_bind < 100) {
-		/* up_vector is reset after a bind */
-		if (node->set_bind==1) reset_upvector();
-
-		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
-	}
-
-	if(!node->isBound) return;
-
-	/* stop rendering when we hit A viewpoint or THE viewpoint???
-	   shouldnt we check for what_vp????
-           maybe only one viewpoint is in the tree at a time? -  ncoder*/
-
-	found_vp = 1; /* We found the viewpoint */
-
-	/* is the position "compiled" yet? */
-	if (node->_change != node->_dlchange) {
-		/* printf ("have to recompile position...\n"); */
-		posnstring = SvPV(node->position,xx);
-		if (sscanf (SvPV(node->position,xx),"%f %f %f",&node->__position.c[0],
-			&node->__position.c[1], &node->__position.c[2]) != 3) {
-			printf ("GeoViewpoint - vp:%s: invalid position string: :%s:\n",
-					SvPV(node->description,xx),
-					SvPV(node->position,yy));
-		}
-
-		geoSystemCompile (&node->geoSystem, &node->__geoSystem,
-			SvPV(node->description,xx));
-
-		node->_dlchange = node->_change;
-	}
-
-	if (node->geoOrigin) {
-		render_node (node->geoOrigin);
-	}
-
-	/* perform GeoViewpoint translations */
-	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
-		node->orientation.r[2]);
-        glTranslated (GeoOrig[0] - node->__position.c[0],
-                        GeoOrig[1] - node->__position.c[1],
-                        GeoOrig[2] - node->__position.c[2]);
-
-        /* printf ("GeoViewing at %f %f %f\n",
-        		GeoOrig[0] - node->__position.c[0],
-                        GeoOrig[1] - node->__position.c[1],
-                        GeoOrig[2] - node->__position.c[2]); */
-
-	/* now, lets work on the GeoViewpoint fieldOfView */
-	glGetIntegerv(GL_VIEWPORT, viewPort);
-	if(viewPort[2] > viewPort[3]) {
-		a1=0;
-		fieldofview = node->fieldOfView/3.1415926536*180;
-	} else {
-		a1 = node->fieldOfView;
-		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		fieldofview = a1/3.1415926536*180;
-	}
-	calculateFrustumCone();
-	/* printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
-}
-
-void render_Viewpoint (struct X3D_Viewpoint *node) {
-	double a1;
-
-	 /* printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
-	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]);
-	 */
-
-	/* check the set_bind eventin to see if it is TRUE or FALSE */
-	/* code to perform binding is now in set_viewpoint. */
-
-	if(!node->isBound) return;
-
-	found_vp = 1; /* We found the viewpoint */
-
-	/* perform Viewpoint translations */
-	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
-		node->orientation.r[2]);
-	glTranslated(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
-
-	/* now, lets work on the Viewpoint fieldOfView */
-	glGetIntegerv(GL_VIEWPORT, viewPort);
-	if(viewPort[2] > viewPort[3]) {
-		a1=0;
-		fieldofview = node->fieldOfView/3.1415926536*180;
-	} else {
-		a1 = node->fieldOfView;
-		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		fieldofview = a1/3.1415926536*180;
-	}
-	calculateFrustumCone();
-	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
-}
 
 /******************************************************************************
  *

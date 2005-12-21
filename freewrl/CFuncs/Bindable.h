@@ -34,6 +34,7 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint.
 /* Bind stack */
 #define MAX_STACK 20
 
+extern GLint viewPort[];
 
 /* Bindables, Viewpoint, NavigationInfo, Background, TextureBackground and Fog */
 extern unsigned long int *fognodes;
@@ -45,6 +46,7 @@ extern int currboundvpno;
 
 extern int viewpoint_tos;
 extern unsigned int viewpoint_stack[];
+extern unsigned int navi_stack[];
 
 void
 reset_upvector(void);
@@ -63,12 +65,6 @@ render_Fog(struct X3D_Fog *node);
 
 void
 render_NavigationInfo(struct X3D_NavigationInfo *node);
-
-void
-render_Viewpoint(struct X3D_Viewpoint *node);
-
-void
-render_GeoViewpoint(struct X3D_GeoViewpoint *node);
 
 void render_Background(struct X3D_Background *node);
 void render_TextureBackground(struct X3D_TextureBackground *node);

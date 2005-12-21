@@ -156,3 +156,155 @@ void render_Material (struct X3D_Material *this_) {
 		shin = 128.0* this_->shininess;
 		do_shininess(shin);
 }
+
+
+void child_Shape (struct X3D_Shape *this_) {
+		int trans;
+		int should_rend;
+		GLdouble modelMatrix[16];
+		int count;
+
+		if(!(this_->geometry)) { return; }
+
+		/* do we need to do some distance calculations? */
+		if (((!render_vp) && render_light)) {
+			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+			this_->_dist = modelMatrix[14];
+			/* printf ("getDist - recalculating distance, it is %f for %d\n",*/
+			/* 	this_->_dist,this_);*/
+		}
+
+		if((render_collision) || (render_sensitive)) {
+			/* only need to forward the call to the child */
+			render_node((this_->geometry));
+			return;
+		}
+
+		/* reset textureTransform pointer */
+		this_textureTransform = 0;
+		global_lineProperties=FALSE;
+		global_fillProperties=FALSE;
+
+
+
+		/* JAS - if not collision, and render_geom is not set, no need to go further */
+		/* printf ("render_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
+		/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
+
+		/* a texture and a transparency flag... */
+		texture_count = 0; /* will be >=1 if textures found */
+		trans = have_transparency;
+		have_texture = FALSE;
+
+                /* assume that lighting is enabled. Absence of Material or Appearance
+                   node will turn lighting off; in this case, at the end of Shape, we
+                   have to turn lighting back on again. */
+                lightingOn = TRUE;
+
+		/* is there an associated appearance node? */
+       	        if((this_->appearance)) {
+                        render_node((this_->appearance));
+       	        } else {
+                        /* no material, so just colour the following shape */
+                       	/* Spec says to disable lighting and set coloUr to 1,1,1 */
+                       	glDisable (GL_LIGHTING);
+       	                glColor3f(1.0,1.0,1.0);
+			lightingOn = FALSE;
+
+			/* tell the rendering passes that this is just "normal" */
+			last_texture_depth = 0;
+			last_transparency = 1.0;
+                }
+
+
+		/* lets look at texture depth, and if it has alpha, call
+		it a transparent node */
+		if (last_texture_depth >3) {
+			have_transparency++;
+			if ((this_->_renderFlags & VF_Blend) != VF_Blend)
+				update_renderFlag(this_,VF_Blend);
+		}
+
+		/* printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",*/
+		/* 	have_transparency, trans, last_texture_depth);*/
+
+		should_rend = FALSE;
+		/* now, are we rendering blended nodes? */
+		if (render_blend) {
+			if (have_transparency!=trans) {
+					should_rend = TRUE;
+			}
+
+		/* no, maybe we are rendering straight nodes? */
+		} else {
+			if (have_transparency == trans) {
+					should_rend = TRUE;
+			}
+		}
+
+		/* if (should_rend) {printf ("RENDERING THIS ONE\n");*/
+		/* } else { printf ("NOT RENDERING THIS ONE\n");}*/
+
+		/* should we render this node on this pass? */
+		if (should_rend) {
+			render_node((this_->geometry));
+		}
+
+               /* did the lack of an Appearance or Material node turn lighting off? */
+                if (!lightingOn) {
+                        glEnable (GL_LIGHTING);
+                }
+
+		/* any line properties to reset? */
+		if (global_lineProperties) {
+			glDisable (GL_POLYGON_STIPPLE);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		if (global_fillProperties) {
+			glDisable (GL_LINE_STIPPLE);
+			glLineWidth(1.0);
+		}
+
+		if (have_texture) glPopAttrib(); 
+}
+
+
+void child_Appearance (struct X3D_Appearance *this_) {
+                last_texture_depth = 0;
+                last_transparency = 1.0;
+
+        /* printf ("in Appearance, this %d, nodeType %d\n",this_, this_->_nodeType);
+         printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+         render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+
+                if((this_->material)) {
+                        render_node((this_->material));
+                } else {
+                        /* no material, so just colour the following shape */
+                        /* Spec says to disable lighting and set coloUr to 1,1,1 */
+                        glDisable (GL_LIGHTING);
+                        glColor3f(1.0,1.0,1.0);
+                        lightingOn = FALSE;
+                }
+
+                if ((this_->fillProperties)) {
+                        render_node((this_->fillProperties));
+                }
+
+                /* set line widths - if we have line a lineProperties node */
+                if ((this_->lineProperties)) {
+                        render_node((this_->lineProperties));
+                }
+
+                if((this_->texture)) {
+                        /* we have to do a glPush, then restore, later */
+                        have_texture=TRUE;
+                        glPushAttrib(GL_ENABLE_BIT);
+
+                        /* is there a TextureTransform? if no texture, fugutaboutit */
+                        this_textureTransform = this_->textureTransform;
+
+                        /* now, render the texture */
+                        render_node((this_->texture));
+                }
+}

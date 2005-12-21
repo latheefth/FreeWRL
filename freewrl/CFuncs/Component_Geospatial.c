@@ -19,6 +19,8 @@
 #include "Component_Geospatial.h"
 
 #include "headers.h"
+#include "Bindable.h"
+#include "Collision.h"
 
 int GeoVerbose = 0;
 
@@ -131,7 +133,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 }
 
 
-void render_GeoOrigin (struct X3D_GeoOrigin *node) {
+void prep_GeoOrigin (struct X3D_GeoOrigin *node) {
 	STRLEN xx;
         /* is the position "compiled" yet? */
         if (node->_change != node->_dlchange) {
@@ -150,39 +152,267 @@ void render_GeoOrigin (struct X3D_GeoOrigin *node) {
         }
 }
 
-void render_GeoLocation (struct X3D_GeoLocation *node) {
+void prep_GeoLocation (struct X3D_GeoLocation *node) {
 	STRLEN xx;
 	/* GLdouble modelMatrix[16]; */
+	
+	if (!render_vp) {
+		glPushMatrix();
 
-        /* is the position "compiled" yet? */
-        if (node->_change != node->_dlchange) {
-                if (sscanf (SvPV(node->geoCoords,xx),"%f %f %f",&node->__geoCoords.c[0],
-                        &node->__geoCoords.c[1], &node->__geoCoords.c[2]) != 3) {
-                        printf ("GeoLocation: invalid geoCoords string: :%s:\n",
-                                        SvPV(node->geoCoords,xx));
-                }
+        	/* is the position "compiled" yet? */
+        	if (node->_change != node->_dlchange) {
+        	        if (sscanf (SvPV(node->geoCoords,xx),"%f %f %f",&node->__geoCoords.c[0],
+                	        &node->__geoCoords.c[1], &node->__geoCoords.c[2]) != 3) {
+                        	printf ("GeoLocation: invalid geoCoords string: :%s:\n",
+                       	                 SvPV(node->geoCoords,xx));
+                	}
 
-                geoSystemCompile (&node->geoSystem, &node->__geoSystem,"GeoLocation");
-                node->_dlchange = node->_change;
-        }
+                	geoSystemCompile (&node->geoSystem, &node->__geoSystem,"GeoLocation");
+                	node->_dlchange = node->_change;
+        	}
 
-	/* this is a transform */
-	/*fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	printf ("modelmatrix shows us at %f %f %f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
-	*/
+		/* this is a transform */
+		/*fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		printf ("modelmatrix shows us at %f %f %f\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+		*/
 
-	if (node->geoOrigin) render_node(node->geoOrigin);
+		if (node->geoOrigin) render_node(node->geoOrigin);
 
-	if (GeoVerbose) printf ("GeoLocating to %f %f %f\n",
+		if (GeoVerbose) printf ("GeoLocating to %f %f %f\n",
 			(double)node->__geoCoords.c[0]-GeoOrig[0],
 			(double)node->__geoCoords.c[1]-GeoOrig[1],
 			(double)node->__geoCoords.c[2]-GeoOrig[2]);
 
-	glTranslated ((double)node->__geoCoords.c[0]-GeoOrig[0],
+		glTranslated ((double)node->__geoCoords.c[0]-GeoOrig[0],
 			(double)node->__geoCoords.c[1]-GeoOrig[1],
 			(double)node->__geoCoords.c[2]-GeoOrig[2]);
-	/*fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	printf ("modelmatrix now shows us at %f %f %f\n\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
-	*/
+		/*fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		printf ("modelmatrix now shows us at %f %f %f\n\n",modelMatrix[12],modelMatrix[13],modelMatrix[14]);
+		*/
+	}
 
+}
+
+
+void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
+	double a1;
+	char *posnstring;
+	STRLEN xx, yy;
+
+	if (!render_vp) return;
+
+	/* printf ("rgvp, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind); */
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	if (node->set_bind < 100) {
+		/* up_vector is reset after a bind */
+		if (node->set_bind==1) reset_upvector();
+
+		bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
+	}
+
+	if(!node->isBound) return;
+
+	/* stop rendering when we hit A viewpoint or THE viewpoint???
+	   shouldnt we check for what_vp????
+           maybe only one viewpoint is in the tree at a time? -  ncoder*/
+
+	found_vp = 1; /* We found the viewpoint */
+
+	/* is the position "compiled" yet? */
+	if (node->_change != node->_dlchange) {
+		/* printf ("have to recompile position...\n"); */
+		posnstring = SvPV(node->position,xx);
+		if (sscanf (SvPV(node->position,xx),"%f %f %f",&node->__position.c[0],
+			&node->__position.c[1], &node->__position.c[2]) != 3) {
+			printf ("GeoViewpoint - vp:%s: invalid position string: :%s:\n",
+					SvPV(node->description,xx),
+					SvPV(node->position,yy));
+		}
+
+		geoSystemCompile (&node->geoSystem, &node->__geoSystem,
+			SvPV(node->description,xx));
+
+		node->_dlchange = node->_change;
+	}
+
+	if (node->geoOrigin) {
+		render_node (node->geoOrigin);
+	}
+
+	/* perform GeoViewpoint translations */
+	glRotated(-node->orientation.r[3]/PI*180.0,node->orientation.r[0],node->orientation.r[1],
+		node->orientation.r[2]);
+        glTranslated (GeoOrig[0] - node->__position.c[0],
+                        GeoOrig[1] - node->__position.c[1],
+                        GeoOrig[2] - node->__position.c[2]);
+
+        /* printf ("GeoViewing at %f %f %f\n",
+        		GeoOrig[0] - node->__position.c[0],
+                        GeoOrig[1] - node->__position.c[1],
+                        GeoOrig[2] - node->__position.c[2]); */
+
+	/* now, lets work on the GeoViewpoint fieldOfView */
+	glGetIntegerv(GL_VIEWPORT, viewPort);
+	if(viewPort[2] > viewPort[3]) {
+		a1=0;
+		fieldofview = node->fieldOfView/3.1415926536*180;
+	} else {
+		a1 = node->fieldOfView;
+		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
+		fieldofview = a1/3.1415926536*180;
+	}
+	calculateFrustumCone();
+	/* printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
+}
+
+void fin_GeoLocation (struct X3D_GeoLocation *this_) {
+	UNUSED (this_);
+	if (!render_vp) glPopMatrix ();
+}
+
+void child_GeoLOD (struct X3D_GeoLOD *this_) {
+	/* do nothing yet */
+	UNUSED (this_);
+}
+
+void child_GeoLocation (struct X3D_GeoLocation *this_) {
+        int nc = (this_->children).n;
+        int savedlight = curlight;
+
+
+        /* any children at all? */
+        if (nc==0) return;
+
+        #ifdef CHILDVERBOSE
+	printf("RENDER GEOLOCATION START %d (%d)\n",this_, nc);
+	#endif
+
+        /* do we have to sort this node? */
+        if ((nc > 2 && render_blend)) sortChildren(this_->children);
+
+        /* do we have a DirectionalLight for a child? */
+        if(this_->has_light) dirlightChildren(this_->children);
+
+        /* now, just render the non-directionalLight children */
+        normalChildren(this_->children);
+
+        if (render_geom && (!render_blend)) {
+                /* printf ("geoLocationChild, this is %d, extent %f %f %f\n",
+                this_, this_->_extent[0], this_->_extent[1],
+                this_->_extent[2]); */
+                /*this_->bboxSize.c[0] = this_->_extent[0];
+                this_->bboxSize.c[1] = this_->_extent[1];
+                this_->bboxSize.c[2] = this_->_extent[2];
+                BoundingBox(this_->bboxCenter,this_->bboxSize); */
+        }
+        
+        /* did we have that directionalLight? */
+        if((this_->has_light)) glPopAttrib();
+        
+        #ifdef CHILDVERBOSE
+	printf("RENDER GEOLOCATION END %d\n",this_);
+	#endif
+
+        
+        curlight = savedlight;
+}
+
+void changed_GeoLocation ( struct X3D_GeoLocation *this_) { 
+                int i;
+                int nc = ((this_->children).n);
+                struct X3D_Box *p;
+                struct X3D_Virt *v;
+
+                (this_->has_light) = 0;
+                for(i=0; i<nc; i++) {
+                        p = (struct X3D_Box *)((this_->children).p[i]);
+                        if (p->_nodeType == NODE_DirectionalLight) {
+                                /*  printf ("group found a light\n");*/
+                                (this_->has_light) ++;
+                        }
+                }
+        }
+
+
+void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_) {
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+	       struct pt tupv = {0,1,0};
+	       struct pt delta = {0,0,0};
+
+	       struct X3D_PolyRep pr;
+	       prflags flags = 0;
+	       int change = 0;
+		STRLEN xx;
+
+		float xSpacing = 0.0;	/* GeoElevationGrid uses strings here */
+		float zSpacing = 0.0;	/* GeoElevationGrid uses strings here */
+		sscanf (SvPV (this_->xSpacing,xx),"%f",&xSpacing);
+		sscanf (SvPV(this_->zSpacing,xx),"%f",&zSpacing);
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
+                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+
+
+ 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
+	       if(!this_->solid) {
+		   flags = flags | PR_DOUBLESIDED;
+	       }
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+/*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
+
+
+	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,this_->xDimension,
+				this_->zDimension,xSpacing,zSpacing,
+				modelMatrix,flags);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+		   fprintf(stderr,"COLLISION_ELG: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       }
+		#endif
+}
+
+
+void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *this_) {
+	render_ray_polyrep(this_, NULL);
 }

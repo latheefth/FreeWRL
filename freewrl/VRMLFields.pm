@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.57  2005/12/21 18:16:40  crc_canada
+# Rework Generation code.
+#
 # Revision 1.56  2005/11/18 18:24:24  crc_canada
 # TextureBackground work.
 #
@@ -264,8 +267,6 @@ sub clength ($) {0} #for C routes. Keep in sync with getClen in VRMLC.pm.
 sub calloc ($$) {""}
 sub cassign ($$) {"$_[1] = $_[2];/*cassign*/"}
 sub cfree ($) {if($_[0]->calloc) {return "free($_[1]);"} return ""}
-sub cget {if(!defined $_[2]) {return "$_[1] /*cget*/"}
-	else {die "If CGet with indices, abstract must be overridden"} }
 sub cstruct () {"/*cstruct*/"}
 sub cfunc {die("Must overload cfunc")}
 
@@ -400,8 +401,6 @@ sub cstruct {return "struct SFColor {
 	float c[3]; };"}
 sub ctype {return "struct SFColor $_[1]"}
 sub clength {5} #for C routes. Keep in sync with getClen in VRMLC.pm.
-sub cget {return "($_[1].c[$_[2]])"}
-
 sub cfunc {
 	return "{
 		AV *a;
@@ -463,8 +462,6 @@ sub rot_invert {
 
 sub ctype {return "struct SFColorRGBA $_[1]"}
 sub clength {7} #for C routes. Keep in sync with getClen in VRMLC.pm.
-sub cget {return "($_[1].r[$_[2]])"}
-
 sub cfunc {
 	return "{
 		AV *a;
@@ -544,8 +541,6 @@ sub cstruct {return "struct SFVec2f {
 	float c[2]; };"}
 sub ctype {return "struct SFVec2f $_[1]"}
 sub clength {6} #for C routes. Keep in sync with getClen in VRMLC.pm.
-sub cget {return "($_[1].c[$_[2]])"}
-
 sub cfunc {
 	return "{
 		AV *a;
@@ -636,8 +631,6 @@ sub rot_multvec {
 
 sub ctype {return "struct SFRotation $_[1]"}
 sub clength {4} #for C routes. Keep in sync with getClen in VRMLC.pm.
-sub cget {return "($_[1].r[$_[2]])"}
-
 sub cfunc {
 	return "{
 		AV *a;
@@ -683,7 +676,6 @@ sub parse {
 
 sub ctype {return "int $_[1]"}
 sub clength {1} #for C routes. Keep in sync with getClen in VRMLC.pm.
-sub cget {return "($_[1])"}
 sub cfunc {return "$_[1] = SvIV($_[2]);/*ff*/\n"}
 
 sub print {print ($_[1] ? TRUE : FALSE)}
@@ -916,15 +908,6 @@ sub cassign {
 sub cfree {
 	"if($_[1].p) {free($_[1].p);$_[1].p=0;} $_[1].n = 0;"
 }
-sub cgetn { "($_[1].n)" }
-sub cget { if($#_ == 1) {"($_[1].p)"} else {
-	my $r = (ref $_[0] or $_[0]);
-	$r =~ s/::MF/::SF/;
-	if($#_ == 2) {
-		return "($_[1].p[$_[2]])";
-	}
-	return $r->cget("($_[1].p[$_[2]])", @$_[3..$#_])
-	} }
 
 sub cfunc {
 	my $r = (ref $_[0] or $_[0]);
@@ -1059,8 +1042,6 @@ sub cstruct {""}
 sub cfunc {
 	"$_[1] = (void *)SvIV($_[2]); NODE_ADD_PARENT($_[1]);/*ii*/"
 }
-sub cget {if(!defined $_[2]) {return "$_[1]"}
-	else {die "SFNode index!??!"} }
 
 sub as_string {
 	$_[1]->as_string();

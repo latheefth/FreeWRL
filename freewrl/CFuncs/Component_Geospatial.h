@@ -57,5 +57,6 @@ extern double GeoOrig[3];               /* last GeoOrigin parsed in lat/long/elv
 
 /* function prototypes */
 void geoSystemCompile (struct Multi_String *geoSystem, int *__geoSystem, char *description);
-void render_GeoOrigin (struct X3D_GeoOrigin *node);
-void render_GeoLocation (struct X3D_GeoLocation *node);
+void prep_GeoOrigin (struct X3D_GeoOrigin *node);
+
+void prep_GeoLocation (struct X3D_GeoLocation *node);

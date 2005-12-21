@@ -544,16 +544,6 @@ extern int PointInView(struct X3D_Transform *nod);
 extern double nearPlane, farPlane, screenRatio;
 
 /* children stuff moved out of VRMLRend.pm and VRMLC.pm for v1.08 */
-void groupingChild (struct X3D_Group *this_);
-void staticGroupingChild (struct X3D_StaticGroup *this_);
-void billboardChild (struct X3D_Billboard *this_);
-void transformChild (struct X3D_Transform *this_);
-void anchorChild (struct X3D_Anchor *this_);
-void geolocationChild (struct X3D_GeoLocation *this_);
-void inlineChild (struct X3D_Inline *this_);
-void lodChild (struct X3D_LOD *this_);
-void inlinelodChild (struct X3D_InlineLoadControl *this_);
-void collisionChild(struct X3D_Collision *this_);
 
 extern int render_sensitive,render_vp,render_light,render_proximity,curlight,verbose,render_blend,render_geom,render_collision;
 
@@ -587,14 +577,41 @@ void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
 void EAI_readNewWorld(char *inputstring);
 void addToNode (void *rc,  void *newNode);
-void make_text(struct X3D_Text *this_ );
-void make_extrusion(struct X3D_Extrusion *this_);
 void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
-void make_GeoElevationGrid(struct X3D_GeoElevationGrid *this_);
-void collideIndexedFaceSet(struct X3D_IndexedFaceSet *this_);
-
 
 void render_LoadSensor(struct X3D_LoadSensor *this);
+
+void render_Text (struct X3D_Text * this_);
+void rendray_Text (struct X3D_Text *this_);
+void make_Text (struct X3D_Text * this_);
+void collide_Text (struct X3D_Text * this_);
+void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *this);
+void render_TextureCoordinate(struct X3D_TextureCoordinate *this);
+
+/* Component Grouping */
+void prep_Transform (struct X3D_Transform *this_);
+void fin_Transform (struct X3D_Transform *this_);
+void child_Transform (struct X3D_Transform *this_);
+void child_Group (struct X3D_Group *this_);
+void child_StaticGroup (struct X3D_StaticGroup *this_);
+void child_Switch (struct X3D_Switch *this_);
+
+void changed_Group (struct X3D_Group *this_);
+void changed_StaticGroup (struct X3D_StaticGroup *this_);
+void changed_Transform (struct X3D_Transform *this_);
+
+/* Environmental Sensor nodes */
+proximity_ProximitySensor (struct X3D_ProximitySensor *this_);
+
+/* Navigation Component */
+void prep_Billboard (struct X3D_Billboard *this_);
+void changed_Billboard (struct X3D_Billboard *this_);
+void prep_Viewpoint(struct X3D_Viewpoint *node);
+void child_Billboard (struct X3D_Billboard *this_);
+void child_LOD (struct X3D_LOD *this_);
+void fin_Billboard (struct X3D_Billboard *this_);
+void child_Collision (struct X3D_Collision *this_);
+void changed_Collision (struct X3D_Collision *this_);
 
 
 /* HAnim Component */
@@ -609,6 +626,10 @@ void child_HAnimSite(struct X3D_HAnimSite *this_);
 void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node);
 void render_HAnimJoint (struct X3D_HAnimJoint * node);
 
+void fin_HAnimSite (struct X3D_HAnimSite *this_);
+void fin_HAnimJoint (struct X3D_HAnimJoint *this_);
+
+void changed_HAnimSite (struct X3D_HAnimSite *this_);
 
 
 
@@ -621,9 +642,6 @@ void render_PixelTexture (struct X3D_PixelTexture *this_);
 void render_ImageTexture (struct X3D_ImageTexture *this_);
 void render_MultiTexture (struct X3D_MultiTexture *this_);
 void render_MovieTexture (struct X3D_MovieTexture *this_);
-void render_Text (struct X3D_Text * this_);
-void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *this);
-void render_TextureCoordinate(struct X3D_TextureCoordinate *this);
 
 /* Shape Component */
 void render_Appearance (struct X3D_Appearance *this_);
@@ -631,15 +649,34 @@ void render_FillProperties (struct X3D_FillProperties *this_);
 void render_LineProperties (struct X3D_LineProperties *this_);
 void render_Material (struct X3D_Material *this_);
 void render_Shape (struct X3D_Shape *this_);
+void child_Shape (struct X3D_Shape *this_);
+void child_Appearance (struct X3D_Appearance *this_);
 
 /* Geometry3D nodes */
 void render_Box (struct X3D_Box *this);
+void collide_Box (struct X3D_Box *this);
 void render_Cone (struct X3D_Cone *this);
+void collide_Cone (struct X3D_Cone *this);
 void render_Cylinder (struct X3D_Cylinder *this);
+void collide_Cylinder (struct X3D_Cylinder *this);
 void render_ElevationGrid (struct X3D_ElevationGrid *this);
+#define collide_ElevationGrid collide_IndexedFaceSet
 void render_Extrusion (struct X3D_Extrusion *this);
+void collide_Extrusion (struct X3D_Extrusion *this);
+void rendray_Extrusion (struct X3D_Extrusion *this_);
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
+void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
+void rendray_IndexedFaceSet (struct X3D_IndexedFaceSet *this_);
 void render_Sphere (struct X3D_Sphere *this);
+void collide_Sphere (struct X3D_Sphere *this);
+void make_Extrusion (struct X3D_Extrusion *this);
+#define make_IndexedFaceSet make_indexedfaceset
+#define make_ElevationGrid make_indexedfaceset
+void rendray_ElevationGrid (struct X3D_ElevationGrid *this_);
+void rendray_Box (struct X3D_Box *this_);
+void rendray_Sphere (struct X3D_Sphere *this_);
+void rendray_Cylinder (struct X3D_Cylinder *this_);
+void rendray_Cone (struct X3D_Cone *this_);
 
 /* Geometry2D nodes */
 void render_Arc2D (struct X3D_Arc2D *this_);
@@ -650,8 +687,17 @@ void render_Polyline2D (struct X3D_Polyline2D *this_);
 void render_Polypoint2D (struct X3D_Polypoint2D *this_);
 void render_Rectangle2D (struct X3D_Rectangle2D *this_);
 void render_TriangleSet2D (struct X3D_TriangleSet2D *this_);
+void collide_Disk2D (struct X3D_Disk2D *this_);
+void collide_Rectangle2D (struct X3D_Rectangle2D *this_);
+void collide_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 
 /* Rendering nodes */
+void rendray_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_);
+void rendray_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_);
+void rendray_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_);
+void rendray_TriangleSet (struct X3D_TriangleSet *this_);
+void rendray_TriangleFanSet (struct X3D_TriangleFanSet *this_);
+void rendray_TriangleStripSet (struct X3D_TriangleStripSet *this_);
 void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_); 
 void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_); 
 void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_); 
@@ -661,12 +707,43 @@ void render_TriangleSet (struct X3D_TriangleSet *this_);
 void render_LineSet (struct X3D_LineSet *this_); 
 void render_IndexedLineSet (struct X3D_IndexedLineSet *this_); 
 void render_PointSet (struct X3D_PointSet *this_); 
+#define collide_IndexedTriangleFanSet  collide_IndexedFaceSet
+#define collide_IndexedTriangleSet  collide_IndexedFaceSet
+#define collide_IndexedTriangleStripSet  collide_IndexedFaceSet
+#define collide_TriangleFanSet  collide_IndexedFaceSet
+#define collide_TriangleSet  collide_IndexedFaceSet
+#define collide_TriangleStripSet  collide_IndexedFaceSet
+#define make_IndexedTriangleFanSet  make_indexedfaceset
+#define make_IndexedTriangleSet  make_indexedfaceset
+#define make_IndexedTriangleStripSet  make_indexedfaceset
+#define make_TriangleFanSet  make_indexedfaceset
+#define make_TriangleSet  make_indexedfaceset
+#define make_TriangleStripSet  make_indexedfaceset
 
 /* Component Lighting Nodes */
 void render_DirectionalLight (struct X3D_DirectionalLight *this_);
+void light_SpotLight (struct X3D_SpotLight *this_);
+void light_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
+void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
+void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
+void make_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
+void prep_GeoViewpoint(struct X3D_GeoViewpoint *node);
+void fin_GeoLocation (struct X3D_GeoLocation *this_);
+void changed_GeoLocation (struct X3D_GeoLocation *this_);
+void child_GeoLOD (struct X3D_GeoLOD *this_);
+void child_GeoLocation (struct X3D_GeoLocation *this_);
+
+/* Networking Component */
+void child_Anchor (struct X3D_Anchor *this_);
+void child_Inline (struct X3D_Inline *this_);
+void changed_Inline (struct X3D_Inline *this_);
+void child_InlineLoadControl (struct X3D_InlineLoadControl *this_);
+void changed_InlineLoadControl (struct X3D_InlineLoadControl *this_);
+void changed_Anchor (struct X3D_Anchor *this_);
+
 
 #define NODE_ADD_PARENT(a) add_parent(a,ptr)
 #define NODE_REMOVE_PARENT(a) add_parent(a,ptr)

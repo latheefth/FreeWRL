@@ -426,3 +426,68 @@ return;
 	curlight = savedlight;
 }
 
+void fin_HAnimSite (struct X3D_HAnimSite * this_) {
+        if(!render_vp) {
+            /* glPopMatrix();*/
+            fwXformPop(this_);
+        } else {
+           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+            if(found_vp) {
+                glTranslatef(((this_->center).c[0]),((this_->center).c[1]),((this_->center).c[2])
+                );
+                glRotatef(((this_->scaleOrientation).r[3])/3.1415926536*180,((this_->scaleOrientation).r[0]),((this_->scaleOrientation).r[1]),((this_->scaleOrientation).r[2])
+                );
+                glScalef(1.0/(((this_->scale).c[0])),1.0/(((this_->scale).c[1])),1.0/(((this_->scale).c[2]))
+                );
+                glRotatef(-(((this_->scaleOrientation).r[3])/3.1415926536*180),((this_->scaleOrientation).r[0]),((this_->scaleOrientation).r[1]),((this_->scaleOrientation).r[2])
+                );
+                glRotatef(-(((this_->rotation).r[3]))/3.1415926536*180,((this_->rotation).r[0]),((this_->rotation).r[1]),((this_->rotation).r[2])
+                );
+                glTranslatef(-(((this_->center).c[0])),-(((this_->center).c[1])),-(((this_->center).c[2]))
+                );
+                glTranslatef(-(((this_->translation).c[0])),-(((this_->translation).c[1])),-(((this_->translation).c[2]))
+                );
+            }
+        }
+}
+
+void fin_HAnimJoint (struct X3D_HAnimJoint * this_) {
+        if(!render_vp) {
+            /* glPopMatrix();*/
+            fwXformPop(this_);
+        } else {
+           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+            if(found_vp) {
+                glTranslatef(((this_->center).c[0]),((this_->center).c[1]),((this_->center).c[2])
+                );
+                glRotatef(((this_->scaleOrientation).r[3])/3.1415926536*180,((this_->scaleOrientation).r[0]),((this_->scaleOrientation).r[1]),((this_->scaleOrientation).r[2])
+                );
+                glScalef(1.0/(((this_->scale).c[0])),1.0/(((this_->scale).c[1])),1.0/(((this_->scale).c[2]))
+                );
+                glRotatef(-(((this_->scaleOrientation).r[3])/3.1415926536*180),((this_->scaleOrientation).r[0]),((this_->scaleOrientation).r[1]),((this_->scaleOrientation).r[2])
+                );
+                glRotatef(-(((this_->rotation).r[3]))/3.1415926536*180,((this_->rotation).r[0]),((this_->rotation).r[1]),((this_->rotation).r[2])
+                );
+                glTranslatef(-(((this_->center).c[0])),-(((this_->center).c[1])),-(((this_->center).c[2]))
+                );
+                glTranslatef(-(((this_->translation).c[0])),-(((this_->translation).c[1])),-(((this_->translation).c[2]))
+                );
+            }
+        }
+}
+
+void changed_HAnimSite (struct X3D_HAnimSite *this_) {
+               int i;
+                int nc = ((this_->children).n);
+                struct X3D_Box *p;
+                struct X3D_Virt *v;
+
+                (this_->has_light) = 0;
+                for(i=0; i<nc; i++) {
+                        p = (struct X3D_Box *)((this_->children).p[i]);
+                        if (p->_nodeType == NODE_DirectionalLight) {
+                                /*  printf ("group found a light\n");*/
+                                (this_->has_light) ++;
+                        }
+                }
+}

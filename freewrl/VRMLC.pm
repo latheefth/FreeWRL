@@ -6,26 +6,11 @@
 # See the GNU Library General Public License (file COPYING in the distribution)
 # for conditions of use and redistribution.
 
-# The C routines to render various nodes quickly
-#
-# Field values by subs so that generalization possible..
-#
-# getf(Node,"fieldname",[index,...]) returns c string to get field name.
-# getaf(Node,"fieldname",n) returns comma-separated list of all the field values.
-# getfn(Node,"fieldname"
-#
-# Of these, VP is taken into account by Transform
-#
-# Why so elaborate code generation?
-#  - makes it easy to change structs later
-#  - makes it very easy to add fast implementations for new proto'ed
-#    node types
-#
-#
-# TODO:
-#  Test indexedlineset
 #
 # $Log$
+# Revision 1.198  2005/12/21 18:16:40  crc_canada
+# Rework Generation code.
+#
 # Revision 1.197  2005/12/16 18:31:25  crc_canada
 # remove print debug statements
 #
@@ -246,561 +231,9 @@ require 'VRMLRend.pm';
 
 
 
-#######################################################################
-#######################################################################
-#######################################################################
-#
-# RendRay --
-#  code for checking whether a ray (defined by mouse pointer)
-#  intersects with the geometry of the primitive.
-#
-#
-
-# Y axis rotation around an unit vector:
-# alpha = angle between Y and vec, theta = rotation angle
-#  1. in X plane ->
-#   Y = Y - sin(alpha) * (1-cos(theta))
-#   X = sin(alpha) * sin(theta)
-#
-#
-# How to find out the orientation from two vectors (we are allowed
-# to assume no negative scales)
-#  1. Y -> Y' -> around any vector on the plane midway between the
-#                two vectors
-#     Z -> Z' -> around any vector ""
-#
-# -> intersection.
-#
-# The plane is the midway normal between the two vectors
-# (if the two vectors are the same, it is the vector).
-
-%RendRayC = (
-Box => '
-	float x = $f(size,0)/2;
-	float y = $f(size,1)/2;
-	float z = $f(size,2)/2;
-	/* 1. x=const-plane faces? */
-	if(!XEQ) {
-		float xrat0 = XRAT(x);
-		float xrat1 = XRAT(-x);
-		#ifdef RENDERVERBOSE 
-		printf("!XEQ: %f %f\\n",xrat0,xrat1);
-		#endif
-
-		if(TRAT(xrat0)) {
-			float cy = MRATY(xrat0);
-			#ifdef RENDERVERBOSE 
-			printf("TRok: %f\\n",cy);
-			#endif
-
-			if(cy >= -y && cy < y) {
-				float cz = MRATZ(xrat0);
-				#ifdef RENDERVERBOSE 
-				printf("cyok: %f\\n",cz);
-				#endif
-
-				if(cz >= -z && cz < z) {
-					#ifdef RENDERVERBOSE 
-					printf("czok:\\n");
-					#endif
-
-					rayhit(xrat0, x,cy,cz, 1,0,0, -1,-1, "cube x0");
-				}
-			}
-		}
-		if(TRAT(xrat1)) {
-			float cy = MRATY(xrat1);
-			if(cy >= -y && cy < y) {
-				float cz = MRATZ(xrat1);
-				if(cz >= -z && cz < z) {
-					rayhit(xrat1, -x,cy,cz, -1,0,0, -1,-1, "cube x1");
-				}
-			}
-		}
-	}
-	if(!YEQ) {
-		float yrat0 = YRAT(y);
-		float yrat1 = YRAT(-y);
-		if(TRAT(yrat0)) {
-			float cx = MRATX(yrat0);
-			if(cx >= -x && cx < x) {
-				float cz = MRATZ(yrat0);
-				if(cz >= -z && cz < z) {
-					rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cube y0");
-				}
-			}
-		}
-		if(TRAT(yrat1)) {
-			float cx = MRATX(yrat1);
-			if(cx >= -x && cx < x) {
-				float cz = MRATZ(yrat1);
-				if(cz >= -z && cz < z) {
-					rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cube y1");
-				}
-			}
-		}
-	}
-	if(!ZEQ) {
-		float zrat0 = ZRAT(z);
-		float zrat1 = ZRAT(-z);
-		if(TRAT(zrat0)) {
-			float cx = MRATX(zrat0);
-			if(cx >= -x && cx < x) {
-				float cy = MRATY(zrat0);
-				if(cy >= -y && cy < y) {
-					rayhit(zrat0, cx,cy,z, 0,0,1, -1,-1,"cube z0");
-				}
-			}
-		}
-		if(TRAT(zrat1)) {
-			float cx = MRATX(zrat1);
-			if(cx >= -x && cx < x) {
-				float cy = MRATY(zrat1);
-				if(cy >= -y && cy < y) {
-					rayhit(zrat1, cx,cy,-z, 0,0,-1,  -1,-1,"cube z1");
-				}
-			}
-		}
-	}
-',
-
-# Distance to zero as function of ratio is
-# sqrt(
-#	((1-r)t_r1.x + r t_r2.x)**2 +
-#	((1-r)t_r1.y + r t_r2.y)**2 +
-#	((1-r)t_r1.z + r t_r2.z)**2
-# ) == radius
-# Therefore,
-# radius ** 2 == ... ** 2
-# and
-# radius ** 2 =
-# 	(1-r)**2 * (t_r1.x**2 + t_r1.y**2 + t_r1.z**2) +
-#       2*(r*(1-r)) * (t_r1.x*t_r2.x + t_r1.y*t_r2.y + t_r1.z*t_r2.z) +
-#       r**2 (t_r2.x**2 ...)
-# Let's name tr1sq, tr2sq, tr1tr2 and then we have
-# radius ** 2 =  (1-r)**2 * tr1sq + 2 * r * (1-r) tr1tr2 + r**2 tr2sq
-# = (tr1sq - 2*tr1tr2 + tr2sq) r**2 + 2 * r * (tr1tr2 - tr1sq) + tr1sq
-#
-# I.e.
-#
-# (tr1sq - 2*tr1tr2 + tr2sq) r**2 + 2 * r * (tr1tr2 - tr1sq) +
-#	(tr1sq - radius**2) == 0
-#
-# I.e. second degree eq. a r**2 + b r + c == 0 where
-#  a = tr1sq - 2*tr1tr2 + tr2sq
-#  b = 2*(tr1tr2 - tr1sq)
-#  c = (tr1sq-radius**2)
-#
-#
-Sphere => '
-	float r = $f(radius);
-	/* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
-	float tr1sq = VECSQ(t_r1);
-	/* float tr2sq = VECSQ(t_r2); */
-	/* float tr1tr2 = VECPT(t_r1,t_r2); */
-	struct pt dr2r1;
-	float dlen;
-	float a,b,c,disc;
-
-	VECDIFF(t_r2,t_r1,dr2r1);
-	dlen = VECSQ(dr2r1);
-
-	a = dlen; /* tr1sq - 2*tr1tr2 + tr2sq; */
-	b = 2*(VECPT(dr2r1, t_r1));
-	c = tr1sq - r*r;
-
-	disc = b*b - 4*a*c; /* The discriminant */
-
-	if(disc > 0) { /* HITS */
-		float q ;
-		float sol1 ;
-		float sol2 ;
-		float cx,cy,cz;
-		q = sqrt(disc);
-		/* q = (-b+(b>0)?q:-q)/2; */
-		sol1 = (-b+q)/(2*a);
-		sol2 = (-b-q)/(2*a);
-		/*
-		printf("SPHSOL0: (%f %f %f) (%f %f %f)\\n",
-			t_r1.x, t_r1.y, t_r1.z, t_r2.x, t_r2.y, t_r2.z);
-		printf("SPHSOL: (%f %f %f) (%f) (%f %f) (%f) (%f %f)\\n",
-			tr1sq, tr2sq, tr1tr2, a, b, c, und, sol1, sol2);
-		*/
-		cx = MRATX(sol1);
-		cy = MRATY(sol1);
-		cz = MRATZ(sol1);
-		rayhit(sol1, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 0");
-		cx = MRATX(sol2);
-		cy = MRATY(sol2);
-		cz = MRATZ(sol2);
-		rayhit(sol2, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 1");
-	}
-',
-
-# Cylinder: first test the caps, then against infinite cylinder.
-Cylinder => '
-	float h = $f(height)/2; /* pos and neg dir. */
-	float r = $f(radius);
-	float y = h;
-	/* Caps */
-	if(!YEQ) {
-		float yrat0 = YRAT(y);
-		float yrat1 = YRAT(-y);
-		if(TRAT(yrat0)) {
-			float cx = MRATX(yrat0);
-			float cz = MRATZ(yrat0);
-			if(r*r > cx*cx+cz*cz) {
-				rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cylcap 0");
-			}
-		}
-		if(TRAT(yrat1)) {
-			float cx = MRATX(yrat1);
-			float cz = MRATZ(yrat1);
-			if(r*r > cx*cx+cz*cz) {
-				rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cylcap 1");
-			}
-		}
-	}
-	/* Body -- do same as for sphere, except no y axis in distance */
-	if((!XEQ) && (!ZEQ)) {
-		float dx = t_r2.x-t_r1.x; float dz = t_r2.z-t_r1.z;
-		float a = dx*dx + dz*dz;
-		float b = 2*(dx * t_r1.x + dz * t_r1.z);
-		float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z - r*r;
-		float und;
-		b /= a; c /= a;
-		und = b*b - 4*c;
-		if(und > 0) { /* HITS the infinite cylinder */
-			float sol1 = (-b+sqrt(und))/2;
-			float sol2 = (-b-sqrt(und))/2;
-			float cy,cx,cz;
-			cy = MRATY(sol1);
-			if(cy > -h && cy < h) {
-				cx = MRATX(sol1);
-				cz = MRATZ(sol1);
-				rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
-			}
-			cy = MRATY(sol2);
-			if(cy > -h && cy < h) {
-				cx = MRATX(sol2);
-				cz = MRATZ(sol2);
-				rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 2");
-			}
-		}
-	}
-',
-
-# For cone, this is most difficult. We have
-# sqrt(
-#	((1-r)t_r1.x + r t_r2.x)**2 +
-#	((1-r)t_r1.z + r t_r2.z)**2
-# ) == radius*( -( (1-r)t_r1.y + r t_r2.y )/(2*h)+0.5)
-# == radius * ( -( r*(t_r2.y - t_r1.y) + t_r1.y )/(2*h)+0.5)
-# == radius * ( -r*(t_r2.y-t_r1.y)/(2*h) + 0.5 - t_r1.y/(2*h))
-
-#
-# Other side: r*r*(
-Cone => '
-	float h = $f(height)/2; /* pos and neg dir. */
-	float y = h;
-	float r = $f(bottomRadius);
-	float dx = t_r2.x-t_r1.x; float dz = t_r2.z-t_r1.z;
-	float dy = t_r2.y-t_r1.y;
-	float a = dx*dx + dz*dz - (r*r*dy*dy/(2*h*2*h));
-	float b = 2*(dx*t_r1.x + dz*t_r1.z) +
-		2*r*r*dy/(2*h)*(0.5-t_r1.y/(2*h));
-	float tmp = (0.5-t_r1.y/(2*h));
-	float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z
-		- r*r*tmp*tmp;
-	float und;
-	b /= a; c /= a;
-	und = b*b - 4*c;
-	/*
-	printf("CONSOL0: (%f %f %f) (%f %f %f)\\n",
-		t_r1.x, t_r1.y, t_r1.z, t_r2.x, t_r2.y, t_r2.z);
-	printf("CONSOL: (%f %f %f) (%f) (%f %f) (%f)\\n",
-		dx, dy, dz, a, b, c, und);
-	*/
-	if(und > 0) { /* HITS the infinite cylinder */
-		float sol1 = (-b+sqrt(und))/2;
-		float sol2 = (-b-sqrt(und))/2;
-		float cy,cx,cz;
-		float cy0;
-		cy = MRATY(sol1);
-		if(cy > -h && cy < h) {
-			cx = MRATX(sol1);
-			cz = MRATZ(sol1);
-			/* XXX Normal */
-			rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 1");
-		}
-		cy0 = cy;
-		cy = MRATY(sol2);
-		if(cy > -h && cy < h) {
-			cx = MRATX(sol2);
-			cz = MRATZ(sol2);
-			rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 2");
-		}
-		/*
-		printf("CONSOLV: (%f %f) (%f %f)\\n", sol1, sol2,cy0,cy);
-		*/
-	}
-	if(!YEQ) {
-		float yrat0 = YRAT(-y);
-		if(TRAT(yrat0)) {
-			float cx = MRATX(yrat0);
-			float cz = MRATZ(yrat0);
-			if(r*r > cx*cx + cz*cz) {
-				rayhit(yrat0, cx, -y, cz, 0, -1, 0, -1, -1, "conbot");
-			}
-		}
-	}
-',
-
-GeoElevationGrid => ( ' render_ray_polyrep(this_, NULL); '),
-
-ElevationGrid => ( ' render_ray_polyrep(this_, NULL); '),
-
-Text => ( ' render_ray_polyrep(this_, NULL); '),
-
-Extrusion => ( ' render_ray_polyrep(this_, NULL); '),
-
-IndexedFaceSet => '
-		struct SFColor *points=0; int npoints;
-		struct X3D_Coordinate *xc;
-
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                        	freewrlDie ("IndexedFaceSet - coord node wrong type");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-		render_ray_polyrep(this_, points);
-',
-
-IndexedTriangleFanSet => '
-		struct SFColor *points=0; int npoints;
-		struct X3D_Coordinate *xc;
-
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                        	freewrlDie ("IndexedTriangleFanSet - coord node wrong type");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-		render_ray_polyrep(this_, points);
-',
-
-IndexedTriangleSet => '
-		struct SFColor *points=0; int npoints;
-		struct X3D_Coordinate *xc;
-
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                        	freewrlDie ("IndexedTriangleSet - coord node wrong type");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-		render_ray_polyrep(this_, points);
-',
-
-IndexedTriangleStripSet => '
-		struct SFColor *points=0; int npoints;
-		struct X3D_Coordinate *xc;
-
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                        	freewrlDie ("IndexedTriangleStripSet - coord node wrong type");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-		render_ray_polyrep(this_, points);
-',
-
-TriangleFanSet => '
-		struct SFColor *points=0; int npoints;
-		struct X3D_Coordinate *xc;
-
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                        	freewrlDie ("TriangleFanSet - coord node wrong type");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-		render_ray_polyrep(this_, points);
-',
-
-TriangleStripSet => '
-		struct SFColor *points=0; int npoints;
-		struct X3D_Coordinate *xc;
-
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                        	freewrlDie ("TriangleStripSet - coord node wrong type");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-		render_ray_polyrep(this_, points);
-',
-TriangleSet => '
-		struct SFColor *points=0; int npoints;
-		struct X3D_Coordinate *xc;
-
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
-                	if (xc->_nodeType != NODE_Coordinate) {
-                        	freewrlDie ("TriangleSet - coord node wrong type");
-                	} else {
-                        	points = xc->point.p;
-                        	npoints = xc->point.n;
-                	}
-        	}
- 
-		render_ray_polyrep(this_, points);
-',
-
-);
-
-#####################################################################3
-#####################################################################3
-#####################################################################3
-#
-# GenPolyRep
-#  code for generating internal polygonal representations
-#  of some nodes (ElevationGrid, Text, Extrusion and IndexedFaceSet)
-#
-#
-
-%GenPolyRepC = (
-	ElevationGrid => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
-	Extrusion => 'make_extrusion(this_);',
-	IndexedFaceSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *) this_);',
-	IndexedTriangleFanSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
-	IndexedTriangleSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
-	IndexedTriangleStripSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
-	TriangleFanSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
-	TriangleStripSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
-	TriangleSet => 'make_indexedfaceset((struct X3D_IndexedFaceSet *)this_);',
-	Text => 'make_text(this_);',
-	GeoElevationGrid => 'make_GeoElevationGrid(this_);',
-);
-
 ######################################################################
 ######################################################################
 ######################################################################
-#
-# Generation
-#  Functions for generating the code
-#
-
-
-{
-	# old method - now, lets gen structs for literally all nodes.
-	#my %AllNodes = (%RendC, %RendRayC, %PrepC, %FinC, %ChildC, %LightC, %ChangedC, %ProximityC, %CollisionC);
-	# @NodeTypes = keys %AllNodes;
-
-	@NodeTypes = keys %VRML::Nodes;
-	# foreach my $key (keys (%{$VRML::Nodes})) {print "field $key\n";}
-}
-
-sub assgn_m {
-	my($f, $l) = @_;
-	return ((join '',map {"m[$_] = ".getf(Material, $f, $_).";"} 0..2).
-		"m[3] = $l;");
-}
-
-# XXX Might we need separate fields for separate structs?
-sub getf {
-	my ($t, $f, @l) = @_;
-	my $type = $VRML::Nodes{$t}{FieldTypes}{$f};
-	if($type eq "") {
-		die("Invalid type $t $f '$type'");
-	}
-	return "VRML::Field::$type"->cget("(this_->$f)",@l);
-}
-
-sub getfn {
-	my($t, $f) = @_;
-	my $type = $VRML::Nodes{$t}{FieldTypes}{$f};
-	return "VRML::Field::$type"->cgetn("(this_->$f)");
-}
-
-# XXX Code copy :(
-sub fvirt {
-	my($t, $f, $ret, $v, @a) = @_;
-	# Die if not exists
-	my $type = $VRML::Nodes{$t}{FieldTypes}{$f};
-	if($type ne "SFNode") {
-		die("Fvirt must have SFNode");
-	}
-	if($ret) {$ret = "$ret = ";}
-	return "if(this_->$f) {
-		  if(!(*(struct X3D_Virt **)(this_->$f))->$v) {
-		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
-		  }
-		  $ret ((*(struct X3D_Virt **)(this_->$f))->$v(this_->$f,
-		    ".(join ',',@a).")) ;}
- 	  else { (freewrlDie(\"NULL FIELD $t $f $a\"));}";
-}
-
-sub fvirt_null {
-	my($t, $f, $ret, $v, @a) = @_;
-	# Die if not exists
-	my $type = $VRML::Nodes{$t}{FieldTypes}{$f};
-	if($type ne "SFNode") {
-		die("Fvirt must have SFNode");
-	}
-	if($ret) {$ret = "$ret = ";}
-	return "if(this_->$f) {
-		  if(!(*(struct X3D_Virt **)(this_->$f))->$v) {
-		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
-		  }
-		  $ret ((*(struct X3D_Virt **)(this_->$f))->$v(this_->$f,
-		    ".(join ',',@a).")) ;
-		}";
-}
-
-
-sub fgetfnvirt_n {
-	my($n, $ret, $v, @a) = @_;
-	if($ret) {$ret = "$ret = ";}
-	return "if($n) {
-	         if(!(*(struct X3D_Virt **)n)->$v) {
-		  	freewrlDie(\" - probable incorrect field for node $t field $f accessMethod $v\");
-		 }
-		 $ret ((*(struct X3D_Virt **)($n))->$v($n,
-		    ".(join ',',@a).")) ;}
-	"
-}
-
-sub rend_geom {
-	return $_[0];
-}
-
-################################################################
 #
 # gen_struct - Generate a node structure, adding fields for
 # internal use
@@ -946,6 +379,24 @@ sub get_rendfunc {
 			# or generated here? (different names)
 			if ($_ eq "Rend") {
 				$v .= $comma."(void *)render_".${n};
+			} elsif ($_ eq "Prep") {
+				$v .= $comma."(void *)prep_".${n};
+			} elsif ($_ eq "Fin") {
+				$v .= $comma."(void *)fin_".${n};
+			} elsif ($_ eq "Child") {
+				$v .= $comma."(void *)child_".${n};
+			} elsif ($_ eq "Light") {
+				$v .= $comma."(void *)light_".${n};
+			} elsif ($_ eq "Changed") {
+				$v .= $comma."(void *)changed_".${n};
+			} elsif ($_ eq "Proximity") {
+				$v .= $comma."(void *)proximity_".${n};
+			} elsif ($_ eq "Collision") {
+				$v .= $comma."(void *)collide_".${n};
+			} elsif ($_ eq "GenPolyRep") {
+				$v .= $comma."(void *)make_".${n};
+			} elsif ($_ eq "RendRay") {
+				$v .= $comma."(void *)rendray_".${n};
 			} else {
 				$v .= $comma."${n}_$_";
 			}	
@@ -963,21 +414,19 @@ sub get_rendfunc {
 		# Rend func now in CFuncs directory and name changed from "xxx_Rend" to "render_xxx"
 		# Substitute field gets
 
+		# skip the ones that now have all C code in CFuncs.
 		if ($_ eq "Rend") {
-			#print "Found Rend, skipping...\n";
-			#$f .= "\n /* skipping " . $_ ."_Rend */\n";
+		} elsif ($_ eq "Prep") {
+		} elsif ($_ eq "Fin") {
+		} elsif ($_ eq "Child") {
+		} elsif ($_ eq "Changed") {
+		} elsif ($_ eq "Proximity") {
+		} elsif ($_ eq "Collision") {
+		} elsif ($_ eq "GenPolyRep") {
+		} elsif ($_ eq "Light") {
+		} elsif ($_ eq "RendRay") {
 		} else {
-
-			$c =~ s/\$f\(([^)]*)\)/getf($n,split ',',$1)/ge;
-			$c =~ s/\$i\(([^)]*)\)/(this_->$1)/g;
-			$c =~ s/\$f_n\(([^)]*)\)/getfn($n,split ',',$1)/ge;
-			$c =~ s/\$fv\(([^)]*)\)/fvirt($n,split ',',$1)/ge;
-			$c =~ s/\$fv_null\(([^)]*)\)/fvirt_null($n,split ',',$1)/ge;
-			$f .= "\n\nvoid ${n}_$_(void *nod_)";
-			$f .= "{ /* GENERATED FROM HASH ${_}C, MEMBER $n */
-				struct X3D_$n *this_ = (struct X3D_$n *)nod_;
-				{$c}
-				}";
+print "VRMLC  - still have $_\n";
 		}
 	}
 	return ($f,$v);
@@ -1031,6 +480,12 @@ sub gen_constants_c {
 # gen - the main function. this contains much verbatim code
 #
 #
+
+
+{
+        @NodeTypes = keys %VRML::Nodes;
+        # foreach my $key (keys (%{$VRML::Nodes})) {print "field $key\n";}
+}
 
 sub gen {
 	# make a table of nodetypes, so that at runtime we can determine what kind a

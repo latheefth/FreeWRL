@@ -12,10 +12,8 @@
 *********************************************************************/
 
 #include "headers.h"
-
-void render_ElevationGrid (struct X3D_ElevationGrid *this);
-void render_Extrusion (struct X3D_Extrusion *this);
-
+#include "Collision.h"
+#include "Polyrep.h"
 
 void render_Box (struct X3D_Box *this_) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
@@ -417,4 +415,824 @@ void render_Extrusion (struct X3D_Extrusion *this_) {
 		}
 		render_polyrep(this_);
 		if(!this_->solid) glPopAttrib();
+}
+
+
+void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this_ ){
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       struct SFColor *points=0; int npoints;
+
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+	       struct pt tupv = {0,1,0};
+	       struct pt delta = {0,0,0};
+
+	       struct X3D_PolyRep pr;
+	       prflags flags = 0;
+	       int change = 0;
+
+	        struct X3D_Coordinate *xc;
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+	       /* $mk_polyrep(); */
+		if(!this_->_intern ||
+                        this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
+                                regen_polyrep(this_,NULL, NULL, NULL, NULL);
+
+
+	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
+	       if(!this_->solid) {
+		   flags = flags | PR_DOUBLESIDED;
+	       }
+
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
+
+		/* IndexedFaceSets are "different", in that the user specifies points, among
+		   other things.  The rendering pass takes these external points, and streams
+		   them to make rendering much faster on hardware accel. We have to check to
+		   see whether we have got here before the first rendering of a possibly new
+		   IndexedFaceSet */
+		if (!pr.coord) {
+	                xc = (struct X3D_Coordinate *) this_->coord;
+	                if (xc->_nodeType != NODE_Coordinate) {
+	                        printf ("Collision - coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
+	                } else {
+	                        pr.coord = (float *) xc->point.p;
+	                }
+		}
+
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
+
+
+/*	       printf("npoints=%d\n",npoints);
+	       for(i = 0; i < npoints; i++) {
+		   printf("points[%d]=(%f,%f,%f)\n",i,points[i].c[0], points[i].c[1], points[i].c[2]);
+	       }*/
+	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+/*		   printmatrix(modelMatrix);*/
+		   fprintf(stderr,"COLLISION_IFS: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+
+	       }
+		#endif
+
+}
+
+
+void collide_Sphere (struct X3D_Sphere *this_) {
+	       struct pt t_orig; /*transformed origin*/
+	       struct pt p_orig; /*projected transformed origin */
+	       struct pt n_orig; /*normal(unit length) transformed origin */
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       GLdouble dist2;
+	       struct pt delta = {0,0,0};
+	       GLdouble radius;
+
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+
+	       struct pt tupv = {0,1,0};
+
+		/* are we initialized yet? */
+		if (this_->__points==0) {
+			return;
+		}
+
+	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       radius = pow(det3x3(modelMatrix),1./3.) * this_->radius;
+
+	       /* squared distance to center of sphere (on the y plane)*/
+	       dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
+
+	       /* easy tests. clip as if sphere was a box */
+	       /*clip with cylinder */
+	       if(dist2 - (radius + awidth) * (radius +awidth) > 0) {
+		   return;
+	       }
+	       /*clip with bottom plane */
+	       if(t_orig.y + radius < abottom) {
+		   return;
+	       }
+	       /*clip with top plane */
+	       if(t_orig.y-radius > atop) {
+		   return;
+	       }
+
+	       /* project onto (y x t_orig) plane */
+	       p_orig.x = sqrt(dist2);
+	       p_orig.y = t_orig.y;
+	       p_orig.z = 0;
+	       /* we need this to unproject rapidly */
+	       /* n_orig is t_orig.y projected on the y plane, then normalized. */
+	       n_orig.x = t_orig.x;
+	       n_orig.y = 0.0;
+	       n_orig.z = t_orig.z;
+	       VECSCALE(n_orig,1.0/p_orig.x); /*equivalent to vecnormal(n_orig);, but faster */
+
+	       /* 5 cases : sphere is over, over side, side, under and side, under (relative to y axis) */
+	       /* these 5 cases correspond to the 5 vornoi regions of the cylinder */
+	       if(p_orig.y > atop) {
+
+		   if(p_orig.x < awidth) {
+			#ifdef RENDERVERBOSE
+		       printf(" /* over, we push down. */ \n");
+			#endif
+
+		       delta.y = (p_orig.y - radius) - (atop);
+		   } else {
+		       struct pt d2s;
+		       GLdouble ratio;
+		       #ifdef RENDERVERBOSE
+			printf(" /* over side */ \n");
+			#endif
+
+		       /* distance vector from corner to center of sphere*/
+		       d2s.x = p_orig.x - awidth;
+		       d2s.y = p_orig.y - (atop);
+		       d2s.z = 0;
+
+		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+
+		       if(ratio >= 0) {
+			   /* no collision */
+			   return;
+		       }
+
+		       /* distance vector from corner to surface of sphere, (do the math) */
+		       VECSCALE(d2s, ratio );
+
+		       /* unproject, this is the fastest way */
+		       delta.y = d2s.y;
+		       delta.x = d2s.x* n_orig.x;
+		       delta.z = d2s.x* n_orig.z;
+		   }
+	       } else if(p_orig.y < abottom) {
+		   if(p_orig.x < awidth) {
+			#ifdef RENDERVERBOSE
+		       printf(" /* under, we push up. */ \n");
+			#endif
+
+		       delta.y = (p_orig.y + radius) -abottom;
+		   } else {
+		       struct pt d2s;
+		       GLdouble ratio;
+			#ifdef RENDERVERBOSE
+		       printf(" /* under side */ \n");
+			#endif
+
+		       /* distance vector from corner to center of sphere*/
+		       d2s.x = p_orig.x - awidth;
+		       d2s.y = p_orig.y - abottom;
+		       d2s.z = 0;
+
+		       ratio = 1- radius/sqrt(d2s.x * d2s.x + d2s.y * d2s.y);
+
+		       if(ratio >= 0) {
+			   /* no collision */
+			   return;
+		       }
+
+		       /* distance vector from corner to surface of sphere, (do the math) */
+		       VECSCALE(d2s, ratio );
+
+		       /* unproject, this is the fastest way */
+		       delta.y = d2s.y;
+		       delta.x = d2s.x* n_orig.x;
+		       delta.z = d2s.x* n_orig.z;
+		   }
+
+	       } else {
+		   #ifdef RENDERVERBOSE
+			printf(" /* side */ \n");
+		   #endif
+
+		   /* push to side */
+		   delta.x = ((p_orig.x - radius)- awidth) * n_orig.x;
+		   delta.z = ((p_orig.x - radius)- awidth) * n_orig.z;
+	       }
+
+
+	       transform3x3(&delta,&delta,upvecmat);
+	       accumulate_disp(&CollisionInfo,delta);
+
+		#ifdef COLLISIONVERBOSE
+	       if((delta.x != 0. || delta.y != 0. || delta.z != 0.))
+	           printf("COLLISION_SPH: (%f %f %f) (%f %f %f) (px=%f nx=%f nz=%f)\n",
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z,
+			  p_orig.x, n_orig.x, n_orig.z
+			  );
+		#endif
+}
+
+void collide_Box (struct X3D_Box *this_) {
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       struct pt iv = {0,0,0};
+	       struct pt jv = {0,0,0};
+	       struct pt kv = {0,0,0};
+	       struct pt ov = {0,0,0};
+
+	       struct pt t_orig = {0,0,0};
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+
+	       struct pt delta;
+	       struct pt tupv = {0,1,0};
+
+
+                iv.x = ((this_->size).c[0]);
+                jv.y = ((this_->size).c[1]);
+                kv.z = ((this_->size).c[2]);
+                ov.x = -((this_->size).c[0])/2; ov.y = -((this_->size).c[1])/2; ov.z = -((this_->size).c[2])/2;
+
+
+	       /* get the transformed position of the Box, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+               if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*((this_->size).c[0]),scale*((this_->size).c[1]),scale*((this_->size).c[2]))) return;
+
+
+
+	       /* get transformed box edges and position */
+	       transform(&ov,&ov,modelMatrix);
+	       transform3x3(&iv,&iv,modelMatrix);
+	       transform3x3(&jv,&jv,modelMatrix);
+	       transform3x3(&kv,&kv,modelMatrix);
+
+
+	       delta = box_disp(abottom,atop,astep,awidth,ov,iv,jv,kv);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+	           printf("COLLISION_BOX: (%f %f %f) (%f %f %f)\n",
+			  ov.x, ov.y, ov.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+	           printf("iv=(%f %f %f) jv=(%f %f %f) kv=(%f %f %f)\n",
+			  iv.x, iv.y, iv.z,
+			  jv.x, jv.y, jv.z,
+			  kv.x, kv.y, kv.z
+			  );
+		#endif
+}
+
+
+void collide_Cone (struct X3D_Cone *this_) {
+
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+
+
+                float h = (this_->height) /2;
+                float r = (this_->bottomRadius) ;
+
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       struct pt iv = {0,0,0};
+	       struct pt jv = {0,0,0};
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+
+	       struct pt delta;
+	       struct pt tupv = {0,1,0};
+
+	       iv.y = h; jv.y = -h;
+
+	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+
+	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
+
+	       /* get transformed box edges and position */
+	       transform(&iv,&iv,modelMatrix);
+	       transform(&jv,&jv,modelMatrix);
+
+	       delta = cone_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+	           printf("COLLISION_CON: (%f %f %f) (%f %f %f)\n",
+			  iv.x, iv.y, iv.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
+			  iv.x, iv.y, iv.z,
+			  jv.x, jv.y, jv.z,
+			  scale*r
+			  );
+		#endif
+}
+
+void collide_Cylinder (struct X3D_Cylinder *this_) {
+	       /*easy access, naviinfo.step unused for sphere collisions */
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+
+                float h = (this_->height)/2;
+                float r = (this_->radius);
+
+
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+	       struct pt iv = {0,0,0};
+	       struct pt jv = {0,0,0};
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+
+	       struct pt tupv = {0,1,0};
+	       struct pt delta;
+
+
+		iv.y = h;
+		jv.y = -h;
+
+	       /* get the transformed position of the Sphere, and the scale-corrected radius. */
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;
+
+
+
+	       /* get transformed box edges and position */
+	       transform(&iv,&iv,modelMatrix);
+	       transform(&jv,&jv,modelMatrix);
+
+
+	       delta = cylinder_disp(abottom,atop,astep,awidth,jv,iv,scale*r);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))
+	           printf("COLLISION_CYL: (%f %f %f) (%f %f %f)\n",
+			  iv.x, iv.y, iv.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       if((fabs(delta.x != 0.) || fabs(delta.y != 0.) || fabs(delta.z) != 0.))
+	           printf("iv=(%f %f %f) jv=(%f %f %f) bR=%f\n",
+			  iv.x, iv.y, iv.z,
+			  jv.x, jv.y, jv.z,
+			  scale*r
+			  );
+		#endif
+}
+
+void collide_Extrusion (struct X3D_Extrusion *this_) {
+	       GLdouble awidth = naviinfo.width; /*avatar width*/
+	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
+	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
+	       GLdouble astep = -naviinfo.height+naviinfo.step;
+	       GLdouble modelMatrix[16];
+	       GLdouble upvecmat[16];
+
+	       GLdouble scale; /* FIXME: won''t work for non-uniform scales. */
+	       struct pt t_orig = {0,0,0};
+	       static int refnum = 0;
+
+	       struct pt tupv = {0,1,0};
+	       struct pt delta = {0,0,0};
+
+	       struct X3D_PolyRep pr;
+	       prflags flags = 0;
+	       int change = 0;
+
+		/* JAS - first pass, intern is probably zero */
+		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+
+		/* JAS - no triangles in this text structure */
+		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+
+
+	       /*save changed state.*/
+	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
+                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+
+ 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
+	         correclty in the RENDER pass */
+
+	       if(!this_->solid) {
+		   flags = flags | PR_DOUBLESIDED;
+	       }
+/*	       printf("_PolyRep = %d\n",this_->_intern);*/
+	       pr = *((struct X3D_PolyRep*)this_->_intern);
+	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+
+	       transform3x3(&tupv,&tupv,modelMatrix);
+	       matrotate2v(upvecmat,ViewerUpvector,tupv);
+	       matmultiply(modelMatrix,upvecmat,modelMatrix);
+	       matinverse(upvecmat,upvecmat);
+
+	       /* values for rapid test */
+	       t_orig.x = modelMatrix[12];
+	       t_orig.y = modelMatrix[13];
+	       t_orig.z = modelMatrix[14];
+	       scale = pow(det3x3(modelMatrix),1./3.);
+/*	       if(!fast_ycylinder_cone_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return;*/
+
+/*	       printf("ntri=%d\n",pr.ntri);
+	       for(i = 0; i < pr.ntri; i++) {
+		   printf("cindex[%d]=%d\n",i,pr.cindex[i]);
+	       }*/
+	       delta = polyrep_disp(abottom,atop,astep,awidth,pr,modelMatrix,flags);
+
+	       vecscale(&delta,&delta,-1);
+	       transform3x3(&delta,&delta,upvecmat);
+
+	       accumulate_disp(&CollisionInfo,delta);
+
+		#ifdef COLLISIONVERBOSE
+	       if((fabs(delta.x) != 0. || fabs(delta.y) != 0. || fabs(delta.z) != 0.))  {
+/*		   printmatrix(modelMatrix);*/
+		   fprintf(stderr,"COLLISION_EXT: ref%d (%f %f %f) (%f %f %f)\n",refnum++,
+			  t_orig.x, t_orig.y, t_orig.z,
+			  delta.x, delta.y, delta.z
+			  );
+	       }
+		#endif
+}
+
+
+
+void rendray_Sphere (struct X3D_Sphere *this_) {
+        float r = (this_->radius) /*cget*/;
+        /* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
+        float tr1sq = VECSQ(t_r1);
+        /* float tr2sq = VECSQ(t_r2); */
+        /* float tr1tr2 = VECPT(t_r1,t_r2); */
+        struct pt dr2r1;
+        float dlen;
+        float a,b,c,disc;
+
+        VECDIFF(t_r2,t_r1,dr2r1);
+        dlen = VECSQ(dr2r1);
+
+        a = dlen; /* tr1sq - 2*tr1tr2 + tr2sq; */
+        b = 2*(VECPT(dr2r1, t_r1));
+        c = tr1sq - r*r;
+
+        disc = b*b - 4*a*c; /* The discriminant */
+
+        if(disc > 0) { /* HITS */
+                float q ;
+                float sol1 ;
+                float sol2 ;
+                float cx,cy,cz;
+                q = sqrt(disc);
+                /* q = (-b+(b>0)?q:-q)/2; */
+                sol1 = (-b+q)/(2*a);
+                sol2 = (-b-q)/(2*a);
+                /*
+                printf("SPHSOL0: (%f %f %f) (%f %f %f)\n",
+                        t_r1.x, t_r1.y, t_r1.z, t_r2.x, t_r2.y, t_r2.z);
+                printf("SPHSOL: (%f %f %f) (%f) (%f %f) (%f) (%f %f)\n",
+                        tr1sq, tr2sq, tr1tr2, a, b, c, und, sol1, sol2);
+                */ 
+                cx = MRATX(sol1);
+                cy = MRATY(sol1);
+                cz = MRATZ(sol1);
+                rayhit(sol1, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 0");
+                cx = MRATX(sol2);
+                cy = MRATY(sol2);
+                cz = MRATZ(sol2);
+                rayhit(sol2, cx,cy,cz, cx/r,cy/r,cz/r, -1,-1, "sphere 1");
+        }
+
+}
+
+
+void rendray_Box (struct X3D_Box *this_) {
+	float x = ((this_->size).c[0])/2;
+	float y = ((this_->size).c[1])/2;
+	float z = ((this_->size).c[2])/2;
+	/* 1. x=const-plane faces? */
+	if(!XEQ) {
+		float xrat0 = XRAT(x);
+		float xrat1 = XRAT(-x);
+		#ifdef RENDERVERBOSE 
+		printf("!XEQ: %f %f\n",xrat0,xrat1);
+		#endif
+
+		if(TRAT(xrat0)) {
+			float cy = MRATY(xrat0);
+			#ifdef RENDERVERBOSE 
+			printf("TRok: %f\n",cy);
+			#endif
+
+			if(cy >= -y && cy < y) {
+				float cz = MRATZ(xrat0);
+				#ifdef RENDERVERBOSE 
+				printf("cyok: %f\n",cz);
+				#endif
+
+				if(cz >= -z && cz < z) {
+					#ifdef RENDERVERBOSE 
+					printf("czok:\n");
+					#endif
+
+					rayhit(xrat0, x,cy,cz, 1,0,0, -1,-1, "cube x0");
+				}
+			}
+		}
+		if(TRAT(xrat1)) {
+			float cy = MRATY(xrat1);
+			if(cy >= -y && cy < y) {
+				float cz = MRATZ(xrat1);
+				if(cz >= -z && cz < z) {
+					rayhit(xrat1, -x,cy,cz, -1,0,0, -1,-1, "cube x1");
+				}
+			}
+		}
+	}
+	if(!YEQ) {
+		float yrat0 = YRAT(y);
+		float yrat1 = YRAT(-y);
+		if(TRAT(yrat0)) {
+			float cx = MRATX(yrat0);
+			if(cx >= -x && cx < x) {
+				float cz = MRATZ(yrat0);
+				if(cz >= -z && cz < z) {
+					rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cube y0");
+				}
+			}
+		}
+		if(TRAT(yrat1)) {
+			float cx = MRATX(yrat1);
+			if(cx >= -x && cx < x) {
+				float cz = MRATZ(yrat1);
+				if(cz >= -z && cz < z) {
+					rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cube y1");
+				}
+			}
+		}
+	}
+	if(!ZEQ) {
+		float zrat0 = ZRAT(z);
+		float zrat1 = ZRAT(-z);
+		if(TRAT(zrat0)) {
+			float cx = MRATX(zrat0);
+			if(cx >= -x && cx < x) {
+				float cy = MRATY(zrat0);
+				if(cy >= -y && cy < y) {
+					rayhit(zrat0, cx,cy,z, 0,0,1, -1,-1,"cube z0");
+				}
+			}
+		}
+		if(TRAT(zrat1)) {
+			float cx = MRATX(zrat1);
+			if(cx >= -x && cx < x) {
+				float cy = MRATY(zrat1);
+				if(cy >= -y && cy < y) {
+					rayhit(zrat1, cx,cy,-z, 0,0,-1,  -1,-1,"cube z1");
+				}
+			}
+		}
+	}
+}
+
+
+void rendray_Cylinder (struct X3D_Cylinder *this_) {
+        float h = (this_->height) /*cget*//2; /* pos and neg dir. */
+        float r = (this_->radius) /*cget*/;
+        float y = h;
+        /* Caps */
+        if(!YEQ) {
+                float yrat0 = YRAT(y);
+                float yrat1 = YRAT(-y);
+                if(TRAT(yrat0)) {
+                        float cx = MRATX(yrat0);
+                        float cz = MRATZ(yrat0);
+                        if(r*r > cx*cx+cz*cz) {
+                                rayhit(yrat0, cx,y,cz, 0,1,0, -1,-1, "cylcap 0");
+                        }
+                }
+                if(TRAT(yrat1)) {
+                        float cx = MRATX(yrat1);
+                        float cz = MRATZ(yrat1);
+                        if(r*r > cx*cx+cz*cz) {
+                                rayhit(yrat1, cx,-y,cz, 0,-1,0, -1,-1, "cylcap 1");
+                        }
+                }
+        }
+        /* Body -- do same as for sphere, except no y axis in distance */
+        if((!XEQ) && (!ZEQ)) {
+                float dx = t_r2.x-t_r1.x; float dz = t_r2.z-t_r1.z;
+                float a = dx*dx + dz*dz;
+                float b = 2*(dx * t_r1.x + dz * t_r1.z);
+                float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z - r*r;
+                float und;
+                b /= a; c /= a;
+                und = b*b - 4*c;
+                if(und > 0) { /* HITS the infinite cylinder */
+                        float sol1 = (-b+sqrt(und))/2;
+                        float sol2 = (-b-sqrt(und))/2;
+                        float cy,cx,cz;
+                        cy = MRATY(sol1);
+                        if(cy > -h && cy < h) {
+                                cx = MRATX(sol1);
+                                cz = MRATZ(sol1);
+                                rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 1");
+                        }
+                        cy = MRATY(sol2);
+                        if(cy > -h && cy < h) {
+                                cx = MRATX(sol2);
+                                cz = MRATZ(sol2);
+                                rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "cylside 2");
+                        }
+                }
+        }
+}
+
+void rendray_Cone (struct X3D_Cone *this_) {
+	float h = (this_->height) /*cget*//2; /* pos and neg dir. */
+	float y = h;
+	float r = (this_->bottomRadius) /*cget*/;
+	float dx = t_r2.x-t_r1.x; float dz = t_r2.z-t_r1.z;
+	float dy = t_r2.y-t_r1.y;
+	float a = dx*dx + dz*dz - (r*r*dy*dy/(2*h*2*h));
+	float b = 2*(dx*t_r1.x + dz*t_r1.z) +
+		2*r*r*dy/(2*h)*(0.5-t_r1.y/(2*h));
+	float tmp = (0.5-t_r1.y/(2*h));
+	float c = t_r1.x * t_r1.x + t_r1.z * t_r1.z
+		- r*r*tmp*tmp;
+	float und;
+	b /= a; c /= a;
+	und = b*b - 4*c;
+	/*
+	printf("CONSOL0: (%f %f %f) (%f %f %f)\n",
+		t_r1.x, t_r1.y, t_r1.z, t_r2.x, t_r2.y, t_r2.z);
+	printf("CONSOL: (%f %f %f) (%f) (%f %f) (%f)\n",
+		dx, dy, dz, a, b, c, und);
+	*/
+	if(und > 0) { /* HITS the infinite cylinder */
+		float sol1 = (-b+sqrt(und))/2;
+		float sol2 = (-b-sqrt(und))/2;
+		float cy,cx,cz;
+		float cy0;
+		cy = MRATY(sol1);
+		if(cy > -h && cy < h) {
+			cx = MRATX(sol1);
+			cz = MRATZ(sol1);
+			/* XXX Normal */
+			rayhit(sol1, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 1");
+		}
+		cy0 = cy;
+		cy = MRATY(sol2);
+		if(cy > -h && cy < h) {
+			cx = MRATX(sol2);
+			cz = MRATZ(sol2);
+			rayhit(sol2, cx,cy,cz, cx/r,0,cz/r, -1,-1, "conside 2");
+		}
+		/*
+		printf("CONSOLV: (%f %f) (%f %f)\n", sol1, sol2,cy0,cy);
+		*/
+	}
+	if(!YEQ) {
+		float yrat0 = YRAT(-y);
+		if(TRAT(yrat0)) {
+			float cx = MRATX(yrat0);
+			float cz = MRATZ(yrat0);
+			if(r*r > cx*cx + cz*cz) {
+				rayhit(yrat0, cx, -y, cz, 0, -1, 0, -1, -1, "conbot");
+			}
+		}
+	}
+}
+
+void rendray_ElevationGrid (struct X3D_ElevationGrid *this_) {
+	render_ray_polyrep(this_, NULL);	
+}
+
+void rendray_IndexedFaceSet (struct X3D_IndexedFaceSet *this_) {
+                struct SFColor *points=0; int npoints;
+                struct X3D_Coordinate *xc;
+
+                if(this_->coord) {
+                        xc = (struct X3D_Coordinate *) this_->coord;
+                        if (xc->_nodeType != NODE_Coordinate) {
+                                freewrlDie ("IndexedFaceSet - coord node wrong type");
+                        } else {
+                                points = xc->point.p;
+                                npoints = xc->point.n;
+                        }
+                }
+
+                render_ray_polyrep(this_, points);
+}
+
+
+void rendray_Extrusion (struct X3D_Extrusion *this_) {
+	render_ray_polyrep(this_, NULL);
 }
