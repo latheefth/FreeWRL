@@ -601,7 +601,7 @@ void changed_StaticGroup (struct X3D_StaticGroup *this_);
 void changed_Transform (struct X3D_Transform *this_);
 
 /* Environmental Sensor nodes */
-proximity_ProximitySensor (struct X3D_ProximitySensor *this_);
+void proximity_ProximitySensor (struct X3D_ProximitySensor *this_);
 
 /* Navigation Component */
 void prep_Billboard (struct X3D_Billboard *this_);

@@ -301,7 +301,7 @@ int main (int argc, char **argv) {
         }
 
 	perlParse(FROMURL, filename,TRUE,FALSE,
-		rootNode, offsetof (struct VRML_Group, children),&tmp,TRUE);
+		rootNode, offsetof (struct X3D_Group, children),&tmp,TRUE);
 
 	free(filename); free(pwd);
 
