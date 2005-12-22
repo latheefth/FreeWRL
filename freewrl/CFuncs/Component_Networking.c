@@ -186,7 +186,7 @@ void child_Anchor (struct X3D_Anchor *this_) {
 	#endif
 
 	/* do we have to sort this node? */
-	if ((nc > 2 && render_blend)) sortChildren(this_->children);
+	if ((nc > 1 && !render_blend)) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
@@ -232,7 +232,7 @@ void child_Inline (struct X3D_Inline *this_) {
 	if (nc==0) return; 
 
 	/* do we have to sort this node? */
-	if ((nc > 2 && render_blend)) sortChildren(this_->__children);
+	if ((nc > 1 && !render_blend)) sortChildren(this_->__children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->__children);

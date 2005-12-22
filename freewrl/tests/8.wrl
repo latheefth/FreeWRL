@@ -102,7 +102,6 @@ DEF SCR Script {
 				   0 0 0]
 		}
 	url [
-	# xxx1: $t = "this", tied object
 	"javascript:
 		function busy(val,time) { isBusy = busy }
 		function startTimeLeft(val,time) {
@@ -136,39 +135,6 @@ DEF SCR Script {
 			}
 		}
 	"
-#	"perl_tjl_xxx1:
-#		startTimeLeft => sub {
-#			print 'SCRIPT_INSIDE LEFT:',$t->{left},'X, INTERP: ',$t->{interp},'\n';
-#			if(!$t->{busy} && $t->{left}) {
-#				# xxx1 uses tied hashes
-#				$t->{interp}{RFields}{keyValue} = [
-#					[-2, 0, 0 ],
-#					 [ -0.5, 0, 0],
-#					 [ 0.5, 0, 0],
-#					  [1.2, 0, 0],
-#					  [1.7, 0, 0],
-#					   [2, 0, 0]
-#					];
-#				$t->{startTime} = $t->{startTimeLeft};
-#				$t->{left} = !$t->{left};
-#			}
-#		},
-#		startTimeRight => sub {
-#			print 'SCRIPT_INSIDERIGHT LEFT:',$t->{left},'X, INTERP: ',$t->{interp},'\n';
-#			if(!$t->{busy} && !$t->{left}) {
-#				$t->{interp}{RFields}{keyValue} = [
-#					[2, 0, 0 ],
-#					 [ 0.5, 0, 0],
-#					 [ -0.5, 0, 0],
-#					  [-1.2, 0, 0],
-#					  [-1.7, 0, 0],
-#					   [-2, 0, 0]
-#				];
-#				$t->{startTime} = $t->{startTimeRight};
-#				$t->{left} = !$t->{left};
-#			}
-#		}
-#	"
 	]
 }
 

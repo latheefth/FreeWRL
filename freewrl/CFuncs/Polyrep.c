@@ -713,8 +713,6 @@ void do_glColor4fv(struct SFColorRGBA *dest, GLfloat *param, int isRGBA) {
 	} else {
 		dest->r[3] = last_transparency;
 	}
-	/* printf ("do_glColor4fv, %f %f %f %f\n",dest->r[0],dest->r[1],dest->r[2],dest->r[3]); */
-
 }
 
 
@@ -755,7 +753,7 @@ void render_polyrep(void *node) {
 	r = (struct X3D_PolyRep *)genericNodePtr->_intern;
 
 	#ifdef TEXVERBOSE
-	printf ("\nrender_polyrep, _nodeType %d\n",genericNodePtr->_nodeType); 
+	printf ("\nrender_polyrep, _nodeType %s\n",stringNodeType(genericNodePtr->_nodeType)); 
 	#endif
 
 	if (r->ntri==0) {
@@ -850,9 +848,7 @@ printf ("\n\nrender_polyrep:\n");
 		}
 	}
 
-
 	if (!r->ccw) glFrontFace(GL_CCW);
-
 }
 
 

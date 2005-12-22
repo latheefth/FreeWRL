@@ -248,21 +248,21 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	/* Lets do segments first */
 	/* do we have to sort this node? */
-	if ((node->segments.n > 2)  && render_blend) sortChildren(node->segments);
+	if ((node->segments.n > 1)  && !render_blend) sortChildren(node->segments);
 	/* now, just render the non-directionalLight segments */
 	normalChildren(node->segments);
 
 
 	/* Lets do joints second */
 	/* do we have to sort this node? */
-	if ((node->joints.n > 2)  && render_blend) sortChildren(node->joints);
+	if ((node->joints.n > 1)  && !render_blend) sortChildren(node->joints);
 	/* now, just render the non-directionalLight joints */
 	normalChildren(node->joints);
 
 
 	/* Lets do sites third */
 	/* do we have to sort this node? */
-	if ((node->sites.n > 2)  && render_blend) sortChildren(node->sites);
+	if ((node->sites.n > 1)  && !render_blend) sortChildren(node->sites);
 	/* do we have a DirectionalLight for a child? */
 	if(node->has_light) dirlightChildren(node->sites);
 	/* now, just render the non-directionalLight sites */
@@ -270,13 +270,13 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	/* Lets do skeleton fourth */
 	/* do we have to sort this node? */
-	if ((node->skeleton.n > 2)  && render_blend) sortChildren(node->skeleton);
+	if ((node->skeleton.n > 1)  && !render_blend) sortChildren(node->skeleton);
 	/* now, just render the non-directionalLight skeleton */
 	normalChildren(node->skeleton);
 
 	/* Lets do skin fifth */
 	/* do we have to sort this node? */
-	if ((node->skin.n > 2)  && render_blend) sortChildren(node->skin);
+	if ((node->skin.n > 1)  && !render_blend) sortChildren(node->skin);
 	/* do we have a DirectionalLight for a child? */
 	if(node->has_light) dirlightChildren(node->skin);
 	/* now, just render the non-directionalLight skin */
@@ -324,7 +324,7 @@ return;
 		}
 
 	/* do we have to sort this node? */
-	if ((nc > 2)  && render_blend) sortChildren(node->children);
+	if ((nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -361,7 +361,7 @@ return;
 		}
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((nc > 2)  && render_blend) sortChildren(node->children);
+	if ((nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -400,7 +400,7 @@ return;
 		}
 
 	/* do we have to sort this node? */
-	if ((nc > 2)  && render_blend) sortChildren(node->children);
+	if ((nc > 1)  && !render_blend) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(node->has_light) dirlightChildren(node->children);

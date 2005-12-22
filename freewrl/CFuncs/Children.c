@@ -87,10 +87,13 @@ void sortChildren (struct Multi_Node ch) {
 			break;
 		}
 	}
-	/* for(i=0; i<nc; i++) {
-		b = ch.p[i]);
-		printf ("child %d %d %f\n",i,b,b->_dist);
-	} */
+	/*
+	printf ("sortChild returning.\n");
+	for(i=0; i<nc; i++) {
+		b = ch.p[i];
+		printf ("child %d %d %f %s\n",i,b,b->_dist,stringNodeType(b->_nodeType));
+	}
+	*/
 }
 
 /* this grouping node has a DirectionalLight for a child, render this first */

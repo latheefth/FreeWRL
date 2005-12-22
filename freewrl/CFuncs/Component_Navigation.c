@@ -196,7 +196,7 @@ void child_Collision (struct X3D_Collision *this_) {
 		printf("RENDER COLLISIONCHILD START %d (%d)\n",this_, nc);
 		#endif
 		/* do we have to sort this node? */
-		if ((nc > 2 && render_blend)) sortChildren(this_->children);
+		if ((nc > 1 && !render_blend)) sortChildren(this_->children);
 
 		/* do we have a DirectionalLight for a child? */
 		if(this_->has_light) dirlightChildren(this_->children);
@@ -301,7 +301,7 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *this_) {
 	}
 
 	/* do we have to sort this node? */
-	if ((nc > 2 && render_blend)) sortChildren(this_->children);
+	if ((nc > 1 && !render_blend)) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
@@ -343,7 +343,7 @@ void  child_Billboard (struct X3D_Billboard *this_) {
 	#endif
 
 	/* do we have to sort this node? */
-	if ((nc > 2 && render_blend)) sortChildren(this_->children);
+	if ((nc > 1 && !render_blend)) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);

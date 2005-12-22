@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.199  2005/12/22 14:20:58  crc_canada
+# Group rendering problems fixed = sorting of children and alpha channels
+#
 # Revision 1.198  2005/12/21 18:16:40  crc_canada
 # Rework Generation code.
 #
@@ -492,6 +495,11 @@ sub gen {
 	# node is - comes in useful at times.
 	my $nodeIntegerType = 1100;
 
+	# make a function to print node name from an integer type.
+	my $printNodeStr = "\n char *stringNodeType (int st) {\n".
+		"       switch (st) {\n";
+	push @prFunc, $printNodeStr;
+
 
         my @unsortedNodeList = keys %VRML::Nodes;
         my @sf = sort(@unsortedNodeList);
@@ -501,12 +509,21 @@ sub gen {
 		my $defstr = "#define NODE_".$_."	$nodeIntegerType\n";
 		push @str, $defstr;
 		$nodeIntegerType ++;
+
+		$printNodeStr = "       case NODE_".$_.": return (\"".$_."\"); \n";
+                push @prFunc, $printNodeStr;
+
 	}
 
 	# for the Status bar - it currently renders just like a normal node
 	my $defstr = "#define NODE_Statusbar	$nodeIntegerType\n";
 	$nodeIntegerType++;
 	push @str, $defstr;
+
+	# finish off the printing function
+	$printNodeStr = "default: return (\"OUT OF RANGE\"); }\n}\n";
+	push @prFunc, $printNodeStr;
+
 
 
 	for(@VRML::Fields) {
@@ -645,6 +662,7 @@ struct sNaviInfo {
  */
 	';
 
+	print XS join '',@prFunc;
 	print XS join '',@func;
 	print XS join '',@vstruc;
 	print XS <<'ENDHERE'

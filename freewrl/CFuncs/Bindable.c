@@ -675,11 +675,9 @@ void recalculateBackgroundVectors(struct X3D_Background *node) {
 		tbnode->__colours = newColors;
 		tbnode->__quadcount = actq;
 	}
-
 }
 
 void render_Background (struct X3D_Background *node) {
-
 	/* printf ("RBG, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);  */
 	/* check the set_bind eventin to see if it is TRUE or FALSE */
 	if (node->set_bind < 100) {
@@ -774,6 +772,7 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
         	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 	}
 
+	/* pushes are done in moveBackgroundCentre */
 	glPopMatrix();
 	glPopAttrib();
 }

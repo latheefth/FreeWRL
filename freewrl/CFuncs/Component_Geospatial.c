@@ -288,7 +288,7 @@ void child_GeoLocation (struct X3D_GeoLocation *this_) {
 	#endif
 
         /* do we have to sort this node? */
-        if ((nc > 2 && render_blend)) sortChildren(this_->children);
+        if (nc > 1 && !render_blend) sortChildren(this_->children);
 
         /* do we have a DirectionalLight for a child? */
         if(this_->has_light) dirlightChildren(this_->children);

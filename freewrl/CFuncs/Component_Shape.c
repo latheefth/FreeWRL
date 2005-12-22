@@ -225,8 +225,8 @@ void child_Shape (struct X3D_Shape *this_) {
 				update_renderFlag(this_,VF_Blend);
 		}
 
-		/* printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",*/
-		/* 	have_transparency, trans, last_texture_depth);*/
+		/* printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",
+		 	have_transparency, trans, last_texture_depth); */
 
 		should_rend = FALSE;
 		/* now, are we rendering blended nodes? */

@@ -213,7 +213,7 @@ void child_StaticGroup (struct X3D_StaticGroup *this_) {
 
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((nc > 2)  && render_blend) sortChildren(this_->children);
+	if ((nc > 1)  && !render_blend) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
@@ -265,10 +265,24 @@ void child_Group (struct X3D_Group *this_) {
 	#ifdef CHILDVERBOSE
 	VerboseStart ("GROUP", (struct X3D_Box *)this_, nc);
 	#endif
+/*
+{
+int x;
+struct X3D_Box *xx;
+
+printf ("child_Group, this %d\n",this_);
+for (x=0; x<nc; x++) {
+xx = (struct X3D_Box *)this_->children.p[x];
+
+printf ("	ch %d type %s\n",this_->children.p[x],stringNodeType(xx->_nodeType));
+}
+}
+*/
+
 		
 
 	/* should we go down here? */
-	/* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom);  */
+	/* printf ("Group, rb %x VF_B %x, rg  %x VF_G %x\n",render_blend, VF_Blend, render_geom, VF_Geom); */
 	if (render_blend == VF_Blend)
 		if ((this_->_renderFlags & VF_Blend) != VF_Blend) {
 			#ifdef CHILDVERBOSE
@@ -285,7 +299,7 @@ void child_Group (struct X3D_Group *this_) {
 		}
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
-	if ((((this_->__isProto) == 0) && (nc > 2)  && render_blend)) sortChildren(this_->children);
+	if ((this_->__isProto == 0) && (nc > 1)  && !render_blend) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
@@ -418,7 +432,7 @@ void child_Transform (struct X3D_Transform *this_) {
 	if (this_->PIV > 0) {
 #endif
 	/* do we have to sort this node? */
-	if ((nc > 2 && render_blend)) sortChildren(this_->children);
+	if ((nc > 1 && !render_blend)) sortChildren(this_->children);
 
 	/* do we have a DirectionalLight for a child? */
 	if(this_->has_light) dirlightChildren(this_->children);
