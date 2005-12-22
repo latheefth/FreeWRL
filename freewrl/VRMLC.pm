@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.200  2005/12/22 14:50:30  crc_canada
+# remove name field of X3D_Virt
+#
 # Revision 1.199  2005/12/22 14:20:58  crc_canada
 # Group rendering problems fixed = sorting of children and alpha channels
 #
@@ -578,7 +581,7 @@ struct X3D_Virt {
 	void (*changed)(void *);
 	void (*proximity)(void *);
 	void (*collision)(void *);
-	char *name;
+	/* char *name; */
 };
 
 /* Internal representation of IndexedFaceSet, Text, Extrusion & ElevationGrid:
