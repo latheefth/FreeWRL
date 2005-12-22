@@ -258,11 +258,17 @@ sub resolve_node_cnode {
 			$field = $1;
 		}
 	}
-	#print "events, here, isproto $is_proto, typename ",
-	#$node->{TypeName},"\n";
+	#print "events, here, isproto $is_proto, typename ", $node->{TypeName},"\n";
 
 	if (!$is_proto && $node->{TypeName} =~ /script/i) {
 		$outoffset = VRML::VRMLFunc::paramIndex($field, $node->{Type}{FieldTypes}{$field});
+
+		# is this the first reference to this script?
+		if (!defined node->{scriptInvocationNumber}) {
+			# make a backend
+			$node->make_backend($brow->{BE},$brow->{BE});
+		}
+
 		$outptr =$node->{scriptInvocationNumber};
 		#print "scriptInvocationNumber:", $node->{scriptInvocationNumber},"\n";
 
@@ -278,6 +284,13 @@ sub resolve_node_cnode {
 	} elsif ($proto_node->{TypeName} =~ /script/i) {
 		#print "this is a script node. proto_field is $proto_field\n";
 		$outoffset = VRML::VRMLFunc::paramIndex($proto_field, $proto_node->{Type}{FieldTypes}{$proto_field});
+
+		# is this the first reference to this script?
+		if (!defined proto_node->{scriptInvocationNumber}) {
+			# make a backend
+			$proto_node->make_backend($brow->{BE},$brow->{BE});
+		}
+
 		$outptr = $proto_node->{scriptInvocationNumber};
 
 		#print "now, this is a script, outptr is $outptr outoffset = $outoffset\n";
@@ -303,7 +316,7 @@ sub resolve_node_cnode {
 
 
 			my $brow = $scene->get_browser();
-			# print "No backend, but browser has ",$brow->{BE}, " for node ",
+			 #print "No backend, but browser has ",$brow->{BE}, " for node ",
 			#	VRML::NodeIntern::dump_name($node),"\n";
 
 			# make a backend

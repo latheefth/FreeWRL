@@ -432,15 +432,15 @@ void createTriangleSet2D (struct X3D_TriangleSet2D *node) {
 	}
 }
 
-void collide_TriangleSet2D (struct X3D_TriangleSet2D *this_) {
-	UNUSED (this_);
+void collide_TriangleSet2D (struct X3D_TriangleSet2D *node) {
+	UNUSED (node);
 }
 
-void collide_Disk2D (struct X3D_Disk2D *this_) {
-	UNUSED (this_);
+void collide_Disk2D (struct X3D_Disk2D *node) {
+	UNUSED (node);
 }
 
-void collide_Rectangle2D (struct X3D_Rectangle2D *this_) {
+void collide_Rectangle2D (struct X3D_Rectangle2D *node) {
 		/* Modified Box code. */
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
@@ -462,10 +462,10 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *this_) {
 	       struct pt delta;
 	       struct pt tupv = {0,1,0};
 
-		iv.x = this_->size.c[0];
-		jv.y = this_->size.c[1]; 
+		iv.x = node->size.c[0];
+		jv.y = node->size.c[1]; 
 		kv.z = 0.0;
-		ov.x = -((this_->size).c[0])/2; ov.y = -((this_->size).c[1])/2; ov.z = 0.0;
+		ov.x = -((node->size).c[0])/2; ov.y = -((node->size).c[1])/2; ov.z = 0.0;
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
@@ -480,8 +480,8 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *this_) {
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
-	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*this_->size.c[0],
-			scale*this_->size.c[1],0.0)) return;
+	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*node->size.c[0],
+			scale*node->size.c[1],0.0)) return;
 
 	       /* get transformed box edges and position */
 	       transform(&ov,&ov,modelMatrix);

@@ -30,7 +30,7 @@
 #include "headers.h"
 #include "installdir.h"
 
-proximity_ProximitySensor (struct X3D_ProximitySensor *this_) {
+proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
 	/* Viewer pos = t_r2 */
 	double cx,cy,cz;
 	double len;
@@ -46,7 +46,7 @@ proximity_ProximitySensor (struct X3D_ProximitySensor *this_) {
 	GLdouble modelMatrix[16];
 	GLdouble projMatrix[16];
 
-	if(!((this_->enabled))) return;
+	if(!((node->enabled))) return;
 
 	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
 	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
@@ -63,23 +63,23 @@ proximity_ProximitySensor (struct X3D_ProximitySensor *this_) {
 	gluUnProject(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
 		&t_yvec.x,&t_yvec.y,&t_yvec.z);
 
-	cx = t_orig.x - ((this_->center).c[0]);
-	cy = t_orig.y - ((this_->center).c[1]);
-	cz = t_orig.z - ((this_->center).c[2]);
+	cx = t_orig.x - ((node->center).c[0]);
+	cy = t_orig.y - ((node->center).c[1]);
+	cz = t_orig.z - ((node->center).c[2]);
 
-	if(((this_->size).c[0]) == 0 || ((this_->size).c[1]) == 0 || ((this_->size).c[2]) == 0) return;
+	if(((node->size).c[0]) == 0 || ((node->size).c[1]) == 0 || ((node->size).c[2]) == 0) return;
 
-	if(fabs(cx) > ((this_->size).c[0])/2 ||
-	   fabs(cy) > ((this_->size).c[1])/2 ||
-	   fabs(cz) > ((this_->size).c[2])/2) return;
+	if(fabs(cx) > ((node->size).c[0])/2 ||
+	   fabs(cy) > ((node->size).c[1])/2 ||
+	   fabs(cz) > ((node->size).c[2])/2) return;
 
 	/* Ok, we now have to compute... */
-	(this_->__hit) /*cget*/ = 1;
+	(node->__hit) /*cget*/ = 1;
 
 	/* Position */
-	((this_->__t1).c[0]) = t_orig.x;
-	((this_->__t1).c[1]) = t_orig.y;
-	((this_->__t1).c[2]) = t_orig.z;
+	((node->__t1).c[0]) = t_orig.x;
+	((node->__t1).c[1]) = t_orig.y;
+	((node->__t1).c[2]) = t_orig.z;
 
 	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */
 	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */
@@ -109,16 +109,16 @@ proximity_ProximitySensor (struct X3D_ProximitySensor *this_) {
 
 	if(APPROX(dr1r2.z,1.0)) {
 		/* rotation */
-		((this_->__t2).r[0]) = 0;
-		((this_->__t2).r[1]) = 0;
-		((this_->__t2).r[2]) = 1;
-		((this_->__t2).r[3]) = atan2(-dr2r3.x,dr2r3.y);
+		((node->__t2).r[0]) = 0;
+		((node->__t2).r[1]) = 0;
+		((node->__t2).r[2]) = 1;
+		((node->__t2).r[3]) = atan2(-dr2r3.x,dr2r3.y);
 	} else if(APPROX(dr2r3.y,1.0)) {
 		/* rotation */
-		((this_->__t2).r[0]) = 0;
-		((this_->__t2).r[1]) = 1;
-		((this_->__t2).r[2]) = 0;
-		((this_->__t2).r[3]) = atan2(dr1r2.x,dr1r2.z);
+		((node->__t2).r[0]) = 0;
+		((node->__t2).r[1]) = 1;
+		((node->__t2).r[2]) = 0;
+		((node->__t2).r[3]) = atan2(dr1r2.x,dr1r2.z);
 	} else {
 		/* Get the normal vectors of the possible rotation planes */
 		nor1 = dr1r2;
@@ -138,12 +138,12 @@ proximity_ProximitySensor (struct X3D_ProximitySensor *this_) {
 		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len);
 		VECCP(nor1,nor2,ins);
 
-		((this_->__t2).r[3]) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2));
+		((node->__t2).r[3]) = -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2));
 
 		/* rotation  - should normalize sometime... */
-		((this_->__t2).r[0]) = ins.x;
-		((this_->__t2).r[1]) = ins.y;
-		((this_->__t2).r[2]) = ins.z;
+		((node->__t2).r[0]) = ins.x;
+		((node->__t2).r[1]) = ins.y;
+		((node->__t2).r[2]) = ins.z;
 	}
 	#ifdef RENDERVERBOSE
 	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n",

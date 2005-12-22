@@ -147,7 +147,8 @@ unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 
 /* Used to determine in Group, etc, if a child is a DirectionalLight; do comparison with this */
 void DirectionalLight_Rend(void *nod_);
-
+#define DIRECTIONAL_LIGHT_OFF if (node->has_light) lightState(savedlight+1,FALSE); curlight = savedlight;
+#define DIRECTIONAL_LIGHT_SAVE int savedlight = curlight;
 
 void normalize_ifs_face (float *point_normal,
                          struct pt *facenormals,

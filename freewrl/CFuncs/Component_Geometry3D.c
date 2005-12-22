@@ -15,35 +15,35 @@
 #include "Collision.h"
 #include "Polyrep.h"
 
-void render_Box (struct X3D_Box *this_) {
+void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	float *pt;
-	float x = ((this_->size).c[0])/2;
-	float y = ((this_->size).c[1])/2;
-	float z = ((this_->size).c[2])/2;
+	float x = ((node->size).c[0])/2;
+	float y = ((node->size).c[1])/2;
+	float z = ((node->size).c[2])/2;
 
 	/* test for <0 of sides */
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,y,z,(struct X3D_Box *)this_);
+	setExtent(x,y,z,(struct X3D_Box *)node);
 
 
-	if (this_->_ichange != this_->_change) {
+	if (node->_ichange != node->_change) {
 		/*  have to regen the shape*/
 
-		this_->_ichange = this_->_change;
+		node->_ichange = node->_change;
 
 		/*  malloc memory (if possible)*/
-		if (!this_->__points) this_->__points = malloc (sizeof(struct SFColor)*(24));
-		if (!this_->__points) {
+		if (!node->__points) node->__points = malloc (sizeof(struct SFColor)*(24));
+		if (!node->__points) {
 			printf ("can not malloc memory for box points\n");
 			return;
 		}
 
 		/*  now, create points; 4 points per face.*/
-		pt = (float *) this_->__points;
+		pt = (float *) node->__points;
 		/*  front*/
 		*pt++ =  x; *pt++ =  y; *pt++ =  z; *pt++ = -x; *pt++ =  y; *pt++ =  z;
 		*pt++ = -x; *pt++ = -y; *pt++ =  z; *pt++ =  x; *pt++ = -y; *pt++ =  z;
@@ -65,26 +65,26 @@ void render_Box (struct X3D_Box *this_) {
 	}
 
 
-	if(!this_->solid) {
+	if(!node->solid) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,boxtex);
-	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
+	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	glNormalPointer (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	glDrawArrays (GL_QUADS, 0, 24);
 	textureDraw_end();
-	if(!this_->solid) { glPopAttrib(); }
+	if(!node->solid) { glPopAttrib(); }
 }
 
-void render_Cylinder (struct X3D_Cylinder * this_) {
+void render_Cylinder (struct X3D_Cylinder * node) {
 	#define CYLDIV 20
-	float h = (this_->height)/2;
-	float r = this_->radius;
+	float h = (node->height)/2;
+	float r = node->radius;
 	int i = 0;
 	struct SFColor *pt;
 	float a1, a2;
@@ -97,22 +97,22 @@ void render_Cylinder (struct X3D_Cylinder * this_) {
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
-	setExtent(r,h,r,(struct X3D_Box *)this_);
+	setExtent(r,h,r,(struct X3D_Box *)node);
 
-	if (this_->_ichange != this_->_change) {
+	if (node->_ichange != node->_change) {
 		/*  have to regen the shape*/
 
-		this_->_ichange = this_->_change;
+		node->_ichange = node->_change;
 
 		/*  malloc memory (if possible)*/
-		if (!this_->__points) this_->__points = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
-		if (!this_->__normals) this_->__normals = malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
-		if ((!this_->__normals) || (!this_->__points)) {
+		if (!node->__points) node->__points = malloc(sizeof(struct SFColor)*2*(CYLDIV+4));
+		if (!node->__normals) node->__normals = malloc(sizeof(struct SFColor)*2*(CYLDIV+1));
+		if ((!node->__normals) || (!node->__points)) {
 			printf ("error mallocing memory for Cylinder\n");
 			return;
 		}
 		/*  now, create the vertices; this is a quad, so each face = 4 points*/
-		pt = (struct SFColor *) this_->__points;
+		pt = (struct SFColor *) node->__points;
 		for (i=0; i<CYLDIV; i++) {
 			a1 = PI*2*i/(float)CYLDIV;
 			a2 = PI*2*(i+1)/(float)CYLDIV;
@@ -132,23 +132,23 @@ void render_Cylinder (struct X3D_Cylinder * this_) {
 		pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
 	}
 
-	if(!this_->solid) {
+	if(!node->solid) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
 
 
 	/*  Display the shape*/
-	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
+	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 
-	if (this_->side) {
+	if (node->side) {
 		glNormalPointer (GL_FLOAT,0,cylnorms);
 		textureDraw_start(NULL,cylsidetex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
 		glDrawArrays (GL_QUAD_STRIP, 0, (CYLDIV+1)*2);
 	}
-	if(this_->bottom) {
+	if(node->bottom) {
 		textureDraw_start(NULL,cylendtex);
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,-1.0,0.0);
@@ -156,7 +156,7 @@ void render_Cylinder (struct X3D_Cylinder * this_) {
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
 
-	if (this_->top) {
+	if (node->top) {
 		textureDraw_start(NULL,cylendtex);
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glNormal3f(0.0,1.0,0.0);
@@ -165,15 +165,15 @@ void render_Cylinder (struct X3D_Cylinder * this_) {
 	}
 	textureDraw_end();
 
-	if(!this_->solid) { glPopAttrib(); }
+	if(!node->solid) { glPopAttrib(); }
 }
 
-void render_Cone (struct X3D_Cone *this_) {
+void render_Cone (struct X3D_Cone *node) {
 	/*  DO NOT change this define, unless you want to recalculate statics below....*/
 	#define  CONEDIV 20
 
-	float h = (this_->height)/2;
-	float r = this_->bottomRadius;
+	float h = (node->height)/2;
+	float r = node->bottomRadius;
 	float angle;
 	int i;
 	struct SFColor *pt;			/*  bottom points*/
@@ -186,23 +186,23 @@ void render_Cone (struct X3D_Cone *this_) {
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
-	setExtent(r,h,r,(struct X3D_Box *)this_);
+	setExtent(r,h,r,(struct X3D_Box *)node);
 
-	if (this_->_ichange != this_->_change) {
+	if (node->_ichange != node->_change) {
 		/*  have to regen the shape*/
-		this_->_ichange = this_->_change;
+		node->_ichange = node->_change;
 
 		/*  malloc memory (if possible)*/
-		if (!this_->__botpoints) this_->__botpoints = malloc (sizeof(struct SFColor)*(CONEDIV+3));
-		if (!this_->__sidepoints) this_->__sidepoints = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
-		if (!this_->__normals) this_->__normals = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
-		if ((!this_->__normals) || (!this_->__botpoints) || (!this_->__sidepoints)) {
+		if (!node->__botpoints) node->__botpoints = malloc (sizeof(struct SFColor)*(CONEDIV+3));
+		if (!node->__sidepoints) node->__sidepoints = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+		if (!node->__normals) node->__normals = malloc (sizeof(struct SFColor)*3*(CONEDIV+1));
+		if ((!node->__normals) || (!node->__botpoints) || (!node->__sidepoints)) {
 			printf ("failure mallocing more memory for Cone rendering\n");
 			return;
 		}
 
 		/*  generate the vertexes for the triangles; top point first. (note: top point no longer used)*/
-		pt = (struct SFColor *)this_->__botpoints;
+		pt = (struct SFColor *)node->__botpoints;
 		pt[0].c[0] = 0.0; pt[0].c[1] = (float) h; pt[0].c[2] = 0.0;
 		for (i=1; i<=CONEDIV; i++) {
 			pt[i].c[0] = r*sin(PI*2*i/(float)CONEDIV);
@@ -218,7 +218,7 @@ void render_Cone (struct X3D_Cone *this_) {
 		/*  side triangles. Make 3 seperate points per triangle... makes glDrawArrays with normals*/
 		/*  easier to handle.*/
 		/*  rearrange bottom points into this array; top, bottom, left.*/
-		spt = (struct SFColor *)this_->__sidepoints;
+		spt = (struct SFColor *)node->__sidepoints;
 		for (i=0; i<CONEDIV; i++) {
 			/*  top point*/
 			spt[i*3].c[0] = 0.0; spt[i*3].c[1] = (float) h; spt[i*3].c[2] = 0.0;
@@ -233,7 +233,7 @@ void render_Cone (struct X3D_Cone *this_) {
 
 		/*  Side Normals - note, normals for faces doubled - see malloc above*/
 		/*  this gives us normals half way between faces. 1 = face 1, 3 = face2, 5 = face 3...*/
-		norm = (struct SFColor *)this_->__normals;
+		norm = (struct SFColor *)node->__normals;
 		for (i=0; i<=CONEDIV; i++) {
 			/*  top point*/
 			angle = PI * 2 * (i+0.5) / (float) (CONEDIV);
@@ -248,7 +248,7 @@ void render_Cone (struct X3D_Cone *this_) {
 	}
 
 
-	if(!this_->solid) {
+	if(!node->solid) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
@@ -257,18 +257,18 @@ void render_Cone (struct X3D_Cone *this_) {
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
 
-	if(this_->bottom) {
+	if(node->bottom) {
 		glDisableClientState (GL_NORMAL_ARRAY);
-		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__botpoints);
+		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__botpoints);
 		textureDraw_start(NULL,tribottex);
 		glNormal3f(0.0,-1.0,0.0);
 		glDrawElements (GL_TRIANGLE_FAN, CONEDIV+2, GL_UNSIGNED_BYTE,tribotindx);
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
 
-	if(this_->side) {
-		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__sidepoints);
-		glNormalPointer (GL_FLOAT,0,(GLfloat *)this_->__normals);
+	if(node->side) {
+		glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__sidepoints);
+		glNormalPointer (GL_FLOAT,0,(GLfloat *)node->__normals);
 		textureDraw_start(NULL,trisidtex);
 
 		/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
@@ -277,11 +277,11 @@ void render_Cone (struct X3D_Cone *this_) {
 	textureDraw_end();
 
 
-	if(!this_->solid) { glPopAttrib(); }
+	if(!node->solid) { glPopAttrib(); }
 
 }
 
-void render_Sphere (struct X3D_Sphere *this_) {
+void render_Sphere (struct X3D_Sphere *node) {
 	#define INIT_TRIG1(div) t_aa = sin(PI/(div)); t_aa *= 2*t_aa; t_ab = -sin(2*PI/(div));
 	#define START_TRIG1 t_sa = 0; t_ca = -1;
 	#define UP_TRIG1 t_sa1 = t_sa; t_sa -= t_sa*t_aa - t_ca * t_ab; t_ca -= t_ca * t_aa + t_sa1 * t_ab;
@@ -300,16 +300,16 @@ void render_Sphere (struct X3D_Sphere *this_) {
 	extern GLfloat spherenorms[];		/*  side normals*/
 	extern float spheretex[];		/*  in CFuncs/statics.c*/
 	int count;
-	float rad = this_->radius;
+	float rad = node->radius;
 
 	if (rad<=0.0) {
 		/* printf ("invalid sphere rad %f\n",rad);*/
 		return;}
 
 	/* for BoundingBox calculations */
-	setExtent(rad,rad,rad,(struct X3D_Box *)this_);
+	setExtent(rad,rad,rad,(struct X3D_Box *)node);
 
-	if (this_->_ichange != this_->_change) {
+	if (node->_ichange != node->_change) {
 		int v; int h;
 		float t_aa, t_ab, t_sa, t_ca, t_sa1;
 		float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1;
@@ -318,17 +318,17 @@ void render_Sphere (struct X3D_Sphere *this_) {
 
 		/*  have to regen the shape*/
 
-		this_->_ichange = this_->_change;
+		node->_ichange = node->_change;
 
 		/*  malloc memory (if possible)*/
 		/*  2 vertexes per points. (+1, to loop around and close structure)*/
-		if (!this_->__points) this_->__points =
+		if (!node->__points) node->__points =
 			malloc (sizeof(struct SFColor) * SPHDIV * (SPHDIV+1) * 2);
-		if (!this_->__points) {
+		if (!node->__points) {
 			printf ("can not malloc memory in Sphere\n");
 			return;
 		}
-		pts = (struct SFColor *) this_->__points;
+		pts = (struct SFColor *) node->__points;
 		count = 0;
 
 		INIT_TRIG1(SPHDIV)
@@ -358,7 +358,7 @@ void render_Sphere (struct X3D_Sphere *this_) {
 		}
 	}
 
-	if(!this_->solid) {
+	if(!node->solid) {
 		glPushAttrib(GL_ENABLE_BIT);
 		glDisable(GL_CULL_FACE);
 	}
@@ -366,7 +366,7 @@ void render_Sphere (struct X3D_Sphere *this_) {
 
 	/*  Display the shape*/
 	textureDraw_start(NULL,spheretex);
-	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)this_->__points);
+	glVertexPointer (3,GL_FLOAT,0,(GLfloat *)node->__points);
 	glNormalPointer (GL_FLOAT,0,spherenorms);
 
 	/* do the array drawing; sides are simple 0-1-2,3-4-5,etc triangles */
@@ -377,48 +377,48 @@ void render_Sphere (struct X3D_Sphere *this_) {
 
 	textureDraw_end();
 
-	if(!this_->solid) { glPopAttrib(); }
+	if(!node->solid) { glPopAttrib(); }
 }
 
-void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this_) {
-		if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)  
-			regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
+void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
+		if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)  
+			regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
-void render_ElevationGrid (struct X3D_ElevationGrid *this_) {
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                        regen_polyrep(this_, NULL, this_->color, this_->normal, this_->texCoord);
+void render_ElevationGrid (struct X3D_ElevationGrid *node) {
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+                        regen_polyrep(node, NULL, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
-void render_Extrusion (struct X3D_Extrusion *this_) {
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                        regen_polyrep(this_, NULL,NULL,NULL,NULL);
+void render_Extrusion (struct X3D_Extrusion *node) {
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+                        regen_polyrep(node, NULL,NULL,NULL,NULL);
 
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
 
-void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this_ ){
+void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *node ){
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
@@ -441,29 +441,29 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this_ ){
 	        struct X3D_Coordinate *xc;
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
+	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
 	       /* $mk_polyrep(); */
-		if(!this_->_intern ||
-                        this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                                regen_polyrep(this_,NULL, NULL, NULL, NULL);
+		if(!node->_intern ||
+                        node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+                                regen_polyrep(node,NULL, NULL, NULL, NULL);
 
 
-	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
 	       /*restore changes state, invalidates mk_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
-	       if(!this_->solid) {
+	       if(!node->solid) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
 
-	       pr = *((struct X3D_PolyRep*)this_->_intern);
+	       pr = *((struct X3D_PolyRep*)node->_intern);
 
 		/* IndexedFaceSets are "different", in that the user specifies points, among
 		   other things.  The rendering pass takes these external points, and streams
@@ -471,7 +471,7 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this_ ){
 		   see whether we have got here before the first rendering of a possibly new
 		   IndexedFaceSet */
 		if (!pr.coord) {
-	                xc = (struct X3D_Coordinate *) this_->coord;
+	                xc = (struct X3D_Coordinate *) node->coord;
 	                if (xc->_nodeType != NODE_Coordinate) {
 	                        printf ("Collision - coord expected %d, got %d\n",NODE_Coordinate, xc->_nodeType);
 	                } else {
@@ -519,7 +519,7 @@ void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this_ ){
 }
 
 
-void collide_Sphere (struct X3D_Sphere *this_) {
+void collide_Sphere (struct X3D_Sphere *node) {
 	       struct pt t_orig; /*transformed origin*/
 	       struct pt p_orig; /*projected transformed origin */
 	       struct pt n_orig; /*normal(unit length) transformed origin */
@@ -537,7 +537,7 @@ void collide_Sphere (struct X3D_Sphere *this_) {
 	       struct pt tupv = {0,1,0};
 
 		/* are we initialized yet? */
-		if (this_->__points==0) {
+		if (node->__points==0) {
 			return;
 		}
 
@@ -552,7 +552,7 @@ void collide_Sphere (struct X3D_Sphere *this_) {
 	       t_orig.x = modelMatrix[12];
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
-	       radius = pow(det3x3(modelMatrix),1./3.) * this_->radius;
+	       radius = pow(det3x3(modelMatrix),1./3.) * node->radius;
 
 	       /* squared distance to center of sphere (on the y plane)*/
 	       dist2 = t_orig.x * t_orig.x + t_orig.z * t_orig.z;
@@ -678,7 +678,7 @@ void collide_Sphere (struct X3D_Sphere *this_) {
 		#endif
 }
 
-void collide_Box (struct X3D_Box *this_) {
+void collide_Box (struct X3D_Box *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
@@ -699,10 +699,10 @@ void collide_Box (struct X3D_Box *this_) {
 	       struct pt tupv = {0,1,0};
 
 
-                iv.x = ((this_->size).c[0]);
-                jv.y = ((this_->size).c[1]);
-                kv.z = ((this_->size).c[2]);
-                ov.x = -((this_->size).c[0])/2; ov.y = -((this_->size).c[1])/2; ov.z = -((this_->size).c[2])/2;
+                iv.x = ((node->size).c[0]);
+                jv.y = ((node->size).c[1]);
+                kv.z = ((node->size).c[2]);
+                ov.x = -((node->size).c[0])/2; ov.y = -((node->size).c[1])/2; ov.z = -((node->size).c[2])/2;
 
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
@@ -718,7 +718,7 @@ void collide_Box (struct X3D_Box *this_) {
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 	       scale = pow(det3x3(modelMatrix),1./3.);
-               if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*((this_->size).c[0]),scale*((this_->size).c[1]),scale*((this_->size).c[2]))) return;
+               if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,scale*((node->size).c[0]),scale*((node->size).c[1]),scale*((node->size).c[2]))) return;
 
 
 
@@ -753,7 +753,7 @@ void collide_Box (struct X3D_Box *this_) {
 }
 
 
-void collide_Cone (struct X3D_Cone *this_) {
+void collide_Cone (struct X3D_Cone *node) {
 
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
@@ -762,8 +762,8 @@ void collide_Cone (struct X3D_Cone *this_) {
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
 
-                float h = (this_->height) /2;
-                float r = (this_->bottomRadius) ;
+                float h = (node->height) /2;
+                float r = (node->bottomRadius) ;
 
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
@@ -819,15 +819,15 @@ void collide_Cone (struct X3D_Cone *this_) {
 		#endif
 }
 
-void collide_Cylinder (struct X3D_Cylinder *this_) {
+void collide_Cylinder (struct X3D_Cylinder *node) {
 	       /*easy access, naviinfo.step unused for sphere collisions */
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 
-                float h = (this_->height)/2;
-                float r = (this_->radius);
+                float h = (node->height)/2;
+                float r = (node->radius);
 
 
 	       GLdouble modelMatrix[16];
@@ -888,7 +888,7 @@ void collide_Cylinder (struct X3D_Cylinder *this_) {
 		#endif
 }
 
-void collide_Extrusion (struct X3D_Extrusion *this_) {
+void collide_Extrusion (struct X3D_Extrusion *node) {
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
@@ -908,26 +908,26 @@ void collide_Extrusion (struct X3D_Extrusion *this_) {
 	       int change = 0;
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+                        regen_polyrep(node, NULL, NULL, NULL, NULL);
 
- 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+ 	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
 	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
-	       if(!this_->solid) {
+	       if(!node->solid) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
-/*	       printf("_PolyRep = %d\n",this_->_intern);*/
-	       pr = *((struct X3D_PolyRep*)this_->_intern);
+/*	       printf("_PolyRep = %d\n",node->_intern);*/
+	       pr = *((struct X3D_PolyRep*)node->_intern);
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
@@ -966,8 +966,8 @@ void collide_Extrusion (struct X3D_Extrusion *this_) {
 
 
 
-void rendray_Sphere (struct X3D_Sphere *this_) {
-        float r = (this_->radius) /*cget*/;
+void rendray_Sphere (struct X3D_Sphere *node) {
+        float r = (node->radius) /*cget*/;
         /* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
         float tr1sq = VECSQ(t_r1);
         /* float tr2sq = VECSQ(t_r2); */
@@ -1013,10 +1013,10 @@ void rendray_Sphere (struct X3D_Sphere *this_) {
 }
 
 
-void rendray_Box (struct X3D_Box *this_) {
-	float x = ((this_->size).c[0])/2;
-	float y = ((this_->size).c[1])/2;
-	float z = ((this_->size).c[2])/2;
+void rendray_Box (struct X3D_Box *node) {
+	float x = ((node->size).c[0])/2;
+	float y = ((node->size).c[1])/2;
+	float z = ((node->size).c[2])/2;
 	/* 1. x=const-plane faces? */
 	if(!XEQ) {
 		float xrat0 = XRAT(x);
@@ -1103,9 +1103,9 @@ void rendray_Box (struct X3D_Box *this_) {
 }
 
 
-void rendray_Cylinder (struct X3D_Cylinder *this_) {
-        float h = (this_->height) /*cget*//2; /* pos and neg dir. */
-        float r = (this_->radius) /*cget*/;
+void rendray_Cylinder (struct X3D_Cylinder *node) {
+        float h = (node->height) /*cget*//2; /* pos and neg dir. */
+        float r = (node->radius) /*cget*/;
         float y = h;
         /* Caps */
         if(!YEQ) {
@@ -1155,10 +1155,10 @@ void rendray_Cylinder (struct X3D_Cylinder *this_) {
         }
 }
 
-void rendray_Cone (struct X3D_Cone *this_) {
-	float h = (this_->height) /*cget*//2; /* pos and neg dir. */
+void rendray_Cone (struct X3D_Cone *node) {
+	float h = (node->height) /*cget*//2; /* pos and neg dir. */
 	float y = h;
-	float r = (this_->bottomRadius) /*cget*/;
+	float r = (node->bottomRadius) /*cget*/;
 	float dx = t_r2.x-t_r1.x; float dz = t_r2.z-t_r1.z;
 	float dy = t_r2.y-t_r1.y;
 	float a = dx*dx + dz*dz - (r*r*dy*dy/(2*h*2*h));
@@ -1211,16 +1211,16 @@ void rendray_Cone (struct X3D_Cone *this_) {
 	}
 }
 
-void rendray_ElevationGrid (struct X3D_ElevationGrid *this_) {
-	render_ray_polyrep(this_, NULL);	
+void rendray_ElevationGrid (struct X3D_ElevationGrid *node) {
+	render_ray_polyrep(node, NULL);	
 }
 
-void rendray_IndexedFaceSet (struct X3D_IndexedFaceSet *this_) {
+void rendray_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
                 struct SFColor *points=0; int npoints;
                 struct X3D_Coordinate *xc;
 
-                if(this_->coord) {
-                        xc = (struct X3D_Coordinate *) this_->coord;
+                if(node->coord) {
+                        xc = (struct X3D_Coordinate *) node->coord;
                         if (xc->_nodeType != NODE_Coordinate) {
                                 freewrlDie ("IndexedFaceSet - coord node wrong type");
                         } else {
@@ -1229,10 +1229,10 @@ void rendray_IndexedFaceSet (struct X3D_IndexedFaceSet *this_) {
                         }
                 }
 
-                render_ray_polyrep(this_, points);
+                render_ray_polyrep(node, points);
 }
 
 
-void rendray_Extrusion (struct X3D_Extrusion *this_) {
-	render_ray_polyrep(this_, NULL);
+void rendray_Extrusion (struct X3D_Extrusion *node) {
+	render_ray_polyrep(node, NULL);
 }

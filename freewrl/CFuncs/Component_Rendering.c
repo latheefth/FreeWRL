@@ -14,80 +14,80 @@
 #include "headers.h"
 
 
-void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
+void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *node) {
+                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
+                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
-void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
+void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *node) {
+                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
+                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
-void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, NULL);
+void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *node) {
+                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
+                        regen_polyrep(node, node->coord, node->color, node->normal, NULL);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
-void render_TriangleFanSet (struct X3D_TriangleFanSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
+void render_TriangleFanSet (struct X3D_TriangleFanSet *node) {
+                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
+                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
-void render_TriangleStripSet (struct X3D_TriangleStripSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
+void render_TriangleStripSet (struct X3D_TriangleStripSet *node) {
+                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
+                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
-void render_TriangleSet (struct X3D_TriangleSet *this_) {
-                if (!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change) 
-                        regen_polyrep(this_, this_->coord, this_->color, this_->normal, this_->texCoord);
+void render_TriangleSet (struct X3D_TriangleSet *node) {
+                if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
+                        regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
-		if(!this_->solid) glPopAttrib();
+		render_polyrep(node);
+		if(!node->solid) glPopAttrib();
 }
 
 
-void render_LineSet (struct X3D_LineSet *this_) {
+void render_LineSet (struct X3D_LineSet *node) {
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -113,13 +113,13 @@ void render_LineSet (struct X3D_LineSet *this_) {
 	glDisable(GL_CULL_FACE);
 
 	/* do we have to re-verify LineSet? */
-	if (this_->_ichange != this_->_change) {
-		/*  re-draw every time. this_->_ichange = this_->_change;*/
+	if (node->_ichange != node->_change) {
+		/*  re-draw every time. node->_ichange = node->_change;*/
 
-		nvertexc = (this_->vertexCount).n; vertexC = (this_->vertexCount).p;
+		nvertexc = (node->vertexCount).n; vertexC = (node->vertexCount).p;
 
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
+        	if(node->coord) {
+                	xc = (struct X3D_Coordinate *) node->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                 	        freewrlDie ("LineSet, coord node expected");
                 	} else {
@@ -129,8 +129,8 @@ void render_LineSet (struct X3D_LineSet *this_) {
         	}
  
 
-        	if (this_->color) {
-                	cc = (struct X3D_Color *) this_->color;
+        	if (node->color) {
+                	cc = (struct X3D_Color *) node->color;
                 	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                 	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
                 	} else {
@@ -146,22 +146,22 @@ void render_LineSet (struct X3D_LineSet *this_) {
 
 		if ((nvertexc == 0) || (ncoord == 0)) {
 			printf ("LineSet, no vertexCounts or no coords\n");
-			this_->_ichange = this_->_change; /* make this error show only once */
+			node->_ichange = node->_change; /* make this error show only once */
 
 			return;
 		}
 
 
 		/* if we are re-genning; remalloc */
-		/* if (this_->__points) free ((void *)this_->__points);*/
+		/* if (node->__points) free ((void *)node->__points);*/
 
-		/* if (!this_->__points) this_->__points = malloc (sizeof(unsigned int)*(nvertexc));*/
-		/* if (!this_->__points) {*/
+		/* if (!node->__points) node->__points = malloc (sizeof(unsigned int)*(nvertexc));*/
+		/* if (!node->__points) {*/
 		/* 	printf ("can not malloc memory for LineSet points\n");*/
-		/* 	this_->_ichange = this_->_change; make this error show only once */
+		/* 	node->_ichange = node->_change; make this error show only once */
 		/* 	return;*/
 		/* }*/
-		/* p = (int *)this_->__points;*/
+		/* p = (int *)node->__points;*/
 
 
 		/* go through the vertex count array and verify that all is good. */
@@ -175,8 +175,8 @@ void render_LineSet (struct X3D_LineSet *this_) {
 			/* there HAVE to be 2 or more vertexen in a segment */
 			if (punt < 2) {
 				printf ("LineSet, vertexCount[%d] has %d vertices...\n",vtc,punt);
-				this_->_ichange = this_->_change; /* make this error show only once */
-				/* free ((void *)this_->__points);*/
+				node->_ichange = node->_change; /* make this error show only once */
+				/* free ((void *)node->__points);*/
 glPopAttrib();
 				return;
 			}
@@ -184,16 +184,16 @@ glPopAttrib();
 			/* do we have enough Vertex Coords? */
 			if ((punt + ncoc) > ncoord) {
 				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
-				this_->_ichange = this_->_change; /* make this error show only once */
-				/* free ((void *)this_->__points);*/
+				node->_ichange = node->_change; /* make this error show only once */
+				/* free ((void *)node->__points);*/
 glPopAttrib();
 				return;
 			}
 			if (ncolor != 0) {
 			if ((punt + ncoc) > ncolor) {
 				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
-				this_->_ichange = this_->_change; /* make this error show only once */
-				/* free ((void *)this_->__points);*/
+				node->_ichange = node->_change; /* make this error show only once */
+				/* free ((void *)node->__points);*/
 glPopAttrib();
 				return;
 			}
@@ -229,15 +229,15 @@ glPopAttrib();
 	}
 
 	/* now, actually draw array */
-	/* if (this_->__points) {*/
-	/* 	printf ("calling glMultiDrawElements, promcount %d\n",(this_->vertexCount).n);*/
-	/* 	glMultiDrawElements(GL_LINE_STRIP,(this_->vertexCount).p,GL_FLOAT,*/
-	/* 			this_->__points,(this_->vertexCount).n);*/
+	/* if (node->__points) {*/
+	/* 	printf ("calling glMultiDrawElements, promcount %d\n",(node->vertexCount).n);*/
+	/* 	glMultiDrawElements(GL_LINE_STRIP,(node->vertexCount).p,GL_FLOAT,*/
+	/* 			node->__points,(node->vertexCount).n);*/
 	/* }*/
 	glPopAttrib();
 }
 
-void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
+void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -246,9 +246,9 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 		int i;
-                int cin = (this_->coordIndex.n);
-                int colin = (this_->colorIndex.n);
-                int cpv = (this_->colorPerVertex);
+                int cin = (node->coordIndex.n);
+                int colin = (node->colorIndex.n);
+                int cpv = (node->colorPerVertex);
 
 		int plno = 0;
 		int ind;
@@ -262,8 +262,8 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
 		printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		#endif
 
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
+        	if(node->coord) {
+                	xc = (struct X3D_Coordinate *) node->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                 	        freewrlDie ("IndexedLineSet, coord node expected");
                 	} else {
@@ -272,8 +272,8 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
                 	}
         	}
  
-        	if (this_->color) {
-                	cc = (struct X3D_Color *) this_->color;
+        	if (node->color) {
+                	cc = (struct X3D_Color *) node->color;
                 	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                 	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
                 	} else {
@@ -289,7 +289,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
 
 		glBegin(GL_LINE_STRIP);
 		for(i=0; i<cin; i++) {
-			ind = this_->coordIndex.p[i];
+			ind = node->coordIndex.p[i];
 			#ifdef RENDERVERBOSE
 			printf("Line: %d %d\n",i,ind);
 			#endif
@@ -303,7 +303,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
 				if(ncolors) {
 					if (cpv) {
 						c = i;
-						if(colin)  c = this_->colorIndex.p[i];
+						if(colin)  c = node->colorIndex.p[i];
 						else c=i; 
 					} else {
 						c = plno;
@@ -333,7 +333,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *this_) {
                 glPopAttrib();
 }
 
-void render_PointSet (struct X3D_PointSet *this_) {
+void render_PointSet (struct X3D_PointSet *node) {
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
@@ -347,8 +347,8 @@ void render_PointSet (struct X3D_PointSet *this_) {
 	struct X3D_Coordinate *xc;
 	struct X3D_Color *cc;
 
-        	if(this_->coord) {
-                	xc = (struct X3D_Coordinate *) this_->coord;
+        	if(node->coord) {
+                	xc = (struct X3D_Coordinate *) node->coord;
                 	if (xc->_nodeType != NODE_Coordinate) {
                 	        freewrlDie ("IndexedLineSet, coord node expected");
                 	} else {
@@ -358,8 +358,8 @@ void render_PointSet (struct X3D_PointSet *this_) {
         	}
  
 
-        	if (this_->color) {
-                	cc = (struct X3D_Color *) this_->color;
+        	if (node->color) {
+                	cc = (struct X3D_Color *) node->color;
                 	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
                 	        ConsoleMessage ("make_IFS, expected %d got %d\n", NODE_Color, cc->_nodeType);
                 	} else {
@@ -409,12 +409,12 @@ void render_PointSet (struct X3D_PointSet *this_) {
                 glPopAttrib();
 }
 
-void rendray_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_) {
+void rendray_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *node) {
                 struct SFColor *points=0; int npoints;
                 struct X3D_Coordinate *xc;
 
-                if(this_->coord) {
-                        xc = (struct X3D_Coordinate *) this_->coord;
+                if(node->coord) {
+                        xc = (struct X3D_Coordinate *) node->coord;
                         if (xc->_nodeType != NODE_Coordinate) {
                                 freewrlDie ("IndexedTriangleFanSet - coord node wrong type");
                         } else {
@@ -423,16 +423,16 @@ void rendray_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_) {
                         }
                 }
 
-                render_ray_polyrep(this_, points);
+                render_ray_polyrep(node, points);
 }
 
 
-void rendray_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_) {
+void rendray_IndexedTriangleSet (struct X3D_IndexedTriangleSet *node) {
                struct SFColor *points=0; int npoints;
                 struct X3D_Coordinate *xc;
 
-                if(this_->coord) {
-                        xc = (struct X3D_Coordinate *) this_->coord;
+                if(node->coord) {
+                        xc = (struct X3D_Coordinate *) node->coord;
                         if (xc->_nodeType != NODE_Coordinate) {
                                 freewrlDie ("IndexedTriangleSet - coord node wrong type");
                         } else {
@@ -441,15 +441,15 @@ void rendray_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_) {
                         }
                 }
 
-                render_ray_polyrep(this_, points);
+                render_ray_polyrep(node, points);
 }
 
-void rendray_TriangleSet (struct X3D_TriangleSet *this_) {
+void rendray_TriangleSet (struct X3D_TriangleSet *node) {
                struct SFColor *points=0; int npoints;
                 struct X3D_Coordinate *xc;
 
-                if(this_->coord) {
-                        xc = (struct X3D_Coordinate *) this_->coord;
+                if(node->coord) {
+                        xc = (struct X3D_Coordinate *) node->coord;
                         if (xc->_nodeType != NODE_Coordinate) {
                                 freewrlDie ("TriangleSet - coord node wrong type");
                         } else {
@@ -458,15 +458,15 @@ void rendray_TriangleSet (struct X3D_TriangleSet *this_) {
                         }
                 }
 
-                render_ray_polyrep(this_, points);
+                render_ray_polyrep(node, points);
 }
 
-void rendray_TriangleFanSet (struct X3D_TriangleFanSet *this_) {
+void rendray_TriangleFanSet (struct X3D_TriangleFanSet *node) {
                struct SFColor *points=0; int npoints;
                 struct X3D_Coordinate *xc;
 
-                if(this_->coord) {
-                        xc = (struct X3D_Coordinate *) this_->coord;
+                if(node->coord) {
+                        xc = (struct X3D_Coordinate *) node->coord;
                         if (xc->_nodeType != NODE_Coordinate) {
                                 freewrlDie ("TriangleFanSet - coord node wrong type");
                         } else {
@@ -475,16 +475,16 @@ void rendray_TriangleFanSet (struct X3D_TriangleFanSet *this_) {
                         }
                 }
 
-                render_ray_polyrep(this_, points);
+                render_ray_polyrep(node, points);
 }
 
 
-void rendray_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_) {
+void rendray_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *node) {
                struct SFColor *points=0; int npoints;
                 struct X3D_Coordinate *xc;
 
-                if(this_->coord) {
-                        xc = (struct X3D_Coordinate *) this_->coord;
+                if(node->coord) {
+                        xc = (struct X3D_Coordinate *) node->coord;
                         if (xc->_nodeType != NODE_Coordinate) {
                                 freewrlDie ("IndexedTriangleStripSet - coord node wrong type");
                         } else {
@@ -493,16 +493,16 @@ void rendray_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_)
                         }
                 }
 
-                render_ray_polyrep(this_, points);
+                render_ray_polyrep(node, points);
 }
 
 
-void rendray_TriangleStripSet (struct X3D_TriangleStripSet *this_) {
+void rendray_TriangleStripSet (struct X3D_TriangleStripSet *node) {
                 struct SFColor *points=0; int npoints;
                 struct X3D_Coordinate *xc;
 
-                if(this_->coord) {
-                        xc = (struct X3D_Coordinate *) this_->coord;
+                if(node->coord) {
+                        xc = (struct X3D_Coordinate *) node->coord;
                         if (xc->_nodeType != NODE_Coordinate) {
                                 freewrlDie ("TriangleStripSet - coord node wrong type");
                         } else {
@@ -511,7 +511,7 @@ void rendray_TriangleStripSet (struct X3D_TriangleStripSet *this_) {
                         }
                 }
 
-                render_ray_polyrep(this_, points);
+                render_ray_polyrep(node, points);
 }
 
 

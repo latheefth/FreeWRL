@@ -2076,14 +2076,16 @@ int JSparamIndex (char *name, char *type) {
 	int ty;
 	int ctr;
 
-	/* printf ("start of JSparamIndex, name %s, type %s\n",name,type);
+	/*
+	printf ("start of JSparamIndex, name %s, type %s\n",name,type);
 	printf ("start of JSparamIndex, lengths name %d, type %d\n",
 			strlen(name),strlen(type)); 
 	*/
 
+
 	ty = convert_typetoInt(type);
 
-	/* printf ("JSParamIndex, type %d, %s\n",ty,type); */
+	/* printf ("JSParamIndex, type %d, %s\n",ty,type);  */
 	len = strlen(name);
 
 	/* is this a duplicate name and type? types have to be same,
@@ -2113,7 +2115,7 @@ int JSparamIndex (char *name, char *type) {
 	strncpy (JSparamnames[jsnameindex].name,name,len);
 	JSparamnames[jsnameindex].name[len] = 0; /* make sure terminated */
 	JSparamnames[jsnameindex].type = ty;
-	/* printf ("JSparamNameIndex, returning %d\n",jsnameindex); */
+	/* printf ("JSparamNameIndex, returning %d\n",jsnameindex);  */
 	return jsnameindex;
 }
 
@@ -2247,6 +2249,8 @@ void CRoutes_Register(
 
 		/* possible duplicate route */
 		sscanf (tonode_str, "%u:%u", &toN,&toof);
+		/* printf ("from tonode_str %s we have %u %u\n",tonode_str, toN, toof); */
+
 		if ((toN == ((long unsigned)(CRoutes[insert_here].tonodes)->node)) &&
 			(toof == (CRoutes[insert_here].tonodes)->foffset)) {
 			/* this IS a duplicate, now, what to do? */
@@ -2366,12 +2370,16 @@ void CRoutes_Register(
 	#ifdef CRVERBOSE 
 		printf ("routing table now %d\n",CRoutes_Count);
 		for (shifter = 0; shifter < CRoutes_Count; shifter ++) {
-			printf ("%d %d %d\n",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr,
+			printf ("%d %d %d : ",CRoutes[shifter].fromnode, CRoutes[shifter].fnptr,
 				CRoutes[shifter].interpptr);
+			for (insert_here = 0; insert_here < CRoutes[shifter].tonode_count; insert_here++) {
+				printf (" to: %d %d",CRoutes[shifter].tonodes[insert_here].node,
+							CRoutes[shifter].tonodes[insert_here].foffset);
+			}
+			printf ("\n");
 		}
 	#endif
 }
-
 
 void
 CRoutes_free()
@@ -2883,6 +2891,7 @@ this sends events to scripts that have eventIns defined.
 
 ********************************************************************/
 void sendJScriptEventIn (int num, int fromoffset) {
+
 	#ifdef CRVERBOSE 
 		printf ("CRoutes, sending ScriptEventIn to from offset %d type %d\n",
 			fromoffset,JSparamnames[fromoffset].type);  

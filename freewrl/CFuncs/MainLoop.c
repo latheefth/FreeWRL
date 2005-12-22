@@ -151,9 +151,11 @@ void EventLoop() {
 	struct timezone tz; /* unused see man gettimeofday */
 
 	/* printf ("start of MainLoop\n");*/
+#define PROFILEMARKER
 	#ifdef PROFILEMARKER
 	glTranslatef(1,1,1); glTranslatef (-1,-1,-1);
 	#endif
+#undef PROFILEMARKER
 
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);

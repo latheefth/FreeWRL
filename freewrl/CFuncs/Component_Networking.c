@@ -173,105 +173,105 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 }
 
 
-void child_Anchor (struct X3D_Anchor *this_) {
-	int nc = (this_->children).n;
-	int savedlight = curlight;
+void child_Anchor (struct X3D_Anchor *node) {
+	int nc = (node->children).n;
+	DIRECTIONAL_LIGHT_SAVE
 
 
 	/* any children at all? */
 	if (nc==0) return;
 
 	#ifdef CHILDVERBOSE
-	printf("RENDER ANCHOR START %d (%d)\n",this_, nc);
+	printf("RENDER ANCHOR START %d (%d)\n",node, nc);
 	#endif
 
 	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(this_->children);
+	if ((nc > 1 && !render_blend)) sortChildren(node->children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(this_->has_light) dirlightChildren(this_->children);
+	if(node->has_light) dirlightChildren(node->children);
 
 	/* now, just render the non-directionalLight children */
-	normalChildren(this_->children);
+	normalChildren(node->children);
 
 	if (render_geom && (!render_blend)) {
 		/* printf ("anchorChild, this is %d, extent %f %f %f\n",
-		this_, this_->_extent[0], this_->_extent[1],
-		this_->_extent[2]); */
-		this_->bboxSize.c[0] = this_->_extent[0];
-		this_->bboxSize.c[1] = this_->_extent[1];
-		this_->bboxSize.c[2] = this_->_extent[2];
-		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
+		node, node->_extent[0], node->_extent[1],
+		node->_extent[2]); */
+		node->bboxSize.c[0] = node->_extent[0];
+		node->bboxSize.c[1] = node->_extent[1];
+		node->bboxSize.c[2] = node->_extent[2];
+		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
 	}
 
 	/* did we have that directionalLight? */
-	if((this_->has_light)) glPopAttrib();
+	if((node->has_light)) glPopAttrib();
 
 	#ifdef CHILDVERBOSE
-	printf("RENDER ANCHOR END %d\n",this_);
+	printf("RENDER ANCHOR END %d\n",node);
 	#endif
 
-	curlight = savedlight;
+	DIRECTIONAL_LIGHT_OFF
 }
 
 
 
-void child_Inline (struct X3D_Inline *this_) {
-	int nc = (this_->__children).n;
-	int savedlight = curlight;
+void child_Inline (struct X3D_Inline *node) {
+	int nc = (node->__children).n;
+	DIRECTIONAL_LIGHT_SAVE
 
 	#ifdef CHILDVERBOSE
-	printf("RENDER INLINE START %d (%d)\n",this_, nc);
+	printf("RENDER INLINE START %d (%d)\n",node, nc);
 	#endif
 
 	/* lets see if we still have to load this one... */
-	if ((this_->__loadstatus)==0) loadInline(this_);
+	if ((node->__loadstatus)==0) loadInline(node);
 
 
 	/* any children at all? */
 	if (nc==0) return; 
 
 	/* do we have to sort this node? */
-	if ((nc > 1 && !render_blend)) sortChildren(this_->__children);
+	if ((nc > 1 && !render_blend)) sortChildren(node->__children);
 
 	/* do we have a DirectionalLight for a child? */
-	if(this_->has_light) dirlightChildren(this_->__children);
+	if(node->has_light) dirlightChildren(node->__children);
 
 	/* now, just render the non-directionalLight children */
-	normalChildren(this_->__children);
+	normalChildren(node->__children);
 
 	if (render_geom && (!render_blend)) {
 		/* printf ("inlineChild, this is %d, extent %f %f %f\n",
-		this_, this_->_extent[0], this_->_extent[1],
-		this_->_extent[2]); */
-		this_->bboxSize.c[0] = this_->_extent[0];
-		this_->bboxSize.c[1] = this_->_extent[1];
-		this_->bboxSize.c[2] = this_->_extent[2];
-		BoundingBox(this_->bboxCenter,this_->bboxSize,this_->PIV);
+		node, node->_extent[0], node->_extent[1],
+		node->_extent[2]); */
+		node->bboxSize.c[0] = node->_extent[0];
+		node->bboxSize.c[1] = node->_extent[1];
+		node->bboxSize.c[2] = node->_extent[2];
+		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
 	}
 
 	/* did we have that directionalLight? */
-	if((this_->has_light)) glPopAttrib();
+	if((node->has_light)) glPopAttrib();
 
 	#ifdef CHILDVERBOSE
-	printf("RENDER INLINE END %d\n",this_);
+	printf("RENDER INLINE END %d\n",node);
 	#endif
 
-	curlight = savedlight;
+	DIRECTIONAL_LIGHT_OFF
 }
 
-void changed_Anchor (struct X3D_Anchor *this_) {
+void changed_Anchor (struct X3D_Anchor *node) {
                 int i;
-                int nc = ((this_->children).n);
+                int nc = ((node->children).n);
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (this_->has_light) = 0;
+                (node->has_light) = 0;
                 for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((this_->children).p[i]);
+                        p = (struct X3D_Box *)((node->children).p[i]);
                         if (p->_nodeType == NODE_DirectionalLight) {
                                 /*  printf ("group found a light\n");*/
-                                (this_->has_light) ++;
+                                (node->has_light) ++;
                         }
                 }
 }

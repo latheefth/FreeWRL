@@ -30,17 +30,17 @@
 #include "headers.h"
 #include "installdir.h"
 
-void render_LineProperties (struct X3D_LineProperties *this_) {
+void render_LineProperties (struct X3D_LineProperties *node) {
 	GLint	factor;
 	GLushort pat;
 
-	if (this_->applied) {
+	if (node->applied) {
 		global_lineProperties=TRUE;
-		if (this_->linewidthScaleFactor > 1.0) glLineWidth(this_->linewidthScaleFactor);
-		if (this_->linetype > 0) {
+		if (node->linewidthScaleFactor > 1.0) glLineWidth(node->linewidthScaleFactor);
+		if (node->linetype > 0) {
 			factor = 1;
 			pat = 0xffff; /* can not support fancy line types - this is the default */
-			switch (this_->linetype) {
+			switch (node->linetype) {
 				case 2: pat = 0xaaaa; break;
 				case 3: pat = 0x4444; break;
 				case 4: pat = 0xa4a4; break;
@@ -60,7 +60,7 @@ void render_LineProperties (struct X3D_LineProperties *this_) {
 
 }
 
-void render_FillProperties (struct X3D_FillProperties *this_) {
+void render_FillProperties (struct X3D_FillProperties *node) {
 		GLubyte halftone[] = {
 		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
 		0xAA, 0xAA, 0xAA, 0xAA, 0x55, 0x55, 0x55, 0x55,
@@ -81,17 +81,17 @@ void render_FillProperties (struct X3D_FillProperties *this_) {
 
 		global_fillProperties=TRUE;
 
-		if (!this_->filled) {
+		if (!node->filled) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
-		if (this_->hatched) {
-			glColor3f (this_->hatchColor.c[0], this_->hatchColor.c[1],this_->hatchColor.c[2]);
+		if (node->hatched) {
+			glColor3f (node->hatchColor.c[0], node->hatchColor.c[1],node->hatchColor.c[2]);
 			glPolygonStipple(halftone);			
 			glEnable (GL_POLYGON_STIPPLE);
 		}
 }
 
-void render_Material (struct X3D_Material *this_) {
+void render_Material (struct X3D_Material *node) {
 		int i;
 		float dcol[4];
 		float ecol[4];
@@ -109,13 +109,13 @@ void render_Material (struct X3D_Material *this_) {
 		} else {
 #endif
 
-			for (i=0; i<3;i++){ dcol[i] = this_->diffuseColor.c[i]; }
+			for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.c[i]; }
 #ifndef X3DMATERIALPROPERTY
 		}
 #endif
 
 		/* set the transparency here for the material */
-		trans = 1.0 - this_->transparency;
+		trans = 1.0 - node->transparency;
 		if (trans<0.0) trans = 0.0;
 		if (trans>=0.99) trans = 0.99;
 
@@ -124,8 +124,8 @@ void render_Material (struct X3D_Material *this_) {
 		   indexedfaceset with colour node */
 		if (trans <=0.99) {
 			have_transparency++;
-			if ((this_->_renderFlags & VF_Blend) != VF_Blend)
-				update_renderFlag(this_,VF_Blend);
+			if ((node->_renderFlags & VF_Blend) != VF_Blend)
+				update_renderFlag(node,VF_Blend);
 			last_transparency=trans;
 		}
 
@@ -133,7 +133,7 @@ void render_Material (struct X3D_Material *this_) {
 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dcol);
 
-		amb = this_->ambientIntensity;
+		amb = node->ambientIntensity;
 		for(i=0; i<3; i++) {
                        /* to make this render like Xj3D, make ambient 0 with only headlight */
                         /* dcol[i] *= amb; */
@@ -141,42 +141,42 @@ void render_Material (struct X3D_Material *this_) {
 		}
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, dcol);
 
-		for (i=0; i<3;i++){ scol[i] = this_->specularColor.c[i]; }
+		for (i=0; i<3;i++){ scol[i] = node->specularColor.c[i]; }
 		scol[3] = trans;
 		/* scol[3] = 1.0;*/
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, scol);
 
-		for (i=0; i<3;i++){ ecol[i] = this_->emissiveColor.c[i]; }
+		for (i=0; i<3;i++){ ecol[i] = node->emissiveColor.c[i]; }
 		ecol[3] = trans;
 		/* ecol[3] = 1.0;*/
 
 		do_glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, ecol);
 		glColor3f(ecol[0],ecol[1],ecol[2]);
 
-		shin = 128.0* this_->shininess;
+		shin = 128.0* node->shininess;
 		do_shininess(shin);
 }
 
 
-void child_Shape (struct X3D_Shape *this_) {
+void child_Shape (struct X3D_Shape *node) {
 		int trans;
 		int should_rend;
 		GLdouble modelMatrix[16];
 		int count;
 
-		if(!(this_->geometry)) { return; }
+		if(!(node->geometry)) { return; }
 
 		/* do we need to do some distance calculations? */
 		if (((!render_vp) && render_light)) {
 			fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-			this_->_dist = modelMatrix[14];
+			node->_dist = modelMatrix[14];
 			/* printf ("getDist - recalculating distance, it is %f for %d\n",*/
-			/* 	this_->_dist,this_);*/
+			/* 	node->_dist,node);*/
 		}
 
 		if((render_collision) || (render_sensitive)) {
 			/* only need to forward the call to the child */
-			render_node((this_->geometry));
+			render_node((node->geometry));
 			return;
 		}
 
@@ -200,10 +200,11 @@ void child_Shape (struct X3D_Shape *this_) {
                    node will turn lighting off; in this case, at the end of Shape, we
                    have to turn lighting back on again. */
                 lightingOn = TRUE;
+		glEnable(GL_LIGHTING);
 
 		/* is there an associated appearance node? */
-       	        if((this_->appearance)) {
-                        render_node((this_->appearance));
+       	        if((node->appearance)) {
+                        render_node((node->appearance));
        	        } else {
                         /* no material, so just colour the following shape */
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
@@ -221,8 +222,8 @@ void child_Shape (struct X3D_Shape *this_) {
 		it a transparent node */
 		if (last_texture_depth >3) {
 			have_transparency++;
-			if ((this_->_renderFlags & VF_Blend) != VF_Blend)
-				update_renderFlag(this_,VF_Blend);
+			if ((node->_renderFlags & VF_Blend) != VF_Blend)
+				update_renderFlag(node,VF_Blend);
 		}
 
 		/* printf ("Shape, last_trans %d this trans %d last_texture_depth %d\n",
@@ -247,13 +248,14 @@ void child_Shape (struct X3D_Shape *this_) {
 
 		/* should we render this node on this pass? */
 		if (should_rend) {
-			render_node((this_->geometry));
+			render_node((node->geometry));
 		}
 
                /* did the lack of an Appearance or Material node turn lighting off? */
                 if (!lightingOn) {
                         glEnable (GL_LIGHTING);
-                }
+			lightingOn = TRUE;
+		}
 
 		/* any line properties to reset? */
 		if (global_lineProperties) {
@@ -269,16 +271,16 @@ void child_Shape (struct X3D_Shape *this_) {
 }
 
 
-void child_Appearance (struct X3D_Appearance *this_) {
+void child_Appearance (struct X3D_Appearance *node) {
                 last_texture_depth = 0;
                 last_transparency = 1.0;
 
-        /* printf ("in Appearance, this %d, nodeType %d\n",this_, this_->_nodeType);
+        /* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
          printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
          render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-                if((this_->material)) {
-                        render_node((this_->material));
+                if((node->material)) {
+                        render_node((node->material));
                 } else {
                         /* no material, so just colour the following shape */
                         /* Spec says to disable lighting and set coloUr to 1,1,1 */
@@ -287,24 +289,24 @@ void child_Appearance (struct X3D_Appearance *this_) {
                         lightingOn = FALSE;
                 }
 
-                if ((this_->fillProperties)) {
-                        render_node((this_->fillProperties));
+                if ((node->fillProperties)) {
+                        render_node((node->fillProperties));
                 }
 
                 /* set line widths - if we have line a lineProperties node */
-                if ((this_->lineProperties)) {
-                        render_node((this_->lineProperties));
+                if ((node->lineProperties)) {
+                        render_node((node->lineProperties));
                 }
 
-                if((this_->texture)) {
+                if((node->texture)) {
                         /* we have to do a glPush, then restore, later */
                         have_texture=TRUE;
                         glPushAttrib(GL_ENABLE_BIT);
 
                         /* is there a TextureTransform? if no texture, fugutaboutit */
-                        this_textureTransform = this_->textureTransform;
+                        this_textureTransform = node->textureTransform;
 
                         /* now, render the texture */
-                        render_node((this_->texture));
+                        render_node((node->texture));
                 }
 }

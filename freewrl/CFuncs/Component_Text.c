@@ -128,15 +128,15 @@ void FW_draw_outline(FT_OutlineGlyph oglyph);
 void FW_draw_character(FT_Glyph glyph);
 int open_font(void);
 
-void render_Text (struct X3D_Text * this_) {
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+void render_Text (struct X3D_Text * node) {
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+                        regen_polyrep(node, NULL, NULL, NULL, NULL);
 
 		/* always Text is visible from both sides */
                 glPushAttrib(GL_ENABLE_BIT);
                 glDisable(GL_CULL_FACE);
 
-		render_polyrep(this_);
+		render_polyrep(node);
 
 		glPopAttrib();
 }
@@ -802,7 +802,7 @@ open_font() {
 	return TRUE;
 }
 
-void collide_Text (struct X3D_Text *this_) {
+void collide_Text (struct X3D_Text *node) {
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
@@ -824,22 +824,22 @@ void collide_Text (struct X3D_Text *this_) {
 
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+                        regen_polyrep(node, NULL, NULL, NULL, NULL);
 
- 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+ 	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
 	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
-	       pr = *((struct X3D_PolyRep*)this_->_intern);
+	       pr = *((struct X3D_PolyRep*)node->_intern);
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
@@ -873,8 +873,8 @@ void collide_Text (struct X3D_Text *this_) {
 
 
 
-void make_Text (struct X3D_Text *this_) {
-	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)this_->_intern;
+void make_Text (struct X3D_Text *node) {
+	struct X3D_PolyRep *rep_ = (struct X3D_PolyRep *)node->_intern;
         double spacing = 1.0;
         double size = 1.0;
 	unsigned int fsparams = 0;
@@ -883,7 +883,7 @@ void make_Text (struct X3D_Text *this_) {
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable(GL_CULL_FACE);
 
-	if((this_->fontStyle)) {
+	if((node->fontStyle)) {
 		/* We have a FontStyle. Parse params (except size and spacing) and
 		   make up an unsigned int with bits indicating params, to be
 		   passed to the Text Renderer
@@ -924,7 +924,7 @@ void make_Text (struct X3D_Text *this_) {
 		unsigned char *stmp;
 
 		/* step 0 - is the FontStyle a proto? */
-		fsp = (struct X3D_FontStyle *)this_->fontStyle;
+		fsp = (struct X3D_FontStyle *)node->fontStyle;
 
 		/* step 0.5 - now that we know FontStyle points ok, go for
 		 * the other pointers */
@@ -1003,14 +1003,14 @@ void make_Text (struct X3D_Text *this_) {
 	/* printf ("Text, calling FW_rendertext\n");*/
 
 	/* call render text - NULL means get the text from the string */
-	FW_rendertext (((this_->string).n),((this_->string).p),NULL, ((this_->length).n),(double *) ((this_->length).p),
-			(this_->maxExtent),spacing,size,fsparams,rep_);
+	FW_rendertext (((node->string).n),((node->string).p),NULL, ((node->length).n),(double *) ((node->length).p),
+			(node->maxExtent),spacing,size,fsparams,rep_);
 
 	/* printf ("Text, tris = %d\n",rep_->ntri);*/
 
 	glPopAttrib();
 }
 
-rendray_Text (struct X3D_Text *this_) {
-	render_ray_polyrep(this_, NULL);
+rendray_Text (struct X3D_Text *node) {
+	render_ray_polyrep(node, NULL);
 }

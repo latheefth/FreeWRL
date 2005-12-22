@@ -146,29 +146,29 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *this) {
 }
 
 
-void render_PixelTexture (struct X3D_PixelTexture *this_) {
-	loadPixelTexture(this_,NULL);
+void render_PixelTexture (struct X3D_PixelTexture *node) {
+	loadPixelTexture(node,NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }
 
-void render_ImageTexture (struct X3D_ImageTexture *this_) {
-	loadImageTexture(this_,NULL);
+void render_ImageTexture (struct X3D_ImageTexture *node) {
+	loadImageTexture(node,NULL);
 	texture_count=1; /* not multitexture - should have saved to bound_textures[0] */
 }
 
-void render_MultiTexture (struct X3D_MultiTexture *this_) {
-	loadMultiTexture(this_);
+void render_MultiTexture (struct X3D_MultiTexture *node) {
+	loadMultiTexture(node);
 }
 
-void render_MovieTexture (struct X3D_MovieTexture *this_) {
+void render_MovieTexture (struct X3D_MovieTexture *node) {
 	/* really simple, the texture number is calculated, then simply sent here.
 	   The bound_textures field is sent, and, made current */
 
 	/*  if this is attached to a Sound node, tell it...*/
 	sound_from_audioclip = FALSE;
 
-	loadMovieTexture(this_,NULL);
-	bound_textures[texture_count] = this_->__ctex;
+	loadMovieTexture(node,NULL);
+	bound_textures[texture_count] = node->__ctex;
 	/* not multitexture, should have saved to bound_textures[0] */
 	
 	texture_count=1;

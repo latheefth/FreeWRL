@@ -30,20 +30,20 @@ double GeoOrig[3];			/* last GeoOrigin parsed in lat/long/elvation format */
 /* Function Prototypes */
 void parse_ellipsoid(int *dest, char *str, char *description);
 
-void make_GeoElevationGrid (struct X3D_GeoElevationGrid * this_) {
+void make_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 }
 
-void render_GeoElevationGrid (struct X3D_GeoElevationGrid * this_) {
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-			regen_polyrep(this_, NULL, this_->color, this_->normal, this_->texCoord);
+void render_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+			regen_polyrep(node, NULL, node->color, node->normal, node->texCoord);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPushAttrib(GL_ENABLE_BIT);
 			glDisable(GL_CULL_FACE);
 		}
-		render_polyrep(this_);
+		render_polyrep(node);
 
-		if(!this_->solid) {
+		if(!node->solid) {
 			glPopAttrib();
 		}
 }
@@ -265,76 +265,76 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	/* printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
-void fin_GeoLocation (struct X3D_GeoLocation *this_) {
-	UNUSED (this_);
+void fin_GeoLocation (struct X3D_GeoLocation *node) {
+	UNUSED (node);
 	if (!render_vp) glPopMatrix ();
 }
 
-void child_GeoLOD (struct X3D_GeoLOD *this_) {
+void child_GeoLOD (struct X3D_GeoLOD *node) {
 	/* do nothing yet */
-	UNUSED (this_);
+	UNUSED (node);
 }
 
-void child_GeoLocation (struct X3D_GeoLocation *this_) {
-        int nc = (this_->children).n;
-        int savedlight = curlight;
+void child_GeoLocation (struct X3D_GeoLocation *node) {
+        int nc = (node->children).n;
+        DIRECTIONAL_LIGHT_SAVE
 
 
         /* any children at all? */
         if (nc==0) return;
 
         #ifdef CHILDVERBOSE
-	printf("RENDER GEOLOCATION START %d (%d)\n",this_, nc);
+	printf("RENDER GEOLOCATION START %d (%d)\n",node, nc);
 	#endif
 
         /* do we have to sort this node? */
-        if (nc > 1 && !render_blend) sortChildren(this_->children);
+        if (nc > 1 && !render_blend) sortChildren(node->children);
 
         /* do we have a DirectionalLight for a child? */
-        if(this_->has_light) dirlightChildren(this_->children);
+        if(node->has_light) dirlightChildren(node->children);
 
         /* now, just render the non-directionalLight children */
-        normalChildren(this_->children);
+        normalChildren(node->children);
 
         if (render_geom && (!render_blend)) {
                 /* printf ("geoLocationChild, this is %d, extent %f %f %f\n",
-                this_, this_->_extent[0], this_->_extent[1],
-                this_->_extent[2]); */
-                /*this_->bboxSize.c[0] = this_->_extent[0];
-                this_->bboxSize.c[1] = this_->_extent[1];
-                this_->bboxSize.c[2] = this_->_extent[2];
-                BoundingBox(this_->bboxCenter,this_->bboxSize); */
+                node, node->_extent[0], node->_extent[1],
+                node->_extent[2]); */
+                /*node->bboxSize.c[0] = node->_extent[0];
+                node->bboxSize.c[1] = node->_extent[1];
+                node->bboxSize.c[2] = node->_extent[2];
+                BoundingBox(node->bboxCenter,node->bboxSize); */
         }
         
         /* did we have that directionalLight? */
-        if((this_->has_light)) glPopAttrib();
+        if((node->has_light)) glPopAttrib();
         
         #ifdef CHILDVERBOSE
-	printf("RENDER GEOLOCATION END %d\n",this_);
+	printf("RENDER GEOLOCATION END %d\n",node);
 	#endif
 
         
-        curlight = savedlight;
+        DIRECTIONAL_LIGHT_OFF
 }
 
-void changed_GeoLocation ( struct X3D_GeoLocation *this_) { 
+void changed_GeoLocation ( struct X3D_GeoLocation *node) { 
                 int i;
-                int nc = ((this_->children).n);
+                int nc = ((node->children).n);
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (this_->has_light) = 0;
+                (node->has_light) = 0;
                 for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((this_->children).p[i]);
+                        p = (struct X3D_Box *)((node->children).p[i]);
                         if (p->_nodeType == NODE_DirectionalLight) {
                                 /*  printf ("group found a light\n");*/
-                                (this_->has_light) ++;
+                                (node->has_light) ++;
                         }
                 }
         }
 
 
-void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_) {
+void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 	       GLdouble awidth = naviinfo.width; /*avatar width*/
 	       GLdouble atop = naviinfo.width; /*top of avatar (relative to eyepoint)*/
 	       GLdouble abottom = -naviinfo.height; /*bottom of avatar (relative to eyepoint)*/
@@ -355,30 +355,30 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_) {
 
 		float xSpacing = 0.0;	/* GeoElevationGrid uses strings here */
 		float zSpacing = 0.0;	/* GeoElevationGrid uses strings here */
-		sscanf (SvPV (this_->xSpacing,xx),"%f",&xSpacing);
-		sscanf (SvPV(this_->zSpacing,xx),"%f",&zSpacing);
+		sscanf (SvPV (node->xSpacing,xx),"%f",&xSpacing);
+		sscanf (SvPV(node->zSpacing,xx),"%f",&zSpacing);
 
 		/* JAS - first pass, intern is probably zero */
-		if (((struct X3D_PolyRep *)this_->_intern) == 0) return;
+		if (((struct X3D_PolyRep *)node->_intern) == 0) return;
 
 		/* JAS - no triangles in this text structure */
-		if ((((struct X3D_PolyRep *)this_->_intern)->ntri) == 0) return;
+		if ((((struct X3D_PolyRep *)node->_intern)->ntri) == 0) return;
 
 
 	       /*save changed state.*/
-	       if(this_->_intern) change = ((struct X3D_PolyRep *)this_->_intern)->_change;
-                if(!this_->_intern || this_->_change != ((struct X3D_PolyRep *)this_->_intern)->_change)
-                        regen_polyrep(this_, NULL, NULL, NULL, NULL);
+	       if(node->_intern) change = ((struct X3D_PolyRep *)node->_intern)->_change;
+                if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
+                        regen_polyrep(node, NULL, NULL, NULL, NULL);
 
 
- 	       if(this_->_intern) ((struct X3D_PolyRep *)this_->_intern)->_change = change;
+ 	       if(node->_intern) ((struct X3D_PolyRep *)node->_intern)->_change = change;
 	       /*restore changes state, invalidates regen_polyrep work done, so it can be done
 	         correclty in the RENDER pass */
 
-	       if(!this_->solid) {
+	       if(!node->solid) {
 		   flags = flags | PR_DOUBLESIDED;
 	       }
-	       pr = *((struct X3D_PolyRep*)this_->_intern);
+	       pr = *((struct X3D_PolyRep*)node->_intern);
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
 
 	       transform3x3(&tupv,&tupv,modelMatrix);
@@ -393,8 +393,8 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_) {
 /*	       if(!fast_ycylinder_sphere_intersect(abottom,atop,awidth,t_orig,scale*h,scale*r)) return; must find data*/
 
 
-	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,this_->xDimension,
-				this_->zDimension,xSpacing,zSpacing,
+	       delta = elevationgrid_disp(abottom,atop,awidth,astep,pr,node->xDimension,
+				node->zDimension,xSpacing,zSpacing,
 				modelMatrix,flags);
 
 	       vecscale(&delta,&delta,-1);
@@ -413,6 +413,6 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_) {
 }
 
 
-void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *this_) {
-	render_ray_polyrep(this_, NULL);
+void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
+	render_ray_polyrep(node, NULL);
 }
