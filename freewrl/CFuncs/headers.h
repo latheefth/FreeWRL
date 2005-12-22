@@ -694,12 +694,12 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *this_);
 void collide_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 
 /* Rendering nodes */
-void rendray_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_);
-void rendray_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_);
-void rendray_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_);
-void rendray_TriangleSet (struct X3D_TriangleSet *this_);
-void rendray_TriangleFanSet (struct X3D_TriangleFanSet *this_);
-void rendray_TriangleStripSet (struct X3D_TriangleStripSet *this_);
+#define rendray_IndexedTriangleSet rendray_IndexedFaceSet
+#define rendray_IndexedTriangleFanSet rendray_IndexedFaceSet
+#define rendray_IndexedTriangleStripSet rendray_IndexedFaceSet
+#define rendray_TriangleSet rendray_IndexedFaceSet
+#define rendray_TriangleFanSet rendray_IndexedFaceSet
+#define rendray_TriangleStripSet rendray_IndexedFaceSet
 void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_); 
 void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_); 
 void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_); 
