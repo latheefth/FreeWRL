@@ -908,8 +908,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
 
 
 	/* free textures */
-printf ("here in killing\n");
-
 	
 	/* free scripts */
 	kill_javascript();
