@@ -41,9 +41,27 @@ void do_TimeSensorTick ( void *ptr) {
 	myDuration = node->cycleInterval;
 
 	/* call common time sensor routine */
+	/*
+		printf ("cycleInterval %f \n",node->cycleInterval);
+
+		uncomment the following to ensure that the gcc bug
+		in calling doubles/floats in here is not causing us
+		problems again...
+
+
+		printf ("calling ");
+		printf ("act %d ",node->isActive);
+		printf ("initt %lf ",node->__inittime);
+		printf ("startt %lf ",node->startTime);
+		printf ("stopt %lf ",node->stopTime);
+		printf ("loop %d ",node->loop);
+		printf ("myDuration %f ",(float) myDuration);
+		printf ("speed %f\n",(float) 1.0);
+	*/
+
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,(float)(node->cycleInterval), (float)1.0);
+		&node->stopTime,node->loop,myDuration, 1.0);
 
 
 	/* now process if we have changed states */
@@ -61,8 +79,7 @@ void do_TimeSensorTick ( void *ptr) {
 	if(node->isActive == 1) {
 		/* set time field */
 		node->time = TickTime;
-		mark_event (ptr,
-				offsetof(struct X3D_TimeSensor, time));
+		mark_event (ptr, offsetof(struct X3D_TimeSensor, time));
 
 		/* calculate what fraction we should be */
  		myTime = (TickTime - node->startTime) / myDuration;
@@ -85,9 +102,6 @@ void do_TimeSensorTick ( void *ptr) {
 		}
 		node->__ctflag = frac;
 
-		/* time  and fraction_changed events */
-		/* push @e, [$t, "time", $TickTime];
-		push @e, [$t, fraction_changed, $frac]; */
 		node->fraction_changed = frac;
 		mark_event (ptr, offsetof(struct X3D_TimeSensor, fraction_changed));
 

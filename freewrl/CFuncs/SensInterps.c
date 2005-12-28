@@ -36,8 +36,8 @@ int SoundSourceNumber = 0;
 void locateAudioSource (struct X3D_AudioClip *node);
 
 /* returns the audio duration, unscaled by pitch */
-float return_Duration (int indx) {
-	float retval;
+double return_Duration (int indx) {
+	double retval;
 
 	if (indx < 0)  retval = 1.0;
 	else if (indx > 50) retval = 1.0;
@@ -52,11 +52,24 @@ void do_active_inactive (
 	double *startt,		/* pointer to nodes startTime		*/
 	double *stopt,		/* pointer to nodes stop time		*/
 	int loop,		/* nodes loop field			*/
-	float myDuration,	/* duration of cycle			*/
-	float speed		/* speed field				*/
+	double myDuration,	/* duration of cycle			*/
+	double speed		/* speed field				*/
 ) {
 
 	/* what we do now depends on whether we are active or not */
+	/* gcc seemed to have problems mixing double* and floats in a function
+	   call, so make them all doubles. Note duplicate printfs in 
+	   do_active_inactive call - uncomment and make sure all are identical 
+		printf ("called ");
+		printf ("act %d ",*act);
+		printf ("initt %lf ",*inittime);
+		printf ("startt %lf ",*startt);
+		printf ("stopt %lf ",*stopt);
+		printf ("loop %d ",loop);
+		printf ("myDuration %lf ",myDuration);
+		printf ("speed %f\n",speed);
+	*/
+
 
 	if (*act == 1) {   /* active - should we stop? */
 		#ifdef SEVERBOSE
@@ -68,15 +81,20 @@ void do_active_inactive (
 			if (*startt >= *stopt) {
 				/* cases 1 and 2 */
 				if (!(loop)) {
-					/* printf ("case 1 and 2, not loop md %f sp %f fabs %f\n",
+					/*printf ("case 1 and 2, not loop md %f sp %f fabs %f\n",
 							myDuration, speed, fabs(myDuration/speed));
 					*/
+					
 					/* if (speed != 0) */
 					if (! APPROX(speed, 0)) {
 					    if (TickTime >= (*startt +
 							fabs(myDuration/speed))) {
 						#ifdef SEVERBOSE
 						printf ("stopping case x\n");
+						printf ("TickTime %f\n",TickTime);
+						printf ("startt %f\n",*startt);
+						printf ("myDuration %f\n",myDuration);
+						printf ("speed %f\n",speed);
 						#endif
 
 						*act = 0;
@@ -796,6 +814,7 @@ void do_CollisionTick( void *ptr) {
 void do_AudioTick(void *ptr) {
 	struct X3D_AudioClip *node = (struct X3D_AudioClip *)ptr;
 	int 	oldstatus;
+	double pitch; /* gcc and params - make all doubles to do_active_inactive */
 
 	/* can we possibly have started yet? */
 	if (!node) return;
@@ -805,6 +824,7 @@ void do_AudioTick(void *ptr) {
 	}
 
 	oldstatus = node->isActive;
+	pitch = node->pitch;
 
 	/* is this audio wavelet initialized yet? */
 	if (node->__sourceNumber == -1) {
@@ -820,8 +840,8 @@ void do_AudioTick(void *ptr) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,(float)(return_Duration(node->__sourceNumber)),
-		((float)node->pitch));
+		&node->stopTime,node->loop,return_Duration(node->__sourceNumber),
+		pitch);
 
 
 	if (oldstatus != node->isActive) {
@@ -910,10 +930,9 @@ void do_MovieTextureTick( void *ptr) {
 	int 	oldstatus;
 	float 	frac;		/* which texture to display */
 	int 	highest,lowest;	/* selector variables		*/
-	/* double myDuration; */
 	double myTime;
-	float 	speed;
-	float	duration;
+	double 	speed;
+	double	duration;
 
 	int tmpTrunc; 		/* used for timing for textures */
 
@@ -933,7 +952,7 @@ void do_MovieTextureTick( void *ptr) {
 	/* call common time sensor routine */
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,(float)duration,(float)speed);
+		&node->stopTime,node->loop,duration,speed);
 
 
 	/* what we do now depends on whether we are active or not */
