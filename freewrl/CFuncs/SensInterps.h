@@ -32,8 +32,7 @@
 #define ASLEN 500
 
 
-float
-return_Duration(int indx);
+double return_Duration(int indx);
 
 void
 do_active_inactive(int *act,
@@ -41,8 +40,8 @@ do_active_inactive(int *act,
 				   double *startt,
 				   double *stopt,
 				   int loop,
-				   float myDuration,
-				   float speed);
+				   double myDuration,
+				   double speed);
 
 int
 find_key(int kin, float frac, float *keys);
