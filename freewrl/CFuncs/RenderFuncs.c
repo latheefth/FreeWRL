@@ -11,6 +11,9 @@ RenderFuncs.c - do scenegraph rendering.
 
 ******************************************/
 
+/*
+#define RENDERVERBOSE
+*/
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -268,10 +271,10 @@ void render_node(void *node) {
 	#ifdef RENDERVERBOSE 
 	    printf("=========================================NODE RENDERED===================================================\n");
 	printf ("node %d %d\n",p,v);
-	printf ("nodename %s\n",v->name);
+	printf ("nodename %s\n",stringNodeType(p->_nodeType));
 return;
 	    printf("Render_node_v %d (%s) PREP: %d REND: %d CH: %d FIN: %d RAY: %d HYP: %d\n",v,
-		   v->name,
+		   stringNodeType(p->_nodeType),
 		   v->prep,
 		   v->rend,
 		   v->children,

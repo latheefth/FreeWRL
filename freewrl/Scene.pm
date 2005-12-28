@@ -98,15 +98,9 @@ sub dump {
 		print "\n";
 	}
 
-	# this was Nodes, but if a PROTO, RootNode should contain all.
-	if (defined $this->{RootNode}) {
-		print "\n$padded(RootNode of ",VRML::NodeIntern::dump_name($this),")\n";
- 		$this->{RootNode}->dump($level+1);
-	} else {
-		print "\n$padded(Nodes of ",VRML::NodeIntern::dump_name($this),")\n";
-		for (@{$this->{Nodes}}) {
-			$_->dump($level+1);
-		}
+	print "\n$padded(Nodes of ",VRML::NodeIntern::dump_name($this),")\n";
+	for (@{$this->{Nodes}}) {
+		$_->dump($level+1);
 	}
 
 	if (defined $this->{SubScenes}) {
@@ -135,7 +129,6 @@ sub new {
 					  Bindables => undef,
 					  Routes => undef,
 					  DelRoutes => undef,
-					  RootNode => undef,
 					  Nodes => undef,
 					  NodeParent => undef,
 					  Parent => undef,
@@ -370,7 +363,6 @@ sub new_node {
 				$fields->{$_}[0], #eg, eventOut
 			];
 		}
-		#JAS my $type = VRML::NodeType->new($t, \%f, $VRML::Nodes{Script}{Actions});
 		my $type = VRML::NodeType->new($t, \%f);
 		my $node = VRML::NodeIntern->new($this, $type, {}, $this->{EventModel});
 		VRML::Handles::reserve($node);
@@ -542,12 +534,12 @@ sub new_externproto {
 sub prototopnodes {
 	my ($this, $nodes) = @_;
 
-	$this->{RootNode} = $this->new_node("Group",{children => $nodes});
+	# encase the proto nodes in a Group
+	 my $ntn = ($this->new_node("Group",{children => $nodes}));
 
-	#JAS - had trouble with protos as topnodes in 1.07; just simplify
-	#JAS   that by making all in a group.
-	#JAS - 1.16.2 changed this to 2 subs; prototopnodes and topnodes.
-	push (@{$this->{Nodes}},$this->{RootNode});
+	# tell the rendering engine that this is a PROTO - render only first child
+	$ntn->{Fields}{__isProto} = 1;
+	push (@{$this->{Nodes}}, $ntn);
 }
 
 # topnodes for non-PROTO Scenes.
@@ -624,15 +616,12 @@ sub mkbe_and_array {
 	# copy over any generic scene DEFs. Proto specific DEFS below
 	# note that the DEFS are part of a Scene object. Routes are attached
 	# to a node.
+	# my ($package, $filename, $line) = caller;
+	# print "\nmkbe_and_array, this ",VRML::NodeIntern::dump_name($this)," called from $package, $line\n";
 
 	if (defined $this->{Scene}{DEF}) {
 		%{$parentscene->{DEF}} = (%{$parentscene->{DEF}}, %{$this->{Scene}{DEF}});
 	}
-
-	# Now, should we return the "RootNode" if it exists (which is a Group node)
-	# or, a list of the "Node"s?
-	# lets try returning the RootNode, as this way we always have a group to
-	# add in the case of a proto.
 
 	my $c;
 	my $ref;
@@ -647,19 +636,20 @@ sub mkbe_and_array {
 
 		$c = $this->{Nodes}[$curindex];
 		$ref = ref $c;
+		#print "mkbe_and_array, working on node $curindex of $lastindex, it is ", VRML::NodeIntern::dump_name($c), " ref $ref\n";
 
 		if ($ref eq "ARRAY") {
 			$c = @{$c};
 		} elsif ($ref eq "VRML::DEF") {
-			#AK - #$c = $c->real_node(1);
 			$c = $c->node();
 		}
-
 		my $id;
 		# lets make backend here, while we are having fun...
 		if (!defined $c->{BackNode}) {
+			#print "mkbe_and_array, node ",VRML::NodeIntern::dump_name($c), " does not have a backend\n";
 			my $rn = $c;
 			if (defined $c->{IsProto}) {
+				#print "mkbe_and_array, node ",VRML::NodeIntern::dump_name($c), " IS a proto\n";
 				my $sf;
 				foreach $sf (@{$c->{ProtoExp}{Nodes}}) {
 					if (ref $sf eq "VRML::DEF") {
@@ -667,24 +657,26 @@ sub mkbe_and_array {
 					}
 					$sf->{BackNode} = VRML::NodeIntern::make_backend($sf, $be);
 					$id = VRML::NodeIntern::dump_name($sf);
-					##my $id = VRML::Handles::reserve($sf);
 					$q = "$q $id";
 				}
 			} else {
+				#print "mkbe_and_array, node ",VRML::NodeIntern::dump_name($c), " IS NOT proto\n";
 				$c->{BackNode} = VRML::NodeIntern::make_backend($c, $be);
+				$id = VRML::NodeIntern::dump_name($c);
+				$q = "$q $id";
 			}
 		} else {
+			#print "mkbe_and_array, node ",VRML::NodeIntern::dump_name($c), " already has a backend\n";
 			$id = VRML::NodeIntern::dump_name($c);
-			##my $id = VRML::Handles::reserve($c);
 			$q = "$q $id";
 		}
 
 		## XXX redundant code???
 		$id = VRML::NodeIntern::dump_name($c);
-		##my $id = VRML::Handles::reserve($c);
-		$q = "$q $id";
+		#$q = "$q $id";
 		$curindex++;
 	}
+	#print "mkbe_and_array at end, q is $q\n\n";
 
 
 	# gather any DEFS. Protos will have new DEF nodes (expanded nodes)
@@ -813,12 +805,8 @@ sub iterate_nodes {
 	print "VRML::Scene::iterate_nodes - PROTO expansion\n"
 		if $VRML::verbose::scene;
 
-	if ($this->{RootNode}) {
-		$this->{RootNode}->iterate_nodes($sub, $parent);
-	} else {
-		for (@{$this->{Nodes}}) {
-			$_->iterate_nodes($sub, $parent);
-		}
+	for (@{$this->{Nodes}}) {
+		$_->iterate_nodes($sub, $parent);
 	}
 }
 
@@ -826,11 +814,6 @@ sub iterate_nodes_all {
 	my ($this, $subfoo) = @_;
 
 	my @l;
-	if ($this->{RootNode}) {
-		@l = $this->{RootNode};
-	} else {
-		@l = @{$this->{Nodes}};
-	}
 	my $sub;
 	for (@l) {
 		$sub = sub {
@@ -967,12 +950,14 @@ sub make_backend {
 	my ($this, $be, $parentbe) = @_;
 	my $vrml97_msg = "VRML97 4.8.3: 'A prototype definition consists of one or more nodes, nested PROTO statements, and ROUTE statements.'";
 
+		my ($package, $filename, $line) = caller;
 	print "VRML::Scene::make_backend ",VRML::NodeIntern::dump_name($this),
-		" $be $parentbe \n"
+		" $be $parentbe caller $package :$line \n"
 			if $VRML::verbose::be;
 
 	return $this->{BackNode} if ($this->{BackNode}{CNode});
 
+	# print "make_backend - node has has node $#{$this->{Nodes}}\n";
 	my $bn;
 	if ($this->{Parent}) {
 		# I am a PROTO -- only my first node renders anything, but other nodes
@@ -990,12 +975,10 @@ sub make_backend {
 		if (! defined $this->{Nodes}[0]) {
 			die("$vrml97_msg Empty prototype definition for $this->{NodeParent}{TypeName}");
 		}
-
-		# tell the renderer that this is a PROTO - only first child is visible on screen 
-		$this->{Nodes}[0]->{Fields}{__isProto} = 1;
+	} else {
+		$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
+		$this->{BackNode} = $bn;
 	}
-	$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
-	$this->{BackNode} = $bn;
 	return $bn;
 }
 

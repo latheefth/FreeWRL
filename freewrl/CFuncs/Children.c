@@ -32,7 +32,7 @@
 #ifdef CHILDVERBOSE
 static int VerboseIndent = 0;
 
-static void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
+void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
 	int c;
 
 	for (c=0; c<VerboseIndent; c++) printf ("  ");
@@ -42,7 +42,7 @@ static void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
 	VerboseIndent++;
 }
 
-static void VerboseEnd (char *whoami) {
+void VerboseEnd (char *whoami) {
 	int c;
 
 	VerboseIndent--;

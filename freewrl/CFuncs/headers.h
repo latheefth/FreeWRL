@@ -20,6 +20,8 @@
 
 /* child node parsing */
 #undef CHILDVERBOSE
+void VerboseStart (char *whoami, struct X3D_Box *me, int nc);
+void VerboseEnd (char *whoami);
 
 /* routing */
 #undef CRVERBOSE

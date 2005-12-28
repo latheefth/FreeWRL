@@ -186,7 +186,7 @@ sub parse_proto {
 	 or parsefail($_[1], "proto statement");
 	my $name = $1;
 
-	#print "parse_proto NAME:", $name,"\n";
+	# print "parse_proto NAME:", $name,"\n";
 
 	my $int = parse_interfacedecl($scene,1,1,$_[1]);
 	$_[1] =~ /\G\s*{\s*/gsc or parsefail($_[1], "proto body start");
@@ -196,11 +196,21 @@ sub parse_proto {
 	while($_[1] !~ /\G\s*}\s*/gsc) {
 		my $n = parse_statement($pro,$_[1],0,"protoTop");
 		if(defined $n) {push @a, $n}
+		# print "parseproto, pushing $n to array a\n"; 
 	}
-	#print "parse_proto, setting topnodes for ",VRML::NodeIntern::dump_name($pro),"\n";
+	# print "parse_proto, setting topnodes for ",VRML::NodeIntern::dump_name($pro),"\n";
+	# print "parse_proto, a is ";
+	# foreach (@a) {print "$_ \n"; }
 	
 	# make the top nodes be encased within a group; this helps with displaying only first child...
 	$pro->prototopnodes(\@a);
+
+# print "parse_proto, topnodes \n";
+# foreach (@{$pro->{Nodes}}) {
+# 	print "node ", VRML::NodeIntern::dump_name($_),"\n";
+# 	}
+# print "parse_proto, finshed printing topnodes\n";
+
 }
 
 sub parse_externproto {

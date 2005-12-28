@@ -70,6 +70,8 @@ sub gather_defs {
 
 	# possibly this is a Scene PROTO Expansion
     if ($this->{IsProto}) {
+		# print "NodeIntern - gather_defs on ",dump_name($parentnode),"\n";
+
 		foreach (@{$this->{ProtoExp}{Nodes}}) {
 			$_->gather_defs($parentnode);
 		}
@@ -318,9 +320,9 @@ sub new {
     $this->do_defaults($scene);
 
 	print "VRML::NodeIntern::new: ", dump_name($this->{Scene}),
-		($this->{IsProto} ? " PROTO" : ""),
-			" $this->{Type} $this->{TypeName} ", dump_name($this), "\n"
-				if $VRML::verbose::nodec;
+		($this->{IsProto} ? " PROTO" : " NOTPROTO "),
+			dump_name($this->{Type}), " $this->{TypeName} ", dump_name($this), "\n"
+		 		if $VRML::verbose::nodec;
     return $this;
 }
 
@@ -394,7 +396,18 @@ sub real_node {
 			($this->{IsProto} ?
 			 " PROTO first node is ".VRML::Debug::toString($this->{ProtoExp}{Nodes}[0]) :
 			 ""), " from $package, $line\n";
+
+	print "start of real_node\n";
+	if ($this->{IsProto}) {
+	print "this is a PROTO\n";
+		foreach (@{$this->{ProtoExp}{Nodes}}) {
+			print "proto has a node $_\n";
+		}
+
+	} else {
+		print "this is NOT a PROTO, just returning $this\n";
 	}
+}
 
 	return $this->{ProtoExp}{Nodes}[0]->real_node() if ($this->{IsProto});
 
@@ -418,7 +431,7 @@ sub ccopy {
 sub copy {
     my ($this, $scene) = @_;
 
-    #print "NodeIntern:copy invoked\n";
+    # print "NodeIntern:copy invoked\n";
 	my $new = bless {}, ref $this;
     $new->{Type} = $this->{Type};
     $new->{TypeName} = $this->{TypeName};
@@ -470,7 +483,7 @@ sub iterate_nodes {
 sub make_executable {
     my ($this, $scene) = @_;
     print "VRML::NodeIntern::make_executable: ", VRML::Debug::toString(\@_),
-		" $this->{TypeName}\n"  if $VRML::verbose::scene;
+		" $this->{TypeName}\n" if $VRML::verbose::scene;
 
     # loop through all the fields for this node type.
 
@@ -527,16 +540,18 @@ sub make_executable {
     # now, is this a PROTO, and is it not expanded yet?
 
     if ($this->{IsProto} && !$this->{ProtoExp}) {
-		print "COPYING $this->{Type} $this->{TypeName}\n"
-			if $VRML::verbose::scene;
+		print "NodeIntern COPYING ",dump_name($this->{Type})," $this->{TypeName}\n"
+		 	if $VRML::verbose::scene;
 
 		$this->{ProtoExp} = $this->{Type}->get_copy(); ## a scene
 		$this->{ProtoExp}->set_parentnode($this, $scene);
 		$this->{ProtoExp}->make_executable();
+		print "NodeIntern, copy is $this->{ProtoExp}, name ",dump_name($this->{ProtoExp}),"\n"
+			if $VRML::verbose::scene;
     }
 
     print "END MKEXE ",dump_name($this)," $this->{TypeName}\n"
-	    if $VRML::verbose::scene;
+	   if $VRML::verbose::scene;
 }
 
 sub set_backend_fields {
@@ -574,7 +589,7 @@ sub set_backend_fields {
     }
 
     $be->set_fields($this->{BackNode}, \%f);
-    #print "finished set_backend_fields\n";
+    # print "finished set_backend_fields\n";
 }
 
 
@@ -588,7 +603,11 @@ sub set_backend_fields {
 	sub make_backend {
 		my ($this, $be, $parentbe) = @_;
 
-		#print "WSDT make_backend, have type of ",$this->{TypeName}," for $this\n";
+		#my ($package, $filename, $line) = caller;
+		#print "WSDT make_backend, have type of ",$this->{TypeName}," for ",
+		#	VRML::NodeIntern::dump_name($this), " called from $package, line $line\n";
+
+		
 
 		# if this is a Text node, check the attached fontStyle. If the fontStyle
 		# is a proto, copy it over. We have to do this for Text nodes here,

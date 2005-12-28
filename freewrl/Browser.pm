@@ -103,6 +103,8 @@ sub getTextFromFile {
 	return $text;
 }
 
+
+# called from fw2init.pl.
 sub prepare {
 	my($this) = @_;
 
@@ -249,7 +251,6 @@ sub create_common {
 	}
 
 	$scene->make_executable();
-	$scene->make_backend($this->{BE});
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);
 	$scene->dump(0) if $VRML::verbose::scenegraph;
