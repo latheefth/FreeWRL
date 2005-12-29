@@ -810,22 +810,22 @@ sub iterate_nodes {
 	}
 }
 
-sub iterate_nodes_all {
-	my ($this, $subfoo) = @_;
-
-	my @l;
-	my $sub;
-	for (@l) {
-		$sub = sub {
-			&$subfoo($_[0]);
-			if (ref $_[0] eq "VRML::NodeIntern" and $_[0]->{ProtoExp}) {
-				$_[0]->{ProtoExp}->iterate_nodes($sub);
-			}
-		};
-		$_->iterate_nodes($sub);
-		$sub = undef;
-	}
-}
+#sub iterate_nodes_all {
+#	my ($this, $subfoo) = @_;
+#
+#	my @l;
+#	my $sub;
+#	for (@l) {
+#		$sub = sub {
+#			&$subfoo($_[0]);
+#			if (ref $_[0] eq "VRML::NodeIntern" and $_[0]->{ProtoExp}) {
+#				$_[0]->{ProtoExp}->iterate_nodes($sub);
+#			}
+#		};
+#		$_->iterate_nodes($sub);
+#		$sub = undef;
+#	}
+#}
 
 sub set_parentnode {
 	# NodeParent is used in IS's -
@@ -985,10 +985,6 @@ sub make_backend {
 # Events are generally in the format
 #  [$scene, $node, $name, $value]
 
-# XXX This routine is too static - should be split and executed
-# But also: we can simply redo this every time the scenegraph
-# or routes change. Of course, that's a bit overkill.
-
 sub setup_routing {
     my ($this, $eventmodel, $be) = @_;
 	my ($fromNode, $eventOut, $toNode, $eventIn, $tmp);
@@ -1002,7 +998,7 @@ sub setup_routing {
 
     $this->iterate_nodes(sub {
 		 print "\tITNOREF: ",VRML::NodeIntern::dump_name($_[0]),"\n"
-		 if $VRML::verbose::scene;
+		  if $VRML::verbose::scene;
 
 		 return unless "VRML::NodeIntern" eq ref $_[0];
 		 print "\t\tITNO: $_[0]->{TypeName} ($VRML::Nodes::initevents{$_[0]->{TypeName}})\n"
@@ -1044,6 +1040,12 @@ sub setup_routing {
 					 print "VRML::Scene sibling sensitive $n, $n->{TypeName}, bn, ",
 						 $_[0], "\n" if $VRML::verbose::scene;
 
+					# print "going to set_sensitive. this node $_[0] \n";
+					if (!defined $_[0]->{BackNode}) {
+						# print "backNode not defined, going to make it here. \n";
+						$_[0]->{BackNode} = VRML::NodeIntern::make_backend($_[0], $be);
+					}
+
 					VRML::VRMLFunc::set_sensitive ($_[0]->{BackNode}{CNode},
 							$n->{BackNode}{CNode},$n->{TypeName});
 				 }
@@ -1052,7 +1054,14 @@ sub setup_routing {
 
 		# Anchors, etc.
 		 if ($VRML::Nodes::sensitive{$_[0]->{TypeName}}) {
+			print "sesens call for ", $_[0]->{TypeName},"\n";
 			my $n = $_->real_node();
+			# print "going to set_sensitive. this node $_[0] \n";
+			if (!defined $_[0]->{BackNode}) {
+				# print "backNode not defined, going to make it here. \n";
+				$_[0]->{BackNode} = VRML::NodeIntern::make_backend($_[0], $be);
+			}
+
 			VRML::VRMLFunc::set_sensitive ($_[0]->{BackNode}{CNode},$n->{BackNode}{CNode},$n->{TypeName});
 		 }
 	 });
