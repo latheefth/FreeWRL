@@ -896,6 +896,8 @@ void kill_rendering(void *thisnode) {
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
         char mystring[20];
 
+	/* consoleMessage - ok, not exactly a kill, more of a reset */
+	consMsgCount = 0;
 
 	/* kill DEFS, handles */
 	EAI_killBindables();

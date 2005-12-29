@@ -38,12 +38,13 @@ OBJ= npfreewrl.o npunix.o
 
 SHAREDTARGET=npfreewrl.so
 
-install: npfreewrl
-	cp npfreewrl.so $(PLUGDIR)
+all: $(SHAREDTARGET)
 
-all:	npfreewrl
 
-npfreewrl: $(OBJ)
+install: $(SHAREDTARGET)
+	cp $(SHAREDTARGET) $(PLUGDIR)
+
+$(SHAREDTARGET): $(OBJ)
 	$(CC) -shared -o $(SHAREDTARGET) $(OBJ) $(LDFLAGS)
 
 npfreewrl.o: netscape/source/npfreewrl.c

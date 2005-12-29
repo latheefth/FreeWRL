@@ -15,7 +15,7 @@ ASCIITERM => "/usr/X11R6/bin/rxvt",
 CONVERT => "/usr/local/bin/convert",
 UNZIP => "/usr/bin/gunzip",
 
-# Java compiler - if no java, comment this line and the JAVA_INST line below.
+# Java runtime - if no java, comment this line and the JAVA_INST line below.
 JAVA => "/usr/bin/java",
 
 COPIER => "/bin/cp",                    # copy one file to another

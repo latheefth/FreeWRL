@@ -764,6 +764,8 @@ int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
 
 
 int ConsoleMessage(char *fmt, ...);
+extern int consMsgCount;
+
 void outOfMemory(char *message);
 void initializeScript(int num,int evIn);
 

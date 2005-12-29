@@ -43,9 +43,10 @@ int ConsoleMessage (char *fmt, ...);
 */
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
+#define MAXMESSAGES 5
 
 static char FWbuffer [STRING_LENGTH];
-
+int consMsgCount = 0;
 
 
 int ConsoleMessage(char *fmt, ...) {
@@ -63,81 +64,93 @@ int ConsoleMessage(char *fmt, ...) {
 
 	FWbuffer[0] = '\0';
 
-#ifndef AQUA
+	#ifndef AQUA
 	if (RUNNINGASPLUGIN) {
 		strcpy (FWbuffer,XMESSAGE);
 		strcat (FWbuffer, " ");
 	}
-#endif
-	va_start(ap, fmt);		 /* must be called before work	 */
-	while (*fmt) {
-		tempbuf[0] = '\0';
-		for (j = 0; fmt[j] && fmt[j] != '%'; j++)
-			format[j] = fmt[j];	/* not a format string	*/
-		if (j) {
-			format[j] = '\0';
-			count += sprintf(tempbuf, format);/* printf it verbatim				*/
-			fmt += j;
-		} else {
-			for (j = 0; !isalpha(fmt[j]); j++) {	 /* find end of format specifier */
-	format[j] = fmt[j];
-	if (j && fmt[j] == '%')				/* special case printing '%'		*/
+	#endif
+
+	/* did we have too many messages - don't want to make this into a 
+	   denial of service attack! (thanks, Mufti) */
+
+	if (consMsgCount > MAXMESSAGES) {
+		if (consMsgCount > (MAXMESSAGES+5)) return;
+		strcpy (FWbuffer,"Too many FreeWRL messages - stopping ConsoleMessage");
+		consMsgCount = MAXMESSAGES + 100; /* some number quite large */
+	} else {
+		consMsgCount++;
+	
+		va_start(ap, fmt);		 /* must be called before work	 */
+		while (*fmt) {
+			tempbuf[0] = '\0';
+			for (j = 0; fmt[j] && fmt[j] != '%'; j++)
+				format[j] = fmt[j];	/* not a format string	*/
+			if (j) {
+				format[j] = '\0';
+				count += sprintf(tempbuf, format);/* printf it verbatim				*/
+				fmt += j;
+			} else {
+				for (j = 0; !isalpha(fmt[j]); j++) {	 /* find end of format specifier */
+		format[j] = fmt[j];
+		if (j && fmt[j] == '%')				/* special case printing '%'		*/
+			break;
+				}
+				format[j] = fmt[j];			/* finish writing specifier		 */
+				format[j + 1] = '\0';			/* don't forget NULL terminator */
+				fmt += j + 1;
+	
+				switch (format[j]) {			 /* cases for all specifiers		 */
+				case 'd':
+				case 'i':						/* many use identical actions	 */
+		i = va_arg(ap, int);		 /* process the argument	 */
+		count += sprintf(tempbuf, format, i); /* and printf it		 */
 		break;
+				case 'o':
+				case 'x':
+				case 'X':
+				case 'u':
+		u = va_arg(ap, unsigned);
+		count += sprintf(tempbuf, format, u);
+		break;
+				case 'c':
+		c = (char) va_arg(ap, int);		/* must cast!			 */
+		count += sprintf(tempbuf, format, c);
+		break;
+				case 's':
+		s = va_arg(ap, char *);
+		count += sprintf(tempbuf, format, s);
+		break;
+				case 'f':
+				case 'e':
+				case 'E':
+				case 'g':
+				case 'G':
+		d = va_arg(ap, double);
+		count += sprintf(tempbuf, format, d);
+		break;
+				case 'p':
+		v = va_arg(ap, void *);
+		count += sprintf(tempbuf, format, v);
+		break;
+				case 'n':
+		count += sprintf(tempbuf, "%d", count);
+		break;
+				case '%':
+		count += sprintf(tempbuf, "%%");
+		break;
+				default:
+		printf("Invalid format specifier in printf().\n");
+				}
 			}
-			format[j] = fmt[j];			/* finish writing specifier		 */
-			format[j + 1] = '\0';			/* don't forget NULL terminator */
-			fmt += j + 1;
-
-			switch (format[j]) {			 /* cases for all specifiers		 */
-			case 'd':
-			case 'i':						/* many use identical actions	 */
-	i = va_arg(ap, int);		 /* process the argument	 */
-	count += sprintf(tempbuf, format, i); /* and printf it		 */
-	break;
-			case 'o':
-			case 'x':
-			case 'X':
-			case 'u':
-	u = va_arg(ap, unsigned);
-	count += sprintf(tempbuf, format, u);
-	break;
-			case 'c':
-	c = (char) va_arg(ap, int);		/* must cast!			 */
-	count += sprintf(tempbuf, format, c);
-	break;
-			case 's':
-	s = va_arg(ap, char *);
-	count += sprintf(tempbuf, format, s);
-	break;
-			case 'f':
-			case 'e':
-			case 'E':
-			case 'g':
-			case 'G':
-	d = va_arg(ap, double);
-	count += sprintf(tempbuf, format, d);
-	break;
-			case 'p':
-	v = va_arg(ap, void *);
-	count += sprintf(tempbuf, format, v);
-	break;
-			case 'n':
-	count += sprintf(tempbuf, "%d", count);
-	break;
-			case '%':
-	count += sprintf(tempbuf, "%%");
-	break;
-			default:
-	printf("Invalid format specifier in printf().\n");
-			}
+		if ((strlen(tempbuf) + strlen(FWbuffer)) <
+			(STRING_LENGTH) -10) {
+			strcat (FWbuffer,tempbuf);
 		}
-	if ((strlen(tempbuf) + strlen(FWbuffer)) <
-		(STRING_LENGTH) -10) {
-		strcat (FWbuffer,tempbuf);
+		}
+	
+		va_end(ap);				/* clean up				 */
 	}
-	}
-
-	va_end(ap);				/* clean up				 */
 
 #ifdef AQUA
 	sendCM(FWbuffer);

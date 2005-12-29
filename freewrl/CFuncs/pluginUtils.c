@@ -5,6 +5,7 @@
  *  for conditions of use and redistribution.
  **********************************************************************/
 
+#include <stdlib.h>
 #include "headers.h"
 #include "Bindable.h"
 #include "PluginSocket.h"
@@ -279,7 +280,11 @@ void doBrowserAction () {
 			/* printf ("Anchor: -DBROWSER is :%s:\n",BROWSER);*/
 
 
-			strcpy (sysline, BROWSER);
+			char *browser = getenv("BROWSER");
+			if (browser)
+				strcpy (sysline, browser);
+			else
+				strcpy (sysline, BROWSER);
 			strcat (sysline, " ");
 			strcat (sysline, filename);
 			strcat (sysline, " &");

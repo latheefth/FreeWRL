@@ -160,6 +160,12 @@ $VRML_CONFIG{FREEWRL_LIBS} = join(' ', @libs);
 $VRML_CONFIG{LDFLAGS} = join(' ', @ldflags);
 $VRML_CONFIG{LIBJS_INST} = $sitearchjsdir;
 
+if (defined $VRML_CONFIG{'USE_JAVA_HOME'})
+{
+	$VRML_CONFIG{JAVA} = $ENV{JAVA_HOME}.'/bin/java';
+	$VRML_CONFIG{JAVA_INST} = $ENV{JAVA_HOME};
+}
+
 # write the Config.pm file.
 print STDERR "Writing Config.pm\n";
 open OUT, ">Config.pm" or die("Couldn't write to Config.pm");
