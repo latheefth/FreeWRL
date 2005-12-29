@@ -29,29 +29,6 @@
 #include "headers.h"
 #include "Collision.h"
 
-#ifdef CHILDVERBOSE
-static int VerboseIndent = 0;
-
-void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
-	int c;
-
-	for (c=0; c<VerboseIndent; c++) printf ("  ");
-	printf ("RENDER %s START %d nc %d PIV %d ext %4.2f %4.2f %4.2f\n",
-			whoami,me,nc,me->PIV,me->_extent[0],me->_extent[1],
-			me->_extent[2]);
-	VerboseIndent++;
-}
-
-void VerboseEnd (char *whoami) {
-	int c;
-
-	VerboseIndent--;
-	for (c=0; c<VerboseIndent; c++) printf ("  ");
-	printf ("RENDER %s END\n",whoami);
-}
-#endif
-
-
 /* sort children - use bubble sort with early exit flag */
 void sortChildren (struct Multi_Node ch) {
 	int i,j;
@@ -64,6 +41,7 @@ void sortChildren (struct Multi_Node ch) {
 	   may wish to go and "QuickSort" or so on, when nodes
 	   move around a lot. (Bubblesort is bad when nodes
 	   have to be totally reversed) */
+printf ("sortChildren, returning\n"); return;
 
 	nc = ch.n;
 

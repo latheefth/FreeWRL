@@ -232,6 +232,8 @@ void update_node(void *ptr) {
 
 	p = (struct X3D_Box*) ptr;
 
+	/* printf ("update_node for %d %s\n",ptr, stringNodeType(p->_nodeType)); */
+
 	p->_change ++;
 	p->PIV=1;
 	for (i = 0; i < p->_nparents; i++) {
@@ -501,7 +503,9 @@ void add_parent(void *node_, void *parent_) {
 	node = (struct X3D_Box *)node_;
 	parent = (struct X3D_Box *)parent_;
 
-	/* printf ("adding node %d to parent %d\n",node_, parent_); */
+	printf ("adding node %d (%s) to parent %d (%s)\n",node, stringNodeType(node->_nodeType), 
+parent, stringNodeType(parent->_nodeType));
+ 
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
 	node->_nparents ++;

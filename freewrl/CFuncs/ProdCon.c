@@ -952,10 +952,12 @@ void addToNode (void *rc, void *newNode) {
 	void **tmp;
 
 	par = (struct Multi_Node *) rc;
-	/* printf ("addToNode, adding %d to %d\n",newNode,rc);*/
+	printf ("addToNode, adding %d to %d\n",newNode,rc);
 
 	/* oldlen = what was there in the first place */
 	oldlen = par->n;
+	par->n = 0; /* temporary, in case render thread goes here */
+
 	newlen=1;
 	newmal = (void **)malloc ((oldlen+newlen)*sizeof(void **));
 	if (newmal == 0) {
@@ -977,6 +979,12 @@ void addToNode (void *rc, void *newNode) {
 	par->p = newmal;
 	par->n = oldlen+newlen;
 	free (tmp);
+
+	{ int i;
+		for (i=0; i<par->n; i++) {
+		printf ("addToNode, child %d is %d\n",i,par->p[i]);
+		}
+	}
 }
 
 /* on a ReplaceWorld call, tell the Browser.pm module to forget all about its past */
@@ -1281,7 +1289,7 @@ void __pt_doStringUrl () {
 		/* a valid node */
 
 	       	for (count =1; count < retval; count+=2) {
-			/* printf ("__pt_doStringUrl, adding count %d %d\n", count,myretarr[count]); */
+			printf ("__pt_doStringUrl, adding count %d %d\n", count,myretarr[count]); 
 			/* add this child to the node */
        			addToNode(psp.ptr+psp.ofs, (void *)(myretarr[count]));
 

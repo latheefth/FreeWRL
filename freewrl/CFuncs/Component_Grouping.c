@@ -31,6 +31,28 @@
 #include "installdir.h"
 
 
+#ifdef CHILDVERBOSE
+static int VerboseIndent = 0;
+
+void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
+	int c;
+
+	for (c=0; c<VerboseIndent; c++) printf ("  ");
+	printf ("RENDER %s START %d nc %d PIV %d ext %4.2f %4.2f %4.2f\n",
+			whoami,me,nc,me->PIV,me->_extent[0],me->_extent[1],
+			me->_extent[2]);
+	VerboseIndent++;
+}
+
+void VerboseEnd (char *whoami) {
+	int c;
+
+	VerboseIndent--;
+	for (c=0; c<VerboseIndent; c++) printf ("  ");
+	printf ("RENDER %s END\n",whoami);
+}
+#endif
+
 void prep_Transform (struct X3D_Transform *node) {
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
@@ -479,21 +501,29 @@ void child_Transform (struct X3D_Transform *node) {
 	DIRECTIONAL_LIGHT_OFF
 }
 
-
+#define DIRECTIONAL_LIGHT_FIND  \
+                (node->has_light) = 0; \
+		printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); \
+                for(i=0; i<nc; i++) { \
+                        p = (struct X3D_Box *)((node->children).p[i]); \
+                        if (p!=NULL) { \
+			    if (p->_nodeType == NODE_DirectionalLight) { \
+                                (node->has_light) ++; \
+			    } else { \
+				printf ("huh - child is null\n"); \
+			    } \
+                        } \
+                } 
+				
+				
 void changed_StaticGroup (struct X3D_StaticGroup *node) {
                 int i;
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND
+
 }
 void changed_Transform (struct X3D_Transform *node) {
                 int i;
@@ -501,14 +531,8 @@ void changed_Transform (struct X3D_Transform *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND
+
 }
 
 
@@ -518,14 +542,7 @@ void changed_Group (struct X3D_Group *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND
 }
 
 

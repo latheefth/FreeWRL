@@ -19,9 +19,7 @@
 #undef JSVRMLCLASSVERBOSE
 
 /* child node parsing */
-#undef CHILDVERBOSE
-void VerboseStart (char *whoami, struct X3D_Box *me, int nc);
-void VerboseEnd (char *whoami);
+#define CHILDVERBOSE
 
 /* routing */
 #undef CRVERBOSE
