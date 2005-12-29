@@ -19,7 +19,7 @@
 #undef JSVRMLCLASSVERBOSE
 
 /* child node parsing */
-#define CHILDVERBOSE
+#undef CHILDVERBOSE
 
 /* routing */
 #undef CRVERBOSE

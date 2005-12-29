@@ -41,7 +41,6 @@ void sortChildren (struct Multi_Node ch) {
 	   may wish to go and "QuickSort" or so on, when nodes
 	   move around a lot. (Bubblesort is bad when nodes
 	   have to be totally reversed) */
-printf ("sortChildren, returning\n"); return;
 
 	nc = ch.n;
 

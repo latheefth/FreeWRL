@@ -459,20 +459,20 @@ sub iterate_nodes {
 	my $ft;
 
     print "VRML::NodeIntern::iterate_nodes: ", VRML::Debug::toString(\@_),
-		", node type name: $this->{TypeName}\n" if $VRML::verbose::scene;
+		", node type name: $this->{TypeName}\n"  if $VRML::verbose::scene;
 
     &$sub($this, $parent);
 
 	for (keys %{$this->{Fields}}) {
 		$ft = $this->{Type}{FieldTypes}{$_};
 		if ($ft =~ /SFNode$/) {
-			print "\t$_: Field type SFNode\n" if $VRML::verbose::scene;
+			print "\t$_: Field type SFNode\n"  if $VRML::verbose::scene;
 			$this->{Fields}{$_}->iterate_nodes($sub, $this);
 		} elsif ($ft =~ /MFNode$/) {
-			print "\t$_: Field type MFNode\n" if $VRML::verbose::scene;
+			print "\t$_: Field type MFNode\n"  if $VRML::verbose::scene;
 			my $ref = $this->{RFields}{$_};
 			for (@{$ref}) {
-				print "\titerate_nodes 3 going down... $_\n" if $VRML::verbose::scene;
+				print "\titerate_nodes 3 going down... $_\n"  if $VRML::verbose::scene;
 				$_->iterate_nodes($sub, $this);
 			}
 		} else {
@@ -482,7 +482,9 @@ sub iterate_nodes {
 
 sub make_executable {
     my ($this, $scene) = @_;
-    print "VRML::NodeIntern::make_executable: ", VRML::Debug::toString(\@_),
+    
+
+	print "VRML::NodeIntern::make_executable: ", VRML::Debug::toString(\@_),
 		" $this->{TypeName}\n" if $VRML::verbose::scene;
 
     # loop through all the fields for this node type.
@@ -676,10 +678,11 @@ sub set_backend_fields {
 			if ($this->{IsProto}) {
 				print "\tIsProto ", dump_name($this), "\n"
 					if $VRML::verbose::be;
+				#print "protoexp is ",$this->{ProtoExp}," ref ", ref $this->{ProtoExp},"\n";
 				return $this->{ProtoExp}->make_backend($be, $parentbe);
 			}
 
-			my $ben = $be->new_node($this->{TypeName});
+			my $ben = $be->new_CNode($this->{TypeName});
 
 			$this->{BackNode} = $ben;
 			$this->set_backend_fields();

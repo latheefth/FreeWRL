@@ -803,29 +803,12 @@ sub iterate_nodes {
 	my ($this, $sub, $parent) = @_;
 
 	print "VRML::Scene::iterate_nodes - PROTO expansion\n"
-		if $VRML::verbose::scene;
+		 if $VRML::verbose::scene;
 
 	for (@{$this->{Nodes}}) {
 		$_->iterate_nodes($sub, $parent);
 	}
 }
-
-#sub iterate_nodes_all {
-#	my ($this, $subfoo) = @_;
-#
-#	my @l;
-#	my $sub;
-#	for (@l) {
-#		$sub = sub {
-#			&$subfoo($_[0]);
-#			if (ref $_[0] eq "VRML::NodeIntern" and $_[0]->{ProtoExp}) {
-#				$_[0]->{ProtoExp}->iterate_nodes($sub);
-#			}
-#		};
-#		$_->iterate_nodes($sub);
-#		$sub = undef;
-#	}
-#}
 
 sub set_parentnode {
 	# NodeParent is used in IS's -
@@ -863,7 +846,7 @@ sub set_parentnode {
 		if (defined $this->{NodeParent}) {
 			print "VRML::Scene::make_executable: ", VRML::Debug::toString($this),
 				" NodeParent ", VRML::Debug::toString($this->{NodeParent}), "\n"
-					if $VRML::verbose::scene;
+					 if $VRML::verbose::scene;
 
 			$this->iterate_nodes(sub {
 			my ($node) = @_;
@@ -975,6 +958,7 @@ sub make_backend {
 		if (! defined $this->{Nodes}[0]) {
 			die("$vrml97_msg Empty prototype definition for $this->{NodeParent}{TypeName}");
 		}
+		$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
 	} else {
 		$bn = $this->{Nodes}[0]->make_backend($be, $parentbe);
 		$this->{BackNode} = $bn;

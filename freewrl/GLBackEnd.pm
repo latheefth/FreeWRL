@@ -68,7 +68,7 @@ sub setEyeDist {
 
 sub set_root { $_[0]{Root} = $_[1] }
 
-sub new_node {
+sub new_CNode {
 	my($this,$type,$fields) = @_;
 
 	my $node = {

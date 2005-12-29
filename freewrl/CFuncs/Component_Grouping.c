@@ -503,15 +503,15 @@ void child_Transform (struct X3D_Transform *node) {
 
 #define DIRECTIONAL_LIGHT_FIND  \
                 (node->has_light) = 0; \
-		printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); \
+		/* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
                 for(i=0; i<nc; i++) { \
                         p = (struct X3D_Box *)((node->children).p[i]); \
                         if (p!=NULL) { \
 			    if (p->_nodeType == NODE_DirectionalLight) { \
                                 (node->has_light) ++; \
-			    } else { \
-				printf ("huh - child is null\n"); \
 			    } \
+			} else { \
+				printf ("huh - child is null\n"); \
                         } \
                 } 
 				

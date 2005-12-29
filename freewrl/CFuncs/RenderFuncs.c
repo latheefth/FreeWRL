@@ -503,8 +503,10 @@ void add_parent(void *node_, void *parent_) {
 	node = (struct X3D_Box *)node_;
 	parent = (struct X3D_Box *)parent_;
 
+	#ifdef CHILDVERBOSE
 	printf ("adding node %d (%s) to parent %d (%s)\n",node, stringNodeType(node->_nodeType), 
-parent, stringNodeType(parent->_nodeType));
+			parent, stringNodeType(parent->_nodeType));
+	#endif
  
 	parent->_renderFlags = parent->_renderFlags | node->_renderFlags;
 
