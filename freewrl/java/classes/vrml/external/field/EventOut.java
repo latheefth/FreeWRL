@@ -3,25 +3,23 @@ package vrml.external.field;
 import vrml.external.Browser;
 //JAS import vrml.external.field.FieldTypes;
 
-public class EventOut extends vrml.external.Node {
+public class EventOut {
 
-// public int EventType = FieldTypes.UnknownType;
-// public String outNode;	// Node to send the command to... NULL if not
-//			// a get value from viewer call (ie, a Listener
-//			// response...
-// public String command;	// the actual command...
-// public String RLreturn;	// If this is a register listener response...
-// public String nodeptr; //pointer to start of FreeWRL structure in memory
-// public String offset;  //offset of actual field in memory from base.
-// public String datasize; // how long this data really is
-// public String datatype;
-// public String ScriptType; // non zero indicates sending to a javascript
+ public int EventType = FieldTypes.UnknownType;
+ public String inNode;	// Node to send the command to... NULL if not
+ public String RLreturn;
+ public String command;	// the actual command...
+ public String nodeptr; //pointer to start of FreeWRL structure in memory
+ public String offset;  //offset of actual field in memory from base.
+ public String datasize; // how long this data really is
+ public String datatype;
+ public String ScriptType; // non zero indicates sending to a javascript
 
 
   //Get the type of this EventOut (specified in FieldTypes.java)
-  //public int           getType() {
-  //  return EventType;
-  //}
+  public int           getType() {
+    return EventType;
+  }
 
    public int getIntType() {
 	return EventType;
