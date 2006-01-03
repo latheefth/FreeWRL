@@ -594,6 +594,7 @@ void render_TextureCoordinate(struct X3D_TextureCoordinate *this);
 void prep_Transform (struct X3D_Transform *this_);
 void fin_Transform (struct X3D_Transform *this_);
 void child_Transform (struct X3D_Transform *this_);
+void prep_Group (struct X3D_Group *this_);
 void child_Group (struct X3D_Group *this_);
 void child_StaticGroup (struct X3D_StaticGroup *this_);
 void child_Switch (struct X3D_Switch *this_);

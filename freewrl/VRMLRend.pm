@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.193  2006/01/03 23:01:22  crc_canada
+# EXTERNPROTO and Group sorting bugs fixed.
+#
 # Revision 1.192  2005/12/21 18:16:40  crc_canada
 # Rework Generation code.
 #
@@ -148,6 +151,7 @@
 	GeoLocation
 	Transform
 	Billboard
+	Group
 /;
 
 #######################################################################

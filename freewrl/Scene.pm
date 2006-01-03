@@ -321,8 +321,7 @@ sub newextp {
     my @node = ($n);
 
 
-    # XXX marijn: code copied from Parser::parse_proto
-    $this->prototopnodes(\@node);
+	$this->topnodes(\@node);
 
     # marijn: copy defaults from PROTO
 	$this->{Defaults} = {
@@ -533,6 +532,9 @@ sub new_externproto {
 
 sub prototopnodes {
 	my ($this, $nodes) = @_;
+
+	#my ($package, $filename, $line) = caller;
+	#print "\nprototopnodes, this ",VRML::NodeIntern::dump_name($this)," called from $package, $line\n";
 
 	# encase the proto nodes in a Group
 	 my $ntn = ($this->new_node("Group",{children => $nodes}));

@@ -30,7 +30,6 @@
 #include "headers.h"
 #include "installdir.h"
 
-
 #ifdef CHILDVERBOSE
 static int VerboseIndent = 0;
 
@@ -53,6 +52,15 @@ void VerboseEnd (char *whoami) {
 }
 #endif
 
+
+/* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
+void prep_Group (struct X3D_Group *node) {
+        GLdouble modelMatrix[16];
+        fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+	node->_dist = modelMatrix[14];
+}
+
+/* do transforms, calculate the distance */
 void prep_Transform (struct X3D_Transform *node) {
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
@@ -133,6 +141,7 @@ void prep_Transform (struct X3D_Transform *node) {
 	       }
         }
 }
+
 
 void fin_Transform (struct X3D_Transform *node) {
         if(!render_vp) {
@@ -276,7 +285,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	DIRECTIONAL_LIGHT_OFF
 }
 
-
 void child_Group (struct X3D_Group *node) {
 	int nc = ((node->children).n);
 	DIRECTIONAL_LIGHT_SAVE
@@ -287,19 +295,18 @@ void child_Group (struct X3D_Group *node) {
 	#ifdef CHILDVERBOSE
 	VerboseStart ("GROUP", (struct X3D_Box *)node, nc);
 	#endif
-/*
-{
-int x;
-struct X3D_Box *xx;
 
-printf ("child_Group, this %d\n",node);
-for (x=0; x<nc; x++) {
-xx = (struct X3D_Box *)node->children.p[x];
+	/* {
+		int x;
+		struct X3D_Box *xx;
 
-printf ("	ch %d type %s\n",node->children.p[x],stringNodeType(xx->_nodeType));
-}
-}
-*/
+		printf ("child_Group, this %d isProto %d\n",node,node->__isProto);
+		for (x=0; x<nc; x++) {
+			xx = (struct X3D_Box *)node->children.p[x];
+			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+		}
+	} */
+
 
 		
 
@@ -389,6 +396,17 @@ void child_Transform (struct X3D_Transform *node) {
 
 	/* any children at all? */
 	if (nc==0) return;
+
+	/* {
+		int x;
+		struct X3D_Box *xx;
+
+		printf ("child_Transform, this %d \n",node);
+		for (x=0; x<nc; x++) {
+			xx = (struct X3D_Box *)node->children.p[x];
+			printf ("	ch %d type %s dist %f\n",node->children.p[x],stringNodeType(xx->_nodeType),xx->_dist);
+		}
+	} */
 
 	#ifdef CHILDVERBOSE
 	VerboseStart ("TRANSFORM",(struct X3D_Box *)node, nc);
