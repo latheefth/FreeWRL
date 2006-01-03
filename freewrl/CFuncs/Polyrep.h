@@ -83,18 +83,20 @@ Extru_tex(int vertex_ind,
 		  int A,
 		  int B,
 		  int C,
-		  struct X3D_PolyRep *this_Elev,
+		  int *tcindex,
 		  int ccw,
 		  int tcindexsize);
 
-void
-Extru_ST_map(int triind_start,
-			 int start,
-			 int end,
-			 float *Vals,
-			 int nsec,
-			 struct X3D_PolyRep *this_Extru,
-			 int tcoordsize);
+void Extru_ST_map(
+        int triind_start,
+        int start,
+        int end,
+        float *Vals,
+        int nsec,
+        int *tcindex,
+        int *cindex,
+        float *GeneratedTexCoords,
+        int tcoordsize);
 
 void
 Extru_check_normal(struct pt *facenormals,

@@ -40,8 +40,6 @@ extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMA
 extern int count_IFS_faces(int cin, struct X3D_IndexedFaceSet *this_IFS);
 extern void verify_global_IFS_Coords(int max);
 extern void IFS_check_normal(struct pt *facenormals,int this_face,struct SFColor *points,int base,struct X3D_IndexedFaceSet *this_IFS,int ccw);
-extern void Extru_tex(int vertex_ind,int tci_ct,int A,int B,int C,struct X3D_PolyRep *this_Elev,int ccw,int tcindexsize);
-extern void Extru_ST_map(int triind_start,int start,int end,float *Vals,int nsec,struct X3D_PolyRep *this_Extru, int tcoordsize);
 extern void Extru_check_normal(struct pt *facenormals,int this_face,int dire,struct X3D_PolyRep *rep_,int ccw);
 
 
@@ -994,7 +992,7 @@ void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_,
 	for (count = 0; count < rep_->ntri*3; count++) {
 		ind = tcindex[count];
 		/* printf ("working through vertex %d - tcindex %d vertex %f %f \n",count,ind,
-			tcoord[ind*3], tcoord[ind*3+2]); */
+			tcoord[ind*3], tcoord[ind*3+2]);  */
 		*nc = tcoord[ind*3]; nc++; *nc = tcoord[ind*3+2]; nc++;
 	}
 }
@@ -1666,7 +1664,7 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 
 		  /* texture mapping for caps - keep vals around */
 		  	if (spi == 0) { /* begin cap vertices */
-				/* printf ("begin cap vertecies index %d %d \n", sec*2+0, sec*2+1);*/
+				/* printf ("begin cap vertecies index %d %d \n", sec*2+0, sec*2+1); */
 
 				beginVals[sec*2+0] = ptx;
 				beginVals[sec*2+1] = ptz;
@@ -1908,13 +1906,13 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 	  			Elev_Tri(triind*3, this_face, 0, x+2, x+1, TRUE , rep_, facenormals, pointfaces,ccw);
 	  			defaultface[triind] = this_face;
-					Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, rep_,ccw,tcindexsize);
+				Extru_tex(triind*3, tci_ct, 0 , +x+2, x+1, tcindex ,ccw,tcindexsize);
 				triind ++;
 			}
 
-				Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
-					beginVals,nsec,rep_,tcoordsize);
-				tci_ct+=endpoint-(0+ncolinear_at_begin);
+			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+				beginVals,nsec,tcindex, cindex, tcoord, tcoordsize);
+			tci_ct+=endpoint-(0+ncolinear_at_begin);
 			triind_start+=endpoint-(0+ncolinear_at_begin);
 			this_face++;
 		} /* if beginCap */
@@ -1927,14 +1925,15 @@ void make_Extrusion(struct X3D_Extrusion *this_) {
 					x+1+(nspi-1)*nsec,x+2+(nspi-1)*nsec,
 					TRUE , rep_, facenormals, pointfaces,ccw);
 	  			defaultface[triind] = this_face;
-					Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec,
-						x+1+(nspi-1)*nsec,
-						x+2+(nspi-1)*nsec, rep_,ccw,tcindexsize);
+				Extru_tex(triind*3, tci_ct, 0+(nspi-1)*nsec,
+					x+1+(nspi-1)*nsec,
+					x+2+(nspi-1)*nsec, 
+					tcindex,ccw,tcindexsize);
 				triind ++;
 			}
 			this_face++;
-				Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
-					endVals, nsec, rep_,tcoordsize);
+			Extru_ST_map(triind_start,0+ncolinear_at_begin,endpoint,
+					endVals, nsec, tcindex, cindex, tcoord, tcoordsize);
 		} /* if endCap */
 	 	/* for (tmp=0;tmp<tcindexsize; tmp++) printf ("index1D %d tcindex %d\n",tmp,tcindex[tmp]);*/
 

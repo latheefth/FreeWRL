@@ -519,16 +519,14 @@ void Extru_tex(
 	int A,
 	int B,
 	int C,
-	struct X3D_PolyRep *this_Elev,
+	int *tcindex,
 	int ccw,
 	int tcindexsize) {
 
-	/* struct SFColor *c1,*c2,*c3; */
 	int j;
 
 	/* bounds check */
-	/* printf ("Extru_tex, tcindexsize %d, vertex_ind %d\n",tcindexsize, vertex_ind); */
-
+	/* printf ("Extru_tex, tcindexsize %d, vertex_ind %d\n",tcindexsize, vertex_ind);  */
 	if (vertex_ind+2 >= tcindexsize) {
 		printf ("INTERNAL ERROR: Extru_tex, bounds check %d >= %d\n",vertex_ind+2,tcindexsize);
 	}
@@ -537,24 +535,9 @@ void Extru_tex(
 	if (!(ccw)) { j = B; B = C; C = j; }
 
 	/* ok, we have to do textures; lets do the tcindexes and record min/max */
-	this_Elev->tcindex[vertex_ind] = tci_ct+A;
-	this_Elev->tcindex[vertex_ind+1] =tci_ct+B;
-	this_Elev->tcindex[vertex_ind+2] =tci_ct+C;
-
-	/*
-	c1 = (struct SFColor *) &this_Elev->coord[3*A];
-	c2 = (struct SFColor *) &this_Elev->coord[3*C];
-	c3 = (struct SFColor *) &this_Elev->coord[3*B];
-
-	printf ("Extru_tex, vertices are %f %f %f\n%f %f %f\n%f %f %f\n\n",
-		c1->c[0], c1->c[1],c1->c[2],c2->c[0],c2->c[1],c2->c[2],
-		c3->c[0],c3->c[1],c3->c[2]);
-	printf ("for points %d %d %d\n",A,C,B);
-	printf ("Extru_tex, vert_ind %d, tcindexes %d %d %d\n",vertex_ind,
-			this_Elev->tcindex[vertex_ind],this_Elev->tcindex[vertex_ind+1],
-			this_Elev->tcindex[vertex_ind+2]);
-	*/
-
+	tcindex[vertex_ind] = tci_ct+A;
+	tcindex[vertex_ind+1] =tci_ct+B;
+	tcindex[vertex_ind+2] =tci_ct+C;
 }
 
 
@@ -564,13 +547,16 @@ void Extru_tex(
  *
  **********************************************************************/
 
+
 void Extru_ST_map(
 	int triind_start,
 	int start,
 	int end,
 	float *Vals,
 	int nsec,
-	struct X3D_PolyRep *this_Extru,
+	int *tcindex,
+	int *cindex,
+	float *GeneratedTexCoords,
 	int tcoordsize) {
 
 	int x;
@@ -584,10 +570,11 @@ void Extru_ST_map(
 
 	int Point_Zero;	/* the point that all cap tris start at. see comment below */
 
+	/* printf ("Extru_ST, nsec %d\n",nsec); */
+
 	/* find the base and range of S, T */
 	for (x=0; x<nsec; x++) {
-		 /* printf ("for textures, coord vals %f %f for sec %d\n",*/
-		 /* Vals[x*2+0], Vals[x*2+1],x);*/
+		 /* printf ("for textures, coord vals %f %f for sec %d\n", Vals[x*2+0], Vals[x*2+1],x); */
 		if (Vals[x*2+0] < minS) minS = Vals[x*2+0];
 		if (Vals[x*2+0] > maxS) maxS = Vals[x*2+0];
 		if (Vals[x*2+1] < minT) minT = Vals[x*2+1];
@@ -597,12 +584,10 @@ void Extru_ST_map(
 	Trange = maxT - minT;
 
 	/* I hate divide by zeroes. :-) */
-	/* if (Srange == 0.0) Srange = 0.001; */
 	if (APPROX(Srange, 0.0)) Srange = 0.001;
-	/* if (Trange == 0.0) Trange = 0.001; */
 	if (APPROX(Trange, 0.0)) Trange = 0.001;
 
-	/* printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange);*/
+	/* printf ("minS %f Srange %f minT %f Trange %f\n",minS,Srange,minT,Trange); */
 
 	/* Ok, we know the min vals of S and T; and the ranges. The way that end cap
 	 * triangles are drawn is that we have one common point, the first point in
@@ -615,19 +600,18 @@ void Extru_ST_map(
 
 		/*
 		printf ("Extru_ST_Map: triangle has tex vertices:%d %d %d ",
-			this_Extru->tcindex[triind_start*3],
-			this_Extru->tcindex[triind_start*3+1] ,
-			this_Extru->tcindex[triind_start*3+2]);
+			tcindex[triind_start*3],
+			tcindex[triind_start*3+1] ,
+			tcindex[triind_start*3+2]);
 		printf ("Extru_ST_Map: coord vertices:%d %d %d\n",
-			this_Extru->cindex[triind_start*3],
-			this_Extru->cindex[triind_start*3+1] ,
-			this_Extru->cindex[triind_start*3+2]);
+			cindex[triind_start*3],
+			cindex[triind_start*3+1] ,
+			cindex[triind_start*3+2]);
 		*/
 
-
 		/* for first vertex */
-		tci = this_Extru->tcindex[triind_start*3];
-		ci = this_Extru->cindex[triind_start*3];
+		tci = tcindex[triind_start*3];
+		ci = cindex[triind_start*3];
 		Point_Zero = tci;
 
 		if ((tci*3+2) >= tcoordsize) {
@@ -636,18 +620,18 @@ void Extru_ST_map(
 		}
 
 		/* S value */
-		this_Extru->GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+		GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
 
 		/* not used by render_polyrep */
-		this_Extru->GeneratedTexCoords[tci*3+1] = 0;
+		GeneratedTexCoords[tci*3+1] = 0;
 
 		/* T value */
-		this_Extru->GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+		GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
 
 
 		/* for second vertex */
-		tci = this_Extru->tcindex[triind_start*3+1];
-		ci = this_Extru->cindex[triind_start*3+1];
+		tci = tcindex[triind_start*3+1];
+		ci = cindex[triind_start*3+1];
 
 		if ((tci*3+2) >= tcoordsize) {
 			printf ("INTERNAL ERROR: Extru_ST_map(2), index %d greater than %d \n",(tci*3+2),tcoordsize);
@@ -655,18 +639,18 @@ void Extru_ST_map(
 		}
 
 		/* S value */
-		this_Extru->GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+		GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
 
 		/* not used by render_polyrep */
-		this_Extru->GeneratedTexCoords[tci*3+1] = 0;
+		GeneratedTexCoords[tci*3+1] = 0;
 
 		/* T value */
-		this_Extru->GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+		GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
 
 
 		/* for third vertex */
-		tci = this_Extru->tcindex[triind_start*3+2];
-		ci = this_Extru->cindex[triind_start*3+2];
+		tci = tcindex[triind_start*3+2];
+		ci = cindex[triind_start*3+2];
 
 		if ((tci*3+2) >= tcoordsize) {
 			printf ("INTERNAL ERROR: Extru_ST_map(3), index %d greater than %d \n",(tci*3+2),tcoordsize);
@@ -674,13 +658,13 @@ void Extru_ST_map(
 		}
 
 		/* S value */
-		this_Extru->GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
+		GeneratedTexCoords[tci*3+0] = (Vals[(tci-Point_Zero)*2+0] - minS) / Srange ;
 
 		/* not used by render_polyrep */
-		this_Extru->GeneratedTexCoords[tci*3+1] = 0;
+		GeneratedTexCoords[tci*3+1] = 0;
 
 		/* T value */
-		this_Extru->GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
+		GeneratedTexCoords[tci*3+2] = (Vals[(tci-Point_Zero)*2+1] - minT) / Trange;
 
 		triind_start++;
 	}
