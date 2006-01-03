@@ -13,6 +13,7 @@ import java.io.*;
 import vrml.external.Node;
 //JAS import vrml.external.field.EventOut;
 import vrml.external.field.EventOutObserver;
+import vrml.external.field.EventIn;
 import vrml.external.field.EventInMFNode;
 import vrml.external.FreeWRLEAI.EAIoutThread;
 import vrml.external.FreeWRLEAI.EAIinThread;
@@ -599,7 +600,7 @@ public class Browser implements BrowserInterface, IBrowser
 	}
 
 	// Most events don't need us to wait around for it.
-	public static void newSendEvent (Node node, String Value) {
+	public static void newSendEvent (EventIn node, String Value) {
 		synchronized (FreeWRLToken) {
 			EAIoutSender.send ("" + queryno + "D" + node.datatype + " " +
 				node.nodeptr + " " + node.offset + " " +node.ScriptType + " " + Value + "\n");
