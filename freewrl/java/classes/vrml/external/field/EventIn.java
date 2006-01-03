@@ -1,28 +1,27 @@
 // Specification of the base interface for all eventIn types.
 package vrml.external.field;
-import vrml.external.field.FieldTypes;
-//JAS import vrml.external.Browser;
+import vrml.external.field.*;
 
-
-
-public class EventIn extends vrml.external.Node {
+public class EventIn {
 
   int EventType = FieldTypes.UnknownType;
-//  public String inNode;
-//  public String command;
-// public String nodeptr; //pointer to start of FreeWRL structure in memory
-// public String offset;  //offset of actual field in memory from base.
-// public String datasize; // how long this data really is
-// public String datatype;
-// public String ScriptType; // non zero means that this eventIn is to a javascript
-
-
+  public String command;
+  public String inNode;
+  public String datasize;
+  public String nodeptr;
+  public String offset;
+  public String ScriptType;
+  public String datatype;
 
   // Get the type of this EventIn (specified in FieldTypes.java)
   //public int           getType() {
   //	return EventType;
   //}
 	public int getIntType() {
+		return EventType;
+	}
+
+	public int getType() {
 		return EventType;
 	}
 }
