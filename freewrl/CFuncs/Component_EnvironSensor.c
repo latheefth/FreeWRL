@@ -30,7 +30,7 @@
 #include "headers.h"
 #include "installdir.h"
 
-proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
+void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
 	/* Viewer pos = t_r2 */
 	double cx,cy,cz;
 	double len;

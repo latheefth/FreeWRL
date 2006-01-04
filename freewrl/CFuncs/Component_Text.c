@@ -1011,6 +1011,6 @@ void make_Text (struct X3D_Text *node) {
 	glPopAttrib();
 }
 
-rendray_Text (struct X3D_Text *node) {
+void rendray_Text (struct X3D_Text *node) {
 	render_ray_polyrep(node, NULL);
 }
