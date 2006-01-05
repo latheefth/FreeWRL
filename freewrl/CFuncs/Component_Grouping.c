@@ -56,8 +56,18 @@ void VerboseEnd (char *whoami) {
 /* prep_Group - we need this so that distance (and, thus, distance sorting) works for Groups */
 void prep_Group (struct X3D_Group *node) {
         GLdouble modelMatrix[16];
-        fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-	node->_dist = modelMatrix[14];
+
+	 /* we recalculate distance on last pass, or close to it, and only
+	 once per event-loop tick. we can do it on the last pass - the
+	 render_sensitive pass, but when mouse is clicked (eg, moving in
+	 examine mode, sensitive node code is not rendered. So, we choose
+	 the second-last pass. ;-) */
+	if (render_vp) return;
+
+        if (render_light) {
+		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+		node->_dist = modelMatrix[14];
+	}
 }
 
 /* do transforms, calculate the distance */
@@ -93,8 +103,6 @@ void prep_Transform (struct X3D_Transform *node) {
 			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
 			node->_dlchange = node->_change;
 		}
-
-
 
 		/* TRANSLATION */
 		if (node->__do_trans)

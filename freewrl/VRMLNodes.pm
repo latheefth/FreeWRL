@@ -1044,6 +1044,7 @@ my $protono;
 						 geometry => [SFNode, NULL, exposedField],
 						 bboxCenter => [SFVec3f, [0, 0, 0], field],
 						 bboxSize => [SFVec3f, [-1, -1, -1], field],
+						 __ShapeNumber =>[SFInt32,-1,field], # for Occlusion tests.
 						}),
 
 
@@ -1701,6 +1702,7 @@ my $protono;
 						__points =>[FreeWRLPTR,0,field],
 						__colours =>[FreeWRLPTR,0,field],
 						__quadcount => [SFInt32,0,field],
+						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
 
 						frontTexture=>[SFNode,NULL,exposedField],
 						backTexture=>[SFNode,NULL,exposedField],
@@ -1723,6 +1725,7 @@ my $protono;
 						__points =>[FreeWRLPTR,0,field],
 						__colours =>[FreeWRLPTR,0,field],
 						__quadcount => [SFInt32,0,field],
+						__BGNumber => [SFInt32,-1,field], # for ordering backgrounds for binding
 
 						(map {(
 							   $_.Url => [MFString, [], exposedField],

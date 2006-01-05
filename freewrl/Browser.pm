@@ -152,6 +152,11 @@ my %bgd = (); my $bgcount=0;
 my %nav=(); my $navcount=0;
 my %fog=(); my $fogcount=0;
 
+
+# keep track of the number of Shape nodes seen so far. For
+# Occlusion culling and VisibilitySensors.
+my $shapeNodeCount = 0;
+
 # zero out bindables; called from C when we have a replaceWorld
 # type of action - Anchor is one...
 
@@ -160,12 +165,60 @@ sub zeroBindables {
 	$vpcount=0; $bgcount=0; $navcount=0; $fogcount=0;
 	
 	VRML::Handles::deleteAllHandles();
+
+	$shapeNodeCount = 0;
 }
 
+sub NewShapeNode {
+	my ($node) = @_;
+	# print "NewShapeNode, orig is ", $node->{Fields}{__ShapeNumber}, "\n";
+	$node->{Fields}{__ShapeNumber} = $shapeNodeCount;
+	$shapeNodeCount ++;
+}
+
+# call this to keep binding in order; CNodes can come in at any
+# point in time, this function just reserves the "order".
+# look at the "__BGNumber" parameter of the node.
+sub reserve_bind_space {
+	my ($node) = @_;
+
+	# print "reserve_bind_space, have a type of ". $node->{TypeName},"\n";
+
+	if ($node->{TypeName} eq "Viewpoint") {
+		if ($vpcount>900) {return;}
+		$node->{Fields}{__BGNumber} = $vpcount;
+		$vpcount++;
+
+	} elsif ($node->{TypeName} eq "Background") {
+		if ($bgcount>900) {return;}
+		$node->{Fields}{__BGNumber} = $bgcount;
+		$bgcount++;
+	} elsif ($node->{TypeName} eq "TextureBackground") {
+		if ($bgcount>900) {return;}
+		$bgcount++;
+		$node->{Fields}{__BGNumber} = $bgcount;
+
+	} elsif ($node->{TypeName} eq "NavigationInfo") {
+		if ($navcount>900) {return;}
+		$node->{Fields}{__BGNumber} = $navcount;
+		$navcount++;
+
+	} elsif ($node->{TypeName} eq "Fog") {
+		if ($fogcount>900) {return;}
+		$node->{Fields}{__BGNumber} = $fogcount;
+		$fogcount++;
+	} else {
+		print ("Browser:reserve_bind_space, unknown type ",$node->{TypeName});
+	}
+}
+
+	
 # Save this node pointer so that the C backend can get it.
 # save a maximum of 900; this is to avoid any stack overflow.
 sub register_bind {
 	my ($node) = @_;
+
+	# print "register_bind, have a ",$node->{TypeName}, " which is reserved as ", $node->{Fields}{__BGNumber},"\n";
 
         if (!defined ($node->{BackNode}{CNode})) {
                 print "register_vp - no backend CNode node\n";
@@ -173,23 +226,15 @@ sub register_bind {
         }
 
 	if ($node->{TypeName} eq "Viewpoint") {
-		if ($vpcount>900) {return;}
-		$vpn{$vpcount} = $node->{BackNode}{CNode}; $vpcount++;
-
+		$vpn{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
 	} elsif ($node->{TypeName} eq "Background") {
-		if ($bgcount>900) {return;}
-		$bgd{$bgcount} = $node->{BackNode}{CNode}; $bgcount++;
+		$bgd{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
 	} elsif ($node->{TypeName} eq "TextureBackground") {
-		if ($bgcount>900) {return;}
-		$bgd{$bgcount} = $node->{BackNode}{CNode}; $bgcount++;
-
+		$bgd{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
 	} elsif ($node->{TypeName} eq "NavigationInfo") {
-		if ($navcount>900) {return;}
-		$nav{$navcount} = $node->{BackNode}{CNode}; $navcount++;
-
+		$nav{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
 	} elsif ($node->{TypeName} eq "Fog") {
-		if ($fogcount>900) {return;}
-		$fog{$fogcount} = $node->{BackNode}{CNode}; $fogcount++;
+		$fog{$node->{Fields}{__BGNumber}} = $node->{BackNode}{CNode};
 	} else {
 		print ("Browser:register_bind, unknown type ",$node->{TypeName});
 	}
