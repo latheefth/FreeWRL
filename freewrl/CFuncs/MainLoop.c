@@ -996,8 +996,6 @@ void setScreenDim(int wi, int he) {
         screenHeight = he;
         if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
         else screenRatio =  screenWidth;
-
-	calculateFrustumCone();
 }
 
 void setBrowserURL(char* file) {

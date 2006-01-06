@@ -67,7 +67,6 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
 		fieldofview = a1/3.1415926536*180;
 	}
-	calculateFrustumCone();
 	/* printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 
@@ -211,7 +210,7 @@ void child_Collision (struct X3D_Collision *node) {
 			node->bboxSize.c[0] = node->_extent[0];
 			node->bboxSize.c[1] = node->_extent[1];
 			node->bboxSize.c[2] = node->_extent[2];
-			BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+			BoundingBox(node->bboxCenter,node->bboxSize);
 		}
 
 		/* did we have that directionalLight? */
@@ -316,7 +315,7 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
 		node->bboxSize.c[0] = node->_extent[0];
 		node->bboxSize.c[1] = node->_extent[1];
 		node->bboxSize.c[2] = node->_extent[2];
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 	/* did we have that directionalLight? */
@@ -360,7 +359,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 		node->bboxSize.c[0] = node->_extent[0];
 		node->bboxSize.c[1] = node->_extent[1];
 		node->bboxSize.c[2] = node->_extent[2];
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 	/* did we have that directionalLight? */

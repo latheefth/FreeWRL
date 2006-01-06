@@ -108,9 +108,9 @@ return;
 
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
-			/* printf ("calling PointInView for %d\n",node);*/
-			node->PIV = PointInView(node);
-			/* printf ("ppv %d\n",node->PIV);*/
+			/* printf ("calling recordDistance for %d\n",node);*/
+			recordDistance(node);
+			/* printf ("ppv %d\n");*/
 
 	       }
         }
@@ -194,9 +194,9 @@ return;
 
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
-			/* printf ("calling PointInView for %d\n",node);*/
-			node->PIV = PointInView(node);
-			/* printf ("ppv %d\n",node->PIV);*/
+			/* printf ("calling recordDistance for %d\n",node);*/
+			recordDistance(node);
+			/* printf ("ppv %d\n");*/
 
 	       }
         }
@@ -298,7 +298,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 	/* did we have that directionalLight? */
@@ -341,7 +341,7 @@ return;
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 #endif
 }
@@ -379,7 +379,7 @@ return;
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 #endif
 }
@@ -422,7 +422,7 @@ return;
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 	/* did we have that directionalLight? */

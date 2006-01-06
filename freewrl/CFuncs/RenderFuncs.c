@@ -235,7 +235,6 @@ void update_node(void *ptr) {
 	/* printf ("update_node for %d %s\n",ptr, stringNodeType(p->_nodeType)); */
 
 	p->_change ++;
-	p->PIV=1;
 	for (i = 0; i < p->_nparents; i++) {
 		update_node((void *)p->_parents[i]);
 	}

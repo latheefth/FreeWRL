@@ -37,8 +37,8 @@ void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
 	int c;
 
 	for (c=0; c<VerboseIndent; c++) printf ("  ");
-	printf ("RENDER %s START %d nc %d PIV %d ext %4.2f %4.2f %4.2f\n",
-			whoami,me,nc,me->PIV,me->_extent[0],me->_extent[1],
+	printf ("RENDER %s START %d nc %d ext %4.2f %4.2f %4.2f\n",
+			whoami,me,nc,me->_extent[0],me->_extent[1],
 			me->_extent[2]);
 	VerboseIndent++;
 }
@@ -142,9 +142,9 @@ void prep_Transform (struct X3D_Transform *node) {
 
 		/* did either we or the Viewpoint move since last time? */
 		if (recalculate_dist) {
-			/* printf ("calling PointInView for %d\n",node);*/
-			node->PIV = PointInView(node);
-			/* printf ("ppv %d\n",node->PIV);*/
+			/* printf ("calling recordDistance for %d\n",node);*/
+			recordDistance(node);
+			/* printf ("ppv %d\n"g);*/
 
 	       }
         }
@@ -276,7 +276,7 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 
@@ -364,7 +364,7 @@ void child_Group (struct X3D_Group *node) {
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 	/* did we have that directionalLight? */
@@ -513,7 +513,7 @@ void child_Transform (struct X3D_Transform *node) {
 				node->bboxCenter.c[1],
 				node->bboxCenter.c[2],
 				(struct X3D_Box*)node);
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 

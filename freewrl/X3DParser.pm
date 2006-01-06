@@ -453,6 +453,8 @@ sub parseX3DProtoInstance {
 					$protoName = $bnub->{$key};
 				} elsif ($key eq "DEF") {
 					$LocalDEF = $bnub->{$key};
+				} elsif ($key eq "USE") {
+					# print "FOUND USE FOR ProtoInstance here\n";
 				} else {
 					VRML::VRMLFunc::ConsoleMessage ("ProtoInstance - field $key is invalid\n");
 				}
@@ -1040,6 +1042,8 @@ sub parseX3DNodeField {
 	if ($nextNodeName eq "IS") {
 		#print "nextNodeName is an IS\n";
 		parseIS($parentNode,$fieldref,$bnub,$protoFields);
+	} elsif ($nextNodeName eq "ProtoInstance") {
+		#print "nextNodeName is a ProtoInstance\n";
 	} else {
 		#print "parseX3DNodeField, have to go and find fieldType\n";
 

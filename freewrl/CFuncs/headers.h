@@ -537,11 +537,10 @@ extern char *myPerlInstallDir;
 void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
-void BoundingBox(struct SFColor bbc,struct SFColor bbs, int PIV);
+void BoundingBox(struct SFColor bbc,struct SFColor bbs);
 void setExtent (float x, float y, float z, struct X3D_Box *this_);
+void recordDistance(struct X3D_Transform *nod);
 void propagateExtent (float x, float y, float z, struct X3D_Box *this_);
-void calculateFrustumCone(void);
-extern int PointInView(struct X3D_Transform *nod);
 
 extern double nearPlane, farPlane, screenRatio;
 

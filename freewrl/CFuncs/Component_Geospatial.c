@@ -261,7 +261,6 @@ void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
 		fieldofview = a1/3.1415926536*180;
 	}
-	calculateFrustumCone();
 	/* printf ("render_GeoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); */
 }
 

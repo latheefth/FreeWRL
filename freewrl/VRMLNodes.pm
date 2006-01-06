@@ -738,6 +738,7 @@ my $protono;
 						bboxSize => [SFVec3f, [-1, -1, -1], field],
 						 __transparency => [SFInt32, -1, field], # display list for transparencies
 						 __solid => [SFInt32, -1, field],	 # display list for solid geoms.
+						 __OccludeNumber =>[SFInt32,-1,field], # for Occlusion tests.
 					   }),
 
 	Switch => new VRML::NodeType("Switch", {
@@ -760,6 +761,7 @@ my $protono;
 						 translation => [SFVec3f, [0, 0, 0], exposedField],
 						 bboxCenter => [SFVec3f, [0, 0, 0], field],
 						 bboxSize => [SFVec3f, [-1, -1, -1], field],
+						 __OccludeNumber =>[SFInt32,-1,field], # for Occlusion tests.
 
 						 # fields for reducing redundant calls
 						 __do_center => [SFInt32, 0, field],
@@ -1044,7 +1046,7 @@ my $protono;
 						 geometry => [SFNode, NULL, exposedField],
 						 bboxCenter => [SFVec3f, [0, 0, 0], field],
 						 bboxSize => [SFVec3f, [-1, -1, -1], field],
-						 __ShapeNumber =>[SFInt32,-1,field], # for Occlusion tests.
+						 __OccludeNumber =>[SFInt32,-1,field], # for Occlusion tests.
 						}),
 
 

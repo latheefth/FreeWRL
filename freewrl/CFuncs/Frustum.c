@@ -32,16 +32,6 @@
 #include "Structs.h"
 #include "headers.h"
 
-static double frustumConeAngle = 0.0;
-
-
-static int PlaneInCheck(
-	float angle, 		/* tan of the viewing angle*/
-	float Zdist, 		/* distance to centre*/
-	float extent, 		/* "spread" of the extent in this direction*/
-	float lineDist		/* offset of vector*/
-		);
-
 /* take the measurements of a geometry (eg, box), and save it. Note
  * that what is given is a Shape, the values get pushed up to the
  * Geometries grouping node parent. */
@@ -94,7 +84,7 @@ void propagateExtent(float x, float y, float z, struct X3D_Box *me) {
 	}
 }
 
-void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
+void BoundingBox(struct SFColor xDistc,struct SFColor xDists) {
 #ifdef BOUNDINGBOX
 	float x,y,z;
 	x = xDists.c[0];
@@ -102,7 +92,6 @@ void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
 	z = xDists.c[2];
 
 	if ((x<0.001) && (y<0.001) & (z<0.001)) return;
-	if (PIV == 0) return;
 
 	/* calculate distance to this box from the Frustum */
 
@@ -112,13 +101,7 @@ void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
 	glEnable(GL_COLOR_MATERIAL);
 	glDisable(GL_CULL_FACE);
 
-	if (PIV >= 2) {
-
-		glColor3f(1.0, 0.0, 0.0);
-	} else if (PIV >= 1) {
-		glColor3f(0.0, 1.0, 0.0);
-	}
-	else glColor3f(0, 0.0, 1.0);
+	glColor3f(1.0, 0.0, 0.0);
 
 	/* top of box */
 	glBegin(GL_LINE_STRIP);
@@ -161,134 +144,7 @@ void BoundingBox(struct SFColor xDistc,struct SFColor xDists, int PIV) {
 #endif
 }
 
-/* set the "static" frustum variables. Changes only when window params change.
- *
- * A Frustum is a truncated pyramid. It is used to test as to whether another
- * cube intersects with it; if so, the other cube is "visible"; if not, the
- * other cube does not need to be rendered.
- *
- * With fast GPU's, a few extra triangles is not a worry, but matimatical
- * calculations on the main cpu are, so we use a Cone for Frustum testing, not
- * a 6 sided truncated pyramid.
- *
- * check out the paper by Dave Eberly, Magic-Sofware.com for this technique.
- *
- * Used for speeding up large worlds. */
-
-void calculateFrustumCone () {
-	GLdouble mod[16];
-	GLdouble proj[16];
-
-#ifdef BOUNDINGBOX
-
-	fwGetDoublev (GL_PROJECTION_MATRIX, proj);
-	fwGetDoublev (GL_MODELVIEW_MATRIX, mod);
-
-	/*printf ("calculateFrustum\n");*/
-	/*printf ("nearPlane    %f\n",nearPlane);*/
-	/*printf ("farPlane     %f\n",farPlane);*/
-	/*printf ("screenRatio  %f\n",screenRatio);*/
-	/*printf ("fieldofview  %f\n",fieldofview);*/
-	/*printf ("screenWidth  %d\n",screenWidth);*/
-	/*printf ("screenHeight %d\n",screenHeight);*/
-
-	frustumConeAngle = fieldofview;
-	/*printf ("frust axis %f %f %f\n",*/
-/*			0.0, 0.0, 0.0);*/
-/*	printf ("Frust vertex %f %f %f\n",*/
-/*			0.0,0.0,0.0);*/
-#endif
-}
-
-/************************************************************
- * PlaneInCheck - check if a point is "within" expected values
- *
- * What we do is check a point in X and in Y, using the viewport
- * angle.
- *
- * The equation is simple trig - angle A is 1/2 of viewport, we
- * know the distance, etc:
- *
- *     C       a      B
- *     ----------------
- *     |              /
- *     |             /
- *     |            /
- *     |           /
- *     |          /
- *     |         /
- *    b|        / c
- *     |       /
- *     |      /
- *     |     /
- *     |    /		A = 1/2 "viewport" diagonal angle
- *     |   /		b = Z distance
- *     |  /		a = maximum distance for a point
- *     | /		Tan(A) = a/b; Tan(A)*b = a
- *     |/
- *     A
- *
- *     if a point, B is greater than a away from the centre, then
- *     we assume that it is outside of the viewing area.
- *
- *     We check x and y seperately.
- *
- *     The way checks are done is, assume a line in X or Y plane;
- *     we have the two outer limits(AB), and the limits of the bounding
- *     box (CD), if CD is contained within AB, the plane is contained.
- *     if D is outside of A, or C is outside of B, then the plane is
- *     really out of view, otherwise, we know at least C or D is within
- *     the AB.
- *
- *     Of course, if things are behind you, the test is really easy;
- *     nothing is in view!
- *
- *************************************************************/
-
-static int PlaneInCheck(
-	float angle,		/* tan of the viewing angle*/
-	float Zdist, 		/* distance to centre*/
-	float extent, 		/* "spread" of the extent in this direction*/
-	float lineDist		/* offset of vector*/
-		) {
-	float A;	/* "left" most point of Frustum*/
-	float B;	/* "right" most point of Frustum*/
-	float C;	/* "left" side of bBox*/
-	float D;	/* "right" side of bbox*/
-
-	A = -Zdist * angle;
-	B = Zdist * angle;
-	C = -extent + lineDist;
-	D = extent + lineDist;
-	C = C / Zdist;
-	D = D / Zdist;
-	/*printf ("	A %4.3f C %4.3f;  D %4.3f B %4.3f z %4.3f",A,C,D,B,Zdist);*/
-
-	if (Zdist < 0.0) {
-		/*printf ("BEHIND\n ");*/
-		return 0;
-	}
-
-	if ((A<C) && (D<B)) {
-		/*printf ("BOTH POINTS OK\n");*/
-		return 2;
-	}
-
-
-	if ((D<A) || (C>B)) {
-		/*printf ("POINTS OUTSIDE\n");*/
-		return 0;
-	}
-
-	/*printf ("POSSBLE\n");*/
-	return 1;
-}
-
-int PointInView(struct X3D_Transform *nod) {
-#ifdef BOUNDINGBOX
-	GLdouble xx,yy,Distance,xDist,yDist,dd,ee,ff,ex_X,ex_Y,ex_Z;
-#endif
-
+void recordDistance(struct X3D_Transform *nod) {
 	GLdouble modelMatrix[16];
 	int retval;
 	int xcount, pointok;
@@ -302,36 +158,6 @@ int PointInView(struct X3D_Transform *nod) {
 	nod->bboxCenter.c[1] = modelMatrix[13];
 	nod->bboxCenter.c[2] = modelMatrix[14];
 
-#ifdef BOUNDINGBOX
-
-	/* get the x,y values from the modelMatrix*/
-	xDist = modelMatrix[12]; /* X*/
-	yDist = modelMatrix[13]; /* Y*/
-	/*printf ("\nxDist %f yDist %f dist approx %f\n",xDist,yDist,modelMatrix[14]);*/
-
-	/* get the extent from the VRML Struct passed in*/
-	ex_X=nod->_extent[0];
-	ex_Y=nod->_extent[1];
-	ex_Z=nod->_extent[2];
-	/*printf ("extent %f %f %f\n",nod->_extent[0], nod->_extent[1],nod->_extent[2]);*/
-
-	/* check the 4 points closer to us*/
-	Distance = -modelMatrix[14]+ex_Z; /* distance*/
-	xcount += PlaneInCheck(tan (0.2), Distance, ex_X, xDist);
-	xcount += PlaneInCheck(tan (0.2), Distance, ex_X, yDist);
-
-
-	/* check the 4 points farther from us */
-	Distance = -modelMatrix[14]-ex_Z; /* distance*/
-	xcount += PlaneInCheck(tan (0.2), Distance, ex_X, xDist);
-	xcount += PlaneInCheck(tan (0.2), Distance, ex_Y, yDist);
-
-	/*printf ("Xc %d\n",xcount);*/
-
-#endif
 	nod->_dist = modelMatrix[14];
-	if (xcount == 8) return 2;
-	if (xcount > 0) return 1;
-	return 0;
 }
 

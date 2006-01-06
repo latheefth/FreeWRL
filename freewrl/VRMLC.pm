@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.201  2006/01/06 14:30:59  crc_canada
+# OcclusionCulling starting.
+#
 # Revision 1.200  2005/12/22 14:50:30  crc_canada
 # remove name field of X3D_Virt
 #
@@ -269,7 +272,7 @@ sub gen_struct {
 	       "       int _ichange; \n"		.
 	       "       float _dist; /*sorting for blending */ \n".
 	       "       float _extent[3]; /* used for boundingboxes */ \n" .
-	       "       int PIV; /* points in view */ \n" .
+	       "       int visibleChildren; /* shapes in view */ \n" .
                "       void *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
                " /*** node specific data: *****/\n";
@@ -706,7 +709,7 @@ CODE:
 	p->_extent[1] = 0.0;
 	p->_extent[2] = 0.0;
 	p->_nodeType = itype;
-	p->PIV = 1;
+	p->visibleChildren = 0;
 
 	RETVAL=ptr;
 OUTPUT:

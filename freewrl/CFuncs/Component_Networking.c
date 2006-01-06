@@ -201,7 +201,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 		node->bboxSize.c[0] = node->_extent[0];
 		node->bboxSize.c[1] = node->_extent[1];
 		node->bboxSize.c[2] = node->_extent[2];
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 	/* did we have that directionalLight? */
@@ -247,7 +247,7 @@ void child_Inline (struct X3D_Inline *node) {
 		node->bboxSize.c[0] = node->_extent[0];
 		node->bboxSize.c[1] = node->_extent[1];
 		node->bboxSize.c[2] = node->_extent[2];
-		BoundingBox(node->bboxCenter,node->bboxSize,node->PIV);
+		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
 	/* did we have that directionalLight? */

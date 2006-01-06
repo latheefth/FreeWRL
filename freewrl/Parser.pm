@@ -247,11 +247,16 @@ sub parse_interfacedecl {
 		print "VRML::Parser::parse_interfacedecl: "
 		 	if $VRML::verbose::parse;
 		# Parse an interface statement
-		if($_[3] =~ /\G\s*(eventIn|eventOut)\s+
+		if($_[3] =~ /\G\s*(eventIn|eventOut|inputOnly|outputOnly)\s+
 			  ($Word)\s+($Word)\s+/ogsxc) {
-			print "PARSING 1: $1 $2 $3\n"
+			# x3dv scripting
+			my $access = $1;
+			if ($access eq "inputOnly") {$access = "eventIn";}
+			if ($access eq "outputOnly") { $access = "eventOut";}
+
+			print "PARSING 1: $access $2 $3\n"
 				if $VRML::verbose::parse;
-			$f{$3} = [$1,$2];
+			$f{$3} = [$access,$2];
 			my $n = $3;
 			if($script and
 			   $_[3] =~ /\G\s*IS\s+($Word)\s+/ogsc) {
@@ -260,13 +265,18 @@ sub parse_interfacedecl {
 			   	push @{$f{$n}}, $scene->new_is($1, $n);
 				print "Is SCRIPT.\n" if $VRML::verbose::parse;
 			}
-		} elsif($_[3] =~ /\G\s*(field|exposedField)\s+
+		} elsif($_[3] =~ /\G\s*(field|exposedField|inputOutput|initializeOnly)\s+
 			  ($Word)\s+($Word)/ogsxc) {
-			  if($1 eq "exposedField" and !$exposed) {
+			  # x3dv parsing...
+			  my $access = $1;
+			  if ($access eq "inputOutput") { $access = "exposedField"; }
+			  if ($access eq "initializeOnly") { $access = "field"; }
+
+			  if($access eq "exposedField" and !$exposed) {
 			  	parsefail($_[3], "interface",
 					   "exposedFields not allowed here");
 			  }
-			my($ft, $t, $n) = ($1, $2, $3);
+			my($ft, $t, $n) = ($access, $2, $3);
 			print "PARSING 2: $ft $t $n $fieldval\n"
 				if $VRML::verbose::parse;
 			$f{$n} = [$ft, $t];

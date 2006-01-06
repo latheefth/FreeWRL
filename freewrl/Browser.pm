@@ -155,7 +155,7 @@ my %fog=(); my $fogcount=0;
 
 # keep track of the number of Shape nodes seen so far. For
 # Occlusion culling and VisibilitySensors.
-my $shapeNodeCount = 0;
+my $occNodeCount = 0;
 
 # zero out bindables; called from C when we have a replaceWorld
 # type of action - Anchor is one...
@@ -166,14 +166,14 @@ sub zeroBindables {
 	
 	VRML::Handles::deleteAllHandles();
 
-	$shapeNodeCount = 0;
+	$occNodeCount = 0;
 }
 
-sub NewShapeNode {
+sub NewOccludeNode {
 	my ($node) = @_;
-	# print "NewShapeNode, orig is ", $node->{Fields}{__ShapeNumber}, "\n";
-	$node->{Fields}{__ShapeNumber} = $shapeNodeCount;
-	$shapeNodeCount ++;
+	# print "NewOccludeNode, orig is ", $node->{Fields}{__OccludeNumber}, "\n";
+	$node->{Fields}{__OccludeNumber} = $occNodeCount;
+	$occNodeCount ++;
 }
 
 # call this to keep binding in order; CNodes can come in at any
