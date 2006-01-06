@@ -447,9 +447,7 @@ sub new_node {
 	my $node = VRML::NodeIntern->new($this, $type, $fields, $this->{EventModel});
 
 	# we keep track of nodes that can generate Occlusion queries.
-	if ($type eq "Shape") {VRML::Browser::NewOccludeNode($node);}
-	if ($type eq "Transform") {VRML::Browser::NewOccludeNode($node);}
-	if ($type eq "StaticGroup") {VRML::Browser::NewOccludeNode($node);}
+	if ($VRML::Nodes::occludeEvents{$type}) {VRML::Browser::NewOccludeNode($node);}
 
 	# Check if it is bindable and first -> bind to it later..
 	if ($VRML::Nodes::bindable{$type}) {

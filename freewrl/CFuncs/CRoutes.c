@@ -1981,6 +1981,7 @@ void add_first(char *clocktype,void * node) {
 	} else if (strncmp("Collision",clocktype,10) == 0) { myp = do_CollisionTick;
 	} else if (strncmp("MovieTexture",clocktype,10) == 0) { myp = do_MovieTextureTick;
 	} else if (strncmp("AudioClip",clocktype,10) == 0) { myp = do_AudioTick;
+	} else if (strncmp("VisibilitySensor",clocktype,10) == 0) { myp = do_VisibilitySensorTick;
 
 	} else {
 		printf ("VRML::VRMLFunc::add_first, unhandled type %s\n",clocktype);

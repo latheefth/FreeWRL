@@ -1,4 +1,6 @@
 For 1.16:
+	- VisibilitySensor
+
 	- bug in DirectionalLight rend fixed.
 
 	- bug in script invocation - scripts are now initiated when routing entries

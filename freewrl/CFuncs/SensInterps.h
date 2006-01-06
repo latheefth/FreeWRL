@@ -67,6 +67,7 @@ void do_AudioTick(void *ptr);
 void do_TimeSensorTick(void *ptr);
 void do_ProximitySensorTick(void *ptr);
 void do_MovieTextureTick(void *ptr);
+void do_VisibilitySensorTick(void *ptr);
 
 void do_Anchor( void *ptr, int typ, int over);
 void do_TouchSensor( void *ptr, int typ, int over);

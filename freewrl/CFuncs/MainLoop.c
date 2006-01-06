@@ -113,6 +113,20 @@ int myMaxScript = -1;
 /* do we have some sensitive nodes in scene graph? */
 static int HaveSensitive = FALSE;
 
+/* Occlusion VisibilitySensor code */
+#ifdef OCCLUSION
+GLuint OccQueries[MAXOCCQUERIES];
+void* OccNodes[MAXOCCQUERIES];
+int OccActive[MAXOCCQUERIES];
+int OccSamples[MAXOCCQUERIES];
+
+int maxShapeFound;
+int OccQuerySize=MAXOCCQUERIES;
+GLint queryCounterBits;
+int OccInitialized = FALSE;
+#endif
+
+
 
 /* Function protos */
 void do_keyPress(char kp, int type);
@@ -158,6 +172,40 @@ void EventLoop() {
 	/* Set the timestamp */
 	gettimeofday (&mytime,&tz);
 	TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+
+        #ifdef OCCLUSION
+
+        if (maxShapeFound > OccQuerySize) {
+                printf ("have to regen queries\n");
+/*
+		OccQuerySize = maxShapeFound;
+		OccQueries = realloc (OccQueries,sizeof (int) * maxShapeFound);
+*/
+        }
+
+        maxShapeFound = -1;
+/* for now */
+if (OccInitialized == FALSE) {
+
+        /* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS)); */
+        if (strstr(glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
+                /* printf ("have OcclusionQuery\n"); */
+                /* glGenOcclusionQueriesNV(MAXOCCQUERIES,OccQueries); */
+                glGenQueries(MAXOCCQUERIES,OccQueries);
+        }
+{ int i;
+for (i=0; i<MAXOCCQUERIES; i++) {
+	OccNodes[i] = 0;
+	OccSamples[i]=0;
+}
+}
+
+        glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &queryCounterBits);
+        /* printf ("queryCounterBits %d\n",queryCounterBits); */
+OccInitialized = TRUE;
+}
+        #endif
+
 
 	/* First time through */
 	if (loop_count == 0) {
@@ -393,6 +441,39 @@ void EventLoop() {
 	#ifdef PROFILEMARKER
 	glTranslatef(7,7,7); glTranslatef (-7,-7,-7);
 	#endif
+
+
+#ifdef OCCLUSION
+{
+int i;
+struct X3D_Shape *xx;
+
+if (maxShapeFound >= 0) {
+	for (i=0; i<=maxShapeFound; i++) {
+	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &OccSamples[i]);
+/*
+	        printf ("Occlusion, for shape %d is %d active %d ",i,OccSamples[i],OccActive[i]);
+		if (OccNodes[i] != 0) {
+			xx = (struct X3D_Shape *) OccNodes[i];
+	
+			printf (" nodeType %s",stringNodeType(xx->_nodeType));
+			if (xx->_nodeType == NODE_Shape) {
+				xx = (struct X3D_Box *) xx->geometry;
+				if (xx != 0) {
+					printf (" (%s)",stringNodeType(xx->_nodeType));
+				}
+			}
+		}
+		printf ("\n");
+		OccActive[i] = FALSE;
+*/
+	}
+}
+}
+
+
+#endif
+
 
 	if (doEvents) {
 		/* handle ROUTES - at least the ones not generated in do_first() */

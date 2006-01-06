@@ -11,6 +11,21 @@
 /* free a malloc'd pointer */
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
+
+#ifdef GL_VERSION_1_5
+#define OCCLUSION
+#endif
+
+#ifdef OCCLUSION
+
+#define MAXOCCQUERIES 100
+extern GLuint OccQueries[MAXOCCQUERIES];
+extern void *OccNodes[MAXOCCQUERIES];
+extern int OccActive[MAXOCCQUERIES];
+extern int OccSamples[MAXOCCQUERIES];
+extern int maxShapeFound;
+#endif
+
 /********************************
 	Verbosity
 *********************************/
@@ -604,6 +619,7 @@ void changed_Transform (struct X3D_Transform *this_);
 
 /* Environmental Sensor nodes */
 void proximity_ProximitySensor (struct X3D_ProximitySensor *this_);
+void child_VisibilitySensor (struct X3D_VisibilitySensor *this_);
 
 /* Navigation Component */
 void prep_Billboard (struct X3D_Billboard *this_);

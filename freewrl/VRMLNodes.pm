@@ -78,7 +78,17 @@ my $protono;
 }
 
 
+# commented out - for using occlusion to do frustum culling.
+#%VRML::Nodes::occludeEvents = map {($_,1)} qw/
+#	VisibilitySensor
+#	Shape
+#	StaticGroup
+#	Transform
+#/;
 
+%VRML::Nodes::occludeEvents = map {($_,1)} qw/
+	VisibilitySensor
+/;
 
 %VRML::Nodes::bindable = map {($_,1)} qw/
  Viewpoint
@@ -500,7 +510,6 @@ my $protono;
 
 # initevents are used in event propagation as the "First" events to run.
 # check out add_first subroutine, and event propagation to see what happens.
-# all of these require the "ClockTick" method.
 
 %VRML::Nodes::initevents = map {($_,1)} qw/
  TimeSensor
@@ -508,6 +517,7 @@ my $protono;
  Collision
  MovieTexture
  AudioClip
+ VisibilitySensor
 /;
 
 # What are the transformation-hierarchy child nodes?
@@ -1610,7 +1620,9 @@ my $protono;
 						size => [SFVec3f, [0, 0, 0], exposedField],
 						enterTime => [SFTime, -1, eventOut],
 						exitTime => [SFTime, -1, eventOut],
-						isActive => [SFBool, 0, eventOut]
+						isActive => [SFBool, 0, eventOut],
+						 __OccludeNumber =>[SFInt32,-1,field], # for Occlusion tests.
+						__points  =>[FreeWRLPTR,0,field],
 					   }),
 
 

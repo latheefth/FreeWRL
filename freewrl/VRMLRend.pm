@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.194  2006/01/06 22:05:15  crc_canada
+# VisibilitySensor
+#
 # Revision 1.193  2006/01/03 23:01:22  crc_canada
 # EXTERNPROTO and Group sorting bugs fixed.
 #
@@ -202,6 +205,7 @@
 	Collision
 	Appearance
 	Shape
+	VisibilitySensor
 /;
 #######################################################################
 #######################################################################
