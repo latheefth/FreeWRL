@@ -18,7 +18,7 @@ extern CGLContextObj aqglobalContext;
 #endif
 
 
-#define FREE_IF_NZ(a) if(a) {free(a); printf ("fnz for %d\n",a); a = 0;}
+#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
 static int now_mapped = 1;		/* are we on screen, or minimized? */
 
