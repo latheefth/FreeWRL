@@ -18,7 +18,7 @@ extern CGLContextObj aqglobalContext;
 #endif
 
 
-#define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
+#define FREE_IF_NZ(a) if(a) {free(a); printf ("fnz for %d\n",a); a = 0;}
 
 static int now_mapped = 1;		/* are we on screen, or minimized? */
 
@@ -301,12 +301,30 @@ void fwXformPop(struct X3D_Transform *me) {
 }
 
 
-/********************************************************************/
+/********************************************************************
+ *
+ * to remove the old scene graph.
+ * go recursively through old scene graph, deleting memory when one
+ * can. 
+ *
+ * there are potential problems - DEF/USE gives us duplicate pointers;
+ * if we remove the MFNode, then we have a "hanging" pointer to a free'd
+ * memory location... so for MFNodes, we do not do the free 
+ *
+ *********************************************************************/
+#undef KILLVERBOSE
+
 void kill_rendering (void *thisnode);
 
 void kill_MFNode (struct Multi_Node *par) {
 	int childCount;
 	int i;
+
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_MFNode\n");
+	#endif
 
 	childCount = par->n;
 	par->n = 0;
@@ -321,12 +339,20 @@ void kill_SFString (SV *str) {
 		would be better to get the Browser to destroy this string itself next time it
 		garbage collects (via perl) so lets just ignore this here for now */
 
+	#ifdef KILLVERBOSE
 	printf ("kill this string \n");
 	if (SvOK(str)) {printf ("str is an SV refcnt %d\n",SvREFCNT(str)); } else {printf ("str is NOT an SV!\n");}
+	#endif
 }
 
 void kill_MFString (struct Multi_String *par) {
 	int i;
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_MFString\n");
+	#endif
+
 	for (i=0; i<par->n; i++) {
 		kill_SFString(par->p[i]);
 	}
@@ -334,42 +360,94 @@ void kill_MFString (struct Multi_String *par) {
 }
 
 void kill_MFFloat (struct Multi_Float *par) {
+	if (par->n==0) return;
 	par->n=0;
+
+	#ifdef KILLVERBOSE
+	printf("killing MFFloat\n");
+	#endif
+
 	FREE_IF_NZ(par->p);
 }
 
 void kill_MFRotation (struct Multi_Rotation *par) {
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_MFROtation\n");
+	#endif
+
 	par->n=0;
 	FREE_IF_NZ(par->p);
 }
 
 void kill_MFVec2f (struct Multi_Vec2f *par) {
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_MFVec2f\n");
+	#endif
+
 	par->n=0;
 	FREE_IF_NZ(par->p);
 }
 
 void kill_MFInt32 (struct Multi_Int32 *par) {
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_MFint32\n");
+	#endif
+
 	par->n=0;
 	FREE_IF_NZ(par->p);
 }
 
 void kill_MFColorRGBA (struct Multi_ColorRGBA *par) {
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_mfcolorrghba\n");
+	#endif
+
 	par->n=0;
 	FREE_IF_NZ(par->p);
 }
 
 void kill_MFColor (struct Multi_Color *par) {
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_mfcolor\n");
+	#endif
+
 	par->n=0;
 	FREE_IF_NZ(par->p);
 }
 
 void kill_MFVec3f (struct Multi_Vec3f *par) {
+	if (par->n==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_mfvec3f\n");
+	#endif
+
 	par->n=0;
 	FREE_IF_NZ(par->p);
 }
 
 void kill_FreeWRLPTR (void * par) {
+	if (par==0) return;
+
+	#ifdef KILLVERBOSE
+	printf ("kill_freewrlptr %d\n",par);
+	#endif
+
+	/* cant do this because we might be DEF/USEd 
 	FREE_IF_NZ(par);
+	*/
+
+	realloc (par,0); /* just make it point to zero size */
 }
 
 void kill_texture (int *tn, int cnt) {
