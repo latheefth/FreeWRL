@@ -297,18 +297,22 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			/* a new line strip? */
 			if(ind==-1) {
 				glEnd();
+				#ifdef RENDERVERBOSE
+				printf ("new strip\n");
+				#endif
 				glBegin(GL_LINE_STRIP);
 				plno++;
 			} else {
 				if(ncolors) {
-					if (cpv) {
-						c = i;
-						if(colin)  c = node->colorIndex.p[i];
-						else c=i; 
-					} else {
-						c = plno;
-					}
+					if (cpv) c = i;
+					 else c = plno;
+					
 
+					if(colin)   c = node->colorIndex.p[i]; 
+
+					#ifdef RENDERVERBOSE
+					printf ("using Color %d\n",c);
+					#endif
 					if (c<ncolors) {
 					      glColor3f(colors[c].c[0],
 					        colors[c].c[1],
