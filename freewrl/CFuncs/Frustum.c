@@ -6,6 +6,7 @@
 *********************************************************************/
 
 /*********************************************************************
+ * OLD - NOW USE Occlusion tests
  * Frustum calculations. Definitive work (at least IMHO) is thanks to
  * Steven Baker - look at http://sjbaker.org/steve/omniv/frustcull.html/
  *
@@ -31,6 +32,20 @@
 
 #include "Structs.h"
 #include "headers.h"
+
+
+/* Occlusion VisibilitySensor code */
+#ifdef OCCLUSION
+GLuint OccQueries[MAXOCCQUERIES];
+void* OccNodes[MAXOCCQUERIES];
+int OccActive[MAXOCCQUERIES];
+int OccSamples[MAXOCCQUERIES];
+
+int maxShapeFound;
+int OccQuerySize=MAXOCCQUERIES;
+GLint queryCounterBits;
+int OccInitialized = FALSE;
+#endif
 
 /* take the measurements of a geometry (eg, box), and save it. Note
  * that what is given is a Shape, the values get pushed up to the
@@ -161,3 +176,107 @@ void recordDistance(struct X3D_Transform *nod) {
 	nod->_dist = modelMatrix[14];
 }
 
+
+void OcclusionCulling ()  {
+
+
+#ifdef OCCLUSION
+int i;
+struct X3D_Shape *xx;
+
+
+if (maxShapeFound >= 0) {
+#ifdef XXXXXD
+	printf ("\n");
+#endif
+
+	for (i=0; i<=maxShapeFound; i++) {
+	        glGetQueryObjectiv (OccQueries[i], GL_QUERY_RESULT, &OccSamples[i]);
+#ifdef XXXXXD
+		if (OccNodes[i] != 0) {
+			xx = (struct X3D_Shape *) OccNodes[i];
+	
+			if (xx->_nodeType == NODE_Shape) {
+	        		printf ("Occ %d fragments %d active %d ",i,OccSamples[i],OccActive[i]);
+				printf (" nodeType %s",stringNodeType(xx->_nodeType));
+				xx = (struct X3D_Box *) xx->geometry;
+				if (xx != 0) {
+					printf (" (%s)",stringNodeType(xx->_nodeType));
+				}
+				printf ("\n");
+
+				if (OccSamples[i] > 0) {
+					update_renderFlag (xx,VF_hasVisibleChildren  |
+							VF_hasGeometryChildren  |
+							VF_hasBeenScannedForGeometryChildren);
+				} else {
+					update_renderFlag (xx,
+							VF_hasGeometryChildren |
+							VF_hasBeenScannedForGeometryChildren);
+				}
+							
+			}
+		}
+		OccActive[i] = FALSE;
+	}
+
+	for (i=0; i<=maxShapeFound; i++) {
+		if (OccNodes[i] != 0) {
+			xx = (struct X3D_Shape *) OccNodes[i];
+	
+			if (xx->_nodeType == NODE_Transform) {
+	        		printf ("Occ %d fragments %d active %d ",i,OccSamples[i],OccActive[i]);
+				printf (" nodeType %s",stringNodeType(xx->_nodeType));
+				printf (" renderFlags %x visibleChildren %d dist %f extent %f %f %f\n",
+						xx->_renderFlags, xx->visibleChildren, 
+						xx->_dist, xx->_extent[0],xx->_extent[1],xx->_extent[2]);
+
+				/* remove the hasVisibleChildren flag */
+				xx->_renderFlags = xx->_renderFlags & (!VF_hasVisibleChildren);
+			}
+		}
+		OccActive[i] = FALSE;
+#endif
+	}
+}
+
+
+#endif
+}
+
+void OcclusionStartofEventLoop() {
+
+        #ifdef OCCLUSION
+
+        if (maxShapeFound > OccQuerySize) {
+                printf ("have to regen queries\n");
+/*
+		OccQuerySize = maxShapeFound;
+		OccQueries = realloc (OccQueries,sizeof (int) * maxShapeFound);
+*/
+        }
+
+        maxShapeFound = -1;
+/* for now */
+if (OccInitialized == FALSE) {
+
+        /* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS)); */
+        if (strstr(glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
+                /* printf ("have OcclusionQuery\n"); */
+                /* glGenOcclusionQueriesNV(MAXOCCQUERIES,OccQueries); */
+                glGenQueries(MAXOCCQUERIES,OccQueries);
+        }
+{ int i;
+for (i=0; i<MAXOCCQUERIES; i++) {
+	OccNodes[i] = 0;
+	OccSamples[i]=0;
+}
+}
+
+        glGetQueryiv(GL_SAMPLES_PASSED, GL_QUERY_COUNTER_BITS, &queryCounterBits);
+        /* printf ("queryCounterBits %d\n",queryCounterBits); */
+OccInitialized = TRUE;
+}
+        #endif
+
+}

@@ -514,6 +514,23 @@ void child_Transform (struct X3D_Transform *node) {
 				node->bboxCenter.c[2],
 				(struct X3D_Box*)node);
 		BoundingBox(node->bboxCenter,node->bboxSize);
+
+
+                        #ifdef OCCLUSION
+				/*
+                                printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType(
+                                                ((struct X3D_Box*) node->geometry)->_nodeType));
+				*/
+
+                                if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < MAXOCCQUERIES)) {
+                                        if (node->__OccludeNumber > maxShapeFound) maxShapeFound = node->__OccludeNumber;
+					OccActive[node->__OccludeNumber] = TRUE;
+					if (OccNodes[node->__OccludeNumber] == 0) {
+						OccNodes[node->__OccludeNumber] = node;
+					}
+                                        /* glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]);  */
+                                }
+                        #endif
 	}
 
 

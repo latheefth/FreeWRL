@@ -109,7 +109,11 @@ void update_renderFlag(void *ptr, int flag) {
 	int i;
 
 	/* send notification up the chain */
-	/* printf ("start of update_RenderFlag for %d parents %d\n",p, p->_nparents); */
+	/*
+	printf ("start of update_RenderFlag for %d (%s) flag %x parents %d\n",p, stringNodeType(p->_nodeType),
+			flag, p->_nparents); 
+	*/
+
 	p->_renderFlags = p->_renderFlags | flag;
 
 	for (i = 0; i < p->_nparents; i++) {

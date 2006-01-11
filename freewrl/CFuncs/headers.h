@@ -11,6 +11,22 @@
 /* free a malloc'd pointer */
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
+/* rendering constants used in SceneGraph, etc. */
+#define VF_Viewpoint 	0x0001
+#define VF_Geom 	0x0002
+#define VF_Lights	0x0004 
+#define VF_Sensitive 	0x0008
+#define VF_Blend 	0x0010
+#define VF_Proximity 	0x0020
+#define VF_Collision 	0x0040
+
+#define VF_hasVisibleChildren 			0x0100
+#define VF_hasGeometryChildren 			0x0200
+#define VF_hasBeenScannedForGeometryChildren	0x0400
+
+void OcclusionCulling (void);
+void OcclusionStartofEventLoop(void);
+
 
 #ifdef GL_VERSION_1_5
 #define OCCLUSION
@@ -63,7 +79,6 @@ extern int maxShapeFound;
 #include "vrmlconf.h"
 
 #include "LinearAlgebra.h"
-#include "constants.h"
 
 #ifndef AQUA
 #include <GL/glu.h>
