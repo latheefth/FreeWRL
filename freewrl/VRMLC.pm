@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.203  2006/01/12 21:25:01  crc_canada
+# More Occlusion stuff.
+#
 # Revision 1.202  2006/01/11 16:31:18  crc_canada
 # starting Frustum Culling with Occlusion tests.
 #
@@ -255,7 +258,6 @@ sub gen_struct {
 	       "       int _ichange; \n"		.
 	       "       float _dist; /*sorting for blending */ \n".
 	       "       float _extent[3]; /* used for boundingboxes */ \n" .
-	       "       int visibleChildren; /* shapes in view */ \n" .
                "       void *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
                " /*** node specific data: *****/\n";
@@ -647,7 +649,6 @@ CODE:
 	p->_extent[1] = 0.0;
 	p->_extent[2] = 0.0;
 	p->_nodeType = itype;
-	p->visibleChildren = 0;
 
 	RETVAL=ptr;
 OUTPUT:

@@ -248,30 +248,14 @@ void child_Shape (struct X3D_Shape *node) {
 
 		/* should we render this node on this pass? */
 		if (should_rend) {
-                        #ifdef OCCLUSION
-				/*
-                                printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType(
-                                                ((struct X3D_Box*) node->geometry)->_nodeType));
-				*/
-
-                                if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < MAXOCCQUERIES)) {
-                                        if (node->__OccludeNumber > maxShapeFound) maxShapeFound = node->__OccludeNumber;
-					OccActive[node->__OccludeNumber] = TRUE;
-					if (OccNodes[node->__OccludeNumber] == 0) {
-						OccNodes[node->__OccludeNumber] = node;
-					}
-                                        /* glBeginOcclusionQuery(OccQueries[node->__OccludeNumber]); */
-                                        glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]);
-                                }
+                        #ifdef SHAPEOCCLUSION
+			BEGINOCCLUSIONQUERY
                         #endif
 
 			render_node((node->geometry));
 
-                        #ifdef OCCLUSION
-                        if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < MAXOCCQUERIES)) {
-                                /* glEndOcclusionQuery(); */
-                                glEndQuery(GL_SAMPLES_PASSED);
-                        }
+                        #ifdef SHAPEOCCLUSION
+			ENDOCCLUSIONQUERY
                         #endif
 
 		}

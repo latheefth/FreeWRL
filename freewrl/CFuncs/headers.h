@@ -21,6 +21,7 @@
 #define VF_Collision 	0x0040
 
 #define VF_hasVisibleChildren 			0x0100
+#define VF_removeHasVisibleChildren		0xFEFF
 #define VF_hasGeometryChildren 			0x0200
 #define VF_hasBeenScannedForGeometryChildren	0x0400
 
@@ -30,16 +31,42 @@ void OcclusionStartofEventLoop(void);
 
 #ifdef GL_VERSION_1_5
 #define OCCLUSION
+#define VISIBILITYOCCLUSION
+#undef TRANSFORMOCCLUSION
+#undef SHAPEOCCLUSION
+#undef STATICGROUPOCCLUSION
 #endif
 
 #ifdef OCCLUSION
 
-#define MAXOCCQUERIES 100
-extern GLuint OccQueries[MAXOCCQUERIES];
-extern void *OccNodes[MAXOCCQUERIES];
-extern int OccActive[MAXOCCQUERIES];
-extern int OccSamples[MAXOCCQUERIES];
+
+extern GLuint *OccQueries;
+extern void * *OccNodes;
+extern int *OccActive;
+extern GLint *OccSamples;
+
 extern int maxShapeFound;
+extern int OccQuerySize;
+
+#define BEGINOCCLUSIONQUERY \
+				if (render_geom) { \
+                                /* printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType( \
+                                                ((struct X3D_Box*) node->geometry)->_nodeType)); */ \
+                                if (node->__OccludeNumber > maxShapeFound) maxShapeFound = node->__OccludeNumber; \
+                                if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < OccQuerySize)) { \
+					OccActive[node->__OccludeNumber] = TRUE; \
+					if (OccNodes[node->__OccludeNumber] == 0) { \
+						OccNodes[node->__OccludeNumber] = node; \
+					} \
+/* printf ("beginning quert for %d %s\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); */ \
+                                        glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]); \
+                                } }
+#define ENDOCCLUSIONQUERY \
+			if (render_geom) { \
+                        if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < OccQuerySize)) { \
+				/* printf ("ending query for %d (%s)\n",node->__OccludeNumber,stringNodeType(node->_nodeType)); */ \
+                                glEndQuery(GL_SAMPLES_PASSED);   \
+                        } }
 #endif
 
 /********************************

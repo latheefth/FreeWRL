@@ -184,21 +184,9 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 
 		if (render_blend) {
 
-                        #ifdef OCCLUSION
-				/*
-                                printf ("OcclusionQuery for %d type %s\n",node->__OccludeNumber,stringNodeType(
-                                                ((struct X3D_Box*) node->geometry)->_nodeType));
-				*/
-
-                                if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < MAXOCCQUERIES)) {
-                                        if (node->__OccludeNumber > maxShapeFound) maxShapeFound = node->__OccludeNumber;
-					OccActive[node->__OccludeNumber] = TRUE;
-					if (OccNodes[node->__OccludeNumber] == 0) {
-						OccNodes[node->__OccludeNumber] = node;
-					}
-                                        /* glBeginOcclusionQuery(OccQueries[node->__OccludeNumber]); */
-                                        glBeginQuery(GL_SAMPLES_PASSED,OccQueries[node->__OccludeNumber]);
-                                }
+                        #ifdef VISIBILITYOCCLUSION
+			/* printf ("child_VisibilitySensor, my query number is %d\n",node->__OccludeNumber); */
+			BEGINOCCLUSIONQUERY
                         #endif
 
 			glDisable (GL_CULL_FACE);
@@ -207,11 +195,8 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			glEnable(GL_LIGHTING);
 			lightingOn = TRUE;
 
-                        #ifdef OCCLUSION
-                        if ((node->__OccludeNumber >=0) && (node->__OccludeNumber < MAXOCCQUERIES)) {
-                                /* glEndOcclusionQuery(); */
-                                glEndQuery(GL_SAMPLES_PASSED);
-                        }
+                        #ifdef VISIBILITYOCCLUSION
+			ENDOCCLUSIONQUERY
                         #endif
 
 		}
@@ -305,7 +290,8 @@ void do_VisibilitySensorTick (void *ptr) {
 
 
 #ifdef OCCLUSION
-	if (OccSamples[node->__OccludeNumber] > 0) {
+	/* printf ("visibilitytick... %d\n",node->__Samples); */
+	if (node->__Samples > 0) {
 		/* we are here... */
                 if (!node->isActive) {
                         #ifdef SEVERBOSE
@@ -334,7 +320,7 @@ void do_VisibilitySensorTick (void *ptr) {
 
 	/*
 	printf ("doVisibilitySensorTick...\n");
-	printf ("do_VisibilitySensorTick, samples %d\n",OccSamples[node->__OccludeNumber]);
+	printf ("do_VisibilitySensorTick, samples %d\n",node->__samples);
 	*/
 #endif
 }
