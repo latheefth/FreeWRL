@@ -292,10 +292,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
-
+		EXTENTTOBBOX
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
 		BoundingBox(node->bboxCenter,node->bboxSize);
@@ -335,9 +332,7 @@ return;
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
@@ -373,9 +368,7 @@ return;
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
@@ -416,9 +409,7 @@ return;
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);

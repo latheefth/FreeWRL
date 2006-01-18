@@ -1865,8 +1865,8 @@ my $protono;
 						children => [MFNode, [], field],
 						geoOrigin => [SFNode, NULL, field],
 						geoSystem => [MFString,["GD","WE"],field],
-						__bboxCenter => [SFVec3f, [0, 0, 0], field],
-						__bboxSize => [SFVec3f, [-1, -1, -1], field],
+						bboxCenter => [SFVec3f, [0, 0, 0], field],
+						bboxSize => [SFVec3f, [-1, -1, -1], field],
 
 						# "compiled" versions of strings above
 						__geoCoords => [SFVec3f,[0, 0, 0], field],

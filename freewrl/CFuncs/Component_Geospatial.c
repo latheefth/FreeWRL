@@ -296,13 +296,8 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
         normalChildren(node->children);
 
         if (render_geom && (!render_blend)) {
-                /* printf ("geoLocationChild, this is %d, extent %f %f %f\n",
-                node, node->_extent[0], node->_extent[1],
-                node->_extent[2]); */
-                /*node->bboxSize.c[0] = node->_extent[0];
-                node->bboxSize.c[1] = node->_extent[1];
-                node->bboxSize.c[2] = node->_extent[2];
-                BoundingBox(node->bboxCenter,node->bboxSize); */
+                /* EXTENTTOBBOX
+		BoundingBox(node->bboxCenter,node->bboxSize); */
         }
         
         /* did we have that directionalLight? */

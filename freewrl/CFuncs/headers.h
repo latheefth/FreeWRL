@@ -69,6 +69,10 @@ extern int OccQuerySize;
                         } }
 #endif
 
+/* bounding box calculations */
+#define EXTENTTOBBOX 	node->bboxSize.c[0] = node->_extent[0]; \
+			node->bboxSize.c[1] = node->_extent[1]; \
+			node->bboxSize.c[2] = node->_extent[2];
 /********************************
 	Verbosity
 *********************************/

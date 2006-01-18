@@ -37,9 +37,8 @@ void VerboseStart (char *whoami, struct X3D_Box *me, int nc) {
 	int c;
 
 	for (c=0; c<VerboseIndent; c++) printf ("  ");
-	printf ("RENDER %s START %d nc %d ext %4.2f %4.2f %4.2f\n",
-			whoami,me,nc,me->_extent[0],me->_extent[1],
-			me->_extent[2]);
+	printf ("RENDER %s START %d nc %d \n",
+			whoami,me,nc);
 	VerboseIndent++;
 }
 
@@ -309,16 +308,7 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		#ifdef CHILDVERBOSE
-			printf ("staticGroupingChild, this is %d, extent %f %f %f\n",
-			node, node->_extent[0], node->_extent[1],
-			node->_extent[2]);
-		#endif
-
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
-		
+		EXTENTTOBBOX	
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
@@ -399,14 +389,7 @@ void child_Group (struct X3D_Group *node) {
 
 	/* BoundingBox/Frustum stuff */
 	if (render_geom && (!render_blend)) {
-		#ifdef CHILDVERBOSE
-			printf ("GroupingChild, this is %d, extent %f %f %f\n",
-			node, node->_extent[0], node->_extent[1],
-			node->_extent[2]);
-		#endif
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
@@ -467,6 +450,7 @@ void child_Transform (struct X3D_Transform *node) {
 	#endif
 
 	/* Check to see if we have to check for collisions for this transform. */
+#ifdef COLLISIONTRANSFORM
 	if (render_collision) {
 		iv.x = node->_extent[0]/2.0;
 		jv.y = node->_extent[1]/2.0;
@@ -501,6 +485,8 @@ void child_Transform (struct X3D_Transform *node) {
 			printf ("TB really look at %d\n",node); */
 		}
 	}
+#endif
+
 
 	/* should we go down here? */
 	/* printf("transformChild %d render_blend %x renderFlags %x\n",
@@ -542,14 +528,7 @@ void child_Transform (struct X3D_Transform *node) {
 #endif
 
 	if (render_geom && (!render_blend)) {
-		#ifdef CHILDVERBOSE
-			printf ("TransformChild, this is %d, extent %f %f %f\n",
-			node, node->_extent[0], node->_extent[1],
-			node->_extent[2]);
-		#endif
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 		node->bboxCenter.c[0] = node->translation.c[0];
 		node->bboxCenter.c[1] = node->translation.c[1];
 		node->bboxCenter.c[2] = node->translation.c[2];

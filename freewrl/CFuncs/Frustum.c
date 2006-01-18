@@ -34,6 +34,7 @@
 #include "headers.h"
 
 
+
 /* Occlusion VisibilitySensor code */
 #ifdef OCCLUSION
 GLuint *OccQueries = 0;
@@ -67,7 +68,7 @@ void setExtent(float x, float y, float z, struct X3D_Box *me) {
 	struct X3D_Box *shapeParent;
 	struct X3D_Box *geomParent;
 
-	/* printf ("setExtent - Shape node has %d parents\n",me->_nparents); */
+/*	printf ("setExtent - Shape node has %d parents\n",me->_nparents); */
 	for (c=0; c<(me->_nparents); c++) {
 		/*printf ("parent %d of %d is %d\n",c,me,me->_parents[c]);*/
 		shapeParent = (struct X3D_Box *)me->_parents[c];
@@ -89,10 +90,11 @@ void setExtent(float x, float y, float z, struct X3D_Box *me) {
 void propagateExtent(float x, float y, float z, struct X3D_Box *me) {
 	int i;
 	struct X3D_Box *parent;
-
-	/*printf ("propextent, xDistoxcenter %f %f %f, myextent %f %f %f me %d parents %d\n",*/
-	/*		x,y,z,me->_extent[0],me->_extent[1],me->_extent[2],me,*/
-	/*		me->_nparents);*/
+/*
+	printf ("propextent, xDistoxcenter %f %f %f, myextent %f %f %f me %d parents %d\n",
+			x,y,z,me->_extent[0],me->_extent[1],me->_extent[2],me,
+			me->_nparents);
+*/
 
 	/* calculate the maximum of the current position, and add the previous extent */
 	x =fabs(x)+me->_extent[0];y=fabs(y)+me->_extent[1];z=fabs(z)+me->_extent[2];

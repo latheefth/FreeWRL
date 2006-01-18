@@ -1673,6 +1673,16 @@ void textureDraw_start(struct X3D_IndexedFaceSet *texC, GLfloat *genTex) {
 					if ((myTCnode->_nodeType == NODE_TextureCoordinate) ||
 					    (myTCnode->_nodeType == NODE_TextureCoordinateGenerator)) {
 						render_node (myTCnode);
+						/* are we ok with this texture yet? */
+						if (isloaded[bound_textures[c]] == LOADED) {
+							glActiveTexture(GL_TEXTURE0+c);
+							glClientActiveTexture(GL_TEXTURE0+c);
+		        				if (this_textureTransform) start_textureTransform(this_textureTransform,c);
+							glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
+							glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
+							glEnableClientState (GL_TEXTURE_COORD_ARRAY);
+							glEnable(GL_TEXTURE_2D);
+						}
 					#ifdef TEXVERBOSE
 					} else {
 						printf ("MultiTextureCoord, problem with %d as a child \n",myTCnode->_nodeType);
@@ -1702,6 +1712,8 @@ void textureDraw_start(struct X3D_IndexedFaceSet *texC, GLfloat *genTex) {
 					glEnable(GL_TEXTURE_2D);
 				}
 			}
+#undef TEXVERBOSE
+
 		} else {
 			/* this has to be a TexureCoordinateGenerator node */
 			#ifdef TEXVERBOSE

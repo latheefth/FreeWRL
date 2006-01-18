@@ -204,12 +204,7 @@ void child_Collision (struct X3D_Collision *node) {
 		normalChildren(node->children);
 
 		if (render_geom && (!render_blend)) {
-			/* printf ("collisionChild, this is %d, extent %f %f %f\n",
-			node, node->_extent[0], node->_extent[1],
-			node->_extent[2]); */
-			node->bboxSize.c[0] = node->_extent[0];
-			node->bboxSize.c[1] = node->_extent[1];
-			node->bboxSize.c[2] = node->_extent[2];
+			EXTENTTOBBOX
 			BoundingBox(node->bboxCenter,node->bboxSize);
 		}
 
@@ -309,12 +304,7 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
 	normalChildren(node->children);
 
 	if (render_geom && (!render_blend)) {
-		/* printf ("inlineLODChild, this is %d, extent %f %f %f\n",
-		node, node->_extent[0], node->_extent[1],
-		node->_extent[2]); */
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
@@ -351,14 +341,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	normalChildren(node->children);
 
 	if (render_geom && (!render_blend)) {
-		#ifdef CHILDVERBOSE
-			printf ("BillboardChild, this is %d, extent %f %f %f\n",
-			node, node->_extent[0], node->_extent[1],
-			node->_extent[2]);
-		#endif
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 

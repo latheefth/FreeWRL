@@ -195,12 +195,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 	normalChildren(node->children);
 
 	if (render_geom && (!render_blend)) {
-		/* printf ("anchorChild, this is %d, extent %f %f %f\n",
-		node, node->_extent[0], node->_extent[1],
-		node->_extent[2]); */
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
@@ -241,12 +236,7 @@ void child_Inline (struct X3D_Inline *node) {
 	normalChildren(node->__children);
 
 	if (render_geom && (!render_blend)) {
-		/* printf ("inlineChild, this is %d, extent %f %f %f\n",
-		node, node->_extent[0], node->_extent[1],
-		node->_extent[2]); */
-		node->bboxSize.c[0] = node->_extent[0];
-		node->bboxSize.c[1] = node->_extent[1];
-		node->bboxSize.c[2] = node->_extent[2];
+		EXTENTTOBBOX
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
