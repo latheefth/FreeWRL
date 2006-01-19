@@ -14,6 +14,8 @@
 #include "headers.h"
 
 
+extern GLfloat last_emission[];
+
 void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *node) {
                 if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
                         regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
@@ -88,14 +90,6 @@ void render_TriangleSet (struct X3D_TriangleSet *node) {
 
 
 void render_LineSet (struct X3D_LineSet *node) {
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-
 	int vtc;		/* which vertexCount[] we should be using for this line segment */
 	int ncoc;		/* which coord we are using for this vertex */
 	int punt;		/* how many vetex points are in this line segment */
@@ -106,6 +100,19 @@ void render_LineSet (struct X3D_LineSet *node) {
 	int *vertexC; int nvertexc;
 	struct X3D_Coordinate *xc;
 	struct X3D_Color *cc;
+
+
+	/* believe it or not - material emissiveColor can affect us... */
+	GLfloat defColor[] = {1.0, 1.0, 1.0};
+	GLfloat *thisColor;
+
+	/* is there an emissiveColor here??? */
+	if (lightingOn) {
+		/* printf ("ILS - have lightingOn!\n"); */
+		thisColor = last_emission;
+	} else {
+		thisColor = defColor;
+	}
 
 	glPushAttrib(GL_ENABLE_BIT);
 	glDisable (GL_LIGHTING);
@@ -205,7 +212,7 @@ glPopAttrib();
 			/* draw the line */
 			if (ncolor!= 0) 
 				glColor3f( color[ncoc].c[0],color[ncoc].c[1],color[ncoc].c[2]);
-			else glColor3f (1.0, 1.0, 1.0);
+			else glColor3fv(thisColor);
 
 			glVertex3f( coord[ncoc].c[0],coord[ncoc].c[1],coord[ncoc].c[2]);
 			ncoc++;
@@ -237,14 +244,8 @@ glPopAttrib();
 	glPopAttrib();
 }
 
+
 void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 		int i;
                 int cin = (node->coordIndex.n);
                 int colin = (node->colorIndex.n);
@@ -258,9 +259,22 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 		struct X3D_Coordinate *xc;
 		struct X3D_Color *cc;
 
+		/* believe it or not - material emissiveColor can affect us... */
+		GLfloat defColor[] = {1.0, 1.0, 1.0};
+		GLfloat *thisColor;
+
 		#ifdef RENDERVERBOSE
 		printf("Line: cin %d colin %d cpv %d\n",cin,colin,cpv);
 		#endif
+
+		/* is there an emissiveColor here??? */
+		if (lightingOn) {
+			/* printf ("ILS - have lightingOn!\n"); */
+			thisColor = last_emission;
+		} else {
+			thisColor = defColor;
+		}
+
 
         	if(node->coord) {
                 	xc = (struct X3D_Coordinate *) node->coord;
@@ -324,7 +338,7 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 					}
 
 				} else {
-					glColor3f(1.0,1.0,1.0);
+					glColor3fv(thisColor);
 				}
 				glVertex3f(
 					points[ind].c[0],
@@ -338,18 +352,24 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 }
 
 void render_PointSet (struct X3D_PointSet *node) {
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
-	/* we should be able to speed this up greatly using glMultiDrawElements, but, for now use immediate mode */
 	int i;
 	struct SFColor *points=0; int npoints=0;
 	struct SFColor *colors=0; int ncolors=0;
 	struct X3D_Coordinate *xc;
 	struct X3D_Color *cc;
+
+	/* believe it or not - material emissiveColor can affect us... */
+	GLfloat defColor[] = {1.0, 1.0, 1.0};
+	GLfloat *thisColor;
+
+	/* is there an emissiveColor here??? */
+	if (lightingOn) {
+		/* printf ("ILS - have lightingOn!\n"); */
+		thisColor = last_emission;
+	} else {
+		thisColor = defColor;
+	}
+
 
         	if(node->coord) {
                 	xc = (struct X3D_Coordinate *) node->coord;
@@ -388,7 +408,7 @@ void render_PointSet (struct X3D_PointSet *node) {
 	printf("PointSet: %d %d\n", npoints, ncolors);
 	#endif
 
-	if (ncolors==0) glColor3f (1.0, 1.0, 1.0);
+	if (ncolors==0) glColor3fv (thisColor);
 
 	for(i=0; i<npoints; i++) {
 		if(ncolors) {

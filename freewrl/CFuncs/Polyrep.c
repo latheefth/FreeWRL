@@ -176,7 +176,7 @@ int IFS_face_normals (
 				thisfaceNorms.y = -(a[0]*b[2] - b[0]*a[2]);
 				thisfaceNorms.z = a[0]*b[1] - b[0]*a[1];
 
-				/* printf ("vector length is %f\n",calc_vector_length (facenormals[i])); */
+				/* printf ("vector length is %f\n",calc_vector_length (thisfaceNorms)); */
 
 				/* is this vector length greater than a previous one? */
 				if (calc_vector_length(thisfaceNorms) > this_vl) {
@@ -209,7 +209,12 @@ int IFS_face_normals (
 				}
 			} while (!this_face_finished);
 
-			normalize_vector(&facenormals[i]);
+			if (APPROX(this_vl,0.0)) {
+				/* printf ("face %d is degenerate\n",i); */
+				faceok[i] = 0;
+			} else {
+				/* printf ("face %d is ok\n",i); */
+				normalize_vector(&facenormals[i]);
 
 			/*	
 			printf ("vertices \t%f %f %f\n\t\t%f %f %f\n\t\t%f %f %f\n",
@@ -220,6 +225,7 @@ int IFS_face_normals (
 				facenormals[i].y,facenormals[i].z);
 		
 			*/
+			}
 			
 
 		}
@@ -238,6 +244,7 @@ int IFS_face_normals (
 				}
 			}
 		}
+		/* printf ("for face %d, vec len is %f\n",i,this_vl); */
 	}
 
 
