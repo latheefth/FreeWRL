@@ -865,23 +865,31 @@ void render_ray_polyrep(void *node, struct SFColor *points)
 	float v1len, v2len, v3len;
 	float v12pt;
 
-	if (!p->_intern) {
-		printf ("render_ray_polyrep - no internal structure, returning\n");
-		return;
-	}
-
+	/* printf ("start of render_ray_polyrep, node %d points %d\n",node,points);  */
 
 	ray.x = t_r2.x - t_r1.x;
 	ray.y = t_r2.y - t_r1.y;
 	ray.z = t_r2.z - t_r1.z;
 	v = *(struct X3D_Virt **)node;
 	p =(struct X3D_Box *) node;
+	
+	/* is this structure still loading? */
+	if (!node) return;
+	if (!points) return;
+	if (!(p->_intern)) {
+		/* printf ("render_ray_polyrep - no internal structure, returning\n"); */
+		return;
+	}
+
 	r = (struct X3D_PolyRep *)p->_intern;
 
-	/*
-	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,v->name,
+	
+/* printf ("%d %d %d\n",v,p,r);
+	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,stringNodeType(p->_nodeType),
 		p->_change, r->_change, r->ntri);
-	*/
+
+*/
+	
 
 	for(i=0; i<r->ntri; i++) {
 		for(pt = 0; pt<3; pt++) {
@@ -892,6 +900,11 @@ void render_ray_polyrep(void *node, struct SFColor *points)
 				point[pt] = (points[ind].c);
 			}
 		}
+		/*printf ("have points (%f %f %f) (%f %f %f) (%f %f %f)\n",
+			point[0][0],point[0][1],point[0][2],
+			point[1][0],point[1][1],point[1][2],
+			point[2][0],point[2][1],point[2][2]);
+		*/
 		/* First we need to project our point to the surface */
 		/* Poss. 1: */
 		/* Solve s1xs2 dot ((1-r)r1 + r r2 - pt0)  ==  0 */

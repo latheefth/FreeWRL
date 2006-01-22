@@ -306,6 +306,8 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 
 /* load in a texture, if possible */
 void loadImageTexture (struct X3D_ImageTexture *node, void *param) {
+	float allones[] = {1.0, 1.0, 1.0, 1.0};
+
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
@@ -317,6 +319,16 @@ void loadImageTexture (struct X3D_ImageTexture *node, void *param) {
 		/* this will cause bind_image to create a new "slot" for this texture */
 		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
 		freeTexture((GLuint*) &(node->__texture)); 
+	}
+
+
+	/* set color to 1,1,1 for RGB textures */
+	if (node->__texture > 0) {
+		if (loadparams[node->__texture].depth == 3) {
+			/* printf ("setting color to 1 for tex %d\n",node->__texture); */
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
+			/* glColor3d (1.0, 1.0, 1.0);	 */
+		}
 	}
 
 	bind_image(IMAGETEXTURE, node->__parenturl,
@@ -437,7 +449,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 
 		        else if (strncmp("OFF",param,strlen("OFF"))==0) { 
-					paramPtr->texture_env_mode = GL_REPLACE; } 
+					paramPtr->texture_env_mode = NULL; } 
 
 
 
@@ -534,6 +546,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 /* load in a texture, if possible */
 void loadPixelTexture (struct X3D_PixelTexture *node, void *param) {
+	float allones[] = {1.0, 1.0, 1.0, 1.0};
 	struct Multi_String mynull;
 
 	if (node->_ichange != node->_change) {
@@ -547,6 +560,16 @@ void loadPixelTexture (struct X3D_PixelTexture *node, void *param) {
 		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
 		freeTexture((GLuint*) &(node->__texture)); 
 	}
+
+	/* set color to 1,1,1 for RGB textures */
+	if (node->__texture > 0) {
+		if (loadparams[node->__texture].depth == 3) {
+			/* printf ("setting color to 1 for tex %d\n",node->__texture); */
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
+			/* glColor3d (1.0, 1.0, 1.0);	 */
+		}
+	}
+
 	bind_image(PIXELTEXTURE, node->image,
 		mynull,
 		(GLuint*)&node->__texture,node->repeatS,node->repeatT, param);
@@ -858,23 +881,27 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 		/* is this a MultiTexture, or just a "normal" single texture? */
 		if (param == NULL) {
+			/* printf ("simple texture\n"); */
 			glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		} else {
 			paramPtr = (struct multiTexParams *) param;
 
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, paramPtr->texture_env_mode);
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, paramPtr->combine_rgb);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, paramPtr->source0_rgb);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, paramPtr->operand0_rgb);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, paramPtr->operand1_rgb);
-			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, paramPtr->combine_alpha);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, paramPtr->source0_alpha);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, paramPtr->operand0_alpha);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
-			glTexEnvi(GL_TEXTURE_ENV, GL_ALPHA_SCALE, paramPtr->alpha_scale);
+			/* is this texture unit active? ie is mode something other than "OFF"? */
+			if (paramPtr->texture_env_mode != NULL) {
+				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, paramPtr->texture_env_mode);
+				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, paramPtr->combine_rgb);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, paramPtr->source0_rgb);
+				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, paramPtr->operand0_rgb);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
+				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, paramPtr->operand1_rgb);
+				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, paramPtr->combine_alpha);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, paramPtr->source0_alpha);
+				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, paramPtr->operand0_alpha);
+				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
+				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
+				glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
+				glTexEnvi(GL_TEXTURE_ENV, GL_ALPHA_SCALE, paramPtr->alpha_scale);
+			}
 		}
 
 		glBindTexture (GL_TEXTURE_2D, *texture_num);
@@ -1242,7 +1269,7 @@ void _textureThread(void) {
 void __reallyloadPixelTexture() {
 	/* PixelTexture variables */
 	long hei,wid,depth;
-	long inval;
+	long long inval;
 	unsigned char *texture;
 	char *tptr;
 	char *endptr;
@@ -1269,7 +1296,7 @@ void __reallyloadPixelTexture() {
 
 	/* ok - we have a valid Perl pointer, go for it. */
 	tptr = (char *)SvPV(loadparams[currentlyWorkingOn].parenturl,xx);
-	/* printf ("PixelTextures, string now is %s\n",tptr); */
+	/* printf ("PixelTextures, string now is %s\n",tptr);  */
 
 	while (isspace(*tptr))tptr++;
 	ok = TRUE;
@@ -1293,7 +1320,7 @@ void __reallyloadPixelTexture() {
 		texture = (unsigned char *)malloc (wid*hei*4);
 
 		while (count < (int)(wid*hei)) {
-			inval = strtol(tptr,&endptr,0);
+			inval = strtoll(tptr,&endptr,0);
 			if (tptr == endptr) {
 				printf("PixelTexture: expected %d pixels, got %d\n",(int)(wid*hei),count);
 				freeTexture(loadparams[currentlyWorkingOn].texture_num);
@@ -1318,10 +1345,12 @@ void __reallyloadPixelTexture() {
 					   break;
 				   }
 				case 4: {
-					   texture[tctr++] = (inval>>24) & 0xff; /*A*/
-					   texture[tctr++] = (inval>>16) & 0xff; /*R*/
-					   texture[tctr++] = (inval>>8) & 0xff;	 /*G*/
-					   texture[tctr++] = (inval>>0) & 0xff; /*B*/
+					   texture[tctr++] = (inval>>24) & 0xff; /*R*/
+					   texture[tctr++] = (inval>>16) & 0xff; /*G*/
+					   texture[tctr++] = (inval>>8) & 0xff;	 /*B*/
+					   texture[tctr++] = (inval>>0) & 0xff; /*A*/
+					   /* printf ("verify, %x %x %x %x\n",texture[tctr-4],texture[tctr-3],
+						texture[tctr-2],texture[tctr-1]); */
 					   break;
 				   }
 			}
@@ -1346,7 +1375,6 @@ void __reallyloadPixelTexture() {
 	printf ("end of reallyloadPixelTextures\n");
 	#endif
 }
-
 
 /*********************************************************************************************/
 

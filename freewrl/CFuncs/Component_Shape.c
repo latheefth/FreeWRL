@@ -100,19 +100,10 @@ void render_Material (struct X3D_Material *node) {
 		float amb;
 		float trans;
 
-#ifndef X3DMATERIALPROPERTY
-		/* We have to keep track of whether to reset diffuseColor if using
-		   textures; no texture or greyscale, we use the diffuseColor, if
-		   RGB we set diffuseColor to be grey */
-		if (last_texture_depth >1) {
-			dcol[0]=0.8, dcol[1]=0.8, dcol[2]=0.8;
-		} else {
-#endif
+		/* set the diffuseColor; we will reset this later if the
+		   texture depth is 3 (RGB texture) */
 
-			for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.c[i]; }
-#ifndef X3DMATERIALPROPERTY
-		}
-#endif
+		for (i=0; i<3;i++){ dcol[i] = node->diffuseColor.c[i]; }
 
 		/* set the transparency here for the material */
 		trans = 1.0 - node->transparency;
@@ -220,7 +211,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 		/* lets look at texture depth, and if it has alpha, call
 		it a transparent node */
-		if (last_texture_depth >3) {
+		if ((last_texture_depth==2) || (last_texture_depth==4)) {
 			have_transparency++;
 			if ((node->_renderFlags & VF_Blend) != VF_Blend)
 				update_renderFlag(node,VF_Blend);
