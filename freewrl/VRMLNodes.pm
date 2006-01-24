@@ -430,6 +430,11 @@ my $protono;
 	Appearance
         /;
 
+#nodes that are valid normal fields.
+%VRML::Nodes::normal = map {($_=>1)} qw/
+	Normal	
+        /;
+
 #nodes that are valid material fields.
 %VRML::Nodes::fontStyle = map {($_=>1)} qw/
 	FontStyle

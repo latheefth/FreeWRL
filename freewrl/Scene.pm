@@ -293,20 +293,20 @@ sub newextp {
 				$protoname = $2;
 			}
 
-			#print "requested proto is $protoname, found $2; d1 is $1\n";
+			# print "requested proto is $protoname, found $2; d1 is $1\n";
 			if ($2 eq $protoname) {
 				# found our proto
 				$success = 1;
-			}
 	
-			# back up; put the "PROTO name" back on the front
-			(pos $string) -= ((length $1) + (length $2));
+				# back up; put the "PROTO name" back on the front
+				(pos $string) -= ((length $1) + (length $2));
 
-			# parse this PROTO
-			VRML::Parser::parse_statement($this, $string,0,"protoTop");
+				# parse this PROTO
+				VRML::Parser::parse_statement($this, $string,0,"protoTop");
 
-			# strip off any whitespace at the beginning of the string.
-                	$string =~ s/^\s+//g;
+				# strip off any whitespace at the beginning of the string.
+                		#$string =~ s/^\s+//g;
+			}
 
 		}
 		last if ($success);
