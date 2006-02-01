@@ -44,7 +44,7 @@ void start_textureTransform (void *textureNode, int ttnum) {
 
 	/* stuff common to all textureTransforms - gets undone at end_textureTransform */
 	glMatrixMode(GL_TEXTURE);
-       	glEnable(GL_TEXTURE_2D);
+       	/* done in RenderTextures now glEnable(GL_TEXTURE_2D); */
 	glLoadIdentity();
 
 	/* is this a simple TextureTransform? */

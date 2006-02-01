@@ -17,65 +17,10 @@
 #include <stdio.h>
 #include "readpng.h"
 
-void new_do_texture(int texno);
-void checkAndAllocTexMemTables(GLuint *texture_num, int increment);
-
-struct loadTexParams {
-	/* data sent in to texture parsing thread */
-	GLuint *texture_num;
-	GLuint genned_texture;
-	unsigned repeatS;
-	unsigned repeatT;
-	SV *parenturl;
-	unsigned type;
-	struct Multi_String url;
-
-	/* data returned from texture parsing thread */
-	char *filename;
-	int depth;
-	int x;
-	int y;
-	int frames;		/* 1 unless video stream */
-	unsigned char *texdata;
-	GLint Src;
-	GLint Trc;
-	GLint Image;
-};
-
-struct multiTexParams {
-	GLint texture_env_mode;
-	GLint combine_rgb;
-	GLint source0_rgb;
-	GLint operand0_rgb;
-	GLint source1_rgb;
-	GLint operand1_rgb;
-	GLint combine_alpha;
-	GLint source0_alpha;
-	GLint operand0_alpha;
-	GLint source1_alpha;
-	GLint operand1_alpha;
-	GLfloat rgb_scale;
-	GLfloat alpha_scale;
-};
-
-
-/* for isloaded structure */
-#define NOTLOADED	0
-#define LOADING		1
-#define NEEDSBINDING	2
-#define LOADED		3
-#define INVALID		4
-#define UNSQUASHED	5
-
-/* supported image types */
-#define IMAGETEXTURE	0
-#define PIXELTEXTURE	1
-#define MOVIETEXTURE	2
-
 /* we keep track of which textures have been loaded, and which have not */
 static int max_texture = 0;
-static unsigned char  *isloaded;
-static struct loadTexParams *loadparams;
+struct loadTexParams *loadparams;
+unsigned char  *texIsloaded;
 
 /* threading variables for loading textures in threads */
 static pthread_t loadThread;
@@ -151,7 +96,7 @@ int isTextureLoaded(int texno) {
 	/* no, have not even started looking at this */
 
 	if (texno == 0) return FALSE;
-	return (isloaded[texno]==LOADED);
+	return (texIsloaded[texno]==LOADED);
 }
 
 
@@ -205,7 +150,7 @@ void freeTexture (GLuint *texno) {
 	printf ("freeTexture, texno %d cwo %d inprocess %d\n",*texno,currentlyWorkingOn, textureInProcess );
 	#endif
 
-	if (*texno > 0) isloaded[*texno] = INVALID;
+	if (*texno > 0) texIsloaded[*texno] = INVALID;
 
 	/* is this the texture that we are currently working on?? */
 	if ((*texno) == textureInProcess) {
@@ -254,7 +199,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			/* if we do not have an image for this Background face yet, dont draw
 			 * the quads */
 
-			if (isloaded[*thistex] == LOADED)
+			if (texIsloaded[*thistex] == LOADED)
 				glDrawArrays (GL_QUADS, count*4,4);
 		};
 	}
@@ -300,14 +245,11 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 
 			} 
 		}
-		glDisable (GL_TEXTURE_2D);
 	}
 }
 
 /* load in a texture, if possible */
 void loadImageTexture (struct X3D_ImageTexture *node, void *param) {
-	float allones[] = {1.0, 1.0, 1.0, 1.0};
-
 	if (node->_ichange != node->_change) {
 		/* force a node reload - make it a new texture. Don't change
 		 the parameters for the original number, because if this
@@ -319,16 +261,6 @@ void loadImageTexture (struct X3D_ImageTexture *node, void *param) {
 		/* this will cause bind_image to create a new "slot" for this texture */
 		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
 		freeTexture((GLuint*) &(node->__texture)); 
-	}
-
-
-	/* set color to 1,1,1 for RGB textures */
-	if (node->__texture > 0) {
-		if (loadparams[node->__texture].depth == 3) {
-			/* printf ("setting color to 1 for tex %d\n",node->__texture); */
-			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
-			/* glColor3d (1.0, 1.0, 1.0);	 */
-		}
 	}
 
 	bind_image(IMAGETEXTURE, node->__parenturl,
@@ -401,23 +333,52 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			/* printf ("param %d is %s len %d\n",count, param, xx); */
 
 		        if (strncmp("MODULATE2X",param,strlen("MODULATE2X"))==0) { 
+				paramPtr->texture_env_mode  = GL_COMBINE; 
                                 paramPtr->rgb_scale = 2;
                                 paramPtr->alpha_scale = 2; } 
 
 		        else if (strncmp("MODULATE4X",param,strlen("MODULATE4X"))==0) {
-                                paramPtr->rgb_scale = 2;
-                                paramPtr->alpha_scale = 2; } 
-
-		        else if (strncmp("ADDSMOOTH",param,strlen("ADDSMOOTH"))==0) {  } 
-		        else if (strncmp("BLENDDIFFUSEALPHA",param,strlen("BLENDDIFFUSEALPHA"))==0) {  } 
-		        else if (strncmp("BLENDCURRENTALPHA",param,strlen("BLENDCURRENTALPHA"))==0) {  } 
-		        else if (strncmp("MODULATEALPHA_ADDCOLOR",param,strlen("MODULATEALPHA_ADDCOLOR"))==0) {  } 
-		        else if (strncmp("MODULATEINVALPHA_ADDCOLOR",param,strlen("MODULATEINVALPHA_ADDCOLOR"))==0) {  } 
-		        else if (strncmp("MODULATEINVCOLOR_ADDALPHA",param,strlen("MODULATEINVCOLOR_ADDALPHA"))==0) {  } 
-		        else if (strncmp("SELECTARG1",param,strlen("SELECTARG1"))==0) {  } 
-		        else if (strncmp("SELECTARG2",param,strlen("SELECTARG2"))==0) {  }
-		        else if (strncmp("DOTPRODUCT3",param,strlen("DOTPRODUCT3"))==0) {  }
-
+				paramPtr->texture_env_mode  = GL_COMBINE; 
+                                paramPtr->rgb_scale = 4;
+                                paramPtr->alpha_scale = 4; } 
+		        else if (strncmp("ADDSMOOTH",param,strlen("ADDSMOOTH"))==0) {  
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_ADD;}
+/* */
+		        else if (strncmp("BLENDDIFFUSEALPHA",param,strlen("BLENDDIFFUSEALPHA"))==0) {  
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_SUBTRACT;}
+		        else if (strncmp("BLENDCURRENTALPHA",param,strlen("BLENDCURRENTALPHA"))==0) {  
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_SUBTRACT;}
+		        else if (strncmp("MODULATEALPHA_ADDCOLOR",param,strlen("MODULATEALPHA_ADDCOLOR"))==0) { 
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_SUBTRACT;}
+		        else if (strncmp("MODULATEINVALPHA_ADDCOLOR",param,strlen("MODULATEINVALPHA_ADDCOLOR"))==0) { 
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_SUBTRACT;}
+		        else if (strncmp("MODULATEINVCOLOR_ADDALPHA",param,strlen("MODULATEINVCOLOR_ADDALPHA"))==0) { 
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_SUBTRACT;}
+		        else if (strncmp("SELECTARG1",param,strlen("SELECTARG1"))==0) {  
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_TEXTURE0;}
+		        else if (strncmp("SELECTARG2",param,strlen("SELECTARG2"))==0) {  
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_TEXTURE1;}
+		        else if (strncmp("DOTPRODUCT3",param,strlen("DOTPRODUCT3"))==0) {  
+				paramPtr->texture_env_mode = GL_COMBINE;
+				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_rgb = GL_DOT3_RGBA;}
+/* */
 		        else if (strncmp("MODULATE",param,strlen("MODULATE"))==0) {
 				/* defaults */}
 
@@ -497,12 +458,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		printf ("loadMultiTexture, working on texture %d\n",count);
 		#endif
 
-		/*
-		do we need this? obviously not, but I'm leaving it here for now...
-		glActiveTexture(GL_TEXTURE0+count);
-		glEnable(GL_TEXTURE_2D);
-		*/
-
 		/* get the texture */
 		nt = node->texture.p[count];
 
@@ -546,7 +501,6 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 /* load in a texture, if possible */
 void loadPixelTexture (struct X3D_PixelTexture *node, void *param) {
-	float allones[] = {1.0, 1.0, 1.0, 1.0};
 	struct Multi_String mynull;
 
 	if (node->_ichange != node->_change) {
@@ -559,15 +513,6 @@ void loadPixelTexture (struct X3D_PixelTexture *node, void *param) {
 		/* this will cause bind_image to create a new "slot" for this texture */
 		/* cast to GLuint because __texture defined in VRMLNodes.pm as SFInt */
 		freeTexture((GLuint*) &(node->__texture)); 
-	}
-
-	/* set color to 1,1,1 for RGB textures */
-	if (node->__texture > 0) {
-		if (loadparams[node->__texture].depth == 3) {
-			/* printf ("setting color to 1 for tex %d\n",node->__texture); */
-			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
-			/* glColor3d (1.0, 1.0, 1.0);	 */
-		}
 	}
 
 	bind_image(PIXELTEXTURE, node->image,
@@ -598,7 +543,7 @@ void loadMovieTexture (struct X3D_MovieTexture *node, void *param) {
 			 a reload? */
 			if (firsttex > 0) {
 				/*  we have changed the url - reload it all. */
-				isloaded[firsttex] = NOTLOADED;
+				texIsloaded[firsttex] = NOTLOADED;
 				loadparams[firsttex].filename="uninitialized file";
 				loadparams[firsttex].depth = 0;
 				freeTexture((GLuint *)&(node->__texture0_)); /* this will cause bind_image to create a */
@@ -617,7 +562,7 @@ void loadMovieTexture (struct X3D_MovieTexture *node, void *param) {
 
 	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
 
-	if (isloaded[firsttex] == UNSQUASHED) {
+	if (texIsloaded[firsttex] == UNSQUASHED) {
 		#ifdef TEXVERBOSE
 			printf ("movie texture now unsquished, first and last textures %d %d ctex %d\n",
 			loadparams[firsttex].x, loadparams[firsttex].y,
@@ -719,13 +664,13 @@ void do_possible_textureSequence(int texno) {
 
 		}
 		/* we have unsquished this whole image; lets tell the caller this */
-		isloaded[texno] = UNSQUASHED;
+		texIsloaded[texno] = UNSQUASHED;
 		loadparams[texno].x = texnums[0];
 		loadparams[texno].y = texnums[framecount-1];
 		free (loadparams[texno].texdata);
 	} else {
 		new_do_texture(texno);
-		isloaded[texno] = LOADED;
+		texIsloaded[texno] = LOADED;
 	}
 }
 
@@ -851,7 +796,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 		next_texture ++;
 
-		/* check to see if "isloaded" and "loadparams" is ok
+		/* check to see if "texIsloaded" and "loadparams" is ok
 			size-wise. if not,
 			make them larger, by 16 */
 		checkAndAllocTexMemTables(texture_num, 16);
@@ -862,11 +807,11 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		#endif
 	}
 	#ifdef TEXVERBOSE
-		printf ("bind_image, textureInProcess %d status %d\n",textureInProcess,isloaded[*texture_num]);
+		printf ("bind_image, textureInProcess %d status %d\n",textureInProcess,texIsloaded[*texture_num]);
 	#endif
 
 
-	/* check to see if "isloaded" and "loadparams" is ok size-wise. if not,
+	/* check to see if "texIsloaded" and "loadparams" is ok size-wise. if not,
 	   make them larger, by 16 */
 	checkAndAllocTexMemTables(texture_num, 16);
 
@@ -874,54 +819,31 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	last_texture_depth = loadparams[*texture_num].depth;
 
 	/* have we already processed this one before? */
-	if (isloaded[*texture_num] == LOADED) {
+	if (texIsloaded[*texture_num] == LOADED) {
 		#ifdef TEXVERBOSE 
 		printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
 		#endif
 
-		/* is this a MultiTexture, or just a "normal" single texture? */
-		if (param == NULL) {
-			/* printf ("simple texture\n"); */
-			glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		} else {
-			paramPtr = (struct multiTexParams *) param;
+		/* save the texture params for when we go through the MultiTexture stack */
+		texParams[texture_count] = param;
 
-			/* is this texture unit active? ie is mode something other than "OFF"? */
-			if (paramPtr->texture_env_mode != NULL) {
-				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, paramPtr->texture_env_mode);
-				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, paramPtr->combine_rgb);
-				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, paramPtr->source0_rgb);
-				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, paramPtr->operand0_rgb);
-				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
-				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, paramPtr->operand1_rgb);
-				glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, paramPtr->combine_alpha);
-				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, paramPtr->source0_alpha);
-				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, paramPtr->operand0_alpha);
-				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
-				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
-				glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
-				glTexEnvi(GL_TEXTURE_ENV, GL_ALPHA_SCALE, paramPtr->alpha_scale);
-			}
-		}
-
-		glBindTexture (GL_TEXTURE_2D, *texture_num);
 		textureInProcess = -1; /* we have finished the whole process */
 
 		return;
 	}
 
 	/* is this one bad? */
-	if (isloaded[*texture_num] == INVALID) { 
+	if (texIsloaded[*texture_num] == INVALID) { 
 				/* freeTexture(texture_num); */
 				textureInProcess = -1;
 				return; }
 
 	/* is this one an unsquished movie texture? */
-	if (isloaded[*texture_num] == UNSQUASHED) { return; }
+	if (texIsloaded[*texture_num] == UNSQUASHED) { return; }
 
 	/* is this one read in, but requiring final manipulation
 	 * by THIS thread? */
-	if (isloaded[*texture_num] == NEEDSBINDING) {
+	if (texIsloaded[*texture_num] == NEEDSBINDING) {
 		#ifdef TEXVERBOSE 
 		printf ("tex %d needs binding, name %s\n",*texture_num,
 				loadparams[*texture_num].filename);
@@ -936,7 +858,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	}
 
 	/* are we loading this one? */
-	if (isloaded[*texture_num] == LOADING) {
+	if (texIsloaded[*texture_num] == LOADING) {
 		return;
 	}
 
@@ -973,18 +895,18 @@ void checkAndAllocTexMemTables(GLuint *texture_num, int increment) {
 	int count;
 	int prev_max_texture;
 
-	/* do we have enough room to save the isloaded flag for this texture? */
+	/* do we have enough room to save the texIsloaded flag for this texture? */
 	if ((int)(*texture_num)>=(max_texture-2)) {
 		REGENLOCK
 		/* printf ("bind_image, must allocate a bunch more space for flags\n"); */
 		prev_max_texture = max_texture;
 		max_texture+=increment;
-		isloaded = (unsigned char *)realloc(isloaded, sizeof(*isloaded) * max_texture);
+		texIsloaded = (unsigned char *)realloc(texIsloaded, sizeof(*texIsloaded) * max_texture);
 		loadparams = (struct loadTexParams *)realloc(loadparams, sizeof(*loadparams) * max_texture);
 
 		/* printf ("zeroing from %d to %d\n",prev_max_texture,max_texture); */
 		for (count = prev_max_texture; count < (int)max_texture; count++) {
-			isloaded[count] = NOTLOADED;
+			texIsloaded[count] = NOTLOADED;
 			loadparams[count].filename="uninitialized file";
 			loadparams[count].depth = 0;
 		}
@@ -1110,7 +1032,7 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			free (filename);
 			freeTexture(texnum);
 			loadparams[*texnum].filename="file not found";
-			isloaded[*texnum]=INVALID;
+			texIsloaded[*texnum]=INVALID;
 			return FALSE;
 		}
 	}
@@ -1145,7 +1067,7 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			*/
 
 			freeTexture(texnum);
-			/* isloaded[*texnum]=INVALID; */
+			/* texIsloaded[*texnum]=INVALID; */
 			loadparams[*texnum].filename="Duplicate Filename";
 
 			free (filename);
@@ -1210,7 +1132,7 @@ void _textureThread(void) {
 		TextureThreadInitialized = TRUE;
 		T_LOCK_WAIT
 		REGENLOCK
-		isloaded[currentlyWorkingOn] = LOADING;
+		texIsloaded[currentlyWorkingOn] = LOADING;
 		TextureParsing = TRUE;
 
 		/* look for the file. If one does not exist, or it
@@ -1240,15 +1162,15 @@ void _textureThread(void) {
 			#endif
 
 			/* check to see if there was an error */
-			if (isloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID)
-				isloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
+			if (texIsloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID)
+				texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
 
 			/* is this a temporary file? */
 			if (remove == 1) {
 				unlink (loadparams[currentlyWorkingOn].filename);
 			}
 		} else {
-			isloaded[*loadparams[currentlyWorkingOn].texture_num]=INVALID;
+			texIsloaded[*loadparams[currentlyWorkingOn].texture_num]=INVALID;
 		}
 
 		/* signal that we are finished */
@@ -1290,7 +1212,7 @@ void __reallyloadPixelTexture() {
 	if ((SvFLAGS(loadparams[currentlyWorkingOn].parenturl) & SVf_POK) == 0) {
 		printf ("this one is going to fail\n");
 		freeTexture(loadparams[currentlyWorkingOn].texture_num);
-		/* isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
+		/* texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
 		return;
 	}
 
@@ -1324,7 +1246,7 @@ void __reallyloadPixelTexture() {
 			if (tptr == endptr) {
 				printf("PixelTexture: expected %d pixels, got %d\n",(int)(wid*hei),count);
 				freeTexture(loadparams[currentlyWorkingOn].texture_num);
-				/* isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
+				/* texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
 				break;
 			} else { tptr = endptr; }
 
@@ -1368,7 +1290,7 @@ void __reallyloadPixelTexture() {
 	} else {
 		printf ("PixelTexture, invalid height, width, or depth\n");
 		freeTexture(loadparams[currentlyWorkingOn].texture_num);
-		/*isloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
+		/*texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = INVALID; */
 	}
 
 	#ifdef TEXVERBOSE 
@@ -1480,7 +1402,7 @@ void __reallyloadImageTexture() {
 			jpeg_destroy_compress((j_compress_ptr)&cinfo);
 			fclose (infile);
 			freeTexture(&texture_num);
-			/* isloaded[texture_num] = INVALID; */
+			/* texIsloaded[texture_num] = INVALID; */
 			return;
 		}
 
@@ -1523,7 +1445,7 @@ void __reallyloadImageTexture() {
 
 		if (jpeg_finish_decompress(&cinfo) != TRUE) {
 			printf("warning: jpeg_finish_decompress error\n");
-			/* isloaded[texture_num] = INVALID; */
+			/* texIsloaded[texture_num] = INVALID; */
 			freeTexture(&texture_num);
 		}
 		jpeg_destroy_decompress(&cinfo);
@@ -1538,7 +1460,7 @@ void __reallyloadImageTexture() {
 	} else {
 		if (rc != 0) {
 		freeTexture(&texture_num);
-		/* isloaded[texture_num] = INVALID; */
+		/* texIsloaded[texture_num] = INVALID; */
 		switch (rc) {
 			case 1:
 				printf("[%s] is not a PNG file: incorrect signature\n", filename);
@@ -1593,193 +1515,5 @@ void __reallyloadMovieTexture () {
 
 	/* now, for the mpeg specific data */
 	loadparams[currentlyWorkingOn].frames = frameCount;
-}
-
-
-
-/*********************************************************************************/
-/* texture enabling - works for single texture, for multitexture. */
-
-void setupTexGen (struct X3D_TextureCoordinateGenerator *this) {
-	switch (this->__compiledmode) {
-	case GL_OBJECT_LINEAR:
-	case GL_EYE_LINEAR:
-	case GL_REFLECTION_MAP:
-	case GL_SPHERE_MAP:
-	case GL_NORMAL_MAP:
-                                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE,this->__compiledmode);
-                                glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,this->__compiledmode);                      
-                                glEnable(GL_TEXTURE_GEN_S);
-                                glEnable(GL_TEXTURE_GEN_T);
-	break;
-	default: {}
-		/* printf ("problem with compiledmode %d\n",this->__compiledmode); */
-	}
-}
-
-
-
-
-void textureDraw_start(struct X3D_IndexedFaceSet *texC, GLfloat *genTex) {
-	int c;
-	struct SFNode *mySFnode;
-	struct X3D_TextureCoordinate *myTCnode;
-	struct X3D_MultiTextureCoordinate *myMTCnode;
-	struct Multi_Vec2f *myPoints;
-
-	#ifdef TEXVERBOSE
-	printf ("textureDraw_start, texture_count %d texture[0] %d\n",texture_count,bound_textures[0]);
-	#endif
-
-	/* is this generated textures, like an extrusion or IFS without a texCoord param? */
-	if (texC == NULL) {
-		#ifdef TEXVERBOSE
-		printf ("textureDraw_start, using passed in genTex\n");
-		#endif
-
-		for (c=0; c<texture_count; c++) {
-			/* are we ok with this texture yet? */
-			if (isloaded[bound_textures[c]] == LOADED) {
-	
-				glActiveTexture(GL_TEXTURE0+c);
-				glClientActiveTexture(GL_TEXTURE0+c);
-	        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-				glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
-				glTexCoordPointer (2,GL_FLOAT,0,genTex);
-				glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-				glEnable(GL_TEXTURE_2D);
-			}
-		}
-
-	/* hmmm - maybe this texCoord node exists? */
-	} else {
-		myTCnode = (struct X3D_TextureCoordinate *) texC->texCoord;
-
-		#ifdef TEXVERBOSE
-		printf ("ok, texC->_nodeType is %d\n",texC->_nodeType);
-		printf ("myTCnode is of type %d\n",myTCnode->_nodeType);
-		#endif
-
-		if (myTCnode->_nodeType == NODE_TextureCoordinate) {
-			#ifdef TEXVERBOSE
-			printf ("have a NODE_TextureCoordinate\n");
-			printf ("and this texture has %d points we have texturedepth of %d\n",myTCnode->point.n,texture_count);
-			#endif
-		
-
-			/* render the TextureCoordinate node for every texture in this node */
-			for (c=0; c<texture_count; c++) {
-				render_node (texC->texCoord);
-				/* are we ok with this texture yet? */
-				if (isloaded[bound_textures[c]] == LOADED) {
-					glActiveTexture(GL_TEXTURE0+c);
-					glClientActiveTexture(GL_TEXTURE0+c);
-		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
-					glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
-					glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-					glEnable(GL_TEXTURE_2D);
-				}
-			}
-		} else if (myTCnode->_nodeType == NODE_MultiTextureCoordinate) {
-			myMTCnode = (struct X3D_MultiTextureCoordinate *) texC->texCoord;
-			myTCnode = myMTCnode; /* for now, in case of errors, this is set to an invalid value */
-
-			#ifdef TEXVERBOSE
-			printf ("MultiTextureCoordinate node, have %d texCoords\n",myMTCnode->texCoord.n);
-			#endif
-			
-			/* render the TextureCoordinate node for every texture in this node */
-			for (c=0; c<texture_count; c++) {
-				/* do we have enough textures in this MultiTextureCoordinate node? */
-				if (c<myMTCnode->texCoord.n) {
-					myTCnode = 
-						(struct X3D_TextureCoordinate *) myMTCnode->texCoord.p[c];
-
-					/* is this a valid textureCoord node, and not another
-					   MultiTextureCoordinate node? */
-					if ((myTCnode->_nodeType == NODE_TextureCoordinate) ||
-					    (myTCnode->_nodeType == NODE_TextureCoordinateGenerator)) {
-						render_node (myTCnode);
-						/* are we ok with this texture yet? */
-						if (isloaded[bound_textures[c]] == LOADED) {
-							glActiveTexture(GL_TEXTURE0+c);
-							glClientActiveTexture(GL_TEXTURE0+c);
-		        				if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-							glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
-							glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
-							glEnableClientState (GL_TEXTURE_COORD_ARRAY);
-							glEnable(GL_TEXTURE_2D);
-						}
-					#ifdef TEXVERBOSE
-					} else {
-						printf ("MultiTextureCoord, problem with %d as a child \n",myTCnode->_nodeType);
-					#endif
-					}
-				#ifdef TEXVERBOSE
-				} else {
-					printf ("MultiTextureCoord, not enough children for the number of textures...\n");
-				#endif
-				}
-				/* are we ok with this texture yet? */
-				if (isloaded[bound_textures[c]] == LOADED) {
-		
-					glActiveTexture(GL_TEXTURE0+c);
-					glClientActiveTexture(GL_TEXTURE0+c);
-		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-		
-					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
-					
-					/* do the texture coordinate stuff */
-					if (myTCnode->_nodeType == NODE_TextureCoordinate) {
-						glTexCoordPointer (2,GL_FLOAT,0,myTCnode->__compiledpoint.p);
-					} else if (myTCnode->_nodeType == NODE_TextureCoordinateGenerator) {
-						setupTexGen ((struct X3D_TextureCoordinateGenerator*) myTCnode);
-					}
-
-					glEnable(GL_TEXTURE_2D);
-				}
-			}
-#undef TEXVERBOSE
-
-		} else {
-			/* this has to be a TexureCoordinateGenerator node */
-			#ifdef TEXVERBOSE
-			printf ("have a NODE_TextureCoordinateGenerator\n");
-			#endif
-		
-			/* render the TextureCoordinate node for every texture in this node */
-			for (c=0; c<texture_count; c++) {
-				render_node (texC->texCoord);
-				/* are we ok with this texture yet? */
-				if (isloaded[bound_textures[c]] == LOADED) {
-					glActiveTexture(GL_TEXTURE0+c);
-					glClientActiveTexture(GL_TEXTURE0+c);
-		        		if (this_textureTransform) start_textureTransform(this_textureTransform,c);
-					glBindTexture(GL_TEXTURE_2D,bound_textures[c]);
-
-					setupTexGen((struct X3D_TextureCoordinateGenerator*) myTCnode);
-
-					glEnable(GL_TEXTURE_2D);
-				}
-			}
-		}
-	}
-}
-
-void textureDraw_end(void) {
-	int c;
-
-	#ifdef TEXVERBOSE
-	printf ("start of textureDraw_end\n");
-	#endif
-	for (c=0; c<texture_count; c++) {
-		glClientActiveTexture(GL_TEXTURE0+c);
-	        if (this_textureTransform) end_textureTransform(this_textureTransform,c);
-		glDisable(GL_TEXTURE_2D);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	}
-
-        glMatrixMode(GL_MODELVIEW);
 }
 
