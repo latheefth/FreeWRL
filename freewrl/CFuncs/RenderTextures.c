@@ -75,6 +75,17 @@ int setActiveTexture (int c) {
 		#ifdef TEXVERBOSE
 		printf ("simple texture NOT a MultiTexture \n"); 
 		#endif
+                /* should we set the coloUr to 1,1,1,1 so that the material does not show
+                   through a RGB texture?? */
+                /* only do for the first texture if MultiTexturing */
+                if (c == 0) {
+                        if (loadparams[bound_textures[c]].depth == 3) {
+                                /* printf ("setting color to 1 for tex %d\n",node->__texture); */
+                                glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
+                                /* glColor3d (1.0, 1.0, 1.0);    */
+                        }
+                }
+
 		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	} else {
 		paramPtr = (struct multiTexParams *) texParams[c];
