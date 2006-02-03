@@ -172,8 +172,8 @@ void statusbar_position () {
 int i;
 glGetIntegerv(GL_MATRIX_MODE,&i);
 
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
 	return;
 
 }
