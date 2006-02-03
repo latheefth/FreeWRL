@@ -118,7 +118,7 @@ void light_SpotLight (struct X3D_SpotLight *node) {
                         int light = nextlight();
                         if(light >= 0) {
                                 float vec[4];
-                                /* glEnable(light); */                                lightState(light-GL_LIGHT0,TRUE);
+                                lightState(light-GL_LIGHT0,TRUE);
                
                                 vec[0] = ((node->direction).c[0]);
                                 vec[1] = ((node->direction).c[1]);

@@ -121,9 +121,8 @@ void BoundingBox(struct SFColor xDistc,struct SFColor xDists) {
 
 
 	/* show a bounding box around each grouping node */
-	glPushAttrib(GL_ENABLE_BIT);
-	glEnable(GL_COLOR_MATERIAL);
-	glDisable(GL_CULL_FACE);
+	COLOR_MATERIAL_ON
+	DISABLE_CULL_FACE
 
 	glColor3f(1.0, 0.0, 0.0);
 
@@ -163,8 +162,6 @@ void BoundingBox(struct SFColor xDistc,struct SFColor xDists) {
 	glVertex3f(-x, -y, -z);
 	glEnd();
 
-	glDisable(GL_COLOR_MATERIAL);
-	glPopAttrib();
 #endif
 }
 

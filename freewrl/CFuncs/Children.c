@@ -77,7 +77,7 @@ void sortChildren (struct Multi_Node ch) {
 void dirlightChildren(struct Multi_Node ch) {
 	int i;
 
-	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT);
+	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT); */
 	for(i=0; i<ch.n; i++) {
 		struct X3D_Box *p = (struct X3D_Box *)ch.p[i];
 		if (p->_nodeType == NODE_DirectionalLight)

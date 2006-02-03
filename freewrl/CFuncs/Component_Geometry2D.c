@@ -35,18 +35,14 @@ void render_Arc2D (struct X3D_Arc2D *node) {
 	}
 
 	if (node->__numPoints>0) {	
-        	glPushAttrib(GL_ENABLE_BIT);
-	        glDisable (GL_LIGHTING);
-	        glDisable(GL_COLOR_MATERIAL);
-	        glDisable(GL_CULL_FACE);
+	        LIGHTING_OFF
+	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
-
-		glPopAttrib();
 	}
 }
 
@@ -76,17 +72,14 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 
 
 	if (node->__numPoints>0) {	
-        	glPushAttrib(GL_ENABLE_BIT);
-        	glDisable (GL_LIGHTING);
-        	glDisable(GL_COLOR_MATERIAL);
-        	glDisable(GL_CULL_FACE);
+        	LIGHTING_OFF
+        	DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
-		glPopAttrib();
 	}
 }
 
@@ -102,52 +95,40 @@ void render_Circle2D (struct X3D_Circle2D *node) {
 	}
 
 	if (node->__numPoints>0) {	
-        	glPushAttrib(GL_ENABLE_BIT);
-	        glDisable (GL_LIGHTING);
-	        glDisable(GL_COLOR_MATERIAL);
-	        glDisable(GL_CULL_FACE);
+	        LIGHTING_OFF
+	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
         	glDrawArrays (GL_LINE_STRIP, 0, node->__numPoints);
 		glEnableClientState (GL_NORMAL_ARRAY);
-
-		glPopAttrib();
 	}
 }
 
 void render_Polyline2D (struct X3D_Polyline2D *node){
 	if (node->lineSegments.n>0) {
-        	glPushAttrib(GL_ENABLE_BIT);
-	        glDisable (GL_LIGHTING);
-	        glDisable(GL_COLOR_MATERIAL);
-	        glDisable(GL_CULL_FACE);
+	        LIGHTING_OFF
+	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->lineSegments.p);
         	glDrawArrays (GL_LINE_STRIP, 0, node->lineSegments.n);
 		glEnableClientState (GL_NORMAL_ARRAY);
-
-		glPopAttrib();
 	}
 }
 
 void render_Polypoint2D (struct X3D_Polypoint2D *node){
 	if (node->point.n>0) {
-        	glPushAttrib(GL_ENABLE_BIT);
-	        glDisable (GL_LIGHTING);
-	        glDisable(GL_COLOR_MATERIAL);
-	        glDisable(GL_CULL_FACE);
+	        LIGHTING_OFF
+	        DISABLE_CULL_FACE
 		glColor3f (1.0, 1.0, 1.0);
 
 		glDisableClientState (GL_NORMAL_ARRAY);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->point.p);
         	glDrawArrays (GL_POINTS, 0, node->point.n);
 		glEnableClientState (GL_NORMAL_ARRAY);
-
-		glPopAttrib();
 	}
 }
 
@@ -159,10 +140,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 	}
 
 	if (node->__numPoints>0) {	
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->__points);
@@ -175,7 +153,6 @@ void render_Disk2D (struct X3D_Disk2D *node){
 
 		textureDraw_end();
 		glEnableClientState (GL_NORMAL_ARRAY);
-		if(!node->solid) { glPopAttrib(); }
 	}
 }
 
@@ -187,10 +164,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	}
 
 	if (node->vertices.n>0) {	
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 
 		textureDraw_start(NULL,(GLfloat *)node->__texCoords);
 		glVertexPointer (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
@@ -201,7 +175,6 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 		textureDraw_end();
 		glEnableClientState (GL_NORMAL_ARRAY);
-		if(!node->solid) { glPopAttrib(); }
 	}
 }
 
@@ -240,10 +213,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	}
 
 
-	if(!node->solid) {
-		glPushAttrib(GL_ENABLE_BIT);
-		glDisable(GL_CULL_FACE);
-	}
+	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,boxtex);
@@ -255,7 +225,6 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	glDrawArrays (GL_QUADS, 0, 4);
 	textureDraw_end();
 	glEnableClientState (GL_NORMAL_ARRAY);
-	if(!node->solid) { glPopAttrib(); }
 }
 
 

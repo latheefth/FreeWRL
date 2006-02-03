@@ -37,15 +37,8 @@ void render_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
                 if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
 			regen_polyrep(node, NULL, node->color, node->normal, node->texCoord);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-
-		if(!node->solid) {
-			glPopAttrib();
-		}
 }
 
 /* look for an ellipsoid in the GeoSystem field */
@@ -299,9 +292,6 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
                 /* EXTENTTOBBOX
 		BoundingBox(node->bboxCenter,node->bboxSize); */
         }
-        
-        /* did we have that directionalLight? */
-        if((node->has_light)) glPopAttrib();
         
         #ifdef CHILDVERBOSE
 	printf("RENDER GEOLOCATION END %d\n",node);

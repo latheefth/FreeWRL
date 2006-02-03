@@ -441,7 +441,7 @@ void moveBackgroundCentre () {
 	GLdouble x1,y1,z1;
 	GLdouble sx, sy, sz;
 
-	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT); 
+	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);  */
 	glShadeModel(GL_SMOOTH);
 	glPushMatrix();
 	fwGetDoublev(GL_MODELVIEW_MATRIX, mod);
@@ -450,7 +450,7 @@ void moveBackgroundCentre () {
 	gluUnProject(0.0f,0.0f,0.0f,mod,proj,viewport,&x,&y,&z);
 	glTranslated(x,y,z);
 
-	glDisable (GL_LIGHTING);
+	LIGHTING_OFF
 
 	gluUnProject(0.0f,0.0f,0.0f,mod,unit,viewport,&x,&y,&z);
 	/* Get scale */
@@ -726,7 +726,6 @@ void render_Background (struct X3D_Background *node) {
         	glDisableClientState (GL_TEXTURE_COORD_ARRAY);
 	}
 	glPopMatrix();
-	glPopAttrib();
 }
 
 
@@ -774,5 +773,4 @@ void render_TextureBackground (struct X3D_TextureBackground *node) {
 
 	/* pushes are done in moveBackgroundCentre */
 	glPopMatrix();
-	glPopAttrib();
 }

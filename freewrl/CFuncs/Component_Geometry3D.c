@@ -64,11 +64,7 @@ void render_Box (struct X3D_Box *node) {
 		*pt++ = -x; *pt++ =  y; *pt++ = -z; *pt++ = -x; *pt++ = -y; *pt++ = -z;
 	}
 
-
-	if(!node->solid) {
-		glPushAttrib(GL_ENABLE_BIT);
-		glDisable(GL_CULL_FACE);
-	}
+	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
 	textureDraw_start(NULL,boxtex);
@@ -78,7 +74,6 @@ void render_Box (struct X3D_Box *node) {
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	glDrawArrays (GL_QUADS, 0, 24);
 	textureDraw_end();
-	if(!node->solid) { glPopAttrib(); }
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
@@ -132,10 +127,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		pt[CYLDIV*2+3].c[0] = 0.0; pt[CYLDIV*2+3].c[1] = (float)-h; pt[CYLDIV*2+3].c[2] = 0.0;
 	}
 
-	if(!node->solid) {
-		glPushAttrib(GL_ENABLE_BIT);
-		glDisable(GL_CULL_FACE);
-	}
+	CULL_FACE(node->solid)
 
 
 	/*  Display the shape*/
@@ -164,8 +156,6 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
 	textureDraw_end();
-
-	if(!node->solid) { glPopAttrib(); }
 }
 
 void render_Cone (struct X3D_Cone *node) {
@@ -248,11 +238,7 @@ void render_Cone (struct X3D_Cone *node) {
 	}
 
 
-	if(!node->solid) {
-		glPushAttrib(GL_ENABLE_BIT);
-		glDisable(GL_CULL_FACE);
-	}
-
+	CULL_FACE(node->solid)
 
 	/*  OK - we have vertex data, so lets just render it.*/
 	/*  Always assume GL_VERTEX_ARRAY and GL_NORMAL_ARRAY are enabled.*/
@@ -275,10 +261,6 @@ void render_Cone (struct X3D_Cone *node) {
 		glDrawArrays (GL_TRIANGLES, 0, 60);
 	}
 	textureDraw_end();
-
-
-	if(!node->solid) { glPopAttrib(); }
-
 }
 
 void render_Sphere (struct X3D_Sphere *node) {
@@ -358,11 +340,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 		}
 	}
 
-	if(!node->solid) {
-		glPushAttrib(GL_ENABLE_BIT);
-		glDisable(GL_CULL_FACE);
-	}
-
+	CULL_FACE(node->solid)
 
 	/*  Display the shape*/
 	textureDraw_start(NULL,spheretex);
@@ -376,45 +354,29 @@ void render_Sphere (struct X3D_Sphere *node) {
 	}
 
 	textureDraw_end();
-
-	if(!node->solid) { glPopAttrib(); }
 }
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
 		if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)  
 			regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 void render_ElevationGrid (struct X3D_ElevationGrid *node) {
                 if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
                         regen_polyrep(node, NULL, node->color, node->normal, node->texCoord);
-
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 void render_Extrusion (struct X3D_Extrusion *node) {
                 if(!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change)
                         regen_polyrep(node, NULL,NULL,NULL,NULL);
 
-
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 

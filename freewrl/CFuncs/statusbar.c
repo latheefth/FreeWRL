@@ -69,22 +69,18 @@ void render_status () {
 	struct X3D_IndexedFaceSet holder;
 
 	char statusline[200];
-
-	glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT);
+return;
+	/* glPushAttrib(GL_LIGHTING_BIT|GL_ENABLE_BIT|GL_TEXTURE_BIT); */
 	glShadeModel(GL_SMOOTH);
-	glPushMatrix();
-
+	statusbar_position ();
 
 	/* perform translation and rotation for text posn */
-	statusbar_position ();
 
 	/* lets do this with a display list for now. */
 	/* now, is this the same background as before??? */
 	if (status_dlist) {
 		if (!new_status) {
 			glCallList(status_dlist);
-			glPopMatrix();
-			glPopAttrib();
 			return;
 		} else {
 			glDeleteLists(status_dlist,1);
@@ -113,7 +109,8 @@ void render_status () {
 	/* we are here; compile and display a new background! */
 	new_status = FALSE;
 
-	glDisable (GL_LIGHTING);
+	LIGHTING_OFF
+
 	lightState(0,TRUE);
         glColor3d(1.0,1.0,1.0);
 	glScalef(0.5,1.0, 1.0);
@@ -168,14 +165,15 @@ void render_status () {
         FREE_IF_NZ(rep_.tcindex);
 
 	glEndList();
-	glPopMatrix();
-	glPopAttrib();
 }
 
 
 void statusbar_position () {
-	glMatrixMode(GL_PROJECTION_MATRIX);
-	glLoadIdentity();
+int i;
+glGetIntegerv(GL_MATRIX_MODE,&i);
+
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
 	return;
 
 }

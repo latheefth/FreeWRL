@@ -190,8 +190,9 @@ void child_Shape (struct X3D_Shape *node) {
                 /* assume that lighting is enabled. Absence of Material or Appearance
                    node will turn lighting off; in this case, at the end of Shape, we
                    have to turn lighting back on again. */
-                lightingOn = TRUE;
-		glEnable(GL_LIGHTING);
+                LIGHTING_ON
+		COLOR_MATERIAL_OFF
+		
 
 		/* is there an associated appearance node? */
        	        if((node->appearance)) {
@@ -199,9 +200,8 @@ void child_Shape (struct X3D_Shape *node) {
        	        } else {
                         /* no material, so just colour the following shape */
                        	/* Spec says to disable lighting and set coloUr to 1,1,1 */
-                       	glDisable (GL_LIGHTING);
+                       	LIGHTING_OFF
        	                glColor3f(1.0,1.0,1.0);
-			lightingOn = FALSE;
 
 			/* tell the rendering passes that this is just "normal" */
 			last_texture_depth = 0;
@@ -252,10 +252,7 @@ void child_Shape (struct X3D_Shape *node) {
 		}
 
                /* did the lack of an Appearance or Material node turn lighting off? */
-                if (!lightingOn) {
-                        glEnable (GL_LIGHTING);
-			lightingOn = TRUE;
-		}
+		LIGHTING_ON
 
 		/* any line properties to reset? */
 		if (global_lineProperties) {
@@ -267,7 +264,7 @@ void child_Shape (struct X3D_Shape *node) {
 			glLineWidth(1.0);
 		}
 
-		if (have_texture) glPopAttrib(); 
+		/* if (have_texture) glPopAttrib();  */
 }
 
 
@@ -284,9 +281,8 @@ void child_Appearance (struct X3D_Appearance *node) {
                 } else {
                         /* no material, so just colour the following shape */
                         /* Spec says to disable lighting and set coloUr to 1,1,1 */
-                        glDisable (GL_LIGHTING);
+                        LIGHTING_OFF
                         glColor3f(1.0,1.0,1.0);
-                        lightingOn = FALSE;
                 }
 
                 if ((node->fillProperties)) {
@@ -301,7 +297,7 @@ void child_Appearance (struct X3D_Appearance *node) {
                 if((node->texture)) {
                         /* we have to do a glPush, then restore, later */
                         have_texture=TRUE;
-                        glPushAttrib(GL_ENABLE_BIT);
+                        /* glPushAttrib(GL_ENABLE_BIT); */
 
                         /* is there a TextureTransform? if no texture, fugutaboutit */
                         this_textureTransform = node->textureTransform;

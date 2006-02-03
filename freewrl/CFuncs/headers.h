@@ -8,6 +8,8 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
+#undef GLERRORS
+
 /* free a malloc'd pointer */
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
@@ -525,7 +527,9 @@ extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; /* def
 extern char *lastReadFile; 		/* name last file read in */
 extern int display_status;		/* toggle status bar - defined in VRMLC.pm */
 extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */
-extern int  lightingOn;			/* in VRMLC.pm */
+extern int  lightingOn;			/* state of GL_LIGHTING */
+extern int cullFace;			/* state of GL_CULL_FACE */
+extern int colorMaterialEnabled;	/* state of GL_COLOR_MATERIAL */
 extern double hpdist;			/* in VRMLC.pm */
 extern struct pt hp;			/* in VRMLC.pm */
 extern void *hypersensitive; 		/* in VRMLC.pm */
@@ -813,7 +817,25 @@ void changed_Anchor (struct X3D_Anchor *this_);
 #define NODE_REMOVE_PARENT(a) add_parent(a,ptr)
 
 
+/* OpenGL state cache */
+/* solid shapes, GL_CULL_FACE can be enabled if a shape is Solid */ 
+#define CULL_FACE(v) /* printf ("nodeSolid %d cullFace %d GL_FALSE %d FALSE %d\n",v,cullFace,GL_FALSE,FALSE); */ \
+		if (v != cullFace) {	\
+			cullFace = v; \
+			if (cullFace == 1) glEnable(GL_CULL_FACE);\
+			else glDisable(GL_CULL_FACE);\
+		}
+#define DISABLE_CULL_FACE CULL_FACE(0)
+#define ENABLE_CULL_FACE CULL_FACE(1)
+#define CULL_FACE_INITIALIZE cullFace=0; glDisable(GL_CULL_FACE);
 
+#define LIGHTING_ON if (!lightingOn) {lightingOn=TRUE;glEnable(GL_LIGHTING);}
+#define LIGHTING_OFF if(lightingOn) {lightingOn=FALSE;glDisable(GL_LIGHTING);}
+#define LIGHTING_INITIALIZE lightingOn=TRUE; glEnable(GL_LIGHTING);
+
+#define COLOR_MATERIAL_ON if (colorMaterialEnabled == GL_FALSE) {colorMaterialEnabled=GL_TRUE;glEnable(GL_COLOR_MATERIAL);}
+#define COLOR_MATERIAL_OFF if (colorMaterialEnabled == GL_TRUE) {colorMaterialEnabled=GL_FALSE;glDisable(GL_COLOR_MATERIAL);}
+#define COLOR_MATERIAL_INITIALIZE colorMaterialEnabled = GL_FALSE; glDisable(GL_COLOR_MATERIAL);
 
 void zeroAllBindables(void);
 int freewrlSystem (char *string);

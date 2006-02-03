@@ -120,12 +120,12 @@ void glpOpenGLInitialize() {
 	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f;
         #ifdef AQUA
         CGLSetCurrentContext(aqglobalContext);
+
         aqglobalContext = CGLGetCurrentContext();
         //printf("OpenGL globalContext %p\n", aqglobalContext);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
         #endif
-
 
 	/* Configure OpenGL for our uses. */
 
@@ -146,7 +146,8 @@ void glpOpenGLInitialize() {
 
 	/* end of ALPHA test */
 	glEnable(GL_NORMALIZE);
-	glEnable(GL_LIGHTING);
+	LIGHTING_INITIALIZE
+	COLOR_MATERIAL_INITIALIZE
 
 	/* keep track of light states; initial turn all lights off except for headlight */
 	for (i=0; i<8; i++) {
@@ -160,7 +161,8 @@ void glpOpenGLInitialize() {
         glLightfv(GL_LIGHT0, GL_DIFFUSE, s);
         glLightfv(GL_LIGHT0, GL_SPECULAR, s);
 
-	glEnable(GL_CULL_FACE);
+	/* ensure state of GL_CULL_FACE */
+	CULL_FACE_INITIALIZE
 
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
@@ -291,12 +293,12 @@ void fwGetDoublev (int ty, double *mat) {
 }
 
 void fwXformPush(struct X3D_Transform *me) {
-	glPushMatrix();
+	glPushMatrix(); 
 	MODmatOk = FALSE;
 }
 
 void fwXformPop(struct X3D_Transform *me) {
-	glPopMatrix();
+	glPopMatrix(); 
 	MODmatOk = FALSE;
 }
 

@@ -60,11 +60,12 @@ int setActiveTexture (int c) {
 
 	if (c != currentTextureUnit) {
 		glActiveTexture(GL_TEXTURE0+c);
-		glClientActiveTexture(GL_TEXTURE0+c);
+		glClientActiveTexture(GL_TEXTURE0+c); /* for TextureCoordinates */
 		currentTextureUnit = c;
 	}
 
-	ENABLE_TEXTURES
+	/* ENABLE_TEXTURES */
+	glEnable(GL_TEXTURE_2D);
 
 	/* is this a MultiTexture, or just a "normal" single texture?  When we
 	   bind_image, we store a pointer for the texture parameters. It is
@@ -74,25 +75,12 @@ int setActiveTexture (int c) {
 		#ifdef TEXVERBOSE
 		printf ("simple texture NOT a MultiTexture \n"); 
 		#endif
-		#ifdef DOTHISFORALLTEXS
-		/* should we set the coloUr to 1,1,1,1 so that the material does not show
-		   through a RGB texture?? */
-		/* only do for the first texture if MultiTexturing */
-		if (c == 0) {
-			if (loadparams[bound_textures[c]].depth == 3) {
-				/* printf ("setting color to 1 for tex %d\n",node->__texture); */
-				glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
-				/* glColor3d (1.0, 1.0, 1.0);    */
-			}
-		}
-		#endif
-
 		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	} else {
 		paramPtr = (struct multiTexParams *) texParams[c];
 
 		/* is this texture unit active? ie is mode something other than "OFF"? */
-		if (paramPtr->texture_env_mode != NULL) {
+		if (paramPtr->texture_env_mode != 0) {
 
 		switch (paramPtr->texture_env_mode) {
 			case GL_MODULATE:
@@ -106,42 +94,33 @@ int setActiveTexture (int c) {
 			
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, paramPtr->combine_rgb);
+
 			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, paramPtr->source0_rgb);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
-			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
-/*
-printf ("for texture %d, scale %f, combine %d (mod %d)\n", c, paramPtr->rgb_scale,paramPtr->combine_rgb, GL_MODULATE);
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, paramPtr->texture_env_mode);
 			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, paramPtr->operand0_rgb);
+
+			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, paramPtr->source1_rgb);
 			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, paramPtr->operand1_rgb);
+
 			glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, paramPtr->combine_alpha);
 			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, paramPtr->source0_alpha);
 			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, paramPtr->operand0_alpha);
-			glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
-			glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
-glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_TEXTURE0);
-glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_PREVIOUS);
+
+			glTexEnvi(GL_TEXTURE_ENV, GL_RGB_SCALE, paramPtr->rgb_scale);
 			glTexEnvi(GL_TEXTURE_ENV, GL_ALPHA_SCALE, paramPtr->alpha_scale);
-*/
+
+			/* do we need these for this mode? */
+			if (paramPtr->source1_alpha != 0) 
+				glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA, paramPtr->source1_alpha);
+			if (paramPtr->operand1_alpha != 0) 
+				glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA, paramPtr->operand1_alpha);
+
 			}
 
 		} else {
-			DISABLE_TEXTURES
+			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			return FALSE;
 		}
 	}
-#ifdef DOTHISFORALLTEXS
-	/* should we set the coloUr to 1,1,1,1 so that the material does not show
-	   through a RGB texture?? */
-	/* only do for the first texture if MultiTexturing */
-	if (c == 0) {
-		if (loadparams[bound_textures[c]].depth == 3) {
-			/* printf ("setting color to 1 for tex %d\n",node->__texture); */
-			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, (GLfloat *)allones);
-			/* glColor3d (1.0, 1.0, 1.0);    */
-		}
-	}
-#endif
 
 	return TRUE;
 }
@@ -193,15 +172,16 @@ void textureDraw_end(void) {
 	#endif
 	for (c=0; c<texture_count; c++) {
 		if (c != currentTextureUnit) {
-			glClientActiveTexture(GL_TEXTURE0+c);
 			glActiveTexture(GL_TEXTURE0+c);
+			glClientActiveTexture(GL_TEXTURE0+c); /* for TextureCoordinates */
 			currentTextureUnit = c;
 		}
 
 	        if (this_textureTransform) end_textureTransform(this_textureTransform,c);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisable(GL_TEXTURE_2D);
 	}
-	DISABLE_TEXTURES
+	/* DISABLE_TEXTURES */
 
         glMatrixMode(GL_MODELVIEW);
 }

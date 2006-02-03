@@ -133,12 +133,8 @@ void render_Text (struct X3D_Text * node) {
                         regen_polyrep(node, NULL, NULL, NULL, NULL);
 
 		/* always Text is visible from both sides */
-                glPushAttrib(GL_ENABLE_BIT);
-                glDisable(GL_CULL_FACE);
-
+                DISABLE_CULL_FACE
 		render_polyrep(node);
-
-		glPopAttrib();
 }
 
 void FW_NewVertexPoint (double Vertex_x, double Vertex_y) {
@@ -880,8 +876,7 @@ void make_Text (struct X3D_Text *node) {
 	unsigned int fsparams = 0;
 
 	/* We need both sides */
-	glPushAttrib(GL_ENABLE_BIT);
-	glDisable(GL_CULL_FACE);
+	DISABLE_CULL_FACE
 
 	if((node->fontStyle)) {
 		/* We have a FontStyle. Parse params (except size and spacing) and
@@ -1008,7 +1003,6 @@ void make_Text (struct X3D_Text *node) {
 
 	/* printf ("Text, tris = %d\n",rep_->ntri);*/
 
-	glPopAttrib();
 }
 
 void rendray_Text (struct X3D_Text *node) {

@@ -316,9 +316,6 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	}
 
 
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
-
 	#ifdef CHILDVERBOSE
 	VerboseEnd ("STATICGROUP");
 	#endif
@@ -395,9 +392,6 @@ void child_Group (struct X3D_Group *node) {
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
-
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
 
 	#ifdef CHILDVERBOSE
 	VerboseEnd ("GROUP");
@@ -557,9 +551,6 @@ void child_Transform (struct X3D_Transform *node) {
                         #endif
 	}
 
-
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
 
 	#ifdef CHILDVERBOSE
 	VerboseEnd ("TRANSFORM");

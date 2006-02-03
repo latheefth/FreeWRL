@@ -765,7 +765,7 @@ void render_polyrep(void *node) {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientIntensity);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissiveColor);
-		glEnable(GL_COLOR_MATERIAL);
+		COLOR_MATERIAL_ON
 	}
 
 	/*  clockwise or not?*/
@@ -826,7 +826,6 @@ printf ("\n\nrender_polyrep:\n");
 	/*  put things back to the way they were;*/
 	if (!r->normal) glEnableClientState(GL_NORMAL_ARRAY);
 	if (r->color) {
-		glDisable(GL_COLOR_MATERIAL);
 		glDisableClientState(GL_COLOR_ARRAY);
 	}
 	if (r->GeneratedTexCoords) {

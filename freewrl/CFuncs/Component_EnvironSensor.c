@@ -189,11 +189,10 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			BEGINOCCLUSIONQUERY
                         #endif
 
-			glDisable (GL_CULL_FACE);
+			DISABLE_CULL_FACE 
 			rendVisibilityBox(node);
-			glEnable(GL_CULL_FACE);
-			glEnable(GL_LIGHTING);
-			lightingOn = TRUE;
+
+			LIGHTING_ON
 
                         #ifdef VISIBILITYOCCLUSION
 			ENDOCCLUSIONQUERY
@@ -255,12 +254,6 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 		*pt++ = cx-x; *pt++ = cy+y; *pt++ = cz-z; *pt++ = cx-x; *pt++ = cy-y; *pt++ = cz-z;
 	}
 
-	/*
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
-	glDisable(GL_NORMALIZE);
-	*/
 	glColorMask (0,0,0,0);
 
 
@@ -271,11 +264,6 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	glDrawArrays (GL_QUADS, 0, 24);
 
-	/*
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_NORMALIZE);
-	*/
 	glColorMask (1,1,1,1);
 }
 

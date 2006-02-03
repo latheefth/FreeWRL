@@ -299,7 +299,6 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	}
 
 	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
 
 	DIRECTIONAL_LIGHT_OFF
 }
@@ -415,9 +414,6 @@ return;
 		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
-
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
 
 	DIRECTIONAL_LIGHT_OFF
 #endif

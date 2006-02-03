@@ -41,12 +41,6 @@
 #define PIXELTEXTURE    1
 #define MOVIETEXTURE    2
 
-/* keep track of which texture unit is active, and whether textures are enabled or not */        
-#define DISABLE_TEXTURES if (textureEnabled) {glDisable(GL_TEXTURE_2D); textureEnabled = FALSE;}
-#define ENABLE_TEXTURES if (textureEnabled==FALSE) {glEnable(GL_TEXTURE_2D); textureEnabled=TRUE;}
-#define TEXTURES_DISABLED (textureEnabled==FALSE)
-#define TEXTURES_ENABLED (textureEnabled==TRUE)
-
 /* bind_texture stores the param table pointer for the texture here */
 extern void *texParams[];
 

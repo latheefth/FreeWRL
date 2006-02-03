@@ -208,9 +208,6 @@ void child_Collision (struct X3D_Collision *node) {
 			BoundingBox(node->bboxCenter,node->bboxSize);
 		}
 
-		/* did we have that directionalLight? */
-		if((node->has_light)) glPopAttrib();
-
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD END %d\n",node);
 		#endif
@@ -308,9 +305,6 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
-
 	#ifdef CHILDVERBOSE
 	printf("RENDER INLINELOADCHILD END %d\n",node);
 	#endif
@@ -344,9 +338,6 @@ void  child_Billboard (struct X3D_Billboard *node) {
 		EXTENTTOBBOX
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
-
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER BILLBOARD END %d\n",node);

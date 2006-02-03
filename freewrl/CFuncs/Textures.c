@@ -311,11 +311,15 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 				paramPtr->operand0_rgb = GL_SRC_COLOR;
 				paramPtr->source1_rgb = GL_PREVIOUS;
 				paramPtr->operand1_rgb = GL_SRC_COLOR;
-				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->combine_alpha = GL_REPLACE;
 				paramPtr->source0_alpha = GL_TEXTURE;
 				paramPtr->operand0_alpha = GL_SRC_ALPHA;
+				paramPtr->source1_alpha = 0;
+				paramPtr->operand1_alpha = 0;
+				/*
 				paramPtr->source1_alpha = GL_PREVIOUS;
 				paramPtr->operand1_alpha = GL_SRC_ALPHA;
+				*/
 				paramPtr->rgb_scale = 1;
 				paramPtr->alpha_scale = 1;
 				paramPtr++;
@@ -343,41 +347,42 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
                                 paramPtr->alpha_scale = 4; } 
 		        else if (strncmp("ADDSMOOTH",param,strlen("ADDSMOOTH"))==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_ADD;}
-/* */
+/* 
+#define GL_ZERO                           0
+#define GL_ONE                            1
+#define GL_SRC_COLOR                      0x0300
+#define GL_ONE_MINUS_SRC_COLOR            0x0301
+#define GL_SRC_ALPHA                      0x0302
+#define GL_ONE_MINUS_SRC_ALPHA            0x0303
+#define GL_DST_ALPHA                      0x0304
+#define GL_ONE_MINUS_DST_ALPHA            0x0305
+
+*/
 		        else if (strncmp("BLENDDIFFUSEALPHA",param,strlen("BLENDDIFFUSEALPHA"))==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
 		        else if (strncmp("BLENDCURRENTALPHA",param,strlen("BLENDCURRENTALPHA"))==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
 		        else if (strncmp("MODULATEALPHA_ADDCOLOR",param,strlen("MODULATEALPHA_ADDCOLOR"))==0) { 
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
 		        else if (strncmp("MODULATEINVALPHA_ADDCOLOR",param,strlen("MODULATEINVALPHA_ADDCOLOR"))==0) { 
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
 		        else if (strncmp("MODULATEINVCOLOR_ADDALPHA",param,strlen("MODULATEINVCOLOR_ADDALPHA"))==0) { 
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
 		        else if (strncmp("SELECTARG1",param,strlen("SELECTARG1"))==0) {  
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->texture_env_mode = GL_REPLACE;
 				paramPtr->combine_rgb = GL_TEXTURE0;}
 		        else if (strncmp("SELECTARG2",param,strlen("SELECTARG2"))==0) {  
-				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
+				paramPtr->texture_env_mode = GL_REPLACE;
 				paramPtr->combine_rgb = GL_TEXTURE1;}
 		        else if (strncmp("DOTPRODUCT3",param,strlen("DOTPRODUCT3"))==0) {  
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
-				paramPtr->combine_rgb = GL_DOT3_RGBA;}
+				paramPtr->combine_rgb = GL_DOT3_RGB;}
 /* */
 		        else if (strncmp("MODULATE",param,strlen("MODULATE"))==0) {
 				/* defaults */}
@@ -387,30 +392,26 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 
 		        else if (strncmp("SUBTRACT",param,strlen("SUBTRACT"))==0) {
 				paramPtr->texture_env_mode = GL_COMBINE;
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_SUBTRACT;}
 
 		        else if (strncmp("ADDSIGNED2X",param,strlen("ADDSIGNED2X"))==0) {
 				paramPtr->rgb_scale = 2;
 				paramPtr->alpha_scale = 2;
 				paramPtr->texture_env_mode = GL_COMBINE; 
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_ADD_SIGNED;}
 
 		        else if (strncmp("ADDSIGNED",param,strlen("ADDSIGNED"))==0) {
 				paramPtr->texture_env_mode = GL_COMBINE; 
-				paramPtr->combine_alpha = GL_MODULATE;
 				paramPtr->combine_rgb = GL_ADD_SIGNED;}
 
 
 		        else if (strncmp("ADD",param,strlen("ADD"))==0) {
 					paramPtr->texture_env_mode = GL_COMBINE;
-					paramPtr->combine_alpha = GL_MODULATE;
 					paramPtr->combine_rgb = GL_ADD; }
 
 
 		        else if (strncmp("OFF",param,strlen("OFF"))==0) { 
-					paramPtr->texture_env_mode = NULL; } 
+					paramPtr->texture_env_mode = 0; } 
 
 
 

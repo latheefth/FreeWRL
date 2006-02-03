@@ -20,72 +20,48 @@ void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *node) {
                 if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
                         regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *node) {
                 if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
                         regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *node) {
                 if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
                         regen_polyrep(node, node->coord, node->color, node->normal, NULL);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 void render_TriangleFanSet (struct X3D_TriangleFanSet *node) {
                 if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
                         regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 void render_TriangleStripSet (struct X3D_TriangleStripSet *node) {
                 if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
                         regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 void render_TriangleSet (struct X3D_TriangleSet *node) {
                 if (!node->_intern || node->_change != ((struct X3D_PolyRep *)node->_intern)->_change) 
                         regen_polyrep(node, node->coord, node->color, node->normal, node->texCoord);
 
-		if(!node->solid) {
-			glPushAttrib(GL_ENABLE_BIT);
-			glDisable(GL_CULL_FACE);
-		}
+		CULL_FACE(node->solid)
 		render_polyrep(node);
-		if(!node->solid) glPopAttrib();
 }
 
 
@@ -114,10 +90,9 @@ void render_LineSet (struct X3D_LineSet *node) {
 		thisColor = defColor;
 	}
 
-	glPushAttrib(GL_ENABLE_BIT);
-	glDisable (GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
-	glDisable(GL_CULL_FACE);
+	LIGHTING_OFF
+	DISABLE_CULL_FACE
+	
 
 	/* do we have to re-verify LineSet? */
 	if (node->_ichange != node->_change) {
@@ -184,7 +159,6 @@ void render_LineSet (struct X3D_LineSet *node) {
 				printf ("LineSet, vertexCount[%d] has %d vertices...\n",vtc,punt);
 				node->_ichange = node->_change; /* make this error show only once */
 				/* free ((void *)node->__points);*/
-glPopAttrib();
 				return;
 			}
 
@@ -193,7 +167,6 @@ glPopAttrib();
 				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
 				node->_ichange = node->_change; /* make this error show only once */
 				/* free ((void *)node->__points);*/
-glPopAttrib();
 				return;
 			}
 			if (ncolor != 0) {
@@ -201,7 +174,6 @@ glPopAttrib();
 				printf ("LineSet, ran out of vertices at vertexCount[%d] has %d vertices...\n",vtc,punt);
 				node->_ichange = node->_change; /* make this error show only once */
 				/* free ((void *)node->__points);*/
-glPopAttrib();
 				return;
 			}
 			}
@@ -241,7 +213,6 @@ glPopAttrib();
 	/* 	glMultiDrawElements(GL_LINE_STRIP,(node->vertexCount).p,GL_FLOAT,*/
 	/* 			node->__points,(node->vertexCount).n);*/
 	/* }*/
-	glPopAttrib();
 }
 
 
@@ -296,10 +267,8 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
                 	}
         	}
 
-                glPushAttrib(GL_ENABLE_BIT);
-		glDisable (GL_LIGHTING);
-		glDisable(GL_COLOR_MATERIAL);
-                glDisable(GL_CULL_FACE);
+		LIGHTING_OFF
+                DISABLE_CULL_FACE
 
 		glBegin(GL_LINE_STRIP);
 		for(i=0; i<cin; i++) {
@@ -348,7 +317,6 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			}
 		}
 		glEnd();
-                glPopAttrib();
 }
 
 void render_PointSet (struct X3D_PointSet *node) {
@@ -397,10 +365,8 @@ void render_PointSet (struct X3D_PointSet *node) {
 		ncolors = 0;
 	}
 
-	glPushAttrib(GL_ENABLE_BIT);
-	glDisable (GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
-	glDisable(GL_CULL_FACE);
+	LIGHTING_OFF
+	DISABLE_CULL_FACE
 
 	glBegin(GL_POINTS);
 
@@ -430,6 +396,5 @@ void render_PointSet (struct X3D_PointSet *node) {
 		);
 	}
 	glEnd();
-                glPopAttrib();
 }
 

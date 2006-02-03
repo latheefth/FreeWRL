@@ -199,9 +199,6 @@ void child_Anchor (struct X3D_Anchor *node) {
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
 
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
-
 	#ifdef CHILDVERBOSE
 	printf("RENDER ANCHOR END %d\n",node);
 	#endif
@@ -239,9 +236,6 @@ void child_Inline (struct X3D_Inline *node) {
 		EXTENTTOBBOX
 		BoundingBox(node->bboxCenter,node->bboxSize);
 	}
-
-	/* did we have that directionalLight? */
-	if((node->has_light)) glPopAttrib();
 
 	#ifdef CHILDVERBOSE
 	printf("RENDER INLINE END %d\n",node);
