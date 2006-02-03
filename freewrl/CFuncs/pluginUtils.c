@@ -335,3 +335,51 @@ void Anchor_ReplaceWorld (char *filename) {
 		rootNode, offsetof (struct X3D_Group, children),&tmp,
 		TRUE);
 }
+
+
+
+#include <ctype.h>
+
+/* send in a 0 to 15, return a char representation */
+char tohex (int mychar) {
+	if (mychar <10) return (mychar + '0');
+	else return (mychar - 10 + 'a');
+}
+
+/* Change a string to encode spaces for getting URLS. */
+void URLencod (char *dest, char *src, int maxlen) {
+	int mylen;
+	int sctr;
+	int destctr;
+	int curchar;
+
+	/* get the length of the source and bounds check */
+	mylen = strlen(src);
+	if (mylen == 0) {
+		dest[0]= '\0';
+		return;
+	}
+	
+	/* encode the string */
+	for (sctr = 0; sctr < mylen; sctr ++) {
+		curchar = (int) *src; src++;	
+		/* should we encode this one? */
+		if ((curchar <= ' ') || iswpunct(curchar) || (curchar >= 0x7f)) {
+			*dest = '%'; dest ++;
+			*dest = tohex ((curchar >> 4) & 0x0f); dest++;
+			*dest = tohex (curchar & 0x0f); dest++;
+			destctr +=3;
+		} else {
+			*dest = (char) curchar; destctr++; dest++;
+		}
+
+		/* bounds check */
+		if (destctr > (maxlen - 5))  {
+			*dest = '\0';
+			return;
+		}
+	}
+
+	*dest = '\0'; /* null terminate this one */
+	
+}
