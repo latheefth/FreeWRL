@@ -218,13 +218,12 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	char tempname[1000];
 	char sysline[1000];
 
-	/* printf ("checking for filename here %s\n",fname); */
+	/* printf ("checking for filename here %s\n",fname);  */
 
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
 	if (RUNNINGASPLUGIN && (strcmp(BrowserURL,fname)!=0)) {
-		URLencod(tempname,fname,1000);
-		retName = requestUrlfromPlugin(_fw_FD,_fw_instance,tempname);
+		retName = requestUrlfromPlugin(_fw_FD,_fw_instance,fname);
 
 		/* check for timeout; if not found, return false */
 		if (!retName) return (FALSE);
@@ -286,7 +285,9 @@ void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	   browser do the pathing stuff */
 	if (RUNNINGASPLUGIN) {
 		/* printf ("makeAbsolute, running under a browser, just copy\n"); */
-		URLencod (filename,thisurl,1000);
+		
+		/* URLencod (filename,thisurl,1000); */
+		strcpy (filename,thisurl);
 		return;
 	}
 

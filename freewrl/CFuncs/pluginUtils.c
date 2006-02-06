@@ -343,9 +343,50 @@ void Anchor_ReplaceWorld (char *filename) {
 /* send in a 0 to 15, return a char representation */
 char tohex (int mychar) {
 	if (mychar <10) return (mychar + '0');
-	else return (mychar - 10 + 'a');
+	else return (mychar - 10 + 'A');
 }
 
+/* should this character be encoded? */
+int URLmustEncode(int ch) {
+	if (
+		   (ch == 0x20) 
+		|| (ch == 0x22) 
+		|| (ch == 0x3c) 
+		|| (ch == 0x3e) 
+		|| (ch == 0x23) 
+		|| (ch == 0x25)
+		|| (ch == 0x7b) 
+		|| (ch == 0x7d) 
+		|| (ch == 0x7c) 
+		|| (ch == 0x5c) 
+		|| (ch == 0x5e) 
+		|| (ch == 0x7e) 
+		|| (ch == 0x5b) 
+		|| (ch == 0x5d) 
+		|| (ch == 0x60)) return TRUE;
+	return FALSE;
+} 
+
+
+/***************/
+static FILE * tty = NULL;
+
+/* prints to a log file if we are running as a plugin */
+void URLprint (const char *m, const char *p) {
+#ifdef URLPRINTDEBUG
+	if (tty == NULL) {
+		tty = fopen("/home/luigi/logURLencod", "w");
+		if (tty == NULL)
+			abort();
+		fprintf (tty, "\nplugin restarted\n");
+	}
+
+	fprintf(tty, m,p);
+	fflush(tty);
+#endif
+}
+
+/* loop about waiting for the Browser to send us some stuff. */
 /* Change a string to encode spaces for getting URLS. */
 void URLencod (char *dest, char *src, int maxlen) {
 	int mylen;
@@ -354,6 +395,9 @@ void URLencod (char *dest, char *src, int maxlen) {
 	int curchar;
 
 	/* get the length of the source and bounds check */
+URLprint ("going to start URLencod %s\n","on a string");
+URLprint ("start, src is %s\n",src);
+URLprint ("maxlen is %d\n",maxlen);
 	mylen = strlen(src);
 	if (mylen == 0) {
 		dest[0]= '\0';
@@ -364,7 +408,8 @@ void URLencod (char *dest, char *src, int maxlen) {
 	for (sctr = 0; sctr < mylen; sctr ++) {
 		curchar = (int) *src; src++;	
 		/* should we encode this one? */
-		if ((curchar <= ' ') || iswpunct(curchar) || (curchar >= 0x7f)) {
+
+                if (URLmustEncode(curchar)) { 
 			*dest = '%'; dest ++;
 			*dest = tohex ((curchar >> 4) & 0x0f); dest++;
 			*dest = tohex (curchar & 0x0f); dest++;
@@ -372,6 +417,8 @@ void URLencod (char *dest, char *src, int maxlen) {
 		} else {
 			*dest = (char) curchar; destctr++; dest++;
 		}
+	
+
 
 		/* bounds check */
 		if (destctr > (maxlen - 5))  {
@@ -379,7 +426,5 @@ void URLencod (char *dest, char *src, int maxlen) {
 			return;
 		}
 	}
-
 	*dest = '\0'; /* null terminate this one */
-	
 }

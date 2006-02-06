@@ -89,8 +89,11 @@ requestUrlfromPlugin(int sockDesc,
 	int linecount;
 	int linelen;
 	char buf[2004];
+	char encodedUrl[2000];
 
 	pluginprint ("requestURL fromPlugin, getting %s\n",url);
+	URLencod(encodedUrl,url,2000);
+	pluginprint ("requestURL fromPlugin, NOW getting %s\n",encodedUrl);
 
 	request.instance = (void *) plugin_instance;
 	request.notifyCode = 0; /* get a file  */
@@ -99,8 +102,8 @@ requestUrlfromPlugin(int sockDesc,
 	memset(request.url, 0, len);
 	memset(return_url, 0, len);
 
-	ulen = strlen(url) + 1;
-	memmove(request.url, url, ulen);
+	ulen = strlen(encodedUrl) + 1;
+	memmove(request.url, encodedUrl, ulen);
 	bytes = sizeof(urlRequest);
 
 	pluginprint ("requestURL fromPlugin, step 1\n","");
