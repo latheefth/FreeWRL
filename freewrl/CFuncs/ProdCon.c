@@ -281,16 +281,6 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
 
-	/* lets try this - if we are running under a browser, let the
-	   browser do the pathing stuff */
-	if (RUNNINGASPLUGIN) {
-		/* printf ("makeAbsolute, running under a browser, just copy\n"); */
-		
-		/* URLencod (filename,thisurl,1000); */
-		strcpy (filename,thisurl);
-		return;
-	}
-
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {
 		/* printf ("copying psppath over for %s\n",thisurl);*/
