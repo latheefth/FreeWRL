@@ -246,7 +246,6 @@ void OcclusionCulling ()  {
 	#ifdef OCCLUSION
 	int i;
 	struct X3D_Shape *xx;
-	#endif
 	
 	
 	
@@ -309,5 +308,6 @@ void OcclusionCulling ()  {
 			OccActive[i] = FALSE;
 		}
 	}
+	#endif
 }
 
