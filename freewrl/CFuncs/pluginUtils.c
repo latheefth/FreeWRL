@@ -395,9 +395,11 @@ void URLencod (char *dest, char *src, int maxlen) {
 	int curchar;
 
 	/* get the length of the source and bounds check */
-URLprint ("going to start URLencod %s\n","on a string");
-URLprint ("start, src is %s\n",src);
-URLprint ("maxlen is %d\n",maxlen);
+	URLprint ("going to start URLencod %s\n","on a string");
+	URLprint ("start, src is %s\n",src);
+	URLprint ("maxlen is %d\n",maxlen);
+
+	destctr = 0; /* ensure we dont go over dest length */
 	mylen = strlen(src);
 	if (mylen == 0) {
 		dest[0]= '\0';

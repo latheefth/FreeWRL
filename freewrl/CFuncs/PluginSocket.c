@@ -13,20 +13,21 @@
 /* what Browser are we running under? Mozilla? Opera?*/
 char NetscapeName[MAXNETSCAPENAMELEN];
 
+/*  CHECK DIRECTORY IN PLUGINPRINT*/
+#undef PLUGINSOCKETVERBOSE
 
-static int PluginSocketVerbose = 0; /*  CHECK DIRECTORY IN PLUGINPRINT*/
-static FILE * tty = NULL;
 fd_set rfds;
 struct timeval tv;
 
 char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointer */
 
-/* added M. Ward Dec8/04*/
+
+#ifdef PLUGINSOCKETVERBOSE
+static FILE * tty = NULL;
 extern void abort();
 
 /* prints to a log file if we are running as a plugin */
 void pluginprint (const char *m, const char *p) {
-	if (!PluginSocketVerbose) return;
 	if (tty == NULL) {
 		tty = fopen("/home/luigi/logPluginSocket", "w");
 		if (tty == NULL)
@@ -36,6 +37,7 @@ void pluginprint (const char *m, const char *p) {
 
 	fprintf(tty, m,p);
 	fflush(tty);
+#endif
 }
 
 /* loop about waiting for the Browser to send us some stuff. */
@@ -45,14 +47,19 @@ int waitForData(int sock) {
 	int count;
 	int totalcount;
 
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("waitForData, BN %s\n",NetscapeName);
+	#endif
+
 	retval = FALSE;
 	count = 0;
 	totalcount = 1000000;
 
 	if (strncmp (NetscapeName,"Mozilla",strlen("Mozilla")) == 0) {
 		/* Mozilla,  lets give it 10 seconds */
+		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("have Mozilla, reducing timeout to 10 secs","");
+		#endif
 		totalcount = 1000;
 	}
 
@@ -66,12 +73,18 @@ int waitForData(int sock) {
 
 
 		if (retval) {
+			#ifdef PLUGINSOCKETVERBOSE
 			pluginprint ("waitForData returns TRUE\n","");
+			#endif
+
 			return (TRUE);
 		} else {
 			count ++;
 			if (count > totalcount) {
+				#ifdef PLUGINSOCKETVERBOSE
 				pluginprint ("waitForData, timing out\n","");
+				#endif
+
 				return (FALSE);
 			}
 		}
@@ -91,9 +104,14 @@ requestUrlfromPlugin(int sockDesc,
 	char buf[2004];
 	char encodedUrl[2000];
 
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, getting %s\n",url);
+	#endif
+
 	URLencod(encodedUrl,url,2000);
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, NOW getting %s\n",encodedUrl);
+	#endif
 
 	request.instance = (void *) plugin_instance;
 	request.notifyCode = 0; /* get a file  */
@@ -106,25 +124,36 @@ requestUrlfromPlugin(int sockDesc,
 	memmove(request.url, encodedUrl, ulen);
 	bytes = sizeof(urlRequest);
 
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, step 1\n","");
+	#endif
 
 	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
+		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("write failed in requestUrlfromPlugin","");
+		#endif
 		return NULL;
 	}
 
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, step 2\n","");
+	#endif
+
 
 	/* wait around for a bit to see if this is going to pass or fail */
 	if (!waitForData(sockDesc)) return NULL;
 
 	if (read(sockDesc, (char *) return_url, len) < 0) {
+		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint("read failed in requestUrlfromPlugin","");
 		pluginprint("Testing: error from read -- returned url is %s.\n", return_url);
+		#endif
 		return NULL;
 	}
 
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, returning %s\n",return_url);
+	#endif
 
 	/* now, did this request return a text file with a html page indicating 404- not found? */
 	infile = fopen (return_url,"r");
@@ -140,7 +169,9 @@ requestUrlfromPlugin(int sockDesc,
 		/* some, all??? will eventually return a 404 html text in
 		   place of whatever you requested */
 		if (strstr(buf,"<TITLE>404 Not Found</TITLE>") != NULL) {
+			#ifdef PLUGINSOCKETVERBOSE
 			pluginprint ("found a 404 in :%s:\n",buf);
+			#endif
 			fclose (infile);
 			return NULL;
 		}
@@ -169,7 +200,9 @@ void requestNewWindowfromPlugin(int sockDesc,
 	int linelen;
 	char buf[2004];
 
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestNewWindow fromPlugin, getting %s\n",url);
+	#endif
 
 	request.instance = (void *) plugin_instance;
 	request.notifyCode = 1; /* tell plugin that we want a new window */
@@ -182,10 +215,14 @@ void requestNewWindowfromPlugin(int sockDesc,
 	memmove(request.url, url, ulen);
 	bytes = sizeof(urlRequest);
 
+	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestNewWindow fromPlugin, step 1\n","");
+	#endif
 
 	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
+		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("write failed in requestUrlfromPlugin","");
+		#endif
 		return;
 	}
 }
