@@ -77,10 +77,18 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	struct orient viewer_orient;
 	GLdouble mod[16];
 	GLdouble proj[16];
+        GLdouble modelMatrix[16];
+
 
 	int align;
 	double len, len2, angle;
 	int sign;
+
+        if (render_light) {
+                fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+                node->_dist = modelMatrix[14];
+        }
+
 	ax.x = node->axisOfRotation.c[0];
 	ax.y = node->axisOfRotation.c[1];
 	ax.z = node->axisOfRotation.c[2];
@@ -134,6 +142,7 @@ void prep_Billboard (struct X3D_Billboard *node) {
 	angle = atan2(len2, sign*len);
 
 	glRotatef(angle/3.1415926536*180, ax.x, ax.y, ax.z);
+	invalidateCurMat();  /* force a glGetMatrix from the system */
 }
 
 
@@ -151,6 +160,7 @@ void render_NavigationInfo (struct X3D_NavigationInfo *node) {
 void fin_Billboard (struct X3D_Billboard *node) {
 	UNUSED(node);
 	glPopMatrix();
+	invalidateCurMat();
 }
 
 

@@ -302,7 +302,6 @@ void EventLoop() {
 
 	/* handle_mouse events if clicked on a sensitive node */
 	if (!NavigationMode && HaveSensitive) {
-	/* if (!NavigationMode) {*/
 		setup_projection(TRUE,currentX,currentY);
 		setup_viewpoint(FALSE);
 		render_hier(rootNode,VF_Sensitive);

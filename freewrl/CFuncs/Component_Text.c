@@ -1004,7 +1004,3 @@ void make_Text (struct X3D_Text *node) {
 	/* printf ("Text, tris = %d\n",rep_->ntri);*/
 
 }
-
-void rendray_Text (struct X3D_Text *node) {
-	render_ray_polyrep(node, NULL);
-}

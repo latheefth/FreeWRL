@@ -116,8 +116,7 @@ do_glNormal3fv(struct SFColor *dest, GLfloat *param);
 
 void stream_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
 void
-render_ray_polyrep(void *node,
-				   struct SFColor *points);
+render_ray_polyrep(void *node);
 
 void regen_polyrep(void *node, void *coord, void *color, void *normal, void *texCoord);
 

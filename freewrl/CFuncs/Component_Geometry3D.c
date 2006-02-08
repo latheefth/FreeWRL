@@ -1172,29 +1172,3 @@ void rendray_Cone (struct X3D_Cone *node) {
 		}
 	}
 }
-
-void rendray_ElevationGrid (struct X3D_ElevationGrid *node) {
-	render_ray_polyrep(node, NULL);	
-}
-
-void rendray_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {
-                struct SFColor *points=0; int npoints;
-                struct X3D_Coordinate *xc;
-
-                if(node->coord) {
-                        xc = (struct X3D_Coordinate *) node->coord;
-                        if (xc->_nodeType != NODE_Coordinate) {
-                                freewrlDie ("IndexedFaceSet - coord node wrong type");
-                        } else {
-                                points = xc->point.p;
-                                npoints = xc->point.n;
-                        }
-                }
-
-                render_ray_polyrep(node, points);
-}
-
-
-void rendray_Extrusion (struct X3D_Extrusion *node) {
-	render_ray_polyrep(node, NULL);
-}

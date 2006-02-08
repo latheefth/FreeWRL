@@ -37,8 +37,8 @@ void pluginprint (const char *m, const char *p) {
 
 	fprintf(tty, m,p);
 	fflush(tty);
-#endif
 }
+#endif
 
 /* loop about waiting for the Browser to send us some stuff. */
 int waitForData(int sock) {

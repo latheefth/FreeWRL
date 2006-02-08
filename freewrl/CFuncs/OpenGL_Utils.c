@@ -195,15 +195,17 @@ static double PROJmat[16];
 static int sav = 0;
 static int tot = 0;
 
-void fwLoadIdentity () {
-	glLoadIdentity();
+void invalidateCurMat() {
 	if (myMat == GL_PROJECTION) PROJmatOk=FALSE;
 	else if (myMat == GL_MODELVIEW) MODmatOk=FALSE;
-
 	else {printf ("fwLoad, unknown %d\n",myMat);}
 }
 
-
+void fwLoadIdentity () {
+	glLoadIdentity();
+	invalidateCurMat();
+}
+	
 void fwMatrixMode (int mode) {
 	if (myMat != mode) {
 		/*printf ("fwMatrixMode ");

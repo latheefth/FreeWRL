@@ -846,13 +846,26 @@ printf ("\n\nrender_polyrep:\n");
  *
  * render_ray_polyrep : get intersections of a ray with one of the
  * polygonal representations
+ *
+ * currently handled:
+ *	rendray_Text 
+ *	rendray_ElevationGrid  
+ *	rendray_Extrusion 
+ *	rendray_IndexedFaceSet  
+ *	rendray_ElevationGrid 
+ *	rendray_IndexedTriangleSet 
+ *	rendray_IndexedTriangleFanSet 
+ *	rendray_IndexedTriangleStripSet 
+ *	rendray_TriangleSet 
+ *	rendray_TriangleFanSet 
+ *	rendray_TriangleStripSet 
+ *	rendray_GeoElevationGrid 
  */
 
-void render_ray_polyrep(void *node, struct SFColor *points)
-{
+void render_ray_polyrep(void *node) {
 	struct X3D_Virt *v;
-	struct X3D_Box *p;
-	struct X3D_PolyRep *r;
+	struct X3D_Box *genericNodePtr;
+	struct X3D_PolyRep *polyRep;
 	int i;
 	int pt;
 	float *point[3];
@@ -863,47 +876,46 @@ void render_ray_polyrep(void *node, struct SFColor *points)
 	float tmp1,tmp2;
 	float v1len, v2len, v3len;
 	float v12pt;
+	struct SFColor *points;
 
-	/* printf ("start of render_ray_polyrep, node %d points %d\n",node,points);  */
+	/* is this structure still loading? */
+	if (!node) return;
 
 	ray.x = t_r2.x - t_r1.x;
 	ray.y = t_r2.y - t_r1.y;
 	ray.z = t_r2.z - t_r1.z;
+
+	genericNodePtr = (struct X3D_Box *)node;
 	v = *(struct X3D_Virt **)node;
-	p =(struct X3D_Box *) node;
 	
 	/* is this structure still loading? */
-	if (!node) return;
-	if (!points) return;
-	if (!(p->_intern)) {
+	if (!(genericNodePtr->_intern)) {
 		/* printf ("render_ray_polyrep - no internal structure, returning\n"); */
 		return;
 	}
 
-	r = (struct X3D_PolyRep *)p->_intern;
+	polyRep = (struct X3D_PolyRep *)genericNodePtr->_intern;
+
+	/*	
+	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,stringNodeType(genericNodePtr->_nodeType),
+		genericNodePtr->_change, polyRep->_change, polyRep->ntri);
+	*/
 
 	
-/* printf ("%d %d %d\n",v,p,r);
-	printf("render_ray_polyrep %d '%s' (%d %d): %d\n",node,stringNodeType(p->_nodeType),
-		p->_change, r->_change, r->ntri);
 
-*/
-	
-
-	for(i=0; i<r->ntri; i++) {
+	for(i=0; i<polyRep->ntri; i++) {
 		for(pt = 0; pt<3; pt++) {
-			int ind = r->cindex[i*3+pt];
-			if (r->coord) {
-				point[pt] = (r->coord+3*ind);
-			} else if (points) {
-				point[pt] = (points[ind].c);
-			}
+			int ind = polyRep->cindex[i*3+pt];
+			point[pt] = (polyRep->coord+3*ind);
 		}
-		/*printf ("have points (%f %f %f) (%f %f %f) (%f %f %f)\n",
+
+		/*
+		printf ("have points (%f %f %f) (%f %f %f) (%f %f %f)\n",
 			point[0][0],point[0][1],point[0][2],
 			point[1][0],point[1][1],point[1][2],
 			point[2][0],point[2][1],point[2][2]);
 		*/
+		
 		/* First we need to project our point to the surface */
 		/* Poss. 1: */
 		/* Solve s1xs2 dot ((1-r)r1 + r r2 - pt0)  ==  0 */

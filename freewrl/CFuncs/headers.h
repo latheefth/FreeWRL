@@ -638,6 +638,7 @@ void fwMatrixMode (int mode);
 void fwXformPush(struct X3D_Transform *me);
 void fwXformPop(struct X3D_Transform *me);
 void fwLoadIdentity (void);
+void invalidateCurMat(void);
 void doBrowserAction (void);
 void add_parent(void *node_, void *parent_);
 void remove_parent(void *node_, void *parent_);
@@ -648,7 +649,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_);
 void render_LoadSensor(struct X3D_LoadSensor *this);
 
 void render_Text (struct X3D_Text * this_);
-void rendray_Text (struct X3D_Text *this_);
+#define rendray_Text render_ray_polyrep
 void make_Text (struct X3D_Text * this_);
 void collide_Text (struct X3D_Text * this_);
 void render_TextureCoordinateGenerator(struct X3D_TextureCoordinateGenerator *this);
@@ -728,19 +729,22 @@ void collide_Cone (struct X3D_Cone *this);
 void render_Cylinder (struct X3D_Cylinder *this);
 void collide_Cylinder (struct X3D_Cylinder *this);
 void render_ElevationGrid (struct X3D_ElevationGrid *this);
+#define rendray_ElevationGrid  render_ray_polyrep
 #define collide_ElevationGrid collide_IndexedFaceSet
 void render_Extrusion (struct X3D_Extrusion *this);
 void collide_Extrusion (struct X3D_Extrusion *this);
-void rendray_Extrusion (struct X3D_Extrusion *this_);
+#define rendray_Extrusion render_ray_polyrep
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
 void collide_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
-void rendray_IndexedFaceSet (struct X3D_IndexedFaceSet *this_);
+#define rendray_IndexedFaceSet render_ray_polyrep 
+void render_IndexedFaceSet (struct X3D_IndexedFaceSet *this);
+
 void render_Sphere (struct X3D_Sphere *this);
 void collide_Sphere (struct X3D_Sphere *this);
 void make_Extrusion (struct X3D_Extrusion *this);
 #define make_IndexedFaceSet make_indexedfaceset
 #define make_ElevationGrid make_indexedfaceset
-void rendray_ElevationGrid (struct X3D_ElevationGrid *this_);
+#define rendray_ElevationGrid render_ray_polyrep
 void rendray_Box (struct X3D_Box *this_);
 void rendray_Sphere (struct X3D_Sphere *this_);
 void rendray_Cylinder (struct X3D_Cylinder *this_);
@@ -760,12 +764,12 @@ void collide_Rectangle2D (struct X3D_Rectangle2D *this_);
 void collide_TriangleSet2D (struct X3D_TriangleSet2D *this_);
 
 /* Rendering nodes */
-#define rendray_IndexedTriangleSet rendray_IndexedFaceSet
-#define rendray_IndexedTriangleFanSet rendray_IndexedFaceSet
-#define rendray_IndexedTriangleStripSet rendray_IndexedFaceSet
-#define rendray_TriangleSet rendray_IndexedFaceSet
-#define rendray_TriangleFanSet rendray_IndexedFaceSet
-#define rendray_TriangleStripSet rendray_IndexedFaceSet
+#define rendray_IndexedTriangleSet render_ray_polyrep
+#define rendray_IndexedTriangleFanSet render_ray_polyrep
+#define rendray_IndexedTriangleStripSet render_ray_polyrep
+#define rendray_TriangleSet render_ray_polyrep
+#define rendray_TriangleFanSet render_ray_polyrep
+#define rendray_TriangleStripSet render_ray_polyrep
 void render_IndexedTriangleFanSet (struct X3D_IndexedTriangleFanSet *this_); 
 void render_IndexedTriangleSet (struct X3D_IndexedTriangleSet *this_); 
 void render_IndexedTriangleStripSet (struct X3D_IndexedTriangleStripSet *this_); 
@@ -795,7 +799,7 @@ void light_PointLight (struct X3D_PointLight *this_);
 
 /* Geospatial nodes */
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
-void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
+#define rendray_GeoElevationGrid render_ray_polyrep
 void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 void make_GeoElevationGrid (struct X3D_GeoElevationGrid *this_);
 void prep_GeoViewpoint(struct X3D_GeoViewpoint *node);

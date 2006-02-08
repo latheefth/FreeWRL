@@ -396,7 +396,3 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 		#endif
 }
 
-
-void rendray_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
-	render_ray_polyrep(node, NULL);
-}

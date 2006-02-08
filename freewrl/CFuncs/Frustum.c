@@ -41,13 +41,6 @@ GLuint *OccQueries = 0;
 void* *OccNodes = 0;
 int *OccActive = 0;
 GLint *OccSamples = 0;
-/*
-#define MAXOCCQUERIES 100
-GLuint OccQueries[MAXOCCQUERIES];
-void* OccNodes[MAXOCCQUERIES];
-int OccActive[MAXOCCQUERIES];
-GLint OccSamples[MAXOCCQUERIES];
-*/
 
 int maxShapeFound = 0;
 int OccQuerySize=0;
@@ -189,7 +182,6 @@ void OcclusionStartofEventLoop() {
 	int i;
 
         #ifdef OCCLUSION
-
 	/* have we been through this yet? */
 	if (OccInitialized == FALSE) {
         	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS)); */
@@ -217,7 +209,7 @@ void OcclusionStartofEventLoop() {
 
 	/* did we find more shapes than before? */
         if (maxShapeFound > OccQuerySize) {
-                printf ("have to regen queries\n");
+                /* printf ("have to regen queries\n"); */
 		glDeleteQueries (OccQuerySize, OccQueries);
 		OccQuerySize = maxShapeFound + 100;
 		OccQueries = realloc (OccQueries,sizeof (int) * maxShapeFound);
