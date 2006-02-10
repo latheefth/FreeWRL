@@ -58,7 +58,7 @@ int	global_tcin_count;
 
 
 /* function Prototypes */
-int findTextureFile (GLuint *texnum, int type, int *remove);
+int findTextureFile (int cwo, int *remove);
 void _textureThread(void);
 void store_tex_info(
 		int texno,
@@ -931,7 +931,7 @@ void checkAndAllocTexMemTables(GLuint *texture_num, int increment) {
    this is almost identical to the one for Inlines, but running
    in different threads */
 
-int findTextureFile (GLuint *texnum, int type, int *istemp) {
+int findTextureFile (int cwo, int *istemp) {
 	char *filename;
 	char *mypath;
 	char *thisurl;
@@ -951,40 +951,13 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	*istemp=FALSE;	/* don't remove this file */
 
 	#ifdef TEXVERBOSE 
-	printf ("textureThread:start of findTextureFile for texture %d\n",*texnum);
+	printf ("textureThread:start of findTextureFile for cwo %d \n",cwo);
 	#endif
 	/* try to find this file. */
 
-	/* pixelTextures - lets just make a specific string for this one */
-	if (type ==PIXELTEXTURE) {
-		int a,b,c;
-		char *name;
-
-		#ifdef TEXVERBOSE 
-		printf ("textureThread, going to get name \n");
-		#endif
-
-		name = SvPV(loadparams[*texnum].parenturl,xx);
-		filename = (char *)malloc(100);
-
-		/* printf ("in find, name %s strlen %d\n",name,strlen(name)); */
-		/* make up a checksum name */
-		b = 0;
-		c = strlen(name);
-		if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
-		for (a=0; a<c; a++) {
-			b =  b + (int) (name[a] & 0xff);
-		}
-
-		sprintf (filename,"PixelTexture_%d_%d",c,b);
-		#ifdef TEXVERBOSE 
-		printf ("textureThread, temp name is %s\n",filename);
-		#endif
-
-	} else {
-
+	if (loadparams[cwo].type !=PIXELTEXTURE) {
 		/* lets make up the path and save it, and make it the global path */
-		count = strlen(SvPV(loadparams[*texnum].parenturl,xx));
+		count = strlen(SvPV(loadparams[cwo].parenturl,xx));
 		mypath = (char *)malloc ((sizeof(char)* count)+1);
 		filename = (char *)malloc(1000);
 
@@ -993,7 +966,7 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 		}
 
 		/* copy the parent path over */
-		strcpy (mypath,SvPV(loadparams[*texnum].parenturl,xx));
+		strcpy (mypath,SvPV(loadparams[cwo].parenturl,xx));
 
 		/* and strip off the file name, leaving any path */
 		slashindex = (char *)rindex(mypath,'/');
@@ -1004,8 +977,8 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 
 		/* try the first url, up to the last */
 		count = 0;
-		while (count < loadparams[*texnum].url.n) {
-			thisurl = SvPV(loadparams[*texnum].url.p[count],xx);
+		while (count < loadparams[cwo].url.n) {
+			thisurl = SvPV(loadparams[cwo].url.p[count],xx);
 
 			/* check to make sure we don't overflow */
 			if ((strlen(thisurl)+strlen(mypath)) > 900) break;
@@ -1021,27 +994,60 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 			count ++;
 		}
 
-		if (count != loadparams[*texnum].url.n) {
+		if (count != loadparams[cwo].url.n) {
 			#ifdef TEXVERBOSE 
 				printf ("textureThread: we were successful at locating %s\n",filename); 
 			#endif
 		} else {
 			if (count > 0) {
-				
-				printf ("Could not locate URL for texture %d (last choice was %s)\n",*texnum,filename);
+				printf ("Could not locate URL for texture %d (last choice was %s)\n",cwo,filename);
 			}
-			free (filename);
-			freeTexture(texnum);
-			loadparams[*texnum].filename="file not found";
-			texIsloaded[*texnum]=INVALID;
-			return FALSE;
+			/* So, we could not find the correct file. Make this into a blank PixelTexture, so that
+			   at least this looks ok on the screen */
+			loadparams[cwo].type = PIXELTEXTURE;
+			/* really bright PixelTexture! 
+			loadparams[cwo].parenturl=EAI_newSVpv("2 4 3 0xff0000 0x00ff00 0xff0000 0x00ff00 0xffff00 0x0000ff 0xffff00 0x0000ff");
+			*/
+			loadparams[cwo].parenturl=EAI_newSVpv("1 1 3 0x707070");
 		}
 	}
+
+	/* pixelTextures - lets just make a specific string for this one */
+	if (loadparams[cwo].type ==PIXELTEXTURE) {
+		int a,b,c;
+		char *name;
+
+		#ifdef TEXVERBOSE 
+		printf ("textureThread, going to get name \n");
+		#endif
+
+		name = SvPV(loadparams[cwo].parenturl,xx);
+		filename = (char *)malloc(100);
+
+		#ifdef TEXVERBOSE
+		printf ("in find, name %s strlen %d\n",name,strlen(name));
+		#endif
+
+		/* make up a checksum name that is unique for PixelTextures - for checking on duplicates */
+		b = 0;
+		c = strlen(name);
+		if (c > 3000) c = 3000; /* lets hope this is unique in 3000 characters */
+		for (a=0; a<c; a++) {
+			b =  b + (int) (name[a] & 0xff);
+		}
+
+		sprintf (filename,"PixelTexture_%d_%d",c,b);
+		#ifdef TEXVERBOSE 
+		printf ("textureThread, temp name is %s\n",filename);
+		#endif
+	}
+
 	/* ok, have we seen this one before? */
+	#ifdef SEARCHFORDUPLICATETEXTURES
 	/* this is commented out, as if the image has different repeatT, repeatS flags, it will
 	   not be rendered correctly for the "second" invocation */
+	/* maybe this is fixed with texture changes for 1.16.x??? */
 
-	#ifdef SEARCHFORDUPLICATETEXTURES
 	flen = strlen(filename);
 	for (count=1; count < max_texture; count++) {
 		
@@ -1060,7 +1066,7 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 		    if(strncmp(loadparams[count].filename,filename,flen)==0) {
 			#ifdef TEXVERBOSE
 				printf ("duplicate name %s at %d %d\n",
-					filename,count,*texnum);
+					ilename,count,cwo);
 			#endif
 
 			/* duplicate, make this entry INVALID, and make the
@@ -1086,7 +1092,7 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	}
 	#endif
 
-	if (type !=PIXELTEXTURE) {
+	if (loadparams[cwo].type !=PIXELTEXTURE) {
 		/* is this a texture type that is *not* handled internally? */
 		if ((strncmp(firstBytes,firstPNG,4) != 0) &&
 		    (strncmp(firstBytes,firstJPG,4) != 0) &&
@@ -1111,13 +1117,12 @@ int findTextureFile (GLuint *texnum, int type, int *istemp) {
 	}
 
 	/* save filename in data structure for later comparisons */
-	loadparams[*texnum].filename = (char *)malloc(sizeof(char) * strlen(filename)+1);
-	strcpy (loadparams[*texnum].filename,filename);
+	loadparams[cwo].filename = (char *)malloc(sizeof(char) * strlen(filename)+1);
+	strcpy (loadparams[cwo].filename,filename);
 	free (filename);
 	#ifdef TEXVERBOSE
-		printf ("textureThread: new name, save it %d, name %s\n",*texnum,loadparams[*texnum].filename);
+		printf ("textureThread: new name, save it %d, name %s\n",cwo,loadparams[cwo].filename);
 	#endif
-
 	return TRUE;
 }
 
@@ -1142,8 +1147,7 @@ void _textureThread(void) {
 			printf ("textureThread, currentlyworking on %d\n",currentlyWorkingOn);
 		#endif
 
-		if (findTextureFile(loadparams[currentlyWorkingOn].texture_num,
-			loadparams[currentlyWorkingOn].type,&remove)) {
+		if (findTextureFile(currentlyWorkingOn, &remove)) {
 			#ifdef TEXVERBOSE
 			printf ("textureThread, findTextureFile ok for %d\n",currentlyWorkingOn);
 			#endif
