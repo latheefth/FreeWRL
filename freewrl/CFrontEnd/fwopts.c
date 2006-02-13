@@ -13,11 +13,7 @@
 #include <vrmlconf.h>
 
 extern int screenWidth, screenHeight;
-int fullscreen;
-
-/* Petr Mikulik - IndexedLineSet line width */
-float global_linewidth = 1.0;
-
+extern int fullscreen;
 
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -33,29 +29,24 @@ float global_linewidth = 1.0;
 #endif
 #include <X11/keysym.h>
 
-Colormap cmap;
-XSetWindowAttributes swa;
-Window winDummy;
-XVisualInfo *vi;
-	Display *dpy;
-	Window win;
-	GLXContext cx;
+static Colormap cmap;
+static XSetWindowAttributes swa;
+static XVisualInfo *vi;
 
 extern int _fw_pipe, _fw_FD;
 extern unsigned _fw_instance;
 
-int screen;
-int modeNum;
-int bestMode;
-int quadbuff_stereo_mode;
-unsigned int borderDummy;
-int glwinx, glwiny;
-int i;
-int dpyWidth, dpyHeight;
+static int screen;
+static int modeNum;
+static int bestMode;
+static int quadbuff_stereo_mode;
+/*
+static int i;
+*/
 
 #ifdef XF86V4
 XF86VidModeModeInfo **modes;
-int oldx, oldy;
+static int oldx, oldy;
 #else
 
 /* fudge calls for compiler - gosh, perl is certainly fun. */
@@ -64,17 +55,13 @@ int oldx, oldy;
 //struct fudge original_display;
 #endif
 
-Cursor arrowc;
-Cursor sensorc;
+extern Cursor arrowc;
+extern Cursor sensorc;
 
 #define OPENGL_NOVIRT
 //JAS static OpenGLVTab vtab;
 //JAS OpenGLVTab *OpenGLVPtr;
 
-
-/*
-static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRUE, None };
-*/
 
 /*
    from similar code in white_dune 8-)
@@ -84,9 +71,9 @@ static int default_attributes[] = { GLX_RGBA , GL_TRUE, GLX_DOUBLEBUFFER, GL_TRU
    with maximal possible depth
  */
 
-int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
+static int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
 
-int  default_attributes0[] =
+static int  default_attributes0[] =
    {
    GLX_DEPTH_SIZE,         24,		// JAS
    GLX_RED_SIZE,           8,
@@ -98,7 +85,7 @@ int  default_attributes0[] =
    0
    };
 
-int  default_attributes1[] =
+static int  default_attributes1[] =
    {
    GLX_DEPTH_SIZE,         16,
    GLX_RED_SIZE,           8,
@@ -107,7 +94,7 @@ int  default_attributes1[] =
    0
    };
 
-int  default_attributes2[] =
+static int  default_attributes2[] =
    {
    GLX_DEPTH_SIZE,         16,
    GLX_RED_SIZE,           8,
@@ -115,14 +102,14 @@ int  default_attributes2[] =
    0
    };
 
-int  default_attributes3[] =
+static int  default_attributes3[] =
    {
    GLX_RGBA,               GL_TRUE,
    0
    };
 
 
-int	shutter = 0; /* stereo shutter glasses */
+extern int	shutterGlasses; /* stereo shutter glasses */
 
 // Function prototypes
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
@@ -130,8 +117,12 @@ void setGeometry (char *gstring);
 
 static int xPos = 0;
 static int yPos = 0;
-void openMainWindow (Display *Disp, unsigned *Win,
-		GLXContext *Cont) {
+
+extern Display *Xdpy;
+extern Window Xwin;
+extern GLXContext GLcx;
+
+void openMainWindow () {
 
 	int	pw = 0;
 	long	event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
@@ -154,14 +145,16 @@ void openMainWindow (Display *Disp, unsigned *Win,
 
 	int items=0; // jas
 
+	int XdpyWidth, XdpyHeight;
+
 	/* get a connection */
-	dpy = XOpenDisplay(0);
-	if (!dpy) { fprintf(stderr, "No display!\n");exit(-1);}
+	Xdpy = XOpenDisplay(0);
+	if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
 
 	bestMode = -1;
-	screen = DefaultScreen(dpy);
+	screen = DefaultScreen(Xdpy);
 #ifdef XF86V4
-	 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
+	 	XF86VidModeGetAllModeLines(Xdpy, screen, &modeNum, &modes);
 
  		bestMode = 0;
  		for (i=0; i < modeNum; i++) {
@@ -175,24 +168,24 @@ void openMainWindow (Display *Disp, unsigned *Win,
 			fullscreen = 0;
 			printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", screenWidth, screenHeight);
 		}
-		XF86VidModeGetViewPort(dpy, DefaultScreen(dpy), &oldx, &oldy);
+		XF86VidModeGetViewPort(Xdpy, DefaultScreen(Xdpy), &oldx, &oldy);
 #endif
 
-	vi = find_best_visual(shutter,attributes,len);
+	vi = find_best_visual(shutterGlasses,attributes,len);
 	if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
 
-	if ((shutter) && (quadbuff_stereo_mode==0)) {
+	if ((shutterGlasses) && (quadbuff_stereo_mode==0)) {
 		fprintf(stderr, "Warning: No quadbuffer stereo visual found !");
 		fprintf(stderr, "On SGI IRIX systems read 'man setmon' or 'man xsetmon'\n");
 	}
 
 	/* create a GLX context */
-	cx = glXCreateContext(dpy, vi, 0, GL_TRUE);
+	GLcx = glXCreateContext(Xdpy, vi, 0, GL_TRUE);
 
-	if(!cx){fprintf(stderr, "No context!\n");exit(-1);}
+	if(!GLcx){fprintf(stderr, "No context!\n");exit(-1);}
 
 	/* create a color map */
-	cmap = XCreateColormap(dpy, RootWindow(dpy, vi->screen),
+	cmap = XCreateColormap(Xdpy, RootWindow(Xdpy, vi->screen),
 				   vi->visual, AllocNone);
 
 	/* create a window */
@@ -201,36 +194,36 @@ void openMainWindow (Display *Disp, unsigned *Win,
 	swa.event_mask = event_mask;
 #ifdef XF86V4
 	if (fullscreen == 1) {
-	 	XF86VidModeSwitchToMode(dpy, screen, modes[bestMode]);
-	 	XF86VidModeSetViewPort(dpy, screen, 0, 0);
-	 	dpyWidth = modes[bestMode]->hdisplay;
-	 	dpyHeight = modes[bestMode]->vdisplay;
+	 	XF86VidModeSwitchToMode(Xdpy, screen, modes[bestMode]);
+	 	XF86VidModeSetViewPort(Xdpy, screen, 0, 0);
+	 	XdpyWidth = modes[bestMode]->hdisplay;
+	 	XdpyHeight = modes[bestMode]->vdisplay;
 	 	swa.override_redirect = True;
 	}
 
 	XFree(modes);
 #endif
 
-	if(!pwin){pwin=RootWindow(dpy, vi->screen);}
+	if(!pwin){pwin=RootWindow(Xdpy, vi->screen);}
 
 
 	if (screenWidth>=0) {
 		XTextProperty textpro;
 		if (fullscreen == 1) {
-			win = XCreateWindow(dpy, pwin,
-				0, 0, dpyWidth, dpyHeight,
+			Xwin = XCreateWindow(Xdpy, pwin,
+				0, 0, XdpyWidth, XdpyHeight,
 				0, vi->depth, InputOutput, vi->visual,
 				CWBorderPixel| CWOverrideRedirect |
 				CWColormap | CWEventMask, &swa);
 
-			cursor_pixmap = XCreatePixmap(dpy, win ,1, 1, 1);
-			black.pixel = WhitePixel(dpy, DefaultScreen(dpy));
-			XQueryColor(dpy, DefaultColormap(dpy, DefaultScreen(dpy)), &black);
-			cursor = XCreatePixmapCursor(dpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
-			XDefineCursor(dpy, win, cursor);
+			cursor_pixmap = XCreatePixmap(Xdpy, Xwin ,1, 1, 1);
+			black.pixel = WhitePixel(Xdpy, DefaultScreen(Xdpy));
+			XQueryColor(Xdpy, DefaultColormap(Xdpy, DefaultScreen(Xdpy)), &black);
+			cursor = XCreatePixmapCursor(Xdpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
+			XDefineCursor(Xdpy, Xwin, cursor);
 
 		} else {
-			win = XCreateWindow(dpy, pwin,
+			Xwin = XCreateWindow(Xdpy, pwin,
 				xPos, yPos, screenWidth, screenHeight, 0, vi->depth, InputOutput,
 				vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
 
@@ -240,33 +233,33 @@ void openMainWindow (Display *Disp, unsigned *Win,
 					"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
 					wintitle);
 			}
-			XSetWMName(dpy, win, &windowName);
-			XSetWMIconName(dpy, win, &windowName);
+			XSetWMName(Xdpy, Xwin, &windowName);
+			XSetWMIconName(Xdpy, Xwin, &windowName);
 		}
 
-		glXMakeCurrent(dpy, win, cx);
+		glXMakeCurrent(Xdpy, Xwin, GLcx);
 		glFlush();
-		if(!win) {
+		if(!Xwin) {
 			fprintf(stderr, "No Window\n");
 			exit(-1);
 		}
 
 		if (!RUNNINGASPLUGIN) {
 			/* just map us to the display */
-			XMapWindow(dpy, win);
-			XSetInputFocus(dpy, pwin, RevertToParent, CurrentTime);
+			XMapWindow(Xdpy, Xwin);
+			XSetInputFocus(Xdpy, pwin, RevertToParent, CurrentTime);
 		} else {
 			/* send the window id back to the plugin parent */
-			write (_fw_pipe,&win,4);
+			write (_fw_pipe,&Xwin,4);
 			close (_fw_pipe);
 		}
 
 
 		//JAS if (event_mask & StructureNotifyMask) {
-		//JAS 	XIfEvent(dpy, &event, WaitForNotify, (char*)win);
+		//JAS 	XIfEvent(Xdpy, &event, WaitForNotify, (char*)win);
 		//JAS }
 		// Alberto Dubuc:
-		XMoveWindow(dpy,win,xPos,yPos);
+		XMoveWindow(Xdpy,Xwin,xPos,yPos);
 	} else {
 		printf ("NO PBUFFER EXTENSION\n");
 		exit(1);
@@ -280,31 +273,15 @@ void openMainWindow (Display *Disp, unsigned *Win,
 		arrowc = cursor;
 		sensorc = cursor;
 	} else {
-		arrowc = XCreateFontCursor (dpy, XC_left_ptr);
-		sensorc = XCreateFontCursor (dpy, XC_diamond_cross);
+		arrowc = XCreateFontCursor (Xdpy, XC_left_ptr);
+		sensorc = XCreateFontCursor (Xdpy, XC_diamond_cross);
 	}
 
 	/* connect the context to the window */
-	if(!glXMakeCurrent(dpy, win, cx)) {
+	if(!glXMakeCurrent(Xdpy, Xwin, GLcx)) {
 		fprintf(stderr, "Non current\n");
 		exit(-1);
 	}
-
-
-	// For Vertex arrays - we always assume these are enabled.
-	glEnableClientState (GL_VERTEX_ARRAY);
-	glEnableClientState (GL_NORMAL_ARRAY);
-
-	// Set Line Width from the command line parameter
-	// for GL_LINES and GL_LINE_STRIP and switch their anti-aliasing
-	glLineWidth (global_linewidth);
-	glPointSize(global_linewidth);
-	glEnable(GL_LINE_SMOOTH);
-
-	// return Display and window
-	Disp = dpy;
-	*Win =  win;
-	*Cont = cx;
 
 	//printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
 	//	glGetString(GL_RENDERER));
@@ -360,7 +337,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
                attrib_mem[i+len]=attribs_pointer[i];
 
       	    /* get an appropriate visual */
-            vi = glXChooseVisual(dpy, screen, attrib_mem);
+            vi = glXChooseVisual(Xdpy, screen, attrib_mem);
             if (vi) {
                if (attrib==0) {
                   quadbuff_stereo_mode=1;
@@ -386,7 +363,7 @@ void resetGeometry() {
 		int oldMode;
 
 	if (fullscreen) {
-	 	XF86VidModeGetAllModeLines(dpy, screen, &modeNum, &modes);
+	 	XF86VidModeGetAllModeLines(Xdpy, screen, &modeNum, &modes);
  		oldMode = 0;
 
  		for (i=0; i < modeNum; i++) {
@@ -396,15 +373,10 @@ void resetGeometry() {
  			}
  		}
 
-	 	XF86VidModeSwitchToMode(dpy, screen, modes[oldMode]);
-	 	XF86VidModeSetViewPort(dpy, screen, 0, 0);
-		XFlush(dpy);
+	 	XF86VidModeSwitchToMode(Xdpy, screen, modes[oldMode]);
+	 	XF86VidModeSetViewPort(Xdpy, screen, 0, 0);
+		XFlush(Xdpy);
 	}
 
 #endif
-}
-
-/* handle setting shutter from parameters */
-void setShutter (void) {
-	shutter = 1;
 }

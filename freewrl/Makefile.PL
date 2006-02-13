@@ -201,10 +201,18 @@ if ($OS eq "Darwin") {
 }
 
 # lets write some generated #defines.
+
+#first, what is the path to the perl interpreter?
+my $perlpath = `which perl`;
+# remove whitespace at beginning and end.
+$perlpath =~ s/\s+$//;
+$perlpath =~ s/^\s+//;
+
 print OUT "#define BUILDDIR \"$pwd\"\n";
 print OUT "#define FWVER \"",$VERSION,"\"\n";
 print OUT "#define XMESSAGE \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_Message\"\n";
 print OUT "#define SOUNDSERVERBINARY \"",$VRML_CONFIG{BIN_DIR},"/FreeWRL_SoundServer\"\n";
+print OUT "#define PERLPATH \"$perlpath\"\n";
 
 # lets just dump out some standard defines, from the vrml.conf file.
 my @dumpToVRMLCONF = (
@@ -234,10 +242,8 @@ foreach (@dumpToVRMLCONF) {
 close OUT;
 
 
-# make the xs_init.c file We seem to need to do this for OS X
-if ($OS eq "Darwin") {
-	`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
-}
+# make the xs_init.c file and put it in the CFuncs directory.
+`perl -MExtUtils::Embed -e xsinit -- -o - >CFuncs/perlxsi.c` ;
 
 ## make the Javascript libraries if needed
 

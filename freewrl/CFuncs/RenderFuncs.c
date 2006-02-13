@@ -100,6 +100,8 @@ int	global_fillProperties;	/* polygon fill properties - hatching, etc	*/
 int	cullFace;		/* is GL_CULL_FACE enabled or disabled?		*/
 int 	colorMaterialEnabled;	/* state of GL_COLOR_MATERIAL			*/
 
+int     shutterGlasses = 0; 	/* stereo shutter glasses */
+
 
 int smooth_normals = -1; /* -1 means, uninitialized */
 
@@ -645,3 +647,10 @@ render_hier(void *p, int rwhat)
 
 	}
 }
+
+/* handle setting shutter from parameters */
+void setShutter (void) {
+        shutterGlasses = 1;
+}
+
+

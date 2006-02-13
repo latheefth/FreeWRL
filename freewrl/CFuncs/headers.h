@@ -32,11 +32,13 @@ void OcclusionStartofEventLoop(void);
 
 
 #ifdef GL_VERSION_1_5
+#ifdef GL_ARB_occlusion_query
 #define OCCLUSION
 #define VISIBILITYOCCLUSION
 #undef TRANSFORMOCCLUSION
 #undef SHAPEOCCLUSION
 #undef STATICGROUPOCCLUSION
+#endif
 #endif
 
 #ifdef OCCLUSION
@@ -161,7 +163,8 @@ extern int sound_from_audioclip;
 extern int have_texture;
 extern int global_lineProperties;
 extern int global_fillProperties;
-
+extern int fullscreen;
+extern float gl_linewidth;
 extern int soundWarned;
 extern int cur_hits;
 extern struct pt hyper_r1,hyper_r2;
@@ -516,7 +519,7 @@ extern void setPluginInstance(char *optarg);
 /* shutter glasses, stereo view  from Mufti@rus */
 extern void setShutter (void);
 #ifndef AQUA
-extern int shutter;
+extern int shutterGlasses;
 #endif
 extern void setScreenDist (char *optArg);
 extern void setStereoParameter (char *optArg);
@@ -553,9 +556,6 @@ void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **pt
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 
 
-#ifndef AQUA
-extern int wantEAI;
-#endif
 void create_EAI(void);
 int EAI_CreateVrml(char *type, char *str, unsigned int *retarr, int retarrsize);
 void EAI_Route(char cmnd, char *tf);

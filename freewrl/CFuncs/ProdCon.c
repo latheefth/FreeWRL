@@ -50,11 +50,9 @@
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
-#ifdef AQUA
 int _fw_FD = 0;
 int _fw_pipe = 0;
-unsigned _fw_instance;
-#endif
+unsigned _fw_instance = 0;
 
 /* for communicating with Netscape */
 /* in headers.h extern int _fw_pipe, _fw_FD; */

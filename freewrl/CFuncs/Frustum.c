@@ -46,6 +46,7 @@ int maxShapeFound = 0;
 int OccQuerySize=0;
 GLint queryCounterBits;
 int OccInitialized = FALSE;
+static int OccFailed = FALSE;
 #endif
 
 /* take the measurements of a geometry (eg, box), and save it. Note
@@ -182,11 +183,15 @@ void OcclusionStartofEventLoop() {
 	int i;
 
         #ifdef OCCLUSION
+
+	/* did we have a failure here ? */
+	if (OccFailed) return;
+
 	/* have we been through this yet? */
 	if (OccInitialized == FALSE) {
-        	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS)); */
+        	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS));  */
         	if (strstr(glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
-        	        /* printf ("have OcclusionQuery\n"); */
+        	        /* printf ("have OcclusionQuery\n");  */
 
 			OccQuerySize = 100;
 			OccQueries = malloc (sizeof(int) * OccQuerySize);
@@ -200,7 +205,11 @@ void OcclusionStartofEventLoop() {
 				OccSamples[i]=0;
 			}
 
-        	}
+        	} else {
+			/* we dont seem to have this extension here at runtime! */
+			/* this happened, eg, on my Core4 AMD64 box with Mesa	*/
+			OccFailed = TRUE;
+		}
 
 	}
 
@@ -239,8 +248,9 @@ void OcclusionCulling ()  {
 	int i;
 	struct X3D_Shape *xx;
 	
-	
-	
+	/* did we have some problem with Occlusion ? */
+	if (OccFailed) return;
+
 	if (maxShapeFound >= 0) {
 
 		/* lets look at "producers" - Shapes, and VisibilitySensors first */

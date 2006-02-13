@@ -15,6 +15,11 @@
 #ifdef AQUA
 #include <OpenGL.h>
 extern CGLContextObj aqglobalContext;
+#else 
+Display *Xdpy;
+Window Xwin;
+GLXContext GLcx;
+int fullscreen = 0;
 #endif
 
 
@@ -123,16 +128,18 @@ void glpOpenGLInitialize() {
 
         aqglobalContext = CGLGetCurrentContext();
         //printf("OpenGL globalContext %p\n", aqglobalContext);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
         #endif
 
 	/* Configure OpenGL for our uses. */
 
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
 	glClearColor((float)red, (float)green, (float)blue, (float)alpha);
 	glShadeModel(GL_SMOOTH);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
+	glLineWidth(gl_linewidth);
+	glPointSize (gl_linewidth);
 
 	/*
      * JAS - ALPHA testing for textures - right now we just use 0/1 alpha

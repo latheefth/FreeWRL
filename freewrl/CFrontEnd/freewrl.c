@@ -29,42 +29,31 @@
 
 #include <signal.h>
 
-// display and win are opened here, then pointers passed to
-// freewrl. We just use these as unsigned, because we just
-// pass the pointers along; we do not care what type they are.
-Display *Disp;
-Window Win;
-GLXContext globalContext;
-
-int wantEAI=FALSE;		/* enable EAI? */
+extern pthread_t DispThrd;
+static int wantEAI;		/* enable EAI? */
 extern int fullscreen;		/* fwopts.c - do fullscreen rendering? */
-extern float global_linewidth;	/* in CFrontEnd/fwopts.c - ILS line width */
-extern void   XEventStereo();
+extern char *initialFilename;	/* file to start FreeWRL with */
+extern void   XEventStereo(void);
 
-extern void openMainWindow (Display *Disp, unsigned *Win, GLXContext *Cont);
-extern void glpOpenGLInitialize();
-extern void EventLoop();
-extern void resetGeometry();
-
-/* threading variables for event loop */
-static pthread_t *loopthread;
-char *threadmsg = "eventloop";
-pthread_t thread1;
+extern void openMainWindow (void);
+extern void glpOpenGLInitialize(void);
+extern void EventLoop(void);
+extern void resetGeometry(void);
 
 /* keypress sequence for startup - Robert Sim */
 extern char *keypress_string;
 
 
 /* for plugin running - these are read from the command line */
-int _fw_pipe=0;
-int _fw_FD=0;
-unsigned  _fw_instance=0;
+extern int _fw_pipe;
+extern int _fw_FD;
+extern unsigned _fw_instance;
 
 /* function prototypes */
-void displayThread();
 void catch_SIGQUIT();
 void catch_SIGSEGV();
 void catch_SIGALRM(int);
+void initFreewrl(void);
 
 int main (int argc, char **argv) {
 	int retval;
@@ -72,7 +61,6 @@ int main (int argc, char **argv) {
 	int c;
 	int digit_optind = 0;
 	int tmp;
-	char *filename;
 	char *pwd;
 
 #ifndef IRIX
@@ -85,6 +73,7 @@ int main (int argc, char **argv) {
 	/* set the screen width and height before getting into arguments */
 	screenWidth = 450; screenHeight=300;
 	fullscreen = 0;
+	wantEAI = 0;
 
 #ifndef IRIX
 	/* install the signal handler for SIGQUIT */
@@ -188,7 +177,7 @@ int main (int argc, char **argv) {
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
 			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
 			/* Petr Mikiluk - ILS line width */
-			case 'W': sscanf (optarg,"%g",&global_linewidth); break;
+			case 'W': sscanf (optarg,"%g",&tmp); setLineWidth(tmp); break;
 
 			case 'Q': be_collision = FALSE; break;
 
@@ -251,25 +240,10 @@ int main (int argc, char **argv) {
 
 		/* save the url for later use, if required */
 		setBrowserURL (argv[optind]);
-		/* JAS  count = strlen(argv[optind]);
-		if (BrowserURL != NULL) free (BrowserURL);
-		BrowserURL = (char *)malloc (count+1);
-		strcpy (BrowserURL,argv[optind]); */
 	} else {
 		ConsoleMessage ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
 	}
-
-   /* create the display thread. */
-        pthread_create (&thread1, NULL, (void *(*)(void *))&displayThread, (void *)threadmsg);
-
-        /* create the Perl parser thread */
-        initializePerlThread(PERLPATH);
-        while (!isPerlinitialized()) {usleep(50);}
-
-        /* create the Texture parser thread */
-        initializeTextureThread();
-        while (!isTextureinitialized()) {usleep(50);}
 
         /* get the Netscape Browser name, if we are pluggind */
         NetscapeName[0] = (char)NULL;
@@ -282,7 +256,7 @@ int main (int argc, char **argv) {
         /* create the initial scene, from the file passed in
         and place it as a child of the rootNode. */
 
-        filename = (char *)malloc(1000 * sizeof (char));
+        initialFilename = (char *)malloc(1000 * sizeof (char));
         pwd = (char *)malloc(1000 * sizeof (char));
         getcwd(pwd,1000);
         /* if this is a network file, leave the name as is. If it is
@@ -290,48 +264,31 @@ int main (int argc, char **argv) {
 
         if (checkNetworkFile(argv[optind])) {
 		setFullPath(argv[optind]);
-                strcpy (filename,argv[optind]); 
+                strcpy (initialFilename,argv[optind]); 
                 BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
                 strcpy(BrowserFullPath,pwd); 
 
         } else {
-                makeAbsoluteFileName(filename, pwd, argv[optind]);
-                BrowserFullPath = (char *)malloc ((strlen(filename)+1) * sizeof(char));
-                strcpy (BrowserFullPath,filename);
+                makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
+                BrowserFullPath = (char *)malloc ((strlen(initialFilename)+1) * sizeof(char));
+                strcpy (BrowserFullPath,initialFilename);
         }
 
-	perlParse(FROMURL, filename,TRUE,FALSE,
-		rootNode, offsetof (struct X3D_Group, children),&tmp,TRUE);
+	/* start threads, parse initial scene, etc */
+	initFreewrl();
 
-	free(filename); free(pwd);
+	free(initialFilename); free(pwd);
 
 	/* do we require EAI? */
 	if (wantEAI) create_EAI();
 
 	/* now wait around until something kills this thread. */
-	pthread_join(thread1, NULL);
+	pthread_join(DispThrd, NULL);
 
 	perl_destruct(my_perl);
 	perl_free(my_perl);
 }
 
-
-/* handle all the displaying and event loop stuff. */
-void displayThread() {
-	int count;
-
-	/* printf ("displayThread, I am %d\n",pthread_self()); */
-	openMainWindow(Disp,(unsigned int *)&Win,&globalContext);
-
-	glpOpenGLInitialize();
-	new_tessellation();
-
-	while (1==1) {
-		EventLoop();
-	}
-	if (fullscreen)
-		resetGeometry();
-}
 
 static int CaughtSEGV = FALSE;
 /* SIGQUIT handler - plugin code sends a SIGQUIT... */

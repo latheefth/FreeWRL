@@ -58,9 +58,9 @@ void lightState (GLint light, int state);
 
 
 #ifndef AQUA
-extern Display *dpy;
-extern Window win;
-extern void openMainWindow(Display *dpy, Window *win, GLXContext *glocx);
+extern Display *Xdpy;
+extern Window Xwin;
+extern GLXContext GLcx;
 extern void resetGeometry();
 #endif
 extern void glpOpenGLInitialize(void);

@@ -33,13 +33,18 @@ Cursor arrowc;
 Cursor sensorc;
 Cursor curcursor;
 #endif
+
+#include <pthread.h>
+pthread_t DispThrd = 0;
+char* threadmsg;
+char *initialFilename;
+
+/* linewidth for lines and points - passed in on command line */
+float gl_linewidth = 1.0;
+
 #ifdef AQUA
 #include <OpenGL.h>
-aqua_linewidth = 0.0;
 CGLContextObj aqglobalContext;
-#include <pthread.h>
-pthread_t mythread = 0;
-char* threadmsg;
 #define KeyPress        2
 #define KeyRelease      3
 #define ButtonPress     4
@@ -374,7 +379,7 @@ void EventLoop() {
 #ifndef AQUA
 		if (cursor != curcursor) {
 			curcursor = cursor;
-			XDefineCursor (dpy, win, cursor);
+			XDefineCursor (Xdpy, Xwin, cursor);
 		}
 #else
                 if (ccurse != ocurse) {
@@ -445,9 +450,9 @@ void handle_Xevents() {
 	KeySym ks;
 	int count;
 
-	while (XPending(dpy)) {
+	while (XPending(Xdpy)) {
 
-		XNextEvent(dpy,&event);
+		XNextEvent(Xdpy,&event);
 		lastMouseEvent=event.type;
 		switch(event.type) {
 			case ConfigureNotify:
@@ -513,8 +518,8 @@ void handle_Xevents() {
                                 break;
                         case MotionNotify:
 				/*  do we have more motion notify events queued?*/
-				if (XPending(dpy)) {
-					XPeekEvent(dpy,&nextevent);
+				if (XPending(Xdpy)) {
+					XPeekEvent(Xdpy,&nextevent);
 					if (nextevent.type==MotionNotify) { break;
 					}
 				}
@@ -684,7 +689,7 @@ void render() {
 	/* printf ("render %f %f %f %f\n",bb-aa, cc-bb, dd-cc, ee-dd);*/
 	}
 #ifndef AQUA
-	glXSwapBuffers(dpy,win);
+	glXSwapBuffers(Xdpy,Xwin);
 #else
 	CGLError err = CGLFlushDrawable(aqglobalContext);
 	updateContext();
@@ -1021,14 +1026,31 @@ void setFullPath(char* file) {
 	strcpy(BrowserFullPath, file);
 }
 
+
+/* handle all the displaying and event loop stuff. */
+void displayThread() {
+	/* printf ("displayThread, I am %d\n",pthread_self()); */
+	#ifndef AQUA
+	openMainWindow();
+	#endif
+
+	glpOpenGLInitialize();
+	new_tessellation();
+
+	while (1) {
+		while (!quitThread) {
+			EventLoop();
+		}
+	}
+	
+	#ifndef AQUA
+	if (fullscreen) resetGeometry();
+	#endif
+}
+
 #ifdef AQUA
 void initGL() {
         aqglobalContext = CGLGetCurrentContext();
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glLineWidth(aqua_linewidth);
-        glPointSize(aqua_linewidth);
-        glEnable(GL_LINE_SMOOTH);
 }
 
 int getOffset() {
@@ -1040,17 +1062,33 @@ void setCurXY(int cx, int cy) {
         currentY = cy;
 }
 
+void setButDown(int button, int value) {
+        ButDown[button] = value;
+}
+
+#endif
+
+
 void setLastMouseEvent(int etype) {
         lastMouseEvent = etype;
 }
 
 
+/* initFreeWRL - some differences between the Unix and Aqua
+   versions. These defines maybe can disappear? */
+#ifdef AQUA
+	#define MYINITURL BrowserURL
+#else
+	#define MYINITURL initialFilename
+#endif
+
 void initFreewrl() {
         threadmsg = "event loop";
 	quitThread = 0;
-	if (mythread <= 0) {
-        	pthread_create(&mythread, NULL, (void *) aqDisplayThread, (void*) threadmsg);
-        	initializePerlThread("/usr/bin/perl");
+	if (DispThrd <= 0) {
+        	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
+        	initializePerlThread(PERLPATH);
+
         	while (!isPerlinitialized()) {
         	        usleep(50);
         	}
@@ -1060,24 +1098,9 @@ void initFreewrl() {
         	}
 	}
         int tmp = 0;
-        perlParse(FROMURL, BrowserURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
+        perlParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
 }
 
-void aqDisplayThread() {
-        glpOpenGLInitialize();
-        new_tessellation();
-        while (1) {
-		while (!quitThread) {
-                	EventLoop();
-		}
-        }
-}
-
-void setButDown(int button, int value) {
-        ButDown[button] = value;
-}
-
-#endif
 
 void setSnapSeq() {
         snapsequence = TRUE;
@@ -1095,11 +1118,9 @@ void setNoStatus() {
         display_status = 0;
 }
 
-#ifdef AQUA
 void setLineWidth(float lwidth) {
-        aqua_linewidth = lwidth;
+        gl_linewidth = lwidth;
 }
-#endif
 
 void setFast() {
         global_texSize = 256;
