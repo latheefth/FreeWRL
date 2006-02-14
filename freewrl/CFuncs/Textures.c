@@ -56,6 +56,20 @@ GLint maxTexelUnits = -1;
 int	*global_tcin;
 int	global_tcin_count;
 
+/* for AQUA OS X sharing of OpenGL Contexts */
+#ifdef AQUA
+//#include "/System/./Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/CoreGraphics.framework/Versions/A/Headers/CGDirectDisplay.h"
+#include "CGDirectDisplay.h"
+extern CGLContextObj aqglobalContext;
+CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
+                                      kCGLPFAFullScreen,
+                                      kCGLPFADoubleBuffer,
+                                      0 };
+CGLPixelFormatObj pixelFormat = NULL;
+long numPixelFormats = 0;
+CGLContextObj aqtextureContext = NULL;
+#endif
+
 
 /* function Prototypes */
 int findTextureFile (int cwo, int *remove);
@@ -842,6 +856,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 	/* is this one an unsquished movie texture? */
 	if (texIsloaded[*texture_num] == UNSQUASHED) { return; }
 
+	#ifndef AQUA
 	/* is this one read in, but requiring final manipulation
 	 * by THIS thread? */
 	if (texIsloaded[*texture_num] == NEEDSBINDING) {
@@ -857,6 +872,7 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 		return;
 	}
+	#endif
 
 	/* are we loading this one? */
 	if (texIsloaded[*texture_num] == LOADING) {
@@ -1126,11 +1142,32 @@ int findTextureFile (int cwo, int *istemp) {
 	return TRUE;
 }
 
+/*************************************************************/
+/* _textureThread - work on textures, until the end of time. */
+
+
 void _textureThread(void) {
 
 	int remove;
 
 	/* printf ("textureThread is %d\n",pthread_self()); */
+
+	#ifdef AQUA
+	/* To get this thread to be able to manipulate textures, first, get the 
+	   Display attributes */
+	CGDirectDisplayID display = CGMainDisplayID ();
+	attribs[1] = CGDisplayIDToOpenGLDisplayMask (display);
+
+	/* now, for this thread, create and join OpenGL Contexts */
+	CGLChoosePixelFormat (attribs, &pixelFormat, &numPixelFormats);
+	CGLCreateContext(pixelFormat, aqglobalContext, &aqtextureContext);
+
+	/* set the context for this thread so that we can share textures with
+	   the main context (aqglobalContext) */
+
+	CGLSetCurrentContext(aqtextureContext);
+	/* printf ("textureThread, have to try to remember to destroy this context\n"); */
+	#endif
 
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
@@ -1167,8 +1204,23 @@ void _textureThread(void) {
 			#endif
 
 			/* check to see if there was an error */
-			if (texIsloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID)
+			if (texIsloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID) {
+				#ifndef AQUA
 				texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
+				#else
+
+				#ifdef TEXVERBOSE 
+				printf ("tex %d needs binding, name %s\n",*loadparams[currentlyWorkingOn].texture_num,
+					loadparams[*loadparams[currentlyWorkingOn].texture_num].filename);
+				#endif
+
+				do_possible_textureSequence(
+					*loadparams[currentlyWorkingOn].texture_num);
+				#ifdef TEXVERBOSE 
+				printf ("tex %d now loaded\n",*loadparams[currentlyWorkingOn].texture_num);
+				#endif
+				#endif
+			}
 
 			/* is this a temporary file? */
 			if (remove == 1) {

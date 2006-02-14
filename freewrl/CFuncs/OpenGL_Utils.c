@@ -124,10 +124,14 @@ void glpOpenGLInitialize() {
 
 	GLclampf red = 0.0f, green = 0.0f, blue = 0.0f, alpha = 1.0f;
         #ifdef AQUA
+	/* aqglobalContext is found at the initGL routine in MainLoop.c. Here
+	   we make it the current Context. */
+
+        /* printf("OpenGL at start of glpOpenGLInitialize globalContext %p\n", aqglobalContext); */
         CGLSetCurrentContext(aqglobalContext);
 
-        aqglobalContext = CGLGetCurrentContext();
-        //printf("OpenGL globalContext %p\n", aqglobalContext);
+        /* already set aqglobalContext = CGLGetCurrentContext(); */
+        /* printf("OpenGL globalContext %p\n", aqglobalContext); */
         #endif
 
 	/* Configure OpenGL for our uses. */

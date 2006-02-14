@@ -15,7 +15,7 @@ ASCIITERM => "/usr/X11R6/bin/rxvt",
 CONVERT => "/usr/local/bin/convert",
 UNZIP => "/usr/bin/gunzip",
 
-# Java runtime - if no java, comment this line and the JAVA_INST line below.
+# Java compiler - if no java, comment this line and the JAVA_INST line below.
 JAVA => "/usr/bin/java",
 
 COPIER => "/bin/cp",                    # copy one file to another
@@ -41,6 +41,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-I/FreeWRL/jpeg-6b '.
 		'-I/System/Library/Frameworks/OpenGL.framework/Headers '.
 		'-I/System/Library/Frameworks/GLUT.framework/Headers '.
+		'-I/System/Library/Frameworks/ApplicationServices.framework/Versions/Current/Frameworks/CoreGraphics.framework/Versions/A/Headers/ '.
 		'-I/usr/local/include/freetype2 '.
 		'-I/usr/local/include/freetype2/freetype '.
 		' ',
