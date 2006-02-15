@@ -19,6 +19,7 @@ extern CGLContextObj aqglobalContext;
 Display *Xdpy;
 Window Xwin;
 GLXContext GLcx;
+XVisualInfo *Xvi;
 int fullscreen = 0;
 #endif
 

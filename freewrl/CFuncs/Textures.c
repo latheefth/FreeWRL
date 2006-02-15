@@ -16,6 +16,7 @@
 #include "headers.h"
 #include <stdio.h>
 #include "readpng.h"
+#include "OpenGL_Utils.h"
 
 /* we keep track of which textures have been loaded, and which have not */
 static int max_texture = 0;
@@ -58,7 +59,6 @@ int	global_tcin_count;
 
 /* for AQUA OS X sharing of OpenGL Contexts */
 #ifdef AQUA
-//#include "/System/./Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/CoreGraphics.framework/Versions/A/Headers/CGDirectDisplay.h"
 #include "CGDirectDisplay.h"
 extern CGLContextObj aqglobalContext;
 CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
@@ -68,6 +68,8 @@ CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
 CGLPixelFormatObj pixelFormat = NULL;
 long numPixelFormats = 0;
 CGLContextObj aqtextureContext = NULL;
+#else
+GLXContext textureContext = NULL;
 #endif
 
 
@@ -575,8 +577,6 @@ void loadMovieTexture (struct X3D_MovieTexture *node, void *param) {
 		node->url,
 		(GLuint*)&node->__texture0_,node->repeatS,node->repeatT, param);
 
-	/* is this texture now unsquished? (was NEEDSBINDING, now is INVALID) */
-
 	if (texIsloaded[firsttex] == UNSQUASHED) {
 		#ifdef TEXVERBOSE
 			printf ("movie texture now unsquished, first and last textures %d %d ctex %d\n",
@@ -855,24 +855,6 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 
 	/* is this one an unsquished movie texture? */
 	if (texIsloaded[*texture_num] == UNSQUASHED) { return; }
-
-	#ifndef AQUA
-	/* is this one read in, but requiring final manipulation
-	 * by THIS thread? */
-	if (texIsloaded[*texture_num] == NEEDSBINDING) {
-		#ifdef TEXVERBOSE 
-		printf ("tex %d needs binding, name %s\n",*texture_num,
-				loadparams[*texture_num].filename);
-		#endif
-
-		do_possible_textureSequence(*texture_num);
-		#ifdef TEXVERBOSE 
-		printf ("tex %d now loaded\n",*texture_num);
-		#endif
-
-		return;
-	}
-	#endif
 
 	/* are we loading this one? */
 	if (texIsloaded[*texture_num] == LOADING) {
@@ -1167,6 +1149,13 @@ void _textureThread(void) {
 
 	CGLSetCurrentContext(aqtextureContext);
 	/* printf ("textureThread, have to try to remember to destroy this context\n"); */
+
+	#else
+	textureContext = glXCreateContext(Xdpy, Xvi, GLcx, GL_TRUE);
+	printf ("texture Context is %p\n",textureContext);
+	printf ("Xdpy is %p\n",Xdpy);
+	printf ("Xvi is %p\n",Xvi);
+	printf ("GLcx %p\n",GLcx);
 	#endif
 
 	/* we wait forever for the data signal to be sent */
@@ -1203,11 +1192,8 @@ void _textureThread(void) {
 			printf ("textureThread, after reallyLoad for  %d\n",currentlyWorkingOn);
 			#endif
 
-			/* check to see if there was an error */
+			/* check to see if there was an error. If no error, then bind that texture */
 			if (texIsloaded[*loadparams[currentlyWorkingOn].texture_num]!=INVALID) {
-				#ifndef AQUA
-				texIsloaded[*loadparams[currentlyWorkingOn].texture_num] = NEEDSBINDING;
-				#else
 
 				#ifdef TEXVERBOSE 
 				printf ("tex %d needs binding, name %s\n",*loadparams[currentlyWorkingOn].texture_num,
@@ -1218,7 +1204,6 @@ void _textureThread(void) {
 					*loadparams[currentlyWorkingOn].texture_num);
 				#ifdef TEXVERBOSE 
 				printf ("tex %d now loaded\n",*loadparams[currentlyWorkingOn].texture_num);
-				#endif
 				#endif
 			}
 

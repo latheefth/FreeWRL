@@ -31,7 +31,6 @@
 /* for texIsloaded structure */
 #define NOTLOADED       0
 #define LOADING         1
-#define NEEDSBINDING    2
 #define LOADED          3
 #define INVALID         4
 #define UNSQUASHED      5
