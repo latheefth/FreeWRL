@@ -291,7 +291,13 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 					 else c = plno;
 					
 
-					if(colin)   c = node->colorIndex.p[i]; 
+					if(colin) {
+					   if ((i>=colin) || (i<0)) {
+						c = 0;
+					   } else {
+					        c = node->colorIndex.p[i]; 
+					   }
+					}
 
 					#ifdef RENDERVERBOSE
 					printf ("using Color %d\n",c);
