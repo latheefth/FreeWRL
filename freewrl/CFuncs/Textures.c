@@ -1151,7 +1151,7 @@ void _textureThread(void) {
 	/* printf ("textureThread, have to try to remember to destroy this context\n"); */
 
 	#else
-	textureContext = glXCreateContext(Xdpy, Xvi, GLcx, GL_TRUE);
+	textureContext = glXCreateContext(Xdpy, Xvi, GLcx, GL_FALSE);
 	printf ("texture Context is %p\n",textureContext);
 	printf ("Xdpy is %p\n",Xdpy);
 	printf ("Xvi is %p\n",Xvi);

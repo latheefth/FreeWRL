@@ -31,7 +31,7 @@ extern int fullscreen;
 
 static Colormap cmap;
 static XSetWindowAttributes swa;
-static XVisualInfo *vi;
+extern XVisualInfo *Xvi;
 
 extern int _fw_pipe, _fw_FD;
 extern unsigned _fw_instance;
@@ -171,8 +171,8 @@ void openMainWindow () {
 		XF86VidModeGetViewPort(Xdpy, DefaultScreen(Xdpy), &oldx, &oldy);
 #endif
 
-	vi = find_best_visual(shutterGlasses,attributes,len);
-	if(!vi) { fprintf(stderr, "No visual!\n");exit(-1);}
+	Xvi = find_best_visual(shutterGlasses,attributes,len);
+	if(!Xvi) { fprintf(stderr, "No visual!\n");exit(-1);}
 
 	if ((shutterGlasses) && (quadbuff_stereo_mode==0)) {
 		fprintf(stderr, "Warning: No quadbuffer stereo visual found !");
@@ -180,13 +180,13 @@ void openMainWindow () {
 	}
 
 	/* create a GLX context */
-	GLcx = glXCreateContext(Xdpy, vi, 0, GL_TRUE);
+	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_FALSE);
 
 	if(!GLcx){fprintf(stderr, "No context!\n");exit(-1);}
 
 	/* create a color map */
-	cmap = XCreateColormap(Xdpy, RootWindow(Xdpy, vi->screen),
-				   vi->visual, AllocNone);
+	cmap = XCreateColormap(Xdpy, RootWindow(Xdpy, Xvi->screen),
+				   Xvi->visual, AllocNone);
 
 	/* create a window */
 	swa.colormap = cmap;
@@ -204,7 +204,7 @@ void openMainWindow () {
 	XFree(modes);
 #endif
 
-	if(!pwin){pwin=RootWindow(Xdpy, vi->screen);}
+	if(!pwin){pwin=RootWindow(Xdpy, Xvi->screen);}
 
 
 	if (screenWidth>=0) {
@@ -212,7 +212,7 @@ void openMainWindow () {
 		if (fullscreen == 1) {
 			Xwin = XCreateWindow(Xdpy, pwin,
 				0, 0, XdpyWidth, XdpyHeight,
-				0, vi->depth, InputOutput, vi->visual,
+				0, Xvi->depth, InputOutput, Xvi->visual,
 				CWBorderPixel| CWOverrideRedirect |
 				CWColormap | CWEventMask, &swa);
 
@@ -224,8 +224,8 @@ void openMainWindow () {
 
 		} else {
 			Xwin = XCreateWindow(Xdpy, pwin,
-				xPos, yPos, screenWidth, screenHeight, 0, vi->depth, InputOutput,
-				vi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
+				xPos, yPos, screenWidth, screenHeight, 0, Xvi->depth, InputOutput,
+				Xvi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
 
 			/* create window and icon name */
 			if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
@@ -283,8 +283,8 @@ void openMainWindow () {
 		exit(-1);
 	}
 
-	//printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
-	//	glGetString(GL_RENDERER));
+	printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
+		glGetString(GL_RENDERER));
 }
 
 
