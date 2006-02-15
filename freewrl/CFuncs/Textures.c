@@ -1152,10 +1152,7 @@ void _textureThread(void) {
 
 	#else
 	textureContext = glXCreateContext(Xdpy, Xvi, GLcx, GL_FALSE);
-	printf ("texture Context is %p\n",textureContext);
-	printf ("Xdpy is %p\n",Xdpy);
-	printf ("Xvi is %p\n",Xvi);
-	printf ("GLcx %p\n",GLcx);
+	glXMakeCurrent(Xdpy,Xwin,textureContext);
 	#endif
 
 	/* we wait forever for the data signal to be sent */

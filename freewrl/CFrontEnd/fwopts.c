@@ -147,6 +147,9 @@ void openMainWindow () {
 
 	int XdpyWidth, XdpyHeight;
 
+	/* initialize XLib threads -needed for textureThread */
+	XInitThreads();
+
 	/* get a connection */
 	Xdpy = XOpenDisplay(0);
 	if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
@@ -283,8 +286,10 @@ void openMainWindow () {
 		exit(-1);
 	}
 
+	/*
 	printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
 		glGetString(GL_RENDERER));
+	*/
 }
 
 
