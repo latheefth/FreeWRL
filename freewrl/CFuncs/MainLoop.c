@@ -1106,6 +1106,32 @@ void setSnapSeq() {
         snapsequence = TRUE;
 }
 
+void closeFreewrl() {
+        struct Multi_Node* tn;
+        struct VRML_Group* rn;
+        int i;
+        /* kill any remaining children */
+        /* printf ("doQuit - calling exit(0)\n"); */
+        rn = (struct VRML_Group*) rootNode;
+        tn =  &(rn->children);
+        tn->n = 0;
+        quitThread = 1;
+        if (fognodes) free (fognodes);
+        if (backgroundnodes) free (backgroundnodes);
+        if (navnodes) free (navnodes);
+        if (viewpointnodes) free (viewpointnodes);
+        fognodes = NULL;
+        backgroundnodes = NULL;
+        navnodes = NULL;
+        viewpointnodes = NULL;
+        totviewpointnodes = 0;
+        totfognodes = 0;
+        totnavnodes = 0;
+        totbacknodes = 0;
+        viewer_initialized = FALSE;
+        set_viewer_type (EXAMINE);
+}
+
 void setEAIport(int pnum) {
         EAIport = pnum;
 }

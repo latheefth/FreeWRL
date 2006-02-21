@@ -584,6 +584,7 @@ extern void setKeyString(char *str);
 extern void setNoCollision();
 extern void setSnapGif();
 extern void setLineWidth(float lwidth);
+extern void closeFreewrl();
 extern void setSeqFile(char* file);
 extern void setSnapFile(char* file);
 extern void setMaxImages(int max);
