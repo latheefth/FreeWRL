@@ -1108,11 +1108,11 @@ void setSnapSeq() {
 
 void closeFreewrl() {
         struct Multi_Node* tn;
-        struct VRML_Group* rn;
+        struct X3D_Group* rn;
         int i;
         /* kill any remaining children */
         /* printf ("doQuit - calling exit(0)\n"); */
-        rn = (struct VRML_Group*) rootNode;
+        rn = (struct X3D_Group*) rootNode;
         tn =  &(rn->children);
         tn->n = 0;
         quitThread = 1;
