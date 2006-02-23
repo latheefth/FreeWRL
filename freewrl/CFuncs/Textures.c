@@ -197,6 +197,8 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	struct Multi_String thisurl;
 	int count;
 
+	glEnable(GL_TEXTURE_2D);
+
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
 		switch (count) {
@@ -209,17 +211,20 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 		}
 		if (thisurl.n != 0) {
 			/* we have an image specified for this face */
-
 			bind_image (IMAGETEXTURE, node->__parenturl, thisurl, (GLuint *)thistex, 0, 0,
 				NULL);
 
 			/* if we do not have an image for this Background face yet, dont draw
 			 * the quads */
 
-			if (texIsloaded[*thistex] == LOADED)
+			if (texIsloaded[*thistex] == LOADED) {
+				glBindTexture(GL_TEXTURE_2D,*thistex);
+				glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 				glDrawArrays (GL_QUADS, count*4,4);
+			}
 		};
 	}
+	glDisable(GL_TEXTURE_2D);
 }
 
 
@@ -756,6 +761,7 @@ void new_do_texture(int texno) {
 			/* do we have texture limits??? */
 			if (rx > global_texSize) rx = global_texSize;
 			if (ry > global_texSize) ry = global_texSize;
+printf ("scaling this to %d %d\n",rx,ry);
 
 			/* We have to scale */
 			dest = (unsigned char *)malloc((unsigned) (depth) * rx * ry);
@@ -859,24 +865,8 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
 		#endif
 
-		/* glBindTexture (GL_TEXTURE_2D, *texture_num); */
 		/* save the texture params for when we go through the MultiTexture stack. Non
 		   MultiTextures should have this texture_count as 0 */
-/* 
-{GLint x;
-printf ("\n");
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_WIDTH,&x); printf ("TEXTURE_WIDTH %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_HEIGHT,&x); printf ("TEXTURE_HEIGHT %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_DEPTH,&x); printf ("TEXTURE_DEPTH %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_GREEN_SIZE,&x); printf ("TEXTURE_GREEN_SIZE %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_RED_SIZE,&x); printf ("TEXTURE_RED_SIZE %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_BLUE_SIZE,&x); printf ("TEXTURE_BLUE_SIZE %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_ALPHA_SIZE,&x); printf ("TEXTURE_ALPHA_SIZE %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_INTENSITY_SIZE,&x); printf ("TEXTURE_INTENSITY_SIZE %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_LUMINANCE_SIZE,&x); printf ("TEXTURE_LUMINANCE_SIZE %d\n",x);
-glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_INTERNAL_FORMAT,&x); printf ("TEXTURE_INTERNAL_FORMAT %x\n",x);
-}
-*/
 		texParams[texture_count] = param;
 		textureInProcess = -1; /* we have finished the whole process */
 		return;
