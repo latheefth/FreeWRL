@@ -65,6 +65,7 @@ CGLPixelFormatAttribute attribs[] = { kCGLPFADisplayMask, 0,
                                       kCGLPFAFullScreen,
                                       kCGLPFADoubleBuffer,
                                       0 };
+
 CGLPixelFormatObj pixelFormat = NULL;
 long numPixelFormats = 0;
 CGLContextObj aqtextureContext = NULL;
@@ -695,8 +696,10 @@ void do_possible_textureSequence(int texno) {
 void new_do_texture(int texno) {
 	int rx,ry,sx,sy;
 	int depth,x,y;
+	GLint iformat;
+	GLenum format;
 
-	glBindTexture (GL_TEXTURE_2D, *loadparams[texno].texture_num);
+	glBindTexture (GL_TEXTURE_2D, texno);
 
 	if (global_texSize==0) {
 		/* called in OSX from the command line, so this is not set yet */
@@ -720,6 +723,27 @@ void new_do_texture(int texno) {
 	x = loadparams[texno].x;
 	y = loadparams[texno].y;
 
+	switch (depth) {
+		case 1: 
+			iformat = GL_LUMINANCE;
+			format = GL_LUMINANCE;
+			break;
+		case 2:
+			iformat = GL_LUMINANCE_ALPHA;
+			format = GL_LUMINANCE_ALPHA;
+			break;
+
+		case 3: 
+			iformat = GL_RGB;
+			format = GL_RGB;
+			break;
+
+		default:
+			iformat = GL_RGBA;
+			format = GL_RGBA;
+			break;
+	}
+
 	if((depth) && x && y) {
 		unsigned char *dest = loadparams[texno].texdata;
 		rx = 1; sx = x;
@@ -735,23 +759,19 @@ void new_do_texture(int texno) {
 
 			/* We have to scale */
 			dest = (unsigned char *)malloc((unsigned) (depth) * rx * ry);
-			gluScaleImage((unsigned)
-			     ((depth)==1 ? GL_LUMINANCE :
-			     ((depth)==2 ? GL_LUMINANCE_ALPHA :
-			     ((depth)==3 ? GL_RGB :
-			     GL_RGBA))),
+			gluScaleImage(format,
 			     x, y, GL_UNSIGNED_BYTE, loadparams[texno].texdata, rx, ry,
 			     GL_UNSIGNED_BYTE, dest);
+
 		}
 
-		glTexImage2D(GL_TEXTURE_2D, 0, depth,  rx, ry, 0, (unsigned)
-			     ((depth)==1 ? GL_LUMINANCE :
-			     ((depth)==2 ? GL_LUMINANCE_ALPHA :
-			     ((depth)==3 ? GL_RGB :
-			     GL_RGBA))),
+		glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format,
 			     GL_UNSIGNED_BYTE, dest);
+
 		if((loadparams[texno].texdata) != dest) free(dest);
 		free (loadparams[texno].texdata);
+
+		/* CGLError err = CGLFlushDrawable(aqtextureContext); */
 	}
 }
 
@@ -839,11 +859,26 @@ void bind_image(int itype, SV *parenturl, struct Multi_String url,
 		printf ("now binding to pre-bound %d, num %d\n",*texture_num, *texture_num);
 		#endif
 
-		/* save the texture params for when we go through the MultiTexture stack */
+		/* glBindTexture (GL_TEXTURE_2D, *texture_num); */
+		/* save the texture params for when we go through the MultiTexture stack. Non
+		   MultiTextures should have this texture_count as 0 */
+/* 
+{GLint x;
+printf ("\n");
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_WIDTH,&x); printf ("TEXTURE_WIDTH %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_HEIGHT,&x); printf ("TEXTURE_HEIGHT %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_DEPTH,&x); printf ("TEXTURE_DEPTH %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_GREEN_SIZE,&x); printf ("TEXTURE_GREEN_SIZE %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_RED_SIZE,&x); printf ("TEXTURE_RED_SIZE %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_BLUE_SIZE,&x); printf ("TEXTURE_BLUE_SIZE %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_ALPHA_SIZE,&x); printf ("TEXTURE_ALPHA_SIZE %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_INTENSITY_SIZE,&x); printf ("TEXTURE_INTENSITY_SIZE %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_LUMINANCE_SIZE,&x); printf ("TEXTURE_LUMINANCE_SIZE %d\n",x);
+glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_INTERNAL_FORMAT,&x); printf ("TEXTURE_INTERNAL_FORMAT %x\n",x);
+}
+*/
 		texParams[texture_count] = param;
-
 		textureInProcess = -1; /* we have finished the whole process */
-
 		return;
 	}
 
@@ -1154,6 +1189,11 @@ void _textureThread(void) {
 	textureContext = glXCreateContext(Xdpy, Xvi, GLcx, GL_FALSE);
 	glXMakeCurrent(Xdpy,Xwin,textureContext);
 	#endif
+
+	/* set up some common storage info */
+	glEnable(GL_TEXTURE_2D);
+	glPixelStorei(GL_PACK_ALIGNMENT,1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 
 	/* we wait forever for the data signal to be sent */
 	for (;;) {
