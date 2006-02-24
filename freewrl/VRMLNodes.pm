@@ -1411,7 +1411,7 @@ my $protono;
 						mode =>[MFString,[],exposedField],
 						source =>[MFString,[],exposedField],
 						texture=>[MFNode,undef,exposedField],
-						__params => [SFInt32, 0, field],
+						__params => [FreeWRLPTR, 0, field],
 					   }),
 
 	MultiTextureCoordinate => new VRML::NodeType("MultiTextureCoordinate", {

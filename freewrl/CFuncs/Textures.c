@@ -91,6 +91,7 @@ void __reallyloadPixelTexture(void);
 void __reallyloadImageTexture(void);
 void __reallyloadMovieTexture(void);
 void do_possible_textureSequence(int texno);
+SV *EAI_newSVpv(char *str);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
 void readpng_cleanup(int free_image_data);
@@ -158,8 +159,6 @@ void init_multitexture_handling() {
 		maxTexelUnits = 0;
 	}
 }
-
-
 
 /* lets remove this texture from the process... */
 void freeTexture (GLuint *texno) {
@@ -322,7 +321,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		/* alloc fields, if required - only do this once, even if node changes */
 		if (node->__params == 0) {
 			/* printf ("loadMulti, mallocing for params\n"); */
-			node->__params = (int) malloc (sizeof (struct multiTexParams) * maxTexelUnits);
+			node->__params = malloc (sizeof (struct multiTexParams) * maxTexelUnits);
 			paramPtr = (struct multiTexParams*) node->__params;
 
 			/* set defaults for these fields */
@@ -727,24 +726,19 @@ void new_do_texture(int texno) {
 	depth = loadparams[texno].depth;
 	x = loadparams[texno].x;
 	y = loadparams[texno].y;
+printf ("depth %d\n",depth);
 
 	switch (depth) {
-		case 1: 
-			iformat = GL_LUMINANCE;
+		case 1: iformat = GL_LUMINANCE;
 			format = GL_LUMINANCE;
 			break;
-		case 2:
-			iformat = GL_LUMINANCE_ALPHA;
+		case 2: iformat = GL_LUMINANCE_ALPHA;
 			format = GL_LUMINANCE_ALPHA;
 			break;
-
-		case 3: 
-			iformat = GL_RGB;
+		case 3: iformat = GL_RGB;
 			format = GL_RGB;
 			break;
-
-		default:
-			iformat = GL_RGBA;
+		default: iformat = GL_RGBA;
 			format = GL_RGBA;
 			break;
 	}
@@ -761,7 +755,6 @@ void new_do_texture(int texno) {
 			/* do we have texture limits??? */
 			if (rx > global_texSize) rx = global_texSize;
 			if (ry > global_texSize) ry = global_texSize;
-printf ("scaling this to %d %d\n",rx,ry);
 
 			/* We have to scale */
 			dest = (unsigned char *)malloc((unsigned) (depth) * rx * ry);
@@ -770,6 +763,10 @@ printf ("scaling this to %d %d\n",rx,ry);
 			     GL_UNSIGNED_BYTE, dest);
 
 		}
+
+		/* printf ("rx, ry %d %d\n",rx,ry);
+		{int iy,x; iy=0; for (x=0; x<(depth*rx*ry); x++) {printf ("%2x",dest[x]);
+		iy++; if (iy==3) {iy=0; printf ("\n");}} printf ("\n");} */
 
 		glTexImage2D(GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format,
 			     GL_UNSIGNED_BYTE, dest);
@@ -1028,9 +1025,6 @@ int findTextureFile (int cwo, int *istemp) {
 			/* So, we could not find the correct file. Make this into a blank PixelTexture, so that
 			   at least this looks ok on the screen */
 			loadparams[cwo].type = PIXELTEXTURE;
-			/* really bright PixelTexture! 
-			loadparams[cwo].parenturl=EAI_newSVpv("2 4 3 0xff0000 0x00ff00 0xff0000 0x00ff00 0xffff00 0x0000ff 0xffff00 0x0000ff");
-			*/
 			loadparams[cwo].parenturl=EAI_newSVpv("1 1 3 0x707070");
 		}
 	}
