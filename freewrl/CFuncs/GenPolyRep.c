@@ -237,10 +237,9 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_,
 
 int checkX3DComposedGeomFields (struct X3D_IndexedFaceSet *this_) {
 	struct SFColor *points;
-	int npoints;
+	int npoints = 0;
 	int retval = TRUE;
 	int IndexSize = 0;
-	npoints = 0; 
 	int xx,yy,zz; /* temporary variables */
 	int fanVertex;
 	int *newIndex;

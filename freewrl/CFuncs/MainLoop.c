@@ -133,6 +133,25 @@ unsigned char*  rayHit(void);
 void get_hyperhit(void);
 void sendSensorEvents(unsigned char *COS,int ev, int status);
 
+/******************************************************************************/
+/* Jens Rieks sent in some changes - some of which uses strndup, which does not
+   always exist... */
+#ifndef strndup
+char *strndup (const char *str, int len) {
+	char *retval;
+	int ml;
+	ml = strlen(str);
+	if (ml > len) ml = len;
+	retval = (char *) malloc (sizeof (char) * (ml+1));
+	strncpy (retval,str,ml);
+	/* ensure termination */
+	retval[ml] = '\0';
+	return retval;
+}
+#endif
+
+
+
 /* a simple routine to allow the front end to get our version */
 char *getLibVersion() {
 	return (FWVER);
@@ -824,8 +843,8 @@ void do_keyPress(const char kp, int type) {
 			case '.': { display_status = !display_status; break; }
 			case 'q': { if (!RUNNINGASPLUGIN) {
 					  doQuit();
-					break;
 				    }
+				    break;
 				  }
 			case 'c': {be_collision = !be_collision; break; }
 			case '?': {
@@ -1006,24 +1025,18 @@ void setScreenDim(int wi, int he) {
         else screenRatio =  screenWidth;
 }
 
-void setBrowserURL(char* file) {
-        int count;
-        count = strlen(file);
+void setBrowserURL(const char* file) {
         if (BrowserURL != NULL) {
                 free (BrowserURL);
         }
-        BrowserURL = malloc (count + 1);
-        strcpy(BrowserURL, file);
+        BrowserURL = strdup(file);
 }
 
-void setFullPath(char* file) {
-	int count;
-	count = strlen(file);
+void setFullPath(const char* file) {
 	if (BrowserFullPath != NULL) {
 		free (BrowserFullPath);
 	}
-	BrowserFullPath = malloc ((strlen(file)+1) * sizeof (char));
-	strcpy(BrowserFullPath, file);
+	BrowserFullPath = strdup(file);
 }
 
 
@@ -1083,6 +1096,9 @@ void setLastMouseEvent(int etype) {
 #endif
 
 void initFreewrl() {
+	int tmp = 0;
+	setbuf(stdout,0);
+	setbuf(stderr,0);
         threadmsg = "event loop";
 	quitThread = 0;
 	if (DispThrd <= 0) {
@@ -1097,7 +1113,6 @@ void initFreewrl() {
         	        usleep(50);
         	}
 	}
-        int tmp = 0;
         perlParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
 }
 
@@ -1161,29 +1176,17 @@ void setNoCollision() {
         be_collision = 0;
 }
 
-void setKeyString(char* kstring) {
-        int count;
-        count = strlen(kstring);
-        if (count > 500) count = 500;
-        keypress_string = malloc(count+1);
-        strcpy(keypress_string, kstring);
+void setKeyString(const char* kstring) {
+        keypress_string = strndup(kstring, 500);
 }
 
-void setSeqFile(char* file) {
-        int count;
-        count = strlen(file);
-        if (count > 500) count = 500;
-        snapseqB = malloc (count+1);
-        strcpy(snapseqB, file);
+void setSeqFile(const char* file) {
+        snapseqB = strndup(file, 500);
         printf("snapseqB is %s\n", snapseqB);
 }
 
-void setSnapFile(char* file) {
-        int count;
-        count = strlen(file);
-        if (count > 500) count = 500;
-        snapsnapB = malloc(count + 1);
-        strcpy(snapsnapB, file);
+void setSnapFile(const char* file) {
+        snapsnapB = strndup(file, 500);
         printf("snapsnapB is %s\n", snapsnapB);
 }
 
@@ -1192,19 +1195,15 @@ void setMaxImages(int max) {
                 max = 100;
         maxSnapImages = max;
 }
-void setSeqTemp(char* file) {
-        int count;
-        count = strlen(file);
-        if (count > 500) count = 500;
-        seqtmp = malloc(count + 1);
-        strcpy(seqtmp, file);
+void setSeqTemp(const char* file) {
+        seqtmp = strndup(file, 500);
         printf("seqtmp is %s\n", seqtmp);
 }
 
 /* if we had an exit(1) anywhere in this C code - it means
    a memory error. So... print out a standard message to the
    console. */
-void outOfMemory(char *msg) {
+void outOfMemory(const char *msg) {
 	ConsoleMessage ("FreeWRL has encountered a memory allocation problem\n"\
 			"and is exiting.\n -- %s--",msg);
 	exit(1);

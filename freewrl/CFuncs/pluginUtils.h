@@ -66,7 +66,7 @@ typedef struct _urlRequest {
 const char* XEventToString(int type);
 const char* XErrorToString(int error);
 
-void URLencod (char *dest, char *src, int maxlen);
+void URLencod (char *dest, const char *src, int maxlen);
 
 #ifdef __cplusplus
 }

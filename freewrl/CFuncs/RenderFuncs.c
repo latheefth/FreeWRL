@@ -175,6 +175,7 @@ char *BrowserName = "FreeWRL VRML/X3D Browser";
 char *lastReadFile = NULL;
 
 void *rootNode=0;	/* scene graph root node */
+void *empty_group=0;
 
 /*******************************************************************************/
 
@@ -240,7 +241,13 @@ void update_node(void *ptr) {
 
 	p->_change ++;
 	for (i = 0; i < p->_nparents; i++) {
-		update_node((void *)p->_parents[i]);
+		void *n = (void *)p->_parents[i];
+		if(n == p) {
+		    fprintf(stderr, "Error: self-referential node structure! (node:'%s')\n", stringNodeType(p->_nodeType));
+		    p->_parents[i] = empty_group;
+		} else if( n != 0 ) {
+		    update_node(n);
+		}
 	}
 }
 

@@ -383,6 +383,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	/* variables for MFStrings */
 	struct Multi_String *MSptr;
 	struct Multi_Color *MCptr;
+	struct Multi_Int32 *MIptr;
 	float *SFFloats;
 	int *SFints;
 	AV *aM;
@@ -524,9 +525,9 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 				printf ("can not allocate memory for PROTO Interface decls\n");
 				return 0;
 			}
-			MCptr = (struct Multi_Int32 *) memptr;
-			(*MCptr).n = 0;
-			(*MCptr).p = 0;
+			MIptr = (struct Multi_Int32 *) memptr;
+			(*MIptr).n = 0;
+			(*MIptr).p = 0;
 			if(!SvROK(data)) {
 				printf ("EAI_Extra_Memory: Help! Multi without being ref\n");
 				return 0;
@@ -544,9 +545,9 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 
 			/* printf ("This MFInt32 has (lM is) %d\n",lM);  */
                         /* XXX Free previous p */
-                        (*MCptr).n = lM;
-                        (*MCptr).p = (struct SFInt32 *)malloc(lM * numPerRow * sizeof(*((*MCptr).p)));
-			SFints = (int *) (*MCptr).p;
+                        (*MIptr).n = lM;
+                        (*MIptr).p = (struct SFInt32 *)malloc(lM * numPerRow * sizeof(*((*MIptr).p)));
+			SFints = (int *) (*MIptr).p;
 
 			/* printf ("EAI_DO_EXTRA, memptr for floats is %x\n",SFints); */
 

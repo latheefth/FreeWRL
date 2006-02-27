@@ -50,7 +50,7 @@ char * readInputString(char *fn, char *parent) {
 
 	/* check to see if this file exists */
 	if (!fileExists(mynewname,firstbytes,TRUE)) {
-		ConsoleMessage("problem reading file %s",fn);
+		ConsoleMessage("problem reading file '%s' ('%s')",fn,mynewname);
 		strcpy (buffer,"\n");
 		return buffer;
 	}
@@ -73,7 +73,7 @@ char * readInputString(char *fn, char *parent) {
 	infile = fopen(mynewname,"r");
 
 	if ((buffer == 0) || (infile == NULL)){
-		ConsoleMessage("problem reading file %s",fn);
+		ConsoleMessage("problem reading file '%s' (stdio:'%s')",fn,mynewname);
 		strcpy (buffer,"\n");
 		return buffer;
 	}

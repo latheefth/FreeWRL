@@ -2270,6 +2270,23 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		(ptr->v).r[1] = 0.0;
 		(ptr->v).r[2] = 1.0;
 		(ptr->v).r[3] = 0.0;
+	/* test "o d" first, otherwise "var d=1;new SFRotation(vect, d)" won't work */
+	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "o d",
+					&_ob1, &(pars[0]))) {
+		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
+			printf(
+					"JS_InstanceOf failed for arg format \"o d\" in SFRotationConstr.\n");
+			return JS_FALSE;
+		}
+		if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _ob1)) == NULL) {
+			printf(
+					"JS_GetPrivate failed for arg format \"o d\" in SFRotationConstr.\n");
+			return JS_FALSE;
+		}
+		(ptr->v).r[0] = _vec->v.c[0];
+		(ptr->v).r[1] = _vec->v.c[1];
+		(ptr->v).r[2] = _vec->v.c[2];
+		(ptr->v).r[3] = pars[0];
 	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "o o",
 												&_ob1, &_ob2)) {
 		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
@@ -2311,22 +2328,6 @@ SFRotationConstr(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *r
 		(ptr->v).r[2] = v1.x * v2.y - v2.x * v1.y;
 		v12dp /= v1len * v2len;
 		(ptr->v).r[3] = atan2(sqrt(1 - v12dp * v12dp), v12dp);
-	} else if (argc == 2 && JS_ConvertArguments(cx, argc, argv, "o d",
-					&_ob1, &(pars[0]))) {
-		if (!JS_InstanceOf(cx, _ob1, &SFVec3fClass, argv)) {
-			printf(
-					"JS_InstanceOf failed for arg format \"o d\" in SFRotationConstr.\n");
-			return JS_FALSE;
-		}
-		if ((_vec = (SFVec3fNative *)JS_GetPrivate(cx, _ob1)) == NULL) {
-			printf(
-					"JS_GetPrivate failed for arg format \"o d\" in SFRotationConstr.\n");
-			return JS_FALSE;
-		}
-		(ptr->v).r[0] = _vec->v.c[0];
-		(ptr->v).r[1] = _vec->v.c[1];
-		(ptr->v).r[2] = _vec->v.c[2];
-		(ptr->v).r[3] = pars[0];
 	} else if (argc == 4 && JS_ConvertArguments(cx, argc, argv, "d d d d",
 												&(pars[0]), &(pars[1]),
 												&(pars[2]), &(pars[3]))) {

@@ -99,7 +99,7 @@ void kill_javascript(void) {
 }
 
 
-void cleanupDie(int num, char *msg) {
+void cleanupDie(int num, const char *msg) {
 	kill_javascript();
 	freewrlDie(msg);
 }

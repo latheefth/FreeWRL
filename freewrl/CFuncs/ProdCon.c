@@ -163,11 +163,10 @@ struct PSStruct psp;
 
 char *myPerlInstallDir;
 
-void initializePerlThread(char *perlpath) {
+void initializePerlThread(const char *perlpath) {
 	int iret;
 
-	myPerlInstallDir = (char *)malloc (strlen (perlpath) + 2);
-	strcpy (myPerlInstallDir, perlpath);
+	myPerlInstallDir = strdup(perlpath);
 
 	/* create consumer thread and set the "read only" flag indicating this */
 	iret = pthread_create(&PCthread, NULL, (void *(*)(void *))&_perlThread, (void *) perlpath);
@@ -361,7 +360,7 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 	psp.path = NULL;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
-	psp.fieldname = (char *)methodname;
+	psp.fieldname = strdup(methodname);
 
 	psp.jparamcount = 0;
 	va_start (ap,format);
@@ -399,7 +398,7 @@ void doPerlCallMethodVA(SV *sv, const char *methodname, const char *format, ...)
 }
 
 /* interface for getting a node number via the EAI */
-unsigned int EAI_GetNode(char *nname) {
+unsigned int EAI_GetNode(const char *nname) {
 	int complete;
 	int retval;
 
@@ -414,7 +413,7 @@ unsigned int EAI_GetNode(char *nname) {
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
-	psp.fieldname = nname;
+	psp.fieldname = strdup(nname);
 	/* send data to Perl Interpreter */
 	SEND_TO_PERL;
 	UNLOCK;
@@ -428,7 +427,7 @@ unsigned int EAI_GetNode(char *nname) {
 }
 
 /* interface for getting a Viewpoint CNode */
-unsigned int EAI_GetViewpoint(char *nname) {
+unsigned int EAI_GetViewpoint(const char *nname) {
 	int complete;
 	int retval;
 
@@ -443,7 +442,7 @@ unsigned int EAI_GetViewpoint(char *nname) {
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
-	psp.fieldname = nname;
+	psp.fieldname = strdup(nname);
 
 	/* send data to Perl Interpreter */
 	SEND_TO_PERL;
@@ -457,13 +456,8 @@ unsigned int EAI_GetViewpoint(char *nname) {
 	return (retval);
 }
 
-void EAI_GetType (unsigned int uretval,
-        char *ctmp, char *dtmp,
-        int *ra, int *rb,
-        int *rc, int *rd, int *re);
-
 /* interface for getting node type parameters from EAI */
-void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
+void EAI_GetType(unsigned int nodenum, const char *fieldname, const char *direction,
 	int *nodeptr,
 	int *dataoffset,
 	int *datalen,
@@ -473,9 +467,9 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 
 	WAIT_WHILE_PERL_BUSY;
 	complete=0;
-	psp.ptr = direction;
+	psp.ptr = strdup(direction);
 	psp.jparamcount=nodenum;
-	psp.fieldname = fieldname;
+	psp.fieldname = strdup(fieldname);
 
 	psp.comp = &complete;
 	psp.type = EAIGETTYPE;
@@ -505,16 +499,16 @@ void EAI_GetType(unsigned int nodenum, char *fieldname, char *direction,
 }
 
 /* interface for getting node type parameters from EAI - mftype is for MF nodes.*/
-char* EAI_GetValue(unsigned int nodenum, char *fieldname, char *nodename) {
+char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename) {
 	int complete;
 	char *retstr;
 
 	/* printf ("EAI_GetValue starting node %d field %s\n",nodenum,fieldname); */
 	WAIT_WHILE_PERL_BUSY;
 	complete=0;
-	psp.ptr = nodename;
+	psp.ptr = strdup(nodename);
 	psp.jparamcount=nodenum;
-	psp.fieldname = fieldname;
+	psp.fieldname = strdup(fieldname);
 
 	psp.comp = &complete;
 	psp.type = EAIGETVALUE;
@@ -583,7 +577,7 @@ char* EAI_GetTypeName(unsigned int nodenum) {
 }
 
 /* interface for getting a node number via the EAI */
-void EAI_Route(char cmnd, char *fn) {
+void EAI_Route(char cmnd, const char *fn) {
 	int complete;
 	int retval;
 
@@ -598,7 +592,7 @@ void EAI_Route(char cmnd, char *fn) {
 	psp.zeroBind = FALSE;
 	psp.bind = FALSE; /* should we issue a set_bind? */
 	psp.inp = NULL;
-	psp.fieldname = fn;
+	psp.fieldname = strdup(fn);
 
 	/* send data to Perl Interpreter */
 	SEND_TO_PERL;
@@ -621,7 +615,7 @@ void EAI_killBindables (void) {
 	psp.comp = &complete;
 	psp.type = ZEROBINDABLES;
 	psp.retarr = NULL;
-	psp.ofs = NULL;
+	psp.ofs = 0;
 	psp.ptr = NULL;
 	psp.path = NULL;
 	psp.zeroBind = FALSE;
@@ -641,7 +635,7 @@ void EAI_killBindables (void) {
 }
 
 /* interface for creating VRML for EAI */
-int EAI_CreateVrml(char *tp, char *inputstring, unsigned *retarr, int retarrsize) {
+int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, int retarrsize) {
 	int complete;
 	int retval;
 	UNUSED(tp);
@@ -1139,11 +1133,11 @@ void __pt_loadInitialGroup() {
 float eyedist = 0.06;
 float screendist = 0.8;
 
-void setEyeDist (char *optArg) {
+void setEyeDist (const char *optArg) {
 	sscanf(optArg,"%f",&eyedist);
 }
 
-void setScreenDist (char *optArg) {
+void setScreenDist (const char *optArg) {
 	sscanf(optArg,"%f",&screendist);
 }
 /* end of Shutter glasses, stereo mode configure */

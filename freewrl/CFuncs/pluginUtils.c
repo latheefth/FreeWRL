@@ -33,7 +33,7 @@ void killErrantChildren(void) {
 	}
 }
 
-int freewrlSystem (char *sysline) {
+int freewrlSystem (const char *sysline) {
 
 #define MAXEXECPARAMS 10
 #define EXECBUFSIZE	2000
@@ -388,7 +388,7 @@ void URLprint (const char *m, const char *p) {
 
 /* loop about waiting for the Browser to send us some stuff. */
 /* Change a string to encode spaces for getting URLS. */
-void URLencod (char *dest, char *src, int maxlen) {
+void URLencod (char *dest, const char *src, int maxlen) {
 	int mylen;
 	int sctr;
 	int destctr;
@@ -397,7 +397,7 @@ void URLencod (char *dest, char *src, int maxlen) {
 	/* get the length of the source and bounds check */
 	URLprint ("going to start URLencod %s\n","on a string");
 	URLprint ("start, src is %s\n",src);
-	URLprint ("maxlen is %d\n",maxlen);
+	URLprint ("maxlen is %d\n",(void*)maxlen);
 
 	destctr = 0; /* ensure we dont go over dest length */
 	mylen = strlen(src);

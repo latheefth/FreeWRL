@@ -239,7 +239,7 @@ sub resolve_node_cnode {
 	}
 
 
-	#addChildren really is Children
+	#addChildren really is Children - check out the extra param.
 	if (($field eq "addChildren") || ($field eq "removeChildren")) {
 		$field = "children";
 	}
@@ -497,15 +497,18 @@ sub add_route {
 	my ($to_count, $tonode_str, $tc, $ok, $intptr) = $this->resolve_node_cnode($scene, $toNode, $eventIn, "eventIn");
 
 
+	# a set_children is different than an addChildren or removeChildren, but they all operate on the children field...
 	if ($eventIn eq "addChildren") {
 		$extraparam = 1;
+	} elsif ($eventIn eq "removeChildren") {
+		 $extraparam = 2;
 	}
 
 	if ($ok == 0) {return 1;} # error message already printed
 
 	$scrpt = $fc + $tc;
 
-	#print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
+	# print "\nVRML::EventMachine::add_route: outptr $outptr, ofst $outoffset, in $to_count '$tonode_str', len $datalen interp $intptr sc $scrpt\n";
 
 	VRML::VRMLFunc::do_CRoutes_Register($add_rem, $outptr, $outoffset,
 		$to_count, $tonode_str,

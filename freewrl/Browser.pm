@@ -48,6 +48,13 @@ use Config;
 
 my $globalBrowser = "";
 
+# automatic output flushing
+BEGIN {
+    use IO::Handle;
+    STDOUT->autoflush(1);
+    STDERR->autoflush(1);
+}
+
 ###############################################
 #
 # Public functions
@@ -309,7 +316,7 @@ sub createVrmlFromString {
 
 	my $wurl = $this->{Scene}->get_world_url();
 
-	return $this->create_common ("FROM A STRING",$wurl,$string);
+	return $this->create_common (".",$wurl,$string);
 }
 
 sub createVrmlFromURL {

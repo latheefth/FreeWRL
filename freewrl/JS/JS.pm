@@ -163,12 +163,14 @@ sub initSFNodeFields {
 			 	if $VRML::verbose::js;
 
 	for (@fields) {
+		(warn, next) if	$_ eq "";
 		next if $_ eq "url" or
 			$_ eq "directOutput" or
 			$_ eq "mustEvaluate";
 
 		$fkind = $nt->{FieldKinds}{$_};
 		$type = $nt->{FieldTypes}{$_};
+		warn "no FieldTypes{$_}\n" unless defined $type and length $type != 0;
 		$ftype = "VRML::Field::$type";
 
 		if ($fkind eq "eventIn") { ## correct???
@@ -209,7 +211,7 @@ sub initSFNodeFields {
 				}
 			}
 		} else {
-			warn("Invalid field $fkind $_ for $ntn in initSFNodeFields");
+			warn("Invalid field '$fkind' ('$ftype') '$_' for '$ntn' in initSFNodeFields");
 			return;
 		}
 	}

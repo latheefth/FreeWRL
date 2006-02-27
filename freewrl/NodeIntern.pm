@@ -375,11 +375,10 @@ sub as_string {
     }
 
     for (keys %{$this->{Fields}}) {
-		$s .= " $_ ";
 		if (ref $this->{Fields}{$_} =~ /(IS|USE|DEF)$/) {
-			$s .= $this->{Fields}{$_}->as_string();
-		} else {
-			$s .= "VRML::Field::$this->{Type}{FieldTypes}{$_}"->as_string($this->{Fields}{$_});
+		    $s .= " $_ " . $this->{Fields}{$_}->as_string();
+		} elsif (exists $this->{Type}{FieldTypes}{$_}) {
+		    $s .= " $_ " . "VRML::Field::$this->{Type}{FieldTypes}{$_}"->as_string($this->{Fields}{$_});
 		}
     }
     $s .= " }";

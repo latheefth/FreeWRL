@@ -902,7 +902,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 /* a pointer to the actual field in that node,			*/
 /*	a list of node pointers, in memory,			*/
 /*	the length of this list, (ptr size, not bytes)		*/
-/*	and a flag for add or remove 				*/
+/*	and a flag for add (1), remove (2) or replace (0) 	*/
 /*								*/
 /****************************************************************/
 
@@ -932,7 +932,22 @@ void AddRemoveChildren (
 	oldlen = tn->n;
 	/* printf ("AddRemoveChildren, len %d, oldlen %d ar %d\n",len, oldlen, ar);  */
 
-	if (ar != 0) {
+	/* to do a "set_children", we remove the children, then do an add */
+	if (ar == 0) {
+		#ifdef CRVERBOSE
+		printf ("we have to perform a \"set_children\" on this field\n");
+		# endif
+
+		/* make it so that we have 0 children */
+		tn->n=0; 
+		if (oldlen > 0) FREE_IF_NZ(tn->p);
+
+		/* now, make this into an addChildren */
+		oldlen = 0;
+		ar = 1;
+	}
+
+	if (ar == 1) {
 		/* addChildren - now we know how many SFNodes are in this MFNode, lets malloc and add */
 
 		/* first, set children to 0, in case render thread comes through here */
@@ -1022,6 +1037,7 @@ void AddRemoveChildren (
 	}
 }
 
+#undef CRVERBOSE
 
 /****************************************************************/
 /* a CLASS is returning a Multi-number type; copy this from 	*/
@@ -2035,7 +2051,7 @@ void CRoutes_js_new (int num, int scriptType) {
 
 }
 
-int convert_typetoInt (char *type) {
+int convert_typetoInt (const char *type) {
 	/* first, convert the type to an integer value */
 	if (strncmp("SFBool",type,7) == 0) return SFBOOL;
 	else if (strncmp ("SFColor",type,7) == 0) return SFCOLOR;

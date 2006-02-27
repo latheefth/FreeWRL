@@ -43,6 +43,14 @@ void OcclusionStartofEventLoop(void);
 
 #ifdef OCCLUSION
 
+#define glGenQueries(a,b) glGenQueriesARB(a,b)
+#define glDeleteQueries(a,b) glDeleteQueriesARB(a,b)
+#define glIsQuery(a) glIsQueryARB(a)
+#define glBeginQuery(a,b) glBeginQueryARB(a,b)
+#define glEndQuery(a) glEndQueryARB(a)
+#define glGetQueryiv(a,b,c) glGetQueryivARB(a,b,c)
+#define glGetQueryObjectiv(a,b,c) glGetQueryObjectivARB(a,b,c)
+#define glGetQueryObjectuiv(a,b,c) glGetQueryObjectuivARB(a,b,c)
 
 extern GLuint *OccQueries;
 extern void * *OccNodes;
@@ -409,16 +417,17 @@ struct CRscriptStruct {
 
 };
 void JSMaxAlloc(void);
-void cleanupDie(int num, char *msg);
+void cleanupDie(int num, const char *msg);
 void shutdown_EAI(void);
-unsigned int EAI_GetNode(char *str);
-unsigned int EAI_GetViewpoint(char *str);
+unsigned int EAI_GetNode(const char *str);
+unsigned int EAI_GetViewpoint(const char *str);
 void EAI_killBindables (void);
-void EAI_GetType (unsigned int uretval,
-        char *ctmp, char *dtmp,
-        int *ra, int *rb,
-        int *rc, int *rd, int *re);
-
+void EAI_GetType(unsigned int nodenum, const char *fieldname, const char *direction,
+        int *nodeptr,
+        int *dataoffset,
+        int *datalen,
+        int *nodetype,
+        int *scripttype);
 
 void setECMAtype(int num);
 int get_touched_flag(int fptr, unsigned long int actualscript);
@@ -451,7 +460,7 @@ void render_status(void); /* status bar */
 void update_status(void); 	/* update status bar */
 void viewer_type_status(int x);		/* tell status bar what kind of viewer */
 void viewpoint_name_status(char *str); /* tell status bar name of current vp 	*/
-int convert_typetoInt (char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
+int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
 extern double BrowserFPS;
 void render_polyrep(void *node);
@@ -508,22 +517,22 @@ extern GLfloat boxtex[], boxnorms[], BackgroundVert[];
 extern GLfloat Backtex[], Backnorms[];
 
 extern void new_tessellation(void);
-extern void initializePerlThread(char *perlpath);
+extern void initializePerlThread(const char *perlpath);
 extern PerlInterpreter *my_perl;
-extern void setGeometry (char *optarg);
+extern void setGeometry (const char *optarg);
 extern void setWantEAI(int flag);
-extern void setPluginPipe(char *optarg);
-extern void setPluginFD(char *optarg);
-extern void setPluginInstance(char *optarg);
+extern void setPluginPipe(const char *optarg);
+extern void setPluginFD(const char *optarg);
+extern void setPluginInstance(const char *optarg);
 
 /* shutter glasses, stereo view  from Mufti@rus */
 extern void setShutter (void);
 #ifndef AQUA
 extern int shutterGlasses;
 #endif
-extern void setScreenDist (char *optArg);
-extern void setStereoParameter (char *optArg);
-extern void setEyeDist (char *optArg);
+extern void setScreenDist (const char *optArg);
+extern void setStereoParameter (const char *optArg);
+extern void setEyeDist (const char *optArg);
 
 extern int isPerlinitialized(void);
 extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; /* defined in VRMLC.pm */
@@ -552,14 +561,14 @@ extern int checkNetworkFile(char *fn);
 extern void checkAndAllocMemTables(int *texture_num, int increment);
 extern void   storeMPGFrameData(int latest_texture_number, int h_size, int v_size,
         int mt_repeatS, int mt_repeatT, char *Image);
-void mpg_main(char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
+void mpg_main(const char *filename, int *x,int *y,int *depth,int *frameCount,void **ptr);
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl);
 
 
 void create_EAI(void);
-int EAI_CreateVrml(char *type, char *str, unsigned int *retarr, int retarrsize);
-void EAI_Route(char cmnd, char *tf);
-void EAI_replaceWorld(char *inputstring);
+int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, int retarrsize);
+void EAI_Route(char cmnd, const char *tf);
+void EAI_replaceWorld(const char *inputstring);
 
 void render_hier(void *p, int rwhat);
 void handle_EAI(void);
@@ -580,17 +589,17 @@ extern void setSnapSeq();
 extern void setEAIport(int pnum);
 extern void setNoStatus();
 extern void setFast();
-extern void setKeyString(char *str);
+extern void setKeyString(const char *str);
 extern void setNoCollision();
 extern void setSnapGif();
 extern void setLineWidth(float lwidth);
 extern void closeFreewrl();
-extern void setSeqFile(char* file);
-extern void setSnapFile(char* file);
+extern void setSeqFile(const char* file);
+extern void setSnapFile(const char* file);
 extern void setMaxImages(int max);
-extern void setBrowserURL(char *str);
-extern void setSeqTemp(char* file);
-extern void setFullPath(char *str);
+extern void setBrowserURL(const char *str);
+extern void setSeqTemp(const char* file);
+extern void setFullPath(const char *str);
 extern void setScreenDim(int w, int h);
 
 extern char *getLibVersion();
@@ -622,8 +631,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodestr,char *node);
 int initJavaClass(int scriptno);
 
 char *EAI_GetTypeName (unsigned int uretval);
-char *EAI_GetValue (unsigned int uretval,
-		        char *ctmp, char *dtmp);
+char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename);
 void setCLASStype (int num);
 void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
 void processClassEvents(int scriptno, int startEntry, int endEntry);
@@ -843,17 +851,17 @@ void changed_Anchor (struct X3D_Anchor *this_);
 #define COLOR_MATERIAL_INITIALIZE colorMaterialEnabled = GL_FALSE; glDisable(GL_COLOR_MATERIAL);
 
 void zeroAllBindables(void);
-int freewrlSystem (char *string);
+int freewrlSystem (const char *string);
 
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,
                         int zeroBind);
 
 
-int ConsoleMessage(char *fmt, ...);
+int ConsoleMessage(const char *fmt, ...);
 extern int consMsgCount;
 
-void outOfMemory(char *message);
+void outOfMemory(const char *message);
 void initializeScript(int num,int evIn);
 
 void killErrantChildren(void);

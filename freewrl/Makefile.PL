@@ -532,7 +532,9 @@ INST_DYNAMIC_DEP =
 		###################################################
 		# lets do the all:: targets at this step.
 		###################################################
-		 if ($VRML::Config::vrml_config{RPM_PREFIX}) {
+		 if ( $VRML::Config::vrml_config{RPM_PREFIX} && ! -e $VRML::Config::vrml_config{RPM_PREFIX} ) {
+			warn "WARNING: you have defined the RPM_PREFIX, but the specified file does not exist\n";
+		 } elsif ($VRML::Config::vrml_config{RPM_PREFIX}) {
 			my $RPM_PREFIX = $VRML::Config::vrml_config{RPM_PREFIX};
 			my $lib_dir = $VRML::Config::vrml_config{LIB_DIR};
 			my $bin_dir = $VRML::Config::vrml_config{BIN_DIR};

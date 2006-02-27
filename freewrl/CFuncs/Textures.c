@@ -726,7 +726,6 @@ void new_do_texture(int texno) {
 	depth = loadparams[texno].depth;
 	x = loadparams[texno].x;
 	y = loadparams[texno].y;
-printf ("depth %d\n",depth);
 
 	switch (depth) {
 		case 1: iformat = GL_LUMINANCE;
@@ -743,6 +742,7 @@ printf ("depth %d\n",depth);
 			break;
 	}
 
+	/* do the image. */
 	if((depth) && x && y) {
 		unsigned char *dest = loadparams[texno].texdata;
 		rx = 1; sx = x;

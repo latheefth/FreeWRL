@@ -77,7 +77,7 @@ int IFS_face_normals (
 	struct X3D_IndexedFaceSet *this_IFS,
 	int ccw) {
 
-	int tmp_a, this_face_finished;
+	int tmp_a = 0, this_face_finished;
 	int i,checkpoint;
 	int facectr;
 	int pt_1, pt_2, pt_3;
@@ -85,7 +85,6 @@ int IFS_face_normals (
 	struct SFColor *c1,*c2,*c3;
 	float a[3]; float b[3];
 
-	tmp_a = 0;
 	int retval = FALSE;
 
 	float this_vl;

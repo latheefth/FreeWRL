@@ -724,7 +724,7 @@ xy2qua(Quaternion *ret, const double x, const double y)
 
 float stereoParameter = 0.4;
 
-void setStereoParameter (char *optArg) {
+void setStereoParameter (const char *optArg) {
 	sscanf(optArg,"%f",&stereoParameter);
 }
 

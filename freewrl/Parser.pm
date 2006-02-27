@@ -279,6 +279,7 @@ sub parse_interfacedecl {
 			my($ft, $t, $n) = ($access, $2, $3);
 			print "PARSING 2: $ft $t $n $fieldval\n"
 				if $VRML::verbose::parse;
+			warn "$ft $t $n redeclared\n" if exists $f{$n};
 			$f{$n} = [$ft, $t];
 			if($fieldval) {
 				if($_[3] =~ /\G\s*IS\s+($Word)/gsc) {

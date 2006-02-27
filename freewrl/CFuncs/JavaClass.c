@@ -533,7 +533,7 @@ void receive_command(int scriptno) {
 			/* printf ("JSENDEV, node ptr is %d\n",nodeptr);*/
 
 			/* process this event, then return */
-			ptr = processThisClassEvent (nodeptr,startEntry,endEntry,ptr);
+			ptr = processThisClassEvent ((void*)nodeptr,startEntry,endEntry,ptr);
 			/* printf ("after processThisClassEvent, string is :%s:\n",ptr);*/
 
 		} else if (strncmp(ptr,GT,strlen(GT)) == 0) {

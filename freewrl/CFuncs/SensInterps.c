@@ -1025,9 +1025,7 @@ UNUSED(over);
 /* void do_TouchSensor (struct X3D_TouchSensor *node, int ev, int over) {*/
 void do_TouchSensor ( void *ptr, int ev, int over) {
 
-	struct X3D_TouchSensor *node;
-
-    	node = (struct X3D_TouchSensor *)ptr;
+	struct X3D_TouchSensor *node = (struct X3D_TouchSensor *)ptr;
 	struct pt normalval;	/* different structures for normalization calls */
 
 	/* if not enabled, do nothing */

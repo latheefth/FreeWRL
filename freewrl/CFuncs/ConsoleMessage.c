@@ -39,7 +39,7 @@ for loosing the reference. Also, most if it is found in
 	#define TRUE 1
 #endif
 
-int ConsoleMessage (char *fmt, ...);
+int ConsoleMessage (const char *fmt, ...);
 */
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
@@ -49,7 +49,7 @@ static char FWbuffer [STRING_LENGTH];
 int consMsgCount = 0;
 
 
-int ConsoleMessage(char *fmt, ...) {
+int ConsoleMessage(const char *fmt, ...) {
 	va_list ap;
 	char tempbuf[STRING_LENGTH];
 	char format[STRING_LENGTH];
