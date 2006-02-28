@@ -303,6 +303,7 @@ return;
         /* we found viewpoint on render_vp pass, stop exploring tree.. */
         if(render_vp && found_vp) return;
 
+	/* call the "changed_" function */
 	if(p->_change != p->_ichange && v->changed)
 	  {
 	    #ifdef RENDERVERBOSE 

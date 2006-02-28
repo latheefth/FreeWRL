@@ -61,7 +61,7 @@ void prep_Group (struct X3D_Group *node) {
 	 render_sensitive pass, but when mouse is clicked (eg, moving in
 	 examine mode, sensitive node code is not rendered. So, we choose
 	 the second-last pass. ;-) */
-	if (render_vp) return;
+
 
         if (render_light) {
 		fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
@@ -311,8 +311,8 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 		EXTENTTOBBOX	
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		propagateExtent((struct X3D_Box *)node);
+		BOUNDINGBOX
 	}
 
 
@@ -389,8 +389,8 @@ void child_Group (struct X3D_Group *node) {
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		propagateExtent((struct X3D_Box *)node);
+		BOUNDINGBOX
 	}
 
 	#ifdef CHILDVERBOSE
@@ -446,12 +446,12 @@ void child_Transform (struct X3D_Transform *node) {
 	/* Check to see if we have to check for collisions for this transform. */
 #ifdef COLLISIONTRANSFORM
 	if (render_collision) {
-		iv.x = node->_extent[0]/2.0;
-		jv.y = node->_extent[1]/2.0;
-		kv.z = node->_extent[2]/2.0;
-		ov.x = -(node->_extent[0]); 
-		ov.y = -(node->_extent[1]); 
-		ov.z = -(node->_extent[2]);
+		iv.x = node->EXTENT_MAX_X/2.0;
+		jv.y = node->EXTENT_MAX_Y/2.0;
+		kv.z = node->EXTENT_MAX_Z/2.0;
+		ov.x = -(node->EXTENT_MAX_X); 
+		ov.y = -(node->EXTENT_MAX_Y); 
+		ov.z = -(node->EXTENT_MAX_Z);
 
 	       /* get the transformed position of the Box, and the scale-corrected radius. */
 	       fwGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
@@ -466,13 +466,13 @@ void child_Transform (struct X3D_Transform *node) {
 	       t_orig.y = modelMatrix[13];
 	       t_orig.z = modelMatrix[14];
 		/* printf ("TB this %d, extent %4.3f %4.3f %4.3f pos %4.3f %4.3f %4.3f\n", 
-			node,node->_extent[0],node->_extent[1],node->_extent[2],
+			node,node->EXTENT_MAX_X,node->EXTENT_MAX_Y,EXTENT_MAX_Z,
 			t_orig.x,t_orig.y,t_orig.z); */
 	       scale = pow(det3x3(modelMatrix),1./3.);
 	       if(!fast_ycylinder_box_intersect(abottom,atop,awidth,t_orig,
-			scale*node->_extent[0]*2,
-			scale*node->_extent[1]*2,
-			scale*node->_extent[2]*2)) {
+			scale*node->EXTENT_MAX_X*2,
+			scale*node->EXTENT_MAX_Y*2,
+			scale*node->EXTENT_MAX_Z*2)) {
 			/* printf ("TB this %d returning fast\n",node); */
 			return;
 		/* } else {
@@ -502,7 +502,7 @@ void child_Transform (struct X3D_Transform *node) {
 
 
 
-#ifdef BOUNDINGBOX
+#ifdef XXBOUNDINGBOX
 	if (node->PIV > 0) {
 #endif
 	/* do we have to sort this node? */
@@ -517,7 +517,7 @@ void child_Transform (struct X3D_Transform *node) {
 			node,node->_renderFlags,render_sensitive); */
 
 	normalChildren(node->children);
-#ifdef BOUNDINGBOX
+#ifdef XXBOUNDINGBOX
 	}
 #endif
 
@@ -528,11 +528,8 @@ void child_Transform (struct X3D_Transform *node) {
 		node->bboxCenter.c[2] = node->translation.c[2];
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent(node->bboxCenter.c[0],
-				node->bboxCenter.c[1],
-				node->bboxCenter.c[2],
-				(struct X3D_Box*)node);
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		propagateExtent((struct X3D_Box*)node);
+		BOUNDINGBOX
 
                         #ifdef TRANSFORMOCCLUSION
 			
@@ -559,27 +556,13 @@ void child_Transform (struct X3D_Transform *node) {
 	DIRECTIONAL_LIGHT_OFF
 }
 
-#define DIRECTIONAL_LIGHT_FIND  \
-                (node->has_light) = 0; \
-		/* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
-                for(i=0; i<nc; i++) { \
-                        p = (struct X3D_Box *)((node->children).p[i]); \
-                        if (p!=NULL) { \
-			    if (p->_nodeType == NODE_DirectionalLight) { \
-                                (node->has_light) ++; \
-			    } \
-			} else { \
-				printf ("huh - child is null\n"); \
-                        } \
-                } 
-				
-				
 void changed_StaticGroup (struct X3D_StaticGroup *node) {
                 int i;
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
+		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
 
 }
@@ -589,6 +572,7 @@ void changed_Transform (struct X3D_Transform *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
+		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
 
 }
@@ -600,6 +584,7 @@ void changed_Group (struct X3D_Group *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
+		INITIALIZE_EXTENT
 		DIRECTIONAL_LIGHT_FIND
 }
 

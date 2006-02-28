@@ -217,7 +217,7 @@ void rendVisibilityBox (struct X3D_VisibilitySensor *node) {
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,y,z,(struct X3D_Box *)node);
+	setExtent(cx+x, cx-x, cx+y, cx-y, cx+z, cx-z,(struct X3D_Box *)node);
 
 
 	if (node->_ichange != node->_change) {

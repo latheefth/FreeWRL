@@ -296,9 +296,12 @@ void stream_polyrep(void *node, void *coord, void *color, void *normal, void *te
 		}
 
 		/* calculate maxextents */
-		if (fabs(newpoints[i].c[0]) > (p->_extent[0])) p->_extent[0] = fabs(newpoints[i].c[0]);
-		if (fabs(newpoints[i].c[1]) > (p->_extent[1])) p->_extent[1] = fabs(newpoints[i].c[1]);
-		if (fabs(newpoints[i].c[2]) > (p->_extent[2])) p->_extent[2] = fabs(newpoints[i].c[2]);
+		if (newpoints[i].c[0] > p->EXTENT_MAX_X) p->EXTENT_MAX_X = newpoints[i].c[0];
+		if (newpoints[i].c[0] < p->EXTENT_MIN_X) p->EXTENT_MIN_X = newpoints[i].c[0];
+		if (newpoints[i].c[1] > p->EXTENT_MAX_Y) p->EXTENT_MAX_Y = newpoints[i].c[1];
+		if (newpoints[i].c[1] < p->EXTENT_MIN_Y) p->EXTENT_MIN_Y = newpoints[i].c[1];
+		if (newpoints[i].c[2] > p->EXTENT_MAX_Z) p->EXTENT_MAX_Z = newpoints[i].c[2];
+		if (newpoints[i].c[2] < p->EXTENT_MIN_Z) p->EXTENT_MIN_Z = newpoints[i].c[2];
 	}
 
 	/* free the old, and make the new current. */

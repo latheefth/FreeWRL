@@ -755,7 +755,9 @@ void render_polyrep(void *node) {
 	global_tcin = r->tcindex;
 	global_tcin_count = r->ntri*3;
 
-	setExtent(genericNodePtr->_extent[0],genericNodePtr->_extent[1],genericNodePtr->_extent[2],genericNodePtr);
+        setExtent( genericNodePtr->EXTENT_MAX_X, genericNodePtr->EXTENT_MIN_X, genericNodePtr->EXTENT_MAX_Y,
+                genericNodePtr->EXTENT_MIN_Y, genericNodePtr->EXTENT_MAX_Z, genericNodePtr->EXTENT_MIN_Z,
+                genericNodePtr);
 
 	/* Do we have any colours? Are textures, if present, not RGB? */
 	if(r->color) {

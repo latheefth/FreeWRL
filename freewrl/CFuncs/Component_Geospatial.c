@@ -290,7 +290,7 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 
         if (render_geom && (!render_blend)) {
                 /* EXTENTTOBBOX
-		BoundingBox(node->bboxCenter,node->bboxSize); */
+		BOUNDINGBOX */
         }
         
         #ifdef CHILDVERBOSE
@@ -306,15 +306,9 @@ void changed_GeoLocation ( struct X3D_GeoLocation *node) {
                 int nc = ((node->children).n);
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
-
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		
+		DIRECTIONAL_LIGHT_FIND
+		INITIALIZE_EXTENT
         }
 
 

@@ -10,6 +10,9 @@
 
 #undef GLERRORS
 
+/* display the BoundingBoxen */
+#undef DISPLAYBOUNDINGBOX
+
 /* free a malloc'd pointer */
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
 
@@ -82,9 +85,17 @@ extern int OccQuerySize;
 #endif
 
 /* bounding box calculations */
-#define EXTENTTOBBOX 	node->bboxSize.c[0] = node->_extent[0]; \
-			node->bboxSize.c[1] = node->_extent[1]; \
-			node->bboxSize.c[2] = node->_extent[2];
+#define EXTENTTOBBOX    node->bboxSize.c[0] = node->EXTENT_MAX_X; \
+                        node->bboxSize.c[1] = node->EXTENT_MAX_Y; \
+                        node->bboxSize.c[2] = node->EXTENT_MAX_Z;
+
+#define INITIALIZE_EXTENT        node->EXTENT_MAX_X = -10000.0; \
+        node->EXTENT_MAX_Y = -10000.0; \
+        node->EXTENT_MAX_Z = -10000.0; \
+        node->EXTENT_MIN_X = 10000.0; \
+        node->EXTENT_MIN_Y = 10000.0; \
+        node->EXTENT_MIN_Z = 10000.0;
+
 /********************************
 	Verbosity
 *********************************/
@@ -223,6 +234,35 @@ unsigned char  *readpng_get_image(double display_exponent, int *pChannels,
 void DirectionalLight_Rend(void *nod_);
 #define DIRECTIONAL_LIGHT_OFF if (node->has_light) lightState(savedlight+1,FALSE); curlight = savedlight;
 #define DIRECTIONAL_LIGHT_SAVE int savedlight = curlight;
+#define DIRECTIONAL_LIGHT_FIND  \
+                (node->has_light) = 0; \
+                /* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
+                for(i=0; i<nc; i++) { \
+                        p = (struct X3D_Box *)((node->children).p[i]); \
+                        if (p!=NULL) { \
+                            if (p->_nodeType == NODE_DirectionalLight) { \
+                                (node->has_light) ++; \
+                            } \
+                        } else { \
+                                printf ("huh - child is null\n"); \
+                        } \
+                } 
+
+#define DIRECTIONAL_LIGHT_FIND_W___CHILDREN  \
+                (node->has_light) = 0; \
+                /* printf ("node %d type %s has %d children\n",node,stringNodeType(node->_nodeType),nc); */ \
+                for(i=0; i<nc; i++) { \
+                        p = (struct X3D_Box *)((node->__children).p[i]); \
+                        if (p!=NULL) { \
+                            if (p->_nodeType == NODE_DirectionalLight) { \
+                                (node->has_light) ++; \
+                            } \
+                        } else { \
+                                printf ("huh - child is null\n"); \
+                        } \
+                }
+
+
 
 void normalize_ifs_face (float *point_normal,
                          struct pt *facenormals,
@@ -609,13 +649,27 @@ extern void doBrowserAction ();
 
 extern char *myPerlInstallDir;
 
+/* for Extents and BoundingBoxen */
+#define EXTENT_MAX_X _extent[0]
+#define EXTENT_MIN_X _extent[1]
+#define EXTENT_MAX_Y _extent[2]
+#define EXTENT_MIN_Y _extent[3]
+#define EXTENT_MAX_Z _extent[4]
+#define EXTENT_MIN_Z _extent[5]
+void setExtent (float maxx, float minx, float maxy, float miny, float maxz, float minz, struct X3D_Box *this_);
+void recordDistance(struct X3D_Transform *nod);
+void propagateExtent (struct X3D_Box *this_);
+
+#ifdef DISPLAYBOUNDINGBOX
+void BoundingBox(struct X3D_Box* node);
+#define BOUNDINGBOX BoundingBox ((struct X3D_Box *)node);
+#else
+#define BOUNDINGBOX
+#endif
+
 void freewrlDie (const char *format);
 char * readInputString(char *fn, char *parent);
 char * sanitizeInputString(char *instr);
-void BoundingBox(struct SFColor bbc,struct SFColor bbs);
-void setExtent (float x, float y, float z, struct X3D_Box *this_);
-void recordDistance(struct X3D_Transform *nod);
-void propagateExtent (float x, float y, float z, struct X3D_Box *this_);
 
 extern double nearPlane, farPlane, screenRatio;
 

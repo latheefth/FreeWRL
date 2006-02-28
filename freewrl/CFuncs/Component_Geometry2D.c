@@ -190,7 +190,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	if ((x < 0) || (y < 0)) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,y,0.0,(struct X3D_Box *)node);
+	setExtent(x,-x,y,-y,0.0,0.0,(struct X3D_Box *)node);
 
 
 	if (node->_ichange != node->_change) {

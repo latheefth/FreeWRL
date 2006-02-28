@@ -294,8 +294,8 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		propagateExtent((struct X3D_Box *)node);
+		BOUNDINGBOX
 	}
 
 	/* did we have that directionalLight? */
@@ -334,8 +334,8 @@ return;
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		propagateExtent((struct X3D_Box *)node);
+		BOUNDINGBOX
 	}
 #endif
 }
@@ -370,8 +370,8 @@ return;
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		propagateExtent((struct X3D_Box *)node);
+		BOUNDINGBOX
 	}
 #endif
 }
@@ -411,8 +411,8 @@ return;
 		EXTENTTOBBOX
 
 		/* pass the bounding box calculations on up the chain */
-		propagateExtent((float)0.0,(float)0.0,(float)0.0,(struct X3D_Box *)node);
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		propagateExtent((struct X3D_Box *)node);
+		BOUNDINGBOX
 	}
 
 	DIRECTIONAL_LIGHT_OFF
@@ -475,12 +475,6 @@ void changed_HAnimSite (struct X3D_HAnimSite *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND
+		INITIALIZE_EXTENT
 }

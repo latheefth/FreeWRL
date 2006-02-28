@@ -27,7 +27,7 @@ void render_Box (struct X3D_Box *node) {
 	if ((x < 0) || (y < 0) || (z < 0)) return;
 
 	/* for BoundingBox calculations */
-	setExtent(x,y,z,(struct X3D_Box *)node);
+	setExtent(x,-x,y,-y,z,-z,(struct X3D_Box *)node);
 
 
 	if (node->_ichange != node->_change) {
@@ -92,7 +92,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
-	setExtent(r,h,r,(struct X3D_Box *)node);
+	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
 
 	if (node->_ichange != node->_change) {
 		/*  have to regen the shape*/
@@ -176,7 +176,7 @@ void render_Cone (struct X3D_Cone *node) {
 	if ((h < 0) || (r < 0)) {return;}
 
 	/* for BoundingBox calculations */
-	setExtent(r,h,r,(struct X3D_Box *)node);
+	setExtent(r,-r,h,-h,r,-r,(struct X3D_Box *)node);
 
 	if (node->_ichange != node->_change) {
 		/*  have to regen the shape*/
@@ -289,7 +289,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 		return;}
 
 	/* for BoundingBox calculations */
-	setExtent(rad,rad,rad,(struct X3D_Box *)node);
+	setExtent(rad,-rad,rad,-rad,rad,-rad,(struct X3D_Box *)node);
 
 	if (node->_ichange != node->_change) {
 		int v; int h;

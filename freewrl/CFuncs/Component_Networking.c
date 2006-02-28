@@ -196,7 +196,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		BOUNDINGBOX
 	}
 
 	#ifdef CHILDVERBOSE
@@ -205,7 +205,6 @@ void child_Anchor (struct X3D_Anchor *node) {
 
 	DIRECTIONAL_LIGHT_OFF
 }
-
 
 
 void child_Inline (struct X3D_Inline *node) {
@@ -234,7 +233,10 @@ void child_Inline (struct X3D_Inline *node) {
 
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
-		BoundingBox(node->bboxCenter,node->bboxSize);
+                /* pass the bounding box calculations on up the chain */
+                propagateExtent((struct X3D_Box *)node);
+
+		BOUNDINGBOX
 	}
 
 	#ifdef CHILDVERBOSE
@@ -250,13 +252,7 @@ void changed_Anchor (struct X3D_Anchor *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		INITIALIZE_EXTENT
+		DIRECTIONAL_LIGHT_FIND
 }
 

@@ -215,7 +215,7 @@ void child_Collision (struct X3D_Collision *node) {
 
 		if (render_geom && (!render_blend)) {
 			EXTENTTOBBOX
-			BoundingBox(node->bboxCenter,node->bboxSize);
+			BOUNDINGBOX
 		}
 
 		#ifdef CHILDVERBOSE
@@ -224,7 +224,6 @@ void child_Collision (struct X3D_Collision *node) {
 		DIRECTIONAL_LIGHT_OFF
 	}
 }
-
 
 void child_LOD (struct X3D_LOD *node) {
         GLdouble mod[16];
@@ -312,7 +311,7 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
 
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		BOUNDINGBOX
 	}
 
 	#ifdef CHILDVERBOSE
@@ -321,7 +320,6 @@ void child_InlineLoadControl (struct X3D_InlineLoadControl *node) {
 
 	DIRECTIONAL_LIGHT_OFF
 }
-
 
 void  child_Billboard (struct X3D_Billboard *node) {
 	int nc = (node->children).n;
@@ -346,7 +344,7 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 	if (render_geom && (!render_blend)) {
 		EXTENTTOBBOX
-		BoundingBox(node->bboxCenter,node->bboxSize);
+		BOUNDINGBOX
 	}
 
 	#ifdef CHILDVERBOSE
@@ -363,14 +361,8 @@ void changed_Billboard (struct X3D_Billboard *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND
+		INITIALIZE_EXTENT
 }
 
 
@@ -380,14 +372,8 @@ void changed_Inline (struct X3D_Inline *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->__children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND_W___CHILDREN
+		INITIALIZE_EXTENT
 }
 
 
@@ -397,14 +383,8 @@ void changed_Collision (struct X3D_Collision *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND
+		INITIALIZE_EXTENT
 }
 
 
@@ -414,14 +394,8 @@ void changed_InlineLoadControl (struct X3D_InlineLoadControl *node) {
                 struct X3D_Box *p;
                 struct X3D_Virt *v;
 
-                (node->has_light) = 0;
-                for(i=0; i<nc; i++) {
-                        p = (struct X3D_Box *)((node->children).p[i]);
-                        if (p->_nodeType == NODE_DirectionalLight) {
-                                /*  printf ("group found a light\n");*/
-                                (node->has_light) ++;
-                        }
-                }
+		DIRECTIONAL_LIGHT_FIND
+		INITIALIZE_EXTENT
 }
 
 
