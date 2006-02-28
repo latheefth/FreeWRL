@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.205  2006/02/28 16:19:41  crc_canada
+# BoundingBox
+#
 # Revision 1.204  2006/02/01 20:24:53  crc_canada
 # MultiTexture work.
 #
@@ -260,7 +263,7 @@ sub gen_struct {
 	       "       int _nparalloc; \n"		.
 	       "       int _ichange; \n"		.
 	       "       float _dist; /*sorting for blending */ \n".
-	       "       float _extent[3]; /* used for boundingboxes */ \n" .
+	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       void *_intern; \n"              	.
                "       int _nodeType; /* unique integer for each type */ \n".
                " /*** node specific data: *****/\n";
@@ -629,28 +632,29 @@ alloc_struct(siz,virt, itype)
 	int itype
 CODE:
 	void *ptr = malloc(siz);
-	struct X3D_Box *p;
+	struct X3D_Box *node;
 
-	p = (struct X3D_Box *) ptr;
+	node = (struct X3D_Box *) ptr;
 
 	/* printf("Alloc: %d %d -> %d\n", siz, virt, ptr);  */
 	*(struct X3D_Virt **)ptr = (struct X3D_Virt *)virt;
-	p->_renderFlags = 0;
-	p->_hit = 0;
-	p->_sens = FALSE;
-	p->_intern = 0;
-	p->_change = 153;
-	p->_dlchange = 0;
-	p->_dlist = 0;
-        p->_parents = 0;
-        p->_nparents = 0;
-        p->_nparalloc = 0;
-	p->_ichange = 0;
-	p->_dist = -10000.0; /* put unsorted nodes first in rendering */
-	p->_extent[0] = 0.0;
-	p->_extent[1] = 0.0;
-	p->_extent[2] = 0.0;
-	p->_nodeType = itype;
+	node->_renderFlags = 0;
+	node->_hit = 0;
+	node->_sens = FALSE;
+	node->_intern = 0;
+	node->_change = 153;
+	node->_dlchange = 0;
+	node->_dlist = 0;
+        node->_parents = 0;
+        node->_nparents = 0;
+        node->_nparalloc = 0;
+	node->_ichange = 0;
+	node->_dist = -10000.0; /* put unsorted nodes first in rendering */
+
+	/* Extents - set to values so that we are sure to find mins/maxs */
+	INITIALIZE_EXTENT
+
+	node->_nodeType = itype;
 
 	RETVAL=ptr;
 OUTPUT:

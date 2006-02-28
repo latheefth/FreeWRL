@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.195  2006/02/28 16:19:42  crc_canada
+# BoundingBox
+#
 # Revision 1.194  2006/01/06 22:05:15  crc_canada
 # VisibilitySensor
 #
@@ -155,6 +158,7 @@
 	Transform
 	Billboard
 	Group
+	Inline
 /;
 
 #######################################################################
