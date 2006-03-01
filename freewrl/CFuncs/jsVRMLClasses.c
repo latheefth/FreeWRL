@@ -9,7 +9,7 @@
  * $Id$
  *
  */
-
+#include "headers.h"
 #include "jsVRMLClasses.h"
 
 /* quick fix to get around some compiler warnings on 64 bit systems */

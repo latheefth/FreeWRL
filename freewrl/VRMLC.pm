@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.206  2006/03/01 15:16:57  crc_canada
+# Changed include file methodology and some Frustum work.
+#
 # Revision 1.205  2006/02/28 16:19:41  crc_canada
 # BoundingBox
 #
@@ -510,13 +513,15 @@ sub gen {
 #ifndef STRUCTSH
 #define STRUCTSH
 
+/* OS X gives us a compile warning - hopefully this will cure it for all time */
+#ifdef AQUA
+struct tm {};
+#endif
+
+/* Perl linking */
 #include "EXTERN.h"
 #include "perl.h"
-#ifdef AQUA
-#include <gl.h>
-#else
-#include "GL/gl.h"
-#endif
+#include "XSUB.h"
 
 /* for time tick calculations */
 #include <sys/time.h>

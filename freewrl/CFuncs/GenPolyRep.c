@@ -20,9 +20,7 @@
  *******************************************/
 
 #include "headers.h"
-#include "Structs.h"
 #include "Polyrep.h"
-
 
 #define X3DCOMPOSED_STRING(f) ( \
         f == NODE_IndexedFaceSet          ? "IndexedFaceSet" : ( \

@@ -8,6 +8,24 @@
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
 
+/* get the definitions from the command line */
+#include "vrmlconf.h"
+
+/* vrmlconf.h should have the AQUA definition - so get the GL headers */
+#ifdef AQUA
+#include <gl.h>
+#include <glu.h>
+#include <glext.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glx.h>
+#endif
+
+/* now get all of our structures */
+#include "Structs.h"
+
+
 #undef GLERRORS
 
 /* display the BoundingBoxen */
@@ -126,13 +144,6 @@ extern int OccQuerySize;
 
 /* collision */
 #undef COLLISIONVERBOSE
-
-#include "Structs.h"
-
-/* from the vrml.conf file... */
-#include "vrmlconf.h"
-
-#include "LinearAlgebra.h"
 
 #ifndef AQUA
 #include <GL/glu.h>

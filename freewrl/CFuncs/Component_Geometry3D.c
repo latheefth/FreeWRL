@@ -14,6 +14,7 @@
 #include "headers.h"
 #include "Collision.h"
 #include "Polyrep.h"
+#include "LinearAlgebra.h"
 
 void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/

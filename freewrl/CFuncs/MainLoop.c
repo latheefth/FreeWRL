@@ -5,6 +5,8 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
+#include "headers.h"
+
 /*
  * handle X events.
  */
@@ -61,7 +63,6 @@ int quitThread = 0;
 char * keypress_string=NULL; 		/* Robert Sim - command line key sequence */
 int keypress_wait_for_settle = 100;	/* JAS - change keypress to wait, then do 1 per loop */
 extern int viewer_initialized;
-#include "headers.h"
 
 void Next_ViewPoint(void);		/*  switch to next viewpoint -*/
 void setup_viewpoint(int doBinding);

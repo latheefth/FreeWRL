@@ -10,6 +10,8 @@
 Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, GeoViewpoint.
 
 ******************************************/
+#include "headers.h"
+
 #include "Bindable.h"
 #include "Viewer.h"
 #include "Component_Geospatial.h"

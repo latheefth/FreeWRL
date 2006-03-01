@@ -24,23 +24,6 @@ for loosing the reference. Also, most if it is found in
 
 #include "headers.h"
 #include <stdarg.h>
-/*
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <ctype.h>
-
-
-#ifndef FALSE
-	#define FALSE 0
-#endif
-#ifndef TRUE
-	#define TRUE 1
-#endif
-
-int ConsoleMessage (const char *fmt, ...);
-*/
 
 #define STRING_LENGTH 2000	/* something 'safe'	*/
 #define MAXMESSAGES 5

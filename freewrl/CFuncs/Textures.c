@@ -10,10 +10,9 @@
  * General Texture objects
  */
 
+#include "headers.h"
 #include "Textures.h"
 #include <pthread.h>
-#include "Structs.h"
-#include "headers.h"
 #include <stdio.h>
 #include "readpng.h"
 #include "OpenGL_Utils.h"

@@ -14,30 +14,16 @@
  *
  */
 
-
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
 
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
 #include "headers.h"
 #include "quaternion.h"
 #include "OpenGL_Utils.h"
+#include "LinearAlgebra.h"
 
 
 #define NONE 0

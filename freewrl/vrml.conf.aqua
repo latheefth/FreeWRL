@@ -34,7 +34,7 @@ SOUNDCONV => "/usr/bin/sox",            # support AIFF, etc, under Linux.
 		'-lGL -lGLU '.
 		' -F/System/Library/Frameworks -framework OpenGL -framework GLUT -framework Cocoa',
 
-    FREEWRL_DEFINE => '-DAQUA -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`',
+    FREEWRL_DEFINE => '-D_REENTRANT `perl -MExtUtils::Embed -e ccopts`',
 
     FREEWRL_INC => '-I/usr/include '.
 		'-I/usr/include/sys '.

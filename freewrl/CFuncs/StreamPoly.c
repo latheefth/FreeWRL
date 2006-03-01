@@ -4,6 +4,7 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
+#include "headers.h"
 #include "Polyrep.h"
 
 #define NO_TCOORD_GEN_IN_SHAPE (r->GeneratedTexCoords == 0)

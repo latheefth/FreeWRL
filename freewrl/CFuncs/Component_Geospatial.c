@@ -11,16 +11,11 @@
 
 *********************************************************************/
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-#include "Structs.h"
-#include "Component_Geospatial.h"
 
 #include "headers.h"
 #include "Bindable.h"
 #include "Collision.h"
+#include "Component_Geospatial.h"
 
 int GeoVerbose = 0;
 

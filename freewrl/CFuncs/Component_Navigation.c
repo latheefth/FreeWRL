@@ -11,28 +11,14 @@
 
 *********************************************************************/
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include <math.h>
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "Structs.h"
 #include "headers.h"
 #include "installdir.h"
 
 #include "Bindable.h"
 #include "Viewer.h"
 #include "Collision.h"
+#include "LinearAlgebra.h"
 
 extern struct sCollisionInfo OldCollisionInfo;
 

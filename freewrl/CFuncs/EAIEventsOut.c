@@ -10,7 +10,6 @@
 /************************************************************************/
 
 #include "headers.h"
-#include "Structs.h"
 #include "Viewer.h"
 #include <sys/time.h>
 

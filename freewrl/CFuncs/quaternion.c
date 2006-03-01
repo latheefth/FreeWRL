@@ -5,6 +5,8 @@
  for conditions of use and redistribution.
  ******************************************************************************/
 
+#include "quaternion.h"
+#include "LinearAlgebra.h"
 /*
  * $Id$
  *
@@ -54,7 +56,6 @@
  */
 
 
-#include "quaternion.h"
 
 /* change matrix rotation to/from a quaternion */
 void

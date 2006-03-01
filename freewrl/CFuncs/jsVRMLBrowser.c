@@ -10,8 +10,8 @@
  *
  */
 
-#include "jsVRMLBrowser.h"
 #include "headers.h"
+#include "jsVRMLBrowser.h"
 
 char FPSstring[10];
 

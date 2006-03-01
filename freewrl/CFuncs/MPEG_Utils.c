@@ -41,6 +41,7 @@
  */
 
 /* ones in headers.h, but we dont include this here */
+#include "vrmlconf.h"
 int ConsoleMessage(char *fmt, ...);
 void outOfMemory(char *message);
 

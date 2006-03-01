@@ -5,35 +5,11 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "Bindable.h"
-
 #include <stdio.h>
-#include "Structs.h"
 #include "headers.h"
 #include "installdir.h"
 #include "PluginSocket.h"
 #include <pthread.h>
-#ifdef AQUA
-
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#endif
-
-#ifdef LINUX
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-#endif
-
-#ifdef IRIX
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#endif
 
 #ifndef __jsUtils_h__
 #include "jsUtils.h" /* misc helper C functions and globals */

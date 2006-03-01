@@ -17,6 +17,9 @@
 #              e.g. for #define glTexCoord2f(a,b) glTexCoord2f(a,b) see gen() [VRMLC.pm]
 #
 # $Log$
+# Revision 1.196  2006/03/01 15:16:57  crc_canada
+# Changed include file methodology and some Frustum work.
+#
 # Revision 1.195  2006/02/28 16:19:42  crc_canada
 # BoundingBox
 #
@@ -158,7 +161,6 @@
 	Transform
 	Billboard
 	Group
-	Inline
 /;
 
 #######################################################################

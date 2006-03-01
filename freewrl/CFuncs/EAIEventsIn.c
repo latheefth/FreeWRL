@@ -13,7 +13,6 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 ************************************************************************/
 
 #include "headers.h"
-#include "Structs.h"
 #include "Viewer.h"
 #include <sys/time.h>
 

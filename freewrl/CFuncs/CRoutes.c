@@ -5,23 +5,8 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-#include <math.h>
-
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
 #include "headers.h"
+#include <math.h>
 
 #include "jsapi.h"
 #include "jsUtils.h"

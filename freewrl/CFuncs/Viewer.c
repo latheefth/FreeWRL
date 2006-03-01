@@ -12,7 +12,6 @@
  */
 
 #include "headers.h"
-#include "Structs.h"
 #include "Viewer.h"
 #ifdef AQUA
 #define KeyPress        2

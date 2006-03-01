@@ -4,7 +4,6 @@
  * distribution) for details.
  */
 
-#include "Structs.h"
 #include "headers.h"
 #define READSIZE 2048
 #define VRML2HEADER "#VRML V2.0 utf8"

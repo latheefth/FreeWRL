@@ -11,22 +11,7 @@
 
 *********************************************************************/
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include <math.h>
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-#include "Structs.h"
 #include "headers.h"
 #include "installdir.h"
 #include "Collision.h"
@@ -42,16 +27,6 @@
 #define LEFTTORIGHT (!(fsparam & 0x02))
 
 #define OUT2GL(a) (x_size * (0.0 +a) / ((1.0*(font_face[myff]->height)) / PPI*XRES))
-
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
 
 #include <stdio.h>
 

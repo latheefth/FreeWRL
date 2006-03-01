@@ -15,10 +15,6 @@
 as we can.
 */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include <math.h>
 
 #include "headers.h"

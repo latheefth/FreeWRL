@@ -5,22 +5,13 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
-
-
 /*****************************************
 
 large constant strings; used for rendering.
 
 ******************************************/
+
+#include "headers.h"
 
 /* BOX */
 

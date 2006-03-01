@@ -24,28 +24,14 @@
  * number of triangles in global_tess_polyrep after tessellation.
  */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 
 #include <math.h>
-#ifdef AQUA
-#include <gl.h>
-#include <glu.h>
-#include <glext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glx.h>
-#endif
+#include "headers.h"
 
 #ifdef AQUA
 typedef GLvoid (*_GLUfuncptr)(GLvoid);
 #endif
 
-#include "Structs.h"
-#include "headers.h"
 
 
 GLUtriangulatorObj *global_tessobj;

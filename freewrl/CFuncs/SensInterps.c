@@ -12,10 +12,7 @@ SensInterps.c - do Sensors and Interpolators in C, not in perl.
 Interps are the "EventsProcessed" fields of interpolators.
 
 ******************************************/
-
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
+#include "headers.h"
 
 #ifdef AQUA
 #define KeyPress        2
