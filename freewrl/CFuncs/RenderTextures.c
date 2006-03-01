@@ -249,7 +249,7 @@ void haveMultiTexCoord(struct X3D_IndexedFaceSet *texC) {
 	struct X3D_TextureCoordinate *myTCnode;
 
 	myMTCnode = (struct X3D_MultiTextureCoordinate *) texC->texCoord;
-	myTCnode = myMTCnode; /* for now, in case of errors, this is set to an invalid value */
+	myTCnode = (struct X3D_TextureCoordinate *) myMTCnode; /* for now, in case of errors, this is set to an invalid value */
 
 	#ifdef TEXVERBOSE
 	printf ("MultiTextureCoordinate node, have %d texCoords\n",myMTCnode->texCoord.n);

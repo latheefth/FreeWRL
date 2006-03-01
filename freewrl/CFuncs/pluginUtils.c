@@ -120,8 +120,8 @@ int freewrlSystem (const char *sysline) {
 
 			/* child process */
 			/* printf ("freewrlSystem: child execing, pid %d %d\n",childProcess[lastchildProcess], getpid()); */
-		 	Xrv = execl(paramline[0],
-				paramline[0],paramline[1], paramline[2],
+		 	Xrv = execl((const char *)paramline[0],
+				(const char *)paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
 				paramline[6],paramline[7]);
 			printf ("FreeWRL: Fatal problem execing %s\n",paramline[0]); 

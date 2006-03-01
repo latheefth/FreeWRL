@@ -229,7 +229,7 @@ void OcclusionStartofEventLoop() {
 	/* have we been through this yet? */
 	if (OccInitialized == FALSE) {
         	/* printf ("aqDisplayThread, extensions %s\n",glGetString(GL_EXTENSIONS));  */
-        	if (strstr(glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
+        	if (strstr((const char *)glGetString(GL_EXTENSIONS),"GL_ARB_occlusion_query") != 0) {
         	        /* printf ("have OcclusionQuery\n");  */
 
 			OccQuerySize = 100;
@@ -309,7 +309,7 @@ void OcclusionCulling ()  {
 				else if (xx->_nodeType == NODE_Shape) {
 		        		printf ("Occ %d fragments %d active %d ",i,OccSamples[i],OccActive[i]);
 					printf (" nodeType %s",stringNodeType(xx->_nodeType));
-					xx = (struct X3D_Box *) xx->geometry;
+					xx = (struct X3D_Shape *) xx->geometry;
 					if (xx != 0) {
 						printf (" (%s)",stringNodeType(xx->_nodeType));
 					}

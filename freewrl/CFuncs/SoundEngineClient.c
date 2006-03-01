@@ -126,7 +126,7 @@ void SoundEngineInit () {
 
 	if ( (S_Server_PID = fork()) == (pid_t)0L ) {
 		/* is this path ok? */
-		execl(sspath,buf,"",NULL);
+		execl((const char *)sspath,(const char *)buf,"",NULL);
 
 		/* if we got here, we have an error... */
 		printf("FreeWRL:SoundServer:%s: exec of %s\n",

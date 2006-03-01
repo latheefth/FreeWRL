@@ -545,7 +545,7 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 			/* printf ("This MFInt32 has (lM is) %d\n",lM);  */
                         /* XXX Free previous p */
                         (*MIptr).n = lM;
-                        (*MIptr).p = (struct SFInt32 *)malloc(lM * numPerRow * sizeof(*((*MIptr).p)));
+                        (*MIptr).p = (int *)malloc(lM * numPerRow * sizeof(*((*MIptr).p)));
 			SFints = (int *) (*MIptr).p;
 
 			/* printf ("EAI_DO_EXTRA, memptr for floats is %x\n",SFints); */

@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.59  2006/03/01 18:02:33  crc_canada
+# more warnings removed.
+#
 # Revision 1.58  2006/01/24 15:04:44  crc_canada
 # Some warnings removed.
 #
@@ -353,7 +356,7 @@ sub as_string {$_[1]}
 
 sub ctype {return "void * $_[1]"}
 sub clength {8} #for C routes. Keep in sync with getClen in VRMLC.pm.
-sub cfunc {return "$_[1] = SvIV($_[2]);/*bb*/\n"}
+sub cfunc {return "$_[1] = (void *) SvIV($_[2]);/*bbZ*/\n"}
 
 ###########################################################
 ###########################################################
@@ -935,6 +938,8 @@ sub cfunc {
 		$baseType = "void *";
 	} elsif ($baseType eq "SFString") {
 		$baseType = "SV *";
+	} elsif ($baseType eq "SFTime") { 
+		$baseType = "double";
 	} else {
 		$baseType = "struct $baseType";
 	}
@@ -958,7 +963,7 @@ sub cfunc {
 			}
 			aM = (AV *) SvRV($_[2]);
 			lM = av_len(aM)+1;
-			/* XXX Free previous p */
+			/* XXX Free previous p for baseType $baseType */
 			$_[1].n = lM;
 			$_[1].p = ($baseType *)malloc(lM * sizeof(*($_[1].p)));
 			/* XXX ALLOC */

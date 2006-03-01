@@ -406,8 +406,8 @@ return;
 
 void fin_HAnimSite (struct X3D_HAnimSite * node) {
         if(!render_vp) {
-            /* glPopMatrix();*/
-            fwXformPop(node);
+	/* VERIFY THIS CAST */
+            fwXformPop((struct X3D_Transform *)node);
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if(found_vp) {
@@ -431,8 +431,8 @@ void fin_HAnimSite (struct X3D_HAnimSite * node) {
 
 void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
         if(!render_vp) {
-            /* glPopMatrix();*/
-            fwXformPop(node);
+	/* VERIFY THIS CAST */
+            fwXformPop((struct X3D_Transform *)node);
         } else {
            /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
             if(found_vp) {

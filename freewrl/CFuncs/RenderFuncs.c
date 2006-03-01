@@ -84,7 +84,7 @@ int 	colorMaterialEnabled;	/* state of GL_COLOR_MATERIAL			*/
 int     shutterGlasses = 0; 	/* stereo shutter glasses */
 
 
-int smooth_normals = -1; /* -1 means, uninitialized */
+GLint smooth_normals = -1; /* -1 means, uninitialized */
 
 int cur_hits=0;
 
@@ -249,7 +249,7 @@ void render_node(void *node) {
 	int sch = 0;
 	struct currayhit srh;
 	#ifdef GLERRORS
-	int glerror = GL_NONE;
+	GLint glerror = GL_NONE;
 	char* stage = "";
 	#endif
 
