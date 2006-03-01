@@ -601,7 +601,7 @@ void make_indexedfaceset(struct X3D_IndexedFaceSet *this_) {
 
 	} else if (this_->_nodeType == NODE_ElevationGrid) {
 		if (!checkX3DElevationGridFields((struct X3D_ElevationGrid *)this_,
-			&points, &npoints)) {
+			(float **)&points, &npoints)) {
 	        	rep_->ntri = 0;
 	        	return;
 		}

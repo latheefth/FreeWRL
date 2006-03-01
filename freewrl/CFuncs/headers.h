@@ -600,7 +600,7 @@ extern int hyperhit;			/* in VRMLC.pm */
 extern struct pt r1, r2;		/* in VRMLC.pm */
 extern struct sCollisionInfo CollisionInfo;
 extern struct currayhit rh,rph,rhhyper;
-extern int smooth_normals;
+extern GLint smooth_normals;
 
 extern void xs_init(void);
 
