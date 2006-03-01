@@ -6,12 +6,10 @@
 *********************************************************************/
 
 /* beginnings of FreeWRL in C */
-#include "EXTERN.h"
-#include <perl.h>
+#include <headers.h>
 #include <vrmlconf.h>
 #include <Structs.h>
 #include <pthread.h>
-#include <headers.h>
 #include <getopt.h>
 #include <Snapshot.h>
 #include <PluginSocket.h>
