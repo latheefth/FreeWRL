@@ -28,11 +28,7 @@
 
 int _fw_FD = 0;
 int _fw_pipe = 0;
-unsigned _fw_instance = 0;
-
-/* for communicating with Netscape */
-/* in headers.h extern int _fw_pipe, _fw_FD; */
-extern unsigned _fw_instance;
+uintptr_t _fw_instance = 0;
 
 int _P_LOCK_VAR;
 
@@ -1110,11 +1106,15 @@ float eyedist = 0.06;
 float screendist = 0.8;
 
 void setEyeDist (const char *optArg) {
-	sscanf(optArg,"%f",&eyedist);
+	int i;
+	i= sscanf(optArg,"%f",&eyedist);
+	if (i==0) printf ("warning, command line eyedist parameter incorrect - was %s\n",optArg);
 }
 
 void setScreenDist (const char *optArg) {
-	sscanf(optArg,"%f",&screendist);
+	int i;
+	i= sscanf(optArg,"%f",&screendist);
+	if (i==0) printf ("warning, command line screendist parameter incorrect - was %s\n",optArg);
 }
 /* end of Shutter glasses, stereo mode configure */
 

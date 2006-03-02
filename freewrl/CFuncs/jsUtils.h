@@ -40,29 +40,29 @@
 static JSBool reportWarnings = JS_TRUE;
 
 int
-ActualrunScript(int num,
+ActualrunScript(uintptr_t num,
 				char *script,
 				jsval *rval);
 
 int
-JSrunScript(int num,
+JSrunScript(uintptr_t num,
 			char *script,
 			SV *rstr,
 			SV *rnum);
 
 int
-JSaddGlobalAssignProperty(int num,
+JSaddGlobalAssignProperty(uintptr_t num,
 						  char *name,
 						  char *str);
 
 int
-JSaddSFNodeProperty(int num,
+JSaddSFNodeProperty(uintptr_t num,
 					char *nodeName,
 					char *name,
 					char *str);
 
 int
-JSaddGlobalECMANativeProperty(int num,
+JSaddGlobalECMANativeProperty(uintptr_t num,
 							  char *name);
 
 void
@@ -76,7 +76,7 @@ errorReporter(JSContext *cx,
 			  const char *message,
 			  JSErrorReport *report);
 
-int JSGetProperty(int num, char *script, SV *rstr);
-void JSInit(int num, SV *script);
+int JSGetProperty(uintptr_t num, char *script, SV *rstr);
+void JSInit(uintptr_t num, SV *script);
 
 #endif /* __jsUtils_h__ */

@@ -536,7 +536,7 @@ int freewrlSystem (char *sysline) {
 		 	Xrv = execl(paramline[0],
 				paramline[0],paramline[1], paramline[2],
 				paramline[3],paramline[4],paramline[5],
-				paramline[6],paramline[7]);
+				paramline[6],paramline[7],NULL);
 			/* printf ("child finished execing\n");*/
 			exit (Xrv);
 			}

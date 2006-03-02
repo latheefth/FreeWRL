@@ -240,7 +240,7 @@ void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, ch
 			ptr = buf + strlen(buf);
 
 			for (row=0; row<(*MNptr).n; row++) {
-				sprintf (ptr, "%d ",(int) (*MNptr).p[row]);
+				sprintf (ptr, "%d ",(uintptr_t) (*MNptr).p[row]);
 				ptr = buf + strlen (buf);
 			}
 			break;

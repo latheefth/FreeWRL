@@ -45,7 +45,7 @@ extern char *keypress_string;
 /* for plugin running - these are read from the command line */
 extern int _fw_pipe;
 extern int _fw_FD;
-extern unsigned _fw_instance;
+uintptr_t _fw_instance;
 
 /* function prototypes */
 void catch_SIGQUIT();

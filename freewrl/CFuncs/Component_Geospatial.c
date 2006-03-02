@@ -77,6 +77,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 	int tmp, tz;
 	STRLEN sl;
 	STRLEN xx;
+	int rv;
 
 	*__geoSystem = GEO_GD + GEO_WE;
 
@@ -107,7 +108,7 @@ void geoSystemCompile (struct Multi_String * geoSystem, int *__geoSystem, char *
 		for (tmp = 1; tmp < numStrings; tmp++) {
 			cptr = SvPV(geoSystem->p[tmp],sl);
 			if (cptr[0] == 'Z') {
-				sscanf (cptr,"Z%d",&tz);
+				rv=sscanf (cptr,"Z%d",&tz);
 				if ((tz>60) || (tz<1)) {
 					printf ("UTM Zone %s invalid in %s\n",cptr,description);
 					tz = 1;
@@ -314,6 +315,7 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 	       GLdouble astep = -naviinfo.height+naviinfo.step;
 	       GLdouble modelMatrix[16];
 	       GLdouble upvecmat[16];
+		int rv; /* temp for sscanf retvals */
 
 	       struct pt t_orig = {0,0,0};
 	       static int refnum = 0;
@@ -328,8 +330,8 @@ void collide_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 
 		float xSpacing = 0.0;	/* GeoElevationGrid uses strings here */
 		float zSpacing = 0.0;	/* GeoElevationGrid uses strings here */
-		sscanf (SvPV (node->xSpacing,xx),"%f",&xSpacing);
-		sscanf (SvPV(node->zSpacing,xx),"%f",&zSpacing);
+		rv=sscanf (SvPV (node->xSpacing,xx),"%f",&xSpacing);
+		rv=sscanf (SvPV(node->zSpacing,xx),"%f",&zSpacing);
 
 		/* JAS - first pass, intern is probably zero */
 		if (((struct X3D_PolyRep *)node->_intern) == 0) return;

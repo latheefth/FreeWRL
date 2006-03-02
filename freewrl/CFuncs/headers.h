@@ -428,7 +428,7 @@ extern struct X3D_Anchor *AnchorsAnchor;
 	f == SFVEC2F ? "SFVec2f" : "unknown field type")))))))))))))))))))))))
 
 
-void CRoutes_js_new (int num,int scriptType);
+void CRoutes_js_new (uintptr_t num,int scriptType);
 extern int max_script_found;
 void getMFNodetype (char *strp, struct Multi_Node *ch, struct X3D_Box *par, int ar);
 
@@ -438,9 +438,9 @@ void update_renderFlag(void *ptr, int flag);
 int JSparamIndex (char *name, char *type);
 
 /* setting script eventIns from routing table or EAI */
-void Set_one_MultiElementtype (int tn, int tptr, void *fn, unsigned len);
-void set_one_ECMAtype (unsigned long int tonode, int toname, int dataType, void *Data, unsigned datalen);
-void mark_script (unsigned long int num);
+void Set_one_MultiElementtype (uintptr_t tn, uintptr_t tptr, void *fn, unsigned len);
+void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen);
+void mark_script (uintptr_t num);
 
 
 /* structure for rayhits */
@@ -468,7 +468,7 @@ struct CRscriptStruct {
 
 };
 void JSMaxAlloc(void);
-void cleanupDie(int num, const char *msg);
+void cleanupDie(uintptr_t num, const char *msg);
 void shutdown_EAI(void);
 unsigned int EAI_GetNode(const char *str);
 unsigned int EAI_GetViewpoint(const char *str);
@@ -480,10 +480,10 @@ void EAI_GetType(unsigned int nodenum, const char *fieldname, const char *direct
         int *nodetype,
         int *scripttype);
 
-void setECMAtype(int num);
-int get_touched_flag(int fptr, unsigned long int actualscript);
+void setECMAtype(uintptr_t);
+int get_touched_flag(uintptr_t fptr, uintptr_t actualscript);
 void getMultiElementtype(char *strp, struct Multi_Vec3f *tn, int eletype);
-void setMultiElementtype(int num);
+void setMultiElementtype(uintptr_t);
 void Multimemcpy(void *tn, void *fn, int len);
 void CRoutes_Register(int adrem,        void *from,
                                  int fromoffset,
@@ -495,7 +495,7 @@ void CRoutes_Register(int adrem,        void *from,
                                  int extra);
 void CRoutes_free(void);
 void propagate_events(void);
-void sendScriptEventIn(int num);
+void sendScriptEventIn(uintptr_t num);
 void add_first(char *clocktype,void * node);
 void do_first(void);
 void process_eventsProcessed(void);
@@ -518,7 +518,7 @@ void render_polyrep(void *node);
 
 extern int CRoutesExtra;		/* let EAI see param of routing table - Listener data. */
 
-unsigned EAI_do_ExtraMemory (int size,SV *data,char *type);
+uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type);
 
 /* types of scripts. */
 #define NOSCRIPT 	0
@@ -697,8 +697,8 @@ int initJavaClass(int scriptno);
 
 char *EAI_GetTypeName (unsigned int uretval);
 char* EAI_GetValue(unsigned int nodenum, const char *fieldname, const char *nodename);
-void setCLASStype (int num);
-void sendCLASSEvent(int fn, int scriptno, char *fieldName, int type, int len);
+void setCLASStype (uintptr_t num);
+void sendCLASSEvent(uintptr_t fn, int scriptno, char *fieldName, int type, int len);
 void processClassEvents(int scriptno, int startEntry, int endEntry);
 char *processThisClassEvent (void *fn, int startEntry, int endEntry, char *buf);
 int ScanValtoBuffer(int *len, int type, char *buf, void *memptr, int buflen);
@@ -927,7 +927,7 @@ int ConsoleMessage(const char *fmt, ...);
 extern int consMsgCount;
 
 void outOfMemory(const char *message);
-void initializeScript(int num,int evIn);
+void initializeScript(uintptr_t  num,int evIn);
 
 void killErrantChildren(void);
 

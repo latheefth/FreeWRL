@@ -24,11 +24,12 @@
 #define STRUCT_SV sv
 #endif
 
+void AddRemoveChildren (struct X3D_Box *parent, struct Multi_Node *tn, uintptr_t *nodelist, int len, int ar);
+/*
 void getMFStringtype(JSContext *cx, jsval *from, struct Multi_String *to);
 void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype);
-void AddRemoveChildren (struct X3D_Box *parent, struct Multi_Node *tn, unsigned long int *nodelist, int len, int ar);
 void markScriptResults(void * tn, int tptr, int route, void *tonode);
-void initializeScript(int num,int evIn);
+*/
 
 /*****************************************
 C Routing Methodology:
@@ -133,7 +134,7 @@ typedef struct _CRnodeStruct {
 
 struct CRStruct {
 	void *	fromnode;
-	unsigned int	fnptr;
+	uintptr_t fnptr;
 	unsigned int tonode_count;
 	CRnodeStruct *tonodes;
 	int	act;
@@ -152,7 +153,7 @@ int CRoutes_MAX;
 
 /* Structure table */
 struct CRscriptStruct *ScriptControl = 0; 	/* global objects and contexts for each script */
-unsigned long int *scr_act = 0;			/* this script has been sent an eventIn */
+uintptr_t *scr_act = 0;			/* this script has been sent an eventIn */
 int scripts_active;		/* a script has been sent an eventIn */
 int max_script_found = -1;	/* the maximum script number found */
 
@@ -208,10 +209,10 @@ void markScriptResults(void * tn, int tptr, int route, void * tonode) {
 }
 
 /* call initialize on this script. called for script eventins and eventouts */
-void initializeScript(int num,int evIn) {
+void initializeScript(uintptr_t num,int evIn) {
 	jsval retval;
 	int counter;
-	unsigned long int tn;
+	uintptr_t tn;
 	CRnodeStruct *to_ptr = NULL;
 
 
@@ -221,7 +222,7 @@ void initializeScript(int num,int evIn) {
 	if (evIn) {
 	    for (counter = 0; counter < CRoutes[num].tonode_count; counter++) {
 		to_ptr = &(CRoutes[num].tonodes[counter]);
-		tn = ((unsigned long int) to_ptr->node);
+		tn = (uintptr_t) to_ptr->node;
 		/* printf ("initializeScript, tn %d\n",tn); */
 
 		if (!(ScriptControl[tn]._initialized)) {
@@ -284,7 +285,7 @@ void initializeScript(int num,int evIn) {
 /*                                                                          */
 /****************************************************************************/
 
-int get_touched_flag (int fptr, unsigned long int actualscript) {
+int get_touched_flag (uintptr_t fptr, uintptr_t actualscript) {
 	char fullname[100];
 	char tmethod[100];
 	jsval v, retval, retval2;
@@ -571,7 +572,7 @@ int get_touched_flag (int fptr, unsigned long int actualscript) {
 	return FALSE; /*  should never get here */
 }
 
-void set_one_ECMAtype (unsigned long int tonode, int toname, int dataType, void *Data, unsigned datalen) {
+void set_one_ECMAtype (uintptr_t tonode, int toname, int dataType, void *Data, unsigned datalen) {
 
 	char scriptline[100];
 	jsval retval;
@@ -631,19 +632,19 @@ void set_one_ECMAtype (unsigned long int tonode, int toname, int dataType, void 
 }
 
 /* sets a SFBool, SFFloat, SFTime, SFIint32, SFString in a script */
-void setECMAtype (int num) {
-	unsigned long int fn, tn;
+void setECMAtype (uintptr_t num) {
+	uintptr_t fn, tn;
 	int tptr;
 	int len;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
-	fn = (unsigned long int) CRoutes[num].fromnode + CRoutes[num].fnptr;
+	fn = (uintptr_t)(CRoutes[num].fromnode) + (uintptr_t)(CRoutes[num].fnptr);
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = (unsigned long int) to_ptr->node;
+		tn = (uintptr_t) to_ptr->node;
 		tptr = to_ptr->foffset;
 		set_one_ECMAtype (tn, tptr, JSparamnames[tptr].type, (void *)fn,len);
 	}
@@ -827,11 +828,11 @@ void getMFStringtype (JSContext *cx, jsval *from, struct Multi_String *to) {
 /************************************************************************/
 
 void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, int ar) {
-	unsigned long int newptr;
+	uintptr_t newptr;
 	int newlen;
 	char *cptr;
 	void *newmal;
-	unsigned long int *tmpptr;
+	uintptr_t *tmpptr;
 
 	/* is this 64 bit compatible? - unsure right now. */
 	if (sizeof(void *) != sizeof (unsigned int))
@@ -860,7 +861,7 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 
 	/* create the list to send to the AddRemoveChildren function */
 	newmal = malloc (newlen*sizeof(void *));
-	tmpptr = (unsigned long int *)newmal;
+	tmpptr = (uintptr_t*)newmal;
 
 	if (newmal == 0) {
 		printf ("cant malloc memory for addChildren");
@@ -873,11 +874,11 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 		/* skip past this number */
 		while (isdigit(*cptr) || (*cptr == ',') || (*cptr == '-')) cptr++;
 		while (*cptr == ' ') cptr++; /* skip spaces */
-		tmpptr = (unsigned long int *) (tmpptr + sizeof (void *));
+		tmpptr = (uintptr_t*) (tmpptr + sizeof (void *));
 	}
 
 	/* now, perform the add/remove */
-	AddRemoveChildren (parent, tn, (unsigned long int *)newmal, newlen, ar);
+	AddRemoveChildren (parent, tn, newmal, newlen, ar);
 }
 
 /****************************************************************/
@@ -894,15 +895,15 @@ void getMFNodetype (char *strp, struct Multi_Node *tn, struct X3D_Box *parent, i
 void AddRemoveChildren (
 		struct X3D_Box *parent,
 		struct Multi_Node *tn,
-		unsigned long int *nodelist,
+		uintptr_t *nodelist,
 		int len,
 		int ar) {
 	int oldlen;
 	void *newmal;
 	int num_removed;
-	unsigned long int *remchild;
-	unsigned long int *remptr;
-	unsigned long int *tmpptr;
+	uintptr_t *remchild;
+	uintptr_t *remptr;
+	uintptr_t *tmpptr;
 
 	int counter, c2;
 
@@ -956,7 +957,7 @@ void AddRemoveChildren (
 		/* copy the new stuff over - note, newmal changes 
 		what it points to */
 
-		newmal = (void *) ((unsigned long int) newmal + sizeof (void *) * oldlen);
+		newmal = (void *) (newmal + sizeof (void *) * oldlen);
 		memcpy(newmal,nodelist,sizeof(void *) * len);
 
 		/* tell each node in the nodelist that it has a new parent */
@@ -976,7 +977,7 @@ void AddRemoveChildren (
 		num_removed = 0;
 		remchild = nodelist;
 		for (c2 = 0; c2 < len; c2++) {
-			remptr = (unsigned long int *)tn->p;
+			remptr = (uintptr_t*) tn->p;
 			for (counter = 0; counter < tn->n; counter ++) {
 				/* printf ("remove, comparing %d with %d\n",*remptr, *remchild); */
 				if (*remptr == *remchild) {
@@ -993,8 +994,8 @@ void AddRemoveChildren (
 		if (num_removed > 0) {
 			/* printf ("mallocing size of %d\n",(oldlen-num_removed)*sizeof(void *)); */
 			newmal = malloc ((oldlen-num_removed)*sizeof(void *));
-			tmpptr = (unsigned long int *)newmal;
-			remptr = (unsigned long int *)tn->p;
+			tmpptr = newmal;
+			remptr = (uintptr_t*) tn->p;
 			if (newmal == 0) {
 				printf ("cant malloc memory for removeChildren");
 				return;
@@ -1110,7 +1111,7 @@ void getCLASSMultNumType (char *buf, int bufSize,
 		tn->n = len;
 	} else {
 		/* this is a Node type, so we need to add/remove children */
-		AddRemoveChildren (parent, (struct Multi_Node*)tn, (unsigned long int *)buf, len, addChild);
+		AddRemoveChildren (parent, (struct Multi_Node*)tn, (uintptr_t*)buf, len, addChild);
 	}
 }
 
@@ -1144,6 +1145,7 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
 	JSString *_tmpStr;
 	char *strp;
 	int elesize;
+	int rv; /* temp for sscanf return vals */
 
 
 	/* get size of each element, used for mallocing memory */
@@ -1199,15 +1201,15 @@ void getJSMultiNumType (JSContext *cx, struct Multi_Vec3f *tn, int eletype) {
                 /* printf ("sub element %d is %s as a string\n",i,strp);  */
 
 		switch (eletype) {
-		case 0: { sscanf(strp,"%d",il); il++; break;}
-		case 1: { sscanf(strp,"%f",fl); fl++; break;}
-		case 2: { sscanf (strp,"%f %f",fl,&f2);
+		case 0: { rv=sscanf(strp,"%d",il); il++; break;}
+		case 1: { rv=sscanf(strp,"%f",fl); fl++; break;}
+		case 2: { rv=sscanf (strp,"%f %f",fl,&f2);
 			fl++; *fl=f2; fl++; break;}
-		case 3: { sscanf (strp,"%f %f %f",fl,&f2,&f3);
+		case 3: { rv=sscanf (strp,"%f %f %f",fl,&f2,&f3);
 			fl++; *fl=f2; fl++; *fl=f3; fl++; break;}
-		case 4: { sscanf (strp,"%f %f %f %f",fl,&f2,&f3,&f4);
+		case 4: { rv=sscanf (strp,"%f %f %f %f",fl,&f2,&f3,&f4);
 			fl++; *fl=f2; fl++; *fl=f3; fl++; *fl=f4; fl++; break;}
-		case 5: {sscanf (strp,"%lf",dl); dl++; break;}
+		case 5: {rv=sscanf (strp,"%lf",dl); dl++; break;}
 
 		default : {printf ("getJSMultiNumType unhandled eletype: %d\n",
 				eletype);
@@ -1351,7 +1353,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to) {
 /****************************************************************/
 
 /* really do the individual set; used by script routing and EAI sending to a script */
-void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dataLen ) {
+void Set_one_MultiElementtype (uintptr_t tonode, uintptr_t tnfield, void *Data, unsigned dataLen ) {
 
 	char scriptline[100];
 	jsval retval;
@@ -1404,14 +1406,14 @@ void Set_one_MultiElementtype (int tonode, int tnfield, void *Data, unsigned dat
 }
 
 
-void setMultiElementtype (int num) {
+void setMultiElementtype (uintptr_t num) {
 	void * fn;
 	void * tn;
-	unsigned int tptr, fptr;
+	uintptr_t tptr, fptr;
 	unsigned int len;
 	unsigned int to_counter;
 
-	unsigned long int indexPointer;
+	uintptr_t indexPointer;
 
 	CRnodeStruct *to_ptr = NULL;
 
@@ -1427,7 +1429,7 @@ void setMultiElementtype (int num) {
 
 		/* the to_node should be a script number; it will be a small integer */
 		tn = to_ptr->node;
-		indexPointer = (unsigned long int) tn;
+		indexPointer = (uintptr_t) tn;
 		tptr = to_ptr->foffset;
 
 		#ifdef CRVERBOSE 
@@ -1447,10 +1449,10 @@ void setMultiElementtype (int num) {
 }
 
 
-void setMFElementtype (int num) {
+void setMFElementtype (uintptr_t num) {
 	void * fn;
 	void * tn;
-	unsigned int tptr, fptr;
+	uintptr_t tptr, fptr;
 	int len;
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
@@ -1510,7 +1512,7 @@ void setMFElementtype (int num) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
 		tn = to_ptr->node;
 		tptr = to_ptr->foffset;
-		indexPointer = (unsigned long int) tn; /* tn should be a small int here - it is script # */
+		indexPointer = (uintptr_t) tn; /* tn should be a small int here - it is script # */
 
 		#ifdef CRVERBOSE 
 			printf ("got a script event! index %d type %d\n",
@@ -2017,7 +2019,7 @@ Register a new script for future routing
 
 ********************************************************************/
 
-void CRoutes_js_new (int num, int scriptType) {
+void CRoutes_js_new (uintptr_t num, int scriptType) {
 	/* printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl); */
 
 	/* record whether this is a javascript, class invocation, ... */
@@ -2146,6 +2148,7 @@ void CRoutes_Register(
 	unsigned int to_counter;
 	struct Multi_Node *Mchptr;
 	void * chptr;
+	int rv;				/* temp for sscanf rets */
 
 	char buf[20];
 	long unsigned int toof;		/* used to help determine duplicate routes */
@@ -2175,7 +2178,7 @@ void CRoutes_Register(
 			/* this is just a block of memory, eg, it will hold an "SFInt32" */
 			chptr = malloc (sizeof (char) * length);
 		}
-		sprintf (buf,"%d:0",(unsigned long int) chptr);
+		sprintf (buf,"%d:0",chptr);
 		CRoutes_Register (adrem, from, fromoffset,1,buf, length, 0, FROM_SCRIPT, extra);
 		CRoutes_Register (adrem, chptr, 0, to_count, tonode_str,length, 0, TO_SCRIPT, extra);
 		return;
@@ -2250,7 +2253,7 @@ void CRoutes_Register(
 		(CRoutes[insert_here].tonodes!=0)) {
 
 		/* possible duplicate route */
-		sscanf (tonode_str, "%u:%u", &toN,&toof);
+		rv=sscanf (tonode_str, "%u:%u", &toN,&toof);
 		/* printf ("from tonode_str %s we have %u %u\n",tonode_str, toN, toof); */
 
 		if ((toN == ((long unsigned)(CRoutes[insert_here].tonodes)->node)) &&
@@ -2444,14 +2447,13 @@ void mark_event (void *from, unsigned int totalptr) {
 	#endif
 }
 
-
 /********************************************************************
 
 mark_script - indicate that this script has had an eventIn
 zero_scripts - reset all script indicators
 
 ********************************************************************/
-void mark_script (unsigned long int num) {
+void mark_script (uintptr_t num) {
 
 	#ifdef CRVERBOSE 
 		printf ("mark_script - script %d has been invoked\n",num);
@@ -2519,7 +2521,7 @@ FIXME XXXXX =  can we do this without the string conversions?
 
 ********************************************************************/
 
-void gatherScriptEventOuts(unsigned long int actualscript) {
+void gatherScriptEventOuts(uintptr_t actualscript) {
 	int route;
 	unsigned int fptr, tptr;
 	void * fn;
@@ -2528,6 +2530,7 @@ void gatherScriptEventOuts(unsigned long int actualscript) {
 	float fl[4];	/* return float values */
 	double tval;
 	int ival;
+	int rv; 		/* temp for sscanf retvals */
 
         JSString *strval; /* strings */
         char *strp = 0;
@@ -2638,26 +2641,26 @@ void gatherScriptEventOuts(unsigned long int actualscript) {
 				}
 				case SFNODE:
 				case SFINT32: {
-					sscanf (strp,"%d",&ival);
+					rv=sscanf (strp,"%d",&ival);
 					/* printf ("SFInt, SFNode conversion number %d\n",ival); */
 					memcpy ((void *)((tn+tptr)), (void *)&ival,len);
 					break;
 				}
 				case SFFLOAT: {
-					sscanf (strp,"%f",&fl[0]);
+					rv=sscanf (strp,"%f",&fl[0]);
 					memcpy ((void *)(tn+tptr), (void *)&fl,len);
 					break;
 				}
 
 				case SFVEC2F: {	/* SFVec2f */
-					sscanf (strp,"%f %f",&fl[0],&fl[1]);
+					rv=sscanf (strp,"%f %f",&fl[0],&fl[1]);
 					/* printf ("conversion numbers %f %f\n",fl[0],fl[1]); */
 					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
 				}
 				case SFVEC3F:
 				case SFCOLOR: {	/* SFColor */
-					sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
+					rv=sscanf (strp,"%f %f %f",&fl[0],&fl[1],&fl[2]);
 					/* printf ("conversion numbers %f %f %f\n",fl[0],fl[1],fl[2]); */
 					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
@@ -2666,7 +2669,7 @@ void gatherScriptEventOuts(unsigned long int actualscript) {
 				case SFROTATION: {
 int tmp;
 tmp =
-					sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
+					rv=sscanf (strp,"%f %f %f %f",&fl[0],&fl[1],&fl[2],&fl[3]);
 					/* printf ("conversion numbers %f %f %f %f\n",fl[0],fl[1],fl[2],fl[3]); */
 					memcpy ((void *)(tn+tptr), (void *)fl,len);
 					break;
@@ -2713,7 +2716,7 @@ tmp =
 /* start getting events from a Class script. IF the script is not
  * initialized, do it. This will happen once only */
 
-void gatherClassEventOuts (unsigned long int script) {
+void gatherClassEventOuts (uintptr_t script) {
 	int startEntry;
 	int endEntry;
 
@@ -2728,10 +2731,9 @@ void gatherClassEventOuts (unsigned long int script) {
 	/* routing table is ordered, so we can walk up to this script */
 	startEntry=1;
 
-	/* do comparisons as unsigned long - should work in 64 bit environments */
-	while (((unsigned long)CRoutes[startEntry].fromnode)<((unsigned long)script)) startEntry++;
+	while (((uintptr_t)CRoutes[startEntry].fromnode)<((uintptr_t)script)) startEntry++;
 	endEntry = startEntry;
-	while (((unsigned long)CRoutes[endEntry].fromnode) == ((unsigned long)script)) endEntry++;
+	while (((uintptr_t)CRoutes[endEntry].fromnode) == ((uintptr_t)script)) endEntry++;
 	/* printf ("routing table entries to scan between: %d and %d\n", startEntry, endEntry); */
 
 	/* now, process received commands... */
@@ -2751,6 +2753,7 @@ char *processThisClassEvent (void *fn,
 	char membuffer[2000];
 	int thislen;
 	int entry;
+	int rv; 		/* temp for sscanf retvals */
 
 	unsigned int tptr, len;
 	void * tn;
@@ -2774,7 +2777,7 @@ char *processThisClassEvent (void *fn,
 	thislen = strlen(fieldName);
 
 	/* copy over the fieldOffset */
-	sscanf (buf, "%d %d %d",&fieldType, &fieldOffs, &fieldLen);
+	rv=sscanf (buf, "%d %d %d",&fieldType, &fieldOffs, &fieldLen);
 	while (*buf >= ' ') buf++; if (*buf>'\0') *buf++;
 
 	/* find the JSparam name index. */
@@ -2855,7 +2858,7 @@ char *processThisClassEvent (void *fn,
 
 /* sets a CLASS variable - routing into the .class file */
 void sendJClassEventIn(int num, int fromoffset) {
-	unsigned long int fn, tn;
+	uintptr_t fn, tn;
 	int tptr;
 	int len;
 	unsigned int to_counter;
@@ -2863,12 +2866,12 @@ void sendJClassEventIn(int num, int fromoffset) {
 
 	/* printf ("sendJClassEventIn, num %d fromoffset %d\n",num,fromoffset);  */
 
-	fn = (unsigned long int) CRoutes[num].fromnode + CRoutes[num].fnptr;
+	fn = (uintptr_t) (CRoutes[num].fromnode + CRoutes[num].fnptr);
 	len = CRoutes[num].len;
 
 	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
 		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		tn = (unsigned long int) to_ptr->node;
+		tn = (uintptr_t) to_ptr->node;
 		tptr = to_ptr->foffset;
 
 		/* is this class initialized? */
@@ -2941,7 +2944,7 @@ void sendJScriptEventIn (int num, int fromoffset) {
 	}
 }
 
-void sendScriptEventIn(int num) {
+void sendScriptEventIn(uintptr_t num) {
 	unsigned int to_counter;
 	CRnodeStruct *to_ptr = NULL;
 
@@ -2962,8 +2965,9 @@ void sendScriptEventIn(int num) {
 			/* get the value from the VRML structure, in order to propagate it to a script */
 
 			/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
-			mark_script((unsigned long int)to_ptr->node);
-			switch (ScriptControl[((unsigned long int)to_ptr->node)].thisScriptType) {
+			mark_script((uintptr_t) to_ptr->node);
+
+			switch (ScriptControl[(uintptr_t)to_ptr->node].thisScriptType) {
 				case CLASSSCRIPT: {
 					/* sendJClassEventIn(to_ptr->node, to_ptr->foffset); */
 					sendJClassEventIn(num, to_ptr->foffset);
@@ -2975,7 +2979,7 @@ void sendScriptEventIn(int num) {
 				  }
 				default: {
 				printf ("do not handle eventins for script type %d\n",
-						ScriptControl[((unsigned long int)to_ptr->node)].thisScriptType);
+						ScriptControl[(uintptr_t)to_ptr->node].thisScriptType);
 				 }
 			}
 		}
@@ -3126,7 +3130,6 @@ printf ("script type %d\n",ScriptControl[counter].thisScriptType);
 }
 
 
-
 /********************************************************************
 
 process_eventsProcessed()
@@ -3169,7 +3172,7 @@ void do_first() {
 	   to either field, so we don't need to bounds check here */
 
 	for (counter =0; counter < num_ClockEvents; counter ++) {
-		ClockEvents[counter].interpptr((unsigned int *)(ClockEvents[counter].tonode));
+		ClockEvents[counter].interpptr(ClockEvents[counter].tonode);
 	}
 
 	/* now, propagate these events */

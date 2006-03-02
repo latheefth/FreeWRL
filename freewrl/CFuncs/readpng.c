@@ -61,12 +61,13 @@ uch  *image_data = NULL;
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight)
 {
     uch sig[8];
+	size_t rv;
 
 
     /* first do a quick check that the file really is a PNG image; could
      * have used slightly more general png_sig_cmp() function instead */
 
-    fread(sig, 1, 8, infile);
+    rv=fread(sig, 1, 8, infile);
     if (!png_check_sig(sig, 8))
         return 1;   /* bad signature */
 

@@ -83,18 +83,18 @@ void kill_javascript(void) {
 }
 
 
-void cleanupDie(int num, const char *msg) {
+void cleanupDie(uintptr_t num, const char *msg) {
 	kill_javascript();
 	freewrlDie(msg);
 }
 
 void JSMaxAlloc() {
 	/* perform some reallocs on JavaScript database stuff for interfacing */
-	unsigned long int count;
+	uintptr_t count;
 
 	JSMaxScript += 10;
 	ScriptControl = (struct CRscriptStruct*)realloc (ScriptControl, sizeof (*ScriptControl) * JSMaxScript);
-	scr_act = (unsigned long int *)realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
+	scr_act = (uintptr_t *)realloc (scr_act, sizeof (*scr_act) * JSMaxScript);
 
 	if ((ScriptControl == NULL) || (scr_act == 0)) {
 		printf ("Can not allocate memory for more script indexes\n");
@@ -110,7 +110,7 @@ void JSMaxAlloc() {
 
 
 
-void JSInit(int num, SV *script) {
+void JSInit(uintptr_t num, SV *script) {
 	jsval rval;
 	JSContext *_context; 	/* these are set here */
 	JSObject *_globalObj; 	/* these are set here */
@@ -177,9 +177,9 @@ void JSInit(int num, SV *script) {
 	br->magic = BROWMAGIC; /* needed ??? */
 
 	/* for this script, here are the necessary data areas */
-	ScriptControl[num].cx = (unsigned long int) _context;
-	ScriptControl[num].glob = (unsigned long int) _globalObj;
-	ScriptControl[num].brow = (unsigned long int) br;
+	ScriptControl[num].cx = (uintptr_t) _context;
+	ScriptControl[num].glob = (uintptr_t) _globalObj;
+	ScriptControl[num].brow = (uintptr_t) br;
 
 
 	if (!loadVrmlClasses(_context, _globalObj))
@@ -212,7 +212,7 @@ void JSInit(int num, SV *script) {
 }
 
 /* run the script from within C */
-int ActualrunScript(int num, char *script, jsval *rval) {
+int ActualrunScript(uintptr_t num, char *script, jsval *rval) {
 	size_t len;
 	JSContext *_context;
 	JSObject *_globalObj;
@@ -242,7 +242,7 @@ int ActualrunScript(int num, char *script, jsval *rval) {
 }
 
 /* perl wants us to run the script- do so, and return return values */
-int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
+int JSrunScript(uintptr_t num, char *script, SV *rstr, SV *rnum) {
 	JSString *strval;
 	jsval rval;
 	jsdouble dval = -1.0;
@@ -280,7 +280,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
 
 
 /* perl wants a value returned. return return values */
- int JSGetProperty(int num, char *script, SV *rstr) {
+ int JSGetProperty(uintptr_t num, char *script, SV *rstr) {
  	JSString *strval;
  	jsval rval;
  	char *strp;
@@ -311,7 +311,7 @@ int JSrunScript(int num, char *script, SV *rstr, SV *rnum) {
  }
 
 
-int JSaddGlobalAssignProperty(int num, char *name, char *str) {
+int JSaddGlobalAssignProperty(uintptr_t num, char *name, char *str) {
 	jsval _rval = INT_TO_JSVAL(0);
 	JSContext *_context;
 	JSObject *_globalObj;
@@ -344,7 +344,7 @@ int JSaddGlobalAssignProperty(int num, char *name, char *str) {
 
 
 
-int JSaddSFNodeProperty(int num, char *nodeName, char *name, char *str) {
+int JSaddSFNodeProperty(uintptr_t num, char *nodeName, char *name, char *str) {
 	JSContext *_context;
 	JSObject *_globalObj;
 	JSObject *_obj;
@@ -383,7 +383,7 @@ int JSaddSFNodeProperty(int num, char *nodeName, char *name, char *str) {
 	return JS_TRUE;
 }
 
-int JSaddGlobalECMANativeProperty(int num, char *name) {
+int JSaddGlobalECMANativeProperty(uintptr_t num, char *name) {
 	JSContext *_context;
 	JSObject *_globalObj;
 

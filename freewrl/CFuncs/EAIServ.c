@@ -371,7 +371,7 @@ char *read_EAI_socket(char *bf, int *bfct, int *bfsz, int *EAIlistenfd) {
 *
 **********************************************************************/
 
-unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
+uintptr_t EAI_do_ExtraMemory (int size,SV *data,char *type) {
 	int val;
 	double lval;
 	void *memptr;
@@ -670,6 +670,5 @@ unsigned EAI_do_ExtraMemory (int size,SV *data,char *type) {
 		}
 	}
 	/* printf ("EAI_Extra memory, returning %d\n",memptr);*/
-	return (unsigned) memptr;
-
+	return (uintptr_t) memptr;
 }

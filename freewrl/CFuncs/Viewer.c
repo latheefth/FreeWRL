@@ -476,6 +476,7 @@ handle_tick_exfly()
 	size_t len = 0;
 	char string[STRING_SIZE];
 	float px,py,pz,q1,q2,q3,q4;
+	size_t rv; /* unused, but here for compile warnings */
 
 	memset(string, 0, STRING_SIZE * sizeof(char));
 
@@ -500,7 +501,7 @@ handle_tick_exfly()
 		viewer_type = EXAMINE;
 		return;
 	}
-	fread(string, sizeof(char), IN_FILE_BYTES, exfly_in_file);
+	rv = fread(string, sizeof(char), IN_FILE_BYTES, exfly_in_file);
 	if (ferror(exfly_in_file)) {
 		fprintf(stderr,
 				"Viewer handle_tick_exfly: error reading from file %s.",
@@ -724,7 +725,9 @@ xy2qua(Quaternion *ret, const double x, const double y)
 float stereoParameter = 0.4;
 
 void setStereoParameter (const char *optArg) {
-	sscanf(optArg,"%f",&stereoParameter);
+	int i;
+	i = sscanf(optArg,"%f",&stereoParameter);
+	if (i==0) printf ("warning, command line stereo parameter incorrect - was %s\n",optArg);
 }
 
 void

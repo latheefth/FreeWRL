@@ -34,7 +34,6 @@ static XSetWindowAttributes swa;
 extern XVisualInfo *Xvi;
 
 extern int _fw_pipe, _fw_FD;
-extern unsigned _fw_instance;
 
 static int screen;
 static int modeNum;

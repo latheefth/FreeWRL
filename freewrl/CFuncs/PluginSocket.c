@@ -93,7 +93,7 @@ int waitForData(int sock) {
 
 char *
 requestUrlfromPlugin(int sockDesc,
-		   unsigned int plugin_instance,
+		   uintptr_t plugin_instance,
 		   const char *url)
 {
 	size_t len = 0, ulen = 0, bytes = 0;
@@ -190,7 +190,7 @@ requestUrlfromPlugin(int sockDesc,
  * clicked and it is an HTML page */
 
 void requestNewWindowfromPlugin(int sockDesc,
-		   unsigned int plugin_instance,
+		   uintptr_t plugin_instance,
 		   const char *url)
 {
 	size_t len = 0, ulen = 0, bytes = 0;

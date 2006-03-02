@@ -397,7 +397,7 @@ void URLencod (char *dest, const char *src, int maxlen) {
 	/* get the length of the source and bounds check */
 	URLprint ("going to start URLencod %s\n","on a string");
 	URLprint ("start, src is %s\n",src);
-	URLprint ("maxlen is %d\n",(void*)maxlen);
+	/* URLprint ("maxlen is %d\n",maxlen); */
 
 	destctr = 0; /* ensure we dont go over dest length */
 	mylen = strlen(src);

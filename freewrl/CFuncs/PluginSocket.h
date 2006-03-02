@@ -33,10 +33,10 @@ extern "C" {
 #define MAXNETSCAPENAMELEN 256
 extern char NetscapeName[MAXNETSCAPENAMELEN];
 
-char *requestUrlfromPlugin(int sockDesc, unsigned int plugin_instance, const char *url);
+char *requestUrlfromPlugin(int sockDesc, uintptr_t plugin_instance, const char *url);
 
 void requestNewWindowfromPlugin(int sockDesc,
-		                   unsigned int plugin_instance,
+		                   uintptr_t plugin_instance,
 				                      const char *url);
 
 int

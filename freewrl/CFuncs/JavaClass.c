@@ -52,13 +52,13 @@ int startEntry, endEntry;
 
 void send_string (char *string, int fd) ;
 
-/* Added M. Ward Dec 7/04*/
 extern void EAI_Convert_mem_to_ASCII (int id, char *reptype, int type, char *memptr, char *buf);
 
 /* a new .class file has been called - lets load it */
 int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 	char newURL [MURLLEN];
 	char *ri;
+	char *rv;
 
 	if (JavaClassVerbose)
 		printf ("newJavaClass, number %d url %s nodeID %s MaxScript %d\n",
@@ -101,7 +101,7 @@ int newJavaClass(int scriptInvocationNumber,char * nodeURLstr,char *nodeID) {
 		if (BrowserURL[0] == '/') {
 			strncat (&newURL[5],BrowserURL,MURLLEN-10);
 		} else {
-			getcwd (&newURL[5],MURLLEN-10);
+			rv=getcwd (&newURL[5],MURLLEN-10);
 			strcat (newURL,"/");
 			strncat (newURL,BrowserURL,MURLLEN-100);
 		}
@@ -142,7 +142,7 @@ int initJavaClass(int scriptno) {
         receive_command(scriptno);
 }
 
-void sendCLASSEvent(int fn, int scriptno, char *fieldname, int type, int len) {
+void sendCLASSEvent(uintptr_t fn, int scriptno, char *fieldname, int type, int len) {
 	char mystring [100];
 	char mytype[10];
 
@@ -423,7 +423,7 @@ void makeJavaInvocation (char *commandline, int scriptno) {
 void receive_command(int scriptno) {
 	char ctmp[1000], dtmp[1000];
 	int uretval;
-	int nodeptr;
+	uintptr_t nodeptr;
 	int ra, rb, rc, rd;
 	char *ptr;
 	int scripttype;
@@ -432,6 +432,7 @@ void receive_command(int scriptno) {
 	char *EOT;
 	int nodarr[200];
 	int finished_found;
+	int rv;
 
 	finished_found = FALSE;
 	ptr = ClassBuffer;
@@ -522,7 +523,7 @@ void receive_command(int scriptno) {
 
 			/* skip past the perl node number "xx:ddd" to the ptr */
 			/* printf ("string here is %s\n",ptr);*/
-			sscanf(ptr,"%d:%d",&uretval,&nodeptr);
+			rv=sscanf(ptr,"%d:%d",&uretval,&nodeptr);
 			while (*ptr >=' ') ptr++; /* now at the ptr */
 			ptr++;   /* skip the carriage return */
 			/* printf ("now string here is :%s\n",ptr);*/

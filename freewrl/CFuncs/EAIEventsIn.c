@@ -66,14 +66,17 @@ int returnElementRowSize (int type) {
 
 /* copy new scanned in data over to the memory area in the scene graph. */
 
-void *Multi_Struct_memptr (int type, void *memptr) {
+uintptr_t Multi_Struct_memptr (int type, void *memptr) {
 	struct Multi_Vec3f *mp;
+	uintptr_t retval;
 
 	/* is this a straight copy, or do we have a struct to send to? */
 	/* now, some internal reps use a structure defined as:
 	   struct Multi_Vec3f { int n; struct SFColor  *p; };
 	   so, we have to put the data in the p pointer, so as to
 	   not overwrite the data. */
+
+	retval = (uintptr_t) memptr;
 
 	switch (type) {
 		case MFVEC2F: 
@@ -83,11 +86,11 @@ void *Multi_Struct_memptr (int type, void *memptr) {
 		case MFFLOAT:
 		case MFINT32:
 			mp = (struct Multi_Vec3f*) memptr;
-			memptr = mp->p;
+			retval = (uintptr_t) (mp->p);
 
 		default: {}
 		}
-	return memptr;
+	return retval;
 }
 
 
@@ -105,7 +108,7 @@ void SetMemory (int type, void *destptr, void *srcptr, int len) {
 
 	/* printf ("start of SetMemory, len %d type %d\n",len,type);  */
 
-	newptr = Multi_Struct_memptr(type, destptr);
+	newptr = (void *)Multi_Struct_memptr(type, destptr);
 	if (newptr != destptr) {
 		mp = (struct Multi_Vec3f*) destptr;
 		/* printf ("SetMemory was %d ",mp->n); */
@@ -148,6 +151,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	void *tmpbuf;
 	int count;
 	int len;
+	int retint;	/* used for getting sscanf return val */
 	
 	/* pointers to cast memptr to*/
 	float *flmem;
@@ -176,19 +180,19 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 	    case SFNODE:
 	    case SFINT32: {
-	    	sscanf (buf,"%d",(int *)memptr);
+	    	retint=sscanf (buf,"%d",(int *)memptr);
 		len = sizeof (int);
 	    	break;
 	    }
 	    case SFFLOAT: {
-	    	sscanf (buf,"%f",(float *)memptr);
+	    	retint=sscanf (buf,"%f",(float *)memptr);
 		len = sizeof (float);
 	    	break;
 	    }
 
 	    case SFVEC2F: {	/* SFVec2f */
 		flmem = (float *)memptr;
-	    	sscanf (buf,"%f %f",&flmem[0], &flmem[1]);
+	    	retint=sscanf (buf,"%f %f",&flmem[0], &flmem[1]);
 		len = sizeof(float) * 2;
 	    	break;
 	    }
@@ -196,20 +200,20 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 	    case SFVEC3F:
 	    case SFCOLOR: {	/* SFColor */
 		flmem = (float *)memptr;
-	    	sscanf (buf,"%f %f %f",&flmem[0],&flmem[1],&flmem[2]);
+	    	retint=sscanf (buf,"%f %f %f",&flmem[0],&flmem[1],&flmem[2]);
 		len = sizeof(float) * 3;
 	    	break;
 	    }
 
 	    case SFROTATION: {
 		flmem = (float *)memptr;
-	    	sscanf (buf,"%f %f %f %f",&flmem[0],&flmem[1],&flmem[2],&flmem[3]);
+	    	retint=sscanf (buf,"%f %f %f %f",&flmem[0],&flmem[1],&flmem[2],&flmem[3]);
 		len = sizeof(float) * 4;
 	    	break;
 	    }
 
 	    case SFTIME: {
-		sscanf (buf, "%lf", (double *)memptr);
+		retint=sscanf (buf, "%lf", (double *)memptr);
 		len = sizeof(double);
 		break;
 	    }
@@ -226,7 +230,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 		/* scan to start of element count, and read it in.*/
 		while (*buf==' ') buf++; 
-		sscanf (buf,"%d",quant); while (*buf>' ') buf++;
+		retint=sscanf (buf,"%d",quant); while (*buf>' ') buf++;
 
 		/* how many elements per row of this type? */
 		*quant = *quant * returnElementRowSize(type);
@@ -255,9 +259,9 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 			/* scan in number */
 			if ((type==MFINT32) || (type==MFNODE)) {
-				sscanf (buf,"%d",ip);
+				retint=sscanf (buf,"%d",ip);
 			} else { 
-				sscanf (buf,"%f",fp);
+				retint=sscanf (buf,"%f",fp);
 			}
 
 			/* go to next number */
@@ -295,14 +299,14 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 
 		/* scan to start of element count, and read it in.*/
 		while (*buf==' ') buf++;
-		sscanf (buf,"%d",&maxele);
+		retint=sscanf (buf,"%d",&maxele);
 		while (*buf!=' ') buf++;
 
 		/* is this a set1Value, or a setValue */
 		if (maxele == -1) {
 			/* is the range ok? for set1Value, we only replace, do not expand. */
 			while (*buf==' ') buf++;
-			sscanf (buf,"%d;%d",&thisele,&thissize);
+			retint=sscanf (buf,"%d;%d",&thisele,&thissize);
 			/* printf ("this element %d has len %d MFStr size %d \n",thisele,thissize, strptr->n); */
 
 			if (maxele < strptr->n) {
@@ -333,7 +337,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 				/* make the new SV */
 	
 				while (*buf==' ') buf++;
-				sscanf (buf,"%d;%d",&thisele,&thissize);
+				retint=sscanf (buf,"%d;%d",&thisele,&thissize);
 				/*printf ("this element %d has size %d\n",thisele,thissize);*/
 	
 				/* scan to start of string*/
@@ -372,7 +376,7 @@ int ScanValtoBuffer(int *quant, int type, char *buf, void *memptr, int bufsz) {
 		/* strings in the format "25:2 2 1 0xff 0x80 0x80 0xff" where 25 is the length */
 		while (*buf == ' ') buf++;
 
-		sscanf (buf,"%d",&thissize);
+		retint=sscanf (buf,"%d",&thissize);
 		/* printf ("this SFStr size %d \n",thissize);  */
 
 		/* scan to start of string*/
@@ -432,9 +436,11 @@ void EAI_parse_commands (char *bufptr) {
 	int count;
 	char command;
 	unsigned int uretval;		/* unsigned return value*/
-	unsigned int ra,rb,rc,rd;	/* temps*/
+	uintptr_t ra,rb,rc,rd;	/* temps*/
+
 	unsigned int scripttype;
 	char *EOT;		/* ptr to End of Text marker*/
+	int retint;		/* used for getting retval for sscanf */
 
 	while (strlen(bufptr)> 0) {
 		#ifdef EAIVERBOSE
@@ -514,7 +520,7 @@ void EAI_parse_commands (char *bufptr) {
 			case GETNODE:  {
 				/*format int seq# COMMAND    string nodename*/
 
-				sscanf (bufptr," %s",ctmp);
+				retint=sscanf (bufptr," %s",ctmp);
 				#ifdef EAIVERBOSE 
 				printf ("GETNODE %s\n",ctmp);
 				#endif
@@ -527,7 +533,7 @@ void EAI_parse_commands (char *bufptr) {
 			case GETTYPE:  {
 				/*format int seq# COMMAND  int node#   string fieldname   string direction*/
 
-				sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
+				retint=sscanf (bufptr,"%d %s %s",&uretval,ctmp,dtmp);
 				#ifdef EAIVERBOSE 
 				printf ("GETTYPE NODE%d %s %s\n",uretval, ctmp, dtmp);
 				#endif
@@ -595,7 +601,7 @@ void EAI_parse_commands (char *bufptr) {
 			case SENDCHILD :  {
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
+				retint=sscanf (bufptr,"%d %d %s %s",&ra,&rb,ctmp,dtmp);
 				rc = ra+rb; /* final pointer- should point to a Multi_Node*/
 
 				#ifdef EAIVERBOSE 
@@ -616,7 +622,7 @@ void EAI_parse_commands (char *bufptr) {
 			case UPDATEROUTING :  {
 				/*format int seq# COMMAND  int node#   ParentNode field ChildNode*/
 
-				sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
+				retint=sscanf (bufptr,"%d %d %s %d",&ra,&rb,ctmp,&rc);
 				#ifdef EAIVERBOSE 
 				printf ("SENDCHILD %d %d %s %d\n",ra, rb, ctmp, rc);
 				#endif
@@ -630,7 +636,7 @@ void EAI_parse_commands (char *bufptr) {
 				#endif
 
 				/*143024848 88 8 e 6*/
-				sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
+				retint=sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
 				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
 				ctmp[1]=0;
 
@@ -655,7 +661,7 @@ void EAI_parse_commands (char *bufptr) {
 				#endif
 
 				/*143024848 88 8 e 6*/
-				sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
+				retint=sscanf (bufptr,"%d %d %c %d",&ra,&rb,ctmp,&rc);
 				/* so, count = query id, ra pointer, rb, offset, ctmp[0] type, rc, length*/
 				ctmp[1]=0;
 
@@ -681,7 +687,7 @@ void EAI_parse_commands (char *bufptr) {
 
 
 				/* format: ptr, offset, type, length (bytes)*/
-				sscanf (bufptr, "%d %d %c %d", &ra,&rb,ctmp,&rc);
+				retint=sscanf (bufptr, "%d %d %c %d", &ra,&rb,ctmp,&rc);
 
 				ra = ra + rb;   /* get absolute pointer offset*/
 				EAI_Convert_mem_to_ASCII (count,"RE",(int)ctmp[0],(char *)ra, buf);
@@ -768,17 +774,18 @@ void EAI_parse_commands (char *bufptr) {
 
 unsigned int EAI_SendEvent (char *ptr) {
 	unsigned char nodetype;
-	unsigned int nodeptr;
-	unsigned int offset;
+	uintptr_t nodeptr;
+	uintptr_t offset;
 	unsigned int scripttype;
 
-	unsigned int memptr;
+	uintptr_t memptr;
 
 	int valIndex;
 	struct Multi_Color *tcol;
 
 	int len, elemCount;
 	int MultiElement;
+	int retint; 			/* used to get return value of sscanf */
 	char myBuffer[6000];
 
 	/* we have an event, get the data properly scanned in from the ASCII string, and then
@@ -791,7 +798,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 	ptr++;
 
 	/* nodeptr, offset */
-	sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
+	retint=sscanf (ptr, "%d %d %d",&nodeptr, &offset, &scripttype);
 	while ((*ptr) > ' ') ptr++; 	/* node ptr */
 	while ((*ptr) == ' ') ptr++;	/* inter number space(s) */
 	while ((*ptr) > ' ') ptr++;	/* node offset */
@@ -824,7 +831,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 		/* find out which element the user wants to set - that should be the next number */
 		while (*ptr==' ')ptr++;
-		sscanf (ptr,"%d",&valIndex);
+		retint=sscanf (ptr,"%d",&valIndex);
 		while (*ptr>' ')ptr++; /* past the number */
 		while (*ptr==' ')ptr++;
 
@@ -837,7 +844,7 @@ unsigned int EAI_SendEvent (char *ptr) {
 
 
 		/* if this is a struct Multi* node type, move the actual memory pointer to the data */
-		memptr = (unsigned int) Multi_Struct_memptr(nodetype-EAI_SFUNKNOWN, (void *) memptr);
+		memptr = Multi_Struct_memptr(nodetype-EAI_SFUNKNOWN, (void *) memptr);
 
 		/* and index into that array; we have the index, and sizes to worry about 	*/
 		memptr += valIndex * returnElementLength(nodetype-EAI_SFUNKNOWN) *  returnElementRowSize(nodetype-EAI_SFUNKNOWN);
@@ -1016,6 +1023,7 @@ void createLoadURL(char *bufptr) {
 	char newstring[2000];
 	int np;
 	char *spbrk;
+	int retint;		/* used to get retval from sscanf */
 
 
 	/* fill in Anchor parameters */
@@ -1023,10 +1031,10 @@ void createLoadURL(char *bufptr) {
 
 	/* fill in length fields from string */
 	while (*bufptr==' ') bufptr++;
-	sscanf (bufptr,"%d",&EAI_AnchorNode.url.n);
+	retint=sscanf (bufptr,"%d",&EAI_AnchorNode.url.n);
 	while (*bufptr>' ') bufptr++;
 	while (*bufptr==' ') bufptr++;
-	sscanf (bufptr,"%d",&EAI_AnchorNode.parameter.n);
+	retint=sscanf (bufptr,"%d",&EAI_AnchorNode.parameter.n);
 	while (*bufptr>' ') bufptr++;
 	while (*bufptr==' ') bufptr++;
 

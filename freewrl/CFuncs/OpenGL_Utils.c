@@ -454,6 +454,7 @@ void kill_MFVec3f (struct Multi_Vec3f *par) {
 }
 
 void kill_FreeWRLPTR (void * par) {
+	void *rv;
 	if (par==0) return;
 
 	#ifdef KILLVERBOSE
@@ -464,7 +465,7 @@ void kill_FreeWRLPTR (void * par) {
 	FREE_IF_NZ(par);
 	*/
 
-	realloc (par,0); /* just make it point to zero size */
+	rv=realloc (par,0); /* just make it point to zero size */
 }
 
 void kill_texture (int *tn, int cnt) {
