@@ -285,6 +285,8 @@ sub create_common {
                 $type = 0;
         }
 
+	#save this file.
+	#open SAVER, ">/tmp/SAVED_FROM_FREEWRL.wrl"; print SAVER $string; close SAVER;
 
 	# is this VRML or X3D? 
         if ($type == 1)  {

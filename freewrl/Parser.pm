@@ -48,7 +48,11 @@ sub parsefail {
 	my $textb = substr($_[0],$p-$n,$n);
 	my $texta = substr($_[0],$p,50);
 
-	VRML::VRMLFunc::ConsoleMessage ("PARSE ERROR: '$textb' XXX '$texta', $_[1] $_[2]\n");
+	if ($p == 0) {
+		VRML::VRMLFunc::ConsoleMessage ("PARSE ERROR: (file position lost)  $_[1] $_[2]\n");
+	} else {
+		VRML::VRMLFunc::ConsoleMessage ("PARSE ERROR: '$textb' XXX '$texta', $_[1] $_[2]\n");
+	}
 	goto PARSE_EXIT;
 }
 
@@ -220,7 +224,7 @@ sub parse_externproto {
 	if ($name) {
 		my $regex = qr{$name};
 		$_[1] =~ /\s*EXTERNPROTO\s+($regex)/gsxc
-			or parsefail($_[1], "externproto statement - looking for $name");
+			or parsefail($_[1], "unknown VRML/X3D Construct: $name");
 	} else {
 		$_[1] =~ /\G\s*EXTERNPROTO\s+($Word)\s*/ogsxc
 			or parsefail($_[1], "externproto statement");
