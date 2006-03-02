@@ -2020,7 +2020,8 @@ Register a new script for future routing
 ********************************************************************/
 
 void CRoutes_js_new (uintptr_t num, int scriptType) {
-	/* printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl); */
+
+	/* printf ("start of CRoutes_js_new, ScriptControl %d\n",ScriptControl);  */
 
 	/* record whether this is a javascript, class invocation, ... */
 	ScriptControl[num].thisScriptType = scriptType;
@@ -2033,7 +2034,9 @@ void CRoutes_js_new (uintptr_t num, int scriptType) {
 	 */
 
 	ScriptControl[num]._initialized = FALSE;
-	if (num > max_script_found) max_script_found = num;
+
+	/* compare with a intptr_t, because we need to compare to -1 */
+	if ((intptr_t)num > max_script_found) max_script_found = (intptr_t)num;
 	/* printf ("returning from CRoutes_js_new - num %d max_script_found %d\n",num,max_script_found); */
 
 }
@@ -2551,9 +2554,9 @@ void gatherScriptEventOuts(uintptr_t actualscript) {
 	/* routing table is ordered, so we can walk up to this script */
 	route=1;
 
-	/* compare as long unsigneds; should work in 64 bit environments */
-	while (((long unsigned) CRoutes[route].fromnode)<((long unsigned)actualscript)) route++;
-	while (((long unsigned)CRoutes[route].fromnode) == ((long unsigned)actualscript)) {
+	/* printf ("routing table looking, looking at %x and %x\n",(uintptr_t)(CRoutes[route].fromnode), actualscript); */
+	while ((uintptr_t)(CRoutes[route].fromnode) < actualscript) route++;
+	while ((uintptr_t)(CRoutes[route].fromnode) == actualscript) {
 		/* is this the same from node/field as before? */
 		if ((CRoutes[route].fromnode == CRoutes[route-1].fromnode) &&
 			(CRoutes[route].fnptr == CRoutes[route-1].fnptr) &&
