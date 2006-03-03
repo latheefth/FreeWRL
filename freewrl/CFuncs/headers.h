@@ -504,7 +504,7 @@ void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
 
 
 extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */
-extern unsigned long int *scr_act;    /* script active array - defined in CRoutes.c */
+extern uintptr_t *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
 void render_status(void); /* status bar */
