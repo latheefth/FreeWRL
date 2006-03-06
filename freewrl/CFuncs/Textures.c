@@ -773,6 +773,9 @@ void new_do_texture(int texno) {
 		if((loadparams[texno].texdata) != dest) free(dest);
 		free (loadparams[texno].texdata);
 
+		/* ensure this data is written to the driver for the rendering context */
+		glFlush();
+
 		/* CGLError err = CGLFlushDrawable(aqtextureContext); */
 	}
 }
