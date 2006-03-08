@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.207  2006/03/08 19:26:15  crc_canada
+# addRemove children in javascript and EAI changed.
+#
 # Revision 1.206  2006/03/01 15:16:57  crc_canada
 # Changed include file methodology and some Frustum work.
 #
@@ -961,12 +964,20 @@ jsManipulateChild(ptr, par, fiel, child)
 	int child
 CODE:
 	char onechildline[100];
+	int flag;
+
+	/* add (1), remove (2) or replace (0) */
+	/* jsManipulateChild does only add or remove, not set... */
+	if (strncmp(fiel,"addChild",strlen ("addChild")) == 0) {
+		flag = 1;
+	} else {
+		flag = 2;
+	}
 
 	sprintf (onechildline, "[ %d ]",child);
 
 	getMFNodetype (onechildline, (struct Multi_Node *) ptr,
-		(struct X3D_Box *)par,
-		!strncmp (fiel,"addChild",strlen ("addChild")));
+		(struct X3D_Box *)par, flag);
 
 # link into EAI.
 
