@@ -11,6 +11,9 @@
 # SFNode is in Parse.pm
 #
 # $Log$
+# Revision 1.60  2006/03/09 20:43:33  crc_canada
+# Initial Event Utilities Component work.
+#
 # Revision 1.59  2006/03/01 18:02:33  crc_canada
 # more warnings removed.
 #
@@ -237,6 +240,7 @@
 	SFVec3f
 	MFVec3f
 	SFBool
+	MFBool
 	SFInt32
 	MFInt32
 	SFNode
@@ -830,11 +834,6 @@ sub parse {
 		# XXX Errors ???
 		my @a = split /\s*,\s*|\s+/,$a;
 		pop @a if $a[-1] =~ /^\s+$/;
-		# while($_[2] !~ /\G\s*,?\s*\]\s*/gsc) {
-		# 	$_[2] =~ /\G\s*,\s*/gsc; # Eat comma if it is there...
-		# 	my $v =  $stype->parse($p,$_[2],$_[3]);
-		# 	push @a, $v if defined $v;
-		# }
 		return \@a;
 	} else {
 		my $res = [VRML::Field::SFInt32->parse($p,$_[2],$_[3])];
@@ -843,6 +842,31 @@ sub parse {
 		return $res;
 	}
 }
+
+###########################################################
+package VRML::Field::MFBool;
+@ISA=VRML::Field::Multi;
+
+sub parse {
+	my($type,$p) = @_;
+	if($_[2] =~ /\G\s*\[\s*/gsc) {
+		$_[2] =~ /\G([^\]]*)\]/gsc or
+		 VRML::Error::parsefail($_[2],"unterminated MFFBool");
+		my $a = $1;
+		$a =~ s/^\s*//s;
+		$a =~ s/\s*$//s;
+		# XXX Errors ???
+		my @a = split /\s*,\s*|\s+/,$a;
+		pop @a if $a[-1] =~ /^\s+$/;
+		return \@a;
+	} else {
+		my $res = [VRML::Field::SFBool->parse($p,$_[2],$_[3])];
+		# Eat comma if it is there
+		$_[2] =~ /\G\s*,\s*/gsc;
+		return $res;
+	}
+}
+
 
 
 ###########################################################
