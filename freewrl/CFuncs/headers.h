@@ -891,13 +891,13 @@ void changed_InlineLoadControl (struct X3D_InlineLoadControl *this_);
 void changed_Anchor (struct X3D_Anchor *this_);
 
 /* Event Utilities Component */
-void do_BooleanFilter ( void *ptr, int ev, int over);
-void do_BooleanSequencer ( void *ptr, int ev, int over);
-void do_BooleanToggle ( void *ptr, int ev, int over);
-void do_BooleanTrigger ( void *ptr, int ev, int over);
-void do_IntegerSequencer ( void *ptr, int ev, int over);
-void do_IntegerTrigger ( void *ptr, int ev, int over);
-void do_TimeTrigger ( void *ptr, int ev, int over);
+void do_BooleanFilter (void *node);
+void do_BooleanSequencer (void *node);
+void do_BooleanToggle (void *node);
+void do_BooleanTrigger (void *node);
+void do_IntegerSequencer (void *node);
+void do_IntegerTrigger (void *node);
+void do_TimeTrigger (void *node);
 
 
 

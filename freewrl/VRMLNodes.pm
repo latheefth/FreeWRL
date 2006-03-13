@@ -2110,7 +2110,7 @@ my $protono;
 			set_boolean =>[SFBool,undef,eventIn],
 			inputFalse => [SFBool, 0, eventOut],
 			inputNegate => [SFBool, 0, eventOut],
-			inputTrue => [SFBool, 0, eventOut],
+			inputTrue => [SFBool, 1, eventOut],
 	}),
 
 
@@ -2153,7 +2153,7 @@ my $protono;
 	new VRML::NodeType("IntegerTrigger", {
 			set_triggerTime => [SFTime,undef ,eventIn],
 			integerKey => [SFInt32, [], exposedField],
-			triggerTrue => [SFInt32, 0, eventOut],
+			triggerValue => [SFInt32, 0, eventOut],
 	}),
 
 	TimeTrigger => 
