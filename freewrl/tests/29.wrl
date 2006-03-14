@@ -17,6 +17,7 @@
 	}
 
 	geometry	Sphere {
+		radius 3.0
 	}
 
       }

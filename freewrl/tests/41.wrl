@@ -2,6 +2,10 @@
 # The VRML 2.0 Sourcebook
 # Copyright [1997] By
 # Andrea L. Ames, David R. Nadeau, and John L. Moreland
+Viewpoint {
+	position 5.0 20.0 2.0
+	orientation 0.984 -0.147 0.09955 -1.465
+}
 Group {
 	children [
 

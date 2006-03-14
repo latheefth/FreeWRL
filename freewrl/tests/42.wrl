@@ -4,12 +4,12 @@
 # Andrea L. Ames, David R. Nadeau, and John L. Moreland
 NavigationInfo {
    headlight TRUE
-   type ["WALK", "ANY"]
+   type ["EXAMINE", "ANY"]
    avatarSize [ 0.25,1.6,0.4]
 }
     DEF VIEWPOINT Viewpoint {
         description "one"
-        position 0 0 10
+        position 0 2 10
         orientation 0 1 0 0
     }
 
@@ -18,6 +18,7 @@ NavigationInfo {
         position 0 0 10
         orientation 1 0 0 2.0943951
     }
+
 
 Shape {
 	appearance Appearance {

@@ -39,10 +39,10 @@ Group {
 		geometry IndexedFaceSet {
 			coord Coordinate {
 				point [
-					-2.0 0.0 0.0,
-					2.0 0.0 0.0
-				 	2.0 3.0 0.0,
-					-2.0 3.0 0.0
+					-2.0 -1.5 0.0,
+					2.0 -1.5 0.0
+				 	2.0 1.5 0.0,
+					-2.0 1.5 0.0
 				]
 			}
 			coordIndex [3, 2, 1, 0]

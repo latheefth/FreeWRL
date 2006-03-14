@@ -18,12 +18,12 @@ Group {
 				rotation 1.0 0.0 0.0 1.54
 				children [
 
-                Sound {
-                        source AudioClip { loop TRUE url "helpers/Checkin2.wav" }
-			maxBack 0.5
-			minBack 0
-			direction 0 1 0
-                }
+#                Sound {
+#                        source AudioClip { loop TRUE url "helpers/Checkin2.wav" }
+#			maxBack 0.5
+#			minBack 0
+#			direction 0 1 0
+#                }
 
 
 					Shape {

@@ -69,7 +69,7 @@ int main (int argc, char **argv) {
 #endif
 
 	/* set the screen width and height before getting into arguments */
-	screenWidth = 450; screenHeight=300;
+	screenWidth = 600; screenHeight=400;
 	fullscreen = 0;
 	wantEAI = 0;
 

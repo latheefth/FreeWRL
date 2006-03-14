@@ -10,6 +10,9 @@
 
 Shape {
 	appearance Appearance {
+	lineProperties LineProperties {
+		linewidthScaleFactor 4.0
+	}
 	material Material {
 	  emissiveColor 0.8 1.0 0.6
 	}

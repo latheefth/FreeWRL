@@ -21,7 +21,11 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 
 	if (node->applied) {
 		global_lineProperties=TRUE;
-		if (node->linewidthScaleFactor > 1.0) glLineWidth(node->linewidthScaleFactor);
+		if (node->linewidthScaleFactor > 1.0) {
+			glLineWidth(node->linewidthScaleFactor);
+			glPointSize(node->linewidthScaleFactor);
+		}
+			
 		if (node->linetype > 0) {
 			factor = 1;
 			pat = 0xffff; /* can not support fancy line types - this is the default */
@@ -247,6 +251,7 @@ void child_Shape (struct X3D_Shape *node) {
 		if (global_fillProperties) {
 			glDisable (GL_LINE_STIPPLE);
 			glLineWidth(1.0);
+			glPointSize(1.0);
 		}
 
 		/* if (have_texture) glPopAttrib();  */
