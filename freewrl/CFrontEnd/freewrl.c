@@ -245,11 +245,12 @@ int main (int argc, char **argv) {
 
         /* get the Netscape Browser name, if we are pluggind */
         NetscapeName[0] = (char)NULL;
+#ifdef XXX
         if (RUNNINGASPLUGIN) {
                 if (read(_fw_FD, NetscapeName,MAXNETSCAPENAMELEN) < 0) {
                 }
         }
-
+#endif
 
         /* create the initial scene, from the file passed in
         and place it as a child of the rootNode. */

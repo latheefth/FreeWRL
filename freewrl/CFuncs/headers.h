@@ -25,7 +25,16 @@
 /* now get all of our structures */
 #include "Structs.h"
 
+/* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
+   blows plugins out of the water, because of the XLib threaded call in FrontEnd
+   not working that well... */
+#ifdef AQUA
+	#define DO_TWO_OPENGL_THREADS
+#else
+	#undef DO_TWO_OPENGL_THREADS
+#endif
 
+/* if we want to see our opengl errors, define this and recompile everything. */
 #undef GLERRORS
 
 /* display the BoundingBoxen */

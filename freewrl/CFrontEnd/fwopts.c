@@ -147,7 +147,10 @@ void openMainWindow () {
 	int XdpyWidth, XdpyHeight;
 
 	/* initialize XLib threads -needed for textureThread */
+	/* read the comment in CFuncs/headers.h for THIS one */
+	#ifdef DO_TWO_OPENGL_THREADS
 	XInitThreads();
+	#endif
 
 	/* get a connection */
 	Xdpy = XOpenDisplay(0);
@@ -182,7 +185,12 @@ void openMainWindow () {
 	}
 
 	/* create a GLX context */
+	#ifdef DO_TWO_OPENGL_THREADS
 	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_FALSE);
+	#else
+	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_TRUE);
+	#endif
+
 
 	if(!GLcx){fprintf(stderr, "No context!\n");exit(-1);}
 
