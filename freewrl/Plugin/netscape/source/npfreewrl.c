@@ -18,29 +18,21 @@
  * John Stewart, Alya Khan, Sarah Dumoulin - CRC Canada 2002.
  *
  ******************************************************************************/
-
-#include <sys/socket.h>
-#include <stdlib.h>
 #include <fcntl.h>
-#include <ctype.h>
-#include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 #include "npapi.h"
 #include "pluginUtils.h"
-
-#include <stdio.h>
-#include <string.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <signal.h>
-
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
-#include <sys/time.h>
+
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
 #define PLUGIN_DESCRIPTION	"V3.1 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
@@ -91,7 +83,6 @@ static int np_fileDescriptor;
 
 
 
-//JAS void DisplayJavaMessage(NPP instance, char* msg, int len);
 static void signalHandler (int);
 static int freewrlRecieve (int);
 static int init_socket (int, Boolean);
@@ -115,7 +106,7 @@ static void print_here (char * xx) {
 	if (tty == NULL) {
 		tty = fopen("/home/luigi/log", "w");
 		if (tty == NULL)
-			abort();
+			PluginVerbose = FALSE;
 		fprintf (tty, "\nplugin restarted\n");
 	}
 
@@ -387,7 +378,7 @@ void Run (NPP instance) {
 				sprintf (childFd, "%d", FW_Plugin->interfaceFile[SOCKET_2]);
 
 				// Instance, so that FreeWRL knows its us...
-				sprintf (instanceStr, "%u",(uint) instance);
+				sprintf (instanceStr, "%u",(uintptr_t) instance);
 
 				sprintf (debs,"exec param line is %s %s %s %s %s %s %s %s %s %s %s",
 						paramline[0],paramline[1],paramline[2],paramline[3],
@@ -412,7 +403,7 @@ void Run (NPP instance) {
 
 	read(FW_Plugin->interfacePipe[PIPE_PLUGINSIDE],&FW_Plugin->fwwindow,sizeof(Window));
 
-	sprintf (debs,"After exec, and after read from pipe, FW window is %x\n",FW_Plugin->fwwindow);
+	sprintf (debs,"After exec, and after read from pipe, FW window is %p\n",FW_Plugin->fwwindow);
 	print_here(debs);
 
 	sprintf (debs,"disp mozwindow height width %x %x %d %d\n",FW_Plugin->display,
@@ -421,8 +412,14 @@ void Run (NPP instance) {
 
 
 	//reparent the window
+print_here ("going to XFlush");
+
 	XFlush(FW_Plugin->display);
+print_here ("going to XSync");
+
 	XSync (FW_Plugin->display, FALSE);
+
+print_here ("going to reparent");
 	XReparentWindow(FW_Plugin->display,
 			FW_Plugin->fwwindow,
 			FW_Plugin->mozwindow,
@@ -439,7 +436,6 @@ void Run (NPP instance) {
 
 	// get Browser information
 }
-
 
 
 /*******************************************************************************
@@ -489,40 +485,6 @@ NPP_Initialize(void)
 
 
 /*
-** We'll keep a global execution environment around to make our life
-** simpler.
-*/
-//JAS JRIEnv* env;
-
-/*
-** NPP_GetJavaClass is called during initialization to ask your plugin
-** what its associated Java class is. If you don't have one, just return
-** NULL. Otherwise, use the javah-generated "use_" function to both
-** initialize your class and return it. If you can't find your class, an
-** error will be signalled by "use_" and will cause the Navigator to
-** complain to the user.
-*/
-//JAS jref
-//JAS NPP_GetJavaClass(void)
-//JAS {
-//JAS 	struct java_lang_Class* myClass;
-//JAS 	env = NPN_GetJavaEnv();
-//JAS 	if (env == NULL)
-//JAS 		return NULL;		/* Java disabled */
-
-//JAS     myClass = use_Simple(env);
-
-//JAS 	if (myClass == NULL) {
-//JAS 		/*
-//JAS 		** If our class doesn't exist (the user hasn't installed it) then
-//JAS 		** don't allow any of the Java stuff to happen.
-//JAS 		*/
-//JAS 		env = NULL;
-//JAS 	}
-//JAS 	return myClass;
-//JAS }
-
-/*
 ** NPP_Shutdown is called when your DLL is being unloaded to do any
 ** DLL-specific shut-down. You should be a good citizen and declare that
 ** you're not using your java class any more. FW_Plugin allows java to unload
@@ -532,48 +494,7 @@ void
 NPP_Shutdown(void)
 {
 	print_here ("NPP_Shutdown");
-//JAS	if (env)
-//JAS		unuse_Simple(env);
 }
-
-//JAS /*
-//JAS ** FW_Plugin function is a utility routine that calls back into Java to print
-//JAS ** messages to the Java Console and to stdout (via the native method,
-//JAS ** native_Simple_printToStdout, defined below).  Sure, it's not a very
-//JAS ** interesting use of Java, but it gets the point across.
-//JAS */
-//JAS void
-//JAS DisplayJavaMessage(NPP instance, char* msg, int len)
-//JAS {
-//JAS 	jref str, javaPeer;
-//JAS
-//JAS 	if (!env) {
-//JAS 		/* Java failed to initialize, so do nothing. */
-//JAS 		return;
-//JAS 	}
-//JAS
-//JAS 	if (len == -1)
-//JAS 		len = strlen(msg);
-//JAS
-//JAS 	/*
-//JAS     ** Use the JRI (see jri.h) to create a Java string from the input
-//JAS     ** message:
-//JAS     */
-//JAS 	str = JRI_NewStringUTF(env, msg, len);
-//JAS
-//JAS 	/*
-//JAS     ** Use the NPN_GetJavaPeer operation to get the Java instance that
-//JAS     ** corresponds to our plug-in (an instance of the Simple class):
-//JAS     */
-//JAS 	javaPeer = NPN_GetJavaPeer(instance);
-//JAS
-//JAS 	/*
-//JAS     ** Finally, call our plug-in's big "feature" -- the 'doit' method,
-//JAS     ** passing the execution environment, the object, and the java
-//JAS     ** string:
-//JAS     */
-//JAS 	Simple_doit(env, javaPeer, str);
-//JAS }
 
 /*
 ** NPP_New is called when your plugin is instantiated (i.e. when an EMBED
@@ -631,7 +552,7 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->freewrl_running = 0;
 	pipe(FW_Plugin->interfacePipe);
 
-	sprintf (debs, "Pipe created, PIPE_FREEWRLSIDE %d PIPE_PLUGINSIDE %d\n",
+	sprintf (debs, "Pipe created, PIPE_FREEWRLSIDE %d PIPE_PLUGINSIDE %d",
 		FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE], 
 		FW_Plugin->interfacePipe[PIPE_PLUGINSIDE]);
 	print_here (debs);
@@ -643,13 +564,12 @@ NPP_New(NPMIMEType pluginType,
 		print_here ("Call to socketpair failed");
 		return (NPERR_GENERIC_ERROR);
 	}
-	sprintf (debs, "file pair created, SOCKET_1 %d SOCKET_2 %d\n",
+	sprintf (debs, "file pair created, SOCKET_1 %d SOCKET_2 %d",
 		FW_Plugin->interfaceFile[SOCKET_1], 
 		FW_Plugin->interfaceFile[SOCKET_2]);
 	print_here (debs);
 
 
-	/* JAS - HUH?? np_fileDescriptor = FW_Plugin->interfaceFile[SOCKET_2]; */
 	np_fileDescriptor = FW_Plugin->interfaceFile[SOCKET_1];
 
 	if (signal(SIGIO, signalHandler) == SIG_ERR) return (NPERR_GENERIC_ERROR);
@@ -658,6 +578,8 @@ NPP_New(NPMIMEType pluginType,
 	// prepare communication sockets
 	if ((err=init_socket(FW_Plugin->interfaceFile[SOCKET_2], FALSE))!=NPERR_NO_ERROR) return (err);
 	if ((err=init_socket(FW_Plugin->interfaceFile[SOCKET_1], TRUE))!=NPERR_NO_ERROR) return (err);
+	sprintf (debs, "NPP_New returning %d",err); 
+	print_here (debs);
 
 	return (err);
 }
@@ -692,7 +614,6 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 
 			sprintf (debs,"killing command kill %d",FW_Plugin->childPID);
 			print_here(debs);
-			//JAS kill(FW_Plugin->childPID*-1, SIGQUIT);
 			kill(FW_Plugin->childPID, SIGQUIT);
 			waitpid(FW_Plugin->childPID, &status, 0);
 		}
@@ -701,8 +622,6 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 		instance->pdata = NULL;
 	}
 	FW_Plugin->freewrl_running = 0;
-
-//JAS	DisplayJavaMessage(instance, "Calling NPP_Destroy.", -1);
 
 	return NPERR_NO_ERROR;
 }
@@ -715,7 +634,7 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 	int X_err;
 	int count;
 
-//JAS	DisplayJavaMessage(instance, "Calling NPP_SetWindow.", -1);
+	print_here ("start of NPP_SetWindow");
 
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
@@ -723,19 +642,32 @@ NPP_SetWindow(NPP instance, NPWindow *browser_window)
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
 
-	// Now, see if this is the first time
-	if (!FW_Plugin->display) {
-			FW_Plugin->display = ((NPSetWindowCallbackStruct *)
-					browser_window->ws_info)->display;
-			sprintf (debs,"NPP_SetWindow, plugin display now is %x", FW_Plugin->display);
-			print_here(debs);
+	/* set the display, if we know it yet */ 
+	if (!FW_Plugin->display) { 
+		if ((NPSetWindowCallbackStruct *)(browser_window->ws_info) != NULL) { 
+			FW_Plugin->display = ((NPSetWindowCallbackStruct *) 
+				browser_window->ws_info)->display; 
+ 
+			sprintf (debs,"NPP_SetWindow, plugin display now is %p", FW_Plugin->display); 
+			print_here (debs); 
+		} 
+	} 
+
+	/* verify that the display has not changed */
+	if ((NPSetWindowCallbackStruct *)(browser_window->ws_info) != NULL) { 
+		if ((FW_Plugin->display) != ((NPSetWindowCallbackStruct *)
+                                browser_window->ws_info)->display) {
+
+					print_here ("HMMM - display has changed");
+					FW_Plugin->display = ((NPSetWindowCallbackStruct *)
+                        		        browser_window->ws_info)->display;
+		}
 	}
 
+	print_here ("NPP_SetWindow, step 3");
 
-
-
-sprintf (debs, "NPP_SetWindow, moz window is %x childPID is %d",browser_window->window,FW_Plugin->childPID);
-print_here (debs);
+	sprintf (debs, "NPP_SetWindow, moz window is %x childPID is %d",browser_window->window,FW_Plugin->childPID);
+	print_here (debs);
 
 
 	FW_Plugin->width = browser_window->width;
@@ -787,8 +719,6 @@ NPP_NewStream(NPP instance,
 
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
 
-//JAS	DisplayJavaMessage(instance, "Calling NPP_NewStream.", -1);
-
 	if (stream->url == NULL) {
 		return(NPERR_NO_DATA);
 	}
@@ -825,8 +755,6 @@ NPP_WriteReady(NPP instance, NPStream *stream)
 		FW_Plugin = (FW_PluginInstance*) instance->pdata;
 print_here("NPP_WriteReady");
 
-	//JAS DisplayJavaMessage(instance, "Calling NPP_WriteReady.", -1);
-
 	/* Number of bytes ready to accept in NPP_Write() */
 	return STREAMBUFSIZE;
 }
@@ -841,8 +769,6 @@ NPP_Write(NPP instance, NPStream *stream, int32 offset, int32 len, void *buffer)
 	}
 print_here("NPP_Write");
 
-	//JAS DisplayJavaMessage(instance, (char*)buffer, len);
-
 	return len;		/* The number of bytes accepted */
 }
 
@@ -855,8 +781,6 @@ NPP_DestroyStream(NPP instance, NPStream *stream, NPError reason)
 	if (instance == NULL)
 		return NPERR_INVALID_INSTANCE_ERROR;
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
-
-	//JAS DisplayJavaMessage(instance, "Calling NPP_DestroyStream.", -1);
 
 	return NPERR_NO_ERROR;
 }
@@ -906,16 +830,12 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 			}
 		}
 	}
-
-	//JAS DisplayJavaMessage(instance, "Calling NPP_StreamAsFile.", -1);
 }
 
 
 void
 NPP_Print(NPP instance, NPPrint* printInfo)
 {
-	//JAS DisplayJavaMessage(instance, "Calling NPP_Print.", -1);
-
 	if(printInfo == NULL)
 		return;
 
@@ -949,18 +869,6 @@ NPP_Print(NPP instance, NPPrint* printInfo)
 			printInfo->print.fullPrint.pluginPrinted = FALSE;
 		}
 		else {	/* If not fullscreen, we must be embedded */
-		    /*
-		     * PLUGIN DEVELOPERS:
-		     *	If your plugin is embedded, or is full-screen
-		     *	but you returned false in pluginPrinted above, NPP_Print
-		     *	will be called with mode == NP_EMBED.  The NPWindow
-		     *	in the printInfo gives the location and dimensions of
-		     *	the embedded plugin on the printed page.  On the
-		     *	Macintosh, platformPrint is the printer port; on
-		     *	Windows, platformPrint is the handle to the printing
-		     *	device context.
-		     */
-
 			NPWindow* printWindow =
 				&(printInfo->print.embedPrint.window);
 			void* platformPrint =
