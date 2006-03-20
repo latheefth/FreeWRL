@@ -26,7 +26,7 @@
 #define MAX_RUNTIME_BYTES 0x100000L
 #define STACK_CHUNK_SIZE 0x2000L
 
-int _fw_FD = 0;
+int _fw_browser_plugin = 0;
 int _fw_pipe = 0;
 uintptr_t _fw_instance = 0;
 
@@ -192,7 +192,7 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
 	/* are we running under netscape? if so, ask the browser, and
 	   save the name it returns (cache entry) */
 	if (RUNNINGASPLUGIN && (strcmp(BrowserURL,fname)!=0)) {
-		retName = requestUrlfromPlugin(_fw_FD,_fw_instance,fname);
+		retName = requestUrlfromPlugin(_fw_browser_plugin, _fw_instance, fname);
 
 		/* check for timeout; if not found, return false */
 		if (!retName) return (FALSE);
@@ -249,6 +249,12 @@ int fileExists(char *fname, char *firstBytes, int GetIt) {
    absolute file name */
 void makeAbsoluteFileName(char *filename, char *pspath,char *thisurl){
 	/* printf ("makeAbs from:\n\t:%s:\n\t:%s:\n", pspath, thisurl); */
+
+	/* if we are running under a browser, let it handle things */
+	if (RUNNINGASPLUGIN) {
+		strcpy (filename, thisurl);
+		return;
+	}
 
 	/* does this name start off with a ftp, http, or a "/"? */
 	if ((!checkNetworkFile(thisurl)) && (strncmp(thisurl,"/",strlen("/"))!=0)) {

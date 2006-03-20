@@ -1020,6 +1020,10 @@ int findTextureFile (int cwo, int *istemp) {
 		while (count < loadparams[cwo].url.n) {
 			thisurl = SvPV(loadparams[cwo].url.p[count],xx);
 
+void URLprint (const char *m, const char *p) ;
+URLprint ("TextureThread, thisurl is %s\n",thisurl);
+
+
 			/* check to make sure we don't overflow */
 			if ((strlen(thisurl)+strlen(mypath)) > 900) break;
 

@@ -4,63 +4,32 @@
  See the GNU Library General Public License (file COPYING in the distribution)
  for conditions of use and redistribution.
 *********************************************************************/
-
-#define RUNNINGASPLUGIN (_fw_pipe != 0)
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <vrmlconf.h>
-
-extern int screenWidth, screenHeight;
-extern int fullscreen;
-
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-
-#ifdef LINUX
-#include <GL/glext.h>
-#endif
+#include <headers.h>
+#include "OpenGL_Utils.h"
 
 #include <X11/cursorfont.h>
 #ifdef XF86V4
 #include <X11/extensions/xf86vmode.h>
 #endif
-#include <X11/keysym.h>
 
 static Colormap cmap;
 static XSetWindowAttributes swa;
-extern XVisualInfo *Xvi;
-
-extern int _fw_pipe, _fw_FD;
-
 static int screen;
 static int modeNum;
 static int bestMode;
 static int quadbuff_stereo_mode;
-/*
-static int i;
-*/
 
 #ifdef XF86V4
 XF86VidModeModeInfo **modes;
 static int oldx, oldy;
 #else
 
-/* fudge calls for compiler - gosh, perl is certainly fun. */
-//struct fudge { int hdisplay; int vdisplay;};
-//struct fudge **modes;
-//struct fudge original_display;
 #endif
 
 extern Cursor arrowc;
 extern Cursor sensorc;
 
 #define OPENGL_NOVIRT
-//JAS static OpenGLVTab vtab;
-//JAS OpenGLVTab *OpenGLVPtr;
-
 
 /*
    from similar code in white_dune 8-)
@@ -109,18 +78,19 @@ static int  default_attributes3[] =
 
 
 extern int	shutterGlasses; /* stereo shutter glasses */
+static int xPos = 0;
+static int yPos = 0;
 
 // Function prototypes
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
+/*
 void setGeometry (char *gstring);
 
-static int xPos = 0;
-static int yPos = 0;
 
 extern Display *Xdpy;
 extern Window Xwin;
 extern GLXContext GLcx;
-
+*/
 void openMainWindow () {
 
 	int	pw = 0;
@@ -259,9 +229,7 @@ void openMainWindow () {
 			XMapWindow(Xdpy, Xwin);
 			XSetInputFocus(Xdpy, pwin, RevertToParent, CurrentTime);
 		} else {
-			/* send the window id back to the plugin parent */
-			write (_fw_pipe,&Xwin,4);
-			close (_fw_pipe);
+			sendXwinToPlugin();
 		}
 
 
@@ -364,7 +332,7 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    return(NULL);
 }
 
-void setGeometry (char *gstring) {
+void setGeometry (const char *gstring) {
 	int c;
 	c = sscanf(gstring,"%dx%d+%d+%d",&screenWidth,&screenHeight,&xPos,&yPos);
 }

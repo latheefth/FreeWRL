@@ -40,7 +40,7 @@
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
-
+#include <sys/time.h>
 
 #define PLUGIN_NAME			"FreeWRL X3D/VRML"
 #define PLUGIN_DESCRIPTION	"V3.1 VRML/X3D with FreeWRL. from http://www.crc.ca/FreeWRL"
@@ -59,7 +59,7 @@ typedef struct _FW_PluginInstance
 {
 	uint16			fMode;
 
-	int			fd[2];
+	int			interfaceFile[2];
 	Display 		*display;
 	uint32 			x, y;
 	uint32 			width, height;
@@ -71,7 +71,7 @@ typedef struct _FW_PluginInstance
 	char 			*fName;
 	int			freewrl_running;
 
-	int			precv[2];		/* pipe plugin FROM freewrl	*/
+	int			interfacePipe[2];		/* pipe plugin FROM freewrl	*/
 } FW_PluginInstance;
 
 
@@ -80,11 +80,14 @@ typedef void (* Sigfunc) (int);
 
 
 
-static int np_fd;
+static int np_fileDescriptor;
 
 // Socket file descriptors
-#define FWRL 0
-#define NP   1
+#define SOCKET_2 0
+#define SOCKET_1   1
+
+#define PIPE_PLUGINSIDE 0
+#define PIPE_FREEWRLSIDE   1
 
 
 
@@ -100,6 +103,11 @@ Sigfunc signal (int, Sigfunc func);
 char debs[256];
 static FILE * tty = NULL;
 
+struct timeval mytime;
+struct timezone tz; /* unused see man gettimeofday */
+double TickTime;
+
+
 // Debugging routine
 static void print_here (char * xx) {
 	if (!PluginVerbose) return;
@@ -111,6 +119,11 @@ static void print_here (char * xx) {
 		fprintf (tty, "\nplugin restarted\n");
 	}
 
+        /* Set the timestamp */
+        gettimeofday (&mytime,&tz);
+        TickTime = (double) mytime.tv_sec + (double)mytime.tv_usec/1000000.0;
+
+	fprintf (tty,"%f: ",TickTime);
 	fprintf(tty, "plug-in: %s\n", xx);
 	fflush(tty);
 
@@ -145,11 +158,11 @@ Sigfunc signal(int signo, Sigfunc func) {
 }
 
 void signalHandler(int signo) {
-	sprintf(debs, "Signal %d caught from signalHandler! %d\n", signo,SIGIO);
+	sprintf(debs, "ACTION on our port - Signal %d caught from signalHandler.\n", signo);
 	print_here(debs);
 
 	if (signo == SIGIO) {
-		freewrlReceive(np_fd);
+		freewrlReceive(np_fileDescriptor);
 
 	} else {
 		/* Should handle all except the uncatchable ones. */
@@ -157,7 +170,7 @@ void signalHandler(int signo) {
 	}
 }
 
-int freewrlReceive(int fd) {
+int freewrlReceive(int fileDescriptor) {
 	sigset_t newmask, oldmask;
 
 	urlRequest request;
@@ -167,7 +180,7 @@ int freewrlReceive(int fd) {
 
 	retval = NPERR_NO_ERROR;
 
-	sprintf(debs, "Call to freewrlReceive fd %d.\n", fd);
+	sprintf(debs, "Call to freewrlReceive fileDescriptor %d.\n", fileDescriptor);
 	print_here (debs);
 
 	bzero(request.url, FILENAME_MAX);
@@ -205,12 +218,12 @@ int freewrlReceive(int fd) {
 	}
 
 	/* If blocked or interrupted, be silent. */
-	if (read(fd, (urlRequest *) &request, request_size) < 0) {
+	if (read(fileDescriptor, (urlRequest *) &request, request_size) < 0) {
 		if (errno != EINTR && errno != EAGAIN) {
 			print_here("Call to read failed");
 		}
-		/* most likely freewrl has died... */
-		print_here ("step 2, returning NPERR_GENERIC_ERROR");
+		/* FreeWRL has died, or THIS IS US WRITING CREATING THAT SIG. */
+		print_here ("freewrlReceive, quick return; either this is us writing or freewrl croaked");
 		return(NPERR_GENERIC_ERROR);
 	} else {
 		sprintf (debs, "notifyCode = %d url = %s\n",
@@ -253,10 +266,6 @@ int freewrlReceive(int fd) {
 					myLength,
 					myData);
 			print_here ("NPN_Write made\n");
-			//err = NPN_DestroyStream(request.instance,
-			//		stream,
-			//		NPRES_DONE);
-			//print_here ("NPN_DestroyStream doen\n");
 		}
 
 		/* now, put a status line on bottom of browser */
@@ -273,15 +282,15 @@ int freewrlReceive(int fd) {
 	return(retval);
 }
 
-int init_socket(int fd, Boolean nonblock) {
+int init_socket(int fileDescriptor, Boolean nonblock) {
 	int io_flags;
 
-	if (fcntl(fd, F_SETOWN, getpid()) < 0) {
+	if (fcntl(fileDescriptor, F_SETOWN, getpid()) < 0) {
 		print_here("Call to fcntl with command F_SETOWN failed");
 		return(NPERR_GENERIC_ERROR);
 	}
 
-	if ( (io_flags = fcntl(fd, F_GETFL, 0)) < 0 ) {
+	if ( (io_flags = fcntl(fileDescriptor, F_GETFL, 0)) < 0 ) {
 		print_here("Call to fcntl with command F_GETFL failed");
 		return(NPERR_GENERIC_ERROR);
 	}
@@ -296,7 +305,7 @@ int init_socket(int fd, Boolean nonblock) {
 
 	if (nonblock) { io_flags |= O_NONBLOCK; }
 
-	if ( (io_flags = fcntl(fd, F_SETFL, io_flags)) < 0 ) {
+	if ( (io_flags = fcntl(fileDescriptor, F_SETFL, io_flags)) < 0 ) {
 		print_here("Call to fcntl with command F_SETFL failed");
 		return(NPERR_GENERIC_ERROR);
 	}
@@ -311,7 +320,6 @@ void Run (NPP instance) {
 	char	pipetome[25];
 	char	childFd[25];
 	char	instanceStr[25];
-	char	UserAgent[2000];
 
 	print_here ("start of Run");
 	FW_Plugin = (FW_PluginInstance*) instance->pdata;
@@ -373,10 +381,10 @@ void Run (NPP instance) {
 
 
 				// create pipe string
-			    	sprintf(pipetome,"pipe:%d",FW_Plugin->precv[NP]);
+			    	sprintf(pipetome,"pipe:%d",FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE]);
 
 				// child file descriptor - to send requests back here
-				sprintf (childFd, "%d",FW_Plugin->fd[FWRL]);
+				sprintf (childFd, "%d", FW_Plugin->interfaceFile[SOCKET_2]);
 
 				// Instance, so that FreeWRL knows its us...
 				sprintf (instanceStr, "%u",(uint) instance);
@@ -399,7 +407,10 @@ void Run (NPP instance) {
 
 	print_here ("after FW_Plugin->freewrl_running call - waiting on pipe");
 
-	read(FW_Plugin->precv[FWRL],&FW_Plugin->fwwindow,4);
+	sprintf (debs,"size of upcoming read is %d bytes...\n",sizeof(Window));
+	print_here (debs);
+
+	read(FW_Plugin->interfacePipe[PIPE_PLUGINSIDE],&FW_Plugin->fwwindow,sizeof(Window));
 
 	sprintf (debs,"After exec, and after read from pipe, FW window is %x\n",FW_Plugin->fwwindow);
 	print_here(debs);
@@ -427,14 +438,6 @@ void Run (NPP instance) {
 	print_here ("after mapwindow/n");
 
 	// get Browser information
-	strcpy (UserAgent, NPN_UserAgent(instance));
-	sprintf (debs, "BrowserAgent: %s\n",UserAgent);
-	print_here (debs);
-	if (write(FW_Plugin->fd[NP], UserAgent, strlen(UserAgent)+1) < 0) {
-		print_here ("Call to write failed sending UserAgent");
-	}
-
-
 }
 
 
@@ -626,24 +629,35 @@ NPP_New(NPMIMEType pluginType,
 	FW_Plugin->mozillaWidget = 0;
 	FW_Plugin->fName = NULL;
 	FW_Plugin->freewrl_running = 0;
-	pipe(FW_Plugin->precv);
+	pipe(FW_Plugin->interfacePipe);
+
+	sprintf (debs, "Pipe created, PIPE_FREEWRLSIDE %d PIPE_PLUGINSIDE %d\n",
+		FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE], 
+		FW_Plugin->interfacePipe[PIPE_PLUGINSIDE]);
+	print_here (debs);
 
 
 	// Assume plugin and FreeWRL child process run on the same machine,
 	// then we can use UDP and have incredibly close to 100.00% reliability
-	if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, FW_Plugin->fd) < 0) {
+	if (socketpair(AF_LOCAL, SOCK_DGRAM, 0, FW_Plugin->interfaceFile) < 0) {
 		print_here ("Call to socketpair failed");
 		return (NPERR_GENERIC_ERROR);
 	}
+	sprintf (debs, "file pair created, SOCKET_1 %d SOCKET_2 %d\n",
+		FW_Plugin->interfaceFile[SOCKET_1], 
+		FW_Plugin->interfaceFile[SOCKET_2]);
+	print_here (debs);
 
-	np_fd = FW_Plugin->fd[NP];
+
+	/* JAS - HUH?? np_fileDescriptor = FW_Plugin->interfaceFile[SOCKET_2]; */
+	np_fileDescriptor = FW_Plugin->interfaceFile[SOCKET_1];
 
 	if (signal(SIGIO, signalHandler) == SIG_ERR) return (NPERR_GENERIC_ERROR);
 	if (signal(SIGBUS, signalHandler) == SIG_ERR) return (NPERR_GENERIC_ERROR);
 
 	// prepare communication sockets
-	if ((err=init_socket(FW_Plugin->fd[FWRL], FALSE))!=NPERR_NO_ERROR) return (err);
-	if ((err=init_socket(FW_Plugin->fd[NP], TRUE))!=NPERR_NO_ERROR) return (err);
+	if ((err=init_socket(FW_Plugin->interfaceFile[SOCKET_2], FALSE))!=NPERR_NO_ERROR) return (err);
+	if ((err=init_socket(FW_Plugin->interfaceFile[SOCKET_1], TRUE))!=NPERR_NO_ERROR) return (err);
 
 	return (err);
 }
@@ -663,9 +677,9 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 
 	if (FW_Plugin != NULL) {
 
-		if (FW_Plugin->precv[FWRL] > 0) {
-			close (FW_Plugin->precv[NP]);
-			close (FW_Plugin->precv[FWRL]);
+		if (FW_Plugin->interfacePipe[PIPE_PLUGINSIDE] > 0) {
+			close (FW_Plugin->interfacePipe[PIPE_FREEWRLSIDE]);
+			close (FW_Plugin->interfacePipe[PIPE_PLUGINSIDE]);
 		}
 
 
@@ -682,15 +696,6 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 			kill(FW_Plugin->childPID, SIGQUIT);
 			waitpid(FW_Plugin->childPID, &status, 0);
 		}
-
-		// Close file descriptors
-		//if (FW_Plugin->fd[NP]) {
-		//	close (FW_Plugin->fd[NP]);
-		//}
-
-		// debugging code
-		//if (tty) fclose(tty);
-
 
 		NPN_MemFree(instance->pdata);
 		instance->pdata = NULL;
@@ -881,16 +886,16 @@ NPP_StreamAsFile(NPP instance, NPStream *stream, const char* fname)
 				print_here ("NPP_StreamAsFile has a NULL file");
 
 				// Try sending an empty string
-				if (write(FW_Plugin->fd[NP], "", 1) < 0) {
+				if (write(FW_Plugin->interfaceFile[SOCKET_1], "", 1) < 0) {
 					print_here ("Call to write failed");
 				}
 			} else {
 				bytes = (strlen(fname)+1)*sizeof(const char *);
 				sprintf (debs,"writing %s (%u bytes) to socket %d",
-						fname, bytes,FW_Plugin->fd[NP]);
+						fname, bytes,FW_Plugin->interfaceFile[SOCKET_1]);
 				print_here(debs);
 
-				if (write(FW_Plugin->fd[NP], fname, bytes) < 0) {
+				if (write(FW_Plugin->interfaceFile[SOCKET_1], fname, bytes) < 0) {
 					print_here ("Call to write failed");
 				}
 
@@ -963,43 +968,4 @@ NPP_Print(NPP instance, NPPrint* printInfo)
 		}
 	}
 }
-
-/*******************************************************************************
- * Define the Java native methods
- ******************************************************************************/
-
-//JAS /* public native printToStdout(Ljava/lang/String;)V */
-//JAS JRI_PUBLIC_API(void)
-//JAS native_Simple_printToStdout(JRIEnv* env, struct Simple* self,
-//JAS 							struct java_lang_String * s)
-//JAS {
-//JAS     const char* chars = JRI_GetStringUTFChars(env, s);
-//JAS     printf(chars);		/* cross-platform UI! */
-//JAS }
-
-/*******************************************************************************
-// NPP_URLNotify:
-// Notifies the instance of the completion of a URL request.
-//
-// NPP_URLNotify is called when Netscape completes a NPN_GetURLNotify or
-// NPN_PostURLNotify request, to inform the plug-in that the request,
-// identified by url, has completed for the reason specified by reason. The most
-// common reason code is NPRES_DONE, indicating simply that the request
-// completed normally. Other possible reason codes are NPRES_USER_BREAK,
-// indicating that the request was halted due to a user action (for example,
-// clicking the "Stop" button), and NPRES_NETWORK_ERR, indicating that the
-// request could not be completed (for example, because the URL could not be
-// found). The complete list of reason codes is found in npapi.h.
-//
-// The parameter notifyData is the same plug-in-private value passed as an
-// argument to the corresponding NPN_GetURLNotify or NPN_PostURLNotify
-// call, and can be used by your plug-in to uniquely identify the request.
- ******************************************************************************/
-
-//void
-//NPP_URLNotify(NPP instance, const char* url, NPReason reason, void* notifyData)
-//{
-//	sprintf (debs, "NPP_URLNotify called, reason %d\n",notifyData);
-//	print_here (debs);
-//}
 

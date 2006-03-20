@@ -373,6 +373,7 @@ static FILE * tty = NULL;
 
 /* prints to a log file if we are running as a plugin */
 void URLprint (const char *m, const char *p) {
+#undef URLPRINTDEBUG
 #ifdef URLPRINTDEBUG
 	if (tty == NULL) {
 		tty = fopen("/home/luigi/logURLencod", "w");
@@ -381,6 +382,7 @@ void URLprint (const char *m, const char *p) {
 		fprintf (tty, "\nplugin restarted\n");
 	}
 
+	fprintf (tty,"%f URLprint: ",TickTime);
 	fprintf(tty, m,p);
 	fflush(tty);
 #endif
@@ -394,10 +396,16 @@ void URLencod (char *dest, const char *src, int maxlen) {
 	int destctr;
 	int curchar;
 
+#ifdef URLPRINTDEBUG
+	char *orig;
+
+	orig = dest;
+
 	/* get the length of the source and bounds check */
 	URLprint ("going to start URLencod %s\n","on a string");
 	URLprint ("start, src is %s\n",src);
 	/* URLprint ("maxlen is %d\n",maxlen); */
+#endif
 
 	destctr = 0; /* ensure we dont go over dest length */
 	mylen = strlen(src);
@@ -429,4 +437,18 @@ void URLencod (char *dest, const char *src, int maxlen) {
 		}
 	}
 	*dest = '\0'; /* null terminate this one */
+#ifdef URLPRINTDEBUG
+	URLprint ("encoded string is %s\n",orig);
+#endif
+
 }
+
+void sendXwinToPlugin() {
+	/* send the window id back to the plugin parent */
+	#ifdef URLPRINTDEBUG
+	URLprint ("sending Xwin ID back to plugin - %d bytes\n",sizeof (Xwin));
+	#endif
+	write (_fw_pipe,&Xwin,sizeof(Xwin));
+	close (_fw_pipe);
+}
+

@@ -6,6 +6,7 @@
 *********************************************************************/
 
 #include "headers.h"
+#include "PluginSocket.h"
 
 /*
  * handle X events.
@@ -1102,6 +1103,7 @@ void initFreewrl() {
 	setbuf(stderr,0);
         threadmsg = "event loop";
 	quitThread = 0;
+
 	if (DispThrd <= 0) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
         	initializePerlThread(PERLPATH);
@@ -1114,7 +1116,9 @@ void initFreewrl() {
         	        usleep(50);
         	}
 	}
+
         perlParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
+
 }
 
 

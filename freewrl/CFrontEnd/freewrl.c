@@ -44,7 +44,7 @@ extern char *keypress_string;
 
 /* for plugin running - these are read from the command line */
 extern int _fw_pipe;
-extern int _fw_FD;
+extern int _fw_browser_plugin;
 uintptr_t _fw_instance;
 
 /* function prototypes */
@@ -171,7 +171,7 @@ int main (int argc, char **argv) {
 				break;
 
 			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); break;
-			case 'j': sscanf (optarg,"%d",&_fw_FD); break;
+			case 'j': sscanf (optarg,"%d",&_fw_browser_plugin);  break;
 			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
 			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
 			/* Petr Mikiluk - ILS line width */
@@ -242,15 +242,6 @@ int main (int argc, char **argv) {
 		ConsoleMessage ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
 	}
-
-        /* get the Netscape Browser name, if we are pluggind */
-        NetscapeName[0] = (char)NULL;
-#ifdef XXX
-        if (RUNNINGASPLUGIN) {
-                if (read(_fw_FD, NetscapeName,MAXNETSCAPENAMELEN) < 0) {
-                }
-        }
-#endif
 
         /* create the initial scene, from the file passed in
         and place it as a child of the rootNode. */

@@ -2,9 +2,7 @@
 #
 
 # for making the freewrl opts file
-FWFLAGS = -c -D_REENTRANT -I../CFuncs
-
-FRFLAGS = -c -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
+FWFLAGS = -c -I../CFuncs -D_REENTRANT `perl -MExtUtils::Embed -e ccopts`
 
 all:	freewrl
 
@@ -16,7 +14,7 @@ fwopts:
 	$(CC) $(INC) $(FWFLAGS) $(DEFINE) fwopts.c
 
 freewrl: fwopts
-	$(CC) $(INC) $(FRFLAGS) $(DEFINE) freewrl.c
+	$(CC) $(INC) $(FWFLAGS) $(DEFINE) freewrl.c
 
 	$(CC) -L../blib/arch/auto/VRML/VRMLFunc -o freewrl \
 	freewrl.o fwopts.o \

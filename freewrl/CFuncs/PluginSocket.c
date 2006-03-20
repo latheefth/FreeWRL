@@ -10,9 +10,6 @@
 #define FSIGOK
 #endif
 
-/* what Browser are we running under? Mozilla? Opera?*/
-char NetscapeName[MAXNETSCAPENAMELEN];
-
 /*  CHECK DIRECTORY IN PLUGINPRINT*/
 #undef PLUGINSOCKETVERBOSE
 
@@ -25,6 +22,8 @@ char return_url[FILENAME_MAX]; /* used to be local, but was returned as a pointe
 #ifdef PLUGINSOCKETVERBOSE
 static FILE * tty = NULL;
 extern void abort();
+extern double TickTime;
+
 
 /* prints to a log file if we are running as a plugin */
 void pluginprint (const char *m, const char *p) {
@@ -34,6 +33,7 @@ void pluginprint (const char *m, const char *p) {
 			abort();
 		fprintf (tty, "\nplugin restarted\n");
 	}
+        fprintf (tty,"%f: freewrl: ",TickTime);
 
 	fprintf(tty, m,p);
 	fflush(tty);
@@ -48,28 +48,27 @@ int waitForData(int sock) {
 	int totalcount;
 
 	#ifdef PLUGINSOCKETVERBOSE
-	pluginprint ("waitForData, BN %s\n",NetscapeName);
+	pluginprint ("waitForData, socket %d\n",sock);
 	#endif
 
 	retval = FALSE;
 	count = 0;
 	totalcount = 1000000;
 
-	if (strncmp (NetscapeName,"Mozilla",strlen("Mozilla")) == 0) {
-		/* Mozilla,  lets give it 10 seconds */
-		#ifdef PLUGINSOCKETVERBOSE
-		pluginprint ("have Mozilla, reducing timeout to 10 secs","");
-		#endif
-		totalcount = 1000;
-	}
-
 	do {
+		#ifdef PLUGINSOCKETVERBOSE
+		/*
+		pluginprint ("waitForData on socket %d, looping...\n",sock);
+		*/
+		#endif
+
 		tv.tv_sec = 0;
 		tv.tv_usec = 100;
 		FD_ZERO(&rfds);
-		FD_SET((sock), &rfds);
+		FD_SET(sock, &rfds);
 
-		retval = select((sock)+1, &rfds, NULL, NULL, &tv);
+		/* wait for the socket. We HAVE to select on "sock+1" - RTFM */
+		retval = select(sock+1, &rfds, NULL, NULL, &tv);
 
 
 		if (retval) {
@@ -91,11 +90,7 @@ int waitForData(int sock) {
 	} while (!retval);
 }
 
-char *
-requestUrlfromPlugin(int sockDesc,
-		   uintptr_t plugin_instance,
-		   const char *url)
-{
+char * requestUrlfromPlugin(int to_plugin, uintptr_t plugin_instance, const char *url) { 
 	size_t len = 0, ulen = 0, bytes = 0;
 	urlRequest request;
 	FILE  *infile;
@@ -104,13 +99,14 @@ requestUrlfromPlugin(int sockDesc,
 	char buf[2004];
 	char encodedUrl[2000];
 
+	char *retname; 	/* for getting browser name */
+
+
+        URLencod(encodedUrl,url,2000);
+
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, getting %s\n",url);
-	#endif
-
-	URLencod(encodedUrl,url,2000);
-	#ifdef PLUGINSOCKETVERBOSE
-	pluginprint ("requestURL fromPlugin, NOW getting %s\n",encodedUrl);
+	pluginprint ("   ... encoded is %s\n",encodedUrl);
 	#endif
 
 	request.instance = (void *) plugin_instance;
@@ -126,9 +122,10 @@ requestUrlfromPlugin(int sockDesc,
 
 	#ifdef PLUGINSOCKETVERBOSE
 	pluginprint ("requestURL fromPlugin, step 1\n","");
+	pluginprint ("sending url request to socket %d\n",to_plugin);
 	#endif
 
-	if (write(sockDesc, (urlRequest *) &request, bytes) < 0) {
+	if (write(to_plugin, (urlRequest *) &request, bytes) < 0) {
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint ("write failed in requestUrlfromPlugin","");
 		#endif
@@ -141,9 +138,9 @@ requestUrlfromPlugin(int sockDesc,
 
 
 	/* wait around for a bit to see if this is going to pass or fail */
-	if (!waitForData(sockDesc)) return NULL;
+	if (!waitForData(to_plugin)) return NULL;
 
-	if (read(sockDesc, (char *) return_url, len) < 0) {
+	if (read(to_plugin, (char *) return_url, len) < 0) {
 		#ifdef PLUGINSOCKETVERBOSE
 		pluginprint("read failed in requestUrlfromPlugin","");
 		pluginprint("Testing: error from read -- returned url is %s.\n", return_url);
