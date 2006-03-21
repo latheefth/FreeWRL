@@ -443,6 +443,8 @@ void URLencod (char *dest, const char *src, int maxlen) {
 
 }
 
+/* this is for Unix only */
+#ifndef AQUA 
 void sendXwinToPlugin() {
 	/* send the window id back to the plugin parent */
 	#ifdef URLPRINTDEBUG
@@ -451,4 +453,5 @@ void sendXwinToPlugin() {
 	write (_fw_pipe,&Xwin,sizeof(Xwin));
 	close (_fw_pipe);
 }
+#endif
 
