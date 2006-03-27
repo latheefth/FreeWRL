@@ -63,7 +63,6 @@ int render_blend;
 int render_proximity;
 int render_collision;
 
-int display_status = 1;  /* display a status bar? */
 int be_collision = 0;	/* do collision detection? */
 
 int found_vp; /*true when viewpoint found*/
@@ -580,14 +579,6 @@ render_hier(void *p, int rwhat)
 	#ifdef RENDERVERBOSE
   		printf("Render_hier node=%d what=%d\n", p, rwhat);
 	#endif
-
-	/* status bar */
-	if (render_geom) {
-		if (display_status) {
-			render_status();
-		}
-	}
-
 
 	#ifdef render_pre_profile
 	if (render_geom) {

@@ -5,358 +5,184 @@
  for conditions of use and redistribution.
 *********************************************************************/
 #include <headers.h>
-#include "OpenGL_Utils.h"
+#include <unistd.h>
+#include <getopt.h>
+#include <Snapshot.h>
 
-#include <X11/cursorfont.h>
-#ifdef XF86V4
-#include <X11/extensions/xf86vmode.h>
-#endif
+extern int wantEAI;
 
-static Colormap cmap;
-static XSetWindowAttributes swa;
-static int screen;
-static int modeNum;
-static int bestMode;
-static int quadbuff_stereo_mode;
+/* for plugin running - these are read from the command line */
+extern int _fw_pipe;
+extern int _fw_browser_plugin;
+extern uintptr_t _fw_instance;
+/* keypress sequence for startup - Robert Sim */
+extern char *keypress_string;
 
-#ifdef XF86V4
-XF86VidModeModeInfo **modes;
-static int oldx, oldy;
+extern int xPos;
+extern int yPos;
+
+void parseCommandLine (int argc, char **argv) {
+	int c;
+	int tmp;
+
+	while (1) {
+		int this_option_optind = optind ? optind : 1;
+		int option_index = 0;
+		static struct option long_options[] = {
+			{"eai", 0, 0, 'e'},
+			{"fast", 0, 0, 'f'},
+			{"geometry", 1, 0, 'g'},
+			{"help", 0, 0, 'h'},
+			{"plugin", 1, 0, 'i'},
+			{"fd", 1, 0, 'j'},
+			{"instance", 1, 0, 'k'},
+			{"version", 0, 0, 'v'},
+			{"big",  0, 0, 'b'},		/* Alberto Dubuc */
+			{"nostatus",0, 0, 's'},		/* Alberto Dubuc */
+			{"nocollision",0, 0, 'Q'},		/* Alberto Dubuc */
+			{"keypress",1, 0, 'K'},		/* Robert Sim */
+
+			{"seq", 0, 0, 'l'},
+			{"seqb",1, 0, 'm'},
+			{"snapb", 1, 0, 'n'},
+			{"seqtmp", 1, 0, 'o'},
+			{"gif", 0, 0, 'p'},
+			{"maximg", 1, 0, 'q'},
+			{"shutter", 0, 0, 'u'},
+			{"eyedist", 1, 0, 'y'},
+			{"fullscreen", 0, 0, 'c'},
+			{"stereoparameter", 1, 0, 't'},
+			{"screendist", 1, 0, 'r'},
+			{"linewidth", 1, 0, 'W'},  /* Petr Mikulik */
+
+			{"parent", 1, 0, 'x'},
+			{"server", 1, 0, 'x'},
+			{"sig", 1, 0, 'x'},
+			{"ps", 1, 0, 'x'},
+			{0, 0, 0, 0}
+		};
+
+#ifndef sparc
+		c = getopt_long (argc, argv, "h", long_options, &option_index);
 #else
-
+		/*Sun version of getopt_long needs all the letters of parameters defined*/
+		                c = getopt_long (argc, argv, "efghijkvlpqmnobsQWKX", long_options, &option_index);
 #endif
 
-extern Cursor arrowc;
-extern Cursor sensorc;
+		if (c == -1)
+			break;
 
-#define OPENGL_NOVIRT
-
-/*
-   from similar code in white_dune 8-)
-   test for best visual you can get
-   with best attribut list
-   with maximal possible colorsize
-   with maximal possible depth
- */
-
-static int legal_depth_list[] = { 32, 24, 16, 15, 8, 4, 1 };
-
-static int  default_attributes0[] =
-   {
-   GLX_DEPTH_SIZE,         24,		// JAS
-   GLX_RED_SIZE,           8,
-   GLX_DOUBLEBUFFER,       GL_TRUE,
-#ifdef GLX_STEREO
-   GLX_STEREO,             GL_TRUE,
-#endif
-   GLX_RGBA,               GL_TRUE,
-   0
-   };
-
-static int  default_attributes1[] =
-   {
-   GLX_DEPTH_SIZE,         16,
-   GLX_RED_SIZE,           8,
-   GLX_DOUBLEBUFFER,       GL_TRUE,
-   GLX_RGBA,               GL_TRUE,
-   0
-   };
-
-static int  default_attributes2[] =
-   {
-   GLX_DEPTH_SIZE,         16,
-   GLX_RED_SIZE,           8,
-   GLX_RGBA,               GL_TRUE,
-   0
-   };
-
-static int  default_attributes3[] =
-   {
-   GLX_RGBA,               GL_TRUE,
-   0
-   };
-
-
-extern int	shutterGlasses; /* stereo shutter glasses */
-static int xPos = 0;
-static int yPos = 0;
-
-// Function prototypes
-XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
-/*
-void setGeometry (char *gstring);
-
-
-extern Display *Xdpy;
-extern Window Xwin;
-extern GLXContext GLcx;
-*/
-void openMainWindow () {
-
-	int	pw = 0;
-	long	event_mask = KeyPressMask | KeyReleaseMask | ButtonPressMask |
-				ButtonMotionMask | ButtonReleaseMask |
-				ExposureMask | StructureNotifyMask |
-				PointerMotionMask;
-
-	char	*wintitle =  "FreeWRL VRML/X3D Browser";
-
-
-	XColor  black;
-	Cursor  cursor;
-	Pixmap  cursor_pixmap;
-    	XEvent event;
-    	Window pwin=(Window)pw;
-    	int *attributes = default_attributes3;
-    	int number;
-	int len=0;
-	XTextProperty windowName;
-
-	int items=0; // jas
-
-	int XdpyWidth, XdpyHeight;
-
-	/* initialize XLib threads -needed for textureThread */
-	/* read the comment in CFuncs/headers.h for THIS one */
-	#ifdef DO_TWO_OPENGL_THREADS
-	XInitThreads();
-	#endif
-
-	/* get a connection */
-	Xdpy = XOpenDisplay(0);
-	if (!Xdpy) { fprintf(stderr, "No display!\n");exit(-1);}
-
-	bestMode = -1;
-	screen = DefaultScreen(Xdpy);
-#ifdef XF86V4
-	 	XF86VidModeGetAllModeLines(Xdpy, screen, &modeNum, &modes);
-
- 		bestMode = 0;
- 		for (i=0; i < modeNum; i++) {
- 			if ((modes[i]->hdisplay == screenWidth) && (modes[i]->vdisplay==screenHeight)) {
- 				bestMode = i;
+		switch (c) {
+			case 0:
+				printf ("FreeWRL option --%s", long_options[option_index].name);
+				if (optarg)
+					printf (" with arg %s", optarg);
+				printf ("\n");
 				break;
- 			}
- 		}
-		/* There is no mode equivalent to the geometry specified */
-		if (bestMode == -1) {
-			fullscreen = 0;
-			printf("No video mode for geometry %d x %d found.  Please use the --geo flag to specify an appropriate geometry, or add the required video mode\n", screenWidth, screenHeight);
-		}
-		XF86VidModeGetViewPort(Xdpy, DefaultScreen(Xdpy), &oldx, &oldy);
+
+			case 'x':
+				printf ("option --%s not implemented yet, complain bitterly\n",
+					long_options[option_index].name);
+				break;
+
+			case 'e':
+				wantEAI=TRUE;
+				break;
+
+			case 'f':
+				global_texSize = 256;
+				break;
+
+			case 'g':
+				setGeometry(optarg);
+				break;
+
+			case 'c':
+				fullscreen = 1;
+#ifndef XF86V4
+				printf("\nFullscreen mode is only available for XFree86 version 4.\n");
+				printf("If you are running version 4, please add -DXF86V4 to your vrml.conf file\n");
+				printf("in the FREEWRL_DEFINES section, and add -lXxf86vm to the FREEWRL_LIBS section.\n");
+				fullscreen = 0;
 #endif
+				break;
 
-	Xvi = find_best_visual(shutterGlasses,attributes,len);
-	if(!Xvi) { fprintf(stderr, "No visual!\n");exit(-1);}
+			case 'h':
+				printf ("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
+				printf ("   type \"man freewrl\" to view man pages\n\n");
+				break;
 
-	if ((shutterGlasses) && (quadbuff_stereo_mode==0)) {
-		fprintf(stderr, "Warning: No quadbuffer stereo visual found !");
-		fprintf(stderr, "On SGI IRIX systems read 'man setmon' or 'man xsetmon'\n");
+			case 'i': sscanf (optarg,"pipe:%d",&_fw_pipe); break;
+			case 'j': sscanf (optarg,"%d",&_fw_browser_plugin);  break;
+			case 'k': sscanf (optarg,"%u",&_fw_instance); break;
+			case 'v': printf ("FreeWRL version: %s\n",FWVER); exit(0);break;
+			/* Petr Mikiluk - ILS line width */
+			case 'W': sscanf (optarg,"%g",&tmp); setLineWidth(tmp); break;
+
+			case 'Q': be_collision = FALSE; break;
+
+
+			/* Snapshot stuff */
+			case 'l': setSnapSeq(); break;
+			case 'p': snapGif = TRUE; break;
+			case 'q': sscanf (optarg,"%d",&maxSnapImages);
+				  setMaxImages(maxSnapImages);
+				  break;
+
+			case 'm':
+				  setSeqFile(argv[optind]);
+				  break;
+			case 'n':
+				  setSnapFile(argv[optind]);
+				  break;
+			case 'o':
+				  setSeqTemp(argv[optind]);
+				  break;
+
+			case 'b': /* Alberto Dubuc - bigger window */
+				setGeometry ("800x600");
+				break;
+			case 's': /* Alberto Dubuc - no status bar */
+				//JAS display_status = 0;
+				break;
+
+				/* Shutter patches from Mufti @rus */
+			case 'r':
+				setScreenDist(optarg);
+				break;
+			case 't':
+				setStereoParameter(optarg);
+				break;
+			case 'u':
+				setShutter();
+				XEventStereo();
+				break;
+			case 'y':
+				setEyeDist(optarg);
+				break;
+
+				/* initial string of keypresses once main url is loaded */
+			case 'K':
+				keypress_string=optarg;
+				break;
+			default:
+				/* printf ("?? getopt returned character code 0%o ??\n", c); */
+				break;
+		}
 	}
 
-	/* create a GLX context */
-	#ifdef DO_TWO_OPENGL_THREADS
-	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_FALSE);
-	#else
-	GLcx = glXCreateContext(Xdpy, Xvi, 0, GL_TRUE);
-	#endif
-
-
-	if(!GLcx){fprintf(stderr, "No context!\n");exit(-1);}
-
-	/* create a color map */
-	cmap = XCreateColormap(Xdpy, RootWindow(Xdpy, Xvi->screen),
-				   Xvi->visual, AllocNone);
-
-	/* create a window */
-	swa.colormap = cmap;
-	swa.border_pixel = 0;
-	swa.event_mask = event_mask;
-#ifdef XF86V4
-	if (fullscreen == 1) {
-	 	XF86VidModeSwitchToMode(Xdpy, screen, modes[bestMode]);
-	 	XF86VidModeSetViewPort(Xdpy, screen, 0, 0);
-	 	XdpyWidth = modes[bestMode]->hdisplay;
-	 	XdpyHeight = modes[bestMode]->vdisplay;
-	 	swa.override_redirect = True;
-	}
-
-	XFree(modes);
-#endif
-
-	if(!pwin){pwin=RootWindow(Xdpy, Xvi->screen);}
-
-
-	if (screenWidth>=0) {
-		XTextProperty textpro;
-		if (fullscreen == 1) {
-			Xwin = XCreateWindow(Xdpy, pwin,
-				0, 0, XdpyWidth, XdpyHeight,
-				0, Xvi->depth, InputOutput, Xvi->visual,
-				CWBorderPixel| CWOverrideRedirect |
-				CWColormap | CWEventMask, &swa);
-
-			cursor_pixmap = XCreatePixmap(Xdpy, Xwin ,1, 1, 1);
-			black.pixel = WhitePixel(Xdpy, DefaultScreen(Xdpy));
-			XQueryColor(Xdpy, DefaultColormap(Xdpy, DefaultScreen(Xdpy)), &black);
-			cursor = XCreatePixmapCursor(Xdpy, cursor_pixmap, cursor_pixmap, &black, &black, 0, 0);
-			XDefineCursor(Xdpy, Xwin, cursor);
-
-		} else {
-			Xwin = XCreateWindow(Xdpy, pwin,
-				xPos, yPos, screenWidth, screenHeight, 0, Xvi->depth, InputOutput,
-				Xvi->visual, CWBorderPixel | CWColormap | CWEventMask, &swa);
-
-			/* create window and icon name */
-			if (XStringListToTextProperty(&wintitle, 1, &windowName) == 0){
-				fprintf(stderr,
-					"XStringListToTextProperty failed for %s, windowName in glpcOpenWindow.\n",
-					wintitle);
-			}
-			XSetWMName(Xdpy, Xwin, &windowName);
-			XSetWMIconName(Xdpy, Xwin, &windowName);
+	if (optind < argc) {
+		if (optind != (argc-1)) {
+			printf ("freewrl:warning, expect only 1 file on command line; running file: %s\n",
+				argv[optind]);
 		}
 
-		glXMakeCurrent(Xdpy, Xwin, GLcx);
-		glFlush();
-		if(!Xwin) {
-			fprintf(stderr, "No Window\n");
-			exit(-1);
-		}
-
-		if (!RUNNINGASPLUGIN) {
-			/* just map us to the display */
-			XMapWindow(Xdpy, Xwin);
-			XSetInputFocus(Xdpy, pwin, RevertToParent, CurrentTime);
-		} else {
-			sendXwinToPlugin();
-		}
-
-
-		//JAS if (event_mask & StructureNotifyMask) {
-		//JAS 	XIfEvent(Xdpy, &event, WaitForNotify, (char*)win);
-		//JAS }
-		// Alberto Dubuc:
-		XMoveWindow(Xdpy,Xwin,xPos,yPos);
+		/* save the url for later use, if required */
+		setBrowserURL (argv[optind]);
 	} else {
-		printf ("NO PBUFFER EXTENSION\n");
+		ConsoleMessage ("freewrl:missing VRML/X3D file name\n");
 		exit(1);
 	}
 
-	/* clear the buffer */
-	glClearColor(0,0,0,1);
-
-	/* Create Cursors */
-	if (fullscreen == 1) {
-		arrowc = cursor;
-		sensorc = cursor;
-	} else {
-		arrowc = XCreateFontCursor (Xdpy, XC_left_ptr);
-		sensorc = XCreateFontCursor (Xdpy, XC_diamond_cross);
-	}
-
-	/* connect the context to the window */
-	if(!glXMakeCurrent(Xdpy, Xwin, GLcx)) {
-		fprintf(stderr, "Non current\n");
-		exit(-1);
-	}
-
-	/*
-	printf ("VEndor: %s, Renderer: %s\n",glGetString(GL_VENDOR),
-		glGetString(GL_RENDERER));
-	*/
 }
 
-
-XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
-{
-   XVisualInfo *vi=NULL;
-   int attrib;
-   int startattrib=0;
-   int *attrib_mem;
-
-   attrib_mem=(int *)malloc(len*sizeof(int)+sizeof(default_attributes0));
-
-
-   quadbuff_stereo_mode=0;
-   if (!shutter)
-      startattrib=1;
-   else
-      {
-#     ifdef STEREOCOMMAND
-      system(STEREOCOMMAND);
-#     endif
-      }
-   for (attrib=startattrib;attrib<2;attrib++) {
-      int idepth;
-      for (idepth=0;idepth<sizeof(legal_depth_list)/sizeof(int);idepth++) {
-         int redsize;
-         for (redsize=8;redsize>=4;redsize--) {
-            int i;
-            int* attribs_pointer=default_attributes0;
-            int  attribs_size=sizeof(default_attributes0)/sizeof(int);
-            if (attrib==1) {
-               attribs_pointer=default_attributes1;
-               attribs_size=sizeof(default_attributes1)/sizeof(int);
-            }
-            if (attrib==2) {
-               attribs_pointer=default_attributes2;
-               attribs_size=sizeof(default_attributes2)/sizeof(int);
-            }
-            if (attrib==3) {
-               attribs_pointer=default_attributes3;
-               attribs_size=sizeof(default_attributes3)/sizeof(int);
-            }
-            attribs_pointer[1]=legal_depth_list[idepth];
-            if ((attrib==0) || (attrib==1))
-               attribs_pointer[3]=redsize;
-
-            for (i=0;i<len;i++)
-               attrib_mem[i]=attributes[i];
-            for (i=0;i<attribs_size;i++)
-               attrib_mem[i+len]=attribs_pointer[i];
-
-      	    /* get an appropriate visual */
-            vi = glXChooseVisual(Xdpy, screen, attrib_mem);
-            if (vi) {
-               if (attrib==0) {
-                  quadbuff_stereo_mode=1;
-               }
-            free(attrib_mem);
-            return vi;
-            }
-         }
-      }
-   }
-   free(attrib_mem);
-   return(NULL);
-}
-
-void setGeometry (const char *gstring) {
-	int c;
-	c = sscanf(gstring,"%dx%d+%d+%d",&screenWidth,&screenHeight,&xPos,&yPos);
-}
-
-void resetGeometry() {
-#ifdef XF86V4
-		XF86VidModeModeInfo info;
-		int oldMode;
-
-	if (fullscreen) {
-	 	XF86VidModeGetAllModeLines(Xdpy, screen, &modeNum, &modes);
- 		oldMode = 0;
-
- 		for (i=0; i < modeNum; i++) {
- 			if ((modes[i]->hdisplay == oldx) && (modes[i]->vdisplay==oldy)) {
- 				oldMode = i;
-				break;
- 			}
- 		}
-
-	 	XF86VidModeSwitchToMode(Xdpy, screen, modes[oldMode]);
-	 	XF86VidModeSetViewPort(Xdpy, screen, 0, 0);
-		XFlush(Xdpy);
-	}
-
-#endif
-}

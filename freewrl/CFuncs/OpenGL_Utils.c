@@ -19,6 +19,7 @@ extern CGLContextObj aqglobalContext;
 #else 
 Display *Xdpy;
 Window Xwin;
+Window GLwin;
 GLXContext GLcx;
 XVisualInfo *Xvi;
 int fullscreen = 0;
@@ -26,9 +27,6 @@ int fullscreen = 0;
 
 
 #define FREE_IF_NZ(a) if(a) {free(a); a = 0;}
-
-static int now_mapped = 1;		/* are we on screen, or minimized? */
-
 
 /* lights status. Light 0 is the headlight */
 static int lights[8];
@@ -105,16 +103,6 @@ void lightState(GLint light, int status) {
 		else glDisable(GL_LIGHT0+light);
 		lights[light]=status;
 	}
-}
-
-
-int get_now_mapped() {
-	return now_mapped;
-}
-
-
-void set_now_mapped(int val) {
-	now_mapped = val;
 }
 
 
@@ -1031,6 +1019,6 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, int kill_JavaClass) {
 
         /* tell statusbar that we have none */
         viewer_default();
-        viewpoint_name_status("NONE");
+        setMenuStatus("NONE");
 }
 

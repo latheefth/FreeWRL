@@ -36,14 +36,6 @@
 void start_textureTransform (void *textureNode, int ttnum);
 void end_textureTransform (void *textureNode, int ttnum);
 
-int
-get_now_mapped(void);
-
-
-void
-set_now_mapped(int val);
-
-
 void
 glpOpenGLInitialize(void);
 
@@ -62,6 +54,7 @@ extern Display *Xdpy;
 extern GLXContext GLcx;
 extern XVisualInfo *Xvi;
 extern Window Xwin;
+extern Window GLwin;
 extern void resetGeometry();
 #endif
 extern void glpOpenGLInitialize(void);

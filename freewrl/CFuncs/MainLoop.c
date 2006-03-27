@@ -127,9 +127,8 @@ void render_pre(void);
 void render(void);
 void setup_projection(int pick, int x, int y);
 void glPrintError(char *str);
-void handle_Xevents(void);
+void handle_Xevents(XEvent event);
 void XEventStereo(void);
-void handle_Xevents(void);
 void EventLoop(void);
 unsigned char*  rayHit(void);
 void get_hyperhit(void);
@@ -208,8 +207,8 @@ void EventLoop() {
 	if (loop_count == 25) {
 
 		BrowserFPS = 25.0 / (TickTime-BrowserStartTime);
-		update_status(); /*  tell status bar to refresh, if it is displayed*/
-		/* printf ("fps %f\n",BrowserFPS);*/
+		setMenuFps(BrowserFPS); /*  tell status bar to refresh, if it is displayed*/
+		/* printf ("fps %f\n",BrowserFPS); */
 
 		#ifdef PROFILE
 		oxf = timeA + timeB + timeC + timeD + timeE + timeF;
@@ -257,7 +256,7 @@ void EventLoop() {
 	}
 
 	/* Handle X events */
-	handle_Xevents();
+	/* JAS handle_Xevents(); */
 
 
 	#ifdef PROFILEMARKER
@@ -400,7 +399,7 @@ void EventLoop() {
 #ifndef AQUA
 		if (cursor != curcursor) {
 			curcursor = cursor;
-			XDefineCursor (Xdpy, Xwin, cursor);
+			XDefineCursor (Xdpy, GLwin, cursor);
 		}
 #else
                 if (ccurse != ocurse) {
@@ -463,114 +462,102 @@ void EventLoop() {
 
 
 
-void handle_Xevents() {
+void handle_Xevents(XEvent event) {
 #ifndef AQUA
 
-	XEvent event, nextevent;
+	XEvent nextevent;
 	char buf[10];
 	KeySym ks;
 	int count;
 
-	while (XPending(Xdpy)) {
+	lastMouseEvent=event.type;
+	switch(event.type) {
+		/*
+		case ConfigureNotify:
+			setScreenDim (event.xconfigure.width,event.xconfigure.height);
+			break;
+		*/
+		case KeyPress:
+		case KeyRelease:
+			XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
+			/*  Map keypad keys in - thanks to Aubrey Jaffer.*/
+			switch(ks) {
+			   /*  the non-keyboard arrow keys*/
+			   case XK_Left: ks = XK_j; break;
+			   case XK_Right: ks = XK_l; break;
+			   case XK_Up: ks = XK_p; break;
+			   case XK_Down: ks = XK_semicolon; break;
+			   case XK_KP_0:
+			   case XK_KP_Insert:
+				ks = XK_a; break;
+			   case XK_KP_Decimal:
+			   case XK_KP_Delete:
+				ks = XK_z; break;
+			   case XK_KP_7:
+			   case XK_KP_Home:
+				 ks = XK_7; break;
+			   case XK_KP_9:
+			   case XK_KP_Page_Up:
+				ks = XK_9; break;
+			   case XK_KP_8:
+			   case XK_KP_Up:
+				ks = XK_k; break;
+			   case XK_KP_2:
+			   case XK_KP_Down:
+				ks = XK_8; break;
+			   case XK_KP_4:
+			   case XK_KP_Left:
+				ks = XK_u; break;
+			   case XK_KP_6:
+			   case XK_KP_Right:
+				ks = XK_o; break;
+			   case XK_Num_Lock: ks = XK_h; break;
+			   default: break;
+			   }
+			buf[0]=(char)ks;buf[1]='\0';
+			do_keyPress((char)ks,event.type);
 
-		XNextEvent(Xdpy,&event);
-		lastMouseEvent=event.type;
-		switch(event.type) {
-			case ConfigureNotify:
-				setScreenDim (event.xconfigure.width,event.xconfigure.height);
-				break;
-			case KeyPress:
-			case KeyRelease:
-				XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
-				/*  Map keypad keys in - thanks to Aubrey Jaffer.*/
-				switch(ks) {
-				   /*  the non-keyboard arrow keys*/
-				   case XK_Left: ks = XK_j; break;
-				   case XK_Right: ks = XK_l; break;
-				   case XK_Up: ks = XK_p; break;
-				   case XK_Down: ks = XK_semicolon; break;
-				   case XK_KP_0:
-				   case XK_KP_Insert:
-					ks = XK_a; break;
-				   case XK_KP_Decimal:
-				   case XK_KP_Delete:
-					ks = XK_z; break;
-				   case XK_KP_7:
-				   case XK_KP_Home:
-					 ks = XK_7; break;
-				   case XK_KP_9:
-				   case XK_KP_Page_Up:
-					ks = XK_9; break;
-				   case XK_KP_8:
-				   case XK_KP_Up:
-					ks = XK_k; break;
-				   case XK_KP_2:
-				   case XK_KP_Down:
-					ks = XK_8; break;
-				   case XK_KP_4:
-				   case XK_KP_Left:
-					ks = XK_u; break;
-				   case XK_KP_6:
-				   case XK_KP_Right:
-					ks = XK_o; break;
-				   case XK_Num_Lock: ks = XK_h; break;
-				   default: break;
-				   }
-				buf[0]=(char)ks;buf[1]='\0';
-				do_keyPress((char)ks,event.type);
+			break;
+		case ButtonPress:
+		case ButtonRelease:
+			/*  if a button is pressed, we should not change state,*/
+			/*  so keep a record.*/
+			if (event.xbutton.button>=5) break;  /* bounds check*/
+			ButDown[event.xbutton.button] = (event.type == ButtonPress);
 
-				break;
-			case ButtonPress:
-			case ButtonRelease:
-				/*  if a button is pressed, we should not change state,*/
-				/*  so keep a record.*/
-				if (event.xbutton.button>=5) break;  /* bounds check*/
-				ButDown[event.xbutton.button] = (event.type == ButtonPress);
-
-				/* if we are Not over a sensitive node, and we do NOT
-				   already have a button down from a sensitive node... */
-				if ((CursorOverSensitive==0) &&
-						(lastPressedOver==0))  {
-					NavigationMode=ButDown[1] || ButDown[3];
-					handle (event.type,event.xbutton.button,
-						(float) ((float)event.xbutton.x/screenWidth),
-						(float) ((float)event.xbutton.y/screenHeight));
-				}
+			/* if we are Not over a sensitive node, and we do NOT
+			   already have a button down from a sensitive node... */
+			if ((CursorOverSensitive==0) &&
+					(lastPressedOver==0))  {
+				NavigationMode=ButDown[1] || ButDown[3];
+				handle (event.type,event.xbutton.button,
+					(float) ((float)event.xbutton.x/screenWidth),
+					(float) ((float)event.xbutton.y/screenHeight));
+			}
                                 break;
                         case MotionNotify:
-				/*  do we have more motion notify events queued?*/
-				if (XPending(Xdpy)) {
-					XPeekEvent(Xdpy,&nextevent);
-					if (nextevent.type==MotionNotify) { break;
-					}
+			/*  do we have more motion notify events queued?*/
+			if (XPending(Xdpy)) {
+				XPeekEvent(Xdpy,&nextevent);
+				if (nextevent.type==MotionNotify) { break;
 				}
+			}
 
-				/*  save the current x and y positions for picking.*/
-				currentX = event.xbutton.x;
-				currentY = event.xbutton.y;
+			/*  save the current x and y positions for picking.*/
+			currentX = event.xbutton.x;
+			currentY = event.xbutton.y;
 
-				if (NavigationMode) {
-					/*  find out what the first button down is*/
-					count = 0;
-					while ((count < 5) && (!ButDown[count])) count++;
-					if (count == 5) return; /*  no buttons down???*/
+			if (NavigationMode) {
+				/*  find out what the first button down is*/
+				count = 0;
+				while ((count < 5) && (!ButDown[count])) count++;
+				if (count == 5) return; /*  no buttons down???*/
 
-					handle (event.type,(unsigned)count,
-						(float)((float)event.xbutton.x/screenWidth),
-						(float)((float)event.xbutton.y/screenHeight));
-				}
-				break;
-			case Expose:
-				break;
-			case MapNotify:
-				set_now_mapped(TRUE);
-				break;
-			case UnmapNotify:
-				set_now_mapped(FALSE);
-				break;
-			default:
-				break;
-		}
+				handle (event.type,(unsigned)count,
+					(float)((float)event.xbutton.x/screenWidth),
+					(float)((float)event.xbutton.y/screenHeight));
+			}
+			break;
 	}
 #endif
 }
@@ -710,7 +697,7 @@ void render() {
 	/* printf ("render %f %f %f %f\n",bb-aa, cc-bb, dd-cc, ee-dd);*/
 	}
 #ifndef AQUA
-	glXSwapBuffers(Xdpy,Xwin);
+	glXSwapBuffers(Xdpy,GLwin);
 #else
 	CGLError err = CGLFlushDrawable(aqglobalContext);
 	updateContext();
@@ -842,13 +829,13 @@ void do_keyPress(const char kp, int type) {
 			case 'f': { set_viewer_type (EXFLY); break; }
 			case 'h': { toggle_headlight(); break;}
 			case '/': { print_viewer(); break; }
-			case '.': { display_status = !display_status; break; }
 			case 'q': { if (!RUNNINGASPLUGIN) {
 					  doQuit();
 				    }
 				    break;
 				  }
-			case 'c': {be_collision = !be_collision; break; }
+			case 'c': {be_collision = !be_collision; 
+					setMenuButton_collision(be_collision); break; }
 			case '?': {
 					  if (strlen(ASCIITERM) < 50) {
 						  strcpy (comline,ASCIITERM);
@@ -1008,6 +995,17 @@ void glPrintError(char *str) {
 #endif
         }
 
+/* go to the previous viewpoint */
+void Prev_ViewPoint() {
+	if (totviewpointnodes>=2) {
+		/* whew, we have other vp nodes */
+		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
+		currboundvpno--;
+		if (currboundvpno<0) currboundvpno=totviewpointnodes-1;
+		send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+	}
+}
+
 /* go to the next viewpoint */
 void Next_ViewPoint() {
 	if (totviewpointnodes>=2) {
@@ -1023,6 +1021,7 @@ void Next_ViewPoint() {
 void setScreenDim(int wi, int he) {
         screenWidth = wi;
         screenHeight = he;
+
         if (screenHeight != 0) screenRatio = (double) screenWidth/(double) screenHeight;
         else screenRatio =  screenWidth;
 }
@@ -1045,8 +1044,11 @@ void setFullPath(const char* file) {
 /* handle all the displaying and event loop stuff. */
 void displayThread() {
 	/* printf ("displayThread, I am %d\n",pthread_self()); */
+
+        /* Create an OpenGL rendering context. */
 	#ifndef AQUA
-	openMainWindow();
+	extern void createGLContext();
+        createGLContext();
 	#endif
 
 	glpOpenGLInitialize();
@@ -1116,9 +1118,7 @@ void initFreewrl() {
         	        usleep(50);
         	}
 	}
-
         perlParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
-
 }
 
 
@@ -1160,10 +1160,6 @@ void setWantEAI(int flag) {
 	EAIwanted = TRUE;
 }
 
-void setNoStatus() {
-        display_status = 0;
-}
-
 void setLineWidth(float lwidth) {
         gl_linewidth = lwidth;
 }
@@ -1179,6 +1175,7 @@ void setSnapGif() {
 
 void setNoCollision() {
         be_collision = 0;
+	setMenuButton_collision(be_collision);
 }
 
 void setKeyString(const char* kstring) {

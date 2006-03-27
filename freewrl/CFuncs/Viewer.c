@@ -63,6 +63,8 @@ void viewer_default() {
 	inverse(&(Viewer.AntiQuat),&q_i);
 
 	Viewer.headlight = TRUE;
+	/* tell the menu buttons of the state of this headlight */
+	setMenuButton_headlight(Viewer.headlight);
 	Viewer.speed = 1.0;
 	Viewer.Dist = 10.0;
 	Viewer.walk = &viewer_walk;
@@ -104,6 +106,8 @@ void viewer_init (X3D_Viewer *viewer, int type) {
 		inverse(&(Viewer.AntiQuat),&q_i);
 
 		viewer->headlight = TRUE;
+		/* tell the menu buttons of the state of this headlight */
+		setMenuButton_headlight(viewer->headlight);
 		viewer->speed = 1.0;
 		viewer->Dist = 10.0;
 		viewer->walk = &viewer_walk;
@@ -145,6 +149,9 @@ void toggle_headlight() {
 	} else {
 		Viewer.headlight = TRUE;
 	}
+	/* tell the menu buttons of the state of this headlight */
+	setMenuButton_headlight(Viewer.headlight);
+
 }
 
 void set_eyehalf(const double eyehalf, const double eyehalfangle) {
@@ -164,8 +171,8 @@ void set_viewer_type(const int type) {
 
 	viewer_init(&Viewer,type);
 
-	/* tell the status bar what we are */
-	viewer_type_status (type);
+	/* tell the window menu what we are */
+	setMenuButton_navModes(type);
 
 	switch(type) {
 	case NONE:

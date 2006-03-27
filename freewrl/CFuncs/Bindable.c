@@ -56,6 +56,9 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
         Viewer.headlight = node->headlight;
         Viewer.speed = (double) node->speed;
 
+	/* tell the menu buttons of the state of this headlight */
+	setMenuButton_headlight(node->headlight);
+
 	/* keep track of valid Navigation types. */
 	svptr = node->type.p;
 
@@ -137,7 +140,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 		if (vp->_nodeType == NODE_Viewpoint ) {
 			vp->set_bind = value;
 			nameptr = SvPV(vp->description,len);
-			viewpoint_name_status (nameptr);
+			setMenuStatus (nameptr);
 
 			bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
 
@@ -152,7 +155,7 @@ void send_bind_to(int nodetype, void *node, int value) {
 			gvp = (struct X3D_GeoViewpoint *) node;
 			gvp->set_bind = value;
 			nameptr = SvPV(gvp->description,len);
-			viewpoint_name_status (nameptr);
+			setMenuStatus (nameptr);
 
 			bind_node (node, &viewpoint_tos,&viewpoint_stack[0]);
 

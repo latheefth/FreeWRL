@@ -516,10 +516,14 @@ extern struct CRscriptStruct *ScriptControl; /* Script invocation parameters */
 extern uintptr_t *scr_act;    /* script active array - defined in CRoutes.c */
 extern int *thisScriptType;    /* what kind of script this is - in CRoutes.c */
 extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays */
-void render_status(void); /* status bar */
-void update_status(void); 	/* update status bar */
-void viewer_type_status(int x);		/* tell status bar what kind of viewer */
-void viewpoint_name_status(char *str); /* tell status bar name of current vp 	*/
+
+/* menubar stuff */
+void setMenuButton_collision (int val) ;
+void setMenuButton_headlight (int val) ;
+void setMenuButton_navModes (int type) ;
+void setMenuStatus(char *stat) ;
+void setMenuFps (float fps) ;
+
 int convert_typetoInt (const char *type);	/* convert a string, eg "SFBOOL" to type, eg SFBOOL */
 
 extern double BrowserFPS;
@@ -597,7 +601,6 @@ extern void setEyeDist (const char *optArg);
 extern int isPerlinitialized(void);
 extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; /* defined in VRMLC.pm */
 extern char *lastReadFile; 		/* name last file read in */
-extern int display_status;		/* toggle status bar - defined in VRMLC.pm */
 extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */
 extern int  lightingOn;			/* state of GL_LIGHTING */
 extern int cullFace;			/* state of GL_CULL_FACE */
@@ -647,7 +650,6 @@ extern void aqDisplayThread();
 #endif
 extern void setSnapSeq();
 extern void setEAIport(int pnum);
-extern void setNoStatus();
 extern void setFast();
 extern void setKeyString(const char *str);
 extern void setNoCollision();
@@ -935,6 +937,9 @@ void do_TimeTrigger (void *node);
 #define COLOR_MATERIAL_INITIALIZE colorMaterialEnabled = GL_FALSE; glDisable(GL_COLOR_MATERIAL);
 
 void zeroAllBindables(void);
+void Next_ViewPoint(void);
+void Prev_ViewPoint(void);
+
 int freewrlSystem (const char *string);
 
 int perlParse(unsigned type, char *inp, int bind, int returnifbusy,
