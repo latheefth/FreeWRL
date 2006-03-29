@@ -11,6 +11,8 @@
 /* get the definitions from the command line */
 #include "vrmlconf.h"
 
+#define HAVE_MOTIF
+
 /* vrmlconf.h should have the AQUA definition - so get the GL headers */
 #ifdef AQUA
 #include <gl.h>
@@ -24,6 +26,17 @@
 
 /* now get all of our structures */
 #include "Structs.h"
+
+/* initFreeWRL - some differences between the Unix and Aqua
+   versions. These defines maybe can disappear? */
+#ifdef AQUA
+	#define MYINITURL BrowserURL
+#else
+	#define MYINITURL initialFilename
+	extern char *initialFilename;
+#endif
+
+
 
 /* multi-threaded OpenGL contexts - works on OS X, kind of ok on Linux, but
    blows plugins out of the water, because of the XLib threaded call in FrontEnd
@@ -521,6 +534,7 @@ extern int JSMaxScript;  /* defined in JSscipts.c; maximum size of script arrays
 void setMenuButton_collision (int val) ;
 void setMenuButton_headlight (int val) ;
 void setMenuButton_navModes (int type) ;
+void setConsoleMessage(char *stat) ;
 void setMenuStatus(char *stat) ;
 void setMenuFps (float fps) ;
 

@@ -11,7 +11,6 @@ BOUNDS_CHECK => "off",
 LIBCHECK_INST => "",
 BROWSER => "/Applications/Safari.app/Contents/MacOS/Safari",
 WGET => "/usr/bin/curl",
-ASCIITERM => "/usr/X11R6/bin/rxvt",
 CONVERT => "/usr/local/bin/convert",
 UNZIP => "/usr/bin/gunzip",
 

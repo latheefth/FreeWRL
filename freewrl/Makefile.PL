@@ -218,7 +218,6 @@ print OUT "#define PERLPATH \"$perlpath\"\n";
 my @dumpToVRMLCONF = (
 	"BROWSER",
 	"SOUNDCONV",
-	"ASCIITERM",
 	"UNZIP",
 	"WGET",
 	"CONVERT",

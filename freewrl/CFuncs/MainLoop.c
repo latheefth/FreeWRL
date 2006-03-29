@@ -836,14 +836,6 @@ void do_keyPress(const char kp, int type) {
 				  }
 			case 'c': {be_collision = !be_collision; 
 					setMenuButton_collision(be_collision); break; }
-			case '?': {
-					  if (strlen(ASCIITERM) < 50) {
-						  strcpy (comline,ASCIITERM);
-						  strcat (comline," -e man freewrl &");
-						  freewrlSystem(comline);
-					  }
-				   break;
-				  }
 			case 'v': {Next_ViewPoint(); break;}
 			case 's': {setSnapshot(); break;}
 			default: {handle_key(kp);}
@@ -1091,14 +1083,7 @@ void setLastMouseEvent(int etype) {
 }
 
 
-/* initFreeWRL - some differences between the Unix and Aqua
-   versions. These defines maybe can disappear? */
-#ifdef AQUA
-	#define MYINITURL BrowserURL
-#else
-	#define MYINITURL initialFilename
-#endif
-
+/* load up the world, and run with it! */
 void initFreewrl() {
 	int tmp = 0;
 	setbuf(stdout,0);

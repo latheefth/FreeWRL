@@ -45,7 +45,12 @@ int ConsoleMessage(const char *fmt, ...) {
 	void *v;
 
 
+	#ifdef HAVE_MOTIF
+	FWbuffer[0] = '\n';
+	FWbuffer[1] = '\0';
+	#else
 	FWbuffer[0] = '\0';
+	#endif
 
 	#ifndef AQUA
 	if (RUNNINGASPLUGIN) {
@@ -140,12 +145,17 @@ int ConsoleMessage(const char *fmt, ...) {
 		printf (FWbuffer);
 		printf ("\n");
 #else
+#ifdef HAVE_MOTIF
+	setConsoleMessage (FWbuffer);
+
+#else
 	if (RUNNINGASPLUGIN) {
 		freewrlSystem (FWbuffer);
 	} else {
 		printf (FWbuffer);
 		printf ("\n");
 	}
+#endif
 #endif
 	return count;
 }
