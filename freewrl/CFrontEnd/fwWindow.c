@@ -484,16 +484,16 @@ void createNavigatePulldown() {
 		//btn = XmCreatePushButton (menupane, "Straighten", NULL, 0);
 		//XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointStraighten, NULL);
 		//myXtManageChild (19,btn);
-		menumessageButton = XtCreateManagedWidget("Message Display",
-			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
-		XtAddCallback(menumessageButton, XmNvalueChangedCallback, 
-			  (XtCallbackProc)toggleMessagebar, NULL);
-		myXtManageChild (20,menumessageButton);
 		consolemessageButton = XtCreateManagedWidget("Console Display",
 			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback(consolemessageButton, XmNvalueChangedCallback, 
 			  (XtCallbackProc)toggleConsolebar, NULL);
 		myXtManageChild (21,consolemessageButton);
+		menumessageButton = XtCreateManagedWidget("Message Display",
+			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
+		XtAddCallback(menumessageButton, XmNvalueChangedCallback, 
+			  (XtCallbackProc)toggleMessagebar, NULL);
+		myXtManageChild (20,menumessageButton);
 	
 	XtSetArg (args[0], XmNsubMenuId, menupane);
 	cascade = XmCreateCascadeButton (menubar, "Navigate", args, 1);
@@ -717,8 +717,6 @@ void openMainWindow (int argc, char **argv) {
 
 
 	myXtManageChild (29,mainw);
-printf ("1running as plugin, mainw is %d\n",XtWindow(mainw));
-printf ("1running as plugin, mainw is %d\n",XtWindowOfObject(mainw));
 
 	/* Create a menu bar. */
 	createMenuBar();
