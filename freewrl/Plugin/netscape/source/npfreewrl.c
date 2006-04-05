@@ -614,7 +614,9 @@ NPP_Destroy(NPP instance, NPSavedData** save)
 
 			sprintf (debs,"killing command kill %d",FW_Plugin->childPID);
 			print_here(debs);
-			kill(FW_Plugin->childPID, SIGQUIT);
+			//kill(FW_Plugin->childPID, SIGQUIT);
+			// really kill this - sometimes the SIGQUIT would just hang around
+			kill(FW_Plugin->childPID, SIGKILL);
 			waitpid(FW_Plugin->childPID, &status, 0);
 		}
 

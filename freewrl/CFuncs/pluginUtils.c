@@ -329,11 +329,15 @@ int checkIfX3DVRMLFile(char *fn) {
 void Anchor_ReplaceWorld (char *filename) {
 	int tmp;
 
-	kill_oldWorld(TRUE,TRUE,TRUE);
+	/* sanity check - are we actually going to do something with a name? */
+	if (filename != NULL)
+		if (strlen (filename) > 1) {
+			kill_oldWorld(TRUE,TRUE,TRUE);
 
-	perlParse(FROMURL, filename,TRUE,FALSE,
-		rootNode, offsetof (struct X3D_Group, children),&tmp,
-		TRUE);
+			perlParse(FROMURL, filename,TRUE,FALSE,
+				rootNode, offsetof (struct X3D_Group, children),&tmp,
+				TRUE);
+		}
 }
 
 

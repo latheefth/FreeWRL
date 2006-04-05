@@ -335,27 +335,6 @@ set(Quaternion *ret, const Quaternion *quat)
 	ret->z = quat->z;
 }
 
-/* unused - JAS.
-double abssq(Quaternion *quat) {
-	return (quat->w * quat->w) +
-	       (quat->x * quat->x) +
-	       (quat->y * quat->y) +
-	       (quat->z * quat->z);
-}
-
-void
-quat_invert (Quaternion *quat) {
-	double absq;
-
-	absq = abssq(quat);
-
-	quat->w *=  1/absq;
-	quat->x *= -1/absq;
-	quat->y *= -1/absq;
-	quat->z *= -1/absq;
-}
-*/
-
 /*
  * Code from www.gamasutra.com/features/19980703/quaternions_01.htm,
  * Listing 5.

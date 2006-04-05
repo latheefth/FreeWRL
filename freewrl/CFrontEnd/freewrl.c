@@ -59,16 +59,7 @@ void catch_SIGQUIT();
 void catch_SIGSEGV();
 void catch_SIGALRM(int);
 void initFreewrl(void);
-void parseCommandLine(int, char **);
-
-/* XtAppMainLoop - but catch events */
-void myAppMainLoop(XtAppContext app) {
-	XEvent event;
-	while (1) {
-		XtAppNextEvent(app, &event);
-		XtDispatchEvent (&event);
-	}
-}
+extern int parseCommandLine(int, char **);
 
 int main (int argc, char **argv) {
 	int retval;
@@ -91,48 +82,44 @@ int main (int argc, char **argv) {
 	signal (SIGSEGV,(void(*)(int))catch_SIGSEGV);
 	signal (SIGALRM,(void(*)(int))catch_SIGALRM);
 
-	/* create the window */
-	openMainWindow();
-
 	/* parse command line arguments */
 	/* JAS - for last parameter of long_options entries, choose
 	 * ANY character that is not 'h', and that is not used */
+	if (parseCommandLine (argc, argv)) {
+        	/* create the initial scene, from the file passed in
+        	  and place it as a child of the rootNode. */
 
-	parseCommandLine (argc, argv);
+        	initialFilename = (char *)malloc(1000 * sizeof (char));
+        	pwd = (char *)malloc(1000 * sizeof (char));
+        	getcwd(pwd,1000);
+        	/* if this is a network file, leave the name as is. If it is
+        	   a local file, prepend the path to it */
 
 
-        /* create the initial scene, from the file passed in
-        and place it as a child of the rootNode. */
-
-        initialFilename = (char *)malloc(1000 * sizeof (char));
-        pwd = (char *)malloc(1000 * sizeof (char));
-        getcwd(pwd,1000);
-        /* if this is a network file, leave the name as is. If it is
-         * a local file, prepend the path to it */
-
-        if (checkNetworkFile(argv[optind])) {
-		setFullPath(argv[optind]);
-                strcpy (initialFilename,argv[optind]); 
-                BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
-                strcpy(BrowserFullPath,pwd); 
-
-        } else {
-                makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
-                BrowserFullPath = (char *)malloc ((strlen(initialFilename)+1) * sizeof(char));
-                strcpy (BrowserFullPath,initialFilename);
-        }
+	        if (checkNetworkFile(argv[optind])) {
+			setFullPath(argv[optind]);
+	                strcpy (initialFilename,argv[optind]); 
+	                BrowserFullPath = (char *)malloc ((strlen(argv[optind])+1) * sizeof(char));
+	                strcpy(BrowserFullPath,pwd); 
+	
+	        } else {
+	                makeAbsoluteFileName(initialFilename, pwd, argv[optind]);
+	                BrowserFullPath = (char *)malloc ((strlen(initialFilename)+1) * sizeof(char));
+	                strcpy (BrowserFullPath,initialFilename);
+	        }
+	} else {
+		BrowserFullPath = NULL;
+		initialFilename = NULL;
+	}
 
 
 	/* start threads, parse initial scene, etc */
 	initFreewrl();
 
-	free(initialFilename); free(pwd);
+	/* free(initialFilename); free(pwd); */
 
 	/* do we require EAI? */
 	if (wantEAI) create_EAI();
-
-
-        myAppMainLoop(freewrlXtAppContext);
 
 	/* now wait around until something kills this thread. */
 	pthread_join(DispThrd, NULL);

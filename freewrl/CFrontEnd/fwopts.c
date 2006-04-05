@@ -21,7 +21,7 @@ extern char *keypress_string;
 extern int xPos;
 extern int yPos;
 
-void parseCommandLine (int argc, char **argv) {
+int parseCommandLine (int argc, char **argv) {
 	int c;
 	int tmp;
 
@@ -180,9 +180,10 @@ void parseCommandLine (int argc, char **argv) {
 		/* save the url for later use, if required */
 		setBrowserURL (argv[optind]);
 	} else {
-		ConsoleMessage ("freewrl:missing VRML/X3D file name\n");
-		exit(1);
+		/* printf ("no options  - just make BrowserURL point to nothing\n"); */
+		setBrowserURL ("");
+		return FALSE;
 	}
-
+	return TRUE;
 }
 

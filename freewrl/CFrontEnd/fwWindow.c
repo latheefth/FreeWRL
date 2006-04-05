@@ -5,16 +5,22 @@
  for conditions of use and redistribution.
 *********************************************************************/
 
-#define ABOUT_FREEWRL "FreeWRL is a VRML/X3D Browser for OS X and Unix\n\
+#define ABOUT_FREEWRL "FreeWRL Version %s\n\
+FreeWRL is a VRML/X3D Browser for OS X and Unix\n\
 \nFreeWRL is maintained by:\nJohn A. Stewart and Sarah J. Dumoulin\n\
+\nContact: freewrl-04@rogers.com\n\
+Telephone: +1 613-998-2079\nhttp://www.crc.ca/FreeWRL\n\
 \nThanks to the Open Source community for all the help received.\n\
-Communications Research Canada\n\
+Communications Research Centre\n\
 Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
 
 #include <headers.h>
+#include <vrmlconf.h>
 #include <unistd.h>
 #include "OpenGL_Utils.h"
 #include "Viewer.h"
+
+#undef XTDEBUG
 
  #include <stdlib.h>
  #include <stdio.h>
@@ -39,11 +45,21 @@ Ottawa, Ontario, Canada.\nhttp://www.crc.ca"
  #include <GL/gl.h>
  #include <GL/glu.h>
  #include <GL/glx.h>
+#include <X11/cursorfont.h>
 
 int xPos = 0; 
 int yPos = 0;
 static int screen;
 static int quadbuff_stereo_mode;
+extern Cursor arrowc, sensorc;
+
+void myXtManageChild (int c, Widget child) {
+	#ifdef XTDEBUG
+	printf ("at %d, managing %d\n",c, child);
+	#endif
+
+	if (child != NULL) XtManageChild (child);
+}
 
 
 /*
@@ -106,14 +122,15 @@ int consWindowOnscreen = FALSE;
 
 XtAppContext freewrlXtAppContext;
 Widget freewrlTopWidget, mainw, menubar,menuworkwindow;
-Widget menumessagewindow = NULL;
+Widget menumessagewindow = NULL; /* tested against NULL in code */
 Widget frame, freewrlDrawArea;
 Widget headlightButton;
 Widget collisionButton;
 Widget walkButton, flyButton, examineButton;
 Widget menumessageButton;
 Widget consolemessageButton;
-Widget consoleTextArea, consoleTextWidget;
+Widget consoleTextArea;
+Widget consoleTextWidget;
 Widget about_widget;
 Widget newFileWidget;
 
@@ -128,8 +145,12 @@ char myMenuStatus[MAXSTAT];
 void handle_Xevents(XEvent event);
 XVisualInfo *find_best_visual(int shutter,int *attributes,int len);
 
+/************************************************************************
 
-/* Set window variables from FreeWRL */
+Set window variables from FreeWRL 
+
+************************************************************************/
+
 void setMenuButton_collision (int val) {
 	XmToggleButtonSetState (collisionButton,val,FALSE);
 }
@@ -180,25 +201,33 @@ void setMenuFps (float fps) {
 }
 
 void setConsoleMessage (char *str) {
-	/* make sure console window is on screen */
-	if (!consWindowOnscreen) {
-		consWindowOnscreen = TRUE;
-		XtManageChild (consoleTextWidget); /* display console window */
-		XmToggleButtonSetState (consolemessageButton,consWindowOnscreen,FALSE); /* display blip if on */
-	}
+
+	/* is the consoleTextWidget created yet?? */
+	if (!isDisplayInitialized()) {
+		printf ("ConsoleMessage: %s\n",str);
+	} else {
+		/* make sure console window is on screen */
+		if (!consWindowOnscreen) {
+			consWindowOnscreen = TRUE;
+			myXtManageChild (1,consoleTextWidget); /* display console window */
+			XmToggleButtonSetState (consolemessageButton,consWindowOnscreen,FALSE); /* display blip if on */
+		}
 		
-	/* put the text here */
-	XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),str);
+		/* put the text here */
+		XmTextInsert (consoleTextArea, strlen(XmTextGetString(consoleTextArea)),str);
+	}
 }
+
+/************************************************************************
+
+Callbacks to handle button presses, etc.
+
+************************************************************************/
 
 /* Callbacks */
 void aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData) { 
-	XtManageChild(about_widget);
+	myXtManageChild(2,about_widget);
 }
-void freewrlHomePopup (Widget w, XtPointer data, XtPointer callData) { 
-	printf ("freewrl hp pressed\n");
-}
-
 /* quit selected */
 void quitMenuBar (Widget w, XtPointer data, XtPointer callData) { 
 	doQuit();
@@ -216,7 +245,7 @@ void ViewpointPrev (Widget w, XtPointer data, XtPointer callData) {Prev_ViewPoin
 void toggleMessagebar (Widget w, XtPointer data, XtPointer callData) {
 	msgWindowOnscreen = !msgWindowOnscreen; /* keep track of state */
 	XmToggleButtonSetState (menumessageButton,msgWindowOnscreen,FALSE); /* display blip if on */
-	if (msgWindowOnscreen) XtManageChild (menumessagewindow); /* display (or not) message window */
+	if (msgWindowOnscreen) myXtManageChild (3,menumessagewindow); /* display (or not) message window */
 	else XtUnmanageChild (menumessagewindow);
 }
 
@@ -224,7 +253,7 @@ void toggleMessagebar (Widget w, XtPointer data, XtPointer callData) {
 void toggleConsolebar (Widget w, XtPointer data, XtPointer callData) {
 	consWindowOnscreen = !consWindowOnscreen; /* keep track of state */
 	XmToggleButtonSetState (consolemessageButton,consWindowOnscreen,FALSE); /* display blip if on */
-	if (consWindowOnscreen) XtManageChild (consoleTextWidget); /* display (or not) console window */
+	if (consWindowOnscreen) myXtManageChild (30,consoleTextWidget); /* display (or not) console window */
 	else XtUnmanageChild (consoleTextWidget);
 }
 
@@ -258,7 +287,7 @@ void unManageMe (Widget widget, XtPointer client_data,
 
 /* new file popup - user wants to load a new file */ 
 void newFilePopup(Widget cascade_button, char *text, XmPushButtonCallbackStruct *cbs) {   
-	XtManageChild(newFileWidget);
+	myXtManageChild(4,newFileWidget);
 	XtPopup(XtParent(newFileWidget), XtGrabNone); 
 }
  
@@ -285,6 +314,44 @@ void GLAreainput (Widget w, XtPointer data, XtPointer callData) {
 
 	handle_Xevents(*(cd->event));
 }
+
+
+/* remove this button from this SelectionBox widget */
+
+void removeWidgetFromSelect (Widget parent, 
+	#if NeedWidePrototypes
+		unsigned int 
+	#else
+		unsigned char
+	#endif
+	button) {
+
+	Widget tmp;
+
+	tmp = XmSelectionBoxGetChild(parent, button);
+	if (tmp == NULL) {
+		printf ("hmmm - button does not exist\n");
+	} else {
+		XtUnmanageChild(tmp);
+	}
+}
+
+/* start up the browser, and point it to www.crc.ca/FreeWRL */
+void freewrlHomePopup (Widget w, XtPointer data, XtPointer callData) { 
+#define MAXLINE 2000
+	char *browser;
+	char sysline[MAXLINE];
+
+	browser = getenv("BROWSER");
+	if (browser) {
+		if (strlen(browser)>(MAXLINE-30)) return;
+		strcpy (sysline, browser);
+	} else
+		strcpy (sysline, BROWSER);
+	strcat (sysline, " http://www.crc.ca/FreeWRL &");
+	freewrlSystem (sysline);
+}
+
 
 #ifdef XTDEBUG
  /* for debugging... */
@@ -347,24 +414,24 @@ void createFilePulldown () {
 	XtAddCallback(newFileWidget, XmNokCallback, fileSelectPressed, NULL);
 	XtAddCallback(newFileWidget, XmNcancelCallback, unManageMe, NULL);
 	/* delete buttons not wanted */
-	XtUnmanageChild ((Widget) XmSelectionBoxGetChild(newFileWidget, XmDIALOG_HELP_BUTTON));
+	removeWidgetFromSelect(newFileWidget,XmDIALOG_HELP_BUTTON);
 	XtUnmanageChild(newFileWidget);
 
 
 	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
 		btn = XmCreatePushButton (menupane, "Reload", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, reloadFile, NULL);
-		XtManageChild (btn);
+		myXtManageChild (5,btn);
 		btn = XmCreatePushButton (menupane, "New...", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, newFilePopup, NULL);
-		XtManageChild (btn);
+		myXtManageChild (6,btn);
 
 		btn = XmCreatePushButton (menupane, "Quit", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, quitMenuBar, NULL);
-		XtManageChild (btn);
+		myXtManageChild (7,btn);
 	XtSetArg (args[0], XmNsubMenuId, menupane);
 	cascade = XmCreateCascadeButton (menubar, "File", args, 1);
-	XtManageChild (cascade);
+	myXtManageChild (8,cascade);
 }
 
 /* Navigate pulldown menu */
@@ -376,61 +443,61 @@ void createNavigatePulldown() {
 		/* Viewpoints */
 		btn = XmCreatePushButton (menupane, "Next Viewpoint", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointNext, NULL);
-		XtManageChild (btn);
+		myXtManageChild (9,btn);
 		btn = XmCreatePushButton (menupane, "Prev Viewpoint", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointPrev, NULL);
-		XtManageChild (btn);
+		myXtManageChild (10,btn);
 
 
 		/* Navigation Mode Selection */
-		XtManageChild(XmCreateSeparator (menupane, "sep1", NULL, 0));
+		myXtManageChild(11,XmCreateSeparator (menupane, "sep1", NULL, 0));
 
 		walkButton = XtCreateManagedWidget("Walk Mode", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback (walkButton, XmNvalueChangedCallback, (XtCallbackProc)WalkMode, NULL);
-		XtManageChild (walkButton);
+		myXtManageChild (12,walkButton);
 
 		examineButton = XtCreateManagedWidget("Examine Mode", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback (examineButton, XmNvalueChangedCallback, (XtCallbackProc)ExamineMode, NULL);
-		XtManageChild (examineButton);
+		myXtManageChild (13,examineButton);
 
 		flyButton = XtCreateManagedWidget("Fly Mode", xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback (flyButton, XmNvalueChangedCallback, (XtCallbackProc)FlyMode, NULL);
-		XtManageChild (flyButton);
+		myXtManageChild (14,flyButton);
 
 		/* Headlight, Collision */
-		XtManageChild(XmCreateSeparator (menupane, "sep1", NULL, 0));
+		myXtManageChild(15,XmCreateSeparator (menupane, "sep1", NULL, 0));
 
 		headlightButton = XtCreateManagedWidget("Headlight",
 			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback(headlightButton, XmNvalueChangedCallback, 
 			  (XtCallbackProc)Headlight, NULL);
-		XtManageChild (headlightButton);
+		myXtManageChild (16,headlightButton);
 
 		collisionButton = XtCreateManagedWidget("Collision",
 			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback(collisionButton, XmNvalueChangedCallback, 
 			  (XtCallbackProc)Collision, NULL);
-		XtManageChild (collisionButton);
+		myXtManageChild (17,collisionButton);
 	
 		/* Straighten */
-		XtManageChild(XmCreateSeparator (menupane, "sep1", NULL, 0));
+		myXtManageChild(18,XmCreateSeparator (menupane, "sep1", NULL, 0));
 		//btn = XmCreatePushButton (menupane, "Straighten", NULL, 0);
 		//XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)ViewpointStraighten, NULL);
-		//XtManageChild (btn);
+		//myXtManageChild (19,btn);
 		menumessageButton = XtCreateManagedWidget("Message Display",
 			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback(menumessageButton, XmNvalueChangedCallback, 
 			  (XtCallbackProc)toggleMessagebar, NULL);
-		XtManageChild (menumessageButton);
+		myXtManageChild (20,menumessageButton);
 		consolemessageButton = XtCreateManagedWidget("Console Display",
 			xmToggleButtonWidgetClass, menupane, buttonArgs, buttonArgc);
 		XtAddCallback(consolemessageButton, XmNvalueChangedCallback, 
 			  (XtCallbackProc)toggleConsolebar, NULL);
-		XtManageChild (consolemessageButton);
+		myXtManageChild (21,consolemessageButton);
 	
 	XtSetArg (args[0], XmNsubMenuId, menupane);
 	cascade = XmCreateCascadeButton (menubar, "Navigate", args, 1);
-	XtManageChild (cascade);
+	myXtManageChild (22,cascade);
 }
 
 void createHelpPulldown() {
@@ -438,32 +505,35 @@ void createHelpPulldown() {
 	XmString diastring;
 	int ac;
 	Arg args[10];
+	char ns[2000];
 
 
 	menupane = XmCreatePulldownMenu (menubar, "menupane", NULL, 0);
 
 		/* Helpity stuff */
 		ac = 0;
-		diastring = XmStringCreateLocalized(ABOUT_FREEWRL);
+
+		sprintf (ns,ABOUT_FREEWRL,getLibVersion());
+		diastring = XmStringCreateLocalized(ns);
 		XtSetArg(args[ac], XmNmessageString, diastring); ac++;
+		XtSetArg(args[ac], XmNmessageAlignment,XmALIGNMENT_CENTER); ac++;
 		about_widget = XmCreateInformationDialog(menubar, "about", args, ac);        
 		XmStringFree(diastring);
 		XtAddCallback(about_widget, XmNokCallback, unManageMe, NULL);
-		XtUnmanageChild ((Widget) XmSelectionBoxGetChild(about_widget, XmDIALOG_CANCEL_BUTTON));
-		//XtUnmanageChild ((Widget) XmSelectionBoxGetChild(about_widget, XmDIALOG_HELP_BUTTON));
-
+		removeWidgetFromSelect (about_widget, XmDIALOG_CANCEL_BUTTON);
+		// causes segfault on Core3 removeWidgetFromSelect (about_widget, XmDIALOG_HELP_BUTTON);
 
 
 		btn = XmCreatePushButton (menupane, "About FreeWRL...", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)aboutFreeWRLpopUp, NULL);
-		XtManageChild (btn);
+		myXtManageChild (23,btn);
 		btn = XmCreatePushButton (menupane, "FreeWRL Homepage...", NULL, 0);
 		XtAddCallback (btn, XmNactivateCallback, (XtCallbackProc)freewrlHomePopup, NULL);
-		XtManageChild (btn);
+		myXtManageChild (24,btn);
 
 	XtSetArg (args[0], XmNsubMenuId, menupane);
 	cascade = XmCreateCascadeButton (menubar, "Help", args, 1);
-	XtManageChild (cascade);
+	myXtManageChild (25,cascade);
 }
 
 /**********************************/
@@ -477,10 +547,8 @@ void createMenuBar(void) {
 	menuArgc = 0;
 	XtSetArg(menuArgs[menuArgc], XmNscrolledWindowChildType, XmMENU_BAR); menuArgc++;
 	menubar = XmCreateMenuBar (mainw, "menubar", menuArgs, menuArgc);
-	XtManageChild (menubar);
+	myXtManageChild (26,menubar);
 
-	//menuArgc = 0;
-	//XtSetArg(menuArgs[menuArgc], XmNscrolledWindowChildType, XmMESSAGE_WINDOW); menuArgc++;
 	menumessagewindow = 
 		XtVaCreateWidget ("Message:", xmTextFieldWidgetClass, mainw,
 		XmNeditable, False,
@@ -532,7 +600,7 @@ void createDrawingFrame(void) {
 	XtAddCallback (freewrlDrawArea, XmNresizeCallback, GLArearesize, NULL);
 	XtAddCallback (freewrlDrawArea, XmNinputCallback, GLAreainput, NULL);
 
-	XtManageChild(freewrlDrawArea);
+	myXtManageChild(27,freewrlDrawArea);
 }
 
 
@@ -569,7 +637,20 @@ void createGLContext(void) {
 
 	/* get window id for later calls - we use more window refs than widget refs */
 	GLwin = XtWindow(freewrlDrawArea);
-	XtManageChild(freewrlDrawArea);
+
+	/* tell the X window system that we desire the following
+	   attributes for this window */
+
+	XSelectInput (Xdpy, GLwin, 
+		ExposureMask | 
+		ButtonPressMask |
+		ButtonReleaseMask |
+		KeyPressMask |
+		KeyReleaseMask |
+		PointerMotionMask);
+
+
+	/* myXtManageChild(28,freewrlDrawArea); */
 
 	glXMakeCurrent (Xdpy, GLwin,  GLcx);
 
@@ -585,6 +666,7 @@ void createGLContext(void) {
 void openMainWindow (int argc, char **argv) {
 	int bestMode;
 	argc = 0;
+	String dummyargc[] = { " ", " "};
 
 	#ifdef DO_TWO_OPENGL_THREADS
 	XInitThreads();
@@ -593,12 +675,22 @@ void openMainWindow (int argc, char **argv) {
 	/* zero status stuff */
 	myMenuStatus[0] = '\0';
 
-	freewrlTopWidget = XtAppInitialize (&freewrlXtAppContext, "FreeWRL", NULL, 0, &argc, argv, defaultResources, NULL, 0);
+
+	freewrlTopWidget = XtAppInitialize (&freewrlXtAppContext, "FreeWRL", NULL, 0, 
+		&argc, dummyargc, defaultResources, NULL, 0);
 
 	Xdpy = XtDisplay (freewrlTopWidget);
-	Xwin = XtWindow (freewrlTopWidget);
+
+	/* do not bother mapping this, if we are a plugin. */
+	if (RUNNINGASPLUGIN) {
+		XtSetMappedWhenManaged (freewrlTopWidget,False);
+	}
+
 	bestMode = -1;
 	screen = DefaultScreen(Xdpy);
+
+	arrowc = XCreateFontCursor(Xdpy, XC_left_ptr);
+	sensorc = XCreateFontCursor(Xdpy, XC_diamond_cross);
 
 	#ifdef XF86V4
 		XF86VidModeGetAllModeLines(Xdpy, screen, &modeNum, &modes);
@@ -622,20 +714,19 @@ void openMainWindow (int argc, char **argv) {
 	getVisual();
 
 	mainw = XmCreateMainWindow (freewrlTopWidget, "mainw", NULL, 0);
-	XtManageChild (mainw);
+
+
+	myXtManageChild (29,mainw);
+printf ("1running as plugin, mainw is %d\n",XtWindow(mainw));
+printf ("1running as plugin, mainw is %d\n",XtWindowOfObject(mainw));
 
 	/* Create a menu bar. */
 	createMenuBar();
-
 
 	/* Create a framed drawing area for OpenGL rendering. */
 	createDrawingFrame();
 
 	/* Set up the application's window layout. */
-/*
-	XmMainWindowSetAreas (mainw, menubar, NULL, NULL, NULL, frame);
-*/
-
 	XtVaSetValues(mainw, 
 		XmNworkWindow, frame,
 		XmNcommandWindow,  NULL,
@@ -643,8 +734,14 @@ void openMainWindow (int argc, char **argv) {
 		XmNmessageWindow, menumessagewindow,
 		NULL);
 
+
 	XtRealizeWidget (freewrlTopWidget);
 	MainWidgetRealized = TRUE;
+
+	Xwin = XtWindow (freewrlTopWidget);
+	if (RUNNINGASPLUGIN) {
+		sendXwinToPlugin(Xwin);
+	}
 }
 
 void setGeometry (const char *gstring) {
@@ -714,6 +811,10 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
    }
    free(attrib_mem);
    return(NULL);
+}
+
+int isDisplayInitialized (void) {
+	return  (MainWidgetRealized);
 }
 
 

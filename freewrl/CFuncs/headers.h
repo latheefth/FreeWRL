@@ -613,6 +613,7 @@ extern void setStereoParameter (const char *optArg);
 extern void setEyeDist (const char *optArg);
 
 extern int isPerlinitialized(void);
+extern int isDisplayInitialized(void);
 extern char *BrowserName, *BrowserVersion, *BrowserURL, *BrowserFullPath; /* defined in VRMLC.pm */
 extern char *lastReadFile; 		/* name last file read in */
 extern int be_collision;		/* toggle collision detection - defined in VRMLC.pm */

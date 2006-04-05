@@ -23,18 +23,24 @@
 #include "Collision.h"
 #include "SensInterps.h"
 
+/* handle X11 requests, windowing calls, etc if on X11 */
 #ifndef AQUA
-#include <X11/cursorfont.h>
-#ifdef XF86V4
-#include <X11/extensions/xf86vmode.h>
-#endif
-#include <X11/keysym.h>
-#endif
+	#include <X11/cursorfont.h>
 
-#ifndef AQUA
-Cursor arrowc;
-Cursor sensorc;
-Cursor curcursor;
+	#ifdef XF86V4
+		#include <X11/extensions/xf86vmode.h>
+	#endif
+
+	#include <X11/keysym.h>
+	#include <X11/Intrinsic.h>
+
+	Cursor arrowc;
+	Cursor sensorc;
+	Cursor curcursor;
+	XEvent event;
+	extern void createGLContext();
+	extern XtAppContext freewrlXtAppContext;
+	void handle_Xevents(XEvent event);
 #endif
 
 #include <pthread.h>
@@ -46,18 +52,18 @@ char *initialFilename;
 float gl_linewidth = 1.0;
 
 #ifdef AQUA
-#include <OpenGL.h>
-CGLContextObj aqglobalContext;
-#define KeyPress        2
-#define KeyRelease      3
-#define ButtonPress     4
-#define ButtonRelease   5
-#define MotionNotify    6
-#define MapNotify       19
-#define SCURSE 1
-#define ACURSE 0
-int ccurse = ACURSE;
-int ocurse = ACURSE;
+	#include <OpenGL.h>
+	CGLContextObj aqglobalContext;
+	#define KeyPress        2
+	#define KeyRelease      3
+	#define ButtonPress     4
+	#define ButtonRelease   5
+	#define MotionNotify    6
+	#define MapNotify       19
+	#define SCURSE 1
+	#define ACURSE 0
+	int ccurse = ACURSE;
+	int ocurse = ACURSE;
 #endif
 
 int quitThread = 0;
@@ -127,7 +133,6 @@ void render_pre(void);
 void render(void);
 void setup_projection(int pick, int x, int y);
 void glPrintError(char *str);
-void handle_Xevents(XEvent event);
 void XEventStereo(void);
 void EventLoop(void);
 unsigned char*  rayHit(void);
@@ -254,10 +259,6 @@ void EventLoop() {
 			}
 		}
 	}
-
-	/* Handle X events */
-	/* JAS handle_Xevents(); */
-
 
 	#ifdef PROFILEMARKER
 	glTranslatef(3,3,3); glTranslatef (-3,-3,-3);
@@ -460,10 +461,8 @@ void EventLoop() {
 
 }
 
-
-
-void handle_Xevents(XEvent event) {
 #ifndef AQUA
+void handle_Xevents(XEvent event) {
 
 	XEvent nextevent;
 	char buf[10];
@@ -559,8 +558,8 @@ void handle_Xevents(XEvent event) {
 			}
 			break;
 	}
-#endif
 }
+#endif
 
 /* get setup for rendering. */
 void render_pre() {
@@ -1035,26 +1034,37 @@ void setFullPath(const char* file) {
 
 /* handle all the displaying and event loop stuff. */
 void displayThread() {
-	/* printf ("displayThread, I am %d\n",pthread_self()); */
+	/* printf ("displayThread, I am %d \n",pthread_self());  */
 
         /* Create an OpenGL rendering context. */
 	#ifndef AQUA
-	extern void createGLContext();
-        createGLContext();
+		/* make the window, get the OpenGL context */
+		openMainWindow();
+        	createGLContext();
 	#endif
 
 	glpOpenGLInitialize();
 	new_tessellation();
 
 	while (1) {
+		/* loop and loop, and loop... */
 		while (!quitThread) {
+			/* FreeWRL SceneGraph */
 			EventLoop();
+
+			/* X11 Windowing calls */
+			#ifndef AQUA
+        		while (XtAppPending(freewrlXtAppContext)!= 0) {
+                		XtAppNextEvent(freewrlXtAppContext, &event);
+                		XtDispatchEvent (&event);
+			}
+			#endif
 		}
-	}
 	
-	#ifndef AQUA
-	if (fullscreen) resetGeometry();
-	#endif
+		#ifndef AQUA
+		if (fullscreen) resetGeometry();
+		#endif
+	}
 }
 
 #ifdef AQUA
@@ -1093,6 +1103,9 @@ void initFreewrl() {
 
 	if (DispThrd <= 0) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
+
+		while (!isDisplayInitialized()) { usleep(50);}
+
         	initializePerlThread(PERLPATH);
 
         	while (!isPerlinitialized()) {
@@ -1103,7 +1116,11 @@ void initFreewrl() {
         	        usleep(50);
         	}
 	}
-        perlParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
+
+	/* is there a file name to parse? (ie, does the user just want to start off with a blank screen?) */
+	if (MYINITURL != NULL) 
+		if (strlen(MYINITURL) > 1) 
+        		perlParse(FROMURL, MYINITURL, TRUE, FALSE, rootNode, offsetof(struct X3D_Group, children), &tmp, TRUE);
 }
 
 
