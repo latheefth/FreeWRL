@@ -8,6 +8,9 @@
 
 #
 # $Log$
+# Revision 1.209  2006/04/05 17:49:40  sdumoulin
+# Universal binary build
+#
 # Revision 1.208  2006/03/09 20:43:33  crc_canada
 # Initial Event Utilities Component work.
 #
@@ -521,7 +524,7 @@ sub gen {
 
 /* OS X gives us a compile warning - hopefully this will cure it for all time */
 #ifdef AQUA
-struct tm {};
+//struct tm {};
 #endif
 
 /* Perl linking */
