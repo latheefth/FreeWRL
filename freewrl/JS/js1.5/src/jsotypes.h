@@ -70,7 +70,9 @@ typedef JSIntn intn;
 #ifdef XP_UNIX
 #include <sys/types.h>
 #else
+#ifndef AQUA
 typedef JSUintn uint;
+#endif
 #endif
 
 typedef JSUintn uintn;
