@@ -1103,8 +1103,9 @@ void initFreewrl() {
 
 	if (DispThrd <= 0) {
         	pthread_create(&DispThrd, NULL, (void *) displayThread, (void*) threadmsg);
-
+#ifndef AQUA
 		while (!isDisplayInitialized()) { usleep(50);}
+#endif
 
         	initializePerlThread(PERLPATH);
 
