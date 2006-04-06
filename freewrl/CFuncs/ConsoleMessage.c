@@ -140,12 +140,7 @@ int ConsoleMessage(const char *fmt, ...) {
 		va_end(ap);				/* clean up				 */
 	}
 
-#ifdef AQUA
-	sendCM(FWbuffer);
-		printf (FWbuffer);
-		printf ("\n");
-#else
-#ifdef HAVE_MOTIF
+#ifdef HAVE_MOTIF || AQUA
 	setConsoleMessage (FWbuffer);
 
 #else
