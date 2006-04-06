@@ -151,7 +151,6 @@ int ConsoleMessage(const char *fmt, ...) {
 		printf ("\n");
 	}
 #endif
-#endif
 	return count;
 }
 
