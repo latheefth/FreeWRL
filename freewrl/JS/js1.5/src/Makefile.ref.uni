@@ -318,7 +318,7 @@ $(OBJDIR)/jsautocfg.h: $(OBJDIR)/jscpucfg
 	$(OBJDIR)/jscpucfg > $@
 
 $(OBJDIR)/jscpucfg: $(OBJDIR)/jscpucfg.o
-	$(CC) -o $@ $(OBJDIR)/jscpucfg.o
+	$(CC) $(CFLAGS) -o $@ $(OBJDIR)/jscpucfg.o
 
 # Look in OBJDIR to find jsautocfg.h
 INCLUDES   += -I$(OBJDIR)
@@ -349,9 +349,9 @@ ifdef USE_MSVC
 	@echo Warning: to use $(LIBRARY) must also link against $(FDLIBM_LIBRARY)
 	@cp $(JSMATH_PRELINK) $@
 endif
-	$(LD) $(DASH_R) -arch ppc -o Darwin_OPT.OBJ/ppcjsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
-	$(LD) $(DASH_R) -arch i386 -o  Darwin_OPT.OBJ/ijsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
-	lipo -arch ppc Darwin_OPT.OBJ/ppcjsmath.o -arch i386 Darwin_OPT.OBJ/ijsmath.o -create -output Darwin_OPT.OBJ/jsmath.o
+	$(LD) $(DASH_R) $(LDFLAGS) -o Darwin_OPT.OBJ/jsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+#	$(LD) $(DASH_R) -arch i386 -o  Darwin_OPT.OBJ/ijsmath.o $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+#	lipo -arch ppc Darwin_OPT.OBJ/ppcjsmath.o -arch i386 Darwin_OPT.OBJ/ijsmath.o -create -output Darwin_OPT.OBJ/jsmath.o
 endif
 
 # Note: generated headers must be built before descending

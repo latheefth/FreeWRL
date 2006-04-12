@@ -316,7 +316,7 @@ else
 	$(LD) $(DASH_R) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
 endif
 else
-	$(LD) $(DASH_R) -arch -i386 -arch ppc -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
+	$(LD) $(DASH_R) $(LDFLAGS) -o $@ $(JSMATH_PRELINK) $(FDLIBM_LIBRARY)
 endif
 	@$(RM) -f $(JSMATH_PRELINK)
 else
