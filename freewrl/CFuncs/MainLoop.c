@@ -51,6 +51,9 @@ char *initialFilename;
 /* linewidth for lines and points - passed in on command line */
 float gl_linewidth = 1.0;
 
+/* what kind of file was just parsed? */
+int currentFileVersion = 0;
+
 #ifdef AQUA
 	#include <OpenGL.h>
 	CGLContextObj aqglobalContext;
@@ -986,6 +989,30 @@ void glPrintError(char *str) {
 #endif
         }
 
+/* go to the first viewpoint */
+void First_ViewPoint() {
+	if (totviewpointnodes>=2) {
+		/* whew, we have other vp nodes */
+		if (currboundvpno != 0) {
+			/* have to do some work */
+			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
+			currboundvpno = 0;
+			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+		}
+	}
+}
+/* go to the first viewpoint */
+void Last_ViewPoint() {
+	if (totviewpointnodes>=2) {
+		/* whew, we have other vp nodes */
+		if (currboundvpno != (totviewpointnodes-1)) {
+			/* have to do some work */
+			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],0);
+			currboundvpno = totviewpointnodes-1;
+			send_bind_to(NODE_Viewpoint,(void *)viewpointnodes[currboundvpno],1);
+		}
+	}
+}
 /* go to the previous viewpoint */
 void Prev_ViewPoint() {
 	if (totviewpointnodes>=2) {

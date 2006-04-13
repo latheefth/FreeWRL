@@ -167,6 +167,9 @@ extern int OccQuerySize;
 /* collision */
 #undef COLLISIONVERBOSE
 
+/* External Authoring Interface */
+#undef EAIVERBOSE
+
 #ifndef AQUA
 #include <GL/glu.h>
 #else
@@ -324,6 +327,7 @@ extern int global_IFS_Coord_count;
 
 /* texture stuff - see code. Need array because of MultiTextures */
 extern GLuint bound_textures[MAX_MULTITEXTURE];
+extern GLint maxTexelUnits;
 extern int texture_count; 
 extern int     *global_tcin;
 extern int     global_tcin_count; 
@@ -333,7 +337,7 @@ extern void textureDraw_end(void);
 extern void * this_textureTransform;  /* do we have some kind of textureTransform? */
 
 extern int isTextureLoaded(int texno);
-
+extern int displayDepth;
 
 extern int _fw_pipe, _fw_FD;
 #define RUNNINGASPLUGIN (_fw_pipe != 0)
@@ -397,6 +401,10 @@ extern struct sNaviInfo naviinfo;
 /* Sending events back to Browser (eg, Anchor) */
 extern int BrowserAction;
 extern struct X3D_Anchor *AnchorsAnchor;
+extern unsigned _fw_instance;
+int checkIfX3DVRMLFile(char *fn);
+void Anchor_ReplaceWorld (char *fn);
+void EAI_Anchor_Response (int resp);
 
 /* Scripting Routing interfaces */
 
@@ -954,6 +962,8 @@ void do_TimeTrigger (void *node);
 void zeroAllBindables(void);
 void Next_ViewPoint(void);
 void Prev_ViewPoint(void);
+void First_ViewPoint(void);
+void Last_ViewPoint(void);
 
 int freewrlSystem (const char *string);
 
@@ -974,6 +984,8 @@ void kill_routing(void);
 void kill_bindables(void);
 void kill_javascript(void);
 void kill_oldWorld(int a, int b, int c);
+
+extern int currentFileVersion;
 
 
 #endif /* __HEADERS_H__ */

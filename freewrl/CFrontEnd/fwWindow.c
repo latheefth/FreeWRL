@@ -801,6 +801,9 @@ XVisualInfo *find_best_visual(int shutter,int *attributes,int len)
 	       if (attrib==0) {
 		  quadbuff_stereo_mode=1;
 	       }
+	    /* save the display depth for snapshots, etc */
+	    displayDepth = legal_depth_list[idepth];
+
 	    free(attrib_mem);
 	    return vi;
 	    }

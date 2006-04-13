@@ -26,6 +26,7 @@ EAIEventsIn.c - handle incoming EAI (and java class) events with panache.
 /* used for loadURL */
 struct X3D_Anchor EAI_AnchorNode;
 SV *EAI_newSVpv(char *str);
+int waiting_for_anchor = FALSE;
 
 /* used for reading in SVs */
 SV *sv_global_tmp;
@@ -483,6 +484,27 @@ void EAI_parse_commands (char *bufptr) {
 		#endif
 
 		switch (command) {
+			case GETRENDPROP: {
+				#ifdef EAIVERBOSE 
+				printf ("GETRENDPROP\n");
+				#endif
+
+				/* is MultiTexture initialized yet? */
+				if (maxTexelUnits < 0) init_multitexture_handling();
+
+				sprintf (buf,"RE\n%f\n%d\n%s %dx%d %d %s %d %f",TickTime,count,
+					"SMOOTH",				/* Shading */
+					global_texSize, global_texSize, 	/* Texture size */	
+					maxTexelUnits,				/* texture units */
+					"FALSE",				/* antialiased? */
+					displayDepth,				/* bit depth of display */
+					256.0					/* amount of memory left on card -
+										   can not find this in OpenGL, so
+										   just make it large... */
+					);
+				break;
+				}
+
 			case GETNAME: {
 				#ifdef EAIVERBOSE 
 				printf ("GETNAME\n");
@@ -495,6 +517,13 @@ void EAI_parse_commands (char *bufptr) {
 				printf ("GETVERSION\n");
 				#endif
 				sprintf (buf,"RE\n%f\n%d\n%s",TickTime,count,BrowserVersion);
+				break;
+				}
+			case GETENCODING: {
+				#ifdef EAIVERBOSE 
+				printf ("GETENCODING\n");
+				#endif
+				sprintf (buf,"RE\n%f\n%d\n%d",TickTime,count,currentFileVersion);
 				break;
 				}
 			case GETCURSPEED: {
@@ -581,12 +610,16 @@ void EAI_parse_commands (char *bufptr) {
 						ctmp[rb] = bufptr[ra];
 						rb ++; ra++;
 					}
+
+					/* ok, lets make a real name from this; maybe it is local to us? */
 					ctmp[rb] = 0;
+					dtmp[0] = 0;
+					makeAbsoluteFileName (dtmp, "./",ctmp);
 
 					#ifdef EAIVERBOSE 
-					printf ("CREATEVU %s\n",ctmp);
+					printf ("CREATEVU %s\n",dtmp);
 					#endif
-					ra = EAI_CreateVrml("URL",ctmp,nodarr,200);
+					ra = EAI_CreateVrml("URL",dtmp,nodarr,200);
 				}
 
 				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
@@ -724,24 +757,36 @@ void EAI_parse_commands (char *bufptr) {
 				    break;
 				}
 			    }
-			  case NEXTVIEWPOINT: {
+			  case VIEWPOINT: {
+#define EAIVERBOSE
 				#ifdef EAIVERBOSE 
-				printf ("Next Viewpoint\n");
+				printf ("Viewpoint :%s:\n",bufptr);
 				#endif
+				/* do the viewpoints. Note the spaces in the strings */
+				if (!strncmp(bufptr, " NEXT", strlen (" NEXT"))) Next_ViewPoint();
+				if (!strncmp(bufptr, " FIRST", strlen (" FIRST"))) First_ViewPoint();
+				if (!strncmp(bufptr, " LAST", strlen (" LAST"))) Last_ViewPoint();
+				if (!strncmp(bufptr, " PREV", strlen (" PREV"))) Prev_ViewPoint();
 
-				Next_ViewPoint();
 				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
 				break;
 			    }
+#undef EAIVERBOSE
 
 			case LOADURL: {
 				#ifdef EAIVERBOSE
 				printf ("loadURL %s\n",bufptr);
 				#endif
 
+				/* signal that we want to send the Anchor pass/fail to the EAI code */
+				waiting_for_anchor = TRUE;
+
+				/* make up the URL from what we currently know */
 				createLoadURL(bufptr);
 
-				sprintf (buf,"RE\n%f\n%d\n0",TickTime,count);
+
+				/* prep the reply... */
+				sprintf (buf,"RE\n%f\n%d\n",TickTime,count);
 
 				/* now tell the EventLoop that BrowserAction is requested... */
 				AnchorsAnchor = &EAI_AnchorNode;
@@ -759,8 +804,9 @@ void EAI_parse_commands (char *bufptr) {
 
 
 		/* send the response - events don't send a reply */
+		/* and, Anchors send a different reply (loadURLS) */
 		if (command != SENDEVENT) {
-			strcat (buf,"\nRE_EOT");
+			if (command != LOADURL) strcat (buf,"\nRE_EOT");
 			EAI_send_string (buf,EAIlistenfd);
 		}
 
@@ -1101,4 +1147,18 @@ SV *EAI_newSVpv(char *str) {
 	newpv->xpv_len = strlen(str)+1;
 
 	return retval;
+}
+
+/* if we have a LOADURL command (loadURL in java-speak) we call Anchor code to do this.
+   here we tell the EAI code of the success/fail of an anchor call, IF the EAI is 
+   expecting such a call */
+
+void EAI_Anchor_Response (int resp) {
+	char myline[1000];
+	if (waiting_for_anchor) {
+		if (resp) strcat (myline,"OK\nRE_EOT");
+		else strcat (myline,"FAIL\nRE_EOT");
+		EAI_send_string (myline,EAIlistenfd);
+	}
+	waiting_for_anchor = FALSE;
 }

@@ -618,6 +618,9 @@ int EAI_CreateVrml(const char *tp, const char *inputstring, unsigned *retarr, in
 	int retval;
 	UNUSED(tp);
 
+	/* tell the SAI that this is a VRML file, in case it cares later on (check SAI spec) */
+	currentFileVersion = 3;
+
 	WAIT_WHILE_PERL_BUSY;
 	if (strncmp(tp,"URL",2) ==  0) {
 			psp.type= FROMURL;

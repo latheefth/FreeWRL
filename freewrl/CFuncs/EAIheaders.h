@@ -31,11 +31,14 @@ void EAI_RW(char *bufptr);
 #define	GETURL		'O'
 #define	REPLACEWORLD	'P'
 #define	LOADURL		'Q'
+#define VIEWPOINT	'R'
 #define CREATEVS	'S'
 #define	CREATEVU	'T'
 #define	STOPFREEWRL	'U'
-#define	NEXTVIEWPOINT	'V'
 #define UNREGLISTENER   'W'
+#define GETRENDPROP	'X'
+#define GETENCODING	'Y'
+
 
 /* Subtypes - types of data to get from EAI  - we don't use the ones defined in
    headers.h, because we want ASCII characters */

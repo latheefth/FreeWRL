@@ -31,6 +31,9 @@ int fullscreen = 0;
 /* lights status. Light 0 is the headlight */
 static int lights[8];
 
+/* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
+int displayDepth = 24;
+
 
 
 /******************************************************************/

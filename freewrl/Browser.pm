@@ -274,12 +274,12 @@ sub create_common {
         # type is 0 for VRML v2, 1 for xml
 
         if ($string =~ /^#VRML V2.0/s) {
-                $type = 0;
+                $type = 3;
         } elsif($string =~ /^#VRML V1.0/s) {
                         VRML::VRMLFunc::ConsoleMessage( "VRML V1.0, I only know V2.0");
                         return;
         } elsif ($string =~/^<\?xml version/s) {
-                $type = 1;
+                $type = 4;
         } else {
                 #warn("WARNING: file $file doesn't start with the '#VRML V2.0' header line");
                 $type = 0;
@@ -289,7 +289,7 @@ sub create_common {
 	#open SAVER, ">/tmp/SAVED_FROM_FREEWRL.wrl"; print SAVER $string; close SAVER;
 
 	# is this VRML or X3D? 
-        if ($type == 1)  {
+        if ($type == 4)  {
 		if (!eval('require VRML::X3DParser')) {
 			VRML::VRMLFunc::ConsoleMessage (
 				"FreeWRL can not load the X3DParser perl module".
@@ -304,6 +304,9 @@ sub create_common {
 		VRML::Parser::parse($scene, $string);
 	}
 
+	# save the type of file, for EAI/SAI calls.
+	VRML::VRMLFunc::SaveFileType($type);
+	
 	$scene->make_executable();
 	$scene->setup_routing($this->{EV}, $this->{BE});
 	$ret = $scene->mkbe_and_array($this->{BE}, $scene);

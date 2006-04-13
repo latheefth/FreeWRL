@@ -10,7 +10,8 @@
 #include "Bindable.h"
 #include "PluginSocket.h"
 #include "Viewer.h"
-extern unsigned _fw_instance;
+#include <ctype.h>
+
 
 /* get all system commands, and pass them through here. What we do
  * is take parameters and execl them, in specific formats, to stop
@@ -154,9 +155,6 @@ int freewrlSystem (const char *sysline) {
 
 /* implement Anchor/Browser actions */
 
-int checkIfX3DVRMLFile(char *fn);
-void Anchor_ReplaceWorld (char *fn);
-
 void doBrowserAction () {
 	int count;
 	STRLEN xx;
@@ -259,6 +257,9 @@ void doBrowserAction () {
 			printf ("Could not locate url (last choice was %s)\n",filename);
 		}
 		free (filename);
+
+		/* if EAI was waiting for a loadURL, tell it it failed */
+		EAI_Anchor_Response (FALSE);
 		return;
 	}
 	/* printf ("we were successful at locating :%s:\n",filename);*/
@@ -330,19 +331,24 @@ void Anchor_ReplaceWorld (char *filename) {
 	int tmp;
 
 	/* sanity check - are we actually going to do something with a name? */
+
 	if (filename != NULL)
 		if (strlen (filename) > 1) {
-			kill_oldWorld(TRUE,TRUE,TRUE);
+			/* kill off the old world, but keep EAI open, if it is... */
+			kill_oldWorld(FALSE,TRUE,TRUE);
 
 			perlParse(FROMURL, filename,TRUE,FALSE,
 				rootNode, offsetof (struct X3D_Group, children),&tmp,
 				TRUE);
-		}
+			
+			EAI_Anchor_Response (TRUE);
+			return;
+		} 
+	EAI_Anchor_Response (FALSE);
 }
 
 
 
-#include <ctype.h>
 
 /* send in a 0 to 15, return a char representation */
 char tohex (int mychar) {

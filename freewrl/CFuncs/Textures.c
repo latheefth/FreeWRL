@@ -17,6 +17,15 @@
 #include "readpng.h"
 #include "OpenGL_Utils.h"
 
+/* lets check the max texture size */
+#define CHECK_MAX_TEXTURE_SIZE \
+	if (global_texSize==0) { \ 
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &global_texSize); \
+		/* do we want to limit this? */  \
+		/* if (global_texSize > 1024) global_texSize = 1024; */ \
+	} 
+
+
 /* we keep track of which textures have been loaded, and which have not */
 static int max_texture = 0;
 struct loadTexParams *loadparams;
@@ -130,6 +139,9 @@ int isTextureParsing() {
 /* can our OpenGL implementation handle multitexturing?? */
 void init_multitexture_handling() {
 	char *glExtensions;
+
+	/* first, lets check to see if we have a max texture size yet */
+	CHECK_MAX_TEXTURE_SIZE
 
 	glExtensions = (char *)glGetString(GL_EXTENSIONS);
 
@@ -702,12 +714,10 @@ void new_do_texture(int texno) {
 	GLint iformat;
 	GLenum format;
 
-	glBindTexture (GL_TEXTURE_2D, texno);
+	/* see if we need to get the max texture size at runtime */
+	CHECK_MAX_TEXTURE_SIZE
 
-	if (global_texSize==0) {
-		/* called in OSX from the command line, so this is not set yet */
-		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &global_texSize);
-	}
+	glBindTexture (GL_TEXTURE_2D, texno);
 
 	/* save this to determine whether we need to do material node
 	  within appearance or not */
@@ -1019,10 +1029,6 @@ int findTextureFile (int cwo, int *istemp) {
 		count = 0;
 		while (count < loadparams[cwo].url.n) {
 			thisurl = SvPV(loadparams[cwo].url.p[count],xx);
-
-void URLprint (const char *m, const char *p) ;
-URLprint ("TextureThread, thisurl is %s\n",thisurl);
-
 
 			/* check to make sure we don't overflow */
 			if ((strlen(thisurl)+strlen(mypath)) > 900) break;
