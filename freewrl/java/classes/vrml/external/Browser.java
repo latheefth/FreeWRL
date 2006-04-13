@@ -74,6 +74,9 @@ public class Browser implements BrowserInterface, IBrowser
     static int   queryno = 1;
 
 
+    // for setDescription/ getDescription
+    private String		descript = "";
+
     // Sending to FreeWRL needs to synchronize on an object;
     static Object FreeWRLToken = new Object();
 
@@ -299,6 +302,16 @@ public class Browser implements BrowserInterface, IBrowser
       return retval;
      }
 
+    // Get the current file type; check the specs for correct numbers. 
+    public int         getEncoding() {
+       String retval;
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "Y\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+      return Integer.valueOf(retval).intValue();
+    }
     // Get the current velocity of the bound viewpoint in meters/sec,
     public float         getCurrentSpeed() {
        String retval;
@@ -331,6 +344,18 @@ public class Browser implements BrowserInterface, IBrowser
          queryno += 1;
        }
       return retval;
+    }
+
+    // Get rendering properties.
+    public String        getRenderingProperties() {
+      String retval;
+       synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "X\n");
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+	System.out.println ("Global Rendering Properties: " + retval);
+	return retval;
     }
 
     // Replace the current world with the passed array of nodes
@@ -375,18 +400,42 @@ public class Browser implements BrowserInterface, IBrowser
         synchronized (FreeWRLToken) {
           EAIoutSender.send ("" + queryno + "Q" + SysString);
           retval = getVRMLreply(queryno);
+
+System.out.println  ("Sarah: Browser:loadURL, retval " + retval);
           queryno += 1;
         }
     }
 
+	// Viewpoint code. Command "R" to FreeWRL, with "FIRST" "NEXT" "PREV" "LAST" in it
+    static void do_vp(String vp) {
+      String retval;
+
+      synchronized (FreeWRLToken) {
+         EAIoutSender.send ("" + queryno + "R " + vp);
+         retval = getVRMLreply(queryno);
+         queryno += 1;
+       }
+      return;
+    }
+
+	public void firstViewpoint() {do_vp("FIRST");}
+	public void lastViewpoint() {do_vp("LAST");}
+	public void nextViewpoint() {do_vp("NEXT");}
+	public void previousViewpoint() {do_vp("PREV");}
+
+
 
     // Set the description of the current world in a browser-specific
     // manner. To clear the description, pass an empty string as argument
+    // note that FreeWRL does not display descriptions anywhere, so this
+    // command has no freewrl EAI connectivity.
     public void          setDescription(String description) {
-	// this does nothing - FreeWRL does not display the description field,
-	// nor is there any way to get the description back again, so we
-	// just call it quits and return.
+	descript = description;
       return;
+    }
+
+    public String getDescription() {
+      return descript;
     }
 
 

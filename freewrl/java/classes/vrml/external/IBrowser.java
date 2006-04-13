@@ -6,12 +6,15 @@ import vrml.external.exception.InvalidVrmlException;
 public interface IBrowser {
 	public String getName();
 	public String getVersion();
+	public int getEncoding();
 	public float getCurrentSpeed();
 	public float getCurrentFrameRate();
 	public String getWorldURL();
 	public void replaceWorld(Node[] nodes) throws IllegalArgumentException;
 	public void loadURL(String[] url, String[] parameter);
 	public void setDescription(String description);
+	public String getDescription();
+	public String getRenderingProperties();
 	public Node[] createVrmlFromString(String vrmlSyntax) throws InvalidVrmlException;
 	public void createVrmlFromURL(String[] url, Node node, String event);
 	public Node getNode(String name);
@@ -21,4 +24,8 @@ public interface IBrowser {
 	public void endUpdate();
 	public void initialize();
 	public void shutdown();
+	public void firstViewpoint();
+	public void lastViewpoint();
+	public void nextViewpoint();
+	public void previousViewpoint();
 }
